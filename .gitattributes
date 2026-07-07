@@ -1,0 +1,14 @@
+# Normalize to LF in the repo and in checkouts, on every platform.
+# CRLF translation corrupts content hashes and confuses diff-based gates
+# (KiCad files are plain text s-expressions).
+* text=auto eol=lf
+
+# True binaries
+*.png binary
+*.jpg binary
+*.pdf binary
+*.step binary
+*.wrl binary
+*.jar binary
+*.zip binary
+*.sqlite3 binary
