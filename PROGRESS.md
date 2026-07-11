@@ -10,7 +10,7 @@ Session protocol: repo `CLAUDE.md` ("run step N"). Update this file + commit at 
 | S0 | Repo bootstrap and environment | **done** | 2026-07-06 |
 | S1 | Golden board corpus | **done** | 2026-07-11 |
 | S2 | kicad-cli wrappers and gate infrastructure | **done** | 2026-07-11 |
-| S3 | Geometry library | pending | |
+| S3 | Geometry library | **done** | 2026-07-11 |
 | S4 | Verification suite part 1 (crown jewels) | pending | |
 | S5 | Verification suite part 2 + check orchestration | pending | |
 | S6 | Parts, library, datasheet tooling | pending | |
@@ -74,6 +74,8 @@ kickoff prompt to allow multi-agent workflows (higher token spend - use where ma
 | V7 | Freerouting batch flags + result parsing | LEARNINGS [freerouting] | Prior-attempt facts; re-verify on our own DSN at S11. |
 | V8 | IPC API feature coverage for placement edits (move/rotate via kipy 0.7.1 on KiCad 10) | spec P6 | Connection verified S0; edit-op coverage untested until S9. |
 | V9 | cpl-rotation mutant catchable at DFM | S2 finding, spec P9 | S2: committed cpl-rotation board does NOT fail `--schematic-parity` under 10.0.3 (manifest note stale). Designated catcher is dfm_check (S12) via CPL polarity - must not rely on parity. |
+| V10 | Flipped (back-side) footprint pad geometry | S3, spec 6.3 | geom.py mirrors local x + swaps F/B + negates angle for `(layer "B.*")` footprints, but the corpus has NO flipped fps (rf4 B.Cu pads are non-flipped J1 SMA tabs / J2 thru-hole). Validate the mirror path vs the pcbnew oracle when a back-side part first appears (S6/S7 real parts or S9 placement). |
+| V11 | "Remove unused inner via pads" not modeled | S3 | geom treats a through via as copper on ALL inner layers (matches corpus + oracle default). A board enabling JLC's inner-pad removal would over-count inner via copper. Revisit at S8 rules / S12 DFM if used. |
 
 ## S0 - Repo bootstrap and environment (2026-07-06) - DONE
 
@@ -256,3 +258,89 @@ restarted; `unset AIEE_KICAD_CLI` if a session's goldens "fail to load".
 - S13: `gate.py --commit MSG` is the per-gate-pass commit helper (SPEC section 4).
 
 **New verify-later items:** V9 (cpl-rotation not caught by parity; DFM must catch it - S12).
+
+## S3 - Geometry library (2026-07-11) - DONE
+
+**Built:**
+- `scripts/lib/geom.py` - the single geometry source for the verification suite.
+  Parses `.kicad_pcb` s-expressions (sexpdata -> nested lists; NO SWIG/IPC, pure venv)
+  into net-indexed, per-layer shapely primitives:
+  - tracks (segment + arc) as width-buffered polylines; vias as disks spanning the
+    INCLUSIVE copper range (a through via = copper on every inner layer, not just the
+    two named); pads (rect/roundrect/oval/circle) with rotation-correct absolute
+    centers; zone fills (keyhole rings -> shapely area is exact); board outline
+    (gr_rect/poly/circle, or gr_line+gr_arc polygonized).
+  - Stackup model: copper order from the board's (layers) list (top->bottom);
+    dielectric heights + epsilon_r from a (stackup) block when present, else documented
+    FR4 defaults (assumed=True, source recorded). `adjacent()`, `height_between`,
+    `epsilon_between`, `is_outer` for S4 return-path / S5 diffpair-skew.
+  - Public API for S4/S5: `net_copper(net,layer)` (union of ALL copper), `zone_fill`,
+    `layer_copper(layer,net=,exclude=)`, `net_area`/`net_area_by_layer`,
+    `tracks_of/vias_of/pads_of/zones_of(net=,layer=,ref=)`, `adjacent_copper`,
+    `layers_with_zone`, `outline`. In-process caching (memoized unions +
+    `load_board()` mtime cache).
+  - Zone-fill freshness: `assert_fresh()` (fast: raise StaleFillError on any unfilled
+    zone) and `assert_fresh(refill=True)` (diff committed fills vs a fresh
+    `kicad-cli pcb drc --refill-zones --save-board` on a temp copy - the S0 path via
+    env.py + kc.run_drc). CLI: `--pcb -> JSON summary`, exit 0/2, `--check-fill` exit 1.
+- `tests/golden/generators/area_oracle.py` - bundled-python pcbnew ground truth:
+  per-(net,layer) copper area as a SHAPE_POLY_SET union (TransformShapeToPolygon for
+  tracks/pads/vias + `zone.GetFilledPolysList(layer)`), the independent second path
+  the round-trip test measures geom against.
+- `tests/test_geom.py` - 35 tests (25 pure: parser, pad rotation/shape areas, via
+  span, stackup from-block + FR4 defaults, freshness, cache, CLI, arc sampler;
+  10 smoke: area round-trip vs oracle x3 boards, layer-order match, <5s performance,
+  S4/S5 API surface, freshness fast + refill paths).
+
+**Acceptance evidence (live 10.0.3):**
+- Copper area per net vs KiCad's own geometry (pcbnew oracle): TOTAL board copper
+  within **0.012% / 0.008% / 0.018%** (blinky2/usbbuck4/rf4); worst per-(net,layer)
+  with area >1 mm2 is **1.03%** (rf4 GND/In2.Cu, ~73 through-via disks - circle
+  faceting); full mutual net coverage (geom invents/drops nothing > 0.05 mm2). Bug
+  found + fixed mid-step: vias were read as a literal 2-layer set, dropping inner-layer
+  via copper (rf4 GND/In2 was 2.27 vs 22.66) - fixed to expand the from/to span.
+- Performance: parse + build + ALL net unions <0.13 s per board (budget 5 s).
+- Freshness: all goldens filled; blinky2's committed fill matches a fresh kicad-cli
+  refill within 2%.
+- `check.cmd` green: **93 passed** (58 prior + 35), check_env exit 0.
+
+**Deviations from spec/plan (with reasons):**
+1. Spec 6.3 "epsilon_r from board file": the corpus boards carry NO (stackup) block
+   (SWIG BuildDefaultStackupList didn't serialize one; S1 note). geom parses a stackup
+   block when present (unit-tested on a synthetic one) but falls back to documented FR4
+   defaults (epsilon_r 4.5; JLC-typical 1.6 mm split 0.165/0.67/0.165; 1 oz outer /
+   0.5 oz inner) flagged `stackup.assumed=True`. S8's stackups.yaml will supply the
+   authoritative table.
+2. "KiCad's report" of per-net copper area: kicad-cli exposes no such report, so the
+   oracle unions the SAME primitives KiCad's own engine uses (TransformShapeToPolygon +
+   GetFilledPolysList). geom and the oracle therefore agree by construction where the
+   parse is correct - the honest reading of the acceptance criterion.
+3. geom.py is a LIBRARY but also ships the spec 6 CLI contract (argparse/JSON/exit 0/2,
+   `--check-fill` exit 1) so it is callable and debuggable standalone.
+4. Chose sexpdata (pinned) over kiutils for parsing: full control over pad rotation and
+   keyhole zone rings, avoiding kiutils' documented pre-rotation-pad + cp1252 quirks
+   (LEARNINGS [python]). Parse is 45 ms on the largest board.
+5. Flipped-footprint pad mirroring implemented but corpus-unvalidated (no back-side
+   footprints exist) -> V10. "Remove unused inner via pads" DFM option not modeled -> V11.
+
+**Interface notes for later steps:**
+- Import: `sys.path.insert(0, SCRIPTS/"lib"); import geom`; then `geom.load_board(pcb)`
+  (cached) or `geom.BoardGeom.from_file(pcb)`. Everything is mm (areas mm2, lengths mm).
+- Net names keep the golden convention: local-label nets carry a leading "/" ("/MCO",
+  "/USB_DP"); power nets are bare (+3V3, GND, VBUS). `bg.nets` = nets carrying copper.
+- S4 `check_return_path`: `adjacent_copper(sig_layer)` gives the (above,below) copper
+  neighbours; `layers_with_zone(refnet)` says which are planes; `zone_fill(refnet,
+  reflayer)` is the reference pour; `layer_copper(reflayer, exclude=refnet)` is the
+  "other-net copper / voids" to test the return corridor against. Call `assert_fresh()`
+  before trusting zone geometry.
+- S4 `check_current`: `tracks_of(net)` (.width/.length/.shape) + `zone_fill(net,layer)`
+  for pour neckdown (medial-axis min width is the check's job on the returned polygon).
+- S5 `check_diffpair`: `tracks_of(net)` lengths; `stackup.epsilon_between(a,b)` +
+  `height_between` for ps skew.
+- Vias span the inclusive copper range and pads expand `*.Cu` to all copper - inner-layer
+  per-net area is therefore non-trivial; do not assume a through via touches only 2 layers.
+- Caching is in-process only (each check re-parses; <0.13 s). No disk cache - unnecessary
+  at this speed and avoids shapely-pickle staleness risk.
+
+**New verify-later items:** V10 (flipped-footprint geometry unvalidated), V11 (inner via
+pad removal not modeled).

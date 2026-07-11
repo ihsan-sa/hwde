@@ -4,7 +4,7 @@ Append-only, non-obvious gotchas. Recall by tag/keyword before touching an area.
 Entries sourced from prior attempts are marked; re-verify at first use here.
 
 ## Tags
-[windows] [kicad] [kicad-cli] [ipc] [swig] [freerouting] [easyeda2kicad] [python] [prior-attempts]
+[windows] [kicad] [kicad-cli] [ipc] [swig] [freerouting] [easyeda2kicad] [python] [prior-attempts] [geometry] [shapely]
 
 ## 2026-07-06 [windows] cp1252 console crashes on non-ASCII output
 Printing degree signs, ohms, plus-minus, emoji to a default Windows console raises
@@ -145,3 +145,34 @@ reports 0 violations under 10.0.3, contradicting manifest.yaml's note ("intentio
 DESIGNATED catcher is dfm_check (S12, CPL polarity), not parity - so this is a stale secondary claim,
 not a broken fixture. S12 must catch it via CPL/polarity validation, NOT lean on parity. Registered
 as verify-later V9.
+
+## 2026-07-11 [geometry][kicad] Pad absolute geometry: center = fp + R(-fp_angle).local; shape angle absolute
+S3-verified against pcbnew on usbbuck4/rf4 (10.0.3): in the .kicad_pcb, a pad's `(at lx ly a)` gives
+lx/ly RELATIVE to the footprint anchor (pre-rotation) and `a` is the pad's ABSOLUTE board-frame angle
+(already includes footprint orientation - a pad drawn at 0 in a fp rotated 90 is saved with pad angle
+90). Absolute center = fp_pos + R(-fp_angle).(lx,ly) where R is the standard CCW matrix (KiCad rotates
+CW for positive angle because Y points down). Probe: C10 fp(104.8,105.5,90deg), pad1 local(-0.95,0) ->
+pcbnew GetPosition (104.8,106.45) = R(-90).(-0.95,0)+fp. shapely: affinity.rotate(pt,-fp_angle,origin=0).
+All corpus pad shapes (rect/roundrect/oval/circle) are axis-symmetric, so the SHAPE rotation SIGN does
+not change the covered region (rect(+t)==rect(-t)) - only the center convention matters, and it is
+locked. Non-symmetric pads (trapezoid/custom) are absent from the corpus; validate their shape-rotation
+sign against the pcbnew oracle when first encountered. No FLIPPED footprints in the corpus either (the
+B.Cu pads are J1 SMA edge tabs + J2 thru-hole header on non-flipped fps); flip = mirror local x + swap
+F/B, implemented but corpus-unvalidated.
+
+## 2026-07-11 [geometry][kicad] KiCad-10 .kicad_pcb: net refs by NAME, no numeric net table; zone fills are keyhole rings
+Copper items reference nets as `(net "NAME")` (name only, no number) - there is NO `(net N "name")` table
+in these SWIG-saved boards. geom.py resolves a net node by taking its trailing string, falling back to a
+number->name table if present (robust to both KiCad formats). Zone fill = one or more `(filled_polygon
+(layer L) (pts ...))` blocks; holes are stitched into the outer ring via zero-width keyhole slits, so
+`shapely.Polygon(pts).area` gives the correct filled area directly (validated vs zone.GetFilledArea).
+Multi-layer zones emit one filled_polygon per layer (group by the block's own `(layer)` tag, authoritative).
+An unfilled zone has an outline but zero filled_polygon blocks -> geom flags it (freshness gate).
+
+## 2026-07-11 [shapely] Per-net copper = union of tracks(buffered)/pads/vias/zone-fills; oracle via TransformShapeToPolygon
+S3 round-trip: build per-(net,layer) copper as unary_union of track LineString.buffer(w/2,round),
+via Point.buffer(size/2), pad shape polys, and zone filled polys, then `.area` (mm^2; file is already mm).
+Ground truth = pcbnew: for the same net/layer, BooleanAdd each track/pad/via TransformShapeToPolygon +
+zone.GetFilledPolysList(layer) into a SHAPE_POLY_SET, Simplify, `.Area()`/1e12. Both sides union the SAME
+KiCad primitives so they agree tightly on big nets (GND pours <0.5%); tiny signal nets differ more in %
+(pad-corner faceting) but negligibly in absolute mm^2 - test tolerances are relative-with-absolute-floor.
