@@ -8,7 +8,7 @@ Session protocol: repo `CLAUDE.md` ("run step N"). Update this file + commit at 
 | Step | Title | Status | Date |
 |---|---|---|---|
 | S0 | Repo bootstrap and environment | **done** | 2026-07-06 |
-| S1 | Golden board corpus | pending | |
+| S1 | Golden board corpus | **done** | 2026-07-11 |
 | S2 | kicad-cli wrappers and gate infrastructure | pending | |
 | S3 | Geometry library | pending | |
 | S4 | Verification suite part 1 (crown jewels) | pending | |
@@ -66,8 +66,8 @@ kickoff prompt to allow multi-agent workflows (higher token spend - use where ma
 | # | Claim | Source | Status |
 |---|---|---|---|
 | V1 | DSN export / SES import via SWIG | spec P7, S11 | S0: pcbnew imports + board roundtrip + Export/Import symbols PRESENT on 9.0.5 and 10.0.3. Full export smoke incl. wx-assert suppression (LEARNINGS [swig]) at S11. |
-| V2 | kicad-sch-api output opens in KiCad 10 | spec sec 9, S7 | Untested. 0.5.6 installed; smoke first thing in S7 (`sch upgrade` available on the 10.0.3 pin). |
-| V3 | `drc --refill-zones` availability | spec sec 1 | RESOLVED S0: absent on 9.0.5, present on 10.0.3 (a pin-decision driver). Behavior on a real zoned board: verify at S3 (zone freshness) / S11 (post-SES refill). |
+| V2 | kicad-sch-api output opens in KiCad 10 | spec sec 9, S7 | S1: YES - three generated schematics ERC-clean under kicad-cli 10.0.3, netlists export, boards pass --schematic-parity. Quirks in LEARNINGS [python] (global labels silently dropped, pin renumbering, mid-wire pins do not connect). S7 builds on this. |
+| V3 | `drc --refill-zones` availability | spec sec 1 | RESOLVED S0/S1: verified on real zoned boards (2- and 4-layer goldens): fills + persists via --save-board, plain DRC clean afterwards; the pipeline's ONLY working headless fill (ZONE_FILLER segfaults, LEARNINGS [swig]). S11 re-checks post-SES. |
 | V4 | kipy `headless=True` starts `kicad-cli api-server` | spec sec 1 | RESOLVED S0: NO api-server subcommand in 9.0.5/10.0.3; kipy 0.7.1's server helper targets newer KiCad. Working IPC: sandboxed-GUI launch (smoke_ipc.py, verdict `gui-sandboxed-ok`). Headless alternative: SWIG bundled python. Decide edit path at S9. |
 | V5 | JLCPCB Parts API (credentialed) | spec sec 1, S6 | Needs access application; jlcparts SQLite fallback path untested. S6. |
 | V6 | JLCDFM upload (no public API) | spec P9 | Semi-manual by design; S12. |
@@ -125,3 +125,75 @@ pythons; ExportSpecctraDSN/ImportSpecctraSES present on both. `check_env.py --fu
   script (check_env does this; copy the pattern).
 
 **New verify-later items:** V7, V8 (registered above).
+
+## S1 - Golden board corpus (2026-07-11) - DONE
+
+**Built:** three generated golden boards (schematic + board from ONE design module each, so
+netlists match by construction) in `tests/golden/`:
+- `blinky2` - 2-layer STM32F103C8 blinky: AMS1117-3.3, 8 MHz crystal (Crystal_GND24 3225),
+  LED chain, SWD + 5V headers, B.Cu GND pour + F.Cu fan-out pour. 16 fps, 60 track segs, 25 vias.
+- `usbbuck4` - 4-layer (Sig/GND/Pwr/Sig) STM32F103 USB-FS device: AP63203 buck, micro-B, USB
+  diff pair, MCO clock-out header with F->B transition + return via at (141.9,123.4), In2 = 3V3
+  plane + VBUS island + GND strip under the MCO B.Cu corridor.
+- `rf4` - 4-layer sub-GHz front end: RFM95W-868S2 module, pi match (C-L-C), 0.35 mm 50-ohm feed
+  at y=122 over solid In1 GND to an edge-mount SMA, coplanar F.Cu pour, ~90 vias (fence rows,
+  perimeter ring, module field) as the S4 performance stress case.
+All three: `kicad-cli sch erc` = 0, `pcb drc --schematic-parity --severity-all` = 0 (warnings
+included). Renders eyeballed (kicad-cli pcb render).
+
+**Generator infra** (`tests/golden/generators/`): `gen.py` (driver: sch -> netlist -> netmap ->
+board -> refill -> ERC/DRC report, exit 0/1/2), `sch_build.py` (kicad-sch-api: grid-snapped pin
+stubs + local labels, power-rail clusters with PWR_FLAG endpoints, pin-number fixups, minimal
+.kicad_pro authority), `pcb_build.py` (bundled-python SWIG: footprints/tracks/vias/zones/silk from
+the design module, pad nets from the netlist netmap, --pads-out coordinate dumps), plus
+`design_<board>.py` modules (stdlib-only, imported by both builders).
+
+**Mutants** (`tests/golden/mutations/*.py` -> committed under `tests/golden/mutants/<name>/`):
+7 deterministic text-surgery scripts (exact-match asserts, fixed UUIDs, kicad-cli refill;
+double-run byte-identical): plane-split-under-clock (rf4 In1 keepout slot under the feed, fill
+area drop 15.4 mm^2 verified), missing-return-via (usbbuck4 MCO transition), undersized-power-
+trace (blinky2 3V3 neck 0.8->0.16 mm, DRC-quiet vs 0.127 floor), decoupler-moved (blinky2 C1
+15.7 mm from U1.48, legally rewired), diffpair-skew (usbbuck4 +6.2 mm DM meander), silk-over-pad
+(blinky2 D1), cpl-rotation (blinky2 D1 180 deg + pad-net swap = mounted backwards). All mutants
+DRC-quiet except silk-over-pad's 2 intended silk warnings; cpl-rotation intentionally fails
+--schematic-parity (that inconsistency IS the defect; documented in manifest).
+
+**Manifest:** `tests/golden/manifest.yaml` - every mutant -> designated check + expected
+net/layer/coordinates/thresholds (the S4/S5/S12 acceptance arbiter). Checks referenced:
+check_return_path x2, check_current, check_decoupling, check_diffpair, check_silk, dfm_check.
+
+**Tests:** `tests/test_golden.py` (25 tests; live-toolchain ones marked `smoke`): goldens
+ERC/DRC/parity clean, saved fills present, each mutation deterministic + effective, committed
+mutants present, manifest complete/consistent. `check.cmd` green (29 tests, ~60 s).
+
+**Deviations from spec/plan (with reasons):**
+1. rf4 uses an RFM95W module + discrete pi match instead of a bare QFN transceiver: AX5043's
+   symbol has two power_out VDD_ANA pins (tying them is an ERC error by pin matrix); CC1200's
+   0.5 mm-pitch 32-QFN fan-out was not hand-routable to DRC-clean within session budget. The
+   module still provides every S1 mutant target (50-ohm feed over In1, matching parts, via
+   density) and spec 6.5 only asks for a "4-layer RF" fixture.
+2. Boards drawn minimally via generator scripts rather than sourced from open designs (plan
+   allows either): generation keeps the corpus hermetic (embedded symbols/footprints, severity
+   config in checked-in .kicad_pro) and makes regeneration + mutation reproducible.
+3. Goldens are committed AND regenerable; regeneration reassigns UUIDs, so after any
+   `gen.py --board X` run the mutation scripts must be re-run (test suite only hashes
+   script-output determinism, not committed bytes).
+4. cpl-rotation mutant is representable on the board only as a polarity inconsistency (see
+   manifest note); the "pure CPL file" variant belongs to S12's bom_cpl outputs.
+5. kicad-sch-api wheel is 0.5.6 as pinned (its __version__ string lies "0.5.5").
+
+**Interface notes for later steps:**
+- S2: normalize wrappers against these boards; ERC/DRC JSON parsing patterns (incl. multiline
+  netlist regex, exit-code-equals-count) already exist in generators/gen.py - lift from there.
+- S3: goldens carry SAVED fills (test-guarded); zone-freshness work can diff against
+  `--refill-zones --save-board` output. Stackup: 4-layer boards have default-stackup dielectric
+  constants only (SetStackupDescriptor path failed under SWIG; note in pcb_build).
+- S4/S5/S12: `manifest.yaml` is the acceptance contract; net names from local labels carry a
+  leading "/" ("/MCO", "/USB_DP"); power nets are bare (+3V3, GND, VBUS). Expected regions/
+  thresholds per mutant recorded there.
+- Regen flow: `gen.py --board <b> --parity` (all three) then re-run all 7 mutation scripts.
+- Board-gen for S7-S11: pcb_build.py's design-module contract (tracks/vias/zones/silk dicts) and
+  sch_build.py's conventions (grid snap, stub+label, rails, fixups) are reusable as-is.
+
+**New verify-later items:** none added; V2 evidenced (full resolution at S7), V3 resolved for
+generation-side fills (S11 re-checks after SES import).
