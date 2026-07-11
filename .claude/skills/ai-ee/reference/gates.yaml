@@ -1,0 +1,54 @@
+# Pipeline gates - machine pass/fail criteria evaluated by scripts/gate.py.
+#
+# A gate names a kicad-cli report to run (via kc.py) and the criteria that make
+# it pass. The orchestrator (SPEC.md sections 3-4) runs a gate at each [G] edge;
+# on pass it git-commits (gate.py --commit), on fail it clusters violations and
+# dispatches fixers, then re-runs the same gate.
+#
+# Gate fields:
+#   phase        pipeline phase this gate guards (documentation)
+#   tool         kc.py report to run: "erc" (needs a .kicad_sch) or
+#                "drc" (needs a .kicad_pcb)
+#   drc_options  for tool: drc - {parity, all_track_errors} (both default false;
+#                gates never refill/save, so evaluation cannot mutate the board)
+#   fail_severities  severities that count toward failure (default [error]).
+#                    "clean" gates include warning.
+#   max_count    max counted violations allowed to still pass (default 0)
+#   description  one line
+#
+# Evaluation: a gate FAILS when the number of violations whose severity is in
+# fail_severities exceeds max_count. Those are echoed in the gate result as
+# `failing` (with coordinates) for the fixer dispatch.
+#
+# Only the gates that S2's wrappers can evaluate are defined here. Later steps
+# append their own: verify (S5, verify_all.py aggregate), dfm (S12, dfm_check.py).
+# place_overlap (P6) needs S9 placement metrics; routed (P7 "100% routed") is
+# covered by drc_routed's parity + unconnected check.
+
+version: 1
+
+gates:
+  erc:
+    phase: P4
+    tool: erc
+    fail_severities: [error, warning]   # SPEC P4: ERC "must be clean"
+    max_count: 0
+    description: Schematic ERC clean (errors and warnings; waivers are manual).
+
+  drc:
+    phase: P6
+    tool: drc
+    drc_options: {parity: false, all_track_errors: false}
+    fail_severities: [error]
+    max_count: 0
+    description: Board DRC has no error-level violations (interim placement gate).
+
+  drc_routed:
+    phase: P7
+    tool: drc
+    drc_options: {parity: true, all_track_errors: true}
+    fail_severities: [error, warning]
+    max_count: 0
+    description: >-
+      Fully routed and clean: DRC + schematic parity + all track errors, zero
+      violations at any severity (SPEC P7 "100% routed, DRC=0").

@@ -9,7 +9,7 @@ Session protocol: repo `CLAUDE.md` ("run step N"). Update this file + commit at 
 |---|---|---|---|
 | S0 | Repo bootstrap and environment | **done** | 2026-07-06 |
 | S1 | Golden board corpus | **done** | 2026-07-11 |
-| S2 | kicad-cli wrappers and gate infrastructure | pending | |
+| S2 | kicad-cli wrappers and gate infrastructure | **done** | 2026-07-11 |
 | S3 | Geometry library | pending | |
 | S4 | Verification suite part 1 (crown jewels) | pending | |
 | S5 | Verification suite part 2 + check orchestration | pending | |
@@ -73,6 +73,7 @@ kickoff prompt to allow multi-agent workflows (higher token spend - use where ma
 | V6 | JLCDFM upload (no public API) | spec P9 | Semi-manual by design; S12. |
 | V7 | Freerouting batch flags + result parsing | LEARNINGS [freerouting] | Prior-attempt facts; re-verify on our own DSN at S11. |
 | V8 | IPC API feature coverage for placement edits (move/rotate via kipy 0.7.1 on KiCad 10) | spec P6 | Connection verified S0; edit-op coverage untested until S9. |
+| V9 | cpl-rotation mutant catchable at DFM | S2 finding, spec P9 | S2: committed cpl-rotation board does NOT fail `--schematic-parity` under 10.0.3 (manifest note stale). Designated catcher is dfm_check (S12) via CPL polarity - must not rely on parity. |
 
 ## S0 - Repo bootstrap and environment (2026-07-06) - DONE
 
@@ -197,3 +198,61 @@ mutants present, manifest complete/consistent. `check.cmd` green (29 tests, ~60 
 
 **New verify-later items:** none added; V2 evidenced (full resolution at S7), V3 resolved for
 generation-side fills (S11 re-checks after SES import).
+
+## S2 - kicad-cli wrappers and gate infrastructure (2026-07-11) - DONE
+
+**Built** (all under `.claude/skills/ai-ee/`):
+- `scripts/kc.py` - the single place that drives kicad-cli and reads its JSON. Subcommands:
+  `erc`, `drc` (-> normalized violations, exit 1 if any); `gerbers`, `drill`, `pos`, `step`,
+  `render`, `sch-pdf`, `netlist` (export wrappers, exit 2 on failure). Normalized violation
+  schema `{check, severity, pos, layer, net, refs, msg}` (+ `source`, `items` for traceability).
+  Importable: `run_erc/run_drc/render_png/export_*` functions and the pure parsers
+  (`parse_drc_data`, `parse_erc_data`, `normalize_violation`) used by gate.py, render.py, tests.
+- `scripts/render.py` - SPEC 6.2 multi-view wrapper (`--views top,bottom,iso --w 2400`),
+  thin driver over `kc.render_png`; consistent `<stem>_<view>.png` naming for VLM review.
+- `scripts/gate.py` - `--gate <name>` from gates.yaml: runs the gate's kc report (or `--report`
+  a pre-made one), evaluates, exit 0/1/2. `--list` lists gates. `--commit MSG` = the
+  git-commit-on-gate-pass helper (stages+commits only on pass, skips when clean, never pushes).
+- `reference/gates.yaml` - gate definitions S2 can evaluate: `erc` (P4, clean=err+warn),
+  `drc` (P6, err only), `drc_routed` (P7, parity+all-track-errors, err+warn). Later gates
+  (verify S5, dfm S12) append here.
+- `tests/test_kc_gate.py` - 29 tests (11 pure normalizer/gate-logic + git-helper, 18 `smoke`).
+
+**Smoke/acceptance evidence** (live 10.0.3): kc erc+drc report `status:pass`, `total:0` on all
+three goldens; `erc`/`drc_routed` gates PASS on all three. Seeded a track_width ERROR (narrow a
+golden segment to 0.05 mm < 0.127 floor) -> `gate.py --gate drc` FAILS exit 1 with the violation
+at the narrowed segment's coordinates (net + pos verified). `check.cmd` green: **58 passed**,
+check_env exit 0.
+
+**Environment fix (machine state):** a persistent User-level `AIEE_KICAD_CLI` pinned KiCad 9.0.5,
+which cannot load the 10-format goldens (exit 3, no report) - it silently overrode the documented
+10.0.3 pin. Removed it (user: "do what you think best"); env.py now resolves 10.0.3 by preference.
+See LEARNINGS [kicad-cli][windows]. An already-open shell still inherits the old value until
+restarted; `unset AIEE_KICAD_CLI` if a session's goldens "fail to load".
+
+**Deviations from spec/plan (with reasons):**
+1. No separate `lib/` normalizer module: the normalized schema + parsers live in `kc.py` and are
+   imported by gate.py/render.py/tests (repo pattern: gen.py imports sch_build/pcb_build). One
+   source of truth for kicad-cli JSON without a thin extra module.
+2. `render` exists BOTH as a `kc.py` subcommand (single view) and as `render.py` (the SPEC 6.2
+   multi-view `--views` entry the P6/P8 agents call by name). render.py delegates to
+   `kc.render_png`; no logic duplicated.
+3. gates.yaml holds only the three gates S2 can actually evaluate; `verify` (S5) and `dfm` (S12)
+   gates are deferred to their steps (documented in the file header), not stubbed.
+4. Gates never refill/save zones - evaluation must not mutate the board. The routing flow's
+   refill is a separate explicit op (route_auto.py, S11), not a gate side effect.
+
+**Interface notes for later steps:**
+- Normalized violation schema is the pipeline-wide contract (S4/S5 checks emit the SAME shape;
+  cluster_violations.py groups on region/net/type; fixers read pos/net/refs). Import parsers from
+  `scripts/kc.py`. Nets keep the golden convention (local-label nets `/NAME`, power nets bare).
+- kc.py `run_drc(cli, pcb, parity=, all_track_errors=, refill=, save_board=)`; `run_erc(cli, sch)`.
+  Both return `{status, counts{total,by_severity,by_source}, violations[]}`.
+- gate.py `evaluate(name, gate_dict, kc_report) -> result`; `run_report_for_gate(gate, input)`;
+  `git_commit_on_pass(msg, cwd)`. gates.yaml gate = `{phase, tool:erc|drc, drc_options,
+  fail_severities, max_count, description}`. Orchestrator (S13) reads gates.yaml for the gate table.
+- S12 fab: kc.py exports are thin/JLC-agnostic (Protel ext, X2, layer sets = fab_export.py's job);
+  `pos` is forced to mm (kicad-cli default is inches). Reuse `export_gerbers/drill/pos/step`.
+- S13: `gate.py --commit MSG` is the per-gate-pass commit helper (SPEC section 4).
+
+**New verify-later items:** V9 (cpl-rotation not caught by parity; DFM must catch it - S12).

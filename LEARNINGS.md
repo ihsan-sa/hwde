@@ -117,3 +117,31 @@ mutants. Mutants must be re-run whenever goldens regenerate (gen.py assigns fres
 --quality high. With --exit-code-violations the exit CODE equals the violation count (saw exit 5
 = 5 violations) - treat nonzero as "has violations", never as errno. `sch export netlist --format
 kicadsexpr` emits multiline-formatted s-exprs (regex across lines, see gen.py parse_netlist).
+
+## 2026-07-11 [kicad-cli][windows] A stale persistent AIEE_KICAD_CLI silently pins the WRONG KiCad
+S2 start: env.find_kicad_cli() resolved 9.0.5, not the 10.0.3 pin, because a User-level (registry)
+`AIEE_KICAD_CLI` env var pointed at 9.0 - it takes precedence over env.py's 10.x preference (by
+design: the documented "flip the pin" override). But 9.0 CANNOT load 10-format goldens (version
+20260206): kicad-cli exits 3 "Failed to load board" and writes NO json report, so any wrapper that
+reads the report file dies on FileNotFoundError. Removed it via
+`[Environment]::SetEnvironmentVariable("AIEE_KICAD_CLI",$null,"User")` (old value
+C:\Program Files\KiCad\9.0\bin\kicad-cli.exe). NOTE: a persistent User var is INHERITED by an
+already-running shell - deleting the registry value does not clear it from the current process;
+`unset AIEE_KICAD_CLI` per shell too. If goldens suddenly "fail to load", suspect this first.
+
+## 2026-07-11 [kicad-cli] DRC/ERC JSON: layer/net/refdes are embedded in item description strings
+kicad-cli violation objects are `{type, severity, description, items:[{description, pos{x,y},
+uuid}]}`. There are NO separate layer/net/ref fields - they live in the item description text:
+"Pad 1 [GND] of D1 on F.Cu" -> net in [brackets], layer after " on ", refdes = [A-Z]{1,4}\d+ (strip
+[brackets] FIRST or bracketed pin names like [PB0] get mis-read as refdes). DRC report has three
+parallel sections that share this shape and must be merged: violations + unconnected_items +
+schematic_parity; ERC nests per sheet under sheets[].violations. `--severity-all` is required or
+warnings are omitted. Normalizer + parsers: scripts/kc.py (parse_drc_data / parse_erc_data).
+
+## 2026-07-11 [kicad] cpl-rotation mutant does NOT fail --schematic-parity (manifest note is wrong)
+S2 spot-check: `pcb drc --schematic-parity` on the committed tests/golden/mutants/cpl-rotation board
+reports 0 violations under 10.0.3, contradicting manifest.yaml's note ("intentionally fails
+--schematic-parity too"). The board IS mutated (test_golden proves it differs from golden), and its
+DESIGNATED catcher is dfm_check (S12, CPL polarity), not parity - so this is a stale secondary claim,
+not a broken fixture. S12 must catch it via CPL/polarity validation, NOT lean on parity. Registered
+as verify-later V9.
