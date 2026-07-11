@@ -33,7 +33,9 @@ mutants:
     check: check_return_path
     defect: In1 reference plane slotted under the RF feed
     expect:
-      net: RF_FEED
+      # S4 fix: the board net is "/RF_FEED" (local label -> leading slash per
+      # the convention above); the S1 entry missed the prefix
+      net: /RF_FEED
       layer: In1.Cu
       # violation polygon must intersect the slot
       region: {x: [133.0, 134.4], y: [116.5, 127.5]}

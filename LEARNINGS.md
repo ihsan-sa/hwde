@@ -190,3 +190,23 @@ Ground truth = pcbnew: for the same net/layer, BooleanAdd each track/pad/via Tra
 zone.GetFilledPolysList(layer) into a SHAPE_POLY_SET, Simplify, `.Area()`/1e12. Both sides union the SAME
 KiCad primitives so they agree tightly on big nets (GND pours <0.5%); tiny signal nets differ more in %
 (pad-corner faceting) but negligibly in absolute mm^2 - test tolerances are relative-with-absolute-floor.
+
+## 2026-07-11 [geometry][shapely] Spec-literal return-path corridors FP on every legit board - 3 artifact classes
+S4: buffering the centerline by k*w (spec 6.3 step 3) and differencing the reference fill flags
+all three CLEAN goldens. The artifact classes and the shipped fixes (check_return_path.py):
+(1) round end-caps poke past the landing pad into neighbouring clearance channels -> flat-capped
+chain buffers (corridor ends where the trace ends); (2) the net's OWN via/thru-pad punches the
+plane (annular clearance void at every legal transition; containment-in-disk waivers fail at the
+CORNERS - deficit bits sit just outside any disk); (3) a lone other-net via antipad nicking the
+corridor (usbbuck4 golden: VBUS via 0.65 mm from USB_DM = 0.94 mm centerline crossing - benign at
+FS, board is clean by design). Fix for 2+3: EXCISE disks (item_r + 0.65 zone clearance) around
+every via punching the ref layer + own/refnet thru pads from the deficit, then judge the REMAINDER
+(>= 0.05 mm2); slots/moats survive excision because they are not at vias (rf4 slot mutant still
+caught at full 1.4 mm crossing). Severity = centerline crossing (error) vs corridor-edge nick
+(warning). Other-net THT pad FIELDS deliberately not excised (connector row under a clock is real).
+
+## 2026-07-11 [shapely] linemerge() raises ValueError on a bare LineString input
+shapely 2.1.2 ops.linemerge accepts MultiLineString/sequences but raises "Cannot linemerge
+LINESTRING(...)" when unary_union of one segment collapses to a single LineString. Guard:
+`merged = linemerge(u) if u.geom_type == "MultiLineString" else u`. Bit check_return_path on
+single-segment synthetic boards (corpus boards always had multi-segment nets, so it hid).

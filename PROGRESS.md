@@ -11,7 +11,7 @@ Session protocol: repo `CLAUDE.md` ("run step N"). Update this file + commit at 
 | S1 | Golden board corpus | **done** | 2026-07-11 |
 | S2 | kicad-cli wrappers and gate infrastructure | **done** | 2026-07-11 |
 | S3 | Geometry library | **done** | 2026-07-11 |
-| S4 | Verification suite part 1 (crown jewels) | pending | |
+| S4 | Verification suite part 1 (crown jewels) | **done** | 2026-07-11 |
 | S5 | Verification suite part 2 + check orchestration | pending | |
 | S6 | Parts, library, datasheet tooling | pending | |
 | S7 | Schematic generation | pending | |
@@ -378,3 +378,108 @@ unused `field` import, stored parse tree).
 
 Interface addition for S4/S5/S9: `bg.rule_areas` (keepouts; never copper, never "unfilled").
 Flip-fixture builder: `tests/golden/generators/flip_fixture.py` (bundled python).
+
+## S4 - Verification suite part 1, the crown jewels (2026-07-11) - DONE
+
+**kicad-happy evaluation (plan-mandated, one timeboxed subagent): implement fresh.**
+Repo exists (aklofas, MIT, active) but is an agent-skills plugin, not a library: stdlib
+radius-SAMPLING geometry (no shapely), plane-split = bbox overlap, return-via distance and all
+judgment deferred to its LLM layer; "5,800+ projects validated" = crash-free parsing, not
+detector accuracy. Wrapping = adopting a second, weaker geometry stack parallel to geom.py.
+Borrowed under MIT: IPC-2152 interpolation table, 0.7 nH/mm trace-inductance heuristic,
+threshold-ladder idea. Full brief filed: `C:/dev/ai-library/kicad-happy-analyzers-2026/`.
+
+**Built** (all on geom.py; shared plumbing `scripts/lib/checklib.py` - violation builder in the
+S2 normalized schema, report/emit/exit-code contract, CheckError -> exit 2):
+- `scripts/check_return_path.py` - per constraints high_speed net: flat-capped corridor
+  (k x width, default 3) per signal layer vs the SINGLE connected component of reference-net
+  copper on each stackup-adjacent layer (microstrip 1 ref, stripline 2); deficit polygons ->
+  violations with polygon + coords + ref layer, severity = centerline crossing (error) vs
+  corridor nick (warning). Layer transitions (signal via joining 2+ track layers): if the
+  reference (layer, net) set changes, require a same-refnet via spanning both ref layers within
+  r = c/(f_knee*20) from t_rise_ns, else return_via_radius_mm, else 2.0 mm; different ref nets ->
+  stitching-capacitor search (two-pad footprint bridging both nets within r). Unavoidable
+  single-item plane punctures are EXCISED before judging (see LEARNINGS [geometry][shapely]:
+  3 FP artifact classes - endpoint caps, own-via/THT annulus corners, lone other-net antipads;
+  fix = flat caps + disk excision, slots survive because they are not at vias).
+- `scripts/check_current.py` - per constraints power net: every track segment vs IPC-2152
+  minimum width (vendored table converted to copper AREA so inner layers scale by stackup
+  thickness; (0,0) anchor below 0.5 A ~ chart readings: 0.20 mm @ 0.4 A; dT scaling (10/dT)^0.44;
+  worst-case full-budget per segment + optional per-region `overrides` for branch currents);
+  pour neckdowns by erosion-connectivity between via attachment points (binary search, reports
+  neck width + location); via clusters (union-find, 2 mm) each need ceil(I/0.5A) vias.
+- `scripts/check_decoupling.py` - metadata-driven (schema defined here, S7 will emit it;
+  hand-written fixtures per golden board): Manhattan pad->pin (Euclidean also reported),
+  same-layer rail connectivity -> 0 or 2 rail vias, gnd leg = nearest gnd via distance,
+  loop = 0.7 nH/mm x (rail+gnd) + 1 nH/via; value classes bulk >=1uF (20/30 mm, 30/60 nH),
+  mid 10nF-1uF (10/15, 10/20), hf <10nF (5/7.5, 6/12); stale metadata (missing ref/pin/net
+  mismatch) = error violation kind=metadata_mismatch, not a crash.
+- Fixtures: `tests/golden/<board>/constraints.json` + `decoupling.json` (x3 boards) - the
+  concrete constraints.json field shapes S4 consumes (high_speed / power entries documented in
+  each script docstring; P2/S7/S13 must generate these shapes).
+- `tests/test_checks.py` - 51 tests: 30 pure (IPC interpolation/monotonicity, farads/classes,
+  severity ladders, radius formula, per-layer reference mapping, corridor artifacts on synthetic
+  boards incl. flat-cap + excision regression guards, transitions incl. stitch-cap branch, pour
+  necks, decoupling loop/via counting, stale-metadata, exit-2 on unfilled zones) + 20 corpus
+  (manifest-driven: 3 goldens x 3 checks clean, 4 S4 mutants caught with manifest coordinates,
+  3 non-S4 mutants as negative controls x 3 checks, CLI --out/exit codes/schema keys) + 1 smoke
+  (rf4 all three checks < 30 s; actual ~0.9 s total, return_path alone 0.27 s).
+
+**Acceptance evidence:** all four S4 mutants caught with correct net + coordinates
+(plane-split: /RF_FEED In1.Cu, polygon intersects manifest region, crossing 1.40 mm;
+missing-return-via: /MCO pos [141,123], nearest GND via 3.31 mm > 2.0; undersized: +3V3 exact
+segment (118.5,106.95)->(118.5,110.5) 0.16 < 0.20 mm required; decoupler-moved: C1/U1.48
+Manhattan 21.0 mm / Euclidean 15.65 mm > 15, error + loop warning). Zero violations on all
+three goldens for all three checks; diffpair-skew/silk-over-pad/cpl-rotation mutants also clean
+under S4 checks (no cross-contamination). `check.cmd` green: **155 passed** (104 prior + 51),
+check_env exit 0.
+
+**Deviations from spec/plan (with reasons):**
+1. Spec 6.3 step 2 says reference = "filled-zone polygons"; implemented as ALL reference-net
+   copper on the ref layer, then the single connected component under the corridor ("continuous
+   reference copper", step 3's own wording) - same-net stitching copper must not FP, floating
+   islands must not satisfy.
+2. Spec-literal corridors false-positive on every legitimate board (own-via antipads, endpoint
+   caps, lone other-net antipads - all three goldens fired). Shipped flat caps + single-item
+   excision (LEARNINGS entry); severity-by-crossing-length retained. Other-net THT pad FIELDS
+   deliberately not excised.
+3. IPC-2152 as a vendored interpolation table (area-based) rather than a formula: the standard
+   is chart-based; the IPC-2221 power-law with the usual external k=0.048 would MISS the
+   undersized mutant (requires only 0.085 mm @ 0.4 A). Table + (0,0) anchor matches published
+   chart readings and the corpus by construction.
+4. check_current has no per-branch current attribution (needs a source/sink graph the pipeline
+   does not have yet): worst-case full budget per segment + documented per-region overrides.
+   Corpus branch widths (0.25 mm risers @ 0.4 A -> 0.20 required) pass with margin by S1 design.
+5. check_decoupling thresholds are kicad-happy-informed but loosened to corpus reality (their
+   5 mm MED would flag the goldens' legitimate ~7 mm VDDA channel routing); manifest's 15 mm
+   hint = mid-class error threshold. Manhattan is the spec metric; the manifest's "15.7 mm" is
+   Euclidean - both emitted, both asserted.
+6. manifest.yaml plane-split net fixed RF_FEED -> /RF_FEED (S1 entry contradicted the file's own
+   net-name convention header; board net is /RF_FEED).
+7. Corpus tests are unmarked (hermetic: committed boards + pure venv, no toolchain) unlike S3's
+   conservative smoke-marking; only the timing test is `smoke`.
+
+**Interface notes for later steps:**
+- Report/violation schema: kc.py-shaped payload {script, status pass|violations|error, board,
+  counts{total,by_severity,by_source}, violations[], checked[]} + normalized violations
+  {check, severity, pos [x,y], layer, net, refs, msg, source, items} + extras (kind, polygon,
+  *_mm). S5 verify_all merges these payloads as-is; kind values: corridor_void,
+  no_reference_plane, missing_return_via, missing_stitch_cap, undersized_track, pour_neckdown,
+  insufficient_transition_vias, decoupler_distance, decoupler_loop, gnd_stub_long,
+  metadata_mismatch.
+- constraints.json shapes consumed (P2/S8/S13 generate): high_speed [{net, reference
+  str|{layer:net}, k, t_rise_ns, return_via_radius_mm}]; power [{net, current_a, dt_c,
+  via_amps, overrides[{near,radius_mm,current_a}]}]. decoupling.json: associations [{cap, ic,
+  pin, rail, gnd, value, class?, max_dist_mm?, max_loop_nh?}] - S7 must emit exactly this.
+- All three checks assert_fresh() (fast) before reading zones; --verify-fill on
+  check_return_path adds the kicad-cli refill diff. Exit 2 on stale fills/missing nets/bad
+  metadata files; stale ASSOCIATIONS are exit-1 violations.
+- checklib.py is the S5 template: implement check_diffpair/creepage/thermal/silk/pdn as
+  run(argv)->(payload,out) + cli_wrap; tests can call run() in-process (see
+  tests/test_checks.py run_check).
+- Reusable synthetic-board builders for S5 tests: tests/test_checks.py _board/_board4 +
+  fill/track/footprint sexpr snippets.
+- S7 heads-up: golden decoupling.json files are the metadata CONTRACT fixtures; regeneration
+  of goldens does not touch them, but re-associating caps (refs) would.
+
+**New verify-later items:** none. (V9 unchanged - cpl-rotation still S12's to catch.)

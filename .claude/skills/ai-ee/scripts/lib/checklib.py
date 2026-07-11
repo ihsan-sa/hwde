@@ -1,0 +1,118 @@
+"""checklib.py - shared plumbing for the S4/S5 verification checks.
+
+Every check script emits the S2 normalized violation schema (kc.py shape):
+    {check, severity, pos: [x, y] | None, layer, net, refs, msg, source, items}
+plus check-specific extra keys (kind, distances, polygons ...) that downstream
+consumers (cluster_violations.py, fixer agents) may read but must not require.
+
+Report payload shape (mirrors kc.py's run_erc/run_drc reports so gate.py and
+S5's verify_all.py can treat kicad-cli gates and custom checks uniformly):
+    {script, status: pass|violations|error, board, counts{total, by_severity,
+     by_source}, violations: [...], ...check-specific facts}
+
+Exit contract (SPEC.md section 6): 0 pass, 1 violations, 2 error.
+"""
+from __future__ import annotations
+
+import json
+import sys
+from pathlib import Path
+
+
+class CheckError(RuntimeError):
+    """The check cannot run (bad inputs, unusable board). CLI exit 2."""
+
+
+def utf8_stdout() -> None:
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
+
+def rnd(v: float, nd: int = 4) -> float:
+    return round(float(v), nd)
+
+
+def poly_coords(poly, nd: int = 3) -> list[list[float]]:
+    """Exterior ring of a shapely polygon as rounded [x, y] pairs."""
+    return [[rnd(x, nd), rnd(y, nd)] for x, y in poly.exterior.coords]
+
+
+def manhattan(a: tuple[float, float], b: tuple[float, float]) -> float:
+    return abs(a[0] - b[0]) + abs(a[1] - b[1])
+
+
+def violation(check: str, severity: str, pos, layer, net, refs, msg: str,
+              source: str, **extras) -> dict:
+    """Build one normalized violation (kc.py schema + check-specific extras)."""
+    p = [rnd(pos[0]), rnd(pos[1])] if pos is not None else None
+    v = {
+        "check": check,
+        "severity": severity,
+        "pos": p,
+        "layer": layer,
+        "net": net,
+        "refs": sorted(set(refs or [])),
+        "msg": msg,
+        "source": source,
+        "items": [{"msg": msg, "pos": p}],
+    }
+    v.update(extras)
+    return v
+
+
+def summarize(violations: list[dict]) -> dict:
+    counts = {"total": len(violations)}
+    by_sev: dict[str, int] = {}
+    by_src: dict[str, int] = {}
+    for v in violations:
+        by_sev[v["severity"]] = by_sev.get(v["severity"], 0) + 1
+        by_src[v["source"]] = by_src.get(v["source"], 0) + 1
+    counts["by_severity"] = by_sev
+    counts["by_source"] = by_src
+    return counts
+
+
+def report(script: str, board, violations: list[dict], **facts) -> dict:
+    return {
+        "script": script,
+        "status": "violations" if violations else "pass",
+        "board": Path(board).name if board else None,
+        "counts": summarize(violations),
+        "violations": violations,
+        **facts,
+    }
+
+
+def load_json(path, what: str) -> dict:
+    p = Path(path)
+    try:
+        return json.loads(p.read_text(encoding="utf-8"))
+    except OSError as exc:
+        raise CheckError(f"cannot read {what} {p}: {exc}") from exc
+    except json.JSONDecodeError as exc:
+        raise CheckError(f"{what} {p} is not valid JSON: {exc}") from exc
+
+
+def emit(payload: dict, out: str | None) -> int:
+    """Write/print the report; return the SPEC exit code for its status."""
+    text = json.dumps(payload, indent=1)
+    if out:
+        Path(out).write_text(text, encoding="utf-8")
+    else:
+        print(text)
+    return {"pass": 0, "violations": 1}.get(payload.get("status"), 2)
+
+
+def cli_wrap(script: str, fn) -> int:
+    """Run fn() -> (payload, out_path); map any exception to the exit-2
+    error JSON contract (geom.py CLI pattern)."""
+    utf8_stdout()
+    try:
+        payload, out = fn()
+    except Exception as exc:  # noqa: BLE001  (contract: any error -> exit 2)
+        print(json.dumps({"script": script, "status": "error",
+                          "error": f"{type(exc).__name__}: {exc}"}))
+        return 2
+    return emit(payload, out)
