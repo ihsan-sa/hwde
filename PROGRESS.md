@@ -74,7 +74,7 @@ kickoff prompt to allow multi-agent workflows (higher token spend - use where ma
 | V7 | Freerouting batch flags + result parsing | LEARNINGS [freerouting] | Prior-attempt facts; re-verify on our own DSN at S11. |
 | V8 | IPC API feature coverage for placement edits (move/rotate via kipy 0.7.1 on KiCad 10) | spec P6 | Connection verified S0; edit-op coverage untested until S9. |
 | V9 | cpl-rotation mutant catchable at DFM | S2 finding, spec P9 | S2: committed cpl-rotation board does NOT fail `--schematic-parity` under 10.0.3 (manifest note stale). Designated catcher is dfm_check (S12) via CPL polarity - must not rely on parity. |
-| V10 | Flipped (back-side) footprint pad geometry | S3, spec 6.3 | geom.py mirrors local x + swaps F/B + negates angle for `(layer "B.*")` footprints, but the corpus has NO flipped fps (rf4 B.Cu pads are non-flipped J1 SMA tabs / J2 thru-hole). Validate the mirror path vs the pcbnew oracle when a back-side part first appears (S6/S7 real parts or S9 placement). |
+| V10 | Flipped (back-side) footprint pad geometry | S3, spec 6.3 | **RESOLVED S3 (Fable review)**: built a SWIG-flipped fixture (flip_fixture.py); pcbnew bakes the mirror INTO the file (locals mirrored, angles negated, layers renamed B.*), so the front-side transform covers flipped parts with NO special handling. geom's original mirror+swap DOUBLE-flipped - removed; 15/15 pads exact vs pcbnew; regression test in test_geom.py. |
 | V11 | "Remove unused inner via pads" not modeled | S3 | geom treats a through via as copper on ALL inner layers (matches corpus + oracle default). A board enabling JLC's inner-pad removal would over-count inner via copper. Revisit at S8 rules / S12 DFM if used. |
 
 ## S0 - Repo bootstrap and environment (2026-07-06) - DONE
@@ -342,5 +342,39 @@ restarted; `unset AIEE_KICAD_CLI` if a session's goldens "fail to load".
 - Caching is in-process only (each check re-parses; <0.13 s). No disk cache - unnecessary
   at this speed and avoids shapely-pickle staleness risk.
 
-**New verify-later items:** V10 (flipped-footprint geometry unvalidated), V11 (inner via
-pad removal not modeled).
+**New verify-later items:** V10 (flipped-footprint geometry unvalidated - RESOLVED below), V11
+(inner via pad removal not modeled).
+
+### S3 Fable review (same day) - 3 bugs found, all fixed + regression-tested
+
+The step ran on Opus 4.8 against the recommended Fable/max; re-reviewed under Fable 5.
+Suite grew 35 -> 46 geom tests (104 total). Findings, by severity:
+
+1. **Keepout rule areas broke the freshness gate (S4 blocker).** `(zone ... (keepout ...))`
+   never carries fills, so geom counted it as an eternally-unfilled zone and `assert_fresh()`
+   raised StaleFillError on the plane-split mutant - the PRIMARY fixture check_return_path
+   must analyze. Fixed: rule areas are excluded from the zone list/freshness and exposed as
+   `BoardGeom.rule_areas` [{name, layers, outline}] metadata (S9 will want them). Verified on
+   the mutant: assert_fresh passes; In1 GND fill drop vs golden = 15.400 mm^2 (exactly the
+   S1-recorded value); rule area intersects the manifest region.
+2. **Flip transform was wrong (double mirror) - V10 falsified, then resolved.** Empirical
+   fixture (flip_fixture.py flips C10 rot-90 + J1 USB micro via pcbnew, dumps ground truth):
+   pcbnew bakes the flip into the saved file (pad locals mirrored, angles negated, layers
+   renamed B.*). geom's `lx=-lx` + F/B layer swap therefore DOUBLE-flipped: pad centers
+   mirrored about the fp origin and layers wrong side. Fixed by DELETING the special case -
+   the front-side transform is universal. 15/15 copper pads exact (incl. duplicate-numbered
+   SH shield pads); smoke test builds the fixture live each run.
+3. **Out-of-range roundrect rratio inflated pads.** rratio > 0.5 (KiCad clamps; easyeda2kicad
+   footprints can ship anything) inverted the inner box -> pad polygon LARGER than the pad
+   (2.49 vs 2.0 mm^2). Fixed: clamp r to min(w,h)/2; rratio 0.5 = stadium verified analytic.
+   (Shapely handles the 0.5 degenerate box correctly - only >0.5 was broken.)
+
+Minor (also fixed): `F&B.Cu` zone-layer shorthand now expands to F.Cu+B.Cu; explicit-stackup
+copper thicknesses are read from the block (were silently defaulted); CLI exits 2 on ANY
+error (was: unexpected exceptions escaped with a traceback), `--check-fill` failure now says
+`status:"violations"` to match exit 1; arc sampler's CW/boundary-crossing branches
+verified correct and pinned by tests (were untested); dead code removed (`_flip_layer`,
+unused `field` import, stored parse tree).
+
+Interface addition for S4/S5/S9: `bg.rule_areas` (keepouts; never copper, never "unfilled").
+Flip-fixture builder: `tests/golden/generators/flip_fixture.py` (bundled python).

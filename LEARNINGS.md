@@ -169,6 +169,20 @@ number->name table if present (robust to both KiCad formats). Zone fill = one or
 Multi-layer zones emit one filled_polygon per layer (group by the block's own `(layer)` tag, authoritative).
 An unfilled zone has an outline but zero filled_polygon blocks -> geom flags it (freshness gate).
 
+## 2026-07-11 [geometry][kicad] FLIP is baked into the file (parser must NOT mirror); keepouts never fill
+S3 Fable review, verified vs pcbnew on a SWIG-flipped usbbuck4 (C10 rot-90 + J1 USB micro: 15 copper
+pads incl. asymmetric x and duplicate "SH" numbers - all exact): pcbnew Flip() REWRITES the footprint
+block - pad local coords come out mirrored, angles negated (90 -> 270, fp 90 -> -90), pad (layers)
+renamed to B.* - so the SAME abs = fp_pos + R(-fp_angle).local formula covers front AND back parts,
+and pad copper layers are read literally. Any parser-side mirror or F/B swap DOUBLE-flips (the bug
+geom.py shipped with earlier today; fixed + regression-tested same day). CORRECTS the "flip = mirror
+local x + swap F/B" guess in the earlier [geometry] entry above. Also: rule areas
+`(zone ... (keepout ...))` NEVER carry filled_polygon blocks - any zone-freshness gate must exclude
+them or it hard-fails on every board with a keepout (the plane-split mutant, S4's PRIMARY
+check_return_path fixture, has exactly one; geom.assert_fresh() excludes rule areas and exposes them
+as BoardGeom.rule_areas metadata instead). Duplicate pad numbers in one footprint are legal (J1 has
+3x thru + 4x smd "SH") - never key pad collections by number alone.
+
 ## 2026-07-11 [shapely] Per-net copper = union of tracks(buffered)/pads/vias/zone-fills; oracle via TransformShapeToPolygon
 S3 round-trip: build per-(net,layer) copper as unary_union of track LineString.buffer(w/2,round),
 via Point.buffer(size/2), pad shape polys, and zone filled polys, then `.area` (mm^2; file is already mm).

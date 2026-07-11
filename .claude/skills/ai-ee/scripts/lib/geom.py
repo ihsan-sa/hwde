@@ -21,7 +21,9 @@ the pcbnew round-trip oracle used only by the S3 tests.
     .tracks_of(net=None, layer=None)    -> list[Track]
     .vias_of(net=None, layer=None)      -> list[Via]     (layer = spans that layer)
     .pads_of(net=None, layer=None, ref=None) -> list[Pad]
-    .zones_of(net=None, layer=None)     -> list[Zone]
+    .zones_of(net=None, layer=None)     -> list[Zone]    (copper zones only)
+    .rule_areas                         keepout areas [{name, layers, outline}]
+                                        (never copper, never "unfilled")
 
     .net_copper(net, layer)         -> (Multi)Polygon: union of ALL copper
                                        (tracks+pads+vias+zone fill) of net on layer
@@ -39,6 +41,11 @@ the pcbnew round-trip oracle used only by the S3 tests.
                                     refill=True, on fills that differ from a fresh
                                     `kicad-cli drc --refill-zones` via the S0 path)
 
+Flipped (back-side) footprints need no special handling anywhere: pcbnew bakes
+the mirror into the stored file (pad locals mirrored, angles negated, layers
+renamed to B.*), so the front-side transform applies to every footprint
+(S3-verified against a SWIG-flipped board; LEARNINGS [geometry]).
+
 Design notes are in PROGRESS.md (S3) and LEARNINGS.md [geometry].
 """
 from __future__ import annotations
@@ -47,7 +54,7 @@ import argparse
 import json
 import math
 import sys
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from functools import cached_property
 from pathlib import Path
 from typing import Iterable, Optional
@@ -274,7 +281,10 @@ def _pad_polygon(shape: str, w: float, h: float, rratio: float,
         g = (line.buffer(r, quad_segs=_QUAD_SEGS) if half > 0
              else Point(0, 0).buffer(r, quad_segs=_QUAD_SEGS))
     elif shape == "roundrect":
-        r = max(0.0, rratio) * min(w, h)
+        # KiCad clamps rratio to [0, 0.5]; malformed footprints (easyeda2kicad)
+        # can exceed it, and an unclamped r inverts the inner box -> garbage
+        # polygon LARGER than the pad. Clamp; r == min/2 is a stadium (valid).
+        r = min(max(0.0, rratio) * min(w, h), min(w, h) / 2.0)
         if r <= 0:
             g = box(-w / 2, -h / 2, w / 2, h / 2)
         else:
@@ -364,7 +374,8 @@ def _build_stackup(root, copper_layers: list[str], total_thickness: float) -> St
                     })
                 cur = name
                 acc_h, acc_er = 0.0, []
-                th = cu_th.get(name)
+                if entry["height"] > 0:  # copper thickness from the block
+                    cu_th[name] = entry["height"]
             else:
                 acc_h += entry["height"]
                 if entry["epsilon_r"]:
@@ -398,7 +409,6 @@ class BoardGeom:
 
     def __init__(self, path: Path, root: list):
         self.path = Path(path)
-        self._root = root
         self._union_cache: dict[tuple, object] = {}
 
         # ---- layers (copper order = file order, top->bottom) ----
@@ -442,6 +452,7 @@ class BoardGeom:
         self._vias: list[Via] = []
         self._pads: list[Pad] = []
         self._zones: list[Zone] = []
+        self.rule_areas: list[dict] = []  # keepout areas: {name, layers, outline}
         self._parse_tracks(root)
         self._parse_vias(root)
         self._parse_footprints(root)
@@ -482,15 +493,32 @@ class BoardGeom:
         return None
 
     def _copper_of(self, layers_node) -> tuple[str, ...]:
-        """Copper layers named by a (layers ...) node, expanding *.Cu wildcards."""
+        """Copper layers named by a (layers ...) node, expanding *.Cu wildcards
+        and the F&B.Cu front-and-back shorthand (zones/rule areas use it)."""
         out: list[str] = []
         for tok in _strs(layers_node) if layers_node is not None else []:
             if "*" in tok and tok.endswith(".Cu"):
                 out = list(self.copper_layers)
                 break
-            if tok in self._copper_set:
+            if tok == "F&B.Cu":
+                out += [n for n in ("F.Cu", "B.Cu")
+                        if n in self._copper_set and n not in out]
+                continue
+            if tok in self._copper_set and tok not in out:
                 out.append(tok)
         return tuple(out)
+
+    def _zone_layers(self, zone) -> tuple[str, ...]:
+        """Declared copper layers of a zone/rule-area node ((layers) or (layer))."""
+        layers_node = _kid(zone, "layers")
+        if layers_node is not None:
+            return self._copper_of(layers_node)
+        layer = _kid(zone, "layer")
+        if layer is not None and _strs(layer):
+            ln = _strs(layer)[0]
+            if ln in self._copper_set:
+                return (ln,)
+        return ()
 
     def _parse_tracks(self, root):
         for seg in _kids(root, "segment"):
@@ -550,8 +578,6 @@ class BoardGeom:
             fnums = _nums(at) if at is not None else [0, 0, 0]
             fx, fy = fnums[0], fnums[1]
             fangle = fnums[2] if len(fnums) > 2 else 0.0
-            layer = _kid(fp, "layer")
-            flipped = bool(_strs(layer)) and _strs(layer)[0].startswith("B.")
             ref = "?"
             for prop in _kids(fp, "property"):
                 pv = _strs(prop)
@@ -559,9 +585,16 @@ class BoardGeom:
                     ref = pv[1]
                     break
             for pad in _kids(fp, "pad"):
-                self._add_pad(pad, fx, fy, fangle, flipped, ref)
+                self._add_pad(pad, fx, fy, fangle, ref)
 
-    def _add_pad(self, pad, fx, fy, fangle, flipped, ref):
+    def _add_pad(self, pad, fx, fy, fangle, ref):
+        """Back-side (flipped) footprints need NO special handling: pcbnew
+        Flip() bakes the mirror into the stored values - pad locals are
+        already mirrored, angles negated, and the pad (layers) list renamed
+        to B.* in the file - so the same fp + R(-fp_angle).local transform
+        reproduces pcbnew's positions for front AND back parts
+        (S3-verified against a SWIG-flipped board; V10, LEARNINGS [geometry]).
+        """
         # positional: (pad "num" <type> <shape> ...)
         number = str(pad[1]) if len(pad) > 1 else "?"
         pshape = _tok(pad[3]) if len(pad) > 3 else "rect"
@@ -571,9 +604,6 @@ class BoardGeom:
             return
         lx, ly, *rest = _nums(at)
         pad_angle = rest[0] if rest else 0.0
-        if flipped:  # mirror local x, swap sides (corpus-unvalidated path)
-            lx = -lx
-            pad_angle = -pad_angle
         # absolute center = fp + R(-fangle) . (lx, ly)
         dx, dy = _rot(lx, ly, -fangle)
         center = (fx + dx, fy + dy)
@@ -582,24 +612,33 @@ class BoardGeom:
         rr = _kid(pad, "roundrect_rratio")
         rratio = _nums(rr)[0] if rr and _nums(rr) else 0.0
         layers = self._copper_of(_kid(pad, "layers"))
-        if flipped:
-            layers = tuple(_flip_layer(l) for l in layers)
         if not layers:
-            return  # no copper (e.g. NPTH mechanical pad)
+            return  # no copper (e.g. NPTH mechanical or paste-only pad)
         self._pads.append(Pad(
             ref=ref, number=number, net=self._resolve_net(pad),
             shape=pshape, size=(w, h), center=center, angle=pad_angle,
             rratio=rratio, layers=layers))
 
     def _parse_zones(self, root):
-        for i, zone in enumerate(_kids(root, "zone")):
+        zid = 0
+        for zone in _kids(root, "zone"):
+            declared = self._zone_layers(zone)
+            if _kid(zone, "keepout") is not None:
+                # Rule area: never fills, carries no copper. It must NOT enter
+                # the zone list or the freshness gate would flag it as an
+                # eternally-unfilled zone (the plane-split mutant carries one).
+                # Outline kept as metadata (S9 placement keepouts).
+                name_node = _kid(zone, "name")
+                poly_node = _kid(zone, "polygon")
+                pts = (_pts(_kid(poly_node, "pts"))
+                       if poly_node is not None and _kid(poly_node, "pts") else [])
+                self.rule_areas.append({
+                    "name": _strs(name_node)[0] if name_node and _strs(name_node) else "",
+                    "layers": declared,
+                    "outline": Polygon(pts) if len(pts) >= 3 else Polygon(),
+                })
+                continue
             net = self._resolve_net(zone) or ""
-            layer = _kid(zone, "layer")
-            layers_node = _kid(zone, "layers")
-            declared = self._copper_of(layers_node) if layers_node is not None else ()
-            if not declared and layer is not None and _strs(layer):
-                ln = _strs(layer)[0]
-                declared = (ln,) if ln in self._copper_set else ()
             fills: dict[str, list[Polygon]] = {}
             for fp in _kids(zone, "filled_polygon"):
                 fl = _kid(fp, "layer")
@@ -615,7 +654,8 @@ class BoardGeom:
                     if not poly.is_empty:
                         fills.setdefault(fln, []).append(poly)
             self._zones.append(Zone(net=net, layers=declared or tuple(fills.keys()),
-                                    fills=fills, zone_id=i))
+                                    fills=fills, zone_id=zid))
+            zid += 1
 
     def _parse_outline(self, root) -> Polygon:
         edges = []
@@ -764,7 +804,7 @@ class BoardGeom:
         for n in sorted(self.nets):
             by = self.net_area_by_layer(n)
             if by:
-                nets[n] = {round_layer: round(v, 6) for round_layer, v in by.items()}
+                nets[n] = {layer: round(v, 6) for layer, v in by.items()}
         return {
             "board": self.path.name,
             "copper_layers": self.copper_layers,
@@ -775,6 +815,9 @@ class BoardGeom:
                        "nets": len(self.nets)},
             "outline_area_mm2": round(self.outline.area, 6),
             "unfilled_zones": [z.zone_id for z in self.unfilled_zones()],
+            "rule_areas": [{"name": ra["name"], "layers": list(ra["layers"]),
+                            "area_mm2": round(ra["outline"].area, 6)}
+                           for ra in self.rule_areas],
             "net_area_mm2": nets,
         }
 
@@ -784,14 +827,6 @@ class BoardGeom:
 def _layer_name(node) -> Optional[str]:
     l = _kid(node, "layer")
     return _strs(l)[0] if l is not None and _strs(l) else None
-
-
-def _flip_layer(name: str) -> str:
-    if name.startswith("F."):
-        return "B." + name[2:]
-    if name.startswith("B."):
-        return "F." + name[2:]
-    return name
 
 
 # ============================================================ refill (S0 path)
@@ -867,18 +902,18 @@ def main(argv=None) -> int:
         out = bg.summary()
         if args.net:
             out["net_area_mm2"] = {args.net: out["net_area_mm2"].get(args.net, {})}
-    except GeomError as exc:
+    except Exception as exc:  # noqa: BLE001  (contract: any error -> exit 2)
         print(json.dumps({"script": "geom", "status": "error", "error": str(exc)}))
         return 2
-    payload = {"script": "geom", "status": "pass", **out}
+    stale = bool(args.check_fill and out["unfilled_zones"])
+    payload = {"script": "geom",
+               "status": "violations" if stale else "pass", **out}
     text = json.dumps(payload, indent=1)
     if args.out:
         Path(args.out).write_text(text, encoding="utf-8")
     else:
         print(text)
-    if args.check_fill and bg.unfilled_zones():
-        return 1
-    return 0
+    return 1 if stale else 0
 
 
 if __name__ == "__main__":

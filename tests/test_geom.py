@@ -37,9 +37,11 @@ def board_path(name: str) -> Path:
     return GOLDEN / name / f"{name}.kicad_pcb"
 
 
-# A hand-written 4-layer board covering every parser path: segment, through via,
-# rotated SMD roundrect pad, *.Cu thru-hole pad, a filled zone and an UNFILLED
-# zone, and a gr_rect outline. Coordinates chosen so areas are analytic.
+# A hand-written 4-layer board covering every parser path: segments (nets by
+# name AND by numeric table reference), through via, rotated SMD roundrect pad,
+# *.Cu thru-hole pad, a baked-flipped back-side footprint, a filled zone, an
+# UNFILLED zone, a keepout rule area, and a gr_rect outline. Coordinates chosen
+# so areas are analytic.
 SYN4 = """
 (kicad_pcb
   (version 20260206)
@@ -53,6 +55,7 @@ SYN4 = """
   (net 1 "GND")
   (gr_rect (start 0 0) (end 10 10) (stroke (width 0.1)) (fill no) (layer "Edge.Cuts"))
   (segment (start 1 1) (end 5 1) (width 0.5) (layer "F.Cu") (net "SIG"))
+  (segment (start 1 2) (end 2 2) (width 0.3) (layer "F.Cu") (net 1))
   (via (at 3 3) (size 0.6) (drill 0.3) (layers "F.Cu" "B.Cu") (net "GND"))
   (footprint "t:R"
     (at 5 5 90)
@@ -62,11 +65,21 @@ SYN4 = """
       (layers "F.Cu" "F.Mask") (roundrect_rratio 0.25) (net "SIG"))
     (pad "2" thru_hole circle (at 0.95 0 90) (size 0.9 0.9) (drill 0.4)
       (layers "*.Cu" "*.Mask") (net "GND")))
+  (footprint "t:R2"
+    (layer "B.Cu")
+    (at 8 8 -90)
+    (property "Reference" "R2" (at 0 0 0))
+    (pad "1" smd rect (at -0.5 0.2 270) (size 0.6 0.6)
+      (layers "B.Cu" "B.Mask") (net "SIG")))
   (zone (net "GND") (layer "B.Cu")
     (polygon (pts (xy 0 0) (xy 10 0) (xy 10 10) (xy 0 10)))
     (filled_polygon (layer "B.Cu")
       (pts (xy 1 1) (xy 9 1) (xy 9 9) (xy 1 9))))
   (zone (net "GND") (layer "In1.Cu")
+    (polygon (pts (xy 0 0) (xy 2 0) (xy 2 2) (xy 0 2))))
+  (zone (layer "In2.Cu")
+    (name "ka")
+    (keepout (tracks allowed) (copperpour not_allowed))
     (polygon (pts (xy 0 0) (xy 2 0) (xy 2 2) (xy 0 2))))
 )
 """
@@ -87,10 +100,10 @@ def test_layers_and_thickness(syn):
 
 
 def test_counts(syn):
-    assert len(syn.tracks_of()) == 1
+    assert len(syn.tracks_of()) == 2
     assert len(syn.vias_of()) == 1
-    assert len(syn.pads_of()) == 2
-    assert len(syn.zones_of()) == 2
+    assert len(syn.pads_of()) == 3
+    assert len(syn.zones_of()) == 2  # the keepout is NOT a zone
     assert syn.nets == {"SIG", "GND"}
 
 
@@ -98,6 +111,33 @@ def test_net_resolution_name_form(syn):
     # copper items reference nets by bare name; resolver returns that name
     assert syn.tracks_of(net="SIG")[0].net == "SIG"
     assert syn.vias_of(net="GND")[0].net == "GND"
+
+
+def test_net_resolution_numeric_form(syn):
+    # (net 1) numeric reference resolves through the root net table -> "GND"
+    gnd_tracks = syn.tracks_of(net="GND", layer="F.Cu")
+    assert len(gnd_tracks) == 1
+    assert gnd_tracks[0].width == pytest.approx(0.3)
+
+
+def test_rule_area_excluded_from_zones_and_freshness(syn):
+    # keepouts never fill; they must not count as zones or as "unfilled"
+    assert len(syn.rule_areas) == 1
+    ra = syn.rule_areas[0]
+    assert ra["name"] == "ka"
+    assert ra["layers"] == ("In2.Cu",)
+    assert ra["outline"].area == pytest.approx(4.0, abs=1e-9)
+    assert [z.zone_id for z in syn.unfilled_zones()] == [1]  # only the In1 zone
+
+
+def test_flipped_footprint_pads_are_literal(syn):
+    # pcbnew bakes the flip into the file: same transform as front side,
+    # pad layers taken literally. fp (8,8,-90), local (-0.5,0.2):
+    # center = fp + R(+90).(-0.5,0.2) = (8-0.2, 8-0.5)
+    pad = syn.pads_of(ref="R2")[0]
+    assert pad.center == pytest.approx((7.8, 7.5), abs=1e-9)
+    assert pad.layers == ("B.Cu",)
+    assert pad.net == "SIG"
 
 
 def test_via_span_is_inclusive_range(syn):
@@ -146,6 +186,21 @@ def test_rotation_preserves_area():
     assert a0 == pytest.approx(a90, rel=1e-6)
 
 
+def test_roundrect_stadium_and_rratio_clamp():
+    # rratio 0.5 (KiCad max) is a stadium: w*(h-w) + pi*(w/2)^2 for w<h
+    stadium = geom._pad_polygon("roundrect", 1.0, 2.0, 0.5, (0, 0), 0)
+    assert stadium.area == pytest.approx(1.0 + math.pi * 0.25, abs=2e-3)
+    # out-of-range rratio (malformed footprints) clamps to 0.5, never inflates
+    for rr in (0.6, 1.0, 5.0):
+        p = geom._pad_polygon("roundrect", 1.0, 2.0, rr, (0, 0), 0)
+        assert p.area == pytest.approx(stadium.area, rel=1e-9)
+    for rr in (0.0, 0.25, 0.5, 0.9):
+        assert geom._pad_polygon("roundrect", 1.0, 2.0, rr, (0, 0), 0).area <= 2.0 + 1e-9
+    # square + rratio 0.5 degenerates to a circle
+    circ = geom._pad_polygon("roundrect", 1.0, 1.0, 0.5, (0, 0), 0)
+    assert circ.area == pytest.approx(math.pi / 4, abs=2e-3)
+
+
 def test_outline_area(syn):
     assert syn.outline.area == pytest.approx(100.0, abs=1e-6)
 
@@ -158,6 +213,30 @@ def test_arc_points_quarter_circle():
     for x, y in pts:
         assert math.hypot(x, y) == pytest.approx(1.0, abs=1e-9)
     assert pts[0] == pytest.approx((1, 0)) and pts[-1] == pytest.approx((0, 1))
+
+
+@pytest.mark.parametrize("label,s,m,e", [
+    # CW quarter: 0 deg -> -45 deg -> -90 deg
+    ("cw", (1, 0), (math.cos(-math.pi / 4), math.sin(-math.pi / 4)), (0, -1)),
+    # CW crossing the +/-pi atan2 boundary: -170 -> 180 -> 170 deg
+    ("cw-cross-pi", (math.cos(math.radians(-170)), math.sin(math.radians(-170))),
+     (-1, 0), (math.cos(math.radians(170)), math.sin(math.radians(170)))),
+    # CCW crossing the boundary: 170 -> 180 -> -170 deg
+    ("ccw-cross-pi", (math.cos(math.radians(170)), math.sin(math.radians(170))),
+     (-1, 0), (math.cos(math.radians(-170)), math.sin(math.radians(-170)))),
+    # CCW major arc: 0 -> 135 -> 270 deg
+    ("ccw-major", (1, 0), (math.cos(math.radians(135)), math.sin(math.radians(135))),
+     (0, -1)),
+])
+def test_arc_points_direction_and_boundary(label, s, m, e):
+    pts = geom._arc_points(s, m, e, n=32)
+    for x, y in pts:
+        assert math.hypot(x, y) == pytest.approx(1.0, abs=1e-9), label
+    assert pts[0] == pytest.approx(s, abs=1e-9)
+    assert pts[-1] == pytest.approx(e, abs=1e-9)
+    # the sampled polyline must pass through mid (correct sweep direction)
+    dmin = min(math.hypot(x - m[0], y - m[1]) for x, y in pts)
+    assert dmin < 0.05, f"{label}: arc does not pass through mid (dmin={dmin})"
 
 
 def test_zone_fill_area(syn):
@@ -194,15 +273,17 @@ def test_adjacent_copper(syn):
 
 
 def test_stackup_from_board_block(tmp_path):
-    # An explicit (stackup) block -> parsed heights/epsilon, assumed=False.
+    # An explicit (stackup) block -> parsed heights/epsilon/copper thickness,
+    # assumed=False. Copper thicknesses differ from defaults to prove they
+    # are read from the block, not assumed.
     stackup = """    (stackup
-      (layer "F.Cu" (type "copper") (thickness 0.035))
+      (layer "F.Cu" (type "copper") (thickness 0.07))
       (layer "dielectric 1" (type "prepreg") (thickness 0.2) (epsilon_r 4.6))
-      (layer "In1.Cu" (type "copper") (thickness 0.0152))
+      (layer "In1.Cu" (type "copper") (thickness 0.018))
       (layer "dielectric 2" (type "core") (thickness 1.0) (epsilon_r 4.4))
-      (layer "In2.Cu" (type "copper") (thickness 0.0152))
+      (layer "In2.Cu" (type "copper") (thickness 0.018))
       (layer "dielectric 3" (type "prepreg") (thickness 0.2) (epsilon_r 4.6))
-      (layer "B.Cu" (type "copper") (thickness 0.035)))"""
+      (layer "B.Cu" (type "copper") (thickness 0.07)))"""
     src = SYN4.replace("(setup)", f"(setup\n{stackup}\n  )")
     p = tmp_path / "stk.kicad_pcb"
     p.write_text(src, encoding="utf-8")
@@ -210,8 +291,21 @@ def test_stackup_from_board_block(tmp_path):
     assert s.assumed is False and "stackup" in s.source
     assert [round(d["height"], 4) for d in s.dielectrics] == [0.2, 1.0, 0.2]
     assert [d["epsilon_r"] for d in s.dielectrics] == [4.6, 4.4, 4.6]
+    assert s.copper_thickness["F.Cu"] == pytest.approx(0.07)
+    assert s.copper_thickness["In1.Cu"] == pytest.approx(0.018)
     assert s.height_between("F.Cu", "In2.Cu") == pytest.approx(1.2, abs=1e-6)
     assert s.epsilon_between("In1.Cu", "In2.Cu") == pytest.approx(4.4, abs=1e-6)
+
+
+def test_fb_cu_zone_shorthand(tmp_path):
+    # (layers "F&B.Cu") = front and back, common on GUI-drawn zones/rule areas
+    src = SYN4.replace('(zone (net "GND") (layer "In1.Cu")',
+                       '(zone (net "GND") (layers "F&B.Cu")')
+    p = tmp_path / "fb.kicad_pcb"
+    p.write_text(src, encoding="utf-8")
+    bg = geom.BoardGeom.from_file(p)
+    z = [z for z in bg.zones_of() if not z.filled][0]
+    assert z.layers == ("F.Cu", "B.Cu")
 
 
 def test_stackup_2layer(tmp_path):
@@ -267,6 +361,13 @@ def test_cli_summary(tmp_path):
     assert data["status"] == "pass"
     assert data["copper_layers"] == ["F.Cu", "In1.Cu", "In2.Cu", "B.Cu"]
     assert data["unfilled_zones"] == [1]
+    assert data["rule_areas"] == [{"name": "ka", "layers": ["In2.Cu"],
+                                   "area_mm2": 4.0}]
+    # --check-fill: unfilled zone -> exit 1, status "violations"
+    out2 = tmp_path / "s2.json"
+    rc2 = geom.main(["--pcb", str(p), "--out", str(out2), "--check-fill"])
+    assert rc2 == 1
+    assert json.loads(out2.read_text(encoding="utf-8"))["status"] == "violations"
 
 
 # ============================================================ smoke: oracle round-trip
@@ -375,6 +476,65 @@ def test_goldens_are_filled():
         bg = geom.BoardGeom.from_file(board_path(name))
         assert bg.unfilled_zones() == []
         bg.assert_fresh()  # fast path: no unfilled zones
+
+
+@pytest.mark.smoke
+def test_flip_transform_matches_pcbnew(tmp_path):
+    """V10: flip two footprints (rot-90 cap + USB micro with asymmetric and
+    duplicate-numbered pads) via pcbnew, then geom's parsed pad centers,
+    copper layers, and nets must reproduce pcbnew's ground truth exactly."""
+    cli = env.find_kicad_cli()
+    if cli is None:
+        pytest.skip("no kicad-cli")
+    bp = env.find_kicad_python(cli)
+    if bp is None:
+        pytest.skip("no bundled python")
+    fixture = GOLDEN / "generators" / "flip_fixture.py"
+    flipped = tmp_path / "usbbuck4_flip.kicad_pcb"
+    dump_p = tmp_path / "pads.json"
+    cp = subprocess.run(
+        [str(bp), str(fixture), "--pcb", str(board_path("usbbuck4")),
+         "--refs", "C10,J1", "--out", str(flipped), "--dump", str(dump_p)],
+        capture_output=True, text=True, encoding="utf-8", timeout=120)
+    assert cp.returncode == 0, cp.stderr or cp.stdout
+
+    dump = json.loads(dump_p.read_text(encoding="utf-8"))["refs"]
+    bg = geom.BoardGeom.from_file(flipped)
+
+    def key(num, x, y, layers, net):
+        return (num, round(x, 4), round(y, 4), frozenset(layers), net)
+
+    for ref, info in dump.items():
+        assert info["flipped"] is True
+        truth = sorted(key(p["number"], p["at"][0], p["at"][1],
+                           p["layers"], p["net"])
+                       for p in info["pads"] if p["layers"])  # copper pads
+        mine = sorted(key(p.number, p.center[0], p.center[1],
+                          p.layers, p.net or "")
+                      for p in bg.pads_of(ref=ref))
+        assert mine == truth, f"{ref}: geom pads differ from pcbnew"
+
+
+@pytest.mark.smoke
+def test_plane_split_mutant_keepout_and_fill_drop():
+    """The S4 primary fixture: its keepout rule area must not trip the
+    freshness gate, and the In1 GND fill drop must match the S1-recorded
+    15.4 mm^2 that check_return_path will detect."""
+    mut = geom.BoardGeom.from_file(
+        GOLDEN / "mutants" / "plane-split-under-clock" / "rf4.kicad_pcb")
+    mut.assert_fresh()  # must NOT raise despite the keepout
+    assert len(mut.rule_areas) == 1
+    ra = mut.rule_areas[0]
+    assert ra["name"] == "mutant-plane-split"
+    assert ra["layers"] == ("In1.Cu",)
+    from shapely.geometry import box as _box
+    assert ra["outline"].intersects(_box(133.0, 116.5, 134.4, 127.5))  # manifest region
+
+    gold = geom.BoardGeom.from_file(board_path("rf4"))
+    assert gold.rule_areas == []
+    drop = (gold.zone_fill("GND", "In1.Cu").area
+            - mut.zone_fill("GND", "In1.Cu").area)
+    assert drop == pytest.approx(15.4, abs=0.5)
 
 
 @pytest.mark.smoke
