@@ -45,6 +45,8 @@ REQUIRED_PACKAGES = {
     "sexpdata": "sexpdata",
     "yaml": "PyYAML",
     "easyeda2kicad": "easyeda2kicad",
+    "pypdf": "pypdf",
+    "jsonschema": "jsonschema",
     "pytest": "pytest",
 }
 

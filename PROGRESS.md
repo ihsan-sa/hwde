@@ -13,7 +13,7 @@ Session protocol: repo `CLAUDE.md` ("run step N"). Update this file + commit at 
 | S3 | Geometry library | **done** | 2026-07-11 |
 | S4 | Verification suite part 1 (crown jewels) | **done** | 2026-07-11 |
 | S5 | Verification suite part 2 + check orchestration | pending | |
-| S6 | Parts, library, datasheet tooling | pending | |
+| S6 | Parts, library, datasheet tooling | **done** | 2026-07-22 |
 | S7 | Schematic generation | pending | |
 | S8 | Board setup and reference data | pending | |
 | S9 | Placement: seed, metrics, edit ops | pending | |
@@ -69,7 +69,7 @@ kickoff prompt to allow multi-agent workflows (higher token spend - use where ma
 | V2 | kicad-sch-api output opens in KiCad 10 | spec sec 9, S7 | S1: YES - three generated schematics ERC-clean under kicad-cli 10.0.3, netlists export, boards pass --schematic-parity. Quirks in LEARNINGS [python] (global labels silently dropped, pin renumbering, mid-wire pins do not connect). S7 builds on this. |
 | V3 | `drc --refill-zones` availability | spec sec 1 | RESOLVED S0/S1: verified on real zoned boards (2- and 4-layer goldens): fills + persists via --save-board, plain DRC clean afterwards; the pipeline's ONLY working headless fill (ZONE_FILLER segfaults, LEARNINGS [swig]). S11 re-checks post-SES. |
 | V4 | kipy `headless=True` starts `kicad-cli api-server` | spec sec 1 | RESOLVED S0: NO api-server subcommand in 9.0.5/10.0.3; kipy 0.7.1's server helper targets newer KiCad. Working IPC: sandboxed-GUI launch (smoke_ipc.py, verdict `gui-sandboxed-ok`). Headless alternative: SWIG bundled python. Decide edit path at S9. |
-| V5 | JLCPCB Parts API (credentialed) | spec sec 1, S6 | Needs access application; jlcparts SQLite fallback path untested. S6. |
+| V5 | JLCPCB Parts API (credentialed) | spec sec 1, S6 | **RESOLVED S6**: the pinned easyeda2kicad 1.0.1 wraps an ANONYMOUS JLCPCB parts search (EasyedaApi.search_jlcpcb_components) that needs NO credential - verified live (18783 hits for "100nF 0603 X7R", Basic/Extended+stock+price). That is parts_search.py's PRIMARY path; the credentialed api.jlcpcb.com (still needs an access application) is unnecessary for search and deferred to S12 ordering. jlcparts SQLite = optional --db cache (none on host; code path unit-tested vs a synthetic DB). Web search = agent last resort (exit 2 when offline+no db). LEARNINGS [parts]. |
 | V6 | JLCDFM upload (no public API) | spec P9 | Semi-manual by design; S12. |
 | V7 | Freerouting batch flags + result parsing | LEARNINGS [freerouting] | Prior-attempt facts; re-verify on our own DSN at S11. |
 | V8 | IPC API feature coverage for placement edits (move/rotate via kipy 0.7.1 on KiCad 10) | spec P6 | Connection verified S0; edit-op coverage untested until S9. |
@@ -483,3 +483,102 @@ check_env exit 0.
   of goldens does not touch them, but re-associating caps (refs) would.
 
 **New verify-later items:** none. (V9 unchanged - cpl-rotation still S12's to catch.)
+
+## S6 - Parts, library, datasheet tooling (2026-07-22) - DONE
+
+**Smoke tests first (V5 + easyeda2kicad, all live-verified on this host before building):**
+- **V5 RESOLVED cleanly.** The pinned easyeda2kicad 1.0.1 `EasyedaApi` already wraps an ANONYMOUS
+  JLCPCB parts search (`search_jlcpcb_components`) returning {lcsc, model, package, stock, type
+  Basic/Extended, price, price_breaks, datasheet, attributes} - NO credential (18783 hits for
+  "100nF 0603 X7R"; C14663 Basic stock 88M). `get_cad_data_of_component` pulls CAD JSON. The
+  spec's credentialed api.jlcpcb.com is unnecessary for search.
+- Full export layout confirmed: `<base>.kicad_sym` + `<base>.pretty/<fp>.kicad_mod` +
+  `<base>.3dshapes/`. Footprints emit in LEGACY `(module ...)` format but LOAD in KiCad 10
+  (`kicad-cli fp upgrade` -> `(footprint ...)`; `fp export svg` renders - needs the output dir to
+  pre-exist). Courtyard presence is part-dependent (C1525 0402 HAS one). All in LEARNINGS [parts].
+- No PDF lib was installed; added `pypdf==6.14.2` (pure-python) + pinned `jsonschema==4.26.0`
+  (was transitive) to requirements.txt/lock + check_env REQUIRED_PACKAGES.
+
+**Built** (all under `.claude/skills/ai-ee/`):
+- `scripts/parts_search.py` + `scripts/lib/partslib.py` - ranked LCSC/JLC search. Source ladder:
+  live anonymous JLCPCB search -> `--db` jlcparts SQLite cache -> web-search hint (exit 2 when
+  offline + no db). Ranking = Basic-first, then stock desc, then price asc (SPEC P3 "prefer Basic").
+  Parametric filters (--basic-only/--package/--min-stock/--max-price/--brand/--contains, and
+  generic `--filters k=v`). ASCII-safe JSON (ensure_ascii; JLC descriptions carry +/-, mu).
+- `scripts/lib_pull.py` + `scripts/lib/fplib.py` - easyeda2kicad wrapper (subprocess `--full`),
+  registers the pulled libs in <project>/fp-lib-table + sym-lib-table (idempotent, portable
+  ${KIPRJMOD}/../lib/... URIs via os.path.relpath), reports courtyard presence per footprint,
+  `--verify-load` confirms KiCad parses them (`fp export svg`). fplib parses BOTH `(module)` and
+  `(footprint)` formats into pads (rotation-correct centers, NPTH excluded from copper) + layer
+  presence - shared with fp_verify.
+- `scripts/datasheet_extract.py` - owns the datasheet-extract JSON Schema (Draft 2020-12: mpn,
+  pinout[{pin,name,type}], decoupling, land_pattern{pad_count,pitch_mm,pad_size_mm,...},
+  exposed_pad, layout_notes, abs_max). `--pdf` pulls per-page text (pypdf) + emits a grounding
+  payload {text_by_page, schema, template} for the LLM datasheet-extractor agent; `--validate`
+  schema-checks a filled extraction (exit 0/1 with precise error paths); `--schema` dumps it.
+- `scripts/fp_verify.py` - footprint pads vs datasheet land_pattern (on fplib + checklib normalized
+  violations): pad_count/pin1/pitch = error, pad_size/courtyard-absent = warning (warnings do NOT
+  fail the gate - exit 1 only on error severity). Emits an SVG overlay (rotated pad rects + size
+  labels, mismatches reddened) for human review.
+- Fixtures `tests/fixtures/parts/cap0402_{legacy,modern}.kicad_mod` (real C1525 pull + its
+  kicad-cli-upgraded twin - locks dual-format parsing).
+- `tests/test_parts.py` - 33 tests: 27 hermetic (fplib dual-format + NPTH + symbol_names;
+  fp_verify good/pad_count/pitch/pin1/courtyard-warning/size-warning/bad-json-exit2 on both fixture
+  formats; datasheet schema-valid/validate good+bad+unreadable/pdf-text; partslib normalize+rank+
+  filters; parts_search rank/filter/bad-key/offline-exit2/empty-exit0/db-fallback vs a synthetic
+  jlcparts DB; lib-table idempotent registration) + 6 `net` (5-category live search returns
+  in-stock hits: STM32F103C8T6 / AP63203 / USB Micro B / 8MHz crystal / 10k 0603; live C1525 pull
+  loads in KiCad). `net` tests skip when the endpoint is unreachable (offline check.cmd still green).
+
+**Acceptance evidence:** all five S6 accept criteria met live - 5-part search returns in-stock LCSC
+hits (net tests green); pulled footprint loads in KiCad (load_check.ok True via fp export svg);
+fp_verify flags a corrupted footprint (pad-count/pitch/pin1) exit 1 and passes correct ones exit 0
+on BOTH legacy and modern formats; datasheet JSON validates (good exit 0, bad exit 1 with 5 precise
+schema errors). `check.cmd` green: **188 passed** (155 prior + 33), check_env exit 0.
+
+**Deviations from spec/plan (with reasons):**
+1. parts_search's primary source is the ANONYMOUS JLCPCB search, not the spec's "credentialed
+   Parts API" (V5) - the credential is unnecessary for search and would gate the whole step on an
+   access application. The credentialed api.jlcpcb.com is deferred to S12 ordering (payment path).
+2. jlcparts SQLite fallback is implemented + unit-tested against a SYNTHETIC db (yaqwsx schema:
+   components{lcsc,mfr,package,basic,description,stock,price-json}); no real jlcparts DB ships on
+   this host, so real-DB behavior stays verify-at-first-use if one is dropped in. Column-tolerant.
+3. datasheet_extract splits deterministic vs LLM work per SPEC 6.1: the SCRIPT owns the schema +
+   PDF-text extraction + validation; the actual field extraction is the S13 datasheet-extractor
+   agent's job (fed by the --pdf grounding payload). Image-only PDFs yield ~0 text -> agent reads
+   the pages directly (noted in the payload).
+4. Added two dependencies (pypdf, direct jsonschema pin) - the venv had no PDF lib and jsonschema
+   was only transitive. Both pure-python, pinned, in check_env now.
+5. fp_verify does courtyard-presence + pad geometry diff, not the LEARNINGS-suggested full "per-part
+   DRC baseline" (that needs a scratch board + kicad-cli DRC per part - heavier; belongs to the
+   librarian agent flow at S13, or a later fp_verify --drc-baseline). Warnings are non-blocking by
+   design so a legit courtyard-less part doesn't hard-fail the gate.
+6. `net`-marked live tests run in the default suite (like S3/S4 smoke tests) but SKIP when the
+   JLCPCB endpoint is unreachable, so an offline check.cmd does not fail on a third-party API.
+
+**Interface notes for later steps:**
+- parts_search candidate shape (superset of SPEC P3 parts.json): {lcsc, mpn, brand, description,
+  package, category, type, basic:bool, stock:int, price, price_breaks, min_qty, datasheet, url,
+  attributes, rank}. part-sourcer (S13/P3) consumes this; datasheet URL feeds datasheet_extract.
+- datasheet-extract JSON schema is the CONTRACT the schematic agents (S7/P4) wire against and
+  fp_verify checks land patterns against. `datasheet_extract.py --schema` is the single source of
+  truth (pin type enum, land_pattern fields). check_decoupling's decoupling.json (S4) is separate
+  board metadata; this datasheet JSON is the per-part ground truth.
+- fplib.parse_footprint(path) -> Footprint{name, pads[Pad{number,ptype,shape,at,size,layers,
+  is_copper}], layers_present, copper_pads, has_courtyard, has_layer_kind(kind)}. Reusable by S9
+  placement (courtyard/pad geometry) and S12 DFM. Handles legacy+modern, NPTH-excluded-from-copper.
+- lib_pull registers ${KIPRJMOD}-relative lib-table URIs; board_init (S8) creates the project the
+  tables live in. lib nickname default "aiee"; symbol/footprint names come from EasyEDA (e.g.
+  C1525 -> footprint "C0402").
+- fp_verify emits the S2 normalized violation schema (source "check.fp_verify"; kinds pad_count,
+  pin1_missing, pad_pitch, pad_size, no_courtyard) so cluster_violations.py / verify_all.py (S5)
+  merge it uniformly; error-severity => exit 1, warnings alone => exit 0/pass.
+
+**Note (not S6 scope):** the working tree carries UNCOMMITTED files from other steps
+(check_diffpair.py, check_silk.py, board_swig.py [S5]; board_init.py, rules_gen.py, impedance.py,
+reference/{jlc_capabilities.yaml,jlc_rotations.csv,stackups.yaml} [S8]) - evidently WIP from a
+parallel/prior session. NOT touched or committed here; the S6 commit stages only S6 paths. Those
+steps are still "pending" on the status board.
+
+**New verify-later items:** none. (V5 resolved above; jlcparts-real-DB and credentialed ordering
+API remain future-verify but are covered by existing registers / S12.)

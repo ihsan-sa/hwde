@@ -1,0 +1,238 @@
+#!/usr/bin/env python
+"""datasheet_extract.py - datasheet PDF -> schema-validated part JSON (SPEC.md P3, 6.1).
+
+The actual field extraction is LLM-assisted (a datasheet-extractor sub-agent
+reads the PDF pages); this script owns the deterministic half:
+
+  --pdf FILE        pull machine-readable text per page (pypdf) and emit a
+                    grounding payload {text_by_page, schema, template} for the
+                    agent to fill. Image-only datasheets yield little/no text -
+                    the agent then reads the rendered pages directly.
+  --validate FILE   validate a candidate extraction against the schema.
+                    exit 0 = valid, 1 = schema violations, 2 = unreadable.
+  --schema          print the JSON Schema (single source of truth).
+
+The extracted JSON is the ground truth the schematic agents wire against
+(SPEC P4: "never wire from model memory of a pinout") and the land pattern
+fp_verify.py checks footprints against.
+
+Contract (SPEC section 6): argparse, JSON to stdout or --out, exit 0/1/2.
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from pathlib import Path
+
+# JSON Schema (Draft 2020-12) for a datasheet-extract JSON document.
+PIN_TYPES = ["power_in", "power_out", "ground", "input", "output",
+             "bidirectional", "passive", "analog", "clock", "nc",
+             "open_collector", "tristate", "unspecified"]
+
+DATASHEET_SCHEMA: dict = {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "ai-ee datasheet extraction",
+    "type": "object",
+    "required": ["mpn", "pinout"],
+    "additionalProperties": False,
+    "properties": {
+        "mpn": {"type": "string", "minLength": 1},
+        "lcsc": {"type": "string"},
+        "package": {"type": "string"},
+        "description": {"type": "string"},
+        "pinout": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["pin", "name", "type"],
+                "additionalProperties": False,
+                "properties": {
+                    "pin": {"type": "string", "minLength": 1},
+                    "name": {"type": "string", "minLength": 1},
+                    "type": {"type": "string", "enum": PIN_TYPES},
+                    "notes": {"type": "string"},
+                },
+            },
+        },
+        "decoupling": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["pins", "value"],
+                "additionalProperties": False,
+                "properties": {
+                    "pins": {"type": "array", "items": {"type": "string"},
+                             "minItems": 1},
+                    "value": {"type": "string", "minLength": 1},
+                    "placement": {"type": "string"},
+                    "notes": {"type": "string"},
+                },
+            },
+        },
+        "land_pattern": {
+            "type": "object",
+            "additionalProperties": False,
+            "required": ["pad_count"],
+            "properties": {
+                "package": {"type": "string"},
+                "pad_count": {"type": "integer", "minimum": 1},
+                "pitch_mm": {"type": "number", "exclusiveMinimum": 0},
+                "pad_size_mm": {
+                    "type": "array", "items": {"type": "number", "minimum": 0},
+                    "minItems": 2, "maxItems": 2,
+                },
+                "row_spacing_mm": {"type": "number", "minimum": 0},
+                "courtyard_excess_mm": {"type": "number", "minimum": 0},
+                "pin1": {"type": "string",
+                         "description": "pad number that is pin 1 (default '1')"},
+                "notes": {"type": "string"},
+            },
+        },
+        "exposed_pad": {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "present": {"type": "boolean"},
+                "connect_to": {"type": "string"},
+                "thermal_vias": {"type": "integer", "minimum": 0},
+            },
+            "required": ["present"],
+        },
+        "layout_notes": {"type": "array", "items": {"type": "string"}},
+        "abs_max": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["param", "value"],
+                "additionalProperties": False,
+                "properties": {
+                    "param": {"type": "string"},
+                    "value": {"type": ["number", "string"]},
+                    "unit": {"type": "string"},
+                },
+            },
+        },
+        "source_pdf": {"type": "string"},
+    },
+}
+
+
+def blank_template() -> dict:
+    """A minimal, schema-shaped skeleton for the extractor agent to fill."""
+    return {
+        "mpn": "",
+        "lcsc": "",
+        "package": "",
+        "pinout": [{"pin": "1", "name": "", "type": "unspecified"}],
+        "decoupling": [],
+        "land_pattern": {"pad_count": 0},
+        "layout_notes": [],
+        "abs_max": [],
+    }
+
+
+def extract_pdf_text(pdf_path: Path) -> list[dict]:
+    """Per-page text via pypdf. Never raises on a page - records the error instead."""
+    from pypdf import PdfReader
+    reader = PdfReader(str(pdf_path))
+    pages = []
+    for i, page in enumerate(reader.pages):
+        try:
+            txt = page.extract_text() or ""
+        except Exception as exc:  # noqa: BLE001 - malformed pages shouldn't abort
+            txt = ""
+            pages.append({"page": i, "text": "", "error": f"{type(exc).__name__}: {exc}"})
+            continue
+        pages.append({"page": i, "text": txt})
+    return pages
+
+
+def do_pdf(args) -> tuple[dict, int]:
+    pdf = Path(args.pdf)
+    if not pdf.exists():
+        return {"script": "datasheet_extract", "status": "error",
+                "error": f"PDF not found: {pdf}"}, 2
+    pages = extract_pdf_text(pdf)
+    total_chars = sum(len(p["text"]) for p in pages)
+    payload = {
+        "script": "datasheet_extract",
+        "status": "extracted",
+        "source_pdf": str(pdf),
+        "lcsc": args.lcsc or "",
+        "n_pages": len(pages),
+        "text_chars": total_chars,
+        "text_by_page": pages,
+        "schema": DATASHEET_SCHEMA,
+        "template": blank_template(),
+        "note": ("Fill the template from text_by_page and the PDF pages, then "
+                 "re-run with --validate. If text_chars is ~0 the PDF is "
+                 "image-only; read the rendered pages directly."),
+    }
+    return payload, 0
+
+
+def do_validate(args) -> tuple[dict, int]:
+    import jsonschema
+    path = Path(args.validate)
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except OSError as exc:
+        return {"script": "datasheet_extract", "status": "error",
+                "error": f"cannot read {path}: {exc}"}, 2
+    except json.JSONDecodeError as exc:
+        return {"script": "datasheet_extract", "status": "error",
+                "error": f"{path} is not valid JSON: {exc}"}, 2
+    validator = jsonschema.Draft202012Validator(DATASHEET_SCHEMA)
+    errors = sorted(validator.iter_errors(data), key=lambda e: list(e.path))
+    if not errors:
+        return {"script": "datasheet_extract", "status": "pass",
+                "file": str(path), "mpn": data.get("mpn"),
+                "pins": len(data.get("pinout", [])),
+                "has_land_pattern": "land_pattern" in data}, 0
+    return {
+        "script": "datasheet_extract",
+        "status": "invalid",
+        "file": str(path),
+        "error_count": len(errors),
+        "errors": [{"path": "/".join(str(p) for p in e.path), "msg": e.message}
+                   for e in errors],
+    }, 1
+
+
+def main(argv: list[str] | None = None) -> int:
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    mode = ap.add_mutually_exclusive_group(required=True)
+    mode.add_argument("--pdf", help="extract text + emit grounding payload")
+    mode.add_argument("--validate", help="validate a candidate extraction JSON")
+    mode.add_argument("--schema", action="store_true", help="print the JSON schema")
+    ap.add_argument("--lcsc", help="tag the output with this LCSC id (--pdf)")
+    ap.add_argument("--out", help="write JSON here instead of stdout")
+    args = ap.parse_args(argv)
+
+    try:
+        if args.schema:
+            payload, code = {"script": "datasheet_extract", "status": "pass",
+                             "schema": DATASHEET_SCHEMA}, 0
+        elif args.pdf:
+            payload, code = do_pdf(args)
+        else:
+            payload, code = do_validate(args)
+    except Exception as exc:  # noqa: BLE001 - contract: any error -> exit 2
+        payload, code = {"script": "datasheet_extract", "status": "error",
+                         "error": f"{type(exc).__name__}: {exc}"}, 2
+
+    text = json.dumps(payload, indent=1, ensure_ascii=True)
+    if args.out:
+        Path(args.out).write_text(text, encoding="utf-8")
+    else:
+        print(text)
+    return code
+
+
+if __name__ == "__main__":
+    sys.exit(main())

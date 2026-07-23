@@ -4,7 +4,7 @@ Append-only, non-obvious gotchas. Recall by tag/keyword before touching an area.
 Entries sourced from prior attempts are marked; re-verify at first use here.
 
 ## Tags
-[windows] [kicad] [kicad-cli] [ipc] [swig] [freerouting] [easyeda2kicad] [python] [prior-attempts] [geometry] [shapely]
+[windows] [kicad] [kicad-cli] [ipc] [swig] [freerouting] [easyeda2kicad] [python] [prior-attempts] [geometry] [shapely] [parts] [datasheet]
 
 ## 2026-07-06 [windows] cp1252 console crashes on non-ASCII output
 Printing degree signs, ohms, plus-minus, emoji to a default Windows console raises
@@ -210,3 +210,80 @@ shapely 2.1.2 ops.linemerge accepts MultiLineString/sequences but raises "Cannot
 LINESTRING(...)" when unary_union of one segment collapses to a single LineString. Guard:
 `merged = linemerge(u) if u.geom_type == "MultiLineString" else u`. Bit check_return_path on
 single-segment synthetic boards (corpus boards always had multi-segment nets, so it hid).
+
+## 2026-07-22 [kicad-cli][drc] Custom .kicad_dru IS auto-loaded by kicad-cli; rule name is in the description
+S8-verified (10.0.3): `kicad-cli pcb drc` reads `<board-basename>.kicad_dru` sitting next to the
+board automatically (no flag to point at it). A violated custom rule reports type = the constraint
+kind (e.g. "track_width") and description = "Track width (rule 'NAME' min width X; actual Y)" - the
+rule NAME is embedded in the description string, so kc.py's normalizer surfaces it in `msg` (parse
+`rule '([^']+)'`). This is the enforcement backbone for rules_gen (SPEC P5): any width/clearance/
+via/diff-pair minimum expressible as a rule becomes a named DRC violation for free.
+
+## 2026-07-22 [kicad-cli][drc] DRU condition token is A.NetName (A.Net silently matches nothing); LATER rule wins
+S8-verified: in a `(condition ...)` the net-name property is `A.NetName == 'GND'` (fired on 20 tracks).
+`A.Net == 'GND'` evaluates FALSE silently (0 matches, no error) - a wrong token degrades to "rule never
+fires", never an error, so ALWAYS smoke a new condition against a board you know violates it. `A.NetClass
+== 'Default'` works (all nets are Default when net_settings is null/empty). When TWO rules of the same
+constraint type match one item, the LATER rule in file order wins (a broad `A.NetClass=='Default'` rule
+placed after a specific `A.NetName=='GND'` rule overrode it - GND showed 0, default showed all 72).
+=> rules_gen must emit GENERIC/baseline rules FIRST and SPECIFIC per-net/per-class rules LAST so specifics win.
+
+## 2026-07-22 [swig][kicad] Headless netlist->board import: SWIG place from netlist = parity-clean; bbox-pack to avoid density DRC
+S8-verified: kicad-cli has NO netlist->board path (`pcb import` is for non-KiCad formats only). Working
+headless import mirrors pcb_build.py: bundled-python SWIG loads each footprint (FootprintLoad from
+share/kicad/footprints/<lib>.pretty), assigns pad nets from the netlist netmap {REF.PAD:net}, saves
+unfilled. `kicad-cli pcb drc --schematic-parity` then reports 0 parity issues (proves the import is
+correct) with only unconnected_items (expected - unrouted). Footprints placed too close trigger
+courtyards_overlap/shorting_items/solder_mask_bridge/silk_over_copper: pack them on a shelf grid by
+GetBoundingBox(False,False) (needs BuildCourtyardCaches() first) + margin => 0 non-parity violations.
+board_init acceptance = parity==0 AND (violations - unconnected_items)==0. Bundled python has NO yaml -
+board_init runs in venv (yaml+sexpdata) and shells the SWIG worker a JSON job (bundled python has json).
+
+## 2026-07-22 [kicad][swig][geometry] Stackup: SWIG can't build it - inject the (stackup) block as text
+S8: `ds.GetStackupDescriptor().BuildDefaultStackupList` is absent on the 10.0.3 SWIG wrapper
+('SwigPyObject' has no attribute) - confirms S1's "stackup didn't serialize". Working path: after the
+SWIG save, TEXT-inject a `(stackup ...)` block right after `(setup\n` in the .kicad_pcb, built from
+stackups.yaml. geom._build_stackup reads it (assumed=False, source "board (stackup)") and kicad-cli DRC
+still loads the board. geom's copper-to-copper walk ignores the outer silk/paste/mask layers correctly
+(they sit before the first / after the last copper), so a full realistic block parses to the right
+per-gap dielectric heights + epsilon_r. Layer names must match the board's copper layers exactly.
+
+## 2026-07-22 [parts][easyeda2kicad] Pinned easyeda2kicad 1.0.1 wraps an ANONYMOUS JLCPCB parts search (resolves V5)
+`from easyeda2kicad.easyeda.easyeda_api import EasyedaApi; EasyedaApi().search_jlcpcb_components(
+keyword, page=1, page_size=N, part_type="base"|"expand")` hits JLCPCB's public parts endpoint
+(`jlcpcb.com/api/overseas-pcb-order/v1/shoppingCart/smtGood/selectSmtComponentList`) with NO
+credential and returns `{total, results:[{lcsc, name, model, brand, package, category, stock,
+type: Basic|Extended, price, price_breaks, min_qty, reel_qty, description, url, datasheet,
+attributes:[{name,value}]}]}`. Verified live from this host 2026-07-22: "100nF 0603 X7R" -> total
+18783, C14663 Basic stock 88M. This is parts_search.py's PRIMARY path - the spec's "credentialed
+JLCPCB Parts API" (V5, still needs an access application) is NOT required. jlcparts SQLite is an
+optional local cache (none present on this host); web-search is the agent-level last resort. Also
+`EasyedaApi().get_cad_data_of_component(lcsc)` pulls raw CAD JSON. Endpoint could change/rate-limit
+- network tests are `net`-marked; parts_search exits 2 with remediation when the live call fails
+and no --db cache is given.
+
+## 2026-07-22 [easyeda2kicad][kicad-cli] Full export layout + LEGACY footprint format that still loads in KiCad 10
+`python -m easyeda2kicad --lcsc_id=Cxxxx --full --output <base>` writes THREE artifacts:
+`<base>.kicad_sym`, `<base>.pretty/<fpname>.kicad_mod`, `<base>.3dshapes/<name>.{wrl,step}` (the
+fp/sym names come from EasyEDA, e.g. C1525 0402 cap -> footprint "C0402"). Footprints come out in
+the KiCad-5 LEGACY format: `(module NAME (layer F.Cu) (tedit ..) ... (pad N smd rect (at x y rot)
+(size w h) (layers F.Cu F.Paste F.Mask)))` - top token is `module` not `footprint`, layer tokens
+are UNQUOTED. They still load in KiCad 10: `kicad-cli fp upgrade <lib.pretty>` rewrites them to
+`(footprint "NAME" ...)`, and `kicad-cli fp export svg` renders them. So fp_verify must parse BOTH
+`(module ...)` and `(footprint ...)` (unquoted AND quoted layer tokens). Courtyard presence is
+PART-DEPENDENT (C1525 0402 HAS an F.CrtYd rect; the old [easyeda2kicad] entry's "missing
+courtyards" is not universal) - fp_verify checks for it and warns if absent, never assumes.
+
+## 2026-07-22 [kicad-cli] `fp export svg <lib.pretty> --output <dir>` needs the output dir to EXIST first
+It prints "Plotting footprint ..." then "Failed to create file ... Error creating svg file" and
+writes nothing if <dir> is missing (the overall exit is still success-ish). mkdir the output dir
+before calling. With the dir present it writes one `<fpname>.svg` per footprint. (Used as the
+"footprint loads in KiCad" gate for lib_pull / fp_verify.)
+
+## 2026-07-22 [datasheet][python] No PDF lib was in the venv; added pypdf 6.14.2 (pure-python)
+S6 needs PDF text extraction for datasheet_extract.py; none of pypdf/pdfplumber/PyMuPDF/pdfminer
+were installed. Added `pypdf==6.14.2` (pure-python wheel, no native deps, imports clean on 3.13) to
+requirements.txt/lock. `from pypdf import PdfReader; PdfReader(path).pages[i].extract_text()` works
+on text-based PDFs (image-only datasheets yield empty text - the LLM agent reads those from the PDF
+pages directly). A minimal valid one-page text PDF can be hand-assembled in ~15 lines for a
+hermetic fixture (see tests/fixtures/parts builder) - no authoring lib needed.
