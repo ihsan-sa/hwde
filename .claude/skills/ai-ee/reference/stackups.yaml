@@ -1,0 +1,71 @@
+# stackups.yaml - JLC standard PCB stackups + controlled-impedance geometry.
+# Consumed by board_init.py (writes the (stackup) block into the .kicad_pcb) and
+# rules_gen.py (diff-pair width/gap, single-ended widths for net classes/DRU).
+#
+# PHYSICAL stackups (layer thicknesses, dielectric heights, epsilon_r, loss
+# tangent) are transcribed from JLCPCB's published stackup data:
+#   https://jlcpcb.com/capabilities/pcb-capabilities
+#   https://jlcpcb.com/impedance                (impedance-controlled stackups)
+#   cross-checked vs https://github.com/ayberkozgur/jlcpcb-design-rules-stackups
+#   Last verified: 2026-07-22.
+#
+# CONTROLLED-IMPEDANCE geometry (width_mm / gap_mm) is COMPUTED from the physical
+# stackup by scripts/lib/impedance.py (IPC-2141A surface microstrip + the
+# published edge-coupled coupling correction), NOT transcribed from JLC's online
+# calculator. Treat as first-order sizing for DRC rules and S5 targets; confirm
+# against JLC's impedance calculator before ordering a controlled-impedance board
+# (VERIFY-LATER V12). Only OUTER-layer microstrip profiles are modelled here;
+# inner-layer stripline impedance is not yet solved.
+#
+# Units: mm. `stack` is ordered top->bottom and lists copper + dielectric layers
+# using KiCad stackup layer names, so board_init can emit the block verbatim.
+
+meta:
+  source_urls:
+    - https://jlcpcb.com/capabilities/pcb-capabilities
+    - https://jlcpcb.com/impedance
+  verified: "2026-07-22"
+
+# Default stackup chosen by board_init for a given copper layer count.
+defaults:
+  2: JLC2313_1.6
+  4: JLC04161H-3313
+
+stackups:
+
+  JLC2313_1.6:
+    description: "JLCPCB standard 2-layer, 1.6 mm, 1 oz outer copper (HASL)."
+    layers: 2
+    thickness_mm: 1.6
+    copper_finish: HASL
+    dielectric_constraints: false   # 2-layer: no internal reference plane
+    stack:
+      - {name: "F.Cu",         type: copper,      thickness_mm: 0.035, copper_oz: 1.0}
+      - {name: "dielectric 1", type: core,        thickness_mm: 1.530, material: "FR4", epsilon_r: 4.5, loss_tangent: 0.02}
+      - {name: "B.Cu",         type: copper,      thickness_mm: 0.035, copper_oz: 1.0}
+    # No standard controlled-impedance offering: a 2-layer board has no adjacent
+    # reference plane, so single-ended 50 ohm would need a ~2.7 mm trace. Route
+    # wide/pours instead of controlled impedance.
+    controlled_impedance: []
+
+  JLC04161H-3313:
+    description: "JLCPCB standard impedance-controlled 4-layer, 1.6 mm (JLC04161H-3313), 1 oz outer / 0.5 oz inner, HASL."
+    layers: 4
+    thickness_mm: 1.6
+    copper_finish: HASL
+    dielectric_constraints: true
+    stack:
+      - {name: "F.Cu",         type: copper,   thickness_mm: 0.035,  copper_oz: 1.0}
+      - {name: "dielectric 1", type: prepreg,  thickness_mm: 0.2104, material: "FR4 7628", epsilon_r: 4.05, loss_tangent: 0.02}
+      - {name: "In1.Cu",       type: copper,   thickness_mm: 0.0175, copper_oz: 0.5}
+      - {name: "dielectric 2", type: core,     thickness_mm: 1.065,  material: "FR4",      epsilon_r: 4.6,  loss_tangent: 0.02}
+      - {name: "In2.Cu",       type: copper,   thickness_mm: 0.0175, copper_oz: 0.5}
+      - {name: "dielectric 3", type: prepreg,  thickness_mm: 0.2104, material: "FR4 7628", epsilon_r: 4.05, loss_tangent: 0.02}
+      - {name: "B.Cu",         type: copper,   thickness_mm: 0.035,  copper_oz: 1.0}
+    # Outer-layer microstrip referenced to the nearest inner plane (In1/In2),
+    # dielectric h = 0.2104 mm, er = 4.05, 1 oz (t = 0.035). Computed by
+    # impedance.py; regenerate with tests/test_board_setup.py::test_impedance_table.
+    controlled_impedance:
+      - {profile: se_50,    kind: single, impedance_ohm: 50,  layer: outer, reference: nearest_plane, width_mm: 0.367}
+      - {profile: diff_90,  kind: diff,   impedance_ohm: 90,  layer: outer, reference: nearest_plane, width_mm: 0.314, gap_mm: 0.210, note: "USB 2.0 / ULPI"}
+      - {profile: diff_100, kind: diff,   impedance_ohm: 100, layer: outer, reference: nearest_plane, width_mm: 0.260, gap_mm: 0.210, note: "Ethernet / LVDS / general 100R"}

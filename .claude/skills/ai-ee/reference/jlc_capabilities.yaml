@@ -1,0 +1,121 @@
+# jlc_capabilities.yaml - JLCPCB fab capability limits per layer count / copper weight.
+#
+# The authoritative fab-rule table for the pipeline. Consumed by:
+#   - rules_gen.py  (S8): seeds the board's minimum track/clearance/via/hole rules
+#   - dfm_check.py  (S12): the INDEPENDENT gerber-level check (gerbonara) - catches
+#                          export-stage geometry DRC can't see.
+#
+# Source (transcribed + last verified 2026-07-22):
+#   https://jlcpcb.com/capabilities/pcb-capabilities
+#   cross-checked vs https://github.com/ayberkozgur/jlcpcb-design-rules-stackups
+# All lengths mm. Keys are "<layers>layer_<outer-copper-weight>oz".
+#
+# Values are JLCPCB's *manufacturing minimums*. rules_gen may set a design to a
+# more conservative value; dfm_check flags anything BELOW these.
+
+meta:
+  manufacturer: JLCPCB
+  source_urls:
+    - https://jlcpcb.com/capabilities/pcb-capabilities
+  verified: "2026-07-22"
+
+# Board-level options (not per-stackup).
+board:
+  thickness_options_mm: [0.4, 0.6, 0.8, 1.0, 1.2, 1.6, 2.0]
+  thickness_default_mm: 1.6
+  max_hole_diameter_mm: 6.3
+  surface_finish: [HASL, "LeadFree HASL", ENIG]
+  solder_mask_colors: [green, black, blue, red, white, yellow, purple, "matte black", "matte green"]
+  silkscreen_colors: [white, black]
+
+design_rules:
+
+  2layer_1oz:
+    min_trace_width_mm: 0.127        # 5 mil
+    min_clearance_mm: 0.127          # 5 mil
+    min_via_drill_mm: 0.3
+    min_via_diameter_mm: 0.6
+    min_annular_ring_mm: 0.15
+    min_hole_diameter_mm: 0.3
+    min_copper_to_edge_mm: 0.3
+    min_hole_to_hole_mm: 0.5
+    min_hole_to_edge_mm: 0.5
+    min_silk_width_mm: 0.15
+    min_silk_height_mm: 1.0          # ~40 mil legible floor
+    min_solder_mask_dam_mm: 0.1
+    min_solder_mask_clearance_mm: 0.05
+    min_pad_size_mm: 0.25
+    outer_copper_oz: 1.0
+    inner_copper_oz: 0.0
+
+  2layer_2oz:
+    min_trace_width_mm: 0.1524       # 6 mil (2 oz)
+    min_clearance_mm: 0.1524         # 6 mil (2 oz)
+    min_via_drill_mm: 0.3
+    min_via_diameter_mm: 0.6
+    min_annular_ring_mm: 0.15
+    min_hole_diameter_mm: 0.3
+    min_copper_to_edge_mm: 0.3
+    min_hole_to_hole_mm: 0.5
+    min_hole_to_edge_mm: 0.5
+    min_silk_width_mm: 0.15
+    min_silk_height_mm: 1.0
+    min_solder_mask_dam_mm: 0.1
+    min_solder_mask_clearance_mm: 0.05
+    min_pad_size_mm: 0.25
+    outer_copper_oz: 2.0
+    inner_copper_oz: 0.0
+
+  4layer_1oz:
+    min_trace_width_mm: 0.1016       # 4 mil
+    min_clearance_mm: 0.1016         # 4 mil
+    min_via_drill_mm: 0.2
+    min_via_diameter_mm: 0.45
+    min_annular_ring_mm: 0.1
+    min_hole_diameter_mm: 0.2
+    min_copper_to_edge_mm: 0.3
+    min_hole_to_hole_mm: 0.5
+    min_hole_to_edge_mm: 0.4
+    min_silk_width_mm: 0.15
+    min_silk_height_mm: 1.0
+    min_solder_mask_dam_mm: 0.1
+    min_solder_mask_clearance_mm: 0.05
+    min_pad_size_mm: 0.25
+    outer_copper_oz: 1.0
+    inner_copper_oz: 0.5
+
+  4layer_2oz:
+    min_trace_width_mm: 0.1524       # 6 mil outer (2 oz)
+    min_clearance_mm: 0.1016         # 4 mil
+    min_via_drill_mm: 0.2
+    min_via_diameter_mm: 0.45
+    min_annular_ring_mm: 0.1
+    min_hole_diameter_mm: 0.2
+    min_copper_to_edge_mm: 0.3
+    min_hole_to_hole_mm: 0.5
+    min_hole_to_edge_mm: 0.4
+    min_silk_width_mm: 0.15
+    min_silk_height_mm: 1.0
+    min_solder_mask_dam_mm: 0.1
+    min_solder_mask_clearance_mm: 0.05
+    min_pad_size_mm: 0.25
+    outer_copper_oz: 2.0
+    inner_copper_oz: 0.5
+
+  6layer_1oz:
+    min_trace_width_mm: 0.0889       # 3.5 mil
+    min_clearance_mm: 0.0889         # 3.5 mil
+    min_via_drill_mm: 0.2
+    min_via_diameter_mm: 0.45
+    min_annular_ring_mm: 0.15
+    min_hole_diameter_mm: 0.2
+    min_copper_to_edge_mm: 0.3
+    min_hole_to_hole_mm: 0.5
+    min_hole_to_edge_mm: 0.4
+    min_silk_width_mm: 0.15
+    min_silk_height_mm: 1.0
+    min_solder_mask_dam_mm: 0.1
+    min_solder_mask_clearance_mm: 0.05
+    min_pad_size_mm: 0.25
+    outer_copper_oz: 1.0
+    inner_copper_oz: 0.5

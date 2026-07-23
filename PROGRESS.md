@@ -15,7 +15,7 @@ Session protocol: repo `CLAUDE.md` ("run step N"). Update this file + commit at 
 | S5 | Verification suite part 2 + check orchestration | pending | |
 | S6 | Parts, library, datasheet tooling | **done** | 2026-07-22 |
 | S7 | Schematic generation | pending | |
-| S8 | Board setup and reference data | pending | |
+| S8 | Board setup and reference data | **done** | 2026-07-22 |
 | S9 | Placement: seed, metrics, edit ops | pending | |
 | S10 | Placement: annealer with routability feedback | pending | |
 | S11 | Routing pipeline | pending | |
@@ -75,7 +75,8 @@ kickoff prompt to allow multi-agent workflows (higher token spend - use where ma
 | V8 | IPC API feature coverage for placement edits (move/rotate via kipy 0.7.1 on KiCad 10) | spec P6 | Connection verified S0; edit-op coverage untested until S9. |
 | V9 | cpl-rotation mutant catchable at DFM | S2 finding, spec P9 | S2: committed cpl-rotation board does NOT fail `--schematic-parity` under 10.0.3 (manifest note stale). Designated catcher is dfm_check (S12) via CPL polarity - must not rely on parity. |
 | V10 | Flipped (back-side) footprint pad geometry | S3, spec 6.3 | **RESOLVED S3 (Fable review)**: built a SWIG-flipped fixture (flip_fixture.py); pcbnew bakes the mirror INTO the file (locals mirrored, angles negated, layers renamed B.*), so the front-side transform covers flipped parts with NO special handling. geom's original mirror+swap DOUBLE-flipped - removed; 15/15 pads exact vs pcbnew; regression test in test_geom.py. |
-| V11 | "Remove unused inner via pads" not modeled | S3 | geom treats a through via as copper on ALL inner layers (matches corpus + oracle default). A board enabling JLC's inner-pad removal would over-count inner via copper. Revisit at S8 rules / S12 DFM if used. |
+| V11 | "Remove unused inner via pads" not modeled | S3 | geom treats a through via as copper on ALL inner layers (matches corpus + oracle default). A board enabling JLC's inner-pad removal would over-count inner via copper. S8 did not add it (rules_gen has no via-pad-removal knob); revisit at S12 DFM if used. |
+| V12 | Controlled-impedance geometry not validated vs JLC's calculator | S8, spec P5 | S8 `lib/impedance.py` computes trace width/diff gap from IPC-2141A microstrip + the published edge-coupled correction (50R/1.6mm FR4 -> 3.02mm matches textbook ~2.95mm; diff round-trips exactly). These are first-order estimates for sizing DRU rules + S5 targets; only OUTER-layer microstrip is modelled (no inner stripline). Confirm against JLC's online impedance calculator before ordering a controlled-impedance board (S12/S14). |
 
 ## S0 - Repo bootstrap and environment (2026-07-06) - DONE
 
@@ -582,3 +583,97 @@ steps are still "pending" on the status board.
 
 **New verify-later items:** none. (V5 resolved above; jlcparts-real-DB and credentialed ordering
 API remain future-verify but are covered by existing registers / S12.)
+
+## S8 - Board setup and reference data (2026-07-22) - DONE
+
+**Smoke-tested the load-bearing claims first (all live 10.0.3), then built on them:**
+1. kicad-cli AUTO-LOADS `<board>.kicad_dru` next to the board; a violated custom rule puts its
+   NAME in the violation description (`rule 'NAME'`), which kc.py surfaces in `msg`. DRU condition
+   net token is `A.NetName` (`A.Net` silently matches nothing); LATER rule wins for same-constraint
+   collisions -> baseline first, per-net last. (LEARNINGS [kicad-cli][drc].)
+2. No kicad-cli netlist->board path; SWIG place-from-netlist (FootprintLoad + pad-net from netmap,
+   bbox shelf-pack) is schematic-parity-clean with only expected unconnected_items. Bundled python
+   has no yaml -> venv driver + bundled-python worker via JSON. (LEARNINGS [swig].)
+3. SWIG can't serialize a stackup on 10.0.3 -> board_init TEXT-injects the (stackup) block from
+   stackups.yaml; geom reads it authoritative (assumed=False) and kicad-cli DRC still loads.
+   (LEARNINGS [kicad][swig][geometry].)
+
+**Built** (all under `.claude/skills/ai-ee/`):
+- `reference/jlc_capabilities.yaml` - fab minimums per layer count / copper weight (2/4/6-layer,
+  1oz/2oz) transcribed from jlcpcb.com capabilities + ayberkozgur cross-check, cited + dated.
+  Consumed by rules_gen (baseline) and S12 dfm_check.
+- `reference/stackups.yaml` - JLC physical stackups (JLC2313_1.6, JLC04161H-3313 with exact
+  cited dielectric/copper thicknesses + epsilon_r/loss_tangent) + a `controlled_impedance` table
+  (outer microstrip 50R SE, 90R/100R diff) COMPUTED by impedance.py (flagged, not JLC-transcribed).
+  `defaults` maps layer count -> stackup; board_init emits the block, rules_gen reads impedance.
+- `reference/jlc_rotations.csv` - CPL rotation corrections vendored from the community tables
+  (bennymeg/JLC-Plugin, KiBot db), regex,rotation; first-match-wins; consumed by S12 bom_cpl.
+- `reference/design_rules/{jlc_2layer_1oz,jlc_4layer_1oz}.kicad_dru` - baseline fab-floor templates
+  = rules_gen `--baseline-only` output (drift-guarded by a test).
+- `scripts/lib/impedance.py` - IPC-2141A microstrip + edge-coupled diff approximations
+  (solve_width, diff_pair pins a tight-coupling gap + solves width, geometry_for).
+- `scripts/lib/board_swig.py` - BUNDLED-python SWIG worker: netlist -> placed board, shelf-pack,
+  outline (auto bbox+margin | fixed WxH), corner mounting holes marked board_only (parity ignores).
+- `scripts/board_init.py` - venv driver: parse netlist (sexpdata), pick stackup, drive the worker,
+  inject stackup, write minimal .kicad_pro, self-check (parity==0 AND setup-violations==0, excluding
+  the unrouted board's unconnected_items). `--schematic` copies the sch next to the board for parity.
+- `scripts/rules_gen.py` - constraints.json -> `<board>.kicad_dru` (baseline from capabilities +
+  per-net power widths via check_current IPC-2152 + per-pair diff_pair_gap via impedance.py) and
+  (optional --pro) net classes (Power, Diff<Z>) + board.design_settings.rules minimums. `--baseline-only`
+  regenerates the templates.
+- `tests/test_board_setup.py` - 25 tests (19 pure: reference-data validity, template drift guard,
+  impedance reference/monotonic/round-trip, rules_gen baseline/power/diff-detect/ordering/net-classes,
+  netlist parse + missing-fp, stackup-block, helpers; 6 smoke: board_init end-to-end, rules_gen clean
+  golden, rules_gen ENFORCED, baseline templates FP-free x2 boards, --pro keeps board clean).
+
+**Acceptance evidence (live 10.0.3):**
+- board_init from golden board 2's netlist -> initialized 4-layer board: schematic parity 0,
+  0 setup violations (no courtyard/short/mask/silk), 63 expected unconnected_items, ~54x68 mm outline,
+  4 board_only mounting holes, stackup injected + geom reads assumed=False (F/In1/In2/B.Cu).
+- rules_gen from usbbuck4 constraints: clean golden stays 0 violations (no false positives, all rules
+  accepted); a +3V3 track narrowed 0.25->0.15 mm fails DRC with exactly `rule 'aiee_pwr_width_3V3'`
+  (track_width, net +3V3) and the generic floor does NOT also fire (0.15 > 0.1016) - proves both
+  enforcement and specific-overrides-floor ordering.
+- `pytest` green: **213 passed** (188 prior + 25); check_env exit 0.
+
+**Deviations from spec/plan (with reasons):**
+1. board_init builds the board via SWIG `CreateEmptyBoard` (no kicad-cli netlist import exists), not
+   from a blank `templates/*.kicad_pcb` - full programmatic control of layer count / nets / outline.
+   templates/ stays a spec artifact for later hand-use. Origin/grid left at KiCad defaults (0,0;
+   grid is a UI setting, immaterial headless).
+2. "passes DRC setup checks" interpreted as parity==0 AND zero non-unconnected DRC violations: an
+   unrouted, unplaced-proper board necessarily has unconnected_items (routing is P7) - those are
+   excluded from the setup pass criterion, everything else (courtyard/short/mask/setup) must be clean.
+3. rules_gen power-width rule uses OUTER-copper (1oz) IPC-2152 ampacity as a single per-net
+   track_width rule. A power net deliberately routed on a thin INNER layer would be under-constrained
+   by the DRU (golden power is outer tracks + inner POURS, so no FP); the per-layer ampacity backstop
+   is check_current (S4). Documented; layer-scoped rules are a possible refinement.
+4. Controlled-impedance geometry is COMPUTED (impedance.py), not transcribed from JLC's calculator;
+   outer microstrip only, no inner stripline. Physical stackups are cited-exact. -> V12.
+5. rules_gen does NOT emit keepout (antenna/mounting) or courtyard rules: keepouts need mechanical
+   geometry from P2/P6 (not available from constraints alone at board setup), and courtyard overlap
+   is already a built-in KiCad DRC check (courtyards_overlap) - an explicit rule is redundant.
+6. No new gates.yaml entry for P5: board setup's acceptance is board_init's internal self-check
+   (parity + setup violations); the routed-board DRC gate (drc_routed, S2) is the phase gate at P7.
+   The existing `drc` gate intentionally fails an unrouted board (unconnected errors), so it is not
+   the P5 gate.
+
+**Interface notes for later steps:**
+- `board_init.py --netlist n.net --name B --out DIR --layers 2|4 [--stackup NAME] [--outline auto|WxH]
+  [--mounting-holes N] [--schematic s] [--fp-lib DIR]` -> `DIR/B.kicad_pcb` + `B.kicad_pro`.
+  Importable: `parse_netlist(path) -> ([{ref,value,fp}], {"REF.PAD":net})`, `build_stackup_block`,
+  `inject_stackup`, `self_check`. S9 places into this board (parts pre-loaded, nets assigned, unrouted).
+- `rules_gen.py --constraints c.json --layers N [--copper-oz X] [--stackup NAME] --out-dru B.kicad_dru
+  [--pro B.kicad_pro] [--baseline-only]`. Rule names are `aiee_*` (floors `aiee_*_floor`,
+  power `aiee_pwr_width_<net>`, diff `aiee_diff_gap_<base>`); violation msgs carry `rule 'NAME'`.
+  constraints.json shape extension (optional, back-compat with S4): high_speed entries may add
+  `impedance_ohm`; a top-level `diff_pairs: [{p,n,base?,impedance_ohm?}]` overrides name-suffix pairing.
+- `reference/jlc_capabilities.yaml` design_rules[<layers>layer_<oz>oz] is the S12 dfm_check contract;
+  `reference/stackups.yaml` stackups[NAME] (stack + controlled_impedance) is board_init + rules_gen's;
+  `reference/jlc_rotations.csv` (regex,rotation, first match wins) is S12 bom_cpl's.
+- `scripts/lib/impedance.py`: `solve_width(z0,h,t,er)`, `diff_pair(zdiff,h,t,er[,width|gap])`,
+  `geometry_for(profile,h,er,cu_oz)`. First-order (V12); S5 check_diffpair can reuse for targets.
+- board_swig.py is bundled-python ONLY (imports pcbnew); invoked via env.find_kicad_python. Mounting
+  holes get FP_BOARD_ONLY|FP_EXCLUDE_FROM_POS_FILES|FP_EXCLUDE_FROM_BOM so parity/CPL ignore them.
+
+**New verify-later items:** V12 (impedance approximation vs JLC calculator; outer microstrip only).

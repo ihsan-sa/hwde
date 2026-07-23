@@ -1,0 +1,303 @@
+#!/usr/bin/env python
+"""board_init.py - initialize a .kicad_pcb from a netlist (SPEC P5).
+
+board-setup phase, script-driven: create the board, import the netlist
+(footprints + net assignments), set the stackup from stackups.yaml, draw a
+provisional outline and mounting holes. Placement proper is P6 - board_init
+just spreads parts legally (no courtyard overlaps) so DRC setup is clean.
+
+kicad-cli has NO netlist->board path, so the import runs under KiCad's bundled
+python via lib/board_swig.py (the only interpreter with pcbnew), mirroring the
+corpus builder. The venv driver here parses the netlist (sexpdata), picks the
+stackup, drives the worker, injects the (stackup) block as text (SWIG can't
+serialize it - LEARNINGS [swig]), writes a minimal .kicad_pro, and self-checks.
+
+Self-check acceptance (SPEC S8): schematic parity == 0 (every part+net imported
+correctly) AND zero setup DRC violations, EXCLUDING unconnected_items (the board
+is unrouted by design). Emits the normalized DRC report alongside.
+
+Usage:
+  board_init.py --netlist n.net --name board --out dir --layers 4
+                [--stackup NAME] [--outline auto|WxH] [--mounting-holes N]
+                [--schematic s.kicad_sch]   # copy next to board -> enables parity
+                [--fp-lib DIR ...] [--out-report r.json]
+
+I/O: SPEC section 6 - argparse, JSON to stdout or --out-report, exit 0/1/2.
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import shutil
+import subprocess
+import sys
+import traceback
+from pathlib import Path
+
+import sexpdata
+import yaml
+
+SCRIPTS = Path(__file__).resolve().parent
+sys.path.insert(0, str(SCRIPTS))
+sys.path.insert(0, str(SCRIPTS / "lib"))
+from lib import env  # noqa: E402
+import kc  # noqa: E402
+
+REFERENCE = SCRIPTS.parent / "reference"
+STACKUP_FILE = REFERENCE / "stackups.yaml"
+WORKER = SCRIPTS / "lib" / "board_swig.py"
+
+
+# --------------------------------------------------------------- netlist parse
+
+def _sym(x):
+    return x.value() if isinstance(x, sexpdata.Symbol) else x
+
+
+def _head(node):
+    return _sym(node[0]) if isinstance(node, list) and node else None
+
+
+def _find(node, name):
+    return [c for c in node if isinstance(c, list) and _head(c) == name]
+
+
+def _find1(node, name):
+    r = _find(node, name)
+    return r[0] if r else None
+
+
+def parse_netlist(path: Path) -> tuple[list[dict], dict]:
+    """kicadsexpr netlist -> ([{ref, value, fp}], {"REF.PAD": net})."""
+    data = sexpdata.loads(path.read_text(encoding="utf-8"))
+    components: list[dict] = []
+    netmap: dict[str, str] = {}
+    for section in data[1:]:
+        if _head(section) == "components":
+            for comp in _find(section, "comp"):
+                ref = _sym(_find1(comp, "ref")[1])
+                vnode = _find1(comp, "value")
+                value = _sym(vnode[1]) if vnode and len(vnode) > 1 else ""
+                fnode = _find1(comp, "footprint")
+                fp = _sym(fnode[1]) if fnode and len(fnode) > 1 else None
+                components.append({"ref": ref, "value": value, "fp": fp})
+        elif _head(section) == "nets":
+            for net in _find(section, "net"):
+                nm = _sym(_find1(net, "name")[1])
+                for node in _find(net, "node"):
+                    r = _sym(_find1(node, "ref")[1])
+                    p = _sym(_find1(node, "pin")[1])
+                    netmap[f"{r}.{p}"] = nm
+    missing = [c["ref"] for c in components if not c["fp"]]
+    if missing:
+        raise ValueError(f"netlist components without a footprint: {missing}")
+    return components, netmap
+
+
+# --------------------------------------------------------------- stackup block
+
+def build_stackup_block(stackup: dict) -> str:
+    """(stackup ...) s-expr text from a stackups.yaml entry, geom-parseable."""
+    lines = ["\t\t(stackup",
+             '\t\t\t(layer "F.SilkS" (type "Top Silk Screen"))',
+             '\t\t\t(layer "F.Paste" (type "Top Solder Paste"))',
+             '\t\t\t(layer "F.Mask" (type "Top Solder Mask") (thickness 0.01))']
+    for ly in stackup["stack"]:
+        if ly["type"] == "copper":
+            lines.append(f'\t\t\t(layer "{ly["name"]}" (type "copper") '
+                         f'(thickness {ly["thickness_mm"]}))')
+        else:
+            mat = ly.get("material", "FR4")
+            er = ly.get("epsilon_r", 4.5)
+            lt = ly.get("loss_tangent", 0.02)
+            lines.append(
+                f'\t\t\t(layer "{ly["name"]}" (type "{ly["type"]}") '
+                f'(thickness {ly["thickness_mm"]}) (material "{mat}") '
+                f'(epsilon_r {er}) (loss_tangent {lt}))')
+    lines.append('\t\t\t(layer "B.Mask" (type "Bottom Solder Mask") (thickness 0.01))')
+    lines.append('\t\t\t(layer "B.SilkS" (type "Bottom Silk Screen"))')
+    lines.append(f'\t\t\t(copper_finish "{stackup.get("copper_finish", "HASL")}")')
+    dc = "yes" if stackup.get("dielectric_constraints") else "no"
+    lines.append(f'\t\t\t(dielectric_constraints {dc})')
+    lines.append("\t\t)")
+    return "\n".join(lines) + "\n"
+
+
+def inject_stackup(pcb_path: Path, stackup: dict) -> None:
+    """Insert the (stackup) block into (setup ...) and set (general thickness)."""
+    t = pcb_path.read_text(encoding="utf-8")
+    if "(stackup" not in t:
+        m = re.search(r"\(setup\n", t)
+        if not m:
+            raise RuntimeError("no (setup block in board to inject stackup")
+        block = build_stackup_block(stackup)
+        t = t[:m.end()] + block + t[m.end():]
+    # set board thickness to the stackup total
+    thick = stackup.get("thickness_mm", 1.6)
+    t2 = re.sub(r"\(thickness [\d.]+\)", f"(thickness {thick})", t, count=1)
+    if t2 == t and "(general" in t:
+        t2 = re.sub(r"(\(general\n)", rf"\1\t\t(thickness {thick})\n", t, count=1)
+    pcb_path.write_text(t2, encoding="utf-8")
+
+
+# --------------------------------------------------------------- project file
+
+def write_pro(pro_path: Path, min_track: float = 0.1) -> None:
+    """Minimal, hand-rolled .kicad_pro (LEARNINGS [kicad]: minimal pro is the
+    DRC authority; suppress library-mismatch noise for imported footprints)."""
+    pro = {
+        "board": {"design_settings": {
+            "rule_severities": {"lib_footprint_issues": "ignore",
+                                "lib_footprint_mismatch": "ignore"},
+            "rules": {"min_track_width": min_track}}},
+        "erc": {"rule_severities": {"lib_symbol_issues": "ignore",
+                                    "lib_symbol_mismatch": "ignore",
+                                    "footprint_link_issues": "ignore"}},
+        "meta": {"filename": pro_path.name, "version": 3},
+        "schematic": {"legacy_lib_dir": "", "legacy_lib_list": []},
+    }
+    pro_path.write_text(json.dumps(pro, indent=2), encoding="utf-8")
+
+
+# --------------------------------------------------------------- self check
+
+SETUP_IGNORE_SOURCES = {"unconnected"}  # unrouted board -> unconnected expected
+
+
+def self_check(cli: Path, pcb: Path, has_sch: bool) -> dict:
+    report = kc.run_drc(cli, pcb, parity=has_sch)
+    setup = [v for v in report["violations"]
+             if v["source"] not in SETUP_IGNORE_SOURCES]
+    parity = [v for v in report["violations"] if v["source"] == "parity"]
+    unconnected = [v for v in report["violations"] if v["source"] == "unconnected"]
+    return {
+        "drc": report["counts"],
+        "setup_violations": setup,
+        "parity_count": len(parity),
+        "unconnected_count": len(unconnected),
+        "clean": len(setup) == 0,
+    }
+
+
+# --------------------------------------------------------------- main
+
+def main(argv: list[str] | None = None) -> int:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--netlist", required=True)
+    ap.add_argument("--name", required=True, help="board basename")
+    ap.add_argument("--out", required=True, help="output directory (workspace/kicad)")
+    ap.add_argument("--layers", type=int, default=4, choices=[2, 4])
+    ap.add_argument("--stackup", help="stackup name (default: stackups.defaults[layers])")
+    ap.add_argument("--outline", default="auto",
+                    help="'auto' (bbox+margin) or 'WxH' in mm, e.g. 60x40")
+    ap.add_argument("--margin", type=float, default=6.0)
+    ap.add_argument("--mounting-holes", type=int, default=0,
+                    help="corner mounting holes (0..4)")
+    ap.add_argument("--schematic", help="copy this .kicad_sch next to the board "
+                    "so the self-check can run schematic parity")
+    ap.add_argument("--fp-lib", action="append", default=[],
+                    help="extra footprint library parent dir (repeatable)")
+    ap.add_argument("--out-report", help="write JSON report here instead of stdout")
+    args = ap.parse_args(argv)
+
+    try:
+        cli = env.find_kicad_cli()
+        if cli is None:
+            raise RuntimeError("kicad-cli not found (see check_env.py)")
+        bp = env.find_kicad_python(cli)
+        if bp is None:
+            raise RuntimeError("bundled python (pcbnew) not found")
+
+        out_dir = Path(args.out)
+        out_dir.mkdir(parents=True, exist_ok=True)
+        pcb_path = out_dir / f"{args.name}.kicad_pcb"
+
+        components, netmap = parse_netlist(Path(args.netlist))
+
+        stacks = yaml.safe_load(STACKUP_FILE.read_text(encoding="utf-8"))
+        stk_name = args.stackup or stacks["defaults"].get(args.layers)
+        stackup = stacks["stackups"].get(stk_name)
+        if stackup is None:
+            raise RuntimeError(f"stackup {stk_name!r} not in stackups.yaml")
+        if stackup["layers"] != args.layers:
+            raise RuntimeError(f"stackup {stk_name} is {stackup['layers']}-layer, "
+                               f"--layers {args.layers}")
+
+        outline = {"mode": "auto"}
+        if args.outline != "auto":
+            m = re.fullmatch(r"([\d.]+)x([\d.]+)", args.outline)
+            if not m:
+                raise RuntimeError(f"bad --outline {args.outline!r} (use auto or WxH)")
+            outline = {"mode": "fixed", "w": float(m.group(1)), "h": float(m.group(2))}
+
+        job = {
+            "out": str(pcb_path), "layers": args.layers,
+            "components": components, "netmap": netmap,
+            "fp_paths": args.fp_lib, "margin": args.margin, "outline": outline,
+            "mounting_holes": ({"count": args.mounting_holes, "inset": args.margin / 2.0}
+                               if args.mounting_holes else None),
+        }
+        import tempfile
+        with tempfile.TemporaryDirectory(prefix="aiee_binit_") as td:
+            jf = Path(td) / "job.json"
+            jf.write_text(json.dumps(job), encoding="utf-8")
+            cp = subprocess.run([str(bp), str(WORKER), str(jf)],
+                                capture_output=True, text=True,
+                                encoding="utf-8", errors="replace", timeout=300)
+        worker = _last_json(cp.stdout)
+        if worker is None or worker.get("status") != "pass":
+            raise RuntimeError(f"board_swig worker failed: "
+                               f"{(cp.stdout or cp.stderr)[-600:]}")
+
+        inject_stackup(pcb_path, stackup)
+        write_pro(out_dir / f"{args.name}.kicad_pro")
+
+        has_sch = False
+        if args.schematic:
+            shutil.copy(args.schematic, out_dir / f"{args.name}.kicad_sch")
+            has_sch = True
+
+        check = self_check(cli, pcb_path, has_sch)
+
+        result = {
+            "script": "board_init",
+            "status": "pass" if check["clean"] else "violations",
+            "board": str(pcb_path), "stackup": stk_name, "layers": args.layers,
+            "components": len(components), "nets": worker["nets"],
+            "outline_bbox": worker["bbox"], "mounting_holes": args.mounting_holes,
+            "self_check": check, "worker_notes": worker.get("notes", []),
+        }
+        _emit(result, args.out_report)
+        return 0 if check["clean"] else 1
+    except Exception:
+        _emit({"script": "board_init", "status": "error",
+               "error": traceback.format_exc()}, args.out_report if 'args' in dir() else None)
+        return 2
+
+
+def _last_json(text: str) -> dict | None:
+    for line in reversed((text or "").strip().splitlines()):
+        line = line.strip()
+        if line.startswith("{"):
+            try:
+                return json.loads(line)
+            except json.JSONDecodeError:
+                continue
+    return None
+
+
+def _emit(obj: dict, out: str | None) -> None:
+    s = json.dumps(obj, indent=2)
+    if out:
+        Path(out).write_text(s, encoding="utf-8")
+    else:
+        print(s)
+
+
+if __name__ == "__main__":
+    sys.exit(main())
