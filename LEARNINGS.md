@@ -320,3 +320,30 @@ a stub joins mid-segment so it lands in its own graph component and Dijkstra nat
 Report gap deviation as facts only (never gate on it): a legit pair fans out to >nominal gap at its
 pad breakouts. Guard empties: an unrouted half -> shapely distance to an empty geom is NaN (invalid
 JSON + silently disables the check); a 1-copper-layer board -> epsilon_between divides by zero.
+
+## 2026-07-22 [python] kicad-sch-api 0.5.6 hierarchical sheets DO serialize (global labels still do not)
+S7: add_sheet / add_sheet_pin / add_hierarchical_label all write to the saved file and ERC/netlist
+correctly under kicad-cli 10.0.3 (S1 only proved the flat path; add_global_label remains a silent
+no-op). API shape: sheets come back as plain DICTS (sch.sheets.get_sheet_by_name(name)["pins"]);
+sheet-pin positions are ABSOLUTE, with left-edge position_along_edge measured from the sheet BOTTOM.
+Hierarchy net-name semantics: power SYMBOLS make a net global across all sheets (no sheet pin
+needed); a child net merged with the root via a sheet pin takes the ROOT-side name ("/VIN");
+child-internal nets become "/<sheet>/NAME". Consequence: wiring labels are sheet-local, so metadata
+recording "exact board net names" (decoupling rail) must carry the FINAL name - schlib.py's
+rail_net/gnd_net override exists for this, and netlist_audit.py --decoupling catches the drift.
+
+## 2026-07-22 [python][erc] Labels attach anywhere ALONG a wire; every wire endpoint needs a pin or label
+A label whose anchor lands on a foreign wire RUN merges the two nets (ERC multiple_net_names plus a
+real netlist short): hierdemo's cap row initially put a vertical cap stub through the IC's GND label
+anchor -> GND merged with +3V3. Pins connect at wire ENDPOINTS only, but labels bind mid-span too -
+generated placement must keep label anchors off foreign wires (schlib caps_at is caller-guaranteed
+free area). Conversely a wire ENDPOINT carrying neither pin nor label warns unconnected_wire_endpoint;
+a label ON the endpoint terminates it legally (flag-only rail clusters label the start endpoint).
+
+## 2026-07-22 [kicad-cli] Netlist export facts (10.0.3, kicadsexpr)
+Netlists are MULTILINE pretty-printed - parse with sexpdata, not line regexes. Every NC/unconnected
+pin appears as a singleton net "unconnected-(REF-PINNAME-PadN)" with a "+no_connect" pintype suffix
+(blinky2: 32 of 43 nets). Power symbols and PWR_FLAG (#PWR/#FLG refs) are EXCLUDED from netlist
+nodes entirely, so "is this rail driven" is NOT answerable from the netlist when the driver is a
+flag or connector - ERC owns that check; netlist_audit.py warns on undeclared power_in feeders
+instead of driver presence.

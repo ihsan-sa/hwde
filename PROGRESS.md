@@ -14,7 +14,7 @@ Session protocol: repo `CLAUDE.md` ("run step N"). Update this file + commit at 
 | S4 | Verification suite part 1 (crown jewels) | **done** | 2026-07-11 |
 | S5 | Verification suite part 2 + check orchestration | **done** | 2026-07-22 |
 | S6 | Parts, library, datasheet tooling | **done** | 2026-07-22 |
-| S7 | Schematic generation | pending | |
+| S7 | Schematic generation | **done** | 2026-07-22 |
 | S8 | Board setup and reference data | **done** | 2026-07-22 |
 | S9 | Placement: seed, metrics, edit ops | pending | |
 | S10 | Placement: annealer with routability feedback | pending | |
@@ -66,7 +66,7 @@ kickoff prompt to allow multi-agent workflows (higher token spend - use where ma
 | # | Claim | Source | Status |
 |---|---|---|---|
 | V1 | DSN export / SES import via SWIG | spec P7, S11 | S0: pcbnew imports + board roundtrip + Export/Import symbols PRESENT on 9.0.5 and 10.0.3. Full export smoke incl. wx-assert suppression (LEARNINGS [swig]) at S11. |
-| V2 | kicad-sch-api output opens in KiCad 10 | spec sec 9, S7 | S1: YES - three generated schematics ERC-clean under kicad-cli 10.0.3, netlists export, boards pass --schematic-parity. Quirks in LEARNINGS [python] (global labels silently dropped, pin renumbering, mid-wire pins do not connect). S7 builds on this. |
+| V2 | kicad-sch-api output opens in KiCad 10 | spec sec 9, S7 | **RESOLVED S7** (S1 evidenced flat): hierarchical output too - add_sheet/add_sheet_pin/add_hierarchical_label serialize, 3-sheet hierdemo ERC-clean on 10.0.3, cross-sheet nets + global power nets netlist correctly. Blinky2 regenerated via schlib = netlist IDENTICAL to golden. Quirks in LEARNINGS [python]. |
 | V3 | `drc --refill-zones` availability | spec sec 1 | RESOLVED S0/S1: verified on real zoned boards (2- and 4-layer goldens): fills + persists via --save-board, plain DRC clean afterwards; the pipeline's ONLY working headless fill (ZONE_FILLER segfaults, LEARNINGS [swig]). S11 re-checks post-SES. |
 | V4 | kipy `headless=True` starts `kicad-cli api-server` | spec sec 1 | RESOLVED S0: NO api-server subcommand in 9.0.5/10.0.3; kipy 0.7.1's server helper targets newer KiCad. Working IPC: sandboxed-GUI launch (smoke_ipc.py, verdict `gui-sandboxed-ok`). Headless alternative: SWIG bundled python. Decide edit path at S9. |
 | V5 | JLCPCB Parts API (credentialed) | spec sec 1, S6 | **RESOLVED S6**: the pinned easyeda2kicad 1.0.1 wraps an ANONYMOUS JLCPCB parts search (EasyedaApi.search_jlcpcb_components) that needs NO credential - verified live (18783 hits for "100nF 0603 X7R", Basic/Extended+stock+price). That is parts_search.py's PRIMARY path; the credentialed api.jlcpcb.com (still needs an access application) is unnecessary for search and deferred to S12 ordering. jlcparts SQLite = optional --db cache (none on host; code path unit-tested vs a synthetic DB). Web search = agent last resort (exit 2 when offline+no db). LEARNINGS [parts]. |
@@ -675,6 +675,103 @@ steps are still "pending" on the status board.
 
 **New verify-later items:** none. (V5 resolved above; jlcparts-real-DB and credentialed ordering
 API remain future-verify but are covered by existing registers / S12.)
+
+## S7 - Schematic generation (2026-07-22) - DONE
+
+**Smoke tests first (V2 completion, live 10.0.3):** kicad-sch-api 0.5.6's hierarchical API
+(add_sheet / add_sheet_pin / add_hierarchical_label) DOES serialize - unlike add_global_label
+(still a silent no-op) - and a probe 2-sheet design came out ERC-clean with correct cross-sheet
+netlist connectivity on the first try. Path chosen: kicad-sch-api native output, NO `sch upgrade`
+step needed (files load as saved). Sheets are dicts; sheet-pin positions absolute (left-edge
+`position_along_edge` measured from sheet bottom). LEARNINGS [python][erc][kicad-cli] x3.
+
+**Built:**
+- `scripts/schlib.py` - the P4 generation library over kicad-sch-api (S1 sch_build conventions
+  lifted: grid snap+assert, outward stub+local-label wiring, rail clusters, pin-number fixups,
+  minimal-pro authority). API: `Sheet` (add_component w/ `expect` pin-name insurance,
+  wire_pin/wire_pins, power_flag / power_symbol_at_pin, hier_pin (pin-stub and free-cluster
+  variants), place_ic_with_decoupling, save, emit_decoupling), `Project` (add_sheet stitching:
+  sheet pins from the child's registered hier_pins, root-side label wiring; merged decoupling),
+  `write_project`, `apply_pin_number_fixups`, `pin_table`. CLI: `--pins LIB_ID` prints a symbol
+  pin table (grounding aid for P4 agents; JSON, exit 0/2, call-time ksa noise suppressed).
+- `scripts/netlist_audit.py` - netlist-vs-constraints audit + netlist-vs-netlist identity.
+  Audit: missing_net (error; all constraints net refs incl. high_speed reference layer maps),
+  diffpair_naming/diffpair_unpaired (warnings; strong suffixes _P/_N, DP/DM, D+/D-),
+  power_no_consumers / power_undeclared (warnings; pintype power_in scan, ground-name exempt),
+  dangling_net (warning; single-pin non-unconnected-* = label-typo signature), decoupling
+  metadata_mismatch (errors; value drift = warning). Warnings alone do NOT fail (fp_verify
+  precedent). `--compare B.net`: strict identity (names + (ref,pin) memberships; renames
+  classified, still failures). `--sch X.kicad_sch` exports via kc.py first. sexpdata parser
+  (netlists are multiline).
+- Generator-pattern fixtures (committed source AND build outputs):
+  `tests/s7_regen/blinky2/kicad/gen/root.py` -> blinky2.kicad_sch/.kicad_pro + decoupling.json +
+  blinky2.net; `tests/s7_regen/blinky2/golden.net` (reference export of the committed golden);
+  `tests/s7_regen/hierdemo/kicad/gen/{root,power_sheet,load_sheet}.py` -> 3-sheet hierdemo
+  (hier signal x2 variants, global rails, cross-child net, child-internal "/load/LED_K" net,
+  per-sheet #PWR ranges via pwr_base) + constraints.json audit fixture.
+- `tests/test_schgen.py` - 29 tests: 23 hermetic (committed artifacts + pure venv: golden netlist
+  parse, comparator identity/diffs/rename classes, audit pass on regen + hierdemo, every audit
+  violation kind + severity + exit codes, emitted decoupling == S4 golden fixture semantically,
+  check_decoupling ON THE GOLDEN BOARD driven by the S7-EMITTED metadata, schlib pure helpers) +
+  6 smoke (live rebuild -> ERC 0 -> re-export -> identical to golden AND to committed outputs
+  [committed-artifact freshness guard], hierdemo full topology assert, --sch export path,
+  --pins CLI, Sheet validation errors).
+
+**Acceptance evidence (live 10.0.3):** blinky2 regenerated from the schlib generator: ERC
+`--severity-all` = 0; netlist ELECTRICALLY IDENTICAL to the committed golden's export (43/43 nets,
+same (ref,pin) memberships, incl. all 32 unconnected-(...) NC nets); audit passes (0 violations;
++3V3 5 power_in / 1 power_out driver). Emitted decoupling.json == the hand-written S4 fixture on
+(cap,ic,pin,rail,value) x6, and S4's check_decoupling passes on the golden BOARD fed the emitted
+file. hierdemo: ERC 0, netlist exactly the designed topology (global +3V3 across sheets, /VIN and
+/CTL through both hier_pin variants), audit 0. `pytest` green: **301 passed** + check_env exit 0
+(1 deselected - parallel-S9 WIP, below).
+
+**Deviations from spec/plan (with reasons):**
+1. Hier labels bind by wire geometry, not name-merge: hier_pin's free-cluster variant writes its
+   own wire + local label + hier label so correctness never rests on same-sheet label-name-merge
+   semantics.
+2. Decoupling metadata records FINAL netlist names, which differ from sheet-local wiring labels
+   for root-local ("/NAME") and hier-crossed nets: explicit `rail_net`/`gnd_net` entry overrides
+   (inference would be fragile); netlist_audit --decoupling is the drift catcher - it CAUGHT this
+   exact mismatch on hierdemo's first build (rail "VIN" vs net "/VIN").
+3. Audit's "power-tree connectivity" is consumer/declaration-based (power_in scans), NOT
+   driver-based: #PWR/#FLG symbols are excluded from netlists entirely, so driver presence is
+   ERC's job (PWR_FLAG rules), not the netlist's. Ground-named nets (GND*/;*GND/VSS*/0V) exempt
+   from power_undeclared.
+4. `_P/_N` pairing warnings use only the strong suffix families (_P/_N, DP/DM, D+/D-), not
+   check_diffpair's bare +/-, P/N tokens (every net ending in P would FP). Naming-convention
+   violations are warnings, not errors (corpus itself uses DP/DM).
+5. blinky2 regen is FLAT (root-sheet, like the golden) - hierarchy would change net names and
+   break the identity acceptance; the hierdemo fixture proves the hierarchical machinery instead.
+6. sch_build.py (S1 corpus generator) intentionally NOT refactored onto schlib - the corpus stays
+   frozen; schlib lifted its proven code instead.
+
+**Interface notes for later steps:**
+- Generator pattern for P4 agents (S13): per-sheet `kicad/gen/<sheet>.py` exposing
+  `build() -> schlib.Sheet`; root generator stitches via `schlib.Project.add_sheet(child, at,
+  size, nets=[...])` and `Project.save(out_dir, decoupling=path)`. Sheet generators declare
+  cross-sheet nets with `hier_pin`; rails ride power symbols (global, no sheet pin). Refs must be
+  unique ACROSS sheets (allocate ranges per sheet, incl. pwr_base). tests/s7_regen/* is the
+  working reference implementation.
+- decoupling.json emission: place_ic_with_decoupling entries -> associations in EXACTLY the S4
+  contract shape ({cap, ic, pin, rail, value, gnd?, class?, max_dist_mm?, max_loop_nh?});
+  rail/gnd take rail_net/gnd_net overrides when the netlist name differs from the wiring label.
+  S9 satellite locking reads the same associations (usbbuck4's placement.groups xtal workaround
+  can retire once its design has S7 metadata).
+- netlist_audit is the P4 gate companion: `--sch` (or `--netlist`) + `--constraints`
+  [+ `--decoupling`]; exit 1 only on errors. `--compare` guards regenerations. Payload:
+  checklib report shape + facts {nets, components, unconnected_pins, constraint_nets_checked,
+  decoupling_associations, power[{net,nodes,power_in,power_out}]}; violation kinds:
+  missing_net, diffpair_naming, diffpair_unpaired, power_no_consumers, power_undeclared,
+  dangling_net, metadata_mismatch, netlist_diff.
+- schlib CLI `--pins LIB_ID` = symbol pin-table grounding for P4 agents before wiring.
+- Coordination note: this session ran in parallel with an in-flight S9 session (uncommitted
+  place_* scripts, gates.yaml `place` gate, golden constraints placement blocks in the tree).
+  S7 commits ONLY S7 paths (S6 precedent); test_kc_gate.py::test_gates_yaml_valid currently
+  fails on S9's WIP gates.yaml (tool `place` unknown to the committed test) - that test is S9's
+  to green when it lands. Everything else: 301 passed with that single test deselected.
+
+**New verify-later items:** none. (V2 resolved above.)
 
 ## S8 - Board setup and reference data (2026-07-22) - DONE
 
