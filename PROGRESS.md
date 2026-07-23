@@ -17,7 +17,7 @@ Session protocol: repo `CLAUDE.md` ("run step N"). Update this file + commit at 
 | S7 | Schematic generation | **done** | 2026-07-22 |
 | S8 | Board setup and reference data | **done** | 2026-07-22 |
 | S9 | Placement: seed, metrics, edit ops | **done** | 2026-07-22 |
-| S10 | Placement: annealer with routability feedback | pending | |
+| S10 | Placement: annealer with routability feedback | **done** (feedback stub -> S11) | 2026-07-23 |
 | S11 | Routing pipeline | pending | |
 | S12 | Fab outputs, DFM, ordering | pending | |
 | S13 | Agents, orchestrator, SKILL.md | pending | |
@@ -998,3 +998,97 @@ contract):
 
 **New verify-later items:** none. (V4 updated - GUI-IPC regressed on host; V8 resolved negative -
 SWIG chosen, kipy = KiCad 11 target.)
+
+## S10 - Placement: annealer with routability feedback (2026-07-23) - DONE
+
+**Built:** `scripts/place_anneal.py` (single file, ~1100 lines) - SA refinement over the S9 rigid
+clusters (placelib.build_clusters + place_seed satellite slots ARE the move unit; apply_cluster's
+transform math reused for output so ops match seed semantics exactly):
+- Engine: incremental cost evaluation over cluster (center, angle) states. Cluster-frame pad
+  coordinates precomputed once (pad_abs = center + R(-angle) . q, q folds slot+rel rotation), so
+  a move rebuilds only the moved cluster's nets. Raw term totals maintained per move, recombined
+  with weights at accept time: weighted HPWL (gnd 0.25 / power 0.6 / signal 1.0), overlap mm^2
+  (cluster pairs + fixed obstacles + keepouts + outside-outline, bbox-prefiltered shapely,
+  ramped by sqrt(T0/T) so late epochs are effectively legal-only), congestion overflow (MST
+  flight-line demand above --cong-cap per 2 mm cell), weighted MST crossings (orientation
+  predicate, proper crossings only), rule terms (current_a x HPWL per constraints.power net;
+  placement.separation pairs; constraints.thermal spreading). Gnd-class nets are excluded from
+  the MST terms (planes carry them). full_sync() every epoch re-derives all totals (float-drift
+  kill; incremental==full invariant pinned by test).
+- Annealer: moves = translate (window-scaled, grid-snapped) / rotate +-90,180 / swap two free
+  clusters / edge-slide + same-edge swap. Edge clusters slide ALONG their declared edge only
+  (perpendicular seat preserved from the seed; explicit `pos` = frozen); side flips are not SA
+  moves (agent domain, P6 stage 3). Adaptive schedule: T0 = 20x mean uphill delta from sampled
+  moves; cooling 0.6/0.9/0.95/0.9/0.75 by epoch acceptance band; TimberWolf window
+  W *= (0.56 + alpha); stall counts ONLY in the cold regime (alpha < 0.2) - see LEARNINGS. Ends
+  with a zero-T quench from the best state. Deterministic per --seed (random.Random only;
+  wall-clock reported, never steering).
+- Top-N: distinct best states (>2 mm or >1 deg apart) -> applied to the in-memory model,
+  greedy spiral repair if minor illegality remains, placelib legality check, absolute op list
+  per candidate -> `<out-dir>/cand<k>.ops.json` + slim per-candidate report entries. --apply-best
+  applies rank 1 via place_edit.apply_ops (atomic, verified).
+- Routability feedback (SPEC P6.2): --route-feedback exits 2 with a clear message until S11
+  (plan-sanctioned stub). The BLENDING IS BUILT and fake-probe-tested: anneal(...,
+  route_probe=fn) probes the best state every --feedback-every epochs; completion c boosts
+  cong/cross weights (fb_boost = 1 + 2*(1-c)) and candidates rank by cost*(1 + w_fb*(1-c)).
+- `tests/test_place_anneal.py` - 23 tests: 21 pure (segment-crossing predicate, engine HPWL ==
+  placelib on the applied state, incremental==full_sync invariant after 60 random moves,
+  crossing/congestion counters react to moves, rule terms (current/separation/thermal),
+  gnd MST exclusion, anneal improves + stays legal on a scattered synthetic board, board file
+  untouched, same-seed determinism (ops + counts) / different-seed divergence, satellites ride
+  their anchor (slot + rel angle preserved through rotation), edge cluster stays flush + never
+  rotates, explicit-pos edge frozen, top-N distinct/sorted, forced-overlap repair, all-locked
+  note, feedback stub exit 2, fake-probe blending + weight boost, CLI report/ops files schema,
+  missing board exit 2) + 2 smoke (usbbuck4 acceptance at 60-epoch budget; corpus
+  reproducibility - byte-identical ops per seed).
+
+**Acceptance evidence (live 10.0.3, usbbuck4 from scratch):** netlist -> board_init (shelf
+832.6 mm) -> place_seed --apply (483.7) -> place_anneal default budget (140 epochs, 141k moves,
+123 s): best candidate HPWL **273.9 mm = 43.4% under the seed** (bar: >=20%; 50-epoch budget
+already gives 26.0% in 41 s - the smoke test uses 60). 3 legal candidates, 0 violations,
+overlap 0, congestion overflow 2 -> 0, weighted crossings 14.25 -> 3.0. Same seed twice ->
+byte-identical cand1.ops.json. Applied via place_edit: `gate.py --gate place` PASS; place_metrics
+hpwl matches the candidate; decoupler Manhattan 2.5-6.6 mm (satellites rigid). Render eyeballed:
+connectors on their declared edges (J1 slid to bottom-left - HPWL-optimal, ergonomics is the P6
+stage-3 agent's call), buck cluster between USB and MCU, xtal + decouplers at the MCU. Runtime
+2 min << 30 min bar. Feedback-completion leg (>=98%) defers to S11 with the probe. `pytest` +
+check_env green: **370 passed** (347 prior + 23).
+
+**Deviations from spec/plan (with reasons):**
+1. Route feedback stubbed behind --route-feedback exit 2 (the plan's own instruction when S10
+   precedes S11); the blending/steering logic is implemented and fake-probe-tested so S11 only
+   wires probe(model) -> completion.
+2. Rule terms: "analog/digital separation" has no domain metadata until P2/S13 - implemented as
+   generic constraints placement.separation [{a:[refs], b:[refs], min_mm}] (quadratic penalty);
+   thermal spreading reads constraints.thermal (corpus has none; synthetic-tested); high-current
+   path length = current_a x net HPWL.
+3. Spec 6.2's "own test corpus of placement problems with known-achievable routability" needs
+   route completion to label -> lands with S11 feedback; S10's corpus = synthetic scatter/cross/
+   congestion problems + the usbbuck4 flow.
+4. Gnd-class nets excluded from crossing/congestion terms (not in spec's list): their flight
+   lines do not predict routing demand on plane-carrying boards; they still count toward HPWL.
+5. Not a "~2 kLOC class": ~1100 lines, because clusters/slots/transforms/legality live in
+   placelib/place_seed (S9) and are reused, not duplicated.
+
+**Interface notes for later steps:**
+- S11 (feedback wiring): pass route_probe=fn to place_anneal.anneal() (or replace the CheckError
+  branch in run()); fn(model: PlaceModel with best state applied) -> completion fraction [0,1].
+  Everything else (feedback_every, fb_boost steering, candidate blending, facts.last_completion)
+  already works. The >=98% fast-route acceptance leg is S11's.
+- S13 (P6 phase): stage 2 = `place_anneal.py --pcb B.kicad_pcb` (sidecars from the board dir;
+  ~2 min default budget) -> report + `<board dir>/anneal/cand<k>.ops.json`; stage 3 agent reads
+  the report's per-candidate {cost, score, hpwl_mm, terms, legal, n_violations, ops_file},
+  renders the board per candidate if desired (apply ops to a COPY via place_edit), picks one,
+  applies it; `--apply-best` short-circuits to rank 1. `gate.py --gate place` unchanged.
+- Input contract: run on a seed-applied board. The engine re-seats satellites into their
+  deterministic slots at init and only SLIDES edge clusters along their declared edge - the
+  perpendicular flush seat must come from place_seed. Locked/fixed/board_only footprints are
+  obstacles; explicit-pos edge clusters never move.
+- Determinism: same --seed -> byte-identical ops files (smoke-pinned). Different seeds give
+  independent candidates for the stage-3 agent.
+- HPWL baselines (usbbuck4): shelf 832.6 / seed 483.7 / anneal 273.9 / golden hand 452.6. The
+  anneal beats the hand placement on HPWL by packing tightly into the fixed outline - fine for
+  wirelength, and the empty-board-half look is an outline-sizing (P5) artifact, not a placer bug.
+
+**New verify-later items:** none. (Feedback-completion acceptance leg is explicitly S11's per
+the plan; no register entry needed.)

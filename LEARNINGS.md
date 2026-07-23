@@ -389,3 +389,14 @@ Fruchterman-Reingold attraction w*d^2/k fixed it in place: seed HPWL 484 mm vs g
 placement 452 mm (within 7%), crystal + load caps adjacent to the MCU, decoupler Manhattan
 2.5-6.6 mm. Render and EYEBALL the seed (kicad-cli render) whenever touching the force model -
 the legality gate cannot see "legal but scattered".
+
+## 2026-07-23 [placement][python] SA stall detection must not count the hot phase
+place_anneal's first schedule counted "epochs without a new best" unconditionally: at high T the
+walk sits far above the incumbent best by design, so stall=15 killed the run at epoch 15 while
+acceptance was still ~75% - 17.1% HPWL improvement instead of 43.4% on the same seed. Fix: the
+stall counter only ticks when the epoch acceptance ratio is < 0.2 (cold regime); hot epochs reset
+it. Companion facts that worked as-is: T0 = 20x mean uphill delta from ~50 sampled moves,
+TimberWolf-style window W *= (0.56 + alpha), cooling 0.6/0.9/0.95/0.9/0.75 by acceptance band.
+Perf on usbbuck4 (13 movable clusters, 46 nets): ~0.8 ms/move with incremental cost (per-net HPWL
+rebuild, moved-cluster-only shapely overlap with bbox prefilter, per-net MST + crossing recount,
+congestion cell diffs); full_sync() every epoch kills float drift (invariant pinned by test).
