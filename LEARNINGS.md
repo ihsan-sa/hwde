@@ -287,3 +287,36 @@ requirements.txt/lock. `from pypdf import PdfReader; PdfReader(path).pages[i].ex
 on text-based PDFs (image-only datasheets yield empty text - the LLM agent reads those from the PDF
 pages directly). A minimal valid one-page text PDF can be hand-assembled in ~15 lines for a
 hermetic fixture (see tests/fixtures/parts builder) - no authoring lib needed.
+
+## 2026-07-22 [geometry][kicad] KiCad 10 stores refdes/value as (property ...); fp_text/property angle is ABSOLUTE
+S5 check_silk: reference designators and values are NOT fp_text in KiCad-10 .kicad_pcb - they are
+`(property "Reference" "U1" (at lx ly angle) (layer "F.SilkS") (effects ...))` inside the footprint
+(there are also separate fp_text user items). A silk-over-pad checker that only reads fp_text sees
+1 text per board (the top-level gr_text label) and misses all 17-24 refdes. Parse `property` nodes
+too (text = the 2nd string). CRUCIAL: the stored text `angle` is ABSOLUTE board-frame (already
+includes the footprint rotation), exactly like pad angles ([geometry] entry above) - do NOT add the
+footprint rotation. Adding it swung a vertical refdes (rf4 C15, fp rot -90, text angle 270)
+horizontal across its own pads -> false positive. Position IS local (transform by fp_pos +
+R(-fp_angle).local); only the angle is pre-baked. (hide) detection: `(hide yes)` hides, `(hide no)`
+does not - test the value, not mere presence.
+
+## 2026-07-22 [geometry][kicad] KiCad text bounding box, calibrated vs pcbnew GetBoundingBox (10.0.3)
+For silk-over-pad geometry, KiCad's PCB_TEXT.GetBoundingBox at size s (mm), stroke thickness t:
+height ~= 1.6*s + t (glyph-independent); width is PROPORTIONAL/per-glyph (W~1.39*s, M~1.23, digits
+& caps ~0.94-1.03, i~0.56). A per-char advance of 1.0*s + t is a good average box. Golden refdes
+clear pads by as little as 0.10 mm (bbox), so a silk-over-pad rule keyed on bbox-touch false-positives;
+use "pad CENTER inside the silk box OR silk covers >=50% of the pad" instead - robust to +/-0.1 mm
+box error and still catches centered text (the mutant). Measure with the bundled pcbnew, not a font lib.
+
+## 2026-07-22 [shapely][geometry] Diff-pair "skew" mutant is a COUPLING defect, not a length mismatch
+S5 check_diffpair: the diffpair-skew mutant adds a 6.2 mm meander to the SHORTER net (USB_DM), so raw
+total-length skew goes DOWN (golden |DP-DM|=5.55 mm -> mutant 0.65 mm) - a length-match check both
+FALSE-POSITIVES on the clean golden (5.55>5) and MISSES the mutant. The real signature is UNCOUPLED
+LENGTH (run of one trace whose partner is >~3x the nominal gap away): golden 2.48 mm, mutant 12.96 mm
+- clean separation. Manifest "golden ~2.5 mm skew" == golden uncoupled length, confirming intent.
+Also: length skew must be measured on the BRANCH-FREE trunk (segment-graph shortest path between the
+two matched pad terminals), else a USB D+ pull-up stub (R3, +3.1 mm) inflates DP and breaks the match;
+a stub joins mid-segment so it lands in its own graph component and Dijkstra naturally excludes it.
+Report gap deviation as facts only (never gate on it): a legit pair fans out to >nominal gap at its
+pad breakouts. Guard empties: an unrouted half -> shapely distance to an empty geom is NaN (invalid
+JSON + silently disables the check); a 1-copper-layer board -> epsilon_between divides by zero.

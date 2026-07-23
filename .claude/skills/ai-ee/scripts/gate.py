@@ -43,9 +43,13 @@ def load_gates(path: Path) -> dict:
 
 
 def run_report_for_gate(gate: dict, input_file: Path) -> dict:
-    """Produce a kc.py normalized report per the gate's tool."""
-    cli = kc.resolve_cli()
+    """Produce a normalized report per the gate's tool. erc/drc go through
+    kc.py; verify runs the whole P8 suite via verify_all (its merged summary
+    carries the same {violations, counts} shape evaluate() needs)."""
     tool = gate.get("tool")
+    if tool == "verify":
+        return run_verify(input_file)
+    cli = kc.resolve_cli()
     if tool == "erc":
         return kc.run_erc(cli, input_file)
     if tool == "drc":
@@ -54,7 +58,33 @@ def run_report_for_gate(gate: dict, input_file: Path) -> dict:
         return kc.run_drc(cli, input_file,
                           parity=bool(opts.get("parity")),
                           all_track_errors=bool(opts.get("all_track_errors")))
-    raise RuntimeError(f"gate tool must be 'erc' or 'drc', got {tool!r}")
+    raise RuntimeError(f"gate tool must be 'erc', 'drc' or 'verify', got {tool!r}")
+
+
+def run_verify(board: Path) -> dict:
+    """Run verify_all on the board, taking constraints.json / decoupling.json
+    from the board's own directory (the pipeline places them there). Reports go
+    to a scratch dir so gating never litters the design folder."""
+    import shutil
+    import tempfile
+    import verify_all  # noqa: E402  (sibling script)
+    reports = Path(tempfile.mkdtemp(prefix="gate_verify_"))
+    try:
+        argv = ["--pcb", str(board), "--reports-dir", str(reports)]
+        for fname, flag in (("constraints.json", "--constraints"),
+                            ("decoupling.json", "--decoupling")):
+            f = board.parent / fname
+            if f.exists():
+                argv += [flag, str(f)]
+        summary, _ = verify_all.run(argv)
+    finally:
+        shutil.rmtree(reports, ignore_errors=True)
+    if summary.get("status") == "error":
+        bad = [n for n, c in summary.get("checks", {}).items()
+               if c.get("status") == "error"]
+        raise RuntimeError(f"verification could not run (checks errored: {bad})")
+    summary["input"] = str(board)
+    return summary
 
 
 def evaluate(gate_name: str, gate: dict, report: dict) -> dict:

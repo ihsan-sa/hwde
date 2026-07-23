@@ -12,7 +12,7 @@ Session protocol: repo `CLAUDE.md` ("run step N"). Update this file + commit at 
 | S2 | kicad-cli wrappers and gate infrastructure | **done** | 2026-07-11 |
 | S3 | Geometry library | **done** | 2026-07-11 |
 | S4 | Verification suite part 1 (crown jewels) | **done** | 2026-07-11 |
-| S5 | Verification suite part 2 + check orchestration | pending | |
+| S5 | Verification suite part 2 + check orchestration | **done** | 2026-07-22 |
 | S6 | Parts, library, datasheet tooling | **done** | 2026-07-22 |
 | S7 | Schematic generation | pending | |
 | S8 | Board setup and reference data | **done** | 2026-07-22 |
@@ -484,6 +484,98 @@ check_env exit 0.
   of goldens does not touch them, but re-associating caps (refs) would.
 
 **New verify-later items:** none. (V9 unchanged - cpl-rotation still S12's to catch.)
+
+## S5 - Verification suite part 2 + check orchestration (2026-07-22) - DONE
+
+**Built** (all on geom.py + checklib.py, S2 normalized-violation schema, spec 6 CLI contract):
+- `scripts/check_diffpair.py` - per pair (constraints.json["diff_pairs"] or auto-discovered by
+  name suffix): length SKEW (mm + ps) on the BRANCH-FREE trunk (segment-graph Dijkstra between the
+  two matched pad terminals - a series-R/pull-up stub joins mid-segment, lands in its own graph
+  component, and is naturally excluded); UNCOUPLED length (run of either trace whose partner is
+  >coupling_max away); gap histogram (reported, never gated); via symmetry. Catches diffpair-skew.
+- `scripts/check_silk.py` - parses silk itself (geom is copper-only): top-level gr_*, footprint
+  fp_*, and `(property "Reference"/"Value" ...)` refdes/values, transformed fp_pos+R(-fp_angle).local
+  with ABSOLUTE text angle. Silk-over-pad = pad CENTRE under the silk OR silk covers >=50% of the pad
+  (touch-only false-positives at the 0.10 mm golden margins); text legibility (height/thickness).
+  Catches silk-over-pad.
+- `scripts/check_creepage.py` - IPC-2221 Table 6-1 same-layer clearance for net pairs >30 V apart
+  (external-uncoated / internal columns + >500 V linear formula; verified values, see LEARNINGS
+  research file). Voltage-owner dedup attributes each pair to the higher-|V| net.
+- `scripts/check_thermal.py` - theta_JA(area) screen: heatsink copper = the net's copper WITHIN a
+  ~1 in reach disk of the part (a distant same-net pour is NOT its heatsink), summed over layers,
+  clamped at A_SAT; rise = P*theta_JA; needs-vias flag when the target is below the copper-alone
+  (clamped) floor.
+- `scripts/check_pdn.py` - per power rail: undecoupled (error) / no-bulk-reservoir (warning); ceramic
+  presence reported but NOT gated (input/bulk rails legitimately carry only bulk - the goldens' +5V /
+  VBUS do). Reuses check_decoupling.parse_farads.
+- `scripts/verify_all.py` - runs all 8 checks (3 S4 + 5 S5) as parallel subprocesses, each ->
+  reports/checks/<name>.json, merged to a stable summary (documented in-file). Skips (not fails)
+  checks whose inputs are absent; deletes any stale per-check report before each run.
+- `scripts/cluster_violations.py` - groups violations by (net, kind, spatial region) into
+  fixer-dispatchable clusters with a bounding region + fixer-domain hint.
+- `reference/gates.yaml` + `gate.py`: added the `verify` gate (tool: verify -> runs verify_all on the
+  board, taking constraints.json/decoupling.json from the board's dir; its {violations,counts}
+  summary gates identically to erc/drc - fail on error severity).
+- `tests/test_checks_s5.py` - 60 tests: pure (IPC-2221 table, theta_JA model, pair discovery,
+  trunk/uncoupled, silk bbox/over-pad, cluster grouping), corpus (3 goldens x 5 checks clean +
+  verify_all clean; diffpair-skew and silk-over-pad caught with manifest coords; every mutant a
+  negative control on the checks it does not own; full-manifest-coverage via verify_all), CLI/schema
+  contract, and a regression per adversarial-review bug (below). 1 smoke (verify_all < 30 s).
+
+**Acceptance evidence:** all three goldens clean under every S5 check AND the merged verify_all
+(status pass); diffpair-skew caught (/USB_DP//USB_DM, uncoupled 11.6 mm > 5.0) and silk-over-pad
+caught (D1 pad 1 at [132.44,129.5]); full-manifest-coverage test confirms every mutant whose check
+exists by S5 (4 S4 + diffpair + silk) is caught by its designated check when the whole suite runs;
+cpl-rotation stays dfm_check's (S12). verify_all on rf4 = 0.89 s. `check.cmd` green: **273 passed**,
+check_env exit 0.
+
+**Standards research (verified, filed to ai-library/pcb-verification-standards-2026):** IPC-2221
+Table 6-1 clearance (external-uncoated / internal + >500 V formula; DC-or-AC-peak, differential) and
+a theta_JA-vs-copper-area + thermal-via heuristic, both adversarially re-checked (a 3-agent workflow;
+values embedded with source comments). kicad-happy has no creepage/thermal/silk/pdn analyzers.
+
+**Adversarial review (multi-agent workflow) - 10 confirmed bugs found + fixed + regression-tested:**
+(1) verify_all read a STALE per-check report when a check errored this run -> unlink before run;
+(2) name auto-discovery mis-paired H/L and single-char P/M nets -> dropped those tokens, USB via
+DP/DM; (3) thermal heatsink area used the net-WIDE largest layer (a distant pour inflated it) ->
+local reach-disk; (4) a diff pair with one unrouted half emitted NaN (invalid JSON, silently disabled
+the check) -> not-routed guard; (5) creepage aborted the whole check (exit 2) on one absent listed
+voltage net -> skip it; (6) a named diff pair with an absent net aborted the whole check -> per-pair
+warning; (7) explicit `diff_pairs: []` triggered auto-discovery -> honor the empty key; (8)
+single-copper-layer board crashed epsilon_between (div0) -> FR4 fallback; (9) a silk graphic lacking
+both stroke and width crashed the check -> safe width helper; (10) check_pdn dropped micro-sign / RKM
+cap values -> parse_farads accepts µ/μ. Refuted findings (7) left as documented by-design.
+
+**Deviations from spec/plan (with reasons):**
+1. Spec calls the diff-pair check "skew"; the corpus mutant is a COUPLING defect (meander on the
+   SHORTER net -> raw length skew goes DOWN). Caught by uncoupled length, not length matching; both
+   reported. Gap "deviation histogram" is report-only (a legit pair fans out at pad breakouts).
+2. check_creepage / check_thermal have NO mutant (corpus has no >30 V nets or thermal constraints):
+   they are clean-on-goldens by construction and proven by synthetic fixtures. Standards values are
+   the correctness anchor. check_pdn ceramic-per-rail is report-only (would FP on the goldens' input
+   rails) - spec's "bulk+ceramic per rail" softened to bulk/undecoupled gating.
+3. check_silk parses silk in its own module rather than extending geom.py (geom stays copper-only;
+   S12 dfm_check may promote silk parsing if it needs the same geometry). Text boxes are approximated
+   (calibrated vs pcbnew), so over-pad is judged by pad-centre-in-silk / >=50% area, not bbox touch.
+4. verify's gate tool derives constraints.json/decoupling.json from the BOARD's directory (pipeline +
+   corpus layout); mutants are tested via verify_all with explicit paths, not the gate.
+
+**Interface notes for later steps:**
+- verify_all summary schema (stable): {script, board, status pass|violations|error, counts{total,
+  by_severity, by_source, by_check}, checks{<name>:{status pass|violations|error|skipped, counts,
+  report, reason?, error?}}, violations[...]}. S13 orchestrator reads this at the P8 gate; S12 can
+  add its dfm violations to the same shape.
+- New violation kinds (for cluster_violations FIXER_HINTS + S13 fixer dispatch): diffpair_skew,
+  diffpair_uncoupled, diffpair_via_asymmetry, diffpair_missing_net, silk_over_pad, silk_illegible,
+  silk_thin, creepage, thermal_area, thermal_vias, pdn_undecoupled, pdn_no_bulk.
+- constraints.json shapes S5 consumes (P2/S7/S13 generate): diff_pairs[{p,n,gap_mm?,max_skew_mm?,
+  max_uncoupled_mm?,coupling_factor?}]; voltages[{net,voltage}]; thermal[{ref,power_w,net,dt_c?,
+  min_vias?}]. Absent keys -> that check no-ops cleanly. decoupling.json (S7 emits) drives check_pdn.
+- cluster_violations groups a verify_all summary (or any {violations} report) by (net, kind, region);
+  each cluster carries a bbox + fixer domain. gate.py `verify` gate is the P8 [G:checks] edge.
+
+**New verify-later items:** none. (Creepage/thermal accuracy is by-design ±30% screen quality; V9
+unchanged - cpl-rotation still S12's dfm_check to catch.)
 
 ## S6 - Parts, library, datasheet tooling (2026-07-22) - DONE
 

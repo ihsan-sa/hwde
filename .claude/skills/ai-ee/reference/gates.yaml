@@ -20,10 +20,15 @@
 # fail_severities exceeds max_count. Those are echoed in the gate result as
 # `failing` (with coordinates) for the fixer dispatch.
 #
-# Only the gates that S2's wrappers can evaluate are defined here. Later steps
-# append their own: verify (S5, verify_all.py aggregate), dfm (S12, dfm_check.py).
-# place_overlap (P6) needs S9 placement metrics; routed (P7 "100% routed") is
-# covered by drc_routed's parity + unconnected check.
+# S2 defined erc/drc/drc_routed; S5 adds verify (verify_all.py aggregate).
+# Still to come: dfm (S12, dfm_check.py). place_overlap (P6) needs S9 placement
+# metrics; routed (P7 "100% routed") is covered by drc_routed's parity +
+# unconnected check.
+#
+# The `verify` gate's tool is "verify": gate.py runs verify_all.py on the board,
+# taking constraints.json / decoupling.json from the board's own directory. Its
+# merged summary carries the same {violations, counts} shape the erc/drc gates
+# produce, so evaluate() gates it identically (fail on error-severity).
 
 version: 1
 
@@ -52,3 +57,13 @@ gates:
     description: >-
       Fully routed and clean: DRC + schematic parity + all track errors, zero
       violations at any severity (SPEC P7 "100% routed, DRC=0").
+
+  verify:
+    phase: P8
+    tool: verify
+    fail_severities: [error]
+    max_count: 0
+    description: >-
+      P8 verification suite (verify_all.py): return path, current, decoupling,
+      diff pairs, creepage, thermal, silk, PDN. Fails on any error-severity
+      finding; warnings are surfaced for human review, not auto-failed.

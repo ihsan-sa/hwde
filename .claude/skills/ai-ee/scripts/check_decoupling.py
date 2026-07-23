@@ -59,8 +59,10 @@ CLASSES = {  # value_min_f, dist warn/error mm, loop warn/error nH
     "hf":   {"min_f": 0.0,  "dist": (5.0, 7.5),   "loop": (6.0, 12.0)},
 }
 
-_VAL_RE = re.compile(r"^\s*([0-9.]+)\s*([pnum]?)F?\s*$", re.IGNORECASE)
-_SCALE = {"p": 1e-12, "n": 1e-9, "u": 1e-6, "m": 1e-3, "": 1.0}
+# accept the micro sign and Greek mu (datasheets use both) alongside ASCII 'u'.
+_VAL_RE = re.compile(r"^\s*([0-9.]+)\s*([pnumµμ]?)F?\s*$", re.IGNORECASE)
+_SCALE = {"p": 1e-12, "n": 1e-9, "u": 1e-6, "µ": 1e-6, "μ": 1e-6,
+          "m": 1e-3, "": 1.0}
 
 
 def parse_farads(value) -> float | None:
