@@ -8,5 +8,16 @@
   "power": [
     {"net": "+3V3", "current_a": 0.4},
     {"net": "VBUS", "current_a": 0.5}
-  ]
+  ],
+  "placement": {
+    "_comment": "S9 placement inputs (edges match the hand-placed golden: USB left, SWD right, MCO header bottom). The xtal group locks the load caps to the crystal until S7 emits satellite metadata.",
+    "edges": [
+      {"ref": "J1", "edge": "left"},
+      {"ref": "J2", "edge": "right"},
+      {"ref": "J3", "edge": "bottom"}
+    ],
+    "groups": [
+      {"name": "xtal", "anchor": "Y1", "members": ["C7", "C8"]}
+    ]
+  }
 }

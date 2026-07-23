@@ -16,7 +16,7 @@ Session protocol: repo `CLAUDE.md` ("run step N"). Update this file + commit at 
 | S6 | Parts, library, datasheet tooling | **done** | 2026-07-22 |
 | S7 | Schematic generation | **done** | 2026-07-22 |
 | S8 | Board setup and reference data | **done** | 2026-07-22 |
-| S9 | Placement: seed, metrics, edit ops | pending | |
+| S9 | Placement: seed, metrics, edit ops | **done** | 2026-07-22 |
 | S10 | Placement: annealer with routability feedback | pending | |
 | S11 | Routing pipeline | pending | |
 | S12 | Fab outputs, DFM, ordering | pending | |
@@ -68,11 +68,11 @@ kickoff prompt to allow multi-agent workflows (higher token spend - use where ma
 | V1 | DSN export / SES import via SWIG | spec P7, S11 | S0: pcbnew imports + board roundtrip + Export/Import symbols PRESENT on 9.0.5 and 10.0.3. Full export smoke incl. wx-assert suppression (LEARNINGS [swig]) at S11. |
 | V2 | kicad-sch-api output opens in KiCad 10 | spec sec 9, S7 | **RESOLVED S7** (S1 evidenced flat): hierarchical output too - add_sheet/add_sheet_pin/add_hierarchical_label serialize, 3-sheet hierdemo ERC-clean on 10.0.3, cross-sheet nets + global power nets netlist correctly. Blinky2 regenerated via schlib = netlist IDENTICAL to golden. Quirks in LEARNINGS [python]. |
 | V3 | `drc --refill-zones` availability | spec sec 1 | RESOLVED S0/S1: verified on real zoned boards (2- and 4-layer goldens): fills + persists via --save-board, plain DRC clean afterwards; the pipeline's ONLY working headless fill (ZONE_FILLER segfaults, LEARNINGS [swig]). S11 re-checks post-SES. |
-| V4 | kipy `headless=True` starts `kicad-cli api-server` | spec sec 1 | RESOLVED S0: NO api-server subcommand in 9.0.5/10.0.3; kipy 0.7.1's server helper targets newer KiCad. Working IPC: sandboxed-GUI launch (smoke_ipc.py, verdict `gui-sandboxed-ok`). Headless alternative: SWIG bundled python. Decide edit path at S9. |
+| V4 | kipy `headless=True` starts `kicad-cli api-server` | spec sec 1 | RESOLVED S0: NO api-server subcommand in 9.0.5/10.0.3; kipy 0.7.1's server helper targets newer KiCad. Working IPC was sandboxed-GUI launch (smoke_ipc.py). **S9: that path REGRESSED on this host** ("KiCad is not ready to reply", verdict `unavailable`; LEARNINGS [ipc]). Edit path decided at S9: SWIG bundled python. |
 | V5 | JLCPCB Parts API (credentialed) | spec sec 1, S6 | **RESOLVED S6**: the pinned easyeda2kicad 1.0.1 wraps an ANONYMOUS JLCPCB parts search (EasyedaApi.search_jlcpcb_components) that needs NO credential - verified live (18783 hits for "100nF 0603 X7R", Basic/Extended+stock+price). That is parts_search.py's PRIMARY path; the credentialed api.jlcpcb.com (still needs an access application) is unnecessary for search and deferred to S12 ordering. jlcparts SQLite = optional --db cache (none on host; code path unit-tested vs a synthetic DB). Web search = agent last resort (exit 2 when offline+no db). LEARNINGS [parts]. |
 | V6 | JLCDFM upload (no public API) | spec P9 | Semi-manual by design; S12. |
 | V7 | Freerouting batch flags + result parsing | LEARNINGS [freerouting] | Prior-attempt facts; re-verify on our own DSN at S11. |
-| V8 | IPC API feature coverage for placement edits (move/rotate via kipy 0.7.1 on KiCad 10) | spec P6 | Connection verified S0; edit-op coverage untested until S9. |
+| V8 | IPC API feature coverage for placement edits (move/rotate via kipy 0.7.1 on KiCad 10) | spec P6 | **RESOLVED S9 (negative)**: kipy's edit API exists (FootprintInstance.position/.orientation + update_items + save) but is UNVERIFIABLE live - the sandboxed-GUI connect layer now fails on this host (V4 note), and headless kipy only lands in KiCad 11 (research: headless-pcb-routing-2026). place_edit.py uses SWIG bundled python (verified: move/rotate/flip/lock applied + independently re-parsed). kipy/IPC = KiCad-11 migration target. |
 | V9 | cpl-rotation mutant catchable at DFM | S2 finding, spec P9 | S2: committed cpl-rotation board does NOT fail `--schematic-parity` under 10.0.3 (manifest note stale). Designated catcher is dfm_check (S12) via CPL polarity - must not rely on parity. |
 | V10 | Flipped (back-side) footprint pad geometry | S3, spec 6.3 | **RESOLVED S3 (Fable review)**: built a SWIG-flipped fixture (flip_fixture.py); pcbnew bakes the mirror INTO the file (locals mirrored, angles negated, layers renamed B.*), so the front-side transform covers flipped parts with NO special handling. geom's original mirror+swap DOUBLE-flipped - removed; 15/15 pads exact vs pcbnew; regression test in test_geom.py. |
 | V11 | "Remove unused inner via pads" not modeled | S3 | geom treats a through via as copper on ALL inner layers (matches corpus + oracle default). A board enabling JLC's inner-pad removal would over-count inner via copper. S8 did not add it (rules_gen has no via-pad-removal knob); revisit at S12 DFM if used. |
@@ -866,3 +866,135 @@ file. hierdemo: ERC 0, netlist exactly the designed topology (global +3V3 across
   holes get FP_BOARD_ONLY|FP_EXCLUDE_FROM_POS_FILES|FP_EXCLUDE_FROM_BOM so parity/CPL ignore them.
 
 **New verify-later items:** V12 (impedance approximation vs JLC calculator; outer microstrip only).
+
+## S9 - Placement: seed, metrics, edit ops (2026-07-22) - DONE
+
+**Edit-path decision first (V4/V8, plan-mandated):** SWIG bundled python, NOT kipy/IPC.
+Evidence: (a) the S0-verified sandboxed-GUI IPC path REGRESSED on this host - smoke_ipc.py
+(unchanged) now gets "ApiError: KiCad is not ready to reply" for the whole 45 s window, verdict
+`unavailable`; a dedicated V8 probe (launch pcbnew on a golden copy, kipy connect, move+rotate via
+FootprintInstance/update_items) never connected in 60 s; (b) library research
+(headless-pcb-routing-2026): kipy on KiCad 9/10 REQUIRES a GUI instance, headless IPC lands in
+KiCad 11 (~2027); (c) SWIG is headless, process-per-invocation, and already carries board_init
+(S8). kipy's edit API surface EXISTS (position/orientation setters + update_items + save) - it is
+the KiCad-11 migration target, recorded in V8. LEARNINGS [ipc], [swig].
+
+**Built** (all under `.claude/skills/ai-ee/`, on the S2 normalized-violation schema + spec 6 CLI
+contract):
+- `scripts/lib/placelib.py` - the placement model geom.py deliberately lacks: parses footprint
+  blocks into MOVABLE records {ref, fpid, pos, angle, side, attr flags, locked, pads with LOCAL
+  offsets, courtyard polygon per side (fp_rect/fp_line/fp_circle/fp_poly/fp_arc + polygonize;
+  pad-bbox+0.25 fallback flagged courtyard_missing)}; abs = fp_pos + R(-angle).local (S3
+  transform; flip stays baked, parser never mirrors); center-based placement (place_center
+  compensates origin-vs-body offset - prior-attempt 1x20-header trap); outline/rule_areas/copper
+  come from geom.load_board. Cluster builder (decoupling.json associations -> cap satellites with
+  target pins; constraints placement.groups -> explicit satellites; edge-declared satellites pin
+  their whole cluster; missing refs warn, never crash). Legality -> normalized violations:
+  courtyard_overlap (same-side pairs + THT vs both sides), outside_outline (movable only;
+  declared-edge parts exempt down to ON_BOARD_MIN=0.25 on-board fraction - calibrated on the rf4
+  edge-mount SMA's 35%), edge_violation (courtyard > EDGE_TOL=2.5 mm from declared edge),
+  keepout_violation (constraints keepouts + board rule areas), courtyard_missing (warning).
+  Metrics: HPWL (per-net bbox half-perimeter), MST flight-line crossings, congestion grid
+  (cell rasterization of MST edges), all deterministic.
+- `scripts/place_metrics.py` - the P6 gate tool: legality violations + decoupler DISTANCE
+  violations (reuses S4 check_decoupling.check_association verbatim, filtered to
+  kind=decoupler_distance - loop/via inductance stays P8's, it needs routing) + `metrics` facts
+  {counts, hpwl, crossings, congestion, decoupling facts, utilization}. Sidecars default from the
+  board's directory (gate.py convention). Exit 0/1/2.
+- `scripts/place_edit.py` + `scripts/lib/place_swig.py` - the pipeline's ONLY placement writer
+  (SPEC sec 4). ABSOLUTE ops {place|move|rotate|flip|lock} (idempotent by construction; flip takes
+  a target side, never toggles). Driver: strict schema validation -> ref pre-flight -> stage copy
+  in a scratch dir INSIDE the board's dir -> bundled-python worker (mmToIU rounding, not
+  truncating FromMM; Flip(pos, True) - no FLIP_DIRECTION enum on 10.0.3; saves ONLY if every op
+  applied) -> driver re-parses the staged file and verifies every op landed (pos 1e-3 mm, angle
+  mod-360 0.05 deg - SetOrientationDegrees normalizes 270 to -90, side, locked) -> os.replace
+  swaps just the .kicad_pcb back (same volume = atomic; real .kicad_pro/.kicad_prl never touched,
+  test-guarded). ANY failure = original board byte-identical. Importable apply_ops() for seed/S10.
+- `scripts/place_seed.py` - SPEC P6 stage 1: hard constraints -> satellite clusters -> block
+  adjacency. Satellite slots in the anchor's LOCAL frame (rotate with the anchor): outside the
+  courtyard facing their target pin, 2-pad parts rotated so the shared-net pad points at the pin,
+  deterministic perimeter nudging. placement.edges pins connector clusters to edges (explicit rot
+  or auto: body-overhang direction from pads-vs-courtyard centroid offset, snapped 90 deg;
+  symmetric parts keep their angle; courtyard flush; explicit pos fraction or even distribution).
+  Free clusters: connectivity-weighted (GND 0.2/power 0.5/signal 1.0) classic Fruchterman-Reingold
+  (attraction d^2/k - the linear-in-d first cut scattered singletons and made seed HPWL WORSE than
+  the shelf pack, LEARNINGS [placement]) with deterministic circle init, no RNG; then largest-first
+  spiral grid legalization against courtyards/interior/keepouts. Emits ops for place_edit;
+  `--apply` applies + re-checks legality on the saved file. Exit 0/1/2.
+- `reference/gates.yaml` + `gate.py`: `place` gate (tool: place -> place_metrics on the board with
+  its sidecar constraints/decoupling; fails on error severity). cluster_violations FIXER_HINTS +=
+  the 6 placement kinds -> "placement" fixer domain.
+- `tests/test_place.py` - 45 tests: 40 pure (parsing incl. S3 C10 transform probe pinned,
+  courtyard rect/lines/rotation, center-based placement at 4 angles, clusters incl. double-claim/
+  missing-ref/edge-satellite promotion, legality per kind incl. board_only exemptions, HPWL/
+  crossings/congestion hand-computed, op schema accept + 8 reject cases, expected-state folding,
+  rollback-on-missing-ref, facing rotation, auto edge rotation, synthetic seed legal+deterministic+
+  HPWL-improves, too-small board exit 2, goldens x3 legality-clean, golden metrics clean,
+  decoupler-moved mutant flagged via place_metrics, place gate wired) + 5 smoke (edit
+  apply/idempotency/pro-preservation, worker-failure saves nothing, S9 acceptance: netlist ->
+  board_init -> seed --apply on usbbuck4, seed determinism on corpus, <30 s timing).
+
+**Acceptance evidence (live 10.0.3):**
+- Golden board 2 from scratch: usbbuck4 netlist -> board_init (shelf pack, HPWL 832.6 mm) ->
+  place_seed --apply -> 0 legality violations; J1/J2/J3 on their declared left/right/bottom edges;
+  U1 centered with its 5 decouplers at their VDD pins (Manhattan 2.5-6.6 mm, all in class), crystal
+  + load caps adjacent to the MCU, buck cluster + L1 together, C13 beside J1; HPWL 483.7 mm (42%
+  under the shelf pack, within 7% of the hand-placed golden's 452.6); render eyeballed. Metrics
+  JSON emitted (hpwl/crossings/congestion/decoupling/utilization).
+- Op list: 4-op place/rotate/flip/lock applied + independently verified; re-application idempotent
+  (parsed state identical); bad-ref op list -> exit 2, board BYTE-identical; worker-level failure
+  saves nothing (exit 3); .kicad_pro byte-identical across edits.
+- `gate.py --gate place` PASS on the golden; place_metrics catches the decoupler-moved mutant
+  (C1, kind decoupler_distance) as its P6-level echo (P8's check_decoupling remains the owner).
+- `check.cmd` green: **347 passed** (301 prior + 45 new + the gates.yaml test S7 left to S9),
+  check_env exit 0.
+
+**Deviations from spec/plan (with reasons):**
+1. Spec P6.3 says place_edit via "IPC headless; never raw file edits" - IPC headless does not
+   exist at this pin (V4/V8 above); SWIG bundled python IS the headless path (still no raw file
+   edits - pcbnew owns the file format). kipy/IPC recorded as the KiCad-11 migration target.
+2. "Hierarchical-sheet groups arranged by block-diagram adjacency": the corpus goldens are flat,
+   so block adjacency = connectivity-weighted cluster graph; sheet-derived grouping slots in when
+   P4 designs carry S7 hierarchy (S7's decoupling.json is already consumed; usbbuck4's
+   placement.groups xtal fixture stands in for satellite families S7 metadata will declare).
+3. Ops are ABSOLUTE only (no relative move/rotate-by): relative ops break idempotent
+   re-application, which the plan's acceptance demands; group moves are expanded to per-ref
+   absolute ops by the generator (seed does exactly this).
+4. place_metrics emits decoupler-distance violations by REUSING check_decoupling's association
+   logic (filtered) rather than duplicating a distance path - P6 gate wants distance-only
+   (pre-route); loop/via facts are reported as facts but not gated here.
+5. The P6 gate's fast-route-completion term (spec ">=98%") requires S10/S11 route feedback -
+   the `place` gate covers legality + decoupler distance until then (gates.yaml header documents).
+6. Two corpus fixtures extended (usbbuck4 + rf4 constraints.json gained `placement` blocks) so the
+   goldens are legality-clean under their own declarations (rf4's edge-mount SMA and usbbuck4's
+   edge-overhang J1 are DECLARED, not special-cased). S4/S5 consumers ignore the extra key
+   (verified: full suite green).
+
+**Interface notes for later steps:**
+- S10 annealer: placelib.PlaceModel IS the in-memory state - mutate fp.pos/fp.angle (or
+  place_center) and re-read hpwl/crossings/congestion/legality_violations without file I/O;
+  clusters from build_clusters are the move unit (apply_cluster in place_seed shows the transform
+  math: satellite slots are anchor-local, abs angle = anchor angle + rel). Write results via
+  place_edit.apply_ops (absolute ops, atomic, verified). Seed emits its ops via the same path.
+  Metrics are deterministic; HPWL baselines: shelf 832.6 / seed 483.7 / golden hand 452.6 on
+  usbbuck4 (the S10 accept bar ">=20% under seed" has real headroom - the spring embed is
+  deliberately greedy-legalized, not optimal).
+- S13 orchestrator: `gate.py --gate place <board>` = the P6 legality gate (sidecars from the
+  board's dir); place_seed/place_metrics/place_edit all emit checklib payloads (status
+  pass|violations|error, exit 0/1/2); violation kinds courtyard_overlap/outside_outline/
+  edge_violation/keepout_violation/courtyard_missing/seed_unplaced cluster to the "placement"
+  fixer domain. The placement agent's edit loop = generate ops JSON -> place_edit --ops (8-iter
+  budget per spec P6 stage 3); ops schema documented in place_swig.py docstring.
+- constraints.json["placement"] shape (P2/S13 generate): {edges: [{ref, edge:
+  left|right|top|bottom, pos? 0..1, rot? deg}], groups: [{name?, anchor, members[]}], keepouts:
+  [{rect:[x1,y1,x2,y2]|poly:[[x,y]..], side? front|back|both, reason?}], fixed: [refs]}. Edges are
+  render-oriented (top = min y, file coords grow down). All keys optional; absent placement block
+  -> pure legality (outline/overlap) only.
+- place_edit rejects unknown refs BEFORE touching the board; staged-swap means concurrent readers
+  never see a half-applied file. KiCad regenerates UUIDs on every save - never byte-compare
+  boards across saves; compare parsed positions (placelib) instead.
+- Mounting holes (board_only) and locked/placement.fixed refs are obstacles: never moved, exempt
+  from outline containment, still collide.
+
+**New verify-later items:** none. (V4 updated - GUI-IPC regressed on host; V8 resolved negative -
+SWIG chosen, kipy = KiCad 11 target.)

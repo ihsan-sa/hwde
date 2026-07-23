@@ -49,6 +49,10 @@ def run_report_for_gate(gate: dict, input_file: Path) -> dict:
     tool = gate.get("tool")
     if tool == "verify":
         return run_verify(input_file)
+    if tool == "place":
+        import place_metrics  # noqa: E402  (sibling script)
+        payload, _ = place_metrics.run(["--pcb", str(input_file)])
+        return payload  # sidecars default to the board's own directory
     cli = kc.resolve_cli()
     if tool == "erc":
         return kc.run_erc(cli, input_file)
@@ -58,7 +62,8 @@ def run_report_for_gate(gate: dict, input_file: Path) -> dict:
         return kc.run_drc(cli, input_file,
                           parity=bool(opts.get("parity")),
                           all_track_errors=bool(opts.get("all_track_errors")))
-    raise RuntimeError(f"gate tool must be 'erc', 'drc' or 'verify', got {tool!r}")
+    raise RuntimeError(
+        f"gate tool must be 'erc', 'drc', 'verify' or 'place', got {tool!r}")
 
 
 def run_verify(board: Path) -> dict:

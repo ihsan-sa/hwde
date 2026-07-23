@@ -347,3 +347,45 @@ pin appears as a singleton net "unconnected-(REF-PINNAME-PadN)" with a "+no_conn
 nodes entirely, so "is this rail driven" is NOT answerable from the netlist when the driver is a
 flag or connector - ERC owns that check; netlist_audit.py warns on undeclared power_in feeders
 instead of driver presence.
+
+## 2026-07-22 [ipc] Sandboxed-GUI IPC REGRESSED on this host: "KiCad is not ready to reply" (V8 evidence)
+S9: the S0-verified gui-sandboxed path (scripts/smoke_ipc.py, unchanged) now returns verdict
+`unavailable` - pcbnew.exe launches, the kipy socket answers, but every request within the 45 s
+window errors "ApiError: KiCad returned error: KiCad is not ready to reply" (a custom V8 probe
+opening a real golden also never connected in 60 s). kipy 0.7.1 edit-op coverage (move/rotate via
+update_items - the API exists: FootprintInstance.position/.orientation setters + b.update_items +
+b.save) is therefore UNVERIFIABLE at this pin, and library research confirms headless kipy only
+arrives with KiCad 11. S9 decision: place_edit.py drives SWIG bundled python (headless, proven at
+S8); kipy/IPC is the KiCad-11 migration target. If a future session needs the GUI-IPC path, debug
+with pcbnew stdout/stderr UNsuppressed first (a modal dialog is invisible under DEVNULL).
+
+## 2026-07-22 [swig] Placement-edit API facts on 10.0.3 (place_swig.py, live-verified)
+FindFootprintByReference/SetOrientationDegrees/SetPosition/Flip/SetLocked all exist and work
+headless. SetOrientationDegrees NORMALIZES to (-180, 180]: setting 270 stores -90 in the file and
+GetOrientationDegrees returns -90 - always compare angles mod 360 (place_edit._angdiff), never
+literally. pcbnew.FLIP_DIRECTION_LEFTRIGHT does NOT exist on the 10.0.3 SWIG wrapper - use the
+legacy bool: fp.Flip(fp.GetPosition(), True) (flip_fixture.py's fallback branch is the ONLY branch
+here). mm->IU: pcbnew.pcbIUScale.mmToIU(32.3) == 32300000 (correct rounding) while
+pcbnew.FromMM(32.3) == 32299999 (float truncation, prior-attempt fact re-verified) - workers that
+write coordinates must use mmToIU. board.Save() writes sibling project files; place_edit sidesteps
+any clobber by staging in a scratch dir and os.replace()-ing ONLY the .kicad_pcb back (the real
+.kicad_pro is test-guarded byte-identical across edits).
+
+## 2026-07-22 [geometry][placement] Courtyard containment needs edge-part exemptions (corpus-calibrated)
+Two legality-gate false-positive classes on legitimate boards: (1) edge-mount connectors - the rf4
+SMA clamps the board edge and keeps only 35% of its courtyard on-board (usbbuck4's USB micro also
+overhangs) -> declared-edge parts get a >=25% on-board threshold (placelib.ON_BOARD_MIN), not full
+containment, and EDGE_TOL 2.5 mm accepts the golden's ~2 mm-inboard THT headers; (2) board_init's
+corner mounting holes (board_only) sit with courtyards kissing/crossing the outline by construction
+-> non-movable footprints are exempt from outline containment (they stay overlap obstacles).
+Golden refdes/angle probe C10 (fp 104.8,105.5 rot90, pad local -0.95,0 -> abs 104.8,106.45) is
+pinned as placelib's transform regression test.
+
+## 2026-07-22 [placement][python] Spring embedding: classic F-R attraction is d^2/k - linear-in-d starves it
+place_seed's first cut used attraction ~ w*d/k against repulsion k^2/d; repulsion dominated at
+board scale (k = sqrt(area/n) ~ 14 mm), exploding singletons/crystal cluster to the interior
+corners - seed HPWL came out WORSE than the S8 shelf pack (948 vs 832 mm). Classic
+Fruchterman-Reingold attraction w*d^2/k fixed it in place: seed HPWL 484 mm vs golden hand
+placement 452 mm (within 7%), crystal + load caps adjacent to the MCU, decoupler Manhattan
+2.5-6.6 mm. Render and EYEBALL the seed (kicad-cli render) whenever touching the force model -
+the legality gate cannot see "legal but scattered".

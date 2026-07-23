@@ -45,6 +45,9 @@ FIXER_HINTS = {
     "thermal_area": "plane", "thermal_vias": "router",
     "silk_over_pad": "silk", "silk_illegible": "silk", "silk_thin": "silk",
     "pdn_undecoupled": "schematic", "pdn_no_bulk": "schematic",
+    "courtyard_overlap": "placement", "outside_outline": "placement",
+    "edge_violation": "placement", "keepout_violation": "placement",
+    "courtyard_missing": "placement", "seed_unplaced": "placement",
 }
 
 

@@ -183,8 +183,10 @@ def test_gates_yaml_valid():
     gates = data["gates"]
     assert {"erc", "drc", "drc_routed"} <= set(gates)
     for name, g in gates.items():
-        # S5 added the "verify" tool (verify_all.py aggregate, gate.py wires it).
-        assert g["tool"] in ("erc", "drc", "verify"), f"{name}: bad tool {g['tool']}"
+        # S5 added the "verify" tool (verify_all.py aggregate); S9 added
+        # "place" (place_metrics.py legality) - gate.py wires both.
+        assert g["tool"] in ("erc", "drc", "verify", "place"), \
+            f"{name}: bad tool {g['tool']}"
         for sev in g.get("fail_severities", ["error"]):
             assert sev in ("error", "warning", "exclusion")
 

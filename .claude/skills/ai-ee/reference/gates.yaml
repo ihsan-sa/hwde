@@ -20,10 +20,11 @@
 # fail_severities exceeds max_count. Those are echoed in the gate result as
 # `failing` (with coordinates) for the fixer dispatch.
 #
-# S2 defined erc/drc/drc_routed; S5 adds verify (verify_all.py aggregate).
-# Still to come: dfm (S12, dfm_check.py). place_overlap (P6) needs S9 placement
-# metrics; routed (P7 "100% routed") is covered by drc_routed's parity +
-# unconnected check.
+# S2 defined erc/drc/drc_routed; S5 added verify (verify_all.py aggregate);
+# S9 adds place (place_metrics.py legality: courtyard overlaps, declared-edge
+# compliance, keepouts, decoupler distance - the P6 fast-route-completion term
+# arrives with S10/S11 route feedback). Still to come: dfm (S12, dfm_check.py).
+# routed (P7 "100% routed") is covered by drc_routed's parity + unconnected.
 #
 # The `verify` gate's tool is "verify": gate.py runs verify_all.py on the board,
 # taking constraints.json / decoupling.json from the board's own directory. Its
@@ -57,6 +58,16 @@ gates:
     description: >-
       Fully routed and clean: DRC + schematic parity + all track errors, zero
       violations at any severity (SPEC P7 "100% routed, DRC=0").
+
+  place:
+    phase: P6
+    tool: place
+    fail_severities: [error]
+    max_count: 0
+    description: >-
+      Placement legality (place_metrics.py): no courtyard overlaps, declared
+      connectors on their edges, keepouts respected, decoupler distances in
+      class limits. Warnings (missing courtyards) surface without failing.
 
   verify:
     phase: P8
