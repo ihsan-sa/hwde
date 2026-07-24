@@ -400,3 +400,77 @@ TimberWolf-style window W *= (0.56 + alpha), cooling 0.6/0.9/0.95/0.9/0.75 by ac
 Perf on usbbuck4 (13 movable clusters, 46 nets): ~0.8 ms/move with incremental cost (per-net HPWL
 rebuild, moved-cluster-only shapely overlap with bbox prefilter, per-net MST + crossing recount,
 congestion cell diffs); full_sync() every epoch kills float drift (invariant pinned by test).
+
+## 2026-07-23 [swig][freerouting] S11 DSN/SES roundtrip verified on 10.0.3 (V1/V7/V3 resolved)
+ExportSpecctraDSN(board, path) and ImportSpecctraSES(board, path) (two-arg forms) work headless
+from the bundled python WITH the wx recipe (wx.App() + wx.DisableAsserts() +
+app.SetAssertMode(wx.APP_ASSERT_SUPPRESS)); wx sprays "Adding duplicate image handler" lines to
+stdout, so SWIG workers must return results via a FILE (route_swig.py's contract), never stdout.
+A FILLED zone exports as "(plane NET ...)" and Freerouting connects pads to it ITSELF, including
+dropping new stitch vias to reach a back-side plane (blinky2 smoke: 26 vias with plane vs 7
+without). Post-SES the pre-existing fills are STALE (33 clearance/hole violations on the smoke
+board); `kicad-cli pcb drc --refill-zones --save-board` clears them (0 after). SES import only
+ADDS copper; ImportSpecctraSES on an already-routed board would re-add echoed guide wires as
+duplicates - route_auto never imports into a board that already got that session's copper.
+
+## 2026-07-23 [freerouting] 2.2.4 verified flags + completion parse (this host, our own DSN)
+`--gui.enabled=false -mt 1 -is sequential -da --logging.file.enabled=false -mp N -de in.dsn -do
+out.ses` exits 0 and is the deterministic set (-mt >=2 has a known clearance bug + nondeterminism;
+-is sequential removes item-order randomness). -da does NOT disable the update check (an outbound
+"New version available" call still happens and must be tolerated offline); it disables analytics.
+Completion parse priority: session line "final score: S (N unrouted)" > LAST pass line "(N
+unrouted)" > a pass line WITHOUT the parenthetical means 0 unrouted. FR's own success flag and
+internal DRC stay untrusted - kicad-cli DRC is the gate (routelib.parse_fr_log pins all of this).
+
+## 2026-07-23 [parts][python] KRT (KiCadRoutingTools 0.19.0) vendored: no-KiCad headless router
+tools/krt/KiCadRoutingTools-0.19.0/plugins (MIT, pinned zip + prebuilt abi3 grid_router pyd -
+imports clean in venv python 3.13; sha256s in tools/krt/PROVENANCE.txt; env.find_krt() resolves).
+Facts: scripts must run with cwd=plugins (relative sys.path inserts); pass args as a LIST (net
+names like "/USB_DP" get MSYS-path-mangled through a shell); ALWAYS pass --no-fix-drc-settings
+(route.py silently rewrites the sibling .kicad_pro DRC floors); route to a FRESH output path per
+attempt; results = last "JSON_SUMMARY: {...}" stdout line; output uuids are uuid4 (reruns never
+byte-identical - compare parsed state); scipy is a hard dependency (added scipy==1.18.0 to the
+venv pins, S6-pypdf precedent).
+
+## 2026-07-23 [freerouting][routing] FR 2.2.4 DSN reader can WEDGE on KRT guide-wire copper - detect + fall back
+Boards carrying KRT-routed copper (either power net's tracks+vias) drove Freerouting into
+INFINITE RECURSION at app.freerouting.board.PolylineTrace.combine while READING the design
+(before pass 1); the same board with all routed copper stripped routes in 2.8 s. Signature:
+rung process timeout with ZERO parsed pass lines. route_auto's mitigation (S11-verified): skip
+the remaining ladder rungs (same DSN, same wedge) and fall back to KRT for the whole remainder
+(batched route.py --nets over the DRC-unconnected nets, kept only when the DRC strictly
+improves). Related Windows fact: killing the parent shell does NOT kill the FR JVM - orphaned
+java.exe grinds forever; kill the process tree explicitly when cancelling.
+
+## 2026-07-23 [routing][placement] P7 chain order is board-class dependent; plane nets are never outer-trunked
+2-layer: route_critical -> route_auto -> stitch -> repair -> cleanup (pre-route stitch vias are
+FR obstacles - prior-attempt fact confirmed). 4-layer: route_critical -> stitch -> route_auto
+(stitch pre-connects SMD pads to inner planes; FR's remaining work shrinks ~40%). A power net
+CARRIED BY A PLANE must not be trunk-routed on outer layers: the trunk's vias fragment the
+plane locally (live: a +3V3 outer trunk starved J2's thermal spokes onto an In2 island -
+error starved_thermal). route_critical skips plane-carried nets (plane IS the trunk).
+
+## 2026-07-23 [stitch][geometry] Via-candidate obstacles = WIRED copper only; single-layer-bond vias dangle
+Foreign ZONE FILLS must not block via candidates (fills re-flow at refill - a via through a
+foreign plane gets a legal antipad): treating fills as obstacles rejected 40/40 candidates on
+the 4-layer board (In1/In2 planes cover everything). Only foreign tracks/pads/vias block, plus
+rule-area keepouts and the 0.5 mm hole-to-hole floor (net-agnostic - same-net drills count).
+Separately, KiCad flags via_dangling for a via bonded on only ONE layer even when it sits in a
+plane fill - grid/area stitch vias must verify same-net copper contact on >= 2 layers.
+
+## 2026-07-23 [kicad-cli][drc][zones] zones_intersect fires on same-net same-priority overlaps
+KiCad 10 DRC rejects overlapping zones of the SAME net at the SAME priority - a plane generator
+re-run that duplicates a pour breaks DRC. planes_gen guards with an existing-fill coverage skip
+(>= 80% covered -> no-op "existing") and assigns distinct priorities to any same-layer
+overlapping pair (island-in-pour needs the island HIGHER).
+
+## 2026-07-23 [placement][routing] Courtyard-only packing is silk-blind; KRT leaves sub-grid crumbs
+place_anneal's tight packing (courtyard legality only) put refdes silk over neighbour pads -
+12 silk DRC warnings that fail the err+warn drc_routed gate; the SEEDED placement is silk-clean.
+Until placement/fixers are silk-aware (P6 stage-3 agent / P8 silk fixer, S13), route from the
+seed. Also: KRT output can contain sub-0.05 mm segments that KiCad flags track_dangling but sit
+below route_cleanup's touch tolerance - route_auto's KRT pass sweeps them (removal is
+connectivity-safe: neighbouring round caps overlap far beyond the crumb length). And
+route_cleanup's loop-breaking can remove a load-bearing segment when connectivity runs through
+a plane (union-find/fill edge case) - it SELF-DETECTS (exit 1 cleanup_regression, board left
+modified); the orchestrator restores (git or snapshot) and continues without cleanup.

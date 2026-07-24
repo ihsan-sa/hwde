@@ -206,6 +206,23 @@ def find_freerouting_jar() -> Path | None:
     return jars[-1] if jars else None
 
 
+def find_krt() -> Path | None:
+    """KiCadRoutingTools plugins dir (vendored under tools/krt, S11).
+
+    Returns the newest tools/krt/KiCadRoutingTools-*/plugins directory (the
+    scripts sys.path-insert relative dirs, so callers must run them with
+    cwd=plugins). Override with AIEE_KRT_DIR (points at the plugins dir).
+    """
+    pin = os.environ.get("AIEE_KRT_DIR")
+    if pin:
+        p = Path(pin)
+        if not p.is_dir():
+            raise EnvError(f"AIEE_KRT_DIR does not exist: {pin}")
+        return p
+    dirs = sorted(repo_root().glob("tools/krt/KiCadRoutingTools-*/plugins"))
+    return dirs[-1] if dirs else None
+
+
 # ---------------------------------------------------------------- Docker (optional)
 
 def docker_state() -> str:

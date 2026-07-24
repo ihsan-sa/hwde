@@ -47,6 +47,7 @@ REQUIRED_PACKAGES = {
     "easyeda2kicad": "easyeda2kicad",
     "pypdf": "pypdf",
     "jsonschema": "jsonschema",
+    "scipy": "scipy",
     "pytest": "pytest",
 }
 

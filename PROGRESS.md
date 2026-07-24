@@ -17,8 +17,8 @@ Session protocol: repo `CLAUDE.md` ("run step N"). Update this file + commit at 
 | S7 | Schematic generation | **done** | 2026-07-22 |
 | S8 | Board setup and reference data | **done** | 2026-07-22 |
 | S9 | Placement: seed, metrics, edit ops | **done** | 2026-07-22 |
-| S10 | Placement: annealer with routability feedback | **done** (feedback stub -> S11) | 2026-07-23 |
-| S11 | Routing pipeline | pending | |
+| S10 | Placement: annealer with routability feedback | **done** (feedback wired at S11) | 2026-07-23 |
+| S11 | Routing pipeline | **done** | 2026-07-23 |
 | S12 | Fab outputs, DFM, ordering | pending | |
 | S13 | Agents, orchestrator, SKILL.md | pending | |
 | S14 | End-to-end hardening | pending | |
@@ -65,18 +65,20 @@ kickoff prompt to allow multi-agent workflows (higher token spend - use where ma
 
 | # | Claim | Source | Status |
 |---|---|---|---|
-| V1 | DSN export / SES import via SWIG | spec P7, S11 | S0: pcbnew imports + board roundtrip + Export/Import symbols PRESENT on 9.0.5 and 10.0.3. Full export smoke incl. wx-assert suppression (LEARNINGS [swig]) at S11. |
+| V1 | DSN export / SES import via SWIG | spec P7, S11 | **RESOLVED S11**: ExportSpecctraDSN(board, path) + ImportSpecctraSES(board, path) both work headless on 10.0.3 with the wx recipe (wx.App + DisableAsserts + APP_ASSERT_SUPPRESS); full roundtrip DRC-clean incl. parity. Worker results travel via FILES (wx stdout noise). LEARNINGS [swig][freerouting]. |
 | V2 | kicad-sch-api output opens in KiCad 10 | spec sec 9, S7 | **RESOLVED S7** (S1 evidenced flat): hierarchical output too - add_sheet/add_sheet_pin/add_hierarchical_label serialize, 3-sheet hierdemo ERC-clean on 10.0.3, cross-sheet nets + global power nets netlist correctly. Blinky2 regenerated via schlib = netlist IDENTICAL to golden. Quirks in LEARNINGS [python]. |
-| V3 | `drc --refill-zones` availability | spec sec 1 | RESOLVED S0/S1: verified on real zoned boards (2- and 4-layer goldens): fills + persists via --save-board, plain DRC clean afterwards; the pipeline's ONLY working headless fill (ZONE_FILLER segfaults, LEARNINGS [swig]). S11 re-checks post-SES. |
+| V3 | `drc --refill-zones` availability | spec sec 1 | RESOLVED S0/S1: verified on real zoned boards (2- and 4-layer goldens): fills + persists via --save-board, plain DRC clean afterwards; the pipeline's ONLY working headless fill (ZONE_FILLER segfaults, LEARNINGS [swig]). **S11 re-checked post-SES**: imported tracks stale the fills (33 clearance/hole violations) until the kicad-cli refill (then 0); route_auto refills before export AND after import. |
 | V4 | kipy `headless=True` starts `kicad-cli api-server` | spec sec 1 | RESOLVED S0: NO api-server subcommand in 9.0.5/10.0.3; kipy 0.7.1's server helper targets newer KiCad. Working IPC was sandboxed-GUI launch (smoke_ipc.py). **S9: that path REGRESSED on this host** ("KiCad is not ready to reply", verdict `unavailable`; LEARNINGS [ipc]). Edit path decided at S9: SWIG bundled python. |
 | V5 | JLCPCB Parts API (credentialed) | spec sec 1, S6 | **RESOLVED S6**: the pinned easyeda2kicad 1.0.1 wraps an ANONYMOUS JLCPCB parts search (EasyedaApi.search_jlcpcb_components) that needs NO credential - verified live (18783 hits for "100nF 0603 X7R", Basic/Extended+stock+price). That is parts_search.py's PRIMARY path; the credentialed api.jlcpcb.com (still needs an access application) is unnecessary for search and deferred to S12 ordering. jlcparts SQLite = optional --db cache (none on host; code path unit-tested vs a synthetic DB). Web search = agent last resort (exit 2 when offline+no db). LEARNINGS [parts]. |
 | V6 | JLCDFM upload (no public API) | spec P9 | Semi-manual by design; S12. |
-| V7 | Freerouting batch flags + result parsing | LEARNINGS [freerouting] | Prior-attempt facts; re-verify on our own DSN at S11. |
+| V7 | Freerouting batch flags + result parsing | LEARNINGS [freerouting] | **RESOLVED S11** on our own DSNs: deterministic set `--gui.enabled=false -mt 1 -is sequential -da --logging.file.enabled=false -mp N -de/-do`; completion parse priority pinned in routelib.parse_fr_log; -da does not stop the one-shot update check. NEW: FR 2.2.4's DSN reader can wedge in infinite recursion on KRT guide-wire copper - route_auto detects (timeout + zero passes) and falls back to KRT (LEARNINGS [freerouting][routing]). |
 | V8 | IPC API feature coverage for placement edits (move/rotate via kipy 0.7.1 on KiCad 10) | spec P6 | **RESOLVED S9 (negative)**: kipy's edit API exists (FootprintInstance.position/.orientation + update_items + save) but is UNVERIFIABLE live - the sandboxed-GUI connect layer now fails on this host (V4 note), and headless kipy only lands in KiCad 11 (research: headless-pcb-routing-2026). place_edit.py uses SWIG bundled python (verified: move/rotate/flip/lock applied + independently re-parsed). kipy/IPC = KiCad-11 migration target. |
 | V9 | cpl-rotation mutant catchable at DFM | S2 finding, spec P9 | S2: committed cpl-rotation board does NOT fail `--schematic-parity` under 10.0.3 (manifest note stale). Designated catcher is dfm_check (S12) via CPL polarity - must not rely on parity. |
 | V10 | Flipped (back-side) footprint pad geometry | S3, spec 6.3 | **RESOLVED S3 (Fable review)**: built a SWIG-flipped fixture (flip_fixture.py); pcbnew bakes the mirror INTO the file (locals mirrored, angles negated, layers renamed B.*), so the front-side transform covers flipped parts with NO special handling. geom's original mirror+swap DOUBLE-flipped - removed; 15/15 pads exact vs pcbnew; regression test in test_geom.py. |
 | V11 | "Remove unused inner via pads" not modeled | S3 | geom treats a through via as copper on ALL inner layers (matches corpus + oracle default). A board enabling JLC's inner-pad removal would over-count inner via copper. S8 did not add it (rules_gen has no via-pad-removal knob); revisit at S12 DFM if used. |
 | V12 | Controlled-impedance geometry not validated vs JLC's calculator | S8, spec P5 | S8 `lib/impedance.py` computes trace width/diff gap from IPC-2141A microstrip + the published edge-coupled correction (50R/1.6mm FR4 -> 3.02mm matches textbook ~2.95mm; diff round-trips exactly). These are first-order estimates for sizing DRU rules + S5 targets; only OUTER-layer microstrip is modelled (no inner stripline). Confirm against JLC's online impedance calculator before ordering a controlled-impedance board (S12/S14). |
+| V13 | route_cleanup loop-breaker vs plane-mediated connectivity | S11 | Can remove a load-bearing segment when connectivity runs through a fill (union-find/fill edge); SELF-DETECTED (exit 1 cleanup_regression, board left modified) and rolled back by the caller. Root-cause at S13/S14 or keep cleanup optional. |
+| V14 | Freerouting 2.2.4 DSN-reader recursion on KRT copper | S11 | PolylineTrace.combine infinite recursion before pass 1 on KRT guide-wire copper; mitigated (wedge detection + KRT fallback). Worth an upstream issue with a minimal DSN repro. |
 
 ## S0 - Repo bootstrap and environment (2026-07-06) - DONE
 
@@ -1092,3 +1094,126 @@ check_env green: **370 passed** (347 prior + 23).
 
 **New verify-later items:** none. (Feedback-completion acceptance leg is explicitly S11's per
 the plan; no register entry needed.)
+
+## S11 - Routing pipeline (2026-07-23) - DONE
+
+**Smoke tests first (plan-mandated; V1/V7/V3 all resolved live on 10.0.3):** DSN export +
+SES import via SWIG two-arg calls work headless WITH the wx recipe (V1); the deterministic
+Freerouting flag set verified on our own DSNs with the completion-parse priority pinned in
+routelib (V7); post-SES fills are stale until the kicad-cli refill - 33 violations -> 0 (V3).
+Bonus mechanics proven en route: zones export as "(plane NET)" and FR connects pads to planes
+itself (26 vias with plane vs 7 without); the first autorouted pour split into 2 islands,
+becoming plane_repair's live acceptance fixture.
+
+**Decisions recorded per plan:** DSN/SES path = SWIG bundled python (spec P7.3 option (a)),
+worker = lib/route_swig.py with results via FILES. KiCadRoutingTools v0.19.0 evaluated
+("wrap or vendor") -> VENDORED under tools/krt (MIT, pinned zip + prebuilt abi3 pyd, sha256s
+in PROVENANCE.txt, env.find_krt(), scipy==1.18.0 added to pins) and WRAPPED for diff pairs +
+power (route_critical) and as route_auto's finish/fallback engine; RF fencing stays ours.
+
+**Built** (S2 violation schema + spec 6 CLI contract throughout):
+- lib/route_swig.py (worker verbs export_dsn/import_ses/apply_ops/add_zones; removals LAST
+  before save) + lib/routelib.py (worker driver, FR ladder mp 20/60/100, log parser,
+  marker-guarded fresh_work_dir, cross-volume-safe swap_in).
+- route_edit.py - THE track/via op writer (place_edit pattern; idempotent adds/removals,
+  atomic swap, rollback verified byte-identical).
+- route_auto.py - refill -> DSN export (auto LT_POWER marking) -> FR ladder (per-rung process
+  timeout, wedge short-circuit on timeout+zero-passes) -> best-SES import (next-best on
+  corrupt SES) -> refill -> DRC -> KRT finish/fallback (rips DRC-error sliver vias by uuid,
+  batched KRT route of unrouted nets, sub-0.05mm crumb sweep, kept only if DRC strictly
+  improves) -> placement_adjust_request (the sanctioned P7->P6 backward edge) when unrouted.
+  --probe = the S10 routability probe.
+- planes_gen.py - constraints["planes"] schema + defaults (2L B.Cu GND; 4L In1 GND + In2
+  dominant power; high_speed references guaranteed a plane); thermal-via grids under EPs;
+  idempotency guard; distinct priorities for same-layer overlaps (zones_intersect fact).
+- stitch_vias.py - pad stitching to planes (obstacles = WIRED copper only, fills re-flow;
+  keepouts + 0.5 mm hole floor; corridor-checked connecting tracks; THT skipped; 2-layer
+  bond rule vs via_dangling), area stitching at rise-time pitch, --fence-net RF fence.
+- plane_repair.py - electrical-group split detection (per-layer fill components unioned by
+  via/pad connectivity; naive component counting FPs on clean rf4), repair ladder (same-layer
+  bridge -> other-layer bridge -> two-via jumper, 0.5->0.25 grid + thin-bridge escalation).
+- route_cleanup.py - dangling/loop/chamfer hygiene with assert_fresh guard and a
+  connectivity-regression self-check (exit 1 cleanup_regression, orchestrator restores).
+- route_critical.py - KRT adapter: diff pairs (S5 pair-discovery reuse; stub-pad detach/
+  restore around KRT's endpoint bug; impedance geometry from stackup; width ladder;
+  check_diffpair post-verify), power (IPC-2152 x1.5; per-net neckdown policy vs DRU floors;
+  post-KRT width normalization to the IPC floor; PLANE-CARRIED NETS SKIPPED - the plane is
+  the trunk, outer trunks starve thermal spokes), RF (impedance width + fence handoff).
+  DRC-delta rollback on new ERRORS only (warnings belong to cleanup).
+- S10 wiring: place_anneal --route-feedback builds the real probe (place_edit snapshot ->
+  route_auto.route_probe); kc.py violation items now carry uuid (fixer dispatch enabler).
+- tests: test_route_auto (22) + test_planes_gen (23) + test_stitch_vias (24) +
+  test_plane_repair (24) + test_route_cleanup (25) + test_route_critical (23) = 141 new.
+
+**Freerouting 2.2.4 showstopper found + mitigated:** KRT guide-wire copper can wedge FR
+DSN reading in infinite recursion (PolylineTrace.combine) before pass 1; the same board with
+routed copper stripped routes in 2.8 s. route_auto detects the signature and falls back to
+KRT for the remainder. Chain order is board-class dependent: 2L critical->auto->stitch;
+4L critical->stitch->auto; plane-carried power nets are never outer-trunked. (LEARNINGS x5.)
+
+**Adversarial review (ultracode: 5 lenses, 2 refuters/finding, 59 agents): 27 raw ->
+19 CONFIRMED; all 4 majors fixed** (restore_stub_pads nested-detach order; stitch ring/fence
+keepout gap; unguarded rmtree of user --work-dir x2) **+ 9 minors fixed** (foreign-fill
+over-blocking + hole-distance in repair jumpers, pre-refill power-layer detection,
+ses_items_added misreport, truncated-SES next-best fallback, cross-volume swap,
+refill-failure board-modified error texts x3, cleanup assert_fresh). Documented-not-fixed:
+plane_repair/route_cleanup mutate the real board in place by design (self-detected;
+git/snapshot restore is the recovery - exercised live in acceptance).
+
+**Acceptance evidence (live 10.0.3, both goldens netlist -> board_init -> rules_gen ->
+place_seed -> planes_gen -> critical -> [stitch/auto per class] -> repair -> cleanup):**
+- blinky2 (2L): route_auto completion 1.0 (FR converged at 34 left on the seeded board;
+  KRT finished 9 nets), gate drc_routed PASS 0 total (err+warn included),
+  verify_all PASS - all 8 checks clean.
+- usbbuck4 (4L): stitch 35/40 pads pre-connected, route_auto completion 1.0 (KRT finish
+  threaded the LQFP GND pins FR cannot fan out + ripped 1 hole-clearance sliver via),
+  gate PASS 0 total, verify_all 0 errors + 1 warning (diffpair_via_asymmetry on the R3
+  pull-up stub) - passes the error-gated verify gate. USB pair: coupled at computed 90-ohm
+  geometry, skew 1.74 mm, uncoupled 0.0 at route_critical, check_diffpair pass there.
+- plane repair: the live autorouted GND-pour split (2 islands, DRC 1 unconnected) detected
+  and auto-repaired (two-via jumper, DRC -> 0); rf4 "plane-split" mutant truthfully NOT a
+  split (keepout slot does not bisect In1; 1 component, area drop visible) - its catcher
+  stays check_return_path per the manifest.
+- S10 feedback leg: probe completion 1.0 >= 0.98 on seeded usbbuck4 (65 nets, 6-pass cap);
+  --route-feedback wired end-to-end (fake-probe + factory tests).
+- cleanup regression self-check fired on both boards; orchestrator-style rollback restored
+  the routed state (the S13 fix-loop pattern, exercised).
+- check.cmd equivalent green: **511 passed** (370 prior + 141 new) + check_env exit 0.
+
+**Deviations from spec/plan (with reasons):**
+1. Freerouting is not the sole remainder engine: a KRT finish/fallback pass was added (FR
+   cannot fan out 0.5 mm LQFP pins; its reader wedges on KRT copper). FR stays primary; KRT
+   output is always re-gated by kicad-cli DRC and kept only on strict improvement.
+2. "plane-repair mutant fixed automatically": the rf4 mutant plane is NOT split (verified);
+   plane_repair acceptance is the live routing-caused split it repairs automatically.
+3. Plane-carried power nets are routed by NOT routing them (golden usbbuck4 pattern).
+4. stitch_vias pitch: the plan lambda/20 literal is 10x its own pinned value; implemented
+   c/(f_knee*200) = 4.28 mm at 1 ns.
+5. gates.yaml unchanged - drc_routed (S2) is the P7 gate as designed; the P6 place gate
+   fast-route term is now computable via route_auto --probe (S13 wires it if desired).
+6. Acceptance chains run seed-only placement: the S10 anneal courtyard-only packing is
+   silk-blind (refdes over neighbour pads -> 12 silk warnings failing the err+warn gate).
+   Silk-aware refinement belongs to the P6 stage-3 agent / P8 silk fixer (S13).
+
+**Interface notes for later steps:**
+- S13/P7 playbook: 2L: route_critical -> route_auto -> stitch_vias -> plane_repair ->
+  [route_cleanup, restore on exit 1] -> gate drc_routed. 4L: swap stitch before route_auto.
+  All scripts take --pcb + sidecars from the board dir; route_auto artifacts live in
+  <board dir>/route (marker-guarded). route_auto facts carry completion, rungs, krt_finish,
+  and placement_adjust_request {request, nets, refs, region, reason, suggestions} - hand it
+  to the placement agent (the only sanctioned backward edge).
+- Violation kinds added for cluster_violations/fixers: critical_route_failed,
+  critical_missing_net, zone_unfilled, stitch_impossible, plane_split,
+  plane_split_unrepairable, cleanup_regression.
+- route_probe(pcb, passes=, timeout_s=) -> facts with completion in [0,1]; place_anneal
+  --route-feedback --probe-passes N --probe-timeout-s S uses it via make_route_probe.
+- KRT invocations: always cwd=env.find_krt(), args as a list, --no-fix-drc-settings +
+  explicit floors + fab-overrides file, fresh output path, parse the LAST JSON_SUMMARY line
+  (route_critical.run_krt is the reference; "nothing to route" = no-op success).
+- kc.py normalized violation items now include "uuid" - fixers can dispatch route_edit
+  removals directly from DRC reports.
+
+**New verify-later items:** V13 (route_cleanup loop-breaker can drop a plane-mediated
+load-bearing segment - self-detected + rolled back; root-cause the union-find/fill edge at
+S13/S14 or keep cleanup optional), V14 (the FR PolylineTrace.combine wedge deserves an
+upstream freerouting issue report with a minimal DSN repro).

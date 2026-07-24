@@ -346,10 +346,25 @@ def test_all_locked_yields_note(tmp_path_factory):
 
 # ============================================================ pure: feedback
 
-def test_route_feedback_flag_is_stubbed(tmp_path_factory):
-    pcb = _scatter_board(tmp_path_factory, "fbstub")
-    rc = place_anneal.main(["--pcb", str(pcb), "--route-feedback"])
-    assert rc == 2
+def test_route_feedback_flag_wires_the_s11_probe(tmp_path_factory, monkeypatch):
+    # S11 replaced the exit-2 stub: --route-feedback now builds a live probe
+    # (place_edit snapshot -> route_auto.route_probe). Intercept the factory
+    # so no toolchain runs; the flag must reach anneal() with a callable.
+    pcb = _scatter_board(tmp_path_factory, "fbwire")
+    seen = {}
+
+    def fake_factory(board, *, passes, timeout_s):
+        seen["args"] = (Path(board).name, passes, timeout_s)
+        return lambda model: 1.0
+
+    monkeypatch.setattr(place_anneal, "make_route_probe", fake_factory)
+    rc = place_anneal.main(["--pcb", str(pcb), "--route-feedback",
+                            "--probe-passes", "3", "--probe-timeout-s", "60",
+                            "--max-epochs", "4", "--stall", "4",
+                            "--moves-per-cluster", "8",
+                            "--out-dir", str(pcb.parent / "anneal")])
+    assert rc == 0
+    assert seen["args"] == (pcb.name, 3, 60)
 
 
 def test_route_probe_blends_into_scoring(tmp_path_factory):

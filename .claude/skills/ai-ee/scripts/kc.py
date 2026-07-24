@@ -102,7 +102,8 @@ def normalize_violation(v: dict, source: str) -> dict:
         if net is None:
             net = _extract_net(desc)
         refs.extend(_extract_refs(desc))
-        norm_items.append({"msg": desc, "pos": point})
+        norm_items.append({"msg": desc, "pos": point,
+                           "uuid": it.get("uuid")})
     return {
         "check": v.get("type"),
         "severity": v.get("severity"),

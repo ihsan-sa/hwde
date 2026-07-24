@@ -1008,6 +1008,47 @@ def anneal(pcb: Path, constraints: dict, decoupling: dict, params: Params,
     return candidates, facts, model
 
 
+def make_route_probe(pcb: Path, *, passes: int = 4, timeout_s: int = 180):
+    """S11 routability probe for --route-feedback (PROGRESS S10 -> S11).
+
+    Returns fn(model: PlaceModel) -> completion fraction [0, 1]: snapshot the
+    model's placement onto a scratch copy of the board (place_edit absolute
+    ops), then run route_auto.route_probe (DSN export + capped-effort
+    Freerouting, no SES import). A probe failure returns 0.0 - the annealer
+    treats an unprobeable placement as unroutable rather than crashing the
+    run.
+    """
+    import shutil
+
+    import place_edit  # noqa: PLC0415 - lazy, only with --route-feedback
+    import route_auto  # noqa: PLC0415
+
+    pcb = Path(pcb).resolve()
+    work = pcb.parent / "route_probe_anneal"
+
+    def probe(model) -> float:
+        shutil.rmtree(work, ignore_errors=True)
+        work.mkdir(parents=True)
+        staged = work / pcb.name
+        for src in pcb.parent.glob(pcb.stem + ".*"):
+            if src.is_file() and not src.name.endswith(".lck"):
+                shutil.copy2(src, work / src.name)
+        ops = [{"op": "place", "ref": ref, "x": fp.pos[0], "y": fp.pos[1],
+                "deg": fp.angle, "side": fp.side}
+               for ref, fp in sorted(model.footprints.items())]
+        try:
+            place_edit.apply_ops(staged, ops)
+            facts = route_auto.route_probe(
+                staged, passes=passes, timeout_s=timeout_s,
+                work_dir=work / "probe")
+        except CheckError:
+            return 0.0
+        c = facts.get("completion")
+        return float(c) if c is not None else 0.0
+
+    return probe
+
+
 def run(argv: list[str] | None = None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--pcb", required=True)
@@ -1022,8 +1063,12 @@ def run(argv: list[str] | None = None):
     ap.add_argument("--apply-best", action="store_true",
                     help="apply the best legal candidate via place_edit")
     ap.add_argument("--route-feedback", action="store_true",
-                    help="blend fast-route completion into cost (needs S11)")
+                    help="blend fast-route completion into cost (S11 probe: "
+                         "place_edit snapshot -> DSN -> capped Freerouting)")
     ap.add_argument("--feedback-every", type=int, default=10)
+    ap.add_argument("--probe-passes", type=int, default=4,
+                    help="Freerouting passes per feedback probe")
+    ap.add_argument("--probe-timeout-s", type=int, default=180)
     ap.add_argument("--moves-per-cluster", type=int, default=80)
     ap.add_argument("--max-epochs", type=int, default=140)
     ap.add_argument("--stall", type=int, default=15)
@@ -1042,11 +1087,8 @@ def run(argv: list[str] | None = None):
 
     route_probe = None
     if args.route_feedback:
-        raise CheckError(
-            "--route-feedback requires the S11 routing pipeline "
-            "(route_auto.py DSN/Freerouting path), which is not built yet; "
-            "rerun without the flag. The blending logic is in place - S11 "
-            "wires the probe (PROGRESS S10).")
+        route_probe = make_route_probe(pcb, passes=args.probe_passes,
+                                       timeout_s=args.probe_timeout_s)
 
     def sidecar(explicit, name):
         if explicit:
