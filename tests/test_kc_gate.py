@@ -184,8 +184,9 @@ def test_gates_yaml_valid():
     assert {"erc", "drc", "drc_routed"} <= set(gates)
     for name, g in gates.items():
         # S5 added the "verify" tool (verify_all.py aggregate); S9 added
-        # "place" (place_metrics.py legality) - gate.py wires both.
-        assert g["tool"] in ("erc", "drc", "verify", "place"), \
+        # "place" (place_metrics.py legality); S12 added "dfm" (dfm_check.py
+        # on the exported gerbers) - gate.py wires all three.
+        assert g["tool"] in ("erc", "drc", "verify", "place", "dfm"), \
             f"{name}: bad tool {g['tool']}"
         for sev in g.get("fail_severities", ["error"]):
             assert sev in ("error", "warning", "exclusion")

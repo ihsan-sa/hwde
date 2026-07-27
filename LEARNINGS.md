@@ -4,7 +4,7 @@ Append-only, non-obvious gotchas. Recall by tag/keyword before touching an area.
 Entries sourced from prior attempts are marked; re-verify at first use here.
 
 ## Tags
-[windows] [kicad] [kicad-cli] [ipc] [swig] [freerouting] [easyeda2kicad] [python] [prior-attempts] [geometry] [shapely] [parts] [datasheet]
+[windows] [kicad] [kicad-cli] [ipc] [swig] [freerouting] [easyeda2kicad] [python] [prior-attempts] [geometry] [shapely] [parts] [datasheet] [gerber] [gerbonara] [dfm] [jlc] [fab]
 
 ## 2026-07-06 [windows] cp1252 console crashes on non-ASCII output
 Printing degree signs, ohms, plus-minus, emoji to a default Windows console raises
@@ -474,3 +474,48 @@ connectivity-safe: neighbouring round caps overlap far beyond the crumb length).
 route_cleanup's loop-breaking can remove a load-bearing segment when connectivity runs through
 a plane (union-find/fill edge case) - it SELF-DETECTS (exit 1 cleanup_regression, board left
 modified); the orchestrator restores (git or snapshot) and continues without cleanup.
+
+## 2026-07-24 [gerbonara][gerber][geometry] ArcPoly.outline drops curvature - tessellate arcs before shapely
+gerbonara's `Flash.to_primitives('mm')[0].to_arc_poly()` returns an ArcPoly whose `.outline` holds
+only the segment ENDPOINTS; the curvature lives in its arc segments (`.segments` / `.arc_centers`).
+Feeding `.outline` straight into `shapely.Polygon` therefore turns a ROUND pad into a coarse polygon
+(measured on our own exports: a 0.6 mm via pad read as ~0.55 mm inscribed, i.e. a phantom 0.025 mm
+annular-ring shortfall that failed all 25 blinky2 vias). Fix: `.approximate_arcs(max_error=1e-3)`
+BEFORE `.outline` (gerblib.ARC_MAX_ERROR_MM). Even then, keep a geometric tolerance in the
+comparisons - blinky2's vias sit EXACTLY on JLC's 0.15 mm annular floor, so micron-scale flattening
+error must not fail them (dfm_check.GEOM_TOL_MM = 2e-3, two orders below any real DFM delta).
+
+## 2026-07-24 [dfm][gerber] Annular ring must be measured against PAD FLASHES only, never pours
+A zone fill exports as a Region whose exterior is a keyhole ring threading past every via's antipad
+(the LEARNINGS [geometry] keyhole entry). Counting pours as "the copper around the hole" therefore
+measures the ANTIPAD GAP, not the ring, and invents a ~1 mil shortfall on perfectly good vias
+(blinky2: one hole reported 0.1245 mm). dfm_check.check_annular_ring considers `lg.pads` (flashes)
+on the OUTER layers only; a hole with no flash around it (NPTH, inner-only) is skipped, not failed.
+
+## 2026-07-24 [dfm][kicad] CPL polarity: compare per PAD NUMBER, not per net (this is what catches V9)
+`pcb drc --schematic-parity` compares NET MEMBERSHIP, so a polarized part rotated 180 deg with its
+pad nets swapped is invisible to it (confirmed 10.0.3, the cpl-rotation mutant - V9 resolved S12).
+Comparing the board's `pad number -> net` against the netlist's `pin -> net` catches it immediately,
+and the pad GEOMETRY yields the misorientation: find the pad actually carrying each expected net,
+take the angle from the footprint's pad centroid to that pad vs the pad that should hold it; a
+consistent delta (spread < 5 deg) is the rotation the CPL would ship (D1 -> exactly 180.0). A
+mismatch with no consistent permutation is a wiring error (`pad_net_mismatch`), not a rotation.
+
+## 2026-07-24 [dfm][gerber] Clearance from gerbers = gaps between UNIONED copper islands
+Gerbers carry no net data, so the only honest grouping is "touching copper is one conductor" - union
+the layer, explode into components, measure pairwise gaps. That is exactly what a fab's DFM engine
+sees. Two guards are required: skip distances <= 1e-4 mm (numerically-abutting features that are
+really connected, else every trace/pad junction is a phantom zero-clearance short), and prefilter
+pairs with an STRtree or the comparison is quadratic over hundreds of islands.
+
+## 2026-07-24 [jlc][kicad-cli][fab] JLC export facts (10.0.3, verified on our goldens)
+`pcb export gerbers` with no `--layers` emits 25 files incl. Adhesive/Courtyard/Fab/User_* - curate
+to copper + silk + mask + paste + Edge.Cuts for the upload zip. There is NO Protel-extension toggle
+in kicad-cli (it always writes standard .gtl/.gbl/.g1/.gts/... which current JLC accepts), and the
+drill lands as ONE .drl alongside. Do NOT pass `--subtract-soldermask`: silk-over-pad must stay
+VISIBLE in the gerber or dfm_check cannot see what the fab would clip. Board copper order in the
+file's `(layers)` block is by layer ID, where B.Cu (31) can precede the inners - re-sort to
+PHYSICAL order (F, In1..InN, B) or outer-vs-inner copper-weight rules get applied to the wrong
+layer. `pos` defaults to inches (kc.py forces mm). kicad-cli writes G90 after the Excellon header,
+which makes gerbonara emit a SyntaxWarning it then parses correctly - suppress it at the read site
+(gerblib) so library callers like gate.py keep clean stderr, not just the CLI.

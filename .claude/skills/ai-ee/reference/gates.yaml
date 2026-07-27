@@ -23,7 +23,7 @@
 # S2 defined erc/drc/drc_routed; S5 added verify (verify_all.py aggregate);
 # S9 adds place (place_metrics.py legality: courtyard overlaps, declared-edge
 # compliance, keepouts, decoupler distance - the P6 fast-route-completion term
-# arrives with S10/S11 route feedback). Still to come: dfm (S12, dfm_check.py).
+# arrives with S10/S11 route feedback); S12 adds dfm (dfm_check.py).
 # routed (P7 "100% routed") is covered by drc_routed's parity + unconnected.
 #
 # The `verify` gate's tool is "verify": gate.py runs verify_all.py on the board,
@@ -78,3 +78,17 @@ gates:
       P8 verification suite (verify_all.py): return path, current, decoupling,
       diff pairs, creepage, thermal, silk, PDN. Fails on any error-severity
       finding; warnings are surfaced for human review, not auto-failed.
+
+  dfm:
+    phase: P9
+    tool: dfm
+    fail_severities: [error]
+    max_count: 0
+    description: >-
+      Local DFM on the EXPORTED gerbers (dfm_check.py, gerbonara): trace width,
+      clearance, drill, annular ring, hole/copper to edge, silk over pad, and
+      CPL polarity vs the schematic (the catcher for a polarized part mounted
+      backwards, which net-level schematic parity misses). Advisory classes -
+      KiCad's stock 0.12 mm silk, tight mask dams, missing LCSC numbers - are
+      warnings and do not fail the gate. JLCDFM's own 30+ checks are a separate,
+      semi-manual second opinion (no public API).

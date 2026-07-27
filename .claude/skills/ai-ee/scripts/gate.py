@@ -53,6 +53,8 @@ def run_report_for_gate(gate: dict, input_file: Path) -> dict:
         import place_metrics  # noqa: E402  (sibling script)
         payload, _ = place_metrics.run(["--pcb", str(input_file)])
         return payload  # sidecars default to the board's own directory
+    if tool == "dfm":
+        return run_dfm(input_file)
     cli = kc.resolve_cli()
     if tool == "erc":
         return kc.run_erc(cli, input_file)
@@ -63,7 +65,24 @@ def run_report_for_gate(gate: dict, input_file: Path) -> dict:
                           parity=bool(opts.get("parity")),
                           all_track_errors=bool(opts.get("all_track_errors")))
     raise RuntimeError(
-        f"gate tool must be 'erc', 'drc', 'verify' or 'place', got {tool!r}")
+        "gate tool must be 'erc', 'drc', 'verify', 'place' or 'dfm', "
+        f"got {tool!r}")
+
+
+def run_dfm(board: Path) -> dict:
+    """Run dfm_check on the board (P9). Gerbers are exported to a scratch dir,
+    so gating never litters the design folder; the schematic beside the board
+    (pipeline convention) is the CPL-polarity oracle, and parts.json - when the
+    project has one - drives the BOM-completeness leg."""
+    import dfm_check  # noqa: E402  (sibling script)
+    kwargs: dict = {}
+    sch = board.with_suffix(".kicad_sch")
+    if sch.exists():
+        kwargs["schematic"] = sch
+    parts = board.parent / "parts.json"
+    if parts.exists():
+        kwargs["parts"] = parts
+    return dfm_check.run(board, **kwargs)
 
 
 def run_verify(board: Path) -> dict:

@@ -1,0 +1,81 @@
+# jlc_pricing.yaml - JLCPCB price POINTS for order_quote.py's estimate matrix.
+#
+# READ THIS BEFORE TRUSTING A NUMBER FROM THIS FILE.
+#
+# These are the published headline prices, transcribed to give the pipeline a
+# cost ORDER OF MAGNITUDE at P2 (architecture checkpoint) and a sanity check at
+# P10. They are NOT a quote. JLC's real price depends on panelisation, current
+# promotions, region, shipping and stock - only the instant-quote page or the
+# credentialed API returns an authoritative figure. order_quote.py therefore
+# marks every derived number `estimated: true` and always emits the
+# instant-quote deep link as the authoritative path.
+#
+# Source (transcribed + last verified 2026-07-24):
+#   https://jlcpcb.com/           (instant quote headline pricing)
+#   https://jlcpcb.com/capabilities/pcb-capabilities
+#   https://jlcpcb.com/parts      (SMT assembly fee structure)
+# Currency: USD, excluding shipping and taxes.
+
+meta:
+  currency: USD
+  estimate: true
+  verified: "2026-07-24"
+  authoritative_quote_url: "https://cart.jlcpcb.com/quote"
+  source_urls:
+    - https://jlcpcb.com/
+    - https://jlcpcb.com/capabilities/pcb-capabilities
+
+# Base PCB price for the standard promo tier: boards within `promo_max_mm`
+# on both sides, standard thickness/colour, at the listed quantity.
+pcb:
+  promo_max_mm: 100          # 100 x 100 mm keeps the headline price
+  base:
+    # layers: {qty: price}
+    2: {5: 2.00, 10: 2.00, 30: 8.90, 50: 13.90, 100: 24.90}
+    4: {5: 5.00, 10: 9.90, 30: 27.90, 50: 42.90, 100: 76.90}
+    6: {5: 34.00, 10: 49.00, 30: 109.00, 50: 165.00, 100: 295.00}
+  # Charged per dm^2 once the board exceeds the promo size (rough linear model).
+  oversize_per_dm2:
+    2: 4.50
+    4: 11.00
+    6: 32.00
+
+options:
+  surface_finish:
+    "HASL": 0.00
+    "LeadFree HASL": 0.00
+    "ENIG": 0.00            # free under ~2 dm^2 on the promo tier, else set here
+  solder_mask_color:
+    green: 0.00
+    black: 0.00
+    blue: 0.00
+    red: 0.00
+    white: 0.00
+    yellow: 0.00
+    purple: 0.00
+    "matte black": 0.00
+    "matte green": 0.00
+  thickness_mm:
+    1.6: 0.00
+    0.8: 0.00
+    1.2: 0.00
+    2.0: 3.00
+
+# SMT assembly. JLC bills a setup fee, a per-part feeder fee for EXTENDED parts
+# (Basic parts are feeder-free - this is why parts_search ranks Basic first),
+# and a per-solder-joint charge.
+assembly:
+  setup_fee: 8.00
+  per_extended_part_feeder: 3.00
+  per_joint: 0.0017
+  stencil: 8.00
+  min_qty: 2
+  note: "Basic parts incur no feeder fee; Extended parts do (per unique part)."
+
+lead_time_days:
+  pcb:
+    2: {standard: 2, expedited: 1}
+    4: {standard: 3, expedited: 2}
+    6: {standard: 5, expedited: 3}
+  assembly_additional: 4
+  note: "Build time only - shipping is separate and region-dependent."

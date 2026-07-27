@@ -19,7 +19,7 @@ Session protocol: repo `CLAUDE.md` ("run step N"). Update this file + commit at 
 | S9 | Placement: seed, metrics, edit ops | **done** | 2026-07-22 |
 | S10 | Placement: annealer with routability feedback | **done** (feedback wired at S11) | 2026-07-23 |
 | S11 | Routing pipeline | **done** | 2026-07-23 |
-| S12 | Fab outputs, DFM, ordering | pending | |
+| S12 | Fab outputs, DFM, ordering | **done** | 2026-07-24 |
 | S13 | Agents, orchestrator, SKILL.md | pending | |
 | S14 | End-to-end hardening | pending | |
 
@@ -70,15 +70,17 @@ kickoff prompt to allow multi-agent workflows (higher token spend - use where ma
 | V3 | `drc --refill-zones` availability | spec sec 1 | RESOLVED S0/S1: verified on real zoned boards (2- and 4-layer goldens): fills + persists via --save-board, plain DRC clean afterwards; the pipeline's ONLY working headless fill (ZONE_FILLER segfaults, LEARNINGS [swig]). **S11 re-checked post-SES**: imported tracks stale the fills (33 clearance/hole violations) until the kicad-cli refill (then 0); route_auto refills before export AND after import. |
 | V4 | kipy `headless=True` starts `kicad-cli api-server` | spec sec 1 | RESOLVED S0: NO api-server subcommand in 9.0.5/10.0.3; kipy 0.7.1's server helper targets newer KiCad. Working IPC was sandboxed-GUI launch (smoke_ipc.py). **S9: that path REGRESSED on this host** ("KiCad is not ready to reply", verdict `unavailable`; LEARNINGS [ipc]). Edit path decided at S9: SWIG bundled python. |
 | V5 | JLCPCB Parts API (credentialed) | spec sec 1, S6 | **RESOLVED S6**: the pinned easyeda2kicad 1.0.1 wraps an ANONYMOUS JLCPCB parts search (EasyedaApi.search_jlcpcb_components) that needs NO credential - verified live (18783 hits for "100nF 0603 X7R", Basic/Extended+stock+price). That is parts_search.py's PRIMARY path; the credentialed api.jlcpcb.com (still needs an access application) is unnecessary for search and deferred to S12 ordering. jlcparts SQLite = optional --db cache (none on host; code path unit-tested vs a synthetic DB). Web search = agent last resort (exit 2 when offline+no db). LEARNINGS [parts]. |
-| V6 | JLCDFM upload (no public API) | spec P9 | Semi-manual by design; S12. |
+| V6 | JLCDFM upload (no public API) | spec P9 | **RESOLVED S12 (as designed semi-manual)**: no public API exists, so the fab's own 30+ checks stay a human/browser step. order_submit.py emits the zip path + jlcdfm.com in its `human_steps`, and the LOCAL engine (dfm_check.py) runs the big classes pre-upload. The upload itself is V15. |
 | V7 | Freerouting batch flags + result parsing | LEARNINGS [freerouting] | **RESOLVED S11** on our own DSNs: deterministic set `--gui.enabled=false -mt 1 -is sequential -da --logging.file.enabled=false -mp N -de/-do`; completion parse priority pinned in routelib.parse_fr_log; -da does not stop the one-shot update check. NEW: FR 2.2.4's DSN reader can wedge in infinite recursion on KRT guide-wire copper - route_auto detects (timeout + zero passes) and falls back to KRT (LEARNINGS [freerouting][routing]). |
 | V8 | IPC API feature coverage for placement edits (move/rotate via kipy 0.7.1 on KiCad 10) | spec P6 | **RESOLVED S9 (negative)**: kipy's edit API exists (FootprintInstance.position/.orientation + update_items + save) but is UNVERIFIABLE live - the sandboxed-GUI connect layer now fails on this host (V4 note), and headless kipy only lands in KiCad 11 (research: headless-pcb-routing-2026). place_edit.py uses SWIG bundled python (verified: move/rotate/flip/lock applied + independently re-parsed). kipy/IPC = KiCad-11 migration target. |
-| V9 | cpl-rotation mutant catchable at DFM | S2 finding, spec P9 | S2: committed cpl-rotation board does NOT fail `--schematic-parity` under 10.0.3 (manifest note stale). Designated catcher is dfm_check (S12) via CPL polarity - must not rely on parity. |
+| V9 | cpl-rotation mutant catchable at DFM | S2 finding, spec P9 | **RESOLVED S12**: dfm_check compares board `pad number -> net` against the netlist's `pin -> net` (parity is net-level and stays blind to the swap, as S2 found). The mutant is caught as `cpl_polarity`, ref D1, **rotation_delta_deg 180.0** - exactly the manifest's expectation - and the pad geometry supplies that angle. Test is HERMETIC (committed s7_regen netlist as oracle). LEARNINGS [dfm][kicad]. |
 | V10 | Flipped (back-side) footprint pad geometry | S3, spec 6.3 | **RESOLVED S3 (Fable review)**: built a SWIG-flipped fixture (flip_fixture.py); pcbnew bakes the mirror INTO the file (locals mirrored, angles negated, layers renamed B.*), so the front-side transform covers flipped parts with NO special handling. geom's original mirror+swap DOUBLE-flipped - removed; 15/15 pads exact vs pcbnew; regression test in test_geom.py. |
 | V11 | "Remove unused inner via pads" not modeled | S3 | geom treats a through via as copper on ALL inner layers (matches corpus + oracle default). A board enabling JLC's inner-pad removal would over-count inner via copper. S8 did not add it (rules_gen has no via-pad-removal knob); revisit at S12 DFM if used. |
 | V12 | Controlled-impedance geometry not validated vs JLC's calculator | S8, spec P5 | S8 `lib/impedance.py` computes trace width/diff gap from IPC-2141A microstrip + the published edge-coupled correction (50R/1.6mm FR4 -> 3.02mm matches textbook ~2.95mm; diff round-trips exactly). These are first-order estimates for sizing DRU rules + S5 targets; only OUTER-layer microstrip is modelled (no inner stripline). Confirm against JLC's online impedance calculator before ordering a controlled-impedance board (S12/S14). |
 | V13 | route_cleanup loop-breaker vs plane-mediated connectivity | S11 | Can remove a load-bearing segment when connectivity runs through a fill (union-find/fill edge); SELF-DETECTED (exit 1 cleanup_regression, board left modified) and rolled back by the caller. Root-cause at S13/S14 or keep cleanup optional. |
 | V14 | Freerouting 2.2.4 DSN-reader recursion on KRT copper | S11 | PolylineTrace.combine infinite recursion before pass 1 on KRT guide-wire copper; mitigated (wedge detection + KRT fallback). Worth an upstream issue with a minimal DSN repro. |
+| V15 | JLCPCB web-viewer upload + polarized-part CPL preview | S12, plan S12 accept | **HUMAN STEP, NOT YET DONE.** Two S12 accept legs need a browser and have no API: (a) upload `usbbuck4_gerbers.zip` to JLC's viewer/quote page and confirm it renders clean, (b) spot-check the rendered CPL preview for 3 polarized parts (D1 LED_0805, plus a diode/electrolytic on a future board). The machine-checkable half (package completeness, hashes, rotation maths) IS tested (test_full_package_flow, test_cpl_rotation_corrections). Do this once before the first real order (S14). |
+| V16 | jlc_pricing.yaml staleness + credentialed ordering API | S12 | order_quote's numbers are transcribed headline prices flagged `estimated: true`, never a quote; JLC's real price depends on panelisation/promotions/region. order_submit implements the manifest + human gate but NOT a live api.jlcpcb.com call (that programme needs an approved access application this host does not have) - `--api` exits 2 with the exact missing prerequisite rather than shipping an untested payment path. Re-verify the table (and wire the API behind `_api_submit()`) when credentials exist. |
 
 ## S0 - Repo bootstrap and environment (2026-07-06) - DONE
 
@@ -1217,3 +1219,137 @@ place_seed -> planes_gen -> critical -> [stitch/auto per class] -> repair -> cle
 load-bearing segment - self-detected + rolled back; root-cause the union-find/fill edge at
 S13/S14 or keep cleanup optional), V14 (the FR PolylineTrace.combine wedge deserves an
 upstream freerouting issue report with a minimal DSN repro).
+
+## S12 - Fab outputs, DFM, ordering (2026-07-24) - DONE
+
+**Smoke test first (plan Convention 4, live 10.0.3):** exported gerbers/drill/pos from a golden and
+confirmed gerbonara 1.6.3 turns them into usable geometry BEFORE building on it - F.Cu came back as
+111 pad flashes + 76 trace lines (min aperture 0.25 mm via `aperture.equivalent_width('mm')`),
+F.Mask as 86 openings, the drill as Flash objects with `.aperture.diameter`. That settled the
+"independent second geometry path" premise (SPEC P9) as real rather than assumed.
+
+**Built** (all under `.claude/skills/ai-ee/`, spec 6 CLI contract + S2 violation schema):
+- `scripts/lib/gerblib.py` - gerbonara -> shapely, the second geometry stack. Classifies an exported
+  fab dir by kicad-cli's layer tokens (board name irrelevant), returns copper/silk/mask per layer as
+  buffered trace polylines + pad flashes + pour regions, drill holes, and the Edge.Cuts outline
+  (polygonized from centerlines). Everything in BOARD space (gerber Y negated) and mm, so DFM
+  violations carry the same coordinates as geom.py/kc.py/manifest.yaml. Copper layers re-sorted to
+  PHYSICAL order (F, In1..InN, B).
+- `scripts/fab_export.py` - the JLC package: curated layer set (copper x N + silk + mask + paste +
+  Edge.Cuts) + Excellon drill + mm pos CSV, zipped, with sha256 per file and for the zip. Does NOT
+  pass `--subtract-soldermask` (silk-over-pad must stay visible for dfm_check to see it).
+- `scripts/bom_cpl.py` - JLC BOM.csv (grouped by value/footprint/LCSC, comma-joined designators) +
+  CPL.csv (Mid X/Y, Layer, Rotation) with rotation corrections applied from
+  `reference/jlc_rotations.csv` (regex on the footprint name, first match wins), plus a per-part
+  `rotation_audit` trail (base -> correction -> final, matched pattern) and `missing_lcsc`.
+- `scripts/dfm_check.py` - the P9 gate check. Copper: min trace width, min clearance (gaps between
+  UNIONED copper islands - gerbers have no nets, so "touching = one conductor", which is what the
+  fab's engine sees), copper-to-edge. Drill: hole size, hole-to-hole, hole-to-edge, annular ring.
+  Mask/silk: silk-over-pad (silk ink inside a mask opening), mask dams, silk stroke width. Assembly:
+  CPL polarity (below). Release: layer completeness, drill validity, BOM completeness.
+- `scripts/order_quote.py` + `reference/jlc_pricing.yaml` - qty x finish x mask-colour x assembly
+  matrix + lead times, computed from the board's REAL geometry (outline bbox, layer count, pad count
+  for joints). Every figure carries `estimated: true` and the authoritative quote URL.
+- `scripts/order_submit.py` - locates + hashes the package, snapshots the spec and chosen quote row,
+  writes `fab/order.json`, and stops. Payment is never automated (SPEC P10).
+- `reference/gates.yaml` + `gate.py`: the **dfm** gate (P9, tool `dfm`, fails on error severity;
+  exports gerbers to scratch, takes the schematic beside the board as polarity oracle and parts.json
+  for BOM completeness). `test_kc_gate.py`'s tool whitelist extended (S5/S9 precedent).
+- `tests/test_fab.py` - 55 tests: 40 hermetic (rotation-table maths incl. the polarized packages,
+  pos/BOM/CPL construction, parts.json shape tolerance, capability selection, tolerance semantics,
+  gerblib layer/outline/hole/arc handling, seeded gerber defects written by hand - narrow trace,
+  tight clearance, touching-copper non-violation, small drill, hole-to-hole, thin annular ring,
+  at-the-limit acceptance, copper over edge, missing layer, BOM warning - polarity clean/caught/
+  negative-controls, quote maths, order manifest) + 15 `smoke` (live export: layer sets, zip+hashes,
+  4-layer stackup order, BOM/CPL on golden, goldens DFM-clean x3, both designated mutants caught at
+  manifest coordinates, 4 negative-control mutants, gate pass/fail, full P9->P10 flow, runtime).
+
+**Acceptance evidence (live 10.0.3):**
+- **cpl-rotation CAUGHT** (V9 resolved, the step's crown jewel): `cpl_polarity`, ref **D1**,
+  `rotation_delta_deg` **180.0** - exactly manifest's `expect`. Reported as "D1 pad nets are rotated
+  180 deg from the schematic - the part would be assembled backwards (pad 1: board /LED_A vs
+  schematic GND, pad 2: board GND vs schematic /LED_A)". `--schematic-parity` still reports 0 on
+  this board, so this check is the only thing between a backwards LED and the fab.
+- **silk-over-pad CAUGHT**: `dfm_silk_over_pad`, ref D1, pos [132.4375, 129.5] vs manifest
+  [132.44, 129.5]; 0.344 mm2 of silk inside the mask opening (golden measures exactly 0.0).
+- **Zero false positives**: all three goldens error-clean (`status: pass`, exit 0) - only the
+  by-design silk-width warning (KiCad's stock 0.12 mm silk vs JLC's 0.15 mm floor). Four mutants
+  owned by other checks (undersized-power-trace, decoupler-moved, diffpair-skew, missing-return-via)
+  raise no DFM errors.
+- Package: blinky2 -> 11 files (2L) / usbbuck4 -> 13 files (4L, In1/In2 present, physical order),
+  zip + sha256 per artifact; BOM groups 17 parts correctly; D1's CPL rotation 180 -> +180 -> 0.
+- P9->P10 flow on usbbuck4: 4-layer 60x45 mm, 23 parts / 111 joints -> quote matrix (qty 5 = $21.94
+  incl. assembly, unit $4.39; qty 30 = $49.56) -> order.json `ready_for_human`, zip hash matching the
+  export manifest, `--api` exits 2 without credentials.
+- `gate.py --gate dfm`: PASS on all goldens, FAIL (exit 1) on cpl-rotation with `cpl_polarity` in
+  `failing`. DFM runtime 3.6-4.5 s per golden (budget 30 s).
+
+**Two bugs found and fixed while building (both would have failed good boards):**
+1. **Arc curvature was being dropped.** gerbonara's `ArcPoly.outline` holds only segment endpoints,
+   so round pads became coarse polygons - blinky2's vias (0.6 mm pad on 0.3 mm drill = exactly JLC's
+   0.15 mm annular floor) read ~0.55 mm and ALL 25 failed. Fixed with `approximate_arcs(1e-3)` plus
+   a 2 um comparison tolerance so an exactly-at-spec board passes.
+2. **Annular ring measured against pours.** A zone fill is a keyhole ring threading past every via's
+   antipad, so counting pours as "the pad around the hole" measured the antipad gap (phantom 0.1245
+   mm ring). Restricted to pad flashes on outer layers.
+
+**Deviations from spec/plan (with reasons):**
+1. Plan's "package uploads clean to JLCPCB's web viewer (manual verification, once)" and "CPL
+   rotations spot-checked against JLC's rendered preview for 3 polarized parts" are BROWSER steps
+   with no API - **not done, registered as V15**, to be done once before the first real order (S14).
+   The machine-checkable halves (package completeness/structure/hashes, rotation-correction maths for
+   the polarized packages) are tested here. Stated plainly rather than claimed.
+2. `order_submit.py` does NOT call api.jlcpcb.com: that programme requires an approved access
+   application this environment lacks, so a live integration is unverifiable. `--api` exits 2 naming
+   the exact prerequisite; the manifest it writes is already the payload for when credentials exist
+   (V16). Shipping an untested "places your order" path would have been the dishonest option.
+3. `reference/jlc_pricing.yaml` is new and NOT in the spec's reference list: order_quote needed
+   SOME price basis for the P2/P10 matrices. Transcribed headline prices, cited + dated + flagged
+   `estimated: true`, with the authoritative quote URL always emitted (V16).
+4. Silk stroke width and mask dams are WARNINGS, not errors: KiCad's default 0.12 mm silk is below
+   JLC's stated 0.15 mm minimum and prints fine, and all three goldens use it - gating on it would
+   fail every legitimate board. Same for missing LCSC numbers. Follows the fp_verify/netlist_audit
+   precedent (warnings do not fail the gate); dfm_check overrides checklib's status accordingly, so
+   warnings-only = `pass` + exit 0.
+5. `dfm_check` owns CPL polarity rather than `bom_cpl` generating-and-validating: generation and
+   validation should not share a code path, or a rotation-table bug would validate itself. bom_cpl
+   applies corrections and emits an audit trail; dfm_check independently compares pads to the
+   schematic.
+6. A `lib/gerblib.py` module was added (spec 6.4 lists only the five scripts): the gerbonara->shapely
+   layer is reusable and keeps dfm_check's rules readable, mirroring the geom.py/checklib.py split.
+7. No JLCDFM automation (V6): no public API exists, so it stays a human step, surfaced in
+   order_submit's `human_steps` alongside the polarized-part preview check.
+
+**Interface notes for later steps:**
+- `fab_export.run(pcb, out_dir, name=, layers=, make_zip=) -> manifest` with `files[{name,sha256,
+  bytes}]`, `gerber_zip`, `gerber_zip_sha256`, `copper_layers` (physical order), `pos_file`.
+  `copper_layers(pcb)` is importable for anything needing the stackup order from the board text.
+- `bom_cpl.run(pcb, out_dir, pos=, parts_json=, rotations=) -> {bom, cpl, bom_rows, cpl_rows,
+  rotation_audit, missing_lcsc, bom_complete}`. `load_rotations`/`correct_rotation` are pure and
+  reusable. parts.json accepts four shapes (`{"parts":[...]}`, list of `{refs,lcsc}`, `{ref: lcsc}`,
+  `{ref: {lcsc}}`) - S6's parts_search output feeds it via the `lcsc` key.
+- `dfm_check.run(pcb, fab_dir=, copper_oz=, schematic=|netlist=, polarity=, parts=, skip=)` ->
+  checklib payload. New violation kinds for cluster_violations/S13 fixer dispatch: `dfm_trace_width`,
+  `dfm_clearance`, `dfm_copper_to_edge`, `dfm_hole_size`, `dfm_hole_to_hole`, `dfm_hole_to_edge`,
+  `dfm_annular_ring`, `dfm_silk_width`, `dfm_silk_over_pad`, `dfm_mask_dam`, `dfm_missing_layer`,
+  `dfm_no_drill`, `dfm_bom_incomplete`, **`cpl_polarity`**, `pad_net_mismatch`.
+- `gate.py --gate dfm <board>` is the P9 gate; sidecars (schematic, parts.json) resolve from the
+  board's directory, gerbers export to scratch so gating never litters the design folder.
+- S13/P9-P10 playbook: `fab_export.py` -> `bom_cpl.py` -> `gate.py --gate dfm` -> [fix loop] ->
+  `order_quote.py` -> human checkpoint 5 -> `order_submit.py` (writes fab/order.json, stops before
+  payment; its `human_steps` list is what checkpoint 5 presents).
+- `gerblib.open_fab(dir)` is available to any later check wanting the as-shipped geometry;
+  `ARC_MAX_ERROR_MM` and `dfm_check.GEOM_TOL_MM` are the two constants governing measurement
+  fidelity - do not tighten GEOM_TOL_MM below the arc error or at-spec boards start failing.
+
+**Coordination note (S6/S7 precedent):** the working tree carried UNTRACKED `scripts/bom_cpl.py` and
+`scripts/fab_export.py` at session start - WIP from an earlier/parallel attempt at this step, never
+committed and so not recoverable from git. This session's implementations now occupy those paths;
+nothing else in the tree was touched. If that WIP mattered, it is in the prior session's context, not
+here.
+
+**New verify-later items:** V15 (JLC web-viewer upload + polarized-part CPL preview - human, before
+first order), V16 (pricing-table staleness + unimplemented credentialed ordering API).
+V6 and V9 resolved above. V11 (inner via-pad removal) unchanged: dfm_check reads the exported copper
+so it sees whatever was actually emitted, and the annular check looks only at outer layers, where
+JLC's inner-pad-removal option does not apply.
