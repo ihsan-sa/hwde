@@ -1,20 +1,204 @@
 ---
 name: ai-ee
-description: End-to-end AI PCB design pipeline (brief -> architecture -> schematic -> placed & routed board -> verified -> DFM-checked -> order-ready JLCPCB package). UNDER CONSTRUCTION - the orchestrator playbook lands at plan step S13. Do not invoke as a skill yet; see PROGRESS.md at the repo root for build state.
+description: End-to-end AI PCB design pipeline (brief -> architecture -> schematic -> placed & routed board -> verified -> DFM-checked -> order-ready JLCPCB package). Invoke via /ai-ee <description> or /ai-ee --resume <workspace>. Orchestrator playbook operational per plan step S13; end-to-end hardening (S14) still pending - expect rough edges on novel briefs.
 ---
 
-# ai-ee (skeleton - not yet operational)
+# ai-ee orchestrator playbook
 
-This skill is being built per `SPEC.md` and `ai-ee-implementation-plan.md` at the repo root,
-one plan step per session ("run step N" protocol in the repo CLAUDE.md).
+You are the orchestrator of a phase-gated PCB design pipeline. Soft top, firm
+bottom: YOU decide which agents to spawn and how to react to gates; the
+scripts do everything checkable. Optimize for a working board at JLCPCB.
 
-Working today:
+## Non-negotiable operating rules
 
-- `scripts/check_env.py` - toolchain validation. Run with the repo venv python;
-  `--full` adds live probes (SWIG pcbnew roundtrip, IPC reachability). JSON to stdout,
-  exit 0/1/2.
-- `scripts/smoke_ipc.py` - how/whether the KiCad IPC API is reachable on this machine.
-- `scripts/lib/env.py` - single source of truth for tool discovery (KiCad pin, Java,
-  Freerouting jar). AIEE_* env vars override for tests.
+1. **Never open design files.** No .kicad_sch/.kicad_pcb/netlists/gerbers in
+   your context - ever. You read: `state.json`, gate results, agent output
+   contracts (FILES/GATE/SUMMARY/OPEN), and digests. Agents read the design.
+2. **Files are the interface.** Every agent gets: its role prompt from
+   `agents/`, the exact file paths it needs, and its termination condition.
+   Agents return their output contract; you parse only that.
+3. **Record everything in state.json** (via `scripts/state.py`) - phases,
+   gate results, issues, decisions, human checkpoints. A killed session must
+   resume from state.json alone.
+4. **Git commit after every gate pass**: `scripts/gate.py --gate <g> <input>
+   --commit "ai-ee <board>: <gate> pass"` (commits only on pass, never
+   pushes). Rollback for in-flight fix loops is `state.py snapshot/restore`.
+5. **Scripts run with the repo venv python** (`.venv\Scripts\python.exe`
+   from the repo root). All scripts: JSON out, exit 0 pass / 1 violations /
+   2 error (an exit-2 payload carries remediation - read it). ASCII only.
+6. **Ask the user in batches**, at checkpoints or when blocked - never
+   trickle questions.
 
-Everything else arrives per the plan (S1-S14). PROGRESS.md is the source of truth.
+## Phase machine
+
+```
+P0 Intake - P1 Research - P2 Architecture -[H1]- P3 Parts+Library -
+P4 Schematic -[G:erc + review][H2]- P5 Board Setup - P6 Placement
+-[G:place][H3 optional]- P7 Routing -[G:drc_routed]- P8 Verification
+-[G:verify + review][H4]- P9 DFM -[G:dfm]- P10 Ordering -[H5: pay]
+```
+
+Machine gates (defined in `reference/gates.yaml`, run via
+`scripts/gate.py --gate <name> <input>`):
+
+| Gate | Phase | Input | Criteria |
+|---|---|---|---|
+| erc | P4 | .kicad_sch | errors AND warnings = 0 |
+| place | P6 | .kicad_pcb | legality + edges + keepouts + decoupler dist |
+| drc_routed | P7 | .kicad_pcb | parity + all track errors, err+warn = 0 |
+| verify | P8 | .kicad_pcb | 8-check suite, error-severity = 0 |
+| dfm | P9 | .kicad_pcb | exported-gerber DFM, error-severity = 0 |
+
+Sidecars (`constraints.json`, `decoupling.json`, `parts.json`, schematic)
+resolve from the board's own directory - keep them beside the board from P5
+onward.
+
+## Run start / resume
+
+**New run** (`/ai-ee <description>`):
+1. Create the workspace `boards/<board-name>/` (inside this repo, so gate
+   commits work): `brief/ architecture/ research/ parts/ lib/ kicad/
+   routing/ reports/ fab/ log/`. Copy user inputs into `brief/`.
+2. `scripts/check_env.py` - exit 0 required; on failure present its
+   remediation strings and stop.
+3. `scripts/state.py init --workspace boards/<name> --board <name>`.
+4. Enter P0.
+
+**Resume** (`/ai-ee --resume <workspace>`):
+1. `scripts/state.py resume --workspace <ws>` - gives phase, gates passed,
+   next gate, open issues, pending human checkpoints.
+2. `scripts/state.py log --workspace <ws> --event resumed`.
+3. Re-enter at the NEXT unmet gate/checkpoint; never redo passed gates
+   (their artifacts are committed). Open issues in status `fixing` get
+   re-dispatched (their work orders are on disk).
+
+## Per-phase playbook
+
+Agent selection principle: spawn only what the design's domains need - an
+RF board gets an RF-interface researcher and RF review emphasis; a USB-C
+dev board gets neither. Role prompts live in `agents/`; each states its own
+scripts and contract. Phase digest: after each phase write 5-10 lines to
+`log/P<n>-digest.md` and `state.py set-phase`.
+
+- **P0 Intake**: spawn `requirements-analyst`. Present its OPEN questions to
+  the user in ONE batch. Blocking: safety-relevant unknowns (mains, battery,
+  high current) do not proceed on guesses. Artifact: `requirements.md`.
+- **P1 Research** (parallel): from requirements pick the roster -
+  `research-component-scout` (one per major function),
+  `research-reference-design` (one per novel block),
+  `research-interface-spec` (one per standards-bound interface),
+  `research-power-architect` (always, unless trivially powered).
+  Read summaries only.
+- **P2 Architecture**: spawn `architect`. Record its decisions
+  (`state.py decision`). **Checkpoint H1** (blocking): present blocks,
+  stackup, cost ballpark, key parts, riskiest decision.
+- **P3 Parts+Library**: spawn `part-sourcer`; then `datasheet-extractor`
+  per nontrivial IC (parallel); then `librarian` (needs the extracts for
+  fp_verify). Librarian failures (pad geometry mismatch) are blocking -
+  resolve part or footprint before P4.
+- **P4 Schematic**: spawn one `schematic-block` per sheet from
+  `architecture/sheets.md` (parallel where independent; the root-sheet agent
+  stitches and runs ERC + netlist_audit). Gate `erc`. Then spawn
+  `schematic-reviewer` (fresh context); triage its findings: errors ->
+  fix loop (below), warnings -> waivers file `reports/erc-waivers.md`.
+  **Checkpoint H2** (blocking): schematic PDF + reviewer findings + waivers.
+- **P5 Board Setup**: spawn `board-setup`. Its self-check is the phase
+  criterion (parity 0, setup violations 0). Ensure sidecars sit beside the
+  board.
+- **P6 Placement**: spawn `placement` (seed -> anneal -> select/repair,
+  <= 8 edit iterations). Gate `place`. **Checkpoint H3** (optional, default
+  ON): top/bottom render. Silk caveat: courtyard-tight annealed placements
+  can put refdes over pads and fail P7's err+warn gate - the placement agent
+  knows to prefer roomier candidates; if P7 later fails on silk, loop back
+  here rather than waiving.
+- **P7 Routing**: spawn `router` (chain order is board-class dependent -
+  its prompt carries the verified 2L/4L orders). Gate `drc_routed`.
+  If the router returns a `placement_adjust_request`, take the SANCTIONED
+  backward edge: snapshot, re-spawn `placement` scoped to the request's
+  refs/region, re-run P7 (`freerouting_retries` budget guards the loop).
+- **P8 Verification**: run the `verify` gate (it executes all 8 checks).
+  Then spawn `verify-reviewer` (fresh context) with the summary + renders.
+  Triage: script-check errors -> fix loop; reviewer errors -> fix loop or
+  human; warnings -> waiver candidates. After ANY copper/placement fix
+  here, re-run `drc_routed` before re-running `verify` (fixes must not
+  regress earlier gates). **Checkpoint H4** (blocking): verification
+  summary + annotated renders + waivers.
+- **P9 DFM**: spawn `dfm`. Gate `dfm`. Its JLCDFM/browser leg is human -
+  fold into H5's steps.
+- **P10 Ordering**: spawn `ordering`. **Checkpoint H5** (blocking, always):
+  present the quote matrix row, order.json, and the `human_steps` list
+  (upload zip, JLCDFM second opinion, CPL polarity preview eyeball, pay).
+  Payment is NEVER automated.
+
+## The fix loop (uniform for every gate)
+
+On gate fail (exit 1, result JSON has `failing` with coordinates):
+
+1. `state.py budget --path fix_loops.<gate> --consume` - exit 2 means the
+   budget is exhausted: ESCALATE (below) instead of looping.
+2. `state.py snapshot --label pre-fix-<gate>-a<attempt> --files
+   <board rel path>` (plus the schematic for erc-phase fixes).
+3. `scripts/fix_dispatch.py --input <gate result> --board <board>
+   --state <ws>/state.json --out <dispatch summary>` - clusters the
+   failures and writes one work order per cluster
+   (`log/workorders/wo-<id>.json`), registering each as an open issue.
+4. Spawn one `fixer` per order - orders inside one `parallel_groups` entry
+   run concurrently; groups run in sequence (their regions overlap).
+   BUT: the board file is single-writer - parallel fixers are safe only
+   because place_edit/route_edit apply atomically; still serialize fixers
+   that share a board unless their ops are disjoint by region. When in
+   doubt, run them sequentially - correctness beats wall-clock.
+   Mark issues `fixing` -> `fixed`/`escalated` (`state.py issue`).
+5. Re-run the gate; `state.py record-gate` EVERY attempt (fail and pass -
+   the history is the audit trail).
+6. A fixer that regressed (new violations appeared): restore its snapshot,
+   mark the issue `escalated`, continue with the rest.
+7. Gate passes -> `--commit`, close the loop, proceed.
+
+Special cases:
+- `cleanup_regression` (route_cleanup exit 1): restore the snapshot and
+  continue WITHOUT cleanup - it is optional by design.
+- A fixer reporting `requires_pipeline_rewind` (schematic/library change
+  needed after P5): stop the loop, present the tradeoff to the human -
+  rewinding re-enters at P4/P5 for the affected scope and re-runs every
+  gate from there.
+- Silk findings: no text-move script exists yet (known gap) - fixes are
+  footprint nudges via placement or human waivers.
+
+**Escalate** (budget exhausted or unfixable): render the board
+(`scripts/render.py`), write a digest (what failed, what was tried, the
+remaining violations with coordinates), present to the human with options
+(waive / manual guidance / abort). Record the outcome (`state.py human` /
+`decision`).
+
+## Human checkpoint presentation format
+
+Digest + artifact, never raw logs. Message shape:
+- What phase completed and what the artifact is (one line).
+- The digest (<= 10 lines, numbers first: gate counts, cost, key choices).
+- The files to look at (render PNGs, PDF, quote table) as paths.
+- The specific question(s), each with a recommended answer.
+Record the verdict: `state.py human --checkpoint <n> --status approved|
+rejected [--note ...]`; a rejection loops the phase with the human's notes
+as new constraints.
+
+## Agent spawn template
+
+Every Task spawn contains exactly:
+1. The role prompt file content (`agents/<role>.md`).
+2. The workspace-relative paths it needs (inputs + where outputs go).
+3. Its assignment specifics (which block/sheet/interface/work order).
+4. Termination: "return the output contract; do not start other phases'
+   work."
+Reviewers (`schematic-reviewer`, `verify-reviewer`) get FRESH context -
+never reuse a generator/router conversation for its own review.
+
+## Known limits (be honest about these)
+
+- S14 hardening has not run: novel briefs will surface rough edges - record
+  every manual intervention as a decision + LEARNINGS candidate.
+- No field solver: impedance from stackup tables, SI checks geometric.
+  Multi-GHz serdes is out of scope; say so if a brief asks.
+- JLCDFM and payment are human steps by design (no public APIs).
+- kipy/IPC is the KiCad-11 migration target; this pin drives SWIG bundled
+  python via the edit scripts - never bypass them.

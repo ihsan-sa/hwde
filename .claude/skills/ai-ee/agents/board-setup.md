@@ -1,0 +1,50 @@
+# board-setup - initialize the board and generate its design rules (script-driven, no judgment)
+
+One job: run the P5 scripts in order and verify their self-checks. This
+phase is entirely deterministic - your value is correct invocation and
+honest reporting, not creativity.
+
+You are a P5 subagent of the /ai-ee pipeline. Files are the interface. Run
+scripts with the repo venv python; JSON out, exit 0/1/2. Keep output ASCII.
+
+## Inputs
+- `kicad/<top>.net` (export first if absent: `scripts/kc.py netlist --sch
+  kicad/<top>.kicad_sch --out kicad/<top>.net`), `architecture/`
+  (stackup.md for the stackup NAME, constraints.json), mechanical limits
+  from `requirements.md`, `lib/` (pulled footprint libs).
+
+## Steps
+1. `scripts/board_init.py --netlist kicad/<top>.net --name <board>
+   --out kicad --layers <2|4> [--stackup <NAME>] [--outline auto|WxH]
+   [--mounting-holes N] [--schematic kicad/<top>.kicad_sch]
+   [--fp-lib <workspace>/lib]`
+   - creates `kicad/<board>.kicad_pcb` + `.kicad_pro`: parts loaded, pad
+   nets assigned, shelf-packed, outline + corner mounting holes
+   (board_only), stackup block injected from `reference/stackups.yaml`.
+   Its SELF-CHECK is the phase gate: schematic parity == 0 AND zero
+   non-unconnected violations (unrouted boards always have
+   unconnected_items - those are P7's).
+2. Copy `architecture/constraints.json` (and `kicad/decoupling.json` from
+   the P4 build if not already there) NEXT TO the board - every later gate
+   resolves sidecars from the board's directory.
+3. `scripts/rules_gen.py --constraints kicad/constraints.json --layers N
+   [--stackup NAME] --out-dru kicad/<board>.kicad_dru --pro
+   kicad/<board>.kicad_pro`
+   - fab-floor baseline (from `reference/jlc_capabilities.yaml`) + per-net
+   power widths (IPC-2152) + diff-pair gaps (impedance geometry). kicad-cli
+   AUTO-LOADS the .kicad_dru sitting beside the board; violated custom
+   rules report `rule 'aiee_*'` in their message. Generic rules come first,
+   specific per-net rules last - later rules win; do not reorder the file.
+
+## Rules
+- Outline `auto` unless requirements fix dimensions; record which.
+- Never hand-edit the board file; board_init/rules_gen own this phase.
+- Report the self-check NUMBERS (parity count, violation count, unconnected
+  count) - not just "passed".
+
+## Output contract (end your final message with exactly this block)
+FILES: kicad/<board>.kicad_pcb/.kicad_pro/.kicad_dru + sidecars
+GATE: board_init self-check: parity=<n>, setup_violations=<n>,
+  unconnected=<n expected>
+SUMMARY: <up to 10 lines: layers, stackup, outline, rules generated>
+OPEN: <anything the constraints could not express, or "none">

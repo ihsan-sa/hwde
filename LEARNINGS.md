@@ -4,7 +4,7 @@ Append-only, non-obvious gotchas. Recall by tag/keyword before touching an area.
 Entries sourced from prior attempts are marked; re-verify at first use here.
 
 ## Tags
-[windows] [kicad] [kicad-cli] [ipc] [swig] [freerouting] [easyeda2kicad] [python] [prior-attempts] [geometry] [shapely] [parts] [datasheet] [gerber] [gerbonara] [dfm] [jlc] [fab]
+[windows] [kicad] [kicad-cli] [ipc] [swig] [freerouting] [easyeda2kicad] [python] [prior-attempts] [geometry] [shapely] [parts] [datasheet] [gerber] [gerbonara] [dfm] [jlc] [fab] [skill] [git]
 
 ## 2026-07-06 [windows] cp1252 console crashes on non-ASCII output
 Printing degree signs, ohms, plus-minus, emoji to a default Windows console raises
@@ -519,3 +519,11 @@ PHYSICAL order (F, In1..InN, B) or outer-vs-inner copper-weight rules get applie
 layer. `pos` defaults to inches (kc.py forces mm). kicad-cli writes G90 after the Excellon header,
 which makes gerbonara emit a SyntaxWarning it then parses correctly - suppress it at the read site
 (gerblib) so library callers like gate.py keep clean stderr, not just the CLI.
+
+## 2026-07-27 [skill][git] gate.py --commit is a repo-root `git add -A` - dirty trees get swept
+The gate-pass commit helper (S2, wired into the S13 SKILL.md flow) stages EVERYTHING at
+env.repo_root() and commits - it cannot scope to the design workspace. During /ai-ee runs (S14+)
+any unrelated dirty file in the repo (parallel-session WIP, scratch edits - this repo has had
+parallel WIP at S6/S7/S12) silently rides along in gate commits. Keep the tree clean during
+pipeline runs, or commit/stash WIP first. Also the reason dry-run tests must NEVER use --commit
+(they run inside this repo; test workspaces live in pytest tmp dirs instead).

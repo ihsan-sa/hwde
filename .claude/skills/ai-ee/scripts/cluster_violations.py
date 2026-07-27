@@ -30,9 +30,12 @@ SCRIPT = "cluster_violations"
 DEFAULT_RADIUS_MM = 5.0
 SEV_RANK = {"error": 2, "warning": 1, "info": 0}
 
-# kind -> the fixer domain best suited to resolve it (advisory; S13 wires the
-# actual agent dispatch off these).
+# kind -> the fixer domain best suited to resolve it (fix_dispatch.py routes
+# the actual agent dispatch off these; domains map to allowed-script sets and
+# guidance there). Violations without a `kind` fall back to their `check`
+# (kicad-cli DRC/ERC type names), so raw gate reports dispatch too.
 FIXER_HINTS = {
+    # S4/S5 verification checks
     "corridor_void": "plane", "no_reference_plane": "plane",
     "missing_return_via": "router", "missing_stitch_cap": "router",
     "insufficient_transition_vias": "router",
@@ -45,9 +48,50 @@ FIXER_HINTS = {
     "thermal_area": "plane", "thermal_vias": "router",
     "silk_over_pad": "silk", "silk_illegible": "silk", "silk_thin": "silk",
     "pdn_undecoupled": "schematic", "pdn_no_bulk": "schematic",
+    # S9 placement legality
     "courtyard_overlap": "placement", "outside_outline": "placement",
     "edge_violation": "placement", "keepout_violation": "placement",
     "courtyard_missing": "placement", "seed_unplaced": "placement",
+    # S11 routing pipeline
+    "critical_route_failed": "router", "critical_missing_net": "schematic",
+    "zone_unfilled": "plane", "stitch_impossible": "router",
+    "plane_split": "plane", "plane_split_unrepairable": "plane",
+    "cleanup_regression": "router",
+    # S12 DFM (gerber-level)
+    "dfm_trace_width": "router", "dfm_clearance": "router",
+    "dfm_copper_to_edge": "router", "dfm_hole_size": "router",
+    "dfm_hole_to_hole": "router", "dfm_hole_to_edge": "router",
+    "dfm_annular_ring": "router",
+    "dfm_silk_width": "silk", "dfm_silk_over_pad": "silk",
+    "dfm_mask_dam": "silk",
+    "dfm_missing_layer": "fab", "dfm_no_drill": "fab",
+    "dfm_bom_incomplete": "parts",
+    "cpl_polarity": "placement", "pad_net_mismatch": "schematic",
+    # S6 footprint verification
+    "pad_count": "library", "pin1_missing": "library", "pad_pitch": "library",
+    "pad_size": "library", "no_courtyard": "library",
+    # S7 netlist audit
+    "missing_net": "schematic", "diffpair_naming": "schematic",
+    "diffpair_unpaired": "schematic", "power_no_consumers": "schematic",
+    "power_undeclared": "schematic", "dangling_net": "schematic",
+    "netlist_diff": "schematic",
+    # kicad-cli DRC type names (check field; via the kind->check fallback)
+    "track_width": "router", "clearance": "router",
+    "unconnected_items": "router", "shorting_items": "router",
+    "hole_clearance": "router", "hole_near_hole": "router",
+    "via_dangling": "router", "track_dangling": "router",
+    "track_angle": "router", "via_diameter": "router",
+    "solder_mask_bridge": "router", "copper_edge_clearance": "router",
+    "courtyards_overlap": "placement", "footprint": "placement",
+    "silk_over_copper": "silk", "silk_overlap": "silk",
+    "silk_edge_clearance": "silk", "text_height": "silk",
+    "text_thickness": "silk",
+    "zones_intersect": "plane", "starved_thermal": "plane",
+    "isolated_copper": "plane",
+    "invalid_outline": "fab", "duplicate_footprints": "schematic",
+    "missing_footprint": "schematic", "extra_footprint": "schematic",
+    "net_conflict": "schematic", "lib_footprint_issues": "library",
+    "lib_footprint_mismatch": "library",
 }
 
 
@@ -90,16 +134,22 @@ def region_of(vs: list[dict]) -> dict:
     return {"bbox": bbox, "center": center}
 
 
+def kind_of(v: dict) -> str | None:
+    """A violation's dispatch kind: explicit `kind` from the custom checks,
+    else the kicad-cli `check` type (DRC/ERC reports carry no kind)."""
+    return v.get("kind") or v.get("check")
+
+
 def cluster(violations: list[dict], radius: float) -> list[dict]:
     by_key: dict[tuple, list] = {}
     for v in violations:
-        by_key.setdefault((v.get("net"), v.get("kind")), []).append(v)
+        by_key.setdefault((v.get("net"), kind_of(v)), []).append(v)
     clusters: list[dict] = []
     for (net, kind), items in by_key.items():
         for group in spatial_split(items, radius):
             sev = max((g.get("severity", "info") for g in group),
                       key=lambda s: SEV_RANK.get(s, 0))
-            kinds = sorted({g.get("kind") for g in group if g.get("kind")})
+            kinds = sorted({k for g in group if (k := kind_of(g))})
             checks = sorted({c for g in group
                              if (c := g.get("source") or g.get("check"))})
             clusters.append({

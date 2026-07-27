@@ -20,7 +20,7 @@ Session protocol: repo `CLAUDE.md` ("run step N"). Update this file + commit at 
 | S10 | Placement: annealer with routability feedback | **done** (feedback wired at S11) | 2026-07-23 |
 | S11 | Routing pipeline | **done** | 2026-07-23 |
 | S12 | Fab outputs, DFM, ordering | **done** | 2026-07-24 |
-| S13 | Agents, orchestrator, SKILL.md | pending | |
+| S13 | Agents, orchestrator, SKILL.md | **done** | 2026-07-27 |
 | S14 | End-to-end hardening | pending | |
 
 Dependency graph (plan): S0 -> S1 -> S2 -> S3 -> {S4, S5}; S0 -> S6 -> S7; S2 -> S8 -> S9 -> S10 -> S11;
@@ -77,10 +77,11 @@ kickoff prompt to allow multi-agent workflows (higher token spend - use where ma
 | V10 | Flipped (back-side) footprint pad geometry | S3, spec 6.3 | **RESOLVED S3 (Fable review)**: built a SWIG-flipped fixture (flip_fixture.py); pcbnew bakes the mirror INTO the file (locals mirrored, angles negated, layers renamed B.*), so the front-side transform covers flipped parts with NO special handling. geom's original mirror+swap DOUBLE-flipped - removed; 15/15 pads exact vs pcbnew; regression test in test_geom.py. |
 | V11 | "Remove unused inner via pads" not modeled | S3 | geom treats a through via as copper on ALL inner layers (matches corpus + oracle default). A board enabling JLC's inner-pad removal would over-count inner via copper. S8 did not add it (rules_gen has no via-pad-removal knob); revisit at S12 DFM if used. |
 | V12 | Controlled-impedance geometry not validated vs JLC's calculator | S8, spec P5 | S8 `lib/impedance.py` computes trace width/diff gap from IPC-2141A microstrip + the published edge-coupled correction (50R/1.6mm FR4 -> 3.02mm matches textbook ~2.95mm; diff round-trips exactly). These are first-order estimates for sizing DRU rules + S5 targets; only OUTER-layer microstrip is modelled (no inner stripline). Confirm against JLC's online impedance calculator before ordering a controlled-impedance board (S12/S14). |
-| V13 | route_cleanup loop-breaker vs plane-mediated connectivity | S11 | Can remove a load-bearing segment when connectivity runs through a fill (union-find/fill edge); SELF-DETECTED (exit 1 cleanup_regression, board left modified) and rolled back by the caller. Root-cause at S13/S14 or keep cleanup optional. |
+| V13 | route_cleanup loop-breaker vs plane-mediated connectivity | S11 | Can remove a load-bearing segment when connectivity runs through a fill (union-find/fill edge); SELF-DETECTED (exit 1 cleanup_regression, board left modified) and rolled back by the caller. **S13 decision: cleanup stays OPTIONAL** - the restore-and-continue pattern is codified in SKILL.md's fix-loop special cases + router.md; root-causing the union-find/fill edge remains open (S14+). |
 | V14 | Freerouting 2.2.4 DSN-reader recursion on KRT copper | S11 | PolylineTrace.combine infinite recursion before pass 1 on KRT guide-wire copper; mitigated (wedge detection + KRT fallback). Worth an upstream issue with a minimal DSN repro. |
 | V15 | JLCPCB web-viewer upload + polarized-part CPL preview | S12, plan S12 accept | **HUMAN STEP, NOT YET DONE.** Two S12 accept legs need a browser and have no API: (a) upload `usbbuck4_gerbers.zip` to JLC's viewer/quote page and confirm it renders clean, (b) spot-check the rendered CPL preview for 3 polarized parts (D1 LED_0805, plus a diode/electrolytic on a future board). The machine-checkable half (package completeness, hashes, rotation maths) IS tested (test_full_package_flow, test_cpl_rotation_corrections). Do this once before the first real order (S14). |
 | V16 | jlc_pricing.yaml staleness + credentialed ordering API | S12 | order_quote's numbers are transcribed headline prices flagged `estimated: true`, never a quote; JLC's real price depends on panelisation/promotions/region. order_submit implements the manifest + human gate but NOT a live api.jlcpcb.com call (that programme needs an approved access application this host does not have) - `--api` exits 2 with the exact missing prerequisite rather than shipping an untested payment path. Re-verify the table (and wire the API behind `_api_submit()`) when credentials exist. |
+| V17 | No scripted silk/text move op (refdes/value) | S13 | The fixer "silk" domain has no text-move path: place_swig ops cover footprints only, so a silk_over_pad/silk_overlap fix is either a footprint NUDGE via place_edit (within placement legality) or a human waiver - documented in fixer.md/fix_dispatch DOMAINS/SKILL.md. If S14 hits real silk failures, add a move_text op to place_swig (worker + validation + re-parse verify) and a silk-aware term to the P6 stage-3 loop. |
 
 ## S0 - Repo bootstrap and environment (2026-07-06) - DONE
 
@@ -1353,3 +1354,122 @@ first order), V16 (pricing-table staleness + unimplemented credentialed ordering
 V6 and V9 resolved above. V11 (inner via-pad removal) unchanged: dfm_check reads the exported copper
 so it sees whatever was actually emitted, and the annular check looks only at outer layers, where
 JLC's inner-pad-removal option does not apply.
+
+## S13 - Agents, orchestrator, SKILL.md (2026-07-27) - DONE
+
+**Built** (the "soft top" + its machinery; spec sections 3/4/5/7, whole spec read per plan):
+- `scripts/state.py` - state.json read/write helpers (SPEC 4 schema, version 1): phases P0-P10,
+  per-gate {status, attempts, last, history}, human checkpoints 1-5, artifacts, open_issues with
+  lifecycle (open|fixing|fixed|escalated|waived), budgets (fix_loops per gate = 3,
+  freerouting_retries, place_edit_iterations), decisions, and an append-only `history` event log -
+  the file is current state AND audit trail. Atomic writes (tmp + os.replace). Subcommands: init /
+  show / resume (next-gate + pending-checkpoint summary from GATE_ORDER) / set-phase / record-gate /
+  artifact / decision / human / issue / budget / log / snapshot / restore (sha256-verified workspace
+  file snapshots - the fix-loop safety net). Importable State class + spec 6 CLI (exit 0/2).
+- `scripts/fix_dispatch.py` - the violation->fixer wiring (SPEC 4 fix loop): reads a gate.py result
+  (`failing`), a check report (`violations`), or a cluster payload; clusters via S5's
+  cluster_violations; writes ONE work-order JSON per cluster (log/workorders/wo-<id>.json: domain,
+  allowed_scripts, guidance, violations with coordinates/uuids, sidecar artifacts, scope rule) and
+  registers open issues in state.json (`--state`). DOMAINS table: router/placement/plane/silk/
+  schematic/library/fab/parts/review, each with script whitelist + load-bearing guidance lines.
+  `parallel_groups` = order ids whose regions don't overlap (bbox + 1 mm). ERC clusters with unknown
+  types fall back to the schematic domain; unknown non-ERC kinds stay "review" (human triage).
+- `scripts/cluster_violations.py` EXTENDED (the S13 wiring the S11/S12 notes anticipated):
+  FIXER_HINTS grew from 28 to ~90 kinds - S11 routing kinds, S12 DFM kinds, S6 fp_verify, S7
+  netlist_audit, and the kicad-cli DRC/ERC type names; cluster() now keys on kind-or-check
+  (`kind_of()`), so raw DRC gate reports dispatch correctly (they carry no `kind`).
+- `agents/*.md` - 18 role prompts per SPEC 5 (one job first line; script whitelists in preference
+  order; grounding rules incl. the never-from-memory pinout ban; uniform FILES/GATE/SUMMARY/OPEN
+  output contract; adversarial framing + fresh-context note for the two reviewers; determinism-
+  budget rule): requirements-analyst, research-{component-scout, reference-design, interface-spec,
+  power-architect}, architect, part-sourcer, librarian, datasheet-extractor, schematic-block,
+  schematic-reviewer, board-setup, placement, router, verify-reviewer, fixer, dfm, ordering.
+  Every prompt embeds the REAL CLIs and the machine-verified gotchas from S6-S12 interface notes
+  (chain orders 2L/4L, plane-carried-net skip, silk-blind packing, SES-duplicate ban, etc.).
+- `reference/constraints_schema.md` - the single authoritative constraints.json shape doc
+  (high_speed/power/diff_pairs/voltages/thermal/placement/planes + decoupling.json), compiled from
+  the S4/S5/S8/S9/S10/S11 consumer contracts; P1 interface-spec and P2 architect write against it.
+- `SKILL.md` - the orchestrator playbook (operational; frontmatter flags S14 hardening pending):
+  6 non-negotiable rules (never open design files; files-are-the-interface spawn template;
+  state.py everything; gate.py --commit on pass; venv python + exit contract; batch questions),
+  phase machine + gate table (from gates.yaml), run-start/resume protocols, per-phase playbook with
+  agent-selection guidance, the uniform fix loop (budget -> snapshot -> dispatch -> parallel-group
+  fixers -> re-gate -> record EVERY attempt; regression restore; cleanup_regression continue-without;
+  requires_pipeline_rewind escalation; the sanctioned P7->P6 backward edge), human checkpoint
+  presentation format, known limits. `commands/ai-ee.md` - the real /ai-ee entry (new run + --resume).
+- `tests/orchestrator/dryrun.py` - the ACCEPTANCE driver: enacts the playbook deterministically on a
+  workspace copied from golden blinky2. Every step derives from state.json (any kill point resumes):
+  erc gate -> place gate -> inject mutation A (a +3V3 segment narrowed 0.25->0.05 mm = track_width
+  DRC ERROR) -> drc_routed FAILS -> budget -> fix_dispatch -> scripted router fixer (remove-by-uuid +
+  re-add at the width of abutting same-net copper) via route_edit -> re-gate PASS -> inject mutation
+  B (the canonical undersized-power-trace neck 0.8->0.16, DRC-quiet) -> verify FAILS
+  (check_current undersized_track) -> fixer locates the uuid by the violation's segment coords ->
+  re-gate PASS -> drc_routed REGATE (copper changed during P8) -> P9. The fixer's
+  locate-by-uuid/coords + abutting-width repair is the reference implementation of fixer.md's router
+  domain.
+- `tests/test_orchestrator.py` - 20 tests: 19 hermetic (state lifecycle/attempts/history, budgets,
+  snapshots with hash-verified restore, resume-summary progression incl. optional checkpoint 3,
+  CLI contract; FIXER_HINTS covers all ~66 pipeline kinds (pinned list) + every domain has a
+  DOMAINS table; kind-or-check clustering; dispatch work-order content incl. uuid pass-through,
+  parallel groups, state issue registration, input-shape tolerance, erc fallback) + 1 smoke = the
+  S13 acceptance (below).
+
+**Acceptance evidence (live 10.0.3, the plan's S13 criteria):** dry-run P4->P8 on golden board 1
+with mutations injected mid-pipeline, run as TWO processes: session 1 (`--stop-after drc_routed`)
+= workspace + erc PASS + place PASS + mutation A + drc_routed FAIL->dispatch->fix->PASS (attempts
+[fail, pass]), killed; session 2 = `resumed` event logged, earlier gates NOT redone (attempts
+stay 1), mutation B, verify FAIL->dispatch->fix->PASS, drc_routed regate PASS (attempts=3),
+phase P9, dryrun_complete. state.json history ordered init < resumed < complete; both issues
+fixed with work orders + pre-fix snapshots on disk; budgets decremented once per gate. Fixes are
+GOLDEN-IDENTICAL, not merely gate-quiet: +3V3 F.Cu copper area matches the committed golden within
+1e-6 relative (geom). A third invocation on the complete run only logs a resume (gates/issues
+unchanged). `check.cmd` green: **586 passed** (566 prior + 20), check_env exit 0, 7m46s.
+
+**Deviations from spec/plan (with reasons):**
+1. The acceptance "orchestrator dispatches fixers" runs as a SCRIPTED driver
+   (tests/orchestrator/dryrun.py) enacting the SKILL.md protocol - not an LLM session inside
+   pytest. The machinery the acceptance actually tests (gates, state, dispatch, fixer execution,
+   resume) is fully exercised; the LLM layer (agent judgment) is by design not pytest-testable and
+   lands with S14's real runs.
+2. `scripts/state.py` + `scripts/fix_dispatch.py` are additions to the spec 6 inventory (the plan's
+   own build list demands both: "state.json read/write helpers", "violation->fixer dispatch
+   wiring"); gerblib/jlc_pricing precedent for in-spirit additions.
+3. `reference/constraints_schema.md` added (not in spec's reference list): P1/P2 agents need ONE
+   authoritative constraints.json shape source; previously the shapes lived only in per-script
+   docstrings.
+4. `agents/datasheet-extractor.md` added: spec section 2's tree omits it but spec P3's text names
+   the agent role explicitly; S6's --pdf grounding payload is its input contract.
+5. Dry-run mutations are the driver's own mutlib-style exact-match surgery (mutation B reuses the
+   canonical undersized-power-trace strings) rather than invoking the S1 mutation scripts: those
+   assert against committed-golden bytes at fixed repo paths, and the workspace board legitimately
+   diverges after fixer A.
+6. The S11/S12 "violation kinds added for cluster_violations/fixers" were documented in PROGRESS
+   but never wired into FIXER_HINTS - raw DRC types and all S11/S12 kinds clustered to "review".
+   S13 wired them (S13's build item, but recorded here as a found-and-fixed gap, pinned by the
+   FIXER_HINTS-coverage test).
+7. No silk text-move op was built (S11 notes hoped for a "P8 silk fixer" at S13): silk domain =
+   footprint nudge via place_edit or human waiver, honestly documented -> V17.
+8. gates.yaml unchanged: the P6 fast-route-completion term stays out of the `place` gate
+   (route_auto --probe exists; the placement agent's prompt tells it when to use it; wiring it
+   as a hard gate criterion is an S14 call once real-run timings are known).
+
+**Interface notes for later steps (S14):**
+- Orchestrator entry: `/ai-ee <description>` or `/ai-ee --resume <ws>` -> SKILL.md. Workspaces at
+  `boards/<name>/` INSIDE this repo so `gate.py --commit` (repo-root `git add -A`) captures them -
+  see the new LEARNINGS entry: a dirty tree from parallel work would be swept into gate commits;
+  keep the tree clean during pipeline runs.
+- state.py: `State.load/init` importable; GATE_ORDER = [(P4,erc),(P6,place),(P7,drc_routed),
+  (P8,verify),(P9,dfm)]; `resume` returns {phase, gates_passed, next_gate, open_issues,
+  pending_human, budgets, artifacts}. Checkpoint 3 is optional-but-on-by-default: it shows as
+  pending until recorded approved|skipped.
+- fix_dispatch work order: {id, gate, phase, board, fixer, role_prompt, allowed_scripts, guidance,
+  cluster{net,kinds,checks,severity,count,region,violations}, artifacts, scope}; `parallel_groups`
+  in its summary = safe concurrency sets (regions disjoint). Issues in state carry work_order path.
+- The dry-run driver doubles as the protocol reference for S14 debugging: run it against a broken
+  machine state to isolate "is it the machinery or the model" questions.
+- DRC violations dispatch on `check` (type name) via kind_of(); check violations dispatch on
+  `kind`. New DRC/ERC types default to "review" - extend FIXER_HINTS (and the pinned test list)
+  when S14 meets new types.
+
+**New verify-later items:** V17 (silk text-move op gap, registered above). V13 updated (cleanup
+stays optional; restore pattern codified).
