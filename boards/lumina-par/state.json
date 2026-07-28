@@ -1,0 +1,79 @@
+{
+ "version": 1,
+ "board": "lumina-par",
+ "workspace": "boards/lumina-par",
+ "created": "2026-07-28T15:00:15",
+ "updated": "2026-07-28T15:14:47",
+ "phase": "P1",
+ "gates": {},
+ "human": {},
+ "artifacts": {},
+ "open_issues": [],
+ "next_issue_id": 1,
+ "budgets": {
+  "fix_loops": {
+   "erc": 3,
+   "place": 3,
+   "drc_routed": 3,
+   "verify": 3,
+   "dfm": 3
+  },
+  "freerouting_retries": 2,
+  "place_edit_iterations": 8
+ },
+ "decisions": [
+  {
+   "what": "D-01/D-02/D-03 inherited as closed; par power budget 8.6-9.3 W af / 18.7-20.0 W at",
+   "why": "05-lumina-closed-decisions.md is binding and supersedes the ~8.5 W figure in briefs 00/03 (derived from Si3402-B, a part this system does not use)",
+   "phase": "P0",
+   "ts": "2026-07-28T15:14:47"
+  },
+  {
+   "what": "ICD-01 (brief/06-connector-icd.md) treated as a frozen hard input; no local variant permitted",
+   "why": "ICD s10 change process: a daughter that cannot meet it raises a blocking issue against LUM-CAR-A, it does not implement a variant",
+   "phase": "P0",
+   "ts": "2026-07-28T15:14:47"
+  },
+  {
+   "what": "Common footprint adopted from ICD s7.1: 100.0 x 80.0 mm, R3.0 corners, 5x M3 (4 corners at 5 mm inset + H5 at (46,74)), 1.6 mm FR4, with a mandatory 30x26 mm RJ45 notch at (6,0)-(36,26)",
+   "why": "H1-Q4 closed the stack at 11.0 mm; the carrier's board-edge RJ45 is ~15 mm tall so the notch is a hard mechanical stop and the anti-180-degree interlock (ICD s7.4)",
+   "phase": "P0",
+   "ts": "2026-07-28T15:14:47"
+  }
+ ],
+ "history": [
+  {
+   "ts": "2026-07-28T15:00:15",
+   "event": "init",
+   "board": "lumina-par",
+   "phase": "P0"
+  },
+  {
+   "ts": "2026-07-28T15:14:47",
+   "event": "decision",
+   "what": "D-01/D-02/D-03 inherited as closed; par power budget 8.6-9.3 W af / 18.7-20.0 W at"
+  },
+  {
+   "ts": "2026-07-28T15:14:47",
+   "event": "decision",
+   "what": "ICD-01 (brief/06-connector-icd.md) treated as a frozen hard input; no local variant permitted"
+  },
+  {
+   "ts": "2026-07-28T15:14:47",
+   "event": "decision",
+   "what": "Common footprint adopted from ICD s7.1: 100.0 x 80.0 mm, R3.0 corners, 5x M3 (4 corners at 5 mm inset + H5 at (46,74)), 1.6 mm FR4, with a mandatory 30x26 mm RJ45 notch at (6,0)-(36,26)"
+  },
+  {
+   "ts": "2026-07-28T15:14:47",
+   "event": "p0_requirements_complete",
+   "artifact": "requirements.md",
+   "open_questions": 16
+  },
+  {
+   "ts": "2026-07-28T15:14:47",
+   "event": "phase",
+   "phase": "P1",
+   "prev": "P0"
+  }
+ ]
+}
