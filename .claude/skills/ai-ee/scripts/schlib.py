@@ -489,9 +489,18 @@ def write_project(name: str, out_dir: Path | str) -> Path:
     return path
 
 
-def pin_table(lib_id: str) -> dict:
-    """Symbol pin table for grounding (number/name/type where available)."""
+def pin_table(lib_id: str, lib_paths: list | None = None) -> dict:
+    """Symbol pin table for grounding (number/name/type where available).
+
+    lib_paths: extra .kicad_sym files/dirs to register first - kicad-sch-api's
+    global cache never reads a project's sym-lib-table (S14 finding: project
+    libs like `aiee:...` were invisible to --pins without this).
+    """
     with _quiet():
+        if lib_paths:
+            cache = ksa.get_symbol_cache()
+            for p in lib_paths:
+                cache.add_library_path(str(p))
         sch = ksa.create_schematic("_pins")
         c = sch.components.add(lib_id, reference="X1", value="x",
                                position=(127.0, 63.5))
@@ -511,12 +520,16 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--pins", metavar="LIB_ID",
                     help="print the symbol's pin table as JSON")
+    ap.add_argument("--lib", action="append", default=[],
+                    help="extra .kicad_sym file/dir to register (repeatable; "
+                    "project libs are invisible to the global cache)")
     ap.add_argument("--out", help="write JSON here instead of stdout")
     args = ap.parse_args(argv)
     if not args.pins:
         ap.error("nothing to do: give --pins LIB_ID")
     try:
-        payload = {"script": _SCRIPT, "status": "pass", **pin_table(args.pins)}
+        payload = {"script": _SCRIPT, "status": "pass",
+                   **pin_table(args.pins, lib_paths=args.lib)}
     except Exception as exc:  # noqa: BLE001  (contract: any error -> exit 2)
         print(json.dumps({"script": _SCRIPT, "status": "error",
                           "error": f"{type(exc).__name__}: {exc}"}))

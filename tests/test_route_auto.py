@@ -314,3 +314,56 @@ def test_route_auto_full_flow(seeded_poured_blinky, fr_tools, tmp_path):
     # the routed board replaced the input atomically
     bg = geom.BoardGeom.from_file(pcb)
     assert len(bg.tracks_of()) == facts["tracks_after"]
+
+
+@pytest.mark.smoke
+def test_dedup_copper_removes_exact_echoes(tmp_path):
+    """S14 (#27): FR's SES echoes pre-session copper back through import as
+    exact same-net duplicates - invisible to DRC. The dedup verb removes the
+    echo, keeps one of each, and is idempotent."""
+    import shutil as _sh
+    import sys as _sys
+    _sys.path.insert(0, str(SCRIPTS / "lib"))
+    import env as _env
+    import routelib as _rl
+    import geom as _geom
+
+    cli = _env.find_kicad_cli()
+    if cli is None:
+        pytest.skip("kicad-cli not installed")
+    bp = _env.find_kicad_python(cli)
+
+    src = GOLDEN / "blinky2" / "blinky2.kicad_pcb"
+    pcb = tmp_path / "dup.kicad_pcb"
+    text = src.read_text(encoding="utf-8")
+    # duplicate the FIRST (segment ...) block verbatim with a fresh uuid
+    import re as _re
+    m = _re.search(r"\t\(segment[\s\S]*?\n\t\)\n", text)
+    assert m, "no segment found in golden"
+    dup = m.group(0)
+    du = _re.search(r'\(uuid "([0-9a-f-]+)"\)', dup)
+    dup2 = dup.replace(du.group(1), "aaaaaaaa-bbbb-cccc-dddd-eeeeffff0000")
+    text = text.replace(dup, dup + dup2, 1)
+    pcb.write_text(text, encoding="utf-8")
+
+    def dup_count(p):
+        bg = _geom.BoardGeom.from_file(p)
+        from collections import Counter
+        c = Counter()
+        for t in bg.tracks_of():
+            c[(t.net, t.layer, round(t.width, 4),
+               tuple(round(v, 4) for v in t.shape.coords[0]),
+               tuple(round(v, 4) for v in t.shape.coords[-1]))] += 1
+        return sum(n - 1 for n in c.values() if n > 1)
+
+    assert dup_count(pcb) == 1
+    work = tmp_path / "work"
+    work.mkdir()
+    r = _rl.run_worker(bp, {"verb": "dedup_copper", "board": str(pcb),
+                            "out": str(pcb)}, work)
+    assert r["removed"] == 1 and r["changed"] is True
+    assert dup_count(pcb) == 0
+    # idempotent
+    r2 = _rl.run_worker(bp, {"verb": "dedup_copper", "board": str(pcb),
+                             "out": str(pcb)}, work)
+    assert r2["removed"] == 0 and r2["changed"] is False

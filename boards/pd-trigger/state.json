@@ -1,0 +1,51 @@
+{
+ "version": 1,
+ "board": "pd-trigger",
+ "workspace": "boards/pd-trigger",
+ "created": "2026-07-28T05:57:45",
+ "updated": "2026-07-28T06:04:27",
+ "phase": "P1",
+ "gates": {},
+ "human": {},
+ "artifacts": {},
+ "open_issues": [],
+ "next_issue_id": 1,
+ "budgets": {
+  "fix_loops": {
+   "erc": 3,
+   "place": 3,
+   "drc_routed": 3,
+   "verify": 3,
+   "dfm": 3
+  },
+  "freerouting_retries": 2,
+  "place_edit_iterations": 8
+ },
+ "decisions": [
+  {
+   "what": "P0 safety answers as delegate: uniform 5A, PTC fuse, 8A screw terminal, aux header low-current only, soft size, indicated 5V fallback",
+   "why": "All defaults engineering-sound; >3A flag addressed explicitly per analyst framing",
+   "phase": "P0",
+   "ts": "2026-07-28T06:04:27"
+  }
+ ],
+ "history": [
+  {
+   "ts": "2026-07-28T05:57:45",
+   "event": "init",
+   "board": "pd-trigger",
+   "phase": "P0"
+  },
+  {
+   "ts": "2026-07-28T06:04:27",
+   "event": "decision",
+   "what": "P0 safety answers as delegate: uniform 5A, PTC fuse, 8A screw terminal, aux header low-current only, soft size, indicated 5V fallback"
+  },
+  {
+   "ts": "2026-07-28T06:04:27",
+   "event": "phase",
+   "phase": "P1",
+   "prev": "P0"
+  }
+ ]
+}

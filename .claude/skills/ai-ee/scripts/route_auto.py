@@ -382,6 +382,15 @@ def run(argv: list[str] | None = None):
                          f"and the KRT fallback is unavailable; see {work} "
                          "logs (board untouched)")
 
+    # 4b. dedup: the SES echoes pre-session guide-wire copper (critical-net
+    # trunks) back through ImportSpecctraSES as EXACT same-net duplicates -
+    # invisible to DRC/gerbers (S14: run (a) shipped 45 echoed segments).
+    dedup_facts = {"removed": 0}
+    if fr_ok:
+        dedup_facts = routelib.run_worker(bp, {
+            "verb": "dedup_copper", "board": str(staged),
+            "out": str(staged)}, work, timeout=300)
+
     # 5. refill (post-SES fills are stale) + DRC of the current state
     if has_zones:
         kc.run_drc(cli, staged, refill=True, save_board=True)
@@ -438,6 +447,7 @@ def run(argv: list[str] | None = None):
             if fr_ok else None,
             "power_layers": power_layers,
             "krt_finish": finish_facts,
+            "ses_echo_dups_removed": dedup_facts.get("removed", 0),
             "work_dir": str(work),
         },
     }

@@ -256,11 +256,51 @@ def verb_add_zones(job):
     return {"zones": made, "out": job["out"]}
 
 
+def verb_dedup_copper(job):
+    """Remove EXACT-duplicate segments/vias (same geometry+net+layer+width).
+
+    S14 finding: Freerouting's SES echoes pre-session guide-wire copper
+    (route_critical trunks) back through ImportSpecctraSES, silently
+    duplicating it - same-net exact stacks are invisible to DRC and gerber
+    checks (run (a) shipped 45 echoed segments). Duplicates are never
+    legitimate copper. Collect-first/remove-last/save-once per the
+    LEARNINGS [swig] bulk-Remove rule.
+    {"board": pcb, "out": out_pcb}
+    """
+    import pcbnew
+
+    _wx_quiet()
+    board = pcbnew.LoadBoard(job["board"])
+    seen = set()
+    dups = []
+    for t in list(board.GetTracks()):
+        cls = t.GetClass()
+        if cls == "PCB_VIA":
+            p = t.GetPosition()
+            key = ("via", p.x, p.y, t.GetWidth(), t.GetDrillValue(),
+                   t.GetNetname())
+        elif cls == "PCB_TRACK":
+            key = ("seg",) + _track_key(t)
+        else:                      # PCB_ARC etc.: never emitted duplicated
+            continue
+        if key in seen:
+            dups.append(t)
+        else:
+            seen.add(key)
+    for t in dups:
+        board.Remove(t)
+    if dups and not board.Save(job["out"]):
+        raise RuntimeError("board.Save failed: %s" % job["out"])
+    return {"removed": len(dups), "changed": bool(dups),
+            "out": job["out"] if dups else job["board"]}
+
+
 VERBS = {
     "export_dsn": verb_export_dsn,
     "import_ses": verb_import_ses,
     "apply_ops": verb_apply_ops,
     "add_zones": verb_add_zones,
+    "dedup_copper": verb_dedup_copper,
 }
 
 

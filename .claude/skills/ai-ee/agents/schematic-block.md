@@ -19,7 +19,7 @@ python; JSON out, exit 0/1/2. Keep output ASCII.
 - Your file exposes `build() -> schlib.Sheet`. The root generator stitches
   sheets via `schlib.Project.add_sheet(child, at, size, nets=[...])` and
   `Project.save(out_dir, decoupling=path)`.
-- Grounding aid FIRST: `scripts/schlib.py --pins "<LIB:SYMBOL>"` prints the
+- Grounding aid FIRST: `scripts/schlib.py --pins "<LIB:SYMBOL>" --lib lib/aiee.kicad_sym` prints the
   symbol's real pin table - wire against that plus the datasheet JSON, never
   memory. `Sheet.add_component(..., expect={...})` is pin-name insurance:
   use it for every IC.
