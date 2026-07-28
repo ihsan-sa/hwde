@@ -3,8 +3,8 @@
  "board": "pd-trigger",
  "workspace": "boards/pd-trigger",
  "created": "2026-07-28T05:57:45",
- "updated": "2026-07-28T11:55:26",
- "phase": "P8",
+ "updated": "2026-07-28T11:55:54",
+ "phase": "P9",
  "gates": {
   "erc": {
    "phase": "P4",
@@ -84,9 +84,9 @@
   "verify": {
    "phase": "P8",
    "status": "pass",
-   "attempts": 2,
+   "attempts": 3,
    "last": {
-    "ts": "2026-07-28T11:53:42",
+    "ts": "2026-07-28T11:55:27",
     "status": "pass",
     "failing_count": 0,
     "total": 0
@@ -100,6 +100,12 @@
     },
     {
      "ts": "2026-07-28T11:53:42",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0
+    },
+    {
+     "ts": "2026-07-28T11:55:27",
      "status": "pass",
      "failing_count": 0,
      "total": 0
@@ -122,17 +128,22 @@
    "status": "approved",
    "ts": "2026-07-28T10:14:30",
    "note": "AUTO per directive; renders reports/pd-trigger_{top,bottom,left,right}.png; J1 flush-mouth + J2 screw headroom flagged for order docs"
+  },
+  "4": {
+   "status": "approved",
+   "ts": "2026-07-28T11:55:29",
+   "note": "AUTO per directive: verify 8/8 x2, drc_routed 0/0; reviewer 4 err ALL FIXED (J1 return 0.8->5.68/4.70A + 16 vias; 17 silk texts incl. corrected switch-position table), 2 warn (mouth recess -> order docs; outline 48x30 deviation recorded); C1B channels standing waiver. Renders reports/render_final/"
   }
  },
  "artifacts": {},
  "open_issues": [
   {
    "id": 1,
-   "status": "open",
+   "status": "fixed",
    "agent": null,
    "attempts": 0,
    "opened": "2026-07-28T11:27:57",
-   "closed": null,
+   "closed": "2026-07-28T11:55:28",
    "gate": null,
    "phase": "P8",
    "fixer": "review",
@@ -158,11 +169,11 @@
   },
   {
    "id": 2,
-   "status": "open",
+   "status": "fixed",
    "agent": null,
    "attempts": 0,
    "opened": "2026-07-28T11:27:57",
-   "closed": null,
+   "closed": "2026-07-28T11:55:28",
    "gate": null,
    "phase": "P8",
    "fixer": "review",
@@ -188,11 +199,11 @@
   },
   {
    "id": 3,
-   "status": "open",
+   "status": "fixed",
    "agent": null,
    "attempts": 0,
    "opened": "2026-07-28T11:27:57",
-   "closed": null,
+   "closed": "2026-07-28T11:55:28",
    "gate": null,
    "phase": "P8",
    "fixer": "review",
@@ -218,11 +229,11 @@
   },
   {
    "id": 4,
-   "status": "open",
+   "status": "fixed",
    "agent": null,
    "attempts": 0,
    "opened": "2026-07-28T11:27:57",
-   "closed": null,
+   "closed": "2026-07-28T11:55:28",
    "gate": null,
    "phase": "P8",
    "fixer": "review",
@@ -248,11 +259,11 @@
   },
   {
    "id": 5,
-   "status": "open",
+   "status": "fixed",
    "agent": null,
    "attempts": 0,
    "opened": "2026-07-28T11:27:57",
-   "closed": null,
+   "closed": "2026-07-28T11:55:28",
    "gate": null,
    "phase": "P8",
    "fixer": "review",
@@ -278,11 +289,11 @@
   },
   {
    "id": 6,
-   "status": "open",
+   "status": "fixed",
    "agent": null,
    "attempts": 0,
    "opened": "2026-07-28T11:27:57",
-   "closed": null,
+   "closed": "2026-07-28T11:55:28",
    "gate": null,
    "phase": "P8",
    "fixer": "review",
@@ -308,11 +319,11 @@
   },
   {
    "id": 7,
-   "status": "open",
+   "status": "fixed",
    "agent": null,
    "attempts": 0,
    "opened": "2026-07-28T11:27:57",
-   "closed": null,
+   "closed": "2026-07-28T11:55:28",
    "gate": null,
    "phase": "P8",
    "fixer": "review",
@@ -338,11 +349,11 @@
   },
   {
    "id": 8,
-   "status": "open",
+   "status": "fixed",
    "agent": null,
    "attempts": 0,
    "opened": "2026-07-28T11:27:57",
-   "closed": null,
+   "closed": "2026-07-28T11:55:28",
    "gate": null,
    "phase": "P8",
    "fixer": "review",
@@ -368,11 +379,11 @@
   },
   {
    "id": 9,
-   "status": "open",
+   "status": "fixed",
    "agent": null,
    "attempts": 0,
    "opened": "2026-07-28T11:27:57",
-   "closed": null,
+   "closed": "2026-07-28T11:55:28",
    "gate": null,
    "phase": "P8",
    "fixer": "review",
@@ -398,11 +409,11 @@
   },
   {
    "id": 10,
-   "status": "open",
+   "status": "fixed",
    "agent": null,
    "attempts": 0,
    "opened": "2026-07-28T11:27:57",
-   "closed": null,
+   "closed": "2026-07-28T11:55:28",
    "gate": null,
    "phase": "P8",
    "fixer": "review",
@@ -801,6 +812,106 @@
    "status": "pass",
    "attempt": 4,
    "failing_count": 0
+  },
+  {
+   "ts": "2026-07-28T11:55:27",
+   "event": "gate",
+   "gate": "verify",
+   "status": "pass",
+   "attempt": 3,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-07-28T11:55:28",
+   "event": "issue",
+   "id": 1,
+   "status": "fixed",
+   "agent": null,
+   "attempts": 0
+  },
+  {
+   "ts": "2026-07-28T11:55:28",
+   "event": "issue",
+   "id": 2,
+   "status": "fixed",
+   "agent": null,
+   "attempts": 0
+  },
+  {
+   "ts": "2026-07-28T11:55:28",
+   "event": "issue",
+   "id": 3,
+   "status": "fixed",
+   "agent": null,
+   "attempts": 0
+  },
+  {
+   "ts": "2026-07-28T11:55:28",
+   "event": "issue",
+   "id": 4,
+   "status": "fixed",
+   "agent": null,
+   "attempts": 0
+  },
+  {
+   "ts": "2026-07-28T11:55:28",
+   "event": "issue",
+   "id": 5,
+   "status": "fixed",
+   "agent": null,
+   "attempts": 0
+  },
+  {
+   "ts": "2026-07-28T11:55:28",
+   "event": "issue",
+   "id": 6,
+   "status": "fixed",
+   "agent": null,
+   "attempts": 0
+  },
+  {
+   "ts": "2026-07-28T11:55:28",
+   "event": "issue",
+   "id": 7,
+   "status": "fixed",
+   "agent": null,
+   "attempts": 0
+  },
+  {
+   "ts": "2026-07-28T11:55:28",
+   "event": "issue",
+   "id": 8,
+   "status": "fixed",
+   "agent": null,
+   "attempts": 0
+  },
+  {
+   "ts": "2026-07-28T11:55:28",
+   "event": "issue",
+   "id": 9,
+   "status": "fixed",
+   "agent": null,
+   "attempts": 0
+  },
+  {
+   "ts": "2026-07-28T11:55:28",
+   "event": "issue",
+   "id": 10,
+   "status": "fixed",
+   "agent": null,
+   "attempts": 0
+  },
+  {
+   "ts": "2026-07-28T11:55:29",
+   "event": "human",
+   "checkpoint": "4",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-07-28T11:55:54",
+   "event": "phase",
+   "phase": "P9",
+   "prev": "P8"
   }
  ]
 }
