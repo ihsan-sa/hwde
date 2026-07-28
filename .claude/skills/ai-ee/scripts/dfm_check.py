@@ -53,6 +53,7 @@ sys.path.insert(0, str(SCRIPTS / "lib"))
 
 import yaml  # noqa: E402
 from shapely.geometry import Point  # noqa: E402
+from shapely.ops import unary_union  # noqa: E402
 from shapely.strtree import STRtree  # noqa: E402
 
 import checklib  # noqa: E402
@@ -271,13 +272,20 @@ def check_annular_ring(fab, rules, vios: list) -> None:
         for name, (polys, tree) in pads_by_layer.items():
             if tree is None:
                 continue
-            for idx in tree.query(c):
-                poly = polys[int(idx)]
-                if not poly.contains(c):
-                    continue
-                ring = poly.exterior.distance(c) - r
-                if best is None or ring < best[0]:
-                    best = (ring, name)
+            # ALL flashes containing the hole center, UNIONED: overlapping
+            # copper only ever ADDS ring. Measuring against each flash alone
+            # false-positived on vias deliberately tangent to the SMD pad
+            # they stitch (S14: hole 0.055 mm inside a neighbour pad's edge
+            # -> phantom -0.095 ring while the via's own pad gave 0.15).
+            containing = [polys[int(idx)] for idx in tree.query(c)
+                          if polys[int(idx)].contains(c)]
+            if not containing:
+                continue
+            merged = containing[0] if len(containing) == 1 \
+                else unary_union(containing)
+            ring = merged.exterior.distance(c) - r
+            if best is None or ring < best[0]:
+                best = (ring, name)
         if best is None:
             continue  # no pad around it on an outer layer (NPTH / inner-only)
         ring, name = best

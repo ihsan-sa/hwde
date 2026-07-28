@@ -394,6 +394,21 @@ def test_dfm_accepts_annular_ring_at_the_limit(tmp_path):
     assert vios == []
 
 
+def test_dfm_annular_ring_unions_overlapping_flashes(tmp_path):
+    """S14: a via tangent-overlapping the SMD pad it stitches must be
+    measured against the UNION of containing copper - per-flash min invented
+    a NEGATIVE ring (hole center barely inside the neighbour pad's edge)
+    while the via's own pad ring was fine."""
+    # via: 0.6 pad / 0.3 drill at (5, -5); big neighbour pad whose edge
+    # passes 0.055mm from the hole center (contains it)
+    fab = synth_fab(tmp_path,
+                    flashes=[(0.6, 5.0, -5.0), (1.4, 5.645, -5.0)],
+                    holes=[(0.3, 5.0, -5.0)])
+    vios: list = []
+    dfm_check.check_annular_ring(fab, RULES_2L, vios)
+    assert vios == []  # union ring = the via's own 0.15, not -0.095
+
+
 def test_dfm_flags_copper_over_board_edge(tmp_path):
     fab = synth_fab(tmp_path, traces=[(0.3, 0.05, -5.0, 8.0, -5.0)],
                     outline_mm=(0.0, -20.0, 20.0, 0.0))
