@@ -1,0 +1,69 @@
+{
+ "script": "review-board",
+ "phase": "P8",
+ "board": "kicad/usb-buck.kicad_pcb",
+ "counts": {
+  "total": 5,
+  "by_severity": {
+   "error": 1,
+   "warning": 4
+  }
+ },
+ "violations": [
+  {
+   "check": "board-review",
+   "severity": "error",
+   "pos": [55.1, 33.92],
+   "layer": "F.Silkscreen",
+   "net": null,
+   "refs": ["J2"],
+   "msg": "SWD header has zero silkscreen pin labels (board's only silk text is refdes). requirements.md s2 and architecture blocks.md ('Silkscreen every pin') promise labeled pins; pin 1 is a +3V3 REFERENCE OUTPUT and an unlabeled header invites a reversed ST-Link hookup that back-drives the buck output and kills debug. Pin-1 square pad is invisible after the header is soldered. Add 3V3/SWCLK/GND/SWDIO labels + pin-1 tick.",
+   "source": "review.board",
+   "kind": "silk-missing-pin-labels"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [11.0, 33.92],
+   "layer": null,
+   "net": null,
+   "refs": ["J1"],
+   "msg": "USB micro-B mouth is recessed ~0.46 mm behind the board edge (mating face x=11.0 vs edge x=10.54; PCB lip visible in crop_usb.png). Short-shell/chunky-overmold cables can bottom on the lip before latching: intermittent contact or no retention. Shift J1 so the mouth is flush to +0.5 mm proud at next spin; physically test a worst-case cable on v1.",
+   "source": "review.board",
+   "kind": "connector-mouth-recessed"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [15.1, 33.92],
+   "layer": null,
+   "net": "GND",
+   "refs": ["J1", "J2"],
+   "msg": "JLC economy PCBA is SMT-only: J1's four PTH shield pegs (incl. two 1.3x0.5 mm slots at JLC's 0.5 mm minimum) and all of J2 arrive unsoldered. J2 hand-soldering is documented; J1's pegs are not - shield GND bond and jack rip-off retention then rely on friction fit + SMD signal pads, which fail under cable side-load. Add a mandatory hand-solder step for J1 pegs + J2 to bring-up/assembly notes; confirm slots and Extended-part placement in S12 dfm_check.",
+   "source": "review.board",
+   "kind": "tht-unsoldered-economy-assembly"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [22.83, 35.84],
+   "layer": "F.Cu",
+   "net": "/USB_DP",
+   "refs": ["R4", "U3"],
+   "msg": "max_uncoupled_mm 5.0->8.0 relaxation judged ACCEPTABLE for USB FS (6.61 mm uncoupled, skew 13 ps, over solid In1 GND), but the stated decomposition is flattering: the TVS flow-through span (~3.6 mm) is genuinely forced by the USBLC6 pinout, while the pull-up stub measures 3.16 mm and ~1.5 mm of it was avoidable by rotating R4 180 deg (D+ currently on the far pad). Coupled sections also run at 0.71-1.25 mm c-c vs the 0.52 mm 90-ohm geometry - the '90 ohm pair' is nominal only. Immaterial at 12 Mbps; do not reuse this constraints.json on any high-speed design.",
+   "source": "review.board",
+   "kind": "diffpair-constraint-relaxed"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [41.0, 49.5],
+   "layer": "F.Silkscreen",
+   "net": null,
+   "refs": ["D1"],
+   "msg": "LED footprint's interior silk glyph places its polarity bar toward the ANODE end, contradicting the correct (and post-assembly-visible) chamfer cathode cue. Glyph is hidden under the body once placed, so PCBA and inspection are safe; during hand-rework a replacement LED oriented by the interior bar goes in backwards (LED dead, no damage). Fix the footprint glyph at next touch; verify D1 CPL rotation in S12.",
+   "source": "review.board",
+   "kind": "silk-polarity-contradiction"
+  }
+ ]
+}

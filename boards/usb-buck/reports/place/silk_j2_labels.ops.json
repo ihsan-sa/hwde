@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "_note": "P8 silk fix: J2 SWD header pin labels. Pin map read from the board netlist AND gen/mcu_sheet.py: 1=+3V3, 2=SWCLK, 3=GND, 4=SWDIO. Pins abs (55.1,33.92) rot 180 -> p1 x=58.91, p2 x=56.37, p3 x=53.83, p4 x=51.29, all y=33.92. Labels vertical (deg 90) below the row at y=36.85: 3-char box 2.55x1.43 spans y 35.575..38.125, clearing J2 silk outline (y<=35.32) by 0.255+ and pads (y<=34.77) by 0.8. SWD caption below the label row.",
+  "ops": [
+    {"op": "add_text", "text": "3V3", "x": 58.91, "y": 36.85, "layer": "F.SilkS", "deg": 90, "size": 0.8, "thickness": 0.15},
+    {"op": "add_text", "text": "CLK", "x": 56.37, "y": 36.85, "layer": "F.SilkS", "deg": 90, "size": 0.8, "thickness": 0.15},
+    {"op": "add_text", "text": "GND", "x": 53.83, "y": 36.85, "layer": "F.SilkS", "deg": 90, "size": 0.8, "thickness": 0.15},
+    {"op": "add_text", "text": "IO", "x": 51.29, "y": 36.85, "layer": "F.SilkS", "deg": 90, "size": 0.8, "thickness": 0.15},
+    {"op": "add_text", "text": "SWD", "x": 55.1, "y": 39.6, "layer": "F.SilkS", "deg": 0, "size": 0.8, "thickness": 0.15}
+  ]
+}
