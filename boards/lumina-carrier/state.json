@@ -1,0 +1,51 @@
+{
+ "version": 1,
+ "board": "lumina-carrier",
+ "workspace": "boards/lumina-carrier",
+ "created": "2026-07-28T13:36:22",
+ "updated": "2026-07-28T13:42:44",
+ "phase": "P1",
+ "gates": {},
+ "human": {},
+ "artifacts": {},
+ "open_issues": [],
+ "next_issue_id": 1,
+ "budgets": {
+  "fix_loops": {
+   "erc": 3,
+   "place": 3,
+   "drc_routed": 3,
+   "verify": 3,
+   "dfm": 3
+  },
+  "freerouting_retries": 2,
+  "place_edit_iterations": 8
+ },
+ "decisions": [
+  {
+   "what": "Proceed P1/P2 on analyst defaults marked PROVISIONAL; H1 is the single blocking confirmation point for all 16 P0 questions",
+   "why": "Orchestrator is a background agent with no human channel; P0 questions cannot be answered mid-run. Nothing irreversible occurs before P3/P5. SAFETY caveat: Q5 (converter isolation) and Q6 (worst-case per-rail connector current) are safety-flagged - if the human overrides either at H1, P2 architecture must be revised before P3.",
+   "phase": "P0",
+   "ts": "2026-07-28T13:42:44"
+  }
+ ],
+ "history": [
+  {
+   "ts": "2026-07-28T13:36:22",
+   "event": "init",
+   "board": "lumina-carrier",
+   "phase": "P0"
+  },
+  {
+   "ts": "2026-07-28T13:42:44",
+   "event": "decision",
+   "what": "Proceed P1/P2 on analyst defaults marked PROVISIONAL; H1 is the single blocking confirmation point for all 16 P0 questions"
+  },
+  {
+   "ts": "2026-07-28T13:42:44",
+   "event": "phase",
+   "phase": "P1",
+   "prev": "P0"
+  }
+ ]
+}
