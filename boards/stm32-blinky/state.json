@@ -3,8 +3,8 @@
  "board": "stm32-blinky",
  "workspace": "boards/stm32-blinky",
  "created": "2026-07-27T16:26:45",
- "updated": "2026-07-27T22:55:29",
- "phase": "P6",
+ "updated": "2026-07-28T00:28:28",
+ "phase": "P7",
  "gates": {
   "erc": {
    "phase": "P4",
@@ -30,6 +30,44 @@
      "total": 0
     }
    ]
+  },
+  "place": {
+   "phase": "P6",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-07-27T23:51:53",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0
+   },
+   "history": [
+    {
+     "ts": "2026-07-27T23:51:53",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0
+    }
+   ]
+  },
+  "drc_routed": {
+   "phase": "P7",
+   "status": "fail",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-07-28T00:18:19",
+    "status": "fail",
+    "failing_count": 1,
+    "total": 1
+   },
+   "history": [
+    {
+     "ts": "2026-07-28T00:18:19",
+     "status": "fail",
+     "failing_count": 1,
+     "total": 1
+    }
+   ]
   }
  },
  "human": {
@@ -42,6 +80,11 @@
    "status": "approved",
    "ts": "2026-07-27T22:31:41",
    "note": "AUTO-approved per user directive. Schematic PDF reports/schematic.pdf; review 1 err + 3 warn -> err+2 warn fixed pre-board, 1 warn waived (erc-waivers.md); ERC 0/0; audit pass"
+  },
+  "3": {
+   "status": "skipped",
+   "ts": "2026-07-27T23:51:54",
+   "note": "Folded into H4 per user-approved P0 decision; render at reports/place/render_final/"
   }
  },
  "artifacts": {
@@ -149,7 +192,7 @@
    "verify": 3,
    "dfm": 3
   },
-  "freerouting_retries": 2,
+  "freerouting_retries": 1,
   "place_edit_iterations": 8
  },
  "decisions": [
@@ -224,6 +267,12 @@
    "why": "Cap must bind at P5; shelf-pack needs the room",
    "phase": "P5",
    "ts": "2026-07-27T22:53:02"
+  },
+  {
+   "what": "Take P7->P6 backward edge: restore pre-route snapshot, ~1mm west-face relief at U1 per router analysis, re-route",
+   "why": "U1.8 GND fan-out sealed by /NRST via + +3V3 escape; only legal via site had 0.009mm margin (router refused coin-flip); stitch no_clear_spot + KRT finish agree",
+   "phase": "P7",
+   "ts": "2026-07-28T00:18:20"
   }
  ],
  "history": [
@@ -508,6 +557,99 @@
    "event": "artifact",
    "name": "board",
    "path": "kicad/stm32-blinky.kicad_pcb"
+  },
+  {
+   "ts": "2026-07-27T23:51:53",
+   "event": "gate",
+   "gate": "place",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-07-27T23:51:54",
+   "event": "human",
+   "checkpoint": "3",
+   "status": "skipped"
+  },
+  {
+   "ts": "2026-07-27T23:51:54",
+   "event": "phase",
+   "phase": "P7",
+   "prev": "P6"
+  },
+  {
+   "ts": "2026-07-27T23:53:02",
+   "event": "snapshot",
+   "label": "pre-route",
+   "files": 1
+  },
+  {
+   "ts": "2026-07-28T00:15:14",
+   "event": "snapshot",
+   "label": "pre-plane-repair",
+   "files": 1
+  },
+  {
+   "ts": "2026-07-28T00:15:27",
+   "event": "snapshot",
+   "label": "pre-cleanup",
+   "files": 1
+  },
+  {
+   "ts": "2026-07-28T00:15:46",
+   "event": "restore",
+   "label": "pre-cleanup",
+   "files": 1
+  },
+  {
+   "ts": "2026-07-28T00:18:19",
+   "event": "gate",
+   "gate": "drc_routed",
+   "status": "fail",
+   "attempt": 1,
+   "failing_count": 1
+  },
+  {
+   "ts": "2026-07-28T00:18:20",
+   "event": "budget",
+   "path": "freerouting_retries",
+   "remaining": 1
+  },
+  {
+   "ts": "2026-07-28T00:18:20",
+   "event": "decision",
+   "what": "Take P7->P6 backward edge: restore pre-route snapshot, ~1mm west-face relief at U1 per router analysis, re-route"
+  },
+  {
+   "ts": "2026-07-28T00:18:20",
+   "event": "restore",
+   "label": "pre-route",
+   "files": 1
+  },
+  {
+   "ts": "2026-07-28T00:26:00",
+   "event": "snapshot",
+   "label": "pre-route-a2",
+   "files": 1
+  },
+  {
+   "ts": "2026-07-28T00:27:59",
+   "event": "snapshot",
+   "label": "pre-plane-repair-a2",
+   "files": 1
+  },
+  {
+   "ts": "2026-07-28T00:28:08",
+   "event": "snapshot",
+   "label": "pre-cleanup-a2",
+   "files": 1
+  },
+  {
+   "ts": "2026-07-28T00:28:28",
+   "event": "restore",
+   "label": "pre-cleanup-a2",
+   "files": 1
   }
  ]
 }

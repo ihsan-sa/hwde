@@ -1,0 +1,60 @@
+{
+  "script": "gate",
+  "gate": "drc_routed",
+  "phase": "P7",
+  "tool": "drc",
+  "input": "boards\\stm32-blinky\\kicad\\stm32-blinky.kicad_pcb",
+  "status": "fail",
+  "criteria": {
+    "fail_severities": [
+      "error",
+      "warning"
+    ],
+    "max_count": 0
+  },
+  "counts": {
+    "total": 1,
+    "by_severity": {
+      "error": 1
+    },
+    "by_source": {
+      "unconnected": 1
+    }
+  },
+  "failing_count": 1,
+  "failing": [
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        42.5355,
+        36.8
+      ],
+      "layer": "F.Cu",
+      "net": "GND",
+      "refs": [
+        "U1"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Via [GND] on F.Cu - B.Cu",
+          "pos": [
+            42.5355,
+            36.8
+          ],
+          "uuid": "07188733-9dde-42f6-976b-42790b9d0eb0"
+        },
+        {
+          "msg": "Pad 8 [GND] of U1 on F.Cu",
+          "pos": [
+            44.05,
+            37.75
+          ],
+          "uuid": "7f44b7fd-869a-4758-9d0b-a7042e36ec27"
+        }
+      ]
+    }
+  ]
+}
