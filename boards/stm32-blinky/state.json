@@ -1,0 +1,222 @@
+{
+ "version": 1,
+ "board": "stm32-blinky",
+ "workspace": "boards/stm32-blinky",
+ "created": "2026-07-27T16:26:45",
+ "updated": "2026-07-27T17:55:04",
+ "phase": "P4",
+ "gates": {},
+ "human": {
+  "1": {
+   "status": "approved",
+   "ts": "2026-07-27T17:25:55",
+   "note": "Architecture approved as recommended (SS34 kept)"
+  }
+ },
+ "artifacts": {
+  "constraints": "architecture/constraints.json",
+  "architecture": "architecture/blocks.md",
+  "parts": "parts/parts.json"
+ },
+ "open_issues": [],
+ "next_issue_id": 1,
+ "budgets": {
+  "fix_loops": {
+   "erc": 3,
+   "place": 3,
+   "drc_routed": 3,
+   "verify": 3,
+   "dfm": 3
+  },
+  "freerouting_retries": 2,
+  "place_edit_iterations": 8
+ },
+ "decisions": [
+  {
+   "what": "Add reverse-polarity protection on the 5V input (series diode/P-FET, Basic part)",
+   "why": "User-approved P0 answer: unkeyed 2-pin header can be reversed",
+   "phase": "P0",
+   "ts": "2026-07-27T17:08:06"
+  },
+  {
+   "what": "Keep board minimal: no reset button, no BOOT0 jumper, no power LED, no mounting holes",
+   "why": "User-approved P0 answer: brief is deliberately minimal",
+   "phase": "P0",
+   "ts": "2026-07-27T17:08:06"
+  },
+  {
+   "what": "Checkpoint H3 folded into H4 (placement render attached to verification checkpoint)",
+   "why": "User-approved: keeps run at the spec M5 <=5 human interactions bar",
+   "phase": "P0",
+   "ts": "2026-07-27T17:08:06"
+  },
+  {
+   "what": "Skip all P1 researchers (component-scout, reference-design, interface-spec, power-architect)",
+   "why": "Trivially powered (5V header->LDO->3.3V <100mA), no novel blocks, no standards-bound interfaces; parts named in brief; P3 part-sourcer covers sourcing",
+   "phase": "P1",
+   "ts": "2026-07-27T17:08:31"
+  },
+  {
+   "what": "Stackup JLC2313_1.6, 2-layer, target 35x30mm, B.Cu GND pour",
+   "why": "Blinky-class density needs no inner planes; JLC economy 2L",
+   "phase": "P2",
+   "ts": "2026-07-27T17:19:59"
+  },
+  {
+   "what": "Rev-polarity = series SS34 Schottky (Basic); AO3401A P-FET is the named escalation if headroom concerns win at H1",
+   "why": "One Basic part; headroom closes at real ~40mA load (typ-only at 100mA abuse case)",
+   "phase": "P2",
+   "ts": "2026-07-27T17:19:59"
+  },
+  {
+   "what": "Single flat root sheet; refdes plan U1/U2/J1/J2/D1/D2/Y1/R1/R2/C1-C9; LED on PC13 active-low via 1k",
+   "why": "Board size does not warrant hierarchy; PC13 sink limited to 3mA per DS5319",
+   "phase": "P2",
+   "ts": "2026-07-27T17:19:59"
+  },
+  {
+   "what": "Crystal = C12674 YXC HC-49S-SMD 20pF Basic (architect's from-memory LCSC C32828 was an ADI vref - corrected by live search)",
+   "why": "parts_search is the only source of part-number truth",
+   "phase": "P3",
+   "ts": "2026-07-27T17:32:48"
+  },
+  {
+   "what": "Headers C32713268/C32713270 vertical THT, hand-solder (economy PCBA is SMT-only); board SMT run = 9 Basic + STM32 Extended",
+   "why": "No Basic pin headers exist on JLC",
+   "phase": "P3",
+   "ts": "2026-07-27T17:32:48"
+  },
+  {
+   "what": "User directive: all remaining checkpoints/decisions auto-approved by orchestrator with recommended defaults, for ALL S14 runs; report only at S14 completion",
+   "why": "User message 2026-07-27: 'Going forward just make the decisions yourself and tell me when s14 is done'",
+   "phase": "P3",
+   "ts": "2026-07-27T17:35:07"
+  }
+ ],
+ "history": [
+  {
+   "ts": "2026-07-27T16:26:45",
+   "event": "init",
+   "board": "stm32-blinky",
+   "phase": "P0"
+  },
+  {
+   "ts": "2026-07-27T16:26:45",
+   "event": "phase",
+   "phase": "P0",
+   "prev": "P0"
+  },
+  {
+   "ts": "2026-07-27T17:08:06",
+   "event": "decision",
+   "what": "Add reverse-polarity protection on the 5V input (series diode/P-FET, Basic part)"
+  },
+  {
+   "ts": "2026-07-27T17:08:06",
+   "event": "decision",
+   "what": "Keep board minimal: no reset button, no BOOT0 jumper, no power LED, no mounting holes"
+  },
+  {
+   "ts": "2026-07-27T17:08:06",
+   "event": "decision",
+   "what": "Checkpoint H3 folded into H4 (placement render attached to verification checkpoint)"
+  },
+  {
+   "ts": "2026-07-27T17:08:07",
+   "event": "p0_questions_answered",
+   "interaction": 1,
+   "questions": 2,
+   "policy": "H3 folded into H4"
+  },
+  {
+   "ts": "2026-07-27T17:08:31",
+   "event": "phase",
+   "phase": "P1",
+   "prev": "P0"
+  },
+  {
+   "ts": "2026-07-27T17:08:31",
+   "event": "decision",
+   "what": "Skip all P1 researchers (component-scout, reference-design, interface-spec, power-architect)"
+  },
+  {
+   "ts": "2026-07-27T17:08:31",
+   "event": "phase",
+   "phase": "P2",
+   "prev": "P1"
+  },
+  {
+   "ts": "2026-07-27T17:19:59",
+   "event": "decision",
+   "what": "Stackup JLC2313_1.6, 2-layer, target 35x30mm, B.Cu GND pour"
+  },
+  {
+   "ts": "2026-07-27T17:19:59",
+   "event": "decision",
+   "what": "Rev-polarity = series SS34 Schottky (Basic); AO3401A P-FET is the named escalation if headroom concerns win at H1"
+  },
+  {
+   "ts": "2026-07-27T17:19:59",
+   "event": "decision",
+   "what": "Single flat root sheet; refdes plan U1/U2/J1/J2/D1/D2/Y1/R1/R2/C1-C9; LED on PC13 active-low via 1k"
+  },
+  {
+   "ts": "2026-07-27T17:20:08",
+   "event": "artifact",
+   "name": "constraints",
+   "path": "architecture/constraints.json"
+  },
+  {
+   "ts": "2026-07-27T17:20:08",
+   "event": "artifact",
+   "name": "architecture",
+   "path": "architecture/blocks.md"
+  },
+  {
+   "ts": "2026-07-27T17:25:55",
+   "event": "human",
+   "checkpoint": "1",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-07-27T17:25:56",
+   "event": "phase",
+   "phase": "P3",
+   "prev": "P2"
+  },
+  {
+   "ts": "2026-07-27T17:32:48",
+   "event": "decision",
+   "what": "Crystal = C12674 YXC HC-49S-SMD 20pF Basic (architect's from-memory LCSC C32828 was an ADI vref - corrected by live search)"
+  },
+  {
+   "ts": "2026-07-27T17:32:48",
+   "event": "decision",
+   "what": "Headers C32713268/C32713270 vertical THT, hand-solder (economy PCBA is SMT-only); board SMT run = 9 Basic + STM32 Extended"
+  },
+  {
+   "ts": "2026-07-27T17:32:48",
+   "event": "artifact",
+   "name": "parts",
+   "path": "parts/parts.json"
+  },
+  {
+   "ts": "2026-07-27T17:35:07",
+   "event": "decision",
+   "what": "User directive: all remaining checkpoints/decisions auto-approved by orchestrator with recommended defaults, for ALL S14 runs; report only at S14 completion"
+  },
+  {
+   "ts": "2026-07-27T17:35:07",
+   "event": "checkpoint_policy_change",
+   "mode": "auto",
+   "scope": "all S14 runs",
+   "source": "user"
+  },
+  {
+   "ts": "2026-07-27T17:55:04",
+   "event": "phase",
+   "phase": "P4",
+   "prev": "P3"
+  }
+ ]
+}

@@ -527,3 +527,20 @@ any unrelated dirty file in the repo (parallel-session WIP, scratch edits - this
 parallel WIP at S6/S7/S12) silently rides along in gate commits. Keep the tree clean during
 pipeline runs, or commit/stash WIP first. Also the reason dry-run tests must NEVER use --commit
 (they run inside this repo; test workspaces live in pytest tmp dirs instead).
+
+## 2026-07-27 [easyeda2kicad][erc][python] Pulled-lib pin electrical types are junk; ERC gate needs a retype pass
+easyeda2kicad symbols carry `unspecified` electrical type on nearly every pin (a few arbitrary
+`input`, e.g. chip resistors and crystals). kicad-cli 10.0.3 ERC --severity-all then floods
+`pin_to_pin` warnings ("Unspecified and Unspecified are connected", one per pin pair) plus FALSE
+`pin_not_driven` errors on the input-typed pins - the P4 gate (errors+warnings=0) cannot pass on
+an untouched pulled lib. Fix at the SOURCE, not the .kicad_pro severities: retype pins in
+lib/aiee.kicad_sym from the datasheet-extract JSON (supplies/grounds -> power_in, regulator output
+-> power_out, everything else passive; a duplicate output pin like a SOT-223 tab stays passive or
+ERC raises power_out<->power_out). stm32-blinky reference: boards/stm32-blinky/kicad/gen/
+lib_pin_types.py (idempotent, re-run after any lib_pull refresh). Two subtleties: (a) schlib.py
+--pins REPORTS "passive" for pins the file stores as `unspecified` (kicad-sch-api mapping) - the
+lib file text / ERC output is the type ground truth, not pin_table; (b) kicad-sch-api resolves
+lib_ids via its global cache which does NOT read the project sym-lib-table - generators must call
+`ksa.get_symbol_cache().add_library_path(<abs path to aiee.kicad_sym>)` before add_component, and
+the mtime-based cache DID pick up the lib edit correctly on rebuild (verified: embedded lib_symbols
+in the saved .kicad_sch carried the new types).

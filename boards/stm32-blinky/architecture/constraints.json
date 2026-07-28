@@ -1,0 +1,22 @@
+{
+  "_comment": "P2 merged constraints for stm32-blinky. Canonical net names: local labels /NAME, power nets bare. +5V is the POST-diode protected rail; /VIN is the raw J1-to-D1 stub. Shapes per reference/constraints_schema.md; absent keys (voltages, thermal, planes) deliberately no-op - rationale in power_tree.md/stackup.md. diff_pairs is an EXPLICIT empty list: no pairs exist, disable discovery.",
+  "high_speed": [
+    {"net": "/OSC_IN", "reference": "GND"},
+    {"net": "/OSC_OUT", "reference": "GND"}
+  ],
+  "power": [
+    {"net": "/VIN", "current_a": 0.3},
+    {"net": "+5V", "current_a": 0.3},
+    {"net": "+3V3", "current_a": 0.3}
+  ],
+  "diff_pairs": [],
+  "placement": {
+    "edges": [
+      {"ref": "J1", "edge": "left", "pos": 0.5},
+      {"ref": "J2", "edge": "right", "pos": 0.5}
+    ],
+    "groups": [
+      {"name": "xtal", "anchor": "Y1", "members": ["C7", "C8"]}
+    ]
+  }
+}

@@ -1,0 +1,67 @@
+{
+ "script": "fp_verify",
+ "status": "pass",
+ "board": "LQFP-48_L7.0-W7.0-P0.50-LS9.0-BL.kicad_mod",
+ "counts": {
+  "total": 1,
+  "by_severity": {
+   "warning": 1
+  },
+  "by_source": {
+   "check.fp_verify": 1
+  }
+ },
+ "violations": [
+  {
+   "check": "fp_verify",
+   "severity": "warning",
+   "pos": null,
+   "layer": "F.Cu",
+   "net": null,
+   "refs": [
+    "LQFP-48_L7.0-W7.0-P0.50-LS9.0-BL"
+   ],
+   "msg": "modal pad size (0.27, 1.5) mm != datasheet (0.3, 1.2) mm (tol 0.1)",
+   "source": "check.fp_verify",
+   "items": [
+    {
+     "msg": "modal pad size (0.27, 1.5) mm != datasheet (0.3, 1.2) mm (tol 0.1)",
+     "pos": null
+    }
+   ],
+   "kind": "pad_size",
+   "expected_mm": [
+    0.3,
+    1.2
+   ],
+   "measured_mm": [
+    0.27,
+    1.5
+   ]
+  }
+ ],
+ "footprint": "LQFP-48_L7.0-W7.0-P0.50-LS9.0-BL",
+ "footprint_file": "lib\\aiee.pretty\\LQFP-48_L7.0-W7.0-P0.50-LS9.0-BL.kicad_mod",
+ "copper_pads": 48,
+ "total_pads": 48,
+ "measured_pitch_mm": 0.5,
+ "measured_pad_size_mm": [
+  0.27,
+  1.5
+ ],
+ "has_courtyard": true,
+ "has_silk": true,
+ "land_pattern": {
+  "package": "LQFP48 - 7 x 7 mm, 0.5 mm pitch",
+  "pad_count": 48,
+  "pitch_mm": 0.5,
+  "pad_size_mm": [
+   0.3,
+   1.2
+  ],
+  "row_spacing_mm": 8.5,
+  "pin1": "1",
+  "notes": "From Figure 63 recommended footprint (mm): pad tip-to-tip extent 9.70, inner edge-to-edge 7.30 (row_spacing 8.50 = center-to-center, derived as (9.70+7.30)/2), pad row extent 5.80 per side (12 pads/side), 0.20 gap between adjacent pads, pad 0.30 wide x 1.20 long. Package mechanical (Table 61): body D1xE1 = 7.0 x 7.0, lead span DxE = 9.0 x 9.0, lead width b 0.17-0.27, height A max 1.60"
+ },
+ "svg": "reports\\fp_C8734_LQFP48.overlay.svg"
+}
