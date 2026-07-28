@@ -335,6 +335,30 @@ def test_dfm_ignores_touching_copper(tmp_path):
     assert vios == []
 
 
+def test_dfm_round_caps_join_overlapping_junctions(tmp_path):
+    """S14: KiCad emits circular apertures, so trace ends are ROUND. Two
+    same-net segments whose endpoints sit 0.05mm apart with 0.1mm cap radius
+    OVERLAP - flat-capped buffering split them into phantom islands with a
+    fake sub-minimum gap (two false dfm_clearance errors on a KiCad-clean
+    board)."""
+    fab = synth_fab(tmp_path, traces=[(0.2, 2.0, -2.0, 5.0, -2.0),
+                                      (0.2, 5.05, -2.0, 8.0, -2.0)])
+    vios: list = []
+    dfm_check.check_clearance(fab, RULES_2L, vios)
+    assert vios == []  # round caps overlap: one conductor, no phantom gap
+
+
+def test_dfm_round_caps_expose_trace_end_at_edge(tmp_path):
+    """S14 (false-negative direction): a trace END'S round cap reaches w/2
+    closer to the board edge than the flat-capped model claimed."""
+    # end at x=0.30 with w=0.3 -> round cap reaches x=0.15; JLC edge min 0.3
+    fab = synth_fab(tmp_path, traces=[(0.3, 0.30, -5.0, 8.0, -5.0)],
+                    outline_mm=(0.0, -20.0, 20.0, 0.0))
+    vios: list = []
+    dfm_check.check_copper_to_edge(fab, RULES_2L, vios)
+    assert [v["kind"] for v in vios] == ["dfm_copper_to_edge"]
+
+
 def test_dfm_flags_small_drill(tmp_path):
     fab = synth_fab(tmp_path, holes=[(0.15, 5.0, -5.0)])
     vios: list = []
@@ -393,6 +417,56 @@ def test_dfm_bom_incomplete_is_warning_only(tmp_path):
     dfm_check.check_release(fab, 2, vios, {"missing_lcsc": ["U1", "C3"]})
     v = [x for x in vios if x["kind"] == "dfm_bom_incomplete"]
     assert len(v) == 1 and v[0]["severity"] == "warning"
+
+
+def test_dfm_silk_sliver_is_warning_real_overlap_error(tmp_path):
+    """S14: micron-sliver silk inside a mask opening (library body outlines)
+    is a WARNING (fab auto-clips); substantial ink on solder surface stays an
+    ERROR. Threshold SILK_OVERLAP_ERROR_MM2."""
+    # sliver: 0.15mm silk stroke crossing a 1mm mask opening edge by ~0.02mm
+    fab = synth_fab(tmp_path, silk=[(0.15, 3.0, -4.49, 7.0, -4.49)],
+                    mask=[(1.0, 5.0, -5.0)])
+    vios: list = []
+    dfm_check.check_silk(fab, RULES_2L, vios)
+    hits = [v for v in vios if v["kind"] == "dfm_silk_over_pad"]
+    assert len(hits) == 1
+    assert hits[0]["severity"] == "warning"
+    assert hits[0]["overlap_mm2"] < dfm_check.SILK_OVERLAP_ERROR_MM2
+
+    # substantial: the same stroke straight through the opening centre
+    (tmp_path / "e").mkdir()
+    fab2 = synth_fab(tmp_path / "e", silk=[(0.3, 3.0, -5.0, 7.0, -5.0)],
+                     mask=[(1.0, 5.0, -5.0)])
+    vios2: list = []
+    dfm_check.check_silk(fab2, RULES_2L, vios2)
+    hits2 = [v for v in vios2 if v["kind"] == "dfm_silk_over_pad"]
+    assert len(hits2) == 1
+    assert hits2[0]["severity"] == "error"
+    assert hits2[0]["overlap_mm2"] >= dfm_check.SILK_OVERLAP_ERROR_MM2
+
+
+def test_board_lcsc_map_from_footprint_fields(tmp_path):
+    """S14: the board's own per-footprint LCSC fields are the primary
+    ref->LCSC source for the BOM (board_init copies them from the symbols)."""
+    pcb = tmp_path / "b.kicad_pcb"
+    pcb.write_text(
+        '(kicad_pcb (version 20260206) (generator "t")\n'
+        '  (footprint "aiee:C0603" (at 10 10)\n'
+        '    (property "Reference" "C1" (at 0 -4 0))\n'
+        '    (property "Value" "100nF 50V X7R" (at 0 4 0))\n'
+        '    (property "LCSC" "C14663" (at 0 0 0) (hide yes)))\n'
+        '  (footprint "aiee:LQFP-48" (at 30 20)\n'
+        '    (property "Reference" "U1" (at 0 -5 0))\n'
+        '    (property "LCSC" "C8734" (at 0 0 0) (hide yes)))\n'
+        '  (footprint "aiee:HDR" (at 40 20)\n'
+        '    (property "Reference" "J1" (at 0 -5 0))))\n',
+        encoding="utf-8")
+    m = bom_cpl.board_lcsc_map(pcb)
+    assert m["C1"]["lcsc"] == "C14663" and m["U1"]["lcsc"] == "C8734"
+    assert "J1" not in m  # no LCSC field -> stays missing (honest)
+    # per-ref parts.json overrides the board field
+    merged = {**m, **{"C1": {"lcsc": "C99999", "mpn": None}}}
+    assert merged["C1"]["lcsc"] == "C99999"
 
 
 # ================================================ hermetic: CPL polarity (V9)

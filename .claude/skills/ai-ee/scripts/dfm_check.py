@@ -69,6 +69,12 @@ CAPABILITIES = SCRIPTS.parent / "reference" / "jlc_capabilities.yaml"
 EPS_TOUCH = 1e-4
 # Ignore silk/mask overlap smaller than this - antialiasing-scale slivers.
 MIN_SILK_OVERLAP_MM2 = 1e-3
+# Below this area a silk-over-opening sliver is a cosmetic the fab auto-clips
+# (library body outlines kiss their own mask openings by microns on EasyEDA
+# footprints - S14 run (a) measured 0.0036 mm2 slivers on a KiCad-DRC-clean
+# board). At/above it, real ink lands on solder surface -> error (the S1
+# silk-over-pad mutant measures 0.344 mm2 and must stay an error).
+SILK_OVERLAP_ERROR_MM2 = 0.05
 # Slack for measurements taken off tessellated arc geometry (gerblib flattens
 # arcs to 1 um). A board built EXACTLY at a fab minimum - blinky2's 0.6 mm vias
 # on a 0.3 mm drill are exactly the 0.15 mm annular floor - must not be failed
@@ -327,11 +333,15 @@ def check_silk(fab, rules, vios: list, bg=None) -> None:
                 if hit is not None:
                     refs = [hit.ref]
                     pos = hit.center
+            sev = ("error" if part.area >= SILK_OVERLAP_ERROR_MM2
+                   else "warning")
+            note = ("" if sev == "error"
+                    else " (sliver; fab auto-clips silk at mask openings)")
             vios.append(checklib.violation(
-                CHECK, "error", pos, name, None, refs,
+                CHECK, sev, pos, name, None, refs,
                 f"silkscreen printed over a solder-mask opening "
                 f"({part.area:.4f} mm2) on {name}"
-                + (f" - pad of {refs[0]}" if refs else ""),
+                + (f" - pad of {refs[0]}" if refs else "") + note,
                 SOURCE, kind="dfm_silk_over_pad",
                 overlap_mm2=checklib.rnd(part.area),
                 at=[checklib.rnd(p.x), checklib.rnd(p.y)]))

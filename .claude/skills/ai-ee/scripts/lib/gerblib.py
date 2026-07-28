@@ -137,7 +137,14 @@ def read_gerber(path: Path, name: str) -> LayerGeom:
                 ls = LineString([(o.x1, -o.y1), (o.x1 + 1e-6, -o.y1)])
             lg.trace_lines.append((ls, w))
             lg.trace_widths.append(w)
-            lg.traces.append(ls.buffer(max(w, 1e-6) / 2.0, cap_style=2))
+            # ROUND caps: KiCad emits circular apertures (%ADDnC,...*%), so a
+            # conformant CAM renders round trace ends. Flat caps truncate each
+            # end by w/2, splitting genuinely overlapping same-net junctions
+            # into phantom "islands" (S14: two false dfm_clearance errors on a
+            # KiCad-clean board) and understating copper-to-edge proximity by
+            # w/2 (false-negative direction).
+            lg.traces.append(ls.buffer(max(w, 1e-6) / 2.0, cap_style=1,
+                                       quad_segs=32))
         elif isinstance(obj, Flash):
             lg.pads.extend(_flash_polys(obj))
         elif isinstance(obj, Region):

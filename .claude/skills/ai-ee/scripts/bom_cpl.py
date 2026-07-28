@@ -124,6 +124,45 @@ def _get_pos(pcb: Path, pos: Path | None, out_dir: Path, name: str) -> str:
 
 # ------------------------------------------------------------------ parts map
 
+def board_lcsc_map(pcb: Path) -> dict[str, dict]:
+    """ref -> {lcsc} from per-footprint LCSC fields in the board file itself.
+
+    board_init copies custom symbol fields (LCSC included) onto footprints
+    since S14, so a pipeline board carries its own ref->LCSC mapping - the
+    file being fabbed is the closest-to-truth source. parts.json (per-ref
+    shapes) remains an explicit override; the S6 per-DISTINCT-part shape has
+    no refs and cannot map by itself.
+    """
+    import sexpdata
+    out: dict[str, dict] = {}
+    try:
+        data = sexpdata.loads(Path(pcb).read_text(encoding="utf-8"))
+    except Exception:
+        return out
+
+    def head(n):
+        return n[0].value() if isinstance(n, list) and n \
+            and isinstance(n[0], sexpdata.Symbol) else None
+
+    def sval(v):
+        return v.value() if isinstance(v, sexpdata.Symbol) else str(v)
+
+    for node in data[1:]:
+        if head(node) != "footprint":
+            continue
+        ref = lcsc = None
+        for sub in node[1:]:
+            if head(sub) == "property" and len(sub) >= 3:
+                pname = sval(sub[1])
+                if pname == "Reference":
+                    ref = sval(sub[2])
+                elif pname.upper() == "LCSC":
+                    lcsc = sval(sub[2])
+        if ref and lcsc:
+            out[ref] = {"lcsc": lcsc, "mpn": None}
+    return out
+
+
 def load_parts_map(path: Path | None) -> dict[str, dict]:
     """ref -> {lcsc, mpn?}. Tolerant of several parts.json shapes:
       {"parts":[{"ref":"U1","lcsc":"C123","mpn":".."}, ...]}
@@ -219,7 +258,8 @@ def run(pcb: Path, out_dir: Path, pos: Path | None = None,
     out_dir.mkdir(parents=True, exist_ok=True)
     rules = load_rotations(rotations or REF_ROTATIONS)
     parts = parse_pos_csv(_get_pos(pcb, pos, out_dir, name))
-    parts_map = load_parts_map(parts_json)
+    # board footprint LCSC fields first; per-ref parts.json entries override
+    parts_map = {**board_lcsc_map(pcb), **load_parts_map(parts_json)}
 
     bom_rows = build_bom(parts, parts_map)
     cpl_rows, audit = build_cpl(parts, rules)

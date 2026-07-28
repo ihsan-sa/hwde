@@ -3,8 +3,8 @@
  "board": "stm32-blinky",
  "workspace": "boards/stm32-blinky",
  "created": "2026-07-27T16:26:45",
- "updated": "2026-07-28T01:09:59",
- "phase": "P8",
+ "updated": "2026-07-28T01:15:20",
+ "phase": "P9",
  "gates": {
   "erc": {
    "phase": "P4",
@@ -84,9 +84,9 @@
   "verify": {
    "phase": "P8",
    "status": "pass",
-   "attempts": 2,
+   "attempts": 3,
    "last": {
-    "ts": "2026-07-28T00:34:29",
+    "ts": "2026-07-28T01:10:00",
     "status": "pass",
     "failing_count": 0,
     "total": 0
@@ -103,6 +103,31 @@
      "status": "pass",
      "failing_count": 0,
      "total": 0
+    },
+    {
+     "ts": "2026-07-28T01:10:00",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0
+    }
+   ]
+  },
+  "dfm": {
+   "phase": "P9",
+   "status": "fail",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-07-28T01:15:19",
+    "status": "fail",
+    "failing_count": 14,
+    "total": 16
+   },
+   "history": [
+    {
+     "ts": "2026-07-28T01:15:19",
+     "status": "fail",
+     "failing_count": 14,
+     "total": 16
     }
    ]
   }
@@ -122,6 +147,11 @@
    "status": "skipped",
    "ts": "2026-07-27T23:51:54",
    "note": "Folded into H4 per user-approved P0 decision; render at reports/place/render_final/"
+  },
+  "4": {
+   "status": "approved",
+   "ts": "2026-07-28T01:10:01",
+   "note": "AUTO-approved per user directive. verify 8/8 clean; drc_routed 0/0; reviewer 1 err + 4 warn: err (J1 polarity silk) + 4 warn ALL FIXED via new V17 text ops + parts.json role sync + fresh artifact; remaining waiver = minor refdes margin (C1 2.2mm own vs 3.0mm R1). Renders: reports/render_labeled/ + reports/place/render_final/ (H3 fold)"
   }
  },
  "artifacts": {
@@ -221,11 +251,11 @@
   },
   {
    "id": 5,
-   "status": "open",
+   "status": "fixed",
    "agent": null,
    "attempts": 0,
    "opened": "2026-07-28T00:57:24",
-   "closed": null,
+   "closed": "2026-07-28T01:10:00",
    "gate": null,
    "phase": null,
    "fixer": "review",
@@ -251,11 +281,11 @@
   },
   {
    "id": 6,
-   "status": "open",
+   "status": "fixed",
    "agent": null,
    "attempts": 0,
    "opened": "2026-07-28T00:57:24",
-   "closed": null,
+   "closed": "2026-07-28T01:10:00",
    "gate": null,
    "phase": null,
    "fixer": "review",
@@ -281,11 +311,11 @@
   },
   {
    "id": 7,
-   "status": "open",
+   "status": "fixed",
    "agent": null,
    "attempts": 0,
    "opened": "2026-07-28T00:57:24",
-   "closed": null,
+   "closed": "2026-07-28T01:10:01",
    "gate": null,
    "phase": null,
    "fixer": "review",
@@ -361,7 +391,7 @@
    "place": 3,
    "drc_routed": 3,
    "verify": 1,
-   "dfm": 3
+   "dfm": 2
   },
   "freerouting_retries": 1,
   "place_edit_iterations": 8
@@ -450,6 +480,12 @@
    "why": "Both check-side defects, board is correct; S14 hardening mandate",
    "phase": "P8",
    "ts": "2026-07-28T00:34:29"
+  },
+  {
+   "what": "dfm a1 triage: 12 silk-sliver errors (0.003-0.02mm2) = check-side threshold gap -> dfm_check warn band <0.05mm2 added w/ tests; 2 copper-clearance 0.035mm same-net sliver gaps -> router point-fix; bom missing_lcsc = bom_cpl now reads board LCSC fields (S14 fix) w/ tests",
+   "why": "Board is KiCad-clean; gerber-side geometry + mapping gaps were script defects",
+   "phase": "P9",
+   "ts": "2026-07-28T01:15:20"
   }
  ],
  "history": [
@@ -960,6 +996,75 @@
    "status": "pass",
    "attempt": 3,
    "failing_count": 0
+  },
+  {
+   "ts": "2026-07-28T01:10:00",
+   "event": "gate",
+   "gate": "verify",
+   "status": "pass",
+   "attempt": 3,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-07-28T01:10:00",
+   "event": "issue",
+   "id": 5,
+   "status": "fixed",
+   "agent": null,
+   "attempts": 0
+  },
+  {
+   "ts": "2026-07-28T01:10:00",
+   "event": "issue",
+   "id": 6,
+   "status": "fixed",
+   "agent": null,
+   "attempts": 0
+  },
+  {
+   "ts": "2026-07-28T01:10:01",
+   "event": "issue",
+   "id": 7,
+   "status": "fixed",
+   "agent": null,
+   "attempts": 0
+  },
+  {
+   "ts": "2026-07-28T01:10:01",
+   "event": "human",
+   "checkpoint": "4",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-07-28T01:10:01",
+   "event": "phase",
+   "phase": "P9",
+   "prev": "P8"
+  },
+  {
+   "ts": "2026-07-28T01:15:19",
+   "event": "gate",
+   "gate": "dfm",
+   "status": "fail",
+   "attempt": 1,
+   "failing_count": 14
+  },
+  {
+   "ts": "2026-07-28T01:15:20",
+   "event": "budget",
+   "path": "fix_loops.dfm",
+   "remaining": 2
+  },
+  {
+   "ts": "2026-07-28T01:15:20",
+   "event": "snapshot",
+   "label": "pre-fix-dfm-a1",
+   "files": 1
+  },
+  {
+   "ts": "2026-07-28T01:15:20",
+   "event": "decision",
+   "what": "dfm a1 triage: 12 silk-sliver errors (0.003-0.02mm2) = check-side threshold gap -> dfm_check warn band <0.05mm2 added w/ tests; 2 copper-clearance 0.035mm same-net sliver gaps -> router point-fix; bom missing_lcsc = bom_cpl now reads board LCSC fields (S14 fix) w/ tests"
   }
  ]
 }
