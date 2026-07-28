@@ -1,0 +1,74 @@
+{
+ "script": "fix_dispatch",
+ "status": "violations",
+ "board": "stm32-blinky.kicad_sch",
+ "gate": null,
+ "counts": {
+  "orders": 4,
+  "violations": 4,
+  "by_domain": {
+   "review": 4
+  }
+ },
+ "orders": [
+  {
+   "id": 1,
+   "fixer": "review",
+   "severity": "error",
+   "net": "+3V3",
+   "kinds": [
+    "ldo-cout-stability"
+   ],
+   "count": 1,
+   "work_order": "boards/stm32-blinky/log/workorders/wo-1.json"
+  },
+  {
+   "id": 2,
+   "fixer": "review",
+   "severity": "warning",
+   "net": "+3V3",
+   "kinds": [
+    "vdda-decoupling-under-spec"
+   ],
+   "count": 1,
+   "work_order": "boards/stm32-blinky/log/workorders/wo-2.json"
+  },
+  {
+   "id": 3,
+   "fixer": "review",
+   "severity": "warning",
+   "net": "+3V3",
+   "kinds": [
+    "vdd3-bulk-missing"
+   ],
+   "count": 1,
+   "work_order": "boards/stm32-blinky/log/workorders/wo-3.json"
+  },
+  {
+   "id": 4,
+   "fixer": "review",
+   "severity": "warning",
+   "net": null,
+   "kinds": [
+    "erc-pintypes-vacuous"
+   ],
+   "count": 1,
+   "work_order": "boards/stm32-blinky/log/workorders/wo-4.json"
+  }
+ ],
+ "parallel_groups": [
+  [
+   1
+  ],
+  [
+   2
+  ],
+  [
+   3
+  ],
+  [
+   4
+  ]
+ ],
+ "out_dir": "boards/stm32-blinky/log/workorders"
+}

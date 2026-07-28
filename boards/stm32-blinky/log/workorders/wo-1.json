@@ -1,0 +1,53 @@
+{
+ "id": 1,
+ "created": "2026-07-27T22:17:47",
+ "gate": null,
+ "phase": null,
+ "board": "boards/stm32-blinky/kicad/stm32-blinky.kicad_sch",
+ "fixer": "review",
+ "role_prompt": "C:/dev/ai-ee3/.claude/skills/ai-ee/agents/fixer.md",
+ "allowed_scripts": [
+  "render.py"
+ ],
+ "guidance": [
+  "No script owns this violation kind - triage: either identify the right domain and say so, or escalate to human with a render and a one-paragraph explanation."
+ ],
+ "cluster": {
+  "net": "+3V3",
+  "kinds": [
+   "ldo-cout-stability"
+  ],
+  "checks": [
+   "review.schematic"
+  ],
+  "severity": "error",
+  "count": 1,
+  "region": {
+   "bbox": null,
+   "center": null
+  },
+  "violations": [
+   {
+    "check": "schematic-review",
+    "severity": "error",
+    "pos": null,
+    "layer": null,
+    "net": "+3V3",
+    "refs": [
+     "U2",
+     "C5"
+    ],
+    "msg": "AMS1117 output cap C5 is 10uF X5R ceramic (~6-8uF effective at 3.3V bias, ESR ~5 mOhm) but the C6186 datasheet makes COUT part of the frequency compensation and states stability only for 22uF solid tantalum, so the board's only rail can oscillate and cause erratic resets/SWD flakiness at bring-up.",
+    "source": "review.schematic",
+    "kind": "ldo-cout-stability"
+   }
+  ]
+ },
+ "artifacts": {
+  "board": "boards/stm32-blinky/kicad/stm32-blinky.kicad_sch",
+  "schematic": "boards/stm32-blinky/kicad/stm32-blinky.kicad_sch",
+  "constraints": "boards/stm32-blinky/kicad/constraints.json",
+  "decoupling": "boards/stm32-blinky/kicad/decoupling.json"
+ },
+ "scope": "fix ONLY these violations; do not touch unrelated nets/regions; re-run the failed gate when done"
+}

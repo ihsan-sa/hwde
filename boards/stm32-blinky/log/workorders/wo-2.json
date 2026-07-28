@@ -1,0 +1,53 @@
+{
+ "id": 2,
+ "created": "2026-07-27T22:17:47",
+ "gate": null,
+ "phase": null,
+ "board": "boards/stm32-blinky/kicad/stm32-blinky.kicad_sch",
+ "fixer": "review",
+ "role_prompt": "C:/dev/ai-ee3/.claude/skills/ai-ee/agents/fixer.md",
+ "allowed_scripts": [
+  "render.py"
+ ],
+ "guidance": [
+  "No script owns this violation kind - triage: either identify the right domain and say so, or escalate to human with a render and a one-paragraph explanation."
+ ],
+ "cluster": {
+  "net": "+3V3",
+  "kinds": [
+   "vdda-decoupling-under-spec"
+  ],
+  "checks": [
+   "review.schematic"
+  ],
+  "severity": "warning",
+  "count": 1,
+  "region": {
+   "bbox": null,
+   "center": null
+  },
+  "violations": [
+   {
+    "check": "schematic-review",
+    "severity": "warning",
+    "pos": null,
+    "layer": null,
+    "net": "+3V3",
+    "refs": [
+     "U1",
+     "C4"
+    ],
+    "msg": "VDDA (U1 pin 9) is decoupled with a single 100nF vs the unconditional DS5319 requirement of 1uF//10nF (Fig 40/5.3.18); VDDA also feeds the PLL/HSI so filtering margin is eroded - tolerable for a blinky, mandatory to fix before any ADC use.",
+    "source": "review.schematic",
+    "kind": "vdda-decoupling-under-spec"
+   }
+  ]
+ },
+ "artifacts": {
+  "board": "boards/stm32-blinky/kicad/stm32-blinky.kicad_sch",
+  "schematic": "boards/stm32-blinky/kicad/stm32-blinky.kicad_sch",
+  "constraints": "boards/stm32-blinky/kicad/constraints.json",
+  "decoupling": "boards/stm32-blinky/kicad/decoupling.json"
+ },
+ "scope": "fix ONLY these violations; do not touch unrelated nets/regions; re-run the failed gate when done"
+}

@@ -68,29 +68,22 @@ U1_PINS = {
     "48": "+3V3",      # VDD_3 (datasheet: bulk cap belongs at this pin)
 }
 
-# Values are the SOURCED parts (parts/parts.json). After P4 review triage
-# the set is datasheet-conformant: VDDA gets 1uF//10nF (DS5319 Fig.40),
-# VDD_3 gets a 10uF bulk (DS 5.1.6 asks >= 4.7uF at VDD_3), and the AMS1117
-# output cap is the 22uF TANTALUM the datasheet's stability case requires.
+# Values are the SOURCED parts (parts/parts.json), not datasheet ideals:
+# - VDD bulk 4.7uF (DS 5.1.6) not sourced -> C5 10uF at the LDO output is
+#   the board's bulk (blocks.md decision).
+# - VDDA 1uF//10nF (DS Fig.40) not sourced -> C4 100nF (closest sourced).
 V_100N = "100nF 50V X7R"
 V_10U = "10uF 25V X5R"
 V_22P = "22pF 50V C0G"
-V_1U = "1uF 50V X5R"
-V_10N = "10nF 50V X7R"
-V_22U_TA = "22uF 16V tantalum"
 
 # refdes -> LCSC part number (parts/parts.json), stamped as an LCSC field
 # on every placed component for the downstream BOM.
 LCSC = {
     "U1": "C8734", "U2": "C6186", "D1": "C8678", "D2": "C84256",
     "Y1": "C12674", "R1": "C21190", "R2": "C25804",
-    "C1": "C14663", "C2": "C14663", "C3": "C14663",
-    "C4": "C15849",   # VDDA 1uF (review fix 2)
-    "C5": "C8020",    # AMS1117 out 22uF tantalum (review fix 1)
-    "C6": "C15850", "C7": "C1653", "C8": "C1653", "C9": "C14663",
-    "C10": "C57112",  # VDDA 10nF partner (review fix 2)
-    "C11": "C15850",  # VDD_3 10uF bulk (review fix 3)
-    "J1": "C32713268", "J2": "C32713270",
+    "C1": "C14663", "C2": "C14663", "C3": "C14663", "C4": "C14663",
+    "C5": "C15850", "C6": "C15850", "C7": "C1653", "C8": "C1653",
+    "C9": "C14663", "J1": "C32713268", "J2": "C32713270",
 }
 
 
@@ -117,14 +110,8 @@ def build() -> schlib.Sheet:
              "lib_id": "aiee:CC0603KRX7R9BB104", "footprint": f"{FP}:C0603"},
             {"cap": "C3", "pin": "36", "rail": "+3V3", "value": V_100N,
              "lib_id": "aiee:CC0603KRX7R9BB104", "footprint": f"{FP}:C0603"},
-            # VDDA 1uF // 10nF pair (DS5319 Fig.40)
-            {"cap": "C4", "pin": "9", "rail": "+3V3", "value": V_1U,
-             "lib_id": "aiee:CL10A105KB8NNNC", "footprint": f"{FP}:C0603"},
-            {"cap": "C10", "pin": "9", "rail": "+3V3", "value": V_10N,
-             "lib_id": "aiee:0603B103K500NT", "footprint": f"{FP}:C0603"},
-            # VDD_3 bulk (DS 5.1.6: bulk cap at VDD_3)
-            {"cap": "C11", "pin": "48", "rail": "+3V3", "value": V_10U,
-             "lib_id": "aiee:CL21A106KAYNNNE", "footprint": f"{FP}:C0805"},
+            {"cap": "C4", "pin": "9", "rail": "+3V3", "value": V_100N,
+             "lib_id": "aiee:CC0603KRX7R9BB104", "footprint": f"{FP}:C0603"},
         ],
         caps_at=(190.5, 198.12), caps_dx=20.32)
 
@@ -138,13 +125,8 @@ def build() -> schlib.Sheet:
        
         expect={"1": "GND", "2": "VOUT", "3": "VIN", "4": "VOUT"},
         decoupling=[
-            # C5 22uF TANTALUM: AMS1117 stability case (part of the LDO's
-            # compensation - do not substitute ceramic). Symbol pin 1 is the
-            # ANODE(+) (drawn "+" mark) and the helper wires pin 1 -> rail,
-            # so polarity lands anode=+3V3, cathode=GND.
-            {"cap": "C5", "pin": "2", "rail": "+3V3", "value": V_22U_TA,
-             "lib_id": "aiee:TAJB226K016RNJ",
-             "footprint": f"{FP}:CASE-B_3528"},
+            {"cap": "C5", "pin": "2", "rail": "+3V3", "value": V_10U,
+             "lib_id": "aiee:CL21A106KAYNNNE", "footprint": f"{FP}:C0805"},
             {"cap": "C6", "pin": "3", "rail": "+5V", "value": V_10U,
              "lib_id": "aiee:CL21A106KAYNNNE", "footprint": f"{FP}:C0805"},
         ],

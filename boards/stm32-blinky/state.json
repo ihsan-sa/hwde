@@ -3,9 +3,29 @@
  "board": "stm32-blinky",
  "workspace": "boards/stm32-blinky",
  "created": "2026-07-27T16:26:45",
- "updated": "2026-07-27T17:55:04",
+ "updated": "2026-07-27T22:18:12",
  "phase": "P4",
- "gates": {},
+ "gates": {
+  "erc": {
+   "phase": "P4",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-07-27T22:06:05",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0
+   },
+   "history": [
+    {
+     "ts": "2026-07-27T22:06:05",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0
+    }
+   ]
+  }
+ },
  "human": {
   "1": {
    "status": "approved",
@@ -18,11 +38,100 @@
   "architecture": "architecture/blocks.md",
   "parts": "parts/parts.json"
  },
- "open_issues": [],
- "next_issue_id": 1,
+ "open_issues": [
+  {
+   "id": 1,
+   "status": "fixing",
+   "agent": "p4-continuation",
+   "attempts": 0,
+   "opened": "2026-07-27T22:17:47",
+   "closed": null,
+   "gate": null,
+   "phase": null,
+   "fixer": "review",
+   "net": "+3V3",
+   "kinds": [
+    "ldo-cout-stability"
+   ],
+   "severity": "error",
+   "count": 1,
+   "region": {
+    "bbox": null,
+    "center": null
+   },
+   "work_order": "boards/stm32-blinky/log/workorders/wo-1.json"
+  },
+  {
+   "id": 2,
+   "status": "fixing",
+   "agent": "p4-continuation",
+   "attempts": 0,
+   "opened": "2026-07-27T22:17:47",
+   "closed": null,
+   "gate": null,
+   "phase": null,
+   "fixer": "review",
+   "net": "+3V3",
+   "kinds": [
+    "vdda-decoupling-under-spec"
+   ],
+   "severity": "warning",
+   "count": 1,
+   "region": {
+    "bbox": null,
+    "center": null
+   },
+   "work_order": "boards/stm32-blinky/log/workorders/wo-2.json"
+  },
+  {
+   "id": 3,
+   "status": "fixing",
+   "agent": "p4-continuation",
+   "attempts": 0,
+   "opened": "2026-07-27T22:17:47",
+   "closed": null,
+   "gate": null,
+   "phase": null,
+   "fixer": "review",
+   "net": "+3V3",
+   "kinds": [
+    "vdd3-bulk-missing"
+   ],
+   "severity": "warning",
+   "count": 1,
+   "region": {
+    "bbox": null,
+    "center": null
+   },
+   "work_order": "boards/stm32-blinky/log/workorders/wo-3.json"
+  },
+  {
+   "id": 4,
+   "status": "waived",
+   "agent": null,
+   "attempts": 0,
+   "opened": "2026-07-27T22:17:47",
+   "closed": "2026-07-27T22:18:12",
+   "gate": null,
+   "phase": null,
+   "fixer": "review",
+   "net": null,
+   "kinds": [
+    "erc-pintypes-vacuous"
+   ],
+   "severity": "warning",
+   "count": 1,
+   "region": {
+    "bbox": null,
+    "center": null
+   },
+   "work_order": "boards/stm32-blinky/log/workorders/wo-4.json"
+  }
+ ],
+ "next_issue_id": 5,
  "budgets": {
   "fix_loops": {
-   "erc": 3,
+   "erc": 2,
    "place": 3,
    "drc_routed": 3,
    "verify": 3,
@@ -217,6 +326,98 @@
    "event": "phase",
    "phase": "P4",
    "prev": "P3"
+  },
+  {
+   "ts": "2026-07-27T22:06:05",
+   "event": "gate",
+   "gate": "erc",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-07-27T22:16:34",
+   "event": "budget",
+   "path": "fix_loops.erc",
+   "remaining": 2
+  },
+  {
+   "ts": "2026-07-27T22:16:34",
+   "event": "snapshot",
+   "label": "pre-fix-review-p4",
+   "files": 4
+  },
+  {
+   "ts": "2026-07-27T22:17:47",
+   "event": "issue_open",
+   "id": 1,
+   "gate": null,
+   "fixer": "review",
+   "kinds": [
+    "ldo-cout-stability"
+   ]
+  },
+  {
+   "ts": "2026-07-27T22:17:47",
+   "event": "issue_open",
+   "id": 2,
+   "gate": null,
+   "fixer": "review",
+   "kinds": [
+    "vdda-decoupling-under-spec"
+   ]
+  },
+  {
+   "ts": "2026-07-27T22:17:47",
+   "event": "issue_open",
+   "id": 3,
+   "gate": null,
+   "fixer": "review",
+   "kinds": [
+    "vdd3-bulk-missing"
+   ]
+  },
+  {
+   "ts": "2026-07-27T22:17:47",
+   "event": "issue_open",
+   "id": 4,
+   "gate": null,
+   "fixer": "review",
+   "kinds": [
+    "erc-pintypes-vacuous"
+   ]
+  },
+  {
+   "ts": "2026-07-27T22:18:12",
+   "event": "issue",
+   "id": 1,
+   "status": "fixing",
+   "agent": "p4-continuation",
+   "attempts": 0
+  },
+  {
+   "ts": "2026-07-27T22:18:12",
+   "event": "issue",
+   "id": 2,
+   "status": "fixing",
+   "agent": "p4-continuation",
+   "attempts": 0
+  },
+  {
+   "ts": "2026-07-27T22:18:12",
+   "event": "issue",
+   "id": 3,
+   "status": "fixing",
+   "agent": "p4-continuation",
+   "attempts": 0
+  },
+  {
+   "ts": "2026-07-27T22:18:12",
+   "event": "issue",
+   "id": 4,
+   "status": "waived",
+   "agent": null,
+   "attempts": 0
   }
  ]
 }

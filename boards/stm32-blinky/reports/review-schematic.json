@@ -1,0 +1,48 @@
+{
+ "violations": [
+  {
+   "check": "schematic-review",
+   "severity": "error",
+   "pos": null,
+   "layer": null,
+   "net": "+3V3",
+   "refs": ["U2", "C5"],
+   "msg": "AMS1117 output cap C5 is 10uF X5R ceramic (~6-8uF effective at 3.3V bias, ESR ~5 mOhm) but the C6186 datasheet makes COUT part of the frequency compensation and states stability only for 22uF solid tantalum, so the board's only rail can oscillate and cause erratic resets/SWD flakiness at bring-up.",
+   "source": "review.schematic",
+   "kind": "ldo-cout-stability"
+  },
+  {
+   "check": "schematic-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "+3V3",
+   "refs": ["U1", "C4"],
+   "msg": "VDDA (U1 pin 9) is decoupled with a single 100nF vs the unconditional DS5319 requirement of 1uF//10nF (Fig 40/5.3.18); VDDA also feeds the PLL/HSI so filtering margin is eroded - tolerable for a blinky, mandatory to fix before any ADC use.",
+   "source": "review.schematic",
+   "kind": "vdda-decoupling-under-spec"
+  },
+  {
+   "check": "schematic-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "+3V3",
+   "refs": ["U1"],
+   "msg": "No 4.7uF bulk capacitor at VDD_3 (pin 48) despite the DS5319 5.1.6 caution 'the 4.7uF capacitor must be connected to VDD3'; the substitute (C5 at the LDO) is remote and is itself the cap flagged in the ldo-cout-stability error.",
+   "source": "review.schematic",
+   "kind": "vdd3-bulk-missing"
+  },
+  {
+   "check": "schematic-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": null,
+   "refs": ["U1", "J1", "J2", "D1", "D2", "Y1"],
+   "msg": "Library symbols type nearly every pin 'passive' (all U1 GPIOs/NRST/BOOT0/OSC pins, headers, diodes, crystal), so the green ERC 0/0 gate could not have caught driver conflicts, floating driven inputs, or signal-to-rail shorts - machine coverage is vacuous and future boards from these symbols are unguarded.",
+   "source": "review.schematic",
+   "kind": "erc-pintypes-vacuous"
+  }
+ ]
+}

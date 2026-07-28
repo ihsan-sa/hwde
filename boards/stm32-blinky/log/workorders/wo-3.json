@@ -1,0 +1,52 @@
+{
+ "id": 3,
+ "created": "2026-07-27T22:17:47",
+ "gate": null,
+ "phase": null,
+ "board": "boards/stm32-blinky/kicad/stm32-blinky.kicad_sch",
+ "fixer": "review",
+ "role_prompt": "C:/dev/ai-ee3/.claude/skills/ai-ee/agents/fixer.md",
+ "allowed_scripts": [
+  "render.py"
+ ],
+ "guidance": [
+  "No script owns this violation kind - triage: either identify the right domain and say so, or escalate to human with a render and a one-paragraph explanation."
+ ],
+ "cluster": {
+  "net": "+3V3",
+  "kinds": [
+   "vdd3-bulk-missing"
+  ],
+  "checks": [
+   "review.schematic"
+  ],
+  "severity": "warning",
+  "count": 1,
+  "region": {
+   "bbox": null,
+   "center": null
+  },
+  "violations": [
+   {
+    "check": "schematic-review",
+    "severity": "warning",
+    "pos": null,
+    "layer": null,
+    "net": "+3V3",
+    "refs": [
+     "U1"
+    ],
+    "msg": "No 4.7uF bulk capacitor at VDD_3 (pin 48) despite the DS5319 5.1.6 caution 'the 4.7uF capacitor must be connected to VDD3'; the substitute (C5 at the LDO) is remote and is itself the cap flagged in the ldo-cout-stability error.",
+    "source": "review.schematic",
+    "kind": "vdd3-bulk-missing"
+   }
+  ]
+ },
+ "artifacts": {
+  "board": "boards/stm32-blinky/kicad/stm32-blinky.kicad_sch",
+  "schematic": "boards/stm32-blinky/kicad/stm32-blinky.kicad_sch",
+  "constraints": "boards/stm32-blinky/kicad/constraints.json",
+  "decoupling": "boards/stm32-blinky/kicad/decoupling.json"
+ },
+ "scope": "fix ONLY these violations; do not touch unrelated nets/regions; re-run the failed gate when done"
+}
