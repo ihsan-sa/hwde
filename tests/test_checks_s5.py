@@ -193,6 +193,54 @@ def test_pdn_bulk_plus_ceramic_clean():
     assert facts["bulk_count"] == 1 and facts["ceramic_count"] == 1
 
 
+def test_pdn_multitoken_values_count_as_bulk():
+    """S14: real-world value strings ('10uF 25V X5R', '22uF 16V tantalum')
+    must parse - pdn_no_bulk false-positived on every such bulk cap."""
+    class _BG:
+        nets = {"+3V3"}
+    assocs = [{"cap": "C1", "rail": "+3V3", "value": "100nF 50V X7R"},
+              {"cap": "C5", "rail": "+3V3", "value": "22uF 16V tantalum"},
+              {"cap": "C11", "rail": "+3V3", "value": "10uF 25V X5R"}]
+    vs, facts = check_pdn.check_rail(_BG(), "+3V3", 0.3, assocs)
+    assert vs == []
+    assert facts["bulk_count"] == 2 and facts["ceramic_count"] == 1
+
+
+def test_parse_farads_multitoken():
+    p = check_decoupling.parse_farads
+    assert p("10uF 25V X5R") == pytest.approx(10e-6)
+    assert p("22uF 16V tantalum") == pytest.approx(22e-6)
+    assert p("100nF 50V X7R") == pytest.approx(100e-9)
+    assert p("22pF 50V NP0") == pytest.approx(22e-12)
+    # must NOT match voltage/dielectric tokens when no farad token exists
+    assert p("25V X7R") is None
+    assert p("tantalum") is None
+    # plain forms keep their old meaning
+    assert p("10uF") == pytest.approx(10e-6)
+    assert p(1e-6) == pytest.approx(1e-6)
+
+
+def test_pdn_width_only_entry_skipped(tmp_path):
+    """S14: power entries with "pdn": false (declared only for rules_gen trace
+    width - e.g. the raw-input stub before a reverse-polarity diode) are
+    skipped by the inventory, not flagged pdn_undecoupled."""
+    class _BG:
+        nets = {"/VIN"}
+    # direct run() path: build minimal files
+    import json as _json
+    cons = {"power": [{"net": "/VIN", "current_a": 0.3, "pdn": False}]}
+    dec = {"associations": []}
+    (tmp_path / "c.json").write_text(_json.dumps(cons), encoding="utf-8")
+    (tmp_path / "d.json").write_text(_json.dumps(dec), encoding="utf-8")
+    pcb = GOLDEN / "blinky2" / "blinky2.kicad_pcb"
+    payload, _ = check_pdn.run([
+        "--pcb", str(pcb), "--constraints", str(tmp_path / "c.json"),
+        "--decoupling", str(tmp_path / "d.json")])
+    assert payload["status"] == "pass"
+    assert payload["violations"] == []
+    assert payload["checked"][0]["skipped"].startswith("pdn:false")
+
+
 # ============================================================ pure: diffpair
 
 def test_discover_pairs():

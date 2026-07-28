@@ -3,8 +3,8 @@
  "board": "stm32-blinky",
  "workspace": "boards/stm32-blinky",
  "created": "2026-07-27T16:26:45",
- "updated": "2026-07-28T00:28:28",
- "phase": "P7",
+ "updated": "2026-07-28T00:34:29",
+ "phase": "P8",
  "gates": {
   "erc": {
    "phase": "P4",
@@ -52,13 +52,13 @@
   },
   "drc_routed": {
    "phase": "P7",
-   "status": "fail",
-   "attempts": 1,
+   "status": "pass",
+   "attempts": 2,
    "last": {
-    "ts": "2026-07-28T00:18:19",
-    "status": "fail",
-    "failing_count": 1,
-    "total": 1
+    "ts": "2026-07-28T00:29:50",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0
    },
    "history": [
     {
@@ -66,6 +66,31 @@
      "status": "fail",
      "failing_count": 1,
      "total": 1
+    },
+    {
+     "ts": "2026-07-28T00:29:50",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0
+    }
+   ]
+  },
+  "verify": {
+   "phase": "P8",
+   "status": "fail",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-07-28T00:34:28",
+    "status": "fail",
+    "failing_count": 1,
+    "total": 3
+   },
+   "history": [
+    {
+     "ts": "2026-07-28T00:34:28",
+     "status": "fail",
+     "failing_count": 1,
+     "total": 3
     }
    ]
   }
@@ -189,7 +214,7 @@
    "erc": 2,
    "place": 3,
    "drc_routed": 3,
-   "verify": 3,
+   "verify": 2,
    "dfm": 3
   },
   "freerouting_retries": 1,
@@ -273,6 +298,12 @@
    "why": "U1.8 GND fan-out sealed by /NRST via + +3V3 escape; only legal via site had 0.009mm margin (router refused coin-flip); stitch no_clear_spot + KRT finish agree",
    "phase": "P7",
    "ts": "2026-07-28T00:18:20"
+  },
+  {
+   "what": "verify fail triage: pdn_undecoupled /VIN = width-only stub -> new 'pdn:false' opt-out (check_pdn+schema); pdn_no_bulk +5V/+3V3 = parse_farads multi-token bug -> fixed with tests",
+   "why": "Both check-side defects, board is correct; S14 hardening mandate",
+   "phase": "P8",
+   "ts": "2026-07-28T00:34:29"
   }
  ],
  "history": [
@@ -650,6 +681,45 @@
    "event": "restore",
    "label": "pre-cleanup-a2",
    "files": 1
+  },
+  {
+   "ts": "2026-07-28T00:29:50",
+   "event": "gate",
+   "gate": "drc_routed",
+   "status": "pass",
+   "attempt": 2,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-07-28T00:29:50",
+   "event": "phase",
+   "phase": "P8",
+   "prev": "P7"
+  },
+  {
+   "ts": "2026-07-28T00:34:28",
+   "event": "gate",
+   "gate": "verify",
+   "status": "fail",
+   "attempt": 1,
+   "failing_count": 1
+  },
+  {
+   "ts": "2026-07-28T00:34:28",
+   "event": "budget",
+   "path": "fix_loops.verify",
+   "remaining": 2
+  },
+  {
+   "ts": "2026-07-28T00:34:28",
+   "event": "snapshot",
+   "label": "pre-fix-verify-a1",
+   "files": 2
+  },
+  {
+   "ts": "2026-07-28T00:34:29",
+   "event": "decision",
+   "what": "verify fail triage: pdn_undecoupled /VIN = width-only stub -> new 'pdn:false' opt-out (check_pdn+schema); pdn_no_bulk +5V/+3V3 = parse_farads multi-token bug -> fixed with tests"
   }
  ]
 }

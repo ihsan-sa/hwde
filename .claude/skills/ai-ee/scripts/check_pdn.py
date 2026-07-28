@@ -93,6 +93,14 @@ def run(argv=None):
         rail = entry.get("net")
         if not rail:
             continue
+        # `"pdn": false` opts a power entry out of the decoupling inventory:
+        # nets declared only so rules_gen sizes their trace width (e.g. the
+        # raw-input stub BEFORE a reverse-polarity element) are not rails
+        # anything decouples by design (S14 finding).
+        if entry.get("pdn") is False:
+            checked.append({"rail": rail, "current_a": entry.get("current_a"),
+                            "skipped": "pdn:false (width-only power entry)"})
+            continue
         vs, facts = check_rail(bg, rail, entry.get("current_a"), assocs)
         violations.extend(vs)
         checked.append(facts)

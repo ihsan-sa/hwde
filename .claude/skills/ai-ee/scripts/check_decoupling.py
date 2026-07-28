@@ -61,6 +61,12 @@ CLASSES = {  # value_min_f, dist warn/error mm, loop warn/error nH
 
 # accept the micro sign and Greek mu (datasheets use both) alongside ASCII 'u'.
 _VAL_RE = re.compile(r"^\s*([0-9.]+)\s*([pnumµμ]?)F?\s*$", re.IGNORECASE)
+# real-world value strings carry suffixes ("10uF 25V X5R", "22uF 16V tantalum");
+# fall back to the first <number><prefix>F token. Unit letter + F required so
+# "25V"/"X7R" can never match (S14 finding: pdn_no_bulk false-positived on
+# every multi-token bulk cap value).
+_TOKEN_RE = re.compile(r"([0-9]+(?:\.[0-9]+)?)\s*([pnumµμ])F(?![a-z0-9])",
+                       re.IGNORECASE)
 _SCALE = {"p": 1e-12, "n": 1e-9, "u": 1e-6, "µ": 1e-6, "μ": 1e-6,
           "m": 1e-3, "": 1.0}
 
@@ -68,7 +74,10 @@ _SCALE = {"p": 1e-12, "n": 1e-9, "u": 1e-6, "µ": 1e-6, "μ": 1e-6,
 def parse_farads(value) -> float | None:
     if isinstance(value, (int, float)):
         return float(value)
-    m = _VAL_RE.match(str(value or ""))
+    s = str(value or "")
+    m = _VAL_RE.match(s)
+    if not m:
+        m = _TOKEN_RE.search(s)
     if not m:
         return None
     return float(m.group(1)) * _SCALE[m.group(2).lower()]

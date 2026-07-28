@@ -1,0 +1,128 @@
+{
+ "script": "check_pdn",
+ "status": "violations",
+ "board": "stm32-blinky.kicad_pcb",
+ "counts": {
+  "total": 3,
+  "by_severity": {
+   "error": 1,
+   "warning": 2
+  },
+  "by_source": {
+   "check_pdn": 3
+  }
+ },
+ "violations": [
+  {
+   "check": "check_pdn",
+   "severity": "error",
+   "pos": null,
+   "layer": null,
+   "net": "/VIN",
+   "refs": [],
+   "msg": "power rail /VIN (0.3 A) has no decoupling capacitors",
+   "source": "check_pdn",
+   "items": [
+    {
+     "msg": "power rail /VIN (0.3 A) has no decoupling capacitors",
+     "pos": null
+    }
+   ],
+   "kind": "pdn_undecoupled",
+   "rail": "/VIN",
+   "cap_count": 0
+  },
+  {
+   "check": "check_pdn",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "+5V",
+   "refs": [
+    "C6"
+   ],
+   "msg": "power rail +5V has 1 cap(s) but no bulk reservoir (>= 1 uF); only ceramics hold it",
+   "source": "check_pdn",
+   "items": [
+    {
+     "msg": "power rail +5V has 1 cap(s) but no bulk reservoir (>= 1 uF); only ceramics hold it",
+     "pos": null
+    }
+   ],
+   "kind": "pdn_no_bulk",
+   "rail": "+5V",
+   "cap_count": 1,
+   "bulk_count": 0
+  },
+  {
+   "check": "check_pdn",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "+3V3",
+   "refs": [
+    "C1",
+    "C10",
+    "C11",
+    "C2",
+    "C3",
+    "C4",
+    "C5"
+   ],
+   "msg": "power rail +3V3 has 7 cap(s) but no bulk reservoir (>= 1 uF); only ceramics hold it",
+   "source": "check_pdn",
+   "items": [
+    {
+     "msg": "power rail +3V3 has 7 cap(s) but no bulk reservoir (>= 1 uF); only ceramics hold it",
+     "pos": null
+    }
+   ],
+   "kind": "pdn_no_bulk",
+   "rail": "+3V3",
+   "cap_count": 7,
+   "bulk_count": 0
+  }
+ ],
+ "checked": [
+  {
+   "rail": "/VIN",
+   "current_a": 0.3,
+   "on_board": true,
+   "caps": [],
+   "cap_count": 0,
+   "bulk_count": 0,
+   "ceramic_count": 0,
+   "total_uf": 0.0
+  },
+  {
+   "rail": "+5V",
+   "current_a": 0.3,
+   "on_board": true,
+   "caps": [
+    "C6"
+   ],
+   "cap_count": 1,
+   "bulk_count": 0,
+   "ceramic_count": 0,
+   "total_uf": 0.0
+  },
+  {
+   "rail": "+3V3",
+   "current_a": 0.3,
+   "on_board": true,
+   "caps": [
+    "C1",
+    "C10",
+    "C11",
+    "C2",
+    "C3",
+    "C4",
+    "C5"
+   ],
+   "cap_count": 7,
+   "bulk_count": 0,
+   "ceramic_count": 0,
+   "total_uf": 0.0
+  }
+ ]
+}

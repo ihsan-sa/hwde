@@ -22,10 +22,17 @@ Consumers per key (script -> phase):
   }],
 
   // check_current (P8), rules_gen per-net width rules (P5),
-  // route_critical power routing (P7), place_anneal rule term (P6)
+  // route_critical power routing (P7), place_anneal rule term (P6),
+  // check_pdn decoupling inventory (P8)
   "power": [{
     "net": "+3V3", "current_a": 0.4, "dt_c": 10, "via_amps": 0.5,
     "overrides": [{"near": [118.5, 108.0], "radius_mm": 5, "current_a": 0.2}]
+  }, {
+    // width-only entry: "pdn": false opts a net OUT of check_pdn's
+    // decoupling inventory. Use for nets declared solely so rules_gen sizes
+    // their trace (e.g. the raw-input stub BEFORE a reverse-polarity
+    // element) - nothing decouples them by design.
+    "net": "/VIN", "current_a": 0.3, "pdn": false
   }],
 
   // check_diffpair (P8), rules_gen gap rules (P5), route_critical (P7).

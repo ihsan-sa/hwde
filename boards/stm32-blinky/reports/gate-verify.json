@@ -1,0 +1,56 @@
+{
+  "script": "gate",
+  "gate": "verify",
+  "phase": "P8",
+  "tool": "verify",
+  "input": "boards\\stm32-blinky\\kicad\\stm32-blinky.kicad_pcb",
+  "status": "fail",
+  "criteria": {
+    "fail_severities": [
+      "error"
+    ],
+    "max_count": 0
+  },
+  "counts": {
+    "total": 3,
+    "by_severity": {
+      "error": 1,
+      "warning": 2
+    },
+    "by_source": {
+      "check_pdn": 3
+    },
+    "by_check": {
+      "check_return_path": 0,
+      "check_current": 0,
+      "check_decoupling": 0,
+      "check_diffpair": 0,
+      "check_creepage": 0,
+      "check_thermal": 0,
+      "check_silk": 0,
+      "check_pdn": 3
+    }
+  },
+  "failing_count": 1,
+  "failing": [
+    {
+      "check": "check_pdn",
+      "severity": "error",
+      "pos": null,
+      "layer": null,
+      "net": "/VIN",
+      "refs": [],
+      "msg": "power rail /VIN (0.3 A) has no decoupling capacitors",
+      "source": "check_pdn",
+      "items": [
+        {
+          "msg": "power rail /VIN (0.3 A) has no decoupling capacitors",
+          "pos": null
+        }
+      ],
+      "kind": "pdn_undecoupled",
+      "rail": "/VIN",
+      "cap_count": 0
+    }
+  ]
+}
