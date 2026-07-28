@@ -1,0 +1,50 @@
+{
+  "high_speed": [
+    {
+      "net": "/USB_DP",
+      "reference": "GND",
+      "k": 3,
+      "t_rise_ns": 4.0,
+      "return_via_radius_mm": 2.0
+    },
+    {
+      "net": "/USB_DM",
+      "reference": "GND",
+      "k": 3,
+      "t_rise_ns": 4.0,
+      "return_via_radius_mm": 2.0
+    }
+  ],
+  "diff_pairs": [
+    {
+      "p": "/USB_DP",
+      "n": "/USB_DM",
+      "base": "USB",
+      "impedance_ohm": 90,
+      "gap_mm": 0.52,
+      "max_skew_mm": 5.0,
+      "max_uncoupled_mm": 5.0
+    }
+  ],
+  "voltages": [],
+  "notes": [
+    "STM32F103 has NO embedded USB_DP pull-up: an external 1.5 kohm (1% per AN4879 Fig 5/7; USB2.0 7.1.5.1 allows 5%) from /USB_DP to +3V3 is MANDATORY. Sources: AN4879 Rev5 Table 3 row STM32F102/F103 = '-' with footnote 2, AN4879 Rev5 Table 4 '1.5 kohm resistor must be added', DS5319 Rev18 Table 44 note 2. Many Blue Pill clones fit 10 k here and fail enumeration - do not copy.",
+    "Pull-up needs no soft-connect transistor: the board is bus-powered, so +3V3 is derived from VBUS and USB2.0 7.1.5.1 ('voltage source ... derived from or controlled by the power supplied on the USB cable') is satisfied by a direct 1.5 k to +3V3. AN4879 3.1.1 requires the GPIO-switched pull-up only for SELF-powered designs.",
+    "NO series resistors on /USB_DP or /USB_DM. AN4879 Rev5 FAQ: 'On the internal USB PHYs, the matching output impedance is already embedded in the pad transceiver ... No external resistors are needed'; AN4879 3.1 says the same. The 22R/33R seen on LPC (NXP AN11392 2.1) and F103 clone boards would push Z_DRV out of the 28-44 ohm window of USB2.0 Table 7-9.",
+    "90 ohm differential (USB2.0 7.1.1.3) is the target because it is free on JLC04161H-3313 (diff_90 profile: w 0.314 mm, gap 0.2104 mm), not because FS needs it: at t_rise 4 ns the t_r/6 critical length is ~115 mm vs a ~20-40 mm run here (NXP AN11392 3.2: 'for full-speed USB, it is not critical'). On a 2-layer stackup drop the 90 ohm target rather than fake it; keep the pair short and coupled.",
+    "gap_mm 0.52 is the nominal CENTRE-TO-CENTRE pitch (0.314 + 0.2104), not the edge-to-edge gap - check_diffpair measures centreline separation. It is stackup-dependent: recompute, or drop the key and let the script auto-derive, if P2 selects a stackup other than JLC04161H-3313.",
+    "return_via_radius_mm 2.0 is emitted alongside t_rise_ns because check_return_path.net_entry_radius gives an explicit radius precedence, and the t_rise-derived radius at 4 ns (c/(f_knee*20) = 119.9 mm) exceeds the board and would make the check vacuous. Best outcome is still zero vias on the pair.",
+    "Route the pair on F.Cu over the solid In1.Cu GND plane: short, direct, parallel, tightly coupled, no plane split/slot beneath, minimal right-angle corners, ideally zero vias (AN11392 3.1/3.2; USB2.0 7.1.1.3).",
+    "Keep /USB_DP//USB_DM away from the AP63203 switch node and inductor, and route VBUS away from the pair (AN4879 3.3).",
+    "ESD at the receptacle: USBLC6-2SC6 on D+/D- (+ ESDA7P60-1U1M on VBUS) per AN4879 Rev5 Table 11, placed 'as close as possible to the receptacle' (AN4879 2.3/3.1.2), in-line so the pair passes through it with no stubs and its GND pin drops straight into the plane. Use a MATCHED 2-channel array: USB2.0 7.1.6.1 requires D+/D- capacitance to match within 10%. Capacitance headroom is generous at FS - <=50 pF per line recommended (AN11392 2.6), 100 pF/line total port limit (USB2.0 7.1.6.1) - so no ultra-low-Cj HS part is needed.",
+    "Do NOT add ferrite beads on D+/D- (USB2.0 7.1.6.1: 'Use of ferrite beads on the D+ or D- lines of full-speed devices is discouraged'; AN11392 2.6) and do not add edge-rate capacitors (optional, <=50 pF, MCU-side only - unnecessary for an ST PHY that already meets the eye).",
+    "Micro-B pinout (KiCad Connector:USB_B_Micro, verified in the KiCad 10.0 symbol lib): 1 VBUS, 2 D-, 3 D+, 4 ID, 5 GND, SH Shield (pipeline renumbers SH -> 6). Wire pin 2 -> /USB_DM -> PA11 and pin 3 -> /USB_DP -> PA12 (DS5319 Rev18 pin table; PA11/PA12 are LQFP48 pins 32/33, both FT 5V-tolerant).",
+    "Micro-B ID pin (4): leave unconnected - device only, no OTG (AN4879 3.3: 'The ID pin is required in dual role only').",
+    "Shield: bond the micro-B shell directly to GND at the connector (ASSUMED - USB2.0 6.8 leaves the device-side scheme to 'accepted industry practices'; direct bond is standard for a bare bus-powered board with one ground system). The ferrite-bead or 1 Mohm||4.7 nF shell-to-GND alternative (AN11392 2.6 Fig 2 L1) needs a separate shield copper island, so decide at P2, not after layout.",
+    "VBUS sensing is NOT mandatory for a bus-powered device (AN4879 2.6) and the F103 has no OTG VBUS-sense block; recommend omitting it. If firmware wants it: 33 kohm to VBUS / 82 kohm to GND into any FT pin (AN4879 2.6), keeping the node below 4 V and above 0.7*VDD, and never exposing a GPIO to raw 5 V (FT pins are limited to VDD+4 V). Cost ~43 uA continuous, which counts against the 500 uA USB suspend budget (USB2.0 7.2.3) together with the ~200 uA drawn by the 1.5 k pull-up against the host's 15 k pull-down.",
+    "VBUS bulk capacitance (including capacitance visible through the buck) must not exceed 10 uF in parallel with 44 ohm, else the board needs VBUS inrush limiting (USB2.0 7.2.4.1). Hard cap on the AP63203 input capacitor stack.",
+    "The 8 MHz HSE crystal is mandatory, not optional: the FS USB 48 MHz clock must come from the PLL fed by HSE - 'HSI cannot be used' (AN4879 2.4 + FAQ); the F102/F103 have no crystal-less USB (AN4879 Table 4). FS data rate tolerance is +/-0.25% (USB2.0 Table 7-9), so a +/-30 to +/-50 ppm crystal clears it by ~50x. Keep the crystal and its load caps away from the USB pair.",
+    "The 3.3 V rail must stay >= 3.0 V under load: the USB transceiver range is 3.0-3.6 V (AN4879 2.5); below 3.0 V the F103 USB still works but 'the full USB electrical characteristics are degraded' (DS5319 Rev18 Table 44 note 3) and certification eye tests fail (AN4879 FAQ).",
+    "Place the micro-B receptacle at a board edge so a plug can seat (mechanical; belongs in the architect's placement.edges, not in a signal constraint)."
+  ]
+}

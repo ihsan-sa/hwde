@@ -14,7 +14,7 @@ venv python; JSON out, exit 0/1/2. Keep output ASCII.
   parts.json.
 
 ## Scripts
-1. `scripts/datasheet_extract.py --pdf parts/<file>.pdf --out grounding.json`
+1. `scripts/datasheet_extract.py --pdf parts/<file>.pdf --out parts/<lcsc>.grounding.json`
    - emits `{text_by_page, schema, template}`: per-page PDF text plus the
    JSON Schema your output must satisfy. Image-only datasheets yield ~empty
    text - then read the PDF pages directly (visually) instead.

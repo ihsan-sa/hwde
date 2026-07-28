@@ -1,0 +1,101 @@
+{
+ "_comment": "P2 merged constraints for usb-buck (research/interface-usb.json + research/power.json). CANONICAL net names, verified against the schlib hierarchy semantics: power symbols are global and bare (VBUS, +3V3, GND), root-crossed signals are /NAME, sheet-internal signals are /<sheet>/NAME - see architecture/sheets.md s1. Stackup is JLC04161H-3313, so the diff_90 geometry (w 0.314, gap 0.210 edge-to-edge, 0.52 centre-to-centre) from the research fragment carries over verbatim. Absent keys are deliberate no-ops: voltages (max on-board potential is 5 V, nothing near the 30 V creepage trigger), thermal (worst dissipation 0.165 W in U1, 0.031 W in U2 - nothing near 0.5 W), planes (the 4-layer default In1=GND + In2=dominant power already resolves to In2=+3V3; see stackup.md).",
+ "high_speed": [
+  {
+   "net": "/USB_DP",
+   "reference": "GND",
+   "k": 3,
+   "t_rise_ns": 4.0,
+   "return_via_radius_mm": 2.0
+  },
+  {
+   "net": "/USB_DM",
+   "reference": "GND",
+   "k": 3,
+   "t_rise_ns": 4.0,
+   "return_via_radius_mm": 2.0
+  },
+  {
+   "net": "/mcu/OSC_IN",
+   "reference": "GND"
+  },
+  {
+   "net": "/mcu/OSC_OUT",
+   "reference": "GND"
+  }
+ ],
+ "power": [
+  {
+   "net": "VBUS",
+   "current_a": 0.1,
+   "dt_c": 10,
+   "via_amps": 0.5
+  },
+  {
+   "net": "+3V3",
+   "current_a": 0.1,
+   "dt_c": 10,
+   "via_amps": 0.5
+  }
+ ],
+ "diff_pairs": [
+  {
+   "p": "/USB_DP",
+   "n": "/USB_DM",
+   "base": "USB",
+   "impedance_ohm": 90,
+   "gap_mm": 0.52,
+   "max_skew_mm": 5.0,
+   "max_uncoupled_mm": 5.0
+  }
+ ],
+ "placement": {
+  "edges": [
+   {
+    "ref": "J1",
+    "edge": "left",
+    "pos": 0.5
+   },
+   {
+    "ref": "J2",
+    "edge": "right",
+    "pos": 0.5
+   }
+  ],
+  "groups": [
+   {
+    "name": "xtal",
+    "anchor": "Y1",
+    "members": [
+     "C10",
+     "C11"
+    ]
+   },
+   {
+    "name": "buck",
+    "anchor": "U2",
+    "members": [
+     "L1",
+     "C1",
+     "C2",
+     "C3",
+     "C4",
+     "C5"
+    ]
+   }
+  ],
+  "separation": [
+   {
+    "a": [
+     "U2",
+     "L1"
+    ],
+    "b": [
+     "J1",
+     "U3"
+    ],
+    "min_mm": 8
+   }
+  ]
+ }
+}

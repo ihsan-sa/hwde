@@ -432,8 +432,19 @@ def stitch_one_net(bg: geom.BoardGeom, scene: Scene, net: str, pitch: float,
             hit = ((x, y), track_op)
             break
         if hit is None:
-            skipped.append({"ref": label, "reason": "no_clear_spot"})
-            impossible_refs.append(pad.ref)
+            # S14: a pad already carrying a same-net TRACK is connected to
+            # the net's copper elsewhere (the router routed it) - "no local
+            # via spot" is then an advisory nuance, not "stitch_impossible"
+            # (both P7 runs FP'd on track-connected LQFP GND pins).
+            track_touch = any(
+                t.poly.intersects(pad.poly)
+                for t in bg.tracks_of(net=net, layer=pad.layers[0]))
+            if track_touch:
+                skipped.append({"ref": label,
+                                "reason": "track_connected_no_local_spot"})
+            else:
+                skipped.append({"ref": label, "reason": "no_clear_spot"})
+                impossible_refs.append(pad.ref)
             continue
         (x, y), track_op = hit
         ops.append({"op": "add_via", "at": [x, y], "size": via_size,
@@ -493,7 +504,11 @@ def stitch_one_net(bg: geom.BoardGeom, scene: Scene, net: str, pitch: float,
                      "rejected": rejected, "capped": capped}
 
     violation = None
-    if requested >= 1 and placed == 0:
+    # S14: only pads with NO track connection count toward impossibility -
+    # a track-connected pad is wired to its net elsewhere and its missing
+    # local via spot is an advisory nuance (skip reason
+    # track_connected_no_local_spot), not a stitch failure.
+    if impossible_refs and placed == 0:
         violation = checklib.violation(
             "stitch_vias", "warning", None, None, net,
             sorted(set(impossible_refs)),

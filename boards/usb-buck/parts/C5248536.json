@@ -1,0 +1,110 @@
+{
+ "mpn": "AP63203QWU-7",
+ "lcsc": "C5248536",
+ "package": "TSOT26 (6-lead, 0.95 mm pitch; ordering code WU = TSOT26)",
+ "description": "Diodes Inc AP63203Q: automotive-compliant (AEC-Q100 grade 1), 3.8-32 V input, 2 A synchronous buck converter, FIXED 3.3 V output, 1100 kHz switching, PFM/PWM with Frequency Spread Spectrum (+/-6% jitter) and low-dropout (~100% duty) mode. Integrated 125 mOhm high-side / 68 mOhm low-side MOSFETs and internal loop compensation; no external compensation or feedback divider. Key electricals: VFB (= VOUT) 3.267/3.300/3.333 V CCM; fSW 990/1100/1210 kHz CCM; built-in soft-start tSS = 4 ms typ; HS peak current limit 2.35/2.8/3.25 A; LS valley limit 3.2 A typ; IQ 22 uA typ (no-load, non-switching); ISHDN 1 uA; VIN POR rising 3.5/3.7 V max, UVLO falling 3.06 V typ; tON_MIN 80 ns; TSD +160 C (recovery +135 C). Protections: UVLO, output OVP (FB > 110% of internal 0.8 V ref), cycle-by-cycle peak current limit with hiccup after 512 cycles / 8192 cycles off, thermal shutdown. Source: Diodes Incorporated DS43698 Rev. 1-2, September 2021 (AP63200Q/AP63201Q/AP63203Q/AP63205Q), 30 pages.",
+ "pinout": [
+  {
+   "pin": "1",
+   "name": "FB",
+   "type": "analog",
+   "notes": "Feedback sensing terminal for the output voltage. On the FIXED-output AP63203Q the FB pin is tied DIRECTLY to VOUT - 'tie the FB pin directly to VOUT as there is no need for R1, R2, or C4' [Layout note 5, p.27; Figure 4, p.3]. Regulated feedback voltage AP63203Q CCM = 3.267/3.300/3.333 V (min/typ/max) [Electrical Characteristics, p.6]. Internally compared against the 0.8 V reference through an internal divider; OVP trips when FB exceeds 110% of the 0.8 V reference [Sec 6, p.23]. Generic pin table text 'Connect this pin to the resistive divider of the output' applies to the adjustable AP63200Q/AP63201Q [Pin Descriptions, p.4]"
+  },
+  {
+   "pin": "2",
+   "name": "EN",
+   "type": "input",
+   "notes": "Enable input, digital, high-voltage tolerant (abs max 35 V). Drive high to turn on, low to turn off. 'Connect to VIN or leave floating for automatic startup' [Pin Descriptions, p.4]. An internal 1.5 uA pull-up current source from the internal LDO-regulated VCC to EN guarantees the device still auto-enables if EN is left floating [Sec 3, p.21] - so FLOAT-TO-ENABLE is valid. Precision thresholds: VEN_H 1.18 V typ / 1.25 V max (rising), VEN_L 1.03 V min / 1.09 V typ (falling); IEN 5.5 uA at VEN = 1.5 V, 1.0/1.5/2.0 uA at VEN = 1 V [Electrical Characteristics, p.6]. A 4 uA hysteresis pull-up plus an external R3/R4 divider from VIN sets a higher VIN UVLO (Eq. 2/3, VON > 3.7 V, VOFF > 3.26 V) [Sec 5, p.22-23]. Optional EN-to-GND ceramic capacitor delays startup: Cd[nF] ~ 1.27 * td[ms] (Eq. 1) [Sec 3, p.21]"
+  },
+  {
+   "pin": "3",
+   "name": "VIN",
+   "type": "power_in",
+   "notes": "Power input; supplies the IC and the step-down converter power MOSFETs. Drive with a 3.8 V to 32 V source. 'Bypass VIN to GND with a suitably large capacitor to eliminate noise due to the switching of the IC' [Pin Descriptions, p.4]"
+  },
+  {
+   "pin": "4",
+   "name": "GND",
+   "type": "ground",
+   "notes": "Power ground [Pin Descriptions, p.4]. Only ground/thermal terminal on the package - heat leaves the die through this pin and the GND copper (no exposed pad); layout notes 7/8 call for as many vias as possible around GND (and VIN) [p.27]"
+  },
+  {
+   "pin": "5",
+   "name": "SW",
+   "type": "power_out",
+   "notes": "Power switching output. 'SW is the switching node that supplies power to the output. Connect the output LC filter from SW to the output load' [Pin Descriptions, p.4]. Hot switching node: place the inductor as close to SW as possible [Layout note 3]. Proprietary multi-level gate driver gives a ringing-free SW node; on the fixed-output AP63203Q/AP63205Q SW resonance ringing is also removed in PFM at 0 A inductor current [Sec 4, p.22]. Abs max -0.3 to VIN+0.3 V DC, -2.5 to VIN+2.0 V for 20 ns"
+  },
+  {
+   "pin": "6",
+   "name": "BST",
+   "type": "passive",
+   "notes": "High-side gate drive boost input. 'A 100nF capacitor is recommended from BST to SW to power the high-side driver' [Pin Descriptions, p.4]; a ceramic capacitor MUST be connected between BST and SW for proper operation [Sec 14, p.26]. Boot UVP: if the bootstrap capacitor falls below 2.3 V the low-side FET is turned on for 220 ns to refresh it back above 2.85 V. Abs max VSW-0.3 to VSW+6.0 V"
+  }
+ ],
+ "decoupling": [
+  {
+   "pins": ["3", "4"],
+   "value": "10uF",
+   "placement": "Place the input capacitors as closely across VIN (pin 3) and GND (pin 4) as possible [Layout note 2, p.27]. Figure 77 places C1 directly bridging the VIN and GND copper at the IC pins",
+   "notes": "Input capacitor: 'Using a ceramic capacitor of 10uF or greater is sufficient for most applications'. Low ESR required (ceramic or low-ESR electrolytic) because of the large dI/dt; a tantalum must be surge protected. Select an RMS current rating greater than half the maximum load current [Sec 12, p.26]. Table 2 (AP63203Q, 3.3 V) lists C1 = 10 uF [p.25]"
+  },
+  {
+   "pins": ["6", "5"],
+   "value": "100nF",
+   "placement": "Ceramic capacitor connected between the BST (pin 6) and SW (pin 5) pins; Figure 77 puts C3 immediately beside the IC bridging the BST pad to the SW copper [p.27]",
+   "notes": "Bootstrap capacitor for the high-side gate driver: '100nF ceramic capacitor is sufficient'; required for proper operation [Pin Descriptions p.4; Sec 14, p.26]. Table 2 (AP63203Q) C3 = 100 nF [p.25]"
+  },
+  {
+   "pins": ["VOUT node (inductor output; FB pin 1 ties directly to it on the fixed 3.3 V AP63203Q)", "4"],
+   "value": "2 x 22uF",
+   "placement": "Place the output capacitors as close to GND as possible [Layout note 4, p.27]; Figure 77 places C2 bridging the VOUT and GND copper next to the inductor",
+   "notes": "Output capacitor: 'For most applications, a total capacitance of 2 x 22uF using ceramic capacitors is sufficient' [Sec 13, p.26]. Table 2 (AP63203Q, VOUT 3.3 V) C2 = 2 x 22 uF [p.25]. Only a LOWER bound is specified, via Eq. 10: COUT > max(L*ITrans^2/(dVovershoot*VOUT), L*ITrans^2/(dVundershoot*(VIN-VOUT))). Ripple from Eq. 9: VOUT_ripple = dIL*(ESR + 1/(8*fsw*COUT)). No min/max effective-capacitance stability window is published"
+  }
+ ],
+ "land_pattern": {
+  "package": "TSOT26",
+  "pad_count": 6,
+  "pitch_mm": 0.95,
+  "pad_size_mm": [0.7, 1.0],
+  "row_spacing_mm": 2.2,
+  "pin1": "1",
+  "notes": "From 'Suggested Pad Layout', TSOT26, p.29: C = 0.950 (pad pitch within a row), X = 0.700 (pad width), Y = 1.000 (pad length), Y1 = 3.200 (overall tip-to-tip span across both rows). row_spacing_mm = Y1 - Y = 2.200 mm center-to-center is DERIVED from those two printed values (the datasheet prints only the 3.200 tip-to-tip dimension). Package outline (p.29, all mm): A 1.00 max, A1 0.010-0.100, A2 0.840-0.900, D 2.800-3.000 (2.900 typ), E 2.800 BSC, E1 1.500-1.700 (1.600 typ), b 0.300-0.450, c 0.120-0.200, e 0.950 BSC, e1 1.900 BSC, L 0.30-0.50, L2 0.250 BSC. Top view: pin 1 top-left, pins 1-2-3 down the left side (FB, EN, VIN), pins 4-5-6 up the right side (GND, SW, BST). No exposed/thermal pad. Datasheet names the package 'TSOT26' only (ordering code WU); it never uses the name TSOT-23-6. Mechanical: MSL 1 per J-STD-020, matte tin plated leads, 0.013 g"
+ },
+ "exposed_pad": {
+  "present": false
+ },
+ "layout_notes": [
+  "Heat dissipation is a major layout concern at 2 A load; 2 oz copper on both top and bottom layers is recommended [PCB Layout 1, p.27]",
+  "Hot loop: place the input capacitors as closely across VIN and GND as possible [PCB Layout 2]",
+  "SW node: place the inductor as close to SW as possible; keep the SW copper small [PCB Layout 3; Figure 77]",
+  "Place the output capacitors as close to GND as possible [PCB Layout 4]",
+  "FB routing: place feedback components as close to FB as possible, if applicable. If using AP63203Q/AP63205Q, tie the FB pin directly to VOUT - there is no need for R1, R2 or C4 [PCB Layout 5]. Figure 77 runs the FB sense as a thin trace from the far (load) side of the inductor back to the FB pin, away from the SW copper",
+  "If using four or more layers, use at least the 2nd and 3rd layers as GND to maximize thermal performance [PCB Layout 6]",
+  "Add as many vias as possible around the GND pin and under the GND plane for heat dissipation to all GND layers [PCB Layout 7]",
+  "Add as many vias as possible around the VIN pin and under the VIN plane for heat dissipation to all VIN layers [PCB Layout 8]",
+  "Figure 77 (Recommended PCB Layout, p.27) uses five copper regions: VIN (with C1 across to GND), a large central GND pour peppered with vias, a compact SW pour under the inductor, VOUT (with C2 back to GND), and a small FB island; C3 sits at the IC bridging BST to the SW pour",
+  "Theta-JA 89 C/W is specified with the device on FR-4, SINGLE-LAYER PCB, 2 oz copper, with the minimum recommended pad layout [Thermal Resistance note 6, p.5]; TJ must stay below the +150 C maximum recommended operating junction temperature (TRISE = PD * theta-JA, TJ = TA + TRISE, Eq. 4/5, p.23-24)"
+ ],
+ "abs_max": [
+  {"param": "VIN supply pin voltage (DC)", "value": "-0.3 to +35.0", "unit": "V"},
+  {"param": "VIN supply pin voltage (400 ms transient)", "value": "-0.3 to +40.0", "unit": "V"},
+  {"param": "VFB feedback pin voltage", "value": "-0.3 to +6.0", "unit": "V"},
+  {"param": "VEN enable/UVLO pin voltage", "value": "-0.3 to +35.0", "unit": "V"},
+  {"param": "VSW switch pin voltage (DC)", "value": "-0.3 to VIN + 0.3", "unit": "V"},
+  {"param": "VSW switch pin voltage (20 ns)", "value": "-2.5 to VIN + 2.0", "unit": "V"},
+  {"param": "VBST bootstrap pin voltage", "value": "VSW - 0.3 to VSW + 6.0", "unit": "V"},
+  {"param": "TSTG storage temperature", "value": "-65 to +150", "unit": "degC"},
+  {"param": "TJ junction temperature (absolute maximum)", "value": "+160", "unit": "degC"},
+  {"param": "TL lead temperature", "value": "+260", "unit": "degC"},
+  {"param": "ESD human body model (HBM)", "value": "+/-2000", "unit": "V"},
+  {"param": "ESD charged device model (CDM)", "value": "+/-1500", "unit": "V"},
+  {"param": "Recommended operating VIN supply voltage", "value": "3.8 to 32", "unit": "V"},
+  {"param": "Recommended operating VOUT", "value": "0.8 to VIN (AP63203Q is fixed at 3.3)", "unit": "V"},
+  {"param": "Recommended operating ambient temperature TA", "value": "-40 to +125", "unit": "degC"},
+  {"param": "Recommended operating junction temperature TJ", "value": "-40 to +150", "unit": "degC"},
+  {"param": "Continuous output current", "value": 2, "unit": "A"},
+  {"param": "Thermal resistance theta-JA (TSOT26)", "value": 89, "unit": "degC/W"},
+  {"param": "Thermal resistance theta-JC (TSOT26)", "value": 39, "unit": "degC/W"}
+ ],
+ "source_pdf": "parts/C5248536.pdf"
+}

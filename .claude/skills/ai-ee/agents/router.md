@@ -35,7 +35,9 @@ Route artifacts (DSN/SES/logs) land in `<board dir>/route/`.
 4. `scripts/plane_repair.py --pcb <board>` - detects electrically-split
    pours and repairs (bridge/jumper ladder). Mutates in place; on exit 1
    restore the pre-step snapshot (orchestrator has one) and report.
-5. Optional `scripts/route_cleanup.py --pcb <board>` - hygiene. It can
+5. Optional `scripts/route_cleanup.py --pcb <board>` - hygiene. S14: its
+   loop-breaker regressed on BOTH attempts on a 2-layer pour board (union-
+   find/fill edge, V13) - SKIP it on 2L pour boards by default. It can
    self-detect a connectivity regression (exit 1 cleanup_regression, board
    left modified): restore the snapshot and CONTINUE WITHOUT cleanup - it
    is optional by design.

@@ -8,7 +8,7 @@ You are a P5 subagent of the /ai-ee pipeline. Files are the interface. Run
 scripts with the repo venv python; JSON out, exit 0/1/2. Keep output ASCII.
 
 ## Inputs
-- `kicad/<top>.net` (export first if absent: `scripts/kc.py netlist --sch
+- `kicad/<top>.net` (export first if absent: `scripts/kc.py netlist
   kicad/<top>.kicad_sch --out kicad/<top>.net`), `architecture/`
   (stackup.md for the stackup NAME, constraints.json), mechanical limits
   from `requirements.md`, `lib/` (pulled footprint libs).

@@ -64,12 +64,9 @@ class Footprint:
     courtyard_missing: bool = False   # True when extents fall back to pads
 
     # -- derived, local frame -------------------------------------------
-    def extents_local(self) -> Polygon:
-        """Courtyard, or the pad-bbox fallback (+0.25 mm) when absent."""
-        if self.courtyard_local is not None:
-            return self.courtyard_local
+    def _pad_box_local(self) -> Polygon | None:
         if not self.pads:
-            return box(-0.5, -0.5, 0.5, 0.5)
+            return None
         xs, ys, hs, vs = zip(*((p.local[0], p.local[1],
                                 p.size[0] / 2, p.size[1] / 2)
                                for p in self.pads))
@@ -78,6 +75,28 @@ class Footprint:
                    min(y - v for y, v in zip(ys, vs)) - m,
                    max(x + h for x, h in zip(xs, hs)) + m,
                    max(y + v for y, v in zip(ys, vs)) + m)
+
+    def extents_local(self) -> Polygon:
+        """EFFECTIVE courtyard: the declared courtyard expanded to at least
+        cover the pad field (+0.25 mm); pad-bbox fallback when absent.
+
+        S14 finding: EasyEDA courtyards can be SMALLER than the pad field
+        (LQFP48 body-only rect, LED0805) - courtyard-only legality passed a
+        board with 9 SHORTING pad pairs. A proper courtyard (stock KiCad:
+        pads + margin) contains its pad box, so the union is a no-op there.
+        """
+        pad_box = self._pad_box_local()
+        if self.courtyard_local is not None:
+            if pad_box is None:
+                return self.courtyard_local
+            if self.courtyard_local.contains(pad_box):
+                return self.courtyard_local
+            merged = self.courtyard_local.union(pad_box)
+            return merged if merged.geom_type == "Polygon" \
+                else merged.convex_hull
+        if pad_box is None:
+            return box(-0.5, -0.5, 0.5, 0.5)
+        return pad_box
 
     def center_local(self) -> tuple[float, float]:
         c = self.extents_local().centroid

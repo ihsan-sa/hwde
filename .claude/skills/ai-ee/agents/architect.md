@@ -16,7 +16,9 @@ output ASCII.
 
 ## Write (all under `architecture/`)
 1. `blocks.md` - mermaid block diagram with signal AND power flow; one
-   paragraph per block naming its lead candidate part (from research).
+   paragraph per block naming its lead candidate part (from research) by
+   MPN/part-class ONLY - NEVER an LCSC code from memory (S14: a from-memory
+   code resolved to the wrong part; codes are P3 parts_search's job).
 2. `power_tree.md` - rails with budgets (lift from research/power.json,
    reconcile against final block choices).
 3. `stackup.md` - chosen stackup NAME from stackups.yaml (e.g. JLC2313_1.6

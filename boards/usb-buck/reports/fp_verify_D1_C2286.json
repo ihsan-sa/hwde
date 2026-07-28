@@ -1,0 +1,65 @@
+{
+ "script": "fp_verify",
+ "status": "pass",
+ "board": "LED-SMD_L1.6-W0.8-R-RD.kicad_mod",
+ "counts": {
+  "total": 1,
+  "by_severity": {
+   "warning": 1
+  },
+  "by_source": {
+   "check.fp_verify": 1
+  }
+ },
+ "violations": [
+  {
+   "check": "fp_verify",
+   "severity": "warning",
+   "pos": null,
+   "layer": "F.Cu",
+   "net": null,
+   "refs": [
+    "LED-SMD_L1.6-W0.8-R-RD"
+   ],
+   "msg": "modal pad size (0.8, 0.8) mm != datasheet (0.7, 0.7) mm (tol 0.1)",
+   "source": "check.fp_verify",
+   "items": [
+    {
+     "msg": "modal pad size (0.8, 0.8) mm != datasheet (0.7, 0.7) mm (tol 0.1)",
+     "pos": null
+    }
+   ],
+   "kind": "pad_size",
+   "expected_mm": [
+    0.7,
+    0.7
+   ],
+   "measured_mm": [
+    0.8,
+    0.8
+   ]
+  }
+ ],
+ "footprint": "LED-SMD_L1.6-W0.8-R-RD",
+ "footprint_file": "lib\\aiee.pretty\\LED-SMD_L1.6-W0.8-R-RD.kicad_mod",
+ "copper_pads": 2,
+ "total_pads": 2,
+ "measured_pitch_mm": 1.5,
+ "measured_pad_size_mm": [
+  0.8,
+  0.8
+ ],
+ "has_courtyard": true,
+ "has_silk": true,
+ "land_pattern": {
+  "package": "0603 LED (Hubei KENTO KT-0603R)",
+  "pad_count": 2,
+  "pin1": "1",
+  "pad_size_mm": [
+   0.7,
+   0.7
+  ],
+  "notes": "From the KT-0603R datasheet section 2 'Package Profile & Soldering PAD Suggested' (p.2, fetched via the wmsc.lcsc.com mirror): two 0.70 x 0.70 mm pads separated by a 0.70 mm gap (=1.40 mm centre-to-centre). The pulled footprint uses 0.80 x 0.80 pads at 1.50 mm centre-to-centre - the SAME 0.70 mm inter-pad gap with 0.05 mm more pad on every side, so pitch_mm is deliberately omitted (the 1.40 vs 1.50 centre spacing is a consequence of the larger pads, not a mismatch). Datasheet pin (1) is marked '+' = anode, matching the pulled symbol's pin 1 = A."
+ },
+ "svg": "reports\\fp_D1_C2286.overlay.svg"
+}

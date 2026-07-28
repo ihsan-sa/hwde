@@ -30,7 +30,7 @@ scripts with the repo venv python; JSON out, exit 0/1/2. Keep output ASCII.
 ## Stage 3 - select + repair (your judgment, <= 8 edit iterations budget)
 1. Review candidates: metrics first, then renders - apply a candidate to a
    COPY (`scripts/place_edit.py --pcb <copy> --ops cand<k>.ops.json`) and
-   `scripts/render.py --pcb <copy> --views top,bottom`.
+   `scripts/render.py <copy> --views top,bottom` (board path POSITIONAL).
 2. Judge what the cost cannot: connector orientation/reachability, refdes
    silk room (tight courtyard packing puts silk over neighbour pads and
    FAILS the P7 err+warn gate - if candidates look packed, prefer the seed

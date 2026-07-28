@@ -1,0 +1,147 @@
+{
+ "version": 1,
+ "board": "usb-buck",
+ "workspace": "boards/usb-buck",
+ "created": "2026-07-28T01:26:50",
+ "updated": "2026-07-28T03:00:43",
+ "phase": "P4",
+ "gates": {},
+ "human": {
+  "1": {
+   "status": "approved",
+   "ts": "2026-07-28T02:13:09",
+   "note": "AUTO-approved per directive: 4L 40x30, ~$62-75/10 assembled, risks = sheet-name coupling (deliberate) + TVS VBUS clamp pin (re-opens at P3)"
+  }
+ },
+ "artifacts": {},
+ "open_issues": [],
+ "next_issue_id": 1,
+ "budgets": {
+  "fix_loops": {
+   "erc": 3,
+   "place": 3,
+   "drc_routed": 3,
+   "verify": 3,
+   "dfm": 3
+  },
+  "freerouting_retries": 2,
+  "place_edit_iterations": 8
+ },
+ "decisions": [
+  {
+   "what": "S14 exec plan applies: auto-approve checkpoints w/ recommended defaults, model-mix agents, lean inline script phases",
+   "why": "User directives 2026-07-27/28",
+   "phase": "P0",
+   "ts": "2026-07-28T01:26:50"
+  },
+  {
+   "what": "P0 defaults: no cost cap; bare board no mounting holes",
+   "why": "AUTO per user directive; both low-risk defaults",
+   "phase": "P0",
+   "ts": "2026-07-28T01:31:52"
+  },
+  {
+   "what": "JLC04161H-3313 4L standard (not impedance-controlled - FS does not need it); In1 GND, In2 +3V3; 3-sheet hierarchy usb/power/mcu, net names contractual (/USB_DP,/USB_DM root-labeled; /mcu/OSC_* couple constraints to sheet name - deliberate)",
+   "why": "Architect P2, research-grounded, hierdemo-verified naming",
+   "phase": "P2",
+   "ts": "2026-07-28T02:13:08"
+  },
+  {
+   "what": "Settled: buck stands; LED 1k on PC13 (3mA limit); DP pull-up hardwired 1.5k; VBUS sense OMIT; shell->GND direct; VBUS caps exactly 10uF+100nF (USB inrush ceiling == buck C_IN)",
+   "why": "All 7 research OPEN items closed with reasons in decisions.md",
+   "phase": "P2",
+   "ts": "2026-07-28T02:13:08"
+  },
+  {
+   "what": "Inductor L1 DCR 60mOhm vs DS43698's <30mOhm recommendation: WAIVED - the <30 criterion targets 2A-class operation; this board peaks 57mA (0.2mW conduction loss). Isat 2.9A >> 1.35x requirement holds",
+   "why": "Engineering waiver with math; schematic-reviewer may contest",
+   "phase": "P3",
+   "ts": "2026-07-28T02:37:37"
+  },
+  {
+   "what": "ONE schematic-block agent owns all 3 sheets + root (vs one-per-sheet guidance)",
+   "why": "28-part board; hierarchy fully preserved in the OUTPUT; single agent is cheaper and avoids cross-agent refdes/net coordination risk at this size",
+   "phase": "P3",
+   "ts": "2026-07-28T03:00:43"
+  },
+  {
+   "what": "Library edits approved: silk sanitize on C0603/C0805/R0603/LED (sub-minimum dots on pad 1) + U2 TSOT-26 gains a printable pin-1 dot; no lib_pull re-runs (easyeda2kicad dup bug + API 403)",
+   "why": "Intra-footprint silk would hard-fail P5 self-check by design; U2 rotation = dead board",
+   "phase": "P3",
+   "ts": "2026-07-28T03:00:43"
+  }
+ ],
+ "history": [
+  {
+   "ts": "2026-07-28T01:26:50",
+   "event": "init",
+   "board": "usb-buck",
+   "phase": "P0"
+  },
+  {
+   "ts": "2026-07-28T01:26:50",
+   "event": "decision",
+   "what": "S14 exec plan applies: auto-approve checkpoints w/ recommended defaults, model-mix agents, lean inline script phases"
+  },
+  {
+   "ts": "2026-07-28T01:31:52",
+   "event": "decision",
+   "what": "P0 defaults: no cost cap; bare board no mounting holes"
+  },
+  {
+   "ts": "2026-07-28T01:31:53",
+   "event": "phase",
+   "phase": "P1",
+   "prev": "P0"
+  },
+  {
+   "ts": "2026-07-28T01:57:16",
+   "event": "phase",
+   "phase": "P2",
+   "prev": "P1"
+  },
+  {
+   "ts": "2026-07-28T02:13:08",
+   "event": "decision",
+   "what": "JLC04161H-3313 4L standard (not impedance-controlled - FS does not need it); In1 GND, In2 +3V3; 3-sheet hierarchy usb/power/mcu, net names contractual (/USB_DP,/USB_DM root-labeled; /mcu/OSC_* couple constraints to sheet name - deliberate)"
+  },
+  {
+   "ts": "2026-07-28T02:13:08",
+   "event": "decision",
+   "what": "Settled: buck stands; LED 1k on PC13 (3mA limit); DP pull-up hardwired 1.5k; VBUS sense OMIT; shell->GND direct; VBUS caps exactly 10uF+100nF (USB inrush ceiling == buck C_IN)"
+  },
+  {
+   "ts": "2026-07-28T02:13:09",
+   "event": "human",
+   "checkpoint": "1",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-07-28T02:13:09",
+   "event": "phase",
+   "phase": "P3",
+   "prev": "P2"
+  },
+  {
+   "ts": "2026-07-28T02:37:37",
+   "event": "decision",
+   "what": "Inductor L1 DCR 60mOhm vs DS43698's <30mOhm recommendation: WAIVED - the <30 criterion targets 2A-class operation; this board peaks 57mA (0.2mW conduction loss). Isat 2.9A >> 1.35x requirement holds"
+  },
+  {
+   "ts": "2026-07-28T03:00:43",
+   "event": "decision",
+   "what": "ONE schematic-block agent owns all 3 sheets + root (vs one-per-sheet guidance)"
+  },
+  {
+   "ts": "2026-07-28T03:00:43",
+   "event": "decision",
+   "what": "Library edits approved: silk sanitize on C0603/C0805/R0603/LED (sub-minimum dots on pad 1) + U2 TSOT-26 gains a printable pin-1 dot; no lib_pull re-runs (easyeda2kicad dup bug + API 403)"
+  },
+  {
+   "ts": "2026-07-28T03:00:43",
+   "event": "phase",
+   "phase": "P4",
+   "prev": "P3"
+  }
+ ]
+}

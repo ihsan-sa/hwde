@@ -331,6 +331,45 @@ def test_validate_ops_rejects(doc):
         place_edit.validate_ops(doc)
 
 
+def _fp_with_courtyard(ref, cx, cy, courtyard, pads):
+    return placelib.Footprint(
+        ref=ref, fpid="t:X", pos=(cx, cy), angle=0, side="front",
+        attrs=frozenset(), locked=False, pads=pads, courtyard_local=courtyard)
+
+
+def test_effective_courtyard_expands_to_pad_field():
+    """S14 (major): a courtyard SMALLER than the pad field (EasyEDA LQFP body
+    rect) must expand to cover pads+0.25 - courtyard-only legality passed a
+    board with 9 shorting pad pairs."""
+    from shapely.geometry import box as _box
+    pads = [placelib.FpPad("1", "A", (-4.85, 0.0), (0.3, 1.2), False),
+            placelib.FpPad("2", "B", (4.85, 0.0), (0.3, 1.2), False)]
+    body = _box(-3.5, -3.5, 3.5, 3.5)         # body-only courtyard
+    fp = _fp_with_courtyard("U1", 0, 0, body, pads)
+    ext = fp.extents_local()
+    assert ext.bounds[0] <= -4.85 - 0.15 - 0.25 + 1e-9   # covers pad 1 + margin
+    assert ext.bounds[2] >= 4.85 + 0.15 + 0.25 - 1e-9
+    # a PROPER courtyard (contains pads) is returned exactly, no inflation
+    proper = _box(-5.5, -1.5, 5.5, 1.5)
+    fp2 = _fp_with_courtyard("U2", 0, 0, proper, pads)
+    assert fp2.extents_local().equals(proper)
+
+
+def test_effective_courtyard_catches_pad_overlap():
+    """Two body-courtyard parts whose PADS collide must now be a
+    courtyard_overlap violation (was invisible pre-fix)."""
+    from shapely.geometry import box as _box
+    pads = [placelib.FpPad("1", "A", (-4.85, 0.0), (0.3, 1.2), False),
+            placelib.FpPad("2", "B", (4.85, 0.0), (0.3, 1.2), False)]
+    body = _box(-3.5, -3.5, 3.5, 3.5)
+    a = _fp_with_courtyard("U1", 100.0, 100.0, body, pads)
+    b = _fp_with_courtyard("U2", 108.0, 100.0, body, pads)  # pads interleave
+    # bodies 8mm apart (no body overlap) but pad fields (reach +-5.25) collide
+    ea = placelib.affinity.translate(a.extents_local(), 100.0, 100.0)
+    eb = placelib.affinity.translate(b.extents_local(), 108.0, 100.0)
+    assert ea.intersects(eb)
+
+
 def test_validate_text_ops_good():
     ops = place_edit.validate_ops({"version": 1, "ops": [
         {"op": "add_text", "text": "+5V", "x": 10.0, "y": 20.0,

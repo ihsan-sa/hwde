@@ -583,3 +583,83 @@ from the seed" is board-specific: here the anneal candidates were silk-DIRTIER t
 (22-26 vs 12 check_silk hits) but structurally far better (HPWL 160 vs 313, crystal 4.1 vs 5.5 mm),
 and repairing cand1 beat repairing the seed on every metric (HPWL 227 vs 330, crystal 4.1 vs 12.0,
 both DRC-clean). Repair the best candidate; do not fall back to the seed on silk counts alone.
+
+## 2026-07-28 [easyeda2kicad][parts] Symbol pulls are NOT idempotent for names with spaces or '/', and lib_pull hides a failed symbol pull
+Three machine-verified facts from the usb-buck P3 library pull (18 parts, easyeda2kicad 1.0.1).
+(a) `ExporterSymbolKicad.save_to_lib` guards with `id_already_in_symbol_lib(component_name=
+self.input.info.name)` - the RAW EasyEDA name - but writes the block under `sanitize_fields(name)`
+(spaces stripped, `/`->`_`). Any part whose EasyEDA name contains a space or slash therefore never
+matches its own guard and is APPENDED AGAIN on every re-run: `HX PZ2.54-1x4P ZZ`,
+`TS263065A 340gf SX BD SMD Tactile Switch`, `CKCS4030-4.7uH/M` turned an 18-symbol lib into 21 on
+the second pull. Duplicate `(symbol "NAME")` blocks are silently accepted by kicad-cli. lib_pull.py's
+"registration is idempotent, re-runs are safe" only covers the lib-TABLES; the symbol library is not.
+Re-pull only with `--overwrite`, or de-duplicate afterwards (keep first occurrence).
+(b) `_pull_one` returns "pulled"/"exists" whenever the LCSC id is found in ANY existing footprint file,
+so a part whose footprint is already present reports success even when its symbol pull failed - a full
+18-part re-pull reported 12 "pulled" while the EasyEDA API 403'd every single symbol request and the
+symbol lib was never recreated. Check `payload.symbol_lib` / the symbol count, never the per-part status.
+(c) The anonymous EasyEDA CAD endpoint rate-limits: ~3 full passes over 18 LCSC ids within ~15 min
+returned `HTTP Error 403: Forbidden` for every subsequent part, and a 60 s backoff was not enough.
+Treat a pulled lib as expensive: back it up before deleting, and do not re-pull to "clean up".
+
+## 2026-07-28 [datasheet][parts] LCSC datasheet PDFs are fetchable via the wmsc.lcsc.com path transform
+`https://www.lcsc.com/datasheet/lcsc_datasheet_<id>_<name>_<lcsc>.pdf` serves a JS-rendered viewer
+shell (curl gets `<!doctype html>`, ~50 KB), which is why direct datasheet fetches "fail". The same
+document is served as a real PDF from
+`https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/<id>_<name>_<lcsc>.pdf`
+(drop `lcsc_datasheet_`, swap the host/path). Verified on C2286 (KT-0603R, 11 pages) and C2939564
+(HOOYA USB-111FD-B-SU, 1 page) with a browser User-Agent. Some parts.json entries already carry the
+wmsc URL directly. The venv has pypdf (text only) - no rasteriser - but the Read tool renders PDF
+pages, which is how the J1 land pattern was read.
+
+## 2026-07-28 [easyeda2kicad][drc] Every pulled footprint ships silk under 0.25 mm from copper; 4 put a silk dot INSIDE pad 1
+Measured across all 12 footprints of the usb-buck pull (silk stroke edge to pad copper edge, stroke
+width included). C0603, C0805, R0603 and LED-SMD_L1.6-W0.8-R-RD each carry a tiny `fp_circle` on
+F.SilkS (r 0.03-0.05, width 0.06-0.10) sitting ON or INSIDE pad 1 - gaps -0.11, -0.105, -0.092,
+-0.10 mm. On this board that is ~20 component instances each contributing a guaranteed
+silk_over_copper DRC hit BEFORE placement, which explains most of the S13 run's 68 silk warnings.
+The remaining 8 footprints have no overlap but sit well under the 0.25 mm silk-pad rule
+(SW-SMD 0.015, IND 0.055, LQFP-48 0.060, USB 0.085, TSOT-26 0.105, SOT-23-6 0.154). The offending
+dots all have stroke width < 0.15 mm (JLC's minimum silk line width), so a safe library sanitiser is
+"drop F.SilkS graphics with width < 0.15". Related: those same sub-0.15 strokes are why some pin-1
+marks do not print - the TSOT-26 (AP63203) pin-1 indicator is a width-0 zero-area `fp_poly` plus a
+0.06-wide dot, and its real marker circle is on Cmts.User, so U2 has NO printable pin-1 mark.
+
+## 2026-07-28 [easyeda2kicad][drc] CORRECTION + fix recipe for the silk-on-pad dots (measured against real DRC)
+The entry above over-claimed: it predicted ~20 guaranteed silk_over_copper hits from the four
+library dots. MEASURED with a scratch board (one instance each of C0603/C0805/R0603/LED-SMD/
+TSOT-26, `kc.py drc --severity-all`, KiCad 10.0.3): only ONE fires - the LED's dot (r 0.05,
+stroke 0.10, centred exactly on pad 1's corner) -> `silk_over_copper` "Silkscreen clipped by
+solder mask". The three 0.06-stroke dots on C0603/C0805/R0603 sit INSIDE pad 1 and do NOT trip
+DRC; KiCad's clipped-by-mask test evidently needs the item to straddle the mask aperture by more
+than a hair (each of those crosses the pad edge by only ~0.01 mm). Geometry checkers that measure
+stroke-edge-to-copper-edge see all four; DRC sees one. Verify a silk claim with `kc.py drc`, never
+with a geometry script alone - and note this cuts the other way from the S13 finding that check_silk
+is more lenient than DRC.
+Fix recipe that worked (approved, see boards/usb-buck/lib/EDITS.md): delete the artifact circles;
+where the remaining outline then still sat under a 0.15 mm silk-to-copper bar, NARROW the stroke
+rather than move coordinates (0.25 -> 0.20 on C0603's outline buys 0.025 mm per edge and keeps the
+geometry byte-identical; 0.20 and 0.15 are both >= JLC's 0.15 mm minimum line width). Result:
+worst gaps 0.150-0.156 mm across the four, DRC 1 -> 0. A printable pin-1 dot is
+`(fp_circle (center X Y) (end X+0.15 Y) (layer F.SilkS) (width 0.15))` - 0.3 mm diameter, outer
+radius 0.225, so its centre must be >= 0.375 mm from the nearest pad edge to clear copper by 0.15.
+Scratch-board trick for verifying a footprint edit in isolation: bundled python + `pcbnew.
+CreateEmptyBoard()` + `FootprintLoad(pretty, name)` spaced 30 mm apart + an Edge.Cuts rect, save,
+then `kc.py drc` - only intra-footprint findings can appear.
+
+## 2026-07-28 [kicad-cli][python] Hierarchical netlist export DROPS the no-connect singleton nets; schlib --pins cannot see a project lib
+Two P4 facts from the usb-buck schematic build (3 child sheets, 28 parts, KiCad 10.0.3).
+(a) The 2026-07-22 entry "every NC/unconnected pin appears as a singleton net
+`unconnected-(REF-PINNAME-PadN)`" holds only for FLAT designs. Same board, same
+`kc.py netlist`: exporting the ROOT of the hierarchy gives 16 nets and ZERO `unconnected-*`
+entries (the 29 NC-flagged U1 pins + J1's ID pin are simply absent from the netlist and from
+U1's node list), while exporting the child `mcu.kicad_sch` STANDALONE gives 29 of them. The
+no_connect s-exprs are byte-shaped identically to stm32-blinky's (which does emit 32), and ERC
+is clean either way - it is the export that differs. Consequence for P5: those pads arrive at
+board_init with NO net at all rather than an `unconnected-` net, unlike run (a)'s flat board.
+(b) `schlib.py --pins "aiee:SYM"` - the documented P4 grounding aid - CANNOT read a project
+library: it builds a scratch schematic through kicad-sch-api's global symbol cache, which never
+reads kicad/sym-lib-table, so every project symbol comes back `LibraryError: not found ...
+Common libraries include: Device, Connector_Generic, ...`. Ground against a 6-line wrapper that
+calls `ksa.get_symbol_cache().add_library_path(<lib/aiee.kicad_sym>)` before `schlib.pin_table()`
+(same call the generators already need). Also note `--pins` takes ONE lib_id, not a list.

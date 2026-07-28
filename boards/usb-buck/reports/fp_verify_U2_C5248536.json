@@ -1,0 +1,67 @@
+{
+ "script": "fp_verify",
+ "status": "pass",
+ "board": "TSOT-26_L2.9-W1.6-P0.95-LS2.8-BL.kicad_mod",
+ "counts": {
+  "total": 1,
+  "by_severity": {
+   "warning": 1
+  },
+  "by_source": {
+   "check.fp_verify": 1
+  }
+ },
+ "violations": [
+  {
+   "check": "fp_verify",
+   "severity": "warning",
+   "pos": null,
+   "layer": "F.Cu",
+   "net": null,
+   "refs": [
+    "TSOT-26_L2.9-W1.6-P0.95-LS2.8-BL"
+   ],
+   "msg": "modal pad size (0.55, 1.1) mm != datasheet (0.7, 1.0) mm (tol 0.1)",
+   "source": "check.fp_verify",
+   "items": [
+    {
+     "msg": "modal pad size (0.55, 1.1) mm != datasheet (0.7, 1.0) mm (tol 0.1)",
+     "pos": null
+    }
+   ],
+   "kind": "pad_size",
+   "expected_mm": [
+    0.7,
+    1.0
+   ],
+   "measured_mm": [
+    0.55,
+    1.1
+   ]
+  }
+ ],
+ "footprint": "TSOT-26_L2.9-W1.6-P0.95-LS2.8-BL",
+ "footprint_file": "lib\\aiee.pretty\\TSOT-26_L2.9-W1.6-P0.95-LS2.8-BL.kicad_mod",
+ "copper_pads": 6,
+ "total_pads": 6,
+ "measured_pitch_mm": 0.95,
+ "measured_pad_size_mm": [
+  0.55,
+  1.1
+ ],
+ "has_courtyard": true,
+ "has_silk": true,
+ "land_pattern": {
+  "package": "TSOT26",
+  "pad_count": 6,
+  "pitch_mm": 0.95,
+  "pad_size_mm": [
+   0.7,
+   1.0
+  ],
+  "row_spacing_mm": 2.2,
+  "pin1": "1",
+  "notes": "From 'Suggested Pad Layout', TSOT26, p.29: C = 0.950 (pad pitch within a row), X = 0.700 (pad width), Y = 1.000 (pad length), Y1 = 3.200 (overall tip-to-tip span across both rows). row_spacing_mm = Y1 - Y = 2.200 mm center-to-center is DERIVED from those two printed values (the datasheet prints only the 3.200 tip-to-tip dimension). Package outline (p.29, all mm): A 1.00 max, A1 0.010-0.100, A2 0.840-0.900, D 2.800-3.000 (2.900 typ), E 2.800 BSC, E1 1.500-1.700 (1.600 typ), b 0.300-0.450, c 0.120-0.200, e 0.950 BSC, e1 1.900 BSC, L 0.30-0.50, L2 0.250 BSC. Top view: pin 1 top-left, pins 1-2-3 down the left side (FB, EN, VIN), pins 4-5-6 up the right side (GND, SW, BST). No exposed/thermal pad. Datasheet names the package 'TSOT26' only (ordering code WU); it never uses the name TSOT-23-6. Mechanical: MSL 1 per J-STD-020, matte tin plated leads, 0.013 g"
+ },
+ "svg": "reports\\fp_U2_C5248536.overlay.svg"
+}

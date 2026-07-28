@@ -1,0 +1,137 @@
+{
+  "mpn": "USBLC6-2SC6",
+  "lcsc": "C2687116",
+  "package": "SOT-23-6",
+  "description": "UMW (UTD Semiconductor Co., Limited) USBLC6-2SC6, 2-channel bidirectional ESD protection array in SOT-23-6. Rail-clamp topology: two protected I/O lines (each brought out on two pins so the line passes through the device) plus a VBUS clamp pin. Operating voltage 5 V, IEC 61000-4-2 +/-30 kV air and contact. Applications listed: USB 2.0 interface, 10/100 Ethernet, PDAs, notebooks/desktops/servers, portable instrumentation, digital cameras. Source: UMW datasheet Nov.2024, 7 pages (www.umw-ic.com).",
+  "pinout": [
+    {
+      "pin": "1",
+      "name": "I/O1",
+      "type": "passive",
+      "notes": "Protected line 1. Internally the SAME node as pin 6 - sec.4 internal schematic shows a straight vertical track joining pin 1 to pin 6, tapped at its midpoint by the channel-1 steering diode pair. Signal may enter here and leave on pin 6 (flow-through)."
+    },
+    {
+      "pin": "2",
+      "name": "GND",
+      "type": "ground",
+      "notes": "Ground / negative clamp rail. Sec.4: pin 2 feeds the lower horizontal rail that carries the anodes of both lower steering diodes and the anode of the central TVS."
+    },
+    {
+      "pin": "3",
+      "name": "I/O2",
+      "type": "passive",
+      "notes": "Protected line 2. Internally the SAME node as pin 4 - sec.4 shows a straight vertical track joining pin 3 to pin 4, tapped at its midpoint by the channel-2 steering diode pair. Signal may enter here and leave on pin 4 (flow-through)."
+    },
+    {
+      "pin": "4",
+      "name": "I/O2",
+      "type": "passive",
+      "notes": "Protected line 2, same internal node as pin 3 (see pin 3)."
+    },
+    {
+      "pin": "5",
+      "name": "VBUS",
+      "type": "passive",
+      "notes": "Positive clamp rail - tie to the +5 V VBUS rail. Sec.4: pin 5 feeds the upper horizontal rail carrying the cathodes of BOTH upper steering diodes and the cathode of the central TVS. It is a clamp reference, not a die supply (no supply current drawn, no decoupling specified), but the I/O positive clamp path only exists when pin 5 is connected to the 5 V rail."
+    },
+    {
+      "pin": "6",
+      "name": "I/O1",
+      "type": "passive",
+      "notes": "Protected line 1, same internal node as pin 1 (see pin 1)."
+    }
+  ],
+  "decoupling": [],
+  "land_pattern": {
+    "package": "SOT-23-6",
+    "pad_count": 6,
+    "pitch_mm": 0.95,
+    "pin1": "1",
+    "notes": "NO recommended land pattern in this datasheet - sec.8 is 'SOT-23-6 Package Outline Dimensions' only, so pad_size_mm and row_spacing_mm are deliberately not filled (they would be invented). Use a standard IPC SOT-23-6 footprint. Outline dimensions that constrain it (mm, sec.8 table): A 1.050-1.250, A1 0.000-0.100, A2 1.050-1.150, b (lead width) 0.300-0.500, c (lead thickness) 0.100-0.200, D (body length) 2.820-3.020, E1 (body width) 1.500-1.700, E (lead-tip span) 2.650-2.950, e (pitch) 0.950 BSC, e1 (pin1-to-pin3 span) 1.800-2.000, L (foot length) 0.300-0.600, theta 0-8 deg. Pins 1-2-3 on one side, 6-5-4 on the opposite side (pin 6 opposite pin 1)."
+  },
+  "exposed_pad": {
+    "present": false
+  },
+  "layout_notes": [
+    "FLOW-THROUGH IS SUPPORTED BY THE SILICON: sec.4 internal schematic draws pin 1 and pin 6 joined by a single straight track (one node, labelled I/O1 at both ends), and pin 3 and pin 4 likewise (I/O2). A protected line can therefore enter on one pin and leave on the other, putting the device in-line in the signal path with no stub.",
+    "Internal topology (sec.4): each I/O node carries a steering diode up to the VBUS rail (pin 5, cathodes) and a steering diode up from the GND rail (pin 2, anodes); a single TVS/zener sits between the VBUS rail (cathode, top) and the GND rail (anode, bottom). Four steering diodes plus one TVS total.",
+    "Pin 5 is VBUS and is the ONLY positive clamp reference: both upper steering diodes terminate on it. Leaving pin 5 unconnected removes the positive clamp path for both I/O channels. The TVS between pin 5 and pin 2 also clamps the VBUS rail itself.",
+    "Pin 2 (GND) is the single ground return for all clamp current - it carries the full 6 A peak pulse (sec.5 Ipp), so give it a short, direct connection to the ground plane.",
+    "Line capacitance (sec.6): I/O to GND 0.8 pF typ / 1 pF max, I/O to I/O 0.35 pF typ / 0.4 pF max - far inside the USB 2.0 full-speed budget.",
+    "No PCB layout or application section exists in this datasheet. Its sections are: 1 Features, 2 Applications, 3 Mechanical Characteristics, 4 Pinning information, 5 Absolute Maximum Ratings, 6 Electrical Characteristic, 7 Typical characteristic, 8 Package Outline Dimensions, 9 Ordering information, 10 Disclaimer. There is no application circuit, no placement guidance (e.g. 'place near the connector'), no trace-length rule and no recommended footprint - do not attribute such notes to this document.",
+    "Top marking (sec.9): 'UL26' over 'UMW yww', where yww is the batch code. Package: SOT23-6, matte tin finish, UL 94V-0, Pb-free / halogen-free / RoHS-WEEE compliant (sec.3). Supplied 3000 per tape and reel."
+  ],
+  "abs_max": [
+    {
+      "param": "Peak pulse power Ppk (8/20 us) [sec.5]",
+      "value": 150,
+      "unit": "W"
+    },
+    {
+      "param": "Peak pulse current Ipp (8/20 us) [sec.5]",
+      "value": 6,
+      "unit": "A"
+    },
+    {
+      "param": "ESD per IEC 61000-4-2, air discharge VESD [sec.5]",
+      "value": "+/-30",
+      "unit": "kV"
+    },
+    {
+      "param": "ESD per IEC 61000-4-2, contact discharge VESD [sec.5]",
+      "value": "+/-30",
+      "unit": "kV"
+    },
+    {
+      "param": "Junction temperature TJ [sec.5]",
+      "value": "-55 to 125",
+      "unit": "degC"
+    },
+    {
+      "param": "Storage temperature range TSTG [sec.5]",
+      "value": "-55 to 150",
+      "unit": "degC"
+    },
+    {
+      "param": "Reverse stand-off voltage VRWM, max - the working-voltage limit for the I/O and VBUS pins [sec.6; the sec.5 Abs Max table has NO supply or IO voltage row]",
+      "value": 5,
+      "unit": "V"
+    },
+    {
+      "param": "Reverse breakdown voltage VBR at IBR=1 mA, min 6 / max 9 [sec.6]",
+      "value": "6 to 9",
+      "unit": "V"
+    },
+    {
+      "param": "Reverse leakage current IR at VR=5 V, max [sec.6]",
+      "value": 0.1,
+      "unit": "uA"
+    },
+    {
+      "param": "Clamping voltage VC at Ipp=1 A (tp=8/20 us), max [sec.6]",
+      "value": 10,
+      "unit": "V"
+    },
+    {
+      "param": "Clamping voltage VC at Ipp=6 A (tp=8/20 us), max [sec.6]",
+      "value": 15,
+      "unit": "V"
+    },
+    {
+      "param": "Line capacitance CJ, I/O pin to GND, 0 Vdc f=1 MHz, typ 0.8 / max 1 [sec.6]",
+      "value": 1,
+      "unit": "pF"
+    },
+    {
+      "param": "Line capacitance CJ, I/O to I/O, 0 Vdc f=1 MHz, typ 0.35 / max 0.4 [sec.6]",
+      "value": 0.4,
+      "unit": "pF"
+    },
+    {
+      "param": "Operating voltage [sec.1 Features]",
+      "value": 5,
+      "unit": "V"
+    }
+  ],
+  "source_pdf": "parts/C2687116.pdf"
+}

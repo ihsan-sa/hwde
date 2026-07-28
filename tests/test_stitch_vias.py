@@ -351,6 +351,28 @@ def test_stitch_impossible_violation_and_strict_gate(tmp_path):
         ["--pcb", str(pcb), "--dry-run", "--pitch", "8", "--strict"]) == 1
 
 
+def test_track_connected_pad_is_not_stitch_impossible(tmp_path):
+    """S14: a boxed-in pad that already carries a same-net TRACK is connected
+    to its net elsewhere - advisory skip, never stitch_impossible (both live
+    P7 runs false-positived on track-connected LQFP GND pins)."""
+    body = _fp("U1", 10, 10, _pad("1", 0, 0, "GND"))
+    w = 0.6
+    body += _seg(9.0, 8.7, 9.0, 11.3, w, "F.Cu", "SIG")
+    body += _seg(11.0, 8.7, 11.0, 11.3, w, "F.Cu", "SIG")
+    body += _seg(8.7, 9.0, 11.3, 9.0, w, "F.Cu", "SIG")
+    body += _seg(8.7, 11.0, 11.3, 11.0, w, "F.Cu", "SIG")
+    # the GND pad carries its own track (router already connected it)
+    body += _seg(10.0, 10.0, 10.6, 10.6, 0.2, "F.Cu", "GND")
+    body += _zone(1, "GND", "B.Cu", 1, 1, 29, 29)
+    pcb = _board(tmp_path, "boxedtrk", body)
+    payload, _ = stitch_vias.run(
+        ["--pcb", str(pcb), "--dry-run", "--pitch", "8"])
+    assert payload["status"] == "pass"
+    assert payload["violations"] == []               # no stitch_impossible
+    assert {"ref": "U1.1", "reason": "track_connected_no_local_spot",
+            "net": "GND"} in payload["skipped"]
+
+
 # ============================================================ pure: fence CLI
 
 def test_fence_dry_run(tmp_path):

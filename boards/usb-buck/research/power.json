@@ -1,0 +1,83 @@
+{
+  "rails": [
+    {
+      "net": "VBUS",
+      "vin": "USB micro-B connector J1, 4.40-5.25 V (USB 2.0 s7.2.1.3 low-power function floor / s7.2.2 drop budget); nominal 5.0 V",
+      "topology": "direct",
+      "current_a": 0.1,
+      "current_a_typ": 0.031,
+      "current_a_peak": 0.05,
+      "consumers": [
+        {
+          "ref": "U2",
+          "part": "AP63203WU-7",
+          "typ_a": 0.0314,
+          "peak_a": 0.0504,
+          "basis": "input current of the buck: P_out = 3.3 V x I_+3V3 (0.0404 A typ / 0.0571 A peak), P_in = P_out / 0.85 est. efficiency, I_in = P_in / V_bus; typ at 5.00 V, peak at the 4.40 V worst case. Efficiency is an ESTIMATE - DS41326 publishes curves only for VIN 12/24 V, VOUT 5 V. At 80% eff peak is 0.047 A at 5 V; at 90% it is 0.042 A."
+        },
+        {
+          "ref": "U2",
+          "part": "AP63203WU-7 quiescent",
+          "typ_a": 0.000022,
+          "peak_a": 0.000022,
+          "basis": "DS41326 Electrical Characteristics, IQ 22 uA no-load non-switching (ISHDN 1 uA)"
+        }
+      ],
+      "dissipation_w": 0.0,
+      "notes": "Pass-through net, no regulator and no series element. Peak 50 mA = half of one USB unit load (100 mA, USB 2.0 s7.2.1), so the board is a LOW-POWER bus-powered function (s7.2.1.3) and needs no post-enumeration current allowance; declare bMaxPower <= 100 mA (s9.6.3). VBUS bypass is capped at one 10 uF MLCC + 100 nF by USB 2.0 s7.2.4.1 (10 uF || 44 ohm max downstream load; USB-IF pass limit 50 uC = 5 V x 10 uF) - which is exactly DS41326 Table 2's C1 = 10 uF, leaving no room for extra VBUS bulk. The 2 x 22 uF of output capacitance does not count against that limit because the AP63203's internal 4 ms soft-start (tSS) holds attach current far below the 100 mA threshold the compliance test starts counting at."
+    },
+    {
+      "net": "+3V3",
+      "vin": "VBUS",
+      "topology": "buck",
+      "regulator": "AP63203WU-7, TSOT26, synchronous, 1.1 MHz, PWM/PFM, fixed 3.27-3.33 V, 2 A capable",
+      "current_a": 0.1,
+      "current_a_typ": 0.0404,
+      "current_a_peak": 0.0571,
+      "consumers": [
+        {
+          "ref": "U1",
+          "part": "STM32F103C8T6",
+          "typ_a": 0.036,
+          "peak_a": 0.05,
+          "basis": "DS5319 Rev19 Table 17 typ 36 mA (72 MHz, code from Flash, all peripherals enabled, VDD 3.3 V, TA 25 C); Table 13 max 50.0 mA (same conditions, TA 85 C). 72 MHz is forced by USB FS needing the 48 MHz USB clock off the PLL. Conservative: with only USB + 2 GPIO + timers the 'all peripherals disabled' columns apply (27 mA typ / 32.8 mA max)."
+        },
+        {
+          "ref": "D1",
+          "part": "status LED + series resistor",
+          "typ_a": 0.0042,
+          "peak_a": 0.0046,
+          "basis": "assumed red LED Vf ~1.9 V with 330 ohm: (3.30-1.9)/330 typ; (3.33-1.8)/330 peak at rail max and Vf min. A 1 kohm resistor instead gives 1.4 mA and drops the rail peak to ~54 mA."
+        },
+        {
+          "ref": "R_USB",
+          "part": "1.5 kohm USB D+ pull-up",
+          "typ_a": 0.0002,
+          "peak_a": 0.0022,
+          "basis": "typ = idle J state into the host's 15 kohm pull-down, 3.3/(1.5k+15k); peak = host drives D+ low, 3.3/1.5k. The STM32F103 has no internal USB pull-up so this resistor is required."
+        },
+        {
+          "ref": "SW1",
+          "part": "user button 10 kohm pull-up",
+          "typ_a": 0.0,
+          "peak_a": 0.00033,
+          "basis": "3.3/10k, drawn only while the button is pressed. Zero if the MCU internal pull-up (30-50 kohm) is used instead."
+        },
+        {
+          "ref": "misc",
+          "part": "BOOT0 pull-down, NRST RC, crystal load caps, decoupling, SWD header 3V3 pin",
+          "typ_a": 0.0,
+          "peak_a": 0.0,
+          "basis": "BOOT0 divider returns to GND not the rail; crystal/decoupling caps are AC only; NRST internal pull-up is already inside IDD; the SWD 3V3 pin is a reference output, the debugger draws nothing from it. ADC analog block would add 0.8 mA per ADC (DS5319 Table 17 note 2) but is unused."
+        }
+      ],
+      "dissipation_w": 0.033,
+      "notes": "Sum 40.4 mA typ / 57.1 mA peak; +30% headroom = 74 mA; current_a rounded up to the 0.1 A one-unit-load design ceiling. Regulator dissipation = P_in - P_out = 0.222 - 0.188 W at peak, giving dT_j = 0.033 W x 89 C/W (DS41326 theta_JA, TSOT26) = 3 C. At 57 mA a buck is arguably overkill vs an LDO (LDO: 3 fewer parts, no switch node, but 0.097 W dissipation and 57 mA of VBUS draw instead of 44 mA) - the brief names the AP63203 so the buck stands unless the architect overrides; an LDO override changes nothing else in this tree. No sequencing needed: tie EN to VIN or leave it open (internal 1.5 uA pull-up auto-starts), 4 ms internal soft-start. At the 4.40 V worst-case input, D = 0.75 gives t_on = 682 ns against the 80 ns minimum on-time, and VIN stays far above the 3.8 V minimum and 3.50 V typ rising UVLO - no dropout risk. External parts per DS41326 Table 2: L 3.9 uH (use 4.7 uH - nearer standard value and DS41326 s10 favours larger L at light load), C1 10 uF, C2 2 x 22 uF, C3 100 nF BST."
+    }
+  ],
+  "power_constraints": [
+    {"net": "VBUS", "current_a": 0.1, "dt_c": 10, "via_amps": 0.5},
+    {"net": "+3V3", "current_a": 0.1, "dt_c": 10, "via_amps": 0.5}
+  ],
+  "thermal_constraints": []
+}

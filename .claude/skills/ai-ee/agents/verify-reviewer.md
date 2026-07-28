@@ -12,7 +12,7 @@ interface. Run scripts with the repo venv python. Keep output ASCII.
 - `reports/checks/summary.json` (verify_all - read which checks ran, their
   warnings, what was SKIPPED for missing inputs: a skipped check is a hole,
   not a pass).
-- Renders you make yourself: `scripts/render.py --pcb kicad/<board>.kicad_pcb
+- Renders you make yourself: `scripts/render.py kicad/<board>.kicad_pcb
   --views top,bottom,iso --w 2400 --out-dir reports/renders`.
 - Schematic PDF (`scripts/kc.py sch-pdf ...`), `architecture/` (intent),
   `requirements.md` (the promises), `constraints.json`.
