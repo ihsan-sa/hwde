@@ -268,10 +268,14 @@ def test_transient_silk_partition():
     cross2 = {"check": "silk_over_copper", "refs": ["C11", "C5"]}
     own = {"check": "silk_over_copper", "refs": ["D2"]}
     other = {"check": "courtyards_overlap", "refs": ["A", "B"]}
+    edge = {"check": "silk_edge_clearance", "refs": ["SW1"]}
+    suffixed = {"check": "silk_over_copper", "refs": ["R9", "R2B"]}
     assert board_init._is_transient_silk(cross)
     assert board_init._is_transient_silk(cross2)
     assert not board_init._is_transient_silk(own)
     assert not board_init._is_transient_silk(other)
+    assert board_init._is_transient_silk(edge)      # edge = positional
+    assert board_init._is_transient_silk(suffixed)  # R2B extracted (kc fix)
 
 
 def test_build_stackup_block():

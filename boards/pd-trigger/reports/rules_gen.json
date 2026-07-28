@@ -1,0 +1,53 @@
+{
+  "script": "rules_gen",
+  "status": "pass",
+  "capability_class": "2layer_2oz",
+  "stackup": "JLC2313_1.6_2oz",
+  "rule_count": 12,
+  "rule_names": [
+    "aiee_track_width_floor",
+    "aiee_clearance_floor",
+    "aiee_via_drill_floor",
+    "aiee_via_diameter_floor",
+    "aiee_annular_floor",
+    "aiee_edge_clearance_floor",
+    "aiee_hole_to_hole_floor",
+    "aiee_silk_width_floor",
+    "aiee_pwr_width_VBUS",
+    "aiee_pwr_width_VAUX",
+    "aiee_pwr_width_VIND",
+    "aiee_pwr_width_VDD"
+  ],
+  "power": [
+    {
+      "net": "VBUS",
+      "current_a": 5.0,
+      "dt_c": 10.0,
+      "min_width_mm": 1.75
+    },
+    {
+      "net": "/VAUX",
+      "current_a": 1.0,
+      "dt_c": 10.0,
+      "min_width_mm": 0.25
+    },
+    {
+      "net": "/VIND",
+      "current_a": 0.05,
+      "dt_c": 10.0,
+      "min_width_mm": 0.0125
+    },
+    {
+      "net": "/VDD",
+      "current_a": 0.02,
+      "dt_c": 10.0,
+      "min_width_mm": 0.005
+    }
+  ],
+  "diff_pairs": [],
+  "classes": [
+    "Power"
+  ],
+  "out_dru": "boards/pd-trigger/kicad/pd-trigger.kicad_dru",
+  "pro": "boards/pd-trigger/kicad/pd-trigger.kicad_pro"
+}

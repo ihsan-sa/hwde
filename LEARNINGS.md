@@ -727,3 +727,54 @@ outline. All five texts sit INSIDE the body outline, i.e. hidden under the part 
 variants + the USB-C one). The dots on C0603/C1206/F1206/R0603/R0805/R1206 and a 0.15-wide circle
 overlapping the ESSOP-10 thermal pad by 0.013 mm do NOT fire - consistent with the earlier
 "geometry checkers see 4, DRC sees 1" correction. Always measure with `kc.py drc`.
+
+## 2026-07-28 [placement][kicad][render] Connector mating direction: the WRL bbox is a COINCIDENCE TRAP - fit the below-board pins, or just render an orthographic SIDE view
+Follow-up to the 2026-07-28 "read the WRL, not the silk outline" entry, from pd-trigger P6
+(`USB-C-SMD_MC-311D` + `CONN-TH_P5.08_KF128-5.08-2P`). Two traps and one cheap decisive test.
+(a) Aligning the WRL by matching its BOUNDING BOX to the footprint is unreliable. The MC-311D's raw
+wrl y-range (x2.54) is [-5.07, 2.83]; negating y gives [-2.83, 5.07], which matches the courtyard's
++y limit (5.07) EXACTLY and the THT pad extent (-2.85) to 0.02 mm - a perfect-looking 2-point fit
+that is WRONG. Cavity ray-casts under that mapping put the mouth at local -Y; the truth is +Y.
+The reliable anchor is the BELOW-BOARD geometry: cluster the wrl vertices with z < -0.3 (leg/peg
+tips) and least-squares fit (sign_x, sign_y, y_offset) against the footprint's own thru-hole/NPTH
+pad centres. For the MC-311D that lands `pcb = (+x, +y + 2.10)` on all 6 features with residual
+sum-sq 0.013 mm2 - i.e. the shipped model is offset 2.1 mm in y (easyeda2kicad), which is exactly
+what made the bbox "match" under the wrong sign. easyeda2kicad's `(rotate (xyz 0 0 180))` plus
+KiCad's own y-flip cancel, so raw wrl x,y map straight to footprint x,y here.
+(b) MUCH cheaper decisive test: `render.py <board> --views front,back,left,right`. These are
+ORTHOGRAPHIC side views - a connector opening appears FACE-ON (dark slot / visible wire cages) in
+exactly one of them, and its rear is solid in the opposite one. Unlike `--views iso`, there is no
+axis-mapping guesswork. Verified both ways here. Do NOT judge orientation from an iso render: a
+first read of the pd-trigger iso called J2 backwards, and the side views proved it correct.
+(c) Both of this board's connectors open toward local **+Y** (USB-C mouth AND KF128 wire entry), so
+with placelib/KiCad's `to_abs` = `_rot(local, -angle)`: angle **270 points the opening out the LEFT
+edge, 90 out the RIGHT**, 180 up (-Y), 0 down (+Y). place_seed got J1's 270 right by luck of the
+edge constraint; it has no mating-direction model, and it left J2 at 0 (wires into the board).
+
+## 2026-07-28 [drc][kicad-cli] DRC on a board copy OUTSIDE the project dir silently changes the rules
+Staging `kicad/<board>.kicad_pcb` to `work/try1.kicad_pcb` and running `kc.py drc` reported 30
+bogus `lib_footprint_issues` ("configuration does not include the footprint library 'aiee'") AND
+5 `copper_edge_clearance` errors quoting "board setup constraints edge clearance 0.5000 mm" - but
+the project's `.kicad_pro` sets `min_copper_edge_clearance: 0.30`. KiCad fell back to its DEFAULT
+0.5 mm because the sibling `.kicad_pro` was missing. Copy `fp-lib-table` + `<stem>.kicad_pro` +
+`<stem>.kicad_dru` next to any staged board or both the library warnings and the clearance numbers
+lie (in opposite directions: noise added, and a stricter rule than the real one).
+
+## 2026-07-28 [routing][placement] Freerouting cannot merge a USB-C's two VBUS pads at 1.75 mm - it is a topology fact, not a placement defect
+pd-trigger P6 route probe (2-layer, 2 oz, VBUS min width 1.75 mm by DRU rule). 150-pass probe
+converges at pass 13 and stops: 65/68 connections routed, and ALL 3 residuals are net VBUS
+(`J1-B4-A9 -> J1-A4-B9`, `R14-1 -> C1B-1`, `C1B-1 -> J2-1`). Cause: on the 16P USB-C the pad row is
+GND,VBUS,CC1,<6 nc>,CC2,VBUS,GND at 0.5 mm pitch, so CC1/CC2 are SANDWICHED between the two VBUS
+pads. Escaping VBUS leftward (around the pad row, under the connector body) is pinched to 1.50 mm
+between the GND pad (y 39.61) and the CC1 pad (y 41.11) - narrower than the 1.75 mm rule. Escaping
+right forces the merge to cross both CC escapes. So on ONE layer the merge is impossible; it needs
+CC1/CC2 (or VBUS) to hop to the other layer. Consequence: a P6 route probe on any USB-C PD board
+will cap around 0.95, below the >=0.98 bar, no matter how good the placement - judge the probe by
+WHICH connections fail. The fix is P7's KRT-wrapped critical nets (power routed first, thin nets
+displaced to B.Cu), not more Freerouting passes or a placement change.
+
+## 2026-07-28 [placement][python] place_edit ops files need the {"version":1,"ops":[...]} envelope
+`place_seed --ops-out` writes it, but a hand-built bare JSON list fails with
+`CheckError: ops file must be {'version': 1, 'ops': [...]}` (exit 2). Also: `place`/`move` ops set
+the footprint ORIGIN, not the courtyard centre - for asymmetric parts (USB-C: extents
+x[-5.07,+3.10] about the origin) compute the target from the origin or the part lands offset.

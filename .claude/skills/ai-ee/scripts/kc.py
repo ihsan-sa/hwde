@@ -64,7 +64,11 @@ _NET_RE = re.compile(r"\[([^\]]+)\]")
 # Reference designators: 1-4 uppercase letters then digits (D1, U1, TP1, J2).
 # Lowercase in layer tokens ("In1") cannot match, so layers are not mistaken
 # for refdes.
-_REF_RE = re.compile(r"\b([A-Z]{1,4}[0-9]+)\b")
+# Optional single trailing letter covers split-part refdes (R2A/R2B, C1A -
+# standard practice for paralleled/series pairs; S14: suffixed refs failed to
+# extract, under-counting a violation's refs and mis-classifying cross-part
+# silk as single-part).
+_REF_RE = re.compile(r"\b([A-Z]{1,4}[0-9]+[A-Z]?)\b")
 
 
 def _extract_layer(text: str) -> str | None:

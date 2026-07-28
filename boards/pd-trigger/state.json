@@ -3,14 +3,39 @@
  "board": "pd-trigger",
  "workspace": "boards/pd-trigger",
  "created": "2026-07-28T05:57:45",
- "updated": "2026-07-28T08:27:07",
- "phase": "P4",
- "gates": {},
+ "updated": "2026-07-28T09:12:28",
+ "phase": "P6",
+ "gates": {
+  "erc": {
+   "phase": "P4",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-07-28T08:49:33",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0
+   },
+   "history": [
+    {
+     "ts": "2026-07-28T08:49:33",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0
+    }
+   ]
+  }
+ },
  "human": {
   "1": {
    "status": "approved",
    "ts": "2026-07-28T06:52:56",
    "note": "AUTO per directive: 2L 2oz 45x25, ~$5-7/board, riskiest = no series protection on the 5A path (charger OCP + TVS + sized copper; chain in decisions.md D1)"
+  },
+  "2": {
+   "status": "approved",
+   "ts": "2026-07-28T09:09:11",
+   "note": "AUTO per directive: ERC 0/0, audit pass, fable reviewer 0 err/2 warn waived (DP/DM ruling + VDD corner); PDF reports/schematic.pdf"
   }
  },
  "artifacts": {},
@@ -51,6 +76,12 @@
    "why": "Architect P2 with all 10 settle-items reasoned",
    "phase": "P2",
    "ts": "2026-07-28T06:52:56"
+  },
+  {
+   "what": "Retroactive approval: P4 edited architecture/constraints.json (R2->R2A/R2B, C1->C1A/C1B in separation/groups) - place_anneal silently drops absent refs, stale refdes = invisible constraint loss (finding 31)",
+   "why": "Correct and mandated by sheets.md tracking rule",
+   "phase": "P4",
+   "ts": "2026-07-28T08:49:33"
   }
  ],
  "history": [
@@ -109,6 +140,37 @@
    "event": "phase",
    "phase": "P4",
    "prev": "P3"
+  },
+  {
+   "ts": "2026-07-28T08:49:33",
+   "event": "gate",
+   "gate": "erc",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-07-28T08:49:33",
+   "event": "decision",
+   "what": "Retroactive approval: P4 edited architecture/constraints.json (R2->R2A/R2B, C1->C1A/C1B in separation/groups) - place_anneal silently drops absent refs, stale refdes = invisible constraint loss (finding 31)"
+  },
+  {
+   "ts": "2026-07-28T09:09:11",
+   "event": "human",
+   "checkpoint": "2",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-07-28T09:09:11",
+   "event": "phase",
+   "phase": "P5",
+   "prev": "P4"
+  },
+  {
+   "ts": "2026-07-28T09:12:28",
+   "event": "phase",
+   "phase": "P6",
+   "prev": "P5"
   }
  ]
 }

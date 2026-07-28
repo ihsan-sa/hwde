@@ -196,6 +196,10 @@ _TRANSIENT_SILK_CHECKS = {"silk_overlap", "silk_over_copper"}
 
 
 def _is_transient_silk(v: dict) -> bool:
+    # silk vs the fixed BOARD EDGE at temporary shelf positions is purely
+    # positional (single-item by nature) - placement re-seats everything.
+    if v.get("check") == "silk_edge_clearance":
+        return True
     return (v.get("check") in _TRANSIENT_SILK_CHECKS
             and len(set(v.get("refs") or [])) >= 2)
 

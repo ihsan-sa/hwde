@@ -1,0 +1,47 @@
+{
+ "script": "review.schematic",
+ "board": "pd-trigger",
+ "generated": "2026-07-28",
+ "status": "pass",
+ "counts": {
+  "total": 2,
+  "by_severity": {
+   "error": 0,
+   "warning": 2
+  }
+ },
+ "violations": [
+  {
+   "check": "schematic-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "/BC12_DIS",
+   "refs": [
+    "U1",
+    "J1"
+   ],
+   "msg": "DP/DM shorted together at U1 (pins 4/5) with connector D+/D- left NC deviates from the only WCH-documented CH224K configuration (reference schematic 6.2 wires them to the connector); the V12 secondary source ordering the short was never verified. RULED ACCEPTABLE: the short is hardware-safer than the reference wiring at a charger-only receptacle (removes the 21V-onto-a-VDD+0.5-abs-max-pin fault path), driver contention into the short is self-limited mA-scale in one supply domain, a spurious BC1.2/DCP self-detection has no path to a wrong output voltage (PD runs on CC; the window LEDs verify the granted rail), and non-PD sources yield the specified 5V + red-LED fallback. Cost accepted by design: no legacy QC/BC voltage capability - document 'PD sources only'. Bring-up: sweep all 5 profiles from a PD source; confirm a non-PD adapter gives 5V + red with no renegotiation loop or hot chip.",
+   "source": "review.schematic",
+   "kind": "undocumented-config"
+  },
+  {
+   "check": "schematic-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "/VDD",
+   "refs": [
+    "R2A",
+    "R2B",
+    "R3",
+    "R4",
+    "R5",
+    "U1"
+   ],
+   "msg": "VDD budget worst corner is tighter than the documented headline: at 4.4V low line with all three CFG straps closed (the advertised fallback scenario - 9V selected, source refuses) the 1020R dropper delivers 1.078mA gross minus 99uA straps = 0.979mA net for an IDD the extract confirms is UNPUBLISHED (42% below the quoted 1.7mA, which is the 5.0V gross figure; both documented numbers are arithmetically correct as far as they go). Ceiling before VDD leaves the 3.0V operating minimum at low line: 1.28mA. Existing V1 mitigation stands (measure VDD at the 5V profile on first article); contingency restated for the shipped 2x510R implementation: replace BOTH resistors (e.g. 2x 330R = 660R, 0.19W each at 21V in 0.25W parts), not one refdes. Top of range re-verified safe: 17.35mA at 21V and 24.6mA even at the 28.4V TVS clamp, both inside the 30mA shunt sink limit.",
+   "source": "review.schematic",
+   "kind": "budget-margin"
+  }
+ ]
+}
