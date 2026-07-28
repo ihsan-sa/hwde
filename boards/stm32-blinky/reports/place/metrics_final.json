@@ -1,0 +1,345 @@
+{
+ "script": "place_metrics",
+ "status": "pass",
+ "board": "stm32-blinky.kicad_pcb",
+ "counts": {
+  "total": 0,
+  "by_severity": {},
+  "by_source": {}
+ },
+ "violations": [],
+ "metrics": {
+  "counts": {
+   "footprints": 20,
+   "movable": 20,
+   "nets": 12
+  },
+  "hpwl": {
+   "total_mm": 227.0571,
+   "by_net": {
+    "+3V3": 49.0739,
+    "+5V": 13.4483,
+    "/BOOT0": 2.05,
+    "/LED": 19.255,
+    "/LED_A": 12.942,
+    "/NRST": 11.65,
+    "/OSC_IN": 19.4,
+    "/OSC_OUT": 10.75,
+    "/SWCLK": 6.315,
+    "/SWDIO": 12.855,
+    "/VIN": 4.8451,
+    "GND": 64.4728
+   }
+  },
+  "crossings": {
+   "count": 21,
+   "pairs": [
+    {
+     "nets": [
+      "+3V3",
+      "GND"
+     ],
+     "crossings": 5
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/LED"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/SWDIO"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "/OSC_IN",
+      "/OSC_OUT"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "/SWDIO",
+      "GND"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "+5V",
+      "GND"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/LED",
+      "GND"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/NRST",
+      "/OSC_IN"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/NRST",
+      "/OSC_OUT"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/NRST",
+      "GND"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/OSC_IN",
+      "GND"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/OSC_OUT",
+      "GND"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/SWCLK",
+      "/SWDIO"
+     ],
+     "crossings": 1
+    }
+   ]
+  },
+  "congestion": {
+   "cell_mm": 2.0,
+   "cols": 25,
+   "rows": 21,
+   "max": 8,
+   "mean_nonzero": 1.77,
+   "hotspots": [
+    {
+     "cell": [
+      21,
+      12
+     ],
+     "center": [
+      52.38,
+      33.955
+     ],
+     "demand": 8
+    },
+    {
+     "cell": [
+      18,
+      11
+     ],
+     "center": [
+      46.38,
+      31.955
+     ],
+     "demand": 7
+    },
+    {
+     "cell": [
+      16,
+      13
+     ],
+     "center": [
+      42.38,
+      35.955
+     ],
+     "demand": 6
+    },
+    {
+     "cell": [
+      15,
+      13
+     ],
+     "center": [
+      40.38,
+      35.955
+     ],
+     "demand": 5
+    },
+    {
+     "cell": [
+      17,
+      14
+     ],
+     "center": [
+      44.38,
+      37.955
+     ],
+     "demand": 5
+    },
+    {
+     "cell": [
+      7,
+      8
+     ],
+     "center": [
+      24.38,
+      25.955
+     ],
+     "demand": 4
+    },
+    {
+     "cell": [
+      14,
+      13
+     ],
+     "center": [
+      38.38,
+      35.955
+     ],
+     "demand": 4
+    },
+    {
+     "cell": [
+      16,
+      14
+     ],
+     "center": [
+      42.38,
+      37.955
+     ],
+     "demand": 4
+    },
+    {
+     "cell": [
+      17,
+      13
+     ],
+     "center": [
+      44.38,
+      35.955
+     ],
+     "demand": 4
+    },
+    {
+     "cell": [
+      20,
+      16
+     ],
+     "center": [
+      50.38,
+      41.955
+     ],
+     "demand": 4
+    }
+   ]
+  },
+  "decoupling": [
+   {
+    "cap": "C1",
+    "pin": "U1.48",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 2.7387,
+    "euclid_mm": 1.937,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 4.9171
+   },
+   {
+    "cap": "C2",
+    "pin": "U1.24",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 1.4517,
+    "euclid_mm": 1.2653,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 4.0162
+   },
+   {
+    "cap": "C3",
+    "pin": "U1.36",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 1.5017,
+    "euclid_mm": 1.2742,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 4.0512
+   },
+   {
+    "cap": "C4",
+    "pin": "U1.9",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 4.066,
+    "euclid_mm": 2.9354,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 5.8462
+   },
+   {
+    "cap": "C10",
+    "pin": "U1.9",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 2.2829,
+    "euclid_mm": 1.8969,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 4.598
+   },
+   {
+    "cap": "C11",
+    "pin": "U1.48",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 7.5544,
+    "euclid_mm": 5.5465,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 8.2881
+   },
+   {
+    "cap": "C5",
+    "pin": "U2.2",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 3.7311,
+    "euclid_mm": 2.8012,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 5.6118
+   },
+   {
+    "cap": "C6",
+    "pin": "U2.3",
+    "rail": "+5V",
+    "class": "mid",
+    "manhattan_mm": 1.8036,
+    "euclid_mm": 1.7854,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 4.2625
+   }
+  ],
+  "utilization": {
+   "component_mm2": 205.2244,
+   "board_mm2": 2000.0,
+   "ratio": 0.103
+  }
+ }
+}

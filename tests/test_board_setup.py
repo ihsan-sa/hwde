@@ -237,6 +237,43 @@ def test_parse_netlist_missing_fp_raises(tmp_path):
         board_init.parse_netlist(n)
 
 
+def test_parse_netlist_custom_fields(tmp_path):
+    """Custom symbol fields (LCSC...) are extracted; native ones excluded.
+
+    S14 finding: symbols carrying an LCSC field made board_init's parity
+    self-check fail (footprint_symbol_field_mismatch x N) because the fields
+    never reached the footprints. parse_netlist must surface them.
+    """
+    with_fields = MINI_NET.replace(
+        '(comp (ref "R1") (value "10k") '
+        '(footprint "Resistor_SMD:R_0603_1608Metric"))',
+        '(comp (ref "R1") (value "10k") '
+        '(footprint "Resistor_SMD:R_0603_1608Metric")\n'
+        '      (fields (field (name "LCSC") "C25804")\n'
+        '              (field (name "Footprint") "Resistor_SMD:R_0603")\n'
+        '              (field (name "Datasheet") "url")))')
+    n = tmp_path / "f.net"
+    n.write_text(with_fields, encoding="utf-8")
+    comps, _ = board_init.parse_netlist(n)
+    by_ref = {c["ref"]: c for c in comps}
+    assert by_ref["R1"]["fields"] == {"LCSC": "C25804"}  # natives excluded
+    assert by_ref["C1"]["fields"] == {}
+
+
+def test_transient_silk_partition():
+    """S14: cross-footprint silk at shelf positions is transient (placement
+    re-positions); single-footprint silk (own silk over own pad) is a library
+    defect and must still fail init."""
+    cross = {"check": "silk_overlap", "refs": ["D2", "U1"]}
+    cross2 = {"check": "silk_over_copper", "refs": ["C11", "C5"]}
+    own = {"check": "silk_over_copper", "refs": ["D2"]}
+    other = {"check": "courtyards_overlap", "refs": ["A", "B"]}
+    assert board_init._is_transient_silk(cross)
+    assert board_init._is_transient_silk(cross2)
+    assert not board_init._is_transient_silk(own)
+    assert not board_init._is_transient_silk(other)
+
+
 def test_build_stackup_block():
     block = board_init.build_stackup_block(_stackup())
     assert block.lstrip().startswith("(stackup")
@@ -307,6 +344,45 @@ def test_board_init_end_to_end(cli, usbbuck4_net, tmp_path):
     bg = geom.load_board(tmp_path / "kicad" / "usbbuck4.kicad_pcb")
     assert bg.stackup.assumed is False
     assert bg.stackup.copper_layers == ["F.Cu", "In1.Cu", "In2.Cu", "B.Cu"]
+
+
+@pytest.mark.smoke
+def test_board_init_lcsc_fields_and_inplace_schematic(cli, usbbuck4_net, tmp_path):
+    """S14 regressions: (a) symbols with custom LCSC fields must init to a
+    parity-CLEAN board (fields copied onto footprints, hidden); (b) --schematic
+    pointing at the file already in the out dir must not SameFileError."""
+    # inject an LCSC field into every comp's existing (fields ...) block
+    txt = usbbuck4_net.read_text(encoding="utf-8")
+    txt = txt.replace("(fields\n",
+                      '(fields\n\t\t\t\t(field\n\t\t\t\t\t(name "LCSC") "C999")\n')
+    net2 = tmp_path / "with_lcsc.net"
+    net2.write_text(txt, encoding="utf-8")
+
+    out_dir = tmp_path / "kicad"
+    out_dir.mkdir()
+    # schematic already IN the out dir under the board's name (the P4 layout)
+    sch_dst = out_dir / "usbbuck4.kicad_sch"
+    shutil.copy(GOLDEN / "usbbuck4" / "usbbuck4.kicad_sch", sch_dst)
+
+    rep = tmp_path / "report.json"
+    rc = board_init.main([
+        "--netlist", str(net2), "--name", "usbbuck4",
+        "--out", str(out_dir), "--layers", "4", "--mounting-holes", "0",
+        "--schematic", str(sch_dst),          # samefile as the copy target
+        "--out-report", str(rep)])
+    r = json.loads(rep.read_text("utf-8"))
+    assert rc == 0 and r["status"] == "pass", r
+    assert r["self_check"]["parity_count"] == 0   # LCSC fields no longer trip it
+
+    board_text = (out_dir / "usbbuck4.kicad_pcb").read_text(encoding="utf-8")
+    assert '"LCSC"' in board_text and '"C999"' in board_text
+    # fields default visible-on-silk in pcbnew; the worker must hide them
+    import re as _re
+    for m in _re.finditer(r'\(property "LCSC"[\s\S]{0,400}?\(hide yes\)',
+                          board_text):
+        break
+    else:
+        pytest.fail("LCSC footprint fields are not hidden")
 
 
 def _prep_golden(tmp_path, board="usbbuck4"):

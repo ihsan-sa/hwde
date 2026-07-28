@@ -86,6 +86,13 @@ def build(job: dict) -> dict:
             notes.append(f"SetFPID {comp['ref']}: {exc}")
         fp.SetReference(comp["ref"])
         fp.SetValue(comp.get("value", ""))
+        # Custom symbol fields (LCSC, MPN, ...) must exist on the footprint or
+        # `drc --schematic-parity` warns footprint_symbol_field_mismatch.
+        for fname, fval in (comp.get("fields") or {}).items():
+            fp.SetField(fname, fval)
+        for field in fp.GetFields():
+            if field.GetName() in (comp.get("fields") or {}):
+                field.SetVisible(False)  # metadata, not board art
         board.Add(fp)
         for pad in fp.Pads():
             want = netmap.get(f"{comp['ref']}.{pad.GetNumber()}")

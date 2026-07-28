@@ -544,3 +544,42 @@ lib_ids via its global cache which does NOT read the project sym-lib-table - gen
 `ksa.get_symbol_cache().add_library_path(<abs path to aiee.kicad_sym>)` before add_component, and
 the mtime-based cache DID pick up the lib edit correctly on rebuild (verified: embedded lib_symbols
 in the saved .kicad_sch carried the new types).
+
+## 2026-07-27 [board_init][kicad] P5 gate: --schematic SameFileError in-place + LCSC field parity warnings fail self-check
+Two board_init findings from the first real P5 run (stm32-blinky). (a) `--schematic` does a bare
+shutil.copy to `<out>/<name>.kicad_sch`; when the schematic ALREADY lives in the out dir under that
+name (the normal pipeline layout), copy raises SameFileError -> exit 2 AFTER the board is written
+but BEFORE self_check runs. Workaround without code/hand edits: pass a byte-identical staged copy
+from a temp dir (parity check still runs). Omitting --schematic silently skips parity - don't.
+(b) Boards whose symbols carry an LCSC field (every real P4 output; goldens didn't) fail the parity
+gate: netlist has the LCSC property but board_swig.py copies NO fields into footprints, so KiCad 10
+DRC (--severity-all) emits `footprint_symbol_field_mismatch` "Missing symbol field 'LCSC' in
+footprint" - one warning per component, counted as parity. Net-membership parity itself was 0.
+Fix belongs in board_init/board_swig (copy netlist component properties into footprint fields), not
+in the schematic.
+
+## 2026-07-27 [placement][drc][geometry] P6 gate is courtyard-blind: place_seed output shorted 9 pad pairs while gate=PASS
+First real P6 run (stm32-blinky, 20 parts). place_seed's satellite ring passed `gate.py --gate place`
+with 0 violations, yet KiCad DRC on the SAME board reported 21 copper errors (9 shorting_items,
+9 solder_mask_bridge, 2 clearance, 1 copper_edge_clearance) + 68 silk warnings. Cause: placelib's
+legality is courtyard-only, and several footprints have courtyards SMALLER than their pad field -
+the LQFP48 U1's courtyard is a 7.05 mm box while its pads span 10 mm, so decouplers legally parked
+"outside the courtyard" sat ON the pin tips (the deferred D2 quirk is not an isolated library bug).
+Corollary: check_silk is far more lenient than DRC (its "pad centre covered OR >=50% of pad" rule
+reported 12 hits where DRC found 68) - never treat check_silk=0 as silk-clean. Two more facts: the
+board-setup edge clearance (0.50 mm) is STRICTER than the generated .kicad_dru floor (0.30 mm), and
+`check_silk` violation `refs` names the PAD's owner, not the silk's owner (attribute the silk owner
+yourself before blaming a part). Practical P6 recipe that ended err+warn=0: anneal candidate ->
+clearance-driven repair against real DRC semantics (pad-pad >=0.5, silk-pad/silk-silk >=0.25,
+courtyard gap >=0.15, pad-edge >=0.62 mm) -> verify with `kc.py drc`, not the place gate alone.
+
+## 2026-07-27 [placement][python] Coordinate descent cannot evict a blocker; anneal candidates repair better than the seed
+Two placement-search facts from the same run. (a) A per-part cost descent never moves a part whose
+OWN cost does not improve, so a blocker parked between a decoupler and its pin is immovable: C1 sat
+8.7 mm from U1.48 with D2 in the corridor and no single-part move (even at 30x decoupler weight,
+12 mm cap) could fix it. A 2-level cooperative search (grid over the blocker x best-response grid
+for the riders) dropped C1 to 2.7 mm. (b) The S13 note "the SEEDED placement is silk-clean, route
+from the seed" is board-specific: here the anneal candidates were silk-DIRTIER than the seed
+(22-26 vs 12 check_silk hits) but structurally far better (HPWL 160 vs 313, crystal 4.1 vs 5.5 mm),
+and repairing cand1 beat repairing the seed on every metric (HPWL 227 vs 330, crystal 4.1 vs 12.0,
+both DRC-clean). Repair the best candidate; do not fall back to the seed on silk counts alone.

@@ -1,0 +1,46 @@
+{
+  "script": "rules_gen",
+  "status": "pass",
+  "capability_class": "2layer_1oz",
+  "stackup": "JLC2313_1.6",
+  "rule_count": 11,
+  "rule_names": [
+    "aiee_track_width_floor",
+    "aiee_clearance_floor",
+    "aiee_via_drill_floor",
+    "aiee_via_diameter_floor",
+    "aiee_annular_floor",
+    "aiee_edge_clearance_floor",
+    "aiee_hole_to_hole_floor",
+    "aiee_silk_width_floor",
+    "aiee_pwr_width_VIN",
+    "aiee_pwr_width_5V",
+    "aiee_pwr_width_3V3"
+  ],
+  "power": [
+    {
+      "net": "/VIN",
+      "current_a": 0.3,
+      "dt_c": 10.0,
+      "min_width_mm": 0.15
+    },
+    {
+      "net": "+5V",
+      "current_a": 0.3,
+      "dt_c": 10.0,
+      "min_width_mm": 0.15
+    },
+    {
+      "net": "+3V3",
+      "current_a": 0.3,
+      "dt_c": 10.0,
+      "min_width_mm": 0.15
+    }
+  ],
+  "diff_pairs": [],
+  "classes": [
+    "Power"
+  ],
+  "out_dru": "boards/stm32-blinky/kicad/stm32-blinky.kicad_dru",
+  "pro": "boards/stm32-blinky/kicad/stm32-blinky.kicad_pro"
+}

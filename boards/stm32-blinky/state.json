@@ -3,15 +3,15 @@
  "board": "stm32-blinky",
  "workspace": "boards/stm32-blinky",
  "created": "2026-07-27T16:26:45",
- "updated": "2026-07-27T22:18:12",
- "phase": "P4",
+ "updated": "2026-07-27T22:55:29",
+ "phase": "P6",
  "gates": {
   "erc": {
    "phase": "P4",
    "status": "pass",
-   "attempts": 1,
+   "attempts": 2,
    "last": {
-    "ts": "2026-07-27T22:06:05",
+    "ts": "2026-07-27T22:31:40",
     "status": "pass",
     "failing_count": 0,
     "total": 0
@@ -19,6 +19,12 @@
    "history": [
     {
      "ts": "2026-07-27T22:06:05",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0
+    },
+    {
+     "ts": "2026-07-27T22:31:40",
      "status": "pass",
      "failing_count": 0,
      "total": 0
@@ -31,21 +37,27 @@
    "status": "approved",
    "ts": "2026-07-27T17:25:55",
    "note": "Architecture approved as recommended (SS34 kept)"
+  },
+  "2": {
+   "status": "approved",
+   "ts": "2026-07-27T22:31:41",
+   "note": "AUTO-approved per user directive. Schematic PDF reports/schematic.pdf; review 1 err + 3 warn -> err+2 warn fixed pre-board, 1 warn waived (erc-waivers.md); ERC 0/0; audit pass"
   }
  },
  "artifacts": {
   "constraints": "architecture/constraints.json",
   "architecture": "architecture/blocks.md",
-  "parts": "parts/parts.json"
+  "parts": "parts/parts.json",
+  "board": "kicad/stm32-blinky.kicad_pcb"
  },
  "open_issues": [
   {
    "id": 1,
-   "status": "fixing",
+   "status": "fixed",
    "agent": "p4-continuation",
    "attempts": 0,
    "opened": "2026-07-27T22:17:47",
-   "closed": null,
+   "closed": "2026-07-27T22:31:40",
    "gate": null,
    "phase": null,
    "fixer": "review",
@@ -63,11 +75,11 @@
   },
   {
    "id": 2,
-   "status": "fixing",
+   "status": "fixed",
    "agent": "p4-continuation",
    "attempts": 0,
    "opened": "2026-07-27T22:17:47",
-   "closed": null,
+   "closed": "2026-07-27T22:31:40",
    "gate": null,
    "phase": null,
    "fixer": "review",
@@ -85,11 +97,11 @@
   },
   {
    "id": 3,
-   "status": "fixing",
+   "status": "fixed",
    "agent": "p4-continuation",
    "attempts": 0,
    "opened": "2026-07-27T22:17:47",
-   "closed": null,
+   "closed": "2026-07-27T22:31:40",
    "gate": null,
    "phase": null,
    "fixer": "review",
@@ -200,6 +212,18 @@
    "why": "User message 2026-07-27: 'Going forward just make the decisions yourself and tell me when s14 is done'",
    "phase": "P3",
    "ts": "2026-07-27T17:35:07"
+  },
+  {
+   "what": "S14 exec plan: model-mix (sonnet/opus subagents, fable reviewers only, script phases inline); run (b) stays full",
+   "why": "User-approved cost control 2026-07-27",
+   "phase": "P5",
+   "ts": "2026-07-27T22:53:02"
+  },
+  {
+   "what": "Outline fixed 50x40 (requirements cap) at P5; 35x30 architecture target unreachable (no outline-shrink step exists, v1 limit). LED courtyard-smaller-than-pads quirk deferred unless P6/P7 trip",
+   "why": "Cap must bind at P5; shelf-pack needs the room",
+   "phase": "P5",
+   "ts": "2026-07-27T22:53:02"
   }
  ],
  "history": [
@@ -418,6 +442,72 @@
    "status": "waived",
    "agent": null,
    "attempts": 0
+  },
+  {
+   "ts": "2026-07-27T22:31:40",
+   "event": "gate",
+   "gate": "erc",
+   "status": "pass",
+   "attempt": 2,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-07-27T22:31:40",
+   "event": "issue",
+   "id": 1,
+   "status": "fixed",
+   "agent": "p4-continuation",
+   "attempts": 0
+  },
+  {
+   "ts": "2026-07-27T22:31:40",
+   "event": "issue",
+   "id": 2,
+   "status": "fixed",
+   "agent": "p4-continuation",
+   "attempts": 0
+  },
+  {
+   "ts": "2026-07-27T22:31:40",
+   "event": "issue",
+   "id": 3,
+   "status": "fixed",
+   "agent": "p4-continuation",
+   "attempts": 0
+  },
+  {
+   "ts": "2026-07-27T22:31:41",
+   "event": "human",
+   "checkpoint": "2",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-07-27T22:31:41",
+   "event": "phase",
+   "phase": "P5",
+   "prev": "P4"
+  },
+  {
+   "ts": "2026-07-27T22:53:02",
+   "event": "decision",
+   "what": "S14 exec plan: model-mix (sonnet/opus subagents, fable reviewers only, script phases inline); run (b) stays full"
+  },
+  {
+   "ts": "2026-07-27T22:53:02",
+   "event": "decision",
+   "what": "Outline fixed 50x40 (requirements cap) at P5; 35x30 architecture target unreachable (no outline-shrink step exists, v1 limit). LED courtyard-smaller-than-pads quirk deferred unless P6/P7 trip"
+  },
+  {
+   "ts": "2026-07-27T22:55:29",
+   "event": "phase",
+   "phase": "P6",
+   "prev": "P5"
+  },
+  {
+   "ts": "2026-07-27T22:55:29",
+   "event": "artifact",
+   "name": "board",
+   "path": "kicad/stm32-blinky.kicad_pcb"
   }
  ]
 }

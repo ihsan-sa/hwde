@@ -68,8 +68,28 @@ def _find1(node, name):
     return r[0] if r else None
 
 
+# Symbol fields KiCad's footprint/symbol field parity handles natively (or
+# exempts); everything else (LCSC, MPN, ...) must be copied onto the footprint
+# or `drc --schematic-parity` warns footprint_symbol_field_mismatch per part.
+_NATIVE_FIELDS = {"Reference", "Value", "Footprint", "Datasheet", "Description"}
+
+
+def _comp_fields(comp) -> dict[str, str]:
+    """Custom symbol fields of a netlist (comp ...): {name: value}."""
+    fields: dict[str, str] = {}
+    fnode = _find1(comp, "fields")
+    if fnode:
+        for f in _find(fnode, "field"):
+            nnode = _find1(f, "name")
+            name = _sym(nnode[1]) if nnode and len(nnode) > 1 else None
+            value = _sym(f[-1]) if len(f) > 2 else ""
+            if name and name not in _NATIVE_FIELDS:
+                fields[name] = value
+    return fields
+
+
 def parse_netlist(path: Path) -> tuple[list[dict], dict]:
-    """kicadsexpr netlist -> ([{ref, value, fp}], {"REF.PAD": net})."""
+    """kicadsexpr netlist -> ([{ref, value, fp, fields}], {"REF.PAD": net})."""
     data = sexpdata.loads(path.read_text(encoding="utf-8"))
     components: list[dict] = []
     netmap: dict[str, str] = {}
@@ -81,7 +101,8 @@ def parse_netlist(path: Path) -> tuple[list[dict], dict]:
                 value = _sym(vnode[1]) if vnode and len(vnode) > 1 else ""
                 fnode = _find1(comp, "footprint")
                 fp = _sym(fnode[1]) if fnode and len(fnode) > 1 else None
-                components.append({"ref": ref, "value": value, "fp": fp})
+                components.append({"ref": ref, "value": value, "fp": fp,
+                                   "fields": _comp_fields(comp)})
         elif _head(section) == "nets":
             for net in _find(section, "net"):
                 nm = _sym(_find1(net, "name")[1])
@@ -165,15 +186,32 @@ def write_pro(pro_path: Path, min_track: float = 0.1) -> None:
 SETUP_IGNORE_SOURCES = {"unconnected"}  # unrouted board -> unconnected expected
 
 
+# Silk checks that a CROSS-footprint pair can trip purely because of the
+# temporary shelf packing (refdes text of one part vs a neighbour). Placement
+# (P6) re-positions everything, and P7's drc_routed gate re-checks silk at the
+# final positions - so these are reported as transient, not init failures.
+# A SINGLE-footprint silk violation (own silk over own pad) is a library
+# defect and still fails (S14 finding: easyeda2kicad ships such footprints).
+_TRANSIENT_SILK_CHECKS = {"silk_overlap", "silk_over_copper"}
+
+
+def _is_transient_silk(v: dict) -> bool:
+    return (v.get("check") in _TRANSIENT_SILK_CHECKS
+            and len(set(v.get("refs") or [])) >= 2)
+
+
 def self_check(cli: Path, pcb: Path, has_sch: bool) -> dict:
     report = kc.run_drc(cli, pcb, parity=has_sch)
-    setup = [v for v in report["violations"]
-             if v["source"] not in SETUP_IGNORE_SOURCES]
+    setup_all = [v for v in report["violations"]
+                 if v["source"] not in SETUP_IGNORE_SOURCES]
+    transient = [v for v in setup_all if _is_transient_silk(v)]
+    setup = [v for v in setup_all if not _is_transient_silk(v)]
     parity = [v for v in report["violations"] if v["source"] == "parity"]
     unconnected = [v for v in report["violations"] if v["source"] == "unconnected"]
     return {
         "drc": report["counts"],
         "setup_violations": setup,
+        "transient_silk": transient,
         "parity_count": len(parity),
         "unconnected_count": len(unconnected),
         "clean": len(setup) == 0,
@@ -259,7 +297,12 @@ def main(argv: list[str] | None = None) -> int:
 
         has_sch = False
         if args.schematic:
-            shutil.copy(args.schematic, out_dir / f"{args.name}.kicad_sch")
+            sch_dst = out_dir / f"{args.name}.kicad_sch"
+            src = Path(args.schematic).resolve()
+            # The schematic often already lives next to the board (P4 builds
+            # into kicad/) - copying a file onto itself raises SameFileError.
+            if src != sch_dst.resolve():
+                shutil.copy(args.schematic, sch_dst)
             has_sch = True
 
         check = self_check(cli, pcb_path, has_sch)
