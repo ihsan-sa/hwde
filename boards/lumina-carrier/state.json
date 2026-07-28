@@ -3,7 +3,7 @@
  "board": "lumina-carrier",
  "workspace": "boards/lumina-carrier",
  "created": "2026-07-28T13:36:22",
- "updated": "2026-07-28T14:11:12",
+ "updated": "2026-07-28T14:51:53",
  "phase": "P2",
  "gates": {},
  "human": {},
@@ -81,6 +81,24 @@
    "why": "check_return_path exits 2 on an absent high_speed net and ERRORS (gate.py offers no waiver) if the MDI pair crosses the deliberate plane void under the magjack. planes_gen has no keepout key, so the void cannot be declared directly - it must be produced by sizing the plane region rectangles at P5. Also recorded: 4-layer JLC04161H-3313 is REQUIRED, being the only stackup with a diff_100 profile (0.260/0.210); 2-layer computes to 1.081 mm per leg at a clamped 0.30 mm gap. Gate-5 answer: W5500 SPI binding maximum is 33.3 MHz guaranteed, NOT the 80 MHz 'theoretical design speed' - recommend 20 MHz on SPI2 IO_MUX pins. Do NOT fit 75 ohm Bob Smith resistors (TI SNLA079D 2.3: does not apply for PoE).",
    "phase": "P1",
    "ts": "2026-07-28T14:10:38"
+  },
+  {
+   "what": "Stackup: 4-layer JLC04161H-3313, 1 oz",
+   "why": "Forced by 100 ohm MDI - it is the only stackup carrying a diff_100 profile (0.260/0.210); a 2-layer board computes to 1.081 mm per leg, which is unroutable. Reinforced by plane discipline (continuous In1 GND under the MDI corridor) rather than by thermals.",
+   "phase": "P2",
+   "ts": "2026-07-28T14:51:45"
+  },
+  {
+   "what": "MECH-02 outline proposal: 100 x 80 mm, 3 mm corner radius, 4x M3 at 5 mm inset plus a 5th M3 at (46,74); 11.0 mm stack height",
+   "why": "Derived from 4410 mm2 of measured block area at 55-60 percent realistic utilisation for a 4-layer board carrying a 0.60 mm creepage envelope, a no-vias MDI corridor, an antenna keepout and five mounting-hole exclusions. 80x60 would need 92 percent utilisation and is impossible. The 5th hole is CAR-REQ-15 mechanical support near the connector. 11.0 mm is what stocked 2.54 mm parts actually mate at; the provisional 15 mm is unachievable.",
+   "phase": "P2",
+   "ts": "2026-07-28T14:51:45"
+  },
+  {
+   "what": "ICD-01 FROZEN (draft, pending H1): split connector, 38 positions - POWER J3 2x7 + SIGNAL J4 2x12, CONNFLY DS1021/DS1023 2.54 mm",
+   "why": "Split beats a single 2x20 on mis-mating consequence: a one-position offset on a single 2x20 puts 48 V onto an ESP32 GPIO, whereas on a 2x7 power block it lands on 12 V or GND. The asymmetric 2x7 + 2x12 pair also self-keys, which matters because MECH-01's symmetric 4x M3 pattern would otherwise allow a daughter to be bolted 180 degrees rotated. Derating 1.80 A/pin (3 A single-circuit x 60 percent adjacent). GND is the binding rail at 7 pins in the power block - the brief's '>= 4 GND' is below what CAR-REQ-13 requires.",
+   "phase": "P2",
+   "ts": "2026-07-28T14:51:45"
   }
  ],
  "history": [
@@ -151,6 +169,25 @@
    "event": "phase",
    "phase": "P2",
    "prev": "P1"
+  },
+  {
+   "ts": "2026-07-28T14:51:45",
+   "event": "decision",
+   "what": "Stackup: 4-layer JLC04161H-3313, 1 oz"
+  },
+  {
+   "ts": "2026-07-28T14:51:45",
+   "event": "decision",
+   "what": "MECH-02 outline proposal: 100 x 80 mm, 3 mm corner radius, 4x M3 at 5 mm inset plus a 5th M3 at (46,74); 11.0 mm stack height"
+  },
+  {
+   "ts": "2026-07-28T14:51:45",
+   "event": "decision",
+   "what": "ICD-01 FROZEN (draft, pending H1): split connector, 38 positions - POWER J3 2x7 + SIGNAL J4 2x12, CONNFLY DS1021/DS1023 2.54 mm"
+  },
+  {
+   "ts": "2026-07-28T14:51:53",
+   "event": "H1 checkpoint reached - run STOPPED awaiting human. No verdict recorded (state.py human accepts only approved/rejected/skipped; inventing one is forbidden). Blocking before P3: Q4 stack height, Q5 isolation+enclosure material, Q6 per-rail current, Q8 radio. Blocking before P5 and PERMANENT: the 100x80 mm outline."
   }
  ]
 }

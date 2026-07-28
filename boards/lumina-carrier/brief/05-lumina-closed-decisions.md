@@ -81,11 +81,19 @@ Every LUMINA board has rounded board corners and mounting holes.
 - Mounting holes are native to P5: `board_init.py --mounting-holes N` (0..4,
   M3 3.2 mm at the outline corners, flagged board-only so schematic parity
   ignores them). Use 4 unless the outline makes that impossible.
-- Rounded corners are **not** in the frozen v1 skill (the P5 outline was a
-  hardcoded sharp rectangle). Support is being added centrally as a
-  `--corner-radius` flag on `board_init.py`; it will be in place before any run
-  reaches P5. Confirm the flag exists with `board_init.py --help` at P5 rather
-  than assuming a default.
+- Rounded corners: **`board_init.py --corner-radius R`** (mm). This was added
+  centrally this session and is verified end-to-end. The default is 0 (square),
+  so you must pass it explicitly. Use R = 3 mm unless the enclosure dictates
+  otherwise.
+- **The radius is clamped to the mounting-hole inset**, which is `margin / 2` -
+  so 3.0 mm at the default `--margin 6`. Parts are packed on a shelf grid that
+  already routes around the holes at that inset, so an oversized radius shrinks
+  itself rather than relocating a hole (relocating collides with neighbouring
+  courtyards). To get R > 3, pass a larger `--margin` (e.g. `--margin 10` gives
+  inset 5 and allows R up to 5) and re-check the resulting size against MECH-02.
+- The board_init report's `corner_radius` field states what you actually got and
+  `worker_notes` records any clamp. Read both; do not assume the requested value
+  was honoured.
 
 ### MECH-02 - Enclosure outline is still undefined
 
