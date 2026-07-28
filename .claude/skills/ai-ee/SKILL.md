@@ -188,12 +188,24 @@ remaining violations with coordinates), present to the human with options
 (waive / manual guidance / abort). Record the outcome (`state.py human` /
 `decision`).
 
+## Design document (living, per-run)
+
+Before EVERY human checkpoint (H1-H5) and once more at P10 close, run inline:
+`scripts/report_gen.py --workspace <ws>` -> assembles state.json + digests +
+reports + renders into `reports/design_doc/<board>-design-doc.pdf`. Phase-
+aware: sections not yet due render as pending stubs, so the doc is valid
+mid-run, not only after. NON-BLOCKING by contract: on exit 1/2 log the
+payload warnings (`state.py log --event report_gen_degraded`), point at the
+.tex or last good PDF, and continue - the report never gates the run.
+(Without pdflatex it degrades to .tex-only; check_env warns.)
+
 ## Human checkpoint presentation format
 
 Digest + artifact, never raw logs. Message shape:
 - What phase completed and what the artifact is (one line).
 - The digest (<= 10 lines, numbers first: gate counts, cost, key choices).
-- The files to look at (render PNGs, PDF, quote table) as paths.
+- The files to look at (render PNGs, schematic PDF, the design-doc PDF,
+  quote table) as paths.
 - The specific question(s), each with a recommended answer.
 Record the verdict: `state.py human --checkpoint <n> --status approved|
 rejected [--note ...]`; a rejection loops the phase with the human's notes

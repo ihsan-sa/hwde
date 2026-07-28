@@ -1578,3 +1578,40 @@ human_steps = the remaining human actions; NOTHING was purchased). SKILL.md
 is the operational authority; SPEC.md section 9 carries the as-built addenda.
 The S14 finding ledger (35 items) is summarized here; per-run digests in
 each workspace's log/.
+
+## Post-v1 amendment: report_gen design-document generator (2026-07-28)
+
+**Built** (additive; recon x2 -> build -> validation + adversarial review, 5 agents):
+- `scripts/report_gen.py` - assembles a per-run LaTeX design doc from the
+  workspace (state.json spine + brief/requirements/architecture + digests +
+  waivers + reviews + renders + verify/dfm/fab JSONs + order/quote) into
+  `reports/design_doc/<board>-design-doc.{tex,pdf}`. Phase-aware ("as it's
+  built": not-yet-due sections render pending stubs; due-but-absent core
+  artifacts -> missing[] + exit 1). Compile: 2-pass pdflatex staged in system
+  temp - ZERO .aux/.log residue in the tracked tree; `--tex-only` = full
+  success without TeX; pdflatex absent = degrade + warning; bad AIEE_PDFLATEX
+  pin = loud exit 2 (tex still written). Escaping is a per-char total map ->
+  pure-ASCII .tex asserted (build fails otherwise).
+- `env.find_pdflatex()` (AIEE_PDFLATEX -> PATH -> per-user MiKTeX default) +
+  warn-level check_env check (23 checks now).
+- `tests/test_report.py` - 31 tests (29 hermetic, 2 smoke incl. residue +
+  rerun guards on real workspaces).
+- SKILL.md: design-doc step wired before every human checkpoint + P10 close,
+  explicitly NON-BLOCKING (never gates a run).
+
+**Validation:** all three S14 workspaces compile end-to-end (pd-trigger 21 pp,
+stm32-blinky 18 pp, usb-buck 23 pp with its two known artifact gaps rendered
+honestly); schematic PDFs embedded page-exact; adversarial review (probe-
+driven) found 1 real defect class - unescaped `[`/`*` are context-sensitive
+after the \\ line-join and inside \item (fatal "Missing number" / silent
+label swallow) - fixed by brace-wrapping in the escape map + regression
+tests; 2 minor fixes (compile failures now self-explain in warnings; bad-pin
+exit no longer discards the built .tex). LEARNINGS [latex] x2 (that, plus
+pdfpages-2026 `artifact` keyval vs older graphics stacks - shimmed).
+`check.cmd` green: **641 passed** (610 prior + 31), check_env exit 0.
+
+**Known limits:** narrative markdown is converted by a deliberate md-lite
+ceiling (headings/bullets/inline marks; tables + fences pass through as tt
+blocks); doc prose quality = quality of the recorded digests/notes. The
+hand-written pd-trigger prototype (reports/design_doc/pd-trigger-design.*)
+stays untracked pending user disposition.

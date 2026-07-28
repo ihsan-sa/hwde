@@ -4,7 +4,7 @@ Append-only, non-obvious gotchas. Recall by tag/keyword before touching an area.
 Entries sourced from prior attempts are marked; re-verify at first use here.
 
 ## Tags
-[windows] [kicad] [kicad-cli] [ipc] [swig] [freerouting] [easyeda2kicad] [python] [prior-attempts] [geometry] [shapely] [parts] [datasheet] [gerber] [gerbonara] [dfm] [jlc] [fab] [skill] [git]
+[windows] [kicad] [kicad-cli] [ipc] [swig] [freerouting] [easyeda2kicad] [python] [prior-attempts] [geometry] [shapely] [parts] [datasheet] [gerber] [gerbonara] [dfm] [jlc] [fab] [skill] [git] [latex]
 
 ## 2026-07-06 [windows] cp1252 console crashes on non-ASCII output
 Printing degree signs, ohms, plus-minus, emoji to a default Windows console raises
@@ -865,3 +865,19 @@ for the simple-name case.)
 A refdes rename (R2 -> R2A/R2B split) invisibly lost a thermal-separation constraint - the
 anneal ignores unknown refs. Now surfaced as facts.separation_unknown_refs (test-pinned);
 orchestrators must sync constraints refs after any refdes change (sheets.md tracking rule).
+
+## 2026-07-28 [latex][windows] pdfpages 2026 passes an `artifact` key older graphics stacks reject
+MiKTeX auto-installs pdfpages v0.6h (2026), which emits an `artifact` keyval into
+\includegraphics on MULTI-page \includepdf insertions; a 2024-era graphics/graphicx lacks the
+key -> "keyval Error: artifact undefined", fatal - while SINGLE-page includes work fine (why
+quick probes miss it). report_gen's preamble defines the key as a no-op iff absent
+(\makeatletter/\makeatother guard). Recognize it by: 1-page schematic embeds fine, 4-page dies.
+
+## 2026-07-28 [latex] Escaping the special chars is not enough: [ and * are context-sensitive
+After the \\ that joins tt-block/longtable lines, a line-initial "[" parses as the OPTIONAL ARG
+of \\ ("! Missing number", fatal - a digest line "[ok] ..." or BOM comment "[NRND] ..." kills
+the compile); "\item [x]" swallows [x] as the item label (silent content loss in task lists /
+human_steps); "\\*" swallows a line-initial star. Per-char escaping cannot see context; fix is
+brace-wrapping in the map ("[" -> "{[}", "]" -> "{]}", "*" -> "{*}") - renders identically,
+inert everywhere. Related: OT1 text mode prints raw < > | as inverted punctuation/em-dash -
+map to \textless{}/\textgreater{}/\textbar{}. (Adversarial review of report_gen, probe-verified.)

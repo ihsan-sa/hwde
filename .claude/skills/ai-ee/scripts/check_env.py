@@ -71,6 +71,10 @@ JAR_HELP = (
     "https://github.com/freerouting/freerouting/releases into "
     "tools/freerouting/, or set AIEE_FREEROUTING_JAR."
 )
+PDFLATEX_HELP = (
+    "Install MiKTeX (https://miktex.org/download) or TeX Live, or set "
+    "AIEE_PDFLATEX. Without it report_gen degrades to --tex-only (no PDF)."
+)
 
 SWIG_PROBE = """\
 import sys
@@ -256,6 +260,19 @@ def check_java(resolved: dict) -> list[dict]:
     return out
 
 
+def check_pdflatex(resolved: dict) -> dict:
+    """pdflatex is optional (report_gen degrades to --tex-only), so absence is
+    a warning - but a set-but-invalid AIEE_PDFLATEX pin still fails loudly."""
+    try:
+        p = env.find_pdflatex()
+    except env.EnvError as e:
+        return check("pdflatex", False, str(e), PDFLATEX_HELP)
+    resolved["pdflatex"] = str(p) if p else None
+    return check("pdflatex", p is not None,
+                 str(p) if p else "no pdflatex found (PATH or MiKTeX default)",
+                 PDFLATEX_HELP, warn=True)
+
+
 def check_git() -> dict:
     import shutil
     g = shutil.which("git")
@@ -281,6 +298,7 @@ def main(argv: list[str] | None = None) -> int:
         checks.extend(check_packages())
         checks.extend(check_kicad(resolved, args.full))
         checks.extend(check_java(resolved))
+        checks.append(check_pdflatex(resolved))
         checks.append(check_git())
         if args.full:
             checks.append(probe_ipc())

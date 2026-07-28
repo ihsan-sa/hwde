@@ -15,6 +15,7 @@ never silently ignored - a wrong pin must fail loudly):
   AIEE_KICAD_ROOT       KiCad install root containing bin/
   AIEE_JAVA             full path to a java executable (for Freerouting)
   AIEE_FREEROUTING_JAR  full path to a freerouting jar
+  AIEE_PDFLATEX         full path to a pdflatex executable (for report_gen)
 """
 
 from __future__ import annotations
@@ -221,6 +222,32 @@ def find_krt() -> Path | None:
         return p
     dirs = sorted(repo_root().glob("tools/krt/KiCadRoutingTools-*/plugins"))
     return dirs[-1] if dirs else None
+
+
+# ---------------------------------------------------------------- pdflatex (optional)
+
+def find_pdflatex() -> Path | None:
+    """pdflatex for report_gen's design document (optional toolchain member).
+
+    Ladder: AIEE_PDFLATEX pin > PATH > the Windows per-user MiKTeX default
+    install location. None = not installed (report_gen degrades to --tex-only).
+    """
+    pin = os.environ.get("AIEE_PDFLATEX")
+    if pin:
+        p = Path(pin)
+        if not p.exists():
+            raise EnvError(f"AIEE_PDFLATEX does not exist: {pin}")
+        return p
+    w = shutil.which("pdflatex")
+    if w:
+        return Path(w)
+    if sys.platform == "win32":
+        cand = (Path(os.environ.get("LOCALAPPDATA", ""))
+                / "Programs" / "MiKTeX" / "miktex" / "bin" / "x64"
+                / "pdflatex.exe")
+        if cand.exists():
+            return cand
+    return None
 
 
 # ---------------------------------------------------------------- Docker (optional)
