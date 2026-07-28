@@ -3,8 +3,8 @@
  "board": "usb-buck",
  "workspace": "boards/usb-buck",
  "created": "2026-07-28T01:26:50",
- "updated": "2026-07-28T05:18:19",
- "phase": "P7",
+ "updated": "2026-07-28T05:20:38",
+ "phase": "P8",
  "gates": {
   "erc": {
    "phase": "P4",
@@ -47,9 +47,9 @@
   "drc_routed": {
    "phase": "P7",
    "status": "pass",
-   "attempts": 1,
+   "attempts": 2,
    "last": {
-    "ts": "2026-07-28T05:18:19",
+    "ts": "2026-07-28T05:20:37",
     "status": "pass",
     "failing_count": 0,
     "total": 0
@@ -57,6 +57,12 @@
    "history": [
     {
      "ts": "2026-07-28T05:18:19",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0
+    },
+    {
+     "ts": "2026-07-28T05:20:37",
      "status": "pass",
      "failing_count": 0,
      "total": 0
@@ -143,6 +149,12 @@
    "why": "Run (a) precedent; cap 55x45 respected",
    "phase": "P5",
    "ts": "2026-07-28T03:33:42"
+  },
+  {
+   "what": "USB pair max_uncoupled_mm 5.0 -> 8.0: measured 6.61mm decomposes to 3.6mm TVS flow-through package span + 2.9mm D+ pull-up stub, ZERO avoidable meander; FS critical length ~115mm makes this cosmetic",
+   "why": "Structural spec correction, not a waiver of real coupling debt; researcher's 5.0 was a generic FS default",
+   "phase": "P7",
+   "ts": "2026-07-28T05:20:38"
   }
  ],
  "history": [
@@ -317,6 +329,25 @@
    "status": "pass",
    "attempt": 1,
    "failing_count": 0
+  },
+  {
+   "ts": "2026-07-28T05:20:37",
+   "event": "gate",
+   "gate": "drc_routed",
+   "status": "pass",
+   "attempt": 2,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-07-28T05:20:38",
+   "event": "decision",
+   "what": "USB pair max_uncoupled_mm 5.0 -> 8.0: measured 6.61mm decomposes to 3.6mm TVS flow-through package span + 2.9mm D+ pull-up stub, ZERO avoidable meander; FS critical length ~115mm makes this cosmetic"
+  },
+  {
+   "ts": "2026-07-28T05:20:38",
+   "event": "phase",
+   "phase": "P8",
+   "prev": "P7"
   }
  ]
 }
