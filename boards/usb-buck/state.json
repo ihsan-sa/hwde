@@ -3,8 +3,8 @@
  "board": "usb-buck",
  "workspace": "boards/usb-buck",
  "created": "2026-07-28T01:26:50",
- "updated": "2026-07-28T05:51:50",
- "phase": "P9",
+ "updated": "2026-07-28T05:56:50",
+ "phase": "P10",
  "gates": {
   "erc": {
    "phase": "P4",
@@ -93,6 +93,25 @@
      "total": 0
     }
    ]
+  },
+  "dfm": {
+   "phase": "P9",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-07-28T05:56:19",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 1
+   },
+   "history": [
+    {
+     "ts": "2026-07-28T05:56:19",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 1
+    }
+   ]
   }
  },
  "human": {
@@ -115,9 +134,16 @@
    "status": "approved",
    "ts": "2026-07-28T05:51:50",
    "note": "AUTO per directive: verify 8/8 x2, drc_routed 0/0 x3; reviewer 1 err (J2 labels - FIXED via add_text, pin map from BOARD authority) + 4 warn (W3-W6 waived with notes); renders reports/render_labeled + reports/renders"
+  },
+  "5": {
+   "status": "approved",
+   "ts": "2026-07-28T05:56:50",
+   "note": "AUTO per directive: order.json ready_for_human; hand-solder + bring-up + swap-option steps folded into human_steps; payment never automated"
   }
  },
- "artifacts": {},
+ "artifacts": {
+  "order": "fab/order.json"
+ },
  "open_issues": [],
  "next_issue_id": 1,
  "budgets": {
@@ -406,6 +432,38 @@
    "event": "phase",
    "phase": "P9",
    "prev": "P8"
+  },
+  {
+   "ts": "2026-07-28T05:56:19",
+   "event": "gate",
+   "gate": "dfm",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-07-28T05:56:50",
+   "event": "phase",
+   "phase": "P10",
+   "prev": "P9"
+  },
+  {
+   "ts": "2026-07-28T05:56:50",
+   "event": "human",
+   "checkpoint": "5",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-07-28T05:56:50",
+   "event": "artifact",
+   "name": "order",
+   "path": "fab/order.json"
+  },
+  {
+   "ts": "2026-07-28T05:56:50",
+   "event": "run_complete",
+   "gates": "all pass",
+   "order": "ready_for_human"
   }
  ]
 }
