@@ -1,0 +1,7 @@
+{
+  "_comment": "P7 router: VBUS fan-in/merge pour at J1. The aiee_pwr_width_VBUS DRU rule (min 1.75 mm) is geometrically unmeetable as a TRACK at J1's VBUS pads - the widest track whose copper can touch J1-A4-B9 / J1-B4-A9 while holding the 0.1524 mm clearance floor is 1.465 mm, because CC1/CC2 and the 6 unconnected USB pads sit 0.2 mm away on a 0.5 mm-pitch column. A zone is not a track, so the pour carries the merge at 2.8-4.3 mm of copper (well above the 1.75 mm IPC-2152 requirement) and hands the trunk off to rule-width tracks east of the pad column.",
+  "planes": [
+    {"net": "VBUS", "layer": "F.Cu", "region": [17.2, 39.7, 22.0, 45.3],
+     "clearance": 0.2, "min_width": 0.25, "priority": 0}
+  ]
+}

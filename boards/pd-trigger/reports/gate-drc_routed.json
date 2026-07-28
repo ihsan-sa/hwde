@@ -1,13 +1,14 @@
 {
   "script": "gate",
-  "gate": "place",
-  "phase": "P6",
-  "tool": "place",
-  "input": null,
+  "gate": "drc_routed",
+  "phase": "P7",
+  "tool": "drc",
+  "input": "kicad\\pd-trigger.kicad_pcb",
   "status": "pass",
   "criteria": {
     "fail_severities": [
-      "error"
+      "error",
+      "warning"
     ],
     "max_count": 0
   },
@@ -17,9 +18,5 @@
     "by_source": {}
   },
   "failing_count": 0,
-  "failing": [],
-  "commit_result": {
-    "committed": true,
-    "commit": "c7945b1"
-  }
+  "failing": []
 }

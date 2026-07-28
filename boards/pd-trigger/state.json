@@ -3,8 +3,8 @@
  "board": "pd-trigger",
  "workspace": "boards/pd-trigger",
  "created": "2026-07-28T05:57:45",
- "updated": "2026-07-28T09:12:28",
- "phase": "P6",
+ "updated": "2026-07-28T11:01:44",
+ "phase": "P7",
  "gates": {
   "erc": {
    "phase": "P4",
@@ -24,6 +24,44 @@
      "total": 0
     }
    ]
+  },
+  "place": {
+   "phase": "P6",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-07-28T10:14:30",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0
+   },
+   "history": [
+    {
+     "ts": "2026-07-28T10:14:30",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0
+    }
+   ]
+  },
+  "drc_routed": {
+   "phase": "P7",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-07-28T11:01:44",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0
+   },
+   "history": [
+    {
+     "ts": "2026-07-28T11:01:44",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0
+    }
+   ]
   }
  },
  "human": {
@@ -36,6 +74,11 @@
    "status": "approved",
    "ts": "2026-07-28T09:09:11",
    "note": "AUTO per directive: ERC 0/0, audit pass, fable reviewer 0 err/2 warn waived (DP/DM ruling + VDD corner); PDF reports/schematic.pdf"
+  },
+  "3": {
+   "status": "approved",
+   "ts": "2026-07-28T10:14:30",
+   "note": "AUTO per directive; renders reports/pd-trigger_{top,bottom,left,right}.png; J1 flush-mouth + J2 screw headroom flagged for order docs"
   }
  },
  "artifacts": {},
@@ -171,6 +214,58 @@
    "event": "phase",
    "phase": "P6",
    "prev": "P5"
+  },
+  {
+   "ts": "2026-07-28T10:14:30",
+   "event": "gate",
+   "gate": "place",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-07-28T10:14:30",
+   "event": "human",
+   "checkpoint": "3",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-07-28T10:14:30",
+   "event": "phase",
+   "phase": "P7",
+   "prev": "P6"
+  },
+  {
+   "ts": "2026-07-28T10:21:06",
+   "event": "snapshot",
+   "label": "pre-route-critical",
+   "files": 1
+  },
+  {
+   "ts": "2026-07-28T10:47:04",
+   "event": "snapshot",
+   "label": "pre-route-auto",
+   "files": 1
+  },
+  {
+   "ts": "2026-07-28T10:56:10",
+   "event": "snapshot",
+   "label": "pre-stitch",
+   "files": 1
+  },
+  {
+   "ts": "2026-07-28T11:00:24",
+   "event": "snapshot",
+   "label": "pre-plane-repair",
+   "files": 1
+  },
+  {
+   "ts": "2026-07-28T11:01:44",
+   "event": "gate",
+   "gate": "drc_routed",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
   }
  ]
 }

@@ -778,3 +778,40 @@ displaced to B.Cu), not more Freerouting passes or a placement change.
 `CheckError: ops file must be {'version': 1, 'ops': [...]}` (exit 2). Also: `place`/`move` ops set
 the footprint ORIGIN, not the courtyard centre - for asymmetric parts (USB-C: extents
 x[-5.07,+3.10] about the origin) compute the target from the origin or the part lands offset.
+
+## 2026-07-28 [routing][kicad][drc] A net-wide `track_width` DRU floor can be geometrically UNMEETABLE at a fine-pitch pad - pour it, do not neck it
+pd-trigger P7. `aiee_pwr_width_VBUS (min 1.75mm)` applies to every VBUS **track**. Measured on the
+real board (widest track whose copper can touch the pad while holding the 0.1524 mm clearance
+floor): J1-A4-B9 / J1-B4-A9 = **1.465 mm** - i.e. NO legal VBUS track can reach the USB-C's own
+VBUS pads, because CC1/CC2 and the 6 unconnected pads sit 0.2 mm away on a 0.5 mm-pitch column.
+Every other VBUS pad measured >= 6 mm, so the defect is local to the connector. Corollary: the
+prior entry's "CC1/CC2 dive to B.Cu so VBUS merges on F.Cu" does NOT fix it - displacing the CC
+*escapes* does not remove the CC *pads*, which are what pinch the fan-in. The fix is a **zone**:
+a zone is not a track, so the DRU width rule does not apply, and KiCad's filler necks around the
+foreign pads by itself. `planes_gen --constraints <file with only a "planes" key>` creates it
+(region is a rect only); then patch `(connect_pads (clearance X))` -> `(connect_pads yes
+(clearance X))` on that zone's block - planes_gen leaves KiCad's default THERMAL relief, which
+would spoke-starve a 5 A pad. Result: 3.5 mm of continuous copper across the merge vs 1.75 needed.
+Reusable test: for each pad, max over centreline points P of `2*(dist(P,foreign)-CLR)` subject to
+`dist(P,pad) <= W/2` - that is the widest connectable track.
+
+## 2026-07-28 [routing][rules_gen][freerouting] rules_gen puts EVERY power net in one "Power" netclass at the WIDEST width - Freerouting then routes 20 mA nets at 5 A width
+`rules_gen.net_classes()` emits a single `Power` class at `max(min_width_mm)` over all
+constraints["power"] entries and assigns all of them to it. On pd-trigger that put /VDD (0.02 A,
+DRU floor 0.005 mm) and /VIND (0.05 A) into a 1.75 mm class. The DSN export carries netclass
+widths, so FR would have tried 1.75 mm traces into U1's 0.6 mm-wide 0.5 mm-pitch pads and failed
+those nets. The DRU rules are per-net and were already correct - only the .kicad_pro netclass is
+wrong. Fix before route_auto: split `netclass_patterns` so the wide class holds only the fat net
+and the thin ones get their own class (or Default), leaving the .kicad_dru untouched. With that
+done FR hit completion 1.0 on rung 1 (55 -> 3 unrouted, the 3 finished by the KRT/dedup pass).
+
+## 2026-07-28 [routing][check_current] check_current's via-count rule is NET-WIDE - a 5 A net must not change layers at all
+`need = ceil(current_a / via_amps)` is applied to EVERY via cluster of the net, with no
+per-segment override (`overrides` only feeds the track-width check, not vias or pour necks). VBUS
+at 5 A / 0.5 A-per-via => 10 vias at EVERY layer transition, including a bulk-cap or 1 A fuse tap
+that carries nothing like 5 A. Practical consequence on a 2-layer board: keep the whole high-
+current net on ONE layer (pour + rule-width tracks, zero vias) and give the boxed-in taps a
+detour rather than a via pair. Bonus: `pour_neck` only measures between via attachments and
+returns None with < 2 vias in the fill, so a via-free pour is also exempt from the neck check -
+do not lean on that silently, state the measured channel widths in the report. pd-trigger shipped
+VBUS with 0 vias, min track 1.75 mm, 3.0 mm x 32 mm trunk -> check_current 0 violations.

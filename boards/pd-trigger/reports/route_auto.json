@@ -1,0 +1,163 @@
+{
+ "script": "route_auto",
+ "status": "violations",
+ "board": "C:\\dev\\ai-ee3\\boards\\pd-trigger\\kicad\\pd-trigger.kicad_pcb",
+ "counts": {
+  "total": 3,
+  "by_severity": {
+   "error": 3
+  },
+  "by_source": {
+   "drc": 3
+  }
+ },
+ "violations": [
+  {
+   "check": "copper_edge_clearance",
+   "severity": "error",
+   "pos": [
+    9.799999,
+    27.509999
+   ],
+   "layer": "Edge.Cuts",
+   "net": "/VIND",
+   "refs": [],
+   "msg": "Board edge clearance violation (rule 'aiee_edge_clearance_floor' clearance 0.3000 mm; actual 0.2854 mm)",
+   "source": "drc",
+   "items": [
+    {
+     "msg": "Rectangle on Edge.Cuts",
+     "pos": [
+      9.799999,
+      27.509999
+     ],
+     "uuid": "efd2e03e-f99f-4b3c-971d-f361003fc061"
+    },
+    {
+     "msg": "Track [/VIND] on F.Cu, length 1.5621 mm",
+     "pos": [
+      48.4827,
+      27.8954
+     ],
+     "uuid": "02972966-8501-4493-9fbf-d55984fdd359"
+    }
+   ]
+  },
+  {
+   "check": "copper_edge_clearance",
+   "severity": "error",
+   "pos": [
+    9.799999,
+    27.509999
+   ],
+   "layer": "Edge.Cuts",
+   "net": "/VIND",
+   "refs": [],
+   "msg": "Board edge clearance violation (rule 'aiee_edge_clearance_floor' clearance 0.3000 mm; actual 0.2854 mm)",
+   "source": "drc",
+   "items": [
+    {
+     "msg": "Rectangle on Edge.Cuts",
+     "pos": [
+      9.799999,
+      27.509999
+     ],
+     "uuid": "efd2e03e-f99f-4b3c-971d-f361003fc061"
+    },
+    {
+     "msg": "Track [/VIND] on F.Cu, length 0.1534 mm",
+     "pos": [
+      50.3382,
+      28.0039
+     ],
+     "uuid": "7152a203-ab30-4c35-a03d-a24c6bb6bfd6"
+    }
+   ]
+  },
+  {
+   "check": "copper_edge_clearance",
+   "severity": "error",
+   "pos": [
+    9.799999,
+    27.509999
+   ],
+   "layer": "Edge.Cuts",
+   "net": "/VIND",
+   "refs": [],
+   "msg": "Board edge clearance violation (rule 'aiee_edge_clearance_floor' clearance 0.3000 mm; actual 0.2854 mm)",
+   "source": "drc",
+   "items": [
+    {
+     "msg": "Rectangle on Edge.Cuts",
+     "pos": [
+      9.799999,
+      27.509999
+     ],
+     "uuid": "efd2e03e-f99f-4b3c-971d-f361003fc061"
+    },
+    {
+     "msg": "Track [/VIND] on F.Cu, length 1.7470 mm",
+     "pos": [
+      50.2297,
+      27.8954
+     ],
+     "uuid": "f37bfbbd-1c2e-4b4f-8c1f-2f71cce281df"
+    }
+   ]
+  }
+ ],
+ "facts": {
+  "completion": 1.0,
+  "routable_nets": 21,
+  "unrouted_nets": [],
+  "tracks_before": 7,
+  "tracks_after": 214,
+  "ses_items_added": 227,
+  "best_rung": 1,
+  "rungs": [
+   {
+    "rung": 1,
+    "options": {
+     "mp": 20
+    },
+    "unrouted": 3,
+    "started_unrouted": 55,
+    "final_score": 983.33,
+    "passes": 4,
+    "timed_out": false,
+    "ses_written": true
+   },
+   {
+    "rung": 2,
+    "options": {
+     "mp": 60,
+     "oit": 0.05
+    },
+    "unrouted": 3,
+    "started_unrouted": 55,
+    "final_score": 983.33,
+    "passes": 4,
+    "timed_out": false,
+    "ses_written": true
+   },
+   {
+    "rung": 3,
+    "options": {
+     "mp": 100,
+     "us": "global"
+    },
+    "unrouted": 3,
+    "started_unrouted": 55,
+    "final_score": 983.33,
+    "passes": 4,
+    "timed_out": false,
+    "ses_written": true
+   }
+  ],
+  "fr_completion": 0.9454545454545454,
+  "power_layers": [],
+  "krt_finish": null,
+  "ses_echo_dups_removed": 3,
+  "work_dir": "C:\\dev\\ai-ee3\\boards\\pd-trigger\\kicad\\route"
+ }
+}
