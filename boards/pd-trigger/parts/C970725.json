@@ -1,0 +1,178 @@
+{
+ "mpn": "CH224K",
+ "lcsc": "C970725",
+ "package": "ESSOP10",
+ "description": "WCH (Jiangsu Qin Heng) CH224K USB PD3.0 sink / fast-charge protocol receiver IC, up to 100 W. Single-resistor (Rset) and I/O-level (CFG1/CFG2/CFG3) request-voltage selection; internal 3.3 V shunt regulator on VDD; open-drain Power Good output. Source: CH224 manual 1, V2.1, https://wch.cn (LCSC PDF 2403131354_WCH-Jiangsu-Qin-Heng-CH224K_C970725). The manual covers CH224Q/CH224A/CH224K/CH224D/CH221K - every value here is taken from a CH224K-specific table (4-2, 6.2, 7.1, 8.1.3, 8.2.3) or a section explicitly scoped to all packages (3-1, 9.1).",
+ "pinout": [
+  {
+   "pin": "0",
+   "name": "GND",
+   "type": "ground",
+   "notes": "Table 4-2, type P. Common ground terminal AND the heat-dissipating baseplate (exposed pad). Table 3-1 note 1: pin 0# is the baseplate of the ESSOP10/DFN10/QFN20 packages. KiCad/EasyEDA libraries commonly number this pad 11, not 0 - check the actual symbol/footprint before wiring."
+  },
+  {
+   "pin": "1",
+   "name": "VDD",
+   "type": "power_in",
+   "notes": "Table 4-2, type P. Operating supply input: external 1 uF capacitor to GND, series resistor to VBUS (reference schematic 6.2 uses R1 = 1 kOhm from the VBUS rail). NOT a wide-range supply pin - abs max 3.0 to 3.6 V (8.1.3); internally shunt-regulated to 3.24/3.30/3.36 V with 0-30 mA sink capability (8.2.3). CH224A's pin 1 is VHV rated 32 V - CH224K's is 3.6 V (7.1)."
+  },
+  {
+   "pin": "2",
+   "name": "CFG2",
+   "type": "input",
+   "notes": "Table 4-2, type I. Request-voltage configuration input 2. CH224K has NO internal pull-up on CFG2 (7.1) - a logic '1' must be pulled up / driven externally (fig 7-2 shows R5 to VDD, R6 to GND). Abs max -0.5 to VDD+0.5 V."
+  },
+  {
+   "pin": "3",
+   "name": "CFG3",
+   "type": "input",
+   "notes": "Table 4-2, type I. Request-voltage configuration input 3. CH224K has NO internal pull-up on CFG3 (7.1) - a logic '1' must be pulled up / driven externally (fig 7-2 shows R7 to VDD, R8 to GND). Abs max -0.5 to VDD+0.5 V."
+  },
+  {
+   "pin": "4",
+   "name": "DP",
+   "type": "bidirectional",
+   "notes": "Table 4-2, type I/O. USB bus (D+). Reference schematic 6.2 wires it straight to the Type-C connector DP pin, no series or pull resistors. Abs max -0.5 to VDD+0.5 V."
+  },
+  {
+   "pin": "5",
+   "name": "DM",
+   "type": "bidirectional",
+   "notes": "Table 4-2, type I/O. USB bus (D-). Reference schematic 6.2 wires it straight to the Type-C connector DM pin, no series or pull resistors. Abs max -0.5 to VDD+0.5 V."
+  },
+  {
+   "pin": "6",
+   "name": "CC2",
+   "type": "bidirectional",
+   "notes": "Table 4-2, type I/O. Type-C CC signal line. Reference schematic 6.2 wires it straight to the connector CC2 pin with NO external 5.1 kOhm Rd. Abs max -0.5 to 8 V."
+  },
+  {
+   "pin": "7",
+   "name": "CC1",
+   "type": "bidirectional",
+   "notes": "Table 4-2, type I/O. Type-C CC signal line. Reference schematic 6.2 wires it straight to the connector CC1 pin with NO external 5.1 kOhm Rd. Abs max -0.5 to 8 V."
+  },
+  {
+   "pin": "8",
+   "name": "VBUS",
+   "type": "input",
+   "notes": "Table 4-2, type I. Voltage-DETECT input (sense only, not a supply pin): a series resistor to the external VBUS input is REQUIRED; reference schematic 6.2 uses R2 = 10 kOhm. Abs max -0.5 to 13.5 V (8.1.3, row VODHV) while the requested rail can be 20 V, so the series resistor is not optional. CH224A's VBUS pin is rated 32 V - CH224K's is 13.5 V (7.1)."
+  },
+  {
+   "pin": "9",
+   "name": "CFG1",
+   "type": "input",
+   "notes": "Table 4-2, type I. Request-voltage configuration input 1 (also the Rset pin in single-resistor mode). Abs max -0.5 to 8 V (8.1.3, grouped with CC1/CC2); 7.1 states CH224K's CFG1 withstands 8 V vs CH224A's 3.8 V. Fig 7-2 shows R3 to VDD / R4 to GND as the reserved strap pair."
+  },
+  {
+   "pin": "10",
+   "name": "PG",
+   "type": "open_collector",
+   "notes": "Table 4-2, type OD (open drain). Default function is Power Good indication, ACTIVE LOW; note 1 of 4-4 defines OD = open-drain output. Function is customisable by WCH. Left unconnected in reference schematic 6.2. No abs-max row names the PG pin for CH224K (8.1.3 lists VODHV against the VBUS pin only)."
+  }
+ ],
+ "decoupling": [
+  {
+   "pins": [
+    "1"
+   ],
+   "value": "1uF",
+   "placement": "VDD (pin 1) to GND, adjacent to the IC",
+   "notes": "The only capacitor the datasheet specifies for CH224K. Table 4-2: 'VDD: operating supply input, external 1 uF capacitor to GND, series resistor to VBUS'. Reference schematic 6.2 draws the 1 uF between the VDD node and GND, immediately after R1 (1 kOhm) from the VBUS rail. No separate 100 nF and no VBUS-pin capacitor are shown for CH224K."
+  }
+ ],
+ "land_pattern": {
+  "package": "ESSOP10 - 10-lead narrow-body SOP with exposed baseplate (LCSC package string: ESSOP-10-150mil-1mm)",
+  "pad_count": 11,
+  "pitch_mm": 1.0,
+  "pin1": "1",
+  "notes": "Section 9.1 gives a package OUTLINE only - the datasheet contains NO recommended PCB land pattern, NO pad sizes and NO exposed-pad dimensions (the eSSOP10 pad is drawn as an undimensioned dashed square). Stated dims in mm (9.1 header: pin-centre pitch is nominal/exact, all other dims +/-0.2): lead span 6.0, body width 3.9, body length 5.0, body height 1.6, lead width 0.43, lead thickness 0.2, standoff 0.1, foot length 0.5. Table 3-1: pitch 1.00 mm (39.4 mil), 3.9 mm body, 'narrow-pitch 10-pin SMD with baseplate'. Layout: pins 1-5 down one side (1 at top), 6-10 up the other (6 at bottom, 10 at top); pin 1 is marked by a moulded dimple at the top-left of the body in the top view. pad_count 11 = 10 gull-wing leads + the baseplate, which the datasheet numbers pin 0."
+ },
+ "exposed_pad": {
+  "present": true,
+  "connect_to": "GND"
+ },
+ "layout_notes": [
+  "REFERENCE CIRCUIT (section 6.2, CH224K, drawn for I/O-level 20 V): Type-C VBUS rail -> R1 1 kOhm -> VDD (pin 1); 1 uF from VDD to GND; VBUS rail -> R2 10 kOhm -> VBUS sense (pin 8); connector DP/DM -> pins 4/5 direct; connector CC1/CC2 -> pins 7/6 direct; connector GND + pin 0 baseplate -> GND; PG (pin 10) left unconnected.",
+  "CC TERMINATION: reference schematic 6.2 shows NO external 5.1 kOhm Rd on CC1/CC2 for CH224K - the CC pins go straight to the connector. This is a deliberate difference: the CH224D (6.3) and CH221K (6.4) reference schematics in the same manual both DO show 2x 5.1 kOhm. Do not add Rd resistors to a CH224K design.",
+  "I/O-LEVEL VOLTAGE SELECT (table beside reference schematic 6.2, CH224K-specific): CFG1/CFG2/CFG3 = 1/X/X -> 5 V; 0/0/0 -> 9 V; 0/0/1 -> 12 V; 0/1/1 -> 15 V; 0/1/0 -> 20 V. 'X' = don't care. Per 5.2.2, '0' means externally shorted to GND and '1' means a high level. In the 6.2 drawing (20 V) CFG1 and CFG3 are tied to GND and CFG2 is tied to VDD. NOTE this table is NOT the same as the CH224Q/CH224A table in 5.2.2, where 0/1/1 -> 20 V and 0/1/0 -> 28 V (7.3 warns the mappings differ between parts).",
+  "CFG PULL-UPS: 7.1 states CH224K's CFG2 and CFG3 have NO internal pull-up resistors (CH224A's do, 7-10-15 kOhm). Fig 7-2 (the CH224K I/O-level strap topology) shows one reserved resistor/pad pair per CFG line: R3/R5/R7 from CFG1/CFG2/CFG3 up to VDD and R4/R6/R8 down to GND. The pull-up rail is VDD (the internal 3.3 V shunt node), not VBUS. Fig 7-2 does not give values for the CH224K case (the 100 kOhm in 7.2.2 step 3 is the CH224A retrofit value).",
+  "VDD IS A SHUNT-REGULATED NODE, NOT AN LDO INPUT: 8.2.3 VLDOK = internal regulator VDD shunt regulation 3.24 / 3.30 / 3.36 V, ILDO = internal regulator VDD shunt SINK current capability 0 to 30 mA (max). The reference circuit therefore drops the whole VBUS-to-3.3 V difference across R1 and lets the chip shunt the excess: at 20 V, (20 - 3.3) / 1 kOhm = 16.7 mA through R1 (0.28 W - size R1 accordingly) and inside the 30 mA shunt limit. Any external 3.3 V regulator driving this pin would be fighting the shunt, and 3.6 V abs max leaves no headroom.",
+  "NO SUPPLY-CURRENT SPEC FOR CH224K: table 8.2.3 lists only VLDOK, ILDO, TOTA and VR - there is no ICC/IDD row. The ICC of 1.8 mA typ / 12 mA max in 8.2.1 belongs to CH224Q/CH224A (VHV) and must NOT be applied to CH224K.",
+  "VBUS SENSE: table 4-2 - pin 8 is a voltage-detect input that requires a series resistor to the external VBUS input (10 kOhm in 6.2). Pin abs max is 13.5 V (8.1.3) against a bus that can be 20 V, so the resistor is a hard requirement, not a filter.",
+  "THERMAL: pin 0 is the heat-dissipating baseplate and the common ground terminal (table 4-2) - solder it to the GND plane. PD (max total chip dissipation, VDD x current) = 400 mW (8.1.3). Over-temperature protection TOTA threshold 90 / 105 / 120 C (8.2.3). Operating ambient is derated to 90 C max for CH224K vs 105 C for CH224Q/A.",
+  "POWER-ON RESET: VR = 2.2 / 2.4 / 2.6 V threshold on VDD (8.2.3).",
+  "eMARKER / >60 W: section 5.3 (1 kOhm from CC2 to GND, Type-C male plug required for >20 V or >60 W requests) is written for CH224Q/CH224A only; the manual gives no eMarker-emulation instructions for CH224K, and the CH224K feature list (section 1) caps it at PD3.0 / 100 W with a 20 V top step.",
+  "FAMILY-LEVEL INPUT RANGE: section 2 advertises '4 V to 30 V input voltage' for the CH224 family. For CH224K the bus never reaches the die directly - it arrives only through R1 (to the 3.6 V-max VDD pin) and R2 (to the 13.5 V-max VBUS sense pin). Do not read '4-30 V' as a CH224K pin rating.",
+  "SINGLE-RESISTOR (Rset) MODE: section 1 says CH224K supports it and 7.2.1 shows a CH224K Rset schematic, but this manual publishes Rset tables only for CH224Q/CH224A (5.1), CH224D (6.3) and CH221K (6.4). 7.3 explicitly warns the resistor values differ between parts, so no Rset value in this document may be used for CH224K.",
+  "PART-NUMBERING TRAP: the datasheet numbers the exposed baseplate 'pin 0'. KiCad/EasyEDA footprints for ESSOP-10 typically number the thermal pad 11. Verify the actual symbol and footprint pad numbering before wiring pin 0/11 to GND."
+ ],
+ "abs_max": [
+  {
+   "param": "TA operating ambient temperature, min (8.1.3)",
+   "value": -40,
+   "unit": "C"
+  },
+  {
+   "param": "TA operating ambient temperature, max (8.1.3)",
+   "value": 90,
+   "unit": "C"
+  },
+  {
+   "param": "TS storage temperature, min (8.1.3)",
+   "value": -55,
+   "unit": "C"
+  },
+  {
+   "param": "TS storage temperature, max (8.1.3)",
+   "value": 125,
+   "unit": "C"
+  },
+  {
+   "param": "VDD operating supply voltage on pin 1, min (8.1.3)",
+   "value": 3.0,
+   "unit": "V"
+  },
+  {
+   "param": "VDD operating supply voltage on pin 1, max (8.1.3)",
+   "value": 3.6,
+   "unit": "V"
+  },
+  {
+   "param": "VODHV voltage on the VBUS pin (pin 8), min (8.1.3)",
+   "value": -0.5,
+   "unit": "V"
+  },
+  {
+   "param": "VODHV voltage on the VBUS pin (pin 8), max (8.1.3)",
+   "value": 13.5,
+   "unit": "V"
+  },
+  {
+   "param": "VIOCC voltage on CC1 / CC2 / CFG1 (pins 7, 6, 9), min (8.1.3)",
+   "value": -0.5,
+   "unit": "V"
+  },
+  {
+   "param": "VIOCC voltage on CC1 / CC2 / CFG1 (pins 7, 6, 9), max (8.1.3)",
+   "value": 8,
+   "unit": "V"
+  },
+  {
+   "param": "VIOUX voltage on DP / DM / CFG2 / CFG3 (pins 4, 5, 2, 3), min (8.1.3)",
+   "value": -0.5,
+   "unit": "V"
+  },
+  {
+   "param": "VIOUX voltage on DP / DM / CFG2 / CFG3 (pins 4, 5, 2, 3), max (8.1.3)",
+   "value": "VDD+0.5",
+   "unit": "V"
+  },
+  {
+   "param": "PD maximum total chip power dissipation, VDD x current (8.1.3)",
+   "value": 400,
+   "unit": "mW"
+  }
+ ],
+ "source_pdf": "parts/C970725_CH224K.pdf"
+}

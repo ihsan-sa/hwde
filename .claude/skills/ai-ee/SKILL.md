@@ -80,6 +80,13 @@ dev board gets neither. Role prompts live in `agents/`; each states its own
 scripts and contract. Phase digest: after each phase write 5-10 lines to
 `log/P<n>-digest.md` and `state.py set-phase`.
 
+Lean amendment (S14-proven): the orchestrator MAY run purely script-driven
+phases INLINE (P5 board-setup, gate invocations, P9 fab/dfm scripts, P10
+quote/submit) instead of wrapping them in agents - rule 1 still holds (read
+only script JSON, never design files). Judgment roles stay agents; the two
+reviewers stay FRESH-context agents always. Small boards may use ONE
+schematic agent for all sheets (record the deviation).
+
 - **P0 Intake**: spawn `requirements-analyst`. Present its OPEN questions to
   the user in ONE batch. Blocking: safety-relevant unknowns (mains, battery,
   high current) do not proceed on guesses. Artifact: `requirements.md`.
@@ -108,9 +115,12 @@ scripts and contract. Phase digest: after each phase write 5-10 lines to
 - **P6 Placement**: spawn `placement` (seed -> anneal -> select/repair,
   <= 8 edit iterations). Gate `place`. **Checkpoint H3** (optional, default
   ON): top/bottom render. Silk caveat: courtyard-tight annealed placements
-  can put refdes over pads and fail P7's err+warn gate - the placement agent
-  knows to prefer roomier candidates; if P7 later fails on silk, loop back
-  here rather than waiving.
+  can put refdes over pads and fail P7's err+warn gate - prefer roomier
+  candidates, and use place_edit `move_text` ops to clear refdes collisions
+  (S14: a 47->0 silk sweep is routine). The place gate is pad-aware since
+  S14 (effective courtyard covers pad fields), but agents still verify with
+  full kicad-cli DRC - gate blind spots are found by refusing to trust one
+  checker.
 - **P7 Routing**: spawn `router` (chain order is board-class dependent -
   its prompt carries the verified 2L/4L orders). Gate `drc_routed`.
   If the router returns a `placement_adjust_request`, take the SANCTIONED
@@ -142,6 +152,8 @@ On gate fail (exit 1, result JSON has `failing` with coordinates):
    --state <ws>/state.json --out <dispatch summary>` - clusters the
    failures and writes one work order per cluster
    (`log/workorders/wo-<id>.json`), registering each as an open issue.
+   At P4 the fix target is the .kicad_sch - pass IT as --board (the flag
+   accepts either; a not-yet-existing .kicad_pcb is rejected).
 4. Spawn one `fixer` per order - orders inside one `parallel_groups` entry
    run concurrently; groups run in sequence (their regions overlap).
    BUT: the board file is single-writer - parallel fixers are safe only
@@ -157,13 +169,18 @@ On gate fail (exit 1, result JSON has `failing` with coordinates):
 
 Special cases:
 - `cleanup_regression` (route_cleanup exit 1): restore the snapshot and
-  continue WITHOUT cleanup - it is optional by design.
+  continue WITHOUT cleanup - it is optional by design. S14: the loop-breaker
+  regressed on every live run (2L and 4L); the safe protocol is DRY-RUN
+  first, inspect the removal list, and cherry-pick via route_edit - or skip
+  cleanup entirely (2L pour boards especially).
 - A fixer reporting `requires_pipeline_rewind` (schematic/library change
   needed after P5): stop the loop, present the tradeoff to the human -
   rewinding re-enters at P4/P5 for the affected scope and re-runs every
   gate from there.
-- Silk findings: no text-move script exists yet (known gap) - fixes are
-  footprint nudges via placement or human waivers.
+- Silk findings: place_edit now carries `add_text` / `move_text` ops (S14,
+  closed V17) - silk labels and refdes moves are scripted fixes. Pin-locked
+  labels ONLY (a label readable against the wrong pin is worse than none);
+  footprint-INTERNAL silk defects remain librarian edits (approval + EDITS.md).
 
 **Escalate** (budget exhausted or unfixable): render the board
 (`scripts/render.py`), write a digest (what failed, what was tried, the

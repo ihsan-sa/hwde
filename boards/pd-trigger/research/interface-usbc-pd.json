@@ -1,0 +1,63 @@
+{
+  "interface": "usbc-pd-sink",
+  "role": "UFP power sink only, no USB data beyond CC",
+  "max_voltage_v": 20,
+  "design_current_a": 5.0,
+  "research_doc": "boards/pd-trigger/research/interface-usbc-pd.md",
+
+  "power": [
+    {
+      "net": "VBUS",
+      "current_a": 5.0,
+      "dt_c": 20
+    },
+    {
+      "net": "VOUT",
+      "current_a": 5.0,
+      "dt_c": 20,
+      "pdn": false
+    },
+    {
+      "net": "+3V3",
+      "current_a": 0.02,
+      "dt_c": 20
+    }
+  ],
+
+  "voltages": [
+    {"net": "VBUS", "voltage": 20},
+    {"net": "VOUT", "voltage": 20}
+  ],
+
+  "notes": [
+    "NET NAMES ARE PROVISIONAL. check_current raises CheckError (exit 2) on a power net absent from the board; reconcile VBUS / VOUT / +3V3 with the final netlist before P5. check_creepage is safe (it skips absent nets).",
+    "VBUS = receptacle VBUS pins A4+A9+B4+B9 ganged -> TVS -> bulk -> CH224 taps -> PTC input. VOUT = PTC output -> screw terminal + aux header. Both carry the full 5 A.",
+    "dt_c=20 is a recommendation from the assumed 0-40 C bench ambient, not a derived requirement. check_current/IPC-2152 widths at 5.0 A: 1 oz -> 3.500 mm (dT 10), 2.383 mm (dT 20), 1.871 mm (dT 30); 2 oz -> 1.750 / 1.191 / 0.935 mm.",
+    "COPPER WEIGHT: jlc_capabilities.yaml has a 2layer_2oz profile but stackups.yaml has NO 2-layer 2 oz stackup, so board_init writes 1 oz and check_current computes against 0.035 mm. Choosing 2 oz requires adding a stackup entry first. Default recommendation: 1 oz + dt_c 20 = 2.383 mm.",
+    "Keep the 5 A forward path on ONE layer (F.Cu pour/wide track). via_amps is left at the 0.5 A default, so any layer transition on VBUS/VOUT needs ceil(5.0/0.5) = 10 vias.",
+    "GND is deliberately NOT listed here. A GND power entry at 5 A would make check_current demand 10 vias in every GND via cluster on the board. Power-architect's call.",
+    "VOUT carries \"pdn\": false on purpose: its reservoir sits upstream of the PTC by design (upstream bulk dumps through the PTC on an output short instead of straight into the fault), so check_pdn must not demand local decoupling on it.",
+    "TAP STUBS: the CH224 VDD (1 kohm) and VBUS-sense (10 kohm) resistors branch off the 5 A VBUS net. check_current checks every track segment against the full budget, so a thin VBUS spur to those pads will be flagged. Preferred fix: place the tap resistors so their VBUS-side pads land inside the VBUS pour (pads in a pour are not tracks). Fallback once coordinates exist: add power[].overrides {\"near\": [x, y], \"radius_mm\": 3, \"current_a\": 0.02}.",
+    "+3V3 = CH224K pin 1 VDD. It is a SHUNT regulator (3.24/3.30/3.36 V, sink capability 0-30 mA, CH224 datasheet 7.5) fed from VBUS through a series resistor with 1 uF to GND. It is NOT a usable logic rail: budget is dropper current minus IDD, about 15 mA at 20 V input and effectively zero at 5 V. pdn left true so check_pdn enforces the datasheet-mandated 1 uF.",
+    "VDD DROPPER: use 1 kohm. Lower bound (22 - 3.24)/0.030 = 625 ohm or the shunt is overrun at the top of the CH224 4-22 V range; upper bound is set by the chip having to run at the pre-negotiation 5 V default, where 1 kohm delivers only 1.7 mA. Dissipation at 20 V = (16.7 mA)^2 * 1 kohm = 0.28 W (0.35 W at 22 V): an 0402/0603 will cook. Use 2x 510 ohm in series or one 1 kohm 2010/2512, and keep it off the CH224K thermal pad. Suggested thermal entry once designators exist: {\"ref\": \"R_VDD\", \"power_w\": 0.3, \"net\": \"GND\", \"dt_c\": 40}.",
+    "VBUS SENSE: CH224K pin 8 is an analog detect input with abs max 13.5 V (VIOHV, datasheet 7.2) on a 21 V rail. Its 10 kohm series resistor is MANDATORY. The datasheet permits the pin to be NC in PD-only mode, but keeping it connected is what enables output-voltage detection and PG, which the profile/fallback LED scheme (requirements answer 6) depends on.",
+    "CC1/CC2: no impedance control, no length matching, no return-path corridor, no high_speed entry. PD BMC is 300 kbit/s with 300 ns edges -> critical length ~7.5 m against a 40 mm board. Keep the routes short and direct at 0.25-0.3 mm.",
+    "CC WIRING: receptacle A5 -> controller CC1, B5 -> controller CC2, straight through, NO crossover and NO series elements (a series R adds directly to Rd, whose budget is only +/-20% of 5.1 kohm). CH224 E-Mark emulation is specified on CC2 specifically, so the pins are not interchangeable.",
+    "CC Rd: exactly ONE Rd path per CC line. WCH reference schematics show the CH224K with CC wired directly to the chip and NO external 5.1 kohm, while CH221K and CH224D figures DO show 5.1 kohm pull-downs. Confirm against the exact ordering part number at P3; never fit both.",
+    "CC CAPACITANCE is the only real electrical budget on those nets: USB PD spec 5.8.6 puts CC receiver capacitance at 200 pF min to 600 pF max (200 is a MINIMUM). Any CC TVS or filter cap counts toward the 600 pF ceiling. Do not add CC caps without knowing the controller's own pin capacitance.",
+    "CC pins can see up to VBUS (20 V) on a VBUS-to-CC short inside the connector; Semtech specifies a CC TVS with >= 20 V working voltage (uClamp2411ZA class, bidirectional 24 V, 0201) if fitted. CH224K's own CC abs max is not legible in the machine-translated datasheet - verify at P3.",
+    "RECEPTACLE: 5 A is a manufacturer nameplate rating, verified by a 30 C shell-rise test, and is COLLECTIVE across A4/A9/B4/B9 = 1.25 A per contact (GCT USB4085 4.1 / 6.1.5, identical wording in USB4105). All four VBUS and all four GND contacts must be landed and ganged in copper. Reject any part whose clause reads 3.00 A collectively, and check the voltage rating: USB4085 is 48 V DC but USB4105 is 20 V DC, which is our maximum with zero margin (a 20 V PDO is 20 V +/-5%). Prefer >= 24 V.",
+    "Connector loss at 5 A (computed from 40 mohm max per contact, four in parallel): 10 mohm -> 50 mV / 0.25 W on VBUS and the same on GND, ~0.5 W in the mated connector. Give the receptacle pads copper on both sides, not a thermally isolated island.",
+    "E-MARKED CABLE: >3 A requires an e-marked cable and a source advertising a >3 A PDO; without one the source falls back to 3 A / 60 W at 20 V. Nothing on this board can change that - it is a DOCUMENTATION item (silk or manual: '20 V @ 5 A requires a 5 A e-marked cable and a 100 W source'). The board uses a female receptacle, so no on-board e-marker emulation is needed (that applies only to captive male-plug designs).",
+    "TVS on VBUS: unidirectional, at the connector, before the PTC, short wide return with multiple GND vias. Working voltage >= 22 V (Semtech SI21-03); clamp should stay <= ~34 V and ideally near 28 V (TDS2221PW class: 22 V operating / 23 V min breakdown / 28 V max clamp / 22 A 8-20 us). A 24 V SMAJ/SMBJ clamps ~38-39 V, above the CH224 4-22 V operating range - the reference circuit's series 1 kohm and 10 kohm are the chip's own pin protection, so do not omit them. Low capacitance is not a consideration on VBUS.",
+    "The TVS is not optional: a published CH224 trigger-board teardown with no TVS and no fuse reports the chip failing at 20 V under load, attributed to a cable inductive spike.",
+    "PTC PLACEMENT: after the controller tap, not before. Downstream of the tap, an output fault trips the PTC while the controller keeps its contract, its supply and its true connector-side VBUS reading - so the fault can be indicated (requirements answer 6). Upstream of the tap, a trip collapses VDD, drops the contract and hiccups. The tap is only ~17 mA, so there is no current-side counter-argument.",
+    "PTC SOURCING CONFLICT: 20 V needs Vmax >= 24 V and answer 1 commits to 5 A uniform. Mainstream SMD PPTC does not reach that (Littelfuse 2920L = 0.30-3.00 A at 60 V; 1812L = 0.10-2.60 A at 30 V). The usable class is radial through-hole, e.g. RUEF500 (5 A hold / 10 A trip / 30 VDC / 100 A Imax / ~0.01 ohm) - a ~11 x 24 mm disc that presses on the ~40 x 25 mm size target. Alternatives: an eFuse / OVP+OCP load switch, or revisiting answer 1. Loss at 5 A: 50 mV / 0.25 W nominal, up to ~0.7 W post-trip.",
+    "BULK CAPACITANCE: the binding limit is cSnkBulkPd = 100 uF max on a sink's VBUS once a PD contract is in place (the familiar 10 uF is the USB 2.0 attach limit, not a PD number). Recommend 10-22 uF total on the CONNECTOR-SIDE VBUS plus 100 nF at each node. Computed: at the PD source slew limit vSrcSlewPos = 30 mV/us, 22 uF draws 0.66 A of charging current during a 5 V -> 20 V transition, while 100 uF would draw 3 A and eat most of a 3 A contract.",
+    "UNUSED CONNECTOR PINS: D+/D- (A6/A7/B6/B7) unconnected at the receptacle - for PD-only operation the CH224 datasheet 5.5 requires DP/DM off the Type-C interface and SHORTED TOGETHER at the chip. SBU1/SBU2 (A8/B8) unconnected. SuperSpeed pairs unconnected (prefer a 16-pin or power-only receptacle without them). Shell/shield tied directly to GND (bench tool, no chassis).",
+    "NO high_speed KEY BY DESIGN: no data pairs exist, CC is 300 kbit/s BMC, and the 2-layer stackup has no reference plane (stackups.yaml JLC2313_1.6 ships controlled_impedance: []). check_return_path and rules_gen impedance rules no-op cleanly.",
+    "DIFF_PAIRS TRAP for the merged file: omitting diff_pairs makes check_diffpair AUTO-DISCOVER pairs by name suffix including DP/DM. If the shorted CH224 DP/DM node ends up as two nets named /DP and /DM, the checker will report skew/gap violations on a deliberate short. Either give that node one net name with no DP/DM token, or set an explicit \"diff_pairs\": [] in the merged constraints.json. This fragment deliberately does not set it.",
+    "CREEPAGE: check_creepage only examines net pairs more than 30 V apart (HV_THRESHOLD_V = 30.0). At 20 V max nothing crosses that, so the check is a clean no-op BY DESIGN. The voltages entries are emitted anyway so the check engages automatically if the board is ever revised to EPR (28/36/48 V). IPC-2221 B2 external spacing at 0-30 V is 0.10 mm, below JLC's 0.127 mm (1 oz) / 0.1524 mm (2 oz) minimum, so the fab limit dominates. Practice recommendation for rules_gen (not a constraints.json key): 0.3 mm minimum clearance from the 20 V nets to everything else.",
+    "PLACEMENT hint for the merged file (not emitted here): {\"placement\": {\"edges\": [{\"ref\": \"J1\", \"edge\": \"left\", \"pos\": 0.5}]}} with the screw terminal on the opposite edge, so the 5 A path is one short straight run and the two hot connectors are not adjacent."
+  ]
+}

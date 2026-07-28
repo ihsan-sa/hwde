@@ -1,0 +1,1569 @@
+{
+ "parts": [
+  {
+   "ref_prefix_hint": "U",
+   "block": "pd_controller",
+   "mpn": "CH224K",
+   "lcsc": "C970725",
+   "value": "CH224K",
+   "qty_per_board": 1,
+   "package": "ESSOP-10-150mil-1mm",
+   "basic": false,
+   "stock": 12404,
+   "price": 0.389,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.4858
+    },
+    {
+     "qty": 10,
+     "price": 0.389
+    },
+    {
+     "qty": 30,
+     "price": 0.3422
+    },
+    {
+     "qty": 100,
+     "price": 0.2792
+    },
+    {
+     "qty": 500,
+     "price": 0.2679
+    },
+    {
+     "qty": 1000,
+     "price": 0.2615
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2403131354_WCH-Jiangsu-Qin-Heng-CH224K_C970725.pdf",
+   "url": "https://www.lcsc.com/product-detail/usb-converters_wch-jiangsu-qin-heng-ch224k_C970725.html",
+   "brand": "WCH(Jiangsu Qin Heng)",
+   "attributes": [
+    {
+     "name": "Output Power",
+     "value": "100W"
+    },
+    {
+     "name": "Voltage - Supply",
+     "value": "4V~30V"
+    },
+    {
+     "name": "Output Voltage",
+     "value": "5V/9V/12V/15V/20V"
+    },
+    {
+     "name": "Protocol",
+     "value": "PD 3.0"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-40C~+90C"
+    }
+   ],
+   "alternates": [
+    {
+     "mpn": "HUSB238A-BB001-QN16R",
+     "lcsc": "C24833806",
+     "note": "QFN-16L-EP(3x3), leadless (flagged per requirement). Analog SNK_VSET/ISET selection, not a clean 3-bit table - needs switched resistor taps per DIP position instead of CFG1/2/3. stock 4994, $0.6472@1/$0.5278@10. Fallback only if CH224K stock or CFG behaviour disappoints at P4, per architecture."
+    }
+   ],
+   "role": "U1 PD sink controller, CFG1/2/3 (pins per blocks.md B2) select 5/9/12/15/20V per the scout's datasheet-verified map. Re-verified live 2026-07-28: stock 12404, price $0.389@qty10 - essentially unchanged from the scout's original pull (matches almost exactly), confirming the part is stable in the JLC catalog. Rd (5.1k CC pull-down) is integrated on this exact ordering part number per WCH's own reference schematics (decisions.md V3) - fit NO external CC pull-downs. VERIFY-LATER CARRIED FORWARD (decisions.md V1): CH224K IDD is UNPUBLISHED in the datasheet (only a 400mW total chip max is given) - the P4 datasheet extract must bound IDD itself; it sets R2's dropper value (now a 1k-class shunt dropper per decisions.md D2/A1, not the pre-amendment 47R LDO-isolation resistor - contingency is R2 -> 680R if VDD sags at the 5V profile, per D16 V1) - U2 and its thermal-dissipation entry no longer exist post-A1 (the LDO was dropped). Extended tier, not Basic - architecture already expected this (single-source IC, alternate recorded above per selection rule 2)."
+  },
+  {
+   "ref_prefix_hint": "J",
+   "block": "input_protection",
+   "mpn": "USB4105-GF-A-120",
+   "lcsc": "C5184243",
+   "value": "USB-C receptacle 16P SMT",
+   "qty_per_board": 1,
+   "package": "SMD",
+   "basic": false,
+   "stock": 3645,
+   "price": 0.9247,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 1.1426
+    },
+    {
+     "qty": 10,
+     "price": 0.9247
+    },
+    {
+     "qty": 30,
+     "price": 0.8037
+    },
+    {
+     "qty": 100,
+     "price": 0.6681
+    },
+    {
+     "qty": 500,
+     "price": 0.6681
+    },
+    {
+     "qty": 1000,
+     "price": 0.6681
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304251414_Global-Connector-Technology-USB4105-GF-A-120_C5184243.pdf",
+   "url": "https://www.lcsc.com/product-detail/usb-connectors_global-connector-technology-usb4105-gf-a-120_C5184243.html",
+   "brand": "Global Connector Technology",
+   "attributes": [
+    {
+     "name": "Number of Contacts",
+     "value": "16P"
+    },
+    {
+     "name": "Voltage Rating",
+     "value": "48V"
+    },
+    {
+     "name": "Current Rating-Power",
+     "value": "5A"
+    },
+    {
+     "name": "Gender",
+     "value": "Female"
+    },
+    {
+     "name": "Mounting Type",
+     "value": "SMD, PCB Top Mount"
+    }
+   ],
+   "alternates": [],
+   "role": "J1 USB-C receptacle, 16-pin power+USB2 type (no SuperSpeed pads) per blocks.md B1. NON-NEGOTIABLE CRITERIA VERIFIED AGAINST THE PRIMARY DATASHEET (GCT drawing USB4105, rev B3, fetched and read directly, not from JLC's attribute field alone): Electrical table states 'Current Rating: 5.00A collectively for VBUS pins, 6.25A collectively for GND pins' (exact match to the 5.00A-collective wording blocks.md demands) and 'Voltage Rating: 48V DC'. Pin table confirms the full 16-pin map (A1/A12/B1/B12=GND, A4/A9/B4/B9=VBUS, A5=CC1, B5=CC2, A6/A7/B6/B7=Dp/Dn, A8/B8=SBU1/SBU2) - matches blocks.md's wiring facts (CC1=A5, CC2=B5, DP/DM shorted at the chip) exactly. CORRECTION TO ARCHITECTURE (worth flagging - a good-news deviation, not a compromise): blocks.md B1 states 'the GCT USB4105 class is rated 20V DC, which is our maximum with zero margin' - the live datasheet for the actual orderable part (this exact LCSC SKU, USB4105-GF-A-120) reads 48V DC, not 20V. Either blocks.md's research pulled a different/older GCT part or misread the source; this verification supersedes it with a directly-read primary datasheet. Real margin: 48V vs the >=24V floor, 2x better than even the 'USB4085 class is 48V' fallback blocks.md described as the safer option. COST NOTE: this drives J1 to ~$0.92-1.14/unit, well above decisions.md D14's rough $0.15-0.35 estimate (which assumed a generic 20V-class SHOU HAN/Korean-Hroparts part at ~$0.07-0.18 - those DO exist with 16P+5A specs, e.g. TYPE-C-31-M-12 C165948 at $0.18, but are all rated exactly 20V, the zero-margin case blocks.md explicitly rejects). No alternate listed: every other 16-pin, >=5A-rated candidate found live is 20V-class (rejected per blocks.md's own criterion); the only other >=24V options are USB4105-GF-A (12-pin, drops 2 of the 4 VBUS/GND redundant contacts) or USB4085-GF-A (C7095263, THT/Plugin not SMD) - neither matches blocks.md's 16-pin SMD spec as well as this part."
+  },
+  {
+   "ref_prefix_hint": "J",
+   "block": "output",
+   "mpn": "KF128-5.08-2P-AA",
+   "lcsc": "C474952",
+   "value": "Screw terminal 5.08mm 2P",
+   "qty_per_board": 1,
+   "package": "Plugin,P=5.08mm",
+   "basic": false,
+   "stock": 28653,
+   "price": 0.19,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.19
+    },
+    {
+     "qty": 50,
+     "price": 0.1487
+    },
+    {
+     "qty": 150,
+     "price": 0.1287
+    },
+    {
+     "qty": 600,
+     "price": 0.1074
+    },
+    {
+     "qty": 2400,
+     "price": 0.1024
+    },
+    {
+     "qty": 4800,
+     "price": 0.0995
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2408211511_Cixi-Kefa-Elec-KF128-5-08-2P-AA_C474952.pdf",
+   "url": "https://www.lcsc.com/product-detail/screw-terminal-blocks_cixi-kefa-elec-kf128-5-08-2p-aa_C474952.html",
+   "brand": "Cixi Kefa Elec",
+   "attributes": [
+    {
+     "name": "Current Rating",
+     "value": "24A"
+    },
+    {
+     "name": "Voltage Rating (Max)",
+     "value": "250V"
+    },
+    {
+     "name": "Wire Gauge - AWG",
+     "value": "12~22"
+    },
+    {
+     "name": "Mounting Type",
+     "value": "Through Hole"
+    },
+    {
+     "name": "Pitch",
+     "value": "5.08mm"
+    }
+   ],
+   "alternates": [
+    {
+     "mpn": "WJ500V-5.08-2P",
+     "lcsc": "C8465",
+     "note": "Ningbo Kangnex Elec, 18A/250V, 14-30 AWG, stock 267335 (10x this pick's), $0.1327@1 - cheaper and better-stocked; kept as secondary since KF128 is architecture's named class (decisions.md cost table cites the exact $0.19 KF128 price, confirming it as the intended part)."
+    },
+    {
+     "mpn": "DB128L-5.08-2P-BK-S",
+     "lcsc": "C430601",
+     "note": "DORABO, fixed screw terminal (not pluggable), 16A/300V, M2 screw, stock 41485, $0.2032@1 - third option, same 'Screw Terminal Blocks' category (not the pluggable 2EDG-style parts blocks.md explicitly excludes)."
+    }
+   ],
+   "role": "J2 primary 5A output, screw terminal 5.08mm 2-pole, FIXED clamp (not the pluggable 2EDG plug+header style - blocks.md B6 explicitly rejects that class: 'inserts an extra mated contact interface into a 5A path for no benefit on a bench tool'). Live-reverified stock/price EXACTLY matches blocks.md's own pre-check ('the power research's live catalog check found the KF128-5.08-2P-AA class at 24A/250V for $0.19' - confirmed to the cent). 24A nameplate >> the >=8A requirement (P0 answer 3); wire gauge 12-22 AWG covers the target 18AWG comfortably. THT, hand-soldered post-PCBA per requirements s7 (economy tier is SMT-only)."
+  },
+  {
+   "ref_prefix_hint": "J",
+   "block": "output",
+   "mpn": "HX PZ2.54-1x2P ZZ",
+   "lcsc": "C32713268",
+   "value": "1x2 2.54mm male THT",
+   "qty_per_board": 1,
+   "package": "Plugin,P=2.54mm",
+   "basic": false,
+   "stock": 112587,
+   "price": 0.0158,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0158
+    },
+    {
+     "qty": 50,
+     "price": 0.0123
+    },
+    {
+     "qty": 150,
+     "price": 0.0103
+    },
+    {
+     "qty": 500,
+     "price": 0.0092
+    },
+    {
+     "qty": 2500,
+     "price": 0.008
+    },
+    {
+     "qty": 5000,
+     "price": 0.0075
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2407231541_hanxia-HX-PZ2-54-1x2P-ZZ_C32713268.pdf",
+   "url": "https://www.lcsc.com/product-detail/pin-headers_hanxia-hx-pz2-54-1x2p-zz_C32713268.html",
+   "brand": "hanxia",
+   "attributes": [
+    {
+     "name": "Number of Pins",
+     "value": "2P"
+    },
+    {
+     "name": "Pitch",
+     "value": "2.54mm"
+    },
+    {
+     "name": "Current Rating",
+     "value": "3A per pin"
+    },
+    {
+     "name": "Mounting Type",
+     "value": "Through Hole"
+    },
+    {
+     "name": "Voltage Rating (Max)",
+     "value": "1kV"
+    }
+   ],
+   "alternates": [],
+   "role": "J3 aux tap header, 1x2 2.54mm, one pin per net (VAUX/GND), no paralleling - blocks.md B6/P0 answer 4 confirm this is a LOW-CURRENT tap only (silk-marked 'AUX 1A MAX'), protected by F1's 1A PPTC, NOT a second 5A output. Exactly the part named in the P3 assignment hint ('reuse run (a)/(b) C32713268-class if stock') - re-verified live: stock 112587 (huge, unchanged from prior runs), $0.0158/unit. 3A/pin rating is 3x the aux tap's F1-limited 1A ceiling, ample margin. THT, hand-soldered post-PCBA."
+  },
+  {
+   "ref_prefix_hint": "D",
+   "block": "input_protection",
+   "mpn": "TVS2200DRVR",
+   "lcsc": "C523793",
+   "value": "22V flat-clamp TVS, unidirectional",
+   "qty_per_board": 1,
+   "package": "WSON-6-EP(2x2)",
+   "basic": false,
+   "stock": 8445,
+   "price": 0.3777,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.3777
+    },
+    {
+     "qty": 50,
+     "price": 0.3049
+    },
+    {
+     "qty": 150,
+     "price": 0.2737
+    },
+    {
+     "qty": 500,
+     "price": 0.2097
+    },
+    {
+     "qty": 3000,
+     "price": 0.1922
+    },
+    {
+     "qty": 6000,
+     "price": 0.1819
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2410121946_Texas-Instruments-TVS2200DRVR_C523793.pdf",
+   "url": "https://www.lcsc.com/product-detail/esd-and-surge-protection-tvs-esd_texas-instruments-tvs2200drvr_C523793.html",
+   "brand": "Texas Instruments",
+   "attributes": [
+    {
+     "name": "Standoff Voltage (Vrwm)",
+     "value": "22V"
+    },
+    {
+     "name": "Max Clamping Voltage",
+     "value": "28.4V at 40A, 8/20us (TI feature spec)"
+    },
+    {
+     "name": "Clamping Voltage (device comparison table)",
+     "value": "27.7V at 40A Ipp"
+    },
+    {
+     "name": "Breakdown Voltage",
+     "value": "25.9V"
+    },
+    {
+     "name": "IEC 61000-4-5 (8/20us) rating",
+     "value": "40A"
+    },
+    {
+     "name": "Polarity",
+     "value": "Unidirectional"
+    },
+    {
+     "name": "Applications (per datasheet)",
+     "value": "USB Type-C Vbus (named explicitly)"
+    }
+   ],
+   "alternates": [
+    {
+     "mpn": "BNPTVS22VS1UR",
+     "lcsc": "C48533907",
+     "note": "BORN, SOD-123FL (2-terminal, drop-in easier footprint), stock 3582, $0.0564@1 - much cheaper. CAUTION: its headline 'Clamping Voltage' spec (35.5V, confirmed via BORN's own datasheet table) is measured at only 11.3A on a SLOWER 10/1000us telecom-surge waveform, not the faster 8/20us lightning waveform blocks.md's ~28V target and this board's real threat (cable inductive spike, decisions.md D1) actually use - not a clean apples-to-apples comparison with the primary pick's 8/20us-rated 27.7-28.4V. Same electrical family as the genuine Nexperia PTVS22VS1UR (industry-standard part for this exact application) but every real Nexperia PTVS22VS1UR/PTVS22VP1U* SKU shows ZERO stock in this catalog right now - this BORN clone is the only stocked equivalent. Keep as a fallback only if TVS2200's WSON-6 footprint is rejected at P4/P6."
+    }
+   ],
+   "role": "D1 unidirectional TVS at the connector, first element on VBUS, per blocks.md B1/D5 - NOT optional (cites a real CH224 trigger-board teardown destroyed at 20V from a cable inductive spike with no TVS fitted). HARD REQUIREMENT: my assignment flagged clamp voltage as the parameter that matters most here ('the CH224K dies above ~22-24V, so clamp matters more than the part family'), so this was verified against the primary datasheet, not just JLC's attribute field. The originally-named class (TDS2221PW / Semtech SI21-03, DFN 1.6x1.0mm, 28V clamp at 22A/8-20us) returned ZERO live results under either name search - not currently orderable via this catalog. SUBSTITUTED with TI's TVS2200 'Flat-Clamp' device instead of the more common PTVS22VS1UR-class (Nexperia's part, which is what most JLC listings under '22V TVS' actually are): fetched TI's real datasheet (SLVSED5A) and confirmed Vrwm=22V (exact match to blocks.md's '22V working'), max clamp 28.4V at 40A/8-20us (near-exact match to blocks.md's '~28V max clamp, 22A at 8/20us' - same test condition, TI's part handles even MORE current at a comparable clamp). TI's own Applications list names 'USB Type-C Vbus' explicitly, and its whole 'Flat-Clamp' technology exists specifically to clamp lower than a 'Traditional TVS' at the same standoff (shown in the datasheet's own comparison plot) - this is arguably a BETTER-engineered match to blocks.md's numeric target than a same-family PTVS22VS1UR part would be, whose headline 25.9-26.9V breakdown / 35.5V clamp (BORN/Nexperia-clone figures, confirmed via BORN's datasheet) sit closer to the class blocks.md explicitly rejected ('NOT a 24V SMAJ/SMBJ - that class clamps at 38-39V'). PACKAGE DEVIATION FROM blocks.md's ASSUMED CLASS: WSON-6 2x2mm (6 pads, all IN/GND commoned - electrically a plain 2-terminal device) vs the assumed DFN 1.6x1.0mm 2-pin footprint; still small, fits blocks.md D8's 'hugging the main run' placement note without issue, but flag for the P4/P6 footprint pull since it needs a different library footprint than a generic 2-pin TVS diode."
+  },
+  {
+   "ref_prefix_hint": "D",
+   "block": "indication",
+   "mpn": "BZX84C6V2",
+   "lcsc": "C841160",
+   "value": "6.2V zener",
+   "qty_per_board": 1,
+   "package": "SOT-23",
+   "basic": false,
+   "stock": 13562,
+   "price": 0.0196,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0196
+    },
+    {
+     "qty": 200,
+     "price": 0.0155
+    },
+    {
+     "qty": 600,
+     "price": 0.0133
+    },
+    {
+     "qty": 3000,
+     "price": 0.0114
+    },
+    {
+     "qty": 9000,
+     "price": 0.0102
+    },
+    {
+     "qty": 21000,
+     "price": 0.0096
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_LGE-BZX84C6V2_C841160.pdf",
+   "url": "https://www.lcsc.com/product-detail/zener-diodes_lge-bzx84c6v2_C841160.html",
+   "brand": "LGE",
+   "attributes": [
+    {
+     "name": "Zener Voltage (Nom)",
+     "value": "6.2V"
+    },
+    {
+     "name": "Zener Voltage (Range)",
+     "value": "5.8V~6.6V"
+    },
+    {
+     "name": "Power Dissipation",
+     "value": "350mW"
+    },
+    {
+     "name": "Package",
+     "value": "SOT-23"
+    }
+   ],
+   "alternates": [
+    {
+     "mpn": "BZX84C6V2",
+     "lcsc": "C5190195",
+     "note": "Guangdong Hottech, same spec, stock 11358, $0.0165@1 - near-identical alternate, different fab."
+    }
+   ],
+   "role": "D2, 6.2V zener into Q1A's base (window detector, decisions.md D4). Matches blocks.md's named 'BZX84C6V2 class' exactly. NOTE vs blocks.md's summary table (which lists D2 as 'Basic'): every live BZX84C6V2 listing found, including this one, comes back Extended, not Basic - checked the top 10 results, none are JLC Basic tier. Minor cost/feeder-fee impact only, not a functional gap; using the best-stocked real listing available. Package confirmed SOT-23 (matches blocks.md; my assignment text said SOD-123/SOD-323 but blocks.md - the authoritative architecture doc - specifies SOT-23 and that's what the named 'BZX84C6V2 class' actually ships as)."
+  },
+  {
+   "ref_prefix_hint": "D",
+   "block": "indication",
+   "mpn": "XL-1608SYGC-06",
+   "lcsc": "C965805",
+   "value": "Yellow-green LED 0603, Vf 2.2V",
+   "qty_per_board": 2,
+   "package": "0603",
+   "basic": false,
+   "stock": 718489,
+   "price": 0.0074,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0074
+    },
+    {
+     "qty": 1000,
+     "price": 0.0058
+    },
+    {
+     "qty": 4000,
+     "price": 0.005
+    },
+    {
+     "qty": 8000,
+     "price": 0.0044
+    },
+    {
+     "qty": 48000,
+     "price": 0.004
+    },
+    {
+     "qty": 100000,
+     "price": 0.0038
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2211030000_XINGLIGHT-XL-1608SYGC-06_C965805.pdf",
+   "url": "https://www.lcsc.com/product-detail/led-indication-discrete_xinglight-xl-1608sygc-06_C965805.html",
+   "brand": "XINGLIGHT",
+   "attributes": [
+    {
+     "name": "Illumination Color",
+     "value": "Yellow Green"
+    },
+    {
+     "name": "Voltage - Forward(Vf)",
+     "value": "2.2V"
+    },
+    {
+     "name": "Wavelength - Dominant",
+     "value": "570nm~575nm"
+    },
+    {
+     "name": "Luminous Intensity",
+     "value": "60mcd"
+    },
+    {
+     "name": "Forward Current",
+     "value": "25mA (test condition for the 60mcd rating; board design current is 0.76-5.8mA per decisions.md D4)"
+    }
+   ],
+   "alternates": [
+    {
+     "mpn": "KT-0603YG",
+     "lcsc": "C2289",
+     "note": "Hubei KENTO, the PREVIOUS pick (P2 pass) - re-verified live this session and SWAPPED OUT: Vf 2.0-2.2V (still compliant) but only 30-42mcd@20mA, dimmer than this part at LOWER current, plus 8.6x less stock and 50% higher price. Kept as a documented alternate only."
+    }
+   ],
+   "role": "TWO roles, same part: D3 'PWR' (mandatory power-present LED, off /VIND through R10) AND D6 'PROFILE OK' (green leg of the fallback-indication window, decisions.md D4). RE-VERIFIED AND SWAPPED at this P3 delta pass: the amendment's LED criterion (Vf<=2.2V AND >=50mcd@5mA) caught that the previous pick (KT-0603YG) never had its Luminous Intensity attribute captured in the P2-pass file; pulling it fresh live shows only 30-42mcd@20mA, which is dimmer even at 4x the current than what the criterion wants at 5mA. This XINGLIGHT part is strictly better on every measured axis (60mcd@25mA vs 42mcd@20mA max, $0.0074 vs $0.0111, stock 718489 vs 95228) and its Vf is a tight single-value 2.2V spec (at the ceiling, not a range that could bin above it). OPEN FLAG: neither this part nor any other 0603 yellow-green LED found live (10+ candidates checked across multiple queries, including one - BL-HGE36G-AV-TRB C165982 - tested by its own datasheet AT exactly 5mA, which manages only 10mcd) can actually reach 50mcd at 5mA - green-gap LED inefficiency appears to make that figure unreachable for this color+package in JLC's current catalog, not a search gap. This is the brightest Vf-compliant part found; flagging for the human checkpoint rather than silently absorbing, per decisions.md D15 risk 3 (D3's brightness already varies 4.8:1 across profiles by design)."
+  },
+  {
+   "ref_prefix_hint": "D",
+   "block": "indication",
+   "mpn": "F.0603.00011/P2-0603R4TS2-06T-001",
+   "lcsc": "C7496813",
+   "value": "Red LED 0603, Vf 2.2V, 100mcd@5mA",
+   "qty_per_board": 1,
+   "package": "0603",
+   "basic": false,
+   "stock": 6138,
+   "price": 0.0108,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0108
+    },
+    {
+     "qty": 500,
+     "price": 0.0084
+    },
+    {
+     "qty": 1500,
+     "price": 0.007
+    },
+    {
+     "qty": 4000,
+     "price": 0.0063
+    },
+    {
+     "qty": 24000,
+     "price": 0.0056
+    },
+    {
+     "qty": 48000,
+     "price": 0.0052
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2308091127_TUOZHAN-F-0603-00011-P2-0603R4TS2-06T-001_C7496813.pdf",
+   "url": "https://www.lcsc.com/product-detail/led-indication-discrete_tuozhan-f-0603-00011-p2-0603r4ts2-06t-001_C7496813.html",
+   "brand": "TUOZHAN",
+   "attributes": [
+    {
+     "name": "Illumination Color",
+     "value": "Red"
+    },
+    {
+     "name": "Voltage - Forward(Vf)",
+     "value": "2.2V"
+    },
+    {
+     "name": "Wavelength - Dominant",
+     "value": "619nm~624nm"
+    },
+    {
+     "name": "Luminous Intensity",
+     "value": "100mcd"
+    },
+    {
+     "name": "Forward Current",
+     "value": "5mA (matches the board's design-current test point exactly)"
+    }
+   ],
+   "alternates": [
+    {
+     "mpn": "KT-0603R",
+     "lcsc": "C2286",
+     "note": "Hubei KENTO, the PREVIOUS pick (P2 pass), Basic tier, huge stock (7.6M) - SWAPPED OUT because its datasheet Vf range is 1.8-2.4V: the upper bound exceeds the amendment's new 2.2V ceiling (the old ceiling this part was originally chosen against was 2.4V, tightened at A1). Its 300mcd@20mA rating is the brightest in the whole red/yellow-green pool, so if bring-up shows the TUOZHAN part visibly dimmer than expected, this is the fallback to revisit - but it does not meet the letter of the amended Vf spec."
+    }
+   ],
+   "role": "D5 '5V ONLY' - the fallback-indication red leg (decisions.md D4), driven by Q1B off the /HV_OK window comparator, through R12. RE-VERIFIED AND SWAPPED at this P3 delta pass: the previous pick (KT-0603R) has a datasheet Vf range of 1.8-2.4V, whose upper bound exceeds the amendment's tightened <=2.2V ceiling (was <=2.4V pre-amendment). This TUOZHAN part is the best live match found for the NEW criterion: Vf is a tight single-value 2.2V spec sitting exactly at the ceiling (not a range extending past it), and its Luminous Intensity (100mcd) is tested at exactly 5mA per its own datasheet - a direct, non-scaled match to the criterion's test condition, clearing the 50mcd floor with 2x margin. Lost the Basic tier the old pick had (stock drops from 7.6M to 6138, still 120x the qty-50 floor) and price rises from $0.0074 to $0.0108 (a fraction of a cent/board, immaterial to the ~$1.15-1.60 BOM total)."
+  },
+  {
+   "ref_prefix_hint": "Q",
+   "block": "indication",
+   "mpn": "BC847BS",
+   "lcsc": "C41375126",
+   "value": "Dual NPN, SOT-363",
+   "qty_per_board": 1,
+   "package": "SOT-363",
+   "basic": false,
+   "stock": 29548,
+   "price": 0.0283,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0283
+    },
+    {
+     "qty": 200,
+     "price": 0.0218
+    },
+    {
+     "qty": 600,
+     "price": 0.0183
+    },
+    {
+     "qty": 2000,
+     "price": 0.0162
+    },
+    {
+     "qty": 10000,
+     "price": 0.0144
+    },
+    {
+     "qty": 20000,
+     "price": 0.0134
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2409041457_hongjiacheng-BC847BS_C41375126.pdf",
+   "url": "https://www.lcsc.com/product-detail/bipolar-bjt_hongjiacheng-bc847bs_C41375126.html",
+   "brand": "hongjiacheng",
+   "attributes": [
+    {
+     "name": "Configuration",
+     "value": "2x NPN in one SOT-363"
+    },
+    {
+     "name": "Vceo",
+     "value": "45V"
+    },
+    {
+     "name": "Ic",
+     "value": "100mA"
+    },
+    {
+     "name": "DC Current Gain (hFE)",
+     "value": "800 (this listing; family spec is lower, e.g. 200 on other brands - fine either way for switching use)"
+    }
+   ],
+   "alternates": [
+    {
+     "mpn": "BC847BS,115",
+     "lcsc": "C8653",
+     "note": "Nexperia, GENUINE brand (the actual part family blocks.md names), TSSOP-6(SOT-363) same footprint, stock 6088, $0.1099@1 - real second source if the hongjiacheng clone's characteristics ever need double-checking."
+    }
+   ],
+   "role": "Q1, dual NPN implementing the window-detector transistor pair (Q1A zener-driven comparator, Q1B inverter) per decisions.md D4 - matches blocks.md's named 'BC847BS / MMDT3904 class' exactly. Best stock+price live match; genuine-Nexperia alternate recorded since this is a switching-only application (hFE variance across brands does not matter for the on/off window comparator role). RE-VERIFIED at the A1 delta pass (decisions.md A1.3 UNCHANGED-list criterion: Vceo>=30V, since Q1B's collector floats up toward the bus voltage when off): live search reconfirms Vceo=45V for this exact part, comfortably clearing the 30V floor (an S8050-class 25V-rated part would fail this; MMBT3904/2N5551-class 40V parts would also pass). No swap needed."
+  },
+  {
+   "ref_prefix_hint": "SW",
+   "block": "selector",
+   "mpn": "2.54-3P TPGT",
+   "lcsc": "C7421520",
+   "value": "3-position SPST DIP switch, SMD 2.54mm",
+   "qty_per_board": 1,
+   "package": "SMD,P=2.54mm",
+   "basic": false,
+   "stock": 16907,
+   "price": 0.4083,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.5181
+    },
+    {
+     "qty": 10,
+     "price": 0.4083
+    },
+    {
+     "qty": 30,
+     "price": 0.3615
+    },
+    {
+     "qty": 100,
+     "price": 0.3018
+    },
+    {
+     "qty": 500,
+     "price": 0.2857
+    },
+    {
+     "qty": 1000,
+     "price": 0.2712
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2404241538_SHOU-HAN-2-54-3P-TPGT_C7421520.pdf",
+   "url": "https://www.lcsc.com/product-detail/dip-switches_shou-han-2-54-3p-tpgt_C7421520.html",
+   "brand": "SHOU HAN",
+   "attributes": [
+    {
+     "name": "Number of Positions",
+     "value": "3"
+    },
+    {
+     "name": "Circuit",
+     "value": "SPST"
+    },
+    {
+     "name": "Lead Pitch",
+     "value": "2.54mm"
+    },
+    {
+     "name": "Mounting Type",
+     "value": "Slide, Rocked (Gull Wing SMD termination)"
+    },
+    {
+     "name": "Voltage/Current Rating",
+     "value": "24V / 25mA"
+    }
+   ],
+   "alternates": [
+    {
+     "mpn": "HX 2.54-3P TPGT",
+     "lcsc": "C7527456",
+     "note": "hanxia, same spec, stock 1266, $0.4471@1 - alternate brand, thinner stock but still well over the qty-10 floor."
+    }
+   ],
+   "role": "SW1, SPST x3 DIP switch, 2.54mm pitch, SMD (gull-wing/SMT termination, not through-hole) - matches blocks.md B3/D3 exactly. Checked JLC's 'Voltage Rating' (24V) / 'Current Rating' (25mA) attributes: these describe the SWITCH CONTACTS' own rating, unrelated to VBUS - correct since per decisions.md D3 (amended A1) the CFG pull-ups reference /VDD only, never VBUS, so the switch never carries more than the ~33uA-per-leg 100k pull-up current at the shunt-regulated ~3.3V node. No Basic-tier 3-position SMD DIP switch exists in this catalog (checked; blocks.md's own summary table already expected 'Extended')."
+  },
+  {
+   "ref_prefix_hint": "F",
+   "block": "output",
+   "mpn": "BSMD1206-100-30V",
+   "lcsc": "C5358568",
+   "value": "PPTC 1.0A hold / 1.8A trip, 30V, 1206",
+   "qty_per_board": 1,
+   "package": "1206",
+   "basic": false,
+   "stock": 133924,
+   "price": 0.0988,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0988
+    },
+    {
+     "qty": 50,
+     "price": 0.0786
+    },
+    {
+     "qty": 150,
+     "price": 0.0683
+    },
+    {
+     "qty": 500,
+     "price": 0.0598
+    },
+    {
+     "qty": 3500,
+     "price": 0.0569
+    },
+    {
+     "qty": 7000,
+     "price": 0.0548
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2305121423_BHFUSE-BSMD1206-100-30V_C5358568.pdf",
+   "url": "https://www.lcsc.com/product-detail/resettable-fuses_bhfuse-bsmd1206-100-30v_C5358568.html",
+   "brand": "BHFUSE",
+   "attributes": [
+    {
+     "name": "Hold Current",
+     "value": "1A"
+    },
+    {
+     "name": "Trip Current",
+     "value": "1.8A"
+    },
+    {
+     "name": "Voltage - Max",
+     "value": "30V"
+    },
+    {
+     "name": "Resistance - Initial (Ri)",
+     "value": "50mOhm min"
+    },
+    {
+     "name": "Time to Trip (Max)",
+     "value": "300ms"
+    }
+   ],
+   "alternates": [
+    {
+     "mpn": "1206L100/30NR",
+     "lcsc": "C7542958",
+     "note": "LUTE, same 1A hold / 1.8A trip / 30V spec, stock 68117, $0.0815@1 - cheaper alternate, same class."
+    }
+   ],
+   "role": "F1, the aux-tap resettable PPTC (decisions.md D0.1/D1 - the sole resettable element on the whole board, deliberately NOT in the 5A main path; see D1's full reasoning for why a main-path PPTC was rejected). EXACT match to the part class blocks.md B6 names by MPN ('BSMD1206-100-30V class, ~$0.10') - confirmed to the cent live. CAUTION FOR OTHER SEARCHERS: JLC's catalog also carries a visually-similar '...-050-30V' / 'JK-nSMD050-30' family in the same 1206/1812 packages at similar price/stock, but those are 500mA hold / 1A trip - HALF this board's required 1A hold current. Verified the '100' in this part number (and the 'Hold Current: 1A' attribute) before selecting, not just the package/voltage match."
+  },
+  {
+   "ref_prefix_hint": "C",
+   "block": "input_protection",
+   "mpn": "CL31A106KBHNNNE",
+   "lcsc": "C13585",
+   "value": "10uF 50V X5R (2x, forms the C1 22uF-class bulk)",
+   "qty_per_board": 2,
+   "package": "1206",
+   "basic": true,
+   "stock": 3124056,
+   "price": 0.3735,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.3735
+    },
+    {
+     "qty": 200,
+     "price": 0.3102
+    },
+    {
+     "qty": 600,
+     "price": 0.2792
+    },
+    {
+     "qty": 2000,
+     "price": 0.2516
+    },
+    {
+     "qty": 10000,
+     "price": 0.2441
+    },
+    {
+     "qty": 20000,
+     "price": 0.2395
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL31A106KBHNNNE_C13585.pdf",
+   "url": "https://www.lcsc.com/product-detail/multilayer-ceramic-capacitors-mlcc-smd-smt_samsung-electro-mechanics-cl31a106kbhnnne_C13585.html",
+   "brand": "Samsung Electro-Mechanics",
+   "attributes": [
+    {
+     "name": "Capacitance",
+     "value": "10uF"
+    },
+    {
+     "name": "Voltage Rating",
+     "value": "50V"
+    },
+    {
+     "name": "Temperature Coefficient",
+     "value": "X5R"
+    },
+    {
+     "name": "Tolerance",
+     "value": "+/-10%"
+    }
+   ],
+   "alternates": [],
+   "role": "C1, connector-side VBUS bulk cap (blocks.md B1/D5, must total ~22uF, 50V-rated not 25V - X5R loses most of its marked capacitance under 20V DC bias on a 25V-rated part, per V7). SOURCING DEVIATION: searched extensively for a single 22uF/50V/1210 X5R MLCC (blocks.md's primary spec) - every live hit at 50V-and-up in a 1210 case came back either an ELECTROLYTIC/polymer can (wrong technology - blocks.md wants ceramic; ripple-current/ESR/ESL characteristics are wrong for this role) or, among true 1210 ceramics, every 22uF part found is rated 16V or 25V (all show up cheap and Basic-adjacent, but the wrong voltage class - would derate WORSE than the already-marginal 25V case V7 warns against). No 22uF/50V/1210 ceramic SKU with real stock turned up under several query variants. USED THE FALLBACK blocks.md ITSELF PRE-AUTHORIZED for exactly this situation (B1/summary table: 'C1 | 22uF/50V X5R 1210 | Basic | or 2x 10uF/50V 1206'): 2x this part in parallel = 20uF at 50V, same total ballpark as the 22uF target (charging-current math in blocks.md B1 used 22uF only as a round number against the 100uF cSnkBulkPd ceiling; 20uF is materially the same headroom). This exact part is Basic tier (unlike every real 22uF/1210 candidate, which are all Extended) and by far the best-stocked 50V/10uF/1206 option (3.1M vs the next-closest non-Basic listing's ~500k). COST NOTE: at 2x $0.3735, this line costs ~$0.75/board - well above decisions.md D14's rough '13R + 5C (incl. 22uF/50V 1210): $0.15' estimate for ALL passives combined; a 50V-rated ceramic bulk cap at this capacitance is inherently one of the pricier passives on the board, not a sourcing shortfall. P4/P6 NOTE: architecture's schematic (sheets.md) names one ref 'C1' for this role; realizing it as 2 parallel physical parts needs a second reference designator at schematic-generation time (e.g. C1 + a paired C1B/C16) - flagging so P4 doesn't silently drop one."
+  },
+  {
+   "ref_prefix_hint": "C",
+   "block": "shared",
+   "mpn": "CC0603KRX7R9BB104",
+   "lcsc": "C14663",
+   "value": "100nF 50V X7R",
+   "qty_per_board": 1,
+   "package": "0603",
+   "basic": true,
+   "stock": 105425613,
+   "price": 0.0241,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0241
+    },
+    {
+     "qty": 500,
+     "price": 0.0202
+    },
+    {
+     "qty": 1500,
+     "price": 0.0184
+    },
+    {
+     "qty": 4000,
+     "price": 0.0168
+    },
+    {
+     "qty": 24000,
+     "price": 0.0163
+    },
+    {
+     "qty": 48000,
+     "price": 0.0159
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2211101700_YAGEO-CC0603KRX7R9BB104_C14663.pdf",
+   "url": "https://www.lcsc.com/product-detail/multilayer-ceramic-capacitors-mlcc-smd-smt_yageo-cc0603krx7r9bb104_C14663.html",
+   "brand": "YAGEO",
+   "attributes": [
+    {
+     "name": "Capacitance",
+     "value": "100nF"
+    },
+    {
+     "name": "Voltage Rating",
+     "value": "50V"
+    },
+    {
+     "name": "Temperature Coefficient",
+     "value": "X7R"
+    },
+    {
+     "name": "Tolerance",
+     "value": "+/-10%"
+    }
+   ],
+   "alternates": [],
+   "role": "C2, connector-side VBUS bulk companion (blocks.md B1, decisions.md D5). C3 (the LDO input decoupler this part used to also serve) is removed at amendment A1 with the LDO itself - this line now covers C2 only. Sits on VBUS so needs >=25V rating per the assignment's blanket VBUS-cap rule; 50V clears it with margin. Same exact MPN/LCSC already used and DRC-verified across this pipeline's other boards (usb-buck LEARNINGS precedent) - massive stock (105M), no sourcing risk at all."
+  },
+  {
+   "ref_prefix_hint": "C",
+   "block": "shared",
+   "mpn": "CL10A105KB8NNNC",
+   "lcsc": "C15849",
+   "value": "1uF 50V X5R",
+   "qty_per_board": 1,
+   "package": "0603",
+   "basic": true,
+   "stock": 14879371,
+   "price": 0.0966,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0966
+    },
+    {
+     "qty": 500,
+     "price": 0.0898
+    },
+    {
+     "qty": 1500,
+     "price": 0.0869
+    },
+    {
+     "qty": 4000,
+     "price": 0.0846
+    },
+    {
+     "qty": 24000,
+     "price": 0.0836
+    },
+    {
+     "qty": 48000,
+     "price": 0.083
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL10A105KB8NNNC_C15849.pdf",
+   "url": "https://www.lcsc.com/product-detail/multilayer-ceramic-capacitors-mlcc-smd-smt_samsung-electro-mechanics-cl10a105kb8nnnc_C15849.html",
+   "brand": "Samsung Electro-Mechanics",
+   "attributes": [
+    {
+     "name": "Capacitance",
+     "value": "1uF"
+    },
+    {
+     "name": "Voltage Rating",
+     "value": "50V"
+    },
+    {
+     "name": "Temperature Coefficient",
+     "value": "X5R"
+    },
+    {
+     "name": "Tolerance",
+     "value": "+/-10%"
+    }
+   ],
+   "alternates": [],
+   "role": "C5, the datasheet-mandated cap on U1's VDD pin (decisions.md D2, B2) - VDD to GND, directly across the shunt regulator's output. C4 (the LDO output bulk cap this part used to also serve) is removed at amendment A1 with the LDO itself - this line now covers C5 only. Only needs >=16V (a 3.3V-class shunt node) but this 50V-rated Basic part is cheaper and better-stocked than the nearest 16V-rated Extended option found live, so it is used unchanged. Same exact MPN already used (and DRC-verified) in this pipeline's usb-buck board."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "shared",
+   "mpn": "0603WAF1002T5E",
+   "lcsc": "C25804",
+   "value": "10k",
+   "qty_per_board": 2,
+   "package": "0603",
+   "basic": true,
+   "stock": 4276801,
+   "price": 0.0077,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0077
+    },
+    {
+     "qty": 1000,
+     "price": 0.0068
+    },
+    {
+     "qty": 5000,
+     "price": 0.0064
+    },
+    {
+     "qty": 10000,
+     "price": 0.0061
+    },
+    {
+     "qty": 50000,
+     "price": 0.006
+    },
+    {
+     "qty": 100000,
+     "price": 0.0059
+    }
+   ],
+   "min_qty": 1317,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010045_UNI-ROYAL-Uniroyal-Elec-0603WAF1002T5E_C25804.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0603waf1002t5e_C25804.html",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {
+     "name": "Resistance",
+     "value": "10kOhm"
+    },
+    {
+     "name": "Tolerance",
+     "value": "+/-1%"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "100mW"
+    }
+   ],
+   "alternates": [],
+   "role": "TWO distinct roles, same value/part, 0603 thick film: R1 (10k series into U1 pin 8 VBUS-sense, mandatory per D5) and R8 (10k collector pull-up for Q1B's inverter stage, D4). R3/R4/R5 moved to a dedicated 100k line at amendment A1 (decisions.md D3) - see that entry; they are no longer part of this combined line. NOTE min_qty 1317 is this listing's reel MOQ (same pattern already accepted in this pipeline's usb-buck board for the same UNI-ROYAL 10k part) - not a board-qty-10 issue, JLC's assembly service does not require buying a full reel for a 2-piece need."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "selector",
+   "mpn": "0603WAF1003T5E",
+   "lcsc": "C25803",
+   "value": "100k",
+   "qty_per_board": 3,
+   "package": "0603",
+   "basic": true,
+   "stock": 7690049,
+   "price": 0.0079,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0079
+    },
+    {
+     "qty": 1000,
+     "price": 0.0071
+    },
+    {
+     "qty": 5000,
+     "price": 0.0066
+    },
+    {
+     "qty": 10000,
+     "price": 0.0062
+    },
+    {
+     "qty": 50000,
+     "price": 0.006
+    },
+    {
+     "qty": 50200,
+     "price": 0.006
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010045_UNI-ROYAL-Uniroyal-Elec-0603WAF1003T5E_C25803.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0603waf1003t5e_C25803.html",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {
+     "name": "Resistance",
+     "value": "100kOhm"
+    },
+    {
+     "name": "Tolerance",
+     "value": "+/-1%"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "100mW"
+    }
+   ],
+   "alternates": [],
+   "role": "R3/R4/R5, 100k pull-ups to /VDD for SW1's CFG1/2/3 (decisions.md D3, amended A1 - value raised from 10k to 100k and the rail changed from a since-removed +3V3 to /VDD). Pull-UP polarity is the safety-relevant choice: open contact, unpopulated switch, or broken contact all resolve to '1XX' = 5V, the lowest profile. Value is the single most consequential number the P3 datasheet extract changed: at the 5V profile the whole /VDD node is fed only 1.7mA through R2's dropper; three 10k pull-ups would draw 990uA (58% of that budget), three 100k pull-ups draw 99uA (6%) - this Basic-tier part is what makes the housekeeping budget close. Same UNI-ROYAL 0603 family as the rest of the board's resistors."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "pd_controller",
+   "mpn": "1206W4J0511T5E",
+   "lcsc": "C25386",
+   "value": "510R (x2 in series, ~1k dropper)",
+   "qty_per_board": 2,
+   "package": "1206",
+   "basic": false,
+   "stock": 298071,
+   "price": 0.0112,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0112
+    },
+    {
+     "qty": 1000,
+     "price": 0.01
+    },
+    {
+     "qty": 5000,
+     "price": 0.0093
+    },
+    {
+     "qty": 10000,
+     "price": 0.0089
+    },
+    {
+     "qty": 50000,
+     "price": 0.0085
+    },
+    {
+     "qty": 100000,
+     "price": 0.0084
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2205311900_UNI-ROYAL-Uniroyal-Elec-1206W4J0511T5E_C25386.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-1206w4j0511t5e_C25386.html",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {
+     "name": "Resistance",
+     "value": "510Ohm"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "250mW"
+    },
+    {
+     "name": "Tolerance",
+     "value": "+/-5%"
+    },
+    {
+     "name": "Voltage-Supply(Max)",
+     "value": "200V"
+    }
+   ],
+   "alternates": [
+    {
+     "mpn": "25121WJ0102T4E",
+     "lcsc": "C31885",
+     "note": "UNI-ROYAL, single-part 2512 1k 1W Extended alternate if the 2-series-1206 assembly is undesired: stock 179029, $0.0488@1. No Basic-tier 2512 1k exists live (checked directly with --basic-only: zero results in that package), which is why the series-1206 alternate ships instead, per the P3 assignment's decision rule."
+    }
+   ],
+   "role": "R2 dropper, VBUS -> U1 pin1 VDD (decisions.md D2/A1 - the datasheet's shunt-regulator dropper, NOT the pre-amendment LDO-isolation resistor). SHIPPED THE APPROVED ALTERNATE: 2x 510R 1206 in series (~1020R, within the 1k target) instead of a single 2512 1k part, because no Basic-tier 1k/2512 exists live (verified directly: a --basic-only search on '1k 2512' returns only 0402/0603/1206/0805 packages, zero 2512 hits) - the assignment's fallback condition is met. Extended-tier 1k/2512 parts DO exist (e.g. C31885 at $0.0488, recorded as an alternate above) but the series-1206 alternate was preferred per the assignment's explicit decision rule. Power check: 0.313W at 21V (worst case, decisions.md D2) split across 2 parts = 0.157W each against each part's 250mW rating = 63% (~1.6x derating) - matches decisions.md D2's own pre-approved figure for this exact fallback ('0.157 W each in 0.25 W parts') exactly; short of the 3x derating wanted for the single-2512 path, but the explicitly pre-approved number for this alternate. At the 5V profile floor the pair carries ~1.7mA (1.1mA at 4.4V low line, decisions.md D2), negligible dissipation. Placement note carried from decisions.md D8 A1: keep >=8mm from U1's baseplate (its only heat path) - applies to both series resistors."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "indication",
+   "mpn": "0603WAF6801T5E",
+   "lcsc": "C23212",
+   "value": "6.8k",
+   "qty_per_board": 1,
+   "package": "0603",
+   "basic": true,
+   "stock": 630000,
+   "price": 0.0029,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0029
+    },
+    {
+     "qty": 1000,
+     "price": 0.0026
+    },
+    {
+     "qty": 5000,
+     "price": 0.0024
+    },
+    {
+     "qty": 10000,
+     "price": 0.0023
+    },
+    {
+     "qty": 50000,
+     "price": 0.0022
+    },
+    {
+     "qty": 50200,
+     "price": 0.0022
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010116_UNI-ROYAL-Uniroyal-Elec-0603WAF6801T5E_C23212.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0603waf6801t5e_C23212.html",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {
+     "name": "Resistance",
+     "value": "6.8kOhm"
+    },
+    {
+     "name": "Tolerance",
+     "value": "+/-1%"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "100mW"
+    }
+   ],
+   "alternates": [],
+   "role": "R6, from VBUS through D2 (6.2V zener) into Q1A's base - sets the ~6.7V window-detector trip point (decisions.md D4). Delivers 243uA base drive at the 9V profile's 8.55V floor, 1.93mA/25mW at 20V."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "indication",
+   "mpn": "0603WAF4701T5E",
+   "lcsc": "C23162",
+   "value": "4.7k",
+   "qty_per_board": 1,
+   "package": "0603",
+   "basic": true,
+   "stock": 4258541,
+   "price": 0.0117,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0117
+    },
+    {
+     "qty": 1000,
+     "price": 0.0105
+    },
+    {
+     "qty": 5000,
+     "price": 0.01
+    },
+    {
+     "qty": 10000,
+     "price": 0.0092
+    },
+    {
+     "qty": 50000,
+     "price": 0.009
+    },
+    {
+     "qty": 100000,
+     "price": 0.0089
+    }
+   ],
+   "min_qty": 766,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010116_UNI-ROYAL-Uniroyal-Elec-0603WAF4701T5E_C23162.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0603waf4701t5e_C23162.html",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {
+     "name": "Resistance",
+     "value": "4.7kOhm"
+    },
+    {
+     "name": "Tolerance",
+     "value": "+/-1%"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "100mW"
+    }
+   ],
+   "alternates": [],
+   "role": "R7, base-emitter shunt on Q1A (decisions.md D4) - sinks zener knee leakage (needs >149uA to reach 0.7V, versus a few uA of real leakage at 5.25V) so a soft knee cannot fake a high profile. NOTE min_qty 766 is this listing's reel MOQ, not a board-qty-10 issue."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "indication",
+   "mpn": "0603WAF4702T5E",
+   "lcsc": "C25819",
+   "value": "47k",
+   "qty_per_board": 1,
+   "package": "0603",
+   "basic": true,
+   "stock": 924778,
+   "price": 0.0112,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0112
+    },
+    {
+     "qty": 1000,
+     "price": 0.01
+    },
+    {
+     "qty": 5000,
+     "price": 0.0094
+    },
+    {
+     "qty": 10000,
+     "price": 0.0088
+    },
+    {
+     "qty": 50000,
+     "price": 0.0084
+    },
+    {
+     "qty": 100000,
+     "price": 0.0083
+    }
+   ],
+   "min_qty": 800,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010045_UNI-ROYAL-Uniroyal-Elec-0603WAF4702T5E_C25819.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0603waf4702t5e_C25819.html",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {
+     "name": "Resistance",
+     "value": "47kOhm"
+    },
+    {
+     "name": "Tolerance",
+     "value": "+/-1%"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "100mW"
+    }
+   ],
+   "alternates": [],
+   "role": "R9, base resistor driving Q1B from Q1A's collector node /HV_OK, completing the inverter that lights exactly one of D5/D6 (decisions.md D4). NOTE min_qty 800 is this listing's reel MOQ, not a board-qty-10 issue."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "indication",
+   "mpn": "RC1206FR-073K3L",
+   "lcsc": "C137292",
+   "value": "3.3k",
+   "qty_per_board": 1,
+   "package": "1206",
+   "basic": false,
+   "stock": 269205,
+   "price": 0.0178,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0178
+    },
+    {
+     "qty": 500,
+     "price": 0.0152
+    },
+    {
+     "qty": 1500,
+     "price": 0.0138
+    },
+    {
+     "qty": 5000,
+     "price": 0.0128
+    },
+    {
+     "qty": 25000,
+     "price": 0.012
+    },
+    {
+     "qty": 50000,
+     "price": 0.0116
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_YAGEO-RC1206FR-073K3L_C137292.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_yageo-rc1206fr-073k3l_C137292.html",
+   "brand": "YAGEO",
+   "attributes": [
+    {
+     "name": "Resistance",
+     "value": "3.3kOhm"
+    },
+    {
+     "name": "Tolerance",
+     "value": "+/-1%"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "250mW"
+    }
+   ],
+   "alternates": [],
+   "role": "R10, D3 'PWR' LED series resistor, now bus-referenced off /VIND (decisions.md D4/A1 - previously a shared 680R line feeding all four LEDs off a regulated +3V3 rail; that rail and the LDO behind it are gone). Power check (task-specified naive worst case, V^2/R at 21V): 441/3300 = 0.134W against this 1206's 250mW rating = 54%, ~1.9x derating. Realistic figure accounting for the LED's own Vf drop (decisions.md A1's own math): 0.11W, ~2.3x derating - matches decisions.md's stated figure exactly. D3 is always on (0.76mA at 4.4V to 5.8mA at 21V per D4), so this is the one LED resistor that genuinely sees the full bus range continuously. No Basic-tier 3.3k 1206 exists live (checked directly with --basic-only: the two hits returned are 0603/0805 packages, not 1206)."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "indication",
+   "mpn": "0603WAF1501T5E",
+   "lcsc": "C22843",
+   "value": "1.5k",
+   "qty_per_board": 1,
+   "package": "0603",
+   "basic": true,
+   "stock": 1273566,
+   "price": 0.0023,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0023
+    },
+    {
+     "qty": 1000,
+     "price": 0.002
+    },
+    {
+     "qty": 5000,
+     "price": 0.0018
+    },
+    {
+     "qty": 10000,
+     "price": 0.0017
+    },
+    {
+     "qty": 50000,
+     "price": 0.0016
+    },
+    {
+     "qty": 50200,
+     "price": 0.0016
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010130_UNI-ROYAL-Uniroyal-Elec-0603WAF1501T5E_C22843.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0603waf1501t5e_C22843.html",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {
+     "name": "Resistance",
+     "value": "1.5kOhm"
+    },
+    {
+     "name": "Tolerance",
+     "value": "+/-1%"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "100mW"
+    }
+   ],
+   "alternates": [],
+   "role": "R12, D5 '5V ONLY' (red) LED series resistor, off /VIND (decisions.md D4/A1). Conducts ONLY below the ~6.7V window trip (bus 4.4-5.25V) since D5 is reverse/off above that - so despite the task's blanket 'check P=V^2/R at 21V' instruction, R12 never actually sees 21V across it with current flowing (D6 conducts instead at high bus, D5 sits open). Real worst case is at the top of D5's conduction window (~5.25V): P ~= 7mW per decisions.md A1's own math, against this 0603's 100mW rating - over 10x margin. A naive full-21V assumption would wrongly read as a 294%-of-rating violation; noted here so a future check does not misread it."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "indication",
+   "mpn": "0805W8F4701T5E",
+   "lcsc": "C17673",
+   "value": "4.7k",
+   "qty_per_board": 1,
+   "package": "0805",
+   "basic": true,
+   "stock": 7550256,
+   "price": 0.011,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.011
+    },
+    {
+     "qty": 1000,
+     "price": 0.0097
+    },
+    {
+     "qty": 5000,
+     "price": 0.0091
+    },
+    {
+     "qty": 10000,
+     "price": 0.0087
+    },
+    {
+     "qty": 50000,
+     "price": 0.0085
+    },
+    {
+     "qty": 100000,
+     "price": 0.0084
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010200_UNI-ROYAL-Uniroyal-Elec-0805W8F4701T5E_C17673.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0805w8f4701t5e_C17673.html",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {
+     "name": "Resistance",
+     "value": "4.7kOhm"
+    },
+    {
+     "name": "Tolerance",
+     "value": "+/-1%"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "125mW"
+    }
+   ],
+   "alternates": [],
+   "role": "R13, D6 'PROFILE OK' (green) LED series resistor, off /VIND (decisions.md D4/A1). Conducts ONLY above the ~6.7V window trip (bus 8.55-21V). Power check (task-specified naive worst case, V^2/R at 21V): 441/4700 = 0.094W against this 0805's 125mW rating = 75%, ~1.33x derating. Realistic figure accounting for the LED's Vf drop (decisions.md A1's own math): 0.08W, ~1.56x derating - matches decisions.md's stated figure exactly. This is the tightest margin of the three LED resistors (R10/R12/R13) but still positive and it is the architecture's own settled value, not a P3 substitution."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "housekeeping_supply",
+   "mpn": "0603WAF0000T5E",
+   "lcsc": "C21189",
+   "value": "0R",
+   "qty_per_board": 1,
+   "package": "0603",
+   "basic": true,
+   "stock": 9052161,
+   "price": 0.0027,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0027
+    },
+    {
+     "qty": 1000,
+     "price": 0.0024
+    },
+    {
+     "qty": 5000,
+     "price": 0.0023
+    },
+    {
+     "qty": 10000,
+     "price": 0.0021
+    },
+    {
+     "qty": 50000,
+     "price": 0.0021
+    },
+    {
+     "qty": 50200,
+     "price": 0.0021
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2411221126_UNI-ROYAL-Uniroyal-Elec-0603WAF0000T5E_C21189.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0603waf0000t5e_C21189.html",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {
+     "name": "Resistance",
+     "value": "0Ohm"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "100mW"
+    },
+    {
+     "name": "Voltage-Supply(Max)",
+     "value": "75V"
+    },
+    {
+     "name": "Tolerance",
+     "value": "+/-1%"
+    }
+   ],
+   "alternates": [],
+   "role": "R14, NEW at amendment A1 (decisions.md A1.2): the VBUS -> /VIND housekeeping link, a 0 ohm jumper, not present in the P2-pass BOM. Without it, all eight housekeeping taps (the LED row etc.) would hang directly off the 5A VBUS net and check_current would demand 1.75mm copper on every run out to them; behind this link, /VIND is declared width-only (pdn:false, 50mA) and routes at the fab floor. Carries the LED row's current (up to ~32mA max per decisions.md A1.2) - any resistance/current rating comfortably covers that; this 100mW/0Ohm Basic part is the standard JLC 0603 jumper, massive stock, trivial cost."
+  }
+ ]
+}

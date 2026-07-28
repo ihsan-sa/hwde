@@ -1,0 +1,164 @@
+{
+  "_note": "P1 power-architect output for pd-trigger. Net names are CONVENTIONAL, not final - re-key every entry to the P4 netlist before merging into constraints.json. thermal_constraints refs MUST be re-keyed or deleted: check_thermal exits 2 on a refdes with no pads. voltage_constraints maps to constraints.json[\"voltages\"] (the schema key); it is carried here because the agreed power.json shape has no slot for it.",
+  "_headline": [
+    "2 oz outer copper is REQUIRED: 5 A at dT 10 C needs 3.500 mm on 1 oz vs 1.750 mm on 2 oz. stackups.yaml has no 2-layer 2 oz entry yet - P2 must add one or the whole pipeline sizes at 1 oz.",
+    "The P0 answer 2 series PPTC should be dropped from the 5 A path: an 8 A-hold part (the honest minimum at 40 C) is a 24 x 25 mm radial disc, and its 16 A trip current is unreachable by any compliant PD source. Move the resettable element to the aux tap where it can act.",
+    "CH224K VDD abs max is 3.0-3.6 V and its HV pins stop at 13.5 V - nothing on the chip may touch the 20 V rail. A 24 V-capable 3.3 V LDO is recommended over a dropper resistor because the input range is 4:1.",
+    "Keep the entire 5 A path on F.Cu: check_current demands ceil(5.0/0.5) = 10 vias per via cluster on that net."
+  ],
+
+  "rails": [
+    {
+      "net": "VBUS",
+      "vin": "USB-C receptacle J1, PD-negotiated 5/9/12/15/20 V as SINK; 20 V + PDO tolerance ~21 V worst case",
+      "topology": "direct pass-through (no series element, no regulation)",
+      "current_a": 5.0,
+      "current_a_typ": 5.0,
+      "current_a_peak": 5.0,
+      "consumers": [
+        {
+          "ref": "J2",
+          "part": "screw terminal, 5.08 mm fixed clamp, >=8 A nameplate (P0 answer 3)",
+          "typ_a": 5.0,
+          "peak_a": 5.0,
+          "basis": "P0 answer 1: uniform 5 A at every profile. This is the sole full-current output; 100 W at the 20 V profile. Catalog check: KF128-5.08-2P-AA (C474952) is rated 24 A / 250 V at $0.19, 28k stock - far above the >=8 A requirement and 18 AWG capable. Prefer a FIXED screw terminal over a pluggable 2EDG plug+header pair: the pluggable version inserts an extra mated contact interface into a 5 A path for no benefit."
+        },
+        {
+          "ref": "F1",
+          "part": "aux-tap PPTC 1.0 A / 30 V 1206 (e.g. BSMD1206-100-30V, C5358568)",
+          "typ_a": 0.5,
+          "peak_a": 1.0,
+          "basis": "feeds /VAUX only. Ih 1.0 A, It 1.8 A, 50-300 mohm, 3.6 x 1.9 x 1.4 mm, $0.099. Trip current IS reachable by the source, unlike a main-path PPTC, so this is where the P0 answer 2 resettable element belongs."
+        },
+        {
+          "ref": "U2",
+          "part": "3.3 V housekeeping LDO, Vin rating >= 24 V",
+          "typ_a": 0.012,
+          "peak_a": 0.02,
+          "basis": "input current ~= output current for a linear; 12 mA of +3V3 load (see the +3V3 rail). Dissipation (20 - 3.3) x 12 mA = 0.200 W at the 20 V profile, 0.020 W at 5 V."
+        },
+        {
+          "ref": "U1",
+          "part": "CH224K VBUS sense pin (pin 8) via series resistor",
+          "typ_a": 0.0005,
+          "peak_a": 0.001,
+          "basis": "CH224 datasheet v1F s4.3: 'Voltage detection input. It is required to be connected in series with a resistor to external input VBUS.' VIOHV abs max 13.5 V, so at the 20 V profile this pin is clamped internally and the resistor sets the current. Exact value from the datasheet extract."
+        },
+        {
+          "ref": "D_TVS",
+          "part": "TVS, unidirectional, standoff > 21 V",
+          "typ_a": 0.0,
+          "peak_a": 0.0,
+          "basis": "leakage only in normal operation; standoff must exceed the 20 V PDO plus tolerance so it does not conduct at the 20 V profile. Its clamping voltage sets what the downstream caps and the user load see under surge - argues for 50 V MLCCs."
+        }
+      ],
+      "dissipation_w": 0.122,
+      "notes": "The board's input net and output net are the SAME copper - there is no series element in the recommended architecture (see power.md s5). If the architect keeps the P0 answer 2 series PPTC, this net splits: duplicate this entry as VOUT with identical numbers and add the F1 thermal entry. Sizing: IPC-2152 via this repo's check_current model gives 3.500 mm on 1 oz at dT 10, 1.750 mm on 2 oz at dT 10, 2.383 mm on 1 oz at dT 20. 2 oz + dT 10 is the recommendation. Copper weight does NOT change I2R at a fixed dT (the model sizes to constant cross-section): 30 mm of either 1 oz/3.50 mm or 2 oz/1.75 mm is 4.89 mohm at 60 C = 0.122 W = 24 mV. Bulk capacitance: 10-22 uF (50 V rating, not 25 V - DC bias) + 100 nF; USB PD allows a sink up to cSnkBulkPd 100 uF before surge limiting is required, and sources limit VBUS positive slew to vSrcSlewPos 30 mV/us, so 22 uF draws only ~0.7 A during a 5 V -> 20 V transition. All four VBUS contacts (A4/B4/A9/B9) and all four GND contacts (A1/B1/A12/B12) must be bonded: the USB Type-C 5 A contact-current rating is specified collectively across them."
+    },
+    {
+      "net": "/VAUX",
+      "vin": "VBUS, through the 1.0 A aux PPTC F1",
+      "topology": "series-limited stub",
+      "current_a": 1.0,
+      "current_a_typ": 0.1,
+      "current_a_peak": 1.0,
+      "consumers": [
+        {
+          "ref": "J3",
+          "part": "auxiliary 2.54 mm pin header, 1 pin per net",
+          "typ_a": 0.1,
+          "peak_a": 1.0,
+          "basis": "P0 answer 4: LOW-CURRENT tap only, silk-marked. 2.54 mm headers in the JLC catalog are rated 3 A per pin; 1.0 A design cap is one third of that and below the PPTC's 1.8 A trip. Do NOT parallel pins - paralleling is exactly what would make a 5 A rating look plausible on a 0.1 in header."
+        }
+      ],
+      "dissipation_w": 0.025,
+      "notes": "MUST be its own net, not a tap off the 5 A net. check_current applies a net's declared current to EVERY track segment on it, so an aux stub sharing VBUS would be required to be 1.75 mm wide all the way onto the header pin. pdn:false because nothing decouples this stub by design. Silk: 'AUX 1A MAX' beside the header plus per-pin V+/GND, and place it physically away from J2 so a 5 A load cannot be plugged here by muscle memory. Drop across the PPTC at 0.5 A is ~50 mV."
+    },
+    {
+      "net": "+3V3",
+      "vin": "VBUS 5-20 V, via U2 (3.3 V LDO, Vin rating >= 24 V)",
+      "topology": "LDO",
+      "regulator": "small 3.3 V LDO with >= 24 V input rating (part choice at P3)",
+      "current_a": 0.05,
+      "current_a_typ": 0.012,
+      "current_a_peak": 0.012,
+      "consumers": [
+        {
+          "ref": "U1",
+          "part": "CH224K VDD (pin 1)",
+          "typ_a": 0.005,
+          "peak_a": 0.005,
+          "basis": "PLACEHOLDER - CH224 datasheet v1F publishes no IDD table, only a 400 mW total-chip maximum and VDD abs max 3.0-3.6 V. MUST be resolved by the datasheet-extract sibling; if VDD draw is <= 1 mA a plain dropper resistor becomes viable and this rail is optional for the chip (though not for the LEDs). Datasheet also requires a 1 uF decoupling cap on VDD."
+        },
+        {
+          "ref": "D1",
+          "part": "power-present LED + series resistor",
+          "typ_a": 0.003,
+          "peak_a": 0.003,
+          "basis": "(3.3 - 2.0) / 430 ohm. Mandatory per requirements s2."
+        },
+        {
+          "ref": "D2",
+          "part": "profile / fallback indication LED",
+          "typ_a": 0.003,
+          "peak_a": 0.003,
+          "basis": "P0 answer 6 requires the 5 V fallback to be VISIBLY indicated. May be driven by the CH224K PG open-drain output (pin 10, active low). Exact scheme is the schematic's call."
+        },
+        {
+          "ref": "SW1",
+          "part": "profile selector + CFG pull-ups",
+          "typ_a": 0.001,
+          "peak_a": 0.001,
+          "basis": "level-configuration mode: CFG1/2/3 tied to VDD or GND through the selector. CH224K limit: CFG2/CFG3 input voltage must not exceed 3.7 V, so they must reference this rail, never VBUS."
+        }
+      ],
+      "dissipation_w": 0.2,
+      "notes": "Recommended over a dropper resistor because the input range is 4:1. A single resistor must both pass enough current at the 5 V profile and not cook at 20 V; a published CH224 trigger board used 510 ohm, which is 0.55 W at 20 V, and its reviewer reported the chip destroyed by electrical over-stress during a 20 V load test. The LEDs settle it independently: an LED fed from VOUT through one resistor varies 4:1 across profiles (2 mA at 5 V becomes ~8 mA and 144 mW in the resistor at 20 V), and P0 answer 6 makes the LEDs functional, not decorative. LDO dissipation 0.200 W at 20 V - under the 0.5 W flag but the second-largest heat source on the board, hence a thermal entry. If the architect takes the dropper-resistor pattern instead, delete this rail's power entry and the U2 thermal entry."
+    }
+  ],
+
+  "power_constraints": [
+    {"net": "VBUS", "current_a": 5.0, "dt_c": 10, "via_amps": 0.5},
+    {"net": "/VAUX", "current_a": 1.0, "dt_c": 10, "via_amps": 0.5, "pdn": false},
+    {"net": "+3V3", "current_a": 0.05, "dt_c": 10, "via_amps": 0.5}
+  ],
+
+  "voltage_constraints": [
+    {"net": "VBUS", "voltage": 20},
+    {"net": "/VAUX", "voltage": 20},
+    {"net": "+3V3", "voltage": 3.3},
+    {"net": "GND", "voltage": 0}
+  ],
+
+  "thermal_constraints": [
+    {"ref": "J1", "power_w": 0.5, "net": "GND", "dt_c": 40},
+    {"ref": "U2", "power_w": 0.2, "net": "GND", "dt_c": 40}
+  ],
+
+  "conditional_constraints": {
+    "if_series_pptc_kept_in_main_path": {
+      "power_add": [{"net": "VOUT", "current_a": 5.0, "dt_c": 10, "via_amps": 0.5}],
+      "voltages_add": [{"net": "VOUT", "voltage": 20}],
+      "thermal_add": [{"ref": "F1", "power_w": 0.75, "net": "VOUT", "dt_c": 40}],
+      "why": "the PPTC splits the single power net in two; 0.75 W is the R1max (30 mohm, post-trip) bound at 5 A, 0.125 W when new at Rmin 5 mohm"
+    },
+    "if_1oz_copper_instead_of_2oz": {
+      "power_change": "set every dt_c to 20 (5 A then needs 2.383 mm instead of 3.500 mm)",
+      "why": "leaving dt_c at 10 on 1 oz makes rules_gen write a 3.500 mm minimum-width rule that P7 cannot satisfy on a 40 x 25 mm board"
+    },
+    "if_dropper_resistor_instead_of_ldo": {
+      "power_remove": ["+3V3"],
+      "thermal_remove": ["U2"],
+      "why": "no housekeeping rail exists in that pattern; the dropper resistor is a 0.08-0.20 W element with no copper-area story"
+    }
+  },
+
+  "pipeline_notes": [
+    "stackups.yaml has no 2-layer 2 oz entry (defaults 2 -> JLC2313_1.6, 1 oz). rules_gen derives its capability key from the stackup's copper_oz and check_current reads copper thickness from the (stackup) block board_init injected, so a missing entry silently sizes the board at 1 oz and the P8 gate then demands 3.500 mm. Add a 2-layer 2 oz stackup (copper 0.070 mm, copper_oz 2.0) and pass it via board_init --stackup. jlc_capabilities.yaml already has the matching 2layer_2oz profile.",
+    "rules_gen.net_classes builds ONE 'Power' class whose track_width is the max across all declared power nets (1.750 mm here) and patterns every power net into it, so /VAUX and +3V3 default-route at 1.750 mm. Per-net DRC minimums are still correct (aiee_pwr_width_<net> is emitted per net) - this is a routing-default annoyance, worth a P5 hand-edit on a board this small.",
+    "check_current requires ceil(current_a / via_amps) vias per via cluster: 10 for the 5 A net. Directive: keep the whole 5 A path on F.Cu with no layer changes, so the net has no via clusters to fail.",
+    "GND is deliberately absent from power_constraints even though it carries the same 5 A return: check_current checks every track segment on a declared net, and a 2-layer board accumulates short thin GND stubs (TVS return, decoupling, test points) that would each error with no per-region exception available before P7. The requirement is structural instead - a continuous unslotted B.Cu GND pour under the whole power path, >= 10 vias at each of J1's and J2's GND pads. Adding GND with current_a 5.0 after routing, to get the pour-neck check, is a legitimate informed choice but not the default.",
+    "check_thermal raises a hard error (exit 2) if a thermal ref has no pads on the board. Re-key or delete J1/U2 to match the final refdes.",
+    "check_creepage does nothing on this board: IPC-2221 only regulates net pairs more than 30 V apart and the maximum here is ~21 V. The voltage_constraints entries are documentation of the rail level, not a source of rules."
+  ]
+}

@@ -48,6 +48,22 @@ stackups:
     # wide/pours instead of controlled impedance.
     controlled_impedance: []
 
+  JLC2313_1.6_2oz:
+    description: "JLCPCB 2-layer, 1.6 mm, 2 oz outer copper (HASL). The
+      2-oz option from JLC's capabilities page (jlc_capabilities.yaml already
+      carries the matching 2layer_2oz design-rule class). Core thickness
+      derived: 1.6 total - 2x0.070 copper. Added S14 (pd-trigger: 5 A path
+      needs 2 oz to keep IPC-2152 widths routable on a small board)."
+    layers: 2
+    thickness_mm: 1.6
+    copper_finish: HASL
+    dielectric_constraints: false
+    stack:
+      - {name: "F.Cu",         type: copper,      thickness_mm: 0.070, copper_oz: 2.0}
+      - {name: "dielectric 1", type: core,        thickness_mm: 1.460, material: "FR4", epsilon_r: 4.5, loss_tangent: 0.02}
+      - {name: "B.Cu",         type: copper,      thickness_mm: 0.070, copper_oz: 2.0}
+    controlled_impedance: []
+
   JLC04161H-3313:
     description: "JLCPCB standard impedance-controlled 4-layer, 1.6 mm (JLC04161H-3313), 1 oz outer / 0.5 oz inner, HASL."
     layers: 4

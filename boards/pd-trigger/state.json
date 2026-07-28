@@ -3,10 +3,16 @@
  "board": "pd-trigger",
  "workspace": "boards/pd-trigger",
  "created": "2026-07-28T05:57:45",
- "updated": "2026-07-28T06:04:27",
- "phase": "P1",
+ "updated": "2026-07-28T08:27:07",
+ "phase": "P4",
  "gates": {},
- "human": {},
+ "human": {
+  "1": {
+   "status": "approved",
+   "ts": "2026-07-28T06:52:56",
+   "note": "AUTO per directive: 2L 2oz 45x25, ~$5-7/board, riskiest = no series protection on the 5A path (charger OCP + TVS + sized copper; chain in decisions.md D1)"
+  }
+ },
  "artifacts": {},
  "open_issues": [],
  "next_issue_id": 1,
@@ -27,6 +33,24 @@
    "why": "All defaults engineering-sound; >3A flag addressed explicitly per analyst framing",
    "phase": "P0",
    "ts": "2026-07-28T06:04:27"
+  },
+  {
+   "what": "P0 answer 2 REVISED: NO main-path series fuse (PD source OCP + mandatory TVS are the protection; no SMD PPTC holds 5A@40C and trip window unreachable under source foldback); aux tap gets 1A 1206 PPTC + silk AUX 1A MAX",
+   "why": "Two independent research fragments converged (interface + power); THT 24x25mm disc would break size and add hand-solder for negative value",
+   "phase": "P1",
+   "ts": "2026-07-28T06:29:04"
+  },
+  {
+   "what": "2oz outer copper: stackups.yaml gained JLC2313_1.6_2oz (S14 reference fix); 5A width 1.75mm vs unroutable 3.5mm at 1oz",
+   "why": "Power research IPC-2152 math via the pipeline's own model",
+   "phase": "P1",
+   "ts": "2026-07-28T06:29:05"
+  },
+  {
+   "what": "Flat root sheet; VBUS one net end-to-end; GND out of power[] (structural pour + 10-via rule); DIP straps fail-safe-to-5V; zener+dual-NPN window LED scheme for fallback indication",
+   "why": "Architect P2 with all 10 settle-items reasoned",
+   "phase": "P2",
+   "ts": "2026-07-28T06:52:56"
   }
  ],
  "history": [
@@ -46,6 +70,45 @@
    "event": "phase",
    "phase": "P1",
    "prev": "P0"
+  },
+  {
+   "ts": "2026-07-28T06:29:04",
+   "event": "decision",
+   "what": "P0 answer 2 REVISED: NO main-path series fuse (PD source OCP + mandatory TVS are the protection; no SMD PPTC holds 5A@40C and trip window unreachable under source foldback); aux tap gets 1A 1206 PPTC + silk AUX 1A MAX"
+  },
+  {
+   "ts": "2026-07-28T06:29:05",
+   "event": "decision",
+   "what": "2oz outer copper: stackups.yaml gained JLC2313_1.6_2oz (S14 reference fix); 5A width 1.75mm vs unroutable 3.5mm at 1oz"
+  },
+  {
+   "ts": "2026-07-28T06:29:05",
+   "event": "phase",
+   "phase": "P2",
+   "prev": "P1"
+  },
+  {
+   "ts": "2026-07-28T06:52:56",
+   "event": "human",
+   "checkpoint": "1",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-07-28T06:52:56",
+   "event": "decision",
+   "what": "Flat root sheet; VBUS one net end-to-end; GND out of power[] (structural pour + 10-via rule); DIP straps fail-safe-to-5V; zener+dual-NPN window LED scheme for fallback indication"
+  },
+  {
+   "ts": "2026-07-28T06:52:56",
+   "event": "phase",
+   "phase": "P3",
+   "prev": "P2"
+  },
+  {
+   "ts": "2026-07-28T08:27:07",
+   "event": "phase",
+   "phase": "P4",
+   "prev": "P3"
   }
  ]
 }

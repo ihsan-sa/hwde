@@ -697,3 +697,33 @@ S14's `move_text` op. A greedy solver works if it (1) offers BOTH text angles on
 a 3-char refdes at size 1.0 needs ~3.5 x 1.75 mm, so in a channel narrower than ~4 mm no label can be
 closer to its own part than to the parts flanking it. Relieve that structurally (move the loosest-
 constrained cap out) rather than fighting the solver.
+
+## 2026-07-28 [easyeda2kicad][parts] lib_pull with a RELATIVE --out-dir bakes unresolvable 3D model paths
+`easyeda2kicad --output <base>` copies the base string verbatim into each footprint's
+`(model "<base>.3dshapes/<name>.wrl")`. Invoke lib_pull.py with a RELATIVE `--out-dir`
+(`--out-dir boards/pd-trigger/lib`) and every footprint ends up with
+`(model "boards/pd-trigger/lib/aiee.3dshapes/X.wrl")`, which KiCad resolves against the PROJECT dir
+(`boards/pd-trigger/kicad/`) and therefore never finds - STEP export and 3D render silently lose all
+models. The usb-buck pull was run with an absolute `--out-dir` and has absolute model paths, which is
+why this never showed up before. Always pass an absolute `--out-dir`; repairing after the fact is a
+pure string rewrite of the 16 `(model ...)` lines (no re-pull needed - re-pulling would duplicate the
+space/slash-named symbols per the entry above).
+
+## 2026-07-28 [easyeda2kicad][drc] Pulled 16P USB-C: plated peg holes = 4 DRC ERRORS; DIP switch ships 8 silk_overlap
+Scratch-board DRC (one instance of each of pd-trigger's 16 pulled footprints, 30 mm apart, bare
+board, `kicad-cli 10.0.3 pcb drc --severity-all`, defaults clearance 0.20 / min annular 0.10):
+17 findings, and they are NOT evenly spread.
+(a) `USB-C-SMD_MC-311D` (C5184243 GCT USB4105) alone accounts for all 4 errors + 3 warnings: its two
+Ø0.65 locating-peg holes are emitted as `(pad "" thru_hole circle (size 0.65 0.65) (drill 0.65))` -
+copper diameter == drill diameter, so `annular_width` 0.000 mm (x2 error) and `padstack` "hole leaves
+no copper" (x2 warning), and each peg sits 0.1801 mm from the outer GND pad (A1-B12 / B1-A12) ->
+`clearance` (x2 error). The pegs are mechanical (GCT drawing: 2x Ø0.50 plastic pegs, no electrical
+function). Converting both to `np_thru_hole` + deleting the 0.06 artifact silk dot = **0 violations**
+(measured). Applies to any pulled USB-C receptacle with peg holes.
+(b) `SW-SMD_6P-L7.6-W6.0-P2.54-LS9.3-BL` (C7421520 3-pos DIP switch) ships 8 `silk_overlap` warnings
+out of the box: its own `fp_text user` marks ("1","2","3","ON","KE") collide with its own silk body
+outline. All five texts sit INSIDE the body outline, i.e. hidden under the part once assembled.
+(c) Only 3 of the 10 sub-0.15 mm silk artifact dots actually trip `silk_over_copper` (both LED0603
+variants + the USB-C one). The dots on C0603/C1206/F1206/R0603/R0805/R1206 and a 0.15-wide circle
+overlapping the ESSOP-10 thermal pad by 0.013 mm do NOT fire - consistent with the earlier
+"geometry checkers see 4, DRC sees 1" correction. Always measure with `kc.py drc`.

@@ -1,0 +1,899 @@
+{
+ "script": "librarian (P3, manual)",
+ "board": "pd-trigger",
+ "generated": "2026-07-28",
+ "library": {
+  "symbol_lib": "boards/pd-trigger/lib/aiee.kicad_sym",
+  "footprint_lib": "boards/pd-trigger/lib/aiee.pretty",
+  "model_lib": "boards/pd-trigger/lib/aiee.3dshapes",
+  "symbols": 24,
+  "footprints": 16,
+  "models_wrl_step": 32,
+  "registered": {
+   "fp": "created",
+   "sym": "created"
+  },
+  "kicad_cli_load_check": {
+   "tool": "kicad-cli 10.0.3 fp export svg",
+   "plotted": 16,
+   "errors": 0,
+   "out": "boards/pd-trigger/reports/fp_svg/"
+  },
+  "duplicate_symbol_names": [],
+  "unresolved_footprint_links": []
+ },
+ "fp_verify": {
+  "run": [
+   {
+    "part": "U1 CH224K (C970725)",
+    "footprint": "ESSOP-10_L4.9-W3.9-P1.0-LS6.0-TL-EP",
+    "datasheet_json": "boards/pd-trigger/parts/C970725.json",
+    "status": "pass",
+    "violations": 0,
+    "measured_pitch_mm": 1.0,
+    "measured_pad_size_mm": [
+     0.6,
+     1.5
+    ],
+    "pads": 11,
+    "report": "boards/pd-trigger/reports/fp_verify_U1.json",
+    "overlay": "boards/pd-trigger/reports/U1_ESSOP10.overlay.svg"
+   }
+  ],
+  "not_run": "no other part has a datasheet-extract JSON in parts/ (C14170 is the L78L33 LDO deleted at amendment A1)",
+  "passed": 1,
+  "failed": 0
+ },
+ "manual_datasheet_checks": [
+  {
+   "part": "U1 CH224K",
+   "check": "exposed-pad numbering (THE TRAP)",
+   "datasheet": "numbers the baseplate 'pin 0'; it is U1's ONLY ground terminal",
+   "footprint": "pad 11 (3.30 x 2.10 mm, F.Cu/F.Paste/F.Mask), pads 1-10 = the gull-wing leads",
+   "symbol": "11 pins; pin 11 name 'GND'; no other ground pin",
+   "agree": true,
+   "action_for_schematic": "wire GND to CH224K pin 11 (NOT 0). Pins 1-10 match the datasheet order exactly: 1 VDD, 2 CFG2, 3 CFG3, 4 DP, 5 DM, 6 CC2, 7 CC1, 8 VBUS, 9 CFG1, 10 PG."
+  },
+  {
+   "part": "J1 USB4105-GF-A-120",
+   "check": "land pattern vs GCT drawing rev B3 sheet 1/2",
+   "result": "EXACT match on every published dimension",
+   "verified_dims_mm": {
+    "signal_pitch": 0.5,
+    "signal_pad_w": 0.3,
+    "power_pad_w": 0.6,
+    "pad_len": 1.15,
+    "outer_power_pad_centres": 6.4,
+    "vbus_pad_centres": 4.8,
+    "outer_signal_centres": 3.5,
+    "shell_slot_centres": 8.64,
+    "peg_hole_centres": 5.78,
+    "peg_hole_dia": 0.65,
+    "shell_slot_copper": [
+     "1.0x2.10",
+     "1.0x1.80"
+    ],
+    "shell_slot_drill": [
+     "0.6x1.70",
+     "0.6x1.40"
+    ]
+   },
+   "pad_naming": "compound A/B names for the internally-bussed contacts (A1-B12, A4-B9, B4-A9, B1-A12), plain A/B for signals (A5 A6 A7 A8 B5 B6 B7 B8), numeric 1-4 for the shell stakes, 2 UNNUMBERED plated holes for the plastic locating pegs",
+   "vbus_gnd_present": "yes - all 4 VBUS contacts (A4/B9 + B4/A9) and all 4 GND contacts (A1/B12 + B1/A12) are present, paired onto 4 wide 0.6 mm tails; datasheet current rating 5.00 A collective VBUS / 6.25 A collective GND",
+   "shield": "4 THT shell stakes = footprint pads 1,2,3,4 = symbol pins 1-4 named 'EH'; datasheet pin table says SHELL -> GND, so they must be netted to GND",
+   "pegs": "2 x \u00d80.65 plated round holes, no pad number (mechanical \u00d80.50 plastic pegs)"
+  },
+  {
+   "part": "D1 TVS2200DRVR",
+   "check": "polarity / pin map vs TI SLVSED5A section 6",
+   "datasheet": "IN = pins 4,5,6; GND = pins 1,2,3 AND the exposed thermal pad, which TI numbers 7",
+   "symbol": "pins 4,5,6 = 'IN'; pins 1,2,3 = 'GND'; pin 7 = 'GND' (the EP)",
+   "footprint": "WSON-6 + EP as pad 7; pads 0.40x0.45 on 0.65 pitch, rows +/-0.98, EP 1.60x1.00",
+   "agree": true,
+   "notes": "TI example land pattern is 0.30 wide x 0.45 long pads on 0.65 pitch with a 1.60 x 1.10 thermal land: the pulled pads are 0.10 mm wider and the thermal land 0.10 mm shorter. Inter-pad gap 0.25 mm - fabricable, but wider than TI's 0.35 mm gap. No cathode band exists on this package: polarity is by pin number."
+  },
+  {
+   "part": "D2 BZX84C6V2 (LGE)",
+   "check": "zener polarity vs LGE datasheet rev 20170701 p1",
+   "datasheet": "SOT-23: pin 1 = ANODE, pin 3 = cathode, pin 2 = no function",
+   "symbol": "pin 1 'A', pin 3 'K', pin 2 unnamed ('2')",
+   "footprint": "SOT-23-3: pads 1 (+1.00,+0.95) and 2 (+1.00,-0.95) on one side, pad 3 (-1.00,0) alone",
+   "agree": true
+  },
+  {
+   "part": "D3/D6 XL-1608SYGC-06 (green) and D5 TUOZHAN (red)",
+   "check": "LED cathode marking",
+   "symbol": "both symbols: pin 1 = 'K' (cathode), pin 2 = 'A' (anode)",
+   "footprint_cue_green": "LED0603-RD_GREEN: silk outline is chamfered at the pad-1 end and carries a solid 0.20 x 0.80 mm bar just inboard of pad 1 -> cathode = pad 1",
+   "footprint_cue_red": "LED0603-RD: silk outline chamfered at the pad-1 end plus a diode glyph whose triangle apex points at pad 1 -> cathode = pad 1",
+   "agree": true
+  },
+  {
+   "part": "SW1 2.54-3P TPGT",
+   "check": "switch pin pairing",
+   "footprint": "pads 1,2,3 at y=+4.30 (x=-2.54, 0, +2.54); pads 6,5,4 at y=-4.30 (x=-2.54, 0, +2.54)",
+   "pairs": {
+    "switch 1": [
+     "1",
+     "6"
+    ],
+    "switch 2": [
+     "2",
+     "5"
+    ],
+    "switch 3": [
+     "3",
+     "4"
+    ]
+   },
+   "symbol": "6 pins named A1..A6 (numbers 1..6); pins 1/2/3 on the left, 6/5/4 on the right, so the symbol geometry implies the same pairing",
+   "note": "neither symbol nor footprint states the pairing explicitly - the schematic generator must use 1-6 / 2-5 / 3-4"
+  }
+ ],
+ "footprints": [
+  {
+   "footprint": "C0603",
+   "file": "boards/pd-trigger/lib/aiee.pretty/C0603.kicad_mod",
+   "pads_total": 2,
+   "pads_copper": 2,
+   "pad_numbers": [
+    "2",
+    "1"
+   ],
+   "pad_types": [
+    "smd"
+   ],
+   "has_courtyard": true,
+   "courtyard_bbox": [
+    -0.8,
+    -0.4,
+    0.8,
+    0.4
+   ],
+   "pad_field_bbox": [
+    -1.1,
+    -0.45,
+    1.1,
+    0.45
+   ],
+   "courtyard_covers_pad_field": false,
+   "courtyard_deficit": {
+    "x_short_mm": 0.6,
+    "y_short_mm": 0.1
+   },
+   "silk_min_gap_to_copper_mm": -0.0676,
+   "silk_elements_on_copper": [
+    {
+     "kind": "fp_circle",
+     "width_mm": 0.06,
+     "gap_mm": -0.0676,
+     "pad": "1",
+     "sexpr": "(fp_circle (center -0.8 0.4) (end -0.77 0.4) (layer F.SilkS) (width 0.06))"
+    }
+   ],
+   "silk_elements_below_min_line_width": 1
+  },
+  {
+   "footprint": "C1206",
+   "file": "boards/pd-trigger/lib/aiee.pretty/C1206.kicad_mod",
+   "pads_total": 2,
+   "pads_copper": 2,
+   "pad_numbers": [
+    "2",
+    "1"
+   ],
+   "pad_types": [
+    "smd"
+   ],
+   "has_courtyard": true,
+   "courtyard_bbox": [
+    -1.6,
+    -0.8,
+    1.6,
+    0.8
+   ],
+   "pad_field_bbox": [
+    -2.3325,
+    -0.864,
+    2.3325,
+    0.864
+   ],
+   "courtyard_covers_pad_field": false,
+   "courtyard_deficit": {
+    "x_short_mm": 1.465,
+    "y_short_mm": 0.128
+   },
+   "silk_min_gap_to_copper_mm": -0.0643,
+   "silk_elements_on_copper": [
+    {
+     "kind": "fp_circle",
+     "width_mm": 0.06,
+     "gap_mm": -0.0643,
+     "pad": "1",
+     "sexpr": "(fp_circle (center -1.6 0.8) (end -1.57 0.8) (layer F.SilkS) (width 0.06))"
+    }
+   ],
+   "silk_elements_below_min_line_width": 1
+  },
+  {
+   "footprint": "CONN-TH_P5.08_KF128-5.08-2P",
+   "file": "boards/pd-trigger/lib/aiee.pretty/CONN-TH_P5.08_KF128-5.08-2P.kicad_mod",
+   "pads_total": 2,
+   "pads_copper": 2,
+   "pad_numbers": [
+    "1",
+    "2"
+   ],
+   "pad_types": [
+    "thru_hole"
+   ],
+   "has_courtyard": true,
+   "courtyard_bbox": [
+    -5.08,
+    -5.4,
+    5.08,
+    5.3
+   ],
+   "pad_field_bbox": [
+    -3.74,
+    -1.2,
+    3.74,
+    1.2
+   ],
+   "courtyard_covers_pad_field": true,
+   "courtyard_deficit": {
+    "x_short_mm": 0.0,
+    "y_short_mm": 0.0
+   },
+   "silk_min_gap_to_copper_mm": 0.8,
+   "silk_elements_on_copper": [],
+   "silk_elements_below_min_line_width": 5
+  },
+  {
+   "footprint": "ESSOP-10_L4.9-W3.9-P1.0-LS6.0-TL-EP",
+   "file": "boards/pd-trigger/lib/aiee.pretty/ESSOP-10_L4.9-W3.9-P1.0-LS6.0-TL-EP.kicad_mod",
+   "pads_total": 11,
+   "pads_copper": 11,
+   "pad_numbers": [
+    "10",
+    "9",
+    "8",
+    "7",
+    "6",
+    "5",
+    "4",
+    "3",
+    "2",
+    "1",
+    "11"
+   ],
+   "pad_types": [
+    "smd"
+   ],
+   "has_courtyard": true,
+   "courtyard_bbox": [
+    -2.45,
+    -1.95,
+    2.45,
+    1.95
+   ],
+   "pad_field_bbox": [
+    -2.3,
+    -3.75,
+    2.3,
+    3.75
+   ],
+   "courtyard_covers_pad_field": false,
+   "courtyard_deficit": {
+    "x_short_mm": 0.0,
+    "y_short_mm": 3.6
+   },
+   "silk_min_gap_to_copper_mm": -0.0129,
+   "silk_elements_on_copper": [
+    {
+     "kind": "fp_circle",
+     "width_mm": 0.15,
+     "gap_mm": -0.0129,
+     "pad": "11",
+     "sexpr": "(fp_circle (center -1.92 1.26) (end -1.64 1.26) (layer F.SilkS) (width 0.15))"
+    }
+   ],
+   "silk_elements_below_min_line_width": 1
+  },
+  {
+   "footprint": "F1206",
+   "file": "boards/pd-trigger/lib/aiee.pretty/F1206.kicad_mod",
+   "pads_total": 2,
+   "pads_copper": 2,
+   "pad_numbers": [
+    "1",
+    "2"
+   ],
+   "pad_types": [
+    "smd"
+   ],
+   "has_courtyard": true,
+   "courtyard_bbox": [
+    -1.6,
+    -0.8,
+    1.6,
+    0.8
+   ],
+   "pad_field_bbox": [
+    -2.045,
+    -0.864,
+    2.045,
+    0.864
+   ],
+   "courtyard_covers_pad_field": false,
+   "courtyard_deficit": {
+    "x_short_mm": 0.89,
+    "y_short_mm": 0.128
+   },
+   "silk_min_gap_to_copper_mm": -0.0643,
+   "silk_elements_on_copper": [
+    {
+     "kind": "fp_circle",
+     "width_mm": 0.06,
+     "gap_mm": -0.0643,
+     "pad": "1",
+     "sexpr": "(fp_circle (center -1.6 0.8) (end -1.57 0.8) (layer F.SilkS) (width 0.06))"
+    }
+   ],
+   "silk_elements_below_min_line_width": 3
+  },
+  {
+   "footprint": "HDR-TH_2P-P2.54-V-M-3",
+   "file": "boards/pd-trigger/lib/aiee.pretty/HDR-TH_2P-P2.54-V-M-3.kicad_mod",
+   "pads_total": 2,
+   "pads_copper": 2,
+   "pad_numbers": [
+    "1",
+    "2"
+   ],
+   "pad_types": [
+    "thru_hole"
+   ],
+   "has_courtyard": true,
+   "courtyard_bbox": [
+    -2.54,
+    -1.27,
+    2.54,
+    1.27
+   ],
+   "pad_field_bbox": [
+    -2.17,
+    -0.9,
+    2.17,
+    0.9
+   ],
+   "courtyard_covers_pad_field": true,
+   "courtyard_deficit": {
+    "x_short_mm": 0.0,
+    "y_short_mm": 0.0
+   },
+   "silk_min_gap_to_copper_mm": 0.27,
+   "silk_elements_on_copper": [],
+   "silk_elements_below_min_line_width": 1
+  },
+  {
+   "footprint": "LED0603-RD",
+   "file": "boards/pd-trigger/lib/aiee.pretty/LED0603-RD.kicad_mod",
+   "pads_total": 2,
+   "pads_copper": 2,
+   "pad_numbers": [
+    "2",
+    "1"
+   ],
+   "pad_types": [
+    "smd"
+   ],
+   "has_courtyard": true,
+   "courtyard_bbox": [
+    -0.8,
+    -0.4,
+    0.8,
+    0.4
+   ],
+   "pad_field_bbox": [
+    -1.15,
+    -0.4,
+    1.15,
+    0.4
+   ],
+   "courtyard_covers_pad_field": false,
+   "courtyard_deficit": {
+    "x_short_mm": 0.7,
+    "y_short_mm": 0.0
+   },
+   "silk_min_gap_to_copper_mm": 0.055,
+   "silk_elements_on_copper": [],
+   "silk_elements_below_min_line_width": 0
+  },
+  {
+   "footprint": "LED0603-RD_GREEN",
+   "file": "boards/pd-trigger/lib/aiee.pretty/LED0603-RD_GREEN.kicad_mod",
+   "pads_total": 2,
+   "pads_copper": 2,
+   "pad_numbers": [
+    "1",
+    "2"
+   ],
+   "pad_types": [
+    "smd"
+   ],
+   "has_courtyard": true,
+   "courtyard_bbox": [
+    -0.8,
+    -0.4,
+    0.8,
+    0.4
+   ],
+   "pad_field_bbox": [
+    -1.2,
+    -0.4,
+    1.2,
+    0.4
+   ],
+   "courtyard_covers_pad_field": false,
+   "courtyard_deficit": {
+    "x_short_mm": 0.8,
+    "y_short_mm": 0.0
+   },
+   "silk_min_gap_to_copper_mm": 0.1001,
+   "silk_elements_on_copper": [],
+   "silk_elements_below_min_line_width": 1
+  },
+  {
+   "footprint": "R0603",
+   "file": "boards/pd-trigger/lib/aiee.pretty/R0603.kicad_mod",
+   "pads_total": 2,
+   "pads_copper": 2,
+   "pad_numbers": [
+    "2",
+    "1"
+   ],
+   "pad_types": [
+    "smd"
+   ],
+   "has_courtyard": true,
+   "courtyard_bbox": [
+    -0.8,
+    -0.4,
+    0.8,
+    0.4
+   ],
+   "pad_field_bbox": [
+    -1.153,
+    -0.432,
+    1.153,
+    0.432
+   ],
+   "courtyard_covers_pad_field": false,
+   "courtyard_deficit": {
+    "x_short_mm": 0.706,
+    "y_short_mm": 0.064
+   },
+   "silk_min_gap_to_copper_mm": -0.0496,
+   "silk_elements_on_copper": [
+    {
+     "kind": "fp_circle",
+     "width_mm": 0.06,
+     "gap_mm": -0.0496,
+     "pad": "1",
+     "sexpr": "(fp_circle (center -0.8 0.4) (end -0.77 0.4) (layer F.SilkS) (width 0.06))"
+    }
+   ],
+   "silk_elements_below_min_line_width": 1
+  },
+  {
+   "footprint": "R0805",
+   "file": "boards/pd-trigger/lib/aiee.pretty/R0805.kicad_mod",
+   "pads_total": 2,
+   "pads_copper": 2,
+   "pad_numbers": [
+    "2",
+    "1"
+   ],
+   "pad_types": [
+    "smd"
+   ],
+   "has_courtyard": true,
+   "courtyard_bbox": [
+    -1.0,
+    -0.64,
+    1.0,
+    0.64
+   ],
+   "pad_field_bbox": [
+    -1.5665,
+    -0.6885,
+    1.5665,
+    0.6885
+   ],
+   "courtyard_covers_pad_field": false,
+   "courtyard_deficit": {
+    "x_short_mm": 1.133,
+    "y_short_mm": 0.097
+   },
+   "silk_min_gap_to_copper_mm": -0.0602,
+   "silk_elements_on_copper": [
+    {
+     "kind": "fp_circle",
+     "width_mm": 0.06,
+     "gap_mm": -0.0602,
+     "pad": "1",
+     "sexpr": "(fp_circle (center -1.0 0.64) (end -0.97 0.64) (layer F.SilkS) (width 0.06))"
+    }
+   ],
+   "silk_elements_below_min_line_width": 1
+  },
+  {
+   "footprint": "R1206",
+   "file": "boards/pd-trigger/lib/aiee.pretty/R1206.kicad_mod",
+   "pads_total": 2,
+   "pads_copper": 2,
+   "pad_numbers": [
+    "2",
+    "1"
+   ],
+   "pad_types": [
+    "smd"
+   ],
+   "has_courtyard": true,
+   "courtyard_bbox": [
+    -1.55,
+    -0.79,
+    1.55,
+    0.79
+   ],
+   "pad_field_bbox": [
+    -2.084,
+    -0.8505,
+    2.084,
+    0.8505
+   ],
+   "courtyard_covers_pad_field": false,
+   "courtyard_deficit": {
+    "x_short_mm": 1.068,
+    "y_short_mm": 0.121
+   },
+   "silk_min_gap_to_copper_mm": -0.0722,
+   "silk_elements_on_copper": [
+    {
+     "kind": "fp_circle",
+     "width_mm": 0.06,
+     "gap_mm": -0.0722,
+     "pad": "1",
+     "sexpr": "(fp_circle (center -1.55 0.79) (end -1.52 0.79) (layer F.SilkS) (width 0.06))"
+    }
+   ],
+   "silk_elements_below_min_line_width": 1
+  },
+  {
+   "footprint": "SOT-23-3_L2.9-W1.3-P1.90-LS2.4-BR",
+   "file": "boards/pd-trigger/lib/aiee.pretty/SOT-23-3_L2.9-W1.3-P1.90-LS2.4-BR.kicad_mod",
+   "pads_total": 3,
+   "pads_copper": 3,
+   "pad_numbers": [
+    "1",
+    "2",
+    "3"
+   ],
+   "pad_types": [
+    "smd"
+   ],
+   "has_courtyard": true,
+   "courtyard_bbox": [
+    -0.65,
+    -1.45,
+    0.65,
+    1.45
+   ],
+   "pad_field_bbox": [
+    -1.5,
+    -1.275,
+    1.5,
+    1.275
+   ],
+   "courtyard_covers_pad_field": false,
+   "courtyard_deficit": {
+    "x_short_mm": 1.7,
+    "y_short_mm": 0.0
+   },
+   "silk_min_gap_to_copper_mm": 0.09,
+   "silk_elements_on_copper": [],
+   "silk_elements_below_min_line_width": 1
+  },
+  {
+   "footprint": "SOT-363-6_L2.2-W1.3-P0.65-LS2.1-BL",
+   "file": "boards/pd-trigger/lib/aiee.pretty/SOT-363-6_L2.2-W1.3-P0.65-LS2.1-BL.kicad_mod",
+   "pads_total": 6,
+   "pads_copper": 6,
+   "pad_numbers": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "6",
+    "5"
+   ],
+   "pad_types": [
+    "smd"
+   ],
+   "has_courtyard": true,
+   "courtyard_bbox": [
+    -1.08,
+    -0.62,
+    1.07,
+    0.63
+   ],
+   "pad_field_bbox": [
+    -0.825,
+    -1.25,
+    0.825,
+    1.25
+   ],
+   "courtyard_covers_pad_field": false,
+   "courtyard_deficit": {
+    "x_short_mm": 0.0,
+    "y_short_mm": 1.25
+   },
+   "silk_min_gap_to_copper_mm": 0.08,
+   "silk_elements_on_copper": [],
+   "silk_elements_below_min_line_width": 7
+  },
+  {
+   "footprint": "SW-SMD_6P-L7.6-W6.0-P2.54-LS9.3-BL",
+   "file": "boards/pd-trigger/lib/aiee.pretty/SW-SMD_6P-L7.6-W6.0-P2.54-LS9.3-BL.kicad_mod",
+   "pads_total": 6,
+   "pads_copper": 6,
+   "pad_numbers": [
+    "4",
+    "3",
+    "6",
+    "5",
+    "2",
+    "1"
+   ],
+   "pad_types": [
+    "smd"
+   ],
+   "has_courtyard": true,
+   "courtyard_bbox": [
+    -3.81,
+    -3.0,
+    3.81,
+    3.0
+   ],
+   "pad_field_bbox": [
+    -3.09,
+    -5.2,
+    3.09,
+    5.2
+   ],
+   "courtyard_covers_pad_field": false,
+   "courtyard_deficit": {
+    "x_short_mm": 0.0,
+    "y_short_mm": 4.4
+   },
+   "silk_min_gap_to_copper_mm": 0.225,
+   "silk_elements_on_copper": [],
+   "silk_elements_below_min_line_width": 4
+  },
+  {
+   "footprint": "USB-C-SMD_MC-311D",
+   "file": "boards/pd-trigger/lib/aiee.pretty/USB-C-SMD_MC-311D.kicad_mod",
+   "pads_total": 18,
+   "pads_copper": 16,
+   "pad_numbers": [
+    "B1-A12",
+    "B4-A9",
+    "A1-B12",
+    "A4-B9",
+    "B5",
+    "A8",
+    "B6",
+    "A7",
+    "A6",
+    "B7",
+    "A5",
+    "B8",
+    "3",
+    "2",
+    "4",
+    "1",
+    "",
+    ""
+   ],
+   "pad_types": [
+    "np_thru_hole",
+    "smd",
+    "thru_hole"
+   ],
+   "has_courtyard": true,
+   "courtyard_bbox": [
+    -4.47,
+    -2.28,
+    4.47,
+    5.07
+   ],
+   "pad_field_bbox": [
+    -4.82,
+    -2.955,
+    4.82,
+    3.28
+   ],
+   "courtyard_covers_pad_field": false,
+   "courtyard_deficit": {
+    "x_short_mm": 0.7,
+    "y_short_mm": 0.0
+   },
+   "silk_min_gap_to_copper_mm": 0.1847,
+   "silk_elements_on_copper": [],
+   "silk_elements_below_min_line_width": 0
+  },
+  {
+   "footprint": "WSON-6_L2.0-W2.0-P0.65-BL-EP",
+   "file": "boards/pd-trigger/lib/aiee.pretty/WSON-6_L2.0-W2.0-P0.65-BL-EP.kicad_mod",
+   "pads_total": 7,
+   "pads_copper": 7,
+   "pad_numbers": [
+    "7",
+    "6",
+    "5",
+    "4",
+    "3",
+    "2",
+    "1"
+   ],
+   "pad_types": [
+    "smd"
+   ],
+   "has_courtyard": true,
+   "courtyard_bbox": [
+    -1.0,
+    -1.0,
+    1.0,
+    1.0
+   ],
+   "pad_field_bbox": [
+    -0.85,
+    -1.205,
+    0.85,
+    1.205
+   ],
+   "courtyard_covers_pad_field": false,
+   "courtyard_deficit": {
+    "x_short_mm": 0.0,
+    "y_short_mm": 0.41
+   },
+   "silk_min_gap_to_copper_mm": 0.0274,
+   "silk_elements_on_copper": [],
+   "silk_elements_below_min_line_width": 1
+  }
+ ],
+ "scratch_board_drc": {
+  "method": "one instance of each of the 16 footprints, 30 mm apart, on a bare 2-layer board with an Edge.Cuts rect; kicad-cli 10.0.3 pcb drc --severity-all (board-setup defaults: clearance 0.20, min annular 0.10). Only intra-footprint findings can appear.",
+  "board": "scratchpad/fpdrc.kicad_pcb (not committed)",
+  "raw_report": "boards/pd-trigger/reports/fp_scratch_drc.json (post-edit)",
+  "totals": {
+   "total": 0,
+   "errors": 0,
+   "warnings": 0
+  },
+  "violations": [],
+  "per_instance_projection": {
+   "all 16 footprints": "0 errors, 0 warnings"
+  },
+  "pre_edit_totals": {
+   "total": 17,
+   "errors": 4,
+   "warnings": 13
+  }
+ },
+ "edits_applied": [
+  {
+   "id": 0,
+   "approval": "librarian (own tool-invocation defect)",
+   "scope": "all 16 .kicad_mod",
+   "field": "(model ...) path only",
+   "from": "boards/pd-trigger/lib/aiee.3dshapes/<name>.wrl (relative; would not resolve from boards/pd-trigger/kicad/)",
+   "to": "C:/dev/ai-ee3/boards/pd-trigger/lib/aiee.3dshapes/<name>.wrl (absolute; matches run (b))",
+   "geometry_touched": false
+  },
+  {
+   "id": 1,
+   "approval": "orchestrator APPROVED",
+   "footprint": "USB-C-SMD_MC-311D",
+   "change": "both unnumbered \u00d80.65 locating-peg pads thru_hole -> np_thru_hole (position/size/drill unchanged); deleted (fp_circle (center -4.47 -2.83) (end -4.44 -2.83) (layer F.SilkS) (width 0.06))",
+   "reason": "copper dia == drill dia gave 0.000 mm annular ring (2 errors) + padstack warnings (2), and each peg sat 0.1801 mm from GND pads A1-B12/B1-A12 (2 clearance errors); GCT drawing shows them as \u00d80.50 PLASTIC pegs, not contacts",
+   "measured_result": "4 errors + 3 warnings -> 0"
+  },
+  {
+   "id": 2,
+   "approval": "orchestrator APPROVED",
+   "footprint": "LED0603-RD",
+   "change": "deleted (fp_circle (center -0.80 0.40) (end -0.77 0.40) (layer F.SilkS) (width 0.06))",
+   "polarity_cue_after": "chamfered outline end at pad 1 AND diode-glyph apex pointing at pad 1; symbol pin 1 = K - confirmed intact",
+   "measured_result": "1 silk_over_copper -> 0"
+  },
+  {
+   "id": 3,
+   "approval": "orchestrator APPROVED",
+   "footprint": "LED0603-RD_GREEN",
+   "change": "deleted (fp_circle (center -0.80 0.40) (end -0.77 0.40) (layer F.SilkS) (width 0.06))",
+   "polarity_cue_after": "solid 0.20 x 0.80 mm cathode bar on the pad-1 side AND chamfered outline end; symbol pin 1 = K - confirmed intact",
+   "measured_result": "1 silk_over_copper per instance (D3, D6) -> 0"
+  },
+  {
+   "id": 4,
+   "approval": "orchestrator APPROVED",
+   "footprint": "SW-SMD_6P-L7.6-W6.0-P2.54-LS9.3-BL",
+   "change": "deleted the five internal (fp_text user ...) F.SilkS marks: ON, 1, 2, 3, KE",
+   "reason": "all sat inside the body outline (invisible post-assembly) and collided with the footprint's own silk -> 8 silk_overlap warnings; profile table goes on B.SilkS at layout per the architecture",
+   "kept": "3 slider-position fp_poly indicators, all body outlines, the 0.06 pin-1 dot (0.66 mm clear of copper), standard reference/value/%R texts",
+   "measured_result": "8 warnings -> 0"
+  }
+ ],
+ "declined_by_orchestrator": [
+  {
+   "item": "U1 ESSOP-10 thermal pad paste",
+   "state": "100% paste kept on the 3.30 x 2.10 mm pad 11 aperture",
+   "disposition": "ORDER-DOC item for H5 human_steps (prototype qty 10); no library change"
+  },
+  {
+   "item": "D1 WSON-6 pad deviation vs TI example layout",
+   "state": "pads 0.40 wide (TI 0.30), thermal land 1.60 x 1.00 (TI 1.60 x 1.10)",
+   "disposition": "kept - fabricable and DRC-clean"
+  }
+ ],
+ "remaining_library_defects_drc_clean": {
+  "note": "7 silk elements still overlap copper geometrically but NONE trips KiCad 10.0.3 DRC (measured post-edit: 0 violations). Left alone deliberately; re-check if a board ever sets a non-zero solder-mask expansion.",
+  "elements": [
+   {
+    "footprint": "C0603",
+    "gap_mm": -0.0676,
+    "width_mm": 0.06,
+    "pad": "1"
+   },
+   {
+    "footprint": "C1206",
+    "gap_mm": -0.0643,
+    "width_mm": 0.06,
+    "pad": "1"
+   },
+   {
+    "footprint": "ESSOP-10_L4.9-W3.9-P1.0-LS6.0-TL-EP",
+    "gap_mm": -0.0129,
+    "width_mm": 0.15,
+    "pad": "11"
+   },
+   {
+    "footprint": "F1206",
+    "gap_mm": -0.0643,
+    "width_mm": 0.06,
+    "pad": "1"
+   },
+   {
+    "footprint": "R0603",
+    "gap_mm": -0.0496,
+    "width_mm": 0.06,
+    "pad": "1"
+   },
+   {
+    "footprint": "R0805",
+    "gap_mm": -0.0602,
+    "width_mm": 0.06,
+    "pad": "1"
+   },
+   {
+    "footprint": "R1206",
+    "gap_mm": -0.0722,
+    "width_mm": 0.06,
+    "pad": "1"
+   }
+  ]
+ },
+ "edits_md": "boards/pd-trigger/lib/EDITS.md"
+}

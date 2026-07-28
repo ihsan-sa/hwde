@@ -1,0 +1,120 @@
+{
+ "script": "netlist_audit",
+ "status": "pass",
+ "board": "pd-trigger.net",
+ "counts": {
+  "total": 3,
+  "by_severity": {
+   "warning": 3
+  },
+  "by_source": {
+   "audit.netlist": 3
+  }
+ },
+ "violations": [
+  {
+   "check": "netlist_audit",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "VBUS",
+   "refs": [
+    "C1A",
+    "C1B",
+    "C2",
+    "D1",
+    "F1",
+    "J1",
+    "J2",
+    "R14"
+   ],
+   "msg": "declared power net 'VBUS' feeds no power_in pin",
+   "source": "audit.netlist",
+   "items": [
+    {
+     "msg": "declared power net 'VBUS' feeds no power_in pin",
+     "pos": null
+    }
+   ],
+   "kind": "power_no_consumers"
+  },
+  {
+   "check": "netlist_audit",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "/VAUX",
+   "refs": [
+    "F1",
+    "J3"
+   ],
+   "msg": "declared power net '/VAUX' feeds no power_in pin",
+   "source": "audit.netlist",
+   "items": [
+    {
+     "msg": "declared power net '/VAUX' feeds no power_in pin",
+     "pos": null
+    }
+   ],
+   "kind": "power_no_consumers"
+  },
+  {
+   "check": "netlist_audit",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "/VIND",
+   "refs": [
+    "D2",
+    "R1",
+    "R10",
+    "R12",
+    "R13",
+    "R14",
+    "R2A",
+    "R8"
+   ],
+   "msg": "declared power net '/VIND' feeds no power_in pin",
+   "source": "audit.netlist",
+   "items": [
+    {
+     "msg": "declared power net '/VIND' feeds no power_in pin",
+     "pos": null
+    }
+   ],
+   "kind": "power_no_consumers"
+  }
+ ],
+ "mode": "audit",
+ "nets": 29,
+ "components": 30,
+ "unconnected_pins": 8,
+ "constraint_nets_checked": 5,
+ "decoupling_associations": 4,
+ "power": [
+  {
+   "net": "VBUS",
+   "nodes": 11,
+   "power_in": 0,
+   "power_out": 0
+  },
+  {
+   "net": "/VAUX",
+   "nodes": 2,
+   "power_in": 0,
+   "power_out": 0
+  },
+  {
+   "net": "/VIND",
+   "nodes": 8,
+   "power_in": 0,
+   "power_out": 0
+  },
+  {
+   "net": "/VDD",
+   "nodes": 6,
+   "power_in": 1,
+   "power_out": 0
+  }
+ ]
+}

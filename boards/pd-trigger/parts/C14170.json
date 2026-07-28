@@ -1,0 +1,97 @@
+{
+ "mpn": "L78L33ACUTR",
+ "lcsc": "C14170",
+ "package": "SOT-89",
+ "description": "STMicroelectronics L78L series positive voltage regulator; this MPN is the fixed 3.3 V, AC-grade, SOT-89 order code. AC grade = +/-4% Vout tolerance and TOP 0 to 125 C (Table 1 note; Table 12 'Electrical characteristics of L78L33AB and L78L33AC' - do NOT use Table 3 'L78L33C', which is the +/-8%-tolerance bare-C grade, or the AB row of Table 1, which is -40 to 125 C). Three-terminal regulator: internal current limiting + thermal shutdown, 100 mA max output current. Features list states 'No external components are required', but the datasheet's own test circuit (Fig. 3) and every electrical-characteristics table use CI = 0.33 uF / CO = 0.1 uF. Order code L78L33ACUTR = SOT-89 package, tape and reel; SOT-89 top marking is '8A' (Table 28, Table 29). Source: ST DocID2145 Rev 22, Apr 2014, 47 pages (LCSC C14170).",
+ "pinout": [
+  {
+   "pin": "1",
+   "name": "VOUT",
+   "type": "power_out",
+   "notes": "Regulated 3.3 V output. AC grade Vo @ TJ=25C: min 3.168 / typ 3.3 / max 3.432 V (Table 12, +/-4%); over line+load (IO=1-40mA VI=5.3-20V, or IO=1-70mA VI=8.3V): 3.135-3.465 V. Fig. 2/Fig. 20: left pin, top-view, for the SOT-89 orientation shown (VOUT - GND - VIN left to right). Fig. 3 test circuit: CO=0.1uF from this pin to GND."
+  },
+  {
+   "pin": "2",
+   "name": "GND",
+   "type": "ground",
+   "notes": "Ground return, CENTER pin. Same net as the package's top-side metal tab: Fig. 2 pin-connection diagram labels the folded-over tab 'GND' directly above the SOT-89 outline; Fig. 20 SOT-89 mechanical drawing shows that tab (width D3=0.90mm typ) folded over the body top; Fig. 21 recommended footprint merges the tab land with the pin-2 pad into one larger, non-rectangular pad. Tie to a copper pour for heatsinking: RthJA = 55 C/W max for SOT-89 assumes 6 cm^2 of board copper heat-sink (Table 2, note 1); RthJC = 15 C/W max."
+  },
+  {
+   "pin": "3",
+   "name": "VIN",
+   "type": "power_in",
+   "notes": "Unregulated input, RIGHT pin. Abs max VI = 30 V for the VO=3.3-to-9V output-voltage group that this part (VO=3.3V) belongs to (Table 1) - the 35V/40V rows in that table are for the 12-15V and 18-24V output variants and do NOT apply to this MPN. Electrical-characteristics tables (Table 12) test/guarantee regulation up to VI=20 V. Dropout Vd = 1.7 V typ, no max given (Table 12, value sits in the Typ. column with Max. blank). Fig. 3 test circuit: CI=0.33uF from this pin to GND."
+  }
+ ],
+ "decoupling": [
+  {
+   "pins": [
+    "3",
+    "2"
+   ],
+   "value": "0.33uF",
+   "placement": "VIN (pin 3) to GND (pin 2), close to the device",
+   "notes": "CI in the datasheet test circuit (Fig. 3) and the fixed test condition (CI=0.33 uF) stated at the top of every electrical-characteristics table (e.g. Table 12). Features list separately claims 'No external components are required' for the L78L series; the datasheet gives no distance/stability rationale, capacitor dielectric, voltage rating, or ESR requirement beyond this test-circuit value - do not attribute such guidance to this document."
+  },
+  {
+   "pins": [
+    "1",
+    "2"
+   ],
+   "value": "0.1uF",
+   "placement": "VOUT (pin 1) to GND (pin 2), close to the device",
+   "notes": "CO in the datasheet test circuit (Fig. 3) and the fixed test condition (CO=0.1 uF) stated at the top of every electrical-characteristics table (e.g. Table 12). No capacitor dielectric, voltage rating, or ESR requirement is stated beyond this test-circuit value."
+  }
+ ],
+ "land_pattern": {
+  "package": "SOT-89-3 (LCSC package string; ST calls the package simply 'SOT-89', 3 leads + fused tab)",
+  "pad_count": 3,
+  "pitch_mm": 1.5,
+  "pad_size_mm": [
+   0.57,
+   1.4
+  ],
+  "pin1": "1",
+  "notes": "Per datasheet Figure 21 'SOT-89 footprint': 3 SMD pads in a SINGLE row (not two rows - row_spacing_mm does not apply to this package). Outer pads (pin 1 VOUT, pin 3 VIN) are uniform 0.57mm x 1.4mm rectangles; pad_size_mm above is THIS outer-pad size only. Pitch from the center pad to each outer pad is 1.5mm (read off Fig. 21's centerline dimension chain: '3' = pin1-pad-center to pin3-pad-center, '1.5' = centerline to each outer pad center, so 3/1.5 is self-consistent) -> pin1-to-pin3 span = 3.0mm. The CENTER pad (pin 2 GND, merged with the tab) is a larger, asymmetric shape NOT representable by a single width x height pair: a 2mm-wide flat top, narrowing via 45-degree chamfers with R0.2mm corners, down through a 0.65mm-wide stem to the same 1.4mm pad height as the outer pads. Overall footprint envelope: 2.45mm tall for the outer-pad region, 4.35mm tall including the tab pad. No courtyard_excess_mm is stated in this datasheet.\nComponent BODY (package outline, Table 24, for cross-check only - these are NOT land-pattern dimensions): D (body length) 4.40-4.60mm, E (body width) 2.29-2.60mm, D3 (tab width) 0.90mm typ, e (lead pitch) 1.42-1.57mm, e1 (outer lead span) 2.92-3.07mm - consistent with the Fig. 21 footprint's 1.5mm pitch / 3.0mm span being slightly larger than the leads themselves, as expected for a solder footprint."
+ },
+ "exposed_pad": {
+  "present": true,
+  "connect_to": "GND (pin 2) - top-side folded heatsink tab, fused to the pin-2 land in Fig. 21, not a bottom-side die pad"
+ },
+ "layout_notes": [
+  "PINOUT (Fig. 2, top view): pin 1 = VOUT (left), pin 2 = GND (center), pin 3 = VIN (right). This numbering/order is identical across SO-8, SOT-89 and TO-92 variants in this datasheet (Fig. 2 shows one shared 'PIN 1 = VOUT / PIN 2 = GND / PIN 3 = VIN' legend under all three package drawings).",
+  "TAB = GND: the SOT-89 package's top-side metal tab (the large fold-over lead visible in Fig. 20's bottom/side views) is electrically pin 2 / GND. Fig. 21's recommended footprint draws it as one merged pad with pin 2, not a separate pad.",
+  "THERMAL: SOT-89 RthJA = 55 C/W max, RthJC = 15 C/W max (Table 2). The RthJA figure assumes 6 cm^2 of copper board heat-sink tied to the GND/tab pad (Table 2, note 1) - without that copper area, junction-to-ambient resistance will be higher than 55 C/W. PD (power dissipation) is 'internally limited' with no separate wattage figure (Table 1).",
+  "GRADE TRAP: this part is the 'AC' grade (L78L33ACUTR). Use Table 12 ('Electrical characteristics of L78L33AB and L78L33AC') for all electrical specs, and the 'for L78LxxAC / L78LxxC' row of Table 1 for TOP (0 to 125 C). Table 3 ('Electrical characteristics of L78L33C', +/-8% Vo tolerance) and the 'for L78LxxAB' row of Table 1 (TOP -40 to 125 C) belong to DIFFERENT order codes (L78L33CD-TR / L78L33ABD-TR family) and must not be used for this MPN.",
+  "MARKING: SOT-89 top marking for L78L33ACUTR is '8A' (Table 29) - the part is too small to print the full MPN; use this 2-character code for AOI / physical verification against the BOM, not the silkscreen designator.",
+  "No PCB placement/routing guidance (e.g. trace-length rules, proximity-to-connector notes) is given anywhere in this datasheet beyond the Fig. 3 test circuit's CI/CO placement implication (both capacitors returned to the same GND node as the regulator, per the schematic) - do not attribute layout rules beyond that to this document."
+ ],
+ "abs_max": [
+  {
+   "param": "DC input voltage VI (VO=3.3 to 9V output group, which this 3.3V part belongs to)",
+   "value": 30,
+   "unit": "V"
+  },
+  {
+   "param": "Output current IO",
+   "value": 100,
+   "unit": "mA"
+  },
+  {
+   "param": "Power dissipation PD",
+   "value": "Internally limited",
+   "unit": "mW"
+  },
+  {
+   "param": "Storage temperature range TSTG",
+   "value": "-65 to 150",
+   "unit": "C"
+  },
+  {
+   "param": "Operating junction temperature range TOP, for AC/C grade (this part is AC grade)",
+   "value": "0 to 125",
+   "unit": "C"
+  }
+ ],
+ "source_pdf": "parts/C14170_L78L33ACUTR.pdf"
+}
