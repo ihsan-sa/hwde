@@ -1,0 +1,63 @@
+{
+ "id": 1,
+ "created": "2026-07-28T11:27:57",
+ "gate": null,
+ "phase": "P8",
+ "board": "boards/pd-trigger/kicad/pd-trigger.kicad_pcb",
+ "fixer": "review",
+ "role_prompt": "C:/dev/ai-ee3/.claude/skills/ai-ee/agents/fixer.md",
+ "allowed_scripts": [
+  "render.py"
+ ],
+ "guidance": [
+  "No script owns this violation kind - triage: either identify the right domain and say so, or escalate to human with a render and a one-paragraph explanation."
+ ],
+ "cluster": {
+  "net": "GND",
+  "kinds": [
+   "current-return"
+  ],
+  "checks": [
+   "review.board"
+  ],
+  "severity": "error",
+  "count": 1,
+  "region": {
+   "bbox": [
+    17.63,
+    39.31,
+    17.63,
+    39.31
+   ],
+   "center": [
+    17.63,
+    39.31
+   ]
+  },
+  "violations": [
+   {
+    "check": "board-review",
+    "severity": "error",
+    "pos": [
+     17.63,
+     39.31
+    ],
+    "layer": "F.Cu",
+    "net": "GND",
+    "refs": [
+     "J1"
+    ],
+    "msg": "5A return choke: GND contact pad A1-B12 (2 of 4 GND contacts, ~2.5A) reaches the B.Cu return pour only through a 0.2mm x 2.7mm F.Cu chain into shell pad 1's barrel (+1 via grazing the pad corner by ~0.05mm). 0.2mm at 2oz = 0.80A capacity at 10C rise; model gives ~133C at 2.5A. Architecture D7's structural substitute ('>=10 vias at J1 GND pads') not implemented; invisible to DRC (netclass-legal) and check_current (GND undeclared). Fix: F.Cu GND spandrel bonding pad to shell pad 1 + 4-5 vias (free strip above pour top edge y<39.7).",
+    "source": "review.board",
+    "kind": "current-return"
+   }
+  ]
+ },
+ "artifacts": {
+  "board": "boards/pd-trigger/kicad/pd-trigger.kicad_pcb",
+  "schematic": "boards/pd-trigger/kicad/pd-trigger.kicad_sch",
+  "constraints": "boards/pd-trigger/kicad/constraints.json",
+  "decoupling": "boards/pd-trigger/kicad/decoupling.json"
+ },
+ "scope": "fix ONLY these violations; do not touch unrelated nets/regions; re-run the failed gate when done"
+}

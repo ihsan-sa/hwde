@@ -88,11 +88,16 @@ DOMAINS: dict[str, dict] = {
     "silk": {
         "scripts": ["place_edit.py", "render.py"],
         "guidance": [
-            "No text-move script exists yet (refdes/value moves are a "
-            "registered gap): a silk collision is fixed by nudging the "
-            "FOOTPRINT via place_edit.py within placement legality, or "
-            "escalated with a render for human/waiver.",
-            "Verify with check_silk.py and a render of the region.",
+            "place_edit.py carries add_text (board-frame silk text, "
+            "idempotent) and move_text (refdes/value field repositioning) "
+            "ops - S14 closed the V17 gap. Labels must be PIN-LOCKED (a "
+            "label readable against the wrong pin is worse than none); "
+            "footprint-INTERNAL silk defects are librarian edits "
+            "(approval + lib/EDITS.md), not board text.",
+            "A silk collision may also be fixed by nudging the FOOTPRINT "
+            "via place_edit within placement legality.",
+            "Verify with check_silk.py, the drc_routed gate (err+warn "
+            "includes silk), and a render of the region READ back.",
         ],
     },
     "schematic": {

@@ -3,7 +3,7 @@
  "board": "pd-trigger",
  "workspace": "boards/pd-trigger",
  "created": "2026-07-28T05:57:45",
- "updated": "2026-07-28T11:04:29",
+ "updated": "2026-07-28T11:55:26",
  "phase": "P8",
  "gates": {
   "erc": {
@@ -45,11 +45,11 @@
    ]
   },
   "drc_routed": {
-   "phase": "P7",
+   "phase": "P8",
    "status": "pass",
-   "attempts": 2,
+   "attempts": 4,
    "last": {
-    "ts": "2026-07-28T11:04:29",
+    "ts": "2026-07-28T11:55:26",
     "status": "pass",
     "failing_count": 0,
     "total": 0
@@ -63,6 +63,43 @@
     },
     {
      "ts": "2026-07-28T11:04:29",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0
+    },
+    {
+     "ts": "2026-07-28T11:53:42",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0
+    },
+    {
+     "ts": "2026-07-28T11:55:26",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0
+    }
+   ]
+  },
+  "verify": {
+   "phase": "P8",
+   "status": "pass",
+   "attempts": 2,
+   "last": {
+    "ts": "2026-07-28T11:53:42",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0
+   },
+   "history": [
+    {
+     "ts": "2026-07-28T11:04:44",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0
+    },
+    {
+     "ts": "2026-07-28T11:53:42",
      "status": "pass",
      "failing_count": 0,
      "total": 0
@@ -88,14 +125,315 @@
   }
  },
  "artifacts": {},
- "open_issues": [],
- "next_issue_id": 1,
+ "open_issues": [
+  {
+   "id": 1,
+   "status": "open",
+   "agent": null,
+   "attempts": 0,
+   "opened": "2026-07-28T11:27:57",
+   "closed": null,
+   "gate": null,
+   "phase": "P8",
+   "fixer": "review",
+   "net": "GND",
+   "kinds": [
+    "current-return"
+   ],
+   "severity": "error",
+   "count": 1,
+   "region": {
+    "bbox": [
+     17.63,
+     39.31,
+     17.63,
+     39.31
+    ],
+    "center": [
+     17.63,
+     39.31
+    ]
+   },
+   "work_order": "boards/pd-trigger/log/workorders/wo-1.json"
+  },
+  {
+   "id": 2,
+   "status": "open",
+   "agent": null,
+   "attempts": 0,
+   "opened": "2026-07-28T11:27:57",
+   "closed": null,
+   "gate": null,
+   "phase": "P8",
+   "fixer": "review",
+   "net": "GND",
+   "kinds": [
+    "current-return"
+   ],
+   "severity": "error",
+   "count": 1,
+   "region": {
+    "bbox": [
+     17.63,
+     45.71,
+     17.63,
+     45.71
+    ],
+    "center": [
+     17.63,
+     45.71
+    ]
+   },
+   "work_order": "boards/pd-trigger/log/workorders/wo-2.json"
+  },
+  {
+   "id": 3,
+   "status": "open",
+   "agent": null,
+   "attempts": 0,
+   "opened": "2026-07-28T11:27:57",
+   "closed": null,
+   "gate": null,
+   "phase": "P8",
+   "fixer": "review",
+   "net": null,
+   "kinds": [
+    "promised-artifact"
+   ],
+   "severity": "error",
+   "count": 1,
+   "region": {
+    "bbox": [
+     19.4,
+     29.15,
+     19.4,
+     29.15
+    ],
+    "center": [
+     19.4,
+     29.15
+    ]
+   },
+   "work_order": "boards/pd-trigger/log/workorders/wo-3.json"
+  },
+  {
+   "id": 4,
+   "status": "open",
+   "agent": null,
+   "attempts": 0,
+   "opened": "2026-07-28T11:27:57",
+   "closed": null,
+   "gate": null,
+   "phase": "P8",
+   "fixer": "review",
+   "net": null,
+   "kinds": [
+    "promised-artifact"
+   ],
+   "severity": "error",
+   "count": 1,
+   "region": {
+    "bbox": [
+     33.8,
+     42.51,
+     33.8,
+     42.51
+    ],
+    "center": [
+     33.8,
+     42.51
+    ]
+   },
+   "work_order": "boards/pd-trigger/log/workorders/wo-4.json"
+  },
+  {
+   "id": 5,
+   "status": "open",
+   "agent": null,
+   "attempts": 0,
+   "opened": "2026-07-28T11:27:57",
+   "closed": null,
+   "gate": null,
+   "phase": "P8",
+   "fixer": "review",
+   "net": null,
+   "kinds": [
+    "mechanical"
+   ],
+   "severity": "warning",
+   "count": 1,
+   "region": {
+    "bbox": [
+     10.18,
+     42.51,
+     10.18,
+     42.51
+    ],
+    "center": [
+     10.18,
+     42.51
+    ]
+   },
+   "work_order": "boards/pd-trigger/log/workorders/wo-5.json"
+  },
+  {
+   "id": 6,
+   "status": "open",
+   "agent": null,
+   "attempts": 0,
+   "opened": "2026-07-28T11:27:57",
+   "closed": null,
+   "gate": null,
+   "phase": "P8",
+   "fixer": "review",
+   "net": null,
+   "kinds": [
+    "architecture-drift"
+   ],
+   "severity": "warning",
+   "count": 1,
+   "region": {
+    "bbox": [
+     33.8,
+     42.51,
+     33.8,
+     42.51
+    ],
+    "center": [
+     33.8,
+     42.51
+    ]
+   },
+   "work_order": "boards/pd-trigger/log/workorders/wo-6.json"
+  },
+  {
+   "id": 7,
+   "status": "open",
+   "agent": null,
+   "attempts": 0,
+   "opened": "2026-07-28T11:27:57",
+   "closed": null,
+   "gate": null,
+   "phase": "P8",
+   "fixer": "review",
+   "net": "GND",
+   "kinds": [
+    "current-return"
+   ],
+   "severity": "info",
+   "count": 1,
+   "region": {
+    "bbox": [
+     52.2,
+     38.42,
+     52.2,
+     38.42
+    ],
+    "center": [
+     52.2,
+     38.42
+    ]
+   },
+   "work_order": "boards/pd-trigger/log/workorders/wo-7.json"
+  },
+  {
+   "id": 8,
+   "status": "open",
+   "agent": null,
+   "attempts": 0,
+   "opened": "2026-07-28T11:27:57",
+   "closed": null,
+   "gate": null,
+   "phase": "P8",
+   "fixer": "review",
+   "net": "VBUS",
+   "kinds": [
+    "architecture-drift"
+   ],
+   "severity": "info",
+   "count": 1,
+   "region": {
+    "bbox": [
+     13.05,
+     33.3,
+     13.05,
+     33.3
+    ],
+    "center": [
+     13.05,
+     33.3
+    ]
+   },
+   "work_order": "boards/pd-trigger/log/workorders/wo-8.json"
+  },
+  {
+   "id": 9,
+   "status": "open",
+   "agent": null,
+   "attempts": 0,
+   "opened": "2026-07-28T11:27:57",
+   "closed": null,
+   "gate": null,
+   "phase": "P8",
+   "fixer": "review",
+   "net": "GND",
+   "kinds": [
+    "cleanup"
+   ],
+   "severity": "info",
+   "count": 1,
+   "region": {
+    "bbox": [
+     20.01,
+     28.49,
+     20.01,
+     28.49
+    ],
+    "center": [
+     20.01,
+     28.49
+    ]
+   },
+   "work_order": "boards/pd-trigger/log/workorders/wo-9.json"
+  },
+  {
+   "id": 10,
+   "status": "open",
+   "agent": null,
+   "attempts": 0,
+   "opened": "2026-07-28T11:27:57",
+   "closed": null,
+   "gate": null,
+   "phase": "P8",
+   "fixer": "review",
+   "net": "/VAUX",
+   "kinds": [
+    "current-margin"
+   ],
+   "severity": "info",
+   "count": 1,
+   "region": {
+    "bbox": [
+     17.0,
+     31.0,
+     17.0,
+     31.0
+    ],
+    "center": [
+     17.0,
+     31.0
+    ]
+   },
+   "work_order": "boards/pd-trigger/log/workorders/wo-10.json"
+  }
+ ],
+ "next_issue_id": 11,
  "budgets": {
   "fix_loops": {
    "erc": 3,
    "place": 3,
    "drc_routed": 3,
-   "verify": 3,
+   "verify": 2,
    "dfm": 3
   },
   "freerouting_retries": 2,
@@ -137,6 +475,18 @@
    "why": "Router-measured geometry falsified the placement premise; zones are not width-rule-bound; DRU authority untouched",
    "phase": "P7",
    "ts": "2026-07-28T11:04:29"
+  },
+  {
+   "what": "Outline 48x30 vs D9 ceiling 48x28: DEVIATION ACCEPTED (2mm on soft axis; P0 literal +20% of 25 = 30; no outline-edit op exists at v1)",
+   "why": "Reviewer-caught undisclosed drift, now disclosed; re-initing P5 for 2mm not warranted",
+   "phase": "P8",
+   "ts": "2026-07-28T11:27:57"
+  },
+  {
+   "what": "C1B pour channels 1.11+1.25mm = STANDING WAIVER (dead-end bulk stub, 0.3A transient vs 3.49A capacity)",
+   "why": "Reviewer accepted with numbers",
+   "phase": "P8",
+   "ts": "2026-07-28T11:27:58"
   }
  ],
  "history": [
@@ -297,6 +647,160 @@
    "event": "phase",
    "phase": "P8",
    "prev": "P7"
+  },
+  {
+   "ts": "2026-07-28T11:04:44",
+   "event": "gate",
+   "gate": "verify",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-07-28T11:27:57",
+   "event": "budget",
+   "path": "fix_loops.verify",
+   "remaining": 2
+  },
+  {
+   "ts": "2026-07-28T11:27:57",
+   "event": "snapshot",
+   "label": "pre-fix-review-p8",
+   "files": 1
+  },
+  {
+   "ts": "2026-07-28T11:27:57",
+   "event": "issue_open",
+   "id": 1,
+   "gate": null,
+   "fixer": "review",
+   "kinds": [
+    "current-return"
+   ]
+  },
+  {
+   "ts": "2026-07-28T11:27:57",
+   "event": "issue_open",
+   "id": 2,
+   "gate": null,
+   "fixer": "review",
+   "kinds": [
+    "current-return"
+   ]
+  },
+  {
+   "ts": "2026-07-28T11:27:57",
+   "event": "issue_open",
+   "id": 3,
+   "gate": null,
+   "fixer": "review",
+   "kinds": [
+    "promised-artifact"
+   ]
+  },
+  {
+   "ts": "2026-07-28T11:27:57",
+   "event": "issue_open",
+   "id": 4,
+   "gate": null,
+   "fixer": "review",
+   "kinds": [
+    "promised-artifact"
+   ]
+  },
+  {
+   "ts": "2026-07-28T11:27:57",
+   "event": "issue_open",
+   "id": 5,
+   "gate": null,
+   "fixer": "review",
+   "kinds": [
+    "mechanical"
+   ]
+  },
+  {
+   "ts": "2026-07-28T11:27:57",
+   "event": "issue_open",
+   "id": 6,
+   "gate": null,
+   "fixer": "review",
+   "kinds": [
+    "architecture-drift"
+   ]
+  },
+  {
+   "ts": "2026-07-28T11:27:57",
+   "event": "issue_open",
+   "id": 7,
+   "gate": null,
+   "fixer": "review",
+   "kinds": [
+    "current-return"
+   ]
+  },
+  {
+   "ts": "2026-07-28T11:27:57",
+   "event": "issue_open",
+   "id": 8,
+   "gate": null,
+   "fixer": "review",
+   "kinds": [
+    "architecture-drift"
+   ]
+  },
+  {
+   "ts": "2026-07-28T11:27:57",
+   "event": "issue_open",
+   "id": 9,
+   "gate": null,
+   "fixer": "review",
+   "kinds": [
+    "cleanup"
+   ]
+  },
+  {
+   "ts": "2026-07-28T11:27:57",
+   "event": "issue_open",
+   "id": 10,
+   "gate": null,
+   "fixer": "review",
+   "kinds": [
+    "current-margin"
+   ]
+  },
+  {
+   "ts": "2026-07-28T11:27:57",
+   "event": "decision",
+   "what": "Outline 48x30 vs D9 ceiling 48x28: DEVIATION ACCEPTED (2mm on soft axis; P0 literal +20% of 25 = 30; no outline-edit op exists at v1)"
+  },
+  {
+   "ts": "2026-07-28T11:27:58",
+   "event": "decision",
+   "what": "C1B pour channels 1.11+1.25mm = STANDING WAIVER (dead-end bulk stub, 0.3A transient vs 3.49A capacity)"
+  },
+  {
+   "ts": "2026-07-28T11:53:42",
+   "event": "gate",
+   "gate": "drc_routed",
+   "status": "pass",
+   "attempt": 3,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-07-28T11:53:42",
+   "event": "gate",
+   "gate": "verify",
+   "status": "pass",
+   "attempt": 2,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-07-28T11:55:26",
+   "event": "gate",
+   "gate": "drc_routed",
+   "status": "pass",
+   "attempt": 4,
+   "failing_count": 0
   }
  ]
 }

@@ -1,0 +1,66 @@
+{
+ "id": 4,
+ "created": "2026-07-28T11:27:57",
+ "gate": null,
+ "phase": "P8",
+ "board": "boards/pd-trigger/kicad/pd-trigger.kicad_pcb",
+ "fixer": "review",
+ "role_prompt": "C:/dev/ai-ee3/.claude/skills/ai-ee/agents/fixer.md",
+ "allowed_scripts": [
+  "render.py"
+ ],
+ "guidance": [
+  "No script owns this violation kind - triage: either identify the right domain and say so, or escalate to human with a render and a one-paragraph explanation."
+ ],
+ "cluster": {
+  "net": null,
+  "kinds": [
+   "promised-artifact"
+  ],
+  "checks": [
+   "review.board"
+  ],
+  "severity": "error",
+  "count": 1,
+  "region": {
+   "bbox": [
+    33.8,
+    42.51,
+    33.8,
+    42.51
+   ],
+   "center": [
+    33.8,
+    42.51
+   ]
+  },
+  "violations": [
+   {
+    "check": "board-review",
+    "severity": "error",
+    "pos": [
+     33.8,
+     42.51
+    ],
+    "layer": "B.SilkS",
+    "net": null,
+    "refs": [
+     "SW1",
+     "D3",
+     "D5",
+     "D6"
+    ],
+    "msg": "User-interface silk absent: five-row profile table on B.SilkS (D3 calls silk 'the user interface'; B.Cu pour is clear and roomy); LED legends PWR / 5V ONLY / PROFILE OK (the whole P0-answer-6 fallback-indication scheme is mute labeled D3/D5/D6); e-marked-cable disclaimer (V10). Present: SW1 footprint's own ON + 1 2 3 compact marker. Without the table the ON/OFF-to-voltage map exists only off-board (bounded fail-safe: open/wrong resolves >= 5V).",
+    "source": "review.board",
+    "kind": "promised-artifact"
+   }
+  ]
+ },
+ "artifacts": {
+  "board": "boards/pd-trigger/kicad/pd-trigger.kicad_pcb",
+  "schematic": "boards/pd-trigger/kicad/pd-trigger.kicad_sch",
+  "constraints": "boards/pd-trigger/kicad/constraints.json",
+  "decoupling": "boards/pd-trigger/kicad/decoupling.json"
+ },
+ "scope": "fix ONLY these violations; do not touch unrelated nets/regions; re-run the failed gate when done"
+}

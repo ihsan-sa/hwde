@@ -1,0 +1,63 @@
+{
+ "id": 8,
+ "created": "2026-07-28T11:27:57",
+ "gate": null,
+ "phase": "P8",
+ "board": "boards/pd-trigger/kicad/pd-trigger.kicad_pcb",
+ "fixer": "review",
+ "role_prompt": "C:/dev/ai-ee3/.claude/skills/ai-ee/agents/fixer.md",
+ "allowed_scripts": [
+  "render.py"
+ ],
+ "guidance": [
+  "No script owns this violation kind - triage: either identify the right domain and say so, or escalate to human with a render and a one-paragraph explanation."
+ ],
+ "cluster": {
+  "net": "VBUS",
+  "kinds": [
+   "architecture-drift"
+  ],
+  "checks": [
+   "review.board"
+  ],
+  "severity": "info",
+  "count": 1,
+  "region": {
+   "bbox": [
+    13.05,
+    33.3,
+    13.05,
+    33.3
+   ],
+   "center": [
+    13.05,
+    33.3
+   ]
+  },
+  "violations": [
+   {
+    "check": "board-review",
+    "severity": "info",
+    "pos": [
+     13.05,
+     33.3
+    ],
+    "layer": "F.Cu",
+    "net": "VBUS",
+    "refs": [
+     "F1"
+    ],
+    "msg": "F1's VBUS feed branch is 18.3mm long (V8 wanted 2-3mm tap stubs hugging the run). Full 1.75mm width so V8's actual purpose is met; carries <=1A in service. Recorded as drift, no action.",
+    "source": "review.board",
+    "kind": "architecture-drift"
+   }
+  ]
+ },
+ "artifacts": {
+  "board": "boards/pd-trigger/kicad/pd-trigger.kicad_pcb",
+  "schematic": "boards/pd-trigger/kicad/pd-trigger.kicad_sch",
+  "constraints": "boards/pd-trigger/kicad/constraints.json",
+  "decoupling": "boards/pd-trigger/kicad/decoupling.json"
+ },
+ "scope": "fix ONLY these violations; do not touch unrelated nets/regions; re-run the failed gate when done"
+}

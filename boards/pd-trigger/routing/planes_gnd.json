@@ -1,0 +1,9 @@
+{
+  "_comment": "P8 review fix (copper 1-2): the 5A GND return reached the B.Cu pour through 0.2mm necks (0.80A IPC at 2oz) and one via per contact pad. These two F.Cu GND lobes tie J1's SMD GND contact pads (A1-B12, B1-A12) to the THT shell/EH pads (J1-1..4) with pour copper, and carry the via field that drops the return into the B.Cu pour. Priority 1 so the VBUS fan-in pour (priority 0) yields where they overlap; both lobes stay clear of the VBUS merge link and D1.",
+  "planes": [
+    {"net": "GND", "layer": "F.Cu", "region": [11.90, 36.10, 18.45, 39.50],
+     "clearance": 0.2, "min_width": 0.2, "priority": 1},
+    {"net": "GND", "layer": "F.Cu", "region": [11.90, 45.30, 18.35, 47.60],
+     "clearance": 0.2, "min_width": 0.2, "priority": 1}
+  ]
+}

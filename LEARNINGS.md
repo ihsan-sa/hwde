@@ -815,3 +815,35 @@ detour rather than a via pair. Bonus: `pour_neck` only measures between via atta
 returns None with < 2 vias in the fill, so a via-free pour is also exempt from the neck check -
 do not lean on that silently, state the measured channel widths in the report. pd-trigger shipped
 VBUS with 0 vias, min track 1.75 mm, 3.0 mm x 32 mm trunk -> check_current 0 violations.
+
+## 2026-07-28 [routing][stitch][drc] KiCad hole_to_hole does NOT test a via drill against a same-net THT PAD drill - the 0.5 mm floor must be enforced by the generator
+Live test on pd-trigger (scratch copy, `aiee_hole_to_hole_floor` min 0.4995 mm): a 0.3 mm-drill via
+placed so its hole edge sits **0.121 mm** from J1-1's THT oval drill produced ZERO violations
+against that pad; the same DRC run DID flag the identical via against another VIA at 0.403 mm. So
+KiCad checks via<->via but skips via<->pad-hole when the via lands on the same-net pad's copper.
+Consequence: stitch_vias' pad-attachment vias can ship drill spacing the fab cannot produce and
+DRC stays green - two such vias (0.12 mm to J1-1 / J1-4) were sitting on this board. Any generator
+that drops a via next to a THT pad must compute the pad's drill itself. Doing that needs the
+footprint transform: inside a `(footprint ... (at fx fy frot))`, a pad's `(at px py prot)` stores
+prot as the ABSOLUTE board angle (frot is already folded in) - so position rotates by `-frot` but
+the pad/drill SHAPE rotates by `-prot`. Using `prot - frot` silently yields a drill turned 90 deg
+(caught here only because the derived drill boxes disagreed with the pad bounding boxes).
+
+## 2026-07-28 [routing][placement] A USB-C's SMD GND contact pads need a pour lobe + via field, not stitch_vias' one-via-per-pad
+pd-trigger P8 review: the 5 A return choked at J1. Freerouting attaches GND contact pads
+(A1-B12 / B1-A12, ~2.5 A each) with 0.2 mm track = **0.80 A** at 2 oz, and stitch_vias adds ONE via
+per pad - neither script models per-pad current, and check_current only audits nets in
+constraints["power"] (GND is deliberately NOT one, decisions D7). Fix that held: two F.Cu GND zone
+lobes (planes_gen with a planes-only sidecar) spanning the contact pads AND the THT shell/EH pads,
+at **priority 1 so the neighbouring VBUS pour yields**, patched to `connect_pads yes` (planes_gen
+leaves KiCad's default THERMAL relief, which would spoke-starve a 2.5 A pad). Result 2.09 mm /
+1.62 mm narrowest pad->via cross-section (5.68 A / 4.70 A) and 8 / 7 vias. Cross-net zone overlap
+at distinct priorities is fine - `zones_intersect` only fires same-net same-priority.
+
+## 2026-07-28 [skill][fab] Silk strap tables must print the SWITCH positions, not the raw config bits
+The CH224K map is `(CFG1,CFG2,CFG3)`: 1XX=5 V, 000=9 V, 001=12 V, 011=15 V, 010=20 V - but the DIP
+switch shorts to GND, so ON = logic 0 and the bit table is INVERTED relative to what the user sets.
+Printing "000=9V" on the silk would tell someone to set all three OFF, which selects 5 V. Print the
+ON/OFF table from decisions.md D3 instead. Also: `place_edit add_text` auto-mirrors any `B.*` layer
+(place_swig `SetMirrored(True)`), so B.SilkS text is written in board coordinates and reads
+correctly in the bottom render - do not pre-mirror the string or the position.

@@ -1,0 +1,63 @@
+{
+ "id": 5,
+ "created": "2026-07-28T11:27:57",
+ "gate": null,
+ "phase": "P8",
+ "board": "boards/pd-trigger/kicad/pd-trigger.kicad_pcb",
+ "fixer": "review",
+ "role_prompt": "C:/dev/ai-ee3/.claude/skills/ai-ee/agents/fixer.md",
+ "allowed_scripts": [
+  "render.py"
+ ],
+ "guidance": [
+  "No script owns this violation kind - triage: either identify the right domain and say so, or escalate to human with a render and a one-paragraph explanation."
+ ],
+ "cluster": {
+  "net": null,
+  "kinds": [
+   "mechanical"
+  ],
+  "checks": [
+   "review.board"
+  ],
+  "severity": "warning",
+  "count": 1,
+  "region": {
+   "bbox": [
+    10.18,
+    42.51,
+    10.18,
+    42.51
+   ],
+   "center": [
+    10.18,
+    42.51
+   ]
+  },
+  "violations": [
+   {
+    "check": "board-review",
+    "severity": "warning",
+    "pos": [
+     10.18,
+     42.51
+    ],
+    "layer": "Edge.Cuts",
+    "net": null,
+    "refs": [
+     "J1"
+    ],
+    "msg": "USB-C mouth recessed ~0.4-0.5mm behind the board edge (courtyard/silk front x=10.18 vs edge x=9.8; flagged at P6). Thick plug overmolds can butt the edge and hold the plug short of latch: intermittent CC / no PD with some cables. Nudge J1 -x 0.5-1.0mm at P9 or accept with an order-doc note.",
+    "source": "review.board",
+    "kind": "mechanical"
+   }
+  ]
+ },
+ "artifacts": {
+  "board": "boards/pd-trigger/kicad/pd-trigger.kicad_pcb",
+  "schematic": "boards/pd-trigger/kicad/pd-trigger.kicad_sch",
+  "constraints": "boards/pd-trigger/kicad/constraints.json",
+  "decoupling": "boards/pd-trigger/kicad/decoupling.json"
+ },
+ "scope": "fix ONLY these violations; do not touch unrelated nets/regions; re-run the failed gate when done"
+}

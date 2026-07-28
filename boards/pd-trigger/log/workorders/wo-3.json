@@ -1,0 +1,65 @@
+{
+ "id": 3,
+ "created": "2026-07-28T11:27:57",
+ "gate": null,
+ "phase": "P8",
+ "board": "boards/pd-trigger/kicad/pd-trigger.kicad_pcb",
+ "fixer": "review",
+ "role_prompt": "C:/dev/ai-ee3/.claude/skills/ai-ee/agents/fixer.md",
+ "allowed_scripts": [
+  "render.py"
+ ],
+ "guidance": [
+  "No script owns this violation kind - triage: either identify the right domain and say so, or escalate to human with a render and a one-paragraph explanation."
+ ],
+ "cluster": {
+  "net": null,
+  "kinds": [
+   "promised-artifact"
+  ],
+  "checks": [
+   "review.board"
+  ],
+  "severity": "error",
+  "count": 1,
+  "region": {
+   "bbox": [
+    19.4,
+    29.15,
+    19.4,
+    29.15
+   ],
+   "center": [
+    19.4,
+    29.15
+   ]
+  },
+  "violations": [
+   {
+    "check": "board-review",
+    "severity": "error",
+    "pos": [
+     19.4,
+     29.15
+    ],
+    "layer": "F.SilkS",
+    "net": null,
+    "refs": [
+     "J3",
+     "J2",
+     "J1"
+    ],
+    "msg": "Safety/waiver silk absent (board has ZERO gr_text): 'AUX 1A MAX' + V+/GND at J3 (P0 answer 4 'silk-marked', V10); 'PD SOURCES ONLY' (ERC waiver W1's standing condition, promised on B.SilkS); J2 screw polarity unmarked (trunk lands on pad 1 = lower screw; reverse-wiring a 100W bench output is the easiest field mistake this board can cause). check_silk gates legibility of existing silk only; no check enforces content; constraints.json has no silk key.",
+    "source": "review.board",
+    "kind": "promised-artifact"
+   }
+  ]
+ },
+ "artifacts": {
+  "board": "boards/pd-trigger/kicad/pd-trigger.kicad_pcb",
+  "schematic": "boards/pd-trigger/kicad/pd-trigger.kicad_sch",
+  "constraints": "boards/pd-trigger/kicad/constraints.json",
+  "decoupling": "boards/pd-trigger/kicad/decoupling.json"
+ },
+ "scope": "fix ONLY these violations; do not touch unrelated nets/regions; re-run the failed gate when done"
+}

@@ -1,0 +1,64 @@
+{
+ "id": 10,
+ "created": "2026-07-28T11:27:57",
+ "gate": null,
+ "phase": "P8",
+ "board": "boards/pd-trigger/kicad/pd-trigger.kicad_pcb",
+ "fixer": "review",
+ "role_prompt": "C:/dev/ai-ee3/.claude/skills/ai-ee/agents/fixer.md",
+ "allowed_scripts": [
+  "render.py"
+ ],
+ "guidance": [
+  "No script owns this violation kind - triage: either identify the right domain and say so, or escalate to human with a render and a one-paragraph explanation."
+ ],
+ "cluster": {
+  "net": "/VAUX",
+  "kinds": [
+   "current-margin"
+  ],
+  "checks": [
+   "review.board"
+  ],
+  "severity": "info",
+  "count": 1,
+  "region": {
+   "bbox": [
+    17.0,
+    31.0,
+    17.0,
+    31.0
+   ],
+   "center": [
+    17.0,
+    31.0
+   ]
+  },
+  "violations": [
+   {
+    "check": "board-review",
+    "severity": "info",
+    "pos": [
+     17.0,
+     31.0
+    ],
+    "layer": "B.Cu",
+    "net": "/VAUX",
+    "refs": [
+     "F1",
+     "J3"
+    ],
+    "msg": "/VAUX routed 0.3mm (7C at the declared 1.0A). At F1's max non-trip current ~1.8A the model gives 27C until trip - bounded, no damage threshold. Recorded so it is not 'fixed' blind later. Bring-up addendum: verify SW1's slide closes toward its ON label before trusting the profile map (fail-safe floor: open = 5V).",
+    "source": "review.board",
+    "kind": "current-margin"
+   }
+  ]
+ },
+ "artifacts": {
+  "board": "boards/pd-trigger/kicad/pd-trigger.kicad_pcb",
+  "schematic": "boards/pd-trigger/kicad/pd-trigger.kicad_sch",
+  "constraints": "boards/pd-trigger/kicad/constraints.json",
+  "decoupling": "boards/pd-trigger/kicad/decoupling.json"
+ },
+ "scope": "fix ONLY these violations; do not touch unrelated nets/regions; re-run the failed gate when done"
+}

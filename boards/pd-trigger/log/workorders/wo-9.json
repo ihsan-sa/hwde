@@ -1,0 +1,61 @@
+{
+ "id": 9,
+ "created": "2026-07-28T11:27:57",
+ "gate": null,
+ "phase": "P8",
+ "board": "boards/pd-trigger/kicad/pd-trigger.kicad_pcb",
+ "fixer": "review",
+ "role_prompt": "C:/dev/ai-ee3/.claude/skills/ai-ee/agents/fixer.md",
+ "allowed_scripts": [
+  "render.py"
+ ],
+ "guidance": [
+  "No script owns this violation kind - triage: either identify the right domain and say so, or escalate to human with a render and a one-paragraph explanation."
+ ],
+ "cluster": {
+  "net": "GND",
+  "kinds": [
+   "cleanup"
+  ],
+  "checks": [
+   "review.board"
+  ],
+  "severity": "info",
+  "count": 1,
+  "region": {
+   "bbox": [
+    20.01,
+    28.49,
+    20.01,
+    28.49
+   ],
+   "center": [
+    20.01,
+    28.49
+   ]
+  },
+  "violations": [
+   {
+    "check": "board-review",
+    "severity": "info",
+    "pos": [
+     20.01,
+     28.49
+    ],
+    "layer": "B.Cu",
+    "net": "GND",
+    "refs": [],
+    "msg": "Floating 0.65mm2 GND sliver (plane_repair dead-island fact, 0 anchors) between J3/SW1 clearances. Cosmetic; remove at P9 cleanup or accept.",
+    "source": "review.board",
+    "kind": "cleanup"
+   }
+  ]
+ },
+ "artifacts": {
+  "board": "boards/pd-trigger/kicad/pd-trigger.kicad_pcb",
+  "schematic": "boards/pd-trigger/kicad/pd-trigger.kicad_sch",
+  "constraints": "boards/pd-trigger/kicad/constraints.json",
+  "decoupling": "boards/pd-trigger/kicad/decoupling.json"
+ },
+ "scope": "fix ONLY these violations; do not touch unrelated nets/regions; re-run the failed gate when done"
+}

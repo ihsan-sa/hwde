@@ -1,0 +1,63 @@
+{
+ "id": 7,
+ "created": "2026-07-28T11:27:57",
+ "gate": null,
+ "phase": "P8",
+ "board": "boards/pd-trigger/kicad/pd-trigger.kicad_pcb",
+ "fixer": "review",
+ "role_prompt": "C:/dev/ai-ee3/.claude/skills/ai-ee/agents/fixer.md",
+ "allowed_scripts": [
+  "render.py"
+ ],
+ "guidance": [
+  "No script owns this violation kind - triage: either identify the right domain and say so, or escalate to human with a render and a one-paragraph explanation."
+ ],
+ "cluster": {
+  "net": "GND",
+  "kinds": [
+   "current-return"
+  ],
+  "checks": [
+   "review.board"
+  ],
+  "severity": "info",
+  "count": 1,
+  "region": {
+   "bbox": [
+    52.2,
+    38.42,
+    52.2,
+    38.42
+   ],
+   "center": [
+    52.2,
+    38.42
+   ]
+  },
+  "violations": [
+   {
+    "check": "board-review",
+    "severity": "info",
+    "pos": [
+     52.2,
+     38.42
+    ],
+    "layer": "B.Cu",
+    "net": "GND",
+    "refs": [
+     "J2"
+    ],
+    "msg": "J2's 5A GND pad ties to the return pour through 4x0.5mm thermal spokes (2.0mm total, model 8C rise at 5A). Functional but the most-loaded return necks after J1, at a hand-soldered THT joint. Recommend solid-connect override or a fat GND strap at P9; zero cost.",
+    "source": "review.board",
+    "kind": "current-return"
+   }
+  ]
+ },
+ "artifacts": {
+  "board": "boards/pd-trigger/kicad/pd-trigger.kicad_pcb",
+  "schematic": "boards/pd-trigger/kicad/pd-trigger.kicad_sch",
+  "constraints": "boards/pd-trigger/kicad/constraints.json",
+  "decoupling": "boards/pd-trigger/kicad/decoupling.json"
+ },
+ "scope": "fix ONLY these violations; do not touch unrelated nets/regions; re-run the failed gate when done"
+}
