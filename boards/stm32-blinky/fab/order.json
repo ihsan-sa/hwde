@@ -1,0 +1,75 @@
+{
+ "script": "order_submit",
+ "status": "ready_for_human",
+ "board": "stm32-blinky.kicad_pcb",
+ "generated": "2026-07-28T01:25:32-07:00",
+ "order_number": null,
+ "payment": "HUMAN - this script never submits payment (SPEC P10)",
+ "artifacts": {
+  "gerber_zip": {
+   "path": "boards\\stm32-blinky\\fab\\stm32-blinky_gerbers.zip",
+   "sha256": "b013238b4b319bd531691a83e79b932a6c559f25237d11c02937d0a7697ef720",
+   "bytes": 21660
+  },
+  "bom": {
+   "path": "boards\\stm32-blinky\\fab\\BOM.csv",
+   "sha256": "d728524604d16917a52517520de4467250a8eac65e0c723896f33b5fef5f8904",
+   "bytes": 632
+  },
+  "cpl": {
+   "path": "boards\\stm32-blinky\\fab\\CPL.csv",
+   "sha256": "9b14a2a73270ff512d64859c908e4f75a47ad3116536605d7df862e95293c388",
+   "bytes": 703
+  }
+ },
+ "missing": [],
+ "quote": {
+  "selected": {
+   "qty": 5,
+   "surface_finish": "HASL",
+   "solder_mask_color": "green",
+   "pcb": {
+    "base": 2.0,
+    "base_at_qty": 5,
+    "oversize": 0.0,
+    "options": 0.0,
+    "total": 2.0
+   },
+   "total": 18.77,
+   "assembly": {
+    "setup": 8.0,
+    "feeders": 0.0,
+    "joints": 0.77,
+    "stencil": 8.0,
+    "n_parts": 20,
+    "n_joints": 90,
+    "n_extended_parts": 0,
+    "total": 16.77
+   },
+   "unit_cost": 3.75
+  },
+  "estimated": true,
+  "source": "boards\\stm32-blinky\\fab\\quote.json",
+  "authoritative_quote_url": "https://cart.jlcpcb.com/quote"
+ },
+ "spec_snapshot": {
+  "layers": 2,
+  "width_mm": 50.0,
+  "height_mm": 40.0,
+  "qty": 5,
+  "surface_finish": "HASL",
+  "solder_mask_color": "green",
+  "assembly": true
+ },
+ "api": {
+  "attempted": false,
+  "available": false,
+  "note": "JLCPCB API credentials not configured (set AIEE_JLCPCB_KEY and AIEE_JLCPCB_SECRET); the api.jlcpcb.com programme also requires an approved access application"
+ },
+ "human_steps": [
+  "Upload boards\\stm32-blinky\\fab\\stm32-blinky_gerbers.zip to https://jlcdfm.com/ and review the DFM report (V6: no public API).",
+  "Upload the same zip at https://cart.jlcpcb.com/quote and confirm the real price against the estimate above.",
+  "If assembling: upload BOM.csv and CPL.csv, then CHECK THE RENDERED PART PREVIEW for every polarized part (LED/diode/electrolytic) - rotation corrections are the classic failure mode.",
+  "Review, then pay. Payment is always the human's action."
+ ]
+}
