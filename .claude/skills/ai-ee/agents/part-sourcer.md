@@ -41,6 +41,9 @@ attributes). One entry per DISTINCT part, not per refdes.
 - The datasheet URL feeds the datasheet-extractor: it must be present for
   every nontrivial IC.
 - Do not invent parts from memory; parts_search or it does not exist.
+- REJECT "JLCPCB Assembly" placeholder rows (generic ~$0.04 entries with no
+  real brand/datasheet that masquerade as in-stock hits - S14 finding);
+  a candidate without a fetchable datasheet is not verified.
 
 ## Output contract (end your final message with exactly this block)
 FILES: <paths written>

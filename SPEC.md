@@ -327,3 +327,14 @@ Build M1–M3 against golden board 1 before touching M4/M5 breadth. Each milesto
 - DSN export/SES import rely on either SWIG bindings (deprecated, removed in KiCad 11) or a vendored Python implementation — both flagged verify-at-implementation; the pipeline is pinned to KiCad 9/10 either way.
 - Schematic-side IPC API coverage is still limited in KiCad 9; schematic work is file-based by design.
 - Facts in this spec taken from vendor docs/benchmarks are current as of July 2026; anything marked "verify at implementation" was not directly tested and must be smoke-tested in the target environment before being built upon.
+
+### v1 as-built addenda (S14, 2026-07-28 — the authoritative list is SKILL.md "Known limits")
+
+- Script inventory grew beyond §6 in-spirit: `state.py`, `fix_dispatch.py`, `lib/gerblib.py`, `lib/board_swig.py`, `lib/route_swig.py`, `lib/routelib.py`, `lib/placelib.py`, `lib/impedance.py`, `reference/{jlc_pricing.yaml, constraints_schema.md, checklists/}`; `place_edit` carries silk `add_text`/`move_text` ops (V17 closed).
+- route_cleanup's loop-breaker is unreliable on pour boards (3 live regressions): optional, dry-run-first.
+- Drill-spacing models are incomplete (stitch center-point hole floor; KiCad DRC never checks via-drill vs same-net THT pad drill — live-proven): DRC gate + route_edit removal is the recovery.
+- check_current cannot measure viasless pour channels; routers disclose measured widths.
+- The P5 outline is final (no shrink step); size caps bind at board_init.
+- P0's "IPC headless" premise never materialized at this pin: placement/routing edits are SWIG bundled-python throughout; kipy/IPC is the KiCad-11 migration target.
+- Anonymous JLC search returns placeholder "JLCPCB Assembly" rows (reject: no brand/datasheet) and its LED catalog cannot meet a 50 mcd@5 mA yellow-green bar (real efficiency ceiling).
+- order_quote undercounts Extended feeder fees; all figures estimated:true.

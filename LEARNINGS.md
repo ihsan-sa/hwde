@@ -847,3 +847,21 @@ Printing "000=9V" on the silk would tell someone to set all three OFF, which sel
 ON/OFF table from decisions.md D3 instead. Also: `place_edit add_text` auto-mirrors any `B.*` layer
 (place_swig `SetMirrored(True)`), so B.SilkS text is written in board coordinates and reads
 correctly in the bottom render - do not pre-mirror the string or the position.
+
+## 2026-07-28 [datasheet][python] Zooming a datasheet drawing without a rasterizer: pypdf crop + scale
+No pymupdf/pdf2image in the venv (pypdf + PIL only). To read a pin diagram or dimension table
+visually: pypdf `page.scale_by(s)` (s~5), then set `mediabox.lower_left/upper_right` to the crop
+region multiplied by s, write a single-page PDF, and Read that. Resolved the CH224K pin numbers
+and the L78L33 table columns when the text layer was garbled/misaligned. (Derived by the S14
+extractor agents; both used it successfully.)
+
+## 2026-07-28 [python] kicad-sch-api preserves compound alphanumeric pad names ("A4-B9") through save
+Unlike the known alphanumeric renumbering of simple names ("SH" -> "6", repaired by fixups),
+COMPOUND pad names like "A4-B9"/"B1-A12" on the USB4105 USB-C receptacle survive
+kicad-sch-api save/netlist intact - no fixup needed. (S14 run (c); the fixup machinery stays
+for the simple-name case.)
+
+## 2026-07-28 [placement] place_anneal separation refs absent from the board were silently dropped
+A refdes rename (R2 -> R2A/R2B split) invisibly lost a thermal-separation constraint - the
+anneal ignores unknown refs. Now surfaced as facts.separation_unknown_refs (test-pinned);
+orchestrators must sync constraints refs after any refdes change (sheets.md tracking rule).

@@ -207,6 +207,14 @@ def test_rule_terms(tmp_path_factory):
                                          "min_mm": 100.0}]}}
     eng2, _m2 = _engine(pcb, con)
     assert eng2.rule_total > eng.rule_total   # R1/R2 are < 100 mm apart
+    assert eng2.sep_unknown_refs == []
+    # S14: refs absent from the board must be SURFACED, not silently dropped
+    con_bad = {**SCATTER_CON,
+               "placement": {**SCATTER_CON["placement"],
+                             "separation": [{"a": ["ZZ9"], "b": ["R2"],
+                                             "min_mm": 8.0}]}}
+    eng_bad, _mb = _engine(pcb, con_bad)
+    assert eng_bad.sep_unknown_refs == ["ZZ9"]
     # thermal spreading fires when hot parts sit closer than the spread
     con3 = {**SCATTER_CON, "thermal": [{"ref": "R1", "power_w": 1.0},
                                        {"ref": "R2", "power_w": 1.0}]}

@@ -1,6 +1,6 @@
 ---
 name: ai-ee
-description: End-to-end AI PCB design pipeline (brief -> architecture -> schematic -> placed & routed board -> verified -> DFM-checked -> order-ready JLCPCB package). Invoke via /ai-ee <description> or /ai-ee --resume <workspace>. Orchestrator playbook operational per plan step S13; end-to-end hardening (S14) still pending - expect rough edges on novel briefs.
+description: End-to-end AI PCB design pipeline (brief -> architecture -> schematic -> placed & routed board -> verified -> DFM-checked -> order-ready JLCPCB package). Invoke via /ai-ee <description> or /ai-ee --resume <workspace>. v1 - S14-hardened across three full runs (2L blinky-class, 4L USB device, novel USB-C PD 100W); known limits listed in the playbook.
 ---
 
 # ai-ee orchestrator playbook
@@ -210,12 +210,28 @@ Every Task spawn contains exactly:
 Reviewers (`schematic-reviewer`, `verify-reviewer`) get FRESH context -
 never reuse a generator/router conversation for its own review.
 
-## Known limits (be honest about these)
+## Known limits (be honest about these - v1, post-S14)
 
-- S14 hardening has not run: novel briefs will surface rough edges - record
-  every manual intervention as a decision + LEARNINGS candidate.
 - No field solver: impedance from stackup tables, SI checks geometric.
   Multi-GHz serdes is out of scope; say so if a brief asks.
 - JLCDFM and payment are human steps by design (no public APIs).
 - kipy/IPC is the KiCad-11 migration target; this pin drives SWIG bundled
   python via the edit scripts - never bypass them.
+- route_cleanup's loop-breaker regressed on every S14 live run: treat it as
+  dry-run-inspect-cherry-pick or skip; never blind-apply.
+- Drill-spacing models are incomplete two ways (S14-proven): stitch_vias'
+  hole floor is center-point (cannot see slot extents), and KiCad DRC never
+  checks a via drill against a same-net THT pad drill - the DRC gate +
+  route_edit removal is the working recovery; routers must eyeball drills
+  near THT pads.
+- check_current cannot measure pour-channel width on a net with <2 vias
+  (pour_neck needs via anchors) - viasless pour feeds must be disclosed by
+  the router with measured numbers (pd-trigger C1B precedent).
+- No outline-shrink step exists: the P5 outline is final, so requirement
+  caps must bind at board_init (--outline WxH); architecture "target" sizes
+  smaller than the shelf pack are unreachable.
+- placelib pads drop per-pad rotation (extents are rotation-safe via bbox;
+  per-pad geometry is not); rules_gen emits one Power netclass at max width
+  (split classes in .kicad_pro when widths diverge - router.md pattern).
+- order_quote undercounts Extended feeder fees; every figure is
+  estimated:true and the JLC cart is the only real quote.

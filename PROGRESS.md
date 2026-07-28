@@ -21,7 +21,7 @@ Session protocol: repo `CLAUDE.md` ("run step N"). Update this file + commit at 
 | S11 | Routing pipeline | **done** | 2026-07-23 |
 | S12 | Fab outputs, DFM, ordering | **done** | 2026-07-24 |
 | S13 | Agents, orchestrator, SKILL.md | **done** | 2026-07-27 |
-| S14 | End-to-end hardening | pending | |
+| S14 | End-to-end hardening | **done** (v1 FROZEN) | 2026-07-28 |
 
 Dependency graph (plan): S0 -> S1 -> S2 -> S3 -> {S4, S5}; S0 -> S6 -> S7; S2 -> S8 -> S9 -> S10 -> S11;
 {S5, S7, S8, S11} -> S12 -> S13 -> S14. S4-S7 may run in parallel with S8-S10 (separate sessions/terminals).
@@ -77,11 +77,11 @@ kickoff prompt to allow multi-agent workflows (higher token spend - use where ma
 | V10 | Flipped (back-side) footprint pad geometry | S3, spec 6.3 | **RESOLVED S3 (Fable review)**: built a SWIG-flipped fixture (flip_fixture.py); pcbnew bakes the mirror INTO the file (locals mirrored, angles negated, layers renamed B.*), so the front-side transform covers flipped parts with NO special handling. geom's original mirror+swap DOUBLE-flipped - removed; 15/15 pads exact vs pcbnew; regression test in test_geom.py. |
 | V11 | "Remove unused inner via pads" not modeled | S3 | geom treats a through via as copper on ALL inner layers (matches corpus + oracle default). A board enabling JLC's inner-pad removal would over-count inner via copper. S8 did not add it (rules_gen has no via-pad-removal knob); revisit at S12 DFM if used. |
 | V12 | Controlled-impedance geometry not validated vs JLC's calculator | S8, spec P5 | S8 `lib/impedance.py` computes trace width/diff gap from IPC-2141A microstrip + the published edge-coupled correction (50R/1.6mm FR4 -> 3.02mm matches textbook ~2.95mm; diff round-trips exactly). These are first-order estimates for sizing DRU rules + S5 targets; only OUTER-layer microstrip is modelled (no inner stripline). Confirm against JLC's online impedance calculator before ordering a controlled-impedance board (S12/S14). |
-| V13 | route_cleanup loop-breaker vs plane-mediated connectivity | S11 | Can remove a load-bearing segment when connectivity runs through a fill (union-find/fill edge); SELF-DETECTED (exit 1 cleanup_regression, board left modified) and rolled back by the caller. **S13 decision: cleanup stays OPTIONAL** - the restore-and-continue pattern is codified in SKILL.md's fix-loop special cases + router.md; root-causing the union-find/fill edge remains open (S14+). |
+| V13 | route_cleanup loop-breaker vs plane-mediated connectivity | S11 | **CLOSED S14 (as v1 disposition)**: regressed on ALL THREE live boards (2L x2, 4L would-have via dry-run) - demoted to dry-run-inspect-cherry-pick or skip (router.md + SKILL.md); root cause (union-find/fill edge) documented, not fixed - v1 known-issue #1. |
 | V14 | Freerouting 2.2.4 DSN-reader recursion on KRT copper | S11 | PolylineTrace.combine infinite recursion before pass 1 on KRT guide-wire copper; mitigated (wedge detection + KRT fallback). Worth an upstream issue with a minimal DSN repro. |
 | V15 | JLCPCB web-viewer upload + polarized-part CPL preview | S12, plan S12 accept | **HUMAN STEP, NOT YET DONE.** Two S12 accept legs need a browser and have no API: (a) upload `usbbuck4_gerbers.zip` to JLC's viewer/quote page and confirm it renders clean, (b) spot-check the rendered CPL preview for 3 polarized parts (D1 LED_0805, plus a diode/electrolytic on a future board). The machine-checkable half (package completeness, hashes, rotation maths) IS tested (test_full_package_flow, test_cpl_rotation_corrections). Do this once before the first real order (S14). |
 | V16 | jlc_pricing.yaml staleness + credentialed ordering API | S12 | order_quote's numbers are transcribed headline prices flagged `estimated: true`, never a quote; JLC's real price depends on panelisation/promotions/region. order_submit implements the manifest + human gate but NOT a live api.jlcpcb.com call (that programme needs an approved access application this host does not have) - `--api` exits 2 with the exact missing prerequisite rather than shipping an untested payment path. Re-verify the table (and wire the API behind `_api_submit()`) when credentials exist. |
-| V17 | No scripted silk/text move op (refdes/value) | S13 | The fixer "silk" domain has no text-move path: place_swig ops cover footprints only, so a silk_over_pad/silk_overlap fix is either a footprint NUDGE via place_edit (within placement legality) or a human waiver - documented in fixer.md/fix_dispatch DOMAINS/SKILL.md. If S14 hits real silk failures, add a move_text op to place_swig (worker + validation + re-parse verify) and a silk-aware term to the P6 stage-3 loop. |
+| V17 | No scripted silk/text move op (refdes/value) | S13 | **RESOLVED S14**: hit on run (a) day one (J1 polarity legend = reviewer ERROR). place_swig/place_edit gained `add_text` (idempotent board-frame silk text) + `move_text` (refdes/value fields), independently sexpdata-verified incl. rotated parents; 9 tests. Drove ~50 move_text refdes sweeps + 3 boards' functional silk packages. fixer.md/fix_dispatch/SKILL.md updated. |
 
 ## S0 - Repo bootstrap and environment (2026-07-06) - DONE
 
@@ -1473,3 +1473,108 @@ unchanged). `check.cmd` green: **586 passed** (566 prior + 20), check_env exit 0
 
 **New verify-later items:** V17 (silk text-move op gap, registered above). V13 updated (cleanup
 stays optional; restore pattern codified).
+
+## S14 - End-to-end hardening (2026-07-27/28) - DONE - v1 FROZEN
+
+**Ran (plan-mandated three full /ai-ee runs; exec plan user-tuned mid-session:
+model-mix subagents [sonnet mechanical / opus judgment / fable for the two
+adversarial reviewers], script phases inline, all checkpoints auto-approved
+per user directive after H1 of run (a)):**
+
+- **(a) `boards/stm32-blinky`** - 2L STM32 blinky-class. Brief -> order-ready
+  (est $18.77/5 assembled), TWO design interactions (P0 batch + H1) <= the M5
+  bar of 5. Highlights: schematic reviewer caught the AMS1117 ceramic-output
+  instability (fixed pre-board: 22uF tantalum + VDDA/VDD3 per DS); P7->P6
+  backward edge exercised for real (U1.8 boxed by neighbour escapes; 1mm
+  cluster relief; attempt 2 = 0/0 + completion 1.0); V17 closed in-run.
+- **(b) `boards/usb-buck`** - 4L STM32 USB-FS device + AP63203 buck, 3-sheet
+  hierarchy. All 5 gates green; USB pair at computed 90R geometry; verify 8/8
+  first try after a constraints correction (uncoupled 5->8mm, structural TVS
+  flow-through span + pull-up stub, decomposition on record).
+- **(c) `boards/pd-trigger`** - the user-chosen novel brief: USB-C PD sink
+  trigger, 5A/100W, CH224K, 2L **2oz** (stackups.yaml entry added), DIP
+  straps, zener-window fallback indication. The full research->architecture->
+  extract->BOUNCE-BACK chain fired: datasheet extraction overturned the LDO
+  topology (CH224K VDD is a shunt; datasheet dropper restored, LDO deleted
+  with reasons); router falsified the placement's CC-displacement premise by
+  measurement and shipped a pour-based 5A fan-in + 3.0mm trunk; final
+  reviewer caught the checker-blind 5A RETURN choke at J1 (0.2mm necks ->
+  rebuilt: 5.68/4.70A per pad, 16 vias) and the missing functional silk
+  package (17 texts; the agent CORRECTED the orchestrator's inverted CFG
+  table to switch-positions). Order-ready, est $19.65/10 assembled.
+
+**Acceptance:** run (a) brief->order-ready with 2 human interactions (bar
+<=5) - MET. All regression tests green: **610 passed** (586 baseline + 24
+added with the fixes), check_env exit 0. PROGRESS closed out with the v1
+known-issues list below. Every manual intervention became a script fix, a
+prompt fix, or a documented human step (35-finding ledger).
+
+**Pipeline defects found by the runs and FIXED (all test-pinned):**
+1. board_swig never copied symbol fields -> LCSC-carrying schematics failed
+   parity; fields now copied + hidden (were VISIBLE-ON-SILK by default).
+2. board_init --schematic SameFileError on the standard P4 layout; samefile skip.
+3. board_init self-check now partitions TRANSIENT silk (cross-part at shelf
+   positions + silk_edge_clearance) from intra-footprint library defects.
+4. kc.py refdes regex accepts suffixed refs (R2A) - unsuffixed under-counted
+   violation refs and mis-classified cross-part silk.
+5. parse_farads multi-token values ("10uF 25V X5R") - pdn_no_bulk FP'd on
+   every real-world bulk cap value string.
+6. check_pdn "pdn": false width-only power entries (pre-protection stubs).
+7. dfm silk sliver warn band <0.05mm2 (EasyEDA body outlines kiss their own
+   mask openings; golden mutant 0.344mm2 stays error).
+8. gerblib FLAT trace caps vs KiCad's circular apertures: phantom island
+   splits (2 FP clearance errors) AND w/2 copper-to-edge understatement
+   (false-negative direction) - round caps.
+9. dfm annular ring measures the UNION of containing flashes (stitch vias
+   tangent to their pads FP'd at -0.095mm).
+10. bom_cpl reads per-footprint LCSC fields from the board (primary
+    ref->lcsc source; S6 parts.json shape has no refs).
+11. route_auto dedups SES-echo copper post-import (FR echoes pre-session
+    guide wires as EXACT same-net duplicates, invisible to DRC - run (a) had
+    shipped 45; retrofit-cleaned + auto for all future runs).
+12. stitch_vias: track-connected pads no longer count toward
+    stitch_impossible (advisory FP).
+13. placelib effective courtyard = union(courtyard, pad-bbox+0.25): EasyEDA
+    courtyards smaller than pad fields let the place gate pass 9 SHORTING
+    pad pairs (run (a) P6) - gate now pad-aware.
+14. place_swig/place_edit add_text/move_text (V17) + TEXT_LAYERS validation
+    + independent sexpdata verify.
+15. place_anneal surfaces separation_unknown_refs (constraint refs absent
+    from the board were silently dropped - a refdes rename lost a rule).
+16. schlib --pins --lib (project symbol libs were invisible to the cache).
+17. reference: stackups.yaml JLC2313_1.6_2oz; checklists/ authored (power,
+    mcu, connector, interface-usb); constraints_schema pdn:false documented.
+18. Prompt fixes: architect LCSC-code ban; board-setup/placement/verify-
+    reviewer CLI forms; datasheet-extractor unique grounding names (parallel
+    race); part-sourcer JLCPCB-placeholder rejection; router netclass-split
+    + cleanup stance; fixer/dispatch silk domain rewritten for the text ops.
+
+**v1 KNOWN-ISSUES (open by disposition; also in SKILL.md Known limits):**
+1. route_cleanup union-find/fill loop-breaker unreliable on pour boards
+   (V13 closed as dry-run/skip disposition; root cause unfixed).
+2. Drill-spacing models incomplete: stitch hole floor is center-point (no
+   slot extents) AND KiCad DRC never checks via-drill vs same-net THT
+   pad-drill (live-proven) - recovery = DRC gate + route_edit removal.
+3. check_current blind to viasless pour-channel widths (router discloses).
+4. No outline-shrink step: P5 outline is final; caps bind at board_init.
+5. placelib FpPad drops per-pad rotation (extents safe via bbox).
+6. rules_gen one-Power-netclass-at-max-width (split in .kicad_pro, pattern
+   in router.md).
+7. order_quote undercounts Extended feeders; estimated:true everywhere.
+8. route_critical diff pairs through flow-through parts peel to a never-run
+   SE follow-up (FR covers; KRT route_diff limitation).
+9. V11 (inner via-pad removal), V12 (impedance vs JLC calculator - run (b)
+   deliberately ordered standard-stackup so still unexercised), V14 (FR
+   wedge upstream report; NOTE: no wedge occurred in any S14 run), V15 (JLC
+   web upload + CPL polarity preview - in every order.json human_steps),
+   V16 (credentialed ordering API) remain open as registered.
+10. EasyEDA library quality requires the S14 defenses (courtyard expansion,
+    silk sanitize protocol, retype pass, EDITS.md convention) - they are
+    load-bearing, not optional.
+
+**Interface notes (post-v1 work):** resume any board via `/ai-ee --resume
+boards/<name>`; the three workspaces are order-ready (fab/order.json
+human_steps = the remaining human actions; NOTHING was purchased). SKILL.md
+is the operational authority; SPEC.md section 9 carries the as-built addenda.
+The S14 finding ledger (35 items) is summarized here; per-run digests in
+each workspace's log/.

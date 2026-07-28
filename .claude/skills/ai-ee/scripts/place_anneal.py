@@ -218,7 +218,14 @@ class Engine:
                            if p.get("net") in self.entries}
         ref2cid = {r: b.cid for b in bodies for r in b.refs}
         self.sep_pairs = []
+        self.sep_unknown_refs: list[str] = []
         for s in placement.get("separation", []):
+            # A separation ref absent from the board silently dropped the
+            # whole constraint (S14: a refdes rename R2 -> R2A/R2B invisibly
+            # lost a thermal-separation rule). Collect and surface them.
+            self.sep_unknown_refs += sorted(
+                {r for r in list(s.get("a", [])) + list(s.get("b", []))
+                 if r not in ref2cid})
             ca = sorted({ref2cid[r] for r in s.get("a", []) if r in ref2cid})
             cb = sorted({ref2cid[r] for r in s.get("b", []) if r in ref2cid})
             for i in ca:
@@ -984,6 +991,7 @@ def anneal(pcb: Path, constraints: dict, decoupling: dict, params: Params,
     best = candidates[0]
     facts = {
         "seed": params.seed,
+        "separation_unknown_refs": sorted(set(engine.sep_unknown_refs)),
         "clusters": len(bodies),
         "movable_clusters": len(ann.free) + len(ann.edge),
         "hpwl_input_mm": hpwl_input,
