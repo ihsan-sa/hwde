@@ -3,8 +3,8 @@
  "board": "pd-trigger",
  "workspace": "boards/pd-trigger",
  "created": "2026-07-28T05:57:45",
- "updated": "2026-07-28T11:55:54",
- "phase": "P9",
+ "updated": "2026-07-28T11:56:34",
+ "phase": "P10",
  "gates": {
   "erc": {
    "phase": "P4",
@@ -111,6 +111,25 @@
      "total": 0
     }
    ]
+  },
+  "dfm": {
+   "phase": "P9",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-07-28T11:56:33",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 20
+   },
+   "history": [
+    {
+     "ts": "2026-07-28T11:56:33",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 20
+    }
+   ]
   }
  },
  "human": {
@@ -133,9 +152,16 @@
    "status": "approved",
    "ts": "2026-07-28T11:55:29",
    "note": "AUTO per directive: verify 8/8 x2, drc_routed 0/0; reviewer 4 err ALL FIXED (J1 return 0.8->5.68/4.70A + 16 vias; 17 silk texts incl. corrected switch-position table), 2 warn (mouth recess -> order docs; outline 48x30 deviation recorded); C1B channels standing waiver. Renders reports/render_final/"
+  },
+  "5": {
+   "status": "approved",
+   "ts": "2026-07-28T11:56:34",
+   "note": "AUTO per directive: order.json ready_for_human; 2oz-selection + PD-only + bring-up steps folded in; payment never automated"
   }
  },
- "artifacts": {},
+ "artifacts": {
+  "order": "fab/order.json"
+ },
  "open_issues": [
   {
    "id": 1,
@@ -912,6 +938,38 @@
    "event": "phase",
    "phase": "P9",
    "prev": "P8"
+  },
+  {
+   "ts": "2026-07-28T11:56:33",
+   "event": "gate",
+   "gate": "dfm",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-07-28T11:56:34",
+   "event": "phase",
+   "phase": "P10",
+   "prev": "P9"
+  },
+  {
+   "ts": "2026-07-28T11:56:34",
+   "event": "human",
+   "checkpoint": "5",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-07-28T11:56:34",
+   "event": "artifact",
+   "name": "order",
+   "path": "fab/order.json"
+  },
+  {
+   "ts": "2026-07-28T11:56:34",
+   "event": "run_complete",
+   "gates": "all pass",
+   "order": "ready_for_human"
   }
  ]
 }
