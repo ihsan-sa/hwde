@@ -1,0 +1,1696 @@
+{
+ "block": "mcu-net",
+ "board": "LUM-CAR-A",
+ "source": "parts_search.py live JLCPCB search (source 'live' on every query, no --db fallback), 2026-07-28; datasheets pulled via the wmsc.lcsc.com PDF mirror and read with pypdf / PDF vision, not from memory",
+ "recommendation": "ESP32-S3-WROOM-1-N8 (C2913198) + W5500 (C32843) + HY931147C PoE magjack (C91754) + X322525MRB4SI 25 MHz 18 pF crystal (C70593). Module beats bare chip decisively at qty 14: WROOM-1-N8 is 4.6428 USD vs ~4.49 USD for ESP32-S3 + external W25Q64 (delta ~0.16 USD/unit, ~2 USD over 14 boards) or ~3.36 USD for ESP32-S3FN8 + crystal + match (delta ~1.28 USD/unit, ~18 USD over 14 boards, on only 165 pcs of stock). The RJ45 is the fussy item: the popular HR911105A is NOT PoE-capable, and only four PoE magjacks exist on LCSC at all.",
+ "open_decisions": [
+  "Q7 (module vs bare chip): the entire module premium is 2-18 USD across the whole 14-board build. Recommend the module.",
+  "Q8 (radio functional?): if yes, a ~6 x 18 mm antenna keep-out at a board edge becomes a PERMANENT P5 outline constraint (MECH-02, no shrink step). If no, WROOM-1U-N8 (C2980297) removes it entirely.",
+  "PD front-end topology decides the magjack: integrated-bridge (HY931147C / HR861153C, pre-rectified V+/V-) vs raw 4 centre taps (HR871150C, external bridges). Only HR871150C publishes a power rating (35 W using all 4 centre taps), which is what D-01's 802.3at-capable power stage needs - but it has 209 pcs in stock."
+ ],
+ "count": 21,
+ "candidates": [
+  {
+   "lcsc": "C2913198",
+   "mpn": "ESP32-S3-WROOM-1-N8",
+   "brand": "Espressif Systems",
+   "description": "-40\u2103~+85\u2103 -98.2dBm 2.4GHz 20.5dBm 355mA 3V~3.6V 95mA Bluetooth5.0 ESP32-S3 Chip On-board PCB Antenna UART\u3001SPI\u3001I2C\u3001I2S\u3001USB SMD,25.5x18mm WiFi Modules ROHS",
+   "package": "SMD,25.5x18mm",
+   "category": "WiFi Modules",
+   "type": "Extended",
+   "basic": false,
+   "stock": 6895,
+   "price": 5.3271,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 5.3271
+    },
+    {
+     "qty": 10,
+     "price": 4.6428
+    },
+    {
+     "qty": 30,
+     "price": 4.2362
+    },
+    {
+     "qty": 100,
+     "price": 3.8263
+    },
+    {
+     "qty": 650,
+     "price": 3.6359
+    },
+    {
+     "qty": 1300,
+     "price": 3.5503
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2410301608_Espressif-Systems-ESP32-S3-WROOM-1-N8_C2913198.pdf",
+   "url": "https://www.lcsc.com/product-detail/wifi-modules_espressif-systems-esp32-s3-wroom-1-n8_C2913198.html",
+   "attributes": [
+    {
+     "name": "Antenna Type",
+     "value": "On-board PCB Antenna"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+85\u2103"
+    },
+    {
+     "name": "Sensitivity",
+     "value": "-98.2dBm"
+    },
+    {
+     "name": "Output Power",
+     "value": "20.5dBm"
+    },
+    {
+     "name": "Voltage - Supply",
+     "value": "3V~3.6V"
+    },
+    {
+     "name": "Frequency",
+     "value": "2.4GHz"
+    },
+    {
+     "name": "Utilized IC / Part",
+     "value": "ESP32-S3 Chip"
+    },
+    {
+     "name": "Interface Type",
+     "value": "UART\u3001SPI\u3001I2C\u3001I2S\u3001USB"
+    },
+    {
+     "name": "Send  Current",
+     "value": "355mA"
+    },
+    {
+     "name": "Wireless Standard",
+     "value": "Bluetooth5.0"
+    },
+    {
+     "name": "Receive  Current",
+     "value": "95mA"
+    }
+   ],
+   "subblock": "esp32-s3-module",
+   "rank_in_subblock": 1,
+   "verdict": "lead",
+   "note": "ESP32-S3-WROOM-1-N8: exactly the Q7 provisional default (8 MB quad flash, no PSRAM). -40~+85 degC ambient (R8 variants are capped at +65 degC). No octal PSRAM means IO35/IO36/IO37 stay free for the expansion connector. PCB antenna -> needs the ~6 x 18 mm keep-out at a board edge."
+  },
+  {
+   "lcsc": "C2913202",
+   "mpn": "ESP32-S3-WROOM-1-N16R8",
+   "brand": "Espressif Systems",
+   "description": "-103.5dBm -40\u2103~+65\u2103 2.4GHz 20.5dBm 355mA 3V~3.6V 95mA ESP32-S3R8 On-board PCB Antenna UART\u3001SPI\u3001I2C\u3001GPIO\u3001I2S\u3001USB SMD,25.5x18mm WiFi Modules ROHS",
+   "package": "SMD,25.5x18mm",
+   "category": "WiFi Modules",
+   "type": "Extended",
+   "basic": false,
+   "stock": 50238,
+   "price": 5.4965,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 5.4965
+    },
+    {
+     "qty": 10,
+     "price": 4.8785
+    },
+    {
+     "qty": 30,
+     "price": 4.3943
+    },
+    {
+     "qty": 100,
+     "price": 3.9715
+    },
+    {
+     "qty": 650,
+     "price": 3.8198
+    },
+    {
+     "qty": 1300,
+     "price": 3.7537
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2411121101_Espressif-Systems-ESP32-S3-WROOM-1-N16R8_C2913202.pdf",
+   "url": "https://www.lcsc.com/product-detail/wifi-modules_espressif-systems-esp32-s3-wroom-1-n16r8_C2913202.html",
+   "attributes": [
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+65\u2103"
+    },
+    {
+     "name": "Antenna Type",
+     "value": "On-board PCB Antenna"
+    },
+    {
+     "name": "Sensitivity",
+     "value": "-103.5dBm"
+    },
+    {
+     "name": "Output Power",
+     "value": "20.5dBm"
+    },
+    {
+     "name": "Voltage - Supply",
+     "value": "3V~3.6V"
+    },
+    {
+     "name": "Frequency",
+     "value": "2.4GHz"
+    },
+    {
+     "name": "Utilized IC / Part",
+     "value": "ESP32-S3R8"
+    },
+    {
+     "name": "Interface Type",
+     "value": "UART\u3001SPI\u3001I2C\u3001GPIO\u3001I2S\u3001USB"
+    },
+    {
+     "name": "Send  Current",
+     "value": "355mA"
+    },
+    {
+     "name": "Receive  Current",
+     "value": "95mA"
+    }
+   ],
+   "subblock": "esp32-s3-module",
+   "rank_in_subblock": 2,
+   "verdict": "runner-up",
+   "note": "ESP32-S3-WROOM-1-N16R8: deepest stock on LCSC (50k) and only +0.24 USD/unit over N8 at qty 10-29, but the -40~+65 degC ambient ceiling is a poor fit for a sealed enclosure sharing space with a DC-DC (CAR-REQ-18 / Q13), and the octal PSRAM consumes IO35/36/37. Take only if 8 MB flash is judged too small for OTA."
+  },
+  {
+   "lcsc": "C2913197",
+   "mpn": "ESP32-S3-WROOM-1-N4",
+   "brand": "Espressif Systems",
+   "description": "-103.5dBm -40\u2103~+85\u2103 2.4GHz 20.5dBm 355mA 3V~3.6V 95mA Bluetooth5.0 ESP32-S3 On-board PCB Antenna UART\u3001SPI\u3001I2C\u3001GPIO\u3001I2S\u3001USB SMD,25.5x18mm WiFi Modules ROHS",
+   "package": "SMD,25.5x18mm",
+   "category": "WiFi Modules",
+   "type": "Extended",
+   "basic": false,
+   "stock": 5951,
+   "price": 4.6412,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 4.6412
+    },
+    {
+     "qty": 10,
+     "price": 4.1571
+    },
+    {
+     "qty": 30,
+     "price": 3.8699
+    },
+    {
+     "qty": 100,
+     "price": 3.631
+    },
+    {
+     "qty": 650,
+     "price": 3.4696
+    },
+    {
+     "qty": 1300,
+     "price": 3.3986
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2310071156_Espressif-Systems-ESP32-S3-WROOM-1-N4_C2913197.pdf",
+   "url": "https://www.lcsc.com/product-detail/wifi-modules_espressif-systems-esp32-s3-wroom-1-n4_C2913197.html",
+   "attributes": [
+    {
+     "name": "Antenna Type",
+     "value": "On-board PCB Antenna"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+85\u2103"
+    },
+    {
+     "name": "Sensitivity",
+     "value": "-103.5dBm"
+    },
+    {
+     "name": "Output Power",
+     "value": "20.5dBm"
+    },
+    {
+     "name": "Voltage - Supply",
+     "value": "3V~3.6V"
+    },
+    {
+     "name": "Frequency",
+     "value": "2.4GHz"
+    },
+    {
+     "name": "Utilized IC / Part",
+     "value": "ESP32-S3"
+    },
+    {
+     "name": "Interface Type",
+     "value": "UART\u3001SPI\u3001I2C\u3001GPIO\u3001I2S\u3001USB"
+    },
+    {
+     "name": "Send  Current",
+     "value": "355mA"
+    },
+    {
+     "name": "Wireless Standard",
+     "value": "Bluetooth5.0"
+    },
+    {
+     "name": "Receive  Current",
+     "value": "95mA"
+    }
+   ],
+   "subblock": "esp32-s3-module",
+   "rank_in_subblock": 3,
+   "verdict": "alternate",
+   "note": "ESP32-S3-WROOM-1-N4: cheapest WROOM-1 (4.1571 USD @10) and -40~+85 degC, but 4 MB flash is tight for the Q9 default (Ethernet OTA needs two app partitions + NVS). Saves ~0.49 USD/unit = ~7 USD over 14 boards - not worth the lost OTA headroom."
+  },
+  {
+   "lcsc": "C2913206",
+   "mpn": "ESP32-S3-MINI-1-N8",
+   "brand": "Espressif Systems",
+   "description": "-104.5dBm -40\u2103~+85\u2103 2.4GHz 20.5dBm 330mA 3V~3.6V 97mA Bluetooth5.0 ESP32-S3FN8 Chip On-board PCB Antenna UART\u3001SPI\u3001I2C\u3001I2S\u3001USB SMD WiFi Modules ROHS",
+   "package": "SMD",
+   "category": "WiFi Modules",
+   "type": "Extended",
+   "basic": false,
+   "stock": 4086,
+   "price": 5.0366,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 5.0366
+    },
+    {
+     "qty": 10,
+     "price": 4.4605
+    },
+    {
+     "qty": 30,
+     "price": 4.1668
+    },
+    {
+     "qty": 100,
+     "price": 3.6423
+    },
+    {
+     "qty": 650,
+     "price": 3.5003
+    },
+    {
+     "qty": 1300,
+     "price": 3.4406
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2411121055_Espressif-Systems-ESP32-S3-MINI-1-N8_C2913206.pdf",
+   "url": "https://www.lcsc.com/product-detail/wifi-modules_espressif-systems-esp32-s3-mini-1-n8_C2913206.html",
+   "attributes": [
+    {
+     "name": "Antenna Type",
+     "value": "On-board PCB Antenna"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+85\u2103"
+    },
+    {
+     "name": "Sensitivity",
+     "value": "-104.5dBm"
+    },
+    {
+     "name": "Output Power",
+     "value": "20.5dBm"
+    },
+    {
+     "name": "Voltage - Supply",
+     "value": "3V~3.6V"
+    },
+    {
+     "name": "Frequency",
+     "value": "2.4GHz"
+    },
+    {
+     "name": "Utilized IC / Part",
+     "value": "ESP32-S3FN8 Chip"
+    },
+    {
+     "name": "Interface Type",
+     "value": "UART\u3001SPI\u3001I2C\u3001I2S\u3001USB"
+    },
+    {
+     "name": "Send  Current",
+     "value": "330mA"
+    },
+    {
+     "name": "Receive  Current",
+     "value": "97mA"
+    },
+    {
+     "name": "Wireless Standard",
+     "value": "Bluetooth5.0"
+    }
+   ],
+   "subblock": "esp32-s3-module",
+   "rank_in_subblock": 4,
+   "verdict": "alternate",
+   "note": "ESP32-S3-MINI-1-N8: 15.4 x 15.4 mm vs 25.5 x 18 mm, 0.18 USD/unit cheaper than WROOM-1-N8. NOT footprint-compatible with WROOM-1, exposes a SUBSET of the GPIOs (must be checked against this board's ~26-30 pin budget), and its LGA pads sit under the body (no visual inspection of the joints). Only worth it if the floorplan gets tight."
+  },
+  {
+   "lcsc": "C2980297",
+   "mpn": "ESP32-S3-WROOM-1U-N8",
+   "brand": "Espressif Systems",
+   "description": "-103.5dBm -40\u2103~+85\u2103 2.4GHz 20.5dBm 355mA 3V~3.6V 95mA Bluetooth5.0 ESP32-S3 UART\u3001SPI\u3001I2C\u3001I2S\u3001USB SMD,19.2x18mm WiFi Modules ROHS",
+   "package": "SMD,19.2x18mm",
+   "category": "WiFi Modules",
+   "type": "Extended",
+   "basic": false,
+   "stock": 1352,
+   "price": 5.1318,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 5.1318
+    },
+    {
+     "qty": 10,
+     "price": 4.596
+    },
+    {
+     "qty": 30,
+     "price": 4.2781
+    },
+    {
+     "qty": 100,
+     "price": 4.0151
+    },
+    {
+     "qty": 650,
+     "price": 3.836
+    },
+    {
+     "qty": 1300,
+     "price": 3.7569
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2411121101_Espressif-Systems-ESP32-S3-WROOM-1U-N8_C2980297.pdf",
+   "url": "https://www.lcsc.com/product-detail/wifi-modules_espressif-systems-esp32-s3-wroom-1u-n8_C2980297.html",
+   "attributes": [
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+85\u2103"
+    },
+    {
+     "name": "Sensitivity",
+     "value": "-103.5dBm"
+    },
+    {
+     "name": "Output Power",
+     "value": "20.5dBm"
+    },
+    {
+     "name": "Voltage - Supply",
+     "value": "3V~3.6V"
+    },
+    {
+     "name": "Frequency",
+     "value": "2.4GHz"
+    },
+    {
+     "name": "Utilized IC / Part",
+     "value": "ESP32-S3"
+    },
+    {
+     "name": "Interface Type",
+     "value": "UART\u3001SPI\u3001I2C\u3001I2S\u3001USB"
+    },
+    {
+     "name": "Send  Current",
+     "value": "355mA"
+    },
+    {
+     "name": "Wireless Standard",
+     "value": "Bluetooth5.0"
+    },
+    {
+     "name": "Receive  Current",
+     "value": "95mA"
+    }
+   ],
+   "subblock": "esp32-s3-module",
+   "rank_in_subblock": 5,
+   "verdict": "conditional",
+   "note": "ESP32-S3-WROOM-1U-N8: u.FL/MHF-I connector instead of the PCB antenna, 6.3 mm shorter (19.2 vs 25.5 mm), NO antenna keep-out. Shares the WROOM-1 land pattern (same 18 mm-wide, 40-pad pattern, just shorter), so a WROOM-1 footprint accepts it. Relevant only if Q8 flips to 'radio permanently unused' (fit no antenna) or if the enclosure turns out metallic. 1352 stock is the thinnest module option."
+  },
+  {
+   "lcsc": "C2913196",
+   "mpn": "ESP32-S3FN8",
+   "brand": "Espressif Systems",
+   "description": "Watchdog reset\u3001Software reset\u3001Built-in general-purpose timer\u3001Built-in temperature sensor\u3001Touch function\u3001True random number generator (TRNG)\u3001Storage encryption\u3001Infrared remote control QFN-56-EP(7x7) Microcontrollers (MCU/MPU/SOC) ROHS",
+   "package": "QFN-56-EP(7x7)",
+   "category": "Microcontrollers (MCU/MPU/SOC)",
+   "type": "Extended",
+   "basic": false,
+   "stock": 165,
+   "price": 3.631,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 3.631
+    },
+    {
+     "qty": 10,
+     "price": 3.2615
+    },
+    {
+     "qty": 30,
+     "price": 3.042
+    },
+    {
+     "qty": 100,
+     "price": 2.858
+    },
+    {
+     "qty": 500,
+     "price": 2.7354
+    },
+    {
+     "qty": 1000,
+     "price": 2.6805
+    }
+   ],
+   "min_qty": 3,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2404011707_Espressif-Systems-ESP32-S3FN8_C2913196.pdf",
+   "url": "https://www.lcsc.com/product-detail/microcontrollers-mcu-mpu-soc_espressif-systems-esp32-s3fn8_C2913196.html",
+   "attributes": [
+    {
+     "name": "Program Memory Type",
+     "value": "FLASH"
+    },
+    {
+     "name": "Core Size",
+     "value": "32 Bit"
+    },
+    {
+     "name": "RAM Size",
+     "value": "512KB"
+    },
+    {
+     "name": "Number of I/O",
+     "value": "45"
+    },
+    {
+     "name": "Features",
+     "value": "Watchdog reset\u3001Software reset\u3001Built-in general-purpose timer\u3001Built-in temperature sensor\u3001Touch function\u3001True random number generator (TRNG)\u3001Storage encryption\u3001Infrared remote control"
+    }
+   ],
+   "subblock": "esp32-s3-bare-chip",
+   "rank_in_subblock": 1,
+   "verdict": "reference-price-only",
+   "note": "ESP32-S3FN8 bare chip, QFN-56-EP(7x7), 8 MB embedded flash. Bare-chip price reference: 3.2615 USD @10 + 40 MHz crystal (C284179, 0.0756) + RF pi-match ~0.02 USD = ~3.36 USD vs 4.6428 USD for WROOM-1-N8 -> delta ~1.28 USD/unit, ~18 USD over 14 boards. STOCK IS ONLY 165 pcs, and the saving buys RF layout, antenna tuning and FCC/CE modular-certification risk on a first spin."
+  },
+  {
+   "lcsc": "C2913192",
+   "mpn": "ESP32-S3",
+   "brand": "Espressif Systems",
+   "description": "-40\u2103~+105\u2103 -98.4dBm 150Mbps 2.412GHz~2.484GHz 2.4GHz 21dBm 340mA 3V~3.6V 88mA SPI\u3001USB\u3001UART\u3001ADC\u3001I2C\u3001I2S\u3001PWM WiFi transceiver QFN-56-EP(7x7) RF Transceiver ICs ROHS",
+   "package": "QFN-56-EP(7x7)",
+   "category": "RF Transceiver ICs",
+   "type": "Extended",
+   "basic": false,
+   "stock": 1819,
+   "price": 2.8516,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 2.8516
+    },
+    {
+     "qty": 10,
+     "price": 2.5482
+    },
+    {
+     "qty": 30,
+     "price": 2.3594
+    },
+    {
+     "qty": 100,
+     "price": 2.127
+    },
+    {
+     "qty": 500,
+     "price": 2.0205
+    },
+    {
+     "qty": 1000,
+     "price": 1.9753
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2310081041_Espressif-Systems-ESP32-S3_C2913192.pdf",
+   "url": "https://www.lcsc.com/product-detail/rf-transceiver-ics_espressif-systems-esp32-s3_C2913192.html",
+   "attributes": [
+    {
+     "name": "Frequency Range",
+     "value": "2.412GHz~2.484GHz"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+105\u2103"
+    },
+    {
+     "name": "Type",
+     "value": "transceiver"
+    },
+    {
+     "name": "Sensitivity",
+     "value": "-98.4dBm"
+    },
+    {
+     "name": "Output Power",
+     "value": "21dBm"
+    },
+    {
+     "name": "Applications",
+     "value": "WiFi"
+    },
+    {
+     "name": "Data Rate",
+     "value": "150Mbps"
+    },
+    {
+     "name": "Voltage - Supply",
+     "value": "3V~3.6V"
+    },
+    {
+     "name": "Receive Current",
+     "value": "88mA"
+    },
+    {
+     "name": "Typical Application Frequency",
+     "value": "2.4GHz"
+    },
+    {
+     "name": "Features",
+     "value": "Supports software reset"
+    },
+    {
+     "name": "Current Of Transmitting",
+     "value": "340mA"
+    },
+    {
+     "name": "Interface",
+     "value": "SPI\u3001USB\u3001UART\u3001ADC\u3001I2C\u3001I2S\u3001PWM"
+    }
+   ],
+   "subblock": "esp32-s3-bare-chip",
+   "rank_in_subblock": 2,
+   "verdict": "reference-price-only",
+   "note": "ESP32-S3 bare chip (no embedded flash), QFN-56-EP(7x7). With external W25Q64 (C179171, 1.8381 USD): 2.5482 + 1.8381 = 4.386 USD + crystal/match ~0.10 = ~4.49 USD vs 4.6428 USD for the module -> delta ~0.16 USD/unit, ~2 USD over 14 boards. At this quantity the bare-chip route saves essentially nothing."
+  },
+  {
+   "lcsc": "C179171",
+   "mpn": "W25Q64JVSSIQ",
+   "brand": "Winbond Elec",
+   "description": "-40\u2103~+85\u2103 100,000 cycles 10uA 133MHz 150ms@(64KB) 2.7V~3.6V 20 Years 3ms 64Mbit SPI SOIC-8-208mil NOR FLASH ROHS",
+   "package": "SOIC-8-208mil",
+   "category": "NOR FLASH",
+   "type": "Extended",
+   "basic": false,
+   "stock": 29853,
+   "price": 1.8381,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 1.8381
+    },
+    {
+     "qty": 140,
+     "price": 1.6025
+    },
+    {
+     "qty": 420,
+     "price": 1.4363
+    },
+    {
+     "qty": 1400,
+     "price": 1.2846
+    },
+    {
+     "qty": 7000,
+     "price": 1.2152
+    },
+    {
+     "qty": 14000,
+     "price": 1.1862
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_1912211532_Winbond-Elec-W25Q64JVSSIQ_C179171.pdf",
+   "url": "https://www.lcsc.com/product-detail/nor-flash_winbond-elec-w25q64jvssiq_C179171.html",
+   "attributes": [
+    {
+     "name": "Data Retention - TDR (Year)",
+     "value": "20 Years"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+85\u2103"
+    },
+    {
+     "name": "Clock Frequency",
+     "value": "133MHz"
+    },
+    {
+     "name": "Memory Size",
+     "value": "64Mbit"
+    },
+    {
+     "name": "Page Programming Time (Tpp)",
+     "value": "3ms"
+    },
+    {
+     "name": "Voltage - Supply",
+     "value": "2.7V~3.6V"
+    },
+    {
+     "name": "Block Erase Time(tBE)",
+     "value": "150ms@(64KB)"
+    },
+    {
+     "name": "Features",
+     "value": "Power-on reset\u3001Hardware write protection\u3001Software write protection\u3001Write enable latch\u3001Absolute write protection"
+    },
+    {
+     "name": "Interface",
+     "value": "SPI"
+    },
+    {
+     "name": "Standby Supply Current",
+     "value": "10uA"
+    },
+    {
+     "name": "Program / Erase Cycles",
+     "value": "100,000 cycles"
+    }
+   ],
+   "subblock": "esp32-s3-bare-chip",
+   "rank_in_subblock": 3,
+   "verdict": "reference-price-only",
+   "note": "W25Q64JVSSIQ 64 Mbit SPI NOR, SOIC-8-208mil, 29853 stock. Priced only to quantify the bare-chip route; not needed if a module is used. There is no JLC Basic 64 Mbit SOIC-8 flash (a --basic-only search returned empty)."
+  },
+  {
+   "lcsc": "C284179",
+   "mpn": "TXM40M0004322HBCEO00T",
+   "brand": "Yajingxin",
+   "description": "-40\u2103~+85\u2103 15pF 30\u03a9 40MHz Crystal Oscillator \u00b110ppm \u00b130ppm SMD3225-4P Crystals ROHS",
+   "package": "SMD3225-4P",
+   "category": "Crystals",
+   "type": "Extended",
+   "basic": false,
+   "stock": 40637,
+   "price": 0.0756,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0756
+    },
+    {
+     "qty": 100,
+     "price": 0.0599
+    },
+    {
+     "qty": 300,
+     "price": 0.0522
+    },
+    {
+     "qty": 3000,
+     "price": 0.0407
+    },
+    {
+     "qty": 6000,
+     "price": 0.036
+    },
+    {
+     "qty": 9000,
+     "price": 0.0338
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1809211229_Yajingxin-TXM40M0004322HBCEO00T_C284179.pdf",
+   "url": "https://www.lcsc.com/product-detail/crystals_yajingxin-txm40m0004322hbceo00t_C284179.html",
+   "attributes": [
+    {
+     "name": "Load Capacitance",
+     "value": "15pF"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+85\u2103"
+    },
+    {
+     "name": "Type",
+     "value": "Crystal Oscillator"
+    },
+    {
+     "name": "Normal temperature Frequency Tolerance",
+     "value": "\u00b110ppm"
+    },
+    {
+     "name": "Equivalent Series Resistance(ESR)",
+     "value": "30\u03a9"
+    },
+    {
+     "name": "Frequency Stability",
+     "value": "\u00b130ppm"
+    },
+    {
+     "name": "Frequency",
+     "value": "40MHz"
+    }
+   ],
+   "subblock": "esp32-s3-bare-chip",
+   "rank_in_subblock": 4,
+   "verdict": "reference-price-only",
+   "note": "TXM40M0004322HBCEO00T 40 MHz SMD3225-4P, CL 15 pF, +/-30 ppm - the ESP32-S3 bare chip's mandatory main crystal. Priced only to complete the bare-chip comparison."
+  },
+  {
+   "lcsc": "C32843",
+   "mpn": "W5500",
+   "brand": "WIZNET",
+   "description": "-40\u2103~+85\u2103 10BASE-T\u3001100BASE-TX 3.3V 32KB 8 SPI SPI Yes LQFP-48(7x7) Ethernet Controllers ROHS",
+   "package": "LQFP-48(7x7)",
+   "category": "Ethernet Controllers",
+   "type": "Extended",
+   "basic": false,
+   "stock": 34016,
+   "price": 2.7354,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 2.7354
+    },
+    {
+     "qty": 10,
+     "price": 2.3804
+    },
+    {
+     "qty": 30,
+     "price": 2.1286
+    },
+    {
+     "qty": 100,
+     "price": 1.8994
+    },
+    {
+     "qty": 500,
+     "price": 1.7929
+    },
+    {
+     "qty": 1000,
+     "price": 1.751
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2410121618_WIZNET-W5500_C32843.pdf",
+   "url": "https://lcsc.com/product-detail/ethernet-controllers_wiznet-w5500_C32843.html",
+   "attributes": [
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+85\u2103"
+    },
+    {
+     "name": "Memory Space",
+     "value": "32KB"
+    },
+    {
+     "name": "Voltage - Supply",
+     "value": "3.3V"
+    },
+    {
+     "name": "Features",
+     "value": "Wake-up function\u3001Programmable LED indication\u3001Low-power mode"
+    },
+    {
+     "name": "Communication Interface",
+     "value": "SPI"
+    },
+    {
+     "name": "MAC Interface",
+     "value": "SPI"
+    },
+    {
+     "name": "Integrated PHY",
+     "value": "Yes"
+    },
+    {
+     "name": "Ethernet Speed Standards",
+     "value": "10BASE-T\u3001100BASE-TX"
+    }
+   ],
+   "subblock": "w5500",
+   "rank_in_subblock": 1,
+   "verdict": "lead",
+   "note": "W5500, WIZnet, LQFP-48 (7x7, 0.5 mm pitch). The ONLY orderable W5500 on LCSC - 34016 stock, Extended, 2.3804 USD @10 / 2.1286 USD @30. Datasheet: 3.3 V on VDD + AVDD, internal 1.2 V regulator (1V2O pin + TOCAP decoupling), 12.4 k 1% from EXRES1 to AGND, SPI mode 0/3 rated to 80 MHz, 5 V-tolerant I/O, 4 dedicated LED outputs (SPD/LINK/DUP/ACT, active low). SINGLE SOURCE - see risks."
+  },
+  {
+   "lcsc": "C194673",
+   "mpn": "W5100S-L",
+   "brand": "WIZNET",
+   "description": "-40\u2103~+85\u2103 3.3V 4 LQFP-48(7x7) Ethernet Transceivers ROHS",
+   "package": "LQFP-48(7x7)",
+   "category": "Ethernet Transceivers",
+   "type": "Extended",
+   "basic": false,
+   "stock": 4816,
+   "price": 2.4417,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 2.4417
+    },
+    {
+     "qty": 10,
+     "price": 2.0899
+    },
+    {
+     "qty": 30,
+     "price": 1.8688
+    },
+    {
+     "qty": 100,
+     "price": 1.4734
+    },
+    {
+     "qty": 500,
+     "price": 1.3717
+    },
+    {
+     "qty": 1000,
+     "price": 1.3282
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_1810010153_WIZNET-W5100S-L_C194673.pdf",
+   "url": "https://www.lcsc.com/product-detail/ethernet-transceivers_wiznet-w5100s-l_C194673.html",
+   "attributes": [
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+85\u2103"
+    },
+    {
+     "name": "Voltage - Supply",
+     "value": "3.3V"
+    },
+    {
+     "name": "Number of ports",
+     "value": "4"
+    },
+    {
+     "name": "Features",
+     "value": "Programmable LED indication\u3001Low-power mode"
+    },
+    {
+     "name": "Ethernet Speed Standards",
+     "value": "10BASE-T\u3001100BASE-TX"
+    }
+   ],
+   "subblock": "w5500",
+   "rank_in_subblock": 2,
+   "verdict": "not-a-drop-in",
+   "note": "W5100S-L: same LQFP-48 7x7 body and healthy stock (4816, 2.0899 USD @10), but a DIFFERENT pinout and a different register map / SPI framing. Swapping to it is a schematic + firmware respin, not a stuffing option. Listed so it is not mistaken for a second source."
+  },
+  {
+   "lcsc": "C911393",
+   "mpn": "W6100",
+   "brand": "WIZNET",
+   "description": "LQFP-48(7x7) Ethernet Transceivers ROHS",
+   "package": "LQFP-48(7x7)",
+   "category": "Ethernet Transceivers",
+   "type": "Extended",
+   "basic": false,
+   "stock": 1668,
+   "price": 4.4137,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 4.4137
+    },
+    {
+     "qty": 10,
+     "price": 3.8085
+    },
+    {
+     "qty": 30,
+     "price": 3.4487
+    },
+    {
+     "qty": 100,
+     "price": 3.0856
+    },
+    {
+     "qty": 500,
+     "price": 2.9177
+    },
+    {
+     "qty": 1000,
+     "price": 2.8419
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2010291008_WIZNET-W6100_C911393.pdf",
+   "url": "https://www.lcsc.com/product-detail/ethernet-transceivers_wiznet-w6100_C911393.html",
+   "attributes": [],
+   "subblock": "w5500",
+   "rank_in_subblock": 3,
+   "verdict": "not-a-drop-in",
+   "note": "W6100 (IPv4/IPv6 dual stack, LQFP-48, 1668 stock, 3.8085 USD @10). WIZnet documents the W6100 as PIN-2-PIN compatible with the W5100S, NOT the W5500 (verified against WIZnet's own store listing and developer forum). Not a W5500 alternate."
+  },
+  {
+   "lcsc": "C91754",
+   "mpn": "HY931147C",
+   "brand": "HANRUN(Zhongshan HanRun Elec)",
+   "description": "1 RJ45 Jack Right Angle Shielded With Contact Spring With LED With PoE \u63d2\u4ef6 Ethernet Connectors / Modular Connectors (RJ45 RJ11) ROHS",
+   "package": "Plugin",
+   "category": "Ethernet Connectors / Modular Connectors (RJ45 RJ11)",
+   "type": "Extended",
+   "basic": false,
+   "stock": 7693,
+   "price": 2.5643,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 2.5643
+    },
+    {
+     "qty": 10,
+     "price": 2.148
+    },
+    {
+     "qty": 30,
+     "price": 1.9253
+    },
+    {
+     "qty": 100,
+     "price": 1.659
+    },
+    {
+     "qty": 500,
+     "price": 1.538
+    },
+    {
+     "qty": 1000,
+     "price": 1.4847
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2411121146_HANRUN-Zhongshan-HanRun-Elec-HY931147C_C91754.pdf",
+   "url": "https://www.lcsc.com/product-detail/ethernet-connectors-modular-connectors-rj45-rj11_hanrun-zhongshan-hanrun-elec-hy931147c_C91754.html",
+   "attributes": [
+    {
+     "name": "Number of Ports",
+     "value": "1"
+    },
+    {
+     "name": "PoE",
+     "value": "With PoE"
+    },
+    {
+     "name": "Connector Type",
+     "value": "RJ45 Jack"
+    },
+    {
+     "name": "Supplementary Features",
+     "value": "With Contact Spring"
+    },
+    {
+     "name": "LED",
+     "value": "With LED"
+    },
+    {
+     "name": "Shielding",
+     "value": "Shielded"
+    },
+    {
+     "name": "Mounting Type",
+     "value": "Right Angle"
+    }
+   ],
+   "subblock": "rj45-poe-magjack",
+   "rank_in_subblock": 1,
+   "verdict": "lead",
+   "note": "HY931147C (HanRun) - datasheet title: 'Single Port RJ45 Connector with LEDs and Integrated Magnetics for 10/100Base-TX PoE application'. Schematic: 2 x 1CT:1 transformers whose line-side taps feed an INTEGRATED rectifier network brought out as V+ (P9) / V- (P10); 350 uH min OCL @100 kHz/100 mV with 8 mA DC bias (the IEEE802.3af magnetics requirement); 1500 Vrms isolation (P2+P5 to J2+J3). LEDs: yellow (left, 585 nm) + green (right, 568 nm), 20 mA, Vf 1.8-2.8 V. THT right-angle tab-down, 16.00 mm wide x 21.60 mm max deep x 15.21 mm high, 10 signal pins (0.89 mm holes) + 4 LED pins (1.02 mm) + 2 x 3.25 mm + 2 x 1.63 mm posts. JLCPCB assembly SUPPORTED (part page: Assembly Type = Wave Soldering, PCBA type Economic and Standard). 16x the stock of any other PoE magjack on LCSC."
+  },
+  {
+   "lcsc": "C19724786",
+   "mpn": "HR871150C",
+   "brand": "HANRUN(Zhongshan HanRun Elec)",
+   "description": "0\u2103~+70\u2103 1 Gold Phosphor bronze RJ45 Jack Right Angle Shielded With Contact Spring With LED With PoE \u63d2\u4ef6 Ethernet Connectors / Modular Connectors (RJ45 RJ11) ROHS",
+   "package": "Plugin",
+   "category": "Ethernet Connectors / Modular Connectors (RJ45 RJ11)",
+   "type": "Extended",
+   "basic": false,
+   "stock": 209,
+   "price": 2.0544,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 2.0544
+    },
+    {
+     "qty": 10,
+     "price": 1.7397
+    },
+    {
+     "qty": 29,
+     "price": 1.5412
+    },
+    {
+     "qty": 87,
+     "price": 1.3395
+    },
+    {
+     "qty": 580,
+     "price": 1.2475
+    },
+    {
+     "qty": 870,
+     "price": 1.2071
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2312221758_HANRUN-Zhongshan-HanRun-Elec-HR871150C_C19724786.pdf",
+   "url": "https://www.lcsc.com/product-detail/ethernet-connectors-modular-connectors-rj45-rj11_hanrun-zhongshan-hanrun-elec-hr871150c_C19724786.html",
+   "attributes": [
+    {
+     "name": "Operating Temperature",
+     "value": "0\u2103~+70\u2103"
+    },
+    {
+     "name": "Number of Ports",
+     "value": "1"
+    },
+    {
+     "name": "PoE",
+     "value": "With PoE"
+    },
+    {
+     "name": "Contact Plating",
+     "value": "Gold"
+    },
+    {
+     "name": "Connector Type",
+     "value": "RJ45 Jack"
+    },
+    {
+     "name": "Contact Material",
+     "value": "Phosphor bronze"
+    },
+    {
+     "name": "Supplementary Features",
+     "value": "With Contact Spring"
+    },
+    {
+     "name": "LED",
+     "value": "With LED"
+    },
+    {
+     "name": "Shielding",
+     "value": "Shielded"
+    },
+    {
+     "name": "Mounting Type",
+     "value": "Right Angle"
+    }
+   ],
+   "subblock": "rj45-poe-magjack",
+   "rank_in_subblock": 2,
+   "verdict": "electrically-preferred-but-thin",
+   "note": "HR871150C (HanRun) - the textbook PD magjack: FOUR RAW CENTRE TAPS brought out as VC1+ (P7), VC1- (P8), VC2+ (P9), VC2- (P10), with no internal bridge, so the PD front end owns its own Mode A + Mode B diode bridges. Datasheet states 'Designed To Support 57VDC, 350mA per centre taps (17.5W when using 2 centre taps; 35W when using 4 centre taps)' - the ONLY candidate that publishes a power rating, and the only one documenting headroom past the 802.3at 25.5 W that D-01's power stage targets. 2250 VDC isolation, 350 uH @8 mA OCL, integrated 4 x 22 nF/100 V + 4 x 75 ohm Bob Smith network. Same yellow/green LED set. Remark on the drawing: 'Remove Pin#6'. JLC assembly SUPPORTED (Wave Soldering). BLOCKER: only 209 in stock - 14 boards with zero spares."
+  },
+  {
+   "lcsc": "C19724782",
+   "mpn": "HR861153C",
+   "brand": "HANRUN(Zhongshan HanRun Elec)",
+   "description": "0\u2103~+70\u2103 1 Gold Phosphor bronze RJ45 Jack Right Angle Shielded With Contact Spring With LED With PoE \u63d2\u4ef6 Ethernet Connectors / Modular Connectors (RJ45 RJ11) ROHS",
+   "package": "Plugin",
+   "category": "Ethernet Connectors / Modular Connectors (RJ45 RJ11)",
+   "type": "Extended",
+   "basic": false,
+   "stock": 471,
+   "price": 2.687,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 2.687
+    },
+    {
+     "qty": 10,
+     "price": 2.2738
+    },
+    {
+     "qty": 29,
+     "price": 2.0156
+    },
+    {
+     "qty": 87,
+     "price": 1.751
+    },
+    {
+     "qty": 580,
+     "price": 1.6316
+    },
+    {
+     "qty": 870,
+     "price": 1.5799
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2312221758_HANRUN-Zhongshan-HanRun-Elec-HR861153C_C19724782.pdf",
+   "url": "https://www.lcsc.com/product-detail/ethernet-connectors-modular-connectors-rj45-rj11_hanrun-zhongshan-hanrun-elec-hr861153c_C19724782.html",
+   "attributes": [
+    {
+     "name": "Operating Temperature",
+     "value": "0\u2103~+70\u2103"
+    },
+    {
+     "name": "Number of Ports",
+     "value": "1"
+    },
+    {
+     "name": "PoE",
+     "value": "With PoE"
+    },
+    {
+     "name": "Contact Plating",
+     "value": "Gold"
+    },
+    {
+     "name": "Connector Type",
+     "value": "RJ45 Jack"
+    },
+    {
+     "name": "Contact Material",
+     "value": "Phosphor bronze"
+    },
+    {
+     "name": "Supplementary Features",
+     "value": "With Contact Spring"
+    },
+    {
+     "name": "LED",
+     "value": "With LED"
+    },
+    {
+     "name": "Shielding",
+     "value": "Shielded"
+    },
+    {
+     "name": "Mounting Type",
+     "value": "Right Angle"
+    }
+   ],
+   "subblock": "rj45-poe-magjack",
+   "rank_in_subblock": 3,
+   "verdict": "alternate",
+   "note": "HR861153C (HanRun) - integrated 'TBBS' bridge out to V+ (P9) / V- (P10), GND on P7, P8 NC. 2250 VDC isolation (better than HY931147C's 1500 Vrms), 350 uH @8 mA OCL, 2 x 1000 pF/2 kV + 2 x 75 ohm termination. Same yellow/green LEDs, same THT right-angle body (16.00 x 21.20 mm). Remark: 'Remove Pin#8'. JLC assembly SUPPORTED (Wave Soldering). 471 stock and 0.13 USD/unit dearer than HY931147C - treat as the same-topology second source for HY931147C, not a first choice."
+  },
+  {
+   "lcsc": "C22457393",
+   "mpn": "LPJG0926HENL",
+   "brand": "--",
+   "description": "0\u2103~+70\u2103 1 Gold Phosphor bronze RJ45 Jack Right Angle Shielded With LED With PoE Plugin Ethernet Connectors / Modular Connectors (RJ45 RJ11) ROHS",
+   "package": "Plugin",
+   "category": "Ethernet Connectors / Modular Connectors (RJ45 RJ11)",
+   "type": "Extended",
+   "basic": false,
+   "stock": 3111,
+   "price": 4.4056,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 4.4056
+    },
+    {
+     "qty": 10,
+     "price": 3.7892
+    },
+    {
+     "qty": 50,
+     "price": 3.4228
+    },
+    {
+     "qty": 100,
+     "price": 3.0533
+    },
+    {
+     "qty": 500,
+     "price": 2.8822
+    },
+    {
+     "qty": 1000,
+     "price": 2.8048
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "",
+   "url": "",
+   "attributes": [
+    {
+     "name": "Operating Temperature",
+     "value": "0\u2103~+70\u2103"
+    },
+    {
+     "name": "Number of Ports",
+     "value": "1"
+    },
+    {
+     "name": "PoE",
+     "value": "With PoE"
+    },
+    {
+     "name": "Contact Plating",
+     "value": "Gold"
+    },
+    {
+     "name": "Connector Type",
+     "value": "RJ45 Jack"
+    },
+    {
+     "name": "Contact Material",
+     "value": "Phosphor bronze"
+    },
+    {
+     "name": "LED",
+     "value": "With LED"
+    },
+    {
+     "name": "Shielding",
+     "value": "Shielded"
+    },
+    {
+     "name": "Mounting Type",
+     "value": "Right Angle"
+    }
+   ],
+   "subblock": "rj45-poe-magjack",
+   "rank_in_subblock": 4,
+   "verdict": "unverified",
+   "note": "LPJG0926HENL (Link-PP) - LCSC parametrics say 'With PoE', THT right-angle, shielded, with LEDs, 3111 stock, but LCSC carries NO datasheet for it, so centre-tap/bridge topology, isolation rating and LED colours are UNVERIFIED. Also the most expensive at 3.7892 USD @10 (1.8x HY931147C). Do not commit without the manufacturer drawing."
+  },
+  {
+   "lcsc": "C12074",
+   "mpn": "HR911105A",
+   "brand": "HANRUN(Zhongshan HanRun Elec)",
+   "description": "0\u2103~+70\u2103 1 Filtered Gold Non-PoE Phosphor bronze RJ45 Jack Right Angle Shielded With LED \u63d2\u4ef6 Ethernet Connectors / Modular Connectors (RJ45 RJ11) ROHS",
+   "package": "Plugin",
+   "category": "Ethernet Connectors / Modular Connectors (RJ45 RJ11)",
+   "type": "Extended",
+   "basic": false,
+   "stock": 48280,
+   "price": 1.8171,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 1.8171
+    },
+    {
+     "qty": 10,
+     "price": 1.5509
+    },
+    {
+     "qty": 31,
+     "price": 1.3104
+    },
+    {
+     "qty": 93,
+     "price": 1.1216
+    },
+    {
+     "qty": 496,
+     "price": 1.0458
+    },
+    {
+     "qty": 992,
+     "price": 1.007
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2409302333_HANRUN-Zhongshan-HanRun-Elec-HR911105A_C12074.pdf",
+   "url": "https://www.lcsc.com/product-detail/ethernet-connectors-modular-connectors-rj45-rj11_hanrun-zhongshan-hanrun-elec-hr911105a_C12074.html",
+   "attributes": [
+    {
+     "name": "Operating Temperature",
+     "value": "0\u2103~+70\u2103"
+    },
+    {
+     "name": "Number of Ports",
+     "value": "1"
+    },
+    {
+     "name": "PoE",
+     "value": "Non-PoE"
+    },
+    {
+     "name": "Contact Plating",
+     "value": "Gold"
+    },
+    {
+     "name": "Connector Type",
+     "value": "RJ45 Jack"
+    },
+    {
+     "name": "Contact Material",
+     "value": "Phosphor bronze"
+    },
+    {
+     "name": "Supplementary Features",
+     "value": "Filtered"
+    },
+    {
+     "name": "LED",
+     "value": "With LED"
+    },
+    {
+     "name": "Shielding",
+     "value": "Shielded"
+    },
+    {
+     "name": "Mounting Type",
+     "value": "Right Angle"
+    }
+   ],
+   "subblock": "rj45-poe-magjack",
+   "rank_in_subblock": 99,
+   "verdict": "rejected",
+   "note": "HR911105A - REJECTED, stated loudly because it is the default magjack in most hobby ESP32/W5500 designs and has the deepest stock and lowest price of any magjack here (48280 pcs, 1.5509 USD @10). Its datasheet schematic has NO power pins: chip-side P4/P5 are winding centre taps for bypassing only, P7 is NC, P8 is chassis GND, and the spare pairs J4/J5/J7/J8 terminate into the 4 x 75 ohm + 1000 pF/2 kV Bob Smith network. LCSC's own parametric agrees: PoE = 'Non-PoE'. Same rejection for HR911130A (C54408, 9942), HY951180A (C34677, 8823), HR911130C (C50933, 4226), HR961160C (C55683, 2672), HR871181A (C49312, 1804), HY911130A (C55679, 1539) and HY911102A (C21842, 489) - every one is 'Non-PoE'."
+  },
+  {
+   "lcsc": "C70593",
+   "mpn": "X322525MRB4SI",
+   "brand": "YXC Crystal Oscillators",
+   "description": "-40\u2103~+85\u2103 18pF 25MHz Crystal Oscillator \u00b110ppm \u00b120ppm SMD3225-4P Crystals ROHS",
+   "package": "SMD3225-4P",
+   "category": "Crystals",
+   "type": "Extended",
+   "basic": false,
+   "stock": 34358,
+   "price": 0.0951,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0951
+    },
+    {
+     "qty": 50,
+     "price": 0.0753
+    },
+    {
+     "qty": 150,
+     "price": 0.0654
+    },
+    {
+     "qty": 500,
+     "price": 0.058
+    },
+    {
+     "qty": 3000,
+     "price": 0.0477
+    },
+    {
+     "qty": 6000,
+     "price": 0.0448
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2403291504_YXC-Crystal-Oscillators-X322525MRB4SI_C70593.pdf",
+   "url": "https://www.lcsc.com/product-detail/crystals_yxc-crystal-oscillators-x322525mrb4si_C70593.html",
+   "attributes": [
+    {
+     "name": "Load Capacitance",
+     "value": "18pF"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+85\u2103"
+    },
+    {
+     "name": "Type",
+     "value": "Crystal Oscillator"
+    },
+    {
+     "name": "Normal temperature Frequency Tolerance",
+     "value": "\u00b110ppm"
+    },
+    {
+     "name": "Equivalent Series Resistance(ESR)",
+     "value": "50\u03a9"
+    },
+    {
+     "name": "Frequency Stability",
+     "value": "\u00b120ppm"
+    },
+    {
+     "name": "Frequency",
+     "value": "25MHz"
+    }
+   ],
+   "subblock": "xtal-25mhz",
+   "rank_in_subblock": 1,
+   "verdict": "lead",
+   "note": "X322525MRB4SI (YXC) SMD3225-4P: CL 18 pF - EXACTLY the W5500 datasheet value. W5500 v1.1.0 section 5.5.3 Crystal Characteristics: 25 MHz, frequency tolerance +/-30 ppm at 25 degC, shunt capacitance 7 pF max, drive level 59.12 uW, load capacitance 18 pF, aging +/-3 ppm/year max. This part is +/-10 ppm at 25 degC and +/-20 ppm over -40~+85 degC, ESR 50 ohm - inside spec with margin on both. 34358 stock, 0.0951 USD @1 / 0.0753 USD @50."
+  },
+  {
+   "lcsc": "C19078191",
+   "mpn": "XL2EL89CRI-111YLC-25M",
+   "brand": "YXC Crystal Oscillators",
+   "description": "-40\u2103~+85\u2103 18pF 25MHz 50\u03a9 Crystal Oscillator \u00b110ppm \u00b120ppm SMD3225-4P Crystals ROHS",
+   "package": "SMD3225-4P",
+   "category": "Crystals",
+   "type": "Extended",
+   "basic": false,
+   "stock": 14107,
+   "price": 0.0856,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0856
+    },
+    {
+     "qty": 50,
+     "price": 0.0688
+    },
+    {
+     "qty": 150,
+     "price": 0.0604
+    },
+    {
+     "qty": 500,
+     "price": 0.0541
+    },
+    {
+     "qty": 3000,
+     "price": 0.0489
+    },
+    {
+     "qty": 6000,
+     "price": 0.0465
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2403291505_YXC-Crystal-Oscillators-XL2EL89CRI-111YLC-25M_C19078191.pdf",
+   "url": "https://www.lcsc.com/product-detail/crystals_yxc-crystal-oscillators-xl2el89cri-111ylc-25m_C19078191.html",
+   "attributes": [
+    {
+     "name": "Load Capacitance",
+     "value": "18pF"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+85\u2103"
+    },
+    {
+     "name": "Type",
+     "value": "Crystal Oscillator"
+    },
+    {
+     "name": "Normal temperature Frequency Tolerance",
+     "value": "\u00b110ppm"
+    },
+    {
+     "name": "Equivalent Series Resistance(ESR)",
+     "value": "50\u03a9"
+    },
+    {
+     "name": "Frequency Stability",
+     "value": "\u00b120ppm"
+    },
+    {
+     "name": "Frequency",
+     "value": "25MHz"
+    }
+   ],
+   "subblock": "xtal-25mhz",
+   "rank_in_subblock": 2,
+   "verdict": "second-source",
+   "note": "XL2EL89CRI-111YLC-25M (YXC): identical parametrics to the lead (SMD3225-4P, CL 18 pF, +/-10 ppm at 25 degC, +/-20 ppm over -40~+85 degC, ESR 50 ohm) and cheaper at 0.0856 USD @1, 14107 stock. Same footprint -> a true drop-in second source, so the crystal is NOT single-sourced."
+  },
+  {
+   "lcsc": "C9006",
+   "mpn": "X322525MOB4SI",
+   "brand": "YXC Crystal Oscillators",
+   "description": "-40\u2103~+85\u2103 12pF 25MHz Crystal Oscillator \u00b110ppm \u00b120ppm SMD3225-4P Crystals ROHS",
+   "package": "SMD3225-4P",
+   "category": "Crystals",
+   "type": "Basic",
+   "basic": true,
+   "stock": 231198,
+   "price": 0.0956,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0956
+    },
+    {
+     "qty": 50,
+     "price": 0.0764
+    },
+    {
+     "qty": 150,
+     "price": 0.0665
+    },
+    {
+     "qty": 500,
+     "price": 0.0585
+    },
+    {
+     "qty": 3000,
+     "price": 0.0502
+    },
+    {
+     "qty": 6000,
+     "price": 0.0483
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2403291504_YXC-Crystal-Oscillators-X322525MOB4SI_C9006.pdf",
+   "url": "https://www.lcsc.com/product-detail/crystals_yxc-crystal-oscillators-x322525mob4si_C9006.html",
+   "attributes": [
+    {
+     "name": "Load Capacitance",
+     "value": "12pF"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+85\u2103"
+    },
+    {
+     "name": "Type",
+     "value": "Crystal Oscillator"
+    },
+    {
+     "name": "Normal temperature Frequency Tolerance",
+     "value": "\u00b110ppm"
+    },
+    {
+     "name": "Equivalent Series Resistance(ESR)",
+     "value": "50\u03a9"
+    },
+    {
+     "name": "Frequency Stability",
+     "value": "\u00b120ppm"
+    },
+    {
+     "name": "Frequency",
+     "value": "25MHz"
+    }
+   ],
+   "subblock": "xtal-25mhz",
+   "rank_in_subblock": 3,
+   "verdict": "basic-tradeoff",
+   "note": "X322525MOB4SI (YXC) - the ONLY JLC BASIC 25 MHz crystal (231198 stock, 0.0956 USD @1), same SMD3225-4P footprint and same +/-10 ppm / +/-20 ppm grade, but CL 12 pF not 18 pF. Usable if the external load caps are re-computed (~2 x (12 - Cstray) ~ 18 pF each instead of ~2 x (18 - Cstray) ~ 30 pF each), but it departs from the W5500's stated 18 pF, which shifts oscillator gain margin. Take it only to dodge the Extended feeder fee, and raise it explicitly at schematic sign-off."
+  },
+  {
+   "lcsc": "C90912",
+   "mpn": "7M25000014",
+   "brand": "TXC Corp",
+   "description": "-10\u2103~+70\u2103 18pF 25MHz \u00b110ppm \u00b110ppm SMD3225-4P Crystals ROHS",
+   "package": "SMD3225-4P",
+   "category": "Crystals",
+   "type": "Extended",
+   "basic": false,
+   "stock": 5016,
+   "price": 0.1773,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.1773
+    },
+    {
+     "qty": 50,
+     "price": 0.1406
+    },
+    {
+     "qty": 150,
+     "price": 0.125
+    },
+    {
+     "qty": 500,
+     "price": 0.1054
+    },
+    {
+     "qty": 3000,
+     "price": 0.0967
+    },
+    {
+     "qty": 6000,
+     "price": 0.0916
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2410121820_TXC-Corp-7M25000014_C90912.pdf",
+   "url": "https://www.lcsc.com/product-detail/crystals_txc-corp-7m25000014_C90912.html",
+   "attributes": [
+    {
+     "name": "Load Capacitance",
+     "value": "18pF"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-10\u2103~+70\u2103"
+    },
+    {
+     "name": "Normal temperature Frequency Tolerance",
+     "value": "\u00b110ppm"
+    },
+    {
+     "name": "Frequency Stability",
+     "value": "\u00b110ppm"
+    },
+    {
+     "name": "Frequency",
+     "value": "25MHz"
+    }
+   ],
+   "subblock": "xtal-25mhz",
+   "rank_in_subblock": 4,
+   "verdict": "alternate",
+   "note": "7M25000014 (TXC) SMD3225-4P, CL 18 pF, +/-10 ppm at 25 degC AND +/-10 ppm over temperature - tightest stability of the set. Downsides: -10~+70 degC operating range only (vs -40~+85), 1.9x the price (0.1773 USD @1), 5016 stock. No benefit here since the W5500 only asks for +/-30 ppm."
+  }
+ ]
+}

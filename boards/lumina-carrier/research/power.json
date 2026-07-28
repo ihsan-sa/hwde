@@ -1,0 +1,398 @@
+{
+  "_note": "P1 power-architect output for lumina-carrier (LUM-CAR-A). Net names are CONVENTIONAL, not final - re-key every entry against the P4 netlist before merging into constraints.json. thermal_constraints and placement_hints refdes are PROPOSALS: check_thermal exits 2 on a refdes with no pads, so re-key or delete them at P3. voltage_constraints maps to constraints.json[\"voltages\"] and placement_hints to constraints.json[\"placement\"]; both are carried under their own keys because the agreed power.json shape has no slot for them. Prose, derivations and the two-column budget table: research/power.md.",
+
+  "_headline": [
+    "The budget closes on af AND at with 12-16 % PD-input margin and the brief's 8.5 W / 18.5 W to the light engine survives - but the '~10 W regulated available minus 1.5 W overhead' chain in 00 s5.1 double-counts regulator loss. Replace with a single computed carrier overhead of 2.44 W (af) / 3.75 W (at).",
+    "Taking daughter power on +48V_SW instead of +12V saves 1.54 W at the at operating point (no conversion loss) and removes the board's only real hot spot. Second independent argument for D-02; put it in the ICD as guidance to daughter designers.",
+    "The 48->12 buck is the entire thermal problem: 1.35-1.94 W in a sealed unventilated box whose internal air is already ~69 C at 40 C ambient (at case). Build 1 (af, 1.07 W) is comfortable. The at upgrade stays a BOARD resistor change but acquires an ENCLOSURE dependency (vents). D-01 survives; the dependency must be written down.",
+    "Three parts can silently pin the design to Type 1 as surely as the class resistor: the PD controller (must natively do 2-event / Type 2 classification), the magjack (must be PoE-rated 600 mA/pair), and the 48->12 stage's copper (must be laid out for the at dissipation build 1 never produces).",
+    "Q6's '48 V raw 2 A continuous / 3 A capability' is a CONNECTOR PIN rating, not a rail spec - 2 A at 48 V is 96 W on a 25.5 W supply. Rail hardware limit 1.0 A, ICD sustained limit 0.25 A (af) / 0.5 A (at). See open[0].",
+    "IEEE 802.3 caps PD port capacitance at ~180 uF and the daughter's bank is 2800 uF, so the 48 V load switch is a COMPLIANCE requirement, not only the CAR-REQ-14 protection feature: it must be off through PD power-up and inrush, closing only after firmware asserts ENABLE.",
+    "The U2 thermal entry (1.35 W, dt_c 70) is satisfiable on 4 layers and not on 2. Combined with the 100BASE-TX pairs and board-wide 0.60 mm creepage around 48 V copper, 4-layer is required, not preferred."
+  ],
+
+  "rails": [
+    {
+      "net": "VPOE",
+      "vin": "RJ45 magjack centre taps -> two diode bridges (Mode A and Mode B) in parallel; 37-57 V nominal at the PD, 57 V is the component rating worst case",
+      "topology": "direct (rectified PoE input; two bridges, one conducts at a time)",
+      "current_a": 0.6,
+      "current_a_typ": 0.228,
+      "current_a_peak": 0.6,
+      "consumers": [
+        {
+          "ref": "U1",
+          "part": "802.3 PD front end: 25.0 kohm +/-1 % detection signature, Rclass, UVLO ~38/30 V, inrush limit, hot-swap FET",
+          "typ_a": 0.228,
+          "peak_a": 0.6,
+          "basis": "IEEE 802.3 PD maximum input current is 350 mA (Type 1) and 600 mA (Type 2); peak_a is the Type 2 standard limit. typ_a is this budget's af operating point (10.94 W at 48 V). At the minimum input voltages the same power draws 0.296 A at 37 V (af) and 0.524 A at 42.5 V (at), both inside the standard limits - so the class limit binds on POWER, not current."
+        },
+        {
+          "ref": "U1",
+          "part": "classification current sink (transient)",
+          "typ_a": 0.0,
+          "peak_a": 0.04,
+          "basis": "802.3 class-event window: up to 40 mA at up to 20 V for < 75 ms. Transient inside the controller; not a steady thermal item."
+        }
+      ],
+      "dissipation_w": 0.26,
+      "notes": "Loss breakdown at the af operating point: magjack PoE-path DCR ~0.03 W, conducting bridge 2 x Vf = 0.19 W, hot-swap FET + sense 0.04 W. At the at operating point: 0.14 / 0.40 / 0.16 W = 0.70 W total. Use a LOW-Vf bridge (Vf <= 0.5 V at 0.6 A): standard silicon costs an extra 0.36 W at the at point and needs its own copper pour. Two bridges are mandatory for 802.3 compliance (Mode A / Mode B, either polarity) - not a design choice - and both need the same copper because which one conducts is the installer's cable, not the designer's choice. pdn:false - this stub is a rectifier output, the PD bulk cap lives on +48V downstream of the hot-swap FET."
+    },
+    {
+      "net": "+48V",
+      "vin": "VPOE through U1's hot-swap FET",
+      "topology": "direct (PD rail)",
+      "current_a": 1.5,
+      "current_a_typ": 0.449,
+      "current_a_peak": 1.5,
+      "consumers": [
+        {
+          "ref": "U2",
+          "part": "48 V -> 12 V synchronous buck, input rating >= 80 V",
+          "typ_a": 0.449,
+          "peak_a": 0.47,
+          "basis": "at operating point: 19.61 W out of the 12 V rail / 91 % = 21.55 W in at 48 V. af operating point is 0.222 A."
+        },
+        {
+          "ref": "Q1",
+          "part": "48 V high-side load switch to the expansion connector, 100 V rated, ~1.0 A current limit, latch-off",
+          "typ_a": 0.5,
+          "peak_a": 1.0,
+          "basis": "ICD sustained limit 0.25 A (af) / 0.5 A (at) for cap-bank recharge; peak_a is the switch's own current limit, which is the CAR-REQ-14 backstop."
+        },
+        {
+          "ref": "C_BULK",
+          "part": "PD bulk capacitance, 22-47 uF, 100 V rated (ceramic or aluminium-polymer, NOT electrolytic)",
+          "typ_a": 0.0,
+          "peak_a": 0.0,
+          "basis": "IEEE 802.3 caps PD port capacitance at ~180 uF (verify against 802.3 Clause 33 at P2). 22-47 uF keeps inrush short and leaves the ceiling untouched. Aluminium electrolytic is the wrong technology here: internal enclosure air is 56-69 C and electrolytic life halves per 10 C."
+        }
+      ],
+      "dissipation_w": 0.0,
+      "notes": "current_a 1.5 is the worst-case sum (buck at max + load switch at its limit, briefly, supplied off C_BULK). It is NOT a sustained figure: the PD front end can never pass more than 600 mA sustained by standard, and the PSE removes power after ~50-75 ms of overload. 57 V rating basis; 0.60 mm outer-layer clearance to EVERY other net on the board (IPC-2221 51-100 V band)."
+    },
+    {
+      "net": "+48V_SW",
+      "vin": "+48V through Q1, gated by ENABLE",
+      "topology": "direct (switched/fused pass-through, no regulation)",
+      "current_a": 1.0,
+      "current_a_typ": 0.5,
+      "current_a_peak": 1.0,
+      "consumers": [
+        {
+          "ref": "J2",
+          "part": "expansion connector, 48 V raw pins (D-02)",
+          "typ_a": 0.5,
+          "peak_a": 1.0,
+          "basis": "Charging 2800 uF to 48 V is 3.23 J; a full D-02 48->40 V discharge window is 0.99 J (matches the brief's '1 J'). Sustained recharge is capped by the total PoE envelope, not by this rail: 8.5 W supports 8.6 full-window flashes/s (af), 18.5 W supports 18.8/s (at). At the SYS-REQ-03 ceiling of 25 Hz the governor must shorten the window to 0.34 J (af, 48->45.4 V droop) or 0.74 J (at, 48->42.1 V). Cold-start charge time at the ICD limit: 0.54 s at 0.25 A (af), 0.27 s at 0.5 A (at). peak_a is Q1's current limit."
+        },
+        {
+          "ref": "R_BLEED",
+          "part": "100 kohm carrier-side bleed on the connector side of Q1",
+          "typ_a": 0.0005,
+          "peak_a": 0.0005,
+          "basis": "23 mW. De-energises the 48 V connector pins whenever ENABLE is low, so the mezzanine interface is not left live when firmware is not running. Complements (does not replace) the daughter's own bleed path, which CAR-REQ-17 mandates for the 2800 uF store."
+        }
+      ],
+      "dissipation_w": 0.02,
+      "notes": "Zero conversion loss - the reason D-02 collapses the strobe bank from ~33 000 uF to ~2800 uF, and independently the reason at-upgrade headroom is 1.54 W cheaper here than on +12V. Q1 does FOUR jobs and is not optional: (1) keeps the daughter's 2800 uF outside the ~180 uF 802.3 Cport window during PD power-up; (2) CAR-REQ-14 survivability against a shorted or mis-seated daughter; (3) the hardware half of the CAR-REQ-08 fail-safe ENABLE chain; (4) de-energises the connector pins. Fault case: 48 W across Q1 at its 1.0 A limit, so SOA rating plus latch-off in < 1 ms is mandatory, and a fuse behind it covers a FET that fails short. pdn:false - the bulk capacitance for this rail lives on the daughter by design (CAR-REQ-14)."
+    },
+    {
+      "net": "+12V",
+      "vin": "+48V via U2 (non-isolated synchronous buck, Vin rating >= 80 V)",
+      "topology": "buck",
+      "regulator": "non-isolated synchronous buck, >= 80 V input rating, >= 2.0 A, >= 93.5 % at 48 Vin / 12 V / 1.63 A (part choice at P2/P3)",
+      "current_a": 2.0,
+      "current_a_typ": 1.634,
+      "current_a_peak": 2.0,
+      "consumers": [
+        {
+          "ref": "U3",
+          "part": "12 V -> 3.3 V buck input",
+          "typ_a": 0.231,
+          "peak_a": 0.34,
+          "basis": "+3V3 rail delivers 2.43 W; at 88 % that is 2.76 W drawn from +12V."
+        },
+        {
+          "ref": "J2",
+          "part": "expansion connector, 12 V regulated pins (D-02)",
+          "typ_a": 1.75,
+          "peak_a": 1.75,
+          "basis": "ICD limit = the 2.0 A converter rating less the carrier's own 0.23 A branch. The realistic at-case maximum is 1.634 A because the PD class limit, not the converter, is what actually binds. Q6's provisional '12 V 2 A' is adopted as the CONVERTER RATING; 2 A sustained would be 24 W, above even the at envelope."
+        }
+      ],
+      "dissipation_w": 1.94,
+      "notes": "dissipation_w is the at-case loss with a typical 91 %-efficient 60 V monolithic buck; the DECLARED thermal constraint is 1.35 W (93.5 %) and that is a selection REQUIREMENT, not a prediction - see thermal_constraints[0].notes. af-case loss is 1.07 W. An LDO is not a candidate here: (48-12) x 1.63 = 59 W. The real topology choice is buck vs isolated flyback and that is Q5 - worth ~10 efficiency points and ~1.5 W of delivered power (af margin falls from 2.01 W to 0.59 W if it flips). PART EXCLUSIONS, restated as a correction not an open question (00 s5.3): LM2596 (40 V) and LMR33630 (3.8-36 V) cannot be used on this rail. Select for hiccup or latching OCP so CAR-REQ-14 survivability covers a 12 V short too, not just the 48 V rail. IPC-2152: 1.100 mm on 1 oz at dT 10 - 1 oz is sufficient, no 2 oz stackup needed."
+    },
+    {
+      "net": "+3V3",
+      "vin": "+12V via U3 (buck)",
+      "topology": "buck",
+      "regulator": "12 V -> 3.3 V buck, >= 1.0 A, current limit >= 1.3 A (part choice at P2/P3)",
+      "current_a": 1.0,
+      "current_a_typ": 0.736,
+      "current_a_peak": 1.212,
+      "consumers": [
+        {
+          "ref": "U4",
+          "part": "ESP32-S3-WROOM-1 module (Q7 default: 8 MB flash, no PSRAM)",
+          "typ_a": 0.075,
+          "peak_a": 0.5,
+          "basis": "Datasheet typical: Wi-Fi TX 802.11b DSSS 1 Mbps at +21 dBm = 355 mA; the module datasheet asks for a supply able to deliver >= 500 mA, which is what peak_a records. Sustained budget is CPU 240 MHz dual-core with the radio in modem-sleep (datasheet band 40-68 mA) plus SPI-flash access = 75 mA. Q8 makes the radio a debug fallback, so TX is a millisecond burst served by >= 22 uF of local low-ESR bulk, never a sustained rail load - but it must not brown the rail out. CONFIRM the exact figures against the datasheet extract (component-scout)."
+        },
+        {
+          "ref": "U5",
+          "part": "W5500 Ethernet controller",
+          "typ_a": 0.135,
+          "peak_a": 0.183,
+          "basis": "Datasheet power-consumption table, 100 Mbps link up + transmitting: 132 mA typ / 183 mA max. This INCLUDES the 100BASE-TX line drive into the magjack, so the magnetics are not a separate line item and must not be double-counted. The W5500 regulates its own core internally (the 1V2 pin wants decoupling, not a supply), so no separate analog rail is needed - a ferrite bead plus local bulk is the right noise answer. CONFIRM against the datasheet extract."
+        },
+        {
+          "ref": "J1",
+          "part": "RJ45 magjack, data side",
+          "typ_a": 0.0,
+          "peak_a": 0.0,
+          "basis": "Passive. Its PoE-path DCR loss is counted on the 48 V side (VPOE.dissipation_w); its line-drive current is inside the W5500 figure. SELECTION CONSTRAINT: must be PoE-rated for 600 mA per pair (Type 2). An af-only or data-only magjack is one of the parts that would silently pin the design to Type 1 and break D-01."
+        },
+        {
+          "ref": "Y1",
+          "part": "25 MHz crystal + 2 load caps (CAR-REQ-04)",
+          "typ_a": 0.001,
+          "peak_a": 0.001,
+          "basis": "Oscillator drive is inside the W5500 figure; listed for completeness. Noise-sensitive: keep U2's switching node away from it (see placement_hints)."
+        },
+        {
+          "ref": "D_LED",
+          "part": "status LEDs - 3 in the magjack (W5500 open-drain LINK/ACT/SPD) + 1 board LED beside the RJ45 cutout (Q11 default)",
+          "typ_a": 0.02,
+          "peak_a": 0.02,
+          "basis": "4 x 5 mA. Design choice, not a datasheet figure."
+        },
+        {
+          "ref": "U6",
+          "part": "daughter-ID / carrier ID EEPROM, 24xx series (Q10 default keeps both EEPROM and divider)",
+          "typ_a": 0.001,
+          "peak_a": 0.003,
+          "basis": "uA standby, ~3 mA during a write. Typical 24xx family figure."
+        },
+        {
+          "ref": "R_BIAS",
+          "part": "I2C pull-ups (2 x 4k7), FAULT pull-up (10k), ID divider, ENABLE pull-down (10k)",
+          "typ_a": 0.005,
+          "peak_a": 0.005,
+          "basis": "Worst-case simultaneous-low arithmetic on the declared pull-ups. The ENABLE pull-down is load-bearing for CAR-REQ-08: it, not the MCU, is what holds ENABLE de-asserted while the MCU is in reset."
+        },
+        {
+          "ref": "J2",
+          "part": "expansion connector, 3.3 V logic pins (D-02: daughter logic and sense only, NEVER LED current)",
+          "typ_a": 0.5,
+          "peak_a": 0.5,
+          "basis": "Q6 provisional default. 1.65 W, which is 19 % of the whole af light-engine budget spent on daughter logic - see open[3], recommend 0.25 A in the ICD."
+        }
+      ],
+      "dissipation_w": 0.33,
+      "notes": "Carrier-only subtotal 236 mA = 0.78 W (typ) / 712 mA (peak); +30 % headroom = 307 mA. With the provisional daughter allocation the rail is 736 mA sustained and 1212 mA for milliseconds. An LDO is not a candidate: (12-3.3) x 0.736 = 6.4 W, a fifth of the entire at budget. The 48->12->3.3 chain is mandated by D-02 and is also technically better than a direct 48->3.3 buck, which would run at 6.9 % duty (a 138 ns on-time at 500 kHz, at or below many parts' minimum) and need a second >= 60 V converter. dissipation_w is U3's loss at 88 %."
+    },
+    {
+      "net": "GND",
+      "vin": "-",
+      "topology": "direct (plane)",
+      "current_a": 2.5,
+      "current_a_typ": 2.4,
+      "current_a_peak": 2.5,
+      "consumers": [],
+      "dissipation_w": 0.0,
+      "notes": "Deliberately ABSENT from power_constraints. check_current applies a net's declared current to every track segment on it, and a ground net accumulates short thin stubs (decoupling, TVS return, test points) that would each error with no per-region exception available before P7. The requirement is structural instead: a continuous unslotted plane under the whole power path, and >= 4 expansion-connector pins (brief s4.1) carrying the ~2.4 A aggregate return. In the provisional non-isolated topology (Q5) this net IS the PD-side negative rail and the whole board floats at PoE potential relative to earth - bench consequence: an earthed scope needs an isolated PSE/injector or a differential probe."
+    }
+  ],
+
+  "power_constraints": [
+    {"net": "VPOE",    "current_a": 0.6, "dt_c": 10, "via_amps": 0.5, "pdn": false},
+    {"net": "+48V",    "current_a": 1.5, "dt_c": 10, "via_amps": 0.5},
+    {"net": "+48V_SW", "current_a": 1.0, "dt_c": 10, "via_amps": 0.5, "pdn": false},
+    {"net": "+12V",    "current_a": 2.0, "dt_c": 10, "via_amps": 0.5},
+    {"net": "+3V3",    "current_a": 1.0, "dt_c": 10, "via_amps": 0.5}
+  ],
+
+  "voltage_constraints": [
+    {"net": "VPOE",    "voltage": 57},
+    {"net": "+48V",    "voltage": 57},
+    {"net": "+48V_SW", "voltage": 57},
+    {"net": "+12V",    "voltage": 12},
+    {"net": "+3V3",    "voltage": 3.3},
+    {"net": "GND",     "voltage": 0}
+  ],
+
+  "thermal_constraints": [
+    {
+      "ref": "U2", "power_w": 1.35, "net": "GND", "dt_c": 70, "min_vias": 12,
+      "role": "48 V -> 12 V synchronous buck",
+      "notes": "REQUIREMENT, NOT A PREDICTION. 1.35 W corresponds to 93.5 % efficiency at 48 Vin / 12 V / 1.634 A (the at operating point with the whole daughter budget on +12V). A typical 91 % monolithic 60 V buck loses 1.94 W and CANNOT pass check_thermal at any dt_c below ~100 C on 4 layers, because the model's theta_JA bottoms out at ~51 C/W with a saturated pour. If the selected part exceeds 1.35 W, change the part or change the enclosure answer - do NOT quietly raise dt_c. This entry also decides the stackup: 1.35 W at dt_c 70 passes on 4 layers (69 C) and fails on 2 (100 C). Heatsink net GND assumes a GND-referenced exposed pad; if the selected part's pad is the switch node, re-key net."
+    },
+    {
+      "ref": "D1", "power_w": 0.5, "net": "GND", "dt_c": 40, "min_vias": 4,
+      "role": "Mode A input bridge",
+      "notes": "0.40 W at the at operating point with a low-Vf bridge (Vf <= 0.5 V at 0.6 A); declared at 0.5 W for margin. A standard silicon bridge is 0.76 W and needs dt_c 40 on 4 layers only - prefer low-Vf. Only one of D1/D2 conducts at a time, but which one is the installer's cable, so BOTH need this copper."
+    },
+    {
+      "ref": "D2", "power_w": 0.5, "net": "GND", "dt_c": 40, "min_vias": 4,
+      "role": "Mode B input bridge",
+      "notes": "See D1."
+    }
+  ],
+
+  "placement_hints": {
+    "separation": [
+      {"a": ["U2", "L1", "Q1"], "b": ["U5", "Y1", "J1"], "min_mm": 25,
+       "reason": "CAR-REQ-18 heat, plus U2's switching node away from the 25 MHz crystal, the 100BASE-TX differential pairs and the magjack"},
+      {"a": ["U2", "L1"], "b": ["U4"], "min_mm": 20,
+       "reason": "heat, plus RF: the ESP32-S3-WROOM-1 antenna keep-out sits at a board edge (Q8 default keeps the radio functional)"}
+    ],
+    "icd_hot_zone": "Q13's default removes airflow, so CAR-REQ-18 must be answered by separation - and in a stacked mezzanine (Q4 default, daughter 15 mm above) the daughter's drivers sit VERTICALLY over the carrier, which an in-plane rule on the carrier alone cannot address. Put the DC-DC block (U2 + inductor + input/output caps + Q1) in one ~30 x 30 mm corner diagonally opposite the RJ45, and declare that (x, y) region a hot zone in architecture/connector-icd.md: every daughter keeps its LED drivers AND its aluminium electrolytics out of the corresponding footprint region."
+  },
+
+  "budget": {
+    "_basis": "Design operating point = deliver the brief's full light-engine allocation with the daughter taking it on +12V, which is the worst case for the carrier. Efficiencies: bridge low-Vf, 48->12 at 90 % (af) / 91 % (at), 12->3.3 at 88 %. Full table with the per-stage subtractions: research/power.md s2.",
+    "af": {
+      "class_programmed": 3,
+      "pd_input_limit_w": 12.95,
+      "pd_input_voltage_v": "37-57",
+      "pd_input_max_current_a": 0.35,
+      "front_end_loss_w": 0.26,
+      "at_48v_node_w": 10.68,
+      "buck_48_12_loss_w": 1.07,
+      "at_12v_rail_w": 9.61,
+      "at_12v_rail_a": 0.801,
+      "buck_12_3v3_loss_w": 0.33,
+      "at_3v3_rail_w": 2.43,
+      "at_3v3_rail_a": 0.736,
+      "carrier_silicon_on_3v3_w": 0.78,
+      "delivered_at_connector_w": 8.5,
+      "delivered_3v3_w": 1.65,
+      "delivered_12v_or_48v_w": 6.85,
+      "pd_input_consumed_w": 10.94,
+      "pd_input_consumed_a_at_vmin": 0.296,
+      "headroom_w": 2.01,
+      "headroom_pct": 15.5,
+      "carrier_overhead_w": 2.44
+    },
+    "at": {
+      "class_programmed": 4,
+      "pd_input_limit_w": 25.5,
+      "pd_input_voltage_v": "42.5-57",
+      "pd_input_max_current_a": 0.6,
+      "front_end_loss_w": 0.7,
+      "at_48v_node_w": 21.55,
+      "buck_48_12_loss_w": 1.94,
+      "at_12v_rail_w": 19.61,
+      "at_12v_rail_a": 1.634,
+      "buck_12_3v3_loss_w": 0.33,
+      "at_3v3_rail_w": 2.43,
+      "at_3v3_rail_a": 0.736,
+      "carrier_silicon_on_3v3_w": 0.78,
+      "delivered_at_connector_w": 18.5,
+      "delivered_3v3_w": 1.65,
+      "delivered_12v_or_48v_w": 16.85,
+      "pd_input_consumed_w": 22.25,
+      "pd_input_consumed_a_at_vmin": 0.524,
+      "headroom_w": 3.25,
+      "headroom_pct": 12.7,
+      "carrier_overhead_w": 3.75
+    },
+    "reconciliation_with_brief": "00 s5.1 chains '12.95 W in -> ~10 W regulated -> minus 1.5 W overhead -> 8.5 W out'. The AN956 10 W figure already absorbs the front end AND the first conversion stage (77 % overall, typical of an ISOLATED flyback); the 1.5 W then adds regulator loss a second time. With the provisional non-isolated buck the explicit chain reaches 8.5 W delivered from 10.94 W input (84 % end-to-end). Recommendation: drop the 10 W intermediate, keep 8.5 W / 18.5 W as binding, and restate carrier overhead as 2.44 W (af) / 3.75 W (at). Both remain judgement figures until measured on the first prototype (00 s5.1 flags the 1.5 W as judgement; this replaces it with a derived number, not a measured one).",
+    "steering_note": "Same 18.5 W delivered but taken on +48V_SW instead of +12V: PD input falls 22.25 -> 20.71 W (1.54 W saved, 18.8 % headroom) and the 48->12 stage's loss falls 1.94 -> 0.45 W, which removes the hot spot entirely. State this in the ICD so daughter designers know where the cheap watts are."
+  },
+
+  "sustain_vs_survive": [
+    {"rail": "+48V_SW", "sustain": "0.25 A (af) / 0.5 A (at), and only if the other rails are idle",
+     "survive": "1.0 A load-switch limit; dead short or mis-seat -> current limit + latch-off with no damage to the PD front end (CAR-REQ-14); connector pins rated 2-3 A per Q6"},
+    {"rail": "+12V", "sustain": "0.80 A (af) / 1.634 A (at) total, of which 0.231 A is the carrier's own 3.3 V branch",
+     "survive": "2.0 A converter rating with hiccup or latching OCP; a shorted daughter must fold back, not damage the stage"},
+    {"rail": "+3V3", "sustain": "0.736 A (0.236 A carrier + 0.50 A daughter)",
+     "survive": "1.0 A converter, current limit >= 1.3 A; the 1.212 A ms-scale peak is served by local bulk, not by the converter"},
+    {"rail": "TOTAL to the daughter", "sustain": "8.5 W (af) / 18.5 W (at) across all three rails COMBINED",
+     "survive": "enforced by four nested mechanisms, only the first of which is graceful: firmware's average-energy governor -> the carrier's per-rail current limits -> the PD controller's limit -> the PSE overload timer (~50-75 ms, after which the port drops and the fixture goes dark until re-detection)"}
+  ],
+
+  "sequencing": [
+    "1. DETECT - 25.0 kohm +/-1 % signature across VPOE.",
+    "2. CLASSIFY - Rclass programmed Class 3 for af build 1 (the carrier needs > 6.49 W, so Class 0 would under-declare and leave the PSE budgeting blind). Upgrade = Class 4 resistor. The PD controller MUST natively support 2-event / Type 2 classification or the resistor-only upgrade path does not exist. Exact resistor values come from the selected controller's datasheet.",
+    "3. UVLO - turn-on ~38-42 V, turn-off ~30-32 V with hysteresis, per 802.3.",
+    "4. INRUSH - the PD controller limits to ~100-400 mA while charging Cin. Keep carrier bulk at 22-47 uF, an order of magnitude under the ~180 uF Cport ceiling. The daughter's 2800 uF must NOT be on the rail at this point - that is Q1's first job.",
+    "5. +12V soft-start, then +3V3 soft-start. The order is inherent to the 48->12->3.3 chain; no sequencer part is needed.",
+    "6. +3V3 POR -> ESP32-S3 boots. ENABLE stays low, held by a carrier-side 10k pull-down and NOT by the MCU, whose GPIO is high-Z in reset (CAR-REQ-08).",
+    "7. Firmware asserts ENABLE after boot and after reading the daughter ID -> Q1 turns on with limited dV/dt -> the daughter's own inrush limiter charges the bank at <= the ICD limit (0.25 A af / 0.5 A at, i.e. 0.54 s / 0.27 s from cold).",
+    "8. Governor active before the first strobe command is honoured.",
+    "FAIL-SAFE DIRECTION: +3V3 sags or the MCU resets -> GPIO high-Z -> the pull-down de-asserts ENABLE -> Q1 opens -> +48V_SW is bled by the carrier's 100k while the daughter's own bleed (CAR-REQ-17) discharges the bank. Everything fails towards de-energised. The full CAR-REQ-08 analysis (mid firmware update, brownout) is a schematic sign-off artifact; this is only its power half.",
+    "MPS: 802.3 requires the PD to keep drawing >= ~10 mA or the PSE may remove power. The carrier's floor draw is ~29 mA at 48 V (silicon + converter losses), so MPS is satisfied inherently - PROVIDED the ESP32-S3 never enters deep sleep (7 uA). This is a firmware constraint: on this board, sleep states below modem-sleep drop the port."
+  ],
+
+  "provisional_assumptions": [
+    {"id": "P1", "assumption": "Non-isolated buck on the PD rail; plastic enclosure; Ethernet the only external connection (Q5 default)", "adopted": true,
+     "if_it_flips": "An isolated flyback costs ~10 points on the first stage: af margin falls from 2.01 W to 0.59 W (4.6 %) and does not close. Either the light-engine budget drops to ~7 W or build 1 goes to at. See open[1]."},
+    {"id": "P2", "assumption": "Worst-case daughter draw 48 V raw 2 A continuous with 3 A capability (Q6 default)", "adopted": false,
+     "if_it_flips": "CORRECTED, not adopted: 2 A at 48 V is 96 W on a 12.95-25.5 W supply. Read as a connector PIN rating it is fine and cheap; read as a rail spec it is wrong by two orders of magnitude. See open[0]."},
+    {"id": "P3", "assumption": "Worst-case daughter draw 12 V 2 A (Q6 default)", "adopted": true,
+     "if_it_flips": "Adopted as the CONVERTER RATING only; the ICD limit is set to 1.75 A and the realistic at-case maximum is 1.634 A. 2 A sustained would be 24 W, above even the at envelope."},
+    {"id": "P4", "assumption": "Worst-case daughter draw 3.3 V 0.5 A (Q6 default)", "adopted": true,
+     "if_it_flips": "1.65 W is 19 % of the whole af light-engine budget spent on daughter logic and sense. See open[3] - recommend 0.25 A in the ICD with the converter still rated 1.0 A."},
+    {"id": "P5", "assumption": "0-40 C ambient, sealed unventilated enclosure, natural convection only (Q13 default)", "adopted": true,
+     "if_it_flips": "This is the BINDING thermal constraint. Internal air reaches ~56 C (af) / ~69 C (at) at 40 C ambient in a 110 x 90 x 45 mm plastic box. At a realistic basement ambient of 25 C the at case closes comfortably. See open[2]."},
+    {"id": "P6", "assumption": "CAR-REQ-18 answered by physical separation rather than specified airflow", "adopted": true,
+     "if_it_flips": "Becomes an ICD keep-out over the carrier's DC-DC corner, not merely an in-plane placement rule, because the mezzanine stacks the daughter's drivers vertically above the carrier. See placement_hints.icd_hot_zone."},
+    {"id": "P7", "assumption": "Carrier overhead 1.5 W (00 s5.1, itself flagged as judgement)", "adopted": false,
+     "if_it_flips": "REVISED to 2.44 W (af) / 3.75 W (at). The 8.5 W / 18.5 W delivered figures are unaffected because the AN956 10 W intermediate was conservative for a non-isolated buck. Still a derived number, not a measured one - the brief's instruction to measure it on the first prototype stands."},
+    {"id": "P8", "assumption": "ESP32-S3-WROOM-1 module, radio functional but unused in normal operation (Q7/Q8 defaults)", "adopted": true,
+     "if_it_flips": "A bare chip does not change the rail tree. A permanently disabled radio would let the +3V3 peak budget drop from 500 mA to ~120 mA and would relax the module's local bulk requirement."}
+  ],
+
+  "pipeline_notes": [
+    "check_thermal error threshold: rise = power_w x theta_JA(effective GND copper area within ~14.3 mm of the part), and theta_JA is clamped at theta_ja(645 mm2) = 51.1 C/W on 4 layers / 73.9 C/W on 2. So a thermal entry is UNSATISFIABLE at any copper area if dt_c < power_w x 51.1 (4L). The U2 entry sits deliberately just inside that (1.35 x 51.1 = 69 <= 70) and deliberately outside it on 2 layers - it is the constraint that forces a 4-layer stackup.",
+    "check_thermal exits 2 on a thermal ref with no pads on the board. U2/D1/D2 are PROPOSED refdes - re-key them to the P4 netlist or delete the entries before P8.",
+    "check_creepage: 57 V puts VPOE / +48V / +48V_SW in the IPC-2221 51-100 V band = 0.60 mm outer, 0.10 mm inner. Every net on the board is > 30 V from those three (unlisted nets are treated as 0 V), so 0.60 mm outer clearance applies board-wide around the 48 V copper, not only at the connector. Budget for it during placement rather than in a P8 fix pass.",
+    "voltage_constraints is missing the RJ45 magjack centre-tap nets on purpose - they are unnamed until P3 and inventing names here would produce silent no-ops. They carry the full PoE common-mode voltage; P2/P3 must add them at 57 V.",
+    "ICD consequence of the 0.60 mm figure: no 48 V pin adjacent to a signal pin on the expansion connector. Flank +48V_SW pins with GND or with unpopulated positions. A 2.54 mm header clears it comfortably; a 1.27 mm one is where this gets tight.",
+    "rules_gen builds ONE 'Power' net class whose track_width is the max across all declared power nets, so every power net will default-route at the +12V width (1.100 mm on 1 oz at dT 10). Per-net DRC minimums are still emitted correctly per net; this is a routing-default annoyance worth a P5 hand-edit.",
+    "check_current requires ceil(current_a / via_amps) vias per via cluster: +12V 4, +48V 3, +48V_SW 2, +3V3 2, VPOE 2.",
+    "1 oz outer copper is sufficient: the widest declared net (+12V at 2.0 A, dT 10) needs 1.100 mm on 1 oz. No 2 oz stackup entry is required, unlike pd-trigger.",
+    "GND is deliberately absent from power_constraints - see rails[].GND.notes."
+  ],
+
+  "open": [
+    {
+      "id": 1,
+      "question": "The 48 V raw rail must not be specified at 2-3 A. Recommend 1.0 A hardware limit and 0.25 A (af) / 0.5 A (at) sustained in the ICD.",
+      "why": "Q6's default reads as a rail spec; 2 A at 48 V is 96 W on a 12.95-25.5 W supply, and 3 A of stored-energy fault current at 48 V through a mezzanine connector is a real arc/energy hazard on hot-unplug. Safety-relevant, so raised rather than assumed.",
+      "recommendation": "Split the number: keep 2-3 A as the CONNECTOR PIN rating (CAR-REQ-13 margin, cheap), set the load-switch current limit to 1.0 A with latch-off, and put 0.25 A (af) / 0.5 A (at) sustained in the ICD as the daughter's budget.",
+      "blocking_for": "ICD-01 (connector part + per-pin rating), P2 converter/switch selection"
+    },
+    {
+      "id": 2,
+      "question": "Q5 - isolated or non-isolated PD converter? Worth ~1.5 W of delivered power on af.",
+      "why": "Non-isolated closes with 15.5 % PD-input margin; isolated closes with 4.6 %, which is not a margin. Requirements s8 already marks Q5 blocking and forbids guessing it; this quantifies the cost of each answer.",
+      "recommendation": "Confirm non-isolated buck + non-conductive enclosure + Ethernet as the only external connection. Bench consequence to record: the whole board floats at PoE potential, so an earthed scope needs an isolated PSE/injector or a differential probe.",
+      "blocking_for": "P2 topology commit (requirements s10)"
+    },
+    {
+      "id": 3,
+      "question": "The at upgrade needs enclosure ventilation, or a confirmed ambient below ~30 C. Which?",
+      "why": "In Q13's sealed box at 40 C ambient, internal air reaches ~69 C at the at operating point and the 48->12 converter junction lands at 116-138 C. Build 1 (af) is comfortable at ~93-111 C. At a realistic basement ambient of 25 C the at case closes at ~101 C.",
+      "recommendation": "Record enclosure vents as a documented dependency of the at upgrade - it is not a board respin, so D-01's 'resistor change only, no respin' survives intact - OR confirm the real deployment ambient is 0-30 C, in which case the sealed box closes and nothing changes. Either way the BOARD must be laid out for the at dissipation now, or the layout becomes the thing that pins the design to Type 1.",
+      "blocking_for": "the design document's D-01 upgrade note; enclosure design (CAR-REQ-19, Q1/Q2)"
+    },
+    {
+      "id": 4,
+      "question": "Is 0.5 A of 3.3 V really needed at the expansion connector?",
+      "why": "1.65 W is 19 % of the entire af light-engine budget, spent on daughter logic and sense. A strobe or par daughter's logic is a few tens of mA.",
+      "recommendation": "Put 0.25 A in the ICD with the converter still rated 1.0 A, so raising it later is a documentation change rather than a hardware one. Confirm or override.",
+      "blocking_for": "ICD-01 per-rail current limits"
+    },
+    {
+      "id": 5,
+      "question": "No answer needed - recorded so it cannot be lost: the PD controller and the magjack must BOTH be Type 2-capable parts, or D-01's resistor-only upgrade is not real.",
+      "why": "802.3at Type 2 requires 2-event physical-layer classification (or LLDP) in the PD controller and 600 mA/pair PoE rating in the magjack. Neither is spelled out in the requirements, and both are exactly the 'component that pins the design to Type 1' that D-01 forbids.",
+      "recommendation": "Hard input to component-scout / part-sourcer: PD controller with native Type 2 / 2-event classification; PoE-rated magjack at >= 600 mA per pair; 48->12 converter with >= 80 V input rating (not the 60 V minimum in CAR-REQ-02 - 60 V against a 57 V worst case is 5 % margin before any transient).",
+      "blocking_for": "P2 part selection"
+    }
+  ]
+}

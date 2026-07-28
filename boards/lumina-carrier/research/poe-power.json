@@ -1,0 +1,1350 @@
+{
+ "script": "research-component-scout",
+ "block": "poe-power",
+ "board": "LUM-CAR-A",
+ "date": "2026-07-28",
+ "source": "parts_search.py live JLCPCB search (easyeda2kicad anonymous endpoint)",
+ "recommendation": {
+  "strategy": "b - separate PD interface controller + external >=60V non-isolated buck",
+  "pd_controller": "C337500 TPS2378DDAR",
+  "pd_second_source": "C140293 TPS2379DDAR (pins 1-7 identical)",
+  "dcdc_primary": "C5124114 SCT2A25STER",
+  "isolated_fallback": "C181651 TPS23754PWPR + off-JLC 12V-secondary PoE flyback transformer",
+  "class_program_resistor": {
+   "af_build1_class3": "90.9 ohm (CLS-VSS)",
+   "at_upgrade_class4": "63.4 ohm (CLS-VSS)",
+   "note": "single 0603 resistor change, no respin - satisfies D-01"
+  }
+ },
+ "count": 16,
+ "results": [
+  {
+   "lcsc": "C337500",
+   "mpn": "TPS2378DDAR",
+   "brand": "Texas Instruments",
+   "description": "-40\u2103~+125\u2103 40V~57V SO-8-EP Ethernet Transceivers ROHS",
+   "package": "SO-8-EP",
+   "category": "Ethernet Transceivers",
+   "type": "Extended",
+   "basic": false,
+   "stock": 10899,
+   "price": 1.3588,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 1.3588
+    },
+    {
+     "qty": 10,
+     "price": 1.1749
+    },
+    {
+     "qty": 30,
+     "price": 1.0829
+    },
+    {
+     "qty": 100,
+     "price": 0.9909
+    },
+    {
+     "qty": 500,
+     "price": 0.9376
+    },
+    {
+     "qty": 1000,
+     "price": 0.9086
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_1912111437_Texas-Instruments-TPS2378DDAR_C337500.pdf",
+   "url": "https://www.lcsc.com/product-detail/ethernet-transceivers_texas-instruments-tps2378ddar_C337500.html",
+   "attributes": [
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+125\u2103"
+    },
+    {
+     "name": "Voltage - Supply",
+     "value": "40V~57V"
+    },
+    {
+     "name": "Features",
+     "value": "Under-voltage lockout (UVLO)"
+    }
+   ],
+   "rank": 1,
+   "role": "pd-interface",
+   "verdict": "recommended",
+   "note": "TPS2378: 802.3at Type-2 PD interface, 100V/0.5ohm integrated hotswap FET, 0.85A cont, 140mA inrush. Class set by ONE resistor CLS-VSS: 90.9R=class3(af,13W) -> 63.4R=class4(at,25.5W). D-01 upgrade is that single resistor. CDB (open-drain converter-disable) drives the buck EN; T2P flags a Type-2 PSE to the MCU. RthetaJA 45.9 C/W (SO-8 PowerPAD). Datasheet SLVSB99C p.11 Table 1."
+  },
+  {
+   "lcsc": "C140293",
+   "mpn": "TPS2379DDAR",
+   "brand": "Texas Instruments",
+   "description": "-40\u2103~+125\u2103 40V~57V SOIC-8-EP Ethernet Transceivers ROHS",
+   "package": "SOIC-8-EP",
+   "category": "Ethernet Transceivers",
+   "type": "Extended",
+   "basic": false,
+   "stock": 1755,
+   "price": 1.9963,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 1.9963
+    },
+    {
+     "qty": 10,
+     "price": 1.7058
+    },
+    {
+     "qty": 30,
+     "price": 1.5251
+    },
+    {
+     "qty": 100,
+     "price": 1.2394
+    },
+    {
+     "qty": 500,
+     "price": 1.1555
+    },
+    {
+     "qty": 1000,
+     "price": 1.12
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_1809131532_Texas-Instruments-TPS2379DDAR_C140293.pdf",
+   "url": "https://www.lcsc.com/product-detail/ethernet-transceivers_texas-instruments-tps2379ddar_C140293.html",
+   "attributes": [
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+125\u2103"
+    },
+    {
+     "name": "Voltage - Supply",
+     "value": "40V~57V"
+    },
+    {
+     "name": "Features",
+     "value": "Under-voltage lockout (UVLO)"
+    }
+   ],
+   "rank": 2,
+   "role": "pd-interface",
+   "verdict": "second-source",
+   "note": "TPS2379: same SO-8 PowerPAD, pins 1-7 IDENTICAL to TPS2378 (VDD/DEN/CLS/VSS/RTN/CDB/T2P); pin 8 differs (TPS2378=APD aux-adapter input, TPS2379=GATE external FET driver). PoE-only board does not use APD, so pin 8 can be left free and the two are drop-in interchangeable. Same Type-2, same 90.9/63.4 ohm class table, same 100V/0.5ohm FET. Kills single-source risk on the PD front end."
+  },
+  {
+   "lcsc": "C181651",
+   "mpn": "TPS23754PWPR",
+   "brand": "Texas Instruments",
+   "description": "-40\u2103~+125\u2103 100V 30W 5.1V 970mA IEEE 802.3 at(PoE+) Powered Device (PD) HTSSOP-20-EP Power Over Ethernet (PoE) Controllers ROHS",
+   "package": "HTSSOP-20-EP",
+   "category": "Power Over Ethernet (PoE) Controllers",
+   "type": "Extended",
+   "basic": false,
+   "stock": 8210,
+   "price": 1.9785,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 1.9785
+    },
+    {
+     "qty": 10,
+     "price": 1.6897
+    },
+    {
+     "qty": 30,
+     "price": 1.5105
+    },
+    {
+     "qty": 100,
+     "price": 1.3249
+    },
+    {
+     "qty": 500,
+     "price": 1.1329
+    },
+    {
+     "qty": 1000,
+     "price": 1.0958
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Texas-Instruments-TPS23754PWPR_C181651.pdf",
+   "url": "https://www.lcsc.com/product-detail/power-over-ethernet-poe-controllers_texas-instruments-tps23754pwpr_C181651.html",
+   "attributes": [
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+125\u2103"
+    },
+    {
+     "name": "Type",
+     "value": "Powered Device (PD)"
+    },
+    {
+     "name": "Power - Max",
+     "value": "30W"
+    },
+    {
+     "name": "limiting current",
+     "value": "970mA"
+    },
+    {
+     "name": "Voltage - Supply (IC)",
+     "value": "5.1V"
+    },
+    {
+     "name": "Features",
+     "value": "PD detection and disconnect identification\u3001Undervoltage Protection\u3001Thermal Protection\u3001Overcurrent Protection\u3001Dual event classification detection"
+    },
+    {
+     "name": "Support PoE standard",
+     "value": "IEEE 802.3 at(PoE+)"
+    },
+    {
+     "name": "Voltage - Breakdown",
+     "value": "100V"
+    }
+   ],
+   "rank": 3,
+   "role": "pd-plus-dcdc",
+   "verdict": "isolated-fallback",
+   "note": "TPS23754: Type-2 PD + current-mode DC-DC controller. Class by single resistor (90.9R class3 / 63.4R class4, datasheet Table 1 p.14). 100V/0.5ohm hotswap FET, 0.85A. RthetaJA 44.4 C/W HTSSOP-20. CONTROLLER IS TRANSFORMER-ONLY: 'DC-DC control optimized for isolated converters', app section covers flyback / active-clamp forward only, incl. 'Switching Transformer Considerations'. No buck mode. Use only if H1 answers Q5 = isolated."
+  },
+  {
+   "lcsc": "C2691431",
+   "mpn": "WS3204",
+   "brand": "NJGW",
+   "description": "-40\u2103~+125\u2103 25.5W 5.1V 85V 970mA IEEE 802.3 at(PoE+) PD\u68c0\u6d4b\u4e0e\u65ad\u5f00\u8bc6\u522b\u3001\u8fc7\u538b\u4fdd\u62a4\u3001Undervoltage Protection\u3001Thermal Protection\u3001Overcurrent Protection\u3001\u53cc\u4e8b\u4ef6\u5206\u7ea7\u68c0\u6d4b\u3001\u5185\u7f6eLDO Powered Device (PD) TSSOP-20-EP Power Over Ethernet (PoE) Controllers ROHS",
+   "package": "TSSOP-20-EP",
+   "category": "Power Over Ethernet (PoE) Controllers",
+   "type": "Extended",
+   "basic": false,
+   "stock": 4001,
+   "price": 1.6864,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 1.6864
+    },
+    {
+     "qty": 10,
+     "price": 1.4089
+    },
+    {
+     "qty": 30,
+     "price": 1.2556
+    },
+    {
+     "qty": 100,
+     "price": 1.0829
+    },
+    {
+     "qty": 500,
+     "price": 0.9296
+    },
+    {
+     "qty": 1000,
+     "price": 0.8941
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2201121130_GEC-WS3204_C2691431.pdf",
+   "url": "https://www.lcsc.com/product-detail/power-over-ethernet-poe-controllers_gec-ws3204_C2691431.html",
+   "attributes": [
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+125\u2103"
+    },
+    {
+     "name": "Type",
+     "value": "Powered Device (PD)"
+    },
+    {
+     "name": "Power - Max",
+     "value": "25.5W"
+    },
+    {
+     "name": "limiting current",
+     "value": "970mA"
+    },
+    {
+     "name": "Voltage - Supply (IC)",
+     "value": "5.1V"
+    },
+    {
+     "name": "Features",
+     "value": "PD detection and disconnect identification\u3001Overvoltage protection\u3001Undervoltage Protection\u3001Thermal Protection\u3001Overcurrent Protection\u3001Dual event classification detection\u3001Built-in LDO"
+    },
+    {
+     "name": "Support PoE standard",
+     "value": "IEEE 802.3 at(PoE+)"
+    },
+    {
+     "name": "Voltage - Breakdown",
+     "value": "85V"
+    }
+   ],
+   "rank": 4,
+   "role": "pd-plus-dcdc",
+   "verdict": "isolated-fallback-cheap",
+   "note": "WS3204 (NJGW/GEC): pin-and-feature clone of TPS23754 (same GATE/GAT2/RDT/RBLNK/RFRS/ADPD/T2P/CS/CTRL pin names, same class table incl. 63.4R = class 4). 85V/0.4ohm hotswap FET (vs TI 100V). Datasheet is Chinese-only, no English version found. Cheapest at-capable integrated part on JLC. Also transformer-based."
+  },
+  {
+   "lcsc": "C5676296",
+   "mpn": "MP8009AGV-Z",
+   "brand": "Monolithic Power Systems",
+   "description": "-40\u2103~+125\u2103@(TJ) 1 100V 25.5W 8.5V 840mA IEEE 802.3 at(PoE+)\u3001IEEE 802.3 af(PoE) Overcurrent Protection\u3001Overload Protection\u3001Over Voltage Protection Powered Device (PD) QFN-28(4x5) Power Over Ethernet (PoE) Controllers ROHS",
+   "package": "QFN-28(4x5)",
+   "category": "Power Over Ethernet (PoE) Controllers",
+   "type": "Extended",
+   "basic": false,
+   "stock": 990,
+   "price": 2.1943,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 2.1943
+    },
+    {
+     "qty": 50,
+     "price": 1.9995
+    },
+    {
+     "qty": 100,
+     "price": 1.7918
+    },
+    {
+     "qty": 500,
+     "price": 1.623
+    },
+    {
+     "qty": 1000,
+     "price": 1.571
+    },
+    {
+     "qty": 3000,
+     "price": 1.5191
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2401301322_Monolithic-Power-Systems-MP8009AGV-Z_C5676296.pdf",
+   "url": "https://www.lcsc.com/product-detail/power-over-ethernet-poe-controllers_monolithic-power-systems-mp8009agv-z_C5676296.html",
+   "attributes": [
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+125\u2103@(TJ)"
+    },
+    {
+     "name": "Type",
+     "value": "Powered Device (PD)"
+    },
+    {
+     "name": "Power - Max",
+     "value": "25.5W"
+    },
+    {
+     "name": "Voltage - Supply (IC)",
+     "value": "8.5V"
+    },
+    {
+     "name": "limiting current",
+     "value": "840mA"
+    },
+    {
+     "name": "Features",
+     "value": "PGOOD status indication\u3001PD detection and disconnect identification\u3001Overvoltage protection\u3001Undervoltage Protection\u3001Thermal Protection\u3001Overcurrent Protection\u3001Dual event classification detection\u3001Built-in LDO"
+    },
+    {
+     "name": "number of channels",
+     "value": "1"
+    },
+    {
+     "name": "Support PoE standard",
+     "value": "IEEE 802.3 at(PoE+)\u3001IEEE 802.3 af(PoE)"
+    },
+    {
+     "name": "Voltage - Breakdown",
+     "value": "100V"
+    }
+   ],
+   "rank": 5,
+   "role": "pd-plus-dcdc",
+   "verdict": "isolated-fallback",
+   "note": "MP8009A: 802.3af/at PD + flyback/forward controller, 100V/0.48ohm PD FET, 840mA limit, 120mA inrush, 250kHz + frequency dithering. Single RCLASS: 41.2R=class3 / 28.7R=class4 (datasheet Table 1 p.19). 2-event classification supported. RthetaJA 37-40 C/W QFN-28 4x5. Transformer required (PSR flyback, SSR flyback, or SSR active-clamp forward). Stock only 990."
+  },
+  {
+   "lcsc": "C473395",
+   "mpn": "TPS23751PWPR",
+   "brand": "Texas Instruments",
+   "description": "-40\u2103~+125\u2103 100V 1A 25.5W IEEE 802.3 at(PoE+) Powered Device (PD) HTSSOP-16-EP Power Over Ethernet (PoE) Controllers ROHS",
+   "package": "HTSSOP-16-EP",
+   "category": "Power Over Ethernet (PoE) Controllers",
+   "type": "Extended",
+   "basic": false,
+   "stock": 679,
+   "price": 0.6294,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.6294
+    },
+    {
+     "qty": 10,
+     "price": 0.6133
+    },
+    {
+     "qty": 30,
+     "price": 0.602
+    },
+    {
+     "qty": 100,
+     "price": 0.5923
+    },
+    {
+     "qty": 102,
+     "price": 0.5923
+    },
+    {
+     "qty": 104,
+     "price": 0.5923
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2010141805_Texas-Instruments-TPS23751PWPR_C473395.pdf",
+   "url": "https://www.lcsc.com/product-detail/power-over-ethernet-poe-controllers_texas-instruments-tps23751pwpr_C473395.html",
+   "attributes": [
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+125\u2103"
+    },
+    {
+     "name": "Type",
+     "value": "Powered Device (PD)"
+    },
+    {
+     "name": "Power - Max",
+     "value": "25.5W"
+    },
+    {
+     "name": "limiting current",
+     "value": "1A"
+    },
+    {
+     "name": "Support PoE standard",
+     "value": "IEEE 802.3 at(PoE+)"
+    },
+    {
+     "name": "Voltage - Breakdown",
+     "value": "100V"
+    }
+   ],
+   "rank": 6,
+   "role": "pd-plus-dcdc",
+   "verdict": "isolated-fallback-lowstock",
+   "note": "TPS23751: Type-2 PD + DC-DC controller, flyback-optimised, HTSSOP-16-EP. Cheapest TI at-capable part ($0.59@100) but stock only 679 and still transformer-based."
+  },
+  {
+   "lcsc": "C510771",
+   "mpn": "SI3402-B-GMR",
+   "brand": "SKYWORKS/SILICON LABS",
+   "description": "-40\u2103~+85\u2103 1.2W 10BASE-T\u3001100BASE-TX\u30011000BASE-T 10Mbit/s\u3001100Mbit/s\u30011Gbit/s 37V~57V QFN-20-EP(5x5) Ethernet Transceivers ROHS",
+   "package": "QFN-20-EP(5x5)",
+   "category": "Ethernet Transceivers",
+   "type": "Extended",
+   "basic": false,
+   "stock": 1538,
+   "price": 2.4142,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 2.4142
+    },
+    {
+     "qty": 10,
+     "price": 2.0431
+    },
+    {
+     "qty": 30,
+     "price": 1.8107
+    },
+    {
+     "qty": 100,
+     "price": 1.5735
+    },
+    {
+     "qty": 500,
+     "price": 1.4653
+    },
+    {
+     "qty": 1000,
+     "price": 1.4185
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2009101003_SKYWORKS-SILICON-LABS-SI3402-B-GMR_C510771.pdf",
+   "url": "https://www.lcsc.com/product-detail/ethernet-transceivers_skyworks-silicon-labs-si3402-b-gmr_C510771.html",
+   "attributes": [
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+85\u2103"
+    },
+    {
+     "name": "Data Rate",
+     "value": "10Mbit/s\u3001100Mbit/s\u30011Gbit/s"
+    },
+    {
+     "name": "Voltage - Supply",
+     "value": "37V~57V"
+    },
+    {
+     "name": "Features",
+     "value": "Under-voltage lockout (UVLO)"
+    },
+    {
+     "name": "Ethernet Speed Standards",
+     "value": "10BASE-T\u3001100BASE-TX\u30011000BASE-T"
+    }
+   ],
+   "rank": 90,
+   "role": "pd-integrated",
+   "verdict": "DISQUALIFIED",
+   "note": "Si3402-B - the part the brief names, and the source of its '~10 W regulated' AN956 figure. DISQUALIFIED BY D-01: it is IEEE 802.3af / Type 1 ONLY (Type 1, class 0-3). It cannot present class 4 and cannot be upgraded to Type 2 by any resistor change. Listed here so the architect can see the brief's assumption is now closed, not to be used."
+  },
+  {
+   "lcsc": "C461934",
+   "mpn": "SI3404-A-GMR",
+   "brand": "SKYWORKS/SILICON LABS",
+   "description": "-40\u2103~+85\u2103 5.2V IEEE 802.3 at(PoE+) Overcurrent Protection Powered Device (PD) QFN-20-EP(4x4) Power Over Ethernet (PoE) Controllers ROHS",
+   "package": "QFN-20-EP(4x4)",
+   "category": "Power Over Ethernet (PoE) Controllers",
+   "type": "Extended",
+   "basic": false,
+   "stock": 3094,
+   "price": 2.0479,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 2.0479
+    },
+    {
+     "qty": 10,
+     "price": 1.78
+    },
+    {
+     "qty": 30,
+     "price": 1.6332
+    },
+    {
+     "qty": 100,
+     "price": 1.467
+    },
+    {
+     "qty": 500,
+     "price": 1.3927
+    },
+    {
+     "qty": 1000,
+     "price": 1.3605
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2108241830_SKYWORKS-SILICON-LABS-SI3404-A-GMR_C461934.pdf",
+   "url": "https://www.lcsc.com/product-detail/power-over-ethernet-poe-controllers_skyworks-silicon-labs-si3404-a-gmr_C461934.html",
+   "attributes": [
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+85\u2103"
+    },
+    {
+     "name": "Type",
+     "value": "Powered Device (PD)"
+    },
+    {
+     "name": "Voltage - Supply (IC)",
+     "value": "5.2V"
+    },
+    {
+     "name": "Features",
+     "value": "PD detection and disconnect identification\u3001Overvoltage protection\u3001Undervoltage Protection\u3001Thermal Protection\u3001Overcurrent Protection\u3001Built-in LDO"
+    },
+    {
+     "name": "Support PoE standard",
+     "value": "IEEE 802.3 at(PoE+)"
+    }
+   ],
+   "rank": 91,
+   "role": "pd-integrated",
+   "verdict": "DISQUALIFIED",
+   "note": "Si3404 - Skyworks' newer integrated PD + switching regulator (supports non-isolated BUCK as well as flyback, integrated hotswap AND switching FET, 120V abs max, RthetaJA 46.8 C/W QFN-20 4x4). Electrically it is exactly the topology this board wants, but DISQUALIFIED BY D-01: datasheet title and features say 'IEEE 802.3at Type 1 compliance', body says verbatim 'The Si3404 is a Type 1 PD', and rev 1.0 history says 'Removed Type 2 signaling from diagram'. Also capped at 600 mA continuous."
+  },
+  {
+   "lcsc": "C5124114",
+   "mpn": "SCT2A25STER",
+   "brand": "SCT",
+   "description": "-40\u2103~+150\u2103@(TJ) 1 1.2V~30V 135uA 2A 300kHz 5.5V~100V Adjustable Buck Buck Built-in No ESOP-8 DC-DC Converters ROHS",
+   "package": "ESOP-8",
+   "category": "DC-DC Converters",
+   "type": "Extended",
+   "basic": false,
+   "stock": 3160,
+   "price": 2.1044,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 2.1044
+    },
+    {
+     "qty": 10,
+     "price": 1.8026
+    },
+    {
+     "qty": 30,
+     "price": 1.6138
+    },
+    {
+     "qty": 100,
+     "price": 1.3992
+    },
+    {
+     "qty": 500,
+     "price": 1.312
+    },
+    {
+     "qty": 1000,
+     "price": 1.2733
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2312211430_SCT-SCT2A25STER_C5124114.pdf",
+   "url": "https://www.lcsc.com/product-detail/dc-dc-converters_sct-sct2a25ster_C5124114.html",
+   "attributes": [
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+150\u2103@(TJ)"
+    },
+    {
+     "name": "Function",
+     "value": "Step-down type"
+    },
+    {
+     "name": "Synchronous Rectifier",
+     "value": "No"
+    },
+    {
+     "name": "Frequency - Switching",
+     "value": "300kHz"
+    },
+    {
+     "name": "Voltage - Supply",
+     "value": "5.5V~100V"
+    },
+    {
+     "name": "Output Type",
+     "value": "Adjustable"
+    },
+    {
+     "name": "Output Current",
+     "value": "2A"
+    },
+    {
+     "name": "Quiescent Current",
+     "value": "135uA"
+    },
+    {
+     "name": "Features",
+     "value": "Overcurrent Protection\u3001Light load efficient mode\u3001Cycle-by-cycle current limiting"
+    },
+    {
+     "name": "Switch tube (built-in/external)",
+     "value": "Built-in"
+    },
+    {
+     "name": "Topology",
+     "value": "Buck"
+    },
+    {
+     "name": "Output Voltage",
+     "value": "1.2V~30V"
+    },
+    {
+     "name": "Number of Outputs",
+     "value": "1"
+    }
+   ],
+   "rank": 1,
+   "role": "dcdc-primary",
+   "verdict": "recommended",
+   "note": "SCT2A25 (Silicon Content Technology): 5.5-100V in (110V abs max), 2A continuous / 4A peak limit, integrated 500 mohm high-side FET, COT control, fixed 300 kHz, PFM at light load, ESOP-8, RthetaJA 42 C/W. Datasheet carries an explicit 48V->12V @ 2A design example (L=68uH, 100V Schottky SS510, 2x2.2uF/100V input). ASYNCHRONOUS - needs an external 100V Schottky. Plain inductor, no transformer. Efficiency-vs-load curves for Vout=12V at 24/36/48/60/72 Vin are Figure 2 p.5."
+  },
+  {
+   "lcsc": "C477928",
+   "mpn": "LM5164DDAR",
+   "brand": "Texas Instruments",
+   "description": "-40\u2103~+150\u2103@(TJ) 1 10.5uA 1A 1MHz 6V~100V Adjustable Buck Buck Built-in Yes SO-8-EP DC-DC Converters ROHS",
+   "package": "SO-8-EP",
+   "category": "DC-DC Converters",
+   "type": "Extended",
+   "basic": false,
+   "stock": 7569,
+   "price": 1.9624,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 1.9624
+    },
+    {
+     "qty": 10,
+     "price": 1.7784
+    },
+    {
+     "qty": 30,
+     "price": 1.6477
+    },
+    {
+     "qty": 100,
+     "price": 1.5299
+    },
+    {
+     "qty": 500,
+     "price": 1.475
+    },
+    {
+     "qty": 1000,
+     "price": 1.4524
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2410121943_Texas-Instruments-LM5164DDAR_C477928.pdf",
+   "url": "https://www.lcsc.com/product-detail/dc-dc-converters_texas-instruments-lm5164ddar_C477928.html",
+   "attributes": [
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+150\u2103@(TJ)"
+    },
+    {
+     "name": "Function",
+     "value": "Step-down type"
+    },
+    {
+     "name": "Synchronous Rectifier",
+     "value": "Yes"
+    },
+    {
+     "name": "Frequency - Switching",
+     "value": "1MHz"
+    },
+    {
+     "name": "Voltage - Supply",
+     "value": "6V~100V"
+    },
+    {
+     "name": "Output Type",
+     "value": "Adjustable"
+    },
+    {
+     "name": "Output Current",
+     "value": "1A"
+    },
+    {
+     "name": "Quiescent Current",
+     "value": "10.5uA"
+    },
+    {
+     "name": "Features",
+     "value": "Overcurrent Protection\u3001Light load efficient mode\u3001Operating status indication\u3001Cycle-by-cycle current limiting\u3001Built-in LDO regulator"
+    },
+    {
+     "name": "Switch tube (built-in/external)",
+     "value": "Built-in"
+    },
+    {
+     "name": "Topology",
+     "value": "Buck"
+    },
+    {
+     "name": "Number of Outputs",
+     "value": "1"
+    }
+   ],
+   "rank": 2,
+   "role": "dcdc-primary",
+   "verdict": "alternate-af-only",
+   "note": "LM5164: 6-100V in, 1A, SYNCHRONOUS (no external Schottky, best efficiency of the shortlist), SO-8-EP, 7569 stock. 1A x 12V = 12W ceiling: covers the af build (10W) but NOT the at case (D-01 says size for at). Pick only if the architect accepts re-spinning the converter for the PoE+ upgrade - which D-01 forbids."
+  },
+  {
+   "lcsc": "C404013",
+   "mpn": "MP9486AGN-Z",
+   "brand": "Monolithic Power Systems",
+   "description": "-40\u2103~+125\u2103@(TJ) 1 170uA 1A 1MHz 4.5V~100V Adjustable Buck Buck Built-in No SOIC-8-EP DC-DC Converters ROHS",
+   "package": "SOIC-8-EP",
+   "category": "DC-DC Converters",
+   "type": "Extended",
+   "basic": false,
+   "stock": 2772,
+   "price": 2.9218,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 2.9218
+    },
+    {
+     "qty": 50,
+     "price": 2.6177
+    },
+    {
+     "qty": 100,
+     "price": 2.4194
+    },
+    {
+     "qty": 500,
+     "price": 1.9832
+    },
+    {
+     "qty": 1000,
+     "price": 1.4941
+    },
+    {
+     "qty": 3000,
+     "price": 1.4014
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2403151708_Monolithic-Power-Systems-MP9486AGN-Z_C404013.pdf",
+   "url": "https://www.lcsc.com/product-detail/dc-dc-converters_monolithic-power-systems-mp9486agn-z_C404013.html",
+   "attributes": [
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+125\u2103@(TJ)"
+    },
+    {
+     "name": "Function",
+     "value": "Step-down type"
+    },
+    {
+     "name": "Synchronous Rectifier",
+     "value": "No"
+    },
+    {
+     "name": "Frequency - Switching",
+     "value": "1MHz"
+    },
+    {
+     "name": "Voltage - Supply",
+     "value": "4.5V~100V"
+    },
+    {
+     "name": "Output Type",
+     "value": "Adjustable"
+    },
+    {
+     "name": "Output Current",
+     "value": "1A"
+    },
+    {
+     "name": "Quiescent Current",
+     "value": "170uA"
+    },
+    {
+     "name": "Features",
+     "value": "Overcurrent Protection\u3001Hiccup current limiting"
+    },
+    {
+     "name": "Switch tube (built-in/external)",
+     "value": "Built-in"
+    },
+    {
+     "name": "Topology",
+     "value": "Buck"
+    },
+    {
+     "name": "Number of Outputs",
+     "value": "1"
+    }
+   ],
+   "rank": 3,
+   "role": "dcdc-primary",
+   "verdict": "alternate",
+   "note": "MP9486A: 4.5-100V (95V recommended max), ~1A continuous with 3.5A switching current limit, SOIC-8-EP, RthetaJA 50 C/W (JESD51-7) / 34 C/W on the MPS eval board. Asynchronous. Efficiency curves are given for Vout=5V only, not 12V. Dearer than SCT2A25 ($2.42 vs $1.40 @100) for less current."
+  },
+  {
+   "lcsc": "C34355",
+   "mpn": "LM5017MRX/NOPB",
+   "brand": "Texas Instruments",
+   "description": "-40\u2103~+125\u2103@(TJ) 1 1.225V~90V 1MHz 600mA 7.5V~100V Adjustable Buck Buck Built-in Yes SOIC-8-EP DC-DC Converters ROHS",
+   "package": "SOIC-8-EP",
+   "category": "DC-DC Converters",
+   "type": "Extended",
+   "basic": false,
+   "stock": 1393,
+   "price": 1.3056,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 1.3056
+    },
+    {
+     "qty": 10,
+     "price": 1.0893
+    },
+    {
+     "qty": 30,
+     "price": 0.9699
+    },
+    {
+     "qty": 100,
+     "price": 0.836
+    },
+    {
+     "qty": 500,
+     "price": 0.7763
+    },
+    {
+     "qty": 1000,
+     "price": 0.7488
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Texas-Instruments-LM5017MRX-NOPB_C34355.pdf",
+   "url": "https://www.lcsc.com/product-detail/dc-dc-converters_texas-instruments-lm5017mrx-nopb_C34355.html",
+   "attributes": [
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+125\u2103@(TJ)"
+    },
+    {
+     "name": "Function",
+     "value": "Step-down type"
+    },
+    {
+     "name": "Synchronous Rectifier",
+     "value": "Yes"
+    },
+    {
+     "name": "Frequency - Switching",
+     "value": "1MHz"
+    },
+    {
+     "name": "Voltage - Supply",
+     "value": "7.5V~100V"
+    },
+    {
+     "name": "Output Type",
+     "value": "Adjustable"
+    },
+    {
+     "name": "Output Current",
+     "value": "600mA"
+    },
+    {
+     "name": "Features",
+     "value": "Overcurrent Protection\u3001Adjustable soft-start\u3001Built-in LDO regulator"
+    },
+    {
+     "name": "Switch tube (built-in/external)",
+     "value": "Built-in"
+    },
+    {
+     "name": "Topology",
+     "value": "Buck"
+    },
+    {
+     "name": "Output Voltage",
+     "value": "1.225V~90V"
+    },
+    {
+     "name": "Number of Outputs",
+     "value": "1"
+    }
+   ],
+   "rank": 4,
+   "role": "dcdc-primary",
+   "verdict": "too-small",
+   "note": "LM5017: 7.5-100V, 600mA. 600mA x 12V = 7.2W - below even the af budget. Listed only to close it out: the 'LM5017-class' part named in the assignment brief cannot carry this rail."
+  },
+  {
+   "lcsc": "C31966",
+   "mpn": "TPS54560DDAR",
+   "brand": "Texas Instruments",
+   "description": "-40\u2103~+150\u2103@(TJ) 1 146uA 2.5MHz 4.5V~60V 5A 800mV~58.8V Adjustable Buck Buck Built-in No SOIC-8-EP DC-DC Converters ROHS",
+   "package": "SOIC-8-EP",
+   "category": "DC-DC Converters",
+   "type": "Extended",
+   "basic": false,
+   "stock": 30760,
+   "price": 1.0877,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 1.0877
+    },
+    {
+     "qty": 10,
+     "price": 0.9586
+    },
+    {
+     "qty": 30,
+     "price": 0.8376
+    },
+    {
+     "qty": 100,
+     "price": 0.7472
+    },
+    {
+     "qty": 500,
+     "price": 0.7117
+    },
+    {
+     "qty": 1000,
+     "price": 0.6924
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_1810131310_Texas-Instruments-TPS54560DDAR_C31966.pdf",
+   "url": "https://www.lcsc.com/product-detail/dc-dc-converters_texas-instruments-tps54560ddar_C31966.html",
+   "attributes": [
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+150\u2103@(TJ)"
+    },
+    {
+     "name": "Function",
+     "value": "Step-down type"
+    },
+    {
+     "name": "Synchronous Rectifier",
+     "value": "No"
+    },
+    {
+     "name": "Frequency - Switching",
+     "value": "2.5MHz"
+    },
+    {
+     "name": "Output Type",
+     "value": "Adjustable"
+    },
+    {
+     "name": "Voltage - Supply",
+     "value": "4.5V~60V"
+    },
+    {
+     "name": "Output Current",
+     "value": "5A"
+    },
+    {
+     "name": "Quiescent Current",
+     "value": "146uA"
+    },
+    {
+     "name": "Features",
+     "value": "Overcurrent Protection\u3001Light load efficient mode\u3001Cycle-by-cycle current limiting\u3001Frequency synchronization"
+    },
+    {
+     "name": "Switch tube (built-in/external)",
+     "value": "Built-in"
+    },
+    {
+     "name": "Topology",
+     "value": "Buck"
+    },
+    {
+     "name": "Output Voltage",
+     "value": "800mV~58.8V"
+    },
+    {
+     "name": "Number of Outputs",
+     "value": "1"
+    }
+   ],
+   "rank": 5,
+   "role": "dcdc-primary",
+   "verdict": "60V-thin-margin",
+   "note": "TPS54560: 4.5-60V, 5A, huge stock (30760) and cheapest per amp ($0.75@100). Meets the letter of '>= 60 V' but the PD rail tops out at 57V, so margin is ~5% (abs max 65V) with a PoE hot-swap and cable transients upstream. Recommend NOT using it as the primary; 100V-class parts cost ~$0.65 more."
+  },
+  {
+   "lcsc": "C524806",
+   "mpn": "TPS54360BDDAR",
+   "brand": "Texas Instruments",
+   "description": "-40\u2103~+150\u2103@(TJ) 1 146uA 2.5MHz 3.5A 4.5V~60V 800mV~58.8V Adjustable Buck Buck Built-in No SOIC-8-EP DC-DC Converters ROHS",
+   "package": "SOIC-8-EP",
+   "category": "DC-DC Converters",
+   "type": "Extended",
+   "basic": false,
+   "stock": 31533,
+   "price": 0.7601,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.7601
+    },
+    {
+     "qty": 10,
+     "price": 0.6359
+    },
+    {
+     "qty": 30,
+     "price": 0.5487
+    },
+    {
+     "qty": 100,
+     "price": 0.4777
+    },
+    {
+     "qty": 500,
+     "price": 0.4664
+    },
+    {
+     "qty": 1000,
+     "price": 0.4519
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2005111633_Texas-Instruments-TPS54360BDDAR_C524806.pdf",
+   "url": "https://www.lcsc.com/product-detail/dc-dc-converters_texas-instruments-tps54360bddar_C524806.html",
+   "attributes": [
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+150\u2103@(TJ)"
+    },
+    {
+     "name": "Function",
+     "value": "Step-down type"
+    },
+    {
+     "name": "Synchronous Rectifier",
+     "value": "No"
+    },
+    {
+     "name": "Frequency - Switching",
+     "value": "2.5MHz"
+    },
+    {
+     "name": "Output Type",
+     "value": "Adjustable"
+    },
+    {
+     "name": "Voltage - Supply",
+     "value": "4.5V~60V"
+    },
+    {
+     "name": "Output Current",
+     "value": "3.5A"
+    },
+    {
+     "name": "Quiescent Current",
+     "value": "146uA"
+    },
+    {
+     "name": "Features",
+     "value": "Overcurrent Protection\u3001Light load efficient mode\u3001Cycle-by-cycle current limiting\u3001Frequency synchronization\u3001External compensation"
+    },
+    {
+     "name": "Switch tube (built-in/external)",
+     "value": "Built-in"
+    },
+    {
+     "name": "Topology",
+     "value": "Buck"
+    },
+    {
+     "name": "Output Voltage",
+     "value": "800mV~58.8V"
+    },
+    {
+     "name": "Number of Outputs",
+     "value": "1"
+    }
+   ],
+   "rank": 6,
+   "role": "dcdc-primary",
+   "verdict": "60V-thin-margin",
+   "note": "TPS54360B: 4.5-60V, 3.5A, 31533 stock, $0.48@100 - the cheapest credible option, same 60V margin objection as TPS54560."
+  },
+  {
+   "lcsc": "C3188679",
+   "mpn": "LM5146RGYR",
+   "brand": "Texas Instruments",
+   "description": "-40\u2103~+150\u2103@(TJ) 1 1.8mA 1MHz 5.5V~100V 800mV~60V Adjustable Buck External Overcurrent Protection\u3001Light load efficient mode\u3001Adjustable soft-start\u3001Operating status indication\u3001Cycle-by-cycle current limiting\u3001Adjustable current limiting\u3001Frequency synchronization\u3001Hiccup current limiting\u3001Built-in LDO regulator\u3001EMI optimization (spread spectrum) Step-down type Yes VQFN-20(3.5x4.5) DC-DC Converters ROHS",
+   "package": "VQFN-20(3.5x4.5)",
+   "category": "DC-DC Converters",
+   "type": "Extended",
+   "basic": false,
+   "stock": 1622,
+   "price": 2.1932,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 2.1932
+    },
+    {
+     "qty": 10,
+     "price": 1.8688
+    },
+    {
+     "qty": 30,
+     "price": 1.6655
+    },
+    {
+     "qty": 100,
+     "price": 1.4589
+    },
+    {
+     "qty": 500,
+     "price": 1.3653
+    },
+    {
+     "qty": 1000,
+     "price": 1.3233
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.ti.com/cn/lit/gpn/lm5146",
+   "url": "https://www.lcsc.com/product-detail/dc-dc-converters_texas-instruments-lm5146rgyr_C3188679.html",
+   "attributes": [
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+150\u2103@(TJ)"
+    },
+    {
+     "name": "Function",
+     "value": "Step-down type"
+    },
+    {
+     "name": "Synchronous Rectifier",
+     "value": "Yes"
+    },
+    {
+     "name": "Frequency - Switching",
+     "value": "1MHz"
+    },
+    {
+     "name": "Voltage - Supply",
+     "value": "5.5V~100V"
+    },
+    {
+     "name": "Output Type",
+     "value": "Adjustable"
+    },
+    {
+     "name": "Quiescent Current",
+     "value": "1.8mA"
+    },
+    {
+     "name": "Features",
+     "value": "Overcurrent Protection\u3001Light load efficient mode\u3001Adjustable soft-start\u3001Operating status indication\u3001Cycle-by-cycle current limiting\u3001Adjustable current limiting\u3001Frequency synchronization\u3001Hiccup current limiting\u3001Built-in LDO regulator\u3001EMI optimization (spread spectrum)"
+    },
+    {
+     "name": "Switch tube (built-in/external)",
+     "value": "External"
+    },
+    {
+     "name": "Topology",
+     "value": "Buck"
+    },
+    {
+     "name": "Output Voltage",
+     "value": "800mV~60V"
+    },
+    {
+     "name": "Number of Outputs",
+     "value": "1"
+    }
+   ],
+   "rank": 7,
+   "role": "dcdc-primary",
+   "verdict": "max-efficiency-more-parts",
+   "note": "LM5146: 5.5-100V SYNCHRONOUS BUCK CONTROLLER, external FETs, VQFN-20 3.5x4.5, 1622 stock, $1.46@100. Highest achievable efficiency and any current you want, at the cost of 2 FETs + bootstrap + sense network and a much larger layout. Over-engineered for 20W unless thermals force it."
+  },
+  {
+   "lcsc": "C17526143",
+   "mpn": "PA3855.005NLT",
+   "brand": "Pulse Elec",
+   "description": "2 2 2.25kV 2.2A 21uH 300nH 5V 9~57V SMD-10P,17.7x14.5mm Power Transformers ROHS",
+   "package": "SMD-10P,17.7x14.5mm",
+   "category": "Power Transformers",
+   "type": "Extended",
+   "basic": false,
+   "stock": 459,
+   "price": 2.0205,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 2.0205
+    },
+    {
+     "qty": 10,
+     "price": 1.7235
+    },
+    {
+     "qty": 30,
+     "price": 1.538
+    },
+    {
+     "qty": 130,
+     "price": 1.3475
+    },
+    {
+     "qty": 520,
+     "price": 1.262
+    },
+    {
+     "qty": 1040,
+     "price": 1.2249
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2311151801_Pulse-Elec-PA3855-005NLT_C17526143.pdf",
+   "url": "https://www.lcsc.com/product-detail/power-transformers_pulse-elec-pa3855-005nlt_C17526143.html",
+   "attributes": [
+    {
+     "name": "Inductance",
+     "value": "21uH"
+    },
+    {
+     "name": "Primary Side Voltage",
+     "value": "9~57V"
+    },
+    {
+     "name": "Output Current",
+     "value": "2.2A"
+    },
+    {
+     "name": "Tolerance",
+     "value": "\u00b110%"
+    },
+    {
+     "name": "Secondary Side Voltage",
+     "value": "5V"
+    },
+    {
+     "name": "Isolation Voltage(Vrms)",
+     "value": "2.25kV"
+    },
+    {
+     "name": "Leakage Inductance",
+     "value": "300nH"
+    },
+    {
+     "name": "Secondary Winding",
+     "value": "2"
+    },
+    {
+     "name": "Height",
+     "value": "14mm"
+    },
+    {
+     "name": "Primary Winding(s)",
+     "value": "2"
+    }
+   ],
+   "rank": 1,
+   "role": "transformer-isolated",
+   "verdict": "isolated-option-only",
+   "note": "Pulse PA3855.005NLT - the only PoE-PD flyback transformer with real stock on JLC (459). BUT its secondary is 5V / 2.2A (~11W), not 12V / 20W: wrong ratio and wrong power for this board. No 12V-secondary PoE PD transformer is stocked. This is the concrete cost of choosing isolation at H1."
+  }
+ ]
+}

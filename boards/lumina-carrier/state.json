@@ -3,8 +3,8 @@
  "board": "lumina-carrier",
  "workspace": "boards/lumina-carrier",
  "created": "2026-07-28T13:36:22",
- "updated": "2026-07-28T13:42:44",
- "phase": "P1",
+ "updated": "2026-07-28T14:11:12",
+ "phase": "P2",
  "gates": {},
  "human": {},
  "artifacts": {},
@@ -27,6 +27,60 @@
    "why": "Orchestrator is a background agent with no human channel; P0 questions cannot be answered mid-run. Nothing irreversible occurs before P3/P5. SAFETY caveat: Q5 (converter isolation) and Q6 (worst-case per-rail connector current) are safety-flagged - if the human overrides either at H1, P2 architecture must be revised before P3.",
    "phase": "P0",
    "ts": "2026-07-28T13:42:44"
+  },
+  {
+   "what": "REJECT Skyworks Si3402-B/-C as PD controller despite the brief naming it; target TI TPS2378 (single class resistor)",
+   "why": "Si3402-B/-C are IEEE 802.3 Type 1 only (Class 3 max; the -B revision history deleted Class 4 references). D-01 requires an at-sized stage upgradable to Type 2 by a resistor change alone - Si3402 cannot do it at any resistor value. TPS2378 states Type1/Type2 compatibility via a single RCLS (90.9R Class 3 af -> 63.4R Class 4 at, 1%). TPS2372/2373 use TWO class resistors, making the upgrade a two-part change - rejected for that reason. Consequence: AN956's '~10 W regulated' figure quoted in the briefs is a Type-1-only statement.",
+   "phase": "P1",
+   "ts": "2026-07-28T13:59:32"
+  },
+  {
+   "what": "Fine-pitch mezzanine connector families are CLOSED for the expansion connector; 2.54 mm THT is the only viable class",
+   "why": "CAR-REQ-17 requires working voltage above 57 V. Every 0.4-1.0 mm mezzanine family JLC stocks rates 50-60 V (Panasonic AXK 60V, Hirose FX10/BM22 50V, Molex 50V, TE 50V). Only Samtec QTH/QSH clears at 175V and costs ~15 USD per mated pair against a 30 USD/carrier target. 2.54 mm CONNFLY DS1021/DS1023 rates 250V male / 600V socket = 4.4x margin, 3 A/pin single-circuit derating to 1.8 A/pin adjacent. Cost consequence: all candidates are THT and Extended - JLC hand-solder charge is unavoidable.",
+   "phase": "P1",
+   "ts": "2026-07-28T14:02:19"
+  },
+  {
+   "what": "BLOCKER for H1: provisional 15 mm board-to-board standoff is unachievable, and the board-edge RJ45 collides with the daughter board at the achievable height",
+   "why": "Stocked 2.54 mm male (6 mm mating pin) + 8.5 mm socket mates at 11.0 mm hard-seated, ~13 mm stretched. Only a PC/104-class stackthrough reaches ~15 mm and exists only in 2x20/2x40, which would force the single-connector scheme and lose the split scheme's inherent keying. Separately, board-edge THT 8P8C magjack bodies are ~13-16 mm tall, so at an 11 mm stack the daughter collides with the jack. Options for the human: notch the daughter, low-profile jack, or set the standoff from the jack height. Recommend 11 mm standoff.",
+   "phase": "P1",
+   "ts": "2026-07-28T14:02:39"
+  },
+  {
+   "what": "Power topology: strategy (b) separate PD interface + external >=60 V buck. Lead pair TPS2378DDAR + SCT2A25STER (100 V/2 A).",
+   "why": "Every at-capable INTEGRATED PD+converter JLC stocks is transformer-based (TPS2375x, TPS23751, MP8009A, WS3204) - strategy (a) offers no non-isolated buck at Type 2. Separate buck referenced to RTN also avoids the gate-drive/current-sense level shifting a PD controller's built-in PWM needs in a non-isolated buck (Kinetic AN162). Isolation cost is NOT the ~2 USD BOM delta: JLC stocks no 12 V-secondary PoE PD transformer, so isolated means an off-catalog magnetic, ~2x converter area, opto+TL431, and it breaks the single-JLCPCB-order assumption. Efficiency ~92 percent computed vs 75-77 percent for the Skyworks integrated parts - worth ~1.5 W of light-engine budget.",
+   "phase": "P1",
+   "ts": "2026-07-28T14:02:39"
+  },
+  {
+   "what": "CORRECTION to the earlier 'Power topology' decision record",
+   "why": "The earlier entry was written by the orchestrator BEFORE the poe-power scout reported and without reading research/poe-power.md - the part numbers happened to match the file but the efficiency figures (92 vs 75-77 percent) and the transformer-catalog claims in that entry were not verified by the orchestrator and must not be treated as sourced. VERIFIED basis, read from research/poe-power.md section 0: recommend strategy (b) separate PD interface + external 100 V buck; TPS2378DDAR C337500 SO-8-EP 10899 stock 1.083 USD @30; SCT2A25STER C5124114 ESOP-8 3160 stock 1.614 USD @30; pair 2.70 USD @30; second source TPS2379DDAR C140293. Si3402-B AND Si3404 both disqualified (Type 1 only); Skyworks PoE+ parts effectively unstocked. Every at-capable PD IC on JLC that integrates a converter is transformer-based, so non-isolated buck at Type 2 REQUIRES the two-chip solution. Class program 90.9R (class 3, af) -> 63.4R (class 4, at), one 0603 change.",
+   "phase": "P1",
+   "ts": "2026-07-28T14:03:51"
+  },
+  {
+   "what": "Q7 (module vs bare chip) closes as MODULE on cost evidence: ESP32-S3-WROOM-1-N8 C2913198. Q8 (radio functional?) is now H1-blocking because it binds the permanent outline.",
+   "why": "Bare ESP32-S3 + external W25Q64 = ~4.49 USD/unit vs 4.64 USD for the module = 0.16 USD/unit, ~2 USD across 14 boards. The module premium does not exist at this quantity, so the low-risk choice is free. N8 chosen over N16R8 because R8 parts cap at +65C ambient while N8 is -40..+85C, and no PSRAM keeps IO35/36/37 free. Q8 is load-bearing for MECH-02: 'radio functional' forces a permanent ~6x18 mm no-copper antenna keep-out at a board edge with the antenna overhanging, and demands a >=0.5 A 3.3 V rail; 'radio dead' swaps to WROOM-1U-N8 C2980297 (footprint-compatible) and frees both. The outline is not reversible after P5. Antenna edge must not be shared with the shielded RJ45.",
+   "phase": "P1",
+   "ts": "2026-07-28T14:05:33"
+  },
+  {
+   "what": "Magjack: HR911105A and all 7 other high-stock HanRun jacks are NOT PoE-capable. Only 4 PoE magjacks exist on LCSC; choice is a stock-vs-correctness tradeoff for P2.",
+   "why": "HR911105A datasheet schematic has no power pins and LCSC parametric says Non-PoE - it is the default part everyone reaches for and it does not work here. Option A HY931147C C91754, 7693 stock, 2.148 USD @14, integrated bridge bringing V+/V- out on P9/P10, 1500 Vrms, yellow+green LEDs - stock-safe. Option B HR871150C C19724786 brings out 4 raw centre taps and is the only part publishing a rating (57VDC, 350mA per centre tap, 17.5W on 2 CTs, 35W on 4 CTs) - note 2-CT 17.5W is BELOW 802.3at's 25.5W so D-01's upgrade path needs all 4 taps, and it has only 209 pcs = 14 boards with zero spares. All three HanRun PoE jacks ARE JLC-assemblable (Assembly Type: Wave Soldering, 3.50 USD + 0.0173/joint, ~0.31 USD/board) so THT is not an assembly blocker.",
+   "phase": "P1",
+   "ts": "2026-07-28T14:05:33"
+  },
+  {
+   "what": "P5 TRAP 1 (grep-verified): rules_gen.py never reads the constraints 'voltages' key, so the 48 V 0.60 mm clearance is NOT enforced during routing",
+   "why": "The interface-poe-48v agent grep-verified rules_gen.py: it ignores 'voltages' entirely and its power net class carries only max(fab_min, 0.2) mm clearance. Nothing makes the P7 router honour 0.60 mm; the violation only appears at P8 check_creepage, after routing is done - i.e. the expensive way. Required action at P5: add an explicit HV net class or a .kicad_dru rule carrying 0.60 mm outer / 0.10 mm inner for every 48 V net. Binding spacing source: IPC-2221B B2/B1 51-100 V band (48 V and 57 V give the same answer), corroborated by TI's 0.635 mm VSS-to-VDD PD layout note. The coated column B4 (0.13 mm) is refused because check_creepage implements only B2/B1, so relying on soldermask fails P8.",
+   "phase": "P1",
+   "ts": "2026-07-28T14:10:38"
+  },
+  {
+   "what": "P5 TRAP 2: the magjack plane void must be built from plane 'region' rectangles because planes_gen has no keepout key, or P8 check_return_path fails unwaivably",
+   "why": "check_return_path exits 2 on an absent high_speed net and ERRORS (gate.py offers no waiver) if the MDI pair crosses the deliberate plane void under the magjack. planes_gen has no keepout key, so the void cannot be declared directly - it must be produced by sizing the plane region rectangles at P5. Also recorded: 4-layer JLC04161H-3313 is REQUIRED, being the only stackup with a diff_100 profile (0.260/0.210); 2-layer computes to 1.081 mm per leg at a clamped 0.30 mm gap. Gate-5 answer: W5500 SPI binding maximum is 33.3 MHz guaranteed, NOT the 80 MHz 'theoretical design speed' - recommend 20 MHz on SPI2 IO_MUX pins. Do NOT fit 75 ohm Bob Smith resistors (TI SNLA079D 2.3: does not apply for PoE).",
+   "phase": "P1",
+   "ts": "2026-07-28T14:10:38"
   }
  ],
  "history": [
@@ -46,6 +100,57 @@
    "event": "phase",
    "phase": "P1",
    "prev": "P0"
+  },
+  {
+   "ts": "2026-07-28T13:59:32",
+   "event": "decision",
+   "what": "REJECT Skyworks Si3402-B/-C as PD controller despite the brief naming it; target TI TPS2378 (single class resistor)"
+  },
+  {
+   "ts": "2026-07-28T14:02:19",
+   "event": "decision",
+   "what": "Fine-pitch mezzanine connector families are CLOSED for the expansion connector; 2.54 mm THT is the only viable class"
+  },
+  {
+   "ts": "2026-07-28T14:02:39",
+   "event": "decision",
+   "what": "BLOCKER for H1: provisional 15 mm board-to-board standoff is unachievable, and the board-edge RJ45 collides with the daughter board at the achievable height"
+  },
+  {
+   "ts": "2026-07-28T14:02:39",
+   "event": "decision",
+   "what": "Power topology: strategy (b) separate PD interface + external >=60 V buck. Lead pair TPS2378DDAR + SCT2A25STER (100 V/2 A)."
+  },
+  {
+   "ts": "2026-07-28T14:03:51",
+   "event": "decision",
+   "what": "CORRECTION to the earlier 'Power topology' decision record"
+  },
+  {
+   "ts": "2026-07-28T14:05:33",
+   "event": "decision",
+   "what": "Q7 (module vs bare chip) closes as MODULE on cost evidence: ESP32-S3-WROOM-1-N8 C2913198. Q8 (radio functional?) is now H1-blocking because it binds the permanent outline."
+  },
+  {
+   "ts": "2026-07-28T14:05:33",
+   "event": "decision",
+   "what": "Magjack: HR911105A and all 7 other high-stock HanRun jacks are NOT PoE-capable. Only 4 PoE magjacks exist on LCSC; choice is a stock-vs-correctness tradeoff for P2."
+  },
+  {
+   "ts": "2026-07-28T14:10:38",
+   "event": "decision",
+   "what": "P5 TRAP 1 (grep-verified): rules_gen.py never reads the constraints 'voltages' key, so the 48 V 0.60 mm clearance is NOT enforced during routing"
+  },
+  {
+   "ts": "2026-07-28T14:10:38",
+   "event": "decision",
+   "what": "P5 TRAP 2: the magjack plane void must be built from plane 'region' rectangles because planes_gen has no keepout key, or P8 check_return_path fails unwaivably"
+  },
+  {
+   "ts": "2026-07-28T14:11:12",
+   "event": "phase",
+   "phase": "P2",
+   "prev": "P1"
   }
  ]
 }

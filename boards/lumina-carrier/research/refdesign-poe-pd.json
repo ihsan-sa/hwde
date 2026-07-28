@@ -1,0 +1,141 @@
+{
+  "block": "poe-pd",
+  "board": "LUM-CAR-A",
+  "date": "2026-07-28",
+  "decisions": [
+    {
+      "id": "D1",
+      "what": "Reject the Skyworks Si3402-B and Si3402-C for this board. They are IEEE 802.3 Type 1 (Class 3 and below) parts with no Class 4 setting, so no resistor change can upgrade an Si3402 design to 802.3at Type 2.",
+      "why": "D-01 binds the design to a Type 2 power stage whose only Type 1 pin-down is the class resistor. An Si3402 upgrade would require a respin, which D-01 forbids. The datasheet revision history records that a former Class 4 claim was deleted, so secondary sources repeating it are stale.",
+      "source": "Skyworks Si3402-B Data Sheet Rev 1.1 (6 Aug 2021), p.1 Description, section 3.2.3 Table 7 'Class Resistor Values' (stops at Class 3 = 48.7 ohm), and Revision History entry 'Deleted references to Class 4 operation' - https://www.skyworksinc.com/-/media/Skyworks/SL/documents/public/data-sheets/Si3402-B.pdf ; Skyworks AN1050 Introduction (same Type 1 restriction for Si3402-C) - https://www.skyworksinc.com/-/media/Skyworks/SL/documents/public/application-notes/AN1050.pdf"
+    },
+    {
+      "id": "D2",
+      "what": "Topology: a standalone PD interface IC (no integrated DC-DC) followed by a separate >=60 V-rated buck IC, rather than an integrated PD-plus-converter part.",
+      "why": "Two independent reasons. (1) D-02 needs the raw PD rail at the expansion connector; on a PD interface IC that rail is exactly the VDD-to-RTN node after the hot-swap FET, so the split costs nothing and gives a clean tap. (2) Driving a non-isolated buck from a PD controller's integrated single-switch PWM requires discrete level shifting of the gate drive and current sense (low-side buck) or of the feedback (high-side buck); a standalone wide-Vin buck with its own bootstrap high-side driver, referenced to RTN, avoids all of it.",
+      "source": "Kinetic Technologies AN162 Rev 04a (Jan 2022), 'System Design Considerations / The Buck Topology', 'Low-Side Buck', 'High-Side Buck', Figures 3-7 - https://www.kinet-ic.com/AN162-04a ; TI TPS2378 SLVSB99C section 9 Power Supply Recommendations - https://www.ti.com/lit/gpn/TPS2378"
+    },
+    {
+      "id": "D3",
+      "what": "Class programming is a single resistor RCLS from the CLS pin to VSS: 90.9 ohm 1% = Class 3 (802.3af build 1), 63.4 ohm 1% = Class 4 (802.3at build 2). Full table (TPS2378): Class 0 = 1270, Class 1 = 243, Class 2 = 137, Class 3 = 90.9, Class 4 = 63.4 ohm. Place it as one standalone silkscreened 0603 adjacent to the PD IC so the af/at variant is a one-line BOM swap.",
+      "why": "This is the decision D-01 turns on. The datasheet states the build-1/build-2 relationship directly: 'Selecting an RCLS of 63.4 ohm provides a valid type 2 signature. TPS2378 may be used as a compatible type 1 device simply by programming class 0-3 per Table 1.' Class 3 and Class 4 resistor values are identical across two independently published TI parts, which is the cross-check.",
+      "source": "TI TPS2378 SLVSB99C Table 1 'Class Resistor Selection' + section 8.2.2.5 + section 7.4 (type 2 signature statement) - https://www.ti.com/lit/gpn/TPS2378 ; cross-checked against TI TPS2373 SLUSCD1C Table 1 (Class 3 = 90.9, Class 4 = 63.4) - https://www.ti.com/lit/ds/symlink/tps2373.pdf ; tolerance corroborated by Skyworks Si3402-B DS Table 7 ('RCL Resistor (1%, 1/16 W)')"
+    },
+    {
+      "id": "D3a",
+      "what": "Prefer a PD controller with a SINGLE class pin. TPS2372 and TPS2373 use two class resistors (RCLSA for the first/second class event, RCLSB for the third and subsequent), which would make the af->at upgrade a two-part change.",
+      "why": "D-01 says the only difference between builds must be that resistor, singular. A two-resistor part weakens the guarantee and doubles the chance of a half-done upgrade. Single-CLS alternatives: TPS2378 (RCLS), TPS23730/TPS23731 (RCLS, Class 3 = 46.4, Class 4 = 32 ohm).",
+      "source": "TI TPS2373 SLUSCD1C section 7.3.3 'CLSA and CLSB Classification' and Table 1 - https://www.ti.com/lit/ds/symlink/tps2373.pdf ; TI TPS2372 datasheet pin table (CLSA pin 3, CLSB pin 6) - https://www.ti.com/lit/gpn/TPS2372 ; TI TPS23731 SLVSER7 Table 8-1 'Class Resistor Selection' - https://www.ti.com/lit/ds/symlink/tps23731.pdf"
+    },
+    {
+      "id": "D4",
+      "what": "Detection signature: 24.9 kohm +/-1% from VDD to DEN (TI parts). IEEE window is 23.75-26.25 kohm (25 k +/-5%). Split RDEN into two roughly equal halves and bring the tap out so grounding it both disables the PD and spoils the detection signature. Do not port the value between architectures: Skyworks specifies 24.3 kohm +/-1% for the Si3402 because its bridges are inside the measured path.",
+      "why": "The detection resistance the PSE sees is the input bridge resistance in series with RDEN in parallel with internal VDD loading, so the correct value is architecture-specific.",
+      "source": "TI TPS2378 SLVSB99C sections 7.3.4 'DEN Detection and Enable' and 8.2.2.4 'Detection Resistor, RDEN' - https://www.ti.com/lit/gpn/TPS2378 ; TI TPS2373 SLUSCD1C section 7.3.4 - https://www.ti.com/lit/ds/symlink/tps2373.pdf ; Skyworks AN956 Rev 0.2 section 3.7 - https://www.skyworksinc.com/-/media/Skyworks/SL/documents/public/application-notes/AN956.pdf"
+    },
+    {
+      "id": "D5",
+      "what": "Non-isolated buck (the Q5 provisional default) is 802.3-compliant, but ONLY if the fixture has a single Ethernet cable connection, no other external connectors, and no accessible non-isolated conductors. The whole board, the expansion connector and the daughter float at PoE potential. This kills Q9 option (a) 'USB-C on every fixture' and requires a plastic enclosure with no chassis earth.",
+      "why": "Vendor statement of the rule: 'The 802.3af/at/bt PoE standards require isolation between any accessible conductor, including frame ground if present, and all MDI leads... Many low-cost applications... use the non-isolated Buck topology. They achieve compliance by having only a single Ethernet cable connection, no other connectors, and no accessible non-isolated conductors.' A second, non-safety reason also applies: 'Even small ground currents circulating in a multi-point ground system will interfere with PoE Signature Detection due to low signaling currents that are only a few hundred micro-amps.' AN162 also publishes a Type 2 PD 12 V 2 A non-isolated buck reference (Fig 8, KTA1137A) at exactly this board's operating point, which is the existence proof.",
+      "source": "Kinetic Technologies AN162 Rev 04a, 'System Design Considerations / The Buck Topology', 'High-Side Buck', Figures 8-9, Conclusion - https://www.kinet-ic.com/AN162-04a ; corroborated by Skyworks AN956 Rev 0.2 p.3 ('the lower-cost option without isolation for fully-enclosed devices') and section 4 ('Isolation is required per IEEE 802.3 when the PD does not provide the isolation')"
+    },
+    {
+      "id": "D6",
+      "what": "Input rectification: two full 4-diode bridges - one fed from the magnetics' data-pair centre taps (Mode A), one from the spare pairs 4/5 and 7/8 (Mode B). Each bridge handles either polarity automatically. Rate at 100 V minimum, 1-2 A for a 25.5 W PD (TI says 3-5 A for its higher-power part). Default to PN-junction packaged bridges rather than Schottky.",
+      "why": "Bridges on both power modes are mandatory for an 802.3 PD, not a choice: 'The PD uses input diode or active bridges to accept power from any of the possible PSE configurations.' Schottky costs about 30% less bridge dissipation but carries three vendor-stated risks: higher reverse leakage threatens the 2.8 V maximum backfeed spec, leakage and low dynamic resistance corrupt the detection signature, and 'Schottky diodes have proven less robust to the stresses of ESD transients than PN junction diodes. After exposure to ESD, Schottky diodes may become shorted or leak.' If Schottky is needed for the at power budget, use matched packaged bridges. DERIVED (not vendor-stated): two diodes conduct at all times, so a PN bridge costs about 1.4 V (~2.9% of 48 V) and about 0.85 W at the at build's ~0.6 A - a real line item against the 1.5 W carrier-overhead allocation.",
+      "source": "TI TPS2378 SLVSB99C sections 7.4 'PoE Overview' and 8.2.2.1 'Input Bridges and Schottky Diodes' - https://www.ti.com/lit/gpn/TPS2378 ; TI TPS2373 SLUSCD1C section 8.2.2.1 (3-5 A, 100 V recommendation; active FET bridge option) - https://www.ti.com/lit/ds/symlink/tps2373.pdf ; Skyworks AN956 Rev 0.2 Figure 3 note 1 (external Schottky bridge recommended at Class 3)"
+    },
+    {
+      "id": "D7",
+      "what": "Use the PD IC's integrated 100 V hot-swap MOSFET for inrush limiting and hot swap. Do not add a discrete series FET. Worked numbers (TPS2378): 100 V / 0.5 ohm typ pass FET, 0.85 A continuous, 140 mA inrush limit, 1 A typ operating current limit, foldback to the inrush limit if V(RTN-VSS) exceeds ~12.3 V for ~800 us, OTSD at 135-145 degC with auto-restart into inrush, UVLO 38.1 V rising / 32 V falling.",
+      "why": "Integration removes the SOA problem from the design. The IEEE constraints the stage must satisfy are tight: the PSE inrush limit is 400-450 mA for Class 0-4 for up to 75 ms, 'The operational current for Type 2 and 3... cannot exceed 400 mA for a period of 80 ms', and a Type 2 PSE 'peak output current may be as high as 50 A for 10 us or 1.75 A for 75 ms', which 'makes robust protection of the PD device even more important'. OPINION: a discrete hot swap would need to survive 57 V at 0.14-1 A for up to 80 ms of SOA - a large expensive FET for no benefit.",
+      "source": "TI TPS2378 SLVSB99C section 6.5 Electrical Characteristics, section 7.3.5 'Internal Pass MOSFET', section 7.4.9 'PD Hotswap Operation' - https://www.ti.com/lit/gpn/TPS2378 ; TI TPS2373 SLUSCD1C sections 7.3.5 and 7.4.6 'Inrush and Startup' - https://www.ti.com/lit/ds/symlink/tps2373.pdf"
+    },
+    {
+      "id": "D8",
+      "what": "CAR-REQ-14: the 48 V raw feed to the expansion connector must have its own current-limited high-side switch / eFuse, enabled only after the PD's power-good (PG on TPS2373, CDB deassertion on TPS2378) AND the firmware ENABLE. The daughter's inrush limiter must hold its charge current below the PD's OPERATING current limit (~1 A), not merely below the connector rating.",
+      "why": "The PD IC charges its own CBULK at the inrush limit (140 mA on TPS2378) and only releases converter-enable when inrush ends. DERIVED: the strobe daughter's ~2800 uF at 48 V charged at 140 mA takes t = C*V/I = ~960 ms, more than 10x the 80 ms operational-current window. A shorted or mis-seated daughter drives V(RTN-VSS) up; past ~12.3 V for 800 us the PD folds back to the inrush limit and the whole board including the MCU browns out - TI illustrates exactly this ('Figure 22. Response to PD Output Short Circuit'). Without an independent gate, a daughter fault takes the PD front end down.",
+      "source": "TI TPS2378 SLVSB99C sections 7.3.5, 7.4.8 'Advanced Startup and Converter Operation', 7.4.9 and Figure 22 - https://www.ti.com/lit/gpn/TPS2378 ; TI TPS2373 SLUSCD1C section 7.3.5 (foldback at 14.5 V / 1.65 ms, PG semantics) - https://www.ti.com/lit/ds/symlink/tps2373.pdf ; capacitor arithmetic marked DERIVED"
+    },
+    {
+      "id": "D9",
+      "what": "The Type 2 build's static PD input voltage window is 42.5-57 V, not the 37-57 V the requirements state. 37-57 V applies to PD power <= 13 W; for PD power > 13 W it is 42.5-57 V (802.3at Type 2, 12.5 ohm power loop, PSE 30 W / 50 V min). Design the 12 V buck for 37 V minimum input at full load so one part covers both builds; 57 V remains the rating driver.",
+      "why": "Build 1 (af, <=12.95 W) must regulate down from 37 V; build 2 (at) needs only 42.5 V but at double the power. Designing to 37 V min at full load costs only duty-cycle headroom and keeps the af/at delta at one resistor, as D-01 demands. Also confirms CAR-REQ-02's >=60 V rating: 57 V max static is why every PD hot-swap FET in this class is 100 V.",
+      "source": "TI TPS2378 SLVSB99C Table 2 (PSE output / PD input voltage by standard and power band) - https://www.ti.com/lit/gpn/TPS2378 ; identical table independently published as TI TPS2373 SLUSCD1C Table 6 - https://www.ti.com/lit/ds/symlink/tps2373.pdf"
+    },
+    {
+      "id": "D10",
+      "what": "MPS: guarantee a >=0.5 W (>=10 mA at 48 V) minimum board draw at all times, OR select a controller with automatic MPS. Valid Type 1/Type 2 MPS is a minimum DC current of 10 mA (or 10 mA pulsed for at least 75 ms every 325 ms) PLUS an AC impedance below 26.3 kohm in parallel with 0.05 uF. The AC leg is satisfied by the >=5 uF minimum operating CBULK.",
+      "why": "Vendor wording: 'For a Type 1 or Type 2 PD, a valid MPS consists of a minimum dc current of 10 mA, or a 10-mA pulsed current for at least 75 ms every 325 ms, and an AC impedance lower than 26.3 kohm in parallel with 0.05 uF. Only Type 1 and Type 2 PSEs monitor the AC MPS. A Type 1 or Type 2 PSE that monitors only the AC MPS may remove power from the PD.' DERIVED: the 1.5 W carrier-overhead allocation at 48 V is ~31 mA, comfortably above the 10 mA floor, so a running board holds the port up - the risk is any firmware state (ESP32-S3 deep sleep with W5500 idle) that drops draw below ~0.5 W. TPS2372/TPS2373 solve this in hardware via AMPS_CTL, which generates pulses whenever RTN-to-VSS current is below ~28 mA (typical 1.3 kohm resistor, for loads that may go below ~20 mA). TPS2378 has NO automatic MPS.",
+      "source": "TI TPS2373 SLUSCD1C section 7.4.7 'Maintain Power Signature' and section 7.3.8 'AMPS_CTL, MPS_DUTY and Automatic MPS' with Tables 4 and 5 - https://www.ti.com/lit/ds/symlink/tps2373.pdf ; TI TPS2378 SLVSB99C section 7.4 (CBULK >= 5 uF for AC MPS impedance) - https://www.ti.com/lit/gpn/TPS2378 ; Skyworks AN956 Rev 0.2 section 3.5 ('the input filter capacitor must be >5 uF, and the load must be such that the input current is >10 mA') ; corroborated by Microchip 'Next-Generation PoE: IEEE 802.3bt White Paper' (10 mA / 75 ms / <=250 ms dropout) - https://www.mouser.com/pdfDocs/Microchip_BT_White_Paper-March14,2019-3.pdf"
+    },
+    {
+      "id": "D11",
+      "what": "Transient protection: a TVS across the rectified PoE input is mandatory - SMAJ58A or equivalent for indoor applications - plus a 0.1 uF / 100 V / 10% X7R bypass from VDD to VSS (IEEE window 0.05-0.12 uF). No additional outdoor surge stage is needed for an indoor basement deployment.",
+      "why": "Vendor wording: 'A TVS, D1, across the rectified PoE voltage per Figure 30 must be used. TI recommends a SMAJ58A, or equivalent, ... for general indoor applications ... Outdoor transient levels or special applications require additional protection.' The surge to design against: 'IEEE 802.3 specifies a 1000 V surge with 0.3 usec rise time and 50 usec fall time applied to each conductor through a series resistance of 402 ohm', with a compliant PD handling 'a 50 usec, 5 A pulse'; plus telephony ringing of '56 V dc + 175 V peak ringing applied through 400 ohm source impedance at a frequency of 20 to 60 Hz'.",
+      "source": "TI TPS2378 SLVSB99C sections 8.2.2.2 'Protection, D1' and 8.2.2.3 'Capacitor, C1'; feature list (15 kV / 8 kV system-level ESD) - https://www.ti.com/lit/gpn/TPS2378 ; TI TPS2373 SLUSCD1C sections 8.2.2.2 / 8.2.2.3 ; Skyworks AN956 Rev 0.2 section 6 'Surge'"
+    },
+    {
+      "id": "D12",
+      "what": "Route the T2P (Type 2 PSE indication) open-drain output to an MCU GPIO through the vendor's level-shift/LED network, not directly - the pin can sit at up to 57 V when high-impedance.",
+      "why": "T2P pulls low only after two-event classification and inrush complete, i.e. only when a Type 2 PSE has actually allocated 25.5 W. Reading it lets firmware enforce the correct average-energy governor limit for the allocation it really received, instead of trusting a build-time constant - which matters because the same PCB serves both the af and at builds under D-01.",
+      "source": "TI TPS2378 SLVSB99C Electrical Characteristics 'TYPE 2 PSE INDICATION (T2P)' (output low after 2-event classification and inrush complete; leakage spec at VT2P = 57 V) and the T2P interface equations in section 8 - https://www.ti.com/lit/gpn/TPS2378 ; TI TPS2373 SLUSCD1C section 7.3.6 and Table 2 'TPH, TPL, BT and Allocated Power Truth Table' - https://www.ti.com/lit/ds/symlink/tps2373.pdf"
+    },
+    {
+      "id": "D13",
+      "what": "For build 1, program Class 3 (90.9 ohm), not Class 0 (1270 ohm).",
+      "why": "Both yield a 12.95 W allocation, but Class 0 declares 0.44-12.95 W and tells the PSE nothing useful, while Class 3 declares 6.49-12.95 W - the honest signature that a managed PoE switch's power budgeting expects. It also makes the af->at delta a single clean step, 90.9 -> 63.4 ohm.",
+      "source": "TI TPS2378 SLVSB99C Table 1 'Class Resistor Selection' - https://www.ti.com/lit/gpn/TPS2378 ; TI TPS2373 SLUSCD1C Table 2 (Class 3 -> 12.95 W allocated in 1 class cycle) - https://www.ti.com/lit/ds/symlink/tps2373.pdf"
+    }
+  ],
+  "layout_notes": [
+    "Point-to-point power flow, in order: RJ-45 -> Ethernet transformer -> diode bridges -> TVS and 0.1 uF capacitor -> PD IC. 'Parts placement must be driven by power flow in a point-to-point manner.' [TI TPS2378 SLVSB99C 10.1; TI TPS2373 SLUSCD1C 10.1]",
+    "'There should not be any crossovers of signals from one part of the flow to another.' INTERPRETATION: this makes the PD front end a contiguous keepout zone between the magjack and the PD IC - do not route Ethernet differential pairs, SPI or PWM across it. [TI TPS2373 SLUSCD1C 10.1]",
+    "'All leads should be as short as possible with wide power traces and paired signal and return.' [TI TPS2373 SLUSCD1C 10.1]",
+    "Split local ground planes: the PD IC 'should be located over split, local ground planes referenced to VSS for the PoE input and to RTN for the switched output.' [TI TPS2373 SLUSCD1C 10.1]",
+    "Spacing: 'Spacing consistent with safety standards like IEC60950 must be observed between the 48-V input voltage rails and between the input and an isolated converter output.' Concrete number: 'maintain a clearance of 0.025 in [0.635 mm] between VSS and high-voltage signals such as VDD.' [TI TPS2373 SLUSCD1C 10.1 and 7.3.11]",
+    "Exposed thermal pad tied to VSS: 'Nine vias are recommended on the Exposed Thermal Pad ... These should connect to all layers of a copper plane on the PCB. Ensure 80% printed solder coverage by area.' [TI TPS2373 SLUSCD1C 10.1]",
+    "Thermal calibration data point for a QFN PD front end: 2 in^2 outer-layer plane -> 44 degC/W; 1 in^2 inner-layer plane -> 54 degC/W; thermal vias at 1 to 1.2 mm pitch, 0.3 to 0.33 mm diameter; 'it is not unusual for the Si3402-B junction temperature to rise 70 degC.' [Skyworks AN956 Rev 0.2 section 8.1 and Figure 3 notes]",
+    "Layer count: 'In general, four-layer PCB designs yield the most robust design ... Two-layer PCB designs must be carefully considered' - Skyworks offers pre-fabrication layout review for 2-layer PD designs. [Skyworks AN956 Rev 0.2 section 8]",
+    "Trace widths at PD currents (Si3402 data point, scale up for 25.5 W): 12 mil for pins carrying up to 325 mA dc; 25 mil for switching nodes carrying multi-amp spikes; 50 mil in the output section. [Skyworks AN956 Rev 0.2 section 8.3]",
+    "EMI: 'Use compact loops for dv/dt and di/dt circuit paths (power loops and gate drives)' and use 'minimal, yet thermally adequate, copper areas for heat sinking of components tied to switching nodes.' [TI TPS2373 SLUSCD1C 10.3]",
+    "The RJ45 magjack must be a PoE variant with the data-pair centre taps brought out to pins (Mode A); Mode B taps the spare pairs 4/5 and 7/8 directly, which are genuinely unused at 10/100. TI's power-flow list assumes the transformer sits between the RJ-45 and the bridges. [TI TPS2373 SLUSCD1C 10.1; corroborated by Bel Fuse MagJack ICM product page - SECONDARY SOURCE, confirm against the chosen magjack datasheet]",
+    "CAR-REQ-18 interaction, INTERPRETATION: the PD front end (bridges + hot-swap FET) is a heat source distinct from the DC-DC. Do not stack the PD front end, the buck and the daughter's LED drivers in one thermal column - 'Due to heating of the ambient air from the Schottky diode etc., the effective thermal impedance can be considerably higher than this.' [Skyworks AN956 Rev 0.2 section 8.1]",
+    "Skyworks counterpoint on spacing, recorded for completeness: 'Since the Si3402-B is not exposed to dc voltages over 60 V dc, it is generally considered to be a safety-extra-low-voltage (SELV) circuit, and there are no particular spacing requirements other than those of high-yield board manufacture.' Adopt TI's 0.635 mm as the stricter, concrete number. [Skyworks AN956 Rev 0.2 section 8.2]"
+  ],
+  "errata": [
+    "Si3402-B/-C are Type 1 only, and the -B datasheet's revision history explicitly deleted its former Class 4 claim. Distributor pages and blogs still say '802.3at' because -B is at-COMPATIBLE as a Type 1 device - do not read that as Class 4. [Si3402-B DS Rev 1.1, Revision History]",
+    "Si3402-C removes the PLOSS (early power-loss) output that -A/-B provided. Not a drop-in for anything that used it. [Skyworks AN1050 Introduction]",
+    "Si3402-B runs hot: rated TJ 140 degC, thermal shutdown ~160 degC typ, and 'it is not unusual for the Si3402-B junction temperature to rise 70 degC'. Mitigation is bypassing the on-chip diode bridges with external Schottkys at Class 3. [Skyworks AN956 Rev 0.2 section 8.1]",
+    "Si3402-B pulse-skips at no load: 'If the switcher is operated with no load, the switcher tends to pulse on and off ... it is recommended that a 250 mW load always be present.' [Skyworks AN956 Rev 0.2 sections 3.5 and 8.4]",
+    "PD detection is input-capacitance sensitive: the signature capacitance must stay inside the IEEE 0.05-0.12 uF window. Excess port capacitance lengthens the detection-pulse rise time and the PD is not detected. [Skyworks Si3402-B DS section 3.7 / AN956 section 3.7; TI TPS2378 SLVSB99C 8.2.2.3]",
+    "Schottky input bridges are a triple hazard: reverse leakage threatens the 2.8 V maximum backfeed spec, leakage and low dynamic resistance corrupt the detection signature, and 'Schottky diodes have proven less robust to the stresses of ESD transients than PN junction diodes. After exposure to ESD, Schottky diodes may become shorted or leak.' [TI TPS2378 SLVSB99C 8.2.2.1]",
+    "TPS2378 has NO automatic MPS (2012-era part). If the fixture can ever idle below ~10 mA input current the PSE will drop the port. TPS2372/TPS2373/TPS23730/TPS23731 add AMPS_CTL. [TI TPS2378 SLVSB99C feature list vs TI TPS2373 SLUSCD1C 7.3.8]",
+    "TPS2372/TPS2373 need two class resistors (CLSA and CLSB), which breaks D-01's 'single-part change' wording. [TI TPS2373 SLUSCD1C 7.3.3]",
+    "Foldback deglitch is short: 800 us (TPS2378, above ~12.3 V) / 1.65 ms (TPS2373, above ~14.5 V) of V(RTN-VSS). Any daughter hot-plug or cap-bank charge event that holds RTN high for longer resets the whole PD to the inrush current limit. Sizing the daughter's inrush limiter against the CONNECTOR rating instead of the PD's OPERATING current limit is the classic way to get this wrong. [TI TPS2378 SLVSB99C 6.5 and 7.4.9; TI TPS2373 SLUSCD1C 7.3.5]",
+    "DEN-low is not a usable soft-off: 'When DEN is used to force the hotswap switch off, the DC MPS will not be met. A PSE that monitors the DC MPS will remove power from the PD when this occurs.' [TI TPS2373 SLUSCD1C 7.4.7]",
+    "The input bridge sits in series with the detection resistor: 'The input diode bridge's incremental resistance may be hundreds of ohm at the low currents drawn when 2.7 V is applied to the PI.' Do not port 24.9 kohm blindly to an unusual bridge; TI notes 'Increasing RDET slightly may also help meet the requirement.' [TI TPS2378 SLVSB99C 7.4; TI TPS2373 SLUSCD1C 7.4]",
+    "Non-isolated debug hazard: grounded scope probes or a non-isolated USB-UART tie the floating PoE return to earth. Beyond the shock and damage risk, the resulting ground currents break signature detection outright because detection currents are 'only a few hundred micro-amps'. Use an isolated USB-UART for the Q9 recovery header, or unplug PoE. [Kinetic AN162 Rev 04a, System Design Considerations and High-Side Buck]",
+    "No formal TI errata document exists for TPS2378 or TPS2373 - searched and not found. All items above come from datasheet body text and application notes. Treat as 'none published', not 'none exist'."
+  ],
+  "candidates": [
+    {"part": "Skyworks Si3402-B / Si3402-C", "type": "802.3 Type 1 only (Class 0-3)", "class_resistors": 1, "integrated_dcdc": "yes (buck or flyback)", "auto_mps": false, "verdict": "REJECT - no Class 4, cannot satisfy D-01"},
+    {"part": "TI TPS2378 (TPS2378DDAR, HSOP-8 PowerPAD)", "type": "802.3at Type 2", "class_resistors": 1, "integrated_dcdc": "no", "auto_mps": false, "verdict": "BEST FIT - single RCLS 90.9 -> 63.4 ohm is exactly D-01; caveat = no automatic MPS"},
+    {"part": "TI TPS2372 / TPS2373 (-3, -4)", "type": "802.3at/bt Type 1-4", "class_resistors": 2, "integrated_dcdc": "no", "auto_mps": true, "verdict": "WORKS but the af->at upgrade becomes a two-part change"},
+    {"part": "TI TPS23730 / TPS23731", "type": "802.3bt Type 3, Class 1-4", "class_resistors": 1, "integrated_dcdc": "yes (flyback, primary-side regulation)", "auto_mps": true, "verdict": "WORKS - single RCLS 46.4 -> 32 ohm and auto MPS, but the flyback controller half is dead weight in a non-isolated buck design"},
+    {"part": "Kinetic Technologies KTA1137A", "type": "802.3at Type 2", "class_resistors": "not verified", "integrated_dcdc": "yes", "auto_mps": "not verified", "verdict": "Has the only published Type 2, 12 V 2 A NON-ISOLATED buck reference design found (AN162 Fig 8) - useful as a topology reference even if not selected"}
+  ],
+  "availability_sighted_not_verified": {
+    "note": "Component-scout owns stock/basic-vs-extended verification. These are search sightings only, not confirmed.",
+    "TPS2378DDAR": "JLCPCB parts library C337500",
+    "TPS2373-3RGWR": "LCSC C2860885",
+    "TPS2373-4RGWR": "LCSC C470963"
+  },
+  "open_conflicts": [
+    "Requirements section 3.1 states 'PD input voltage: 37-57 V nominal at the PD'. TI's tables qualify this: 37-57 V applies for PD power <= 13 W; for > 13 W (the at build) the static PD input voltage range is 42.5-57 V. Not a contradiction, but the requirement as written under-specifies the at build. Recommend designing the buck for 37 V minimum at full load to cover both. [TI TPS2378 Table 2 / TPS2373 Table 6]",
+    "Q6's default sizes the 48 V raw connector for '2 A continuous with 3 A capability'. No 802.3at PD front end can source that: 25.5 W at 42.5 V is ~0.6 A, and the TPS2378 hot-swap limits at ~1 A typ (0.85 A continuous). The connector may be RATED 2-3 A, but the daughter's cap-bank charge current must stay under the PD's operating current limit or the front end folds back. Needs a human answer at H1.",
+    "Q9 default (b) keeps a UART/BOOT recovery header, which is compatible with a non-isolated PD only if used with a galvanically isolated adapter or with PoE unplugged. Q9 option (a) 'USB-C on every fixture' is INCOMPATIBLE with a non-isolated PD - it is an accessible non-isolated conductor. Q5 and Q9 must be answered together. [Kinetic AN162 System Design Considerations]",
+    "Spacing guidance conflicts between vendors: TI requires IEC60950-consistent spacing plus a concrete 0.635 mm VSS-to-VDD clearance, while Skyworks calls a <60 Vdc PD a SELV circuit with 'no particular spacing requirements other than those of high-yield board manufacture'. Adopt TI's number as the stricter and concrete one. CAR-REQ-17's 48 V creepage across the expansion connector is a separate, connector-mechanical question this block does not settle.",
+    "The '~10 W regulated' figure the requirements quote in section 3.2 is a Type 1 / Class 3 statement from Skyworks AN956 p.3 (12.95 W input, 350 mA steady state, 20 ohm cabling). It remains valid for the af build-1 column but must not be scaled naively for the at column - use 25.5 W at PD and the converter's own measured efficiency."
+  ]
+}

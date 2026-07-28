@@ -1,0 +1,136 @@
+{
+  "high_speed": [
+    {
+      "net": "/ETH_TXP",
+      "reference": "GND",
+      "t_rise_ns": 3.0
+    },
+    {
+      "net": "/ETH_TXN",
+      "reference": "GND",
+      "t_rise_ns": 3.0
+    },
+    {
+      "net": "/ETH_RXP",
+      "reference": "GND",
+      "t_rise_ns": 3.0
+    },
+    {
+      "net": "/ETH_RXN",
+      "reference": "GND",
+      "t_rise_ns": 3.0
+    },
+    {
+      "net": "/ETH_SCLK",
+      "reference": "GND",
+      "t_rise_ns": 2.0
+    }
+  ],
+
+  "diff_pairs": [
+    {
+      "p": "/ETH_TXP",
+      "n": "/ETH_TXN",
+      "base": "ETH_TX",
+      "impedance_ohm": 100,
+      "gap_mm": 0.47,
+      "max_skew_mm": 2.5,
+      "max_uncoupled_mm": 5.0
+    },
+    {
+      "p": "/ETH_RXP",
+      "n": "/ETH_RXN",
+      "base": "ETH_RX",
+      "impedance_ohm": 100,
+      "gap_mm": 0.47,
+      "max_skew_mm": 2.5,
+      "max_uncoupled_mm": 5.0
+    }
+  ],
+
+  "voltages": [],
+
+  "notes": [
+    "SOURCE DOC: boards/lumina-carrier/research/interface-ethernet.md - every number below is sourced there. This fragment covers the ETHERNET DATA half only (MDI, magjack data role, W5500 SPI, 25 MHz crystal, MDI ESD, ESP32-S3 pin legality). The 48 V PD front end, classification network, >= 60 V converter and CAR-REQ-17 creepage belong to the PoE sibling agent.",
+
+    "NET NAMES ARE PROPOSALS and must be reconciled at P2 / verified by netlist_audit at P4. check_return_path raises CheckError -> EXIT 2 on a high_speed net that is not on the board ('high-speed net X not on board'), which gates P8 hard. check_diffpair is gentler: a named pair whose nets are missing degrades to a warning (diffpair_missing_net) and other pairs are still judged.",
+
+    "MDI TOPOLOGY: with an RJ45 that has INTEGRATED magnetics (CAR-REQ-05) the transformer-to-RJ45-contact wiring is inside the part. The only MDI copper on the PCB is W5500 TXP/TXN (pins 2/1) and RXP/RXN (pins 6/5) to the magjack's chip-side pins - two pairs, both on the chip side of the isolation barrier. There is no 'magjack to RJ45 contacts' board routing. 10/100BASE-TX uses cable pairs 1-2 (TX) and 3-6 (RX) only; pairs 4-5 and 7-8 carry no data, which is why they are available as the PoE spare pair.",
+
+    "IMPEDANCE 100 ohm differential / <= 50 ohm single-ended to GND: WIZnet hardware design guide, TI SNLA079D 2.1, Pulse layout note p.3 all agree. The target is not knife-edge - the standard's own transmitter return loss floor is 10 dB at the AOI (ANSI X3.263-1995 9.1.5 / UNH-IOL test 25.1.6), i.e. roughly 100 +/-45 ohm, and Pulse notes that naive 2x-single-ended calculators under-read coupled impedance by 5-20 ohm. Confirm geometry against JLC's impedance calculator before ordering (VERIFY-LATER V12).",
+
+    "EDGE RATE t_rise_ns = 3.0 is the FASTEST edge IEEE 802.3 clause 25 permits: rise/fall 3.0-5.0 ns at 10%/90% with symmetry <= 0.5 ns (ANSI X3.263-1995 9.1.6 via UNH-IOL test 25.1.2). check_return_path turns that into f_knee = 167 MHz and a return-via radius of 89.9 mm (computed) - which is honestly loose: stitching-via spacing is NOT a real constraint on 100BASE-TX. The entries exist for the OTHER thing the check does: verifying an unbroken GND reference corridor under the pairs.",
+
+    "OTHER AOI NUMBERS for context (ANSI X3.263-1995 via UNH-IOL Clause 25 suite): differential output 950-1050 mV with 98-102% amplitude symmetry (9.1.4); duty-cycle distortion within +/-0.25 ns of a 16 ns grid (9.1.8); transmit jitter <= 1.4 ns pk-pk (9.1.9); transmit clock 125 MHz +/-6.25 kHz = +/-50 ppm (802.3 24.2.3.4).",
+
+    "max_skew_mm = 2.5 is ASSUMED, not sourced. No vendor and no clause gives a number - WIZnet, TI and Pulse all say only 'matched in length'. Derivation: 10% of the 3.0 ns minimum edge = 300 ps; check_diffpair converts with skew_ps = skew_mm * sqrt(4.05)/0.2998 = 6.71 ps/mm, so physics allows ~44.7 mm. 2.5 mm (17 ps, 0.6% of the edge) is a conservative default on a pair whose whole length is <= 25 mm. What actually degrades with mismatch is differential-to-common-mode conversion and hence EMI.",
+
+    "max_uncoupled_mm = 5.0 (pipeline default, kept explicit). check_diffpair calls a segment uncoupled when the partner is farther than max(3 * pitch, pitch + 0.5) = 1.41 mm at a 0.47 mm nominal pitch. A THT magjack's MDI pins sit on a ~2.0 mm grid, so the fan-out at the connector is INHERENTLY wider than the coupling threshold for 1-2 mm per leg. A tighter value would false-positive on correct layout. Pulse's 'keep maximum separation within differential pairs to 10 mils' is a routing instruction for the coupled run, not a gate value.",
+
+    "gap_mm = 0.47 is CENTRE-TO-CENTRE PITCH, not edge-to-edge gap (check_diffpair docstring: 'nominal centre-to-centre pitch'; it samples distance between track centrelines). 0.470 = 0.260 width + 0.210 gap from the JLC04161H-3313 diff_100 profile. rules_gen IGNORES this value and recomputes width/gap from impedance_ohm via impedance.py; it only sets check_diffpair's coupling threshold.",
+
+    "impedance_ohm is DELIBERATELY OMITTED from the high_speed entries. Verified in rules_gen.detect_diff_pairs: high_speed[].impedance_ohm is only consulted for pairs AUTO-DISCOVERED by name suffix; an explicit diff_pairs entry wins and takes its impedance from diff_pairs[].impedance_ohm. Putting a single-ended 50 there would be dead weight at best and a confusing conflict with the differential 100 at worst.",
+
+    "STACKUP: 4-LAYER IS REQUIRED. JLC04161H-3313 is the only stackup in stackups.yaml with a 100 ohm differential profile (diff_100: width 0.260 mm, gap 0.210 mm, outer microstrip to the nearest inner plane). JLC2313_1.6 ships controlled_impedance: [] because a 2-layer board has no adjacent reference plane. Running impedance.py on the 2-layer stackups anyway gives 1.081 mm per leg at 1 oz (1.000 mm at 2 oz) with the gap pinned at the solver's 0.30 mm manufacturability clamp - a 2.4 mm-wide pair. Corroborated by TI SNLA079D section 8 ('at minimum a four layer PCB is recommended') and Skyworks AN956 section 8 ('four-layer PCB designs yield the most robust design ... two-layer designs must be carefully considered'). Assumed layer assignment for reference: 'GND': F.Cu signal, In1.Cu solid GND, In2.Cu split power, B.Cu signal/pour.",
+
+    "MDI LENGTH (not expressible as a key - placement constraint): WIZnet says <= 25 mm (1000 mil) recommended and 75 mm (3000 mil) absolute maximum. Pulse wants the opposite bound for EMI: PHY-to-magnetic >= 25 mm, and PHY plus pairs >= 25 mm from the board edge. The two rules MEET AT 25 mm - put the W5500 about 25 mm behind the magjack and keep it and the pairs 25 mm clear of the other board edges.",
+
+    "MDI SPACING (not expressible as keys - route_critical / manual): TX pair to RX pair >= 0.508 mm (20 mil), 0.762 mm (30 mil) preferred, with a GND pattern between them (WIZnet W and K parameters). Any non-MDI signal >= 7.5 mm (300 mil) from the pairs (Pulse); digital signals on other layers that cannot be separated by a ground plane must cross at RIGHT ANGLES. Zero vias on MDI is the design target (WIZnet: 'TX+/- and RX+/- signals prohibit Via or Layer changes'; Pulse allows at most two per trace). No stubs (TI 2.1) - note check_diffpair measures skew on the branch-free trunk, so a stub will not inflate reported skew but is still a defect.",
+
+    "MAGJACK MUST BE A PoE PART - HARD P3 FILTER. A PD needs four power access points: Mode A via the CABLE-SIDE CENTRE TAPS of the pair-1-2 and pair-3-6 transformers (TCT/RCT, controller side CT1/CT2), and Mode B via the untransformed spare-pair contacts 4/5 and 7/8 (controller side SP1/SP2). Both go into diode bridges, which is what makes the PD mode- and polarity-agnostic. The common low-cost 10/100 magjack integrates the Bob Smith network INSIDE the package and does NOT bring the centre taps out to pins - there is physically nowhere to take PoE from. Specify a PoE/PD magjack whose datasheet pinout SHOWS the two centre taps and the two spare pairs on package pins (Bel 0826 / SI-5xxxx PoE MagJack and Pulse PoE ICM classes). Reference wiring: Skyworks AN956 figures 3/4 (RJ45 MX0+/CT/MX0-/MX1+/CT-MX1-/MX1- plus PWR1..PWR5 into Si3402-B CT1/CT2/SP1/SP2, with note 2 requiring at least one CTx and SPx pair connected).",
+
+    "MAGJACK TRANSFORMER SPEC: W5500 datasheet 5.5.5 requires 1:1 turns ratio and 350 uH inductance at BOTH transmit and receive ends. TI SNLA079D Table 4 adds the wider magnetics envelope: 1:1 +/-2%, insertion loss -1 dB (1-100 MHz), return loss -16 dB (1-30 MHz), diff-to-common rejection -30 dB (1-50 MHz), crosstalk -35 dB at 30 MHz, isolation 1500 Vrms HPOT. PoE-specific extra filter: the taps and spare-pair contacts must be rated for 802.3at current, not just af - D-01 promises the at upgrade is a resistor change only, and a magjack that cannot carry Type 2 current silently breaks that.",
+
+    "BOB SMITH TERMINATION WITH PoE - DO NOT FIT THE 75 ohm RESISTORS ON POWERED TAPS. Standard BST is a 75 ohm resistor from each cable-side centre tap to a common node, then 1000 pF rated >= 2 kV to chassis ground (TI SNLA079D 2.3). TI states flatly: 'Bob-Smith termination does not apply for Power Over Ethernet (PoE) applications.' Reason: those taps sit at 37-57 V DC and feed the PD bridges - a 75 ohm DC path to chassis would burn ~40 W if it ever completed, corrupt the 25 kohm PSE detection signature and classification, and give the PSE a leakage path that can look like a disconnect. On an 802.3-compliant PD all four access points are used (Mode A + Mode B), so THERE IS NO UNPOWERED TAP LEFT TO BOB-SMITH.",
+
+    "WHAT REPLACES BOB SMITH IN A PD: Pulse's PoE best-practice list still calls BST 'advisable for best EMI performance (included in most connector solutions)' - the two sources reconcile because PoE removes the DC half (the 75 ohm resistor) on powered taps while the AC half (a high-voltage capacitor to the enclosure/shield reference) is still wanted. AN956's reference design fits 330 ohm ferrite beads in series with the RJ45 conductor paths plus 1 nF capacitors (C10-C17) to the Vpos/Vneg planes, annotated 'for ESD immunity', with Vpos as 'an EMI and ESD plane, use top layer'. Copy that topology; coordinate with the PoE agent, whose schematic owns those parts.",
+
+    "CHASSIS vs SIGNAL GROUND IS UNRESOLVED AND DEPENDS ON Q5. The classic construction (chassis island under the RJ45, moat, crossed only by the transformer-isolated pairs, bridged by two 1206 zero-ohm resistors per TI SNLA079D 2.4) may have NOTHING TO BRIDGE TO on this board: under the Q5 default (non-isolated buck PD, plastic enclosure, Ethernet the only external connection) the board GND is the PD's Vneg and floats at PoE potential; there is no earth and no metal enclosure. Recommendation under that default: a SHIELDED jack's shield goes to a dedicated chassis pad tied to GND through 1 Mohm || 1 nF/2 kV with a fitted 0 ohm alternative so EMC testing can move the strap without a respin; an UNSHIELDED jack removes the question. If Q5 returns 'isolated flyback' or a metal enclosure, this whole area must be redone before P5.",
+
+    "PLANES UNDER THE MAGJACK - VENDOR CONFLICT, RESOLVED. WIZnet: 'All PCB layers under the Transformer and RJ45 Connector must have no power and GND plane.' TI 10.2: void the planes under discrete magnetics. Pulse p.4: no ground plane beneath a DISCRETE magnetics package, BUT 'for integrated connector modules, the chassis ground plane should run under the component to connect with the shield of the connector'. Resolution for this board: (1) void the signal-GND pour and every power pour on ALL FOUR layers under the connector body, from the magjack's PHY-side pad row outward to the board edge; (2) if a shielded jack is used, place a SEPARATE chassis-ground island under the shield tabs only, inside that void; (3) do NOT rely on FR-4 under the magjack as an isolation barrier - Pulse recommends >= 15 mil dielectric thickness to hold 1500 Vrms between adjacent layers, and JLC04161H-3313's F.Cu-to-In1 prepreg is 0.2104 mm = 8.3 mil, about half that, which is exactly why In1 AND In2 must both be voided there.",
+
+    "PIPELINE TRAP - THE PLANE VOID vs check_return_path. check_return_path raises an ERROR (not a warning) for any corridor deficit where >= 0.01 mm of trace centreline crosses missing reference copper (CROSSING_ERROR_MM = 0.01), and gate.py has NO WAIVER MECHANISM (verified: no 'waiv*' in gate.py). The magjack plane void must therefore BEGIN AT the magjack's PHY-side pad row and extend away from the board interior, so the MDI pairs terminate on those pads and never cross the plane edge. planes_gen supports only rectangular POSITIVE regions per plane (no keepouts, no voids - verified in source), so the void has to be produced by SIZING the GND/power region rectangles to stop short of the connector. Decide that geometry at P5, not at P7.",
+
+    "PoE / DATA SEAM: the PoE tap traces run from the magjack pins to the PD bridge at 37-57 V and pass within a few mm of the MDI pads and the shield island. That pin field is where this fragment's diff pairs and the PoE agent's voltages entries physically meet, and where check_creepage does its work. This fragment emits voltages: [] ON PURPOSE so the two fragments do not collide - the architect must confirm the PoE agent's voltages list covers the MAGJACK TAP NETS, not only the downstream bus.",
+
+    "W5500 SPI MAXIMUM - THE GATE 5 NUMBER IS 33.3 MHz, NOT 80 MHz. W5500 datasheet 5.5.4 lists FSCK max as '80/33.3 MHz' with the footnote: 'Even though theoretical design speed is 80MHz, the signal in the high speed may be distorted because of the circuit crosstalk and the length of the signal line. The minimum guaranteed speed of the SCLK is 33.3 MHz which was tested and measured with the stable waveform.' Any sign-off citing 80 MHz has cited the wrong figure.",
+
+    "SPI CLOCK RECOMMENDATION: 20 MHz for rev A, headroom to 26.67 MHz. Espressif's ESP32-S3 SPI-master doc gives 'Typical maximum frequency ... 80 MHz (IOMUX pins) and 26 MHz (GPIO matrix pins)', and the 80 MHz source clock makes 80/4 = 20 MHz and 80/3 = 26.67 MHz the reachable settings in range. 20 MHz keeps 40% margin on the W5500 spec and works on either routing path. Throughput is not the constraint: at 60 fps the per-frame PWM payload is a few hundred bytes = tens of microseconds of SPI against a 16.7 ms frame (computed). Do not trade margin for a number nobody needs.",
+
+    "SPI MODE AND TIMING DETAILS: W5500 supports SPI MODE 0 and MODE 3 only (datasheet chapter 2; MSB first, sample on rising edge, toggle on falling). Use mode 0. TCS = SCSn HIGH TIME >= 30 ns between frames (5.5.4) - at 20 MHz that is 0.6 SCLK periods, but a driver with cs_ena_posttrans = 0 doing back-to-back transactions can violate it. Use VARIABLE LENGTH DATA MODE (host drives SCSn); Fixed Length Data Mode requires SCSn tied to GND, which forfeits bus sharing and is incompatible with the CAR-REQ-06 shared SPI bus.",
+
+    "SPI high_speed ENTRY - SCLK ONLY, AND WHY. Critical length at an assumed ~2 ns ESP32-S3 output edge (ASSUMED - Espressif does not specify output slew) is t_rise * v_prop / 6 = 2 ns * 173 mm/ns / 6 = 58 mm (computed). On a 100 x 80 mm board a 40-60 mm SCLK run is plausible, i.e. borderline. The /ETH_SCLK entry is emitted NOT for its 60 mm stitch radius (meaningless) but so check_return_path verifies the clock has a CONTINUOUS GND reference and never crosses a plane split - the real risk on a board whose In2 is partitioned between 48 V, 12 V and 3.3 V. MOSI/MISO/CS/INT/RESET get no entry: they are not periodic, and they inherit the corridor for free if routed with SCLK. No impedance control on any SPI net.",
+
+    "SPI SERIES TERMINATION: fit 22-33 ohm at the ESP32-S3 end of SCLK (and optionally MOSI), placed at the driver pin, footprint fitted so the value can be tuned. ASSUMED value - neither Espressif nor WIZnet publishes an SPI source-termination number; TI's analogous MII rule is 50 ohm series on all outputs (SNLA079D 5.1), the right order of magnitude for a 35-50 ohm microstrip. Keep the whole SPI group under ~60 mm over unbroken GND. NO length matching is required: at 20 MHz the budget is 25 ns half-period against TOV 5 ns plus ~0.35 ns flight for 60 mm (computed).",
+
+    "W5500 SUPPORT COMPONENTS (datasheet Table 2, figures 2-3) - do not drop any: pin 10 EXRES1 = 12.4 kohm 1% to GND (sets MDI drive current; a wide-tolerance part shifts the 950-1050 mV output amplitude); pin 20 TOCAP = 4.7 uF; pin 22 1V2O = 10 nF; pin 18 VBG leave NC; pin 7 DNC do not connect; pin 23 RSVD MUST BE TIED TO GND; pins 38-42 RSVD internal pull-down, leave NC; pin 37 RSTn hold low >= 500 us (TRC) with PLL lock <= 1 ms after release (TPL); pins 43-45 PMODE[2:0] have internal pull-ups so the default 111 = all-capable auto-negotiation - leave NC and do not accidentally pull one low.",
+
+    "W5500 LEDs AND POWER: SPDLED/LINKLED/DUPLED/ACTLED (pins 24-27) are ACTIVE LOW outputs with IOL >= 8.6 mA at VOL 0.4 V, so they can sink a magjack LED directly through a series resistor IF the jack's LEDs are common-anode - check the jack's LED polarity before committing, because CAR-REQ-09 / Q11 default (b) depends on it. Supply: VDD/AVDD 2.97-3.63 V; IDD 132 mA typ while transmitting at 100M (5.4) = 0.44 W on 3.3 V (computed), about 29% of the entire 1.5 W carrier overhead allocation before the ESP32-S3 is counted - hand that to the power architect. Inputs are 5 V tolerant (VIH max 5.5 V).",
+
+    "NO AUTO-MDIX. W5500 datasheet 5.5.6 states the part does not support Auto-MDIX and instructs a straight-through cable to a router/switch and a crossover cable to a PC/workstation/another W5500. The deployment is a managed PoE switch so straight-through is correct, but it is a DOCUMENTATION item for the fixture manual, and it means the MDI pin order at the magjack is not free: TX must land on cable pair 1-2 and RX on pair 3-6.",
+
+    "CRYSTAL (CAR-REQ-04), W5500 datasheet 5.5.3: 25 MHz, frequency tolerance +/-30 ppm at 25 C, shunt capacitance 7 pF max, drive level 59.12 uW, LOAD CAPACITANCE 18 pF, aging +/-3 ppm/year max. XI/CLKIN (pin 30) also accepts a single-ended 3.3 V TTL oscillator with XO (pin 31) floating - a fallback if the crystal becomes a yield problem.",
+
+    "CRYSTAL ppm BUDGET IS TIGHTER THAN IT LOOKS - DO NOT BUY A +/-50 ppm PART. IEEE 802.3 clause 25 requires the transmit clock to be 125 MHz +/-6.25 kHz = +/-50 ppm TOTAL (per UNH-IOL test 25.1.8, referencing 802.3 24.2.3.4). Into that must fit: +/-30 ppm initial (the W5500 spec), +/-3 ppm/year aging, temperature drift over 0-40 C ambient (typically +/-10 to +/-20 ppm for AT-cut, ASSUMED), and load-capacitance error (+/-10 ppm or worse). Specify +/-30 ppm initial OR BETTER, +/-30 ppm or better over temperature, AT-cut fundamental, CL = 18 pF, and select on the TOTAL figure. This is the number that passes on the bench and fails in a cold garage.",
+
+    "CRYSTAL LOAD CAPS: CL = (C1*C2)/(C1+C2) + Cstray, so with C1 = C2 = C, C = 2*(CL - Cstray). With CL = 18 pF and Cstray = 4 pF (ASSUMED; Atmel AVR186 quotes package parasitics of 1 pF XTALIN-GND, 2 pF XTALOUT-GND, 0.5 pF XTALIN-XTALOUT, to which trace capacitance adds) -> C = 28 pF -> SPECIFY 27 pF C0G/NP0 (computed; 30 pF at Cstray 3 pF, 26 pF at 5 pF). Expect to trim on the first prototype by measuring the link frequency. Most W5500 module schematics in the wild use 22 pF, which back-solves to CL ~ 15 pF - correct for a 15 pF crystal, WRONG for the datasheet's 18 pF. If the chosen crystal specifies a lower max drive than the oscillator delivers, a series resistor between XO and the crystal is the standard fix.",
+
+    "CRYSTAL LAYOUT / KEEPOUT: (1) crystal + both load caps as ONE placement group anchored on the crystal, XI/XO traces <= 5 mm (ASSUMED); (2) solid GND land on F.Cu directly under the crystal, stitched to In1 GND, with the crystal can tied to it (Atmel AVR186: 'A ground area should be placed under the crystal oscillator area. This ground land should be connected to the oscillator ground'); (3) no traces of any kind on F.Cu or In1 under or beside the group - local keepout ~2 mm around it (ASSUMED, no vendor gives a number); (4) crystal group >= 7.5 mm from the MDI pairs, borrowing Pulse's digital-to-MDI figure, and on the FAR SIDE of the W5500 from the magjack. This resolves the direct conflict between WIZnet's 'place the crystal as close as possible' and its 'it is not good to have a high frequency device around (OSC, etc.)' near the MDI. Also: no vias on XI/XO (WIZnet), load caps NP0/C0G with the XTALIN cap placed first and closest, load-cap ground return short and clear of power/PWM return currents (AVR186).",
+
+    "MDI ESD: the W5500's own ratings are HANDLING only - HBM 2000 V (class 2), MM 200 V, CDM 500 V, latch-up class I +/-200 mA (datasheet 5.2). The magjack's 1500 Vrms isolation blocks DC and mains-frequency faults but does NOT block a fast ESD event, which couples through interwinding capacitance; integrated magnetics change the geometry (no exposed cable-side board copper, shorter exposed run) without removing the need. RECOMMENDATION: fit a 4-channel LOW-CAPACITANCE TVS array on the PHY SIDE of the magnetics, across TXP/TXN and RXP/RXN, at the magjack end of the pairs (Semtech Ethernet protection guidance). CAPACITANCE <= 1 pF PER LINE is the binding parameter - the transmitter must still meet 10 dB return loss, and a general-purpose 20-50 pF/line array will visibly degrade the eye. Recommend FITTED rather than DNP: 8-12 fixtures get handled during commissioning and the cable is a 100 m antenna into a basement, for one 6-pin package. Stated as a judgement call.",
+
+    "PoE-SIDE PROTECTION IS THE SIBLING'S, NOT MINE - DO NOT DOUBLE-FIT. AN956 section 6: the Si3402-B class of PD controller has an input clamp for the IEEE 802.3 surge (1000 V, 0.3 us rise, 50 us fall, applied through 402 ohm), is designed for the resulting 50 us / 5 A pulse, and the EVB meets up to 16 kV system-level ESD. AN956's 1 nF capacitors on the RJ45 conductor paths and 330 ohm ferrite beads sit on the POWER taps and belong to the PoE agent's schematic.",
+
+    "ESP32-S3 PIN LEGALITY (gate 5), written against the Q7 default ESP32-S3-WROOM-1 / 8 MB flash / no PSRAM. FORBIDDEN: GPIO0 (strapping, boot mode, weak pull-up default 1 - reserve for a BOOT button); GPIO46 (strapping, boot mode + ROM print, weak pull-down default 0); GPIO45 (strapping, VDD_SPI voltage, weak pull-down default 0 = 3.3 V - PULLED HIGH AT RESET SETS THE FLASH RAIL TO 1.8 V AND THE MODULE DOES NOT BOOT; the most dangerous of the four); GPIO3 (strapping, JTAG source, FLOATING with no internal pull - datasheet: 'this pin does not have any internal pull resistors and the strapping value must be controlled by the external circuit that cannot be in a high impedance state'); GPIO19 = USB_D- and GPIO20 = USB_D+ (default-connected to the USB Serial/JTAG controller, and both have power-up glitches - GPIO19 a low-level plus two 60 us high-level glitches over a 3.2 ms window, GPIO20 a pull-down plus high-level glitches over 2 ms - which alone disqualifies them for CS or RESET). Strapping timing: tH = 3 ms hold after EN goes high before straps become normal IO, so anything sharing a strapping pin must be high-Z for 3 ms after reset.",
+
+    "ESP32-S3 SPI-FLASH PINS: on the WROOM-1 module the flash interface (SPICS1/SPIHD/SPIWP/SPICS0/SPICLK/SPIQ/SPID = chip GPIO26-32, plus VDD_SPI) is INTERNAL and not on the 41-pin module pinout at all, so there is nothing to avoid - listed because gate 5 names them and because they return if Q7 flips to a bare chip ('It is not recommended to use the pins connected to flash/PSRAM for any other purposes', S3 datasheet 2.7 / Table 2-14). SKU-DEPENDENT: GPIO35, GPIO36 and GPIO37 ARE on the module pinout but are wired to the octal PSRAM on ESP32-S3R8 and ESP32-S3R16V SKUs and 'not available for other uses' (WROOM-1 datasheet Table 3-1 note b); GPIO47/48 run at 1.8 V on R16V (note c); GPIO33/34 are not brought out at all. RECOMMENDATION: do not use GPIO35-37 or GPIO47/48 at all, so the module SKU stays a stocking decision rather than a design dependency.",
+
+    "ESP32-S3 OTHER CONSTRAINED PINS: GPIO39/40/41/42 = MTCK/MTDO/MTDI/MTMS, usable but forfeit hardware JTAG; GPIO43 (TXD0) / GPIO44 (RXD0) are the default console UART - RESERVE for the Q9 default recovery header; ADC2 = GPIO11-20 'cannot be used with Wi-Fi simultaneously' (S3 datasheet 2.3.3), so the CAR-REQ-07 ID divider and any thermistor MUST live on ADC1 = GPIO1-10; GPIO1-14, XTAL_32K_P/N, GPIO17 and GPIO18 all have ~60 us power-up glitches (Table 2-2) - harmless for SPI but load-bearing for CAR-REQ-08: the daughter ENABLE must be ACTIVE-HIGH so a low-level glitch is a no-op.",
+
+    "ONE LEGAL SET FOR THE W5500 (recommendation, architect reconciles) - chosen to avoid every forbidden class, land on the SPI2/FSPI IO_MUX pins so the 26 MHz GPIO-matrix ceiling does not apply, and leave all of ADC1 free: /ETH_SCLK = GPIO12 (FSPICLK, module pin 20), /ETH_MOSI = GPIO11 (FSPID, pin 19), /ETH_MISO = GPIO13 (FSPIQ, pin 21), /ETH_CSn = GPIO10 (FSPICS0, pin 18), /ETH_INTn = GPIO14 (FSPIWP, unused in 4-wire, pin 22), /ETH_RSTn = GPIO21 (plain GPIO, no ADC, no power-up glitch listed, pin 23). TWO SCHEMATIC CONSEQUENCES: (a) GPIO10 has a 60 us LOW-level power-up glitch and low = W5500 SELECTED, so fit a 10 kohm pull-up from /ETH_CSn to +3V3 - the W5500's own SCSn pull-up is 50-112 kohm, present but weak and useless against an actively driven glitch; (b) /ETH_RSTn fails safe because the W5500's RSTn has an internal pull-up, so a floating ESP32-S3 pin during MCU reset leaves the W5500 OUT of reset - still add an explicit 10 kohm pull-up so that is not a datasheet-footnote dependency.",
+
+    "EXPANSION-CONNECTOR SPI: the CAR-REQ-06 shared daughter bus must not collide with the W5500's SPI2 pins. SPI3 is the natural home and is GPIO-matrix routed, so the daughter bus is capped near 26 MHz - fine for EEPROMs and LED drivers, but confirm against whatever a daughter's driver needs, and make sure the two buses do not share a CS.",
+
+    "PLACEMENT SUGGESTIONS for the merged file (outside this fragment's four-key contract): {\"placement\": {\"edges\": [{\"ref\": \"J_RJ45\", \"edge\": \"left\", \"pos\": 0.5}], \"groups\": [{\"name\": \"eth_xtal\", \"anchor\": \"Y_ETH\", \"members\": [\"C_X1\", \"C_X2\"]}], \"separation\": [{\"a\": [\"Y_ETH\"], \"b\": [\"J_RJ45\", \"U_W5500\"], \"min_mm\": 7.5}]}} plus, once the magjack outline is known, the GND/power planes[].region rectangles that create the connector void."
+  ]
+}
