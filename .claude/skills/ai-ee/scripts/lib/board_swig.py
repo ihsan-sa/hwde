@@ -16,6 +16,7 @@ Job JSON (all lengths mm):
   fp_paths       [dir, ...] searched for "<Lib>.pretty/<Name>.kicad_mod"
   margin         gap between packed parts + border to outline (default 5.0)
   outline        {mode:"auto"} | {mode:"fixed", w, h}
+  corner_radius  mm; 0 or absent = square corners (historical default)
   mounting_holes {count, fp:"Lib:Name", inset} | null
 
 Result JSON to stdout: {status, out, placed, nets, bbox:[x1,y1,x2,y2], notes}.
@@ -36,6 +37,70 @@ DEFAULT_FP_ROOT = Path(sys.executable).parents[1] / "share" / "kicad" / "footpri
 
 def mm(x: float, y: float) -> "pcbnew.VECTOR2I":
     return pcbnew.VECTOR2I(pcbnew.FromMM(x), pcbnew.FromMM(y))
+
+
+EDGE_W = 0.1  # mm, Edge.Cuts line width
+_SQRT_HALF = 0.7071067811865476
+
+
+def _edge(board, shape_t):
+    s = pcbnew.PCB_SHAPE(board, shape_t)
+    s.SetLayer(pcbnew.Edge_Cuts)
+    s.SetWidth(pcbnew.FromMM(EDGE_W))
+    return s
+
+
+def draw_outline(board, x1, y1, x2, y2, radius, notes):
+    """Draw the Edge.Cuts outline; return the effective corner radius (mm).
+
+    radius <= 0 keeps the historical single SHAPE_T_RECT. Otherwise the outline
+    is an explicit closed loop of 4 lines + 4 quarter arcs: pcbnew has no
+    filleted-rect primitive, and geom.py / gerblib both consume gr_line and
+    gr_arc on Edge.Cuts, so the loop is equivalent for every downstream
+    consumer (DRC, planes_gen, gerber export, order_quote).
+
+    Arcs are set via SetArcGeometry(start, mid, end) - the 3-point form, which
+    avoids the start/end/center winding ambiguity that bites on mirrored axes
+    (KiCad y grows downward).
+    """
+    if radius <= 0:
+        r = _edge(board, pcbnew.SHAPE_T_RECT)
+        r.SetStart(mm(x1, y1))
+        r.SetEnd(mm(x2, y2))
+        board.Add(r)
+        return 0.0
+
+    rmax = min(x2 - x1, y2 - y1) / 2.0 - EDGE_W
+    if radius > rmax:
+        notes.append(f"corner radius {radius} clamped to {round(rmax, 3)} mm "
+                     f"(half the shorter outline side)")
+        radius = rmax
+    if radius <= 0:
+        notes.append("outline too small for a corner radius - drawn square")
+        return draw_outline(board, x1, y1, x2, y2, 0, notes)
+
+    r = radius
+    for sx, sy, ex, ey in ((x1 + r, y1, x2 - r, y1),      # top
+                           (x2, y1 + r, x2, y2 - r),      # right
+                           (x2 - r, y2, x1 + r, y2),      # bottom
+                           (x1, y2 - r, x1, y1 + r)):     # left
+        seg = _edge(board, pcbnew.SHAPE_T_SEGMENT)
+        seg.SetStart(mm(sx, sy))
+        seg.SetEnd(mm(ex, ey))
+        board.Add(seg)
+
+    # (corner centre, outward diagonal) per corner, walking the same direction
+    for cx, cy, dx, dy, sx, sy, ex, ey in (
+            (x1 + r, y1 + r, -1, -1, x1, y1 + r, x1 + r, y1),      # top-left
+            (x2 - r, y1 + r, +1, -1, x2 - r, y1, x2, y1 + r),      # top-right
+            (x2 - r, y2 - r, +1, +1, x2, y2 - r, x2 - r, y2),      # bot-right
+            (x1 + r, y2 - r, -1, +1, x1 + r, y2, x1, y2 - r)):     # bot-left
+        arc = _edge(board, pcbnew.SHAPE_T_ARC)
+        arc.SetArcGeometry(mm(sx, sy),
+                           mm(cx + dx * r * _SQRT_HALF, cy + dy * r * _SQRT_HALF),
+                           mm(ex, ey))
+        board.Add(arc)
+    return r
 
 
 def load_fp(fpid: str, fp_paths: list[Path]):
@@ -145,12 +210,20 @@ def build(job: dict) -> dict:
     else:
         ex1, ey1 = cx1 - margin, cy1 - margin
         ex2, ey2 = cx2 + margin, cy2 + margin
-    rect = pcbnew.PCB_SHAPE(board, pcbnew.SHAPE_T_RECT)
-    rect.SetStart(mm(ex1, ey1))
-    rect.SetEnd(mm(ex2, ey2))
-    rect.SetLayer(pcbnew.Edge_Cuts)
-    rect.SetWidth(pcbnew.FromMM(0.1))
-    board.Add(rect)
+    # A corner radius larger than the mounting-hole inset would leave the hole
+    # inside the rounded-away quadrant. Shrink the radius rather than move the
+    # hole: parts are already packed around the holes at this inset, so moving a
+    # hole inward collides with the shelf grid (H1 into C1's courtyard).
+    req_r = float(job.get("corner_radius") or 0.0)
+    mh = job.get("mounting_holes")
+    if req_r > 0 and mh and int(mh.get("count", 0)) > 0:
+        mh_inset = float(mh.get("inset", margin / 2.0))
+        if req_r > mh_inset:
+            notes.append(f"corner radius {req_r} clamped to the mounting-hole "
+                         f"inset {mh_inset} mm - raise --margin for a larger "
+                         f"radius")
+            req_r = mh_inset
+    corner_r = draw_outline(board, ex1, ey1, ex2, ey2, req_r, notes)
 
     # ---- mounting holes at outline corners ----------------------------
     mh = job.get("mounting_holes")
@@ -188,6 +261,7 @@ def build(job: dict) -> dict:
         "status": "pass", "out": str(out), "placed": placed,
         "nets": len(nets), "bbox": [round(ex1, 3), round(ey1, 3),
                                     round(ex2, 3), round(ey2, 3)],
+        "corner_radius": round(corner_r, 3),
         "notes": notes,
     }
 

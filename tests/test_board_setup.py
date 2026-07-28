@@ -350,6 +350,78 @@ def test_board_init_end_to_end(cli, usbbuck4_net, tmp_path):
     assert bg.stackup.copper_layers == ["F.Cu", "In1.Cu", "In2.Cu", "B.Cu"]
 
 
+def _edge_shapes(pcb: Path, kind: str) -> int:
+    """Count `kind` primitives that sit on Edge.Cuts."""
+    txt = pcb.read_text(encoding="utf-8")
+    return sum(1 for m in re.finditer(r"\(%s\b" % kind, txt)
+               if "Edge.Cuts" in txt[m.start():m.start() + 400])
+
+
+@pytest.mark.smoke
+def test_board_init_rounded_corners(cli, usbbuck4_net, tmp_path):
+    """MECH-01: --corner-radius draws the outline as 4 lines + 4 corner arcs
+    (pcbnew has no filleted-rect primitive) and geom must still read one closed
+    outline polygon from it. Mounting holes move out of the rounded quadrant."""
+    rep = tmp_path / "report.json"
+    rc = board_init.main([
+        "--netlist", str(usbbuck4_net), "--name", "usbbuck4",
+        "--out", str(tmp_path / "kicad"), "--layers", "4", "--margin", "10",
+        "--mounting-holes", "4", "--corner-radius", "4",
+        "--schematic", str(GOLDEN / "usbbuck4" / "usbbuck4.kicad_sch"),
+        "--out-report", str(rep)])
+    r = json.loads(rep.read_text("utf-8"))
+    assert rc == 0 and r["status"] == "pass", r
+    assert r["self_check"]["setup_violations"] == []
+    assert r["self_check"]["parity_count"] == 0
+    assert r["corner_radius"] == 4.0            # inset 5.0 > 4.0, no clamp
+
+    pcb = tmp_path / "kicad" / "usbbuck4.kicad_pcb"
+    assert (_edge_shapes(pcb, "gr_line"), _edge_shapes(pcb, "gr_arc"),
+            _edge_shapes(pcb, "gr_rect")) == (4, 4, 0)
+
+    # the arc/line loop must remain a valid closed outline downstream
+    sys.path.insert(0, str(SCRIPTS / "lib"))
+    import geom
+    bg = geom.load_board(pcb)
+    assert bg.outline is not None and bg.outline.area > 0
+
+
+@pytest.mark.smoke
+def test_board_init_corner_radius_clamped_to_hole_inset(cli, usbbuck4_net,
+                                                        tmp_path):
+    """A radius past the mounting-hole inset must shrink the RADIUS, not move
+    the hole: parts are packed around the holes at that inset, so relocating a
+    hole inward lands it in a neighbour's courtyard (H1 vs C1)."""
+    rep = tmp_path / "report.json"
+    rc = board_init.main([                       # default margin 6 -> inset 3.0
+        "--netlist", str(usbbuck4_net), "--name", "usbbuck4",
+        "--out", str(tmp_path / "kicad"), "--layers", "4",
+        "--mounting-holes", "4", "--corner-radius", "4",
+        "--schematic", str(GOLDEN / "usbbuck4" / "usbbuck4.kicad_sch"),
+        "--out-report", str(rep)])
+    r = json.loads(rep.read_text("utf-8"))
+    assert rc == 0 and r["status"] == "pass", r
+    assert r["self_check"]["setup_violations"] == []
+    assert r["corner_radius"] == 3.0
+    assert any("clamped to the mounting-hole inset" in n
+               for n in r["worker_notes"])
+
+
+@pytest.mark.smoke
+def test_board_init_square_corners_by_default(cli, usbbuck4_net, tmp_path):
+    """Backward compat: without --corner-radius the outline stays one rect."""
+    rep = tmp_path / "report.json"
+    rc = board_init.main([
+        "--netlist", str(usbbuck4_net), "--name", "usbbuck4",
+        "--out", str(tmp_path / "kicad"), "--layers", "4",
+        "--out-report", str(rep)])
+    r = json.loads(rep.read_text("utf-8"))
+    assert rc == 0 and r["corner_radius"] == 0.0
+    pcb = tmp_path / "kicad" / "usbbuck4.kicad_pcb"
+    assert _edge_shapes(pcb, "gr_rect") == 1
+    assert _edge_shapes(pcb, "gr_arc") == 0
+
+
 @pytest.mark.smoke
 def test_board_init_lcsc_fields_and_inplace_schematic(cli, usbbuck4_net, tmp_path):
     """S14 regressions: (a) symbols with custom LCSC fields must init to a

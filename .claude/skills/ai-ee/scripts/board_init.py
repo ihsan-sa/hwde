@@ -19,6 +19,7 @@ is unrouted by design). Emits the normalized DRC report alongside.
 Usage:
   board_init.py --netlist n.net --name board --out dir --layers 4
                 [--stackup NAME] [--outline auto|WxH] [--mounting-holes N]
+                [--corner-radius R]
                 [--schematic s.kicad_sch]   # copy next to board -> enables parity
                 [--fp-lib DIR ...] [--out-report r.json]
 
@@ -238,6 +239,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--outline", default="auto",
                     help="'auto' (bbox+margin) or 'WxH' in mm, e.g. 60x40")
     ap.add_argument("--margin", type=float, default=6.0)
+    ap.add_argument("--corner-radius", type=float, default=0.0,
+                    help="round the outline corners by this radius in mm "
+                         "(0 = square corners; clamped to half the shorter side)")
     ap.add_argument("--mounting-holes", type=int, default=0,
                     help="corner mounting holes (0..4)")
     ap.add_argument("--schematic", help="copy this .kicad_sch next to the board "
@@ -281,6 +285,7 @@ def main(argv: list[str] | None = None) -> int:
             "out": str(pcb_path), "layers": args.layers,
             "components": components, "netmap": netmap,
             "fp_paths": args.fp_lib, "margin": args.margin, "outline": outline,
+            "corner_radius": args.corner_radius,
             "mounting_holes": ({"count": args.mounting_holes, "inset": args.margin / 2.0}
                                if args.mounting_holes else None),
         }
@@ -317,6 +322,7 @@ def main(argv: list[str] | None = None) -> int:
             "board": str(pcb_path), "stackup": stk_name, "layers": args.layers,
             "components": len(components), "nets": worker["nets"],
             "outline_bbox": worker["bbox"], "mounting_holes": args.mounting_holes,
+            "corner_radius": worker.get("corner_radius", 0.0),
             "self_check": check, "worker_notes": worker.get("notes", []),
         }
         _emit(result, args.out_report)

@@ -881,3 +881,28 @@ human_steps); "\\*" swallows a line-initial star. Per-char escaping cannot see c
 brace-wrapping in the map ("[" -> "{[}", "]" -> "{]}", "*" -> "{*}") - renders identically,
 inert everywhere. Related: OT1 text mode prints raw < > | as inverted punctuation/em-dash -
 map to \textless{}/\textgreater{}/\textbar{}. (Adversarial review of report_gen, probe-verified.)
+
+## 2026-07-28 [geom][layout] Arc endpoints were recomputed, so any arc-based board outline parsed as POLYGON EMPTY
+geom._arc_points sampled the arc from the fitted centre+radius, so its first/last points were
+`cx + r*cos(a1)` rather than the DECLARED start/end - off by ~1e-14. unary_union then refuses to
+node the arc against the gr_line meeting it, polygonize finds no closed face, and
+BoardGeom.outline silently becomes an empty Polygon (no error, no warning). Any rounded or
+arc-cornered outline hit this, not just generated ones - and every downstream consumer
+(planes_gen, DFM, order_quote, area checks) reads that empty outline. Fix: pin pts[0]/pts[-1] to
+the declared start/end (they ARE the endpoints by definition). Detect it by asserting
+outline.area > 0, never by trusting board_init's self_check - that passed the whole time.
+
+## 2026-07-28 [testing][windows] tests/test_report.py is not concurrency-safe - it diffs global `git status`
+test_smoke_pd_trigger_with_residue_and_rerun and test_smoke_stm32_blinky snapshot
+`git status --porcelain` before/after and assert the ONLY new lines are `?? .../reports/design_doc/`.
+Anything else touching the working tree during the run fails them - a second ai-ee orchestrator
+writing under boards/, or a research agent dropping a scraped page at the repo root
+(`?? docs_start.html` was a real instance). Failures look like flaky asserts on a list of git
+lines and are NOT caused by the code under test. Re-run the file in isolation to confirm before
+chasing it; when running boards concurrently, expect these two to be unreliable.
+
+## 2026-07-28 [layout] Corner radius must be clamped to the mounting-hole inset, not solved by moving holes
+board_init packs parts on a shelf grid that already routes around the corner mounting holes at
+inset = margin/2. Pushing a hole inward so it clears a larger corner radius therefore drives it
+into a neighbour's courtyard (observed: H1 vs C1 on golden usbbuck4 at radius 4, inset 3).
+Shrink the radius to the inset instead and tell the caller to raise --margin if it wants more.

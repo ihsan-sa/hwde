@@ -331,10 +331,17 @@ def _arc_points(start, mid, end, n: int = 16) -> list[tuple[float, float]]:
         pts = [(cx + math.cos(a1 + (a3u - a1) * t / n) * math.hypot(x1 - cx, y1 - cy),
                 cy + math.sin(a1 + (a3u - a1) * t / n) * math.hypot(x1 - cx, y1 - cy))
                for t in range(n + 1)]
+        pts[0], pts[-1] = start, end
         return pts
     r = math.hypot(x1 - cx, y1 - cy)
-    return [(cx + r * math.cos(a1 + (a3u - a1) * t / n),
-             cy + r * math.sin(a1 + (a3u - a1) * t / n)) for t in range(n + 1)]
+    pts = [(cx + r * math.cos(a1 + (a3u - a1) * t / n),
+            cy + r * math.sin(a1 + (a3u - a1) * t / n)) for t in range(n + 1)]
+    # Pin the sampled ends to the DECLARED endpoints. Recomputing them from the
+    # centre+angle lands ~1e-14 off, which is enough that an arc and the line
+    # meeting it never node in unary_union - polygonize then finds no closed
+    # face and a rounded board outline silently parses as POLYGON EMPTY.
+    pts[0], pts[-1] = start, end
+    return pts
 
 
 # ============================================================ stackup model
