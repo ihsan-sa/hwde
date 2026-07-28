@@ -1,0 +1,50 @@
+{
+ "id": 9,
+ "created": "2026-07-28T00:57:24",
+ "gate": null,
+ "phase": null,
+ "board": "boards/stm32-blinky/kicad/stm32-blinky.kicad_pcb",
+ "fixer": "review",
+ "role_prompt": "C:/dev/ai-ee3/.claude/skills/ai-ee/agents/fixer.md",
+ "allowed_scripts": [
+  "render.py"
+ ],
+ "guidance": [
+  "No script owns this violation kind - triage: either identify the right domain and say so, or escalate to human with a render and a one-paragraph explanation."
+ ],
+ "cluster": {
+  "net": null,
+  "kinds": [
+   "stale-verify-artifact"
+  ],
+  "checks": [
+   "review.board"
+  ],
+  "severity": "warning",
+  "count": 1,
+  "region": {
+   "bbox": null,
+   "center": null
+  },
+  "violations": [
+   {
+    "check": "board-review",
+    "severity": "warning",
+    "pos": null,
+    "layer": null,
+    "net": null,
+    "refs": [],
+    "msg": "Stale artifact: reports/verify_all.json (pre-fix, 00:31) still records 1 error + 2 warnings (check_pdn) that no longer exist after commit e827d25 (pdn parse fix + /VIN pdn:false); gate-verify.json says pass 0/0 and an independent re-run this review confirms PASS with 0 violations. Refresh the committed summary so checkpoint-4 auditors do not see a phantom failing state.",
+    "source": "review.board",
+    "kind": "stale-verify-artifact"
+   }
+  ]
+ },
+ "artifacts": {
+  "board": "boards/stm32-blinky/kicad/stm32-blinky.kicad_pcb",
+  "schematic": "boards/stm32-blinky/kicad/stm32-blinky.kicad_sch",
+  "constraints": "boards/stm32-blinky/kicad/constraints.json",
+  "decoupling": "boards/stm32-blinky/kicad/decoupling.json"
+ },
+ "scope": "fix ONLY these violations; do not touch unrelated nets/regions; re-run the failed gate when done"
+}

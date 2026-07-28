@@ -3,7 +3,7 @@
  "board": "stm32-blinky",
  "workspace": "boards/stm32-blinky",
  "created": "2026-07-27T16:26:45",
- "updated": "2026-07-28T00:34:29",
+ "updated": "2026-07-28T01:09:59",
  "phase": "P8",
  "gates": {
   "erc": {
@@ -51,11 +51,11 @@
    ]
   },
   "drc_routed": {
-   "phase": "P7",
+   "phase": "P8",
    "status": "pass",
-   "attempts": 2,
+   "attempts": 3,
    "last": {
-    "ts": "2026-07-28T00:29:50",
+    "ts": "2026-07-28T01:09:59",
     "status": "pass",
     "failing_count": 0,
     "total": 0
@@ -72,18 +72,24 @@
      "status": "pass",
      "failing_count": 0,
      "total": 0
+    },
+    {
+     "ts": "2026-07-28T01:09:59",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0
     }
    ]
   },
   "verify": {
    "phase": "P8",
-   "status": "fail",
-   "attempts": 1,
+   "status": "pass",
+   "attempts": 2,
    "last": {
-    "ts": "2026-07-28T00:34:28",
-    "status": "fail",
-    "failing_count": 1,
-    "total": 3
+    "ts": "2026-07-28T00:34:29",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0
    },
    "history": [
     {
@@ -91,6 +97,12 @@
      "status": "fail",
      "failing_count": 1,
      "total": 3
+    },
+    {
+     "ts": "2026-07-28T00:34:29",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0
     }
    ]
   }
@@ -206,15 +218,149 @@
     "center": null
    },
    "work_order": "boards/stm32-blinky/log/workorders/wo-4.json"
+  },
+  {
+   "id": 5,
+   "status": "open",
+   "agent": null,
+   "attempts": 0,
+   "opened": "2026-07-28T00:57:24",
+   "closed": null,
+   "gate": null,
+   "phase": null,
+   "fixer": "review",
+   "net": "/VIN",
+   "kinds": [
+    "silk-polarity-missing"
+   ],
+   "severity": "error",
+   "count": 1,
+   "region": {
+    "bbox": [
+     14.12,
+     25.85,
+     14.12,
+     25.85
+    ],
+    "center": [
+     14.12,
+     25.85
+    ]
+   },
+   "work_order": "boards/stm32-blinky/log/workorders/wo-5.json"
+  },
+  {
+   "id": 6,
+   "status": "open",
+   "agent": null,
+   "attempts": 0,
+   "opened": "2026-07-28T00:57:24",
+   "closed": null,
+   "gate": null,
+   "phase": null,
+   "fixer": "review",
+   "net": null,
+   "kinds": [
+    "silk-pin-labels-missing"
+   ],
+   "severity": "warning",
+   "count": 1,
+   "region": {
+    "bbox": [
+     52.3,
+     26.45,
+     52.3,
+     26.45
+    ],
+    "center": [
+     52.3,
+     26.45
+    ]
+   },
+   "work_order": "boards/stm32-blinky/log/workorders/wo-6.json"
+  },
+  {
+   "id": 7,
+   "status": "open",
+   "agent": null,
+   "attempts": 0,
+   "opened": "2026-07-28T00:57:24",
+   "closed": null,
+   "gate": null,
+   "phase": null,
+   "fixer": "review",
+   "net": null,
+   "kinds": [
+    "silk-refdes-ambiguity"
+   ],
+   "severity": "warning",
+   "count": 1,
+   "region": {
+    "bbox": [
+     40.5,
+     29.0,
+     40.5,
+     29.0
+    ],
+    "center": [
+     40.5,
+     29.0
+    ]
+   },
+   "work_order": "boards/stm32-blinky/log/workorders/wo-7.json"
+  },
+  {
+   "id": 8,
+   "status": "fixed",
+   "agent": null,
+   "attempts": 0,
+   "opened": "2026-07-28T00:57:24",
+   "closed": "2026-07-28T00:58:02",
+   "gate": null,
+   "phase": null,
+   "fixer": "review",
+   "net": null,
+   "kinds": [
+    "bom-qty-drift"
+   ],
+   "severity": "warning",
+   "count": 1,
+   "region": {
+    "bbox": null,
+    "center": null
+   },
+   "work_order": "boards/stm32-blinky/log/workorders/wo-8.json"
+  },
+  {
+   "id": 9,
+   "status": "fixed",
+   "agent": null,
+   "attempts": 0,
+   "opened": "2026-07-28T00:57:24",
+   "closed": "2026-07-28T00:58:02",
+   "gate": null,
+   "phase": null,
+   "fixer": "review",
+   "net": null,
+   "kinds": [
+    "stale-verify-artifact"
+   ],
+   "severity": "warning",
+   "count": 1,
+   "region": {
+    "bbox": null,
+    "center": null
+   },
+   "work_order": "boards/stm32-blinky/log/workorders/wo-9.json"
   }
  ],
- "next_issue_id": 5,
+ "next_issue_id": 10,
  "budgets": {
   "fix_loops": {
    "erc": 2,
    "place": 3,
    "drc_routed": 3,
-   "verify": 2,
+   "verify": 1,
    "dfm": 3
   },
   "freerouting_retries": 1,
@@ -720,6 +866,100 @@
    "ts": "2026-07-28T00:34:29",
    "event": "decision",
    "what": "verify fail triage: pdn_undecoupled /VIN = width-only stub -> new 'pdn:false' opt-out (check_pdn+schema); pdn_no_bulk +5V/+3V3 = parse_farads multi-token bug -> fixed with tests"
+  },
+  {
+   "ts": "2026-07-28T00:34:29",
+   "event": "gate",
+   "gate": "verify",
+   "status": "pass",
+   "attempt": 2,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-07-28T00:57:23",
+   "event": "budget",
+   "path": "fix_loops.verify",
+   "remaining": 1
+  },
+  {
+   "ts": "2026-07-28T00:57:24",
+   "event": "snapshot",
+   "label": "pre-fix-review-p8",
+   "files": 1
+  },
+  {
+   "ts": "2026-07-28T00:57:24",
+   "event": "issue_open",
+   "id": 5,
+   "gate": null,
+   "fixer": "review",
+   "kinds": [
+    "silk-polarity-missing"
+   ]
+  },
+  {
+   "ts": "2026-07-28T00:57:24",
+   "event": "issue_open",
+   "id": 6,
+   "gate": null,
+   "fixer": "review",
+   "kinds": [
+    "silk-pin-labels-missing"
+   ]
+  },
+  {
+   "ts": "2026-07-28T00:57:24",
+   "event": "issue_open",
+   "id": 7,
+   "gate": null,
+   "fixer": "review",
+   "kinds": [
+    "silk-refdes-ambiguity"
+   ]
+  },
+  {
+   "ts": "2026-07-28T00:57:24",
+   "event": "issue_open",
+   "id": 8,
+   "gate": null,
+   "fixer": "review",
+   "kinds": [
+    "bom-qty-drift"
+   ]
+  },
+  {
+   "ts": "2026-07-28T00:57:24",
+   "event": "issue_open",
+   "id": 9,
+   "gate": null,
+   "fixer": "review",
+   "kinds": [
+    "stale-verify-artifact"
+   ]
+  },
+  {
+   "ts": "2026-07-28T00:58:02",
+   "event": "issue",
+   "id": 8,
+   "status": "fixed",
+   "agent": null,
+   "attempts": 0
+  },
+  {
+   "ts": "2026-07-28T00:58:02",
+   "event": "issue",
+   "id": 9,
+   "status": "fixed",
+   "agent": null,
+   "attempts": 0
+  },
+  {
+   "ts": "2026-07-28T01:09:59",
+   "event": "gate",
+   "gate": "drc_routed",
+   "status": "pass",
+   "attempt": 3,
+   "failing_count": 0
   }
  ]
 }

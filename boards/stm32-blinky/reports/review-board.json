@@ -1,0 +1,59 @@
+{
+ "violations": [
+  {
+   "check": "board-review",
+   "severity": "error",
+   "pos": [14.12, 25.85],
+   "layer": "F.SilkS",
+   "net": "/VIN",
+   "refs": ["J1"],
+   "msg": "5V input J1 has no polarity legend on silk (refdes only; pin-1 dot is covered by the header body after assembly). requirements.md sec 2 and blocks.md promise 'polarity marked on silkscreen'. Consequence: unkeyed input plugged backwards gives a dead board with no on-board hint (D1 prevents damage but not confusion). Fix: add '5V'/'GND' (or +/-) silk text outside the header body.",
+   "source": "review.board",
+   "kind": "silk-polarity-missing"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [52.3, 26.45],
+   "layer": "F.SilkS",
+   "net": null,
+   "refs": ["J2"],
+   "msg": "SWD header J2 pin functions unlabeled; blocks.md promises 'silk-labeled' canonical order (1=SWDIO 2=SWCLK 3=3V3 4=GND, electrically verified correct). Pin-1 square cell is covered by the header body after assembly. Consequence: pin-by-pin ST-Link hookup from memory; a 3V3/GND swap shorts the debugger rail. Fix: four silk texts below the header row (area is clear).",
+   "source": "review.board",
+   "kind": "silk-pin-labels-missing"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [40.5, 29.0],
+   "layer": "F.SilkS",
+   "net": null,
+   "refs": ["R1", "C11", "C1", "C7", "C8", "C9", "C10", "C4", "C3"],
+   "msg": "Refdes association ambiguous: 'C11' text sits over R1's body, 'C1' below-left of R1, C7/C8 labels float between parts; 'C3' text renders directly under J2 pads 3-4 and reads like a header label. Cluster mixes 22pF/10nF/100nF/1uF 0603s, so silk-guided rework can land on the wrong part. Assembly is CPL-driven (no production risk). Waiver acceptable for rev A; nudging labels is free if the J1/J2 silk edit happens anyway.",
+   "source": "review.board",
+   "kind": "silk-refdes-ambiguity"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": null,
+   "refs": ["C4", "C10"],
+   "msg": "BOM of record drift: parts.json lists 100nF (C14663) qty_per_board=5 with role 'C1-C3 VDD + C4 VDDA 100nF, C9 NRST', but the board mounts 4 (C1,C2,C3,C9); C4 is now 1uF (C15849) and C10 10nF (C57112) per the VDDA-pair fix, and those entries carry no refdes. P9 quoting/ordering from parts.json over-counts one line and cannot map two refdes. Fix qty and role strings before ordering.",
+   "source": "review.board",
+   "kind": "bom-qty-drift"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": null,
+   "refs": [],
+   "msg": "Stale artifact: reports/verify_all.json (pre-fix, 00:31) still records 1 error + 2 warnings (check_pdn) that no longer exist after commit e827d25 (pdn parse fix + /VIN pdn:false); gate-verify.json says pass 0/0 and an independent re-run this review confirms PASS with 0 violations. Refresh the committed summary so checkpoint-4 auditors do not see a phantom failing state.",
+   "source": "review.board",
+   "kind": "stale-verify-artifact"
+  }
+ ]
+}

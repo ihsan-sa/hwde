@@ -1,0 +1,71 @@
+{
+ "id": 7,
+ "created": "2026-07-28T00:57:24",
+ "gate": null,
+ "phase": null,
+ "board": "boards/stm32-blinky/kicad/stm32-blinky.kicad_pcb",
+ "fixer": "review",
+ "role_prompt": "C:/dev/ai-ee3/.claude/skills/ai-ee/agents/fixer.md",
+ "allowed_scripts": [
+  "render.py"
+ ],
+ "guidance": [
+  "No script owns this violation kind - triage: either identify the right domain and say so, or escalate to human with a render and a one-paragraph explanation."
+ ],
+ "cluster": {
+  "net": null,
+  "kinds": [
+   "silk-refdes-ambiguity"
+  ],
+  "checks": [
+   "review.board"
+  ],
+  "severity": "warning",
+  "count": 1,
+  "region": {
+   "bbox": [
+    40.5,
+    29.0,
+    40.5,
+    29.0
+   ],
+   "center": [
+    40.5,
+    29.0
+   ]
+  },
+  "violations": [
+   {
+    "check": "board-review",
+    "severity": "warning",
+    "pos": [
+     40.5,
+     29.0
+    ],
+    "layer": "F.SilkS",
+    "net": null,
+    "refs": [
+     "R1",
+     "C11",
+     "C1",
+     "C7",
+     "C8",
+     "C9",
+     "C10",
+     "C4",
+     "C3"
+    ],
+    "msg": "Refdes association ambiguous: 'C11' text sits over R1's body, 'C1' below-left of R1, C7/C8 labels float between parts; 'C3' text renders directly under J2 pads 3-4 and reads like a header label. Cluster mixes 22pF/10nF/100nF/1uF 0603s, so silk-guided rework can land on the wrong part. Assembly is CPL-driven (no production risk). Waiver acceptable for rev A; nudging labels is free if the J1/J2 silk edit happens anyway.",
+    "source": "review.board",
+    "kind": "silk-refdes-ambiguity"
+   }
+  ]
+ },
+ "artifacts": {
+  "board": "boards/stm32-blinky/kicad/stm32-blinky.kicad_pcb",
+  "schematic": "boards/stm32-blinky/kicad/stm32-blinky.kicad_sch",
+  "constraints": "boards/stm32-blinky/kicad/constraints.json",
+  "decoupling": "boards/stm32-blinky/kicad/decoupling.json"
+ },
+ "scope": "fix ONLY these violations; do not touch unrelated nets/regions; re-run the failed gate when done"
+}

@@ -1,0 +1,63 @@
+{
+ "id": 5,
+ "created": "2026-07-28T00:57:24",
+ "gate": null,
+ "phase": null,
+ "board": "boards/stm32-blinky/kicad/stm32-blinky.kicad_pcb",
+ "fixer": "review",
+ "role_prompt": "C:/dev/ai-ee3/.claude/skills/ai-ee/agents/fixer.md",
+ "allowed_scripts": [
+  "render.py"
+ ],
+ "guidance": [
+  "No script owns this violation kind - triage: either identify the right domain and say so, or escalate to human with a render and a one-paragraph explanation."
+ ],
+ "cluster": {
+  "net": "/VIN",
+  "kinds": [
+   "silk-polarity-missing"
+  ],
+  "checks": [
+   "review.board"
+  ],
+  "severity": "error",
+  "count": 1,
+  "region": {
+   "bbox": [
+    14.12,
+    25.85,
+    14.12,
+    25.85
+   ],
+   "center": [
+    14.12,
+    25.85
+   ]
+  },
+  "violations": [
+   {
+    "check": "board-review",
+    "severity": "error",
+    "pos": [
+     14.12,
+     25.85
+    ],
+    "layer": "F.SilkS",
+    "net": "/VIN",
+    "refs": [
+     "J1"
+    ],
+    "msg": "5V input J1 has no polarity legend on silk (refdes only; pin-1 dot is covered by the header body after assembly). requirements.md sec 2 and blocks.md promise 'polarity marked on silkscreen'. Consequence: unkeyed input plugged backwards gives a dead board with no on-board hint (D1 prevents damage but not confusion). Fix: add '5V'/'GND' (or +/-) silk text outside the header body.",
+    "source": "review.board",
+    "kind": "silk-polarity-missing"
+   }
+  ]
+ },
+ "artifacts": {
+  "board": "boards/stm32-blinky/kicad/stm32-blinky.kicad_pcb",
+  "schematic": "boards/stm32-blinky/kicad/stm32-blinky.kicad_sch",
+  "constraints": "boards/stm32-blinky/kicad/constraints.json",
+  "decoupling": "boards/stm32-blinky/kicad/decoupling.json"
+ },
+ "scope": "fix ONLY these violations; do not touch unrelated nets/regions; re-run the failed gate when done"
+}

@@ -331,6 +331,42 @@ def test_validate_ops_rejects(doc):
         place_edit.validate_ops(doc)
 
 
+def test_validate_text_ops_good():
+    ops = place_edit.validate_ops({"version": 1, "ops": [
+        {"op": "add_text", "text": "+5V", "x": 10.0, "y": 20.0,
+         "layer": "F.SilkS", "deg": 0, "size": 1.0, "thickness": 0.15},
+        {"op": "move_text", "ref": "U1", "field": "reference",
+         "x": 30.0, "y": 12.0, "deg": 90},
+    ]})
+    assert len(ops) == 2
+
+
+@pytest.mark.parametrize("doc", [
+    {"version": 1, "ops": [{"op": "add_text", "text": "X", "x": 1, "y": 1,
+                            "layer": "F.Cu"}]},        # copper layer banned
+    {"version": 1, "ops": [{"op": "add_text", "text": "  ", "x": 1, "y": 1,
+                            "layer": "F.SilkS"}]},     # blank text
+    {"version": 1, "ops": [{"op": "add_text", "text": "X", "x": 1, "y": 1,
+                            "layer": "F.SilkS", "size": 0}]},
+    {"version": 1, "ops": [{"op": "move_text", "ref": "U1", "field": "lcsc",
+                            "x": 1, "y": 1}]},         # only reference|value
+    {"version": 1, "ops": [{"op": "move_text", "field": "value",
+                            "x": 1, "y": 1}]},         # missing ref
+])
+def test_validate_text_ops_rejects(doc):
+    with pytest.raises(CheckError):
+        place_edit.validate_ops(doc)
+
+
+def test_expected_state_skips_text_ops():
+    want = place_edit._expected_state([
+        {"op": "move", "ref": "C1", "x": 1.0, "y": 2.0},
+        {"op": "add_text", "text": "T", "x": 0, "y": 0, "layer": "F.SilkS"},
+        {"op": "move_text", "ref": "U1", "field": "reference", "x": 3, "y": 4},
+    ])
+    assert want == {"C1": {"x": 1.0, "y": 2.0}}
+
+
 def test_expected_state_folds_ops():
     want = place_edit._expected_state([
         {"op": "move", "ref": "C1", "x": 1.0, "y": 2.0},
@@ -565,6 +601,48 @@ def test_edit_applies_and_is_idempotent(edit_board):
     assert state1 == state2
     # the real .kicad_pro was never clobbered by the SWIG save
     assert pro.read_bytes() == pro_before
+
+
+@pytest.mark.smoke
+def test_text_ops_apply_verify_idempotent(edit_board):
+    """S14 (V17): add_text creates board-frame silk text (no duplicate on
+    re-apply); move_text repositions a refdes field; both verified by the
+    driver's independent sexpdata parse."""
+    ops = [
+        {"op": "add_text", "text": "+5V", "x": 152.0, "y": 141.0,
+         "layer": "F.SilkS", "size": 1.0, "thickness": 0.15},
+        {"op": "move_text", "ref": "C1", "field": "reference",
+         "x": 151.0, "y": 138.5, "deg": 0},
+    ]
+    place_edit.apply_ops(edit_board, ops)
+    gr, fields = place_edit._parse_board_texts(edit_board)
+    hits = [t for t in gr if t["text"] == "+5V" and t["layer"] == "F.SilkS"]
+    assert len(hits) == 1
+    assert hits[0]["x"] == pytest.approx(152.0, abs=1e-3)
+    got = fields[("C1", "reference")]
+    assert got["x"] == pytest.approx(151.0, abs=1e-3)
+    assert got["y"] == pytest.approx(138.5, abs=1e-3)
+    # idempotent re-apply: still exactly ONE text, same positions
+    place_edit.apply_ops(edit_board, ops)
+    gr2, fields2 = place_edit._parse_board_texts(edit_board)
+    assert len([t for t in gr2 if t["text"] == "+5V"]) == 1
+    assert fields2[("C1", "reference")]["x"] == pytest.approx(151.0, abs=1e-3)
+
+
+@pytest.mark.smoke
+def test_move_text_on_rotated_footprint(edit_board):
+    """The transform verify must hold for a ROTATED parent footprint (local
+    property coords + absolute stored angle)."""
+    place_edit.apply_ops(edit_board, [
+        {"op": "rotate", "ref": "C5", "deg": 90.0},
+        {"op": "move_text", "ref": "C5", "field": "value",
+         "x": 149.0, "y": 139.0, "deg": 90.0},
+    ])
+    _, fields = place_edit._parse_board_texts(edit_board)
+    got = fields[("C5", "value")]
+    assert got["x"] == pytest.approx(149.0, abs=1e-3)
+    assert got["y"] == pytest.approx(139.0, abs=1e-3)
+    assert place_edit._angdiff(got["deg"], 90.0) < 0.05
 
 
 @pytest.mark.smoke

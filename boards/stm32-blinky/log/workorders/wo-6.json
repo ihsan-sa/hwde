@@ -1,0 +1,63 @@
+{
+ "id": 6,
+ "created": "2026-07-28T00:57:24",
+ "gate": null,
+ "phase": null,
+ "board": "boards/stm32-blinky/kicad/stm32-blinky.kicad_pcb",
+ "fixer": "review",
+ "role_prompt": "C:/dev/ai-ee3/.claude/skills/ai-ee/agents/fixer.md",
+ "allowed_scripts": [
+  "render.py"
+ ],
+ "guidance": [
+  "No script owns this violation kind - triage: either identify the right domain and say so, or escalate to human with a render and a one-paragraph explanation."
+ ],
+ "cluster": {
+  "net": null,
+  "kinds": [
+   "silk-pin-labels-missing"
+  ],
+  "checks": [
+   "review.board"
+  ],
+  "severity": "warning",
+  "count": 1,
+  "region": {
+   "bbox": [
+    52.3,
+    26.45,
+    52.3,
+    26.45
+   ],
+   "center": [
+    52.3,
+    26.45
+   ]
+  },
+  "violations": [
+   {
+    "check": "board-review",
+    "severity": "warning",
+    "pos": [
+     52.3,
+     26.45
+    ],
+    "layer": "F.SilkS",
+    "net": null,
+    "refs": [
+     "J2"
+    ],
+    "msg": "SWD header J2 pin functions unlabeled; blocks.md promises 'silk-labeled' canonical order (1=SWDIO 2=SWCLK 3=3V3 4=GND, electrically verified correct). Pin-1 square cell is covered by the header body after assembly. Consequence: pin-by-pin ST-Link hookup from memory; a 3V3/GND swap shorts the debugger rail. Fix: four silk texts below the header row (area is clear).",
+    "source": "review.board",
+    "kind": "silk-pin-labels-missing"
+   }
+  ]
+ },
+ "artifacts": {
+  "board": "boards/stm32-blinky/kicad/stm32-blinky.kicad_pcb",
+  "schematic": "boards/stm32-blinky/kicad/stm32-blinky.kicad_sch",
+  "constraints": "boards/stm32-blinky/kicad/constraints.json",
+  "decoupling": "boards/stm32-blinky/kicad/decoupling.json"
+ },
+ "scope": "fix ONLY these violations; do not touch unrelated nets/regions; re-run the failed gate when done"
+}

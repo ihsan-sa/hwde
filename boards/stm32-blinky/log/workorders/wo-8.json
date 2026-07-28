@@ -1,0 +1,53 @@
+{
+ "id": 8,
+ "created": "2026-07-28T00:57:24",
+ "gate": null,
+ "phase": null,
+ "board": "boards/stm32-blinky/kicad/stm32-blinky.kicad_pcb",
+ "fixer": "review",
+ "role_prompt": "C:/dev/ai-ee3/.claude/skills/ai-ee/agents/fixer.md",
+ "allowed_scripts": [
+  "render.py"
+ ],
+ "guidance": [
+  "No script owns this violation kind - triage: either identify the right domain and say so, or escalate to human with a render and a one-paragraph explanation."
+ ],
+ "cluster": {
+  "net": null,
+  "kinds": [
+   "bom-qty-drift"
+  ],
+  "checks": [
+   "review.board"
+  ],
+  "severity": "warning",
+  "count": 1,
+  "region": {
+   "bbox": null,
+   "center": null
+  },
+  "violations": [
+   {
+    "check": "board-review",
+    "severity": "warning",
+    "pos": null,
+    "layer": null,
+    "net": null,
+    "refs": [
+     "C4",
+     "C10"
+    ],
+    "msg": "BOM of record drift: parts.json lists 100nF (C14663) qty_per_board=5 with role 'C1-C3 VDD + C4 VDDA 100nF, C9 NRST', but the board mounts 4 (C1,C2,C3,C9); C4 is now 1uF (C15849) and C10 10nF (C57112) per the VDDA-pair fix, and those entries carry no refdes. P9 quoting/ordering from parts.json over-counts one line and cannot map two refdes. Fix qty and role strings before ordering.",
+    "source": "review.board",
+    "kind": "bom-qty-drift"
+   }
+  ]
+ },
+ "artifacts": {
+  "board": "boards/stm32-blinky/kicad/stm32-blinky.kicad_pcb",
+  "schematic": "boards/stm32-blinky/kicad/stm32-blinky.kicad_sch",
+  "constraints": "boards/stm32-blinky/kicad/constraints.json",
+  "decoupling": "boards/stm32-blinky/kicad/decoupling.json"
+ },
+ "scope": "fix ONLY these violations; do not touch unrelated nets/regions; re-run the failed gate when done"
+}

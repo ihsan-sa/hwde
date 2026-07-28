@@ -51,7 +51,11 @@ OP_FIELDS = {  # op -> (required, optional)
     "rotate": ({"ref", "deg"}, set()),
     "flip": ({"ref", "side"}, set()),
     "lock": ({"ref", "locked"}, set()),
+    # S14 text ops (V17): board-frame silk/fab text + refdes/value moves
+    "add_text": ({"text", "x", "y", "layer"}, {"deg", "size", "thickness"}),
+    "move_text": ({"ref", "field", "x", "y"}, {"deg"}),
 }
+TEXT_LAYERS = {"F.SilkS", "B.SilkS", "F.Fab", "B.Fab"}
 POS_TOL = 1e-3   # mm
 ANG_TOL = 0.05   # deg
 
@@ -81,6 +85,18 @@ def validate_ops(doc: dict) -> list[dict]:
             raise CheckError(f"ops[{i}]: side must be front|back")
         if "locked" in op and not isinstance(op["locked"], bool):
             raise CheckError(f"ops[{i}]: locked must be a boolean")
+        if kind == "add_text":
+            if op["layer"] not in TEXT_LAYERS:
+                raise CheckError(f"ops[{i}]: layer must be one of "
+                                 f"{sorted(TEXT_LAYERS)}")
+            if not isinstance(op["text"], str) or not op["text"].strip():
+                raise CheckError(f"ops[{i}]: text must be a non-empty string")
+            for k in ("size", "thickness"):
+                if k in op and not (isinstance(op[k], (int, float))
+                                    and 0 < op[k] < 20):
+                    raise CheckError(f"ops[{i}]: {k} out of range")
+        if kind == "move_text" and op["field"] not in ("reference", "value"):
+            raise CheckError(f"ops[{i}]: field must be reference|value")
     return ops
 
 
@@ -88,6 +104,8 @@ def _expected_state(ops: list[dict]) -> dict[str, dict]:
     """Fold the op list into the final expected {ref: {x,y,deg,side,locked}}."""
     want: dict[str, dict] = {}
     for op in ops:
+        if op["op"] in ("add_text", "move_text"):
+            continue  # verified independently by _verify_texts
         w = want.setdefault(op["ref"], {})
         if op["op"] in ("place", "move"):
             w["x"], w["y"] = op["x"], op["y"]
@@ -125,6 +143,113 @@ def _angdiff(a: float, b: float) -> float:
     return min(d, 360.0 - d)
 
 
+# ---------------------------------------------------------------- text verify
+# Independent of the SWIG worker: sexpdata parse of the saved file. gr_text
+# positions are board-frame; footprint (property ...) positions are LOCAL with
+# an ABSOLUTE angle (LEARNINGS [geometry]) - transform abs = fp + R(-deg).local.
+
+def _sx_head(n):
+    import sexpdata
+    return n[0].value() if isinstance(n, list) and n \
+        and isinstance(n[0], sexpdata.Symbol) else None
+
+
+def _sx_str(v) -> str:
+    import sexpdata
+    return v.value() if isinstance(v, sexpdata.Symbol) else str(v)
+
+
+def _parse_board_texts(pcb: Path):
+    """-> (gr_texts [{text, layer, x, y, deg}], fields {(ref, field): {x, y, deg}})."""
+    import sexpdata
+    data = sexpdata.loads(pcb.read_text(encoding="utf-8"))
+    gr_texts, fields = [], {}
+    for node in data[1:]:
+        head = _sx_head(node)
+        if head == "gr_text" and len(node) >= 2:
+            entry = {"text": _sx_str(node[1]), "layer": None,
+                     "x": None, "y": None, "deg": 0.0}
+            for sub in node[2:]:
+                sh = _sx_head(sub)
+                if sh == "at":
+                    entry["x"], entry["y"] = float(sub[1]), float(sub[2])
+                    if len(sub) > 3:
+                        entry["deg"] = float(sub[3])
+                elif sh == "layer":
+                    entry["layer"] = _sx_str(sub[1])
+            gr_texts.append(entry)
+        elif head == "footprint":
+            fx = fy = fdeg = None
+            props = {}
+            for sub in node[1:]:
+                sh = _sx_head(sub)
+                if sh == "at":
+                    fx, fy = float(sub[1]), float(sub[2])
+                    fdeg = float(sub[3]) if len(sub) > 3 else 0.0
+                elif sh == "property" and len(sub) >= 3:
+                    pname = _sx_str(sub[1]).lower()
+                    if pname in ("reference", "value"):
+                        lx = ly = None
+                        adeg = 0.0
+                        for p in sub[3:]:
+                            if _sx_head(p) == "at":
+                                lx, ly = float(p[1]), float(p[2])
+                                if len(p) > 3:
+                                    adeg = float(p[3])
+                        props[pname] = (_sx_str(sub[2]), lx, ly, adeg)
+            if fx is None or "reference" not in props:
+                continue
+            ref = props["reference"][0]
+            th = math.radians(fdeg or 0.0)
+            for pname, (_, lx, ly, adeg) in props.items():
+                if lx is None:
+                    continue
+                ax = fx + lx * math.cos(th) + ly * math.sin(th)
+                ay = fy - lx * math.sin(th) + ly * math.cos(th)
+                fields[(ref, pname)] = {"x": ax, "y": ay, "deg": adeg}
+    return gr_texts, fields
+
+
+def _verify_texts(pcb: Path, ops: list[dict]) -> list[str]:
+    text_ops = [op for op in ops if op["op"] in ("add_text", "move_text")]
+    if not text_ops:
+        return []
+    problems = []
+    gr_texts, fields = _parse_board_texts(pcb)
+    for op in text_ops:
+        if op["op"] == "add_text":
+            hits = [t for t in gr_texts
+                    if t["text"] == op["text"] and t["layer"] == op["layer"]
+                    and abs(t["x"] - op["x"]) <= POS_TOL
+                    and abs(t["y"] - op["y"]) <= POS_TOL]
+            if not hits:
+                problems.append(
+                    f"add_text '{op['text']}' not found on {op['layer']} at "
+                    f"({op['x']}, {op['y']})")
+            elif len(hits) > 1:
+                problems.append(f"add_text '{op['text']}': {len(hits)} "
+                                f"duplicates at the target position")
+            elif op.get("deg") is not None \
+                    and _angdiff(hits[0]["deg"], op["deg"]) > ANG_TOL:
+                problems.append(f"add_text '{op['text']}': angle "
+                                f"{hits[0]['deg']} != {op['deg']}")
+        else:
+            got = fields.get((op["ref"], op["field"]))
+            if got is None:
+                problems.append(f"move_text {op['ref']}.{op['field']}: "
+                                f"field not found in saved board")
+            elif (abs(got["x"] - op["x"]) > POS_TOL
+                  or abs(got["y"] - op["y"]) > POS_TOL):
+                problems.append(
+                    f"move_text {op['ref']}.{op['field']}: position "
+                    f"({got['x']:.4f}, {got['y']:.4f}) != ({op['x']}, {op['y']})")
+            elif op.get("deg") is not None \
+                    and _angdiff(got["deg"], op["deg"]) > ANG_TOL:
+                problems.append(f"move_text {op['ref']}.{op['field']}: angle "
+                                f"{got['deg']} != {op['deg']}")
+    return problems
+
+
 def apply_ops(pcb: Path, ops: list[dict]) -> dict:
     """Validate refs, stage, run the SWIG worker, verify, atomically swap in.
 
@@ -135,7 +260,8 @@ def apply_ops(pcb: Path, ops: list[dict]) -> dict:
     if not pcb.is_file():
         raise CheckError(f"board not found: {pcb}")
     model = placelib.PlaceModel(pcb)
-    missing = sorted({op["ref"] for op in ops} - model.footprints.keys())
+    missing = sorted({op["ref"] for op in ops if "ref" in op}
+                     - model.footprints.keys())
     if missing:
         raise CheckError(f"refs not on board: {', '.join(missing)}")
 
@@ -165,7 +291,7 @@ def apply_ops(pcb: Path, ops: list[dict]) -> dict:
             idx = result.get("index")
             at = f" at ops[{idx}]" if idx is not None else ""
             raise CheckError(f"worker failed{at}: {detail} (rolled back)")
-        problems = _verify(staged, ops)
+        problems = _verify(staged, ops) + _verify_texts(staged, ops)
         if problems:
             raise CheckError("post-apply verify failed (rolled back): "
                              + "; ".join(problems))

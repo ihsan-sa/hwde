@@ -1,0 +1,84 @@
+{
+ "script": "fix_dispatch",
+ "status": "violations",
+ "board": "stm32-blinky.kicad_pcb",
+ "gate": null,
+ "counts": {
+  "orders": 5,
+  "violations": 5,
+  "by_domain": {
+   "review": 5
+  }
+ },
+ "orders": [
+  {
+   "id": 5,
+   "fixer": "review",
+   "severity": "error",
+   "net": "/VIN",
+   "kinds": [
+    "silk-polarity-missing"
+   ],
+   "count": 1,
+   "work_order": "boards/stm32-blinky/log/workorders/wo-5.json"
+  },
+  {
+   "id": 6,
+   "fixer": "review",
+   "severity": "warning",
+   "net": null,
+   "kinds": [
+    "silk-pin-labels-missing"
+   ],
+   "count": 1,
+   "work_order": "boards/stm32-blinky/log/workorders/wo-6.json"
+  },
+  {
+   "id": 7,
+   "fixer": "review",
+   "severity": "warning",
+   "net": null,
+   "kinds": [
+    "silk-refdes-ambiguity"
+   ],
+   "count": 1,
+   "work_order": "boards/stm32-blinky/log/workorders/wo-7.json"
+  },
+  {
+   "id": 8,
+   "fixer": "review",
+   "severity": "warning",
+   "net": null,
+   "kinds": [
+    "bom-qty-drift"
+   ],
+   "count": 1,
+   "work_order": "boards/stm32-blinky/log/workorders/wo-8.json"
+  },
+  {
+   "id": 9,
+   "fixer": "review",
+   "severity": "warning",
+   "net": null,
+   "kinds": [
+    "stale-verify-artifact"
+   ],
+   "count": 1,
+   "work_order": "boards/stm32-blinky/log/workorders/wo-9.json"
+  }
+ ],
+ "parallel_groups": [
+  [
+   5,
+   6,
+   7
+  ],
+  [
+   8
+  ],
+  [
+   9
+  ]
+ ],
+ "out_dir": "boards/stm32-blinky/log/workorders"
+}
