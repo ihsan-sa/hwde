@@ -1,0 +1,734 @@
+{
+ "script": "place_metrics",
+ "status": "violations",
+ "board": "usb-buck.kicad_pcb",
+ "counts": {
+  "total": 10,
+  "by_severity": {
+   "error": 9,
+   "warning": 1
+  },
+  "by_source": {
+   "check.place": 2,
+   "check_decoupling": 8
+  }
+ },
+ "violations": [
+  {
+   "check": "place",
+   "severity": "error",
+   "pos": [
+    19.275,
+    18.6954
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "J1"
+   ],
+   "msg": "J1 declared on edge 'left' but is 3.9 mm away",
+   "source": "check.place",
+   "items": [
+    {
+     "msg": "J1 declared on edge 'left' but is 3.9 mm away",
+     "pos": [
+      19.275,
+      18.6954
+     ]
+    }
+   ],
+   "kind": "edge_violation",
+   "edge": "left",
+   "dist_mm": 3.9325
+  },
+  {
+   "check": "place",
+   "severity": "error",
+   "pos": [
+    26.625,
+    38.44
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "J2"
+   ],
+   "msg": "J2 declared on edge 'right' but is 28.9 mm away",
+   "source": "check.place",
+   "items": [
+    {
+     "msg": "J2 declared on edge 'right' but is 28.9 mm away",
+     "pos": [
+      26.625,
+      38.44
+     ]
+    }
+   ],
+   "kind": "edge_violation",
+   "edge": "right",
+   "dist_mm": 28.8875
+  },
+  {
+   "check": "check_decoupling",
+   "severity": "error",
+   "pos": [
+    40.945,
+    15.81
+   ],
+   "layer": "F.Cu",
+   "net": "VBUS",
+   "refs": [
+    "C2",
+    "U2"
+   ],
+   "msg": "C2 (100nF 50V X7R) rail pad is 20.5 mm Manhattan (14.8 mm direct) from U2 pin 3 (mid class limit 10.0 mm)",
+   "source": "check_decoupling",
+   "items": [
+    {
+     "msg": "C2 (100nF 50V X7R) rail pad is 20.5 mm Manhattan (14.8 mm direct) from U2 pin 3 (mid class limit 10.0 mm)",
+     "pos": [
+      40.945,
+      15.81
+     ]
+    }
+   ],
+   "kind": "decoupler_distance",
+   "cap_class": "mid",
+   "manhattan_mm": 20.515,
+   "euclid_mm": 14.7681,
+   "loop_nh": 17.3605,
+   "vias_in_loop": 3,
+   "pin": "U2.3",
+   "limit_mm": 10.0
+  },
+  {
+   "check": "check_decoupling",
+   "severity": "error",
+   "pos": [
+    49.045,
+    25.885
+   ],
+   "layer": "F.Cu",
+   "net": "+3V3",
+   "refs": [
+    "C12",
+    "U1"
+   ],
+   "msg": "C12 (100nF 50V X7R) rail pad is 37.2 mm Manhattan (26.3 mm direct) from U1 pin 24 (mid class limit 10.0 mm)",
+   "source": "check_decoupling",
+   "items": [
+    {
+     "msg": "C12 (100nF 50V X7R) rail pad is 37.2 mm Manhattan (26.3 mm direct) from U1 pin 24 (mid class limit 10.0 mm)",
+     "pos": [
+      49.045,
+      25.885
+     ]
+    }
+   ],
+   "kind": "decoupler_distance",
+   "cap_class": "mid",
+   "manhattan_mm": 37.195,
+   "euclid_mm": 26.3146,
+   "loop_nh": 29.0365,
+   "vias_in_loop": 3,
+   "pin": "U1.24",
+   "limit_mm": 10.0
+  },
+  {
+   "check": "check_decoupling",
+   "severity": "error",
+   "pos": [
+    15.79,
+    33.235
+   ],
+   "layer": "F.Cu",
+   "net": "+3V3",
+   "refs": [
+    "C13",
+    "U1"
+   ],
+   "msg": "C13 (100nF 50V X7R) rail pad is 18.6 mm Manhattan (13.2 mm direct) from U1 pin 36 (mid class limit 10.0 mm)",
+   "source": "check_decoupling",
+   "items": [
+    {
+     "msg": "C13 (100nF 50V X7R) rail pad is 18.6 mm Manhattan (13.2 mm direct) from U1 pin 36 (mid class limit 10.0 mm)",
+     "pos": [
+      15.79,
+      33.235
+     ]
+    }
+   ],
+   "kind": "decoupler_distance",
+   "cap_class": "mid",
+   "manhattan_mm": 18.61,
+   "euclid_mm": 13.242,
+   "loop_nh": 16.027,
+   "vias_in_loop": 3,
+   "pin": "U1.36",
+   "limit_mm": 10.0
+  },
+  {
+   "check": "check_decoupling",
+   "severity": "error",
+   "pos": [
+    21.77,
+    33.235
+   ],
+   "layer": "F.Cu",
+   "net": "+3V3",
+   "refs": [
+    "C14",
+    "U1"
+   ],
+   "msg": "C14 (100nF 50V X7R) rail pad is 18.1 mm Manhattan (17.4 mm direct) from U1 pin 48 (mid class limit 10.0 mm)",
+   "source": "check_decoupling",
+   "items": [
+    {
+     "msg": "C14 (100nF 50V X7R) rail pad is 18.1 mm Manhattan (17.4 mm direct) from U1 pin 48 (mid class limit 10.0 mm)",
+     "pos": [
+      21.77,
+      33.235
+     ]
+    }
+   ],
+   "kind": "decoupler_distance",
+   "cap_class": "mid",
+   "manhattan_mm": 18.13,
+   "euclid_mm": 17.3675,
+   "loop_nh": 15.691,
+   "vias_in_loop": 3,
+   "pin": "U1.48",
+   "limit_mm": 10.0
+  },
+  {
+   "check": "check_decoupling",
+   "severity": "warning",
+   "pos": [
+    27.75,
+    33.235
+   ],
+   "layer": "F.Cu",
+   "net": "+3V3",
+   "refs": [
+    "C15",
+    "U1"
+   ],
+   "msg": "C15 (4.7uF 16V X5R) rail pad is 22.5 mm Manhattan (18.1 mm direct) from U1 pin 48 (bulk class limit 20.0 mm)",
+   "source": "check_decoupling",
+   "items": [
+    {
+     "msg": "C15 (4.7uF 16V X5R) rail pad is 22.5 mm Manhattan (18.1 mm direct) from U1 pin 48 (bulk class limit 20.0 mm)",
+     "pos": [
+      27.75,
+      33.235
+     ]
+    }
+   ],
+   "kind": "decoupler_distance",
+   "cap_class": "bulk",
+   "manhattan_mm": 22.55,
+   "euclid_mm": 18.1125,
+   "loop_nh": 18.785,
+   "vias_in_loop": 3,
+   "pin": "U1.48",
+   "limit_mm": 20.0
+  },
+  {
+   "check": "check_decoupling",
+   "severity": "error",
+   "pos": [
+    33.73,
+    33.235
+   ],
+   "layer": "F.Cu",
+   "net": "+3V3",
+   "refs": [
+    "C16",
+    "U1"
+   ],
+   "msg": "C16 (100nF 50V X7R) rail pad is 24.5 mm Manhattan (19.7 mm direct) from U1 pin 9 (mid class limit 10.0 mm)",
+   "source": "check_decoupling",
+   "items": [
+    {
+     "msg": "C16 (100nF 50V X7R) rail pad is 24.5 mm Manhattan (19.7 mm direct) from U1 pin 9 (mid class limit 10.0 mm)",
+     "pos": [
+      33.73,
+      33.235
+     ]
+    }
+   ],
+   "kind": "decoupler_distance",
+   "cap_class": "mid",
+   "manhattan_mm": 24.53,
+   "euclid_mm": 19.6872,
+   "loop_nh": 20.171,
+   "vias_in_loop": 3,
+   "pin": "U1.9",
+   "limit_mm": 10.0
+  },
+  {
+   "check": "check_decoupling",
+   "severity": "error",
+   "pos": [
+    39.71,
+    33.235
+   ],
+   "layer": "F.Cu",
+   "net": "+3V3",
+   "refs": [
+    "C17",
+    "U1"
+   ],
+   "msg": "C17 (1uF 50V X5R) rail pad is 30.5 mm Manhattan (22.2 mm direct) from U1 pin 9 (bulk class limit 20.0 mm)",
+   "source": "check_decoupling",
+   "items": [
+    {
+     "msg": "C17 (1uF 50V X5R) rail pad is 30.5 mm Manhattan (22.2 mm direct) from U1 pin 9 (bulk class limit 20.0 mm)",
+     "pos": [
+      39.71,
+      33.235
+     ]
+    }
+   ],
+   "kind": "decoupler_distance",
+   "cap_class": "bulk",
+   "manhattan_mm": 30.51,
+   "euclid_mm": 22.1648,
+   "loop_nh": 24.357,
+   "vias_in_loop": 3,
+   "pin": "U1.9",
+   "limit_mm": 20.0
+  },
+  {
+   "check": "check_decoupling",
+   "severity": "error",
+   "pos": [
+    45.69,
+    33.235
+   ],
+   "layer": "F.Cu",
+   "net": "+3V3",
+   "refs": [
+    "C18",
+    "U1"
+   ],
+   "msg": "C18 (100nF 50V X7R) rail pad is 40.5 mm Manhattan (28.7 mm direct) from U1 pin 1 (mid class limit 10.0 mm)",
+   "source": "check_decoupling",
+   "items": [
+    {
+     "msg": "C18 (100nF 50V X7R) rail pad is 40.5 mm Manhattan (28.7 mm direct) from U1 pin 1 (mid class limit 10.0 mm)",
+     "pos": [
+      45.69,
+      33.235
+     ]
+    }
+   ],
+   "kind": "decoupler_distance",
+   "cap_class": "mid",
+   "manhattan_mm": 40.49,
+   "euclid_mm": 28.6986,
+   "loop_nh": 31.343,
+   "vias_in_loop": 3,
+   "pin": "U1.1",
+   "limit_mm": 10.0
+  }
+ ],
+ "metrics": {
+  "counts": {
+   "footprints": 28,
+   "movable": 28,
+   "nets": 16
+  },
+  "hpwl": {
+   "total_mm": 608.502,
+   "by_net": {
+    "+3V3": 75.155,
+    "/USB_DM": 36.904,
+    "/USB_DP": 62.069,
+    "/mcu/BOOT0": 35.66,
+    "/mcu/BTN": 36.38,
+    "/mcu/LED": 22.69,
+    "/mcu/LED_A": 18.06,
+    "/mcu/NRST": 43.47,
+    "/mcu/OSC_IN": 37.7,
+    "/mcu/OSC_OUT": 46.1,
+    "/mcu/SWCLK": 9.45,
+    "/mcu/SWDIO": 10.53,
+    "/power/BST": 25.995,
+    "/power/SW": 36.895,
+    "GND": 76.025,
+    "VBUS": 35.419
+   }
+  },
+  "crossings": {
+   "count": 73,
+   "pairs": [
+    {
+     "nets": [
+      "+3V3",
+      "GND"
+     ],
+     "crossings": 5
+    },
+    {
+     "nets": [
+      "/USB_DM",
+      "GND"
+     ],
+     "crossings": 4
+    },
+    {
+     "nets": [
+      "/USB_DP",
+      "GND"
+     ],
+     "crossings": 4
+    },
+    {
+     "nets": [
+      "/USB_DM",
+      "/USB_DP"
+     ],
+     "crossings": 3
+    },
+    {
+     "nets": [
+      "GND",
+      "VBUS"
+     ],
+     "crossings": 3
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/USB_DM"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/USB_DP"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/mcu/BOOT0"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "/USB_DM",
+      "VBUS"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "/USB_DP",
+      "VBUS"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "/mcu/BOOT0",
+      "/mcu/BTN"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "/mcu/LED",
+      "GND"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "/mcu/NRST",
+      "/mcu/OSC_IN"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "/mcu/NRST",
+      "/mcu/OSC_OUT"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "/mcu/NRST",
+      "GND"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "/mcu/OSC_IN",
+      "GND"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "/mcu/OSC_OUT",
+      "GND"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/mcu/BTN"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/mcu/LED"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/mcu/LED_A"
+     ],
+     "crossings": 1
+    }
+   ]
+  },
+  "congestion": {
+   "cell_mm": 2.0,
+   "cols": 25,
+   "rows": 20,
+   "max": 7,
+   "mean_nonzero": 1.9404,
+   "hotspots": [
+    {
+     "cell": [
+      6,
+      14
+     ],
+     "center": [
+      23.5925,
+      42.9175
+     ],
+     "demand": 7
+    },
+    {
+     "cell": [
+      7,
+      14
+     ],
+     "center": [
+      25.5925,
+      42.9175
+     ],
+     "demand": 7
+    },
+    {
+     "cell": [
+      5,
+      1
+     ],
+     "center": [
+      21.5925,
+      16.9175
+     ],
+     "demand": 6
+    },
+    {
+     "cell": [
+      8,
+      0
+     ],
+     "center": [
+      27.5925,
+      14.9175
+     ],
+     "demand": 5
+    },
+    {
+     "cell": [
+      8,
+      9
+     ],
+     "center": [
+      27.5925,
+      32.9175
+     ],
+     "demand": 5
+    },
+    {
+     "cell": [
+      4,
+      1
+     ],
+     "center": [
+      19.5925,
+      16.9175
+     ],
+     "demand": 4
+    },
+    {
+     "cell": [
+      4,
+      15
+     ],
+     "center": [
+      19.5925,
+      44.9175
+     ],
+     "demand": 4
+    },
+    {
+     "cell": [
+      5,
+      9
+     ],
+     "center": [
+      21.5925,
+      32.9175
+     ],
+     "demand": 4
+    },
+    {
+     "cell": [
+      5,
+      18
+     ],
+     "center": [
+      21.5925,
+      50.9175
+     ],
+     "demand": 4
+    },
+    {
+     "cell": [
+      6,
+      15
+     ],
+     "center": [
+      23.5925,
+      44.9175
+     ],
+     "demand": 4
+    }
+   ]
+  },
+  "decoupling": [
+   {
+    "cap": "C1",
+    "pin": "U2.3",
+    "rail": "VBUS",
+    "class": "bulk",
+    "manhattan_mm": 13.525,
+    "euclid_mm": 12.1399,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 12.4675
+   },
+   {
+    "cap": "C2",
+    "pin": "U2.3",
+    "rail": "VBUS",
+    "class": "mid",
+    "manhattan_mm": 20.515,
+    "euclid_mm": 14.7681,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 17.3605
+   },
+   {
+    "cap": "C12",
+    "pin": "U1.24",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 37.195,
+    "euclid_mm": 26.3146,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 29.0365
+   },
+   {
+    "cap": "C13",
+    "pin": "U1.36",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 18.61,
+    "euclid_mm": 13.242,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 16.027
+   },
+   {
+    "cap": "C14",
+    "pin": "U1.48",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 18.13,
+    "euclid_mm": 17.3675,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 15.691
+   },
+   {
+    "cap": "C15",
+    "pin": "U1.48",
+    "rail": "+3V3",
+    "class": "bulk",
+    "manhattan_mm": 22.55,
+    "euclid_mm": 18.1125,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 18.785
+   },
+   {
+    "cap": "C16",
+    "pin": "U1.9",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 24.53,
+    "euclid_mm": 19.6872,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 20.171
+   },
+   {
+    "cap": "C17",
+    "pin": "U1.9",
+    "rail": "+3V3",
+    "class": "bulk",
+    "manhattan_mm": 30.51,
+    "euclid_mm": 22.1648,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 24.357
+   },
+   {
+    "cap": "C18",
+    "pin": "U1.1",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 40.49,
+    "euclid_mm": 28.6986,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 31.343
+   }
+  ],
+  "utilization": {
+   "component_mm2": 398.3377,
+   "board_mm2": 2000.0,
+   "ratio": 0.199
+  }
+ }
+}

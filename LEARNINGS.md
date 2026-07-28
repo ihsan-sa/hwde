@@ -663,3 +663,37 @@ reads kicad/sym-lib-table, so every project symbol comes back `LibraryError: not
 Common libraries include: Device, Connector_Generic, ...`. Ground against a 6-line wrapper that
 calls `ksa.get_symbol_cache().add_library_path(<lib/aiee.kicad_sym>)` before `schlib.pin_table()`
 (same call the generators already need). Also note `--pins` takes ONE lib_id, not a list.
+
+## 2026-07-28 [placement][geometry] placelib's FpPad DROPS per-pad rotation - re-derive pad boxes for any clearance check
+`(pad N smd rect (at x y ROT) (size w h))`: placelib._parse_fp reads at[0:2] and size verbatim and
+never applies ROT, so `_pad_box_local` (and therefore the EFFECTIVE courtyard that S14's fix unions
+in) is built from unrotated pads. usb-buck's USB micro-B (J1) has all five signal pads at ROT 90 and
+both oval shield pads at 90: placelib sees a 9.5 x 4.28 pad box where the truth is 8.3 x 4.13 mm.
+Here the error is conservative in x and hidden in y by the courtyard, but it is NOT conservative in
+general (a rotated tall pad reads as a short wide one). Any pad-pad / pad-edge clearance check must
+re-parse `(at ... ROT)` and swap w/h at 90/270 - do not reuse FpPad.size. The place gate never
+noticed because its legality is courtyard-only.
+
+## 2026-07-28 [placement][kicad] Connector mating direction: read the WRL, not the silk outline
+J1 (HOOYA USB-111FD-B-SU, easyeda2kicad) at footprint angle 0 has its MOUTH at local +Y, so 270 deg
+points it out of the board's left edge. Two traps: (a) the silk outline has a GAP at the -Y end and a
+solid line at +Y, which reads backwards - the gap is just clearance around the SMT signal pads and
+the two round shield holes at y=-1.34; (b) the shield legs are not a reliable cue either (the wider
+7.20 mm pair sits mid-body, not at the flange). Decisive cheap test: parse the `.wrl` (KiCad units =
+0.1 inch, and wrl_y = -pcb_y), bucket the vertices near each Y extreme and print the (x,z)
+occupancy - the mouth end is a hollow FRAME, the closed end is filled. A `kicad-cli pcb render --views
+iso` crop confirms it visually but is ambiguous at small scale.
+
+## 2026-07-28 [placement][drc][silk] Pulled footprints park Reference 4 mm off-origin -> 47 silk DRC warnings from placement alone
+Every easyeda2kicad footprint in the usb-buck pull carries `(property "Reference" ... (at 0 -4 ...))`
+- a 4 mm offset that lands a 0603's refdes squarely on its neighbour once parts are packed. First
+DRC after the P6 repair: 24 silk_overlap + 15 silk_over_copper, ALL of them Reference fields, plus 8
+silk_edge_clearance from J1's own mouth-end outline poking 0.05 mm off the board edge (fix: nudge the
+connector inboard; the silk stroke reaches |local y| 4.10 + width/2). Both classes are scriptable via
+S14's `move_text` op. A greedy solver works if it (1) offers BOTH text angles on ALL FOUR sides
+(0-deg-above/below + 90-deg-left/right only is not enough in a channel), (2) scores
+`(min(clearance, 0.30), -distance_to_own_silk+pads)`, and (3) processes the most CROWDED parts first
+(descending neighbour count within 4 mm) - largest-first orphans the boxed-in small caps. Hard limit:
+a 3-char refdes at size 1.0 needs ~3.5 x 1.75 mm, so in a channel narrower than ~4 mm no label can be
+closer to its own part than to the parts flanking it. Relieve that structurally (move the loosest-
+constrained cap out) rather than fighting the solver.

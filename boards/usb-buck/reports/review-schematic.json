@@ -1,0 +1,26 @@
+{
+ "violations": [
+  {
+   "check": "schematic-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "/mcu/BTN",
+   "refs": ["SW1"],
+   "msg": "SW1 (C49023761) has no manufacturer datasheet and the {1,2}=BTN / {3,4}=GND wiring rests only on the LCSC vendor symbol's asserted internal bridge - if the physical part pairs by column ({1,4}/{2,3}) the button is permanently closed and PB0 is stuck low (user-button function dead; no damage, bring-up otherwise unaffected).",
+   "source": "review.schematic",
+   "kind": "sw-pairing-unverified"
+  },
+  {
+   "check": "schematic-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "VBUS",
+   "refs": ["U3"],
+   "msg": "UMW USBLC6-2SC6 specifies VRWM/operating voltage 5.0V on the I/O and VBUS pins but USB VBUS may legally reach 5.25V, so leakage and clamp margins are unspecified in the top 0.25V of the input range (no damage - VBR min 6V; ST-brand alternate C7519 is rated 5.25V and is a drop-in at order time).",
+   "source": "review.schematic",
+   "kind": "vrwm-margin"
+  }
+ ]
+}

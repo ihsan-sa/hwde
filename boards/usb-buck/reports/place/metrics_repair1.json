@@ -1,0 +1,409 @@
+{
+ "script": "place_metrics",
+ "status": "pass",
+ "board": "usb-buck.kicad_pcb",
+ "counts": {
+  "total": 0,
+  "by_severity": {},
+  "by_source": {}
+ },
+ "violations": [],
+ "metrics": {
+  "counts": {
+   "footprints": 28,
+   "movable": 28,
+   "nets": 16
+  },
+  "hpwl": {
+   "total_mm": 355.89,
+   "by_net": {
+    "+3V3": 70.46,
+    "/USB_DM": 12.25,
+    "/USB_DP": 15.27,
+    "/mcu/BOOT0": 4.33,
+    "/mcu/BTN": 29.8,
+    "/mcu/LED": 18.33,
+    "/mcu/LED_A": 3.3,
+    "/mcu/NRST": 2.98,
+    "/mcu/OSC_IN": 14.23,
+    "/mcu/OSC_OUT": 14.27,
+    "/mcu/SWCLK": 32.37,
+    "/mcu/SWDIO": 26.29,
+    "/power/BST": 2.05,
+    "/power/SW": 5.15,
+    "GND": 74.93,
+    "VBUS": 29.88
+   }
+  },
+  "crossings": {
+   "count": 39,
+   "pairs": [
+    {
+     "nets": [
+      "+3V3",
+      "GND"
+     ],
+     "crossings": 6
+    },
+    {
+     "nets": [
+      "/USB_DP",
+      "GND"
+     ],
+     "crossings": 4
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/mcu/LED"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/mcu/SWCLK"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/mcu/SWDIO"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "/USB_DM",
+      "VBUS"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "/mcu/OSC_OUT",
+      "GND"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "/mcu/SWCLK",
+      "GND"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "/mcu/SWDIO",
+      "GND"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "/power/SW",
+      "GND"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "GND",
+      "VBUS"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/power/SW"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "+3V3",
+      "VBUS"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/USB_DM",
+      "GND"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/mcu/BTN",
+      "/mcu/SWCLK"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/mcu/BTN",
+      "/mcu/SWDIO"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/mcu/LED",
+      "/mcu/SWCLK"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/mcu/LED",
+      "GND"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/mcu/NRST",
+      "/mcu/OSC_OUT"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/mcu/OSC_IN",
+      "/mcu/SWCLK"
+     ],
+     "crossings": 1
+    }
+   ]
+  },
+  "congestion": {
+   "cell_mm": 2.0,
+   "cols": 25,
+   "rows": 20,
+   "max": 6,
+   "mean_nonzero": 1.9161,
+   "hotspots": [
+    {
+     "cell": [
+      5,
+      10
+     ],
+     "center": [
+      21.5925,
+      34.9175
+     ],
+     "demand": 6
+    },
+    {
+     "cell": [
+      12,
+      11
+     ],
+     "center": [
+      35.5925,
+      36.9175
+     ],
+     "demand": 6
+    },
+    {
+     "cell": [
+      4,
+      10
+     ],
+     "center": [
+      19.5925,
+      34.9175
+     ],
+     "demand": 5
+    },
+    {
+     "cell": [
+      8,
+      6
+     ],
+     "center": [
+      27.5925,
+      26.9175
+     ],
+     "demand": 5
+    },
+    {
+     "cell": [
+      8,
+      10
+     ],
+     "center": [
+      27.5925,
+      34.9175
+     ],
+     "demand": 5
+    },
+    {
+     "cell": [
+      9,
+      4
+     ],
+     "center": [
+      29.5925,
+      22.9175
+     ],
+     "demand": 5
+    },
+    {
+     "cell": [
+      11,
+      13
+     ],
+     "center": [
+      33.5925,
+      40.9175
+     ],
+     "demand": 5
+    },
+    {
+     "cell": [
+      12,
+      9
+     ],
+     "center": [
+      35.5925,
+      32.9175
+     ],
+     "demand": 5
+    },
+    {
+     "cell": [
+      13,
+      11
+     ],
+     "center": [
+      37.5925,
+      36.9175
+     ],
+     "demand": 5
+    },
+    {
+     "cell": [
+      2,
+      10
+     ],
+     "center": [
+      15.5925,
+      34.9175
+     ],
+     "demand": 4
+    }
+   ]
+  },
+  "decoupling": [
+   {
+    "cap": "C1",
+    "pin": "U2.3",
+    "rail": "VBUS",
+    "class": "bulk",
+    "manhattan_mm": 3.95,
+    "euclid_mm": 3.7553,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 5.765
+   },
+   {
+    "cap": "C2",
+    "pin": "U2.3",
+    "rail": "VBUS",
+    "class": "mid",
+    "manhattan_mm": 2.05,
+    "euclid_mm": 1.6286,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 4.435
+   },
+   {
+    "cap": "C12",
+    "pin": "U1.24",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 2.17,
+    "euclid_mm": 2.17,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 4.519
+   },
+   {
+    "cap": "C13",
+    "pin": "U1.36",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 4.08,
+    "euclid_mm": 2.9427,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 5.856
+   },
+   {
+    "cap": "C14",
+    "pin": "U1.48",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 2.13,
+    "euclid_mm": 2.13,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 4.491
+   },
+   {
+    "cap": "C15",
+    "pin": "U1.48",
+    "rail": "+3V3",
+    "class": "bulk",
+    "manhattan_mm": 5.33,
+    "euclid_mm": 5.33,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 6.731
+   },
+   {
+    "cap": "C16",
+    "pin": "U1.9",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 4.12,
+    "euclid_mm": 2.965,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 5.884
+   },
+   {
+    "cap": "C17",
+    "pin": "U1.9",
+    "rail": "+3V3",
+    "class": "bulk",
+    "manhattan_mm": 7.32,
+    "euclid_mm": 5.4516,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 8.124
+   },
+   {
+    "cap": "C18",
+    "pin": "U1.1",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 3.18,
+    "euclid_mm": 2.5564,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 5.226
+   }
+  ],
+  "utilization": {
+   "component_mm2": 398.3377,
+   "board_mm2": 2000.0,
+   "ratio": 0.199
+  }
+ }
+}

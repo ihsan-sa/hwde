@@ -1,0 +1,395 @@
+{
+ "script": "place_metrics",
+ "status": "pass",
+ "board": "usb-buck.kicad_pcb",
+ "counts": {
+  "total": 0,
+  "by_severity": {},
+  "by_source": {}
+ },
+ "violations": [],
+ "metrics": {
+  "counts": {
+   "footprints": 28,
+   "movable": 28,
+   "nets": 16
+  },
+  "hpwl": {
+   "total_mm": 322.6015,
+   "by_net": {
+    "+3V3": 52.3926,
+    "/USB_DM": 26.8275,
+    "/USB_DP": 28.42,
+    "/mcu/BOOT0": 3.25,
+    "/mcu/BTN": 7.75,
+    "/mcu/LED": 5.25,
+    "/mcu/LED_A": 2.0,
+    "/mcu/NRST": 5.8,
+    "/mcu/OSC_IN": 24.8977,
+    "/mcu/OSC_OUT": 25.7977,
+    "/mcu/SWCLK": 11.325,
+    "/mcu/SWDIO": 20.405,
+    "/power/BST": 6.8318,
+    "/power/SW": 11.9215,
+    "GND": 72.2127,
+    "VBUS": 17.52
+   }
+  },
+  "crossings": {
+   "count": 36,
+   "pairs": [
+    {
+     "nets": [
+      "+3V3",
+      "GND"
+     ],
+     "crossings": 8
+    },
+    {
+     "nets": [
+      "/USB_DP",
+      "GND"
+     ],
+     "crossings": 4
+    },
+    {
+     "nets": [
+      "/USB_DM",
+      "GND"
+     ],
+     "crossings": 3
+    },
+    {
+     "nets": [
+      "/mcu/BTN",
+      "GND"
+     ],
+     "crossings": 3
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/USB_DP"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "/mcu/OSC_IN",
+      "GND"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "/mcu/OSC_OUT",
+      "GND"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "GND",
+      "VBUS"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/USB_DM"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/mcu/LED"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/mcu/SWDIO"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/power/SW"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/USB_DM",
+      "VBUS"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/USB_DP",
+      "VBUS"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/mcu/BOOT0",
+      "GND"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/mcu/LED",
+      "GND"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/mcu/SWDIO",
+      "GND"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/power/SW",
+      "GND"
+     ],
+     "crossings": 1
+    }
+   ]
+  },
+  "congestion": {
+   "cell_mm": 2.0,
+   "cols": 25,
+   "rows": 20,
+   "max": 7,
+   "mean_nonzero": 2.1953,
+   "hotspots": [
+    {
+     "cell": [
+      10,
+      10
+     ],
+     "center": [
+      31.5925,
+      34.9175
+     ],
+     "demand": 7
+    },
+    {
+     "cell": [
+      13,
+      6
+     ],
+     "center": [
+      37.5925,
+      26.9175
+     ],
+     "demand": 6
+    },
+    {
+     "cell": [
+      15,
+      11
+     ],
+     "center": [
+      41.5925,
+      36.9175
+     ],
+     "demand": 6
+    },
+    {
+     "cell": [
+      16,
+      7
+     ],
+     "center": [
+      43.5925,
+      28.9175
+     ],
+     "demand": 6
+    },
+    {
+     "cell": [
+      18,
+      6
+     ],
+     "center": [
+      47.5925,
+      26.9175
+     ],
+     "demand": 6
+    },
+    {
+     "cell": [
+      3,
+      10
+     ],
+     "center": [
+      17.5925,
+      34.9175
+     ],
+     "demand": 5
+    },
+    {
+     "cell": [
+      4,
+      10
+     ],
+     "center": [
+      19.5925,
+      34.9175
+     ],
+     "demand": 5
+    },
+    {
+     "cell": [
+      5,
+      10
+     ],
+     "center": [
+      21.5925,
+      34.9175
+     ],
+     "demand": 5
+    },
+    {
+     "cell": [
+      8,
+      10
+     ],
+     "center": [
+      27.5925,
+      34.9175
+     ],
+     "demand": 5
+    },
+    {
+     "cell": [
+      11,
+      10
+     ],
+     "center": [
+      33.5925,
+      34.9175
+     ],
+     "demand": 5
+    }
+   ]
+  },
+  "decoupling": [
+   {
+    "cap": "C1",
+    "pin": "U2.3",
+    "rail": "VBUS",
+    "class": "bulk",
+    "manhattan_mm": 2.4596,
+    "euclid_mm": 1.7898,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 4.7217
+   },
+   {
+    "cap": "C2",
+    "pin": "U2.3",
+    "rail": "VBUS",
+    "class": "mid",
+    "manhattan_mm": 6.9147,
+    "euclid_mm": 4.8912,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 7.8403
+   },
+   {
+    "cap": "C12",
+    "pin": "U1.24",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 3.4771,
+    "euclid_mm": 2.4625,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 5.434
+   },
+   {
+    "cap": "C13",
+    "pin": "U1.36",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 3.4771,
+    "euclid_mm": 2.4625,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 5.434
+   },
+   {
+    "cap": "C14",
+    "pin": "U1.48",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 3.4771,
+    "euclid_mm": 2.4625,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 5.434
+   },
+   {
+    "cap": "C15",
+    "pin": "U1.48",
+    "rail": "+3V3",
+    "class": "bulk",
+    "manhattan_mm": 7.349,
+    "euclid_mm": 5.2468,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 8.1443
+   },
+   {
+    "cap": "C16",
+    "pin": "U1.9",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 2.5537,
+    "euclid_mm": 1.9591,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 4.7876
+   },
+   {
+    "cap": "C17",
+    "pin": "U1.9",
+    "rail": "+3V3",
+    "class": "bulk",
+    "manhattan_mm": 6.0299,
+    "euclid_mm": 4.7532,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 7.2209
+   },
+   {
+    "cap": "C18",
+    "pin": "U1.1",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 3.4771,
+    "euclid_mm": 2.4625,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 5.434
+   }
+  ],
+  "utilization": {
+   "component_mm2": 398.3377,
+   "board_mm2": 2000.0,
+   "ratio": 0.199
+  }
+ }
+}

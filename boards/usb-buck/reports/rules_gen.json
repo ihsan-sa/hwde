@@ -1,0 +1,51 @@
+{
+  "script": "rules_gen",
+  "status": "pass",
+  "capability_class": "4layer_1oz",
+  "stackup": "JLC04161H-3313",
+  "rule_count": 11,
+  "rule_names": [
+    "aiee_track_width_floor",
+    "aiee_clearance_floor",
+    "aiee_via_drill_floor",
+    "aiee_via_diameter_floor",
+    "aiee_annular_floor",
+    "aiee_edge_clearance_floor",
+    "aiee_hole_to_hole_floor",
+    "aiee_silk_width_floor",
+    "aiee_pwr_width_VBUS",
+    "aiee_pwr_width_3V3",
+    "aiee_diff_gap_USB"
+  ],
+  "power": [
+    {
+      "net": "VBUS",
+      "current_a": 0.1,
+      "dt_c": 10.0,
+      "min_width_mm": 0.05
+    },
+    {
+      "net": "+3V3",
+      "current_a": 0.1,
+      "dt_c": 10.0,
+      "min_width_mm": 0.05
+    }
+  ],
+  "diff_pairs": [
+    {
+      "pair": [
+        "/USB_DP",
+        "/USB_DM"
+      ],
+      "impedance_ohm": 90,
+      "width_mm": 0.314,
+      "gap_mm": 0.2104
+    }
+  ],
+  "classes": [
+    "Power",
+    "Diff90"
+  ],
+  "out_dru": "boards/usb-buck/kicad/usb-buck.kicad_dru",
+  "pro": "boards/usb-buck/kicad/usb-buck.kicad_pro"
+}

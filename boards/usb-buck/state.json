@@ -3,14 +3,39 @@
  "board": "usb-buck",
  "workspace": "boards/usb-buck",
  "created": "2026-07-28T01:26:50",
- "updated": "2026-07-28T03:00:43",
- "phase": "P4",
- "gates": {},
+ "updated": "2026-07-28T03:33:42",
+ "phase": "P6",
+ "gates": {
+  "erc": {
+   "phase": "P4",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-07-28T03:19:44",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0
+   },
+   "history": [
+    {
+     "ts": "2026-07-28T03:19:44",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0
+    }
+   ]
+  }
+ },
  "human": {
   "1": {
    "status": "approved",
    "ts": "2026-07-28T02:13:09",
    "note": "AUTO-approved per directive: 4L 40x30, ~$62-75/10 assembled, risks = sheet-name coupling (deliberate) + TVS VBUS clamp pin (re-opens at P3)"
+  },
+  "2": {
+   "status": "approved",
+   "ts": "2026-07-28T03:32:38",
+   "note": "AUTO per directive: ERC 0/0, audit pass, reviewer 0 err/2 warn both waived (erc-waivers.md: SW1 pairing bring-up check; USBLC6 clone VRWM order-time swap option)"
   }
  },
  "artifacts": {},
@@ -69,6 +94,12 @@
    "why": "Intra-footprint silk would hard-fail P5 self-check by design; U2 rotation = dead board",
    "phase": "P3",
    "ts": "2026-07-28T03:00:43"
+  },
+  {
+   "what": "Outline fixed 50x40 (45x35 failed: shelf pack needs the room); 40x30 target unreachable at v1 (no outline-shrink step)",
+   "why": "Run (a) precedent; cap 55x45 respected",
+   "phase": "P5",
+   "ts": "2026-07-28T03:33:42"
   }
  ],
  "history": [
@@ -142,6 +173,37 @@
    "event": "phase",
    "phase": "P4",
    "prev": "P3"
+  },
+  {
+   "ts": "2026-07-28T03:19:44",
+   "event": "gate",
+   "gate": "erc",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-07-28T03:32:38",
+   "event": "human",
+   "checkpoint": "2",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-07-28T03:32:38",
+   "event": "phase",
+   "phase": "P5",
+   "prev": "P4"
+  },
+  {
+   "ts": "2026-07-28T03:33:42",
+   "event": "phase",
+   "phase": "P6",
+   "prev": "P5"
+  },
+  {
+   "ts": "2026-07-28T03:33:42",
+   "event": "decision",
+   "what": "Outline fixed 50x40 (45x35 failed: shelf pack needs the room); 40x30 target unreachable at v1 (no outline-shrink step)"
   }
  ]
 }
