@@ -1,0 +1,111 @@
+{
+  "board": {
+    "design_settings": {
+      "rule_severities": {
+        "lib_footprint_issues": "ignore",
+        "lib_footprint_mismatch": "ignore"
+      },
+      "rules": {
+        "min_clearance": 0.1016,
+        "min_track_width": 0.1016,
+        "min_via_diameter": 0.45,
+        "min_through_hole_diameter": 0.2,
+        "min_hole_to_hole": 0.5,
+        "min_copper_edge_clearance": 0.3
+      }
+    }
+  },
+  "erc": {
+    "rule_severities": {
+      "lib_symbol_issues": "ignore",
+      "lib_symbol_mismatch": "ignore",
+      "footprint_link_issues": "ignore"
+    }
+  },
+  "meta": {
+    "filename": "usb-buck.kicad_pro",
+    "version": 3
+  },
+  "schematic": {
+    "legacy_lib_dir": "",
+    "legacy_lib_list": []
+  },
+  "net_settings": {
+    "classes": [
+      {
+        "name": "Default",
+        "clearance": 0.1016,
+        "track_width": 0.2,
+        "via_diameter": 0.45,
+        "via_drill": 0.2,
+        "diff_pair_width": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_via_gap": 0.25,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "line_style": 0,
+        "bus_width": 12,
+        "wire_width": 6,
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)"
+      },
+      {
+        "name": "Power",
+        "clearance": 0.2,
+        "track_width": 0.2032,
+        "via_diameter": 0.45,
+        "via_drill": 0.2,
+        "diff_pair_width": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_via_gap": 0.25,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "line_style": 0,
+        "bus_width": 12,
+        "wire_width": 6,
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)"
+      },
+      {
+        "name": "Diff90",
+        "clearance": 0.1016,
+        "track_width": 0.314,
+        "via_diameter": 0.45,
+        "via_drill": 0.2,
+        "diff_pair_width": 0.314,
+        "diff_pair_gap": 0.2104,
+        "diff_pair_via_gap": 0.2104,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "line_style": 0,
+        "bus_width": 12,
+        "wire_width": 6,
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)"
+      }
+    ],
+    "meta": {
+      "version": 3
+    },
+    "net_colors": null,
+    "netclass_assignments": null,
+    "netclass_patterns": [
+      {
+        "netclass": "Power",
+        "pattern": "VBUS"
+      },
+      {
+        "netclass": "Power",
+        "pattern": "+3V3"
+      },
+      {
+        "netclass": "Diff90",
+        "pattern": "/USB_DP"
+      },
+      {
+        "netclass": "Diff90",
+        "pattern": "/USB_DM"
+      }
+    ]
+  }
+}

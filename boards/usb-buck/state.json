@@ -3,8 +3,8 @@
  "board": "usb-buck",
  "workspace": "boards/usb-buck",
  "created": "2026-07-28T01:26:50",
- "updated": "2026-07-28T03:33:42",
- "phase": "P6",
+ "updated": "2026-07-28T05:18:19",
+ "phase": "P7",
  "gates": {
   "erc": {
    "phase": "P4",
@@ -24,6 +24,44 @@
      "total": 0
     }
    ]
+  },
+  "place": {
+   "phase": "P6",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-07-28T04:18:31",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0
+   },
+   "history": [
+    {
+     "ts": "2026-07-28T04:18:31",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0
+    }
+   ]
+  },
+  "drc_routed": {
+   "phase": "P7",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-07-28T05:18:19",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0
+   },
+   "history": [
+    {
+     "ts": "2026-07-28T05:18:19",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0
+    }
+   ]
   }
  },
  "human": {
@@ -36,6 +74,11 @@
    "status": "approved",
    "ts": "2026-07-28T03:32:38",
    "note": "AUTO per directive: ERC 0/0, audit pass, reviewer 0 err/2 warn both waived (erc-waivers.md: SW1 pairing bring-up check; USBLC6 clone VRWM order-time swap option)"
+  },
+  "3": {
+   "status": "approved",
+   "ts": "2026-07-28T04:18:31",
+   "note": "AUTO per directive; renders reports/place/render_final/; 3 refdes-legibility nits + J2-right-edge cost noted by agent, accepted"
   }
  },
  "artifacts": {},
@@ -204,6 +247,76 @@
    "ts": "2026-07-28T03:33:42",
    "event": "decision",
    "what": "Outline fixed 50x40 (45x35 failed: shelf pack needs the room); 40x30 target unreachable at v1 (no outline-shrink step)"
+  },
+  {
+   "ts": "2026-07-28T04:18:31",
+   "event": "gate",
+   "gate": "place",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-07-28T04:18:31",
+   "event": "human",
+   "checkpoint": "3",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-07-28T04:18:31",
+   "event": "phase",
+   "phase": "P7",
+   "prev": "P6"
+  },
+  {
+   "ts": "2026-07-28T04:20:01",
+   "event": "snapshot",
+   "label": "pre-route",
+   "files": 1
+  },
+  {
+   "ts": "2026-07-28T04:28:16",
+   "event": "snapshot",
+   "label": "pre-stitch",
+   "files": 1
+  },
+  {
+   "ts": "2026-07-28T05:05:01",
+   "event": "snapshot",
+   "label": "pre-u1-fanout-fix",
+   "files": 1
+  },
+  {
+   "ts": "2026-07-28T05:05:30",
+   "event": "snapshot",
+   "label": "pre-plane-repair",
+   "files": 1
+  },
+  {
+   "ts": "2026-07-28T05:12:44",
+   "event": "snapshot",
+   "label": "pre-dm-vbus-fix",
+   "files": 1
+  },
+  {
+   "ts": "2026-07-28T05:16:23",
+   "event": "snapshot",
+   "label": "pre-underpass",
+   "files": 1
+  },
+  {
+   "ts": "2026-07-28T05:16:59",
+   "event": "snapshot",
+   "label": "pre-plane-repair2",
+   "files": 1
+  },
+  {
+   "ts": "2026-07-28T05:18:19",
+   "event": "gate",
+   "gate": "drc_routed",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
   }
  ]
 }

@@ -1,0 +1,140 @@
+{
+ "script": "check_diffpair",
+ "status": "violations",
+ "board": "usb-buck.kicad_pcb",
+ "counts": {
+  "total": 3,
+  "by_severity": {
+   "warning": 2,
+   "error": 1
+  },
+  "by_source": {
+   "check_diffpair": 3
+  }
+ },
+ "violations": [
+  {
+   "check": "check_diffpair",
+   "severity": "warning",
+   "pos": [
+    18.3037,
+    35.1242
+   ],
+   "layer": null,
+   "net": "/USB_DP",
+   "refs": [],
+   "msg": "diff pair /USB_DP//USB_DM length skew 5.68 mm (~38 ps, eps_r 4.0); limit 5.0 mm",
+   "source": "check_diffpair",
+   "items": [
+    {
+     "msg": "diff pair /USB_DP//USB_DM length skew 5.68 mm (~38 ps, eps_r 4.0); limit 5.0 mm",
+     "pos": [
+      18.3037,
+      35.1242
+     ]
+    }
+   ],
+   "kind": "diffpair_skew",
+   "pair": [
+    "/USB_DP",
+    "/USB_DM"
+   ],
+   "length_p_mm": 11.5623,
+   "length_n_mm": 17.2385,
+   "branch_free": true,
+   "skew_mm": 5.6762,
+   "skew_ps": 38.1033,
+   "limit_mm": 5.0
+  },
+  {
+   "check": "check_diffpair",
+   "severity": "error",
+   "pos": [
+    18.3037,
+    35.1242
+   ],
+   "layer": null,
+   "net": "/USB_DM",
+   "refs": [],
+   "msg": "diff pair /USB_DP//USB_DM has 10.96 mm of /USB_DM running uncoupled (> 1.56 mm from its partner); limit 5.0 mm",
+   "source": "check_diffpair",
+   "items": [
+    {
+     "msg": "diff pair /USB_DP//USB_DM has 10.96 mm of /USB_DM running uncoupled (> 1.56 mm from its partner); limit 5.0 mm",
+     "pos": [
+      18.3037,
+      35.1242
+     ]
+    }
+   ],
+   "kind": "diffpair_uncoupled",
+   "pair": [
+    "/USB_DP",
+    "/USB_DM"
+   ],
+   "length_p_mm": 11.5623,
+   "length_n_mm": 17.2385,
+   "branch_free": true,
+   "uncoupled_mm": 10.9637,
+   "uncoupled_p_mm": 6.4066,
+   "uncoupled_n_mm": 10.9637,
+   "coupling_max_mm": 1.56,
+   "limit_mm": 5.0
+  },
+  {
+   "check": "check_diffpair",
+   "severity": "warning",
+   "pos": [
+    18.3037,
+    35.1242
+   ],
+   "layer": null,
+   "net": "/USB_DP",
+   "refs": [],
+   "msg": "diff pair /USB_DP//USB_DM via count asymmetric: /USB_DP has 0, /USB_DM has 2",
+   "source": "check_diffpair",
+   "items": [
+    {
+     "msg": "diff pair /USB_DP//USB_DM via count asymmetric: /USB_DP has 0, /USB_DM has 2",
+     "pos": [
+      18.3037,
+      35.1242
+     ]
+    }
+   ],
+   "kind": "diffpair_via_asymmetry",
+   "pair": [
+    "/USB_DP",
+    "/USB_DM"
+   ],
+   "length_p_mm": 11.5623,
+   "length_n_mm": 17.2385,
+   "branch_free": true,
+   "vias_p": 0,
+   "vias_n": 2
+  }
+ ],
+ "checked": [
+  {
+   "pair": [
+    "/USB_DP",
+    "/USB_DM"
+   ],
+   "length_p_mm": 11.5623,
+   "length_n_mm": 17.2385,
+   "skew_mm": 5.6762,
+   "skew_ps": 38.1033,
+   "branch_free": true,
+   "uncoupled_p_mm": 6.4066,
+   "uncoupled_n_mm": 10.9637,
+   "coupling_max_mm": 1.56,
+   "vias_p": 0,
+   "vias_n": 2,
+   "nominal_gap_mm": 1.5611,
+   "gap_min_mm": 0.5022,
+   "gap_median_mm": 1.5611,
+   "gap_p90_mm": 3.3173,
+   "coupled_gap_max_mm": 1.5552
+  }
+ ]
+}

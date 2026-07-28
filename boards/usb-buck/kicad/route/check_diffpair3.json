@@ -1,0 +1,74 @@
+{
+ "script": "check_diffpair",
+ "status": "violations",
+ "board": "usb-buck.kicad_pcb",
+ "counts": {
+  "total": 1,
+  "by_severity": {
+   "error": 1
+  },
+  "by_source": {
+   "check_diffpair": 1
+  }
+ },
+ "violations": [
+  {
+   "check": "check_diffpair",
+   "severity": "error",
+   "pos": [
+    18.3037,
+    35.1242
+   ],
+   "layer": null,
+   "net": "/USB_DP",
+   "refs": [],
+   "msg": "diff pair /USB_DP//USB_DM has 6.61 mm of /USB_DP running uncoupled (> 1.56 mm from its partner); limit 5.0 mm",
+   "source": "check_diffpair",
+   "items": [
+    {
+     "msg": "diff pair /USB_DP//USB_DM has 6.61 mm of /USB_DP running uncoupled (> 1.56 mm from its partner); limit 5.0 mm",
+     "pos": [
+      18.3037,
+      35.1242
+     ]
+    }
+   ],
+   "kind": "diffpair_uncoupled",
+   "pair": [
+    "/USB_DP",
+    "/USB_DM"
+   ],
+   "length_p_mm": 11.5623,
+   "length_n_mm": 9.6322,
+   "branch_free": true,
+   "uncoupled_mm": 6.6057,
+   "uncoupled_p_mm": 6.6057,
+   "uncoupled_n_mm": 4.9349,
+   "coupling_max_mm": 1.56,
+   "limit_mm": 5.0
+  }
+ ],
+ "checked": [
+  {
+   "pair": [
+    "/USB_DP",
+    "/USB_DM"
+   ],
+   "length_p_mm": 11.5623,
+   "length_n_mm": 9.6322,
+   "skew_mm": 1.9301,
+   "skew_ps": 12.9566,
+   "branch_free": true,
+   "uncoupled_p_mm": 6.6057,
+   "uncoupled_n_mm": 4.9349,
+   "coupling_max_mm": 1.56,
+   "vias_p": 0,
+   "vias_n": 0,
+   "nominal_gap_mm": 1.247,
+   "gap_min_mm": 0.5022,
+   "gap_median_mm": 1.247,
+   "gap_p90_mm": 1.997,
+   "coupled_gap_max_mm": 1.5552
+  }
+ ]
+}

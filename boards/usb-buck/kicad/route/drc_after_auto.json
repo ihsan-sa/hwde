@@ -1,0 +1,58 @@
+{
+  "script": "kc",
+  "tool": "drc",
+  "input": "C:\\dev\\ai-ee3\\boards\\usb-buck\\kicad\\usb-buck.kicad_pcb",
+  "units": "mm",
+  "kicad_version": "10.0.3",
+  "options": {
+    "parity": true,
+    "all_track_errors": true,
+    "refill": true,
+    "save_board": true
+  },
+  "counts": {
+    "total": 1,
+    "by_severity": {
+      "error": 1
+    },
+    "by_source": {
+      "unconnected": 1
+    }
+  },
+  "status": "violations",
+  "violations": [
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        37.7,
+        32.6
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [
+        "U1"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Track [+3V3] on F.Cu, length 0.6500 mm",
+          "pos": [
+            37.7,
+            32.6
+          ],
+          "uuid": "5f2cae46-de0f-4cde-94cb-15d571a0799f"
+        },
+        {
+          "msg": "Pad 9 [+3V3] of U1 on F.Cu",
+          "pos": [
+            35.25,
+            32.67
+          ],
+          "uuid": "dedc93da-0e14-45b1-b765-7d8987b132a6"
+        }
+      ]
+    }
+  ]
+}
