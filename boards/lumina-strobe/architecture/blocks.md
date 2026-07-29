@@ -4,26 +4,39 @@ P2 architect, 2026-07-28. Inputs: `requirements.md`, the six `research/*` fragme
 `brief/05-lumina-closed-decisions.md`, and **`boards/lumina-carrier/architecture/connector-icd.md`
 rev A2** (the authoritative ICD - the DRAFT-A copy in `brief/06-connector-icd.md` is superseded).
 
-Baseline is **WHITE-ONLY** (D-04 recommendation, pending the human's verdict at H1). The RGBW
-delta is costed in section 6 but not designed.
+> **REV B - H1 REVISION, 2026-07-28.** D-04 is **CLOSED as RGBW** (`requirements.md` s10.1) and
+> the board is **802.3af-ONLY** (s10.3). This document is revised in place. Sections marked
+> **[REV B]** changed; everything else is the rev A text and still holds. The four things the
+> revision moved are: **four drive stages** (s2.3, s6), **the whole PWM allocation** (s4), **a
+> per-colour sense scheme on I2C** (s2.4, s4.3), and **the drain-pour area, which turned out to
+> be 3x smaller than rev A claimed** (s6.1 - the single most useful number in this revision).
+> The light engine moved out of this file entirely into **`light-engine-spec.md`**.
+>
+> Deleted by s10.3: every 802.3at-preserving provision. **No board area and no BOM cost is spent
+> on an `at` path.** `at` numbers still appear as disclosure (`power_tree.md` s8) - nothing is
+> designed for them.
 
 ---
 
-## 0. The five numbers that define this board
+## 0. The numbers that define this board  **[REV B]**
 
 | Quantity | Value | Set by |
 |---|---|---|
-| **String voltage at 2.6 A** | **38.0 V** (band 37.0 - 39.0 accepted) | this document, s3 |
-| **Bank window floor** | **39.7 V** = `V_string + 1.7 V`, derived not constant | this document, s2 |
-| **Bank normal ceiling** | **44.5 V**; **48.0 V only while firmware asserts BANK_ARM** | this document, s2 |
+| **Colour channels** | **4 - W, R, G, B**, four identical independent drive stages | D-04, closed RGBW at H1 |
+| **String voltage at 2.6 A, EVERY colour** | **38.0 V +/- 1.0 V** - string length is the MCPCB's trim variable | `light-engine-spec.md` LE-05 |
+| **Bank window floor** | **39.7 V** = `V_string + 1.7 V`, derived not constant; **+ ESR sag when >1 colour fires** | this document, s2 |
+| **Bank normal ceiling** | **44.5 V**; **48.0 V only while `BANK_ARM` is asserted, and only transiently** (s4.4) | `power_tree.md` s6 + s10 |
 | **Charge-path current limit** | **0.20 A hard limit** (not a slew limit) | ICD s6.6 + the af PSE class budget |
-| **Peak string current** | **2.6 A**, inside every die's DC maximum, zero pulsed headroom | STR-REQ-12 + refdesign D9 |
+| **Peak current PER COLOUR** | **2.6 A**, inside every die's DC maximum, zero pulsed headroom. **Not capped, not halved** | s6.1 |
+| **Peak current on `/VBANK`** | **10.4 A** when all four fire together | s6.1 - forces a pour, not a trace |
+| **Drain pour per pass FET** | **>= 350 mm2 F.Cu + >= 350 mm2 B.Cu mirror within 14 mm of the package** | s6.1 - and copper past that buys NOTHING |
+| **Design case** | **802.3af only.** No `at` provision anywhere | requirements s10.3 |
 
-Everything below follows from those five.
+Everything below follows from those.
 
 ---
 
-## 1. Block diagram - signal and power
+## 1. Block diagram - signal and power  **[REV B]**
 
 ```mermaid
 flowchart TB
@@ -37,7 +50,7 @@ flowchart TB
   EF -->|"J3 1/3/5"| P48["+48V_SW<br/>0.174 A sust / 0.20 A limit"]
   BK -->|"J3 9/11"| P12["+12V<br/>3.8 mA"]
   R33 -->|"J3 12/14"| P33["+3V3<br/>0.2 mA"]
-  MCU -->|"J4"| SIG["PWM0 PWM1 PWM4<br/>ENABLE FAULT<br/>ADC0 ADC1 ID_ADC<br/>I2C"]
+  MCU -->|"J4"| SIG["PWM0-3 gates (timer 0)<br/>PWM4-7 amplitudes (timer 1)<br/>ENABLE FAULT<br/>ADC0 ADC1 ID_ADC<br/>I2C"]
 
   subgraph DTR["LUM-DTR-STROBE-A - this board"]
     direction TB
@@ -51,21 +64,21 @@ flowchart TB
       DIV["bank divider<br/>2x82k + 10k, Rth 9.43k"]
     end
 
-    subgraph DRV["sheet: drive - the pulse loop"]
-      AMP["error amp U200<br/>LM2904 class on +12V"]
-      SW["reference steering U210<br/>SPDT analogue switch"]
-      QP["pass FET Q200<br/>D2PAK planar HEXFET 200 V<br/>1.45 W worst / 1000 mm2 drain pour"]
-      SH["shunt R200<br/>200 mR 2512, 520 mV FS"]
-      CL["ENABLE clamp<br/>2x 2N7002 + gate pull-down<br/>works with EVERY rail dead"]
-      HARN["J200 harness<br/>JST VH 2-pin, 10 A"]
+    subgraph DRV["sheets drive_w / drive_r / drive_g / drive_b - FOUR IDENTICAL pulse loops"]
+      AMP["error amp, one LM2904 per colour<br/>A = error amp + gate driver, B = setpoint buffer<br/>on +12V"]
+      SW["reference steering, one SPDT per colour<br/>steers the REFERENCE, never the gate"]
+      QP["pass FET Q200 / Q250 / Q300 / Q350<br/>D2PAK planar HEXFET 200 V<br/>0.81 W worst EACH<br/>350 mm2 F.Cu + 350 mm2 B.Cu each"]
+      SH["shunt, one 200 mR 2512 per colour<br/>520 mV FS"]
+      CL["ENABLE clamp, one per colour<br/>2x 2N7002 + gate pull-down<br/>works with EVERY rail dead"]
+      HARN["J200 harness<br/>JST VH 6-pin<br/>2x anode (10.4 A) + 4x cathode (2.6 A)"]
     end
 
     subgraph PRT["sheet: protect - firmware-independent safety"]
-      OT["board OT comparator<br/>NTC on Q200 tab || NTC on Q100 tab"]
+      OT["board OT comparator<br/>NTCs on the FET tabs, wire-ORed"]
       LOT["LED OT comparator<br/>off-board NTC, top leg = open-wire safe"]
-      VDS["Vds fault comparator<br/>LED-short latch, 20 us"]
+      VDS["Vds fault comparators x4<br/>per-colour LED-short latch, 20 us"]
       UV["bank UVLO + ceiling<br/>inhibit below floor, cap at 44.5 V"]
-      TEL["TMP112 class<br/>I2C telemetry"]
+      TEL["TMP112 + I2C I/O expander<br/>telemetry, per-colour fault ID,<br/>and BANK_ARM (no PWM pin is left)"]
     end
 
     subgraph CON["sheet: conn - the ICD boundary"]
@@ -75,14 +88,14 @@ flowchart TB
     end
   end
 
-  LED["OFF-BOARD LED MODULE<br/>separate aluminium MCPCB + heatsink<br/>NOT designed by this run<br/>3S emitters, 38.0 V at 2.6 A"]
+  LED["OFF-BOARD RGBW LIGHT ENGINE<br/>separate aluminium MCPCB + heatsink<br/>SPECIFIED by light-engine-spec.md,<br/>NOT designed by this run<br/>4 strings, each 38.0 V +/- 1.0 V at 2.6 A"]
 
   P48 --> TVS --> HS --> QC --> BANK
   BANK --> BLD
   BANK --> DIV
-  BANK -->|"2.6 A pulse"| HARN
-  HARN --> LED
-  LED -->|"return"| HARN
+  BANK -->|"up to 10.4 A pulse"| HARN
+  HARN -->|"2 anode conductors"| LED
+  LED -->|"4 cathode returns"| HARN
   HARN --> QP --> SH --> P48
   P12 --> AMP
   P12 --> OT
@@ -93,25 +106,29 @@ flowchart TB
   SIG --> PD
   PD -->|"/ENABLE"| CL
   PD -->|"/ENABLE"| HS
-  PD -->|"/PWM0 flash gate"| SW
-  PD -->|"/PWM4 amplitude"| SW
-  PD -->|"/PWM1 BANK_ARM"| UV
+  PD -->|"/PWM0-3 flash gates, one per colour"| SW
+  PD -->|"/PWM4-7 amplitudes, one per colour"| SW
+  PD -->|"I2C"| TEL
+  TEL -->|"/protect/BANK_ARM_n"| UV
   SW --> AMP --> QP
-  SH -->|"/drive/ISNS"| AMP
+  SH -->|"ISNS x4"| AMP
   DIV -->|"/VBANK_SENSE"| UV
   DIV -->|"/VBANK_SENSE"| PD
-  QP -->|"/VDS_SENSE"| VDS
+  QP -->|"/VDS_SENSE_* x4"| VDS
   OT -->|"/OT_TRIP"| CL
   LOT --> OT
   VDS --> OT
+  VDS -->|"4 latch states"| TEL
   UV -->|"/UVLO_n"| CL
   OT -->|"open drain, never driven high"| PD
   TEL --> PD
   LED -.->|"2 NTC wires"| PRT
 ```
 
-**Zero local regulators. Zero magnetics. Two linear elements** - the charge FET and the pass
-FET - and they share one invariant burden (see `power_tree.md` s2).
+**Zero local regulators. Zero magnetics. Five linear elements** - the charge FET and four pass
+FETs - and they share one invariant burden (see `power_tree.md` s2). **The four pass FETs never
+all run hot together**: the invariant fixes the total, so firing four colours divides the heat
+four ways. The binding thermal case is one colour alone, which is exactly the rev A case.
 
 ---
 
@@ -166,7 +183,18 @@ working rating). Rth 9.43 k, inside the ICD's 10 k ADC limit. It feeds three con
 100 V capacitor rating with 6.4 V to spare. **No MOV-to-earth network anywhere** - the PD is
 unearthed and copying one out of a reference design is a defect, not an improvement.
 
-### 2.3 drive - the pulse loop
+### 2.3 drive - the pulse loop, now **x4**  **[REV B]**
+
+**Everything in this subsection is instantiated FOUR TIMES, once per colour, unchanged.** The
+stages are electrically identical; only the string on the far end of the harness differs. The
+per-stage part list is `sheets.md` s2.3; the four sheets are `drive_w`, `drive_r`, `drive_g`,
+`drive_b`. Nothing about the topology changed - what changed is the count, the pour arithmetic
+(s6.1) and the PWM plumbing (s4).
+
+**Temperature grade is now a hard selection rule, not a preference** (see `power_tree.md` s10):
+**every active part on this board must be rated to +125 C ambient.** The `-40..+85 C` grade is
+no longer acceptable anywhere, which retires the SGM3157 as the lead SPDT candidate unless P3
+confirms a +125 C part number for it.
 
 **Pass element: D2PAK planar HEXFET-5, 200 V / 18 A class, IRF640N class.** Selected on
 *generation and thermal headroom*, not on Rds(on): no MOSFET on JLCPCB publishes a linear-mode SOA
@@ -174,8 +202,11 @@ characterisation, so the choice falls to planar-over-trench (lower ZTC point, le
 range thermally unstable - the Spirito mechanism) plus derived thermal margin. The 200 V part is
 preferred over the 100 V IRF540N class because the LED-short fault puts the full 57 V across it.
 **The D2PAK beats the TO-220 here** - in a sealed box with no airflow the surface-mount conductive
-path into copper (40 C/W datasheet, ~47 C/W by the P8 model at 900 mm2) beats the TO-220's
-convective path (62 C/W), inverting the usual "THT power part is safer" instinct.
+path into copper (40 C/W datasheet, **51.1 C/W by the P8 model at its `a_eff` clamp - [REV B],
+corrected from rev A's 47 C/W at 900 mm2**) beats the TO-220's convective path (62 C/W), inverting
+the usual "THT power part is safer" instinct. **The correction narrows the margin but does not
+change the answer**: 51.1 against 62 C/W is still a 17 % advantage, and the TO-220's height is
+incompatible with the 30 mm ceiling once four of them are needed.
 
 **Error amplifier: dual op-amp, LM2904 class, SOIC-8, biased from `+12V`.** The controlling
 constraint is gate headroom, and it eliminates `+3V3` outright: the pass FET's source sits 0.52 V
@@ -208,10 +239,13 @@ a drain-source TVS or verified avalanche capability, NOT a freewheel diode acros
 freewheel path recirculates harness current *through the LEDs* and produces exactly the decay tail
 STR-REQ-01 forbids. The energy is trivial; the topology is not.
 
-**Harness: J200, JST VH 2-pin THT, 10 A / 250 V.** 2.6 A peak / 0.174 A average is a ~4x derate and
-the 250 V rating makes the 0.635 mm clearance rule trivial to meet. Internal wire-to-board is
-permitted - the ICD only forbids connectors that leave the enclosure. **Run the two conductors as a
-tight pair and add no capacitance at the module end.**
+**Harness: J200, JST VH 6-pin THT, 10 A / 250 V per contact.** **[REV B]** RGBW needs
+**2 anode + 4 cathode** conductors: the anode is common (`/VBANK`) and carries **up to 10.4 A**
+when all four colours fire together, so it takes **two contacts in parallel** (20 A capacity,
+1.9x). Each cathode carries 2.6 A into its own pass FET, a ~4x derate. The 250 V rating makes
+the 0.635 mm clearance rule trivial to meet. Internal wire-to-board is permitted - the ICD only
+forbids connectors that leave the enclosure. **Run each cathode alongside an anode as a tight
+pair and add no capacitance at the module end.** Pinout is fixed by `light-engine-spec.md` LE-12.
 
 Note what is deliberately absent: **no inductor, no output capacitor across the string.** Every
 constant-current LED driver IC stocked at this power level is a switching buck, and its inductor
@@ -220,18 +254,23 @@ sub-millisecond edge. That branch is closed on topology, and independently on di
 (those parts specify PWM dimming at 100 Hz - 1 kHz against a 9.766 kHz carrier). The discrete
 op-amp + shunt + FET loop is not a preference - it is what the catalogue and STR-REQ-01/-11 force.
 
-### 2.4 protect - safety that does not need firmware
+### 2.4 protect - safety that does not need firmware  **[REV B]**
 
-**Two dual comparators, LM2903 class, SOIC-8, both biased from `+12V`.** Four sections:
+**Two QUAD comparators, LM2901 class, SOIC-14, both biased from `+12V`** (rev A had two duals;
+four colours need four Vds sections, so the section count goes 4 -> 8 and two quads are smaller,
+cheaper and fewer packages than four duals). **LM2901, not LM339 or LM393** - the latter two are
+0..+70 C parts and `power_tree.md` s10 puts the internal air at up to 90 C.
 
 | Section | Function | Output goes to |
 |---|---|---|
-| A1 | **Board over-temperature.** NTC on Q200's tab in **parallel** with NTC on Q100's tab as the bottom leg of a +12 V divider - the hotter device dominates, so one section ORs both. Trip ~110 C tab | `/OT_TRIP` |
-| A2 | **LED-module over-temperature.** Off-board NTC as the **top** leg, so an open harness wire pulls the node low and trips - fail-safe on a broken wire. Trip ~100 C solder point | `/OT_TRIP` |
-| B1 | **Vds fault (LED short).** See s5 | `/OT_TRIP`, latched |
-| B2 | **Bank UVLO + ceiling.** See s2 | `/UVLO_n`, charge-path EN |
+| U400 A | **Board over-temperature.** NTCs on all five power-FET tabs in **parallel** as the bottom leg of a +12 V divider - the hottest device dominates, so one section ORs all of them. Trip ~110 C tab | `/OT_TRIP` |
+| U400 B | **LED-module over-temperature.** Off-board NTC as the **top** leg, so an open harness wire pulls the node low and trips - fail-safe on a broken wire. Trip ~100 C solder point | `/OT_TRIP` |
+| U400 C | **Bank UVLO.** Inhibits the drive stages below the window floor. Must **not** assert `FAULT` | `/UVLO_n` |
+| U400 D | **Bank ceiling.** 44.5 V normal / 48.0 V while armed; ~1 V hysteresis | `/CHG_EN_n` |
+| U401 A-D | **Vds fault (LED short), ONE SECTION PER COLOUR.** See s5 | `/OT_TRIP` (wire-OR), each latched, each also readable individually over I2C |
 
-All outputs are **open collector**. `/OT_TRIP` pulls the pass-FET gate clamp *and* `FAULT` low.
+All outputs are **open collector**. `/OT_TRIP` pulls **all four** pass-FET gate clamps *and*
+`FAULT` low.
 `FAULT` is **never driven high** - this board fits no pull-up; the carrier's 10 k owns it, and an
 open-collector output tied to a 3.3 V net is legal regardless of the comparator's own 12 V supply.
 `/UVLO_n` inhibits the drive stage only; an empty bank at power-up is not a fault and must not
@@ -240,6 +279,29 @@ assert `FAULT`.
 **Telemetry: TMP112 class, I2C, on `+3V3`**, plus a second off-board NTC into `ADC1` on an
 independent `+3V3`-referenced leg. Two thermistors on the module cost about $0.08 and mean a
 shorted telemetry wire cannot defeat the trip.
+
+**[REV B] Second I2C device: an 8-bit I/O expander, PCF8574 / TCA9534 class, on `+3V3`.** It does
+two jobs that RGBW created and that no pin is left for (s4.3):
+
+| Expander bit | Direction | Function |
+|---|---|---|
+| 0-3 | in | The four per-colour Vds-fault latch states. `FAULT` says *something* broke; these say **which colour** |
+| 4 | in | Board over-temperature flag |
+| 5 | in | LED-module over-temperature flag |
+| 6 | **out** | **`/protect/BANK_ARM_n`** - the bank ceiling control that rev A carried on `PWM1`. **Active LOW to arm**, because a PCF8574 powers up with every I/O **high**, so its POR state is *disarmed* |
+| 7 | - | spare, no connection |
+
+**Why this is safe to put on I2C** (and why the flash path is not): `BANK_ARM` is a slow arm, not
+a per-flash gate, so bus latency is irrelevant; and every failure of the bus, the expander or
+`+3V3` lands on **disarmed**, i.e. the 44.5 V ceiling, which is the lower-energy state. The
+expander drives the ceiling comparator through a **2N7002 + 100 k pull-up to `+12V`** so that a
+dead `+3V3` leaves the node pulled to "disarmed" by a rail the comparator itself depends on -
+not floating.
+
+**What is deliberately NOT on I2C: everything in STR-REQ-20's path.** The over-temperature trip,
+the Vds trip, the UVLO and the gate clamps are hard-wired comparators on `+12V` driving
+`/OT_TRIP` directly. With no MCU, no firmware and no bus, all of them still work. The expander
+only *reads* the latches; it cannot set or clear one.
 
 Biasing every protection element from `+12V` is the fix for `research/power.md` **OPEN-4**: with
 the loop biased from `+12V`, the drive stage is *fully functional* with the daughter's `+3V3`
@@ -250,14 +312,33 @@ happens, and firmware sees the ADC go quiet.
 
 ---
 
-## 3. The LED module - off-board, and NOT designed by this run
+## 3. The light engine - MOVED  **[REV B]**
 
-**The emitter array lives on its own single-layer aluminium MCPCB bolted to a heatsink, wired back
-to J200 by two conductors. That MCPCB, its heatsink and its optic are a separate deliverable which
-this run does not design.** This board's entire obligation to it is: two harness conductors, two
-thermistor conductors, and the numbers in this section.
+**The whole of rev A's section 3 has moved to `architecture/light-engine-spec.md`** and been
+re-derived for four colour channels, as `requirements.md` s10.4 directs. That file is the
+deliverable: emitter selection, per-colour string topology, thermal path, connector and pinout,
+written as numbered acceptance criteria `LE-01 .. LE-24` so a third party can build the MCPCB.
 
-### 3.1 Resolving the emitter conflict
+**Per-colour light output is in `power_tree.md` s9**, per `requirements.md` s10.1. **The rev A
+10,000 lm headline is a WHITE-CHANNEL-ONLY number and must not be quoted for the fixture.**
+
+Three facts from rev A survive unchanged and are restated in the spec rather than here:
+
+- **No LED vendor publishes a pulse allowance at 5-200 ms**, in any colour. Cree's CLD-AP60
+  declines to publish a numeric limit at all; ams-OSRAM's surge current is 10 us at 0.5 % duty;
+  JNJ's and Xinglight's pulse footnotes are 100 us at 10 % duty. **A 5-200 ms pulse is thermally
+  DC.** Size every string so peak current is inside each die's DC maximum and budget **zero**
+  pulsed headroom. (`led-emitter.md` s1.1 + `refdesign-pulsed-led-driver.md` D9, which agree.)
+- **P3's part-sourcer will NOT find the emitters, the optics or the thermistors on JLCPCB, and
+  that is correct.** The array is off-board, so it is a mechanical BOM line from Digi-Key, Mouser
+  or LCSC retail. JLC stocks no LED optic of any kind and no leaded/probe/ring-lug NTC at all.
+- **A bought COB is not available**: the entire in-stock white COB population at JLC is three
+  SKUs totalling 17 pieces, all under 13.5 W. There is no RGBW COB at all.
+
+<details>
+<summary>rev A white-only emitter analysis - superseded by light-engine-spec.md, kept for the audit trail</summary>
+
+### 3.1 Resolving the emitter conflict (rev A, white-only)
 
 `led-emitter.md` picked Cree XP-G2 in a 12S2P / 24-die array at ~$53/board **because no JLC-stocked
 white LED is DC-rated for 2.6 A**. That constraint does not exist: the array is off-board on a
@@ -339,61 +420,171 @@ would give run continuously (efficacy droop) - which is a lever the governor can
 STR-REQ-07's graceful degradation, because **stretching a pulse recovers efficacy as well as
 avoiding a missed beat.**
 
-### 3.5 The heatsink flag, restated because it is outside this board and caused by it
+</details>
+
+### 3.5 The heatsink flag - now corroborated by the par run, and it is the H2 headline  **[REV B]**
 
 The ICD's 56 C (af) / 69 C (at) internal-air figures **predate this 6.6 W sustained LED load.** If
 the heatsink sits inside the sealed plastic box, that box must shed ~6.6 W to outside air through
 plastic and the internal air will not stay at 56 C. The only arrangement that closes is bolting the
 heatsink to or through the enclosure wall so the wall is the radiator - and per ICD s9 and H1-Q5
 that heatsink is at PoE potential and must remain non-user-accessible and unbonded to anything
-earthed. **This is an enclosure decision, not a PCB decision, and it is the largest thermal
-uncertainty in the fixture.**
+earthed. **This is an enclosure decision, not a PCB decision.**
+
+> **[H1 follow-up] THE ENCLOSURE DECISION HAS CLOSED, and it went the way this section asked for:
+> sealed, non-metallic, NOT vented, with the LED heatsink bolted to or through the wall.** Both
+> fixtures share it; the par reached it independently and **measured a sealed non-metallic box at
+> 3.6-4.3 K/W internal-air-to-room.** Applying that measurement (`power_tree.md` s10.7) shows the
+> box arithmetic reproduces the ICD's 56 C **exactly** in the case where the LED heat stays inside
+> - and puts the internal air at **32-48 C** in the case where it leaves through the wall.
+>
+> **So this is no longer the largest thermal uncertainty in the fixture; it is a load-bearing
+> dependency with a number on it.** It is written as `light-engine-spec.md` **LE-16** with an
+> apportioned Rth budget (`solder point -> outside air <= 6.0 C/W`, of which the wall joint is
+> 0.5 C/W) and a checkable joint specification, and **its acceptance test is gating**: log the
+> enclosure's internal air alongside the emitter solder point, because a solder point that passes
+> while the internal air climbs 30 K means the heat went into the box and the board is silently in
+> the 85-90 C case.
+
+**The par run has independently reached the same conclusion from the other side** and raised a
+blocking issue against ICD s7.6: its figures are not self-consistent (69 C `at` cannot coexist
+with 56 C `af`) and an independent calculation gives **89-115 C**, optimistic by 20-46 K
+(`requirements.md` s10.6). **Two runs arriving at "s7.6 is too cold" from unrelated directions is
+the strongest evidence in this program that it is.** The full sensitivity analysis - every
+element above 0.5 W recomputed at 85 C and 90 C - is `power_tree.md` s10, and it is the item to
+put in front of the human at H2. This board does **not** attempt to fix s7.6 and does not average
+it with anything.
 
 ---
 
-## 4. PWM channel allocation, and a firmware/ICD note worth surfacing
+## 4. PWM allocation re-checked for RGBW - it closes, but ONE signal loses its pin  **[REV B]**
 
-ICD s3.3: `PWM0-3` = LEDC **timer 0**, `PWM4-7` = LEDC **timer 1**; channels on one timer share
-frequency **and** resolution; default 13-bit at 9.766 kHz.
+This is the section H1 asked to be re-worked, and the answer has two halves. **The eight-channel
+allocation closes cleanly - better than rev A feared.** **What does not close is `BANK_ARM`, which
+in rev A sat on `PWM1` and now has nowhere to go.** That is the real finding for H2.
 
-| Pin | Timer | Function | Waveform |
+### 4.1 The rules, restated exactly
+
+ICD s3.3: `PWM0-3` = LEDC **timer 0**, `PWM4-7` = LEDC **timer 1**; **channels on one timer share
+frequency AND resolution** (CAR-REQ-11); default 13-bit at 9.766 kHz. **LEDC timers 2 and 3 are
+unallocated on the carrier and available on request.** ICD s3.2 shows J4 fully assigned across all
+24 positions: **there is no spare signal pin.**
+
+### 4.2 The allocation - eight channels, four colours, and it works
+
+| Pin | Timer | Colour | Function | Waveform |
+|---|---|---|---|---|
+| **PWM0** | 0 | W | `FLASH_GATE_W` | 5-200 ms one-shot at 1-25 Hz |
+| **PWM1** | 0 | R | `FLASH_GATE_R` | 5-200 ms one-shot at 1-25 Hz |
+| **PWM2** | 0 | G | `FLASH_GATE_G` | 5-200 ms one-shot at 1-25 Hz |
+| **PWM3** | 0 | B | `FLASH_GATE_B` | 5-200 ms one-shot at 1-25 Hz |
+| **PWM4** | 1 | W | `AMP_SET_W` | 13-bit at the ICD default 9.766 kHz, RC-filtered and divided into the reference |
+| **PWM5** | 1 | R | `AMP_SET_R` | as above |
+| **PWM6** | 1 | G | `AMP_SET_G` | as above |
+| **PWM7** | 1 | B | `AMP_SET_B` | as above |
+
+**Pin `n` and pin `n+4` are the same colour.** The map is chosen so that the ICD's timer partition
+lines up exactly with the functional split.
+
+**Why it closes, and why the feared conflict never arises.** The worry going in was that gates and
+amplitudes would be forced to share a timer, and that a timer re-programmed to a 1-25 Hz flash rate
+cannot simultaneously carry a 9.766 kHz filtered-DC amplitude channel. **That is true, and it is
+exactly why the split above is the only correct one:** all four gates land on timer 0 and all four
+amplitudes land on timer 1, so no timer is ever asked to do both. The ICD's own PWM0-3 / PWM4-7
+partition happens to be the right shape. Four amplitude channels sharing one 9.766 kHz / 13-bit
+timer is a **non-issue** - they share frequency and resolution and differ only in duty, which is
+precisely what four independent amplitudes need.
+
+### 4.3 The gates: three ways to produce them, ranked
+
+**A 5-200 ms one-shot at 1-25 Hz is still not a duty cycle on a 9.766 kHz carrier.** One period is
+102.4 us; an 8.68 ms flash is 85 consecutive periods. Rev A had two escapes; with four colours there
+are three, and they are no longer equivalent:
+
+| # | Route | Independent flash rate per colour? | ICD change? | Cost |
+|---|---|---|---|---|
+| **1** | **Drive `PWM0-3` as plain GPIO / RMT one-shots** from a hardware timer or the RMT peripheral. LEDC timer 0 is then simply unused by this daughter | **Yes, all four independent** | **None.** s3.3's electrical contract is "push-pull CMOS 3.3 V" and an RMT output is exactly that; the timer allocation becomes vestigial for timer 0 | zero |
+| 2 | Re-program LEDC timer 0 to the flash rate. Per-channel `hpoint` gives independent phase and duty gives independent width | **No - one shared flash PERIOD.** Off-beats work (phase); different subdivisions do not | None | zero |
+| 3 | Request LEDC timers 2/3 and re-point two of the gate channels at them | Three independent rates, not four | **s3.3 amendment** | zero |
+
+**Recommendation: route 1.** It is what the signal actually *is*, it gives four genuinely
+independent flash rates, and it needs nothing from the carrier owner. **Route 2 is the fallback if
+the carrier's firmware framework only exposes LEDC on those pins** - and its restriction is milder
+than it sounds for a strobe, where all four colours normally sit on one beat grid.
+
+**A note worth putting to the carrier owner: requesting LEDC timers 2/3 does NOT solve anything
+here.** Timers are not the scarce resource - **pins are**. Route 3 buys a third independent rate and
+nothing else, and it is the only one of the three that costs an ICD revision.
+
+### 4.4 What broke: `BANK_ARM` has no pin  **- THE H2 FINDING**
+
+Rev A put `BANK_ARM` on `PWM1` as a static DC level. With four gates and four amplitudes, **all
+eight PWM channels are consumed and J4 has no spare position.** `BANK_ARM` is not optional: it is
+what releases the bank ceiling from 44.5 V to 48.0 V, and the **48.0 V ceiling is what produces the
+headline 0.858 J / 8.68 ms blast of STR-REQ-01 as amended.** Dropping it would delete the headline
+flash mode.
+
+Four ways out were considered:
+
+| Option | Cost | ICD change | Verdict |
 |---|---|---|---|
-| **PWM0** | **0** | **FLASH_GATE** | **A 5-200 ms one-shot pulse at 1-25 Hz. NOT a 9.766 kHz PWM waveform.** |
-| **PWM1** | **0** | **BANK_ARM** | Static DC level: 0 % duty = normal (44.5 V ceiling), 100 % duty = armed (48 V). Frequency-agnostic |
-| **PWM4** | **1** | **AMP_SET** | 13-bit at the ICD default 9.766 kHz, RC-filtered (10 k + 100 nF) and divided 6.35:1 into the regulator reference |
-| PWM2, PWM3, PWM5, PWM6, PWM7 | - | **unused, no connection at the socket** | reserved for the RGBW delta |
+| **A. I2C 8-bit I/O expander** (PCF8574 / TCA9534 class) drives `BANK_ARM_n` and reads the four per-colour fault latches | **+$0.35 + one 2N7002 + two resistors, ~50 mm2** | **None** | **CHOSEN.** It also answers s2.4's per-colour fault-attribution problem, which otherwise has no answer at all, and every failure mode lands on "disarmed" |
+| B. Re-designate the unused `DSPI_CSn` (J4-17) as a GPIO for `BANK_ARM` | zero parts | **s3.3 amendment** - re-purposes a bus pin | Rejected as primary. Cheapest, but it spends ICD capital on a signal that an already-required I2C device carries for free, and it leaves fault attribution unsolved |
+| C. Quad I2C DAC (MCP4728, +$2.66) replaces the four amplitude RCs, freeing `PWM4-7` | **+$2.66**, and it is **single-source** (Microchip only, `drive-stage.md` R4) | None | Rejected. It puts *amplitude* on I2C, so an I2C failure means **no light at all** rather than "no arming". It does save ~12 passives of area, which is the only argument for it |
+| D. Delete `BANK_ARM`; fix the ceiling at 44.5 V | zero | None | **Rejected - it deletes the headline flash mode** |
 
-**The flash gate cannot be expressed as a duty cycle on a 9.766 kHz carrier.** One period is
-102.4 us; an 8.68 ms flash is 85 consecutive periods, not a duty setting. Two ways out, and the
-choice belongs to firmware:
+**Chosen: option A.** `BANK_ARM_n` is an expander output, active LOW to arm, pulled to "disarmed"
+by 100 k to `+12V` through a 2N7002 so that a dead `+3V3`, a dead bus or an unprogrammed MCU all
+leave the bank at its 44.5 V ceiling. **The signal never leaves the `protect` sheet.**
 
-1. **Drive PWM0 as a plain GPIO one-shot** from a hardware timer or the RMT peripheral. This is what
-   the signal actually is, and it is the recommendation.
-2. **Re-program LEDC timer 0 to the flash rate** (1-25 Hz, 13-bit -> 4.9-122 us of resolution), in
-   which case an 8.68 ms flash at 5 Hz is duty 0.0434 = 356 counts. That is perfectly usable.
+### 4.5 Per-colour sense - what is measured and what is not
 
-**Option 2 is free here only because this board owns timer 0 exclusively** - PWM1 is used at 0 % or
-100 % duty, where frequency is irrelevant, and PWM2/PWM3 are unconnected. **If the carrier's
-firmware architecture assumes all eight LEDC channels sit at the ICD default 13-bit / 9.766 kHz,
-that assumption does not hold for this daughter.** This is a firmware/ICD note, not an ICD change -
-s3.3's timer partition is untouched and no daughter shares this carrier. Raise it at the checkpoint
-so the firmware author is not surprised.
+The 2-ADC budget (`ADC0` bank voltage, `ADC1` LED-module NTC) does not stretch to four colours and
+is **not** stretched. The scheme:
 
-**Two firmware contracts to carry into DOC-01 and the carrier's firmware interface:**
+| Quantity | Per colour? | How | Why |
+|---|---|---|---|
+| **String current** | **No** | Commanded by `AMP_SET_n`, regulated locally by the analogue loop against a 1 % shunt | The loop *is* the current control. Runtime telemetry would need four peak-hold networks (~16 parts) to buy data that a one-off bench calibration at P8 gives better |
+| **Colour mixing / cast (STR-REQ-14)** | n/a | Bench-calibrated once into four firmware scale factors | Not a runtime measurement |
+| **Open string (no light, no fault)** | **Yes, in firmware, free** | Fire each colour alone at low amplitude and watch `ADC0` for bank droop. **A healthy flash droops the bank; an open string does not** | This is a genuine hole the Vds comparator cannot see (an open string pulls `/LED_K` toward GND through its own divider, which *reads as healthy*). Solving it in firmware costs zero parts. Fold it into STR-REQ-06's self-test |
+| **Which colour faulted** | **Yes** | Four latch states on the I2C expander | `FAULT` is a single wire-OR; without this, firmware knows something broke and nothing else |
+| **Module temperature** | **No, and deliberately** | Two NTCs on the shared MCPCB: one into the `+12V` trip comparator, one into `ADC1` | The MCPCB is one thermal mass. Four thermistors would cost four more harness conductors for no decision firmware can act on differently |
+
+**I2C rules, confirmed against ICD s3.3: 400 kHz, open drain, and the pull-ups are on the CARRIER
+(4.7 k to +3V3). This daughter fits NO pull-ups.** Two devices on the bus: the TMP112 and the
+expander; their addresses must not collide and both must be selectable at P3.
+
+**STR-REQ-20 stays entirely off the bus.** The firmware-independent over-temperature shutdown is
+comparator -> `/OT_TRIP` -> four gate clamps, all on `+12V`. It works with no MCU, no firmware and
+no I2C. The expander can *read* the latches; it can neither set nor clear one.
+
+### 4.6 Firmware contracts to carry into DOC-01
 
 - **Amplitude must be programmed at least one flash period (~5 ms) before the flash it applies to.**
   The RC setpoint filter settles to 1 % in 4.6 ms - comfortably inside the 40 ms period at 25 Hz,
   but most of a full-output flash. Ripple at 9.766 kHz is 2.6 % of full scale and optically
-  invisible.
+  invisible. **This applies per colour, independently.**
 - **`ENABLE` is a slow arm/disarm with a ~10 s minimum re-arm interval. It is NOT a per-flash or
-  per-cue gate - `PWM0` is.** Each ENABLE cycle costs a 3.13 J cold start in the charge FET; at a
+  per-cue gate - `PWM0-3` are.** Each ENABLE cycle costs a 3.13 J cold start in the charge FET; at a
   1.33 s re-arm interval the mean hits the D2PAK's steady-state limit and the part cooks. The
   penalty is graduated, not a cliff - the active bleed's 2.6 s time constant means a 100 ms ENABLE
   glitch drops the bank only ~3.5 %.
+- **[REV B] `BANK_ARM` is momentary, not a mode.** Arm, fire one or a few blasts, disarm. Sustained
+  armed operation at 25 Hz puts 1.41 W into one pass FET, which **fails the P8 thermal gate at every
+  ambient including the ICD's own 56 C** (`power_tree.md` s10). The board tolerates it as a burst
+  because the D2PAK + pour time constant is 60-120 s; it does not tolerate it as a mode.
+- **[REV B] The governor's cap is now a rail-power cap, not a rate cap.** See `power_tree.md` s10.4:
+  at 85 C air keep `P_rail <= 7.9 W`, at 90 C air `<= 6.9 W`. Both are enforced by the same
+  average-energy governor CAR-REQ ICD s6.2 already requires.
 
 ---
 
-## 5. The LED-short fault - decided, not deferred
+## 5. The LED-short fault - decided, not deferred (**x4** in rev B)
+
+> **[REV B]** Everything below is per colour and is instantiated four times - four comparator
+> sections in one LM2901 quad, four latches, four arming RCs. Two additions: each latch state is
+> also readable individually over I2C (s4.5), and the **open-string** case that this detector
+> cannot see is handled in firmware by bank-droop self-test (s4.5), not by more hardware.
 
 `drive-stage.md` **R1** is the single-fault case that has to be answered here: if the string shorts
 (solder bridge, harness fault, an emitter failing short), **the current loop keeps regulating
@@ -429,32 +620,159 @@ faulted, so:
   802.3at thermal overrun) and it is the element that makes the FET's thermal margin a *measured*
   quantity rather than an assumed one.
 
-Cost of the whole answer: one extra dual comparator, one 2N7002 for the latch, one NTC and about
-six resistors - **roughly $0.15/board.** For a single-fault safety-adjacent case that is not a
-decision worth agonising over.
+Cost of the whole answer: **[REV B]** four comparator sections (which is why the protect sheet
+went from two duals to two quads), four 2N7002 latches, five NTCs and about two dozen resistors -
+**roughly $0.45/board for all four colours.** For a single-fault safety-adjacent case that is not
+a decision worth agonising over.
 
 ---
 
-## 6. RGBW delta - costed, not designed
+## 6. RGBW - IMPLEMENTED, and the area trap it was supposed to spring  **[REV B]**
 
-If the human overturns D-04 and asks for RGBW, this is what changes. **Nothing below is designed.**
+D-04 closed as RGBW. This section replaces rev A's costed delta with the built design, and it
+opens with the correction that makes the whole thing fit.
 
-| Axis | White-only (baseline) | RGBW | Delta |
-|---|---|---|---|
-| Drive stages | 1 | **4** | +3 x (pass FET + shunt + half an op-amp + SPDT + clamp + setpoint RC) = **+$3.60/board** |
-| PWM channels | 3 of 8 (gate, arm, amplitude) | **8 of 8** (4 gates + 4 amplitudes) or 5 with a quad I2C DAC | **Zero spare channels.** The DAC route costs +$2.66 and puts I2C traffic in the flash path |
-| Sense channels | 2 ADC + I2C | 4-5 wanted | **The 2-ADC budget breaks; per-colour sense must move to I2C** (requirements s2.4 already flags this) |
-| Bank | 2720 uF, shared | **2720 uF, still shared** | **No change.** The rail is the limit, not the bank |
-| Total light | 6.61 W sustained | **6.61 W sustained** | **No change. RGBW does not buy more light - it divides the same light into colours** |
-| Board dissipation | 1.89 W in one pass FET | **1.89 W across four** | **Thermally easier, not harder**, in the shared case - the linear loss parallelises. The worst case (one colour alone at 2.6 A) is unchanged |
-| Drain pour area | 1000 mm2 | 4 x ~350 mm2 = **1400 mm2** in the shared case; 4 x 1000 mm2 if any colour may run alone at full current | **The single-colour-at-full-power case does not fit.** Closing it means capping per-colour current near 1.3 A, which doubles the die count per colour |
-| LED module | 3 emitters, 1 MCPCB, 2 wires | 4 colour strings, bigger MCPCB, **5-wire harness** | **+$40-80/fixture**, 4x the emitter selection, binning and thermal work |
-| Verification | one drive stage, one colour-cast criterion | four stages, plus a **4-way colour-mixing spec** for STR-REQ-14 | ~4x the P8 and bench effort |
+### 6.1 The drain-pour arithmetic was wrong by 3x, in the design's favour
 
-**Bottom line: about +$4-6 on this board's BOM, +$40-80 on the LED module, all 8 PWM channels
-consumed, and roughly 3-4x the placement claim for the drive stages - in exchange for percussive
-coloured blasts at strobe speed, which the 6-8 RGBW pars physically cannot produce.** It does not
-make the fixture brighter. **Recommendation stands: white-only.**
+Rev A declared **1000 mm2** for the pass FET's drain pour and **645 mm2** for the charge FET's, and
+concluded that four of the former "does not fit". **Both numbers were derived from the raw
+`theta_JA` curve without reading what the P8 gate actually computes.** From `check_thermal.py`:
+
+```
+  A_SAT_MM2 = 645.0
+  a_eff = min(A_SAT_MM2, sum over ALL copper layers of net_copper(net, layer)
+                          intersected with a disc of radius sqrt(645/pi) = 14.3 mm
+                          centred on the part)
+  theta_JA = 45 + 95 * exp(-a_eff / 235)      (4-layer model)
+```
+
+Two clamps, both load-bearing, neither of them in rev A:
+
+1. **`a_eff` is capped at 645 mm2.** Copper past ~1 in2 is not counted, because heat does not
+   spread further than that - the model's own comment says so. **`theta_JA` can therefore never go
+   below `45 + 95 exp(-645/235) =` 51.1 C/W on this board, at any pour size.**
+2. **The sum is over layers.** A mirrored pour on B.Cu tied through the thermal vias counts fully.
+
+**Consequence, and it is the most useful number in this revision:** the requirement is
+**>= 350 mm2 on F.Cu plus >= 350 mm2 mirrored on B.Cu, both within 14 mm of the package, tied by
+>= 12 vias.** That reaches 645 mm2 of `a_eff` and 51.1 C/W - **the model's best achievable value.**
+A 1000 mm2 F.Cu pour reaches exactly the same 51.1 C/W and buys nothing the P8 gate will score.
+
+Rev A's 1000 mm2 was therefore **2.9x larger than useful**, and the "4 x 1000 mm2 does not fit"
+trap **dissolves**: four pass FETs need 4 x 350 = **1400 mm2 of F.Cu**, against rev A's single
+1000 mm2. That is 400 mm2 of extra F.Cu for three extra colour channels.
+
+**The correction cuts both ways and the bad half must be stated too.** At 51.1 C/W the allowance in
+the ICD's 56 C air is `69 / 51.1 =` **1.35 W**, not the 1.47 W rev A claimed from the uncapped
+curve. **Rev A's armed-25 Hz case (1.43 W) therefore does NOT pass the P8 gate**, at any copper
+area. It is not a design failure - armed is a momentary blast mode, not a sustained one (s4.6) -
+but rev A stated it as passing at 1.03x and that was wrong. Full arithmetic in `power_tree.md` s5
+and s10.
+
+### 6.2 Per-colour current: 2.6 A, unchanged, uncapped
+
+The other half of the feared trap was that a single colour running alone at full current would
+force a per-colour cap near 1.3 A and double the die count. **It does not, for two independent
+reasons:**
+
+- **The shared case is thermally free.** The invariant of `power_tree.md` s2 fixes total board
+  dissipation regardless of how it is divided, so four colours firing together put ~0.2 W in each
+  pass FET instead of 0.81 W in one. **RGBW is thermally EASIER than white-only in every mixed
+  case and exactly equal in the single-colour case.**
+- **The single-colour case is the rev A case, unchanged**, and per s6.1 it needs 350 mm2, not 1000.
+
+So every stage is built for the full 2.6 A, every colour can blast alone at the headline energy,
+and the die count per colour is set by the emitter's own DC rating - not by this board.
+
+**What the four-colour case DOES cost is current on `/VBANK`: 4 x 2.6 A = 10.4 A.** Consequences,
+all real:
+
+| | number | consequence |
+|---|---|---|
+| `/VBANK` peak | **10.4 A** | Must be a **pour** from the bank terminals to J200, never a routed trace. Declared in `constraints.json`; IPC width for 10.4 A on 1 oz external is ~7.6 mm, which a pour clears trivially and a router-chosen trace will not |
+| Harness anode | 10.4 A | **Two JST VH contacts in parallel** (20 A), and >= 18 AWG x 2 in the loom (`light-engine-spec.md` LE-13) |
+| Bank ESR sag | 43.9 mR x 10.4 A = **0.46 V** | 5.5 % of the 8.3 V window. The UVLO divider sits on the bank *terminal*, so it sees the sag and the floor self-corrects - but the usable window is ~0.46 V narrower whenever all four fire |
+| Bank ripple current | RMS 1.33 A (10.4 A at 1.65 % duty) | Against a bank rated ~5.9 A RMS: **4.4x margin**, down from 8.7x. Still not a constraint |
+| Pulse width, all four at 2.6 A | **2.17 ms** | Same 0.990 J of bank energy consumed 4x faster. A 395 W, 2.17 ms, ~25,000 lm event - the most violent thing the fixture can do |
+
+### 6.3 Area budget - the binding constraint of this revision
+
+Usable area is unchanged from rev A: 8,000 mm2 less 2,328 mm2 of keepouts less 520 mm2 of
+through-hole connector footprint = **5,152 mm2 on F.Cu**. **B.Cu takes copper only** - requirements
+s7 fixes single-sided top SMD assembly - so the "B.Cu is nearly empty" relief buys pour area and
+escape routing, never component area.
+
+```
+  usable F.Cu                                            5,152 mm2
+
+  bank, 4 x D18 radial populated of 6 footprints         1,214
+  4 x pass-FET drain pour, 350 mm2 F.Cu each             1,400   (+ 1,400 mirrored on B.Cu, free)
+  charge-FET drain pour, 350 mm2 F.Cu                      350   (+ 350 on B.Cu, free)
+  4 x shunt 2512 + Kelvin land                             100
+  4 x drive-stage small parts (~14 parts each)             440
+  charge block: hot-swap, TVS, sense, 7 passives           120
+  bleed: 2 x 2512, SOT-223, 2N7002, 3 passives              90
+  protect: 2 x SOIC-14 quad, TMP112, expander,
+     5 NTC, ~25 R, 3 C, J300                               280
+  conn block: 5 R, 5 C, 6 test points                      120
+  J200 (JST VH 6-pin THT)                                   55
+  H5, silkscreen-critical clearances, misc                   30
+  ------------------------------------------------------------
+  claimed                                                4,199 mm2  =  81 % occupancy
+```
+
+**81 % before routing channels, against rev A's 69 %** - and rev A's 69 % was itself computed with
+the wrong pour sizes; corrected for s6.1 the white-only board was only **51 %**. **So the honest
+statement is: RGBW costs 30 points of F.Cu occupancy, and the design fits only because the pour
+correction gave 18 of them back first.**
+
+**Verdict: it fits, with no margin.** 81 % is above the point where a placer finds a solution on
+the first try, and the two inner layers are solid GND so *all* signal routing lands on F.Cu and
+B.Cu. **Declared mitigations, in the order they must be reached for at P6:**
+
+1. **Drop the two unpopulated bank footprints** (6 -> 4 D18 lands): **-400 mm2, takes occupancy to
+   73 %.** Cost: the 2720 -> 4080 uF knob and the four-vendor 470 uF second source both go away.
+   This is the first lever because it is pure optionality, not function.
+2. **Hold every drain pour at exactly 350 mm2 on F.Cu and put all further copper on B.Cu.** Free -
+   B.Cu is otherwise empty and s6.1 proves the extra F.Cu was never scoring.
+3. **Two LM2902-class quad op-amps in place of four LM2904 duals**: **-30 mm2** and two fewer
+   packages, at the cost of breaking the "each stage is a self-contained placement group" property.
+4. **0402 for passives outside the 48 V domain** (the 48 V domain is locked at 0805 minimum by
+   `stackup.md` s2.4 and cannot shrink): **~-60 mm2.**
+5. **Do NOT reach for the DC-DC hot zone.** It is a vertical keepout over a 1.25 W hot spot in a
+   sealed box and the bank is the most lifetime-sensitive part on the board - see `power_tree.md`
+   s10.5, where the 85-90 C ambient case already cuts the bank's rated life by 10x.
+
+**If P6 still cannot place it after 1-4, the finding for H2 is that the RGBW strobe wants a larger
+board than the common LUMINA 100 x 80 footprint - which is an ICD s7.1 change and a program
+decision, not a layout decision.** Do not solve it by shrinking a pour below s6.1's floor.
+
+### 6.4 What RGBW cost, per block, on this board's BOM
+
+Replaces H1's "+$4-6" estimate with the built numbers (qty-6 break, from the research fragments):
+
+| Block | delta | note |
+|---|---|---|
+| 3 x extra drive stage (pass FET + shunt + LM2904 + SPDT + 2 x 2N7002 + TVS + passives) | **+$3.60** | $1.20/stage, as rev A estimated |
+| Protect: 2 x LM2901 quad SOIC-14 replacing 2 x LM2903 dual SOIC-8 | **+$0.15** | 8 sections needed, not 4 |
+| I2C 8-bit I/O expander (PCF8574 / TCA9534 class) | **+$0.35** | `BANK_ARM` + per-colour fault ID (s4.4) |
+| `BANK_ARM_n` fail-safe stage (2N7002 + 2 R) | **+$0.03** | |
+| 3 x extra tab NTC | **+$0.06** | one per power FET |
+| J200: JST VH 2-pin -> 6-pin | **+$0.05** | |
+| **Board BOM total** | **+$4.24** | inside H1's +$4-6 estimate |
+
+Board BOM goes **$14.00 -> $18.24**. See s7 for the full picture. The LED module delta is in
+`light-engine-spec.md` s7.
+
+**What RGBW did NOT cost:** no extra bank (the rail is the limit, not the store), no extra board
+dissipation (the invariant), no extra pass-FET pour beyond +400 mm2, and no per-colour current cap.
+**What it did cost beyond money:** every PWM channel, `BANK_ARM`'s pin, 30 points of area
+occupancy, and 4x the P8 bench work including a 4-way colour-mixing criterion for STR-REQ-14.
+
+**And the thing the human already knows and accepted: it produces no additional light.** The same
+6.6 W of sustained LED power is divided into four channels whose luminous efficacies are worse than
+white's - so mixed-colour operation is materially *dimmer* than the white channel alone at the same
+watts. The per-colour numbers are `power_tree.md` s9.
 
 ---
 
@@ -463,27 +781,30 @@ make the fixture brighter. **Recommendation stands: white-only.**
 Part costs at the qty-6 break, from the live JLCPCB figures in the research fragments.
 `order_quote` does the real numbers at P10.
 
-| Block | $ / board |
-|---|---|
-| Bank (4 x 680 uF radial + 4 x 10 uF 1210) | 6.18 |
-| Charge path (hot-swap controller + D2PAK + sense + passives) | 3.72 |
-| Drive stage (pass FET + op-amp + shunt + SPDT + 2 x 2N7002 + passives) | 1.20 |
-| Protection and sense (2 x comparator + TMP112 + 4 NTC + 2 TVS + dividers + bleed + ID) | 1.02 |
-| Connectors J3 + J4 + J200 + J300 | ~1.60 |
-| Misc passives, test points | ~0.30 |
-| **BOM subtotal** | **~$14.00** |
-| PCB, **4-layer 100 x 80 mm at qty 5-10** | ~$3 |
-| JLC Extended-part handling, ~15 unique Extended parts amortised over 6 boards | **~$7.50** |
-| **Total, this board** | **~$24.50** |
+| Block | $ / board | vs rev A |
+|---|---|---|
+| Bank (4 x 680 uF radial + 4 x 10 uF 1210) | 6.18 | - |
+| Charge path (hot-swap controller + D2PAK + sense + passives) | 3.72 | - |
+| **Drive stages, x4** (pass FET + op-amp + shunt + SPDT + 2 x 2N7002 + passives, each) | **4.80** | +3.60 |
+| **Protection and sense** (2 x quad comparator + TMP112 + **I2C expander** + 5 NTC + 2 TVS + dividers + bleed + ID) | **1.61** | +0.59 |
+| Connectors J3 + J4 + J200 (VH-6) + J300 | ~1.65 | +0.05 |
+| Misc passives, test points | ~0.30 | - |
+| **BOM subtotal** | **~$18.24** | **+4.24** |
+| PCB, **4-layer 100 x 80 mm at qty 5-10** | ~$3 | - |
+| JLC Extended-part handling, ~16 unique Extended parts amortised over 6 boards | **~$8.00** | +0.50 |
+| **Total, this board** | **~$29.25** | **+$4.75** |
 
-Against open question 7's default of **$25/board at qty 6 excluding the LED module**, that lands
-essentially on target - but note that **the Extended-part setup fee is 30 % of it.** There is no JLC
-Basic part in the bank, the comparators, the op-amp, the hot-swap controller, any 100 V MOSFET or
-any board-to-board connector; only the 2N7002 and the 0805/0603 passives are Basic. That is not a
+Against open question 7's default of **$25/board at qty 6 excluding the LED module**, RGBW lands
+**~17 % over budget**. That is the costed consequence the owner accepted at H1. Note also that
+**the Extended-part setup fee is 27 % of the total.** There is no JLC Basic part in the bank, the
+comparators, the op-amps, the hot-swap controller, any 100 V MOSFET, the I2C expander or any
+board-to-board connector; only the 2N7002s and the 0805/0603 passives are Basic. That is not a
 selection error, it is the shape of the catalogue at 100 V.
 
-**Light engine, budgeted separately with the fixture:** emitters ~$30-45 + aluminium MCPCB ~$5 +
-heatsink ~$8-12 + diffuser ~$3 = **~$46-65 per fixture.** The LED remains the most expensive line.
+**Light engine, budgeted separately with the fixture:** now four colour strings, a larger MCPCB and
+a 6-conductor loom - see `light-engine-spec.md` s7 for the itemised estimate
+(**~$95-165 per fixture**, against ~$46-65 for the white-only baseline). The light engine remains
+by far the most expensive line and is now ~5x the cost of the board that drives it.
 
 ---
 
@@ -507,3 +828,33 @@ heatsink ~$8-12 + diffuser ~$3 = **~$46-65 per fixture.** The LED remains the mo
 | A bought white COB | The entire stocked white COB population is three SKUs totalling 17 pieces, all under 13.5 W |
 | On-board LED array | 15-25 C/W FR4-to-still-air for a patch that size means 120-200 C of rise at 6.6 W, and there is no area for it |
 | MOV-to-earth surge network | The PD is unearthed; copying one out of a reference design is a defect |
+| **[REV B]** Any 802.3at provision - heatsinked or paralleled pass element, `at`-sized copper, `at` connector derating | requirements s10.3: **BLOCKING-03 accepted, this board is af-ONLY.** No area, no cost. `at` numbers survive only as disclosure in `power_tree.md` s8 |
+| **[REV B]** Capping per-colour current to ~1.3 A to make four full-size pours fit | The premise was wrong - s6.1. Four pours at 350 mm2 fit, and capping would double the die count per colour for nothing |
+| **[REV B]** Quad I2C DAC (MCP4728) replacing the four amplitude RC filters | Puts *amplitude* on I2C, so a bus failure means no light at all rather than no arming; single-source (Microchip only); +$2.66. Kept as the documented fallback only if area forces it - it does save ~12 passives |
+| **[REV B]** Re-designating `DSPI_CSn` as a `BANK_ARM` GPIO | Zero parts and genuinely tempting, but it spends an ICD s3.3 amendment on a signal an already-required I2C device carries for free, and leaves per-colour fault attribution unsolved |
+| **[REV B]** Requesting LEDC timers 2/3 from the carrier owner | **Timers are not the scarce resource - J4 pins are.** It buys a third independent flash rate and does not create the `BANK_ARM` pin. Route 1 of s4.3 gives four independent rates for nothing |
+| **[REV B]** Per-colour current telemetry (4 peak-hold networks) | ~16 parts on an 81 %-occupied board to produce data a one-off P8 bench calibration gives better. The one thing it would catch that nothing else does - an open string - is caught in firmware by bank-droop self-test for free |
+| **[REV B]** Four per-colour thermistors on the MCPCB | Four more harness conductors for a shared thermal mass, producing no decision firmware can act on differently |
+| **[REV B]** LM339 / LM393 comparators | 0..+70 C parts. `power_tree.md` s10 puts internal air at up to 90 C. **Every active part on this board is now a +125 C part** |
+
+---
+
+## 9. Decisions for `decisions.md` - what the orchestrator must log  **[REV B]**
+
+| # | Decision | Status |
+|---|---|---|
+| D-STR-01 | **Stackup `JLC04161H-3313`, 4 layers**, In1 + In2 both solid GND, In2 deliberately NOT a `/VBANK` plane | **unchanged by RGBW.** Four drain pours do not overturn it - they strengthen driver 1 (48 V routing density) and driver 4 (the 4-layer thermal model). See `stackup.md` s1.1 |
+| D-STR-02 | **Four identical drive stages**, one per colour, full 2.6 A each, no per-colour current cap | new, s6.2 |
+| D-STR-03 | **Drain pour = 350 mm2 F.Cu + 350 mm2 B.Cu mirror + >= 12 vias, per power FET.** Copper past `a_eff` 645 mm2 scores nothing | new, s6.1 - **corrects rev A's 1000/645 mm2** |
+| D-STR-04 | **Gates on PWM0-3 (timer 0) as GPIO/RMT one-shots; amplitudes on PWM4-7 (timer 1) at the ICD default.** No timer ever carries both | new, s4.2/s4.3 |
+| D-STR-05 | **`BANK_ARM` moves to an I2C I/O expander**, active-low, fail-safe to disarmed | new, s4.4 - **the H2 finding** |
+| D-STR-06 | **Per-colour sense = fault-latch attribution only.** No per-colour current or temperature telemetry; open-string caught by bank-droop self-test | new, s4.5 |
+| D-STR-07 | **Protect goes from 2 dual to 2 quad comparators**, LM2901 class, +125 C grade mandatory board-wide | new, s2.4 |
+| D-STR-08 | **`/VBANK` declared at 10.4 A and routed as a pour**, not a trace | new, s6.2 |
+| D-STR-09 | **802.3at provisions deleted.** af-only, no area, no cost | requirements s10.3 |
+| D-STR-10 | **Light engine specified, not designed** - `light-engine-spec.md`, LE-01..LE-24 | requirements s10.4 |
+| D-STR-11 | **RJ45 notch is produced by `board_init.py --cutout 6,0,30,26`** - flag tested and committed (`18613d3`), verified end-to-end on this geometry. No hand edit, no outline shrink | requirements s10.5, `stackup.md` s4 |
+| D-STR-12 | **ICD s7.6 treated as provisional.** Design of record uses 56 C; the 85 C / 90 C sensitivity is derived and reported, not merged | requirements s10.6, `power_tree.md` s10 |
+| D-STR-13 | **[H1 follow-up] Enclosure CLOSED: sealed, non-metallic, unvented, LED heatsink bolted to/through the wall.** Shared with the par. **The board's thermal case now depends on the wall-conduction path**, which is specified with an apportioned Rth budget and a gating acceptance test | `light-engine-spec.md` LE-16, `power_tree.md` s10.7 |
+| D-STR-14 | **[H1 follow-up] Emitter selection rule: published thermal data beats optical convenience when a part is sole-source.** `Rth(j-sp)` and `Tj max` are preconditions, not preferences. RGB 3-in-1 + separate white is the credible starting topology | `light-engine-spec.md` LE-25, s3.2 |
+| D-STR-15 | **[H1 follow-up] The light engine is NOT bound to LCSC stock** - it is off-board, so Digi-Key/Mouser/RS are in scope and every part carries its distributor. The par's zero-stock findings on Cree XLamp colour lines do not bind this module | `light-engine-spec.md` s0.1 |

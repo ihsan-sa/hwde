@@ -625,3 +625,99 @@ Requirement IDs referenced and where they land in this document:
 | ICD-01 | 2, 5 (hard input, never redefined) |
 | DOC-01 | design document is a required deliverable at the end of this run |
 | GIT-01 | scoped commits only - never `gate.py --commit`, never `git add -A` |
+
+---
+
+# 10. H1 amendments - BINDING, supersede everything above
+
+**Authority:** project owner, H1 checkpoint verdict, 2026-07-28. Recorded in `state.json`
+(`human --checkpoint 1 --status approved`). These entries supersede the corresponding text
+earlier in this document and in `brief/02-strobe-daughter-brief.md`.
+
+## 10.1 D-04 CLOSED - RGBW, four colour channels
+
+Open question 1 is closed as **RGBW**. This is **against this run's recommendation** of
+white-only, and was chosen knowingly with the full costed delta in front of the owner
+(+$4-6 board BOM, +$40-80 LED module, all 8 PWM channels consumed against a baseline of 3,
+and **no additional light** - RGBW divides the same ~6.6 W of sustained output into colours
+rather than adding to it). **Not to be re-litigated.**
+
+Consequences this run now owns:
+- Four drive stages, not one. Per-colour sense moves to I2C - the 2-ADC budget does not
+  stretch to four colours.
+- **Per-colour output is roughly a quarter of the white figure.** The 10,000 lm headline
+  from the white-only baseline must not be carried forward; light numbers are re-derived
+  per channel in `architecture/power_tree.md`.
+- All 8 PWM channels are consumed across 4 LEDC timers (CAR-REQ-11). The flash gate is a
+  5-200 ms one-shot, **not** a 9.766 kHz duty setting, and the white-only baseline could
+  only treat that as free because it owned LEDC timer 0 exclusively. **That assumption no
+  longer holds and the timer allocation is re-checked and reported at H2.**
+
+## 10.2 STR-REQ-01 AMENDED - dual-mode flash
+
+> **Original text (superseded):** "STR-REQ-01 | Full-output flash, 100-200 ms, with
+> **instant** blackout either side. No visible decay tail, no fade-in ramp. | P1 rage trap:
+> the visual gap between maximum and zero is the entire effect."
+
+**Why it was amended, not met:** 0.99 J of usable bank energy over 150 ms is ~15 W of drive,
+not the ~99 W the brief's "100 W strobe" implies. Reaching ~99 W for 150 ms needs 13.8 J,
+i.e. **32,500-65,000 uF**. Measured against this board: 12,000 uF alone is 5,104 mm2
+(**64 % of a 100 x 80 mm board**) and 37 mm tall, and even that holds full output for only
+36.9 ms. This is a consequence of the closed 8.5 W (af) budget and D-02's closed bank
+sizing - **physics, not a tooling limit or an oversight.**
+
+**STR-REQ-01 (amended): the fixture provides two flash modes.**
+
+| Mode | Duration | LED drive power | String current | Notes |
+|---|---|---|---|---|
+| **Headline / blast** | **8.68 ms** | **98.8 W** (white-only figure; ~1/4 per colour) | 2.6 A | 0.858 J to the LED, 0.990 J from the bank. This is "full output" |
+| **Long, mode 1** | 50 ms | 28.1 W | 0.74 A | bank + rail during the flash |
+| **Long, mode 2** | 100 ms | 18.2 W | 0.48 A | |
+| **Long, mode 3** | 150 ms | 14.9 W | 0.39 A | |
+| **Long, mode 4** | 200 ms | 13.3 W | 0.35 A | max ~2.9 Hz repetition at 58 % duty |
+
+**Unchanged and still binding:** instant blackout either side, no visible decay tail, no
+fade-in ramp, and STR-REQ-11's <1 ms optical rise/fall. The amendment changes only the
+*amplitude available at long durations*, never the edge quality.
+
+## 10.3 802.3at - this board is af-ONLY
+
+**BLOCKING-03 accepted.** LUM-DTR-STROBE-A is designed, built and documented for
+**802.3af only**. **No board area and no cost is spent preserving an at path.**
+
+An at build puts 4.67 W across two linear pass elements in sealed-box air; the best case is
+1.91 W per D2PAK against a 1.40 W allowance - **it fails by 1.5x**. Capping the governor to
+keep it inside thermals yields ~12.1 W of the 18.5 W available = **+45 % light, not the
++120 % D-01 implies**. A real at build for this daughter needs an off-board or heatsinked
+pass element, i.e. a respin.
+
+**D-01's hedge ("resistor change plus a PoE+ switch, no board respin") continues to hold for
+the carrier and for the par. It does not hold for this daughter.** This is a disclosure to
+the carrier owner, not an ICD change request - nothing this board needs from the carrier
+moves.
+
+## 10.4 Light engine - SPECIFY, do not design
+
+The RGBW LED module is **not designed by this run**. This run produces a specification
+complete enough that someone else can build the MCPCB: emitter selection, string topology,
+thermal path, and the board-to-module connector, written as explicit numbered acceptance
+criteria (`LE-xx`) in `architecture/light-engine-spec.md`. **That spec now covers four
+colour channels, not one.**
+
+## 10.5 BLOCKING-01 (RJ45 notch) - owned by the coordinator, not this run
+
+`board_init.py` is gaining a `--cutout` flag centrally, because both daughters need the
+30 x 26 mm notch. **This run must NOT implement a workaround, must NOT shrink the outline,
+and must NOT hand-edit Edge.Cuts.** The notch region (6,0)-(36,26) stays a hard keepout in
+`architecture/constraints.json` regardless, so the board is electrically correct either way.
+The flag is assumed present by P5 and will be confirmed before this run reaches it.
+
+## 10.6 CARRY - ICD s7.6 internal-air figures are PROVISIONAL
+
+The par run raised a blocking issue against ICD s7.6: the internal-air figures are not
+self-consistent (69 C at cannot coexist with 56 C af), and an independent calculation gives
+**89-115 C**, i.e. the ICD is optimistic by **20-46 K**.
+
+**This board's entire thermal case is built on 56 C (af) internal air.** Treat s7.6 as
+provisional until the carrier re-issues it. **How every margin moves at 85-90 C air rather
+than 69 C must be derived and reported at H2.**

@@ -1,17 +1,26 @@
 {
-  "_comment": "P2 MERGED constraints for lumina-strobe (LUM-DTR-STROBE-A), from research/power.json + drive-stage.json + energy-store.json + protection-sense.json + led-emitter.json + refdesign-pulsed-led-driver.json, reconciled with architecture/sheets.md. CANONICAL net names per sheets.md s1: power symbols are global and BARE (GND, +48V_SW, +12V, +3V3); root-crossed signals are /NAME; sheet-internal signals are /<sheet>/NAME. FOUR MERGE DECISIONS. (1) research/power.json's /LED_A is DELETED, not renamed: nothing sits between the bank positive terminal and harness pin 1, so it was an alias of /VBANK, and a declared voltage net that is absent from the netlist makes check_creepage hard-error. (2) /drive/ISNS carries the 2.6 A declaration but is deliberately ABSENT from voltages: it is a 0-0.52 V node, so check_creepage treats it as 0 V and demands the full 48 V clearance from /drive/LED_K across the pass FET, which is correct. (3) power[] currents are reconciled to the FINAL operating point of power_tree.md, not to research/power.json: +48V_SW is 1.0 A (the carrier eFuse fault ceiling on the stub UPSTREAM of the daughter's own 0.20 A limiter), not 0.6 A. (4) thermal[] powers come from the 38.0 V string and the 44.5 V bank ceiling, and dt_c is 69 = Tj_design 125 C minus the 56 C af internal air of ICD s7.6 - NOT the corpus default of 40. TWO MANDATORY P5 STEPS, both with exact recipes in architecture/stackup.md s7. (a) placement.keepouts BELOW ARE IN THE ICD FRAME (board top-left = origin). board_init does NOT place the outline at (0,0) - the origin comes from the packed component bbox - so after board_init, read reports/board_init.json.outline_bbox = [ex1,ey1,ex2,ey2] and ADD (ex1,ey1) to every rect. They are declared rather than omitted because an absent keepout lets a part land in the RJ45 notch or the antenna column. (b) planes ship WITHOUT regions and MUST be given the three-rectangle-per-layer regions of stackup.md s7 so the antenna column (88,25)-(100,55) carries NO plane copper on either inner layer; a full-board pour there detunes the carrier's ESP32-S3 antenna 11 mm below. ONE P5/P7 TRAP carried from the carrier: rules_gen never reads the voltages key, so nothing makes the P7 router honour the ICD rev A2 0.635 mm 48 V clearance - add the hand-written .kicad_dru rule of stackup.md s2.1, keyed on A.NetName (A.Net silently matches nothing). check_creepage demands only 0.60 mm, so a 0.635 mm layout passes P8 by construction but is NOT enforced by it. GND is deliberately NOT a power entry: it is a plane, and declaring it would make check_current demand IPC width on every GND stub; the requirement is structural instead (solid In1 + In2 GND, 12 connector pins for the return).",
+  "_comment": "REV B - H1 REVISION 2026-07-28. P2 MERGED constraints for lumina-strobe (LUM-DTR-STROBE-A), from research/power.json + drive-stage.json + energy-store.json + protection-sense.json + led-emitter.json + refdesign-pulsed-led-driver.json, reconciled with architecture/sheets.md rev B. D-04 CLOSED AS RGBW (requirements s10.1) and the board is 802.3af-ONLY (s10.3). CANONICAL net names per sheets.md s1: power symbols are global and BARE (GND, +48V_SW, +12V, +3V3); root-crossed signals are /NAME; sheet-internal signals are /<sheet>/NAME, and there are now FOUR drive sheets (drive_w, drive_r, drive_g, drive_b) so the single /drive/LED_K of rev A becomes four colour-qualified nets. SIX MERGE DECISIONS. (1) research/power.json's /LED_A is DELETED, not renamed: nothing sits between the bank positive terminal and harness pin 1, so it was an alias of /VBANK, and a declared voltage net that is absent from the netlist makes check_creepage hard-error. (2) the four /drive_*/ISNS nets carry the 2.6 A declaration but are deliberately ABSENT from voltages: each is a 0-0.52 V node, so check_creepage treats it as 0 V and demands the full 48 V clearance from its matching LED_K across the pass FET, which is correct. (3) power[] currents are reconciled to the FINAL operating point of power_tree.md, not to research/power.json: +48V_SW is 1.0 A (the carrier eFuse fault ceiling on the stub UPSTREAM of the daughter's own 0.20 A limiter), not 0.6 A. (4) REV B: /VBANK is 10.4 A, not 2.6 A - four colours at 2.6 A can fire together. IPC width for that on 1 oz external is ~7.6 mm, so /VBANK MUST BE POURED from the bank terminals to J200 and must never be left to the router as a trace; see power_tree.md s11. (5) REV B: thermal[] powers are 0.81 W per pass FET and 0.82 W for the charge FET - the SUSTAINED 25 Hz case at the 44.5 V normal ceiling with one colour alone, which is the binding operating case. The armed 48 V case is 1.41 W and does NOT pass the gate at any copper area; it is a momentary blast mode bounded by firmware and by a 60-120 s thermal time constant, NOT an operating mode, and declaring it here would fail P8 on a condition the board is not designed to sustain. This choice is stated openly in power_tree.md s5.1. (6) REV B: min_vias 12 on every power FET is load-bearing, not decorative - check_thermal clamps a_eff at 645 mm2 summed over ALL layers within a 14.3 mm disc, so theta_JA cannot go below 51.1 C/W, and reaching even that needs >= 350 mm2 on F.Cu PLUS >= 350 mm2 mirrored on B.Cu tied by those vias. Rev A's 900-1200 mm2 F.Cu pour figures were derived from the uncapped curve and score nothing extra; see blocks.md s6.1. dt_c is 69 = Tj_design 125 C minus the 56 C af internal air of ICD s7.6 - NOT the corpus default of 40. ICD s7.6 IS PROVISIONAL: the par run calculates 89-115 C independently (requirements s10.6), at which two of these five thermal rows fail on average power; the mitigation is a governor cap of P_rail <= 7.9 W at 85 C air / <= 6.9 W at 90 C air, costing 4-16 % of the light and zero parts. That sensitivity is derived in power_tree.md s10 and reported at H2; it is deliberately NOT merged into the dt_c here, because s7.6 is still the ICD of record and this run does not get to re-issue it. TWO MANDATORY P5 STEPS, both with exact recipes in architecture/stackup.md s7. (a) placement.keepouts BELOW ARE IN THE ICD FRAME (board top-left = origin). board_init does NOT place the outline at (0,0) - the origin comes from the packed component bbox - so after board_init, read reports/board_init.json.outline_bbox = [ex1,ey1,ex2,ey2] and ADD (ex1,ey1) to every rect. They are declared rather than omitted because an absent keepout lets a part land in the RJ45 notch or the antenna column. NOTE that --cutout does NOT need this rebasing: it is outline-relative. (b) planes ship WITHOUT regions and MUST be given the three-rectangle-per-layer regions of stackup.md s7 so the antenna column (88,25)-(100,55) carries NO plane copper on either inner layer; a full-board pour there detunes the carrier's ESP32-S3 antenna 11 mm below. THE RJ45 NOTCH IS NO LONGER A GAP: board_init.py --cutout 6,0,30,26 exists and is verified present in the script (requirements s10.5); the keepout below is retained anyway so the board is electrically correct either way. ONE P5/P7 TRAP carried from the carrier: rules_gen never reads the voltages key, so nothing makes the P7 router honour the ICD rev A2 0.635 mm 48 V clearance - add the hand-written .kicad_dru rule of stackup.md s2.1, keyed on A.NetName (A.Net silently matches nothing), and note it must now cover FOUR drain nets which also need 0.635 mm FROM EACH OTHER. check_creepage demands only 0.60 mm, so a 0.635 mm layout passes P8 by construction but is NOT enforced by it. GND is deliberately NOT a power entry: it is a plane, and declaring it would make check_current demand IPC width on every GND stub; the requirement is structural instead (solid In1 + In2 GND, 12 connector pins for the return).",
 
   "high_speed": [
     {"net": "/VBANK", "reference": "GND", "k": 3, "t_rise_ns": 100},
-    {"net": "/drive/LED_K", "reference": "GND", "k": 3, "t_rise_ns": 100}
+    {"net": "/drive_w/LED_K", "reference": "GND", "k": 3, "t_rise_ns": 100},
+    {"net": "/drive_r/LED_K", "reference": "GND", "k": 3, "t_rise_ns": 100},
+    {"net": "/drive_g/LED_K", "reference": "GND", "k": 3, "t_rise_ns": 100},
+    {"net": "/drive_b/LED_K", "reference": "GND", "k": 3, "t_rise_ns": 100}
   ],
 
   "power": [
     {"net": "+48V_SW", "current_a": 1.0, "dt_c": 10, "via_amps": 0.5},
-    {"net": "/VBANK", "current_a": 2.6, "dt_c": 10, "via_amps": 0.5, "pdn": false},
-    {"net": "/drive/LED_K", "current_a": 2.6, "dt_c": 10, "via_amps": 0.5, "pdn": false},
-    {"net": "/drive/ISNS", "current_a": 2.6, "dt_c": 10, "via_amps": 0.5, "pdn": false},
-    {"net": "+12V", "current_a": 0.010, "dt_c": 10},
+    {"net": "/VBANK", "current_a": 10.4, "dt_c": 10, "via_amps": 0.5, "pdn": false},
+    {"net": "/drive_w/LED_K", "current_a": 2.6, "dt_c": 10, "via_amps": 0.5, "pdn": false},
+    {"net": "/drive_r/LED_K", "current_a": 2.6, "dt_c": 10, "via_amps": 0.5, "pdn": false},
+    {"net": "/drive_g/LED_K", "current_a": 2.6, "dt_c": 10, "via_amps": 0.5, "pdn": false},
+    {"net": "/drive_b/LED_K", "current_a": 2.6, "dt_c": 10, "via_amps": 0.5, "pdn": false},
+    {"net": "/drive_w/ISNS", "current_a": 2.6, "dt_c": 10, "via_amps": 0.5, "pdn": false},
+    {"net": "/drive_r/ISNS", "current_a": 2.6, "dt_c": 10, "via_amps": 0.5, "pdn": false},
+    {"net": "/drive_g/ISNS", "current_a": 2.6, "dt_c": 10, "via_amps": 0.5, "pdn": false},
+    {"net": "/drive_b/ISNS", "current_a": 2.6, "dt_c": 10, "via_amps": 0.5, "pdn": false},
+    {"net": "+12V", "current_a": 0.015, "dt_c": 10},
     {"net": "+3V3", "current_a": 0.005, "dt_c": 10}
   ],
 
@@ -20,7 +29,10 @@
   "voltages": [
     {"net": "+48V_SW", "voltage": 57},
     {"net": "/VBANK", "voltage": 57},
-    {"net": "/drive/LED_K", "voltage": 57},
+    {"net": "/drive_w/LED_K", "voltage": 57},
+    {"net": "/drive_r/LED_K", "voltage": 57},
+    {"net": "/drive_g/LED_K", "voltage": 57},
+    {"net": "/drive_b/LED_K", "voltage": 57},
     {"net": "/charge/CHG_GATE", "voltage": 64},
     {"net": "+12V", "voltage": 12},
     {"net": "+3V3", "voltage": 3.3},
@@ -28,8 +40,11 @@
   ],
 
   "thermal": [
-    {"ref": "Q200", "power_w": 1.45, "net": "/drive/LED_K", "dt_c": 69, "min_vias": 12},
-    {"ref": "Q100", "power_w": 1.00, "net": "+48V_SW", "dt_c": 69, "min_vias": 12}
+    {"ref": "Q200", "power_w": 0.81, "net": "/drive_w/LED_K", "dt_c": 69, "min_vias": 12},
+    {"ref": "Q250", "power_w": 0.81, "net": "/drive_r/LED_K", "dt_c": 69, "min_vias": 12},
+    {"ref": "Q300", "power_w": 0.81, "net": "/drive_g/LED_K", "dt_c": 69, "min_vias": 12},
+    {"ref": "Q350", "power_w": 0.81, "net": "/drive_b/LED_K", "dt_c": 69, "min_vias": 12},
+    {"ref": "Q100", "power_w": 0.82, "net": "+48V_SW", "dt_c": 69, "min_vias": 12}
   ],
 
   "placement": {
@@ -38,11 +53,11 @@
       {"ref": "H5", "edge": "bottom", "pos": 0.46},
       {"ref": "J4", "edge": "bottom", "pos": 0.72},
       {"ref": "J200", "edge": "top", "pos": 0.55},
-      {"ref": "J300", "edge": "top", "pos": 0.66}
+      {"ref": "J300", "edge": "top", "pos": 0.70}
     ],
     "keepouts": [
-      {"rect": [6, 0, 36, 26], "side": "front", "reason": "RJ45 notch - board material removed; no parts or copper on any layer"},
-      {"rect": [6, 0, 36, 26], "side": "back", "reason": "RJ45 notch - board material removed; no parts or copper on any layer"},
+      {"rect": [6, 0, 36, 26], "side": "front", "reason": "RJ45 notch - board material removed by board_init --cutout 6,0,30,26; no parts or copper on any layer"},
+      {"rect": [6, 0, 36, 26], "side": "back", "reason": "RJ45 notch - board material removed by board_init --cutout 6,0,30,26; no parts or copper on any layer"},
       {"rect": [2, 46, 36, 68], "side": "front", "reason": "DC-DC hot zone - carrier 48-to-12 converter 1.25 W directly below; no LED drivers, no aluminium electrolytics"},
       {"rect": [88, 25, 100, 55], "side": "front", "reason": "antenna column - no copper on ANY layer, no metal component; carrier ESP32-S3 PCB antenna 11 mm below"},
       {"rect": [88, 25, 100, 55], "side": "back", "reason": "antenna column - no copper on ANY layer, no metal component"},
@@ -53,25 +68,42 @@
       {"name": "bank", "anchor": "C120",
        "members": ["C121", "C122", "C123", "C124", "C125", "C110", "C111", "C112", "C113"]},
       {"name": "hotswap", "anchor": "U100",
-       "members": ["Q100", "R100", "R101", "R102", "R103", "R104", "C100", "C101", "C102", "D100"]},
+       "members": ["Q100", "R100", "R101", "R102", "R103", "R104", "C100", "C101", "C102", "D100", "RT404"]},
       {"name": "bleed", "anchor": "R111",
        "members": ["R112", "Q110", "Q111", "R113", "D110", "R110"]},
       {"name": "banksense", "anchor": "R120", "members": ["R121", "R122"]},
-      {"name": "driveloop", "anchor": "Q200",
-       "members": ["R200", "U200", "R203", "R204", "D200", "J200", "RT300"]},
-      {"name": "setpoint", "anchor": "U210", "members": ["R201", "R202", "C200"]},
-      {"name": "enable_clamp", "anchor": "Q210", "members": ["Q211"]},
-      {"name": "vdssense", "anchor": "R210", "members": ["R211", "R212"]},
-      {"name": "overtemp", "anchor": "U300",
-       "members": ["R300", "R301", "R302", "R303", "R330", "R331", "J300"]},
-      {"name": "faultlatch", "anchor": "U301",
-       "members": ["R310", "R311", "R312", "C300", "Q300", "R320", "R321", "R322", "R323"]}
+      {"name": "drive_w", "anchor": "Q200",
+       "members": ["Q201", "Q202", "R200", "R201", "R202", "R203", "R204", "R205", "R206", "R207",
+                   "U200", "U201", "C200", "C201", "D200", "RT400"]},
+      {"name": "drive_r", "anchor": "Q250",
+       "members": ["Q251", "Q252", "R250", "R251", "R252", "R253", "R254", "R255", "R256", "R257",
+                   "U250", "U251", "C250", "C251", "D250", "RT401"]},
+      {"name": "drive_g", "anchor": "Q300",
+       "members": ["Q301", "Q302", "R300", "R301", "R302", "R303", "R304", "R305", "R306", "R307",
+                   "U300", "U301", "C300", "C301", "D300", "RT402"]},
+      {"name": "drive_b", "anchor": "Q350",
+       "members": ["Q351", "Q352", "R350", "R351", "R352", "R353", "R354", "R355", "R356", "R357",
+                   "U350", "U351", "C350", "C351", "D350", "RT403"]},
+      {"name": "overtemp", "anchor": "U400",
+       "members": ["R400", "R401", "R402", "R403", "R404", "R405", "R406", "R407", "R408", "R409",
+                   "R440", "R441", "J300", "C410"]},
+      {"name": "faultlatch", "anchor": "U401",
+       "members": ["R410", "R411", "R412", "R413", "R414", "R415", "R416", "R417", "R418", "R419",
+                   "R420", "R421", "R422", "R423", "R424", "R425",
+                   "C400", "C401", "C402", "C403",
+                   "Q400", "Q401", "Q402", "Q403", "C411"]},
+      {"name": "bankctl", "anchor": "R430",
+       "members": ["R431", "R432", "R433", "R434", "R435", "Q410"]},
+      {"name": "i2c", "anchor": "U410", "members": ["U420", "C412", "C413"]}
     ],
     "separation": [
-      {"a": ["C120", "C121", "C122", "C123", "C124", "C125"], "b": ["Q200", "Q100"], "min_mm": 12},
+      {"a": ["C120", "C121", "C122", "C123", "C124", "C125"], "b": ["Q200", "Q250", "Q300", "Q350", "Q100"], "min_mm": 12},
       {"a": ["C120", "C121", "C122", "C123", "C124", "C125"], "b": ["R111", "R112"], "min_mm": 10},
-      {"a": ["U200", "U300", "U301", "U210"], "b": ["Q100"], "min_mm": 10},
-      {"a": ["Q200"], "b": ["Q100"], "min_mm": 15}
+      {"a": ["U200", "U250", "U300", "U350", "U400", "U401", "U201", "U251", "U301", "U351"], "b": ["Q100"], "min_mm": 10},
+      {"a": ["Q200"], "b": ["Q100", "Q250", "Q300", "Q350"], "min_mm": 16},
+      {"a": ["Q250"], "b": ["Q100", "Q300", "Q350"], "min_mm": 16},
+      {"a": ["Q300"], "b": ["Q100", "Q350"], "min_mm": 16},
+      {"a": ["Q350"], "b": ["Q100"], "min_mm": 16}
     ]
   },
 

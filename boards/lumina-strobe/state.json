@@ -3,17 +3,25 @@
  "board": "lumina-strobe",
  "workspace": "boards/lumina-strobe",
  "created": "2026-07-28T14:59:51",
- "updated": "2026-07-28T19:39:41",
- "phase": "P2",
+ "updated": "2026-07-28T20:58:04",
+ "phase": "P3",
  "gates": {},
- "human": {},
+ "human": {
+  "1": {
+   "status": "approved",
+   "ts": "2026-07-28T19:53:15",
+   "note": "D-04 = RGBW (against the run recommendation, chosen knowingly). STR-REQ-01 amended to dual-mode. Strobe accepted as 802.3af-only. Light engine to be SPECIFIED not designed, now 4 channels. BLOCKING-01 owned by the coordinator: board_init --cutout flag being added centrally."
+  }
+ },
  "artifacts": {
   "requirements": "requirements.md",
   "architecture_blocks": "architecture/blocks.md",
   "architecture_power_tree": "architecture/power_tree.md",
   "architecture_stackup": "architecture/stackup.md",
   "architecture_sheets": "architecture/sheets.md",
-  "constraints": "architecture/constraints.json"
+  "constraints": "architecture/constraints.json",
+  "light_engine_spec": "architecture/light-engine-spec.md",
+  "parts": "parts/parts.json"
  },
  "open_issues": [],
  "next_issue_id": 1,
@@ -88,6 +96,84 @@
    "why": "4.67 W across two linear FETs in 69 C air; best case 1.91 W per D2PAK against a 1.40 W allowance = fails 1.5x. The at governor cap is ~12.1 W of 18.5 W = +45 pct light, not the +120 pct D-01 implies. A real at build needs an off-board or heatsinked pass element, i.e. a respin. D-01's 'resistor change, no respin' promise does not hold for LUM-DTR-STROBE-A.",
    "phase": "P2",
    "ts": "2026-07-28T19:39:41"
+  },
+  {
+   "what": "D-04 CLOSED: RGBW, 4 colour channels",
+   "why": "Project owner verdict at H1, knowingly against this run's white-only recommendation. Full costed delta (+$4-6 board BOM, +$40-80 LED module, all 8 PWM channels, no added light) was presented. Not to be re-litigated.",
+   "phase": "P2",
+   "ts": "2026-07-28T19:52:58"
+  },
+  {
+   "what": "STR-REQ-01 AMENDED to dual-mode: headline 0.858 J / 98.8 W / 8.68 ms, plus a separate long mode (50 ms @ 28.1 W, 100 ms @ 18.2 W, 150 ms @ 14.9 W)",
+   "why": "H1 verdict. The original 100-200 ms at full output needs 32,500-65,000 uF (BLOCKING-02) and is unreachable at any bank size that fits. Amended by decision and written into requirements.md with the original text quoted.",
+   "phase": "P2",
+   "ts": "2026-07-28T19:52:58"
+  },
+  {
+   "what": "LUM-DTR-STROBE-A is 802.3af-ONLY. No board area or cost spent preserving an at path.",
+   "why": "H1 verdict on BLOCKING-03. An at build fails the linear pass FETs by 1.5x in sealed-box air and buys only +45 pct light, not the +120 pct D-01 implies. The D-01 hedge still holds for the carrier and the par; this daughter is documented af-only.",
+   "phase": "P2",
+   "ts": "2026-07-28T19:52:58"
+  },
+  {
+   "what": "D-04 CLOSED: RGBW, 4 colour channels",
+   "why": "Project owner verdict at H1, knowingly against this run's white-only recommendation. Full costed delta was presented. Not to be re-litigated.",
+   "phase": "P2",
+   "ts": "2026-07-28T19:53:15"
+  },
+  {
+   "what": "STR-REQ-01 AMENDED to dual-mode: headline 0.858 J / 98.8 W / 8.68 ms plus a long mode (50 ms @ 28.1 W, 100 ms @ 18.2 W, 150 ms @ 14.9 W)",
+   "why": "H1 verdict. The original 100-200 ms at full output needs 32500-65000 uF (BLOCKING-02) and is unreachable at any bank size that fits. Written into requirements.md with the original text quoted.",
+   "phase": "P2",
+   "ts": "2026-07-28T19:53:15"
+  },
+  {
+   "what": "LUM-DTR-STROBE-A is 802.3af-ONLY. No board area or cost spent preserving an at path.",
+   "why": "H1 verdict on BLOCKING-03. An at build fails the linear pass FETs by 1.5x in sealed-box air and buys only +45 pct light. The D-01 hedge still holds for the carrier and the par.",
+   "phase": "P2",
+   "ts": "2026-07-28T19:53:15"
+  },
+  {
+   "what": "CARRY: ICD s7.6 internal-air figures treated as PROVISIONAL (par run raised a blocking issue; 69 C at cannot coexist with 56 C af, independent calc gives 89-115 C)",
+   "why": "This board's entire thermal case is built on 56 C (af) air. If real internal air is 85-90 C the pass-FET allowance collapses. Must be re-derived and reported at H2.",
+   "phase": "P2",
+   "ts": "2026-07-28T19:53:15"
+  },
+  {
+   "what": "BLOCKING-01 RESOLVED centrally: board_init.py --cutout X,Y,W,H exists, tested, committed 18613d3. P5 invocation: --outline 100x80 --corner-radius 3 --mounting-holes 4 --cutout 6,0,30,26",
+   "why": "Coordinator added the flag; both daughters need the notch. Cutout coords are relative to the outline top-left. Notch must touch an edge (ours does, y=0) and must not overlap a corner radius (x=6 clears r=3). Interior windows are refused (exit 2) because geom._parse_outline returns on the first gr_rect and would silently treat a window as the board outline.",
+   "phase": "P2",
+   "ts": "2026-07-28T20:29:23"
+  },
+  {
+   "what": "P5 TRAP: read outline_origin from the board_init report, do not assume (0,0)",
+   "why": "In fixed-outline mode the origin derives from the packed component bbox, so constraints.json keepout rects need translating into board space. Also verify corner_radius, cutouts and worker_notes, and confirm geom reads a non-empty outline of the expected area - a silent geometry failure reached P9 on the interior-window path.",
+   "phase": "P2",
+   "ts": "2026-07-28T20:29:23"
+  },
+  {
+   "what": "Enclosure CLOSED: sealed non-metallic, LED heatsink bolted to/through the enclosure wall. Not vented.",
+   "why": "Project owner; matches this run's Q6 recommendation and the par run's independent conclusion. Par measured 3.6-4.3 K/W internal-air-to-room, closing only because LED heat leaves through the wall rather than into the box. Both fixtures share one enclosure design; the wall-conduction path becomes an explicit LE acceptance criterion because this board's thermal case depends on it.",
+   "phase": "P2",
+   "ts": "2026-07-28T20:29:23"
+  },
+  {
+   "what": "RGBW emitter selection rule: published thermal data beats optical convenience; zero pulsed headroom carried through to colour",
+   "why": "Par run swept 318 RGBW emitter parts: every Cree XLamp colour line is zero stock, and the one in-stock RGBW 4-in-1 above 50 mA publishes neither Rth nor Tj max - the owner rejected it in favour of RGB 3-in-1 plus a separate white emitter. This board's light engine is OFF-BOARD and specified, so it is NOT bound to LCSC stock; distributor sourcing must be stated explicitly.",
+   "phase": "P2",
+   "ts": "2026-07-28T20:29:24"
+  },
+  {
+   "what": "ICD s7.6 explained, not disputed: 56 C is the 'LED heat stays in the box' case",
+   "why": "Applying the par's measured 3.6-4.3 K/W box figure to this fixture's two heat sources reproduces both disputed ICD numbers from one binary. Wall path works -> 1.894 W into the box -> 32-33 C at a 25 C room. Wall path fails -> 8.5 W -> 56-62 C, i.e. the ICD af figure to the degree. Design of record stays 56 C and the wall-conduction path is now a load-bearing dependency OF THIS BOARD, with worst-package margin 1.9-2.2x.",
+   "phase": "P2",
+   "ts": "2026-07-28T20:58:04"
+  },
+  {
+   "what": "BLOCKING-04 (P3-OPEN-1): the hot-swap charge controller's fault TIMER cannot survive the 87 pct-duty current-limit regime on EITHER candidate",
+   "why": "Datasheet-verified at P3: TPS2490 TIMER charges 25 uA / sinks 2.5 uA (10:1); LM5069 charges 85 uA / sinks 2.5 uA (34:1). At 87 pct duty in regulation the timer integrates positive to its 4 V threshold regardless of C_TIMER -> LM5069-2 auto-restarts at 0.5 pct duty (bank stops charging), LM5069-1/TPS2490 latch off. No controller in the class omits the timer. Needs an architecture answer, not a part swap.",
+   "phase": "P3",
+   "ts": "2026-07-28T20:58:04"
   }
  ],
  "history": [
@@ -220,6 +306,120 @@
   {
    "ts": "2026-07-28T19:39:41",
    "event": "p2_architecture_complete"
+  },
+  {
+   "ts": "2026-07-28T19:41:07",
+   "event": "human_checkpoint_pending",
+   "checkpoint": 1,
+   "phase": "P2",
+   "note": "H1 digest + P0 open-questions batch returned to the coordinating orchestrator; no verdict yet"
+  },
+  {
+   "ts": "2026-07-28T19:52:58",
+   "event": "human",
+   "checkpoint": "1",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-07-28T19:52:58",
+   "event": "decision",
+   "what": "D-04 CLOSED: RGBW, 4 colour channels"
+  },
+  {
+   "ts": "2026-07-28T19:52:58",
+   "event": "decision",
+   "what": "STR-REQ-01 AMENDED to dual-mode: headline 0.858 J / 98.8 W / 8.68 ms, plus a separate long mode (50 ms @ 28.1 W, 100 ms @ 18.2 W, 150 ms @ 14.9 W)"
+  },
+  {
+   "ts": "2026-07-28T19:52:58",
+   "event": "decision",
+   "what": "LUM-DTR-STROBE-A is 802.3af-ONLY. No board area or cost spent preserving an at path."
+  },
+  {
+   "ts": "2026-07-28T19:53:15",
+   "event": "human",
+   "checkpoint": "1",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-07-28T19:53:15",
+   "event": "decision",
+   "what": "D-04 CLOSED: RGBW, 4 colour channels"
+  },
+  {
+   "ts": "2026-07-28T19:53:15",
+   "event": "decision",
+   "what": "STR-REQ-01 AMENDED to dual-mode: headline 0.858 J / 98.8 W / 8.68 ms plus a long mode (50 ms @ 28.1 W, 100 ms @ 18.2 W, 150 ms @ 14.9 W)"
+  },
+  {
+   "ts": "2026-07-28T19:53:15",
+   "event": "decision",
+   "what": "LUM-DTR-STROBE-A is 802.3af-ONLY. No board area or cost spent preserving an at path."
+  },
+  {
+   "ts": "2026-07-28T19:53:15",
+   "event": "decision",
+   "what": "CARRY: ICD s7.6 internal-air figures treated as PROVISIONAL (par run raised a blocking issue; 69 C at cannot coexist with 56 C af, independent calc gives 89-115 C)"
+  },
+  {
+   "ts": "2026-07-28T19:53:15",
+   "event": "h1_approved_rgbw"
+  },
+  {
+   "ts": "2026-07-28T20:29:23",
+   "event": "decision",
+   "what": "BLOCKING-01 RESOLVED centrally: board_init.py --cutout X,Y,W,H exists, tested, committed 18613d3. P5 invocation: --outline 100x80 --corner-radius 3 --mounting-holes 4 --cutout 6,0,30,26"
+  },
+  {
+   "ts": "2026-07-28T20:29:23",
+   "event": "decision",
+   "what": "P5 TRAP: read outline_origin from the board_init report, do not assume (0,0)"
+  },
+  {
+   "ts": "2026-07-28T20:29:23",
+   "event": "decision",
+   "what": "Enclosure CLOSED: sealed non-metallic, LED heatsink bolted to/through the enclosure wall. Not vented."
+  },
+  {
+   "ts": "2026-07-28T20:29:24",
+   "event": "decision",
+   "what": "RGBW emitter selection rule: published thermal data beats optical convenience; zero pulsed headroom carried through to colour"
+  },
+  {
+   "ts": "2026-07-28T20:29:24",
+   "event": "coordinator_confirmations_folded"
+  },
+  {
+   "ts": "2026-07-28T20:58:04",
+   "event": "phase",
+   "phase": "P3",
+   "prev": "P2"
+  },
+  {
+   "ts": "2026-07-28T20:58:04",
+   "event": "artifact",
+   "name": "light_engine_spec",
+   "path": "architecture/light-engine-spec.md"
+  },
+  {
+   "ts": "2026-07-28T20:58:04",
+   "event": "artifact",
+   "name": "parts",
+   "path": "parts/parts.json"
+  },
+  {
+   "ts": "2026-07-28T20:58:04",
+   "event": "decision",
+   "what": "ICD s7.6 explained, not disputed: 56 C is the 'LED heat stays in the box' case"
+  },
+  {
+   "ts": "2026-07-28T20:58:04",
+   "event": "decision",
+   "what": "BLOCKING-04 (P3-OPEN-1): the hot-swap charge controller's fault TIMER cannot survive the 87 pct-duty current-limit regime on EITHER candidate"
+  },
+  {
+   "ts": "2026-07-28T20:58:04",
+   "event": "p3_parts_sourced"
   }
  ]
 }

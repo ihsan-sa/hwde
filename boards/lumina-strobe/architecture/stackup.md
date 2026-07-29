@@ -3,6 +3,12 @@
 P2 architect, 2026-07-28. The stackup name below is the only source; it comes from
 `.claude/skills/ai-ee/reference/stackups.yaml` and is passed to `board_init.py --stackup`.
 
+> **REV B - H1 REVISION, 2026-07-28.** **The stackup conclusion is UNCHANGED**: 4 layers,
+> `JLC04161H-3313`, In1 + In2 both solid GND. RGBW's four drain pours do not overturn it - they
+> strengthen drivers 1 and 4 in s1.1. Two sections changed: **s4, which no longer describes a
+> manual Edge.Cuts edit** because `board_init.py --cutout` exists (requirements s10.5), and
+> **s5.1, the area budget, which is now the binding constraint of the design.**
+
 ---
 
 ## 1. Selection
@@ -26,8 +32,8 @@ Four independent drivers, in the order that decides it:
 1. **48 V routing is 5x denser on inner layers.** The binding outer-layer clearance is
    **0.635 mm** (s2); the inner-layer requirement is IPC-2221B column B1's 0.10 mm, which is
    below JLC's 0.127 mm fab minimum, **so the fab minimum dominates and the HV requirement is free
-   on In1/In2.** On a crowded board carrying `+48V_SW`, `/VBANK`, `/drive/LED_K` and
-   `/charge/CHG_GATE` (64 V, the highest net on the board), that is the single largest routing
+   on In1/In2.** On a crowded board carrying `+48V_SW`, `/VBANK`, **four** `/drive_*/LED_K` nets
+   and `/charge/CHG_GATE` (64 V, the highest net on the board), that is the single largest routing
    lever available. A 2-layer board would have to buy every one of those clearances twice, on both
    faces, in a plan that has already lost 2,328 mm2 to keepouts.
 2. **The 2.6 A sub-microsecond pulse loop needs a return plane directly beneath the outbound
@@ -41,9 +47,13 @@ Four independent drivers, in the order that decides it:
    reference the same node. That wants a solid plane, not a 2L pour that the pulse loop has been
    cut through.
 4. **Thermal.** `check_thermal`'s 4-layer model floors at **45 C/W** against the 2-layer model's
-   **55 C/W** - the planes spread heat laterally. At the pass FET's declared 1.45 W that is the
-   difference between an allowed rise of 65 C and 80 C at the same copper area, against a 69 C
-   budget. **On 2 layers the pass FET does not pass P8 at any pour size.** That alone closes it.
+   **55 C/W** - the planes spread heat laterally. **[REV B]** Applying the `a_eff` clamp of
+   `power_tree.md` s5 to both models: 4-layer bottoms out at **51.1 C/W** (1.35 W allowed at 56 C
+   air), 2-layer at **`55 + 119 exp(-645/350)` = 73.8 C/W** (0.93 W allowed). Against a declared
+   **0.81 W** per pass FET the 4-layer board passes at 1.64x and the 2-layer at 1.15x - **and the
+   2-layer margin evaporates entirely the moment the charge FET's 0.82 W or any of the 85-90 C
+   ambient cases of `power_tree.md` s10 is applied.** With four pass FETs now sharing the board,
+   4 layers is not a close call.
 
 **Cost of the choice: about $1-2/board at qty 5-10** against a ~$24.50 board. It is not a
 consideration.
@@ -62,10 +72,10 @@ and is detuned. H1-Q8 made Wi-Fi a supported control path, so this zone is live,
 
 | Layer | Contents |
 |---|---|
-| **F.Cu** | All components (single-sided top SMD assembly per requirements s7). The pulse loop's outbound path. The two FET drain thermal pours (**48 V-domain nets - 0.635 mm around their entire perimeter**). All 48 V-domain routing that must reach a top-side pad |
+| **F.Cu** | All components (single-sided top SMD assembly per requirements s7). The pulse loops' outbound paths. **[REV B] FIVE FET drain thermal pours** - four pass FETs (`/drive_w/LED_K`, `/drive_r/LED_K`, `/drive_g/LED_K`, `/drive_b/LED_K`) and the charge FET (`+48V_SW`), **all five 48 V-domain nets needing 0.635 mm around their entire perimeter, including from each other**. All 48 V-domain routing that must reach a top-side pad |
 | **In1.Cu** | **Solid GND**, voided at the antenna column. The pulse-loop return, the analogue reference, and the guaranteed reference for the two `high_speed` entries |
 | **In2.Cu** | **Solid GND**, voided at the antenna column. Second return path for the 2.6 A pulse, reference for B.Cu, and the lateral heat spreader that earns the 4-layer `check_thermal` model |
-| **B.Cu** | J3, J4 (reverse-mounted, facing down) and their escapes; **mirrored drain pours for Q200 and Q100**, tied through the thermal via fields; short escape routing. Otherwise clear |
+| **B.Cu** | J3, J4 (reverse-mounted, facing down) and their escapes; **[REV B] mirrored drain pours for all FIVE power FETs, >= 350 mm2 each**, tied through the thermal via fields; short escape routing. **The mirrors are not optional decoration - they are half of the `a_eff` that reaches the 51.1 C/W clamp** (`power_tree.md` s5). **B.Cu carries copper only; requirements s7 fixes single-sided top SMD assembly, so no component may be moved here to relieve F.Cu density** |
 
 **In2 is a second GND, not a `/VBANK` power plane.** A 48 V inner plane would force an antipad on
 every through-hole on the board (six radial bank footprints, two connectors, five mounting holes,
@@ -101,13 +111,20 @@ reading the script:
 
 Sketch for P5 (net names per `sheets.md` s2):
 
+**[REV B]** Updated for the four per-colour drain nets:
+
 ```
 (rule "hv_48v_outer"
   (constraint clearance (min 0.635mm))
   (condition "A.NetName == '+48V_SW' || A.NetName == '/VBANK' ||
-              A.NetName == '/drive/LED_K' || A.NetName == '/charge/CHG_GATE'")
+              A.NetName == '/charge/CHG_GATE' ||
+              A.NetName == '/drive_w/LED_K' || A.NetName == '/drive_r/LED_K' ||
+              A.NetName == '/drive_g/LED_K' || A.NetName == '/drive_b/LED_K'")
   (layer outer))
 ```
+
+**The rule is symmetric, so it also enforces 0.635 mm BETWEEN the four drain pours**, which is
+required - they are four independent nets at up to 57 V, tiled next to each other on F.Cu.
 
 ### 2.2 `check_creepage` is same-layer only - which is what makes 4 layers work
 
@@ -161,8 +178,12 @@ Inherited from ICD s7.1, not chosen by this board. Origin: board top-left, x rig
 `board_init.py` invocation for P5:
 
 ```
-board_init.py --stackup JLC04161H-3313 --outline 100x80 --corner-radius 3 --mounting-holes 4 ...
+board_init.py --stackup JLC04161H-3313 --outline 100x80 --corner-radius 3 \
+              --cutout 6,0,30,26 --mounting-holes 4 ...
 ```
+
+**[REV B] `--cutout` is outline-relative, so it needs no re-basing** - unlike `placement.keepouts`,
+which do (s7). See s4.
 
 Per MECH-01 the radius defaults to 0 and must be passed explicitly, and it is **clamped to the
 mounting-hole inset (`margin / 2`)**, so 3.0 mm works at the default `--margin 6`. **Read
@@ -174,9 +195,53 @@ Per MECH-02 there is **no outline-shrink step - the P5 outline is final.**
 
 ---
 
-## 4. OPEN MECHANICAL ISSUE - the RJ45 notch cannot be produced by this pipeline
+## 4. The RJ45 notch - RESOLVED, `--cutout` exists  **[REV B]**
 
-**This is a known tooling gap. It is documented here for the human, not solved.**
+> **BLOCKING-01 is the coordinator's, not this run's** (`requirements.md` s10.5). A `--cutout` flag
+> was added to `board_init.py` centrally because both daughters need the notch. **This run does not
+> implement a workaround, does not shrink the outline, and does not hand-edit Edge.Cuts.**
+>
+> **CONFIRMED RESOLVED by the coordinator: the flag exists, is tested, is committed (`18613d3`),
+> and was verified end-to-end on this exact geometry.**
+
+**The P5 invocation, verbatim:**
+
+```
+--outline 100x80 --corner-radius 3 --mounting-holes 4 --cutout 6,0,30,26
+```
+
+**Four properties of the flag that this board depends on, recorded so a later change cannot break
+them silently:**
+
+1. **Cutout coordinates are mm relative to the outline's top-left corner**, and the flag is
+   **repeatable**. Being outline-relative it needs **no re-basing** - unlike `placement.keepouts`,
+   which do (s7). This board uses exactly one cutout.
+2. **The notch must touch an outline edge to be a notch.** Ours does: `y = 0` puts it on the top
+   edge, which is what ICD s7.6 requires anyway.
+3. **It must not overlap a corner radius**, or the outline self-intersects and `polygonize` fails
+   downstream; the tool skips the cutout with a note rather than drawing it. **At `r = 3` a notch
+   starting at `x = 6` clears comfortably - re-check if either number changes.** The 3 mm radius
+   and the 6 mm notch inset are both inherited from ICD s7.1/s7.6, so neither should move, but a
+   change to either is a re-check trigger.
+4. **Interior windows are refused outright (exit 2), by design.** `geom._parse_outline` returns on
+   the first `gr_rect` it finds on Edge.Cuts, so an inner rectangle would silently *become* the
+   board outline - a 10x10 window on a 100x80 board parses as area 100.0, and DFM, plane
+   generation and quoting would all see a 10x10 board with no error raised anywhere.
+   **Edge notches are the supported path; do not try to express anything on this board as an
+   interior window.**
+
+> **The notch region stays a hard placement keepout in `constraints.json` regardless**, so the board
+> is electrically correct whether or not the cut lands.
+
+**P5 coordinate-translation trap - read the report, do not trust the flag silently.**
+`board_init` now reports **`outline_origin`** and **absolute `cutouts`**. In fixed-outline mode
+**the origin derives from the packed component bounding box, so it is NOT (0,0)**, and every
+keepout rect in `constraints.json` needs translating into board space by that origin (s7 step 2).
+At P5, read **`outline_origin`, `corner_radius`, `cutouts` and `worker_notes`** out of
+`reports/board_init.json`, and confirm `geom` reads a **non-empty outline whose area matches
+expectation** (100 x 80 less the 780 mm2 notch = **7,220 mm2**, not 8,000). A silently-skipped
+cutout shows up as an area of 8,000 and nothing else. **Confirm again at P9 that the notch is
+present in the exported Gerbers' outline layer.**
 
 ICD s7.6 and H1-Q4 require **a 30 x 26 mm relief in the TOP edge, region (6,0)-(36,26)** - 780 mm2
 of board material removed. It is load-bearing twice over:
@@ -188,27 +253,19 @@ of board material removed. It is load-bearing twice over:
    lands at the bottom edge and the board presents solid material over the jack. **A mechanical
    stop, not a warning.**
 
-**The gap, verified against the scripts:** `board_init.py` writes Edge.Cuts as a rectangle with an
-optional corner fillet (`--outline WxH --corner-radius R`) and nothing else. **No pipeline script
-writes Edge.Cuts geometry afterwards** - the other modules that touch that layer (`planes_gen`,
-`dfm_check`, `fab_export`, `order_quote`, `geom`, `gerblib`, `board_swig`) only *read* it to derive
-the board boundary. **ai-ee cannot cut this notch.**
+**[REV B] `board_init.py` invocation for P5, complete:**
 
-**Consequence and the recommended resolution, for the human at H1:**
+```
+board_init.py --stackup JLC04161H-3313 --outline 100x80 --corner-radius 3 \
+              --cutout 6,0,30,26 --mounting-holes 4 ...
+```
 
-- The board this run produces will have a **plain 100 x 80 mm filleted rectangle** on Edge.Cuts.
-- **Nothing will be placed or routed in the notch region** - it is declared as a hard placement
-  keepout on both sides in `constraints.json` (s7), so the region is empty copper and empty
-  silkscreen and the fabricated board is *electrically* correct.
-- The notch must therefore be added **by hand to the Edge.Cuts layer in KiCad after P5 and before
-  P9 fab export**, or requested as a fab-side routing note on the JLC order. Either way it is a
-  **manual step outside the pipeline**, and it must be captured in DOC-01 and in the order package.
-- **Do not defer it to "we will file it later".** MECH-02 makes the P5 outline final inside the
-  tool, and the notch is an interlock, not a cosmetic relief.
-
-**Recommendation: accept the manual Edge.Cuts edit, and add a P9 pre-order checklist item that the
-notch is present in the exported Gerbers.** The alternative - teaching `board_init` arbitrary
-outline polygons - is a skill change, not a board change, and is out of scope for this run.
+**Rev A's analysis (superseded):** rev A read `board_init.py` as writing Edge.Cuts as a filleted
+rectangle and nothing else, found that no other pipeline script writes Edge.Cuts geometry
+afterwards, and concluded the notch had to be a manual KiCad edit or a fab-side routing note. **That
+conclusion was correct at the time and is now obsolete** - the `--cutout` flag was added centrally
+in response to exactly this finding, from both daughters. **Do not carry the manual-edit
+recommendation forward into DOC-01.**
 
 ---
 
@@ -218,42 +275,51 @@ Board-relative, ICD s7.6, all declared as `placement.keepouts` in `constraints.j
 
 | Zone | Region | Area | Requirement |
 |---|---|---|---|
-| **RJ45 relief** | **(6,0)-(36,26)** | 780 mm2 | Board material removed (s4). Hard keepout for parts and copper on **every** layer, both sides |
+| **RJ45 relief** | **(6,0)-(36,26)** | 780 mm2 | Board material removed by `--cutout 6,0,30,26` (s4). **Hard keepout for parts and copper on every layer, both sides, kept in `constraints.json` regardless of the cut** |
 | **DC-DC hot zone** | **(2,46)-(36,68)** | 748 mm2 | **No LED drivers and no aluminium electrolytics.** The carrier's 48->12 converter dissipates up to 1.25 W directly below in a sealed box; electrolytic life halves per 10 C. A *vertical* keepout, not an in-plane separation rule. **Declared as a full keepout** - the pass FET *is* an LED driver and the bank *is* aluminium electrolytic, which is most of what would otherwise want that area |
 | **Antenna column** | **(88,25)-(100,55)** | 360 mm2 | **No copper on any layer, no metal component.** Placement keepout both sides **plus** the plane-region carve-out of s7 |
 | **Recovery header** | **(76,0)-(98,20)** | 440 mm2 | Keep clear both sides so a 6-way jumper lead can be attached with this board fitted |
 
-### 5.1 Area budget - the tightest thing in this design
+### 5.1 Area budget - THE binding constraint of this design  **[REV B]**
+
+Full derivation and the mitigation ladder are `blocks.md` s6.3. Summary:
 
 ```
-  board                                        8,000 mm2
-  - RJ45 notch                                  -780
-  - antenna column                              -360
-  - recovery header                             -440
-  - DC-DC hot zone                              -748
-  - J3 + J4 footprints (THT, both faces lost)   -520
-  ----------------------------------------------------
-  usable                                       5,152 mm2
+  usable F.Cu (8,000 less 2,328 keepout less 520 connector)   5,152 mm2
 
-  claims:
-    bank, 4 radial D18 populated of 6 footprints  1,214 mm2
-    Q200 drain pour (>= 900, target 1000)         1,000 mm2
-    Q100 drain pour (>= 645)                        645 mm2
-    hot-swap, drive, protect, bleed, dividers,
-      test points, ~50 small parts                ~700 mm2
-  ----------------------------------------------------
-  claimed                                      ~3,559 mm2   = 69 % occupancy
+  rev A as written  (Q200 1000 + Q100 645 pours)             ~3,559 mm2  = 69 %
+  rev A corrected   (both pours 350 F.Cu, per the a_eff clamp) 2,614 mm2  = 51 %
+  REV B, RGBW       (4 pass pours + 1 charge pour, all 350)    4,199 mm2  = 81 %
 ```
 
-**69 % before routing channels is the riskiest number in this package.** It is feasible - pours flow
-around parts, and the two drain pours are copper rather than components - but it is the thing most
-likely to force a change at P6. **The declared mitigations, in the order they should be reached
-for:** (1) mirror more of each drain pour onto B.Cu, which is nearly empty; (2) drop Q200's pour to
-the 900 mm2 floor (`theta_JA` 47.1 C/W, still 1.03x on the armed worst case, and the bank ceiling of
-`power_tree.md` s6 means the *normal* case only needs 0.82 W); (3) fall back to the six-footprint
-bank populated at 4 x 470 uF from a shorter can. **Do not reach for the DC-DC hot zone** - it is a
-vertical keepout over a 1.25 W hot spot in a sealed box, and the bank is the most
-lifetime-sensitive part on the board.
+**Two facts have to be read together.** RGBW costs **30 points** of F.Cu occupancy - and the
+`check_thermal` `a_eff` clamp, once read properly, **gave 18 of them back first** by showing that
+rev A's 1000 mm2 pour was 2.9x larger than anything the model scores (`power_tree.md` s5,
+`blocks.md` s6.1). **Without that correction this revision would not fit.**
+
+**81 % before routing channels is the riskiest number in this package**, and it is worse than it
+looks because **both inner layers are solid GND, so every signal route lands on F.Cu or B.Cu**, and
+**B.Cu cannot take components** (requirements s7: single-sided top SMD assembly). It is feasible -
+pours flow around parts, and five of the largest claims are copper rather than components - but it
+is the thing most likely to force a change at P6.
+
+**Declared mitigations, in the order they must be reached for:**
+
+1. **Drop the two unpopulated bank footprints** (6 -> 4 D18 lands): **-400 mm2 -> 73 %.** Costs the
+   2720 -> 4080 uF knob and the four-vendor 470 uF second source. Pure optionality, so it goes first.
+2. **Hold every drain pour at exactly 350 mm2 on F.Cu and put all further copper on B.Cu.** Free.
+3. **Two quad op-amps in place of four duals**: -30 mm2, two fewer packages, at the cost of the
+   "each stage is a self-contained placement group" property.
+4. **0402 for passives outside the 48 V domain** (the 48 V domain is locked at 0805 minimum by
+   s2.4 and cannot shrink): ~-60 mm2.
+
+**Do not reach for the DC-DC hot zone** - it is a vertical keepout over a 1.25 W hot spot in a
+sealed box, and the bank is the most lifetime-sensitive part on the board (`power_tree.md` s10.5
+already cuts its rated life 10x if the internal air is really 85-90 C). **And do not shrink any
+pour below 350 mm2 F.Cu + 350 mm2 B.Cu** - that comes straight off the thermal margin, which s10
+shows has none to give. **If P6 cannot place it after 1-4, the finding is that the RGBW strobe
+wants a bigger board than the common LUMINA 100 x 80 footprint, which is an ICD s7.1 change and a
+program decision.**
 
 ### 5.2 Height
 
