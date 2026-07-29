@@ -760,11 +760,10 @@
    "mpn": "0805W8F1002T5E",
    "lcsc": "C17414",
    "value": "10k 1% 0805",
-   "qty_per_board": 3,
+   "qty_per_board": 2,
    "refs": [
     "R4",
-    "R5",
-    "R67"
+    "R5"
    ],
    "package": "0805",
    "basic": true,
@@ -3790,51 +3789,51 @@
   {
    "ref_prefix_hint": "R",
    "block": "pwr",
-   "mpn": "RC0805FR-07620KL",
-   "lcsc": "C185284",
-   "value": "620k 1% 0805",
+   "mpn": "RT0805BRD07620KL",
+   "lcsc": "C865592",
+   "value": "620k 0.1% 0805",
    "qty_per_board": 1,
    "refs": [
     "R66"
    ],
    "package": "0805",
    "basic": false,
-   "stock": 8603,
-   "price": 0.006,
+   "stock": 5453,
+   "price": 0.0503,
    "price_breaks": [
     {
      "qty": 1,
-     "price": 0.0103
+     "price": 0.0027
     },
     {
      "qty": 1000,
-     "price": 0.0091
+     "price": 0.0024
     },
     {
      "qty": 5000,
-     "price": 0.0085
+     "price": 0.0023
     },
     {
      "qty": 10000,
-     "price": 0.0081
+     "price": 0.0021
     },
     {
      "qty": 50000,
-     "price": 0.0079
+     "price": 0.0021
     },
     {
-     "qty": 100000,
-     "price": 0.0078
+     "qty": 50200,
+     "price": 0.0021
     }
    ],
    "min_qty": 1,
-   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2205312316_UNI-ROYAL-Uniroyal-Elec-0805W8F1003T5E_C149504.pdf",
-   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0805w8f1003t5e_C149504.html",
-   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2411221126_UNI-ROYAL-Uniroyal-Elec-0603WAF0000T5E_C21189.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0603waf0000t5e_C21189.html",
+   "brand": "YAGEO",
    "attributes": [
     {
      "name": "Resistance",
-     "value": "100k\u03a9"
+     "value": "0\u03a9"
     },
     {
      "name": "Operating Temperature",
@@ -3842,7 +3841,7 @@
     },
     {
      "name": "Power(Watts)",
-     "value": "125mW"
+     "value": "100mW"
     },
     {
      "name": "Type",
@@ -3850,73 +3849,137 @@
     },
     {
      "name": "Voltage-Supply(Max)",
-     "value": "150V"
+     "value": "75V"
     },
     {
      "name": "Tolerance",
      "value": "\u00b11%"
-    },
-    {
-     "name": "Temperature Coefficient",
-     "value": "\u00b1100ppm/\u2103"
     }
    ],
-   "alternates": [
-    {
-     "mpn": "HRC0805F6203FNTN",
-     "lcsc": "C54921216"
-    }
-   ],
-   "role": "R66 = UVLO/OVP string TOP leg (IN to UVLO) on U22. Replaces the 1M that failed the binding thresholds. Sees the full 57 V continuously. String is 620k/10k/12k, sum 642k, 74.8 uA at 48 V = 499x the 150 nA pin leakage. Alt C54921216 (30500 pcs)."
+   "alternates": [],
+   "role": "R66 = UVLO/OVP string TOP leg. Yageo RT thin-film, 0.1 % and 25 ppm/degC. Upgraded from 1 % thick-film at H2: the OVP FALLING threshold had only 0.18 V of margin over the 57 V legal PSE maximum, and TEMPCO was the real killer - 100 ppm/degC over a 60 degC excursion put the worst case near 56.5 V, below 57 V, so a legal rail could fail to re-enable after an overvoltage event."
   },
   {
    "ref_prefix_hint": "R",
    "block": "pwr",
-   "mpn": "0805W8F1202T5E",
-   "lcsc": "C17444",
-   "value": "12k 1% 0805",
+   "mpn": "RT0805BRD0710KL",
+   "lcsc": "C110775",
+   "value": "10k 0.1% 0805",
+   "qty_per_board": 1,
+   "refs": [
+    "R67"
+   ],
+   "package": "0805",
+   "basic": false,
+   "stock": 811444,
+   "price": 0.0507,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0027
+    },
+    {
+     "qty": 1000,
+     "price": 0.0024
+    },
+    {
+     "qty": 5000,
+     "price": 0.0023
+    },
+    {
+     "qty": 10000,
+     "price": 0.0021
+    },
+    {
+     "qty": 50000,
+     "price": 0.0021
+    },
+    {
+     "qty": 50200,
+     "price": 0.0021
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2411221126_UNI-ROYAL-Uniroyal-Elec-0603WAF0000T5E_C21189.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0603waf0000t5e_C21189.html",
+   "brand": "YAGEO",
+   "attributes": [
+    {
+     "name": "Resistance",
+     "value": "0\u03a9"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-55\u2103~+155\u2103"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "100mW"
+    },
+    {
+     "name": "Type",
+     "value": "Thick Film Resistor"
+    },
+    {
+     "name": "Voltage-Supply(Max)",
+     "value": "75V"
+    },
+    {
+     "name": "Tolerance",
+     "value": "\u00b11%"
+    }
+   ],
+   "alternates": [],
+   "role": "R67 = UVLO/OVP string MIDDLE leg. Yageo RT thin-film 0.1 % / 25 ppm/degC. NOTE: R4/R5 (T2P level shift, poe sheet) deliberately stay on the 1 % C17414 line - only the threshold-setting string needs precision."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "pwr",
+   "mpn": "RT0805BRD0712KL",
+   "lcsc": "C865172",
+   "value": "12k 0.1% 0805",
    "qty_per_board": 1,
    "refs": [
     "R73"
    ],
    "package": "0805",
-   "basic": true,
-   "stock": 823002,
-   "price": 0.0041,
+   "basic": false,
+   "stock": 25480,
+   "price": 0.0947,
    "price_breaks": [
     {
      "qty": 1,
-     "price": 0.0103
+     "price": 0.0027
     },
     {
      "qty": 1000,
-     "price": 0.0091
+     "price": 0.0024
     },
     {
      "qty": 5000,
-     "price": 0.0085
+     "price": 0.0023
     },
     {
      "qty": 10000,
-     "price": 0.0081
+     "price": 0.0021
     },
     {
      "qty": 50000,
-     "price": 0.0079
+     "price": 0.0021
     },
     {
-     "qty": 100000,
-     "price": 0.0078
+     "qty": 50200,
+     "price": 0.0021
     }
    ],
    "min_qty": 1,
-   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2205312316_UNI-ROYAL-Uniroyal-Elec-0805W8F1003T5E_C149504.pdf",
-   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0805w8f1003t5e_C149504.html",
-   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2411221126_UNI-ROYAL-Uniroyal-Elec-0603WAF0000T5E_C21189.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0603waf0000t5e_C21189.html",
+   "brand": "YAGEO",
    "attributes": [
     {
      "name": "Resistance",
-     "value": "100k\u03a9"
+     "value": "0\u03a9"
     },
     {
      "name": "Operating Temperature",
@@ -3924,7 +3987,7 @@
     },
     {
      "name": "Power(Watts)",
-     "value": "125mW"
+     "value": "100mW"
     },
     {
      "name": "Type",
@@ -3932,19 +3995,15 @@
     },
     {
      "name": "Voltage-Supply(Max)",
-     "value": "150V"
+     "value": "75V"
     },
     {
      "name": "Tolerance",
      "value": "\u00b11%"
-    },
-    {
-     "name": "Temperature Coefficient",
-     "value": "\u00b1100ppm/\u2103"
     }
    ],
    "alternates": [],
-   "role": "R73 = UVLO/OVP string BOTTOM leg (OVP to GND) on U22. Replaces the 20k that failed the binding thresholds. JLC Basic. Sets OVP rising 64.20 V / falling 60.03 V; worst-case-low falling 57.18 V stays above the 57 V legal PSE maximum."
+   "role": "R73 = UVLO/OVP string BOTTOM leg. Yageo RT thin-film 0.1 % / 25 ppm/degC. Sets OVP rising 64.20 V / falling 60.03 V nominal."
   },
   {
    "ref_prefix_hint": "R",
@@ -4022,13 +4081,10 @@
     {
      "mpn": "CR0805F863R4G",
      "lcsc": "C3037301"
-    },
-    {
-     "mpn": "0805W8F634JT5E",
-     "lcsc": "C17786"
     }
    ],
-   "role": "*** NOT FITTED - DO NOT PLACE ON BUILD 1. *** This is the entire D-01 upgrade lever: swapping R3 from 90.9R (Class 3, 802.3af) to 63.4R (Class 4, 802.3at) is the ONLY board change needed to move to a PoE+ power stage - no respin. Ordered as a loose kit item, qty 0 on the assembly BOM. PACKAGE CHANGED 0603 -> 0805 at P4 review (finding 16): classification draws 2.5 V x 42 mA = ~105 mW, against a 100 mW 0603 rating. Sub-second transient so an 0603 would survive, but D-01 promises a clean resistor-only upgrade and an out-of-spec part does not deliver that. The fitted 90.9R (73 mW) is fine on 0603."
+   "role": "*** NOT FITTED - DO NOT PLACE ON BUILD 1. *** The entire D-01 upgrade lever: swapping R3 from 90.9R (Class 3, af) to 63.4R (Class 4, at) is the ONLY board change needed for a PoE+ power stage - no respin. Order as a loose kit item, qty 0 on the assembly BOM. Package 0603 -> 0805 at P4 review: classification draws 2.5 V x 42 mA = ~105 mW against a 100 mW 0603 rating, and an out-of-spec part does not deliver a clean resistor-only upgrade. The fitted 90.9R (73 mW) is fine on 0603.",
+   "not_fitted": true
   }
  ]
 }

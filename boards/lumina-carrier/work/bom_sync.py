@@ -61,9 +61,12 @@ for p in parts:
     p['refs'] = refs
     p['qty_per_board'] = len(refs)
 
-kept = [p for p in parts if p['qty_per_board'] > 0]
+# Deliberately-unfitted lines (e.g. the D-01 class-4 upgrade resistor) have
+# zero refs BY DESIGN and must survive the sync.
+kept = [p for p in parts if p['qty_per_board'] > 0 or p.get('not_fitted')]
 dropped = [{'lcsc': p['lcsc'], 'value': p.get('value'),
-            'was_refs': p.get('refs')} for p in parts if p['qty_per_board'] == 0]
+            'was_refs': p.get('refs')}
+           for p in parts if p['qty_per_board'] == 0 and not p.get('not_fitted')]
 d['parts'] = kept
 
 bom_lcsc = {p['lcsc'] for p in kept}

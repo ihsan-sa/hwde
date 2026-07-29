@@ -132,9 +132,9 @@ LCSC = {
     "R64": "C25804",      # 10k 1% 0603 (FB bottom)
 
     "U22": "C1849461",    # TPS16630PWPR 60 V eFuse
-    "R66": "C185284",     # 620k 1% 0805 (UVLO string R1)  - VALUE CHANGED
-    "R67": "C17414",      # 10k  1% 0805 (UVLO string R2)  - VALUE CHANGED
-    "R73": "C17444",      # 12k  1% 0805 (UVLO string R3)  - VALUE CHANGED
+    "R66": "C865592",     # 620k 0.1% 25ppm 0805 thin-film (UVLO string R1)
+    "R67": "C110775",     # 10k  0.1% 25ppm 0805 thin-film (UVLO string R2)
+    "R73": "C865172",     # 12k  0.1% 25ppm 0805 thin-film (UVLO string R3)
     "R65": "C25810",      # 18k 1% 0603 (ILIM -> 1.0 A)
     "C59": "C57112",      # 10nF 50V X7R 0603 (dVdT)
     "R68": "C22984",      # 30k 1% 0603 (IMON scaling)
@@ -164,9 +164,9 @@ V_18K = "18k 1% 0603"
 V_4K7 = "4.7k 1% 0603"
 V_330R = "330R 1% 0603"
 V_100K = "100k 1% 0805"
-V_620K = "620k 1% 0805"
-V_10K_0805 = "10k 1% 0805"
-V_12K = "12k 1% 0805"
+V_620K = "620k 0.1% 0805"
+V_10K_0805 = "10k 0.1% 0805"
+V_12K = "12k 0.1% 0805"
 
 # --------------------------------------------------------------- footprints
 R0603 = f"{FP}:R0603"
@@ -659,9 +659,9 @@ def build() -> schlib.Sheet:
     # does not name the wrong part - bom_cpl takes parts.json first, but a
     # human reading the sheet or the embedded lib_symbols would be misled.
     for ref, mpn, brand in (
-            ("R66", "RC0805FR-07620KL", "YAGEO"),
-            ("R67", "0805W8F1002T5E", "UNI-ROYAL(Uniroyal Elec)"),
-            ("R73", "0805W8F1202T5E", "UNI-ROYAL(Uniroyal Elec)")):
+            ("R66", "RT0805BRD07620KL", "YAGEO"),
+            ("R67", "RT0805BRD0710KL", "YAGEO"),
+            ("R73", "RT0805BRD0712KL", "YAGEO")):
         c = sh.sch.components.get(ref)
         c.set_property("LCSC Part", LCSC[ref])
         c.set_property("MPN", mpn)

@@ -3,7 +3,7 @@
  "board": "lumina-carrier",
  "workspace": "boards/lumina-carrier",
  "created": "2026-07-28T13:36:22",
- "updated": "2026-07-28T20:56:57",
+ "updated": "2026-07-28T21:31:25",
  "phase": "P4",
  "gates": {
   "erc": {
@@ -37,6 +37,11 @@
    "status": "approved",
    "ts": "2026-07-28T15:00:34",
    "note": "Q5 plastic enclosure + heatsink enclosed, non-isolated stands (closes open item C). Q8 Wi-Fi FUNCTIONAL - overrides carrier brief s6; antenna keepout mandatory on every layer, RF review in scope at layout sign-off. Q4 11.0 mm stack + 30x26 mm daughter notch (anti-180 interlock). Q6 adopt derived numbers: 48V 0.25A af / 0.5A at sustained, 1.80 A/pin, eFuse 1.0 A, J3 stays 2x7. Q7 module WROOM-1-N8."
+  },
+  "2": {
+   "status": "approved",
+   "ts": "2026-07-28T21:27:15",
+   "note": "Magjack: qualify a Bel/Pulse PoE+ ICM off-LCSC (owner rejected af-only for consistency with the par emitter rejection). Q9: Ethernet OTA + Wi-Fi OTA + recovery header, no USB-C, no pogo jig. OVP: 0.1 percent resistors on R66/R67/R73."
   }
  },
  "artifacts": {},
@@ -305,6 +310,18 @@
    "why": "Fresh-context reviewer returned 19 findings and independently verified all ten known-critical items (R69 fail-safe, TPS2378 EP-to-VSS, APD-to-RTN, the 1.2V divider, EN abs-max chain, W5500 RSVD asymmetry, GPIO45, magjack map, both frozen ICD pin maps) as correct. MOST IMPORTANT FINDING is F7 and it is a HONESTY item, not a defect: because lib_pin_types types every non-supply pin 'passive', KiCad's output-vs-output, input-not-driven and driver-conflict checks are structurally INERT - the ERC 0/0 proves only that no power_in lacks a driver and no wire dangles. Real pin-level coverage came from the reviewer's per-IC datasheet audit, NOT from ERC, and the design document must not claim otherwise. F6 and F3 were fixed by amending the ICD rather than the board: publishing FAULT's real ~4.3 mA sink requirement (vs the 0.33 mA implied) is cheaper for daughters than a carrier respin plus a GPIO, and the IMON governor claim needed softening because the pin's specified accuracy starts at 0.6 A while the rail's sustained limits are 0.25/0.5 A - both below the floor.",
    "phase": "P4",
    "ts": "2026-07-28T20:42:45"
+  },
+  {
+   "what": "OVP divider upgraded to Yageo RT 0.1 percent 25ppm/degC THIN-FILM (R66/R67/R73). Tempco was the real problem, not initial tolerance.",
+   "why": "Owner took the 0.1 percent recommendation at H2. Selecting thin-film rather than merely tighter thick-film is the part that actually fixes it: the reviewer's failure mode was 100 ppm/degC over a 60 degC excursion dragging the OVP FALLING threshold to ~56.5 V, BELOW the 57 V legal PSE maximum, so a legal rail could fail to re-enable after an overvoltage event. Yageo RT is 0.1 percent AND 25 ppm/degC, a 4x tempco improvement, which moves worst-case falling from ~56.5 V to ~58.2 V - roughly 1.2 V of real margin instead of 0.18 V. C865592 620k / C110775 10k / C865172 12k, all 0805, stock 5453 / 811444 / 25480. R4/R5 (T2P level shift on the poe sheet) deliberately stay on the 1 percent C17414 line - only the threshold-setting string needs precision, and spending 0.05 USD each on level-shift pull-ups would be waste.",
+   "phase": "P4",
+   "ts": "2026-07-28T21:31:25"
+  },
+  {
+   "what": "BOM resync tooling hardened: bom_sync.py now preserves not_fitted lines",
+   "why": "The first sync correctly rebuilt refs/qty from the netlist but DROPPED C334927, the 63.4R class-4 upgrade resistor, because it has zero refs by design - it is deliberately not fitted. That would have silently deleted the single component that makes D-01's 'resistor change, no respin' promise real. Lines now carry a not_fitted flag and survive the sync. Final state is stable and self-consistent: 50 BOM lines, 109 placed components, 0 lines changed on a repeat run, 0 netlist LCSC codes without a BOM line, and the only component without an LCSC property is H5 (a mounting hole, board-only by design).",
+   "phase": "P4",
+   "ts": "2026-07-28T21:31:25"
   }
  ],
  "history": [
@@ -585,6 +602,22 @@
    "status": "pass",
    "attempt": 2,
    "failing_count": 0
+  },
+  {
+   "ts": "2026-07-28T21:27:15",
+   "event": "human",
+   "checkpoint": "2",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-07-28T21:31:25",
+   "event": "decision",
+   "what": "OVP divider upgraded to Yageo RT 0.1 percent 25ppm/degC THIN-FILM (R66/R67/R73). Tempco was the real problem, not initial tolerance."
+  },
+  {
+   "ts": "2026-07-28T21:31:25",
+   "event": "decision",
+   "what": "BOM resync tooling hardened: bom_sync.py now preserves not_fitted lines"
   }
  ]
 }
