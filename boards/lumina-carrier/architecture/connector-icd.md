@@ -1,6 +1,6 @@
 # ICD-01 - LUMINA expansion connector interface control document
 
-**Owner:** LUM-CAR-A (carrier board). **Status: frozen at H1. Rev A3** (A2 = 0.635 mm creepage + bank-charging contract; A3 = ID_ADC codes + PWM/timer contract; A4 = sealed-with-wall-conduction thermal budget, firmware requirements).
+**Owner:** LUM-CAR-A (carrier board). **Status: frozen at H1. Rev A3** (A2 = 0.635 mm creepage + bank-charging contract; A3 = ID_ADC codes + PWM/timer contract; A4 = sealed-with-wall-conduction thermal budget + firmware requirements; A5 = thermal assumptions stated, at-ventilation item closed).
 **Consumers:** LUM-STR-A (strobe daughter), LUM-PAR-A (RGBW par daughter), and every future LUMINA
 daughter.
 
@@ -558,32 +558,46 @@ Board-relative, in the shared footprint's coordinates:
 | Zone | Region | Requirement |
 |---|---|---|
 | **RJ45 relief** | **(6, 0) - (36, 26)** | **The daughter must be cut away here** - a 30 x 26 mm notch in the **top** edge. The carrier's board-edge magjack is ~15 mm tall and the stack is 11.0 mm, so the jack protrudes ~4 mm above the daughter's underside. The outline rectangle, corner radius and 5-hole pattern are **unchanged** - only this local relief differs. It is also the primary keying interlock (s7.4) |
-| **DC-DC hot zone** | **(2, 46) - (36, 68)** | **No LED drivers and no aluminium electrolytics** in the corresponding region on the daughter. The carrier's 48->12 converter dissipates up to 1.25 W here. **Thermal budget: see s7.7 (rev A4 - box-air heat budget; the rev A2 56 C / 69 C pair was wrong and the rev A3 "must vent" conclusion is superseded).** Electrolytic life halves per 10 C. This is the CAR-REQ-18 answer, and it has to be a keepout rather than an in-plane separation rule because in a stacked mezzanine the daughter's parts sit *vertically over* the carrier's |
+| **DC-DC hot zone** | **(2, 46) - (36, 68)** | **No LED drivers and no aluminium electrolytics** in the corresponding region on the daughter. The carrier's 48->12 converter dissipates up to 1.25 W here. **Thermal budget: see s7.7 (rev A5 - box-air heat budget; the rev A2 af figure was correct under an unstated assumption, the at figure was not, and no venting is required).** Electrolytic life halves per 10 C. This is the CAR-REQ-18 answer, and it has to be a keepout rather than an in-plane separation rule because in a stacked mezzanine the daughter's parts sit *vertically over* the carrier's |
 | **Antenna column** | **(88, 25) - (100, 55)** | **No copper on any layer, and no metal component**, while Q8 keeps the radio functional. The carrier's ESP32-S3 PCB antenna is directly below and a ground plane 11 mm above it will detune it. **Void if Q8 closes as "radio permanently dead"** |
 | **Recovery header** | **(76, 0) - (98, 20)** | Keep clear enough that a 6-way jumper lead can be attached with the daughter fitted, or accept that the daughter must be removed to recover firmware |
 
 ---
 
-### 7.7 Thermal budget - RE-DERIVED at rev A4. NORMATIVE.
+### 7.7 Thermal budget - rev A5. NORMATIVE.
 
-**Supersedes rev A3.** Rev A2's figures (56 C af / 69 C at) were internally inconsistent and were
-withdrawn at A3 after the par raised it as a blocking issue - correctly. Rev A3 then concluded "the at
-upgrade requires a vented enclosure". **That conclusion is now also withdrawn**, because the owner has
-since decided the enclosure configuration, and it changes the arithmetic.
+**Configuration of record (owner decision): SEALED, non-metallic enclosure, with LED heat conducted
+OUT through the enclosure wall.** Not vented. Consistent with H1-Q5.
 
-**Configuration of record (owner decision): SEALED, non-metallic, with LED heat conducted OUT through
-the enclosure wall.** Not vented. Consistent with H1-Q5 (plastic enclosure, heatsink not
-user-accessible).
+#### 7.7.1 What was actually wrong with the rev A2 figures
 
-**Why this changes the answer.** Rev A3 charged essentially the whole PoE budget to box air (~9.9 W af
-/ ~19.2 W at) and unsurprisingly did not close. But the light engine is the large term, and in the
-configuration of record the LED's heat (~6 W on the par) leaves through the wall rather than into the
-box. Only the *electrical* losses that occur inside the box heat the air.
+Rev A2 published "56 C (af) / 69 C (at)". Rev A3 called both figures wrong. **That was unfair to the
+af figure and is corrected here.** The strobe run applied the par's measured sealed-box resistance to
+its own heat sources and reproduced both numbers from a single binary - whether the LED heat leaves
+through the wall or stays inside the box:
 
-**The right number to publish is therefore a box-air heat BUDGET, not a temperature.** Sealed
-non-metallic enclosure, internal-air-to-room resistance **3.6-4.3 K/W** (the par's independently
-derived figure). Holding internal air to **70 C**, i.e. 15 K of margin below the +85 C limit shared by
-the ESP32-S3 module and the par's emitter family:
+| LED wall path | Heat into box air | Rise at 3.6-4.3 K/W | 25 C room | 35 C room | 40 C room |
+|---|---|---|---|---|---|
+| **works** | 1.894 W | 6.8-8.1 K | **32-33 C** | 42-43 C | 47-48 C |
+| **fails** | 8.500 W | 30.6-36.6 K | **56-62 C** | 66-72 C | 71-77 C |
+
+**Row B at a 25 C room is 56 C - the rev A2 af figure, to the degree.** So that figure was never
+miscalculated. It was the *LED-heat-stays-in-the-box* case, at a 25 C room, and **neither assumption
+was written down**. That omission is the whole defect: it made a correct number look arbitrary, and it
+silently assumed exactly the arrangement the owner's enclosure decision has since ruled out.
+
+**The `at` figure was a genuine error.** 69 C does not follow from the af point under *either* row -
+convection is near-linear in delta-T at this scale, so roughly doubling box heat roughly doubles the
+rise. 56 C implies ~3.13 K/W; 69 C implies ~2.29 K/W. They cannot both be true.
+
+The par's independent Hoffman/Rittal calculation of **89-115 C** sits above even the LED-in-box case at
+a 40 C room. It is the **conservative bound**, not a competing estimate - **do not average it** with
+anything here.
+
+#### 7.7.2 The budget (configuration of record)
+
+Sealed non-metallic enclosure, internal-air-to-room **3.6-4.3 K/W**. Holding internal air to **70 C**,
+i.e. 15 K below the +85 C limit shared by the ESP32-S3 module and the par's emitter family:
 
 | Room ambient | Allowable air rise | **Allowable box-air heat (4.3 K/W worst case ... 3.6 K/W)** |
 |---|---|---|
@@ -591,29 +605,29 @@ the ESP32-S3 module and the par's emitter family:
 | **30 C** | 40 K | **9.3 ... 11.1 W** |
 | **40 C** | 30 K | **7.0 ... 8.3 W** |
 
-**Spending against that budget:**
+Spending against it, with the wall path working:
 
 | Contributor | af (build 1) | at (upgrade) |
 |---|---|---|
 | Carrier overhead (PD + both converters + MCU + PHY) | ~2.4 W | ~3.7 W |
-| Daughter driver + connector losses | daughter declares | daughter declares |
-| LED junction heat | **through the wall, not into box air** | **through the wall** |
+| Daughter into box air (strobe, measured) | ~1.9 W | ~1.9 W |
+| **Total box-air heat** | **~4.3 W** | **~5.6 W** |
+| LED junction heat | through the wall | through the wall |
 
-**Conclusions, binding on every LUMINA board:**
+#### 7.7.3 Conclusions - binding on every LUMINA board
 
-1. **A sealed enclosure closes for BOTH af and at**, provided the light engine's heat genuinely leaves
-   through the wall and total box-air heat stays inside the table above. The carrier spends ~2.4 W
-   (af) / ~3.7 W (at) of it.
-2. **Every daughter must declare, in its design document, how its dissipation splits between box air
-   and the enclosure wall.** A daughter that dumps its LED heat into box air instead of through the
-   wall will breach the budget on its own - this is now the load-bearing assumption of the whole
-   thermal case, so it must be stated, not assumed.
-3. **The wall-conduction path is a mechanical requirement, not a nicety.** If the LED thermal path to
-   the wall is not actually built, the numbers revert to the rev A3 case, which does not close at at.
-4. **Stated room ambient: 25 C nominal, 30 C maximum for the at upgrade.** At a 40 C room the budget
-   falls to 7.0-8.3 W and at becomes marginal again.
-5. Every internal-air figure in this ICD carries an explicit room ambient. A figure quoted without one
-   is incomplete.
+1. **A sealed enclosure closes for BOTH af and at, and does so up to a 40 C room.** At 40 C the
+   allowable budget is 7.0-8.3 W against ~5.6 W spent at `at`: internal air reaches
+   40 + 5.6 x 4.3 = **64 C worst case**, under the 70 C target and well under the +85 C part limit.
+   **The at upgrade therefore does NOT require enclosure ventilation** - the rev A3 conclusion that it
+   did is withdrawn, and the carrier's open ventilation item is closed.
+2. **This rests entirely on the LED heat leaving through the wall.** If that path is not built, the
+   numbers revert to row B of s7.7.1 and the margin disappears. **The wall-conduction path is a
+   mechanical requirement, not a nicety.**
+3. **Every daughter must declare, in its design document, how its dissipation splits between box air
+   and the enclosure wall.** The strobe's ~1.9 W is the number this budget is built on.
+4. **Every internal-air figure in this ICD carries an explicit room ambient.** A figure quoted without
+   one is incomplete - that is the exact defect that produced the rev A2 confusion.
 
 ### 7.8 Carrier firmware requirements of record
 

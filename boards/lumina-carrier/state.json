@@ -3,7 +3,7 @@
  "board": "lumina-carrier",
  "workspace": "boards/lumina-carrier",
  "created": "2026-07-28T13:36:22",
- "updated": "2026-07-28T20:16:22",
+ "updated": "2026-07-28T20:37:03",
  "phase": "P4",
  "gates": {
   "erc": {
@@ -281,6 +281,18 @@
    "why": "Owner committed carrier firmware to PWM-domain dithering of >=3-4 bits - it is the mechanism by which the par's PAR-REQ-01 is met and no hardware on that board can close it, so it is a requirement, not an option. Recorded in ICD s7.8 with the critical qualifier that it MUST be PWM-domain and NOT 60 fps frame-domain, because a 4.4 percent dither at 60 Hz breaches IEEE 1789's no-effect level by itself and would create the very flicker it is meant to avoid. Captured four more firmware commitments in the same table so none can be silently dropped when firmware is written: FW-02 = 90 degree hpoint stagger for 4+ channels on one timer (CR-4); FW-03 = read ID_ADC at boot and never assert ENABLE on FAULT or NONE; FW-04 = apply the daughter's declared timer map rather than assuming the default rate; FW-05 = maintain MPS >= 10 mA DC, which forbids ESP32-S3 deep sleep while PoE-powered. These will also be named in the DOC-01 design document.",
    "phase": "P4",
    "ts": "2026-07-28T20:04:58"
+  },
+  {
+   "what": "CORRECTION to my own record: the rev A2 56 C af figure was NOT wrong - it was correct under an unstated assumption. Only the at figure was a genuine error. ICD rev A5.",
+   "why": "I characterised both rev A2 thermal figures as wrong at rev A3. That was unfair to the af figure and is now corrected. The strobe run applied the par's measured sealed-box resistance to its own heat sources and reproduced BOTH disputed numbers from a single binary - whether LED heat leaves through the wall or stays in the box. LED-in-box at 8.5 W gives 56-62 C at a 25 C room, which IS the rev A2 af figure to the degree. So that number was never miscalculated; its two assumptions (LED heat inside the box, 25 C room) were simply never written down, and that omission is the entire defect - it made a correct figure look arbitrary while silently assuming the arrangement the owner has since ruled out. The at figure remains a genuine error: 69 C follows from neither case, since 56 C implies 3.13 K/W and 69 C implies 2.29 K/W. The par's independent 89-115 C is retained as the CONSERVATIVE BOUND and explicitly not averaged with anything.",
+   "phase": "P4",
+   "ts": "2026-07-28T20:37:03"
+  },
+  {
+   "what": "OPEN ITEM D CLOSED: the 802.3at upgrade does NOT require enclosure ventilation. Sealed closes to a 40 C room.",
+   "why": "With the wall-conduction path working, the strobe measures only ~1.894 W of daughter heat into box air, not the ~8.5 W my earlier analysis charged. Recomputed carrier total box-air heat: ~2.4 W overhead + ~1.9 W daughter = ~4.3 W (af); ~3.7 W + ~1.9 W = ~5.6 W (at). Against the allowable budget of 7.0-8.3 W at a 40 C room, the at case reaches 40 + 5.6 x 4.3 = 64 C internal air WORST CASE - under the 70 C design target and well under the +85 C limit shared by the ESP32-S3 module and the par emitters. So the rev A3 'at requires venting' conclusion is withdrawn and open item D is closed. This is entirely contingent on the LED thermal path to the wall actually being built: if it is not, the numbers revert to the LED-in-box row and the margin disappears, so ICD s7.7.3 states the wall path as a MECHANICAL REQUIREMENT and requires every daughter to declare its box-air vs wall split. Also resolves CAR-REQ-18 (two heat sources, one enclosure) favourably - the second source is 1.9 W, not 8.5 W.",
+   "phase": "P4",
+   "ts": "2026-07-28T20:37:03"
   }
  ],
  "history": [
@@ -538,6 +550,16 @@
    "status": "pass",
    "attempt": 1,
    "failing_count": 0
+  },
+  {
+   "ts": "2026-07-28T20:37:03",
+   "event": "decision",
+   "what": "CORRECTION to my own record: the rev A2 56 C af figure was NOT wrong - it was correct under an unstated assumption. Only the at figure was a genuine error. ICD rev A5."
+  },
+  {
+   "ts": "2026-07-28T20:37:03",
+   "event": "decision",
+   "what": "OPEN ITEM D CLOSED: the 802.3at upgrade does NOT require enclosure ventilation. Sealed closes to a 40 C room."
   }
  ]
 }
