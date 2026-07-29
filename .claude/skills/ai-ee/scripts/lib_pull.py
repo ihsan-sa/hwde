@@ -67,10 +67,17 @@ def _pull_one(lcsc: str, base: Path, no_3d: bool, overwrite: bool) -> dict:
     fps = _footprints_for_lcsc(pretty, lcsc)
     already = "already exists" in log
     created = "Created Kicad footprint" in log or "Created Kicad symbol" in log
-    if not fps and not sym_lib.exists():
+    # Success must be judged PER PART, from the filesystem. The old condition
+    # also accepted `sym_lib.exists()` - but aiee.kicad_sym is SHARED across
+    # every part, so once the first part landed, every subsequent part reported
+    # "pulled" whether or not anything was written for it. Measured on
+    # lumina-par: 44 of 44 "pulled", load_check ok, 13 parts actually on disk.
+    # _footprints_for_lcsc greps the pretty dir for this part's LCSC id, so it
+    # is a true per-part signal; keep the gate on it alone.
+    if not fps:
         return {"lcsc": lcsc, "status": "error",
                 "detail": (log.strip()[-400:] or f"easyeda2kicad rc={cp.returncode}, "
-                           "no library files produced")}
+                           "no footprint carrying this LCSC id was produced")}
 
     warnings = []
     fp_reports = []

@@ -1176,6 +1176,12 @@ legality is covered - EXCEPT that `_pad_box_local` reads `(size w h)` verbatim a
 (C427379 BSS123, Q102) has all three pads at ROT 90 with `(size 0.700 1.250)`, so placelib builds a
 0.70 mm-wide box where the truth is 1.25 mm - under-estimating each side by 0.275 mm.
 Checking courtyard presence is not the same as checking courtyard adequacy; measure the pad bbox.
+Corroboration from the same board: when L301's pull was swapped to KiCad stock
+`Inductor_SMD:L_Cenker_CKCS4030`, the stock footprint's courtyard CONTAINS its pads with 0.25 mm to
+spare (pull: pads 0.40 mm outside). "Swap to KiCad stock" fixes courtyard adequacy as a side effect.
+Watch the parser though: KiCad 10 stock uses the multi-line form where `(layer "F.CrtYd")` sits on
+its own line, so a line-oriented `if "CrtYd" in line` scan finds NO courtyard and reports a false
+"missing" - `fplib.parse_footprint` gets this right, ad-hoc greps do not.
 
 ## 2026-07-28 [librarian][easyeda2kicad] EasyEDA rate-limits at ~31 fetches / 13 min and lib_pull reports pass while symbols silently fail
 Extends the 2026-07-28 entry on `_pull_one`'s success heuristic. On a 50-part pull the anonymous
@@ -1200,3 +1206,58 @@ Two smaller findings from the same run:
 - **Pulled symbol libraries contain non-ASCII** (178 chars in a 50-symbol lib: CJK manufacturer names
   like `Infineon(...)`, plus Ohm and +/- signs). kiutils' `from_file` defaults to cp1252 and raises on
   these, so any downstream netlist/BOM reader must force UTF-8 explicitly.
+
+## 2026-07-29 [parts][thermal] A bridge rectifier's CURRENT rating is not a thermal rating - check RthJA before believing "1 A"
+Selecting the two PD input bridges on lumina-carrier: the obvious pick was an MB6S/MB10S in MBS,
+sold as a "1 A" bridge and stocked as JLC Basic. It fails thermally at the actual operating point.
+
+At 802.3at only ONE Alternative conducts, so a single package takes the whole load - not half of it.
+`2 x Vf(0.6 A) x 0.6 A` is ~0.83 W hot / ~1.06 W with no thermal credit. Measured from the
+datasheets: MBS package **RthJA 90 C/W**, mean rectifying current actually **0.5-0.8 A not 1 A**, and
+Vf ~1.03 V at 0.6 A -> **Tj ~176 C**, over the 150 C limit. The ABS/SOP-4 package (ABS210, 2 A /
+1000 V) is **65 C/W** -> Tj 118-133 C at the board's 64 C worst-case internal air. Same nominal
+"amps", completely different answer.
+
+Rule: for any rectifier or pass element, size on **RthJA x P_dissipated + T_ambient_internal**, not on
+the headline current. And check the *mean rectifying current* spec, which is often well below the
+part's marketing number. Note the JLC Basic constraint pushed toward the wrong part here - Extended
+was the correct choice and the only Basic bridge available was exactly the one that fails.
+
+## 2026-07-29 [magnetics][check_creepage] A magjack's shell board-lock pads can collapse HV-to-shield creepage independently of the isolation barrier
+Distinct from the chip-side/line-side barrier (see 2026-07-28 [check_creepage][gates][magnetics]).
+
+A magjack's shell board-lock pads are frequently the ONLY shell-to-board copper path - the large
+mounting holes are usually NPTH and carry no copper. On lumina-carrier's LPJG0926HENL land those
+pads sat 2.287 mm centre-to-centre from the VC1/VC4 PoE centre taps, giving **0.487 mm** of copper
+against the board's 0.635 mm HV rule.
+
+Unlike the isolation barrier, this one **IS** voltage-derived (48 V tap to a shell that is tied to
+GND through the shield hybrid), so `check_creepage` DOES model it and would have failed the board at
+P8 - after routing. Worth catching in the library.
+
+The fix is constrained from both sides at once: `gap = c_c - (w_a + w_b)/2` while every pad must keep
+>= 0.15 mm annular ring. On a 1.70 mm board-lock drill and a 0.90 mm tap drill the best simultaneous
+result is 0.687 mm, with both annulars exactly at the 0.15 mm minimum. Making the board-lock pad OVAL
+(narrow toward the tap, tall along it) buys the clearance while keeping copper under a pad that takes
+insertion force. Check both numbers after any such edit - it is easy to fix creepage and silently
+create an annular-ring violation instead.
+
+## 2026-07-29 [parts] lib_pull reported every part "pulled" once ONE part had landed
+_pull_one's failure gate was `not fps and not sym_lib.exists()` - but aiee.kicad_sym is SHARED across
+every part in the run, so after the first successful pull `sym_lib.exists()` was permanently true and
+every later part returned status "pulled" whether or not anything was written for it. Measured on
+lumina-par: `status: pass`, `44 of 44 pulled`, `load_check.ok: true`, and **13 parts actually on
+disk**. A half-empty library ships through a green gate and only fails much later at board_init or
+fp_verify. Fixed: the gate is now `not fps` alone - _footprints_for_lcsc greps the pretty dir for
+that part's own LCSC id, so it is a true per-part filesystem signal. Corollary for orchestrators:
+never accept lib_pull's own count; re-derive completeness from the filesystem, which is how the
+lumina-par librarian caught this.
+
+## 2026-07-29 [gates] fp_verify has NO drill handling, so a wrong THT annulus passes silently
+fp_verify.py / fplib.py model pads but not drills. On lumina-par the ICD-mandated connector geometry
+(1.70 mm annulus / 1.10 mm drill) came out of easyeda2kicad as J3 1.80 mm and J4 1.60 mm on a 1.050 mm
+drill, and fp_verify returned `pass` on both - because the annulus is unchecked AND the DS1023
+extraction omits `pad_size_mm` (the vendor publishes none), so both halves of the check were absent.
+Note the failure was ICD CONFORMANCE, not safety: as-pulled J3 still gave a 0.74 mm gap = 1.17x the
+0.635 mm rule. But a frozen interface two boards mate through is exactly where conformance matters.
+Verify THT annulus/drill against the ICD by hand at P3; the gate cannot do it.
