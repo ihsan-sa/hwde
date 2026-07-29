@@ -50,7 +50,7 @@ flowchart TB
   EF -->|"J3 1/3/5"| P48["+48V_SW<br/>0.174 A sust / 0.20 A limit"]
   BK -->|"J3 9/11"| P12["+12V<br/>3.8 mA"]
   R33 -->|"J3 12/14"| P33["+3V3<br/>0.2 mA"]
-  MCU -->|"J4"| SIG["PWM0-3 gates (timer 0)<br/>PWM4-7 amplitudes (timer 1)<br/>ENABLE FAULT<br/>ADC0 ADC1 ID_ADC<br/>I2C"]
+  MCU -->|"J4"| SIG["PWM0-3 gates: GPIO/RMT one-shots, NO timer<br/>PWM4-7 amplitudes: one LEDC timer, 13-bit/9.766kHz<br/>ENABLE FAULT<br/>ADC0 ADC1 ID_ADC (code 1, 2k7)<br/>I2C"]
 
   subgraph DTR["LUM-DTR-STROBE-A - this board"]
     direction TB
@@ -144,8 +144,9 @@ from-memory code resolving to the wrong part, and resolving codes is P3 parts_se
 **J3 CONNFLY DS1023-2\*7SF11** (POWER, 14 pos) and **J4 CONNFLY DS1023-2\*12SF11** (SIGNAL,
 24 pos), both **bottom side, sockets facing DOWN**, 8.5 mm bodies inside the 11.0 mm stack. Pin
 maps are the ICD's s3.1/s3.2 verbatim and are not restated here. This sheet also carries the
-**mandatory 100 k ENABLE pull-down**, the **ID_ADC bottom leg** (placeholder value; the code is
-allocated by the carrier owner and must be confirmed before P8), the two ADC RC filters (~10 nF
+**mandatory 100 k ENABLE pull-down**, the **`ID_ADC` bottom leg - `R_ID` = 2.7 kohm 1 %, which is
+ICD rev A6 s3.4 code 1, LUM-STR-A** (`V_ID` = 0.702 V against the carrier's 10 k top leg), the two
+ADC RC filters (~10 nF
 at each pin - the bank divider's 9.43 k source impedance sits right at the ICD's 10 k ceiling and
 SAR sampling charge wants a local reservoir), small local bulk on `+12V` (**<= 4.7 uF**, so the
 error amp dies promptly on unplug rather than holding the gate up) and on `+3V3`, the five
@@ -485,7 +486,16 @@ also lands on the carrier's 3.3 V `FAULT` pin would forward-bias the carrier's i
 2N7002 gate clamps want anyway - 12 V on a 2N7002 gate is well inside its 20 V `Vgs` limit. **One
 additional 2N7002, `Q404`, translates `/OT_TRIP` down to `FAULT` as an open-drain output with no
 pull-up**, so the carrier's 10 k still owns the net and **`FAULT` is never driven high**, exactly
-as ICD s3.3 requires. Cost: one transistor and two resistors.
+as the ICD requires. Cost: one transistor and two resistors.
+
+**[REV E] The sink-current requirement `Q404` is sized against, from ICD rev A6 s2:** a daughter
+asserting `FAULT` must sink **>= 5 mA**, because **the carrier hangs its red fault LED on that net**
+as well as the 10 k pull-up - the real load is ~4.3 mA, not the 0.33 mA a 10 k to 3.3 V alone would
+suggest. **A comparator output driving `FAULT` directly would have been sized against the wrong
+load.** `Q404` (2N7002) is 115 mA continuous with `Rds(on)` ~1.2-2 ohm, so **`VOL` at 5 mA is
+~10 mV** - three orders of magnitude of margin on the sink, and its 60 V `Vds` holds off a 3.3 V
+pull-up with equally little effort. **The translation stage was added for a level-shift reason and
+happens to be the only thing on the board that could have met this requirement anyway.**
 
 `/OT_TRIP` pulls **all four** pass-FET gate clamps directly, and `FAULT` through `Q404`.
 `FAULT` is **never driven high** - this board fits no pull-up; the carrier's 10 k owns it, and an
@@ -722,39 +732,98 @@ This is the section H1 asked to be re-worked, and the answer has two halves. **T
 allocation closes cleanly - better than rev A feared.** **What does not close is `BANK_ARM`, which
 in rev A sat on `PWM1` and now has nowhere to go.** That is the real finding for H2.
 
-### 4.1 The rules, restated exactly
+### 4.1 The rules, restated exactly - **[REV E] the two-timer partition is WITHDRAWN**
 
-ICD s3.3: `PWM0-3` = LEDC **timer 0**, `PWM4-7` = LEDC **timer 1**; **channels on one timer share
-frequency AND resolution** (CAR-REQ-11); default 13-bit at 9.766 kHz. **LEDC timers 2 and 3 are
-unallocated on the carrier and available on request.** ICD s3.2 shows J4 fully assigned across all
-24 positions: **there is no spare signal pin.**
+> **ICD rev A6 s3.5 (NORMATIVE) supersedes the s3.3 text this section was written against.** The ICD
+> now says outright that *"the previous statement that PWM0-3 sit on LEDC timer 0 and PWM4-7 on
+> timer 1 is withdrawn - it was wrong for the strobe and would have mis-specified two boards."*
+> **The constraint this section spent most of rev B working around no longer exists.**
 
-### 4.2 The allocation - eight channels, four colours, and it works
+What replaces it:
 
-| Pin | Timer | Colour | Function | Waveform |
-|---|---|---|---|---|
-| **PWM0** | 0 | W | `FLASH_GATE_W` | 5-200 ms one-shot at 1-25 Hz |
-| **PWM1** | 0 | R | `FLASH_GATE_R` | 5-200 ms one-shot at 1-25 Hz |
-| **PWM2** | 0 | G | `FLASH_GATE_G` | 5-200 ms one-shot at 1-25 Hz |
-| **PWM3** | 0 | B | `FLASH_GATE_B` | 5-200 ms one-shot at 1-25 Hz |
-| **PWM4** | 1 | W | `AMP_SET_W` | 13-bit at the ICD default 9.766 kHz, RC-filtered and divided into the reference |
-| **PWM5** | 1 | R | `AMP_SET_R` | as above |
-| **PWM6** | 1 | G | `AMP_SET_G` | as above |
-| **PWM7** | 1 | B | `AMP_SET_B` | as above |
+- **The carrier does not hard-assign timers.** Each daughter **declares its own channel -> timer ->
+  frequency map in its design document**, and carrier firmware applies that map from the `ID_ADC`
+  code. **s4.2 below is that declaration** - it is now a published interface artifact, not an
+  internal note.
+- **Hardware ceiling (not negotiable):** 8 channels, **4 timers**, low-speed mode only, **14-bit
+  maximum** resolution. Channels sharing a timer share **both** frequency and resolution.
+- **The GPIO/RMT one-shot flash gate is explicitly legal**: *"these pins are ordinary GPIOs and
+  nothing on the carrier forces them into LEDC"*, and *"it is NOT true that all 8 channels sit at
+  the default frequency."* **Route 1 of rev B s4.3 is now the ICD's own recommendation.**
+- **A 14-bit / 4.883 kHz mode exists** (CR-3, granted) alongside the 13-bit / 9.766 kHz default.
+  **This board declines it - s4.2.1.**
+- **CR-4 granted:** carrier firmware applies a **90-degree phase stagger** across any four or more
+  channels sharing a timer. **This board runs four amplitude channels on one timer, so the stagger
+  applies to it** - see s4.2.2.
 
-**Pin `n` and pin `n+4` are the same colour.** The map is chosen so that the ICD's timer partition
-lines up exactly with the functional split.
+ICD s3.2 still shows J4 fully assigned across all 24 positions: **there is no spare signal pin**, and
+that is what `BANK_ARM` still runs into (s4.4).
 
-**Why it closes, and why the feared conflict never arises.** The worry going in was that gates and
-amplitudes would be forced to share a timer, and that a timer re-programmed to a 1-25 Hz flash rate
-cannot simultaneously carry a 9.766 kHz filtered-DC amplitude channel. **That is true, and it is
-exactly why the split above is the only correct one:** all four gates land on timer 0 and all four
-amplitudes land on timer 1, so no timer is ever asked to do both. The ICD's own PWM0-3 / PWM4-7
-partition happens to be the right shape. Four amplitude channels sharing one 9.766 kHz / 13-bit
-timer is a **non-issue** - they share frequency and resolution and differ only in duty, which is
-precisely what four independent amplitudes need.
+### 4.2 LUM-DTR-STROBE-A channel -> timer -> frequency map - **NORMATIVE DECLARATION**
 
-### 4.3 The gates: three ways to produce them, ranked
+**This table is the artifact ICD rev A6 s3.5 requires each daughter to publish.** Carrier firmware
+applies it on reading `ID_ADC` **code 1** (s2.1). It is an interface contract, not an internal note.
+
+| Pin | Colour | Function | **Peripheral** | **LEDC timer** | **Frequency / resolution** | Waveform |
+|---|---|---|---|---|---|---|
+| **PWM0** | W | `FLASH_GATE_W` | **GPIO / RMT one-shot** | **none** | n/a | 5-200 ms one-shot at 1-25 Hz |
+| **PWM1** | R | `FLASH_GATE_R` | **GPIO / RMT one-shot** | **none** | n/a | as above |
+| **PWM2** | G | `FLASH_GATE_G` | **GPIO / RMT one-shot** | **none** | n/a | as above |
+| **PWM3** | B | `FLASH_GATE_B` | **GPIO / RMT one-shot** | **none** | n/a | as above |
+| **PWM4** | W | `AMP_SET_W` | LEDC | **timer A** | **13-bit / 9.766 kHz** (the ICD default) | filtered DC setpoint |
+| **PWM5** | R | `AMP_SET_R` | LEDC | **timer A** | 13-bit / 9.766 kHz | filtered DC setpoint |
+| **PWM6** | G | `AMP_SET_G` | LEDC | **timer A** | 13-bit / 9.766 kHz | filtered DC setpoint |
+| **PWM7** | B | `AMP_SET_B` | LEDC | **timer A** | 13-bit / 9.766 kHz | filtered DC setpoint |
+
+**Totals: 1 LEDC timer consumed, 3 free. 4 RMT or GPIO-timer channels consumed.** Pin `n` and pin
+`n+4` are the same colour.
+
+**Rev B feared a conflict that the ICD has now dissolved.** The worry was that gates and amplitudes
+would be forced onto the same timer, and that a timer re-programmed to a 1-25 Hz flash rate cannot
+simultaneously carry a 9.766 kHz filtered-DC channel. **That is still true as physics** - it is why
+the map above puts the gates on no timer at all - **but it is no longer a constraint imposed by the
+carrier.** The strobe now uses **one** timer where rev B budgeted two, and leaves three free instead
+of none. **Any remaining text elsewhere in this package that treats the two-timer partition as a
+constraint is obsolete; s4.3 below is retained only as the rationale for choosing RMT.**
+
+#### 4.2.1 The 14-bit / 4.883 kHz option - **DECLINED, with the arithmetic**
+
+CR-3 offers 14-bit at 4.883 kHz, doubling low-end resolution. The ICD asks each daughter to
+evaluate it, and STR-REQ-04's "barely visible 10-20 % slow pulse" is the case that would want it.
+**This board declines. Three reasons, in the order that decides it:**
+
+1. **Resolution is not the limiting error, and is not close to being it.** At 13-bit the setpoint
+   LSB is `2.6 A / 8192` = **0.317 mA**, which at the 10 % dim point (0.26 A) is **0.12 %**. The
+   LM2904B's input offset of 3 mV against the 52 mV setpoint at that point is **5.8 %**. **The
+   offset dominates the resolution by 47x.** Doubling a resolution that is already 47x finer than
+   the dominant error term buys nothing measurable.
+2. **It doubles the setpoint ripple.** RC ripple scales as `1/f` well above cutoff, so the
+   **2.6 %** of full scale at 9.766 kHz becomes **5.2 %** at 4.883 kHz - and that ripple is a real
+   current modulation on the LED, not a number in a table.
+3. **Restoring the ripple would break the amplitude-programming contract.** Getting back to 2.6 %
+   needs the setpoint `tau` doubled to 2 ms, which takes 1 % settling from 4.6 ms to **9.2 ms** -
+   against a **shortest normal pulse of 2.67 ms** (s4 at 25 Hz). The setpoint would no longer settle
+   inside the flash it applies to.
+
+**And the fourth reason, which is judgement rather than arithmetic: 4.883 kHz costs camera-flicker
+margin on the one fixture in the rig most likely to be filmed.** A strobe is what phones get pointed
+at. **Stay at 13-bit / 9.766 kHz.**
+
+#### 4.2.2 CR-4 phase stagger - applies here, and it is harmless
+
+This board runs **four** channels on one timer, so carrier firmware applies the 90-degree `hpoint`
+stagger. **Effect on this board: none on the DC setpoints** (a phase offset does not change the
+filtered mean), and two small benefits - the four RC filters no longer draw their charging current
+simultaneously, and the residual ripple on the four setpoints is decorrelated, so the four colours'
+current ripple cannot sum coherently. **Accepted as-is; no board change and nothing to design
+around.**
+
+### 4.3 The gates: three ways to produce them, ranked - **[REV E] settled by ICD rev A6**
+
+> **Route 1 was this document's recommendation and the ICD has since adopted it as its own.** The
+> table below is retained as the *rationale* for choosing RMT, not as an open question. **Route 3
+> (requesting LEDC timers 2/3) is now moot in both directions**: the timers were never the scarce
+> resource, and the ICD no longer hard-assigns any of them.
 
 **A 5-200 ms one-shot at 1-25 Hz is still not a duty cycle on a 9.766 kHz carrier.** One period is
 102.4 us; an 8.68 ms flash is 85 consecutive periods. Rev A had two escapes; with four colours there
@@ -762,7 +831,7 @@ are three, and they are no longer equivalent:
 
 | # | Route | Independent flash rate per colour? | ICD change? | Cost |
 |---|---|---|---|---|
-| **1** | **Drive `PWM0-3` as plain GPIO / RMT one-shots** from a hardware timer or the RMT peripheral. LEDC timer 0 is then simply unused by this daughter | **Yes, all four independent** | **None.** s3.3's electrical contract is "push-pull CMOS 3.3 V" and an RMT output is exactly that; the timer allocation becomes vestigial for timer 0 | zero |
+| **1** | **Drive `PWM0-3` as plain GPIO / RMT one-shots** from a hardware timer or the RMT peripheral. **No LEDC timer is consumed at all** | **Yes, all four independent** | **None - and ICD rev A6 s3.5 now says so explicitly**: "these pins are ordinary GPIOs and nothing on the carrier forces them into LEDC" | zero |
 | 2 | Re-program LEDC timer 0 to the flash rate. Per-channel `hpoint` gives independent phase and duty gives independent width | **No - one shared flash PERIOD.** Off-beats work (phase); different subdivisions do not | None | zero |
 | 3 | Request LEDC timers 2/3 and re-point two of the gate channels at them | Three independent rates, not four | **s3.3 amendment** | zero |
 
@@ -832,9 +901,18 @@ no I2C. The expander can *read* the latches; it can neither set nor clear one.
   armed operation at 25 Hz puts 1.41 W into one pass FET, which **fails the P8 thermal gate at every
   ambient including the ICD's own 56 C** (`power_tree.md` s10). The board tolerates it as a burst
   because the D2PAK + pour time constant is 60-120 s; it does not tolerate it as a mode.
-- **[REV B] The governor's cap is now a rail-power cap, not a rate cap.** See `power_tree.md` s10.4:
-  at 85 C air keep `P_rail <= 7.9 W`, at 90 C air `<= 6.9 W`. Both are enforced by the same
-  average-energy governor CAR-REQ ICD s6.2 already requires.
+- **[REV E] The rail-power governor cap of rev B/C is WITHDRAWN as an operating constraint** - see
+  `power_tree.md` s10.8. At the ICD's published 70 C ceiling every steady-state row passes with
+  1.33x, so there is nothing to cap. It survives only as contingency documentation.
+- **[REV E] Do NOT design against the carrier metering this board's average power.** ICD rev A6
+  s6.2.1: the eFuse's `IMON` output has **no datasheet-guaranteed accuracy below 0.6 A**, and this
+  rail runs at 0.25 A (af) - so the governor's feedback is good to roughly **+/-20 %** at the
+  current it actually regulates. **This board does not depend on it**, for two independent reasons:
+  (a) the flash schedule is *commanded*, so rail power is known feed-forward from energy x rate,
+  not measured; and (b) the charge path is **hard-limited at 0.20 A in hardware**, so `P_rail` can
+  never exceed 9.6 W however badly firmware mis-meters. **And the thermal protection that actually
+  matters is the NTC trip, which is firmware-independent by construction (STR-REQ-20).** Treat
+  `IMON` as the ICD suggests - **a guard, not a meter.**
 
 ---
 
@@ -1141,7 +1219,7 @@ by far the most expensive line and is now ~5x the cost of the board that drives 
 | D-STR-01 | **Stackup `JLC04161H-3313`, 4 layers**, In1 + In2 both solid GND, In2 deliberately NOT a `/VBANK` plane | **unchanged by RGBW.** Four drain pours do not overturn it - they strengthen driver 1 (48 V routing density) and driver 4 (the 4-layer thermal model). See `stackup.md` s1.1 |
 | D-STR-02 | **Four identical drive stages**, one per colour, full 2.6 A each, no per-colour current cap | new, s6.2 |
 | D-STR-03 | **Drain pour = 350 mm2 F.Cu + 350 mm2 B.Cu mirror + >= 12 vias, per power FET.** Copper past `a_eff` 645 mm2 scores nothing | new, s6.1 - **corrects rev A's 1000/645 mm2** |
-| D-STR-04 | **Gates on PWM0-3 (timer 0) as GPIO/RMT one-shots; amplitudes on PWM4-7 (timer 1) at the ICD default.** No timer ever carries both | new, s4.2/s4.3 |
+| D-STR-04 | **[REV E] Gates on PWM0-3 as GPIO/RMT one-shots consuming NO LEDC timer; all four amplitudes on ONE LEDC timer at 13-bit / 9.766 kHz.** 1 timer used, 3 free. Published as the normative channel->timer->frequency map ICD rev A6 s3.5 requires. **14-bit/4.883 kHz declined** (s4.2.1) | s4.2, s4.2.1 |
 | D-STR-05 | **`BANK_ARM` moves to an I2C I/O expander**, active-low, fail-safe to disarmed | new, s4.4 - **the H2 finding** |
 | D-STR-06 | **Per-colour sense = fault-latch attribution only.** No per-colour current or temperature telemetry; open-string caught by bank-droop self-test | new, s4.5 |
 | D-STR-07 | **Protect goes from 2 dual to 2 quad comparators**, LM2901 class, +125 C grade mandatory board-wide | new, s2.4 |

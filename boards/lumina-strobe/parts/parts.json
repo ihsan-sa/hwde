@@ -3,46 +3,99 @@
   "board": "LUM-DTR-STROBE-A",
   "build_quantity": 6,
   "totals": {
-    "distinct_parts": 40,
-    "distinct_basic": 17,
-    "distinct_extended": 23,
-    "placements_per_board": 167,
-    "bom_cost_per_board_at_qty6": 15.24,
-    "bom_cost_build_6": 91.41,
-    "extended_setup_fee_estimate": "~$3 per distinct Extended part per order = ~$69 over the run (~$11.50/board at 6)"
+    "distinct_parts": 50,
+    "distinct_basic": 24,
+    "distinct_extended": 26,
+    "placements_per_board": 194,
+    "bom_cost_per_board_at_qty6": 15.6,
+    "bom_cost_build_6": 93.6,
+    "extended_setup_fee_estimate": "~$3 per distinct Extended part per order = ~$78 over the run (~$13.00/board at 6)"
   },
-  "revision": "REV C, 2026-07-28 - resourced against blocks.md s2.2 / power_tree.md s3.0-s3.3 rev C, after BLOCKING-04 deleted the hot-swap controller. Rev B of this file raised P3-OPEN-1 (the fault timer cannot survive an 87 %-duty current-limit regime); the architect accepted it, and this revision sources the discrete linear limiter that replaced the controller. Every added part was re-verified live at selection time.",
-  "delta_from_rev_b": {
-    "deleted": [
-      "C111822 LM5069MM-2/NOPB - the hot-swap controller. Was simultaneously the most expensive part on the board ($6.33), an Extended part, and a flagged single-source risk. Deleted outright by BLOCKING-04.",
-      "C50842 0.27R 1206 - the controller's current-limit sense resistor. The 19.5 ohm ballast is the sense element now.",
-      "C22807 150k 0603 - R_PWR, the PLIM power-limit programming resistor. Existed only for the controller; power_tree s3.0.1 records that PLIM never engaged anyway, so nothing is lost with it."
+  "revision": "REV D, 2026-07-28. Rev B raised P3-OPEN-1 (a hot-swap fault timer cannot survive an 87 %-duty current-limit regime); rev C resourced the discrete linear limiter that replaced the controller after BLOCKING-04 accepted it. REV D does three things: fixes R2, which was announcing this board as the wrong daughter type; sources the rev-D comparator hysteresis network with the high-value resistors retargeted to the JLC Basic shelf where that is free; and promotes P3-OPEN-6 to a P10 cost item. Every changed part re-verified live.",
+  "delta_from_rev_c": {
+    "correctness_fix": [
+      "R2 ID_ADC bottom leg: 4.7k (C23162) -> 2.7k 1% (C13167). 4.7k is ICD-01 s3.4 CODE 2 = LUM-PAR-A; this board is CODE 1 = 2.7 kOhm. Left as-is the board would have announced itself to carrier firmware as the RGBW par and been handed the wrong daughter profile. 1 % is required, not 5 %: adjacent-code separation is 0.353 V against ~+/-0.05 V of worst-case divider error and a +/-0.15 V firmware detection window. CLOSES P3-OPEN-5."
     ],
     "added": [
-      "C2622 IRF5210STRLPBF - P-channel 100 V D2PAK charge pass element, x1.",
-      "C175263 CRH2512F39R0E04Z 39R 2512 2 W 1% 200 V - the ballast AND the sense element, x2.",
-      "C500776 MMSZ5242B-7-F 12 V SOD-123 - floating-rail zener + Q100 gate-source clamp, x2.",
-      "C17575 0805W8F2402T5E 24k 0805 1% 150 V - floating-rail dropper from +48V_SW, x1. JLC Basic, so no new feeder."
+      "C13167 2.7k 0603 1% x1 (R2) - Basic.",
+      "C23206 56k 0603 x1, C4184 20k 0603 x1, C23186 5.1k 0603 x1, C23189 5.6k 0603 x1 - the four comparator reference-divider legs blocks.md s2.4.2 pins. All Basic, no feeders.",
+      "C23192 510k 0603 x1 - U400A board-OT hysteresis, RETARGETED from the specified 560k.",
+      "C22807 150k 0603 x1 - U400B LED-OT hysteresis, specified value taken exactly (Basic).",
+      "C23252 820k 0603 x1 - U400C UVLO hysteresis, KEPT EXTENDED AND FLAGGED.",
+      "C23219 620k 0603 x1 - U400D ceiling hysteresis, KEPT EXTENDED AND FLAGGED.",
+      "C110042 SMAJ12CA bidirectional TVS x2 - J300 thermistor-line ESD, blocks.md s2.4.3. SOURCED BEYOND THE THREE ITEMS ASKED FOR; say so if it should come out."
     ],
     "reuse_count_changed": [
-      "C1849422 LM2904BIDR 4 -> 5 (U100 is the charge-loop error amplifier). No new feeder - this is why the new loop adds no IC.",
-      "C8545 2N7002 14 -> 15 (Q101 ENABLE level shift into the loop reference).",
-      "C23708 IRF640NSTRLPBF 5 -> 4 - THE GIVE-BACK. Q100 leaves the consolidation because it is P-channel now, so the five-FETs-one-part-number saving covers the four pass FETs only and one feeder comes back.",
-      "C149504 100k 0805 1 -> 2 (R103, the source-to-gate resistor that is the charge path's interlock of record).",
-      "C25803 100k 0603 4 -> 5 (Q410 gate pull-down, made mandatory by the MCP23008's high-Z POR state).",
-      "C25804 10k 0603 14 -> 16 (the 'Q101 + 2 R' level shift; MY ESTIMATE, values not pinned by the architecture).",
-      "C14663 100nF 0603 14 -> 15 (charge-loop compensation capacitor; MY ADDITION - a linear loop driving a 2.78 nF Ciss needs one and power_tree s3.3 does not enumerate it).",
-      "C28233 100nF 100V 0805 2 -> 1 (the controller VCC bypass went with the controller and the dv/dt gate cap is deleted outright - s3.1 rev C: 'No dv/dt element is used at all'). Retained as the +48V_SW local input bypass.",
-      "C15849 1uF 0603 - quantity unchanged at 1, ROLE changed from C_TIMER to the floating 12 V rail bypass."
+      "C17514 1M 0805 1 -> 5. The four Vds-fault hysteresis resistors (~1 M, blocks.md s2.4.2) REUSE A LINE ALREADY ON THE BOM: zero new part number, zero value shift, zero feeder. This is the single biggest win of the retargeting exercise.",
+      "C25804 10k 0603 16 -> 27 (three reference-divider legs plus THE EIGHT 10 k PULL-UPS TO +12V, one per open-collector output - and R_pull sits inside the hysteresis divider, so it is part of the band arithmetic, not garnish).",
+      "C8545 2N7002 15 -> 16 (Q404, the /OT_TRIP -> FAULT open-drain translator that the hysteresis pull-ups forced - blocks.md s2.4.4).",
+      "C21190 1k 0603 6 -> 8 (the two J300 series resistors, which MUST sit after the divider tap, not in the loom).",
+      "C57112 10nF 0603 6 -> 8 (J300 ESD filters).",
+      "C15849 1uF 0603 1 -> 2 (the shared comparator bulk of blocks.md s2.4.3).",
+      "C23162 4.7k 0603 5 -> 4 (R2 left this line for 2.7k).",
+      "C31850 22k 0603 8 -> 6 and C25819 47k 0603 8 -> 6 - the generic P4 estimate pool shrinks because ~20 previously-unpinned placements now have specified values."
     ],
-    "cost": "BOM $20.53 -> $15.24 per board at qty 6 (-$5.29). Distinct parts 39 -> 40; Basic 17 -> 17; Extended 22 -> 23, so Extended setup goes ~$66 -> ~$69 over the run. All-in with ~$3 PCB: ~$34.50 -> ~$29.74 per board."
+    "rev_c_items_confirmed_present": "Yes to all: LM2904BIDR is at 5 placements (U100 is the charge-loop error amp), 2N7002 carries the extra Q101 (and now Q404 as well, 16 total), Q100 is IRF5210STRLPBF P-channel, and the ballast (2 x 39R 2512), the two 12 V zeners and the 24k bias dropper are all present. LM5069, the 0.27R sense resistor and the PLIM 150k were deleted at rev C - note that the 150k LCSC code C22807 RETURNS at rev D for an unrelated reason (the LED-OT hysteresis).",
+    "cost": "BOM $15.24 -> $15.60 per board at qty 6 (+$0.36, almost all of it the hysteresis network's placement count rather than its part cost). Distinct parts 40 -> 50; Basic 17 -> 24; Extended 23 -> 26. Placements 167 -> 194. Extended setup ~$69 -> ~$78 over the run (~$13/board). All-in with ~$3 PCB: ~$31.60/board."
+  },
+  "hysteresis_retargeting_report": {
+    "method": "For each high-value resistor in blocks.md s2.4.2, checked JLC Basic availability at the specified value, then at the nearest E24 neighbours, in 0603 and 0805. Band effects recomputed from the architecture's own formula: band = R_ref x [(12 - V_ref)/(R_pull + R_hyst) + (V_ref - 0.25)/R_hyst], R_pull = 10k, V_OL = 0.25 V.",
+    "results": [
+      {
+        "section": "U401A-D Vds fault, x4",
+        "asked": "~1 M",
+        "selected": "1M 0805 (C17514)",
+        "type": "Basic",
+        "shift": "0 % - and NO NEW LINE AT ALL",
+        "verdict": "BEST OUTCOME. This value was already on the BOM as the bleed-switch gate bias, so four placements were absorbed into an existing line. Reuse beat E24-neighbour hunting here, exactly as predicted."
+      },
+      {
+        "section": "U400B LED-module OT",
+        "asked": "150 k",
+        "selected": "150k 0603 (C22807)",
+        "type": "Basic",
+        "shift": "0 %",
+        "verdict": "TAKEN. The specified value is already on the Basic shelf; band stays 379 mV = 5.2 C of solder point, 25x Vio."
+      },
+      {
+        "section": "U400A board OT",
+        "asked": "560 k",
+        "selected": "510k 0603 (C23192)",
+        "type": "Basic",
+        "shift": "-8.9 % resistance -> band 175.3 mV -> 192.2 mV (+9.6 %)",
+        "verdict": "TAKEN. 560k is not Basic in any size. Physically this is 5.0 C -> 5.4 C of tab hysteresis and Vio margin 12x -> 12.8x. It is a slow thermal trip with the largest margin of the four sections and the shift is in the safe direction (more chatter immunity), so 0.4 C changes nothing operationally. Saves one Extended feeder."
+      },
+      {
+        "section": "U400C bank UVLO",
+        "asked": "820 k",
+        "selected": "820k 0603 (C23252)",
+        "type": "Extended - KEPT",
+        "shift": "0 % (not retargeted)",
+        "verdict": "FLAGGED, NOT TAKEN. There is no Basic E24 neighbour at all - 750k, 820k and 910k are absent from the Basic shelf in both 0603 and 0805. The only nearby Basic value is 1M (+22 %), which would shrink the band 58.7 -> 48.2 mV (-17.9 %) = 1.02 V -> 0.84 V of bank, and move Vio margin 3.9x -> 3.2x. blocks.md s2.4.2 judgement call 1 states the UVLO is ALREADY the tightest band on the board and is deliberately not widened, so spending a further 18 % of it to save ~$3 of setup is the architect's call, not P3's."
+      },
+      {
+        "section": "U400D bank ceiling",
+        "asked": "620 k",
+        "selected": "620k 0603 (C23219)",
+        "type": "Extended - KEPT",
+        "shift": "0 % (not retargeted)",
+        "verdict": "FLAGGED, NOT TAKEN. Again no Basic E24 neighbour (560k, 680k, 750k all absent from the Basic shelf). Nearest Basic is 510k, -17.7 % resistance, which WIDENS the band 81.9 -> 99.3 mV (+21.3 %) = 1.42 V -> 1.73 V of bank. That is a 0.31 V bite out of the 8.3 V operating window on the ceiling comparator specifically, so unlike the board-OT shift it is not free."
+      }
+    ],
+    "net": "Of the five high-value positions, three cost no Extended line at all (one by reuse, one exact-Basic, one retargeted) and two are flagged for the architect. Extended lines added by the hysteresis network: 2, against 3 if every specified value had been taken as-is. If the architect accepts both flagged moves, the network costs ZERO Extended lines."
   },
   "extended_reduction_options": [
+    {
+      "target": "C23252 820k 0603 and C23219 620k 0603 (1 placement each)",
+      "option": "see hysteresis_retargeting_report - 1M and 510k respectively are the only Basic options and both move a band materially. Architect's call.",
+      "saves": "up to two Extended part numbers (~$6 setup, ~$1.00/board at qty 6)",
+      "decision_owner": "architect - these are hysteresis bands, not sourcing choices"
+    },
     {
       "target": "C17840 82k 0805 (10 placements)",
       "option": "build both divider top legs from 2 x 100k 0805 (C149504, JLC Basic, already on this BOM) instead of 2 x 82k. Rth goes 9.43k -> 9.52k, still inside the ICD's 10k ADC limit; the bank and Vds dividers stay identical to each other so the Vds trip stays ratiometric. Cost: ADC0 full scale falls from 3.28 V to 2.71 V at 57 V, i.e. ~17 % less resolution on the bank telemetry.",
       "saves": "one distinct Extended part number (~$3 setup, ~$0.50/board at qty 6)",
-      "decision_owner": "P4 - it changes a declared divider ratio and the firmware scale factor, so it is not a sourcing substitution"
+      "decision_owner": "P4"
     },
     {
       "target": "C25973 5.36k 0603 (4 placements, $0.0015 each)",
@@ -52,63 +105,69 @@
     }
   ],
   "deviations_from_architecture": [
-    "Q100 = IRF5210STRLPBF rather than a named MPN - blocks.md s2.2 rev C specifies only 'P-channel MOSFET, 100-150 V, D2PAK/DPAK'. Selected on die area at equal price: RthJC 0.75 vs 1.1 C/W and PD 170 vs 110 W against the IRF9540NS, with 3.7x the stock. See P3-OPEN-7 for what its SOA plot does and does not cover.",
-    "U201..U351: SN74LVC1G3157DCKR (UMW) still replaces the SGM3157 the architecture named, but the temperature rationale is CORRECTED - see P3-OPEN-9. Kept as a documented derating exception.",
-    "U420: MCP23008T-E/SS still replaces the PCF8574 / TCA9534 class, but the temperature rationale is CORRECTED and VOID - see P3-OPEN-8. Kept as a documented derating exception.",
-    "U200..U350: LM2904BIDR (-40..+125 C) rather than plain LM2904 (-40..+105 C). +$0.18/board, and the part now also serves the charge loop.",
-    "Q200..Q350: the four pass FETs remain one IRF640NSTRLPBF part number. The rev-B five-FET consolidation is PARTLY REVERSED by BLOCKING-04 - recorded, not hidden.",
-    "J200/J300: CJT A3963WV-6P (VH-series-compatible, 10 A / 250 V) and A2541WV-4P, both -40..+105 C, rather than genuine JST VH/XH at -25..+85 C. THIS CLOSES power_tree s10.5's housing question OUTRIGHT - no derating exception is needed, unlike U420 and U201. It is the one temperature item on this board that is genuinely solved rather than documented."
+    "R450 = 510k rather than the specified 560k - retargeted to the Basic shelf at +9.6 % band. See hysteresis_retargeting_report.",
+    "Q100 = IRF5210STRLPBF rather than a named MPN - blocks.md s2.2 rev C specifies only 'P-channel MOSFET, 100-150 V, D2PAK/DPAK'. Selected on die area at equal price: RthJC 0.75 vs 1.1 C/W and PD 170 vs 110 W against the IRF9540NS, with 3.7x the stock. See P3-OPEN-7.",
+    "U201..U351: SN74LVC1G3157DCKR (UMW) replaces the SGM3157 the architecture named; the temperature rationale is corrected in P3-OPEN-9 and the exception now clears against ICD s7.7.",
+    "U420: MCP23008T-E/SS replaces the PCF8574 / TCA9534 class; rationale corrected in P3-OPEN-8 and the exception now clears against ICD s7.7.",
+    "U200..U350 + U100: LM2904BIDR (-40..+125 C) rather than plain LM2904 (-40..+105 C).",
+    "Q200..Q350: the four pass FETs remain one IRF640NSTRLPBF part number. The rev-B five-FET consolidation was PARTLY REVERSED by BLOCKING-04 - recorded, not hidden.",
+    "J200/J300: CJT A3963WV-6P (VH-series-compatible, 10 A / 250 V) and A2541WV-4P, both -40..+105 C, rather than genuine JST VH/XH at -25..+85 C. Closes power_tree s10.5's housing question outright - no derating exception needed."
   ],
   "open_items": [
     {
-      "id": "P3-OPEN-1",
-      "severity": "RESOLVED",
-      "item": "The hot-swap controller's fault timer versus the 87 %-duty current-limit regime. Raised by P3 in rev B from the datasheets (TPS2490 25 uA charge / 2.5 uA sink = 9.09 % break-even duty; LM5069 85 uA / 2.5 uA = 2.86 %). Accepted as BLOCKING-04 and fixed in the architecture, not in sourcing: the controller is deleted and the limiter is a discrete linear loop with no timer. This file is resourced against that topology."
+      "id": "P3-OPEN-6",
+      "severity": "P10 COST ITEM - compounds across the fixture",
+      "item": "MANUAL ASSEMBLY IS NOT A FOOTNOTE ON THIS BOARD AND IT MUST BE COUNTED AT P10. J3 and J4 are REVERSE-MOUNTED THT sockets on the BOTTOM side (the ICD requires them to face down) and the bank is FOUR RADIAL THT electrolytics on the top. Neither is a standard JLC top-side SMD PCBA line. requirements s7 / open question 6 default (a) hand-finishes them locally at this quantity, which is viable for 4-6 boards but is real labour: 2 reverse-mounted sockets + 4 radial cans + the J200/J300 wire-to-board headers = 8 hand-soldered parts per daughter, plus the harness crimping. ORDER_QUOTE AT P10 MUST NOT ASSUME JLC FITS ANY OF THEM. AND IT COMPOUNDS: the carrier is separately accumulating a hand-fitted magjack, so the manual step count belongs in ONE place at P10 for the whole fixture, not per-board where it looks small twice."
+    },
+    {
+      "id": "P3-OPEN-5",
+      "severity": "CLOSED",
+      "item": "R2 / ID_ADC board-type code. Was a 4.7k placeholder pending a carrier-owner allocation. ICD-01 s3.4 (rev A3) is now NORMATIVE and allocates LUM-STR-A code 1 = 2.7 kOhm 1%. Fixed in this revision. NOTE FOR WHOEVER CITES THE ICD NEXT: the document header still reads 'frozen at H1. Rev A3' while its own parenthetical lists amendments through A6 - cite the section and its amendment revision, not the header."
+    },
+    {
+      "id": "P3-OPEN-12",
+      "severity": "architect decision, 2 Extended lines",
+      "item": "TWO HYSTERESIS VALUES COULD NOT BE RETARGETED TO THE BASIC SHELF WITHOUT MOVING A BAND MATERIALLY, so they are flagged rather than taken: U400C UVLO 820k (only Basic option is 1M, band -17.9 %, Vio margin 3.9x -> 3.2x on the band the architecture already calls the tightest) and U400D ceiling 620k (only Basic option is 510k, band +21.3 % = 0.31 V more of the 8.3 V window consumed). Full arithmetic in hysteresis_retargeting_report. Accepting both would take the network to zero Extended lines and save ~$1.00/board."
     },
     {
       "id": "P3-OPEN-7",
       "severity": "carry to DOC-01",
-      "item": "NO P-CHANNEL MOSFET IN THE JLC CATALOGUE CHARACTERISES SOA AT THE 590 ms COLD START. Verified against the datasheet, not the attribute strings: the selected IRF5210S Fig 8 'Maximum Safe Operating Area' plots exactly three single-pulse lines - 100 usec, 1 msec, 10 msec - annotated 'Tc = 25 C, Tj = 150 C, Single Pulse'. It is Tc-REFERENCED and there is NO DC LINE at all. IRF9540NS publishes the identical three-line set with the identical annotation. The 590 ms event is 59x beyond the longest plotted curve and sits in the un-characterised gap between 10 ms and DC - the same dead zone blocks.md s8 and power_tree s5.2 already name for every JLC-stocked MOSFET. This is NOT a reason to reject the part (no alternative closes it either); it is why the cold start must be justified by derivation from Zth, as power_tree s10.3 does, and recorded in DOC-01. Thermal data for that derivation, from the datasheet: RthJC 0.75 C/W max, RthJA 40 C/W max with footnote (5) 'when mounted on 1 inch square PCB (FR-4 or G-10)' = 645 mm2 - exactly the check_thermal a_eff clamp, so the datasheet's copper assumption and the P8 gate's coincide. SECOND POINT, and it is new: Q100's Tjmax is 150 C, NOT the pass FETs' 175 C. At the 90 C risk ambient the cold-start rise of 22-39 C puts Tj at 112-129 C against 150 C - passable, but materially thinner headroom than power_tree s10.3's analysis assumed when that part was a 175 C IRF640NS."
+      "item": "NO P-CHANNEL MOSFET IN THE JLC CATALOGUE CHARACTERISES SOA AT THE 590 ms COLD START. Verified against the datasheet, not the attribute strings: IRF5210S Fig 8 plots exactly three single-pulse lines - 100 usec, 1 msec, 10 msec - annotated 'Tc = 25 C, Tj = 150 C, Single Pulse'. Tc-REFERENCED, and NO DC LINE at all. IRF9540NS publishes the identical set. The 590 ms event is 59x beyond the longest plotted curve, in the un-characterised 10 ms-to-DC gap blocks.md s8 already names. Not a reason to reject the part (no alternative closes it); a reason the cold start must be justified by derivation from Zth and recorded in DOC-01. RthJC 0.75 C/W max, RthJA 40 C/W max with footnote (5) 'when mounted on 1 inch square PCB (FR-4 or G-10)' = 645 mm2 - exactly the check_thermal a_eff clamp. SECOND POINT: Q100's Tjmax is 150 C, NOT the pass FETs' 175 C. At the 90 C risk ambient the cold-start rise of 22-39 C puts Tj at 112-129 C against 150 C."
     },
     {
       "id": "P3-OPEN-8",
-      "severity": "documented derating exception",
-      "item": "U420 MCP23008T-E/SS: my rev-B rationale for paying +$1.14 over a TCA9534 is VOID. The -E order code does mean -40..+125 C, but every DC and AC table in the datasheet is conditioned on E-Temp = Vdd 4.5-5.5 V. At this board's +3V3 the part is specified only to +85 C - the same ceiling as the TCA9534 it displaced. Abs max ambient under bias remains +125 C, so the gap is UNSPECIFIED, NOT DESTRUCTIVE. KEPT: design-of-record ambient is 56 C, the wall-path analysis shows that is conservative, and re-sourcing would re-open the POR fail-safe analysis to recover $6.84 across the whole build. Also recorded: the 3.3 V I2C ceiling is 400 kHz (1.7 MHz needs 4.5-5.5 V), which is fine - ICD s3.3 specifies 400 kHz."
+      "severity": "documented derating exception - EXPECTED TO CLEAR",
+      "item": "U420 MCP23008T-E/SS: the -E order code does mean -40..+125 C, but every DC and AC table is conditioned on E-Temp = Vdd 4.5-5.5 V. At this board's +3V3 the part is specified only to +85 C - the same ceiling as the TCA9534 it displaced, so the rationale for paying +$1.14 was void. Abs max ambient under bias remains +125 C, so the gap is UNSPECIFIED, NOT DESTRUCTIVE. UPDATE: the ICD s7.6 dispute resolved as an UNSTATED ASSUMPTION, not an arithmetic error - 56 C was the LED-heat-stays-in-the-box case, and the owner has closed the enclosure as sealed with the LED heatsink bolted THROUGH the wall, putting only ~1.9 W into the box (~32-33 C at a 25 C room). ICD s7.7 rev A5 is normative and holds internal air to 70 C. A +85 C specification ceiling clears 70 C, so this exception is expected to close - the architect is confirming against the re-issued section. Also recorded: the 3.3 V I2C ceiling is 400 kHz (1.7 MHz needs 4.5-5.5 V), which is fine - ICD s3.3 specifies 400 kHz."
     },
     {
       "id": "P3-OPEN-9",
-      "severity": "documented derating exception",
-      "item": "U201..U351 SN74LVC1G3157DCKR (UMW): my rev-B '-55..+125 C' claim came from an LCSC ATTRIBUTE STRING, not the datasheet. The PDF says -40 to +125 C, and every electrical characteristics table is characterised only over -40..+85 C - the same specification ceiling as the SGM3157 it replaced. KEPT on the same reasoning as P3-OPEN-8. If H2 re-issues ICD s7.6 at 85-90 C, this row and U420 are the two that need a real answer rather than a note."
+      "severity": "documented derating exception - EXPECTED TO CLEAR",
+      "item": "U201..U351 SN74LVC1G3157DCKR (UMW): my earlier '-55..+125 C' came from an LCSC ATTRIBUTE STRING, not the datasheet. The PDF says -40 to +125 C, and every electrical table is characterised only over -40..+85 C - the same ceiling as the SGM3157 it replaced. Clears against ICD s7.7's 70 C for the same reason as P3-OPEN-8."
     },
     {
       "id": "P3-OPEN-10",
       "severity": "check at P4",
-      "item": "FLOATING-RAIL BIAS BUDGET. The 24k dropper delivers (48-12)/24k = 1.5 mA at 48 V and 1.9 mA at 57 V. An LM2904B draws up to 1.2 mA, so as little as 0.3 mA may be left to hold D101 above its zener knee, where regulation is poor. Separately the 24k 0805 dissipates 54 mW at 48 V and 84 mW at 57 V against a 125 mW rating - 67 % of rating, the only part of the new loop without comfortable power margin. Lowering the dropper fixes the bias budget and worsens the dissipation; P4 owns the trade and may need a 1206 or a split pair here."
+      "item": "FLOATING-RAIL BIAS BUDGET. The 24k dropper delivers (48-12)/24k = 1.5 mA at 48 V and 1.9 mA at 57 V. An LM2904B draws up to 1.2 mA, so as little as 0.3 mA may be left to hold D101 above its zener knee. Separately the 24k 0805 dissipates 84 mW at 57 V against a 125 mW rating = 67 %, the only part of the charge loop without comfortable power margin. Lowering the dropper fixes one and worsens the other."
     },
     {
       "id": "P3-OPEN-11",
       "severity": "note",
-      "item": "C175263 (39R 2512) has the THINNEST STOCK ON THIS BOM at 841 pieces - still 70x the 12-piece need, so it clears the 5x floor comfortably, but it is the row to re-check before the order. ROHM LTR100JZPF39R0 (C2088806) is the same 2 W / 1% / 100 ppm spec at 3810 stock for 2.4x the price if it moves."
+      "item": "C175263 (39R 2512) has the THINNEST STOCK ON THIS BOM at 841 pieces - still 70x the 12-piece need, so it clears the 5x floor, but it is the row to re-check before ordering. ROHM LTR100JZPF39R0 (C2088806) is the same 2 W / 1 % / 100 ppm spec at 3810 stock for 2.4x the price."
     },
     {
       "id": "P3-OPEN-3",
       "severity": "note - CONFIRMED",
-      "item": "The 680uF/100V D18x25 bank is effectively SINGLE-VENDOR (Ymin). CONFIRMED this run: the 6-footprint / 4-populated layout is what buys the second source, and it only pays off at 470 uF, where AISHI / SamYoung / Chengx / Lelon all stock a 7.5 mm-pitch part. So blocks.md s6.3 mitigation 1 (drop the two spare footprints to recover 400 mm2 of F.Cu) and 'keep the bank's second source' are THE SAME LEVER, not two independent ones. P6 cannot spend it twice."
+      "item": "The 680uF/100V D18x25 bank is effectively SINGLE-VENDOR (Ymin). The 6-footprint / 4-populated layout is what buys the second source, and it only pays off at 470 uF where AISHI / SamYoung / Chengx / Lelon all stock a 7.5 mm-pitch part. So blocks.md s6.3 mitigation 1 (drop the two spare footprints for 400 mm2 of F.Cu) and 'keep the bank's second source' are THE SAME LEVER. P6 cannot spend it twice."
     },
     {
       "id": "P3-OPEN-4",
       "severity": "note",
-      "item": "Protect-sheet resistor quantities (22k, 47k, 10k, 100k in 0603) are ESTIMATES, and so are the two 10k for the new Q101 level shift and the one 100nF for the charge-loop compensation. Exact values come out of the trip-point and loop arithmetic at P4, and R430-R433's UVLO threshold is trimmed from the MEASURED string voltage (max(V_string) + 1.7 V). All are JLC Basic, so any E24 0603/0805 1% value P4 needs adds no feeder fee - only the placement count moves."
+      "item": "Remaining generic protect-sheet resistor quantities (22k and 47k 0603, 6 each) are ESTIMATES, as are the two 10k for the Q101 level shift and the one 100nF for the charge-loop compensation. The rev-D network pinned about twenty previously-generic placements, which is why the pool shrank from 8+8 to 6+6. All are JLC Basic, so any E24 0603/0805 1% value P4 needs adds no feeder fee - only the placement count moves."
     },
     {
-      "id": "P3-OPEN-5",
-      "severity": "note",
-      "item": "R2 (ID_ADC bottom leg, 4.7k) is a PLACEHOLDER. The board-type code is allocated by the carrier owner and must be confirmed before P8 (requirements open question 8)."
-    },
-    {
-      "id": "P3-OPEN-6",
-      "severity": "process",
-      "item": "J3 and J4 are reverse-mounted THT sockets on the BOTTOM side and the bank is radial THT on the top - neither is a standard JLC top-side SMD PCBA line. requirements s7 / open question 6 default (a) hand-finishes them locally at this quantity. order_quote at P10 must not assume JLC fits them."
+      "id": "P3-OPEN-1",
+      "severity": "RESOLVED",
+      "item": "The hot-swap controller's fault timer versus the 87 %-duty current-limit regime (TPS2490 25/2.5 uA = 9.09 % break-even; LM5069 85/2.5 uA = 2.86 %). Accepted as BLOCKING-04; the controller is deleted and the limiter is a discrete linear loop with no timer."
     }
   ],
   "parts": [
@@ -1129,7 +1188,8 @@
       "ref_prefix_hint": "R",
       "block": "charge",
       "sheets": [
-        "charge"
+        "charge",
+        "protect"
       ],
       "mpn": "0805W8F1004T5E",
       "lcsc": "C17514",
@@ -1138,10 +1198,10 @@
       "basic": true,
       "stock": 3627515,
       "price": 0.0093,
-      "qty_per_board": 1,
-      "qty_build_6": 6,
-      "ext_cost_build_6": 0.0558,
-      "stock_cover_x": 604585.8,
+      "qty_per_board": 5,
+      "qty_build_6": 30,
+      "ext_cost_build_6": 0.279,
+      "stock_cover_x": 120917.2,
       "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010200_UNI-ROYAL-Uniroyal-Elec-0805W8F1004T5E_C17514.pdf",
       "brand": "UNI-ROYAL(Uniroyal Elec)",
       "description": "-55C~+155C 125mW 150V 1Mohm Thick Film Resistor +/-1% +/-100ppm/C 0805 Chip Resistor - Surface Mount ROHS",
@@ -1202,7 +1262,7 @@
         }
       ],
       "alternates": [],
-      "role": "R113 bleed-switch gate bias up from /VBANK. 0805 per the HV rule; WORKING VOLTAGE 150 V against the 57 V worst case = 2.6x. 57 uA standing."
+      "role": "FIVE placements at rev D, and this is the single best outcome of the hysteresis retargeting exercise. R113 is the bleed-switch gate bias up from /VBANK (0805 per the HV rule; WORKING VOLTAGE 150 V against the 57 V worst case = 2.6x; 57 uA standing). R454-R457 are the FOUR Vds-fault hysteresis resistors that blocks.md s2.4.2 specifies as '~1 M' - so they REUSE A LINE ALREADY ON THE BOM instead of adding one: zero new part number, zero value shift, zero feeder. Those four sit on a 12 V node (open-collector output fed back to the reference), far inside the 150 V rating; 0805 rather than 0603 costs about 2 mm2 of the area budget in total. If P6 wants that back, 1M 0603 (C22935) is also JLC Basic - it would add a BOM line but still no feeder fee."
     },
     {
       "ref_prefix_hint": "D",
@@ -1306,10 +1366,10 @@
       "basic": true,
       "stock": 14823590,
       "price": 0.0869,
-      "qty_per_board": 1,
-      "qty_build_6": 6,
-      "ext_cost_build_6": 0.5214,
-      "stock_cover_x": 2470598.3,
+      "qty_per_board": 2,
+      "qty_build_6": 12,
+      "ext_cost_build_6": 1.0428,
+      "stock_cover_x": 1235299.2,
       "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL10A105KB8NNNC_C15849.pdf",
       "brand": "Samsung Electro-Mechanics",
       "description": "1uF 50V X5R +/-10% 0603 Multilayer Ceramic Capacitors MLCC - SMD/SMT ROHS",
@@ -1358,7 +1418,7 @@
         }
       ],
       "alternates": [],
-      "role": "C100 floating 12 V rail bypass for the charge-loop error amplifier. REPURPOSED, NOT DELETED: this part was the LM5069 C_TIMER in rev B, and the timer is what BLOCKING-04 removed. It only ever sees the 12 V across the floating rail, not the 48 V, so a 50 V part is legal. JLC Basic."
+      "role": "C100 floating 12 V rail bypass for the charge-loop error amplifier. REPURPOSED, NOT DELETED: this part was the LM5069 C_TIMER in rev B, and the timer is what BLOCKING-04 removed. It only ever sees the 12 V across the floating rail, not the 48 V, so a 50 V part is legal. SECOND PLACEMENT AT REV D: blocks.md s2.4.3 specifies one shared 1 uF alongside the per-pin 100 nF for the two quad comparators, and records that the LM2901 datasheet publishes no decoupling guidance at all - so it is a design decision the architecture owns, not an omission. JLC Basic."
     },
     {
       "ref_prefix_hint": "C",
@@ -2730,10 +2790,10 @@
       "basic": true,
       "stock": 450172,
       "price": 0.0176,
-      "qty_per_board": 15,
-      "qty_build_6": 90,
-      "ext_cost_build_6": 1.584,
-      "stock_cover_x": 5001.9,
+      "qty_per_board": 16,
+      "qty_build_6": 96,
+      "ext_cost_build_6": 1.6896,
+      "stock_cover_x": 4689.3,
       "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Jiangsu-Changjing-Electronics-Technology-Co---Ltd--2N7002_C8545.pdf",
       "brand": "Jiangsu Changjing Electronics Technology Co., Ltd.",
       "description": "1 N-channel 115mA 2.5V 225mW 25pF 50pF 5pF 5ohm@10V 60V N-Channel +/-20V SOT-23 MOSFETs ROHS",
@@ -2821,7 +2881,7 @@
           "note": "onsemi, -55..+150C, stock 483537"
         }
       ],
-      "role": "15 placements, one part number, JLC BASIC: Q111 bleed disarm; Q201/Q202 x4 (ENABLE invert + gate-source clamp, THE PASSIVE INTERLOCK OF RECORD); Q400-Q403 four fault latches; Q410 the BANK_ARM_n fail-safe stage; and NEW at rev C, Q101, the charge loop's ENABLE level shift that gates the limiter reference to zero (power_tree s3.3 - the same pattern the four drive stages already use). All are low-voltage nodes - none sits in the 48 V domain."
+      "role": "15 placements, one part number, JLC BASIC: Q111 bleed disarm; Q201/Q202 x4 (ENABLE invert + gate-source clamp, THE PASSIVE INTERLOCK OF RECORD); Q400-Q403 four fault latches; Q410 the BANK_ARM_n fail-safe stage; and NEW at rev C, Q101, the charge loop's ENABLE level shift that gates the limiter reference to zero (power_tree s3.3 - the same pattern the four drive stages already use); and Q404, the /OT_TRIP -> FAULT open-drain translator that the rev-D hysteresis forced (blocks.md s2.4.4: the 10k pull-ups put /OT_TRIP on a +12V node, and a 12 V node cannot land on the carrier 3.3 V FAULT pin without forward-biasing its input clamps). All are low-voltage nodes - none sits in the 48 V domain."
     },
     {
       "ref_prefix_hint": "R",
@@ -3172,10 +3232,10 @@
       "basic": true,
       "stock": 3937024,
       "price": 0.0076,
-      "qty_per_board": 16,
-      "qty_build_6": 96,
-      "ext_cost_build_6": 0.7296,
-      "stock_cover_x": 41010.7,
+      "qty_per_board": 27,
+      "qty_build_6": 162,
+      "ext_cost_build_6": 1.2312,
+      "stock_cover_x": 24302.6,
       "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010045_UNI-ROYAL-Uniroyal-Elec-0603WAF1002T5E_C25804.pdf",
       "brand": "UNI-ROYAL(Uniroyal Elec)",
       "description": "-55C~+155C 100mW 10kohm 75V Thick Film Resistor +/-1% +/-100ppm/C 0603 Chip Resistor - Surface Mount ROHS",
@@ -3236,7 +3296,7 @@
         }
       ],
       "alternates": [],
-      "role": "Setpoint RC series element x4 (10k + 100nF, tau 1 ms), Vds arming RC x4 (10k + 10nF = 100 us blank), protect-sheet trip dividers, and +2 at rev C for the charge loop's Q101 ENABLE level-shift pair (power_tree s3.3 lists 'Q101 + 2 R' without pinning the values). THOSE TWO ARE MY ESTIMATE, not an architecture figure. JLC Basic - no feeder fee, so P4 may add any other E24 0603/0805 1% value at zero setup cost."
+      "role": "Setpoint RC series element x4 (10k + 100nF, tau 1 ms), Vds arming RC x4 (10k + 10nF = 100 us blank), protect-sheet trip dividers, the charge loop's Q101 ENABLE level-shift pair (my estimate - power_tree s3.3 lists 'Q101 + 2 R' without pinning the values), and at REV D eleven more from the specified comparator network: three reference-divider legs (U400A R_b, U400B R_a and R_b) plus THE EIGHT 10 k PULL-UPS TO +12V, one on every open-collector output. Those pull-ups are not optional garnish - blocks.md s2.4.2 shows R_pull sits inside the hysteresis divider, so its value is part of the band arithmetic. JLC Basic - no feeder fee, so P4 may add any other E24 0603/0805 1% value at zero setup cost."
     },
     {
       "ref_prefix_hint": "R",
@@ -3255,10 +3315,10 @@
       "basic": true,
       "stock": 3416299,
       "price": 0.009,
-      "qty_per_board": 6,
-      "qty_build_6": 36,
-      "ext_cost_build_6": 0.324,
-      "stock_cover_x": 94897.2,
+      "qty_per_board": 8,
+      "qty_build_6": 48,
+      "ext_cost_build_6": 0.432,
+      "stock_cover_x": 71172.9,
       "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010130_UNI-ROYAL-Uniroyal-Elec-0603WAF1001T5E_C21190.pdf",
       "brand": "UNI-ROYAL(Uniroyal Elec)",
       "description": "-55C~+155C 100mW 1kohm 75V Thick Film Resistor +/-1% +/-100ppm/C 0603 Chip Resistor - Surface Mount ROHS",
@@ -3319,13 +3379,12 @@
         }
       ],
       "alternates": [],
-      "role": "R3/R4 ADC RC series elements, and the setpoint divider bottom leg x4 (1k00 of the 5k36/1k00 6.35:1). JLC Basic."
+      "role": "R3/R4 ADC RC series elements, the setpoint divider bottom leg x4 (1k00 of the 5k36/1k00 6.35:1), and +2 at rev D: the series resistors between each J300 thermistor divider tap and its comparator pin (blocks.md s2.4.3). Those two MUST sit after the tap, not in the loom - in the loom they would join the NTC leg and shift the trip point by ~1k against a ~1k bottom leg. After the tap they carry 25 nA of input bias = 25 uV. JLC Basic."
     },
     {
       "ref_prefix_hint": "R",
-      "block": "conn",
+      "block": "drive_w",
       "sheets": [
-        "conn",
         "drive_w",
         "drive_r",
         "drive_g",
@@ -3338,10 +3397,10 @@
       "basic": true,
       "stock": 4157268,
       "price": 0.0117,
-      "qty_per_board": 5,
-      "qty_build_6": 30,
-      "ext_cost_build_6": 0.351,
-      "stock_cover_x": 138575.6,
+      "qty_per_board": 4,
+      "qty_build_6": 24,
+      "ext_cost_build_6": 0.2808,
+      "stock_cover_x": 173219.5,
       "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010116_UNI-ROYAL-Uniroyal-Elec-0603WAF4701T5E_C23162.pdf",
       "brand": "UNI-ROYAL(Uniroyal Elec)",
       "description": "-55C~+155C 100mW 4.7kohm 75V Thick Film Resistor +/-1% +/-100ppm/C 0603 Chip Resistor - Surface Mount ROHS",
@@ -3402,7 +3461,86 @@
         }
       ],
       "alternates": [],
-      "role": "R2 ID_ADC bottom leg - PLACEHOLDER VALUE, the code is allocated by the carrier owner and must be confirmed before P8 (requirements open question 8) - and R<N+3> x4, the 4k7 gate-source pull-down that is the interlock of record. JLC Basic."
+      "role": "R<N+3> x4, the 4k7 gate-source pull-down that is the interlock of record. REDUCED 5 -> 4: R2 was the fifth and it has moved to 2.7k - see that entry. JLC Basic."
+    },
+    {
+      "ref_prefix_hint": "R",
+      "block": "conn",
+      "sheets": [
+        "conn"
+      ],
+      "mpn": "0603WAF2701T5E",
+      "lcsc": "C13167",
+      "value": "2.7k 0603 1%",
+      "package": "0603",
+      "basic": true,
+      "stock": 758061,
+      "price": 0.0029,
+      "qty_per_board": 1,
+      "qty_build_6": 6,
+      "ext_cost_build_6": 0.0174,
+      "stock_cover_x": 126343.5,
+      "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010216_UNI-ROYAL-Uniroyal-Elec-0603WAF2701T5E_C13167.pdf",
+      "brand": "UNI-ROYAL(Uniroyal Elec)",
+      "description": "-55C~+155C 100mW 2.7kohm 75V Thick Film Resistor +/-1% +/-100ppm/C 0603 Chip Resistor - Surface Mount ROHS",
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 0.0029
+        },
+        {
+          "qty": 1000,
+          "price": 0.0026
+        },
+        {
+          "qty": 5000,
+          "price": 0.0025
+        },
+        {
+          "qty": 10000,
+          "price": 0.0023
+        },
+        {
+          "qty": 50000,
+          "price": 0.0022
+        },
+        {
+          "qty": 50200,
+          "price": 0.0022
+        }
+      ],
+      "attributes": [
+        {
+          "name": "Resistance",
+          "value": "2.7kohm"
+        },
+        {
+          "name": "Operating Temperature",
+          "value": "-55C~+155C"
+        },
+        {
+          "name": "Power(Watts)",
+          "value": "100mW"
+        },
+        {
+          "name": "Type",
+          "value": "Thick Film Resistor"
+        },
+        {
+          "name": "Voltage-Supply(Max)",
+          "value": "75V"
+        },
+        {
+          "name": "Tolerance",
+          "value": "+/-1%"
+        },
+        {
+          "name": "Temperature Coefficient",
+          "value": "+/-100ppm/C"
+        }
+      ],
+      "alternates": [],
+      "role": "R2 ID_ADC bottom leg. CORRECTNESS FIX, REV D - this was a 4.7k placeholder, and 4.7k is ICD-01 s3.4 CODE 2 = LUM-PAR-A. Left alone this board would have announced itself to carrier firmware as the RGBW par and been handed the wrong daughter profile. ICD-01 s3.4 (added at rev A3, NORMATIVE) allocates LUM-STR-A code 1 = R_ID 2.7 kOhm 1%, giving V_ID = 3.3 x 2.7/(2.7+10) = 0.702 V against the carrier's 10k top leg. 1% IS REQUIRED, NOT 5%: minimum adjacent-code separation is 0.353 V (code 1 to code 2) against about +/-0.05 V of worst-case divider error from 1% parts, and carrier firmware uses a +/-0.15 V detection window. A 5% bottom leg would eat that budget. No longer a placeholder and no longer pending a carrier-owner allocation - this CLOSES P3-OPEN-5. JLC Basic."
     },
     {
       "ref_prefix_hint": "R",
@@ -3500,10 +3638,10 @@
       "basic": true,
       "stock": 1640328,
       "price": 0.0074,
-      "qty_per_board": 8,
-      "qty_build_6": 48,
-      "ext_cost_build_6": 0.3552,
-      "stock_cover_x": 34173.5,
+      "qty_per_board": 6,
+      "qty_build_6": 36,
+      "ext_cost_build_6": 0.2664,
+      "stock_cover_x": 45564.7,
       "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010030_UNI-ROYAL-Uniroyal-Elec-0603WAF2202T5E_C31850.pdf",
       "brand": "UNI-ROYAL(Uniroyal Elec)",
       "description": "-55C~+155C 100mW 22kohm 75V Thick Film Resistor +/-1% +/-100ppm/C 0603 Chip Resistor - Surface Mount ROHS",
@@ -3564,7 +3702,7 @@
         }
       ],
       "alternates": [],
-      "role": "Protect-sheet trip and reference dividers (R400-R409, R410-R425, R430-R433). Quantity is an ESTIMATE - the exact split across 22k/47k/10k/100k is set at P4 from the trip-point arithmetic, and R430-R433's UVLO value is trimmed from the MEASURED string voltage. JLC Basic."
+      "role": "U400C bank-UVLO reference divider R_a (pinned by blocks.md s2.4.2), plus remaining protect-sheet trip dividers. REDUCED 8 -> 6: about twenty previously-generic placements are now pinned to specific values by the rev-D network, so the generic pool shrinks. What is left is still an ESTIMATE - R430-R433's UVLO value is trimmed from the MEASURED string voltage at bring-up. JLC Basic."
     },
     {
       "ref_prefix_hint": "R",
@@ -3579,10 +3717,10 @@
       "basic": true,
       "stock": 912258,
       "price": 0.0112,
-      "qty_per_board": 8,
-      "qty_build_6": 48,
-      "ext_cost_build_6": 0.5376,
-      "stock_cover_x": 19005.4,
+      "qty_per_board": 6,
+      "qty_build_6": 36,
+      "ext_cost_build_6": 0.4032,
+      "stock_cover_x": 25340.5,
       "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010045_UNI-ROYAL-Uniroyal-Elec-0603WAF4702T5E_C25819.pdf",
       "brand": "UNI-ROYAL(Uniroyal Elec)",
       "description": "-55C~+155C 100mW 47kohm 75V Thick Film Resistor +/-1% +/-100ppm/C 0603 Chip Resistor - Surface Mount ROHS",
@@ -3643,7 +3781,746 @@
         }
       ],
       "alternates": [],
-      "role": "Protect-sheet trip and reference dividers, including the ~0.45 ratiometric Vds thresholds. Quantity is an ESTIMATE - see the 22k entry. JLC Basic."
+      "role": "Remaining protect-sheet trip and reference dividers, including the ~0.45 ratiometric Vds thresholds. REDUCED 8 -> 6 for the same reason as the 22k entry, and still an ESTIMATE. JLC Basic."
+    },
+    {
+      "ref_prefix_hint": "R",
+      "block": "protect",
+      "sheets": [
+        "protect"
+      ],
+      "mpn": "0603WAF5602T5E",
+      "lcsc": "C23206",
+      "value": "56k 0603 1%",
+      "package": "0603",
+      "basic": true,
+      "stock": 1103625,
+      "price": 0.0081,
+      "qty_per_board": 1,
+      "qty_build_6": 6,
+      "ext_cost_build_6": 0.0486,
+      "stock_cover_x": 183937.5,
+      "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010116_UNI-ROYAL-Uniroyal-Elec-0603WAF5602T5E_C23206.pdf",
+      "brand": "UNI-ROYAL(Uniroyal Elec)",
+      "description": "-55C~+155C 100mW 56kohm 75V Thick Film Resistor +/-1% +/-100ppm/C 0603 Chip Resistor - Surface Mount ROHS",
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 0.0081
+        },
+        {
+          "qty": 1000,
+          "price": 0.0072
+        },
+        {
+          "qty": 5000,
+          "price": 0.0068
+        },
+        {
+          "qty": 10000,
+          "price": 0.0063
+        },
+        {
+          "qty": 50000,
+          "price": 0.006
+        },
+        {
+          "qty": 50200,
+          "price": 0.006
+        }
+      ],
+      "attributes": [
+        {
+          "name": "Resistance",
+          "value": "56kohm"
+        },
+        {
+          "name": "Operating Temperature",
+          "value": "-55C~+155C"
+        },
+        {
+          "name": "Power(Watts)",
+          "value": "100mW"
+        },
+        {
+          "name": "Type",
+          "value": "Thick Film Resistor"
+        },
+        {
+          "name": "Voltage-Supply(Max)",
+          "value": "75V"
+        },
+        {
+          "name": "Tolerance",
+          "value": "+/-1%"
+        },
+        {
+          "name": "Temperature Coefficient",
+          "value": "+/-100ppm/C"
+        }
+      ],
+      "alternates": [],
+      "role": "U400A board-OT reference divider R_a. With R_b = 10k it sets V_ref = 1.818 V and R_ref = 8.485k, which is what the hysteresis band arithmetic keys on (blocks.md s2.4.2). JLC Basic, no feeder."
+    },
+    {
+      "ref_prefix_hint": "R",
+      "block": "protect",
+      "sheets": [
+        "protect"
+      ],
+      "mpn": "0603WAF2002T5E",
+      "lcsc": "C4184",
+      "value": "20k 0603 1%",
+      "package": "0603",
+      "basic": true,
+      "stock": 2259828,
+      "price": 0.0079,
+      "qty_per_board": 1,
+      "qty_build_6": 6,
+      "ext_cost_build_6": 0.0474,
+      "stock_cover_x": 376638.0,
+      "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010230_UNI-ROYAL-Uniroyal-Elec-0603WAF2002T5E_C4184.pdf",
+      "brand": "UNI-ROYAL(Uniroyal Elec)",
+      "description": "-55C~+155C 100mW 20kohm 75V Thick Film Resistor +/-1% +/-100ppm/C 0603 Chip Resistor - Surface Mount ROHS",
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 0.0079
+        },
+        {
+          "qty": 1000,
+          "price": 0.007
+        },
+        {
+          "qty": 5000,
+          "price": 0.0065
+        },
+        {
+          "qty": 10000,
+          "price": 0.0062
+        },
+        {
+          "qty": 50000,
+          "price": 0.0059
+        },
+        {
+          "qty": 50200,
+          "price": 0.0059
+        }
+      ],
+      "attributes": [
+        {
+          "name": "Resistance",
+          "value": "20kohm"
+        },
+        {
+          "name": "Operating Temperature",
+          "value": "-55C~+155C"
+        },
+        {
+          "name": "Power(Watts)",
+          "value": "100mW"
+        },
+        {
+          "name": "Type",
+          "value": "Thick Film Resistor"
+        },
+        {
+          "name": "Voltage-Supply(Max)",
+          "value": "75V"
+        },
+        {
+          "name": "Tolerance",
+          "value": "+/-1%"
+        },
+        {
+          "name": "Temperature Coefficient",
+          "value": "+/-100ppm/C"
+        }
+      ],
+      "alternates": [],
+      "role": "U400D bank-ceiling reference divider R_a. With R_b = 5.6k it sets V_ref = 2.625 V, R_ref = 4.375k. JLC Basic, no feeder."
+    },
+    {
+      "ref_prefix_hint": "R",
+      "block": "protect",
+      "sheets": [
+        "protect"
+      ],
+      "mpn": "0603WAF5101T5E",
+      "lcsc": "C23186",
+      "value": "5.1k 0603 1%",
+      "package": "0603",
+      "basic": true,
+      "stock": 3239817,
+      "price": 0.0084,
+      "qty_per_board": 1,
+      "qty_build_6": 6,
+      "ext_cost_build_6": 0.0504,
+      "stock_cover_x": 539969.5,
+      "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010116_UNI-ROYAL-Uniroyal-Elec-0603WAF5101T5E_C23186.pdf",
+      "brand": "UNI-ROYAL(Uniroyal Elec)",
+      "description": "-55C~+155C 100mW 5.1kohm 75V Thick Film Resistor +/-1% +/-100ppm/C 0603 Chip Resistor - Surface Mount ROHS",
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 0.0084
+        },
+        {
+          "qty": 1000,
+          "price": 0.0075
+        },
+        {
+          "qty": 5000,
+          "price": 0.0071
+        },
+        {
+          "qty": 10000,
+          "price": 0.0068
+        },
+        {
+          "qty": 50000,
+          "price": 0.0066
+        },
+        {
+          "qty": 50200,
+          "price": 0.0066
+        }
+      ],
+      "attributes": [
+        {
+          "name": "Resistance",
+          "value": "5.1kohm"
+        },
+        {
+          "name": "Operating Temperature",
+          "value": "-55C~+155C"
+        },
+        {
+          "name": "Power(Watts)",
+          "value": "100mW"
+        },
+        {
+          "name": "Type",
+          "value": "Thick Film Resistor"
+        },
+        {
+          "name": "Voltage-Supply(Max)",
+          "value": "75V"
+        },
+        {
+          "name": "Tolerance",
+          "value": "+/-1%"
+        },
+        {
+          "name": "Temperature Coefficient",
+          "value": "+/-100ppm/C"
+        }
+      ],
+      "alternates": [],
+      "role": "U400C bank-UVLO reference divider R_b. With R_a = 22k it sets V_ref = 2.258 V, R_ref = 4.139k. JLC Basic, no feeder."
+    },
+    {
+      "ref_prefix_hint": "R",
+      "block": "protect",
+      "sheets": [
+        "protect"
+      ],
+      "mpn": "0603WAF5601T5E",
+      "lcsc": "C23189",
+      "value": "5.6k 0603 1%",
+      "package": "0603",
+      "basic": true,
+      "stock": 623016,
+      "price": 0.008,
+      "qty_per_board": 1,
+      "qty_build_6": 6,
+      "ext_cost_build_6": 0.048,
+      "stock_cover_x": 103836.0,
+      "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010116_UNI-ROYAL-Uniroyal-Elec-0603WAF5601T5E_C23189.pdf",
+      "brand": "UNI-ROYAL(Uniroyal Elec)",
+      "description": "-55C~+155C 100mW 5.6kohm 75V Thick Film Resistor +/-1% +/-100ppm/C 0603 Chip Resistor - Surface Mount ROHS",
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 0.008
+        },
+        {
+          "qty": 1000,
+          "price": 0.0071
+        },
+        {
+          "qty": 5000,
+          "price": 0.0066
+        },
+        {
+          "qty": 10000,
+          "price": 0.0063
+        },
+        {
+          "qty": 50000,
+          "price": 0.0061
+        },
+        {
+          "qty": 100000,
+          "price": 0.0059
+        }
+      ],
+      "attributes": [
+        {
+          "name": "Resistance",
+          "value": "5.6kohm"
+        },
+        {
+          "name": "Operating Temperature",
+          "value": "-55C~+155C"
+        },
+        {
+          "name": "Power(Watts)",
+          "value": "100mW"
+        },
+        {
+          "name": "Type",
+          "value": "Thick Film Resistor"
+        },
+        {
+          "name": "Voltage-Supply(Max)",
+          "value": "75V"
+        },
+        {
+          "name": "Tolerance",
+          "value": "+/-1%"
+        },
+        {
+          "name": "Temperature Coefficient",
+          "value": "+/-100ppm/C"
+        }
+      ],
+      "alternates": [],
+      "role": "U400D bank-ceiling reference divider R_b. JLC Basic, no feeder."
+    },
+    {
+      "ref_prefix_hint": "R",
+      "block": "protect",
+      "sheets": [
+        "protect"
+      ],
+      "mpn": "0603WAF5103T5E",
+      "lcsc": "C23192",
+      "value": "510k 0603 1%",
+      "package": "0603",
+      "basic": true,
+      "stock": 994466,
+      "price": 0.0086,
+      "qty_per_board": 1,
+      "qty_build_6": 6,
+      "ext_cost_build_6": 0.0516,
+      "stock_cover_x": 165744.3,
+      "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010116_UNI-ROYAL-Uniroyal-Elec-0603WAF5103T5E_C23192.pdf",
+      "brand": "UNI-ROYAL(Uniroyal Elec)",
+      "description": "-55C~+155C 100mW 510kohm 75V Thick Film Resistor +/-1% +/-100ppm/C 0603 Chip Resistor - Surface Mount ROHS",
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 0.0086
+        },
+        {
+          "qty": 1000,
+          "price": 0.0077
+        },
+        {
+          "qty": 5000,
+          "price": 0.0072
+        },
+        {
+          "qty": 10000,
+          "price": 0.0069
+        },
+        {
+          "qty": 50000,
+          "price": 0.0066
+        },
+        {
+          "qty": 50200,
+          "price": 0.0066
+        }
+      ],
+      "attributes": [
+        {
+          "name": "Resistance",
+          "value": "510kohm"
+        },
+        {
+          "name": "Operating Temperature",
+          "value": "-55C~+155C"
+        },
+        {
+          "name": "Power(Watts)",
+          "value": "100mW"
+        },
+        {
+          "name": "Type",
+          "value": "Thick Film Resistor"
+        },
+        {
+          "name": "Voltage-Supply(Max)",
+          "value": "75V"
+        },
+        {
+          "name": "Tolerance",
+          "value": "+/-1%"
+        },
+        {
+          "name": "Temperature Coefficient",
+          "value": "+/-100ppm/C"
+        }
+      ],
+      "alternates": [],
+      "role": "R450, the U400A board-OT hysteresis resistor. RETARGETED FROM THE SPECIFIED 560k, WHICH IS NOT ON THE JLC BASIC SHELF IN ANY SIZE. 510k is the nearest Basic E24 neighbour, -8.9 % in resistance. Band effect, computed from blocks.md s2.4.2's own formula with R_ref = 8.485k, V_ref = 1.818 V, R_pull = 10k: 175.3 mV -> 192.2 mV, i.e. +9.6 %, which is 5.0 C -> 5.4 C of tab temperature and moves the Vio margin from 12x to 12.8x. TAKEN rather than flagged: it is a slow thermal trip with the largest margin of the four sections, the shift is in the safe direction (more chatter immunity), and 0.4 C of extra tab hysteresis changes nothing operationally. Saves one Extended feeder. JLC Basic."
+    },
+    {
+      "ref_prefix_hint": "R",
+      "block": "protect",
+      "sheets": [
+        "protect"
+      ],
+      "mpn": "0603WAF1503T5E",
+      "lcsc": "C22807",
+      "value": "150k 0603 1%",
+      "package": "0603",
+      "basic": true,
+      "stock": 1327280,
+      "price": 0.0084,
+      "qty_per_board": 1,
+      "qty_build_6": 6,
+      "ext_cost_build_6": 0.0504,
+      "stock_cover_x": 221213.3,
+      "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010130_UNI-ROYAL-Uniroyal-Elec-0603WAF1503T5E_C22807.pdf",
+      "brand": "UNI-ROYAL(Uniroyal Elec)",
+      "description": "-55C~+155C 100mW 150kohm 75V Thick Film Resistor +/-1% +/-100ppm/C 0603 Chip Resistor - Surface Mount ROHS",
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 0.0084
+        },
+        {
+          "qty": 1000,
+          "price": 0.0074
+        },
+        {
+          "qty": 5000,
+          "price": 0.0068
+        },
+        {
+          "qty": 10000,
+          "price": 0.0064
+        },
+        {
+          "qty": 50000,
+          "price": 0.0061
+        },
+        {
+          "qty": 50200,
+          "price": 0.0061
+        }
+      ],
+      "attributes": [
+        {
+          "name": "Resistance",
+          "value": "150kohm"
+        },
+        {
+          "name": "Operating Temperature",
+          "value": "-55C~+155C"
+        },
+        {
+          "name": "Power(Watts)",
+          "value": "100mW"
+        },
+        {
+          "name": "Type",
+          "value": "Thick Film Resistor"
+        },
+        {
+          "name": "Voltage-Supply(Max)",
+          "value": "75V"
+        },
+        {
+          "name": "Tolerance",
+          "value": "+/-1%"
+        },
+        {
+          "name": "Temperature Coefficient",
+          "value": "+/-100ppm/C"
+        }
+      ],
+      "alternates": [],
+      "role": "R451, the U400B LED-module-OT hysteresis resistor. SPECIFIED VALUE TAKEN EXACTLY - 150k is already on the JLC Basic shelf, so there is no shift and no feeder. Band 379 mV = 5.2 C of solder point, 25x Vio, unchanged from the architecture's arithmetic. (Housekeeping note: this LCSC code was on the rev-B BOM as the LM5069 R_PWR and was deleted with the controller at rev C; it returns at rev D for an unrelated reason.) JLC Basic."
+    },
+    {
+      "ref_prefix_hint": "R",
+      "block": "protect",
+      "sheets": [
+        "protect"
+      ],
+      "mpn": "0603WAF8203T5E",
+      "lcsc": "C23252",
+      "value": "820k 0603 1%",
+      "package": "0603",
+      "basic": false,
+      "stock": 82751,
+      "price": 0.0048,
+      "qty_per_board": 1,
+      "qty_build_6": 6,
+      "ext_cost_build_6": 0.0288,
+      "stock_cover_x": 13791.8,
+      "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010100_UNI-ROYAL-Uniroyal-Elec-0603WAF8203T5E_C23252.pdf",
+      "brand": "UNI-ROYAL(Uniroyal Elec)",
+      "description": "-55C~+155C 100mW 75V 820kohm Thick Film Resistor +/-1% +/-100ppm/C 0603 Chip Resistor - Surface Mount ROHS",
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 0.0048
+        },
+        {
+          "qty": 1000,
+          "price": 0.0042
+        },
+        {
+          "qty": 5000,
+          "price": 0.004
+        },
+        {
+          "qty": 10000,
+          "price": 0.0038
+        },
+        {
+          "qty": 50000,
+          "price": 0.0037
+        },
+        {
+          "qty": 50200,
+          "price": 0.0037
+        }
+      ],
+      "attributes": [
+        {
+          "name": "Resistance",
+          "value": "820kohm"
+        },
+        {
+          "name": "Operating Temperature",
+          "value": "-55C~+155C"
+        },
+        {
+          "name": "Power(Watts)",
+          "value": "100mW"
+        },
+        {
+          "name": "Type",
+          "value": "Thick Film Resistor"
+        },
+        {
+          "name": "Voltage-Supply(Max)",
+          "value": "75V"
+        },
+        {
+          "name": "Tolerance",
+          "value": "+/-1%"
+        },
+        {
+          "name": "Temperature Coefficient",
+          "value": "+/-100ppm/C"
+        }
+      ],
+      "alternates": [],
+      "role": "R452, the U400C bank-UVLO hysteresis resistor. SPECIFIED VALUE KEPT AS AN EXTENDED PART - FLAGGED, NOT RETARGETED. There is NO Basic E24 neighbour at all: 750k, 820k and 910k are absent from the Basic shelf in 0603 and 0805, and the only Basic value anywhere near is 1M. Taking 1M (+22 %) would shrink the band from 58.7 mV to 48.2 mV (-17.9 %), i.e. 1.02 V -> 0.84 V of bank, and move the Vio margin from 3.9x to 3.2x. blocks.md s2.4.2 judgement call 1 states the UVLO is ALREADY the tightest band on the board and is deliberately not widened, so eating a further 18 % of it to save one feeder fee is not a trade P3 should make unilaterally. THE ARCHITECT CAN RE-DERIVE if $3 of setup is worth 0.7x of Vio margin. JLC Extended."
+    },
+    {
+      "ref_prefix_hint": "R",
+      "block": "protect",
+      "sheets": [
+        "protect"
+      ],
+      "mpn": "0603WAF6203T5E",
+      "lcsc": "C23219",
+      "value": "620k 0603 1%",
+      "package": "0603",
+      "basic": false,
+      "stock": 157028,
+      "price": 0.0037,
+      "qty_per_board": 1,
+      "qty_build_6": 6,
+      "ext_cost_build_6": 0.0222,
+      "stock_cover_x": 26171.3,
+      "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010116_UNI-ROYAL-Uniroyal-Elec-0603WAF6203T5E_C23219.pdf",
+      "brand": "UNI-ROYAL(Uniroyal Elec)",
+      "description": "-55C~+155C 100mW 620kohm 75V Thick Film Resistor +/-1% +/-100ppm/C 0603 Chip Resistor - Surface Mount ROHS",
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 0.0037
+        },
+        {
+          "qty": 1000,
+          "price": 0.0033
+        },
+        {
+          "qty": 5000,
+          "price": 0.0031
+        },
+        {
+          "qty": 10000,
+          "price": 0.003
+        },
+        {
+          "qty": 50000,
+          "price": 0.0029
+        },
+        {
+          "qty": 50200,
+          "price": 0.0029
+        }
+      ],
+      "attributes": [
+        {
+          "name": "Resistance",
+          "value": "620kohm"
+        },
+        {
+          "name": "Operating Temperature",
+          "value": "-55C~+155C"
+        },
+        {
+          "name": "Power(Watts)",
+          "value": "100mW"
+        },
+        {
+          "name": "Type",
+          "value": "Thick Film Resistor"
+        },
+        {
+          "name": "Voltage-Supply(Max)",
+          "value": "75V"
+        },
+        {
+          "name": "Tolerance",
+          "value": "+/-1%"
+        },
+        {
+          "name": "Temperature Coefficient",
+          "value": "+/-100ppm/C"
+        }
+      ],
+      "alternates": [],
+      "role": "R453, the U400D bank-ceiling hysteresis resistor. SPECIFIED VALUE KEPT AS AN EXTENDED PART - FLAGGED, NOT RETARGETED. Again no Basic E24 neighbour exists (560k, 680k and 750k are all absent from the Basic shelf). The nearest Basic value is 510k, -17.7 % in resistance, which WIDENS the band from 81.9 mV to 99.3 mV (+21.3 %) = 1.42 V -> 1.73 V of bank. That is a 0.31 V bite out of the 8.3 V operating window on the ceiling comparator specifically, so it is not free the way the board-OT shift was. FLAGGED for the architect rather than taken. JLC Extended."
+    },
+    {
+      "ref_prefix_hint": "D",
+      "block": "protect",
+      "sheets": [
+        "protect"
+      ],
+      "mpn": "SMAJ12CA",
+      "lcsc": "C110042",
+      "value": "SMAJ12CA bidirectional TVS SMA",
+      "package": "DO-214AC(SMA)",
+      "basic": false,
+      "stock": 151744,
+      "price": 0.0431,
+      "qty_per_board": 2,
+      "qty_build_6": 12,
+      "ext_cost_build_6": 0.5172,
+      "stock_cover_x": 12645.3,
+      "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2407101109_MDD-Microdiode-Semiconductor-SMAJ12CA_C110042.pdf",
+      "brand": "MDD(Microdiode Semiconductor)",
+      "description": "-65C~+150C 12V 14.7V 19.9V 1uA 20.1A@10/1000us 400W@10/1000us Bidirectional TVS DO-214AC(SMA) ESD and Surge Protection (TVS/ESD) ROHS",
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 0.0431
+        },
+        {
+          "qty": 200,
+          "price": 0.0347
+        },
+        {
+          "qty": 600,
+          "price": 0.0302
+        },
+        {
+          "qty": 5000,
+          "price": 0.0229
+        },
+        {
+          "qty": 10000,
+          "price": 0.0205
+        },
+        {
+          "qty": 20000,
+          "price": 0.0194
+        }
+      ],
+      "attributes": [
+        {
+          "name": "Operating Temperature",
+          "value": "-65C~+150C"
+        },
+        {
+          "name": "Type",
+          "value": "TVS"
+        },
+        {
+          "name": "Peak Pulse Power Dissipation (Ppp)",
+          "value": "400W@10/1000us"
+        },
+        {
+          "name": "Number of Channels",
+          "value": "1"
+        },
+        {
+          "name": "Clamping Voltage",
+          "value": "19.9V"
+        },
+        {
+          "name": "Polarity",
+          "value": "Bidirectional"
+        },
+        {
+          "name": "Peak Pulse Current (Ipp)",
+          "value": "20.1A@10/1000us"
+        },
+        {
+          "name": "Voltage - Breakdown",
+          "value": "14.7V"
+        },
+        {
+          "name": "Reverse Stand-Off Voltage (Vrwm)",
+          "value": "12V"
+        },
+        {
+          "name": "Reverse Leakage Current (Ir)",
+          "value": "1uA"
+        }
+      ],
+      "alternates": [
+        {
+          "mpn": "SMAJ12CA",
+          "lcsc": "C353487",
+          "note": "Shandong Jingdao, SMA, -65..+150C, stock 79987, $0.033"
+        },
+        {
+          "mpn": "SMAJ12CA",
+          "lcsc": "C152122",
+          "note": "BORN, SMA, stock 27246, $0.063"
+        },
+        {
+          "mpn": "SMAJ12CA",
+          "lcsc": "C83267",
+          "note": "Littelfuse, SMA, -65..+150C, stock 25403, $0.119"
+        }
+      ],
+      "role": "ESD protection on the two off-board thermistor lines at J300, per blocks.md s2.4.3: the LM2901's ESD rating is only 500 V HBM and U400B's input reaches a connector through an off-board loom, so the part cannot survive handling ESD unaided. Bidirectional because the line is referenced both ways. Pairs with the 10 nF to GND and the 1 kohm series resistor already on this BOM - and note the architecture's warning that the series resistor must sit AFTER the divider tap, not in the loom, or it joins the NTC leg and shifts a calibrated trip point. SOURCED BEYOND THE THREE ITEMS I WAS ASKED FOR: it is specified in the same rev-D section as the hysteresis network, and sourcing the network while silently omitting its ESD parts would leave the file incoherent. Say so if you would rather it came out."
     },
     {
       "ref_prefix_hint": "C",
@@ -3732,10 +4609,10 @@
       "basic": true,
       "stock": 12076629,
       "price": 0.0115,
-      "qty_per_board": 6,
-      "qty_build_6": 36,
-      "ext_cost_build_6": 0.414,
-      "stock_cover_x": 335461.9,
+      "qty_per_board": 8,
+      "qty_build_6": 48,
+      "ext_cost_build_6": 0.552,
+      "stock_cover_x": 251596.4,
       "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_FH--Guangdong-Fenghua-Advanced-Tech-0603B103K500NT_C57112.pdf",
       "brand": "FH (Guangdong Fenghua Advanced Tech)",
       "description": "10nF 50V X7R +/-10% 0603 Multilayer Ceramic Capacitors MLCC - SMD/SMT ROHS",
@@ -3784,7 +4661,7 @@
         }
       ],
       "alternates": [],
-      "role": "C3/C4 the two ADC RC reservoir capacitors (the bank divider's 9.43k source impedance sits right at the ICD's 10k ceiling and SAR sampling charge needs a local reservoir), and C400-C403 the four Vds arming blanks. JLC Basic."
+      "role": "C3/C4 the two ADC RC reservoir capacitors (the bank divider's 9.43k source impedance sits right at the ICD's 10k ceiling and SAR sampling charge needs a local reservoir), and C400-C403 the four Vds arming blanks, plus +2 at rev D for the J300 thermistor-line ESD filters that pair with the SMAJ12CA (blocks.md s2.4.3). JLC Basic."
     }
   ]
 }

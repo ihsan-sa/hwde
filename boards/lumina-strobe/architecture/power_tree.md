@@ -330,7 +330,7 @@ is the reason this loop is cheaper than the controller it replaces.**
 |---|---|---|
 | `R100`, `R101` | **2 x 39 ohm 2512 2 W in parallel = 19.5 ohm** | Series ballast **and** the current-sense element. Split in two for the same reason the active bleed is (s5.3): halves the per-part heat |
 | `Q100` | **P-channel MOSFET, 100-150 V, D2PAK/DPAK** | Pass element. **P-channel, because an N-channel high-side switch needs its gate above the 48 V rail** - a charge pump, which is the function the deleted controller was providing |
-| `U100A` | LM2904BIDR half, on a **floating 12 V rail** (24 k dropper + 12 V zener from `+48V_SW`) | Error amplifier. Both inputs sit within 3.9 V of `+48V_SW`, inside the floating supply |
+| `U100A` | LM2904BIDR half, on a **floating 12 V rail** (**[REV E] 2 x 8.2 k in series = 16.4 k** dropper + 12 V zener from `+48V_SW`) | Error amplifier. Both inputs sit within 3.9 V of `+48V_SW`, inside the floating supply. **Dropper resolved in s3.3.1** |
 | `R103` | source-to-gate, 100 k | **The interlock of record for the charge path**: passively OFF with every rail dead, no POR window |
 | `Q101` + 2 R | 2N7002 level shift | ENABLE gates the loop's reference to zero. Same pattern as the four drive stages |
 | `D102` | 12 V zener gate-source | Protects Vgs when the loop pulls hard |
@@ -359,6 +359,43 @@ i.e. up to **43.4 V**: **590 ms in regulation, and only 2.56 J into the FET inst
 (-18 %)**, because the ballast absorbs the rest. That directly improves the s10.3 transient case.
 Total cold start is ~0.9 s including the RC tail, against 653 ms before - comfortably inside the
 10 s ENABLE re-arm contract.
+
+#### 3.3.1 The floating-rail dropper - resolved, not deferred  **[REV E]**
+
+**The rev C value of 24 k was self-conflicting and P3 was right to push back.** Both halves of the
+problem, with the arithmetic:
+
+```
+  24 k, one 0805:
+    bias at 48 V  = (48-12)/24k = 1.50 mA ; LM2904B Iq is up to 1.2 mA
+                  -> as little as 0.30 mA left to hold D101 above its zener knee   TOO LITTLE
+    dissipation at 57 V = 45^2/24k = 84.4 mW against a 125 mW 0805 = 67 %          TOO HOT
+```
+
+**And the two pull in opposite directions**: lowering the dropper fixes the bias and worsens the
+dissipation. **Resolved by using both levers at once - lower it AND split it:**
+
+```
+  REQUIREMENT:  zener bias >= 1.0 mA at the MINIMUM input, with worst-case op-amp Iq
+                (48 - 12)/R - 1.2 mA >= 1.0 mA   ->   R <= 16.4 k
+
+  ADOPTED:  2 x 8.2 kohm 0805 in series = 16.4 k
+    bias at 48 V = 2.20 mA -> zener gets 1.00 mA   (worst case)      MEETS IT EXACTLY
+    bias at 57 V = 2.74 mA -> zener gets 1.54 mA
+    dissipation at 57 V = 123.5 mW total, 61.7 mW per part = 49 % of a 125 mW 0805
+    zener dissipation = 12 V x 1.54 mA = 18.5 mW in a 500 mW SOD-123 = 4 %
+```
+
+**49 % per part at the 57 V worst case, and an 0805 holds its full 125 mW to 70 C** - which is now
+the design-of-record ambient (s10.8), so no thermal derating applies at the operating point.
+**Every part of the charge loop now has comfortable power margin; rev C's dropper was the only one
+that did not.**
+
+**Cost, recorded rather than absorbed:** the floating rail draws **2.20 mA from `+48V_SW`** where
+rev C budgeted the deleted controller's `VCC` at 1.00 mA. Housekeeping on `+48V_SW` goes
+**3.02 -> 4.22 mA**, total housekeeping **342 mW**, and **`P_avail` 8.215 -> 8.158 W (-0.7 %)**.
+`I_avg` becomes 0.170 A, which puts `V_mean` at **44.5 V** with the 20.5 ohm series path -
+**still exactly at the ceiling**, so s3.3's ballast sizing needs no change.
 
 **SOA protection is now thermal, and that is the right instrument.** The fault this must survive is
 a shorted bank: 9.6 W continuous into `Q100`. **The NTC in `Q100`'s pour (`RT404`) is already
@@ -592,9 +629,45 @@ zero - the BLOCKING-04 ballast absorbs the rest (s3.3).
 > the LED-short fault (148 W for < 20 us before the Vds comparator trips) and the flash itself
 > (24.6 W peak, microseconds).
 >
-> **The caveat still stands for the CHARGE FET**, which under BLOCKING-04 is a different,
-> **P-channel** part. Its 8.1 W / 590 ms linear-mode cold start is the demanding case and
-> **P3 must confirm its SOA separately** (s3.0). Record it in DOC-01.
+> **[REV E] THE CAVEAT STANDS FOR THE CHARGE FET, AND THE `P x Zth` METHOD DOES NOT EXTEND TO IT.**
+> P3 selected **`IRF5210STRLPBF`** and its reasoning for not stopping was sound - no P-channel in
+> this catalogue closes the gap. **The verdict, stated plainly because it is being escalated:**
+>
+> **The method that worked for the `IRF640NS` worked because there was a DC line to extrapolate
+> *toward*.** That extrapolation was an interpolation *between* the 10 ms curve and the DC
+> asymptote, both published, with `P x Zth(j-c) = 150 C` verified against four plotted lines. **The
+> `IRF5210S` publishes only 100 us / 1 ms / 10 ms single-pulse curves, Tc-referenced, with no DC
+> line at all.** A 590 ms event is **59x beyond the longest plotted curve with nothing beyond it**.
+> That is extrapolation past the end of the data, not interpolation within it, and **on the one
+> device whose failure mode is a linear-mode short across 48 V it should not be papered over.**
+>
+> **Quantitative context, so the escalation is decidable rather than just alarming:**
+>
+> ```
+>   peak stress   = 0.20 A x (48 - 0.20 x 20.5)  = 0.20 A x 43.9 V = 8.78 W, falling to 0 over 590 ms
+>   as a fraction of the part's own Pd rating (~200 W)                = 4.4 %
+>   junction-to-CASE rise at 8.78 W, Zth_JC ~1.2 C/W at 0.6 s          = ~10.5 C
+> ```
+>
+> **In bulk-thermal terms this is a mild operating point.** What no datasheet number covers is
+> **Spirito hot-spotting, which is a local instability and is not predicted by average power** - and
+> at 0.20 A the part sits far below any ZTC crossover, i.e. in the positive-tempco region, exactly
+> as the `IRF640NS` does at 2.6 A.
+>
+> **Mitigations that were considered and rejected, so the escalation does not re-tread them:**
+> a bigger ballast is barred by the route-(a) window arithmetic of s3.0; a lower current limit is
+> barred because the sustained draw is **0.170 A** and the limit cannot go below it; a soft-start
+> ramp on the loop reference **does not help** - it delays the peak without reducing it, because
+> peak power occurs when the current has reached its limit and the bank is still low.
+>
+> **What is left is a genuine choice for the owner**, which is where it belongs: **(a)** accept and
+> validate on the bench (run 1000+ ENABLE cycles on the first prototype with `Rds(on)` thermometry -
+> this is what the cold start's 10 s re-arm contract and rarity make defensible); **(b)** source a
+> P-channel with a plotted DC SOA line from outside the JLC catalogue and accept it as a
+> hand-fitted part, alongside the bank and the connectors which already are not a standard SMD line
+> (P3-OPEN-6); or **(c)** revisit the deleted hot-swap controller with its TIMER held low, trading a
+> documented undocumented-mode hack for a documented SOA. **Recommendation: (a), with (b) as the
+> fallback if the bench run shows any drift.** Record whichever is chosen in DOC-01.
 
 > **[REV D] The offsetting bad news, from the same datasheet: the `IRF640NS` transfer curves cross
 > at `Vgs` ~6.4 V / 24 A, so at this board's 2.6 A the temperature coefficient is POSITIVE** - the
@@ -962,11 +1035,28 @@ resistor of s3.3 absorbs the rest. This is a **transient**, so `theta_JA` does n
 `Zth_JA(0.6 s)` for a D2PAK on ~350 mm2 of copper is **5-9 C/W**:
 
 ```
-  rise    = 4.3 W x (5..9) C/W        = 22 .. 39 C     (rev B: 24 .. 43 C)
+  rise    = 4.34 W x (5..9) C/W       = 22 .. 39 C     (rev B: 24 .. 43 C)
   Tj      = T_air + rise
-          = 56 + (22..39)  =  78 .. 95 C     <- comfortable
-          = 90 + (22..39)  = 112 .. 129 C    <- still brackets the 125 C design limit
+          = 70 + (22..39)  =  92 .. 109 C    <- DESIGN OF RECORD (s10.8). Inside the 125 C design
+                                                limit outright, with 16-33 K to spare
+          = 90 + (22..39)  = 112 .. 129 C    <- par's conservative bound; brackets 125 C
 ```
+
+> **[REV E] CORRECTION - `Q100`'s absolute maximum is 150 C, not 175 C.** The rev C bracket was
+> written against the `IRF640NS`'s 175 C, but BLOCKING-04 replaced `Q100` with a **P-channel**, and
+> every IR P-channel in this class is **-55..+150 C**. **The verdict does not change but the
+> headroom is materially thinner than rev C claimed** and the section must not be left standing on
+> the old number:
+>
+> | | Tj range | vs 125 C design limit | vs **150 C** absolute max |
+> |---|---|---|---|
+> | **at 70 C air (design of record)** | **92-109 C** | **inside, 16-33 K spare** | **41-58 K spare** |
+> | at 90 C air (par's bound) | 112-129 C | brackets it, +4 K worst case | 21-38 K spare |
+>
+> **At the design-of-record ambient the cold-start transient is no longer marginal at all** - it was
+> only ever marginal against the par's conservative bound, and s10.8 has moved that out of the
+> operating envelope. The accepted-transient argument of the paragraph below is retained because it
+> is still what covers the 90 C case, but **it is now a contingency, not the primary case.**
 
 **At 90 C air the cold start brackets the design junction limit and may exceed it by ~8 C, against
 a 175 C absolute maximum.** It is accepted rather than mitigated, on three grounds: the 125 C limit
@@ -1084,6 +1174,62 @@ sensitivity against.** Nothing here is averaged with anything.
    verification is **gating**: the acceptance test logs the enclosure's internal air alongside the
    emitter solder point, because **a solder point that passes while the internal air climbs 30 K
    means the heat went into the box and the board is silently in case B.**
+
+### 10.8 Reconciliation against ICD rev A6 s7.7 - **the 85-90 C failing rows DO NOT SURVIVE**  **[REV E]**
+
+**ICD s7.7 is now NORMATIVE and supersedes s7.6.** It adopts the enclosure decision, adopts s10.7's
+box arithmetic verbatim (the two-row table in the ICD is this document's), and **publishes a budget:
+sealed non-metallic, 3.6-4.3 K/W internal-air-to-room, with internal air held to 70 C** - 15 K below
+the +85 C limit shared by the ESP32-S3 module and the par's emitter family. The rev A3 claim that
+`at` needed ventilation is withdrawn.
+
+**Design-of-record ambient: 70 C. Raised from 56 C.**
+
+That is deliberately *not* the number s10.7 computes for this fixture (32-48 C with the wall path
+working) and *not* the 56 C inherited from rev A2. **It is the ICD's published ceiling, and it is
+the most conservative number that is actually normative.** Designing to it means the board is
+correct anywhere inside the ICD's own envelope rather than only at this fixture's expected
+operating point - which is the right posture for a board whose enclosure does not exist yet.
+
+| ambient | allowance per package | pass FET **0.807 W** | charge FET **0.215 W** | ballast **0.303 W** |
+|---|---|---|---|---|
+| 32-48 C (s10.7, wall path works) | 1.51-1.82 W | pass **1.9-2.2x** | pass 7.0-8.5x | pass |
+| 56 C (rev A2, superseded) | 1.350 W | pass 1.67x | pass 6.3x | pass |
+| **70 C - DESIGN OF RECORD** | **1.076 W** | **pass 1.33x** | **pass 5.0x** | **pass 6.6x** |
+| 77 C (s10.7 wall path FAILS, 40 C room) | 0.939 W | pass 1.16x | pass 4.4x | pass |
+| **83.8 C** | 0.807 W | **break-even** | pass 3.7x | pass |
+| 85-90 C (par's conservative bound) | 0.685-0.783 W | fail 0.85-0.97x | pass 3.2-3.6x | pass |
+
+**Answering the question plainly: no, the failing rows do not survive.**
+
+- **The worst steady-state package on this board fails at 83.8 C of internal air.** The ICD holds
+  the air to 70 C. **That is 13.8 K of margin against a normative ceiling.**
+- **Even the wall-path-FAILS case passes.** At a 40 C room with all 8.5 W in the box, s10.7 gives
+  71-77 C, and the pass FET still clears at 1.16x. The design tolerates the failure mode of its own
+  load-bearing dependency.
+- **The 85-90 C rows came from the par's independent Hoffman/Rittal calculation, which ICD s7.7 now
+  explicitly labels the conservative BOUND rather than a competing estimate** - and instructs that
+  it not be averaged with anything. It sits above even the LED-in-box case at a 40 C room. It was
+  the right thing to design a sensitivity against and it is the wrong thing to design *to*.
+
+**Consequence: the `P_rail` governor caps of s10.4 (7.99 W at 85 C, 6.99 W at 90 C) are WITHDRAWN as
+operating constraints.** They cost 3-15 % of the light and they are not needed at any ambient the
+ICD permits. **They are retained in s10.4 as contingency documentation only** - if the enclosure is
+ever built vented, metallic, or without the wall path, s10.4 is the pre-computed answer. **Do not
+implement them in firmware now.** The item that *does* stay implemented is s10.4's recommendation to
+make any future cap a function of the `ADC1` LED-module NTC reading, because that sensor is fitted
+either way and a fixture running hot should throttle regardless of which analysis was right.
+
+**Two things this does NOT change:**
+
+1. **`BANK_ARM` is still a momentary blast mode.** Armed-25 Hz puts 1.408 W in one pass FET, which
+   fails against the 1.076 W allowance at 70 C by 0.76x - a *worse* ratio than at 56 C. The
+   firmware contract of `blocks.md` s4.6 stands unchanged and is now the only thermal constraint the
+   board carries.
+2. **The bank's electrolytic life.** At 70 C the 105 C / 10,000 h rating gives `10,000 x 2^3.5` =
+   **113,000 h**, against 298,000 h at 56 C and 28,000 h at 90 C. **A 2.6x reduction from the old
+   design of record, not the 10x s10.5 warned about.** It is no longer a headline finding, but the
+   bank is still the shortest-lived part on the board and s10.5's ranking stands.
 
 ---
 

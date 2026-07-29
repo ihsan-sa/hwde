@@ -3,7 +3,7 @@
  "board": "lumina-strobe",
  "workspace": "boards/lumina-strobe",
  "created": "2026-07-28T14:59:51",
- "updated": "2026-07-28T21:43:06",
+ "updated": "2026-07-28T21:58:23",
  "phase": "P3",
  "gates": {},
  "human": {
@@ -222,6 +222,36 @@
    "why": "ICD requires a daughter asserting FAULT to sink >= 5 mA (real load ~4.3 mA including the carrier's red fault LED, not the 0.33 mA the 10k pull-up alone implies). The added 2N7002 (Q404) is rated 115 mA continuous with Rds(on) ~1.2-2 ohm, so VOL at 5 mA is ~10 mV, and its 60 V Vds comfortably holds off a 3.3 V pull-up. Meets the ICD with large margin; the 12 V /OT_TRIP node never reaches the connector.",
    "phase": "P3",
    "ts": "2026-07-28T21:43:06"
+  },
+  {
+   "what": "Design-of-record ambient moved to 70 C (ICD s7.7 rev A5 normative ceiling), NOT this fixture's computed 32-48 C",
+   "why": "Designing to the published normative number rather than our own favourable computation. Worst package breaks even at 83.8 C = 13.8 K margin; even the wall-path-fails case (77 C) passes at 1.16x. Consequence: the P_rail governor caps are WITHDRAWN as operating constraints and kept only as contingency, returning 3-15 pct of the light. BANK_ARM momentary-only is now the board's sole thermal constraint. Cold start Tj 92-109 C against a 125 C design limit with the corrected 150 C Tjmax.",
+   "phase": "P3",
+   "ts": "2026-07-28T21:58:22"
+  },
+  {
+   "what": "Timer map: 1 LEDC timer used, 3 free. 14-bit/4.883 kHz mode DECLINED.",
+   "why": "Rev B budgeted two timers and left none; the actual map needs one. 14-bit declined with numbers: comparator offset dominates resolution by 47x, and restoring the doubled ripple would push settling to 9.2 ms against a 2.67 ms shortest pulse.",
+   "phase": "P3",
+   "ts": "2026-07-28T21:58:22"
+  },
+  {
+   "what": "Floating-rail bias RESOLVED: 2 x 8.2 kohm = 16.4 kohm dropper",
+   "why": "Gives 1.00 mA zener bias at 48 V minimum against worst-case 1.2 mA op-amp Iq, and 49 pct of the 0805 power rating at 57 V - fixes both levers of the earlier self-conflict at a cost of 0.7 pct of P_avail.",
+   "phase": "P3",
+   "ts": "2026-07-28T21:58:23"
+  },
+  {
+   "what": "H2-DECISION-1 (P3-OPEN-7): charge-FET SOA cannot be closed by derivation",
+   "why": "The P x Zth(j-c) method that closed the IRF640NS does NOT extend to the IRF5210S: the IRF640NS had a DC line to extrapolate toward, the IRF5210S has none. Three mitigations already closed off - bigger ballast barred by the window arithmetic, lower limit barred by the 0.170 A sustained draw, soft-start ramp delays the peak without reducing it. Recommendation: accept plus 1000-cycle bench validation; fallback an off-catalogue P-channel with a published DC line.",
+   "phase": "P3",
+   "ts": "2026-07-28T21:58:23"
+  },
+  {
+   "what": "H2-DECISION-2 (P3-OPEN-12): HOLD the two Extended hysteresis values (820k bank UVLO, 620k bank ceiling)",
+   "why": "No Basic E24 neighbour exists. Retargeting would spend 18 pct of the UVLO band - already the tightest and deliberately not widened - or take a 0.31 V bite out of the 8.3 V operating window, to save about 3 USD across the build. Sourcer correctly refused; confirming at H2 rather than silently.",
+   "phase": "P3",
+   "ts": "2026-07-28T21:58:23"
   }
  ],
  "history": [
@@ -516,6 +546,35 @@
   {
    "ts": "2026-07-28T21:43:06",
    "event": "icd_rev_a6_deltas_applied"
+  },
+  {
+   "ts": "2026-07-28T21:58:22",
+   "event": "decision",
+   "what": "Design-of-record ambient moved to 70 C (ICD s7.7 rev A5 normative ceiling), NOT this fixture's computed 32-48 C"
+  },
+  {
+   "ts": "2026-07-28T21:58:22",
+   "event": "decision",
+   "what": "Timer map: 1 LEDC timer used, 3 free. 14-bit/4.883 kHz mode DECLINED."
+  },
+  {
+   "ts": "2026-07-28T21:58:23",
+   "event": "decision",
+   "what": "Floating-rail bias RESOLVED: 2 x 8.2 kohm = 16.4 kohm dropper"
+  },
+  {
+   "ts": "2026-07-28T21:58:23",
+   "event": "decision",
+   "what": "H2-DECISION-1 (P3-OPEN-7): charge-FET SOA cannot be closed by derivation"
+  },
+  {
+   "ts": "2026-07-28T21:58:23",
+   "event": "decision",
+   "what": "H2-DECISION-2 (P3-OPEN-12): HOLD the two Extended hysteresis values (820k bank UVLO, 620k bank ceiling)"
+  },
+  {
+   "ts": "2026-07-28T21:58:23",
+   "event": "p3_revisions_landed"
   }
  ]
 }
