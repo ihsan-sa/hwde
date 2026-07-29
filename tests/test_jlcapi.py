@@ -1230,9 +1230,13 @@ def test_created_verdict_not_downgraded_and_stale_flagged(tmp_path,
         "--api-quote-file", str(fab / "api_quote.json"),
         "--confirm", "b1 5pcs 32.5")) == 0     # grand total from the quote
 
-    fake_f = FakeSession(upload_gerber=err_resp(401, message="sig fail"))
+    # unchanged zip -> the recorded fileKey is reused (no re-upload), so a
+    # signature failure now manifests at the first live call of the run
+    fake_f = FakeSession(audit=ok_resp({"minLineWidth": 0.2}),
+                         calculate=err_resp(401, message="sig fail"))
     monkeypatch.setattr(order_submit, "_make_session", lambda: fake_f)
     assert order_submit.main(submit_argv(pcb, fab, qj, "--api")) == 2
+    assert "upload_gerber" not in fake_f.names()
 
     order = json.loads((fab / "order.json").read_text(encoding="utf-8"))
     assert order["api"]["verdict"] == "created"          # never downgraded
@@ -1342,3 +1346,115 @@ def test_net_probe_live(tmp_path):
     payload = json.loads(out.read_text(encoding="utf-8"))
     assert payload.get("verdict")
     assert payload.get("classification")
+
+
+# ------------------------------------------- live follow-ups (2026-07-29)
+
+AUDIT_PENDING = {"ok": False, "code": 2501,
+                 "message": "no_audit_result_error", "http_status": 200,
+                 "data": None, "trace_id": "t"}
+
+
+class AuditSeqSession(FakeSession):
+    """FakeSession whose audit() walks a response sequence (last repeats)."""
+
+    def __init__(self, audits, **responses):
+        super().__init__(**responses)
+        self._audits = list(audits)
+
+    def audit(self, key, language=0):
+        self.calls.append(("audit", key))
+        return (self._audits.pop(0) if len(self._audits) > 1
+                else self._audits[0])
+
+
+def test_audit_repolls_until_ready(tmp_path, monkeypatch, api_env, capsys):
+    """pcb/audit is async (live code 2501 right after upload): re-poll with
+    backoff until a result lands."""
+    pcb, fab, qj = make_fab(tmp_path)
+    fake = AuditSeqSession(
+        [dict(AUDIT_PENDING), dict(AUDIT_PENDING),
+         ok_resp({"minLineWidth": 0.2})],
+        upload_gerber=ok_resp("FKEY1"),
+        calculate=ok_resp({"priceWithoutFreight": 12.5}))
+    sleeps = []
+    monkeypatch.setattr(order_submit, "_sleep", lambda s: sleeps.append(s))
+    monkeypatch.setattr(order_submit, "_make_session", lambda: fake)
+    assert order_submit.main(submit_argv(pcb, fab, qj, "--api")) == 0
+    assert fake.names().count("audit") == 3
+    assert sleeps == list(order_submit.AUDIT_POLL_DELAYS_S[:2])
+    aq = json.loads((fab / "api_quote.json").read_text(encoding="utf-8"))
+    assert aq["audit"]["attempts"] == 3
+    assert "pending" not in aq["audit"]
+    assert aq["audit"]["data"]["minLineWidth"] == 0.2
+
+
+def test_audit_still_pending_flagged(tmp_path, monkeypatch, api_env, capsys):
+    """DFM still running after all polls: quote proceeds, pending flagged."""
+    pcb, fab, qj = make_fab(tmp_path)
+    fake = AuditSeqSession(
+        [dict(AUDIT_PENDING)],
+        upload_gerber=ok_resp("FKEY1"),
+        calculate=ok_resp({"priceWithoutFreight": 12.5}))
+    sleeps = []
+    monkeypatch.setattr(order_submit, "_sleep", lambda s: sleeps.append(s))
+    monkeypatch.setattr(order_submit, "_make_session", lambda: fake)
+    assert order_submit.main(submit_argv(pcb, fab, qj, "--api")) == 0
+    assert sleeps == list(order_submit.AUDIT_POLL_DELAYS_S)
+    aq = json.loads((fab / "api_quote.json").read_text(encoding="utf-8"))
+    assert aq["audit"]["pending"] is True
+    assert aq["audit"]["attempts"] == 1 + len(order_submit.AUDIT_POLL_DELAYS_S)
+    order = json.loads((fab / "order.json").read_text(encoding="utf-8"))
+    assert order["api"]["verdict"] == "ok"
+
+
+def test_country_passed_to_calculate(tmp_path, monkeypatch, api_env, capsys):
+    """--country plumbs the doc-table country code into calculate (without
+    it the live endpoint returns no shipList)."""
+    pcb, fab, qj = make_fab(tmp_path)
+    fake = quote_session(price=12.5, ship=[{"options": "DHL", "cost": 20.0}])
+    monkeypatch.setattr(order_submit, "_make_session", lambda: fake)
+    assert order_submit.main(
+        submit_argv(pcb, fab, qj, "--api", "--country", "US")) == 0
+    calc_payload = [a for n, a in fake.calls if n == "calculate"][0]
+    assert calc_payload["country"] == "US"
+    aq = json.loads((fab / "api_quote.json").read_text(encoding="utf-8"))
+    assert aq["country"] == "US"
+
+    (tmp_path / "nocountry").mkdir()
+    pcb2, fab2, qj2 = make_fab(tmp_path / "nocountry")
+    fake2 = quote_session(price=12.5)
+    monkeypatch.setattr(order_submit, "_make_session", lambda: fake2)
+    assert order_submit.main(submit_argv(pcb2, fab2, qj2, "--api")) == 0
+    calc2 = [a for n, a in fake2.calls if n == "calculate"][0]
+    assert "country" not in calc2
+
+
+def test_file_key_reused_when_sha_unchanged(tmp_path, monkeypatch, api_env,
+                                            capsys):
+    """Same gerber bytes -> the recorded fileKey is reused (no re-upload,
+    JLC's async audit clock keeps running); changed bytes -> fresh upload."""
+    pcb, fab, qj = make_fab(tmp_path)
+    fake = quote_session(price=12.5)
+    monkeypatch.setattr(order_submit, "_make_session", lambda: fake)
+    assert order_submit.main(submit_argv(pcb, fab, qj, "--api")) == 0
+    assert fake.names()[0] == "upload_gerber"
+
+    fake2 = AuditSeqSession(
+        [ok_resp({"minLineWidth": 0.2})],
+        calculate=ok_resp({"priceWithoutFreight": 12.5}))
+    monkeypatch.setattr(order_submit, "_make_session", lambda: fake2)
+    assert order_submit.main(submit_argv(pcb, fab, qj, "--api")) == 0
+    assert "upload_gerber" not in fake2.names()      # reused FKEY1
+    aq = json.loads((fab / "api_quote.json").read_text(encoding="utf-8"))
+    assert aq["file_key"] == "FKEY1"
+
+    zipf = fab / "b1_gerbers.zip"
+    zipf.write_bytes(zipf.read_bytes() + b"x")       # sha drift
+    fake3 = quote_session(price=12.5)
+    fake3.responses["upload_gerber"] = ok_resp("FKEY2")
+    monkeypatch.setattr(order_submit, "_make_session", lambda: fake3)
+    assert order_submit.main(submit_argv(pcb, fab, qj, "--api")) == 0
+    assert fake3.names()[0] == "upload_gerber"
+    aq3 = json.loads((fab / "api_quote.json").read_text(encoding="utf-8"))
+    assert aq3["file_key"] == "FKEY2"

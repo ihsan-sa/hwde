@@ -81,6 +81,7 @@ import json
 import os
 import re
 import sys
+import time
 from pathlib import Path
 
 SCRIPTS = Path(__file__).resolve().parent
@@ -88,6 +89,13 @@ sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(SCRIPTS / "lib"))
 
 import jlcapi  # noqa: E402
+
+# pcb/audit is asynchronous on JLC's side: right after upload it returns
+# business code 2501 (no_audit_result_error) until their DFM run finishes
+# (live-observed 2026-07-29).
+AUDIT_PENDING_CODE = 2501
+AUDIT_POLL_DELAYS_S = (5.0, 10.0, 15.0)
+_sleep = time.sleep  # test seam
 
 JLCDFM_URL = "https://jlcdfm.com/"
 JLC_QUOTE_URL = "https://cart.jlcpcb.com/quote"
@@ -333,7 +341,8 @@ def _scope_note(man: dict) -> None:
         man["human_steps"].insert(0, note)
 
 
-def _api_quote(session, man: dict, fab_dir: Path, prior_steps=None) -> str:
+def _api_quote(session, man: dict, fab_dir: Path, prior_steps=None,
+               country: str | None = None) -> str:
     """uploadGerber -> audit -> calculate -> fab/api_quote.json. NEVER calls
     create. Returns the verdict recorded in man['api']."""
     zip_info = man["artifacts"].get("gerber_zip")
@@ -354,37 +363,64 @@ def _api_quote(session, man: dict, fab_dir: Path, prior_steps=None) -> str:
     _check_oz_mentions(man, prior_steps, oz)
     pcb_param = build_pcb_param(spec)
 
-    up = session.upload_gerber(zip_info["path"])
-    cls = jlcapi.classify(up)
-    if cls != "ok":
-        _record_api_failure(man, cls, up)
-        if cls == "scope_pending":
-            _scope_note(man)
-        return cls
-    file_key = jlcapi.extract_file_key(up)
-    if not file_key:
-        man["api"].update({"verdict": "error",
-                           "note": "uploadGerber succeeded but returned no "
-                                   f"fileKey (data={up.get('data')!r})"})
-        return "error"
-    # record immediately: a later run can reuse the key even if the next
-    # calls fail on scope
-    man["api"]["file_key"] = file_key
+    if (man["api"].get("file_key")
+            and man["api"].get("file_key_sha256") == zip_info["sha256"]):
+        # same bytes already uploaded: reuse the key - also keeps JLC's
+        # async DFM-audit clock running instead of restarting it every run
+        file_key = man["api"]["file_key"]
+    else:
+        up = session.upload_gerber(zip_info["path"])
+        cls = jlcapi.classify(up)
+        if cls != "ok":
+            _record_api_failure(man, cls, up)
+            if cls == "scope_pending":
+                _scope_note(man)
+            return cls
+        file_key = jlcapi.extract_file_key(up)
+        if not file_key:
+            man["api"].update({"verdict": "error",
+                               "note": "uploadGerber succeeded but returned "
+                                       f"no fileKey (data={up.get('data')!r})"
+                               })
+            return "error"
+        # record immediately: a later run can reuse the key even if the
+        # next calls fail on scope
+        man["api"]["file_key"] = file_key
+        man["api"]["file_key_sha256"] = zip_info["sha256"]
 
     aud = session.audit(file_key)
     aud_cls = jlcapi.classify(aud)
+    attempts = 1
+    for delay in AUDIT_POLL_DELAYS_S:
+        if aud_cls == "scope_pending" \
+                or aud.get("code") != AUDIT_PENDING_CODE:
+            break
+        _sleep(delay)
+        aud = session.audit(file_key)
+        aud_cls = jlcapi.classify(aud)
+        attempts += 1
     if aud_cls == "scope_pending":
         _record_api_failure(man, aud_cls, aud)
         _scope_note(man)
         return aud_cls
     audit_summary = {"ok": aud.get("ok"), "code": aud.get("code"),
-                     "message": aud.get("message"), "data": aud.get("data")}
+                     "message": aud.get("message"), "data": aud.get("data"),
+                     "attempts": attempts}
+    if aud.get("code") == AUDIT_PENDING_CODE:
+        # JLC's DFM is still running; the quote proceeds and a later --api
+        # run re-polls (the fileKey is reused while the zip is unchanged)
+        audit_summary["pending"] = True
 
     calc_request = {"orderType": 1, "fileKey": file_key,
                     # required by the calculate table; value verbatim from
                     # the documented request example
                     "achieveDate": 120,
                     "pcbParam": pcb_param}
+    if country:
+        # country code per the doc table (e.g. "US", "NL") - without it
+        # calculate returns no shipList, so the grand-total token could
+        # not attest freight
+        calc_request["country"] = country
     calc = session.calculate(calc_request)
     cls = jlcapi.classify(calc)
     if cls != "ok":
@@ -418,6 +454,7 @@ def _api_quote(session, man: dict, fab_dir: Path, prior_steps=None) -> str:
         .isoformat(timespec="seconds"),
         "file_key": file_key,
         "gerber_sha256": zip_info["sha256"],   # binds any create to THIS zip
+        "country": country,
         "real_price": real_price,
         "estimate": estimate,
         "estimate_note": man["quote"].get("estimate_note"),
@@ -633,8 +670,8 @@ def _merge_prior_api(man: dict, prior: dict | None) -> None:
     prior_api = prior.get("api")
     if isinstance(prior_api, dict):
         for key in ("verdict", "quote_real", "api_quote_json", "order",
-                    "file_key", "last_quote_verdict", "last_create_verdict",
-                    "quote_stale"):
+                    "file_key", "file_key_sha256", "last_quote_verdict",
+                    "last_create_verdict", "quote_stale"):
             if key in prior_api and key not in man["api"]:
                 man["api"][key] = prior_api[key]
     if man.get("order_number") is None and prior.get("order_number"):
@@ -730,6 +767,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--fab-dir", required=True)
     ap.add_argument("--quote", help="order_quote.py JSON")
     ap.add_argument("--qty", type=int, help="quantity row to select")
+    ap.add_argument("--country",
+                    help="ship-to country code for the freight quote "
+                         "(e.g. US); without it calculate returns no "
+                         "shipList and the grand-total token cannot carry "
+                         "freight")
     ap.add_argument("--api", action="store_true",
                     help="live QUOTE-ONLY API flow (upload -> audit -> "
                          "calculate -> fab/api_quote.json); never creates "
@@ -790,7 +832,8 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 api_verdict = _api_quote(
                     session, man, Path(args.fab_dir),
-                    prior_steps=(prior or {}).get("human_steps"))
+                    prior_steps=(prior or {}).get("human_steps"),
+                    country=args.country)
         except ApiRefused as exc:
             if not exc.recorded:
                 man["api"].update({"verdict": "refused", "note": str(exc)})

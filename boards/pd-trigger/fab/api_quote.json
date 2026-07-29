@@ -4,9 +4,10 @@
  "status": "pass",
  "board": "pd-trigger",
  "qty": 10,
- "fetched_at": "2026-07-29T11:15:06-07:00",
- "file_key": "96bd9c40d9b943a38d4fc8388d6901ff",
+ "fetched_at": "2026-07-29T11:28:58-07:00",
+ "file_key": "df5bb49b7e364b068720f510914d6391",
  "gerber_sha256": "ac8e03ac89de8d2b753e300ab6a0a21c4a32381b540e7be232a7302aee66154c",
+ "country": "US",
  "real_price": 40.0,
  "estimate": 19.65,
  "estimate_note": null,
@@ -14,10 +15,38 @@
  "copper_weight_oz": 2.0,
  "copper_weight_source": "stackup.md: ## Chosen: `JLC2313_1.6_2oz` (2-layer, 1.6 mm, **2 oz** outer copper, HASL)",
  "audit": {
-  "ok": false,
-  "code": 2501,
-  "message": "no_audit_result_error",
-  "data": null
+  "ok": true,
+  "code": 200,
+  "message": null,
+  "data": {
+   "stencilLayer": 2,
+   "minLineWidth": null,
+   "minLineDist": null,
+   "smallestHole": null,
+   "setLength": 48.0,
+   "setWidth": 30.0,
+   "technologyDiscernRecordResult": {
+    "red": [],
+    "green": [],
+    "blue": [
+     "pd-trigger-F_Silkscreen.gto(null):null",
+     "pd-trigger-F_Paste.gtp(null):null",
+     "pd-trigger-F_Mask.gts(null):null",
+     "pd-trigger-F_Cu.gtl(null):null",
+     "pd-trigger-B_Cu.gbl(null):null",
+     "pd-trigger-B_Mask.gbs(null):null",
+     "pd-trigger-B_Paste.gbp(null):null",
+     "pd-trigger-B_Silkscreen.gbo(null):null",
+     "pd-trigger.drl(null):null",
+     "pd-trigger-Edge_Cuts.gm1(null):null"
+    ],
+    "yellow": []
+   },
+   "url": "https://cart.jlcpcb.com/quote/gerberviewThree/?qs=99fd2ff9f85249e794254ffe78270343_1_0_1_0_1.html",
+   "gerberTop": "https://cart.jlcpcb.com/file/downImg?color=Green&uuid=99fd2ff9f85249e794254ffe78270343&small=2&type=top&fromDemo=",
+   "gerberBottom": "https://cart.jlcpcb.com/file/downImg?color=Green&uuid=99fd2ff9f85249e794254ffe78270343&small=2&type=bottom&fromDemo="
+  },
+  "attempts": 3
  },
  "pcb_cost_info": {
   "weight": 0.06,
@@ -46,10 +75,53 @@
   "specialFlag": false,
   "originStencilMoney": null
  },
- "ship_list": null,
- "shipping_method": null,
- "shipping_cost": null,
- "grand_total": 40.0,
+ "ship_list": [
+  {
+   "options": "DHL EXPRESS",
+   "showOptions": "DHL Express",
+   "cost": "23.84469604477612",
+   "day": "2-4 business days"
+  },
+  {
+   "options": "DHL Express DDP",
+   "showOptions": "DHL Express (DDP)",
+   "cost": "23.84469604477612",
+   "day": "2-4 business days"
+  },
+  {
+   "options": "UPS Express Saver DDP",
+   "showOptions": "UPS Express Saver(DDP)",
+   "cost": "23.59145176119403",
+   "day": "2-4 business days"
+  },
+  {
+   "options": "FedEx Express DDP",
+   "showOptions": "FedEx Express \uff08DDP)",
+   "cost": "24.12772158208955",
+   "day": "2-5 business days"
+  },
+  {
+   "options": "HKTHZXR-RMB",
+   "showOptions": "Global Standard Direct Line",
+   "cost": "6.3939358209",
+   "day": "8-13 business days"
+  },
+  {
+   "options": "CADHL",
+   "showOptions": "My DHL Account",
+   "cost": "2.50",
+   "day": null
+  },
+  {
+   "options": "CAFedEx",
+   "showOptions": "My FedEx Account",
+   "cost": "2.50",
+   "day": null
+  }
+ ],
+ "shipping_method": "DHL EXPRESS",
+ "shipping_cost": 23.84469604477612,
+ "grand_total": 63.84,
  "achieve_date_list": [
   {
    "achieveName": "3 days",
@@ -67,7 +139,7 @@
  "order_total_weight": 60.0,
  "calculate_request": {
   "orderType": 1,
-  "fileKey": "96bd9c40d9b943a38d4fc8388d6901ff",
+  "fileKey": "df5bb49b7e364b068720f510914d6391",
   "achieveDate": 120,
   "pcbParam": {
    "layer": 2,
@@ -105,8 +177,9 @@
      "configOptionShow": "No"
     }
    ]
-  }
+  },
+  "country": "US"
  },
- "trace_id": "ef588ff7e6644368b52c1e193ca4d93a",
+ "trace_id": "c1f853b8bde44d8f857a765e5fa73a5e",
  "confirm_format": "<board> <qty>pcs <grand_total>"
 }
