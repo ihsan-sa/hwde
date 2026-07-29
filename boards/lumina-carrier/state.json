@@ -3,7 +3,7 @@
  "board": "lumina-carrier",
  "workspace": "boards/lumina-carrier",
  "created": "2026-07-28T13:36:22",
- "updated": "2026-07-28T21:31:25",
+ "updated": "2026-07-28T22:18:58",
  "phase": "P4",
  "gates": {
   "erc": {
@@ -322,6 +322,18 @@
    "why": "The first sync correctly rebuilt refs/qty from the netlist but DROPPED C334927, the 63.4R class-4 upgrade resistor, because it has zero refs by design - it is deliberately not fitted. That would have silently deleted the single component that makes D-01's 'resistor change, no respin' promise real. Lines now carry a not_fitted flag and survive the sync. Final state is stable and self-consistent: 50 BOM lines, 109 placed components, 0 lines changed on a repeat run, 0 netlist LCSC codes without a BOM line, and the only component without an LCSC property is H5 (a mounting hole, board-only by design).",
    "phase": "P4",
    "ts": "2026-07-28T21:31:25"
+  },
+  {
+   "what": "BLOCKED before P5: the magjack qualification found that NO available 10/100 PoE+ part fully meets the goal the swap was ordered to achieve",
+   "why": "Best documented 10/100 PoE+ ICM is Wurth 7499410213: publishes '600 mA per centre tap, compliant with IEEE 802.3at' (datasheet rev 002.000 p3), -40..+85 C. But 600 mA is EXACTLY the 802.3at DC maximum and BELOW the 0.686 A peak, and the agent found no 10/100 part publishing more - everything higher is gigabit or PoE-bt. So the swap does not fully deliver D-01's at-upgrade promise either. It also is NOT a drop-in: no integrated bridge (needs two external bridges), 12 of 14 pins move (P1/P2 RX->TX, P4/P5 TX->RX, P7/P8 no-connect->live Mode A taps, P9/P10 rectified->raw spare pairs), an internal Bob Smith network that cannot be removed and contradicts poe.py's rationale, and the chip-side/line-side isolation pad gap collapses from 3.58 mm to 1.05 mm (below HALO's 1.40 mm guidance, and check_creepage will NOT catch it because it only enforces 0.635 mm for a 57 V working voltage). Cost +7.20 USD/board = +103 USD on 14, moving the carrier from ~26-32 to ~33-39 against a 30 USD target. LCSC has it at ZERO stock so JLC cannot source it: J1 becomes DNP, ordered from Digi-Key, hand-soldered 16 terminals x 14 boards. WORST PART: at 600 mA the magjack becomes the LOWEST-rated element in the 48 V path, and neither the eFuse (1.0 A) nor the PD hot-swap (~1.0 A) protects it - it can sit at 1.0 A for 162 ms before latch-off. Protecting it by lowering R(ILIM) at the at build makes D-01 a TWO-resistor upgrade, which is precisely what D-01 exists to avoid.",
+   "phase": "P5",
+   "ts": "2026-07-28T21:48:27"
+  },
+  {
+   "what": "Gigabit screen SUCCEEDED: LINK-PP LPJG0926HENL (C22457393) publishes 720 mA @57VDC continuous - the first candidate that covers the 0.686 A at PEAK, not just the DC max - and JLC stocks and places it",
+   "why": "The earlier rejection of gigabit ICMs was a category error, and re-running it changed the answer. LINK-PP LPJG0926HENL publishes 'DC Current/Voltage Rating pse Pins: 720mA MAX @57VDC (Continuous)' on p1 of drawing LP18022610 rev A. That is 1.20x the 802.3at 0.600 A DC max and 1.05x the 0.686 A peak. LCSC C22457393, 3109 in stock, 3.7852 USD at the qty-10 break = 52.99 USD for 14, and critically JLCPCB Assembly Type = Wave Soldering, so JLC PLACES it - no DNP, no hand-solder, single purchase order. That is 80.57 USD CHEAPER than the Wurth plan while RAISING the rating and REMOVING the partial-population problem. It also largely rescues D-01: because 720 mA exceeds the at peak, there is no need to lower R(ILIM) for normal at operation, so the one-resistor upgrade promise survives (only bounded transient fault overstress at the eFuse's 1.0 A limit remains). Thermal cross-check against ICD s7.7: its 0..+70 C rating gives +15.9 K margin at the 30 C room ceiling the ICD already sets for at, and +20.9 K at 25 C. Costs carried: no integrated bridge (2 external bridges - unchanged from the Wurth plan), isolation gap 1.06 mm NOT fixed but mitigable to 1.36-1.56 mm because the two pads nearest the 48 V nodes are TD4+/TD4- chip-side windings of a pair the W5500 never uses, and de-specs on return loss (-16 vs -18 dB), CMRR (-30 vs -35 dB) and op temp.",
+   "phase": "P4",
+   "ts": "2026-07-28T22:18:58"
   }
  ],
  "history": [
@@ -618,6 +630,16 @@
    "ts": "2026-07-28T21:31:25",
    "event": "decision",
    "what": "BOM resync tooling hardened: bom_sync.py now preserves not_fitted lines"
+  },
+  {
+   "ts": "2026-07-28T21:48:27",
+   "event": "decision",
+   "what": "BLOCKED before P5: the magjack qualification found that NO available 10/100 PoE+ part fully meets the goal the swap was ordered to achieve"
+  },
+  {
+   "ts": "2026-07-28T22:18:58",
+   "event": "decision",
+   "what": "Gigabit screen SUCCEEDED: LINK-PP LPJG0926HENL (C22457393) publishes 720 mA @57VDC continuous - the first candidate that covers the 0.686 A at PEAK, not just the DC max - and JLC stocks and places it"
   }
  ]
 }
