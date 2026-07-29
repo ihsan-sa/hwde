@@ -1,6 +1,6 @@
 # ICD-01 - LUMINA expansion connector interface control document
 
-**Owner:** LUM-CAR-A (carrier board). **Status: frozen at H1. Rev A3** (A2 = 0.635 mm creepage + bank-charging contract; A3 = ID_ADC codes + PWM/timer contract; A4 = sealed-with-wall-conduction thermal budget + firmware requirements; A5 = thermal assumptions stated, at-ventilation item closed).
+**Owner:** LUM-CAR-A (carrier board). **Status: frozen at H1. Rev A3** (A2 = 0.635 mm creepage + bank-charging contract; A3 = ID_ADC codes + PWM/timer contract; A4 = sealed-with-wall-conduction thermal budget + firmware requirements; A5 = thermal assumptions stated + at-ventilation closed; A6 = FAULT sink current, IMON accuracy caveat).
 **Consumers:** LUM-STR-A (strobe daughter), LUM-PAR-A (RGBW par daughter), and every future LUMINA
 daughter.
 
@@ -87,7 +87,7 @@ was designed to land exactly on them.
 | `ADC0 / ADC1` | 2 | signal |
 | `ID_ADC` | 1 | signal |
 | `ENABLE` | 1 | signal |
-| `FAULT` | 1 | signal |
+| `FAULT` | daughter -> carrier | open-drain, **active low** | Pulled up on the CARRIER (10 k to +3V3). **A daughter asserting FAULT must sink >= 5 mA** - REVISED at rev A6. The carrier's own red fault indicator (D22 + its ballast) also hangs on this net, so the real load is ~4.3 mA, not the ~0.33 mA implied by the pull-up alone. Any ordinary open-drain FET or MCU pin meets this; the number is published so no daughter sizes a marginal device. Well inside the carrier eFuse's 10 mA FLT limit. |
 | `GND` (signal returns) | 5 | signal |
 | **Total** | **38** | |
 
@@ -403,6 +403,32 @@ Two consequences daughter designers get wrong if this is not spelled out:
 - **A burst is not free.** 1 J dumped in 10 ms is 100 W for 10 ms, but repeating at 12 Hz still draws
   12 W continuously. Any cap-bank daughter needs its own average-energy governor cooperating with
   the carrier's.
+
+#### 6.2.1 IMON accuracy - REVISED at rev A6. Read before relying on the governor.
+
+The carrier's eFuse provides an analogue current-monitor output (`IMON`) to an MCU ADC, and s6.2
+describes the average-energy governor as closed-loop on the strength of it. **That claim is now
+qualified.**
+
+The TPS16630 specifies `GAIN(IMON)` accuracy only for **I(OUT) >= 0.6 A** (25.66-30.14 uA/A over
+0.6-2 A, and a second band 2-6 A). The rail's published sustained limits are **0.25 A (af) / 0.50 A
+(at)** - **both below that floor**. So at the current the governor actually regulates against, the
+transfer function has **no datasheet-guaranteed accuracy**.
+
+What this does and does not mean:
+
+- The measurement is still **monotonic and useful** - it is a real current monitor, not noise. It is
+  fine for detecting gross overdraw, a stuck-on daughter, or a shorted rail.
+- It is **not** a calibrated energy meter at 0.25-0.5 A. **Do not design a daughter that depends on
+  the carrier metering its average power to better than roughly +/-20 % in that range** unless one of
+  the following is done:
+  1. **per-unit characterisation at build** (measure and store a correction in the daughter's
+     I2C EEPROM - the ID scheme already provides somewhere to put it), or
+  2. move the governor to a **shunt + amplifier** on a future carrier revision, or
+  3. keep the governor conservative and treat IMON as a guard rather than a meter.
+
+`R(IMON)` = 30 k is TI's own 1 A worked example and is otherwise correct; the issue is the operating
+point, not the component.
 
 ### 6.3 Where the cheap watts are
 

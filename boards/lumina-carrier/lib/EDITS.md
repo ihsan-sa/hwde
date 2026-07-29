@@ -62,6 +62,28 @@ orchestrator after verifying they were absent.
   (EP 3.10 x 2.40); TI's current 4214849/B (09/2025) has a larger EP (3.4 x 2.71 mask,
   2.95 x 4.9 copper). The KiCad stock footprint matches the current drawing exactly.
 
+### 6. D10 `TPD4E1U06DBVR_C19829453` - pin NAMES on pins 1 and 4 corrected
+- **Why:** the easyeda2kicad pull captioned **pin 1 "D1+" and pin 4 "D2-"**, while
+  `parts/C19829453.json` (datasheet pin-configuration drawing) gives **pin 1 = D2-,
+  pin 4 = D1+**. The two channel labels were swapped.
+- **Electrically a no-op:** every net is wired by pin NUMBER (`eth.py` maps
+  4/6 -> TX and 1/3 -> RX straight from that JSON), and this is a uni-directional
+  steering array whose four channels are identical and independent - there is no
+  differential element inside, so the "pair" names are drawing convention only.
+  The netlist was and is correct.
+- **But it was a reading trap:** the schematic and the exported PDF showed
+  `/ETH_TXP` arriving on a pin captioned "D2-", which invites a layout or DFM
+  reviewer to "fix" a pairing that is already right.
+- **Change:** `(name "D1+")` on pin 1 and `(name "D2-")` on pin 4 swapped, so all six
+  names now read 1 = D2-, 2 = GND, 3 = D2+, 4 = D1+, 5 = NC, 6 = D1-. Pin numbers,
+  positions, electrical types, footprint and every other field untouched.
+- **Guard against regression:** `eth.py`'s `expect={}` for D10 previously asserted only
+  the four names that agreed; it now asserts **all six**, so a lib re-pull that
+  reintroduces the swap fails the generator instead of shipping.
+- Verified after the edit: `lib_pin_types.py` re-run (idempotent, 0 changes - it keys
+  on pin numbers), `root.py` rebuild, ERC 0 errors / 0 warnings, and the exported
+  schematic PDF shows `D2- 1 / GND 2 / D2+ 3 / D1+ 4 / NC 5 / D1- 6`.
+
 ## Deliberately NOT changed
 
 - **Untented vias-in-pad** under the ESP32-S3 thermal land (12 vias, drill 0.25 / pad 0.40

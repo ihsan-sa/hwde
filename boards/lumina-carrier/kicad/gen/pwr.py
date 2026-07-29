@@ -52,6 +52,10 @@ Load-bearing facts, with the trap each one avoids:
     latch off after 162 ms of current limiting. Shorting it to GND would
     auto-retry into a browning-out daughter.
   * U22 IMON (14) carries R68 to GND and **no capacitor** - sec 8.3.6.
+  * U22 OUT needs a Schottky to GND (D23, sec 9.4.1): V(OUT) abs max is
+    **-0.3 V** and +48V_SW feeds an off-board inductive load, so the FET
+    interrupting a short would drive OUT below its floor. Cathode on
+    +48V_SW, anode on GND, physically adjacent to pins 18-20.
   * U22 UVLO/OVP is a THREE-resistor string IN->UVLO->OVP->GND (Figure 8-3).
     R66/R67/R73 were RE-DERIVED this session; see the block comment there.
   * SHDN and OVP are 5.5 V abs-max pins on a 57 V board. Neither may ever be
@@ -65,12 +69,18 @@ DEVIATIONS FROM parts/parts.json (the orchestrator must fold these back)
      PSE would have left the daughter dead) and OVP falling 57.9 V nominal,
      i.e. ~55.6 V worst case, below the 57 V legal PSE maximum. Arithmetic in
      the R66 block comment. C4328 (20 k 0805) leaves the BOM entirely.
-  2. R71 330 R -> **1 k** (C21190, already on the BOM). 330 R as a PGOOD
-     pull-up would sink 8.2 mA against a 10 mA ABS MAX.
+  2. R71 330 R -> **10 k** (C25804, already on the BOM) and its top end moves
+     from +3V3 to **+12V**. 330 R would have sunk 8.2 mA against a 10 mA ABS
+     MAX; 1 k (the first repair) was still 10x below the datasheet's
+     recommended 10-100 k R(PGOOD) window AND left D21's current set by the
+     LED's 2.6-3.1 V Vf bin rather than by the resistor. See the block
+     comment at R71 for the arithmetic.
   3. NEW refdes, all on LCSC lines the BOM already carries:
      R62 (100 k 0805, C149504) + R74 (4.7 k 0603, C23162) = the mandatory U20
      EN divider; C61/C62/C63 (100 nF 100 V 0805, C28233) = the local HF
-     bypass the SCT2A25 and TPS16630 datasheets both require on a 48 V pin.
+     bypass the SCT2A25 and TPS16630 datasheets both require on a 48 V pin;
+     D23 (SS510, C19229) = the sec 9.4.1 negative-transient Schottky on the
+     eFuse output.
 
 Rebuild (writes ../pwr.kicad_sch; the ROOT generator owns the project file):
     .venv/Scripts/python boards/lumina-carrier/kicad/gen/pwr.py
@@ -132,7 +142,8 @@ LCSC = {
     "R70": "C149504",     # 100k 1% 0805 (+48V_SW bleed)
     "C62": "C28233",      # 100nF 100V X7R 0805 (IN bypass)  - NEW REFDES
     "C63": "C28233",      # 100nF 100V X7R 0805 (OUT bypass) - NEW REFDES
-    "R71": "C21190",      # 1k 1% 0603 (PGOOD pull-up)      - VALUE CHANGED
+    "D23": "C19229",      # SS510C 100 V 5 A Schottky OUT->GND - NEW REFDES
+    "R71": "C25804",      # 10k 1% 0603 (PGOOD pull-up)     - VALUE CHANGED
     "D21": "C2297",       # KT-0805G green (power good)
     "R72": "C23138",      # 330R 1% 0603 (FLT LED series)
     "D22": "C2286",       # KT-0603R red (fault)
@@ -151,7 +162,6 @@ V_33K = "33k 1% 0603"
 V_10K = "10k 1% 0603"
 V_18K = "18k 1% 0603"
 V_4K7 = "4.7k 1% 0603"
-V_1K = "1k 1% 0603"
 V_330R = "330R 1% 0603"
 V_100K = "100k 1% 0805"
 V_620K = "620k 1% 0805"
@@ -173,7 +183,6 @@ SYM_R0603 = f"{FP}:0603WAF1802T5E"      # generic 0603 resistor body
 SYM_R0805 = f"{FP}:0805W8F1242T5E"      # generic 0805 resistor body
 SYM_R100K = f"{FP}:0805W8F1003T5E_C149504"
 SYM_R4K7 = f"{FP}:0603WAF4701T5E"
-SYM_R1K = f"{FP}:0603WAF1001T5E"
 SYM_R330 = f"{FP}:0603WAF3300T5E"
 SYM_R10K = f"{FP}:0603WAF1002T5E"
 SYM_R30K = f"{FP}:0603WAF3002T5E"
@@ -533,22 +542,58 @@ def build() -> schlib.Sheet:
                      footprint=R0805)
     sh.wire_pins("R70", {"1": "+48V_SW", "2": "GND"})
 
+    # ------------------------------------------- negative-transient clamp ---
+    # Sec 9.4.1: "TI recommends a Schottky diode from OUT to GND, placed
+    # physically close to the OUT and GND pins, to absorb the negative spike
+    # produced by output INDUCTANCE when the FET interrupts a short."
+    # +48V_SW leaves the board through J3 pins 1/3/5 into a daughter that
+    # holds a ~2800 uF bank behind its own harness - an unambiguously
+    # inductive load - and V(OUT) abs max is only -0.3 V. Without this diode
+    # a single downstream short recoils the OUT pins below their abs max.
+    # SS510 (same 100 V / 5 A part as the buck's catch diode D20, already a
+    # BOM line): CATHODE to +48V_SW, ANODE to GND, so it is reverse-biased
+    # (57 V max against a 100 V rating) in every normal state and only
+    # conducts when OUT swings negative.
+    # PLACEMENT IS PART OF THE FIX - the loop OUT -> D23 -> GND must be
+    # short, so P6 must keep D23 adjacent to U22 pins 18-20/9/21.
+    d23 = sh.add_component(f"{FP}:SS510", "D23", "SS510C 100V 5A Schottky SMC",
+                           at=(190.50, 152.40),
+                           footprint=f"{FP}:SMC_L7.1-W6.2-LS8.1-R-RD",
+                           expect={"1": "A", "2": "K"})
+    sh.wire_pins("D23", {"1": "GND", "2": "+48V_SW"})
+    d23.set_property("Note", "Neg-transient clamp - keep at U22 pins 18-20")
+
     # ---------------------------------------------------- status LEDs -------
     # D21, POWER GOOD (green). PGOOD is open drain but ACTIVE HIGH: it SINKS
     # when the FET is off and is high-Z when the rail is good, so the LED
     # cannot hang off it as a low-side load - it would light on FAILURE. The
-    # working topology is +3V3 -> R71 -> PGOOD node -> D21 -> GND:
-    #   rail good  : PGOOD high-Z, the pull-up feeds the LED, 1.3 mA, LIT
-    #   rail off   : PGOOD sinks, node = 3.3 x 70/1070 = 0.22 V, LED DARK
-    # R71 = 1 k rather than the 330 R the BOM carried: 330 R would sink
-    # 8.2 mA against a 10 mA ABS MAX. 1 k sinks 3.1 mA (3.2x margin). It is
-    # below the datasheet's recommended 10-100 k pull-up range, which exists
-    # solely to bound that sink current, and 3.1 mA is 3.2x inside it; 10 k
-    # would put only 0.12 mA through the LED, which is not visible through
-    # the enclosure's RJ45 cutout. Hardware-driven, no GPIO.
-    sh.add_component(SYM_R1K, "R71", V_1K, at=(215.90, 190.50),
+    # only correct-polarity topology without an inverting transistor is
+    # rail -> R71 -> PGOOD node -> D21 -> GND, in which the PULL-UP IS the
+    # LED's current source. That is why the pull-up value and the LED current
+    # cannot be separated by adding a second resistor: any ballast in that
+    # string is simply in series with R71.
+    #
+    # They are decoupled by the RAIL instead. R71 = 10 k to **+12V**, not
+    # 1 k to +3V3:
+    #   * R(PGOOD) = 10 k is now inside the datasheet's recommended
+    #     10-100 k window (sec 9.2.2.3.1); the old 1 k was 10x outside it.
+    #   * PGOOD is rated 60 V and sec 8.3.8 explicitly allows pulling it to
+    #     IN or OUT through a resistor, so a 12 V pull-up is in spec.
+    #   * D21 (C2297 green) has Vf 2.6-3.1 V. Off 3.3 V the headroom is
+    #     0.2-0.7 V, so the LED current was set by the Vf BIN, not by the
+    #     resistor: 0.70 mA best bin down to 0.20 mA worst, a 3.5x spread on
+    #     an indicator CAR-REQ-09 requires to be visible from outside the
+    #     enclosure. Off 12 V the resistor dominates:
+    #       I = (12 - Vf)/10k = 0.94 mA (Vf 2.6) .. 0.89 mA (Vf 3.1) = +/-3 %
+    #     i.e. brighter than the old TYPICAL and no longer bin-dependent.
+    #   rail good : PGOOD high-Z, 0.92 mA through D21, LIT
+    #   rail off  : PGOOD sinks, node = 12 x 130/10130 = 0.15 V worst case
+    #               (R(PGOOD,pd) 36-130 ohm), LED hard DARK, and the sink is
+    #               1.18 mA - 8.5x under the 10 mA PGOOD ABS MAX.
+    # Hardware-driven, no GPIO.
+    sh.add_component(SYM_R10K, "R71", V_10K, at=(215.90, 190.50),
                      footprint=R0603)
-    sh.wire_pins("R71", {"1": "+3V3", "2": "PGOOD"})
+    sh.wire_pins("R71", {"1": "+12V", "2": "PGOOD"})
     sh.add_component(f"{FP}:0805G", "D21", "Green LED 0805",
                      at=(215.90, 203.20), footprint=f"{FP}:LED0805-R-RD",
                      expect={"1": "A", "2": "K"})

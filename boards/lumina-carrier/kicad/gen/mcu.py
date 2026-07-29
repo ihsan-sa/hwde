@@ -64,14 +64,18 @@ FP = "aiee"
 # (GPIO1-10) because ADC2 is unusable while Wi-Fi is active, and Wi-Fi is a
 # supported control path (H1 closed Q8).
 #
-# The five no-connects, each with its justification:
+# IO3 (pad 15) is a STRAPPING pin with NO internal pull resistors, and
+# parts/C2913198.json states its strapping value "must be controlled by the
+# external circuit that cannot be in a high impedance state" - so it is NOT
+# a legal no-connect. R106 10k to GND gives it a defined 0 (JTAG signal
+# source = the on-chip USB-Serial-JTAG, the default with eFuses all 0) and
+# costs nothing: nothing else on the board uses IO3.
+#
+# The four no-connects, each with its justification:
 #   13 IO19 / 14 IO20 - USB_D-/D+. No USB-C on this board by design (a
 #       non-isolated 802.3 PD may have no accessible non-isolated conductor,
 #       sheets.md s2.4), and both pins carry 3.2 ms / 2.0 ms power-up glitch
 #       windows. Left floating; the USB-Serial-JTAG PHY simply idles.
-#   15 IO3  - strapping (JTAG source select) with NO internal pull. It may
-#       only be used by a permanently-driven, never-Hi-Z output; nothing here
-#       qualifies. With the default eFuses (all 0) its strap is Ignored.
 #   16 IO46 - strapping (boot mode + ROM print), internal weak pull-DOWN = 0.
 #       Boot mode is selected by GPIO0 alone (Table 4-3: SPI Boot needs
 #       GPIO0 = 1, GPIO46 any value), so nothing needs to drive it.
@@ -91,14 +95,16 @@ U30_PINS_SIDE = {
     "9": "PWM5",        # IO16 - LEDC ch5, timer 1
     "10": "I2C_SCL",    # IO17
     "11": "I2C_SDA",    # IO18
-    "12": "IMON",       # IO8  - ADC1_CH7, U22 current monitor
+    "12": "IMON_M",     # IO8  - ADC1_CH7, U22 current monitor, via R105 1k
     "13": "NC",         # IO19 USB_D- - see note above
     "14": "NC",         # IO20 USB_D+ - see note above
     # --- right column, pads 27-41 ----------------------------------------
     "27": "BOOT",       # IO0  - strapping, held HIGH by R101
     "28": "PWM6",       # IO35 - LEDC ch6, timer 1 (free: no octal PSRAM)
-    "29": "ENABLE",     # IO36 - no power-up glitch; this is why ENABLE is here
-    "30": "FAULT",      # IO37 - input, open-drain wire-OR (pull-up on J4/pwr)
+    "29": "ENABLE_M",   # IO36 - no power-up glitch; this is why ENABLE is
+                        #        here. Via R103 1k + D31 clamp.
+    "30": "FAULT_M",    # IO37 - input, open-drain wire-OR (pull-up on J4/pwr)
+                        #        Via R104 1k + D32 clamp.
     "31": "PWM7",       # IO38 - LEDC ch7, timer 1
     "32": "DSPI_SCK",   # IO39 - SPI3 via the GPIO matrix; forfeits JTAG MTCK
     "33": "DSPI_MOSI",  # IO40 - forfeits MTDO
@@ -118,7 +124,7 @@ U30_PINS_SIDE = {
 # geometry contract as schlib.wire_pin - stub from the real pin position,
 # label ON the wire endpoint.
 U30_PINS_BOTTOM = {
-    "15": "NC",         # IO3  - strapping, no internal pull - see note above
+    "15": "IO3_STRAP",  # IO3  - strapping, NO internal pull -> R106 10k down
     "16": "NC",         # IO46 - strapping, weak pull-down - see note above
     "17": "ID_ADC",     # IO9  - ADC1_CH8, daughter ID divider
     "18": "ETH_CSn",    # IO10 - FSPICS0 (IO_MUX); 10k pull-up on the eth sheet
@@ -156,9 +162,11 @@ HIER_A = [
     ("ETH_CSn", "output"),
     ("ETH_INTn", "input"),
     ("ETH_RSTn", "output"),
-    ("ENABLE", "output"),      # -> U22 SHDN + J4-23; R69 pull-down on `pwr`
-    ("FAULT", "input"),        # open-drain wire-OR, pull-up on `expansion`
-    ("IMON", "input"),         # U22 current monitor -> ADC1_CH7
+    ("ENABLE", "output"),      # -> U22 SHDN + J4-23; R69 pull-down on `pwr`,
+                               #    R103 1k + D31 clamp at this end
+    ("FAULT", "input"),        # open-drain wire-OR, pull-up on `expansion`;
+                               #    R104 1k + D32 clamp at this end
+    ("IMON", "input"),         # U22 current monitor -> R105 1k -> ADC1_CH7
     ("PWM0", "output"),
     ("PWM1", "output"),
     ("PWM2", "output"),
@@ -191,6 +199,13 @@ LCSC = {
     "SW1": "C720477",
     "D30": "C2297",
     "R100": "C25804", "R101": "C25804", "R102": "C23138",
+    # NEW REFDES, all on LCSC lines parts.json already carries:
+    "R103": "C21190",     # 1k series, /ENABLE  -> U30 IO36
+    "R104": "C21190",     # 1k series, /FAULT   -> U30 IO37
+    "R105": "C21190",     # 1k series, /IMON    -> U30 IO8
+    "R106": "C25804",     # 10k pull-down, IO3 strapping pin
+    "D31": "C2687129",    # PESD3V3L1BA clamp on the IO36 side of R103
+    "D32": "C2687129",    # PESD3V3L1BA clamp on the IO37 side of R104
     "C80": "C380359",
     "C81": "C14663", "C82": "C14663", "C83": "C14663",
     "C84": "C15849", "C85": "C15849",
@@ -199,6 +214,14 @@ LCSC = {
 V_22U = "22uF 25V X5R"
 V_100N = "100nF 50V X7R"
 V_1U = "1uF 50V X5R"
+V_1K = "1k 1% 0603"
+V_10K = "10k 1% 0603"
+V_ESD = "PESD3V3L1BA 3.3V ESD clamp SOD-323"
+
+S_R_1K = "aiee:0603WAF1001T5E"
+S_R_10K = "aiee:0603WAF1002T5E"
+S_D_ESD = "aiee:PESD3V3L1BA_C2687129"    # default Reference "U" -> D3x
+F_SOD323 = f"{FP}:SOD-323_L1.7-W1.3-LS2.6-BI"
 
 
 def _stub_down(sh: schlib.Sheet, ref: str, pad: str, net: str,
@@ -307,6 +330,73 @@ def build() -> schlib.Sheet:
                      rotation=180, footprint=f"{FP}:LED0805-R-RD",
                      expect={"1": "A", "2": "K"})
     sh.wire_pins("D30", {"1": "STATUS_A", "2": "GND"})
+
+    # ---- connector-facing signal protection, at the MCU end ---------------
+    # /ENABLE and /FAULT run to J4 pins 23/24 on a user-mateable 2.54 mm
+    # header, so a mis-wired or ESD-struck daughter reaches these two GPIOs
+    # directly. The three ANALOGUE connector lines already get 1 k + a
+    # PESD3V3L1BA (R135/D40, R136/D41, R137/D42 on `expansion`); these two
+    # digital ones had nothing. Same chain, mirrored to this end:
+    #
+    #     J4 pin ---- /ENABLE ---- R103 1k ---- /mcu/ENABLE_M ---- U30 IO36
+    #                   |                              |
+    #              U22 SHDN + R69                     D31 -> GND
+    #
+    # THE SERIES RESISTOR IS ON THE MCU SIDE OF R69 ON PURPOSE. R69 (the
+    # CAR-REQ-08 10 k pull-down, `pwr` sheet) stays directly across U22's
+    # SHDN pin, so the fail-safe is untouched: with the MCU absent, in reset
+    # or Hi-Z, no current flows in R103 and SHDN sits at
+    # I(SHDN,leak) x R69 = 10 uA x 10 k = 0.10 V - unchanged, and 8x below
+    # the 0.8 V V(SHUTF). Driving IO36 high still enables: the R103/R69
+    # divider puts 3.3 x 10/11 = 3.0 V on SHDN, well over the 2.0 V V(SHUTR)
+    # and well under the 5.5 V abs max, at 0.30 mA.
+    # (Had R103 been placed on the U22 side of R69 instead, a floating MCU
+    # pin would have left SHDN pulled up by its own internal 2.7 V source
+    # through nothing at all - the fail-safe would be gone.)
+    #
+    # /FAULT is an input here; the net's only pull-up is R132 on `expansion`,
+    # so 1 k in series costs 1 k/(1 k + 10 k) = 9 % of the logic-high level
+    # (3.0 V at the pin, still >= 0.75 x VDD) and nothing at the low end,
+    # where the sinking open-drain wins.
+    for r_ref, d_ref, net, y in (("R103", "D31", "ENABLE", 88.90),
+                                 ("R104", "D32", "FAULT", 114.30)):
+        sh.add_component(S_R_1K, r_ref, V_1K, at=(215.90, y),
+                         footprint=f"{FP}:R0603")
+        sh.wire_pins(r_ref, {"1": net, "2": f"{net}_M"})
+        # Bidirectional as sourced (expansion.py's D40-D42 note): either
+        # orientation is valid. Signal on 1, GND on 2.
+        sh.add_component(S_D_ESD, d_ref, V_ESD, at=(254.00, y),
+                         footprint=F_SOD323)
+        sh.wire_pins(d_ref, {"1": f"{net}_M", "2": "GND"})
+
+    # ---- /IMON series resistor -------------------------------------------
+    # V(IMON) = I_OUT x 27.9 uA/A x R68(30k) = 0.837 V/A. The ESP32-S3 GPIO
+    # abs max is VDD+0.3 = 3.6 V, which IMON reaches at I_OUT = 4.30 A -
+    # above U22's 1.0 A overload limit and its 2.0 A fast-trip, but BELOW the
+    # 45 A / 1 us hard short-circuit threshold, so during a hard short the
+    # pin can be driven over 3.6 V for ~1 us. IMON is a current source
+    # limited to I_OUT x 27.9 uA/A <= 1.26 mA at 45 A, so the GPIO's clamp
+    # diode would survive it, but it is formally out of spec. R105 1 k drops
+    # the source impedance into the clamp to a defined value and costs
+    # 1k/30k = 3.3 % of the ADC reading (a fixed gain error the firmware
+    # calibrates out; the ADC input leakage is nA, so there is no offset).
+    sh.add_component(S_R_1K, "R105", V_1K, at=(215.90, 139.70),
+                     footprint=f"{FP}:R0603")
+    sh.wire_pins("R105", {"1": "IMON", "2": "IMON_M"})
+
+    # ---- IO3 strapping pull-down -----------------------------------------
+    # parts/C2913198.json, IO3: "STRAPPING PIN (JTAG signal source select)
+    # ... this pin has NO internal pull resistors and the datasheet states
+    # the strapping value must be controlled by the external circuit that
+    # cannot be in a high impedance state." Left unconnected it is exactly
+    # that high-impedance state. 10 k to GND straps it to 0 and IO3 is used
+    # for nothing else on this board.
+    # NB: IO45 and IO46 stay no-connects - they DO have internal weak
+    # pull-downs, and a pull-up on IO45 would select a 1.8 V VDD_SPI and
+    # brick boot on this 3.3 V-flash -N8 SKU.
+    sh.add_component(S_R_10K, "R106", V_10K, at=(215.90, 165.10),
+                     footprint=f"{FP}:R0603")
+    sh.wire_pins("R106", {"1": "IO3_STRAP", "2": "GND"})
 
     # ---- cross-sheet pins -------------------------------------------------
     # Free-cluster variant (sheets.md s3 note 3): a local label of the net

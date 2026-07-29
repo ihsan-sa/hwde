@@ -67,7 +67,8 @@ D10 TPD4E1U06DBVR (parts/C19829453.json): 1 = D2-, 2 = GND, 3 = D2+,
   4 = D1+, 5 = NC (a genuine no-connect), 6 = D1-. CJ 0.55 pF typ /
   0.9 pF max per line, safely inside the <= 1 pF/line budget, so it does not
   degrade the 100BASE-TX return-loss floor. Wired BY PIN NUMBER from that
-  JSON - see the SYMBOL PIN-NAME MISMATCH note at D10 below.
+  JSON - see the SYMBOL PIN NAMES note at D10 below (the pull had pins 1
+  and 4 captioned backwards; the symbol has since been repaired).
 
 MDI termination: NONE. Neither the W5500 nor the HY931147C magjack datasheet
   publishes any MDI termination value, and TI SNLA079D s2.3 states the 75
@@ -164,6 +165,7 @@ LCSC = {
     "C33": "C57112",
     "C34": "C14663", "C35": "C14663", "C37": "C14663",
     "C38": "C14663", "C39": "C14663", "C40": "C14663",
+    "C41": "C14663",       # AVDD pin 21 local HF cap - NEW REFDES
     "R30": "C30908",
     "R31": "C23345", "R32": "C23345",
     "R33": "C25804", "R34": "C25804",
@@ -246,9 +248,11 @@ def build() -> schlib.Sheet:
             "45": "PMODE0", "46": "NC", "47": "NC", "48": "AGND",
         },
         decoupling=[
-            # 100 nF per supply pin + one 4.7 uF local bulk: seven caps for
-            # the seven supply pins. NOT DATASHEET-MANDATED - W5500 DS v1.1.0
-            # has no decoupling table at all (parts/C32843.json decoupling[]
+            # 100 nF per supply pin + one 4.7 uF local bulk: one dedicated
+            # 100 nF on EVERY one of the seven supply pins (4/8/11/15/17/21
+            # AVDD + 28 VDD) plus the shared bulk. NOT DATASHEET-MANDATED -
+            # W5500 DS v1.1.0 has no decoupling table at all
+            # (parts/C32843.json decoupling[]
             # entry: "NOT GROUNDED"). Standard practice for a 3.3 V mixed-
             # signal PHY drawing 132 mA typ while transmitting at 100M.
             # +3V3 / GND are power SYMBOLS -> bare global netlist names, so
@@ -262,6 +266,13 @@ def build() -> schlib.Sheet:
             {"cap": "C38", "pin": "15", "rail": "+3V3", "value": V_100N,
              "lib_id": S_C_100N, "footprint": F_C0603},
             {"cap": "C39", "pin": "17", "rail": "+3V3", "value": V_100N,
+             "lib_id": S_C_100N, "footprint": F_C0603},
+            # C41: pin 21 is an AVDD pin like 4/8/11/15/17 and gets the same
+            # dedicated 100 nF. Until this was added it was the ONE supply
+            # pin served only by the shared 4.7 uF bulk (C36), which has
+            # neither the self-resonance nor the placement proximity to be a
+            # local HF return for an analog supply pin.
+            {"cap": "C41", "pin": "21", "rail": "+3V3", "value": V_100N,
              "lib_id": S_C_100N, "footprint": F_C0603},
             {"cap": "C36", "pin": "21", "rail": "+3V3", "value": V_4U7,
              "lib_id": S_C_4U7, "footprint": F_C0805, "class": "bulk"},
@@ -326,26 +337,26 @@ def build() -> schlib.Sheet:
     # D10 TPD4E1U06, PHY side of the magnetics, at the J1 end of the pairs.
     # FITTED, not DNP (sheets.md s2.2).
     #
-    # SYMBOL PIN-NAME MISMATCH - wired by PIN NUMBER from parts/C19829453.json
+    # SYMBOL PIN NAMES - wired by PIN NUMBER from parts/C19829453.json
     # -------------------------------------------------------------------
-    #   pin | datasheet JSON | pulled symbol name
-    #     1 | D2-            | "D1+"      <- disagree
-    #     3 | D2+            | "D2+"
-    #     4 | D1+            | "D2-"      <- disagree
-    #     6 | D1-            | "D1-"
-    # The symbol's channel LABELLING is scrambled on pins 1 and 4. It makes
-    # no electrical difference - this is a uni-directional steering array in
-    # which all four channels are identical and independent (each I/O has a
-    # diode up to an internal rail and a diode down to GND; the "pairs" are a
-    # drawing convention, there is no differential element inside) - but the
-    # PIN NUMBERS are what the netlist and the land pattern use, so the map
-    # below follows the datasheet and `expect` asserts only the four pin
-    # names that agree. Pairing follows the JSON's own layout note: pins 4/6
-    # straddle the NC pin (no ground stub between the two halves of a 100
-    # ohm pair) so they take TX, and pins 1/3 straddle GND and take RX.
+    # The easyeda2kicad pull had pins 1 and 4 LABELLED backwards ("D1+" on
+    # pin 1, "D2-" on pin 4) against the datasheet's 1 = D2-, 4 = D1+. The
+    # netlist was always correct (wiring is by pin number), but the sheet
+    # and the PDF showed ETH_TXP arriving on a pin captioned "D2-", which is
+    # a trap for the layout and DFM readers. The symbol was repaired in
+    # lib/aiee.kicad_sym (lib/EDITS.md edit 6); `expect` now asserts ALL SIX
+    # names, so the mismatch cannot silently come back on a lib re-pull.
+    # It never made an electrical difference - this is a uni-directional
+    # steering array in which all four channels are identical and independent
+    # (each I/O has a diode up to an internal rail and a diode down to GND;
+    # the "pairs" are a drawing convention, there is no differential element
+    # inside). Pairing follows the JSON's own layout note: pins 4/6 straddle
+    # the NC pin (no ground stub between the two halves of a 100 ohm pair) so
+    # they take TX, and pins 1/3 straddle GND and take RX.
     sh.add_component(S_D10, "D10", "TPD4E1U06 4ch 0.55pF ESD array",
                      at=(114.3, 107.95), footprint=F_D10,
-                     expect={"2": "GND", "3": "D2+", "5": "NC", "6": "D1-"})
+                     expect={"1": "D2-", "2": "GND", "3": "D2+", "4": "D1+",
+                             "5": "NC", "6": "D1-"})
     sh.wire_pins("D10", {
         "4": "ETH_TXP",     # datasheet D1+
         "6": "ETH_TXN",     # datasheet D1-

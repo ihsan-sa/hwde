@@ -3,15 +3,15 @@
  "board": "lumina-carrier",
  "workspace": "boards/lumina-carrier",
  "created": "2026-07-28T13:36:22",
- "updated": "2026-07-28T20:37:03",
+ "updated": "2026-07-28T20:56:57",
  "phase": "P4",
  "gates": {
   "erc": {
    "phase": "P4",
    "status": "pass",
-   "attempts": 1,
+   "attempts": 2,
    "last": {
-    "ts": "2026-07-28T20:16:22",
+    "ts": "2026-07-28T20:56:57",
     "status": "pass",
     "failing_count": 0,
     "total": 0
@@ -19,6 +19,12 @@
    "history": [
     {
      "ts": "2026-07-28T20:16:22",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0
+    },
+    {
+     "ts": "2026-07-28T20:56:57",
      "status": "pass",
      "failing_count": 0,
      "total": 0
@@ -293,6 +299,12 @@
    "why": "With the wall-conduction path working, the strobe measures only ~1.894 W of daughter heat into box air, not the ~8.5 W my earlier analysis charged. Recomputed carrier total box-air heat: ~2.4 W overhead + ~1.9 W daughter = ~4.3 W (af); ~3.7 W + ~1.9 W = ~5.6 W (at). Against the allowable budget of 7.0-8.3 W at a 40 C room, the at case reaches 40 + 5.6 x 4.3 = 64 C internal air WORST CASE - under the 70 C design target and well under the +85 C limit shared by the ESP32-S3 module and the par emitters. So the rev A3 'at requires venting' conclusion is withdrawn and open item D is closed. This is entirely contingent on the LED thermal path to the wall actually being built: if it is not, the numbers revert to the LED-in-box row and the margin disappears, so ICD s7.7.3 states the wall path as a MECHANICAL REQUIREMENT and requires every daughter to declare its box-air vs wall split. Also resolves CAR-REQ-18 (two heat sources, one enclosure) favourably - the second source is 1.9 W, not 8.5 W.",
    "phase": "P4",
    "ts": "2026-07-28T20:37:03"
+  },
+  {
+   "what": "P4 reviewer triage: 1 error to fix-loop, 7 fixed in copper, 2 fixed by ICD amendment (rev A6), 7 waived, 2 raised for the owner at H2",
+   "why": "Fresh-context reviewer returned 19 findings and independently verified all ten known-critical items (R69 fail-safe, TPS2378 EP-to-VSS, APD-to-RTN, the 1.2V divider, EN abs-max chain, W5500 RSVD asymmetry, GPIO45, magjack map, both frozen ICD pin maps) as correct. MOST IMPORTANT FINDING is F7 and it is a HONESTY item, not a defect: because lib_pin_types types every non-supply pin 'passive', KiCad's output-vs-output, input-not-driven and driver-conflict checks are structurally INERT - the ERC 0/0 proves only that no power_in lacks a driver and no wire dangles. Real pin-level coverage came from the reviewer's per-IC datasheet audit, NOT from ERC, and the design document must not claim otherwise. F6 and F3 were fixed by amending the ICD rather than the board: publishing FAULT's real ~4.3 mA sink requirement (vs the 0.33 mA implied) is cheaper for daughters than a carrier respin plus a GPIO, and the IMON governor claim needed softening because the pin's specified accuracy starts at 0.6 A while the rail's sustained limits are 0.25/0.5 A - both below the floor.",
+   "phase": "P4",
+   "ts": "2026-07-28T20:42:45"
   }
  ],
  "history": [
@@ -560,6 +572,19 @@
    "ts": "2026-07-28T20:37:03",
    "event": "decision",
    "what": "OPEN ITEM D CLOSED: the 802.3at upgrade does NOT require enclosure ventilation. Sealed closes to a 40 C room."
+  },
+  {
+   "ts": "2026-07-28T20:42:45",
+   "event": "decision",
+   "what": "P4 reviewer triage: 1 error to fix-loop, 7 fixed in copper, 2 fixed by ICD amendment (rev A6), 7 waived, 2 raised for the owner at H2"
+  },
+  {
+   "ts": "2026-07-28T20:56:57",
+   "event": "gate",
+   "gate": "erc",
+   "status": "pass",
+   "attempt": 2,
+   "failing_count": 0
   }
  ]
 }
