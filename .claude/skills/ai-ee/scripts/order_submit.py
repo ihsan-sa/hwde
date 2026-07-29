@@ -273,9 +273,6 @@ def build_pcb_param(spec: dict) -> dict:
         "surfaceFinish": surface,
         # string form per the create example ("copperWeight": "2")
         "copperWeight": "%g" % float(oz),
-        # create-example value "1" - the only documented value; inner-copper
-        # spec plumbing lands with the impedance flow
-        "insideCuprumThickness": "1",
         "goldFinger": 0,                      # enum: 0 = not required
         "materialDetails": 0,                 # enum: 0 = FR4 Standard Tg140
         "panelFlag": 0,                       # enum: 0 = single PCB
@@ -288,14 +285,12 @@ def build_pcb_param(spec: dict) -> dict:
         # calculate-example value; the 0/1/2 enum is undescribed in the doc
         "cascadeStructure": 1,
         "impedanceFlag": "no",                # calculate example
-        # enum: "Yes" = add customer code, no location specified (free;
-        # "nocode" bills the noCodeMoney fee per PcbCostInfo)
-        "isAddCustomerCode": "Yes",
+        # isAddCustomerCode/markOnPcb/autoConfirmProductionFile deliberately
+        # OMITTED: the doc's calculate example omits them and the live
+        # endpoint rejects the "Yes"+2 pairing with code 2708 "The Remove
+        # Order Number error" (2026-07-29). They are create-side options;
+        # decide them at the first gated live create.
         "plateType": 1,                       # enum: 1 = FR-4
-        # don't stall the order waiting for a manual production-file confirm
-        "autoConfirmProductionFile": True,
-        # enum: 2 = customer code, no location - matches isAddCustomerCode
-        "markOnPcb": 2,
         "viaCovering": 1,                     # enum: 1 = tented (JLC default)
         "needTechnics": 0,                    # table: "default value is 0"
         "edgeRounding": False,                # no edge rounding
@@ -312,6 +307,12 @@ def build_pcb_param(spec: dict) -> dict:
     if surface == 2:
         # required when surfaceFinish is 2; create-example ENIG thickness
         param["goldThickness"] = 2
+    if int(layers) >= 4:
+        # inner copper weight is a 4+ layer selection ONLY - live calculate
+        # rejects it on 2L with code 2129 "Only boards with four layers or
+        # more support the selection of inner copper weight" (2026-07-29);
+        # create-example value "1"
+        param["insideCuprumThickness"] = "1"
     return param
 
 

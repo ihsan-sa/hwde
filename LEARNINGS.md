@@ -1261,3 +1261,18 @@ extraction omits `pad_size_mm` (the vendor publishes none), so both halves of th
 Note the failure was ICD CONFORMANCE, not safety: as-pulled J3 still gave a 0.74 mm gap = 1.17x the
 0.635 mm rule. But a frozen interface two boards mate through is exactly where conformance matters.
 Verify THT annulus/drill against the ICD by hand at P3; the gate cannot do it.
+
+## 2026-07-29 [jlc][api] First live calculate: field rules the doc tables get wrong
+Scopes approved; live pd-trigger quote succeeded after two corrections the transcribed tables
+could not predict: (1) insideCuprumThickness is a 4+ LAYER selection only - a 2L board rejects
+it with code 2129 "Only boards with four layers or more support the selection of inner copper
+weight" (table says Required=yes unconditionally); (2) isAddCustomerCode/markOnPcb/
+autoConfirmProductionFile must be OMITTED from calculate - the "Yes"+2 pairing rejects with
+code 2708 "The Remove Order Number error" and the doc's own calculate example omits all three
+(create-side options; decide at the first gated create). CONFIRMED live: copperWeight "2"
+STRING form accepted on a 2L 2oz board (watch item closed); upload->fileKey->calculate chain
+works; real price 40.00 USD for 10x 48x30 2L 2oz HASL vs our 19.65 estimate - order_quote's
+2oz/options undercount is large, always present the API quote. Still async/missing: pcb/audit
+returns code 2501 no_audit_result_error immediately after upload (JLC DFM runs async - re-poll
+later; quote proceeds without it); calculate returned NO shipList because we pass no country -
+freight attestation (N3 gate) needs a country input plumbed before the first create.

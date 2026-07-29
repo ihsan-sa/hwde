@@ -101,18 +101,24 @@ VECTOR = {
     "signature": "sygwKhKBkLwHVv0c7D+a/A7JTEJjGH/kLugFKh16918=",
 }
 
-# Every Required=yes PcbOrderCraftData field from the hendley api-reference
-# table (goldThickness excepted: required only when surfaceFinish is 2).
+# Required=yes PcbOrderCraftData fields the CALCULATE payload carries.
+# Live-corrected 2026-07-29 against the real endpoint: goldThickness only
+# when surfaceFinish is 2; insideCuprumThickness only when layer >= 4
+# (2L rejects it, code 2129); isAddCustomerCode/markOnPcb/
+# autoConfirmProductionFile omitted entirely (doc's calculate example omits
+# them; live rejects the "Yes"+2 pairing, code 2708) - create-side options,
+# decided at the first gated live create.
 REQUIRED_PCB_PARAM_FIELDS = {
     "layer", "width", "length", "qty", "thickness", "pcbColor",
-    "surfaceFinish", "copperWeight", "insideCuprumThickness", "goldFinger",
+    "surfaceFinish", "copperWeight", "goldFinger",
     "materialDetails", "panelFlag", "panelByJLCPCB_X", "panelByJLCPCB_Y",
     "differentDesign", "flyingProbeTest", "castellatedHoles",
     "orderDetailsRemark", "cascadeStructure", "impedanceFlag",
-    "isAddCustomerCode", "plateType", "autoConfirmProductionFile",
-    "markOnPcb", "viaCovering", "needTechnics", "edgeRounding",
+    "plateType", "viaCovering", "needTechnics", "edgeRounding",
     "serviceConfigVos",
 }
+CREATE_SIDE_OMITTED = {"isAddCustomerCode", "markOnPcb",
+                       "autoConfirmProductionFile"}
 
 
 # ------------------------------------------------------------------ helpers
@@ -1268,14 +1274,25 @@ def test_build_pcb_param_defaults():
 
 
 def test_build_pcb_param_covers_required_fields():
-    """Every Required=yes PcbOrderCraftData field is present, and the old
-    stencil* key names (impedance-template vocabulary) are banned."""
+    """Every calculate-side required field is present, the old stencil* key
+    names (impedance-template vocabulary) are banned, and the live-rejected
+    create-side options stay OUT of the calculate payload."""
     param = order_submit.build_pcb_param(dict(BASE_SPEC))
     missing = REQUIRED_PCB_PARAM_FIELDS - set(param)
     assert not missing, f"required pcbParam fields missing: {sorted(missing)}"
     assert not any(k.startswith("stencil") for k in param)
+    assert not (CREATE_SIDE_OMITTED & set(param))       # live code 2708
     vos = param["serviceConfigVos"]
     assert {v["serviceConfigCode"] for v in vos} == {"PPBP", "CPF"}
+
+
+def test_build_pcb_param_inner_copper_by_layer_count():
+    """insideCuprumThickness is a 4+ layer selection only (live code 2129
+    on a 2-layer board, 2026-07-29)."""
+    two = order_submit.build_pcb_param(dict(BASE_SPEC))
+    assert "insideCuprumThickness" not in two
+    four = order_submit.build_pcb_param(dict(BASE_SPEC, layers=4))
+    assert four["insideCuprumThickness"] == "1"
 
 
 def test_build_pcb_param_missing_spec_refuses():

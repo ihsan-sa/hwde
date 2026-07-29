@@ -1664,6 +1664,22 @@ rate limits. Day-one probe:
 --probe` (exit 0, verdict flips "SIGNING VERIFIED - scope approval
 pending" -> "live" on approval).
 
+**2026-07-29 live update - scopes APPROVED, first real quote fetched:**
+probe verdict "live"; pd-trigger quote-only flow succeeded end-to-end
+(upload -> fileKey -> calculate): REAL price 40.00 USD for 10x 2L 2oz
+48x30 HASL vs the 19.65 estimate (order_quote's 2oz/options undercount
+confirmed large). Resolved live: signing/upload on this app; copperWeight
+"2" STRING accepted; scope-review turnaround ~1 day. Corrected from live
+evidence (LEARNINGS 2026-07-29): insideCuprumThickness is 4L+ only (2L =
+code 2129); isAddCustomerCode/markOnPcb/autoConfirmProductionFile omitted
+from calculate (code 2708; create-side options, decided at the first
+gated create). Remaining before the first real order: pcb/audit is ASYNC
+(code 2501 right after upload - add a re-poll); calculate returns no
+shipList without a country input - plumb country so the freight-attested
+grand-total token (N3 gate) carries real freight; then the human types
+the token. Balance mechanics + tracking-number surface unknown until an
+order exists.
+
 ## Post-v1 amendment: simulation legs - SPICE gate + layout IR-drop/PDN (2026-07-28)
 
 **Built** (2 research agents [1 died on the monthly spend limit - model-licensing

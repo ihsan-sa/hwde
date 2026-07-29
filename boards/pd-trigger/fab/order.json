@@ -2,7 +2,7 @@
  "script": "order_submit",
  "status": "ready_for_human",
  "board": "pd-trigger.kicad_pcb",
- "generated": "2026-07-28T11:56:33-07:00",
+ "generated": "2026-07-29T11:15:04-07:00",
  "order_number": null,
  "payment": "HUMAN - this script never submits payment (SPEC P10)",
  "artifacts": {
@@ -48,6 +48,7 @@
    },
    "unit_cost": 1.96
   },
+  "estimate_note": null,
   "estimated": true,
   "source": "boards\\pd-trigger\\fab\\quote.json",
   "authoritative_quote_url": "https://cart.jlcpcb.com/quote"
@@ -56,21 +57,28 @@
   "layers": 2,
   "width_mm": 48.0,
   "height_mm": 30.0,
+  "thickness_mm": 1.6,
+  "copper_weight_oz": null,
   "qty": 10,
   "surface_finish": "HASL",
   "solder_mask_color": "green",
   "assembly": true
  },
  "api": {
-  "attempted": false,
-  "available": false,
-  "note": "JLCPCB API credentials not configured (set AIEE_JLCPCB_KEY and AIEE_JLCPCB_SECRET); the api.jlcpcb.com programme also requires an approved access application"
+  "attempted": true,
+  "available": true,
+  "note": "API quote fetched: grand total 40.0 (40.0 pcb + None freight) vs estimate 19.65",
+  "verdict": "ok",
+  "file_key": "96bd9c40d9b943a38d4fc8388d6901ff",
+  "quote_real": 40.0,
+  "api_quote_json": "boards\\pd-trigger\\fab\\api_quote.json"
  },
  "human_steps": [
   "BOARD-SPECIFIC before ordering: (1) 2oz copper MUST be selected at JLC order time (stackup JLC2313_1.6_2oz - the quote page copper-weight option, NOT default 1oz; the 5A path depends on it). (2) PD SOURCES ONLY + e-marked cable for 5A contracts - user docs. (3) Bring-up: measure /VDD at the 5V profile (CH224K IDD unpublished, W2); buzz Q1 E/B/C once (clone PDF unverifiable); continuity SW1 pins 1-3 unpressed. (4) U1 thermal pad ships 100% paste (declined windowing - watch for float on first article). (5) Hand-solder J2/J3 THT after SMT.",
   "Upload boards\\pd-trigger\\fab\\pd-trigger_gerbers.zip to https://jlcdfm.com/ and review the DFM report (V6: no public API).",
   "Upload the same zip at https://cart.jlcpcb.com/quote and confirm the real price against the estimate above.",
   "If assembling: upload BOM.csv and CPL.csv, then CHECK THE RENDERED PART PREVIEW for every polarized part (LED/diode/electrolytic) - rotation corrections are the classic failure mode.",
+  "API quote in boards\\pd-trigger\\fab\\api_quote.json: REAL grand total 40.0 (40.0 pcb + None freight via None; our estimate 19.65) - review shipList/achieveDateList/audit findings before any create.",
   "Review, then pay. Payment is always the human's action."
  ]
 }
