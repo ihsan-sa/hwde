@@ -264,32 +264,85 @@ Assembly notes carried to P3/P9:
   side.** That is not a normal JLC PCBA process. Route: JLC PCBA for everything it
   can do, then hand-solder J3 and J4. Eight boards x two hand operations is a
   couple of hours and it removes both awkward processes from the critical path.
-- The **top-pick emitter carries a JLC "Wave Soldering" assembly flag** where the
-  RGB 3-in-1 from the same body is "SMT Assembly / difficulty High". Since the
-  emitters are on a separate MCPCB and hand-placed anyway (Q11/Q13), this does not
-  bind this board - but it must not be forgotten if the module is ever ordered
-  assembled.
+- **The JLC "Wave Soldering" assembly flag is GONE with the H1-Q2 package change.**
+  The withdrawn 4-in-1 (`C53153006`) carried it; the selected **RGB 3-in-1
+  `C22434861` is classified "SMT Assembly / difficulty High"**, so if the module
+  is ever ordered assembled rather than hand-built, the RGB packages can be
+  machine-placed. The white discrete `C48586656` is a plain SMD discrete. This
+  was one of the three stated reasons for the H1-Q2 decision and it should be
+  recorded as banked, not re-litigated.
 
 ---
 
 ## 5. Thermal architecture (a) - acceptance criteria on the ENCLOSURE
+
+**REVISION B - rewritten at the P2 delta after H1.** H1-Q1 selected **a SEALED
+enclosure with the LED module's heat conducted through the wall**. The criteria
+below are written against **that specific configuration** and no other; the vented
+branch and the sealed-with-module-inside branch are gone.
 
 **These are not this board's deliverable.** They are criteria someone else must
 meet **and measure**, and they are the reason the fixture works or does not. They
 are written as pass/fail statements because D-T11's own conclusion is that the
 right form is *"an acceptance criterion on the enclosure, not an assumed number"*.
 
+**"Sealed" here means UNVENTED. It does not mean IP-rated**: no ingress
+requirement is stated anywhere in the brief set for an indoor basement/garage
+install, so no ingress test is specified and none should be invented.
+
 | # | Criterion | Basis |
 |---|---|---|
-| **ENC-1** | **Internal air at the daughter shall not exceed 45 degC** with a 25 degC room and the fixture at its full sustained output, **measured**, not calculated. | D-T10: 45 degC leaves a 55 K junction budget, i.e. ~7 degC/W, i.e. genuinely buildable |
-| **ENC-2** | The enclosure shall achieve ENC-1 by **either** (i) **ventilation** sized so internal air is within **15 K** of room ambient at full output, **or** (ii) **conducting the LED module's heat through the enclosure wall** to an external heatsink. **A fully sealed enclosure with the LED module inside does NOT close and must not be selected** - see s5.1. | D-T11 |
-| **ENC-3** | Any heatsink, vent geometry or wall bridge shall keep live parts and the heatsink **non-touchable** (H1-Q5): no finger and no 4 mm probe reaches them. The heatsink shall be **shrouded behind a plastic guard**, shall **not share a mount with anything earthed**, and the ceiling mount shall be **non-conductive and bonded to nothing**. | ICD s9, H1-Q5, requirements Q7(b) |
-| **ENC-4** | The LED module's metal substrate shall be **thermally coupled but electrically isolated** from board GND - dielectric thermal pad, insulating shoulder washers on the screws. | D-T14. Board GND is the floating PoE return; bonding the heatsink to it makes the heatsink a conductor at up to 57 V above earth, and then one accessibility failure breaks the whole compliance argument at once |
-| **ENC-5** | **Junction-to-internal-air <= 38 K/W per emitter package** at 1.42 W of package heat (150 mA/die), for a red junction <= 100 degC at ENC-1's 45 degC air. Verified by thermocouple at the module's bare-copper pad during bring-up. | `power_tree.md` s6 |
+| **ENC-1** | **Internal air at the daughter shall not exceed 45 degC** with a **25 degC room** and the fixture at its full sustained output, **measured**, not calculated. Expected under the selected configuration: **36.5-38.7 degC** (`power_tree.md` s6.2), i.e. 6-8 K of margin. | D-T10: 45 degC leaves a 55 K junction budget for anything still cooled by internal air |
+| **ENC-1b** | **At the requirements document's ASSUMED 40 degC room ambient, ENC-1 relaxes to internal air <= 60 degC**, and every part on this daughter shall be rated for it. Already satisfied by construction: all bulk is X7R ceramic and **no aluminium electrolytic exists anywhere on this board** (T-8). | The ICD states no room-ambient assumption at all - that omission is part of OPEN-1 |
+| **ENC-2** | The enclosure shall be **sealed (unvented), with the LED module's heat conducted through the enclosure wall** to an external heatsink. **A sealed enclosure with the LED module inside does NOT close and must not be selected** (s5.1). Ventilation is no longer an accepted alternative: H1-Q1 chose the wall-conducted branch and the ENC-8 path is now load-bearing for ENC-1. | H1-Q1, D-T11 |
+| **ENC-3** | The wall bridge and its external heatsink shall keep live parts **non-touchable**: no finger and no 4 mm probe reaches them. The heatsink shall be **shrouded behind a plastic guard**, shall **not share a mount with anything earthed**, and the ceiling mount shall be **non-conductive and bonded to nothing**. **This criterion is strictly harder than it was before H1-Q1**, because the selected architecture deliberately puts metal through the enclosure wall - the heatsink is now touchable by default and must be made non-touchable by the guard, not by being inside a box. | ICD s9, H1-Q5, requirements Q7(b) |
+| **ENC-4** | The LED module's metal substrate shall be **thermally coupled but electrically isolated** from board GND - dielectric thermal pad, insulating shoulder washers on the screws. **Isolation is thermally free at this interface and there is no excuse to skip it**: a 0.2 mm, 3 W/mK dielectric pad over a 30 cm2 module face is `t/(kA) = 0.0002/(3 x 0.003)` = **0.022 K/W = 0.13 K at 5.67 W**. Even over a small 15 x 15 mm boss it is 0.30 K/W = 1.7 K. | D-T14. Board GND is the floating PoE return; bonding the heatsink to it makes the heatsink a conductor at up to 57 V above earth, and then one accessibility failure breaks the whole compliance argument at once |
+| **ENC-5** | **The module's bare-copper thermocouple pad, adjacent to an RGB package's thermal pad, shall not exceed room ambient + 50 K at full sustained output in steady state** (i.e. **<= 75 degC in a 25 degC room**). **Measured**, per the ENC-8 test method. This is the single number that stands in for the whole emitter thermal case. | `power_tree.md` s6.3. It implies red Tj = T_pad + 0.270 x 12 = **78.2 degC**, 22 K under the 100 degC colour/lifetime target and **47 K under the emitter's PUBLISHED 125 degC Tj max** |
 | **ENC-6** | The enclosure shall carry the **photosensitive-epilepsy note** in its documentation (PAR-REQ-03/04 modulate deliberately in the 1-65 Hz band and breach IEEE 1789 RP3 by ~9x). | spec-dimming s3.3 item 4 |
-| **ENC-7** | PAR-REQ-14 (wide wash from 2.5 m) and PAR-REQ-15 (diffusion sufficient that R/G/B/W mix before reaching a surface) are **carried as enclosure requirements**, not PCB requirements. The 4-in-1 emitter's 140-degree beam meets PAR-REQ-14 from 2.5 m without a secondary lens; PAR-REQ-15 is met by the 4-in-1 by construction and **requires a real diffuser if the C4 fallback (RGB 3-in-1 + separate white) is taken**. | requirements Q8(a), led-emitter s10 |
+| **ENC-7** | PAR-REQ-14 (wide wash from 2.5 m) and PAR-REQ-15 (R/G/B/W mix before reaching a surface) are **carried as enclosure requirements**, not PCB requirements. **PAR-REQ-15 is now the live risk**: H1-Q2 replaced the integrated 4-in-1, which met it by construction, with **RGB 3-in-1 + a spatially separate white**. The buildable specification - emitter arrangement, diffuser numbers, minimum throw, and the bench test - is **s5.2 below**, and it is mandatory, not advisory. PAR-REQ-14 is still met without a secondary lens (140 deg RGB / 120 deg white from 2.5 m floods well past the fixture spacing). | H1-Q2, s5.2 |
+| **ENC-8** | **NEW, and load-bearing. The conduction path from the LED module's mounting face to ROOM air shall present <= 8.0 K/W, measured.** At `P_module = 5.67 W` that is a **<= 45.4 K rise**, i.e. the module mounting face <= **room + 46 K**. Test method below. **This may not be phrased as an assumption**: if the bridge fails, 5.67 W reverts into the box, internal air becomes 57-63 degC in a 25 degC room, and the fixture silently degrades into exactly the configuration H1-Q1 rejected (`power_tree.md` s6.2, failure-mode row). | `power_tree.md` s6.3. 8.0 K/W in natural convection is ~60-70 cm2 of finned surface, i.e. a ~60 x 60 x 25 mm extrusion - inside the $2-5 heatsink budget |
+| **ENC-9** | The wall penetration for the bridge shall maintain the unvented seal (gasket, O-ring or potting) and shall not create a creepage path from the module's PoE-potential metal to any exterior surface a user can touch. **No IP rating is specified and none should be invented** - see the note above. | ICD s9, H1-Q1 |
+| **ENC-10** | **Module stack height.** The module assembly is now **MCPCB 1.6 + package 5.15 + diffuser stand-off >= 15 (20 nominal) + diffuser 2-3 = ~29-30 mm** above the module mounting face, plus the wall bridge and external heatsink outside it. requirements s5.5 records this as previously unknown; **this is the number**. The enclosure must accommodate it and it must clear this board entirely (the module does not mount to the daughter - T-7). | s5.2, `research/led-emitter.md` s10 |
 
-### 5.1 Why the sealed branch does not close, stated plainly
+### 5.0 ENC-5 / ENC-8 TEST METHOD - so a builder can measure pass/fail
+
+Both criteria are measured in one run. **Nothing here needs an instrument more
+exotic than a two-channel type-K thermocouple meter and a bench supply.**
+
+1. **Configuration.** Fixture fully assembled in its intended enclosure, in its
+   intended orientation, at its intended mounting height, in still air, in a room
+   whose temperature is recorded. Diffuser fitted. Guard fitted.
+2. **Instrumentation.** Type-K thermocouples, bonded with thermally conductive
+   adhesive or aluminium tape:
+   - **TC1 - the module's bare-copper thermocouple pad**, which T-6 / L-13
+     already require adjacent to an emitter thermal pad. **It must be adjacent to
+     an RGB package, not to a white one** - the RGB package carries 1.035 W and
+     the white 0.383 W, so the white pad reads ~2.7x cooler and would pass a
+     broken build.
+   - **TC2 - room air**, 1.0 m horizontally from the fixture, out of the beam and
+     out of the fixture's convection plume ([CREE-AP37] verification practice).
+   - **TC3 - internal air at the daughter** (for ENC-1).
+   - **TC4 - the external heatsink base**, at the bridge (for ENC-8).
+3. **Drive.** ENABLE asserted, all four channels at 100 % duty, sustained. Record
+   the `+12V` input voltage and current; `P_module = V x I x 0.91 - 0.27 W`
+   (buck efficiency, less the ballast, which is on the module and counts as module
+   heat - so add it back for ENC-8's denominator: `P_module = V x I x 0.91`).
+   Nominal at the af design point: **5.67 W of heat, 7.83 W delivered.**
+4. **Settling.** Run until `dT/dt < 1 K per 15 min` on TC1. Expect **45-90 min**:
+   the module's own time constant is 30-120 s, but the enclosure and heatsink are
+   tens of minutes.
+5. **Record** TC1-TC4 and the room temperature.
+6. **PASS, all three:**
+   - **ENC-5:** `TC1 - TC2 <= 50 K`
+   - **ENC-8:** `(TC4 - TC2) / P_module <= 8.0 K/W`
+   - **ENC-1:** `TC3 - TC2 <= 20 K`
+7. **FAIL actions.** If TC1 exceeds room + 50 K, **the wall bridge is the fault**
+   - re-work the interface (pad thickness, flatness, screw torque, heatsink size)
+   before changing anything electrical. **Do not compensate by lowering the drive
+   current without re-running `power_tree.md` s3**; a quiet current reduction
+   changes flux, changes the colour mix, and hides a mechanical defect.
+
+### 5.1 Why the sealed-with-module-inside branch does not close, stated plainly
 
 A sealed 120 x 100 x 60 mm non-metallic box is **3.6-4.3 degC/W** from internal air
 to room air (Hoffman 4.34, Rittal 3.61 - the two bracket it). **Nothing done on
@@ -297,24 +350,250 @@ the PCB changes that number**: not copper weight, not via farms, not MCPCB, not 
 bigger internal heatsink.
 
 At 4.0 degC/W and a 45 degC internal-air target in a 25 degC room, **total box heat
-must be <= 5.0 W. The carrier alone is 2.4 W (af). The emitters alone are 5.94 W.**
+must be <= 5.0 W. The carrier alone is 2.4 W (af). The emitters alone are 5.67 W.**
 
 | Configuration | In-box heat | Internal air, 25 degC room | Verdict |
 |---|---|---|---|
-| Sealed, LED module inside | 9.15 W | **62 degC** | **fails ENC-1 by 17 K** |
-| Sealed, LED heat conducted through the wall (ENC-2 ii) | **3.21 W** | **38 degC** | **passes with margin** |
-| Vented, LED module inside (ENC-2 i) | 9.15 W, but the box is no longer the bottleneck | room + <= 15 K | passes if the vent is measured, not assumed |
+| **SELECTED (ENC-2): sealed, LED heat through the wall** | **3.19 W** | **36.5 - 38.7 degC** | **passes ENC-1 with 6-8 K** |
+| Same, at `at` | 5.02 W | 43.1 - 46.6 degC | marginal against ENC-1 |
+| **The ENC-8 failure mode: bridge does not work** | **8.86 W** | **56.9 - 63.1 degC** | **fails ENC-1 by 12-18 K** |
+| REJECTED: sealed, LED module inside | 8.86 W | 56.9 - 63.1 degC | fails |
+| Withdrawn at H1: vented, module inside | - | - | no longer an option |
 
 The corollary is the useful one and it is why this board is not the obstacle:
 **this daughter contributes 0.79-0.81 W to the box across its entire output
-range** (`power_tree.md` s6). The enclosure problem is the emitter module, and the
-emitter module is off this board.
+range** (`power_tree.md` s6.1). The enclosure problem is the emitter module, and
+the emitter module is off this board and now off the box's air entirely.
 
-At the `at` operating point nothing closes: 250 mA/die gives 2.36 W of heat per
-package against a 25.4 K/W budget at 40 degC air, versus a 19-23 K/W MCPCB path.
-**The `at` case is marginal at best and fails against the ICD's own internal-air
-figures, at either rail choice.** That is the real blocker on requirements Q2(b),
-not the rail.
+**The `at` case is no longer thermally blocked at the emitter.** Splitting the
+white onto its own package drops the hottest package's heat at `at` from 2.41 W
+to **1.76 W** (at the same 255 mA/die), and the wall-conducted path removes the internal-air term
+altogether. `power_tree.md` s5 and s6.5 carry the arithmetic. What still gates
+`at` is OPEN-1 and ENC-8, not the emitter thermal path.
+
+### 5.2 PAR-REQ-15 - the buildable specification
+
+**This section exists because H1-Q2 traded away the one thing the integrated
+4-in-1 gave for free.** In the 4-in-1 every colour left the same 6.2 mm slug, so
+"R/G/B/W mix before reaching a surface" was true by construction. With RGB in one
+package and white in another, **white is now a spatially separate source and
+shadow fringing is a real failure mode**. What follows is a specification with
+numbers, not a hope that "the diffuser will sort it out".
+
+**Scope honesty, stated up front: this is a PCB pipeline and it cannot verify a
+beam. Every number below is a DESIGN TARGET with a stated bench test (s5.2.5).
+None of it is a verified optical result.**
+
+#### 5.2.1 The three mechanisms, separated
+
+| # | Mechanism | Fixed by |
+|---|---|---|
+| **1** | **Direct-wash colour gradient.** The white and RGB families illuminate the surface from laterally offset positions, so the mix drifts across the beam. | **Arrangement** (centroid matching), then throw distance |
+| **2** | **Shadow fringing.** A shadow edge is a projected *image* of the source. Two colour families at different positions cast two displaced shadows with coloured edges. **This is the mechanism PAR-REQ-15 actually names.** | **Arrangement**, then **diffuser**. **NOT by throw distance** - see s5.2.4 |
+| **3** | **Beam-angle mismatch.** Live-verified: the RGB 3-in-1 is **140 deg** and the white is **120 deg** (`power_tree.md` s1.1, cross-checked against three sibling parts). The two families have *different far-field shapes*, so the mix is angle-dependent. | **Diffuser only.** The arrangement cannot fix it and firmware cannot fix it |
+
+Mechanism 3, quantified. Fitting `I(theta) = I0 cos^m(theta)` to each published
+half-intensity angle:
+
+```
+  RGB:   cos^m(70 deg) = 0.5  ->  m = ln0.5 / ln(0.34202) = 0.646
+  White: cos^m(60 deg) = 0.5  ->  m = ln0.5 / ln(0.50000) = 1.000  (Lambertian)
+  Ratio white/RGB = cos^(1.000 - 0.646)(theta) = cos^0.354(theta)
+```
+
+| Off-axis angle | White relative to RGB | Where that lands from a 2.5 m ceiling |
+|---|---|---|
+| 0 deg | 1.000 (reference) | directly below |
+| 30 deg | 0.950 (**-5.0 %**) | 1.4 m out on the floor |
+| 45 deg | 0.885 (**-11.5 %**) | 2.5 m out on the floor |
+| 60 deg | 0.782 (**-21.8 %**) | 4.3 m out |
+| 71.6 deg | 0.665 (**-33.5 %**) | **a wall 3 m away, at 1.5 m height** - i.e. squarely in the PAR-REQ-14 wash |
+
+**The wash gets progressively less white and more saturated toward its edges, by
+a third at the wall.** An 11.5 % channel-ratio error is roughly 2-3 MacAdam
+steps for a mid-CCT mix; 33.5 % is unmistakable. **This is a first-order defect that
+only a strong diffuser removes**, and it is the second independent reason the
+diffuser is mandatory. It is also the finding most likely to be missed, because it
+comes from a single LCSC attribute rather than from any calculation.
+
+#### 5.2.2 Emitter arrangement on the MCPCB - the primary mitigation
+
+**Layout: a 3 x 3 grid on a 16.0 mm pitch, RGB on the four corners, white on the
+four edge midpoints, centre cell VACANT.** Coordinates in mm, module-local:
+
+```
+     x=0        x=16       x=32
+  y=0   [RGB]     [ W ]     [RGB]
+  y=16  [ W ]   (vacant)    [ W ]
+  y=32  [RGB]     [ W ]     [RGB]
+```
+
+| Property | Value | Why it matters |
+|---|---|---|
+| Pitch | **16.0 mm** | Set by package geometry, not chosen: the land pattern is **14.5 mm** across the lead span (live-verified `Length 14.5mm` on C22434861), leaving a 1.5 mm gap. **16 mm is the minimum feasible pitch**, so the sources are as close as the parts allow |
+| **RGB centroid** | `x = (0+32+0+32)/4 = 16`, `y = (0+0+32+32)/4 = 16` -> **(16, 16)** | |
+| **White centroid** | `x = (16+0+32+16)/4 = 16`, `y = (0+16+16+32)/4 = 16` -> **(16, 16)** | **They COINCIDE EXACTLY.** The fixture has **no colour dipole**: no first-order colour gradient across the beam and no first-order coloured shadow displacement |
+| Nearest unlike neighbour | **16.0 mm** | the separation the diffuser must bridge (s5.2.3) |
+| Nearest like neighbour | RGB-RGB 32.0 mm; W-W `sqrt(16^2+16^2)` = 22.6 mm | |
+| Radius from centroid | RGB **22.6 mm**; white **16.0 mm** | drives the flux-matching tolerance below |
+| Array extent | 32 x 32 mm centre-to-centre, **46.5 x 46.5 mm** including land patterns | MCPCB **~55 x 55 mm** with border and mounting |
+
+**Why this and not the alternatives.** *Clustered* (4 RGB together, 4 white
+together) gives a colour dipole of 25-35 mm - the worst possible case, ~40x the
+tolerance derived below. *Interleaved in a line* (RGB-W-RGB-W-RGB-W-RGB-W) also
+gives coincident centroids but is 112 mm long, needs a 180 mm diffuser, and wastes
+the whole benefit of a compact source. **The checkerboard is the arrangement that
+gets centroid coincidence in the smallest possible aperture**, and small aperture
+is what keeps the diffuser affordable.
+
+**Tolerance budget - and it is a number a builder can check with a ruler.** The
+requirement derived in s5.2.4 is a **residual colour-centroid separation
+`s_res <= 0.8 mm`**:
+
+| Contributor | Allocation | Derivation |
+|---|---|---|
+| Placement error, both families | **0.30 mm** | +/-0.3 mm per package, 4 packages -> `0.3/sqrt(4)` = 0.15 mm per family, 0.30 mm combined |
+| White-family flux mismatch | **0.20 mm** | one white `e` brighter shifts the white centroid by `e x 16/(4+e)` ~ `4e` mm. **`e <= 5 %` -> 0.20 mm** |
+| RGB-family flux mismatch | **0.28 mm** | radius 22.6 mm, so shift ~ `5.66e` mm. **`e <= 5 %` -> 0.28 mm** |
+| **Total** | **0.78 mm** | **inside the 0.8 mm requirement, with nothing to spare** |
+
+**+/-5 % flux matching within each family is exactly what H1-Q4's same-reel
+mandate delivers**, and it is the direct mechanical link between H1-Q4 and
+H1-Q2's fringing risk: **if the same-reel purchase is not honoured, this
+arrangement stops working.** Record it as such in the build sheet.
+
+**The two-reel consequence, stated because it is easy to get wrong.** RGB and
+white now come from two different reels, so the *white-to-colour ratio* is
+uncontrolled between the reels. That is **not** a fixture-to-fixture problem:
+provided all 8 fixtures' emitters come from **one transaction per part number**,
+every fixture inherits the *same* ratio offset, so PAR-REQ-06 is preserved and the
+offset becomes a **single global firmware constant** rather than 8 per-fixture
+corrections. With the EEPROM shipping empty (AMD-02) that global constant is the
+only correction available, and it is sufficient.
+
+#### 5.2.3 Diffuser specification, with numbers
+
+**Geometry.** Each emitter, at stand-off `d` behind the diffuser, lights a patch
+of radius `R = d x tan(theta_half)`. Size on the **narrower** of the two beams -
+the white at 120 deg full, `theta_half = 60 deg`:
+
+```
+  R = d x tan(60 deg) = 1.732 d
+```
+
+**Criterion: the patches of nearest-unlike neighbours (s = 16 mm) shall overlap
+by >= 60 % of patch area.** For two equal discs of radius `R` at separation `s`,
+overlap fraction `f(u) = [2 acos(u/2) - (u/2) sqrt(4 - u^2)] / pi` with `u = s/R`.
+Solving `f = 0.60` gives `u = 0.64`, so:
+
+```
+  R >= s / 0.64 = 16 / 0.64 = 25.0 mm
+  d >= 25.0 / 1.732 = 14.4 mm
+```
+
+| Parameter | **Specification** | Check |
+|---|---|---|
+| **Emitter-dome-apex to diffuser inner face, `d`** | **>= 15 mm; 20 mm NOMINAL** | at `d = 20`: `R = 34.6 mm`, `u = 0.462`, **overlap 71 %** |
+| **Diffuser aperture** | **>= 115 mm across** (diameter, or 115 x 115 mm square) at `d = 20 mm` | outermost emitter is 22.6 mm from centre; needs `22.6 + R = 22.6 + 34.6 = 57.2 mm` half-width, or the edge emitters clip and the fixture grows a **coloured rim**. At `d = 15 mm` the minimum is 97 mm |
+| **Option A - RECOMMENDED** | **Bulk / volume opal diffuser**, PMMA or PC, **haze >= 92 %**, total transmittance **55-70 % (60 % nominal)**, 2-3 mm thick | Re-Lambertianises the exit, so it kills mechanism 2 **and** mechanism 3. This is the option that is certain to work |
+| **Option B - light-preserving** | **Surface light-shaping diffuser**, **>= 80 deg FWHM (>= 40 deg half-angle)** scattering, transmittance **85-90 %** | Requires `d >= 25 mm`. Convolving both families with the same 40 deg kernel reduces mechanism 3's 45 deg error from -11.5 % to roughly **-5 to -7 %** but does **not** eliminate it. **Only acceptable if it passes s5.2.5 Test B** |
+
+**COST, stated because it is the largest hidden price of H1-Q2 and it is in no
+budget.** Option A costs **30-45 % of the delivered flux**. Against
+`research/led-emitter.md` s5's own baseline of ~41 lx direct average in the
+5 x 7 m room, Option A gives **~25 lx** and Option B **~36 lx**. The fixture set
+was already characterised there as "a dark-room instrument, not room lighting";
+Option A makes it materially darker. **The diffuser is also not in the
+$8-14/fixture module budget** (`s7`) - budget **$2-5/fixture** for a cut opal
+panel plus its retaining frame.
+
+#### 5.2.4 Minimum throw distance, and why it is the LESS important number
+
+**The key insight, stated first because it is counter-intuitive: throw distance
+does not fix shadow fringing.** A shadow edge is a projected *image* of the
+source, so the fringe scales with the source's own colour structure and with the
+occluder geometry - **not** with `1/D`. Moving the wall further away moves the
+shadow further away with it. **Only making the source large and colour-uniform -
+the arrangement plus the diffuser - fixes shadows.** The throw number governs
+mechanism 1 only.
+
+**The wrong criterion, shown so nobody re-derives it.** If one demands that the
+two source families be angularly *unresolvable* from the wall, with a chromatic
+detection threshold `alpha = 2 arcmin = 5.82e-4 rad`:
+
+```
+  D >= s / alpha = 0.016 / 5.82e-4 = 27.5 m       <- absurd
+```
+
+That is the criterion for resolving two **point** sources - which is exactly what
+a shadow edge does, and exactly why the diffuser rather than the throw is the fix.
+
+**Mechanism 2, the shadow criterion (this is where `s_res <= 0.8 mm` comes
+from).** Occluder at distance `a` from the fixture, surface at `a + b`, observer
+at `L` from that surface. The two coloured shadow edges are displaced by
+`delta = s_res x b/a`, subtending `delta/L` at the eye. Worst realistic geometry
+under a 2.5 m ceiling: `a = 1.0 m` (a standing person's head/shoulder),
+`b = 1.5 m` (to the floor), `L = 2.0 m`:
+
+```
+  delta / L = s_res x (1.5 / 1.0) / 2.0 = 0.75 s_res  <=  alpha = 5.82e-4 rad
+  s_res <= 7.8e-4 m = 0.78 mm   ->   SPECIFY 0.8 mm  (s5.2.2 tolerance budget)
+```
+
+Sanity check on the failure case: a clustered layout with `s_res = 30 mm` gives
+`delta/L = 22.5 mrad = 77 arcmin`, **39x the threshold** - plainly visible. The
+arrangement is doing real work here, not decoration.
+
+**Mechanism 1, the throw criterion.** For a `cos^m` source at throw `D`, the
+maximum fractional illuminance gradient on the surface is
+`|d lnE/dr| = (m+3)/(2D)`, at 45 deg off-axis. With the RGB family's `m = 0.646`
+that is `1.82/D`. A colour-mix error of **2 %** (roughly 1-2 MacAdam steps for a
+typical mix) is the acceptance limit:
+
+```
+  colour error = s_res x 1.82 / D  <=  0.02
+  D >= 1.82 x s_res / 0.02 = 91 x s_res
+```
+
+| `s_res` | Required minimum throw |
+|---|---|
+| **0.8 mm** (arrangement working) | **0.07 m** - irrelevant |
+| **16 mm** (arrangement failed: a builder mirrored the checkerboard, or the flux match is out) | **1.46 m** |
+
+**STATED MINIMUM THROW: 1.5 m from the diffuser to any illuminated surface**, and
+**no occluding object closer than 0.5 m to the diffuser**. 1.5 m is chosen to
+cover the arrangement-failed case, and it is comfortably inside the fixture's
+actual geometry (2.5 m ceiling, walls 2-4 m away, PAR-REQ-14's 2.5 m wash).
+
+#### 5.2.5 Bench acceptance test for PAR-REQ-15
+
+**Test C is done first, with a ruler, before anything is lit.**
+
+- **Test C - centroid check (build inspection).** Measure the eight package
+  centres on the assembled MCPCB. **PASS: the RGB centroid and the white centroid
+  coincide within 0.8 mm** (s5.2.2). A mirrored or rotated placement that breaks
+  the checkerboard fails here and is caught before the module is potted.
+- **Setup for A and B.** Assembled fixture with the diffuser fitted, mounted at
+  2.5 m, aimed at a matt white wall or screen **2.5 m away**. All four channels at
+  100 % duty on a nominal white mix.
+- **Test A - shadow fringing.** Hold a 50 mm opaque disc at **0.5 m** and again at
+  **1.0 m** from the diffuser. Photograph the shadow with a colour-managed camera,
+  fixed white balance. **PASS: no coloured fringe distinguishable at the shadow
+  edge by three observers standing 2 m from the surface, AND chroma difference
+  <= 0.010 in u'v' between the penumbra and the umbra in the photograph.**
+- **Test B - wash uniformity (this is the mechanism-3 test).** Sample the
+  illuminated field on axis and at 45 deg off-axis. **PASS: chromaticity varies by
+  <= 0.010 u'v' between the two** (~4 MacAdam steps - the practical limit for "not
+  noticed on a wall"). **Option B diffusers must be tested here specifically**;
+  Option A is expected to pass by construction.
+- **Record** which diffuser option passed, its measured transmittance (integrating
+  sphere, or an A/B lux-meter reading at fixed geometry), and the resulting
+  fixture flux, and feed that back into the light budget.
+
+**If Test A or Test B fails with Option B, fit Option A and accept the flux
+loss.** Do not attempt to fix fringing by raising the drive current - the
+`+12V` sustained ceiling has 4.4 % of headroom (`power_tree.md` s3.1) and there is
+nowhere to go.
 
 ---
 
@@ -331,15 +610,24 @@ not the rail.
 | **T-7** | **Mounting provision: the common 5x M3 pattern only** | The heatsink is on the module, not on this board. Any bracket that does mount here must clear the antenna column and the DC-DC hot zone (L-9) |
 | **T-8** | **No aluminium electrolytics anywhere** | All bulk is ceramic. Disposes of half the DC-DC-hot-zone rule by construction, and electrolytic life halves per 10 degC in a 56-69 degC box |
 
-**The one thing this board must NOT provide: on-board emitters.** At 1.42 W of
-package heat the FR4 path is 33-52 K/W against a 42.3 K/W budget at 40 degC air and
-31.0 K/W at the ICD's 56 degC - it straddles or fails, and the emitters' positions
-would then be dictated by the connector and keepout geometry rather than by the
-optics. On an aluminium MCPCB the path is 19-23 K/W and closes with 1.3-2.2x
-margin. **This is D3 and it makes requirements Q5 an H1 question**
-(`decisions.md` OPEN-3): an internal wire-to-board harness is not an external
-connector on any reasonable reading of ICD s9 - which itself anticipates the
-off-board case - but it needs confirming, not assuming.
+**The one thing this board must NOT provide: on-board emitters.** This was already
+D3's conclusion on thermal grounds; **H1-Q1 has now made it structural rather than
+preferential.** The selected enclosure conducts the emitter heat **through the
+wall**, and an emitter soldered to this daughter cannot reach the wall bridge at
+all - there is no path from an FR4 daughter in the middle of a mezzanine stack to
+the outside of the box. On top of that, s5.2's PAR-REQ-15 arrangement needs a
+55 x 55 mm MCPCB with a 16 mm checkerboard and a 115 mm diffuser 20 mm in front of
+it; none of that fits on a board whose usable area is already 45 cm2 and whose
+emitter positions would be dictated by the connector band, the DC-DC hot zone and
+the antenna column rather than by the optics.
+
+**The consequence is that OPEN-3 escalates.** The fallback "if ICD s9 is read
+strictly, put the emitters on-board" is **dead** - it was already thermally
+marginal, and it is now incompatible with the enclosure architecture the human
+selected. **The internal LED harness is no longer a preference; it is the only
+remaining architecture**, so ICD s9's reading must be confirmed rather than
+assumed, and a "no" answer now reopens the enclosure decision, not just the
+module. See `decisions.md` OPEN-3.
 
 ---
 
@@ -376,12 +664,25 @@ take the BOM to ~$8. It is the documented cost-down if the target bites - at the
 cost of a datasheet that contradicts itself on PWM frequency and would need a
 bench-verification item.
 
-**LED module and heatsink, per fixture, budgeted separately** (not this board's
-BOM): 4x C53153006 at $0.3341 = $1.34; aluminium MCPCB ~$3-6; ballast, NTC,
-connector ~$0.50; heatsink $2-5; harness ~$1 -> **~$8-14/fixture**.
+**LED module, optics and heatsink, per fixture, budgeted separately** (not this
+board's BOM). **REVISED at the P2 delta - H1-Q2 doubled the package count and
+H1-Q2 + s5.2 added a diffuser that was in no previous budget.** All emitter prices
+live-verified this session:
 
-**Par fixture total: ~$26-37, x8 = $210-300.** Against the $500-1000 system budget
-that must also cover 8-12 carriers, the strobes, enclosures and a **PoE+** switch
-(D-01's upgrade path implies PoE+, materially more expensive than the PoE switch
-the original budget assumed) this is **tight, and it is a system-level flag rather
-than a problem with this board** (requirements Q14).
+| Item | Was (pre-H1) | **Now** |
+|---|---|---|
+| Emitters | 4x `C53153006` @ $0.3341 = **$1.34** | 4x **`C22434861`** @ $0.3724 (qty-30 break, buy 50) = $1.49 **+** 4x **`C48586656`** @ $0.2332 (qty-50 break) = $0.93 -> **$2.42** |
+| Aluminium MCPCB | ~$3-6 (small) | **~$4-7** (55 x 55 mm, 8 packages, s5.2.2) |
+| Ballast, NTC, module connector | ~$0.50 | ~$0.50 (unchanged - still 8x 1.5 ohm + one NTC) |
+| Heatsink | $2-5 (internal) | **$2-5** (external, through-wall, ~60 x 60 x 25 mm for ENC-8's 8.0 K/W) |
+| Harness | ~$1 | ~$1 (still 10-way) |
+| **Diffuser + retaining frame** | **not budgeted** | **$2-5 - NEW, mandatory (ENC-7 / s5.2.3)** |
+| **Module total per fixture** | **~$8-14** | **~$12-21** |
+
+**Par fixture total: ~$30-44, x8 = $240-352** (was ~$26-37, $210-300). Against the
+$500-1000 system budget that must also cover 8-12 carriers, the strobes,
+enclosures and a **PoE+** switch (D-01's upgrade path implies PoE+, materially
+more expensive than the PoE switch the original budget assumed) this is **tighter
+than it was, and it is a system-level flag rather than a problem with this board**
+(requirements Q14). **This board itself is unchanged at ~$18-23** - the H1-Q2
+decision costs money on the module, not on the daughter.

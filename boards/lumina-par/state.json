@@ -3,7 +3,7 @@
  "board": "lumina-par",
  "workspace": "boards/lumina-par",
  "created": "2026-07-28T15:00:15",
- "updated": "2026-07-28T20:05:39",
+ "updated": "2026-07-28T20:36:23",
  "phase": "P3",
  "gates": {},
  "human": {
@@ -117,6 +117,24 @@
    "why": "Both daughters need the notch, so it is being added centrally rather than worked around per-run. The notch stays a hard keepout in constraints.json meanwhile. Coordinator will confirm the flag exists before this run reaches P5. Supersedes the OPEN-7 remediation (hand Edge.Cuts edit) recorded at H1; the OPEN-7 coordinate-translation trap under fixed-outline board_init still stands and must be re-raised at H2.",
    "phase": "P2",
    "ts": "2026-07-28T20:05:38"
+  },
+  {
+   "what": "P5 outline procedure fixed: board_init --outline 100x80 --corner-radius 3 --mounting-holes 4 --cutout 6,0,30,26, then verify geometry against an expected area of 7212.274 mm2",
+   "why": "Coordinator added --cutout centrally (commit 18613d3) so both daughters share it. Expected area derived here so P5 has a number to check rather than eyeballing: 100x80 = 8000, minus the 30x26 notch = 780, minus 4 corners at r=3 = 4 x r^2(1-pi/4) = 7.7257. The outline_origin translation is the trap that would otherwise silently misplace every keepout.",
+   "phase": "P3",
+   "ts": "2026-07-28T20:28:41"
+  },
+  {
+   "what": "Emitter set: 4x XL-HD6070RGBC-A46L-BD (C22434861) + 4x XL-HD6070UWC-A4-BD (C48586656); 2S2P, 150 mA/die, 300 mA/channel. Headline 0.717 A = 95.6% of the 0.75 A ceiling.",
+   "why": "Both live-verified via parts_search this session and spot-checked independently by the orchestrator. The headline survives the package change because BOTH packages publish identical Vf ranges (R 1.8-2.4, G/B/W 2.8-3.4), so the 2S2P/150 mA arrangement falls out the same way - a derived result, not a copy-forward. All nine power rows independently recomputed by the orchestrator and reproduce exactly.",
+   "phase": "P3",
+   "ts": "2026-07-28T20:36:23"
+  },
+  {
+   "what": "150 mA/die confirmed over 145 (H1-P7 re-derived, not carried forward)",
+   "why": "Every genuine HARDWARE ceiling passes at both: 2.8x on the 2.0 A OCP, 3.4x on the TPS2378 0.85 A MINIMUM limit. The only figure 150 fails is the ICD 8.5 W total, which ICD s6.2 itself calls a firmware-governed average, not a trip. Flips to 145 if the carrier owner declares 8.5 W a hardware limit.",
+   "phase": "P3",
+   "ts": "2026-07-28T20:36:23"
   }
  ],
  "history": [
@@ -299,6 +317,73 @@
    "event": "phase",
    "phase": "P3",
    "prev": "P2"
+  },
+  {
+   "ts": "2026-07-28T20:28:41",
+   "event": "p5_notch_trap_resolved",
+   "resolution": "board_init.py --cutout X,Y,W,H exists, tested, committed 18613d3",
+   "invocation": "--outline 100x80 --corner-radius 3 --mounting-holes 4 --cutout 6,0,30,26",
+   "coord_frame": "mm relative to the outline top-left corner; flag is repeatable",
+   "supersedes": "OPEN-7 hand Edge.Cuts edit - NOT to be done",
+   "constraints": [
+    "notch must touch an outline edge (ours does, y=0)",
+    "must not overlap a corner radius (r=3 occupies x 0-3 and x 97-100; notch spans x 6-36, clears)",
+    "interior windows refused exit 2 - geom._parse_outline returns on the first gr_rect so an inner rect would silently BECOME the outline"
+   ],
+   "P5_VERIFY_CHECKLIST": [
+    "read outline_origin from the board_init report and TRANSLATE every constraints.json rect against it - do NOT assume (0,0); coordinator test run returned [-6.57,-0.083]",
+    "check corner_radius field is 3.0 not clamped",
+    "check cutouts absolute rects",
+    "read worker_notes",
+    "confirm geom reads a non-empty outline with area 7212.274 mm2 = 8000 - 780 notch - 7.7257 corners"
+   ],
+   "still_unchecked_by_any_script": "antenna column copper voiding on F.Cu/B.Cu"
+  },
+  {
+   "ts": "2026-07-28T20:28:41",
+   "event": "decision",
+   "what": "P5 outline procedure fixed: board_init --outline 100x80 --corner-radius 3 --mounting-holes 4 --cutout 6,0,30,26, then verify geometry against an expected area of 7212.274 mm2"
+  },
+  {
+   "ts": "2026-07-28T20:29:09",
+   "event": "p5_invocation_corrected",
+   "issue": "the coordinator tested invocation omits --margin, which yields a 3.0 mm mounting-hole inset, not the ICD s7.1 5 mm inset",
+   "evidence": "board_init.py line 305: mounting_holes inset = args.margin / 2.0, unconditional - it does not depend on fixed vs auto outline mode; --margin default is 6.0",
+   "correct_invocation": "--outline 100x80 --corner-radius 3 --mounting-holes 4 --margin 10 --cutout 6,0,30,26",
+   "side_effect_checked": "corner radius clamps to the inset (margin/2 = 5.0 at margin 10), so the requested r=3.0 is still honoured",
+   "impact_if_missed": "a 90x70 hole rectangle becomes 94x74 - the daughter would not mate with the carrier standoffs"
+  },
+  {
+   "ts": "2026-07-28T20:36:23",
+   "event": "decision",
+   "what": "Emitter set: 4x XL-HD6070RGBC-A46L-BD (C22434861) + 4x XL-HD6070UWC-A4-BD (C48586656); 2S2P, 150 mA/die, 300 mA/channel. Headline 0.717 A = 95.6% of the 0.75 A ceiling."
+  },
+  {
+   "ts": "2026-07-28T20:36:23",
+   "event": "decision",
+   "what": "150 mA/die confirmed over 145 (H1-P7 re-derived, not carried forward)"
+  },
+  {
+   "ts": "2026-07-28T20:36:23",
+   "event": "open8_beam_angle_mismatch",
+   "severity": "first-order, riskiest remaining item",
+   "finding": "RGB 3-in-1 is 140 deg, white discrete is 120 deg - live-verified and cross-checked against 3 siblings (blue/red 140, warm white 120), so the split is white-vs-colour and systematic, not a bad catalogue record",
+   "effect": "colour gradient -11.5% at 45 deg, -33.5% at a 3 m wall",
+   "not_fixable_by": [
+    "emitter arrangement",
+    "firmware"
+   ],
+   "only_mitigation": "the diffuser, which costs 30-45% of delivered flux (OPEN-9) in a fixture P1 already called a dark-room instrument",
+   "p3_action": "datasheet_extract must confirm BOTH angles from the datasheets, not the catalogue",
+   "caused_by": "H1-Q2 package split"
+  },
+  {
+   "ts": "2026-07-28T20:36:23",
+   "event": "thermal_redetermined",
+   "red_Tj": "76.2 C at 25 C room / 91.2 C at 40 C room vs a PUBLISHED 125 C max",
+   "h2_sensitivity": "at 85-90 C internal air the junctions move only ~3 K because wall conduction decoupled them",
+   "but": "both packages are Topr -40..+85 C, so the AMBIENT rating is what breaks, not the junction - CR-6 stays blocking",
+   "honest_note": "the package split is worth only ~1 K thermally; its real value is the published Tj, the stock depth and the SMT class"
   }
  ]
 }

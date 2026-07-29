@@ -9,38 +9,56 @@ Baselined on **ICD-01 rev A2** (2026-07-28): board-wide HV clearance **0.635 mm*
 10 k SHDN pull-down, so an unprogrammed, crashed, browned-out or reset carrier
 presents **0 V at J3**, not 48 V.
 
-Five architecture-level results decide everything below. Each is argued with
-numbers in `decisions.md`; the first is an **H1 question for the human**, not a
-decision taken here.
+**REVISION B - P2 delta after the H1 checkpoint (2026-07-28).** The human approved
+H1 and directed four changes (`decisions.md` s0). Only one of them touches this
+board's blocks: **H1-Q2 replaced the integrated RGBW 4-in-1 with an RGB 3-in-1
+plus a separate white discrete**, which changes the light engine and nothing
+electrical on the daughter. **The four driver channels, the four PWM lines, the
+gating logic, the protection chain and the 10-way harness are all unchanged** -
+see D4' below and B6.
 
-1. **D1 (H1 QUESTION). The LED stage runs from `+12V`** - the project's standing
-   instruction and D-02's stated purpose for that rail. The three research
-   arguments for `+48V_SW` are engaged and answered in `decisions.md` D1. The
-   biggest one - "16x LED-current slew" - **does not survive being recomputed**:
-   once each rail gets an inductor sized for the same ripple fraction, the total
-   converter edge budget is `1/(f*k)` and **the rail voltage cancels out of the
-   algebra entirely** (4.76 us on both rails at 700 kHz / 30 %). It is moot in any
-   case, because shunt-FET dimming means the converter never slews the LED current
-   at all. Branch B (`+48V_SW`) stays fully specified and is a populate change at
-   the front end plus a module rewire - not a respin - **provided the human
-   answers at H1, before P5**.
+Five architecture-level results decide everything below. Each is argued with
+numbers in `decisions.md`. **D1 and D4 were H1 questions; both are now answered.**
+
+1. **D1 (ANSWERED AT H1). The LED stage runs from `+12V`** - the project's
+   standing instruction and D-02's stated purpose for that rail. **This is not
+   reopened.** The three research arguments for `+48V_SW` are engaged and answered
+   in `decisions.md` D1. The biggest one - "16x LED-current slew" - **does not
+   survive being recomputed**: once each rail gets an inductor sized for the same
+   ripple fraction, the total converter edge budget is `1/(f*k)` and **the rail
+   voltage cancels out of the algebra entirely** (4.76 us on both rails at
+   700 kHz / 30 %). It is moot in any case, because shunt-FET dimming means the
+   converter never slews the LED current at all.
 2. **D2. Dimming is done by a shunt FET across each string, not by gating the
    converter.** That is what makes PAR-REQ-01's 141 ns response budget reachable
    at all, and it is the only part of the PAR-REQ-01 fix that is this board's
-   hardware. The resolution half of PAR-REQ-01 is firmware and is **not** fixable
-   here (C2, `decisions.md` D2).
-3. **D3. The emitters live off-board on an aluminium MCPCB.** On 1.6 mm FR4 the
-   path is 33-52 K/W against a 42 K/W (vented) / 31 K/W (ICD 56 C) budget - it
-   straddles or fails. On MCPCB it is 19-23 K/W and closes with 1.3-2.2x margin.
-4. **D4. Per-die drive current is 150 mA (af), 4 packages, 2S2P per channel.**
-   Sized so that **all four channels stuck at 100 % draws 0.718 A on `+12V`** -
-   under the 0.75 A sustained ceiling, 36 % of the 2.0 A OCP. The board is
+   hardware. **H1-Q3 confirmed the strict gamma-2.2 reading and the carrier
+   committed to PWM-domain dithering, so PAR-REQ-01 is now recorded MET** - by
+   hardware plus a **named** firmware dependency that must not be silently dropped
+   (`decisions.md` D12).
+3. **D3 (AMENDED). The emitters live off-board on an aluminium MCPCB**, and after
+   H1-Q1 that is **structural, not preferential**: the enclosure conducts emitter
+   heat through the wall, and an emitter soldered to this daughter cannot reach
+   the wall bridge at all. On 1.6 mm FR4 the path is 33-52 K/W and straddles or
+   fails; on MCPCB it is 19-23 K/W. **The on-board fallback is dead**
+   (`stackup.md` s6).
+4. **D4' (SUPERSEDES D4). Per-die drive current is 150 mA (af), 2S2P per channel,
+   on 4x RGB 3-in-1 + 4x white discrete = 8 packages.** Re-derived from the live
+   Vf figures in `power_tree.md` s1.2. **All four channels stuck at 100 % draws
+   0.717 A on `+12V`** - 95.6 % of the 0.75 A sustained ceiling, 35.9 % of the
+   2.0 A OCP, 3.4x inside the PD's 0.85 A minimum current limit. The board remains
    electrically incapable of exceeding its own budget.
 5. **D5. Two temperature sensors, two jobs, and no thermal foldback.** A window
    comparator on the module NTC (fail-safe against a broken harness wire) plus a
    board NTC on the hottest driver stage. Foldback is banned: it is analogue
    current dimming by another name (PAR-REQ-08) - `decisions.md` D5 resolves the
    conflict between two research fragments here.
+6. **D14 (NEW). PAR-REQ-15 is now the live risk and has a buildable spec.** With
+   white on its own package, white/colour shadow fringing is a real failure mode.
+   The mitigation is a **centroid-matched 16 mm checkerboard on the MCPCB plus a
+   specified diffuser**, with numbers and a bench test, in `stackup.md` s5.2.
+   **None of it is on this board**, but it constrains the module and the enclosure
+   and it costs 30-45 % of the fixture's flux.
 
 ```mermaid
 graph LR
@@ -62,7 +80,7 @@ graph LR
 
   J5["<b>B6</b> J5 LED harness<br/>10-way latched, 2.0 mm<br/>4 anode + 4 GND + NTC + NTC_RTN<br/>4x TVS clamp<br/><b>NO 48 V on this harness</b>"]
 
-  MOD["LED module (NOT this board)<br/>4x RGBW 4-in-1 on Al MCPCB<br/>2S2P per colour, 150 mA/die<br/>8x 1R5 ballast + 10 k NTC"]
+  MOD["LED module (NOT this board)<br/>4x RGB 3-in-1 + 4x WHITE discrete<br/>16 mm centroid-matched checkerboard<br/>55x55 Al MCPCB, 2S2P per colour, 150 mA/die<br/>8x 1R5 ballast + 10 k NTC on an RGB pkg<br/>diffuser 20 mm in front (ENC-7)"]
 
   THM["<b>B4</b> thermal + protection<br/>2x NTC divider (&le;5 k source)<br/>quad OD comparator:<br/>emitter WINDOW (hot + open + short)<br/>+ board over-temp"]
 
@@ -306,7 +324,18 @@ sensors, two jobs (D-T18) - not two sensors for one job.
 
 | Sensor | Where | Duties |
 |---|---|---|
-| **RT_LED**, 10 k B3950, on the module | on or within a few mm of the emitter thermal-pad copper, two harness conductors | (a) `/ADC0` to the carrier for the temperature-referenced colour correction; (b) three window-comparator channels |
+| **RT_LED**, 10 k B3950, on the module | **on or within a few mm of an RGB PACKAGE's thermal-pad copper** - not a white one - two harness conductors | (a) `/ADC0` to the carrier for the temperature-referenced colour correction; (b) three window-comparator channels |
+
+**Which package the module NTC sits on is now a real choice, and it has one right
+answer.** With two package types on the MCPCB there are two thermal sites. At
+150 mA/die the RGB package dissipates **1.035 W** of heat and the white **0.383 W**
+(`power_tree.md` s6.1) - a 2.7x difference on a shared substrate. **The sensor
+goes on an RGB package**, because that is the hottest site and because the red die
+it contains is the one whose junction target (100 C) and flux-vs-temperature slope
+(-0.5 to -0.9 %/K) drive both the protection threshold and the colour correction.
+A sensor on a white package would read ~2.7x cooler locally and would let a broken
+build pass. **This costs nothing: it is one placement instruction on the module,
+not a second sensor and not an eleventh harness conductor** (B6).
 | **RT401**, 10 k B3950 0603, on this board | on the copper of the hottest driver stage, **outside** the DC-DC hot zone (2,46)-(36,68) | (a) `/ADC1` to the carrier; (b) board over-temperature comparator |
 
 A sensor on the daughter cannot protect the emitters (it measures internal air
@@ -411,6 +440,23 @@ daughter end wants a latch so a ceiling fixture cannot shed it (D-T12).
 | 1 | `/NTC_LED` | module NTC divider node |
 | 1 | `GND` (sense) | **dedicated NTC return**, joined to GND only at the comparator reference point; must not share a conductor with LED current |
 
+**The conductor count does NOT change with the two-package emitter set, and the
+reasoning is recorded so it is not re-opened.** The obvious worry is that eight
+packages instead of four, in two families, needs more wires. It does not:
+
+- **Still four channels, so still 4 anodes + 4 returns.** The RGB 3-in-1 carries
+  three independently-wired dies and the white discrete carries one - four
+  colours, exactly as the 4-in-1 provided (`power_tree.md` s1.4). The extra
+  packages are wired **in series/parallel within each channel on the MCPCB**
+  (2S2P), which is module copper, not harness copper.
+- **Still one NTC, so still 2 sensor conductors.** A second sensor on the white
+  cluster would measure the *cooler* of the two sites on a shared substrate and
+  would add nothing the RGB sensor does not already bound (B4).
+- **So J5 stays 10-way** and `sheets.md` s1.5 is unchanged. If a reviewer proposes
+  a second module NTC, the answer is B4's: two sensors already exist and they have
+  two different jobs; a third would be redundancy on the site that is already the
+  conservative one.
+
 Harness rules:
 
 - **No 48 V on this harness, ever** (D-T13). That is what keeps the 0.635 mm
@@ -423,55 +469,87 @@ Harness rules:
 - **One TVS per channel at the header**: 15 V standoff on branch A, **33 V on
   branch B** (an open-circuit CC buck drives its output toward VIN, and 48 V
   landing on a 13.6-27.2 V string at re-mate is destructive). Same SOD-123
-  footprint either way - a BOM value change, not a layout change. The XINGLIGHT
-  parts are 2 kV HBM with **VR 5 V max and no integral ESD diode**, so a
-  reverse-connected die is destroyed; the OSRAM alternates have an integral
-  back-to-back diode and would not need this.
+  footprint either way - a BOM value change, not a layout change. **Live-verified
+  for the selected set: the RGB 3-in-1 is 2 kV HBM per die (`R:2000V, G:2000V,
+  B:2000V`) and the 6070 single-colour parts are 3 kV HBM**, all with **VR 5 V max
+  and no integral ESD diode**, so a reverse-connected die is destroyed. **The
+  clamp count does not change with the two-package set** - it is one TVS per
+  *channel* at the header, and there are still four channels. The ams-OSRAM
+  alternate (C17664282) has an integral back-to-back diode and would not need
+  this, but it is a 1515 body and is not the selected part.
 - Two **bare-copper thermocouple pads** next to the header for bring-up thermal
   verification, and one specified on the module next to the emitter pad (L-13).
   Both carry the ICD s9 bench-hazard silkscreen.
 
-## The light engine (NOT this board - module BOM, recorded here for H1)
+## The light engine (NOT this board - module BOM, recorded here for H2)
 
-Lead candidate: **XINGLIGHT XL-HD6070RGBW-A5 / XL-HD6070RGBCW-A5** - four
-independent dies on one dia-6.2 mm slug, 350 mA/die max, 140 deg, Vf R 1.8-2.4 V
-/ G,B,W 2.8-3.4 V. **Four packages at 150 mA/die**, each colour wired **2S2P**
-with a 1R5 ballast per parallel branch, on an aluminium MCPCB, plus the 10 k NTC
-on the slug copper.
+**SUPERSEDED AT H1-Q2.** The integrated RGBW 4-in-1 (`C53153006`) that P1
+recommended and that D3 adopted is **withdrawn by owner decision**. It is not
+re-argued here and P3 must not re-propose it.
 
-**C4 - this is a single-source, single-vendor decision with no pin-compatible
-alternate.** A full LCSC sweep (318-part RGBW category plus 10 targeted sweeps)
-found exactly one in-stock RGBW power emitter above 50 mA; every Cree XLamp
-colour line shows 0 stock; the OSRAM "RGBW-looking" part is a 20 mA automotive
-sidelooker. The part also publishes **no thermal resistance and no maximum
-junction temperature** - the biggest data gap in the design.
+**Selected set - both live-verified with `parts_search.py` this session:**
 
-Mitigation, in three parts:
+| Role | MPN | LCSC | Stock | $ (break used) | Dies | Published Tj max | Published Rth |
+|---|---|---|---|---|---|---|---|
+| RGB | XINGLIGHT **XL-HD6070RGBC-A46L-BD** | **C22434861** | **6461** | $0.3724 @30 | R + G + B, 1 W / 350 mA each | **125 C** | **NOT PUBLISHED** |
+| White | XINGLIGHT **XL-HD6070UWC-A4-BD** | **C48586656** | **1790** | $0.2332 @50 | 1 white, 3 W / 700 mA, 6000-6500 K | **120 C** | **NOT PUBLISHED** |
 
-1. **Runner-up: XL-HD6070RGBC-A46L-BD** (RGB 3-in-1, C22434861) plus a separate
-   **XL-HD6070UWC-A4-BD** white. 3.5x the stock depth (6461 vs 1819), a
-   **published 125 C Tj** where the 4-in-1 publishes none, and JLC classifies it
-   **SMT-assemblable** where the RGBW part carries a "Wave Soldering" flag. The
-   cost is PAR-REQ-15: white then fringes against RGB and a diffuser must be
-   specified, characterised and bought.
-2. **Buy all 8 fixtures' emitters plus spares in one LCSC transaction before
-   P5.** XINGLIGHT publishes full bin tables but the orderable MPN carries no bin
-   suffix, so **PAR-REQ-16 is not literally satisfiable with this vendor**;
-   same-reel matching is the only lever, and it is empirically far tighter than
-   the datasheet bin width. Record the reel/lot code on the build sheet.
-3. **The risk is contained at architecture level because this board's four
-   channels are colour-agnostic.** Four identical buck channels sized for a 2S2P
-   InGaN string (6.8 V max, 0.30 A) also drive a 2S2P red string (4.8 V), a 4S
-   InGaN string (13.6 V, branch B) and an 8S string (27.2 V, branch B at `at`)
-   with no change but duty cycle and one sense resistor. **An emitter change is a
-   module change, not a daughter respin.**
+**Arrangement: 4 RGB + 4 white = 8 packages**, on a **16.0 mm centroid-matched
+checkerboard** (3 x 3 grid, RGB on the corners, white on the edge midpoints,
+centre vacant) on a ~55 x 55 mm aluminium MCPCB. Each colour wired **2S2P** at
+**150 mA/die** with a **1.5 ohm ballast per parallel branch**, plus the 10 k NTC on
+an **RGB** package's slug copper (B4). Full geometry, tolerances and the diffuser
+specification: **`stackup.md` s5.2**. Full electrical derivation: **`power_tree.md`
+s1**.
+
+**What the change bought, and what it cost - both stated, because the record must
+show the trade rather than only the upside.**
+
+| Bought | Cost |
+|---|---|
+| A **published 125 C Tj max** where the 4-in-1 published **none** - for the first time there is an absolute limit to design against | **PAR-REQ-15 becomes a live risk.** White is now a spatially separate source; shadow fringing and a 140-vs-120 deg beam mismatch are both real first-order defects (`stackup.md` s5.2.1) |
+| **3.5x the stock depth** (6461 vs 1819) on the part with no second source | **A mandatory diffuser costing 30-45 % of the fixture's flux** and $2-5/fixture that was in no budget |
+| **JLC "SMT Assembly"** class instead of the 4-in-1's "Wave Soldering" flag | **Two reels instead of one**, so the white-to-colour ratio is now uncontrolled between families (mitigated: one transaction per part number makes it a single global firmware constant, not 8 per-fixture errors) |
+| Per-package heat on the binding path falls 1.42 W -> **1.035 W** at af, and 2.41 W -> **1.76 W** at `at`, which **unblocks the `at` case thermally** | 8 packages instead of 4: bigger MCPCB, **+$1.09/fixture on emitters** ($1.34 -> $2.42 at the breaks a 50-piece buy reaches), +$1-2 on the substrate |
+
+**Honesty note carried from `power_tree.md` s6.3: under the wall-conducted
+enclosure the package split is worth only about 1 K of junction temperature.** The
+module's total heat is unchanged and the shared wall path dominates. The change is
+justified by the published Tj, the stock and the assembly class - which is exactly
+what the owner said - **not** by a thermal gain, and the H2 record should not claim
+one.
+
+**Still single-vendor.** Both parts are XINGLIGHT. The P1 catalogue sweep found no
+in-stock second source for a power RGB multi-die at LCSC, and the only in-stock
+white with a **published Rth** is ams-OSRAM `GW PUSRA1.EM-N2N7-XX52-1-700-R33`
+(**C17664282**, live-verified: **395 stock, $0.8786**) - a **1515** body, so it
+does not share the 6070 land pattern, beam or height and would need the whole
+s5.2 geometry re-derived. **It is the fallback if the XINGLIGHT white's
+unpublished Rth turns out to be the problem, not a co-equal candidate.**
+
+**Sourcing rule (H1-Q4 / AMD-01), and it is now load-bearing for optics as well as
+colour.** Buy all 8 fixtures' emitters plus spares in **one transaction per part
+number** before P5, and record both reel/lot codes on the build sheet.
+`stackup.md` s5.2.2 shows the PAR-REQ-15 arrangement needs **+/-5 % flux matching
+within each family** to hold its 0.8 mm centroid tolerance - so **if the same-reel
+purchase is not honoured, the fringing mitigation stops working**, not just the
+fixture-to-fixture match.
+
+**The risk is still contained at architecture level because this board's four
+channels are colour-agnostic.** Four identical buck channels sized for a 2S2P
+InGaN string (6.8 V max, 0.30 A) also drive a 2S2P red string (4.8 V) with no
+change but duty cycle and one sense resistor. **An emitter change is a module
+change, not a daughter respin** - which is precisely what H1-Q2 has just
+demonstrated: the package set changed completely and **not one net, part or
+constraint on this daughter moved.**
 
 **No fifth channel on rev A.** The PWM budget is free (the connector carries 8
 lines, PWM4 sits on LEDC timer 1) but the power budget is not: at the af design
-point all four channels at 100 % already draw 96 % of the `+12V` sustained
-ceiling, so a fifth channel takes ~20 % from the other four in every mixed
-colour. If amber is later wanted, led-emitter s8's **option B**
-(XL-HD6070YWC-A4-BD, phosphor-converted, Vf 2.8-3.4 V = an InGaN blue die under a
-phosphor) is the right one - it does **not** carry the -0.5 to -1 %/K AlInGaP
-penalty the requirements doc assumed, only the white channel's -0.1 to -0.2 %/K.
-Adding it is a respin (one more driver channel and one more harness conductor).
+point all four channels at 100 % already draw **95.6 %** of the `+12V` sustained
+ceiling, so a fifth channel takes ~20 % from the other four in every mixed colour.
+If amber is later wanted, led-emitter s8's **option B** (XL-HD6070YWC-A4-BD,
+phosphor-converted, Vf 2.8-3.4 V = an InGaN blue die under a phosphor) is the
+right one - it does **not** carry the -0.5 to -1 %/K AlInGaP penalty the
+requirements doc assumed, only the white channel's -0.1 to -0.2 %/K. Adding it is
+a respin (one more driver channel, one more harness conductor, and a fifth
+position that would break s5.2.2's centroid symmetry and have to be re-derived).

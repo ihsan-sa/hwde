@@ -2,16 +2,44 @@
 
 Baselined on **ICD-01 rev A2**. This file is the H1 checkpoint record: what was
 decided and why, which research fragment lost each conflict and on what grounds,
-what the human must answer, what must be requested from the carrier owner, and
+what the human answered, what must be requested from the carrier owner, and
 one blocking issue raised against LUM-CAR-A.
+
+**REVISION B - 2026-07-28, P2 delta after the H1 checkpoint.** H1 was approved
+with four directed changes. This file now records them, supersedes what they
+invalidate, and marks what is closed.
+
+---
+
+## 0. The four changes directed at H1, and what each one invalidated
+
+| # | H1 question | Owner decision | What it superseded | Where it is re-derived |
+|---|---|---|---|---|
+| **Q1** | Enclosure | **SEALED, with the LED module's heat conducted through the wall.** Not vented. 3.21 W internal -> 38 C air was the figure that made it close | ENC-1..ENC-7 as written; the vented branch; D3's rationale (off-board becomes structural, not preferential) | `stackup.md` s5 (rewritten, ENC-8/9/10 added), `power_tree.md` s6.2 |
+| **Q2** | Emitter | **RGB 3-in-1 + a separate WHITE discrete.** Chosen knowingly against this run's recommendation, on the grounds that its thermal case rests on a **published 125 C Tj max** and **3.5x stock depth** rather than on an **assumed 12 K/W Rth from a sole-source vendor that publishes neither Rth nor Tj max** | **D3's package identity and D4 in full.** Every row of `power_tree.md` s1-s6 | `power_tree.md` s1-s6 (rebuilt), D10 below |
+| **Q3** | PAR-REQ-01 | **The strict reading binds: 5 % of PERCEIVED brightness, gamma 2.2.** Carrier firmware has committed to **PWM-domain dithering of >= 3-4 bits** | The "renegotiate PAR-REQ-01" option; CR-5's status from *request* to *commitment* | D12 below |
+| **Q4** | Sourcing | **Same-reel sourcing. The 24C32 is fitted but ships EMPTY** - no measurement instrument exists today, so colour matching rests on same-reel binning. The EEPROM stays because it keeps the decision reversible | PAR-REQ-16 and PAR-REQ-17 as written (amended centrally by the orchestrator - `requirements.md` s0, AMD-01 / AMD-02) | D13 below |
+
+**Q2 is not re-litigated anywhere in this package and P3 must not re-propose the
+4-in-1.** The single most useful result of the re-derivation is recorded in
+`power_tree.md` s3.1: **the two packages publish identical forward-voltage ranges,
+so the electrical design point survived the change unchanged and not one net,
+part or constraint on this daughter moved.** What did move is the module, the
+optics and the thermal topology.
 
 ---
 
 ## 1. Decisions taken
 
-### D1 - The LED stage runs from `+12V` (branch A). RECOMMENDED, NOT TAKEN UNILATERALLY.
+### D1 - The LED stage runs from `+12V` (branch A). CONFIRMED AT H1 - NOT REOPENED.
 
-**This is H1 question P1.** The project's standing instruction is `+12V`; D-02
+**Status at revision B: CLOSED.** The `+12V` decision stands and the P2 delta was
+explicitly instructed not to reopen it. The argument below is retained unchanged
+as the record of how it was reached, and s7 of `power_tree.md` keeps the branch-B
+comparison auditable. **Branch B is no longer a live option and P3/P4 must not
+carry the DNP front end as a decision - it is a footprint-only hedge.**
+
+**This was H1 question P1.** The project's standing instruction is `+12V`; D-02
 created that rail specifically so 6-8 par fixtures need not each duplicate a
 >= 60 V converter. Three research findings push the other way. Each is engaged on
 its numbers rather than waved through.
@@ -198,9 +226,26 @@ characterisation of two chromaticities and explicit human sign-off; it is not
 proposed. **Reducing the dies driven per channel** changes the emitter mix and is
 rejected in spirit.
 
-### D3 - The emitters are off-board on an aluminium MCPCB
+### D3 - The emitters are off-board on an aluminium MCPCB. AMENDED AT H1: now STRUCTURAL, not preferential; the package identity is SUPERSEDED by D10.
 
-At 150 mA/die each package carries **1.42 W of heat**. The FR4 path (package
+**Two amendments at revision B.**
+
+**(i) The conclusion is strengthened by H1-Q1.** D3 was originally a thermal
+preference with an on-board fallback. The selected enclosure conducts the emitter
+heat **through the wall**, and an emitter soldered to this daughter cannot reach
+the wall bridge at all. **The on-board fallback recorded below is therefore
+dead** - it was already thermally marginal, and it is now incompatible with the
+enclosure architecture. `stackup.md` s6 carries the consequence: OPEN-3 escalates,
+because a strict reading of ICD s9 now reopens the *enclosure* decision, not just
+the module design.
+
+**(ii) The package identity below is SUPERSEDED by D10.** Wherever D3 says "each
+package carries 1.42 W of heat" from a four-die 4-in-1, read D10's **1.035 W on
+the RGB package and 0.383 W on the white**. The 33-52 K/W FR4 versus 19-23 K/W
+MCPCB comparison is unaffected - it is a substrate property, not a package one -
+and the conclusion is unchanged in direction and stronger in margin.
+
+At 150 mA/die each package carried **1.42 W of heat** (pre-H1 figure). The FR4 path (package
 ~12 K/W + a 14-via array 5.4 K/W + in-plane spreading 10-25 K/W + interface +
 heatsink) is **33-52 K/W** against a budget of 42.3 K/W at 40 C internal air and
 **31.0 K/W at the ICD's own 56 C** - it straddles or fails. On an aluminium MCPCB
@@ -224,16 +269,22 @@ on FR4, the emitters land wherever the keepouts allow rather than where the opti
 want them, and this board's in-box heat rises from 0.8 W to ~6.7 W - which then
 **fails ENC-1 in any sealed enclosure**.
 
-### D4 - 150 mA/die, four packages, 2S2P per channel
+### D4 - SUPERSEDED IN FULL BY D10.
 
-Back-solved from the `+12V` 0.75 A sustained ceiling on the worst-case-Vf column
-(`power_tree.md` s1, s3). 145 mA/die is the alternative that also clears the ICD's
-8.5 W *total*, at 3 % of light (H1 question P8).
+> **Superseded text (revision A):** *"D4 - 150 mA/die, four packages, 2S2P per
+> channel. Back-solved from the `+12V` 0.75 A sustained ceiling on the worst-case-Vf
+> column. 145 mA/die is the alternative that also clears the ICD's 8.5 W total, at
+> 3 % of light. This supersedes led-emitter's recommended 175 mA/die, which assumed
+> the 48 V rail. Four packages rather than two is kept unchanged from led-emitter
+> s1: same watts, 7 % more light (less droop), half the heat per thermal path, and
+> four spatially separated already-mixed sources instead of two."*
 
-This supersedes led-emitter's recommended 175 mA/die, which assumed the 48 V rail.
-Four packages rather than two is kept unchanged from led-emitter s1: same watts,
-7 % more light (less droop), half the heat per thermal path, and four spatially
-separated already-mixed sources instead of two.
+**Why it is superseded rather than edited:** "four packages" no longer describes
+the design (there are eight, in two families), and "four spatially separated
+already-mixed sources" is precisely the property H1-Q2 traded away - each source
+is now *either* colour *or* white, which is what makes PAR-REQ-15 live. The drive
+current and the string topology survive, but they survive **because they were
+re-derived**, not because they were carried forward. See D10.
 
 ### D5 - Two sensors, a window comparator, and NO thermal foldback
 
@@ -318,10 +369,207 @@ in ~45 cm2 of usable area. **Not impedance** - no controlled-impedance net exist
 
 ---
 
+## 1b. Decisions added at the P2 delta (revision B)
+
+### D10 - SUPERSEDES D4. The emitter set is 4x RGB 3-in-1 + 4x white discrete, 2S2P per channel at 150 mA/die.
+
+**Directed by H1-Q2.** Both part numbers were re-verified live with
+`parts_search.py` in this session; **no LCSC code in this package is quoted from
+memory**.
+
+| Role | MPN | LCSC | Stock | $ (break used) | Published Tj max | Published Rth |
+|---|---|---|---|---|---|---|
+| RGB | XINGLIGHT **XL-HD6070RGBC-A46L-BD** | **C22434861** | **6461** | $0.3724 @30 | **125 C** | **NOT PUBLISHED** |
+| White | XINGLIGHT **XL-HD6070UWC-A4-BD** | **C48586656** | **1790** | $0.2332 @50 | **120 C** | **NOT PUBLISHED** |
+
+**The white was selected by this run, not handed down.** The requirement was the
+same 6070/5050-class body with a published Tj or Rth. `C48586656` is the same
+HD6070 body as the RGB package (so it shares the land-pattern scale, the 5.15 mm
+height and the mechanical stack), publishes **Tj 120 C**, matches the withdrawn
+4-in-1's white on CCT (6000-6500 K) and on Vf (2.8-3.4 V), and holds 1790 in stock
+against a need of 32 + spares. The alternatives considered and why they lose:
+
+| Alternative | Live-verified | Why it loses |
+|---|---|---|
+| ams-OSRAM **GW PUSRA1.EM-N2N7-XX52-1-700-R33** | **C17664282, 395 stock, $0.8786** | The **only** in-stock white with a published Rth, but a **1515** body: different land pattern, different height, 120 deg from a 1.5 mm die instead of a 6 x 7 mm lamp area, and the whole `stackup.md` s5.2 geometry would need re-deriving. **Retained as the fallback if the XINGLIGHT white's unpublished Rth turns out to be the problem** |
+| XINGLIGHT **XL-HD6070WWC-A4-BD** | C48586655, 1738 stock, $0.2894 | Warm white 2900-3100 K. Wrong CCT - the withdrawn part and SYS-REQ-07 both target a cool white |
+| XINGLIGHT **XL-HD2525UWC-A2** | C3646945, 4530 stock, $0.1679 | Better ambient rating (+105 C) but a **~2 mm2** thermal pad against the 6070's ~28 mm2, and a body that does not match the RGB package at all |
+| Cree **XPGBWT-L1-0000-00H51** | C17401863, 1060 stock, $3.2404 | 10x the price, 3535 body, white only. Kept on file as the reference point P1 recorded |
+
+**Arrangement, re-derived rather than inherited** (`power_tree.md` s1.2): the
+published Vf ranges force **2S** on `+12V` (4S G/B/W is 13.6 V, above the rail;
+3S leaves 1.8 V before ballast and sense resistor). Given 2S, the die count is a
+free choice, and **2S2P at 4 dies per channel wins on PAR-REQ-15**, not on
+electricals - it is the only count that permits a **centroid-matched checkerboard**
+(`stackup.md` s5.2.2). 150 mA/die -> 300 mA/channel -> **0.717 A on `+12V`**.
+
+**The finding that matters most: the electrical design point is unchanged.** Both
+packages publish **identical Vf ranges** (R 1.8-2.4 V, G/B/W 2.8-3.4 V,
+live-verified), so string voltage, channel current, every row of the
+sustained-power table, the driver count, the sense resistor, the harness rating
+and `constraints.json` `power[]` all land exactly where they were.
+**`power_tree.md` s3.1 states this explicitly so nobody mistakes it for a
+copy-forward.**
+
+**H1-P7 (145 vs 150 mA/die) was reopened and is re-derived in `power_tree.md`
+s3.3. Recommendation: 150 mA/die, unchanged.** Every genuine *hardware* fault
+ceiling passes at both currents and none is close (2.0 A `+12V` OCP: 2.8x; PD's
+0.85 A **minimum** limit: 3.4x). The only figure 150 fails is the ICD's 8.5 W
+total, which ICD s6.2 itself calls a **firmware-governed average**, not a trip.
+The 3.3 % of light 145 mA/die costs now matters *more* than it did before H1,
+because D14's mandatory diffuser removes a further 30-45 % of the flux from a
+fixture already described as "a dark-room instrument".
+
+### D11 - SUPERSEDES the ENC-1..ENC-7 set. Sealed enclosure, LED heat through the wall, and the wall path is a measured criterion.
+
+**Directed by H1-Q1.** Rewritten in `stackup.md` s5 against this specific
+configuration; the vented branch is withdrawn.
+
+The load-bearing addition is **ENC-8: the conduction path from the LED module's
+mounting face to ROOM air shall present <= 8.0 K/W, measured** - a <= 45.4 K rise
+at 5.67 W, i.e. the mounting face at <= room + 46 K - with a full test method in
+`stackup.md` s5.0 (thermocouple positions, drive condition, settling criterion,
+pass thresholds, and what to do on failure). **ENC-5 restates the same physics as
+a single number a builder can check: the module's thermocouple pad shall not
+exceed room ambient + 50 K.**
+
+**Why it may not be phrased as an assumption.** If the bridge does not work, the
+fixture does not fail loudly - it silently reverts to sealed-with-the-module-inside,
+which H1-Q1 rejected: in-box heat goes from 3.19 W to **8.86 W**, internal air
+from 36.5-38.7 C to **56.9-63.1 C** in a 25 C room, and the daughter's own parts
+then live in air 12-18 K over ENC-1 (`power_tree.md` s6.2). **ENC-8 is what stands
+between the selected architecture and the rejected one.**
+
+**The corresponding gain, stated because it is large:** under wall conduction the
+emitters are cooled to *room* air, not to internal air, so **the emitter thermal
+case is decoupled from the disputed ICD s7.6 figure** (`power_tree.md` s6.4). Red
+Tj lands at **76.2 C** (25 C room) / **91.2 C** (40 C room) against a 100 C target
+and a **published** 125 C maximum, and moves by only ~3 K even if the internal air
+turns out to be 85-90 C. What still breaks at 85-90 C is the emitters' **+85 C
+Topr ambient rating**, which no module design can fix - so **CR-6 remains
+blocking**.
+
+### D12 - PAR-REQ-01 is MET, by hardware PLUS a NAMED firmware dependency.
+
+**Directed by H1-Q3: the strict reading binds - 5 % of PERCEIVED brightness,
+gamma 2.2 - and carrier firmware has committed to PWM-domain dithering of
+>= 3-4 bits.**
+
+**Status: PAR-REQ-01 MET.** The two walls and who closes each:
+
+| Wall | Requirement | Closed by | Margin |
+|---|---|---|---|
+| **Timing** | `T = t_d(on) + t_r + t_d(off) + t_f <= 141 ns` at 13-bit / 9.766 kHz | **THIS BOARD'S HARDWARE** - the shunt FET across each string (D2). Realistic T ~ 50-100 ns | **1.4-2.8x** |
+| **Resolution** | 17 bits (72 823 codes) for <= 1 JND at the 5 % point; ESP32-S3 LEDC caps at 14 | **CARRIER FIRMWARE** - PWM-domain temporal dithering, >= 3-4 bits -> 17-18 effective bits | requirement met at >= 3 bits |
+
+**The shunt-FET hardware half stands exactly as designed. Nothing in D2, B2, B3 or
+`sheets.md` changes.**
+
+**THE FIRMWARE DEPENDENCY, NAMED SO IT CANNOT BE SILENTLY DROPPED.** Carrier
+firmware **shall** implement temporal dithering with all three properties:
+
+1. **>= 3-4 bits of dither.** Without it PAR-REQ-01 **fails by 8.9x at 13-bit and
+   4.4x at 14-bit**, and one PWM code is an 8.9 % luminance step against a <= 1 JND
+   requirement.
+2. **In the PWM domain, NOT the 60 fps frame domain.** A 4.4 % dither at 60 Hz is
+   itself an IEEE 1789 NOEL breach - a frame-domain implementation trades one
+   failure for another.
+3. **Pattern repeat >= ~300 Hz.**
+
+**There is no hardware remedy available on this board if the commitment lapses.**
+D2's six-part survey already established that no PWM-engine driver IC in the class
+delivers >= 150 mA/ch **and** >= 10 kHz **and** useful resolution **and**
+independent channels, and even LP5024 as a bare PWM source is worse than the
+carrier's own 13 bits at 9.766 kHz. **If the dither is dropped, PAR-REQ-01 must be
+formally renegotiated (the CIE L* reading buys a 4x relaxation), not quietly
+failed.** CR-5 accordingly changes from a *request* to a *tracked commitment* -
+see s4.
+
+### D13 - Same-reel sourcing; the 24C32 is fitted and ships EMPTY.
+
+**Directed by H1-Q4**, and formalised centrally in `requirements.md` s0 (AMD-01
+amends PAR-REQ-16 to a same-reel sourcing requirement; AMD-02 defers PAR-REQ-17's
+*data*, not its hardware). **This board's hardware is unchanged: D7 stands in
+full** - both ID mechanisms fitted, 24C32 at 0x50, WP to GND, no daughter-side I2C
+pull-ups, R206's value still allocated by the carrier owner (OPEN-2).
+
+Three consequences this run must carry:
+
+1. **Buy all 8 fixtures' emitters plus spares in ONE TRANSACTION PER PART NUMBER
+   before P5, and record both reel/lot codes on the build sheet.** There are now
+   two reels, not one.
+2. **Same-reel matching is now load-bearing for OPTICS as well as colour.**
+   `stackup.md` s5.2.2's PAR-REQ-15 arrangement holds its 0.8 mm centroid
+   tolerance only with **+/-5 % flux matching within each family**. If the
+   same-reel purchase is not honoured, the fringing mitigation stops working -
+   not just the fixture-to-fixture match. **This is a new coupling created by
+   H1-Q2 and it did not exist before.**
+3. **The two-reel white/colour ratio is a GLOBAL constant, not a per-fixture
+   error.** RGB and white come from different reels so their relative flux is
+   uncontrolled - but provided all 8 fixtures draw from the same two reels, every
+   fixture inherits the *same* offset. PAR-REQ-06 is preserved and the offset
+   becomes **one firmware constant**, which is exactly what an empty EEPROM can
+   still accommodate. **The EEPROM stays fitted because it keeps the decision
+   reversible at zero cost** (one SOIC-8 and two resistors) once an instrument
+   exists.
+
+### D14 - PAR-REQ-15 has a buildable specification: centroid-matched arrangement + a specified diffuser + a stated minimum throw.
+
+**Created by H1-Q2**, which traded away the one property the integrated 4-in-1
+gave for free: every colour leaving the same 6.2 mm slug. The full specification
+with all arithmetic is **`stackup.md` s5.2**; the summary and the reason each
+piece exists:
+
+| Piece | Specification | Which failure mode it kills |
+|---|---|---|
+| **Arrangement** | 3 x 3 grid, **16.0 mm pitch** (the minimum the 14.5 mm land span allows), **RGB on the four corners, white on the four edge midpoints, centre vacant**. RGB centroid (16, 16); white centroid (16, 16) - **they coincide exactly** | **Shadow fringing (the mechanism PAR-REQ-15 names).** Removes the colour dipole entirely. Tolerance: residual centroid separation **<= 0.8 mm**, budgeted as 0.30 placement + 0.20 white flux + 0.28 RGB flux |
+| **Diffuser** | Stand-off **>= 15 mm, 20 nominal**; aperture **>= 115 mm**; **Option A opal, haze >= 92 %, TT 55-70 %** (recommended) or **Option B LSD, >= 80 deg FWHM, TT 85-90 %** at `d >= 25 mm` | The residual 16 mm quadrupole, **and** the beam-angle mismatch below. Derived from a **>= 60 % patch-overlap** criterion on the *narrower* beam |
+| **Minimum throw** | **1.5 m** from diffuser to any illuminated surface; no occluder within 0.5 m | The direct-wash colour gradient only. **1.46 m is the arrangement-FAILED case**; with the arrangement working the required throw is 0.07 m |
+| **Bench test** | Test C centroid check with a ruler before power; Test A shadow photograph at 0.5 / 1.0 m; Test B on-axis vs 45 deg chromaticity, both **<= 0.010 u'v'** | acceptance |
+
+**Three findings inside this that a reviewer should not miss.**
+
+1. **The beam angles do not match, and it is live-verified, not inferred.** LCSC
+   lists the RGB 3-in-1 at **140 deg** and the white at **120 deg**. Cross-checked
+   this session against three siblings: the blue (C48586653) and red (C48586650)
+   singles are 140 deg, and the *warm white* (C48586655) is also 120 deg - so the
+   split is **white-versus-colour inside the family**, not one bad record, and
+   P1's family-level "6070 = 140 deg" claim is wrong for the white parts. Fitting
+   `cos^m`, white is Lambertian (m = 1.000) and RGB is broader (m = 0.646), so
+   the mix is **-5.0 % white at 30 deg, -11.5 % at 45 deg, -33.5 % at 71.6 deg** -
+   which is a wall 3 m away at 1.5 m height, squarely inside the PAR-REQ-14 wash.
+   **The arrangement cannot fix this and firmware cannot fix this** (it is
+   angle-dependent, not a scalar). Only a strong diffuser can, which is the
+   second independent reason Option A is the safe specification. **P3 must
+   confirm both angles from the datasheets.**
+2. **Throw distance does not fix shadow fringing.** A shadow edge is a projected
+   *image* of the source, so the fringe scales with the source's colour structure
+   and the occluder geometry, not with `1/D`. The naive "make the sources
+   angularly unresolvable from the wall" criterion gives **D >= 27.5 m** - absurd,
+   and it is exactly the point: **the diffuser, not the throw, is the fix for
+   shadows.** The throw number governs the direct wash only.
+3. **The diffuser costs 30-45 % of the fixture's flux and was in no budget.**
+   Against `research/led-emitter.md` s5's own ~41 lx baseline, Option A gives
+   ~25 lx and Option B ~36 lx, in a fixture that document already called "a
+   dark-room instrument, not room lighting". Budget **$2-5/fixture** for the panel
+   and frame (`stackup.md` s7). **This is the largest hidden cost of H1-Q2.**
+
+**Honesty statement, repeated here because it belongs in the decision record: this
+is a PCB pipeline and it cannot verify a beam. Every number in D14 and in
+`stackup.md` s5.2 is a design target with a stated bench test, not a verified
+optical result.**
+
+---
+
 ## 2. Rejected, with the reason (so P3 cannot re-propose them)
 
 | Rejected | Reason |
 |---|---|
+| **The integrated RGBW 4-in-1, XL-HD6070RGBW-A5 / XL-HD6070RGBCW-A5, `C53153006`** | **WITHDRAWN BY OWNER DECISION AT H1-Q2.** Its thermal case rested on an **assumed 12 K/W Rth from a sole-source vendor that publishes neither Rth nor Tj max**; the selected RGB 3-in-1 publishes **Tj 125 C**, carries **3.5x the stock** and is JLC **SMT-assemblable** where the 4-in-1 is flagged "Wave Soldering". **Do not re-propose it at P3.** D10 |
+| **Ventilating the enclosure** | Withdrawn at H1-Q1 in favour of sealed + wall conduction. `stackup.md` ENC-2 |
+| **On-board emitters (the old D3 fallback)** | Was already thermally marginal on FR4 (33-52 K/W vs a 42.3 K/W budget); **H1-Q1 killed it outright** - an emitter on this daughter cannot reach the enclosure wall bridge. `stackup.md` s6 |
+| **Renegotiating PAR-REQ-01 to a looser reading (5 % of duty, or CIE L*)** | H1-Q3 selected the **strict gamma-2.2** reading and the carrier committed to the dither. D12. The CIE L* relaxation is retained only as the fallback **if** the firmware commitment lapses |
+| **2 white emitters instead of 4** (electrically identical: same string voltage, same channel current, same power) | Halves the white sources and destroys the centroid-matched checkerboard, which is the primary PAR-REQ-15 mitigation. `power_tree.md` s1.2 step 2 |
 | Linear / LDO constant-current sinks as the primary topology | 11.8-14.0 W of dissipation for 1-die strings from 12 V - **over 100 % of the af envelope**. Even tuned string lengths spend 20-53 % of the budget as heat next to a red die that wants 85-100 C. Independently, TPS92638-Q1-class parts have T ~ 73 us, failing the timing spec by ~520x |
 | Multi-channel PWM-engine driver ICs (TLC5947/59711, PCA9685, IS31FL3236A, TLC5940, LP5024) | s1 D2 - no part in the class delivers >= 150 mA/ch AND >= 10 kHz AND useful resolution AND independent channels |
 | SN3350IP05E-01 | EC table: dimming ratio **1200:1 at 100 Hz but 13:1 at 10 kHz** = ~3.7 bits |
@@ -338,9 +586,32 @@ in ~45 cm2 of usable area. **Not impedance** - no controlled-impedance net exist
 
 ---
 
-## 3. Questions for the HUMAN at H1
+## 3. Questions for the HUMAN - STATUS AFTER H1
 
-Each states the option, the number, the consequence and a recommendation.
+**H1 was approved with four directed changes.** This table now shows what is
+closed and what still needs an answer. **Six of the thirteen are closed; one
+(P7) was explicitly reopened and is re-derived; six remain open.**
+
+| # | Status after H1 | Answer / where it now lives |
+|---|---|---|
+| **P1** rail | **CLOSED - branch A (`+12V`)** | Confirmed and explicitly not reopened at the P2 delta. D1 (amended). Branch B is a footprint-only hedge, not a live option |
+| **P2** PAR-REQ-01 reading | **CLOSED - strict gamma 2.2** | H1-Q3. **PAR-REQ-01 recorded MET** by hardware + a named firmware dependency. D12 |
+| **P3** enclosure | **CLOSED - sealed, LED heat through the wall** | H1-Q1. ENC-1..ENC-10 rewritten against this configuration; **ENC-8 is the new measured criterion**. D11, `stackup.md` s5 |
+| **P4** ICD s9 / internal harness | **STILL OPEN, and now MORE urgent** | H1-Q1 made the off-board module structural, so the fallback is dead. A strict "no" now reopens the enclosure decision, not just the module. OPEN-3 |
+| **P5** heatsink compliance | **CLOSED BY IMPLICATION - shrouded through the wall** | This is what H1-Q1's wall-conduction branch *is*. **Confirm the shroud explicitly**: ENC-3 is strictly harder now, because the architecture deliberately puts metal through the wall |
+| **P6** firmware dithering | **CLOSED - YES, committed** | H1-Q3. Recorded as a tracked commitment in CR-5 and named in full in D12 |
+| **P7** 150 or 145 mA/die | **REOPENED AT H1 - re-derived, recommendation 150** | `power_tree.md` s3.3. Every hardware fault ceiling passes at both; the only figure 150 fails is a firmware-governed average. **Still a sense-resistor value, decidable as late as P3** |
+| **P8** converter-idle one-shot | **STILL OPEN** | Unchanged: saves 0.8 W (9 % of the envelope) at saturated colours for ~$0.30 and 12 passives. Recommendation: **yes**, laid out as a populate option either way |
+| **P9** 240 fps capture in scope | **STILL OPEN** | Unchanged. Recommendation: declare 240 fps out of scope, which frees CR-3 to be taken purely on dimming margin |
+| **P10** calibration instrument | **CLOSED - none exists** | H1-Q4. EEPROM fitted, ships empty (AMD-02). Colour matching rests on same-reel binning. D13 |
+| **P11** emitter single-source risk | **CLOSED - the fallback was taken** | H1-Q2 selected the RGB 3-in-1 + separate white **over** this run's recommendation. D10. Still single-vendor (both parts XINGLIGHT); the ams-OSRAM 1515 white (C17664282, 395 stock) is the only published-Rth escape and is a body change |
+| **P12** build quantity / BOM target | **STILL OPEN** | Revised: this board still **$18-23**, but the module rises to **$12-21/fixture** (8 packages + a diffuser that was in no budget), so **par fixture ~$30-44, x8 = $240-352**. `stackup.md` s7 |
+| **P13** outline confirmation | **STILL OPEN** | Unchanged: 100.0 x 80.0 mm, R3.0, 5x M3, 30 x 26 mm notch at (6,0)-(36,26). ai-ee has no outline-shrink step, so the P5 outline is permanent. **New adjacent question: the enclosure must now accommodate a ~29-30 mm module stack plus an external heatsink** (ENC-10) |
+
+### 3.1 The original question set, retained verbatim for the record
+
+Each states the option, the number, the consequence and the recommendation as it
+stood at H1. **Read s3 above for current status; nothing below is live.**
 
 | # | Question | Options and numbers | Recommendation |
 |---|---|---|---|
@@ -370,8 +641,8 @@ None of these may be assumed. Each carries the cost of not making it.
 | **CR-2** | **Re-issue ICD s7.2 with the confirmed J3/J4/H5 coordinates after the carrier's P6** | **Blocks P5.** s7.2 is the one un-frozen section and daughters are explicitly blocked on it. This run proceeds through P4 and holds |
 | **CR-3** | **Make 14-bit at 4.883 kHz available** (LEDC timers 2/3, or reprogram timer 0), selectable in firmware, with 13-bit/9.766 kHz kept as the default | Driver timing margin over T stays at 1.4-2.8x instead of 2.8-5.6x, and the dither operating point sits nearer the pulse-development knee. **Not a blocker** - shunt dimming clears 141 ns without it - but it is the cheapest margin available. Cost of granting it: 2x camera band contrast (see H1-P9) |
 | **CR-4** | **90-degree `hpoint` phase stagger across PWM0-3** | Up to **4x** larger worst-case input-current step on `+12V`, more bulk capacitance, and a worse peak against the 0.75 A ceiling. Costs the carrier nothing - PWM0-3 share timer 0, so hpoint = 0, N/4, N/2, 3N/4 changes neither frequency nor duty |
-| **CR-5** | **Commit carrier firmware to PWM-domain temporal dithering, >= 3-4 bits, pattern repeat >= 300 Hz** | **PAR-REQ-01 fails by 4.4-8.9x with no hardware remedy on this board.** Must be in the PWM domain, not the 60 fps frame domain - a 4.4 % dither at 60 Hz breaches IEEE 1789's NOEL on its own |
-| **CR-6** | **BLOCKING ISSUE - see s5 OPEN-1.** Re-derive and re-issue ICD s7.6's internal-air figures | Every emitter thermal budget on this board is keyed to them |
+| **CR-5** | **GRANTED AT H1-Q3, now a TRACKED COMMITMENT rather than a request.** Carrier firmware shall implement PWM-domain temporal dithering, **>= 3-4 bits**, pattern repeat **>= 300 Hz**, **in the PWM domain and NOT the 60 fps frame domain** | **PAR-REQ-01 is recorded MET on the strength of this commitment.** If it lapses the requirement fails by **4.4-8.9x** with **no hardware remedy on this board**, and it must then be formally renegotiated (the CIE L* reading is the fallback), not quietly failed. A frame-domain implementation is not a partial win - a 4.4 % dither at 60 Hz breaches IEEE 1789's NOEL on its own. **D12 names all three properties; verify them at integration, not by assertion** |
+| **CR-6** | **STILL BLOCKING - see s5 OPEN-1.** Re-derive and re-issue ICD s7.6's internal-air figures, with an explicit room-ambient assumption | **Downgraded in scope but not closed.** H1-Q1's wall conduction decoupled the *emitter junctions* from this figure (`power_tree.md` s6.4: red Tj moves ~3 K between 38 C and 90 C internal air). **What is still keyed to it is the emitters' +85 C Topr AMBIENT rating**, which no module design can fix, plus this daughter's own component ratings (ENC-1b) |
 
 ---
 
@@ -393,11 +664,21 @@ optimistic. A daughter may not absorb this.**
 3. **The 56 C (af) figure survives only at a 25 C room.** At the requirements
    document's own ASSUMED 40 C external ambient it becomes **72-87 C**. The ICD
    states no room-ambient assumption.
-4. **Direct consequence for this daughter:** the selected XINGLIGHT 6070 family's
-   **maximum operating temperature is +85 C**, and the 4-in-1 publishes **no
-   maximum junction temperature at all**. At 85 C internal air the emitters are at
-   their absolute rating with zero margin, and every budget in `power_tree.md` s6
-   is keyed to the internal-air number.
+4. **Direct consequence for this daughter, RESTATED AT REVISION B.** Two things
+   changed the shape of this item without closing it:
+   - **H1-Q2 fixed half of it.** Both selected parts now publish a maximum
+     junction temperature (**RGB 125 C, white 120 C**), where the withdrawn 4-in-1
+     published none. There is an absolute limit to check against for the first
+     time.
+   - **H1-Q1 fixed most of the rest.** Under wall conduction the emitters are
+     cooled to *room* air, not internal air, so **red Tj moves by only ~3 K
+     between a 38 C and a 90 C internal-air figure** (`power_tree.md` s6.4). The
+     emitter thermal budgets are no longer keyed to the disputed number.
+   - **What is NOT fixed, and it is why this stays blocking:** both parts are
+     live-verified at **Topr -40 to +85 C**. At 85 C internal air they sit at
+     their absolute *ambient* rating with zero margin; at 90 C they are out of
+     specification, and **no module or heatsink design can fix an ambient
+     rating**. This daughter's own components are also keyed to it (ENC-1b).
 
 **Requested of the carrier owner:** re-derive s7.6 and re-issue with (a) an
 explicit room-ambient assumption, (b) an at figure consistent with its own af
@@ -407,30 +688,65 @@ sealed-with-the-module-inside does not close at all.
 
 ### OPEN-2 - `ID_ADC` code not allocated (CR-1). Blocks P4.
 
-### OPEN-3 - ICD s9 and the internal LED harness (H1-P4). Blocks the module design, not this board's schematic.
+### OPEN-3 - ICD s9 and the internal LED harness (H1-P4). ESCALATED at revision B.
 
-### OPEN-4 - Emitter single-source, no published Rth, no published Tj max (C4, H1-P11)
+Previously: "blocks the module design, not this board's schematic." **That is no
+longer true.** H1-Q1 selected wall conduction, so the emitters **must** be off the
+daughter and on the enclosure wall - there is no path from an FR4 board in the
+middle of a mezzanine stack to the outside of the box. The on-board fallback that
+made this survivable is dead (`stackup.md` s6, D3 amendment (i)).
 
-Beyond the sourcing risk: **the entire emitter thermal argument rests on an
-assumed package Rth(j-solder) of ~12 K/W extrapolated from ams-OSRAM's published
-8.9-12 K/W.** If the real figure is 20 K/W, even the MCPCB path is marginal at af.
-This is not recoverable by measurement before P5. Additional traps recorded so
-they are not rediscovered: the XINGLIGHT temperature-derating curve is
-**byte-identical (MD5-verified) across the red, green, blue and amber
-datasheets** - it is boilerplate and must not be designed to; the "-A2" (non-BD)
-1 W parts have Topr -35 to +60 C and must not be substituted; and `C53153006`
-carries a JLC **"Wave Soldering"** assembly flag where the RGB 3-in-1 from the
-same body is "SMT Assembly".
+**So a strict reading of ICD s9 now reopens the ENCLOSURE decision, not just the
+module design.** ICD s9 itself anticipates the off-board case ("if the LED module
+is on a separate heatsink... that heatsink and its wiring are at PoE potential
+too"), and a harness that never leaves the enclosure is not an external connector
+on any reasonable reading - **but it still needs confirming, not assuming**, and
+the cost of a "no" is now much higher than it was at H1.
 
-### OPEN-5 - PAR-REQ-16 (binning) cannot be met literally
+### OPEN-4 - Emitter single-source and no published Rth (C4, H1-P11). PARTLY RETIRED at revision B.
 
-XINGLIGHT publishes full bin tables (flux, Vf, dominant wavelength) but **the
-orderable LCSC/JLC MPN carries no bin suffix - you receive whatever is on the
-reel.** Only the ams-OSRAM parts encode bin groups in the order code, and the
-all-OSRAM set is unbuildable (the true 528 nm green has **19 pcs** in stock).
-Mitigation is one-transaction same-reel purchase plus the calibration EEPROM,
-which is requirements Q11 option (c) - **but PAR-REQ-16 as written should be
-formally amended rather than quietly failed.**
+**What H1-Q2 and H1-Q1 retired:**
+
+- **Tj max is now published** for both parts (RGB **125 C**, white **120 C**),
+  where the withdrawn 4-in-1 published none.
+- **The unpublished Rth is now bounded in effect.** Under the wall-conducted
+  model the die->slug term applies only to **one die's own heat** (red: 0.270 W),
+  and the dominant 45 K term is ENC-8's *measured* wall path. Moving the assumed
+  Rth from 12 to 20 K/W moves red Tj by **+2.2 K** and white Tj by **+3.0 K**
+  (`power_tree.md` s6.3). It is no longer "the largest single uncertainty in the
+  design".
+
+**What remains open:**
+
+- **Neither selected part publishes a thermal resistance.** The ~12 K/W is still
+  `ASSUMED:`, extrapolated from ams-OSRAM's published 8.9-12 K/W.
+- **Still single-vendor.** Both parts are XINGLIGHT and there is no
+  pin-compatible alternate on LCSC. The only in-stock white with a published Rth
+  is ams-OSRAM `C17664282` (**395 stock, $0.8786**, live-verified) and it is a
+  **1515** body, so taking it re-derives the whole `stackup.md` s5.2 geometry.
+- **Traps carried forward so they are not rediscovered:** the XINGLIGHT
+  temperature-derating curve is **byte-identical (MD5-verified) across the red,
+  green, blue and amber datasheets** - it is boilerplate and must not be designed
+  to; the **"-A2" (non-BD) parts have Topr -35 to +60 C** and must not be
+  substituted for the "-BD" parts under any circumstance; and vendor data quality
+  in this family is low generally (a flux table mislabelled "mcd", a transposed
+  IF/IFP row) - **treat every XINGLIGHT number as approximate and keep the margin
+  in.**
+
+### OPEN-5 - PAR-REQ-16 (binning): CLOSED by formal amendment.
+
+**Closed at H1-Q4.** `requirements.md` s0 AMD-01 amends PAR-REQ-16 from a binning
+specification to a **same-reel sourcing requirement**, and AMD-02 defers
+PAR-REQ-17's *data* (the EEPROM ships empty) while keeping the hardware. Both
+amendments quote the original text in full, so the record shows what changed.
+
+**One consequence that must be carried rather than filed:** AMD-01 is a genuine
+**reduction in guarantee**, not an equivalent substitution - same-reel is an
+empirical correlation where a published bin is a contractual limit. **PAR-REQ-06
+is therefore carried at reduced confidence**, its verification moves to a bench
+comparison of assembled fixtures, and **D13 item 2 adds a second dependency that
+did not exist at H1: the PAR-REQ-15 arrangement needs +/-5 % flux matching within
+each family, which is same-reel's job.**
 
 ### OPEN-6 - PAR-REQ-03 / PAR-REQ-04 breach IEEE 1789 Recommended Practice 3
 
@@ -454,3 +770,67 @@ must be a **direct Edge.Cuts edit after `board_init`**, with every downstream
 consumer re-verified. Compounded by TRAP 2 (`board_init` does not place the
 outline at (0,0), so every rect in `constraints.json` must be translated) and by
 the antenna column having **no automated check at all on F.Cu/B.Cu**.
+
+**Revision B note:** the orchestrator is adding a `--cutout` flag centrally.
+**Nobody is to hand-edit Edge.Cuts or shrink the outline in the meantime.** The
+notch stays a hard keepout in `constraints.json` regardless of which mechanism
+eventually cuts it.
+
+---
+
+### OPEN-8 (NEW) - The RGB and white beam angles do not match, and the datasheets have not been read
+
+**Live-verified from LCSC this session:** the RGB 3-in-1 (`C22434861`) is
+**140 deg** and the white (`C48586656`) is **120 deg**. Cross-checked against three
+siblings in the same session - blue `C48586653` 140 deg, red `C48586650` 140 deg,
+warm white `C48586655` **120 deg** - so the split is **white-versus-colour inside
+the family**, not one bad record, and P1's family-level claim that "the 6070
+family is 140 deg" (`research/led-emitter.md` s10) is **wrong for the white
+parts**.
+
+**Consequence:** fitting `cos^m` gives white `m = 1.000` (Lambertian) against RGB
+`m = 0.646`, so the mix is **-5.0 % white at 30 deg off-axis, -11.5 % at 45 deg,
+-33.5 % at 71.6 deg** (a wall 3 m away at 1.5 m height). **This is a first-order
+PAR-REQ-15 defect that neither the arrangement nor firmware can correct**, and it
+is the second independent reason the diffuser is mandatory (D14, `stackup.md`
+s5.2.1 mechanism 3).
+
+**Open because:** this run designed to the conservative published attribute but
+**did not extract either datasheet** (the P2 delta was explicitly scoped to
+exclude datasheet extraction). **P3 must confirm both angles from the datasheets
+and re-check `stackup.md` s5.2.3's diffuser stand-off**, which was derived from
+the narrower of the two.
+
+### OPEN-9 (NEW) - The mandatory diffuser costs 30-45 % of the flux and was in no budget
+
+`stackup.md` s5.2.3: the recommended Option A opal diffuser has a total
+transmittance of 55-70 %. Against `research/led-emitter.md` s5's own baseline of
+~41 lx direct average in the 5 x 7 m room, that gives **~25 lx** (Option A) or
+**~36 lx** (Option B) - in a fixture that document already characterised as **"a
+dark-room instrument, not room lighting"**.
+
+**Three things follow and none of them is settled:**
+
+1. **It is a real cost of H1-Q2** and the H2 record should show it next to the
+   benefits, not buried.
+2. **It changes the H1-P7 calculus**: 145 mA/die's 3.3 % of light is worth more
+   than it was, which is why `power_tree.md` s3.3 recommends 150.
+3. **There is nowhere to recover the light from.** The `+12V` sustained ceiling
+   has 4.4 % of headroom; a higher drive current would reopen the rail decision
+   that H1 just confirmed. **If the delivered light is judged inadequate after the
+   s5.2.5 bench test, the answer is a lighting-design decision (more fixtures, or
+   accept the level), not a hardware one.**
+
+### OPEN-10 (NEW) - Nothing in this pipeline can verify ENC-8 or PAR-REQ-15
+
+**ENC-8's 8.0 K/W wall path and every number in `stackup.md` s5.2 are design
+targets with stated bench tests, not verified results.** ai-ee has no thermal
+simulation and no optical simulation, and both criteria depend on an enclosure
+that does not exist yet and that this run does not own.
+
+**This is recorded as OPEN rather than as a closed criterion because two of the
+design's load-bearing claims now rest on it:** ENC-1 (internal air) is downstream
+of ENC-8, and PAR-REQ-15 is downstream of s5.2.5. **The mitigation is that both
+have a written test method with pass/fail numbers and named failure actions**
+(`stackup.md` s5.0 and s5.2.5), so whoever builds the enclosure can settle them
+without re-deriving anything - which is exactly what H1 directed.

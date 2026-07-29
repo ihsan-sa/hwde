@@ -120,7 +120,7 @@ P5-P8 check key off them.
 | Net | Type | From -> to | Note |
 |---|---|---|---|
 | `+48V_SW` | power | `power` (J3 1/3/5) | **landed, not tapped** on branch A. Declared in `voltages` at 57 V so `check_creepage` enforces the clearance |
-| `+12V` | power | `power` -> `drivers` | 0.718 A max |
+| `+12V` | power | `power` -> `drivers` | 0.717 A max (`power_tree.md` s3, revision B) |
 | `+3V3` | power | `power` -> `control`, `thermal` | <= 5 mA |
 | `GND` | power | everywhere | In1 plane |
 | `/PWM0` .. `/PWM3` | in | `control` (J4) internal | 3.3 V CMOS. **No RC filter; if any network, tau <= 14 ns** |
