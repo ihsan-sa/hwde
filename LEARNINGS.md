@@ -1276,3 +1276,96 @@ works; real price 40.00 USD for 10x 48x30 2L 2oz HASL vs our 19.65 estimate - or
 returns code 2501 no_audit_result_error immediately after upload (JLC DFM runs async - re-poll
 later; quote proceeds without it); calculate returned NO shipList because we pass no country -
 freight attestation (N3 gate) needs a country input plumbed before the first create.
+
+## 2026-07-29 [routing][drc] A net-wide HV clearance rule makes fine-pitch HV PADS unroutable, not just tight
+lumina-carrier P7. The hand-written `HV_48V_clearance` (0.635 mm, TI TPS2378 guidance) excluded
+only `!(A.Type=='Pad' && B.Type=='Pad')`. That stops the rule firing between two pins of a package
+but NOT between a pin and the fan-out stub that must land on it - a track inherits its pad's
+neighbourhood. Measured: 15 of 37 48 V pads sit < 0.635 mm from foreign copper OF THEIR OWN
+footprint (U1 SOIC-8 0.200 mm, U22 HTSSOP-20 0.250-0.375 mm, U20 pad-3-to-its-own-EP 0.295 mm,
+0805 caps 0.590 mm across their own pads), so those pads could not be connected at all. Confirmed
+live: a V48_RAW stub on U22 pad 6 fired the rule twice at 0.250 mm against pins 5 and 7. Fix that
+held: extend the exclusion to "both items inside ONE named footprint's courtyard"
+(`!(A.intersectsCourtyard('U22') && B.intersectsCourtyard('U22'))`, enumerated per refdes, never
+wildcarded). Generalisation: any `clearance` DRU floor above a package's own pad gap is
+unsatisfiable for that package - check `min(distance to foreign copper)` per pad BEFORE routing
+(work/p7/hv_escape.py is 40 lines and answers it).
+
+## 2026-07-29 [routing][kicad] Netclass clearance is PAD-BLIND - it cannot carry an HV rule
+Same board: setting the three 48 V netclasses to 0.635 mm clearance so Freerouting would honour it
+in the DSN produced 30 instant DRC errors between adjacent pins of U1/U22 and across C61/C62/C63's
+own two pads - a netclass has no pad-pair exclusion and no scoping at all. The .kicad_dru rule is
+the only mechanism that can express "0.635 mm except inside a package". Consequence for P7: the HV
+netclass clearance must stay at the routing floor (0.2 mm) and the DRU stays the DRC authority;
+Freerouting therefore routes HV at 0.2 mm and open-board HV spacing must be audited after routing.
+
+## 2026-07-29 [routing][parts] KRT: a 3-pad diff net routes as a MESH, and only the FIRST leg closes
+lumina-carrier MDI runs J1 (magjack) -> D10 (ESD array) -> U10 (PHY). Handed all three pads,
+`route_diff.py` builds J1-D10 + J1-U10 + D10-U10 (a ring: 96 mm of copper for a 50 mm chain, RX
+skew 51 mm); `--ordering mps` gives the same star. route_critical's own mitigation (detach the
+"unmatched stub pads" - here J1's staggered magjack pads) routes ONLY the short D10->U10 leg and
+silently leaves the 38 mm haul to Freerouting, i.e. uncoupled. Routing the legs sequentially does
+not work either: whichever leg runs second is DEFERRED ("electrically-short"/multipoint) because
+the first leg's copper already hangs off the shared middle pad. What works: route each leg on its
+OWN branch from the SAME clean board (detach U10 for one, J1 for the other, via
+route_critical.detach_stub_pads/restore_stub_pads) and graft the two copper sets with route_edit.
+The branches cannot see each other, so give them disjoint layers - F.Cu for one leg, B.Cu-preferred
+(`--layer-costs 3 1`) for the other - or they overlap and merge into a short (measured: 18
+shorting_items + 3 tracks_crossing when both preferred F.Cu). Post-graft, the two legs land on the
+shared pad at different points, so check_diffpair reports `branch_free: false` and falls back to
+TOTAL copper length - a bogus 45 mm "skew" that a short in-pad joining segment mostly resolves.
+
+## 2026-07-29 [parts][python] KRT: relative --work-dir silently breaks, and bash mangles net names
+route_critical passes `--fab-overrides <work>/fab_overrides.txt` through unchanged and runs KRT with
+`cwd=<krt plugins dir>`, so a RELATIVE `--work-dir` makes KRT die with "fab-overrides file not
+found" and route_critical reports `no JSON_SUMMARY`. Always pass absolute --pcb/--work-dir. Second
+trap, the LEARNINGS 2026-07-23 argv rule seen from the other side: it is not enough for the SCRIPT
+to pass a list - a net name typed on a Git-Bash command line is already mangled before python sees
+it (`/ETH_TXP` -> `C:/Program Files/Git/ETH_TXP`). Hard-code pair names in the driver, read them
+from a file, or set `MSYS2_ARG_CONV_EXCL='*'`.
+
+## 2026-07-29 [planes_gen][drc] Two footprint facts planes_gen cannot see: existing vias-in-pad, and touching regions
+(a) `ep_pads` picks the largest netted SMD pad per footprint and grids vias into it without checking
+whether the FOOTPRINT already ships thermal vias. U22 (HTSSOP-20 eFuse) carries 15 thru-hole
+0.6/0.3 mm vias-in-pad in its own land; planes_gen added 21 more on top -> 24 hole_to_hole warnings
+and 2 holes_co_located at 0.000 mm. Check `pads_of(ref)` for thru-hole pads inside the EP first.
+(b) planes_gen only de-conflicts zone priorities for regions that OVERLAP. Three same-net plane
+rectangles that merely TOUCH along a shared edge (the standard "positive rectangles cannot have a
+hole" pattern for a keepout band) are still `zones_intersect` ERRORS in KiCad 10 - assign distinct
+priorities explicitly. Same-net fills at different priorities still merge into one island (measured:
+7162 mm2 In1 GND, 1 island).
+
+## 2026-07-29 [drc][gates] drc_routed's --parity finds footprint/symbol mismatches the P6 place gate never runs
+The place gate runs DRC without `--parity`, so `footprint_symbol_mismatch` never appears until P7.
+On lumina-carrier H5 (mounting hole) had `exclude_from_bom` on the footprint and `(in_bom yes)` on
+the symbol - one warning, and drc_routed fails at err+warn = 0. Its four siblings H1-H4 are
+`board_only` so parity skips them entirely. Fix at the symbol (a mounting hole is not a BOM line),
+not the footprint. Worth a --parity DRC at the END of P6.
+
+## 2026-07-29 [routing][kicad] A module's own pads can sit INSIDE its declared antenna keepout
+lumina-carrier's ESP32-S3-WROOM-1 keepout was authored as 10 x 22 mm at the board edge (Espressif's
+normative zone is 6 x 18 mm; the extra 4 mm was margin). With U30 placed at its ICD datum the
+module's outermost pad columns (pins 1/2/3 and 38/39/40) land 2.0 mm INSIDE that band, so a rule
+area with "no tracks" over the literal rectangle makes six module pins unconnectable - and "copper
+free on every layer" is false the moment the module is placed. Author the rule area as the true
+antenna zone (measured from the footprint: `at` + courtyard extent, antenna = the last 6 mm of the
+25.5 mm body) plus a margin band that stops short of the pad rows. KiCad's Specctra export DOES
+carry rule areas to Freerouting as `(keepout "" (polygon <layer> 0 ...))`, one per layer - verified
+in the exported DSN - so the keepout is honoured by the autorouter, and stitch_vias skips pads
+inside it with `no_clear_spot`. No pipeline script creates rule areas; planes_gen only makes
+positive pours, so a small bundled-python SWIG worker (`SetIsRuleArea` + `SetDoNotAllowTracks/Vias/
+ZoneFills` + `SetLayerSet`) is the sanctioned way to add one.
+
+## 2026-07-29 [easyeda2kicad][kicad] 3D-model origin offsets in renders are NOT footprint defects
+pd-trigger J1 (GCT USB4105-GF-A-120, LCSC C5184243): the render showed the connector body
+overhanging the board edge with contacts/peg-slots exposed behind it - user flagged possible
+misalignment AFTER the fab order was placed. Ground truth: the fab drill/copper matched GCT's
+recommended layout dimension-for-dimension (2x O0.65 pegs at 5.78; slots 1.0x2.1 + 1.0x1.8 at
+3.68/4.18; 12x1.15 contacts 8x0.30+4x0.60 at 0.5 pitch) - the EasyEDA 3D model origin is just
+~2 mm off along the mating axis. Verification path that settles it in minutes: (1) the ordered
+.drl (tool table + hit coords) is the truth the fab received; (2) the manufacturer's drawing
+PDF (gct.co/files/drawings/<part>.pdf worked with a browser UA; LCSC's /datasheet/<code>.pdf
+URL returns HTML). Renders judge MODELS, drills judge BOARDS. fp_verify only covers parts with
+datasheet extracts (pd-trigger had U1 only) - connector footprints deserve the extract+verify
+treatment before ordering, and 3D-model offsets deserve a fix in the workspace lib so design-doc
+renders stop alarming humans.
