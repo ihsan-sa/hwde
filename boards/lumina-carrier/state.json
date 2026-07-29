@@ -3,8 +3,8 @@
  "board": "lumina-carrier",
  "workspace": "boards/lumina-carrier",
  "created": "2026-07-28T13:36:22",
- "updated": "2026-07-29T01:00:10",
- "phase": "P4",
+ "updated": "2026-07-29T09:24:52",
+ "phase": "P5",
  "gates": {
   "erc": {
    "phase": "P4",
@@ -346,6 +346,12 @@
    "why": "PROCESS NOTE FIRST: my Task-4 pin table was WRONG - I carried the Wurth 10/100 part's pin deltas into a brief for the LINK-PP, which is a different part with a different pin count. The agent detected the contradiction, built to the datasheet (VC1-4 = pins 11-14, LEDs 15-18, EH 19-20 - confirmed against parts/C22457393.json) and reported the override rather than splitting the difference. That is exactly the behaviour that keeps a wrong magjack pinout from flipping the connector end-for-end. FIXED BEYOND THE BRIEF: (1) board-lock <-> VC creepage was 0.487 mm against the board's own 0.635 mm rule - this one IS voltage-derived so check_creepage would have failed it at P8 after routing. Fixed by making pads 19/20 oval 2.00x2.60 (narrow toward the taps, tall for insertion force) and VC1/VC4 1.20 mm: gap now 0.687/0.697 mm with every annular ring at the 0.15 mm JLC minimum. The chip-side/line-side barrier IMPROVED as a side effect, 1.401 -> 1.451 mm, now clearing HALO's 1.40 mm guidance. (2) R3's land moved 0603 -> 0805 (C3000584 fitted, C334927 not-fitted alternate) so the 63.4R class-4 upgrade at ~105 mW is in-spec on the SAME land - D-01 promises a resistor swap with no respin and an out-of-spec alternate would not deliver it. Bridges: 2x ABS210 (C2892567), selected on RthJA 65 C/W giving Tj 118-133 C; MB6S rejected by measurement at 90 C/W and Tj 176 C. RDEN re-centred 24.8k -> 24.2k now that the bridge diode I-V is known. ERC 0/0, netlist_audit exit 0, BOM 52 lines / 111 placed / 0 orphans.",
    "phase": "P4",
    "ts": "2026-07-29T01:00:10"
+  },
+  {
+   "what": "P5 complete: 100x80 mm, 4-layer JLC04161H-3313, 3 mm corner radius, 4x M3. Three library defects found and fixed that placement could never have resolved.",
+   "why": "board_init report read back rather than assumed: corner_radius 3.0 honoured (NOT clamped to the mounting-hole inset), mounting_holes 4, outline_bbox [19.58, 57.132, 119.58, 137.132] = exactly 100.0 x 80.0 mm. Setup violations fell 92 -> 36 after fixing: (1) ESP32 thermal-land vias-in-pad at 0.075 mm ring / 0.25 mm drill, failing BOTH min-annular and min-hole. My first attempt enlarged them to 0.60/0.30, which fixed those two but created 24 clearance + 24 mask-bridge errors instead because the via pads then touched the thermal sub-pads - so I REMOVED them entirely. Thermal vias under a ground land belong to the board, not the footprint: P7 stitching places them against the real GND pour with correct net assignment, and it also removes the via-in-pad solder-wicking risk that was already on the P9 list. (2) D1 SMBJ58A courtyard was 'malformed (self-intersecting)' from zero-length fp_line segments - an easyeda2kicad artifact; scanned board-wide and removed 5 across 2 footprints. All 36 remaining violations are components stacked at the origin pre-placement (27 copper_edge_clearance, 3 courtyards_overlap, 3 mask bridges, 1 npth-in-courtyard) plus 2 benign warnings. ZERO library defects remain. Also verified by hand (fp_verify does not model drills): J3/J4 both 1.700 mm annulus / 1.100 mm drill / 0.840 mm gap / 1.32x / 0.300 mm ring, matching ICD s5.2 exactly. Library completeness re-derived from the filesystem after the lib_pull bug: 112/112 components resolve a footprint.",
+   "phase": "P5",
+   "ts": "2026-07-29T09:24:52"
   }
  ],
  "history": [
@@ -662,6 +668,17 @@
    "ts": "2026-07-29T01:00:10",
    "event": "decision",
    "what": "Magjack swap COMPLETE and verified. Two library defects fixed beyond the brief; my own brief contained a wrong pin table and the agent correctly overrode it."
+  },
+  {
+   "ts": "2026-07-29T09:19:22",
+   "event": "phase",
+   "phase": "P5",
+   "prev": "P4"
+  },
+  {
+   "ts": "2026-07-29T09:24:52",
+   "event": "decision",
+   "what": "P5 complete: 100x80 mm, 4-layer JLC04161H-3313, 3 mm corner radius, 4x M3. Three library defects found and fixed that placement could never have resolved."
   }
  ]
 }
