@@ -1,0 +1,138 @@
+{
+  "mpn": "DS1023-2*7SF11",
+  "lcsc": "C113344",
+  "package": "THT double-row 2.54 mm female header (socket), 14 positions (2 x 7), straight, 8.5 mm insulator; CONNFLY DS1023 series, V/T type",
+  "description": "CONNFLY ELECTRONIC DS1023 series 2.54 mm Female Header, V/T Type (drawing C-DS1023-XXXX-C, rev C dated 12/26/18, scale 1:1, sheet 1 of 1, units mm). One family drawing covers 1x2-1x40 single row, 2x2-2x40 double row and 3x3-3x40 triplex row; DS1023-2*7SF11 is the 2 x 7 double-row member. Part-number code fields: no. of contacts (2x2-2x40) / mounting type S = straight / contact plating F1 = full gold flash / profile height (Dim A) 1 = 8.5 mm. Body: length 2.54*N+0.5 = 18.28 +/-0.3 mm with N = contacts/2 = 7, width 5.00 mm (double row), insulator height A = 8.5 mm, solder tail length B = 3.0 +/-0.2 mm, tail cross-section 0.60 x 0.40 mm, tail pitch 2.54 +/-0.1 mm, tail span 2.54*(N-1) = 15.24 +/-0.25 mm. Specifications as printed: contact resistance 20 mOhm max, insulation resistance 1000 MOhm min, dielectric withstanding voltage 600 V AC(rms) for 1 minute, current rating 3 A, temperature -40 C to +105 C. NOTE: the PDF for C113344 is byte-identical to the PDF for the other DS1023 position count on this board (MD5 5cd98530576b08907a949497aa2c808d) - it is one family datasheet, which is expected.",
+  "pinout": [
+    {
+      "pin": "1",
+      "name": "P1",
+      "type": "passive",
+      "notes": "Socket contact position 1 of 14. The datasheet assigns no signal names and no pin numbers to this connector - it is a generic 14-position 2.54 mm female header, every contact identical. Numbering and net assignment come from ICD-01, not from this PDF."
+    },
+    {
+      "pin": "2",
+      "name": "P2",
+      "type": "passive",
+      "notes": "Socket contact position 2 of 14; identical to every other contact."
+    },
+    {
+      "pin": "3",
+      "name": "P3",
+      "type": "passive",
+      "notes": "Socket contact position 3 of 14; identical to every other contact."
+    },
+    {
+      "pin": "4",
+      "name": "P4",
+      "type": "passive",
+      "notes": "Socket contact position 4 of 14; identical to every other contact."
+    },
+    {
+      "pin": "5",
+      "name": "P5",
+      "type": "passive",
+      "notes": "Socket contact position 5 of 14; identical to every other contact."
+    },
+    {
+      "pin": "6",
+      "name": "P6",
+      "type": "passive",
+      "notes": "Socket contact position 6 of 14; identical to every other contact."
+    },
+    {
+      "pin": "7",
+      "name": "P7",
+      "type": "passive",
+      "notes": "Socket contact position 7 of 14; identical to every other contact."
+    },
+    {
+      "pin": "8",
+      "name": "P8",
+      "type": "passive",
+      "notes": "Socket contact position 8 of 14; identical to every other contact."
+    },
+    {
+      "pin": "9",
+      "name": "P9",
+      "type": "passive",
+      "notes": "Socket contact position 9 of 14; identical to every other contact."
+    },
+    {
+      "pin": "10",
+      "name": "P10",
+      "type": "passive",
+      "notes": "Socket contact position 10 of 14; identical to every other contact."
+    },
+    {
+      "pin": "11",
+      "name": "P11",
+      "type": "passive",
+      "notes": "Socket contact position 11 of 14; identical to every other contact."
+    },
+    {
+      "pin": "12",
+      "name": "P12",
+      "type": "passive",
+      "notes": "Socket contact position 12 of 14; identical to every other contact."
+    },
+    {
+      "pin": "13",
+      "name": "P13",
+      "type": "passive",
+      "notes": "Socket contact position 13 of 14; identical to every other contact."
+    },
+    {
+      "pin": "14",
+      "name": "P14",
+      "type": "passive",
+      "notes": "Socket contact position 14 of 14; identical to every other contact."
+    }
+  ],
+  "land_pattern": {
+    "package": "DS1023 'Recommend PCB layout', double-row view: 2 x 7 plated holes, dia 1.02 mm, 2.54 mm pitch, 2.54 mm row spacing",
+    "pad_count": 14,
+    "pitch_mm": 2.54,
+    "row_spacing_mm": 2.54,
+    "notes": "DRILL DIAMETER: dia 1.02 mm, called out on all three 'Recommend PCB layout' views (single / double / triplex row) with the blanket note 'Recommend PCB layout (Tolerance:+/-0.05)'. Hole grid for this part: 2 rows of 7 holes, 2.54 mm pitch within a row, 2.54 mm between the two rows, end-to-end hole span 2.54*(N-1) = 15.24 mm with N = 7. pad_size_mm is DELIBERATELY OMITTED: the datasheet publishes NO copper pad diameter, NO annular ring and NO mask relief - only the hole. Any annulus used on the board is therefore a board-level choice, not a vendor recommendation. CONFLICT TO CARRY FORWARD: ICD-01 mandates a 1.70 mm annulus on a 1.10 mm drill (0.300 mm annular ring per side, 0.84 mm pad-to-pad copper gap at 2.54 mm pitch) and says daughters MUST use it; the vendor's recommended drill is 1.02 mm, 0.08 mm smaller. The ICD wins (it is frozen and already notes the 1.02 vs 1.10 difference in its rev-A2 P3 library note), and the pad-to-pad gap is pitch minus annulus so it is unaffected by the drill - but the 1.10 mm drill is 0.08 mm looser than CONNFLY recommends for a 0.60 x 0.40 mm tail. pin1 is omitted: the drawing carries no pin numbers and no pin-1 marker."
+  },
+  "exposed_pad": {
+    "present": false
+  },
+  "layout_notes": [
+    "MOUNTING ORIENTATION: the datasheet defines exactly one mounting type - part-number field 'S: Straight type' - and shows only a straight THT socket standing on the component side of the board with its tails passing through. It says NOTHING about reverse/bottom-side mounting, and gives no separate land pattern, no keep-out and no standoff for a down-facing socket. LUM-PAR-A mounts both DS1023 sockets reverse (bottom side, facing down); that is a mechanical decision from ICD-01, NOT a datasheet-supported configuration. The land pattern itself is symmetric (a bare grid of dia 1.02 holes) so it does not change, but the silkscreen/assembly side, the pin-1 mirroring and the courtyard do.",
+    "INSULATOR (PROFILE) HEIGHT: the trailing '1' in DS1023-2*7SF11 selects 'Profile height (Dim A) 1: 8.5mm' (the alternative '2' is 5.0mm). The DIM A / DIM B table pairs A=8.5 with B=3.0 and A=5.0 with B=3.3. So this part is an 8.5 mm insulator with a 3.0 +/-0.2 mm solder tail below the board-facing face. This matches the 8.5 mm socket body ICD-01 assumes.",
+    "MATED STACK HEIGHT IS NOT IN THIS DATASHEET. The drawing shows the socket alone - there is no mating pin header, no mated cross-section and no insertion-depth figure. ICD-01's 11.0 mm hard-seated board-to-board height (2.5 mm male insulator + 8.5 mm socket body) cannot be confirmed or refuted from this PDF; only the 8.5 mm socket term is grounded here.",
+    "NO PAD / ANNULUS IS PUBLISHED. The 'Recommend PCB layout' views dimension the hole diameter (dia 1.02), the in-row pitch (2.54), the row spacing (2.54 for double row, 2.54+2.54=5.08 overall for triplex) and the end-to-end hole span (2.54*(N-1)), with a blanket 'Tolerance:+/-0.05'. There is no copper pad diameter, no annular-ring figure and no solder-mask relief anywhere in the document.",
+    "PIN NUMBERING IS NOT SHOWN. Neither the recommended PCB layout nor the body views carry pin numbers, a pin-1 marker, or a row/column numbering convention. Pin identity must come from ICD-01, not from this PDF.",
+    "Materials (from the drawing): contact copper alloy, gold plating over nickel; insulator PBT or PA-9T, black, UL94-V0. Drawing C-DS1023-XXXX-C, rev C 12/26/18, scale 1:1, units mm, general tolerance .XX +/-0.25 / .X +/-0.38 / X. +/-0.60."
+  ],
+  "abs_max": [
+    {
+      "param": "Current Rating (Notes/Specifications item 4; the datasheet prints 'Current Rating:3A.' and does NOT say 'per contact')",
+      "value": 3,
+      "unit": "A"
+    },
+    {
+      "param": "Dielectric Withstanding Voltage, 1 minute (Notes/Specifications item 3). This is a HIPOT withstand figure, NOT a rated working voltage - the datasheet states no working/operating voltage anywhere",
+      "value": 600,
+      "unit": "V AC (rms)"
+    },
+    {
+      "param": "Temperature (Notes/Specifications item 5)",
+      "value": "-40 to +105",
+      "unit": "degC"
+    },
+    {
+      "param": "Contact Resistance, max (Notes/Specifications item 1)",
+      "value": 20,
+      "unit": "mOhm"
+    },
+    {
+      "param": "Insulation Resistance, min (Notes/Specifications item 2)",
+      "value": 1000,
+      "unit": "MOhm"
+    }
+  ],
+  "source_pdf": "parts/C113344.pdf"
+}

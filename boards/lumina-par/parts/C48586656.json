@@ -1,0 +1,51 @@
+{
+  "mpn": "XL-HD6070UWC-A4-BD",
+  "lcsc": "C48586656",
+  "package": "XINGLIGHT 6070 bracket, 2-lead SMD high-power LED, dome lens; body dia 8.0 mm, lead span 14.5 mm, height 5.15 mm (datasheet p1, p8)",
+  "description": "XINGLIGHT 6070 dome-lens cold-white high-power LED, nominal 3 W single die, CCT 6000-6500 K, Ra 72 typ. Viewing angle 2theta1/2 = 140 deg typ. Off-board emitter (MCPCB module), not a PCB part.",
+  "pinout": [
+    {"pin": "1", "name": "ANODE", "type": "passive", "notes": "Anode (+). Marked '+' on the p8 outline; polarity diagram shows pin 1 as the anode."},
+    {"pin": "2", "name": "CATHODE", "type": "passive", "notes": "Cathode (-)."}
+  ],
+  "decoupling": [],
+  "land_pattern": {
+    "package": "6070 bracket 2-lead (one pad per side, diagonally offset)",
+    "pad_count": 2,
+    "pad_size_mm": [2.5, 1.8],
+    "row_spacing_mm": 12.0,
+    "pin1": "1",
+    "notes": "From the Recommended Soldering Pattern, datasheet p8. PRINTED dimensions: pad 2.5 mm wide x 1.8 mm high; 1.15 mm offset of each pad centre from the package centreline; overall span across the outer pad edges 14.5 mm; central circular thermal land dia 6.0 mm. The two pads are NOT collinear - they are diagonally staggered, each offset 1.15 mm to the opposite side of the centreline, i.e. 2.30 mm centre-to-centre vertical stagger (verified by measuring both pads on the drawing: 2.30 mm). This matches the p8 top view where lead 1 exits low-left and lead 2 exits high-right. row_spacing_mm 12.0 = pad centre to pad centre horizontally (14.5 minus one pad width; scales to 12.04 mm). No pitch_mm is meaningful for a 2-pad staggered layout. The p8 top view also dimensions the metal base/slug width as 7.3 mm. Package tolerance +/-0.25 mm unless noted.",
+    "courtyard_excess_mm": 0
+  },
+  "exposed_pad": {
+    "present": true,
+    "thermal_vias": 0
+  },
+  "layout_notes": [
+    "OPTICAL/ELECTRICAL TABLE (p4, Ta=25 C, IF=700 mA), min/typ/max: luminous flux 220 / - / 300 lm; Ra (CRI) - / 72 / -; CCT 6000 / - / 6500 K; VF 2.8 / 3.2 / 3.4 V; viewing angle 2Theta1/2 - / 140 / - deg; reverse current IR 5 uA max at VR=5 V. No dominant wavelength is given (white part).",
+    "VIEWING ANGLE (p4): symbol 2Theta1/2, value 140 deg TYP, test condition IF=700 mA - the SAME symbol, SAME definition and SAME value as the RGB part C22434861. This is the FULL angle between the two 50-percent-intensity directions (half angle 70 deg). Page 1 repeats 'Luminous Angle: 140 degrees'. p6 carries a full intensity-distribution pair (Cartesian relative intensity vs 0-180 deg angular displacement, plus a polar plot) taken at a 1000 mA test current; digitising the Cartesian curve puts the 50-percent crossings at roughly 24 deg and 152 deg on the 0-180 axis, i.e. about 62-66 deg half angle / 124-132 deg full angle - slightly narrower than the tabulated 140 deg typ, by about the same margin as the RGB part's plot.",
+    "BINNING (p5): brightness bins L3 225-250, L4 250-275, L5 275-300 lm at 700 mA. Voltage bins N13-3 2.8-3.0, N13-4 3.0-3.2, N13-5 3.2-3.4 V at 700 mA. CCT bin UW9-10 6000-6500 K (single bin).",
+    "DERATING (p6, 'Relative Luminous Intensity VS Ambient Temperature'): essentially flat at about 100 percent from -60 C to +100 C ambient - a photometric derating curve only. There is NO forward-current-vs-temperature derating curve in this datasheet (unlike the RGB part, which has one on its p7).",
+    "PLOT/TABLE CURRENT MISMATCH: the p6 'Forward current - luminous intensity' and 'Forward current - voltage' curves only span 0-400 mA, while the rated and tabulated operating point is 700 mA and the intensity-distribution plot is at 1000 mA. The F-I-V curves therefore do not cover the intended operating current.",
+    "DRIVE TOPOLOGY (p15, Design Consideration): the datasheet requires per-die current regulation (its circuit A) and explicitly does NOT recommend constant-voltage drive of paralleled dies (its circuit B), because VF spread makes the current diverge and can push a die past abs max.",
+    "NO HEADROOM AT RATED CURRENT: the abs-max continuous forward current (700 mA) is the same current as the optical test condition, so the published photometry is measured at the absolute maximum. Dissipation at 700 mA and VF max 3.4 V is 2.38 W, inside the 3 W PD abs max.",
+    "PULSE CONDITION (p3 footnote): pulse ratings (IFP 1000 mA) apply only for pulse width <= 0.1 ms and duty <= 1/10.",
+    "THERMAL: no thermal resistance is published anywhere in this datasheet - neither Rth junction-to-solder-point, junction-to-case, nor junction-to-ambient. Tj max 120 C is given with no way to compute Tj from board temperature. Reliability testing is quoted at Tj = 140 C x 1000 hrs (p7), above the 120 C abs max, and its continuous-operation current is 350 mA, half the rated 700 mA.",
+    "PROCESS: MSL 3 (p1). Abs-max table (p3) gives reflow 200 C / 5 s max, but p1 says 'suitable for reflow soldering process (<=220 C)' and the p11 reflow table gives lead-free 220 C / 6 s max with 120-200 C preheat for 120 s max - the datasheet is inconsistent between 200 C/5 s and 220 C/6 s; use the tighter 200 C / 5 s. Reflow ONCE ONLY. Manual soldering 300 C / 3 s, iron under 60 W. After opening the moisture bag store at <=30 C / <=40 percent RH and solder within 168 h; bake 60 +/-5 C for 24 h if exceeded (p13).",
+    "ESD: 3000 V HBM (p3) - a HIGHER rating and an explicitly stated model, unlike the RGB part which prints only '2000 V' with no model. p14 warns that static or surge damages the die; the datasheet prescribes ESD-controlled handling only and does NOT call for any external protection device."
+  ],
+  "abs_max": [
+    {"param": "PD power dissipation", "value": 3, "unit": "W"},
+    {"param": "IF continuous forward current", "value": 700, "unit": "mA"},
+    {"param": "IFP peak forward current (pulse width <=0.1 ms, duty <=1/10)", "value": 1000, "unit": "mA"},
+    {"param": "TJ LED junction temperature", "value": 120, "unit": "C"},
+    {"param": "VR reverse voltage", "value": 5, "unit": "V"},
+    {"param": "Topr operating temperature", "value": "-40 to +85", "unit": "C"},
+    {"param": "Tstg storage temperature", "value": "-40 to +85", "unit": "C"},
+    {"param": "ESD sensitivity", "value": "3000 V HBM", "unit": "V"},
+    {"param": "Tsol reflow soldering", "value": "200 C, <=5 s", "unit": "C/s"},
+    {"param": "Tsol manual soldering", "value": "300 C, 3 s", "unit": "C/s"},
+    {"param": "pulse condition for pulsed ratings", "value": "pulse width <=0.1 ms, duty <=1/10", "unit": "-"}
+  ],
+  "source_pdf": "parts/C48586656.pdf"
+}

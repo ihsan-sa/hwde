@@ -1,0 +1,86 @@
+{
+ "mpn": "SSM3K2615R,LXGF",
+ "lcsc": "C22371361",
+ "package": "SOT-23F (Toshiba nickname; page 8 'Package Dimensions'). 3-lead flat-lead small outline, body 2.9 x 1.8 mm, height 0.8 mm, lead span 2.4 mm, lead pitch 0.95 mm.",
+ "description": "Toshiba SSM3K2615R - N-channel MOSFET (Silicon N-Channel MOS), 60 V / 2 A, AEC-Q101 qualified, explicitly specified for 3.3 V gate drive. RDS(on) = 380 mohm typ / 580 mohm max at VGS = 3.3 V, ID = 0.5 A. Applications listed: load switches, motor drivers. Internal network per the section-3 'Packaging and Pin Assignment' schematic: a SERIES GATE RESISTOR between the gate-pin node and the MOSFET gate, plus a BIDIRECTIONAL (back-to-back) GATE-SOURCE ZENER CLAMP from that pin node to source, plus the intrinsic body diode (anode = source, cathode = drain). Neither the gate resistor value nor the clamp voltage is given anywhere in the document. Source: SSM3K2615R datasheet Rev.2.0, 2015-01-30, 9 pages, Toshiba (start of commercial production 2014-10).",
+ "pinout": [
+  {
+   "pin": "1",
+   "name": "G",
+   "type": "input",
+   "notes": "GATE. Section 3 'Packaging and Pin Assignment' text: '1: Gate'. In the section-3 top view pin 1 is the LEFT lead of the two-lead side; in the page-8 package drawing pins 1 and 2 are the two leads on one long edge (pin 1 left, pin 2 right) and pin 3 is the single lead centred on the opposite long edge. Internally pin 1 sees a bidirectional zener clamp to source and then a series resistor to the MOSFET gate (values NOT specified). Do not exceed VGSS = +/-20 V."
+  },
+  {
+   "pin": "2",
+   "name": "S",
+   "type": "passive",
+   "notes": "SOURCE. Section 3 text: '2: Source'. Right-hand lead of the two-lead long edge in the top view, diagonally opposite pin 3. Body-diode ANODE is at the source: the source-drain (reverse) diode conducts from source to drain, VDSF = -0.9 V typ / -1.5 V max at ID = -2.0 A, VGS = 0 V (section 5.5). Body-diode trr 100 ns typ, Qrr 40 nC typ at IDR = 2 A, dIDR/dt = 50 A/us."
+  },
+  {
+   "pin": "3",
+   "name": "D",
+   "type": "passive",
+   "notes": "DRAIN. Section 3 text: '3: Drain'. The SINGLE lead, centred on the long edge OPPOSITE pins 1 and 2 (page-8 top view: pin 3 sits on the package vertical centreline, 0.95 mm from pin 1 and 0.95 mm from pin 2 measured along the package length). Body-diode CATHODE is at the drain. VDSS = 60 V, V(BR)DSS >= 60 V at ID = 10 mA, VGS = 0 V."
+  }
+ ],
+ "land_pattern": {
+  "package": "SOT-23F (Toshiba). NO RECOMMENDED LAND PATTERN IS PUBLISHED IN THIS DATASHEET - page 8 gives the package OUTLINE only (top view, two side views, bottom view). Every datasheet number below is transcribed from that outline drawing.",
+  "pad_count": 3,
+  "pitch_mm": 1.9,
+  "pin1": "1",
+  "row_spacing_mm": 1.875,
+  "notes": "PITCH FIELD CONVENTION: the datasheet's basic lead pitch is e = 0.95 mm (chain-dimensioned 0.95 + 0.95 from pin 1 to the package centreline to pin 2, with pin 3 on the centreline of the opposite edge). Because only THREE pads exist, the nearest-neighbour pad-centre distance that fp_verify measures is the pin1-to-pin2 span e1 = 1.9 mm, not 0.95 mm - so pitch_mm is set to 1.9. row_spacing_mm 1.875 is NOT a datasheet number: it is the pad-row centre-to-centre spacing of KiCad 10.0's Package_TO_SOT_SMD:SOT-23 land, recorded so fp_verify's nearest-neighbour result is reproducible (min(1.9, sqrt(0.95^2 + 1.875^2) = 2.102) = 1.9); the datasheet constrains only the 2.4 mm toe-to-toe LEAD SPAN. PACKAGE OUTLINE (page 8, unit mm): body length along the 2-lead edge 2.9 +/-0.2; body width 1.8 +/-0.1; overall lead span across the rows 2.4 +/-0.1; lead pitch 0.95 (boxed = basic); lead width 0.42 +0.08/-0.05; lead thickness 0.17 +0.08/-0.07; package height 0.8 +0.08/-0.05; positional tolerance 0.1 (M) to datum A (the body end face); the bottom view carries a (0.1) reference dimension on the lead step; weight 0.011 g typ. DERIVED: each lead protrudes only (2.4 - 1.8)/2 = 0.30 mm beyond the body edge. IS THIS A STANDARD SOT-23 LAND? Lead span (2.4), lead pitch (0.95 / 1.9), lead width (0.42 nom, 0.50 max) and body length (2.9) are all identical to a plain 3-lead SOT-23, so a standard SOT-23 land places the pads CORRECTLY and is usable. TWO DIFFERENCES the footprint must be checked against (measured against KiCad 10.0 Package_TO_SOT_SMD:SOT-23, NOT datasheet statements): (a) BODY WIDTH - SOT-23F is 1.8 mm wide (half-width 0.95 max) but that footprint's F.Fab body is only 1.3 mm wide (+/-0.65) and its courtyard steps in to +/-0.90, so the real body corners sit ~0.05 mm outside the courtyard and the fab outline under-draws the part by 0.5 mm; (b) LEAD FORM - the flat 0.30 mm protrusion (vs a gull-wing SOT-23's ~0.55 mm foot) means the standard land's 1.475 mm long pads run ~0.65 mm under the plastic body and leave ~0.48 mm of bare toe. Electrically harmless (the body is plastic), but it is an oversized, non-IPC-optimal land for this lead form and the fillet forms on a 0.30 x 0.42 mm surface. pad_size_mm is deliberately OMITTED because the datasheet publishes none."
+ },
+ "exposed_pad": {
+  "present": false
+ },
+ "layout_notes": [
+  "PIN 1 ORIENTATION / POLARITY MARKING: this package has NO polarity dot, notch or bevel. Orientation is defined by the LEAD COUNT PER EDGE ONLY - two leads on one long edge (pin 1 then pin 2, left to right) and ONE lead on the opposite long edge (pin 3 = DRAIN). Fig. 6.1 'Marking' shows the top-side laser mark 'KFS' read upright with pins 1 and 2 along the BOTTOM edge and pin 3 along the top edge; use that to confirm reel orientation at assembly. With no pin-1 index feature, a 180-degree rotation error swaps GATE and SOURCE (pin 1 <-> pin 2) while DRAIN stays put - check the silkscreen against the 'KFS' text direction.",
+  "RDS(ON) IS SPECIFIED AT 3.3 V GATE DRIVE - CONFIRMED FROM THE PDF. Feature (2) is literally '3.3-V gate drive voltage.' and section 5.1 Static Characteristics lists three RDS(ON) rows with their VGS test conditions: ID = 0.5 A, VGS = 3.3 V -> 0.38 ohm typ / 0.58 ohm MAX; ID = 1.0 A, VGS = 4.0 V -> 0.33 ohm typ / 0.44 ohm max; ID = 1.0 A, VGS = 10 V -> 0.23 ohm typ / 0.30 ohm max. All three are pulse measurements (Note 2) at Ta = 25 C. There is NO 4.5 V row. Use 0.58 ohm as the worst-case 3.3 V-drive design number (25 C; there is an RDS(ON)-Ta curve, Fig. 7.7, but no tabulated hot value).",
+  "GATE THRESHOLD: Vth = 0.8 V min / 2.0 V max at VDS = 10 V, ID = 1 mA (section 5.1, Note 1: Vth is the gate-source voltage producing ID = 1 mA; for normal switching VGS(OFF) < Vth < VGS(ON)). With Vth(max) = 2.0 V a 3.3 V drive gives only 1.3 V of overdrive at 25 C - and Vth falls with temperature (Fig. 7.8), which helps enhancement but hurts off-state noise margin. Forward transfer admittance |Yfs| = 1.0 S min / 2.0 S typ at VDS = 10 V, ID = 1.0 A.",
+  "CAPACITANCES (section 5.2, all TYP only - no min/max published) at VDS = 10 V, VGS = 0 V, f = 1 MHz: Ciss = 150 pF, Crss = 25 pF, Coss = 70 pF. They are given at ONE bias point only; the C-VDS curve is Fig. 7.11 and the dynamic input characteristic (Qg vs VGS) is Fig. 7.12.",
+  "GATE CHARGE (section 5.4, all TYP only) at VDD ~ 48 V, VGS = 10 V, ID = 2.0 A: Qg (total, gate-source plus gate-drain) = 6.0 nC, Qgs = 4.6 nC, Qgd = 1.4 nC. NOTE THE TEST-CONDITION MISMATCH for a 3.3 V-driven shunt: these charges are measured swinging to VGS = 10 V at 48 V drain bias, so the charge relevant to a 3.3 V / low-VDS shunt is NOT directly readable from the table - only Qgd = 1.4 nC (Miller) is roughly bias-scalable, and Qg to 3.3 V must be read off Fig. 7.12 rather than taken as 6.0 nC.",
+  "SWITCHING TIMES (section 5.2, TYP only) with VDD ~ 30 V, ID = 1 A, VGS = 0 to 10 V, RG = 50 ohm (test circuit Fig. 5.3.1, waveforms Fig. 5.3.2): tr = 25 ns, ton = 30 ns, tf = 50 ns, toff = 150 ns. CRITICAL FOR SHORT PULSES: toff = 150 ns TYP already exceeds a 141 ns pulse, and these numbers assume a 50 ohm drive from a 10 V swing. A 3.3 V drive gives less overdrive and a smaller drive across the gate resistance, so turn-off is NOT guaranteed faster. The datasheet gives no min/max on any switching time and no switching data at 3.3 V drive - treat 141 ns operation as UNVERIFIED by this datasheet; drive the gate hard and low-impedance, or characterise it.",
+  "INTERNAL GATE NETWORK (from the section-3 internal schematic; values NOT specified anywhere): pin 1 connects to a node carrying a bidirectional back-to-back zener clamp down to the source rail, and a SERIES RESISTOR then runs from that node to the MOSFET gate plate. This internal RG adds to any external gate resistor and, with Ciss = 150 pF, sets a floor on the achievable gate rise/fall time. Its value is not in the document - if the 141 ns pulse budget depends on it, ask Toshiba (the datasheet's own Note1 says 'For detail information, please contact to our sales.') or measure it. Gate leakage consistent with the clamp: IGSS = +/-10 uA max at VGS = +/-16 V, VDS = 0 V.",
+  "BODY DIODE / REVERSE CONDUCTION (section 5.5): IDR = 2 A max DC, IDRP = 6 A max pulsed (both Note 1: keep Tch <= 150 C; pulsed adds Note 2: PW <= 10 us, duty <= 1%). VDSF = -0.9 V typ, -1.5 V MAX at ID = -2.0 A, VGS = 0 V. trr = 100 ns typ and Qrr = 40 nC typ at IDR = 2 A, VGS = 0 V, dIDR/dt = 50 A/us. Body-diode polarity: ANODE = SOURCE (pin 2), CATHODE = DRAIN (pin 3) - the diode conducts if the drain is pulled below the source.",
+  "THERMAL: PD = 1 W continuous and 2 W for t = 10 s, BOTH qualified by Note 3 - 'Device mounted on an FR4 board. (25.4 mm x 25.4 mm x 1.6 mm, Cu pad: 645 mm2)'. 645 mm2 is a 25.4 mm square of copper, i.e. essentially a full 1-inch-square pour; on a small drain island the real PD is far below 1 W. The datasheet's own caution: 'The channel-to-ambient thermal resistance, Rth(ch-a), and the drain power dissipation, PD, vary according to the board material, board area, board thickness and pad area.' Rth(ch-a) appears only as the transient curve Fig. 7.13 (rth vs tw) - no steady-state number is tabulated. Tch max 150 C; safe operating area is Fig. 7.15.",
+  "ESD HANDLING: 'This transistor is sensitive to electrostatic discharge and should be handled with care.' No HBM/CDM class or voltage is quoted anywhere in the datasheet.",
+  "NOT IN THIS DATASHEET: no recommended land pattern, no solder-paste/stencil data, no reflow profile, no MSL rating, no steady-state Rth(ch-a), no ESD class, no internal gate-resistor value, no gate-clamp voltage, no min/max on any capacitance / gate charge / switching time, and no switching characterisation at VGS = 3.3 V (3.3 V appears only in the RDS(ON) row)."
+ ],
+ "abs_max": [
+  {"param": "VDSS drain-source voltage (section 4, Ta = 25 C)", "value": 60, "unit": "V"},
+  {"param": "VGSS gate-source voltage (section 4)", "value": "+/-20", "unit": "V"},
+  {"param": "ID drain current, DC (section 4, Note 1: ensure Tch <= 150 C)", "value": 2, "unit": "A"},
+  {"param": "IDP drain current, pulsed (section 4, Note 1 + Note 2: PW <= 10 us, duty <= 1%)", "value": 6, "unit": "A"},
+  {"param": "PD power dissipation, continuous (section 4, Note 3: FR4 25.4 x 25.4 x 1.6 mm, Cu pad 645 mm2)", "value": 1, "unit": "W"},
+  {"param": "PD power dissipation, t = 10 s (section 4, Note 3: same board)", "value": 2, "unit": "W"},
+  {"param": "Tch channel temperature (section 4)", "value": 150, "unit": "C"},
+  {"param": "EAS single-pulse avalanche energy (section 4, Note 4: VDD = 25 V, Tch = 25 C initial, L = 20 mH, RG = 25 ohm, IAR = 2 A)", "value": 52.9, "unit": "mJ"},
+  {"param": "IAR avalanche current (section 4)", "value": 2, "unit": "A"},
+  {"param": "Tstg storage temperature (section 4)", "value": "-55 to 150", "unit": "C"},
+  {"param": "V(BR)DSS drain-source breakdown voltage, MIN (section 5.1, ID = 10 mA, VGS = 0 V)", "value": 60, "unit": "V"},
+  {"param": "Vth gate threshold voltage, min/max (section 5.1, VDS = 10 V, ID = 1 mA)", "value": "0.8 to 2.0", "unit": "V"},
+  {"param": "RDS(ON) at VGS = 3.3 V, ID = 0.5 A, typ/MAX (section 5.1, pulse measurement)", "value": "0.38 / 0.58", "unit": "ohm"},
+  {"param": "RDS(ON) at VGS = 4.0 V, ID = 1.0 A, typ/max (section 5.1, pulse measurement)", "value": "0.33 / 0.44", "unit": "ohm"},
+  {"param": "RDS(ON) at VGS = 10 V, ID = 1.0 A, typ/max (section 5.1, pulse measurement)", "value": "0.23 / 0.30", "unit": "ohm"},
+  {"param": "IDSS drain cut-off current, MAX (section 5.1, VDS = 60 V, VGS = 0 V)", "value": 1, "unit": "uA"},
+  {"param": "IGSS gate leakage current, MAX (section 5.1, VGS = +/-16 V, VDS = 0 V)", "value": "+/-10", "unit": "uA"},
+  {"param": "|Yfs| forward transfer admittance, min/typ (section 5.1, VDS = 10 V, ID = 1.0 A)", "value": "1.0 / 2.0", "unit": "S"},
+  {"param": "Ciss input capacitance, TYP (section 5.2, VDS = 10 V, VGS = 0 V, f = 1 MHz)", "value": 150, "unit": "pF"},
+  {"param": "Crss reverse transfer capacitance, TYP (section 5.2, VDS = 10 V, VGS = 0 V, f = 1 MHz)", "value": 25, "unit": "pF"},
+  {"param": "Coss output capacitance, TYP (section 5.2, VDS = 10 V, VGS = 0 V, f = 1 MHz)", "value": 70, "unit": "pF"},
+  {"param": "tr rise time, TYP (section 5.2, VDD ~ 30 V, ID = 1 A, VGS = 0 to 10 V, RG = 50 ohm)", "value": 25, "unit": "ns"},
+  {"param": "ton turn-on time, TYP (section 5.2, same conditions)", "value": 30, "unit": "ns"},
+  {"param": "tf fall time, TYP (section 5.2, same conditions)", "value": 50, "unit": "ns"},
+  {"param": "toff turn-off time, TYP (section 5.2, same conditions)", "value": 150, "unit": "ns"},
+  {"param": "Qg total gate charge, TYP (section 5.4, VDD ~ 48 V, VGS = 10 V, ID = 2.0 A)", "value": 6.0, "unit": "nC"},
+  {"param": "Qgs gate-source charge, TYP (section 5.4, same conditions)", "value": 4.6, "unit": "nC"},
+  {"param": "Qgd gate-drain charge, TYP (section 5.4, same conditions)", "value": 1.4, "unit": "nC"},
+  {"param": "IDR reverse drain current DC, MAX (section 5.5, Note 1)", "value": 2, "unit": "A"},
+  {"param": "IDRP reverse drain current pulsed, MAX (section 5.5, Note 1 + Note 2)", "value": 6, "unit": "A"},
+  {"param": "VDSF body-diode forward voltage, typ/MAX (section 5.5, ID = -2.0 A, VGS = 0 V)", "value": "-0.9 / -1.5", "unit": "V"},
+  {"param": "trr body-diode reverse recovery time, TYP (section 5.5, IDR = 2 A, VGS = 0 V, dIDR/dt = 50 A/us)", "value": 100, "unit": "ns"},
+  {"param": "Qrr body-diode reverse recovery charge, TYP (section 5.5, same conditions)", "value": 40, "unit": "nC"}
+ ],
+ "source_pdf": "boards/lumina-par/parts/C22371361.pdf (Toshiba SSM3K2615R, Rev.2.0, 2015-01-30, 9 pages)"
+}

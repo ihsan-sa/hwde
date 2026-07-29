@@ -1,0 +1,73 @@
+{
+ "mpn": "SN74LVC00ADR",
+ "lcsc": "C485072",
+ "package": "SOIC-14 (TI D, R-PDSO-G14), body 8.65 mm x 3.91 mm nom",
+ "description": "Quadruple 2-input positive-NAND gate, 1.65 V to 3.6 V VCC, 5.5 V tolerant inputs, 24 mA output drive at 3.3 V (TI SCAS279R, Feb 2016).",
+ "pinout": [
+  {"pin": "1", "name": "1A", "type": "input", "notes": "Gate 1 input A (D/DB/NS/PW column of the Pin Functions table, sec 6, and the D-package Top View diagram)."},
+  {"pin": "2", "name": "1B", "type": "input", "notes": "Gate 1 input B."},
+  {"pin": "3", "name": "1Y", "type": "output", "notes": "Gate 1 output, 1Y = NOT(1A AND 1B)."},
+  {"pin": "4", "name": "2A", "type": "input", "notes": "Gate 2 input A."},
+  {"pin": "5", "name": "2B", "type": "input", "notes": "Gate 2 input B."},
+  {"pin": "6", "name": "2Y", "type": "output", "notes": "Gate 2 output."},
+  {"pin": "7", "name": "GND", "type": "ground", "notes": "Ground pin."},
+  {"pin": "8", "name": "3Y", "type": "output", "notes": "Gate 3 output. NOTE: the printed Pin Functions table mislabels this row as TYPE '-' / 'Power Pin'; the D-package pin diagram and the gate-number naming make it gate 3's output. See layout_notes for the table erratum."},
+  {"pin": "9", "name": "3A", "type": "input", "notes": "Gate 3 input A (printed table says 'Gate 4 input' - table description column is shifted)."},
+  {"pin": "10", "name": "3B", "type": "input", "notes": "Gate 3 input B (printed table says 'Gate 4 input')."},
+  {"pin": "11", "name": "4Y", "type": "output", "notes": "Gate 4 output."},
+  {"pin": "12", "name": "4A", "type": "input", "notes": "Gate 4 input A (printed table says 'Gate 3 input')."},
+  {"pin": "13", "name": "4B", "type": "input", "notes": "Gate 4 input B (printed table says 'Gate 3 input')."},
+  {"pin": "14", "name": "VCC", "type": "power_in", "notes": "Supply, 1.65 V to 3.6 V operating. NOTE: the printed Pin Functions table mislabels this row as TYPE 'O' / 'Gate 3 output'; the pin diagram shows VCC at pin 14."}
+ ],
+ "decoupling": [
+  {
+   "pins": ["14"],
+   "value": "0.1 uF",
+   "placement": "as close to the VCC pin (14) as possible",
+   "notes": "Sec 11 Power Supply Recommendations: single-supply device -> 0.1 uF bypass; parallel 0.1 uF + 1 uF commonly used to reject different noise frequencies."
+  }
+ ],
+ "land_pattern": {
+  "package": "SOIC-14 (D, R-PDSO-G14)",
+  "pad_count": 14,
+  "pitch_mm": 1.27,
+  "pad_size_mm": [0.6, 1.55],
+  "row_spacing_mm": 5.4,
+  "pin1": "1",
+  "notes": "From the D (R-PDSO-G14) LAND PATTERN DATA sheet (drawing 4211283-3/E, 08/12), Example Board Layout: 12 x 1.27 mm pitch (7 pads per row), 5.40 mm between the centerlines of the two pad rows. Pad geometry 0.60 mm x 1.55 mm, non-soldermask-defined with solder mask opening 0.07 mm larger all around. Stencil openings 14 x 0.55 mm x 1.50 mm. IPC-7351 recommended for alternate designs."
+ },
+ "exposed_pad": {"present": false},
+ "layout_notes": [
+  "DATASHEET ERRATUM: in the sec 6 Pin Functions table the TYPE and DESCRIPTION columns are shifted by one row from the 3Y row down - 3Y is printed as 'Power Pin', 3A/3B as 'Gate 4 input', 4A/4B as 'Gate 3 input' and VCC as 'O / Gate 3 output'. The pin NUMBER columns and the D-package Top View diagram are self-consistent and are the authority: 7 = GND, 8 = 3Y, 14 = VCC.",
+  "Unused inputs must never float: all unused inputs must be held at VCC or GND (Recommended Operating Conditions note 1; sec 12.1 Layout Guidelines). Outputs may generally be left floating.",
+  "Bypass: 0.1 uF as close to the VCC pin as possible; 0.1 uF + 1 uF in parallel commonly used (sec 11).",
+  "Output drive at 3.3 V (Recommended Operating Conditions 7.4, VCC = 3 V): IOH = -24 mA, IOL = 24 mA. Sec 9.1: maximum sink and source current is 24 mA; sec 10.1: 24 mA of drive current at 3.3 V, high-speed applications up to 100 MHz.",
+  "Output levels at VCC = 3 V (Electrical Characteristics 7.7): VOH >= 2.4 V at IOH = -12 mA and >= 2.2 V at IOH = -24 mA over -40 to 85 C (2.3 V typ at 25 C, 2.0 V over -40 to 125 C); VOL <= 0.55 V at IOL = 24 mA over -40 to 85 C (0.8 V over -40 to 125 C).",
+  "Input thresholds at VCC = 2.7 V to 3.6 V (Recommended Operating Conditions 7.4): VIH min 2 V, VIL max 0.8 V. Inputs are overvoltage tolerant to 5.5 V at any valid VCC.",
+  "Propagation delay at VCC = 3.3 V +/- 0.3 V (Switching Characteristics 7.9, test load RL = 500 ohm, VLOAD = 6 V, CL = 50 pF, VM = 1.5 V, input tr/tf <= 2.5 ns, Figure 2): tpd A or B -> Y = 1 ns min, 3.5 ns typ at 25 C, 4.1 ns max at 25 C, 4.3 ns max over -40 to 85 C, 5.5 ns max over -40 to 125 C. Output-to-output skew tsk(o) = 1.5 ns max at 3.3 V.",
+  "The datasheet does NOT specify an output rise/fall (transition) time or slew rate - only tpd and tsk(o) are characterized. Sec 10.2.1 warns the high drive creates fast edges into light loads, so routing and load conditions must be considered to prevent ringing.",
+  "Supply range 1.65 V to 3.6 V (SN74LVC00A); 3.3 V +/- 0.3 V is a fully specified column in 7.9 and VCC = 3 V rows are specified in 7.4/7.7. VCC MAX IS 3.6 V - this part is NOT rated for 5 V rails (inputs/outputs tolerate 5.5 V, the supply does not).",
+  "Design limits (sec 10.2.2): load current should not exceed 25 mA per output and 50 mA total for the part; outputs should not be pulled above 5.5 V.",
+  "Cpd (power dissipation capacitance per gate) = 19 pF typ at VCC = 3.3 V, f = 10 MHz, TA = 25 C (sec 7.10). Ci = 5 pF at 3.3 V.",
+  "Function table, each gate (Table 1): Y = L only when A = H and B = H; any input L forces Y = H.",
+  "Thermal: RthJA = 86 C/W for the D (SOIC-14) package (sec 7.5)."
+ ],
+ "abs_max": [
+  {"param": "VCC supply voltage range", "value": "-0.5 to 6.5", "unit": "V"},
+  {"param": "VI input voltage range", "value": "-0.5 to 6.5", "unit": "V"},
+  {"param": "VO output voltage range", "value": "-0.5 to VCC + 0.5", "unit": "V"},
+  {"param": "IIK input clamp current (VI < 0)", "value": -50, "unit": "mA"},
+  {"param": "IOK output clamp current (VO < 0)", "value": -50, "unit": "mA"},
+  {"param": "IO continuous output current", "value": "+/-50", "unit": "mA"},
+  {"param": "Continuous current through GND", "value": "+/-100", "unit": "mA"},
+  {"param": "Ptot power dissipation, TA = -40 to 125 C (D package derates 8 mW/K above 70 C)", "value": 500, "unit": "mW"},
+  {"param": "Tstg storage temperature range", "value": "-65 to 150", "unit": "degC"},
+  {"param": "Tj junction temperature", "value": 150, "unit": "degC"},
+  {"param": "V(ESD) HBM per ANSI/ESDA/JEDEC JS-001, all pins", "value": 2000, "unit": "V"},
+  {"param": "V(ESD) CDM per JESD22-C101, all pins", "value": 1000, "unit": "V"},
+  {"param": "VCC supply voltage, operating (Recommended Operating Conditions, SN74LVC00A)", "value": "1.65 to 3.6", "unit": "V"},
+  {"param": "VI input voltage (Recommended Operating Conditions)", "value": "0 to 5.5", "unit": "V"},
+  {"param": "TA operating free-air temperature (specified ranges)", "value": "-40 to 85 and -40 to 125", "unit": "degC"}
+ ],
+ "source_pdf": "parts/C485072.pdf"
+}

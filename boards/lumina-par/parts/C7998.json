@@ -1,0 +1,109 @@
+{
+  "mpn": "M24C32-WMN6TP",
+  "lcsc": "C7998",
+  "package": "SO8N (SO8 narrow, 150 mil body width) - ordering code MN",
+  "description": "ST M24C32 32 Kbit (4096 x 8) I2C serial EEPROM. Ordering-code decode (Table 24): M24C32 = 32 Kbit; W = VCC 2.5 V to 5.5 V; MN = SO8 150 mil; 6 = industrial grade, -40 to 85 degC; T = tape and reel; P = ECOPACK (RoHS). 400 kHz I2C, 4-bit device type identifier 1010b plus 3-bit chip-enable address from pins E2/E1/E0, 16-bit (two-byte) memory addressing, 32-byte page write, write-protect via the active-HIGH WC pin. 3.3 V operation is inside the -W supply range.",
+  "pinout": [
+    {
+      "pin": "1",
+      "name": "E0",
+      "type": "input",
+      "notes": "Chip Enable address bit 0. Must be tied to VCC or VSS (Section 2.3). Reads as 0 if left floating. Tie to VSS for the 0x50 base address."
+    },
+    {
+      "pin": "2",
+      "name": "E1",
+      "type": "input",
+      "notes": "Chip Enable address bit 1. Must be tied to VCC or VSS. Reads as 0 if left floating. Tie to VSS for the 0x50 base address."
+    },
+    {
+      "pin": "3",
+      "name": "E2",
+      "type": "input",
+      "notes": "Chip Enable address bit 2. Must be tied to VCC or VSS. Reads as 0 if left floating. Tie to VSS for the 0x50 base address."
+    },
+    {
+      "pin": "4",
+      "name": "VSS",
+      "type": "ground",
+      "notes": "Ground; reference for the VCC supply voltage."
+    },
+    {
+      "pin": "5",
+      "name": "SDA",
+      "type": "bidirectional",
+      "notes": "Serial Data, bidirectional. Open-drain output that may be wire-OR'ed with other open-drain/open-collector signals. Section 2.2: 'A pull up resistor must be connected from Serial Data (SDA) to VCC.'"
+    },
+    {
+      "pin": "6",
+      "name": "SCL",
+      "type": "input",
+      "notes": "Serial Clock input; strobes all data in and out. Section 2.1: a pull-up from SCL to VCC is only required if the bus master uses an open-drain output for clock stretching/synchronization; it is not necessary when the master has a push-pull output."
+    },
+    {
+      "pin": "7",
+      "name": "WC",
+      "type": "input",
+      "notes": "Write Control - ACTIVE HIGH write protect (datasheet renders it with an overbar, but the text is unambiguous). Section 2.4: 'Write operations are disabled to the entire memory array when Write Control (WC) is driven high. When unconnected, the signal is internally read as VIL, and Write operations are allowed.' With WC high, device-select and address bytes are still acknowledged but data bytes are NOT acknowledged. Tie to VSS to permit writes."
+    },
+    {
+      "pin": "8",
+      "name": "VCC",
+      "type": "power_in",
+      "notes": "Supply voltage. M24C32-W range 2.5 V to 5.5 V (Table 8)."
+    }
+  ],
+  "decoupling": [
+    {
+      "pins": ["8"],
+      "value": "10 nF to 100 nF",
+      "placement": "Close to the VCC / VSS package pins.",
+      "notes": "Section 2.6.1: 'In order to secure a stable DC supply voltage, it is recommended to decouple the VCC line with a suitable capacitor (usually of the order of 10 nF to 100 nF) close to the VCC/VSS package pins.'"
+    }
+  ],
+  "land_pattern": {
+    "package": "SO8 narrow (SO8N / MN), 8-lead plastic small outline, 150 mil body width",
+    "pad_count": 8,
+    "pitch_mm": 1.27,
+    "pin1": "1",
+    "notes": "The datasheet provides only the PACKAGE OUTLINE (Figure 15 / Table 20), NOT a recommended land pattern, so pad_size_mm and row_spacing_mm are deliberately omitted. Outline dimensions (mm): e (lead pitch) = 1.27, D (body length) = 4.90 typ (4.80-5.00), E (lead span) = 6.00 typ (5.80-6.20), E1 (body width) = 3.90 typ (3.80-4.00), b (lead width) = 0.28-0.48, c = 0.17-0.23, L (foot length) = 0.40-1.27, A (height) = 1.75 max, A1 (standoff) = 0.10-0.25. A standard IPC-7351 SOIC-8 3.9x4.9 mm / 1.27 mm-pitch land pattern applies."
+  },
+  "exposed_pad": {
+    "present": false,
+    "connect_to": "n/a - the SO8 narrow (MN) outline in Figure 15 / Table 20 shows no exposed or thermal pad."
+  },
+  "layout_notes": [
+    "I2C device select code (Table 3): b7..b1 = 1010 E2 E1 E0, b0 = R/W. The 4-bit device type identifier is 1010b, followed by the 3-bit chip-enable address compared against the external E2/E1/E0 pins. With E2 = E1 = E0 = 0 the 7-bit slave address is 1010000b = 0x50 (write byte 0xA0, read byte 0xA1). NOTE: the numeric value 0x50 is arithmetic on the datasheet's stated bit pattern; the PDF itself never prints '0x50'.",
+    "For address 0x50, tie E0 (pin 1), E1 (pin 2) and E2 (pin 3) to VSS. Section 2.3 requires these inputs to be tied to VCC or VSS; they read as (0,0,0) if left floating, but leaving them floating is not the datasheet-sanctioned way to get 0x50.",
+    "Up to eight of these devices can share one I2C bus, addressed 0x50..0x57 via E2/E1/E0.",
+    "WC (pin 7) is ACTIVE HIGH write protect. Tie WC to VSS to allow writes. Driving/tying it high inhibits all writes to the memory array. An unconnected WC is internally read as VIL (writes allowed), but tie it deliberately.",
+    "SDA is open-drain and REQUIRES a pull-up resistor to VCC (Section 2.2). INFORMATION ONLY for this board, which fits no I2C pull-ups: the pull-up must exist somewhere on the bus.",
+    "SCL pull-up is only required if the bus master drives SCL open-drain; with a push-pull master it is not necessary (Section 2.1).",
+    "Bus pull-up sizing (Figure 5): the Rbus x Cbus time constant must be less than 500 ns for fc = 400 kHz with tLOW = 1.3 us. Maximum RP falls with bus parasitic capacitance.",
+    "Decouple VCC with 10 nF-100 nF close to the VCC/VSS pins (Section 2.6.1).",
+    "Power-up: the VCC rise time must not be faster than 1 V/us (Section 2.6.2). An internal power-on reset holds the device unresponsive until VCC crosses the POR threshold, preventing inadvertent writes.",
+    "Memory addressing uses two address bytes (MSB then LSB, 16-bit); page write is up to 32 bytes for the M24C32.",
+    "At VCC = 3.3 V the input thresholds are VIL max = 0.3 x VCC = 0.99 V and VIH min = 0.7 x VCC = 2.31 V (Table 13), so a 3.3 V logic master drives it directly.",
+    "Devices are delivered with every byte erased to FFh (Section 5)."
+  ],
+  "abs_max": [
+    {"param": "VCC supply voltage", "value": "-0.50 to 6.5", "unit": "V"},
+    {"param": "VIO input or output range", "value": "-0.50 to 6.5", "unit": "V"},
+    {"param": "IOL DC output current (SDA = 0), max", "value": 5, "unit": "mA"},
+    {"param": "TA ambient operating temperature", "value": "-40 to 130", "unit": "degC"},
+    {"param": "TSTG storage temperature", "value": "-65 to 150", "unit": "degC"},
+    {"param": "VESD electrostatic discharge (human body model, AEC-Q100-002)", "value": "-4000 to 4000", "unit": "V"},
+    {"param": "RECOMMENDED: VCC supply voltage (M24xxx-W, Table 8)", "value": "2.5 to 5.5", "unit": "V"},
+    {"param": "RECOMMENDED: TA ambient operating temperature (device grade 6)", "value": "-40 to 85", "unit": "degC"},
+    {"param": "ELEC: ICC supply current, Read (2.5 V < VCC < 5.5 V, fc = 400 kHz), max", "value": 2, "unit": "mA"},
+    {"param": "ELEC: ICC0 supply current, Write (during tW), max", "value": 5, "unit": "mA"},
+    {"param": "ELEC: ICC1 standby supply current (grade 6)", "value": "5 max at VCC = 5.5 V, 2 max at VCC = 2.5 V", "unit": "uA"},
+    {"param": "ELEC: VIL input low voltage (SDA, SCL, WC), M24xxx-W", "value": "-0.45 to 0.3 x VCC", "unit": "V"},
+    {"param": "ELEC: VIH input high voltage (SDA, SCL, WC), M24xxx-W", "value": "0.7 x VCC to VCC + 0.6", "unit": "V"},
+    {"param": "ELEC: VOL output low voltage (IOL = 2.1 mA at VCC = 2.5 V, or IOL = 3 mA at VCC = 5.5 V), max", "value": 0.4, "unit": "V"},
+    {"param": "ELEC: ILI input leakage current (SCL, SDA, E2, E1, E0), standby", "value": "+/-2", "unit": "uA"},
+    {"param": "ELEC: CIN input capacitance, SDA / other pins", "value": "8 / 6", "unit": "pF"},
+    {"param": "ELEC: I2C bus clock frequency supported", "value": 400, "unit": "kHz"}
+  ],
+  "source_pdf": "boards/lumina-par/parts/C7998.pdf"
+}

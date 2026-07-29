@@ -1,0 +1,228 @@
+{
+ "script": "datasheet_extract",
+ "status": "extracted",
+ "source_pdf": "parts\\C92265.pdf",
+ "lcsc": "C92265",
+ "n_pages": 1,
+ "text_chars": 1042,
+ "text_by_page": [
+  {
+   "page": 0,
+   "text": "Recom\nm\nend PCB layout\n(Tolerance:\u00b10.05)\n2.54m\nm\n Fem\nale Header\nV/T Type\nC\nO\nN\nN\nFLY\n E\nLE\nC\nT\nR\nO\nN\nIC\n C\nO\n. LT\nD\n\u6668\n\u7fd4\n\u7535\n\u5b50\n\u6709\n\u9650\n\u516c\n\u53f8\nNotes:\n Specifications:\n 1. Contact Resistance: 20m\n\u2126 M\nax.\n 2. Insulation Resistance: 1000M\n\u2126 M\nin.\n 3. Dielectric W\nithstanding Voltage: 600V AC(rm\ns)\n      For 1 M\ninute.\n 4. Current Rating:3A.\n 5. Tem\nperature: -40\u00b0C~+105\u00b0C.\n M\naterials:\n 1. Contact M\naterial: Copper Alloy.\n 2. Contact Plating: Gold Plating Over Nickel.\n 3. Insulator M\naterials: PBT or PA-9T,Black,UL94-V0.\n Product Num\nber Code:\n5.00\n2.54*N+0.5\u00b10.3\n0.40\n2.50\nA\n2.54\n0.40\nDouble row\nSingle row\nN=No. of contacts\nN=No. of contacts/2\n2.54*(N-1)\u00b10.25\n0.60\n2.54\u00b10.1\nB\u00b10.2\n7.502.54\n0.40\nTriplex row\nN=No. of contacts/3\n2.54\nDIM\n A\nDIM\n B\n8.5\n3.0\n5.0\n3.3\n2.54\n2.54\n2.54*(N-1)\n\u00d81.02\nS: Straight type\nM\nounting type\nNo.of contacts\n1x2-1x40\nContact plating\n2x2-2x40\nF1: Full gold flash\n1: 8.5m\nm\nProfile height(Dim\n A)\n3x3-3x40\n2: Nickel + Gold flash\n2: 5.0m\nm\n5.08\n2.54\n2.54\n2.54*(N-1)\n\u00d81.02\n2.54\n2.54*(N-1)\n\u00d81.02\n(Series Im\nage-Reference Only)"
+  }
+ ],
+ "schema": {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ai-ee datasheet extraction",
+  "type": "object",
+  "required": [
+   "mpn",
+   "pinout"
+  ],
+  "additionalProperties": false,
+  "properties": {
+   "mpn": {
+    "type": "string",
+    "minLength": 1
+   },
+   "lcsc": {
+    "type": "string"
+   },
+   "package": {
+    "type": "string"
+   },
+   "description": {
+    "type": "string"
+   },
+   "pinout": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "required": [
+      "pin",
+      "name",
+      "type"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "pin": {
+       "type": "string",
+       "minLength": 1
+      },
+      "name": {
+       "type": "string",
+       "minLength": 1
+      },
+      "type": {
+       "type": "string",
+       "enum": [
+        "power_in",
+        "power_out",
+        "ground",
+        "input",
+        "output",
+        "bidirectional",
+        "passive",
+        "analog",
+        "clock",
+        "nc",
+        "open_collector",
+        "tristate",
+        "unspecified"
+       ]
+      },
+      "notes": {
+       "type": "string"
+      }
+     }
+    }
+   },
+   "decoupling": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "required": [
+      "pins",
+      "value"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "pins": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       },
+       "minItems": 1
+      },
+      "value": {
+       "type": "string",
+       "minLength": 1
+      },
+      "placement": {
+       "type": "string"
+      },
+      "notes": {
+       "type": "string"
+      }
+     }
+    }
+   },
+   "land_pattern": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "pad_count"
+    ],
+    "properties": {
+     "package": {
+      "type": "string"
+     },
+     "pad_count": {
+      "type": "integer",
+      "minimum": 1
+     },
+     "pitch_mm": {
+      "type": "number",
+      "exclusiveMinimum": 0
+     },
+     "pad_size_mm": {
+      "type": "array",
+      "items": {
+       "type": "number",
+       "minimum": 0
+      },
+      "minItems": 2,
+      "maxItems": 2
+     },
+     "row_spacing_mm": {
+      "type": "number",
+      "minimum": 0
+     },
+     "courtyard_excess_mm": {
+      "type": "number",
+      "minimum": 0
+     },
+     "pin1": {
+      "type": "string",
+      "description": "pad number that is pin 1 (default '1')"
+     },
+     "notes": {
+      "type": "string"
+     }
+    }
+   },
+   "exposed_pad": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "present": {
+      "type": "boolean"
+     },
+     "connect_to": {
+      "type": "string"
+     },
+     "thermal_vias": {
+      "type": "integer",
+      "minimum": 0
+     }
+    },
+    "required": [
+     "present"
+    ]
+   },
+   "layout_notes": {
+    "type": "array",
+    "items": {
+     "type": "string"
+    }
+   },
+   "abs_max": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "required": [
+      "param",
+      "value"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "param": {
+       "type": "string"
+      },
+      "value": {
+       "type": [
+        "number",
+        "string"
+       ]
+      },
+      "unit": {
+       "type": "string"
+      }
+     }
+    }
+   },
+   "source_pdf": {
+    "type": "string"
+   }
+  }
+ },
+ "template": {
+  "mpn": "",
+  "lcsc": "",
+  "package": "",
+  "pinout": [
+   {
+    "pin": "1",
+    "name": "",
+    "type": "unspecified"
+   }
+  ],
+  "decoupling": [],
+  "land_pattern": {
+   "pad_count": 0
+  },
+  "layout_notes": [],
+  "abs_max": []
+ },
+ "note": "Fill the template from text_by_page and the PDF pages, then re-run with --validate. If text_chars is ~0 the PDF is image-only; read the rendered pages directly."
+}

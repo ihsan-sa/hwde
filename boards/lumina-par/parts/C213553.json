@@ -1,0 +1,229 @@
+{
+  "mpn": "TPS92515HVDGQR",
+  "lcsc": "C213553",
+  "package": "HVSSOP-10 with PowerPAD (TI package designator DGQ, S-PDSO-G10; TI calls it 'MSOP-PowerPAD' in the orderable addendum). Body 3 mm x 3 mm, 0.5 mm pitch, exposed thermal pad. JEDEC MO-187 variation BA-T.",
+  "description": "TPS92515HV: hysteretic (peak-current, constant OFF-time) buck LED driver with integrated 290-mOhm (typ) N-channel FET, high-side differential current sense, analog (IADJ) and PWM dimming, and shunt-FET PWM dimming support. HV variant: 5.5 V to 65 V input. Constant average LED current up to 2 A. Datasheet SLUSBZ6A, APRIL 2016 - REVISED AUGUST 2016. This PDF covers four devices (TPS92515, TPS92515-Q1, TPS92515HV, TPS92515HV-Q1); every voltage figure recorded here is the HV (65 V) column.",
+
+  "pinout": [
+    {
+      "pin": "1",
+      "name": "COFF",
+      "type": "analog",
+      "notes": "I. Pin Functions (p.3), verbatim: 'Connect a resistor from VOUT, and a capacitor to GND to set the OFF-time.' Sec 8.3.3: the output voltage charges the COFF capacitor to the 1-V VOFT threshold through ROFF; reaching 1 V (or expiry of tOFF(max) = 230 us typ) ends the OFF-time and starts a switching cycle. On enable (VCC above VCCUVLO) the internal COFF pull-down is released. Sec 8.3.4: an internal diode exists between COFF and VCC - 'It is not recommended to apply power to the OFF-timer circuitry while the VIN pin is not powered ... If the COFF pin receives power with no input voltage (VIN) applied, VCC pin voltage could inadvertently be pulled up and cause the device to attempt operation.' COFF/GND abs max -0.3 to 5.5 V."
+    },
+    {
+      "pin": "2",
+      "name": "VCC",
+      "type": "power_out",
+      "notes": "O. Pin Functions (p.3), verbatim: '5-V Regulator Output. Use a decoupling capacitor from VCC to ground. See section on VCC capacitor selection.' EC table: VCC = 4.8 / 5.0 / 5.2 V for IVCC(ext) <= 500 uA; dropout 0.1 / 0.2 V; regulator current limit IVCC(ILIM) 14 / 19 / 23 mA with VCC shorted to GND; VCCUVLO falling threshold 4.0 / 4.2 / 4.4 V with 0.22 V hysteresis. Sec 8.3.6: up to 500 uA may be drawn by external circuitry in addition to the device load. VCC to GND abs max -0.3 to 5.5 V."
+    },
+    {
+      "pin": "3",
+      "name": "GND",
+      "type": "ground",
+      "notes": "G. Pin Functions (p.3): 'Ground'."
+    },
+    {
+      "pin": "4",
+      "name": "BOOT",
+      "type": "passive",
+      "notes": "I. Pin Functions (p.3), verbatim: 'Connect a ceramic capacitor between BOOT and SW and a diode from VCC to BOOT to power the high-side FET drive circuitry.' Sec 8.3.10: a typical 0.1-uF BOOT capacitance holds the FET ON for approximately 5 ms, allowing duty cycles >> 99%; the cap recharges in approx 150 ns or less each time the catch diode conducts. BOOT may instead be fed from an external <= 5 V source able to supply >= 3e-9 x fSW amperes average. VBOOT-UVLO (falling) 2.0 / 2.8 / 3.5 V, 125 mV hysteresis; IBOOT_Q 60 / 90 uA at VBOOT = 5.5 V. Abs max: BOOT to GND -0.3 to 70.5 V (HV); BOOT to SW -0.3 to 5.5 V."
+    },
+    {
+      "pin": "5",
+      "name": "SW",
+      "type": "output",
+      "notes": "O. Pin Functions (p.3): 'Internal FET Source. Connect to output inductor'. Switch node - also the return leg of the BOOT capacitor and the anode-side node of the recirculating diode D1. Two pull-downs act on SW (Figure 25): IPD(PWM/UVLO) 100 / 130 uA whenever PWM is low (ensures zero LED glow), and IPD(BOOT) 5 / 7 mA while BOOT is below BOOT-UVLO (pre-charge discharge path; 'The pulldown will not act as a synchronous FET'). Abs max SW to GND -1.0 to 65.0 V (HV), and -2.0 V for a 10-ns transient."
+    },
+    {
+      "pin": "6",
+      "name": "DRN",
+      "type": "passive",
+      "notes": "I. Pin Functions (p.3), verbatim: 'Internal FET drain. Connect to CSN node'. Confirmed by the application schematic (Figure 33): pin 6 is shorted to pin 7 (CSN) and the pair sits at the LOW side of RSENSE, so the switch current flows VIN rail -> RSENSE -> DRN -> SW. Abs max: DRN to GND -0.3 to 65.0 V (HV); DRN to SW -0.3 to 65.0 V (HV), footnote (2) 'DRN to SW. Absolute maximum not to be exceeded.'"
+    },
+    {
+      "pin": "7",
+      "name": "CSN",
+      "type": "analog",
+      "notes": "I. Pin Functions (p.3), verbatim: 'Current sense negative input. Connect current sense resistor from VIN to CSN for high-side current sense control.' Sense-side of RSENSE; tied to DRN. ICSN input bias current -5 / 0 uA. tDEL (CSN fall to SW fall) 75 typ / 130 max ns. Abs max: CSN to GND -0.3 to 65.0 V (HV); VIN to CSN -0.3 to 0.3 V (i.e. the differential across RSENSE must stay within +/-300 mV). Sec 8.3.2 / sec 11.1: high-impedance node - Kelvin the connection, see layout_notes."
+    },
+    {
+      "pin": "8",
+      "name": "VIN",
+      "type": "power_in",
+      "notes": "I. Pin Functions (p.3), verbatim: 'Connect to input voltage. VIN is also the current sense positive input.' Recommended operating input voltage 5.5 V to 65 V (HV); 'Operation Down to 5.15 V After Start-Up' (Features, p.1). VINUVLO falling threshold 4.65 / 4.90 / 5.15 V with 150 / 190 / 225 mV hysteresis. Abs max VIN to GND -0.3 to 65.0 V (HV). Sec 8.3.6 / sec 10: input ripple dVIN-PP 'must not exceed 10% of the input voltage VIN or 2 V, whichever is lower.'"
+    },
+    {
+      "pin": "9",
+      "name": "PWM",
+      "type": "input",
+      "notes": "I. Pin Functions (p.3), verbatim: 'PWM dimming input. Connect to PWM control signal. Output current is pulse-width modulated (PWM) dimmed from the maximum analog controlled level. Connect to VCC if not used.' Doubles as the device ENABLE and as a programmable VIN UVLO comparator input (sec 8.3.11 / 8.3.11.1). VPWM(uvlo) rising threshold 0.95 / 1.00 / 1.05 V; hysteresis (rising minus falling) 50 / 100 / 150 mV; IPWM(uvlo) 10 nA at 5.5 V; IPWM(uvlo-hys) -25 / -20 / -15 uA at VPWM = 2 V. Abs max PWM to GND -0.3 to 5.5 V - the pin is NOT 65-V tolerant, so a VIN-referenced UVLO divider is mandatory if it is driven from VIN. Full timing/threshold transcription in layout_notes."
+    },
+    {
+      "pin": "10",
+      "name": "IADJ",
+      "type": "analog",
+      "notes": "I. Pin Functions (p.3), verbatim: 'Output current adjust. Connect to an external divider, reference or tie to VCC.' Internal 10:1 divider sets the VIN-to-CSN peak current threshold = VIADJ/10 for VIADJ <= 2.2 V; internal 2.4-V clamp caps it at 240 mV for VIADJ >= 2.4 V. Threshold gain AADJ = 0.1 V/V over 0.1 V <= VIADJ <= 2.2 V. Abs max IADJ to GND -0.3 to 5.5 V. Full IADJ / current-sense transcription in layout_notes."
+    },
+    {
+      "pin": "11",
+      "name": "PAD",
+      "type": "ground",
+      "notes": "Exposed PowerPAD / thermal pad. Pin Functions table (p.3) last row, verbatim: 'Thermal pad - Connect to ground'. Numbered 11 here by the ai-ee convention (leads 1-10 plus the EP); the datasheet drawings label it only 'PAD' / 'Thermal Pad' / 'DAP' and assign it no number. Sec 8.3.8: 'If the TPS92515 thermal pad is not soldered, or not soldered correctly, the device reaches the thermal shutdown temperature prematurely. Use X-ray inspection or some other means to verify the device thermal pad soldering to ensure correct assembly.' Dos and Don'ts (sec 9.3): 'Check soldering of thermal pad in production'."
+    }
+  ],
+
+  "decoupling": [
+    {
+      "pins": ["2"],
+      "value": "1 uF ceramic (sec 8.3.6: 'A capacitance of 1 uF or >= 10x the BOOT capacitance to a maximum of 10 uF is recommended.') Figure 33 application schematic uses 1 uF.",
+      "placement": "VCC (pin 2) to GND (pin 3), close to the device.",
+      "notes": "Pin Functions: 'Use a decoupling capacitor from VCC to ground.' With the recommended 0.1 uF BOOT capacitor the >= 10x BOOT rule also lands on 1 uF. Sec 8.3.6 also warns the device 'requires adequate input decoupling in order to lower dVIN-PP ripple for the best VCC supply voltage performance'."
+    },
+    {
+      "pins": ["8", "6", "7"],
+      "value": "CIN-MIN = [ILED x (1/fSW - tOFF)] / dVIN-PP  [Equation 21]. Figure 33 application schematic (1 A, 580 kHz, 65 V) uses 2.2 uF on the VIN rail.",
+      "placement": "Across the VIN rail to GND, inside the discontinuous-current loop LOOP2 (CIN -> RSENSE -> DRN/SW -> recirculating diode D1 -> back to CIN). Sec 11.1: 'Make LOOP2 as small as possible' and 'Make the connections between all three components short and thick to minimize parasitic inductance.'",
+      "notes": "Hard limit (sec 9.2.1.6 NOTE, repeated in sec 10): 'Input voltage ripple (dVIN-PP) must not exceed 10% of the input voltage (VIN) or 2 V, whichever is lower.' In Figure 33 the 2.2-uF CIN sits on the VIN-pin (high) side of RSENSE, so RSENSE is inside LOOP2. Datasheet worked example: CIN-MIN = 1 A x (1/580 kHz - 1.076 us) / 2 V = 324 nF, and 2.2 uF was fitted."
+    },
+    {
+      "pins": ["4", "5"],
+      "value": "0.1 uF ceramic (Figure 33; sec 8.3.10 'A typical BOOT capacitance of 0.1 uF can maintain the ON-state of the FET for approximately 5 ms')",
+      "placement": "Directly between BOOT (pin 4) and SW (pin 5).",
+      "notes": "Pin Functions: 'Connect a ceramic capacitor between BOOT and SW and a diode from VCC to BOOT to power the high-side FET drive circuitry.' The diode (D4 in Figure 33) is a separate part, VCC anode -> BOOT cathode. The VCC decoupling capacitor must be >= 10x this value (sec 8.3.6)."
+    },
+    {
+      "pins": ["1", "3"],
+      "value": "COFF: 'Select a COFF between 100 pF and 1 nF. The preferred value is 470 pF.' (sec 9.2.1.3 / 9.2.3.3). Figure 33 uses 470 pF.",
+      "placement": "Sec 11.1, verbatim: 'Place the OFF-time capacitor (connected from the COFF pin to ground) close to the COFF and GND pins to maximize noise rejection.'",
+      "notes": "This is a timing capacitor, not a bypass. It works against ROFF1 from VOUT (Equation 7) and, for shunt-FET dimming, additionally against ROFF2 from VCC (Figure 14, Equations 8-9). See layout_notes for the shunt-dimming COFF network."
+    },
+    {
+      "pins": ["9"],
+      "value": "approx 0.1 uF (sec 8.3.11.1.1: 'Include a small level of capacitance (approximately 0.1 uF) at the UVLO pin for noise immunity.')",
+      "placement": "PWM pin (pin 9) to GND. In Figure 33 it sits on the R2/R3 UVLO divider tap that drives pin 9 (the figure mislabels it CIN; the schematic connectivity puts it on the PWM node, not the VIN rail).",
+      "notes": "APPLIES ONLY when the PWM pin is used as a static VIN-UVLO / enable input. Sec 8.3.11.2 adds: for a digital enable, ensure the edge rate at the pin is < 100 ns, and 'if the edge is too slow or if the high level is not adequately above the 1-V threshold, a small capacitor may be required on the PWM pin to avoid multiple turn-ON and turn-OFF cycles.' A 0.1-uF cap here is incompatible with fast PWM dimming on the same pin - the datasheet does not state a value for that case."
+    },
+    {
+      "pins": ["10"],
+      "value": "small capacitor, value NOT stated by the datasheet (sec 11.1: external IADJ bias resistors 'could be decoupled with a small capacitor')",
+      "placement": "Sec 11.1, verbatim: 'If external resistors are used to bias the IADJ pin, they should also be placed close to the IADJ and GND pins and could be decoupled with a small capacitor.'",
+      "notes": "Not required when IADJ is tied straight to VCC (Figure 17 shows a bare wire, no series resistor and no IADJ capacitor). Separately, sec 8.3.7.3 Figure 21 uses a deliberate R-C on IADJ to create a soft-start ramp ('size the R-C constant to produce the desired soft-start time. Consider the maximum current is reached when VIADJ = 2.4 V'), and Figure 20 filters a uC PWM output with 'R approx 1 kOhm and C approx 4.7 uF as a starting point'."
+    },
+    {
+      "pins": ["5"],
+      "value": "OUTPUT CAPACITOR OPTIONAL - none required",
+      "placement": "If fitted, across the LED string. Sec 11.1: 'When an output capacitor is used and the LED load is large or separated from the main converter, the output capacitor should be placed close to the LEDs to reduce the effects of parasitic inductance on the AC impedance of the capacitor.'",
+      "notes": "Sec 9.2.1.7, verbatim: 'Because current is being regulated and is continuous, no output capacitance is required to supply the load and maintain output voltage. This regulation helps when designing a high-frequency PWM dimming on the LED load. When no output capacitor is used, the same design calculations for dIL-PP also apply to dILED-PP.' If used, size it from the LED dynamic resistance rD via Equations 22/23; Figure 15 and Figure 42 (shunt-FET dimming waveforms) are captured with NO output capacitor."
+    }
+  ],
+
+  "land_pattern": {
+    "package": "DGQ / S-PDSO-G10, PowerPAD plastic small outline (TI mechanical drawing 4073273/F 11/11; thermal-pad drawing 4206324-6/H 12/14)",
+    "pad_count": 11,
+    "pitch_mm": 0.5,
+    "pin1": "1",
+    "notes": "NO RECOMMENDED LAND PATTERN IS PUBLISHED IN THIS PDF. Pages 37-38 carry only the PACKAGE OUTLINE and the exposed-thermal-pad dimensions; outline note D states: 'This package is designed to be soldered to a thermal pad on the board. Refer to Technical Brief, PowerPad Thermally Enhanced Package, Texas Instruments Literature No. SLMA002 for information regarding recommended board layout.' Therefore pad_size_mm, row_spacing_mm and courtyard_excess_mm are DELIBERATELY OMITTED - they are not stated. pitch_mm = 0.50 is the LEAD pitch from the outline drawing. PACKAGE OUTLINE (mm, all pairs are max/min as printed): lead pitch 0,50; lead width 0,27/0,17 with positional tolerance 0,08 M; body 3,10/2,90 (along the lead rows) x 3,10/2,90 (across, body only); overall span across formed leads 5,05/4,75; overall height 1,10 MAX; standoff 0,15/0,05; foot length 0,70/0,40; lead thickness 0,23/0,13; gauge plane 0,25; lead angle 0 to 8 deg; seating-plane flatness 0,10; mold flash/protrusion not to exceed 0,15. 'Falls within JEDEC MO-187 variation BA-T.' EXPOSED THERMAL PAD (p.38 top view, mm max/min): 2,10/1,90 measured ALONG the lead rows (nominal 2.00), 1,83/1,63 measured ACROSS between the two lead rows (nominal 1.73). pad_count 11 = 10 leads + 1 exposed thermal pad; the datasheet numbers only the 10 leads. Pin 1 is the lower-left lead in the p.3 Top View (left column top-to-bottom 1..5 = COFF, VCC, GND, BOOT, SW; right column top-to-bottom 10..6 = IADJ, PWM, VIN, CSN, DRN); the outline drawing marks pin 1 with a circular index dot at that corner."
+  },
+
+  "exposed_pad": {
+    "present": true,
+    "connect_to": "GND. Pin Functions table (p.3), verbatim: 'Thermal pad - Connect to ground'. Layout example Figure 44 annotates the DAP area 'Ground plane + thermal vias'. Thermal-pad mechanical data (p.38): 'The thermal pad must be soldered directly to the printed circuit board (PCB). After soldering, the PCB can be used as a heatsink. In addition, through the use of thermal vias, the thermal pad can be attached directly to the appropriate copper plane shown in the electrical schematic for the device, or alternatively, can be attached to a special heatsink structure designed into the PCB.' Sec 8.3.8 warns that an unsoldered/badly soldered pad causes premature thermal shutdown and calls for X-ray inspection; sec 9.3 Dos: 'Check soldering of thermal pad in production.' Exposed metal 2.10/1.90 mm x 1.83/1.63 mm. RthetaJC(bot) = 5.3 C/W vs RthetaJA = 56.2 C/W, so the pad is the dominant heat path."
+  },
+
+  "layout_notes": [
+    "LAYOUT (sec 11.1, vendor text, condensed to bullets): 'The performance of any switching converter depends as much upon the layout of the PCB as the component selection.'",
+    "LAYOUT - discontinuous current / LOOP2: 'Discontinuous currents are the type of current most likely to generate EMI, therefore care should be taken when routing these paths. The main path for discontinuous current contains the input capacitor (CIN), the recirculating diode (D1), the internal MOSFET (DRN pin to SW pin), and the sense resistor (RSENSE) shown as LOOP2. Make LOOP2 as small as possible.'",
+    "LAYOUT - switch node / LOOP1: 'Make the connections between all three components short and thick to minimize parasitic inductance. In particular, the switch node (where L1, D1 and the SW pin connect, shown as LOOP1) should be only large enough to connect the components without excessive heating from the current it carries.'",
+    "LAYOUT - high-impedance nodes and the sense resistor: 'The IADJ, COFF, CSN and VIN pins are all high-impedance control inputs, therefore minimize the loops containing these high impedance nodes. The most sensitive loop contains the sense resistor (RSENSE). Place the sense resistor as close as possible to the CSN and VIN pins to maximize noise rejection.'",
+    "LAYOUT - Kelvin sense (sec 8.3.2): 'Trace resistance can have an impact on accuracy, so care should be used when routing the traces to VIN and CSN from the sense resistor. Because the sense resistor value is typically in milli-ohms, use a short kelvin connection to CSN and place the sense resistor as close as possible to VIN.' Figure 44 labels the RSENSE tap 'Kelvin Connection to RSENSE'.",
+    "LAYOUT - OFF-time capacitor: 'Place the OFF-time capacitor (connected from the COFF pin to ground) close to the COFF and GND pins to maximize noise rejection.'",
+    "LAYOUT - IADJ bias network: 'If external resistors are used to bias the IADJ pin, they should also be placed close to the IADJ and GND pins and could be decoupled with a small capacitor.'",
+    "LAYOUT - remote LED load: 'In some applications the LED load can be far away (several inches or more) from the device, or on a separate PCB connected by a wiring harness. When an output capacitor is used and the LED load is large or separated from the main converter, the output capacitor should be placed close to the LEDs to reduce the effects of parasitic inductance on the AC impedance of the capacitor.'",
+    "LAYOUT - Figure 44 layout example annotations, verbatim: 'Minimize discontinuous current loops', 'Components close to Device', 'Ground plane + thermal vias'. The example shows LOOP1 (SW/L1/D1) and LOOP2 (CIN/D1/DRN-SW/RSENSE) on the DRN-CSN-VIN side of the package, the GND/PWM/IADJ small-signal parts on the COFF-VCC-GND side, and a ground plane with thermal vias under the DAP. NOTE: the datasheet gives NO thermal via count, diameter or pitch - see OPEN.",
+    "THERMAL: RthetaJA 56.2, RthetaJC(top) 44.7, RthetaJB 32.1, psiJT 1.5, psiJB 31.8, RthetaJC(bot) 5.3 C/W (HVSSOP 10 pins). TSD 175 C typ with 10 C hysteresis; two sense elements (one by the FET, one by the VCC regulator). Junction-temperature estimator, Equation 12: TJ(est) = [ [ILED^2 x 0.6 x 0.5 x (VLED/VIN)] + [VIN x ILED x 60E-9 x fSW] x 1.2 + (3E-9 x fSW + 1E-3) x VIN ] x 56.2 + TAmbient (valid for a design/layout similar to the TI EVM).",
+
+    "=== PWM PIN: THRESHOLDS AND TIMING (verbatim from the sec 7.5 Electrical Characteristics table, VIN = 40 V, -40 C <= TJ <= 150 C; MIN / TYP / MAX) ===",
+    "VPWM(uvlo)  PWM/UVLO pin threshold, PWM pin rising: 0.95 / 1.0 / 1.05 V.",
+    "VPWM(uvlo-hys)  PWM/UVLO pin hysteresis, 'Difference between rising and falling threshold': 50 / 100 / 150 mV.",
+    "tPWM(uvlo)  PWM/UVLO pin delay, 'PWM pin rising to SW pin rising': - / 75 / 130 ns.",
+    "tPWM(uvlo)  PWM/UVLO pin delay, 'PWM pin falling to SW pin falling': - / 100 / 170 ns.",
+    "tLEB  Minimum ON-time, 'Minimum pulse width': 75 / 195 / 275 ns.",
+    "IPWM(uvlo)  PWM/UVLO pin current at VPWM(uvlo) = 5.5 V: 10 nA (typ).",
+    "IPWM(uvlo-hys)  PWM/UVLO hysteresis current at VPWM(uvlo) = 2 V: -25 / -20 / -15 uA (flows OUT of the pin above threshold; sec 8.3.11.1 uses it to program UVLO hysteresis).",
+    "IPD(PWM/UVLO)  Pull down from SW when PWM low (PWM low, VBOOT = 5 V, VSW = 8 V): - / 100 / 130 uA.",
+    "tDEL  CSN pin falling delay, 'CSN fall to SW fall': - / 75 / 130 ns.  tD(off)  COFF threshold to SW rising delay: - / 68 / 120 ns.  tOFF(max)  Maximum OFF-time: 230 us, printed in the TYP column (column placement verified on the rendered table; MIN and MAX are blank). DISCREPANCY: the Functional Block Diagram (Figure 10, p.9) labels the same timer '250-us (max) off-time'. Two different numbers for the same block - do not design a shunt-dimming OFF-time margin against either without allowing for both.",
+
+    "PWM PIN BEHAVIOUR (sec 8.3.11, verbatim): 'If PWM dimming or ON/OFF control is not needed in the application, the pin should be tied to VCC. The pin must be tied above 1 V if operation is desired. PWM dimming can be achieved using the PWM pin. A signal above 1 V (typical) and below 900 mV (typical) when measured at the PWM pin should be used. Standard PWM frequency ranges can also be used (100 Hz to 2 kHz). When using higher frequencies the delays from PWM to gate turn ON and turn OFF can begin to limit the achievable duty cycle. For example, the PWM to gate delay (turn on + turn off approx 100 ns) and the time to slew the switchnode up and down (approximately 100 ns) total approximately 200 ns. For example, if a 10 kHz PWM frequency is desired having a period of 100 us, the minimum duty cycle is 200 ns/100 us = 0.2%. This is sometimes referred to as \"500:1 dimming\". As the PWM signal width becomes smaller, the converter ON and OFF time are eventually controlled by the PWM input signal directly. For example, if the PWM ON-time is shorter than the converter natural demanded ON-time, the PWM signal itself becomes the control signal for the high-side switch. The PWM pin activates a weak pulldown, as shown in Figure 25. Because the PWM pin is also UVLO (undervoltage lockout and device enable), when pulled low it is necessary to ensure the output is 100% OFF. The high-side FET driver has a small leakage path to the output. Although very small (<<100 uA), the LEDs could glow if the current was not eliminated. The 100-uA (typical) pulldown is activated and held ON while PWM is low and ensures no light output.'",
+    "PWM PIN AS DIGITAL ENABLE (sec 8.3.11.2, verbatim): 'If using the PWM pin as to provide and enable function, ensure the signal edge rate is adequate (< 100 ns) when measured at the device PWM pin to prevent the device from turning ON and turning OFF when the level transitions through the 1-V threshold region. If the edge is too slow or if the high level is not adequately above the 1-V threshold, a small capacitor may be required on the PWM pin to avoid multiple turn-ON and turn-OFF cycles when passing through this region.'",
+    "STATED DIMMING RATIOS (Features list, p.1, verbatim): 'Multiple Dimming Methods - 10,000:1 Shunt PWM Dimming Range - 1000:1 PWM Dimming Range - 200:1 Analog Dimming Range'. Sec 8.3.11 separately derives '500:1 dimming' as the 10-kHz direct-PWM worst case (0.2% minimum duty from the ~200 ns total delay). Measured curves: Figure 27 compares direct PWM (fPWM = 200 Hz; L = 47 uH / fSW = 228 kHz, L = 47 uH / fSW = 390 kHz, L = 100 uH / fSW = 390 kHz, L = 100 uH / fSW = 800 kHz) against 'Shunt FET. L = 47 uH, Fsw = 350 kHz, Fpwm = 500 Hz' on an applied-dimming-ratio axis running to 100,000:1. Figures 39/40/41 show direct PWM dimming at 250 Hz and 0.25%, 1% and 50% duty.",
+    "DIRECT-PWM LINEARITY LIMIT (sec 8.3.11.4, verbatim): 'When the PWM applied signal is less than the switching cycle period and falls during an OFF-time it has no impact on the current for that cycle as the switch is already OFF. This situation can be avoided by increasing the switching frequency. Shunt FET PWM dimming avoids this issue. Current adjustment that maintains a constant ripple when shunted (see the OFF-Timer, Shunt FET Dimming or Shunted Output Condition section), creates a linear relation to the PWM shunt FET duty cycle and the average output current. Shunt FET PWM dimming can out-perform PWM dimming as characterized in Figure 27 through Figure 29, but is more complicated to implement.'",
+
+    "=== SHUNT-FET DIMMING AND THE DEDICATED OFF-TIMER (sec 8.3.4 'OFF-Timer, Shunt FET Dimming or Shunted Output Condition', COMPLETE VERBATIM) ===",
+    "'The OFF-time is derived from the output voltage to create a constant inductor ripple. A constant inductor ripple ensures linearity when dimming. When the dimming method selected requires the output to be shorted, (shunt FET or Switched Matrix approach) it is necessary to derive the OFF-time ramp from an alternate source. When the output is shunted, the output voltage becomes very low and possibly less than the 1 V OFF-timer threshold voltage. If this occurs, the off timer is not able to trip and the OFF-time reaches the maximum OFF-time before the switch is turned on again. The system is able to operate in this mode, but constant inductor current ripple and linear shunt-FET dimming is not possible. To avoid this situation, VCC can be used as a parallel source to charge the COFF capacitor and maintain a constant ripple even when the output is shorted. This ensures precise dimming linearity. Refer to Figure 14 for connection information.'",
+    "'It is not recommended to apply power to the OFF-timer circuitry while the VIN pin is not powered. The device includes an internal diode between the COFF pin and the VCC pin. If the COFF pin receives power with no input voltage (VIN) applied, VCC pin voltage could inadvertently be pulled up and cause the device to attempt operation. This attempt could negatively affect the application if this operation is not desired.' (sec 8.3.4)",
+    "SHUNT-DIMMING COFF NETWORK (Figure 14 'Shunt Dimming COFF Connection'): TWO resistors feed one COFF capacitor. ROFF1 from the LED+/VLED output node to the COFF pin (pin 1); ROFF2 from the VCC pin (pin 2) to the same COFF pin; COFF capacitor from that node to GND. Figure 14 also draws the shunt switch directly across the LED string and the freewheel diode + inductor in the usual buck positions.",
+    "SHUNT OFF-TIME SIZING, sec 8.3.4 (verbatim procedure): 'Selecting the value for ROFF2 is a two-step process. The first step is to compute the OFF-time required when the output is shunted (tOFF-Shunt).'  Equation 8:  tOFF-Shunt = (dIL(pk-pk) x L) / (VSHUNT + (0.7))  where 'VSHUNT is the output voltage when the shunt device or LED Matrix device is ON'. 'The second steps is to compute ROFF2 using (tOFF-Shunt).'  Equation 9:  ROFF2 = -tOFF-Shunt / ( COFF x ln[ 1 - (1/VCC) ] ).  'The value of ROFF1 becomes the previously calculated value of ROFF. The result of these calculations produce an inductor current that maintains the same DC value when shunted or when not shunted as shown in Figure 15.'",
+    "SHUNT DIMMING EVIDENCE: Figure 15 'Shunt FET Dimming with Optimized Inductor Current' (Ch1 PWM signal, Ch4 inductor current, 400 us/div, no output capacitor) shows the ripple envelope preserved through the shunted intervals. Figure 42 'Shunt FET Dimming - Optimized Inductor Current Waveform' (20 us/div) is annotated 'dIL-PP Maintained'. Figure 43 'Shunt FET Dimming - Non-Optimized Inductor Current' (400 us/div) is annotated 'OFF-time reaching Maximum OFF-Time' - i.e. what happens WITHOUT the ROFF2-from-VCC leg. Sec 8.3.3 confirms the failure mode: 'The timer reaches the maximum OFF-time during start-up when the output is completely discharged or when shunt FET dimming and the shunt FET shunts the output for the required period.' tOFF(max) = 230 us typ.",
+    "SHUNT-DIMMING SUITABILITY (sec 8.1 Overview, verbatim): 'The TPS92515 is an internal N-channel MOSFET (monolithic NFET) hysteric control, buck regulator. Hysteretic operation allows a high control bandwidth and is ideal for shunt FET and LED matrix applications (series LED switched network). ... Configuration options allow for easy implementation of external shunt FET dimming.' Description (p.1): 'The TPS92515 device can be configured to maintain a constant peak-to-peak ripple during the ON and OFF periods of a shunt FET dimming cycle. This is ideal for maintaining a linear response across the entire shunt FET dimming range.'",
+
+    "=== CURRENT SENSE / IADJ (verbatim) ===",
+    "PEAK CURRENT THRESHOLD, sec 7.5 EC table. VCST = 'VIN - VCSN peak current threshold':  with VIADJ = VCC -> MIN 224 / TYP 240 / MAX 251 mV;  with VIADJ = 2.2 V -> MIN 211.5 / TYP 220 / MAX 223.5 mV.  AADJ 'VIADJ to VIN - VCSN threshold gain' = 0.1 V/V for 0.1 V <= VIADJ <= 2.2 V.  ICSN current-sense input bias current: -5 uA TYP, 0 uA MAX (no MIN printed) - it flows OUT of the CSN pin, so series resistance in the CSN sense trace adds a positive current error; keep the Kelvin trace short and unloaded.",
+    "TOLERANCE BAND WITH IADJ TIED TO VCC: the datasheet's own numbers are 224 / 240 / 251 mV. Relative to the TYP of 240 mV that is -6.67% / +4.58%. Relative to the mid-point of the min-max window (237.5 mV) it is +/-5.68% (half-window 13.5 mV). Both framings come from the same three published numbers; the datasheet states no symmetric percentage of its own. This band is over the FULL -40 C to +150 C junction range at VIN = 40 V and EXCLUDES RSENSE tolerance and the ripple/delay terms of Equation 6.",
+    "IADJ TIED TO VCC - what voltage the pin actually sits at: VCC itself is regulated to 4.8 / 5.0 / 5.2 V (IVCC(ext) <= 500 uA), but the IADJ pin has an internal 2.4-V clamp, so the EFFECTIVE control voltage is the clamp, not VCC. Sec 8.3.7.2, verbatim: 'For voltages <= 2.2 V, the internal VIN to CSN peak current sense voltage equals VIADJ/10. For voltages >= 2.4 V the voltage equals 240 mV. For the area 2.2 <= VIADJ <= 2.4 the voltage approximates VIADJ/10, but varies slightly more than the other regions of operation.' Sec 9.2.1.5 / 9.2.3.5: 'Always use the highest VIADJ voltage that the application allows. Do not exceed 5.5 V. A value higher than 2.4 V is clamped to 2.4 V.' The worked design example therefore substitutes VIADJ = 2.4 V into Equation 20. Abs max on IADJ is 5.5 V, so a 5.0-V VCC tie is within rating.",
+    "IADJ CLAMP ACCURACY RANKING (sec 8.3.7.1, verbatim): 'The IADJ pin incorporates an internal 2.4-V clamp. An area of inaccuracy in the clamp knee point voltage requires the designer to consider how to mitigate this situation when selecting an IADJ pin voltage. The most accurate method is to apply 2.2 V to the IADJ pin, which allows it to remain below the clamp knee-point voltage area. If an accurate, external, 2.2-V (or lower) reference is not available, use the next most accurate control method which is the internal clamp. The least accurate method uses a resistor divider on the VCC pin.' Sec 8.3.7.4: 'Connecting the IADJ pin directly to VCC is simple and is the most accurate stand-alone implementation.' NOTE the ranking: external 2.2-V precision reference (+/-5.5 mV band, 211.5/220/223.5) > IADJ tied to VCC using the internal clamp (224/240/251) > resistor divider off VCC.",
+    "IADJ CONNECTION TOPOLOGY: Figure 17 ('IADJ pin tied directly to the VCC pin using the internal 2.4-V clamp') draws a BARE WIRE from pin 2 to pin 10 - no series resistor, no capacitor, only the VCC decoupling cap. The EVM schematic Figure 33 instead fits R10 = 100 kOhm from VCC to IADJ with a DNP capacitor and DNP lower divider resistor on the IADJ node, i.e. a populated-option footprint for Figure 18/19/21. Both are sanctioned; the datasheet does not state a required series resistance for the direct tie.",
+    "IADJ LOWER LIMIT (sec 8.3.7): 'There is a practical lower limit to the IADJ pin voltage choice due to circuit non-idealities. For example, using VIADJ = 0.5 V results in a sense voltage of 50 mV, which does not allow accurate operation.' Sec 8.3.11.4: 'a lower limit is eventually reached when the measured peak threshold voltage is approximately < 50 mV. At this point, the offset error becomes a significant portion of the peak current trip point voltage being measured.'",
+    "CURRENT-SENSE COMPARATOR (sec 8.3.2, verbatim): 'A comparator, two resistors and a current source create a peak current detection circuit block. A current source controlled by VIADJ draws a current across a resistor in series with a comparator, forcing a proportional offset. The resistor in the current source (10 R) and in series with the comparator (R) are sized with a 10:1 ratio. This ratio allows for a practical voltage range of operation for the IADJ pin and maintains a small current sense voltage for low losses and less impact on efficiency. The ON cycle begins with the offset in place via IADJ across the resistor R at the VIN pin. When the current rises enough to create a voltage across the sense resistor to match the offset, the comparator trips. The end of the ON-time period starts an OFF-time cycle.'",
+
+    "=== DESIGN EQUATIONS (transcribed from the rendered equation images, not the text layer) ===",
+    "Eq 1:  dIL-PP = (VLED x dt)/L, where dt is defined by the OFF-timer.",
+    "Eq 2:  dt = C dv / i = COFF(1V) / [VLED/ROFF] = COFF x ROFF x (1V) / VLED.",
+    "Eq 3:  dIL-PP = V dt / L = COFF x ROFF x (1V) / L.",
+    "Eq 4 (use when VLED >= approx 10 V):  ILED = (VIADJ/10)/RSENSE - [COFF x ROFF x (1V)] / (2L).",
+    "Eq 5 (use when VLED <= approx 10 V, exponential COFF charging):  ILED = (VIADJ/10)/RSENSE - { VLED x [ -ROFF x COFF x ln(1 - VOFT/VLED) ] } / (2L).",
+    "Eq 6 (accuracy-expanded, includes offsets and delays):  ILED = { (VIADJ/10 +/- VCST_Offset)/RSENSE + (VIN - VLED)(tDEL)/L } - { VLED x [ -ROFF COFF ln(1 - VOFT/VLED) ] + tD(OFF) } / (2L).  Per sec 8.3.1: 'The VCST_Offset parameter is the variation in the VCST threshold between the typical and maximum or minimum values as defined in the Electrical Characteristics table' (i.e. -16 mV / +11 mV around the 240 mV typ when IADJ is tied to VCC). NOTE ON GROUPING: as printed, the '+ tD(OFF)' term sits outside the VLED bracket but inside the /(2L) fraction; dimensional consistency requires it to be multiplied by VLED, i.e. VLED x [ -ROFF COFF ln(...) + tD(OFF) ] / (2L). Transcribed here as printed, with the ambiguity flagged.",
+    "Eq 7:  ROFF = tOFF / ( -COFF x ln[ 1 - VOFT/VLED ] ),  with VOFT = 1 V typ (0.95/1.00/1.05) and COFF between 100 pF and 1 nF, 470 pF preferred.",
+    "Eq 8 / Eq 9: shunt-dimming OFF-timer - see the shunt-FET block above.",
+    "Eq 10:  ILED = ILPEAK - (dIL-PP / 2).",
+    "Eq 15:  D = VLED / (VIN x n), starting from an efficiency estimate n = 0.9.",
+    "Eq 16:  tOFF = (1/fSW) x (1 - D).",
+    "Eq 18:  L = (VLED x tOFF) / dIL-PP.",
+    "Eq 19:  ILPEAK = (VIADJ/10) / RSENSE.",
+    "Eq 20 (SENSE RESISTOR):  RSENSE = (VIADJ/10) / ( ILED + dIL-PP/2 ).",
+    "Eq 21:  CIN-MIN = [ ILED x (1/fSW - tOFF) ] / dVIN-PP.",
+    "Eq 22/23 (optional output capacitor):  CO >= [ dIL-PP - dILED-PP ] / [ dILED-PP x 2 pi x fSW x rD ]  and  dILED-PP = dIL-PP / sqrt(1 + ZC^2) with ZC = 1/(2 pi fSW CO), where rD is the LED-string dynamic resistance (slope of the LED V-I curve at the operating point, times the number of series LEDs). Sec 9.2.1.7: 'Simply dividing the forward voltage by the forward current at the nominal operating point results in an incorrect value that is between 5 times and 10 times too high.'",
+
+    "GENERAL OPERATION (sec 8.3.1, verbatim): 'The TPS92515 operates using a peak-current, constant OFF-time. Two states dictate the high-side FET control. The switch turns on and stays on until the programmed peak current is reached. The peak current is controlled by monitoring the voltage across the sense resistor. When the voltage drop is higher than the programmed threshold, the peak current is reached, and the switch is turned OFF, which initiates the OFF-time period. A capacitor on the COFF pin is then charged through a resistor connected to the output. When the COFF pin voltage reaches the 1-V (typical) threshold, the OFF-time ends. The COFF pin capacitor resets and the main switch turns ON, and the next cycle begins.' Frequency is NOT fixed: 'For a fixed input voltage, the device operates at the maximum frequency at 50% duty cycle and the frequency reduces as the duty cycle becomes shorter or longer.'",
+    "DROP-OUT (sec 8.3.5.1, verbatim): 'The TPS92515 can operate safely even when the input voltage enters the drop-out region. As VIN approaches VLED, dIL-PP falls to a level much lower than during normal operation. Because the average output current is based on Equation 10, as dIL-PP becomes smaller, the average current tends to increase. The amount of increase depends on the value of dIL-PP used in the design. If drop-out performance is a concern, performance can be improved by lowering the dIL-PP design parameter.'",
+    "DCM LINEARITY (sec 8.3.11.4, verbatim): 'Discontinuous conduction mode (DCM) occurs when the inductor current reaches 0 A during each cycle. When the device enters DCM, the output current is no longer the peak current minus half the ripple. The linear range can be extended by lowering the ripple, dIL-PP.'",
+    "MAXIMUM CURRENT (sec 8.1, verbatim): 'The device does not internally limit the maximum attainable average LED current. It does have a thermal limit based on the maximum junction temperature. ... This functionality allows the device to provide constant currents up to 1 A in a wide variety of applications and up to 2 A in a smaller sub-set of applications.'",
+    "DEVICE VARIANT CHECK (sec 5 Device Comparison Table): TPS92515HV = 65 V max, internal N-channel FET, constant OFF-time, NOT automotive-qualified (the -Q1 parts are). Orderable addendum: TPS92515HVDGQR = MSOP-PowerPAD DGQ, 10 pins, 2500/reel, Green, MSL Level-2-260C-1 YEAR, Top marking '15PX', Op temp -40 to 125 C. (TPS92515HVDGQT is the 250-piece cut-tape version of the same die/package.)",
+    "MARKING: '15PX' identifies TPS92515HV. Note '15NX' = TPS92515 (42 V), '15QX' = TPS92515HV-Q1, '15OX' = TPS92515-Q1 - the four variants are visually distinguishable only by these four characters.",
+    "INPUT SOURCE (sec 10.1/10.2, verbatim): 'Operation direct from battery has been considered when designing the TPS92515. The device ratings are such that load dump and other battery voltage excursions should not exceed the ratings of the device.' 'The TPS92515 maximum input voltage of 65 V makes it a suitable second stage buck regulator for a variety of applications and LED output configurations. For an average LED forward voltage of 3.5 V, and allowing for some headroom below the 65-V maximum input, the TPS92515 can successfully control up to 17 LEDs connected in series.'"
+  ],
+
+  "abs_max": [
+    { "param": "VIN, DRN, CSN to GND (TPS92515HV / -Q1)", "value": "-0.3 to 65.0", "unit": "V" },
+    { "param": "VIN, DRN, CSN to GND (TPS92515 / -Q1, 42-V variant - NOT this part)", "value": "-0.3 to 45.0", "unit": "V" },
+    { "param": "SW to GND (TPS92515HV / -Q1)", "value": "-1.0 to 65.0", "unit": "V" },
+    { "param": "SW to GND, 10-ns transient (footnote: 'DRN to SW. Absolute maximum not to be exceeded.')", "value": "-2.0 (MIN only)", "unit": "V" },
+    { "param": "DRN to SW (TPS92515HV / -Q1)", "value": "-0.3 to 65.0", "unit": "V" },
+    { "param": "BOOT to GND (TPS92515HV / -Q1)", "value": "-0.3 to 70.5", "unit": "V" },
+    { "param": "BOOT to SW", "value": "-0.3 to 5.5", "unit": "V" },
+    { "param": "COFF, IADJ, PWM to GND", "value": "-0.3 to 5.5", "unit": "V" },
+    { "param": "VCC to GND", "value": "-0.3 to 5.5", "unit": "V" },
+    { "param": "VIN to CSN (differential across the sense resistor)", "value": "-0.3 to 0.3", "unit": "V" },
+    { "param": "Storage temperature Tstg", "value": "-40 to 150", "unit": "degC" },
+    { "param": "ESD HBM per AEC Q100-002 (ANSI/ESDA/JEDEC JS-001)", "value": "+/-2000", "unit": "V" },
+    { "param": "ESD CDM per AEC Q100-011", "value": "+/-750", "unit": "V" },
+    { "param": "RECOMMENDED: VIN input voltage (TPS92515HV / -Q1)", "value": "5.5 to 65", "unit": "V" },
+    { "param": "RECOMMENDED: TA operating ambient temperature (MAX)", "value": 125, "unit": "degC" },
+    { "param": "RECOMMENDED: TJ operating junction temperature (MAX)", "value": 150, "unit": "degC" },
+    { "param": "Thermal shutdown TSD (typ) / hysteresis", "value": "175 / 10", "unit": "degC" },
+    { "param": "Orderable operating temperature range (addendum, TPS92515HVDGQR)", "value": "-40 to 125", "unit": "degC" },
+    { "param": "Input ripple limit dVIN-PP (design rule, sec 9.2.1.6 / sec 10)", "value": "<= 10% of VIN or 2 V, whichever is lower", "unit": "V" }
+  ],
+
+  "source_pdf": "boards/lumina-par/parts/C213553.pdf (TI SLUSBZ6A, APRIL 2016 - REVISED AUGUST 2016, 39 pages)"
+}

@@ -1041,3 +1041,57 @@ including the main LED driver and both emitters. The working form is
 Combined with the existing `%PDF` magic-byte rule this is a two-step must: rewrite the URL, then
 verify the first 4 bytes. Without the byte check the extractor "extracts" a pinout from an error
 page, and that pinout is the only source the schematic agents may wire from.
+
+## 2026-07-28 [datasheet][parts] TI SN74LVC00A (SCAS279R) Pin Functions table has shifted TYPE/DESCRIPTION columns
+The sec 6 table prints `3Y ... - / Power Pin`, `3A|3B ... Gate 4 input`, `4A|4B ... Gate 3 input`,
+`VCC ... O / Gate 3 output`: the TYPE and DESCRIPTION columns are shifted one row up from the 3Y row
+down, so a text-layer extraction reads pin 8 as a power pin and pin 14 as a gate output. The pin
+NUMBER columns and the D-package Top View diagram are correct and self-consistent
+(7=GND, 8=3Y, 14=VCC) - read the pin-configuration DIAGRAM as the authority whenever a TI pin table
+disagrees with it, and cross-check against the package diagram on the same page before trusting a
+name/number pair pulled from the table text. Found on lumina-par P3 (C485072).
+
+## 2026-07-28 [datasheet] LM339LV pin drawing and pin table transpose the channel names
+TI's LM339LV datasheet gives conflicting channel labels: Figure 5-3 (pin drawing) and Table 5.2
+(Pin Functions) **transpose the OUT names**, and Table 5.2 is self-inconsistent - it names pin 13
+"OUT3" while describing it as "Output pin of the comparator 4". The datasheet's own footnote admits
+the transposition. Both sources DO agree on the pin-number groupings, so the rule is:
+**wire quad comparators by pin number, never by channel name.**
+Correct groupings: out1<->in6/7, out2<->in4/5, out13<->in10/11, out14<->in8/9.
+Two more traps in the same part: **no internal hysteresis** (needs external, or the output chatters
+on slow signals like an NTC ramp), and POR holds outputs **Hi-Z for up to 30 us**, so an
+open-drain fault line reads "no fault" during that window.
+
+## 2026-07-28 [librarian][kicad] A wrong lib-table URI silently pulls into the REPO ROOT and every board then shares it
+`lib_pull.py --project <ws>/kicad` writes symbols/footprints to whatever `${KIPRJMOD}`-relative path
+the board's `fp-lib-table` / `sym-lib-table` already contain - it does NOT derive the path from
+`--project`, and it does NOT complain when the URI escapes the workspace. lumina-strobe shipped with
+`${KIPRJMOD}/../../../lib/aiee.pretty` (three levels up from `boards/<name>/kicad/` = the repo root)
+where lumina-carrier correctly had `${KIPRJMOD}/../lib/aiee.pretty`. The first pull therefore created
+an untracked repo-root `C:\dev\ai-ee3\lib\`, left `boards/lumina-strobe/lib/` empty, and `lib_pull`
+reported `status: pass` with `load_check ok` - because the pull genuinely succeeded, just into a
+shared location three concurrent board runs would have collided in.
+
+**Check both lib-table URIs before the first `lib_pull` of a run**, not after: the correct form from
+`boards/<name>/kicad/` is `${KIPRJMOD}/../lib/aiee.pretty` and `${KIPRJMOD}/../lib/aiee.kicad_sym`.
+The tell is an untracked top-level `lib/` in `git status` plus an empty `boards/<name>/lib/`.
+
+Recovery is safe and cheap: fix the two URIs, copy `aiee.kicad_sym` / `aiee.pretty` / `aiee.3dshapes`
+into the board's own `lib/`, delete the stray root `lib/`, and re-run the pull (registration is
+idempotent). Do this before P4 - after P5 the board file carries absolute-ish footprint references
+and the cleanup gets more expensive.
+
+Related, same run: **easyeda2kicad numbers a D2PAK/TO-263 MOSFET's drain terminal pin 4 and omits
+pin 2 entirely** (the cropped centre lead has no land, so the pulled footprint has 3 copper pads:
+1 = gate, 3 = source, 4 = the 8.4 x 10.6 mm tab = drain). The datasheet/JEDEC numbering is 1/2/3+TAB.
+A schematic that wires the drain to pin "2" or "TAB" connects nothing, and `fp_verify` reporting
+`pad_count` 4 vs 3 on such a part is EXPECTED, not a real error. Reconcile the two numbering schemes
+in the part's extraction JSON before P4 wiring.
+
+## 2026-07-28 [datasheet] JST catalog PDFs hide dimensions in a non-embedded CID font
+Every dimension number in the JST PH-series drawing is drawn in a **non-embedded Adobe-Japan1
+Identity-H CID font**: it renders BLANK in pdftoppm/poppler and extracts as mojibake, so the
+drawing looks dimensionless in both text and image paths. Recover by decoding the CID stream
+directly - **CID = ASCII - 31**, with CID 692/693/694/695 = `+ - +/- x` - using per-glyph device
+coordinates, then cross-check against the drawing's own vector rectangles (the pitch gives you
+the pt/mm scale). On lumina-par every pad matched within 0.001 mm. Applies to any JST catalog PDF.

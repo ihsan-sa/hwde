@@ -1,0 +1,156 @@
+{
+  "mpn": "LM339LVPWR",
+  "lcsc": "C3658338",
+  "package": "TSSOP-14 (PW, R-PDSO-G14)",
+  "description": "TI LM339LV quad low-voltage rail-to-rail comparator, OPEN-DRAIN (sinking-only) outputs, VS 1.65-5.5 V, input common-mode range GND to V+ (extends 100 mV beyond both rails), IQ 25 uA/ch typ, Vos 0.4 mV typ, tPD 600 ns typ, no internal hysteresis, internal POR holds outputs Hi-Z until V+ > 1.5 V. NAMING WARNING: datasheet Figure 5-3 (pin drawing) and Table 5.2 (Pin Functions) transpose the channel 1/2 and 3/4 NAMES; footnote (1) of Table 5.2 acknowledges this. The pin-number-to-pin-number groupings are identical in both and are recorded in the per-pin notes below. Wire by PIN NUMBER, not by channel name.",
+  "pinout": [
+    {
+      "pin": "1",
+      "name": "OUT1",
+      "type": "open_collector",
+      "notes": "Open-drain (sinking-only) comparator output. Channel formed with inputs pin 6 (IN1-) and pin 7 (IN1+). Figure 5-3 names this pin OUT2 - same pin grouping, different channel-naming convention (Table 5.2 footnote 1). Requires external pull-up; may be wire-OR'ed with other open-drain outputs."
+    },
+    {
+      "pin": "2",
+      "name": "OUT2",
+      "type": "open_collector",
+      "notes": "Open-drain (sinking-only) comparator output. Channel formed with inputs pin 4 (IN2-) and pin 5 (IN2+). Figure 5-3 names this pin OUT1. Requires external pull-up; may be wire-OR'ed."
+    },
+    {
+      "pin": "3",
+      "name": "V+",
+      "type": "power_in",
+      "notes": "Positive supply. Recommended 1.65 V to 5.5 V."
+    },
+    {
+      "pin": "4",
+      "name": "IN2-",
+      "type": "input",
+      "notes": "Negative (inverting) input of the comparator whose output is pin 2. Figure 5-3 names it IN1-."
+    },
+    {
+      "pin": "5",
+      "name": "IN2+",
+      "type": "input",
+      "notes": "Positive (noninverting) input of the comparator whose output is pin 2. Figure 5-3 names it IN1+."
+    },
+    {
+      "pin": "6",
+      "name": "IN1-",
+      "type": "input",
+      "notes": "Negative (inverting) input of the comparator whose output is pin 1. Figure 5-3 names it IN2-."
+    },
+    {
+      "pin": "7",
+      "name": "IN1+",
+      "type": "input",
+      "notes": "Positive (noninverting) input of the comparator whose output is pin 1. Figure 5-3 names it IN2+."
+    },
+    {
+      "pin": "8",
+      "name": "IN3-",
+      "type": "input",
+      "notes": "Negative (inverting) input of the comparator whose output is pin 14."
+    },
+    {
+      "pin": "9",
+      "name": "IN3+",
+      "type": "input",
+      "notes": "Positive (noninverting) input of the comparator whose output is pin 14."
+    },
+    {
+      "pin": "10",
+      "name": "IN4-",
+      "type": "input",
+      "notes": "Negative (inverting) input of the comparator whose output is pin 13."
+    },
+    {
+      "pin": "11",
+      "name": "IN4+",
+      "type": "input",
+      "notes": "Positive (noninverting) input of the comparator whose output is pin 13."
+    },
+    {
+      "pin": "12",
+      "name": "GND",
+      "type": "ground",
+      "notes": "Negative supply / device ground reference."
+    },
+    {
+      "pin": "13",
+      "name": "OUT3",
+      "type": "open_collector",
+      "notes": "Open-drain (sinking-only) comparator output. Channel formed with inputs pin 10 (IN4-) and pin 11 (IN4+) - Table 5.2 names the pin OUT3 but describes it as 'Output pin of the comparator 4'; Figure 5-3 names it OUT4. Requires external pull-up; may be wire-OR'ed."
+    },
+    {
+      "pin": "14",
+      "name": "OUT4",
+      "type": "open_collector",
+      "notes": "Open-drain (sinking-only) comparator output. Channel formed with inputs pin 8 (IN3-) and pin 9 (IN3+) - Table 5.2 names the pin OUT4 but describes it as 'Output pin of the comparator 3'; Figure 5-3 names it OUT3. Requires external pull-up; may be wire-OR'ed."
+    }
+  ],
+  "decoupling": [
+    {
+      "pins": ["3"],
+      "value": "0.1 uF",
+      "placement": "Directly between the V+ pin (3) and the GND pin (12), as close to the supply pin as possible, connected to a solid ground plane.",
+      "notes": "Section 9 Power Supply Recommendations: 'Bypass the supply directly at each device with a low ESR 0.1 uF ceramic bypass capacitor directly between VCC pin and ground pins.' Critical because of the fast output edges - un-bypassed supplies can ring and cause false triggers or oscillation."
+    }
+  ],
+  "land_pattern": {
+    "package": "PW (R-PDSO-G14), 14-lead TSSOP",
+    "pad_count": 14,
+    "pitch_mm": 0.65,
+    "pad_size_mm": [0.35, 1.6],
+    "row_spacing_mm": 5.6,
+    "pin1": "1",
+    "notes": "From LAND PATTERN DATA drawing 4211284-2/G (08/15), 'Example Board Layout': 12 x 0.65 pitch between pad centres, 14 pads of 0.35 (across) x 1.60 (along lead), 5.60 between the two pad rows centre-to-centre, solder mask opening 0.07 all around (non-soldermask-defined pad). IPC-7351 is recommended for alternate designs. Package outline (drawing 4040064-3/G): pitch 0.65, body 5.10/4.90 x 4.50/4.30, lead span 6.60/6.20, height 1.20 MAX, JEDEC MO-153."
+  },
+  "exposed_pad": {
+    "present": false,
+    "connect_to": "n/a - the 14-pin TSSOP (PW) has no exposed pad. Only the RTE WQFN-16 and the DSG WSON-8 variants have a thermal pad (Table 5.2 lists 'Thermal Pad' under the WQFN column only, and Figure 5-3 shows none)."
+  },
+  "layout_notes": [
+    "Outputs are OPEN-DRAIN / open-collector, sinking only: they can only pull the net low and can never drive it high. Safe to wire-OR several outputs onto one shared net (Section 7.4.1 explicitly allows 'logical OR'ing of multiple open drain outputs').",
+    "An external pull-up resistor is mandatory on every used output. TI recommends sizing the pull-up for 100 uA to 1 mA of pull-up current; pull-ups above 1 Mohm give an exponential (slow) rising edge.",
+    "The output may be pulled up to any external voltage from 0 V to 5.5 V, independent of V+ (there is no ESD clamp from OUT to V+).",
+    "Place a low-ESR 0.1 uF ceramic bypass capacitor as close to the V+ pin as possible, ideally directly between the V+ and GND pins, returned to a solid ground plane (Sections 9 and 10.1).",
+    "Output rise/fall times are tens of nanoseconds - treat the outputs as high-speed logic.",
+    "Minimize coupling between outputs and inputs to prevent output oscillation. Do not run output and input traces in parallel unless a V+ or GND trace separates them.",
+    "When series resistance is added to an input, place that resistor close to the device (Section 10.1).",
+    "A low-value (<100 ohm) series resistor may be added at an output to damp ringing/reflections on long, non-impedance-controlled traces.",
+    "Unused open-drain outputs should be left floating, or may be tied to the GND pin if floating pins are not allowed (Section 7.4.1).",
+    "Do NOT tie the two inputs of an unused channel together - the device will oscillate on its own wideband noise. Tie them to voltages inside the input range with at least 50 mV of differential (Section 7.4.5).",
+    "The device has NO internal hysteresis; add external hysteresis for slow-moving signals or the output will chatter near the trip point (Section 7.4.6).",
+    "Internal POR keeps the output HI-Z for up to 30 us after V+ crosses the 1.5 V threshold (and immediately when V+ drops below 1.5 V). During POR the output follows the pull-up voltage; a light pull-up or pull-down can pre-bias it (Section 7.4.2).",
+    "Inputs are diode-clamped to GND only - there is no ESD clamp from the inputs to V+. Inputs are fault-tolerant to 5.5 V independent of V+, and no output phase inversion occurs when inputs exceed the rails.",
+    "If an input is driven from a low-impedance source, add a series current-limiting resistor to hold any clamp current to 10 mA or less; this can be part of the input divider (Sections 7.4.3.3 / 7.4.4).",
+    "Total combined output sink current across all four channels must stay below 200 mA (an individual output can typically sink 100 mA).",
+    "Section 9 contains a boilerplate mention of a 'push-pull output device'; this device family is open-drain only (Sections 1, 7.1, 7.4.1)."
+  ],
+  "abs_max": [
+    {"param": "Supply voltage VS = (V+) - (GND), min", "value": -0.3, "unit": "V"},
+    {"param": "Supply voltage VS = (V+) - (GND), max", "value": 6, "unit": "V"},
+    {"param": "Input pins (IN+, IN-) from GND", "value": "-0.3 to 6", "unit": "V"},
+    {"param": "Current into input pins (IN+, IN-)", "value": "-10 to 10", "unit": "mA"},
+    {"param": "Output (OUT) from GND", "value": "-0.3 to 6", "unit": "V"},
+    {"param": "Output short circuit duration, max", "value": 10, "unit": "s"},
+    {"param": "Junction temperature TJ, max", "value": 150, "unit": "degC"},
+    {"param": "Storage temperature Tstg", "value": "-65 to 150", "unit": "degC"},
+    {"param": "ESD HBM (ANSI/ESDA/JEDEC JS-001)", "value": "+/-2000", "unit": "V"},
+    {"param": "ESD CDM (JESD22-C101)", "value": "+/-1000", "unit": "V"},
+    {"param": "RECOMMENDED: supply voltage VS = (V+) - (GND)", "value": "1.65 to 5.5", "unit": "V"},
+    {"param": "RECOMMENDED: input voltage range (IN+, IN-) from GND", "value": "-0.1 to 5.6", "unit": "V"},
+    {"param": "RECOMMENDED: ambient temperature TA", "value": "-40 to 125", "unit": "degC"},
+    {"param": "ELEC: input common-mode voltage range VCM-Range (VS = 1.8 V and 5 V, -40 to 125 degC)", "value": "(GND) to (V+) - rail-to-rail; Section 7.4.3.1 states the input range extends 100 mV below GND to 100 mV above V+", "unit": "V"},
+    {"param": "ELEC: quiescent current IQ per comparator (VS = 1.8 V and 5 V, no load, output low)", "value": "25 typ / 35 max at 25 degC, 50 max over -40 to 125 degC (x4 channels for the package total)", "unit": "uA"},
+    {"param": "ELEC: input offset voltage VOS (VS = 1.8 V and 5 V)", "value": "+/-0.4 typ, +/-2 max at 25 degC, +/-3 max over temperature", "unit": "mV"},
+    {"param": "ELEC: output low voltage VOL (ISINK = 4 mA)", "value": "150 typ / 200 max at 25 degC, 300 max over temperature", "unit": "mV"},
+    {"param": "ELEC: open-drain output leakage current ILKG (VPULLUP = V+, 25 degC)", "value": 100, "unit": "pA"},
+    {"param": "ELEC: input bias current IB (VCM = VS/2)", "value": 5, "unit": "pA"},
+    {"param": "ELEC: propagation delay tPD (VS = 5 V, 10 mV overdrive, RP = 2.5 kohm, CL = 15 pF)", "value": 600, "unit": "ns"},
+    {"param": "ELEC: short-circuit / max sink current ISC (VS = 5 V, sinking)", "value": "60 typ / 100 max per output; 200 total across all channels", "unit": "mA"},
+    {"param": "ELEC: power-on time PON (POR, output HI-Z during this window)", "value": "50 typ (POR active up to 30 us after V+ crosses 1.5 V)", "unit": "us"}
+  ],
+  "source_pdf": "boards/lumina-par/parts/C3658338.pdf"
+}

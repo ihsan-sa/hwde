@@ -1,0 +1,236 @@
+{
+ "script": "datasheet_extract",
+ "status": "extracted",
+ "source_pdf": "boards\\lumina-par\\parts\\C81598.pdf",
+ "lcsc": "C81598",
+ "n_pages": 3,
+ "text_chars": 2958,
+ "text_by_page": [
+  {
+   "page": 0,
+   "text": "  \n      \n \n  \n                                                                           Dated: 20/09/2016  Rev: 05  \u00ae \nSEMTECH ELECTRONICS LTD. \n \n \n1N4148W \n \nSilicon Epitaxial Planar Switching Diode \n \n \nFeatures \n\u2022 SOD-123 package \n\u2022 Fast switching \n\u2022 These diodes are also available in other case \nstyle including the DO-35 case with the type \ndesignation 1N4148, the MiniMELF case with the \ntype designation LL4148 and the MicroMELF case \nwith the type designation MCL4148. \n \n \n \nAbsolute Maximum Ratings (Ta = 25\u2103)  \nParameter Symbol Value Unit \nPeak Reverse Voltage VRM 100 V \nReverse Voltage VR 75 V \nAverage Rectified Forward Current IF(AV) 150 mA \nNon-repetitive Peak Forward Surge Current at t = 1 s \nat t = 1 ms \nat t = 1 \u03bcs \nI\nFSM \n0.5 \n1 \n4 \nA \nPower Dissipation Ptot 400 mW \nThermal Resistance from Junction to Ambient Air R\u03b8JA 312 \u2103/W \nJunction Temperature Tj 150 \u2103 \nStorage Temperature Range Tstg - 65 to + 150 \u2103 \n \n \nCharacteristics at Ta = 25\u2103 \nParameter Symbol Min. Max. Unit \nReverse Breakdown Voltage \nat IR = 1 \u00b5A V(BR)R 75 - V \nForward Voltage \nat IF = 1 mA \nat IF = 10 mA \nat IF = 50 mA \nat IF = 150 mA \nVF \n \n- \n- \n- \n- \n \n0.715 \n0.855 \n1 \n1.25 \nV \nPeak Reverse Current \nat VR = 75 V \nat VR = 20 V \nat VR = 75 V, TJ = 150\u2103 \nat VR = 25 V, TJ = 150\u2103 \nIR \n \n- \n- \n- \n- \n \n1 \n25 \n50 \n30 \n \n\u00b5A \nnA \n\u00b5A \n\u00b5A \nTotal Capacitance  \nat VR = 0 V, f = 1 MHz CT - 2 pF \nReverse Recovery Time \nat IF = 10 mA, Irr = 1 mA, VR = 6 V, RL = 100 \u2126 trr - 4 ns \nAnode2\nTop View \nMarking Code: \"W1\" \nSimplified outline SOD-123 and symbol\n1 2\nPINNING\n1\nPIN\nCathode\nDESCRIPTION\nW1"
+  },
+  {
+   "page": 1,
+   "text": "  \n      \n \n  \n                                                                           Dated: 20/09/2016  Rev: 05  \u00ae \nSEMTECH ELECTRONICS LTD. \n \n \n1N4148W \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \nReverse capacitance vs. reverse voltage  \n0.9\nC\ntot (V\nR)\nC\ntot (0 V)\n0.7\n0 2\n0.8\n1.0\n1.1\n6\nVR (V)\n48 10\nTj=25   C\nf=1MHz\nForward characteristics\nTj=100   C\nIF (m\nA) 10\n10\n-110\n0\n-2\n1\nVF (V)\n1\nTj=25   C\n10\n210\n3\n2\n~~~\n2nF\n5K\nRectification Efficiency Measurement Circuit\n60\nV\nRF =2V\nVo\nIR (nA)\nLeakage current vs. junction temperature  \nVR=20V\n5\n2\n1 0\n2\n5\n10\nTj (   C)\n100\n103\n2\n5\n2\n10\n5\n2\n104\n200\nReverse capacitance vs. reverse voltage  \n0.9\nC\ntot (V\nR)\nC\ntot (0 V)\n0.7\n0 2\n0.8\n1.0\n1.1\n6\nVR (V)\n48 10\nTj=25   C\nf=1MHz\n       Ambient Temperature: Ta ( C)\nO\n0 25 100 150\n0\n200\n400\n600\nPower Dissipation: Ptot (mW)\nPower Dissipation vs Ambient Temperature\n50 75 125\n500\n300\n100"
+  },
+  {
+   "page": 2,
+   "text": "  \n      \n \n  \n                                                                           Dated: 20/09/2016  Rev: 05  \u00ae \nSEMTECH ELECTRONICS LTD. \n \n \n1N4148W \n \n \nPACKAGE OUTLINE \n \nPlastic surface mounted package; 2 leads                                               SOD-123 \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \nE\nmm\nUNIT A b c DEHv \u2220\nALL ROUND\u2220\nD\nb c\nA\nA\nHHE\np\np E\n1.15\n1.05\n0.6\n0.5\n0.135\n0.100\n2.7\n2.6\n1.65\n1.55\n3.85\n3.55 0.2\nO\n5"
+  }
+ ],
+ "schema": {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ai-ee datasheet extraction",
+  "type": "object",
+  "required": [
+   "mpn",
+   "pinout"
+  ],
+  "additionalProperties": false,
+  "properties": {
+   "mpn": {
+    "type": "string",
+    "minLength": 1
+   },
+   "lcsc": {
+    "type": "string"
+   },
+   "package": {
+    "type": "string"
+   },
+   "description": {
+    "type": "string"
+   },
+   "pinout": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "required": [
+      "pin",
+      "name",
+      "type"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "pin": {
+       "type": "string",
+       "minLength": 1
+      },
+      "name": {
+       "type": "string",
+       "minLength": 1
+      },
+      "type": {
+       "type": "string",
+       "enum": [
+        "power_in",
+        "power_out",
+        "ground",
+        "input",
+        "output",
+        "bidirectional",
+        "passive",
+        "analog",
+        "clock",
+        "nc",
+        "open_collector",
+        "tristate",
+        "unspecified"
+       ]
+      },
+      "notes": {
+       "type": "string"
+      }
+     }
+    }
+   },
+   "decoupling": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "required": [
+      "pins",
+      "value"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "pins": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       },
+       "minItems": 1
+      },
+      "value": {
+       "type": "string",
+       "minLength": 1
+      },
+      "placement": {
+       "type": "string"
+      },
+      "notes": {
+       "type": "string"
+      }
+     }
+    }
+   },
+   "land_pattern": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "pad_count"
+    ],
+    "properties": {
+     "package": {
+      "type": "string"
+     },
+     "pad_count": {
+      "type": "integer",
+      "minimum": 1
+     },
+     "pitch_mm": {
+      "type": "number",
+      "exclusiveMinimum": 0
+     },
+     "pad_size_mm": {
+      "type": "array",
+      "items": {
+       "type": "number",
+       "minimum": 0
+      },
+      "minItems": 2,
+      "maxItems": 2
+     },
+     "row_spacing_mm": {
+      "type": "number",
+      "minimum": 0
+     },
+     "courtyard_excess_mm": {
+      "type": "number",
+      "minimum": 0
+     },
+     "pin1": {
+      "type": "string",
+      "description": "pad number that is pin 1 (default '1')"
+     },
+     "notes": {
+      "type": "string"
+     }
+    }
+   },
+   "exposed_pad": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "present": {
+      "type": "boolean"
+     },
+     "connect_to": {
+      "type": "string"
+     },
+     "thermal_vias": {
+      "type": "integer",
+      "minimum": 0
+     }
+    },
+    "required": [
+     "present"
+    ]
+   },
+   "layout_notes": {
+    "type": "array",
+    "items": {
+     "type": "string"
+    }
+   },
+   "abs_max": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "required": [
+      "param",
+      "value"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "param": {
+       "type": "string"
+      },
+      "value": {
+       "type": [
+        "number",
+        "string"
+       ]
+      },
+      "unit": {
+       "type": "string"
+      }
+     }
+    }
+   },
+   "source_pdf": {
+    "type": "string"
+   }
+  }
+ },
+ "template": {
+  "mpn": "",
+  "lcsc": "",
+  "package": "",
+  "pinout": [
+   {
+    "pin": "1",
+    "name": "",
+    "type": "unspecified"
+   }
+  ],
+  "decoupling": [],
+  "land_pattern": {
+   "pad_count": 0
+  },
+  "layout_notes": [],
+  "abs_max": []
+ },
+ "note": "Fill the template from text_by_page and the PDF pages, then re-run with --validate. If text_chars is ~0 the PDF is image-only; read the rendered pages directly."
+}

@@ -41,7 +41,7 @@
     }
    ],
    "min_qty": 1,
-   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_CONNFLY-Elec-DS1023-2-7SF11_C113344.pdf",
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_CONNFLY-Elec-DS1023-2-7SF11_C113344.pdf",
    "url": "https://www.lcsc.com/product-detail/female-headers_connfly-elec-ds1023-2-7sf11_C113344.html",
    "brand": "CONNFLY Elec",
    "attributes": [
@@ -51,7 +51,7 @@
     },
     {
      "name": "Operating Temperature",
-     "value": "-40℃~+105℃"
+     "value": "-40\u2103~+105\u2103"
     },
     {
      "name": "Number of Rows",
@@ -112,8 +112,7 @@
      "note": "Boomele, 18604 in stock and cheapest. Body height and working voltage not stated - verify both."
     }
    ],
-   "role": "POWER block socket, ICD-01 s1 daughter side. REVERSE-MOUNTED ON THE BOTTOM SIDE, FACING DOWN (ICD s7.3) - THT, so it is one of the two accepted hand-solder operations post-PCBA, not a JLC PCBA line. The 8.5 mm body is mating geometry: with the carrier's 2.5 mm DS1021 male insulator it sets the 11.0 mm stack, so any substitute MUST also be 8.5 mm. Its land pattern is what delivers the 0.84 mm pad-to-pad copper gap that satisfies the 0.635 mm HV clearance (ICD s5.2, 1.32x) - do not shrink the annulus below 1.70 mm without re-checking. Pin 1 needs a silkscreen triangle, and pin 1 must be checked in the MATED view: numbering mirrors across the row on a bottom-side part. *** THE SMD EQUIVALENT WAS CONSIDERED AND REJECTED - DO NOT RE-PROPOSE. *** HC-PM254-8.5H-2x7PS (C22373948, SMD, 8.5 mm body, 3 A, 1686 in stock) exists and ICD s7.3 explicitly permits 'a bottom-side SMD equivalent', which would remove one of the two hand-solder operations. It is rejected because ICD s5.2 DERIVES the 0.84 mm pad-to-pad creepage from THIS THT land pattern's 1.70 mm annulus on a 1.02 mm drill, and that geometry is the carrier owner's frozen number: an SMD land pattern changes it and would require ICD-01 to be re-issued. Two hand-solder operations across 8 boards is the cheaper side of that trade.",
-   "datasheet_original": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_CONNFLY-Elec-DS1023-2-7SF11_C113344.pdf"
+   "role": "POWER block socket, ICD-01 s1 daughter side. REVERSE-MOUNTED ON THE BOTTOM SIDE, FACING DOWN (ICD s7.3) - THT, so it is one of the two accepted hand-solder operations post-PCBA, not a JLC PCBA line. The 8.5 mm body is mating geometry: with the carrier's 2.5 mm DS1021 male insulator it sets the 11.0 mm stack, so any substitute MUST also be 8.5 mm. Its land pattern is what delivers the 0.84 mm pad-to-pad copper gap that satisfies the 0.635 mm HV clearance (ICD s5.2, 1.32x) - do not shrink the annulus below 1.70 mm without re-checking. Pin 1 needs a silkscreen triangle, and pin 1 must be checked in the MATED view: numbering mirrors across the row on a bottom-side part. *** THE SMD EQUIVALENT WAS CONSIDERED AND REJECTED - DO NOT RE-PROPOSE. *** HC-PM254-8.5H-2x7PS (C22373948, SMD, 8.5 mm body, 3 A, 1686 in stock) exists and ICD s7.3 explicitly permits 'a bottom-side SMD equivalent', which would remove one of the two hand-solder operations. It is rejected because ICD s5.2 DERIVES the 0.84 mm pad-to-pad creepage from THIS THT land pattern's 1.70 mm annulus on a 1.02 mm drill, and that geometry is the carrier owner's frozen number: an SMD land pattern changes it and would require ICD-01 to be re-issued. Two hand-solder operations across 8 boards is the cheaper side of that trade."
   },
   {
    "ref_prefix_hint": "C",
@@ -167,7 +166,7 @@
     },
     {
      "name": "Tolerance",
-     "value": "±10%"
+     "value": "\u00b110%"
     },
     {
      "name": "Capacitance",
@@ -234,7 +233,7 @@
     },
     {
      "name": "Tolerance",
-     "value": "±10%"
+     "value": "\u00b110%"
     },
     {
      "name": "Capacitance",
@@ -290,13 +289,13 @@
     }
    ],
    "min_qty": 1,
-   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1811151434_Wuxi-NCE-Power-Semiconductor-NCE01P13K_C115989.pdf",
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_1811151434_Wuxi-NCE-Power-Semiconductor-NCE01P13K_C115989.pdf",
    "url": "https://www.lcsc.com/product-detail/mosfets_wuxi-nce-power-semiconductor-nce01p13k_C115989.html",
    "brand": "Wuxi NCE Power Semiconductor",
    "attributes": [
     {
      "name": "Operating Temperature",
-     "value": "-55℃~+150℃"
+     "value": "-55\u2103~+150\u2103"
     },
     {
      "name": "Type",
@@ -328,7 +327,7 @@
     },
     {
      "name": "RDS(on)",
-     "value": "200mΩ@10V"
+     "value": "200m\u03a9@10V"
     }
    ],
    "price_at_build_qty": 0.6626,
@@ -340,8 +339,7 @@
      "note": "Diodes Inc, 100 V / 9 A TO-252, 300 mOhm at 4.5 V, 7753 in stock. Same DPAK land pattern."
     }
    ],
-   "role": "DNP. Branch-B hot-swap / inrush FET (blocks.md B1). 100 V against the 57 V PSE worst case is 1.75x. TO-252 rather than SOT-23 deliberately: the sizing target is <= 0.30 A inrush at ~15 V/ms, a 3.2 ms ramp and ~23 mJ of SOA energy that must be checked at 56-72 C ambient, not the datasheet's 25 C case (E-5, L-14). The gate is driven from the raw 48 V through R101, so the 3 V Vgs(th) is not a logic-level concern.",
-   "datasheet_original": "https://www.lcsc.com/datasheet/lcsc_datasheet_1811151434_Wuxi-NCE-Power-Semiconductor-NCE01P13K_C115989.pdf"
+   "role": "DNP. Branch-B hot-swap / inrush FET (blocks.md B1). 100 V against the 57 V PSE worst case is 1.75x. TO-252 rather than SOT-23 deliberately: the sizing target is <= 0.30 A inrush at ~15 V/ms, a 3.2 ms ramp and ~23 mJ of SOA energy that must be checked at 56-72 C ambient, not the datasheet's 25 C case (E-5, L-14). The gate is driven from the raw 48 V through R101, so the 3 V Vgs(th) is not a logic-level concern."
   },
   {
    "ref_prefix_hint": "Q",
@@ -390,7 +388,7 @@
    "attributes": [
     {
      "name": "Operating Temperature",
-     "value": "-40℃~+150℃"
+     "value": "-40\u2103~+150\u2103"
     },
     {
      "name": "Input Capacitance(Ciss)",
@@ -430,7 +428,7 @@
     },
     {
      "name": "RDS(on)",
-     "value": "3Ω@10V"
+     "value": "3\u03a9@10V"
     }
    ],
    "price_at_build_qty": 0.0184,
@@ -496,7 +494,7 @@
     },
     {
      "name": "Tolerance",
-     "value": "±10%"
+     "value": "\u00b110%"
     },
     {
      "name": "Capacitance",
@@ -569,7 +567,7 @@
     },
     {
      "name": "Tolerance",
-     "value": "±10%"
+     "value": "\u00b110%"
     },
     {
      "name": "Capacitance",
@@ -633,11 +631,11 @@
    "attributes": [
     {
      "name": "Resistance",
-     "value": "100kΩ"
+     "value": "100k\u03a9"
     },
     {
      "name": "Operating Temperature",
-     "value": "-55℃~+155℃"
+     "value": "-55\u2103~+155\u2103"
     },
     {
      "name": "Power(Watts)",
@@ -653,11 +651,11 @@
     },
     {
      "name": "Tolerance",
-     "value": "±1%"
+     "value": "\u00b11%"
     },
     {
      "name": "Temperature Coefficient",
-     "value": "±100ppm/℃"
+     "value": "\u00b1100ppm/\u2103"
     }
    ],
    "price_at_build_qty": 0.0103,
@@ -713,11 +711,11 @@
    "attributes": [
     {
      "name": "Resistance",
-     "value": "10kΩ"
+     "value": "10k\u03a9"
     },
     {
      "name": "Operating Temperature",
-     "value": "-55℃~+155℃"
+     "value": "-55\u2103~+155\u2103"
     },
     {
      "name": "Power(Watts)",
@@ -733,11 +731,11 @@
     },
     {
      "name": "Tolerance",
-     "value": "±1%"
+     "value": "\u00b11%"
     },
     {
      "name": "Temperature Coefficient",
-     "value": "±100ppm/℃"
+     "value": "\u00b1100ppm/\u2103"
     }
    ],
    "price_at_build_qty": 0.0109,
@@ -786,7 +784,7 @@
     }
    ],
    "min_qty": 1,
-   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_CONNFLY-Elec-DS1023-2-12SF11_C92265.pdf",
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_CONNFLY-Elec-DS1023-2-12SF11_C92265.pdf",
    "url": "https://www.lcsc.com/product-detail/female-headers_connfly-elec-ds1023-2-12sf11_C92265.html",
    "brand": "CONNFLY Elec",
    "attributes": [
@@ -796,7 +794,7 @@
     },
     {
      "name": "Operating Temperature",
-     "value": "-40℃~+105℃"
+     "value": "-40\u2103~+105\u2103"
     },
     {
      "name": "Number of Rows",
@@ -852,8 +850,7 @@
      "note": "HCTL, 8.5 mm body explicitly stated, THT, 1106 in stock."
     }
    ],
-   "role": "SIGNAL block socket, ICD-01 s1 daughter side. Same reverse-mounted bottom-side, facing-down rule and the same 8.5 mm mating-geometry constraint as J3; the second of the two accepted hand-solder operations. No 48 V exists anywhere on this connector (ICD s3.2), so the HV clearance regime never reaches it. *** THE SMD EQUIVALENT WAS CONSIDERED AND REJECTED - DO NOT RE-PROPOSE. *** HC-PM254-8.5H-2x12PS (C22436159, SMD, 8.5 mm body, 4115 in stock) exists and ICD s7.3 permits it, but the pair J3/J4 is decided together: the THT land pattern is what ICD s5.2's frozen 0.84 mm creepage geometry is derived from, so switching would require ICD-01 to be re-issued. Two hand-solder operations across 8 boards is the cheaper side of that trade. See J3 for the full reasoning.",
-   "datasheet_original": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_CONNFLY-Elec-DS1023-2-12SF11_C92265.pdf"
+   "role": "SIGNAL block socket, ICD-01 s1 daughter side. Same reverse-mounted bottom-side, facing-down rule and the same 8.5 mm mating-geometry constraint as J3; the second of the two accepted hand-solder operations. No 48 V exists anywhere on this connector (ICD s3.2), so the HV clearance regime never reaches it. *** THE SMD EQUIVALENT WAS CONSIDERED AND REJECTED - DO NOT RE-PROPOSE. *** HC-PM254-8.5H-2x12PS (C22436159, SMD, 8.5 mm body, 4115 in stock) exists and ICD s7.3 permits it, but the pair J3/J4 is decided together: the THT land pattern is what ICD s5.2's frozen 0.84 mm creepage geometry is derived from, so switching would require ICD-01 to be re-issued. Two hand-solder operations across 8 boards is the cheaper side of that trade. See J3 for the full reasoning."
   },
   {
    "ref_prefix_hint": "U",
@@ -896,17 +893,17 @@
     }
    ],
    "min_qty": 1,
-   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Texas-Instruments-SN74LVC1G08DBVR_C7666.pdf",
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Texas-Instruments-SN74LVC1G08DBVR_C7666.pdf",
    "url": "https://www.lcsc.com/product-detail/logic-gates_texas-instruments-sn74lvc1g08dbvr_C7666.html",
    "brand": "Texas Instruments",
    "attributes": [
     {
      "name": "Output Logic Level - Low",
-     "value": "300mV、450mV、550mV"
+     "value": "300mV\u3001450mV\u3001550mV"
     },
     {
      "name": "Operating Temperature",
-     "value": "-40℃~+125℃"
+     "value": "-40\u2103~+125\u2103"
     },
     {
      "name": "Propagation Delay",
@@ -914,7 +911,7 @@
     },
     {
      "name": "Output Logic Level - High",
-     "value": "1.2V、1.9V、2.3V、3.8V"
+     "value": "1.2V\u30011.9V\u30012.3V\u30013.8V"
     },
     {
      "name": "Logic Type",
@@ -926,7 +923,7 @@
     },
     {
      "name": "Input Logic Level - Low",
-     "value": "700mV、800mV"
+     "value": "700mV\u3001800mV"
     },
     {
      "name": "Series",
@@ -934,7 +931,7 @@
     },
     {
      "name": "Input Logic Level - High",
-     "value": "1.7V、2V"
+     "value": "1.7V\u30012V"
     },
     {
      "name": "Voltage - Supply",
@@ -950,7 +947,7 @@
     },
     {
      "name": "Features",
-     "value": "Overvoltage-tolerant input、Rear drive protection、Local shutdown mode、Live insertion protection"
+     "value": "Overvoltage-tolerant input\u3001Rear drive protection\u3001Local shutdown mode\u3001Live insertion protection"
     },
     {
      "name": "Inputs per Gates",
@@ -974,8 +971,7 @@
      "note": "8426 in stock, same pinout."
     }
    ],
-   "role": "/EN_OK = ENABLE AND FAULT (blocks.md B2). tPD 4.1 ns is nothing against the 102.4 us PWM period. This is the single node through which BOTH the ICD's ENABLE and the thermal FAULT kill every output stage, so it is the fail-safe-critical gate: a 1.65-5.5 V part running on +3V3, combinational, never latched.",
-   "datasheet_original": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Texas-Instruments-SN74LVC1G08DBVR_C7666.pdf"
+   "role": "/EN_OK = ENABLE AND FAULT (blocks.md B2). tPD 4.1 ns is nothing against the 102.4 us PWM period. This is the single node through which BOTH the ICD's ENABLE and the thermal FAULT kill every output stage, so it is the fail-safe-critical gate: a 1.65-5.5 V part running on +3V3, combinational, never latched."
   },
   {
    "ref_prefix_hint": "U",
@@ -1018,7 +1014,7 @@
     }
    ],
    "min_qty": 1,
-   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2001151005_Texas-Instruments-SN74LVC00ADR_C485072.pdf",
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2001151005_Texas-Instruments-SN74LVC00ADR_C485072.pdf",
    "url": "https://www.lcsc.com/product-detail/logic-gates_texas-instruments-sn74lvc00adr_C485072.html",
    "brand": "Texas Instruments",
    "attributes": [
@@ -1028,7 +1024,7 @@
     },
     {
      "name": "Operating Temperature",
-     "value": "-40℃~+125℃"
+     "value": "-40\u2103~+125\u2103"
     },
     {
      "name": "Propagation Delay",
@@ -1072,7 +1068,7 @@
     },
     {
      "name": "Features",
-     "value": "Overvoltage-tolerant input、Local shutdown mode"
+     "value": "Overvoltage-tolerant input\u3001Local shutdown mode"
     },
     {
      "name": "Inputs per Gates",
@@ -1101,8 +1097,7 @@
      "note": "TI, 13021 in stock - by far the deepest, but TSSOP-14 is a DIFFERENT footprint. Schematic-level second source only."
     }
    ],
-   "role": "/SHUNTn = NOT(PWMn AND /EN_OK) for all four channels in ONE package (blocks.md B2). NAND and not AND, because the shunt FET is ON when the LED is OFF. Its 24 mA drive into the 150 R gate resistors gives 22 mA and ~30 ns edges. Thinnest logic stock on the board at 706 pcs, but that is still 88x the 8 needed.",
-   "datasheet_original": "https://www.lcsc.com/datasheet/lcsc_datasheet_2001151005_Texas-Instruments-SN74LVC00ADR_C485072.pdf"
+   "role": "/SHUNTn = NOT(PWMn AND /EN_OK) for all four channels in ONE package (blocks.md B2). NAND and not AND, because the shunt FET is ON when the LED is OFF. Its 24 mA drive into the 150 R gate resistors gives 22 mA and ~30 ns edges. Thinnest logic stock on the board at 706 pcs, but that is still 88x the 8 needed."
   },
   {
    "ref_prefix_hint": "U",
@@ -1145,7 +1140,7 @@
     }
    ],
    "min_qty": 1,
-   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1809051918_STMicroelectronics-M24C32-WMN6TP_C7998.pdf",
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_1809051918_STMicroelectronics-M24C32-WMN6TP_C7998.pdf",
    "url": "https://www.lcsc.com/product-detail/eeprom_stmicroelectronics-m24c32-wmn6tp_C7998.html",
    "brand": "STMicroelectronics",
    "attributes": [
@@ -1159,7 +1154,7 @@
     },
     {
      "name": "Operating Temperature",
-     "value": "-40℃~+85℃"
+     "value": "-40\u2103~+85\u2103"
     },
     {
      "name": "Write Cycle Endurance",
@@ -1183,7 +1178,7 @@
     },
     {
      "name": "Features",
-     "value": "Hardware write protection function、Built-in power-on reset (POR)"
+     "value": "Hardware write protection function\u3001Built-in power-on reset (POR)"
     },
     {
      "name": "Write Cycle Time(Tw)",
@@ -1211,8 +1206,7 @@
      "note": "IDCHIP, SOP-8, 17324 in stock at $0.063. Note its -10 C low-end operating temperature against the ST part's -40 C."
     }
    ],
-   "role": "Board ID and calibration store at address 0x50, E0/E1/E2 strapped low, WP to GND so it is writable at commissioning (blocks.md B5). 4 kB and not 256 B, because spec-dimming R12 needs a gain AND an offset per channel plus an 8-16 point LUT, and led-emitter s7 makes the whole correction a function of measured temperature - a 2-D table. AMD-02: the part is FITTED but SHIPS EMPTY for this build. NO DAUGHTER-SIDE I2C PULL-UPS ANYWHERE ON THIS BOARD - the carrier fits 4.7 k and a second pair is an ICD s3.3 violation; none are sourced here and none may be added.",
-   "datasheet_original": "https://www.lcsc.com/datasheet/lcsc_datasheet_1809051918_STMicroelectronics-M24C32-WMN6TP_C7998.pdf"
+   "role": "Board ID and calibration store at address 0x50, E0/E1/E2 strapped low, WP to GND so it is writable at commissioning (blocks.md B5). 4 kB and not 256 B, because spec-dimming R12 needs a gain AND an offset per channel plus an 8-16 point LUT, and led-emitter s7 makes the whole correction a function of measured temperature - a 2-D table. AMD-02: the part is FITTED but SHIPS EMPTY for this build. NO DAUGHTER-SIDE I2C PULL-UPS ANYWHERE ON THIS BOARD - the carrier fits 4.7 k and a second pair is an ICD s3.3 violation; none are sourced here and none may be added."
   },
   {
    "ref_prefix_hint": "R",
@@ -1270,11 +1264,11 @@
    "attributes": [
     {
      "name": "Resistance",
-     "value": "100kΩ"
+     "value": "100k\u03a9"
     },
     {
      "name": "Operating Temperature",
-     "value": "-55℃~+155℃"
+     "value": "-55\u2103~+155\u2103"
     },
     {
      "name": "Power(Watts)",
@@ -1290,11 +1284,11 @@
     },
     {
      "name": "Tolerance",
-     "value": "±1%"
+     "value": "\u00b11%"
     },
     {
      "name": "Temperature Coefficient",
-     "value": "±100ppm/℃"
+     "value": "\u00b1100ppm/\u2103"
     }
    ],
    "price_at_build_qty": 0.0079,
@@ -1351,11 +1345,11 @@
    "attributes": [
     {
      "name": "Resistance",
-     "value": "100kΩ"
+     "value": "100k\u03a9"
     },
     {
      "name": "Operating Temperature",
-     "value": "-55℃~+155℃"
+     "value": "-55\u2103~+155\u2103"
     },
     {
      "name": "Power(Watts)",
@@ -1371,11 +1365,11 @@
     },
     {
      "name": "Tolerance",
-     "value": "±1%"
+     "value": "\u00b11%"
     },
     {
      "name": "Temperature Coefficient",
-     "value": "±100ppm/℃"
+     "value": "\u00b1100ppm/\u2103"
     }
    ],
    "price_at_build_qty": 0.0079,
@@ -1430,11 +1424,11 @@
    "attributes": [
     {
      "name": "Resistance",
-     "value": "10kΩ"
+     "value": "10k\u03a9"
     },
     {
      "name": "Operating Temperature",
-     "value": "-55℃~+155℃"
+     "value": "-55\u2103~+155\u2103"
     },
     {
      "name": "Power(Watts)",
@@ -1450,11 +1444,11 @@
     },
     {
      "name": "Tolerance",
-     "value": "±1%"
+     "value": "\u00b11%"
     },
     {
      "name": "Temperature Coefficient",
-     "value": "±100ppm/℃"
+     "value": "\u00b1100ppm/\u2103"
     }
    ],
    "price_at_build_qty": 0.0076,
@@ -1513,11 +1507,11 @@
    "attributes": [
     {
      "name": "Resistance",
-     "value": "0Ω"
+     "value": "0\u03a9"
     },
     {
      "name": "Operating Temperature",
-     "value": "-55℃~+155℃"
+     "value": "-55\u2103~+155\u2103"
     },
     {
      "name": "Power(Watts)",
@@ -1533,7 +1527,7 @@
     },
     {
      "name": "Tolerance",
-     "value": "±1%"
+     "value": "\u00b11%"
     }
    ],
    "price_at_build_qty": 0.0027,
@@ -1589,11 +1583,11 @@
    "attributes": [
     {
      "name": "Resistance",
-     "value": "10kΩ"
+     "value": "10k\u03a9"
     },
     {
      "name": "Operating Temperature",
-     "value": "-55℃~+155℃"
+     "value": "-55\u2103~+155\u2103"
     },
     {
      "name": "Power(Watts)",
@@ -1609,11 +1603,11 @@
     },
     {
      "name": "Tolerance",
-     "value": "±1%"
+     "value": "\u00b11%"
     },
     {
      "name": "Temperature Coefficient",
-     "value": "±100ppm/℃"
+     "value": "\u00b1100ppm/\u2103"
     }
    ],
    "price_at_build_qty": 0.0076,
@@ -1683,7 +1677,7 @@
     },
     {
      "name": "Tolerance",
-     "value": "±10%"
+     "value": "\u00b110%"
     },
     {
      "name": "Capacitance",
@@ -1739,7 +1733,7 @@
     }
    ],
    "min_qty": 1,
-   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1810010910_Texas-Instruments-SN74LVC14ADR_C133541.pdf",
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_1810010910_Texas-Instruments-SN74LVC14ADR_C133541.pdf",
    "url": "https://www.lcsc.com/product-detail/inverters_texas-instruments-sn74lvc14adr_C133541.html",
    "brand": "Texas Instruments",
    "attributes": [
@@ -1749,7 +1743,7 @@
     },
     {
      "name": "Operating Temperature",
-     "value": "-40℃~+125℃"
+     "value": "-40\u2103~+125\u2103"
     },
     {
      "name": "Input Type",
@@ -1789,7 +1783,7 @@
     },
     {
      "name": "Features",
-     "value": "Power shutdown protection、Noise suppression function"
+     "value": "Power shutdown protection\u3001Noise suppression function"
     },
     {
      "name": "Number of Circuits",
@@ -1814,8 +1808,7 @@
      "note": "SOP-14, same pinout, 4767 in stock at $0.13."
     }
    ],
-   "role": "DNP. The converter-idle one-shot (blocks.md B3, 'optional, recommended'). A retriggerable RC per channel drops the driver's PWM/EN pin after ~1 ms with no pulses and restores it on the next edge, recovering ~0.8 W across four idle channels - 9 % of the af envelope, and idle is the state a saturated-colour wash spends most of its time in. It is NOT a latch of ENABLE: it is ANDed with /EN_OK, so ENABLE still kills it and it clears itself. IF POPULATED, REMOVE R214-R217.",
-   "datasheet_original": "https://www.lcsc.com/datasheet/lcsc_datasheet_1810010910_Texas-Instruments-SN74LVC14ADR_C133541.pdf"
+   "role": "DNP. The converter-idle one-shot (blocks.md B3, 'optional, recommended'). A retriggerable RC per channel drops the driver's PWM/EN pin after ~1 ms with no pulses and restores it on the next edge, recovering ~0.8 W across four idle channels - 9 % of the af envelope, and idle is the state a saturated-colour wash spends most of its time in. It is NOT a latch of ENABLE: it is ANDed with /EN_OK, so ENABLE still kills it and it clears itself. IF POPULATED, REMOVE R214-R217."
   },
   {
    "ref_prefix_hint": "C",
@@ -1871,7 +1864,7 @@
     },
     {
      "name": "Tolerance",
-     "value": "±10%"
+     "value": "\u00b110%"
     },
     {
      "name": "Capacitance",
@@ -1931,7 +1924,7 @@
     }
    ],
    "min_qty": 1,
-   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1811061725_ST-Semtech-1N4148W_C81598.pdf",
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_1811061725_ST-Semtech-1N4148W_C81598.pdf",
    "url": "https://www.lcsc.com/product-detail/switching-diodes_st-semtech-1n4148w_C81598.html",
    "brand": "ST(Semtech)",
    "attributes": [
@@ -1971,8 +1964,7 @@
    "price_at_build_qty": 0.0117,
    "dnp": true,
    "alternates": [],
-   "role": "DNP. Fast-reset diode across each one-shot timing resistor, so the RC retriggers on every PWM edge instead of integrating. JLC Basic, 2.1 M in stock.",
-   "datasheet_original": "https://www.lcsc.com/datasheet/lcsc_datasheet_1811061725_ST-Semtech-1N4148W_C81598.pdf"
+   "role": "DNP. Fast-reset diode across each one-shot timing resistor, so the RC retriggers on every PWM edge instead of integrating. JLC Basic, 2.1 M in stock."
   },
   {
    "ref_prefix_hint": "U",
@@ -2018,7 +2010,7 @@
     }
    ],
    "min_qty": 1,
-   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Texas-Instruments-TPS92515HVDGQR_C213553.pdf",
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Texas-Instruments-TPS92515HVDGQR_C213553.pdf",
    "url": "https://www.lcsc.com/product-detail/led-drivers_texas-instruments-tps92515hvdgqr_C213553.html",
    "brand": "Texas Instruments",
    "attributes": [
@@ -2048,7 +2040,7 @@
     },
     {
      "name": "Dimming",
-     "value": "Analog、PWM"
+     "value": "Analog\u3001PWM"
     },
     {
      "name": "Switch Tube (Built-In/External)",
@@ -2064,7 +2056,7 @@
     },
     {
      "name": "Operating temperature",
-     "value": "-40℃~+150℃"
+     "value": "-40\u2103~+150\u2103"
     }
    ],
    "price_at_build_qty": 1.6927,
@@ -2085,8 +2077,7 @@
      "note": "Diodes Inc, 2.7x cheaper - branch-A cost-down only. REJECTED on branch B (60 V operating against a 57 V rail) and its datasheet contradicts itself on PWM frequency (EC table 0.1-20 kHz vs application text '< 500 Hz')."
     }
    ],
-   "role": "The four constant-current channels. 5.5-65 V in, internal 2 A NFET, peak-current constant-OFF-time hysteretic control. Chosen because it is the ONLY part in the P1 survey that backs its dimming claim with real timing (tPWM 75/130 ns rise, 100/170 ns fall; tLEB minimum on-time 75/195/275 ns) AND specifies the shunt-FET mode this whole architecture depends on ('10,000:1 Shunt PWM Dimming Range'), including a dedicated OFF-timer behaviour for the SHUNTED-OUTPUT condition - which is the one thing a generic buck would quietly fail at (blocks.md B3 rule 3, still to be measured at bring-up). Exposed pad needs >= 9 GND vias (constraints.json thermal[]). CURRENT-SENSE SCHEME, EXTRACTED FROM THE DATASHEET THIS SESSION (TI SLUSBZ6A): high-side differential sense from VIN to CSN; IL_peak = (V_IADJ/10)/R_SENSE with IADJ tied to VCC giving a 224/240/251 mV threshold; ILED = IL_peak - dIL_pp/2. See R301.",
-   "datasheet_original": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Texas-Instruments-TPS92515HVDGQR_C213553.pdf"
+   "role": "The four constant-current channels. 5.5-65 V in, internal 2 A NFET, peak-current constant-OFF-time hysteretic control. Chosen because it is the ONLY part in the P1 survey that backs its dimming claim with real timing (tPWM 75/130 ns rise, 100/170 ns fall; tLEB minimum on-time 75/195/275 ns) AND specifies the shunt-FET mode this whole architecture depends on ('10,000:1 Shunt PWM Dimming Range'), including a dedicated OFF-timer behaviour for the SHUNTED-OUTPUT condition - which is the one thing a generic buck would quietly fail at (blocks.md B3 rule 3, still to be measured at bring-up). Exposed pad needs >= 9 GND vias (constraints.json thermal[]). CURRENT-SENSE SCHEME, EXTRACTED FROM THE DATASHEET THIS SESSION (TI SLUSBZ6A): high-side differential sense from VIN to CSN; IL_peak = (V_IADJ/10)/R_SENSE with IADJ tied to VCC giving a 224/240/251 mV threshold; ILED = IL_peak - dIL_pp/2. See R301."
   },
   {
    "ref_prefix_hint": "L",
@@ -2150,7 +2141,7 @@
     },
     {
      "name": "Tolerance",
-     "value": "±20%"
+     "value": "\u00b120%"
     },
     {
      "name": "Current Rating",
@@ -2158,7 +2149,7 @@
     },
     {
      "name": "DC Resistance(DCR)",
-     "value": "445mΩ"
+     "value": "445m\u03a9"
     }
    ],
    "price_at_build_qty": 0.0513,
@@ -2220,7 +2211,7 @@
     }
    ],
    "min_qty": 1,
-   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1811141858_Diodes-Incorporated-DFLS160-7_C177023.pdf",
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_1811141858_Diodes-Incorporated-DFLS160-7_C177023.pdf",
    "url": "https://www.lcsc.com/product-detail/schottky-diodes_diodes-incorporated-dfls160-7_C177023.html",
    "brand": "Diodes Incorporated",
    "attributes": [
@@ -2238,7 +2229,7 @@
     },
     {
      "name": "Operating Junction Temperature Range",
-     "value": "-65℃~+150℃"
+     "value": "-65\u2103~+150\u2103"
     },
     {
      "name": "Diode Configuration",
@@ -2266,8 +2257,7 @@
      "note": "700 mV at 1 A, SMA, 493665 in stock at $0.022. Stock insurance only: it is the worst choice on the one parameter that actually matters here."
     }
    ],
-   "role": "The catch diode, and it is SELECTED ON Vf because Vf dominates this board's idle loss: at 0 % commanded duty the converter free-runs into the shunt FET, the duty collapses to ~0.5 % and the diode conducts almost the whole cycle (power_tree s2 - 135 mW of a 0.20 W/channel idle term). 500 mV at 1 A is the lowest of the in-stock 60 V / 1 A parts, roughly 0.33 V at the 300 mA operating point against ~0.42 V for the cheap parts: about 30 mW/channel, 0.12 W/board. 60 V AND NOT 100 V IS DELIBERATE - 100 V parts run 0.6-0.7 V at 0.3 A and would push the idle term to ~0.30 W/channel (power_tree s2). PowerDI-123 also gives the larger cathode pad that constraints.json's 4-via thermal entry wants.",
-   "datasheet_original": "https://www.lcsc.com/datasheet/lcsc_datasheet_1811141858_Diodes-Incorporated-DFLS160-7_C177023.pdf"
+   "role": "The catch diode, and it is SELECTED ON Vf because Vf dominates this board's idle loss: at 0 % commanded duty the converter free-runs into the shunt FET, the duty collapses to ~0.5 % and the diode conducts almost the whole cycle (power_tree s2 - 135 mW of a 0.20 W/channel idle term). 500 mV at 1 A is the lowest of the in-stock 60 V / 1 A parts, roughly 0.33 V at the 300 mA operating point against ~0.42 V for the cheap parts: about 30 mW/channel, 0.12 W/board. 60 V AND NOT 100 V IS DELIBERATE - 100 V parts run 0.6-0.7 V at 0.3 A and would push the idle term to ~0.30 W/channel (power_tree s2). PowerDI-123 also gives the larger cathode pad that constraints.json's 4-via thermal entry wants."
   },
   {
    "ref_prefix_hint": "R",
@@ -2319,11 +2309,11 @@
    "attributes": [
     {
      "name": "Resistance",
-     "value": "750mΩ"
+     "value": "750m\u03a9"
     },
     {
      "name": "Operating Temperature",
-     "value": "-55℃~+155℃"
+     "value": "-55\u2103~+155\u2103"
     },
     {
      "name": "Power(Watts)",
@@ -2339,11 +2329,11 @@
     },
     {
      "name": "Tolerance",
-     "value": "±1%"
+     "value": "\u00b11%"
     },
     {
      "name": "Temperature Coefficient",
-     "value": "±200ppm/℃"
+     "value": "\u00b1200ppm/\u2103"
     }
    ],
    "price_at_build_qty": 0.0065,
@@ -2416,11 +2406,11 @@
    "attributes": [
     {
      "name": "Resistance",
-     "value": "150Ω"
+     "value": "150\u03a9"
     },
     {
      "name": "Operating Temperature",
-     "value": "-55℃~+155℃"
+     "value": "-55\u2103~+155\u2103"
     },
     {
      "name": "Power(Watts)",
@@ -2436,11 +2426,11 @@
     },
     {
      "name": "Tolerance",
-     "value": "±1%"
+     "value": "\u00b11%"
     },
     {
      "name": "Temperature Coefficient",
-     "value": "±100ppm/℃"
+     "value": "\u00b1100ppm/\u2103"
     }
    ],
    "price_at_build_qty": 0.0088,
@@ -2501,7 +2491,7 @@
     },
     {
      "name": "Tolerance",
-     "value": "±10%"
+     "value": "\u00b110%"
     },
     {
      "name": "Capacitance",
@@ -2566,13 +2556,13 @@
     }
    ],
    "min_qty": 1,
-   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2410010333_TOSHIBA-SSM3K2615R-LXGF_C22371361.pdf",
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2410010333_TOSHIBA-SSM3K2615R-LXGF_C22371361.pdf",
    "url": "https://www.lcsc.com/product-detail/mosfets_toshiba-ssm3k2615r-lxgf_C22371361.html",
    "brand": "TOSHIBA",
    "attributes": [
     {
      "name": "Operating Temperature",
-     "value": "-55℃~+150℃"
+     "value": "-55\u2103~+150\u2103"
     },
     {
      "name": "Type",
@@ -2616,7 +2606,7 @@
     },
     {
      "name": "RDS(on)",
-     "value": "580mΩ@3.3V"
+     "value": "580m\u03a9@3.3V"
     }
    ],
    "price_at_build_qty": 0.3014,
@@ -2637,8 +2627,244 @@
      "note": "Diodes Inc, standard SOT-23, 44108 in stock - the other first-tier-brand option. BUT Vgs(th) is specified up to 3.0 V, so it is NOT guaranteed fully on at 3.3 V. Do not substitute without measuring. HL2308 (C53329056, 2549 in stock) was also evaluated and REJECTED: LCSC publishes no datasheet for it at all, so its Vgs(th) and Qg cannot be verified."
     }
    ],
-   "role": "The shunt FET across each LED string - the part that actually delivers PAR-REQ-01's 141 ns response, because the converter cannot (blocks.md D2). 60 V AND NOT 30 V IS DELIBERATE: it makes the branch-B / 'at' 8S string (27.2 V) a populate change rather than a respin. *** PACKAGE WARNING: Toshiba's package NICKNAME IS 'SOT-23F', not plain SOT-23. Pinout is the standard 1=Gate / 2=Source / 3=Drain, but the body and lead geometry are Toshiba-specific - fp_verify and the P4 librarian pull must give this land pattern extra attention rather than assuming a generic SOT-23. *** NUMBERS READ FROM THE DATASHEET THIS SESSION (Toshiba SSM3K2615R rev 2.0, fetched via the wmsc mirror and parsed): the datasheet's own feature list item (2) is literally '3.3-V gate drive voltage', and RDS(ON) IS SPECIFIED AT VGS = 3.3 V - 380 mOhm typ / 580 mOhm max at ID = 0.5 A. That is guaranteed-on at our gate drive rather than inferred from a 4.5 V or 10 V figure, which is exactly what sheets.md s1.3 demands. Also: AEC-Q101 qualified; V(BR)DSS 60 V min; Vth 0.8 V min / 2.0 V max; Ciss 150 pF (the lowest of any candidate, so tau through the 150 R gate resistor is ~22 ns); Qg 6.0 nC total but Qgd only 1.4 nC AT VDD ~48 V, which scales to ~0.2 nC at this board's ~7 V string swing - the Miller term that actually sets the edge. Pd 1 W. Dissipation: 0.320 A peak through 580 mOhm worst case = 59 mW; at the 275 mA average it is 44 mW. This part closes both of the shunt-FET open items from the first pass (no first-tier brand in stock, and the gate-edge fraction of the 141 ns pulse).",
-   "datasheet_original": "https://www.lcsc.com/datasheet/lcsc_datasheet_2410010333_TOSHIBA-SSM3K2615R-LXGF_C22371361.pdf"
+   "role": "The shunt FET across each LED string - the part that actually delivers PAR-REQ-01's 141 ns response, because the converter cannot (blocks.md D2). 60 V AND NOT 30 V IS DELIBERATE: it makes the branch-B / 'at' 8S string (27.2 V) a populate change rather than a respin. *** PACKAGE WARNING: Toshiba's package NICKNAME IS 'SOT-23F', not plain SOT-23. Pinout is the standard 1=Gate / 2=Source / 3=Drain, but the body and lead geometry are Toshiba-specific - fp_verify and the P4 librarian pull must give this land pattern extra attention rather than assuming a generic SOT-23. *** NUMBERS READ FROM THE DATASHEET THIS SESSION (Toshiba SSM3K2615R rev 2.0, fetched via the wmsc mirror and parsed): the datasheet's own feature list item (2) is literally '3.3-V gate drive voltage', and RDS(ON) IS SPECIFIED AT VGS = 3.3 V - 380 mOhm typ / 580 mOhm max at ID = 0.5 A. That is guaranteed-on at our gate drive rather than inferred from a 4.5 V or 10 V figure, which is exactly what sheets.md s1.3 demands. Also: AEC-Q101 qualified; V(BR)DSS 60 V min; Vth 0.8 V min / 2.0 V max; Ciss 150 pF (the lowest of any candidate, so tau through the 150 R gate resistor is ~22 ns); Qg 6.0 nC total but Qgd only 1.4 nC AT VDD ~48 V, which scales to ~0.2 nC at this board's ~7 V string swing - the Miller term that actually sets the edge. Pd 1 W. Dissipation: 0.320 A peak through 580 mOhm worst case = 59 mW; at the 275 mA average it is 44 mW. This part closes both of the shunt-FET open items from the first pass (no first-tier brand in stock, and the gate-edge fraction of the 141 ns pulse)."
+  },
+  {
+   "ref_prefix_hint": "C",
+   "block": "drivers",
+   "mpn": "CC0603JRNPO9BN471",
+   "lcsc": "C106211",
+   "value": "470pF 50V C0G/NP0 0603 5%",
+   "qty_per_board": 4,
+   "refs": [
+    "C304",
+    "C324",
+    "C344",
+    "C364"
+   ],
+   "package": "0603",
+   "basic": false,
+   "stock": 448465,
+   "price": 0.0121,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0121
+    },
+    {
+     "qty": 1000,
+     "price": 0.0106
+    },
+    {
+     "qty": 4000,
+     "price": 0.0097
+    },
+    {
+     "qty": 8000,
+     "price": 0.0092
+    },
+    {
+     "qty": 48000,
+     "price": 0.0088
+    },
+    {
+     "qty": 100000,
+     "price": 0.0085
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_YAGEO-CC0603JRNPO9BN471_C106211.pdf",
+   "url": "https://www.lcsc.com/product-detail/multilayer-ceramic-capacitors-mlcc-smd-smt_yageo-cc0603jrnpo9bn471_C106211.html",
+   "brand": "YAGEO",
+   "attributes": [
+    {
+     "name": "Voltage Rating",
+     "value": "50V"
+    },
+    {
+     "name": "Tolerance",
+     "value": "\u00b15%"
+    },
+    {
+     "name": "Capacitance",
+     "value": "470pF"
+    },
+    {
+     "name": "Temperature Coefficient",
+     "value": "NP0"
+    }
+   ],
+   "price_at_build_qty": 0.0121,
+   "alternates": [],
+   "role": "*** COFF - THE OFF-TIMER CAPACITOR. DO NOT STRIP THIS NETWORK. *** COFF/ROFF1/ROFF2 implement the SHUNT-DIMMING OFF-TIME COMPENSATION of TPS92515HV datasheet sec 8.3.4 / Figure 14 (TI SLUSBZ6A, extracted this session). WHY IT EXISTS: the OFF-timer normally charges COFF from the OUTPUT voltage, but when the shunt FET shorts the string the output falls below the 1 V VOFT threshold, the timer cannot trip, and every cycle stretches to tOFF(max) = 230 us instead of ~620 ns (Figure 43 shows the failure). Constant inductor ripple and linear shunt-FET dimming are then impossible - and shunt-FET dimming is the ONLY thing that closes PAR-REQ-01's 141 ns wall, so without this network the whole H1 dimming argument stops working. The fix is to charge COFF from VCC (pin 2) in parallel with the output, via ROFF2. VALUE: 470 pF is the datasheet's own preferred value (sec 9.2.1.3: 'Select a COFF between 100 pF and 1 nF. The preferred value is 470 pF'). C0G/NP0 IS MANDATORY, NOT A PREFERENCE - this is a timing capacitor and X7R's voltage coefficient would drift the off-time and therefore the ripple and the dimming linearity. Mount at the COFF pin (pin 1) with a short return to GND."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "drivers",
+   "mpn": "0603WAF1002T5E",
+   "lcsc": "C25804",
+   "value": "10k 0603 1%",
+   "qty_per_board": 4,
+   "refs": [
+    "R305",
+    "R325",
+    "R345",
+    "R365"
+   ],
+   "package": "0603",
+   "basic": true,
+   "stock": 3937024,
+   "price": 0.0076,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0076
+    },
+    {
+     "qty": 1000,
+     "price": 0.0068
+    },
+    {
+     "qty": 5000,
+     "price": 0.0064
+    },
+    {
+     "qty": 10000,
+     "price": 0.0061
+    },
+    {
+     "qty": 50000,
+     "price": 0.006
+    },
+    {
+     "qty": 100000,
+     "price": 0.0059
+    }
+   ],
+   "min_qty": 1317,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010045_UNI-ROYAL-Uniroyal-Elec-0603WAF1002T5E_C25804.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0603waf1002t5e_C25804.html",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {
+     "name": "Resistance",
+     "value": "10k\u03a9"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-55\u2103~+155\u2103"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "100mW"
+    },
+    {
+     "name": "Type",
+     "value": "Thick Film Resistor"
+    },
+    {
+     "name": "Voltage-Supply(Max)",
+     "value": "75V"
+    },
+    {
+     "name": "Tolerance",
+     "value": "\u00b11%"
+    },
+    {
+     "name": "Temperature Coefficient",
+     "value": "\u00b1100ppm/\u2103"
+    }
+   ],
+   "price_at_build_qty": 0.0076,
+   "alternates": [
+    {
+     "mpn": "0603WAF8201T5E",
+     "lcsc": "C25981",
+     "note": "8.2 k, JLC Basic, 1274507 in stock - the value TI's literal sec 8.3.4 procedure gives if ROFF2's parallel contribution during NORMAL operation is not compensated. Fitting it yields 545 ns / 79 mA ripple / 795 kHz instead of the architecture's 90 mA / ~700 kHz."
+    }
+   ],
+   "role": "*** ROFF1 - OFF-TIME PROGRAMMING RESISTOR, from VLED (the /LEDn_A anode node) to COFF. Part of the sec 8.3.4 / Figure 14 shunt-dimming compensation network - DO NOT STRIP. *** ARITHMETIC: target ripple dIL_pp = 90 mA at L = 47 uH and VLED = 6.8 V gives tOFF = dIL x L / VLED = 622 ns (D = 0.567, f = 697 kHz - this reproduces blocks.md B3 rule 2 exactly). Datasheet eq 7, tOFF = -ROFF x COFF x ln(1 - VOFT/VLED) with VOFT = 1 V and COFF = 470 pF, gives ROFF = 8.32 kOhm -> E24 8.2 k. DELIBERATE DEVIATION FROM THE DATASHEET'S LITERAL TEXT, and it is the reason this is 10 k and not 8.2 k: sec 8.3.4 says 'the value of ROFF1 becomes the previously calculated value of ROFF', but in NORMAL (unshunted) operation ROFF2 sits in PARALLEL with ROFF1 and also charges COFF, from 5 V. The Thevenin of 8.2 k/6.8 V with 47 k/5.0 V is 6.98 kOhm at 6.533 V, which shortens tOFF to 545 ns - ripple 79 mA (-12 %) and f = 795 kHz. Re-solving the Thevenin so the ripple lands back on the architecture's own 90 mA design point: 10 k gives 649 ns, 93.9 mA (+4 %), 668 kHz. 9.53 k (E96) would be the exact solution (622 ns, 90.1 mA) but it is CHECKED AND OUT OF STOCK at LCSC (C23127, 0 pcs), so 10 k is both the practical and the stocked answer. SAME LCSC PART as the R209/R401/R403 10 k entry; split out only so this role note is discoverable per refdes. See OPEN - reverting to TI's literal 8.2 k is a one-line change if P4 disagrees with the re-solve."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "drivers",
+   "mpn": "0603WAF4702T5E",
+   "lcsc": "C25819",
+   "value": "47k 0603 1%",
+   "qty_per_board": 4,
+   "refs": [
+    "R306",
+    "R326",
+    "R346",
+    "R366"
+   ],
+   "package": "0603",
+   "basic": true,
+   "stock": 897289,
+   "price": 0.0112,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0112
+    },
+    {
+     "qty": 1000,
+     "price": 0.01
+    },
+    {
+     "qty": 5000,
+     "price": 0.0094
+    },
+    {
+     "qty": 10000,
+     "price": 0.0088
+    },
+    {
+     "qty": 50000,
+     "price": 0.0084
+    },
+    {
+     "qty": 100000,
+     "price": 0.0083
+    }
+   ],
+   "min_qty": 800,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010045_UNI-ROYAL-Uniroyal-Elec-0603WAF4702T5E_C25819.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0603waf4702t5e_C25819.html",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {
+     "name": "Resistance",
+     "value": "47k\u03a9"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-55\u2103~+155\u2103"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "100mW"
+    },
+    {
+     "name": "Type",
+     "value": "Thick Film Resistor"
+    },
+    {
+     "name": "Voltage-Supply(Max)",
+     "value": "75V"
+    },
+    {
+     "name": "Tolerance",
+     "value": "\u00b11%"
+    },
+    {
+     "name": "Temperature Coefficient",
+     "value": "\u00b1100ppm/\u2103"
+    }
+   ],
+   "price_at_build_qty": 0.0112,
+   "alternates": [],
+   "role": "*** ROFF2 - THE SHUNT-COMPENSATION RESISTOR, from VCC (pin 2, the internal 5 V regulator) to COFF, in parallel with ROFF1. This is the element that makes shunt-FET dimming linear per sec 8.3.4 / Figure 14 - DO NOT STRIP IT, and do NOT re-source it from +3V3 or any external rail: the datasheet warns of an internal COFF-to-VCC diode that can pull VCC up and start the device with VIN unpowered. Feeding it from the device's OWN VCC pin cannot do that. *** ARITHMETIC: eq 8, tOFF-Shunt = (dIL_pk-pk x L)/(VSHUNT + 0.7). VSHUNT is a DESIGN INPUT the datasheet does not supply - it is the shunt FET's RDS(on) drop at the inductor current. With the selected SSM3K2615R at 0.320 A peak: 0.122 V at its 380 mOhm typ, 0.186 V at its 580 mOhm max. That gives tOFF-Shunt = 5.15 us / 4.78 us, and eq 9, ROFF2 = -tOFF-Shunt/(COFF x ln(1 - 1/VCC)) with COFF = 470 pF and VCC = 5.0 V, gives 49.1 k / 45.5 k -> E24 47 k sits between them. BACK-CHECK AND SENSITIVITY (this is the number to watch): 47 k is exactly right at VSHUNT = 0.158 V, i.e. RDS(on) = 494 mOhm - almost dead centre of the Toshiba's 380-580 mOhm band. Shunted-state ripple error across that band is only -4 % / +3 %. At the pathological limits it is -18 % (VSHUNT = 0, ideal short) and +17 % (VSHUNT = 0.30 V). Those are dimming-LINEARITY errors, not stability errors. VCC's own 4.8-5.2 V regulation band contributes a further +4.7 % / -4.3 %. LOAD: ROFF2 draws 5.0 V / 47 k = 106 uA from VCC, against the datasheet's 500 uA external-load allowance - and each of the four channels has its own VCC pin, so it is 106 uA per device, not 424 uA on one."
   },
   {
    "ref_prefix_hint": "C",
@@ -2694,7 +2920,7 @@
     },
     {
      "name": "Tolerance",
-     "value": "±10%"
+     "value": "\u00b110%"
     },
     {
      "name": "Capacitance",
@@ -2760,11 +2986,11 @@
    "attributes": [
     {
      "name": "Resistance",
-     "value": "10Ω"
+     "value": "10\u03a9"
     },
     {
      "name": "Operating Temperature",
-     "value": "-55℃~+155℃"
+     "value": "-55\u2103~+155\u2103"
     },
     {
      "name": "Power(Watts)",
@@ -2780,11 +3006,11 @@
     },
     {
      "name": "Tolerance",
-     "value": "±1%"
+     "value": "\u00b11%"
     },
     {
      "name": "Temperature Coefficient",
-     "value": "±400ppm/℃"
+     "value": "\u00b1400ppm/\u2103"
     }
    ],
    "price_at_build_qty": 0.003,
@@ -2839,7 +3065,7 @@
    "attributes": [
     {
      "name": "Operating Temperature",
-     "value": "-40℃~+125℃"
+     "value": "-40\u2103~+125\u2103"
     },
     {
      "name": "Vos - Input Offset Voltage",
@@ -2855,7 +3081,7 @@
     },
     {
      "name": "Input Offset Voltage Drift(Vos TC)",
-     "value": "1.5uV/℃"
+     "value": "1.5uV/\u2103"
     },
     {
      "name": "Single Supply",
@@ -2957,7 +3183,7 @@
    "attributes": [
     {
      "name": "Operating Temperature",
-     "value": "-40℃~+125℃"
+     "value": "-40\u2103~+125\u2103"
     },
     {
      "name": "Steady State Current (Max)",
@@ -2969,27 +3195,27 @@
     },
     {
      "name": "Resistance Tolerance",
-     "value": "±1%"
+     "value": "\u00b11%"
     },
     {
      "name": "B Constant Tolerance",
-     "value": "±1%"
+     "value": "\u00b11%"
     },
     {
-     "name": "B Constant (25℃/50℃)",
+     "name": "B Constant (25\u2103/50\u2103)",
      "value": "3950K"
     },
     {
      "name": "Dissipation Factor",
-     "value": "1mW/℃"
+     "value": "1mW/\u2103"
     },
     {
      "name": "Power(Watts)",
      "value": "100mW"
     },
     {
-     "name": "Resistance @ 25℃",
-     "value": "10kΩ"
+     "name": "Resistance @ 25\u2103",
+     "value": "10k\u03a9"
     },
     {
      "name": "Length",
@@ -3071,11 +3297,11 @@
    "attributes": [
     {
      "name": "Resistance",
-     "value": "1kΩ"
+     "value": "1k\u03a9"
     },
     {
      "name": "Operating Temperature",
-     "value": "-55℃~+155℃"
+     "value": "-55\u2103~+155\u2103"
     },
     {
      "name": "Power(Watts)",
@@ -3091,11 +3317,11 @@
     },
     {
      "name": "Tolerance",
-     "value": "±1%"
+     "value": "\u00b11%"
     },
     {
      "name": "Temperature Coefficient",
-     "value": "±100ppm/℃"
+     "value": "\u00b1100ppm/\u2103"
     }
    ],
    "price_at_build_qty": 0.009,
@@ -3149,11 +3375,11 @@
    "attributes": [
     {
      "name": "Resistance",
-     "value": "2.7kΩ"
+     "value": "2.7k\u03a9"
     },
     {
      "name": "Operating Temperature",
-     "value": "-55℃~+155℃"
+     "value": "-55\u2103~+155\u2103"
     },
     {
      "name": "Power(Watts)",
@@ -3169,11 +3395,11 @@
     },
     {
      "name": "Tolerance",
-     "value": "±1%"
+     "value": "\u00b11%"
     },
     {
      "name": "Temperature Coefficient",
-     "value": "±100ppm/℃"
+     "value": "\u00b1100ppm/\u2103"
     }
    ],
    "price_at_build_qty": 0.0029,
@@ -3227,11 +3453,11 @@
    "attributes": [
     {
      "name": "Resistance",
-     "value": "27kΩ"
+     "value": "27k\u03a9"
     },
     {
      "name": "Operating Temperature",
-     "value": "-55℃~+155℃"
+     "value": "-55\u2103~+155\u2103"
     },
     {
      "name": "Power(Watts)",
@@ -3247,11 +3473,11 @@
     },
     {
      "name": "Tolerance",
-     "value": "±1%"
+     "value": "\u00b11%"
     },
     {
      "name": "Temperature Coefficient",
-     "value": "±100ppm/℃"
+     "value": "\u00b1100ppm/\u2103"
     }
    ],
    "price_at_build_qty": 0.0087,
@@ -3305,11 +3531,11 @@
    "attributes": [
     {
      "name": "Resistance",
-     "value": "1.2kΩ"
+     "value": "1.2k\u03a9"
     },
     {
      "name": "Operating Temperature",
-     "value": "-55℃~+155℃"
+     "value": "-55\u2103~+155\u2103"
     },
     {
      "name": "Power(Watts)",
@@ -3325,11 +3551,11 @@
     },
     {
      "name": "Tolerance",
-     "value": "±1%"
+     "value": "\u00b11%"
     },
     {
      "name": "Temperature Coefficient",
-     "value": "±100ppm/℃"
+     "value": "\u00b1100ppm/\u2103"
     }
    ],
    "price_at_build_qty": 0.0109,
@@ -3383,11 +3609,11 @@
    "attributes": [
     {
      "name": "Resistance",
-     "value": "1.6kΩ"
+     "value": "1.6k\u03a9"
     },
     {
      "name": "Operating Temperature",
-     "value": "-55℃~+155℃"
+     "value": "-55\u2103~+155\u2103"
     },
     {
      "name": "Power(Watts)",
@@ -3403,11 +3629,11 @@
     },
     {
      "name": "Tolerance",
-     "value": "±1%"
+     "value": "\u00b11%"
     },
     {
      "name": "Temperature Coefficient",
-     "value": "±100ppm/℃"
+     "value": "\u00b1100ppm/\u2103"
     }
    ],
    "price_at_build_qty": 0.0058,
@@ -3464,11 +3690,11 @@
    "attributes": [
     {
      "name": "Resistance",
-     "value": "56kΩ"
+     "value": "56k\u03a9"
     },
     {
      "name": "Operating Temperature",
-     "value": "-55℃~+155℃"
+     "value": "-55\u2103~+155\u2103"
     },
     {
      "name": "Power(Watts)",
@@ -3484,11 +3710,11 @@
     },
     {
      "name": "Tolerance",
-     "value": "±1%"
+     "value": "\u00b11%"
     },
     {
      "name": "Temperature Coefficient",
-     "value": "±100ppm/℃"
+     "value": "\u00b1100ppm/\u2103"
     }
    ],
    "price_at_build_qty": 0.0081,
@@ -3505,7 +3731,7 @@
    "refs": [
     "J5"
    ],
-   "package": "SMD,P=2mm,Surface Mount，Right Angle",
+   "package": "SMD,P=2mm,Surface Mount\uff0cRight Angle",
    "basic": false,
    "stock": 4412,
    "price": 0.5997,
@@ -3536,13 +3762,13 @@
     }
    ],
    "min_qty": 1,
-   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_JST-S10B-PH-SM4-TB-LF-SN_C265014.pdf",
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_JST-S10B-PH-SM4-TB-LF-SN_C265014.pdf",
    "url": "https://www.lcsc.com/product-detail/wire-to-board-connector_jst-s10b-ph-sm4-tb-lf-sn_C265014.html",
    "brand": "JST",
    "attributes": [
     {
      "name": "Operating Temperature",
-     "value": "-25℃~+85℃"
+     "value": "-25\u2103~+85\u2103"
     },
     {
      "name": "Number of Rows",
@@ -3630,8 +3856,7 @@
      "note": "SMD RIGHT-ANGLE (side-entry) PH-compatible, 849 in stock at $0.08. Side entry suits a top-edge harness better, but it is a generic part and a different footprint."
     }
    ],
-   "role": "The LED harness header: 4 anodes at 0.30 A each + 4 per-channel GND returns twisted with them + /NTC_LED + a DEDICATED NTC sense return that must not share a conductor with LED current. Ten ways, and blocks.md B6 records why the two-package emitter set does NOT add an eleventh. SMD CHOSEN OVER THE THT B10B-PH-K-S DELIBERATELY: the assembly plan allows exactly two hand operations (J3 and J4), and this keeps J5 on the PCBA line. Genuine JST, 2 A/contact, 100 V, with auxiliary solder tabs for retention. The mating PHR-10 housing carries the latch the ceiling-fixture requirement asks for (D-T12); housing and crimps are harness BOM, not board BOM. NO 48 V EVER REACHES THIS CONNECTOR (D-T13) - that is what keeps the 0.635 mm clearance rule, the 100 V capacitor rule and the 0805 resistor rule off the harness and off the module.",
-   "datasheet_original": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_JST-S10B-PH-SM4-TB-LF-SN_C265014.pdf"
+   "role": "The LED harness header: 4 anodes at 0.30 A each + 4 per-channel GND returns twisted with them + /NTC_LED + a DEDICATED NTC sense return that must not share a conductor with LED current. Ten ways, and blocks.md B6 records why the two-package emitter set does NOT add an eleventh. SMD CHOSEN OVER THE THT B10B-PH-K-S DELIBERATELY: the assembly plan allows exactly two hand operations (J3 and J4), and this keeps J5 on the PCBA line. Genuine JST, 2 A/contact, 100 V, with auxiliary solder tabs for retention. The mating PHR-10 housing carries the latch the ceiling-fixture requirement asks for (D-T12); housing and crimps are harness BOM, not board BOM. NO 48 V EVER REACHES THIS CONNECTOR (D-T13) - that is what keeps the 0.635 mm clearance rule, the 100 V capacitor rule and the 0805 resistor rule off the harness and off the module."
   },
   {
    "ref_prefix_hint": "D",
@@ -3677,7 +3902,7 @@
     }
    ],
    "min_qty": 1,
-   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_AnBon-SMF15A_C435484.pdf",
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_AnBon-SMF15A_C435484.pdf",
    "url": "https://www.lcsc.com/product-detail/esd-and-surge-protection-tvs-esd_anbon-smf15a_C435484.html",
    "brand": "AnBon",
    "attributes": [
@@ -3731,8 +3956,7 @@
      "note": "SOD-123FL, 75841 in stock, same footprint caveat."
     }
    ],
-   "role": "One clamp per channel at the header - one per CHANNEL, and the count does not change with the two-package emitter set because there are still four channels. 15 V standoff on branch A (33 V on branch B: same SOD-123 footprint, a BOM value change, not a layout change). The need is live-verified: the RGB 3-in-1 is 2 kV HBM per die and the 6070 single-colour parts are 3 kV, all with VR 5 V max and NO integral ESD diode, so a reverse-connected die is destroyed. 15 V standoff sits above the 12 V that an open-circuit CC buck drives its output toward, so the clamp never conducts in normal operation; Vbr 16.7 V, Vclamp 24.4 V at 8.2 A.",
-   "datasheet_original": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_AnBon-SMF15A_C435484.pdf"
+   "role": "One clamp per channel at the header - one per CHANNEL, and the count does not change with the two-package emitter set because there are still four channels. 15 V standoff on branch A (33 V on branch B: same SOD-123 footprint, a BOM value change, not a layout change). The need is live-verified: the RGB 3-in-1 is 2 kV HBM per die and the 6070 single-colour parts are 3 kV, all with VR 5 V max and NO integral ESD diode, so a reverse-connected die is destroyed. 15 V standoff sits above the 12 V that an open-circuit CC buck drives its output toward, so the clamp never conducts in normal operation; Vbr 16.7 V, Vclamp 24.4 V at 8.2 A."
   },
   {
    "ref_prefix_hint": "D",
@@ -3775,7 +3999,7 @@
     }
    ],
    "min_qty": 1,
-   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2410121258_XINGLIGHT-XL-HD6070RGBC-A46L-BD_C22434861.pdf",
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2410121258_XINGLIGHT-XL-HD6070RGBC-A46L-BD_C22434861.pdf",
    "url": "https://www.lcsc.com/product-detail/rgb-leds_xinglight-xl-hd6070rgbc-a46l-bd_C22434861.html",
    "brand": "XINGLIGHT",
    "attributes": [
@@ -3785,11 +4009,11 @@
     },
     {
      "name": "Viewing Angle",
-     "value": "140°"
+     "value": "140\u00b0"
     },
     {
      "name": "Antistatic Capacity",
-     "value": "R:2000V、G:2000V、B:2000V"
+     "value": "R:2000V\u3001G:2000V\u3001B:2000V"
     },
     {
      "name": "Height",
@@ -3801,7 +4025,7 @@
     },
     {
      "name": "Operating Temperature",
-     "value": "-40℃~+85℃"
+     "value": "-40\u2103~+85\u2103"
     },
     {
      "name": "Forward Voltage(Vf) - B",
@@ -3859,8 +4083,7 @@
    "price_at_build_qty": 0.3724,
    "qty_per_module": 4,
    "alternates": [],
-   "role": "MODULE BOM, NOT BOARD BOM - these mount on the off-board aluminium MCPCB (decisions.md D3 amended: structural after H1-Q1, because the enclosure conducts emitter heat through the wall and an on-board emitter cannot reach the wall bridge at all). 4 per fixture; R + G + B independently wired; 2S2P per colour at 150 mA/die. STOCK RE-VERIFIED LIVE THIS SESSION: 6461, unchanged from P2. Published Tj max 125 C; Rth(j-s) NOT PUBLISHED (the largest remaining thermal unknown, bounded at ~3 K by power_tree s6.3). Viewing angle 140 deg, which does NOT match the white part's 120 deg - a first-order PAR-REQ-15 driver. THE MODULE NTC GOES ON ONE OF THESE, not on a white package: 1.035 W against 0.383 W. AMD-01 IS LOAD-BEARING: buy all 8 fixtures' emitters plus spares in ONE transaction per part number before P5 and record the reel/lot code, or the +-5 % intra-family flux matching that the centroid arrangement needs stops working.",
-   "datasheet_original": "https://www.lcsc.com/datasheet/lcsc_datasheet_2410121258_XINGLIGHT-XL-HD6070RGBC-A46L-BD_C22434861.pdf"
+   "role": "MODULE BOM, NOT BOARD BOM - these mount on the off-board aluminium MCPCB (decisions.md D3 amended: structural after H1-Q1, because the enclosure conducts emitter heat through the wall and an on-board emitter cannot reach the wall bridge at all). 4 per fixture; R + G + B independently wired; 2S2P per colour at 150 mA/die. STOCK RE-VERIFIED LIVE THIS SESSION: 6461, unchanged from P2. Published Tj max 125 C; Rth(j-s) NOT PUBLISHED (the largest remaining thermal unknown, bounded at ~3 K by power_tree s6.3). Viewing angle 140 deg, which does NOT match the white part's 120 deg - a first-order PAR-REQ-15 driver. THE MODULE NTC GOES ON ONE OF THESE, not on a white package: 1.035 W against 0.383 W. AMD-01 IS LOAD-BEARING: buy all 8 fixtures' emitters plus spares in ONE transaction per part number before P5 and record the reel/lot code, or the +-5 % intra-family flux matching that the centroid arrangement needs stops working."
   },
   {
    "ref_prefix_hint": "D",
@@ -3903,13 +4126,13 @@
     }
    ],
    "min_qty": 1,
-   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2504281715_XINGLIGHT-XL-HD6070UWC-A4-BD_C48586656.pdf",
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2504281715_XINGLIGHT-XL-HD6070UWC-A4-BD_C48586656.pdf",
    "url": "https://www.lcsc.com/product-detail/led-indication-discrete_xinglight-xl-hd6070uwc-a4-bd_C48586656.html",
    "brand": "XINGLIGHT",
    "attributes": [
     {
      "name": "Operating Temperature",
-     "value": "-40℃~+85℃"
+     "value": "-40\u2103~+85\u2103"
     },
     {
      "name": "Color Temperature",
@@ -3917,7 +4140,7 @@
     },
     {
      "name": "Viewing Angle",
-     "value": "120°"
+     "value": "120\u00b0"
     },
     {
      "name": "Forward Current",
@@ -3953,8 +4176,7 @@
      "note": "ams-OSRAM, RE-VERIFIED LIVE THIS SESSION: 395 in stock at $0.879 - 12x the 32 needed, which is thin. THE ONLY in-stock white with a PUBLISHED Rth. NOT a co-equal candidate: a 1515 body, so it shares neither the 6070 land pattern nor the beam nor the height, and the whole stackup.md s5.2 checkerboard geometry would have to be re-derived. It is the fallback if the XINGLIGHT white's unpublished Rth turns out to be the problem."
     }
    ],
-   "role": "MODULE BOM, NOT BOARD BOM. 4 per fixture, 2S2P at 150 mA/die. STOCK RE-VERIFIED LIVE THIS SESSION: 1790, unchanged from P2 - 56x the 32 needed. Published Tj max 120 C; Rth(j-s) NOT PUBLISHED. Viewing angle 120 deg against the RGB part's 140 deg, live-verified as a white-versus-colour split INSIDE the family rather than one bad record. SINGLE-VENDOR RISK STANDS: both emitters are XINGLIGHT, and the P1 catalogue sweep found no in-stock second source for a power RGB multi-die at LCSC.",
-   "datasheet_original": "https://www.lcsc.com/datasheet/lcsc_datasheet_2504281715_XINGLIGHT-XL-HD6070UWC-A4-BD_C48586656.pdf"
+   "role": "MODULE BOM, NOT BOARD BOM. 4 per fixture, 2S2P at 150 mA/die. STOCK RE-VERIFIED LIVE THIS SESSION: 1790, unchanged from P2 - 56x the 32 needed. Published Tj max 120 C; Rth(j-s) NOT PUBLISHED. Viewing angle 120 deg against the RGB part's 140 deg, live-verified as a white-versus-colour split INSIDE the family rather than one bad record. SINGLE-VENDOR RISK STANDS: both emitters are XINGLIGHT, and the P1 catalogue sweep found no in-stock second source for a power RGB multi-die at LCSC."
   },
   {
    "ref_prefix_hint": "R",
@@ -4003,11 +4225,11 @@
    "attributes": [
     {
      "name": "Resistance",
-     "value": "1.5Ω"
+     "value": "1.5\u03a9"
     },
     {
      "name": "Operating Temperature",
-     "value": "-55℃~+155℃"
+     "value": "-55\u2103~+155\u2103"
     },
     {
      "name": "Power(Watts)",
@@ -4023,11 +4245,11 @@
     },
     {
      "name": "Tolerance",
-     "value": "±1%"
+     "value": "\u00b11%"
     },
     {
      "name": "Temperature Coefficient",
-     "value": "±200ppm/℃"
+     "value": "\u00b1200ppm/\u2103"
     }
    ],
    "price_at_build_qty": 0.021,

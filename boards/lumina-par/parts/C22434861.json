@@ -1,0 +1,56 @@
+{
+  "mpn": "XL-HD6070RGBC-A46L-BD",
+  "lcsc": "C22434861",
+  "package": "XINGLIGHT 6070 bracket, 6-lead SMD high-power LED, dome lens; body dia 8.0 mm, lead span 14.5 mm, height 5.15 mm (datasheet p1, p9)",
+  "description": "XINGLIGHT 6070 dome-lens RGB 3-in-1 high-power LED, nominal 3 W. Three fully independent dies (no common anode/cathode), 6 terminals. Viewing angle 2theta1/2 = 140 deg typ. Off-board emitter (MCPCB module), not a PCB part.",
+  "pinout": [
+    {"pin": "1", "name": "B_ANODE", "type": "passive", "notes": "Blue die anode (+). Marked '+' side of the package (p9 outline and polarity diagram)."},
+    {"pin": "2", "name": "B_CATHODE", "type": "passive", "notes": "Blue die cathode (-)."},
+    {"pin": "3", "name": "G_ANODE", "type": "passive", "notes": "Green die anode (+)."},
+    {"pin": "4", "name": "G_CATHODE", "type": "passive", "notes": "Green die cathode (-)."},
+    {"pin": "5", "name": "R_ANODE", "type": "passive", "notes": "Red die anode (+)."},
+    {"pin": "6", "name": "R_CATHODE", "type": "passive", "notes": "Red die cathode (-)."}
+  ],
+  "decoupling": [],
+  "land_pattern": {
+    "package": "6070 bracket 6-lead (3 pads per side)",
+    "pad_count": 6,
+    "pitch_mm": 1.7,
+    "pad_size_mm": [2.5, 1.2],
+    "row_spacing_mm": 12.0,
+    "pin1": "1",
+    "notes": "From the Recommended Soldering Pattern, datasheet p9. PRINTED dimensions: pad width 2.5 mm; pad-to-pad pitch 1.7 mm; overall span across the outer pad edges 14.5 mm; central circular thermal land dia 6.0 mm. Pad HEIGHT is not printed - 1.2 mm is scaled off the drawing (2.5 mm pad width and the dia 6.0 mm circle both confirm the scale to within 1 percent); the package lead itself is dimensioned 1.0 mm wide on the outline view. row_spacing_mm 12.0 = 14.5 minus one pad width, i.e. pad centre to pad centre across the two rows (scales to 11.97 mm). Pads 1/3/5 on the '+' (anode) side, 2/4/6 opposite. Package tolerance +/-0.25 mm unless noted."
+  },
+  "exposed_pad": {
+    "present": true,
+    "thermal_vias": 0
+  },
+  "layout_notes": [
+    "OPTICAL/ELECTRICAL TABLE (p4, Ta=25 C, IF=350 mA per die), min/typ/max: VF red 1.8 / - / 2.4 V; VF green 2.8 / - / 3.4 V; VF blue 2.8 / - / 3.4 V (no typ column value is given for VF). Luminous flux red 45/55/60 lm; green 80/90/100 lm; blue 13/20/27 lm. Dominant wavelength red 620/625/630 nm; green 520/525/530 nm; blue 455/460/465 nm. Spectral half width typ: red 20 nm, green 30 nm, blue 25 nm. Reverse current Ir 10 uA max at VR=5 V.",
+    "VIEWING ANGLE (p4): symbol 2Theta1/2, value 140 deg TYP, test condition IF=350 mA. This is the FULL angle between the two 50-percent-intensity directions (half angle 70 deg). Page 1 repeats 'Luminous Angle: 140 degrees'. A polar Beam Pattern plot is given on p7 (relative intensity 0-100 vs 0/30/60 deg); digitising it puts the 50-percent crossing near 60 deg half angle (about 120-125 deg full), i.e. the plot reads slightly narrower than the tabulated 140 deg typ.",
+    "BINNING (p5): brightness bins H8 13-17, H9 17-20, J1 20-23, J2 23-27, J6 45-52, J7 52-60, K1 80-90, K2 90-100 lm at 350 mA. Voltage bins N12-7 1.8-2.0, N12-8 2.0-2.2, N13-3 2.8-3.0, N13-4 3.0-3.2, N13-5 3.2-3.4 V at 350 mA. Wavelength bins HB03 455-460, HB04 460-465, HR02 620-625, HR03 625-630, HG03 520-525, HG04 525-530 nm.",
+    "DERATING (p7, 'Ambient Temperature vs Forward Current'): IF flat at 350 mA up to TC = 40 C, then derates linearly to about 110 mA at TC = 80 C. NOTE the plot title says 'Ambient Temperature' but the x axis is labelled TC (case/solder point), so the derating knee is a case temperature, not an ambient temperature.",
+    "DATASHEET INTERNAL INCONSISTENCY: PD abs max is 1000 mW per die, but the rated drive of 350 mA at the green/blue VF max of 3.4 V is 1.19 W, and even at a nominal 3.2 V it is 1.12 W - both exceed the stated 1000 mW PD limit. Only the red die (2.4 V max x 0.35 A = 0.84 W) fits. Treat 350 mA on green/blue as already at or past the published dissipation ceiling.",
+    "NO HEADROOM AT RATED CURRENT: the abs-max continuous forward current (350 mA per die) is the same current as the optical test condition, so the published photometry is measured at the absolute maximum. Any design margin has to come from driving below 350 mA.",
+    "DRIVE TOPOLOGY (p16, Design Consideration): the datasheet requires per-die current regulation (its circuit A - an individual resistor/regulator in each die's branch) and explicitly does NOT recommend constant-voltage drive of paralleled dies (its circuit B), because VF spread makes the current diverge and can push a die past abs max.",
+    "PULSE CONDITION (p3 footnote): pulse ratings apply only for pulse width <= 0.1 ms and duty <= 1/10.",
+    "THERMAL: no thermal resistance is published anywhere in this datasheet - neither Rth junction-to-solder-point, junction-to-case, nor junction-to-ambient. Tj max 125 C is given with no way to compute Tj from board temperature. Reliability testing is quoted at Tj = 140 C x 1000 hrs (p8), above the 125 C abs max.",
+    "PROCESS: MSL 3 (p1). Reflow lead-free peak 220 C / 6 s max; leaded 180 C / 10 s max; preheat 120-200 C for 120 s max (p3, p12). Reflow ONCE ONLY. Manual soldering 300 C / 3 s, one time per terminal, iron under 60 W. After opening the moisture bag store at <=30 C / <=10 percent RH and solder within 168 h; bake 60 +/-5 C for 24 h if exceeded (p14).",
+    "ESD: threshold 2000 V (p3). p15 warns that static or surge damages the dies (symptom: VF drops, or the die will not light below 20 mA). The datasheet prescribes ESD-controlled handling only; it does NOT call for any external protection device (no TVS/Zener is specified)."
+  ],
+  "abs_max": [
+    {"param": "PD power dissipation, red die", "value": 1000, "unit": "mW"},
+    {"param": "PD power dissipation, green die", "value": 1000, "unit": "mW"},
+    {"param": "PD power dissipation, blue die", "value": 1000, "unit": "mW"},
+    {"param": "IF continuous forward current (datasheet prints '350*3', i.e. 350 mA per die x 3 dies)", "value": 350, "unit": "mA per die"},
+    {"param": "VR reverse voltage", "value": 5, "unit": "V"},
+    {"param": "Topr operating temperature", "value": "-40 to +85", "unit": "C"},
+    {"param": "Tstg storage temperature", "value": "-40 to +85", "unit": "C"},
+    {"param": "Tj junction temperature", "value": 125, "unit": "C"},
+    {"param": "ESD electrostatic discharge threshold", "value": 2000, "unit": "V"},
+    {"param": "Tsol reflow soldering", "value": "220 C, <=6 s", "unit": "C/s"},
+    {"param": "Tsol manual soldering", "value": "300 C, 3 s", "unit": "C/s"},
+    {"param": "pulse condition for pulsed ratings", "value": "pulse width <=0.1 ms, duty <=1/10", "unit": "-"}
+  ],
+  "source_pdf": "parts/C22434861.pdf"
+}

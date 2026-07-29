@@ -3,7 +3,7 @@
  "board": "lumina-par",
  "workspace": "boards/lumina-par",
  "created": "2026-07-28T15:00:15",
- "updated": "2026-07-28T21:27:52",
+ "updated": "2026-07-28T21:48:33",
  "phase": "P3",
  "gates": {},
  "human": {
@@ -470,6 +470,70 @@
    "issue": "power_tree.md sustained-power table is written at 300 mA/channel but the board now BUILDS at 275 mA (0.75 ohm sense)",
    "consequence": "the table is ~8% conservative",
    "action": "neither the design document nor P9 may quote 300 mA as-built; correct before H2 sign-off"
+  },
+  {
+   "ts": "2026-07-28T21:38:21",
+   "event": "p4_wiring_rules",
+   "LM339LV": "wire by PIN NUMBER not channel name - datasheet transposes OUT labels between Fig 5-3 and Table 5.2. Groupings: out1<->in6/7, out2<->in4/5, out13<->in10/11, out14<->in8/9",
+   "LM339LV_confirmed": "outputs ARE open-drain sinking-only and explicitly wire-OR-able (4 independent statements) - the FAULT architecture is SAFE; inputs ARE rail-to-rail",
+   "LM339LV_no_hysteresis": "external hysteresis mandatory - sheets.md R405-R412 already allocates it",
+   "LM339LV_POR": "outputs Hi-Z up to 30 us after V+ crosses 1.5 V; FAULT reads no-fault in that window",
+   "M24C32": "tie E0/E1/E2 (pins 1/2/3) to VSS for 0x50; WC (pin 7) is ACTIVE-HIGH write protect so tie to VSS to allow writes",
+   "M24C32_landpattern": "datasheet has NO recommended land pattern, only the package outline - fp_verify cannot check pad size for this part; use standard IPC-7351 SOIC-8 3.9x4.9"
+  },
+  {
+   "ts": "2026-07-28T21:38:57",
+   "event": "logic_extraction_facts",
+   "SN74LVC00A_erratum": "Pin Functions table TYPE/DESCRIPTION columns are shifted one row from 3Y down (prints 3Y as Power Pin, VCC as Gate 3 output). Pin numbers and the package diagram are correct - wire from the diagram.",
+   "SN74LVC00A_supply": "VCC 1.65-3.6 V ONLY, not 5 V rated (inputs are 5.5 V tolerant). Fine at 3.3 V.",
+   "drive_at_3v3": "all three parts +-24 mA, VIH 2.0 / VIL 0.8",
+   "tpd": "LVC00A 3.5 ns typ / 4.3 ns max; LVC14A 3.2 typ / 6.4 max (~1.5x slower)",
+   "GAP_for_timing_budget": "NONE of the three logic datasheets specifies an output rise/fall or slew rate at any VCC - only tpd. The shunt-FET gate-edge estimate (Ciss 150 pF x 150 ohm = tau ~22 ns) is therefore NOT datasheet-grounded on the driver side; it is bounded only by the tpd test load (RL 500 ohm, CL 50 pF). MUST become a bench measurement at P8 against the 141 ns PAR-REQ-01 pulse - flag at H2."
+  },
+  {
+   "ts": "2026-07-28T21:43:10",
+   "event": "open8_REFUTED",
+   "verdict": "NO beam-angle mismatch exists. OPEN-8 is closed as a catalogue error, not a design defect.",
+   "evidence": "BOTH datasheets print viewing angle as symbol 2Theta1/2 = 140 deg TYP in the optical-electrical table (RGB p4 at 350 mA, white p4 at 700 mA) and repeat Luminous Angle 140 deg on p1. Same symbol, same definition (full angle between 50% intensity directions), same value. Radiation plots corroborate (~60 and ~62-66 deg half angle).",
+   "source_of_error": "the LCSC parametric record claims 120 deg for the white and CONTRADICTS ITS OWN DATASHEET",
+   "consequence": "any diffuser sized on a 140/120 delta is sized on a catalogue error; the P2 delta optical spec must be re-derived. The diffuser is still required for PAR-REQ-15 (four spatially separate emitters must mix) but its required strength - and therefore its 30-45% flux cost - may drop.",
+   "lesson": "the P2 delta cross-checked three sibling parts and still got it wrong, because all the siblings were catalogue records too. Only the datasheet settles it."
+  },
+  {
+   "ts": "2026-07-28T21:43:10",
+   "event": "emitter_extraction_risks",
+   "rth_still_absent": "CONFIRMED ABSENT from BOTH datasheets - no Rth j-s, j-c or j-a anywhere. Tj max (125/120 C) is published but UNUSABLE for board-temperature calculation without Rth. The H1-Q2 rationale (escape an assumed 12 K/W from a vendor publishing neither Rth nor Tj) is therefore only HALF satisfied - Tj is now published, Rth is still not.",
+   "topr_confirmed": "both -40..+85 C, so the ICD s7.6 ambient dispute (CR-6) still binds",
+   "rgb_datasheet_contradiction": "PD abs max 1000 mW/die but 350 mA x 3.4 V max = 1.19 W, so green and blue at RATED current exceed their own dissipation ceiling. Our 150 mA/die x 3.4 V = 0.51 W is comfortably clear.",
+   "zero_headroom": "in BOTH parts the rated/tested current IS the absolute maximum - 350 mA RGB, 700 mA white. Running at 150 mA/die is what buys the margin.",
+   "white_reflow_inconsistent": "abs-max says 200 C/5 s, p1 and p11 say 220 C/6 s - tighter figure recorded"
+  },
+  {
+   "ts": "2026-07-28T21:43:10",
+   "event": "driver_coff_network_MISSING",
+   "severity": "blocking for P4 - required parts absent from architecture and parts.json",
+   "finding": "TPS92515HV sec 8.3.4: with a shunt FET across the string the output drops below the 1 V VOFT threshold, the OFF-timer cannot trip, and every cycle stretches to tOFF(max) - ripple and dimming linearity are LOST (Figure 43 shows the failure)",
+   "fix_per_datasheet": "ROFF2 from VCC (pin 2) to COFF (pin 1) in PARALLEL with ROFF1 from VLED, sized by Eq 8 tOFF_shunt = (dIL_pp x L)/(VSHUNT + 0.7) and Eq 9 ROFF2 = -tOFF_shunt/(COFF x ln[1 - 1/VCC]). Figure 14 topology.",
+   "missing_parts": "per channel: COFF capacitor + ROFF1 + ROFF2 = 3 parts x 4 channels = 12 parts not in sheets.md s1.3 nor parts.json",
+   "why_it_matters": "the shunt-FET topology is the ONLY thing closing the PAR-REQ-01 141 ns timing wall; without this network the topology does not work as intended",
+   "also": "PWM pin abs max is 5.5 V, NOT 12 V tolerant - fine from 3.3 V logic but a reviewer must not route 12 V near it"
+  },
+  {
+   "ts": "2026-07-28T21:48:33",
+   "event": "icd_citation_defects_for_carrier",
+   "note": "three unsourced/miscited numbers in frozen ICD-01 s4/s5, found by extracting the CONNFLY DS1023 datasheet. None changes this board design, but all three are load-bearing citations in a frozen document and the carrier owner should correct them.",
+   "d1_annulus": "ICD mandates a 1.70 mm annulus / 0.300 mm per-side ring and derives the 0.84 mm pad-to-pad creepage gap from it. The DS1023 datasheet publishes NO pad diameter, NO annular ring and NO mask relief anywhere. The annulus is entirely an ICD construction, not a vendor figure - fine as a design choice, but it should not read as vendor-sourced.",
+   "d2_600V": "ICD s5 lists 600 V as the socket rated WORKING voltage. The datasheet states only Dielectric Withstanding Voltage 600 V AC rms for 1 minute - a hipot number - and gives NO rated working voltage. Harmless in effect (the binding figure is the male 250 V against a 57 V application) but the citation is wrong.",
+   "d3_3A": "ICD s4 builds the entire per-pin current budget on 3 A/contact derated x0.60 = 1.8 A/pin. The datasheet prints Current Rating: 3A with NO per-contact qualifier. Per-contact is the industry convention and is almost certainly correct, but it is an inference, not a quote, and it is the base of the whole margin proof.",
+   "d4_drill": "vendor recommends 1.02 mm drill; ICD mandates 1.10 mm. ICD wins and already records the delta, but the hole is 0.08 mm looser than vendor guidance for a 0.60 x 0.40 mm tail."
+  },
+  {
+   "ts": "2026-07-28T21:48:33",
+   "event": "connector_p4_actions",
+   "reverse_mount_unsupported": "the DS1023 part-number code offers only S = Straight type, drawn as a TOP-side straight THT socket. No down-facing land pattern, keep-out or standoff is published. The hole grid is symmetric so the land pattern itself is unchanged, but PIN-1 MIRRORING, silkscreen side and courtyard are the designers call and must be handled explicitly at P4/P6 - this is exactly the mated-view check the ICD warns about.",
+   "stack_height_ungrounded": "no mating header, no mated cross-section, no insertion depth in the PDF. ICD 11.0 mm (2.5 male insulator + 8.5 socket) CANNOT be confirmed from this datasheet; only the 8.5 mm socket term is grounded.",
+   "no_pin_numbers": "neither DS1023 view carries pin numbers or a pin-1 marker - numbering must come from ICD-01 s3.1/s3.2",
+   "J5_side_entry": "S10B-PH-SM4-TB is SIDE ENTRY (B-prefix = top entry). J5 sits on the top edge feeding an LED module above the board - confirm side entry is the intended harness exit direction at P4, or switch to the top-entry variant."
   }
  ]
 }

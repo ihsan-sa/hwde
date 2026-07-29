@@ -1,0 +1,73 @@
+{
+ "mpn": "SN74LVC14ADR",
+ "lcsc": "C133541",
+ "package": "SOIC-14 (TI D, R-PDSO-G14), body 8.65 mm x 6.00 mm nom (incl. leads)",
+ "description": "Hex Schmitt-trigger inverter, 1.65 V to 3.6 V VCC, 5.5 V tolerant inputs, 24 mA output drive at 3.3 V (TI SCAS285AA, Jun 2015).",
+ "pinout": [
+  {"pin": "1", "name": "1A", "type": "input", "notes": "Inverter 1 data input (Pin Functions table sec 6, SOIC column, and the D-package Top View diagram)."},
+  {"pin": "2", "name": "1Y", "type": "output", "notes": "Inverter 1 data output, 1Y = NOT(1A)."},
+  {"pin": "3", "name": "2A", "type": "input", "notes": "Inverter 2 data input."},
+  {"pin": "4", "name": "2Y", "type": "output", "notes": "Inverter 2 data output."},
+  {"pin": "5", "name": "3A", "type": "input", "notes": "Inverter 3 data input."},
+  {"pin": "6", "name": "3Y", "type": "output", "notes": "Inverter 3 data output."},
+  {"pin": "7", "name": "GND", "type": "ground", "notes": "Ground."},
+  {"pin": "8", "name": "4Y", "type": "output", "notes": "Inverter 4 data output."},
+  {"pin": "9", "name": "4A", "type": "input", "notes": "Inverter 4 data input."},
+  {"pin": "10", "name": "5Y", "type": "output", "notes": "Inverter 5 data output."},
+  {"pin": "11", "name": "5A", "type": "input", "notes": "Inverter 5 data input."},
+  {"pin": "12", "name": "6Y", "type": "output", "notes": "Inverter 6 data output."},
+  {"pin": "13", "name": "6A", "type": "input", "notes": "Inverter 6 data input."},
+  {"pin": "14", "name": "VCC", "type": "power_in", "notes": "Power, 1.65 V to 3.6 V operating."}
+ ],
+ "decoupling": [
+  {
+   "pins": ["14"],
+   "value": "0.1 uF",
+   "placement": "as close to the VCC terminal as possible",
+   "notes": "Sec 11 Power Supply Recommendations: single-supply device -> 0.1 uF bypass; 0.1 uF + 1 uF in parallel commonly used to reject different noise frequencies."
+  }
+ ],
+ "land_pattern": {
+  "package": "SOIC-14 (D, R-PDSO-G14)",
+  "pad_count": 14,
+  "pitch_mm": 1.27,
+  "pad_size_mm": [0.6, 1.55],
+  "row_spacing_mm": 5.4,
+  "pin1": "1",
+  "notes": "From the D (R-PDSO-G14) LAND PATTERN DATA sheet (drawing 4211283-3/E, 08/12), Example Board Layout: 12 x 1.27 mm pitch (7 pads per row), 5.40 mm between the centerlines of the two pad rows. Pad geometry 0.60 mm x 1.55 mm, non-soldermask-defined with solder mask opening 0.07 mm larger all around. Stencil openings 14 x 0.55 mm x 1.50 mm. Identical to the SN74LVC00AD land pattern (same TI drawing)."
+ },
+ "exposed_pad": {"present": false},
+ "layout_notes": [
+  "HYSTERESIS (Electrical Characteristics 7.7, SN74LVC14A) at VCC = 3 V, all temperature ranges: VT+ = 0.9 V min / 2 V max; VT- = 0.6 V min / 1.5 V max; hysteresis dVT = (VT+ - VT-) = 0.3 V min / 1.2 V max. At VCC = 2.7 V: VT+ 0.8-2 V, VT- 0.4-1.4 V, dVT 0.3-1.1 V. At VCC = 3.6 V: VT+ 1.1-2 V, VT- 0.8-1.7 V, dVT 0.3-1.2 V. These are the specified input thresholds - the datasheet gives NO VIH/VIL table for this Schmitt-trigger part.",
+  "Unused inputs must never float: all unused inputs must be held at VCC or GND (Recommended Operating Conditions note 1; sec 12.1 Layout Guidelines).",
+  "Bypass: 0.1 uF as close to the VCC terminal as possible; 0.1 uF + 1 uF in parallel commonly used (sec 11).",
+  "Output drive at 3.3 V (Recommended Operating Conditions 7.4, VCC = 3 V): IOH = -24 mA, IOL = 24 mA (all specified temperature ranges).",
+  "Output levels at VCC = 3 V (Electrical Characteristics 7.7): VOH >= 2.4 V at IOH = -12 mA and >= 2.2 V at IOH = -24 mA over -40 to 85 C (2.3 V typ at 25 C, 2.0 V over -40 to 125 C); VOL <= 0.55 V at IOL = 24 mA over -40 to 85 C (0.8 V over -40 to 125 C).",
+  "Propagation delay at VCC = 3.3 V +/- 0.3 V (Switching Characteristics 7.9, test load RL = 500 ohm, VLOAD = 6 V, CL = 50 pF, VM = 1.5 V, input tr/tf <= 2.5 ns, Figure 2): tpd A -> Y = 1 ns min, 3.2 ns typ at 25 C, 6.2 ns max at 25 C, 6.4 ns max over -40 to 85 C, 8 ns max over -40 to 125 C. Output-to-output skew tsk(o) = 1.5 ns max at 3.3 V. NOTE this is roughly 1.5x slower than the SN74LVC00A NAND (4.3 ns max at 3.3 V).",
+  "The datasheet does NOT specify an output rise/fall (transition) time or slew rate - only tpd and tsk(o) are characterized.",
+  "Supply range 1.65 V to 3.6 V (SN74LVC14A); 3.3 V +/- 0.3 V is a fully specified column in 7.9. VCC MAX IS 3.6 V - not rated for a 5 V rail (inputs/outputs tolerate 5.5 V per Recommended Operating Conditions VI = 0 to 5.5 V; sec 10.2.2 text conflicts and says 3.6 V, see OPEN).",
+  "Design limits (sec 10.2.2): load currents should not exceed +/-50 mA.",
+  "Cpd (power dissipation capacitance) = 15 pF typ at VCC = 3.3 V, f = 10 MHz, TA = 25 C (sec 7.10). Ci = 5 pF at 3.3 V.",
+  "Function table, each inverter (Table 1): A = H -> Y = L; A = L -> Y = H.",
+  "Thermal: RthJA = 86 C/W for the D (SOIC-14) package (sec 7.5).",
+  "Populate option (board-level, not from the datasheet): this part is a DNP alternative; the footprint must still be a correct SOIC-14 D land pattern."
+ ],
+ "abs_max": [
+  {"param": "VCC supply voltage", "value": "-0.5 to 6.5", "unit": "V"},
+  {"param": "VI input voltage", "value": "-0.5 to 6.5", "unit": "V"},
+  {"param": "VO output voltage", "value": "-0.5 to VCC + 0.5", "unit": "V"},
+  {"param": "IIK input clamp current (VI < 0)", "value": -50, "unit": "mA"},
+  {"param": "IOK output clamp current (VO < 0)", "value": -50, "unit": "mA"},
+  {"param": "IO continuous output current", "value": "+/-50", "unit": "mA"},
+  {"param": "Continuous current through VCC or GND", "value": "+/-100", "unit": "mA"},
+  {"param": "Ptot power dissipation, TA = -40 to 125 C (D package derates 8 mW/K above 70 C)", "value": 500, "unit": "mW"},
+  {"param": "Tstg storage temperature", "value": "-65 to 150", "unit": "degC"},
+  {"param": "V(ESD) HBM per ANSI/ESDA/JEDEC JS-001", "value": 2000, "unit": "V"},
+  {"param": "V(ESD) CDM per JESD22-C101, all pins", "value": 1000, "unit": "V"},
+  {"param": "V(ESD) Machine Model", "value": 200, "unit": "V"},
+  {"param": "VCC supply voltage, operating (Recommended Operating Conditions, SN74LVC14A)", "value": "1.65 to 3.6", "unit": "V"},
+  {"param": "VI input voltage (Recommended Operating Conditions)", "value": "0 to 5.5", "unit": "V"},
+  {"param": "TA operating free-air temperature (specified ranges)", "value": "-40 to 85 and -40 to 125", "unit": "degC"}
+ ],
+ "source_pdf": "parts/C133541.pdf"
+}

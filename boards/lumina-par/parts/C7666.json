@@ -1,0 +1,61 @@
+{
+ "mpn": "SN74LVC1G08DBVR",
+ "lcsc": "C7666",
+ "package": "SOT-23-5 (TI DBV, R-PDSO-G5), body 2.9 mm x 1.6 mm",
+ "description": "Single 2-input positive-AND gate, 1.65 V to 5.5 V VCC, 5.5 V tolerant inputs, +/-24 mA output drive at 3.3 V (TI SCES217Y, Apr 2014).",
+ "pinout": [
+  {"pin": "1", "name": "A", "type": "input", "notes": "Gate input A (DBV/DCK/DRL/YZP column of the Pin Functions table, sec 5)."},
+  {"pin": "2", "name": "B", "type": "input", "notes": "Gate input B."},
+  {"pin": "3", "name": "GND", "type": "ground", "notes": "Ground."},
+  {"pin": "4", "name": "Y", "type": "output", "notes": "Gate output, Y = A AND B."},
+  {"pin": "5", "name": "VCC", "type": "power_in", "notes": "Power pin, 1.65 V to 5.5 V operating."}
+ ],
+ "decoupling": [
+  {
+   "pins": ["5"],
+   "value": "0.1 uF",
+   "placement": "as close to the VCC pin as possible",
+   "notes": "Sec 10 Power Supply Recommendations: single-supply device -> 0.1 uF bypass recommended; 0.1 uF and 1 uF in parallel are commonly used to reject different noise frequencies."
+  }
+ ],
+ "land_pattern": {
+  "package": "SOT-23-5 (DBV, R-PDSO-G5)",
+  "pad_count": 5,
+  "pitch_mm": 0.95,
+  "pad_size_mm": [0.6, 1.05],
+  "row_spacing_mm": 2.7,
+  "pin1": "1",
+  "notes": "From the DBV LAND PATTERN DATA sheet (drawing 4209593-3/C, 08/11), Example Board Layout: 0.95 mm pad pitch, 1.90 mm between the two pads of the 2-pad row (pins 4 and 5), 2.7 mm between the centerlines of the 3-pad and 2-pad rows. Pad geometry 0.6 mm x 1.05 mm, non-soldermask-defined with solder mask opening 0.07 mm larger all around. Stencil openings 0.55 mm x 1.00 mm at 0.127 mm stencil thickness. IPC-7351 recommended for alternate designs."
+ },
+ "exposed_pad": {"present": false},
+ "layout_notes": [
+  "Unused inputs must never float: all unused inputs must be held at VCC or GND (Recommended Operating Conditions note 1; sec 11.1 Layout Guidelines).",
+  "Bypass: 0.1 uF as close to the VCC pin as possible; 0.1 uF + 1 uF in parallel commonly used (sec 10).",
+  "Output drive at 3.3 V (Recommended Operating Conditions, VCC = 3 V): IOH = -24 mA, IOL = 24 mA. Feature list states +/-24 mA output drive at 3.3 V.",
+  "Output levels at VCC = 3 V (Electrical Characteristics 6.5): VOH >= 2.4 V at IOH = -16 mA and >= 2.3 V at IOH = -24 mA; VOL <= 0.4 V at IOL = 16 mA and <= 0.55 V at IOL = 24 mA (same limits for -40 to 85 C and -40 to 125 C).",
+  "Input thresholds at VCC = 3 V to 3.6 V (Recommended Operating Conditions): VIH min 2 V, VIL max 0.8 V. Inputs accept up to 5.5 V at any valid VCC.",
+  "Propagation delay at 3.3 V: sec 6.6 (CL = 15 pF, RL = 1 Mohm, Figure 3) tpd A or B -> Y = 0.8 ns min / 3.6 ns max over -40 to 85 C. Sec 6.8 (CL = 50 pF, RL = 500 ohm, VLOAD = 6 V, VM = 1.5 V, Figure 4) tpd = 1 ns min / 4.5 ns max over -40 to 85 C and 1 ns min / 6 ns max over -40 to 125 C.",
+  "Input edge-rate limit: dt/dv <= 10 ns/V at VCC = 3.3 V +/- 0.3 V (Recommended Operating Conditions). Test-circuit input edges are tr/tf <= 2.5 ns at 3.3 V.",
+  "The datasheet does NOT specify an output rise/fall (transition) time or slew rate - only tpd is characterized. Sec 9.2.1 warns the high drive creates fast edges into light loads, so routing and load conditions must be considered to prevent ringing.",
+  "3.3 V operation is fully specified (dedicated 3.3 V +/- 0.3 V columns in 6.6/6.8 and VCC = 3 V rows in 6.3/6.5). Full supply range 1.65 V to 5.5 V; data retention only down to 1.5 V.",
+  "Cpd (power dissipation capacitance) = 26 pF typ at VCC = 3.3 V, f = 10 MHz, TA = 25 C (sec 6.9).",
+  "Function table (sec 8.4): Y = H only when A = H and B = H; any input L forces Y = L.",
+  "Ci (input capacitance) = 4 pF max at VCC = 3.3 V. Device is Ioff-protected for partial-power-down (outputs disabled when VCC = 0 V)."
+ ],
+ "abs_max": [
+  {"param": "VCC supply voltage range", "value": "-0.5 to 6.5", "unit": "V"},
+  {"param": "VI input voltage range", "value": "-0.5 to 6.5", "unit": "V"},
+  {"param": "VO voltage applied to any output in the high-impedance or power-off state", "value": "-0.5 to 6.5", "unit": "V"},
+  {"param": "VO voltage applied to any output in the high or low state", "value": "-0.5 to VCC + 0.5", "unit": "V"},
+  {"param": "IIK input clamp current (VI < 0)", "value": -50, "unit": "mA"},
+  {"param": "IOK output clamp current (VO < 0)", "value": -50, "unit": "mA"},
+  {"param": "IO continuous output current", "value": "+/-50", "unit": "mA"},
+  {"param": "Continuous current through VCC or GND", "value": "+/-100", "unit": "mA"},
+  {"param": "Tstg storage temperature range (Handling Ratings)", "value": "-65 to 150", "unit": "degC"},
+  {"param": "V(ESD) HBM per ANSI/ESDA/JEDEC JS-001, all pins", "value": 2000, "unit": "V"},
+  {"param": "V(ESD) CDM per JESD22-C101, all pins", "value": 1000, "unit": "V"},
+  {"param": "VCC supply voltage, operating (Recommended Operating Conditions)", "value": "1.65 to 5.5", "unit": "V"},
+  {"param": "TA operating free-air temperature (Recommended Operating Conditions)", "value": "-40 to 125", "unit": "degC"}
+ ],
+ "source_pdf": "parts/C7666.pdf"
+}
