@@ -1615,3 +1615,51 @@ ceiling (headings/bullets/inline marks; tables + fences pass through as tt
 blocks); doc prose quality = quality of the recorded digests/notes. The
 hand-written pd-trigger prototype (reports/design_doc/pd-trigger-design.*)
 stays untracked pending user disposition.
+
+## Post-v1 amendment: JLCPCB Open API ordering + tracking (2026-07-28)
+
+**Built** (research -> build -> 3-round adversarial loop; 1 research agent,
+builder x3 rounds, validator, reviewer x3 rounds):
+- `scripts/lib/jlcapi.py` - JOP HMAC client on stdlib urllib (injectable
+  transport): signing pinned to the official doc vector, envelope
+  normalization, error classifier (401 sig / 403 scope / code-1000 IP at
+  any status / rate), endpoint wrappers (uploadGerber, audit, calculate,
+  create, order/detail, wip, component), `--probe` CLI. LIVE-VERIFIED on
+  the user's app (2026-07-28): signing accepted, 403 scope_pending (all
+  five service permissions under JLC review), IP whitelist entry working.
+  Balance endpoint stubbed (path not public - read the SDK jar when needed).
+- `order_submit.py --api` quote-only leg (upload -> API DFM audit ->
+  calculate -> fab/api_quote.json real price beside the estimate; V6
+  partially compensated by the audit). `--api-create` = the ONLY create
+  path: one-order-per-workspace latch (verdict-armed even for ids-less
+  responses), gerber-sha256 binding, freight-attested grand-total confirm
+  token, qty cross-check, ship-json key whitelist; board-specific
+  human_steps survive every rewrite (the 2oz-guard evidence is permanent).
+  NO sandbox exists: pcb/create is real spend, post-H5 only.
+- `order_track.py` - order/wip poll -> fab/tracking.json (atomic write,
+  content-diff change detection for notification cadence). PCB
+  tracking-number surface is a live unknown (3DP exposes expressNo; PCB
+  order/detail may not).
+- Adversarial loop: 18 findings r1 (headliner: pcbParam key names from the
+  wrong table - would have priced/ordered a default board), 5 r2 (latch
+  --out bypass, copper-guard evidence self-destruct, freight outside the
+  token), 2 r3 (S-1 cosmetic prefix note-loss documented; S-2 ids-less
+  latch fixed at integration with regression, both latch AND sticky-verdict
+  sites). Reviewer verdict: SHIP.
+- ordering.md + SKILL.md P10 wired: API quote leg = agent; create =
+  post-H5 orchestrator action with the human token; the agent NEVER
+  creates. Env: AIEE_JLCPCB_APPID/KEY/SECRET user-level env vars (set
+  2026-07-28; spawned-shell inheritance caveat in LEARNINGS [windows]).
+- `tests/test_jlcapi.py` 77 tests (76 hermetic mock-transport + 1
+  net-marked live probe that skips without creds). Full suite: **720
+  passed** + 1 skipped (net probe), check_env exit 0. One net-marked live
+  test (test_net_lib_pull_loads_in_kicad, EasyEDA pull) flaked during the
+  full run and passes standalone - transient upstream, outside this diff.
+
+**Live unknowns** (first scope-approved probe/order resolves): review
+turnaround; copperWeight type strictness; balance auto-deduct vs
+unpaid-order; PCB tracking-number field; upload empty-vs-meta signing;
+rate limits. Day-one probe:
+`.venv/Scripts/python.exe .claude/skills/ai-ee/scripts/lib/jlcapi.py
+--probe` (exit 0, verdict flips "SIGNING VERIFIED - scope approval
+pending" -> "live" on approval).

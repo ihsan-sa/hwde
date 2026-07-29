@@ -711,10 +711,12 @@ def test_dfm_gate_passes_golden_and_fails_mutant(tmp_path):
 
 
 @pytest.mark.smoke
-def test_full_package_flow(tmp_path):
+def test_full_package_flow(tmp_path, monkeypatch):
     """P9 -> P10: export, BOM/CPL, quote, order manifest. This is the machine-
     checkable half of 'the package uploads clean'; the upload itself is the
     documented human step."""
+    for var in order_submit.API_ENV:      # hermetic: host creds must not flip
+        monkeypatch.delenv(var, raising=False)
     pcb = board_path("usbbuck4")
     fab = tmp_path / "fab"
     man = fab_export.run(pcb, fab, make_zip=True)

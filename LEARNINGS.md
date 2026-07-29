@@ -873,6 +873,29 @@ key -> "keyval Error: artifact undefined", fatal - while SINGLE-page includes wo
 quick probes miss it). report_gen's preamble defines the key as a no-op iff absent
 (\makeatletter/\makeatother guard). Recognize it by: 1-page schematic embeds fine, 4-page dies.
 
+## 2026-07-28 [jlc][api] JLCPCB Open API facts (probe-verified on a live app)
+Base URL open.jlcpcb.com (/overseas/openapi/...) - api.jlcpcb.com is the portal/console only.
+Auth "JOP" scheme: 5-line HMAC-SHA256 string-to-sign (METHOD, path[+?query], unix-ts, 32-char
+nonce, raw body - EACH line \n-terminated INCLUDING the last), Base64; header carries
+appid+accesskey+timestamp+nonce+signature (the secret never travels). Official doc vector
+reproduced exactly (pinned in test_jlcapi). Error taxonomy: HTTP 401 = bad signature; HTTP 403 =
+app valid but service scope unapproved (live body while scopes are "Reviewing":
+{"code":403,"success":false,"message":"API insufficient permissions, access denied"}); business
+code 1000 = IP-whitelist block and wins at ANY HTTP status; 1002/429 = rate. NO sandbox exists -
+pcb/create places a REAL order. NO PCBA/assembly API (official api-list 2026-07-16): BOM/CPL
+ordering stays the web flow. IP whitelist optional; two keys per app for rotation. Contract
+brief + sources: C:/dev/ai-library/jlcpcb-openapi-2026/.
+
+## 2026-07-28 [jlc][api] pcbParam keys are layer/width/length/qty/thickness - NOT stencil*
+The hendley console-PDF transcription is the key-name authority; stencilLayer/stencilPly belong
+to the impedance-template request only. An early build inferred stencil* names for
+calculate/create - unknown keys could have priced/ordered a DEFAULT board with real money
+(caught by adversarial review, round 1). Watch item: copperWeight is typed "Number" in both
+tables but the official create example sends string "2" - code sends strings; a strict live
+parser rejects at calculate (fail-safe, before money). 2 oz derives ONLY from stackup.md's
+"## Chosen:" id (e.g. JLC2313_1.6_2oz) - spec_snapshot/quote.json do not carry copper weight,
+and the guard refuses when order-note oz mentions exceed the derived value.
+
 ## 2026-07-28 [latex] Escaping the special chars is not enough: [ and * are context-sensitive
 After the \\ that joins tt-block/longtable lines, a line-initial "[" parses as the OPTIONAL ARG
 of \\ ("! Missing number", fatal - a digest line "[ok] ..." or BOM comment "[NRND] ..." kills

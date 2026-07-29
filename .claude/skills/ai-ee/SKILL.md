@@ -135,10 +135,20 @@ schematic agent for all sheets (record the deviation).
   summary + annotated renders + waivers.
 - **P9 DFM**: spawn `dfm`. Gate `dfm`. Its JLCDFM/browser leg is human -
   fold into H5's steps.
-- **P10 Ordering**: spawn `ordering`. **Checkpoint H5** (blocking, always):
-  present the quote matrix row, order.json, and the `human_steps` list
-  (upload zip, JLCDFM second opinion, CPL polarity preview eyeball, pay).
-  Payment is NEVER automated.
+- **P10 Ordering**: spawn `ordering` (with AIEE_JLCPCB_* creds set it also
+  runs the `--api` quote leg: gerber upload -> API DFM audit -> real
+  calculate; `scope_pending` is a normal reported state). **Checkpoint H5**
+  (blocking, always): present the quote matrix row, the API quote + audit
+  findings when available (real price beside estimate), order.json, and
+  the `human_steps` list (upload zip, JLCDFM second opinion, CPL polarity
+  preview eyeball, pay). Payment is NEVER automated, and API order
+  creation is NEVER the agent's: only after H5 approval may the
+  ORCHESTRATOR run `order_submit.py --api-create --confirm
+  "<board> <N>pcs <grand>"` (grand total incl. freight exactly as
+  api_quote.json records it) - one latched order per workspace,
+  gerber-sha-bound, REAL SPEND, no sandbox. After creation, poll
+  `scripts/order_track.py --workspace <ws>` at checkpoints/resume
+  (non-blocking) and log status milestones to state.
 
 ## The fix loop (uniform for every gate)
 
@@ -247,3 +257,8 @@ never reuse a generator/router conversation for its own review.
   (split classes in .kicad_pro when widths diverge - router.md pattern).
 - order_quote undercounts Extended feeder fees; every figure is
   estimated:true and the JLC cart is the only real quote.
+- JLCPCB Open API: PCB ordering only - there is NO assembly/PCBA API
+  (BOM/CPL ordering stays the JLC web flow). JLC Balance payment
+  mechanics, PCB tracking-number surface, and copperWeight type
+  strictness are unverified until the first scope-approved live call
+  (all fail safe, before money).
