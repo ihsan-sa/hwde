@@ -50,56 +50,135 @@ def _edge(board, shape_t):
     return s
 
 
-def draw_outline(board, x1, y1, x2, y2, radius, notes):
+_CUT_TOL = 0.001  # mm; a cutout within this of an edge is an edge notch
+
+
+def _classify_cutouts(cuts, x1, y1, x2, y2, r, notes):
+    """Split cutouts into per-edge notches and interior windows.
+
+    An edge notch reshapes the perimeter; an interior window is its own closed
+    Edge.Cuts loop (KiCad reads inner loops as holes). A notch that would eat
+    into a rounded corner is rejected rather than silently drawn, because the
+    resulting self-intersecting outline fails polygonize downstream instead of
+    erroring at the source.
+    """
+    per_edge = {"top": [], "right": [], "bottom": [], "left": []}
+    interior = []
+    for c in cuts or []:
+        a, b = float(c["x"]), float(c["y"])
+        w, h = float(c["w"]), float(c["h"])
+        cx1, cy1, cx2, cy2 = x1 + a, y1 + b, x1 + a + w, y1 + b + h
+        if not (x1 - _CUT_TOL <= cx1 < cx2 <= x2 + _CUT_TOL
+                and y1 - _CUT_TOL <= cy1 < cy2 <= y2 + _CUT_TOL):
+            notes.append(f"cutout {a},{b},{w},{h} lies outside the outline - skipped")
+            continue
+        side = None
+        if abs(cy1 - y1) <= _CUT_TOL:
+            side, span, depth = "top", (cx1, cx2), cy2 - y1
+        elif abs(cy2 - y2) <= _CUT_TOL:
+            side, span, depth = "bottom", (cx1, cx2), y2 - cy1
+        elif abs(cx1 - x1) <= _CUT_TOL:
+            side, span, depth = "left", (cy1, cy2), cx2 - x1
+        elif abs(cx2 - x2) <= _CUT_TOL:
+            side, span, depth = "right", (cy1, cy2), x2 - cx1
+        if side is None:
+            # An interior window is emitted as an inner Edge.Cuts loop, but
+            # geom._parse_outline RETURNS on the first gr_rect it finds on
+            # Edge.Cuts - so the window silently becomes the board outline
+            # (measured: a 10x10 window on a 100x80 board parsed as area 100).
+            # Every downstream consumer then sees a 10x10 board. Refuse rather
+            # than emit something that mis-parses this badly.
+            raise RuntimeError(
+                f"interior cutout {a},{b},{w},{h} is not supported - it must "
+                f"touch an outline edge to become a notch. Interior windows "
+                f"mis-parse as the board outline downstream.")
+        lo, hi = (x1 + r, x2 - r) if side in ("top", "bottom") else (y1 + r, y2 - r)
+        if span[0] < lo - _CUT_TOL or span[1] > hi + _CUT_TOL:
+            notes.append(f"cutout {a},{b},{w},{h} on the {side} edge overlaps a "
+                         f"corner radius ({r} mm) - skipped; move it inboard or "
+                         f"reduce --corner-radius")
+            continue
+        per_edge[side].append((span[0], span[1], depth))
+    return per_edge, interior
+
+
+def _edge_path(start_u, end_u, base_v, inward, notches, horizontal):
+    """Points along one outline edge, detouring around each notch on it."""
+    fwd = end_u >= start_u
+    pts_u_v = [(start_u, base_v)]
+    for lo, hi, depth in sorted(notches, key=lambda n: n[0], reverse=not fwd):
+        near, far = (lo, hi) if fwd else (hi, lo)
+        vin = base_v + inward * depth
+        pts_u_v += [(near, base_v), (near, vin), (far, vin), (far, base_v)]
+    pts_u_v.append((end_u, base_v))
+    return [(u, v) if horizontal else (v, u) for u, v in pts_u_v]
+
+
+def draw_outline(board, x1, y1, x2, y2, radius, notes, cutouts=None):
     """Draw the Edge.Cuts outline; return the effective corner radius (mm).
 
-    radius <= 0 keeps the historical single SHAPE_T_RECT. Otherwise the outline
-    is an explicit closed loop of 4 lines + 4 quarter arcs: pcbnew has no
-    filleted-rect primitive, and geom.py / gerblib both consume gr_line and
-    gr_arc on Edge.Cuts, so the loop is equivalent for every downstream
-    consumer (DRC, planes_gen, gerber export, order_quote).
+    radius <= 0 with no edge notches keeps the historical single SHAPE_T_RECT.
+    Otherwise the outline is an explicit closed loop of segments plus 4 quarter
+    arcs: pcbnew has no filleted-rect primitive, and geom.py / gerblib both
+    consume gr_line and gr_arc on Edge.Cuts, so the loop is equivalent for every
+    downstream consumer (DRC, planes_gen, gerber export, order_quote).
 
     Arcs are set via SetArcGeometry(start, mid, end) - the 3-point form, which
     avoids the start/end/center winding ambiguity that bites on mirrored axes
     (KiCad y grows downward).
+
+    `cutouts` are {x,y,w,h} dicts RELATIVE to the outline's top-left corner and
+    MUST touch an outline edge, becoming a notch in the perimeter. Interior
+    windows are rejected - see _classify_cutouts.
     """
-    if radius <= 0:
-        r = _edge(board, pcbnew.SHAPE_T_RECT)
-        r.SetStart(mm(x1, y1))
-        r.SetEnd(mm(x2, y2))
-        board.Add(r)
-        return 0.0
+    r = max(0.0, float(radius))
+    if r > 0:
+        rmax = min(x2 - x1, y2 - y1) / 2.0 - EDGE_W
+        if r > rmax:
+            notes.append(f"corner radius {radius} clamped to {round(rmax, 3)} mm "
+                         f"(half the shorter outline side)")
+            r = max(rmax, 0.0)
+        if r <= 0:
+            notes.append("outline too small for a corner radius - drawn square")
 
-    rmax = min(x2 - x1, y2 - y1) / 2.0 - EDGE_W
-    if radius > rmax:
-        notes.append(f"corner radius {radius} clamped to {round(rmax, 3)} mm "
-                     f"(half the shorter outline side)")
-        radius = rmax
-    if radius <= 0:
-        notes.append("outline too small for a corner radius - drawn square")
-        return draw_outline(board, x1, y1, x2, y2, 0, notes)
+    per_edge, interior = _classify_cutouts(cutouts, x1, y1, x2, y2, r, notes)
+    has_notch = any(per_edge.values())
 
-    r = radius
-    for sx, sy, ex, ey in ((x1 + r, y1, x2 - r, y1),      # top
-                           (x2, y1 + r, x2, y2 - r),      # right
-                           (x2 - r, y2, x1 + r, y2),      # bottom
-                           (x1, y2 - r, x1, y1 + r)):     # left
-        seg = _edge(board, pcbnew.SHAPE_T_SEGMENT)
-        seg.SetStart(mm(sx, sy))
-        seg.SetEnd(mm(ex, ey))
-        board.Add(seg)
+    if r <= 0 and not has_notch:
+        rect = _edge(board, pcbnew.SHAPE_T_RECT)
+        rect.SetStart(mm(x1, y1))
+        rect.SetEnd(mm(x2, y2))
+        board.Add(rect)
+    else:
+        #        start_u  end_u   base_v  inward  side      horizontal
+        edges = ((x1 + r, x2 - r, y1, +1, "top", True),
+                 (y1 + r, y2 - r, x2, -1, "right", False),
+                 (x2 - r, x1 + r, y2, -1, "bottom", True),
+                 (y2 - r, y1 + r, x1, +1, "left", False))
+        for su, eu, bv, inward, side, horiz in edges:
+            pts = _edge_path(su, eu, bv, inward, per_edge[side], horiz)
+            for (sx, sy), (ex, ey) in zip(pts, pts[1:]):
+                if abs(sx - ex) < 1e-9 and abs(sy - ey) < 1e-9:
+                    continue
+                seg = _edge(board, pcbnew.SHAPE_T_SEGMENT)
+                seg.SetStart(mm(sx, sy))
+                seg.SetEnd(mm(ex, ey))
+                board.Add(seg)
+        if r > 0:
+            # (corner centre, outward diagonal), walking the same direction
+            for cx, cy, dx, dy, sx, sy, ex, ey in (
+                    (x1 + r, y1 + r, -1, -1, x1, y1 + r, x1 + r, y1),
+                    (x2 - r, y1 + r, +1, -1, x2 - r, y1, x2, y1 + r),
+                    (x2 - r, y2 - r, +1, +1, x2, y2 - r, x2 - r, y2),
+                    (x1 + r, y2 - r, -1, +1, x1 + r, y2, x1, y2 - r)):
+                arc = _edge(board, pcbnew.SHAPE_T_ARC)
+                arc.SetArcGeometry(
+                    mm(sx, sy),
+                    mm(cx + dx * r * _SQRT_HALF, cy + dy * r * _SQRT_HALF),
+                    mm(ex, ey))
+                board.Add(arc)
 
-    # (corner centre, outward diagonal) per corner, walking the same direction
-    for cx, cy, dx, dy, sx, sy, ex, ey in (
-            (x1 + r, y1 + r, -1, -1, x1, y1 + r, x1 + r, y1),      # top-left
-            (x2 - r, y1 + r, +1, -1, x2 - r, y1, x2, y1 + r),      # top-right
-            (x2 - r, y2 - r, +1, +1, x2, y2 - r, x2 - r, y2),      # bot-right
-            (x1 + r, y2 - r, -1, +1, x1 + r, y2, x1, y2 - r)):     # bot-left
-        arc = _edge(board, pcbnew.SHAPE_T_ARC)
-        arc.SetArcGeometry(mm(sx, sy),
-                           mm(cx + dx * r * _SQRT_HALF, cy + dy * r * _SQRT_HALF),
-                           mm(ex, ey))
-        board.Add(arc)
+    assert not interior  # _classify_cutouts raises; kept as a tripwire
     return r
 
 
@@ -223,7 +302,13 @@ def build(job: dict) -> dict:
                          f"inset {mh_inset} mm - raise --margin for a larger "
                          f"radius")
             req_r = mh_inset
-    corner_r = draw_outline(board, ex1, ey1, ex2, ey2, req_r, notes)
+    cutouts = job.get("cutouts") or []
+    corner_r = draw_outline(board, ex1, ey1, ex2, ey2, req_r, notes,
+                            cutouts=cutouts)
+    # absolute cutout rects, for callers translating keepouts into board space
+    cut_abs = [[round(ex1 + float(c["x"]), 3), round(ey1 + float(c["y"]), 3),
+                round(ex1 + float(c["x"]) + float(c["w"]), 3),
+                round(ey1 + float(c["y"]) + float(c["h"]), 3)] for c in cutouts]
 
     # ---- mounting holes at outline corners ----------------------------
     mh = job.get("mounting_holes")
@@ -233,6 +318,11 @@ def build(job: dict) -> dict:
         corners = [(ex1 + inset, ey1 + inset), (ex2 - inset, ey1 + inset),
                    (ex2 - inset, ey2 - inset), (ex1 + inset, ey2 - inset)]
         for i, (hx, hy) in enumerate(corners[:int(mh["count"])]):
+            if any(cx1 <= hx <= cx2 and cy1 <= hy <= cy2
+                   for cx1, cy1, cx2, cy2 in cut_abs):
+                notes.append(f"mounting hole {i + 1} at ({round(hx, 2)},"
+                             f"{round(hy, 2)}) falls inside a cutout - skipped")
+                continue
             hole = load_fp(fpid, fp_paths)
             if hole is None:
                 notes.append(f"mounting-hole fp not found: {fpid}")
@@ -262,6 +352,8 @@ def build(job: dict) -> dict:
         "nets": len(nets), "bbox": [round(ex1, 3), round(ey1, 3),
                                     round(ex2, 3), round(ey2, 3)],
         "corner_radius": round(corner_r, 3),
+        "outline_origin": [round(ex1, 3), round(ey1, 3)],
+        "cutouts": cut_abs,
         "notes": notes,
     }
 

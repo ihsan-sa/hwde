@@ -929,3 +929,44 @@ board_init packs parts on a shelf grid that already routes around the corner mou
 inset = margin/2. Pushing a hole inward so it clears a larger corner radius therefore drives it
 into a neighbour's courtyard (observed: H1 vs C1 on golden usbbuck4 at radius 4, inset 3).
 Shrink the radius to the inset instead and tell the caller to raise --margin if it wants more.
+
+## 2026-07-28 [kicad][python] A power symbol's net name comes from its VALUE field, not its library pin name
+P4 lumina-carrier, kicad-cli 10.0.3. A board rail with no stock power symbol (`+48V_SW`) is NOT a
+dead end and must NOT fall back to a local label (that yields `/<sheet>/NAME` and
+`netlist_audit --constraints` then raises missing_net at ERROR). Place any power symbol and set its
+Value: `power:+48V` with Value `+48V_SW` exports a bare global net `+48V_SW`. Measured both ways on
+a 2-part scratch sheet: with the wire carrying local label `+48V_SW` but the symbol left at Value
+`+48V`, the netlist net is `+48V` - the POWER SYMBOL WINS over a coincident local label, so the two
+must be made to agree or the label is silently ignored. Two API traps in the same idiom:
+(a) `component.set_property("Value", x)` is a SILENT NO-OP on kicad-sch-api 0.5.6 - Value is a
+dedicated attribute (`component.value = x`), and the generic property store is a different thing;
+(b) schlib's `power_flag(..., flag=False)` is the clean "rail cluster with no PWR_FLAG" form for a
+sheet that consumes a rail another sheet drives.
+
+## 2026-07-28 [python][kicad-sch-api] add_hierarchical_label() DROPS its shape argument; rotated 2-pin symbols get INWARD stubs
+Two schlib/kicad-sch-api 0.5.6 defects found building a P4 child sheet.
+(a) `Schematic.add_hierarchical_label(text, position, shape=...)` documents five shapes and then
+discards the argument: it calls `self._hierarchical_labels.add(text, position, rotation, size)`
+with no shape, and `_sync_hierarchical_labels_to_data` emits no shape key at all - every
+hierarchical label is written `(shape input)` whatever you ask for. There is no API path to it.
+`Schematic.add_sheet_pin` DOES honour pin_type, so `Project.add_sheet` still writes correct shapes
+on the ROOT's sheet pins and only the child's labels are wrong. NOT worth patching: the S7 golden
+already has the mismatch (`tests/s7_regen/hierdemo` root sheet pin `CTL` is `passive`, the child
+label is `input`) and that root's ERC is 0/0 - KiCad 10.0.3 does not check sheet-pin/label shape
+parity. Keep the semantic shape in the generator; it lands where it matters.
+(b) schlib's `stub_dir` and kicad-sch-api disagree on the SIGN of a 90 deg symbol rotation, so for
+any rotated 2-pin part BOTH auto-stubs are emitted pointing INWARD through the symbol body, putting
+the local-label anchors inside the part (10k 0603 at rot 90, anchor y 127.0: pin1 121.92 -> 124.46,
+pin2 132.08 -> 129.54). Electrically survivable - the stubs stay 5.08 mm apart and the labels still
+bind - but visually broken. Generators should keep every component at rotation 0 until this is
+fixed; hierdemo and pd-trigger never rotate, which is why it had not surfaced.
+
+## 2026-07-28 [geom][layout] An inner Edge.Cuts gr_rect silently BECOMES the board outline
+geom._parse_outline scans gr_rect on Edge.Cuts FIRST and returns on the first match, before it ever
+looks at gr_line/gr_arc. So an interior cutout emitted the obvious way - a SHAPE_T_RECT window -
+replaces the outline entirely rather than punching a hole in it. Measured: a 10x10 mm window on a
+100x80 mm board parsed as outline.area == 100.0, not 7892. planes_gen, DFM, order_quote and every
+area check would then see a 10x10 board, with no error raised anywhere. board_init now REFUSES
+interior cutouts: --cutout must touch an outline edge and become a notch (exit 2 with remediation).
+If interior windows are ever genuinely needed, _parse_outline must collect ALL closed loops and
+subtract the inner ones instead of returning the first rect it finds.

@@ -386,6 +386,55 @@ def test_board_init_rounded_corners(cli, usbbuck4_net, tmp_path):
     assert bg.outline is not None and bg.outline.area > 0
 
 
+def _init_board(tmp_path, netlist, *extra):
+    rep = tmp_path / "report.json"
+    rc = board_init.main([
+        "--netlist", str(netlist), "--name", "usbbuck4",
+        "--out", str(tmp_path / "kicad"), "--layers", "4",
+        "--outline", "100x80", "--corner-radius", "3", "--mounting-holes", "4",
+        "--schematic", str(GOLDEN / "usbbuck4" / "usbbuck4.kicad_sch"),
+        "--out-report", str(rep), *extra])
+    return rc, json.loads(rep.read_text("utf-8"))
+
+
+@pytest.mark.smoke
+def test_board_init_edge_notch(cli, usbbuck4_net, tmp_path):
+    """MECH: a --cutout touching an outline edge reshapes the perimeter into a
+    notch (the LUMINA daughter boards' RJ45 relief). geom must read the notched
+    polygon, not the bounding rectangle."""
+    import math
+    from shapely.geometry import Point
+    rc, r = _init_board(tmp_path, usbbuck4_net, "--cutout", "6,0,30,26")
+    assert rc == 0 and r["status"] == "pass", r
+    assert r["self_check"]["setup_violations"] == []
+    assert len(r["cutouts"]) == 1 and r["outline_origin"] is not None
+
+    sys.path.insert(0, str(SCRIPTS / "lib"))
+    import geom
+    o = geom.load_board(tmp_path / "kicad" / "usbbuck4.kicad_pcb").outline
+    # 100x80, less the 30x26 notch, less four r=3 corners
+    assert o.area == pytest.approx(8000 - 780 - (4 - math.pi) * 9, abs=0.5)
+    ox, oy = o.bounds[0], o.bounds[1]
+    assert not o.contains(Point(ox + 21, oy + 10))   # inside the notch
+    assert o.contains(Point(ox + 21, oy + 40))       # below the notch
+
+
+@pytest.mark.smoke
+def test_board_init_cutout_over_corner_is_rejected(cli, usbbuck4_net, tmp_path):
+    """A notch running into a rounded corner would self-intersect the outline
+    and fail polygonize downstream. It must be skipped loudly at the source."""
+    import math
+    rc, r = _init_board(tmp_path, usbbuck4_net, "--cutout", "0,0,10,10")
+    assert rc == 0 and r["status"] == "pass", r
+    assert any("corner radius" in n for n in r["worker_notes"]), r["worker_notes"]
+
+    sys.path.insert(0, str(SCRIPTS / "lib"))
+    import geom
+    o = geom.load_board(tmp_path / "kicad" / "usbbuck4.kicad_pcb").outline
+    # untouched rounded rectangle - the cutout was not drawn
+    assert o.area == pytest.approx(8000 - (4 - math.pi) * 9, abs=0.5)
+
+
 @pytest.mark.smoke
 def test_board_init_corner_radius_clamped_to_hole_inset(cli, usbbuck4_net,
                                                         tmp_path):

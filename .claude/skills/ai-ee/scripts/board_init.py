@@ -19,7 +19,7 @@ is unrouted by design). Emits the normalized DRC report alongside.
 Usage:
   board_init.py --netlist n.net --name board --out dir --layers 4
                 [--stackup NAME] [--outline auto|WxH] [--mounting-holes N]
-                [--corner-radius R]
+                [--corner-radius R] [--cutout X,Y,W,H ...]
                 [--schematic s.kicad_sch]   # copy next to board -> enables parity
                 [--fp-lib DIR ...] [--out-report r.json]
 
@@ -242,6 +242,12 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--corner-radius", type=float, default=0.0,
                     help="round the outline corners by this radius in mm "
                          "(0 = square corners; clamped to half the shorter side)")
+    ap.add_argument("--cutout", action="append", default=[], metavar="X,Y,W,H",
+                    help="rectangular edge notch in mm, relative to the "
+                         "outline's top-left corner; repeatable. MUST touch an "
+                         "outline edge and must not overlap a corner radius. "
+                         "Interior windows are rejected (they mis-parse as the "
+                         "board outline downstream).")
     ap.add_argument("--mounting-holes", type=int, default=0,
                     help="corner mounting holes (0..4)")
     ap.add_argument("--schematic", help="copy this .kicad_sch next to the board "
@@ -281,11 +287,21 @@ def main(argv: list[str] | None = None) -> int:
                 raise RuntimeError(f"bad --outline {args.outline!r} (use auto or WxH)")
             outline = {"mode": "fixed", "w": float(m.group(1)), "h": float(m.group(2))}
 
+        cutouts = []
+        for spec in args.cutout:
+            m = re.fullmatch(r"\s*([\d.]+),([\d.]+),([\d.]+),([\d.]+)\s*", spec)
+            if not m:
+                raise RuntimeError(f"bad --cutout {spec!r} (use X,Y,W,H in mm)")
+            x, y, w, h = (float(g) for g in m.groups())
+            if w <= 0 or h <= 0:
+                raise RuntimeError(f"bad --cutout {spec!r}: W and H must be > 0")
+            cutouts.append({"x": x, "y": y, "w": w, "h": h})
+
         job = {
             "out": str(pcb_path), "layers": args.layers,
             "components": components, "netmap": netmap,
             "fp_paths": args.fp_lib, "margin": args.margin, "outline": outline,
-            "corner_radius": args.corner_radius,
+            "corner_radius": args.corner_radius, "cutouts": cutouts,
             "mounting_holes": ({"count": args.mounting_holes, "inset": args.margin / 2.0}
                                if args.mounting_holes else None),
         }
@@ -323,6 +339,8 @@ def main(argv: list[str] | None = None) -> int:
             "components": len(components), "nets": worker["nets"],
             "outline_bbox": worker["bbox"], "mounting_holes": args.mounting_holes,
             "corner_radius": worker.get("corner_radius", 0.0),
+            "outline_origin": worker.get("outline_origin"),
+            "cutouts": worker.get("cutouts", []),
             "self_check": check, "worker_notes": worker.get("notes", []),
         }
         _emit(result, args.out_report)
