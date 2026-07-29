@@ -1,0 +1,1011 @@
+{
+ "block": "led-emitter",
+ "board": "LUM-DTR-STROBE-A",
+ "generated": "2026-07-28",
+ "source": "parts_search.py live JLCPCB search (33 sweep queries, 169 distinct in-stock white SKUs seen)",
+ "operating_point": {
+  "peak_current_A": 2.6,
+  "string_vf_max_V": 38.0,
+  "peak_power_W": 99,
+  "sustained_electrical_W": "7-8 (of the 8.5 W af daughter total)",
+  "flash_width_ms": "5-200",
+  "flash_rate_Hz": "1-25"
+ },
+ "headline_finding": "No white LED stocked by JLCPCB is rated for 2.6 A. The highest continuous rating in stock is 1500 mA (Cree XP-G2 C17401863 and JNJ C19185883). Zero JLC Basic white LEDs exist above 25 mA indicator class. Every published pulsed rating in this market is specified at ~100 us / 10 % duty, which is 50x-2000x shorter than this board's 5-200 ms flashes, so no vendor pulse allowance covers the operating point. The design rule that follows is: keep peak current inside each die's DC maximum and use parallel sub-strings.",
+ "candidates": [
+  {
+   "lcsc": "C17401863",
+   "mpn": "XPGBWT-L1-0000-00H51",
+   "brand": "CREE LED",
+   "description": "120\u00b0 2.72V 350mA 6200K Discrete Diode White SMD3535-3P LED Indication - Discrete ROHS",
+   "package": "SMD3535-3P",
+   "category": "LED Indication - Discrete",
+   "type": "Extended",
+   "basic": false,
+   "stock": 1060,
+   "price": 3.2437,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 3.2437
+    },
+    {
+     "qty": 10,
+     "price": 2.7741
+    },
+    {
+     "qty": 30,
+     "price": 2.4949
+    },
+    {
+     "qty": 100,
+     "price": 2.2125
+    },
+    {
+     "qty": 500,
+     "price": 2.0818
+    },
+    {
+     "qty": 1000,
+     "price": 2.0237
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2311040049_Wolfspeed-XPGBWT-L1-0000-00H51_C17401863.pdf",
+   "url": "https://www.lcsc.com/product-detail/led-indication-discrete_wolfspeed-xpgbwt-l1-0000-00h51_C17401863.html",
+   "attributes": [
+    {
+     "name": "Color Temperature",
+     "value": "6200K"
+    },
+    {
+     "name": "Viewing Angle",
+     "value": "120\u00b0"
+    },
+    {
+     "name": "Diode Configuration",
+     "value": "Discrete Diode"
+    },
+    {
+     "name": "Illumination Color",
+     "value": "White"
+    },
+    {
+     "name": "Forward Current",
+     "value": "350mA"
+    },
+    {
+     "name": "Voltage - Forward(Vf)",
+     "value": "2.72V"
+    }
+   ],
+   "rank": 1,
+   "role": "emitter",
+   "arrangement": "a-onboard|b-offboard",
+   "scout_notes": {
+    "family": "Cree XLamp XP-G2 (LCSC ships datasheet CLD-DS51 REV 22 for this SKU)",
+    "dc_max_mA": 1500,
+    "pulsed_rating": "NONE PUBLISHED - the string 'pulse' does not appear anywhere in the 44-page datasheet",
+    "vf_at": "2.72V@350mA, 2.83V@700mA, 2.90V@1000mA, 3.02V@1500mA (all Tj=85C)",
+    "rth_j_sp_CW": 1.4,
+    "tj_max_C": 150,
+    "cct_K": 6200,
+    "viewing_angle_deg": 120,
+    "string": "12 series x 2 parallel = 24 pcs -> ~35.5V @ 2.6A = ~92W, every die at 1.3A i.e. inside DC max",
+    "pcs_per_board": 24,
+    "price_at_qty": "$2.2125 @100 -> ~$53.10/board of emitters",
+    "stock_covers": "1060 in stock vs 144 needed for 6 boards"
+   }
+  },
+  {
+   "lcsc": "C19185883",
+   "mpn": "JNJ-LTJW0115T140/63MIL/5500-6500K",
+   "brand": "JNJ OPTOELECTRONICS",
+   "description": "-40\u2103~+100\u2103 120\u00b0 1A 3V~3.8V 460nm 5500K~6500K Discrete Diode Water Clear White SMD3535-3P LED Indication - Discrete ROHS",
+   "package": "SMD3535-3P",
+   "category": "LED Indication - Discrete",
+   "type": "Extended",
+   "basic": false,
+   "stock": 2764,
+   "price": 0.5568,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.5568
+    },
+    {
+     "qty": 10,
+     "price": 0.4535
+    },
+    {
+     "qty": 30,
+     "price": 0.4003
+    },
+    {
+     "qty": 100,
+     "price": 0.3486
+    },
+    {
+     "qty": 500,
+     "price": 0.318
+    },
+    {
+     "qty": 1000,
+     "price": 0.3018
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2311032118_JNJ-OPTOELECTRONICS-JNJ-LTJW0115T140-63MIL-5500-6500K_C19185883.pdf",
+   "url": "https://www.lcsc.com/product-detail/led-indication-discrete_jnj-optoelectronics-jnj-ltjw0115t140-63mil-5500-6500k_C19185883.html",
+   "attributes": [
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+100\u2103"
+    },
+    {
+     "name": "Color Temperature",
+     "value": "5500K~6500K"
+    },
+    {
+     "name": "Viewing Angle",
+     "value": "120\u00b0"
+    },
+    {
+     "name": "Lamp Holder Type",
+     "value": "2.8mm round lamp head"
+    },
+    {
+     "name": "Forward Current",
+     "value": "1A"
+    },
+    {
+     "name": "Diode Configuration",
+     "value": "Discrete Diode"
+    },
+    {
+     "name": "Illumination Color",
+     "value": "White"
+    },
+    {
+     "name": "Lens Color",
+     "value": "Water Clear"
+    },
+    {
+     "name": "Peak Wavelength",
+     "value": "460nm"
+    },
+    {
+     "name": "Voltage - Forward(Vf)",
+     "value": "3V~3.8V"
+    }
+   ],
+   "rank": 2,
+   "role": "emitter",
+   "arrangement": "a-onboard|b-offboard",
+   "scout_notes": {
+    "family": "JNJ Optoelectronics 3535 ceramic, 63mil chip",
+    "dc_max_mA": 1500,
+    "pulsed_rating": "IFP=3000mA but ONLY at tp=100us, duty=10% - 50x-2000x shorter than this board's 5-200ms flashes",
+    "vf_at": "3.0V~3.8V over the rated range (no per-current table published)",
+    "rth_j_sp_CW": null,
+    "tj_max_C": 115,
+    "cct_K": "5500-6500",
+    "viewing_angle_deg": 120,
+    "string": "10 series x 2 parallel = 20 pcs -> ~35V @ 2.6A = ~91W, every die at 1.3A i.e. inside DC max",
+    "pcs_per_board": 20,
+    "price_at_qty": "$0.3486 @100 -> ~$6.97/board of emitters",
+    "stock_covers": "2764 in stock vs 120 needed for 6 boards"
+   }
+  },
+  {
+   "lcsc": "C19185884",
+   "mpn": "JNJ-LTJW0115W120/63MIL/6500-7000K",
+   "brand": "JNJ OPTOELECTRONICS",
+   "description": "-40\u2103~+100\u2103 120\u00b0 1A 2.8V~3.6V 450nm 6000K~7000K Discrete Diode Water Clear White SMD3535-3P LED Indication - Discrete ROHS",
+   "package": "SMD3535-3P",
+   "category": "LED Indication - Discrete",
+   "type": "Extended",
+   "basic": false,
+   "stock": 2481,
+   "price": 0.5294,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.5294
+    },
+    {
+     "qty": 10,
+     "price": 0.4196
+    },
+    {
+     "qty": 30,
+     "price": 0.3728
+    },
+    {
+     "qty": 100,
+     "price": 0.3131
+    },
+    {
+     "qty": 500,
+     "price": 0.2873
+    },
+    {
+     "qty": 1000,
+     "price": 0.2712
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2311032118_JNJ-OPTOELECTRONICS-JNJ-LTJW0115W120-63MIL-6500-7000K_C19185884.pdf",
+   "url": "https://www.lcsc.com/product-detail/led-indication-discrete_jnj-optoelectronics-jnj-ltjw0115w120-63mil-6500-7000k_C19185884.html",
+   "attributes": [
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+100\u2103"
+    },
+    {
+     "name": "Color Temperature",
+     "value": "6000K~7000K"
+    },
+    {
+     "name": "Viewing Angle",
+     "value": "120\u00b0"
+    },
+    {
+     "name": "Lamp Holder Type",
+     "value": "2.8mm round lamp head"
+    },
+    {
+     "name": "Forward Current",
+     "value": "1A"
+    },
+    {
+     "name": "Diode Configuration",
+     "value": "Discrete Diode"
+    },
+    {
+     "name": "Illumination Color",
+     "value": "White"
+    },
+    {
+     "name": "Lens Color",
+     "value": "Water Clear"
+    },
+    {
+     "name": "Peak Wavelength",
+     "value": "450nm"
+    },
+    {
+     "name": "Voltage - Forward(Vf)",
+     "value": "2.8V~3.6V"
+    }
+   ],
+   "rank": 3,
+   "role": "emitter",
+   "arrangement": "a-onboard|b-offboard",
+   "scout_notes": {
+    "family": "JNJ Optoelectronics 3535 ceramic, 63mil chip - cooler bin of C19185883",
+    "dc_max_mA": 1500,
+    "pulsed_rating": "same datasheet family as C19185883: IFP=3000mA at tp=100us / 10% duty only",
+    "cct_K": "6000-7000",
+    "viewing_angle_deg": 120,
+    "note": "the only near-pin-compatible alternate to C19185883; different CCT bin, same package/ratings"
+   }
+  },
+  {
+   "lcsc": "C48586656",
+   "mpn": "XL-HD6070UWC-A4-BD",
+   "brand": "XINGLIGHT",
+   "description": "-40\u2103~+85\u2103 120\u00b0 2.8V~3.4V 3W 6000K~6500K 700mA Cold White Discrete Diode Water Clear SMD LED Indication - Discrete ROHS",
+   "package": "SMD",
+   "category": "LED Indication - Discrete",
+   "type": "Extended",
+   "basic": false,
+   "stock": 1790,
+   "price": 0.296,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.296
+    },
+    {
+     "qty": 50,
+     "price": 0.2334
+    },
+    {
+     "qty": 150,
+     "price": 0.2065
+    },
+    {
+     "qty": 1000,
+     "price": 0.173
+    },
+    {
+     "qty": 2000,
+     "price": 0.1582
+    },
+    {
+     "qty": 5000,
+     "price": 0.1492
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2504281715_XINGLIGHT-XL-HD6070UWC-A4-BD_C48586656.pdf",
+   "url": "https://www.lcsc.com/product-detail/led-indication-discrete_xinglight-xl-hd6070uwc-a4-bd_C48586656.html",
+   "attributes": [
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+85\u2103"
+    },
+    {
+     "name": "Color Temperature",
+     "value": "6000K~6500K"
+    },
+    {
+     "name": "Viewing Angle",
+     "value": "120\u00b0"
+    },
+    {
+     "name": "Forward Current",
+     "value": "700mA"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "3W"
+    },
+    {
+     "name": "Illumination Color",
+     "value": "Cold White"
+    },
+    {
+     "name": "Diode Configuration",
+     "value": "Discrete Diode"
+    },
+    {
+     "name": "Lens Color",
+     "value": "Water Clear"
+    },
+    {
+     "name": "Voltage - Forward(Vf)",
+     "value": "2.8V~3.4V"
+    }
+   ],
+   "rank": 4,
+   "role": "emitter",
+   "arrangement": "b-offboard",
+   "scout_notes": {
+    "family": "XINGLIGHT 6070 3W",
+    "dc_max_mA": 700,
+    "pulsed_rating": "not verified - datasheet is the XINGLIGHT house format; sibling XL-HD3535 publishes peak only at tp<=0.1ms / duty<=1/10",
+    "cct_K": "6000-6500",
+    "viewing_angle_deg": 120,
+    "string": "12 series x 4 parallel = 48 pcs -> ~37.2V @ 2.6A, every die at 650mA",
+    "pcs_per_board": 48,
+    "price_at_qty": "$0.2065 @150 -> ~$9.91/board of emitters"
+   }
+  },
+  {
+   "lcsc": "C3646951",
+   "mpn": "XL-HD3535UWC-A2",
+   "brand": "XINGLIGHT",
+   "description": "-40\u2103~+85\u2103 130\u00b0 1W 2.8V~3.6V 350mA 5500K~7000K Discrete Diode Top-mount Water Clear White SMD3535-3P LED Indication - Discrete ROHS",
+   "package": "SMD3535-3P",
+   "category": "LED Indication - Discrete",
+   "type": "Extended",
+   "basic": false,
+   "stock": 22438,
+   "price": 0.317,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.317
+    },
+    {
+     "qty": 50,
+     "price": 0.2524
+    },
+    {
+     "qty": 150,
+     "price": 0.2248
+    },
+    {
+     "qty": 1000,
+     "price": 0.1738
+    },
+    {
+     "qty": 2000,
+     "price": 0.1584
+    },
+    {
+     "qty": 5000,
+     "price": 0.1492
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2406281201_XINGLIGHT-XL-HD3535UWC-A2_C3646951.pdf",
+   "url": "https://www.lcsc.com/product-detail/led-indication-discrete_xinglight-xl-hd3535uwc-a2_C3646951.html",
+   "attributes": [
+    {
+     "name": "Mounting Style",
+     "value": "Top-mount"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+85\u2103"
+    },
+    {
+     "name": "Color Temperature",
+     "value": "5500K~7000K"
+    },
+    {
+     "name": "Viewing Angle",
+     "value": "130\u00b0"
+    },
+    {
+     "name": "Lamp Holder Type",
+     "value": "3.5mm x 3.5mm square LED"
+    },
+    {
+     "name": "Forward Current",
+     "value": "350mA"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "1W"
+    },
+    {
+     "name": "Diode Configuration",
+     "value": "Discrete Diode"
+    },
+    {
+     "name": "Illumination Color",
+     "value": "White"
+    },
+    {
+     "name": "Lens Color",
+     "value": "Water Clear"
+    },
+    {
+     "name": "Voltage - Forward(Vf)",
+     "value": "2.8V~3.6V"
+    }
+   ],
+   "rank": 5,
+   "role": "emitter",
+   "arrangement": "b-offboard",
+   "scout_notes": {
+    "family": "XINGLIGHT 3535 1W - datasheet names 'mobile camera flash / strobe' as the target application",
+    "dc_max_mA": 350,
+    "pulsed_rating": "Peak Forward Current 700mA, condition: pulse width <=0.1ms, duty <=1/10. Abs max power 1000mW. Tj max 145C",
+    "cct_K": "5500-7500",
+    "viewing_angle_deg": 130,
+    "note": "cheapest and deepest stock (22438) of any real white power LED at JLC, but 350mA DC max means ~88 dies for 2.6A - impractical"
+   }
+  },
+  {
+   "lcsc": "C17242738",
+   "mpn": "L150-4080500600000",
+   "brand": "Lumileds",
+   "description": "116\u00b0 4000K 6.1V 640mA White SMD,5.2x5mm LED Indication - Discrete ROHS",
+   "package": "SMD,5.2x5mm",
+   "category": "LED Indication - Discrete",
+   "type": "Extended",
+   "basic": false,
+   "stock": 390,
+   "price": 1.3282,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 1.3282
+    },
+    {
+     "qty": 10,
+     "price": 1.0893
+    },
+    {
+     "qty": 30,
+     "price": 0.9586
+    },
+    {
+     "qty": 100,
+     "price": 0.8102
+    },
+    {
+     "qty": 500,
+     "price": 0.7456
+    },
+    {
+     "qty": 1000,
+     "price": 0.7149
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "",
+   "url": "https://www.lcsc.com/product-detail/led-indication-discrete_lumileds-l150-4080500600000_C17242738.html",
+   "attributes": [
+    {
+     "name": "Color Temperature",
+     "value": "4000K"
+    },
+    {
+     "name": "Viewing Angle",
+     "value": "116\u00b0"
+    },
+    {
+     "name": "Illumination Color",
+     "value": "White"
+    },
+    {
+     "name": "Forward Current",
+     "value": "640mA"
+    },
+    {
+     "name": "Voltage - Forward(Vf)",
+     "value": "6.1V"
+    }
+   ],
+   "rank": 6,
+   "role": "emitter",
+   "arrangement": "b-offboard",
+   "scout_notes": {
+    "family": "Lumileds LUXEON 5050 (L150 series) - 6V-class, 2 dies in series",
+    "dc_max_mA": "640mA test current; distributor data lists ~800mA max, UNVERIFIED",
+    "pulsed_rating": "NOT ASSESSABLE - LCSC attaches no datasheet to this SKU; Lumileds DS174 must be pulled before P3",
+    "rth_j_sp_CW": 2.4,
+    "cct_K": 4000,
+    "viewing_angle_deg": 116,
+    "note": "attractive 6V topology (6 in series = 36.6V) but stock only 390 and no datasheet on file"
+   }
+  },
+  {
+   "lcsc": "C49435773",
+   "mpn": "EMC-5050D90W-B4C2-S1-HR1-F-P6(4750K-5300K)",
+   "brand": "HONGLITRONIC(Hongli Zhihui (HONGLITRONIC))",
+   "description": "SMD5050 LED Indication - Discrete ROHS",
+   "package": "SMD5050",
+   "category": "LED Indication - Discrete",
+   "type": "Extended",
+   "basic": false,
+   "stock": 1000,
+   "price": 0.1943,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.1943
+    },
+    {
+     "qty": 50,
+     "price": 0.1529
+    },
+    {
+     "qty": 150,
+     "price": 0.1351
+    },
+    {
+     "qty": 1000,
+     "price": 0.113
+    },
+    {
+     "qty": 2000,
+     "price": 0.1032
+    },
+    {
+     "qty": 5000,
+     "price": 0.0972
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "",
+   "url": "",
+   "attributes": [
+    {
+     "name": "Color Temperature",
+     "value": "4750K~5300K"
+    },
+    {
+     "name": "Viewing Angle",
+     "value": "120\u00b0"
+    },
+    {
+     "name": "Lamp Holder Type",
+     "value": "5mm square lamp head"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "5.1W"
+    },
+    {
+     "name": "Diode Configuration",
+     "value": "Parallel in same direction"
+    },
+    {
+     "name": "Illumination Color",
+     "value": "White"
+    },
+    {
+     "name": "Lens Color",
+     "value": "Frosted Yellow Lens"
+    },
+    {
+     "name": "Voltage - Forward(Vf)",
+     "value": "5.8V~6.8V"
+    }
+   ],
+   "rank": 7,
+   "role": "emitter",
+   "arrangement": "b-offboard",
+   "scout_notes": {
+    "family": "Honglitronic EMC5050 'Robust' series, 5.1W, multiple dies in parallel",
+    "dc_max_mA": 850,
+    "pulsed_rating": "NOT ASSESSABLE - no datasheet attached at LCSC",
+    "cct_K": "4750-5300",
+    "viewing_angle_deg": 120,
+    "note": "6V-class (Vf 5.8-6.8V) and very cheap ($0.135@150) but zero datasheet, and the 'Frosted Yellow Lens' phosphor cap is a colour-cast risk under STR-REQ-14"
+   }
+  },
+  {
+   "lcsc": "C52125193",
+   "mpn": "DYWH-S353522-WD-FC-T700-1T",
+   "brand": "TONYU",
+   "description": "-35\u2103~+100\u2103 2.2W 3.15V 3.5mm x 3.5mm square LED 700mA White SMD3535-3P LED Indication - Discrete ROHS",
+   "package": "SMD3535-3P",
+   "category": "LED Indication - Discrete",
+   "type": "Extended",
+   "basic": false,
+   "stock": 980,
+   "price": 0.2544,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.2544
+    },
+    {
+     "qty": 50,
+     "price": 0.2014
+    },
+    {
+     "qty": 150,
+     "price": 0.1789
+    },
+    {
+     "qty": 1000,
+     "price": 0.1506
+    },
+    {
+     "qty": 2000,
+     "price": 0.138
+    },
+    {
+     "qty": 5000,
+     "price": 0.1304
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "",
+   "url": "",
+   "attributes": [
+    {
+     "name": "Operating Temperature",
+     "value": "-35\u2103~+100\u2103"
+    },
+    {
+     "name": "Lamp Holder Type",
+     "value": "3.5mm x 3.5mm square LED"
+    },
+    {
+     "name": "Forward Current",
+     "value": "700mA"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "2.2W"
+    },
+    {
+     "name": "Illumination Color",
+     "value": "White"
+    },
+    {
+     "name": "Voltage - Forward(Vf)",
+     "value": "3.15V"
+    }
+   ],
+   "rank": 8,
+   "role": "emitter",
+   "arrangement": "b-offboard",
+   "scout_notes": {
+    "family": "TONYU 3535 2.2W",
+    "dc_max_mA": 700,
+    "pulsed_rating": "NOT ASSESSABLE - no datasheet attached at LCSC",
+    "note": "listed only to show the depth of the 700mA tier; fails STR-REQ-13 on documentation alone"
+   }
+  },
+  {
+   "lcsc": "C510527",
+   "mpn": "CXA1507-0000-000N0HG440G",
+   "brand": "CREE LED",
+   "description": "115\u00b0 36V 375mA 4000K 93 938lm Natural White SMD,15.9x15.9mm Chip On Board (COB) Light Sources ROHS",
+   "package": "SMD,15.9x15.9mm",
+   "category": "Chip On Board (COB) Light Sources",
+   "type": "Extended",
+   "basic": false,
+   "stock": 5,
+   "price": 5.0495,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 5.0495
+    },
+    {
+     "qty": 10,
+     "price": 4.9317
+    },
+    {
+     "qty": 30,
+     "price": 4.8526
+    },
+    {
+     "qty": 100,
+     "price": 4.7736
+    },
+    {
+     "qty": 102,
+     "price": 4.7736
+    },
+    {
+     "qty": 104,
+     "price": 4.7736
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Wolfspeed-CXA1507-0000-000N0HG440G_C510527.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-on-board-cob-light-sources_wolfspeed-cxa1507-0000-000n0hg440g_C510527.html",
+   "attributes": [
+    {
+     "name": "Lumens",
+     "value": "938lm"
+    },
+    {
+     "name": "Color Temperature",
+     "value": "4000K"
+    },
+    {
+     "name": "Viewing Angle",
+     "value": "115\u00b0"
+    },
+    {
+     "name": "Illumination Color",
+     "value": "Natural White"
+    },
+    {
+     "name": "Current - Supply",
+     "value": "375mA"
+    },
+    {
+     "name": "CRI Color Rendering Index",
+     "value": "93"
+    },
+    {
+     "name": "Voltage - Forward(Vf)",
+     "value": "36V"
+    }
+   ],
+   "rank": 9,
+   "role": "cob",
+   "arrangement": "b-offboard",
+   "scout_notes": {
+    "family": "Cree CXA1507 - the ONLY true white COB in stock at JLC",
+    "dc_max_mA": "375mA nominal (36V, 13.5W class)",
+    "pulsed_rating": "not published for COB",
+    "cct_K": 4000,
+    "cri": 93,
+    "flux_lm": 938,
+    "viewing_angle_deg": 115,
+    "note": "STOCK = 5 PIECES. Not buyable for a 4-6 board run with spares, and 375mA/36V is ~13W - one seventh of the 2.6A operating point. Evidence that 'buy a 100W COB from JLC' is not an option"
+   }
+  },
+  {
+   "lcsc": "C358080",
+   "mpn": "BXKE-30G0801-A-23",
+   "brand": "Bridgelux",
+   "description": "100mA 3.6W 3000K 36V 383lm 90 Warm White SMD,12.5x12.5mm Chip On Board (COB) Light Sources ROHS",
+   "package": "SMD,12.5x12.5mm",
+   "category": "Chip On Board (COB) Light Sources",
+   "type": "Extended",
+   "basic": false,
+   "stock": 7,
+   "price": 1.0183,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 1.0183
+    },
+    {
+     "qty": 10,
+     "price": 0.9974
+    },
+    {
+     "qty": 50,
+     "price": 0.9844
+    },
+    {
+     "qty": 100,
+     "price": 0.9699
+    },
+    {
+     "qty": 102,
+     "price": 0.9699
+    },
+    {
+     "qty": 104,
+     "price": 0.9699
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2206211401_Bridgelux-BXKE-30G0801-A-23_C358080.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-on-board-cob-light-sources_bridgelux-bxke-30g0801-a-23_C358080.html",
+   "attributes": [
+    {
+     "name": "Power(Watts)",
+     "value": "3.6W"
+    },
+    {
+     "name": "Lumens",
+     "value": "383lm"
+    },
+    {
+     "name": "Color Temperature",
+     "value": "3000K"
+    },
+    {
+     "name": "Illumination Color",
+     "value": "Warm White"
+    },
+    {
+     "name": "Current - Supply",
+     "value": "100mA"
+    },
+    {
+     "name": "CRI Color Rendering Index",
+     "value": "90"
+    },
+    {
+     "name": "Voltage - Forward(Vf)",
+     "value": "36V"
+    }
+   ],
+   "rank": 10,
+   "role": "cob",
+   "arrangement": "b-offboard",
+   "scout_notes": {
+    "family": "Bridgelux Vesta BXKE COB",
+    "dc_max_mA": "100mA nominal (36V, 3.6W)",
+    "cct_K": 3000,
+    "cri": 90,
+    "flux_lm": 383,
+    "note": "STOCK = 7 PIECES, and 3000K warm white fails STR-REQ-14 (neutral/cool white) outright"
+   }
+  },
+  {
+   "lcsc": "C160315",
+   "mpn": "B2P-VH(LF)(SN)",
+   "brand": "JST",
+   "description": "-25\u2103~+85\u2103 1 10A 1x2P 2 250V 2P 3.96mm 7.86mm 8.5mm 9.4mm Brass PA66 Through Hole Tin UL94V-0 VH White \u63d2\u4ef6,P=3.96mm Wire To Board Connector ROHS",
+   "package": "Plugin,P=3.96mm",
+   "category": "Wire To Board Connector",
+   "type": "Extended",
+   "basic": false,
+   "stock": 121391,
+   "price": 0.0631,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0631
+    },
+    {
+     "qty": 100,
+     "price": 0.0519
+    },
+    {
+     "qty": 300,
+     "price": 0.046
+    },
+    {
+     "qty": 1000,
+     "price": 0.0412
+    },
+    {
+     "qty": 5000,
+     "price": 0.0396
+    },
+    {
+     "qty": 10000,
+     "price": 0.0385
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_JST-B2P-VH-LF-SN_C160315.pdf",
+   "url": "https://www.lcsc.com/product-detail/wire-to-board-connector_jst-b2p-vh-lf-sn_C160315.html",
+   "attributes": [
+    {
+     "name": "Operating Temperature",
+     "value": "-25\u2103~+85\u2103"
+    },
+    {
+     "name": "Number of Rows",
+     "value": "1"
+    },
+    {
+     "name": "Voltage Rating",
+     "value": "250V"
+    },
+    {
+     "name": "Color",
+     "value": "White"
+    },
+    {
+     "name": "Current Rating",
+     "value": "10A"
+    },
+    {
+     "name": "Pins Structure",
+     "value": "1x2P"
+    },
+    {
+     "name": "Mounting Type",
+     "value": "Through Hole"
+    },
+    {
+     "name": "Flame Retardant Rating",
+     "value": "UL94V-0"
+    },
+    {
+     "name": "Y-Width of Bottom Edge on Board",
+     "value": "8.5mm"
+    },
+    {
+     "name": "X-Length of Bottom Edge on Board (Spacing Line)",
+     "value": "7.86mm"
+    },
+    {
+     "name": "Reference Series",
+     "value": "VH"
+    },
+    {
+     "name": "Contact Plating",
+     "value": "Tin"
+    },
+    {
+     "name": "Number of Pins",
+     "value": "2P"
+    },
+    {
+     "name": "Pitch",
+     "value": "3.96mm"
+    },
+    {
+     "name": "Contact Material",
+     "value": "Brass"
+    },
+    {
+     "name": "Z-Height of the Board",
+     "value": "9.4mm"
+    },
+    {
+     "name": "Plastic Material",
+     "value": "PA66"
+    },
+    {
+     "name": "Number of PINs Per Row",
+     "value": "2"
+    }
+   ],
+   "rank": 11,
+   "role": "interface",
+   "arrangement": "b-offboard",
+   "scout_notes": {
+    "family": "JST VH 3.96mm 2-pin THT header - the internal wire-to-board interface for the off-board arrangement",
+    "rating": "10A / 250V per the LCSC listing; 2.6A peak and ~0.25A average is a 4x derate",
+    "note": "$0.0631 each, stock 121391. THT, so it lands in the same assembly-process question as the two board-to-board sockets (requirements open question 6). Mating half is VHR-2N housing + SVH-21T-P1.1 crimps, both bought as loose hardware, not JLC-assembled"
+   }
+  }
+ ]
+}

@@ -1,0 +1,281 @@
+{
+  "board": "LUM-DTR-STROBE-A",
+  "agent": "research-power-architect",
+  "date": "2026-07-28",
+  "basis": {
+    "design_case": "802.3af (D-01: first build is af-classified; requirements s3.1 'Design against af')",
+    "envelope_w": {"af": 8.5, "at": 18.5, "source": "ICD s6.2 TOTAL across all three rails - the per-rail ceilings do not add up and the total is what binds"},
+    "housekeeping_w": 0.114,
+    "p_avail_w": {"af": 8.386, "at": 18.386},
+    "bank_uf": {"icd_nominal": 2800, "as_built": 2720, "source": "energy-store.md s7, 4 x Ymin LKMJ2502A681MF 680 uF/100 V"},
+    "bank_energy_j": {"window_48_40": 0.957, "full_0_48": 3.133, "window_charge_mc": 21.76},
+    "string": {"v_at_2a6": 35.3, "i_peak_a": 2.6, "arrangement": "12x2 Cree XP-G2 at 1.30 A/die, off-board on its own heatsink", "source": "led-emitter.md s3", "icd_ceiling_v": 38.0},
+    "shunt_ohm": 0.200,
+    "ambient_c": {"af": 56, "at": 69, "source": "ICD s7.6 sealed-enclosure internal air"},
+    "tj_design_limit_c": 125,
+    "invariant": "P_board = P_rail * (48 - V_string)/48 + P_housekeeping  (af 2.33 W, at 4.78 W); P_FETs_only = P_rail * (48 - V_string - V_shunt)/48  (af 2.13 W, at 4.67 W). Independent of flash rate, flash energy, bank capacitance and bank voltage."
+  },
+
+  "rails": [
+    {
+      "net": "+48V_SW",
+      "vin": "J3 pins 1/3/5 - carrier eFuse output, dead at power-up for hundreds of ms (ICD s8.3)",
+      "topology": "direct",
+      "topology_detail": "no local regulator; a hot-swap / dv-dt-limited constant-current charge path feeds the bank. It is a current limiter, not a voltage converter.",
+      "current_a": 0.175,
+      "current_a_at": 0.383,
+      "current_peak_a": 0.6,
+      "peak_basis": "charge-path ILIM setting; refdesign D11 caps it at 0.6 A because the TPS2378 PD limits at 0.85 A MIN with a 500 us MIN foldback deglitch",
+      "consumers": [
+        {"name": "bank charge path (dv/dt limited)", "current_a": 0.175, "current_a_at": 0.383, "peak_a": 0.6, "source": "P_avail/48; ramp rate set so the 0.75 s cold start stays inside the 8.5 W envelope"},
+        {"name": "TPS2490 hot-swap controller VCC", "current_a": 0.001, "source": "TI SLVS503F s6.5 - 450 uA typ / 1000 uA max, enabled"},
+        {"name": "bank-sense divider 2x82k + 10k to ADC0", "current_a": 0.000276, "source": "protection-sense.md s5"},
+        {"name": "passive bleed 100 k (mandatory, STR-REQ-10)", "current_a": 0.00048, "source": "protection-sense.md s2"},
+        {"name": "PROG/VREF setting divider", "current_a": 0.0001, "source": "estimate from TPS2490 VREF 4 V / I_VREF <= 1 mA; confirm at P3"}
+      ],
+      "dissipation_w": 0.089,
+      "headroom": "175 mA of the 0.25 A af rail ceiling (70%) and of the 5.40 A connector capacity (3.2%). The 8.5 W TOTAL binds, not the rail."
+    },
+    {
+      "net": "/VBANK",
+      "vin": "+48V_SW via the charge path",
+      "topology": "direct",
+      "topology_detail": "2720 uF / 100 V energy store, operating 40-48 V. Behind the carrier's 802.3 compliance load switch AND behind this board's charge FET.",
+      "current_a": 0.175,
+      "current_peak_a": 2.6,
+      "consumers": [
+        {"name": "LED string (pulse, via the off-board harness)", "peak_a": 2.6, "duty": 0.067, "rms_a": 0.71, "rms_a_at": 1.05, "source": "STR-REQ-12; led-emitter.md s3"},
+        {"name": "active bleed 1 k (only when ENABLE is de-asserted; powered by the bank, costs zero budget)", "peak_a": 0.048, "source": "protection-sense.md s2"}
+      ],
+      "dissipation_w": 0.020,
+      "dissipation_note": "bank ESR 43.9 mohm at 120 Hz -> 0.114 V IR sag at 2.6 A = 1.43% of the 8 V window; 2.5 mJ per flash"
+    },
+    {
+      "net": "+12V",
+      "vin": "J3 pins 9/11 - carrier 48->12 V buck",
+      "topology": "direct",
+      "topology_detail": "decoupling only, no local regulator. Keep local bulk <= 4.7 uF so the loop dies promptly on unplug.",
+      "current_a": 0.00128,
+      "consumers": [
+        {"name": "LM2904 dual op-amp (error amp + setpoint buffer)", "current_a": 0.0012, "source": "drive-stage.md s2a, Icc max"},
+        {"name": "gate pull-down 4k7 during conduction", "current_a": 0.00008, "source": "1.06 mA at 7.4% duty"}
+      ],
+      "dissipation_w": 0.0154,
+      "decision": "The analogue loop is biased from +12V, NOT +3V3 and NOT a local 48 V linear. Controlling constraint: the pass FET source sits 0.52 V above GND on the shunt and a planar (non-logic-level) HEXFET needs 5-7 V of Vgs at 2.6 A; from 3.3 V an amplifier delivers only 2.78 V, below the worst-case Vgs(th) of 4 V. +3V3 would force a logic-level trench part, which refdesign D6-D8 identifies as the worst choice for a linear pass element. ICD s6.3's 'take power on +48V_SW' targets rail-scale loads worth 0.67 W; at 1.28 mA the conversion penalty is 1.7 mW and the board still takes 100% of its actual power on +48V_SW. A local 48 V linear costs 2.7x the budget, adds a 48 V-domain part, and is dead for the hundreds of ms when +48V_SW is dead - exactly when the gate must be actively held low.",
+      "headroom": "0.17% of the 0.75 A af ceiling; 976x below the 1.25 A at-ceiling that busts the carrier's converter thermal budget"
+    },
+    {
+      "net": "+3V3",
+      "vin": "J3 pins 12/14",
+      "topology": "direct",
+      "topology_detail": "decoupling only, no local regulator",
+      "current_a": 0.001175,
+      "consumers": [
+        {"name": "LM2903 over-temperature comparator (RECOMMEND MOVING TO +12V - see risk)", "current_a": 0.001, "source": "protection-sense.md s4, Icc max"},
+        {"name": "TMP112 I2C telemetry", "current_a": 0.00001, "source": "protection-sense.md s4"},
+        {"name": "NTC divider 10k/10k", "current_a": 0.000165, "source": "protection-sense.md s4"}
+      ],
+      "consumers_on_signal_pins": [
+        {"name": "setpoint RC divider 5k36+1k00 (driven from a PWM pin)", "current_a": 0.000519, "source": "drive-stage.md s5.1"},
+        {"name": "ENABLE 100 k pull-down (mandatory, ICD s8.2)", "current_a": 0.000033},
+        {"name": "ID divider bottom leg (top leg is the carrier's 10 k)", "current_a": 0.000224, "source": "protection-sense.md s5, placeholder value"}
+      ],
+      "dissipation_w": 0.0065,
+      "headroom": "0.47% of the 0.25 A ceiling",
+      "risk": "With the loop biased from +12V, the drive stage is FULLY FUNCTIONAL with the daughter's +3V3 absent (ENABLE and PWM arrive at carrier levels, the setpoint divider runs off the PWM pin, the charge path's EN is GND-referenced). The only casualty is the +3V3-powered over-temperature comparator - i.e. the STR-REQ-20 firmware-independent protection. Recommend biasing the OT comparator and its NTC reference from +12V and taking ADC1 telemetry from an independent +3V3 leg."
+    }
+  ],
+
+  "power_constraints": [
+    {"net": "+48V_SW", "current_a": 0.6, "dt_c": 10, "via_amps": 0.5,
+     "_note": "sustained is only 0.175 A; sized to the 0.6 A charge-path ILIM because this stub carries fault current until the limiter acts"},
+    {"net": "/VBANK", "current_a": 2.6, "dt_c": 10, "via_amps": 0.5,
+     "_note": "2.6 A pulse at 6.7-14.7% duty; RMS 0.71 A (af) / 1.05 A (at) / 1.21 A (opening burst). Thermally RMS binds but the IR-drop target binds harder: keep total pulse-loop copper under 30 mohm (78 mV = 1% of the window)"},
+    {"net": "/LED_A", "current_a": 2.6, "dt_c": 10, "via_amps": 0.5, "pdn": false,
+     "_note": "harness conductor to the string anode. pdn:false - D1/refdesign forbids capacitance across the string (decay tail)"},
+    {"net": "/LED_K", "current_a": 2.6, "dt_c": 10, "via_amps": 0.5, "pdn": false,
+     "_note": "harness return to the pass FET drain. Also the pass FET's thermal pour net. pdn:false by design"},
+    {"net": "/ISNS", "current_a": 2.6, "dt_c": 10, "via_amps": 0.5, "pdn": false,
+     "_note": "pass FET source to shunt high side. Kelvin-sense the shunt (sense traces to the pad ends); analogue return meets the pulse return only at the shunt low side"},
+    {"net": "+12V", "current_a": 0.005, "dt_c": 10},
+    {"net": "+3V3", "current_a": 0.005, "dt_c": 10}
+  ],
+
+  "thermal_constraints": [
+    {"ref": "Q_DRIVE", "power_w": 1.9, "net": "/LED_K", "dt_c": 60, "min_vias": 12,
+     "_element": "linear pass FET (D2PAK on ~645 mm2 of drain copper)",
+     "_basis": "af, 25 Hz, bank charged to 48 V: P = P_avail * (V_mean - 0.114 - V_string - V_shunt)/48 = 1.884 W, declared as 1.9 W. Integrated over the flash (Vds falls 12.18 -> 4.18 V), NOT the 31.7 W peak.",
+     "_allowance": "D2PAK RthJA 40 C/W on 1 in2 -> 1.73 W at 56 C air / Tj 125 C. 1.90 W is a 10% overrun; regulating the bank to a ~42 V set-point instead of 48 V drops this to 1.06 W (1.63x margin) at identical light output.",
+     "_at_case": "3.54 W at 802.3at 25 Hz vs a 1.40 W allowance at 69 C air - fails 2.5x. See OPEN-1.",
+     "_layout": "the pour is the DRAIN, a 48 V-domain net: the 0.60 mm outer clearance applies to its whole perimeter on every layer and through the board. Excluded from the DC-DC hot zone (2,46)-(36,68) and the antenna column (88,25)-(100,55)."},
+    {"ref": "Q_CHG", "power_w": 1.1, "net": "+48V_SW", "dt_c": 60, "min_vias": 12,
+     "_element": "bank charge FET (high-side N-channel, D2PAK; tab = drain = +48V_SW)",
+     "_basis": "steady state P = P_avail * (48 - V_mean)/48; 0.22 W (af 25 Hz, charge to 48 V) to 1.06 W (af, 42 V balanced set-point) to 1.53 W (at, full-window). 1.1 W covers the af design envelope.",
+     "_transient": "COLD START is the larger event and is easy to miss: 3.133 J, 8.35 W peak decaying to 0 over 0.75 s at a 0.175 A ramp, in linear mode. Lands in the dead zone between the last plotted 10 ms SOA curve and the DC line on every JLC-stocked MOSFET datasheet (protection-sense s0).",
+     "_repeat_rule": "mean = 3.133 J x ENABLE cycles/s. At 1.33 s re-arm the mean hits the 2.35 W D2PAK steady limit. FIRMWARE CONTRACT: ENABLE is a slow arm/disarm with a minimum ~10 s re-arm interval (0.31 W mean); it is NOT a per-flash or per-cue gate - PWM is."},
+    {"ref": "R_BLEED_ACTIVE", "power_w": 0.73, "net": "GND", "dt_c": 60, "min_vias": 2,
+     "_element": "ENABLE-gated active bleed resistor (2512)",
+     "_basis": "3.133 J dumped over a 4.3 s event: 2.30 W peak at t=0, 0.73 W mean. Costs zero rail budget - the carrier's 48 V switch is already open when it runs.",
+     "_recommendation": "split into 2 x 470 ohm 2512 in series: halves the per-part peak to 1.15 W (1.7x inside a 2 W continuous rating, so no joule rating is needed - none is published for any JLC-stocked chip resistor) and doubles the working-voltage margin. Costs $0.09.",
+     "_failsafe": "MUST be self-powered from the bank and default ON with every rail dead - bias up from /VBANK through a clamped high-value resistor and have the ENABLE-driven device pull it DOWN to disarm. An ENABLE-inverting stage powered from +3V3 cannot invert anything after a cable unplug, which is exactly the case it exists for."}
+  ],
+
+  "voltages": [
+    {"net": "+48V_SW", "voltage": 57},
+    {"net": "/VBANK", "voltage": 57},
+    {"net": "/LED_A", "voltage": 57},
+    {"net": "/LED_K", "voltage": 57},
+    {"net": "/CHG_GATE", "voltage": 64,
+     "_note": "TPS2490 V_GATE-OUT is 12-16 V above VCC (SLVS503F s6.5) - the highest-voltage net on the board. Still inside the IPC-2221B B2 51-100 V band, so the ICD's 0.60 mm covers it. Do NOT declare the TVS clamp voltage (93.6 V) as a working voltage: IPC-2221 spacing is for steady-state working voltage, and 100 V would demand 1.5 mm and fail the layout for no reason."}
+  ],
+
+  "energy_budget": {
+    "charge_path_efficiency": {
+      "formula": "eta = V_mean / 48, independent of the charge current profile (E_fet = C * integral(48 - Vc) dVc)",
+      "steady_topup_40_to_48": {"q_mc": 21.76, "e_rail_j": 1.044, "e_cap_j": 0.957, "e_fet_j": 0.087, "eta_pct": 91.67},
+      "topup_25hz_af": {"q_mc": 6.989, "e_rail_j": 0.336, "e_cap_j": 0.326, "e_fet_j": 0.009, "eta_pct": 97.34},
+      "topup_25hz_at": {"q_mc": 15.29, "e_rail_j": 0.734, "e_cap_j": 0.691, "e_fet_j": 0.043, "eta_pct": 94.15},
+      "cold_start_0_to_48": {"q_mc": 130.56, "e_rail_j": 6.267, "e_cap_j": 3.133, "e_fet_j": 3.133, "eta_pct": 50.0},
+      "_note": "~92% is high precisely because the 48->40 V window is narrow (44 V mean against a 48 V source). This is what makes a linear charge path acceptable and a switching pre-regulator not worth its parts, area or DC-DC-hot-zone conflict. The cold start pays the classic 50% penalty."
+    },
+    "max_full_window_rate_hz": {"af": 8.03, "at": 17.60,
+      "_vs_icd": "ICD s6.4 quotes 8.6 / 18.8 Hz. Those are the ideal-charge figures (8.5 W / 0.986 J). Adding the 8.33% charge-path loss, 114 mW of housekeeping and the as-built 2720 uF gives 8.0 / 17.6 Hz - 7% lower. Design the governor to 8.0 Hz."},
+    "rate_vs_energy_af": [
+      {"f_hz": 1, "limit": "bank", "e_bank_j": 0.957, "e_led_j": 0.768, "v_lo": 40.0, "pulse_ms": 8.37, "duty_pct": 0.8, "p_rail_w": 1.04},
+      {"f_hz": 5, "limit": "bank", "e_bank_j": 0.957, "e_led_j": 0.768, "v_lo": 40.0, "pulse_ms": 8.37, "duty_pct": 4.2, "p_rail_w": 5.22},
+      {"f_hz": 8.0, "limit": "both", "e_bank_j": 0.957, "e_led_j": 0.768, "v_lo": 40.0, "pulse_ms": 8.37, "duty_pct": 6.7, "p_rail_w": 8.39},
+      {"f_hz": 10, "limit": "rail", "e_bank_j": 0.783, "e_led_j": 0.617, "v_lo": 41.58, "pulse_ms": 6.72, "duty_pct": 6.7, "p_rail_w": 8.39},
+      {"f_hz": 15, "limit": "rail", "e_bank_j": 0.534, "e_led_j": 0.411, "v_lo": 43.72, "pulse_ms": 4.48, "duty_pct": 6.7, "p_rail_w": 8.39},
+      {"f_hz": 20, "limit": "rail", "e_bank_j": 0.405, "e_led_j": 0.308, "v_lo": 44.79, "pulse_ms": 3.36, "duty_pct": 6.7, "p_rail_w": 8.39},
+      {"f_hz": 25, "limit": "rail", "e_bank_j": 0.326, "e_led_j": 0.247, "v_lo": 45.43, "pulse_ms": 2.69, "duty_pct": 6.7, "p_rail_w": 8.39}
+    ],
+    "rate_vs_energy_at": [
+      {"f_hz": 8.6, "limit": "bank", "e_bank_j": 0.957, "e_led_j": 0.768, "v_lo": 40.0, "pulse_ms": 8.37, "duty_pct": 7.2, "p_rail_w": 8.98},
+      {"f_hz": 17.6, "limit": "both", "e_bank_j": 0.957, "e_led_j": 0.768, "v_lo": 40.0, "pulse_ms": 8.37, "duty_pct": 14.7, "p_rail_w": 18.39},
+      {"f_hz": 25, "limit": "rail", "e_bank_j": 0.692, "e_led_j": 0.541, "v_lo": 42.37, "pulse_ms": 5.89, "duty_pct": 14.7, "p_rail_w": 18.39}
+    ],
+    "str_req_05_worst_case": {
+      "scenario": "~30 s of continuous 25 Hz, af, then return to normal",
+      "flashes": 750,
+      "energy_in_j": 251.6, "energy_out_j": 251.6,
+      "bank_steady_state_v": [45.43, 48.0],
+      "board_dissipation_w": 2.333,
+      "led_dissipation_w": 6.17,
+      "breakdown_w": {"pass_fet": 1.884, "charge_fet": 0.224, "shunt": 0.091, "bank_esr": 0.020, "housekeeping": 0.114},
+      "_note": "Duration is NOT the worst case - an indefinite run is, and it is the same 2.35 W, because the rail caps input at 8.5 W however long the drop lasts. 30 s is LESS severe than steady state: the D2PAK+pour time constant is order 60-120 s, so a 30 s burst reaches only 60-80% of the final rise. The bank does not walk down; it sawtooths 45.43 <-> 48.00 V."
+    },
+    "burst_from_full_bank_25hz_af": {
+      "answer": "exactly ONE full-energy flash",
+      "sequence": [
+        {"flash": 1, "v_start": 48.0, "q_mc": 21.76, "e_bank_j": 0.957, "e_led_j": 0.768, "pct_of_full": 100, "pulse_ms": 8.37},
+        {"flash": 2, "v_start": 42.57, "q_mc": 6.99, "e_bank_j": 0.289, "e_led_j": 0.247, "pct_of_full": 32, "pulse_ms": 2.69},
+        {"flash": "3+", "v_start": 42.57, "q_mc": 6.99, "e_bank_j": 0.289, "e_led_j": 0.247, "pct_of_full": 32, "pulse_ms": 2.69}
+      ],
+      "_note": "Algebra, not a shortfall: one full flash IS the whole 48->40 V window, and 40 ms of rail replaces only 6.99 mC of the 21.76 mC spent. Opening the window to the true 36.7 V regulation floor buys ONE intermediate step: 100% -> 73% -> 32%. At 8 Hz every flash is 100% indefinitely.",
+      "_for_the_human": "A build-up ending on one maximum blast is supported. A sustained 25 Hz machine-gun section runs at 32% of full energy (0.247 J of LED drive, 2.69 ms wide). Both are musically useful; the second is not blinding."
+    },
+    "single_long_flash_af": [
+      {"duration_ms": 10, "e_bank_j": 0.957, "e_rail_j": 0.077, "e_total_j": 1.034, "drive_w": 103.4, "i_a": 2.35},
+      {"duration_ms": 50, "e_bank_j": 0.957, "e_rail_j": 0.384, "e_total_j": 1.342, "drive_w": 26.8, "i_a": 0.61},
+      {"duration_ms": 100, "e_bank_j": 0.957, "e_rail_j": 0.769, "e_total_j": 1.726, "drive_w": 17.3, "i_a": 0.39},
+      {"duration_ms": 200, "e_bank_j": 0.957, "e_rail_j": 1.537, "e_total_j": 2.495, "drive_w": 12.5, "i_a": 0.28}
+    ],
+    "cold_start": [
+      {"i_a": 0.175, "ramp_s": 0.75, "input_w": 8.35, "inside_af_envelope": true, "fet_peak_w": 8.35, "fet_mean_w": 4.18, "energy_j": 3.133},
+      {"i_a": 0.25, "ramp_s": 0.52, "input_w": 12.0, "inside_af_envelope": false, "fet_peak_w": 12.0, "fet_mean_w": 6.0, "energy_j": 3.133},
+      {"i_a": 0.6, "ramp_s": 0.22, "input_w": 28.8, "inside_af_envelope": false, "fet_peak_w": 28.8, "fet_mean_w": 14.4, "energy_j": 3.133}
+    ],
+    "cold_start_recommendation": "Set the RAMP at ~0.175 A via dv/dt (gate-capacitor) control and the CURRENT LIMIT separately at <= 0.6 A as a fault backstop. These are two different numbers. The 0.6 A ILIM protects against PD foldback (TPS2378 ILIM min 0.85 A, deglitch min 500 us). The 0.175 A ramp keeps the whole 750 ms cold start inside the 8.5 W envelope so the PSE overload timer (50-75 ms) is never started - a 0.25 A ramp holds 12 W for 520 ms, seven times the overload window. Do NOT use power-limiting alone as the ramp control: with Vds*Id = PLIM the input current RISES as the cap charges, so input power grows from PLIM to 6*PLIM by 40 V. Program the fault timer longer than 0.75 s or a normal start latches the controller off.",
+    "bleed": {
+      "passive_100k_daughter_alone_s_to_10v": 427,
+      "passive_50k_stacked_s_to_10v": 213,
+      "active_1k_s_to_10v": 4.3,
+      "passive_standing_burn_mw": 23,
+      "_note": "The carrier fits no series diode on +48V_SW, so this board's bleed is not stranded above the carrier's. A board pulled off the stack holds a handling hazard for 7.1 min on the passive path alone - the self-powered active bleed is what makes it 4.3 s in every case with no rail and no firmware."
+    }
+  },
+
+  "dissipation_map_w": {
+    "_ambient_c": {"af": 56, "at": 69},
+    "_d2pak_allowance_w": {"56C_Tj125": 1.73, "56C_Tj175": 2.98, "69C_Tj125": 1.40, "69C_Tj175": 2.65,
+      "_basis": "RthJA 40 C/W on 1 in2 of copper, drive-stage.md s1.2 (datasheet-conditioned). Tj 125 C is a 50 C derate on the 175 C max - standard for a part with no linear-mode SOA characterisation (drive-stage s1.1/R3)."},
+    "idle":      {"pass_fet": 0.0,   "charge_fet": 0.0,   "shunt": 0.0,   "bank_esr": 0.0,   "housekeeping": 0.114, "board_total": 0.114, "led_offboard": 0.0},
+    "af_8p6hz":  {"pass_fet": 1.456, "charge_fet": 0.652, "shunt": 0.091, "bank_esr": 0.020, "housekeeping": 0.114, "board_total": 2.333, "led_offboard": 6.17},
+    "af_25hz":   {"pass_fet": 1.884, "charge_fet": 0.224, "shunt": 0.091, "bank_esr": 0.020, "housekeeping": 0.114, "board_total": 2.333, "led_offboard": 6.17},
+    "at_8p6hz":  {"pass_fet": 1.510, "charge_fet": 0.749, "shunt": 0.097, "bank_esr": 0.021, "housekeeping": 0.114, "board_total": 2.490, "led_offboard": 6.61},
+    "at_25hz":   {"pass_fet": 3.543, "charge_fet": 1.079, "shunt": 0.199, "bank_esr": 0.044, "housekeeping": 0.114, "board_total": 4.978, "led_offboard": 13.52},
+    "_esr_convention": "The bank ESR row is carved OUT of the pass FET share, not added to it: the bank's 0.114 V IR sag reduces the terminal voltage the pass FET sees. Each column sums exactly to board_total.",
+    "_af_columns_identical": "af board total is the same at 8.6 and 25 Hz - that is the invariant. Only the split between the two FETs moves."
+  },
+
+  "fet_burden_split": {
+    "formula": {"pass": "P_rail * (V_mean - V_string - V_shunt)/48", "charge": "P_rail * (48 - V_mean)/48"},
+    "total_is_invariant_w_fets_only": {"af": 2.128, "at": 4.665},
+    "_note_esr": "pass figures in this table include the 20-44 mW bank-ESR term that dissipation_map_w carves out separately; it changes no conclusion here",
+    "balance_point_v_mean": 41.91,
+    "table": [
+      {"bank_charged_to_v": 48.0,  "af_pass": 2.128, "af_chg": 0.0,   "at_pass": 4.665, "at_chg": 0.0},
+      {"bank_charged_to_v": 46.72, "af_pass": 1.904, "af_chg": 0.224, "at_pass": 4.175, "at_chg": 0.490},
+      {"bank_charged_to_v": 44.0,  "af_pass": 1.429, "af_chg": 0.699, "at_pass": 3.133, "at_chg": 1.532},
+      {"bank_charged_to_v": 41.91, "af_pass": 1.064, "af_chg": 1.064, "at_pass": 2.333, "at_chg": 2.333},
+      {"bank_charged_to_v": 40.0,  "af_pass": 0.730, "af_chg": 1.398, "at_pass": 1.601, "at_chg": 3.064}
+    ],
+    "recommendation_af": "Regulate the bank to a ~42 V set-point rather than charging to 48 V. Both FETs then sit at 1.06 W against a 1.73 W allowance (1.63x) instead of one at 1.90 W against 1.73 W (a 10% overrun). Identical average light, identical total heat, half the worst-case junction. Raise the set-point toward 48 V only when burst headroom is wanted - the bank-voltage feedback needed for that is already required by STR-REQ-18.",
+    "warning": "Paralleling two pass FETs is NOT a free fix: linear-mode paralleling is unstable without source ballast (the lower-Vgs(th) device hogs current, heats, and its threshold falls further - the Spirito mechanism of refdesign D6), and source ballast re-introduces the dropout headroom this design is trying to save."
+  },
+
+  "sequencing": {
+    "no_mate_ordering": "ICD s7.3 - a dual-row header has no first-mate/last-mate control. 48 V may arrive before or after 3.3 V, in either order, on mate AND on unmate.",
+    "power_up_48v_dead": {
+      "state": "ENABLE low (carrier 10 k + daughter 100 k, both passive); charge path off (TPS2490 GATE held below POR ~6 V / UVLO, and its EN pin is GND-referenced with 100 V abs max so ENABLE drives it with no rail); pass FET off (gate-source pull-down + 2N7002 clamp, both rail-independent); bank at 0 V.",
+      "hard_rule": "No component may bridge +12V or +3V3 to +48V_SW, /VBANK, /LED_A or /LED_K (ICD s8.3 point 2). The only nets crossing the domain boundary are ENABLE/PWM into GND-referenced control inputs, and the bank-sense divider tap - a resistive path OUT of the 48 V domain into a high-impedance ADC. Make this an explicit netlist review item at P4 and a check at P8: it is the one requirement whose violation is invisible on the bench and only shows up as a PD compliance failure.",
+      "port_capacitance": "Total daughter capacitance on the +48V_SW side of the charge FET must stay under ~1 uF (TVS + controller bypass only) = 0.56% of the 802.3 180 uF ceiling, against the carrier's own 44 uF. The 2720 uF sits BEHIND the charge FET, where the carrier's compliance switch already hides it."
+    },
+    "enable_assert_into_empty_bank": {
+      "sequence": "carrier eFuse closes fast into <1 uF (non-event) -> TPS2490 clears POR/UVLO -> GATE released through its dv/dt capacitor -> constant ~0.175 A, 0->48 V in 0.75 s, 3.133 J burnt in the charge FET (8.35 W falling to 0). The carrier's eFuse ILIM (1.0 A) sits ABOVE the daughter's ramp so the two soft-starts do not fight (ICD s8.2).",
+      "requirement": "Inhibit the drive stage until the bank clears the regulation floor. Below ~36 V the string cannot conduct; between 36 and 40 V a commanded flash produces a truncated dim pulse and steals the charge current. Recommend a bank-undervoltage lockout at ~40 V on the FREE second section of the LM2903 (protection-sense s4 notes it is spare). This also removes the 'first flash of a phrase fades in' mode of refdesign E2.",
+      "worst_mate_order": "ENABLE connects before +48V_SW -> the charge path is armed when the rail arrives. Handled by the dv/dt ramp - the event is the same either way. GND-last is not reachable: 2.54 mm dual-row pins mate within ~0.3 mm of travel and there are 12 GND pins with a GND adjacent to every supply pin."
+    },
+    "enable_deassert_mid_flash": {
+      "sequence": "2N7002 clamp pulls the pass gate to source in ~us -> string current stops -> charge path stops -> bank holds charge -> active bleed engages, 48->10 V in 4.3 s.",
+      "harness_clamp_requirement": "Harness inductance is the only stored energy needing somewhere to go: 0.5-2 uH at 2.6 A = 1.7-6.8 uJ, producing 13-52 V of L*di/dt at a 100 ns turn-off, on top of a 48 V bank. Clamp the drain with a drain-source TVS or verified avalanche capability - NOT a freewheel diode across the string, which recirculates harness current through the LEDs and produces exactly the decay tail STR-REQ-01 forbids. The energy is trivial; the topology is not.",
+      "re_arm_penalty": "minimum ~10 s between ENABLE assertions (see thermal_constraints Q_CHG). Nuance: the active bleed's 2.72 s time constant makes a SHORT de-assert cheap - a 100 ms glitch drops the bank only ~3.5%. The penalty is graduated, not a cliff."
+    },
+    "cable_unplug_mid_flash": {
+      "hazard": "All three rails vanish in arbitrary order. The bank still holds up to 3.133 J at 48 V, and the carrier fits NO series diode on +48V_SW (ICD s8.2), so the bank back-feeds onto the connector's 48 V pins.",
+      "charge_fet_does_not_isolate": "A high-side N-channel charge FET's body diode points the wrong way to block bank-to-connector current when the FET is off. Assume the connector pins go to bank potential.",
+      "pass_fet": "The passive gate-source pull-down turns it off with every rail dead. Keep +12V local bulk <= 4.7 uF so a still-powered op-amp cannot hold the gate up after ENABLE has gone.",
+      "active_bleed": "MUST be self-powered from the bank and default ON with every rail dead. An ENABLE-inverting stage powered from +3V3 cannot invert anything after an unplug, which is exactly the case it exists for. Bias it up from /VBANK through a clamped high-value resistor; have the ENABLE-driven device pull it DOWN to disarm. Prefer a MOSFET-gate arrangement (~2-3 mW standing cost when armed) over a base-driven BJT (~58 mW).",
+      "result": "With the self-powered active bleed the board is under 10 V 4.3 s after unplug in every case, with no rail and no firmware. Without it, a board pulled off the stack holds a handling hazard for 7.1 minutes. Silkscreen the stored-energy warning and the bleed time constant per requirements s8.3 regardless."
+    }
+  },
+
+  "layout_consequences": [
+    "Pulse-loop nets are declared at 2.6 A; RMS is only 0.71 A (af) / 1.05 A (at) / 1.21 A (opening burst). Thermally RMS binds, but the IR-drop target binds harder: keep total pulse-loop copper under 30 mohm so the drop stays under 78 mV = 1% of the 8 V window. At 1 oz that forces ~1 mm minimum anyway.",
+    "Return the pulse loop directly beneath the outbound conductor on the adjacent layer (refdesign L1/L6). Vertical coupling shrinks the loop area without violating the in-plane 0.60 mm 48 V clearance, and inner-layer clearance is JLC's 0.127 mm minimum anyway, so the vertical dimension is free.",
+    "Kelvin-sense the shunt with sense traces to the pad ends (no 4-terminal 2512 exists on JLC). Route the sense pair tight, not parallel to the pulse path; the analogue return meets the pulse return only at the shunt low side; the bank-sense divider must reference the same quiet point (refdesign L2).",
+    "The pass FET's 645 mm2 drain pour is a 48 V net excluded from the DC-DC hot zone (2,46)-(36,68) and the antenna column (88,25)-(100,55), and carries the 0.60 mm clearance on its whole perimeter on every layer including through-board. If that area cannot be met the RthJA rises and the af margin disappears - check at P5/P6, not at P8 (drive-stage R5).",
+    "Connector loading: +48V_SW carries 175 mA sustained / 600 mA peak of a 5.40 A capacity (3.2% / 11%) at the ICD's 1.80 A/pin derate. The 2.6 A pulse NEVER crosses the connector - it comes from the bank."
+  ],
+
+  "open": [
+    {"id": "OPEN-1", "severity": "design-scope, not safety",
+     "q": "D-01 says the 802.3at upgrade is 'a resistor change + a PoE+ switch, no respin'. For this daughter it is not: at 18.386 W the two linear FETs must dissipate 4.67 W between them in 69 C air. Best case (balanced split, 38 V string) is 1.91 W per D2PAK against a 1.40 W allowance - fails 1.4x; the simple case fails 2.6x. Closing it needs RthJA <= 15-24 C/W (a real heatsink on a 48 V-domain drain tab), or a string above 40.2 V (over the ICD's 38 V ceiling, unavailable), or a governor cap of 11.0 W (35.3 V string) / 14.2 W (38 V string) of the 18.5 W available.",
+     "recommendation": "Build to af as requirements s3.1 already directs, and record that the at path costs this daughter either a heatsinked pass element or a governor-imposed ~11-14 W cap. NOT a blocking issue against LUM-CAR-A - the carrier's ICD is correct and nothing this board needs from it changes. The board is not unsafe in at mode (STR-REQ-20's firmware-independent trip is the backstop) - it just does not deliver the extra light the upgrade promises."},
+    {"id": "OPEN-2", "severity": "lever, needs the human because it moves an ICD number",
+     "q": "The ICD's 40 V window floor was set for a 38 V string. With the recommended 12x2 XP-G2 array at 35.3 V the true regulation floor is 36.71 V, leaving 3.3 V and 0.34 J of unused window - a 36% larger accent for zero parts cost. It buys burst energy only: it does NOT raise the sustained rate (rail-bound) and does NOT reduce dissipation (the invariant).",
+     "recommendation": "Take it if the single-blast accent matters. Flagged rather than adopted because it changes a number the ICD states."},
+    {"id": "OPEN-3", "severity": "first-order thermal lever",
+     "q": "String voltage is the single most sensitive input in the whole thermal design: every extra volt moves P_rail/48 = 2.1% of the budget (af 175 mW) from the pass FET to the LED. 35.3 V -> 38.0 V cuts board dissipation from 2.13 W to 1.75 W (-18%) and adds the same 0.38 W to the light. led-emitter s3 chose 12x2 XP-G2 because 13 in series is 38.2 V and breaks the <=38 V limit - but that limit exists to preserve headroom at a 40 V floor which OPEN-2 shows is itself a consequence, not a constant.",
+     "recommendation": "Re-run the emitter arrangement against a jointly-chosen (string voltage, window floor) pair rather than treating either as fixed. Coupled decision across led-emitter, drive-stage and this block."},
+    {"id": "OPEN-4", "severity": "single-point failure of a firmware-independent protection",
+     "q": "With the loop biased from +12V, the drive stage is fully functional with the daughter's +3V3 absent (ENABLE and PWM arrive at carrier levels, the setpoint divider runs off the PWM pin to GND, the charge path's EN is GND-referenced). The only casualty is the +3V3-powered over-temperature comparator - i.e. STR-REQ-20. The exposed case is a daughter-local loss of +3V3 (both pins open, a broken track, a shorted decoupling cap) while the carrier is healthy; a carrier-side 3.3 V failure is self-safing because ENABLE de-asserts.",
+     "recommendation": "Bias the OT comparator and its NTC reference divider from +12V (LM2903 is 2-36 V; its open-collector output sinks a 12 V gate node fine) and take ADC1 telemetry from an independent +3V3-referenced leg. Two thermistors on the off-board module cost $0.08 and also mean a shorted telemetry wire cannot defeat the trip. Circuit shape is the architect's call; the power-architecture requirement is: the protection must sit on a rail no less available than the thing it protects."},
+    {"id": "OPEN-5", "severity": "firmware contract",
+     "q": "ENABLE re-arm rate. Mean charge-FET power = 3.133 J x ENABLE cycles/s; at a 1.33 s interval the mean hits the 2.35 W D2PAK steady-state limit at 56 C.",
+     "recommendation": "Write into DOC-01 and the carrier's firmware interface: ENABLE is a slow arm/disarm with a minimum ~10 s re-arm interval (0.31 W mean). It is NOT a per-flash or per-cue gate - PWM is. Also record the governor contract that drive-stage s5.1 derived: amplitude must be programmed at least one flash period (~5 ms) before the flash it applies to."},
+    {"id": "OPEN-6", "severity": "confirm before P3",
+     "q": "Two numbers in the housekeeping budget are estimates, not datasheet reads: the TPS2490 PROG/VREF setting-divider current (~0.100 mA assumed) and the string Vf-vs-current curve used for the reduced-amplitude efficiency estimate (LED share 76% at full amplitude falling to ~68% at 10%).",
+     "recommendation": "Both are second-order (0.1% and a few percent of an already-small term) and neither changes a conclusion. Confirm at P3 when the parts are fixed."}
+  ]
+}

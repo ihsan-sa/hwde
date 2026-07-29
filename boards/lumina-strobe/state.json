@@ -1,0 +1,225 @@
+{
+ "version": 1,
+ "board": "lumina-strobe",
+ "workspace": "boards/lumina-strobe",
+ "created": "2026-07-28T14:59:51",
+ "updated": "2026-07-28T19:39:41",
+ "phase": "P2",
+ "gates": {},
+ "human": {},
+ "artifacts": {
+  "requirements": "requirements.md",
+  "architecture_blocks": "architecture/blocks.md",
+  "architecture_power_tree": "architecture/power_tree.md",
+  "architecture_stackup": "architecture/stackup.md",
+  "architecture_sheets": "architecture/sheets.md",
+  "constraints": "architecture/constraints.json"
+ },
+ "open_issues": [],
+ "next_issue_id": 1,
+ "budgets": {
+  "fix_loops": {
+   "erc": 3,
+   "place": 3,
+   "drc_routed": 3,
+   "verify": 3,
+   "dfm": 3
+  },
+  "freerouting_retries": 2,
+  "place_edit_iterations": 8
+ },
+ "decisions": [
+  {
+   "what": "Design baseline = white-only (D-04 recommendation), pending human verdict at H1",
+   "why": "Brief leans white-only; RGBW coloured blasts are already covered by 6-8 RGBW pars. Architecture is built white-only with an explicit RGBW delta documented, so a human 'RGBW' verdict costs a P2 revision not a restart.",
+   "phase": "P0",
+   "ts": "2026-07-28T15:11:24"
+  },
+  {
+   "what": "BLOCKING-01: board_init.py cannot cut the mandatory 30x26 mm RJ45 notch (ICD s7.6)",
+   "why": "board_swig.draw_outline emits only a rectangle (optionally corner-filleted) on Edge.Cuts; no script in the pipeline writes Edge.Cuts geometry after P5, and the playbook states the P5 outline is final. Surfaced at H1 with options.",
+   "phase": "P0",
+   "ts": "2026-07-28T15:11:24"
+  },
+  {
+   "what": "P1 roster: 4 component-scouts (led-emitter, drive-stage, energy-store, protection-sense) + 1 reference-design (pulsed-led-driver) + power-architect. No research-interface-spec agent.",
+   "why": "The only standards-bound interface is the expansion connector, and it is frozen and fully specified in brief/06-connector-icd.md (pin map, levels, currents, creepage). An interface-spec agent would only re-transcribe it.",
+   "phase": "P1",
+   "ts": "2026-07-28T15:37:55"
+  },
+  {
+   "what": "BLOCKING-02: STR-REQ-01 (100-200 ms flash at FULL output) is unachievable at any bank size that fits",
+   "why": "0.99 J usable / 0.15 s = 6.6 W. Reaching ~92 W for 150 ms needs 13.8 J = 32,500-65,000 uF. energy-store scout measured 12,000 uF as 5,104 mm2 (64 pct of a 100x80 board) and 37 mm tall, and even that holds full output only 36.9 ms. Physics plus the closed 8.5 W budget, not a tooling limit.",
+   "phase": "P1",
+   "ts": "2026-07-28T15:37:55"
+  },
+  {
+   "what": "Adopt connector ICD rev A2 (boards/lumina-carrier/architecture/connector-icd.md) as authoritative over the DRAFT-A copy in brief/06-connector-icd.md",
+   "why": "Rev A2 adds s6.6 (binding bank-charging contract: current-limited soft-start, <=0.25 A af / <=0.5 A at, never >1.0 A for >162 ms, 3.2 J must land in the daughter limiter) and s8.4 (carrier guarantees 0 V at J3 when unprogrammed/crashed/brownout/reset), and raises board-wide 48 V outer-layer clearance from 0.60 to 0.635 mm.",
+   "phase": "P2",
+   "ts": "2026-07-28T19:10:51"
+  },
+  {
+   "what": "4-layer JLC04161H-3313; In1 AND In2 both solid GND (override planes_gen 4L default)",
+   "why": "Thermal forces it: check_thermal 2L model floors at 55 C/W vs 4L 45 C/W, and the linear pass FET at 1.45 W in 56 C air fails P8 on 2L at any pour size. Supporting: 48 V routing needs 0.635 mm outer vs 0.127 mm inner, and the pulse loop return drops 1.53 mm -> 0.21 mm.",
+   "phase": "P2",
+   "ts": "2026-07-28T19:39:40"
+  },
+  {
+   "what": "Operating point: 38.0 V string at 2.6 A, 39.7 V window floor, bank ceiling 44.5 V normal / 48.0 V armed",
+   "why": "38 V string reproduces the ICD s6.4 headline 0.99 J exactly while cutting board dissipation 2.33 -> 1.89 W (-19 pct) vs the 35.3 V alternative. The 44.5 V ceiling takes the pass FET from 1.03x its P8 thermal allowance to 1.77x margin at identical light output.",
+   "phase": "P2",
+   "ts": "2026-07-28T19:39:40"
+  },
+  {
+   "what": "Charge limit 0.20 A flat current limit, not the ICD s6.6 ceiling of 0.25 A",
+   "why": "0.25 A x 48 V = 12.0 W instantaneous; plus the carrier's 2.4 W overhead that exceeds the 12.95 W 802.3af class envelope for far longer than the PSE 50-75 ms overload timer. 0.20 A satisfies s6.6's current-limited requirement literally and stays inside the class.",
+   "phase": "P2",
+   "ts": "2026-07-28T19:39:41"
+  },
+  {
+   "what": "LED-short single-fault answer: ratiometric Vds comparator (drain vs 0.45x bank) + NTC in the pass FET's own pour, latched until ENABLE cycles",
+   "why": "The current loop otherwise regulates 2.6 A into a shorted string, burning 125-148 W in the FET with no self-termination. A max-on-time one-shot was rejected as primary: it bounds one pulse but not the repetitive 9.9 W mean.",
+   "phase": "P2",
+   "ts": "2026-07-28T19:39:41"
+  },
+  {
+   "what": "BLOCKING-03: 802.3at upgrade does not close thermally on this daughter",
+   "why": "4.67 W across two linear FETs in 69 C air; best case 1.91 W per D2PAK against a 1.40 W allowance = fails 1.5x. The at governor cap is ~12.1 W of 18.5 W = +45 pct light, not the +120 pct D-01 implies. A real at build needs an off-board or heatsinked pass element, i.e. a respin. D-01's 'resistor change, no respin' promise does not hold for LUM-DTR-STROBE-A.",
+   "phase": "P2",
+   "ts": "2026-07-28T19:39:41"
+  }
+ ],
+ "history": [
+  {
+   "ts": "2026-07-28T14:59:51",
+   "event": "init",
+   "board": "lumina-strobe",
+   "phase": "P0"
+  },
+  {
+   "ts": "2026-07-28T15:11:24",
+   "event": "artifact",
+   "name": "requirements",
+   "path": "requirements.md"
+  },
+  {
+   "ts": "2026-07-28T15:11:24",
+   "event": "decision",
+   "what": "Design baseline = white-only (D-04 recommendation), pending human verdict at H1"
+  },
+  {
+   "ts": "2026-07-28T15:11:24",
+   "event": "decision",
+   "what": "BLOCKING-01: board_init.py cannot cut the mandatory 30x26 mm RJ45 notch (ICD s7.6)"
+  },
+  {
+   "ts": "2026-07-28T15:11:24",
+   "event": "p0_intake_complete"
+  },
+  {
+   "ts": "2026-07-28T15:37:55",
+   "event": "phase",
+   "phase": "P1",
+   "prev": "P0"
+  },
+  {
+   "ts": "2026-07-28T15:37:55",
+   "event": "decision",
+   "what": "P1 roster: 4 component-scouts (led-emitter, drive-stage, energy-store, protection-sense) + 1 reference-design (pulsed-led-driver) + power-architect. No research-interface-spec agent."
+  },
+  {
+   "ts": "2026-07-28T15:37:55",
+   "event": "decision",
+   "what": "BLOCKING-02: STR-REQ-01 (100-200 ms flash at FULL output) is unachievable at any bank size that fits"
+  },
+  {
+   "ts": "2026-07-28T15:37:55",
+   "event": "p1_research_complete"
+  },
+  {
+   "ts": "2026-07-28T16:02:05",
+   "event": "phase",
+   "phase": "P2",
+   "prev": "P1"
+  },
+  {
+   "ts": "2026-07-28T19:10:18",
+   "event": "resumed"
+  },
+  {
+   "ts": "2026-07-28T19:10:51",
+   "event": "decision",
+   "what": "Adopt connector ICD rev A2 (boards/lumina-carrier/architecture/connector-icd.md) as authoritative over the DRAFT-A copy in brief/06-connector-icd.md"
+  },
+  {
+   "ts": "2026-07-28T19:10:51",
+   "event": "icd_rev_a2_adopted"
+  },
+  {
+   "ts": "2026-07-28T19:39:40",
+   "event": "phase",
+   "phase": "P2",
+   "prev": "P2"
+  },
+  {
+   "ts": "2026-07-28T19:39:40",
+   "event": "artifact",
+   "name": "architecture_blocks",
+   "path": "architecture/blocks.md"
+  },
+  {
+   "ts": "2026-07-28T19:39:40",
+   "event": "artifact",
+   "name": "architecture_power_tree",
+   "path": "architecture/power_tree.md"
+  },
+  {
+   "ts": "2026-07-28T19:39:40",
+   "event": "artifact",
+   "name": "architecture_stackup",
+   "path": "architecture/stackup.md"
+  },
+  {
+   "ts": "2026-07-28T19:39:40",
+   "event": "artifact",
+   "name": "architecture_sheets",
+   "path": "architecture/sheets.md"
+  },
+  {
+   "ts": "2026-07-28T19:39:40",
+   "event": "artifact",
+   "name": "constraints",
+   "path": "architecture/constraints.json"
+  },
+  {
+   "ts": "2026-07-28T19:39:40",
+   "event": "decision",
+   "what": "4-layer JLC04161H-3313; In1 AND In2 both solid GND (override planes_gen 4L default)"
+  },
+  {
+   "ts": "2026-07-28T19:39:40",
+   "event": "decision",
+   "what": "Operating point: 38.0 V string at 2.6 A, 39.7 V window floor, bank ceiling 44.5 V normal / 48.0 V armed"
+  },
+  {
+   "ts": "2026-07-28T19:39:41",
+   "event": "decision",
+   "what": "Charge limit 0.20 A flat current limit, not the ICD s6.6 ceiling of 0.25 A"
+  },
+  {
+   "ts": "2026-07-28T19:39:41",
+   "event": "decision",
+   "what": "LED-short single-fault answer: ratiometric Vds comparator (drain vs 0.45x bank) + NTC in the pass FET's own pour, latched until ENABLE cycles"
+  },
+  {
+   "ts": "2026-07-28T19:39:41",
+   "event": "decision",
+   "what": "BLOCKING-03: 802.3at upgrade does not close thermally on this daughter"
+  },
+  {
+   "ts": "2026-07-28T19:39:41",
+   "event": "p2_architecture_complete"
+  }
+ ]
+}

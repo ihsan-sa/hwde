@@ -1,0 +1,1609 @@
+{
+  "block": "energy-store",
+  "board": "LUM-DTR-STROBE-A",
+  "generated": "2026-07-28",
+  "source": "parts_search.py live JLCPCB/LCSC search",
+  "requirement": {
+    "capacitance_uf": 2800,
+    "voltage_rating_v": 100,
+    "worst_case_rail_v": 57,
+    "energy_window_j": 0.99,
+    "energy_full_j": 3.23,
+    "binding_requirement": "STR-REQ-08 - select on pulse ripple current and ESR, not capacitance alone; ripple rating must appear explicitly in the BOM"
+  },
+  "duty": {
+    "pulse_peak_a": 2.6,
+    "pulse_width_ms": [
+      2.97,
+      8.65
+    ],
+    "rep_rate_hz": [
+      1,
+      25
+    ],
+    "duty_af_pct": 7.44,
+    "duty_at_pct": 16.27,
+    "cap_rms_ripple_a": {
+      "af_sustained": 0.68,
+      "at_sustained": 0.96,
+      "burst_transient_lt_1s": 1.14
+    },
+    "spectrum_note": "A 3-9 ms pulse repeating at 8.6-25 Hz puts essentially all of its RMS energy below ~120 Hz. Derate every candidate with the 50 Hz frequency coefficient, NOT the 100 kHz headline figure.",
+    "frequency_coefficients": {
+      "ymin_LKM": {
+        "50Hz": 0.4,
+        "120Hz": 0.5,
+        "1kHz": 0.8,
+        "10k-50kHz": 0.9,
+        "100kHz": 1.0
+      },
+      "nichicon_UHE_390-1000uF": {
+        "50Hz": 0.65,
+        "120Hz": 0.75,
+        "300Hz": 0.9,
+        "1kHz": 0.98,
+        ">=10kHz": 1.0
+      }
+    },
+    "temperature_coefficients_ymin_LKM": {
+      "50C": 2.1,
+      "70C": 1.8,
+      "85C": 1.4,
+      "105C": 1.0
+    }
+  },
+  "recommended_bank": {
+    "primary": {
+      "composition": "4 x C443164 (Ymin LKMJ2502A681MF, 680 uF/100 V, D18 x L25) + 4 x C576517 (Murata 10 uF/100 V X7S 1210)",
+      "capacitance_uf": 2720,
+      "capacitance_hf_effective_uf": 10.8,
+      "energy_window_j": 0.957,
+      "energy_full_j": 3.13,
+      "bank_esr_mohm": {
+        "at_120Hz": 43.9,
+        "at_100kHz": 7.5
+      },
+      "ir_sag_at_2p6a_v": 0.114,
+      "ir_sag_pct_of_window": 1.43,
+      "ripple_capability_a": {
+        "no_temp_credit": 4.58,
+        "at_69C": 8.31,
+        "at_56C": 9.2
+      },
+      "ripple_margin_vs_at_case": 8.7,
+      "height_mm": 27.0,
+      "area_mm2": 1214,
+      "cost_usd_per_board": {
+        "at_qty6_break": 6.18,
+        "at_qty100_break": 4.57
+      },
+      "part_count": 8
+    },
+    "runner_up": {
+      "composition": "6 x C443161 (Ymin LKMJ2002A471MF, 470 uF/100 V, D18 x L20) + 4 x C576517",
+      "capacitance_uf": 2820,
+      "energy_window_j": 0.993,
+      "bank_esr_mohm": {
+        "at_120Hz": 42.3,
+        "at_100kHz": 7.0
+      },
+      "ir_sag_at_2p6a_v": 0.11,
+      "ripple_capability_a": {
+        "no_temp_credit": 5.45,
+        "at_69C": 9.89
+      },
+      "height_mm": 22.0,
+      "area_mm2": 1781,
+      "cost_usd_per_board": {
+        "at_qty6_break": 7.77,
+        "at_qty100_break": 5.71
+      },
+      "part_count": 10,
+      "when": "enclosure ceiling under ~28 mm, or exactly 2800 uF is wanted"
+    }
+  },
+  "growth_to_4x": {
+    "target_uf": 12000,
+    "option_same_part": {
+      "n": 18,
+      "part": "C443164",
+      "capacitance_uf": 12240,
+      "cost_usd_per_board": {
+        "qty6": 13.45,
+        "qty100": 8.42
+      },
+      "area_mm2": 5104,
+      "area_pct_of_board": 63.8,
+      "height_mm": 27.0,
+      "part_count": 18,
+      "verdict": "does not fit"
+    },
+    "option_bigger_cans": {
+      "n": 12,
+      "part": "C724666 (AISHI 1000 uF/100 V D18x35)",
+      "capacitance_uf": 12000,
+      "cost_usd_per_board": {
+        "qty6": 10.53,
+        "qty100": 7.51
+      },
+      "area_mm2": 3402,
+      "area_pct_of_board": 42.5,
+      "height_mm": 37.0,
+      "part_count": 12,
+      "verdict": "busts the 30 mm ceiling and the keepout budget"
+    },
+    "hold_time_at_2p6a_ms": 36.9,
+    "capacitance_for_100ms_at_2p6a_uf": 32500,
+    "capacitance_for_200ms_at_2p6a_uf": 65000,
+    "note": "12,000 uF buys 37 ms of full output at 2.6 A, not the 100-200 ms of STR-REQ-01. That needs 32,500-65,000 uF, which is not buildable inside 100 x 80 x 30 mm at 100 V."
+  },
+  "risks": [
+    "STANDARD ELECTROLYTIC DATASHEETS EXPLICITLY EXCLUDE THIS DUTY. SamYoung's NXH sheet (and most general-purpose Al electrolytic sheets) state: 'The electrolytic capacitor is not suitable for circuits in which charge and discharge are frequently repeated... capacitance may drop, or the capacitor may be damaged.' Mitigating: the bank only swings 48->40 V (never to zero), peak is 2.6 A into >=2720 uF (0.65 A/can, ~0.96 mA per uF), and computed rms is 7-8x below the derated rating - nothing like photoflash duty. Still the one caveat to put in front of the human, and the reason to buy the 10000 h AEC-Q200 part over the 2000 h generic at the same price.",
+    "NO JLC BASIC PART EXISTS in 100 V aluminium electrolytic OR 100 V 1210 MLCC - verified, --basic-only returns 0 results in both categories. Every part in this block is Extended, so JLC's per-part setup fee applies; at 4-6 boards that fee can exceed the parts.",
+    "THT PROCESS. Radial cans land in the same process question as the reverse-mounted sockets (requirements section 7 / open question 6). Default (a), hand-solder, makes the THT bank free of process risk. If the answer moves to full SMD assembly, switch to the SMD composition and accept 2000 h endurance or 13 parts.",
+    "HEIGHT vs AN UNDEFINED CEILING. Open question 5's default is 30 mm; the primary bank uses 27.0 mm of it. Below ~28 mm use the runner-up (22.0 mm). Below ~20 mm nothing in the 2800 uF/100 V class fits and the bank must go sideways (13 x 220 uF SMD at 16.5-21 mm) or the energy budget must come down.",
+    "SINGLE SOURCE at the 680 uF/D18x25 value (Ymin LKM and Ymin OLKJ only, and OLKJ stock is 290). Mitigation: the D18 / 7.5 mm-pitch FOOTPRINT is multi-source at 470 uF (Ymin, SamYoung C2835738, Rubycon C1582113, NCC C705509). LAY OUT 6 x D18/7.5 mm POSITIONS AND POPULATE 4 - that second-sources the whole bank and gives the architect a capacitance knob without a respin.",
+    "MLCC DC BIAS IS NOT OPTIONAL ARITHMETIC. 10 uF reads 2.7 uF at 48 V and 2.1 uF at 57 V (Murata's own chart). Anyone budgeting '40 uF of ceramic' actually has ~11 uF.",
+    "KEEPOUT. No aluminium electrolytics in (2,46)-(36,68) - 748 mm2 of prime central area. MLCC and polymer are not aluminium electrolytics by the letter of the rule, but the rule exists because of a 1.25 W hot spot 11 mm below; keep life-sensitive parts out regardless.",
+    "VENT ORIENTATION. D18 cans carry a top pressure-relief vent. In a sealed plastic box a vent event dumps electrolyte inside the enclosure - keep the vents pointed away from the LED wiring and the connectors, and note the 3.13 J stored-energy silkscreen warning (section 8.3).",
+    "NO DATASHEET URL ON LCSC for C54915544, C46550452 (jieerrui 100 V polymer) and C49215602 (KYET film). Their ripple/ESR/endurance figures above come from the LCSC parametric attributes only. None is recommended, but P3 must obtain a real datasheet before any of them enters a BOM."
+  ],
+  "candidates": [
+    {
+      "lcsc": "C443164",
+      "mpn": "LKMJ2502A681MF",
+      "brand": "Ymin",
+      "description": "100V 18mm 25mm 680uF \u00b120% \u63d2\u4ef6,D18xL25mm Aluminum Electrolytic Capacitors - Leaded ROHS",
+      "package": "Plugin,D18xL25mm",
+      "category": "Aluminum Electrolytic Capacitors - Leaded",
+      "type": "Extended",
+      "basic": false,
+      "stock": 9472,
+      "price": 0.7472,
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 0.7472
+        },
+        {
+          "qty": 10,
+          "price": 0.6068
+        },
+        {
+          "qty": 30,
+          "price": 0.5374
+        },
+        {
+          "qty": 140,
+          "price": 0.468
+        },
+        {
+          "qty": 560,
+          "price": 0.4261
+        },
+        {
+          "qty": 980,
+          "price": 0.4051
+        }
+      ],
+      "min_qty": 1,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Ymin-LKMJ2502A681MF_C443164.pdf",
+      "url": "https://www.lcsc.com/product-detail/aluminum-electrolytic-capacitors-leaded_ymin-lkmj2502a681mf_C443164.html",
+      "attributes": [
+        {
+          "name": "Operating Temperature",
+          "value": "-40\u2103~+105\u2103"
+        },
+        {
+          "name": "Lifetime",
+          "value": "10000hrs@105\u2103"
+        },
+        {
+          "name": "Pin Spacing",
+          "value": "7.5mm"
+        },
+        {
+          "name": "Voltage Rating",
+          "value": "100V"
+        },
+        {
+          "name": "Height - Seated (Max)",
+          "value": "25mm"
+        },
+        {
+          "name": "Tolerance",
+          "value": "\u00b120%"
+        },
+        {
+          "name": "Capacitance",
+          "value": "680uF"
+        },
+        {
+          "name": "Diameter",
+          "value": "18mm"
+        }
+      ],
+      "rank": 1,
+      "price_qty6": 0.7472,
+      "price_qty100": 0.5374,
+      "role": "bulk",
+      "tech": "Al electrolytic, radial THT",
+      "cap_uf": 680,
+      "voltage_v": 100,
+      "case": "D18 x L25 mm, 7.5 mm lead pitch",
+      "height_max_mm": 27.0,
+      "footprint_mm2": 284,
+      "ripple_rating": "2860 mA rms @ 105 C / 100 kHz (Ymin LKM catalogue, 100 V table)",
+      "ripple_derated_50hz_a": {
+        "no_temp_credit": 1.144,
+        "at_69C": 2.076,
+        "at_56C": 2.299
+      },
+      "esr_mohm": {
+        "at_120Hz_max": 176,
+        "at_100kHz_max": 30
+      },
+      "esr_source": "Z<=30 mohm @100 kHz/25 C from LKM catalogue; 120 Hz value derived from tan d <= 0.09 @100 V",
+      "endurance": "10000 h @ 105 C (LKM: >=D8 = 10000 h), AEC-Q200",
+      "life_extrapolated": {
+        "at_56C_h": 299000,
+        "at_69C_h": 121000
+      },
+      "note": "TOP PICK. Shortest 680 uF/100 V can with a published ripple figure and 10000 h life."
+    },
+    {
+      "lcsc": "C443161",
+      "mpn": "LKMJ2002A471MF",
+      "brand": "Ymin",
+      "description": "10000hrs@105\u2103 100V 18mm 2.27A@100kHz 20mm 42m\u03a9@100kHz 470uF 7.5mm \u00b120% \u63d2\u4ef6,D18xL20mm Aluminum Electrolytic Capacitors - Leaded ROHS",
+      "package": "Plugin,D18xL20mm",
+      "category": "Aluminum Electrolytic Capacitors - Leaded",
+      "type": "Extended",
+      "basic": false,
+      "stock": 3001,
+      "price": 0.7634,
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 0.7634
+        },
+        {
+          "qty": 10,
+          "price": 0.6197
+        },
+        {
+          "qty": 30,
+          "price": 0.5487
+        },
+        {
+          "qty": 140,
+          "price": 0.4761
+        },
+        {
+          "qty": 560,
+          "price": 0.4342
+        },
+        {
+          "qty": 980,
+          "price": 0.4116
+        }
+      ],
+      "min_qty": 1,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Ymin-LKMJ2002A471MF_C443161.pdf",
+      "url": "https://www.lcsc.com/product-detail/aluminum-electrolytic-capacitors-leaded_ymin-lkmj2002a471mf_C443161.html",
+      "attributes": [
+        {
+          "name": "Lifetime",
+          "value": "10000hrs@105\u2103"
+        },
+        {
+          "name": "Equivalent Series Resistance(ESR)",
+          "value": "42m\u03a9@100kHz"
+        },
+        {
+          "name": "Pin Spacing",
+          "value": "7.5mm"
+        },
+        {
+          "name": "Voltage Rating",
+          "value": "100V"
+        },
+        {
+          "name": "Height - Seated (Max)",
+          "value": "20mm"
+        },
+        {
+          "name": "Tolerance",
+          "value": "\u00b120%"
+        },
+        {
+          "name": "Capacitance",
+          "value": "470uF"
+        },
+        {
+          "name": "Ripple Current",
+          "value": "2.27A@100kHz"
+        },
+        {
+          "name": "Diameter",
+          "value": "18mm"
+        }
+      ],
+      "rank": 2,
+      "price_qty6": 0.7634,
+      "price_qty100": 0.5487,
+      "role": "bulk",
+      "tech": "Al electrolytic, radial THT",
+      "cap_uf": 470,
+      "voltage_v": 100,
+      "case": "D18 x L20 mm, 7.5 mm lead pitch",
+      "height_max_mm": 22.0,
+      "footprint_mm2": 284,
+      "ripple_rating": "2270 mA rms @ 105 C / 100 kHz",
+      "ripple_derated_50hz_a": {
+        "no_temp_credit": 0.908,
+        "at_69C": 1.648,
+        "at_56C": 1.825
+      },
+      "esr_mohm": {
+        "at_120Hz_max": 254,
+        "at_100kHz_max": 42
+      },
+      "endurance": "10000 h @ 105 C, AEC-Q200",
+      "life_extrapolated": {
+        "at_56C_h": 299000,
+        "at_69C_h": 121000
+      },
+      "note": "RUNNER-UP. 5 mm shorter than C443164; 6 of them hit 2820 uF exactly. Use if the enclosure ceiling is under ~28 mm."
+    },
+    {
+      "lcsc": "C22388844",
+      "mpn": "OLKJ2502A681MF",
+      "brand": "Ymin",
+      "description": "-55\u2103~+105\u2103 100V 18mm 2.05A@100KHz 25mm 680uF 7.5mm 8000hrs@105\u2103 \u00b120% Plugin,D18xL25mm Aluminum Electrolytic Capacitors - Leaded ROHS",
+      "package": "Plugin,D18xL25mm",
+      "category": "Aluminum Electrolytic Capacitors - Leaded",
+      "type": "Extended",
+      "basic": false,
+      "stock": 290,
+      "price": 0.6956,
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 0.6956
+        },
+        {
+          "qty": 10,
+          "price": 0.5616
+        },
+        {
+          "qty": 30,
+          "price": 0.4955
+        },
+        {
+          "qty": 140,
+          "price": 0.4293
+        },
+        {
+          "qty": 560,
+          "price": 0.389
+        },
+        {
+          "qty": 980,
+          "price": 0.3696
+        }
+      ],
+      "min_qty": 1,
+      "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2404261026_Ymin-OLKJ2502A681MF_C22388844.pdf",
+      "url": "https://www.lcsc.com/product-detail/aluminum-electrolytic-capacitors-leaded_ymin-olkj2502a681mf_C22388844.html",
+      "attributes": [
+        {
+          "name": "Operating Temperature",
+          "value": "-55\u2103~+105\u2103"
+        },
+        {
+          "name": "Lifetime",
+          "value": "8000hrs@105\u2103"
+        },
+        {
+          "name": "Pin Spacing",
+          "value": "7.5mm"
+        },
+        {
+          "name": "Voltage Rating",
+          "value": "100V"
+        },
+        {
+          "name": "Height - Seated (Max)",
+          "value": "25mm"
+        },
+        {
+          "name": "Tolerance",
+          "value": "\u00b120%"
+        },
+        {
+          "name": "Capacitance",
+          "value": "680uF"
+        },
+        {
+          "name": "Ripple Current",
+          "value": "2.05A@100KHz"
+        },
+        {
+          "name": "Diameter",
+          "value": "18mm"
+        }
+      ],
+      "rank": 3,
+      "price_qty6": 0.6956,
+      "price_qty100": 0.4955,
+      "role": "bulk-alternate",
+      "tech": "Al electrolytic, radial THT",
+      "cap_uf": 680,
+      "voltage_v": 100,
+      "case": "D18 x L25 mm, 7.5 mm lead pitch",
+      "height_max_mm": 27.0,
+      "footprint_mm2": 284,
+      "ripple_rating": "2050 mA rms @ 105 C / 100 kHz (LCSC attribute)",
+      "esr_mohm": {
+        "at_120Hz_max": 176
+      },
+      "endurance": "8000 h @ 105 C, -55..+105 C",
+      "life_extrapolated": {
+        "at_56C_h": 239000,
+        "at_69C_h": 97000
+      },
+      "note": "Drop-in for C443164 on the same D18/7.5 mm footprint. Stock thin (290) - second source, not first."
+    },
+    {
+      "lcsc": "C18164658",
+      "mpn": "NXH100VB470M16*31.5 LO",
+      "brand": "SamYoung Electronics",
+      "description": "-40\u2103~+105\u2103 10000hrs@105\u2103 100V 16mm 2.4A@100kHz 31.5mm 33m\u03a9@100kHz 470uF 7.5mm \u00b120% Plugin,D16xL31.5mm Aluminum Electrolytic Capacitors - Leaded ROHS",
+      "package": "Plugin,D16xL31.5mm",
+      "category": "Aluminum Electrolytic Capacitors - Leaded",
+      "type": "Extended",
+      "basic": false,
+      "stock": 4556,
+      "price": 0.8828,
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 0.8828
+        },
+        {
+          "qty": 10,
+          "price": 0.7375
+        },
+        {
+          "qty": 50,
+          "price": 0.6633
+        },
+        {
+          "qty": 100,
+          "price": 0.5907
+        },
+        {
+          "qty": 400,
+          "price": 0.5471
+        },
+        {
+          "qty": 800,
+          "price": 0.5261
+        }
+      ],
+      "min_qty": 1,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2309191749_SamYoung-Electronics-NXH100VB470M16-31-5-LO_C18164658.pdf",
+      "url": "https://www.lcsc.com/product-detail/aluminum-electrolytic-capacitors-leaded_samyoung-electronics-nxh100vb470m16-31-5-lo_C18164658.html",
+      "attributes": [
+        {
+          "name": "Operating Temperature",
+          "value": "-40\u2103~+105\u2103"
+        },
+        {
+          "name": "Lifetime",
+          "value": "10000hrs@105\u2103"
+        },
+        {
+          "name": "Equivalent Series Resistance(ESR)",
+          "value": "33m\u03a9@100kHz"
+        },
+        {
+          "name": "Pin Spacing",
+          "value": "7.5mm"
+        },
+        {
+          "name": "Voltage Rating",
+          "value": "100V"
+        },
+        {
+          "name": "Height - Seated (Max)",
+          "value": "31.5mm"
+        },
+        {
+          "name": "Tolerance",
+          "value": "\u00b120%"
+        },
+        {
+          "name": "Capacitance",
+          "value": "470uF"
+        },
+        {
+          "name": "Ripple Current",
+          "value": "2.4A@100kHz"
+        },
+        {
+          "name": "Diameter",
+          "value": "16mm"
+        }
+      ],
+      "rank": 4,
+      "price_qty6": 0.8828,
+      "price_qty100": 0.5907,
+      "role": "bulk-alternate",
+      "tech": "Al electrolytic, radial THT",
+      "cap_uf": 470,
+      "voltage_v": 100,
+      "case": "D16 x L31.5 mm, 7.5 mm lead pitch",
+      "height_max_mm": 33.5,
+      "footprint_mm2": 227,
+      "ripple_rating": "2400 mA rms @ 105 C / 100 kHz",
+      "esr_mohm": {
+        "at_120Hz_max": 254,
+        "at_100kHz_max": 33
+      },
+      "endurance": "10000 h @ 105 C (SamYoung NXH: D10 and up = 10000 h)",
+      "life_extrapolated": {
+        "at_56C_h": 299000,
+        "at_69C_h": 121000
+      },
+      "note": "Smaller diameter, but 33.5 mm tall - over the 30 mm default ceiling of open question 5. Datasheet carries the standard 'not suitable for repeated charge/discharge' caveat (see risks)."
+    },
+    {
+      "lcsc": "C340710",
+      "mpn": "UHE2A681MHD",
+      "brand": "Nichicon",
+      "description": "1.89A@100kHz 10000hrs@105\u2103 100V 18mm 33.5mm 40m\u03a9@100kHz 680uF 7.5mm \u00b120% \u63d2\u4ef6,D18xL33.5mm Aluminum Electrolytic Capacitors - Leaded ROHS",
+      "package": "Plugin,D18xL33.5mm",
+      "category": "Aluminum Electrolytic Capacitors - Leaded",
+      "type": "Extended",
+      "basic": false,
+      "stock": 403,
+      "price": 1.4637,
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 1.4637
+        },
+        {
+          "qty": 10,
+          "price": 1.2507
+        },
+        {
+          "qty": 30,
+          "price": 1.1329
+        },
+        {
+          "qty": 100,
+          "price": 0.9893
+        },
+        {
+          "qty": 500,
+          "price": 0.9312
+        },
+        {
+          "qty": 1000,
+          "price": 0.9054
+        }
+      ],
+      "min_qty": 1,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Nichicon-UHE2A681MHD_C340710.pdf",
+      "url": "https://www.lcsc.com/product-detail/aluminum-electrolytic-capacitors-leaded_nichicon-uhe2a681mhd_C340710.html",
+      "attributes": [
+        {
+          "name": "Lifetime",
+          "value": "10000hrs@105\u2103"
+        },
+        {
+          "name": "Equivalent Series Resistance(ESR)",
+          "value": "40m\u03a9@100kHz"
+        },
+        {
+          "name": "Pin Spacing",
+          "value": "7.5mm"
+        },
+        {
+          "name": "Voltage Rating",
+          "value": "100V"
+        },
+        {
+          "name": "Height - Seated (Max)",
+          "value": "33.5mm"
+        },
+        {
+          "name": "Tolerance",
+          "value": "\u00b120%"
+        },
+        {
+          "name": "Capacitance",
+          "value": "680uF"
+        },
+        {
+          "name": "Ripple Current",
+          "value": "1.89A@100kHz"
+        },
+        {
+          "name": "Diameter",
+          "value": "18mm"
+        }
+      ],
+      "rank": 5,
+      "price_qty6": 1.4637,
+      "price_qty100": 0.9893,
+      "role": "bulk-alternate",
+      "tech": "Al electrolytic, radial THT",
+      "cap_uf": 680,
+      "voltage_v": 100,
+      "case": "D18 x L31.5 mm (33.5 max), 7.5 mm lead pitch",
+      "height_max_mm": 33.5,
+      "footprint_mm2": 284,
+      "ripple_rating": "1890 mA rms @ 105 C / 100 kHz (Nichicon UHE 100 V table)",
+      "ripple_freq_coefficients": "Nichicon UHE, 390-1000 uF: 50 Hz 0.65 / 120 Hz 0.75 / 300 Hz 0.90 / 1 kHz 0.98 / >=10 kHz 1.00",
+      "esr_mohm": {
+        "at_120Hz_max": 156,
+        "at_100kHz_max": 40
+      },
+      "endurance": "10000 h @ 105 C (16-100 WV, D>=12.5)",
+      "life_extrapolated": {
+        "at_56C_h": 299000,
+        "at_69C_h": 121000
+      },
+      "note": "Best-documented part in the list (full Nichicon catalogue tables). 2x the price, 6.5 mm taller, stock 403. Reference part, not the buy."
+    },
+    {
+      "lcsc": "C721247",
+      "mpn": "ERS1KM471L25OT",
+      "brand": "AISHI(Aihua Group)",
+      "description": "-40\u2103~+105\u2103 100V 16mm 25mm 470uF \u00b120% \u63d2\u4ef6,D16xL25mm Aluminum Electrolytic Capacitors - Leaded ROHS",
+      "package": "Plugin,D16xL25mm",
+      "category": "Aluminum Electrolytic Capacitors - Leaded",
+      "type": "Extended",
+      "basic": false,
+      "stock": 11520,
+      "price": 0.4955,
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 0.4955
+        },
+        {
+          "qty": 10,
+          "price": 0.397
+        },
+        {
+          "qty": 30,
+          "price": 0.3535
+        },
+        {
+          "qty": 100,
+          "price": 0.2744
+        },
+        {
+          "qty": 500,
+          "price": 0.2518
+        },
+        {
+          "qty": 1000,
+          "price": 0.2373
+        }
+      ],
+      "min_qty": 1,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_AISHI-Aihua-Group-ERS1KM471L25OT_C721247.pdf",
+      "url": "https://www.lcsc.com/product-detail/aluminum-electrolytic-capacitors-leaded_aishi-aihua-group-ers1km471l25ot_C721247.html",
+      "attributes": [
+        {
+          "name": "Operating Temperature",
+          "value": "-40\u2103~+105\u2103"
+        },
+        {
+          "name": "Voltage Rating",
+          "value": "100V"
+        },
+        {
+          "name": "Height - Seated (Max)",
+          "value": "25mm"
+        },
+        {
+          "name": "Tolerance",
+          "value": "\u00b120%"
+        },
+        {
+          "name": "Capacitance",
+          "value": "470uF"
+        },
+        {
+          "name": "Diameter",
+          "value": "16mm"
+        }
+      ],
+      "rank": 90,
+      "price_qty6": 0.4955,
+      "price_qty100": 0.2744,
+      "role": "rejected",
+      "tech": "Al electrolytic, radial THT",
+      "cap_uf": 470,
+      "voltage_v": 100,
+      "case": "D16 x L25 mm",
+      "height_max_mm": 27.0,
+      "footprint_mm2": 227,
+      "ripple_rating": "NOT PUBLISHED",
+      "endurance": "NOT PUBLISHED",
+      "note": "REJECTED. Cheapest 470 uF/100 V with deep stock (11520) but LCSC publishes neither ripple current nor endurance hours - fails STR-REQ-08's 'ripple current must appear explicitly in the BOM'."
+    },
+    {
+      "lcsc": "C1579637",
+      "mpn": "UVR2A102MHD",
+      "brand": "Nichicon",
+      "description": "-40\u2103~+85\u2103 1.38A@120Hz 1000uF 100V 18mm 2000hrs@85\u2103 40mm 7.5mm \u00b120% \u63d2\u4ef6,D18xL40mm Aluminum Electrolytic Capacitors - Leaded ROHS",
+      "package": "Plugin,D18xL40mm",
+      "category": "Aluminum Electrolytic Capacitors - Leaded",
+      "type": "Extended",
+      "basic": false,
+      "stock": 1522,
+      "price": 1.7607,
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 1.7607
+        },
+        {
+          "qty": 10,
+          "price": 1.5121
+        },
+        {
+          "qty": 30,
+          "price": 1.3572
+        },
+        {
+          "qty": 100,
+          "price": 1.1991
+        },
+        {
+          "qty": 500,
+          "price": 1.1281
+        },
+        {
+          "qty": 1000,
+          "price": 1.0974
+        }
+      ],
+      "min_qty": 1,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2205051816_Nichicon-UVR2A102MHD_C1579637.pdf",
+      "url": "https://www.lcsc.com/product-detail/aluminum-electrolytic-capacitors-leaded_nichicon-uvr2a102mhd_C1579637.html",
+      "attributes": [
+        {
+          "name": "Operating Temperature",
+          "value": "-40\u2103~+85\u2103"
+        },
+        {
+          "name": "Lifetime",
+          "value": "2000hrs@85\u2103"
+        },
+        {
+          "name": "Pin Spacing",
+          "value": "7.5mm"
+        },
+        {
+          "name": "Voltage Rating",
+          "value": "100V"
+        },
+        {
+          "name": "Height - Seated (Max)",
+          "value": "40mm"
+        },
+        {
+          "name": "Tolerance",
+          "value": "\u00b120%"
+        },
+        {
+          "name": "Capacitance",
+          "value": "1000uF"
+        },
+        {
+          "name": "Ripple Current",
+          "value": "1.38A@120Hz"
+        },
+        {
+          "name": "Diameter",
+          "value": "18mm"
+        }
+      ],
+      "rank": 91,
+      "price_qty6": 1.7607,
+      "price_qty100": 1.1991,
+      "role": "rejected",
+      "tech": "Al electrolytic, radial THT",
+      "cap_uf": 1000,
+      "voltage_v": 100,
+      "case": "D18 x L40 mm",
+      "height_max_mm": 42.0,
+      "footprint_mm2": 284,
+      "ripple_rating": "1380 mA rms @ 85 C / 120 Hz",
+      "endurance": "2000 h @ 85 C",
+      "life_extrapolated": {
+        "at_56C_h": 14900,
+        "at_69C_h": 6060
+      },
+      "note": "REJECTED as the worked bad example. An 85 C part in a 69 C box: 2000 h @ 85 C extrapolates to ~6100 h at 69 C (8 months continuous). Also 42 mm tall. Do not use 85 C-rated parts on this board."
+    },
+    {
+      "lcsc": "C249675",
+      "mpn": "VEJ471M2ATR-1821",
+      "brand": "Lelon",
+      "description": "-45\u2103~+105\u2103 100V 18mm 2000hrs@105\u2103 21.5mm 470uF \u00b120% SMD,D18xL21.5mm Aluminum Electrolytic Capacitors - SMD ROHS",
+      "package": "SMD,D18xL21.5mm",
+      "category": "Aluminum Electrolytic Capacitors - SMD",
+      "type": "Extended",
+      "basic": false,
+      "stock": 621,
+      "price": 1.3492,
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 1.3492
+        },
+        {
+          "qty": 10,
+          "price": 1.1345
+        },
+        {
+          "qty": 30,
+          "price": 1.0183
+        },
+        {
+          "qty": 100,
+          "price": 0.886
+        },
+        {
+          "qty": 500,
+          "price": 0.8263
+        },
+        {
+          "qty": 1000,
+          "price": 0.8005
+        }
+      ],
+      "min_qty": 1,
+      "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Lelon-VEJ471M2ATR-1821_C249675.pdf",
+      "url": "https://www.lcsc.com/product-detail/aluminum-electrolytic-capacitors-smd_lelon-vej471m2atr-1821_C249675.html",
+      "attributes": [
+        {
+          "name": "Operating Temperature",
+          "value": "-45\u2103~+105\u2103"
+        },
+        {
+          "name": "Lifetime",
+          "value": "2000hrs@105\u2103"
+        },
+        {
+          "name": "Voltage Rating",
+          "value": "100V"
+        },
+        {
+          "name": "Height - Seated (Max)",
+          "value": "21.5mm"
+        },
+        {
+          "name": "Tolerance",
+          "value": "\u00b120%"
+        },
+        {
+          "name": "Capacitance",
+          "value": "470uF"
+        },
+        {
+          "name": "Diameter",
+          "value": "18mm"
+        }
+      ],
+      "rank": 10,
+      "price_qty6": 1.3492,
+      "price_qty100": 0.886,
+      "role": "bulk-smd",
+      "tech": "Al electrolytic, SMD V-chip",
+      "cap_uf": 470,
+      "voltage_v": 100,
+      "case": "SMD D18 x L21.5 mm",
+      "height_max_mm": 21.5,
+      "footprint_mm2": 284,
+      "ripple_rating": "NOT PUBLISHED on LCSC - must be pulled from the Lelon VEJ datasheet before BOM release",
+      "endurance": "2000 h @ 105 C, -45..+105 C",
+      "life_extrapolated": {
+        "at_56C_h": 59800,
+        "at_69C_h": 24300
+      },
+      "note": "Largest 100 V SMD electrolytic in stock. Only 4 SMD parts exist at 470 uF/100 V and this is the deepest (621). 6 of them = $8.10 at qty-6 pricing, over the ~$8 bank budget on its own."
+    },
+    {
+      "lcsc": "C487445",
+      "mpn": "VKML2102A221MV",
+      "brand": "Ymin",
+      "description": "-55\u2103~+105\u2103 1.62A@100kHz 10000hrs@105\u2103 100V 12.5mm 21mm 220uF \u00b120% SMD,D12.5xL21mm Aluminum Electrolytic Capacitors - SMD ROHS",
+      "package": "SMD,D12.5xL21mm",
+      "category": "Aluminum Electrolytic Capacitors - SMD",
+      "type": "Extended",
+      "basic": false,
+      "stock": 1349,
+      "price": 0.7601,
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 0.7601
+        },
+        {
+          "qty": 10,
+          "price": 0.623
+        },
+        {
+          "qty": 30,
+          "price": 0.5552
+        },
+        {
+          "qty": 175,
+          "price": 0.4713
+        },
+        {
+          "qty": 525,
+          "price": 0.4309
+        },
+        {
+          "qty": 1050,
+          "price": 0.4116
+        }
+      ],
+      "min_qty": 1,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Ymin-VKML2102A221MV_C487445.pdf",
+      "url": "https://www.lcsc.com/product-detail/aluminum-electrolytic-capacitors-smd_ymin-vkml2102a221mv_C487445.html",
+      "attributes": [
+        {
+          "name": "Operating Temperature",
+          "value": "-55\u2103~+105\u2103"
+        },
+        {
+          "name": "Lifetime",
+          "value": "10000hrs@105\u2103"
+        },
+        {
+          "name": "Voltage Rating",
+          "value": "100V"
+        },
+        {
+          "name": "Height - Seated (Max)",
+          "value": "21mm"
+        },
+        {
+          "name": "Tolerance",
+          "value": "\u00b120%"
+        },
+        {
+          "name": "Capacitance",
+          "value": "220uF"
+        },
+        {
+          "name": "Ripple Current",
+          "value": "1.62A@100kHz"
+        },
+        {
+          "name": "Diameter",
+          "value": "12.5mm"
+        }
+      ],
+      "rank": 11,
+      "price_qty6": 0.7601,
+      "price_qty100": 0.5552,
+      "role": "bulk-smd",
+      "tech": "Al electrolytic, SMD V-chip",
+      "cap_uf": 220,
+      "voltage_v": 100,
+      "case": "SMD D12.5 x L21 mm",
+      "height_max_mm": 21.0,
+      "footprint_mm2": 182,
+      "ripple_rating": "1620 mA rms @ 105 C / 100 kHz",
+      "esr_mohm": {
+        "at_120Hz_max": 543
+      },
+      "endurance": "10000 h @ 105 C, -55..+105 C",
+      "life_extrapolated": {
+        "at_56C_h": 299000,
+        "at_69C_h": 121000
+      },
+      "note": "Best SMD part on life AND the only SMD candidate with a published ripple figure - but 13 are needed for 2860 uF ($9.88 at qty-6, 1861 mm2, 26 terminals)."
+    },
+    {
+      "lcsc": "C249884",
+      "mpn": "VZH221M2ATR-1816",
+      "brand": "Lelon",
+      "description": "-45\u2103~+105\u2103 100V 16.5mm 18mm 220uF 5000hrs@105\u2103 \u00b120% SMD,D18xL16.5mm Aluminum Electrolytic Capacitors - SMD ROHS",
+      "package": "SMD,D18xL16.5mm",
+      "category": "Aluminum Electrolytic Capacitors - SMD",
+      "type": "Extended",
+      "basic": false,
+      "stock": 1704,
+      "price": 1.0199,
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 1.0199
+        },
+        {
+          "qty": 10,
+          "price": 0.8392
+        },
+        {
+          "qty": 30,
+          "price": 0.7488
+        },
+        {
+          "qty": 150,
+          "price": 0.6585
+        },
+        {
+          "qty": 450,
+          "price": 0.6052
+        },
+        {
+          "qty": 1050,
+          "price": 0.5778
+        }
+      ],
+      "min_qty": 1,
+      "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Lelon-VZH221M2ATR-1816_C249884.pdf",
+      "url": "https://www.lcsc.com/product-detail/aluminum-electrolytic-capacitors-smd_lelon-vzh221m2atr-1816_C249884.html",
+      "attributes": [
+        {
+          "name": "Operating Temperature",
+          "value": "-45\u2103~+105\u2103"
+        },
+        {
+          "name": "Lifetime",
+          "value": "5000hrs@105\u2103"
+        },
+        {
+          "name": "Voltage Rating",
+          "value": "100V"
+        },
+        {
+          "name": "Height - Seated (Max)",
+          "value": "16.5mm"
+        },
+        {
+          "name": "Tolerance",
+          "value": "\u00b120%"
+        },
+        {
+          "name": "Capacitance",
+          "value": "220uF"
+        },
+        {
+          "name": "Diameter",
+          "value": "18mm"
+        }
+      ],
+      "rank": 12,
+      "price_qty6": 1.0199,
+      "price_qty100": 0.7488,
+      "role": "bulk-smd",
+      "tech": "Al electrolytic, SMD V-chip",
+      "cap_uf": 220,
+      "voltage_v": 100,
+      "case": "SMD D18 x L16.5 mm",
+      "height_max_mm": 16.5,
+      "footprint_mm2": 284,
+      "ripple_rating": "NOT PUBLISHED on LCSC",
+      "endurance": "5000 h @ 105 C, -45..+105 C",
+      "life_extrapolated": {
+        "at_56C_h": 149000,
+        "at_69C_h": 60600
+      },
+      "note": "Shortest 100 V electrolytic found anywhere (16.5 mm). The answer if the enclosure ceiling collapses to ~20 mm - at 13 parts and no published ripple."
+    },
+    {
+      "lcsc": "C54915544",
+      "mpn": "PA100V220M12X17",
+      "brand": "jieerrui",
+      "description": "-55\u2103~+105\u2103 100V 12.5mm 17mm 2000hrs@105\u2103 3.5A@100kHz 30m\u03a9@100kHz 5mm Polymer \u00b120% \u63d2\u4ef6,D12.5xL17mm Polymer Aluminum Capacitors ROHS",
+      "package": "Plugin,D12.5xL17mm",
+      "category": "Polymer Aluminum Capacitors",
+      "type": "Extended",
+      "basic": false,
+      "stock": 2814,
+      "price": 0.9086,
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 0.9086
+        },
+        {
+          "qty": 10,
+          "price": 0.7392
+        },
+        {
+          "qty": 30,
+          "price": 0.6552
+        },
+        {
+          "qty": 200,
+          "price": 0.5713
+        },
+        {
+          "qty": 400,
+          "price": 0.5213
+        },
+        {
+          "qty": 1000,
+          "price": 0.4955
+        }
+      ],
+      "min_qty": 1,
+      "datasheet": "",
+      "url": "",
+      "attributes": [
+        {
+          "name": "Operating Temperature",
+          "value": "-55\u2103~+105\u2103"
+        },
+        {
+          "name": "Type",
+          "value": "Polymer"
+        },
+        {
+          "name": "Lifetime",
+          "value": "2000hrs@105\u2103"
+        },
+        {
+          "name": "Equivalent Series Resistance(ESR)",
+          "value": "30m\u03a9@100kHz"
+        },
+        {
+          "name": "Pin Spacing",
+          "value": "5mm"
+        },
+        {
+          "name": "Voltage Rating",
+          "value": "100V"
+        },
+        {
+          "name": "Height - Seated (Max)",
+          "value": "17mm"
+        },
+        {
+          "name": "Tolerance",
+          "value": "\u00b120%"
+        },
+        {
+          "name": "Ripple Current",
+          "value": "3.5A@100kHz"
+        },
+        {
+          "name": "Diameter",
+          "value": "12.5mm"
+        }
+      ],
+      "rank": 20,
+      "price_qty6": 0.9086,
+      "price_qty100": 0.6552,
+      "role": "polymer",
+      "tech": "Al polymer, radial THT",
+      "cap_uf": 220,
+      "voltage_v": 100,
+      "case": "D12.5 x L17 mm, 5 mm lead pitch",
+      "height_max_mm": 19.0,
+      "footprint_mm2": 143,
+      "ripple_rating": "3500 mA rms @ 100 kHz",
+      "esr_mohm": {
+        "at_100kHz_max": 30
+      },
+      "endurance": "2000 h @ 105 C, -55..+105 C",
+      "life_extrapolated": {
+        "at_56C_h": 59800,
+        "at_69C_h": 24300
+      },
+      "note": "LARGEST 100 V polymer at JLC today. 100 V polymer DOES exist (contrary to the usual assumption) but tops out at 220 uF/part: 13 needed = $11.81/board, 4x the aluminium bank cost, for ESR this design does not need. Endurance is only 2000 h - no life advantage over cheap aluminium in this vendor's 100 V line."
+    },
+    {
+      "lcsc": "C46550452",
+      "mpn": "PA100V100M10x12",
+      "brand": "jieerrui",
+      "description": "-55\u2103~+105\u2103 100V 100uF 10mm 12.5mm 2.6A@100kHz 2000hrs@105\u2103 40m\u03a9@100kHz 5mm Polymer \u00b120% \u63d2\u4ef6,D10xL12.5mm Polymer Aluminum Capacitors ROHS",
+      "package": "Plugin,D10xL12.5mm",
+      "category": "Polymer Aluminum Capacitors",
+      "type": "Extended",
+      "basic": false,
+      "stock": 136792,
+      "price": 0.6004,
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 0.6004
+        },
+        {
+          "qty": 10,
+          "price": 0.51
+        },
+        {
+          "qty": 30,
+          "price": 0.4454
+        },
+        {
+          "qty": 100,
+          "price": 0.3922
+        },
+        {
+          "qty": 500,
+          "price": 0.3761
+        },
+        {
+          "qty": 1000,
+          "price": 0.3648
+        }
+      ],
+      "min_qty": 1,
+      "datasheet": "",
+      "url": "",
+      "attributes": [
+        {
+          "name": "Operating Temperature",
+          "value": "-55\u2103~+105\u2103"
+        },
+        {
+          "name": "Type",
+          "value": "Polymer"
+        },
+        {
+          "name": "Lifetime",
+          "value": "2000hrs@105\u2103"
+        },
+        {
+          "name": "Equivalent Series Resistance(ESR)",
+          "value": "40m\u03a9@100kHz"
+        },
+        {
+          "name": "Pin Spacing",
+          "value": "5mm"
+        },
+        {
+          "name": "Voltage Rating",
+          "value": "100V"
+        },
+        {
+          "name": "Height - Seated (Max)",
+          "value": "12.5mm"
+        },
+        {
+          "name": "Tolerance",
+          "value": "\u00b120%"
+        },
+        {
+          "name": "Capacitance",
+          "value": "100uF"
+        },
+        {
+          "name": "Ripple Current",
+          "value": "2.6A@100kHz"
+        },
+        {
+          "name": "Diameter",
+          "value": "10mm"
+        }
+      ],
+      "rank": 21,
+      "price_qty6": 0.6004,
+      "price_qty100": 0.3922,
+      "role": "polymer",
+      "tech": "Al polymer, radial THT",
+      "cap_uf": 100,
+      "voltage_v": 100,
+      "case": "D10 x L12.5 mm, 5 mm lead pitch",
+      "height_max_mm": 14.5,
+      "footprint_mm2": 95,
+      "ripple_rating": "2600 mA rms @ 100 kHz",
+      "esr_mohm": {
+        "at_100kHz_max": 40
+      },
+      "endurance": "2000 h @ 105 C",
+      "note": "Huge stock (136k). 28 needed for 2800 uF - not a bulk option. Viable as 1-2 low-ESR companions if the drive stage wants more than MLCC can give, but the MLCC is flatter and cheaper for the same job."
+    },
+    {
+      "lcsc": "C576517",
+      "mpn": "GRM32EC72A106KE05L",
+      "brand": "Murata Electronics",
+      "description": "100V 10uF X7S \u00b110% 1210 Multilayer Ceramic Capacitors MLCC - SMD/SMT ROHS",
+      "package": "1210",
+      "category": "Multilayer Ceramic Capacitors MLCC - SMD/SMT",
+      "type": "Extended",
+      "basic": false,
+      "stock": 281142,
+      "price": 0.7972,
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 0.7972
+        },
+        {
+          "qty": 10,
+          "price": 0.7133
+        },
+        {
+          "qty": 30,
+          "price": 0.6536
+        },
+        {
+          "qty": 100,
+          "price": 0.6052
+        },
+        {
+          "qty": 500,
+          "price": 0.5503
+        },
+        {
+          "qty": 1000,
+          "price": 0.5407
+        }
+      ],
+      "min_qty": 1,
+      "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2410121942_Murata-Electronics-GRM32EC72A106KE05L_C576517.pdf",
+      "url": "https://www.lcsc.com/product-detail/multilayer-ceramic-capacitors-mlcc-smd-smt_murata-electronics-grm32ec72a106ke05l_C576517.html",
+      "attributes": [
+        {
+          "name": "Voltage Rating",
+          "value": "100V"
+        },
+        {
+          "name": "Tolerance",
+          "value": "\u00b110%"
+        },
+        {
+          "name": "Capacitance",
+          "value": "10uF"
+        },
+        {
+          "name": "Temperature Coefficient",
+          "value": "X7S"
+        }
+      ],
+      "rank": 30,
+      "price_qty6": 0.7972,
+      "price_qty100": 0.6052,
+      "role": "hf-companion",
+      "tech": "MLCC X7S",
+      "cap_uf": 10,
+      "voltage_v": 100,
+      "case": "1210, 3.2 x 2.5 x 2.5 mm",
+      "height_max_mm": 2.7,
+      "footprint_mm2": 20,
+      "dc_bias": "VERIFIED from Murata's own DC-bias chart: -73% at 48 V (=> 2.7 uF effective), -79% at 57 V (=> 2.1 uF). A '10 uF 100 V' part is 2.7 uF on this rail.",
+      "esr_mohm": {
+        "at_100Hz": 1500,
+        "at_1kHz": 100,
+        "at_100kHz": 5,
+        "at_500kHz": 2
+      },
+      "ripple_rating": "~2 A rms at 80 kHz for ~4 C rise (Murata temp-rise-from-ripple chart)",
+      "endurance": "-55..+125 C, X7S (+/-22% over range)",
+      "note": "HF companion for the sub-ms edge, NOT energy. 4 of them = 40 uF nominal = ~11 uF effective at 48 V. 1210 is a large body - keep away from the board edge, the RJ45 notch edge and mounting holes (flex-crack)."
+    },
+    {
+      "lcsc": "C5156756",
+      "mpn": "FS32X106K101EGG",
+      "brand": "PSA(Prosperity Dielectrics)",
+      "description": "100V 10uF X7R \u00b110% 1210 Multilayer Ceramic Capacitors MLCC - SMD/SMT ROHS",
+      "package": "1210",
+      "category": "Multilayer Ceramic Capacitors MLCC - SMD/SMT",
+      "type": "Extended",
+      "basic": false,
+      "stock": 290274,
+      "price": 0.6665,
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 0.6665
+        },
+        {
+          "qty": 10,
+          "price": 0.5616
+        },
+        {
+          "qty": 30,
+          "price": 0.51
+        },
+        {
+          "qty": 100,
+          "price": 0.4632
+        },
+        {
+          "qty": 500,
+          "price": 0.4503
+        },
+        {
+          "qty": 1000,
+          "price": 0.4422
+        }
+      ],
+      "min_qty": 1,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2209061730_PSA-Prosperity-Dielectrics-FS32X106K101EGG_C5156756.pdf",
+      "url": "https://www.lcsc.com/product-detail/multilayer-ceramic-capacitors-mlcc-smd-smt_psa-prosperity-dielectrics-fs32x106k101egg_C5156756.html",
+      "attributes": [
+        {
+          "name": "Voltage Rating",
+          "value": "100V"
+        },
+        {
+          "name": "Tolerance",
+          "value": "\u00b110%"
+        },
+        {
+          "name": "Capacitance",
+          "value": "10uF"
+        },
+        {
+          "name": "Temperature Coefficient",
+          "value": "X7R"
+        }
+      ],
+      "rank": 31,
+      "price_qty6": 0.6665,
+      "price_qty100": 0.4632,
+      "role": "hf-companion",
+      "tech": "MLCC X7R",
+      "cap_uf": 10,
+      "voltage_v": 100,
+      "case": "1210",
+      "height_max_mm": 2.7,
+      "footprint_mm2": 20,
+      "dc_bias": "No published curve. Assume the same or worse than the Murata X7S (~-73% at 48 V).",
+      "note": "Cheapest 10 uF/100 V 1210 with deep stock (290k). Use only if the unsourced DC-bias curve is acceptable; otherwise pay the extra $0.13 for the Murata part that has one."
+    },
+    {
+      "lcsc": "C342614",
+      "mpn": "C3225X7S2A475KT000N",
+      "brand": "TDK",
+      "description": "100V 4.7uF X7S \u00b110% 1210 Multilayer Ceramic Capacitors MLCC - SMD/SMT ROHS",
+      "package": "1210",
+      "category": "Multilayer Ceramic Capacitors MLCC - SMD/SMT",
+      "type": "Extended",
+      "basic": false,
+      "stock": 7748,
+      "price": 1.2959,
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 1.2959
+        },
+        {
+          "qty": 10,
+          "price": 1.1442
+        },
+        {
+          "qty": 30,
+          "price": 1.0684
+        },
+        {
+          "qty": 100,
+          "price": 0.9925
+        },
+        {
+          "qty": 500,
+          "price": 0.9473
+        },
+        {
+          "qty": 1000,
+          "price": 0.9231
+        }
+      ],
+      "min_qty": 1,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_TDK-C3225X7S2A475KT000N_C342614.pdf",
+      "url": "https://www.lcsc.com/product-detail/multilayer-ceramic-capacitors-mlcc-smd-smt_tdk-c3225x7s2a475kt000n_C342614.html",
+      "attributes": [
+        {
+          "name": "Voltage Rating",
+          "value": "100V"
+        },
+        {
+          "name": "Tolerance",
+          "value": "\u00b110%"
+        },
+        {
+          "name": "Capacitance",
+          "value": "4.7uF"
+        },
+        {
+          "name": "Temperature Coefficient",
+          "value": "X7S"
+        }
+      ],
+      "rank": 32,
+      "price_qty6": 1.2959,
+      "price_qty100": 0.9925,
+      "role": "hf-companion",
+      "tech": "MLCC X7S",
+      "cap_uf": 4.7,
+      "voltage_v": 100,
+      "case": "1210",
+      "height_max_mm": 2.7,
+      "footprint_mm2": 20,
+      "note": "TDK alternate. Half the CV of the Murata part at 1.6x the price - listed only as a second source for the 1210/100 V footprint."
+    },
+    {
+      "lcsc": "C49215602",
+      "mpn": "MEB106K2A1501",
+      "brand": "KYET",
+      "description": "-55\u2103~+125\u2103 100V 10uF Metalized polyester film \u00b110% \u63d2\u4ef6,P=15mm Film Capacitors ROHS",
+      "package": "Plugin,P=15mm",
+      "category": "Film Capacitors",
+      "type": "Extended",
+      "basic": false,
+      "stock": 972,
+      "price": 1.0571,
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 1.0571
+        },
+        {
+          "qty": 10,
+          "price": 0.8763
+        },
+        {
+          "qty": 30,
+          "price": 0.786
+        },
+        {
+          "qty": 100,
+          "price": 0.6956
+        },
+        {
+          "qty": 500,
+          "price": 0.6423
+        },
+        {
+          "qty": 1000,
+          "price": 0.6149
+        }
+      ],
+      "min_qty": 1,
+      "datasheet": "",
+      "url": "",
+      "attributes": [
+        {
+          "name": "Operating Temperature",
+          "value": "-55\u2103~+125\u2103"
+        },
+        {
+          "name": "Dielectric Material",
+          "value": "Metalized polyester film"
+        },
+        {
+          "name": "Voltage Rating",
+          "value": "100V"
+        },
+        {
+          "name": "Tolerance",
+          "value": "\u00b110%"
+        },
+        {
+          "name": "Capacitance",
+          "value": "10uF"
+        }
+      ],
+      "rank": 40,
+      "price_qty6": 1.0571,
+      "price_qty100": 0.6956,
+      "role": "film",
+      "tech": "Metallised polyester film, THT",
+      "cap_uf": 10,
+      "voltage_v": 100,
+      "case": "P = 15 mm THT box",
+      "note": "FILM IS NOT CREDIBLE for this bank. This is the only 100 V/10 uF film part with real stock (972). 280 of them would be needed for 2800 uF. Every 22 uF/100 V polypropylene part on JLC (WIMA MKP4D/MKP1D) is zero stock. Film's only role here is a 0.1-1 uF snubber across the drive stage - the drive stage owner's call, not this block's."
+    }
+  ]
+}
