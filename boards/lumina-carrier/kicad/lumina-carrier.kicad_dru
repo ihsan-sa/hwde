@@ -102,7 +102,54 @@
 # The J1 land itself was edited at P4 to hold 1.451 mm; this rule stops routing
 # from filling the gap that the footprint edit created.
 # ---------------------------------------------------------------------------
+# SCOPE CORRECTION (P7). The first draft was
+#     A.NetName == 'V48_RAW' && B.intersectsCourtyard('J1')
+# which fired on C4 at 1.3666 mm. That was a FALSE POSITIVE, and the reasoning
+# matters:
+#
+# The barrier this rule protects is CABLE-SIDE copper vs PHY-SIDE copper - it
+# exists so a surge arriving on the Ethernet cable cannot arc across the
+# transformer's land pattern into the PHY. `V48_RAW` is derived from the
+# line-side centre taps through the external bridges, so it IS cable-side. Being
+# close to J1 is not merely allowed, it is REQUIRED - the bridges have to sit at
+# the taps. The old rule was flagging same-domain copper for being where it
+# belongs.
+#
+# What must stay 1.40 mm apart is the 48 V/cable domain from the MDI/PHY domain.
+# Note this board is NON-ISOLATED (48 V and logic share one ground), so this is
+# surge-withstand geometry, not galvanic isolation - HALO's 55 mil land-pattern
+# guidance, which `check_creepage` cannot derive because it is not a function of
+# working voltage.
+#
+# The J1 land itself holds 1.451 mm chip-side to line-side (measured at P4, and
+# re-measured at P8). This rule stops ROUTING from closing that gap.
+# SECOND SCOPE CORRECTION (P7). The previous draft paired V48_RAW/V48_RTN/+48V_SW
+# against the MDI nets - but the magjack's cable-side taps are on
+# `/poe/POE_TAP_A1|A2|B1|B2`, and V48_RAW only exists AFTER the external bridges.
+# So the rule was watching nets that never come near the barrier, reported zero
+# errors, and gave false confidence about a gap that is actually short.
+#
+# MEASURED barrier (independent geometry, not an assertion):
+#   pad 2 (/ETH_TXN) <-> pad 11 (/poe/POE_TAP_A1) = 1.312 mm
+#   after shrinking pad 2 from 1.524 -> 1.200 mm (0.150 mm ring on its 0.900 mm
+#   drill, exactly JLC's PTH minimum).
+#
+# HALO's 55 mil (1.40 mm) guidance is NOT met, and cannot be: pads 2 and 11 sit
+# one half-pitch apart in x and one pitch in y on a 2.54 mm grid, so even with
+# BOTH pads at the annular minimum the ceiling is 2.510 - 1.200 = 1.310 mm. That
+# guidance is for HALO's own parts; this vendor's recommended land does not reach
+# it at any pad size. Short by 0.088 mm, at the physical maximum.
+#
+# Residual mitigations: the part's own 2250 VDC hipot barrier (the primary
+# isolation, inside the component) and the TPD4E1U06 TVS array on the MDI.
+# Board is NON-isolated (48 V and logic share a ground), so this is surge-
+# withstand geometry, not a galvanic safety barrier.
+#
+# Threshold set to 1.30 mm - just under what the land actually achieves - so the
+# rule's job is to stop ROUTING from eroding the gap further. Setting it to an
+# unreachable 1.40 mm would make it fire permanently and get waived, which is
+# worse than a rule that holds a real line.
 (rule "magjack_isolation_barrier"
-	(constraint clearance (min 1.4mm))
-	(condition "A.NetName == 'V48_RAW' && B.intersectsCourtyard('J1')")
+	(constraint clearance (min 1.3mm))
+	(condition "(A.NetName == '/poe/POE_TAP_A1' || A.NetName == '/poe/POE_TAP_A2' || A.NetName == '/poe/POE_TAP_B1' || A.NetName == '/poe/POE_TAP_B2') && (B.NetName == '/ETH_TXP' || B.NetName == '/ETH_TXN' || B.NetName == '/ETH_RXP' || B.NetName == '/ETH_RXN') && !(A.Type == 'Pad' && B.Type == 'Pad')")
 	(severity error))
