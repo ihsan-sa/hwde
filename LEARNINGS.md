@@ -1031,3 +1031,13 @@ value (`10 ohm`) instead. Cost the lumina-par P3 part-sourcer several wasted rou
 before it worked out the pattern. The failure mode is dangerous because an empty result set
 looks identical to a genuine stock-out and can push an agent into re-architecting around a
 part that is actually available.
+
+## 2026-07-28 [parts] LCSC www/datasheet URLs return HTML; rewrite to the wmsc host
+`parts_search` hands back two URL shapes. `https://www.lcsc.com/datasheet/lcsc_datasheet_<stamp>_<name>_<lcsc>.pdf`
+serves a **47 kB HTML page**, not a PDF - 15 of 18 datasheets on lumina-par came back that way,
+including the main LED driver and both emitters. The working form is
+`https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/<stamp>_<name>_<lcsc>.pdf` - i.e. strip
+`lcsc_datasheet_` and swap the host. Rewriting recovered all 18 on the first retry.
+Combined with the existing `%PDF` magic-byte rule this is a two-step must: rewrite the URL, then
+verify the first 4 bytes. Without the byte check the extractor "extracts" a pinout from an error
+page, and that pinout is the only source the schematic agents may wire from.

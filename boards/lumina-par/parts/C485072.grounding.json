@@ -1,0 +1,356 @@
+{
+ "script": "datasheet_extract",
+ "status": "extracted",
+ "source_pdf": "parts\\C485072.pdf",
+ "lcsc": "C485072",
+ "n_pages": 33,
+ "text_chars": 35988,
+ "text_by_page": [
+  {
+   "page": 0,
+   "text": "A\nB\nY\nA\nB\nY\nA\nB\nY\nA\nB\nY\nProduct\nFolder\nSample &\nBuy\nT echnical\nDocuments\nTools &\nSoftware\nSupport &\nCommunity\nAn IMPORTANT NOTICE at the end of this data sheet addresses availability, warranty, changes, use in safety-critical applications,\nintellectual property matters and other important disclaimers. PRODUCTION DATA.\nSN54LVC00A, SN74LVC00A\nSCAS279R \u2013 JANUARY 1993 \u2013 REVISED FEBRUARY 2016\nSNx4LVC00AQuadruple2-InputPositive-NANDGates\n1\n1 Features\n1\u2022 Operate From 1.65 V to 3.6 V\n\u2022 Specified From \u201340\u00b0C to 85\u00b0C, \u201340\u00b0C to 125\u00b0C,\nand \u201355\u00b0C to 125\u00b0C\n\u2022 Inputs Accept Voltages to 5.5 V\n\u2022 Max tpd of 4.3 ns at 3.3 V\n\u2022 Typical VOLP (Output Ground Bounce)\n< 0.8 V at VCC = 3.3 V, TA = 25\u00b0C\n\u2022 Typical VOHV (Output VOH Undershoot)\n> 2 V at VCC = 3.3 V, TA = 25\u00b0C\n\u2022 Latch-Up Performance Exceeds 250 mA\nPer JESD 17\n\u2022 On Products Compliant to MIL-PRF-38535,\nAll Parameters Are Tested Unless Otherwise\nNoted. On All Other Products, Production\nProcessing Does Not Necessarily Include Testing\nof All Parameters.\n\u2022 ESD Protection Exceeds JESD 22\n\u2013 2000-V Human-Body Model\n\u2013 200-V Machine Model\n\u2013 1000-V Charged-Device Model\n2 Applications\n\u2022 AV Receivers\n\u2022 Audio Docks: Portable\n\u2022 Blu-ray Players and Home Theater\n\u2022 MP3 Players or Recorder s\n\u2022 Personal Digital Assistants (PDAs)\n\u2022 Power: Telecom/Server AC/DC Supply: Single\nController: Analog and Digital\n\u2022 Solid State Drives (SSDs): Client and Enterprise\n\u2022 TVs: LCD, Digital, and High-Definition (HDTV)\n\u2022 Tablets: Enterprise\n\u2022 Video Analytics: Server\n\u2022 Wireless Headsets, Keyboards, and Mice\n3 Description\nThe SN54LVC00A quadruple 2-input positive-NAND\ngate is designed for 2.7-V to 3.6-V VCC operation, and\nthe SN74LVC00A quadruple 2-input positive-NAND\ngate is designed for 1.65-V to 3.6-V VCC operation.\nThe SNx4LVC00A devices perform the Boolean\nfunction Y = A \u00d7 B or Y = A + B in positive logic.\nInputs can be driven from either 3.3-V or 5-V devices.\nThis feature allows the use of these devices as\ntranslators in a mixed 3.3-V/5-V system environment.\nDevice Information(1)\nPART NUMBER PACKAGE BODY SIZE (NOM)\nSNx4LVC00A\nSOIC (14) 8.65 mm \u00d7 3.91 mm\nSSOP (14) 6.20 mm \u00d7 5.30 mm\nSOP (14) 10.30 mm \u00d7 5.30 mm\nTSSOP (14) 5.00 mm \u00d7 4.40 mm\nVQFN (14) 3.50 mm \u00d7 3.50 mm\n(1) For all available packages, see the orderable addendum at\nthe end of the data sheet.\n4 Simplified Schematic"
+  },
+  {
+   "page": 1,
+   "text": "2\nSN54LVC00A, SN74LVC00A\nSCAS279R \u2013 JANUARY 1993 \u2013 REVISED FEBRUARY 2016 www.ti.com\nProduct Folder Links: SN54LVC00A SN74LVC00A\nSubmit Documentation Feedback Copyright \u00a9 1993\u20132016, Texas Instruments Incorporated\nTable of Contents\n1 Features .................................................................. 1\n2 Applications ........................................................... 1\n3 Description ............................................................. 1\n4 Simplified Schematic............................................. 1\n5 Revision History..................................................... 2\n6 Pin Configuration and Functions ......................... 3\n7 Specifications......................................................... 4\n7.1 Absolute Maximum Ratings ..................................... 4\n7.2 ESD Ratings ............................................................ 4\n7.3 Recommended Operating Conditions, SN54LVC00A\n................................................................................... 5\n7.4 Recommended Operating Conditions, SN74LVC00A\n................................................................................... 5\n7.5 Thermal Information .................................................. 6\n7.6 Electrical Characteristics, SN54LVC00A .................. 6\n7.7 Electrical Characteristics, SN74LVC00A .................. 6\n7.8 Switching Characteristics, SN54LVC00A ................. 7\n7.9 Switching Characteristics, SN74LVC00A ................. 7\n7.10 Operating Characteristics........................................ 7\n7.11 Typical Characteristics ............................................ 7\n8 Parameter Measurement Information .................. 8\n9 Detailed Description .............................................. 9\n9.1 Overview ................................................................... 9\n9.2 Functional Block Diagram ......................................... 9\n9.3 Feature Description................................................... 9\n9.4 Device Functional Modes.......................................... 9\n10 Application and Implementation........................ 10\n10.1 Application Information.......................................... 10\n10.2 Typical Application ............................................... 10\n11 Power Supply Recommendations ..................... 11\n12 Layout................................................................... 11\n12.1 Layout Guidelines ................................................. 11\n12.2 Layout Example .................................................... 11\n13 Device and Documentation Support ................. 12\n13.1 Related Links ........................................................ 12\n13.2 Trademarks ........................................................... 12\n13.3 Electrostatic Discharge Caution ............................ 12\n13.4 Glossary ................................................................ 12\n14 Mechanical, Packaging, and Orderable\nInformation ........................................................... 12\n5 Revision History\nChanges from Revision Q (December 2014) to Revision R Page\n\u2022 Added Junction temperature row to Absolute Maximum Ratings table.................................................................................. 4\n\u2022 Changed statement of \"open drain: to \"maximum sink and source current\" statement in Overview of Detailed\nDescription section ................................................................................................................................................................. 9\n\u2022 Deleted \"open drain\" from Application Information section .................................................................................................. 10\nChanges from Revision P (July 2005) to Revision Q Page\n\u2022 Added Applications, Device Information table, Pin Functions table, ESD Ratings table, Thermal Information table,\nTypical Characteristics, Feature Description section, Device Functional Modes, Application and Implementation\nsection, Power Supply Recommendations section, Layout section, Device and Documentation Support section, and\nMechanical, Packaging, and Orderable Information section. ................................................................................................. 1\n\u2022 Deleted Ordering Information table. ....................................................................................................................................... 1\n\u2022 Added Military Disclaimer to Features.................................................................................................................................... 1"
+  },
+  {
+   "page": 2,
+   "text": "3 2 1 20 19\n9 10 11 12 13\n4\n5\n6\n7\n8\n18\n17\n16\n15\n14\n4A\nNC\n4Y\nNC\n3B\n1Y\nNC\n2A\nNC\n2B\n1B 1A NC\n3Y 3A\nV 4B\n2Y\nGNDNC\nSN54L VC00A . . . FK PACKAGE\n(TOP VIEW)\nCC\nNC - No internal connection\nSN74L VC00A . . . RGY PACKAGE\n(TOP VIEW)\n1 14\n7 8\n2\n3\n4\n5\n6\n13\n12\n1 1\n10\n9\n4B\n4A\n4Y\n3B\n3A\n1B\n1Y\n2A\n2B\n2Y\n1A\n3Y\nV\nGND\nCC\n1\n2\n3\n4\n5\n6\n7\n14\n13\n12\n1 1\n10\n9\n8\n1A\n1B\n1Y\n2A\n2B\n2Y\nGND\nVCC\n4B\n4A\n4Y\n3B\n3A\n3Y\nSN54LVC00A\n. . .\nSN74LVC00A . . . D, DB, NS, OR PW PACKAGE\n(TOP VIEW)\nJ OR W PACKAGE\n3\nSN54LVC00A, SN74LVC00A\nwww.ti.com SCAS279R \u2013 JANUARY 1993 \u2013 REVISED FEBRUARY 2016\nProduct Folder Links: SN54LVC00A SN74LVC00A\nSubmit Documentation FeedbackCopyright \u00a9 1993\u20132016, Texas Instruments Incorporated\n6 Pin Configuration and Functions\nPin Functions\nPIN\nTYPE DESCRIPTION\nNAME\nSN74LVC00A SN54LVC00A\nD, DB, NS, PW RGY J, W FK\n1A 1 1 1 2 I Gate 1 input\n1B 2 2 2 3 I Gate 1 input\n1Y 3 3 3 4 O Gate 1 output\n2A 4 4 4 6 I Gate 2 input\n2B 5 5 5 8 I Gate 2 input\n2Y 6 6 6 9 O Gate 2 output\nGND 7 7 7 10 \u2014 Ground Pin\n3Y 8 8 8 12 \u2014 Power Pin\n3A 9 9 9 13 I Gate 4 input\n3B 10 10 10 14 I Gate 4 input\n4Y 11 11 11 16 O Gate 4 output\n4A 12 12 12 18 I Gate 3 input\n4B 13 13 13 19 I Gate 3 input\nVCC 14 14 14 20 O Gate 3 output\nNC \u2014 \u2014 \u2014\n1\n\u2014 No Connection\n5\n7\n11\n15\n17"
+  },
+  {
+   "page": 3,
+   "text": "4\nSN54LVC00A, SN74LVC00A\nSCAS279R \u2013 JANUARY 1993 \u2013 REVISED FEBRUARY 2016 www.ti.com\nProduct Folder Links: SN54LVC00A SN74LVC00A\nSubmit Documentation Feedback Copyright \u00a9 1993\u20132016, Texas Instruments Incorporated\n(1) Stresses beyond those listed under Absolute Maximum Ratings may cause permanent damage to the device. These are stress ratings\nonly, and functional operation of the device at these or any other conditions beyond those indicated under Recommended Operating\nConditions is not implied. Exposure to absolute-maximum-rated conditions for extended periods may affect device reliability.\n(2) The input and output negative-voltage ratings may be exceeded if the input and output current ratings are observed.\n(3) The value of VCC is provided in the Recommended Operating Conditions table.\n(4) For the D package: above 70\u00b0C, the value of Ptot derates linearly with 8 mW/K.\n(5) For the DB, NS, and PW packages: above 60\u00b0C, the value of Ptot derates linearly with 5.5 mW/K.\n7 Specifications\n7.1 Absolute Maximum Ratings\nover operating free-air temperature range (unless otherwise noted) (1)\nMIN MAX UNIT\nVCC Supply voltage range \u20130.5 6.5 V\nVI Input voltage range (2) \u20130.5 6.5 V\nVO Output voltage range (2) (3) \u20130.5 VCC + 0.5 V\nIIK Input clamp current VI < 0 \u201350 mA\nIOK Output clamp current VO < 0 \u201350 mA\nIO Continuous output current \u00b150 mA\nVCC Continuous current through GND \u00b1100 mA\nPtot Power dissipation (4) (5) TA = \u201340\u00b0C to 125\u00b0C 500 mW\nTstg Storage temperature range -65 150 \u00b0C\nTj Junction Temperature 150 \u00b0C\n(1) JEDEC document JEP155 states that 500-V HBM allows safe manufacturing with a standard ESD control process.\n(2) JEDEC document JEP157 states that 250-V CDM allows safe manufacturing with a standard ESD control process.\n7.2 ESD Ratings\nVALUE UNIT\nV(ESD) Electrostatic discharge\nHuman body model (HBM), per ANSI/ESDA/JEDEC JS-001, all\npins (1) 2000\nV\nCharged device model (CDM), per JEDEC specification\nJESD22-C101, all pins (2) 1000"
+  },
+  {
+   "page": 4,
+   "text": "5\nSN54LVC00A, SN74LVC00A\nwww.ti.com SCAS279R \u2013 JANUARY 1993 \u2013 REVISED FEBRUARY 2016\nProduct Folder Links: SN54LVC00A SN74LVC00A\nSubmit Documentation FeedbackCopyright \u00a9 1993\u20132016, Texas Instruments Incorporated\n(1) All unused inputs of the device must be held at VCC or GND to ensure proper device operation. Refer to the TI application report,\nImplications of Slow or Floating CMOS Inputs, literature number SCBA004.\n7.3 Recommended Operating Conditions, SN54LVC00A\nover operating free-air temperature range (unless otherwise noted) (1)\nSN54LVC00A\nUNIT\u201355\u00b0C to 125\u00b0C\nMIN MAX\nVCC Supply voltage\nOperating 2 3.6\nV\nData retention only 1.5\nVIH High-level input voltage VCC = 2.7 V to 3.6 V 2 V\nVIL Low-level input voltage VCC = 2.7 V to 3.6 V 0.8 V\nVI Input voltage 0 5.5 V\nVO Output voltage 0 VCC V\nIOH High-level output current\nVCC = 2.7 V \u201312\nmA\nVCC = 3 V \u201324\nIOL Low-level output current\nVCC = 2.7 V 12\nmA\nVCC = 3 V 24\n(1) All unused inputs of the device must be held at VCC or GND to ensure proper device operation. Refer to the TI application report,\nImplications of Slow or Floating CMOS Inputs, literature number SCBA004.\n7.4 Recommended Operating Conditions, SN74LVC00A\nover operating free-air temperature range (unless otherwise noted) (1)\nSN74LVC00A\nUNITTA = 25\u00b0C \u201340\u00b0C to 85\u00b0C \u201340\u00b0C to 125\u00b0C\nMIN MAX MIN MAX MIN MAX\nVCC Supply voltage\nOperating 1.65 3.6 1.65 3.6 1.65 3.6\nV\nData retention only 1.5 1.5 1.5\nVIH\nHigh-level\ninput voltage\nVCC = 1.65 V to 1.95 V 0.65 \u00d7 VCC 0.65 \u00d7 VCC 0.65 \u00d7 VCC\nVVCC = 2.3 V to 2.7 V 1.7 1.7 1.7\nVCC = 2.7 V to 3.6 V 2 2 2\nVIL\nLow-level\ninput voltage\nVCC = 1.65 V to 1.95 V 0.35 \u00d7 VCC 0.35 \u00d7 VCC 0.35 \u00d7 VCC\nVVCC = 2.3 V to 2.7 V 0.7 0.7 0.7\nVCC = 2.7 V to 3.6 V 0.8 0.8 0.8\nVI Input voltage 0 5.5 0 5.5 0 5.5 V\nVO Output voltage 0 VCC 0 VCC 0 VCC V\nIOH\nHigh-level\noutput current\nVCC = 1.65 V \u20134 \u20134 \u20134\nmA\nVCC = 2.3 V \u20138 \u20138 \u20138\nVCC = 2.7 V \u201312 \u201312 \u201312\nVCC = 3 V \u201324 \u201324 \u201324\nIOL\nLow-level\noutput current\nVCC = 1.65 V 4 4 4\nmA\nVCC = 2.3 V 8 8 8\nVCC = 2.7 V 12 12 12\nVCC = 3 V 24 24 24"
+  },
+  {
+   "page": 5,
+   "text": "6\nSN54LVC00A, SN74LVC00A\nSCAS279R \u2013 JANUARY 1993 \u2013 REVISED FEBRUARY 2016 www.ti.com\nProduct Folder Links: SN54LVC00A SN74LVC00A\nSubmit Documentation Feedback Copyright \u00a9 1993\u20132016, Texas Instruments Incorporated\n(1) For more information about traditional and new thermal metrics, see the IC Package Thermal Metrics application report, SPRA953.\n7.5 Thermal Information\nTHERMAL METRIC (1)\nSN74LVC00A\nUNITD DB NS PW RGY\n14 PINS 14 PINS 14 PINS 14 PINS 14 PINS\nR\u03b8JA Junction-to-ambient thermal resistance 86 96 76 113 47 \u00b0C/W\n7.6 Electrical Characteristics, SN54LVC00A\nover recommended operating free-air temperature range (unless otherwise noted)\nPARAMETER TEST CONDITIONS VCC\nSN54LVC00A\nUNIT\u201355\u00b0C to 125\u00b0C\nMIN MAX\nVOH\nIOH = \u2013100 \u00b5A 2.7 V to 3.6 V VCC \u2013 0.2\nVIOH = \u201312 mA\n2.7 V 2.2\n3 V 2.4\nIOH = \u201324 mA 3 V 2.2\nVOL\nIOL = 100 \u00b5A 2.7 V to 3.6 V 0.2\nVIOL = 12 mA 2.7 V 0.4\nIOL = 24 mA 3 V 0.55\nII VI = 5.5 V or GND 3.6 V \u00b15 \u00b5A\nICC VI = VCC or GND, IO = 0 3.6 V 10 \u00b5A\n\u0394ICC One input at VCC \u2013 0.6 V, Other inputs at VCC or GND 2.7 V to 3.6 V 500 \u00b5A\n7.7 Electrical Characteristics, SN74LVC00A\nover recommended operating free-air temperature range (unless otherwise noted)\nPARAMETER TEST CONDITIONS VCC\nSN74LVC00A\nUNITTA = 25\u00b0C \u201340\u00b0C to 85\u00b0C \u201340\u00b0C to 125\u00b0C\nMIN TYP MAX MIN MAX MIN MAX\nVOH\nIOH = \u2013100 \u00b5A 1.65 V to 3.6 V VCC \u2013 0.2 VCC \u2013 0.2 VCC \u2013\n0.3\nV\nIOH = \u20134 mA 1.65 V 1.29 1.2 1.05\nIOH = \u20138 mA 2.3 V 1.9 1.7 1.55\nIOH = \u201312 mA\n2.7 V 2.2 2.2 2.05\n3 V 2.4 2.4 2.25\nIOH = \u201324 mA 3 V 2.3 2.2 2\nVOL\nIOL = 100 \u00b5A 1.65 V to 3.6 V 0.1 0.2 0.3\nV\nIOL = 4 mA 1.65 V 0.24 0.45 0.6\nIOL = 8 mA 2.3 V 0.3 0.7 0.85\nIOL = 12 mA 2.7 V 0.4 0.4 0.6\nIOL = 24 mA 3 V 0.55 0.55 0.8\nII VI = 5.5 V or GND 3.6 V \u00b11 \u00b15 \u00b120 \u00b5A\nICC\nVI = VCC or GND,\nIO = 0 3.6 V 1 10 40 \u00b5A\n\u0394ICC\nOne input at\nVCC \u2013 0.6 V,\nOther inputs at\nVCC or GND\n2.7 V to 3.6 V 500 500 5000 \u00b5A\nCi VI = VCC or GND 3.3 V 5 pF"
+  },
+  {
+   "page": 6,
+   "text": "0\n1\n2\n3\n4\n5\n6\n7\n8\n1.5 2.0 2.5 3.0 3.5 4.0\nTPD (ns) \nVCC Input (V) \nTPD\nC001 \n7\nSN54LVC00A, SN74LVC00A\nwww.ti.com SCAS279R \u2013 JANUARY 1993 \u2013 REVISED FEBRUARY 2016\nProduct Folder Links: SN54LVC00A SN74LVC00A\nSubmit Documentation FeedbackCopyright \u00a9 1993\u20132016, Texas Instruments Incorporated\n7.8 Switching Characteristics, SN54LVC00A\nover recommended operating free-air temperature range (unless otherwise noted) (see Figure 2)\nPARAMETER FROM\n(INPUT)\nTO\n(OUTPUT) VCC\nSN54LVC00A\nUNIT\u201355\u00b0C to 125\u00b0C\nMIN MAX\ntpd A or B Y\n2.7 V 5.1\nns\n3.3 V \u00b1 0.3 V 1 4.3\n7.9 Switching Characteristics, SN74LVC00A\nover recommended operating free-air temperature range (unless otherwise noted) (see Figure 2)\nPARAMETER FROM\n(INPUT)\nTO\n(OUTPUT) VCC\nSN74LVC00A\nUNITTA = 25\u00b0C \u201340\u00b0C to 85\u00b0C \u201340\u00b0C to 125\u00b0C\nMIN TYP MAX MIN MAX MIN MAX\ntpd A or B Y\n1.8 V \u00b1 0.15 V 1 6 12 1 12.5 1 14\nns\n2.5 V \u00b1 0.2 V 1 4.6 5.9 1 6.4 1 7.9\n2.7 V 1 4.3 4.9 1 5.1 1 6.5\n3.3 V \u00b1 0.3 V 1 3.5 4.1 1 4.3 1 5.5\ntsk(o) 3.3 V \u00b1 0.3 V 1 1.5 ns\n7.10 Operating Characteristics\nTA = 25\u00b0C\nPARAMETER TEST CONDITIONS VCC TYP UNIT\nCpd Power dissipation capacitance per gate f = 10 MHz\n1.8 V 18\npF2.5 V 18\n3.3 V 19\n7.11 Typical Characteristics\nFigure 1. TPD vs VCC (TA = 25\u00b0C)"
+  },
+  {
+   "page": 7,
+   "text": "VM\nthtsu\nFrom Output\nUnder Test\nCL\n(see Note A)\nLOAD CIRCUIT\nS1\nVLOAD\nOpen\nGND\nRL\nRL\nData Input\nTiming Input\nVI\n0 V\nVI\n0 V\n0 V\ntw\nInput\nVOLTAGE WAVEFORMS\nSETUP AND HOLD TIMES\nVOLTAGE WAVEFORMS\nPROPAGATION DELAY TIMES\nINVERTING AND NONINVERTING OUTPUTS\nVOLTAGE WAVEFORMS\nPULSE DURATION\ntPLH\ntPHL\ntPHL\ntPLH\nVOH\nVOH\nVOL\nVOL\nVI\n0 V\nInput\nOutput\nWaveform 1\nS1 at VLOAD\n(see Note B)\nOutput\nWaveform 2\nS1 at GND\n(see Note B)\nVOL\nVOH\ntPZL\ntPZH\ntPLZ\ntPHZ\nVLOAD/2\n0 V\nVOL + V\u0394\nVOH V \u2013\u0394\n\u2248 0 V\nVI\nVOLTAGE WAVEFORMS\nENABLE AND DISABLE TIMES\nLOW- AND HIGH-LEVEL ENABLING\nOutput\nOutput\ntPLH/tPHL\ntPLZ/tPZL\ntPHZ/tPZH\nOpen\nVLOAD\nGND\nTEST S1\nNOTES: A. C L includes probe and jig capacitance.\nB. Waveform 1 is for an output with internal conditions such that the output is low , except when disabled by the output control.\nWaveform 2 is for an output with internal conditions such that the output is high, except when disabled by the output control.\nC. All input pulses are supplied by generators having the following characteristics: PRR \u2264 10 MHz, ZO = 50 . \u03a9\nD. The outputs are measured one at a time, with one transition per measurement.\nE. t PLZ and tPHZ are the same as tdis.\nF. t PZL and tPZH are the same as ten.\nG. t PLH and tPHL are the same as tpd.\nH. All parameters and waveforms are not applicable to all devices.\nOutput\nControl\nVM VM\nVM VM\nVM VM\nVM\nVM VM\nVM\nVM\nVM\nVI\nVM\nVM\n1.8 V \u00b1 0.15 V\n2.5 V \u00b1 0.2 V\n2.7 V\n3.3 V \u00b1 0.3 V\n1 k\u03a9\n500 \u03a9\n500 \u03a9\n500 \u03a9\nVCC RL\n2 \u00d7 VCC\n2 \u00d7 VCC\n6 V\n6 V\nVLOAD\nCL\n30 pF\n30 pF\n50 pF\n50 pF\n0.15 V\n0.15 V\n0.3 V\n0.3 V\nV\u0394\nVCC\nVCC\n2.7 V\n2.7 V\nVI\nVCC/2\nVCC/2\n1.5 V\n1.5 V\nVM\ntr/tf\n\u2264 2 ns\n\u2264 2 ns\n\u2264 2.5 ns\n\u2264 2.5 ns\nINPUTS\n8\nSN54LVC00A, SN74LVC00A\nSCAS279R \u2013 JANUARY 1993 \u2013 REVISED FEBRUARY 2016 www.ti.com\nProduct Folder Links: SN54LVC00A SN74LVC00A\nSubmit Documentation Feedback Copyright \u00a9 1993\u20132016, Texas Instruments Incorporated\n8 Parameter Measurement Information\nFigure 2. Load Circuit and Voltage Waveforms"
+  },
+  {
+   "page": 8,
+   "text": "A\nB\nY\n9\nSN54LVC00A, SN74LVC00A\nwww.ti.com SCAS279R \u2013 JANUARY 1993 \u2013 REVISED FEBRUARY 2016\nProduct Folder Links: SN54LVC00A SN74LVC00A\nSubmit Documentation FeedbackCopyright \u00a9 1993\u20132016, Texas Instruments Incorporated\n9 Detailed Description\n9.1 Overview\nThe maximum sink and source current is 24mA.\nInputs can be driven from 1.8-V, 2.5-V, 3.3-V (LVTTL), or 5-V (CMOS) devices. This feature allows the use of\nthis device as translators in a mixed-system environment.\nThis device is fully specified for partial-power-down applications using Ioff. The Ioff circuitry disables the outputs,\npreventing damaging current backflow through the device when it is powered down.\n9.2 Functional Block Diagram\nLogic Diagram, Each Gate (Positive Logic)\n9.3 Feature Description\n\u2022 Wide operating voltage range\n\u2013 Operates from 1.65 V to 3.6 V\n\u2022 Allows up or down voltage translation\n\u2013 Inputs and outputs accept voltages to 5.5 V\n\u2022 Ioff feature\n\u2013 Allows voltages on the inputs and outputs when VCC is 0 V\n9.4 Device Functional Modes\nTable 1. Function Table\n(Each Gate)\nINPUTS OUTPUT\nYA B\nH H L\nL X H\nX L H"
+  },
+  {
+   "page": 9,
+   "text": "1.65-V to 3.6-V VCC\n1A\n1B\n4A\n4B\n1Y\n4Y\n10\nSN54LVC00A, SN74LVC00A\nSCAS279R \u2013 JANUARY 1993 \u2013 REVISED FEBRUARY 2016 www.ti.com\nProduct Folder Links: SN54LVC00A SN74LVC00A\nSubmit Documentation Feedback Copyright \u00a9 1993\u20132016, Texas Instruments Incorporated\n10 Application and Implementation\nNOTE\nInformation in the following applications sections is not part of the TI component\nspecification, and TI does not warrant its accuracy or completeness. TI\u2019s customers are\nresponsible for determining suitability of components for their purposes. Customers should\nvalidate and test their design implementation to confirm system functionality.\n10.1 Application Information\nSN74LVC00A is a high-drive CMOS device that can be used for a multitude of buffer-type functions. It can\nproduce 24 mA of drive current at 3.3 V. Therefore, this device is ideal for driving multiple inputs and for high-\nspeed applications up to 100 MHz. The inputs and outputs are 5.5-V tolerant allowing the device to translate up\nto 5.5 V or down to VCC.\n10.2 Typical Application\nFigure 3. Typical NAND Gate Application and Supply Voltage\n10.2.1 Design Requirements\nThis device uses CMOS technology and has balanced output drive. Care should be taken to avoid bus\ncontention because it can drive currents that would exceed maximum limits. The high drive will also create fast\nedges into light loads; therefore, routing and load conditions should be considered to prevent ringing.\n10.2.2 Detailed Design Procedure\n1. Recommended Input Conditions\n\u2013 Rise time and fall time specs: See (\u0394t/\u0394V) in the Recommended Operating Conditions, SN74LVC00A\ntable.\n\u2013 Specified high and low levels: See (VIH and VIL) in the Recommended Operating Conditions,\nSN74LVC00A table.\n\u2013 Inputs are overvoltage tolerant allowing them to go as high as 5.5 V at any valid VCC.\n2. Recommend Output Conditions\n\u2013 Load currents should not exceed 25 mA per output and 50 mA total for the part.\n\u2013 Outputs should not be pulled above 5.5 V."
+  },
+  {
+   "page": 10,
+   "text": "Vcc\nUnused Input\nInput\nOutput\nInput\nUnused Input Output\n11\nSN54LVC00A, SN74LVC00A\nwww.ti.com SCAS279R \u2013 JANUARY 1993 \u2013 REVISED FEBRUARY 2016\nProduct Folder Links: SN54LVC00A SN74LVC00A\nSubmit Documentation FeedbackCopyright \u00a9 1993\u20132016, Texas Instruments Incorporated\nTypical Application (continued)\n10.2.3 Application Curves\nFigure 4. ICC vs Frequency\n11 Power Supply Recommendations\nThe power supply can be any voltage between the MIN and MAX supply voltage rating located in the\nRecommended Operating Conditions, SN74LVC00A table.\nEach VCC pin should have a good bypass capacitor to prevent power disturbance. For devices with a single\nsupply, 0.1 \u03bcF is recommended; if there are multiple VCC pins, then 0.01 \u03bcF or 0.022 \u03bcF is recommended for\neach power pin. It is acceptable to parallel multiple bypass caps to reject different frequencies of noise. A 0.1 \u03bcF\nand a 1 \u03bcF are commonly used in parallel. The bypass capacitor should be installed as close to the power pin as\npossible for best results.\n12 Layout\n12.1 Layout Guidelines\nWhen using multiple bit logic devices inputs should never float.\nIn many cases, functions or parts of functions of digital logic devices are unused, for example, when only two\ninputs of a triple-input AND gate are used or only 3 of the 4 buffer gates are used. Such input pins should not be\nleft unconnected because the undefined voltages at the outside connections result in undefined operational\nstates. Layout Example specifies the rules that must be observed under all circumstances. All unused inputs of\ndigital logic devices must be connected to a high or low bias to prevent them from floating. The logic level that\nshould be applied to any particular unused input depends on the function of the device. Generally they will be\ntied to GND or VCC, whichever makes more sense or is more convenient. It is generally acceptable to float\noutputs, unless the part is a transceiver.\n12.2 Layout Example\nFigure 5. Layout Diagram"
+  },
+  {
+   "page": 11,
+   "text": "12\nSN54LVC00A, SN74LVC00A\nSCAS279R \u2013 JANUARY 1993 \u2013 REVISED FEBRUARY 2016 www.ti.com\nProduct Folder Links: SN54LVC00A SN74LVC00A\nSubmit Documentation Feedback Copyright \u00a9 1993\u20132016, Texas Instruments Incorporated\n13 Device and Documentation Support\n13.1 Related Links\nThe table below lists quick access links. Categories include technical documents, support and community\nresources, tools and software, and quick access to sample or buy.\nTable 2. Related Links\nPARTS PRODUCT FOLDER SAMPLE & BUY TECHNICAL\nDOCUMENTS\nTOOLS &\nSOFTWARE\nSUPPORT &\nCOMMUNITY\nSN54LVC00A Click here Click here Click here Click here Click here\nSN74LVC00A Click here Click here Click here Click here Click here\n13.2 Trademarks\nAll trademarks are the property of their respective owners.\n13.3 Electrostatic Discharge Caution\nThese devices have limited built-in ESD protection. The leads should be shorted together or the device placed in conductive foam\nduring storage or handling to prevent electrostatic damage to the MOS gates.\n13.4 Glossary\nSLYZ022 \u2014 TI Glossary.\nThis glossary lists and explains terms, acronyms, and definitions.\n14 Mechanical, Packaging, and Orderable Information\nThe following pages include mechanical, packaging, and orderable information. This information is the most\ncurrent data available for the designated devices. This data is subject to change without notice and revision of\nthis document. For browser-based versions of this data sheet, refer to the left-hand navigation."
+  },
+  {
+   "page": 12,
+   "text": "PACKAGE OPTION ADDENDUM\nwww.ti.com 24-Aug-2018\nAddendum-Page 1\nPACKAGING INFORMATION\nOrderable Device Status\n(1)\nPackage Type Package\nDrawing\nPins Package\nQty\nEco Plan\n(2)\nLead/Ball Finish\n(6)\nMSL Peak Temp\n(3)\nOp Temp (\u00b0C) Device Marking\n(4/5)\nSamples\n5962-9753301Q2A ACTIVE LCCC FK 20 1 TBD POST-PLATE N / A for Pkg Type -55 to 125 5962-\n9753301Q2A\nSNJ54LVC\n00AFK\n5962-9753301QCA ACTIVE CDIP J 14 1 TBD A42 N / A for Pkg Type -55 to 125 5962-9753301QC\nA\nSNJ54LVC00AJ\n5962-9753301QDA ACTIVE CFP W 14 1 TBD A42 N / A for Pkg Type -55 to 125 5962-9753301QD\nA\nSNJ54LVC00AW\n5962-9753301VDA ACTIVE CFP W 14 1 TBD A42 N / A for Pkg Type -55 to 125 5962-9753301VD\nA\nSNV54LVC00AW\nSN74LVC00AD ACTIVE SOIC D 14 50 Green (RoHS\n& no Sb/Br)\nCU NIPDAU Level-1-260C-UNLIM -40 to 125 LVC00A\nSN74LVC00ADBR ACTIVE SSOP DB 14 2000 Green (RoHS\n& no Sb/Br)\nCU NIPDAU Level-1-260C-UNLIM -40 to 125 LC00A\nSN74LVC00ADBRG4 ACTIVE SSOP DB 14 2000 Green (RoHS\n& no Sb/Br)\nCU NIPDAU Level-1-260C-UNLIM -40 to 125 LC00A\nSN74LVC00ADE4 ACTIVE SOIC D 14 50 Green (RoHS\n& no Sb/Br)\nCU NIPDAU Level-1-260C-UNLIM -40 to 125 LVC00A\nSN74LVC00ADR ACTIVE SOIC D 14 2500 Green (RoHS\n& no Sb/Br)\nCU NIPDAU Level-1-260C-UNLIM -40 to 125 LVC00A\nSN74LVC00ADRG4 ACTIVE SOIC D 14 2500 Green (RoHS\n& no Sb/Br)\nCU NIPDAU Level-1-260C-UNLIM -40 to 125 LVC00A\nSN74LVC00ADT ACTIVE SOIC D 14 250 Green (RoHS\n& no Sb/Br)\nCU NIPDAU Level-1-260C-UNLIM -40 to 125 LVC00A\nSN74LVC00ANSR ACTIVE SO NS 14 2000 Green (RoHS\n& no Sb/Br)\nCU NIPDAU Level-1-260C-UNLIM -40 to 125 LVC00A\nSN74LVC00ANSRG4 ACTIVE SO NS 14 2000 Green (RoHS\n& no Sb/Br)\nCU NIPDAU Level-1-260C-UNLIM -40 to 125 LVC00A\nSN74LVC00APW ACTIVE TSSOP PW 14 90 Green (RoHS\n& no Sb/Br)\nCU NIPDAU Level-1-260C-UNLIM -40 to 125 LC00A\nSN74LVC00APWE4 ACTIVE TSSOP PW 14 90 Green (RoHS\n& no Sb/Br)\nCU NIPDAU Level-1-260C-UNLIM -40 to 125 LC00A\n"
+  },
+  {
+   "page": 13,
+   "text": "PACKAGE OPTION ADDENDUM\nwww.ti.com 24-Aug-2018\nAddendum-Page 2\nOrderable Device Status\n(1)\nPackage Type Package\nDrawing\nPins Package\nQty\nEco Plan\n(2)\nLead/Ball Finish\n(6)\nMSL Peak Temp\n(3)\nOp Temp (\u00b0C) Device Marking\n(4/5)\nSamples\nSN74LVC00APWG4 ACTIVE TSSOP PW 14 90 Green (RoHS\n& no Sb/Br)\nCU NIPDAU Level-1-260C-UNLIM -40 to 125 LC00A\nSN74LVC00APWR ACTIVE TSSOP PW 14 2000 Green (RoHS\n& no Sb/Br)\nCU NIPDAU | CU SN Level-1-260C-UNLIM -40 to 125 LC00A\nSN74LVC00APWRE4 ACTIVE TSSOP PW 14 2000 Green (RoHS\n& no Sb/Br)\nCU NIPDAU Level-1-260C-UNLIM -40 to 125 LC00A\nSN74LVC00APWRG4 ACTIVE TSSOP PW 14 2000 Green (RoHS\n& no Sb/Br)\nCU NIPDAU Level-1-260C-UNLIM -40 to 125 LC00A\nSN74LVC00APWT ACTIVE TSSOP PW 14 250 Green (RoHS\n& no Sb/Br)\nCU NIPDAU Level-1-260C-UNLIM -40 to 125 LC00A\nSN74LVC00ARGYR ACTIVE VQFN RGY 14 3000 Green (RoHS\n& no Sb/Br)\nCU NIPDAU Level-2-260C-1 YEAR -40 to 125 LC00A\nSNJ54LVC00AFK ACTIVE LCCC FK 20 1 TBD POST-PLATE N / A for Pkg Type -55 to 125 5962-\n9753301Q2A\nSNJ54LVC\n00AFK\nSNJ54LVC00AJ ACTIVE CDIP J 14 1 TBD A42 N / A for Pkg Type -55 to 125 5962-9753301QC\nA\nSNJ54LVC00AJ\nSNJ54LVC00AW ACTIVE CFP W 14 1 TBD A42 N / A for Pkg Type -55 to 125 5962-9753301QD\nA\nSNJ54LVC00AW\n \n(1) The marketing status values are defined as follows:\nACTIVE: Product device recommended for new designs.\nLIFEBUY: TI has announced that the device will be discontinued, and a lifetime-buy period is in effect.\nNRND: Not recommended for new designs. Device is in production to support existing customers, but TI does not recommend using this part in a new design.\nPREVIEW: Device has been announced but is not in production. Samples may or may not be available.\nOBSOLETE: TI has discontinued the production of the device.\n \n(2) RoHS:  TI defines \"RoHS\" to mean semiconductor products that are compliant with the current EU RoHS requirements for all 10 RoHS substances, including the requirement that RoHS substance\ndo not exceed 0.1% by weight in homogeneous materials. Where designed to be soldered at high temperatures, \"RoHS\" products are suitable for use in specified lead-free processes. TI may\nreference these types of products as \"Pb-Free\".\nRoHS Exempt: TI defines \"RoHS Exempt\" to mean products that contain lead but are compliant with EU RoHS pursuant to a specific EU RoHS exemption.\nGreen: TI defines \"Green\" to mean the content of Chlorine (Cl) and Bromine (Br) based flame retardants meet JS709B low halogen requirements of <=1000ppm threshold. Antimony trioxide based\nflame retardants must also meet the <=1000ppm threshold requirement.\n \n(3) MSL, Peak Temp. - The Moisture Sensitivity Level rating according to the JEDEC industry standard classifications, and peak solder temperature."
+  },
+  {
+   "page": 14,
+   "text": "PACKAGE OPTION ADDENDUM\nwww.ti.com 24-Aug-2018\nAddendum-Page 3\n \n(4) There may be additional marking, which relates to the logo, the lot trace code information, or the environmental category on the device.\n \n(5) Multiple Device Markings will be inside parentheses. Only one Device Marking contained in parentheses and separated by a \"~\" will appear on a device. If a line is indented then it is a continuation\nof the previous line and the two combined represent the entire Device Marking for that device.\n \n(6) Lead/Ball Finish - Orderable Devices may have multiple material finish options. Finish options are separated by a vertical ruled line. Lead/Ball Finish values may wrap to two lines if the finish\nvalue exceeds the maximum column width.\n \nImportant Information and Disclaimer:The information provided on this page represents TI's knowledge and belief as of the date that it is provided. TI bases its knowledge and belief on information\nprovided by third parties, and makes no representation or warranty as to the accuracy of such information. Efforts are underway to better integrate information from third parties. TI has taken and\ncontinues to take reasonable steps to provide representative and accurate information but may not have conducted destructive testing or chemical analysis on incoming materials and chemicals.\nTI and TI suppliers consider certain information to be proprietary, and thus CAS numbers and other limited information may not be available for release.\n \nIn no event shall TI's liability arising out of such information exceed the total purchase price of the TI part(s) at issue in this document sold by TI to Customer on an annual basis.\n \n OTHER QUALIFIED VERSIONS OF SN54LVC00A, SN54LVC00A-SP, SN74LVC00A :\n\u2022Catalog: SN74LVC00A, SN54LVC00A\n\u2022Automotive: SN74LVC00A-Q1, SN74LVC00A-Q1\n\u2022Enhanced Product: SN74LVC00A-EP, SN74LVC00A-EP\n\u2022Military: SN54LVC00A\n\u2022Space: SN54LVC00A-SP\n NOTE: Qualified Version Definitions:\n\u2022Catalog - TI's standard catalog product\n\u2022Automotive - Q100 devices qualified for high-reliability automotive applications targeting zero defects\n\u2022Enhanced Product - Supports Defense, Aerospace and Medical Applications\n\u2022Military - QML certified for Military and Defense Applications"
+  },
+  {
+   "page": 15,
+   "text": "PACKAGE OPTION ADDENDUM\nwww.ti.com 24-Aug-2018\nAddendum-Page 4\n\u2022Space - Radiation tolerant, ceramic packaging and qualified for use in Space-based application"
+  },
+  {
+   "page": 16,
+   "text": "TAPE AND REEL INFORMATION\n*All dimensions are nominal\nDevice Package\nType\nPackage\nDrawing\nPins SPQ Reel\nDiameter\n(mm)\nReel\nWidth\nW1 (mm)\nA0\n(mm)\nB0\n(mm)\nK0\n(mm)\nP1\n(mm)\nW\n(mm)\nPin1\nQuadrant\nSN74LVC00ADR SOIC D 14 2500 330.0 16.4 6.5 9.0 2.1 8.0 16.0 Q1\nSN74LVC00ADR SOIC D 14 2500 330.0 16.4 6.5 9.0 2.1 8.0 16.0 Q1\nSN74LVC00ADT SOIC D 14 250 330.0 16.4 6.5 9.0 2.1 8.0 16.0 Q1\nSN74LVC00ANSR SO NS 14 2000 330.0 16.4 8.2 10.5 2.5 12.0 16.0 Q1\nSN74LVC00APWR TSSOP PW 14 2000 330.0 12.4 6.9 5.6 1.6 8.0 12.0 Q1\nSN74LVC00APWR TSSOP PW 14 2000 330.0 12.4 6.9 5.6 1.6 8.0 12.0 Q1\nSN74LVC00APWRG4 TSSOP PW 14 2000 330.0 12.4 6.9 5.6 1.6 8.0 12.0 Q1\nSN74LVC00APWT TSSOP PW 14 250 330.0 12.4 6.9 5.6 1.6 8.0 12.0 Q1\nSN74LVC00ARGYR VQFN RGY 14 3000 330.0 12.4 3.75 3.75 1.15 8.0 12.0 Q1\nPACKAGE MATERIALS INFORMATION\nwww.ti.com 20-Dec-2018\nPack Materials-Page 1"
+  },
+  {
+   "page": 17,
+   "text": "*All dimensions are nominal\nDevice Package Type Package Drawing Pins SPQ Length (mm) Width (mm) Height (mm)\nSN74LVC00ADR SOIC D 14 2500 333.2 345.9 28.6\nSN74LVC00ADR SOIC D 14 2500 367.0 367.0 38.0\nSN74LVC00ADT SOIC D 14 250 210.0 185.0 35.0\nSN74LVC00ANSR SO NS 14 2000 367.0 367.0 38.0\nSN74LVC00APWR TSSOP PW 14 2000 367.0 367.0 35.0\nSN74LVC00APWR TSSOP PW 14 2000 364.0 364.0 27.0\nSN74LVC00APWRG4 TSSOP PW 14 2000 367.0 367.0 35.0\nSN74LVC00APWT TSSOP PW 14 250 367.0 367.0 35.0\nSN74LVC00ARGYR VQFN RGY 14 3000 367.0 367.0 35.0\nPACKAGE MATERIALS INFORMATION\nwww.ti.com 20-Dec-2018\nPack Materials-Page 2"
+  },
+  {
+   "page": 18,
+   "text": ""
+  },
+  {
+   "page": 19,
+   "text": ""
+  },
+  {
+   "page": 20,
+   "text": ""
+  },
+  {
+   "page": 21,
+   "text": ""
+  },
+  {
+   "page": 22,
+   "text": ""
+  },
+  {
+   "page": 23,
+   "text": ""
+  },
+  {
+   "page": 24,
+   "text": ""
+  },
+  {
+   "page": 25,
+   "text": "www.ti.com\nPACKAGE OUTLINE\nC\n14X .008-.014\n       [0.2-0.36]TYP\n-150\nAT GAGE PLANE\n-.314 .308\n-7.97 7.83 [ ]\n14X -.026 .014\n-0.66 0.36 [ ]14X -.065 .045\n-1.65 1.15 [ ]\n.2 MAX TYP\n[5.08]\n.13 MIN TYP\n[3.3]\n TYP-.060 .015\n-1.52 0.38 [ ]\n4X .005 MIN\n[0.13]\n12X .100\n[2.54]\n.015  GAGE PLANE\n[0.38]\nA\n-.785 .754\n-19.9419.15 [ ]\nB -.283 .245\n-7.19 6.22 [ ]\nCDIP - 5.08 mm max heightJ0014A\nCERAMIC DUAL IN LINE PACKAGE\n4214771/A   05/2017\n NOTES: \n \n1. All controlling linear dimensions are in inches. Dimensions in brackets are in millimeters. Any dimension in brackets or parenthesis are for\n    reference only. Dimensioning and tolerancing per ASME Y14.5M.\n2. This drawing is subject to change without notice. \n3. This package is hermitically sealed with a ceramic lid using glass frit.\n4. Index point is provided on cap for terminal identification only and on press ceramic glass frit seal only.\n5. Falls within MIL-STD-1835 and GDIP1-T14.\n7 8\n14\n1\nPIN 1 ID\n(OPTIONAL)\nSCALE  0.900\nSEATING PLANE\n.010 [0.25] C A B"
+  },
+  {
+   "page": 26,
+   "text": "www.ti.com\nEXAMPLE BOARD LAYOUT\nALL AROUND\n[0.05]\n MAX .002\n.002  MAX\n[0.05]\nALL AROUND\nSOLDER MASK\nOPENING\nMETAL\n(.063)\n[1.6]\n(R.002 ) TYP\n[0.05]\n14X ( .039)\n[1]\n( .063)\n[1.6]\n12X (.100 )\n[2.54]\n(.300 ) TYP\n[7.62]\nCDIP - 5.08 mm max heightJ0014A\nCERAMIC DUAL IN LINE PACKAGE\n4214771/A   05/2017\nLAND PATTERN EXAMPLE\nNON-SOLDER MASK DEFINED\nSCALE: 5X\nSEE DETAIL  A SEE DETAIL  B\nSYMM\nSYMM\n1\n7 8\n14\nDETAIL  A\nSCALE: 15X\nSOLDER MASK\nOPENING\nMETAL\nDETAIL  B\n13X, SCALE: 15X"
+  },
+  {
+   "page": 27,
+   "text": ""
+  },
+  {
+   "page": 28,
+   "text": ""
+  },
+  {
+   "page": 29,
+   "text": ""
+  },
+  {
+   "page": 30,
+   "text": ""
+  },
+  {
+   "page": 31,
+   "text": "MECHANICAL DATA\nMSSO002E \u2013 JANUARY 1995 \u2013 REVISED DECEMBER 2001\nPOST OFFICE BOX 655303 \u2022 DALLAS, TEXAS 75265\nDB (R-PDSO-G**)   PLASTIC SMALL-OUTLINE\n4040065 /E 12/01\n28 PINS SHOWN\nGage Plane\n8,20\n7,40\n0,55\n0,95\n0,25\n38\n12,90\n12,30\n28\n10,50\n24\n8,50\nSeating Plane\n9,907,90\n30\n10,50\n9,90\n0,38\n5,60\n5,00\n15\n0,22\n14\nA\n28\n1\n2016\n6,506,50\n14\n0,05 MIN\n5,905,90\nDIM\nA  MAX\nA  MIN\nPINS **\n2,00 MAX\n6,90\n7,50\n0,65 M0,15\n0\u00b0\u2013/C02578\u00b0\n0,10\n0,09\n0,25\nNOTES: A. All linear dimensions are in millimeters.\nB. This drawing is subject to change without notice.\nC. Body dimensions do not include mold flash or protrusion not to exceed 0,15.\nD. Falls within JEDEC MO-150"
+  },
+  {
+   "page": 32,
+   "text": "IMPORTANT NOTICE AND DISCLAIMER\nTI PROVIDES TECHNICAL AND RELIABILITY DATA (INCLUDING DATASHEETS), DESIGN RESOURCES (INCLUDING REFERENCE\nDESIGNS), APPLICATION OR OTHER DESIGN ADVICE, WEB TOOLS, SAFETY INFORMATION, AND OTHER RESOURCES \u201cAS IS\u201d\nAND WITH ALL FAULTS, AND DISCLAIMS ALL WARRANTIES, EXPRESS AND IMPLIED, INCLUDING WITHOUT LIMITATION ANY\nIMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE OR NON-INFRINGEMENT OF THIRD\nPARTY INTELLECTUAL PROPERTY RIGHTS.\nThese resources are intended for skilled developers designing with TI products. You are solely responsible for (1) selecting the appropriate\nTI products for your application, (2) designing, validating and testing your application, and (3) ensuring your application meets applicable\nstandards, and any other safety, security, or other requirements. These resources are subject to change without notice. TI grants you\npermission to use these resources only for development of an application that uses the TI products described in the resource. Other\nreproduction and display of these resources is prohibited. No license is granted to any other TI intellectual property right or to any third\nparty intellectual property right. TI disclaims responsibility for, and you will fully indemnify TI and its representatives against, any claims,\ndamages, costs, losses, and liabilities arising out of your use of these resources.\nTI\u2019s products are provided subject to TI\u2019s Terms of Sale ( www.ti.com/legal/termsofsale.html) or other applicable terms available either on\nti.com or provided in conjunction with such TI products. TI\u2019s provision of these resources does not expand or otherwise alter TI\u2019s applicable\nwarranties or warranty disclaimers for TI products.\nMailing Address: Texas Instruments, Post Office Box 655303, Dallas, Texas 75265\nCopyright \u00a9 2019, Texas Instruments Incorporated"
+  }
+ ],
+ "schema": {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ai-ee datasheet extraction",
+  "type": "object",
+  "required": [
+   "mpn",
+   "pinout"
+  ],
+  "additionalProperties": false,
+  "properties": {
+   "mpn": {
+    "type": "string",
+    "minLength": 1
+   },
+   "lcsc": {
+    "type": "string"
+   },
+   "package": {
+    "type": "string"
+   },
+   "description": {
+    "type": "string"
+   },
+   "pinout": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "required": [
+      "pin",
+      "name",
+      "type"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "pin": {
+       "type": "string",
+       "minLength": 1
+      },
+      "name": {
+       "type": "string",
+       "minLength": 1
+      },
+      "type": {
+       "type": "string",
+       "enum": [
+        "power_in",
+        "power_out",
+        "ground",
+        "input",
+        "output",
+        "bidirectional",
+        "passive",
+        "analog",
+        "clock",
+        "nc",
+        "open_collector",
+        "tristate",
+        "unspecified"
+       ]
+      },
+      "notes": {
+       "type": "string"
+      }
+     }
+    }
+   },
+   "decoupling": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "required": [
+      "pins",
+      "value"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "pins": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       },
+       "minItems": 1
+      },
+      "value": {
+       "type": "string",
+       "minLength": 1
+      },
+      "placement": {
+       "type": "string"
+      },
+      "notes": {
+       "type": "string"
+      }
+     }
+    }
+   },
+   "land_pattern": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "pad_count"
+    ],
+    "properties": {
+     "package": {
+      "type": "string"
+     },
+     "pad_count": {
+      "type": "integer",
+      "minimum": 1
+     },
+     "pitch_mm": {
+      "type": "number",
+      "exclusiveMinimum": 0
+     },
+     "pad_size_mm": {
+      "type": "array",
+      "items": {
+       "type": "number",
+       "minimum": 0
+      },
+      "minItems": 2,
+      "maxItems": 2
+     },
+     "row_spacing_mm": {
+      "type": "number",
+      "minimum": 0
+     },
+     "courtyard_excess_mm": {
+      "type": "number",
+      "minimum": 0
+     },
+     "pin1": {
+      "type": "string",
+      "description": "pad number that is pin 1 (default '1')"
+     },
+     "notes": {
+      "type": "string"
+     }
+    }
+   },
+   "exposed_pad": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "present": {
+      "type": "boolean"
+     },
+     "connect_to": {
+      "type": "string"
+     },
+     "thermal_vias": {
+      "type": "integer",
+      "minimum": 0
+     }
+    },
+    "required": [
+     "present"
+    ]
+   },
+   "layout_notes": {
+    "type": "array",
+    "items": {
+     "type": "string"
+    }
+   },
+   "abs_max": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "required": [
+      "param",
+      "value"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "param": {
+       "type": "string"
+      },
+      "value": {
+       "type": [
+        "number",
+        "string"
+       ]
+      },
+      "unit": {
+       "type": "string"
+      }
+     }
+    }
+   },
+   "source_pdf": {
+    "type": "string"
+   }
+  }
+ },
+ "template": {
+  "mpn": "",
+  "lcsc": "",
+  "package": "",
+  "pinout": [
+   {
+    "pin": "1",
+    "name": "",
+    "type": "unspecified"
+   }
+  ],
+  "decoupling": [],
+  "land_pattern": {
+   "pad_count": 0
+  },
+  "layout_notes": [],
+  "abs_max": []
+ },
+ "note": "Fill the template from text_by_page and the PDF pages, then re-run with --validate. If text_chars is ~0 the PDF is image-only; read the rendered pages directly."
+}

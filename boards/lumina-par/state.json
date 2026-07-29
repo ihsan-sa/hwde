@@ -3,7 +3,7 @@
  "board": "lumina-par",
  "workspace": "boards/lumina-par",
  "created": "2026-07-28T15:00:15",
- "updated": "2026-07-28T20:36:23",
+ "updated": "2026-07-28T21:27:52",
  "phase": "P3",
  "gates": {},
  "human": {
@@ -135,6 +135,36 @@
    "why": "Every genuine HARDWARE ceiling passes at both: 2.8x on the 2.0 A OCP, 3.4x on the TPS2378 0.85 A MINIMUM limit. The only figure 150 fails is the ICD 8.5 W total, which ICD s6.2 itself calls a firmware-governed average, not a trip. Flips to 145 if the carrier owner declares 8.5 W a hardware limit.",
    "phase": "P3",
    "ts": "2026-07-28T20:36:23"
+  },
+  {
+   "what": "Sense resistor 0.75 ohm (not 0.68), nominal 275 mA/channel - the COMPLIANT value is the default",
+   "why": "P3 found that 0.68 ohm with IADJ tied to VCC gives a +-5.6% threshold band -> ILED 284-324 mA -> 0.775 A worst case = 103% of the ICD 0.75 A +12V sustained ceiling. Orchestrator reproduced it and also costed the proposed IADJ divider: the divider tightens the band but lowers the threshold too, landing at essentially the same light (0.928 vs 0.917 of nominal) for 8 extra resistors - REJECTED. Compliant-by-construction is the right default because the stuck-PWM backstop is exactly the case where firmware is dead and cannot govern the average. Costs 8.3% light vs the H1 point. Reversible: BOM value only, zero layout impact, changeable to P9. Flagged for H2.",
+   "phase": "P3",
+   "ts": "2026-07-28T21:10:13"
+  },
+  {
+   "what": "Shunt FET switched to TOSHIBA SSM3K2615R,LXGF (C22371361, SOT-23F)",
+   "why": "Closes two P3 open items at once. Ciss 150 pF into the 150 R gate resistor is tau ~22 ns, so gate edges land in the tens of ns against PAR-REQ-01's 141 ns pulse - the previously selected part was estimated at 100-140 ns, which would have eaten the entire timing budget. And Rds(on) 580 mohm is specified AT 3.3 V, so it is guaranteed on at our gate drive rather than inferred. Also resolves the no-first-tier-brand-in-stock risk. Dissipation 69 mW at 0.345 A peak. Package is SOT-23F not SOT-23 - fp_verify needs extra attention.",
+   "phase": "P3",
+   "ts": "2026-07-28T21:10:13"
+  },
+  {
+   "what": "Keep the THT reverse-mounted ICD sockets; REJECT the HC-PM254 SMD equivalents",
+   "why": "ICD s5.2 derives its 0.84 mm pad-to-pad creepage from the THT land pattern (1.70 mm annulus on a 1.02 mm drill), and that geometry is the carrier owner's frozen number. An SMD land pattern changes it and would require the ICD to be re-issued. Two hand-solder operations across 8 boards is the cheaper side of that trade.",
+   "phase": "P3",
+   "ts": "2026-07-28T21:10:13"
+  },
+  {
+   "what": "Re-synced ICD copy again; daughters MUST use a 1.70 mm annulus on the connector pads (1.10 mm drill, 0.300 mm/side ring)",
+   "why": "The carrier's P3 library work corrected the drill from the assumed 1.02 mm to an actual 1.10 mm, and normalised J3's annulus from 1.80 to 1.70 mm so both frozen connectors share one land pattern. The 0.84 mm pad-to-pad gap and the 1.32x clearance conclusion are unchanged, but the annulus is now an explicit daughter requirement - this is a librarian/fp_verify checkpoint, not just a note.",
+   "phase": "P3",
+   "ts": "2026-07-28T21:27:52"
+  },
+  {
+   "what": "0.75 ohm sense resistor ENDORSED by the coordinator; C2934269 recorded as the explicit 0.68 ohm alternate",
+   "why": "Coordinator: 'a margin that only holds while software works is not a margin.' Reversion to 0.68 ohm stays live as a one-code swap through P9.",
+   "phase": "P3",
+   "ts": "2026-07-28T21:27:52"
   }
  ],
  "history": [
@@ -384,6 +414,62 @@
    "h2_sensitivity": "at 85-90 C internal air the junctions move only ~3 K because wall conduction decoupled them",
    "but": "both packages are Topr -40..+85 C, so the AMBIENT rating is what breaks, not the junction - CR-6 stays blocking",
    "honest_note": "the package split is worth only ~1 K thermally; its real value is the published Tj, the stock depth and the SMT class"
+  },
+  {
+   "ts": "2026-07-28T21:10:13",
+   "event": "decision",
+   "what": "Sense resistor 0.75 ohm (not 0.68), nominal 275 mA/channel - the COMPLIANT value is the default"
+  },
+  {
+   "ts": "2026-07-28T21:10:13",
+   "event": "decision",
+   "what": "Shunt FET switched to TOSHIBA SSM3K2615R,LXGF (C22371361, SOT-23F)"
+  },
+  {
+   "ts": "2026-07-28T21:10:13",
+   "event": "decision",
+   "what": "Keep the THT reverse-mounted ICD sockets; REJECT the HC-PM254 SMD equivalents"
+  },
+  {
+   "ts": "2026-07-28T21:27:52",
+   "event": "decision",
+   "what": "Re-synced ICD copy again; daughters MUST use a 1.70 mm annulus on the connector pads (1.10 mm drill, 0.300 mm/side ring)"
+  },
+  {
+   "ts": "2026-07-28T21:27:52",
+   "event": "decision",
+   "what": "0.75 ohm sense resistor ENDORSED by the coordinator; C2934269 recorded as the explicit 0.68 ohm alternate"
+  },
+  {
+   "ts": "2026-07-28T21:27:52",
+   "event": "light_budget_compounded",
+   "for": "H2 - present as ONE number, not two",
+   "sense_0p75R": "x0.917",
+   "diffuser": "x0.55 to x0.70",
+   "combined": "0.504 to 0.642 of the H1-approved flux, i.e. a 36-50% total reduction",
+   "illuminance": "8 fixtures all channels full af: 20.7-26.3 lx direct, down from the P1 baseline of ~41 lx",
+   "reference": "lit living room 100-200 lx; bar/restaurant mood ~40 lx",
+   "judgement": "this is now well below the fixture P1 already called a dark-room instrument - the owner should judge it as a whole at H2, and reverting to 0.68 ohm remains live at P9"
+  },
+  {
+   "ts": "2026-07-28T21:27:52",
+   "event": "shunt_fet_supply_risk",
+   "part": "SSM3K2615R,LXGF C22371361",
+   "stock": "784 pcs = 24x build need - the THINNEST line on the BOM",
+   "risk": "single-brand, single-package (SOT-23F)",
+   "action": "flag a spares call at order time (P10)",
+   "fallbacks": [
+    "C22363744",
+    "C5122031"
+   ],
+   "fallback_caveat": "standard SOT-23 land, so a footprint change - not a drop-in"
+  },
+  {
+   "ts": "2026-07-28T21:27:52",
+   "event": "as_built_current_caveat",
+   "issue": "power_tree.md sustained-power table is written at 300 mA/channel but the board now BUILDS at 275 mA (0.75 ohm sense)",
+   "consequence": "the table is ~8% conservative",
+   "action": "neither the design document nor P9 may quote 300 mA as-built; correct before H2 sign-off"
   }
  ]
 }

@@ -1,6 +1,6 @@
 # ICD-01 - LUMINA expansion connector interface control document
 
-**Owner:** LUM-CAR-A (carrier board). **Status: DRAFT, frozen at H1.**
+**Owner:** LUM-CAR-A (carrier board). **Status: frozen at H1. Rev A3** (A2 = 0.635 mm creepage + bank-charging contract; A3 = ID_ADC codes + PWM/timer contract; A4 = sealed-with-wall-conduction thermal budget + firmware requirements; A5 = thermal assumptions stated + at-ventilation closed; A6 = FAULT sink current, IMON accuracy caveat).
 **Consumers:** LUM-STR-A (strobe daughter), LUM-PAR-A (RGBW par daughter), and every future LUMINA
 daughter.
 
@@ -87,7 +87,7 @@ was designed to land exactly on them.
 | `ADC0 / ADC1` | 2 | signal |
 | `ID_ADC` | 1 | signal |
 | `ENABLE` | 1 | signal |
-| `FAULT` | 1 | signal |
+| `FAULT` | daughter -> carrier | open-drain, **active low** | Pulled up on the CARRIER (10 k to +3V3). **A daughter asserting FAULT must sink >= 5 mA** - REVISED at rev A6. The carrier's own red fault indicator (D22 + its ballast) also hangs on this net, so the real load is ~4.3 mA, not the ~0.33 mA implied by the pull-up alone. Any ordinary open-drain FET or MCU pin meets this; the number is published so no daughter sizes a marginal device. Well inside the carrier eFuse's 10 mA FLT limit. |
 | `GND` (signal returns) | 5 | signal |
 | **Total** | **38** | |
 
@@ -156,13 +156,84 @@ Properties this map is built to have, each of which is checkable by eye:
 
 | Signal | Direction | Type | Levels / rules |
 |---|---|---|---|
-| `PWM0..7` | carrier -> daughter | push-pull CMOS | 3.3 V, default **13-bit at 9.766 kHz**. PWM0-3 = LEDC timer 0, PWM4-7 = LEDC timer 1. **Channels on the same timer share frequency AND resolution** (CAR-REQ-11). LEDC timers 2 and 3 are unallocated and available on request |
+| `PWM0..7` | carrier -> daughter | push-pull CMOS | 3.3 V, LEDC channels 0-7, low-speed mode only. **The carrier no longer hard-assigns timers** - see s3.5. Default profile is 13-bit at 9.766 kHz; 14-bit at 4.883 kHz is also offered. **Channels sharing a timer share frequency AND resolution** (CAR-REQ-11) |
 | `DSPI_*` | bidirectional | SPI mode 0, MSB first | **<= 26 MHz.** Daughter drives no line except MISO, and only while `DSPI_CSn` is low. Shared bus, one CS - a daughter needing more devices decodes locally |
 | `I2C_SCL/SDA` | bidirectional | open drain | **Pull-ups are on the carrier** (4.7 k to +3V3). **Daughters must not fit their own.** 400 kHz. Reserved address space is the daughter's, except that the carrier reserves nothing |
 | `ADC0`, `ADC1` | daughter -> carrier | analogue, 0 - 3.3 V | ESP32-S3 ADC1 inputs, series-protected and clamped on the carrier. Source impedance **<= 10 kohm** |
 | `ID_ADC` | daughter -> carrier | analogue, 0 - 3.3 V | The carrier fits the **top** leg of a divider (10 k to +3V3). The daughter fits the **bottom** leg to GND. Board-type codes are allocated by the carrier owner, not chosen by daughters |
 | `ENABLE` | carrier -> daughter | push-pull CMOS, **active HIGH** | See s8. **The daughter must fit its own 100 kohm pull-down** and gate every output stage with it |
 | `FAULT` | daughter -> carrier | **open drain, active low** | 10 k pull-up on the carrier. Shared, wire-OR'd with the carrier's own 48 V eFuse fault output. A daughter must **never** drive this high |
+
+---
+
+### 3.4 `ID_ADC` - daughter board type codes (CAR-REQ-07). NORMATIVE.
+
+Added at rev A3 in response to CR-1. **The carrier owns this code space; daughters must use an
+allocated code and must not invent one.**
+
+**Circuit.** The carrier fits the **top** leg: **10 kOhm 1% from `ID_ADC` to +3V3**, plus the 1 kOhm
+series protection resistor to the MCU ADC pin (no DC current flows in it, so it adds no divider
+error). The **daughter fits the bottom leg**, `R_ID` from `ID_ADC` to `GND`.
+
+`V_ID = 3.3 V x R_ID / (R_ID + 10k)`
+
+| Code | `R_ID` (daughter, 1%) | Nominal `V_ID` | Board |
+|---|---|---|---|
+| **FAULT** | short to GND | < 0.15 V | Shorted connector or mis-seated daughter - firmware must NOT assert ENABLE |
+| **1** | **2.7 kOhm** | 0.702 V | **LUM-STR-A** (strobe) |
+| **2** | **4.7 kOhm** | 1.055 V | **LUM-PAR-A** (RGBW par) |
+| **3** | 7.5 kOhm | 1.414 V | reserved |
+| **4** | 12 kOhm | 1.800 V | reserved |
+| **5** | 18 kOhm | 2.121 V | reserved |
+| **6** | 30 kOhm | 2.475 V | reserved |
+| **NONE** | open (no daughter) | > 2.9 V | No daughter fitted - firmware must NOT assert ENABLE |
+
+**Why these values.** Minimum adjacent-code separation is **0.353 V** (code 1 to code 2), against a
+worst-case divider error of about +/-0.05 V from 1 % resistors. A **+/-0.15 V** detection window per
+code is therefore safe and is what carrier firmware shall use. The top code stops at 2.475 V because
+the ESP32-S3 ADC saturates near 3.1 V at 12 dB attenuation, so a higher code could not be
+distinguished from "open".
+
+**Firmware contract.** The code selects the daughter profile that configures the LEDC timers (s3.5).
+FAULT and NONE both mean **ENABLE stays de-asserted**.
+
+### 3.5 PWM channel and timer allocation (CAR-REQ-11). NORMATIVE.
+
+Revised at rev A3. **The previous statement that PWM0-3 sit on LEDC timer 0 and PWM4-7 on timer 1 is
+withdrawn** - it was wrong for the strobe and would have mis-specified two boards.
+
+**Hardware ceiling (ESP32-S3 LEDC, not negotiable):** 8 channels, **4 timers**, low-speed mode only,
+**14-bit maximum** duty resolution. Channels sharing a timer share **both** frequency and resolution.
+At a timer's maximum resolution the duty value must clamp to `2^n - 1`.
+
+| Mode | Resolution | Frequency | Levels |
+|---|---|---|---|
+| **Default** | 13-bit | **9.766 kHz** | 8192 |
+| **Optional (CR-3, granted)** | 14-bit | **4.883 kHz** | 16384 |
+
+The 14-bit mode is offered because it doubles low-end resolution; it costs camera-flicker margin, so
+it is opt-in per daughter and must be re-tested against a phone camera on the first prototype.
+
+**The carrier does not hard-assign timers.** Each daughter declares its own channel -> timer ->
+frequency map in its design document; carrier firmware applies that map from the `ID_ADC` code.
+
+| Board | Channels | Timer map |
+|---|---|---|
+| **LUM-PAR-A** | PWM0-3 (RGBW) | all four on **one** timer, 13-bit / 9.766 kHz. Three timers remain free. **90 degree phase stagger** across the four channels - see below |
+| **LUM-STR-A** | PWM0-7 (RGBW strobe) | colour dimming on one timer at the default rate; **the flash gate is NOT a duty setting** - see below |
+| No daughter / unknown code | - | all channels held low, ENABLE de-asserted |
+
+**Strobe flash gating - correcting an ICD default.** A 5-200 ms flash cannot be expressed as a duty
+value at 9.766 kHz, because one LEDC period is **102.4 us** and a 5 ms flash is only ~49 periods. The
+strobe therefore either drives its flash line as a **GPIO / RMT one-shot**, or **re-programs the timer
+it owns** to the flash rate. Both are legal on this connector - these pins are ordinary GPIOs and
+nothing on the carrier forces them into LEDC. **It is therefore NOT true that all 8 channels sit at
+the default frequency.**
+
+**CR-4 granted - 90 degree phase stagger.** LEDC supports a per-channel phase offset (`hpoint`), so
+staggering four channels by 90 degrees costs nothing in hardware and avoids a 4x larger input-current
+step when all four switch together. Carrier firmware shall apply it for any daughter running four or
+more channels on one timer. Firmware default, not a connector change.
 
 ---
 
@@ -240,13 +311,20 @@ copper, not air.
 |---|---|---|
 | Pitch, both directions | 2.540 mm | - |
 | Pin-to-pin air gap (0.64 mm square pin across flats) | 1.90 mm | 3.0x |
-| **PCB pad-to-pad copper gap, 1.70 mm annulus on a 1.02 mm drill** | **0.84 mm** | **1.32x - this is the binding number** |
+| **PCB pad-to-pad copper gap, 1.70 mm annulus on a 1.10 mm drill** | **0.84 mm** | **1.32x - this is the binding number** |
 | PCB pad-to-pad gap, 1.60 mm annulus | 0.94 mm | 1.48x |
 | Connector rated working voltage (pair bound by the lower of male 250 V / socket 600 V) | **250 V** | 4.4x the 57 V worst case |
 
 For contrast: at **1.27 mm pitch** the pad gap is 0.47-0.65 mm and **fails or has zero margin**.
 Anything at or below 1.00 mm pitch is out. That, plus the 50-60 V ratings of s1.1, is why the
 fine-pitch route is closed.
+
+**P3 library note (rev A2):** the pulled DS1021 footprints use a **1.10 mm** drill, not the
+1.02 mm assumed when this table was first written. Pad-to-pad gap is `pitch - annulus` and is
+therefore unaffected - 0.84 mm and 1.32x both stand. The 2x7 power header J3 was pulled with a
+1.80 mm annulus (0.74 mm gap, 1.165x) and has been **normalised to 1.70 mm to match J4**, so both
+frozen connectors now share one land pattern. Annular ring is 0.300 mm/side, above JLC's PTH
+minimum. Daughters must use the 1.70 mm annulus.
 
 **Annular ring is a layout lever, not a free choice**: if P6/P7 needs more margin, shrink the
 annulus on the 48 V pads to 1.60 mm before moving anything else.
@@ -325,6 +403,32 @@ Two consequences daughter designers get wrong if this is not spelled out:
 - **A burst is not free.** 1 J dumped in 10 ms is 100 W for 10 ms, but repeating at 12 Hz still draws
   12 W continuously. Any cap-bank daughter needs its own average-energy governor cooperating with
   the carrier's.
+
+#### 6.2.1 IMON accuracy - REVISED at rev A6. Read before relying on the governor.
+
+The carrier's eFuse provides an analogue current-monitor output (`IMON`) to an MCU ADC, and s6.2
+describes the average-energy governor as closed-loop on the strength of it. **That claim is now
+qualified.**
+
+The TPS16630 specifies `GAIN(IMON)` accuracy only for **I(OUT) >= 0.6 A** (25.66-30.14 uA/A over
+0.6-2 A, and a second band 2-6 A). The rail's published sustained limits are **0.25 A (af) / 0.50 A
+(at)** - **both below that floor**. So at the current the governor actually regulates against, the
+transfer function has **no datasheet-guaranteed accuracy**.
+
+What this does and does not mean:
+
+- The measurement is still **monotonic and useful** - it is a real current monitor, not noise. It is
+  fine for detecting gross overdraw, a stuck-on daughter, or a shorted rail.
+- It is **not** a calibrated energy meter at 0.25-0.5 A. **Do not design a daughter that depends on
+  the carrier metering its average power to better than roughly +/-20 % in that range** unless one of
+  the following is done:
+  1. **per-unit characterisation at build** (measure and store a correction in the daughter's
+     I2C EEPROM - the ID scheme already provides somewhere to put it), or
+  2. move the governor to a **shunt + amplifier** on a future carrier revision, or
+  3. keep the governor conservative and treat IMON as a guard rather than a meter.
+
+`R(IMON)` = 30 k is TI's own 1 A worked example and is otherwise correct; the issue is the operating
+point, not the component.
 
 ### 6.3 Where the cheap watts are
 
@@ -480,9 +584,89 @@ Board-relative, in the shared footprint's coordinates:
 | Zone | Region | Requirement |
 |---|---|---|
 | **RJ45 relief** | **(6, 0) - (36, 26)** | **The daughter must be cut away here** - a 30 x 26 mm notch in the **top** edge. The carrier's board-edge magjack is ~15 mm tall and the stack is 11.0 mm, so the jack protrudes ~4 mm above the daughter's underside. The outline rectangle, corner radius and 5-hole pattern are **unchanged** - only this local relief differs. It is also the primary keying interlock (s7.4) |
-| **DC-DC hot zone** | **(2, 46) - (36, 68)** | **No LED drivers and no aluminium electrolytics** in the corresponding region on the daughter. The carrier's 48->12 converter dissipates up to 1.25 W here in a sealed box whose internal air reaches 56 C (af) / 69 C (at); electrolytic life halves per 10 C. This is the CAR-REQ-18 answer, and it has to be a keepout rather than an in-plane separation rule because in a stacked mezzanine the daughter's parts sit *vertically over* the carrier's |
+| **DC-DC hot zone** | **(2, 46) - (36, 68)** | **No LED drivers and no aluminium electrolytics** in the corresponding region on the daughter. The carrier's 48->12 converter dissipates up to 1.25 W here. **Thermal budget: see s7.7 (rev A5 - box-air heat budget; the rev A2 af figure was correct under an unstated assumption, the at figure was not, and no venting is required).** Electrolytic life halves per 10 C. This is the CAR-REQ-18 answer, and it has to be a keepout rather than an in-plane separation rule because in a stacked mezzanine the daughter's parts sit *vertically over* the carrier's |
 | **Antenna column** | **(88, 25) - (100, 55)** | **No copper on any layer, and no metal component**, while Q8 keeps the radio functional. The carrier's ESP32-S3 PCB antenna is directly below and a ground plane 11 mm above it will detune it. **Void if Q8 closes as "radio permanently dead"** |
 | **Recovery header** | **(76, 0) - (98, 20)** | Keep clear enough that a 6-way jumper lead can be attached with the daughter fitted, or accept that the daughter must be removed to recover firmware |
+
+---
+
+### 7.7 Thermal budget - rev A5. NORMATIVE.
+
+**Configuration of record (owner decision): SEALED, non-metallic enclosure, with LED heat conducted
+OUT through the enclosure wall.** Not vented. Consistent with H1-Q5.
+
+#### 7.7.1 What was actually wrong with the rev A2 figures
+
+Rev A2 published "56 C (af) / 69 C (at)". Rev A3 called both figures wrong. **That was unfair to the
+af figure and is corrected here.** The strobe run applied the par's measured sealed-box resistance to
+its own heat sources and reproduced both numbers from a single binary - whether the LED heat leaves
+through the wall or stays inside the box:
+
+| LED wall path | Heat into box air | Rise at 3.6-4.3 K/W | 25 C room | 35 C room | 40 C room |
+|---|---|---|---|---|---|
+| **works** | 1.894 W | 6.8-8.1 K | **32-33 C** | 42-43 C | 47-48 C |
+| **fails** | 8.500 W | 30.6-36.6 K | **56-62 C** | 66-72 C | 71-77 C |
+
+**Row B at a 25 C room is 56 C - the rev A2 af figure, to the degree.** So that figure was never
+miscalculated. It was the *LED-heat-stays-in-the-box* case, at a 25 C room, and **neither assumption
+was written down**. That omission is the whole defect: it made a correct number look arbitrary, and it
+silently assumed exactly the arrangement the owner's enclosure decision has since ruled out.
+
+**The `at` figure was a genuine error.** 69 C does not follow from the af point under *either* row -
+convection is near-linear in delta-T at this scale, so roughly doubling box heat roughly doubles the
+rise. 56 C implies ~3.13 K/W; 69 C implies ~2.29 K/W. They cannot both be true.
+
+The par's independent Hoffman/Rittal calculation of **89-115 C** sits above even the LED-in-box case at
+a 40 C room. It is the **conservative bound**, not a competing estimate - **do not average it** with
+anything here.
+
+#### 7.7.2 The budget (configuration of record)
+
+Sealed non-metallic enclosure, internal-air-to-room **3.6-4.3 K/W**. Holding internal air to **70 C**,
+i.e. 15 K below the +85 C limit shared by the ESP32-S3 module and the par's emitter family:
+
+| Room ambient | Allowable air rise | **Allowable box-air heat (4.3 K/W worst case ... 3.6 K/W)** |
+|---|---|---|
+| **25 C** | 45 K | **10.5 ... 12.5 W** |
+| **30 C** | 40 K | **9.3 ... 11.1 W** |
+| **40 C** | 30 K | **7.0 ... 8.3 W** |
+
+Spending against it, with the wall path working:
+
+| Contributor | af (build 1) | at (upgrade) |
+|---|---|---|
+| Carrier overhead (PD + both converters + MCU + PHY) | ~2.4 W | ~3.7 W |
+| Daughter into box air (strobe, measured) | ~1.9 W | ~1.9 W |
+| **Total box-air heat** | **~4.3 W** | **~5.6 W** |
+| LED junction heat | through the wall | through the wall |
+
+#### 7.7.3 Conclusions - binding on every LUMINA board
+
+1. **A sealed enclosure closes for BOTH af and at, and does so up to a 40 C room.** At 40 C the
+   allowable budget is 7.0-8.3 W against ~5.6 W spent at `at`: internal air reaches
+   40 + 5.6 x 4.3 = **64 C worst case**, under the 70 C target and well under the +85 C part limit.
+   **The at upgrade therefore does NOT require enclosure ventilation** - the rev A3 conclusion that it
+   did is withdrawn, and the carrier's open ventilation item is closed.
+2. **This rests entirely on the LED heat leaving through the wall.** If that path is not built, the
+   numbers revert to row B of s7.7.1 and the margin disappears. **The wall-conduction path is a
+   mechanical requirement, not a nicety.**
+3. **Every daughter must declare, in its design document, how its dissipation splits between box air
+   and the enclosure wall.** The strobe's ~1.9 W is the number this budget is built on.
+4. **Every internal-air figure in this ICD carries an explicit room ambient.** A figure quoted without
+   one is incomplete - that is the exact defect that produced the rev A2 confusion.
+
+### 7.8 Carrier firmware requirements of record
+
+These are firmware commitments the carrier makes to its daughters. They are recorded here because a
+daughter's requirements depend on them and they must not be silently dropped when firmware is written.
+
+| ID | Requirement |
+|---|---|
+| **FW-01 (CR-5, granted)** | Carrier firmware **shall** apply **PWM-domain dithering of at least 3-4 bits**. This is the mechanism by which the par's PAR-REQ-01 is met - no hardware on that board can close it. **The dither must be in the PWM domain, NOT the 60 fps frame domain**: a 4.4 % dither at 60 Hz breaches IEEE 1789's no-effect level by itself, so frame-domain dithering would create the very flicker it is meant to avoid. |
+| **FW-02 (CR-4, granted)** | Where a daughter runs four or more channels on one LEDC timer, firmware **shall** apply a **90 degree phase stagger** (`hpoint`) across them, to avoid a 4x larger input-current step when all channels switch together. Free in hardware. |
+| **FW-03** | Firmware **shall** read `ID_ADC` at boot (s3.4) and **shall not** assert `ENABLE` on a FAULT (short) or NONE (open) reading. |
+| **FW-04** | Firmware **shall** apply the daughter's declared channel -> timer -> frequency map (s3.5) from the `ID_ADC` code, rather than assuming all channels sit at the default rate. |
+| **FW-05** | Firmware **shall** maintain the PD's MPS: valid MPS needs >= 10 mA DC, so the board must never idle below it (ESP32-S3 deep sleep is therefore forbidden while powered from PoE). |
 
 ---
 

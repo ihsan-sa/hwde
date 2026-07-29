@@ -1,0 +1,380 @@
+{
+ "script": "datasheet_extract",
+ "status": "extracted",
+ "source_pdf": "boards\\lumina-par\\parts\\C7998.pdf",
+ "lcsc": "",
+ "n_pages": 39,
+ "text_chars": 57292,
+ "text_by_page": [
+  {
+   "page": 0,
+   "text": "September 2008   Rev 15 1/39\n1\nM24128\nM24C64 M24C32\n128 Kbit, 64 Kbit and 32 Kbit serial I\u00b2C bus EEPROM\nFeatures\n\u25a0 Two-wire I2C serial interface\nsupports 400 kHz protocol\n\u25a0 Single supply voltages (see Table 1 for root \npart numbers):\n\u2013 2.5 V to 5.5 V\n\u2013 1.8 V to 5.5 V\n\u2013 1.7 V to 5.5 V\n\u25a0 Write Control input\n\u25a0 Byte and Page Write\n\u25a0 Random and Sequential Read modes\n\u25a0 Self-timed programming cycle\n\u25a0 Automatic address incrementing\n\u25a0 Enhanced ESD/latch-up protection\n\u25a0 More than 1 Million write cycles\n\u25a0 More than 40-year data retention\n\u25a0 Packages\n\u2013E C O P A C K\n\u00ae (RoHS compliant)\n         \nTable 1. Device summary\nReference Part number Supply voltage\nM24128\nM24128-BW 2.5 V to 5.5V\nM24128-BR 1.8 V to 5.5V\nM24128-BF 1.7 V to 5.5V\nM24C64\nM24C64-W 2.5 V to 5.5V\nM24C64-R 1.8 V to 5.5V\nM24C64-F 1.7 V to 5.5V\nM24C32\nM24C32-W 2.5 V to 5.5V\nM24C32-R 1.8 V to 5.5V\nM24C32-F 1.7 V to 5.5V\nPDIP8 (BN)\nSO8 (MN)\n150 mil width\nTSSOP8 (DW)\n169 mil width\nUFDFPN8 (MB)\n2 \u00d7 3 mm (MLP)\nWLCSP (CS)\nwww.st.com"
+  },
+  {
+   "page": 1,
+   "text": "Contents M24128, M24C64, M24C32\n2/39   \nContents\n1 Description . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 6\n2 Signal description . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 8\n2.1 Serial Clock (SCL)  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 8\n2.2 Serial Data (SDA) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 8\n2.3 Chip Enable (E0, E1, E2) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 8\n2.4 Write Control (WC\n) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 8\n2.5 V SS ground . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 9\n2.6 Supply voltage (V CC)  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 9\n2.6.1 Operating supply voltage V CC  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 9\n2.6.2 Power-up conditions  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 9\n2.6.3 Device reset . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 9\n2.6.4 Power-down conditions  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 9\n3 Memory organization  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 12\n4 Device operation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 13\n4.1 Start condition  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 13\n4.2 Stop condition  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 13\n4.3 Acknowledge bit (ACK) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 13\n4.4 Data Input . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 13\n4.5 Memory addressing  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 14\n4.6 Write operations . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 16\n4.7 Byte Write . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 16\n4.8 Page Write  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 16\n4.9 ECC (error correction code) and write cycling . . . . . . . . . . . . . . . . . . . . . 17\n4.10 Minimizing system delays by  polling on ACK . . . . . . . . . . . . . . . . . . . . . . 18\n4.11 Read operations . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 20\n4.12 Random Address Read  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 20\n4.13 Current Address Read  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 20\n4.14 Sequential Read . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 20\n4.15 Acknowledge in Read mode . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 20"
+  },
+  {
+   "page": 2,
+   "text": "M24128, M24C64, M24C32 Contents\n 3/39\n5 Initial delivery state . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 21\n6 Maximum rating . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 21\n7 DC and AC parameters . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 22\n8 Package mechanical data . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 29\n9 Part numbering  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 34\n10 Revision history  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 36"
+  },
+  {
+   "page": 3,
+   "text": "List of tables M24128, M24C64, M24C32\n4/39   \nList of tables\nTable 1. Device summary . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  . . . . . 1\nTable 2. Signal names  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 7\nTable 3. Device select code . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 11\nTable 4. Address most significant byte . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 11\nTable 5. Address least significant byte . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  . . 11\nTable 6. Operating modes  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  . . . . 14\nTable 7. Absolute maximum ratings . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  . 21\nTable 8. Operating conditions (M24xxx-W)  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 2 2\nTable 9. Operating conditions (M24xxx-R) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 22\nTable 10. Operating conditions (M24xxx-F) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 22\nTable 11. AC test measurement conditions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  22\nTable 12. Input parameters. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 23\nTable 13. DC characteristics (M24xxx-W, device grade 6). . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 23\nTable 14. DC characteristics (M24xxx-W, device grade 3). . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 24\nTable 15. DC characteristics (M24xxx-R - device grade 6)  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 24\nTable 16. DC characteristics (M24xxx-F) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 25\nTable 17. AC characteristics (M24xxx-W6, M24xxW3, M24xxR6) . . . . . . . . . . . . . . . . . . . . . . . . . . . 26\nTable 18. AC characteristics (M24xxx-F) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 27\nTable 19. PDIP8 \u2013 8 pin plastic DIP, 0.25 mm lead frame, package mechanical data. . . . . . . . . . . . 29\nTable 20. SO8 narrow \u2013 8 lead plastic small outline, 150 mils body width,\npackage mechanical data . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 30\nTable 21. TSSOP8 \u2013 8 lead thin shrink small outline, package mechanical data. . . . . . . . . . . . . . . . 31\nTable 22. UFDFPN8 (MLP8) \u2013 8-lead ultra thin fine pitch dual flat package no lead\n2 \u00d7 3mm, package mechanical data . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 32\nTable 23. M24128 WLCSP, 0.5 mm pitch, package mechanical data . . . . . . . . . . . . . . . . . . . . . . . . 33\nTable 24. Ordering information scheme . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  . 34\nTable 25. Available M24C32 products (package, voltage range, temperature grade) . . . . . . . . . . . . 35\nTable 26. Available M24C64 products (package, voltage range, temperature grade) . . . . . . . . . . . . 35\nTable 27. Available M24128 products (package, voltage range, temperature grade)  . . . . . . . . . . . . 35\nTable 28. Document revision history  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 36"
+  },
+  {
+   "page": 4,
+   "text": "M24128, M24C64, M24C32 List of figures\n 5/39\nList of figures\nFigure 1. Logic diagram . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  . . . . . . . 6\nFigure 2. DIP, SO, TSSOP and UFDFPN connections . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 7\nFigure 3. M24128 WLCSP connections (top view, marking side, with balls on the\nunderside)  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  . . . . 7\nFigure 4. Device select code . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  . . . . . . 8\nFigure 5. Maximum R\nP value versus bus parasitic capacitance (C) for an I2C bus . . . . . . . . . . . . . . 10\nFigure 6. I 2C bus protocol  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 10\nFigure 7. Block diagram . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  . . . . . . 12\nFigure 8. Write mode sequences with WC  = 1 (data write inhibited) . . . . . . . . . . . . . . . . . . . . . . . . . 15\nFigure 9. Write mode sequences with WC  = 0 (data write enabled) . . . . . . . . . . . . . . . . . . . . . . . . . 17\nFigure 10. Write cycle polling flowchart using ACK . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 18\nFigure 11. Read mode sequences. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 19\nFigure 12. AC test measurement I/O waveform. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 2 2\nFigure 13. AC waveforms  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 28\nFigure 14. PDIP8 \u2013 8 pin plastic DIP, 0.25 mm lead frame, package outline  . . . . . . . . . . . . . . . . . . . 29\nFigure 15. SO8 narrow \u2013 8 lead plastic small outline, 150 mils body width, package outline . . . . . . . 30\nFigure 16. TSSOP8 \u2013 8 lead thin shrink small outline, package outline  . . . . . . . . . . . . . . . . . . . . . . . 31\nFigure 17. UFDFPN8 (MLP8) \u2013 8-lead ultra thin fine pitch dual flat package no lead\n2 \u00d7 3mm, package outline. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 32\nFigure 18. M24128 WLCSP, 0.5 mm pitch, package outline . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 33"
+  },
+  {
+   "page": 5,
+   "text": "Description M24128, M24C64, M24C32\n6/39   \n1 Description\nThe M24C32, M24C64 and M24128 devices are I2C-compatible electrically erasable \nprogrammable memories (EEPROM). They are organized as 4096 \u00d7 8 bits, 8192 \u00d7 8 bits \nand 16384 \u00d7 8 bits, respectively.\nFigure 1. Logic diagram\nI2C uses a two-wire serial interface, comprising a bi-directional data line and a clock line. \nThe devices carry a built-in 4-bit Device Type Identifier code (1010) in accordance with the \nI\n2C bus definition.\nThe device behaves as a slave in the I2C protocol, with all memory operations synchronized \nby the serial clock. Read and Write operations are initiated by a Start condition, generated \nby the bus master. The Start condition is followed by a device select code and Read/Write\n \nbit (RW) (as described in Table 3), terminated by an acknowledge bit.\nWhen writing data to the memory, the device inserts an acknowledge bit during the 9th bit \ntime, following the bus master\u2019s 8-bit transmission. When data is read by the bus master, the \nbus master acknowledges the receipt of the data byte in the same way. Data transfers are \nterminated by a Stop condition after an Ack for Write, and after a NoAck for Read.\nAI01844e\n3\nE0-E2 SDA\nVCC\nM24128\nM24C64\nM24C32\nWC\nSCL\nVSS"
+  },
+  {
+   "page": 6,
+   "text": "M24128, M24C64, M24C32 Description\n 7/39\n         \nFigure 2. DIP, SO, TSSOP and UFDFPN connections\n1. See Package mechanical data section for package dimensions, and how to identify pin-1.\nFigure 3. M24128 WLCSP connections (top view, marking side, with balls on the\nunderside) \nTable 2. Signal names\nSignal name Function Direction\nE0, E1, E2 Chip Enable Input\nSDA Serial Data I/O\nSCL Serial Clock Input\nWC Write Control Input\nV\nCC Supply voltage\nVSS Ground\nSDAVSS\nSCL\nWCE1\nE0 V CC\nE2\nAI01845e\nM24128\nM24C64\nM24C32\n1\n2\n3\n4\n8\n7\n6\n5\nVCC E1 E0\nWC E2\nSDA SCL V SS\nai14799"
+  },
+  {
+   "page": 7,
+   "text": "Signal description M24128, M24C64, M24C32\n8/39   \n2 Signal description\n2.1 Serial Clock (SCL)\nThis input signal is used to strobe all data in and out of the device. In applications where this \nsignal is used by slave devices to synchronize the bus to a slower clock, the bus master \nmust have an open drain output, and a pull-up resistor must be connected from Serial Clock \n(SCL) to V\nCC. (Figure 5 indicates how the value of the pull-up resistor can be calculated). In \nmost applications, though, this method of synchronization is not employed, and so the pull-\nup resistor is not necessary, provided that the bus master has a push-pull (rather than open \ndrain) output.\n2.2 Serial Data (SDA)\nThis bi-directional signal is used to transfer data in or out of the device. It is an open drain \noutput that may be wire-OR\u2019ed with other open drain or open collector signals on the bus. A \npull up resistor must be connected from Serial Data (SDA) to V\nCC. (Figure 5 indicates how \nthe value of the pull-up resistor can be calculated).\n2.3 Chip Enable (E0, E1, E2)\nThese input signals are used to set the value that is to be looked for on the three least \nsignificant bits (b3, b2, b1) of the 7-bit device select code. These inputs must be tied to V\nCC \nor VSS, to establish the device select code as shown in Figure 4. When not connected (left \nfloating), these inputs are read as low (0,0,0).\nFigure 4. Device select code\n2.4 Write Control (WC )\nThis input signal is useful for protecting the entire contents of the memory from inadvertent \nwrite operations. Write operations are disabled to the entire memory array when Write \nControl (WC\n) is driven high. When unconnected, the signal is internally read as VIL, and \nWrite operations are allowed.\nWhen Write Control (WC) is driven high, device select and Address bytes are \nacknowledged, Data bytes are not acknowledged.\nAi12806\nVCC\nM24xxx\nVSS\nEi\nVCC\nM24xxx\nVSS\nEi"
+  },
+  {
+   "page": 8,
+   "text": "M24128, M24C64, M24C32 Signal description\n 9/39\n2.5 V SS ground\nVSS is the reference for the VCC supply voltage.\n2.6 Supply voltage (V CC)\n2.6.1 Operating supply voltage V CC\nPrior to selecting the memory and issuing instructions to it, a valid and stable VCC voltage \nwithin the specified [VCC(min), VCC(max)] range must be applied (see Table 9 and Table 10). \nIn order to secure a stable DC supply voltage, it is recommended to decouple the VCC line \nwith a suitable capacitor (usually of the order of 10 nF to 100 nF) close to the VCC/VSS \npackage pins.\nThis voltage must remain stable and valid until the end of the transmission of the instruction \nand, for a Write instruction, until the completion of the internal write cycle (t W).\n2.6.2 Power-up conditions\nWhen the power supply is turned on, VCC rises from VSS to VCC. The VCC rise time must not \nvary faster than 1V/\u00b5s.\n2.6.3 Device reset\nIn order to prevent inadvertent Write operations during power-up, a power on reset (POR) \ncircuit is included. At power-up (continuous rise of V\nCC), the device does not respond to any \ninstruction until VCC has reached the power on reset threshold voltage (this threshold is \nlower than the minimum VCC operating voltage defined in Table 9 and Table 10). Until VCC \npasses over the POR threshold, the device is reset and in Standby Power mode.\nIn a similar way, during power-down (continuous decay of VCC), as soon as VCC drops below \nthe POR threshold voltage, the device is reset and stops responding to any instruction sent \nto it.\n2.6.4 Power-down conditions\nDuring power-down (continuous decay of VCC), the device must be in Standby Power mode \n(mode reached after decoding a Stop condition, assuming that there is no internal Write \ncycle in progress)."
+  },
+  {
+   "page": 9,
+   "text": "Signal description M24128, M24C64, M24C32\n10/39   \nFigure 5. Maximum R P value versus bus parasitic capacitance (C) for an I2C bus\nFigure 6. I 2C bus protocol\n1\n10\n100\n10 100 1000\nBus line capacitor (pF)\nBus line pull-up resistor \n(k\n )\nfC = 400 kHz, t LOW = 1.3 \u00b5s\nRbus x Cbus time\nconstant must be less than\n500 ns\nI\u00b2C bus\nmaster M24xxx\nRbus\nVCC\nCbus\nSCL\nSDA\nai14796\nSCL\nSDA\nSCL\nSDA\nSDA\nStart\nCondition\nSDA\nInput\nSDA\nChange\nAI00792B\nStop\nCondition\n1 23 7 89\nMSB ACK\nStart \nCondition\nSCL 1 23 7 89\nMSB ACK\nStop\nCondition"
+  },
+  {
+   "page": 10,
+   "text": "M24128, M24C64, M24C32 Signal description\n 11/39\n         \n         \n         \nTable 3. Device select code\nDevice type identifier(1)\n1. The most significant bit, b7, is sent first.\nChip Enable address(2)\n2. E0, E1 and E2 are compared against the respec tive external pins on the memory device.\nRW\nb7 b6 b5 b4 b3 b2 b1 b0\nD e v i c e  s e l e c t  c o d e1010 E 2 E 1 E 0 R W\nTable 4. Address most significant byte\nb15  b14  b13  b12  b11  b10  b9  b8\nTable 5. Address least significant byte\nb7  b6  b5  b4  b3  b2  b1  b0"
+  },
+  {
+   "page": 11,
+   "text": "Memory organization M24128, M24C64, M24C32\n12/39   \n3 Memory organization\nThe memory is organized as shown in Figure 7.\nFigure 7. Block diagram\nAI06899\nWC\nE1\nE0\nControl Logic\nHigh Voltage\nGenerator\nI/O Shift Register\nAddress Register\nand Counter\nData\nRegister\n1 Page\nX Decoder\nY Decoder\nSCL\nSDA\nE2"
+  },
+  {
+   "page": 12,
+   "text": "M24128, M24C64, M24C32 Device operation\n 13/39\n4 Device operation\nThe device supports the I2C protocol. This is summarized in Figure 6. Any device that sends \ndata on to the bus is defined to be a transmitter, and any device that reads the data to be a \nreceiver. The device that controls the data transfer is known as the bus master, and the \nother as the slave device. A data transfer can only be initiated by the bus master, which will \nalso provide the serial clock for synchronization. The M24C32, M24C64 and M24128 \ndevices are always slaves in all communications.\n4.1 Start condition\nStart is identified by a falling edge of Serial Data (SDA) while Serial Clock (SCL) is stable in \nthe high state. A Start condition must precede any data transfer command. The device \ncontinuously monitors (except during a Write cycle) Serial Data (SDA) and Serial Clock \n(SCL) for a Start condition, and will not respond unless one is given.\n4.2 Stop condition\nStop is identified by a rising edge of Serial Data (SDA) while Serial Clock (SCL) is stable \nand driven high. A Stop condition terminates communication between the device and the \nbus master. A Read command that is followed by NoAck can be followed by a Stop condition \nto force the device into the Standby mode. A Stop condition at the end of a Write command \ntriggers the internal Write cycle.\n4.3 Acknowledge bit (ACK)\nThe acknowledge bit is used to indicate a successful byte transfer. The bus transmitter, \nwhether it be bus master or slave device, releases Serial Data (SDA) after sending eight bits \nof data. During the 9\nth clock pulse period, the receiver pulls Serial Data (SDA) low to \nacknowledge the receipt of the eight data bits.\n4.4 Data Input\nDuring data input, the device samples Serial Data (SDA) on the rising edge of Serial Clock \n(SCL). For correct device operation, Serial Data (SDA) must be stable during the rising edge \nof Serial Clock (SCL), and the Serial Data (SDA) signal must change only when Serial Clock \n(SCL) is driven low."
+  },
+  {
+   "page": 13,
+   "text": "Device operation M24128, M24C64, M24C32\n14/39   \n4.5 Memory addressing\nTo start communication between the bus master and the slave device, the bus master must \ninitiate a Start condition. Following this, the bus master sends the device select code, shown \nin Table 3 (on Serial Data (SDA), most significant bit first).\nThe device select code consists of a 4-bit device type identifier, and a 3-bit Chip Enable \n\u201cAddress\u201d (E2, E1, E0). To address the memory array, the 4-bit device type identifier is \n1010b.\nUp to eight memory devices can be connected on a single I\n2C bus. Each one is given a \nunique 3-bit code on the Chip Enable (E0, E1, E2) inputs. When the device select code is \nreceived, the device only responds if the Chip Enable Address is the same as the value on \nthe Chip Enable (E0, E1, E2) inputs.\nThe 8\nth bit is the Read/Write bit (RW). This bit is set to 1 for Read and 0 for Write operations.\nIf a match occurs on the device select code, the corresponding device gives an \nacknowledgment on Serial Data (SDA) during the 9th bit time. If the device does not match \nthe device select code, it deselects itself from the bus, and goes into Standby mode.\n         \nTable 6. Operating modes\nMode RW  bit WC (1)\n1. X = VIH or VIL.\nBytes Initial sequence\nCurrent Address \nRead 1 X 1 Start, device select, RW  = 1\nRandom Address \nRead\n0X\n1\nStart, device select, RW = 0, Address\n1 X reStart, device select, RW  = 1\nSequential Read 1 X \u2265 1 Similar to Current or Random Address \nRead\nByte Write 0 V IL 1 Start, device select, RW  = 0\nPage Write 0 V IL\n\u2264 32 for M24C64 \nand M24C32 Start, device select, RW = 0\n\u2264 64 for M24128"
+  },
+  {
+   "page": 14,
+   "text": "M24128, M24C64, M24C32 Device operation\n 15/39\nFigure 8. Write mode sequences with WC  = 1 (data write inhibited)\nStop\nStart\nByte Write Dev select Byte address Byte address Data in\nWC\nStart\nPage Write Dev select Byte address Byte address Data in 1\nWC\nData in 2\nAI01120d\nPage Write\n(cont'd)\nWC (cont'd)\nStop\nData in N\nACK ACK ACK NO ACK\nR/W\nACK ACK ACK NO ACK\nR/W\nNO ACK NO ACK"
+  },
+  {
+   "page": 15,
+   "text": "Device operation M24128, M24C64, M24C32\n16/39   \n4.6 Write operations\nFollowing a Start condition the bus master sends a device select code with the Read/Write \nbit (RW) reset to 0. The device acknowledges this, as shown in Figure 9, and waits for two \naddress bytes. The device responds to each address byte with an acknowledge bit, and \nthen waits for the data Byte.\nWriting to the memory may be inhibited if Write Control (WC\n) is driven high. Any Write \ninstruction with Write Control (WC) driven high (during a period of time from the Start \ncondition until the end of the two address bytes) will not modify the memory contents, and \nthe accompanying data bytes are not acknowledged, as shown in Figure 8.\nEach data byte in the memory has a 16-bit (two byte wide) address. The Most Significant \nByte (Table 4) is sent first, followed by the Least Significant Byte (Table 5). Bits b15 to b0 \nform the address of the byte in memory.\nWhen the bus master generates a Stop condition immediately after the Ack bit (in the \u201c10th \nbit\u201d time slot), either at the end of a Byte Write or a Page Write, the internal Write cycle is \ntriggered. A Stop condition at any other time slot does not trigger the internal Write cycle.\nAfter the Stop condition, the delay t\nW, and the successful completion of a Write operation, \nthe device\u2019s internal address counter is incremented automatically, to point to the next byte \naddress after the last one that was modified.\nDuring the internal Write cycle, Serial Data (SDA) is disabled internally, and the device does \nnot respond to any requests.\n4.7 Byte Write\nAfter the device select code and the address bytes, the bus master sends one data byte. If \nthe addressed location is Write-protected, by Write Control (WC\n) being driven high, the \ndevice replies with NoAck, and the location is not modified. If, instead, the addressed \nlocation is not Write-protected, the device replies with Ack. The bus master terminates the \ntransfer by generating a Stop condition, as shown in Figure 9.\n4.8 Page Write\nThe Page Write mode allows up to 32 bytes (for the M24C32 and M24C64) or 64 bytes (for \nthe M24128) to be written in a single Write cycle, provided that they are all located in the \nsame \u2019row\u2019 in the memory: that is, the most significant memory address bits (b13-b6 for \nM24128, b12-b5 for M24C64, and b11-b5 for M24C32) are the same. If more bytes are sent \nthan will fit up to the end of the row, a condition known as \u2018roll-over\u2019 occurs. This should be \navoided, as data starts to become overwritten in an implementation dependent way.\nThe bus master sends from 1 to 32 bytes of data (for the M24C32 and M24C64) or 64 bytes \nof data (for the M24128), each of which is acknowledged by the device if Write Control (WC\n) \nis low. If Write Control (WC) is high, the contents of the addressed memory location are not \nmodified, and each data byte is followed by a NoAck. After each byte is transferred, the \ninternal byte address counter (inside the page) is incremented. The transfer is terminated by \nthe bus master generating a Stop condition."
+  },
+  {
+   "page": 16,
+   "text": "M24128, M24C64, M24C32 Device operation\n 17/39\nFigure 9. Write mode sequences with WC  = 0 (data write enabled)\n4.9 ECC (error correction code) and write cycling\nThe M24128 and M24C64 in UFDFPN8 (MLP) 2 \u00d7 3 mm package and the M24128 in \nWLCSP package offer an ECC (error correction code) logic which compares each 4-byte \nword with its six associated EEPROM ECC bits. As a result, if a single bit out of 4 bytes of \ndata happens to be erroneous during a read operation, the ECC detects it and replaces it by \nthe correct value. The read reliability is therefore much improved by the use of this feature.\nNote however that even if a single byte has to be written, 4 bytes are internally modified \n(plus the ECC word), that is, the addressed byte is cycled together with the three other bytes \nmaking up the word. It is therefore recommended to write by packets of 4 bytes in order to \nbenefit from the larger amount of write cycles.\nAll M24C32, M24C64 and M24128 devices are qualified at 1 million (1 000 000) write \ncycles; the M24128 and M24C64 in UFDFPN8 (MLP) 2 \u00d7 3 mm package and the M24128 in \nWLCSP package are qualified (at 1 million write cycles), using a cycling routine that writes \nto the device by multiples of 4-byte words.\nStop\nStart\nByte Write Dev Select Byte address Byte address Data in\nWC\nStart\nPage Write Dev Select Byte address Byte address Data in 1\nWC\nData in 2\nAI01106d\nPage Write\n(cont'd)\nWC (cont'd)\nStop\nData in N\nACK\nR/W\nACK ACK ACK\nACK ACK ACK ACK\nR/W\nACKACK"
+  },
+  {
+   "page": 17,
+   "text": "Device operation M24128, M24C64, M24C32\n18/39   \nFigure 10. Write cycle polling flowchart using ACK\n4.10 Minimizing system delays by polling on ACK\nDuring the internal Write cycle, the device disconnects itself from the bus, and writes a copy \nof the data from its internal latches to the memory cells. The maximum Write time (t w) is \nshown in Table 17 and Table 18, but the typical time is shorter. To make use of this, a polling \nsequence can be used by the bus master. \nThe sequence, as shown in Figure 10, is:\n1. Initial condition: a Write cycle is in progress.\n2. Step 1: the bus master issues a Start condition followed by a device select code (the \nfirst byte of the new instruction).\n3. Step 2: if the device is busy with the in ternal Write cycle, no Ack will be returned and \nthe bus master goes back to Step 1. If the device has terminated the internal Write \ncycle, it responds with an Ack, indicating that the device is ready to receive the second \npart of the instruction (the first byte of this instruction having been sent during Step 1).\nWrite cycle\nin progress \nAI01847d\nNext\noperation is\naddressing the\nmemory\nStart condition\nDevice select\nwith RW = 0\nACK\nReturned\nYES\nNO\nYESNO\nReStart\nStop\nData for the\nWrite operation\nDevice select\nwith RW = 1\nSend address\nand receive ACK\nFirst byte of instruction\nwith RW = 0 already\ndecoded by the device\nYESNO Start \ncondition\nContinue the\nWrite operation\nContinue the\nRandom Read operation"
+  },
+  {
+   "page": 18,
+   "text": "M24128, M24C64, M24C32 Device operation\n 19/39\nFigure 11. Read mode sequences\n1. The seven most significant bits of the dev ice select code of a Random Read (in the 1st and 4th bytes) must \nbe identical.\nStart\nDev select * Byte address Byte address\nStart\nDev select Data out 1\nAI01105d\nData out N\nStop\nStart\nCurrent\nAddress\nRead\nDev select Data out\nRandom\nAddress\nRead\nStop\nStart\nDev select * Data out\nSequential\nCurrent\nRead\nStop\nData out N\nStart\nDev select * Byte address Byte address\nSequential\nRandom\nRead\nStart\nDev select * Data out 1\nStop\nACK\nR/W\nNO ACK\nACK\nR/W\nACK ACK ACK\nR/W\nACK ACK ACK NO ACK\nR/W\nNO ACK\nACK ACK ACK\nR/W\nACK ACK\nR/W\nACK NO ACK"
+  },
+  {
+   "page": 19,
+   "text": "Device operation M24128, M24C64, M24C32\n20/39   \n4.11 Read operations\nRead operations are performed independently of the state of the Write Control (WC) signal.\nAfter the successful completion of a Read operation, the device\u2019s internal address counter is \nincremented by one, to point to the next byte address.\n4.12 Random Address Read\nA dummy Write is first performed to load the address into this address counter (as shown in \nFigure 11) but without sending a Stop condition. Then, the bus master sends another Start \ncondition, and repeats the device select code, with the Read/Write\n bit (RW) set to 1. The \ndevice acknowledges this, and outputs the contents of the addressed byte. The bus master \nmust not acknowledge the byte, and terminates the transfer with a Stop condition.\n4.13 Current Address Read\nFor the Current Address Read operation, following a Start condition, the bus master only \nsends a device select code with the Read/Write bit (RW) set to 1. The device acknowledges \nthis, and outputs the byte addressed by the internal address counter. The counter is then \nincremented. The bus master terminates the transfer with a Stop condition, as shown in \nFigure 11, without acknowledging the Byte.\n4.14 Sequential Read\nThis operation can be used after a Current Address Read or a Random Address Read. The \nbus master does acknowledge the data byte output, and sends additional clock pulses so \nthat the device continues to output the next byte in sequence. To terminate the stream of \nbytes, the bus master must not acknowledge the last byte, and must generate a Stop \ncondition, as shown in Figure 11.\nThe output data comes from consecutive addresses, with the internal address counter \nautomatically incremented after each byte output. After the last memory address, the \naddress counter \u2018rolls-over\u2019, and the device continues to output data from memory address \n00h.\n4.15 Acknowledge in Read mode\nFor all Read commands, the device waits, after each byte read, for an acknowledgment \nduring the 9\nth bit time. If the bus master does not drive Serial Data (SDA) low during this \ntime, the device terminates the data transfer and switches to its Standby mode."
+  },
+  {
+   "page": 20,
+   "text": "M24128, M24C64, M24C32 Initial delivery state\n 21/39\n5 Initial delivery state\nThe device is delivered with all bits in the memory array set to 1 (each byte contains FFh).\n6 Maximum rating\nStressing the device outside the ratings listed in Table 7 may cause permanent damage to \nthe device. These are stress ratings only, and operation of the device at these, or any other \nconditions outside those indicated in the Operating sections of this specification, is not \nimplied. Exposure to absolute maximum rating conditions for extended periods may affect \ndevice reliability. Refer also to the STMicroelectronics SURE Program and other relevant \nquality documents.\n         \nTable 7. Absolute maximum ratings\nSymbol Parameter Min. Max. Unit\nTA Ambient operating temperature \u201340 130 \u00b0C\nTSTG Storage temperature \u201365 150 \u00b0C\nTLEAD\nLead temperature during soldering see note (1)\n1. Compliant with JEDEC Std J-STD- 020D (for small body, Sn-Pb or Pb assembly), the ST ECOPACK\u00ae \n7191395 specification, and the European directive on Restrictions on Hazardous Substances (RoHS) \n2002/95/EU.\n\u00b0C\nPDIP-specific lead temperature during soldering 260 (2)\n2. T LEAD max must not be applied for more than 10 s.\n\u00b0C\nVIO Input or output range \u20130.50 6.5 V\nIOL DC output current (SDA = 0) - 5 mA\nVCC Supply voltage \u20130.50 6.5 V\nVESD Electrostatic discharge voltage (human body model)(3)\n3. AEC-Q100-002 (compliant wi th JEDEC Std JESD22-A114A, C1=100pF, R1=1500 \u03a9, R2=500 \u03a9)\n\u20134000 4000 V"
+  },
+  {
+   "page": 21,
+   "text": "DC and AC parameters M24128, M24C64, M24C32\n22/39   \n7 DC and AC parameters\nThis section summarizes the operating and measurement conditions, and the DC and AC \ncharacteristics of the device. The parameters in the DC and AC characteristic tables that \nfollow are derived from tests performed under the measurement conditions summarized in \nthe relevant tables. Designers should check that the operating conditions in their circuit \nmatch the measurement conditions when relying on the quoted parameters.\n         \n         \n         \n         \nFigure 12. AC test measurement I/O waveform\nTable 8. Operating conditions (M24xxx-W)\nSymbol Parameter Min. Max. Unit\nVCC Supply voltage 2.5 5.5 V\nTA\nAmbient operating temperature (device grade 6) \u201340 85 \u00b0C\nAmbient operating temperature (device grade 3) \u201340 125 \u00b0C\nTable 9. Operating conditions (M24xxx-R)\nSymbol Parameter Min. Max. Unit\nVCC Supply voltage 1.8 5.5 V\nTA Ambient operating temperature \u201340 85 \u00b0C\nTable 10. Operating conditions (M24xxx-F)\nSymbol Parameter Min. Max. Unit\nVCC Supply voltage 1.7 5.5 V\nTA\nAmbient operating temperature (device grade 6) \u201340 85 \u00b0C\nAmbient operating temperature (device grade 5) \u201320 85 \u00b0C\nTable 11. AC test measurement conditions\nSymbol Parameter Min. Max. Unit\nCL Load capacitance 100 pF\nInput rise and fall times 50 ns\nInput levels 0.2V CC to 0.8VCC V\nInput and output timing reference levels 0.3V CC to 0.7VCC V\nAI00825B\n0.8VCC\n0.2VCC\n0.7VCC\n0.3VCC\nInput and Output\nTiming Reference Levels\nInput Levels"
+  },
+  {
+   "page": 22,
+   "text": "M24128, M24C64, M24C32 DC and AC parameters\n 23/39\n         \n         \nTable 12. Input parameters\nSymbol Parameter Test condition Min. Max. Unit\nCIN Input capacitance (SDA) 8 pF\nCIN Input capacitance (other pins) 6 pF\nZWCL\n(1)\n1. Characterized only.\nWC input impedance V IN < 0.3VCC 50 200 k \u03a9\nZWCH\n(1) WC input impedance V IN > 0.7VCC 500 k \u03a9\ntNS\n(1) Pulse width ignored\n(Input filter on SCL and SDA) 200 ns\nTable 13. DC characteristics (M24xxx-W, device grade 6)\nSymbol Parameter Test condition\n(in addition to those in Table 8) Min. Max. Unit\nILI\nInput leakage current \n(SCL, SDA, E2, E1, E0)\nVIN = VSS or VCC\ndevice in Standby mode \u00b1 2 \u00b5A\nILO Output leakage current SDA in Hi-Z, external voltage\napplied on SDA: VSS or VCC\n\u00b1 2 \u00b5A\nICC Supply current (Read) 2.5 V < V CC < 5.5 V, fc = 400 kHz 2 mA\nICC0 Supply current (Write) During t W, 2.5 V < VCC < 5.5 V 5 (1)\n1. Characterized value, not tested in production.\nmA\nICC1\nStandby supply current VIN = VSS or VCC,\nVCC = 5.5 V 5\u00b5 A\nStandby supply current VIN = VSS or VCC,\nVCC = 2.5 V 2\u00b5 A\nVIL\nInput low voltage (SDA, \nSCL, WC) \u20130.45 0.3V CC V\nVIH\nInput high voltage (SDA, \nSCL, WC) 0.7VCC VCC+0.6 V\nVOL Output low voltage IOL = 2.1 mA, VCC = 2.5 V or\nIOL = 3 mA, VCC = 5.5 V 0.4 V"
+  },
+  {
+   "page": 23,
+   "text": "DC and AC parameters M24128, M24C64, M24C32\n24/39   \n         \n         \nTable 14. DC characteristics (M24xxx-W, device grade 3)\nSymbol Parameter Test condition\n(in addition to those in Table 8) Min. Max. Unit\nILI\nInput leakage current \n(SCL, SDA, E2, E1, E0)\nVIN = VSS or VCC\ndevice in Standby mode \u00b1 2 \u00b5A\nILO Output leakage current SDA in Hi-Z, external voltage\napplied on SDA: VSS or VCC\n\u00b1 2 \u00b5A\nICC Supply current (Read) 2.5 V < V CC < 5.5 V, fc = 400 kHz 2 mA\nICC0 Supply current (Write) During t W, 2.5 V < VCC < 5.5 V 5 (1)\n1. Characterized value, not tested in production.\nmA\nICC1 Standby supply current VIN = VSS or VCC,\n2.5 V < VCC < 5.5 V 10 \u00b5A\nVIL\nInput low voltage (SDA, \nSCL, WC) \u20130.45 0.3V CC V\nVIH\nInput high voltage (SDA, \nSCL, WC) 0.7VCC VCC+0.6 V\nVOL Output low voltage IOL = 2.1 mA, VCC = 2.5 V or\nIOL = 3 mA, VCC = 5.5 V 0.4 V\nTable 15. DC characteristics (M24xxx-R - device grade 6)\nSymbol Parameter Test condition\n(in addition to those in Table 9) Min. Max. Unit\nILI\nInput leakage current\n(SCL, SDA, E2, E1, E0)\nVIN = VSS or VCC\ndevice in Standby mode \u00b1 2 \u00b5A\nILO Output leakage current SDA Hi-Z, external voltage \napplied on SDA: VSS or VCC\n\u00b1 2 \u00b5A\nICC Supply current (Read) V CC = 1.8 V, fc = 400 kHz 0.8 mA\nICC0 Supply current (Write) During t W, 1.8 V < VCC < 2.5 V 3 (1)\n1. Characterized value, not tested in production.\nmA\nICC1 Standby supply current VIN = VSS or VCC,\n1.8 V < VCC < 2.5 V 1\u00b5 A\nVIL\nInput low voltage (SDA, \nSCL, WC)\n1.8 V \u2264 VCC < 2.5 V \u20130.45 0.25 V CC V\n2.5 V \u2264 VCC < 5.5 V \u20130.45 0.3 V CC V\nVIH\nInput high voltage (SDA, \nSCL, WC)\n1.8 V \u2264 VCC < 2.5 V 0.75V CC VCC+1 V\n2.5 V \u2264 VCC < 5.5 V 0.7V CC VCC+1 V\nVOL Output low voltage I OL = 1 mA, VCC = 1.8 V 0.2 V"
+  },
+  {
+   "page": 24,
+   "text": "M24128, M24C64, M24C32 DC and AC parameters\n 25/39\n         \nTable 16. DC characteristics (M24xxx-F) (1)\n1. Preliminary data.\nSymbol Parameter\nTest condition\n(in addition to those in \nTable 10)\nMin. Max. Unit\nILI\nInput leakage current\n(SCL, SDA, E2, E1, E0)\nVIN = VSS or VCC\ndevice in Standby mode \u00b1 2 \u00b5A\nILO Output leakage current SDA Hi-Z, external voltage \napplied on SDA: VSS or VCC \u00b1 2 \u00b5A\nICC Supply current (Read) V CC =1.7 V, fc = 400 kHz 0.8 mA\nICC0 Supply current (Write) During tW, 1.7 V < VCC < 2.5 \nV 3(2)\n2. Characterized value, not tested in production.\nmA\nICC1 Standby supply current VIN = VSS or VCC,\n1.7 V < VCC < 2.5 V 1\u00b5 A\nVIL\nInput low voltage (SDA, SCL, \nWC)\n1.8 V \u2264 VCC < 2.5 V \u20130.45 0.25 V CC V\n2.5 V \u2264 VCC < 5.5 V \u20130.45 0.3 V CC V\nVIH\nInput high voltage (SDA, SCL, \nWC)\n1.8 V \u2264 VCC < 2.5 V 0.75V CC VCC+1 V\n2.5 V \u2264 VCC < 5.5 V 0.7V CC VCC+1 V\nVOL Output low voltage I OL = 0.7 mA, VCC = 1.7 V 0.2 V"
+  },
+  {
+   "page": 25,
+   "text": "DC and AC parameters M24128, M24C64, M24C32\n26/39   \n         \nTable 17. AC characteristics (M24xxx-W6, M24xxW3, M24xxR6)\nTest conditions specified in Table 8 and Table 9\nSymbol Alt. Parameter Min. Max. Unit\nfC fSCL Clock frequency 400 kHz\ntCHCL tHIGH Clock pulse width high 600 ns\ntCLCH tLOW Clock pulse width low 1300 ns\ntXH1XH2\n(1)\n1. Values recommended by the I\u00b2C- bus Fast-Mode  specification.\ntR Input signal rise time 20 300 ns\ntXL1XL2\n(1) tF Input signal fall time 20 300 ns\ntDL1DL2 tF SDA (out) fall time 20 100 ns\ntDXCX tSU:DAT Data in set up time 100 ns\ntCLDX tHD:DAT Data in hold time 0 ns\ntCLQX tDH Data out hold time 200 ns\ntCLQV\n(2)(3)\n2. To avoid spurious Start and Stop conditions, a minimum delay is placed between SCL=1 and the falling or \nrising edge of SDA.\n3. t CLQV is the time (from the falling edge of SCL) required by the SDA bus line to reach 0.8VCC in a \ncompatible way with the I2C specification (which specifies tSU:DAT (min) = 100 ns), assuming that the Rbus \n\u00d7 Cbus  time constant is less than 500 ns (as specified in Figure 5).\ntAA Clock low to next data valid (access time) 200 900 ns\ntCHDX\n(4)\n4. For a reStart condition, or  following a Write cycle.\ntSU:STA Start condition set up time 600 ns\ntDLCL tHD:STA Start condition hold time 600 ns\ntCHDH tSU:STO Stop condition set up time 600 ns\ntDHDL tBUF\nTime between Stop condition and next Start \ncondition 1300 ns\ntW Write time 5 (5)\n5. For production lots assembled fr om 1st July 2007 (data code 727: week27, year 2007), the M24xxx-R \n(1.8 V to 5.5 V range) memories are specified with tW = 5 ms (instead of 10ms).\nms"
+  },
+  {
+   "page": 26,
+   "text": "M24128, M24C64, M24C32 DC and AC parameters\n 27/39\n         \nTable 18. AC characteristics (M24xxx-F)\nTest conditions specified in Table 10 \nSymbol Alt. Parameter Min. Max. Unit\nfC fSCL Clock frequency 400 kHz\ntCHCL tHIGH Clock pulse width high 600 ns\ntCLCH tLOW Clock pulse width low 1300 ns\ntXH1XH2\n(1)\n1. Values recommended by the I\u00b2C- bus Fast-Mode  specification.\ntR Input signal rise time 20 300 ns\ntXL1XL2\n(1) tF Input signal fall time 20 300 ns\ntDL1DL2 tF SDA (out) fall time 20 100 ns\ntDXCX tSU:DAT Data in set up time 100 ns\ntCLDX tHD:DAT Data in hold time 0 ns\ntCLQX tDH Data out hold time 200 ns\ntCLQV\n(2)(3)\n2. To avoid spurious Start and Stop conditions, a minimum delay is placed between SCL=1 and the falling or \nrising edge of SDA.\n3. t CLQV is the time (from the falling edge of SCL) required by the SDA bus line to reach 0.8VCC in a \ncompatible way with the I2C specification (which specifies tSU:DAT (min) = 100 ns), assuming that the Rbus \n\u00d7 Cbus  time constant is less than 500 ns (as specified in Figure 5).\ntAA Clock low to next data valid (access time) 200 900 ns\ntCHDX\n(4)\n4. For a reStart condition, or  following a Write cycle.\ntSU:STA Start condition set up time 600 ns\ntDLCL tHD:STA Start condition hold time 600 ns\ntCHDH tSU:STO Stop condition set up time 600 ns\ntDHDL tBUF\nTime between Stop condition and next Start \ncondition 1300 ns\ntW Write time 10 (5)\n5. For temperature range 6: t W(max) = 5 ms. \nFor temperature range 5: tW(max) = 10 ms.\nms"
+  },
+  {
+   "page": 27,
+   "text": "DC and AC parameters M24128, M24C64, M24C32\n28/39   \nFigure 13. AC waveforms\nSCL\nSDA In\nSCL\nSDA Out\nSCL\nSDA In\ntCHCL\ntDLCL\ntCHDX\nStart\ncondition\ntCLCH\ntDXCXtCLDX\nSDA\nInput\nSDA\nChange\ntCHDH tDHDL\nStop\ncondition\nData valid\ntCLQV tCLQX\ntCHDH\nStop\ncondition\ntCHDX\nStart\ncondition\nWrite cycle\ntW\nAI00795e\nStart\ncondition\ntCHCL\ntXH1XH2\ntXH1XH2\ntXL1XL2\ntXL1XL2\nData valid\ntDL1DL2"
+  },
+  {
+   "page": 28,
+   "text": "M24128, M24C64, M24C32 Package mechanical data\n 29/39\n8 Package mechanical data\nIn order to meet environmental requirements, ST offers the M24C32, M24C64 and M24128 \nin ECOPACK\u00ae packages. These packages have a lead-free second level interconnect. The \ncategory of second level interconnect is marked on the package and on the inner box label, \nin compliance with JEDEC Standard JESD97. The maximum ratings related to soldering \nconditions are also marked on the inner box label. ECOPACK is an ST trademark. \nECOPACK specifications are available at www.st.com.\nFigure 14. PDIP8 \u2013 8 pin plastic DIP, 0.25 mm lead frame, package outline\n1. Drawing is not to scale.\n         \nTable 19. PDIP8 \u2013 8 pin plastic DIP, 0.25 mm lead frame, package mechanical data\nSymbol\nmillimeters inches (1)\n1. Values in inches are converted from mm and rounded to 4 decimal digits.\nTyp. Min. Max. Typ. Min. Max.\nA 5.33 0.2098\nA1 0.38 0.0150\nA2 3.30 2.92 4.95 0.1299 0.1150 0.1949\nb 0.46 0.36 0.56 0.0181 0.0142 0.0220\nb2 1.52 1.14 1.78 0.0598 0.0449 0.0701\nc 0.25 0.20 0.36 0.0098 0.0079 0.0142\nD 9.27 9.02 10.16 0.3650 0.3551 0.4000\nE 7.87 7.62 8.26 0.3098 0.3000 0.3252\nE1 6.35 6.10 7.11 0.2500 0.2402 0.2799\ne2 . 5 4 \u2013\u2013 0 . 1 0 0 0 \u2013\u2013\neA 7.62 \u2013 \u2013 0.3000 \u2013 \u2013\neB 10.92 0.4299\nL 3.30 2.92 3.81 0.1299 0.1150 0.1500\nPDIP-B\nA2\nA1\nA\nL\nbe\nD\nE1\n8\n1\nc\neA\nb2\neB\nE"
+  },
+  {
+   "page": 29,
+   "text": "Package mechanical data M24128, M24C64, M24C32\n30/39   \nFigure 15. SO8 narrow \u2013 8 lead plastic small outline, 150 mils body width, package \noutline\n1. Drawing is not to scale.\n         \nTable 20. SO8 narrow \u2013 8 lead plastic small outline, 150 mils body width,\npackage mechanical data\nSymbol\nmillimeters inches (1)\n1. Values in inches are converted from mm and rounded to 4 decimal digits.\nTyp Min Max Typ Min Max\nA 1.75 0.0689\nA1 0.10 0.25 0.0039 0.0098\nA2 1.25 0.0492\nb 0.28 0.48 0.0110 0.0189\nc 0.17 0.23 0.0067 0.0091\nccc 0.10 0.0039\nD 4.90 4.80 5.00 0.1929 0.1890 0.1969\nE 6.00 5.80 6.20 0.2362 0.2283 0.2441\nE1 3.90 3.80 4.00 0.1535 0.1496 0.1575\ne1 . 2 7\u2013 \u2013 0 . 0 5 0 0 \u2013 \u2013\nh 0.25 0.50\nk 0 \u00b08 \u00b0 0 \u00b08 \u00b0\nL 0.40 1.27 0.0157 0.0500\nL1 1.04 0.0410\nSO-A\nE1\n8\nccc\nb\ne\nA\nD\nc\n1\nE\nh x 45\u02da\nA2\nk\n0.25 mm\nL\nL1\nA1\nGAUGE PLANE"
+  },
+  {
+   "page": 30,
+   "text": "M24128, M24C64, M24C32 Package mechanical data\n 31/39\nFigure 16. TSSOP8 \u2013 8 lead thin shrink small outline, package outline\n1. Drawing is not to scale.\n         \nTable 21. TSSOP8 \u2013 8 lead thin shrink small outline, package mechanical data\nSymbol\nmillimeters inches (1)\n1. Values in inches are converted from mm and rounded to 4 decimal digits.\nTyp. Min. Max. Typ. Min. Max.\nA 1.200 0.0472\nA1 0.050 0.150 0.0020 0.0059\nA2 1.000 0.800 1.050 0.0394 0.0315 0.0413\nb 0.190 0.300 0.0075 0.0118\nc 0.090 0.200 0.0035 0.0079\nCP 0.100 0.0039\nD 3.000 2.900 3.100 0.1181 0.1142 0.1220\ne 0.650 \u2013 \u2013 0.0256 \u2013 \u2013\nE 6.400 6.200 6.600 0.2520 0.2441 0.2598\nE1 4.400 4.300 4.500 0.1732 0.1693 0.1772\nL 0.600 0.450 0.750 0.0236 0.0177 0.0295\nL1 1.000 0.0394\n\u03b1 0\u00b0 8\u00b0 0\u00b0 8\u00b0\nTSSOP8AM\n1\n8\nCP\nc\nL\nEE1\nD\nA2A\n\u03b1\neb\n4\n5\nA1\nL1"
+  },
+  {
+   "page": 31,
+   "text": "Package mechanical data M24128, M24C64, M24C32\n32/39   \nFigure 17. UFDFPN8 (MLP8) \u2013 8-lead ultra thin fine pitch dual flat package no lead\n2 \u00d7 3mm, package outline\n1. Drawing is not to scale.\n         \nTable 22. UFDFPN8 (MLP8) \u2013 8-lead ultra thin fine pitch dual flat package no lead\n2 \u00d7 3mm, package mechanical data\nSymbol\nmillimeters inches (1)\n1. Values in inches are converted from mm and rounded to 4 decimal digits.\nTyp Min Max Typ Min Max\nA 0.55 0.50 0.60 0.0217 0.0197 0.0236\nA1 0.02 0.00 0.05 0.0008 0 0.0020\nb 0.25 0.20 0.30 0.0098 0.0079 0.0118\nD 2.00 1.90 2.10 0.0787 0.0748 0.0827\nD2 1.60 1.50 1.70 0.0630 0.0591 0.0669\nddd 0.08 0.0031\nE 3.00 2.90 3.10 0.1181 0.1142 0.1220\nE2 0.20 0.10 0.30 0.0079 0.0039 0.0118\ne0 . 5 0\u2013 \u2013 0 . 0 1 9 7 \u2013 \u2013\nL 0.45 0.40 0.50 0.0177 0.0157 0.0197\nL1 0.15 0.0059\nL3 0.30 0.0118\nD\nE\nUFDFPN-01\nA\nA1\nddd\nL1\ne b\nD2\nL\nE2\nL3"
+  },
+  {
+   "page": 32,
+   "text": "M24128, M24C64, M24C32 Package mechanical data\n 33/39\nFigure 18. M24128 WLCSP, 0.5 mm pitch, package outline\n1. Drawing is not to scale.\n         \nTable 23. M24128 WLCSP, 0.5 mm pitch, package mechanical data\nSymbol\nmillimeters inches (1)\n1. Values in inches are converted from mm and rounded to 4 decimal digits.\nTyp. Min. Max. Typ. Min. Max.\n A  0.585  0.535  0.635 0.0230 0.0211 0.0250\n A1  0.230  0.205  0.255 0.0091 0.0081 0.0100\n A2  0.355  0.330  0.380 0.0140 0.0130 0.0150\n B  0.320  0.290  0.350 0.0126 0.0114 0.0138\n D  1.805  1.785  1.825 0.0711 0.0703 0.0719\n E  1.400  1.380  1.420 0.0551 0.0543 0.0559\n e  0.5   0.0197\n e1  0.886   0.0349\n e2  0.250   0.0098\n e3  0.443   0.0174\n F  0.257   0.0101\n G  0.4025   0.0158\n N\n(2)\n2. N is the total number of terminals.\n 8 8\nD\nE\nB\nOrientation references\n54321\nA2\nA1\nA\ne1\nF\nG e e2\nA\nB\nC\ne3"
+  },
+  {
+   "page": 33,
+   "text": "Part numbering M24128, M24C64, M24C32\n34/39   \n9 Part numbering\n         \nFor a list of available options (speed, package, etc.) or for further information on any aspect \nof this device, please contact your nearest ST sales office.\nTable 24. Ordering information scheme\nExample: M24C32\u2013 W MN 6 T P /P\nDevice type\nM24 = I2C serial access EEPROM\nDevice function\n128\u2013B = 128 Kbit (16384 x 8)\nC64\u2013 = 64 Kbit (8192 x 8)\nC32\u2013 = 32 Kbit (4096 x 8)\nOperating voltage\nW = V\nCC = 2.5 V to 5.5 V\nR = VCC = 1.8 V to 5.5 V\nF = VCC = 1.7 V to 5.5 V\nPackage\nBN = PDIP8\nMN = SO8 (150 mil width)\nDW = TSSOP8 (169 mil width)\nMB = UFDFPN8 (MLP8)\nCS = WLCSP\nDevice grade\n6 = Industrial: device tested with standard test flow over \u201340 to 85 \u00b0C\n3 = Automotive: device tested with high reliability certified flow\n(1) over \u201340 to 125\u00b0C.\n1. ST strongly recommends the use of the Automotive  Grade devices for use in an automotive environment. \nThe high reliability certified flow (HRCF) is described in the quality note QNEE9801. Please ask your \nnearest ST sales office for a copy.\n5 = Consumer: device tested with standard test flow over \u201320 to 85\u00b0C\nOption\nblank = standard packing\nT = Tape and reel packing\nPlating technology\nP or G = ECOPACK\n\u00ae (RoHS compliant)\nProcess(2)\n2. Used only for device grade 3 and WLCSP packages.\nP = F6DP26% Chartered\nA = F8L Rousset (only for the WLCSP package)"
+  },
+  {
+   "page": 34,
+   "text": "M24128, M24C64, M24C32 Part numbering\n 35/39\n         \n         \n         \nTable 25. Available M24C32 products (package, voltage range, temperature grade)\nPackage M24C32-F\n1.7 V to 5.5 V\nM24C32-R\n1.8 V to 5.5 V\nM24C32-W\n2.5 V to 5.5 V\nDIP8 (BN) - - Grade6\nSO8N (MN) - Grade 6 Grade 3\nGrade 6\nTSSOP8 (DW) Grade 5 Grade 6 Grade 6\nMLP8 (MB) Grade 5 Grade 6 -\nTable 26. Available M24C64 products (package, voltage range, temperature grade)\nPackage M24C64-F\n1.7 V to 5.5 V\nM24C64-R\n1.8 V to 5.5 V\nM24C64-W\n2.5 V to 5.5 V\nDIP8 (BN) - - Grade6\nSO8N (MN) - Grade 6 Grade 3\nGrade 6\nTSSOP8 (DW) Grade 5 Grade 6 Grade 6\nMLP8 (MB) Grade 6 - -\nTable 27. Available M24128 products (package, voltage range, temperature grade)\nPackage M24128-BF\n1.7 V to 5.5 V\nM24128-BR\n1.8 V to 5.5 V\nM24128-BW\n2.5 V to 5.5 V\nDIP8 (BN) - - -\nSO8N (MN) - Grade 6 Grade 3\nGrade 6\nTSSOP8 (DW) - Grade 6 Grade 6\nMLP8 (MB) Grade 6 - -\nWLCSP (CS) Grade 6 - -"
+  },
+  {
+   "page": 35,
+   "text": "Revision history M24128, M24C64, M24C32\n36/39   \n10 Revision history\n         \nTable 28. Document revision history\nDate Revision Changes\n22-Dec-1999 2.3 TSSOP8 package in place of TSSOP14 (pp 1, 2, OrderingInfo, \nPackageMechData).\n28-Jun-2000 2.4 TSSOP8 package data corrected\n31-Oct-2000 2.5\nReferences to Temperature Range 3 removed from Ordering Information\nVoltage range -S added, and range -R removed from text and tables \nthroughout.\n20-Apr-2001 2.6\nLead Soldering Temperature in the Absolute Maximum Ratings table \namended\nWrite Cycle Polling Flow Chart using ACK illustration updated\nReferences to PSDIP changed to PDIP and Package Mechanical data \nupdated\n16-Jan-2002 2.7\nTest condition for ILI made more precise, and value of ILI for E2-E0 and \nWC added\n-R voltage range added\n02-Aug-2002 2.8\nDocument reformatted using new template.\nTSSOP8 (3x3mm\u00b2 body size) package (MSOP8) added.\n5ms write time offered for 5V and 2.5V devices\n04-Feb-2003 2.9 SO8W package removed. -S voltage range removed\n27-May-2003 2.10 TSSOP8 (3x3mm\u00b2 body size) package (MSOP8) removed\n22-Oct-2003 3.0\nTable of contents, and Pb-free options added. Minor wording changes in \nSummary Description, Power-On Reset, Memory Addressing, Write \nOperations, Read Operations. VIL(min) improved to -0.45V.\n01-Jun-2004 4.0\nAbsolute Maximum Ratings for VIO(min) and VCC(min) improved. \nSoldering temperature information clarified for RoHS compliant devices. \nDevice Grade clarified\n04-Nov-2004 5.0\nProduct List summary table added. Device Grade 3 added. 4.5-5.5V \nrange is Not for New Design. Some minor wording changes. AEC-Q100-\n002 compliance. tNS(max) changed. VIL(min) is the same on all input \npins of the device. ZWCL changed.\n05-Jan-2005 6.0 UFDFPN8 package added. Small text changes."
+  },
+  {
+   "page": 36,
+   "text": "M24128, M24C64, M24C32 Revision history\n 37/39\n29-Jun-2006 7\nDocument converted to new ST template.\nM24C32 and M24C64 products (4.5 to 5.5V supply voltage) removed. \nM24C64 and M24C32 products (1.7 to 5.5V supply voltage) added.\nSection 2.3: Chip Enable (E0, E1, E2) and Section 2.4: Write Control \n(WC) modified, Section 2.6: Supply voltage (VCC) added and replaces \nPower On Reset: VCC Lock-Out Write Protect section.\nTA added, Note 1 updated and TLEAD specified for PDIP packages in \nTable 7: Absolute maximum ratings.\nICC0 added, ICC voltage conditions changed and ICC1 specified over the \nwhole voltage range in Table 13: DC characteristics (M24xxx-W, device \ngrade 6).\nICC0 added, ICC frequency conditions changed and ICC1 specified over \nthe whole voltage range in Table 15: DC characteristics (M24xxx-R - \ndevice grade 6).\ntW modified in Table 17: AC characteristics (M24xxx-W6, M24xxW3, \nM24xxR6).\nSO8N package specifications updated (see Figure 15 and Table 20).\nDevice grade 5 added, B and P Process letters added to Table 24: \nOrdering information scheme. Small text changes.\n03-Jul-2006 8\nICC1 modified in Table 13: DC characteristics (M24xxx-W, device grade \n6).\nNote 1 added to Table 16: DC characteristics (M24xxx-F) and table title \nmodified.\n17-Oct-2006 9\nUFDFPN8 package specifications updated (see Table 22). M24128-BW- \nand M24128-BR part numbers added.\nGeneric part number corrected in Features on page 1.\nICC0 corrected in Table 14 and Table 13.\nPackages are ECOPACK\u00ae compliant.\n27-Apr-2007 10\nAvailable packages and temperature ranges by product specified in \nTable 25, Table 26 and Table 27.\nNotes modified below Table 12: Input parameters.\nVIH max modified in DC characteristics tables (see Table 13, Table 14, \nTable 15 and Table 16).\nC process code added to Table 24: Ordering information scheme.\nFor M24xxx-R (1.8 V to 5.5 V range) products assembled from July 2007 \non, tW will be 5 ms (see Table 17: AC characteristics (M24xxx-W6, \nM24xxW3, M24xxR6).\n27-Nov-2007 11\nSmall text changes. Section 2.5: VSS ground and Section 4.9: ECC \n(error correction code) and write cycling added.\nVIL and VIH modified in Table 15: DC characteristics (M24xxx-R - device \ngrade 6).\nJEDEC standard reference updated below Table 7: Absolute maximum \nratings.\nPackage mechanical data inch values calculated from mm and rounded \nto 4 decimal digits (see Section 8: Package mechanical data).\nTable 28. Document revision history (continued)\nDate Revision Changes"
+  },
+  {
+   "page": 37,
+   "text": "Revision history M24128, M24C64, M24C32\n38/39   \n18-Dec-2007 12\nAdded Section 2.6.2: Power-up conditions, updated Section 2.6.3: \nDevice reset, and Section 2.6.4: Power-down conditions in Section 2.6: \nSupply voltage (VCC).\nUpdated Figure 5: Maximum RP value versus bus parasitic capacitance \n(C) for an I2C bus.\nReplace M24128 and M24C64 by M24128-BFMB6 and M24C64-FMB6, \nrespectively, in Section 4.9: ECC (error correction code) and write \ncycling.\nAdded temperature grade 6 in Table 10: Operating conditions (M24xxx-\nF).\nUpdated test conditions for ILO and VLO in Table 13: DC characteristics \n(M24xxx-W, device grade 6), Table 14: DC characteristics (M24xxx-W, \ndevice grade 3), and Table 15: DC characteristics (M24xxx-R - device \ngrade 6). \nTest condition updated for ILO, and VIH and VIL differentiate for 1.8 V \u2264 \nVCC < 2.5 V and 2.5 V \u2264 VCC < 5.5 V in Table 16: DC characteristics \n(M24xxx-F). \nUpdated Table 17: AC characteristics (M24xxx-W6, M24xxW3, \nM24xxR6), and Table 18: AC characteristics (M24xxx-F).\nUpdated Figure 13: AC waveforms.\nAdded M24128-BF in Table 27: Available M24128 products (package, \nvoltage range, temperature grade).\nProcess B removed fromTable 24: Ordering information scheme.\n30-May-2008 13\nSmall text changes.\nC Process option and Blank Plating technology option removed from \nTable 24: Ordering information scheme.\n15-Jul-2008 14\nWLCSP package added (see Figure 3: M24128 WLCSP connections \n(top view, marking side, with balls on the underside) and Section 8: \nPackage mechanical data). Section 4.9: ECC (error correction code) \nand write cycling updated.\n16-Sep-2008 15\nIOL added to Table 7: Absolute maximum ratings.\nTable 26: Available M24C64 products (package, voltage range, \ntemperature grade) and Table 27: Available M24128 products (package, \nvoltage range, temperature grade) updated.\nTable 28. Document revision history (continued)\nDate Revision Changes"
+  },
+  {
+   "page": 38,
+   "text": "M24128, M24C64, M24C32\n 39/39\n         \n \nPlease Read Carefully:\nInformation in this document is provided solely in connection with ST products. STMicroelectronics NV and its subsidiaries (\u201cST\u201d) reserve the\nright to make changes, corrections, modifications or improvements, to this document, and the products and services described herein at any\ntime, without notice.\nAll ST products are sold pursuant to ST\u2019s terms and conditions of sale.\nPurchasers are solely responsible for the choice, selection and use of the ST products and services described herein, and ST as sumes no\nliability whatsoever relating to the choice, selection or use of the ST products and services described herein.\nNo license, express or implied, by estoppel or otherwise, to any intellectual property rights is granted under this document. If any part of this\ndocument refers to any third party products or services it shall not be deemed a license grant by ST for the use of such third party products\nor services, or any intellectual property contained therein or considered as a warranty covering the use in any manner whatsoev er of such\nthird party products or services or any intellectual property contained therein.\nUNLESS OTHERWISE SET FORTH IN ST\u2019S TERMS AND CONDITIONS OF SALE ST DISCLAIMS ANY EXPRESS OR IMPLIED\nWARRANTY WITH RESPECT TO THE USE AND/OR SALE OF ST PRODUCTS INCLUDING WITHOUT LIMITATION IMPLIED\nWARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE (AND THEIR EQUIVALENTS UNDER THE LAWS\nOF ANY JURISDICTION), OR INFRINGEMENT OF ANY PATENT, COPYRIGHT OR OTHER INTELLECTUAL PROPERTY RIGHT.\nUNLESS EXPRESSLY APPROVED IN WRITING BY AN AUTHORIZED ST REPRESENTATIVE, ST PRODUCTS ARE NOT\nRECOMMENDED, AUTHORIZED OR WARRANTED FOR USE IN MILITARY, AIR CRAFT, SPACE, LIFE SAVING, OR LIFE SUSTAINING\nAPPLICATIONS, NOR IN PRODUCTS OR SYSTEMS WHERE FAILURE OR MALFUNCTION MAY RESULT IN PERSONAL INJURY,\nDEATH, OR SEVERE PROPERTY OR ENVIRONMENTAL DAMAGE. ST PRODUCTS WHICH ARE NOT SPECIFIED AS \"AUTOMOTIVE\nGRADE\" MAY ONLY BE USED IN AUTOMOTIVE APPLICATIONS AT USER\u2019S OWN RISK.\nResale of ST products with provisions different from the statements and/or technical features set forth in this document shall immediately void\nany warranty granted by ST for the ST product or service described herein and shall not create or extend in any manner whatsoev er, any\nliability of ST.\nST and the ST logo are trademarks or registered trademarks of ST in various countries.\nInformation in this document supersedes and replaces all information previously supplied.\nThe ST logo is a registered trademark of STMicroelectronics. All other names are the property of their respective owners.\n\u00a9 2008 STMicroelectronics - All rights reserved\nSTMicroelectronics group of companies\nAustralia - Belgium - Brazil - Canada - China - Czech Republic - Finland - France - Germany - Hong Kong - India - Israel - Italy - Japan - \nMalaysia - Malta - Morocco - Singapore - Spain - Sweden - Switzerland - United Kingdom - United States of America\nwww.st.com"
+  }
+ ],
+ "schema": {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ai-ee datasheet extraction",
+  "type": "object",
+  "required": [
+   "mpn",
+   "pinout"
+  ],
+  "additionalProperties": false,
+  "properties": {
+   "mpn": {
+    "type": "string",
+    "minLength": 1
+   },
+   "lcsc": {
+    "type": "string"
+   },
+   "package": {
+    "type": "string"
+   },
+   "description": {
+    "type": "string"
+   },
+   "pinout": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "required": [
+      "pin",
+      "name",
+      "type"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "pin": {
+       "type": "string",
+       "minLength": 1
+      },
+      "name": {
+       "type": "string",
+       "minLength": 1
+      },
+      "type": {
+       "type": "string",
+       "enum": [
+        "power_in",
+        "power_out",
+        "ground",
+        "input",
+        "output",
+        "bidirectional",
+        "passive",
+        "analog",
+        "clock",
+        "nc",
+        "open_collector",
+        "tristate",
+        "unspecified"
+       ]
+      },
+      "notes": {
+       "type": "string"
+      }
+     }
+    }
+   },
+   "decoupling": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "required": [
+      "pins",
+      "value"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "pins": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       },
+       "minItems": 1
+      },
+      "value": {
+       "type": "string",
+       "minLength": 1
+      },
+      "placement": {
+       "type": "string"
+      },
+      "notes": {
+       "type": "string"
+      }
+     }
+    }
+   },
+   "land_pattern": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "pad_count"
+    ],
+    "properties": {
+     "package": {
+      "type": "string"
+     },
+     "pad_count": {
+      "type": "integer",
+      "minimum": 1
+     },
+     "pitch_mm": {
+      "type": "number",
+      "exclusiveMinimum": 0
+     },
+     "pad_size_mm": {
+      "type": "array",
+      "items": {
+       "type": "number",
+       "minimum": 0
+      },
+      "minItems": 2,
+      "maxItems": 2
+     },
+     "row_spacing_mm": {
+      "type": "number",
+      "minimum": 0
+     },
+     "courtyard_excess_mm": {
+      "type": "number",
+      "minimum": 0
+     },
+     "pin1": {
+      "type": "string",
+      "description": "pad number that is pin 1 (default '1')"
+     },
+     "notes": {
+      "type": "string"
+     }
+    }
+   },
+   "exposed_pad": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "present": {
+      "type": "boolean"
+     },
+     "connect_to": {
+      "type": "string"
+     },
+     "thermal_vias": {
+      "type": "integer",
+      "minimum": 0
+     }
+    },
+    "required": [
+     "present"
+    ]
+   },
+   "layout_notes": {
+    "type": "array",
+    "items": {
+     "type": "string"
+    }
+   },
+   "abs_max": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "required": [
+      "param",
+      "value"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "param": {
+       "type": "string"
+      },
+      "value": {
+       "type": [
+        "number",
+        "string"
+       ]
+      },
+      "unit": {
+       "type": "string"
+      }
+     }
+    }
+   },
+   "source_pdf": {
+    "type": "string"
+   }
+  }
+ },
+ "template": {
+  "mpn": "",
+  "lcsc": "",
+  "package": "",
+  "pinout": [
+   {
+    "pin": "1",
+    "name": "",
+    "type": "unspecified"
+   }
+  ],
+  "decoupling": [],
+  "land_pattern": {
+   "pad_count": 0
+  },
+  "layout_notes": [],
+  "abs_max": []
+ },
+ "note": "Fill the template from text_by_page and the PDF pages, then re-run with --validate. If text_chars is ~0 the PDF is image-only; read the rendered pages directly."
+}
