@@ -3,10 +3,16 @@
  "board": "lumina-carrier",
  "workspace": "boards/lumina-carrier",
  "created": "2026-07-28T13:36:22",
- "updated": "2026-07-28T14:51:53",
- "phase": "P2",
+ "updated": "2026-07-28T19:26:40",
+ "phase": "P3",
  "gates": {},
- "human": {},
+ "human": {
+  "1": {
+   "status": "approved",
+   "ts": "2026-07-28T15:00:34",
+   "note": "Q5 plastic enclosure + heatsink enclosed, non-isolated stands (closes open item C). Q8 Wi-Fi FUNCTIONAL - overrides carrier brief s6; antenna keepout mandatory on every layer, RF review in scope at layout sign-off. Q4 11.0 mm stack + 30x26 mm daughter notch (anti-180 interlock). Q6 adopt derived numbers: 48V 0.25A af / 0.5A at sustained, 1.80 A/pin, eFuse 1.0 A, J3 stays 2x7. Q7 module WROOM-1-N8."
+  }
+ },
  "artifacts": {},
  "open_issues": [],
  "next_issue_id": 1,
@@ -99,6 +105,126 @@
    "why": "Split beats a single 2x20 on mis-mating consequence: a one-position offset on a single 2x20 puts 48 V onto an ESP32 GPIO, whereas on a 2x7 power block it lands on 12 V or GND. The asymmetric 2x7 + 2x12 pair also self-keys, which matters because MECH-01's symmetric 4x M3 pattern would otherwise allow a daughter to be bolted 180 degrees rotated. Derating 1.80 A/pin (3 A single-circuit x 60 percent adjacent). GND is the binding rail at 7 pins in the power block - the brief's '>= 4 GND' is below what CAR-REQ-13 requires.",
    "phase": "P2",
    "ts": "2026-07-28T14:51:45"
+  },
+  {
+   "what": "H1 approved; Q8 Wi-Fi FUNCTIONAL overrides carrier brief section 6",
+   "why": "Owner deliberately overrode 'wireless out of scope, radio is a debugging fallback'. Carrier now carries: WROOM-1 (PCB antenna, NOT the 1U u.FL variant) at a board edge with the antenna keepout honoured on EVERY layer - no copper, no pour, no plane; RF review in scope at layout sign-off; the permanent P5 outline must allocate antenna clearance up front. This promotes the stackup.md s7.1 P5 re-basing step from mandatory-by-quality to mandatory-by-requirement: skipping it puts the antenna over solid copper and the radio is now a functional requirement. Owner also flagged an out-of-scope firmware consequence: the 00 s3 control contract (UDP 5568, 60 fps, <100 us) is specified over Ethernet; a functional Wi-Fi path either honours it with worse jitter and no PoE, or is scoped to commissioning only.",
+   "phase": "P3",
+   "ts": "2026-07-28T15:01:17"
+  },
+  {
+   "what": "RULING: no carrier-side ID EEPROM. Removed M24C02-RMN6TP (C83836) from parts.json; 47 -> 46 lines.",
+   "why": "The frozen ICD-01 and blocks.md both put the ID EEPROM on the DAUGHTER, riding the shared I2C bus - which is exactly why ID is one pin (ID_ADC divider) and not two. My own P3 amendment 4 asked for a carrier-side EEPROM in error; the architecture and the frozen ICD are authoritative and the part-sourcer was right to flag the conflict rather than silently fit it. CAR-REQ-07 is satisfied without it (divider on ID_ADC for cheap daughters, I2C EEPROM on the daughter for the par/strobe). Carrier-side storage needs are already covered by the WROOM-1-N8's 8 MB flash and the ESP32 eFuse MAC. Deleting one line changes nothing else: no net, no connector pin, no sheet.",
+   "phase": "P3",
+   "ts": "2026-07-28T15:24:10"
+  },
+  {
+   "what": "Open item B CLOSED from the datasheet: HY931147C supports Mode A + Mode B + either polarity",
+   "why": "Part-sourcer read the HY931147C 2-page datasheet schematic (LCSC wmsc mirror; the normal CDN URL returns HTML). The jack contains TWO full diode bridges - one fed from both transformer centre taps (Mode A, data pairs), one from the tied spare pairs (J4+J5, J7+J8, Mode B) - both rectifying onto a common V+ (P9) / V- (P10). Mode A+B is mandatory for an 802.3-compliant PD and is present, so this is not a blocking escalation. P4 also needs: P7/P8 are absent from the schematic (no-connect on this SKU, unlike HR861153C), and LED anodes are pins 11 (yellow) / 13 (green) with cathodes on 12 / 14, so the W5500's active-low LED outputs drive the CATHODES.",
+   "phase": "P3",
+   "ts": "2026-07-28T15:26:44"
+  },
+  {
+   "what": "Open item A STANDS as a documented limitation: the selected magjack is 802.3af-qualified only. D-01's at upgrade carries TWO non-board dependencies.",
+   "why": "HY931147C's entire published electrical spec is isolation 1500 Vrms, OCL 350 uH @ 8 mA DC bias, insertion/return loss, CMR, crosstalk. There is NO current, power or thermal rating for the internal bridge or the centre taps anywhere in the datasheet, and its only PoE claim is 'Meets or Exceeds IEEE802.3af standards including 350uH Min OCL with 8mADC'. So it is qualified for build 1 (af, Class 3) and NOT qualified for the at upgrade. Not resolvable by sourcing: no LCSC PoE magjack publishes an at (600 mA/pair) tap rating; closing it needs HanRun's at data or a Bel/Pulse PoE+ ICM off-LCSC, which breaks the single-JLCPCB-order assumption. HR871150C stays rejected (its own published 17.5 W two-centre-tap figure is below 25.5 W, and 209 pcs is 14 boards with zero spares). Net effect: D-01's 'resistor change, no respin' remains true at BOARD level, but the at upgrade also requires magjack qualification AND enclosure ventilation. Escalate at H2.",
+   "phase": "P3",
+   "ts": "2026-07-28T15:26:44"
+  },
+  {
+   "what": "CBULK substituted: 4 x 10uF/100V X7R 1210 replaces the architecture's 2 x 22uF/100V",
+   "why": "No 22 uF / 100 V MLCC exists on LCSC in any package (--package 1210 and 1812 both return zero; the only hits are aluminium electrolytics, which this board bans on the PD rail). 40 uF nominal derates to ~20-24 uF under DC bias at 48 V - still 4x the >=5 uF AC-MPS floor and far below the ~180 uF 802.3 port ceiling, so both compliance bounds hold. It is the most expensive passive line on the board at 2.04 USD/assembly. Also recorded: L20 = FXL1360-680-M was selected by a dissipation budget, not a catalogue preference - only its 140 mOhm DCR closes blocks.md's hard 1.25 W ceiling for the 48->12 block (U20 0.43 + D20 0.54 + L20 0.245 = 1.22 W); every other stocked 68 uH part is 190-260 mOhm. Cost: a 13.5 x 12.6 mm body, not the ~7x7 mm blocks.md assumed - P6 placement must budget the real footprint.",
+   "phase": "P3",
+   "ts": "2026-07-28T15:26:44"
+  },
+  {
+   "what": "BOARD-KILLER CAUGHT AT P3: SCT2A25 feedback reference is 1.2V, not the 0.8V the architecture assumed. The sourced +12V divider (140k/10k) would produce 18V.",
+   "why": "Datasheet states 1.2 V +/-1% (1.188/1.2/1.212) in four independent places: features list, pin-function table, EC table VREF, block diagram. Architecture blocks.md and the part-sourcer both assumed 0.8 V. 140k/10k on a 1.2 V reference = 1.2 x 15 = 18.0 V on the +12V rail, which would exceed the rating of every downstream part including the 22uF/25V bulk and the TPS563201 input. Datasheet Table 2 gives the vendor's own values for 12 V: R2/R1 = 271k/30k plus a 150 pF feedforward cap across the top leg, which the datasheet calls NECESSARY for loop stability. NONE of 271k, 30k or 150pF exist in parts.json - this is a SOURCING gap, not a value substitution. Must be closed before P4 wires the divider. The part-sourcer had correctly flagged R60/R63 as placeholders pending extraction, so the process caught it; the extraction is what closed it.",
+   "phase": "P3",
+   "ts": "2026-07-28T15:30:37"
+  },
+  {
+   "what": "P4 design constraints from the SCT2A25 extraction: EN abs max 6V vs a 48V-referenced driver; asynchronous topology; TM pin restriction",
+   "why": "1) EN absolute maximum is 6 V but the architecture drives it from U1 (TPS2378) CDB. If CDB swings above 6 V it destroys the buck - P4 must fit a divider or clamp, and that divider doubles as the programmable UVLO (VIN_rise = 1.25 x (R3+R4)/R4, VIN_hys = 2.1uA x R3). EN floats HIGH, so an absent driver turns the converter ON. 2) The part is an ASYNCHRONOUS buck - an external catch diode SW->GND is REQUIRED (SS510 is already in the BOM, correct). 3) TM pin 6 is factory-test only and must be tied to EN, tied to GND, or left floating - never wired to an arbitrary net. 4) Fsw is fixed 300 kHz, no RT pin. 5) SW abs max carries a -1 V negative floor, which with an async topology is the binding constraint on catch-diode forward drop plus ringing. 6) No recommended land pattern is published (outline only), so the footprint must come from an IPC SOIC-8+EP generator and fp_verify will have no grounded pad sizes for this part.",
+   "phase": "P3",
+   "ts": "2026-07-28T15:30:37"
+  },
+  {
+   "what": "W5500 grounded: single 3.3V rail (no 1.8V core, no RSET_BG). Two premises in the orchestrator's own extraction prompt were wrong and the agent corrected them.",
+   "why": "I wrote '1.8 V core supply' and 'RSET_BG' into the assignment from memory of the part family. Neither exists. Truth from WIZnet W5500 DS v1.1.0: ONE 3.3 V supply feeding two on-die domains (AVDD analog pins 4/8/11/15/17/21, VDD digital pin 28; 2.97/3.3/3.63 V); the core is generated on-chip and 1V2O pin 22 is a 1.2 V internal-regulator OUTPUT needing a 10 nF cap; the bandgap-bias resistor is EXRES1 pin 10, 12.4 kohm 1% to AGND, and VBG pin 18 must be left FLOATING. The agent refusing to fill from memory is the behaviour that makes this pipeline safe - a wrong pin here is a dead board. Note EXRES1's 12.4k is the same value already in the BOM for the PD detection split, so it is a quantity change, not a new line.",
+   "phase": "P3",
+   "ts": "2026-07-28T15:33:13"
+  },
+  {
+   "what": "P4 W5500 wiring facts: RSVD pin asymmetry, mandated caps, SPI ceiling, no exposed pad",
+   "why": "RSVD ASYMMETRY - pin 23 must be tied to GND while RSVD pins 38-42 are NC (per the v1.0.2 correction). Easy to get wrong and a P4 trap. Pin 7 DNC is typed AI/O in Table 2 but described 'Do Not Connect'. MANDATED CAPS - only two are actually specified by the datasheet: TOCAP pin 20 needs 4.7 uF on a SHORT trace, 1V2O pin 22 needs 10 nF. The datasheet contains NO decoupling requirement and NO layout chapter at all (the words decoupling/bypass/layout appear nowhere in 67 pages), so the 100nF-per-power-pin entries are labelled NOT SPECIFIED BY THIS DATASHEET and must not be treated as grounded. SPI - FSCK is quoted '80/33.3 MHz'; 33.3 MHz is the binding guaranteed number and 80 MHz is explicitly 'theoretical design speed'. The planned 20 MHz is legal with 1.7x margin, closing schematic sign-off gate 5. Mode 0/3, MSB first. PACKAGE - LQFP-48 7x7 body, 0.50 BSC, JEDEC MS-026 BBC, NO exposed pad (the centre circles are mould/ejector holes). No recommended land pattern published, so use IPC-7351 LQFP-48. MDI pins TXN=1 TXP=2 RXN=5 RXP=6; magnetics 1:1, 350 uH; NO auto-MDIX. No MDI termination values anywhere - they must come from the magjack datasheet.",
+   "phase": "P3",
+   "ts": "2026-07-28T15:33:13"
+  },
+  {
+   "what": "ESP32-S3-WROOM-1-N8 grounded. GPIO budget CONFIRMED wider than feared: IO35/36/37 ARE available on -N8; GPIO22-34 do not exist on any pad.",
+   "why": "Datasheet footnote b withholds IO35/36/37 only on R8/R16V Octal-PSRAM SKUs - the no-PSRAM N8 exposes them, which is one reason the N8 was the right pick. GPIO22-GPIO34 appear nowhere in Table 3-1 (not bonded out). The internal SPI-flash bus (SPICLK/CS0/D/Q/WP/HD) is on-module and never exposed, and the datasheet never prints its GPIO numbers - so the common '26-32 are reserved' claim was NOT asserted from memory. USB pins GPIO19 (D-) / GPIO20 (D+) are NOT dedicated and are freely usable as ordinary GPIO when USB is unused, which materially relieves open item E's 28/28 pin budget. Supply: 3V3 pin 2 sole supply, external supply must deliver min 0.5 A (peaks 355 mA Wi-Fi TX), 22 uF + 0.1 uF decoupling - matches the power tree. EN needs 10k/1uF RC, never floating, tSTBL >= 50 us. Ambient -40..+85 C for -N8, measured OUTSIDE the module - relevant to the architecture's 56/69 C internal-air figures.",
+   "phase": "P3",
+   "ts": "2026-07-28T15:34:48"
+  },
+  {
+   "what": "P4 BRICK RISK: GPIO45 must not be pulled high at power-up on the N8, and GPIO3 has no internal pull",
+   "why": "Section 8: on this no-PSRAM SKU a high GPIO45 at power-up forces VDD_SPI to 1.8 V and the 3.3 V on-module flash will not boot - the cheapest way to brick the design, and it is a passive-component error, not a firmware one. Strapping defaults per Table 4-1: GPIO0 weak pull-up = 1 (SPI Boot), GPIO46 weak pull-down = 0, GPIO45 weak pull-down = 0, and GPIO3 is FLOATING with no internal pull at all - if strapped it must be driven by a non-Hi-Z circuit. Strapping hold time tH is min 3 ms after EN goes high, which constrains the EN RC. P4 must verify no PWM/SPI/I2C assignment lands on 0/3/45/46 with a pull-up, and the schematic reviewer must check this explicitly.",
+   "phase": "P3",
+   "ts": "2026-07-28T15:34:48"
+  },
+  {
+   "what": "ANTENNA CLEARANCE CONFLICT: the architecture's 10x22 mm keepout is smaller than Espressif's base-board guidance now that Wi-Fi is functional",
+   "why": "Datasheet gives only the MODULE-side 18x6 mm Antenna Area. The base-board rule lives in the separately-fetched ESP32-S3 Hardware Design Guidelines (Fig 26, tagged [HDG] in the extraction): the antenna should overhang the board edge ENTIRELY; if it does not, notch the board 6 mm deep with >= 15 mm LATERAL clearance on the feed-point side, <= 2 mm board on the far side, <= 1 mm overlap. Housing clearance >= 15 mm in all directions. The P2 architecture declared a 10 x 22 mm keepout at the right edge, which does not obviously satisfy the >= 15 mm lateral figure. H1 closed Q8 as 'Wi-Fi functional, a supported control path', so this is now a functional requirement rather than a nicety, and the 100x80 outline is permanent. Must be reconciled at P5/P6 placement and raised at H2. Also note: 'no copper on ALL layers' is NOT stated in those words for the PCB antenna in either PDF - the HDG's stronger rule is to remove BOARD MATERIAL in the clearance area; treat 'no board material in the clearance zone' as binding and do not cite a phrase that does not exist.",
+   "phase": "P3",
+   "ts": "2026-07-28T15:34:49"
+  },
+  {
+   "what": "RESOLVED: HV clearance raised 0.60 -> 0.635 mm. TI's TPS2378 layout guidance exceeds the IPC-2221B number the board was using.",
+   "why": "TPS2378 datasheet sec 7.3.9: 'TI recommends maintaining a clearance of 0.025 in between VSS and high-voltage signals such as VDD' = 0.635 mm. The board's 0.60 mm came from IPC-2221B B2/B1 (51-100 V band) and is BELOW TI's part-specific recommendation around U1. Rather than waive a vendor recommendation on the most safety-critical IC, adopt 0.635 mm as the board-wide HV clearance - the delta is 0.035 mm and costs essentially nothing in routing area. This supersedes the 0.60 mm figure everywhere it appears (constraints.json notes, stackup.md, connector-icd.md). IMPLEMENTATION: P5 TRAP-1 already requires a hand-written .kicad_dru rule because rules_gen ignores the voltages key - that rule must now carry 0.635 mm, not 0.60 mm. Note also drawing note 9: 'Size of metal pad may vary due to creepage requirement.'",
+   "phase": "P3",
+   "ts": "2026-07-28T15:35:29"
+  },
+  {
+   "what": "P4 FIX REQUIRED: TPS2378 pin 8 (APD) must be tied to RTN, not left unconnected as parts.json states. Exposed pad is VSS, never RTN.",
+   "why": "parts.json's role note says 'Leave pin 8 unconnected'. The datasheet sec 7.3.1 says explicitly: 'If not used, connect APD to RTN.' APD sinks only ~1.73 uA, so a floating APD can drift; above 1.5 V over RTN it turns the pass MOSFET OFF, disables CLS and forces T2P - a dead board from an unconnected pin. Fit APD to RTN, optionally through a 0 ohm/DNP link to preserve the TPS2379 second-source option (its pin 8 is GATE, not APD). SEPARATELY, the exposed PowerPAD is internally connected to VSS (sec 7.3.9) - VSS is the rectified-PoE NEGATIVE rail, while RTN (pin 5) is the switched load return. Wiring the pad to RTN or to converter ground destroys the part. CDB and T2P are open-drain referenced to RTN, not VSS - another easy P4 error. MPS is NOT automatic: valid MPS needs >= 10 mA DC AND AC impedance below 26.3k || 0.05 uF; the AC half is met by CBULK >= 5 uF, the DC half must be held by the application load, so firmware must never let the board idle below 10 mA.",
+   "phase": "P3",
+   "ts": "2026-07-28T15:35:29"
+  },
+  {
+   "what": "D-01 class lever CONFIRMED against the datasheet's own Table 1; KiCad 10 stock footprint matches TI's current EP drawing",
+   "why": "TPS2378 Table 1 / sec 7.3.3: Class 0 = 1270R, 1 = 243R, 2 = 137R, 3 = 90.9R, 4 = 63.4R. Board fits 90.9R (Class 3, 6.49-12.95 W) and the documented upgrade is 63.4R (Class 4, 12.95-25.5 W). Sec 7.4.5 is explicit that 63.4R is the ONLY valid type-2 signature and 90.9R makes it a compatible type-1 device - so D-01's resistor-only lever is vendor-documented, not inferred. FOOTPRINT: the LCSC-hosted PDF's mechanical pages are image-only and carry the SUPERSEDED drawing 4208951-6/D; TI's own SLVSB99C carries the current 4214849/B (09/2025) and the EP grew from 3.10x2.40 to 3.4x2.71 between revisions. The agent read the KiCad .kicad_mod to confirm that Package_SO:SOIC-8-1EP_3.9x4.9mm_P1.27mm_EP2.95x4.9mm_Mask2.71x3.4mm matches TI's current EP exactly - use the stock KiCad footprint, and make sure the librarian does not pull a stale EasyEDA one instead.",
+   "phase": "P3",
+   "ts": "2026-07-28T15:35:29"
+  },
+  {
+   "what": "CAR-REQ-08 BLOCKER RESOLVED: TPS16630 has NO EN pin - only active-low SHDN with an INTERNAL PULL-UP, so it defaults ON. External pull-down is MANDATORY.",
+   "why": "I asked the extractor to say loudly if the part defaults ON with a floating enable. It does. V(SHDN) open-circuit is 2.48 V min / 2.7 V typ, and the enable threshold V(SHUTR) is 2.0 V rising - so a floating SHDN sits ABOVE the enable threshold and +48V_SW goes live with the MCU absent, held in reset, or tri-stated mid firmware update. That is a direct violation of CAR-REQ-08 (de-asserted by default, asserted by firmware only after successful boot). FIX: external pull-down on SHDN, sec 8.3.11 requires >= 10 uA sink capability while holding < 0.8 V (I(SHDN) leakage at 0 V is -10 uA max). The 10k 0603 already in the BOM gives ~0.1 V against the internal pull-up with 80 uA of sink capability - ample. Polarity works out correctly: pull-down = default OFF, MCU drives SHDN HIGH to enable. SHDN abs max is 5.5 V so a 3.3 V GPIO is fine and the rail is NOT tolerant - never wire it to 48 V. MODE pin must be left OPEN for latch-off (shorted to GND = 648 ms auto-retry).",
+   "phase": "P3",
+   "ts": "2026-07-28T15:36:25"
+  },
+  {
+   "what": "MARGINAL + BOM ERROR: eFuse dV/dt cap is 1nF against a 10nF datasheet MINIMUM, and the 2800uF daughter load charges in ~134ms against a 162ms latch-off timer",
+   "why": "TWO issues from the same interaction. (1) BOM ERROR: parts.json fits 1 nF as the U22 dV/dT cap, deliberately 'sized FAST'. Datasheet states C(dVdT) MINIMUM 10 nF - 1 nF is out of spec and must be corrected at P4. (2) TIMING: with the daughter's ~2800 uF on +48V_SW, dV/dt ramping cannot hold inrush under the 1.0 A ILIM (at C_dVdT=10 nF, t_dVdT = 20.8e3 x 48 x 10e-9 = 9.98 ms, implying I_inrush = C x V / t = 13.5 A). The eFuse therefore rides in CURRENT LIMIT for the whole charge: t = C x V / I = 2800e-6 x 48 / 1.0 = 134 ms, against a 162 ms latch-off timer with MODE open. That is only ~17 percent margin, and TI's thermal-regulation loop (TJ 145 C, 1.25 s timeout) is a second constraint on top. CROSS-BOARD CONSEQUENCE: CAR-REQ-14 puts inrush limiting on the DAUGHTER, so the daughter must limit its own charge current enough that the carrier eFuse never sits in current limit for 162 ms. That number is not currently in ICD-01 and MUST be added before the daughter runs design their inrush circuits. Raise at H2.",
+   "phase": "P3",
+   "ts": "2026-07-28T15:36:25"
+  },
+  {
+   "what": "ICD-01 re-issued as rev A2: creepage 0.60 -> 0.635 mm board-wide, plus two new binding sections (s6.6 bank-charging contract, s8.4 CAR-REQ-08 realisation)",
+   "why": "Coordinator required the changed creepage number to reach the ICD because daughters are already designing to it. Verified the raise does not break the connector: the binding geometry is the 0.84 mm pad-to-pad copper gap on a 1.70 mm annulus, which clears 0.635 mm at 1.32x (was 1.4x vs 0.60 mm). check_creepage.py only demands 0.60 mm so a 0.635 mm layout passes it by construction; 0.635 mm is enforced by the hand-written .kicad_dru rule at P5 (TRAP-1). NEW s6.6 gives the strobe run the numbers it was told to read from the ICD: daughter charge current <= 0.25 A (af) / <= 0.5 A (at), absolute ceiling 1.0 A and never above 1.0 A for > 162 ms, with the arithmetic showing why (raw 2800 uF bank charges in 134 ms against a 162 ms latch-off timer = 17 percent margin, and the invariant 3.2 J must be dissipated in the daughter's limiter not the carrier's HTSSOP-20). NEW s8.4 states the CAR-REQ-08 realisation and the three review-gate-4 cases explicitly.",
+   "phase": "P3",
+   "ts": "2026-07-28T15:48:10"
+  },
+  {
+   "what": "RE-TUNE REQUIRED on the eFuse UVLO/OVP string: both proposed thresholds fail at LEGAL PoE rail voltages. Binding requirements set for P4.",
+   "why": "Reviewed the part-sourcer's R66/R67/R73 = 1M/12.4k/20k (UVLO 38.2 V rising, OVP 61.9 V rising / 57.9 V falling). TWO functional failures at legal operating points, not margin quibbles. (1) OVP FALLING 57.9 V sits only 0.9 V above the 57 V legal PSE maximum. The TPS16630 OVP reference is 1.2 V rising / 1.122 V falling with +/-2 percent, on top of +/-1 percent resistors - worst case the falling threshold lands near 55.6 V, BELOW 57 V. Consequence: after any overvoltage event a fully legal 57 V rail would never re-enable the daughter. REQUIREMENT: size so the OVP falling threshold stays above 57 V across worst-case tolerance, i.e. nominal falling >= 59.5 V, which puts nominal rising near 63.6 V given the fixed 0.935 hysteresis ratio. Upper bound is satisfied: worst-case-high rising ~65.8 V is under the 67 V abs max, and the SMBJ58A breaks down at 64.4 V min so the TVS acts first anyway. (2) UVLO RISING 38.2 V is ABOVE the 37 V legal minimum PD input for the af build. A compliant PSE sitting at 37 V would leave the eFuse permanently off and the daughter dead. REQUIREMENT: UVLO rising below 37 V with margin - target ~34-35 V rising, ~32 V falling, which still sits above the PD controller's own ~30 V drop-out so the two do not fight. P4 pwr sheet sizes both with the datasheet equations and stocked values; the schematic reviewer verifies both against these numbers.",
+   "phase": "P3",
+   "ts": "2026-07-28T19:11:30"
+  },
+  {
+   "what": "Library adjudication: 4 footprint edits approved (J3 annulus normalise, TPS16630 + SCT2A25 stock swaps, J1 mounting holes non-plated); vias-in-pad deferred to P9 DFM",
+   "why": "J3 (2x7 POWER header, the one actually carrying 48 V raw) was pulled with a 1.80 mm annulus giving only 0.74 mm pad-to-pad and 1.165x over the 0.635 mm HV requirement, while J4 (2x12 signal) had 1.70 mm / 0.84 mm / 1.32x - the two frozen ICD connectors were mutually inconsistent and the HV-carrying one had the WORSE margin. Normalising J3 to 1.70 mm restores 1.32x, makes both connectors share one land pattern, and keeps ICD-01 rev A2's published number true, so no ICD re-issue of the gap is needed. Drill is 1.10 mm not the 1.02 mm the ICD assumed, but gap = pitch - annulus so the conclusion is unaffected; ICD text corrected. TPS16630 swapped to KiCad stock HTSSOP-20-1EP with the 3.4x6.5 copper / 2.96x2.96 mask SMD-defined pad because it is the 48 V hot-swap switch and its thermal pad IS its dissipation path - the pulled part had ~24 percent less exposed metal, asymmetric rows and 24-percent-narrow signal pads. SCT2A25 swapped for a proper IPC heel fillet on a 100 V buck's power pins. J1's two dia-3.25 mounting holes were plated with ZERO annular ring and would trip P7 DRC - made non-plated. DEFERRED deliberately: untented vias-in-pad under the ESP32 thermal land (0.075 mm ring, below JLC's ~0.15 mm PTH minimum) and the HTSSOP pad - the P9 DFM gate should adjudicate these against real fab rules with its own fix loop rather than have them silently changed in the library.",
+   "phase": "P3",
+   "ts": "2026-07-28T19:26:40"
   }
  ],
  "history": [
@@ -188,6 +314,122 @@
   {
    "ts": "2026-07-28T14:51:53",
    "event": "H1 checkpoint reached - run STOPPED awaiting human. No verdict recorded (state.py human accepts only approved/rejected/skipped; inventing one is forbidden). Blocking before P3: Q4 stack height, Q5 isolation+enclosure material, Q6 per-rail current, Q8 radio. Blocking before P5 and PERMANENT: the 100x80 mm outline."
+  },
+  {
+   "ts": "2026-07-28T15:00:34",
+   "event": "human",
+   "checkpoint": "1",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-07-28T15:01:17",
+   "event": "phase",
+   "phase": "P3",
+   "prev": "P2"
+  },
+  {
+   "ts": "2026-07-28T15:01:17",
+   "event": "decision",
+   "what": "H1 approved; Q8 Wi-Fi FUNCTIONAL overrides carrier brief section 6"
+  },
+  {
+   "ts": "2026-07-28T15:24:10",
+   "event": "decision",
+   "what": "RULING: no carrier-side ID EEPROM. Removed M24C02-RMN6TP (C83836) from parts.json; 47 -> 46 lines."
+  },
+  {
+   "ts": "2026-07-28T15:26:44",
+   "event": "decision",
+   "what": "Open item B CLOSED from the datasheet: HY931147C supports Mode A + Mode B + either polarity"
+  },
+  {
+   "ts": "2026-07-28T15:26:44",
+   "event": "decision",
+   "what": "Open item A STANDS as a documented limitation: the selected magjack is 802.3af-qualified only. D-01's at upgrade carries TWO non-board dependencies."
+  },
+  {
+   "ts": "2026-07-28T15:26:44",
+   "event": "decision",
+   "what": "CBULK substituted: 4 x 10uF/100V X7R 1210 replaces the architecture's 2 x 22uF/100V"
+  },
+  {
+   "ts": "2026-07-28T15:30:37",
+   "event": "decision",
+   "what": "BOARD-KILLER CAUGHT AT P3: SCT2A25 feedback reference is 1.2V, not the 0.8V the architecture assumed. The sourced +12V divider (140k/10k) would produce 18V."
+  },
+  {
+   "ts": "2026-07-28T15:30:37",
+   "event": "decision",
+   "what": "P4 design constraints from the SCT2A25 extraction: EN abs max 6V vs a 48V-referenced driver; asynchronous topology; TM pin restriction"
+  },
+  {
+   "ts": "2026-07-28T15:33:13",
+   "event": "decision",
+   "what": "W5500 grounded: single 3.3V rail (no 1.8V core, no RSET_BG). Two premises in the orchestrator's own extraction prompt were wrong and the agent corrected them."
+  },
+  {
+   "ts": "2026-07-28T15:33:13",
+   "event": "decision",
+   "what": "P4 W5500 wiring facts: RSVD pin asymmetry, mandated caps, SPI ceiling, no exposed pad"
+  },
+  {
+   "ts": "2026-07-28T15:34:48",
+   "event": "decision",
+   "what": "ESP32-S3-WROOM-1-N8 grounded. GPIO budget CONFIRMED wider than feared: IO35/36/37 ARE available on -N8; GPIO22-34 do not exist on any pad."
+  },
+  {
+   "ts": "2026-07-28T15:34:48",
+   "event": "decision",
+   "what": "P4 BRICK RISK: GPIO45 must not be pulled high at power-up on the N8, and GPIO3 has no internal pull"
+  },
+  {
+   "ts": "2026-07-28T15:34:49",
+   "event": "decision",
+   "what": "ANTENNA CLEARANCE CONFLICT: the architecture's 10x22 mm keepout is smaller than Espressif's base-board guidance now that Wi-Fi is functional"
+  },
+  {
+   "ts": "2026-07-28T15:35:29",
+   "event": "decision",
+   "what": "RESOLVED: HV clearance raised 0.60 -> 0.635 mm. TI's TPS2378 layout guidance exceeds the IPC-2221B number the board was using."
+  },
+  {
+   "ts": "2026-07-28T15:35:29",
+   "event": "decision",
+   "what": "P4 FIX REQUIRED: TPS2378 pin 8 (APD) must be tied to RTN, not left unconnected as parts.json states. Exposed pad is VSS, never RTN."
+  },
+  {
+   "ts": "2026-07-28T15:35:29",
+   "event": "decision",
+   "what": "D-01 class lever CONFIRMED against the datasheet's own Table 1; KiCad 10 stock footprint matches TI's current EP drawing"
+  },
+  {
+   "ts": "2026-07-28T15:36:25",
+   "event": "decision",
+   "what": "CAR-REQ-08 BLOCKER RESOLVED: TPS16630 has NO EN pin - only active-low SHDN with an INTERNAL PULL-UP, so it defaults ON. External pull-down is MANDATORY."
+  },
+  {
+   "ts": "2026-07-28T15:36:25",
+   "event": "decision",
+   "what": "MARGINAL + BOM ERROR: eFuse dV/dt cap is 1nF against a 10nF datasheet MINIMUM, and the 2800uF daughter load charges in ~134ms against a 162ms latch-off timer"
+  },
+  {
+   "ts": "2026-07-28T15:48:10",
+   "event": "decision",
+   "what": "ICD-01 re-issued as rev A2: creepage 0.60 -> 0.635 mm board-wide, plus two new binding sections (s6.6 bank-charging contract, s8.4 CAR-REQ-08 realisation)"
+  },
+  {
+   "ts": "2026-07-28T19:11:02",
+   "event": "resumed after API spend-limit termination during P3 librarian; state intact, nothing half-applied"
+  },
+  {
+   "ts": "2026-07-28T19:11:30",
+   "event": "decision",
+   "what": "RE-TUNE REQUIRED on the eFuse UVLO/OVP string: both proposed thresholds fail at LEGAL PoE rail voltages. Binding requirements set for P4."
+  },
+  {
+   "ts": "2026-07-28T19:26:40",
+   "event": "decision",
+   "what": "Library adjudication: 4 footprint edits approved (J3 annulus normalise, TPS16630 + SCT2A25 stock swaps, J1 mounting holes non-plated); vias-in-pad deferred to P9 DFM"
   }
  ]
 }

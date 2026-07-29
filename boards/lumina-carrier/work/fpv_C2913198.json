@@ -1,0 +1,87 @@
+{
+ "script": "fp_verify",
+ "status": "violations",
+ "board": "WIFIM-SMD_ESP32-S3-WROOM-1-N8.kicad_mod",
+ "counts": {
+  "total": 2,
+  "by_severity": {
+   "error": 2
+  },
+  "by_source": {
+   "check.fp_verify": 2
+  }
+ },
+ "violations": [
+  {
+   "check": "fp_verify",
+   "severity": "error",
+   "pos": null,
+   "layer": "F.Cu",
+   "net": null,
+   "refs": [
+    "WIFIM-SMD_ESP32-S3-WROOM-1-N8"
+   ],
+   "msg": "copper pad count 61 != datasheet 41",
+   "source": "check.fp_verify",
+   "items": [
+    {
+     "msg": "copper pad count 61 != datasheet 41",
+     "pos": null
+    }
+   ],
+   "kind": "pad_count",
+   "expected": 41,
+   "measured": 61
+  },
+  {
+   "check": "fp_verify",
+   "severity": "error",
+   "pos": [
+    -8.9,
+    -8.95
+   ],
+   "layer": "F.Cu",
+   "net": null,
+   "refs": [
+    "WIFIM-SMD_ESP32-S3-WROOM-1-N8"
+   ],
+   "msg": "nearest-pad pitch 0.700 mm != datasheet 1.270 mm (tol 0.05)",
+   "source": "check.fp_verify",
+   "items": [
+    {
+     "msg": "nearest-pad pitch 0.700 mm != datasheet 1.270 mm (tol 0.05)",
+     "pos": [
+      -8.9,
+      -8.95
+     ]
+    }
+   ],
+   "kind": "pad_pitch",
+   "expected_mm": 1.27,
+   "measured_mm": 0.7
+  }
+ ],
+ "footprint": "WIFIM-SMD_ESP32-S3-WROOM-1-N8",
+ "footprint_file": "boards\\lumina-carrier\\lib\\aiee.pretty\\WIFIM-SMD_ESP32-S3-WROOM-1-N8.kicad_mod",
+ "copper_pads": 61,
+ "total_pads": 61,
+ "measured_pitch_mm": 0.7,
+ "measured_pad_size_mm": [
+  0.9,
+  1.5
+ ],
+ "has_courtyard": true,
+ "has_silk": true,
+ "land_pattern": {
+  "package": "ESP32-S3-WROOM-1 recommended PCB land pattern (Figure 11-1)",
+  "pad_count": 41,
+  "pitch_mm": 1.27,
+  "pad_size_mm": [
+   1.5,
+   0.9
+  ],
+  "pin1": "1",
+  "notes": "From Figure 11-1 'ESP32-S3-WROOM-1 Recommended PCB Land Pattern' (units mm). Pad count 41 = 40 perimeter pads + 1 central thermal land. Perimeter pads: 40 x 1.5 mm (radial length) by 0.9 mm (width), 1.27 mm pitch. Land pattern envelope 18 wide x 25.5 long, matching the module body. Pad numbering per Figure 3-1: pins 1-15 down one long side, 15-26 along the short side opposite the antenna, 26-40 up the other long side; pin 1 and pin 40 are the two pads closest to the antenna end. Stated figure dimensions: 18 (width), 25.5 (length), 16.51 (span of a side pad row, = 13 x 1.27), 17.5 (span across the pad field at the antenna-opposite end), 2.015 (twice, along the short row), 0.5, 1.27, 7.49 (module top edge to the start of the pads), 6 (Antenna Area depth), 10.29 and 7.5 (locating the thermal land), 3.7 x 3.7 (thermal land array extent), 0.9 (thermal land sub-pad size). ANTENNA AREA: the top 18 x 6 mm of the land pattern is drawn as 'Antenna Area' and carries no copper - see layout_notes. Module body (Figure 10-1): 18.0 +/-0.2 x 25.5 +/-0.2 x 3.1 +/-0.15 mm; module-side castellated pads are 40 x 0.85 x 0.9 mm on 1.27 mm pitch with 40 x dia 0.55 mm castellated half-holes. row_spacing_mm deliberately omitted: Figure 11-1 dimensions the pad field as a 17.5 mm outer span, not as a row centre-to-centre value."
+ },
+ "svg": "boards\\lumina-carrier\\work\\overlays\\C2913198.svg"
+}

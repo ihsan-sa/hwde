@@ -1,0 +1,251 @@
+{
+  "mpn": "TPS2378DDAR",
+  "lcsc": "C337500",
+  "package": "SO-8 PowerPAD (TI DDA / DDA0008B, R-PDSO-G8); datasheet Device Information: HSOP (8), body 4.89 mm x 3.90 mm nom; Thermal Information table calls it 'SO-8 PowerPad'",
+  "description": "TPS2378 (SLVSB99C, Mar 2012 rev Jul 2015) - IEEE 802.3at Type-2 PoE high-power PD interface controller. 8-pin IC containing detection, 1-event/2-event hardware classification, UVLO, 140 mA inrush limiting, a 100 V / 0.5 ohm internal hotswap MOSFET rated 0.85 A continuous, current-limit foldback, thermal shutdown, auxiliary-power-detect (APD) input, open-drain converter-disable (CDB) and open-drain Type-2-PSE-present (T2P) outputs. Does NOT implement DLL classification (that is the job of the Ethernet subsystem).",
+  "pinout": [
+    {
+      "pin": "1",
+      "name": "VDD",
+      "type": "power_in",
+      "notes": "Datasheet I/O column: I. 'Connect to positive PoE input power rail. Bypass with 0.1 uF to VSS.' (sec 7.3.7) Provides operating power to the PD controller and allows monitoring of the input line voltage. UVLO (V(VDD-VSS)): rising threshold 36.3 / 38.1 / 40 V (min/typ/max), falling threshold 30.5 / 32 / 33.6 V, hysteresis 6.1 V typ. Classification window: lower class threshold VCL_ON 11.9 / 12.5 / 13 V rising (hyst 1.4-1.7 V), upper class threshold VCU_ON 21 / 22 / 23 V rising (hyst 0.5-0.9 V); mark reset threshold VMSR 3 / 3.9 / 5 V falling. Detection signature is presented for V(VDD-VSS) approx 1.4 V to 10.9 V. Operating (bias) current 285 uA typ / 500 uA max over 40 V <= VDD <= 57 V."
+    },
+    {
+      "pin": "2",
+      "name": "DEN",
+      "type": "bidirectional",
+      "notes": "Datasheet I/O column: I/O. 'Connect 24.9 kOhm to VDD for detection. Pull to VSS disable pass MOSFET.' RDEN sits between VDD (pin 1) and DEN (pin 2). Sec 8.2.2.4 / 7.3.4: IEEE 802.3at specifies a detection signature resistance RDEN between 23.7 kOhm and 26.3 kOhm, i.e. 25 kOhm +/-5%; TI recommends 24.9 kOhm +/-1%. Resistor dissipation only about 5 mW. Valid PD detection signature is an incremental resistance (dV/dI) from 23.7 kOhm to 26.3 kOhm measured at the PI (after the input bridge). Splitting RDEN into two roughly equal halves and grounding the tap point spoils the detection signature and signals the PSE that the PD no longer needs power. Pulling DEN below VPD_DIS (3 / 3.7 / 5 V falling, 50-200 mV hysteresis) while in the operational range forces the internal hotswap MOSFET OFF - this also destroys the DC maintain-power signature. Abs max sourcing current into DEN: 1 mA."
+    },
+    {
+      "pin": "3",
+      "name": "CLS",
+      "type": "output",
+      "notes": "Datasheet I/O column: O. 'Connect resistor from CLS to VSS to program classification current.' The controller forces approx 2.5 V across RCLS whenever V(VDD-VSS) is between about 10.9 V and 22 V. TABLE 1 CLASS RESISTOR SELECTION (class / min power at PD (W) / max power at PD (W) / RCLS ohm): 0 / 0.44 / 12.95 / 1270; 1 / 0.44 / 3.84 / 243; 2 / 3.84 / 6.49 / 137; 3 / 6.49 / 12.95 / 90.9; 4 / 12.95 / 25.5 / 63.4. Measured ICLS (min/typ/max, 13 V <= VDD <= 21 V): RCLS 1270 -> 1.8/2.17/2.6 mA; 243 -> 9.9/10.6/11.2 mA; 137 -> 17.6/18.6/19.4 mA; 90.9 -> 26.5/27.9/29.3 mA; 63.4 -> 38/39.9/42 mA. Sec 7.4.5: 'Selecting an RCLS of 63.4 ohm provides a valid type 2 signature'; sec 8.2.2.5 design example: 'Choose class 4 and RCLS = 63.4 ohm'. Recommended operating max resistance on CLS is 60 ohm... see note: Recommended Operating Conditions list 'Resistance CLS (max) 60 ohm' with footnote 'Voltage should not be externally applied to this pin' - do not apply voltage to CLS and do not short CLS to VSS for long periods. Classification is disabled above VCU_ON, during thermal limiting, and whenever APD or DEN is active. Mark-state resistance 6/10/12 kOhm. Abs max sourcing current 65 mA; abs max CLS input voltage -0.3 to 6.5 V."
+    },
+    {
+      "pin": "4",
+      "name": "VSS",
+      "type": "ground",
+      "notes": "Datasheet I/O column: '-'. 'Connect to negative power rail derived from PoE source.' Sec 7.3.8: 'VSS pin is the input supply negative rail that serves as a local ground. The PowerPAD must be connected to this pin to ensure proper operation.' All device voltages are referenced to VSS unless otherwise stated. VSS is the rectified-PoE negative rail - it is NOT the converter secondary ground and NOT RTN."
+    },
+    {
+      "pin": "5",
+      "name": "RTN",
+      "type": "power_out",
+      "notes": "Datasheet I/O column: '-'. 'Drain of PoE pass MOSFET.' Sec 7.3.5: RTN provides the negative power return path for the load; once VDD exceeds UVLO the internal pass MOSFET pulls RTN to VSS. Internal hotswap MOSFET: 100 V, rDS(on) 0.2 / 0.42 / 0.75 ohm (headline 0.5 ohm), continuous 0.85 A. Inrush current limit 100 / 140 / 180 mA (VRTN = 2 V, VDD 20 V -> 48 V); inrush ends when RTN current drops about 10% below the inrush limit (inrush termination 80% / 90% / 99%; text: 'Inrush ends when the RTN current drops below about 125 mA'). Operational current limit 0.85 / 1 / 1.2 A (VRTN = 1.5 V). Foldback: if V(RTN-VSS) rises above the foldback threshold 11 / 12.3 / 13.6 V (typ ~12 V) for longer than the foldback deglitch time 500 / 800 / 1500 us (typ ~800 us), the current limit reverts to the inrush value; inrush limit is re-established when V(VDD-VSS) drops below UVLO. RTN input bias current 30 uA max (VDD = VRTN = 30 V). Abs max RTN -0.6 to 100 V (with I(RTN) = 0); RTN current internally limited; SOA limited to RTN = 80 V at 1.2 A. Recommended operating RTN sinking current 0.85 A max."
+    },
+    {
+      "pin": "6",
+      "name": "CDB",
+      "type": "open_collector",
+      "notes": "Datasheet I/O column: O. 'Active low, open-drain converter disable output, referenced to RTN.' Sec 7.3.2: pulled to RTN while the device is in inrush current limiting, high impedance at all other times; may require a pullup resistor or other interface to the downstream load. Can hold a converter soft-start pin low, or drive an active-high enable (then CDB needs a pullup to VDD or to a bias supply). 'CDB may be left open if it is not used.' Output low voltage (V(CDB)-V(RTN)) 0.27 V typ / 0.5 V max at ICDB = 2 mA; leakage 10 uA at VCDB = 57 V. Abs max [CDB, T2P] to RTN -0.3 to 100 V; abs max sinking current 5 mA; recommended operating sinking current 2 mA."
+    },
+    {
+      "pin": "7",
+      "name": "T2P",
+      "type": "open_collector",
+      "notes": "Datasheet I/O column: O. 'Active low indicates type 2 PSE connected or APD active.' Sec 7.3.6 / 7.4.10: T2P is pulled to RTN when [(PSE = Type_2) or (1.5 V < VAPD)] and (PD current limit != inrush). Returns high-impedance on thermal shutdown, during inrush limiting, or if no type-2 PSE was detected and APD falls below threshold. The type-2 latch is set when V(VDD-VSS) rises above the upper classification threshold and is reset when V(VDD-VSS) falls below the mark threshold. 'The T2P pin can be left unconnected if it is not used.' Referenced to RTN, so an optocoupler is recommended to cross to a secondary-side/CMOS receiver (datasheet worked example: VC = 12 V, VFWLED = 1.1 V, IT2P = 1 mA, CTR >= 100% -> RT2P = 10.6 kOhm, select 10.7 kOhm; RT2P-OUT = 10 kOhm). Output low voltage 0.26 V typ / 0.6 V max at IT2P = 2 mA; leakage 10 uA at VT2P = 57 V."
+    },
+    {
+      "pin": "8",
+      "name": "APD",
+      "type": "input",
+      "notes": "Datasheet I/O column: I. 'Raise 1.5 V above RTN to disable pass MOSFET and force T2P active.' Sec 7.3.1: >~1.5 V on APD relative to RTN turns off the internal pass MOSFET, disables the CLS output and asserts T2P, giving an external adapter priority over PoE. Thresholds referenced to RTN: VAPDEN rising 1.4 / 1.5 / 1.6 V, hysteresis VAPDH 0.27 / 0.3 / 0.33 V. APD sinking current 1 / 1.73 / 3 uA at V(APD-RTN) = 5 V. EXPLICIT DATASHEET INSTRUCTION: 'If not used, connect APD to RTN.' Abs max APD to RTN -0.3 to 19 V; recommended operating 0 to 18 V. Divider example for a 37 V adapter switch-over threshold: RAPD2 = 10 kOhm, RAPD1 = 237 kOhm."
+    },
+    {
+      "pin": "9",
+      "name": "PAD",
+      "type": "ground",
+      "notes": "Exposed PowerPAD thermal pad. Rev-C pin table row 'Pad': 'The PowerPad must be connected to VSS. A large fill area is required to assist in heat dissipation.' Sec 7.3.9: 'The PowerPAD is internally connected to VSS. It should be tied to a large VSS copper area on the PCB to provide a low resistance thermal path to the circuit board. TI recommends maintaining a clearance of 0.025 in (0.635 mm) between VSS and high-voltage signals such as VDD.' Sec 7.3.8 repeats: 'The PowerPAD must be connected to this pin [VSS] to ensure proper operation.' So the pad is the VSS node (pin 4, rectified-PoE negative rail) - it is NOT RTN (the switched load return, pin 5) and NOT the converter secondary / chassis ground. Pin number 9 is TI's own numbering for the thermal pad in package drawing 4214849/B; the rev-C pin table labels it 'Pad' with no number."
+    }
+  ],
+  "decoupling": [
+    {
+      "pins": [
+        "1",
+        "4"
+      ],
+      "value": "0.1 uF (0.05 uF to 0.12 uF allowed), 100 V, 10% ceramic",
+      "placement": "directly across VDD (pin 1) to VSS (pin 4), as close to the device as possible; part of the point-to-point power flow RJ45 -> magnetics -> bridges -> TVS + 0.1 uF -> TPS2378",
+      "notes": "Pin table: 'VDD ... Bypass with 0.1 uF to VSS.' Sec 8.2.2.3 Capacitor C1: 'The IEEE 802.3at standard specifies an input bypass capacitor (from VDD to VSS) of 0.05 uF to 0.12 uF. Typically a 0.1 uF, 100 V, 10% ceramic capacitor is used.' This is C1 in Figure 24. Rated for the 57 V PI maximum plus transients - 100 V part specified by TI."
+    },
+    {
+      "pins": [
+        "1",
+        "5"
+      ],
+      "value": "CBULK, 5 uF minimum",
+      "placement": "across the DC/DC converter input, i.e. from VDD (pin 1, positive rail) to RTN (pin 5, switched negative return) - it is charged through the internal hotswap FET at the 140 mA inrush limit",
+      "notes": "Sec 7.4.7 Maintain Power Signature: 'A valid MPS consists of a minimum dc current of 10 mA (or a 10-mA pulsed current for at least 75 ms every 325 ms) and an AC impedance lower than 26.3 kOhm in parallel with 0.05 uF. The AC impedance is usually accomplished by the minimum operating CBULK requirement of 5 uF.' Sec 7.3.5: inrush limiting holds RTN current to about 140 mA until CBULK is fully charged; CDB is asserted for the whole of that interval. Sec 7.4.8: 'Additional loading applied between VVDD and VRTN during the inrush state may prevent successful PD and subsequent converter start up.' Sizing note: larger CBULK lengthens the inrush interval at 140 mA (the datasheet gives no upper bound, but the type-2 PD must not draw more than 13 W for 80 ms after power-up and its operational current cannot exceed 400 mA for 80 ms or longer)."
+    }
+  ],
+  "land_pattern": {
+    "package": "DDA0008B PowerPAD SOIC (R-PDSO-G8), TI land pattern drawing 4214849/B 09/2025 'EXAMPLE BOARD LAYOUT'",
+    "pad_count": 9,
+    "pitch_mm": 1.27,
+    "pad_size_mm": [
+      0.6,
+      1.55
+    ],
+    "row_spacing_mm": 3.85,
+    "pin1": "1",
+    "notes": "Perimeter pads 1-8: 8X (1.55) long x 8X (0.6) wide, 6X (1.27) pitch, (R0.05) TYP corner radius, non-solder-mask-defined with 0.07 MAX solder mask clearance all around. Overall outer extent across both rows is (5.4); row centre-to-centre 3.85 mm is derived as 5.4 - 1.55. Thermal land (pad 9) is SOLDER MASK DEFINED: solder mask opening (2.71) x (3.4), metal covered by solder mask (2.95) x (4.9), 0.07 MIN mask overlap all around. Drawing NOTE 9: 'Size of metal pad may vary due to creepage requirement.' NOTE 10: 'Vias are optional depending on application... It is recommended that vias under paste be filled, plugged or tented.' Vias shown: (dia 0.2) TYP on a (1.3) TYP grid, 6 of them. Stencil (drawing 4214849/B EXAMPLE STENCIL DESIGN, based on 0.125 mm thick stencil): perimeter apertures 8X (1.55) x 8X (0.6); centre power pad aperture 2.71 x 3.40 at 0.125 mm (SHOWN), 2.47 x 3.10 at 0.150 mm, 2.29 x 2.87 at 0.175 mm, 3.03 x 3.80 at 0.100 mm. LEGACY DRAWING (the rev-C PDF hosted by LCSC carries the older 4208951-6/D land pattern, which differs): perimeter pad geometry 0,5 x 2,2 mm with 0,07 all around mask opening, 1,27 pitch, overall 5,75 x 4,90, centre pad solder-mask opening 3,10 x 2,40 over 4,90 x 2,95 copper, 6x dia 0,33 mm vias, 0.127 mm stencil centre aperture 3.1 x 2.4. Package outline 4214849/B gives the exposed pad itself as 3.4/2.8 (long) x 2.71/2.11 (wide) max/min, body 5.0/4.8 x 4.0/3.8, lead span 6.2/5.8 TYP, height 1.7 MAX, lead width 0.51/0.31. The older thermal-pad drawing 4206322-6/L gave the exposed pad as 3,10/2,65 x 2,40/1,65 - use the newer, larger figures. XREF (verified by reading the library file, not from the PDF): KiCad 10 Package_SO:SOIC-8-1EP_3.9x4.9mm_P1.27mm_EP2.95x4.9mm_Mask2.71x3.4mm (and its _ThermalVias variant) matches TI's exposed-pad metal 2.95 x 4.9 and mask opening 2.71 x 3.4 exactly; its perimeter pads are IPC-7351 nominal 1.775 x 0.6 at 5.125 mm row centre-to-centre, i.e. slightly longer and further out than TI's 1.55 at 3.85."
+  },
+  "exposed_pad": {
+    "present": true,
+    "connect_to": "VSS (pin 4) - the rectified-PoE input NEGATIVE rail. The PowerPAD is internally connected to VSS and must be soldered to a large VSS copper fill; it is NOT RTN (pin 5, the switched load return) and NOT the converter secondary / chassis / signal ground.",
+    "thermal_vias": 6
+  },
+  "layout_notes": [
+    "LAYOUT (sec 10.1, verbatim as bullets): Parts placement must be driven by power flow in a point-to-point manner; RJ-45, Ethernet transformer, diode bridges, TVS and 0.1-uF capacitor, and TPS2378.",
+    "LAYOUT (sec 10.1): All leads should be as short as possible with wide power traces and paired signal and return.",
+    "LAYOUT (sec 10.1): There should not be any crossovers of signals from one part of the flow to another.",
+    "LAYOUT (sec 10.1): Spacing consistent with safety standards like IEC60950 must be observed between the 48-V input voltage rails and between the input and an isolated converter output.",
+    "LAYOUT (sec 10.1): The TPS2378 should be located over split, local ground planes referenced to VSS for the PoE input and to RTN for the switched output.",
+    "LAYOUT (sec 10.1): Large copper fills and traces should be used on SMT power-dissipating devices, and wide traces or overlay copper fills should be used in the power path.",
+    "LAYOUT (sec 7.3.9 PowerPAD): The PowerPAD is internally connected to VSS and should be tied to a large VSS copper area to provide a low resistance thermal path. TI recommends maintaining a clearance of 0.025 in between VSS and high-voltage signals such as VDD - that is 0.635 mm, so a 0.60 mm creepage/clearance rule is BELOW TI's recommendation for VSS-to-VDD around this part.",
+    "LAYOUT (sec 10.3 EMI containment): Use compact loops for dv/dt and di/dt circuit paths (power loops and gate drives).",
+    "LAYOUT (sec 10.3): Use minimal, yet thermally adequate, copper areas for heat sinking of components tied to switching nodes (minimize exposed radiating surface).",
+    "LAYOUT (sec 10.3): Use copper ground planes (possible stitching) and top layer copper floods (surround circuitry with ground floods).",
+    "LAYOUT (sec 10.3): Use 4 layer PCB if economically feasible (for better grounding).",
+    "LAYOUT (sec 10.3): Minimize the amount of copper area associated with input traces (to minimize radiated pickup).",
+    "LAYOUT (sec 10.3): Use Bob Smith terminations, Bob Smith EFT capacitor, and Bob Smith plane; use the Bob Smith plane as a ground shield on the input side of the PCB (creating a phantom or literal earth ground).",
+    "LAYOUT (sec 10.3): Use of ferrite beads on input (allow for possible use of beads or 0 ohm resistors); maintain physical separation between input-related circuitry and power circuitry (use ferrite beads as boundary line); possible use of common-mode inductors; possible use of integrated RJ-45 jacks (shielded with internal transformer and Bob Smith terminations); end-product enclosure considerations (shielding).",
+    "LAYOUT (sec 10.4 thermal / OTSD): Sources of nearby local PCB heating must be considered - a normally operating TPS2378 can trip its over-temperature shutdown if excessively heated by a nearby device. Thermal Information for SO-8 PowerPAD: RthJA 45.9 C/W, RthJC(bot) 6.7 C/W, RthJB 28.8 C/W, psiJT 8.9 C/W, psiJB 28.7 C/W. Thermal shutdown 135-145 C with about 20 C hysteresis; the hotswap MOSFET restarts in inrush current limit after cooling.",
+    "PROTECTION (sec 8.2.2.2 D1): A TVS across the rectified PoE voltage MUST be used; TI recommends SMAJ58A or equivalent for general indoor applications. If an adapter is connected from VDD to RTN (ORing option 2), cable-inductance ringing with the internal PD capacitance requires adequate capacitive filtering or a TVS to stay inside the absolute maximum ratings.",
+    "PROTECTION (sec 8.2.2.1 input bridges): Use 1 A or 2 A, 100 V rated discrete or bridge diodes for the input rectifiers. Schottky bridges cut dissipation about 30% but leak more (IEEE maximum backfeed voltage is 2.8 V measured across a 100 kOhm resistor on the unpowered pairs), can distort the detection signature (increasing RDEN slightly may help), and are less ESD-robust than PN junction diodes.",
+    "DESIGN - MPS (sec 7.4.7): The TPS2378 does NOT generate a maintain power signature by itself. A valid MPS is a minimum DC current of 10 mA (or 10 mA pulsed for at least 75 ms every 325 ms) AND an AC impedance below 26.3 kOhm in parallel with 0.05 uF; the AC part is normally satisfied by the 5 uF minimum CBULK, but the >=10 mA DC part must be maintained by the application load. If APD or DEN is used to force the hotswap switch off, the DC MPS is not met and a PSE that monitors DC MPS will remove power (a PSE monitoring only AC MPS may also remove power).",
+    "DESIGN - inrush / hot swap (sec 7.3.5, 7.4.6, 7.4.8, 7.4.9): UVLO holds the hotswap FET off until V(VDD-VSS) rises above about 38.1 V (36.3-40 V); the FET then turns on with a 140 mA (100-180 mA) inrush limit and CDB is asserted low while CBULK charges and VRTN falls from VVDD toward VVSS. When the inrush current falls about 10% below the limit (to about 125 mA) the limit switches to the operational level (about 1 A, 0.85-1.2 A) and CDB deasserts, releasing the downstream converter. The 140 mA inrush is compatible with all PSE types (a type-2 PSE limits output to 400-450 mA for up to 75 ms after power-up). If V(RTN-VSS) exceeds about 12 V (11-13.6 V) for longer than about 800 us (500-1500 us) the part folds back to the inrush limit; the inrush limit is re-established when V(VDD-VSS) drops below UVLO. The hotswap switch is forced off when: VAPD > about 1.5 V above RTN; V(DEN-VSS) < VPD_DIS while VDD is in the operational range; over-temperature; or V(VDD-VSS) below the UVLO falling threshold (about 32 V).",
+    "DESIGN - classification (sec 7.3.3, 7.4.5): A single resistor from CLS to VSS sets the class (Table 1: 1270/243/137/90.9/63.4 ohm for class 0/1/2/3/4). The TPS2378 implements two-event (type-2) hardware classification; RCLS = 63.4 ohm presents class 4 and is the only valid type-2 signature. RCLS = 90.9 ohm is class 3 (6.49-12.95 W at the PD) and makes the part behave as a compatible type-1 device. High-power PSEs may perform two classification cycles if class 4 is presented on the first cycle. The maximum average PD power (device plus downstream load) must not exceed the Table 1 class limit or the PSE may disconnect.",
+    "DESIGN - operating window (Table 2 / Table 3): PD input voltage 37-57 V for <=13 W, 42.5-57 V for >13 W (802.3at type 2); operating voltage after start-up 30-57 V at the device terminals; detection window 1.4-10.1 V; classification window 11.9-23 V; class-4 classification current 38-42 mA; inrush limit 100-180 mA; operating current limit 850-1200 mA.",
+    "DESIGN - unused pins (sec 7.3.1, 7.3.2, 7.3.6): 'If not used, connect APD to RTN.' 'CDB may be left open if it is not used.' 'The T2P pin can be left unconnected if it is not used.' Note that CDB and T2P are open-drain and referenced to RTN, not VSS."
+  ],
+  "abs_max": [
+    {
+      "param": "Input voltage VDD (to VSS), absolute maximum",
+      "value": "-0.3 to 100",
+      "unit": "V"
+    },
+    {
+      "param": "Input voltage DEN (to VSS), absolute maximum",
+      "value": "-0.3 to 100",
+      "unit": "V"
+    },
+    {
+      "param": "Input voltage RTN (to VSS), absolute maximum, with I(RTN) = 0",
+      "value": "-0.6 to 100",
+      "unit": "V"
+    },
+    {
+      "param": "Input voltage CLS (to VSS), absolute maximum (do not apply voltage to this pin)",
+      "value": "-0.3 to 6.5",
+      "unit": "V"
+    },
+    {
+      "param": "Input voltage APD to RTN, absolute maximum",
+      "value": "-0.3 to 19",
+      "unit": "V"
+    },
+    {
+      "param": "Input voltage [CDB, T2P] to RTN, absolute maximum",
+      "value": "-0.3 to 100",
+      "unit": "V"
+    },
+    {
+      "param": "Sinking current RTN, absolute maximum (SOA limited to RTN = 80 V at 1.2 A)",
+      "value": "internally limited",
+      "unit": "A"
+    },
+    {
+      "param": "Sinking current CDB, T2P, absolute maximum",
+      "value": 5,
+      "unit": "mA"
+    },
+    {
+      "param": "Sourcing current DEN, absolute maximum",
+      "value": 1,
+      "unit": "mA"
+    },
+    {
+      "param": "Sourcing current CLS, absolute maximum",
+      "value": 65,
+      "unit": "mA"
+    },
+    {
+      "param": "TJMAX maximum junction temperature, absolute maximum",
+      "value": "internally limited",
+      "unit": "degC"
+    },
+    {
+      "param": "Tstg storage temperature, absolute maximum",
+      "value": "-65 to 150",
+      "unit": "degC"
+    },
+    {
+      "param": "Recommended operating input voltage range RTN, VDD (to VSS)",
+      "value": "0 to 57",
+      "unit": "V"
+    },
+    {
+      "param": "Recommended operating input voltage range APD to RTN",
+      "value": "0 to 18",
+      "unit": "V"
+    },
+    {
+      "param": "Recommended operating input voltage range CDB, T2P to RTN",
+      "value": "0 to 57",
+      "unit": "V"
+    },
+    {
+      "param": "Recommended operating sinking current RTN",
+      "value": 0.85,
+      "unit": "A"
+    },
+    {
+      "param": "Recommended operating sinking current CDB, T2P",
+      "value": 2,
+      "unit": "mA"
+    },
+    {
+      "param": "Recommended operating resistance CLS (max)",
+      "value": 60,
+      "unit": "ohm"
+    },
+    {
+      "param": "Recommended operating junction temperature",
+      "value": "-40 to 125",
+      "unit": "degC"
+    },
+    {
+      "param": "Orderable-addendum operating temperature for TPS2378DDAR (ambient)",
+      "value": "-40 to 85",
+      "unit": "degC"
+    },
+    {
+      "param": "ESD HBM (ANSI/ESDA/JEDEC JS-001, all pins)",
+      "value": 2000,
+      "unit": "V"
+    },
+    {
+      "param": "ESD CDM (JESD22-C101, all pins)",
+      "value": 500,
+      "unit": "V"
+    },
+    {
+      "param": "ESD IEC 61000-4-2 contact discharge (system level, per datasheet Figure 24 circuit)",
+      "value": 8000,
+      "unit": "V"
+    },
+    {
+      "param": "ESD IEC 61000-4-2 air-gap discharge (system level, per datasheet Figure 24 circuit)",
+      "value": 15000,
+      "unit": "V"
+    },
+    {
+      "param": "MSL / peak reflow (orderable addendum)",
+      "value": "Level-2-260C-1 YEAR",
+      "unit": "degC"
+    }
+  ],
+  "source_pdf": "boards/lumina-carrier/parts/C337500.pdf (TI SLVSB99C, March 2012 - revised July 2015, fetched from the LCSC wmsc mirror of lcsc_datasheet_1912111437_Texas-Instruments-TPS2378DDAR_C337500.pdf). Land-pattern and package-outline fields come from the same document number fetched directly from TI (https://www.ti.com/lit/ds/symlink/tps2378.pdf, saved as boards/lumina-carrier/work/C337500-ti-slvsb99c-4214849B.pdf), whose mechanical pages carry the current drawing 4214849/B 09/2025; the LCSC-hosted copy still carries the superseded 4208951-6/D land pattern and 4206322-6/L thermal-pad drawing, both of which are quoted in land_pattern.notes."
+}

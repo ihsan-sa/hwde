@@ -1,0 +1,296 @@
+{
+ "script": "datasheet_extract",
+ "status": "extracted",
+ "source_pdf": "boards\\lumina-carrier\\parts\\C5124114.pdf",
+ "lcsc": "C5124114",
+ "n_pages": 18,
+ "text_chars": 32722,
+ "text_by_page": [
+  {
+   "page": 0,
+   "text": "SCT2A25 \nRev.1.0 \n \n   For more information www.silicontent.com    \u00a9 2021  Silicon Content Technology Co., Ltd.   All Rights Reserved    1 \nProduct Folder Links:  SCT2A25 \n\u82af\u6d32\u79d1\u6280  \nSilicon Content Technology \n \n5.5V-100V Vin, 4A Peak Current Limit, High Efficiency Asynchronous Step-\ndown DCDC Converter  \n \nFEATURES \n\uf0b7 Wide Input Range: 5.5V-100V  \n\uf0b7 Maximum Output Voltage: 30V  \n\uf0b7 2A Continuous Output Current \n\uf0b7 4A Peak Current Limit \n\uf0b7 Integrated 500m\u2126 High-Side Power MOSFET \n\uf0b7 135uA Quiescent Current \n\uf0b7 1.2V \u00b11% Feedback Reference Voltage \n\uf0b7 4ms Internal Soft-start Time  \n\uf0b7 Fixed Switching Frequency at 300KHz  \n\uf0b7 COT Control Mode with Integrated Loop \nCompensation \n\uf0b7 Precision Enable Threshold for Programmable \nInput Voltage Under-voltage Lock Out Protection \n(UVLO) Threshold and Hysteresis \n\uf0b7 Cycle-by-Cycle Current Limiting \n\uf0b7 Over-Voltage Protection \n\uf0b7 Over-Temperature Protection \n\uf0b7 Available in an ESOP-8 Package \n \nAPPLICATIONS \n\uf0b7 GPS Tracker \n\uf0b7 E-bike, Scooter \n\uf0b7 Moto Drives, Drones \n\uf0b7 48V Industry Power Bus System \nDESCRIPTION \nThe SCT2A25 is an asynchronous buck converter with \nwide input volt age ranging from 5.5V to 100V which \naccommodates a variety of step -down applications, \nmaking it ideal for automotive, industry, and lighting \napplications. The SCT2A25 integrates an 500m\u2126 high-\nside MOSFET and has 4A peak output current limit to \nsupport high peak current application in GPS tracker  \nwith 4G Module. \nThe SCT2A25, adopting the constant -on time (COT) \nmode control  with integrated loop compensation  \ngreatly simplifies the converter off-chip configuration.  \nThe SCT2A25 features Pulse Frequency Modulation \n(PFM) mode at light load  with typical 1 40uA low \nquiescent current , which enables the converter to \nachieve the  high-power efficiency during light -load or \nno-load conditions.  \nThe SCT2A25 offers cycle-by-cycle current limit , \nthermal shutdown protection, output over -voltage \nprotection and input voltage under -voltage protection. \nThe device is available in an 8-pin thermally enhanced \nSOP-8 package. \n \nTYPICAL APPLICATION \n \n \nFB\nNC\nVIN\nBST\nGND\nEN\nTM\nSW\nSCT2A25\nVOUT  \nVIN=5.5~100V\n \n \n \n \n        \n Efficiency, Vout=12V \n0\n10\n20\n30\n40\n50\n60\n70\n80\n90\n100\n0.001 0.01 0.1 1\nEfficiency(%)\nIout(A)\n24VIN 12VOUT\n36VIN 12VOUT\n48VIN 12VOUT\n60VIN 12VOUT\n72VIN 12VOUT"
+  },
+  {
+   "page": 1,
+   "text": "SCT2A25 \n \n       2     For more information www.silicontent.com    \u00a9 2021  Silicon Content Technology Co., Ltd.   All Rights Reserved  \nProduct Folder Links:  SCT2A25 \nREVISION HISTORY  \nNOTE: Page numbers for previous revisions may differ from page numbers in the current version. \nRevision 1.0: Released to market \nDEVICE ORDER INFORMATION  \nPART NUMBER  PACKAGE MARKING PACKAGE DISCRIPTION \nSCT2A25STE 2A25 8-Lead Plastic ESOP \n1\uff09For Tape & Reel, Add Suffix R (e.g. SCT2A25STER). \nABSOLUTE MAXIMUM RATINGS \nOver operating free-air temperature unless otherwise noted(1) \n \nPIN CONFIGURATION \n \nDESCRIPTION MIN MAX UNIT \n  \nTM\nGND\nEN\n1\n2\n3\n4 5\n6\n7\n8FB\nNC\nVIN\nBST SW\nThermal \nPAD\n9\n \nFigure 1. 8-Lead Plastic E-SOP \nVIN -0.3 110 V  \nBST -0.3 116 V  \nSW -1 110 V  \nBST-SW -0.3 6 V  \nEN, FB, TM -0.3 6 V  \nOperating junction temperature TJ(2) -40 150 \u00b0C  \nStorage temperature TSTG -65 150 \u00b0C  \n(1) Stresses beyond those listed under Absolute Maximum Rating may cause device permanent damage. The device is not guaranteed to \nfunction outside of its Recommended Operation Conditions.  \n(2) The IC includes over temperature protection to protect the device during overload conditions. Junction temperature will exceed 150\u00b0C \nwhen over temperature protection is active. Continuous operation above the specified maximum operating junction temperature will \nreduce lifetime.  \nPIN FUNCTIONS \nNAME NO. PIN FUNCTION \nFB 1 \nInverting input of the comparator. The tap of external feedback resistor divider from the \noutput to GND sets the output voltage. The device regulates FB voltage to the internal \nreference value of 1.2V typical. \nNC 2 Not Connection. \nVIN 3 Input supply voltage. Connect a local bypass capacitor from VIN pin to GND pin. Path \nfrom VIN pin to high frequency bypass capacitor and GND must be as short as possible.   \nBST 4 \nPower supply bias for high-side power MOSFET gate driver. Connect a 0.1uF capacitor \nfrom BOOT pin to SW pin. Bootstrap capacitor is charged when low -side power \nMOSFET is on or SW voltage is low. \nSW 5 Regulator switching output. Connect SW to an external power inductor \nTM 6 Test mode pin for factory use only. Connect TM to EN pin, ground or leave floating. \nEN 7 Enable pin to the regulator with internal pull -up current source. Pull below 1. 23V to \ndisable the converter. Floating to enable the converter.  \nGND 8 Ground \nThermal Pad 9 Heat dissipation path of die. Electrically connection to GND pin. Must be connected to \nground plane on PCB for proper operation and optimized thermal performance.  "
+  },
+  {
+   "page": 2,
+   "text": "SCT2A25 \n \nFor more information www.silicontent.com    \u00a9 2021  Silicon Content Technology Co., Ltd.   All Rights Reserved        3     \nProduct Folder Links:  SCT2A25  \nRECOMMENDED OPERATING CONDITIONS \nOver operating free-air temperature range unless otherwise noted \nPARAMETER DEFINITION MIN MAX UNIT \nVIN Input voltage range 5.5 100 V \nVOUT Output voltage range 1.2 30 V \nTJ Operating junction temperature -40 150 \u00b0C \nESD RATINGS \nPARAMETER DEFINITION MIN MAX UNIT \nVESD \nHuman Body Model(HBM), per ANSI-JEDEC-JS-001-2014 \nspecification, all pins(1) -1 +1 kV \nCharged Device Model(CDM), per ANSI-JEDEC-JS-002-\n2014 specification, all pins(2) -0.5 +0.5 kV \n(1) JEDEC document JEP155 states that 500V HBM allows safe manufacturing with a standard ESD control process. \n(2) JEDEC document JEP157 states that 250V CDM allows safe manufacturing with a standard ESD control process. \nTHERMAL INFORMATION \nPARAMETER THERMAL METRIC ESOP-8L UNIT \nR\u03b8JA Junction to ambient thermal resistance(1) 42 \u00b0C/W R\u03b8JC Junction to case thermal resistance(1) 45.8 \n \n(1) SCT provides R\u03b8JA and R\u03b8JC numbers only as reference to estimate junction temperatures of the devices. R\u03b8JA and R\u03b8JC are not a \ncharacteristic of package itself, but of many other system level characteristics such as the design and layout of the printed circuit \nboard (PCB) on which the SCT2A25 is mounted, thermal pad size, and external environmental factors. The PCB board is a heat sink \nthat is soldered to the leads and thermal pad of the SCT2A25. Changing the design or configuration of the PCB board changes the \nefficiency of the heat sink and therefore the actual R\u03b8JA and R\u03b8JC.  "
+  },
+  {
+   "page": 3,
+   "text": "SCT2A25 \n \n       4     For more information www.silicontent.com    \u00a9 2021  Silicon Content Technology Co., Ltd.   All Rights Reserved  \nProduct Folder Links:  SCT2A25 \nELECTRICAL CHARACTERISTICS \nVIN=48V, TJ=-40\u00b0C~125\u00b0C, typical value is tested under 25\u00b0C.  \nSYMBOL PARAMETER TEST CONDITION MIN TYP MAX UNIT \nPower Supply \nVIN Operating input voltage  5.5  100 V \nVUVLO VIN UVLO Threshold VIN rising 4.7 5 5.3 V \nHysteresis   440  mV \nISHDN Shutdown current from VIN \npin EN=0, no load  4.2 10 \u03bcA \nIQ Quiescent current from VIN \npin \nEN floating, no load, non- switching, \nBOOT-SW=5V  135 260 \u03bcA \nPower MOSFETs \nRDSON_H High-side MOSFET on-\nresistance VBOOT-VSW=5V  500 950 m\u2126 \nReference and Control Loop \nVREF Reference voltage of FB  1.188 1.2 1.212 V \nEnable and Soft-startup \nVEN_H Enable high threshold   1.25  V \nVEN_Hys Enable threshold hysteresis   10  mV \nIEN_L Enable pin pull-up current EN=0V  0.3  uA \nIEN_H Enable pin pull-up current EN=1.5V  2.1  \u03bcA \nIEN_Hys Enable pin pull-up current \nhysteresis   1.8  uA \nTss Internal soft start time   4  ms \nSwitching Frequency Timing \nFSW Switching frequency   260 300 340 kHz \nTOFF_MIN Minimum off-time   200 260 ns \nCurrent Limit and Over Current Protection \nILIM HS MOSFET current limit \nTJ=25\u00b0C 3.5 4 4.5 A \nTJ=-40\u00b0C~125\u00b0C 3.3 4 4.7 A \nProtection \nVOVP \nFeedback overvoltage with \nrespect to VFB/VREF rising  120  % \nreference voltage VFB/VREF falling  115  % \nTSD Thermal shutdown threshold* TJ rising  160  \u00b0C \n Hysteresis  23  \u00b0C \n*Derived from bench characterization \n  "
+  },
+  {
+   "page": 4,
+   "text": "SCT2A25 \n \nFor more information www.silicontent.com    \u00a9 2021  Silicon Content Technology Co., Ltd.   All Rights Reserved        5     \nProduct Folder Links:  SCT2A25  \nTYPICAL CHARACTERISTICS \n \nFigure 2. Efficiency vs Load Current, Vout=12V \n \n \nFigure 3. Efficiency vs Load Current, Vout=5V \n \nFigure 4. Load Regulation, Vout=12V \n \nFigure 5. Load Regulation, Vout=5V \n \n \nFigure 6. Line Regulation, Vout=12V \n \nFigure 7. Switching Frequency vs Vin, Vout=5V  \n \n0\n10\n20\n30\n40\n50\n60\n70\n80\n90\n100\n0.001 0.01 0.1 1\nEfficiency(%)\nIout(A)\n24VIN 12VOUT\n36VIN 12VOUT\n48VIN 12VOUT\n60VIN 12VOUT\n72VIN 12VOUT\n0\n10\n20\n30\n40\n50\n60\n70\n80\n90\n100\n0.001 0.01 0.1 1\nEfficiency(%)\nIout(A)\n12VIN 5VOUT\n24VIN 5VOUT\n36VIN 5VOUT\n48VIN 5VOUT\n60VIN 5VOUT\n72VIN 5VOUT\n11.9\n11.92\n11.94\n11.96\n11.98\n12\n12.02\n12.04\n12.06\n12.08\n12.1\n0 0.5 1 1.5 2\nVout(V)\nIout(A)\nVIN=24V\nVIN=36V\nVIN=48V\nVIN=60V\n4.9\n4.91\n4.92\n4.93\n4.94\n4.95\n4.96\n4.97\n4.98\n4.99\n5\n0 0.5 1 1.5 2\nVout(V)\nIout(A)\nVIN=24V\nVIN=36V\nVIN=48V\nVIN=60V\n11.95\n11.97\n11.99\n12.01\n12.03\n12.05\n12.07\n10 20 30 40 50 60 70 80 90 100\nVout(V)\nVin(V)\n280\n285\n290\n295\n300\n305\n310\n315\n320\n325\n330\n20 40 60 80 100\nFsw\uff08KHz\uff09\nVin(V)"
+  },
+  {
+   "page": 5,
+   "text": "SCT2A25 \n \n       6     For more information www.silicontent.com    \u00a9 2021  Silicon Content Technology Co., Ltd.   All Rights Reserved  \nProduct Folder Links:  SCT2A25 \nFUNCTIONAL BLOCK DIAGRAM \nEN\nFB\nGND\nSW\nControl\nLogic\n1.25V\n1.2V\nBST\nThermal\nShutdown\n+ EN LOGIC\nVIN UVLO\nReference\nVCC\nBoot \nUVLO\nBoot\nCharge\n+\n120%VREF\nOVP\nVCCVREF\n2.1uA0.3uA\nVIN\nSoft-start\nTimer\nPWM\nDC Error \nCorrection\nRamp \nCompensation\n+\n+\nQ1\nCurrent Limit\nand Off Timer\nOn-Time\nGenerator\nTM\n \nFigure 8. Functional Block Diagram \n \n "
+  },
+  {
+   "page": 6,
+   "text": "SCT2A25 \n \nFor more information www.silicontent.com    \u00a9 2021  Silicon Content Technology Co., Ltd.   All Rights Reserved        7     \nProduct Folder Links:  SCT2A25  \nOPERATION \nOverview \nThe SCT2A25 is a 5.5V-100V input, 4A peak current limit, Step-down DCDC converter with built-in 500m\u03a9 high-\nside power MOSFET. It implements constant on time control to regulate output voltage, providing excellent line and \nload transient response, and internal error amplifier integrated improve the line and load regulation. \nThe SCT2A25 features an internal 4ms soft-start time to avoid large inrush current and output voltage overshoot  \nduring startup. The switching frequency is fixed at 300KHz. The device also supports monolithic startup with pre-\nbiased output condition. \nThe SCT2A25 has a default input start -up voltage of 5V with 4 40mV hysteresis. The EN pin has a precision \nthreshold that can be used to adjust the input voltage lockout thresholds with two external resistors to meet accurate \nhigher UVLO system requirements. Floating EN pin enables the device with the internal pull-up current to the pin.  \nThe SCT2A25 full protection features include the VIN input under-voltage lockout, the output over-voltage protection, \nover current protection with cycle-by-cycle current limit , output hard short protection and thermal shutdown  \nprotection. \nConstant On-Time Mode Control \nThe SCT2A25 employs constant on-time (COT) Mode control providing fast transient with pseudo fixed switching \nfrequency. At the beginning of each switching cycle, since the feedback voltage ( VFB) is lower than the internal \nreference voltage (V REF), the high -side MOSFET (Q1) is turned on during one on -time and th e inductor current \nrises to charge up the output voltage. The on -time is determined by the input voltage and output voltage. After the \non-time, the high-side MOSFET (Q1) turns off. The inductor current drops and the output capacitors are discharged. \nWhen the output voltage decreases and the VFB decreased below the VREF or SS, the Q1 turns  on again after \nanother dead time duration. This repeats on cycle-by-cycle. \nThe SCT2A25 works with an internal compensation, so customer could us e the device easily. Feedforward cap Cf \nis necessary to provide flexibility for optimizing the loop stability and transient response.  \nEnable and Under Voltage Lockout Threshold \nThe SCT2A25 is enabled when the V IN pin voltage rises above 5V and the EN pin voltage excee ds the enable \nthreshold of 1.25V. The device is disabled when the V IN pin voltage falls below 4. 56V or when the EN pin voltage \nis below 1.24V. Internal pull up current source to EN pin allows the device enable when EN pin floats. \nFor a higher system UVLO threshold, connect an external resistor divider (R3 and R4) shown in Figure 9 from VIN \nto EN. The UVLO rising and falling threshold can be calculated by Equation 1 and Equation 2 respectively. \n \n\ud835\udc49\ud835\udc3c\ud835\udc41\ud835\udc5f\ud835\udc56\ud835\udc60\ud835\udc52 = \ud835\udc49\ud835\udc38\ud835\udc41_\ud835\udc3b \u2217 \ud835\udc453 + \ud835\udc454\n\ud835\udc454  (1) \n \n\ud835\udc49\ud835\udc3c\ud835\udc41_\u210e\ud835\udc66\ud835\udc60 = \ud835\udc3c2 \u2217 \ud835\udc453 (2) \nWhere  \nVIN_rise: Vin rise threshold to enable the device \nVIN_hys: Vin hysteresis threshold  \nI2=2.1uA \nVEN_H=1.25V \n \nEN\n1.25V\n+\nI2\n2.1uA\nI1\n0.3uA\nEN\nR3\nR4\nVIN\n \n \nFigure 9. System UVLO by enable divide "
+  },
+  {
+   "page": 7,
+   "text": "SCT2A25 \n \n       8     For more information www.silicontent.com    \u00a9 2021  Silicon Content Technology Co., Ltd.   All Rights Reserved  \nProduct Folder Links:  SCT2A25 \nOutput Voltage \nThe SCT2A25 regulates the internal reference voltage at 1.2V with \uf0b11% tolerance over the operating temperature \nand voltage range. The output voltage is set by a resistor  divider from th e output node to the FB pin. It is \nrecommended to use 1% tolerance o r better resistors. Use Equation 3 to calculate resistance of resistor dividers . \nTo improve efficiency at light loads, larger value resistors  are recommended. However, if the values are too high, \nthe regulator will be more susceptible to noise affecting output voltage accuracy. \n\ud835\udc45\ud835\udc39\ud835\udc35_\ud835\udc47\ud835\udc42\ud835\udc43 = (\ud835\udc49\ud835\udc42\ud835\udc48\ud835\udc47\n\ud835\udc49\ud835\udc45\ud835\udc38\ud835\udc39\n\u2212 1) \u2217 \ud835\udc45\ud835\udc39\ud835\udc35_\ud835\udc35\ud835\udc42\ud835\udc47 (3) \nwhere  \n\uf0b7 RFB_TOP is the resistor connecting the output to the FB pin. \n\uf0b7 RFB_BOT is the resistor connecting the FB pin to the ground. \nInternal Soft-Start \nThe SCT2A25 integrates an internal  soft-start circuit that ramps the reference voltage from zero volts to 1.2V \nreference voltage in 4ms. If the EN pin is pulled below 1.23V, switching stops and the internal soft-start resets. \nThe soft-start also resets during shutdown due to thermal overloading. \nBootstrap Voltage Regulator  \nAn external bootstrap capacitor between BOOT pin and SW pin powers the floating gate driver to high-side power \nMOSFET. The bootstrap capacitor voltage is charged from an integrated voltage regulator when high -side power \nMOSFET is off and low-side power MOSFET is on. \nThe UVLO of high -side MOSFET gate driver has rising threshold  of 2.95V and hysteresis of 250mV. When the \ndevice operates  with high duty cycle or extremely light load , bootstrap capacitor  may be not recharged in \nconsiderable long time. The voltage at bootstrap capacitor is insufficient to drive high-side MOSFET fully on. When \nthe voltage across bootstrap capacitor drops below 2.7V, BOOT UVLO occurs. The converter forces turning on an \nintegrated low-side MOSFET periodically to refresh the voltage of bootstrap capacitor to guarantee the converter\u2019s \noperation over a wide duty range. \nOver Current Limit  \nThe inductor current is monitored during high -side FET turn on. The SCT2A25 implements over current protection \nwith cycle-by-cycle limiting high-side MOSFET peak current during unexpected overload or output hard short.  \nSCT2A25 also provide a HS current limit off timer for making the IC safer when trigger over current condition. Once \ntrigger HS over current, the present on-time period is immediately terminated to avoid the inductor current run away. \nThe length of off time is controlled by FB voltage and VIN voltage and could be calculated by the following equation. \n\ud835\udc47\ud835\udc5c\ud835\udc53\ud835\udc53 = 1.5 \u2217 ( \ud835\udc49\ud835\udc3c\ud835\udc41\n20 \u2217 \ud835\udc49\ud835\udc39\ud835\udc35 + 4.35)  \ud835\udc62\ud835\udc60 (4) \nOver voltage Protection \nThe SCT2A25 implements the Over-voltage Protection OVP circuitry to minimize output voltage overshoot during \nload transient, recovering from output fault condition or light load transient. The overvoltage comparator in OVP \ncircuit compares the FB pin voltage to the internal reference voltage. When FB voltage exceeds 120% of internal \n1.2V reference voltage, the high-side MOSFET turns off to avoid output voltage continue to increase. When the FB \npin voltage falls below 115% of the 1.2V reference voltage, the high-side MOSFET can turn on again. \nThermal Shutdown \nThe SCT2A25 protects the device from the damage during excessive heat and power dissipation conditions. Once \nthe junction temperature exceeds 1 60\u00b0C, the internal thermal sensor stops power MOSFETs switching. When the \njunction temperature falls below 137\u00b0C, the device restarts with internal soft start phase. "
+  },
+  {
+   "page": 8,
+   "text": "SCT2A25 \n \nFor more information www.silicontent.com    \u00a9 2021  Silicon Content Technology Co., Ltd.   All Rights Reserved        9     \nProduct Folder Links:  SCT2A25  \nAPPLICATION INFORMATION \nTypical application \nFB\nNC\nVIN\nBST\nGND\nEN\nTM\nSW\nSCT2A25\nC4\n0.1uF\nL1   68uH\nC5\n22uF\nVOUT=12V  \nC7\n150pF\nC1\n2.2uF\nC3\n0.1uF\nR2\n271K\nR1\n30K\nVIN=24V~100V\nD1\nC2\n2.2uF\nC6\n22uF\nVIN\nR4\n42.2K\nR3\n464K\n \nFigure 10. SCT2A25 Design Example, 12V Output with Programmable UVLO \nDesign Parameters \nDesign Parameters Example Value \nInput Voltage 48V Normal\uff0c 24V to 100V \nOutput Voltage 12V \nMaximum Output Current 2A \nSwitching Frequency 300 KHz \nOutput voltage ripple (peak to peak) 15mV \nTransient Response 0.2A to 1.8A load step \u2206Vout = 100mV \nTransient Response 0.75A to 1.25A load step \u2206Vout = 50mV \n  "
+  },
+  {
+   "page": 9,
+   "text": "SCT2A25 \n \n       10     For more information www.silicontent.com    \u00a9 2021  Silicon Content Technology Co., Ltd.   All Rights Reserved  \nProduct Folder Links:  SCT2A25 \nOutput Voltage \n \nThe output voltage is set by an external resistor divider \nR1 and R 2 in typical application schematic . \nRecommended R1 resistance is 30K\u03a9. Use equation 5 \nto calculate R2. \n \n\ud835\udc452 = (\ud835\udc49\ud835\udc42\ud835\udc48\ud835\udc47\n\ud835\udc49\ud835\udc45\ud835\udc38\ud835\udc39\n\u2212 1) \u2217 \ud835\udc451 (5) \nwhere: \n\uf0b7 VREF is the feedback reference voltage of 1.2V \n \nTable 1. R1, R2Value for Common Output Voltage \n(Room Temperature) \nVOUT R2 R1 \n5  V 95 K\u03a9 30 K\u03a9 \n12 V 271 K\u03a9 30 K\u03a9 \n24V 191 K\u03a9 10 K\u03a9 \n \nUnder Voltage Lock-Out \nAn external voltage divider network of R 3 from the input to EN pin and R4 from EN pin to the ground can set the \ninput voltage\u2019s Under Voltage Lock-Out (UVLO) threshold. The UVLO has two thresholds, one for power up when \nthe input voltage is risin g and the other for power down or brown outs when the input voltage is falling. For the \nexample design, the supply should turn on and start switching once the input voltage increases above 15V (start or \nenable). After the regulator starts switching, it should continue to do so until the input voltage falls below 14V (stop \nor disable). Use Equation 6 and Equation 7 to calculate the values 464 k\u2126 and 42.2 k\u2126 of R3 and R4 resistors. \n\ud835\udc49\ud835\udc3c\ud835\udc41\ud835\udc5f\ud835\udc56\ud835\udc60\ud835\udc52 = \ud835\udc49\ud835\udc38\ud835\udc41_\ud835\udc3b \u2217 \ud835\udc453 + \ud835\udc454\n\ud835\udc454    (6) \n \n\ud835\udc49\ud835\udc3c\ud835\udc41_\u210e\ud835\udc66\ud835\udc60 = \ud835\udc3c2 \u2217 \ud835\udc453  (7) \nWhere  \nVIN_rise: Vin rise threshold to enable the device \nVIN_hys: Vin hysteresis threshold  \nI2=2uA \nVEN_H=1.24V \nInductor Selection \nThere are several factors should be considered in selecting inductor such as inductance, saturation current, the \nRMS current and DC resistance(DCR). Larger inductance results in less inductor current ripple and therefore leads \nto lower output voltage ripple.  However, the larger value inductor always corresponds to a bigger physical size, \nhigher series resistance, and lower saturation current.  A good rule for determining the inductance to use is to allow \nthe inductor peak-to-peak ripple current to be approximately 20%~40% of the maximum output current.  \nThe peak-to-peak ripple current in the inductor ILPP can be calculated as in Equation 8. \n\ud835\udc3c\ud835\udc3f\ud835\udc43\ud835\udc43 = \ud835\udc49\ud835\udc42\ud835\udc48\ud835\udc47 \u2217 (\ud835\udc49\ud835\udc3c\ud835\udc41 \u2212 \ud835\udc49\ud835\udc42\ud835\udc48\ud835\udc47)\n\ud835\udc49\ud835\udc3c\ud835\udc41 \u2217 \ud835\udc3f \u2217 \ud835\udc53\ud835\udc46\ud835\udc4a\n (8) \n \nWhere \n\uf0b7 ILPP is the inductor peak-to-peak current  \n\uf0b7 L is the inductance of inductor \n\uf0b7 fSW is the switching frequency \n\uf0b7 VOUT is the output voltage \n\uf0b7 VIN is the input voltage "
+  },
+  {
+   "page": 10,
+   "text": "SCT2A25 \n \nFor more information www.silicontent.com    \u00a9 2021  Silicon Content Technology Co., Ltd.   All Rights Reserved        11     \nProduct Folder Links:  SCT2A25  \nSince the inductor-current ripple increases with the input voltage, so the maximum input voltage in application is \nalways used to calculate the minimum inductance required. Use Equation 9 to calculate the inductance value. \n\ud835\udc3f\ud835\udc40\ud835\udc3c\ud835\udc41 = \ud835\udc49\ud835\udc42\ud835\udc48\ud835\udc47\n\ud835\udc53\ud835\udc46\ud835\udc4a \u2217 \ud835\udc3f\ud835\udc3c\ud835\udc45 \u2217 \ud835\udc3c\ud835\udc42\ud835\udc48\ud835\udc47(\ud835\udc5a\ud835\udc4e\ud835\udc65)\n\u2217 (1 \u2212 \ud835\udc49\ud835\udc42\ud835\udc48\ud835\udc47\n\ud835\udc49\ud835\udc3c\ud835\udc41(\ud835\udc5a\ud835\udc4e\ud835\udc65)\n) (9) \n \nWhere \n\uf0b7 LMIN is the minimum inductance required \n\uf0b7 fsw is the switching frequency \n\uf0b7 VOUT is the output voltage \n\uf0b7 VIN(max) is the maximum input voltage \n\uf0b7 IOUT(max) is the maximum DC load current \n\uf0b7 LIR is coefficient of ILPP to IOUT \nThe total current flowing through the inductor is the inductor ripple current plus the output current. When selecting \nan inductor, choose its rated current especially the saturation current larger than its peak operation current and \nRMS current also not be exceeded.  Therefore, the peak switching current of inductor , I LPEAK and I LRMS can be  \ncalculated as in equation 10 and equation 11. \n\ud835\udc3c\ud835\udc3f\ud835\udc43\ud835\udc38\ud835\udc34\ud835\udc3e = \ud835\udc3c\ud835\udc42\ud835\udc48\ud835\udc47 + \ud835\udc3c\ud835\udc3f\ud835\udc43\ud835\udc43\n2  (10) \n\ud835\udc3c\ud835\udc3f\ud835\udc45\ud835\udc40\ud835\udc46 = \u221a(\ud835\udc3c\ud835\udc42\ud835\udc48\ud835\udc47)2 + 1\n12 \u2217 (\ud835\udc3c\ud835\udc3f\ud835\udc43\ud835\udc43)2 (11) \n \nWhere \n\uf0b7 ILPEAK is the inductor peak current \n\uf0b7 IOUT is the DC load current \n\uf0b7 ILPP is the inductor peak-to-peak current  \n\uf0b7 ILRMS is the inductor RMS current  \nIn overloading or load transient conditions, the inductor peak current can increase up to the switch current limit of  \nthe device which is typically 4A. The most conservative approach is to choose an inductor with a saturation current \nrating greater than 4 A. Because of the maximum I LPEAK limited by device, the maximum output current that the \nSCT2A25 can deliver also depends on the inductor current ripple. Thus, the maximum desired output current also \naffects the selection of inductance. The smaller inductor results in larger inductor current ripple leading to a lower \nmaximum output current. \nDiode Selection \nThe SCT2A25 requires an external catch diode between the SW pin and GND. The selected diode must have a \nreverse voltage rating equal to or greater than VIN(max). The peak current rating of the diode must be greater than \nthe maximum inductor current. Schottky diodes a re typically a good choice for the catch diode due to their low \nforward voltage. The lower the forward voltage of the diode, the higher the efficiency of the regulator. \nTypically, diodes with higher voltage and current ratings have higher forward voltag es. A diode with a minimum of \n100-V reverse voltage is preferred to allow input voltage transients up to the rated voltage of the SCT2A25. \nFor the example design, the SS510 Schottky diode is selected for its lower forward voltage and good thermal \ncharacteristics compared to smaller devices. The typical forward voltage of the SS510 is 0.7 volts at 5 A. \nThe diode must also be selected with an appropriate power rating. The diode conducts the output current during \nthe off-time of the internal power switch. The off -time of the internal switch is a function of the maximum input \nvoltage, the output voltage, and the switching frequency. The output current during the off -time is multiplied by the \nforward voltage of the diode to calculate the instantaneous conduction los ses of the diode. At higher switching \nfrequencies, the ac losses of the diode need to be taken into account. The ac losses of the diode are due to the "
+  },
+  {
+   "page": 11,
+   "text": "SCT2A25 \n \n       12     For more information www.silicontent.com    \u00a9 2021  Silicon Content Technology Co., Ltd.   All Rights Reserved  \nProduct Folder Links:  SCT2A25 \ncharging and discharging of the junction capacitance and reverse recovery charge. Equation 12 is used to calculate \nthe total power dissipation, including conduction losses and ac losses of the diode.  \nThe SS510 diode has a junction capacitance of 300 pF. Using Equation 12, the total loss in the diode at the \nmaximum input voltage is 1.24 W. \nIf the power supply spends a significant amount of time at light load currents or in sleep mode, consider using a \ndiode which has a low leakage current and slightly higher forward voltage drop.  \n\ud835\udc43\ud835\udc37 = (\ud835\udc49\ud835\udc3c\ud835\udc41_\ud835\udc40\ud835\udc34\ud835\udc4b \u2212 \ud835\udc49\ud835\udc42\ud835\udc48\ud835\udc47) \u00d7 \ud835\udc3c\ud835\udc42\ud835\udc48\ud835\udc47 \u00d7 \ud835\udc49\ud835\udc51\n\ud835\udc49\ud835\udc3c\ud835\udc41_\ud835\udc40\ud835\udc34\ud835\udc4b\n+ \ud835\udc36\ud835\udc57 \u00d7 \ud835\udc53\ud835\udc46\ud835\udc4a \u00d7 (\ud835\udc49\ud835\udc3c\ud835\udc41 + \ud835\udc49\ud835\udc51)2\n2  \n(12) \nInput Capacitor Selection \nThe input current to the step-down DCDC converter is discontinuous, therefore it requires a capacitor to supply the \nAC current to the step-down DCDC converter while maintaining the DC input voltage. Use capacitors with low ESR \nfor better performance. Ceramic capacitors with X5R or X7R dielectrics are usually suggested because of their low \nESR and small temperature coefficients, and it is strongly recommended to use another lower value capacitor (e.g. \n0.1uF) with small package size (0603) to filter  high frequency switching noise. Place the small size capacitor as \nclose to VIN and GND pins as possible. \nThe voltage rating of the input capacitor must be greater than the maximum input voltage. And the capacitor must \nalso have a ripple current rating greater than the maximum input current ripple. The RMS current in the input \ncapacitor can be calculated using Equation 13. \nICINRMS = IOUT \u2217 \u221aVOUT\nVIN\n\u2217 (1 \u2212 VOUT\nVIN\n) (13) \nThe worst case condition occurs at VIN=2*VOUT, where: \nICINRMS = 0.5 \u2217 IOUT (14) \nFor simplification, choose an input capacitor with an RMS current rating greater than half of the maximum load \ncurrent. \nWhen selecting ceramic capacitors, it needs to consider t he effective value of a capacitor decreasing as the DC \nbias voltage across a capacitor increasing. \nThe input capacitance value determines the input ripple voltage of the regulator. The input voltage ripple can be \ncalculated using Equation 15 and the maximum input voltage ripple occurs at 50% duty cycle. \n\u2206VIN = IOUT\nfSW \u2217 CIN\n\u2217 VOUT\nVIN\n\u2217 (1 \u2212 VOUT\nVIN\n) (15) \nFor this example, two 2.2\u03bcF, X7R ceramic capacitors rated for 100 V in parallel are used. And a 0.1 \u03bcF for high -\nfrequency filtering capacitor is placed as close as possible to the device pins. \nBootstrap Capacitor Selection \nA 0.1\u03bcF ceramic capacito r must be connected between BOOT pin and SW pin for proper operation. A ceramic \ncapacitor with X5R or better grade dielectric is recommended.  The capacitor should have a 10V or higher voltage \nrating. \nOutput Capacitor Selection \nThe selection of output capacitor will affect output voltage ripple in steady state and load transient performance. "
+  },
+  {
+   "page": 12,
+   "text": "SCT2A25 \n \nFor more information www.silicontent.com    \u00a9 2021  Silicon Content Technology Co., Ltd.   All Rights Reserved        13     \nProduct Folder Links:  SCT2A25  \nThe output ripple is essentially composed of two parts. One is caused by the inductor current ripple going through \nthe Equivalent Series Resistance ESR of the output capacitors and the other is caused by the inductor current ripple \ncharging and discharging the output capacitors. To achieve small output voltage ripple, choose a  low-ESR output \ncapacitor like  ceramic capacitor. For ceramic capacitors, the capacitance dominates the output ripple. For \nsimplification, the output voltage ripple can be estimated by Equation 16 desired. \n\u2206VOUT = \ud835\udc49\ud835\udc42\ud835\udc48\ud835\udc47 \u2217 (\ud835\udc49\ud835\udc3c\ud835\udc41 \u2212 \ud835\udc49\ud835\udc42\ud835\udc48\ud835\udc47)\n8 \u2217 \ud835\udc53\ud835\udc46\ud835\udc4a\n2 \u2217 \ud835\udc3f \u2217 \ud835\udc36\ud835\udc42\ud835\udc48\ud835\udc47 \u2217 \ud835\udc49\ud835\udc3c\ud835\udc41\n (16) \nWhere \n\uf0b7 \u0394VOUTis the output voltage ripple \n\uf0b7 fSW is the switching frequency \n\uf0b7 L is the inductance of inductor \n\uf0b7 COUT is the output capacitance  \n\uf0b7 VOUT is the output voltage \n\uf0b7 VINis the input voltage \nDue to  capacitor\u2019s degrading under DC bias, the bias voltage can significantly reduce capacitance. Ceramic \ncapacitors can lo se most of their capacitance at rated voltage. Therefore, leave margin on the voltage rating to \nensure adequate effective capacitance. Typically, two 22\u03bcF ceramic output capacitors work for most applications.  \nTable 2 lists typical values of external components for some standard output voltages. \n  \nTable 2: Component List with Typical Output Voltage BOM list \nVout L1 COUT R2 R1 C7  \n5V 33uH 2*22uF 95K 30K 68pF \n12V 68uH 2*22uF 271K 30K 150pF \n24V 100uH 2*22uF 191k 10K 150pF \n "
+  },
+  {
+   "page": 13,
+   "text": "SCT2A25 \n \n       14     For more information www.silicontent.com    \u00a9 2021  Silicon Content Technology Co., Ltd.   All Rights Reserved  \nProduct Folder Links:  SCT2A25 \nApplication Waveforms \nVin=48V, Vout=12V, unless otherwise noted \nFigure 11. Power up (Iload=2A) \n \nFigure 12. Power down (Iload=2A) \n \nFigure 13. EN toggle (Iload=2A) \n \nFigure 14. EN toggle (Iload=10mA) \n \nFigure 15. Over Current Protection Figure 16. Over Current Release \n"
+  },
+  {
+   "page": 14,
+   "text": "SCT2A25 \n \nFor more information www.silicontent.com    \u00a9 2021  Silicon Content Technology Co., Ltd.   All Rights Reserved        15     \nProduct Folder Links:  SCT2A25  \nApplication Waveforms(Continued) \nVin=48V, Vout=12V, unless otherwise noted \nFigure 17. Load Transient (0.2A-1.8A, 1.6A/us) \n \nFigure 18. Load Transient (0.75A-1.25A, 1.6A/us) \n \nFigure 19. Output Ripple (Iload=0A) \n \nFigure 20. Output Ripple (Iload=0.1A) \n \nFigure 21. Output Ripple (Iload=2A) Figure 22. Thermal, 48VIN, 12Vout,2A \n"
+  },
+  {
+   "page": 15,
+   "text": "SCT2A25 \n \n       16     For more information www.silicontent.com    \u00a9 2021  Silicon Content Technology Co., Ltd.   All Rights Reserved  \nProduct Folder Links:  SCT2A25 \nLayout Guideline \nProper PCB layout is a critical for SCT2A25\u2019s stable and efficient operation . The traces conducting fast switching \ncurrents or voltages are easy to interact with stray inductance and parasitic capacitance to generate noise and \ndegrade performance. For better results, follow these guidelines as below:  \n1. Power grounding scheme is very  critical because of carrying power, thermal, and glitch/bouncing noise \nassociated with clock frequency. The thumb of rule is to make ground trace lowest impendence and power are \ndistributed evenly on PCB. Sufficiently placing ground area will optimize thermal and not causing over heat area. \n2. Place a low ESR ceramic capacitor as close to VIN pin and the ground as possible to reduce parasitic effect. \n3. For operation at full rated load, the top side ground area must provide adequate heat dissipating area.  Make \nsure top switching loop with power have lower impendence of grounding.  \n4. The bottom layer is a large ground plane connected to the ground plane on top layer by vias.  The power pad \nshould be connected to bottom PCB ground planes using multiple vias dir ectly under the IC.  The center thermal \npad should always be  soldered to the board for mechanical strength and reliability, using multiple thermal vias \nunderneath the thermal pad. Improper soldering thermal pad to ground plate on PCB  will cause SW higher ringing \nand overshoot besides downgrading thermal performance. It is recommended 8mil  diameter drill holes of thermal \nvias, but a smaller via offers less risk of solder volume loss. On applications where solder volume loss thru the vias \nis of concern, plugging or tenting can be used to achieve a repeatable process. \n5. Output inductor should be placed close to the SW pin. The area of the PCB conductor minimized to prevent \nexcessive capacitive coupling. \n6. Route BST capacitor trace on the bottom layer to provide wide path for topside ground.  \nInput bypass \ncapacitor\nProgrammable \nUVLO resistors \nVia\nVia\nOutput Capacitors\nFeedback \nresistors\nInductor\nGND\nEN\n1\n2\n3\n4 5\n6\n7\n8\nFB\nNC\nVIN\nBST\nTM\nSW\nThermal\nPad\nVia\nVOUT\nTop layer ground area\nVia\nGND\nVIN\nBottom trace\n \n \nFigure 23. PCB Layout Example  "
+  },
+  {
+   "page": 16,
+   "text": "SCT2A25 \n \nFor more information www.silicontent.com    \u00a9 2021  Silicon Content Technology Co., Ltd.   All Rights Reserved        17     \nProduct Folder Links:  SCT2A25  \nPACKAGE INFORMATION \n \n \nESOP8/PP(95x130) Package Outline Dimensions \n \nSymbol Dimensions in Millimeters Dimensions in Inches \nMin. Max. Min.  Max. \nA 1.300 1.700 0.051 0.067 \nA1 0.000 0.100 0.000 0.004 \nA2 1.350 1.550 0.053 0.061 \nb 0.330 0.510 0.013 0.020 \nc 0.170 0.250 0.007 0.010 \nD 4.700 5.100 0.185 0.201 \nD1 3.050 3.250 0.120 0.128 \nE 3.800 4.000 0.150 0.157 \nE1 5.800 6.200 0.228 0.244 \nE2 2.160 2.360 0.085 0.093 \ne 1.270(BSC) 0.050(BSC) \n    \nL 0.400 1.270 0.016 0.050 \n\uf071 0\u00b0 8\u00b0 0\u00b0 8\u00b0 \n \nNOTE: \n1. Drawing proposed to be made a JEDEC package outline MO-220 variation. \n2. Drawing not to scale. \n3. All linear dimensions are in millimeters. \n4. Thermal pad shall be soldered on the board. \n5. Dimensions of exposed pad on bottom of package do not include mold flash.  \n6. Contact PCB board fabrication for minimum solder mask web tolerances between the pins. \n  \n"
+  },
+  {
+   "page": 17,
+   "text": "SCT2A25 \n \n       18     For more information www.silicontent.com    \u00a9 2021  Silicon Content Technology Co., Ltd.   All Rights Reserved  \nProduct Folder Links:  SCT2A25 \nT APE AND REEL INFORMATION \n \nOrderable Device Package Type Pins SPQ \nSCT2A25STER ESOP-8L 8 4000 \n \n \n \n \n \n \n \n \n \n \n \n \n \nNOTICE: The information in this document is subject to change without notice. Users should warrant and guarantee the third \nparty Intellectual Property rights are not infringed upon when integrating Silicon Content Technology (SCT) products into any \napplication. SCT will not assume any legal responsibility for any said applications. \n"
+  }
+ ],
+ "schema": {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ai-ee datasheet extraction",
+  "type": "object",
+  "required": [
+   "mpn",
+   "pinout"
+  ],
+  "additionalProperties": false,
+  "properties": {
+   "mpn": {
+    "type": "string",
+    "minLength": 1
+   },
+   "lcsc": {
+    "type": "string"
+   },
+   "package": {
+    "type": "string"
+   },
+   "description": {
+    "type": "string"
+   },
+   "pinout": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "required": [
+      "pin",
+      "name",
+      "type"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "pin": {
+       "type": "string",
+       "minLength": 1
+      },
+      "name": {
+       "type": "string",
+       "minLength": 1
+      },
+      "type": {
+       "type": "string",
+       "enum": [
+        "power_in",
+        "power_out",
+        "ground",
+        "input",
+        "output",
+        "bidirectional",
+        "passive",
+        "analog",
+        "clock",
+        "nc",
+        "open_collector",
+        "tristate",
+        "unspecified"
+       ]
+      },
+      "notes": {
+       "type": "string"
+      }
+     }
+    }
+   },
+   "decoupling": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "required": [
+      "pins",
+      "value"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "pins": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       },
+       "minItems": 1
+      },
+      "value": {
+       "type": "string",
+       "minLength": 1
+      },
+      "placement": {
+       "type": "string"
+      },
+      "notes": {
+       "type": "string"
+      }
+     }
+    }
+   },
+   "land_pattern": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "pad_count"
+    ],
+    "properties": {
+     "package": {
+      "type": "string"
+     },
+     "pad_count": {
+      "type": "integer",
+      "minimum": 1
+     },
+     "pitch_mm": {
+      "type": "number",
+      "exclusiveMinimum": 0
+     },
+     "pad_size_mm": {
+      "type": "array",
+      "items": {
+       "type": "number",
+       "minimum": 0
+      },
+      "minItems": 2,
+      "maxItems": 2
+     },
+     "row_spacing_mm": {
+      "type": "number",
+      "minimum": 0
+     },
+     "courtyard_excess_mm": {
+      "type": "number",
+      "minimum": 0
+     },
+     "pin1": {
+      "type": "string",
+      "description": "pad number that is pin 1 (default '1')"
+     },
+     "notes": {
+      "type": "string"
+     }
+    }
+   },
+   "exposed_pad": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "present": {
+      "type": "boolean"
+     },
+     "connect_to": {
+      "type": "string"
+     },
+     "thermal_vias": {
+      "type": "integer",
+      "minimum": 0
+     }
+    },
+    "required": [
+     "present"
+    ]
+   },
+   "layout_notes": {
+    "type": "array",
+    "items": {
+     "type": "string"
+    }
+   },
+   "abs_max": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "required": [
+      "param",
+      "value"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "param": {
+       "type": "string"
+      },
+      "value": {
+       "type": [
+        "number",
+        "string"
+       ]
+      },
+      "unit": {
+       "type": "string"
+      }
+     }
+    }
+   },
+   "source_pdf": {
+    "type": "string"
+   }
+  }
+ },
+ "template": {
+  "mpn": "",
+  "lcsc": "",
+  "package": "",
+  "pinout": [
+   {
+    "pin": "1",
+    "name": "",
+    "type": "unspecified"
+   }
+  ],
+  "decoupling": [],
+  "land_pattern": {
+   "pad_count": 0
+  },
+  "layout_notes": [],
+  "abs_max": []
+ },
+ "note": "Fill the template from text_by_page and the PDF pages, then re-run with --validate. If text_chars is ~0 the PDF is image-only; read the rendered pages directly."
+}

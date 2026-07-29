@@ -456,7 +456,7 @@ Carried from the research fragments so they are not lost between P2 and P8.
 
 1. **PD front-end power flow is point-to-point and contiguous:** J1 -> TVS + 0.1 uF -> U1. No
    signal of any kind crosses that zone - it is effectively a routing keepout for MDI, SPI and PWM.
-2. **0.60 mm outer-layer clearance around every 48 V net, board-wide** (IPC-2221B B2, 51-100 V band;
+2. **0.635 mm outer-layer clearance around every 48 V net, board-wide** (IPC-2221B B2, 51-100 V band;
    TI independently recommends 0.635 mm VSS-to-VDD). Not just at the connector.
    **`rules_gen` does not read `voltages`** (grep-verified), so nothing makes the P7 router honour
    this - a named `.kicad_dru` clearance rule keyed on `A.NetName` must be added at P5. See

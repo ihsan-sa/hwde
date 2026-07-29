@@ -1,0 +1,138 @@
+{
+  "mpn": "HY931147C",
+  "lcsc": "C91754",
+  "package": "Plugin / THT right-angle shielded RJ45 jack, 10 signal pins + 4 LED pins",
+  "description": "HanRun single-port RJ45 connector with LEDs and integrated magnetics for 10/100Base-TX PoE application. Datasheet REV.A/1, 2 pages, read visually (PDF is image-only, 0 extractable text chars). Electrical spec @25C as printed: RoHS compliant (Pb free); isolation 1500 Vrms 1 minute (P2+P5 to J2+J3); OCL 350 uH minimum @100 kHz 100 mV with 8 mA DC; insertion loss -1.0 dB max @1 MHz-100 MHz; return loss -18 dB min @1-30 MHz, -16 dB min @30-45 MHz, -14 dB min @45-60 MHz, -12 dB min @60-80 MHz; common mode rejection -35 dB min @1 MHz-100 MHz; crosstalk -30 dB min @1 MHz-100 MHz. Page 2 features: 'Meets or Exceeds IEEE802.3af standards including 350uH Min OCL with 8mADC' and 'Minimum 1500Vrms isolation per IEEE802.3 requirement'. Both MDI transformers are marked 1CT:1. Mechanical: 21.60 max deep x 16.00 wide (B) x 13.95 max (C) body, 17.98 +/-0.50 flange, 15.21 +/-0.50, lead length D 3.05 min, E 4.08.",
+  "pinout": [
+    {
+      "pin": "1",
+      "name": "RX_P1",
+      "type": "passive",
+      "notes": "Chip side. Lower end of the RX transformer chip-side winding (schematic order top-to-bottom is P2, P3, P1). Its line-side counterpart is jack contact J3. Datasheet assigns no +/- polarity to P1 vs P2."
+    },
+    {
+      "pin": "2",
+      "name": "RX_P2",
+      "type": "passive",
+      "notes": "Chip side. Upper end of the RX transformer chip-side winding. Its line-side counterpart is jack contact J6. One of the two isolation-test nodes (P2+P5 to J2+J3, 1500 Vrms)."
+    },
+    {
+      "pin": "3",
+      "name": "RX_CT",
+      "type": "passive",
+      "notes": "Chip-side centre tap of the RX winding (1CT:1). Chip-side tap only - it is NOT part of the PoE rectifier; the PoE tap is on the line side and is internal."
+    },
+    {
+      "pin": "4",
+      "name": "TX_CT",
+      "type": "passive",
+      "notes": "Chip-side centre tap of the TX winding (1CT:1). Chip-side tap only, not connected to the internal rectifier."
+    },
+    {
+      "pin": "5",
+      "name": "TX_P5",
+      "type": "passive",
+      "notes": "Chip side. Lower end of the TX transformer chip-side winding (schematic order top-to-bottom is P6, P4, P5). Its line-side counterpart is jack contact J1. One of the two isolation-test nodes (P2+P5 to J2+J3, 1500 Vrms)."
+    },
+    {
+      "pin": "6",
+      "name": "TX_P6",
+      "type": "passive",
+      "notes": "Chip side. Upper end of the TX transformer chip-side winding. Its line-side counterpart is jack contact J2."
+    },
+    {
+      "pin": "7",
+      "name": "NC",
+      "type": "nc",
+      "notes": "Physically present in the mounting pattern (one of the 10 x dia 0.89 holes) but does NOT appear anywhere on the datasheet schematic - no internal connection shown. Verified: the schematic's chip-side pin list is P1..P6, P9, P10 plus LED pins 11-14 only."
+    },
+    {
+      "pin": "8",
+      "name": "NC",
+      "type": "nc",
+      "notes": "Physically present in the mounting pattern but absent from the datasheet schematic - no internal connection shown. (Note: the HR861153C alternate uses P7/P8 differently, so this NC is SKU-specific.)"
+    },
+    {
+      "pin": "9",
+      "name": "V+",
+      "type": "power_out",
+      "notes": "Labelled 'V+ P9' on the datasheet schematic. Positive terminal of the internal rectifier: it is the common cathode node of all four high-side diodes (both Mode A legs and both Mode B legs)."
+    },
+    {
+      "pin": "10",
+      "name": "V-",
+      "type": "power_out",
+      "notes": "Labelled 'V- P10' on the datasheet schematic. Negative terminal of the internal rectifier: it is the common anode node of all four low-side diodes."
+    },
+    {
+      "pin": "11",
+      "name": "LED_YELLOW_ANODE",
+      "type": "passive",
+      "notes": "Yellow LED anode (585 nm). Verified from the schematic: the pin-11 wire enters the triangle base, the cathode bar is on the far side and wraps back to pin 12."
+    },
+    {
+      "pin": "12",
+      "name": "LED_YELLOW_CATHODE",
+      "type": "passive",
+      "notes": "Yellow LED cathode (585 nm)."
+    },
+    {
+      "pin": "13",
+      "name": "LED_GREEN_ANODE",
+      "type": "passive",
+      "notes": "Green LED anode (568 nm). Verified from the schematic: pin 13 drives the triangle base, pin 14 is on the bar side."
+    },
+    {
+      "pin": "14",
+      "name": "LED_GREEN_CATHODE",
+      "type": "passive",
+      "notes": "Green LED cathode (568 nm)."
+    }
+  ],
+  "decoupling": [],
+  "land_pattern": {
+    "package": "THT right-angle RJ45, 10 signal pins (2 staggered rows of 5) + 4 LED pins + 2 board-lock holes + 2 mounting holes",
+    "pad_count": 14,
+    "pitch_mm": 2.54,
+    "pin1": "1",
+    "notes": "From the page-2 'Mounting Pattern (Component Side View)' drawing. Signal pins: 10 x dia 0.89 holes in two staggered rows - even row 10,8,6,4,2 left-to-right and odd row 9,7,5,3,1 left-to-right, 2.54 mm pitch within each row; the two rows are offset 0.64 mm either side of the package centreline (1.27 mm stagger, odd row to the right of centre). LED pins: 4 x dia 1.02 holes (14,13 left pair; 12,11 right pair) on a separate row above the signal rows. Mechanical: 2 x dia 3.25 holes and 2 x dia 1.63 holes. Printed pattern dimensions: 16.10 and 13.25 and 11.43 and 15.49 and 2.54 horizontal; 10.92 and 8.89 and 4.08 and 3.05 and 2.54 vertical, all referenced to the horizontal centreline through the two dia 3.25 holes. Drawing tolerance .xx +/-0.25, dimensions in mm. NOTE pad_count 14 counts electrical pins only; a KiCad footprint will normally add the 2 dia 1.63 board-lock/shield pads and 2 dia 3.25 unplated holes."
+  },
+  "exposed_pad": {
+    "present": false
+  },
+  "layout_notes": [
+    "INTERNAL TOPOLOGY (traced pin-by-pin from the page-1 schematic at 300 dpi): TWO full diode bridges rectify onto ONE common V+ (P9) / V- (P10) pair. Mode A bridge: AC inputs are the two line-side transformer centre taps (RX winding CT and TX winding CT). Mode B bridge: AC inputs are the two tied spare pairs (J7+J8 tied together, and J4+J5 tied together). All eight diodes share the same V+ and V- rails, so the part accepts Mode A or Mode B, either polarity, without external steering diodes.",
+    "Each bridge leg is drawn as: V- --(diode, anode at V-)--> AC node --(diode, cathode at V+)--> V+. Confirmed by tracing the P9 riser (common cathode node) and the P10 riser (common anode node) through the hop/junction symbols.",
+    "SPARE PAIRS: J7 and J8 are tied together inside the jack (junction dot on the J8 wire, branch down to J7) and feed one Mode B bridge leg. J4 and J5 are tied together inside the jack (junction dot on the J5 riser at the J4 wire) and feed the other Mode B bridge leg. No external tying is needed or possible.",
+    "MDI mapping (verified by tracing each line-side winding end to its jack contact): RX transformer line side -> J6 (upper end) and J3 (lower end); TX transformer line side -> J2 (upper end) and J1 (lower end). This is the standard T568B assignment (pair 1,2 = TX; pair 3,6 = RX; spares 4,5 and 7,8).",
+    "Transformer turns ratio is marked 1CT:1 on BOTH the RX and the TX transformer. The centre tap that feeds the PoE rectifier is on the LINE side and is internal; the chip-side taps are brought out separately on P3 (RX) and P4 (TX).",
+    "LED drive: pin 11 = yellow anode, pin 12 = yellow cathode, pin 13 = green anode, pin 14 = green cathode. Standard LED table: green 568 nm, yellow 585 nm, forward voltage 1.8 V (bin) / 2.8 V (max), forward current 20 mA, square-emitter type. To drive from an active-low PHY LED output, feed the anode from the rail through a series resistor and take the cathode to the PHY pin.",
+    "Front view of the connector: the LEFT LED is yellow and the RIGHT LED is green (the component-side view is mirrored, so the 13/14 pair sits on the same side as pin 10).",
+    "Isolation is specified between P2+P5 and J2+J3 only (1500 Vrms, 1 minute). Keep the chip-side copper and the V+/V- PoE copper on the correct sides of the isolation barrier and honour the barrier under the connector body.",
+    "OCL 350 uH minimum measured at 100 kHz / 100 mV with 8 mA DC bias - this is the only IEEE802.3af-related magnetics guarantee published.",
+    "Vendor publishes NO layout section, no keepout, no thermal or copper-pour guidance for this part."
+  ],
+  "abs_max": [
+    {
+      "param": "Isolation, chip side (P2+P5) to line side (J2+J3), 1 minute",
+      "value": 1500,
+      "unit": "Vrms"
+    },
+    {
+      "param": "LED forward current, each LED (standard LED table)",
+      "value": 20,
+      "unit": "mA"
+    },
+    {
+      "param": "LED forward voltage, green 568 nm and yellow 585 nm (bin / max)",
+      "value": "1.8 / 2.8",
+      "unit": "V"
+    },
+    {
+      "param": "OCL, minimum, @100 kHz 100 mV with 8 mA DC bias",
+      "value": 350,
+      "unit": "uH"
+    }
+  ],
+  "source_pdf": "boards/lumina-carrier/parts/C91754.pdf"
+}

@@ -131,3 +131,72 @@ git add boards/<name> && git commit -m "ai-ee <name>: <gate> pass"
 
 If the commit fails on `index.lock`, wait a few seconds and retry once - another
 run is mid-commit. Never `git add -A`, never push.
+
+---
+
+## Closed at carrier H1 (2026-07-28)
+
+H1 verdict: **approved**. The carrier proceeds to P3.
+
+### H1-Q5 - Enclosure and isolation: **plastic, heatsink enclosed**
+Non-conductive enclosure; the LED heatsink is NOT user-accessible. The
+non-isolated PD topology stands - no isolated DC-DC, no earth path required.
+Daughter boards must not expose a touchable heatsink or any conductor tied to
+the 48 V rail through the enclosure wall.
+
+### H1-Q8 - Wi-Fi: **functional, a supported control path**
+**This is a deliberate deviation from carrier brief section 6**, which lists
+wireless operation as out of scope and the radio as "a debugging fallback only,
+Ethernet is the control path." The project owner overrode that at H1.
+
+Consequences the carrier run must carry:
+- ESP32-S3-WROOM-1 sits at a board edge with the full antenna keepout honoured -
+  no copper, no pour, no plane under the antenna on any layer.
+- RF review is now in scope at layout sign-off.
+- The permanent outline must be settled with the antenna clearance already
+  allocated, not retrofitted.
+
+Open consequence for the project owner, outside this board's scope: the control
+contract in `00` section 3 (UDP/IPv4 port 5568, 60 fps, <100 us packet-to-PWM)
+is specified over Ethernet. A functional Wi-Fi path either honours that same
+contract over Wi-Fi - with materially worse jitter and no PoE - or is scoped to
+commissioning and diagnostics only. **The hardware is agnostic; the firmware and
+host are not.** Raise this before firmware work assumes one or the other.
+
+### H1-Q4 - Stack height: **11.0 mm, with a notch in every daughter**
+Stocked 2.54 mm parts mate at 11.0 mm; the original 15 mm standoff is
+unachievable without non-stock parts. At 11 mm the carrier's board-edge RJ45
+(~13-16 mm) collides with the daughter.
+
+**Binding on the strobe and the par:** every daughter board carries a
+**30 x 26 mm notch** positioned to clear the carrier's RJ45. Treat the notch as
+a hard mechanical requirement from P2 onward, not a late layout fix - and note
+that ai-ee has no outline-shrink step, so it must be in the P5 outline. The
+notch doubles as an anti-180-degree insertion interlock (CAR-REQ-16).
+
+### H1-Q6 - Daughter rail current contract: **adopt the derived numbers**
+The ICD publishes, and daughters design within:
+
+| Rail | Sustained (af) | Sustained (at) | Pin rating | Protection |
+|---|---|---|---|---|
+| +48V_SW | 0.25 A | 0.5 A | 1.80 A/pin derated | eFuse limits at 1.0 A |
+
+Derived from the power budget and 60% adjacent-pin derating (3 A single-circuit).
+J3's 2x7 has **zero spare pins** - every extra 1.8 A of 48 V costs one more pin
+and a re-issued ICD, so treat the allocation as fixed.
+
+The strobe's peak flash current comes from its own on-board energy store, not
+from this rail; the rail only has to recharge the bank at the average rate the
+governor permits (STR-REQ-06).
+
+### PD controller - supersedes the reference documents
+`00` section 8 cites Skyworks AN956 / Si3402-B as the PD front-end reference.
+**Si3402-B and Si3404 are Type 1 only** - no resistor programming reaches Type 2,
+so the D-01 hedge is unachievable with them. The carrier uses a **TPS2378-class
+PD controller plus a 100 V buck**. The "~10 W regulated" figure in `00` section
+5.1 describes a part this design does not use; the budget was re-derived
+(8.6-9.3 W af / 18.7-20.0 W at to the daughter, carrier overhead 2.4/3.7 W).
+
+### Connector - GND is the binding rail
+CAR-REQ-13 requires **7 GND pins** on J3. The brief's ">= 4 GND" in section 4.1
+is below requirement. The frozen ICD is authoritative.

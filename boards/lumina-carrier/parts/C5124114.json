@@ -1,0 +1,132 @@
+{
+  "mpn": "SCT2A25STER",
+  "lcsc": "C5124114",
+  "package": "ESOP-8 (8-Lead Plastic ESOP, ESOP8/PP(95x130), proposed JEDEC MO-220 variation)",
+  "description": "SCT2A25 - asynchronous (NON-synchronous) step-down DC/DC converter. 5.5-100 V Vin recommended (abs max 110 V), 1.2-30 V Vout, 2 A continuous output, 4 A peak current limit, integrated 500 mOhm high-side MOSFET. An EXTERNAL CATCH DIODE between SW and GND is required (datasheet example: SS510, >=100 V reverse). Constant-on-time (COT) control with integrated loop compensation; switching frequency FIXED at 300 kHz (260/300/340 kHz min/typ/max) - not settable, no RT pin; minimum off-time 200/260 ns. 4 ms internal soft-start; 135 uA typ quiescent current; PFM at light load. Feedback reference voltage is 1.2 V +/-1% (1.188/1.2/1.212 V) - NOT 0.8 V. VIN UVLO 4.7/5/5.3 V rising with 440 mV hysteresis (falling ~4.56 V). Cycle-by-cycle high-side current limit 3.5/4/4.5 A at TJ=25 C (3.3/4/4.7 A over -40..125 C). FB overvoltage protection at 120% of VREF rising / 115% falling. Thermal shutdown at TJ 160 C rising, 23 C hysteresis (restarts with soft-start below 137 C). RthetaJA 42 C/W, RthetaJC 45.8 C/W. Datasheet ships the literal 48 V -> 12 V @ 2 A design example (L=68 uH, 2x22 uF out, 271k/30k FB divider, 150 pF feedforward).",
+  "pinout": [
+    {
+      "pin": "1",
+      "name": "FB",
+      "type": "analog",
+      "notes": "Inverting input of the comparator. Tap of the external feedback resistor divider from the output to GND sets Vout. The device regulates FB to the internal reference of 1.2 V typ (1.188/1.2/1.212 V, +/-1%). R2(top, VOUT->FB) = (VOUT/VREF - 1) * R1(bot, FB->GND); recommended R1 = 30 kOhm. Datasheet Table 1: 5 V -> 95k/30k, 12 V -> 271k/30k, 24 V -> 191k/10k. A feedforward cap Cf across R2 is stated as necessary for loop stability / transient response (Table 2: 150 pF for the 12 V design, 68 pF for 5 V). Abs max -0.3 to 6 V."
+    },
+    {
+      "pin": "2",
+      "name": "NC",
+      "type": "nc",
+      "notes": "Not Connection."
+    },
+    {
+      "pin": "3",
+      "name": "VIN",
+      "type": "power_in",
+      "notes": "Input supply voltage. Recommended operating 5.5-100 V; abs max -0.3 to 110 V. Connect a local bypass capacitor from VIN pin to GND pin. Path from VIN pin to the high-frequency bypass capacitor and GND must be as short as possible."
+    },
+    {
+      "pin": "4",
+      "name": "BST",
+      "type": "passive",
+      "notes": "Bootstrap: power supply bias for the high-side power MOSFET gate driver. Connect a 0.1 uF capacitor from BST to SW (X5R or better dielectric, 10 V or higher rating). Charged when the low-side power MOSFET is on or SW is low. BST abs max -0.3 to 116 V; BST-SW abs max -0.3 to 6 V. High-side driver UVLO: 2.95 V rising, 250 mV hysteresis; below 2.7 V a BOOT UVLO refresh cycle periodically turns on an integrated low-side MOSFET to recharge the bootstrap cap."
+    },
+    {
+      "pin": "5",
+      "name": "SW",
+      "type": "output",
+      "notes": "Regulator switching output. Connect SW to an external power inductor (and to the catch-diode cathode). Abs max -1 V to 110 V - note the -1 V negative limit. Place the output inductor close to the SW pin and minimise SW conductor area to prevent excessive capacitive coupling."
+    },
+    {
+      "pin": "6",
+      "name": "TM",
+      "type": "input",
+      "notes": "Test mode pin for factory use only. Connect TM to EN pin, to ground, or leave floating. Abs max -0.3 to 6 V."
+    },
+    {
+      "pin": "7",
+      "name": "EN",
+      "type": "input",
+      "notes": "Enable pin with internal pull-up current source; floating enables the converter. Pull below 1.23 V to disable. Enable high threshold VEN_H 1.25 V typ with 10 mV hysteresis; pull-up current 0.3 uA at EN=0 V, 2.1 uA at EN=1.5 V (1.8 uA hysteresis). Programmable system UVLO with a divider R3 (VIN->EN) / R4 (EN->GND): VIN_rise = VEN_H * (R3+R4)/R4, VIN_hys = I2 * R3 (I2 = 2.1 uA). Device enabled when VIN > 5 V AND EN > 1.25 V; disabled when VIN < 4.56 V or EN < 1.24 V. Pulling EN below 1.23 V stops switching and resets the internal soft-start. ABS MAX 6 V - EN must never be driven above 6 V."
+    },
+    {
+      "pin": "8",
+      "name": "GND",
+      "type": "ground",
+      "notes": "Ground."
+    },
+    {
+      "pin": "9",
+      "name": "Thermal Pad",
+      "type": "ground",
+      "notes": "Heat dissipation path of the die. Electrically connected to the GND pin. Must be connected to the ground plane on the PCB for proper operation and optimized thermal performance; must be soldered to the board for mechanical strength and reliability."
+    }
+  ],
+  "decoupling": [
+    {
+      "pins": ["3", "8"],
+      "value": "2 x 2.2uF X7R ceramic rated 100 V (bulk input)",
+      "placement": "input bulk, close to VIN/GND",
+      "notes": "Design example (48 V nom, 24-100 V in, 12 V/2 A out) uses two 2.2 uF X7R 100 V caps in parallel. Voltage rating must exceed the maximum input voltage and RMS ripple rating must exceed the input ripple current; for simplification choose >= 0.5 * Iout_max RMS (worst case at VIN = 2*VOUT). Account for ceramic DC-bias derating."
+    },
+    {
+      "pins": ["3", "8"],
+      "value": "0.1uF X7R ceramic, small package (0603)",
+      "placement": "as close to the VIN and GND pins as possible; VIN-to-cap-to-GND path as short as possible",
+      "notes": "Strongly recommended by the datasheet in addition to the bulk input caps, to filter high-frequency switching noise."
+    },
+    {
+      "pins": ["4", "5"],
+      "value": "0.1uF ceramic, X5R or better, >=10 V rating",
+      "placement": "BST to SW, short; datasheet routes the BST cap trace on the bottom layer to keep a wide top-side ground path",
+      "notes": "Bootstrap capacitor - mandatory for proper operation ('must be connected between BOOT pin and SW pin')."
+    },
+    {
+      "pins": ["VOUT (inductor output node, from SW pin 5 via L)"],
+      "value": "2 x 22uF ceramic (low ESR)",
+      "placement": "output capacitor bank",
+      "notes": "'Typically, two 22uF ceramic output capacitors work for most applications.' Table 2 lists 2 x 22 uF for 5 V, 12 V and 24 V outputs. Leave margin on voltage rating because ceramics lose most of their capacitance at rated voltage. Output ripple estimate: dVOUT = VOUT*(VIN-VOUT) / (8 * fSW^2 * L * COUT * VIN)."
+    }
+  ],
+  "land_pattern": {
+    "package": "ESOP8/PP(95x130), 8-Lead Plastic ESOP",
+    "pad_count": 9,
+    "pitch_mm": 1.27,
+    "pin1": "1",
+    "notes": "The datasheet publishes ONLY the package OUTLINE drawing (Rev 1.0 p.17, 'proposed to be made a JEDEC package outline MO-220 variation'); there is NO recommended land pattern / stencil drawing, so no pad_size_mm, row_spacing_mm or courtyard figure can be grounded from this PDF. Outline dimensions (mm, min-max): A 1.300-1.700 (height), A1 0.000-0.100 (standoff), A2 1.350-1.550, b 0.330-0.510 (lead width), c 0.170-0.250 (lead thickness), D 4.700-5.100 (body length), D1 3.050-3.250 (exposed pad, long axis), E 3.800-4.000 (body width), E1 5.800-6.200 (lead span), E2 2.160-2.360 (exposed pad, short axis), e 1.270 BSC (pitch), L 0.400-1.270 (foot length), lead angle 0-8 deg. Exposed-pad dimensions exclude mold flash. Note 6: contact the PCB fabricator for minimum solder-mask web tolerance between the pins. Use a standard IPC SOIC-8/1.27 mm + thermal-pad land generator for actual pad sizes; pad count 9 = 8 leads + thermal pad."
+  },
+  "exposed_pad": {
+    "present": true,
+    "connect_to": "GND (pin 8) - the thermal pad is the die heat-dissipation path and is electrically connected to GND; it must be soldered to the board and connected to the PCB ground plane, tied to the bottom-layer ground plane with multiple vias directly under the IC. Package exposed-pad size D1 3.05-3.25 mm x E2 2.16-2.36 mm (excludes mold flash)."
+  },
+  "layout_notes": [
+    "(p16 #1) Power grounding scheme is critical - it carries power, thermal and glitch/bounce noise at the clock frequency. Make the ground trace lowest impedance and distribute power evenly on the PCB; ample ground area optimizes thermal and avoids over-heated areas.",
+    "(p16 #2) Place a low-ESR ceramic capacitor as close to the VIN pin and ground as possible to reduce parasitic effects.",
+    "(p2, VIN pin function) The path from the VIN pin to the high-frequency bypass capacitor and GND must be as short as possible.",
+    "(p16 #3) SWITCHING-LOOP GATE: for operation at full rated load the top-side ground area must provide adequate heat-dissipating area, and the top switching loop carrying power must have lower-impedance grounding. The high-di/dt loop is VIN cap -> VIN pin -> SW -> inductor / catch diode -> GND -> VIN cap; keep it tight and on the top layer with a low-impedance ground return.",
+    "(p16 #4) The bottom layer is a large ground plane connected to the top-layer ground plane by vias. The power (thermal) pad must be connected to the bottom ground planes using multiple vias directly under the IC.",
+    "(p16 #4) The center thermal pad must always be soldered to the board for mechanical strength and reliability, using multiple thermal vias underneath the thermal pad. Improper soldering of the thermal pad to the PCB ground plate causes higher SW ringing and overshoot as well as degraded thermal performance.",
+    "(p16 #4) 8 mil diameter drill holes are recommended for thermal vias; a smaller via offers less risk of solder volume loss. Where solder volume loss through the vias is a concern, via plugging or tenting can be used for a repeatable process.",
+    "(p16 #5) Place the output inductor close to the SW pin, and minimise the area of the SW PCB conductor to prevent excessive capacitive coupling.",
+    "(p16 #6) Route the BST capacitor trace on the bottom layer to provide a wide path for the top-side ground.",
+    "(p16 Figure 23) Reference placement: input bypass capacitor and programmable-UVLO resistors on the VIN side (pins 3/4 edge), inductor off SW (pin 5), output capacitors beyond the inductor, feedback resistors near FB (pin 1), stitching vias into the top-layer ground area and the thermal pad."
+  ],
+  "abs_max": [
+    { "param": "VIN", "value": "-0.3 to 110", "unit": "V" },
+    { "param": "BST", "value": "-0.3 to 116", "unit": "V" },
+    { "param": "SW", "value": "-1 to 110", "unit": "V" },
+    { "param": "BST-SW", "value": "-0.3 to 6", "unit": "V" },
+    { "param": "EN, FB, TM", "value": "-0.3 to 6", "unit": "V" },
+    { "param": "Operating junction temperature TJ", "value": "-40 to 150", "unit": "degC" },
+    { "param": "Storage temperature TSTG", "value": "-65 to 150", "unit": "degC" },
+    { "param": "ESD HBM (ANSI-JEDEC-JS-001-2014, all pins)", "value": "-1 to +1", "unit": "kV" },
+    { "param": "ESD CDM (ANSI-JEDEC-JS-002-2014, all pins)", "value": "-0.5 to +0.5", "unit": "kV" },
+    { "param": "RECOMMENDED OPERATING: VIN input voltage range", "value": "5.5 to 100", "unit": "V" },
+    { "param": "RECOMMENDED OPERATING: VOUT output voltage range", "value": "1.2 to 30", "unit": "V" },
+    { "param": "RECOMMENDED OPERATING: TJ operating junction temperature", "value": "-40 to 150", "unit": "degC" },
+    { "param": "Thermal resistance RthetaJA (ESOP-8L)", "value": 42, "unit": "degC/W" },
+    { "param": "Thermal resistance RthetaJC (ESOP-8L)", "value": 45.8, "unit": "degC/W" },
+    { "param": "Continuous output current", "value": 2, "unit": "A" },
+    { "param": "High-side MOSFET peak current limit ILIM (TJ=25C min/typ/max)", "value": "3.5 / 4 / 4.5", "unit": "A" },
+    { "param": "High-side MOSFET peak current limit ILIM (TJ=-40..125C min/typ/max)", "value": "3.3 / 4 / 4.7", "unit": "A" },
+    { "param": "Thermal shutdown TSD (TJ rising / hysteresis)", "value": "160 / 23", "unit": "degC" }
+  ],
+  "source_pdf": "boards/lumina-carrier/parts/C5124114.pdf"
+}

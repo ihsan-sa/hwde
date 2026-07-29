@@ -1,0 +1,492 @@
+{
+ "script": "datasheet_extract",
+ "status": "extracted",
+ "source_pdf": "boards\\lumina-carrier\\parts\\C32843.pdf",
+ "lcsc": "C32843",
+ "n_pages": 67,
+ "text_chars": 84178,
+ "text_by_page": [
+  {
+   "page": 0,
+   "text": " \n\u00a9 Copyright 2013 WIZnet Co., Ltd. All rights reserved. \n \n \n \n \n \n \n \n \n \nW5500 Datasheet \nVersion 1.1.0 \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \nhttp://www.wiznet.co.kr \n \n"
+  },
+  {
+   "page": 1,
+   "text": "  \n \n2 / 67  W5500 Datasheet Version1.1.0 \n \nW5500 \n The W5500 chip is a Hardwired TCP/IP embedded Ethernet controller that provides \neasier Internet connection to embedded systems. W5500 enables users to have the \nInternet connectivity in their applications just by using the single chip in which TCP/IP \nstack, 10/100 Ethernet MAC and PHY embedded. \nWIZnet\u2018s Hardwired TCP/IP is the market -proven technology that supports TCP , UDP , \nIPv4, ICMP , ARP , IGMP , and PPPoE protocols. W5500 embeds the 32Kbyte internal \nmemory buffer for the Ethernet packet processing . If you use W5500, you can \nimplement the Ethernet application just by adding the simple socket program. It\u2019s \nfaster and easier way rather than using any other Embedded Ethernet solution. Users \ncan use 8 independent hardware sockets simultaneously. \nSPI (Serial Peripheral Interface) is provided for easy integration with the external \nMCU. The W5500\u2019s SPI supports 80 MHz speed and new efficient SPI protocol for the \nhigh speed network communication. In order to reduce power consumption of the \nsystem, W5500 provides WOL (Wake on LAN) and power down mode. \n \n \nFeatures \n- Supports Hardwired TCP/IP Protocols : TCP , UDP , ICMP , IPv4, ARP , IGMP , PPPoE \n- Supports 8 independent sockets simultaneously \n- Supports Power down mode \n- Supports Wake on LAN over UDP \n- Supports High Speed Serial Peripheral Interface(SPI MODE 0, 3) \n- Internal 32Kbytes Memory for TX/RX Buffers \n- 10BaseT/100BaseTX Ethernet PHY embedded \n- Supports Auto Negotiation (Full and half duplex, 10 and 100-based ) \n- Not supports IP Fragmentation \n- 3.3V operation with 5V I/O signal tolerance \n- LED outputs (Full/Half duplex, Link, Speed, Active) \n- 48 Pin LQFP Lead-Free Package (7x7mm, 0.5mm pitch) \n  "
+  },
+  {
+   "page": 2,
+   "text": " \nW5500 Datasheet Version1.1.0 3 / 67 \n \nTarget Applications \nW5500 is suitable for the following embedded applications: \n- Home Network Devices: Set-Top Boxes, PVRs, Digital Media Adapters \n- Serial-to-Ethernet: Access Controls, LED displays, Wireless AP relays, etc. \n- Parallel-to-Ethernet: POS / Mini Printers, Copiers \n- USB-to-Ethernet: Storage Devices, Network Printers \n- GPIO-to-Ethernet: Home Network Sensors \n- Security Systems: DVRs, Network Cameras, Kiosks \n- Factory and Building Automations \n- Medical Monitoring Equipment \n- Embedded Servers  "
+  },
+  {
+   "page": 3,
+   "text": "  \n \n4 / 67  W5500 Datasheet Version1.1.0 \n \nBlock Diagram \n \n  \n"
+  },
+  {
+   "page": 4,
+   "text": " \nW5500 Datasheet Version1.1.0 5 / 67 \n \nTable of Contents \n Pin Assignment ................................ ................................ .......................  7 \n1.1 Pin Descriptions ................................ ................................ ........... 7 \n HOST Interface ................................ ................................ ..................... 11 \n2.1 SPI Operation Mode ................................ ................................ ...... 13 \n2.2 SPI Frame ................................ ................................ .................. 14 \n2.2.1 Address Phase ................................ ................................ ....... 14 \n2.2.2 Control Phase ................................ ................................ ....... 15 \n2.2.3 Data Phase ................................ ................................ .......... 17 \n2.3 Variable Length Data Mode (VDM) ................................ ..................... 17 \n2.3.1 Write Access in VDM ................................ ...............................  18 \n2.3.2 Read Access in VDM ................................ ................................  21 \n2.4 Fixed Length Data Mode (FDM) ................................ .........................  24 \n2.4.1 Write Access in FDM ................................ ................................  25 \n2.4.2 Read Access in FDM ................................ ................................  26 \n Register and Memory Organization ................................ .............................  27 \n3.1 Common Register Block ................................ ................................ . 29 \n3.2 Socket Register Block ................................ ................................ .... 30 \n3.3 Memory ................................ ................................ .................... 31 \n Register Descriptions ................................ ................................ .............. 32 \n4.1 Common Registers ................................ ................................ ....... 32 \n4.2 Socket Registers ................................ ................................ .......... 44 \n Electrical Specifications ................................ ................................ .......... 58 \n5.1 Absolute Maximum Ratings ................................ .............................  58 \n5.2 Absolute Maximum Ratings (Electrical Sensitivity) ................................ .. 58 \n5.3 DC Characteristics ................................ ................................ ....... 59 \n5.4 Power Dissipation ................................ ................................ ........ 60 \n5.5 AC Characteristics ................................ ................................ ........ 60 \n5.5.1 Reset Timing ................................ ................................ ........ 60 \n5.5.2 Wake up Time ................................ ................................ ....... 60 \n5.5.3 Crystal Characteristics ................................ ............................  60 \n5.5.4 SPI Timing ................................ ................................ ........... 61 \n5.5.5 Transformer Characteristics ................................ ...................... 62 \n5.5.6 MDIX ................................ ................................ .................. 62 \n IR Reflow Temperature Profile (Lead-Free) ................................ ................... 63 \n Package Descriptions ................................ ................................ .............. 64 \nDocument History Information ................................ ................................ ...... 66 \n "
+  },
+  {
+   "page": 5,
+   "text": "  \n \n6 / 67  W5500 Datasheet Version1.1.0 \n \nTable of Figures \nFigure 1. W5500 Pin Layout ................................ ................................ .... 7 \nFigure 2. External reference resistor ................................ ........................  11 \nFigure 3. Crystal reference schematic................................ .......................  11 \nFigure 4. Variable Length Data Mode (SCSn controlled by the host) .................... 12 \nFigure 5. Fixed Length Data Mode (SCSn is always connected by Ground)  ............. 12 \nFigure 6. SPI Mode 0 & 3 ................................ ................................ ....... 13 \nFigure 7. SPI Frame Format ................................ ................................ ... 14 \nFigure 8. Write SPI Frame in VDM mode ................................ ..................... 18 \nFigure 9. SIMR Register Write in VDM Mode ................................ ................. 19 \nFigure 10. 5 Byte Data Write at 1th Socket\u2019s TX Buffer Block 0x0040 in VDM mode .. 20 \nFigure 11. Read SPI Frame in VDM mode ................................ .................... 21 \nFigure 12. S7_SR Read in VDM Mode ................................ .........................  22 \nFigure 13. 5 Byte Data Read at Socket 3 RX Buffer Block 0x0100 in VDM mode ....... 23 \nFigure 14. 1 Byte Data Write SPI Frame in FDM mode ................................ ..... 25 \nFigure 15. 2 Bytes Data Write SPI Frame in FDM mode ................................ .... 25 \nFigure 16. 4 Bytes Data Write SPI Frame in FDM mode ................................ .... 25 \nFigure 17. 1 Byte Data Read SPI Frame in FDM mode ................................ ..... 26 \nFigure 18. 2 Bytes Data Read SPI Frame in FDM mode ................................ .... 26 \nFigure 19. 4 Bytes Data Read SPI Frame in FDM mode ................................ .... 26 \nFigure 20. Register & Memory Organization ................................ ................ 28 \nFigure 21. INTLEVEL Timing ................................ ................................ ... 34 \nFigure 22. Reset Timing ................................ ................................ ........ 60 \nFigure 23. SPI Timing ................................ ................................ ........... 61 \nFigure 24. Transformer Type ................................ ................................ .. 62 \nFigure 25. IR Reflow Temperature................................ ............................  63 \nFigure 26. Package Dimensions ................................ ...............................  64 \nFigure 27. Package Dimensions ................................ ...............................  65 \n \n "
+  },
+  {
+   "page": 6,
+   "text": " \nW5500 Datasheet Version1.1.0 7 / 67 \n \n Pin Assignment \n \nFigure 1. W5500 Pin Layout \n \n1.1 Pin Descriptions \nTable 1. Pin Type Notation \nType Description \nI Input  \nO Output  \nI/O Input / Output \nA Analog  \nPWR 3.3V power  \nGND Ground \n \n \nTXN\nTXP\nAGND\nAVDD\nRXN\nRXP\nDNC\nAVDD\nAGND\nEXRES1\nAVDD\nNC\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n36\n35\n34\n33\n32\n31\n30\n29\n28\n27\n26\n25\nW5500\nNC\nAGND\nAVDD\nAGND\nAVDD\nVBG\nAGND\nTOCAP\nAVDD\n1V2O\nRSVD\nSPDLED\nMOSI\nMISO\nSCLK\nSCSn\nXO\nXI/CLKIN\nGND\nVDD\nACTLED\nDUPLED\nLINKLED\nINTn\nAGND\nNC\nNC\nPMODE0\nPMODE1\nPMODE2\nRSVD\nRSVD\nRSVD\nRSVD\nRSVD\nRSTn\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n48\n47\n46\n45\n44\n43\n42\n41\n40\n39\n38\n37\n48LQFP"
+  },
+  {
+   "page": 7,
+   "text": "  \n \n8 / 67  W5500 Datasheet Version1.1.0 \n \nTable 2. W5500 Pin Description \nPin No Symbol \nInternal \nBias1   \nType Description \n1 TXN - AO TXP/TXN Signal Pair \nThe differential data is transmitted to the media on the \nTXP/TXN signal pair. \n2 TXP - AO \n3 AGND - GND Analog ground \n4 AVDD - PWR Analog 3.3V power \n5 RXN - AI RXP/RXN Signal Pair \nThe differential data from the media is received on the \nRXP/RXN signal pair. \n6 RXP - AI \n7 DNC - AI/O Do Not Connect Pin \n8 AVDD - PWR Analog 3.3V power \n9 AGND - GND Analog ground  \n10 EXRES1 - AI/O External Reference Resistor \nIt should be connected to an external resistor (12.4K\u03a9, \n1%) needed for biasing of internal analog circuits. \nRefer to the \u2018External reference resistor\u2019 (Figure.2) for \ndetails. \n11 AVDD - PWR Analog 3.3V power \n12 -  - NC \n13 -  - NC \n14 AGND - GND Analog ground \n15 AVDD - PWR Analog 3.3V power \n16 AGND - GND Analog ground \n17 AVDD - PWR Analog 3.3V power \n18 VBG - AO Band Gap Output Voltage  \nThis pin will be measured as 1.2V at 25\u2103. \nIt must be left floating. \n19 AGND - GND Analog ground \n20 TOCAP - AO External Reference Capacitor \nThis pin must be connected to a 4.7uF capacitor. \nThe trace length to capacitor should be short to \nstabilize the internal signals. \n21 AVDD - PWR Analog 3.3V power \n22 1V2O - AO 1.2V Regulator output voltage \nThis pin must be connected to a 10nF capacitor. \n \n1 Internal Bias after hardware reset "
+  },
+  {
+   "page": 8,
+   "text": " \nW5500 Datasheet Version1.1.0 9 / 67 \n \nThis is the output voltage of the internal regulator. \n23 RSVD Pull-down I It must be tied to GND. \n24 SPDLED - O Speed LED \nThis shows the Speed status of the connected link. \nLow: 100Mbps \nHigh: 10Mbps \n25 LINKLED - O Link LED \nThis shows the Link status. \nLow: Link is established \nHigh: Link is not established \n26 DUPLED - O Duplex LED \nThis shows the Duplex status for the connected link. \nLow: Full-duplex mode \nHigh: Half-duplex mode \n27 ACTLED - O Active LED \nThis shows that there is Carrier sense (CRS) from the \nactive Physical Medium Sub-layer (PMD) during TX or RX \nactivity. \nLow: Carrier sense from the active PMD \nHigh: No carrier sense \n28 VDD - PWR Digital 3.3V Power \n29 GND - GND Digital Ground \n30 XI/CLKIN - AI Crystal input / External Clock input \nExternal 25MHz Crystal Input. \nThis pin can also be connected to single-ended TTL \noscillator (CLKIN). 3.3V clock should be applied for the \nExternal Clock input. If this method is implemented, XO \nshould be left unconnected. \nRefer to the \u2018Crystal reference schematic\u2019 (Figure.3) for \ndetails. \n31 XO - AO Crystal output \nExternal 25MHz Crystal Output \nNote: Float this pin if using an external clock being \ndriven through XI/CLKIN \n32 SCSn Pull-up I Chip Select for SPI bus  \nThis pin can be asserted low to select W5500 in SPI \ninterface. \nLow: selected \nHigh: deselected "
+  },
+  {
+   "page": 9,
+   "text": "  \n \n10 / 67  W5500 Datasheet Version1.1.0 \n \n33 SCLK - I SPI clock input \nThis pin is used to receive SPI Clock from SPI master. \n34 MISO - O SPI master input slave(W5500) output \nWhen SCSn is Low, this pin outputs SPI data. \nWhen SCSn is High, this pin becomes High Impedance \n(logically disconnected). \n35 MOSI - I SPI master output slave(W5500) input \n36 INTn - O Interrupt output \n(Active low) \nLow: Interrupt asserted from W5500 \nHigh: No interrupt \n37 RSTn Pull-up I Reset \n(Active low) \nRESET should be held low at least 500 us for W5500 \nreset. \n38 RSVD Pull-down I NC \n39 RSVD Pull-down I NC \n40 RSVD Pull-down I NC \n41 RSVD Pull-down I NC \n42 RSVD Pull-down I NC \n43 PMODE2 Pull-up I PHY Operation mode select pins \nThese pins determine the network mode. Refer to the \nbelow table for details. \nPMODE [2:0] \nDescription \n2 1 0 \n0 0 0 10BT Half-duplex, Auto-negotiation disabled \n0 0 1 10BT Full-duplex, Auto-negotiation disabled \n0 1 0 100BT Half-duplex, Auto-negotiation disabled \n0 1 1 100BT Full-duplex, Auto-negotiation disabled \n1 0 0 100BT Half-duplex, Auto-negotiation enabled \n1 0 1 Not used \n1 1 0 Not used \n1 1 1 All capable, Auto-negotiation enabled \n. \n44 PMODE1 Pull-up I \n45 PMODE0 Pull-up I \n46 - - - NC \n47 - - - NC \n48 AGND - GND Analog ground \n "
+  },
+  {
+   "page": 10,
+   "text": " \nW5500 Datasheet Version1.1.0 11 / 67 \n \nThe 12.4K\u2126(1%) Resistor should be connected between EXRES1 pin and analog ground (AGND) \nas below. \n \nFigure 2. External reference resistor \n \n \nThe crystal reference schematic is shown as below. \n \n \nFigure 3. Crystal reference schematic \n \n \n \n \n \n \n \n \n \n \n HOST Interface  \nW5500 provides SPI (Serial Peripheral Interface) Bus Interface with 4 signals (SCSn, \nSCLK, MOSI, MISO) for external HOST interface, and operates as a SPI Slave. \n"
+  },
+  {
+   "page": 11,
+   "text": "  \n \n12 / 67  W5500 Datasheet Version1.1.0 \n \nThe W5500 SPI can be connected to MCU as shown in Figure 4 and Figure 5 according \nto its operation mode (Variable Length Data / Fixed Length Data Mode) which will be \nexplained in Chapter 2.3 and Chapter 2.4. \nIn Figure 4, SPI Bus can be shared with other SPI Devices. Since the SPI Bus is \ndedicated to W5500, SPI Bus cannot be shared with other SPI Devices. It is shown in \nFigure 5. \nAt the Variable Length Data mode (as shown in Figure 4), it is possible to share the \nSPI Bus with other SPI devices. However, at the Fixed Length Data mode (as shown in \nFigure 5), the SPI Bus is dedicated to W5500 and can\u2019t be shared with other devices. \n \n \nFigure 4. Variable Length Data Mode (SCSn controlled by the host) \n \n \nFigure 5. Fixed Length Data Mode (SCSn is always connected by Ground) \n \nThe SPI protocol defines four modes for its operation (Mode 0, 1, 2, 3).Each mode \ndiffers according to the SCLK polarity and phase.  The only difference between SPI \nMode 0 and SPI Mode 3 is the polarity of the SCLK signal at the inactive state. \nWith SPI Mode 0 and 3, data is always latched in on the rising edge of SCLK and always \noutput on the falling edge of SCLK. \n \nThe W5500 supports SPI Mode 0 and Mode 3. Both MOSI and MISO signals use transfer \nsequence from Most S ignificant Bit (MSB) to Least Significant Bit (LSB) when MOSI \nsignal transmits and MISO signal receives.  MOSI & MISO signals always transmit or \nreceive in sequence from the Most Significant Bit (MSB) to Least Significant Bit (LSB).  \nSPI MASTER\nMCU\n(External Host)\nSPI SLAVE\nW5500\nSCSn\nSCLK\nMOSI\nMISO\nSCSn\nSCLK\nMOSI\nMISO\nSPI MASTER\nMCU\n(External Host)\nSPI SLAVE\nW5500\nSCSn\nSCLK\nMOSI\nMISO\nSCSn\nSCLK\nMOSI\nMISO"
+  },
+  {
+   "page": 12,
+   "text": " \nW5500 Datasheet Version1.1.0 13 / 67 \n \n \n \nFigure 6. SPI Mode 0 & 3 \n \n2.1 SPI Operation Mode \n W5500 is controlled by SPI Frame (Refer to the Chapter 2.2 SPI Frame) which \ncommunicates with the External Host. W5500 SPI Frame consists 3 phases, Address \nPhase, Control Phase and Data Phase. \n \nAddress Phase specifies 16 bits Offset Address for W5500 Register or TX/RX Memory. \nControl Phase specifies the block to which Offset (set by Address Phase) belongs, and \nspecifies Read/Write Access Mode and SPI Operation Mode (Variable Length Data / \nFixed Length Data Mode). \nAnd Data Phase specifies random length (N-bytes, 1 \u2264 N) Data or 1 byte, 2 bytes and \n4 bytes Data. \n \nIf SPI Operation Mode is set as Variable Length Data Mode (VDM), SPI Bus Signal SCSn \nmust be controlled by the External Host with SPI Frame step. \nAt the Variable Length Data Mode, SCSn Control Start (Assert (High -to-Low)) informs \nW5500 of SPI Frame Start ( Address Phase), and SCSn Control End (De -assert (Low-to-\nHigh) informs W5500 of SPI Frame End (Data Phase End of random N byte). \n  \nSCLK\nMISO/MOSI\nSamplingToggling\nMode 3 : SCLK idle level high\nSCLK\nMISO/MOSI\nSampling Toggling\nMode 0 : SCLK idle level low"
+  },
+  {
+   "page": 13,
+   "text": "  \n \n14 / 67  W5500 Datasheet Version1.1.0 \n \n2.2 SPI Frame \n W5500 SPI Frame consists of 16bits Offset Address in Address Phase, 8bits Control \nPhase and N bytes Data Phase as shown in Figure 7. \nThe 8bits Control Phase is reconfigured with Block Select bits (BSB[4:0]), Read/Write \nAccess Mode bit (RWB) and SPI Operation Mode (OM[1:0]). \nBlock Select bits select the block to which the Offset Address belongs. \n \n \n \nFigure 7. SPI Frame Format \n \nW5500 supports Sequential Data Read/Write.  It processes the data from the base \n(the Offset Address which is set for 2/4/N byte Sequential data processing) and the \nnext data by increasing the Offset Address (auto increment addressing) by 1. \n \n \n2.2.1 Address Phase \nThis Address Phase specifies the 16 bits Offset Address for the W5500 Registers and \nTX/RX Buffer Blocks. \nThe 16-bit Offset Address value is transferred from MSB to LSB sequentially. \nThe SPI frame with 2/4/N byte data phase supports the Sequential Data Read/Write in \nwhich Offset address automatically increases by 1 every 1 byte data. \n \n \n  \n16btis Offset Address\n0 1 2 3\nData 1\nBit 15 7 6 5 4 3 2 1 0 7 6 5 4 3 2 1 0 7 6 5 4 3 2 1 0\nControl Byte\nN+2\nData N\n7 6 5 4 3 2 1 0\n. . .\nAddress Phase Control Phase Data Phase\nN >= 1 MSB first MSB first \n14 13 12 11 10 9 8\nBlock\nSelect Bits\nOP\nMode\nR\nW"
+  },
+  {
+   "page": 14,
+   "text": " \nW5500 Datasheet Version1.1.0 15 / 67 \n \n2.2.2 Control Phase  \nThe Control Phase specifies the Block to which the Offset Address (set by Address \nPhase) belongs, the Read/Write Access Mode and the SPI Operation Mode. \n \n7 6 5 4 3 2 1 0 \nBSB4 BSB3 BSB2 BSB1 BSB0 RWB OM1 OM0 \n \nBit Symbol Description \n7~3 BSB [4:0] \nBlock Select Bits  \n W5500 has Common Register, 8 Socket Register, TX/RX Buffer Block for \neach Socket. \nThe next table shows the Block selected by BSB[4:0]. \n \nBSB [4:0] Meaning \n00000 Selects Common Register. \n00001 Selects Socket 0 Register \n00010 Selects Socket 0 TX Buffer \n00011 Selects Socket 0 RX Buffer \n00100 Reserved \n00101 Selects Socket 1 Register \n00110 Selects Socket 1 TX Buffer \n00111 Selects Socket 1 RX Buffer \n01000 Reserved \n01001 Selects Socket 2 Register \n01010 Selects Socket 2 TX Buffer \n01011 Selects Socket 2 RX Buffer \n01100 Reserved \n01101 Selects Socket 3 Register \n01110 Selects Socket 3 TX Buffer \n01111 Selects Socket 3 RX Buffer \n10000 Reserved \n10001 Selects Socket 4 Register \n10010 Selects Socket 4 TX Buffer  \n10011 Selects Socket 4 RX Buffer \n10100 Reserved \n10101 Selects Socket 5 Register \n10110 Selects Socket 5 TX Buffer  \n10111 Selects Socket 5 RX Buffer "
+  },
+  {
+   "page": 15,
+   "text": "  \n \n16 / 67  W5500 Datasheet Version1.1.0 \n \n11000 Reserved \n11001 Selects Socket 6 Register \n11010 Selects Socket 6 TX Buffer \n11011 Selects Socket 6 RX Buffer \n11100 Reserved \n11101 Selects Socket 7 Register \n11110 Selects Socket 7 TX Buffer \n11111 Selects Socket 7 RX Buffer \n \nIf the Reserved Bits are selected, it can cause the mal -function of the \nW5500. \n2 RWB \nRead/Write Access Mode Bit \nThis sets Read/Write Access Mode. \n \u20180\u2019 : Read \n \u20181\u2019 : Write \n1~0 OM [1:0] \nSPI Operation Mode Bits \nThis sets the SPI Operation Mode. \nSPI Operation Mode supports two modes, the Variable Length Data Mode \nand the Fixed Length Data Mode. \n \n  - Variable Length Data Mode (VDM) \n: Data Length is controlled by SCSn. \nExternal Host makes SCSn Signal Assert (High -to-Low) and informs \nthe start of the SPI Frame Address Phase to W5500. \nThen the  external host transfers the Control Phase with \nOM[1:0]=\u201900\u2019. \nAfter N-Bytes Data Phase transfers, SCSn Signal is De-asserted (Low-\nto-High) and informs the end of the SPI Frame Data Phase to W5500. \nIn VDM Mode, the SCSn  must be controlled with SPI Frame unit by \nthe External Host. (Refer to the Figure 4) \n- Fixed Length Data Mode (FDM) \n: In FDM, the Data Length is set by OM[1:0], these are not \u201800\u2019 value. \nSo, the SCSn signal should be Low state, and has one Length type \n(among 1 Bytes, 2 Bytes, 4 Bytes) according to the OM[1:0] value. \n(Refer to the Figure 5.) \n \nThe next table shows the SPI Operation Mode according to the OM[1:0]. "
+  },
+  {
+   "page": 16,
+   "text": " \nW5500 Datasheet Version1.1.0 17 / 67 \n \n \nOM[1:0] Meaning \n00 Variable Data Length Mode, N-Bytes Data Phase (1 \u2264 N) \n01 Fixed Data Length Mode , 1 Byte Data Length (N = 1) \n10 Fixed Data Length Mode , 2 Byte Data Length (N = 2) \n11 Fixed Data Length Mode , 4 Byte Data Length (N = 4) \n \n \n2.2.3 Data Phase \nWith the Control Phase set by the SPI Operation Mode Bits OM[1:0], the Data Phase \nis set by two types of length, one type is the N-Bytes length (VDM mode) and the other \ntype is 1/2/4 Bytes (FDM mode). \nAt this time, 1 byte data is transferred through MOSI or MISO signal from MSB to LSB \nsequentially. \n \n \n2.3 Variable Length Data Mode (VDM) \nIn VDM mode, the SPI Frame Data Phase Length is determined by SCSn Control of the \nExternal Host. That means that the Data Phase Length can have random value (Any \nlength from 1 Byte to N Bytes) according to the SCSn Control. \nThe OM[1:0] of the Control Phase should be \u201800\u2019 value in VDM mode. \n \n \n  "
+  },
+  {
+   "page": 17,
+   "text": "  \n \n18 / 67  W5500 Datasheet Version1.1.0 \n \n2.3.1 Write Access in VDM \n \nFigure 8. Write SPI Frame in VDM mode \nFigure 8 shows the SPI Frame when the external host accesses W5500 for \nwriting.  \nIn VDM mode, the RWB signal is \u20181\u2019 (Write), OM[1:0] is \u201800\u2019 in SPI Frame Control \nPhase. At this time the External Host assert (High-to-Low) SCSn signal before \ntransmitting SPI Frame. Then the Host transmits SPI Frame\u2019s all bits to W5500 \nthrough MOSI signal. All bits are synchronized with the falling edge of the SCLK. \nAfter finishing the SPI Frame transmit, the Host deasserts SCSn signal (Low -to-\nHigh). \nWhen SCSn is Low and the Data Phase continues, the Sequential Data Write can be \nsupported. \n \n \n  \nRWB\nSCSn\nMOSI 7 6 5 4 3 2 1 04 3 2 015 14 3 2 1 013\n1 20\nSCLK\n12 13 14 15\n16 bits Offset Address BSB[4:0]\n17 1816 20 21 22 23 25 2624 27 28 29 30 31\n8-bit Data 1\nMODE0\nMODE3 19\n1\nMOSI 7 6 5 4 3 2 1 0 7 6 5 4 3 2 1 0 7 6 5 4 3 2 1 0\nMISO\nSCSn\nSCLK\n33 3432 35 36 37 37 39 8N + 16 8N + 24\n8-bit Data 2 ... 8-bit Data N\n...\nOM[1:0]\nMISO\nW 0 0\nSCSn shoud be remained low until  SPI Frame Transmit done.\nSCSn Should be remained low until SPI Frame Transmit done.\nSPI Frame Start\nSPI Frame End"
+  },
+  {
+   "page": 18,
+   "text": " \nW5500 Datasheet Version1.1.0 19 / 67 \n \n1 Byte WRITE Access Example \nWhen the Host writes Data 0xAA to \u2018Socket Interrupt Mask Register (SIMR) of Common \nRegister Block by using VDM mode, the data is written with the SPI Frame below. \n \nOffset Address = 0x0018 \nBSB[4:0]        = \u201800000\u2019 \nRWB             = \u20181\u2019 \nOM[1:0]         = \u201800\u2019 \n1st Data         = 0xAA \n \nThe External Host asserts (High -to-Low) SCSn before transmitting SPI Frame, then \nthe Host transmits 1 bit with synchronizing the Toggle SCLK. The External Host de -\nasserts (Low-to-High) the SCSn at the end of SPI Frame transmit. (Refer to the Figure \n9) \n \n \nFigure 9. SIMR Register Write in VDM Mode \n \n  \nSCSn\n"
+  },
+  {
+   "page": 19,
+   "text": "  \n \n20 / 67  W5500 Datasheet Version1.1.0 \n \nN-Bytes WRITE Access Example \nWhen the Host writes 5 Bytes Data (0x11, 0x22, 0x33, 0x44, 0x55) to Socket 1 \u2019s TX \nBuffer Block 0x0040 Address by using VDM mode, 5 bytes data are written with the \nSPI Frame below. \n \nOffset Address = 0x0040 \nBSB[4:0]        = \u201800110\u2019 \nRWB             =  \u20181\u2019 \nOM[1:0]         = \u201800\u2019 \n1st Data         = 0x11 \n2nd Data         = 0x22 \n3rd Data         = 0x33 \n4th Data         = 0x44 \n5th Data         = 0x55 \n \nThe N-Bytes Write Access is shown in Figure 10. \nThe 5 bytes of Data (0x11, 0x22, 0x33, 0x44, 0x55) are written sequentially to Socket \n1\u2019s Tx Buffer Block Address 0x0040 ~ 0x0044. \nThe External Host asserts (High-to-Low) SCSn before transmitting SPI Frame. \nThe External Host de-asserts (Low-to-High) the SCSn at the end of SPI Frame transmit. \n \n \nFigure 10. 5 Byte Data Write at 1th Socket\u2019s TX Buffer Block 0x0040 in VDM mode \n  \nSCSn\nSCSn\n"
+  },
+  {
+   "page": 20,
+   "text": " \nW5500 Datasheet Version1.1.0 21 / 67 \n \n2.3.2 Read Access in VDM \n \nFigure 11. Read SPI Frame in VDM mode \nFigure 11 shows the SPI Frame when external host accesses W5500 for reading \nIn VDM mode, the RWB signal is \u20180\u2019 (Write), OM[1:0] is \u201800\u2019 in SPI Frame Control \nPhase. At this time the External Host assert (High-to-Low) SCSn signal before \ntransmitting SPI Frame. \nThen the Host transmits Address and Control Phase all bits to W5500 through MOSI \nsignal. All bits are synchronized with the falling edge of the SCLK. \nThen the Host receives all bits of Data Phase with synchronizing the rising edge of \nSampling SCLK through MISO signal. \nAfter finishing the Data Phase receive, the Host de-asserts SCSn signal (Low-to-\nHigh). \nWhen SCSn is Low and the Data Phase continues to receive, the Sequential Data \nRead can be supported. \n \n  \nMOSI\nMISO\nSCSn\nSCLK\n33 3432 35 36 37 38 39 ... 8N + 16 8N + 24\n7 6 5 4 3 2 1 0 7 6 5 4 3 2 1 0 7 6 5 4 3 2 1 0\n8-bit Data 2 ... 8-bit Data N\nSCSn Should be remained low until SPI Frame Transmit & Receive done.\nSPI Frame End\nSCSn\nMOSI 4 3 2 015 14 3 2 1 013\nMISO\n1 20\nSCLK\n12 13 14 15\n16bits Offset Address\n17 1816 20 21 22 23 25 2624 27 28 29 30 31\n8-bit Data 1\nMODE0\nMODE3 19\n1\n7 6 5 4 3 2 1 0\nBSB[4:0] RWB OM[1:0]\nR 0 0\nSCSn shoud be remained low until  SPI Frame Transmit & Receive done.\nSPI Frame Start"
+  },
+  {
+   "page": 21,
+   "text": "  \n \n22 / 67  W5500 Datasheet Version1.1.0 \n \n1 Byte READ Access Example \nWhen the Host reads the \u2018Socket Status Register(S7_SR) of the Socket 7 \u2019s Register \nBlock by using VDM mode, the data is read with the SPI Frame below. Let \u2019s S7_SR to \n\u2018SOCK_ESTABLISHED (0x17)\u2019. \n \nOffset Address = 0x0003 \nBSB[4:0]        = \u201811101\u2019 \nRWB             = \u20180\u2019 \nOM[1:0]         = \u201800\u2019 \n1st Data         = 0x17 \n \nThe External Host asserts (High -to-Low) SCSn signal before transmitting SPI Frame, \nthen the Host transmits Address and Control Phase to W5500 through the MOSI signal. \nThen the Host receives Data Phase from the MISO signal. \nAfter finishing the Data Phase receives, the Host de-asserts SCSn signal (Low-to-\nHigh). (Refer to the Figure 12) \n \n \nFigure 12. S7_SR Read in VDM Mode \n \n  \nSCSn\n"
+  },
+  {
+   "page": 22,
+   "text": " \nW5500 Datasheet Version1.1.0 23 / 67 \n \nN-Bytes Read Access Example \nWhen the Host reads 5 Bytes Data (0xAA, 0xBB, 0xCC, 0xDD, 0xEE) from the Socket \n3\u2019s RX Buffer Block 0x0100 Address by using VDM mode, 5 bytes data are read with the \nSPI Frame as below. \n \nOffset Address = 0x0100 \nBSB[4:0]        = \u201801111\u2019 \nRWB             = \u20180\u2019 \nOM[1:0]         = \u201800\u2019 \n1st Data         = 0xAA \n2nd Data         = 0xBB \n3rd Data         = 0xCC \n4th Data         = 0xDD \n5th Data         = 0xEE \n \nThe N-Bytes Read Access is shown in Figure 13. \nThe 5 bytes of Data (0xAA, 0xBB, 0xCC, 0xDD, 0xEE) are read sequentially from the \nSocket 3\u2019s Rx Buffer Block Address 0x0100 ~ 0x0104. \nThe External Host asserts (High-to-Low) SCSn before transmitting SPI Frame. \nThe External Host de-asserts (Low-to-High) the SCSn at the end of the SPI Frame Data \nPhase. \n \n \nFigure 13. 5 Byte Data Read at Socket 3 RX Buffer Block 0x0100 in VDM mode \n \n  \nSCSn\nSCSn\n"
+  },
+  {
+   "page": 23,
+   "text": "  \n \n24 / 67  W5500 Datasheet Version1.1.0 \n \n2.4 Fixed Length Data Mode (FDM) \nThe FDM mode can be used when the External Host cannot control SCSn signal. \nThe SCSn signal should be tied to Low (Always connected to GND) and it is not possible \nto share the SPI Bus with other SPI Devices. (Refer to the Figure 5) \n \nIn VDM mode, Data Phase length is controlled by SCSn control. \nBut in FDM mode, Data Phase length is controlled by OM[1:0] value ( \u201801\u2019 / \u201810\u2019 / \u201811\u2019) \nwhich is the SPI Operation Mode Bits of the Control Phase. \nAs the SPI Frame of FDM mode is the same as SPI Frame of VDM mode (1Byte, 2 Bytes, \n4 Bytes SPI Frame) except for the SCSn signal control and OM[1:0] setting, the detail \nabout FDM mode is not described in this section. \n \nIt is not recommen ded to use the FDM mode unless you are in inevitable status. In \naddition, we use only 1/2/4 Bytes SPI Frame, as described in \u2018Chapter 2.4.1\u2019 & \u2018Chapter \n2.4.2\u2019. Using SPI Frame with other length of Data will cause malfunction of W5500.  \n \n \n  "
+  },
+  {
+   "page": 24,
+   "text": " \nW5500 Datasheet Version1.1.0 25 / 67 \n \n2.4.1 Write Access in FDM \n1 Bytes WRITE Access \n \nFigure 14. 1 Byte Data Write SPI Frame in FDM mode \n \n2 Bytes WRITE Access \n \nFigure 15. 2 Bytes Data Write SPI Frame in FDM mode \n \n4 Bytes WRITE Access \n \nFigure 16. 4 Bytes Data Write SPI Frame in FDM mode \n  \n"
+  },
+  {
+   "page": 25,
+   "text": "  \n \n26 / 67  W5500 Datasheet Version1.1.0 \n \n2.4.2 Read Access in FDM \n1 Byte READ Access \n \nFigure 17. 1 Byte Data Read SPI Frame in FDM mode \n \n2 Bytes READ Access \n \nFigure 18. 2 Bytes Data Read SPI Frame in FDM mode \n \n4 Bytes READ Access \n \nFigure 19. 4 Bytes Data Read SPI Frame in FDM mode \n \n  \n"
+  },
+  {
+   "page": 26,
+   "text": " \nW5500 Datasheet Version1.1.0 27 / 67 \n \n Register and Memory Organization \nW5500 has one Common Register Block, eight Socket Register Blocks, and TX/RX \nBuffer Blocks allocated to each Socket. Each block is selected by the BSB[4:0](Block \nSelect Bit) of SPI Frame.  \nFigure 20 shows the selected block by the BSB[4:0] and the available offset address \nrange of Socket TX/RX Buffer Blocks. Each Socket\u2019s TX Buffer Block exists in one 16KB \nTX memory physically and is initially allocated with 2KB.  \nAlso, Each Socket \u2019s RX Buffer Bl ock exists in one 16KB RX Memory physically and is \ninitially allocated with 2KB. \n \nRegardless of the allocated size of each Socket TX/RX Buffer , it can be accessible \nwithin the 16 bits offset address range (From 0x0000 to 0xFFFF). \n \nRefer to \u2018Chapter 3.3\u2019 for more information about 16KB TX/RX Memory organization \nand access method. \n \n "
+  },
+  {
+   "page": 27,
+   "text": "  \n \n28 / 67  W5500 Datasheet Version1.1.0 \n \n \nFigure 20. Register & Memory Organization \n  \nBlock Select Bits Blocks\nPhysical \n16KB RX Memory\n16bit Offset Address\nValid Range\n...\n11111 (0x1F)\n11110 (0x1E)\n11101 (0x1E)\n11100 (0x1C)\n11011 (0x1B)\n11010 (0x1A)\n11001 (0x19)\n11000 (0x18)\n10111 (0x17)\n10110 (0x16)\n10101 (0x15)\n10011 (0x13)\n10010 (0x12)\n10001 (0x11)\n01000 (0x10)\n01111 (0x0F)\n01110 (0x0E)\n01101 (0x0D)\n01100 (0x0C)\n01011 (0x0B)\n01010 (0x0A)\n01001 (0x09)\n01000 (0x08)\n00111 (0x07)\n00110 (0x06)\n00101 (0x05)\n00011 (0x03)\n00010 (0x02)\n00001 (0x01)\n00000 (0x00)\n00100 (0x04)\n10100 (0x14)\nSocket 7 RX Buffer\nSocket 7 TX Buffer\nSocket 7 Register\nReserved\nSocket 6 RX Buffer\nSocket 6 TX Buffer\nSocket 6 Register\nReserved\nSocket 5 RX Buffer\nSocket 5 TX Buffer\nSocket 5 Register\nSocket 4 RX Buffer\nSocket 4 TX Buffer\nSocket 4 Register\nReserved\nSocket 3 RX Buffer\nSocket 3 TX Buffer\nSocket 3 Register\nReserved\nSocket 2 RX Buffer\nSocket 2 TX Buffer\nSocket 2 Register\nReserved\nSocket 1 RX Buffer\nSocket 1 TX Buffer\nSocket 1 Register\nReserved\nSocket 0 RX Buffer\nSocket 0 TX Buffer\nSocket 0 Register\nCommon Register\nReserved\nCommon Register\n0x0000\nReserved\n0x0039\n0x003A\n0xFFFF\nSocket 0 Register\nReserved\n0x0000\n0x0030\n0x0031\n0xFFFF\nSocket 1 TX Buffer\n0x0000\n0x07FF\n0x0800\n0xFFFF\n0x0FFF0x1000\n...\n0xEFFF0xF000\n0xF7FF0xF800\n...\nSocket 7 RX Buffer\n...\n0x0000\n0x07FF0x0800\n0xFFFF\n0x0FFF0x1000\n0xEFFF0xF000\n0xF7FF0xF800\n......\n...0x413C\n0x0000\n0x1000\n0x0800\n0x1800\n0x2000\n0x2800\n0x3000\n0x3800\n0x3FFF\nSocket 0\nTX Bufer (2KB)\nSocket 1\nTX Buffer (2KB)\nSocket 2\nTX Buffer (2KB)\nSocket 3\nTX Buffer (2KB)\nSocket 4\nTX Buffer (2KB)\nSocket 5\nTX Buffer (2KB)\nSocket 6\nTX Buffer (2KB)\nSocket 7\nTX Buffer (2KB)\n0x093C\n0x0FFF\n...\n0x9E2C\n0x0000\n0x1000\n0x0800\n0x1800\n0x2000\n0x2800\n0x3000\n0x3800\n0x3FFF\nSocket 0\nRX Buffer (2KB)\nSocket 1\nRX Buffer (2KB)\nSocket 2\nRX Buffer (2KB)\nSocket 3\nRX Buffer (2KB)\nSocket 4\nRX Buffer (2KB)\nSocket 5\nRX Buffer (2KB)\nSocket 6\nRX Buffer (2KB)\nSocket 7 \nRX Buffer (2KB)\n0x3E2C\n0x0FFF\nPhysical \n16KB TX Memory"
+  },
+  {
+   "page": 28,
+   "text": " \nW5500 Datasheet Version1.1.0 29 / 67 \n \n3.1 Common Register Block \nCommon Register Block configures the general information of W5500 such as IP and \nMAC address. This block can be selected by the BSB[4:0] value of SPI Frame. Table 3 \ndefines the offset address of registers in this block.  Refer to \u2018Chapter 4.1\u2019 for more \ndetails about each register. \nTable 3. Offset Address for Common Register \nOffset Register Offset Register Offset Register \n \n0x0000 \nMode \n(MR) \n \n0x0013 \n0x0014 \nInterrupt Low Level Timer \n(INTLEVEL0) \n(INTLEVEL1) \n0x0021 \n0x0022 \n0x0023 \n(PHAR3) \n(PHAR4) \n(PHAR5)  \n0x0001 \n0x0002 \n0x0003 \n0x0004 \nGateway Address  \n(GAR0) \n(GAR1) \n(GAR2) \n(GAR3) \n \n0x0015 \nInterrupt  \n(IR) \n \n0x0024 \n0x0025 \nPPP Session Identification \n(PSID0) \n(PSID1)  \n0x0016 \nInterrupt Mask  \n(IMR)  \n0x0026 \n0x0027 \nPPP Maximum Segment Size \n(PMRU0) \n(PMRU1) \n \n0x0005 \n0x0006 \n0x0007 \n0x0008 \nSubnet Mask Address  \n(SUBR0) \n(SUBR1) \n(SUBR2) \n(SUBR3) \n \n0x0017 \nSocket Interrupt  \n(SIR) \n \n0x0018 \nSocket Interrupt Mask  \n(SIMR) \n \n0x0028 \n0x0029 \n0x002A \n0x002B \nUnreachable IP address \n(UIPR0) \n(UIPR1) \n(UIPR2) \n(UIPR3) \n \n0x0019 \n0x001A \nRetry Time \n(RTR0) \n(RTR1) \n \n0x0009 \n0x000A \n0x000B \n0x000C \n0x000D \n0x000E \nSource Hardware Address \n(SHAR0) \n(SHAR1) \n(SHAR2) \n(SHAR3) \n(SHAR4) \n(SHAR5) \n \n0x001B \nRetry Count  \n(RCR) \n \n0x002C \n0x002D \nUnreachable Port \n(UPORTR0) \n(UPORTR1)  \n0x001C \nPPP LCP Request Timer \n(PTIMER)  \n0x002E \nPHY Configuration  \n(PHYCFGR)  \n0x001D \nPPP LCP Magic number \n(PMAGIC)  \n0x000F \n0x0010 \n0x0011 \n0x0012 \nSource IP Address \n(SIPR0) \n(SIPR1) \n(SIPR2) \n(SIPR3) \n0x002F \n~ \n0x0038 \nReserved  \n0x001E \n0x001F \n0x0020 \nPPP Destination MAC Address \n(PHAR0) \n(PHAR1) \n(PHAR2) \n \n0x0039 \nChip version \n(VERSIONR) \n0x003A ~ 0xFFFF Reserved \n \n \n  "
+  },
+  {
+   "page": 29,
+   "text": "  \n \n30 / 67  W5500 Datasheet Version1.1.0 \n \n3.2 Socket Register Block \nW5500 supports 8 Sockets for communication channel. Each Socket is controlled by \nSocket n Register Block(when 0\u2264n\u22647). The n value of Socket n Register can be selected \nby BSB[4:0] of SPI Frame. Table 4 defines the 16bits Offset Address of registers in \nSocket n Register Block. \nRefer to \u2018Chapter 4.2\u2019 for more details about each register. \nTable 4. Offset Address in Socket n Register Block (0\u2264n\u22647) \nOffset Register Offset Register Offset Register \n \n0x0000 \nSocket n Mode  \n(Sn_MR) \n \n0x0010 \n0x0011 \nSocket n Destination Port \n(Sn_DPORT0) \n(Sn_DPORT1) \n \n0x0024 \n0x0025 \nSocket n TX Write \nPointer \n(Sn_TX_WR0) \n(Sn_TX_WR1) \n \n0x0001 \nSocket n Command (Sn_CR) \n \n \n0x0012 \n0x0013 \nSocket n  \nMaximum Segment Size \n(Sn_MSSR0) \n(Sn_MSSR1) \n \n0x0026 \n0x0027 \nSocket n RX Received \nSize \n(Sn_RX_RSR0) \n(Sn_RX_RSR1) \n \n0x0002 \nSocket n Interrupt  \n(Sn_IR) \n \n0x0003 \nSocket n Status  \n(Sn_SR) \n \n0x0028 \n0x0029 \nSocket n RX Read Pointer \n(Sn_RX_RD0) \n(Sn_RX_RD1) \n0x0014 Reserved \n \n0x0004 \n0x0005 \nSocket n Source Port \n(Sn_PORT0)  \n(Sn_PORT1) \n \n0x0015 \nSocket n IP TOS  \n(Sn_TOS)  \n0x002A \n0x002B \nSocket n RX Write \nPointer \n(Sn_RX_WR0) \n(Sn_RX_WR1) \n \n0x0016 \nSocket n IP TTL  \n(Sn_TTL)  \n \n0x0006 \n0x0007 \n0x0008 \n0x0009 \n0x000A \n0x000B \nSocket n Destination \nHardware Address \n(Sn_DHAR0) \n(Sn_DHAR1) \n(Sn_DHAR2) \n(Sn_DHAR3) \n(Sn_DHAR4) \n(Sn_DHAR5) \n0x0017 \n~ \n0x001D \nReserved \n \n0x002C \nSocket n Interrupt Mask \n(Sn_IMR) \n \n \n0x002D \n0x002E \nSocket n Fragment \nOffset in IP header \n(Sn_FRAG0) \n(Sn_FRAG1) \n \n0x001E \nSocket n Receive Buffer \nSize \n(Sn_RXBUF_SIZE) \n \n0x001F \nSocket n  \nTransmit Buffer Size \n(Sn_TXBUF_SIZE) \n \n0x002F \nKeep alive timer  \n(Sn_KPALVTR) \n \n \n0x000C \n0x000D \n0x000E \n0x000F \nSocket n  \nDestination IP Address \n(Sn_DIPR0) \n(Sn_DIPR1) \n(Sn_DIPR2) \n(Sn_DIPR3) \n \n0x0020 \n0x0021 \nSocket n TX Free Size \n(Sn_TX_FSR0) \n(Sn_TX_FSR1) \n0x0030 \n~ \n0xFFFF \nReserved \n \n0x0022 \n0x0023 \nSocket n TX Read Pointer \n(Sn_TX_RD0) \n(Sn_TX_RD1) "
+  },
+  {
+   "page": 30,
+   "text": " \nW5500 Datasheet Version1.1.0 31 / 67 \n \n3.3 Memory  \nW5500 has one 16KB TX memory for Socket n TX Buffer Blocks and one 16KB RX \nmemory for Socket n RX buffer Blocks. \n16KB TX memory is initially allocated in 2KB size for each Socket TX Buffer Block (2KB \nX 8 = 16KB). The initial allocated 2KB size of Socket n TX Buffer can be re-allocated by \nusing \u2018Socket n TX Buffer Size Register (Sn_TXBUF_SIZE)\u2019. \nOnce all Sn_TXBUF_SIZE registers have been configured, Socket TX Buffer is allocated \nwith the configured size of 16KB TX Memory and is assigned sequentially from Socket \n0 to Socket 7. Its physical memory address is automatically determined in 16KB TX \nmemory. Therefore, the total sum of Sn_TXBUF_SIZE should be not exce ed 16 in case \nof error in data transmission. \nThe 16KB RX memory allocation method is  the same as t he 16KB TX memory  \nallocation method. 16KB RX memory is initially allocated into 2KB size for each Socket \nRX Buffer Block (2KB X 8 = 16KB). The initial allocat ed 2KB size of Socket n RX Buffer \ncan be re-allocated by using \u2018Socket n RX Buffer Size Register (Sn_RXBUF_SIZE)\u2019. \nWhen all Sn_RXBUF_SIZE registers have been configured, the Socket RX Buffer is \nallocated with the configured size in 16KB RX Memory and is assigned sequentially from \nSocket 0 to Socket 7. The physical memory address  of the Socket RX Buffer is \nautomatically determined in 16KB RX memory. Therefore, the total sum of \nSn_RXBUF_SIZE should not exceed 16, data reception error will occur if exceeded.  \nFor 16KB TX/RX memory allocation, refer to Sn_TXBUF_SIZE & Sn_RXBUF_SIZE in \n\u2018Chapter 4.2\u2019. \n \nThe Socket n TX Buffer Block allocated in 16KB TX memory is buffer for saving data \nto be transmitted by host. The 16bits Offset Address of Socket n TX Buffer Block has \n64KB address space ranged from 0x0000 to 0xFFFF , and it is configured with reference \nto \u2018Socket n TX Write Pointer Register  (Sn_TX_WR)\u2019 & \u2018Socket n TX Read Pointer \nRegister(Sn_RX_RD)\u2019. However, the 16bits Offset Address automatically convert s into \nthe physical address to be accessible in 16KB TX memory such as Figure 20. Refer to \n\u2018Chapter 4.2\u2019 for Sn_TX_WR & Sn_TX_RD. \n \nThe Socket n RX Buffer Block allocated in 16KB RX memory is buffer for saving the \nreceived data through the Ethernet. The 16bits Offset Address of Socket n RX Buffer \nBlock has 64KB address space ranged from 0x0000 to 0xFFFF , and it is configured with \nreference to \u2018Socket n RX RD Pointer Register (Sn_RX_RD)\u2019 & \u2018Socket n RX Write Pointer \nRegister (Sn_RX_WR)\u2019. However, the 16bits Offset Address automatically converts into \nthe physical address to be accessible in 16KB RX memory such as Figure 20. Refer to \n\u2018Chapter 4.2\u2019 for Sn_RX_RD & Sn_RX_WR. "
+  },
+  {
+   "page": 31,
+   "text": "  \n \n32 / 67  W5500 Datasheet Version1.1.0 \n \n Register Descriptions \n4.1 Common Registers \nMR (Mode Register) [R/W] [0x0000] [0x00]2 \nMR is used for S/W reset, ping block mode and PPPoE mode. \n \n7 6 5 4 3 2 1 0 \nRST Reserved WOL PB PPPoE Reserved FARP Reserved \n \nBit Symbol Description \n7 RST \nIf this bit is \u20181\u2019, All internal registers will be initialized. It will be \nautomatically cleared as \u20180\u2019 after S/W reset. \n6 Reserved Reserved \n5 WOL \nWake on LAN \n0 : Disable WOL mode \n1 : Enable WOL mode \n \nIf WOL mode is enabled and the received magic packet over UDP has \nbeen normally processed, the Interrupt PIN  (INTn) asserts to low. When \nusing WOL mode, the UDP Socket should be opened with any source port \nnumber. (Refer to Socket n Mode Register (Sn_MR) for opening Socket.) \n Notice: The magic packet over UDP supported by W5500 consists of 6 \nbytes synchronization stream ( \u20180xFFFFFFFFFFFF\u2019) and 16 times Target \nMAC address stream in UDP payload.  The options such like password are \nignored. You can use any UDP source port number for WOL mode. \n4 PB \nPing Block Mode \n0 : Disable Ping block \n1 : Enable Ping block \n If the bit is \u20181\u2019, it blocks the response to a ping request. \n3 PPPoE \nPPPoE Mode \n0 : Disable PPPoE mode \n1 : Enable PPPoE mode \n If you use ADSL, this bit should be \u20181\u2019. \n2 Reserved Reserved \n1 FARP Force ARP \n \n2 Register Notation :  [Read/Write/ReadClearWrite1] [Address] [Reset value]; \nReadClearWrite1 (RCW1) Software can read as well as clear this bit by writing 1. Writing \u20180\u2019 has no \neffect on the bit value. "
+  },
+  {
+   "page": 32,
+   "text": " \nW5500 Datasheet Version1.1.0 33 / 67 \n \n0 : Disable Force ARP mode \n1 : Enable Force ARP mode \nIn Force ARP mode, It  forces on sending ARP Request whenever data is \nsent. \n0 Reserved Reserved \n \nGAR (Gateway IP Address Register) [R/W] [0x0001 \u2013 0x0004] [0x00] \nGAR configures the default gateway address. \n \nEx) In case of \u201c192.168.0.1\u201d \n0x0001 0x0002 0x0003 0x0004 \n192 (0xC0) 168 (0xA8) 0 (0x00) 1 (0x01) \n \nSUBR (Subnet Mask Register) [R/W] [0x0005 \u2013 0x0008] [0x00] \nSUBR configures the subnet mask address. \n \nEx) In case of \u201c255.255.255.0\u201d \n0x0005 0x0006 0x0007 0x0008 \n255 (0xFF) 255 (0xFF) 255 (0xFF) 0 (0x00) \n \nSHAR (Source Hardware Address Register) [R/W] [0x0009 \u2013 0x000E] [0x00] \nSHAR configures the source hardware address. \n \nEx) In case of \u201c00.08.DC.01.02.03\u201d \n0x0009 0x000A 0x000B 0x000C 0x000D 0x000E \n0x00 0x08 0xDC 0x01 0x02 0x03 \n \nSIPR (Source IP Address Register) [R/W] [0x000F \u2013 0x0012] [0x00] \nSIPR configures the source IP address. \n \nEx) In case of \u201c192.168.0.2\u201d \n0x000F 0x0010 0x0011 0x0012 \n192 (0xC0) 168 (0xA8) 0 (0x00) 2 (0x02) \n  "
+  },
+  {
+   "page": 33,
+   "text": "  \n \n34 / 67  W5500 Datasheet Version1.1.0 \n \nINTLEVEL (Interrupt Low Level Timer Register) [R/W] [0x0013 \u2013 0x0014] [0x0000] \nINTLEVEL configures the Interrupt Assert Wait Time (IAWT). When the next interrupt  \noccurs, Interrupt PIN (INTn ) will assert to low after INTLEVEL time. \n \n\ud835\udc3c\ud835\udc34\ud835\udc4a\ud835\udc47 =  (\ud835\udc3c\ud835\udc41\ud835\udc47\ud835\udc3f\ud835\udc38\ud835\udc49\ud835\udc38\ud835\udc3f + 1) \u00d7\n1\n\ud835\udc43\ud835\udc3f\ud835\udc3f\ud835\udc50\ud835\udc59\ud835\udc583 \u00d7 4 (when INTLEVEL > 0) \nEquation 1 Interrupt Assert Wait Time \n \nFigure 21. INTLEVEL Timing \n  \na. When Timeout Interrupt of Socket 0 is occurred, S0_IR[3] & SIR[0] bit set as \u20181\u2019 and \nthen INTn PIN is asserted to low. \n \nb. When the connection interrupt of Socket 1 is occurred before the previous interrupt \nprocessing is not completed, S1_IR[0] & SIR[1] bits set as \u20181\u2019 and INTn PIN is still low. \n \nc. If the host processed the previous interrupt completely by clearing the S0_IR[3] bit, \nINTn PIN is de-asserted to high but S1_IR[0] & SIR[1] is still set as \u20181\u2019. \n \nd. Although S1_IR[0] & SIR[1] bit is set as \u20181\u2019, the INTn can\u2019t be asserted to low during \nINTLEVEL time. After the INTLEVEL time expires, the INTn will be asserted to low. \n \n  \n \n3 \ud835\udc43\ud835\udc3f\ud835\udc3f\ud835\udc50\ud835\udc59\ud835\udc58 is 150MHz \nPLL_CLK\nSIR\nS0_IR\nS1_IR\n0x0000 0x0001 0x0002\n0x04 0x00\n0x01\n0x00\n0x00\n1   2   3   4   5   6   7   8   9   10  11 12 13 14 15 16 \n0x0003\nINTn\na.\nb.\nc. d.IAWT"
+  },
+  {
+   "page": 34,
+   "text": " \nW5500 Datasheet Version1.1.0 35 / 67 \n \nIR (Interrupt Register) [R/W] [0x0015] [0x00] \nIR indicates the interrupt status. Each bit of IR can be cleared when the host writes \n\u20181\u2019 value to each bit. If IR is not equal to \u20180x00\u2019, INTn PIN is asserted low until it is \n\u20180x00\u2019. \n \n7 6 5 4 3 2 1 0 \nCONFLICT UNREACH PPPoE MP Reserved Reserved Reserved Reserved \n \nBit Symbol Description \n7 CONFLICT \nIP Conflict \nBit is set as \u20181\u2019 when own source IP address is same with the sender \nIP address in the received ARP request. \n6 UNREACH \nDestination unreachable \nWhen receiving the ICMP (Destination port unreachable) packet, \nthis bit is set as \u20181\u2019. \nWhen this bit is \u20181\u2019, Destination Information such as IP address and \nPort number may be checked with the corresponding UIPR & \nUPORTR. \n 5 PPPoE \nPPPoE Connection Close \nWhen PPPoE is disconnected during PPPoE mode, this bit is set. \n4 MP \nMagic Packet \nWhen WOL mode is enabled and receives the magic packet over \nUDP , this bit is set. \n3~0 Reserved Reserved \n \n  "
+  },
+  {
+   "page": 35,
+   "text": "  \n \n36 / 67  W5500 Datasheet Version1.1.0 \n \nIMR (Interrupt Mask Register) [R/W][0x0016][0x00] \nIMR is used to mask interrupts. Each bit of IMR corresponds to each bit of IR. When \na bit of IMR is \u20181\u2019 and the corresponding bit of IR is \u20181\u2019, an interrupt will be issued. In \nother words, if a bit of IMR is \u20180\u2019, an interrupt will not be issu ed even if the \ncorresponding bit of IR is \u20181\u2019. \n \n7 6 5 4 3 2 1 0 \nIM_IR7 IM_IR6 IM_IR5 IM_IR4 Reserved Reserved Reserved Reserved \n \nBit Symbol Description \n7 IM_IR7 \nIP Conflict Interrupt Mask \n0: Disable IP Conflict Interrupt \n1: Enable IP Conflict Interrupt \n6 IM_IR6 \nDestination unreachable Interrupt Mask \n0: Disable Destination unreachable Interrupt \n1: Enable Destination unreachable Interrupt \n5 IM_IR5 \nPPPoE Close Interrupt Mask \n0: Disable PPPoE Close Interrupt \n1: Enable PPPoE Close Interrupt \n4 IM_IR4 \nMagic Packet Interrupt Mask \n0: Disable Magic Packet Interrupt \n1: Enable Magic Packet Interrupt \n3~0 Reserved Reserved \n \n  "
+  },
+  {
+   "page": 36,
+   "text": " \nW5500 Datasheet Version1.1.0 37 / 67 \n \nSIR (Socket Interrupt Register) [R/W] [0x0017] [0x00] \nSIR indicates the interrupt status of Socket. Each bit of SIR be still \u20181\u2019 until Sn_IR is \ncleared by the host. If Sn_IR is not equal to \u20180x00\u2019, the n -th bit of SIR is \u20181\u2019 and INTn \nPIN is asserted until SIR is \u20180x00\u2019. \n \n7 6 5 4 3 2 1 0 \nS7_INT S6_INT S5_INT S4_INT S3_INT S2_INT S1_INT S0_INT \n \nBit Symbol Description \n7 \n~ \n0 \nSn_INT \nWhen the interrupt of Socket n occurs, the n -th bit of SIR becomes \n\u20181\u2019. \n \nSIMR (Socket Interrupt Mask Register) [R/W] [0x0018] [0x00] \nEach bit of SIMR corresponds to each bit of SIR. When a bit of SIMR is \u20181\u2019 and the \ncorresponding bit of SIR is \u20181\u2019, Interrupt will be issued. In other words, if a bit of SIMR \nis \u20180\u2019, an interrupt will be not issued even if the corresponding bit of SIR is \u20181\u2019. \n \n7 6 5 4 3 2 1 0 \nS7_IMR S6_IMR S5_IMR S4_IMR S3_IMR S2_IMR S1_IMR S0_IMR \n \nBit Symbol Description \n7 \n~ \n0 \nSn_IMR \nSocket n(Sn_INT) Interrupt Mask \n0: Disable Socket n Interrupt \n1: Enable Socket n Interrupt \n \n  "
+  },
+  {
+   "page": 37,
+   "text": "  \n \n38 / 67  W5500 Datasheet Version1.1.0 \n \nRTR (Retry Time-value Register) [R/W] [0x0019 \u2013 0x001A] [0x07D0] \nRTR configures the retransmission timeout period. The unit of timeout period is \n100us and the default of RTR is \u20180x07D0\u2019 or \u20182000\u2019. And so the default timeout period \nis 200ms(100us X 2000). \nDuring the time configured by RTR, W5500 waits for the peer response to the packet \nthat is transmitted by Sn_CR(CONNECT , DISCON, CLOSE, SEND, SEND_MAC, SEND_KEEP \ncommand). If the peer does not respon d within the RTR time, W5500 retransmits the \npacket or issues timeout. \n \nEx) When timeout-period is set as 400ms, RTR = (400ms / 1ms) X 10 = 4000(0x0FA0) \n0x0019 0x001A \n0x0F 0xA0 \n \nRCR (Retry Count Register) [R/W] [0x001B] [0x08] \nRCR configures the number of time of retransmission. When retransmission occurs \nas many as \u2018RCR+1\u2019, Timeout interrupt is issued (Sn_IR[TIMEOUT] = \u20181\u2019). \n \nEx) RCR = 0x0007 \n0x001B \n0x07 \n \nThe timeout of W5500 can be configurable with RTR and RCR. W5500 has two kind \ntimeout such as Address Resolution Protocol (ARP) and TCP retransmission. \nAt the ARP (Refer to RFC 826, http://www.ietf.org/rfc.html) retransmission timeout, \nW5500 automatically sends ARP -request to the peer\u2019s IP address in order to acquire \nMAC address information (used for communication of IP , UDP , or TCP). While waiting \nfor ARP-response from the peer , if there is no response during the configured RTR time, \na temporary timeout is occurred and ARP -request is retransmitted. It is repeated as \nmany as \u2018RCR + 1\u2019 times. Even after the ARP-request retransmissions are repeated as \n\u2018RCR+1\u2019 and there is no response to the ARP-request, the final timeout is occurred and \nSn_IR(TIMEOUT) becomes \u20181\u2019. The time of final timeout ( ARPTO) of ARP-request is as \nbelow. \n \n\ud835\udc34\ud835\udc45\ud835\udc43\ud835\udc47\ud835\udc42 =  (\ud835\udc45\ud835\udc47\ud835\udc45 \u00d7 0.1\ud835\udc5a\ud835\udc60) \u00d7 (\ud835\udc45\ud835\udc36\ud835\udc45 + 1) \n \nAt the TCP packet retransmission timeout, W5500 transmits TCP packet s (SYN, FIN, \nRST , DATA packets) and waits for the acknowledgement (ACK) during the configured \nRTR time and RCR. If there is no ACK from the peer, a temporary timeout occurs and "
+  },
+  {
+   "page": 38,
+   "text": " \nW5500 Datasheet Version1.1.0 39 / 67 \n \nthe TCP packet is retransmitted. The retransmission is repeated as many as \u2018RCR +1\u2019. \nEven after TCP retransmission is repeated as \u2018RCR+1\u2019 and there is no response to the \nTCP retransmission, the final timeout is occurred and Sn_IR(TIMEOUT) becomes \u20181\u2019. \nThe time of final timeout (TCPTO) of TCP retransmission is as below. \n \n\ud835\udc47\ud835\udc36\ud835\udc43\ud835\udc47\ud835\udc42 =  (\u2211(\ud835\udc45\ud835\udc47\ud835\udc45 \u00d7 2\ud835\udc41)     +    ((\ud835\udc45\ud835\udc36\ud835\udc45 \u2212 \ud835\udc40) \u00d7  \ud835\udc45\ud835\udc47\ud835\udc45\ud835\udc40\ud835\udc34\ud835\udc4b)\n\ud835\udc40\n\ud835\udc41=0\n) \u00d7 0.1\ud835\udc5a\ud835\udc60 \n \nN : Retransmission count,  0 \u2264N \u2264 M \nM : Minimum value when RTR x 2(M+1) > 65535 and 0 \u2264 M \u2264 RCR \nRTRMAX : RTR x 2M \n \nEx) When RTR = 2000(0x07D0), RCR = 8(0x0008), \nARPTO = 2000 X 0.1ms X 9 = 1800ms = 1.8s \nTCPTO = (0x07D0+0x0FA0+0x1F40+0x3E80+0x7D00+0xFA00+0xFA00+0xFA00+0xFA00) X 0.1ms \n     = (2000 + 4000 + 8000 + 16000 + 32000 + ((8 - 4) X 64000)) X 0.1ms \n     = 318000 X 0.1ms = 31.8s \n \nPTIMER (PPP Link Control Protocol Request Timer Register) [R/W] [0x001C] [0x0028]  \nPTIMER configures the time for sending LCP echo request. The unit of time is 25ms. \n \nEx) in case that PTIMER is 200, \n200 * 25(ms) = 5000(ms) = 5 seconds \n \nPMAGIC (PPP Link Control Protocol Magic number Register) [R/W] [0x001D] [0x00] \nPMAGIC configures the 4bytes magic number to be used in LCP echo request. \n \nEx) PMAGIC = 0x01 \n0x001D \n0x01 \n   LCP Magic number = 0x01010101 \n \n  "
+  },
+  {
+   "page": 39,
+   "text": "  \n \n40 / 67  W5500 Datasheet Version1.1.0 \n \nPHAR (Destination Hardware Address Register in PPPoE mode)  \n[R/W] [0x001E-0x0023] [0x0000] \nPHAR should be written to the PPPoE server hardware address acquired in PPPoE \nconnection process \n \nEx) In case that destination hardware address is 00:08:DC:12:34:56 \n0x001E 0x001F 0x0020 0x0021 0x0022 0x0023 \n0x00 0x08 0xDC 0x12 0x34 0x56 \n \nPSID (Session ID Register in PPPoE mode) [R/W] [0x0024-0x0025] [0x0000] \nPSID should be written to the PPPoE sever session ID acquired in PPPoE connection \nprocess. \n \nEx) In case that Session ID is 0x1234 \n0x0024 0025 \n18 (0x12) 52(0x34) \n \nPMRU (Maximum Receive Unit in PPPoE mode) [R/W] [0x0026-0x0027] [0xFFFF] \nPMRU configures the maximum receive unit of PPPoE. \n \nEx) in case that maximum receive unit in PPPoE is 0x1234 \n0x0026 0027 \n18 (0x12) 52 (0x34) \n \n \n  "
+  },
+  {
+   "page": 40,
+   "text": " \nW5500 Datasheet Version1.1.0 41 / 67 \n \nUIPR (Unreachable IP Address Register) [R] [0x0028-0x002B] [0x00000000] \nUPORTR (Unreachable Port Register) [R] [0x002C-0x002D] [0x0000] \nW5500 receives an ICMP packet(Destination port unreachable) when data is sent to \na port number which socket is not open and  UNREACH bit of IR becomes \u20181\u2019 and UIPR \n& UPORTR indicates the destination IP address & port number respectively. \n \nEx) In case of \u201c192.168.0.11\u201d \n0x0028 0x0029 0x002A 0x002B \n192 (0xC0) 168 (0xA8) 0 (0x00) 11 (0x0E) \n \nEx) In case of \u201c0x1234\u201d \n0x002C 002D \n18 (0x12) 52(0x34) \n \n  "
+  },
+  {
+   "page": 41,
+   "text": "  \n \n42 / 67  W5500 Datasheet Version1.1.0 \n \nPHYCFGR (W5500 PHY Configuration Register) [R/W] [0x002E] [0b10111XXX] \nPHYCFGR configures PHY operation mode and resets PHY . In addition, PHYCFGR \nindicates the status of PHY such as duplex, Speed, Link. \n \nBit Symbol Description \n7 RST \nReset [R/W] \nWhen this bit is \u20180\u2019, internal PHY is reset.  \nAfter PHY reset, it should be set as \u20181\u2019. \n6  OPMD \nConfigure PHY Operation Mode \n1: Configure with OPMDC[2:0] in PHYCFGR  \n0: Configure with the H/W PINs(PMODE[2:0])  \nThis bit configures PHY operation mode with OPMDC[2:0] bits or \nPMODE[2:0] PINs. When W5500 is reset by POR or RSTn PIN, PHY \noperation mode is configured with PMODE[2:0] PINs by default. \nAfter POR or RSTn reset, user can re-configure PHY operation \nmode with OPMDC[2:0]. If user wants to re-configure with \nOPMDC[2:0], it should reset PHY by setting the RST bit to \u20180\u2019 after \nthe user configures this bit as \u20181\u2019 and OPMDC[2:0] . \n5~3 OPMDC \nOperation Mode Configuration Bit[R/W] \nThese bits select the operation mode of PHY such as following table. \n5 4 3 Description \n0 0 0 10BT Half-duplex, Auto-negotiation disabled \n0 0 1 10BT Full-duplex, Auto-negotiation disabled \n0 1 0 100BT Half-duplex, Auto-negotiation disabled \n0 1 1 100BT Full-duplex, Auto-negotiation disabled \n1 0 0 100BT Half-duplex, Auto-negotiation enabled \n1 0 1 Not used \n1 1 0 Power Down mode \n1 1 1 All capable, Auto-negotiation enabled \n \n2 DPX Duplex Status [Read Only] \n1: Full duplex \n0: Half duplex \n1 SPD Speed Status [Read Only] \n1: 100Mpbs based \n0: 10Mpbs based \n0 LNK Link Status [Read Only] \n1: Link up \n0: Link down "
+  },
+  {
+   "page": 42,
+   "text": " \nW5500 Datasheet Version1.1.0 43 / 67 \n \nVERSIONR (W5500 Chip Version Register) [R] [0x0039] [0x04] \nVERSIONR always indicates the W5500 version as 0x04.  \n \n  "
+  },
+  {
+   "page": 43,
+   "text": "  \n \n44 / 67  W5500 Datasheet Version1.1.0 \n \n4.2 Socket Registers \nSn4_MR (Socket n Mode Register) [R/W] [0x0000] [0x00] \nSn_MR configures the option or protocol type of Socket n. \n \n7 6 5 4 3 2 1 0 \nMULTI/ \nMFEN \nBCASTB \nND / MC \n/MMB \nUCASTB \nMIP6B \nP3 P2 P1 P0 \n \nBit Symbol Description \n7 \nMULTI/ \nMFEN \nMulticasting in UDP mode \n0 : disable Multicasting \n1 : enable Multicasting \n This bit is applied only during UDP mode(P[3:0] = \u20180010\u2019). \nTo use multicasting, Sn_DIPR & Sn_DPORT should be respectively configured \nwith the multicast group IP address & port number  before Socket n is \nopened by OPEN command of Sn_CR \n \nMAC Filter Enable in MACRAW mode \n0 : disable MAC Filtering \n1 : enable MAC Filtering \nThis bit is applied only during MACRAW mode(P[3:0] = \u20180100\u2019). \nWhen set as \u20181\u2019, W5500 can only receive broadcasting  packet or packet \nsent to itself . When this bit is \u20180\u2019, W5500 can receive all packets on \nEthernet. If user wants to implement Hybrid TCP/IP stack, it is \nrecommended that this bit is set as \u20181\u2019 for reducin g host overhead to \nprocess the all received packets. \n6 BCASTB \nBroadcast Blocking in MACRAW and UDP mode \n0 : disable Broadcast Blocking \n1 : enable Broadcast Blocking \nThis bit blocks to receive broadcasting packet during UDP mode(P[3:0] = \n\u20180010\u2019). In addition, This bit does when MACRAW mode(P[3:0] = \u20180100\u2019) \n5 \nND/MC/\nMMB \nUse No Delayed ACK  \n0 : Disable No Delayed ACK option \n1 : Enable No Delayed ACK option \n This bit is applied only during TCP mode (P[3:0] = \u20180001\u2019). \n \n4n is Socket number (0, 1, 2, 3, 4, 5, 6, 7). n is set \u2018SNUM[2:0]\u2019 in Control Bits sets. "
+  },
+  {
+   "page": 44,
+   "text": " \nW5500 Datasheet Version1.1.0 45 / 67 \n \nWhen this bit is \u20181\u2019, It sends the ACK packet without delay as soon as a Data \npacket is received from a peer. When this bit is \u20180\u2019, It sends the ACK packet \nafter waiting for the timeout time configured by RTR. \n \nMulticast \n0 : using IGMP version 2 \n1 : using IGMP version 1 \n This bit is applied only during UDP mode(P[3:0] = \u20180010\u2019) and MULTI = \u20181\u2019. \nIt configures the version for IGMP messages (Join/Leave/Report).  \n \nMulticast Blocking in MACRAW mode \n0 : disable Multicast Blocking \n1 : enable Multicast Blocking \n This bit is applied only when MACRAW mode(P[3:0] = \u20180100\u2019). It blocks to \nreceive the packet with multicast MAC address. \n4 \nUCASTB \nMIP6B \nUNICAST Blocking in UDP mode \n0 : disable Unicast Blocking \n1 : enable Unicast Blocking \n This bit block s receiving the unicast packet during UDP mode(P[3:0] = \n\u20180010\u2019) and MULTI = \u20181\u2019. \n \nIPv6 packet Blocking in MACRAW mode \n0 : disable IPv6 Blocking \n1 : enable IPv6 Blocking \n This bit is applied only during MACRAW mode (P[3:0] = \u20180100\u2019). \nIt blocks to receiving the IPv6 packet. \n3 P3 \nProtocol \nThis configures the protocol mode of Socket n. \n \nP3 P2 P1 P0 Meaning \n0 0 0 0 Closed \n0 0 0 1 TCP \n0 0 1 0 UDP \n0 1 0 0 MACRAW \n* MACRAW mode should be only used in Socket 0. \n2 P2 \n1 P1 \n0 P0 \n  "
+  },
+  {
+   "page": 45,
+   "text": "  \n \n46 / 67  W5500 Datasheet Version1.1.0 \n \nSn_CR (Socket n Command Register) [R/W] [0x0001] [0x00] \nThis is used to set the command for Socket n such as OPEN, CLOSE, CONNECT , LISTEN, \nSEND, and RECEIVE. After W5500 accepts the command, the Sn_CR register is \nautomatically cleared to 0x00. Even though Sn_CR is cleared to 0x00, the command is \nstill being pro cessed. To check whether the command is completed or not, please \ncheck the Sn_IR or Sn_SR. \n \nValue Symbol Description \n0x01 OPEN \n Socket n is initialized and opened according to the protocol selected \nin Sn_MR (P3:P0). The table below shows the value of Sn_SR \ncorresponding to Sn_MR. \nSn_MR (P[3:0]) Sn_SR \nSn_MR_CLOSE  (\u20180000\u2019) - \nSn_MR_TCP  (\u20180001\u2019) SOCK_INIT (0x13) \nSn_MR_UDP  (\u20180010\u2019) SOCK_UDP (0x22) \nS0_MR_MACRAW  (\u20180100\u2019) SOCK_MACRAW (0x42) \n. \n0x02 LISTEN \nThis is valid only in TCP mode (Sn_MR(P3:P0) = Sn_MR_TCP). In this  \nmode, Socket n operates as a \u2018TCP server\u2019 and waits for  connection-\nrequest (SYN packet) from any \u2018TCP client\u2019. \nThe Sn_SR changes the state from SOCK_INIT to SOCKET_LISTEN. \nWhen a \u2018TCP client \u2019 connection request is successfully established, \nthe Sn_SR changes from SOCK_LISTEN to SOCK_ESTABLISHED and the \nSn_IR(0) becomes \u20181\u2019. But when a \u2018TCP client\u2019 connection request is \nfailed, Sn_IR(3) becomes \u20181\u2019 and the status of  Sn_SR changes to \nSOCK_CLOSED. \n0x04 CONNECT \nThis is valid only in TCP mode and operates when Socket n acts as \n\u2018TCP client\u2019. To connect, a connect -request (SYN packet) is sent to \n\u2018TCP server\u2019 configured by Sn_DIPR & Sn_DPORT(destination address \n& port). If the connect-request is successful, the Sn_SR is changed to \nSOCK_ESTABLISHED and the Sn_IR(0) becomes \u20181\u2019. \n \nThe connect-request fails in the following three cases. \n1. When a ARPTO occurs (Sn_IR(3)=\u20181\u2019) because the destination \nhardware address is not acquired through the ARP-process. \n2. When a SYN/ACK packet is not received and TCPTO (Sn_IR(3) = \n\u20181 ) \n3. When a RST packet is received instead of a SYN/ACK packet. "
+  },
+  {
+   "page": 46,
+   "text": " \nW5500 Datasheet Version1.1.0 47 / 67 \n \nIn these cases, Sn_SR is changed to SOCK_CLOSED. \n0x08 DISCON \nValid only in TCP mode. \nRegardless of \u2018TCP server\u2019 or \u2018TCP client\u2019, the DISCON command \nprocesses the disconnect-process (\u2018Active close\u2019 or \u2018Passive close\u2019). \nActive close: it transmits disconnect-request(FIN packet) to the \nconnected peer \nPassive close: When FIN packet is received from peer,  \na FIN packet is replied back to the peer. \n \nWhen the disconnect-process is successful (that is, FIN/ACK packet is \nreceived successfully), Sn_SR is changed to SOCK_CLOSED. \nOtherwise, TCPTO occurs (Sn_IR(3)=\u20181)= and then Sn_SR is changed to \nSOCK_CLOSED. \n \ncf> If CLOSE is used instead of DISCON, only Sn_SR is changed to \nSOCK_CLOSED without disconnect-process.  \nIf a RST packet is received from a peer during communication, Sn_SR \nis unconditionally changed to SOCK_CLOSED. \n0x10 CLOSE \nClose Socket n. \nSn_SR is changed to SOCK_CLOSED. \n0x20 SEND \nSEND transmits all the data in the Socket n TX buffer. For more \ndetails, please refer to Socket n TX Free Size Register (Sn_TX_FSR), \nSocket n, TX Write Pointer Register(Sn_TX_WR), and Socket n TX Read \nPointer Register(Sn_TX_RD). \n0x21 SEND_MAC \n Valid only in UDP mode. \nThe basic operation is same as SEND. Normally SEND transmits data \nafter destination hardware address is acquired by the automatic ARP-\nprocess(Address Resolution Protocol). But SEND_MAC transmits data \nwithout the automatic ARP -process. In this case, the destination \nhardware address is acquired  from Sn_DHAR configured by host, \ninstead of APR-process. \n0x22 SEND_KEEP \nValid only in TCP mode. \nIt checks the connection status by sending 1byte keep -alive packet. \nIf the peer cannot respond to the keep-alive packet during timeout \ntime, the connection is terminated and the timeout interrupt will \noccur. \n \n \n "
+  },
+  {
+   "page": 47,
+   "text": "  \n \n48 / 67  W5500 Datasheet Version1.1.0 \n \n0x40 RECV \nRECV completes the processing of the received data in Socket n RX \nBuffer by using a RX read pointer register (Sn_RX_RD). \nFor more details, refer to Socket n RX Received Size Register \n(Sn_RX_RSR), Socket n RX Write Pointer Register (Sn_RX_WR), and \nSocket n RX Read Pointer Register (Sn_RX_RD). \n \nSn_IR (Socket n Interrupt Register) [RCW1] [0x0002] [0x00] \nSn_IR indicates the status of Socket Interrupt such as establishment, termination, \nreceiving data, timeout). When an interrupt occurs and the corresponding bit of \nSn_IMR is \u20181\u2019, the corresponding bit of Sn_IR becomes \u20181\u2019.  \nIn order to clear the Sn_IR bit, the host should write the bit to \u20181\u2019. \n \n7 6 5 4 3 2 1 0 \nReserved Reserved Reserved SEND_OK TIMEOUT RECV DISCON CON \n \nBit Symbol Description \n7~5 Reserved  Reserved \n4 SEND_OK \nSn_IR(SENDOK) Interrupt  \nThis is issued when SEND command is completed. \n3 TIMEOUT \nSn_IR(TIMEOUT) Interrupt  \nThis is issued when ARPTO or TCPTO occurs. \n2 RECV \nSn_IR(RECV) Interrupt  \nThis is issued whenever data is received from a peer. \n1 DISCON \nSn_IR(DISCON) Interrupt  \nThis is issued when FIN or FIN/ACK packet is received from a peer. \n0 CON \nSn_IR(CON) Interrupt  \nThis is issued one time when the connection with peer is successful \nand then Sn_SR is changed to SOCK_ESTABLISHED. \n \n  "
+  },
+  {
+   "page": 48,
+   "text": " \nW5500 Datasheet Version1.1.0 49 / 67 \n \nSn_SR (Socket n Status Register) [R] [0x0003] [0x00] \nSn_SR indicates the status of Sock et n. The status of Socket n is changed by Sn_CR \nor some special control packet as SYN, FIN packet in TCP . \n \nValue Symbol Description \n0x00 SOCK_CLOSED This indicates that Socket n is released. \nWhen DISCON, CLOSE command is ordered, or when a timeout \noccurs, it is changed to SOCK_CLOSED regardless of previous \nstatus. \n0x13 SOCK_INIT This indicates Socket n is opened with TCP mode. \nIt is changed to SOCK_INIT when Sn_MR (P[3:0]) = \u20180001\u2019 and \nOPEN command is ordered. \nAfter SOCK_INIT , user can use LISTEN /CONNECT command. \n0x14 SOCK_LISTEN This indicates Socket n is operating as \u2018TCP server\u2019 mode and \nwaiting for connection-request (SYN packet) from a peer \n(\u2018TCP client\u2019). \nIt will change to SOCK_ESTALBLISHED when the connection -\nrequest is successfully accepted.  \nOtherwise it will change to SOCK_CLOSED after TCPTO \noccurred (Sn_IR(TIMEOUT) = \u20181\u2019). \n0x17 SOCK_ESTABLISHED This indicates the status of the connection of Socket n. \nIt changes to SOCK_ESTABLISHED when the \u2018TCP SERVER\u2019 \nprocessed the SYN packet from the \u2018TCP CLIENT\u2019 during \nSOCK_LISTEN, or when the CONNECT command is successful. \nDuring SOCK_ESTABLISHED, DATA packet can be transferred \nusing SEND or RECV command. \n0x1C SOCK_CLOSE_WAIT This indicates Socket n received the disconnect-request (FIN \npacket) from the connected peer. This is half -closing status, \nand data can be transferred. For full -closing, DISCON \ncommand is used. But For just -closing, CLOSE command is \nused. \n0x22 SOCK_UDP This indicates Socket n is opened in UDP mode(Sn_MR(P[3:0]) \n= \u20180010\u2019). \nIt changes to SOCK_ UDP when Sn_MR(P[3:0]) = \u20180010\u2019) and \nOPEN command is ordered.  \nUnlike TCP mode, data can be transfered without the \nconnection-process. \n \n "
+  },
+  {
+   "page": 49,
+   "text": "  \n \n50 / 67  W5500 Datasheet Version1.1.0 \n \n0x42 SOCK_MACRAW This indicates Socket 0 is opened in MACRAW mode \n(S0_MR(P[3:0]) = \u20180100\u2019)and is valid only in Socket 0. \nIt changes to SOCK_MACRAW when S0_MR(P[3:0] = \u20180100\u2019 and \nOPEN command is ordered.  \nLike UDP mode socket, MACRAW mode Socket 0 can transfer \na MAC packet (Ethe rnet frame) without the connection -\nprocess. \n \nThe following table shows a temporary status indicated during changing the status \nof Socket n. \n \nValue Symbol Description \n0x15 SOCK_SYNSENT This indicates Socket n sent the connect -request packet \n(SYN packet) to a peer.  \nIt is temporarily shown when Sn_SR is changed from \nSOCK_INIT to SOCK_ESTABLISHED by CONNECT command. \nIf connect -accept(SYN/ACK packet) is received from the \npeer at SOCK_SYNSENT , it changes to SOCK_ESTABLISHED. \nOtherwise, it changes to SOCK_CLOSED after TCPTO \n(Sn_IR[TIMEOUT] = \u20181\u2019) is occurred. \n0x16 SOCK_SYNRECV It indicates Socket n successfully received the connect -\nrequest packet (SYN packet) from a peer. \nIf socket n sends the response (SYN/ACK  packet) to the \npeer successfully,  it changes to SOCK_ESTABLISHED. If \nnot, it changes to SOCK_CLOSED after timeout occurs \n(Sn_IR[TIMEOUT] = \u20181\u2019). \n0x18 SOCK_FIN_WAIT These indicate Socket n is closing. \nThese are shown in disconnect-process such as active-close \nand passive-close. \nWhen Disconnect -process is successfully completed, or \nwhen timeout occurs, these change to SOCK_CLOSED. \n0x1A SOCK_CLOSING \n0X1B SOCK_TIME_WAIT \n0X1D SOCK_LAST_ACK This indicates Socket n is waiting for the response (FIN/ACK \npacket) to the disconnect-request (FIN packet) by passive -\nclose. \nIt changes to SOCK_CLOSED when Socket n received the \nresponse successfully, or when timeout occurs  \n(Sn_IR[TIMEOUT] = \u20181\u2019). \n  "
+  },
+  {
+   "page": 50,
+   "text": " \nW5500 Datasheet Version1.1.0 51 / 67 \n \nSn_PORT (Socket n Source Port Register) [R/W] [0x0004-0x0005] [0x0000] \nSn_PORT configures the source port number of Socket n. It is valid when Socket n is \nused in TCP/UDP mode. It should be set before OPEN command is ordered. \n \nEx) In case of Socket 0 Port = 5000(0x1388), configure as below, \n0x0004 0x0005 \n0x13 0x88 \n \nSn_DHAR (Socket n Destination Hardware Address Register)  \n[R/W] [0x0006-0x000B] [0xFFFFFFFFFFFF] \nSn_DHAR configures the destination hardware address of Socket n when using \nSEND_MAC command in UDP mode or it indicates that it is acquired in ARP-process by \nCONNECT/SEND command. \n \nEx) In case of Socket 0 Destination Hardware address = 08.DC.00.01.02.10, configure as below. \n0x0006 0x0007 0x0008 0x0009 0x000A 0x000B \n0x08 0xDC 0x00 0x01 0x02 0x0A \n \nSn_DIPR (Socket n Destination IP Address Register)  \n[R/W] [0x000C-0x000F] [0x00000000] \nSn_DIPR configures or indicates the destination IP address of Socket n. It is valid \nwhen Socket n is used in TCP/UDP mode. \nIn TCP client mode, it configures an IP address of \u2018TCP server\u2019 before CONNECT \ncommand. \nIn TCP server mode, it indicates an IP address of \u2018T CP client\u2019 after successfully \nestablishing connection.  \nIn UDP mode, it configures an IP address of peer to be received the UDP packet by \nSEND or SEND_MAC command. \n \nEx) In case of Socket 0 Destination IP address = 192.168.0.11, configure as below. \n0x000C 0x000D 0x000E 0x000F \n192 (0xC0) 168 (0xA8) 0 (0x00) 11 (0x0B) \n \nSn_DPORT (Socket n Destination Port Register) [R/W] [0x0010-0x0011] [0x00] \nSn_DPORT configures or indicates the destination port number of Socket n. It is valid \nwhen Socket n is used in TCP/UDP mode. \nIn TCP client mode, it configures the listen port number of \u2018TCP server\u2019 before \nCONNECT command. "
+  },
+  {
+   "page": 51,
+   "text": "  \n \n52 / 67  W5500 Datasheet Version1.1.0 \n \nIn TCP server mode, it indicates the port number of \u2018TCP client\u2019 after successfully \nestablishing connection. \nIn UDP mode, it configures the port number of peer to be transmitted the UDP packet \nby SEND/SEND_MAC command. \n \nEx) In case of Socket 0 Destination Port = 5000(0x1388), configure as below, \n0x0010 0x0011 \n0x13 0x88 \n \nSn_MSSR (Socket n Maximum Segment Size Register) [R/W] [0x0012-0x0013] [0x0000] \nThis register is used for MSS (Maximum Segment Size) of TCP , and the register displays MSS set \nby the other party when TCP is activated in Passive Mode. \n \nEx) In case of Socket 0 MSS = 1460 (0x05B4), configure as below, \n0x0012 0x0013 \n0x05 0xB4 \n \nSn_TOS (Socket n IP Type of Service Register) [R/W] [0x0015] [0x00] \nSn_TOS configures the TOS(Type Of Service field in IP Header) of Socket n. \nIt is set before OPEN command. \nFor more the details, refer to http://www.iana.org/assignments/ip-parameters. \n \nSn_TTL (Socket n TTL Register) [R/W] [0x0016] [0x80] \nSn_TTL configures the TTL(Time To Live field in IP header) of Socket n. \nIt is set before OPEN command. \nFor more the details, refer to http://www.iana.org/assignments/ip-parameters. \n \nSn_RXBUF_SIZE (Socket n RX Buffer Size Register) [R/W] [0x001E] [0x02] \nSn_RXBUF_SIZE configures the RX buffer block size of Socket n. Socket n RX Buffer \nBlock size can be configured with 1,2,4,8, and 16 Kbytes. If a different size is \nconfigured, the data cannot be normally received from a peer. \nAlthough Socket n RX Buffer Block size is initially configured to 2Kbytes, user can re-\nconfigure its size using Sn_RXBUF_SIZE. The total sum of Sn_RXBUF_SIZE cannot be \nexceed 16Kbytes. When exceeded, the data reception error is occurred.  \nWhen all Sn_RXBUF_SIZE have been configured, Socket n RX Buffer  is allocated with \nthe configured size in 16KB RX Memory and is assigned sequentially from Socket 0 to \nSocket 7.  "
+  },
+  {
+   "page": 52,
+   "text": " \nW5500 Datasheet Version1.1.0 53 / 67 \n \nSocket n RX Buffer Block can be accessible with the 16bits Offset Address ranged from \n0x0000 to 0xFFFF regardless of the configured size. (Refer to Sn_RX_RD & Sn_RX_WR). \n \nValue (dec) 0 1 2 4 8 16 \nBuffer size 0KB 1KB 2KB 4KB 8KB 16KB \n \nEx) Socket 0 RX Buffer Size = 8KB \n0x001E \n0x08 \n \nSn_TXBUF_SIZE (Socket n TX Buffer Size Register) [R/W] [0x001F] [0x02] \nSn_TXBUF_SIZE configures the TX buffer block size of Socket n. Socket n TX \nBuffer Block size can be configured with 1,2,4,8, and 16 Kbytes. If a different size \nis configured, the data can\u2019t be normally transmitted to a peer. \nAlthough Socket n TX Buffer Block size is initially configured to 2Kbytes, user can \nbe re-configure its size using Sn_TXBUF_SIZE. The total sum of Sn_TXBUF_SIZE \ncannot be exceed 16Kbytes. When exceeded, the data transmission error is \noccurred. \n \nWhen all Sn_TXBUF_SIZE have been configured, Socket n TX Buffer is allocated \nwith the configured size in 16KB TX Memory and is assigned sequentially from \nSocket 0 to Socket 7.  \nSocket n TX Buffer Block can be accessible with 16bits Offset Address ranged \nfrom 0x0000 to 0xFFFF re gardless of the configured size. (Refer to Sn_TX_WR & \nSn_TX_RD). \n \nValue (dec) 0 1 2 4 8 16 \nBuffer size 0KB 1KB 2KB 4KB 8KB 16KB \n \nEx) Socket 0 TX Buffer Size = 4KB \n0x001F \n0x04 \n \nSn_TX_FSR (Socket n TX Free Size Register) [R] [0x0020-0x0021] [0x0800] \nSn_TX_FSR indicates the free size of Socket n TX Buffer Block. It is initialized to the \nconfigured size by Sn_TXBUF_SIZE. Data bigger than Sn_TX_FSR should not be saved \nin the Socket n TX Buffer because the bigger data overwrites the previous saved data \nnot yet sent. Therefore, check before saving the data to the Socket n TX Buffer, and \nif data is equal or smaller than its checked size, transmit the data with "
+  },
+  {
+   "page": 53,
+   "text": "  \n \n54 / 67  W5500 Datasheet Version1.1.0 \n \nSEND/SEND_MAC command after saving the data in Socket n TX buffer. But, if data is \nbigger than its checked size, transmit the data after dividing into the checked size \nand saving in the Socket n TX buffer. \nIf Sn_MR(P[3:0]) is not TCP mode(\u20180001\u2019), it is automatically calculated as the \ndifference between \u2018Socket n TX Write Pointer (Sn_TX_WR)\u2019 and \u2018Socket n TX Read \nPointer (Sn_TX_RD)\u2019. \nIf Sn_MR(P[3:0]) is TCP mode(\u20180001\u2019), it is automatically calculated  as the \ndifference between Sn_TX_WR and the internal ACK pointer which indicates the point \nof data is received already by the connected peer. \n \nEx) In case of 2048(0x0800) in S0_TX_FSR, \n0x0020 0x0021 \n0x08 0x00 \n \nNote) Because this register for representing the size information is 16 bits, it is \nimpossible to read all bytes at the same time. Before 16 bit-read operation is not \ncompleted, the value may be changed. \nTherefore, it is recommended that you read all 16 -bits twice or more until getting \nthe same value. \n \nSn_TX_RD (Socket n TX Read Pointer Register) [R] [0x0022-0x0023] [0x0000] \nSn_TX_RD is initialized by OPEN command. However , if Sn_MR(P[3:0]) is TCP \nmode(\u20180001\u2019), it is re-initialized while connecting with TCP . \nAfter its initialization, it is auto -increased by SEND command . SEND command \ntransmits the saved data from the current Sn_TX_RD to the Sn_TX_WR in the Socket n \nTX Buffer. After transmitting the saved data, the SEND command increases the \nSn_TX_RD as same as the Sn_TX_WR.  \nIf its increment value exceeds the maximum val ue 0xFFFF , (greater than 0x10000 \nand the carry bit occurs ), then the carry bit is ignored and will automatically update \nwith the lower 16bits value. \n \nSn_TX_WR (Socket n TX Write Pointer Register) [R/W] [0x0024-0x0025] [0x0000] \nSn_TX_WR is initialized by OP EN command. However , if Sn_MR(P[3:0]) is TCP \nmode(\u20180001\u2019), it is re-initialized while connecting with TCP . \nIt should be read or to be updated like as follows. \n1. Read the starting address for saving the transmitting data. \n2. Save the transmitting data from the s tarting address of Socket n TX \nbuffer.  "
+  },
+  {
+   "page": 54,
+   "text": " \nW5500 Datasheet Version1.1.0 55 / 67 \n \n3. After saving the transmitting data, update Sn_TX_WR to the \nincreased value as many as transmitting data size. If the increment value \nexceeds the maximum value 0xFFFF (greater than 0x10000 and the carry \nbit occurs), then the carry bit is ignored and will automatically update \nwith the lower 16bits value. \n4. Transmit the saved data in Socket n TX Buffer by using SEND/SEND \ncommand \n \nSn_RX_RSR (Socket n Received Size Register) [R] [0x0026-0x0027] [0x0000] \nSn_RX_RSR indicates the data size received and saved in Socket n RX Buffer. Sn_RX_RSR \ndoes not exceed  the Sn_RXBUF_SIZE and is calculated as the difference between \n\u2018Socket n RX Write Pointer (Sn_RX_WR)\u2019 and \u2018Socket n RX Read Pointer (Sn_RX_RD)\u2019. \n  \nEx) In case of 2048(0x0800) in S0_RX_RSR, \n0x0026 0x0027 \n0x08 0x00 \n \nNote) Because this register for representing the size information is 16 bits, it is \nimpossible to read all bytes at the same time. Before 16 bit -read operation is not \ncompleted, the value may be changed. \nTherefore, it is recommended that you read all 16 -bits twice or more until getting \nthe same value. \n \nSn_RX_RD (Socket n RX Read Data Pointer Register) [R/W] [0x0028-0x0029] [0x0000] \nSn_RX_RD is initialized by OPEN command. Make sure to be read or updated as \nfollows. \n1. Read the starting save address of the received data \n2. Read data from the starting address of Socket n RX Buffer. \n3. After reading the received data, Update Sn_RX_RD to the increased value as many \nas the reading size. If the increment value exceeds the maximum value 0xFFFF , \nthat is, is greater than 0x10000 and the carry bit occurs, update with the lower \n16bits value ignored the carry bit. \n4. Order RECV command is for notifying the updated Sn_RX_RD to W5500. \n \nEx) In case of 2048(0x0800) in S0_RX_RD, \n0x0028 0x0029 \n0x08 0x00 \n \nSn_RX_WR (Socket n RX Write Pointer Register) [R] [0x002A-0x002B] [0x0000] "
+  },
+  {
+   "page": 55,
+   "text": "  \n \n56 / 67  W5500 Datasheet Version1.1.0 \n \nSn_RX_WR is initialized by OPEN command  and it is auto -increased by the data \nreception. \nIf the increased value exceeds the maximum value 0xFFFF , (greater than 0x10000 \nand the carry bit occurs ), then the carry bit is ignored and will automatically update \nwith the lower 16bits value. \n \nEx) In case of 2048(0x0800) in S0_RX_WR, \n0x002A 0x002B \n0x08 0x00 \n \nSn_IMR (Socket n Interrupt Mask Register) [R/W] [0x002C] [0xFF] \nSn_IMR masks the interrupt of Socket n.  Each bit corresponds to each bit of Sn_IR. \nWhen a Socket n Interrupt is occurred and the corresponding bit of Sn_IMR is \u20181\u2019, the \ncorresponding bit of Sn_IR becomes \u20181\u2019.  \nWhen both the corresponding bit of Sn_IMR and Sn_IR are \u20181\u2019 and the n-th bit of SIR \nis \u20181\u2019, Host is interrupted by asserted INTn PIN to low. \n \n7 6 5 4 3 2 1 0 \nReserved Reserved Reserved SEND_OK TIMEOUT RECV DISCON CON \n \nBit Symbol Description \n7~5 Reserved  Reserved \n4 SENDOK Sn_IR(SENDOK) Interrupt Mask \n3 TIMEOUT Sn_IR(TIMEOUT) Interrupt Mask \n2 RECV Sn_IR(RECV) Interrupt Mask \n1 DISCON Sn_IR(DISCON) Interrupt Mask \n0 CON Sn_IR(CON) Interrupt Mask \n \nSn_FRAG (Socket n Fragment Register) [R/W] [0x002D-0x002E] [0x4000] \nSn_FRAG configures the FRAG(Fragment field in IP header). \n \nEx) Sn_FRAG0 = 0x0000 (Don\u2019t Fragment) \n0x002D 0x002E \n0x00 0x00 \n \n \n \n "
+  },
+  {
+   "page": 56,
+   "text": " \nW5500 Datasheet Version1.1.0 57 / 67 \n \nSn_KPALVTR (Socket n Keep Alive Time Register) [R/W] [0x002F] [0x00] \nSn_KPALVTR configures the transmitting timer of \u2018KEEP ALIVE(KA)\u2019 packet of \nSOCKETn. It is valid only in TCP mode, and ignored in other modes. The time unit is \n5s. \nKA packet is transmittable after Sn_SR is changed to SOCK_ESTABLISHED and after \nthe data is transmitted or received to/from a peer at least once. \nIn case of 'Sn_KPALVTR > 0', W5500 automatically transmits KA packet after time -\nperiod for checking the TCP connection (Auto-keepalive-process).  \nIn case of 'Sn_KPALVTR = 0', Auto-keep-alive-process will not operate, and KA packet \ncan be transmitted by SEND_KEEP command by the host (Manual -keep-alive-process). \nManual-keep-alive-process is ignored in case of 'Sn_KPALVTR > 0'. \n \nEx) Sn_KPALVTR = 10 (Keep Alive packet will be transmitted every 50 seconds.) \n0x002F \n0x0A \n \n  "
+  },
+  {
+   "page": 57,
+   "text": "  \n \n58 / 67  W5500 Datasheet Version1.1.0 \n \n Electrical Specifications \n5.1 Absolute Maximum Ratings \nSymbol Parameter Rating Unit \nVDD DC Supply voltage -0.5 to 4.6 V \nVIN DC input voltage -0.5 to 6 V \nVOUT DC output voltage -0.5 to 4.6 V \nIIN DC input current \uf0b15 mA \nTOP Operating temperature -40 to +85 \uf0b0C \nTJMAX Maximum junction temperature 125 \uf0b0C \nTSTG Storage temperature -65 to +150 \uf0b0C \n*COMMENT: Stressing the device beyond the \u2018Absolute Maximum Ratings\u2019 may cause \npermanent damage. \n \n5.2 Absolute Maximum Ratings (Electrical Sensitivity) \nElectrostatic discharge (ESD) \nSymbol Parameter Test Condition Class \nMaximum \nvalue(1) \nUnit \nVESD(HBM) Electrostatic discharge \nvoltage (human body \nmodel) \nTA = +25 \u00b0C \nconforming to MIL-STD \n883F Method 3015.7 \n2 2000 V \nVESD(MM) Electrostatic discharge \nvoltage (man machine \nmodel) \nTA = +25 \u00b0C \nconforming to JEDEC \nEIA/JESD22 A115-A \nB 200 V \nVESD(CDM) Electrostatic discharge \nvoltage (charge device \nmodel) \nTA = +25 \u00b0C \nconforming to JEDEC \nJESD22 C101-C \nIII 500 V \n \nStatic latchup \nSymbol Parameter Test Condition Class \nMaximum \nvalue(1) \nUnit \nLU Static latch-up class TA = +25 \u00b0C conforming \nto JESD78A \nI \u2265 \u00b1200 mA \n  "
+  },
+  {
+   "page": 58,
+   "text": " \nW5500 Datasheet Version1.1.0 59 / 67 \n \n5.3 DC Characteristics \n(Test Condition: Ta = \u201340 to 85\u00b0C) \nSymbol Parameter Test Condition Min Typ Max Unit \nVDD Supply voltage Apply VDD, AVDD 2.97 3.3 3.63 V \nVIH High level input \nvoltage \n 2.0  5.5 V \nVIL Low level input \nvoltage \n - 0.3  0.8 V \nVT Threshold point All inputs except XI 1.30 1.41 1.53 V \nVT+ Schmitt trig Low to \nHigh Threshold \npoint \nAll inputs except XI 1.53 1.64 1.73 V \nVT- Schmitt trig High to \nLow Threshold point \nAll inputs except XI 0.95 1.02 1.09 V \nTJ Junction \ntemperature \n -40 25 125 \u00b0C \nIL Input Leakage \nCurrent \n   \uf0b11 \uf06dA \nRPU Pull-up Resistor SCSn, RSTn, PMODE[2:0] 50 77 112 Kohm \nRPD Pull-down Resistor RSVD(Pin 23, Pin 38 ~ \nPin 42) \n48 85 174 Kohm \nVOL Low level output \nvoltage \nIOL = 8mA, \nAll outputs except XO \n  0.4 V \nVOH High level output \nvoltage \nIOH = 8mA, \nAll outputs except XO  \n2.4   V \nIOL Low level output \nCurrent \nVOL = 0.4V, All outputs \nexcept XO \n8.6 13.9 18.9 mA \nIOH High level output \nCurrent \nVOH = 2.4V, All outputs \nexcept XO \n12.5 26.9 47.1 mA \nIDD1 Supply Current \n(Normal operation \nmode) \nVDD=3.3V, AVDD=3.3V, \nTa = 25\u00b0C \n 132  mA \nIDD2 Supply Current \n(Power Down mode) \nPHY Power Down mode, \nVDD=3.3V, AVDD=3.3V, \nTa = 25\u00b0C \n 13  mA \n \n  "
+  },
+  {
+   "page": 59,
+   "text": "  \n \n60 / 67  W5500 Datasheet Version1.1.0 \n \n5.4 Power Dissipation \n(Test Condition: VDD=3.3V, AVDD=3.3V, Ta = 25\u00b0C) \nCondition Min Typ Max Unit \n100M Link - 128 - mA \n10M Link - 75 - mA \nUn-Link (Auto-negotiation mode) - 65 - mA \n100M Transmitting - 132 - mA \n10M Transmitting - 79 - mA \nPower Down mode - 13 - mA \n \n5.5 AC Characteristics \n5.5.1 Reset Timing \n \nFigure 22. Reset Timing \nSymbol Description Min Max \nTRC Reset Cycle Time 500 us - \nTPL RSTn to internal PLOCK (PLL Lock) - 1 ms \n \n5.5.2 Wake up Time \nVoltage Regulator Wake up Time: 10us \n \n5.5.3 Crystal Characteristics \nParameter Range \nFrequency 25 MHz \nFrequency Tolerance (at 25\u2103) \u00b130 ppm \nShunt Capacitance 7pF Max \nDrive Level 59.12uW \nLoad Capacitance 18pF  \nAging (at 25\u2103) \u00b13ppm / year Max \nRSTn\nTPL\nTRC\nPLOCK\n(Internal)"
+  },
+  {
+   "page": 60,
+   "text": " \nW5500 Datasheet Version1.1.0 61 / 67 \n \n \n5.5.4 SPI Timing \n \nFigure 23. SPI Timing \n \n  \n \n5 Theoretical Guaranteed Speed \nEven though theoretical design speed is 80MHz, the signal in the high speed may be distorted because \nof the circuit crosstalk and the length of the signal line. The minimum guaranteed speed of the SCLK \nis 33.3 MHz which was tested and measured with the stable waveform. \nPlease refer to the SPI Application Note which shows the WIZnet test environment and results. \n \n6 2.1ns is when pn loaded with 30pF . The time is shorter with lower capacitance. \nSCSn\nSCLK\nMOSI\nMISO\nTWH TWL\nHI-Z HI-Z\nVIH\nVIL\nVIH\nVIL\nVIH\nVIL\nVOH\nVOL\nTDS TDH\nTOH TCHZTOV\nTCSS\nTCS\nTCSH\nSymbol Description Min Max Units \nFSCK SCK Clock Frequency  80/33.35 MHz \nTWH SCK High Time 6  ns \nTWL SCK Low Time 6  ns \nTCS SCSn High Time 30  ns \nTCSS SCSn Setup Time 5 - ns \nTCSH SCSn Hold Time 5  ns \nTDS Data In Setup Time 3  ns \nTDH Data In Hold Time 3  ns \nTOV Output Valid Time  5 ns \nTOH Output Hold Time 0  ns \nTCHZ SCSn High to Output Hi-Z  2.16 ns "
+  },
+  {
+   "page": 61,
+   "text": "  \n \n62 / 67  W5500 Datasheet Version1.1.0 \n \n5.5.5 Transformer Characteristics \nParameter Transmit End Receive End \nTurn Ratio 1:1 1:1 \nInductance 350 uH 350 uH \n \n \nFigure 24. Transformer Type \n \n5.5.6 MDIX \n W5500 does not support auto-MDIX feature.  \nThus, user should use straight-through cables to connect to other switches or routers and \ncrossover cables to connect to devices such as servers, workstations or another W5500.  \nHowever , user can use either type of cable to connect to other devices with auto -MDIX \nenabled, and the interface automatically corrects for any incorrect cabling.  \n"
+  },
+  {
+   "page": 62,
+   "text": " \nW5500 Datasheet Version1.1.0 63 / 67 \n \n IR Reflow Temperature Profile (Lead-Free) \n \nMoisture Sensitivity Level : 3 \nDry Pack Required: Yes \n \nAverage Ramp-Up Rate \n(Tsmax to Tp) \n3\u00b0 C/second max. \nPreheat \n\u2013 Temperature Min (Tsmin) \n\u2013 Temperature Max (Tsmax) \n\u2013 Time (tsmin to tsmax) \n \n150 \u00b0C \n200 \u00b0C \n60-120 seconds \nTime maintained above: \n\u2013 Temperature (TL) \n\u2013 Time (tL) \n \n217 \u00b0C \n60-150 seconds \nPeak/Classification Temperature (Tp) 265 + 0/-5\u00b0C \nTime within 5 \u00b0C of actual Peak Temperature (tp) 30 seconds \nRamp-Down Rate 6 \u00b0C/second max. \nTime 25 \u00b0C to Peak Temperature 8 minutes max. \n \n \nFigure 25. IR Reflow Temperature \n \n"
+  },
+  {
+   "page": 63,
+   "text": "  \n \n64 / 67  W5500 Datasheet Version1.1.0 \n \n Package Descriptions \n \n \n \n \n \n*COMMENT: W5500 package has changed since Jul2021. The most difference is the hole location on the \ncenter of the bottom.  \n \nFigure 26. Package Dimensions \n \n"
+  },
+  {
+   "page": 64,
+   "text": " \nW5500 Datasheet Version1.1.0 65 / 67 \n \n \nFigure 27. Package Dimensions \n \nNote \n1. These dimensions do not include mold \nprotrusion. \n2. (  ) is reference.  \n3. [  ] is ass \u2019y out quality. \n4. UNIT: mm "
+  },
+  {
+   "page": 65,
+   "text": "  \n \n66 / 67  W5500 Datasheet Version1.1.0 \n \nDocument History Information \n \nVersion Date Descriptions \nVer. 1.0.0 1AUG2013 Initial Release \nVer. 1.0.1 13SEP2013 \nCorrected duplicated statements and typing error s (P .14, 23, 24, 28, \n39, 51) \nCorrected descriptions (P .35) \nVer. 1.0.2 14NOV2013 \n1. Changed \u201cdescriptions of pin  at 1.1 Pin Descriptions\u201d(P.10) \nfrom It must be tied to GND to NC(PIN38~42) \n2. Corrected typing error :  \nfrom 0x02 to 0x42 value of SOCK_MACRAW at 4.2 Socket Registers(P.50) \nVer. 1.0.3 29MAY2014 \n1. Corrected \u201cSn_MSSR  at 4.2 Socket Register\u201d(P.53) \nwrong descriptions of Sn_MSSR about FMTU/MTU \nVer. 1.0.4 13JUN2014 \n1. Added Note about reading size register value (P.56, 58) \n2. Added IR Reflow Temperature Profile (P.66) \nVer. 1.0.5 10NOV2014 \n1. Added description for MISO pin (P.11) \nThe SCSn signal defines MISO pin output value. \n2. Modified the register notation (P.33), Modified the register \nnotation \u201cSn_IR at 4.2 Socket Register\u201d (P.49) \nfrom [R] to [RCW1] \n3. Corrected typing error: \nfrom DICON to DISCON of Sn_SR at 4.2 Socket Register (P.50) \nVer. 1.0.6 30DEC2014 \n1. Corrected typing error :  \nfrom 0x02 to 0x42 value of SOCK_MACRAW \u201cSn_CR at 4.2 Socket \nRegisters\u201d(P.47) \nVer. 1.0.7 24FEB2016 \n1. Corrected \ud835\udc3c\ud835\udc34\ud835\udc4a\ud835\udc47 (Interrupt Assert Wait Time) (P.34) \n2. Notice the information of \ud835\udc43\ud835\udc3f\ud835\udc3f\ud835\udc50\ud835\udc59\ud835\udc58\n3 (P.34) \nVer. 1.0.8 19MAY2017 \n1. Corrected Driver Level Range Unit uW/MHz to uW (5.5.3 Crystal \nCharacteristics) (P.60) \nVer. 1.0.9 22MAY2019 \n1. Corrected Sn_IMR Description (P.55) \n2. Corrected Junction temperature Min value TJ (P.57) "
+  },
+  {
+   "page": 66,
+   "text": " \nW5500 Datasheet Version1.1.0 67 / 67 \n \n3. Added Maximum junction temperature TJMAX (P.58) \nVer. 1.1.0 17DEC2022 \n1. Modify Pull-Up Resister Min Value RPU (P.59) \n2. Updated latest Package Descriptions (P.64) \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \nCopyright Notice  \nCopyright 2013 WIZnet Co., Ltd. All Rights Reserved. \nT echnical Support: support@wiznet.co.kr \nSales & Distribution: sales@wiznet.co.kr \nFor more information, visit our website at http://www.wiznet.co.kr \n "
+  }
+ ],
+ "schema": {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ai-ee datasheet extraction",
+  "type": "object",
+  "required": [
+   "mpn",
+   "pinout"
+  ],
+  "additionalProperties": false,
+  "properties": {
+   "mpn": {
+    "type": "string",
+    "minLength": 1
+   },
+   "lcsc": {
+    "type": "string"
+   },
+   "package": {
+    "type": "string"
+   },
+   "description": {
+    "type": "string"
+   },
+   "pinout": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "required": [
+      "pin",
+      "name",
+      "type"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "pin": {
+       "type": "string",
+       "minLength": 1
+      },
+      "name": {
+       "type": "string",
+       "minLength": 1
+      },
+      "type": {
+       "type": "string",
+       "enum": [
+        "power_in",
+        "power_out",
+        "ground",
+        "input",
+        "output",
+        "bidirectional",
+        "passive",
+        "analog",
+        "clock",
+        "nc",
+        "open_collector",
+        "tristate",
+        "unspecified"
+       ]
+      },
+      "notes": {
+       "type": "string"
+      }
+     }
+    }
+   },
+   "decoupling": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "required": [
+      "pins",
+      "value"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "pins": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       },
+       "minItems": 1
+      },
+      "value": {
+       "type": "string",
+       "minLength": 1
+      },
+      "placement": {
+       "type": "string"
+      },
+      "notes": {
+       "type": "string"
+      }
+     }
+    }
+   },
+   "land_pattern": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "pad_count"
+    ],
+    "properties": {
+     "package": {
+      "type": "string"
+     },
+     "pad_count": {
+      "type": "integer",
+      "minimum": 1
+     },
+     "pitch_mm": {
+      "type": "number",
+      "exclusiveMinimum": 0
+     },
+     "pad_size_mm": {
+      "type": "array",
+      "items": {
+       "type": "number",
+       "minimum": 0
+      },
+      "minItems": 2,
+      "maxItems": 2
+     },
+     "row_spacing_mm": {
+      "type": "number",
+      "minimum": 0
+     },
+     "courtyard_excess_mm": {
+      "type": "number",
+      "minimum": 0
+     },
+     "pin1": {
+      "type": "string",
+      "description": "pad number that is pin 1 (default '1')"
+     },
+     "notes": {
+      "type": "string"
+     }
+    }
+   },
+   "exposed_pad": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "present": {
+      "type": "boolean"
+     },
+     "connect_to": {
+      "type": "string"
+     },
+     "thermal_vias": {
+      "type": "integer",
+      "minimum": 0
+     }
+    },
+    "required": [
+     "present"
+    ]
+   },
+   "layout_notes": {
+    "type": "array",
+    "items": {
+     "type": "string"
+    }
+   },
+   "abs_max": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "required": [
+      "param",
+      "value"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "param": {
+       "type": "string"
+      },
+      "value": {
+       "type": [
+        "number",
+        "string"
+       ]
+      },
+      "unit": {
+       "type": "string"
+      }
+     }
+    }
+   },
+   "source_pdf": {
+    "type": "string"
+   }
+  }
+ },
+ "template": {
+  "mpn": "",
+  "lcsc": "",
+  "package": "",
+  "pinout": [
+   {
+    "pin": "1",
+    "name": "",
+    "type": "unspecified"
+   }
+  ],
+  "decoupling": [],
+  "land_pattern": {
+   "pad_count": 0
+  },
+  "layout_notes": [],
+  "abs_max": []
+ },
+ "note": "Fill the template from text_by_page and the PDF pages, then re-run with --validate. If text_chars is ~0 the PDF is image-only; read the rendered pages directly."
+}

@@ -1,0 +1,1517 @@
+=== PAGE 1 ===
+RTN
+VC
+D1
+C1
+RDEN
+RCLS
+From Ethernet
+Transformers VDD
+VSS
+CLS
+From Spare
+Pairs or
+Transformers
+DEN
+DA
+AC
+Adapter
+CDB
+T2P
+APD
+RAPD2
+RAPD1
+RT2P
+CBULK
+TPS2378
+DC/DC Converter
+SS
+Product
+Folder
+Sample &
+Buy
+T echnical
+Documents
+Tools &
+Software
+Support &
+Community
+Reference
+Design
+TPS2378
+SLVSB99C – MARCH 2012 – REVISED JULY 2015
+TPS2378IEEE802.3atPoEHigh-PowerPDInterface
+1 Features 3 Description
+This 8-pin integrated circuit contains all of the
+1• IEEE 802.3at Type-2 Hardware Classification with
+features needed to implement an IEEE802.3at type-2Status Flag powered device (PD). The low 0.5-Ω internal switch• Adapter Priority Input resistance, combined with the enhanced thermal
+• DC/DC Converter Enable dissipation of the PowerPAD™ package, enables this
+controller to continuously handle up to 0.85 A. The• Robust 100 V, 0.5-Ω Hotswap MOSFET
+TPS2378 features an auxiliary power detect (APD)• Operating Current up to 850 mA input, providing priority for an external power adapter.
+• 1-A (Typical) Operating Current Limit It also features a 100-V pass transistor, 140-mA
+inrush current limiting, type-2 indication, auto-retry• 15 kV and 8 kV System-level ESD Capability
+fault protection, and an open-drain power-good• PowerPAD™ HSOP Package output.
+2 Applications Device Information(1)
+• IEEE 802.3at-compliant Devices PART NUMBER PACKAGE BODY SIZE (NOM)
+• Video and VoIP Telephones TPS2378 HSOP (8) 4.89 mm × 3.90 mm
+• Multiband Access Points (1) For all available packages, see the orderable addendum at
+the end of the data sheet.• Security Cameras
+• Pico-base Stations
+• Forced, Four-Pair, High Power Devices
+(SLVA625)
+Typical Application Circuit
+1
+An IMPORTANT NOTICE at the end of this data sheet addresses availability, warranty, changes, use in safety-critical applications,
+intellectual property matters and other important disclaimers. PRODUCTION DATA.
+=== PAGE 2 ===
+TPS2378
+SLVSB99C – MARCH 2012 – REVISED JULY 2015 www.ti.com
+Table of Contents
+1 Features .................................................................. 1 8 Application and Implementation ........................ 21
+8.1 Application Information............................................ 212 Applications ........................................................... 1
+8.2 Typical Application .................................................. 213 Description ............................................................. 1
+9 Power Supply Recommendations ...................... 244 Revision History..................................................... 2
+10 Layout................................................................... 245 Pin Configuration and Functions ......................... 3
+10.1 Layout Guidelines ................................................. 246 Specifications......................................................... 4
+10.2 Layout Example .................................................... 246.1 Absolute Maximum Ratings ...................................... 4
+10.3 EMI Containment .................................................. 256.2 ESD Ratings.............................................................. 4
+10.4 Thermal Considerations and OTSD...................... 256.3 Recommended Operating Conditions....................... 4
+10.5 ESD....................................................................... 256.4 Thermal Information .................................................. 5
+11 Device and Documentation Support ................. 266.5 Electrical Characteristics........................................... 5
+11.1 Documentation Support ........................................ 266.6 Typical Characteristics .............................................. 7
+11.2 Community Resources.......................................... 267 Detailed Description ............................................ 10
+11.3 Trademarks ........................................................... 267.1 Overview ................................................................. 10
+11.4 Electrostatic Discharge Caution ............................ 267.2 Functional Block Diagram ....................................... 10
+11.5 Glossary ................................................................ 267.3 Feature Description................................................. 10
+12 Mechanical, Packaging, and Orderable7.4 Device Functional Modes........................................ 13
+Information ........................................................... 26
+4 Revision History
+NOTE: Page numbers for previous revisions may differ from page numbers in the current version.
+Changes from Revision B (November 2012) to Revision C Page
+• Added ESD Ratings table, Feature Description section, Device Functional Modes, Application and Implementation
+section, Power Supply Recommendations section, Layout section, Device and Documentation Support section, and
+Mechanical, Packaging, and Orderable Information section ................................................................................................. 1
+• Deleted Detailed Pin Description section. ........................................................................................................................... 15
+• Deleted CBD Pin Interface section ....................................................................................................................................... 22
+• Deleted APD Pin Divider Network, RAPD1, RAPD2 section...................................................................................................... 22
+Changes from Revision A (March 2012) to Revision B Page
+• Added Application: Forced, Four-Pair, High Power Devices (SLVA625) ............................................................................... 1
+• Added Note 1 to the ELECTRICAL CHARACTERISTICS table ............................................................................................ 6
+• Added section: Forced, Four-Pair, High Power PoE ........................................................................................................... 13
+• Changed Table 2, From: POWER ≤ 12.95W To: POWER ≤ 13W, From: POWER > 12.95W To POWER > 13W, and
+PD INPUT POWER (max) From: 12.95 W To 13W ............................................................................................................ 14
+• Changed Table 2, PSE Output Power for 802.3at (Type 2) From: 36W to 30W ................................................................. 14
+• Changed text in the Detection section From: "( ΔV / ΔI ) between 23.75 kΩ and 26.25 kΩ at the PI." To: "( ΔV / ΔI )
+between 23.7 kΩ and 26.3 kΩ at the PI." ............................................................................................................................ 16
+• Added text to the Startup and Converter Operation section: "Additional loading applied between VVDD and VRTN
+during the inrush state may prevent successful PD and subsequent converter start up."................................................... 17
+• Changed text in the Detection Resistor, RDEN section From: "RDEN between 23.75 kΩ and 26.25 kΩ, or 25 kΩ ± 5%.
+" To: "RDEN between 23.7 kΩ and 26.3 kΩ, or 25 kΩ ± 5%."................................................................................................ 22
+Changes from Original (March 2012) to Revision A Page
+• Changed the Inrush termination MAX value From: 100% To: 99% ....................................................................................... 5
+2 Submit Documentation Feedback Copyright © 2012–2015, Texas Instruments Incorporated
+Product Folder Links: TPS2378
+=== PAGE 3 ===
+1
+3
+2
+4
+6
+5
+7
+8
+DEN
+CLS
+VDD
+VSS
+T2P
+CDB
+RTN
+APD
+TPS2378
+www.ti.com SLVSB99C – MARCH 2012 – REVISED JULY 2015
+5 Pin Configuration and Functions
+DDA Package
+8-Pin HSOP
+Top View
+Pin Functions
+PIN
+I/O DESCRIPTION
+NAME NO.
+VDD 1 I Connect to positive PoE input power rail. Bypass with 0.1 µF to VSS.
+DEN 2 I/O Connect 24.9 kΩ to VDD for detection. Pull to VSS disable pass MOSFET.
+CLS 3 O Connect resistor from CLS to VSS to program classification current.
+VSS 4 — Connect to negative power rail derived from PoE source.
+RTN 5 — Drain of PoE pass MOSFET.
+CDB 6 O Active low, open-drain converter disable output, referenced to RTN.
+T2P 7 O Active low indicates type 2 PSE connected or APD active.
+APD 8 I Raise 1.5 V above RTN to disable pass MOSFET and force T2P active.
+Pad — — The PowerPad™ must be connected to VSS. A large fill area is required to assist in heat dissipation.
+Copyright © 2012–2015, Texas Instruments Incorporated Submit Documentation Feedback 3
+Product Folder Links: TPS2378
+=== PAGE 4 ===
+TPS2378
+SLVSB99C – MARCH 2012 – REVISED JULY 2015 www.ti.com
+6 Specifications
+6.1 Absolute Maximum Ratings
+over recommended TJ range; voltages with respect to VVSS (unless otherwise noted) (1)
+MIN MAX UNIT
+VDD, DEN –0.3 100
+RTN (2) –0.6 100
+Input voltage CLS (3) –0.3 6.5 V
+APD to RTN –0.3 19
+[CDB, T2P] to RTN –0.3 100
+RTN (4) Internally limited
+Sinking current CDB, T2P 5 mA
+DEN 1
+Sourcing current CLS 65 mA
+TJMAX Maximum junction temperature Internally limited °C
+Tstg Storage temperature –65 150 °C
+(1) Stresses beyond those listed under Absolute Maximum Ratings may cause permanent damage to the device. These are stress ratings
+only, which do not imply functional operation of the device at these or any other conditions beyond those indicated under Recommended
+Operating Conditions. Exposure to absolute-maximum-rated conditions for extended periods may affect device reliability.
+(2) With I(RTN) = 0
+(3) Do not apply voltages to these pins
+(4) SOA limited to RTN = 80 V at 1.2 A.
+6.2 ESD Ratings
+VALUE UNIT
+Human body model (HBM), per ANSI/ESDA/JEDEC JS-001, all pins (1) 2000
+Charged device model (CDM), per JEDEC specification JESD22-C101, all 500pins (2)
+V(ESD) Electrostatic discharge V
+IEC 61000-4-2 contact discharge (3) 8000
+IEC 61000-4-2 air-gap discharge (3) 15000
+(1) JEDEC document JEP155 states that 500-V HBM allows safe manufacturing with a standard ESD control process.
+(2) JEDEC document JEP157 states that 250-V CDM allows safe manufacturing with a standard ESD control process.
+(3) Discharges applied to circuit of Figure 24 between RJ-45, adapter, and output voltage rails
+6.3 Recommended Operating Conditions
+over operating free-air temperature range and voltages with respect to VSS (unless otherwise noted)
+MIN NOM MAX UNIT
+RTN, VDD 0 57
+Input voltage range APD to RTN 0 18 V
+CDB, T2P to RTN 0 57
+RTN 0.85 A
+Sinking current
+CDB, T2P 2 mA
+Resistance CLS (1) 60 Ω
+Junction temperature –40 125 °C
+(1) Voltage should not be externally applied to this pin.
+4 Submit Documentation Feedback Copyright © 2012–2015, Texas Instruments Incorporated
+Product Folder Links: TPS2378
+=== PAGE 5 ===
+TPS2378
+www.ti.com SLVSB99C – MARCH 2012 – REVISED JULY 2015
+6.4 Thermal Information
+TPS2378
+THERMAL METRIC (1) SO-8 PowerPad™ UNIT
+8 PINS
+RθJA Junction-to-ambient thermal resistance 45.9 °C/W
+RθJC(top) Junction-to-case (top) thermal resistance 51.9 °C/W
+RθJB Junction-to-board thermal resistance 28.8 °C/W
+ψJT Junction-to-top characterization parameter 8.9 °C/W
+ψJB Junction-to-board characterization parameter 28.7 °C/W
+RθJC(bot) Junction-to-case (bottom) thermal resistance 6.7 °C/W
+(1) For more information about traditional and new thermal metrics, see the Semiconductor and IC Package Thermal Metrics application
+report, SPRA953.
+6.5 Electrical Characteristics
+40 V ≤ VVDD ≤ 57 V, RDEN = 24.9 kΩ, VCDB, VCLS, and VT2P open; VAPD = VRTN; –40°C ≤ TJ ≤ 125°C. Positive currents are into
+pins. Typical values are at 25°C. All voltages are with respect to VVSS unless otherwise noted.
+PARAMETER TEST CONDITIONS MIN TYP MAX UNIT
+DETECTION (DEN)
+DEN open, VVDD = 10.1 V, Measure ISUPPLY(VDD, RTN,Bias current 3 4.8 12 µADEN), Not in mark
+Measure ISUPPLY(VDD, RTN, DEN), VDD = 1.4 V 53.8 56.5 58.3
+Detection current µAMeasure ISUPPLY(VDD, RTN, DEN), VDD = 10.1 V, Not in 395 410 417mark
+Disable threshold DEN falling 3 3.7 5 V
+VPD_DIS
+Hysteresis 50 113 200 mV
+AUXILIARY POWER DETECTION (APD)
+VAPDEN VAPD rising, measure to VRTN 1.4 1.5 1.6
+Voltage threshold V
+VAPDH Hysteresis, measure to VRTN 0.27 0.3 0.33
+Sinking current V(APD–RTN) = 5 V, measure IAPD 1 1.73 3 µA
+CLASSIFICATION (CLS)
+13 V ≤ VVDD ≤ 21 V, Measure IVDD + IDEN + IRTN
+RCLS = 1270 Ω 1.8 2.17 2.6
+RCLS = 243 Ω 9.9 10.6 11.2
+ICLS Classification current
+RCLS = 137 Ω 17.6 18.6 19.4 mA
+RCLS = 90.9 Ω 26.5 27.9 29.3
+RCLS = 63.4 Ω 38 39.9 42
+VCL_ON VVDD rising, ICLS ↑ 11.9 12.5 13
+Class lower threshold V
+VCL_H Hysteresis 1.4 1.6 1.7
+VCU_ON VVDD rising, ICLS↓ 21 22 23
+Class upper threshold V
+VCU_H Hysteresis 0.5 0.78 0.9
+VMSR Mark reset threshold VVDD falling 3 3.9 5 V
+Mark state resistance 2-point measurement at 5 V and 10.1 V 6 10 12 kΩ
+Leakage current VVDD = 57 V, VCLS = 0 V, measure ICLS 1 µA
+PASS DEVICE (RTN)
+rDS(on) On resistance 0.2 0.42 0.75 Ω
+Input bias current VVDD = VRTN = 30 V, measure IRTN 30 µA
+Current limit VRTN =1.5 V 0.85 1 1.2 A
+Inrush current limit VRTN = 2 V, VVDD: 20 V → 48 V 100 140 180 mA
+Inrush termination Percentage of inrush current 80% 90% 99%
+Foldback threshold VRTN rising 11 12.3 13.6 V
+Copyright © 2012–2015, Texas Instruments Incorporated Submit Documentation Feedback 5
+Product Folder Links: TPS2378
+=== PAGE 6 ===
+TPS2378
+SLVSB99C – MARCH 2012 – REVISED JULY 2015 www.ti.com
+Electrical Characteristics (continued)
+40 V ≤ VVDD ≤ 57 V, RDEN = 24.9 kΩ, VCDB, VCLS, and VT2P open; VAPD = VRTN; –40°C ≤ TJ ≤ 125°C. Positive currents are into
+pins. Typical values are at 25°C. All voltages are with respect to VVSS unless otherwise noted.
+PARAMETER TEST CONDITIONS MIN TYP MAX UNIT
+VRTN rising to when current limit changes to inrush currentFoldback deglitch time 500 800 1500 µslimit
+CONVERTER DISABLE (CDB)
+Measure VCDB – VRTN, ICDB = 2 mA,Output low voltage 0.27 0.5 VVRTN = 2 V, VDD: 20 V → 48 V
+Leakage current VCDB = 57 V, VRTN = 0 V 10 μA
+TYPE 2 PSE INDICATION (T2P)
+IT2P = 2 mA, after 2-event classification and inrush isVT2P Output low voltage 0.26 0.6 Vcomplete, VRTN = 0 V
+Leakage current VT2P = 57 V, VRTN = 0 V 10 µA
+UVLO
+UVLO rising threshold VVDD rising 36.3 38.1 40
+VUVLO_R V
+UVLO falling threshold VVDD falling 30.5 32 33.6
+VUVLO_H UVLO hysteresis 6.1 V
+THERMAL SHUTDOWN
+Shutdown TJ↑ 135 145
+°C
+Hysteresis (1) 20
+BIAS CURRENT
+Operating current 40 V ≤ VVDD ≤ 57 V 285 500 µA
+(1) Parameters provided for reference only, and do not constitute part of TI published specifications for purposes of TI product warranty.
+6 Submit Documentation Feedback Copyright © 2012–2015, Texas Instruments Incorporated
+Product Folder Links: TPS2378
+=== PAGE 7 ===
+21
+21.5
+22
+22.5
+−50 −25 0 25 50 75 100 125
+Class Upper Threshold, On
+Class Upper Threshold, Off
+Junction Temperature (°C)
+V(VDD−VSS) (V)
+G003 
+3
+3.5
+4
+4.5
+−50 −25 0 25 50 75 100 125
+Mark Reset Threshold
+Junction Temperature (°C)
+V(VDD−VSS) (V)
+G006 
+1.1
+1.2
+1.3
+1.4
+1.5
+1.6
+−50 −25 0 25 50 75 100 125
+APD Upper Threshold
+APD Lower Threshold
+Junction Temperature (°C)
+V(ADD−RTN) (V)
+G014 
+10.5
+11
+11.5
+12
+12.5
+13
+−50 −25 0 25 50 75 100 125
+Class Lower Threshold, On
+Class Lower Threshold, Off
+Junction Temperature (°C)
+V(VDD−VSS) (V)
+G004 
+0
+1
+2
+3
+4
+5
+6
+7
+0 1 2 3 4 5 6 7 8 9 10
+TA = −40°C
+TA = 125°C
+TA = 25°C
+V(VDD−VSS) (V)
+IVDD (µA)
+G001 
+0
+10
+20
+30
+40
+50
+0 1 2 3 4 5 6 7 8 9 10
+Detection Resistance
+V(VDD−VSS) (V)
+Resistance (kΩ )
+G002 
+TPS2378
+www.ti.com SLVSB99C – MARCH 2012 – REVISED JULY 2015
+6.6 Typical Characteristics
+Figure 1. Detection Bias Current vs PoE Voltage Figure 2. Detection Resistance vs PoE Voltage
+Figure 3. APD Threshold Voltage vs Temperature Figure 4. Classification Lower Threshold vs Temperature
+Figure 5. Classification Upper Threshold vs Temperature Figure 6. Mark Reset Threshold vs Temperature
+Copyright © 2012–2015, Texas Instruments Incorporated Submit Documentation Feedback 7
+Product Folder Links: TPS2378
+=== PAGE 8 ===
+120
+130
+140
+150
+160
+−50 −25 0 25 50 75 100 125
+Junction Temperature (°C)
+Current Inrush Limit (mA)
+G009 
+85
+86
+87
+88
+89
+−50 −25 0 25 50 75 100 125
+Junction Temperature (°C)
+Inrush Current Termination at  (%)
+G010 
+0.2
+0.3
+0.4
+0.5
+0.6
+0.7
+−50 −25 0 25 50 75 100 125
+Junction Temperature (°C)
+Pass FET Resistance (Ω )
+G008 
+0.99
+1
+1.01
+1.02
+−50 −25 0 25 50 75 100 125
+Junction Temperature (°C)
+Current Limit (A)
+G011 
+8.5
+8.8
+9
+9.2
+9.5
+9.8
+10
+−50 −25 0 25 50 75 100 125
+Junction Temperature (°C)
+Mark Reset Resistance (kΩ )
+G007 
+120
+160
+200
+240
+280
+320
+360
+400
+20 25 30 35 40 45 50 55 60
+TA = −40°C
+TA = 125°C
+TA = 25°C
+V(VDD−VSS) (V)
+IVDD (µA)
+G009 
+TPS2378
+SLVSB99C – MARCH 2012 – REVISED JULY 2015 www.ti.com
+Typical Characteristics (continued)
+Figure 7. Mark Resistance vs PoE Voltage Figure 8. IVDD Bias Current vs Voltage
+Figure 9. Pass FET Resistance vs Temperature Figure 10. PoE Current Limit vs Temperature
+Figure 11. PoE Inrush Current Limit vs Temperature Figure 12. Inrush Termination Threshold vs Temperature
+8 Submit Documentation Feedback Copyright © 2012–2015, Texas Instruments Incorporated
+Product Folder Links: TPS2378
+=== PAGE 9 ===
+38.2
+38.22
+38.24
+38.26
+38.28
+38.3
+−50 −25 0 25 50 75 100 125
+UVLO Rising Threshold
+Junction Temperature (°C)
+V(VDD−VSS) (V)
+G012 
+32.04
+32.06
+32.08
+32.1
+32.12
+32.14
+32.16
+−50 −25 0 25 50 75 100 125
+UVLO Falling Threshold
+Junction Temperature (°C)
+V(VDD−VSS) (V)
+G013 
+TPS2378
+www.ti.com SLVSB99C – MARCH 2012 – REVISED JULY 2015
+Typical Characteristics (continued)
+Figure 13. UVLO Rising Threshold vs Temperature Figure 14. UVLO Falling Threshold vs Temperature
+Copyright © 2012–2015, Texas Instruments Incorporated Submit Documentation Feedback 9
+Product Folder Links: TPS2378
+=== PAGE 10 ===
+12V and
+10V
+22V and
+21.25V
+38.1V and
+32V
+VDD
+1
+0
+S
+R
+Q
+Inrush limit
+threshold
+Current limit
+threshold
+RTN
+CLS
+APD
+VSS DEN
+800m s
+2.5V
+REG.
+Detection
+Comp.
+4V
+1.5Vand
+1.2V
+Hotswap
+MOSFET
+Class
+Comp.
+Mark
+Comp.
+APD
+Comp.
+12V
+UVLO
+Comp.
+OTSD
+I sense,1 if < 90% of inrush  current limitRTN
+1 = inrush
+Signals referenced to VSS unless otherwise noted
+1
+8
+4 5
+3
+2
+Class
+Comp.
+5V and 4V
+0 = current limit
+Inrush latch
+RTN
+800us
+1
+0
+IRTNsense
+RTN
+Type 2
+State Eng.
+Mark Comp Output
+UVLO Comp Output
+7 T2P
+VSS
+S
+R
+Q
+RTN
+RTN
+6 CDB
+High if over
+temperauture
+VSS
+TPS2378
+SLVSB99C – MARCH 2012 – REVISED JULY 2015 www.ti.com
+7 Detailed Description
+7.1 Overview
+The TPS2378 device is an 8-pin integrated circuit that contains all of the features needed to implement an
+IEEE802.3at type-2 powered device (PD) such as Detection, Classification, Type 2 Hardware Classification, and
+140-mA inrush current limit during start-up.
+The TPS2378 integrates a low 0.5-Ω internal switch to allow for up to 0.85 A of continuous current through the
+PD during normal operation.
+The TPS2378 features an auxiliary power detect (APD) input, providing priority for an external power adapter.
+The TPS2378 contains several protection features such as thermal shutdown, current limit foldback, and a robust
+100-V internal switch.
+7.2 Functional Block Diagram
+7.3 Feature Description
+7.3.1 APD Auxiliary Power Detect
+The APD pin is used in applications that may draw power either from the Ethernet cable or from an auxiliary
+power source. A voltage of more than about 1.5 V on the APD pin relative to RTN turns off the internal pass
+MOSFET, disables the CLS output, and enables the T2P output, giving adapter source priority over the PoE. A
+resistor divider (RAPD1–RAPD2 in Figure 24) provides system-level ESD protection for the APD pin, discharges
+leakage from the blocking diode (DA in Figure 24) and provides input voltage supervision to ensure that switch-
+over to the auxiliary voltage source does not occur at excessively low voltages. If not used, connect APD to RTN.
+10 Submit Documentation Feedback Copyright © 2012–2015, Texas Instruments Incorporated
+Product Folder Links: TPS2378
+=== PAGE 11 ===
+TPS2378
+CDB
+RTN
+CSS
+SS
+GND
+UCC2897A
+TPS2378
+www.ti.com SLVSB99C – MARCH 2012 – REVISED JULY 2015
+Feature Description (continued)
+7.3.2 CDB Converter Disable Bar Pin Interface
+CDB is an active low output that is pulled to RTN when the device is in inrush current limiting. It remains in a
+high impedance state at all other times. This pin is an open-drain output, and it may require a pullup resistor or
+other interface to the downstream load. CDB may be left open if it is not used.
+The CDB pin can be used to inhibit downstream converter start-up by keeping the soft start pin low. Figure 15
+shows an example where CDB connects to the SS pin of a UCC2897A DC-DC controller. Because CDB is an
+open drain output, it will not affect the soft start capacitor charge time when it deasserts. Another common use of
+the CDB pin is to enable a converter with an active-high enable input. In this case, CDB may require a pullup
+resistor to either VDD, or to a bias supply, depending on the requirements of the controller enable pin.
+Figure 15. CDB Interface
+7.3.3 CLS Classification
+An external resistor (RCLS in Figure 24) connected between the CLS pin and VSS provides a classification
+signature to the PSE. The controller places a voltage of approximately 2.5 V across the external resistor
+whenever the voltage differential between VDD and VSS lies from about 10.9 V to 22 V. The current drawn by
+this resistor, combined with the internal current drain of the controller and any leakage through the internal pass
+MOSFET, creates the classification current. Table 1 lists the external resistor values required for each of the PD
+power ranges defined by IEEE802.3at. The maximum average power drawn by the PD, plus the power supplied
+to the downstream load, should not exceed the maximum power indicated in Table 1. Holding APD high disables
+the classification signature.
+High-power PSEs may perform two classification cycles if Class 4 is presented on the first cycle.
+Table 1. Class Resistor Selection
+CLASS MINIMUM POWER AT PD (W) MAXIMUM POWER AT PD (W) RESISTOR (Ω)
+0 0.44 12.95 1270
+1 0.44 3.84 243
+2 3.84 6.49 137
+3 6.49 12.95 90.9
+4 12.95 25.5 63.4
+7.3.4 DEN Detection and Enable
+DEN pin implements two separate functions. A resistor (RDEN in Figure 24) connected between VDD and DEN
+generates a detection signature whenever the voltage differential between VDD and VSS lies from approximately
+1.4 to 10.9 V. Beyond this range, the controller disconnects this resistor to save power. The IEEE 802.3at
+standard specifies a detection signature resistance, RDEN from 23.75 kΩ to 26.25 kΩ, or 25 kΩ ± 5%. TI
+recommends a resistor of 24.9 kΩ ± 1% for RDEN.
+If the resistance connected between VDD and DEN is divided into two roughly equal portions, then the application
+circuit can disable the PD by grounding the tap point between the two resistances. This action simultaneously
+spoils the detection signature and thereby signals the PSE that the PD no longer requires power.
+Copyright © 2012–2015, Texas Instruments Incorporated Submit Documentation Feedback 11
+Product Folder Links: TPS2378
+=== PAGE 12 ===
+T2P-OUT
+T2P-MIN T2P
+C T2P FWLED
+T2P
+T2P
+I 0.46mAI 0.46mA, Select I 1mACTR 1.00
+V V V 12 V 0.26 V 1.1 VR 10.6kΩI 1mA
+/c61 /c61 /c61 /c61
+/c45 /c45 /c45 /c45/c61 /c61 /c61
+OUT T2P OUT
+T2P OUT
+T2P OUT
+V V 5 0.4I 0.46mAR 10000
+/c45
+/c45
+/c45
+/c45 /c45/c61 /c61 /c61
+RT2P
+VC
+IT2P
+IT2P-OUT
+VOUT
+RT2P-OUT
+VT2P-OUT
+V LowT2P
+Indicates
+Type 2
+T2P From
+TPS2378
+TPS2378
+SLVSB99C – MARCH 2012 – REVISED JULY 2015 www.ti.com
+7.3.5 Internal Pass MOSFET
+RTN pin provides the negative power return path for the load. Once VDD exceeds the UVLO threshold, the
+internal pass MOSFET pulls RTN to VSS. Inrush limiting prevents the RTN current from exceeding about 140 mA
+until the bulk capacitance (CBULK in Figure 24) is fully charged. Inrush ends when the RTN current drops below
+about 125 mA. The RTN current is subsequently limited to about 1 A. The CDB pulls low to signal the
+downstream load that the bulk capacitance is fully charged. If RTN ever exceeds about 12 V for longer than 800
+μs, then the TPS2378 returns to inrush limiting.
+7.3.6 T2P Type-2 PSE Indicator
+The TPS2378 pulls T2P to RTN whenever type-2 hardware classification has been observed or the APD pin is
+pulled high. The T2P output will return to a high-impedance state if the part enters thermal shutdown, the pass
+MOSFET enters inrush limiting, or if a type-2 PSE was not detected and the voltage on APD drops below its
+threshold. The circuitry that watches for type-2 hardware classification latches its result when the VDD-to-VSS
+voltage differential rises above the upper classification threshold. This circuit resets when the VDD-to-VSS voltage
+differential drops below the mark threshold. The T2P pin can be left unconnected if it is not used.
+The T2P pin is an active-low, open-drain output, which indicates that a high power source is available. An
+optocoupler can interface the T2P pin to circuitry on the secondary side of the converter. A high-gain optocoupler
+and a high-impedance (for example, CMOS) receiver are recommended. Design of the T2P optocoupler interface
+can be accomplished as follows:
+Figure 16. T2P Interface
+1. As shown in Figure 16, let VC = 12 V, VOUT = 5 V, RT2P–OUT = 10 kΩ, VT2P = 260 mV, VT2P = 400 mV.
+(1)
+2. The optocoupler current transfer ratio, CTR, is needed to determine RT2P. A device with a minimum CTR of
+100% at 1 mA LED bias current, IT2P, is selected. In practice, CTR will vary with temperature, LED bias
+current, and aging, These variations may require some iteration using the CTR-versus-IDIODE curve on the
+optocoupler data sheet.
+(a) The approximate forward voltage of the optocoupler diode, VFWLED, is 1.1 V from the data sheet.
+(b) Use Equation 2.
+(2)
+(c) Select a 10.7-kΩ resistor.
+7.3.7 VDD Supply Voltage
+VDD pin connects to the positive side of the input supply. It provides operating power to the PD controller and
+allows monitoring of the input line voltage.
+7.3.8 VSS
+VSS pin is the input supply negative rail that serves as a local ground. The PowerPAD must be connected to this
+pin to ensure proper operation.
+12 Submit Documentation Feedback Copyright © 2012–2015, Texas Instruments Incorporated
+Product Folder Links: TPS2378
+=== PAGE 13 ===
+TPS2378
+www.ti.com SLVSB99C – MARCH 2012 – REVISED JULY 2015
+7.3.9 PowerPAD
+The PowerPAD is internally connected to VSS. It should be tied to a large VSS copper area on the PCB to provide
+a low resistance thermal path to the circuit board. TI recommends maintaining a clearance of 0.025”between VSS
+and high-voltage signals such as VDD.
+7.3.10 Forced, Four-Pair, High Power PoE
+TPS2378 can be arranged in a dual fashion to support high power, four pair operation at 51 W at the input RJ45
+connector. Additional information is available in the Dual TPS2378 PD for 51 W High Power-Four Pair PoE
+(SLVA625) application report.
+7.4 Device Functional Modes
+7.4.1 PoE Overview
+The following text is intended as an aid in understanding the operation of the TPS2378 but not as a substitute for
+the IEEE 802.3at standard. The IEEE 802.3at standard is an update to IEEE 802.3-2008 clause 33 (PoE),
+adding high-power options and enhanced classification. Generally speaking, a device compliant to IEEE 802.3-
+2008 is referred to as a type 1 device, and devices with high power and enhanced classification will be referred
+to as type 2 devices. Standards change and should always be referenced when making design decisions.
+The IEEE 802.3at standard defines a method of safely powering a PD (powered device) over a cable by power
+sourcing equipment (PSE), and then removing power if a PD is disconnected. The process proceeds through an
+idle state and three operational states of detection, classification, and operation. The PSE leaves the cable
+unpowered (idle state) while it periodically looks to see if something has been plugged in; this is referred to as
+detection. The low power levels used during detection are unlikely to damage devices not designed for PoE. If a
+valid PD signature is present, the PSE may inquire how much power the PD requires; this is referred to as
+classification. The PSE may then power the PD if it has adequate capacity.
+Type 2 PSEs are required to do type 1 hardware classification plus a (new) data-layer classification, or an
+enhanced type 2 hardware classification. Type 1 PSEs are not required to do hardware or data link layer (DLL)
+classification. A type 2 PD must do type 2 hardware classification as well as DLL classification. The PD may
+return the default, 13-W current-encoded class, or one of four other choices. DLL classification occurs after
+power-on and the Ethernet data link has been established.
+Once started, the PD must present a maintain power signature (MPS) to assure the PSE that it is still present.
+The PSE monitors its output for a valid MPS, and turns the port off if it loses the MPS. Loss of the MPS returns
+the PSE to the idle state. Figure 17 shows the operational states as a function of PD input voltage. The upper
+half is for IEEE 802.3-2008, and the lower half shows specific differences for IEEE 802.3at. The dashed lines in
+the lower half indicate these are the same (for example, Detect and Class) for both.
+Copyright © 2012–2015, Texas Instruments Incorporated Submit Documentation Feedback 13
+Product Folder Links: TPS2378
+=== PAGE 14 ===
+5742373020.514.510.12.7
+Detection
+Lower Limit
+Detection
+Upper LimitClassification
+Low
+erLim
+it
+Classification
+Upper Limit
+Must Turn Of f by -
+Voltage Falli ng
+Lower Limit -
+Operating RangeM
+ustTurn
+On
+by-
+Voltage
+Rising
+Maximum Input
+Voltage
+Detect Classify Shut-
+down
+PI Voltage (V)
+0
+Lower Limit -
+13W Op.
+Mark
+Class-Mark
+Transition
+250/c109s
+Transient
+6.9
+Normal Operation
+IEEE 802. 3at
+Normal   Operation
+T2 Reset
+Range
+42.5
+IEEE 802-2008
+TPS2378
+SLVSB99C – MARCH 2012 – REVISED JULY 2015 www.ti.com
+Device Functional Modes (continued)
+Figure 17. Threshold Voltages
+The PD input, typically an RJ-45 eight-lead connector, is referred to as the power interface (PI). PD input
+requirements differ from PSE output requirements to account for voltage drops and operating margin. The
+standard allots the maximum loss to the cable regardless of the actual installation to simplify implementation.
+IEEE 802.3-2008 was designed to run over infrastructure including ISO/IEC 11801 class C (CAT3 per TIA/EIA-
+568) that may have had AWG 26 conductors. IEEE 802.3at type 2 cabling power loss allotments and voltage
+drops have been adjusted for 12.5-Ω power loops per ISO/IEC11801 class D (CAT5 or higher per TIA/EIA-568,
+typically AWG 24 conductors). Table 2 shows key operational limits broken out for the two revisions of the
+standard.
+Table 2. Comparison of Operational Limits
+POWER LOOP STATIC PD INPUT VOLTAGEPSE OUTPUT PSE STATIC OUTPUT PD INPUTSTANDARD RESISTANCE POWER (MIN) VOLTAGE (MIN) POWER (MAX) POWER ≤ 13 W POWER > 13 W(MAX)
+IEEE802.3at-2008 20 Ω 15.4 W 44 V 13 W 37 V – 57 V N/A802.3at (Type 1)
+802.3at (Type 2) 12.5 Ω 30 W 50 V 25.5 W 37 V – 57 V 42.5 V – 57 V
+The PSE can apply voltage either between the RX and TX pairs (pins 1–2 and 3–6 for 10baseT or 100baseT), or
+between the two spare pairs (4–5 and 7–8). Power application to the same pin combinations in 1000baseT
+systems is recognized in IEEE 802.3at. 1000baseT systems can handle data on all pairs, eliminating the spare
+pair terminology. The PSE may only apply voltage to one set of pairs at a time. The PD uses input diode bridges
+to accept power from any of the possible PSE configurations. The voltage drops associated with the input
+bridges create a difference between the standard limits at the PI and the TPS2378 specifications.
+A compliant type 2 PD has power management requirements not present with a type 1 PD. These requirements
+include the following:
+1. Must interpret type 2 hardware classification.
+2. Must present hardware class 4.
+3. Must implement DLL negotiation.
+4. Must behave like a type 1 PD during inrush and start-up.
+5. Must not draw more than 13 W for 80 ms after the PSE applies operating voltage (power up).
+14 Submit Documentation Feedback Copyright © 2012–2015, Texas Instruments Incorporated
+Product Folder Links: TPS2378
+=== PAGE 15 ===
+Time: 50ms/div
+IPI
+Inrush
+Load enabled using
+CDB plus delay
+Detect
+Class Mark
+VVDD-VSS
+VRTN-VSS
+Voltage: 10 V/div
+Current: 100 mA/div
+VUVLO_R
+Detection
+Classification
+PD Powered
+Idle
+VCL_ON
+VCL_H
+VCU_OFF
+VCU_H
+Note: Variable names refer to Electrical Characteristic Table parameters
+VDD-VSS
+VUVLO_H
+Mark
+VMSR
+Functional
+State
+Type 2
+Type 1
+TPS2378
+www.ti.com SLVSB99C – MARCH 2012 – REVISED JULY 2015
+6. Must not draw more than 13 W if it has not received a type 2 hardware classification or received permission
+through DLL.
+7. Must meet various operating and transient templates.
+8. Optionally monitor for the presence or absence of an adapter (assume high power).
+As a result of these requirements, the PD must be able to dynamically control its loading, and monitor T2P for
+changes. In cases where the design needs to know specifically if an adapter is plugged in and operational, the
+adapter should be individually monitored, typically with an optocoupler.
+7.4.2 Threshold Voltages
+The TPS2378 has a number of internal comparators with hysteresis for stable switching between the various
+states. Figure 18 relates the parameters in Electrical Characteristics to the PoE states. The mode labeled Idle
+between Classification and Operation implies that the DEN, CLS, and RTN pins are all high impedance. The
+state labeled Mark, which is drawn in dashed lines, is part of the new type 2 hardware class state machine.
+Figure 18. Threshold Voltages
+7.4.3 PoE Start-up Sequence
+The waveforms of Figure 19 demonstrate detection, classification, and start-up from a PSE with type 2 hardware
+classification. The key waveforms shown are V(VDD-VSS), V(RTN-VSS), and IPI. IEEE 802.3at requires a minimum of
+two detection levels, two class and mark cycles, and start-up from the second mark event. VRTN to VSS falls as
+the TPS2378 charges CBULK following application of full voltage. In Figure 19, deassertion of the CDB signal is
+delayed and used to enable load current as seen in the IPI waveform.
+Figure 19. Start-up
+Copyright © 2012–2015, Texas Instruments Incorporated Submit Documentation Feedback 15
+Product Folder Links: TPS2378
+=== PAGE 16 ===
+TPS2378
+SLVSB99C – MARCH 2012 – REVISED JULY 2015 www.ti.com
+7.4.4 Detection
+The TPS2378 pulls DEN to VSS whenever V(VDD-VSS) is below the lower classification threshold. When the input
+voltage rises above VCL_ON, the DEN pin goes to an open-drain condition to conserve power. While in detection,
+RTN is high impedance, and almost all the internal circuits are disabled. An RDEN of 24.9 kΩ (±1%), presents the
+correct signature. It may be a small, low-power resistor because it only sees a stress of about 5 mW. A valid PD
+detection signature is an incremental resistance ( ΔV / ΔI ) from 23.7 kΩ to 26.3 kΩ at the PI.
+The detection resistance seen by the PSE at the PI is the result of the input bridge resistance in series with the
+parallel combination of RDEN and internal VDD loading. The input diode bridge’s incremental resistance may be
+hundreds of Ω at the low currents drawn when 2.7 V is applied to the PI. The input bridge resistance is partially
+compensated by the TPS2378 effective resistance during detection.
+The type 2 hardware classification protocol of IEEE 802.3at specifies that a type 2 PSE drops its output voltage
+into the detection range during the classification sequence. The PD is required to have an incorrect detection
+signature in this condition, which is referred to as a mark event (see Figure 19). After the first mark event, the
+TPS2378 will present a signature less than 12 kΩ until it has experienced a V(VDD-VSS) voltage below the mark
+reset threshold (VMSR). This is explained more fully under Hardware Classification.
+7.4.5 Hardware Classification
+Hardware classification allows a PSE to determine a PD’s power requirements before powering, and helps with
+power management once power is applied. Type 2 hardware classification permits high power PSEs and PDs to
+determine whether the connected device can support high-power operation. A type 2 PD presents class 4 in
+hardware to indicate that it is a high-power device. A type 1 PSE will treat a class 4 device like a class 0 device,
+allotting 13 W if it chooses to power the PD. A PD that receives a 2-event class understands that it is powered
+from a high-power PSE and it may draw up to 25.5 W immediately after the 80-ms start-up period completes. A
+type 2 PD that does not receive a 2-event hardware classification may choose to not start, or must start in a 13-
+W condition and request more power through the DLL after start-up. The standard requires a type 2 PD to
+indicate that it is underpowered if this occurs. Start-up of a high-power PD under 13 W implicitly requires some
+form of powering down sections of the application circuits.
+The maximum power entries in Table 1 determine the class the PD must advertise. The PSE may disconnect a
+PD if it draws more than its stated class power, which may be the hardware class or a lower DLL-derived power
+level. The standard permits the PD to draw limited current peaks that increase the instantaneous power above
+the Table 1 limit; however, the average power requirement always applies.
+The TPS2378 implements two-event classification. Selecting an RCLS of 63.4 Ω provides a valid type 2 signature.
+TPS2378 may be used as a compatible type 1 device simply by programming class 0–3 per Table 1. DLL
+communication is implemented by the Ethernet communication system in the PD and is not implemented by the
+TPS2378.
+The TPS2378 disables classification above VCU_ON to avoid excessive power dissipation. CLS voltage is turned
+off during PD thermal limiting or when APD or DEN is active. The CLS output is inherently current-limited, but
+should not be shorted to VSS for long periods of time.
+Figure 20 shows how classification works for the TPS2378. Transition from state-to-state occurs when
+comparator thresholds are crossed (see Figure 17 and Figure 18). These comparators have hysteresis, which
+adds inherent memory to the machine. Operation begins at idle (unpowered by PSE) and proceeds with
+increasing voltage from left to right. A 2-event classification follows the (heavy lined) path towards the bottom,
+ending up with a latched type 2 decode along the lower branch that is highlighted. This state results in a low T2P
+during normal operation. Once the valid path to type 2 PSE detection is broken, the input voltage must transition
+below the mark reset threshold to start anew.
+16 Submit Documentation Feedback Copyright © 2012–2015, Texas Instruments Incorporated
+Product Folder Links: TPS2378
+=== PAGE 17 ===
+Detect Class
+Mark Class
+Mark Class Between
+Ranges
+Between
+Ranges
+Operating
+T2P
+open-drain
+Operating
+T2P low
+Between
+Ranges
+UVLO
+Rising
+UVLO
+Falling
+UVLO
+Rising
+UVLO
+Falling
+TYPE 2 PSE
+Hardware Class
+Class
+TYPE 1 PSE
+Hardware Class
+Between
+Ranges
+PoE Startup Sequence
+Mark
+Reset
+Idle
+TPS2378
+www.ti.com SLVSB99C – MARCH 2012 – REVISED JULY 2015
+Figure 20. Two-Event Class Internal States
+7.4.6 Inrush and Start-up
+IEEE 802.3at has a start-up current and time limitation, providing type 2 PSE compatibility for type 1 PDs. A type
+2 PSE limits output current to from 400 mA to 450 mA for up to 75 ms after power up (applying 48 V to the PI) to
+mirror type 1 PSE functionality. The type 2 PSE will support higher output current after 75 ms. The TPS2378
+implements a 140-mA inrush current, which is compatible with all PSE types. A high-power PD must limit its
+converter start-up peak current. The operational current cannot exceed 400 mA for a period of 80 ms or longer.
+This requirement implicitly requires some form of powering down sections of the application circuits.
+7.4.7 Maintain Power Signature
+The MPS is an electrical signature presented by the PD to assure the PSE that it is still present after operating
+voltage is applied. A valid MPS consists of a minimum dc current of 10 mA (or a 10-mA pulsed current for at
+least 75 ms every 325 ms) and an AC impedance lower than 26.3 kΩ in parallel with 0.05 μF. The AC
+impedance is usually accomplished by the minimum operating CBULK requirement of 5 μF. When either APD or
+DEN is used to force the hotswap switch off, the DC MPS will not be met. A PSE that monitors the DC MPS will
+remove power from the PD when this occurs. A PSE that monitors only the ac MPS may remove power from the
+PD.
+7.4.8 Start-up and Converter Operation
+The internal PoE UVLO (Undervoltage Lock Out) circuit holds the hotswap switch off before the PSE provides full
+voltage to the PD. This prevents the downstream converter circuits from loading the PoE input during detection
+and classification. The converter circuits will discharge CBULK while the PD is unpowered. Thus V(VDD-RTN) will be
+a small voltage just after full voltage is applied to the PD, as seen in Figure 19. The PSE drives the PI voltage to
+the operating range once it has decided to power up the PD. When VVDD rises above the UVLO turn-on threshold
+(VUVLO_R, approximately 38 V) with RTN high, the TPS2378 enables the hotswap MOSFET with a approximately
+140 mA (inrush) current limit as seen in Figure 21. The CDB pin is active while CBULK charges and VRTN falls
+from VVDD to nearly VVSS. Additional loading applied between VVDD and VRTN during the inrush state may prevent
+successful PD and subsequent converter start up. Once the inrush current falls about 10% below the inrush
+current limit, the PD current limit switches to the operational level (approximately 1000 mA) and CDB is deassert
+to allow downstream converter circuitry to start. In Figure 21, T2P is active when a type 2 PSE is plugged in.
+Copyright © 2012–2015, Texas Instruments Incorporated Submit Documentation Feedback 17
+Product Folder Links: TPS2378
+=== PAGE 18 ===
+Time: 200 s/div/c109
+500 mA/div
+IPI
+Inrush
+V > 12 VRTN-VSS
+20 V/div
+VRTN-VSS
+VCDB-VSS
+20 V/div
+Time: 5 ms/div
+100 mA/div IPI
+Inrush
+Load enabled using
+CDB plus delay
+VVDD-RTN
+VCDB-RTN
+VT2P-RTN
+50 V/div
+PI powered
+Type 1 PSE
+Type 2 PSE
+50 V/div
+10 V/div
+TPS2378
+SLVSB99C – MARCH 2012 – REVISED JULY 2015 www.ti.com
+Figure 21. Power Up and Start
+7.4.9 PD Hotswap Operation
+IEEE 802.3at has taken a new approach to PSE output limiting. A type 2 PSE must meet an output current vs
+time template with specified minimum and maximum sourcing boundaries. The peak output current may be as
+high as 50 A for 10 μs or 1.75 A for 75 ms. This makes robust protection of the PD device even more important
+than it was in IEEE 802.3-2008.
+The internal hotswap MOSFET is protected against output faults and input voltage steps with a current limit and
+deglitched (time-delay filtered) foldback. An overload on the pass MOSFET engages the current limit, with V(RTN-
+VSS) rising as a result. If V(RTN-VSS) rises above approximately 12 V for longer than approximately 800 μs, the
+current limit reverts to the inrush value. The 800-μs deglitch feature prevents momentary transients from causing
+a PD reset, provided that recovery lies within the bounds of the hotswap and PSE protection. Figure 22 shows an
+example of the RTN current profile during VDD to RTN short circuit. The hotswap MOSFET goes into current limit,
+causing the RTN voltage to increase. Once VRTN exceeds 12 V, IRTN, which was clamped to the current limit
+drops to the level of inrush current limit after 800 µs. The inrush current limit is reestablished when V(VDD-VSS)
+drops below UVLO.
+Figure 22. Response to PD Output Short Circuit
+18 Submit Documentation Feedback Copyright © 2012–2015, Texas Instruments Incorporated
+Product Folder Links: TPS2378
+=== PAGE 19 ===
+TPS2378
+www.ti.com SLVSB99C – MARCH 2012 – REVISED JULY 2015
+The PD control has a thermal sensor that protects the internal hotswap MOSFET. Conditions like start-up or
+operation into a VDD-to-RTN short cause high power dissipation in the MOSFET. An over-temperature shutdown
+(OTSD) turns off the hotswap MOSFET and class regulator, which are restarted after the device cools. The
+hotswap MOSFET will be re-enabled with the inrush current limit when exiting from an overtemperature event.
+Pulling DEN to VSS during powered operation causes the internal hotswap MOSFET to turn off. This feature
+allows a PD with option three ORing per Figure 23 to achieve adapter priority.
+The hotswap switch will be forced off under the following conditions:
+1. VAPD above VAPDEN (approximately 1.5 V),
+2. V(DEN –VSS) < VPD-DIS when V(VDD-VSS) is in the operational range,
+3. PD is over-temperature, or
+4. V(DEN –VSS) < PoE UVLO falling threshold (approximately 32 V).
+7.4.10 Start-up and Power Management, CDB and T2P
+CDB (converter disable) is an active-low pin that indicates when the internal hotswap MOSFET is in inrush
+limiting. CDB deasserts when inrush is over and can be used to enable a downstream converter to start up.
+Common interfaces to the converter controller include the soft start or enable pins.
+T2P (type 2 PSE) is an active-low multifunction pin that indicates if
+[(PSE = Type_2) or (1.5 V < VAPD)] and (pd current limit ≠ Inrush).
+The APD term allows the PD to operate from an adapter at high-power if a type 2 PSE is not present, assuming
+the adapter has sufficient capacity. Applications must monitor the state of T2P to detect power source transitions.
+Transitions could occur when a local power supply is added or dropped, or when a PSE is enabled on the far
+end. The PD may be required to adjust the load appropriately. The usage of T2P is demonstrated in Figure 24.
+In order for a type 2 PD to operate at less than 13 W for the first 80 ms after power application, the various
+delays must be estimated and used by the application controller to meet the requirement. The bootup time of
+many application processors may be long enough to eliminate the need for any timing.
+7.4.11 Adapter ORing
+Many PoE-capable devices are designed to operate from either a wall adapter or PoE power. A local power
+solution adds cost and complexity, but allows a product to be used if PoE is not available in a particular
+installation. While most applications only require that the PD operate when both sources are present, the
+TPS2378 supports forced operation from either of the power sources. Figure 23 illustrates three options for diode
+ORing external power into a PD. Only one option would be used in any particular design. Option 1 applies power
+to the TPS2378 PoE input, option 2 applies power between the TPS2378 PoE section and the power circuit, and
+option 3 applies power to the output side of the converter. Each of these options has advantages and
+disadvantages. Many of the basic ORing configurations and much of the discussion contained in the application
+note Advanced Adapter ORing Solutions using the TPS23753 (SLVA306), apply to the TPS2378 incorporating a
+DC/DC converter.
+Copyright © 2012–2015, Texas Instruments Incorporated Submit Documentation Feedback 19
+Product Folder Links: TPS2378
+=== PAGE 20 ===
+TPS2378
+D1
+C1
+RDENRCLS
+From Ethernet
+Transformers
+VDD
+VSS
+CLS
+DEN
+Low Voltage
+Output
+RTN
+From Spare
+Pairs or
+Transformers
+Power
+Circuit
+Adapter
+Option 3
+Adapter
+Option 2
+Adapter
+Option 1
++
+VPOE
+--
+TPS2378
+SLVSB99C – MARCH 2012 – REVISED JULY 2015 www.ti.com
+Figure 23. Oring Configurations
+The IEEE standards require that the Ethernet cable be isolated from ground and all other system potentials. The
+adapter must meet a minimum 1500 Vac dielectric withstand test between the output and all other connections
+for ORing options 1 and 2. The adapter only needs this isolation for option 3 if it is not provided by the converter.
+Adapter ORing diodes are shown for all the options to protect against a reverse voltage adapter, a short on the
+adapter input pins, or damage to a low-voltage adapter. ORing is sometimes accomplished with a MOSFET in
+option 3.
+7.4.12 Using DEN to Disable PoE
+The DEN pin may be used to turn the PoE hotswap switch off by pulling it to VSS while in the operational state, or
+to prevent detection when in the idle state. A low voltage on DEN forces the hotswap MOSFET off during normal
+operation. Additional information is available in the Advanced Adapter ORing Solutions using the TPS23753
+(SLVA306) application report.
+7.4.13 ORing Challenges
+Preference of one power source presents a number of challenges. Combinations of adapter output voltage
+(nominal and tolerance), power insertion point, and which source is preferred determine solution complexity.
+Several factors adding to the complexity are the natural high-voltage selection of diode ORing (the simplest
+method of combining sources), the current limit implicit in the PSE, and PD inrush and protection circuits
+(necessary for operation and reliability). Creating simple and seamless solutions is difficult, if not impossible, for
+many of the combinations. However, the TPS2378 offers several built-in features that simplify some
+combinations.
+Several examples demonstrate the limitations inherent in ORing solutions. Diode ORing a 48-V adapter with PoE
+(option 1) presents the problem that either source may have the higher voltage. A blocking switch would be
+required to assure that one source dominates. A second example combines a 12-V adapter with PoE using
+option 2. The converter draws approximately four times the current at 12 V from the adapter than it does from
+PoE at 48 V. Transition from PoE power to adapter may demand more current than can be supplied by the PSE.
+The converter must be turned off while the CBULK capacitance charges, with a subsequent converter restart at the
+higher voltage and lower input current. A third example involves the loss of the MPS when running from the
+adapter, causing the PSE to remove power from the PD. If AC power is then lost, the PD will stop operating until
+the PSE detects and powers the PD.
+20 Submit Documentation Feedback Copyright © 2012–2015, Texas Instruments Incorporated
+Product Folder Links: TPS2378
+=== PAGE 21 ===
+RTN
+VC
+D1
+C1
+RDEN
+RCLS
+From Ethernet
+Transformers VDD
+VSS
+CLS
+From Spare
+Pairs or
+Transformers
+DEN
+DA
+AC
+Adapter
+CDB
+T2P
+APD
+RAPD2
+RAPD1
+RT2P
+CBULK
+TPS2378
+DC/DC Converter
+SS
+TPS2378
+www.ti.com SLVSB99C – MARCH 2012 – REVISED JULY 2015
+8 Application and Implementation
+NOTE
+Information in the following applications sections is not part of the TI component
+specification, and TI does not warrant its accuracy or completeness. TI’s customers are
+responsible for determining suitability of components for their purposes. Customers should
+validate and test their design implementation to confirm system functionality.
+8.1 Application Information
+The TPS2378 has the flexibility to be implemented in IEEE802.3at and Universal Power Over Ethernet (UPOE)
+PDs. Therefore, it can be used in a wide range applications such as video and VoIP telephones, multiband
+access points, security cameras, and pico-base stations.
+8.2 Typical Application
+Figure 24. Typical Application Circuit
+8.2.1 Design Requirements
+For this design example, use the parameters in Table 3.
+Table 3. Design Parameters
+PARAMETER TEST CONDITIONS MIN MAX UNIT
+POWER INTERFACE
+Applied to the power pins of connectors J1 or J3Input voltage 0 57 V(adapter)
+Operating voltage After start-up 30 57 V
+Rising input voltage at device terminals — 40
+Input UVLO V
+Falling input voltage 30.5 —
+Detection voltage At device terminals 1.4 10.1 V
+Classification voltage At device terminals 11.9 23 V
+Classification current Class 4 38 42 mA
+Inrush current limit 100 180 mA
+Operating curent-limit 850 1200 mA
+Copyright © 2012–2015, Texas Instruments Incorporated Submit Documentation Feedback 21
+Product Folder Links: TPS2378
+=== PAGE 22 ===
+APD1
+37 V 10 k 1.5 V10 k R
+/c180 /c61/c43
+Adapter APD2
+APD1 APD2
+V R
+1.5 VR R /c61/c43
+TPS2378
+SLVSB99C – MARCH 2012 – REVISED JULY 2015 www.ti.com
+8.2.2 Detailed Design Requirements
+8.2.2.1 Input Bridges and Schottky Diodes
+Using Schottky diodes instead of PN junction diodes for the PoE input bridges will reduce the power dissipation
+in these devices by about 30%. There are, however, some things to consider when using them. The IEEE
+standard specifies a maximum backfeed voltage of 2.8 V. A 100-kΩ resistor is placed between the unpowered
+pairs and the voltage is measured across the resistor. Schottky diodes often have a higher reverse leakage
+current than PN diodes, making this a harder requirement to meet. To compensate, use conservative design for
+diode operating temperature, select lower-leakage devices where possible, and match leakage and temperatures
+by using packaged bridges.
+Schottky diode leakage currents and lower dynamic resistances can impact the detection signature. Setting
+reasonable expectations for the temperature range over which the detection signature is accurate is the simplest
+solution. Increasing RDEN slightly may also help meet the requirement.
+Schottky diodes have proven less robust to the stresses of ESD transients than PN junction diodes. After
+exposure to ESD, Schottky diodes may become shorted or leak. Take care to provide adequate protection in line
+with the exposure levels. This protection may be as simple as ferrite beads and capacitors.
+As a general recommendation, use 1 A or 2 A, 100 V rated discrete or bridge diodes for the input rectifiers.
+8.2.2.2 Protection, D1
+A TVS, D1, across the rectified PoE voltage per Figure 24 must be used. TI recommends a SMAJ58A, or
+equivalent, is recommended for general indoor applications. If an adapter is connected from VDD to RTN, as in
+ORing option 2 above, then voltage transients caused by the input cable inductance ringing with the internal PD
+capacitance can occur. Adequate capacitive filtering or a TVS must limit this voltage to within the absolute
+maximum ratings. Outdoor transient levels or special applications require additional protection.
+8.2.2.3 Capacitor, C1
+The IEEE 802.3at standard specifies an input bypass capacitor (from VDD to VSS) of 0.05 μF to 0.12 μF. Typically
+a 0.1 μF, 100 V, 10% ceramic capacitor is used.
+8.2.2.4 Detection Resistor, RDEN
+The IEEE 802.3at standard specifies a detection signature resistance, RDEN between 23.7 kΩ and 26.3 kΩ, or 25
+kΩ ± 5%. A resistor of 24.9 kΩ ± 1% is recommended for RDEN.
+8.2.2.5 Classification Resistor, RCLS
+Connect a resistor from CLS to VSS to program the classification current according to the IEEE 802.3at standard.
+The class power assigned should correspond to the maximum average power drawn by the PD during operation.
+Select RCLS according to Table 1.
+Choose class 4 and RCLS = 63.4 Ω.
+8.2.2.6 APD Pin Divider Network RAPD1, RAPD2
+For an adapter voltage threshold to switch from PoE to adapter at 37 V, choose 10 kΩ for RAPD2.
+(3)
+(4)
+Solving for RAPD1:
+RAPD1 = 237 kΩ (5)
+22 Submit Documentation Feedback Copyright © 2012–2015, Texas Instruments Incorporated
+Product Folder Links: TPS2378
+=== PAGE 23 ===
+Time: 50ms/div
+IPI
+Inrush
+Load enabled using
+CDB plus delay
+Detect
+Class Mark
+VVDD-VSS
+VRTN-VSS
+Voltage: 10 V/div
+Current: 100 mA/div
+Time: 5 ms/div
+100 mA/div IPI
+Inrush
+Load enabled using
+CDB plus delay
+VVDD-RTN
+VCDB-RTN
+VT2P-RTN
+50 V/div
+PI powered
+Type 1 PSE
+Type 2 PSE
+50 V/div
+10 V/div
+TPS2378
+www.ti.com SLVSB99C – MARCH 2012 – REVISED JULY 2015
+8.2.3 Application Curves
+Figure 26. Power Up and StartFigure 25. Start-up
+Copyright © 2012–2015, Texas Instruments Incorporated Submit Documentation Feedback 23
+Product Folder Links: TPS2378
+=== PAGE 24 ===
+TPS2378
+SLVSB99C – MARCH 2012 – REVISED JULY 2015 www.ti.com
+9 Power Supply Recommendations
+The TPS2378 device will typically be followed by a power supply such as an isolated flyback or active clamp
+forward converter or a non-isolated buck converter. The input voltage of the converter should be capable of
+operating within the IEEE802.3at recommended input voltage as shown in Table 2.
+10 Layout
+10.1 Layout Guidelines
+The layout of the PoE front end should follow power and EMI/ESD best practice guidelines. A basic set of
+recommendations include:
+• Parts placement must be driven by power flow in a point-to-point manner; RJ-45, Ethernet transformer, diode
+bridges, TVS and 0.1-μF capacitor, and TPS2378.
+• All leads should be as short as possible with wide power traces and paired signal and return.
+• There should not be any crossovers of signals from one part of the flow to another.
+• Spacing consistent with safety standards like IEC60950 must be observed between the 48-V input voltage
+rails and between the input and an isolated converter output.
+• The TPS2378 should be located over split, local ground planes referenced to VSS for the PoE input and to
+RTN for the switched output.
+• Large copper fills and traces should be used on SMT power-dissipating devices, and wide traces or overlay
+copper fills should be used in the power path.
+10.2 Layout Example
+Figure 27 and Figure 28 show the top and bottom layer and assemblies of the TPS2378EVM-105 as a reference
+for optimum parts placement. A detailed PCB layout can be found in the user’s guide of the TPS2378EVM-105
+(SLVU682).
+Figure 27. Top Side
+24 Submit Documentation Feedback Copyright © 2012–2015, Texas Instruments Incorporated
+Product Folder Links: TPS2378
+=== PAGE 25 ===
+TPS2378
+www.ti.com SLVSB99C – MARCH 2012 – REVISED JULY 2015
+Layout Example (continued)
+Figure 28. Bottom Side
+10.3 EMI Containment
+• Use compact loops for dv/dt and di/dt circuit paths (power loops and gate drives).
+• Use minimal, yet thermally adequate, copper areas for heat sinking of components tied to switching nodes
+(minimize exposed radiating surface).
+• Use copper ground planes (possible stitching) and top layer copper floods (surround circuitry with ground
+floods).
+• Use 4 layer PCB if economically feasible (for better grounding).
+• Minimize the amount of copper area associated with input traces (to minimize radiated pickup).
+• Use Bob Smith terminations, Bob Smith EFT capacitor, and Bob Smith plane.
+• Use Bob Smith plane as ground shield on input side of PCB (creating a phantom or literal earth ground).
+• Use of ferrite beads on input (allow for possible use of beads or 0 ohm resistors).
+• Maintain physical separation between input-related circuitry and power circuitry (use ferrite beads as
+boundary line).
+• Possible use of common-mode inductors.
+• Possible use of integrated RJ-45 jacks (shielded with internal transformer and Bob Smith terminations).
+• End-product enclosure considerations (shielding).
+10.4 Thermal Considerations and OTSD
+Sources of nearby local PCB heating should be considered during the thermal design. Typical calculations
+assume that the TPS2378 is the only heat source contributing to the PCB temperature rise. It is possible for a
+normally operating TPS2378 device to experience an OTSD event if it is excessively heated by a nearby device.
+10.5 ESD
+ESD requirements for a unit that incorporates the TPS2378 have a much broader scope and operational
+implications than are used in TI’s testing. Unit-level requirements should not be confused with reference design
+testing that only validates the ruggedness of the TPS2378.
+Copyright © 2012–2015, Texas Instruments Incorporated Submit Documentation Feedback 25
+Product Folder Links: TPS2378
+=== PAGE 26 ===
+TPS2378
+SLVSB99C – MARCH 2012 – REVISED JULY 2015 www.ti.com
+11 Device and Documentation Support
+11.1 Documentation Support
+11.1.1 Related Documentation
+For related documentation see the following:
+• Advanced Adapter ORing Solutions using the TPS23753, SLVA306
+11.2 Community Resources
+The following links connect to TI community resources. Linked contents are provided "AS IS" by the respective
+contributors. They do not constitute TI specifications and do not necessarily reflect TI's views; see TI's Terms of
+Use.
+TI E2E™ Online Community TI's Engineer-to-Engineer (E2E) Community. Created to foster collaboration
+among engineers. At e2e.ti.com, you can ask questions, share knowledge, explore ideas and help
+solve problems with fellow engineers.
+Design Support TI's Design Support Quickly find helpful E2E forums along with design support tools and
+contact information for technical support.
+11.3 Trademarks
+PowerPAD, E2E are trademarks of Texas Instruments.
+All other trademarks are the property of their respective owners.
+11.4 Electrostatic Discharge Caution
+These devices have limited built-in ESD protection. The leads should be shorted together or the device placed in conductive foam
+during storage or handling to prevent electrostatic damage to the MOS gates.
+11.5 Glossary
+SLYZ022 — TI Glossary.
+This glossary lists and explains terms, acronyms, and definitions.
+12 Mechanical, Packaging, and Orderable Information
+The following pages include mechanical, packaging, and orderable information. This information is the most
+current data available for the designated devices. This data is subject to change without notice and revision of
+this document. For browser-based versions of this data sheet, refer to the left-hand navigation.
+26 Submit Documentation Feedback Copyright © 2012–2015, Texas Instruments Incorporated
+Product Folder Links: TPS2378
+=== PAGE 27 ===
+PACKAGE OPTION ADDENDUM
+www.ti.com 23-Jul-2015
+Addendum-Page 1
+PACKAGING INFORMATION
+Orderable Device Status
+(1)
+Package Type Package
+Drawing
+Pins Package
+Qty
+Eco Plan
+(2)
+Lead/Ball Finish
+(6)
+MSL Peak Temp
+(3)
+Op Temp (°C) Device Marking
+(4/5)
+Samples
+TPS2378DDA ACTIVE SO PowerPAD DDA 8 75 Green (RoHS
+& no Sb/Br)
+CU NIPDAUAG Level-2-260C-1 YEAR -40 to 85 2378
+TPS2378DDAR ACTIVE SO PowerPAD DDA 8 2500 Green (RoHS
+& no Sb/Br)
+CU NIPDAUAG Level-2-260C-1 YEAR -40 to 85 2378
+ 
+(1) The marketing status values are defined as follows:
+ACTIVE: Product device recommended for new designs.
+LIFEBUY: TI has announced that the device will be discontinued, and a lifetime-buy period is in effect.
+NRND: Not recommended for new designs. Device is in production to support existing customers, but TI does not recommend using this part in a new design.
+PREVIEW: Device has been announced but is not in production. Samples may or may not be available.
+OBSOLETE: TI has discontinued the production of the device.
+ 
+(2) Eco Plan - The planned eco-friendly classification: Pb-Free (RoHS), Pb-Free (RoHS Exempt), or Green (RoHS & no Sb/Br) - please check http://www.ti.com/productcontent for the latest availability
+information and additional product content details.
+TBD:  The Pb-Free/Green conversion plan has not been defined.
+Pb-Free (RoHS): TI's terms "Lead-Free" or "Pb-Free" mean semiconductor products that are compatible with the current RoHS requirements for all 6 substances,  including the requirement that
+lead not exceed 0.1% by weight in homogeneous materials. Where designed to be soldered at high temperatures, TI Pb-Free products are suitable for use in specified lead-free processes.
+Pb-Free (RoHS Exempt): This component has a RoHS exemption for either 1) lead-based flip-chip solder bumps used between the die and package, or 2) lead-based  die adhesive used between
+the die and leadframe. The component is otherwise considered Pb-Free (RoHS compatible) as defined above.
+Green (RoHS & no Sb/Br): TI defines "Green" to mean Pb-Free (RoHS compatible), and free of Bromine (Br)  and Antimony (Sb) based flame retardants (Br or Sb do not exceed 0.1% by weight
+in homogeneous material)
+ 
+(3) MSL, Peak Temp. - The Moisture Sensitivity Level rating according to the JEDEC industry standard classifications, and peak solder temperature.
+ 
+(4) There may be additional marking, which relates to the logo, the lot trace code information, or the environmental category on the device.
+ 
+(5) Multiple Device Markings will be inside parentheses. Only one Device Marking contained in parentheses and separated by a "~" will appear on a device. If a line is indented then it is a continuation
+of the previous line and the two combined represent the entire Device Marking for that device.
+ 
+(6) Lead/Ball Finish - Orderable Devices may have multiple material finish options. Finish options are separated by a vertical ruled line. Lead/Ball Finish values may wrap to two lines if the finish
+value exceeds the maximum column width.
+ 
+Important Information and Disclaimer:The information provided on this page represents TI's knowledge and belief as of the date that it is provided. TI bases its knowledge and belief on information
+provided by third parties, and makes no representation or warranty as to the accuracy of such information. Efforts are underway to better integrate information from third parties. TI has taken and
+continues to take reasonable steps to provide representative and accurate information but may not have conducted destructive testing or chemical analysis on incoming materials and chemicals.
+TI and TI suppliers consider certain information to be proprietary, and thus CAS numbers and other limited information may not be available for release.
+=== PAGE 28 ===
+PACKAGE OPTION ADDENDUM
+www.ti.com 23-Jul-2015
+Addendum-Page 2
+ 
+In no event shall TI's liability arising out of such information exceed the total purchase price of the TI part(s) at issue in this document sold by TI to Customer on an annual basis.
+ 
+=== PAGE 29 ===
+TAPE AND REEL INFORMATION
+*All dimensions are nominal
+Device Package
+Type
+Package
+Drawing
+Pins SPQ Reel
+Diameter
+(mm)
+Reel
+Width
+W1 (mm)
+A0
+(mm)
+B0
+(mm)
+K0
+(mm)
+P1
+(mm)
+W
+(mm)
+Pin1
+Quadrant
+TPS2378DDAR SO
+Power 
+PAD
+DDA 8 2500 330.0 12.8 6.4 5.2 2.1 8.0 12.0 Q1
+PACKAGE MATERIALS INFORMATION
+www.ti.com 23-Jul-2015
+Pack Materials-Page 1
+=== PAGE 30 ===
+*All dimensions are nominal
+Device Package Type Package Drawing Pins SPQ Length (mm) Width (mm) Height (mm)
+TPS2378DDAR SO PowerPAD DDA 8 2500 366.0 364.0 50.0
+PACKAGE MATERIALS INFORMATION
+www.ti.com 23-Jul-2015
+Pack Materials-Page 2
+=== PAGE 31 ===
+GENERIC PACKAGE VIEW
+Images above are just a representation of the package family, actual package may vary.
+Refer to the product data sheet for package details.
+DDA 8 PowerPAD
+ TM
+ SOIC - 1.7 mm max height
+PLASTIC SMALL OUTLINE
+4202561/G
+=== PAGE 32 ===
+
+=== PAGE 33 ===
+
+=== PAGE 34 ===
+IMPORTANT NOTICE
+Texas Instruments Incorporated (TI) reserves the right to make corrections, enhancements, improvements and other changes to its
+semiconductor products and services per JESD46, latest issue, and to discontinue any product or service per JESD48, latest issue. Buyers
+should obtain the latest relevant information before placing orders and should verify that such information is current and complete.
+TI’s published terms of sale for semiconductor products (http://www.ti.com/sc/docs/stdterms.htm) apply to the sale of packaged integrated
+circuit products that TI has qualified and released to market. Additional terms may apply to the use or sale of other types of TI products and
+services.
+Reproduction of significant portions of TI information in TI data sheets is permissible only if reproduction is without alteration and is
+accompanied by all associated warranties, conditions, limitations, and notices. TI is not responsible or liable for such reproduced
+documentation. Information of third parties may be subject to additional restrictions. Resale of TI products or services with statements
+different from or beyond the parameters stated by TI for that product or service voids all express and any implied warranties for the
+associated TI product or service and is an unfair and deceptive business practice. TI is not responsible or liable for any such statements.
+Buyers and others who are developing systems that incorporate TI products (collectively, “Designers”) understand and agree that Designers
+remain responsible for using their independent analysis, evaluation and judgment in designing their applications and that Designers have
+full and exclusive responsibility to assure the safety of Designers' applications and compliance of their applications (and of all TI products
+used in or for Designers’applications) with all applicable regulations, laws and other applicable requirements. Designer represents that, with
+respect to their applications, Designer has all the necessary expertise to create and implement safeguards that (1) anticipate dangerous
+consequences of failures, (2) monitor failures and their consequences, and (3) lessen the likelihood of failures that might cause harm and
+take appropriate actions. Designer agrees that prior to using or distributing any applications that include TI products, Designer will
+thoroughly test such applications and the functionality of such TI products as used in such applications.
+TI’s provision of technical, application or other design advice, quality characterization, reliability data or other services or information,
+including, but not limited to, reference designs and materials relating to evaluation modules, (collectively, “TI Resources”) are intended to
+assist designers who are developing applications that incorporate TI products; by downloading, accessing or using TI Resources in any
+way, Designer (individually or, if Designer is acting on behalf of a company, Designer’s company) agrees to use any particular TI Resource
+solely for this purpose and subject to the terms of this Notice.
+TI’s provision of TI Resources does not expand or otherwise alter TI’s applicable published warranties or warranty disclaimers for TI
+products, and no additional obligations or liabilities arise from TI providing such TI Resources. TI reserves the right to make corrections,
+enhancements, improvements and other changes to its TI Resources. TI has not conducted any testing other than that specifically
+described in the published documentation for a particular TI Resource.
+Designer is authorized to use, copy and modify any individual TI Resource only in connection with the development of applications that
+include the TI product(s) identified in such TI Resource. NO OTHER LICENSE, EXPRESS OR IMPLIED, BY ESTOPPEL OR OTHERWISE
+TO ANY OTHER TI INTELLECTUAL PROPERTY RIGHT, AND NO LICENSE TO ANY TECHNOLOGY OR INTELLECTUAL PROPERTY
+RIGHT OF TI OR ANY THIRD PARTY IS GRANTED HEREIN, including but not limited to any patent right, copyright, mask work right, or
+other intellectual property right relating to any combination, machine, or process in which TI products or services are used. Information
+regarding or referencing third-party products or services does not constitute a license to use such products or services, or a warranty or
+endorsement thereof. Use of TI Resources may require a license from a third party under the patents or other intellectual property of the
+third party, or a license from TI under the patents or other intellectual property of TI.
+TI RESOURCES ARE PROVIDED “AS IS”AND WITH ALL FAULTS. TI DISCLAIMS ALL OTHER WARRANTIES OR
+REPRESENTATIONS, EXPRESS OR IMPLIED, REGARDING RESOURCES OR USE THEREOF, INCLUDING BUT NOT LIMITED TO
+ACCURACY OR COMPLETENESS, TITLE, ANY EPIDEMIC FAILURE WARRANTY AND ANY IMPLIED WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT OF ANY THIRD PARTY INTELLECTUAL
+PROPERTY RIGHTS. TI SHALL NOT BE LIABLE FOR AND SHALL NOT DEFEND OR INDEMNIFY DESIGNER AGAINST ANY CLAIM,
+INCLUDING BUT NOT LIMITED TO ANY INFRINGEMENT CLAIM THAT RELATES TO OR IS BASED ON ANY COMBINATION OF
+PRODUCTS EVEN IF DESCRIBED IN TI RESOURCES OR OTHERWISE. IN NO EVENT SHALL TI BE LIABLE FOR ANY ACTUAL,
+DIRECT, SPECIAL, COLLATERAL, INDIRECT, PUNITIVE, INCIDENTAL, CONSEQUENTIAL OR EXEMPLARY DAMAGES IN
+CONNECTION WITH OR ARISING OUT OF TI RESOURCES OR USE THEREOF, AND REGARDLESS OF WHETHER TI HAS BEEN
+ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+Unless TI has explicitly designated an individual product as meeting the requirements of a particular industry standard (e.g., ISO/TS 16949
+and ISO 26262), TI is not responsible for any failure to meet such industry standard requirements.
+Where TI specifically promotes products as facilitating functional safety or as compliant with industry functional safety standards, such
+products are intended to help enable customers to design and create their own applications that meet applicable functional safety standards
+and requirements. Using products in an application does not by itself establish any safety features in the application. Designers must
+ensure compliance with safety-related requirements and standards applicable to their applications. Designer may not use any TI products in
+life-critical medical equipment unless authorized officers of the parties have executed a special contract specifically governing such use.
+Life-critical medical equipment is medical equipment where failure of such equipment would cause serious bodily injury or death (e.g., life
+support, pacemakers, defibrillators, heart pumps, neurostimulators, and implantables). Such equipment includes, without limitation, all
+medical devices identified by the U.S. Food and Drug Administration as Class III devices and equivalent classifications outside the U.S.
+TI may expressly designate certain products as completing a particular qualification (e.g., Q100, Military Grade, or Enhanced Product).
+Designers agree that it has the necessary expertise to select the product with the appropriate qualification designation for their applications
+and that proper product selection is at Designers’own risk. Designers are solely responsible for compliance with all legal and regulatory
+requirements in connection with such selection.
+Designer will fully indemnify TI and its representatives against any damages, costs, losses, and/or liabilities arising out of Designer’s non-
+compliance with the terms and provisions of this Notice.
+Mailing Address: Texas Instruments, Post Office Box 655303, Dallas, Texas 75265
+Copyright © 2018, Texas Instruments Incorporated

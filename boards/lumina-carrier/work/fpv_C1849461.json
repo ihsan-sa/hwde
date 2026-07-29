@@ -1,0 +1,88 @@
+{
+ "script": "fp_verify",
+ "status": "violations",
+ "board": "HTSSOP-20-1EP_4.4x6.5mm_P0.65mm_EP3.4x6.5mm_Mask2.96x2.96mm_ThermalVias.kicad_mod",
+ "counts": {
+  "total": 2,
+  "by_severity": {
+   "error": 2
+  },
+  "by_source": {
+   "check.fp_verify": 2
+  }
+ },
+ "violations": [
+  {
+   "check": "fp_verify",
+   "severity": "error",
+   "pos": null,
+   "layer": "F.Cu",
+   "net": null,
+   "refs": [
+    "HTSSOP-20-1EP_4.4x6.5mm_P0.65mm_EP3.4x6.5mm_Mask2.96x2.96mm_ThermalVias"
+   ],
+   "msg": "copper pad count 37 != datasheet 21",
+   "source": "check.fp_verify",
+   "items": [
+    {
+     "msg": "copper pad count 37 != datasheet 21",
+     "pos": null
+    }
+   ],
+   "kind": "pad_count",
+   "expected": 21,
+   "measured": 37
+  },
+  {
+   "check": "fp_verify",
+   "severity": "error",
+   "pos": [
+    -2.8625,
+    -2.925
+   ],
+   "layer": "F.Cu",
+   "net": null,
+   "refs": [
+    "HTSSOP-20-1EP_4.4x6.5mm_P0.65mm_EP3.4x6.5mm_Mask2.96x2.96mm_ThermalVias"
+   ],
+   "msg": "nearest-pad pitch 0.000 mm != datasheet 0.650 mm (tol 0.05)",
+   "source": "check.fp_verify",
+   "items": [
+    {
+     "msg": "nearest-pad pitch 0.000 mm != datasheet 0.650 mm (tol 0.05)",
+     "pos": [
+      -2.8625,
+      -2.925
+     ]
+    }
+   ],
+   "kind": "pad_pitch",
+   "expected_mm": 0.65,
+   "measured_mm": 0.0
+  }
+ ],
+ "footprint": "HTSSOP-20-1EP_4.4x6.5mm_P0.65mm_EP3.4x6.5mm_Mask2.96x2.96mm_ThermalVias",
+ "footprint_file": "boards\\lumina-carrier\\lib\\aiee.pretty\\HTSSOP-20-1EP_4.4x6.5mm_P0.65mm_EP3.4x6.5mm_Mask2.96x2.96mm_ThermalVias.kicad_mod",
+ "copper_pads": 37,
+ "total_pads": 42,
+ "measured_pitch_mm": null,
+ "measured_pad_size_mm": [
+  0.4,
+  1.575
+ ],
+ "has_courtyard": true,
+ "has_silk": true,
+ "land_pattern": {
+  "package": "PWP0020T PowerPAD TSSOP-20, TI land pattern drawing 4224598/A (10/2018)",
+  "pad_count": 21,
+  "pitch_mm": 0.65,
+  "pad_size_mm": [
+   1.5,
+   0.45
+  ],
+  "row_spacing_mm": 5.8,
+  "pin1": "1",
+  "notes": "From the RECOMMENDED 'EXAMPLE BOARD LAYOUT' drawing 4224598/A: 20X (1.5 x 0.45) mm signal pads with (R0.05) corner radius, 18X (0.65) mm pitch, (5.8) mm between the two pad-row centerlines, overall pad-field height (6.5) mm. Pad 21 is the thermal pad and is SOLDER-MASK DEFINED: exposed metal (2.96 x 2.96) mm inside a (3.4 x 6.5) mm copper area covered by solder mask (NOTE 9: 'Size of metal pad may vary due to creepage requirement'). Signal pads: non-solder-mask-defined preferred, 0.05 mm max mask clearance all around (0.05 mm min if solder-mask defined). Stencil (0.125 mm thick): 20X (1.5 x 0.45) apertures plus a (2.96 x 2.96) thermal aperture; alternates 3.31 x 3.31 at 0.1 mm, 2.70 x 2.70 at 0.15 mm, 2.50 x 2.50 at 0.175 mm stencil. Package outline: body 4.3-4.5 mm x 6.4-6.6 mm, lead span 6.2-6.6 mm TYP, lead width 0.19-0.30 mm, 1.2 mm max height, JEDEC MO-153."
+ },
+ "svg": "boards\\lumina-carrier\\work\\overlays\\C1849461.svg"
+}

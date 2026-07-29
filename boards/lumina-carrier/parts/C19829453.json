@@ -1,0 +1,138 @@
+{
+  "mpn": "TPD4E1U06DBVR",
+  "lcsc": "C19829453",
+  "package": "SOT23-6",
+  "description": "TECH PUBLIC (taizhou/sot23.com.tw) TPD4E1U06DBVR quad-channel high-speed ESD protection device, 4-page datasheet. Uni-directional TVS diode array: each protected I/O has a diode to an internal rail and a diode to GND, with a single zener from the rail to GND (steering-diode + rail-clamp topology). Features as printed: ultra low capacitance 0.6 pF typical I/O to GND, ultra low leakage nA level, low operating voltage 5.5 V, low clamping voltage. Complies with IEC 61000-4-2 (ESD immunity, air +/-20 kV, contact +/-15 kV), IEC 61000-4-5 (lightning) 3.3 A (8/20 us), IEC 61000-4-4 (EFT) 80 A (5/50 ns). RoHS compliant, lead finish matte tin, green molding compound, UL 94V-0, MSL Level 3 per J-STD-020. Marking NG4P. 3000 pcs per 7 inch reel.",
+  "pinout": [
+    {
+      "pin": "1",
+      "name": "D2-",
+      "type": "passive",
+      "notes": "Protected channel (bottom row, leftmost in the top view of the pin-configuration drawing)."
+    },
+    {
+      "pin": "2",
+      "name": "GND",
+      "type": "ground",
+      "notes": "Ground / clamp return. The only ground pin; all four channels clamp to it."
+    },
+    {
+      "pin": "3",
+      "name": "D2+",
+      "type": "passive",
+      "notes": "Protected channel. Pairs with D2- (pin 1) as one differential channel pair in the datasheet's internal schematic ordering D1+, D1-, D2+, D2-."
+    },
+    {
+      "pin": "4",
+      "name": "D1+",
+      "type": "passive",
+      "notes": "Protected channel (top row, rightmost in the top view)."
+    },
+    {
+      "pin": "5",
+      "name": "NC",
+      "type": "nc",
+      "notes": "No connect. Explicitly labelled NC in the Dimensions and Pin Configuration drawing; it is NOT a protected channel and NOT a ground."
+    },
+    {
+      "pin": "6",
+      "name": "D1-",
+      "type": "passive",
+      "notes": "Protected channel. Pairs with D1+ (pin 4)."
+    }
+  ],
+  "decoupling": [],
+  "land_pattern": {
+    "package": "SOT23-6 (Land Pattern table, page 4)",
+    "pad_count": 6,
+    "pitch_mm": 0.95,
+    "pad_size_mm": [
+      0.6,
+      1.1
+    ],
+    "row_spacing_mm": 2.5,
+    "pin1": "1",
+    "notes": "From the page-4 'Land Pattern - SOT23-6' drawing and table (millimetre column): P = 0.95 pitch, X = 0.60 pad width, Y = 1.10 pad length, G = 1.40 gap between the two pad rows, Z = 3.60 overall span across the rows, C = 2.50 pad-centre to pad-centre row spacing. Self-consistent: Z = G + 2Y = 3.60 and C = G + Y = 2.50. Package outline (separate drawing, same page): D 2.80/2.90/3.00 body length, E1 1.50/1.60/1.75 body width, E 2.80 BSC lead span, e 0.95 BSC, e1 1.90 BSC, A 0.90/-/1.45 height, A1 0.00/-/0.15 standoff, A2 0.90/1.15/1.30, b 0.25/-/0.50 lead width, c 0.08/-/0.22 lead thickness, L 0.30/0.45/0.60, N = 6, theta1 0 to 10 deg. Pins 1,2,3 on one row and 4,5,6 on the opposite row (pin 1 bottom-left, pin 6 top-left in the drawing's top view)."
+  },
+  "exposed_pad": {
+    "present": false
+  },
+  "layout_notes": [
+    "This datasheet contains NO layout-guidance section - no routing, stub-length, ground-return or placement advice is published by the vendor for this part.",
+    "Topology fact usable for placement (from the internal schematic on page 1): all four channels return to the single GND pin (pin 2), so the GND pin is the common clamp return and wants the shortest, lowest-inductance path to the reference plane.",
+    "Pin 5 is NC, so the pin-4 / pin-6 (D1+/D1-) pair sits on either side of an unconnected pin, while the pin-1 / pin-3 (D2-/D2+) pair straddles the GND pin - relevant when mapping a 100 ohm differential pair onto the part."
+  ],
+  "abs_max": [
+    {
+      "param": "Peak pulse power Ppk (8/20 us)",
+      "value": 50,
+      "unit": "W"
+    },
+    {
+      "param": "ESD per IEC61000-4-2 (Air)",
+      "value": "+/-20",
+      "unit": "kV"
+    },
+    {
+      "param": "ESD per IEC61000-4-2 (Contact)",
+      "value": "+/-15",
+      "unit": "kV"
+    },
+    {
+      "param": "Operating temperature range TJ",
+      "value": "-55 to +125",
+      "unit": "C"
+    },
+    {
+      "param": "Storage temperature range Tstg",
+      "value": "-55 to +150",
+      "unit": "C"
+    },
+    {
+      "param": "Reverse working voltage VRWM (max)",
+      "value": 5.5,
+      "unit": "V"
+    },
+    {
+      "param": "Breakdown voltage VBR at IT = 1 mA (min/max)",
+      "value": "6.5 / 8.5",
+      "unit": "V"
+    },
+    {
+      "param": "Leakage current ILeak at VRWM = 2.5 V (max)",
+      "value": 10,
+      "unit": "nA"
+    },
+    {
+      "param": "Dynamic resistance RDYN, any I/O pin to GND (typ)",
+      "value": 0.6,
+      "unit": "ohm"
+    },
+    {
+      "param": "Clamping voltage VC (I/O-GND) at Ipp = 1 A, tp = 8/20 us (max)",
+      "value": 9,
+      "unit": "V"
+    },
+    {
+      "param": "Clamping voltage VC (I/O-GND) at Ipp = 3 A, tp = 8/20 us (typ/max)",
+      "value": "13 / 14",
+      "unit": "V"
+    },
+    {
+      "param": "Junction capacitance CJ, I/O to GND, VR = 0 V, f = 1 MHz (typ/max)",
+      "value": "0.55 / 0.9",
+      "unit": "pF"
+    },
+    {
+      "param": "Surge withstand, IEC61000-4-5 (lightning), 8/20 us",
+      "value": 3.3,
+      "unit": "A"
+    },
+    {
+      "param": "EFT withstand, IEC61000-4-4, 5/50 ns",
+      "value": 80,
+      "unit": "A"
+    }
+  ],
+  "source_pdf": "boards/lumina-carrier/parts/C19829453.pdf"
+}

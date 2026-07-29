@@ -1,0 +1,67 @@
+{
+ "script": "fp_verify",
+ "status": "pass",
+ "board": "SOIC-8-1EP_3.9x4.9mm_P1.27mm_EP2.95x4.9mm_Mask2.71x3.4mm.kicad_mod",
+ "counts": {
+  "total": 1,
+  "by_severity": {
+   "warning": 1
+  },
+  "by_source": {
+   "check.fp_verify": 1
+  }
+ },
+ "violations": [
+  {
+   "check": "fp_verify",
+   "severity": "warning",
+   "pos": null,
+   "layer": "F.Cu",
+   "net": null,
+   "refs": [
+    "SOIC-8-1EP_3.9x4.9mm_P1.27mm_EP2.95x4.9mm_Mask2.71x3.4mm"
+   ],
+   "msg": "modal pad size (0.6, 1.775) mm != datasheet (0.6, 1.55) mm (tol 0.1)",
+   "source": "check.fp_verify",
+   "items": [
+    {
+     "msg": "modal pad size (0.6, 1.775) mm != datasheet (0.6, 1.55) mm (tol 0.1)",
+     "pos": null
+    }
+   ],
+   "kind": "pad_size",
+   "expected_mm": [
+    0.6,
+    1.55
+   ],
+   "measured_mm": [
+    0.6,
+    1.775
+   ]
+  }
+ ],
+ "footprint": "SOIC-8-1EP_3.9x4.9mm_P1.27mm_EP2.95x4.9mm_Mask2.71x3.4mm",
+ "footprint_file": "boards\\lumina-carrier\\lib\\aiee.pretty\\SOIC-8-1EP_3.9x4.9mm_P1.27mm_EP2.95x4.9mm_Mask2.71x3.4mm.kicad_mod",
+ "copper_pads": 9,
+ "total_pads": 14,
+ "measured_pitch_mm": 1.27,
+ "measured_pad_size_mm": [
+  0.6,
+  1.775
+ ],
+ "has_courtyard": true,
+ "has_silk": true,
+ "land_pattern": {
+  "package": "DDA0008B PowerPAD SOIC (R-PDSO-G8), TI land pattern drawing 4214849/B 09/2025 'EXAMPLE BOARD LAYOUT'",
+  "pad_count": 9,
+  "pitch_mm": 1.27,
+  "pad_size_mm": [
+   0.6,
+   1.55
+  ],
+  "row_spacing_mm": 3.85,
+  "pin1": "1",
+  "notes": "Perimeter pads 1-8: 8X (1.55) long x 8X (0.6) wide, 6X (1.27) pitch, (R0.05) TYP corner radius, non-solder-mask-defined with 0.07 MAX solder mask clearance all around. Overall outer extent across both rows is (5.4); row centre-to-centre 3.85 mm is derived as 5.4 - 1.55. Thermal land (pad 9) is SOLDER MASK DEFINED: solder mask opening (2.71) x (3.4), metal covered by solder mask (2.95) x (4.9), 0.07 MIN mask overlap all around. Drawing NOTE 9: 'Size of metal pad may vary due to creepage requirement.' NOTE 10: 'Vias are optional depending on application... It is recommended that vias under paste be filled, plugged or tented.' Vias shown: (dia 0.2) TYP on a (1.3) TYP grid, 6 of them. Stencil (drawing 4214849/B EXAMPLE STENCIL DESIGN, based on 0.125 mm thick stencil): perimeter apertures 8X (1.55) x 8X (0.6); centre power pad aperture 2.71 x 3.40 at 0.125 mm (SHOWN), 2.47 x 3.10 at 0.150 mm, 2.29 x 2.87 at 0.175 mm, 3.03 x 3.80 at 0.100 mm. LEGACY DRAWING (the rev-C PDF hosted by LCSC carries the older 4208951-6/D land pattern, which differs): perimeter pad geometry 0,5 x 2,2 mm with 0,07 all around mask opening, 1,27 pitch, overall 5,75 x 4,90, centre pad solder-mask opening 3,10 x 2,40 over 4,90 x 2,95 copper, 6x dia 0,33 mm vias, 0.127 mm stencil centre aperture 3.1 x 2.4. Package outline 4214849/B gives the exposed pad itself as 3.4/2.8 (long) x 2.71/2.11 (wide) max/min, body 5.0/4.8 x 4.0/3.8, lead span 6.2/5.8 TYP, height 1.7 MAX, lead width 0.51/0.31. The older thermal-pad drawing 4206322-6/L gave the exposed pad as 3,10/2,65 x 2,40/1,65 - use the newer, larger figures. XREF (verified by reading the library file, not from the PDF): KiCad 10 Package_SO:SOIC-8-1EP_3.9x4.9mm_P1.27mm_EP2.95x4.9mm_Mask2.71x3.4mm (and its _ThermalVias variant) matches TI's exposed-pad metal 2.95 x 4.9 and mask opening 2.71 x 3.4 exactly; its perimeter pads are IPC-7351 nominal 1.775 x 0.6 at 5.125 mm row centre-to-centre, i.e. slightly longer and further out than TI's 1.55 at 3.85."
+ },
+ "svg": "boards\\lumina-carrier\\work\\overlays\\C337500.svg"
+}

@@ -1,0 +1,273 @@
+{
+  "mpn": "TPS563201DDCR",
+  "lcsc": "C116592",
+  "package": "SOT-23-THIN (DDC), 6-pin, 1.60 mm x 2.90 mm",
+  "description": "TI TPS563201 / TPS563208, 4.5 V to 17 V input, 3 A synchronous step-down (buck) converter in SOT-23, D-CAP2 mode control, 580 kHz quasi-fixed switching frequency, internal 1.0 ms soft start, pre-biased start-up, cycle-by-cycle OCL with hiccup, non-latching UVP and TSD. TPS563201 is the pulse-skipping (Eco-mode) variant; TPS563208 is forced-CCM. Datasheet ZHCSEL2 (Chinese-language edition of SLVSD90), December 2015, 24 pages; body sections 5-10 are in English. FEEDBACK REFERENCE CONFIRMED: VFB threshold 768 mV typ (749 mV min / 787 mV max) in continuous-conduction mode, and 774 mV in Eco-mode at VO = 1.05 V / IO = 10 mA. Equation 2 of the datasheet is VOUT = 0.768 x (1 + R1/R2). Maximum recommended operating duty cycle 75%, so minimum recommended VIN = VO / 0.75.",
+  "pinout": [
+    {
+      "pin": "1",
+      "name": "GND",
+      "type": "ground",
+      "notes": "Ground pin. Source terminal of the low-side power NFET as well as the ground terminal for the controller circuit. Datasheet: 'Connect sensitive VFB to this GND at a single point.'"
+    },
+    {
+      "pin": "2",
+      "name": "SW",
+      "type": "output",
+      "notes": "Switch node connection between the high-side NFET and the low-side NFET. Datasheet I/O column: O."
+    },
+    {
+      "pin": "3",
+      "name": "VIN",
+      "type": "power_in",
+      "notes": "Input voltage supply pin; the drain terminal of the high-side power NFET. Datasheet I/O column: I."
+    },
+    {
+      "pin": "4",
+      "name": "VFB",
+      "type": "input",
+      "notes": "Converter feedback input. Connect to output voltage with a feedback resistor divider. VFB threshold 768 mV typ (749/787) in CCM. VFB input current 0 typ / +/-0.1 uA max at VFB = 0.8 V."
+    },
+    {
+      "pin": "5",
+      "name": "EN",
+      "type": "input",
+      "notes": "Enable input control. Active high and must be pulled up to enable the device. VENH 1.6 V (high-level input voltage), VENL 0.8 V (low-level input voltage). EN pin resistance to GND 225 / 400 / 900 kohm (min/typ/max) at VEN = 12 V, so EN can be biased from VIN with a series resistor."
+    },
+    {
+      "pin": "6",
+      "name": "VBST",
+      "type": "output",
+      "notes": "Supply input for the high-side NFET gate-drive circuit. Datasheet I/O column: O. Connect a 0.1 uF capacitor between VBST and SW pins."
+    }
+  ],
+  "decoupling": [
+    {
+      "pins": [
+        "3",
+        "1"
+      ],
+      "value": "ceramic capacitor over 10 uF (input decoupling)",
+      "placement": "as close to the device as possible; VIN to GND",
+      "notes": "Section 8.2.2.3: 'The TPS563201 and TPS563208 require an input decoupling capacitor and a bulk capacitor is needed depending on the application. TI recommends a ceramic capacitor over 10 uF for the decoupling capacitor.' Capacitor voltage rating must be greater than the maximum input voltage. Reference design Figure 19 uses C1 10 uF + C2 10 uF."
+    },
+    {
+      "pins": [
+        "3",
+        "1"
+      ],
+      "value": "0.1 uF (optional)",
+      "placement": "pin 3 to ground",
+      "notes": "Section 8.2.2.3: 'An additional 0.1-uF capacitor (C3) from pin 3 to ground is optional to provide additional high frequency filtering.'"
+    },
+    {
+      "pins": [
+        "6",
+        "2"
+      ],
+      "value": "0.1 uF ceramic (bootstrap)",
+      "placement": "directly between VBST (pin 6) and SW (pin 2)",
+      "notes": "Section 8.2.2.4: 'A 0.1-uF ceramic capacitor must be connected between the VBST to SW pin for proper operation. TI recommends to use a ceramic capacitor.' Not optional."
+    },
+    {
+      "pins": [
+        "1"
+      ],
+      "value": "output capacitance 20 uF to 68 uF total (VOUT to GND)",
+      "placement": "as close to the device as possible; provide sufficient vias",
+      "notes": "Section 8.2.2.2 / Table 2: recommended output capacitance range is 20 uF to 68 uF for every listed output voltage including 3.3 V. Intended for ceramic or other low-ESR capacitors; D-CAP2 needs no external compensation. Reference design uses 2 x 22 uF ceramic (TDK C3216X5R0J226M, ESR ~2 mohm each, 4 A rating each)."
+    }
+  ],
+  "land_pattern": {
+    "package": "DDC (R-PDSO-G6), SOT-23-THIN, JEDEC MO-193 variation AA (6 pin)",
+    "pad_count": 6,
+    "pitch_mm": 0.95,
+    "pin1": "1",
+    "notes": "This datasheet contains only the MECHANICAL DATA package outline (drawing 4204403-3/E 06/05); it publishes NO recommended land pattern, so no pad size is transcribed here. Package outline values: lead pitch 0.95 (basic); lead width 0.30 to 0.50 with 0.20 (M) positional tolerance; lead span across rows 2.55 to 3.05; body length 2.75 to 3.05; body width 1.45 to 1.75; body height 1.10 max; standoff 0.00 to 0.10; lead thickness 0.12 to 0.20; foot length 0.25 (gauge plane) with 0.30 to 0.60 detail; lead foot angle 0 to 8 deg. Pin order top view: 1 GND, 2 SW, 3 VIN on the bottom row (left to right) and 6 VBST, 5 EN, 4 VFB on the top row (left to right). Pin 1 index area is at the lower-left of the top view."
+  },
+  "exposed_pad": {
+    "present": false
+  },
+  "layout_notes": [
+    "VIN and GND traces should be as wide as possible to reduce trace impedance. The wide areas are also an advantage from the point of view of heat dissipation.",
+    "The input capacitor and output capacitor should be placed as close to the device as possible to minimize trace impedance.",
+    "Provide sufficient vias for the input capacitor and output capacitor.",
+    "Keep the SW trace as physically short and wide as practical to minimize radiated emissions.",
+    "Do not allow switching current to flow under the device.",
+    "A separate VOUT path should be connected to the upper feedback resistor.",
+    "Make a Kelvin connection to the GND pin for the feedback path.",
+    "The voltage feedback loop should be placed away from the high-voltage switching trace, and preferably has a ground shield.",
+    "The trace of the VFB node should be as small as possible to avoid noise coupling.",
+    "The GND trace between the output capacitor and the GND pin should be as wide as possible to minimize its trace impedance.",
+    "Layout example (Figure 36) shows the SW node as a copper pour area on an internal or bottom layer reached by vias, feedback resistors placed near the VFB pin away from SW, and additional vias to the GND plane around the input bypass capacitor.",
+    "Thermal (section 6.4, DDC 6-pin): RthJA 92.6 C/W, RthJC(top) 48.5 C/W, RthJB 15.5 C/W, psiJT 2.5 C/W, psiJB 15.5 C/W."
+  ],
+  "abs_max": [
+    {
+      "param": "Input voltage VIN",
+      "value": "-0.3 to 19",
+      "unit": "V"
+    },
+    {
+      "param": "Input voltage EN",
+      "value": "-0.3 to 19",
+      "unit": "V"
+    },
+    {
+      "param": "Input voltage VBST",
+      "value": "-0.3 to 25",
+      "unit": "V"
+    },
+    {
+      "param": "Input voltage VBST (10 ns transient)",
+      "value": "-0.3 to 27",
+      "unit": "V"
+    },
+    {
+      "param": "Input voltage VBST with respect to SW",
+      "value": "-0.3 to 6.5",
+      "unit": "V"
+    },
+    {
+      "param": "Input voltage VFB",
+      "value": "-0.3 to 6.5",
+      "unit": "V"
+    },
+    {
+      "param": "Input voltage SW",
+      "value": "-2 to 19",
+      "unit": "V"
+    },
+    {
+      "param": "Input voltage SW (10 ns transient)",
+      "value": "-3.5 to 21",
+      "unit": "V"
+    },
+    {
+      "param": "Operating junction temperature TJ (absolute max)",
+      "value": "-40 to 150",
+      "unit": "C"
+    },
+    {
+      "param": "Storage temperature Tstg",
+      "value": "-55 to 150",
+      "unit": "C"
+    },
+    {
+      "param": "ESD human-body model (HBM), ANSI/ESDA/JEDEC JS-001",
+      "value": "+/-3000",
+      "unit": "V"
+    },
+    {
+      "param": "ESD charged-device model (CDM), JESD22-C101",
+      "value": "+/-1500",
+      "unit": "V"
+    },
+    {
+      "param": "Recommended operating: VIN supply input voltage range",
+      "value": "4.5 to 17",
+      "unit": "V"
+    },
+    {
+      "param": "Recommended operating: EN input voltage range",
+      "value": "-0.1 to 17",
+      "unit": "V"
+    },
+    {
+      "param": "Recommended operating: VFB input voltage range",
+      "value": "-0.1 to 5.5",
+      "unit": "V"
+    },
+    {
+      "param": "Recommended operating: VBST / VBST(10 ns transient) / VBST vs SW",
+      "value": "-0.1 to 23 / -0.1 to 26 / -0.1 to 6.0",
+      "unit": "V"
+    },
+    {
+      "param": "Recommended operating: SW / SW (10 ns transient)",
+      "value": "-1.8 to 17 / -3.5 to 20",
+      "unit": "V"
+    },
+    {
+      "param": "Recommended operating: junction temperature TJ",
+      "value": "-40 to 125",
+      "unit": "C"
+    },
+    {
+      "param": "Recommended operating: output voltage range (from device attributes and Table 2)",
+      "value": "0.768 to 7 (Table 2 lists dividers for 1.0 to 6.5)",
+      "unit": "V"
+    },
+    {
+      "param": "VFB threshold voltage, continuous conduction mode (min/typ/max)",
+      "value": "749 / 768 / 787",
+      "unit": "mV"
+    },
+    {
+      "param": "VFB threshold voltage, Eco-mode (VO = 1.05 V, IO = 10 mA)",
+      "value": 774,
+      "unit": "mV"
+    },
+    {
+      "param": "Switching frequency Fsw (VIN = 12 V, VO = 1.05 V, FCCM)",
+      "value": 580,
+      "unit": "kHz"
+    },
+    {
+      "param": "Current limit Iocl (DC, VOUT = 1.05 V, L1 = 1.5 uH; min/typ/max)",
+      "value": "3.3 / 4.2 / 5.1",
+      "unit": "A"
+    },
+    {
+      "param": "EN high-level input voltage VENH (min)",
+      "value": 1.6,
+      "unit": "V"
+    },
+    {
+      "param": "EN low-level input voltage VENL (max)",
+      "value": 0.8,
+      "unit": "V"
+    },
+    {
+      "param": "EN pin resistance to GND at VEN = 12 V (min/typ/max)",
+      "value": "225 / 400 / 900",
+      "unit": "kohm"
+    },
+    {
+      "param": "UVLO threshold, wake-up VIN / shutdown VIN / hysteresis",
+      "value": "4.0 to 4.3 / 3.3 to 3.6 / 0.4",
+      "unit": "V"
+    },
+    {
+      "param": "Soft-start time Tss (internal, fixed)",
+      "value": 1.0,
+      "unit": "ms"
+    },
+    {
+      "param": "Thermal shutdown threshold / hysteresis (not production tested)",
+      "value": "172 / 37",
+      "unit": "C"
+    },
+    {
+      "param": "Operating non-switching supply current IVIN, TPS563201 (typ/max)",
+      "value": "380 / 520",
+      "unit": "uA"
+    },
+    {
+      "param": "Shutdown supply current IVINSDN, EN = 0 V (typ/max)",
+      "value": "1 / 10",
+      "unit": "uA"
+    },
+    {
+      "param": "High-side / low-side switch RDS(on) at TA = 25 C",
+      "value": "95 / 57",
+      "unit": "mohm"
+    },
+    {
+      "param": "Recommended divider and filter for VOUT = 3.3 V (Table 2): R1 (top) / R2 (bottom) / L1 min,typ,max / C8+C9",
+      "value": "33.2 kohm / 10.0 kohm / 2.2,2.2,4.7 uH / 20 to 68 uF",
+      "unit": "-"
+    }
+  ],
+  "source_pdf": "boards/lumina-carrier/parts/C116592.pdf"
+}

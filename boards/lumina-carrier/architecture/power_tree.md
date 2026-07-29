@@ -242,6 +242,11 @@ path, and >= 7 connector pins carrying the aggregate return (`connector-icd.md` 
 ## 5. Voltage, creepage and derating
 
 - **Rating basis is 57 V** on `V48_RAW`, `V48_RTN` and `+48V_SW`.
+> **P3 REVISION:** the board-wide HV clearance requirement is now **0.635 mm**, not 0.60 mm -
+> the TPS2378 datasheet's layout section exceeds IPC and governs. The 0.60 mm figures below
+> remain accurate as descriptions of what `check_creepage.py` itself demands; a 0.635 mm layout
+> passes that checker by construction. See connector-icd.md s5.1 (rev A2).
+
 - `check_creepage` applies IPC-2221B: 51-100 V -> **0.60 mm on outer layers, 0.10 mm on inner**. All
   three nets are > 30 V from **every** other net on the board including GND, so **0.60 mm outer
   clearance applies board-wide around the 48 V copper**, not just at the connector. Budget for it in

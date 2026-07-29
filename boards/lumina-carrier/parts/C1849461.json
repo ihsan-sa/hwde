@@ -1,0 +1,365 @@
+{
+  "mpn": "TPS16630PWPR",
+  "lcsc": "C1849461",
+  "package": "HTSSOP-20 (TI PWP0020T, PowerPAD TSSOP, 6.5 mm x 4.4 mm, 0.65 mm pitch)",
+  "description": "TI TPS16630, 4.5 V to 60 V / 0.6 A to 6 A eFuse (smart high-side switch) with 31 mohm integrated FET, adjustable current limit (ILIM), adjustable UVLO and adjustable overvoltage CUTOFF (OVP), adjustable output slew-rate / inrush control (dVdT), analog current monitor (IMON), open-drain FLT and PGOOD, and MODE-selectable latch-off vs auto-retry. Datasheet: TPS1663x, SLVSET9G, Rev G, April 2026 (48 pages) - the TPS16630 is the OVP-cutoff variant with no PLIM pin. DESIGN BLOCKER FOR DEFAULT-OFF RAILS: the enable control is an ACTIVE-LOW shutdown pin named SHDN, not an active-high enable. SHDN is internally pulled up - the open-circuit pin voltage is 2.48 V min / 2.7 V typ / 3.3 V max (sec 6.5) against a 2 V rising enable threshold, so a FLOATING SHDN LEAVES THE DEVICE ON. Holding the output off with the MCU absent, in reset, or tri-stated REQUIRES an external pull-down on SHDN that sinks at least 10 uA while keeping the pin below the 0.8 V V(SHUTF) threshold (sec 8.3.11). Programming for this design: R(ILIM) = 18 / I(OL) [kohm, A] (Eq 6/10) -> 18 kohm for a 1.0 A limit, which is exactly TI's own 1 A worked example in sec 9.2. MODE left OPEN gives latch-off; MODE shorted to GND gives auto-retry.",
+  "pinout": [
+    {
+      "pin": "1",
+      "name": "IN",
+      "type": "power_in",
+      "notes": "Power input; connects to the DRAIN of the internal FET. IN is pins 1, 2 and 3 on HTSSOP - all three must be connected (sec 8.3.9: 'Do not leave any of the IN and OUT pins un-connected')."
+    },
+    {
+      "pin": "2",
+      "name": "IN",
+      "type": "power_in",
+      "notes": "Power input, parallel with pins 1 and 3. Must be connected."
+    },
+    {
+      "pin": "3",
+      "name": "IN",
+      "type": "power_in",
+      "notes": "Power input, parallel with pins 1 and 2. Must be connected."
+    },
+    {
+      "pin": "4",
+      "name": "N.C",
+      "type": "nc",
+      "notes": "No connect (Table 5-1)."
+    },
+    {
+      "pin": "5",
+      "name": "N.C",
+      "type": "nc",
+      "notes": "No connect (Table 5-1)."
+    },
+    {
+      "pin": "6",
+      "name": "P_IN",
+      "type": "power_in",
+      "notes": "Supply voltage of the device. Table 5-1: 'Always connect P_IN to IN directly.' Sec 8.3.9 repeats: 'Connect P_IN and IN together.'"
+    },
+    {
+      "pin": "7",
+      "name": "UVLO",
+      "type": "analog",
+      "notes": "Programmable undervoltage lockout input (Table 5-1 TYPE = I). Falling below V(UVLOF) turns the internal FET off quickly and asserts FLT. V(UVLOR) = 1.176 / 1.2 / 1.224 V rising, V(UVLOF) = 1.09 / 1.122 / 1.15 V falling, hysteresis 78 mV typ, threshold accuracy +/-2%. Set with the R1(IN-UVLO) / R2(UVLO-OVP) / R3(OVP-GND) divider of Figure 8-3: V(UVLOR) = (R2+R3)/(R1+R2+R3) x V(UV)  [Eq 12]. Sec 8.3.2: 'UVLO terminal must not be left floating'; tie UVLO to IN if the function is not used. Pin leakage I(UVLO) = +/-150 nA max, so pick divider current I(R123) >= 20x the UVLO/OVP pin leakage (sec 9.2.2.2). Rated to 60 V rec / 67 V abs max. Toggling UVLO low->high also resets a latched-off fault (Table 8-1)."
+    },
+    {
+      "pin": "8",
+      "name": "OVP",
+      "type": "analog",
+      "notes": "Adjustable overvoltage CUTOFF input, TPS16630 only (Table 5-1 TYPE = I). Exceeding V(OVPR) turns the internal FET off and asserts FLT. V(OVPR) = 1.176 / 1.2 / 1.224 V rising, V(OVPF) = 1.09 / 1.122 / 1.15 V falling, +/-2% accuracy. Set with the same divider: V(OVPR) = R3/(R1+R2+R3) x V(OV)  [Eq 11]. Turn-off delay OVP_toff(dly) = 11 us typ; re-enable delay OVP_ton(dly) = 150 + 49.5 x C(dVdT)[nF] us. Pin leakage +/-150 nA max. CAUTION: unlike UVLO, OVP is a LOW-VOLTAGE pin - rec op 0-4 V, abs max -0.3 to 5.5 V; it must never see the raw input rail."
+    },
+    {
+      "pin": "9",
+      "name": "GND",
+      "type": "ground",
+      "notes": "Connect GND to system ground (Table 5-1)."
+    },
+    {
+      "pin": "10",
+      "name": "dVdT",
+      "type": "analog",
+      "notes": "Output slew-rate / inrush control (Table 5-1 TYPE = I/O). A capacitor from dVdT to GND sets the OUT slew rate at power-up. t(dVdT) = 20.8e3 x V(IN) x C(dVdT) [Eq 2, V in volts, C in farads, t in seconds]; I(INRUSH) = C(OUT) x V(IN) / t(dVdT) [Eq 1]. Internals: I(dVdT) = 2 uA typ charging, GAIN(dVdT) = 25 V/V (V(OUT)/V(dVdT)), V(dVdTmax) = 4.17 V typ, R(dVdT) discharge = 16.6 ohm typ. LEAVING dVdT FLOATING gives the fastest ramp (24 V / 500 us) and enables power-up in thermal regulation so the part charges large and unknown capacitive loads by regulating TJ at T(J_REG) = 145 C typ; if OUT has not powered up within t(Treg_timeout) = 1.25 s typ the FET turns OFF and the MODE setting decides latch-off vs auto-retry (sec 8.3.1.1). Recommended C(dVdT) minimum is 10 nF when used; timing specs are given for C(dVdT) >= 10 nF. Rec op 0-4 V, abs max -0.3 to 5.5 V, sink current 10 mA abs max."
+    },
+    {
+      "pin": "11",
+      "name": "ILIM",
+      "type": "analog",
+      "notes": "Overload current-limit programming (Table 5-1 TYPE = I/O). Resistor from ILIM to GND. R(ILIM) = 18 / I(OL), R in kohm and I(OL) in A [Eq 6 and Eq 10]. FOR A 1.0 A LIMIT: R(ILIM) = 18 kohm, 1% - this is TI's own worked example (Table 9-1 design requirement I(LIM) = 1 A, sec 9.2.2.1 'Select the closest standard 1% resistor value: R(ILIM) = 18 kohm', and Figures 8-6/8-7/8-8 are captured at R(ILIM) = 18 kohm). Recommended R(ILIM) range 3 kohm to 30 kohm; UL 2367 recognition (File E169910) requires R(ILIM) >= 3 kohm. Measured accuracy points: 30 kohm -> 0.54/0.6/0.66 A, 9 kohm -> 1.84/2.0/2.16 A, 4.02 kohm -> 4.185/4.5/4.815 A, 3 kohm -> 5.58/6.0/6.42 A (features claim +/-7%). Fast-trip threshold I(FASTTRIP) = 2 x I(OL); hard short-circuit threshold I(SCP) = 45 A with 1 us typ response. ILIM open or shorted to GND is detected and holds the FET OFF until cleared (sec 8.3.4.1). Rec op 0-4 V (implied), abs max -0.3 to 5.5 V, source current internally limited."
+    },
+    {
+      "pin": "12",
+      "name": "MODE",
+      "type": "input",
+      "notes": "Overload / power-limit / thermal fault response select (Table 5-1 TYPE = I; Table 8-1). MODE = OPEN (unconnected): active current limiting for a maximum of t(CL_PLIM)(dly) = 162 ms typ, THEN LATCHES OFF; the latch is reset by toggling SHDN or UVLO low->high, or by power-cycling IN. MODE = SHORTED TO GND: active current limiting for the same 162 ms then AUTO-RETRIES after t(TSD_retry) = 648 ms typ. For a latch-off design, leave MODE unconnected (do not stuff a resistor). Rec op 0-4 V, abs max -0.3 to 5.5 V, source current internally limited."
+    },
+    {
+      "pin": "13",
+      "name": "SHDN",
+      "type": "input",
+      "notes": "ACTIVE-LOW low-Iq shutdown - this is the only enable control; there is no active-high EN pin. DEFAULT STATE WITH NO EXTERNAL DRIVE IS ON: sec 6.5 specifies V(SHDN) open-circuit voltage = 2.48 V min / 2.7 V typ / 3.3 V max at I(SHDN) = 0.1 uA (an internal pull-up, shown as the 2.7 V source in the Figure 8-2 block diagram), and the enable threshold V(SHUTR) is 2 V rising - so a floating SHDN sits above the enable threshold and the FET turns ON. Shutdown threshold V(SHUTF) = 0.8 V falling; entry delay tSD(dly) = 1 us typ; Iq drops to 21 uA typ (60 uA max) in shutdown. Sec 8.3.11: 'To assert SHDN low, the pull down must have sinking capability of at least 10 uA. To enable the device, SHDN must be pulled up to at least 2 V.' I(SHDN) leakage at V(SHDN) = 0 V is -10 uA max. AN EXTERNAL PULL-DOWN TO GND IS THEREFORE MANDATORY for a default-off rail, and the MCU GPIO must drive SHDN high (>= 2 V) against it to enable. Cycling SHDN low->high also resets a latched-off fault. Rec op 0-5 V, abs max -0.3 to 5.5 V - SHDN is NOT rail-tolerant, never expose it to the 48 V input."
+    },
+    {
+      "pin": "14",
+      "name": "IMON",
+      "type": "output",
+      "notes": "Analog current-monitor output (Table 5-1 TYPE = O): sources a scaled copy of the FET current; a resistor from IMON to GND converts it to a voltage. V(IMON) = I(OUT) x GAIN(IMON) x R(IMON) [Eq 9], GAIN(IMON) = 27.9 uA/A typ (+/-6%): 25.66-30.14 uA/A for 0.6 A <= I(OUT) < 2 A and 26.22-29.58 uA/A for 2 A <= I(OUT) <= 6 A. Maximum usable V(IMON) is 4 V, which caps R(IMON); recommended R(IMON) minimum is 1 kohm and TI's 1 A example uses R(IMON) = 30 kohm (0.84 V at 1.0 A). Sec 8.3.6: 'The IMON pin must not have a bypass capacitor to avoid delay in the current monitoring information.' Leave floating if unused. Rec op 0-4 V, abs max -0.3 to 5.5 V."
+    },
+    {
+      "pin": "15",
+      "name": "FLT",
+      "type": "open_collector",
+      "notes": "Fault indicator, OPEN-DRAIN, ACTIVE LOW (Table 5-1: 'This pin is an open drain output'; sec 8.3.7). Needs an external pull-up resistor to a logic rail. Asserts on undervoltage, overvoltage, overload, power limiting, ILIM pin short, and thermal shutdown; internally de-glitched. R(FLT) pull-down = 70 ohm typ (36-130 ohm); leakage +/-150 nA. Sink current 10 mA abs max, so size the pull-up accordingly. Rated to 60 V rec / 67 V abs max, so it may be pulled up to a high rail if needed. Leave floating or connect to GND if unused. Assertion delays: 11 us typ after UVLO/OVP trip, 1.3 ms typ during current/power limiting."
+    },
+    {
+      "pin": "16",
+      "name": "PGOOD",
+      "type": "open_collector",
+      "notes": "Power Good, OPEN-DRAIN, ACTIVE HIGH (sec 8.3.8: 'open drain Power Good (PGOOD) indicator output'; Table 5-1: 'Active High. A high indicates that the internal FET is enhanced'). Needs an external pull-up - sec 8.3.8: 'PGOOD is rated for 60 V and can be pulled to IN or OUT through a resistor'; sec 9.2.2.3.1 recommends R(PGOOD) = 10 kohm to 100 kohm and the sink current must not exceed 10 mA (abs max). Goes low when the FET turns OFF during a fault or when SHDN is pulled low. Deglitch t(PGOODR) = 11.5 ms typ rising, t(PGOODF) = 10 ms typ falling. R(PGOOD) pull-down 70 ohm typ; leakage +/-150 nA. Can be used to enable/disable downstream DC/DCs. Connect to GND or leave floating if unused."
+    },
+    {
+      "pin": "17",
+      "name": "N.C",
+      "type": "nc",
+      "notes": "No connect (Table 5-1)."
+    },
+    {
+      "pin": "18",
+      "name": "OUT",
+      "type": "power_out",
+      "notes": "Power output (SOURCE of the internal FET). OUT is pins 18, 19 and 20 on HTSSOP - all three must be connected and share the load current (sec 8.3.9: 'Do not leave any of the IN and OUT pins un-connected')."
+    },
+    {
+      "pin": "19",
+      "name": "OUT",
+      "type": "power_out",
+      "notes": "Power output, parallel with pins 18 and 20. Must be connected."
+    },
+    {
+      "pin": "20",
+      "name": "OUT",
+      "type": "power_out",
+      "notes": "Power output, parallel with pins 18 and 19. Must be connected."
+    },
+    {
+      "pin": "21",
+      "name": "PowerPAD",
+      "type": "ground",
+      "notes": "Exposed thermal pad, numbered 21 in the TI land pattern drawing 4224598/A. Table 5-1: 'Connect PowerPAD to GND plane for heat sinking. Do not use PowerPAD as the only electrical connection to GND.' Sec 9.5.1: 'To operate at rated power, the PowerPAD must be soldered directly to the board GND plane directly under the device.'"
+    }
+  ],
+  "decoupling": [
+    {
+      "pins": [
+        "1",
+        "2",
+        "3",
+        "6"
+      ],
+      "value": "0.1 uF minimum ceramic, IN to GND",
+      "placement": "as close as possible to the IN pins; sec 9.5.1 'TI recommends a 0.1 uF or higher value ceramic decoupling capacitor between IN terminal and GND'",
+      "notes": "Recommended Operating Conditions list 0.1 uF as the MIN external capacitance on IN, P_IN and OUT. Sec 9.2.2.3.1: 'The CIN is a local bypass capacitor to suppress noise at the input. TI recommends a minimum of 0.1 uF for C(IN).' Sec 9.4: if the input supply is more than a few inches away, use an input ceramic bypass capacitor higher than 0.1 uF. Sec 9.4.1: where a TVS is fitted for surge, 'TI recommends to place at least 1 uF of input capacitor'; C(IN) also damps the positive input spike generated by input inductance when the FET interrupts a short, per Vspike(absolute) = V(IN) + I(LOAD) x sqrt(L(IN)/C(IN)) [Eq 14]. P_IN is tied directly to IN and shares this bypass."
+    },
+    {
+      "pins": [
+        "18",
+        "19",
+        "20"
+      ],
+      "value": "0.1 uF minimum ceramic, OUT to GND (bulk C(OUT) sized by the load; TI's 1 A example uses 100 uF)",
+      "placement": "close to the OUT pins",
+      "notes": "Recommended Operating Conditions: external capacitance on IN, P_IN, OUT MIN 0.1 uF. C(OUT) directly sets inrush via I(INRUSH) = C(OUT) x V(IN)/t(dVdT) [Eq 1], so it must be co-designed with C(dVdT). Sec 9.4.1 also recommends a Schottky diode from OUT to GND, placed physically close to the OUT and GND pins, to absorb the negative spike produced by output inductance when the FET interrupts a short."
+    },
+    {
+      "pins": [
+        "10"
+      ],
+      "value": "C(dVdT) >= 10 nF to GND when slew-rate control is used (leave open for the fast 24 V/500 us ramp with thermal regulation)",
+      "placement": "close to the dVdT pin, with the return leg to GND on the shortest possible trace (sec 9.5.1)",
+      "notes": "Recommended Operating Conditions give 10 nF as the MIN C(dVdT); the timing table specifies UVLO/OVP turn-on delays only for C(dVdT) >= 10 nF. TI's 1 A / 100 uF / 300 mA-inrush example uses 22 nF; Figure 8-1 uses 100 nF with C(OUT) = 1000 uF."
+    },
+    {
+      "pins": [
+        "14"
+      ],
+      "value": "NO capacitor - do not bypass IMON",
+      "placement": "R(IMON) only, from IMON to GND, close to the pin",
+      "notes": "Sec 8.3.6: 'The IMON pin must not have a bypass capacitor to avoid delay in the current monitoring information.'"
+    }
+  ],
+  "land_pattern": {
+    "package": "PWP0020T PowerPAD TSSOP-20, TI land pattern drawing 4224598/A (10/2018)",
+    "pad_count": 21,
+    "pitch_mm": 0.65,
+    "pad_size_mm": [
+      1.5,
+      0.45
+    ],
+    "row_spacing_mm": 5.8,
+    "pin1": "1",
+    "notes": "From the RECOMMENDED 'EXAMPLE BOARD LAYOUT' drawing 4224598/A: 20X (1.5 x 0.45) mm signal pads with (R0.05) corner radius, 18X (0.65) mm pitch, (5.8) mm between the two pad-row centerlines, overall pad-field height (6.5) mm. Pad 21 is the thermal pad and is SOLDER-MASK DEFINED: exposed metal (2.96 x 2.96) mm inside a (3.4 x 6.5) mm copper area covered by solder mask (NOTE 9: 'Size of metal pad may vary due to creepage requirement'). Signal pads: non-solder-mask-defined preferred, 0.05 mm max mask clearance all around (0.05 mm min if solder-mask defined). Stencil (0.125 mm thick): 20X (1.5 x 0.45) apertures plus a (2.96 x 2.96) thermal aperture; alternates 3.31 x 3.31 at 0.1 mm, 2.70 x 2.70 at 0.15 mm, 2.50 x 2.50 at 0.175 mm stencil. Package outline: body 4.3-4.5 mm x 6.4-6.6 mm, lead span 6.2-6.6 mm TYP, lead width 0.19-0.30 mm, 1.2 mm max height, JEDEC MO-153."
+  },
+  "exposed_pad": {
+    "present": true,
+    "connect_to": "GND - 'Connect PowerPAD to GND plane for heat sinking. Do not use PowerPAD as the only electrical connection to GND.' (Table 5-1). Sec 9.5.1: to operate at rated power the PowerPAD must be soldered directly to the board GND plane directly under the device; other planes such as the bottom side can be used to increase heat sinking.",
+    "thermal_vias": 9
+  },
+  "layout_notes": [
+    "Place a 0.1 uF or higher ceramic decoupling capacitor between the IN terminal and GND (sec 9.5.1).",
+    "Keep high-current power-path connections as short as possible and size them to carry at least twice the full-load current (sec 9.5.1).",
+    "Locate every support component - R(ILIM), C(dVdT), R(IMON), and the UVLO/OVP divider resistors - close to its own pin, and return the other end to GND with the shortest possible trace (sec 9.5.1).",
+    "Route R(ILIM) as short as possible to reduce parasitic effects on current-limit accuracy; these traces must not couple to any switching signal on the board (sec 9.5.2).",
+    "Place protection devices (TVS, snubbers, capacitors, diodes) physically close to the device they protect, on short low-inductance traces; in particular the protection Schottky that absorbs negative transients from inductive load switching must be physically close to the OUT and GND pins (sec 9.5.2).",
+    "Thermal: solder the PowerPAD directly to the board GND plane directly under the device to reach rated power; use additional planes (e.g. bottom side) for higher-current applications (sec 9.5.2). RthetaJA = 32.2 C/W and RthetaJC(bot) = 3.6 C/W for the 20-pin PWP.",
+    "TI's example board layout puts 9 vias of (0.2) mm diameter on a (1.3) mm grid inside the 2.96 x 2.96 mm exposed thermal pad, with a further 6 vias in the mask-covered metal above and below it; vias under paste should be filled, plugged or tented (drawing note 10). Vias are optional depending on application.",
+    "Use a large PCB GND plane and minimise lead length/inductance into and out of the device - input inductance produces a positive spike on IN and output inductance a negative spike on OUT when the FET interrupts a short or overload (sec 9.4.1).",
+    "The IMON pin must not have a bypass capacitor (sec 8.3.6).",
+    "Do not leave any IN or OUT pin unconnected, and connect P_IN directly to IN (sec 8.3.9).",
+    "UVLO must not be left floating; tie it to IN if the undervoltage function is unused (sec 8.3.2).",
+    "The example 2-layer HTSSOP layout (Figure 9-12) runs a VIN plane into the IN/P_IN side and a VOUT plane out of the OUT side, with top- and bottom-layer GND planes stitched by vias under the PowerPAD and a high-frequency bypass cap adjacent to the IN pins."
+  ],
+  "abs_max": [
+    {
+      "param": "V(IN), V(P_IN), V(OUT), V(UVLO), V(FLT), V(PGOOD) input voltage",
+      "value": "-0.3 to 67",
+      "unit": "V"
+    },
+    {
+      "param": "V(IN), V(P_IN) 10 ms transient, TA = 25 C",
+      "value": "-0.3 to 75",
+      "unit": "V"
+    },
+    {
+      "param": "V(OVP), V(dVdT), V(IMON), V(MODE), V(SHDN), V(ILIM)",
+      "value": "-0.3 to 5.5",
+      "unit": "V"
+    },
+    {
+      "param": "I(FLT), I(dVdT), I(PGOOD) sink current",
+      "value": 10,
+      "unit": "mA"
+    },
+    {
+      "param": "I(dVdT), I(ILIM), I(PLIM), I(MODE), I(SHDN) source current",
+      "value": "internally limited"
+    },
+    {
+      "param": "TJ operating junction temperature",
+      "value": "-40 to 150",
+      "unit": "C"
+    },
+    {
+      "param": "TJ transient junction temperature",
+      "value": "-65 to T(TSD)",
+      "unit": "C"
+    },
+    {
+      "param": "Tstg storage temperature",
+      "value": "-65 to 150",
+      "unit": "C"
+    },
+    {
+      "param": "ESD HBM, ANSI/ESDA/JEDEC JS-001, all pins",
+      "value": "+/-2000",
+      "unit": "V"
+    },
+    {
+      "param": "ESD CDM, JEDEC JESD22-C101, all pins",
+      "value": "+/-1000",
+      "unit": "V"
+    },
+    {
+      "param": "RECOMMENDED V(IN), V(P_IN) operating input voltage",
+      "value": "4.5 to 60",
+      "unit": "V"
+    },
+    {
+      "param": "RECOMMENDED V(OUT), V(UVLO), V(PGOOD), V(FLT)",
+      "value": "0 to 60",
+      "unit": "V"
+    },
+    {
+      "param": "RECOMMENDED V(OVP), V(dVdT), V(IMON), V(MODE)",
+      "value": "0 to 4",
+      "unit": "V"
+    },
+    {
+      "param": "RECOMMENDED V(SHDN)",
+      "value": "0 to 5",
+      "unit": "V"
+    },
+    {
+      "param": "RECOMMENDED R(ILIM)",
+      "value": "3 to 30",
+      "unit": "kohm"
+    },
+    {
+      "param": "RECOMMENDED R(IMON) minimum",
+      "value": 1,
+      "unit": "kohm"
+    },
+    {
+      "param": "RECOMMENDED external capacitance on IN, P_IN, OUT (minimum)",
+      "value": 0.1,
+      "unit": "uF"
+    },
+    {
+      "param": "RECOMMENDED C(dVdT) (minimum, when used)",
+      "value": 10,
+      "unit": "nF"
+    },
+    {
+      "param": "RECOMMENDED TJ operating junction temperature",
+      "value": "-40 to 125",
+      "unit": "C"
+    },
+    {
+      "param": "Operating temperature range (orderable addendum, TPS16630PWPR)",
+      "value": "-40 to 125",
+      "unit": "C"
+    },
+    {
+      "param": "RON IN to OUT total ON resistance, TJ = 25 C (min/typ/max)",
+      "value": "26 / 30.44 / 34.5",
+      "unit": "mohm"
+    },
+    {
+      "param": "RON IN to OUT total ON resistance, -40 C <= TJ <= 125 C (min/typ/max)",
+      "value": "19 / 30.44 / 53",
+      "unit": "mohm"
+    },
+    {
+      "param": "RthetaJA junction-to-ambient, PWP 20-pin",
+      "value": 32.2,
+      "unit": "C/W"
+    },
+    {
+      "param": "RthetaJC(bot) junction-to-case bottom, PWP 20-pin",
+      "value": 3.6,
+      "unit": "C/W"
+    },
+    {
+      "param": "RthetaJB junction-to-board, PWP 20-pin",
+      "value": 10,
+      "unit": "C/W"
+    },
+    {
+      "param": "psiJT junction-to-top / psiJB junction-to-board, PWP 20-pin",
+      "value": "0.3 / 9.9",
+      "unit": "C/W"
+    },
+    {
+      "param": "T(J_REG) thermal regulation set point (min/typ/max)",
+      "value": "136 / 145 / 154",
+      "unit": "C"
+    },
+    {
+      "param": "T(TSD) thermal shutdown threshold rising (typ), hysteresis 11 C",
+      "value": 165,
+      "unit": "C"
+    },
+    {
+      "param": "IQ(ON) supply current, V(SHDN) = 2 V (typ/max)",
+      "value": "1.38 / 1.7",
+      "unit": "mA"
+    },
+    {
+      "param": "IQ(OFF) shutdown supply current, V(SHDN) = 0 V (typ/max)",
+      "value": "21 / 60",
+      "unit": "uA"
+    },
+    {
+      "param": "I(SCP) short-circuit protection (fast-trip) current, 1 us typ response",
+      "value": 45,
+      "unit": "A"
+    },
+    {
+      "param": "MSL rating / peak reflow (TPS16630PWPR)",
+      "value": "Level-2-260C-1 YEAR"
+    }
+  ],
+  "source_pdf": "parts/C1849461.pdf (TI TPS1663x datasheet SLVSET9G, Rev G, April 2026, 48 pages; downloaded from https://www.ti.com/lit/ds/symlink/tps1663.pdf because the LCSC datasheet link returned HTML)"
+}

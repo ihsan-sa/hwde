@@ -1,0 +1,56 @@
+{
+ "script": "fp_verify",
+ "status": "violations",
+ "board": "RJ45-TH_HY931147C.kicad_mod",
+ "counts": {
+  "total": 1,
+  "by_severity": {
+   "error": 1
+  },
+  "by_source": {
+   "check.fp_verify": 1
+  }
+ },
+ "violations": [
+  {
+   "check": "fp_verify",
+   "severity": "error",
+   "pos": null,
+   "layer": "F.Cu",
+   "net": null,
+   "refs": [
+    "RJ45-TH_HY931147C"
+   ],
+   "msg": "copper pad count 18 != datasheet 14",
+   "source": "check.fp_verify",
+   "items": [
+    {
+     "msg": "copper pad count 18 != datasheet 14",
+     "pos": null
+    }
+   ],
+   "kind": "pad_count",
+   "expected": 14,
+   "measured": 18
+  }
+ ],
+ "footprint": "RJ45-TH_HY931147C",
+ "footprint_file": "boards\\lumina-carrier\\lib\\aiee.pretty\\RJ45-TH_HY931147C.kicad_mod",
+ "copper_pads": 18,
+ "total_pads": 18,
+ "measured_pitch_mm": 2.53,
+ "measured_pad_size_mm": [
+  1.5,
+  1.5
+ ],
+ "has_courtyard": true,
+ "has_silk": true,
+ "land_pattern": {
+  "package": "THT right-angle RJ45, 10 signal pins (2 staggered rows of 5) + 4 LED pins + 2 board-lock holes + 2 mounting holes",
+  "pad_count": 14,
+  "pitch_mm": 2.54,
+  "pin1": "1",
+  "notes": "From the page-2 'Mounting Pattern (Component Side View)' drawing. Signal pins: 10 x dia 0.89 holes in two staggered rows - even row 10,8,6,4,2 left-to-right and odd row 9,7,5,3,1 left-to-right, 2.54 mm pitch within each row; the two rows are offset 0.64 mm either side of the package centreline (1.27 mm stagger, odd row to the right of centre). LED pins: 4 x dia 1.02 holes (14,13 left pair; 12,11 right pair) on a separate row above the signal rows. Mechanical: 2 x dia 3.25 holes and 2 x dia 1.63 holes. Printed pattern dimensions: 16.10 and 13.25 and 11.43 and 15.49 and 2.54 horizontal; 10.92 and 8.89 and 4.08 and 3.05 and 2.54 vertical, all referenced to the horizontal centreline through the two dia 3.25 holes. Drawing tolerance .xx +/-0.25, dimensions in mm. NOTE pad_count 14 counts electrical pins only; a KiCad footprint will normally add the 2 dia 1.63 board-lock/shield pads and 2 dia 3.25 unplated holes."
+ },
+ "svg": "boards\\lumina-carrier\\reports\\fp_J1_C91754.overlay.svg"
+}

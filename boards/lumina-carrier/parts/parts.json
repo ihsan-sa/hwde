@@ -1,0 +1,4116 @@
+{
+ "parts": [
+  {
+   "ref_prefix_hint": "J",
+   "block": "poe",
+   "mpn": "HY931147C",
+   "lcsc": "C91754",
+   "value": "HY931147C PoE RJ45 magjack",
+   "qty_per_board": 1,
+   "refs": [
+    "J1"
+   ],
+   "package": "Plugin",
+   "basic": false,
+   "stock": 7693,
+   "price": 2.148,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 2.5643
+    },
+    {
+     "qty": 10,
+     "price": 2.148
+    },
+    {
+     "qty": 30,
+     "price": 1.9253
+    },
+    {
+     "qty": 100,
+     "price": 1.659
+    },
+    {
+     "qty": 500,
+     "price": 1.538
+    },
+    {
+     "qty": 1000,
+     "price": 1.4847
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2411121146_HANRUN-Zhongshan-HanRun-Elec-HY931147C_C91754.pdf",
+   "url": "https://www.lcsc.com/product-detail/ethernet-connectors-modular-connectors-rj45-rj11_hanrun-zhongshan-hanrun-elec-hy931147c_C91754.html",
+   "brand": "HANRUN(Zhongshan HanRun Elec)",
+   "attributes": [
+    {
+     "name": "Number of Ports",
+     "value": "1"
+    },
+    {
+     "name": "PoE",
+     "value": "With PoE"
+    },
+    {
+     "name": "Connector Type",
+     "value": "RJ45 Jack"
+    },
+    {
+     "name": "Supplementary Features",
+     "value": "With Contact Spring"
+    },
+    {
+     "name": "LED",
+     "value": "With LED"
+    },
+    {
+     "name": "Shielding",
+     "value": "Shielded"
+    },
+    {
+     "name": "Mounting Type",
+     "value": "Right Angle"
+    }
+   ],
+   "alternates": [
+    {
+     "mpn": "HR861153C",
+     "lcsc": "C19724782",
+     "note": "HanRun, same 10+4 THT land pattern, same integrated-bridge V+ (P9) / V- (P10) topology, 2250 VDC isolation, 471 pcs. P7/P8 differ (GND/NC) so the netlist changes; the footprint does not."
+    }
+   ],
+   "role": "THT right-angle shielded RJ45 with integrated magnetics AND integrated PoE rectifier. Datasheet schematic READ this session (2 pages, wmsc mirror): TWO full diode bridges - one fed from both transformer centre taps (Mode A, data pairs), one fed from the tied spare pairs (Mode B, J4+J5 and J7+J8) - both rectifying into a common V+ (P9) / V- (P10). MODE A + MODE B + EITHER POLARITY CONFIRMED: open item B is closed, not a blocking escalation. P7/P8 do not appear on the schematic = no-connect. LEDs: pin 11 anode / 12 cathode yellow 585 nm, pin 13 anode / 14 cathode green 568 nm, 20 mA, Vf 1.8-2.8 V, so drive the anode from +3V3 through a series R and take the cathode to the W5500 active-low LED output. Isolation 1500 Vrms (P2+P5 to J2+J3); OCL 350 uH min at 100 kHz / 100 mV with 8 mA DC bias. RATING LIMIT (open item A): the datasheet publishes NO current, power or thermal rating for the internal bridge or the taps; its only PoE claim is 'Meets or Exceeds IEEE802.3af standards including 350uH Min OCL with 8mADC'. QUALIFIED FOR THE af BUILD ONLY - the 802.3at (600 mA) upgrade is not covered by any published number. THT: JLC wave-solders it (Assembly Type: Wave Soldering), ~18 joints."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "poe",
+   "mpn": "0603WAF0000T5E",
+   "lcsc": "C21189",
+   "value": "0R jumper 0603",
+   "qty_per_board": 1,
+   "refs": [
+    "R9"
+   ],
+   "package": "0603",
+   "basic": true,
+   "stock": 9052387,
+   "price": 0.0027,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0027
+    },
+    {
+     "qty": 1000,
+     "price": 0.0024
+    },
+    {
+     "qty": 5000,
+     "price": 0.0023
+    },
+    {
+     "qty": 10000,
+     "price": 0.0021
+    },
+    {
+     "qty": 50000,
+     "price": 0.0021
+    },
+    {
+     "qty": 50200,
+     "price": 0.0021
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2411221126_UNI-ROYAL-Uniroyal-Elec-0603WAF0000T5E_C21189.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0603waf0000t5e_C21189.html",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {
+     "name": "Resistance",
+     "value": "0\u03a9"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-55\u2103~+155\u2103"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "100mW"
+    },
+    {
+     "name": "Type",
+     "value": "Thick Film Resistor"
+    },
+    {
+     "name": "Voltage-Supply(Max)",
+     "value": "75V"
+    },
+    {
+     "name": "Tolerance",
+     "value": "\u00b11%"
+    }
+   ],
+   "alternates": [],
+   "role": "APD-to-RTN link on U1 pin 8. CORRECTED after datasheet extraction: parts\\C337500.json quotes the explicit instruction 'If not used, connect APD to RTN' - APD is an INPUT (>1.5 V above RTN turns the pass MOSFET off and forces T2P active, giving an external adapter priority over PoE), and its sink current is only 1-3 uA, so a floating APD can drift up and shut the hot-swap FET off. My earlier 'leave pin 8 unconnected' role text was wrong. Fitting the tie as a 0 ohm link rather than a hard copper short preserves the TPS2379 second source, whose pin 8 is GATE and must NOT be tied to RTN - depopulate R9 if a TPS2379 is ever stuffed. JLC Basic, $0.0027."
+  },
+  {
+   "ref_prefix_hint": "U",
+   "block": "poe",
+   "mpn": "TPS2378DDAR",
+   "lcsc": "C337500",
+   "value": "TPS2378DDAR",
+   "qty_per_board": 1,
+   "refs": [
+    "U1"
+   ],
+   "package": "SO-8-EP",
+   "basic": false,
+   "stock": 10899,
+   "price": 1.1749,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 1.3588
+    },
+    {
+     "qty": 10,
+     "price": 1.1749
+    },
+    {
+     "qty": 30,
+     "price": 1.0829
+    },
+    {
+     "qty": 100,
+     "price": 0.9909
+    },
+    {
+     "qty": 500,
+     "price": 0.9376
+    },
+    {
+     "qty": 1000,
+     "price": 0.9086
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_1912111437_Texas-Instruments-TPS2378DDAR_C337500.pdf",
+   "url": "https://www.lcsc.com/product-detail/ethernet-transceivers_texas-instruments-tps2378ddar_C337500.html",
+   "brand": "Texas Instruments",
+   "attributes": [
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+125\u2103"
+    },
+    {
+     "name": "Voltage - Supply",
+     "value": "40V~57V"
+    },
+    {
+     "name": "Features",
+     "value": "Under-voltage lockout (UVLO)"
+    }
+   ],
+   "alternates": [
+    {
+     "mpn": "TPS2379DDAR",
+     "lcsc": "C140293",
+     "note": "True second source. Pins 1-7 identical (VDD/DEN/CLS/VSS/RTN/CDB/T2P); only pin 8 differs (TPS2378 = APD, TPS2379 = GATE). The board is PoE-only so pin 8 stays unconnected and either part builds on one footprint. 1755 pcs, $1.7058@10."
+    }
+   ],
+   "role": "802.3at Type 2 PD interface, SO-8 PowerPAD. 100 V / 0.5 ohm integrated hot-swap FET, 0.85 A continuous, 140 mA inrush limit, single-resistor classification (the D-01 lever), CDB converter-disable straight to U20 EN, T2P Type-2-detected flag. Si3402-B / Si3402-C / Si3404 are DISQUALIFIED (Type 1 only) and are not proposed. PIN 8 (APD): the datasheet says 'If not used, connect APD to RTN' - do NOT float it. Tied through R9 (0 ohm) so the TPS2379 second source, whose pin 8 is GATE, stays buildable by depopulating one link. Do not wire any sleep or power-save function to DEN or APD: that kills DC MPS and the PSE drops the port."
+  },
+  {
+   "ref_prefix_hint": "D",
+   "block": "poe",
+   "mpn": "SMBJ58A",
+   "lcsc": "C2891331",
+   "value": "SMBJ58A 58V 600W TVS",
+   "qty_per_board": 1,
+   "refs": [
+    "D1"
+   ],
+   "package": "DO-214AA(SMB)",
+   "basic": false,
+   "stock": 12903,
+   "price": 0.0441,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0441
+    },
+    {
+     "qty": 100,
+     "price": 0.0354
+    },
+    {
+     "qty": 300,
+     "price": 0.0306
+    },
+    {
+     "qty": 3000,
+     "price": 0.0255
+    },
+    {
+     "qty": 6000,
+     "price": 0.0231
+    },
+    {
+     "qty": 12000,
+     "price": 0.0217
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2109031230_GOODWORK-SMBJ58A_C2891331.pdf",
+   "url": "https://www.lcsc.com/product-detail/esd-and-surge-protection-tvs-esd_goodwork-smbj58a_C2891331.html",
+   "brand": "GOODWORK",
+   "attributes": [
+    {
+     "name": "Operating Temperature",
+     "value": "-55\u2103~+150\u2103"
+    },
+    {
+     "name": "Type",
+     "value": "TVS"
+    },
+    {
+     "name": "Number of Channels",
+     "value": "1"
+    },
+    {
+     "name": "Peak Pulse Power Dissipation (Ppp)",
+     "value": "600W"
+    },
+    {
+     "name": "Clamping Voltage",
+     "value": "93.6V"
+    },
+    {
+     "name": "Polarity",
+     "value": "Unidirectional"
+    },
+    {
+     "name": "Peak Pulse Current (Ipp)",
+     "value": "6.4A"
+    },
+    {
+     "name": "Voltage - Breakdown",
+     "value": "64.4V"
+    },
+    {
+     "name": "Reverse Stand-Off Voltage (Vrwm)",
+     "value": "58V"
+    },
+    {
+     "name": "Reverse Leakage Current (Ir)",
+     "value": "5uA"
+    }
+   ],
+   "alternates": [
+    {
+     "mpn": "SMBJ58A",
+     "lcsc": "C707476",
+     "note": "Same part number, different vendor lot, 6804 pcs, $0.047. Drop-in."
+    }
+   ],
+   "role": "Unidirectional TVS across V48_RAW / V48_RTN, physically first after the jack. 58 V standoff clears the 57 V worst case; 64.4 V Vbr min and 93.6 V Vclamp stay under U1's 100 V abs max. 600 W not 400 W: an SMAJ58A's 4.3 A I_PP is below the 4.65 A a 1 kV class-2 surge delivers into one shorted line."
+  },
+  {
+   "ref_prefix_hint": "C",
+   "block": "poe",
+   "mpn": "FS32X106K101EGG",
+   "lcsc": "C5156756",
+   "value": "10uF 100V X7R 1210",
+   "qty_per_board": 4,
+   "refs": [
+    "C2",
+    "C4",
+    "C5",
+    "C6"
+   ],
+   "package": "1210",
+   "basic": false,
+   "stock": 290274,
+   "price": 0.51,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.6665
+    },
+    {
+     "qty": 10,
+     "price": 0.5616
+    },
+    {
+     "qty": 30,
+     "price": 0.51
+    },
+    {
+     "qty": 100,
+     "price": 0.4632
+    },
+    {
+     "qty": 500,
+     "price": 0.4503
+    },
+    {
+     "qty": 1000,
+     "price": 0.4422
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2209061730_PSA-Prosperity-Dielectrics-FS32X106K101EGG_C5156756.pdf",
+   "url": "https://www.lcsc.com/product-detail/multilayer-ceramic-capacitors-mlcc-smd-smt_psa-prosperity-dielectrics-fs32x106k101egg_C5156756.html",
+   "brand": "PSA(Prosperity Dielectrics)",
+   "attributes": [
+    {
+     "name": "Voltage Rating",
+     "value": "100V"
+    },
+    {
+     "name": "Tolerance",
+     "value": "\u00b110%"
+    },
+    {
+     "name": "Capacitance",
+     "value": "10uF"
+    },
+    {
+     "name": "Temperature Coefficient",
+     "value": "X7R"
+    }
+   ],
+   "alternates": [
+    {
+     "mpn": "TCC1210X5R106K101MT",
+     "lcsc": "C51892808",
+     "note": "X5R instead of X7R, $0.4658@10, 23569 pcs. Cheaper but a weaker dielectric for a 48 V bulk cap sitting in 56-69 C internal air."
+    }
+   ],
+   "role": "CBULK on V48_RAW. SUBSTITUTION vs the architecture: blocks.md s2.2 specifies 2 x 22 uF / 100 V ceramic = 44 uF, but NO 22 uF / 100 V MLCC EXISTS ON LCSC in any package (--package 1210 and 1812 both return zero rows; the only 22 uF / 100 V hits are aluminium electrolytics, which this board bans). 4 x 10 uF = 40 uF nominal is the closest stocked equivalent; after ceramic DC-bias derating at 48 V expect ~20-24 uF effective, still 4x the >= 5 uF AC-MPS floor (TPS2378 DS 7.4.7) and far under both the ~180 uF 802.3 port ceiling and the part's own 240 uF limit. This is the single most expensive passive line on the board at ~$2.25/assembly."
+  },
+  {
+   "ref_prefix_hint": "C",
+   "block": "poe",
+   "mpn": "FS32X225K101EGG",
+   "lcsc": "C153036",
+   "value": "2.2uF 100V X7R 1210",
+   "qty_per_board": 2,
+   "refs": [
+    "C50",
+    "C51"
+   ],
+   "package": "1210",
+   "basic": false,
+   "stock": 434938,
+   "price": 0.1196,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.1196
+    },
+    {
+     "qty": 50,
+     "price": 0.1032
+    },
+    {
+     "qty": 150,
+     "price": 0.0948
+    },
+    {
+     "qty": 1000,
+     "price": 0.0844
+    },
+    {
+     "qty": 2000,
+     "price": 0.082
+    },
+    {
+     "qty": 5000,
+     "price": 0.0803
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_PSA-Prosperity-Dielectrics-FS32X225K101EGG_C153036.pdf",
+   "url": "https://www.lcsc.com/product-detail/multilayer-ceramic-capacitors-mlcc-smd-smt_psa-prosperity-dielectrics-fs32x225k101egg_C153036.html",
+   "brand": "PSA(Prosperity Dielectrics)",
+   "attributes": [
+    {
+     "name": "Voltage Rating",
+     "value": "100V"
+    },
+    {
+     "name": "Tolerance",
+     "value": "\u00b110%"
+    },
+    {
+     "name": "Capacitance",
+     "value": "2.2uF"
+    },
+    {
+     "name": "Temperature Coefficient",
+     "value": "X7R"
+    }
+   ],
+   "alternates": [],
+   "role": "U20 buck input capacitance on V48_RAW. 100 V rated per the >= 100 V discipline on the 48 V domain - never a 50 V or 63 V part here."
+  },
+  {
+   "ref_prefix_hint": "C",
+   "block": "poe",
+   "mpn": "CL21B104KCFNNNE",
+   "lcsc": "C28233",
+   "value": "100nF 100V X7R 0805",
+   "qty_per_board": 1,
+   "refs": [
+    "C1"
+   ],
+   "package": "0805",
+   "basic": true,
+   "stock": 3258857,
+   "price": 0.067,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.067
+    },
+    {
+     "qty": 500,
+     "price": 0.0602
+    },
+    {
+     "qty": 2000,
+     "price": 0.0567
+    },
+    {
+     "qty": 4000,
+     "price": 0.0538
+    },
+    {
+     "qty": 24000,
+     "price": 0.0528
+    },
+    {
+     "qty": 50000,
+     "price": 0.0522
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL21B104KCFNNNE_C28233.pdf",
+   "url": "https://www.lcsc.com/product-detail/multilayer-ceramic-capacitors-mlcc-smd-smt_samsung-electro-mechanics-cl21b104kcfnnne_C28233.html",
+   "brand": "Samsung Electro-Mechanics",
+   "attributes": [
+    {
+     "name": "Voltage Rating",
+     "value": "100V"
+    },
+    {
+     "name": "Tolerance",
+     "value": "\u00b110%"
+    },
+    {
+     "name": "Capacitance",
+     "value": "100nF"
+    },
+    {
+     "name": "Temperature Coefficient",
+     "value": "X7R"
+    }
+   ],
+   "alternates": [
+    {
+     "mpn": "CC0805KKX7R0BB104",
+     "lcsc": "C106243",
+     "note": "Yageo, same 100 V / 0805 / X7R rating, 715239 pcs, $0.0381 - cheaper per piece but Extended, so it costs a feeder fee to save $0.40 across the build."
+    }
+   ],
+   "role": "U1 VDD-VSS bypass, inside the IEEE 802.3 50-120 nF detection-signature window. 100 V part on the 48 V domain. Note its ground reference is V48_RTN, not GND - P4 needs an explicit gnd_net override on this decoupling entry. JLC Basic."
+  },
+  {
+   "ref_prefix_hint": "C",
+   "block": "poe",
+   "mpn": "1206B102K202NT",
+   "lcsc": "C9196",
+   "value": "1nF 2kV X7R 1206",
+   "qty_per_board": 1,
+   "refs": [
+    "C3"
+   ],
+   "package": "1206",
+   "basic": true,
+   "stock": 1206696,
+   "price": 0.0662,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0662
+    },
+    {
+     "qty": 300,
+     "price": 0.0598
+    },
+    {
+     "qty": 900,
+     "price": 0.0569
+    },
+    {
+     "qty": 3000,
+     "price": 0.0546
+    },
+    {
+     "qty": 15000,
+     "price": 0.0538
+    },
+    {
+     "qty": 30000,
+     "price": 0.0531
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_FH--Guangdong-Fenghua-Advanced-Tech-1206B102K202NT_C9196.pdf",
+   "url": "https://www.lcsc.com/product-detail/multilayer-ceramic-capacitors-mlcc-smd-smt_fh-guangdong-fenghua-advanced-tech-1206b102k202nt_C9196.html",
+   "brand": "FH (Guangdong Fenghua Advanced Tech)",
+   "attributes": [
+    {
+     "name": "Voltage Rating",
+     "value": "2kV"
+    },
+    {
+     "name": "Tolerance",
+     "value": "\u00b110%"
+    },
+    {
+     "name": "Capacitance",
+     "value": "1nF"
+    },
+    {
+     "name": "Temperature Coefficient",
+     "value": "X7R"
+    }
+   ],
+   "alternates": [],
+   "role": "Shield hybrid: 1 nF / 2 kV in parallel with R6 (1 M) between the magjack shield tabs and board GND. JLC Basic."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "poe",
+   "mpn": "0805W8F1242T5E",
+   "lcsc": "C30908",
+   "value": "12.4k 1% 0805",
+   "qty_per_board": 4,
+   "refs": [
+    "R1",
+    "R2",
+    "R30",
+    "R67"
+   ],
+   "package": "0805",
+   "basic": false,
+   "stock": 32898,
+   "price": 0.0046,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0046
+    },
+    {
+     "qty": 1000,
+     "price": 0.0041
+    },
+    {
+     "qty": 5000,
+     "price": 0.0038
+    },
+    {
+     "qty": 10000,
+     "price": 0.0037
+    },
+    {
+     "qty": 50000,
+     "price": 0.0035
+    },
+    {
+     "qty": 50200,
+     "price": 0.0035
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010030_UNI-ROYAL-Uniroyal-Elec-0805W8F1242T5E_C30908.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0805w8f1242t5e_C30908.html",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {
+     "name": "Resistance",
+     "value": "12.4k\u03a9"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-55\u2103~+155\u2103"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "125mW"
+    },
+    {
+     "name": "Type",
+     "value": "Thick Film Resistor"
+    },
+    {
+     "name": "Voltage-Supply(Max)",
+     "value": "150V"
+    },
+    {
+     "name": "Tolerance",
+     "value": "\u00b11%"
+    },
+    {
+     "name": "Temperature Coefficient",
+     "value": "\u00b1100ppm/\u2103"
+    }
+   ],
+   "alternates": [],
+   "role": "R67 ADDED after datasheet extraction as the UVLO-to-OVP middle leg of U22's three-resistor divider (see R66). R1+R2 form the split 24.9 k detection signature with the tap brought out at /poe/DEN_TAP - grounding the tap disables the PD and spoils the signature, which is the clean hardware PD-disable. 0805 per the 48 V-domain resistor rule, 150 V working. R30 re-uses this line as the W5500 EXRES1 bias resistor (12.4 k 1 % to AGND, sets MDI drive amplitude). NOTE from decisions.md D-A2: the magjack's internal rectifier sits in series with the detection path, so RDEN may need trimming UPWARD at P4 - do not port 24.9 k blindly."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "poe",
+   "mpn": "0603WAF909JT5E",
+   "lcsc": "C23130",
+   "value": "90.9R 1% 0603",
+   "qty_per_board": 1,
+   "refs": [
+    "R3"
+   ],
+   "package": "0603",
+   "basic": false,
+   "stock": 15105,
+   "price": 0.0023,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0023
+    },
+    {
+     "qty": 1000,
+     "price": 0.0018
+    },
+    {
+     "qty": 5000,
+     "price": 0.0015
+    },
+    {
+     "qty": 10000,
+     "price": 0.0014
+    },
+    {
+     "qty": 50000,
+     "price": 0.0012
+    },
+    {
+     "qty": 50200,
+     "price": 0.0012
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010116_UNI-ROYAL-Uniroyal-Elec-0603WAF909JT5E_C23130.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0603waf909jt5e_C23130.html",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {
+     "name": "Resistance",
+     "value": "90.9\u03a9"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-55\u2103~+155\u2103"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "100mW"
+    },
+    {
+     "name": "Type",
+     "value": "Thick Film Resistor"
+    },
+    {
+     "name": "Voltage-Supply(Max)",
+     "value": "75V"
+    },
+    {
+     "name": "Tolerance",
+     "value": "\u00b11%"
+    },
+    {
+     "name": "Temperature Coefficient",
+     "value": "\u00b1100ppm/\u2103"
+    }
+   ],
+   "alternates": [],
+   "role": "R3 = THE D-01 LEVER, fitted value for build 1: 90.9 ohm = Class 3 (802.3af, 12.95 W). Standalone silkscreened pad pair, silk marked 'af=90R9 / at=63R4'."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "poe",
+   "mpn": "0603WAF634JT5E",
+   "lcsc": "C23223",
+   "value": "63.4R 1% 0603",
+   "qty_per_board": 0,
+   "refs": [
+    "R3-at"
+   ],
+   "package": "0603",
+   "basic": false,
+   "stock": 15839,
+   "price": 0.0025,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0025
+    },
+    {
+     "qty": 1000,
+     "price": 0.002
+    },
+    {
+     "qty": 5000,
+     "price": 0.0017
+    },
+    {
+     "qty": 10000,
+     "price": 0.0016
+    },
+    {
+     "qty": 50000,
+     "price": 0.0014
+    },
+    {
+     "qty": 50200,
+     "price": 0.0014
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010116_UNI-ROYAL-Uniroyal-Elec-0603WAF634JT5E_C23223.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0603waf634jt5e_C23223.html",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {
+     "name": "Resistance",
+     "value": "63.4\u03a9"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-55\u2103~+155\u2103"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "100mW"
+    },
+    {
+     "name": "Type",
+     "value": "Thick Film Resistor"
+    },
+    {
+     "name": "Voltage-Supply(Max)",
+     "value": "75V"
+    },
+    {
+     "name": "Tolerance",
+     "value": "\u00b11%"
+    },
+    {
+     "name": "Temperature Coefficient",
+     "value": "\u00b1100ppm/\u2103"
+    }
+   ],
+   "alternates": [],
+   "role": "NOT FITTED - the 802.3at upgrade option for R3. 63.4 ohm = Class 4 (25.5 W). Sourced now so the D-01 upgrade is a stocked-part swap and never a sourcing task; order 14 pcs with the build and keep them with the spares. qty_per_board is 0 because the board ships with 90.9 ohm."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "poe",
+   "mpn": "0805W8F1002T5E",
+   "lcsc": "C17414",
+   "value": "10k 1% 0805",
+   "qty_per_board": 2,
+   "refs": [
+    "R4",
+    "R5"
+   ],
+   "package": "0805",
+   "basic": true,
+   "stock": 15825284,
+   "price": 0.011,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.011
+    },
+    {
+     "qty": 1000,
+     "price": 0.01
+    },
+    {
+     "qty": 5000,
+     "price": 0.009
+    },
+    {
+     "qty": 10000,
+     "price": 0.0086
+    },
+    {
+     "qty": 50000,
+     "price": 0.0085
+    },
+    {
+     "qty": 100000,
+     "price": 0.0084
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2411221126_UNI-ROYAL-Uniroyal-Elec-0805W8F1002T5E_C17414.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0805w8f1002t5e_C17414.html",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {
+     "name": "Resistance",
+     "value": "10k\u03a9"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-55\u2103~+155\u2103"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "125mW"
+    },
+    {
+     "name": "Type",
+     "value": "Thick Film Resistor"
+    },
+    {
+     "name": "Voltage-Supply(Max)",
+     "value": "150V"
+    },
+    {
+     "name": "Tolerance",
+     "value": "\u00b11%"
+    },
+    {
+     "name": "Temperature Coefficient",
+     "value": "\u00b1100ppm/\u2103"
+    }
+   ],
+   "alternates": [],
+   "role": "T2P level-shift network. T2P is an open-drain output referenced to VSS (the raw PoE negative), not to board GND, and can sit tens of volts away from it - it is never a bare GPIO connection. 0805 / 150 V per the 48 V-domain resistor rule. Exact divider values are set at P4 from the TPS2378 datasheet; the orderable part is the same 0805 1% thick-film series either way. JLC Basic."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "poe",
+   "mpn": "0603WAF1004T5E",
+   "lcsc": "C22935",
+   "value": "1M 1% 0603",
+   "qty_per_board": 1,
+   "refs": [
+    "R6"
+   ],
+   "package": "0603",
+   "basic": true,
+   "stock": 3102558,
+   "price": 0.0027,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0027
+    },
+    {
+     "qty": 1000,
+     "price": 0.0024
+    },
+    {
+     "qty": 5000,
+     "price": 0.0023
+    },
+    {
+     "qty": 10000,
+     "price": 0.0022
+    },
+    {
+     "qty": 50000,
+     "price": 0.0021
+    },
+    {
+     "qty": 50200,
+     "price": 0.0021
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010130_UNI-ROYAL-Uniroyal-Elec-0603WAF1004T5E_C22935.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0603waf1004t5e_C22935.html",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {
+     "name": "Resistance",
+     "value": "1M\u03a9"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-55\u2103~+155\u2103"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "100mW"
+    },
+    {
+     "name": "Type",
+     "value": "Thick Film Resistor"
+    },
+    {
+     "name": "Voltage-Supply(Max)",
+     "value": "75V"
+    },
+    {
+     "name": "Tolerance",
+     "value": "\u00b11%"
+    },
+    {
+     "name": "Temperature Coefficient",
+     "value": "\u00b1100ppm/\u2103"
+    }
+   ],
+   "alternates": [],
+   "role": "Shield hybrid bleed in parallel with C3, magjack shell to board GND. JLC Basic."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "poe",
+   "mpn": "0603WAF3300T5E",
+   "lcsc": "C23138",
+   "value": "330R 1% 0603",
+   "qty_per_board": 5,
+   "refs": [
+    "R7",
+    "R8",
+    "R71",
+    "R72",
+    "R102"
+   ],
+   "package": "0603",
+   "basic": true,
+   "stock": 2143175,
+   "price": 0.0139,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0139
+    },
+    {
+     "qty": 1000,
+     "price": 0.0126
+    },
+    {
+     "qty": 5000,
+     "price": 0.0119
+    },
+    {
+     "qty": 10000,
+     "price": 0.0111
+    },
+    {
+     "qty": 50000,
+     "price": 0.0107
+    },
+    {
+     "qty": 100000,
+     "price": 0.0105
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010116_UNI-ROYAL-Uniroyal-Elec-0603WAF3300T5E_C23138.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0603waf3300t5e_C23138.html",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {
+     "name": "Resistance",
+     "value": "330\u03a9"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-55\u2103~+155\u2103"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "100mW"
+    },
+    {
+     "name": "Type",
+     "value": "Thick Film Resistor"
+    },
+    {
+     "name": "Voltage-Supply(Max)",
+     "value": "75V"
+    },
+    {
+     "name": "Tolerance",
+     "value": "\u00b11%"
+    },
+    {
+     "name": "Temperature Coefficient",
+     "value": "\u00b1100ppm/\u2103"
+    }
+   ],
+   "alternates": [],
+   "role": "LED series resistors: R7/R8 for the magjack's yellow and green LEDs driven from the W5500's active-low LINK/ACT outputs (anode side to +3V3 - jack pins 11 and 13 are the anodes, confirmed from the datasheet), R71/R72 for the power-good and fault LEDs, R102 for the ESP32-S3 status LED. ~4 mA per LED at 3.3 V. JLC Basic."
+  },
+  {
+   "ref_prefix_hint": "U",
+   "block": "eth",
+   "mpn": "W5500",
+   "lcsc": "C32843",
+   "value": "W5500",
+   "qty_per_board": 1,
+   "refs": [
+    "U10"
+   ],
+   "package": "LQFP-48(7x7)",
+   "basic": false,
+   "stock": 33998,
+   "price": 2.3804,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 2.7354
+    },
+    {
+     "qty": 10,
+     "price": 2.3804
+    },
+    {
+     "qty": 30,
+     "price": 2.1286
+    },
+    {
+     "qty": 100,
+     "price": 1.8994
+    },
+    {
+     "qty": 500,
+     "price": 1.7929
+    },
+    {
+     "qty": 1000,
+     "price": 1.751
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2410121618_WIZNET-W5500_C32843.pdf",
+   "url": "https://lcsc.com/product-detail/ethernet-controllers_wiznet-w5500_C32843.html",
+   "brand": "WIZNET",
+   "attributes": [
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+85\u2103"
+    },
+    {
+     "name": "Memory Space",
+     "value": "32KB"
+    },
+    {
+     "name": "Voltage - Supply",
+     "value": "3.3V"
+    },
+    {
+     "name": "Features",
+     "value": "Wake-up function\u3001Programmable LED indication\u3001Low-power mode"
+    },
+    {
+     "name": "Communication Interface",
+     "value": "SPI"
+    },
+    {
+     "name": "MAC Interface",
+     "value": "SPI"
+    },
+    {
+     "name": "Integrated PHY",
+     "value": "Yes"
+    },
+    {
+     "name": "Ethernet Speed Standards",
+     "value": "10BASE-T\u3001100BASE-TX"
+    }
+   ],
+   "alternates": [],
+   "role": "SINGLE SOURCE, NO ALTERNATE EXISTS - the empty alternates list is deliberate. One orderable part number, one manufacturer, no pin-compatible part anywhere: W6100 is pin-2-pin with the W5100S, NOT the W5500, and W5100S-L has a different pinout AND a different register map, so a swap is a schematic plus firmware respin. RISK: HIGH and unmitigable by design. Mitigation is procurement - 33998 pcs today, but buy the W5500s with the board order rather than assuming availability at re-order time. LQFP-48 (7x7, 0.5 mm), no exposed pad, so no min_vias thermal demand is satisfiable - a copper pour under it is a layout note instead. Variable Length Data Mode is mandatory (the host drives SCSn) because the SPI bus is shared with the expansion connector. Guaranteed SPI clock is 33.3 MHz, not the feature list's theoretical 80 MHz; the design runs 20 MHz."
+  },
+  {
+   "ref_prefix_hint": "Y",
+   "block": "eth",
+   "mpn": "X322525MRB4SI",
+   "lcsc": "C70593",
+   "value": "25MHz 18pF CL crystal",
+   "qty_per_board": 1,
+   "refs": [
+    "Y10"
+   ],
+   "package": "SMD3225-4P",
+   "basic": false,
+   "stock": 34358,
+   "price": 0.0951,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0951
+    },
+    {
+     "qty": 50,
+     "price": 0.0753
+    },
+    {
+     "qty": 150,
+     "price": 0.0654
+    },
+    {
+     "qty": 500,
+     "price": 0.058
+    },
+    {
+     "qty": 3000,
+     "price": 0.0477
+    },
+    {
+     "qty": 6000,
+     "price": 0.0448
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2403291504_YXC-Crystal-Oscillators-X322525MRB4SI_C70593.pdf",
+   "url": "https://www.lcsc.com/product-detail/crystals_yxc-crystal-oscillators-x322525mrb4si_C70593.html",
+   "brand": "YXC Crystal Oscillators",
+   "attributes": [
+    {
+     "name": "Load Capacitance",
+     "value": "18pF"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+85\u2103"
+    },
+    {
+     "name": "Type",
+     "value": "Crystal Oscillator"
+    },
+    {
+     "name": "Normal temperature Frequency Tolerance",
+     "value": "\u00b110ppm"
+    },
+    {
+     "name": "Equivalent Series Resistance(ESR)",
+     "value": "50\u03a9"
+    },
+    {
+     "name": "Frequency Stability",
+     "value": "\u00b120ppm"
+    },
+    {
+     "name": "Frequency",
+     "value": "25MHz"
+    }
+   ],
+   "alternates": [
+    {
+     "mpn": "XL2EL89CRI-111YLC-25M",
+     "lcsc": "C19078191",
+     "note": "YXC, identical parametrics (18 pF CL, +-10 ppm / +-20 ppm, ESR 50 ohm), same SMD3225-4P footprint, 14107 pcs, $0.0856 - a true drop-in second source."
+    }
+   ],
+   "role": "W5500 reference. CL AND ppm VERIFIED AGAINST W5500 DS v1.1.0 s5.5.3, which requires 25 MHz, CL 18 pF, tolerance +-30 ppm at 25 C, shunt capacitance <= 7 pF and 59.12 uW drive: this part is CL 18 pF exactly, +-10 ppm initial and +-20 ppm over -40..+85 C, so initial + temperature = +-30 ppm total, meeting the datasheet's +-30 ppm and leaving 1.7x margin against IEEE 802.3 clause 25's +-50 ppm transmit-clock budget with ageing (+-3 ppm/yr) still to spend. The JLC Basic 25 MHz part (X322525MOB4SI, C9006) is CL 12 pF and is deliberately NOT taken: at $0.095 either way the only gain is one feeder fee, against moving the oscillator off the load capacitance WIZnet characterised."
+  },
+  {
+   "ref_prefix_hint": "C",
+   "block": "eth",
+   "mpn": "CC0603JRNPO9BN270",
+   "lcsc": "C107045",
+   "value": "27pF 50V NP0 0603",
+   "qty_per_board": 2,
+   "refs": [
+    "C30",
+    "C31"
+   ],
+   "package": "0603",
+   "basic": false,
+   "stock": 647476,
+   "price": 0.0048,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0048
+    },
+    {
+     "qty": 1000,
+     "price": 0.0041
+    },
+    {
+     "qty": 4000,
+     "price": 0.0037
+    },
+    {
+     "qty": 8000,
+     "price": 0.0035
+    },
+    {
+     "qty": 48000,
+     "price": 0.0033
+    },
+    {
+     "qty": 48200,
+     "price": 0.0033
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_YAGEO-CC0603JRNPO9BN270_C107045.pdf",
+   "url": "https://www.lcsc.com/product-detail/multilayer-ceramic-capacitors-mlcc-smd-smt_yageo-cc0603jrnpo9bn270_C107045.html",
+   "brand": "YAGEO",
+   "attributes": [
+    {
+     "name": "Voltage Rating",
+     "value": "50V"
+    },
+    {
+     "name": "Tolerance",
+     "value": "\u00b15%"
+    },
+    {
+     "name": "Capacitance",
+     "value": "27pF"
+    },
+    {
+     "name": "Temperature Coefficient",
+     "value": "NP0"
+    }
+   ],
+   "alternates": [],
+   "role": "Crystal load caps: C = 2 x (CL - Cstray) with CL 18 pF and Cstray ~4 pF. NP0/C0G is mandatory. Expect to trim on the first prototype - most W5500 module schematics use 22 pF, which back-solves to CL 15 pF and is wrong for an 18 pF part."
+  },
+  {
+   "ref_prefix_hint": "D",
+   "block": "eth",
+   "mpn": "TPD4E1U06DBVR",
+   "lcsc": "C19829453",
+   "value": "TPD4E1U06 4ch 0.55pF ESD array",
+   "qty_per_board": 1,
+   "refs": [
+    "D10"
+   ],
+   "package": "SOT-23-6",
+   "basic": false,
+   "stock": 15462,
+   "price": 0.089,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.089
+    },
+    {
+     "qty": 50,
+     "price": 0.072
+    },
+    {
+     "qty": 150,
+     "price": 0.0635
+    },
+    {
+     "qty": 500,
+     "price": 0.057
+    },
+    {
+     "qty": 3000,
+     "price": 0.052
+    },
+    {
+     "qty": 6000,
+     "price": 0.0494
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2401191737_TECH-PUBLIC-TPD4E1U06DBVR_C19829453.pdf",
+   "url": "https://www.lcsc.com/product-detail/esd-and-surge-protection-tvs-esd_tech-public-tpd4e1u06dbvr_C19829453.html",
+   "brand": "TECH PUBLIC",
+   "attributes": [
+    {
+     "name": "Operating Temperature",
+     "value": "-55\u2103~+125\u2103"
+    },
+    {
+     "name": "Type",
+     "value": "TVS"
+    },
+    {
+     "name": "Junction Capacitance",
+     "value": "0.55pF"
+    },
+    {
+     "name": "Peak Pulse Power Dissipation (Ppp)",
+     "value": "50W@8/20us"
+    },
+    {
+     "name": "level of protection",
+     "value": "IEC 61000-4-2\u3001IEC 61000-4-5\u3001IEC 61000-4-4"
+    },
+    {
+     "name": "Clamping Voltage",
+     "value": "14V"
+    },
+    {
+     "name": "Polarity",
+     "value": "Unidirectional"
+    },
+    {
+     "name": "Voltage - Breakdown",
+     "value": "8.5V"
+    },
+    {
+     "name": "Reverse Stand-Off Voltage (Vrwm)",
+     "value": "5.5V"
+    },
+    {
+     "name": "Reverse Leakage Current (Ir)",
+     "value": "10nA"
+    }
+   ],
+   "alternates": [
+    {
+     "mpn": "SP3012-04UTG",
+     "lcsc": "C2987148",
+     "note": "4-channel MDI array at 0.3 pF/line, DFN2510-10 (leadless - fine on JLC PCBA, not for hand assembly), 4221 pcs, $0.0702."
+    }
+   ],
+   "role": "MDI ESD array on the PHY side of the magnetics, across TXP/TXN and RXP/RXN at the J1 end of the pairs. 0.55 pF per line meets the binding <= 1 pF/line spec - a general-purpose 20-50 pF array visibly degrades the 10 dB return-loss floor. FITTED, not DNP. SOT-23-6, leaded."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "eth",
+   "mpn": "0603WAF220JT5E",
+   "lcsc": "C23345",
+   "value": "22R 1% 0603",
+   "qty_per_board": 2,
+   "refs": [
+    "R31",
+    "R32"
+   ],
+   "package": "0603",
+   "basic": true,
+   "stock": 565124,
+   "price": 0.0047,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0047
+    },
+    {
+     "qty": 1000,
+     "price": 0.0042
+    },
+    {
+     "qty": 5000,
+     "price": 0.0039
+    },
+    {
+     "qty": 10000,
+     "price": 0.0038
+    },
+    {
+     "qty": 50000,
+     "price": 0.0037
+    },
+    {
+     "qty": 50200,
+     "price": 0.0037
+    }
+   ],
+   "min_qty": 2133,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010100_UNI-ROYAL-Uniroyal-Elec-0603WAF220JT5E_C23345.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0603waf220jt5e_C23345.html",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {
+     "name": "Resistance",
+     "value": "22\u03a9"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-55\u2103~+155\u2103"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "100mW"
+    },
+    {
+     "name": "Type",
+     "value": "Thick Film Resistor"
+    },
+    {
+     "name": "Voltage-Supply(Max)",
+     "value": "75V"
+    },
+    {
+     "name": "Tolerance",
+     "value": "\u00b11%"
+    },
+    {
+     "name": "Temperature Coefficient",
+     "value": "\u00b1100ppm/\u2103"
+    }
+   ],
+   "alternates": [],
+   "role": "Series termination on /ETH_SCLK and /ETH_MOSI, placed at the ESP32-S3 driver pin. Fitted so the value can be tuned if EMC bites. JLC Basic."
+  },
+  {
+   "ref_prefix_hint": "C",
+   "block": "eth",
+   "mpn": "CL21A475KAQNNNE",
+   "lcsc": "C1779",
+   "value": "4.7uF 25V X5R 0805",
+   "qty_per_board": 2,
+   "refs": [
+    "C32",
+    "C36"
+   ],
+   "package": "0805",
+   "basic": true,
+   "stock": 2971180,
+   "price": 0.0502,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0502
+    },
+    {
+     "qty": 200,
+     "price": 0.0423
+    },
+    {
+     "qty": 600,
+     "price": 0.0383
+    },
+    {
+     "qty": 2000,
+     "price": 0.031
+    },
+    {
+     "qty": 10000,
+     "price": 0.0297
+    },
+    {
+     "qty": 20000,
+     "price": 0.0291
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL21A475KAQNNNE_C1779.pdf",
+   "url": "https://www.lcsc.com/product-detail/multilayer-ceramic-capacitors-mlcc-smd-smt_samsung-electro-mechanics-cl21a475kaqnnne_C1779.html",
+   "brand": "Samsung Electro-Mechanics",
+   "attributes": [
+    {
+     "name": "Voltage Rating",
+     "value": "25V"
+    },
+    {
+     "name": "Tolerance",
+     "value": "\u00b110%"
+    },
+    {
+     "name": "Capacitance",
+     "value": "4.7uF"
+    },
+    {
+     "name": "Temperature Coefficient",
+     "value": "X5R"
+    }
+   ],
+   "alternates": [],
+   "role": "C32 = W5500 TOCAP (a required decoupling pin, not a no-connect). C36 = local +3V3 bulk at the W5500. JLC Basic."
+  },
+  {
+   "ref_prefix_hint": "C",
+   "block": "eth",
+   "mpn": "0603B103K500NT",
+   "lcsc": "C57112",
+   "value": "10nF 50V X7R 0603",
+   "qty_per_board": 2,
+   "refs": [
+    "C33",
+    "C59"
+   ],
+   "package": "0603",
+   "basic": true,
+   "stock": 12182542,
+   "price": 0.0115,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0115
+    },
+    {
+     "qty": 500,
+     "price": 0.0093
+    },
+    {
+     "qty": 1500,
+     "price": 0.0083
+    },
+    {
+     "qty": 4000,
+     "price": 0.0074
+    },
+    {
+     "qty": 24000,
+     "price": 0.0071
+    },
+    {
+     "qty": 48000,
+     "price": 0.0069
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_FH--Guangdong-Fenghua-Advanced-Tech-0603B103K500NT_C57112.pdf",
+   "url": "https://www.lcsc.com/product-detail/multilayer-ceramic-capacitors-mlcc-smd-smt_fh-guangdong-fenghua-advanced-tech-0603b103k500nt_C57112.html",
+   "brand": "FH (Guangdong Fenghua Advanced Tech)",
+   "attributes": [
+    {
+     "name": "Voltage Rating",
+     "value": "50V"
+    },
+    {
+     "name": "Tolerance",
+     "value": "\u00b110%"
+    },
+    {
+     "name": "Capacitance",
+     "value": "10nF"
+    },
+    {
+     "name": "Temperature Coefficient",
+     "value": "X7R"
+    }
+   ],
+   "alternates": [],
+   "role": "TWO uses. C33 = W5500 1V2O internal-regulator output cap, a pin that is not a no-connect. C59 = U22's dV/dT inrush-ramp cap, CORRECTED after datasheet extraction: parts\\C1849461.json gives C(dVdT) MINIMUM 10 nF, and the UVLO/OVP turn-on timing specs are only defined for C(dVdT) >= 10 nF, so my original 1 nF was out of spec. 10 nF is the datasheet minimum and therefore still the FASTEST compliant ramp, which is what the architecture wants - the daughter owns the inrush ramp because it holds the ~2800 uF, and U22's limit sits above the daughter's inrush level so the two soft-starts do not fight. t(dVdT) = 20.8e3 x 48 V x 10 nF = ~10 ms. The dVdT pin is 0-4 V rec / 5.5 V abs max, so the 50 V rating is ample. JLC Basic."
+  },
+  {
+   "ref_prefix_hint": "U",
+   "block": "pwr",
+   "mpn": "SCT2A25STER",
+   "lcsc": "C5124114",
+   "value": "SCT2A25STER",
+   "qty_per_board": 1,
+   "refs": [
+    "U20"
+   ],
+   "package": "ESOP-8",
+   "basic": false,
+   "stock": 3160,
+   "price": 1.8026,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 2.1044
+    },
+    {
+     "qty": 10,
+     "price": 1.8026
+    },
+    {
+     "qty": 30,
+     "price": 1.6138
+    },
+    {
+     "qty": 100,
+     "price": 1.3992
+    },
+    {
+     "qty": 500,
+     "price": 1.312
+    },
+    {
+     "qty": 1000,
+     "price": 1.2733
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2312211430_SCT-SCT2A25STER_C5124114.pdf",
+   "url": "https://www.lcsc.com/product-detail/dc-dc-converters_sct-sct2a25ster_C5124114.html",
+   "brand": "SCT",
+   "attributes": [
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+150\u2103@(TJ)"
+    },
+    {
+     "name": "Function",
+     "value": "Step-down type"
+    },
+    {
+     "name": "Synchronous Rectifier",
+     "value": "No"
+    },
+    {
+     "name": "Frequency - Switching",
+     "value": "300kHz"
+    },
+    {
+     "name": "Voltage - Supply",
+     "value": "5.5V~100V"
+    },
+    {
+     "name": "Output Type",
+     "value": "Adjustable"
+    },
+    {
+     "name": "Output Current",
+     "value": "2A"
+    },
+    {
+     "name": "Quiescent Current",
+     "value": "135uA"
+    },
+    {
+     "name": "Features",
+     "value": "Overcurrent Protection\u3001Light load efficient mode\u3001Cycle-by-cycle current limiting"
+    },
+    {
+     "name": "Switch tube (built-in/external)",
+     "value": "Built-in"
+    },
+    {
+     "name": "Topology",
+     "value": "Buck"
+    },
+    {
+     "name": "Output Voltage",
+     "value": "1.2V~30V"
+    },
+    {
+     "name": "Number of Outputs",
+     "value": "1"
+    }
+   ],
+   "alternates": [],
+   "role": "48 V -> 12 V asynchronous buck, ESOP-8. 5.5-100 V in / 110 V abs max = 1.9x margin on the 57 V worst case, against the 5% a 60 V TPS54360 would have; 2 A continuous / 4 A peak, COT 300 kHz, integrated 500 mohm HS FET, RthetaJA 42 C/W, and the datasheet ships the literal 48 V -> 12 V / 2 A design. NO PIN-COMPATIBLE ALTERNATE - the empty list is deliberate: LM5164 (1 A = 12 W, covers af and fails at), MP9486A, LM5146 (controller + 2 FETs) and TPS54360B (60 V) are all different pinouts and different designs, so a swap is a respin, which D-01 forbids. Stock 3160 = 226x the build, so this is a re-order risk, not a build risk. Exposed pad to the In1 GND plane with >= 9 vias. EN is driven from U1's CDB pin for correct PoE start-up sequencing with no glue. POST-EXTRACTION CORRECTIONS (parts\\C5124114.json): the feedback reference is 1.2 V +/-1%, NOT 0.8 V - the FB divider is 270k/30k (R60/R61) plus a 150 pF feedforward cap (C60) that the datasheet calls necessary for loop stability. Switching frequency is FIXED at 300 kHz with no RT pin. The 68 uH inductor and 2 x 22 uF output caps already in this BOM match the datasheet's own 48 V -> 12 V / 2 A example exactly."
+  },
+  {
+   "ref_prefix_hint": "L",
+   "block": "pwr",
+   "mpn": "FXL1360-680-M",
+   "lcsc": "C526032",
+   "value": "68uH 3A 140mohm inductor",
+   "qty_per_board": 1,
+   "refs": [
+    "L20"
+   ],
+   "package": "SMD,13.5x12.6mm",
+   "basic": false,
+   "stock": 2061,
+   "price": 0.4761,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.6101
+    },
+    {
+     "qty": 10,
+     "price": 0.4761
+    },
+    {
+     "qty": 30,
+     "price": 0.418
+    },
+    {
+     "qty": 100,
+     "price": 0.347
+    },
+    {
+     "qty": 500,
+     "price": 0.2921
+    },
+    {
+     "qty": 1000,
+     "price": 0.2728
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2404260921_cjiang--Changjiang-Microelectronics-Tech-FXL1360-680-M_C526032.pdf",
+   "url": "https://www.lcsc.com/product-detail/power-inductors_cjiang-changjiang-microelectronics-tech-fxl1360-680-m_C526032.html",
+   "brand": "cjiang (Changjiang Microelectronics Tech)",
+   "attributes": [
+    {
+     "name": "Current - Saturation(Isat)",
+     "value": "4.5A"
+    },
+    {
+     "name": "Inductance",
+     "value": "68uH"
+    },
+    {
+     "name": "Type",
+     "value": "Molded Inductor"
+    },
+    {
+     "name": "Tolerance",
+     "value": "\u00b120%"
+    },
+    {
+     "name": "Current Rating",
+     "value": "3A"
+    },
+    {
+     "name": "DC Resistance(DCR)",
+     "value": "140m\u03a9"
+    }
+   ],
+   "alternates": [
+    {
+     "mpn": "FXL1040-680-M",
+     "lcsc": "C475920",
+     "note": "Same family, 11.5x10 mm instead of 13.5x12.6 mm, 15713 pcs, $0.2687 - but 195 mohm DCR puts the 48->12 block at ~1.31 W, OVER the 1.25 W budget blocks.md s2.3 places on P3. Take it only if the +12V ICD ceiling is lowered."
+    }
+   ],
+   "role": "U20 output inductor, selected on DCR rather than on price or size. blocks.md s2.3 places a HARD <= 1.25 W budget on the whole 48->12 block at the at operating point (I_out = 1.324 A at the ICD's 1.25 A +12V ceiling). At 140 mohm this inductor burns 0.245 W, so U20 (0.43 W) + D20 (0.54 W) + L20 (0.245 W) = 1.22 W and the budget CLOSES; every other stocked 68 uH part is 190-260 mohm and breaks it. 3 A rated / 4.5 A saturation. Body 13.5 x 12.6 mm, larger than blocks.md's '~7 x 7 mm' estimate - a 68 uH / 3 A part simply is not 7 x 7."
+  },
+  {
+   "ref_prefix_hint": "D",
+   "block": "pwr",
+   "mpn": "SS510C",
+   "lcsc": "C19229",
+   "value": "SS510C 100V 5A Schottky SMC",
+   "qty_per_board": 1,
+   "refs": [
+    "D20"
+   ],
+   "package": "SMC(DO-214AB)",
+   "basic": false,
+   "stock": 35135,
+   "price": 0.1111,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.1111
+    },
+    {
+     "qty": 50,
+     "price": 0.0927
+    },
+    {
+     "qty": 150,
+     "price": 0.0835
+    },
+    {
+     "qty": 500,
+     "price": 0.0767
+    },
+    {
+     "qty": 3000,
+     "price": 0.0509
+    },
+    {
+     "qty": 6000,
+     "price": 0.0481
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2408090954_MDD-Microdiode-Semiconductor-SS510C_C19229.pdf",
+   "url": "https://www.lcsc.com/product-detail/schottky-diodes_mdd-microdiode-semiconductor-ss510c_C19229.html",
+   "brand": "MDD(Microdiode Semiconductor)",
+   "attributes": [
+    {
+     "name": "Voltage - Forward(Vf@If)",
+     "value": "850mV@5A"
+    },
+    {
+     "name": "Non-Repetitive Peak Forward Surge Current",
+     "value": "150A"
+    },
+    {
+     "name": "Voltage - DC Reverse(Vr)",
+     "value": "100V"
+    },
+    {
+     "name": "Operating Junction Temperature Range",
+     "value": "-55\u2103~+150\u2103"
+    },
+    {
+     "name": "Diode Configuration",
+     "value": "Standalone"
+    },
+    {
+     "name": "Current - Rectified",
+     "value": "5A"
+    },
+    {
+     "name": "Reverse Leakage Current (Ir)",
+     "value": "1mA@100V"
+    }
+   ],
+   "alternates": [
+    {
+     "mpn": "SS510B",
+     "lcsc": "C65011",
+     "note": "Same die in SMB (DO-214AA), 98190 pcs, $0.0748. Smaller body, worse thermal path - only if board area forces it."
+    }
+   ],
+   "role": "U20 catch diode, the part the SCT2A25 datasheet names. SMC (DO-214AB) taken over SMA/SMB for the thermal path: it DISSIPATES MORE THAN THE BUCK IC (~0.54 W vs ~0.43 W at the at operating point), and its layout requirement is >= 100 mm2 of F.Cu on the cathode - a via field is not an option because the tab is the switch node. Placement must not treat U20 as 'the hot part' and starve D20 of copper."
+  },
+  {
+   "ref_prefix_hint": "U",
+   "block": "pwr",
+   "mpn": "TPS563201DDCR",
+   "lcsc": "C116592",
+   "value": "TPS563201DDCR",
+   "qty_per_board": 1,
+   "refs": [
+    "U21"
+   ],
+   "package": "SOT-23-THIN-6",
+   "basic": false,
+   "stock": 105187,
+   "price": 0.0735,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0735
+    },
+    {
+     "qty": 100,
+     "price": 0.0601
+    },
+    {
+     "qty": 300,
+     "price": 0.0531
+    },
+    {
+     "qty": 3000,
+     "price": 0.0475
+    },
+    {
+     "qty": 6000,
+     "price": 0.0454
+    },
+    {
+     "qty": 9000,
+     "price": 0.0441
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304241919_Texas-Instruments-TPS563201DDCR_C116592.pdf",
+   "url": "https://www.lcsc.com/product-detail/dc-dc-converters_texas-instruments-tps563201ddcr_C116592.html",
+   "brand": "Texas Instruments",
+   "attributes": [
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+125\u2103@(TJ)"
+    },
+    {
+     "name": "Function",
+     "value": "Step-down type"
+    },
+    {
+     "name": "Synchronous Rectifier",
+     "value": "Yes"
+    },
+    {
+     "name": "Frequency - Switching",
+     "value": "580kHz"
+    },
+    {
+     "name": "Output Type",
+     "value": "Adjustable"
+    },
+    {
+     "name": "Voltage - Supply",
+     "value": "4.5V~17V"
+    },
+    {
+     "name": "Output Current",
+     "value": "3A"
+    },
+    {
+     "name": "Quiescent Current",
+     "value": "380uA"
+    },
+    {
+     "name": "Features",
+     "value": "Overcurrent Protection\u3001Light load efficient mode\u3001Cycle-by-cycle current limiting\u3001Hiccup current limiting"
+    },
+    {
+     "name": "Switch tube (built-in/external)",
+     "value": "Built-in"
+    },
+    {
+     "name": "Topology",
+     "value": "Buck"
+    },
+    {
+     "name": "Output Voltage",
+     "value": "768mV~7V"
+    },
+    {
+     "name": "Number of Outputs",
+     "value": "1"
+    }
+   ],
+   "alternates": [],
+   "role": "12 V -> 3.3 V synchronous buck, SOT-23-THIN-6, 4.5-17 V in, 3 A, 580 kHz, EN pin. An LDO here is DISQUALIFIED, not merely inefficient: (12 - 3.3) x 0.7 A = 6.1 W, four times the entire carrier-overhead allocation, in a sealed box. The one JLC Basic candidate (TPS5430) is non-synchronous and costs ~0.3 W more at this duty, which is what rejects it - not price. No clean pin-compatible alternate is recorded: SY8113BADC has a different pinout, and the MSTPS563201DDCR clone (C49208507) carries no fetchable datasheet, so it is not a verified candidate. Mitigated by 105187 pcs = 751x the build. 12 V sits at 71% of the 17 V ceiling - check against +12V transients at P4."
+  },
+  {
+   "ref_prefix_hint": "L",
+   "block": "pwr",
+   "mpn": "SLO0530H4R7MTT",
+   "lcsc": "C325964",
+   "value": "4.7uH 4A 46mohm inductor",
+   "qty_per_board": 1,
+   "refs": [
+    "L21"
+   ],
+   "package": "SMD,5.4x5.2mm",
+   "basic": false,
+   "stock": 35684,
+   "price": 0.1493,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.1493
+    },
+    {
+     "qty": 50,
+     "price": 0.1198
+    },
+    {
+     "qty": 150,
+     "price": 0.1051
+    },
+    {
+     "qty": 500,
+     "price": 0.0941
+    },
+    {
+     "qty": 2000,
+     "price": 0.0782
+    },
+    {
+     "qty": 4000,
+     "price": 0.0736
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Sunltech-Tech-SLO0530H4R7MTT_C325964.pdf",
+   "url": "https://www.lcsc.com/product-detail/power-inductors_sunltech-tech-slo0530h4r7mtt_C325964.html",
+   "brand": "Sunltech Tech",
+   "attributes": [
+    {
+     "name": "Current - Saturation(Isat)",
+     "value": "4.5A"
+    },
+    {
+     "name": "Inductance",
+     "value": "4.7uH"
+    },
+    {
+     "name": "Type",
+     "value": "Molded Inductor"
+    },
+    {
+     "name": "Tolerance",
+     "value": "\u00b120%"
+    },
+    {
+     "name": "Current Rating",
+     "value": "4A"
+    },
+    {
+     "name": "DC Resistance(DCR)",
+     "value": "46m\u03a9"
+    }
+   ],
+   "alternates": [],
+   "role": "U21 output inductor. 4 A rated / 4.5 A saturation and 46 mohm against a 1.0 A design rail with a 1.21 A ms-scale peak (Wi-Fi TX + W5500 TX + daughter). 5.4 x 5.2 mm."
+  },
+  {
+   "ref_prefix_hint": "U",
+   "block": "pwr",
+   "mpn": "TPS16630PWPR",
+   "lcsc": "C1849461",
+   "value": "TPS16630PWPR",
+   "qty_per_board": 1,
+   "refs": [
+    "U22"
+   ],
+   "package": "HTSSOP-20",
+   "basic": false,
+   "stock": 2055,
+   "price": 2.127,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 2.545
+    },
+    {
+     "qty": 10,
+     "price": 2.127
+    },
+    {
+     "qty": 30,
+     "price": 1.8639
+    },
+    {
+     "qty": 100,
+     "price": 1.5961
+    },
+    {
+     "qty": 500,
+     "price": 1.475
+    },
+    {
+     "qty": 1000,
+     "price": 1.4218
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2410121730_Texas-Instruments-TPS16630PWPR_C1849461.pdf",
+   "url": "https://www.lcsc.com/product-detail/surge-protection-devices-spds_texas-instruments-tps16630pwpr_C1849461.html",
+   "brand": "Texas Instruments",
+   "attributes": [
+    {
+     "name": "Voltage Rating",
+     "value": "4.5V~60V"
+    },
+    {
+     "name": "FET Type",
+     "value": "Integrated FET"
+    },
+    {
+     "name": "Trigger Current",
+     "value": "600mA~6A"
+    },
+    {
+     "name": "Mounting Type",
+     "value": "Surface Mount"
+    },
+    {
+     "name": "RDS(on)",
+     "value": "30.44m\u03a9"
+    },
+    {
+     "name": "Length",
+     "value": "6.5mm"
+    },
+    {
+     "name": "Number of Lines",
+     "value": "1"
+    },
+    {
+     "name": "Features",
+     "value": "Overcurrent Protection\u3001Short-Circuit  Protection\u3001Under-voltage lockout\u3001Thermal Protection\u3001Overvoltage clamping protection\u3001Overload protection"
+    },
+    {
+     "name": "Height",
+     "value": "1.2mm"
+    },
+    {
+     "name": "Width",
+     "value": "4.4mm"
+    },
+    {
+     "name": "Operating temperature",
+     "value": "-40\u2103~+125\u2103"
+    }
+   ],
+   "alternates": [],
+   "role": "60 V eFuse / load switch gating +48V_SW to the expansion connector, HTSSOP-20 PowerPAD. 4.5-60 V op / 67 V abs, ILIM adjustable 0.6-6 A +-7%, adjustable UVLO and OVP, dV/dT inrush ramp, latch-or-retry MODE, PGOOD, open-drain FLT, and an analogue IMON current monitor that closes the firmware energy governor's loop for zero extra parts. CONFIGURATION THAT IS NOT OPTIONAL, now set from the extracted datasheet (parts\\C1849461.json, SLVSET9G Rev G): R65 = 18 kohm for the 1.0 A limit (R(ILIM) = 18 / I(OL), TI's own 1 A example), C59 = 10 nF minimum on dVdT, R68 = 30 kohm on IMON, and the UVLO/OVP function is a THREE-resistor string R66/R67/R73 = 1 M / 12.4 k / 20 k giving UVLO 38.2 V and OVP cutoff 61.9 V. MODE open = LATCH OFF (auto-retry into a browning-out daughter produces restart oscillation), and a 10 k pull-down on SHDN (R69) because the datasheet's SHDN open-circuit voltage is 2.48-3.3 V with a 10 uA source - AN UNCONNECTED SHDN FLOATS HIGH AND THE DEVICE POWERS UP ON. That pull-down IS the CAR-REQ-08 fail-safe (must default OFF with no MCU present). NO PIN-COMPATIBLE ALTERNATE - deliberate empty list: TPS26600 is a different pinout and cannot pass 3 A, and the LM5069 fallback is a controller + external FET + shunt, i.e. a redesign. Stock 2055 = 146x the build but thin for a re-order; buy with the board order. RESIDUAL RISK carried from research: the SMBJ58A clamps at up to 93.6 V against this part's 67 V abs max, which is only defensible because U22 sits DOWNSTREAM of U1's hot-swap FET and CBULK, not on the rectified input. If placement ever moves it upstream, the part must change to LM5069 + a 100 V FET."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "pwr",
+   "mpn": "0603WAF1802T5E",
+   "lcsc": "C25810",
+   "value": "18k 1% 0603",
+   "qty_per_board": 1,
+   "refs": [
+    "R65"
+   ],
+   "package": "0603",
+   "basic": true,
+   "stock": 1357698,
+   "price": 0.0076,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0076
+    },
+    {
+     "qty": 1000,
+     "price": 0.0067
+    },
+    {
+     "qty": 5000,
+     "price": 0.0061
+    },
+    {
+     "qty": 10000,
+     "price": 0.0059
+    },
+    {
+     "qty": 50000,
+     "price": 0.0056
+    },
+    {
+     "qty": 50200,
+     "price": 0.0056
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010045_UNI-ROYAL-Uniroyal-Elec-0603WAF1802T5E_C25810.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0603waf1802t5e_C25810.html",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {
+     "name": "Resistance",
+     "value": "18k\u03a9"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-55\u2103~+155\u2103"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "100mW"
+    },
+    {
+     "name": "Type",
+     "value": "Thick Film Resistor"
+    },
+    {
+     "name": "Voltage-Supply(Max)",
+     "value": "75V"
+    },
+    {
+     "name": "Tolerance",
+     "value": "\u00b11%"
+    },
+    {
+     "name": "Temperature Coefficient",
+     "value": "\u00b1100ppm/\u2103"
+    }
+   ],
+   "alternates": [],
+   "role": "U22 ILIM, CORRECTED after datasheet extraction. parts\\C1849461.json: R(ILIM) = 18 / I(OL) with R in kohm and I in A (Eq 6/10), so a 1.0 A overload limit needs 18 kohm - and 18 kohm is TI's own worked 1 A example (sec 9.2.2.1, and Figures 8-6/8-7/8-8 are captured at that value). My original 49.9 k would have limited at 18/49.9 = 0.36 A, which is BELOW the ICD's 0.50 A at-case sustained rating on +48V_SW - the daughter would have tripped the eFuse in normal operation. ILIM is a GND-referenced programming pin, never on the 48 V domain, so 0603 is correct here. Recommended R(ILIM) range is 3-30 kohm and UL 2367 recognition requires >= 3 kohm; 18 k sits mid-range. JLC Basic."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "pwr",
+   "mpn": "0805W8F2002T5E",
+   "lcsc": "C4328",
+   "value": "20k 1% 0805",
+   "qty_per_board": 1,
+   "refs": [
+    "R73"
+   ],
+   "package": "0805",
+   "basic": true,
+   "stock": 3221497,
+   "price": 0.0123,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0123
+    },
+    {
+     "qty": 1000,
+     "price": 0.0111
+    },
+    {
+     "qty": 5000,
+     "price": 0.0106
+    },
+    {
+     "qty": 10000,
+     "price": 0.0101
+    },
+    {
+     "qty": 50000,
+     "price": 0.01
+    },
+    {
+     "qty": 100000,
+     "price": 0.0099
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010216_UNI-ROYAL-Uniroyal-Elec-0805W8F2002T5E_C4328.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0805w8f2002t5e_C4328.html",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {
+     "name": "Resistance",
+     "value": "20k\u03a9"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-55\u2103~+155\u2103"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "125mW"
+    },
+    {
+     "name": "Type",
+     "value": "Thick Film Resistor"
+    },
+    {
+     "name": "Voltage-Supply(Max)",
+     "value": "150V"
+    },
+    {
+     "name": "Tolerance",
+     "value": "\u00b11%"
+    },
+    {
+     "name": "Temperature Coefficient",
+     "value": "\u00b1100ppm/\u2103"
+    }
+   ],
+   "alternates": [],
+   "role": "U22 OVP-to-GND bottom leg, the third resistor of the UVLO/OVP string (see R66). NEW REFDES: the sheets.md allocation gave R65-R68 for ILIM + divider + IMON + dV/dT, which is one resistor short - the extraction shows UVLO and OVP share a THREE-resistor string (R1 IN-UVLO, R2 UVLO-OVP, R3 OVP-GND, Figure 8-3), not a two-resistor divider. R73 is free in the pwr sheet's R60-R99 block. 0805 per the 48 V-domain rule even though the node itself only reaches ~1.1 V, because an open top leg would expose it to the rail. JLC Basic."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "pwr",
+   "mpn": "0805W8F1004T5E",
+   "lcsc": "C17514",
+   "value": "1M 1% 0805",
+   "qty_per_board": 1,
+   "refs": [
+    "R66"
+   ],
+   "package": "0805",
+   "basic": true,
+   "stock": 3633199,
+   "price": 0.0093,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0093
+    },
+    {
+     "qty": 1000,
+     "price": 0.0084
+    },
+    {
+     "qty": 5000,
+     "price": 0.0078
+    },
+    {
+     "qty": 10000,
+     "price": 0.0075
+    },
+    {
+     "qty": 50000,
+     "price": 0.0073
+    },
+    {
+     "qty": 100000,
+     "price": 0.0071
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010200_UNI-ROYAL-Uniroyal-Elec-0805W8F1004T5E_C17514.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0805w8f1004t5e_C17514.html",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {
+     "name": "Resistance",
+     "value": "1M\u03a9"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-55\u2103~+155\u2103"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "125mW"
+    },
+    {
+     "name": "Type",
+     "value": "Thick Film Resistor"
+    },
+    {
+     "name": "Voltage-Supply(Max)",
+     "value": "150V"
+    },
+    {
+     "name": "Tolerance",
+     "value": "\u00b11%"
+    },
+    {
+     "name": "Temperature Coefficient",
+     "value": "\u00b1100ppm/\u2103"
+    }
+   ],
+   "alternates": [],
+   "role": "U22 UVLO/OVP divider TOP leg (IN to UVLO) - the only resistor on the board that sees the full 57 V continuously. Sized after datasheet extraction: with R66 = 1 M, R67 = 12.4 k and R73 = 20 k the string gives UVLO rising 38.2 V / falling 35.8 V (inside power_tree.md s6's 36-40 V turn-on window) and OVP cutoff rising 61.9 V / falling 57.9 V, which sits above the 57 V PSE maximum and below the part's 67 V abs max. Divider current is 46.5 uA at 48 V, comfortably over the >= 20x pin-leakage rule (3 uA) the datasheet gives in sec 9.2.2.2. 3.2 mW at 57 V. P4 REVIEW ITEM: the OVP FALLING threshold is only ~0.9 V above the 57 V worst case, so after an overvoltage event the rail must drop below 57.9 V to re-enable - re-tunable within these same stocked values if that margin is judged too thin. NOTE UVLO must never be left floating (sec 8.3.2) and OVP is a LOW-VOLTAGE pin (0-4 V rec, 5.5 V abs max) that must never see the raw rail. JLC Basic."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "pwr",
+   "mpn": "0603WAF3002T5E",
+   "lcsc": "C22984",
+   "value": "30k 1% 0603",
+   "qty_per_board": 2,
+   "refs": [
+    "R61",
+    "R68"
+   ],
+   "package": "0603",
+   "basic": true,
+   "stock": 3255783,
+   "price": 0.0121,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0121
+    },
+    {
+     "qty": 1000,
+     "price": 0.011
+    },
+    {
+     "qty": 5000,
+     "price": 0.0104
+    },
+    {
+     "qty": 10000,
+     "price": 0.0099
+    },
+    {
+     "qty": 50000,
+     "price": 0.0096
+    },
+    {
+     "qty": 100000,
+     "price": 0.0095
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010116_UNI-ROYAL-Uniroyal-Elec-0603WAF3002T5E_C22984.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0603waf3002t5e_C22984.html",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {
+     "name": "Resistance",
+     "value": "30k\u03a9"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-55\u2103~+155\u2103"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "100mW"
+    },
+    {
+     "name": "Type",
+     "value": "Thick Film Resistor"
+    },
+    {
+     "name": "Voltage-Supply(Max)",
+     "value": "75V"
+    },
+    {
+     "name": "Tolerance",
+     "value": "\u00b11%"
+    },
+    {
+     "name": "Temperature Coefficient",
+     "value": "\u00b1100ppm/\u2103"
+    }
+   ],
+   "alternates": [],
+   "role": "TWO uses, both set by datasheet extraction. R61 = the SCT2A25 +12V feedback divider BOTTOM leg (with R60 = 270 k). R68 = U22 IMON scaling: V(IMON) = I(OUT) x 27.9 uA/A x R(IMON), so 30 k gives 0.837 V at the 1.0 A eFuse limit and 0.209 V at the af sustained 0.25 A - this is TI's own 1 A example value, and it maps the full eFuse range onto the ESP32-S3 ADC1 0 dB attenuation window (~0-950 mV) where linearity is best. My original 49.9 k would have read 1.39 V at 1.0 A - legal (the IMON ceiling is 4 V) but a worse ADC fit. DATASHEET RULE for P4: IMON must have NO bypass capacitor, or the current reading is delayed. JLC Basic."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "pwr",
+   "mpn": "0603WAF2703T5E",
+   "lcsc": "C22965",
+   "value": "270k 1% 0603",
+   "qty_per_board": 1,
+   "refs": [
+    "R60"
+   ],
+   "package": "0603",
+   "basic": false,
+   "stock": 161541,
+   "price": 0.0029,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0029
+    },
+    {
+     "qty": 1000,
+     "price": 0.0025
+    },
+    {
+     "qty": 5000,
+     "price": 0.0023
+    },
+    {
+     "qty": 10000,
+     "price": 0.0022
+    },
+    {
+     "qty": 50000,
+     "price": 0.0021
+    },
+    {
+     "qty": 50200,
+     "price": 0.0021
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010130_UNI-ROYAL-Uniroyal-Elec-0603WAF2703T5E_C22965.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0603waf2703t5e_C22965.html",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {
+     "name": "Resistance",
+     "value": "270k\u03a9"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-55\u2103~+155\u2103"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "100mW"
+    },
+    {
+     "name": "Type",
+     "value": "Thick Film Resistor"
+    },
+    {
+     "name": "Voltage-Supply(Max)",
+     "value": "75V"
+    },
+    {
+     "name": "Tolerance",
+     "value": "\u00b11%"
+    },
+    {
+     "name": "Temperature Coefficient",
+     "value": "\u00b1100ppm/\u2103"
+    }
+   ],
+   "alternates": [],
+   "role": "U20 +12V feedback divider TOP leg. CORRECTED after datasheet extraction, and this was the most serious error in the P3 BOM: parts\\C5124114.json states the SCT2A25 feedback reference is 1.2 V +/-1% (1.188/1.2/1.212), explicitly 'NOT 0.8 V'. My original 140k/10k on an assumed 0.8 V reference would have produced 1.2 x 15 = 18.0 V on the +12V rail, over the rating of the TPS563201 (17 V max) and of every 25 V output capacitor after derating. USING 270k/30k RATHER THAN THE DATASHEET'S 271k/30k: 271 k is a real E96 value but is ZERO STOCK on LCSC in both 0603 and 0805 (all six listings are 0 pcs), whereas 270 k gives a ratio of exactly 9.000 and therefore 1.2 x 10 = 12.000 V - marginally closer to nominal than the datasheet pair's 12.04 V. 161541 pcs."
+  },
+  {
+   "ref_prefix_hint": "C",
+   "block": "pwr",
+   "mpn": "CC0603JRNPO9BN151",
+   "lcsc": "C107038",
+   "value": "150pF 50V NP0 0603",
+   "qty_per_board": 1,
+   "refs": [
+    "C60"
+   ],
+   "package": "0603",
+   "basic": false,
+   "stock": 295537,
+   "price": 0.0081,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0081
+    },
+    {
+     "qty": 1000,
+     "price": 0.007
+    },
+    {
+     "qty": 4000,
+     "price": 0.0065
+    },
+    {
+     "qty": 8000,
+     "price": 0.0061
+    },
+    {
+     "qty": 48000,
+     "price": 0.0058
+    },
+    {
+     "qty": 100000,
+     "price": 0.0057
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_YAGEO-CC0603JRNPO9BN151_C107038.pdf",
+   "url": "https://www.lcsc.com/product-detail/multilayer-ceramic-capacitors-mlcc-smd-smt_yageo-cc0603jrnpo9bn151_C107038.html",
+   "brand": "YAGEO",
+   "attributes": [
+    {
+     "name": "Voltage Rating",
+     "value": "50V"
+    },
+    {
+     "name": "Tolerance",
+     "value": "\u00b15%"
+    },
+    {
+     "name": "Capacitance",
+     "value": "150pF"
+    },
+    {
+     "name": "Temperature Coefficient",
+     "value": "NP0"
+    }
+   ],
+   "alternates": [],
+   "role": "Feedforward capacitor across R60, the +12V feedback divider top leg. NEW PART, added after datasheet extraction: the SCT2A25's 48 V -> 12 V / 2 A design example ships this cap and the datasheet calls it NECESSARY for loop stability, not optional - a COT converter with a 300 kohm feedback string needs the zero it provides. NP0/C0G, 5 % tolerance."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "pwr",
+   "mpn": "0805W8F1003T5E",
+   "lcsc": "C149504",
+   "value": "100k 1% 0805",
+   "qty_per_board": 1,
+   "refs": [
+    "R70"
+   ],
+   "package": "0805",
+   "basic": true,
+   "stock": 6343814,
+   "price": 0.0103,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0103
+    },
+    {
+     "qty": 1000,
+     "price": 0.0091
+    },
+    {
+     "qty": 5000,
+     "price": 0.0085
+    },
+    {
+     "qty": 10000,
+     "price": 0.0081
+    },
+    {
+     "qty": 50000,
+     "price": 0.0079
+    },
+    {
+     "qty": 100000,
+     "price": 0.0078
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2205312316_UNI-ROYAL-Uniroyal-Elec-0805W8F1003T5E_C149504.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0805w8f1003t5e_C149504.html",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {
+     "name": "Resistance",
+     "value": "100k\u03a9"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-55\u2103~+155\u2103"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "125mW"
+    },
+    {
+     "name": "Type",
+     "value": "Thick Film Resistor"
+    },
+    {
+     "name": "Voltage-Supply(Max)",
+     "value": "150V"
+    },
+    {
+     "name": "Tolerance",
+     "value": "\u00b11%"
+    },
+    {
+     "name": "Temperature Coefficient",
+     "value": "\u00b1100ppm/\u2103"
+    }
+   ],
+   "alternates": [],
+   "role": "R70 = the carrier-side bleed on +48V_SW. De-energises the connector's 48 V pins whenever ENABLE is low; 0.5 mA / 23 mW. 0805 per the 48 V-domain rule - 0603 parts are 75 V working and must not be used here. JLC Basic."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "pwr",
+   "mpn": "0603WAF3302T5E",
+   "lcsc": "C4216",
+   "value": "33k 1% 0603",
+   "qty_per_board": 1,
+   "refs": [
+    "R63"
+   ],
+   "package": "0603",
+   "basic": true,
+   "stock": 745217,
+   "price": 0.0021,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0021
+    },
+    {
+     "qty": 1000,
+     "price": 0.0018
+    },
+    {
+     "qty": 5000,
+     "price": 0.0017
+    },
+    {
+     "qty": 10000,
+     "price": 0.0016
+    },
+    {
+     "qty": 50000,
+     "price": 0.0015
+    },
+    {
+     "qty": 50200,
+     "price": 0.0015
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010230_UNI-ROYAL-Uniroyal-Elec-0603WAF3302T5E_C4216.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0603waf3302t5e_C4216.html",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {
+     "name": "Resistance",
+     "value": "33k\u03a9"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-55\u2103~+155\u2103"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "100mW"
+    },
+    {
+     "name": "Type",
+     "value": "Thick Film Resistor"
+    },
+    {
+     "name": "Voltage-Supply(Max)",
+     "value": "75V"
+    },
+    {
+     "name": "Tolerance",
+     "value": "\u00b11%"
+    },
+    {
+     "name": "Temperature Coefficient",
+     "value": "\u00b1100ppm/\u2103"
+    }
+   ],
+   "alternates": [
+    {
+     "mpn": "RC0603FR-0733K2L",
+     "lcsc": "C185338",
+     "note": "33.2 k, the datasheet Table 2 value (33.2k/10.0k = 3.318 V). Extended, 100723 pcs, $0.0075 vs Basic 33 k at $0.0021 - swap only if a P4 review wants the datasheet pair verbatim."
+    }
+   ],
+   "role": "U21 +3V3 feedback divider, top leg. VERIFIED, not corrected: parts\\C116592.json confirms the TPS563201 reference is 768 mV typ (749/787 min/max) and Equation 2 is VOUT = 0.768 x (1 + R1/R2), so my assumed value was right. 33k/10k gives 3.302 V; the datasheet's own table pair is 33.2k/10.0k = 3.318 V. KEEPING 33 k: it is JLC Basic at a third of the price, and 3.302 V is if anything closer to nominal 3.3 V than the datasheet pair. Both are inside the ESP32-S3 and W5500 supply windows. JLC Basic."
+  },
+  {
+   "ref_prefix_hint": "C",
+   "block": "pwr",
+   "mpn": "TCC1206X5R226M250HT",
+   "lcsc": "C380359",
+   "value": "22uF 25V X5R 1206",
+   "qty_per_board": 6,
+   "refs": [
+    "C52",
+    "C53",
+    "C55",
+    "C56",
+    "C57",
+    "C80"
+   ],
+   "package": "1206",
+   "basic": false,
+   "stock": 32054,
+   "price": 0.088,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.1062
+    },
+    {
+     "qty": 50,
+     "price": 0.088
+    },
+    {
+     "qty": 150,
+     "price": 0.0788
+    },
+    {
+     "qty": 500,
+     "price": 0.0719
+    },
+    {
+     "qty": 2000,
+     "price": 0.0664
+    },
+    {
+     "qty": 4000,
+     "price": 0.0636
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2306211540_CCTC-TCC1206X5R226M250HT_C380359.pdf",
+   "url": "https://www.lcsc.com/product-detail/multilayer-ceramic-capacitors-mlcc-smd-smt_cctc-tcc1206x5r226m250ht_C380359.html",
+   "brand": "CCTC",
+   "attributes": [
+    {
+     "name": "Voltage Rating",
+     "value": "25V"
+    },
+    {
+     "name": "Tolerance",
+     "value": "\u00b120%"
+    },
+    {
+     "name": "Capacitance",
+     "value": "22uF"
+    },
+    {
+     "name": "Temperature Coefficient",
+     "value": "X5R"
+    }
+   ],
+   "alternates": [
+    {
+     "mpn": "CL31A226KAHNNNE",
+     "lcsc": "C12891",
+     "note": "Samsung, JLC Basic, 1046995 pcs - but $0.4138 vs $0.1062, i.e. ~$1.85/board more to save one feeder fee. Not worth it at 14 boards."
+    }
+   ],
+   "role": "Bulk on the low-voltage rails: C52/C53 = +12V output, C55 = U21 input, C56/C57 = +3V3 output, C80 = the ESP32-S3 module's local bulk (the module datasheet independently requires a supply able to deliver >= 500 mA, and the 355 mA Wi-Fi TX burst is served by local bulk, not by the converter). 1206 rather than 0805 to limit DC-bias derating on the 12 V rail."
+  },
+  {
+   "ref_prefix_hint": "D",
+   "block": "pwr",
+   "mpn": "KT-0805G",
+   "lcsc": "C2297",
+   "value": "Green LED 0805",
+   "qty_per_board": 2,
+   "refs": [
+    "D21",
+    "D30"
+   ],
+   "package": "0805",
+   "basic": true,
+   "stock": 2975392,
+   "price": 0.0162,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0162
+    },
+    {
+     "qty": 500,
+     "price": 0.0126
+    },
+    {
+     "qty": 3000,
+     "price": 0.01
+    },
+    {
+     "qty": 6000,
+     "price": 0.0088
+    },
+    {
+     "qty": 24000,
+     "price": 0.0083
+    },
+    {
+     "qty": 51000,
+     "price": 0.008
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_1806151820_Hubei-KENTO-Elec-KT-0805G_C2297.pdf",
+   "url": "https://www.lcsc.com/product-detail/led-indication-discrete_hubei-kento-elec-kt-0805g_C2297.html",
+   "brand": "Hubei KENTO Elec",
+   "attributes": [
+    {
+     "name": "Wavelength - Dominant",
+     "value": "513nm~528nm"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+85\u2103"
+    },
+    {
+     "name": "Viewing Angle",
+     "value": "120\u00b0"
+    },
+    {
+     "name": "Lamp Holder Type",
+     "value": "2mm x 1.25mm square LED"
+    },
+    {
+     "name": "Forward Current",
+     "value": "5mA"
+    },
+    {
+     "name": "Luminous Intensity",
+     "value": "430mcd"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "100mW"
+    },
+    {
+     "name": "Diode Configuration",
+     "value": "Discrete Diode"
+    },
+    {
+     "name": "Illumination Color",
+     "value": "Emerald Green"
+    },
+    {
+     "name": "Lens Color",
+     "value": "Water Clear"
+    },
+    {
+     "name": "Peak Wavelength",
+     "value": "525nm"
+    },
+    {
+     "name": "Voltage - Forward(Vf)",
+     "value": "2.6V~3.1V"
+    }
+   ],
+   "alternates": [],
+   "role": "D21 = power-good, driven straight from U22's PGOOD pin with NO GPIO. D30 = the ESP32-S3 firmware heartbeat / commissioning LED on GPIO48. The only JLC Basic green LED is 0805, which is why the board deliberately mixes 0603 red with 0805 green. Visible through the RJ45 cutout per Q11's default."
+  },
+  {
+   "ref_prefix_hint": "D",
+   "block": "pwr",
+   "mpn": "KT-0603R",
+   "lcsc": "C2286",
+   "value": "Red LED 0603",
+   "qty_per_board": 1,
+   "refs": [
+    "D22"
+   ],
+   "package": "0603",
+   "basic": true,
+   "stock": 7589979,
+   "price": 0.0074,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0074
+    },
+    {
+     "qty": 1000,
+     "price": 0.0057
+    },
+    {
+     "qty": 4000,
+     "price": 0.0044
+    },
+    {
+     "qty": 8000,
+     "price": 0.0038
+    },
+    {
+     "qty": 48000,
+     "price": 0.0036
+    },
+    {
+     "qty": 100000,
+     "price": 0.0035
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_1810231112_Hubei-KENTO-Elec-KT-0603R_C2286.pdf",
+   "url": "https://www.lcsc.com/product-detail/led-indication-discrete_hubei-kento-elec-kt-0603r_C2286.html",
+   "brand": "Hubei KENTO Elec",
+   "attributes": [
+    {
+     "name": "Wavelength - Dominant",
+     "value": "615nm~630nm"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+85\u2103"
+    },
+    {
+     "name": "Viewing Angle",
+     "value": "120\u00b0"
+    },
+    {
+     "name": "Lamp Holder Type",
+     "value": "1.6mm x 0.8mm square LED"
+    },
+    {
+     "name": "Forward Current",
+     "value": "20mA"
+    },
+    {
+     "name": "Luminous Intensity",
+     "value": "300mcd"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "40mW"
+    },
+    {
+     "name": "Diode Configuration",
+     "value": "Discrete Diode"
+    },
+    {
+     "name": "Illumination Color",
+     "value": "Red"
+    },
+    {
+     "name": "Lens Color",
+     "value": "Water Clear"
+    },
+    {
+     "name": "Peak Wavelength",
+     "value": "645nm"
+    },
+    {
+     "name": "Voltage - Forward(Vf)",
+     "value": "1.8V~2.4V"
+    }
+   ],
+   "alternates": [],
+   "role": "D22 = fault, driven straight from U22's open-drain FLT output with NO GPIO. JLC Basic, 0.7 cents."
+  },
+  {
+   "ref_prefix_hint": "U",
+   "block": "mcu",
+   "mpn": "ESP32-S3-WROOM-1-N8",
+   "lcsc": "C2913198",
+   "value": "ESP32-S3-WROOM-1-N8",
+   "qty_per_board": 1,
+   "refs": [
+    "U30"
+   ],
+   "package": "SMD,25.5x18mm",
+   "basic": false,
+   "stock": 6895,
+   "price": 4.6428,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 5.3271
+    },
+    {
+     "qty": 10,
+     "price": 4.6428
+    },
+    {
+     "qty": 30,
+     "price": 4.2362
+    },
+    {
+     "qty": 100,
+     "price": 3.8263
+    },
+    {
+     "qty": 650,
+     "price": 3.6359
+    },
+    {
+     "qty": 1300,
+     "price": 3.5503
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2410301608_Espressif-Systems-ESP32-S3-WROOM-1-N8_C2913198.pdf",
+   "url": "https://www.lcsc.com/product-detail/wifi-modules_espressif-systems-esp32-s3-wroom-1-n8_C2913198.html",
+   "brand": "Espressif Systems",
+   "attributes": [
+    {
+     "name": "Antenna Type",
+     "value": "On-board PCB Antenna"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+85\u2103"
+    },
+    {
+     "name": "Sensitivity",
+     "value": "-98.2dBm"
+    },
+    {
+     "name": "Output Power",
+     "value": "20.5dBm"
+    },
+    {
+     "name": "Voltage - Supply",
+     "value": "3V~3.6V"
+    },
+    {
+     "name": "Frequency",
+     "value": "2.4GHz"
+    },
+    {
+     "name": "Utilized IC / Part",
+     "value": "ESP32-S3 Chip"
+    },
+    {
+     "name": "Interface Type",
+     "value": "UART\u3001SPI\u3001I2C\u3001I2S\u3001USB"
+    },
+    {
+     "name": "Send  Current",
+     "value": "355mA"
+    },
+    {
+     "name": "Wireless Standard",
+     "value": "Bluetooth5.0"
+    },
+    {
+     "name": "Receive  Current",
+     "value": "95mA"
+    }
+   ],
+   "alternates": [
+    {
+     "mpn": "ESP32-S3-WROOM-1-N8R2",
+     "lcsc": "C2913204",
+     "note": "Same land pattern, same -40..+85 C ambient. QUAD PSRAM uses the flash lines, NOT IO35/36/37, so it is genuinely pin-compatible with this design. 19068 pcs, $4.8462@10."
+    },
+    {
+     "mpn": "ESP32-S3-WROOM-1-N16R2",
+     "lcsc": "C2913205",
+     "note": "Same land pattern, 16 MB flash + quad PSRAM, IO35/36/37 free, 6783 pcs, $4.6945@1. Second choice only because the OTA partition plan is sized against 8 MB."
+    },
+    {
+     "mpn": "ESP32-S3-WROOM-1-N4",
+     "lcsc": "C2913197",
+     "note": "Same land pattern, -40..+85 C, 5951 pcs, $4.1571@10. 4 MB flash is tight against Ethernet OTA's two app partitions plus NVS - fallback only."
+    }
+   ],
+   "role": "MCU, pre-certified module WITH THE PCB ANTENNA. The -1U (u.FL, C2980297) is explicitly NOT taken: H1 closed Q8 as 'Wi-Fi functional, a supported control path', so the on-module PCB antenna is required and its ~6 x 18 mm keepout is a permanent outline constraint. The -N8 SKU is frozen by the architecture, not merely preferred: GPIO35/36/37 are in use and they are wired to the OCTAL PSRAM on -N8R8 / -N16R8V, and -N16R8V additionally puts GPIO47/48 at 1.8 V (both in use). Ambient is the second reason: -40..+85 C on -N8 versus -40..+65 C on the R8 parts, against a computed internal air of 56 C (af) / 69 C (at) - 16 C of margin at the at point. Module vs bare chip: the bare-chip saving is $0.16-$1.28/unit = $2-$18 across the whole build, against RF layout, a pi-match, 80 MHz quad-SPI flash routing, modular certification and a QFN-56-EP. The saving does not exist."
+  },
+  {
+   "ref_prefix_hint": "J",
+   "block": "mcu",
+   "mpn": "DS1021-1x6SF11-B",
+   "lcsc": "C7430362",
+   "value": "DS1021-1x6SF11-B 1x6 2.54mm header",
+   "qty_per_board": 1,
+   "refs": [
+    "J2"
+   ],
+   "package": "Plugin,P=2.54mm",
+   "basic": false,
+   "stock": 4272,
+   "price": 0.0307,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0307
+    },
+    {
+     "qty": 200,
+     "price": 0.0238
+    },
+    {
+     "qty": 1000,
+     "price": 0.0201
+    },
+    {
+     "qty": 2000,
+     "price": 0.0176
+    },
+    {
+     "qty": 10000,
+     "price": 0.0157
+    },
+    {
+     "qty": 20000,
+     "price": 0.0146
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2312201431_CONNFLY-Elec-DS1021-1x6SF11-B_C7430362.pdf",
+   "url": "https://www.lcsc.com/product-detail/pin-headers_connfly-elec-ds1021-1x6sf11-b_C7430362.html",
+   "brand": "CONNFLY Elec",
+   "attributes": [
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+105\u2103"
+    },
+    {
+     "name": "Number of Rows",
+     "value": "1"
+    },
+    {
+     "name": "Voltage Rating (Max)",
+     "value": "250V"
+    },
+    {
+     "name": "Color",
+     "value": "Black"
+    },
+    {
+     "name": "Contact Plating",
+     "value": "Gold"
+    },
+    {
+     "name": "Number of Pins",
+     "value": "6P"
+    },
+    {
+     "name": "Current Rating",
+     "value": "3A"
+    },
+    {
+     "name": "Pitch",
+     "value": "2.54mm"
+    },
+    {
+     "name": "Contact Material",
+     "value": "Copper alloy"
+    },
+    {
+     "name": "Pin Structure",
+     "value": "1x6P"
+    },
+    {
+     "name": "Mounting Type",
+     "value": "Through Hole"
+    },
+    {
+     "name": "Circluar Pins/Square Pins",
+     "value": "Pin Header"
+    }
+   ],
+   "alternates": [],
+   "role": "Recovery header (Q9 default b): GND, +3V3, TXD0, RXD0, EN, BOOT. Same CONNFLY DS1021 family as J3/J4 so the whole board uses one header vendor and one land-pattern family. 2.54 mm THT male, gold, 250 V / 3 A, 4272 pcs. THT - JLC wave-solders it, 6 joints. Inside the enclosure, no panel cutout. Silkscreen must carry 'PoE OFF or ISOLATED ADAPTER ONLY': an earthed USB-UART adapter ties the floating PoE return to earth and breaks PD signature detection outright."
+  },
+  {
+   "ref_prefix_hint": "SW",
+   "block": "mcu",
+   "mpn": "TS-1088-AR02016",
+   "lcsc": "C720477",
+   "value": "Tactile switch SMD 4x3mm",
+   "qty_per_board": 1,
+   "refs": [
+    "SW1"
+   ],
+   "package": "SMD,4x3mm",
+   "basic": true,
+   "stock": 857198,
+   "price": 0.0552,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0552
+    },
+    {
+     "qty": 100,
+     "price": 0.0446
+    },
+    {
+     "qty": 300,
+     "price": 0.0393
+    },
+    {
+     "qty": 1000,
+     "price": 0.0347
+    },
+    {
+     "qty": 4000,
+     "price": 0.0323
+    },
+    {
+     "qty": 8000,
+     "price": 0.0312
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_XUNPU-TS-1088-AR02016_C720477.pdf",
+   "url": "https://www.lcsc.com/product-detail/tactile-switches_xunpu-ts-1088-ar02016_C720477.html",
+   "brand": "XUNPU",
+   "attributes": [
+    {
+     "name": "Operating Temperature",
+     "value": "-30\u2103~+80\u2103"
+    },
+    {
+     "name": "Contact Current",
+     "value": "50mA"
+    },
+    {
+     "name": "Termination Style",
+     "value": "SMD(SMT) Tab"
+    },
+    {
+     "name": "Voltage Rating",
+     "value": "12V"
+    },
+    {
+     "name": "Actuator Style",
+     "value": "Round Button"
+    },
+    {
+     "name": "with Bracket",
+     "value": "Without Bracket"
+    },
+    {
+     "name": "Switch Height",
+     "value": "2mm"
+    },
+    {
+     "name": "Circuit",
+     "value": "SPST"
+    },
+    {
+     "name": "Mounting Type",
+     "value": "Surface Mount,Vertical"
+    },
+    {
+     "name": "Actuator/Cap Color",
+     "value": "Black"
+    },
+    {
+     "name": "Operating Force",
+     "value": "1.6N"
+    },
+    {
+     "name": "Length",
+     "value": "3.9mm"
+    },
+    {
+     "name": "Life",
+     "value": "100,000 cycles"
+    },
+    {
+     "name": "Width",
+     "value": "3mm"
+    }
+   ],
+   "alternates": [],
+   "role": "Optional BOOT button on GPIO0 alongside the J2 header pin. JLC Basic, 857198 pcs, SMD so it adds nothing to the THT joint count."
+  },
+  {
+   "ref_prefix_hint": "C",
+   "block": "mcu",
+   "mpn": "CL10A105KB8NNNC",
+   "lcsc": "C15849",
+   "value": "1uF 50V X5R 0603",
+   "qty_per_board": 2,
+   "refs": [
+    "C84",
+    "C85"
+   ],
+   "package": "0603",
+   "basic": true,
+   "stock": 14874128,
+   "price": 0.0966,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0966
+    },
+    {
+     "qty": 500,
+     "price": 0.0898
+    },
+    {
+     "qty": 1500,
+     "price": 0.0869
+    },
+    {
+     "qty": 4000,
+     "price": 0.0846
+    },
+    {
+     "qty": 24000,
+     "price": 0.0836
+    },
+    {
+     "qty": 48000,
+     "price": 0.083
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL10A105KB8NNNC_C15849.pdf",
+   "url": "https://www.lcsc.com/product-detail/multilayer-ceramic-capacitors-mlcc-smd-smt_samsung-electro-mechanics-cl10a105kb8nnnc_C15849.html",
+   "brand": "Samsung Electro-Mechanics",
+   "attributes": [
+    {
+     "name": "Voltage Rating",
+     "value": "50V"
+    },
+    {
+     "name": "Tolerance",
+     "value": "\u00b110%"
+    },
+    {
+     "name": "Capacitance",
+     "value": "1uF"
+    },
+    {
+     "name": "Temperature Coefficient",
+     "value": "X5R"
+    }
+   ],
+   "alternates": [
+    {
+     "mpn": "CL10B105KA8NNNC",
+     "lcsc": "C29936",
+     "note": "Samsung X7R 25 V, 2050769 pcs, $0.0226 - cheaper per piece but Extended, so it costs a feeder fee to save ~$0.93 across the build."
+    }
+   ],
+   "role": "C85 = the EN-pin RC with R100 (10 k), which sets the ESP32-S3 power-on reset delay. C84 = module supply decoupling. JLC Basic, 50 V."
+  },
+  {
+   "ref_prefix_hint": "J",
+   "block": "expansion",
+   "mpn": "DS1021-2x7SF11-B",
+   "lcsc": "C7430403",
+   "value": "DS1021-2x7SF11-B 2x7 male header",
+   "qty_per_board": 1,
+   "refs": [
+    "J3"
+   ],
+   "package": "Plugin,P=2.54mm",
+   "basic": false,
+   "stock": 5575,
+   "price": 0.0846,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0846
+    },
+    {
+     "qty": 50,
+     "price": 0.0675
+    },
+    {
+     "qty": 150,
+     "price": 0.059
+    },
+    {
+     "qty": 500,
+     "price": 0.0525
+    },
+    {
+     "qty": 2500,
+     "price": 0.0473
+    },
+    {
+     "qty": 5000,
+     "price": 0.0448
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2312310521_CONNFLY-Elec-DS1021-2x7SF11-B_C7430403.pdf",
+   "url": "https://www.lcsc.com/product-detail/pin-headers_connfly-elec-ds1021-2x7sf11-b_C7430403.html",
+   "brand": "CONNFLY Elec",
+   "attributes": [
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+105\u2103"
+    },
+    {
+     "name": "Number of Rows",
+     "value": "2"
+    },
+    {
+     "name": "Voltage Rating (Max)",
+     "value": "250V"
+    },
+    {
+     "name": "Color",
+     "value": "Black"
+    },
+    {
+     "name": "Contact Plating",
+     "value": "Gold"
+    },
+    {
+     "name": "Number of Pins",
+     "value": "14P"
+    },
+    {
+     "name": "Current Rating",
+     "value": "3A"
+    },
+    {
+     "name": "Pitch",
+     "value": "2.54mm"
+    },
+    {
+     "name": "Contact Material",
+     "value": "Copper alloy"
+    },
+    {
+     "name": "Pin Structure",
+     "value": "2x7P"
+    },
+    {
+     "name": "Row Spacing",
+     "value": "2.54mm"
+    },
+    {
+     "name": "Mounting Type",
+     "value": "Through Hole"
+    },
+    {
+     "name": "Circluar Pins/Square Pins",
+     "value": "Pin Header"
+    }
+   ],
+   "alternates": [],
+   "role": "EXPANSION POWER connector, CARRIER SIDE ONLY - frozen by ICD-01 and not re-openable. 14 position, 2.54 mm, THT male, gold over copper alloy, 250 V rated working voltage (4.4x the 57 V worst case), 3 A/contact (1.80 A/pin after the 60% adjacent-pin derate the ICD uses throughout), -40..+105 C. Orderable variant verified: 2x7P, MALE, straight/vertical through-hole, 5575 pcs. THE MATING DS1023-2*7SF11 SOCKET IS THE DAUGHTER BOARDS' PART AND IS DELIBERATELY ABSENT FROM THIS BOM. THT - 14 joints. Pin map: connector-icd.md s3.1. At 2.54 mm with a 1.70 mm annulus the pad-to-pad copper gap is 0.84 mm against the 0.60 mm IPC-2221B B2 requirement (1.4x); every fine-pitch mezzanine family JLC stocks is rated 50-60 V and fails or grazes the 57 V case, which is what closed the fine-pitch route."
+  },
+  {
+   "ref_prefix_hint": "J",
+   "block": "expansion",
+   "mpn": "DS1021-2x12SF11-B",
+   "lcsc": "C7430408",
+   "value": "DS1021-2x12SF11-B 2x12 male header",
+   "qty_per_board": 1,
+   "refs": [
+    "J4"
+   ],
+   "package": "Plugin,P=2.54mm",
+   "basic": false,
+   "stock": 3652,
+   "price": 0.134,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.134
+    },
+    {
+     "qty": 50,
+     "price": 0.1074
+    },
+    {
+     "qty": 200,
+     "price": 0.0912
+    },
+    {
+     "qty": 400,
+     "price": 0.0812
+    },
+    {
+     "qty": 2400,
+     "price": 0.0733
+    },
+    {
+     "qty": 5000,
+     "price": 0.0693
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2307211819_CONNFLY-Elec-DS1021-2x12SF11-B_C7430408.pdf",
+   "url": "https://www.lcsc.com/product-detail/pin-headers_connfly-elec-ds1021-2x12sf11-b_C7430408.html",
+   "brand": "CONNFLY Elec",
+   "attributes": [
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+105\u2103"
+    },
+    {
+     "name": "Number of Rows",
+     "value": "2"
+    },
+    {
+     "name": "Voltage Rating (Max)",
+     "value": "250V"
+    },
+    {
+     "name": "Color",
+     "value": "Black"
+    },
+    {
+     "name": "Contact Plating",
+     "value": "Gold"
+    },
+    {
+     "name": "Number of Pins",
+     "value": "24P"
+    },
+    {
+     "name": "Current Rating",
+     "value": "3A"
+    },
+    {
+     "name": "Pitch",
+     "value": "2.54mm"
+    },
+    {
+     "name": "Contact Material",
+     "value": "Copper alloy"
+    },
+    {
+     "name": "Pin Structure",
+     "value": "2x12P"
+    },
+    {
+     "name": "Row Spacing",
+     "value": "2.54mm"
+    },
+    {
+     "name": "Mounting Type",
+     "value": "Through Hole"
+    },
+    {
+     "name": "Circluar Pins/Square Pins",
+     "value": "Pin Header"
+    }
+   ],
+   "alternates": [],
+   "role": "EXPANSION SIGNAL connector, CARRIER SIDE ONLY. 24 position, 2.54 mm, THT male, gold, 250 V / 3 A, 3652 pcs. The mating DS1023-2*12SF11 socket is the daughter's part and is NOT in this BOM. No 48 V exists anywhere on this connector. THT - 24 joints. Pin map: connector-icd.md s3.2."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "expansion",
+   "mpn": "0603WAF1002T5E",
+   "lcsc": "C25804",
+   "value": "10k 1% 0603",
+   "qty_per_board": 8,
+   "refs": [
+    "R33",
+    "R34",
+    "R64",
+    "R69",
+    "R100",
+    "R101",
+    "R132",
+    "R134"
+   ],
+   "package": "0603",
+   "basic": true,
+   "stock": 4255700,
+   "price": 0.0077,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0077
+    },
+    {
+     "qty": 1000,
+     "price": 0.0068
+    },
+    {
+     "qty": 5000,
+     "price": 0.0064
+    },
+    {
+     "qty": 10000,
+     "price": 0.0061
+    },
+    {
+     "qty": 50000,
+     "price": 0.006
+    },
+    {
+     "qty": 100000,
+     "price": 0.0059
+    }
+   ],
+   "min_qty": 1317,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010045_UNI-ROYAL-Uniroyal-Elec-0603WAF1002T5E_C25804.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0603waf1002t5e_C25804.html",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {
+     "name": "Resistance",
+     "value": "10k\u03a9"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-55\u2103~+155\u2103"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "100mW"
+    },
+    {
+     "name": "Type",
+     "value": "Thick Film Resistor"
+    },
+    {
+     "name": "Voltage-Supply(Max)",
+     "value": "75V"
+    },
+    {
+     "name": "Tolerance",
+     "value": "\u00b11%"
+    },
+    {
+     "name": "Temperature Coefficient",
+     "value": "\u00b1100ppm/\u2103"
+    }
+   ],
+   "alternates": [],
+   "role": "The board's general-purpose pull-up / pull-down / divider value. R69 is THE CAR-REQ-08 FAIL-SAFE (10 k pull-down on /ENABLE, which reaches both U22 SHDN and J4-23 as one net) - passive, so it cannot be defeated by firmware, a reset, a brownout or a reboot, and it must be called out on the schematic. VALUE CONFIRMED against parts\\C1849461.json sec 8.3.11: the TPS16630 has NO active-high EN pin, only active-low SHDN with an internal pull-up whose open-circuit voltage is 2.48/2.7/3.3 V against a 2.0 V rising enable threshold, so it DEFAULTS ON; the datasheet requires a pull-down that sinks >= 10 uA while holding the pin below the 0.8 V V(SHUTF) threshold. 10 k against the 10 uA max internal source holds SHDN at 0.10 V - 8x inside the threshold - and sinks the required current, so R69 is correct as sourced and is already in this line's quantity. R61 has MOVED OFF this line to the new 30 k part (the SCT2A25 reference is 1.2 V, not 0.8 V). R33 is MANDATORY, not belt-and-braces: GPIO10 has a documented 60 us LOW glitch at power-up and low = W5500 selected, and the W5500's own 50-112 k SCSn pull-up cannot fight an actively driven glitch. R34 = /ETH_RSTn pull-up; R100/R101 = EN and BOOT; R132 = /FAULT pull-up on the wire-OR shared with U22's FLT; R134 = the ID divider top leg (the daughter fits the bottom leg); R61/R64 = the two feedback-divider lower legs. JLC Basic."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "expansion",
+   "mpn": "0603WAF4701T5E",
+   "lcsc": "C23162",
+   "value": "4.7k 1% 0603",
+   "qty_per_board": 2,
+   "refs": [
+    "R130",
+    "R131"
+   ],
+   "package": "0603",
+   "basic": true,
+   "stock": 4249317,
+   "price": 0.0117,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0117
+    },
+    {
+     "qty": 1000,
+     "price": 0.0105
+    },
+    {
+     "qty": 5000,
+     "price": 0.01
+    },
+    {
+     "qty": 10000,
+     "price": 0.0092
+    },
+    {
+     "qty": 50000,
+     "price": 0.009
+    },
+    {
+     "qty": 100000,
+     "price": 0.0089
+    }
+   ],
+   "min_qty": 766,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010116_UNI-ROYAL-Uniroyal-Elec-0603WAF4701T5E_C23162.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0603waf4701t5e_C23162.html",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {
+     "name": "Resistance",
+     "value": "4.7k\u03a9"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-55\u2103~+155\u2103"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "100mW"
+    },
+    {
+     "name": "Type",
+     "value": "Thick Film Resistor"
+    },
+    {
+     "name": "Voltage-Supply(Max)",
+     "value": "75V"
+    },
+    {
+     "name": "Tolerance",
+     "value": "\u00b11%"
+    },
+    {
+     "name": "Temperature Coefficient",
+     "value": "\u00b1100ppm/\u2103"
+    }
+   ],
+   "alternates": [],
+   "role": "I2C pull-ups, CARRIER SIDE per ICD-01 s3.3 - daughters must not fit their own. 400 kHz. JLC Basic."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "expansion",
+   "mpn": "0603WAF1001T5E",
+   "lcsc": "C21190",
+   "value": "1k 1% 0603",
+   "qty_per_board": 3,
+   "refs": [
+    "R135",
+    "R136",
+    "R137"
+   ],
+   "package": "0603",
+   "basic": true,
+   "stock": 3596123,
+   "price": 0.009,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.009
+    },
+    {
+     "qty": 1000,
+     "price": 0.0081
+    },
+    {
+     "qty": 5000,
+     "price": 0.0077
+    },
+    {
+     "qty": 10000,
+     "price": 0.0071
+    },
+    {
+     "qty": 50000,
+     "price": 0.0069
+    },
+    {
+     "qty": 50200,
+     "price": 0.0069
+    }
+   ],
+   "min_qty": 996,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010130_UNI-ROYAL-Uniroyal-Elec-0603WAF1001T5E_C21190.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0603waf1001t5e_C21190.html",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {
+     "name": "Resistance",
+     "value": "1k\u03a9"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-55\u2103~+155\u2103"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "100mW"
+    },
+    {
+     "name": "Type",
+     "value": "Thick Film Resistor"
+    },
+    {
+     "name": "Voltage-Supply(Max)",
+     "value": "75V"
+    },
+    {
+     "name": "Tolerance",
+     "value": "\u00b11%"
+    },
+    {
+     "name": "Temperature Coefficient",
+     "value": "\u00b1100ppm/\u2103"
+    }
+   ],
+   "alternates": [],
+   "role": "Series protection on /ID_ADC, /ADC0 and /ADC1. Part of the CAR-REQ-14 survivability story, not just ESD hygiene: a mis-seated daughter can bridge a neighbouring connector pin onto these lines. Small enough to keep the ICD's <= 10 kohm source-impedance rule intact. JLC Basic."
+  },
+  {
+   "ref_prefix_hint": "D",
+   "block": "expansion",
+   "mpn": "PESD3V3L1BA",
+   "lcsc": "C2687129",
+   "value": "PESD3V3L1BA 3.3V ESD clamp SOD-323",
+   "qty_per_board": 3,
+   "refs": [
+    "D40",
+    "D41",
+    "D42"
+   ],
+   "package": "SOD-323",
+   "basic": false,
+   "stock": 374413,
+   "price": 0.0402,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0402
+    },
+    {
+     "qty": 200,
+     "price": 0.0314
+    },
+    {
+     "qty": 600,
+     "price": 0.0265
+    },
+    {
+     "qty": 3000,
+     "price": 0.0212
+    },
+    {
+     "qty": 9000,
+     "price": 0.0186
+    },
+    {
+     "qty": 21000,
+     "price": 0.0173
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2311091738_UMW-Youtai-Semiconductor-Co---Ltd--PESD3V3L1BA_C2687129.pdf",
+   "url": "https://www.lcsc.com/product-detail/esd-and-surge-protection-tvs-esd_umw-youtai-semiconductor-co-ltd-pesd3v3l1ba_C2687129.html",
+   "brand": "UMW(Youtai Semiconductor Co., Ltd.)",
+   "attributes": [
+    {
+     "name": "Type",
+     "value": "ESD"
+    },
+    {
+     "name": "Junction Capacitance",
+     "value": "100pF"
+    },
+    {
+     "name": "Peak Pulse Power Dissipation (Ppp)",
+     "value": "480W@8/20us"
+    },
+    {
+     "name": "level of protection",
+     "value": "IEC 61000-4-2\u3001IEC 61000-4-5\u3001IEC 61000-4-4"
+    },
+    {
+     "name": "Clamping Voltage",
+     "value": "24V"
+    },
+    {
+     "name": "Polarity",
+     "value": "Bidirectional"
+    },
+    {
+     "name": "Peak Pulse Current (Ipp)",
+     "value": "20A@8/20us"
+    },
+    {
+     "name": "Voltage - Breakdown",
+     "value": "4V"
+    },
+    {
+     "name": "Reverse Stand-Off Voltage (Vrwm)",
+     "value": "3.3V"
+    },
+    {
+     "name": "Reverse Leakage Current (Ir)",
+     "value": "1uA"
+    }
+   ],
+   "alternates": [],
+   "role": "3.3 V bidirectional clamps on /ID_ADC, /ADC0 and /ADC1, downstream of R135-R137. These lines are DC / low-speed so the ~100 pF junction capacitance is irrelevant here, unlike the MDI where D10 must be <= 1 pF/line. 374413 pcs."
+  },
+  {
+   "ref_prefix_hint": "U",
+   "block": "expansion",
+   "mpn": "M24C02-RMN6TP",
+   "lcsc": "C83836",
+   "value": "M24C02 2Kbit I2C EEPROM",
+   "qty_per_board": 1,
+   "refs": [
+    "U40"
+   ],
+   "package": "SOIC-8",
+   "basic": false,
+   "stock": 53187,
+   "price": 0.1325,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.1325
+    },
+    {
+     "qty": 50,
+     "price": 0.1059
+    },
+    {
+     "qty": 150,
+     "price": 0.0922
+    },
+    {
+     "qty": 500,
+     "price": 0.0809
+    },
+    {
+     "qty": 2500,
+     "price": 0.077
+    },
+    {
+     "qty": 5000,
+     "price": 0.0743
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_STMicroelectronics-M24C02-RMN6TP_C83836.pdf",
+   "url": "https://www.lcsc.com/product-detail/eeprom_stmicroelectronics-m24c02-rmn6tp_C83836.html",
+   "brand": "STMicroelectronics",
+   "attributes": [
+    {
+     "name": "Clock Frequency",
+     "value": "400kHz"
+    },
+    {
+     "name": "Data Retention - TDR (Year)",
+     "value": "200 Years"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-40\u2103~+85\u2103"
+    },
+    {
+     "name": "Write Cycle Endurance",
+     "value": "4,000,000 Cycles"
+    },
+    {
+     "name": "Access Time",
+     "value": "900ns\u30013450ns"
+    },
+    {
+     "name": "Standby Current",
+     "value": "1uA"
+    },
+    {
+     "name": "Memory Size",
+     "value": "2Kbit"
+    },
+    {
+     "name": "Voltage - Supply",
+     "value": "1.8V~5.5V"
+    },
+    {
+     "name": "Features",
+     "value": "Hardware write protection function\u3001Built-in power-on reset (POR)"
+    },
+    {
+     "name": "Write Cycle Time(Tw)",
+     "value": "5ms"
+    },
+    {
+     "name": "Operating Current",
+     "value": "0.8mA"
+    },
+    {
+     "name": "Interface",
+     "value": "I2C"
+    }
+   ],
+   "alternates": [
+    {
+     "mpn": "BL24C02F-PARC",
+     "lcsc": "C176653",
+     "note": "Belling, 1.7-5.5 V, 1 MHz, SOP-8, 39939 pcs, $0.0743 - about half the price and functionally equivalent for an ID/calibration store."
+    },
+    {
+     "mpn": "AT24C02",
+     "lcsc": "C688857",
+     "note": "IDCHIP, SOP-8, 132189 pcs, $0.0659. Commodity second source; it is a clone, so verify address-pin behaviour before shipping."
+    }
+   ],
+   "role": "Carrier board-ID / calibration EEPROM on the shared I2C bus. 2 Kbit, 1.8-5.5 V so 3.3 V is comfortably inside, 400 kHz, SOIC-8. INCLUDED PER ASSIGNMENT AMENDMENT 4, and flagging a genuine conflict with the architecture: blocks.md, sheets.md s2.5 and connector-icd.md s2 all place the ID EEPROM on the DAUGHTER ('the EEPROM rides the shared I2C bus', which is exactly why ID is one pin and not two), and no U40 exists in the refdes allocation. It is sourced here at $0.13 as a carrier-side board-ID store; if P4 rules the architecture wins, drop this one line and nothing else in the BOM moves."
+  },
+  {
+   "ref_prefix_hint": "C",
+   "block": "expansion",
+   "mpn": "CC0603KRX7R9BB104",
+   "lcsc": "C14663",
+   "value": "100nF 50V X7R 0603",
+   "qty_per_board": 12,
+   "refs": [
+    "C34",
+    "C35",
+    "C37",
+    "C38",
+    "C39",
+    "C40",
+    "C54",
+    "C58",
+    "C81",
+    "C82",
+    "C83",
+    "C120"
+   ],
+   "package": "0603",
+   "basic": true,
+   "stock": 104462507,
+   "price": 0.0241,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0241
+    },
+    {
+     "qty": 500,
+     "price": 0.0202
+    },
+    {
+     "qty": 1500,
+     "price": 0.0184
+    },
+    {
+     "qty": 4000,
+     "price": 0.0168
+    },
+    {
+     "qty": 24000,
+     "price": 0.0163
+    },
+    {
+     "qty": 48000,
+     "price": 0.0159
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2211101700_YAGEO-CC0603KRX7R9BB104_C14663.pdf",
+   "url": "https://www.lcsc.com/product-detail/multilayer-ceramic-capacitors-mlcc-smd-smt_yageo-cc0603krx7r9bb104_C14663.html",
+   "brand": "YAGEO",
+   "attributes": [
+    {
+     "name": "Voltage Rating",
+     "value": "50V"
+    },
+    {
+     "name": "Tolerance",
+     "value": "\u00b110%"
+    },
+    {
+     "name": "Capacitance",
+     "value": "100nF"
+    },
+    {
+     "name": "Temperature Coefficient",
+     "value": "X7R"
+    }
+   ],
+   "alternates": [],
+   "role": "General decoupling: six on the W5500's VDD/AVDD pins, C54 = the SCT2A25 bootstrap cap, C58 = U21 output HF bypass, three on the ESP32-S3 module supply, one on the EEPROM. JLC Basic, 104 M in stock."
+  }
+ ]
+}

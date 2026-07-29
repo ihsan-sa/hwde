@@ -59,7 +59,7 @@ reference copper.
 
 On 4 layers: **In1 is solid GND under the entire board**, which is the reference for both MDI pairs
 and for `/ETH_SCLK`, and In2 carries +3V3. The two 48 V-domain nets and +12V route as sized traces
-on F.Cu, which also keeps the 0.60 mm creepage requirement (an *outer-layer* number) in one place.
+on F.Cu, which also keeps the 0.635 mm creepage requirement (an *outer-layer* number) in one place.
 
 ### 2.3 Both silicon vendors say so, independently
 
@@ -153,17 +153,17 @@ Zone areas below are footprint + fan-out + mandated keep-clear, not raw courtyar
 | Zone | Contents | mm2 |
 |---|---|---|
 | A | RJ45 PoE magjack: 16.0 x 21.6 body + panel cutout + 14-pin field + MDI fan-out | 520 |
-| B | PD front end: PD interface, TVS, 0.1 uF/100 V, 2x 22 uF/100 V bulk, split RDEN, RCLS, T2P network - **all inside the 0.60 mm creepage envelope** | 550 |
+| B | PD front end: PD interface, TVS, 0.1 uF/100 V, 2x 22 uF/100 V bulk, split RDEN, RCLS, T2P network - **all inside the 0.635 mm creepage envelope** | 550 |
 | C | Ethernet PHY: W5500 LQFP-48, EXRES1, TOCAP, 1V2O, 6x decoupling, MDI TVS array, SPI series R | 440 |
 | C2 | Crystal group: 3225 crystal + 2 C0G load caps + its GND land + 2 mm keepout ring | 130 |
 | D | ESP32-S3-WROOM-1: 25.5 x 18 module + 2 mm halo + 40-pad fan-out | 650 |
 | E | DC-DC hot zone: 100 V buck + 68 uH inductor + SS510 with its own copper + 4x 100 V ceramics, and the 12->3.3 buck + 4.7 uH | 730 |
-| F | 48 V eFuse: HTSSOP-20 + ILIM/UVLO/OVP/dV-dT network + IMON + bleed, inside the 0.60 mm envelope | 250 |
-| G+H | Two expansion connectors: 2x7 (19.6 x 7.6) + 2x12 (30.5 x 7.6) bodies + 0.60 mm envelopes + fan-out | 840 |
+| F | 48 V eFuse: HTSSOP-20 + ILIM/UVLO/OVP/dV-dT network + IMON + bleed, inside the 0.635 mm envelope | 250 |
+| G+H | Two expansion connectors: 2x7 (19.6 x 7.6) + 2x12 (30.5 x 7.6) bodies + 0.635 mm envelopes + fan-out | 840 |
 | I | Recovery header, status LEDs, I2C/FAULT pull-ups, ID divider + its clamp, ADC clamps | 300 |
 | **Sum of blocks** | | **4410** |
 
-A 4-layer board carrying a 0.60 mm board-wide creepage envelope, a no-vias MDI corridor, an antenna
+A 4-layer board carrying a 0.635 mm board-wide creepage envelope, a no-vias MDI corridor, an antenna
 keepout and five mounting-hole exclusions realistically places at **55-60 % area utilisation** on a
 first spin. `4410 / 0.57 = 7740 mm2`, plus ~135 mm2 of mounting-hole exclusion and ~8 mm2 of
 corner-radius loss -> **~7900 mm2 required.**

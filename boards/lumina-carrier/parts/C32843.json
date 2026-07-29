@@ -1,0 +1,443 @@
+{
+ "mpn": "W5500",
+ "lcsc": "C32843",
+ "package": "LQFP-48 (7 x 7 mm body, 0.5 mm pitch, JEDEC MS-026 BBC), lead-free",
+ "description": "WIZnet W5500 hardwired TCP/IP embedded Ethernet controller: TCP/IP stack + 10/100 Ethernet MAC + PHY in one chip, 32 KB internal TX/RX buffer, 8 independent hardware sockets, SPI slave host interface (Mode 0/3), WOL and power-down modes, 3.3 V operation with 5 V I/O signal tolerance, four LED outputs (speed/link/duplex/activity). Source: W5500 Datasheet Version 1.1.0 (WIZnet), 67 pages.",
+ "pinout": [
+  {
+   "pin": "1",
+   "name": "TXN",
+   "type": "analog",
+   "notes": "AO. TXP/TXN signal pair: differential data is transmitted to the media on the TXP/TXN signal pair. Negative half of the MDI transmit pair. [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "2",
+   "name": "TXP",
+   "type": "analog",
+   "notes": "AO. Positive half of the MDI transmit pair (TXP/TXN). [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "3",
+   "name": "AGND",
+   "type": "ground",
+   "notes": "Analog ground. [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "4",
+   "name": "AVDD",
+   "type": "power_in",
+   "notes": "Analog 3.3V power (PWR). One of 6 AVDD pins. [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "5",
+   "name": "RXN",
+   "type": "analog",
+   "notes": "AI. RXP/RXN signal pair: differential data from the media is received on the RXP/RXN signal pair. Negative half of the MDI receive pair. [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "6",
+   "name": "RXP",
+   "type": "analog",
+   "notes": "AI. Positive half of the MDI receive pair (RXP/RXN). [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "7",
+   "name": "DNC",
+   "type": "nc",
+   "notes": "Datasheet type AI/O, description 'Do Not Connect Pin'. Leave the net open. [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "8",
+   "name": "AVDD",
+   "type": "power_in",
+   "notes": "Analog 3.3V power (PWR). [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "9",
+   "name": "AGND",
+   "type": "ground",
+   "notes": "Analog ground. [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "10",
+   "name": "EXRES1",
+   "type": "analog",
+   "notes": "AI/O. External Reference Resistor: 'It should be connected to an external resistor (12.4Kohm, 1%) needed for biasing of internal analog circuits.' Figure 2 shows R21 12.4k 1% from EXRES1 (pin 10) to W5500_AGND. [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "11",
+   "name": "AVDD",
+   "type": "power_in",
+   "notes": "Analog 3.3V power (PWR). [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "12",
+   "name": "NC",
+   "type": "nc",
+   "notes": "Symbol column is blank in Table 2, Type = NC; Figure 1 labels the pin 'NC'. Figure 2 draws pin 12 with an explicit no-connect cross. [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "13",
+   "name": "NC",
+   "type": "nc",
+   "notes": "Symbol column blank in Table 2, Type = NC; Figure 1 labels it 'NC'. [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "14",
+   "name": "AGND",
+   "type": "ground",
+   "notes": "Analog ground. [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "15",
+   "name": "AVDD",
+   "type": "power_in",
+   "notes": "Analog 3.3V power (PWR). [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "16",
+   "name": "AGND",
+   "type": "ground",
+   "notes": "Analog ground. [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "17",
+   "name": "AVDD",
+   "type": "power_in",
+   "notes": "Analog 3.3V power (PWR). [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "18",
+   "name": "VBG",
+   "type": "analog",
+   "notes": "AO. Band Gap Output Voltage: 'This pin will be measured as 1.2V at 25 deg C. It must be left floating.' Do NOT load or decouple this pin. [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "19",
+   "name": "AGND",
+   "type": "ground",
+   "notes": "Analog ground. [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "20",
+   "name": "TOCAP",
+   "type": "analog",
+   "notes": "AO. External Reference Capacitor: 'This pin must be connected to a 4.7uF capacitor. The trace length to capacitor should be short to stabilize the internal signals.' The datasheet does not name the capacitor's other terminal. [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "21",
+   "name": "AVDD",
+   "type": "power_in",
+   "notes": "Analog 3.3V power (PWR). [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "22",
+   "name": "1V2O",
+   "type": "power_out",
+   "notes": "AO. '1.2V Regulator output voltage. This pin must be connected to a 10nF capacitor. This is the output voltage of the internal regulator.' Core rail is generated on-chip; no external core supply is required and no external load current is specified. [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "23",
+   "name": "RSVD",
+   "type": "input",
+   "notes": "Internal bias: pull-down. 'It must be tied to GND.' (Unlike RSVD pins 38-42, which are NC.) RPD 48/85/174 kohm [5.3 DC Characteristics]. [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "24",
+   "name": "SPDLED",
+   "type": "output",
+   "notes": "Speed LED, active low sense: Low = 100Mbps, High = 10Mbps. Drive capability IOL 8.6 mA min at VOL 0.4V / IOH 12.5 mA min at VOH 2.4V [5.3]. [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "25",
+   "name": "LINKLED",
+   "type": "output",
+   "notes": "Link LED: Low = Link is established, High = Link is not established. [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "26",
+   "name": "DUPLED",
+   "type": "output",
+   "notes": "Duplex LED: Low = Full-duplex mode, High = Half-duplex mode. [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "27",
+   "name": "ACTLED",
+   "type": "output",
+   "notes": "Active LED: Low = Carrier sense from the active PMD (TX or RX activity), High = No carrier sense. [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "28",
+   "name": "VDD",
+   "type": "power_in",
+   "notes": "Digital 3.3V Power (PWR). The ONLY digital supply pin. [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "29",
+   "name": "GND",
+   "type": "ground",
+   "notes": "Digital Ground. The ONLY digital ground pin. [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "30",
+   "name": "XI/CLKIN",
+   "type": "input",
+   "notes": "AI. Crystal input / External Clock input. External 25MHz Crystal Input. 'This pin can also be connected to single-ended TTL oscillator (CLKIN). 3.3V clock should be applied for the External Clock input. If this method is implemented, XO should be left unconnected.' See Figure 3. [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "31",
+   "name": "XO",
+   "type": "output",
+   "notes": "AO. Crystal output, External 25MHz Crystal Output. 'Note: Float this pin if using an external clock being driven through XI/CLKIN'. [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "32",
+   "name": "SCSn",
+   "type": "input",
+   "notes": "Internal bias: pull-up (RPU 50/77/112 kohm). Chip Select for SPI bus, active low: Low = selected, High = deselected. In Fixed Length Data Mode SCSn is always connected to Ground [Figure 5]. [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "33",
+   "name": "SCLK",
+   "type": "input",
+   "notes": "SPI clock input from the SPI master. SPI Mode 0 and Mode 3 supported. [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "34",
+   "name": "MISO",
+   "type": "tristate",
+   "notes": "SPI master input / slave (W5500) output. 'When SCSn is Low, this pin outputs SPI data. When SCSn is High, this pin becomes High Impedance (logically disconnected).' [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "35",
+   "name": "MOSI",
+   "type": "input",
+   "notes": "SPI master output / slave (W5500) input. [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "36",
+   "name": "INTn",
+   "type": "output",
+   "notes": "Interrupt output, active low: Low = Interrupt asserted from W5500, High = No interrupt. Datasheet type is O (push-pull, VOL/VOH per 5.3), not open-drain. [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "37",
+   "name": "RSTn",
+   "type": "input",
+   "notes": "Internal bias: pull-up (RPU 50/77/112 kohm). Reset, active low. 'RESET should be held low at least 500 us for W5500 reset.' TRC min 500 us, TPL (RSTn to internal PLL lock) max 1 ms [5.5.1]. [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "38",
+   "name": "RSVD",
+   "type": "input",
+   "notes": "Internal bias: pull-down. Table 2 description is 'NC' (v1.0.2 changed pins 38-42 from 'must be tied to GND' to 'NC'). Leave unconnected. [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "39",
+   "name": "RSVD",
+   "type": "input",
+   "notes": "Internal bias: pull-down. Table 2 description 'NC'. Leave unconnected. [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "40",
+   "name": "RSVD",
+   "type": "input",
+   "notes": "Internal bias: pull-down. Table 2 description 'NC'. Leave unconnected. [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "41",
+   "name": "RSVD",
+   "type": "input",
+   "notes": "Internal bias: pull-down. Table 2 description 'NC'. Leave unconnected. [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "42",
+   "name": "RSVD",
+   "type": "input",
+   "notes": "Internal bias: pull-down. Table 2 description 'NC'. Leave unconnected. [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "43",
+   "name": "PMODE2",
+   "type": "input",
+   "notes": "Internal bias: pull-up. PHY Operation mode select, MSB of PMODE[2:0]. PMODE[2:0]=111 (all pins floating -> internal pull-ups) = 'All capable, Auto-negotiation enabled'. Other codes: 000 10BT half no-autoneg, 001 10BT full no-autoneg, 010 100BT half no-autoneg, 011 100BT full no-autoneg, 100 100BT half autoneg enabled, 101/110 Not used. [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "44",
+   "name": "PMODE1",
+   "type": "input",
+   "notes": "Internal bias: pull-up. PHY Operation mode select, middle bit of PMODE[2:0]. See pin 43 for the mode table. [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "45",
+   "name": "PMODE0",
+   "type": "input",
+   "notes": "Internal bias: pull-up. PHY Operation mode select, LSB of PMODE[2:0]. See pin 43 for the mode table. [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "46",
+   "name": "NC",
+   "type": "nc",
+   "notes": "Symbol column blank in Table 2, Type '-'; Figure 1 labels it 'NC'. [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "47",
+   "name": "NC",
+   "type": "nc",
+   "notes": "Symbol column blank in Table 2, Type '-'; Figure 1 labels it 'NC'. [Table 2 Pin Description, p.8-10]"
+  },
+  {
+   "pin": "48",
+   "name": "AGND",
+   "type": "ground",
+   "notes": "Analog ground. [Table 2 Pin Description, p.8-10]"
+  }
+ ],
+ "decoupling": [
+  {
+   "pins": [
+    "20"
+   ],
+   "value": "4.7 uF",
+   "placement": "trace length from TOCAP (pin 20) to the capacitor must be short",
+   "notes": "GROUNDED: Table 2 pin 20 TOCAP - 'This pin must be connected to a 4.7uF capacitor. The trace length to capacitor should be short to stabilize the internal signals.' The datasheet does NOT state the capacitor's other terminal (WIZnet reference designs return it to AGND); no voltage rating or dielectric is specified."
+  },
+  {
+   "pins": [
+    "22"
+   ],
+   "value": "10 nF",
+   "placement": "at the 1V2O pin (pin 22)",
+   "notes": "GROUNDED: Table 2 pin 22 1V2O - 'This pin must be connected to a 10nF capacitor. This is the output voltage of the internal regulator.' Other terminal not stated (reference designs use GND). This IS the core-rail decoupling; the 1.2 V core is generated on-chip and needs no external supply."
+  },
+  {
+   "pins": [
+    "4",
+    "8",
+    "11",
+    "15",
+    "17",
+    "21"
+   ],
+   "value": "100 nF per AVDD pin + bulk (NOT SPECIFIED BY THIS DATASHEET - see notes)",
+   "placement": "one capacitor at each AVDD pin, returned to the nearest AGND pin",
+   "notes": "NOT GROUNDED. W5500 Datasheet v1.1.0 contains NO decoupling / bypassing / PCB-layout section: the strings 'decoupling', 'bypass' and 'layout' do not appear anywhere in the document, and the only external capacitors it mandates are TOCAP 4.7 uF and 1V2O 10 nF. The 100 nF-per-pin figure is standard practice for a 3.3 V mixed-signal PHY (IDD 132 mA typ at 100M transmit, 5.4 Power Dissipation) and matches WIZnet's published reference schematics - it is NOT a datasheet statement. Confirm against a WIZnet reference design before treating it as authoritative."
+  },
+  {
+   "pins": [
+    "28"
+   ],
+   "value": "100 nF (NOT SPECIFIED BY THIS DATASHEET - see AVDD entry notes)",
+   "placement": "at VDD (pin 28), returned to GND (pin 29)",
+   "notes": "NOT GROUNDED - same caveat as the AVDD entry. VDD pin 28 is the single digital 3.3 V supply pin and GND pin 29 its single digital return; the datasheet states only the voltage (5.3: VDD supply voltage 2.97/3.3/3.63 V, 'Apply VDD, AVDD')."
+  }
+ ],
+ "land_pattern": {
+  "package": "48-pin LQFP, 7 x 7 mm body, 0.5 mm pitch, JEDEC outline MS-026 BBC",
+  "pad_count": 48,
+  "pitch_mm": 0.5,
+  "pin1": "1",
+  "notes": "NO RECOMMENDED LAND PATTERN IS PUBLISHED in W5500 Datasheet v1.1.0 - section 7 'Package Descriptions' (Figures 26 and 27) gives only the package OUTLINE, so pad_size_mm, row_spacing_mm and courtyard cannot be grounded from this PDF; use a standard IPC-7351 LQFP-48 0.5 mm (MS-026 BBC) land pattern. Outline dimensions from Figure 26 (min/nom/max, mm): A --/--/1.60 (height), A1 0.05/--/0.15 (standoff), A2 1.35/1.40/1.45, b 0.17/0.22/0.27 (lead width), c 0.09/--/0.20 (lead thickness), D 9.00 BSC and E 9.00 BSC (lead span), D1 7.00 BSC and E1 7.00 BSC (body), e 0.50 BSC (pitch), L 0.45/0.60/0.75 (foot length), L1 1.00 REF, theta 0/3.5/7 deg. Figure 27 repeats these as 9.00 +/-0.20 lead span, 7.00 +/-0.10 body, 0.50 BSC pitch, 0.22 +0.05/-0.06 lead width, 0.80 +/-0.15 foot, 1.60 MAX height, 4 corner chamfers C0.50, 8 x R0.15. Pin 1 is the top-left corner in Figure 1 with a circular dimple; pins run 1-12 down the left side, 13-24 along the bottom, 25-36 up the right side, 37-48 along the top. CAUTION (datasheet comment on p.64): 'W5500 package has changed since Jul2021. The most difference is the hole location on the center of the bottom.' - the circles in Figure 26/27 (phi 1.0 / phi 1.4, and phi 1.20 Dp 0.05 TOP / 2 x phi 1.50 Dp 0.1 max BTM) are mold/ejector holes in the plastic body, NOT an exposed thermal pad."
+ },
+ "exposed_pad": {
+  "present": false
+ },
+ "layout_notes": [
+  "SUPPLY: single 3.3 V system rail. Two domains on the die - AVDD (analog 3.3 V, pins 4, 8, 11, 15, 17, 21) and VDD (digital 3.3 V, pin 28). 5.3 DC Characteristics gives ONE supply spec, 'VDD Supply voltage, Apply VDD, AVDD, 2.97 / 3.3 / 3.63 V' - both domains are 3.3 V. Returns: AGND pins 3, 9, 14, 16, 19, 48 (analog) and GND pin 29 (digital).",
+  "CORE RAIL IS INTERNAL: 1V2O (pin 22) is the output of the on-chip 1.2 V regulator and needs a 10 nF capacitor; there is no external core supply pin and the datasheet never mentions a 1.8 V rail.",
+  "BANDGAP: EXRES1 (pin 10) needs a 12.4 kohm 1% resistor to analog ground (AGND) for biasing of the internal analog circuits (Figure 2, R21). VBG (pin 18) is the 1.2 V bandgap output (measured 1.2 V at 25 deg C) and MUST BE LEFT FLOATING - do not decouple or load it.",
+  "TOCAP (pin 20) 4.7 uF reference capacitor: keep the trace to the capacitor short 'to stabilize the internal signals' - treat it as a critical-length net next to the analog pins.",
+  "CRYSTAL (5.5.3): 25 MHz, frequency tolerance +/-30 ppm at 25 deg C, shunt capacitance 7 pF max, drive level 59.12 uW, LOAD CAPACITANCE 18 pF, aging +/-3 ppm/year max. Figure 3 reference schematic: crystal between XI/CLKIN (pin 30) and XO (pin 31) with a 1 Mohm feedback resistor across XI-XO, a 0 ohm series resistor in the XO leg, and an 18 pF capacitor from each crystal terminal to ground.",
+  "EXTERNAL CLOCK ALTERNATIVE: XI/CLKIN accepts a single-ended 3.3 V TTL oscillator; if used, XO (pin 31) must be left unconnected.",
+  "MDI / MAGNETICS (5.5.5): TXP/TXN (pins 2/1) and RXP/RXN (pins 6/5) drive a transformer with turn ratio 1:1 on both the transmit and the receive end and 350 uH inductance on both ends. Figure 24 shows both an asymmetric and a symmetric transformer type, PHY side TD+/TCT/TD- and RD+/RCT/RD-, RJ45 side TX+/CMT/TX- and RX+/CMT/RX-. The datasheet gives NO termination component values (no center-tap bias network, no 49.9 ohm / 75 ohm terminations, no common-mode choke or Bob Smith values) - take those from the magjack/transformer datasheet or a WIZnet reference design.",
+  "NO AUTO-MDIX (5.5.6): W5500 does not support auto-MDIX. Use straight-through cable to switches/routers and crossover cable to servers/workstations/another W5500 (either type works against an auto-MDIX-enabled peer).",
+  "PMODE[2:0] (pins 43/44/45) have internal pull-ups (RPU 50/77/112 kohm), so floating = 111 = all-capable with auto-negotiation enabled. Pull individual pins low to force a fixed mode; codes 101 and 110 are 'Not used'.",
+  "SCSn (32) and RSTn (37) have internal pull-ups; RSVD pin 23 and RSVD pins 38-42 have internal pull-downs (RPD 48/85/174 kohm). Pin 23 MUST be tied to GND; pins 38-42 are NC (leave unconnected). DNC (pin 7) must not be connected.",
+  "RESET: RSTn must be held low at least 500 us (TRC min 500 us); internal PLL lock happens within 1 ms after RSTn release (TPL max 1 ms).",
+  "SPI CLOCK CEILING (5.5.4): FSCK max is listed as '80/33.3 MHz'. Footnote 5: 'Even though theoretical design speed is 80MHz, the signal in the high speed may be distorted because of the circuit crosstalk and the length of the signal line. The minimum guaranteed speed of the SCLK is 33.3 MHz which was tested and measured with the stable waveform.' 33.3 MHz is the BINDING number; 80 MHz is theoretical only. Other SPI limits: TWH/TWL 6 ns min, TCS (SCSn high time) 30 ns min, TCSS/TCSH 5 ns min, TDS/TDH 3 ns min, TOV 5 ns max, TOH 0 ns min, TCHZ 2.1 ns max at 30 pF. SPI Mode 0 or Mode 3, MSB first.",
+  "SPI BUS SHARING: Variable Length Data Mode (host-controlled SCSn) allows the SPI bus to be shared with other devices; Fixed Length Data Mode requires SCSn tied permanently to GND and the bus dedicated to the W5500 (Figures 4/5).",
+  "LED OUTPUTS (SPDLED 24, LINKLED 25, DUPLED 26, ACTLED 27) and INTn (36) are push-pull, active low, guaranteed IOL 8.6 mA min at VOL 0.4 V and IOH 12.5 mA min at VOH 2.4 V - LED cathode-to-pin (anode to 3.3 V) is the natural connection.",
+  "IO IS 5 V TOLERANT: VIH range 2.0 V to 5.5 V (5.3), features list '3.3V operation with 5V I/O signal tolerance'.",
+  "SUPPLY CURRENT (5.4): 132 mA typ at 100M transmitting, 128 mA at 100M link, 75-79 mA at 10M, 65 mA un-linked auto-negotiating, 13 mA power-down. Size the 3.3 V feed and its bulk capacitance for ~150 mA.",
+  "REFLOW / HANDLING (section 6): MSL 3, dry pack required, peak reflow 265 +0/-5 deg C, above 217 deg C for 60-150 s.",
+  "GAP: W5500 Datasheet v1.1.0 has NO PCB layout guidance chapter - no ground/power plane advice, no MDI differential-impedance or keepout rule, no crystal placement rule beyond 'short trace' for TOCAP, and no decoupling table. Standard 100 ohm differential MDI routing, a solid reference plane under the MDI pairs and the crystal, and the chassis/earth split at the magnetics come from general practice, NOT from this document."
+ ],
+ "abs_max": [
+  {
+   "param": "VDD DC Supply voltage (Absolute Maximum, 5.1)",
+   "value": "-0.5 to 4.6",
+   "unit": "V"
+  },
+  {
+   "param": "VIN DC input voltage (Absolute Maximum, 5.1)",
+   "value": "-0.5 to 6",
+   "unit": "V"
+  },
+  {
+   "param": "VOUT DC output voltage (Absolute Maximum, 5.1)",
+   "value": "-0.5 to 4.6",
+   "unit": "V"
+  },
+  {
+   "param": "IIN DC input current (Absolute Maximum, 5.1)",
+   "value": 5,
+   "unit": "mA"
+  },
+  {
+   "param": "TOP Operating temperature (Absolute Maximum, 5.1)",
+   "value": "-40 to +85",
+   "unit": "C"
+  },
+  {
+   "param": "TJMAX Maximum junction temperature (5.1)",
+   "value": 125,
+   "unit": "C"
+  },
+  {
+   "param": "TSTG Storage temperature (5.1)",
+   "value": "-65 to +150",
+   "unit": "C"
+  },
+  {
+   "param": "VESD(HBM) ESD human body model, MIL-STD 883F Method 3015.7, class 2 (5.2)",
+   "value": 2000,
+   "unit": "V"
+  },
+  {
+   "param": "VESD(MM) ESD machine model, JESD22 A115-A, class B (5.2)",
+   "value": 200,
+   "unit": "V"
+  },
+  {
+   "param": "VESD(CDM) ESD charged device model, JESD22 C101-C, class III (5.2)",
+   "value": 500,
+   "unit": "V"
+  },
+  {
+   "param": "LU Static latch-up, JESD78A class I (5.2)",
+   "value": ">= +/-200",
+   "unit": "mA"
+  },
+  {
+   "param": "VDD/AVDD supply voltage (RECOMMENDED OPERATING, 5.3 DC Characteristics: min/typ/max)",
+   "value": "2.97 / 3.3 / 3.63",
+   "unit": "V"
+  },
+  {
+   "param": "VIH high level input voltage (RECOMMENDED OPERATING, 5.3: min/max)",
+   "value": "2.0 to 5.5",
+   "unit": "V"
+  },
+  {
+   "param": "VIL low level input voltage (RECOMMENDED OPERATING, 5.3: min/max)",
+   "value": "-0.3 to 0.8",
+   "unit": "V"
+  },
+  {
+   "param": "TJ junction temperature (RECOMMENDED OPERATING, 5.3: min/typ/max)",
+   "value": "-40 / 25 / 125",
+   "unit": "C"
+  }
+ ],
+ "source_pdf": "boards/lumina-carrier/parts/C32843.pdf (W5500 Datasheet Version 1.1.0, WIZnet, https://docs.wiznet.io/img/products/w5500/W5500_ds_v110e.pdf)"
+}
