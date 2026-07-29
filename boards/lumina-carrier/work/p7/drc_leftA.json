@@ -1,7 +1,7 @@
 {
   "script": "kc",
   "tool": "drc",
-  "input": "boards\\lumina-carrier\\kicad\\lumina-carrier.kicad_pcb",
+  "input": "boards\\lumina-carrier\\work\\p7\\krtf_leftA.kicad_pcb",
   "units": "mm",
   "kicad_version": "10.0.3",
   "options": {
@@ -11,14 +11,14 @@
     "save_board": true
   },
   "counts": {
-    "total": 43,
+    "total": 33,
     "by_severity": {
-      "warning": 5,
-      "error": 38
+      "warning": 9,
+      "error": 24
     },
     "by_source": {
-      "drc": 5,
-      "unconnected": 38
+      "drc": 9,
+      "unconnected": 24
     }
   },
   "status": "violations",
@@ -139,6 +139,98 @@
       ]
     },
     {
+      "check": "track_dangling",
+      "severity": "warning",
+      "pos": [
+        84.0,
+        130.7
+      ],
+      "layer": "F.Cu",
+      "net": "/PWM3",
+      "refs": [],
+      "msg": "Track has unconnected end",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/PWM3] on F.Cu, length 0.0836 mm",
+          "pos": [
+            84.0,
+            130.7
+          ],
+          "uuid": "cc165d43-1a3c-4647-a263-77fac9339d62"
+        }
+      ]
+    },
+    {
+      "check": "track_dangling",
+      "severity": "warning",
+      "pos": [
+        84.5,
+        130.7
+      ],
+      "layer": "In1.Cu",
+      "net": "/PWM3",
+      "refs": [],
+      "msg": "Track has unconnected end",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/PWM3] on In1.Cu, length 0.0836 mm",
+          "pos": [
+            84.5,
+            130.7
+          ],
+          "uuid": "c5ce20ab-fe91-4add-a1ae-e5244798d6b3"
+        }
+      ]
+    },
+    {
+      "check": "track_dangling",
+      "severity": "warning",
+      "pos": [
+        84.0,
+        130.7
+      ],
+      "layer": "F.Cu",
+      "net": "/PWM3",
+      "refs": [],
+      "msg": "Track has unconnected end",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/PWM3] on F.Cu, length 0.0836 mm",
+          "pos": [
+            84.0,
+            130.7
+          ],
+          "uuid": "cb5f55c5-c491-4f52-92d6-cb1d2db9fd4e"
+        }
+      ]
+    },
+    {
+      "check": "track_dangling",
+      "severity": "warning",
+      "pos": [
+        84.5,
+        130.7
+      ],
+      "layer": "In1.Cu",
+      "net": "/PWM3",
+      "refs": [],
+      "msg": "Track has unconnected end",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/PWM3] on In1.Cu, length 0.0836 mm",
+          "pos": [
+            84.5,
+            130.7
+          ],
+          "uuid": "0104d536-81e3-4692-8788-c67b041ae8ca"
+        }
+      ]
+    },
+    {
       "check": "unconnected_items",
       "severity": "error",
       "pos": [
@@ -195,12 +287,12 @@
           "uuid": "c7fd34cc-69ce-4be5-b0b1-b5c158a4174b"
         },
         {
-          "msg": "Pad 19 [+48V_SW] of U22 on F.Cu",
+          "msg": "Track [+48V_SW] on F.Cu, length 0.0280 mm",
           "pos": [
-            46.8625,
-            93.725
+            46.85,
+            93.7
           ],
-          "uuid": "f85fd25a-3a0b-4926-b3d0-032ef003bdb4"
+          "uuid": "7a8c5732-42c1-48c7-b2d2-223789f91f7d"
         }
       ]
     },
@@ -308,7 +400,7 @@
       "severity": "error",
       "pos": [
         42.5,
-        75.75
+        74.5
       ],
       "layer": "B.Cu",
       "net": "+3V3",
@@ -319,12 +411,12 @@
       "source": "unconnected",
       "items": [
         {
-          "msg": "Track [+3V3] on B.Cu, length 1.8385 mm",
+          "msg": "Track [+3V3] on B.Cu, length 1.2500 mm",
           "pos": [
             42.5,
-            75.75
+            74.5
           ],
-          "uuid": "555c1dfb-59f1-4049-b77e-5e4dd2281c9c"
+          "uuid": "ff82838b-c3d9-484c-b084-5f98395777b6"
         },
         {
           "msg": "Pad 1 [+3V3] of R4 on F.Cu",
@@ -603,10 +695,10 @@
       "check": "unconnected_items",
       "severity": "error",
       "pos": [
-        115.75,
+        117.85,
         73.25
       ],
-      "layer": "F.Cu",
+      "layer": "B.Cu",
       "net": "/FAULT",
       "refs": [
         "J4"
@@ -615,12 +707,12 @@
       "source": "unconnected",
       "items": [
         {
-          "msg": "Track [/FAULT] on F.Cu, length 4.5962 mm",
+          "msg": "Track [/FAULT] on B.Cu, length 2.1000 mm",
           "pos": [
-            115.75,
+            117.85,
             73.25
           ],
-          "uuid": "8778da38-c7cb-4e92-aeda-c5fa29ac071f"
+          "uuid": "be1f5b63-8871-46e3-910c-95cb04796046"
         },
         {
           "msg": "PTH pad 24 [/FAULT] of J4",
@@ -636,135 +728,33 @@
       "check": "unconnected_items",
       "severity": "error",
       "pos": [
-        98.88,
+        110.31,
         106.032
       ],
       "layer": "F.Cu",
-      "net": "/mcu/FAULT_M",
+      "net": "/ADC0",
       "refs": [
-        "R104",
+        "D41",
         "U30"
       ],
       "msg": "Missing connection between items",
       "source": "unconnected",
       "items": [
         {
-          "msg": "Pad 30 [/mcu/FAULT_M] of U30 on F.Cu",
+          "msg": "Pad 39 [/ADC0] of U30 on F.Cu",
           "pos": [
-            98.88,
+            110.31,
             106.032
           ],
-          "uuid": "981096e0-dc0b-4866-ade6-ede2b4ee1ff4"
+          "uuid": "8bf096bc-addb-4114-a6d0-f6a7972a78c3"
         },
         {
-          "msg": "Pad 2 [/mcu/FAULT_M] of R104 on F.Cu",
+          "msg": "Pad 1 [/ADC0] of D41 on F.Cu",
           "pos": [
-            118.0,
-            71.75
+            90.39,
+            79.25
           ],
-          "uuid": "aa0ba027-8568-4c98-9989-e95064bbb0cd"
-        }
-      ]
-    },
-    {
-      "check": "unconnected_items",
-      "severity": "error",
-      "pos": [
-        44.67,
-        64.123
-      ],
-      "layer": "F.Cu",
-      "net": "/ETH_LED_LINK",
-      "refs": [
-        "J1",
-        "U10"
-      ],
-      "msg": "Missing connection between items",
-      "source": "unconnected",
-      "items": [
-        {
-          "msg": "PTH pad 16 [/ETH_LED_LINK] of J1",
-          "pos": [
-            44.67,
-            64.123
-          ],
-          "uuid": "ce453929-be30-4064-9ed2-fd5fe3b38856"
-        },
-        {
-          "msg": "Pad 25 [/ETH_LED_LINK] of U10 on F.Cu",
-          "pos": [
-            99.1758,
-            74.4319
-          ],
-          "uuid": "6bb318ae-8383-49c2-a991-81d0dffef983"
-        }
-      ]
-    },
-    {
-      "check": "unconnected_items",
-      "severity": "error",
-      "pos": [
-        36.49,
-        64.123
-      ],
-      "layer": "F.Cu",
-      "net": "/poe/LED_Y_A",
-      "refs": [
-        "J1",
-        "R7"
-      ],
-      "msg": "Missing connection between items",
-      "source": "unconnected",
-      "items": [
-        {
-          "msg": "PTH pad 17 [/poe/LED_Y_A] of J1",
-          "pos": [
-            36.49,
-            64.123
-          ],
-          "uuid": "ecd636c0-eae2-44e7-aff6-c6423ca2d1aa"
-        },
-        {
-          "msg": "Pad 2 [/poe/LED_Y_A] of R7 on F.Cu",
-          "pos": [
-            90.25,
-            86.0
-          ],
-          "uuid": "31a0eb55-c105-4ec9-a974-396a7f2b78e9"
-        }
-      ]
-    },
-    {
-      "check": "unconnected_items",
-      "severity": "error",
-      "pos": [
-        33.95,
-        64.123
-      ],
-      "layer": "F.Cu",
-      "net": "/ETH_LED_ACT",
-      "refs": [
-        "J1",
-        "U10"
-      ],
-      "msg": "Missing connection between items",
-      "source": "unconnected",
-      "items": [
-        {
-          "msg": "PTH pad 18 [/ETH_LED_ACT] of J1",
-          "pos": [
-            33.95,
-            64.123
-          ],
-          "uuid": "0f9f54cd-33ea-4029-851d-ffb5c2bca6ae"
-        },
-        {
-          "msg": "Pad 27 [/ETH_LED_ACT] of U10 on F.Cu",
-          "pos": [
-            98.1758,
-            74.4319
-          ],
-          "uuid": "47b6804a-26bb-4aca-abdf-81ebee19b8e6"
+          "uuid": "4231a6fb-fffb-4bee-b9e4-a486d22685e3"
         }
       ]
     },
@@ -845,19 +835,18 @@
       "layer": "F.Cu",
       "net": "/ENABLE",
       "refs": [
-        "R103",
         "U22"
       ],
       "msg": "Missing connection between items",
       "source": "unconnected",
       "items": [
         {
-          "msg": "Pad 1 [/ENABLE] of R103 on F.Cu",
+          "msg": "Track [/ENABLE] on F.Cu, length 0.4950 mm",
           "pos": [
             99.25,
             120.0
           ],
-          "uuid": "56cad8af-897f-4cc9-88b4-f506a8e1bfa7"
+          "uuid": "cacc90f6-4e58-4a35-bd7a-7d2d3d4550a4"
         },
         {
           "msg": "Pad 13 [/ENABLE] of U22 on F.Cu",
@@ -907,79 +896,11 @@
       "check": "unconnected_items",
       "severity": "error",
       "pos": [
-        93.68,
-        97.772
+        98.88,
+        88.232
       ],
       "layer": "F.Cu",
-      "net": "/ETH_MISO",
-      "refs": [
-        "U10",
-        "U30"
-      ],
-      "msg": "Missing connection between items",
-      "source": "unconnected",
-      "items": [
-        {
-          "msg": "Pad 21 [/ETH_MISO] of U30 on F.Cu",
-          "pos": [
-            93.68,
-            97.772
-          ],
-          "uuid": "e3a02235-fc99-40bb-8e34-c18754a2795c"
-        },
-        {
-          "msg": "Pad 34 [/ETH_MISO] of U10 on F.Cu",
-          "pos": [
-            94.6758,
-            74.4319
-          ],
-          "uuid": "a9eae3d0-e1c5-4f38-8d82-8b91d57051df"
-        }
-      ]
-    },
-    {
-      "check": "unconnected_items",
-      "severity": "error",
-      "pos": [
-        93.6758,
-        74.4319
-      ],
-      "layer": "F.Cu",
-      "net": "/ETH_INTn",
-      "refs": [
-        "U10",
-        "U30"
-      ],
-      "msg": "Missing connection between items",
-      "source": "unconnected",
-      "items": [
-        {
-          "msg": "Pad 36 [/ETH_INTn] of U10 on F.Cu",
-          "pos": [
-            93.6758,
-            74.4319
-          ],
-          "uuid": "3024c4ea-162a-4718-a2d9-f900343ca88c"
-        },
-        {
-          "msg": "Pad 22 [/ETH_INTn] of U30 on F.Cu",
-          "pos": [
-            93.68,
-            99.042
-          ],
-          "uuid": "a386818d-39c2-4fc9-bf5b-2439a7b22e72"
-        }
-      ]
-    },
-    {
-      "check": "unconnected_items",
-      "severity": "error",
-      "pos": [
-        90.95,
-        76.675
-      ],
-      "layer": "F.Cu",
-      "net": "/ETH_RSTn",
+      "net": "/I2C_SDA",
       "refs": [
         "U30"
       ],
@@ -987,122 +908,20 @@
       "source": "unconnected",
       "items": [
         {
-          "msg": "Via [/ETH_RSTn] on F.Cu - B.Cu",
+          "msg": "Pad 11 [/I2C_SDA] of U30 on F.Cu",
           "pos": [
-            90.95,
-            76.675
-          ],
-          "uuid": "a06946be-c3fe-4e6e-afa3-eb4a45791666"
-        },
-        {
-          "msg": "Pad 23 [/ETH_RSTn] of U30 on F.Cu",
-          "pos": [
-            93.68,
-            100.312
-          ],
-          "uuid": "25bdffb4-a6bc-47d1-92d5-7e038bdf8cfd"
-        }
-      ]
-    },
-    {
-      "check": "unconnected_items",
-      "severity": "error",
-      "pos": [
-        88.75,
-        70.8
-      ],
-      "layer": "F.Cu",
-      "net": "/ETH_SCLK",
-      "refs": [
-        "R31",
-        "U30"
-      ],
-      "msg": "Missing connection between items",
-      "source": "unconnected",
-      "items": [
-        {
-          "msg": "Pad 1 [/ETH_SCLK] of R31 on F.Cu",
-          "pos": [
-            88.75,
-            70.8
-          ],
-          "uuid": "4ce7a7d7-62ca-4d4c-9433-e99aae556466"
-        },
-        {
-          "msg": "Pad 20 [/ETH_SCLK] of U30 on F.Cu",
-          "pos": [
-            93.68,
-            96.502
-          ],
-          "uuid": "88428a9a-0ff0-4238-b929-176f186eaf8e"
-        }
-      ]
-    },
-    {
-      "check": "unconnected_items",
-      "severity": "error",
-      "pos": [
-        76.61,
-        134.402
-      ],
-      "layer": "F.Cu",
-      "net": "/PWM0",
-      "refs": [
-        "J4",
-        "U30"
-      ],
-      "msg": "Missing connection between items",
-      "source": "unconnected",
-      "items": [
-        {
-          "msg": "PTH pad 1 [/PWM0] of J4",
-          "pos": [
-            76.61,
-            134.402
-          ],
-          "uuid": "1f8f6cb1-cd20-43e4-8cfd-61dff0ac070b"
-        },
-        {
-          "msg": "Pad 4 [/PWM0] of U30 on F.Cu",
-          "pos": [
-            107.77,
+            98.88,
             88.232
           ],
-          "uuid": "142dea13-59b4-49fc-9c48-8f7583ab5cf3"
-        }
-      ]
-    },
-    {
-      "check": "unconnected_items",
-      "severity": "error",
-      "pos": [
-        76.61,
-        131.862
-      ],
-      "layer": "F.Cu",
-      "net": "/PWM1",
-      "refs": [
-        "J4",
-        "U30"
-      ],
-      "msg": "Missing connection between items",
-      "source": "unconnected",
-      "items": [
-        {
-          "msg": "PTH pad 2 [/PWM1] of J4",
-          "pos": [
-            76.61,
-            131.862
-          ],
-          "uuid": "47021488-7d35-4f9a-bad2-f7c4b582d410"
+          "uuid": "4476856d-fcfb-4126-bd4c-3db5cd0a2704"
         },
         {
-          "msg": "Pad 5 [/PWM1] of U30 on F.Cu",
+          "msg": "Track [/I2C_SDA] on F.Cu, length 0.2828 mm",
           "pos": [
-            106.5,
-            88.232
+            99.25,
+            110.0
           ],
-          "uuid": "020c0bea-a132-4366-96b1-ce08127756af"
+          "uuid": "7dce17ce-677e-4d0a-bfee-847bccde87c4"
         }
       ]
     },
@@ -1110,59 +929,24 @@
       "check": "unconnected_items",
       "severity": "error",
       "pos": [
-        81.69,
-        134.402
-      ],
-      "layer": "F.Cu",
-      "net": "/PWM2",
-      "refs": [
-        "J4",
-        "U30"
-      ],
-      "msg": "Missing connection between items",
-      "source": "unconnected",
-      "items": [
-        {
-          "msg": "PTH pad 5 [/PWM2] of J4",
-          "pos": [
-            81.69,
-            134.402
-          ],
-          "uuid": "dc05a118-9935-429a-89c7-26eb9a19d8b3"
-        },
-        {
-          "msg": "Pad 6 [/PWM2] of U30 on F.Cu",
-          "pos": [
-            105.23,
-            88.232
-          ],
-          "uuid": "c2fb0f37-ca1c-42c1-bac9-31e516000e3b"
-        }
-      ]
-    },
-    {
-      "check": "unconnected_items",
-      "severity": "error",
-      "pos": [
-        81.69,
-        131.862
+        83.85,
+        129.4
       ],
       "layer": "F.Cu",
       "net": "/PWM3",
       "refs": [
-        "J4",
         "U30"
       ],
       "msg": "Missing connection between items",
       "source": "unconnected",
       "items": [
         {
-          "msg": "PTH pad 6 [/PWM3] of J4",
+          "msg": "Track [/PWM3] on F.Cu, length 0.7071 mm",
           "pos": [
-            81.69,
-            131.862
+            83.85,
+            129.4
           ],
-          "uuid": "1ef5bf8b-e3c6-4b8c-ac3c-676f09d0f201"
+          "uuid": "8fa9f8fc-b07c-4297-a303-379d7c736e71"
         },
         {
           "msg": "Pad 7 [/PWM3] of U30 on F.Cu",
@@ -1178,203 +962,30 @@
       "check": "unconnected_items",
       "severity": "error",
       "pos": [
-        84.23,
-        134.402
+        84.5,
+        130.7
       ],
-      "layer": "F.Cu",
-      "net": "/PWM4",
-      "refs": [
-        "J4",
-        "U30"
-      ],
+      "layer": "In1.Cu",
+      "net": "/PWM3",
+      "refs": [],
       "msg": "Missing connection between items",
       "source": "unconnected",
       "items": [
         {
-          "msg": "PTH pad 7 [/PWM4] of J4",
+          "msg": "Track [/PWM3] on In1.Cu, length 0.0836 mm",
           "pos": [
-            84.23,
-            134.402
+            84.5,
+            130.7
           ],
-          "uuid": "ad47c2e1-a3d4-4498-a6cb-dea12609932e"
+          "uuid": "c5ce20ab-fe91-4add-a1ae-e5244798d6b3"
         },
         {
-          "msg": "Pad 8 [/PWM4] of U30 on F.Cu",
+          "msg": "Track [/PWM3] on F.Cu, length 0.0836 mm",
           "pos": [
-            102.69,
-            88.232
+            84.0,
+            130.7
           ],
-          "uuid": "c1e77d99-c71b-42ba-acd1-76b8ce2ccae6"
-        }
-      ]
-    },
-    {
-      "check": "unconnected_items",
-      "severity": "error",
-      "pos": [
-        84.23,
-        131.862
-      ],
-      "layer": "F.Cu",
-      "net": "/PWM5",
-      "refs": [
-        "J4",
-        "U30"
-      ],
-      "msg": "Missing connection between items",
-      "source": "unconnected",
-      "items": [
-        {
-          "msg": "PTH pad 8 [/PWM5] of J4",
-          "pos": [
-            84.23,
-            131.862
-          ],
-          "uuid": "f6b3b440-1a23-479e-a656-1929d3b5085e"
-        },
-        {
-          "msg": "Pad 9 [/PWM5] of U30 on F.Cu",
-          "pos": [
-            101.42,
-            88.232
-          ],
-          "uuid": "b2ebba00-0d6b-4df2-96a1-5a2da96315dd"
-        }
-      ]
-    },
-    {
-      "check": "unconnected_items",
-      "severity": "error",
-      "pos": [
-        92.75,
-        70.8
-      ],
-      "layer": "F.Cu",
-      "net": "/ETH_MOSI",
-      "refs": [
-        "R32",
-        "U30"
-      ],
-      "msg": "Missing connection between items",
-      "source": "unconnected",
-      "items": [
-        {
-          "msg": "Pad 1 [/ETH_MOSI] of R32 on F.Cu",
-          "pos": [
-            92.75,
-            70.8
-          ],
-          "uuid": "e5b5ee36-f481-49fe-aca2-4ea6c5005a46"
-        },
-        {
-          "msg": "Pad 19 [/ETH_MOSI] of U30 on F.Cu",
-          "pos": [
-            93.68,
-            95.232
-          ],
-          "uuid": "98823852-71f3-493e-8540-407fd9498942"
-        }
-      ]
-    },
-    {
-      "check": "unconnected_items",
-      "severity": "error",
-      "pos": [
-        93.68,
-        102.852
-      ],
-      "layer": "F.Cu",
-      "net": "/mcu/STATUS",
-      "refs": [
-        "R102",
-        "U30"
-      ],
-      "msg": "Missing connection between items",
-      "source": "unconnected",
-      "items": [
-        {
-          "msg": "Pad 25 [/mcu/STATUS] of U30 on F.Cu",
-          "pos": [
-            93.68,
-            102.852
-          ],
-          "uuid": "b79d7cc9-04d3-4dff-97ba-55e3cc347f80"
-        },
-        {
-          "msg": "Pad 1 [/mcu/STATUS] of R102 on F.Cu",
-          "pos": [
-            103.5,
-            68.25
-          ],
-          "uuid": "a51cf6cc-262e-4ea8-87d8-b05dd8d23fe0"
-        }
-      ]
-    },
-    {
-      "check": "unconnected_items",
-      "severity": "error",
-      "pos": [
-        101.619,
-        58.633
-      ],
-      "layer": "F.Cu",
-      "net": "/mcu/RXD0",
-      "refs": [
-        "J2",
-        "U30"
-      ],
-      "msg": "Missing connection between items",
-      "source": "unconnected",
-      "items": [
-        {
-          "msg": "PTH pad 4 [/mcu/RXD0] of J2",
-          "pos": [
-            101.619,
-            58.633
-          ],
-          "uuid": "34085037-987c-4f80-9e70-72cf72a00401"
-        },
-        {
-          "msg": "Pad 36 [/mcu/RXD0] of U30 on F.Cu",
-          "pos": [
-            106.5,
-            106.032
-          ],
-          "uuid": "34254a7e-ffa9-4635-8ea9-a27f1b70efbb"
-        }
-      ]
-    },
-    {
-      "check": "unconnected_items",
-      "severity": "error",
-      "pos": [
-        99.079,
-        58.633
-      ],
-      "layer": "F.Cu",
-      "net": "/mcu/TXD0",
-      "refs": [
-        "J2",
-        "U30"
-      ],
-      "msg": "Missing connection between items",
-      "source": "unconnected",
-      "items": [
-        {
-          "msg": "PTH pad 3 [/mcu/TXD0] of J2",
-          "pos": [
-            99.079,
-            58.633
-          ],
-          "uuid": "ab604e8a-d555-4d09-9639-3be6ac27be96"
-        },
-        {
-          "msg": "Pad 37 [/mcu/TXD0] of U30 on F.Cu",
-          "pos": [
-            107.77,
-            106.032
-          ],
-          "uuid": "b8755c8a-05d3-47a9-afea-5b070899a430"
+          "uuid": "cb5f55c5-c491-4f52-92d6-cb1d2db9fd4e"
         }
       ]
     },

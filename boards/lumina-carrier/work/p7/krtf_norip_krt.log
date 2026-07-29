@@ -1,0 +1,370 @@
+--track-width not given; using the board Default net-class 0.2mm.
+--hole-to-hole-clearance not given; using the board min_hole_to_hole 0.25mm.
+Loading C:\dev\ai-ee3\boards\lumina-carrier\kicad\lumina-carrier.kicad_pcb to expand net patterns...
+Routing 6 nets: ['/FAULT', '/ENABLE', '/ADC0', '/I2C_SCL', '/mcu/STATUS']...
+Loaded per-net clearances for 7/85 nets from C:\dev\ai-ee3\boards\lumina-carrier\work\p7\krtf_norip_netclr.json
+Loading C:\dev\ai-ee3\boards\lumina-carrier\kicad\lumina-carrier.kicad_pcb...
+Auto-read netclass track widths for 9 non-Default net(s) (#435 single-ended companion).
+Using 4 routing layers: ['F.Cu', 'In1.Cu', 'In2.Cu', 'B.Cu']
+  Layer costs: F.Cu=1.0x, In1.Cu=-1.0x, In2.Cu=-1.0x, B.Cu=1.0x
+No BGA components detected - no exclusion zones needed
+
+Using MPS ordering strategy...
+MPS: Using segment intersection method (no nets on BGA chips)
+MPS: 6 nets with 6 crossing conflicts detected
+MPS Round 1: 3 units: /I2C_SCL, /FAULT, /mcu/STATUS
+MPS Round 2: 2 units: /ADC0, /ENABLE
+MPS Round 3: 1 units: /mcu/RXD0
+
+Routing 6 single-ended net(s)...
+============================================================
+Building base obstacle map...
+Base obstacle map built in 11.34s
+Found 85 unrouted nets in PCB for stub proximity
+Pre-computing net obstacle cache...
+Net obstacle cache built in 1.03s (85 nets)
+
+[1/6] Routing /I2C_SCL (id=70)
+----------------------------------------
+Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+No route found after 200000 iterations (forward), trying backward...
+No route found after 410000 iterations (both directions)
+  FAILED: Could not find route (0.24s)
+  [91mROUTE FAILED - no rippable blockers found[0m
+  Hint: the blocking copper belongs to pre-existing net(s) '/mcu/TXD0' '/ID_ADC' '/I2C_SDA' '/PWM5' '/mcu/ENABLE_M' '/PWM6' (committed by an earlier run/step), which this run is not allowed to rip. Retry with --rip-existing-nets '/mcu/TXD0' '/ID_ADC' '/I2C_SDA' '/PWM5' '/mcu/ENABLE_M' '/PWM6' to rip and re-route them in this run (issue #103) -- the decisive blocker may be any of them, so start with the full set (each ripped net is re-routed and the run reports honestly if one cannot be), then bisect if you want a minimal rip.
+
+[2/6 (1 failed)] Routing /FAULT (id=10)
+----------------------------------------
+  Detected multi-point net with 3 pads (Phase 1: main route only)
+  Existing copper joins 3 terminals into 2 group(s)
+  Multi-point net Phase 1: routing longest MST edge (pads 0 and 2, length=68.21mm)
+  backward stuck (293 < 5000), forward=5000
+    backward cell (937, 1926, layer=0): ok, 0/8 neighbors blocked
+  Phase 1 edge (pads 0,2) failed after 5293 iterations
+  Phase 1 exhausted from the pads; deferring 1 edge(s) to Phase 3's island-copper sources (base component: 2 terminal(s))
+  SUCCESS: 0 segments, 0 vias, 5293 iterations, length=86.28mm (stubs=86.28mm) (0.19s)
+
+[3/6 (1 failed)] Routing /mcu/STATUS (id=73)
+----------------------------------------
+Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+No route found after 200000 iterations (forward), trying backward...
+No route found after 410000 iterations (both directions)
+  FAILED: Could not find route (0.19s)
+  [91mROUTE FAILED - no rippable blockers found[0m
+  Hint: the blocking copper belongs to pre-existing net(s) '/mcu/EN' '/mcu/ENABLE_M' '/poe/LED_G_A' '/PWM3' '/PWM1' '/mcu/IO3_STRAP' (committed by an earlier run/step), which this run is not allowed to rip. Retry with --rip-existing-nets '/mcu/EN' '/mcu/ENABLE_M' '/poe/LED_G_A' '/PWM3' '/PWM1' '/mcu/IO3_STRAP' to rip and re-route them in this run (issue #103) -- the decisive blocker may be any of them, so start with the full set (each ripped net is re-routed and the run reports honestly if one cannot be), then bisect if you want a minimal rip.
+forward stuck (3 < 5000), backward=5000
+  forward cell (1874, 2057, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (1873,2056), (1873,2057), (1873,2058), (1874,2056), (1874,2058), (1875,2056), (1875,2057), (1875,2058)
+  forward cell (1874, 2057, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (1873,2056), (1873,2057), (1873,2058), (1874,2056), (1874,2058), (1875,2056), (1875,2057), (1875,2058)
+  forward cell (1879, 2052, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (1878,2051), (1878,2052), (1878,2053), (1879,2051), (1879,2053), (1880,2051), (1880,2052), (1880,2053)
+forward stuck (585 < 5000), backward=5000
+  forward cell (1874, 2057, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (1873,2056), (1873,2057), (1873,2058), (1874,2056), (1874,2058), (1875,2056), (1875,2057), (1875,2058)
+  forward cell (1874, 2057, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (1873,2056), (1873,2057), (1873,2058), (1874,2056), (1874,2058), (1875,2056), (1875,2057), (1875,2058)
+  forward cell (1879, 2052, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (1878,2051), (1878,2052), (1878,2053), (1879,2051), (1879,2053), (1880,2051), (1880,2052), (1880,2053)
+No route found after 5003 iterations (both directions)
+
+[4/6 (2 failed)] Routing /ADC0 (id=21)
+----------------------------------------
+Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+No route found after 200000 iterations (forward), trying backward...
+No route found after 237290 iterations (both directions)
+  FAILED: Could not find route (0.17s)
+  [91mROUTE FAILED - no rippable blockers found[0m
+  Hint: the blocking copper belongs to pre-existing net(s) '/DSPI_CSn' '/DSPI_MISO' '/mcu/EN' '/ETH_MOSI' '/ETH_CSn' '/eth/EXRES' (committed by an earlier run/step), which this run is not allowed to rip. Retry with --rip-existing-nets '/DSPI_CSn' '/DSPI_MISO' '/mcu/EN' '/ETH_MOSI' '/ETH_CSn' '/eth/EXRES' to rip and re-route them in this run (issue #103) -- the decisive blocker may be any of them, so start with the full set (each ripped net is re-routed and the run reports honestly if one cannot be), then bisect if you want a minimal rip.
+
+[5/6 (3 failed)] Routing /ENABLE (id=42)
+----------------------------------------
+Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+No route found after 200000 iterations (forward), trying backward...
+Route found in 400144 iterations, path length: 1050
+  SUCCESS: 21 segments, 4 vias, 400144 iterations, length=101.12mm (stubs=30.66mm) (0.22s)
+
+[6/6 (3 failed)] Routing /mcu/RXD0 (id=80)
+----------------------------------------
+Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+No route found after 200000 iterations (forward), trying backward...
+No route found after 410000 iterations (both directions)
+  FAILED: Could not find route (0.20s)
+  Forward direction failed fastest (205000 iterations, 4673 blocked cells)
+  No previously-routed nets blocking
+  Static blockers: pads: GND (D42, R106, U30), /ADC1 (D42, R137), /mcu/IO3_STRAP (R106), /DSPI_MISO (U30), /DSPI_CSn (U30) (+2 more); pre-existing tracks: /ADC1, /DSPI_CSn, /DSPI_MISO (+5 more)
+  [91mROUTE FAILED - no rippable blockers found[0m
+  Hint: the blocking copper belongs to pre-existing net(s) '/mcu/TXD0' '/DSPI_CSn' '/mcu/IO3_STRAP' '/ADC1' '/expansion/ADC1_CONN' '/ADC0' (committed by an earlier run/step), which this run is not allowed to rip. Retry with --rip-existing-nets '/mcu/TXD0' '/DSPI_CSn' '/mcu/IO3_STRAP' '/ADC1' '/expansion/ADC1_CONN' '/ADC0' to rip and re-route them in this run (issue #103) -- the decisive blocker may be any of them, so start with the full set (each ripped net is re-routed and the run reports honestly if one cannot be), then bisect if you want a minimal rip.
+
+Sync pcb_data: 3048 -> 3027 (kept stubs) -> 3048 (after adding 21)
+
+============================================================
+Multi-point Phase 3: Routing 1 tap connections
+============================================================
+
+/FAULT (net 10):
+  Seeding tap sources from the base island's existing copper: 70 segment(s), 6 via(s)
+  Multi-point net Phase 3: routing 1 remaining MST edges (longest first)
+    [1/1] Routing MST edge: pad 0 -> pad 2 (length=68.21mm) target=(46.86, 96.33)
+      backward stuck (251 < 5000), forward=5000
+        backward cell (937, 1926, layer=0): ok, 0/8 neighbors blocked
+      [93mFailed to route MST edge after 5251 iterations (0.00s)[0m
+    Fallback: attempting orphaned pad 2 directly from connected copper
+    [2/1] (1 failed) Routing MST edge: pad 0 -> pad 2 (length=68.21mm) target=(46.86, 96.33)
+      backward stuck (251 < 5000), forward=5000
+        backward cell (937, 1926, layer=0): ok, 0/8 neighbors blocked
+      [93mFailed to route MST edge after 5251 iterations (0.00s)[0m
+  [93mWarning: 1 pad(s) not connected (1 MST edge(s) failed)[0m
+  Phase 3 routing complete: 0 edges, 0 total segments, 0 total vias
+  [91mNOT CONNECTED (so far): /FAULT - U22 pad 15 at (46.86, 96.33) - may still be recovered; final verdict in the end-of-run summary[0m
+  Net total time: 0.10s, 15795 iterations
+
+Per-net fine-parameter rescue (#331/#371): 5 candidate net(s)
+  Rescuing /ADC0 (failed, 2 disconnected parts)
+Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+No route found after 326016 iterations (forward), trying backward...
+No route found after 983997 iterations (both directions)
+Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+No route found after 355780 iterations (forward), trying backward...
+No route found after 1035732 iterations (both directions)
+Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+No route found after 1000000 iterations (forward), trying backward...
+No route found after 1687415 iterations (both directions)
+    [91mrescue failed[0m (35.2s)
+  Rescuing /FAULT (partial, 2 disconnected parts)
+    [93mgap 59.0mm exceeds rescue limit 40mm - skipped[0m
+    [91mrescue failed[0m (0.0s)
+  Rescuing /I2C_SCL (failed, 2 disconnected parts)
+Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+Route found in 732351 iterations, path length: 1044
+    [92mrescued a gap[0m: grid 0.025, clearance 0.2, track 0.2 (48 segs, 6 vias, 732351 iters)
+    [92mfully reconnected[0m (2 -> 1 parts, 6.8s)
+  Rescuing /mcu/RXD0 (failed, 2 disconnected parts)
+    [93mgap 47.4mm exceeds rescue limit 40mm - skipped[0m
+    [91mrescue failed[0m (0.0s)
+  Rescuing /mcu/STATUS (failed, 2 disconnected parts)
+Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+No route found after 1000000 iterations (forward), trying backward...
+No route found after 2010000 iterations (both directions)
+Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+No route found after 1000000 iterations (forward), trying backward...
+No route found after 2010000 iterations (both directions)
+Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+No route found after 1000000 iterations (forward), trying backward...
+No route found after 2010000 iterations (both directions)
+    [91mrescue failed[0m (39.1s)
+Rescue pass: 1 recovered, 0 improved, 4 unchanged (81.2s)
+Cycle prune: removed 6 redundant loop segment(s) across 2 net(s)
+Strict collapse: removed 1 redundant segment(s) (superseded parallel/buried copper)
+
+============================================================
+Routing complete
+============================================================
+  [91mSingle-ended:  2/6 routed (3 FAILED)[0m
+  [91mMulti-point:   4/5 pads connected (1 FAILED)[0m
+  Total vias:    10
+  Total time:    1.22s
+  Iterations:    1,872,727
+
+[91mFailed single-ended nets:[0m
+  [91m/mcu/STATUS[0m
+  [91m/ADC0[0m
+  [91m/mcu/RXD0[0m
+
+[91mFailed multi-point connections:[0m
+  [91m/FAULT: U22 pad ? at (46.86, 96.33) not connected[0m
+
+============================================================
+FAILED NET HISTORIES
+============================================================
+
+/mcu/STATUS:
+  [0] Re-route FAILED: no rippable blockers found
+  [0] preexisting_blockers
+  [0] rescue_failed
+
+/ADC0:
+  [0] Re-route FAILED: no rippable blockers found
+  [0] preexisting_blockers
+  [0] rescue_failed
+
+/mcu/RXD0:
+  [0] blocked_by
+  [0] Re-route FAILED: no rippable blockers found
+  [0] preexisting_blockers
+  [0] rescue_failed
+JSON_SUMMARY: {"routed_single": ["/I2C_SCL", "/ENABLE"], "failed_single": ["/mcu/STATUS", "/ADC0", "/mcu/RXD0"], "failed_multipoint": [{"net_name": "/FAULT", "failed_pads": [{"component_ref": "U22", "pad_number": "?", "x": 46.8625, "y": 96.325}]}], "multipoint_nets": 1, "multipoint_pads_connected": 4, "multipoint_pads_total": 5, "multipoint_edges_routed": 0, "multipoint_edges_failed": 1, "ripup_success_pairs": [], "rerouted_pairs": [], "single_ended_target_swaps": [], "layer_swaps": 0, "successful": 2, "failed": 4, "total_time": 1.22, "total_iterations": 1872727, "total_vias": 10, "cleanup_disconnected": [], "min_clearance_used": 0.2, "rescue": {"attempted": 5, "recovered": ["/I2C_SCL"], "improved": [], "unchanged": ["/ADC0", "/FAULT", "/mcu/RXD0", "/mcu/STATUS"], "pads_reconnected": 0, "time": 81.19}}
+
+Writing output to C:\dev\ai-ee3\boards\lumina-carrier\work\p7\krtf_norip.kicad_pcb...
+Removed 3 dead-end input segment(s) from the output
+Successfully wrote C:\dev\ai-ee3\boards\lumina-carrier\work\p7\krtf_norip.kicad_pcb
+
+Final reconciliation: retrying 4 incomplete net(s) against the finished board: /mcu/STATUS, /ADC0, /mcu/RXD0, /FAULT
+  Reconciliation rip authority (#103): --rip-existing-nets over hinted blockers /ADC0
+Loading C:\dev\ai-ee3\boards\lumina-carrier\work\p7\krtf_norip.kicad_pcb...
+Using 4 routing layers: ['F.Cu', 'In1.Cu', 'In2.Cu', 'B.Cu']
+  Layer costs: F.Cu=1.0x, In1.Cu=-1.0x, In2.Cu=-1.0x, B.Cu=1.0x
+No BGA components detected - no exclusion zones needed
+
+Using MPS ordering strategy...
+MPS: Using segment intersection method (no nets on BGA chips)
+MPS: 4 nets with 4 crossing conflicts detected
+MPS Round 1: 2 units: /FAULT, /mcu/STATUS
+MPS Round 2: 1 units: /ADC0
+MPS Round 3: 1 units: /mcu/RXD0
+
+Routing 4 single-ended net(s)...
+============================================================
+Building base obstacle map...
+Base obstacle map built in 11.34s
+Found 85 unrouted nets in PCB for stub proximity
+Pre-computing net obstacle cache...
+Net obstacle cache built in 1.09s (85 nets)
+
+[1/4] Routing /FAULT (id=10)
+----------------------------------------
+  Detected multi-point net with 3 pads (Phase 1: main route only)
+  Existing copper joins 3 terminals into 2 group(s)
+  Multi-point net Phase 1: routing longest MST edge (pads 0 and 2, length=68.21mm)
+  backward stuck (293 < 5000), forward=5000
+    backward cell (937, 1926, layer=0): ok, 0/8 neighbors blocked
+  Phase 1 edge (pads 0,2) failed after 5293 iterations
+  Phase 1 exhausted from the pads; deferring 1 edge(s) to Phase 3's island-copper sources (base component: 2 terminal(s))
+  SUCCESS: 0 segments, 0 vias, 5293 iterations, length=86.28mm (stubs=86.28mm) (0.19s)
+
+[2/4] Routing /mcu/STATUS (id=73)
+----------------------------------------
+Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+No route found after 200000 iterations (forward), trying backward...
+No route found after 410000 iterations (both directions)
+  FAILED: Could not find route (0.22s)
+  [91mROUTE FAILED - no rippable blockers found[0m
+  Hint: the blocking copper belongs to pre-existing net(s) '/mcu/EN' '/mcu/ENABLE_M' '/poe/LED_G_A' '/PWM3' '/PWM1' '/mcu/IO3_STRAP' (committed by an earlier run/step), which this run is not allowed to rip. Retry with --rip-existing-nets '/mcu/EN' '/mcu/ENABLE_M' '/poe/LED_G_A' '/PWM3' '/PWM1' '/mcu/IO3_STRAP' to rip and re-route them in this run (issue #103) -- the decisive blocker may be any of them, so start with the full set (each ripped net is re-routed and the run reports honestly if one cannot be), then bisect if you want a minimal rip.
+forward stuck (3 < 5000), backward=5000
+  forward cell (1874, 2057, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (1873,2056), (1873,2057), (1873,2058), (1874,2056), (1874,2058), (1875,2056), (1875,2057), (1875,2058)
+  forward cell (1874, 2057, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (1873,2056), (1873,2057), (1873,2058), (1874,2056), (1874,2058), (1875,2056), (1875,2057), (1875,2058)
+  forward cell (1879, 2052, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (1878,2051), (1878,2052), (1878,2053), (1879,2051), (1879,2053), (1880,2051), (1880,2052), (1880,2053)
+forward stuck (585 < 5000), backward=5000
+  forward cell (1874, 2057, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (1873,2056), (1873,2057), (1873,2058), (1874,2056), (1874,2058), (1875,2056), (1875,2057), (1875,2058)
+  forward cell (1874, 2057, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (1873,2056), (1873,2057), (1873,2058), (1874,2056), (1874,2058), (1875,2056), (1875,2057), (1875,2058)
+  forward cell (1879, 2052, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (1878,2051), (1878,2052), (1878,2053), (1879,2051), (1879,2053), (1880,2051), (1880,2052), (1880,2053)
+No route found after 5003 iterations (both directions)
+
+[3/4 (1 failed)] Routing /ADC0 (id=21)
+----------------------------------------
+Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+No route found after 200000 iterations (forward), trying backward...
+No route found after 237290 iterations (both directions)
+  FAILED: Could not find route (0.18s)
+  [91mROUTE FAILED - no rippable blockers found[0m
+  Hint: the blocking copper belongs to pre-existing net(s) '/DSPI_CSn' '/DSPI_MISO' '/mcu/EN' '/ETH_MOSI' '/ETH_CSn' '/eth/EXRES' (committed by an earlier run/step), which this run is not allowed to rip. Retry with --rip-existing-nets '/DSPI_CSn' '/DSPI_MISO' '/mcu/EN' '/ETH_MOSI' '/ETH_CSn' '/eth/EXRES' to rip and re-route them in this run (issue #103) -- the decisive blocker may be any of them, so start with the full set (each ripped net is re-routed and the run reports honestly if one cannot be), then bisect if you want a minimal rip.
+
+[4/4 (2 failed)] Routing /mcu/RXD0 (id=80)
+----------------------------------------
+Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+No route found after 200000 iterations (forward), trying backward...
+No route found after 410000 iterations (both directions)
+  FAILED: Could not find route (0.22s)
+  [91mROUTE FAILED - no rippable blockers found[0m
+  Hint: the blocking copper belongs to pre-existing net(s) '/mcu/TXD0' '/DSPI_CSn' '/mcu/IO3_STRAP' '/mcu/BOOT' '/mcu/EN' '/mcu/ENABLE_M' (committed by an earlier run/step), which this run is not allowed to rip. Retry with --rip-existing-nets '/mcu/TXD0' '/DSPI_CSn' '/mcu/IO3_STRAP' '/mcu/BOOT' '/mcu/EN' '/mcu/ENABLE_M' to rip and re-route them in this run (issue #103) -- the decisive blocker may be any of them, so start with the full set (each ripped net is re-routed and the run reports honestly if one cannot be), then bisect if you want a minimal rip.
+
+Sync pcb_data: 3089 -> 3089 (kept stubs) -> 3089 (after adding 0)
+
+============================================================
+Multi-point Phase 3: Routing 1 tap connections
+============================================================
+
+/FAULT (net 10):
+  Seeding tap sources from the base island's existing copper: 70 segment(s), 6 via(s)
+  Multi-point net Phase 3: routing 1 remaining MST edges (longest first)
+    [1/1] Routing MST edge: pad 0 -> pad 2 (length=68.21mm) target=(46.86, 96.33)
+      backward stuck (251 < 5000), forward=5000
+        backward cell (937, 1926, layer=0): ok, 0/8 neighbors blocked
+      [93mFailed to route MST edge after 5251 iterations (0.01s)[0m
+    Fallback: attempting orphaned pad 2 directly from connected copper
+    [2/1] (1 failed) Routing MST edge: pad 0 -> pad 2 (length=68.21mm) target=(46.86, 96.33)
+      backward stuck (251 < 5000), forward=5000
+        backward cell (937, 1926, layer=0): ok, 0/8 neighbors blocked
+      [93mFailed to route MST edge after 5251 iterations (0.00s)[0m
+  [93mWarning: 1 pad(s) not connected (1 MST edge(s) failed)[0m
+  Phase 3 routing complete: 0 edges, 0 total segments, 0 total vias
+  [91mNOT CONNECTED (so far): /FAULT - U22 pad 15 at (46.86, 96.33) - may still be recovered; final verdict in the end-of-run summary[0m
+  Net total time: 0.11s, 15795 iterations
+
+Per-net fine-parameter rescue (#331/#371): 4 candidate net(s)
+  Rescuing /ADC0 (failed, 2 disconnected parts)
+Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+No route found after 326016 iterations (forward), trying backward...
+No route found after 983997 iterations (both directions)
+Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+No route found after 355780 iterations (forward), trying backward...
+No route found after 1035732 iterations (both directions)
+Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+No route found after 1000000 iterations (forward), trying backward...
+No route found after 1687415 iterations (both directions)
+    [91mrescue failed[0m (34.7s)
+  Rescuing /FAULT (partial, 2 disconnected parts)
+    [93mgap 59.0mm exceeds rescue limit 40mm - skipped[0m
+    [91mrescue failed[0m (0.0s)
+  Rescuing /mcu/RXD0 (failed, 2 disconnected parts)
+    [93mgap 47.4mm exceeds rescue limit 40mm - skipped[0m
+    [91mrescue failed[0m (0.0s)
+  Rescuing /mcu/STATUS (failed, 2 disconnected parts)
+Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+No route found after 1000000 iterations (forward), trying backward...
+No route found after 2010000 iterations (both directions)
+Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+No route found after 1000000 iterations (forward), trying backward...
+No route found after 2010000 iterations (both directions)
+Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+No route found after 1000000 iterations (forward), trying backward...
+No route found after 2010000 iterations (both directions)
+    [91mrescue failed[0m (38.8s)
+Rescue pass: 0 recovered, 0 improved, 4 unchanged (73.5s)
+
+============================================================
+Routing complete
+============================================================
+  [91mSingle-ended:  0/4 routed (3 FAILED)[0m
+  [91mMulti-point:   4/5 pads connected (1 FAILED)[0m
+  Total vias:    0
+  Total time:    0.81s
+  Iterations:    1,062,583
+
+[91mFailed single-ended nets:[0m
+  [91m/mcu/STATUS[0m
+  [91m/ADC0[0m
+  [91m/mcu/RXD0[0m
+
+[91mFailed multi-point connections:[0m
+  [91m/FAULT: U22 pad ? at (46.86, 96.33) not connected[0m
+
+============================================================
+FAILED NET HISTORIES
+============================================================
+
+/mcu/STATUS:
+  [0] Re-route FAILED: no rippable blockers found
+  [0] preexisting_blockers
+  [0] rescue_failed
+
+/ADC0:
+  [0] Re-route FAILED: no rippable blockers found
+  [0] preexisting_blockers
+  [0] rescue_failed
+
+/mcu/RXD0:
+  [0] Re-route FAILED: no rippable blockers found
+  [0] preexisting_blockers
+  [0] rescue_failed
+JSON_SUMMARY: {"routed_single": [], "failed_single": ["/mcu/STATUS", "/ADC0", "/mcu/RXD0"], "failed_multipoint": [{"net_name": "/FAULT", "failed_pads": [{"component_ref": "U22", "pad_number": "?", "x": 46.8625, "y": 96.325}]}], "multipoint_nets": 1, "multipoint_pads_connected": 4, "multipoint_pads_total": 5, "multipoint_edges_routed": 0, "multipoint_edges_failed": 1, "ripup_success_pairs": [], "rerouted_pairs": [], "single_ended_target_swaps": [], "layer_swaps": 0, "successful": 0, "failed": 4, "total_time": 0.81, "total_iterations": 1062583, "total_vias": 0, "cleanup_disconnected": [], "min_clearance_used": 0.2, "rescue": {"attempted": 4, "recovered": [], "improved": [], "unchanged": ["/ADC0", "/FAULT", "/mcu/RXD0", "/mcu/STATUS"], "pads_reconnected": 0, "time": 73.54}}
+
+Writing output to C:\dev\ai-ee3\boards\lumina-carrier\work\p7\krtf_norip.kicad_pcb...
+Successfully wrote C:\dev\ai-ee3\boards\lumina-carrier\work\p7\krtf_norip.kicad_pcb
+Note: the JSON_SUMMARY above covers only the reconciliation subset; the run's full tally is the earlier JSON_SUMMARY plus these recoveries.

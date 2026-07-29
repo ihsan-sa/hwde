@@ -25,7 +25,7 @@ bg = geom.BoardGeom.from_file(pcb)
 for lay in bg.copper_layers:
     items = []
     for t in bg.tracks_of(layer=lay):
-        g = geom.LineString([t.start, t.end]).buffer(t.width / 2.0, quad_segs=8)
+        g = t.poly
         items.append(("track " + (t.net or "?"), g))
     for v in bg.vias_of():
         if lay in v.layers:

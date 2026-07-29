@@ -1,0 +1,371 @@
+{
+  "script": "kc",
+  "tool": "drc",
+  "input": "boards\\lumina-carrier\\work\\p7\\krtf_final.kicad_pcb",
+  "units": "mm",
+  "kicad_version": "10.0.3",
+  "options": {
+    "parity": false,
+    "all_track_errors": true,
+    "refill": true,
+    "save_board": true
+  },
+  "counts": {
+    "total": 12,
+    "by_severity": {
+      "warning": 5,
+      "error": 7
+    },
+    "by_source": {
+      "drc": 5,
+      "unconnected": 7
+    }
+  },
+  "status": "violations",
+  "violations": [
+    {
+      "check": "track_dangling",
+      "severity": "warning",
+      "pos": [
+        68.232538,
+        126.032538
+      ],
+      "layer": "F.Cu",
+      "net": "+12V",
+      "refs": [],
+      "msg": "Track has unconnected end",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [+12V] on F.Cu, length 0.0247 mm",
+          "pos": [
+            68.232538,
+            126.032538
+          ],
+          "uuid": "84182324-ea88-435e-a9de-98ab566100d1"
+        }
+      ]
+    },
+    {
+      "check": "track_dangling",
+      "severity": "warning",
+      "pos": [
+        111.035714,
+        106.914286
+      ],
+      "layer": "B.Cu",
+      "net": "GND",
+      "refs": [],
+      "msg": "Track has unconnected end",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [GND] on B.Cu, length 0.0202 mm",
+          "pos": [
+            111.035714,
+            106.914286
+          ],
+          "uuid": "4cbb7c1a-5c0d-4bd9-b7ef-8c1150fa85f5"
+        }
+      ]
+    },
+    {
+      "check": "track_dangling",
+      "severity": "warning",
+      "pos": [
+        112.0,
+        70.0
+      ],
+      "layer": "B.Cu",
+      "net": "/FAULT",
+      "refs": [],
+      "msg": "Track has unconnected end",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/FAULT] on B.Cu, length 2.3500 mm",
+          "pos": [
+            112.0,
+            70.0
+          ],
+          "uuid": "3b61ee72-fc22-4c8f-a403-8a38ec249d03"
+        }
+      ]
+    },
+    {
+      "check": "via_dangling",
+      "severity": "warning",
+      "pos": [
+        103.45,
+        69.4
+      ],
+      "layer": "F.Cu",
+      "net": "/mcu/STATUS",
+      "refs": [],
+      "msg": "Via is not connected or connected on only one layer",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Via [/mcu/STATUS] on F.Cu - B.Cu",
+          "pos": [
+            103.45,
+            69.4
+          ],
+          "uuid": "48ccd3e7-56ae-4689-ad1a-daacac63d901"
+        }
+      ]
+    },
+    {
+      "check": "via_dangling",
+      "severity": "warning",
+      "pos": [
+        94.0,
+        102.6
+      ],
+      "layer": "F.Cu",
+      "net": "/mcu/STATUS",
+      "refs": [],
+      "msg": "Via is not connected or connected on only one layer",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Via [/mcu/STATUS] on F.Cu - B.Cu",
+          "pos": [
+            94.0,
+            102.6
+          ],
+          "uuid": "62944c8a-2c1a-4294-8cd9-078c46e0c7d8"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        94.6758,
+        82.9319
+      ],
+      "layer": "F.Cu",
+      "net": "GND",
+      "refs": [
+        "U10"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 3 [GND] of U10 on F.Cu",
+          "pos": [
+            94.6758,
+            82.9319
+          ],
+          "uuid": "c7763626-a64f-45cd-be38-7440447870fb"
+        },
+        {
+          "msg": "Pad 9 [GND] of U10 on F.Cu",
+          "pos": [
+            97.6758,
+            82.9319
+          ],
+          "uuid": "eac50fdf-07f4-4b1f-b8f0-4c8cd18df986"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        46.8625,
+        96.325
+      ],
+      "layer": "F.Cu",
+      "net": "/FAULT",
+      "refs": [
+        "U22"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 15 [/FAULT] of U22 on F.Cu",
+          "pos": [
+            46.8625,
+            96.325
+          ],
+          "uuid": "e3439284-84a5-4674-8a96-246224e81f60"
+        },
+        {
+          "msg": "Track [/FAULT] on B.Cu, length 0.2828 mm",
+          "pos": [
+            103.65,
+            112.7
+          ],
+          "uuid": "81d0255b-c81b-40d7-bdfe-f351cb0cafe4"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        110.31,
+        106.032
+      ],
+      "layer": "F.Cu",
+      "net": "/ADC0",
+      "refs": [
+        "D41",
+        "U30"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 39 [/ADC0] of U30 on F.Cu",
+          "pos": [
+            110.31,
+            106.032
+          ],
+          "uuid": "8bf096bc-addb-4114-a6d0-f6a7972a78c3"
+        },
+        {
+          "msg": "Pad 1 [/ADC0] of D41 on F.Cu",
+          "pos": [
+            90.39,
+            79.25
+          ],
+          "uuid": "4231a6fb-fffb-4bee-b9e4-a486d22685e3"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        99.25,
+        120.0
+      ],
+      "layer": "F.Cu",
+      "net": "/ENABLE",
+      "refs": [],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Track [/ENABLE] on F.Cu, length 0.4950 mm",
+          "pos": [
+            99.25,
+            120.0
+          ],
+          "uuid": "cacc90f6-4e58-4a35-bd7a-7d2d3d4550a4"
+        },
+        {
+          "msg": "Track [/ENABLE] on B.Cu, length 0.7071 mm",
+          "pos": [
+            49.2,
+            101.3
+          ],
+          "uuid": "3d12ac53-7b1d-489d-bf88-f52e5e939777"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        95.25,
+        110.0
+      ],
+      "layer": "F.Cu",
+      "net": "/I2C_SCL",
+      "refs": [
+        "R130",
+        "U30"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 1 [/I2C_SCL] of R130 on F.Cu",
+          "pos": [
+            95.25,
+            110.0
+          ],
+          "uuid": "6a1f3161-6584-46d2-b301-57253921e044"
+        },
+        {
+          "msg": "Pad 10 [/I2C_SCL] of U30 on F.Cu",
+          "pos": [
+            100.15,
+            88.232
+          ],
+          "uuid": "f4fc625b-57f7-4bcb-b3b1-960ecf345c52"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        103.45,
+        69.4
+      ],
+      "layer": "F.Cu",
+      "net": "/mcu/STATUS",
+      "refs": [],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Via [/mcu/STATUS] on F.Cu - B.Cu",
+          "pos": [
+            103.45,
+            69.4
+          ],
+          "uuid": "48ccd3e7-56ae-4689-ad1a-daacac63d901"
+        },
+        {
+          "msg": "Via [/mcu/STATUS] on F.Cu - B.Cu",
+          "pos": [
+            94.0,
+            102.6
+          ],
+          "uuid": "62944c8a-2c1a-4294-8cd9-078c46e0c7d8"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        101.619,
+        58.633
+      ],
+      "layer": "F.Cu",
+      "net": "/mcu/RXD0",
+      "refs": [
+        "J2"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "PTH pad 4 [/mcu/RXD0] of J2",
+          "pos": [
+            101.619,
+            58.633
+          ],
+          "uuid": "34085037-987c-4f80-9e70-72cf72a00401"
+        },
+        {
+          "msg": "Track [/mcu/RXD0] on F.Cu, length 0.2828 mm",
+          "pos": [
+            106.5,
+            106.05
+          ],
+          "uuid": "18c521fc-e06d-4bf8-9aaa-6845321a99a6"
+        }
+      ]
+    }
+  ]
+}

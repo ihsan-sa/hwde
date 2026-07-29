@@ -3,7 +3,7 @@
  "board": "lumina-carrier",
  "workspace": "boards/lumina-carrier",
  "created": "2026-07-28T13:36:22",
- "updated": "2026-07-29T14:50:38",
+ "updated": "2026-07-29T16:34:28",
  "phase": "P7",
  "gates": {
   "erc": {
@@ -377,6 +377,18 @@
    "why": "Place gate 0 violations; hpwl 4212 -> 3601 mm, crossings 955 -> 613, utilisation 24.7 percent; route probe completion 0.9842 (5 unrouted of 317), above the 0.98 bar. TWO SELF-INFLICTED ISSUES FIXED: (1) my hand-written .kicad_dru HV rules had no pad-pair exclusion, so they fired 30 times between ADJACENT PINS OF THE SAME PACKAGE - U1's own VDD/VSS at 0.20 mm, U22's HTSSOP pitch, C1/C61/C62/C63's own two pads. No placement can fix a 0.65 mm-pitch package, and that was never the rule's purpose: TI's 0.635 mm guidance governs BOARD copper around the part, not the vendor's lead frame. Added !(A.Type=='Pad' && B.Type=='Pad') to all three rules - 30 errors to 0 - and this loses no coverage because P8 check_creepage independently models pad-to-pad from the voltages table. (2) My first silk-clip pass was scoped board-wide and removed 241 primitives, stripping legitimate silkscreen from nearly every passive, because a 0603's body outline naturally overlaps its own pad bboxes. Caught it by sanity-checking the count before committing, restored from backup, and re-scoped to only the refs DRC actually flagged: exactly 5 clipped (J1 x4, D22 x1), verified by differencing silk-layer references against the backup. Board DRC is now 0 non-unconnected violations. Also frozen: ICD s7.2 connector coordinates (J3 origin 23.00,76.00; J4 origin 71.00,76.00; H5 46.00,74.00), and J1 moved 5.75 mm left onto the ICD nominal envelope, taking the daughters' notch margin from 0.13 mm - not a margin - to a real one.",
    "phase": "P6",
    "ts": "2026-07-29T11:02:27"
+  },
+  {
+   "what": "MEASUREMENT RECORD SETTLED (shape-aware). My P4 figure was RIGHT; my P7 'correction' was WRONG. J1 barrier = 1.613 mm, passes HALO. Shield-to-tap = 0.603 mm, passes IPC but 0.032 mm short of my adopted 0.635 mm.",
+   "why": "I produced three numbers for the same barrier because I twice used a formula that did not match the pad SHAPE. J1's signal and tap pads are CIRCLES, and for circle-circle the radial form hypot(dx,dy)-(r1+r2) is EXACT - so my original P4 figure of 1.451 mm was correct all along and HALO's 1.40 mm was met. My P7 'correction' to 1.148 mm applied a RECTANGLE model to circular pads, which underestimates diagonals, and I retracted a correct number and reported a false failure. The router caught it. Definitive figures from a single shape-aware tool (work/p7/pad_gap.py, capsule model: circle = degenerate segment, oval = stadium spine, rect = per-axis): BARRIER pad 2 (/ETH_TXN) to pad 11 (/poe/POE_TAP_A1) = 1.6130 mm as built, or 1.4510 mm with pad 2 at its original 1.524 mm - BOTH pass the 1.30 mm rule and HALO's 1.40 mm. SHIELD board-lock 19 (oval) to tap 11 (circle) = 0.6029 mm, and 20 to 14 = 0.6127 mm - not the 0.550 mm I reported (rectangle model on an oval-circle pair) and not the 0.687 mm of P4 (radial model on the same). CONSEQUENCE FOR THE RECORD: 0.6029 mm PASSES IPC-2221B B2 (0.60 mm for the 51-100 V band) and falls 0.032 mm short only of the 0.635 mm I adopted board-wide from TI's PD-specific VSS-to-VDD guidance - which is about copper around the PD controller, not a magjack shield tab. That is a far smaller deviation than I reported and it clears the actual standard.",
+   "phase": "P7",
+   "ts": "2026-07-29T16:34:27"
+  },
+  {
+   "what": "DELIBERATE NON-REVERSION: J1 pad 2 stays at 1.200 mm even though the shrink that produced it was based on a wrong model",
+   "why": "The shrink from 1.524 to 1.200 mm was unnecessary - the barrier met HALO's 1.40 mm at the original size (1.4510 mm). Reverting would restore 0.162 mm of annular ring per side on a THT MDI pad. I am NOT reverting, for three reasons: (1) 0.150 mm ring on a 0.900 mm drill is exactly JLC's stated PTH minimum, so the as-built pad is within spec, not out of it; (2) the barrier is BETTER as built, 1.6130 vs 1.4510 mm; (3) enlarging the pad now would shrink every pad-to-track gap around it on a board the router just brought to 0 clearance errors with a measured 1.4221 mm worst case, forcing a re-verification pass for margin that is not needed. Recorded so the next reader knows the pad size is a deliberate accepted state and not an unexamined leftover.",
+   "phase": "P7",
+   "ts": "2026-07-29T16:34:28"
   }
  ],
  "history": [
@@ -733,6 +745,22 @@
    "event": "snapshot",
    "label": "pre-p6-mdi-channel",
    "files": 1
+  },
+  {
+   "ts": "2026-07-29T14:54:52",
+   "event": "phase",
+   "phase": "P7",
+   "prev": "P7"
+  },
+  {
+   "ts": "2026-07-29T16:34:27",
+   "event": "decision",
+   "what": "MEASUREMENT RECORD SETTLED (shape-aware). My P4 figure was RIGHT; my P7 'correction' was WRONG. J1 barrier = 1.613 mm, passes HALO. Shield-to-tap = 0.603 mm, passes IPC but 0.032 mm short of my adopted 0.635 mm."
+  },
+  {
+   "ts": "2026-07-29T16:34:28",
+   "event": "decision",
+   "what": "DELIBERATE NON-REVERSION: J1 pad 2 stays at 1.200 mm even though the shrink that produced it was based on a wrong model"
   }
  ]
 }
