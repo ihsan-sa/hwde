@@ -192,7 +192,9 @@ def main(argv: list[str] | None = None) -> int:
         pass
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--lcsc", nargs="+", required=True, help="LCSC id(s), e.g. C1525")
-    ap.add_argument("--out-dir", default="lib", help="library directory (default ./lib)")
+    ap.add_argument("--out-dir", default=None,
+                    help="library directory. Default: <project>/../lib when "
+                         "--project is given, else ./lib")
     ap.add_argument("--lib-name", default="aiee", help="library nickname/base (default aiee)")
     ap.add_argument("--project", help="project dir to register the libs into")
     ap.add_argument("--no-3d", action="store_true", help="skip 3D models (faster)")
@@ -203,7 +205,26 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
 
     try:
-        out_dir = Path(args.out_dir)
+        # A bare relative default resolves against the CWD, and orchestrators run
+        # from the repo root - so "lib" silently became <repo>/lib, shared by
+        # every concurrent board run, while the board's own lib/ stayed empty
+        # and the script still reported pass (LEARNINGS, lumina-strobe
+        # BLOCKING-06). Derive from --project instead, and refuse the repo root.
+        if args.out_dir:
+            out_dir = Path(args.out_dir)
+        elif args.project:
+            out_dir = Path(args.project).resolve().parent / "lib"
+        else:
+            out_dir = Path("lib")
+        try:
+            if out_dir.resolve() == (env.repo_root() / "lib").resolve():
+                raise RuntimeError(
+                    f"refusing to use the repo-root library {out_dir.resolve()} - "
+                    f"it is shared by every board run. Pass --out-dir "
+                    f"boards/<board>/lib, or pass --project so the default "
+                    f"derives from it.")
+        except (OSError, ValueError):
+            pass
         out_dir.mkdir(parents=True, exist_ok=True)
         base = out_dir / args.lib_name
         results = [_pull_one(l, base, args.no_3d, args.overwrite) for l in args.lcsc]

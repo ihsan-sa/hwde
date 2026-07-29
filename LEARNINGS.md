@@ -1095,3 +1095,14 @@ drawing looks dimensionless in both text and image paths. Recover by decoding th
 directly - **CID = ASCII - 31**, with CID 692/693/694/695 = `+ - +/- x` - using per-glyph device
 coordinates, then cross-check against the drawing's own vector rectangles (the pitch gives you
 the pt/mm scale). On lumina-par every pad matched within 0.001 mm. Applies to any JST catalog PDF.
+
+## 2026-07-28 [parts][concurrency] lib_pull's --out-dir default is RELATIVE, so it lands in the repo root and is shared by every run
+--out-dir defaulted to the bare string "lib", resolved against the CWD - and orchestrators run scripts
+from the repo root, so omitting the flag silently created <repo>/lib and registered
+${KIPRJMOD}/../../../lib/ in the board's fp-/sym-lib-table. The board's own lib/ stayed EMPTY, three
+concurrent runs would have written parts into one shared library (symbol-name collisions across
+boards, --overwrite clobbering), and lib_pull still reported status: pass. Found by the lumina-strobe
+run as its BLOCKING-06. Fixed centrally: the default now derives from --project
+(<project>/../lib), and the resolved dir is refused outright if it equals <repo>/lib (exit 2 with
+remediation). Symptom to recognise: a populated <repo>/lib, an empty boards/<name>/lib, and lib-table
+URIs with three or more ../ segments.
