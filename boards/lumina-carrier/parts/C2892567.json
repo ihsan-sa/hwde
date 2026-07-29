@@ -1,0 +1,37 @@
+{
+ "mpn": "ABS210",
+ "lcsc": "C2892567",
+ "package": "ABS (4-lead gull-wing SMD glass-passivated bridge); LCSC calls it SOP-4",
+ "description": "YONGYUTAI ABS201 THRU ABS210 single-phase glass-passivated bridge rectifier, 2.0 A / 1000 V. Used as the two external PoE front-end bridges (Mode A across VC1/VC2, Mode B across VC3/VC4) that the LPJG0926HENL magjack does not provide.",
+ "pinout": [
+  {"pin": "1", "name": "AC1", "type": "passive", "notes": "Input pin (~). Datasheet PINNING table p1."},
+  {"pin": "2", "name": "AC2", "type": "passive", "notes": "Input pin (~). Pins 1 and 2 are the two AC inputs and sit on the SAME side of the body (4.00 mm apart, dimension d)."},
+  {"pin": "3", "name": "+", "type": "passive", "notes": "Output positive (common cathode). Datasheet reads 'Output Anode (+)'."},
+  {"pin": "4", "name": "-", "type": "passive", "notes": "Output negative (common anode). Datasheet reads 'Output Cathode (-)'."}
+ ],
+ "land_pattern": {
+  "package": "ABS / ABF, body D 4.9-5.2 x E 4.2-4.5 mm, lead span HE 6.0-6.4 mm, lead pitch d 3.8-4.2 mm, lead width e 0.5-0.7 mm",
+  "pad_count": 4,
+  "pitch_mm": 4.0,
+  "pad_size_mm": [0.84, 1.695],
+  "row_spacing_mm": 5.64,
+  "pin1": "1",
+  "notes": "Pulled land ABF_L5.1-W4.4-P4.00-LS6.2-BL matches the datasheet body/span/pitch on all four dimensions. Its pads run 1.97-3.67 mm from centre, which covers the 0.6 mm foot with ~0.5 mm of heel and ~0.5 mm of toe - more generous than the vendor's own 2.0 x 1.0 mm recommendation, whose toe is 0.1 mm short at maximum lead span."
+ },
+ "layout_notes": [
+  "THERMAL, LOAD-BEARING: the datasheet's RthJA = 65 C/W is quoted 'mounted on glass epoxy PC board with 4 x (5 x 5 mm) copper pad'. The 65 C/W number is only true if the layout gives EACH of the four pads a ~5 x 5 mm copper pour. P7 must honour this or the junction temperature calculation below is void.",
+  "Only ONE of the two bridges conducts at a time - 802.3at powers Alternative A or Alternative B, never both - so the energised bridge carries the whole PD current and there is no sharing between packages.",
+  "Reverse stress: the rail is 57 V worst case and the SMBJ58A TVS clamps at 93.6 V, so 1000 V VRRM is 10.7x over the clamp. Reverse leakage 5 uA at 25 C / 100 uA at 125 C at the full 1000 V, i.e. far less at 57 V; it does not disturb the detection signature.",
+  "The non-energised bridge presents no load: all four of its diodes point INTO the + node and OUT OF the - node, so with its AC inputs floating there is no conducting path between V48_RAW and V48_RTN."
+ ],
+ "abs_max": [
+  {"param": "Maximum repetitive peak reverse voltage VRRM", "value": 1000, "unit": "V"},
+  {"param": "Average rectified output current IO at TL = 100 C", "value": 2.0, "unit": "A"},
+  {"param": "Peak forward surge current IFSM, 8.3 ms half sine", "value": 50, "unit": "A"},
+  {"param": "Forward voltage per element VF at IF = 2.0 A", "value": 1.0, "unit": "V"},
+  {"param": "Typical thermal resistance RthJA (4 x 5x5 mm copper pads)", "value": 65, "unit": "C/W"},
+  {"param": "Maximum DC reverse current at rated VR, 25 C / 125 C", "value": "5 / 100", "unit": "uA"},
+  {"param": "Operating and storage junction temperature", "value": "-55 to +150", "unit": "C"}
+ ],
+ "source_pdf": "boards/lumina-carrier/parts/C2892567.pdf"
+}

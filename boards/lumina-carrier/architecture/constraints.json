@@ -1,72 +1,288 @@
 {
-  "_comment": "P2 MERGED constraints for lumina-carrier (LUM-CAR-A), from research/power.json + research/interface-poe-48v.json + research/interface-ethernet.json, reconciled with the sheet plan. CANONICAL net names per architecture/sheets.md s1: power symbols are global and BARE (GND, V48_RAW, V48_RTN, +48V_SW, +12V, +3V3); root-crossed signals are /NAME; sheet-internal signals are /<sheet>/NAME. THREE MERGE DECISIONS TO KNOW ABOUT. (1) research/power.json's VPOE and +48V are ONE net here, V48_RAW: the TPS2378-class PD interface switches the RETURN (RTN to VSS), not the positive rail, so there is only one positive 48 V node upstream of the eFuse. research/interface-poe-48v.json's V48_SW is renamed +48V_SW for consistency with the other rails. (2) research/interface-poe-48v.json's POE_TAP_A1/A2/B1/B2 are DELETED, not renamed: the selected magjack rectifies internally, so no centre-tap net exists on the board - see architecture/decisions.md D-A2. (3) diff_pairs is an EXPLICIT list, so rules_gen takes impedance from diff_pairs[].impedance_ohm and high_speed[].impedance_ohm is never consulted - which is why the high_speed entries deliberately carry no impedance. ABSENT KEYS ARE DELIBERATE. placement.keepouts and planes[].region are OMITTED because board_init does NOT place the outline at (0,0) - the origin comes from the packed component bbox - so absolute rectangles cannot be authored at P2. They are a MANDATORY P5 STEP with an exact recipe in architecture/stackup.md s7.1: after board_init, read reports/board_init.json.outline_bbox and patch kicad/constraints.json with the antenna keepout and the six plane regions. Skipping that step leaves the ESP32-S3 antenna sitting over a solid GND plane. TWO P5/P7 TRAPS carried from architecture/decisions.md: TRAP-1, rules_gen never reads the voltages key (grep-verified), so nothing makes the P7 router honour the 0.60 mm 48 V clearance - add a named .kicad_dru rule keyed on A.NetName (A.Net silently matches nothing) at P5 or plan a P8-to-P7 rework loop. TRAP-2, rules_gen puts EVERY power net in one Power netclass at the WIDEST width, so +12V's 1.10 mm would be applied to V48_RTN's 0.6 A stub and to Freerouting's DSN - split netclass_patterns before route_auto. GND is deliberately NOT a power entry: it is a plane, and declaring it would make check_current demand IPC width on every GND stub and 5 vias in every GND cluster; the requirement is structural instead (continuous In1 GND, >= 7 connector pins for the return).",
-
-  "high_speed": [
-    {"net": "/ETH_TXP", "reference": "GND", "k": 3, "t_rise_ns": 3.0},
-    {"net": "/ETH_TXN", "reference": "GND", "k": 3, "t_rise_ns": 3.0},
-    {"net": "/ETH_RXP", "reference": "GND", "k": 3, "t_rise_ns": 3.0},
-    {"net": "/ETH_RXN", "reference": "GND", "k": 3, "t_rise_ns": 3.0},
-    {"net": "/ETH_SCLK", "reference": "GND", "k": 3, "t_rise_ns": 2.0}
-  ],
-
-  "power": [
-    {"net": "V48_RAW", "current_a": 1.5, "dt_c": 10, "via_amps": 0.5},
-    {"net": "V48_RTN", "current_a": 0.6, "dt_c": 10, "via_amps": 0.5, "pdn": false},
-    {"net": "+48V_SW", "current_a": 1.0, "dt_c": 10, "via_amps": 0.5, "pdn": false},
-    {"net": "+12V", "current_a": 2.0, "dt_c": 10, "via_amps": 0.5},
-    {"net": "+3V3", "current_a": 1.0, "dt_c": 10, "via_amps": 0.5}
-  ],
-
-  "diff_pairs": [
-    {"p": "/ETH_TXP", "n": "/ETH_TXN", "base": "ETH_TX",
-     "impedance_ohm": 100, "gap_mm": 0.47, "max_skew_mm": 2.5, "max_uncoupled_mm": 5.0},
-    {"p": "/ETH_RXP", "n": "/ETH_RXN", "base": "ETH_RX",
-     "impedance_ohm": 100, "gap_mm": 0.47, "max_skew_mm": 2.5, "max_uncoupled_mm": 5.0}
-  ],
-
-  "voltages": [
-    {"net": "V48_RAW", "voltage": 57},
-    {"net": "V48_RTN", "voltage": -57},
-    {"net": "+48V_SW", "voltage": 57},
-    {"net": "+12V", "voltage": 12},
-    {"net": "+3V3", "voltage": 3.3},
-    {"net": "GND", "voltage": 0}
-  ],
-
-  "thermal": [
-    {"ref": "U20", "power_w": 0.55, "net": "GND", "dt_c": 60, "min_vias": 9}
-  ],
-
-  "placement": {
-    "edges": [
-      {"ref": "J1", "edge": "top", "pos": 0.21},
-      {"ref": "J2", "edge": "top", "pos": 0.87},
-      {"ref": "U30", "edge": "right", "pos": 0.50},
-      {"ref": "J3", "edge": "bottom", "pos": 0.24},
-      {"ref": "H5", "edge": "bottom", "pos": 0.46},
-      {"ref": "J4", "edge": "bottom", "pos": 0.72}
-    ],
-    "groups": [
-      {"name": "pd_front", "anchor": "U1",
-       "members": ["D1", "C1", "C2", "C4", "R1", "R2", "R3"]},
-      {"name": "eth_xtal", "anchor": "Y10", "members": ["C30", "C31"]},
-      {"name": "buck48", "anchor": "U20",
-       "members": ["L20", "D20", "C50", "C51", "C52", "C53", "C54"]},
-      {"name": "buck33", "anchor": "U21",
-       "members": ["L21", "C55", "C56", "C57", "C58"]},
-      {"name": "efuse48", "anchor": "U22",
-       "members": ["R65", "R66", "R67", "R69", "C59"]}
-    ],
-    "separation": [
-      {"a": ["U20", "L20", "D20", "U21", "L21"], "b": ["U10", "Y10", "J1"], "min_mm": 25},
-      {"a": ["U20", "L20", "D20"], "b": ["U30"], "min_mm": 20},
-      {"a": ["Y10"], "b": ["J1"], "min_mm": 25},
-      {"a": ["U1", "D1"], "b": ["U10", "U30"], "min_mm": 15}
-    ]
+ "_comment": "P2 MERGED constraints for lumina-carrier (LUM-CAR-A), from research/power.json + research/interface-poe-48v.json + research/interface-ethernet.json, reconciled with the sheet plan. CANONICAL net names per architecture/sheets.md s1: power symbols are global and BARE (GND, V48_RAW, V48_RTN, +48V_SW, +12V, +3V3); root-crossed signals are /NAME; sheet-internal signals are /<sheet>/NAME. THREE MERGE DECISIONS TO KNOW ABOUT. (1) research/power.json's VPOE and +48V are ONE net here, V48_RAW: the TPS2378-class PD interface switches the RETURN (RTN to VSS), not the positive rail, so there is only one positive 48 V node upstream of the eFuse. research/interface-poe-48v.json's V48_SW is renamed +48V_SW for consistency with the other rails. (2) SUPERSEDED AT P4: the board no longer uses an internally-rectified magjack. J1 is now a LINK-PP LPJG0926HENL (C22457393), which brings out four RAW line-side centre taps VC1..VC4 and has NO internal bridge. Two external bridges (D2 Alt-A, D3 Alt-B, ABS210/C2892567) rectify onto V48_RAW / V48_RTN. The centre-tap nets therefore DO exist on the board again - decisions.md D-A2 is superseded. (3) diff_pairs is an EXPLICIT list, so rules_gen takes impedance from diff_pairs[].impedance_ohm and high_speed[].impedance_ohm is never consulted - which is why the high_speed entries deliberately carry no impedance. ABSENT KEYS ARE DELIBERATE. placement.keepouts and planes[].region are OMITTED because board_init does NOT place the outline at (0,0) - the origin comes from the packed component bbox - so absolute rectangles cannot be authored at P2. They are a MANDATORY P5 STEP with an exact recipe in architecture/stackup.md s7.1: after board_init, read reports/board_init.json.outline_bbox and patch kicad/constraints.json with the antenna keepout and the six plane regions. Skipping that step leaves the ESP32-S3 antenna sitting over a solid GND plane. TWO P5/P7 TRAPS carried from architecture/decisions.md: TRAP-1, rules_gen never reads the voltages key (grep-verified), so nothing makes the P7 router honour the 0.60 mm 48 V clearance - add a named .kicad_dru rule keyed on A.NetName (A.Net silently matches nothing) at P5 or plan a P8-to-P7 rework loop. TRAP-2, rules_gen puts EVERY power net in one Power netclass at the WIDEST width, so +12V's 1.10 mm would be applied to V48_RTN's 0.6 A stub and to Freerouting's DSN - split netclass_patterns before route_auto. GND is deliberately NOT a power entry: it is a plane, and declaring it would make check_current demand IPC width on every GND stub and 5 vias in every GND cluster; the requirement is structural instead (continuous In1 GND, >= 7 connector pins for the return).",
+ "high_speed": [
+  {
+   "net": "/ETH_TXP",
+   "reference": "GND",
+   "k": 3,
+   "t_rise_ns": 3.0
   },
-
-  "planes": [
-    {"layer": "In1.Cu", "net": "GND"},
-    {"layer": "In2.Cu", "net": "+3V3"}
+  {
+   "net": "/ETH_TXN",
+   "reference": "GND",
+   "k": 3,
+   "t_rise_ns": 3.0
+  },
+  {
+   "net": "/ETH_RXP",
+   "reference": "GND",
+   "k": 3,
+   "t_rise_ns": 3.0
+  },
+  {
+   "net": "/ETH_RXN",
+   "reference": "GND",
+   "k": 3,
+   "t_rise_ns": 3.0
+  },
+  {
+   "net": "/ETH_SCLK",
+   "reference": "GND",
+   "k": 3,
+   "t_rise_ns": 2.0
+  }
+ ],
+ "power": [
+  {
+   "net": "V48_RAW",
+   "current_a": 1.5,
+   "dt_c": 10,
+   "via_amps": 0.5
+  },
+  {
+   "net": "V48_RTN",
+   "current_a": 0.6,
+   "dt_c": 10,
+   "via_amps": 0.5,
+   "pdn": false
+  },
+  {
+   "net": "+48V_SW",
+   "current_a": 1.0,
+   "dt_c": 10,
+   "via_amps": 0.5,
+   "pdn": false
+  },
+  {
+   "net": "+12V",
+   "current_a": 2.0,
+   "dt_c": 10,
+   "via_amps": 0.5
+  },
+  {
+   "net": "+3V3",
+   "current_a": 1.0,
+   "dt_c": 10,
+   "via_amps": 0.5
+  }
+ ],
+ "diff_pairs": [
+  {
+   "p": "/ETH_TXP",
+   "n": "/ETH_TXN",
+   "base": "ETH_TX",
+   "impedance_ohm": 100,
+   "gap_mm": 0.47,
+   "max_skew_mm": 2.5,
+   "max_uncoupled_mm": 5.0
+  },
+  {
+   "p": "/ETH_RXP",
+   "n": "/ETH_RXN",
+   "base": "ETH_RX",
+   "impedance_ohm": 100,
+   "gap_mm": 0.47,
+   "max_skew_mm": 2.5,
+   "max_uncoupled_mm": 5.0
+  }
+ ],
+ "voltages": [
+  {
+   "net": "V48_RAW",
+   "voltage": 57
+  },
+  {
+   "net": "V48_RTN",
+   "voltage": -57
+  },
+  {
+   "net": "+48V_SW",
+   "voltage": 57
+  },
+  {
+   "net": "+12V",
+   "voltage": 12
+  },
+  {
+   "net": "+3V3",
+   "voltage": 3.3
+  },
+  {
+   "net": "GND",
+   "voltage": 0
+  }
+ ],
+ "thermal": [
+  {
+   "ref": "U20",
+   "power_w": 0.55,
+   "net": "GND",
+   "dt_c": 60,
+   "min_vias": 9
+  }
+ ],
+ "placement": {
+  "edges": [
+   {
+    "ref": "J1",
+    "edge": "top",
+    "pos": 0.21
+   },
+   {
+    "ref": "J2",
+    "edge": "top",
+    "pos": 0.87
+   },
+   {
+    "ref": "U30",
+    "edge": "right",
+    "pos": 0.5
+   },
+   {
+    "ref": "J3",
+    "edge": "bottom",
+    "pos": 0.24
+   },
+   {
+    "ref": "H5",
+    "edge": "bottom",
+    "pos": 0.46
+   },
+   {
+    "ref": "J4",
+    "edge": "bottom",
+    "pos": 0.72
+   }
+  ],
+  "groups": [
+   {
+    "name": "pd_front",
+    "anchor": "U1",
+    "members": [
+     "D1",
+     "C1",
+     "C2",
+     "C4",
+     "R1",
+     "R2",
+     "R3",
+     "D2",
+     "D3"
+    ]
+   },
+   {
+    "name": "eth_xtal",
+    "anchor": "Y10",
+    "members": [
+     "C30",
+     "C31"
+    ]
+   },
+   {
+    "name": "buck48",
+    "anchor": "U20",
+    "members": [
+     "L20",
+     "D20",
+     "C50",
+     "C51",
+     "C52",
+     "C53",
+     "C54"
+    ]
+   },
+   {
+    "name": "buck33",
+    "anchor": "U21",
+    "members": [
+     "L21",
+     "C55",
+     "C56",
+     "C57",
+     "C58"
+    ]
+   },
+   {
+    "name": "efuse48",
+    "anchor": "U22",
+    "members": [
+     "R65",
+     "R66",
+     "R67",
+     "R69",
+     "C59"
+    ]
+   }
+  ],
+  "separation": [
+   {
+    "a": [
+     "U20",
+     "L20",
+     "D20",
+     "U21",
+     "L21"
+    ],
+    "b": [
+     "U10",
+     "Y10",
+     "J1"
+    ],
+    "min_mm": 25
+   },
+   {
+    "a": [
+     "U20",
+     "L20",
+     "D20"
+    ],
+    "b": [
+     "U30"
+    ],
+    "min_mm": 20
+   },
+   {
+    "a": [
+     "Y10"
+    ],
+    "b": [
+     "J1"
+    ],
+    "min_mm": 25
+   },
+   {
+    "a": [
+     "U1",
+     "D1"
+    ],
+    "b": [
+     "U10",
+     "U30"
+    ],
+    "min_mm": 15
+   },
+   {
+    "a": [
+     "J1"
+    ],
+    "b": [
+     "U10",
+     "Y10",
+     "D10"
+    ],
+    "min_mm": 1.4,
+    "reason": "magjack isolation barrier - chip-side to line-side. NOT derived from working voltage, so check_creepage cannot enforce it; HALO app-note guidance is 55 mils = 1.40 mm at this pitch. The J1 land itself was edited to 1.451 mm at P4; this keeps neighbouring parts out of the gap."
+   }
   ]
+ },
+ "planes": [
+  {
+   "layer": "In1.Cu",
+   "net": "GND"
+  },
+  {
+   "layer": "In2.Cu",
+   "net": "+3V3"
+  }
+ ]
 }

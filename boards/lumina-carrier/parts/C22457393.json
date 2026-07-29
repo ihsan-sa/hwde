@@ -1,0 +1,51 @@
+{
+ "mpn": "LPJG0926HENL",
+ "lcsc": "C22457393",
+ "package": "RJ45 THT right-angle, 18 pins + 2 board locks + 2 NPTH",
+ "description": "LINK-PP RJ45 connector with 1000BASE-T integrated magnetics for PoE+ application. Four 1CT:1CT transformers, internal Bob Smith termination, NO internal diode bridge. Traced pin-by-pin from drawing LP18022610 rev A (2018-02-26), p1 schematic (text-extractable) plus 300 dpi renders work/mj2/lpjg_sch_l.png and lpjg_led2.png.",
+ "pinout": [
+  {"pin": "1", "name": "TD1+", "type": "passive", "notes": "Chip side of transformer 1. Line side is contact J1 (TX1+). T568B contact 1 = MDI TX+, so this carries ETH_TXP."},
+  {"pin": "2", "name": "TD1-", "type": "passive", "notes": "Chip side of transformer 1. Line side is contact J2 (TX1-). ETH_TXN."},
+  {"pin": "3", "name": "TD2+", "type": "passive", "notes": "Chip side of transformer 2. Line side is contact J3 (TX2+). T568B contact 3 = MDI RX+, so this carries ETH_RXP."},
+  {"pin": "4", "name": "CT", "type": "passive", "notes": "Chip-side centre tap. Pins 4 and 5 are ONE internal net: a single bus commons the chip-side centre taps of ALL FOUR transformers and exits on both pins (junction dots verified at all four taps and at both pins). There is no separate TX-CT / RX-CT."},
+  {"pin": "5", "name": "CT", "type": "passive", "notes": "Second exit of the same internal centre-tap bus as pin 4. Must be wired to the same net as pin 4."},
+  {"pin": "6", "name": "TD2-", "type": "passive", "notes": "Chip side of transformer 2. Line side is contact J6 (TX2-). ETH_RXN."},
+  {"pin": "7", "name": "TD3+", "type": "passive", "notes": "Chip side of transformer 3 (contacts J4/J5, spare pair). Unused at 100BASE-TX; leave open. Its line side is terminated by the internal Bob Smith network."},
+  {"pin": "8", "name": "TD3-", "type": "passive", "notes": "Chip side of transformer 3. Unused at 100BASE-TX; leave open."},
+  {"pin": "9", "name": "TD4+", "type": "passive", "notes": "Chip side of transformer 4 (contacts J7/J8, spare pair). Unused at 100BASE-TX; leave open. Kept as a BARE no-connect pad so the copper nearest the 48 V line-side taps belongs to a dead net (see lib/EDITS.md edit 7)."},
+  {"pin": "10", "name": "TD4-", "type": "passive", "notes": "Chip side of transformer 4. Unused at 100BASE-TX; BARE no-connect pad, shrunk to 1.30 mm - it is the closest chip-side copper to VC4."},
+  {"pin": "11", "name": "VC1", "type": "passive", "notes": "LINE-SIDE centre tap of the pair on contacts J1/J2. Together with VC2 this is Alternative A (Mode A). Raw tap - there is NO internal rectifier. Rated 720 mA MAX at 57 VDC continuous (p1 item 7)."},
+  {"pin": "12", "name": "VC2", "type": "passive", "notes": "LINE-SIDE centre tap of the pair on contacts J3/J6. Second half of Alternative A (Mode A)."},
+  {"pin": "13", "name": "VC3", "type": "passive", "notes": "LINE-SIDE centre tap of the pair on contacts J4/J5. Together with VC4 this is Alternative B (Mode B)."},
+  {"pin": "14", "name": "VC4", "type": "passive", "notes": "LINE-SIDE centre tap of the pair on contacts J7/J8. Second half of Alternative B (Mode B)."},
+  {"pin": "15", "name": "LED_G_A", "type": "passive", "notes": "LEFT LED, GREEN, ANODE. 565 nm, Vf 1.8-2.6 V at 20 mA, IR 10 uA max at 5 V. Odd pin = anode."},
+  {"pin": "16", "name": "LED_G_K", "type": "passive", "notes": "LEFT LED, GREEN, CATHODE."},
+  {"pin": "17", "name": "LED_Y_A", "type": "passive", "notes": "RIGHT LED, YELLOW, ANODE. 585 nm, Vf 1.8-2.6 V at 20 mA."},
+  {"pin": "18", "name": "LED_Y_K", "type": "passive", "notes": "RIGHT LED, YELLOW, CATHODE."},
+  {"pin": "19", "name": "EH", "type": "passive", "notes": "Shell board lock, left. The metal shield shell reaches the board ONLY through pins 19/20, so this is the SHIELD net (the internal 1000 pF / 2 kV Bob Smith cap returns here). d1.70 hole."},
+  {"pin": "20", "name": "EH", "type": "passive", "notes": "Shell board lock, right. Same net as pin 19."}
+ ],
+ "land_pattern": {
+  "package": "RJ45 THT right-angle, vendor 'Suggested PCB Layout (Top View)', p2",
+  "pad_count": 20,
+  "pad_size_mm": [1.524, 1.524],
+  "pin1": "1",
+  "notes": "20 COPPER pads plus 2 x d3.20 NPTH mounting holes (8.89 below row A) which carry no copper. Breakdown: 14 x d0.90 signal/power holes (rows A and B staggered 1.27 at 2.54 pitch, span 1.27x9=11.43; VC row C 2.56 below row B, VC row D a further 1.27 below), 4 x d1.02 LED holes (spans 8.18 / 13.26), 2 x d1.70 board locks (span 15.75). NO single pitch_mm is declared on purpose: this land mixes a 2.54 mm signal pitch with a 2.287 mm board-lock-to-VC1 spacing, and a single-number pitch check would be meaningless. As-pulled row C sits 2.51 below row B against the drawing's 2.56 - inside the drawing's +/-0.25 tolerance on 2-decimal dimensions. Pads 9, 10, 11 and 14 are 1.300 mm, not 1.524 mm - see lib/EDITS.md edit 7."
+ },
+ "layout_notes": [
+  "MDI mapping is standard T568B and IDENTICAL to the superseded HY931147C: contacts 1,2 = TX pair, 3,6 = RX pair, 4,5 and 7,8 = spare pairs. What changed is the CHIP-side pin numbering, not the jack end.",
+  "NO INTERNAL DIODE BRIDGE. Two external full-wave bridges are mandatory: one across VC1/VC2 (Mode A), one across VC3/VC4 (Mode B), both commoned onto V48_RAW / V48_RTN. 802.3 requires a PD to accept either Alternative and either polarity.",
+  "INTERNAL BOB SMITH TERMINATION, not removable: 4 x 22 nF / 100 V from the four VC nodes into a common node, each in series with 75 ohm, and that node to SHIELD through 1000 pF / 2 kV. The board must NOT add its own 75 ohm terminations - they would parallel the internal ones.",
+  "ISOLATION BARRIER. Chip-side to line-side minimum is pad 10 (TD4-) to pad 14 (VC4) at 2.510 mm centre-to-centre. HALO's application note asks 55 mil = 1.40 mm of copper gap at this pitch, which check_creepage cannot enforce (it only knows the 57 V working voltage -> 0.635 mm). See lib/EDITS.md edit 7.",
+  "The d1.70 board-lock pads (19/20) sit only 2.287 / 2.297 mm centre-to-centre from VC1 / VC4. At the as-pulled annuli that is 0.375 mm of copper between the 48 V taps and SHIELD, under the board's own 0.635 mm creepage rule. Open item for P7.",
+  "Operating temperature is 0 to +70 C only (p1 item 9), against the carrier's 64 C worst-case internal air at a 40 C room (connector-icd s7.7.3). 6 C of headroom - narrower than any other part on this board.",
+  "Return loss (-16 dB at 1-40 MHz) and CMRR (-30 dB) are worse on paper than the superseded HY931147C (-18 / -35 dB). Not a functional risk at 100BASE-TX on 2 of 4 pairs, but P8 EMC should know."
+ ],
+ "abs_max": [
+  {"param": "DC current/voltage rating, PSE pins (VC1..VC4)", "value": "720 mA MAX @ 57 VDC (continuous)", "unit": ""},
+  {"param": "Hipot test", "value": 1500, "unit": "Vrms min"},
+  {"param": "Operating temperature", "value": "0 to +70", "unit": "C"},
+  {"param": "Wave solder tip temperature", "value": "250 C, 5 s", "unit": ""}
+ ],
+ "source_pdf": "boards/lumina-carrier/parts/C22457393.pdf"
+}

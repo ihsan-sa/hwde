@@ -84,6 +84,78 @@ orchestrator after verifying they were absent.
   on pin numbers), `root.py` rebuild, ERC 0 errors / 0 warnings, and the exported
   schematic PDF shows `D2- 1 / GND 2 / D2+ 3 / D1+ 4 / NC 5 / D1- 6`.
 
+### 7. J1 `RJ45-TH_LPJG0926HENL_C22457393` - isolation barrier, NPTH holes, courtyard
+
+New land, pulled 2026-07-29 for the C91754 -> C22457393 magjack swap. Three edits, all
+applied by `work/mj_fp_edit.py`, which prints the full pad-pair gap table before and after.
+
+**7a. Isolation barrier - the mandatory mitigation, and why it needed extending.**
+- **Why:** this part has no internal bridge, so four RAW 48 V line-side taps (VC1..VC4,
+  pads 11-14) land in a band that was empty on the HY931147C. `check_creepage` cannot see
+  the problem - it sizes spacing from the 57 V working voltage (0.635 mm) and knows nothing
+  about a magjack's chip-side/line-side barrier, which HALO's app note puts at
+  **55 mil = 1.40 mm** at this pitch (LEARNINGS 2026-07-28 `[check_creepage][gates][magnetics]`).
+- **As pulled** (all pads 1.524 mm), measured, not assumed:
+
+  | barrier | min gap | pads |
+  |---|---|---|
+  | 48 V tap <-> **energised** chip net | **1.289 mm** | 11 (VC1) - 2 (TD1- = /ETH_TXN) |
+  | 48 V tap <-> bare no-connect pad | 0.986 mm | 14 (VC4) - 10 (TD4-) |
+
+  The plan of record assumed 1.50 mm pads and a 2.86 mm centre-to-centre and expected
+  1.36-1.56 mm. The real pull is **1.524 mm pads on 2.8130 mm c-c**, so shrinking pads
+  9/10 alone leaves the *energised* barrier at 1.289 mm - **still under guidance**, because
+  the pad that sets it is pad 2, a live TX pin, not a spare-pair pad.
+- **Change:** pads **9 and 10** (TD4+/TD4-, kept as BARE no-connects by `poe.py`) **and pads
+  11 and 14** (VC1/VC4, the two taps that set every minimum) resized **1.524 -> 1.300 mm**.
+  Drills untouched at 0.900 mm, so annular ring is 0.200 mm/side - above JLC's 0.15 mm PTH
+  floor, and the VC pads carry only 0.6 A. **No live signal pad was resized.**
+- **Effect, measured:**
+
+  | barrier | before | after | requirement |
+  |---|---|---|---|
+  | 48 V tap <-> **energised** chip net | 1.289 mm | **1.401 mm** | 1.40 mm (HALO) - **met** |
+  | 48 V tap <-> bare no-connect pad | 0.986 mm | **1.210 mm** | n/a, dead net |
+  | 48 V tap <-> SHIELD board lock | 0.375 mm | **0.487 mm** | 0.635 mm - **NOT met, open** |
+
+  1.401 mm is *at* guidance, not comfortably over it; shrinking VC1/VC4 further would take
+  the annular ring to JLC's bare minimum, and the only other lever is pad 2 itself.
+- **NEW DEFECT FOUND, not fixed here.** The d1.70 board-lock pads 19/20 - which are the
+  only path from the shield shell to the board - sit **2.287 / 2.297 mm c-c** from VC1 / VC4.
+  Even after 7a that is **0.487 mm of copper between a 57 V tap and SHIELD, against the
+  board's own 0.635 mm rule**. Unlike the isolation barrier this one IS inside
+  `check_creepage`'s model, so P8 will raise it. Left for P7 to adjudicate: reaching
+  0.635 mm needs pads 19/20 at 2.00 mm and VC at 1.20 mm, i.e. 0.15 mm/side annular on
+  both, which is JLC's floor on a connector that takes mechanical stress. Not a silent
+  half-fix.
+
+**7b. Mounting holes -> non-plated.** The two dia-3.20 mm holes were pulled as `thru_hole`
+with pad size == drill (zero annular ring), the identical defect fixed on the HY931147C land
+in edit 4. Both converted to `np_thru_hole` (3.20 mm, at -5.72,+2.42 and +5.71,+2.42).
+Consequence for `poe.py`: the shield reaches the board **only** through pads 19/20.
+
+**7c. Courtyard added.** The pull emitted no `F.CrtYd` and `lib_pull` warned about it; 29 of
+the library's other 30 footprints carry one. Drawn on the silk body outline + 0.25 mm:
+X +/-8.21, Y -8.28 .. +13.46 (body is 15.93 x 21.25 mm per the datasheet).
+
+**Verified after the edits:** land re-measured against the vendor's p2 "Suggested PCB Layout"
+(every dimension within 0.05 mm; the drawing's 2.56 mm row-B-to-row-C becomes 2.51 mm in the
+pull, inside its own +/-0.25 mm tolerance), `fp_verify.py` against `parts/C22457393.json`
+exit 0, KiCad 10 load check 31/31 footprints, ERC 0 errors / 0 warnings.
+
+### 8. D2/D3 `ABF_L5.1-W4.4-P4.00-LS6.2-BL` - pulled unmodified
+
+The two PoE input bridges (ABS210, C2892567). Pulled clean: 4 pads, courtyard and silk
+present, `fp_verify.py` against `parts/C2892567.json` exit 0. Body length 5.1, width 4.4,
+lead pitch 4.00 and lead span 6.2 all match the datasheet's ABS/LBF mechanical table
+(D 4.9-5.2, E 4.2-4.5, d 3.8-4.2, HE 6.0-6.4). Its pads run 1.97-3.67 mm from centre and so
+cover the 0.6 mm foot with ~0.5 mm of heel and ~0.5 mm of toe, which is *more* generous than
+the vendor's own 2.0 x 1.0 mm recommendation - whose toe is 0.1 mm short at maximum lead
+span. **No edit made. But a LAYOUT REQUIREMENT rides on it:** the datasheet's RthJA = 65 C/W
+is quoted "mounted on glass epoxy PC board with 4 x (5 x 5 mm) copper pad". The junction
+temperature that justified this part (118-133 C against a 150 C limit) is void unless P7
+gives each of the 8 pads its ~5 x 5 mm pour.
+
 ## Deliberately NOT changed
 
 - **Untented vias-in-pad** under the ESP32-S3 thermal land (12 vias, drill 0.25 / pad 0.40
@@ -98,9 +170,12 @@ orchestrator after verifying they were absent.
 
 | Check | Result |
 |---|---|
-| Footprints in `aiee.pretty` | **29** |
-| KiCad 10 load check (`kicad-cli fp export svg`) | **29 / 29 rendered, exit 0** |
+| Footprints in `aiee.pretty` | **31** (29 + the new J1 land + the bridge land) |
+| KiCad 10 load check (`kicad-cli fp export svg`) | **31 / 31 rendered, exit 0** |
 | Symbols whose `aiee:` footprint does not resolve | **none** |
 | J3 / J4 annulus | both **1.700 mm** -> 0.840 mm gap -> **1.32x** over 0.635 mm |
-| J1 non-plated mounting holes | 2 x `np_thru_hole` 3.25 mm confirmed |
-| Courtyards | 27 / 27 on the original pulls; both stock swaps carry courtyards |
+| J1 non-plated mounting holes | 2 x `np_thru_hole` **3.20 mm** confirmed (new land, edit 7b) |
+| J1 isolation barrier to any energised net | **1.401 mm** (pad 11 - pad 2), at the 1.40 mm guidance |
+| J1 48 V tap to SHIELD board lock | **0.487 mm** vs 0.635 mm required - **OPEN, see edit 7a** |
+| Courtyards | 31 / 31 (edit 7c added the only missing one) |
+| `fp_verify.py` on the two new lands | exit 0 on both |
