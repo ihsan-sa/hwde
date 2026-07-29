@@ -1,5 +1,5 @@
 {
- "_comment": "P2 MERGED constraints for lumina-carrier (LUM-CAR-A), from research/power.json + research/interface-poe-48v.json + research/interface-ethernet.json, reconciled with the sheet plan. CANONICAL net names per architecture/sheets.md s1: power symbols are global and BARE (GND, V48_RAW, V48_RTN, +48V_SW, +12V, +3V3); root-crossed signals are /NAME; sheet-internal signals are /<sheet>/NAME. THREE MERGE DECISIONS TO KNOW ABOUT. (1) research/power.json's VPOE and +48V are ONE net here, V48_RAW: the TPS2378-class PD interface switches the RETURN (RTN to VSS), not the positive rail, so there is only one positive 48 V node upstream of the eFuse. research/interface-poe-48v.json's V48_SW is renamed +48V_SW for consistency with the other rails. (2) SUPERSEDED AT P4: the board no longer uses an internally-rectified magjack. J1 is now a LINK-PP LPJG0926HENL (C22457393), which brings out four RAW line-side centre taps VC1..VC4 and has NO internal bridge. Two external bridges (D2 Alt-A, D3 Alt-B, ABS210/C2892567) rectify onto V48_RAW / V48_RTN. The centre-tap nets therefore DO exist on the board again - decisions.md D-A2 is superseded. (3) diff_pairs is an EXPLICIT list, so rules_gen takes impedance from diff_pairs[].impedance_ohm and high_speed[].impedance_ohm is never consulted - which is why the high_speed entries deliberately carry no impedance. ABSENT KEYS ARE DELIBERATE. placement.keepouts and planes[].region are OMITTED because board_init does NOT place the outline at (0,0) - the origin comes from the packed component bbox - so absolute rectangles cannot be authored at P2. They are a MANDATORY P5 STEP with an exact recipe in architecture/stackup.md s7.1: after board_init, read reports/board_init.json.outline_bbox and patch kicad/constraints.json with the antenna keepout and the six plane regions. Skipping that step leaves the ESP32-S3 antenna sitting over a solid GND plane. TWO P5/P7 TRAPS carried from architecture/decisions.md: TRAP-1, rules_gen never reads the voltages key (grep-verified), so nothing makes the P7 router honour the 0.60 mm 48 V clearance - add a named .kicad_dru rule keyed on A.NetName (A.Net silently matches nothing) at P5 or plan a P8-to-P7 rework loop. TRAP-2, rules_gen puts EVERY power net in one Power netclass at the WIDEST width, so +12V's 1.10 mm would be applied to V48_RTN's 0.6 A stub and to Freerouting's DSN - split netclass_patterns before route_auto. GND is deliberately NOT a power entry: it is a plane, and declaring it would make check_current demand IPC width on every GND stub and 5 vias in every GND cluster; the requirement is structural instead (continuous In1 GND, >= 7 connector pins for the return). P5: keepout and plane regions RE-BASED from board_init outline_bbox per stackup.md s7.1 - this file is the board-adjacent copy; architecture/constraints.json stays un-based.",
+ "_comment": "P2 MERGED constraints for lumina-carrier (LUM-CAR-A), from research/power.json + research/interface-poe-48v.json + research/interface-ethernet.json, reconciled with the sheet plan. CANONICAL net names per architecture/sheets.md s1: power symbols are global and BARE (GND, V48_RAW, V48_RTN, +48V_SW, +12V, +3V3); root-crossed signals are /NAME; sheet-internal signals are /<sheet>/NAME. THREE MERGE DECISIONS TO KNOW ABOUT. (1) research/power.json's VPOE and +48V are ONE net here, V48_RAW: the TPS2378-class PD interface switches the RETURN (RTN to VSS), not the positive rail, so there is only one positive 48 V node upstream of the eFuse. research/interface-poe-48v.json's V48_SW is renamed +48V_SW for consistency with the other rails. (2) SUPERSEDED AT P4: the board no longer uses an internally-rectified magjack. J1 is now a LINK-PP LPJG0926HENL (C22457393), which brings out four RAW line-side centre taps VC1..VC4 and has NO internal bridge. Two external bridges (D2 Alt-A, D3 Alt-B, ABS210/C2892567) rectify onto V48_RAW / V48_RTN. The centre-tap nets therefore DO exist on the board again - decisions.md D-A2 is superseded. (3) diff_pairs is an EXPLICIT list, so rules_gen takes impedance from diff_pairs[].impedance_ohm and high_speed[].impedance_ohm is never consulted - which is why the high_speed entries deliberately carry no impedance. ABSENT KEYS ARE DELIBERATE. placement.keepouts and planes[].region are OMITTED because board_init does NOT place the outline at (0,0) - the origin comes from the packed component bbox - so absolute rectangles cannot be authored at P2. They are a MANDATORY P5 STEP with an exact recipe in architecture/stackup.md s7.1: after board_init, read reports/board_init.json.outline_bbox and patch kicad/constraints.json with the antenna keepout and the six plane regions. Skipping that step leaves the ESP32-S3 antenna sitting over a solid GND plane. TWO P5/P7 TRAPS carried from architecture/decisions.md: TRAP-1, rules_gen never reads the voltages key (grep-verified), so nothing makes the P7 router honour the 0.60 mm 48 V clearance - add a named .kicad_dru rule keyed on A.NetName (A.Net silently matches nothing) at P5 or plan a P8-to-P7 rework loop. TRAP-2, rules_gen puts EVERY power net in one Power netclass at the WIDEST width, so +12V's 1.10 mm would be applied to V48_RTN's 0.6 A stub and to Freerouting's DSN - split netclass_patterns before route_auto. GND is deliberately NOT a power entry: it is a plane, and declaring it would make check_current demand IPC width on every GND stub and 5 vias in every GND cluster; the requirement is structural instead (continuous In1 GND, >= 7 connector pins for the return). P5: keepout and plane regions RE-BASED from board_init outline_bbox per stackup.md s7.1 - this file is the board-adjacent copy; architecture/constraints.json stays un-based. P6: placement.fixed added. The two safety-critical blocks were hand-placed BEFORE seed/anneal and pinned so the search treats them as obstacles: (a) the 48->12 buck (buck48 group + C61) into the ICD-declared DC-DC hot zone, board-relative [2,46]-[36,68] = absolute [21.58,103.13]-[55.58,125.13]; (b) the 48 V group (U1 PD front end + both bridges + bulk + U22 eFuse + their satellites) as one compact left-hand column under J1, so the 57 V region does not thread between logic. Every satellite of a fixed anchor is listed too: build_clusters drops the cluster of a fixed anchor, so an unlisted decoupler/group member would never be placed at all. P6/ICD: J1, J3, J4 and H5 are hand-placed on their ICD-01 s7.2 datums and pinned via placement.fixed (their placement.edges entries stay, so place_metrics still VERIFIES the declared edge; fixed only stops the search from moving them). H5's edges entry was REMOVED: at the normative ICD coordinate (46,74) its 6.9 mm courtyard sits 2.55 mm from the bottom edge, 0.05 mm past placelib's EDGE_TOL of 2.5 mm, so the check would fail a coordinate the ICD freezes. placement.fixed is the correct mechanism for 'do not move this'.",
  "high_speed": [
   {
    "net": "/ETH_TXP",
@@ -144,11 +144,6 @@
     "pos": 0.24
    },
    {
-    "ref": "H5",
-    "edge": "bottom",
-    "pos": 0.46
-   },
-   {
     "ref": "J4",
     "edge": "bottom",
     "pos": 0.72
@@ -285,6 +280,43 @@
     "side": "front",
     "reason": "ESP32-S3-WROOM-1 antenna keepout - no copper on ANY layer. Wi-Fi is a supported control path (H1-Q8), so this is functional, not cosmetic. Espressif HDG wants the antenna overhanging the edge or a 6 mm-deep relief with >=15 mm lateral clearance; the fixed 100x80 outline cannot overhang, so this band is the substitute."
    }
+  ],
+  "fixed": [
+   "C1",
+   "C2",
+   "C3",
+   "C4",
+   "C5",
+   "C50",
+   "C51",
+   "C52",
+   "C53",
+   "C54",
+   "C59",
+   "C6",
+   "C61",
+   "C62",
+   "C63",
+   "D1",
+   "D2",
+   "D20",
+   "D3",
+   "H5",
+   "J1",
+   "J3",
+   "J4",
+   "L20",
+   "R1",
+   "R2",
+   "R3",
+   "R65",
+   "R66",
+   "R67",
+   "R69",
+   "R70",
+   "U1",
+   "U20",
+   "U22"
   ]
  },
  "planes": [

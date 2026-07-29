@@ -1,0 +1,166 @@
+{
+ "script": "place_anneal",
+ "status": "violations",
+ "board": "lumina-carrier.kicad_pcb",
+ "counts": {
+  "total": 3,
+  "by_severity": {
+   "error": 3
+  },
+  "by_source": {
+   "check.place": 3
+  }
+ },
+ "violations": [
+  {
+   "check": "place",
+   "severity": "error",
+   "pos": [
+    112.8121,
+    86.5637
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C80"
+   ],
+   "msg": "C80 intersects ESP32-S3-WROOM-1 antenna keepout - no copper on ANY layer. Wi-Fi is a supported control path (H1-Q8), so this is functional, not cosmetic. Espressif HDG wants the antenna overhanging the edge or a 6 mm-deep relief with >=15 mm lateral clearance; the fixed 100x80 outline cannot overhang, so this band is the substitute. (1.92 mm2)",
+   "source": "check.place",
+   "items": [
+    {
+     "msg": "C80 intersects ESP32-S3-WROOM-1 antenna keepout - no copper on ANY layer. Wi-Fi is a supported control path (H1-Q8), so this is functional, not cosmetic. Espressif HDG wants the antenna overhanging the edge or a 6 mm-deep relief with >=15 mm lateral clearance; the fixed 100x80 outline cannot overhang, so this band is the substitute. (1.92 mm2)",
+     "pos": [
+      112.8121,
+      86.5637
+     ]
+    }
+   ],
+   "kind": "keepout_violation",
+   "overlap_mm2": 1.9236
+  },
+  {
+   "check": "place",
+   "severity": "error",
+   "pos": [
+    110.7031,
+    86.548
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C83"
+   ],
+   "msg": "C83 intersects ESP32-S3-WROOM-1 antenna keepout - no copper on ANY layer. Wi-Fi is a supported control path (H1-Q8), so this is functional, not cosmetic. Espressif HDG wants the antenna overhanging the edge or a 6 mm-deep relief with >=15 mm lateral clearance; the fixed 100x80 outline cannot overhang, so this band is the substitute. (1.16 mm2)",
+   "source": "check.place",
+   "items": [
+    {
+     "msg": "C83 intersects ESP32-S3-WROOM-1 antenna keepout - no copper on ANY layer. Wi-Fi is a supported control path (H1-Q8), so this is functional, not cosmetic. Espressif HDG wants the antenna overhanging the edge or a 6 mm-deep relief with >=15 mm lateral clearance; the fixed 100x80 outline cannot overhang, so this band is the substitute. (1.16 mm2)",
+     "pos": [
+      110.7031,
+      86.548
+     ]
+    }
+   ],
+   "kind": "keepout_violation",
+   "overlap_mm2": 1.1648
+  },
+  {
+   "check": "place",
+   "severity": "error",
+   "pos": [
+    114.4746,
+    97.1325
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "U30"
+   ],
+   "msg": "U30 intersects ESP32-S3-WROOM-1 antenna keepout - no copper on ANY layer. Wi-Fi is a supported control path (H1-Q8), so this is functional, not cosmetic. Espressif HDG wants the antenna overhanging the edge or a 6 mm-deep relief with >=15 mm lateral clearance; the fixed 100x80 outline cannot overhang, so this band is the substitute. (185.76 mm2)",
+   "source": "check.place",
+   "items": [
+    {
+     "msg": "U30 intersects ESP32-S3-WROOM-1 antenna keepout - no copper on ANY layer. Wi-Fi is a supported control path (H1-Q8), so this is functional, not cosmetic. Espressif HDG wants the antenna overhanging the edge or a 6 mm-deep relief with >=15 mm lateral clearance; the fixed 100x80 outline cannot overhang, so this band is the substitute. (185.76 mm2)",
+     "pos": [
+      114.4746,
+      97.1325
+     ]
+    }
+   ],
+   "kind": "keepout_violation",
+   "overlap_mm2": 185.76
+  }
+ ],
+ "candidates": [
+  {
+   "rank": 1,
+   "cost": 50303.725,
+   "score": 50303.725,
+   "hpwl_mm": 3834.2755,
+   "terms": {
+    "hpwl_raw_mm": 3834.2755,
+    "hpwl_weighted": 3520.7684,
+    "overlap_mm2": 188.8484,
+    "cong_overflow": 78,
+    "crossings_weighted": 371.25,
+    "rule": 560.8457
+   },
+   "legal": false,
+   "repaired": false,
+   "completion": null,
+   "ops_file": "work\\p6\\anneal_a\\cand1.ops.json",
+   "n_violations": 3
+  },
+  {
+   "rank": 2,
+   "cost": 51494.773,
+   "score": 51494.773,
+   "hpwl_mm": 4212.2141,
+   "terms": {
+    "hpwl_raw_mm": 4212.2141,
+    "hpwl_weighted": 3898.225,
+    "overlap_mm2": 188.8484,
+    "cong_overflow": 161,
+    "crossings_weighted": 692.25,
+    "rule": 566.4371
+   },
+   "legal": false,
+   "repaired": false,
+   "completion": null,
+   "ops_file": "work\\p6\\anneal_a\\cand2.ops.json",
+   "n_violations": 3
+  }
+ ],
+ "seed": 1,
+ "separation_unknown_refs": [
+  "D1",
+  "D20",
+  "J1",
+  "L20",
+  "U1",
+  "U20"
+ ],
+ "clusters": 55,
+ "movable_clusters": 53,
+ "hpwl_input_mm": 4212.2141,
+ "hpwl_start_mm": 4212.2141,
+ "hpwl_best_mm": 3834.2755,
+ "improvement_pct": 8.97,
+ "start_terms": {
+  "hpwl_raw_mm": 4212.2141,
+  "hpwl_weighted": 3898.225,
+  "overlap_mm2": 188.8484,
+  "cong_overflow": 161,
+  "crossings_weighted": 692.25,
+  "rule": 566.4371
+ },
+ "epochs": 60,
+ "moves": 128260,
+ "accepted": 68913,
+ "t0": 3403.9337,
+ "t_end": 12.693382,
+ "feedback_used": false,
+ "last_completion": null,
+ "runtime_s": 345.92,
+ "warnings": []
+}

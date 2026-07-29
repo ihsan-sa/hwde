@@ -1,0 +1,60 @@
+(version 1)
+
+# ---------------------------------------------------------------------------
+# LUM-CAR-A hand-written design rules
+#
+# WHY THIS FILE EXISTS (TRAP-1, grep-verified at P2):
+#   rules_gen.py NEVER reads constraints.json's `voltages` key. The net class it
+#   emits for power nets carries only max(fab_min, 0.2) mm clearance, so NOTHING
+#   makes the P7 router honour the 48 V clearance requirement - the violation
+#   would only surface at P8 check_creepage, after routing is done.
+#
+#   Keyed on A.NetName, NOT A.Net: A.Net silently matches nothing
+#   (LEARNINGS 2026-07-22). A LATER rule wins, so order matters.
+#
+# THE NUMBER: 0.635 mm, not 0.60 mm.
+#   IPC-2221B B2 (external, uncoated, 51-100 V) gives 0.60 mm for a 57 V worst
+#   case. The TPS2378 datasheet's own layout section asks for 0.025 in =
+#   0.635 mm between VSS and high-voltage signals such as VDD. Rather than waive
+#   a vendor recommendation on the board's most safety-critical IC, the LARGER
+#   number governs board-wide. ICD-01 rev A2+ s5.1 is the authority.
+#
+#   The B4 "permanent polymer coating" column (0.13 mm) is deliberately NOT
+#   claimed: standard LPI soldermask is not a qualified conformal coating, and
+#   check_creepage implements only the uncoated columns, so a layout designed to
+#   0.13 mm fails P8 with no waiver mechanism.
+# ---------------------------------------------------------------------------
+
+(rule "HV_48V_clearance"
+	(constraint clearance (min 0.635mm))
+	(condition "A.NetName == '+48V_SW' || A.NetName == 'V48_RAW' || A.NetName == 'V48_RTN'")
+	(severity error))
+
+# The three 48 V nets must also hold 0.635 mm against EACH OTHER, not just
+# against everything else. V48_RAW to V48_RTN is the full 57 V across the
+# rectified rail; +48V_SW to V48_RTN is the same once the eFuse is on.
+(rule "HV_48V_to_HV_48V"
+	(constraint clearance (min 0.635mm))
+	(condition "A.NetName == '+48V_SW' && B.NetName == 'V48_RTN'")
+	(severity error))
+
+(rule "HV_48V_raw_to_rtn"
+	(constraint clearance (min 0.635mm))
+	(condition "A.NetName == 'V48_RAW' && B.NetName == 'V48_RTN'")
+	(severity error))
+
+# ---------------------------------------------------------------------------
+# Magjack isolation barrier - chip side to line side.
+#
+# check_creepage CANNOT enforce this: it derives spacing purely from working
+# voltage (0.635 mm at 57 V), but this barrier is a hipot / vendor-guidance
+# number, not a voltage-derived one. HALO's app note asks 55 mils = 1.40 mm at
+# this pitch. See LEARNINGS 2026-07-28 [check_creepage][gates][magnetics].
+#
+# The J1 land itself was edited at P4 to hold 1.451 mm; this rule stops routing
+# from filling the gap that the footprint edit created.
+# ---------------------------------------------------------------------------
+(rule "magjack_isolation_barrier"
+	(constraint clearance (min 1.4mm))
+	(condition "A.NetName == 'V48_RAW' && B.intersectsCourtyard('J1')")
+	(severity error))

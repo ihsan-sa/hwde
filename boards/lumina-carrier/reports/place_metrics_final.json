@@ -1,0 +1,665 @@
+{
+ "script": "place_metrics",
+ "status": "pass",
+ "board": "lumina-carrier.kicad_pcb",
+ "counts": {
+  "total": 0,
+  "by_severity": {},
+  "by_source": {}
+ },
+ "violations": [],
+ "metrics": {
+  "counts": {
+   "footprints": 116,
+   "movable": 111,
+   "nets": 85
+  },
+  "hpwl": {
+   "total_mm": 3601.2489,
+   "by_net": {
+    "+12V": 73.742,
+    "+3V3": 148.359,
+    "+48V_SW": 77.252,
+    "/ADC0": 57.67,
+    "/ADC1": 17.078,
+    "/CDB": 66.115,
+    "/DSPI_CSn": 36.67,
+    "/DSPI_MISO": 35.4,
+    "/DSPI_MOSI": 36.67,
+    "/DSPI_SCK": 35.4,
+    "/ENABLE": 98.077,
+    "/ETH_CSn": 29.2059,
+    "/ETH_INTn": 24.6143,
+    "/ETH_LED_ACT": 74.5347,
+    "/ETH_LED_LINK": 64.8147,
+    "/ETH_MISO": 24.3359,
+    "/ETH_MOSI": 25.362,
+    "/ETH_RSTn": 41.8862,
+    "/ETH_RXN": 67.3028,
+    "/ETH_RXP": 61.4528,
+    "/ETH_SCLK": 30.632,
+    "/ETH_TXN": 57.5228,
+    "/ETH_TXP": 54.2128,
+    "/FAULT": 138.2495,
+    "/I2C_SCL": 48.53,
+    "/I2C_SDA": 46.76,
+    "/ID_ADC": 42.948,
+    "/IMON": 53.1125,
+    "/PWM0": 77.33,
+    "/PWM1": 73.52,
+    "/PWM2": 69.71,
+    "/PWM3": 65.9,
+    "/PWM4": 64.63,
+    "/PWM5": 60.82,
+    "/PWM6": 35.4,
+    "/PWM7": 36.67,
+    "/T2P": 15.4337,
+    "/eth/1V2O": 6.3561,
+    "/eth/EXRES": 13.1077,
+    "/eth/MOSI_PHY": 3.7061,
+    "/eth/SCLK_PHY": 8.5577,
+    "/eth/TOCAP": 3.9061,
+    "/eth/XI": 35.8577,
+    "/eth/XO": 43.8282,
+    "/eth/XO_XTAL": 23.568,
+    "/expansion/ADC0_CONN": 18.642,
+    "/expansion/ADC1_CONN": 22.642,
+    "/expansion/ID_ADC_CONN": 18.352,
+    "/mcu/BOOT": 80.812,
+    "/mcu/EN": 50.649,
+    "/mcu/ENABLE_M": 64.3725,
+    "/mcu/FAULT_M": 60.792,
+    "/mcu/IMON_M": 26.092,
+    "/mcu/IO3_STRAP": 32.8896,
+    "/mcu/RXD0": 52.28,
+    "/mcu/STATUS": 44.422,
+    "/mcu/STATUS_A": 17.95,
+    "/mcu/TXD0": 56.09,
+    "/poe/APD": 32.6925,
+    "/poe/CLS": 16.9275,
+    "/poe/DEN": 6.1725,
+    "/poe/DEN_TAP": 5.8,
+    "/poe/LED_G_A": 72.7858,
+    "/poe/LED_Y_A": 75.637,
+    "/poe/POE_TAP_A1": 10.367,
+    "/poe/POE_TAP_A2": 11.697,
+    "/poe/POE_TAP_B1": 11.727,
+    "/poe/POE_TAP_B2": 10.337,
+    "/poe/SHIELD": 56.557,
+    "/poe/T2P_OD": 53.4008,
+    "/pwr/BST": 6.37,
+    "/pwr/BST33": 4.2,
+    "/pwr/DVDT": 9.2375,
+    "/pwr/FB33": 13.85,
+    "/pwr/FB48": 64.88,
+    "/pwr/FLT_LED": 4.0,
+    "/pwr/ILIM": 4.4625,
+    "/pwr/OVP": 44.75,
+    "/pwr/PGOOD": 30.4125,
+    "/pwr/SW": 16.06,
+    "/pwr/SW33": 13.35,
+    "/pwr/UVLO": 7.6375,
+    "GND": 170.429,
+    "V48_RAW": 60.25,
+    "V48_RTN": 35.0625
+   }
+  },
+  "crossings": {
+   "count": 613,
+   "pairs": [
+    {
+     "nets": [
+      "+3V3",
+      "GND"
+     ],
+     "crossings": 17
+    },
+    {
+     "nets": [
+      "/mcu/BOOT",
+      "GND"
+     ],
+     "crossings": 7
+    },
+    {
+     "nets": [
+      "+12V",
+      "GND"
+     ],
+     "crossings": 6
+    },
+    {
+     "nets": [
+      "/ADC0",
+      "GND"
+     ],
+     "crossings": 6
+    },
+    {
+     "nets": [
+      "/FAULT",
+      "GND"
+     ],
+     "crossings": 6
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/mcu/ENABLE_M"
+     ],
+     "crossings": 5
+    },
+    {
+     "nets": [
+      "/PWM0",
+      "GND"
+     ],
+     "crossings": 5
+    },
+    {
+     "nets": [
+      "/mcu/EN",
+      "GND"
+     ],
+     "crossings": 5
+    },
+    {
+     "nets": [
+      "/mcu/ENABLE_M",
+      "GND"
+     ],
+     "crossings": 5
+    },
+    {
+     "nets": [
+      "/pwr/OVP",
+      "GND"
+     ],
+     "crossings": 5
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/mcu/BOOT"
+     ],
+     "crossings": 4
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/mcu/FAULT_M"
+     ],
+     "crossings": 4
+    },
+    {
+     "nets": [
+      "/CDB",
+      "V48_RAW"
+     ],
+     "crossings": 4
+    },
+    {
+     "nets": [
+      "/ETH_RXN",
+      "GND"
+     ],
+     "crossings": 4
+    },
+    {
+     "nets": [
+      "/ETH_RXP",
+      "GND"
+     ],
+     "crossings": 4
+    },
+    {
+     "nets": [
+      "/eth/XI",
+      "GND"
+     ],
+     "crossings": 4
+    },
+    {
+     "nets": [
+      "+12V",
+      "/pwr/FB48"
+     ],
+     "crossings": 3
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/FAULT"
+     ],
+     "crossings": 3
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/mcu/EN"
+     ],
+     "crossings": 3
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/mcu/STATUS"
+     ],
+     "crossings": 3
+    }
+   ]
+  },
+  "congestion": {
+   "cell_mm": 2.0,
+   "cols": 50,
+   "rows": 41,
+   "max": 11,
+   "mean_nonzero": 2.029,
+   "hotspots": [
+    {
+     "cell": [
+      37,
+      12
+     ],
+     "center": [
+      94.58,
+      82.1325
+     ],
+     "demand": 11
+    },
+    {
+     "cell": [
+      39,
+      21
+     ],
+     "center": [
+      98.58,
+      100.1325
+     ],
+     "demand": 10
+    },
+    {
+     "cell": [
+      40,
+      11
+     ],
+     "center": [
+      100.58,
+      80.1325
+     ],
+     "demand": 10
+    },
+    {
+     "cell": [
+      36,
+      12
+     ],
+     "center": [
+      92.58,
+      82.1325
+     ],
+     "demand": 9
+    },
+    {
+     "cell": [
+      37,
+      8
+     ],
+     "center": [
+      94.58,
+      74.1325
+     ],
+     "demand": 9
+    },
+    {
+     "cell": [
+      37,
+      13
+     ],
+     "center": [
+      94.58,
+      84.1325
+     ],
+     "demand": 9
+    },
+    {
+     "cell": [
+      40,
+      10
+     ],
+     "center": [
+      100.58,
+      78.1325
+     ],
+     "demand": 9
+    },
+    {
+     "cell": [
+      38,
+      8
+     ],
+     "center": [
+      96.58,
+      74.1325
+     ],
+     "demand": 8
+    },
+    {
+     "cell": [
+      41,
+      18
+     ],
+     "center": [
+      102.58,
+      94.1325
+     ],
+     "demand": 8
+    },
+    {
+     "cell": [
+      41,
+      19
+     ],
+     "center": [
+      102.58,
+      96.1325
+     ],
+     "demand": 8
+    }
+   ]
+  },
+  "decoupling": [
+   {
+    "cap": "C1",
+    "pin": "U1.1",
+    "rail": "V48_RAW",
+    "class": "mid",
+    "manhattan_mm": 5.1575,
+    "euclid_mm": 3.9199,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 6.6102
+   },
+   {
+    "cap": "C2",
+    "pin": "U1.1",
+    "rail": "V48_RAW",
+    "class": "bulk",
+    "manhattan_mm": 5.0125,
+    "euclid_mm": 3.8644,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 6.5087
+   },
+   {
+    "cap": "C4",
+    "pin": "U1.1",
+    "rail": "V48_RAW",
+    "class": "bulk",
+    "manhattan_mm": 13.1775,
+    "euclid_mm": 9.7403,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 12.2243
+   },
+   {
+    "cap": "C5",
+    "pin": "U1.1",
+    "rail": "V48_RAW",
+    "class": "bulk",
+    "manhattan_mm": 10.0125,
+    "euclid_mm": 8.7111,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 10.0087
+   },
+   {
+    "cap": "C6",
+    "pin": "U1.1",
+    "rail": "V48_RAW",
+    "class": "bulk",
+    "manhattan_mm": 15.0125,
+    "euclid_mm": 13.6687,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 13.5087
+   },
+   {
+    "cap": "C34",
+    "pin": "U10.4",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 2.5537,
+    "euclid_mm": 1.9591,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 4.7876
+   },
+   {
+    "cap": "C35",
+    "pin": "U10.8",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 2.3362,
+    "euclid_mm": 1.9351,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 4.6353
+   },
+   {
+    "cap": "C37",
+    "pin": "U10.11",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 3.3829,
+    "euclid_mm": 2.4242,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 5.368
+   },
+   {
+    "cap": "C38",
+    "pin": "U10.15",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 2.7923,
+    "euclid_mm": 2.2956,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 4.9546
+   },
+   {
+    "cap": "C39",
+    "pin": "U10.17",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 3.1561,
+    "euclid_mm": 2.4115,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 5.2093
+   },
+   {
+    "cap": "C41",
+    "pin": "U10.21",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 8.6923,
+    "euclid_mm": 6.9395,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 9.0846
+   },
+   {
+    "cap": "C36",
+    "pin": "U10.21",
+    "rail": "+3V3",
+    "class": "bulk",
+    "manhattan_mm": 13.7561,
+    "euclid_mm": 11.5824,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 12.6293
+   },
+   {
+    "cap": "C40",
+    "pin": "U10.28",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 2.5537,
+    "euclid_mm": 1.9591,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 4.7876
+   },
+   {
+    "cap": "C32",
+    "pin": "U10.20",
+    "rail": "/eth/TOCAP",
+    "class": "bulk",
+    "manhattan_mm": 3.9061,
+    "euclid_mm": 2.7622,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 5.7343
+   },
+   {
+    "cap": "C33",
+    "pin": "U10.22",
+    "rail": "/eth/1V2O",
+    "class": "mid",
+    "manhattan_mm": 6.3561,
+    "euclid_mm": 4.6925,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 7.4493
+   },
+   {
+    "cap": "C50",
+    "pin": "U20.3",
+    "rail": "V48_RAW",
+    "class": "bulk",
+    "manhattan_mm": 8.64,
+    "euclid_mm": 6.115,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 9.048
+   },
+   {
+    "cap": "C51",
+    "pin": "U20.3",
+    "rail": "V48_RAW",
+    "class": "bulk",
+    "manhattan_mm": 7.37,
+    "euclid_mm": 5.3388,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 8.159
+   },
+   {
+    "cap": "C61",
+    "pin": "U20.3",
+    "rail": "V48_RAW",
+    "class": "mid",
+    "manhattan_mm": 5.16,
+    "euclid_mm": 4.5693,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 6.612
+   },
+   {
+    "cap": "C55",
+    "pin": "U21.3",
+    "rail": "+12V",
+    "class": "bulk",
+    "manhattan_mm": 9.89,
+    "euclid_mm": 8.9903,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 9.923
+   },
+   {
+    "cap": "C62",
+    "pin": "U22.1",
+    "rail": "V48_RAW",
+    "class": "mid",
+    "manhattan_mm": 3.5625,
+    "euclid_mm": 3.1662,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 5.4938
+   },
+   {
+    "cap": "C63",
+    "pin": "U22.18",
+    "rail": "+48V_SW",
+    "class": "mid",
+    "manhattan_mm": 3.5125,
+    "euclid_mm": 3.1598,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 5.4588
+   },
+   {
+    "cap": "C80",
+    "pin": "U30.2",
+    "rail": "+3V3",
+    "class": "bulk",
+    "manhattan_mm": 9.932,
+    "euclid_mm": 7.2838,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 9.9524
+   },
+   {
+    "cap": "C81",
+    "pin": "U30.2",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 6.822,
+    "euclid_mm": 4.8269,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 7.7754
+   },
+   {
+    "cap": "C82",
+    "pin": "U30.2",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 6.342,
+    "euclid_mm": 6.332,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 7.4394
+   },
+   {
+    "cap": "C83",
+    "pin": "U30.2",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 3.542,
+    "euclid_mm": 3.532,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 5.4794
+   },
+   {
+    "cap": "C84",
+    "pin": "U30.2",
+    "rail": "+3V3",
+    "class": "bulk",
+    "manhattan_mm": 9.042,
+    "euclid_mm": 6.7315,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 9.3294
+   }
+  ],
+  "utilization": {
+   "component_mm2": 1976.9687,
+   "board_mm2": 7992.229,
+   "ratio": 0.247
+  }
+ }
+}

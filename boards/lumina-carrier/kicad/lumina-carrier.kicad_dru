@@ -25,22 +25,43 @@
 #   0.13 mm fails P8 with no waiver mechanism.
 # ---------------------------------------------------------------------------
 
+# SCOPE CORRECTION (P6): the first draft of this rule had no pad-pair exclusion
+# and fired 30 times between ADJACENT PINS OF THE SAME PACKAGE - U1 (SOIC-8,
+# 0.20 mm pitch gap), U22 (HTSSOP-20, 0.25 mm) and across C61/C62/C63's own two
+# pads (0.59 mm). No placement can fix a 0.65 mm-pitch package, and that is not
+# what the rule is for.
+#
+# TI's 0.635 mm guidance governs BOARD copper around the part - traces, vias,
+# pours - not the vendor's own lead frame. Intra-package pin spacing is a
+# package property, and this board verified every land against its vendor
+# drawing at P3 (fp_verify + hand checks on J3/J4/J1).
+#
+# Pad-to-pad is excluded here and NOT lost: P8 check_creepage independently
+# models pad-to-pad creepage from constraints.json `voltages`, so inter-
+# footprint pad spacing is still gated - just by the checker that understands
+# it rather than by a routing rule.
 (rule "HV_48V_clearance"
 	(constraint clearance (min 0.635mm))
-	(condition "A.NetName == '+48V_SW' || A.NetName == 'V48_RAW' || A.NetName == 'V48_RTN'")
+	(condition "(A.NetName == '+48V_SW' || A.NetName == 'V48_RAW' || A.NetName == 'V48_RTN') && !(A.Type == 'Pad' && B.Type == 'Pad')")
 	(severity error))
 
 # The three 48 V nets must also hold 0.635 mm against EACH OTHER, not just
 # against everything else. V48_RAW to V48_RTN is the full 57 V across the
 # rectified rail; +48V_SW to V48_RTN is the same once the eFuse is on.
+# Same pad-pair exclusion as above, for the same reason. Without it these two
+# rules fire on U1's own adjacent VDD/VSS pins (SOIC-8, 0.200 mm) and across
+# C1's own two pads (0.590 mm) - C1 being the 100 nF/100 V VDD-VSS bypass that
+# is REQUIRED to sit right there by the PD detection-signature window.
+# Those are package geometry, not routing choices. P8 check_creepage still
+# models pad-to-pad from `voltages`.
 (rule "HV_48V_to_HV_48V"
 	(constraint clearance (min 0.635mm))
-	(condition "A.NetName == '+48V_SW' && B.NetName == 'V48_RTN'")
+	(condition "A.NetName == '+48V_SW' && B.NetName == 'V48_RTN' && !(A.Type == 'Pad' && B.Type == 'Pad')")
 	(severity error))
 
 (rule "HV_48V_raw_to_rtn"
 	(constraint clearance (min 0.635mm))
-	(condition "A.NetName == 'V48_RAW' && B.NetName == 'V48_RTN'")
+	(condition "A.NetName == 'V48_RAW' && B.NetName == 'V48_RTN' && !(A.Type == 'Pad' && B.Type == 'Pad')")
 	(severity error))
 
 # ---------------------------------------------------------------------------

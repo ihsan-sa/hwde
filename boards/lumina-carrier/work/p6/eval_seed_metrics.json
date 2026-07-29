@@ -1,0 +1,783 @@
+{
+ "script": "place_metrics",
+ "status": "violations",
+ "board": "eval_seed.kicad_pcb",
+ "counts": {
+  "total": 4,
+  "by_severity": {
+   "error": 3,
+   "warning": 1
+  },
+  "by_source": {
+   "check.place": 3,
+   "check_decoupling": 1
+  }
+ },
+ "violations": [
+  {
+   "check": "place",
+   "severity": "error",
+   "pos": [
+    112.8121,
+    86.5637
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C80"
+   ],
+   "msg": "C80 intersects ESP32-S3-WROOM-1 antenna keepout - no copper on ANY layer. Wi-Fi is a supported control path (H1-Q8), so this is functional, not cosmetic. Espressif HDG wants the antenna overhanging the edge or a 6 mm-deep relief with >=15 mm lateral clearance; the fixed 100x80 outline cannot overhang, so this band is the substitute. (1.92 mm2)",
+   "source": "check.place",
+   "items": [
+    {
+     "msg": "C80 intersects ESP32-S3-WROOM-1 antenna keepout - no copper on ANY layer. Wi-Fi is a supported control path (H1-Q8), so this is functional, not cosmetic. Espressif HDG wants the antenna overhanging the edge or a 6 mm-deep relief with >=15 mm lateral clearance; the fixed 100x80 outline cannot overhang, so this band is the substitute. (1.92 mm2)",
+     "pos": [
+      112.8121,
+      86.5637
+     ]
+    }
+   ],
+   "kind": "keepout_violation",
+   "overlap_mm2": 1.9237
+  },
+  {
+   "check": "place",
+   "severity": "error",
+   "pos": [
+    110.7031,
+    86.548
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C83"
+   ],
+   "msg": "C83 intersects ESP32-S3-WROOM-1 antenna keepout - no copper on ANY layer. Wi-Fi is a supported control path (H1-Q8), so this is functional, not cosmetic. Espressif HDG wants the antenna overhanging the edge or a 6 mm-deep relief with >=15 mm lateral clearance; the fixed 100x80 outline cannot overhang, so this band is the substitute. (1.16 mm2)",
+   "source": "check.place",
+   "items": [
+    {
+     "msg": "C83 intersects ESP32-S3-WROOM-1 antenna keepout - no copper on ANY layer. Wi-Fi is a supported control path (H1-Q8), so this is functional, not cosmetic. Espressif HDG wants the antenna overhanging the edge or a 6 mm-deep relief with >=15 mm lateral clearance; the fixed 100x80 outline cannot overhang, so this band is the substitute. (1.16 mm2)",
+     "pos": [
+      110.7031,
+      86.548
+     ]
+    }
+   ],
+   "kind": "keepout_violation",
+   "overlap_mm2": 1.1648
+  },
+  {
+   "check": "place",
+   "severity": "error",
+   "pos": [
+    114.4746,
+    97.1325
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "U30"
+   ],
+   "msg": "U30 intersects ESP32-S3-WROOM-1 antenna keepout - no copper on ANY layer. Wi-Fi is a supported control path (H1-Q8), so this is functional, not cosmetic. Espressif HDG wants the antenna overhanging the edge or a 6 mm-deep relief with >=15 mm lateral clearance; the fixed 100x80 outline cannot overhang, so this band is the substitute. (185.76 mm2)",
+   "source": "check.place",
+   "items": [
+    {
+     "msg": "U30 intersects ESP32-S3-WROOM-1 antenna keepout - no copper on ANY layer. Wi-Fi is a supported control path (H1-Q8), so this is functional, not cosmetic. Espressif HDG wants the antenna overhanging the edge or a 6 mm-deep relief with >=15 mm lateral clearance; the fixed 100x80 outline cannot overhang, so this band is the substitute. (185.76 mm2)",
+     "pos": [
+      114.4746,
+      97.1325
+     ]
+    }
+   ],
+   "kind": "keepout_violation",
+   "overlap_mm2": 185.76
+  },
+  {
+   "check": "check_decoupling",
+   "severity": "warning",
+   "pos": [
+    105.7156,
+    78.4594
+   ],
+   "layer": "F.Cu",
+   "net": "/eth/TOCAP",
+   "refs": [
+    "C32",
+    "U10"
+   ],
+   "msg": "C32 (4.7uF 25V X5R 0805) rail pad is 5.6 mm Manhattan (5.1 mm direct) from U10 pin 20 (bulk class limit 5.0 mm)",
+   "source": "check_decoupling",
+   "items": [
+    {
+     "msg": "C32 (4.7uF 25V X5R 0805) rail pad is 5.6 mm Manhattan (5.1 mm direct) from U10 pin 20 (bulk class limit 5.0 mm)",
+     "pos": [
+      105.7156,
+      78.4594
+     ]
+    }
+   ],
+   "kind": "decoupler_distance",
+   "cap_class": "bulk",
+   "manhattan_mm": 5.5673,
+   "euclid_mm": 5.0673,
+   "loop_nh": 6.8971,
+   "vias_in_loop": 3,
+   "pin": "U10.20",
+   "limit_mm": 5.0
+  }
+ ],
+ "metrics": {
+  "counts": {
+   "footprints": 116,
+   "movable": 112,
+   "nets": 85
+  },
+  "hpwl": {
+   "total_mm": 4212.2141,
+   "by_net": {
+    "+12V": 102.8782,
+    "+3V3": 149.7895,
+    "+48V_SW": 79.0048,
+    "/ADC0": 69.1623,
+    "/ADC1": 71.2457,
+    "/CDB": 68.667,
+    "/DSPI_CSn": 37.1695,
+    "/DSPI_MISO": 35.8995,
+    "/DSPI_MOSI": 37.1695,
+    "/DSPI_SCK": 35.8995,
+    "/ENABLE": 126.5091,
+    "/ETH_CSn": 30.807,
+    "/ETH_INTn": 25.1148,
+    "/ETH_LED_ACT": 74.5347,
+    "/ETH_LED_LINK": 64.8147,
+    "/ETH_MISO": 23.8364,
+    "/ETH_MOSI": 52.1829,
+    "/ETH_RSTn": 41.0342,
+    "/ETH_RXN": 67.8829,
+    "/ETH_RXP": 60.1329,
+    "/ETH_SCLK": 43.7344,
+    "/ETH_TXN": 60.8029,
+    "/ETH_TXP": 55.5929,
+    "/FAULT": 137.097,
+    "/I2C_SCL": 69.8428,
+    "/I2C_SDA": 55.6687,
+    "/ID_ADC": 49.6447,
+    "/IMON": 80.7018,
+    "/PWM0": 77.8295,
+    "/PWM1": 74.0195,
+    "/PWM2": 70.2095,
+    "/PWM3": 66.3995,
+    "/PWM4": 65.1295,
+    "/PWM5": 61.3195,
+    "/PWM6": 35.8995,
+    "/PWM7": 37.1695,
+    "/T2P": 46.8063,
+    "/eth/1V2O": 2.7212,
+    "/eth/EXRES": 24.7909,
+    "/eth/MOSI_PHY": 32.8865,
+    "/eth/SCLK_PHY": 22.5404,
+    "/eth/TOCAP": 5.5673,
+    "/eth/XI": 36.8127,
+    "/eth/XO": 43.8282,
+    "/eth/XO_XTAL": 22.4305,
+    "/expansion/ADC0_CONN": 81.8332,
+    "/expansion/ADC1_CONN": 76.6395,
+    "/expansion/ID_ADC_CONN": 28.3726,
+    "/mcu/BOOT": 68.5672,
+    "/mcu/EN": 51.3406,
+    "/mcu/ENABLE_M": 57.0557,
+    "/mcu/FAULT_M": 61.8464,
+    "/mcu/IMON_M": 36.8716,
+    "/mcu/IO3_STRAP": 20.9911,
+    "/mcu/RXD0": 53.0308,
+    "/mcu/STATUS": 51.045,
+    "/mcu/STATUS_A": 31.2575,
+    "/mcu/TXD0": 56.8408,
+    "/poe/APD": 33.1876,
+    "/poe/CLS": 8.8025,
+    "/poe/DEN": 5.5725,
+    "/poe/DEN_TAP": 4.5,
+    "/poe/LED_G_A": 82.4482,
+    "/poe/LED_Y_A": 94.8163,
+    "/poe/POE_TAP_A1": 10.367,
+    "/poe/POE_TAP_A2": 11.697,
+    "/poe/POE_TAP_B1": 11.727,
+    "/poe/POE_TAP_B2": 10.337,
+    "/poe/SHIELD": 58.5649,
+    "/poe/T2P_OD": 118.1413,
+    "/pwr/BST": 6.37,
+    "/pwr/BST33": 6.5049,
+    "/pwr/DVDT": 9.2375,
+    "/pwr/FB33": 37.1618,
+    "/pwr/FB48": 70.3746,
+    "/pwr/FLT_LED": 16.6705,
+    "/pwr/ILIM": 4.4625,
+    "/pwr/OVP": 48.8239,
+    "/pwr/PGOOD": 50.3214,
+    "/pwr/SW": 16.06,
+    "/pwr/SW33": 13.8697,
+    "/pwr/UVLO": 7.6375,
+    "GND": 169.9433,
+    "V48_RAW": 60.7429,
+    "V48_RTN": 35.0
+   }
+  },
+  "crossings": {
+   "count": 955,
+   "pairs": [
+    {
+     "nets": [
+      "+3V3",
+      "GND"
+     ],
+     "crossings": 16
+    },
+    {
+     "nets": [
+      "/ENABLE",
+      "GND"
+     ],
+     "crossings": 9
+    },
+    {
+     "nets": [
+      "/mcu/EN",
+      "GND"
+     ],
+     "crossings": 9
+    },
+    {
+     "nets": [
+      "/ADC0",
+      "GND"
+     ],
+     "crossings": 7
+    },
+    {
+     "nets": [
+      "+12V",
+      "GND"
+     ],
+     "crossings": 6
+    },
+    {
+     "nets": [
+      "/ETH_RXN",
+      "GND"
+     ],
+     "crossings": 6
+    },
+    {
+     "nets": [
+      "/mcu/FAULT_M",
+      "GND"
+     ],
+     "crossings": 6
+    },
+    {
+     "nets": [
+      "/poe/LED_Y_A",
+      "GND"
+     ],
+     "crossings": 6
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/expansion/ADC1_CONN"
+     ],
+     "crossings": 5
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/mcu/FAULT_M"
+     ],
+     "crossings": 5
+    },
+    {
+     "nets": [
+      "/ETH_TXN",
+      "GND"
+     ],
+     "crossings": 5
+    },
+    {
+     "nets": [
+      "/ETH_TXP",
+      "GND"
+     ],
+     "crossings": 5
+    },
+    {
+     "nets": [
+      "/expansion/ADC1_CONN",
+      "GND"
+     ],
+     "crossings": 5
+    },
+    {
+     "nets": [
+      "/mcu/BOOT",
+      "GND"
+     ],
+     "crossings": 5
+    },
+    {
+     "nets": [
+      "/mcu/ENABLE_M",
+      "GND"
+     ],
+     "crossings": 5
+    },
+    {
+     "nets": [
+      "/poe/T2P_OD",
+      "GND"
+     ],
+     "crossings": 5
+    },
+    {
+     "nets": [
+      "/pwr/OVP",
+      "GND"
+     ],
+     "crossings": 5
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/ENABLE"
+     ],
+     "crossings": 4
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/ETH_RSTn"
+     ],
+     "crossings": 4
+    },
+    {
+     "nets": [
+      "/CDB",
+      "GND"
+     ],
+     "crossings": 4
+    }
+   ]
+  },
+  "congestion": {
+   "cell_mm": 2.0,
+   "cols": 50,
+   "rows": 41,
+   "max": 13,
+   "mean_nonzero": 2.2996,
+   "hotspots": [
+    {
+     "cell": [
+      40,
+      11
+     ],
+     "center": [
+      100.58,
+      80.1325
+     ],
+     "demand": 13
+    },
+    {
+     "cell": [
+      37,
+      12
+     ],
+     "center": [
+      94.58,
+      82.1325
+     ],
+     "demand": 12
+    },
+    {
+     "cell": [
+      37,
+      8
+     ],
+     "center": [
+      94.58,
+      74.1325
+     ],
+     "demand": 11
+    },
+    {
+     "cell": [
+      38,
+      8
+     ],
+     "center": [
+      96.58,
+      74.1325
+     ],
+     "demand": 11
+    },
+    {
+     "cell": [
+      38,
+      12
+     ],
+     "center": [
+      96.58,
+      82.1325
+     ],
+     "demand": 10
+    },
+    {
+     "cell": [
+      39,
+      12
+     ],
+     "center": [
+      98.58,
+      82.1325
+     ],
+     "demand": 10
+    },
+    {
+     "cell": [
+      42,
+      14
+     ],
+     "center": [
+      104.58,
+      86.1325
+     ],
+     "demand": 10
+    },
+    {
+     "cell": [
+      38,
+      23
+     ],
+     "center": [
+      96.58,
+      104.1325
+     ],
+     "demand": 9
+    },
+    {
+     "cell": [
+      39,
+      8
+     ],
+     "center": [
+      98.58,
+      74.1325
+     ],
+     "demand": 9
+    },
+    {
+     "cell": [
+      39,
+      22
+     ],
+     "center": [
+      98.58,
+      102.1325
+     ],
+     "demand": 9
+    }
+   ]
+  },
+  "decoupling": [
+   {
+    "cap": "C1",
+    "pin": "U1.1",
+    "rail": "V48_RAW",
+    "class": "mid",
+    "manhattan_mm": 5.1575,
+    "euclid_mm": 3.9199,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 6.6102
+   },
+   {
+    "cap": "C2",
+    "pin": "U1.1",
+    "rail": "V48_RAW",
+    "class": "bulk",
+    "manhattan_mm": 5.0125,
+    "euclid_mm": 3.8644,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 6.5087
+   },
+   {
+    "cap": "C4",
+    "pin": "U1.1",
+    "rail": "V48_RAW",
+    "class": "bulk",
+    "manhattan_mm": 13.1775,
+    "euclid_mm": 9.7403,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 12.2243
+   },
+   {
+    "cap": "C5",
+    "pin": "U1.1",
+    "rail": "V48_RAW",
+    "class": "bulk",
+    "manhattan_mm": 10.0125,
+    "euclid_mm": 8.7111,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 10.0087
+   },
+   {
+    "cap": "C6",
+    "pin": "U1.1",
+    "rail": "V48_RAW",
+    "class": "bulk",
+    "manhattan_mm": 15.0125,
+    "euclid_mm": 13.6687,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 13.5087
+   },
+   {
+    "cap": "C34",
+    "pin": "U10.4",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 2.5537,
+    "euclid_mm": 1.9591,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 4.7876
+   },
+   {
+    "cap": "C35",
+    "pin": "U10.8",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 2.3362,
+    "euclid_mm": 1.9351,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 4.6353
+   },
+   {
+    "cap": "C37",
+    "pin": "U10.11",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 3.3829,
+    "euclid_mm": 2.4242,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 5.368
+   },
+   {
+    "cap": "C38",
+    "pin": "U10.15",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 2.7211,
+    "euclid_mm": 1.9913,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 4.9048
+   },
+   {
+    "cap": "C39",
+    "pin": "U10.17",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 2.3362,
+    "euclid_mm": 1.9351,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 4.6353
+   },
+   {
+    "cap": "C41",
+    "pin": "U10.21",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 1.9835,
+    "euclid_mm": 1.921,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 4.3884
+   },
+   {
+    "cap": "C36",
+    "pin": "U10.21",
+    "rail": "+3V3",
+    "class": "bulk",
+    "manhattan_mm": 6.5272,
+    "euclid_mm": 5.1112,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 7.569
+   },
+   {
+    "cap": "C40",
+    "pin": "U10.28",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 2.5536,
+    "euclid_mm": 1.9591,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 4.7875
+   },
+   {
+    "cap": "C32",
+    "pin": "U10.20",
+    "rail": "/eth/TOCAP",
+    "class": "bulk",
+    "manhattan_mm": 5.5673,
+    "euclid_mm": 5.0673,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 6.8971
+   },
+   {
+    "cap": "C33",
+    "pin": "U10.22",
+    "rail": "/eth/1V2O",
+    "class": "mid",
+    "manhattan_mm": 2.7212,
+    "euclid_mm": 1.9914,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 4.9048
+   },
+   {
+    "cap": "C50",
+    "pin": "U20.3",
+    "rail": "V48_RAW",
+    "class": "bulk",
+    "manhattan_mm": 8.64,
+    "euclid_mm": 6.115,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 9.048
+   },
+   {
+    "cap": "C51",
+    "pin": "U20.3",
+    "rail": "V48_RAW",
+    "class": "bulk",
+    "manhattan_mm": 7.37,
+    "euclid_mm": 5.3388,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 8.159
+   },
+   {
+    "cap": "C61",
+    "pin": "U20.3",
+    "rail": "V48_RAW",
+    "class": "mid",
+    "manhattan_mm": 5.16,
+    "euclid_mm": 4.5693,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 6.612
+   },
+   {
+    "cap": "C55",
+    "pin": "U21.3",
+    "rail": "+12V",
+    "class": "bulk",
+    "manhattan_mm": 2.7467,
+    "euclid_mm": 2.0301,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 4.9227
+   },
+   {
+    "cap": "C62",
+    "pin": "U22.1",
+    "rail": "V48_RAW",
+    "class": "mid",
+    "manhattan_mm": 3.5625,
+    "euclid_mm": 3.1662,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 5.4938
+   },
+   {
+    "cap": "C63",
+    "pin": "U22.18",
+    "rail": "+48V_SW",
+    "class": "mid",
+    "manhattan_mm": 3.5125,
+    "euclid_mm": 3.1598,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 5.4588
+   },
+   {
+    "cap": "C80",
+    "pin": "U30.2",
+    "rail": "+3V3",
+    "class": "bulk",
+    "manhattan_mm": 4.2317,
+    "euclid_mm": 2.9966,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 5.9622
+   },
+   {
+    "cap": "C81",
+    "pin": "U30.2",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 7.5249,
+    "euclid_mm": 5.3271,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 8.2674
+   },
+   {
+    "cap": "C82",
+    "pin": "U30.2",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 8.4353,
+    "euclid_mm": 6.2741,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 8.9047
+   },
+   {
+    "cap": "C83",
+    "pin": "U30.2",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 2.0254,
+    "euclid_mm": 1.9215,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 4.4178
+   },
+   {
+    "cap": "C84",
+    "pin": "U30.2",
+    "rail": "+3V3",
+    "class": "bulk",
+    "manhattan_mm": 4.9374,
+    "euclid_mm": 4.7214,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 6.4562
+   }
+  ],
+  "utilization": {
+   "component_mm2": 2487.4487,
+   "board_mm2": 7992.229,
+   "ratio": 0.311
+  }
+ }
+}

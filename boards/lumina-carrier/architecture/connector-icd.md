@@ -1,6 +1,6 @@
 # ICD-01 - LUMINA expansion connector interface control document
 
-**Owner:** LUM-CAR-A (carrier board). **Status: frozen at H1. Rev A3** (A2 = 0.635 mm creepage + bank-charging contract; A3 = ID_ADC codes + PWM/timer contract; A4 = sealed-with-wall-conduction thermal budget + firmware requirements; A5 = thermal assumptions stated + at-ventilation closed; A6 = FAULT sink current, IMON accuracy caveat).
+**Owner:** LUM-CAR-A (carrier board). **Status: frozen at H1. Rev A3** (A2 = 0.635 mm creepage + bank-charging contract; A3 = ID_ADC codes + PWM/timer contract; A4 = sealed-with-wall-conduction thermal budget + firmware requirements; A5 = thermal assumptions stated + at-ventilation closed; A6 = FAULT sink current + IMON accuracy caveat; A7 = s7.2 connector coordinates FROZEN at P6, s7.4 mech-3 corrected).
 **Consumers:** LUM-STR-A (strobe daughter), LUM-PAR-A (RGBW par daughter), and every future LUMINA
 daughter.
 
@@ -515,19 +515,29 @@ Why this is binding, with the arithmetic:
 | Coordinate origin for this ICD | board top-left corner, x right, y down |
 | **RJ45 position on the carrier** | **top edge**, body (10, 0) - (32, 22) |
 
-### 7.2 Nominal connector positions (board-relative, mm)
+### 7.2 Connector positions - **FROZEN at P6**
 
-| Ref | Block | Body extent | Position 1 at |
-|---|---|---|---|
-| **J3** | POWER 2x7 | (14, 68) - (34, 78) | (15.3, 69.3), long axis along +x |
-| **H5** | M3 support | centre **(46, 74)** | between the two blocks |
-| **J4** | SIGNAL 2x12 | (56, 68) - (88, 78) | (57.3, 69.3), long axis along +x |
+Board-relative to the top-left corner, x right / y down. Absolute board origin is
+(19.58, 57.132); subtract it from any absolute coordinate read off the .kicad_pcb.
 
-**These coordinates are provisional until the end of P6.** P6 places the board; the carrier owner
-must compare the placed positions against this table, correct them with `place_edit` if the
-annealer has moved them, and **re-issue this ICD with the confirmed coordinates before any daughter
-run starts.** This is the one section of this document that is not frozen at H1, and daughters are
-blocked on it.
+| Item | Origin | Rot | Position 1 | Even-row y | Land extent |
+|---|---|---|---|---|---|
+| **J3** POWER 2x7 | **(23.00, 76.00)** | 0 | **(15.380, 77.270)** | 74.730 | (14.11, 73.50) - (31.89, 78.50) |
+| **J4** SIGNAL 2x12 | **(71.00, 76.00)** | 0 | **(57.030, 77.270)** | 74.730 | (55.76, 73.50) - (86.24, 78.50) |
+| **H5** support hole | **(46.00, 74.00)** | - | - | - | exactly the s7.1 normative value, unchanged |
+| **J1** RJ45 body | (11.88, 0.00) - (30.12, 21.74) | - | - | - | see note |
+
+**What moved from the provisional values, and why.** x is within +/-0.3 mm of the
+provisional figures. **y moved DOWN 7.97 mm**: the provisional y = 69.3 left the connector
+courtyards 6.9 mm off the bottom edge, which fails placelib's 2.5 mm declared-edge tolerance -
+the connectors have to sit at the edge they are declared on.
+
+**J1 moved 5.75 mm left** onto the ICD's nominal (10,0)-(32,22) envelope. That is a real
+improvement for the daughters: the previous position left only **0.13 mm** of margin inside the
+30 x 26 mm notch, which is not a margin. It now has room.
+
+**Daughters may now design to these numbers.** They were provisional until P6 because placement
+had not run; they are frozen now.
 
 ### 7.3 Stack height and standoffs
 

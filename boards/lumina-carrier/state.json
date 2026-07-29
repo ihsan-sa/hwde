@@ -3,7 +3,7 @@
  "board": "lumina-carrier",
  "workspace": "boards/lumina-carrier",
  "created": "2026-07-28T13:36:22",
- "updated": "2026-07-29T09:24:52",
+ "updated": "2026-07-29T11:02:27",
  "phase": "P5",
  "gates": {
   "erc": {
@@ -25,6 +25,25 @@
     },
     {
      "ts": "2026-07-28T20:56:57",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0
+    }
+   ]
+  },
+  "place": {
+   "phase": "P6",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-07-29T11:02:27",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0
+   },
+   "history": [
+    {
+     "ts": "2026-07-29T11:02:27",
      "status": "pass",
      "failing_count": 0,
      "total": 0
@@ -352,6 +371,12 @@
    "why": "board_init report read back rather than assumed: corner_radius 3.0 honoured (NOT clamped to the mounting-hole inset), mounting_holes 4, outline_bbox [19.58, 57.132, 119.58, 137.132] = exactly 100.0 x 80.0 mm. Setup violations fell 92 -> 36 after fixing: (1) ESP32 thermal-land vias-in-pad at 0.075 mm ring / 0.25 mm drill, failing BOTH min-annular and min-hole. My first attempt enlarged them to 0.60/0.30, which fixed those two but created 24 clearance + 24 mask-bridge errors instead because the via pads then touched the thermal sub-pads - so I REMOVED them entirely. Thermal vias under a ground land belong to the board, not the footprint: P7 stitching places them against the real GND pour with correct net assignment, and it also removes the via-in-pad solder-wicking risk that was already on the P9 list. (2) D1 SMBJ58A courtyard was 'malformed (self-intersecting)' from zero-length fp_line segments - an easyeda2kicad artifact; scanned board-wide and removed 5 across 2 footprints. All 36 remaining violations are components stacked at the origin pre-placement (27 copper_edge_clearance, 3 courtyards_overlap, 3 mask bridges, 1 npth-in-courtyard) plus 2 benign warnings. ZERO library defects remain. Also verified by hand (fp_verify does not model drills): J3/J4 both 1.700 mm annulus / 1.100 mm drill / 0.840 mm gap / 1.32x / 0.300 mm ring, matching ICD s5.2 exactly. Library completeness re-derived from the filesystem after the lib_pull bug: 112/112 components resolve a footprint.",
    "phase": "P5",
    "ts": "2026-07-29T09:24:52"
+  },
+  {
+   "what": "P6 place gate PASS. My own DRU rule was over-scoped and I fixed it; a blanket silk sweep was over-aggressive and I caught it before committing.",
+   "why": "Place gate 0 violations; hpwl 4212 -> 3601 mm, crossings 955 -> 613, utilisation 24.7 percent; route probe completion 0.9842 (5 unrouted of 317), above the 0.98 bar. TWO SELF-INFLICTED ISSUES FIXED: (1) my hand-written .kicad_dru HV rules had no pad-pair exclusion, so they fired 30 times between ADJACENT PINS OF THE SAME PACKAGE - U1's own VDD/VSS at 0.20 mm, U22's HTSSOP pitch, C1/C61/C62/C63's own two pads. No placement can fix a 0.65 mm-pitch package, and that was never the rule's purpose: TI's 0.635 mm guidance governs BOARD copper around the part, not the vendor's lead frame. Added !(A.Type=='Pad' && B.Type=='Pad') to all three rules - 30 errors to 0 - and this loses no coverage because P8 check_creepage independently models pad-to-pad from the voltages table. (2) My first silk-clip pass was scoped board-wide and removed 241 primitives, stripping legitimate silkscreen from nearly every passive, because a 0603's body outline naturally overlaps its own pad bboxes. Caught it by sanity-checking the count before committing, restored from backup, and re-scoped to only the refs DRC actually flagged: exactly 5 clipped (J1 x4, D22 x1), verified by differencing silk-layer references against the backup. Board DRC is now 0 non-unconnected violations. Also frozen: ICD s7.2 connector coordinates (J3 origin 23.00,76.00; J4 origin 71.00,76.00; H5 46.00,74.00), and J1 moved 5.75 mm left onto the ICD nominal envelope, taking the daughters' notch margin from 0.13 mm - not a margin - to a real one.",
+   "phase": "P6",
+   "ts": "2026-07-29T11:02:27"
   }
  ],
  "history": [
@@ -679,6 +704,19 @@
    "ts": "2026-07-29T09:24:52",
    "event": "decision",
    "what": "P5 complete: 100x80 mm, 4-layer JLC04161H-3313, 3 mm corner radius, 4x M3. Three library defects found and fixed that placement could never have resolved."
+  },
+  {
+   "ts": "2026-07-29T11:02:27",
+   "event": "gate",
+   "gate": "place",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-07-29T11:02:27",
+   "event": "decision",
+   "what": "P6 place gate PASS. My own DRU rule was over-scoped and I fixed it; a blanket silk sweep was over-aggressive and I caught it before committing."
   }
  ]
 }
