@@ -1,0 +1,53 @@
+{
+  "script": "gate",
+  "gate": "place",
+  "phase": "P6",
+  "tool": "place",
+  "input": null,
+  "status": "fail",
+  "criteria": {
+    "fail_severities": [
+      "error"
+    ],
+    "max_count": 0
+  },
+  "counts": {
+    "total": 1,
+    "by_severity": {
+      "error": 1
+    },
+    "by_source": {
+      "check.place": 1
+    }
+  },
+  "failing_count": 1,
+  "failing": [
+    {
+      "check": "place",
+      "severity": "error",
+      "pos": [
+        94.4363,
+        87.764
+      ],
+      "layer": null,
+      "net": null,
+      "refs": [
+        "C34",
+        "U30"
+      ],
+      "msg": "courtyard overlap C34/U30 (1.49 mm2)",
+      "source": "check.place",
+      "items": [
+        {
+          "msg": "courtyard overlap C34/U30 (1.49 mm2)",
+          "pos": [
+            94.4363,
+            87.764
+          ]
+        }
+      ],
+      "kind": "courtyard_overlap",
+      "overlap_mm2": 1.4897
+    }
+  ]
+}
