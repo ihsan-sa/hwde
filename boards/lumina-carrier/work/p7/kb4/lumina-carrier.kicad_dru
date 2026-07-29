@@ -1,0 +1,108 @@
+(version 1)
+
+# ---------------------------------------------------------------------------
+# LUM-CAR-A hand-written design rules
+#
+# WHY THIS FILE EXISTS (TRAP-1, grep-verified at P2):
+#   rules_gen.py NEVER reads constraints.json's `voltages` key. The net class it
+#   emits for power nets carries only max(fab_min, 0.2) mm clearance, so NOTHING
+#   makes the P7 router honour the 48 V clearance requirement - the violation
+#   would only surface at P8 check_creepage, after routing is done.
+#
+#   Keyed on A.NetName, NOT A.Net: A.Net silently matches nothing
+#   (LEARNINGS 2026-07-22). A LATER rule wins, so order matters.
+#
+# THE NUMBER: 0.635 mm, not 0.60 mm.
+#   IPC-2221B B2 (external, uncoated, 51-100 V) gives 0.60 mm for a 57 V worst
+#   case. The TPS2378 datasheet's own layout section asks for 0.025 in =
+#   0.635 mm between VSS and high-voltage signals such as VDD. Rather than waive
+#   a vendor recommendation on the board's most safety-critical IC, the LARGER
+#   number governs board-wide. ICD-01 rev A2+ s5.1 is the authority.
+#
+#   The B4 "permanent polymer coating" column (0.13 mm) is deliberately NOT
+#   claimed: standard LPI soldermask is not a qualified conformal coating, and
+#   check_creepage implements only the uncoated columns, so a layout designed to
+#   0.13 mm fails P8 with no waiver mechanism.
+# ---------------------------------------------------------------------------
+
+# SCOPE CORRECTION (P6): the first draft of this rule had no pad-pair exclusion
+# and fired 30 times between ADJACENT PINS OF THE SAME PACKAGE - U1 (SOIC-8,
+# 0.20 mm pitch gap), U22 (HTSSOP-20, 0.25 mm) and across C61/C62/C63's own two
+# pads (0.59 mm). No placement can fix a 0.65 mm-pitch package, and that is not
+# what the rule is for.
+#
+# TI's 0.635 mm guidance governs BOARD copper around the part - traces, vias,
+# pours - not the vendor's own lead frame. Intra-package pin spacing is a
+# package property, and this board verified every land against its vendor
+# drawing at P3 (fp_verify + hand checks on J3/J4/J1).
+#
+# Pad-to-pad is excluded here and NOT lost: P8 check_creepage independently
+# models pad-to-pad creepage from constraints.json `voltages`, so inter-
+# footprint pad spacing is still gated - just by the checker that understands
+# it rather than by a routing rule.
+
+# P7 SCOPE AMENDMENT - the P6 pad-pair exclusion, carried one step further.
+#
+# The pad-pair exclusion stops the rule firing BETWEEN two pins of one package,
+# but not between a pin and the FAN-OUT STUB that has to land on that pin.
+# Measured on the placed board (work/p7/hv_escape.py): 15 of the 37 48 V pads
+# sit closer than 0.635 mm to foreign copper OF THEIR OWN FOOTPRINT - U1 pads
+# 1/9 (SOIC-8, 0.200 mm), U22 pads 1/2/3/6/18/19/20 (HTSSOP-20, 0.250-0.375 mm
+# to pins 4/5/17 and to the pin-21 thermal land), U20 pad 3 (0.295 mm to its own
+# GND exposed pad) and C1/C61/C62/C63 (0.590 mm across their own two 0805 pads).
+# A track reaching any of those pads inherits the pad's neighbourhood, so under
+# the un-amended rule those 15 pads were UNROUTABLE. Verified live at P7
+# (work/p7/hvtest): a V48_RAW stub on U22 pad 6 fired HV_48V_clearance twice at
+# 0.250 mm against pins 5 and 7 - a spacing the package pitch fixes and that no
+# routing choice can change.
+#
+# The exclusion below applies the pad-pair rationale to the stub: when BOTH
+# items lie inside ONE named footprint's courtyard, the spacing is package
+# geometry. It is enumerated per refdes (never wildcarded) so it cannot quietly
+# widen, and it covers only the seven footprints measured above. Every trace,
+# via and pour in open board area - and any pair spanning two different
+# footprints - still holds 0.635 mm. P8 check_creepage still models pad-to-pad
+# independently from constraints.json `voltages`.
+# Pre-amendment copy: work/p7/lumina-carrier.kicad_dru.pre_p7
+(rule "HV_48V_clearance"
+	(constraint clearance (min 0.635mm))
+	(condition "(A.NetName == '+48V_SW' || A.NetName == 'V48_RAW' || A.NetName == 'V48_RTN') && !(A.Type == 'Pad' && B.Type == 'Pad') && !(A.intersectsCourtyard('U1') && B.intersectsCourtyard('U1')) && !(A.intersectsCourtyard('U20') && B.intersectsCourtyard('U20')) && !(A.intersectsCourtyard('U22') && B.intersectsCourtyard('U22')) && !(A.intersectsCourtyard('C1') && B.intersectsCourtyard('C1')) && !(A.intersectsCourtyard('C61') && B.intersectsCourtyard('C61')) && !(A.intersectsCourtyard('C62') && B.intersectsCourtyard('C62')) && !(A.intersectsCourtyard('C63') && B.intersectsCourtyard('C63'))")
+	(severity error))
+
+# The three 48 V nets must also hold 0.635 mm against EACH OTHER, not just
+# against everything else. V48_RAW to V48_RTN is the full 57 V across the
+# rectified rail; +48V_SW to V48_RTN is the same once the eFuse is on.
+# Same pad-pair exclusion as above, for the same reason. Without it these two
+# rules fire on U1's own adjacent VDD/VSS pins (SOIC-8, 0.200 mm) and across
+# C1's own two pads (0.590 mm) - C1 being the 100 nF/100 V VDD-VSS bypass that
+# is REQUIRED to sit right there by the PD detection-signature window.
+# Those are package geometry, not routing choices. P8 check_creepage still
+# models pad-to-pad from `voltages`.
+# P7: these two carry the SAME same-courtyard amendment as HV_48V_clearance -
+# without it a stub landing on U1 pad 1 (V48_RAW) fires against U1 pad 9
+# (V48_RTN) at 0.200 mm, and C1's two pads do the same at 0.590 mm.
+(rule "HV_48V_to_HV_48V"
+	(constraint clearance (min 0.635mm))
+	(condition "A.NetName == '+48V_SW' && B.NetName == 'V48_RTN' && !(A.Type == 'Pad' && B.Type == 'Pad') && !(A.intersectsCourtyard('U1') && B.intersectsCourtyard('U1')) && !(A.intersectsCourtyard('U20') && B.intersectsCourtyard('U20')) && !(A.intersectsCourtyard('U22') && B.intersectsCourtyard('U22')) && !(A.intersectsCourtyard('C1') && B.intersectsCourtyard('C1')) && !(A.intersectsCourtyard('C61') && B.intersectsCourtyard('C61')) && !(A.intersectsCourtyard('C62') && B.intersectsCourtyard('C62')) && !(A.intersectsCourtyard('C63') && B.intersectsCourtyard('C63'))")
+	(severity error))
+
+(rule "HV_48V_raw_to_rtn"
+	(constraint clearance (min 0.635mm))
+	(condition "A.NetName == 'V48_RAW' && B.NetName == 'V48_RTN' && !(A.Type == 'Pad' && B.Type == 'Pad') && !(A.intersectsCourtyard('U1') && B.intersectsCourtyard('U1')) && !(A.intersectsCourtyard('U20') && B.intersectsCourtyard('U20')) && !(A.intersectsCourtyard('U22') && B.intersectsCourtyard('U22')) && !(A.intersectsCourtyard('C1') && B.intersectsCourtyard('C1')) && !(A.intersectsCourtyard('C61') && B.intersectsCourtyard('C61')) && !(A.intersectsCourtyard('C62') && B.intersectsCourtyard('C62')) && !(A.intersectsCourtyard('C63') && B.intersectsCourtyard('C63'))")
+	(severity error))
+
+# ---------------------------------------------------------------------------
+# Magjack isolation barrier - chip side to line side.
+#
+# check_creepage CANNOT enforce this: it derives spacing purely from working
+# voltage (0.635 mm at 57 V), but this barrier is a hipot / vendor-guidance
+# number, not a voltage-derived one. HALO's app note asks 55 mils = 1.40 mm at
+# this pitch. See LEARNINGS 2026-07-28 [check_creepage][gates][magnetics].
+#
+# The J1 land itself was edited at P4 to hold 1.451 mm; this rule stops routing
+# from filling the gap that the footprint edit created.
+# ---------------------------------------------------------------------------
+(rule "magjack_isolation_barrier"
+	(constraint clearance (min 1.4mm))
+	(condition "A.NetName == 'V48_RAW' && B.intersectsCourtyard('J1')")
+	(severity error))
