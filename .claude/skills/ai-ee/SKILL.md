@@ -150,6 +150,23 @@ schematic agent for all sheets (record the deviation).
   `scripts/order_track.py --workspace <ws>` at checkpoints/resume
   (non-blocking) and log status milestones to state.
 
+## Simulation legs (SPICE + layout)
+
+- P2/P4: for boards with nontrivial analog content spawn `sim-analyst` -
+  it authors `kicad/sims/*.cir` + `.bounds.json` (generic model cards from
+  datasheet params + Tier-B pin stimulus; NO vendored vendor models).
+  Gate `sim` (P8): `gate.py --gate sim kicad/sims` - every bench needs a
+  bounds sidecar (missing OR empty = error by design); wrong-value defects
+  (the class no other gate sees) fail here.
+- P8 layout legs, advisory-by-default: `scripts/check_irdrop.py` (2.5D FDM
+  IR-drop + current density on the real copper; gates only when
+  irdrop_mv_max/jmax_a_per_mm are declared; honor grid_unconverged
+  warnings) and `scripts/check_pdn_z.py --metadata decoupling.json`
+  (plane-cavity |Z|; judge peaks/first_min - z_max is a band-edge model
+  artifact; pdn_target_mohm gates antiresonance peaks only). Fold findings
+  into the P8 review; never block on them without constraints-declared
+  bounds.
+
 ## The fix loop (uniform for every gate)
 
 On gate fail (exit 1, result JSON has `failing` with coordinates):
@@ -262,3 +279,8 @@ never reuse a generator/router conversation for its own review.
   mechanics, PCB tracking-number surface, and copperWeight type
   strictness are unverified until the first scope-approved live call
   (all fail safe, before money).
+- Sim legs: SPICE covers analog fragments only (digital pins = datasheet
+  stimulus models; buck switching NOT simmed - no vendor models by
+  policy); check_irdrop injection is worst-case unless source_ref/sinks
+  declared; check_pdn_z uses bounding-rect plane geometry, no VRM/package
+  model (band edges are validity limits, not layout properties).

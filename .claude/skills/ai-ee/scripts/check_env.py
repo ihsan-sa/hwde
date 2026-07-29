@@ -49,6 +49,7 @@ REQUIRED_PACKAGES = {
     "jsonschema": "jsonschema",
     "scipy": "scipy",
     "pytest": "pytest",
+    "InSpice": "InSpice",
 }
 
 KICAD_INSTALL_HELP = (
@@ -74,6 +75,13 @@ JAR_HELP = (
 PDFLATEX_HELP = (
     "Install MiKTeX (https://miktex.org/download) or TeX Live, or set "
     "AIEE_PDFLATEX. Without it report_gen degrades to --tex-only (no PDF)."
+)
+NGSPICE_HELP = (
+    "The SPICE sim gate (sim_run.py) drives a shared ngspice library. "
+    "KiCad 10 bundles one next to kicad-cli (C:/Program Files/KiCad/10.0/"
+    "bin/ngspice.dll - install KiCad with its simulator component), or set "
+    "AIEE_NGSPICE_DLL to any ngspice shared library. Without it the sim "
+    "gate cannot run."
 )
 
 SWIG_PROBE = """\
@@ -273,6 +281,20 @@ def check_pdflatex(resolved: dict) -> dict:
                  PDFLATEX_HELP, warn=True)
 
 
+def check_ngspice(resolved: dict) -> dict:
+    """ngspice is optional (only the sim gate needs it), so absence is a
+    warning - but a set-but-invalid AIEE_NGSPICE_DLL pin still fails loudly."""
+    try:
+        dll = env.find_ngspice_dll()
+    except env.EnvError as e:
+        return check("ngspice-dll", False, str(e), NGSPICE_HELP)
+    resolved["ngspice_dll"] = str(dll) if dll else None
+    return check("ngspice-dll", dll is not None,
+                 str(dll) if dll else
+                 "no ngspice shared library found (KiCad bin or AIEE_NGSPICE_DLL)",
+                 NGSPICE_HELP, warn=True)
+
+
 def check_git() -> dict:
     import shutil
     g = shutil.which("git")
@@ -299,6 +321,7 @@ def main(argv: list[str] | None = None) -> int:
         checks.extend(check_kicad(resolved, args.full))
         checks.extend(check_java(resolved))
         checks.append(check_pdflatex(resolved))
+        checks.append(check_ngspice(resolved))
         checks.append(check_git())
         if args.full:
             checks.append(probe_ipc())

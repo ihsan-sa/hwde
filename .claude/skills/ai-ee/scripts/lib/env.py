@@ -16,6 +16,7 @@ never silently ignored - a wrong pin must fail loudly):
   AIEE_JAVA             full path to a java executable (for Freerouting)
   AIEE_FREEROUTING_JAR  full path to a freerouting jar
   AIEE_PDFLATEX         full path to a pdflatex executable (for report_gen)
+  AIEE_NGSPICE_DLL      full path to a shared ngspice library (for sim_run)
 """
 
 from __future__ import annotations
@@ -222,6 +223,36 @@ def find_krt() -> Path | None:
         return p
     dirs = sorted(repo_root().glob("tools/krt/KiCadRoutingTools-*/plugins"))
     return dirs[-1] if dirs else None
+
+
+# ---------------------------------------------------------------- ngspice (optional)
+
+def find_ngspice_dll() -> Path | None:
+    """Shared ngspice library for the SPICE sim gate (sim_run.py).
+
+    Ladder: AIEE_NGSPICE_DLL pin > the DLL KiCad bundles beside kicad-cli
+    (KiCad >= 9 ships ngspice for its own simulator) > None (sim gate cannot
+    run). The pipeline loads it in-process via InSpice's shared-library
+    binding - there is no ngspice.exe on this ladder on purpose: only the
+    shared library exposes the ngGet_Vec_Info API the runner needs.
+    """
+    pin = os.environ.get("AIEE_NGSPICE_DLL")
+    if pin:
+        p = Path(pin)
+        if not p.exists():
+            raise EnvError(f"AIEE_NGSPICE_DLL does not exist: {pin}")
+        return p
+    cli = find_kicad_cli()  # EnvError from a bad AIEE_KICAD_* pin stays loud
+    if cli is None:
+        return None
+    if sys.platform == "win32":
+        name = "ngspice.dll"
+    elif sys.platform == "darwin":
+        name = "libngspice.dylib"
+    else:
+        name = "libngspice.so"
+    cand = cli.parent / name
+    return cand if cand.exists() else None
 
 
 # ---------------------------------------------------------------- pdflatex (optional)

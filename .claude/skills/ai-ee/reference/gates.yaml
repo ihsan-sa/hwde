@@ -23,13 +23,21 @@
 # S2 defined erc/drc/drc_routed; S5 added verify (verify_all.py aggregate);
 # S9 adds place (place_metrics.py legality: courtyard overlaps, declared-edge
 # compliance, keepouts, decoupler distance - the P6 fast-route-completion term
-# arrives with S10/S11 route feedback); S12 adds dfm (dfm_check.py).
+# arrives with S10/S11 route feedback); S12 adds dfm (dfm_check.py); post-v1
+# adds sim (sim_run.py: SPICE testbench bounds via the KiCad-bundled ngspice).
 # routed (P7 "100% routed") is covered by drc_routed's parity + unconnected.
 #
 # The `verify` gate's tool is "verify": gate.py runs verify_all.py on the board,
 # taking constraints.json / decoupling.json from the board's own directory. Its
 # merged summary carries the same {violations, counts} shape the erc/drc gates
 # produce, so evaluate() gates it identically (fail on error-severity).
+#
+# The `sim` gate's input is a DIRECTORY (unlike every other gate): the
+# workspace kicad/sims/ holding the sim-analyst's testbench .cir files with
+# their .bounds.json sidecars. gate.py runs sim_run.py over it; the report
+# carries the same {violations, counts} shape, so evaluate() gates it
+# identically (fail on error-severity: sim_bound_fail / sim_measure_missing
+# at error, and any sim_engine_error).
 
 version: 1
 
@@ -78,6 +86,20 @@ gates:
       P8 verification suite (verify_all.py): return path, current, decoupling,
       diff pairs, creepage, thermal, silk, PDN. Fails on any error-severity
       finding; warnings are surfaced for human review, not auto-failed.
+
+  sim:
+    phase: P8
+    tool: sim
+    fail_severities: [error]
+    max_count: 0
+    description: >-
+      SPICE behavioral gate (sim_run.py): every testbench in the input sims
+      directory runs through the KiCad-bundled ngspice shared library and
+      each measured value must sit inside its authored .bounds.json window.
+      Catches the wrong-value defect class (a 47k where 4.7k belongs) that
+      ERC/DRC/verify/DFM are all blind to. Warning bounds surface without
+      failing; an engine crash, timeout or missing measure behind an
+      error-severity bound fails the gate.
 
   dfm:
     phase: P9

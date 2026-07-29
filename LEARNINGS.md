@@ -4,7 +4,7 @@ Append-only, non-obvious gotchas. Recall by tag/keyword before touching an area.
 Entries sourced from prior attempts are marked; re-verify at first use here.
 
 ## Tags
-[windows] [kicad] [kicad-cli] [ipc] [swig] [freerouting] [easyeda2kicad] [python] [prior-attempts] [geometry] [shapely] [parts] [datasheet] [gerber] [gerbonara] [dfm] [jlc] [fab] [skill] [git] [latex]
+[windows] [kicad] [kicad-cli] [ipc] [swig] [freerouting] [easyeda2kicad] [python] [prior-attempts] [geometry] [shapely] [parts] [datasheet] [gerber] [gerbonara] [dfm] [jlc] [fab] [skill] [git] [latex] [spice]
 
 ## 2026-07-06 [windows] cp1252 console crashes on non-ASCII output
 Printing degree signs, ohms, plus-minus, emoji to a default Windows console raises
@@ -970,3 +970,28 @@ area check would then see a 10x10 board, with no error raised anywhere. board_in
 interior cutouts: --cutout must touch an outline edge and become a notch (exit 2 with remediation).
 If interior windows are ever genuinely needed, _parse_outline must collect ALL closed loops and
 subtract the inner ones instead of returning the first rect it finds.
+
+## 2026-07-28 [spice][windows] InSpice + KiCad's bundled ngspice.dll: the working recipe has traps
+KiCad 10.0.3 ships ngspice.dll v46 beside kicad-cli; InSpice 1.7.0.5 (transitive via skidl, now
+pinned) drives it - no standalone ngspice needed. Traps (all machine-verified): (1)
+NGSPICE_LIBRARY_PATH must be the BARE name "ngspice.dll" + KiCad bin prepended to PATH -
+find_library splits at the first "." so a full path containing "KiCad/10.0" truncates; (2)
+SPICE_LIB_DIR must be SET (any dir) or _load_library crashes on Path(None) ("can't find spinit"
+is benign); (3) circuits passed to load_circuit() must end ".end" or you get a silent "no
+circuits loaded". .measure only works for tran/dc/ac (never op) and results are NOT vectors -
+parse "name = value" lines from captured stdout; a FAILED .measure makes run() raise while the
+successful measures stay parseable. Always inject .options rshunt=1e9 (one floating node makes
+.ac singular while DC stays perfect); keep refs to all callback thunks; run each bench in a
+killable subprocess (in-process DLL hangs are unkillable on Windows). KiCad "1M" resistor value
+means 1 MEG in SPICE (map it); a bare-"F" cap value ("1F") silently becomes femtofarads - treat
+prefix-less F as unresolved. kicad-cli spice export is UNUSABLE without Sim.* fields (model-less
+symbols emit REF __REF with ZERO nodes - topology destroyed); synthesize fragments from the
+kicadsexpr .net instead.
+
+## 2026-07-28 [spice][geometry] PDN cavity-model band edges are validity limits, not layout facts
+With no VRM branch (low f) and no package/die capacitance (high f), max|Z| over the sweep ALWAYS
+lands at a band edge - gating a target on band-max fails every known-good board (adversarial
+B-1; a 165 mOhm target read 1.4-1.6 Ohm at 200 MHz on the clean usbbuck4 golden). Gate
+antiresonance PEAKS only; judge peaks/first_min, never z_max. Empty bounds sidecars must be
+rejected like missing ones - "[]" gate-passes an unproven testbench (A-1); JSON NaN/Infinity
+bound limits validate as numbers and can never trip (A-2) - require finite.

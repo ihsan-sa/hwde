@@ -185,8 +185,9 @@ def test_gates_yaml_valid():
     for name, g in gates.items():
         # S5 added the "verify" tool (verify_all.py aggregate); S9 added
         # "place" (place_metrics.py legality); S12 added "dfm" (dfm_check.py
-        # on the exported gerbers) - gate.py wires all three.
-        assert g["tool"] in ("erc", "drc", "verify", "place", "dfm"), \
+        # on the exported gerbers); post-v1 added "sim" (sim_run.py testbench
+        # bounds) - gate.py wires all four.
+        assert g["tool"] in ("erc", "drc", "verify", "place", "dfm", "sim"), \
             f"{name}: bad tool {g['tool']}"
         for sev in g.get("fail_severities", ["error"]):
             assert sev in ("error", "warning", "exclusion")

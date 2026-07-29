@@ -55,6 +55,8 @@ def run_report_for_gate(gate: dict, input_file: Path) -> dict:
         return payload  # sidecars default to the board's own directory
     if tool == "dfm":
         return run_dfm(input_file)
+    if tool == "sim":
+        return run_sim(input_file)
     cli = kc.resolve_cli()
     if tool == "erc":
         return kc.run_erc(cli, input_file)
@@ -65,7 +67,7 @@ def run_report_for_gate(gate: dict, input_file: Path) -> dict:
                           parity=bool(opts.get("parity")),
                           all_track_errors=bool(opts.get("all_track_errors")))
     raise RuntimeError(
-        "gate tool must be 'erc', 'drc', 'verify', 'place' or 'dfm', "
+        "gate tool must be 'erc', 'drc', 'verify', 'place', 'dfm' or 'sim', "
         f"got {tool!r}")
 
 
@@ -83,6 +85,14 @@ def run_dfm(board: Path) -> dict:
     if parts.exists():
         kwargs["parts"] = parts
     return dfm_check.run(board, **kwargs)
+
+
+def run_sim(sims: Path) -> dict:
+    """Run sim_run on a sims DIRECTORY (or a single .cir testbench) - the
+    only gate whose input is not a board file. Bounds sidecars live beside
+    the testbenches (pipeline convention: kicad/sims/)."""
+    import sim_run  # noqa: E402  (sibling script)
+    return sim_run.run(sims)
 
 
 def run_verify(board: Path) -> dict:

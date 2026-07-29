@@ -1663,3 +1663,47 @@ rate limits. Day-one probe:
 `.venv/Scripts/python.exe .claude/skills/ai-ee/scripts/lib/jlcapi.py
 --probe` (exit 0, verdict flips "SIGNING VERIFIED - scope approval
 pending" -> "live" on approval).
+
+## Post-v1 amendment: simulation legs - SPICE gate + layout IR-drop/PDN (2026-07-28)
+
+**Built** (2 research agents [1 died on the monthly spend limit - model-licensing
+leg replaced by a conservative design default] -> 2 parallel builders -> 1
+combined adversarial reviewer -> fixes at integration):
+- SPICE gate: `scripts/sim_run.py` + `lib/simlib.py` (kicadsexpr .net fragment
+  synthesis with deterministic rename map; InSpice 1.7.0.5 [pinned] driving
+  KiCad's bundled ngspice.dll v46 - no new binaries; per-bench killable
+  subprocess w/ hard timeout; bounds sidecars -> checklib violations),
+  `agents/sim-analyst.md` (P2/P4 role: generic model cards from datasheet
+  params - NO vendored vendor models - + Tier-B pin stimulus), `sim` gate in
+  gates.yaml/gate.py, 4 committed testbenches. Live-proven: pd-trigger zener
+  window PASSES (vtrip 7.738 V in [7.2, 8.55]); the R7 47k wrong-value mutant
+  FAILS the gate on vtrip 6.835 V - the defect class ERC/DRC/verify/DFM
+  cannot see. PC13 sink 1.635 mA vs the 3 mA datasheet abs-max; NRST rise
+  8.79 ms vs 8.8 analytic.
+- Layout leg: `scripts/check_irdrop.py` (2.5D raster-FDM on geom.py copper:
+  strip R within 0.43% of analytic, Trefethen corner +0.003 squares;
+  undersized-power-trace mutant peak J at [118.4,107.4] ON the 0.16 mm neck
+  at 1.74x golden - second catcher for that class; pd-trigger 5 A maps in
+  0.1-1.6 s) + `scripts/check_pdn_z.py` (cavity model per the
+  ai-library/pdn-irdrop-sim-2026 contract: 1/2/4 modal weights, cos*sinc
+  ports, lossy k + delta_mod clip, Z_loaded decap loading; usbbuck4
+  antiresonances 4.3-4.6 MHz). Both advisory-by-default.
+- Adversarial verdicts: Track A SHIP, Track B FIX-FIRST (narrow) - all fixed
+  at integration: pdn_target_mohm now gates antiresonance PEAKS only (band
+  edges are model validity limits - no VRM/package model), empty bounds
+  sidecars + non-finite bound limits rejected, zero-current entries skip
+  instead of killing the run, unpaired rails surfaced in skipped_rails.
+  Clean-hunt evidence: units audit (via barrel hand-recompute matched),
+  zener knee 6.200 V at Izt, bounds robust at gmin x1000 + 60 C.
+- SKILL.md: "Simulation legs" section (sim-analyst at P2/P4, sim gate at P8,
+  layout legs advisory) + Known limits. LEARNINGS [spice] x2.
+- Tests: test_sim.py 29 + test_layout_sim.py 18 (incl. adversarial
+  regressions). Full suite: **769 passed** + 1 skipped (net probe),
+  check: OK, check_env exit 0.
+
+**Known limits:** SPICE = analog fragments only (digital pins as datasheet
+stimulus; buck switching not simmed by policy); irdrop injection worst-case
+unless source_ref/sinks declared; pdn_z bounding-rect geometry, no
+VRM/package model. Sim-analyst calibration lesson: bounds are
+engine-version-sensitive at leakage scales - the committed benches hold at
+gmin x1000 and 60 C.
