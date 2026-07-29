@@ -78,17 +78,14 @@
 # is REQUIRED to sit right there by the PD detection-signature window.
 # Those are package geometry, not routing choices. P8 check_creepage still
 # models pad-to-pad from `voltages`.
-# P7: these two carry the SAME same-courtyard amendment as HV_48V_clearance -
-# without it a stub landing on U1 pad 1 (V48_RAW) fires against U1 pad 9
-# (V48_RTN) at 0.200 mm, and C1's two pads do the same at 0.590 mm.
 (rule "HV_48V_to_HV_48V"
 	(constraint clearance (min 0.635mm))
-	(condition "A.NetName == '+48V_SW' && B.NetName == 'V48_RTN' && !(A.Type == 'Pad' && B.Type == 'Pad') && !(A.intersectsCourtyard('U1') && B.intersectsCourtyard('U1')) && !(A.intersectsCourtyard('U20') && B.intersectsCourtyard('U20')) && !(A.intersectsCourtyard('U22') && B.intersectsCourtyard('U22')) && !(A.intersectsCourtyard('C1') && B.intersectsCourtyard('C1')) && !(A.intersectsCourtyard('C61') && B.intersectsCourtyard('C61')) && !(A.intersectsCourtyard('C62') && B.intersectsCourtyard('C62')) && !(A.intersectsCourtyard('C63') && B.intersectsCourtyard('C63'))")
+	(condition "A.NetName == '+48V_SW' && B.NetName == 'V48_RTN' && !(A.Type == 'Pad' && B.Type == 'Pad')")
 	(severity error))
 
 (rule "HV_48V_raw_to_rtn"
 	(constraint clearance (min 0.635mm))
-	(condition "A.NetName == 'V48_RAW' && B.NetName == 'V48_RTN' && !(A.Type == 'Pad' && B.Type == 'Pad') && !(A.intersectsCourtyard('U1') && B.intersectsCourtyard('U1')) && !(A.intersectsCourtyard('U20') && B.intersectsCourtyard('U20')) && !(A.intersectsCourtyard('U22') && B.intersectsCourtyard('U22')) && !(A.intersectsCourtyard('C1') && B.intersectsCourtyard('C1')) && !(A.intersectsCourtyard('C61') && B.intersectsCourtyard('C61')) && !(A.intersectsCourtyard('C62') && B.intersectsCourtyard('C62')) && !(A.intersectsCourtyard('C63') && B.intersectsCourtyard('C63'))")
+	(condition "A.NetName == 'V48_RAW' && B.NetName == 'V48_RTN' && !(A.Type == 'Pad' && B.Type == 'Pad')")
 	(severity error))
 
 # ---------------------------------------------------------------------------

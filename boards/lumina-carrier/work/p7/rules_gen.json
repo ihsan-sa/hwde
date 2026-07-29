@@ -1,0 +1,82 @@
+{
+  "script": "rules_gen",
+  "status": "pass",
+  "capability_class": "4layer_1oz",
+  "stackup": "JLC04161H-3313",
+  "rule_count": 15,
+  "rule_names": [
+    "aiee_track_width_floor",
+    "aiee_clearance_floor",
+    "aiee_via_drill_floor",
+    "aiee_via_diameter_floor",
+    "aiee_annular_floor",
+    "aiee_edge_clearance_floor",
+    "aiee_hole_to_hole_floor",
+    "aiee_silk_width_floor",
+    "aiee_pwr_width_V48_RAW",
+    "aiee_pwr_width_V48_RTN",
+    "aiee_pwr_width_48V_SW",
+    "aiee_pwr_width_12V",
+    "aiee_pwr_width_3V3",
+    "aiee_diff_gap_ETH_TX",
+    "aiee_diff_gap_ETH_RX"
+  ],
+  "power": [
+    {
+      "net": "V48_RAW",
+      "current_a": 1.5,
+      "dt_c": 10.0,
+      "min_width_mm": 0.8
+    },
+    {
+      "net": "V48_RTN",
+      "current_a": 0.6,
+      "dt_c": 10.0,
+      "min_width_mm": 0.3
+    },
+    {
+      "net": "+48V_SW",
+      "current_a": 1.0,
+      "dt_c": 10.0,
+      "min_width_mm": 0.5
+    },
+    {
+      "net": "+12V",
+      "current_a": 2.0,
+      "dt_c": 10.0,
+      "min_width_mm": 1.1
+    },
+    {
+      "net": "+3V3",
+      "current_a": 1.0,
+      "dt_c": 10.0,
+      "min_width_mm": 0.5
+    }
+  ],
+  "diff_pairs": [
+    {
+      "pair": [
+        "/ETH_TXP",
+        "/ETH_TXN"
+      ],
+      "impedance_ohm": 100,
+      "width_mm": 0.2597,
+      "gap_mm": 0.2104
+    },
+    {
+      "pair": [
+        "/ETH_RXP",
+        "/ETH_RXN"
+      ],
+      "impedance_ohm": 100,
+      "width_mm": 0.2597,
+      "gap_mm": 0.2104
+    }
+  ],
+  "classes": [
+    "Power",
+    "Diff100"
+  ],
+  "out_dru": "boards/lumina-carrier/work/p7/rules_gen_scratch.kicad_dru",
+  "pro": null
+}

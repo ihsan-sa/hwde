@@ -1,0 +1,126 @@
+{
+ "script": "check_diffpair",
+ "status": "violations",
+ "board": "mdi_final.kicad_pcb",
+ "counts": {
+  "total": 2,
+  "by_severity": {
+   "error": 2
+  },
+  "by_source": {
+   "check_diffpair": 2
+  }
+ },
+ "violations": [
+  {
+   "check": "check_diffpair",
+   "severity": "error",
+   "pos": [
+    79.6513,
+    83.1351
+   ],
+   "layer": null,
+   "net": "/ETH_TXP",
+   "refs": [],
+   "msg": "diff pair /ETH_TXP//ETH_TXN length skew 36.08 mm (~242 ps, eps_r 4.0); limit 2.5 mm",
+   "source": "check_diffpair",
+   "items": [
+    {
+     "msg": "diff pair /ETH_TXP//ETH_TXN length skew 36.08 mm (~242 ps, eps_r 4.0); limit 2.5 mm",
+     "pos": [
+      79.6513,
+      83.1351
+     ]
+    }
+   ],
+   "kind": "diffpair_skew",
+   "pair": [
+    "/ETH_TXP",
+    "/ETH_TXN"
+   ],
+   "length_p_mm": 20.2578,
+   "length_n_mm": 56.3391,
+   "branch_free": false,
+   "skew_mm": 36.0814,
+   "skew_ps": 242.2087,
+   "limit_mm": 2.5
+  },
+  {
+   "check": "check_diffpair",
+   "severity": "error",
+   "pos": [
+    76.5912,
+    79.3088
+   ],
+   "layer": null,
+   "net": "/ETH_RXP",
+   "refs": [],
+   "msg": "diff pair /ETH_RXP//ETH_RXN length skew 45.54 mm (~306 ps, eps_r 4.0); limit 2.5 mm",
+   "source": "check_diffpair",
+   "items": [
+    {
+     "msg": "diff pair /ETH_RXP//ETH_RXN length skew 45.54 mm (~306 ps, eps_r 4.0); limit 2.5 mm",
+     "pos": [
+      76.5912,
+      79.3088
+     ]
+    }
+   ],
+   "kind": "diffpair_skew",
+   "pair": [
+    "/ETH_RXP",
+    "/ETH_RXN"
+   ],
+   "length_p_mm": 65.6652,
+   "length_n_mm": 20.1268,
+   "branch_free": false,
+   "skew_mm": 45.5384,
+   "skew_ps": 305.6922,
+   "limit_mm": 2.5
+  }
+ ],
+ "checked": [
+  {
+   "pair": [
+    "/ETH_TXP",
+    "/ETH_TXN"
+   ],
+   "length_p_mm": 20.2578,
+   "length_n_mm": 56.3391,
+   "skew_mm": 36.0814,
+   "skew_ps": 242.2087,
+   "branch_free": false,
+   "uncoupled_p_mm": 0.0,
+   "uncoupled_n_mm": 1.3132,
+   "coupling_max_mm": 1.41,
+   "vias_p": 2,
+   "vias_n": 2,
+   "nominal_gap_mm": 0.4701,
+   "gap_min_mm": 0.045,
+   "gap_median_mm": 0.4701,
+   "gap_p90_mm": 0.55,
+   "coupled_gap_max_mm": 1.3402
+  },
+  {
+   "pair": [
+    "/ETH_RXP",
+    "/ETH_RXN"
+   ],
+   "length_p_mm": 65.6652,
+   "length_n_mm": 20.1268,
+   "skew_mm": 45.5384,
+   "skew_ps": 305.6922,
+   "branch_free": false,
+   "uncoupled_p_mm": 0.0,
+   "uncoupled_n_mm": 3.5213,
+   "coupling_max_mm": 1.41,
+   "vias_p": 2,
+   "vias_n": 2,
+   "nominal_gap_mm": 0.4701,
+   "gap_min_mm": 0.217,
+   "gap_median_mm": 0.4701,
+   "gap_p90_mm": 0.75,
+   "coupled_gap_max_mm": 1.3601
+  }
+ ]
+}

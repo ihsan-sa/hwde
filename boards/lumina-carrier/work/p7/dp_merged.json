@@ -1,0 +1,93 @@
+{
+ "script": "check_diffpair",
+ "status": "violations",
+ "board": "merged.kicad_pcb",
+ "counts": {
+  "total": 1,
+  "by_severity": {
+   "error": 1
+  },
+  "by_source": {
+   "check_diffpair": 1
+  }
+ },
+ "violations": [
+  {
+   "check": "check_diffpair",
+   "severity": "error",
+   "pos": [
+    46.025,
+    78.175
+   ],
+   "layer": null,
+   "net": "/ETH_RXP",
+   "refs": [],
+   "msg": "diff pair /ETH_RXP//ETH_RXN length skew 45.51 mm (~305 ps, eps_r 4.0); limit 2.5 mm",
+   "source": "check_diffpair",
+   "items": [
+    {
+     "msg": "diff pair /ETH_RXP//ETH_RXN length skew 45.51 mm (~305 ps, eps_r 4.0); limit 2.5 mm",
+     "pos": [
+      46.025,
+      78.175
+     ]
+    }
+   ],
+   "kind": "diffpair_skew",
+   "pair": [
+    "/ETH_RXP",
+    "/ETH_RXN"
+   ],
+   "length_p_mm": 63.6785,
+   "length_n_mm": 18.172,
+   "branch_free": false,
+   "skew_mm": 45.5065,
+   "skew_ps": 305.4779,
+   "limit_mm": 2.5
+  }
+ ],
+ "checked": [
+  {
+   "pair": [
+    "/ETH_TXP",
+    "/ETH_TXN"
+   ],
+   "length_p_mm": 14.4963,
+   "length_n_mm": 16.6567,
+   "skew_mm": 2.1604,
+   "skew_ps": 14.5025,
+   "branch_free": true,
+   "uncoupled_p_mm": 2.6882,
+   "uncoupled_n_mm": 4.7531,
+   "coupling_max_mm": 1.41,
+   "vias_p": 0,
+   "vias_n": 0,
+   "nominal_gap_mm": 0.4701,
+   "gap_min_mm": 0.0,
+   "gap_median_mm": 0.4701,
+   "gap_p90_mm": 0.9546,
+   "coupled_gap_max_mm": 1.3875
+  },
+  {
+   "pair": [
+    "/ETH_RXP",
+    "/ETH_RXN"
+   ],
+   "length_p_mm": 63.6785,
+   "length_n_mm": 18.172,
+   "skew_mm": 45.5065,
+   "skew_ps": 305.4779,
+   "branch_free": false,
+   "uncoupled_p_mm": 0.0,
+   "uncoupled_n_mm": 3.5213,
+   "coupling_max_mm": 1.41,
+   "vias_p": 2,
+   "vias_n": 2,
+   "nominal_gap_mm": 0.4701,
+   "gap_min_mm": 0.1365,
+   "gap_median_mm": 0.4701,
+   "gap_p90_mm": 0.75,
+   "coupled_gap_max_mm": 1.3601
+  }
+ ]
+}

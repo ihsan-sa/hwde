@@ -1,0 +1,204 @@
+{
+ "script": "route_critical",
+ "status": "violations",
+ "board": "lumina-carrier.kicad_pcb",
+ "counts": {
+  "total": 1,
+  "by_severity": {
+   "error": 1
+  },
+  "by_source": {
+   "check_diffpair": 1
+  }
+ },
+ "violations": [
+  {
+   "check": "check_diffpair",
+   "severity": "error",
+   "pos": [
+    87.275,
+    85.55
+   ],
+   "layer": null,
+   "net": "/ETH_RXP",
+   "refs": [],
+   "msg": "diff pair /ETH_RXP//ETH_RXN has 6.92 mm of /ETH_RXP running uncoupled (> 1.41 mm from its partner); limit 5.0 mm",
+   "source": "check_diffpair",
+   "items": [
+    {
+     "msg": "diff pair /ETH_RXP//ETH_RXN has 6.92 mm of /ETH_RXP running uncoupled (> 1.41 mm from its partner); limit 5.0 mm",
+     "pos": [
+      87.275,
+      85.55
+     ]
+    }
+   ],
+   "kind": "diffpair_uncoupled",
+   "pair": [
+    "/ETH_RXP",
+    "/ETH_RXN"
+   ],
+   "length_p_mm": 20.564,
+   "length_n_mm": 19.6105,
+   "branch_free": true,
+   "uncoupled_mm": 6.9239,
+   "uncoupled_p_mm": 6.9239,
+   "uncoupled_n_mm": 5.4651,
+   "coupling_max_mm": 1.4103,
+   "limit_mm": 5.0
+  }
+ ],
+ "facts": {
+  "routed": [
+   {
+    "kind": "diff",
+    "nets": [
+     "/ETH_TXP",
+     "/ETH_TXN"
+    ],
+    "impedance_ohm": 100,
+    "width_mm": 0.2597,
+    "gap_mm": 0.2104,
+    "impedance_width_mm": 0.2597,
+    "ladder_rung": 1,
+    "stub_pads_detached": [
+     [
+      "J1",
+      "/ETH_TXN"
+     ],
+     [
+      "J1",
+      "/ETH_TXP"
+     ]
+    ],
+    "layers_used": [
+     "B.Cu",
+     "F.Cu"
+    ],
+    "krt": {
+     "routed_diff_pairs": [
+      "/ETH_TX"
+     ],
+     "total_vias": 4,
+     "total_time": 0.08,
+     "min_clearance_used": 0.2
+    },
+    "constraint": {
+     "max_skew_mm": 2.5,
+     "max_uncoupled_mm": 5.0
+    }
+   },
+   {
+    "kind": "diff",
+    "nets": [
+     "/ETH_RXP",
+     "/ETH_RXN"
+    ],
+    "impedance_ohm": 100,
+    "width_mm": 0.2597,
+    "gap_mm": 0.2104,
+    "impedance_width_mm": 0.2597,
+    "ladder_rung": 1,
+    "stub_pads_detached": [
+     [
+      "J1",
+      "/ETH_RXN"
+     ],
+     [
+      "J1",
+      "/ETH_RXP"
+     ]
+    ],
+    "layers_used": [
+     "F.Cu"
+    ],
+    "krt": {
+     "routed_diff_pairs": [
+      "/ETH_RX"
+     ],
+     "total_vias": 0,
+     "total_time": 0.06,
+     "min_clearance_used": 0.2
+    },
+    "constraint": {
+     "max_skew_mm": 2.5,
+     "max_uncoupled_mm": 5.0
+    }
+   }
+  ],
+  "skipped": [
+   {
+    "kind": "power",
+    "count": 5,
+    "why": "not in --only/plan"
+   }
+  ],
+  "drc_delta": {
+   "before": {
+    "unconnected_items": 271
+   },
+   "after": {
+    "track_dangling": 2,
+    "unconnected_items": 267
+   },
+   "new": {},
+   "new_warnings": {
+    "track_dangling": 2
+   }
+  },
+  "diffpair_check": "violations",
+  "diffpair_facts": [
+   {
+    "pair": [
+     "/ETH_TXP",
+     "/ETH_TXN"
+    ],
+    "length_p_mm": 15.1836,
+    "length_n_mm": 13.3973,
+    "skew_mm": 1.7864,
+    "skew_ps": 11.9918,
+    "branch_free": false,
+    "uncoupled_p_mm": 0.0,
+    "uncoupled_n_mm": 0.0,
+    "coupling_max_mm": 1.4103,
+    "vias_p": 2,
+    "vias_n": 2,
+    "nominal_gap_mm": 0.4701,
+    "gap_min_mm": 0.2351,
+    "gap_median_mm": 0.4701,
+    "gap_p90_mm": 0.4876,
+    "coupled_gap_max_mm": 0.9302
+   },
+   {
+    "pair": [
+     "/ETH_RXP",
+     "/ETH_RXN"
+    ],
+    "length_p_mm": 20.564,
+    "length_n_mm": 19.6105,
+    "skew_mm": 0.9536,
+    "skew_ps": 6.4011,
+    "branch_free": true,
+    "uncoupled_p_mm": 6.9239,
+    "uncoupled_n_mm": 5.4651,
+    "coupling_max_mm": 1.4103,
+    "vias_p": 0,
+    "vias_n": 0,
+    "nominal_gap_mm": 0.5,
+    "gap_min_mm": 0.465,
+    "gap_median_mm": 0.5,
+    "gap_p90_mm": 2.8348,
+    "coupled_gap_max_mm": 1.4088
+   }
+  ],
+  "floors": {
+   "clearance": 0.2,
+   "track_width": 0.1,
+   "via_diameter": 0.5,
+   "via_drill": 0.3,
+   "edge_clearance": 0.5
+  },
+  "board_updated": true,
+  "work_dir": "C:\\dev\\ai-ee3\\boards\\lumina-carrier\\work\\p7\\rc_diff"
+ }
+}
