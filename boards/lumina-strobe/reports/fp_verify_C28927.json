@@ -1,0 +1,67 @@
+{
+ "script": "fp_verify",
+ "status": "pass",
+ "board": "SOT-563_L1.6-W1.2-P0.50-LS1.6-BR.kicad_mod",
+ "counts": {
+  "total": 1,
+  "by_severity": {
+   "warning": 1
+  },
+  "by_source": {
+   "check.fp_verify": 1
+  }
+ },
+ "violations": [
+  {
+   "check": "fp_verify",
+   "severity": "warning",
+   "pos": null,
+   "layer": "F.Cu",
+   "net": null,
+   "refs": [
+    "SOT-563_L1.6-W1.2-P0.50-LS1.6-BR"
+   ],
+   "msg": "modal pad size (0.3, 0.6) mm != datasheet (0.3, 0.45) mm (tol 0.1)",
+   "source": "check.fp_verify",
+   "items": [
+    {
+     "msg": "modal pad size (0.3, 0.6) mm != datasheet (0.3, 0.45) mm (tol 0.1)",
+     "pos": null
+    }
+   ],
+   "kind": "pad_size",
+   "expected_mm": [
+    0.3,
+    0.45
+   ],
+   "measured_mm": [
+    0.3,
+    0.6
+   ]
+  }
+ ],
+ "footprint": "SOT-563_L1.6-W1.2-P0.50-LS1.6-BR",
+ "footprint_file": "C:\\dev\\ai-ee3\\boards\\lumina-strobe\\lib\\aiee.pretty\\SOT-563_L1.6-W1.2-P0.50-LS1.6-BR.kicad_mod",
+ "copper_pads": 6,
+ "total_pads": 6,
+ "measured_pitch_mm": 0.5,
+ "measured_pad_size_mm": [
+  0.3,
+  0.6
+ ],
+ "has_courtyard": true,
+ "has_silk": true,
+ "land_pattern": {
+  "package": "DRL (R-PDSO-N6) PLASTIC SMALL OUTLINE / SOT563, TI land pattern drawing 4208207-3/E 06/12, 'Example Board Layout'",
+  "pad_count": 6,
+  "pitch_mm": 0.5,
+  "pad_size_mm": [
+   0.3,
+   0.45
+  ],
+  "row_spacing_mm": 1.35,
+  "pin1": "1",
+  "notes": "From the LAND PATTERN DATA sheet (p.24 of the PDF), 'Example Board Layout', all linear dimensions in millimetres: contact pitch 0.50; pad width (X, along the row) 0.30; pad length (Y, radial) 0.45; overall row span outer-edge to outer-edge 1.80; inner-edge to inner-edge gap between the two rows 0.90; span between the centres of pad 1 and pad 3 (2 x pitch) 1.00. row_spacing_mm = 1.35 is DERIVED, not printed: (1.80 outer span) - (0.45 pad length) = 1.35, equivalently 0.90 + 0.45 = 1.35 - the drawing prints 1.80 and 0.90 and the arithmetic is self-consistent (1.80 - 2 x 0.45 = 0.90). Pads are NON-SOLDERMASK DEFINED with a 0.08 mm solder-mask opening all around the pad geometry. Example stencil design (Note E, max stencil thickness 0.127 mm / 5 mils): aperture 0.40 wide x 0.55 long, overall span 1.90, inner gap 0.80, pitch 0.50 - i.e. the paste apertures are DELIBERATELY LARGER than the copper pads (0.40 x 0.55 vs 0.30 x 0.45); notes F and G add that laser-cut trapezoidal-wall apertures with rounded corners release better and that side aperture dimensions over-print the land for an area ratio > 0.66, and may be reduced if the stencil process allows. Note C: 'Publication IPC-7351 is recommended for alternate designs.' Note D: check the fab's minimum solder-mask web between signal pads. Courtyard excess is NOT stated. Pins 1-2-3 are one row, 6-5-4 the opposing row; pin 1 index area is the lower-left corner of the package outline drawing. Package outline for reference (drawing 4205622-3/D 08/2007, mm max/min): overall body+lead extent 1.70/1.50 in both directions, body-only extent across the lead rows 1.50/1.10, lead pitch 0.50, 6X lead width 0.27/0.13, 6X terminal 0.25/0.15, 6X terminal length in bottom view 0.40/0.20, overall height 0.60/0.50, standoff 0.05/0.00, lead thickness 0.18/0.08; mold flash/protrusions may add up to 0.15 mm per end or side; 'JEDEC package registration is pending'."
+ },
+ "svg": "C:\\dev\\ai-ee3\\boards\\lumina-strobe\\reports\\fp_C28927.overlay.svg"
+}

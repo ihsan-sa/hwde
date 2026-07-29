@@ -1106,3 +1106,97 @@ run as its BLOCKING-06. Fixed centrally: the default now derives from --project
 (<project>/../lib), and the resolved dir is refused outright if it equals <repo>/lib (exit 2 with
 remediation). Symptom to recognise: a populated <repo>/lib, an empty boards/<name>/lib, and lib-table
 URIs with three or more ../ segments.
+
+## 2026-07-28 [check_creepage][gates][magnetics] check_creepage only knows working VOLTAGE, so it cannot see a magjack isolation-barrier collapse
+`check_creepage.py` derives required spacing from `constraints.json.voltages` via IPC-2221B - i.e.
+purely from the DC working voltage between two nets. On a PoE board the 48 V domain gives 0.635 mm
+(51-100 V band) and everything passes at that number.
+
+That is the wrong model for an RJ45 magjack. The barrier that matters there is **chip-side to
+line-side**, and it is not sized by the 57 V working voltage at all - it is sized by the cable-side
+hipot requirement (1500 Vrms / 2250 VDC) and by the vendor's own land-pattern guidance. HALO's app
+note asks **55 mils = 1.40 mm** at 2.54 mm pitch. `check_creepage` will happily pass a 1.05 mm gap,
+because 1.05 mm > 0.635 mm and the checker has no concept of an isolation barrier.
+
+Found on lumina-carrier while evaluating a replacement magjack: the candidate's land pattern
+collapsed the chip-side/line-side pad gap from 3.58 mm to **1.05 mm** - a real defect that no gate in
+the pipeline would have flagged. The P8 verify suite would have been green.
+
+Recognise it whenever a part carries an isolation barrier that is NOT a function of the board's own
+rail voltages: Ethernet magnetics, opto-isolators, isolated DC-DC, digital isolators, mains-facing
+anything. For those, the spacing requirement comes from the *part's* datasheet and the safety
+standard, not from `voltages[]`, and it must be enforced by hand - a `.kicad_dru` rule keyed on
+`A.NetName`, plus a placement `separation` entry - and checked by a human reading the land pattern.
+
+Related trap already recorded: `rules_gen.py` never reads the `voltages` key at all, so even the
+0.635 mm figure is not enforced during routing and only surfaces at P8.
+
+## 2026-07-28 [easyeda2kicad][parts] lib_pull reports "pulled" for parts it never pulled, once the lib is non-empty
+Second, worse variant of the 2026-07-28 "lib_pull hides a failed symbol pull" entry, measured on the
+lumina-par P3 pull (44 LCSC ids). `_pull_one` bails to `status: "error"` only when
+`not fps and not sym_lib.exists()`. `sym_lib` is the ONE shared `aiee.kicad_sym`, so as soon as the
+FIRST part of a run succeeds, that file exists and **every subsequent part reports
+`status: "pulled"` no matter what happened** - including a hard `HTTP 403` where nothing at all was
+written. Observed: a 44-part run logged `status: pass`, `pulled/exists = 44 of 44`, and
+`load_check.ok = true`, while only **13** parts actually had both a symbol and a footprint on disk.
+The per-part `footprints: []` list is the only tell in the payload, and it is empty for legitimately
+shared footprints too (see below), so it is not a reliable discriminator either.
+**Ground truth, and the only check worth writing:** a part is present iff `aiee.kicad_sym` holds a
+top-level `(symbol ...)` block carrying `(property "LCSC Part" "<id>")` AND the `aiee:<name>` in that
+block's `Footprint` property exists in `aiee.pretty`. Verify per part after each pull and re-pull the
+failures; never batch-trust the exit code.
+**Corollary trap:** do NOT map LCSC -> footprint by grepping the LCSC id out of the `.kicad_mod`.
+Footprints are SHARED (one `C0603.kicad_mod` served 5 parts, `R0603` 12, `SOIC-14` 2) and the file
+records only the FIRST puller's id, so every later sharer looks unpulled. Map through the symbol's
+`Footprint` property instead.
+
+## 2026-07-28 [easyeda2kicad][parts] The EasyEDA CAD endpoint rate-limit is a CloudFront WAF block on one path, and it clears in ~60 s
+Refines the earlier "~3 full passes ... and a 60 s backoff was not enough" note with measurements.
+Only `https://easyeda.com/api/products/<id>/components` 403s; `easyeda.com/` (200),
+`modules.easyeda.com` (404 = alive) and the JLCPCB search API (405 = alive) all still answer, so the
+block is per-path, not per-host. The body is CloudFront's `Request blocked.` page with
+`X-Cache: Error from cloudfront` - i.e. a WAF/rate rule at the edge, NOT an application response.
+It is immune to every client-side fix: bare UA, no UA, a full Chrome header set with
+`sec-fetch-*`/`X-Requested-With`, and a real `easyeda_session` cookie fetched from the homepage all
+403 identically. The only thing that works is waiting - a 1-probe-per-60 s poll recovered on the
+**second** probe (~60-120 s). Budget: `--full` costs ~3 requests/part (components + 3dmodel + step);
+4 parts per ~35 s tripped it after ~13 parts, while **one part per 15 s ran 31 parts with only 2
+transient failures**, each cleared by a single 90 s backoff. Pace one part at a time, verify on disk,
+back off 90 s on failure.
+
+## 2026-07-28 [easyeda2kicad][placement] Pulled courtyards enclose the BODY only - 20 of 22 exclude their own pads
+Measured across the whole lumina-par pull (pad bbox with per-pad rotation applied vs F.CrtYd bbox).
+Every footprint HAS an F.CrtYd - `fp_verify`'s `no_courtyard` warning never fires - but the outline
+is the package body, so the pads protrude by up to **3.7 mm** (TO-252 tab, `TO-252-2_L6.6-...`),
+1.69 mm (SOIC-14), 1.42 mm (MSOP-10-EP) and 0.30-1.13 mm on the small stuff. Only the two THT
+headers contain their pads. This is the general case of the S14 LQFP48 finding, not an outlier.
+`placelib.PlacedFp.extents_local()` already unions `_pad_box_local()` into the courtyard, so P6
+legality is covered - EXCEPT that `_pad_box_local` reads `(size w h)` verbatim and ignores
+`(at x y ROT)`. On this board exactly one footprint is exposed: `SOT-23-3_L2.9-W1.5-P1.90-LS2.6-BR`
+(C427379 BSS123, Q102) has all three pads at ROT 90 with `(size 0.700 1.250)`, so placelib builds a
+0.70 mm-wide box where the truth is 1.25 mm - under-estimating each side by 0.275 mm.
+Checking courtyard presence is not the same as checking courtyard adequacy; measure the pad bbox.
+
+## 2026-07-28 [librarian][easyeda2kicad] EasyEDA rate-limits at ~31 fetches / 13 min and lib_pull reports pass while symbols silently fail
+Extends the 2026-07-28 entry on `_pull_one`'s success heuristic. On a 50-part pull the anonymous
+EasyEDA CAD endpoint began returning **403 after ~31 fetches in ~13 minutes**. `lib_pull.py` reported
+`status: pass` for an entire 10-part batch while **7 of those 10 produced no symbol at all** - because
+`_pull_one` decides success on "this LCSC id appears in some existing footprint file", and a part
+reusing an already-pulled package (R0603, C0805, SOD-123 ...) satisfies that test even when the API
+returned nothing for it.
+
+**Exit code cannot detect this. Symbol COUNT can.** After a bulk pull, assert
+`len(symbols in aiee.kicad_sym) == len(parts.json parts)` and check that every symbol's `Footprint`
+property resolves to a file in `aiee.pretty`. Recovery that worked: 10 min cool-down, then ~20 s
+per part with a 180 s backoff-retry on failure - 26/26 recovered, two parts needing one retry each.
+Budget roughly one second per part of pacing on any pull over ~30 parts rather than discovering it
+at P4 when a symbol is missing.
+
+Two smaller findings from the same run:
+- **`fp_verify`'s pad-size check uses the MODE, so asymmetric packages slip through.** An SSOP-20
+  land pattern has pins 1-10 at 0.4 x 1.8 and pins 11-20 at 0.4 x 2.0; `_modal_size` hit a 10/10 tie,
+  returned 1.8, passed, and never compared the 2.0 column (which was 0.25 mm over the datasheet max).
+  The check should bound min/max, not the mode.
+- **Pulled symbol libraries contain non-ASCII** (178 chars in a 50-symbol lib: CJK manufacturer names
+  like `Infineon(...)`, plus Ohm and +/- signs). kiutils' `from_file` defaults to cp1252 and raises on
+  these, so any downstream netlist/BOM reader must force UTF-8 explicitly.

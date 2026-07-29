@@ -3,8 +3,8 @@
  "board": "lumina-strobe",
  "workspace": "boards/lumina-strobe",
  "created": "2026-07-28T14:59:51",
- "updated": "2026-07-28T21:58:23",
- "phase": "P3",
+ "updated": "2026-07-28T22:34:52",
+ "phase": "P4",
  "gates": {},
  "human": {
   "1": {
@@ -252,6 +252,18 @@
    "why": "No Basic E24 neighbour exists. Retargeting would spend 18 pct of the UVLO band - already the tightest and deliberately not widened - or take a 0.31 V bite out of the 8.3 V operating window, to save about 3 USD across the build. Sourcer correctly refused; confirming at H2 rather than silently.",
    "phase": "P3",
    "ts": "2026-07-28T21:58:23"
+  },
+  {
+   "what": "P4 POLARITY TRAPS recorded: electrolytic symbol has no +/- cue (pad 1 = POSITIVE); MMSZ zeners pin1=CATHODE while SMBJ58A TVS pin1=ANODE in the same BOM",
+   "why": "Librarian verified from symbol pin names and footprint silk. A reversed 100 V electrolytic on a charged 48 V bank is an energetic failure, and the opposite pin-1 conventions on two diode families in one BOM is a live reversal trap. Both must be stated explicitly to every P4 sheet agent.",
+   "phase": "P3",
+   "ts": "2026-07-28T22:34:52"
+  },
+  {
+   "what": "fp_verify 6/6 effective: C23708's pad_count 3v4 AND pad_pitch 5.08v2.54 are ONE root cause (centre lead has no land), not two defects",
+   "why": "D2PAK cropped centre lead means pads 1 and 3 sit two lead pitches apart, so nearest-neighbour pitch reads 5.08. Reconciled, not waived. C2622 IRF5210S reuses the same footprint file and the same 4=D/1=G/3=S map, so the trap covers 5 devices. Zero courtyard-less footprints across all 24.",
+   "phase": "P3",
+   "ts": "2026-07-28T22:34:52"
   }
  ],
  "history": [
@@ -575,6 +587,26 @@
   {
    "ts": "2026-07-28T21:58:23",
    "event": "p3_revisions_landed"
+  },
+  {
+   "ts": "2026-07-28T22:34:51",
+   "event": "phase",
+   "phase": "P4",
+   "prev": "P3"
+  },
+  {
+   "ts": "2026-07-28T22:34:52",
+   "event": "decision",
+   "what": "P4 POLARITY TRAPS recorded: electrolytic symbol has no +/- cue (pad 1 = POSITIVE); MMSZ zeners pin1=CATHODE while SMBJ58A TVS pin1=ANODE in the same BOM"
+  },
+  {
+   "ts": "2026-07-28T22:34:52",
+   "event": "decision",
+   "what": "fp_verify 6/6 effective: C23708's pad_count 3v4 AND pad_pitch 5.08v2.54 are ONE root cause (centre lead has no land), not two defects"
+  },
+  {
+   "ts": "2026-07-28T22:34:52",
+   "event": "p3_library_complete"
   }
  ]
 }

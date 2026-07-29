@@ -1,0 +1,83 @@
+{
+ "script": "fp_verify",
+ "status": "violations",
+ "board": "TO-263-2_L10.0-W9.1-P5.08-LS15.2-TL.kicad_mod",
+ "counts": {
+  "total": 2,
+  "by_severity": {
+   "error": 2
+  },
+  "by_source": {
+   "check.fp_verify": 2
+  }
+ },
+ "violations": [
+  {
+   "check": "fp_verify",
+   "severity": "error",
+   "pos": null,
+   "layer": "F.Cu",
+   "net": null,
+   "refs": [
+    "TO-263-2_L10.0-W9.1-P5.08-LS15.2-TL"
+   ],
+   "msg": "copper pad count 3 != datasheet 4",
+   "source": "check.fp_verify",
+   "items": [
+    {
+     "msg": "copper pad count 3 != datasheet 4",
+     "pos": null
+    }
+   ],
+   "kind": "pad_count",
+   "expected": 4,
+   "measured": 3
+  },
+  {
+   "check": "fp_verify",
+   "severity": "error",
+   "pos": [
+    -5.09,
+    -2.54
+   ],
+   "layer": "F.Cu",
+   "net": null,
+   "refs": [
+    "TO-263-2_L10.0-W9.1-P5.08-LS15.2-TL"
+   ],
+   "msg": "nearest-pad pitch 5.080 mm != datasheet 2.540 mm (tol 0.05)",
+   "source": "check.fp_verify",
+   "items": [
+    {
+     "msg": "nearest-pad pitch 5.080 mm != datasheet 2.540 mm (tol 0.05)",
+     "pos": [
+      -5.09,
+      -2.54
+     ]
+    }
+   ],
+   "kind": "pad_pitch",
+   "expected_mm": 2.54,
+   "measured_mm": 5.08
+  }
+ ],
+ "footprint": "TO-263-2_L10.0-W9.1-P5.08-LS15.2-TL",
+ "footprint_file": "C:\\dev\\ai-ee3\\boards\\lumina-strobe\\lib\\aiee.pretty\\TO-263-2_L10.0-W9.1-P5.08-LS15.2-TL.kicad_mod",
+ "copper_pads": 3,
+ "total_pads": 3,
+ "measured_pitch_mm": 5.08,
+ "measured_pad_size_mm": [
+  1.3,
+  4.0
+ ],
+ "has_courtyard": true,
+ "has_silk": true,
+ "land_pattern": {
+  "package": "D2Pak / TO-263AB (p.9 outline note 8: 'OUTLINE CONFORMS TO JEDEC OUTLINE TO-263AB')",
+  "pad_count": 4,
+  "pitch_mm": 2.54,
+  "pin1": "1",
+  "notes": "NOT A RECOMMENDED LAND PATTERN - this datasheet does not publish one. p.11 note: 'This is applied to D2Pak, when mounted on 1\" square PCB (FR-4 or G-10 Material). For recommended footprint and soldering techniques refer to application note #AN-994.' AN-994 is NOT included in this PDF. Everything below is read off the p.9 D2Pak PACKAGE OUTLINE table, i.e. body/lead geometry, not solder-land geometry; treat fp_verify results accordingly. pitch_mm = e = 2.54 BSC (lead pitch, 0.100 in BSC). pad_count = 4 counts the three gull-wing leads (1,2,3) plus the single exposed thermal tab; a KiCad TO-263 footprint that merges the tab land into a lead land (e.g. TabPin2 variants) may report a different copper-pad count - reconcile that before trusting a pad_count error. pad_size_mm DELIBERATELY OMITTED: the PDF gives lead metal widths only, never land sizes. PACKAGE OUTLINE TABLE (mm, min/max): A 4.06/4.83; A1 0.00/0.254; b 0.51/0.99; b1 0.51/0.89; b2 1.14/1.78; b3 1.14/1.73; c 0.38/0.74; c1 0.38/0.58; c2 1.14/1.65; D (body length) 8.38/9.65; D1 6.86/-; E (body width) 9.65/10.67; E1 6.22/-; e 2.54 BSC; H (overall height incl. formed leads) 14.61/15.88; L 1.78/2.79; L1 -/1.65; L2 -/1.78; L3 0.25 BSC; L4 4.78/5.28. OUTLINE NOTES: (3) D & E do not include mold flash; flash shall not exceed 0.127 mm (.005 in) per side, measured at the outermost extremes of the plastic body at datum plane H. (4) Thermal pad contour optional within dimension E, L1, D1 & E1. (5) Dimension b1 and c1 apply to base metal only. (6) Datum A & B to be determined at datum plane H. (7) Controlling dimension: inch. (8) Outline conforms to JEDEC outline TO-263AB."
+ },
+ "svg": "C:\\dev\\ai-ee3\\boards\\lumina-strobe\\reports\\fp_C23708.overlay.svg"
+}
