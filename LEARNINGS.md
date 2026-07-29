@@ -995,3 +995,39 @@ B-1; a 165 mOhm target read 1.4-1.6 Ohm at 200 MHz on the clean usbbuck4 golden)
 antiresonance PEAKS only; judge peaks/first_min, never z_max. Empty bounds sidecars must be
 rejected like missing ones - "[]" gate-passes an unproven testbench (A-1); JSON NaN/Infinity
 bound limits validate as numbers and can never trip (A-2) - require finite.
+
+## 2026-07-28 [parts][datasheet] parts_search returns www.lcsc.com datasheet URLs that curl CANNOT fetch; rewrite them to the wmsc mirror
+`parts_search.py` faithfully returns whatever LCSC publishes, and for most parts that is
+`https://www.lcsc.com/datasheet/lcsc_datasheet_<stamp>_<Vendor-MPN>_<Cxxxx>.pdf`. That URL serves a
+**JS-shell HTML page** to any non-browser client - `curl -sL` writes a ~46-48 kB file starting
+`<!doctype html>`, exit 0, no error anywhere. A minority of parts instead return
+`https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/<stamp>_<Vendor-MPN>_<Cxxxx>.pdf`, which serves
+the real PDF. Same catalogue, two URL forms, only one of them fetchable.
+
+Measured on lumina-strobe P3: **7 of 9** datasheet URLs from parts.json were the unfetchable form.
+The fix is a pure string rewrite - drop `/datasheet/lcsc_datasheet_`, keep the
+`<stamp>_<Vendor-MPN>_<Cxxxx>.pdf` stem, and prefix
+`https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/`:
+
+    www.lcsc.com/datasheet/lcsc_datasheet_2304140030_STMicroelectronics-LM2901DT_C142961.pdf
+ -> wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_STMicroelectronics-LM2901DT_C142961.pdf
+
+All 7 recovered on the first try (294 kB - 2.2 MB, all `%PDF`). **Always check the first 4 bytes are
+`%PDF` after downloading a datasheet** - the failure is silent and the datasheet-extractor would
+otherwise "extract" a pinout from an HTML error page, and its output is the ONLY pinout source the
+schematic agents may wire from.
+
+Second, unrelated trap seen in the same batch: **many distinct parts share one LCSC date stamp**
+(`2304140030` covered LM2901DT, IRF640NSTRLPBF and both CONNFLY DS1023 sockets). That looks exactly
+like a pattern-fabricated URL and is not - it is LCSC's own batch-upload date. Verify against
+`parts_search` output before accusing a sourcing agent of inventing URLs. Relatedly, the two DS1023
+sockets (2x7 and 2x12) return byte-identical PDFs because one family datasheet covers the range.
+
+## 2026-07-28 [parts] parts_search returns zero rows for value tokens like "10K"
+Queries containing resistor/capacitor value tokens (`10K`, `1K`, `56K`) and some long
+multi-word phrases silently return **zero results** - not an error, just an empty set that
+reads like "no such part exists". Search by exact MPN (`0603WAF1002T5E`) or by a spelled-out
+value (`10 ohm`) instead. Cost the lumina-par P3 part-sourcer several wasted round-trips
+before it worked out the pattern. The failure mode is dangerous because an empty result set
+looks identical to a genuine stock-out and can push an agent into re-architecting around a
+part that is actually available.

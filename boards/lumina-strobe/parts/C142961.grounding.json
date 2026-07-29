@@ -1,0 +1,292 @@
+{
+ "script": "datasheet_extract",
+ "status": "extracted",
+ "source_pdf": "parts\\C142961.pdf",
+ "lcsc": "C142961",
+ "n_pages": 17,
+ "text_chars": 15608,
+ "text_by_page": [
+  {
+   "page": 0,
+   "text": "         \nFebruary 2012 Doc ID 2468 Rev 7 1/17\n17\nLM2901\nLow-power quad voltage comparator\nFeatures\n\u25a0 Wide single supply voltage range or dual \nsupplies for all devices: +2 V to +36 V or \u00b11 V \nto \u00b118 V\n\u25a0 Very low supply current (1.1 mA) independent \nof supply voltage (1.4 mW/comparator at +5 V)\n\u25a0 Low input bias current: 25 nA typ.\n\u25a0 Low input offset current: \u00b15 nA typ.\n\u25a0 Input common-mode voltage range includes \nnegative rail\n\u25a0 Low output saturation voltage:\n250 mV typ. (IO = 4 mA)\n\u25a0 Differential input voltage range equal to the \nsupply voltage\n\u25a0 TTL, DTL, ECL, MOS, CMOS compatible \noutputs\nDescription\nThis device consists of four independent precision \nvoltage comparators, which are designed \nspecifically to operate from a single supply over a \nwide range of voltages. Operation from split \npower supplies is also possible.\nThese comparators also have a unique \ncharacteristic in that the input common-mode \nvoltage range includes the negative rail even \nthough operated from a single power supply \nvoltage.\nN\nDIP14\n(Plastic package)\nD\nSO-14\n(Plastic micropackage)\nP\nTSSOP14\n(Thin shrink small outline package)\nQ4\nQFN16 3x3\n(Plastic micropackage)\nwww.st.com"
+  },
+  {
+   "page": 1,
+   "text": "         \nPin connection and schematic diagram LM2901\n2/17  Doc ID 2468 Rev 7\n1 Pin connection and schematic diagram\nFigure 1. Pin connections (top view)\nFigure 2. Schematic diagram\n4\n5\n6\n7\n8\n9\n10\n11\n13\n1\n2\n3\n14\n12\nOutput 2\nOutput 4\nOutput 3\nNon-inverting input 4\nVCC -\nNon-inverting input 3\nInverting input 4\nVCC+\nOutput 1\nInverting input 1\nNon-inverting input 2 Inverting input 3\nNon-inverting input 1\nInverting input 2\nNon-inverting\ninput\nInverting\ninput\n3.5 \u03bcA\nVCC\nVO\n3.5 \u03bcA 100 \u03bcA100 \u03bcA\nVCC"
+  },
+  {
+   "page": 2,
+   "text": "LM2901 Absolute maximum rati ngs and operating conditions\nDoc ID 2468 Rev 7 3/17\n         \n2 Absolute maximum ratings and operating conditions\n         \n         \nTable 1. Absolute maximum ratings\nSymbol Parameter Value Unit\nVCC Supply voltage \u00b118 to 36 V\nVid Differential input voltage \u00b136 V\nVin Input voltage -0.3 to +36 V\nOutput short-circuit to ground \n(1)\n1. Short-circuits from the output to V CC\n+ can cause excessive heating and eventual destruction. The \nmaximum output current is approximately 20 mA, independent of the magnitude of VCC\n+.\nRthja\nThermal resistance junction to ambient(2)\nDIP14 \nSO-14\nTSSOP14\nQFN16 3x3\n2. Short-circuits can caus e excessive heating. Destructive dissipation can result from simultaneous short-\ncircuits on all amplifiers. All values are typical.\n80\n105\n100\n45\n\u00b0C/W\nR\nthjc\nThermal resistance junction to case(2)\nDIP14 \nSO-14\nTSSOP14\nQFN16 3x3\n33\n31\n32\n14\nT\nj Maximum junction temperature +150 \u00b0C\nTstg Storage temperature range -65 to +150 \u00b0C\nESD\nHBM: human body model(3)\n3. Human body model: a 100 pF capacit or is charged to the specified voltage, then discharged through a \n1.5 k\u03a9 resistor between two pins of the device. This is done for all couples of connected pin combinations \nwhile the other pins are floating. \n500 V\nMM: machine model(4)\n4. Machine model: a 200 pF capacitor is charged to the specified voltage, then discharged directly between \ntwo pins of the device with no external series resistor (internal resistor < 5 \u03a9). This is done for all couples of \nconnected pin combinations while the other pins are floating.\n100 V\nCDM: charged device model(5)\n5. Charged device model: all pins and the package are charged together to the specified voltage and then \ndischarged directly to the ground through only one pin. This is done for all pins. \n1500 V\nTable 2. Operating conditions\nSymbol Parameter Value Unit\nVCC Supply voltage 2 to 32\n\u00b11 to \u00b116 V\nVicm\nCommon mode input voltage range\nTmin \u2264 T amb \u2264 T max\n0 to (VCC\n+ -1.5)\n0 to (VCC\n+ -2) V\nToper Operating free-air temperature range -40 to +125 \u00b0C"
+  },
+  {
+   "page": 3,
+   "text": "         \nElectrical characteristics LM2901\n4/17  Doc ID 2468 Rev 7\n3 Electrical characteristics\n         \nTable 3. Electrical characteristics at V CC\n+ = 5 V, VCC\n- = GND, Tamb = 25\u00b0 C \n(unless otherwise specified)\nSymbol Parameter Min. Typ. Max. Unit\nVio\nInput offset voltage (1)\nTmin \u2264 T amb \u2264 T max\n1.  At output switch point, V O \u2248  1.4 V, RS = 0 with VCC\n+ from 5 V to 30 V, and over the full input common-\nmode range (0 V to VCC\n+ \u20131.5 V).\n17\n15 mV\nIio\nInput offset current \nTmin \u2264 T amb \u2264 T max\n55 0\n150 nA\nIib\nInput bias current (II\n+ or II\n-) (2)\nTmin \u2264 T amb \u2264 T max\n2. The direction of the input current is out of the IC due to the PNP input stage. This current is essentially \nconstant, independent of the state of the output, so there is no loading charge on the reference of input \nlines.\n25 250\n400 nA\nAvd\nLarge signal voltage gain\n(VCC = 15 V, RL =1 5k \u03a9, Vo = 1 to 11 V) 25 200 V/mV\nICC\nSupply current (all comparators)\nVCC = +5 V, no load\nVCC = +30 V, no load\n1.1\n1.3\n2\n2.5\nmA\nVid Differential input voltage(3)\n3. The response time specified is for a 100 mV input step with 5 mV overdrive.\nVCC\n+ V\nVOL\nLow level output voltage\nVid = -1V, Isink = 4 mA\nTmin \u2264 T amb \u2264 T max\n250 400\n700\nmV\nIOH\nHigh level output current\n(VCC =V o = 30 V, Vid = 1 V)\nTmin \u2264 T amb \u2264 T max\n0.1\n1\nnA\n\u00b5A\nIsink Output sink current (Vid = -1 V,Vo = 1.5 V) 6 16 mA\ntres\nSmall signal response time(4)\n(RL = 5.1 k\u03a9 connected to VCC\n+)\n4. Positive excursions of input voltage may exceed t he power supply level. As long as the other voltage \nremains within the common-mode range, the comparator will provide a proper output state. The low input \nvoltage state must not be less than \u20130.3 V (or 0.3 V below the negative power supply, if used).\n1.3 \u00b5s\ntrel\nLarge signal response time(5)\nTTL input (Vref = +1.4 V, RL =5 . 1k\u03a9 to \nVCC\n+)\nOutput signal at 50% of final value\nOutput signal at 95% of final value \n5. Maximum values are guaranteed by design.\n500\n1\nns\n\u00b5s"
+  },
+  {
+   "page": 4,
+   "text": "LM2901 Electrical characteristics\nDoc ID 2468 Rev 7 5/17\n         \n          \n         \n         \nFigure 3. Supply current vs. supply voltage Figure 4. Input current vs. supply voltage\nFigure 5. Output saturation voltage vs. \noutput current\nFigure 6. Response time for various input \noverdrives - negative transition\nFigure 7. Response time for various input \noverdrives - positive transition\n"
+  },
+  {
+   "page": 5,
+   "text": "         \nTypical application schematics LM2901\n6/17  Doc ID 2468 Rev 7\n4 Typical application schematics\n         \n         \n         \nFigure 8. Basic comparator Figure 9. Driving CMOS\nVCC = 5 V\n15 k\u03a9\nVO\n+V(ref)\n1/4\nLM2901\n-V(ref)\n5 V\n100 k\u03a9\n&1/ 4\nLM2901\n+V(ref)\n-V(ref)\nFigure 10. Driving TTL Figure 11. Low frequency op-amp\n5 V\n10 k\u03a9\n+V(ref)\n&\n&\n1/ 4\nLM2901\n-V(ref)\n5 V\n15 k\u03a9\neo\n0.5 \u03bcF100 k\u03a9\nel\n1 k\u03a9\n~\n1/4\nLM2901\nAV = 100\nFigure 12. Low frequency op-amp with boost Figure 13. Transducer amplifier\n5 V\n15 k\u03a9\n0.5 \u03bcF\n100 k\u03a9\n1 k\u03a9\n~\n2N 2222\n(eo = 0 V for el = 0 V)\n1/ 4\nLM2901\neo\nel\nAV = 100\n5 V\n10 k\u03a9\neo\n20 M\u03a9\n3 k\u03a9 Magnetic pick-up\n10 k\u03a9\n1/ 4\nLM2901\n"
+  },
+  {
+   "page": 6,
+   "text": "LM2901 Typical application schematics\nDoc ID 2468 Rev 7 7/17\n         \n         \n         \n         \nFigure 14. Low frequency op-amp with\noffset adjust\nFigure 15. Zero crossing detector (single \npower supply)\nel ~ 2N 2222\n5 V\neo\nR1\n100 k\u03a9\n1 k\u03a9\n5 V\n1 M\u03a9\n100 k\u03a9\n1 M\u03a9\nOffset  adjust\nRS R1 15 k\u03a9\n0.5 \u03bcF\nR2\n1/ 4\nLM2901\n100 k\u03a9\n10 k\u03a9\nel\n20 M\u03a9\n5 V\n1N4148\n5.1 k\u03a9\n5.1 k\u03a9100 k\u03a9\n1/ 4\nLM2901\n5.1 k\u03a9\nFigure 16. Limit comparator Figure 17. Split-supply applications - zero \ncrossing detector\n10 k\u03a9\neI\n~\nRS\n2RS\nV(ref)\nhigh\nV(ref)\nlow\n2N 2222\nVCC\nLamp\n1/ 4\nLM2901\n1/ 4\nLM139\n2RS\n(12 V) 15 V\n5.1 k\u03a9\neo\neI ~\n15 V\n1/4\nLM2901\nFigure 18. Crystal controlled oscillator Figure 19. Comparator with a negative \nreference\n2 k\u03a9\n200 k\u03a9\neo\nVCC\n0\n100 k\u03a9\n200 k\u03a9\n1/ 4\nLM29010.1 \u03bcF\nf = 100 kHz\nVCC = 15 V 15 V\n5.1 k\u03a9\neo\neI ~\n15 V\n5 V\n1/ 4\nLM2901\n"
+  },
+  {
+   "page": 7,
+   "text": "         \nTypical application schematics LM2901\n8/17  Doc ID 2468 Rev 7\nFigure 20. Time delay generator\nFigure 21. Two-decade high-frequency VCO\nVCC\n0\nV(ref.)\n10 k\u03a9\n1/4\n15 k\u03a9 200 k\u03a9 3 k\u03a9\n3 k\u03a9\n3 k\u03a9\n10 M\u03a9\nVO2\nV03\nO1V\n51 k\u03a9\nV1\nV2\n0.001\u03bcF\nVC1\nV3\nVCC\nVC1\nV1\nV2\nV3\n0\n0 1t t 3t 4t2t\nt\nVCC\nt0 t1\nVCC\nVCC\nVC C =+ 1 5 V\n1/4\nLM2901\n1/4\n1/4\n10 k\u03a9\n10 k\u03a9\n10 k\u03a9\n10 k\u03a9\n10 M\u03a9\n10 M\u03a9\n51 k\u03a9\n51 k\u03a9\nt2to\nt3to\ntAto\nInput gating signal\nLM2901\nLM2901\nLM2901\nVCC VCC100 k\u03a9\n3 k\u03a9\n5.1 k\u03a9\n/2\nVCC /2\n0.01 \u03bcF\n500 pF100 k\u03a9\n0.1 \u03bcF\n20 k\u03a9\n50 k\u03a9\n=+ 30V\n+250 mV Vcontrol +50 V\n700 Hz f 100 kHzo\n20 k\u03a9\n3 k\u03a9\n1/ 4\nLM2901\n1/ 4\nLM2901\n1/ 4\nLM2901\nOutput 1\nOutput 2\nVCC\nVCC\nFrequency control\nvoltage input\nVcontrol\n10 k\u03a9"
+  },
+  {
+   "page": 8,
+   "text": "LM2901 Package information\nDoc ID 2468 Rev 7 9/17\n         \n5 Package information\nIn order to meet environmental requirements, ST offers these devices in different grades of \nECOPACK\u00ae packages, depending on their level of environmental compliance. ECOPACK\u00ae \nspecifications, grade definitions and product status are available at: www.st.com. \nECOPACK\u00ae is an ST trademark."
+  },
+  {
+   "page": 9,
+   "text": "         \nPackage information LM2901\n10/17  Doc ID 2468 Rev 7\n5.1 DIP14 package information\nFigure 22. DIP14 package mechanical drawing\n         \nTable 4. DIP14 package mechanical data\nDimensions\nRef.\nMillimeters Inches\nMin. Typ. Max. Min. Typ. Max.\nA5 . 3 3 0 . 2 1\nA1 0.38 0.015\nA2 2.92 3.30 4.95 0.11 0.13 0.19\nb 0.36 0.46 0.56 0.014 0.018 0.022\nb2 1.14 1.52 1.78 0.04 0.06 0.07\nc 0.20 0.25 0.36 0.007 0.009 0.01\nD 18.67 19.05 19.69 0.73 0.75 0.77\nE 7.62 7.87 8.26 0.30 0.31 0.32\nE1 6.10 6.35 7.11 0.24 0.25 0.28\ne2 . 5 4 0 . 1 0\ne1 15.24 0.60\neA 7.62 0.30\neB 10.92 0.43\nL 2.92 3.30 3.81 0.11 0.13 0.15"
+  },
+  {
+   "page": 10,
+   "text": "LM2901 Package information\nDoc ID 2468 Rev 7 11/17\n         \n5.2 QFN16 3 x 3 package information\nFigure 23. QFN16 3 x 3 mm package mechanical drawing"
+  },
+  {
+   "page": 11,
+   "text": "         \nPackage information LM2901\n12/17  Doc ID 2468 Rev 7\n         \nFigure 24. QFN16 3 x 3 mm footprint recommendation \nTable 5. QFN16 3 x 3 mm package mechanical data (pitch 0.5 mm)\nRef.\nDimensions\nMillimeters Inches\nMin. Typ. Max. Min. Typ. Max.\nA 0.80 0.90 1.00 0.031 0.035 0.039\nA1 0 0.05 0 0.002\nA3 0.20 0.008\nb 0.18 0.30 0.007 0.012\nD 2.90 3.00 3.10 0.114 0.118 0.122\nD2 1.50 1.80 0.059 0.071\nE 2.90 3.00 3.10 0.114 0.118 0.122\nE2 1.50 1.80 0.059 0.071\ne 0.50 0.020\nL 0.30 0.50 0.012 0.020"
+  },
+  {
+   "page": 12,
+   "text": "LM2901 Package information\nDoc ID 2468 Rev 7 13/17\n         \n5.3 SO-14 package information\nFigure 25. SO-14 package mechanical drawing\n         \nTable 6. SO-14 package mechanical data\nDimensions\nRef.\nMillimeters Inches\nMin. Typ. Max. Min. Typ. Max.\nA 1.35 1.75 0.05 0.068\nA1 0.10 0.25 0.004 0.009\nA2 1.10 1.65 0.04 0.06\nB 0.33 0.51 0.01 0.02\nC 0.19 0.25 0.007 0.009\nD 8.55 8.75 0.33 0.34\nE 3.80 4.0 0.15 0.15\ne1 . 2 7 0 . 0 5\nH 5.80 6.20 0.22 0.24\nh 0.25 0.50 0.009 0.02\nL 0.40 1.27 0.015 0.05\nk 8\u00b0 (max.)\nddd 0.10 0.004"
+  },
+  {
+   "page": 13,
+   "text": "         \nPackage information LM2901\n14/17  Doc ID 2468 Rev 7\n5.4 TSSOP14 package information\nFigure 26. TSSOP14 package mechanical drawing\nTable 7. TSSOP14 package mechanical data\nRef.\nDimensions\nMillimeters Inches\nMin. Typ. Max. Min. Typ. Max.\nA1 . 2 0 0 . 0 4 7\nA1 0.05 0.15 0.002 0.004 0.006\nA2 0.80 1.00 1.05 0.031 0.039 0.041\nb 0.19 0.30 0.007 0.012\nc 0.09 0.20 0.004 0.0089\nD 4.90 5.00 5.10 0.193 0.197 0.201\nE 6.20 6.40 6.60 0.244 0.252 0.260\nE1 4.30 4.40 4.50 0.169 0.173 0.176\ne 0.65 0.0256\nL 0.45 0.60 0.75 0.018 0.024 0.030\nL1 1.00 0.039\nk0 \u00b0 8 \u00b0 0 \u00b0 8 \u00b0\naaa 0.10 0.004"
+  },
+  {
+   "page": 14,
+   "text": "LM2901 Ordering information\nDoc ID 2468 Rev 7 15/17\n         \n6 Ordering information\n         \nTable 8. Order codes\nOrder code Temperature \nrange Package Packing Marking\nLM2901N\n-40\u00b0C to +125\u00b0C\nDIP14 Tube LM2901N\nLM2901D\nLM2901DT SO-14 Tube or tape & reel\n2901\nLM2901PT TSSOP14 Tape & reel\nLM2901Q4T QFN16 3x3 Tape & reel K5I\nLM2901YDT(1)\n1. Qualified and characterized according to AEC Q100 and Q003 or equivalent, advanced screening \naccording to AEC Q001 & Q 002 or equivalent.\nSO-14 \n(Automotive grade) Tape & reel\n2901Y\nLM2901YPT(1) TSSOP14 \n(Automotive grade) Tape & reel"
+  },
+  {
+   "page": 15,
+   "text": "         \nRevision history LM2901\n16/17  Doc ID 2468 Rev 7\n7 Revision history\n         \nTable 9. Document revision history\nDate Revision Changes\n01-Jan-2002 1 Initial release.\n01-Jul-2005 2\n1 - PPAP references inserted in the datasheet see Table : Order \ncodes on page 1.\n2 - ESD protection inserted in Table 1 on page 3.\n01-Oct-2005 3\nThe following changes were made in this revision:\n\u2013 PPAP part number added in table Order codes on page 1.\n\u2013 Formatting changes throughout.\n18-Jul-2006 4 ESD HBM value corrected in Table 1 on page 3.\n19-Dec-2007 5\nAdded Rthja and Rthjc parameters to Table 1: Absolute maximum \nratings. Added footnotes for ESD parameters.\nRemoved Vicm parameter from electrical characteristics in Table 3.\nReformatted package information in Section 5.\nAdded footnotes for automotive grade parts in Table 8: Order codes.\n30-Apr-2009 6\nDocument reformatted.\nUpdated package information in Chapter 5: Package information.\nRemoved note 2 under Table 8: Order codes.\n06-Feb-2012 7 Added QFN16 3 x 3 package in Chapter 5.\nRemoved LM2901YD order code from Table 8."
+  },
+  {
+   "page": 16,
+   "text": "LM2901\nDoc ID 2468 Rev 7 17/17\n         \n \nPlease Read Carefully:\nInformation in this document is provided solely in connection with ST products. STMicroelectronics NV and its subsidiaries (\u201cST\u201d) reserve the\nright to make changes, corrections, modifications or improvements, to this document, and the products and services described herein at any\ntime, without notice.\nAll ST products are sold pursuant to ST\u2019s terms and conditions of sale.\nPurchasers are solely responsible for the choice, selection and use of the ST products and services described herein, and ST as sumes no\nliability whatsoever relating to the choice, selection or use of the ST products and services described herein.\nNo license, express or implied, by estoppel or otherwise, to any intellectual property rights is granted under this document. If any part of this\ndocument refers to any third party products or services it shall not be deemed a license grant by ST for the use of such third party products\nor services, or any intellectual property contained therein or considered as a warranty covering the use in any manner whatsoev er of such\nthird party products or services or any intellectual property contained therein.\nUNLESS OTHERWISE SET FORTH IN ST\u2019S TERMS AND CONDITIONS OF SALE ST DISCLAIMS ANY EXPRESS OR IMPLIED\nWARRANTY WITH RESPECT TO THE USE AND/OR SALE OF ST PRODUCTS INCLUDING WITHOUT LIMITATION IMPLIED\nWARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE (AND THEIR EQUIVALENTS UNDER THE LAWS\nOF ANY JURISDICTION), OR INFRINGEMENT OF ANY PATENT, COPYRIGHT OR OTHER INTELLECTUAL PROPERTY RIGHT.\nUNLESS EXPRESSLY APPROVED IN WRITING BY TWO AUTHORIZED ST REPRESENTATIVES, ST PRODUCTS ARE NOT\nRECOMMENDED, AUTHORIZED OR WARRANTED FOR USE IN MILITARY, AIR CRAFT, SPACE, LIFE SAVING, OR LIFE SUSTAINING\nAPPLICATIONS, NOR IN PRODUCTS OR SYSTEMS WHERE FAILURE OR MALFUNCTION MAY RESULT IN PERSONAL INJURY,\nDEATH, OR SEVERE PROPERTY OR ENVIRONMENTAL DAMAGE. ST PRODUCTS WHICH ARE NOT SPECIFIED AS \"AUTOMOTIVE\nGRADE\" MAY ONLY BE USED IN AUTOMOTIVE APPLICATIONS AT USER\u2019S OWN RISK.\nResale of ST products with provisions different from the statements and/or technical features set forth in this document shall immediately void\nany warranty granted by ST for the ST product or service described herein and shall not create or extend in any manner whatsoev er, any\nliability of ST.\nST and the ST logo are trademarks or registered trademarks of ST in various countries.\nInformation in this document supersedes and replaces all information previously supplied.\nThe ST logo is a registered trademark of STMicroelectronics. All other names are the property of their respective owners.\n\u00a9 2012 STMicroelectronics - All rights reserved\nSTMicroelectronics group of companies\nAustralia - Belgium - Brazil - Canada - China - Czech Republic - Finland - France - Germany - Hong Kong - India - Israel - Italy - Japan - \nMalaysia - Malta - Morocco - Philippines - Singapore - Spain - Sweden - Switzerland - United Kingdom - United States of America\nwww.st.com"
+  }
+ ],
+ "schema": {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ai-ee datasheet extraction",
+  "type": "object",
+  "required": [
+   "mpn",
+   "pinout"
+  ],
+  "additionalProperties": false,
+  "properties": {
+   "mpn": {
+    "type": "string",
+    "minLength": 1
+   },
+   "lcsc": {
+    "type": "string"
+   },
+   "package": {
+    "type": "string"
+   },
+   "description": {
+    "type": "string"
+   },
+   "pinout": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "required": [
+      "pin",
+      "name",
+      "type"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "pin": {
+       "type": "string",
+       "minLength": 1
+      },
+      "name": {
+       "type": "string",
+       "minLength": 1
+      },
+      "type": {
+       "type": "string",
+       "enum": [
+        "power_in",
+        "power_out",
+        "ground",
+        "input",
+        "output",
+        "bidirectional",
+        "passive",
+        "analog",
+        "clock",
+        "nc",
+        "open_collector",
+        "tristate",
+        "unspecified"
+       ]
+      },
+      "notes": {
+       "type": "string"
+      }
+     }
+    }
+   },
+   "decoupling": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "required": [
+      "pins",
+      "value"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "pins": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       },
+       "minItems": 1
+      },
+      "value": {
+       "type": "string",
+       "minLength": 1
+      },
+      "placement": {
+       "type": "string"
+      },
+      "notes": {
+       "type": "string"
+      }
+     }
+    }
+   },
+   "land_pattern": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "pad_count"
+    ],
+    "properties": {
+     "package": {
+      "type": "string"
+     },
+     "pad_count": {
+      "type": "integer",
+      "minimum": 1
+     },
+     "pitch_mm": {
+      "type": "number",
+      "exclusiveMinimum": 0
+     },
+     "pad_size_mm": {
+      "type": "array",
+      "items": {
+       "type": "number",
+       "minimum": 0
+      },
+      "minItems": 2,
+      "maxItems": 2
+     },
+     "row_spacing_mm": {
+      "type": "number",
+      "minimum": 0
+     },
+     "courtyard_excess_mm": {
+      "type": "number",
+      "minimum": 0
+     },
+     "pin1": {
+      "type": "string",
+      "description": "pad number that is pin 1 (default '1')"
+     },
+     "notes": {
+      "type": "string"
+     }
+    }
+   },
+   "exposed_pad": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "present": {
+      "type": "boolean"
+     },
+     "connect_to": {
+      "type": "string"
+     },
+     "thermal_vias": {
+      "type": "integer",
+      "minimum": 0
+     }
+    },
+    "required": [
+     "present"
+    ]
+   },
+   "layout_notes": {
+    "type": "array",
+    "items": {
+     "type": "string"
+    }
+   },
+   "abs_max": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "required": [
+      "param",
+      "value"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "param": {
+       "type": "string"
+      },
+      "value": {
+       "type": [
+        "number",
+        "string"
+       ]
+      },
+      "unit": {
+       "type": "string"
+      }
+     }
+    }
+   },
+   "source_pdf": {
+    "type": "string"
+   }
+  }
+ },
+ "template": {
+  "mpn": "",
+  "lcsc": "",
+  "package": "",
+  "pinout": [
+   {
+    "pin": "1",
+    "name": "",
+    "type": "unspecified"
+   }
+  ],
+  "decoupling": [],
+  "land_pattern": {
+   "pad_count": 0
+  },
+  "layout_notes": [],
+  "abs_max": []
+ },
+ "note": "Fill the template from text_by_page and the PDF pages, then re-run with --validate. If text_chars is ~0 the PDF is image-only; read the rendered pages directly."
+}

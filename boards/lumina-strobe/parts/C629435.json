@@ -1,0 +1,261 @@
+{
+ "mpn": "MCP23008T-E/SS",
+ "lcsc": "C629435",
+ "package": "SSOP-20 (20-Lead Plastic Shrink Small Outline, 5.30 mm body, 0.65 mm pitch, Microchip package code SS). '-E' = Extended temperature range, 'T' = Tape and Reel [PRODUCT IDENTIFICATION SYSTEM, p.41].",
+ "description": "Microchip MCP23008 8-bit remote bidirectional I/O port expander with I2C interface. Three hardware address pins (A2:A0) allow up to eight devices on one bus. Configurable interrupt output (active-high / active-low / open-drain), interrupt-on-change from configured defaults or from pin change, polarity-inversion register, per-pin internal weak pull-ups, external Reset input, 1.8 V to 5.5 V operation, 1 uA max standby. Source: DS20001919F (2004-2019 Microchip Technology Inc.), 43 pages, document covers MCP23008 (I2C) and MCP23S08 (SPI) together.",
+ "pinout": [
+  {
+   "pin": "1",
+   "name": "SCL",
+   "type": "input",
+   "notes": "Datasheet pin type 'I'. 'Serial clock input.' Shared row with MCP23S08 SCK. Schmitt Trigger input: VIL max 0.2 VDD, VIH min 0.8 VDD [D031/D041]. [Table 1-1 PINOUT DESCRIPTION, SSOP column, p.4]"
+  },
+  {
+   "pin": "2",
+   "name": "SDA",
+   "type": "bidirectional",
+   "notes": "Datasheet pin type 'I/O'. 'Serial data I/O (MCP23008)'. I2C open-drain data line: VOL max 0.6 V at IOL 3.0 mA / VDD 1.8 V and max 0.8 V at IOL 3.0 mA / VDD 4.5 V [D080]; no VOH is specified for SDA, so it is open-drain and needs an external bus pull-up. Bus capacitance CB max 400 pF [D102]. Schmitt Trigger input thresholds [D031/D041]. Slew-rate control on the SDA high-to-low edge is ENABLED at POR (IOCON.DISSLW = 0) [Register 1-6, p.14]. [Table 1-1, SSOP column, p.4]"
+  },
+  {
+   "pin": "3",
+   "name": "A2",
+   "type": "input",
+   "notes": "Hardware address input, MSB of the three user address bits. 'A2 must be biased externally.' Datasheet type column reads 'I/O' only because this pin is SO on the MCP23S08; on the MCP23008 it is an address input. A2 is a SCHMITT TRIGGER input: VIL max 0.2 VDD, VIH min 0.8 VDD [D031/D041] - note this differs from A1/A0. [Table 1-1, SSOP column, p.4]"
+  },
+  {
+   "pin": "4",
+   "name": "A1",
+   "type": "input",
+   "notes": "Hardware address input. 'Must be biased externally.' TTL buffer input: VIL max 0.15 VDD, VIH min 0.25 VDD + 0.8 V [D030/D040]. [Table 1-1, SSOP column, p.4]"
+  },
+  {
+   "pin": "5",
+   "name": "A0",
+   "type": "input",
+   "notes": "Hardware address input, LSB. 'Must be biased externally.' TTL buffer input: VIL max 0.15 VDD, VIH min 0.25 VDD + 0.8 V [D030/D040]. [Table 1-1, SSOP column, p.4]"
+  },
+  {
+   "pin": "6",
+   "name": "RESET",
+   "type": "input",
+   "notes": "ACTIVE-LOW external Reset input (drawn with an overbar in the Package Types figure, p.2). 'External Reset input. MUST BE BIASED EXTERNALLY.' [Table 1-1, p.4] No internal pull-up or pull-down is specified anywhere in DS20001919F - do NOT leave this pin floating. Schmitt Trigger input: VIL max 0.2 VDD, VIH min 0.8 VDD [D031/D041]. Timing [TABLE 2-1 DEVICE RESET SPECIFICATIONS, p.24]: param 30 RESET pulse width (low) TRSTL min 1 us; param 32 device active after RESET high THLD 0 us (VDD = 5.0 V); param 34 output high-impedance from RESET low TIOZ max 1 us. [Table 1-1, SSOP column, p.4]"
+  },
+  {
+   "pin": "7",
+   "name": "NC",
+   "type": "nc",
+   "notes": "'No connect (MCP23008) / External Chip Select input (MCP23S08).' On the MCP23008 this pin is a no-connect; the datasheet gives no instruction to tie it anywhere. Labelled 'NC' in the SSOP Package Types figure. [Table 1-1 row 'NC/CS', SSOP column, p.4; figure p.2]"
+  },
+  {
+   "pin": "8",
+   "name": "INT",
+   "type": "output",
+   "notes": "Datasheet pin type 'O'. 'Interrupt output. Can be configured for active-high, active-low or open-drain.' Configured by IOCON.ODR (bit 2) and IOCON.INTPOL (bit 1); INTPOL is functional only when ODR = 0. POR/RST value of IOCON is --00 000- => ODR = 0 (ACTIVE PUSH-PULL DRIVER) and INTPOL = 0 (ACTIVE-LOW) after power-up [Table 1-3 p.8, Register 1-6 p.14]. Only pins configured as INPUTS can cause interrupts [1.7, p.20]. VOL max 0.6 V at IOL 1.6 mA / VDD 4.5 V; VOH min VDD-0.7 V at IOH -3.0 mA / VDD 4.5 V [D080/D090]. [Table 1-1, SSOP column, p.4]"
+  },
+  {
+   "pin": "9",
+   "name": "VSS",
+   "type": "ground",
+   "notes": "Datasheet pin type 'P'. 'Ground.' Only ground pin on the package. Abs max current out of VSS = 150 mA. [Table 1-1, SSOP column, p.4]"
+  },
+  {
+   "pin": "10",
+   "name": "N/C",
+   "type": "nc",
+   "notes": "'N/C' - Table 1-1 lists SSOP pins 10 and 11 as N/C with an em-dash for both pin type and function. No tie-off instruction is given. [Table 1-1 last row, p.4; figure p.2]"
+  },
+  {
+   "pin": "11",
+   "name": "N/C",
+   "type": "nc",
+   "notes": "'N/C' - see pin 10. [Table 1-1 last row, p.4; figure p.2]"
+  },
+  {
+   "pin": "12",
+   "name": "GP0",
+   "type": "bidirectional",
+   "notes": "'Bidirectional I/O pin. Can be enabled for interrupt-on-change and/or internal weak pull-up resistor.' POR/RST state = INPUT, high-impedance, internal pull-up DISABLED (IODIR bit 0 = 1, GPPU bit 0 = 0, OLAT bit 0 = 0) [Table 1-3, p.8]. [Table 1-1, SSOP column, p.4]"
+  },
+  {
+   "pin": "13",
+   "name": "GP1",
+   "type": "bidirectional",
+   "notes": "Bidirectional I/O pin, interrupt-on-change and internal weak pull-up selectable. POR/RST state = INPUT / high-impedance / pull-up disabled. [Table 1-1 p.4, Table 1-3 p.8]"
+  },
+  {
+   "pin": "14",
+   "name": "GP2",
+   "type": "bidirectional",
+   "notes": "Bidirectional I/O pin, interrupt-on-change and internal weak pull-up selectable. POR/RST state = INPUT / high-impedance / pull-up disabled. [Table 1-1 p.4, Table 1-3 p.8]"
+  },
+  {
+   "pin": "15",
+   "name": "GP3",
+   "type": "bidirectional",
+   "notes": "Bidirectional I/O pin, interrupt-on-change and internal weak pull-up selectable. POR/RST state = INPUT / high-impedance / pull-up disabled. [Table 1-1 p.4, Table 1-3 p.8]"
+  },
+  {
+   "pin": "16",
+   "name": "GP4",
+   "type": "bidirectional",
+   "notes": "Bidirectional I/O pin, interrupt-on-change and internal weak pull-up selectable. POR/RST state = INPUT / high-impedance / pull-up disabled. [Table 1-1 p.4, Table 1-3 p.8]"
+  },
+  {
+   "pin": "17",
+   "name": "GP5",
+   "type": "bidirectional",
+   "notes": "Bidirectional I/O pin, interrupt-on-change and internal weak pull-up selectable. POR/RST state = INPUT / high-impedance / pull-up disabled. [Table 1-1 p.4, Table 1-3 p.8]"
+  },
+  {
+   "pin": "18",
+   "name": "GP6",
+   "type": "bidirectional",
+   "notes": "Bidirectional I/O pin, interrupt-on-change and internal weak pull-up selectable. POR/RST state = INPUT / high-impedance / pull-up disabled. [Table 1-1 p.4, Table 1-3 p.8]"
+  },
+  {
+   "pin": "19",
+   "name": "GP7",
+   "type": "bidirectional",
+   "notes": "Bidirectional I/O pin, interrupt-on-change and internal weak pull-up selectable. POR/RST state = INPUT / high-impedance / pull-up disabled. [Table 1-1 p.4, Table 1-3 p.8]"
+  },
+  {
+   "pin": "20",
+   "name": "VDD",
+   "type": "power_in",
+   "notes": "Datasheet pin type 'P'. 'Power.' Only supply pin on the package. VDD 1.8 V to 5.5 V [D001]; abs max VDD -0.3 V to +5.5 V; abs max current into VDD 125 mA. [Table 1-1, SSOP column, p.4]"
+  }
+ ],
+ "decoupling": [
+  {
+   "pins": [
+    "20"
+   ],
+   "value": "100 nF at VDD + bulk (NOT SPECIFIED BY THIS DATASHEET - see notes)",
+   "placement": "one capacitor at VDD (pin 20) returned to VSS (pin 9), as close to the package as possible",
+   "notes": "NOT GROUNDED. DS20001919F contains NO decoupling / bypass / PCB-layout guidance whatsoever: the strings 'decoupl', 'bypass' and 'layout' do not appear anywhere in the 43-page document, there is no typical-application schematic, and no external capacitor is mandated on any pin. The 100 nF-per-VDD-pin figure is standard practice for a 1 mA-class CMOS logic device on a single supply pin, NOT a datasheet statement. The only supply-related design constraints the datasheet does give are: VDD rise rate SVDD min 0.05 V/ms to ensure Power-on Reset ('design guidance only, not tested') [D003] and VPOR = VSS [D002] - i.e. the rail must ramp monotonically and reasonably fast, which a local bypass capacitor plus the upstream regulator must not defeat."
+  }
+ ],
+ "land_pattern": {
+  "package": "20-Lead Plastic Shrink Small Outline (SS) - 5.30 mm Body [SSOP], Microchip Technology Drawing No. C04-2072B",
+  "pad_count": 20,
+  "pitch_mm": 0.65,
+  "pad_size_mm": [
+   0.45,
+   1.75
+  ],
+  "row_spacing_mm": 7.2,
+  "pin1": "1",
+  "notes": "From the RECOMMENDED LAND PATTERN drawing on p.39 (Microchip Technology Drawing No. C04-2072B), MILLIMETERS: Contact Pitch E = 0.65 BSC; Contact Pad Spacing C = 7.20 (NOM column); Contact Pad Width (X20) X1 = 0.45 (MAX column); Contact Pad Length (X20) Y1 = 1.75 (MAX column); Distance Between Pads G = 0.20 (MIN column). Note 1: dimensioning and tolerancing per ASME Y14.5M. Self-consistency check: X1 0.45 + G 0.20 = pitch 0.65 - correct. C = 7.20 is the pad-row CENTRE-to-CENTRE spacing (outer span would then be 7.20 + 1.75 = 8.95 mm and the inner gap 7.20 - 1.75 = 5.45 mm, which straddles the 5.30 mm nominal molded body width E1 and the 7.80 mm nominal lead-tip span E - an outer-edge reading would put the pads under the package body and is wrong). pad_size_mm is [X1 width, Y1 length]. Courtyard excess is NOT stated by the drawing. Pins 1-10 run down the left side and 11-20 up the right side (Package Types figure, p.2). Package outline for reference (C04-072B, p.38, mm min/nom/max): N = 20, pitch e = 0.65 BSC, overall height A max 2.00, molded package thickness A2 1.65/1.75/1.85, standoff A1 min 0.05, overall width E 7.40/7.80/8.20, molded package width E1 5.00/5.30/5.60, overall length D 6.90/7.20/7.50, foot length L 0.55/0.75/0.95, footprint L1 1.25 REF, lead thickness c 0.09/-/0.25, foot angle 0/4/8 deg, lead width b 0.22/-/0.38."
+ },
+ "exposed_pad": {
+  "present": false
+ },
+ "layout_notes": [
+  "POWER-ON / RESET STATE OF THE GPIO PINS - CONFIRMED FROM THE PDF, THIS IS THE FAIL-SAFE-CRITICAL FACT: every GP pin comes up as an INPUT in HIGH IMPEDANCE, not driven. Evidence, three independent places in DS20001919F: (1) Features, p.1: 'Bit Remote Bidirectional I/O Port - I/O pins default to input'. (2) TABLE 1-3 CONFIGURATION AND CONTROL REGISTERS, p.8: IODIR (addr 00) POR/RST value = 1111 1111, and Register 1-1 (p.9) defines '1 = Pin is configured as an input'. GPIO (addr 09) POR/RST = 0000 0000 and OLAT (addr 0A) POR/RST = 0000 0000. (3) Section 1.5 GPIO Port, p.8: 'Pins configured as inputs turn off the associated output driver and put it in high-impedance.' So at POR and while RESET is asserted the MCP23008 drives NOTHING. This is the opposite of the PCF8574 family (whose quasi-bidirectional pins come up weakly driven high) - the P3 sourcing expectation is CONFIRMED, with no contradicting statement anywhere in the datasheet.",
+  "POR PULL-UPS ARE OFF TOO: GPPU (addr 06) POR/RST value = 0000 0000 [Table 1-3, p.8] and Register 1-7 (p.15) defines '0 = Pull-up disabled'. So there is not even a weak internal pull-up holding a pin at power-up. CONSEQUENCE FOR THIS BOARD: any net driven by a GP output that must have a guaranteed safe level before firmware runs (e.g. an active-low arm signal) MUST get its polarity defined by an EXTERNAL resistor on the board - the expander contributes nothing, in either direction, until firmware writes IODIR and OLAT. The corresponding output leakage is +/-1 uA max [D065], so a pull resistor sees a negligible load.",
+  "RESET BEHAVIOUR: asserting RESET low forces the same state - AC param 34 'Output High-Impedance from RESET Low' TIOZ max 1 us [Table 2-1, p.24] means all GP outputs release to high-Z within 1 us of RESET going low. Param 30: minimum RESET low pulse width TRSTL = 1 us. Param 32: the device is active 0 us after RESET goes high (VDD = 5.0 V).",
+  "RESET PIN WIRING: pin 6 RESET is ACTIVE LOW (overbar in the Package Types figure, p.2; 'RESET Pulse Width (Low)' in Table 2-1) and Table 1-1 states it 'Must be biased externally'. DS20001919F specifies NO internal pull-up and NO internal pull-down on RESET, and gives no default. It must therefore be actively driven or tied high (through a pull-up to VDD, or directly to VDD if no reset control is wanted) - LEAVING IT FLOATING IS A DESIGN ERROR. It is a Schmitt Trigger input (VIL max 0.2 VDD, VIH min 0.8 VDD), so a resistive pull is electrically fine.",
+  "I2C ADDRESS SCHEME: 7-bit slave addressing. FIGURE 1-2 I2C CONTROL BYTE FORMAT (p.7) gives the control byte as S | 0 1 0 0 | A2 A1 A0 | R/W | ACK - i.e. four FIXED bits '0100' and three user-defined hardware address bits taken from pins A2 (pin 3), A1 (pin 4), A0 (pin 5). Section 1.4.1: 'The slave address contains four fixed bits and three user-defined hardware address bits (pins A2, A1 and A0).' Resulting 7-bit address range = 0100_A2A1A0 = 0x20 (A2:A0 = 000, all tied low) through 0x27 (A2:A0 = 111, all tied high); the eight straps map straight to 0x20/0x21/0x22/0x23/0x24/0x25/0x26/0x27 for A2A1A0 = 000/001/010/011/100/101/110/111. Up to eight MCP23008 devices per bus (Features, p.1). The address pins 'must be biased externally' (Table 1-1) and 'The address pins are always enabled on the MCP23008' (IOCON.HAEN is not used on this part) [1.6.6, p.14] - so all three of A2/A1/A0 have to be strapped to VDD or VSS, none may float. NOTE FOR BUS-COLLISION CHECKING: 0x20..0x27 does NOT overlap the TMP112 range 0x48..0x4B.",
+  "I2C BUS PULL-UPS: DS20001919F gives NO recommended external pull-up resistor value and no pull-up schematic. The only two numbers in the document that touch the bus network are (a) the I2C AC characteristics TEST CONDITION 'RPU (SCL, SDA) = 1 k ohm, CL (SCL, SDA) = 135 pF' [p.25] and Figure 2-1 which draws that same 1 k / 135 pF network as the LOAD CONDITION FOR DEVICE TIMING SPECIFICATIONS [p.23] - this is a bench test load, NOT a design recommendation - and (b) D102, bus capacitance CB max 400 pF for SDA, with note 2 'CB is specified to be from 10 to 400 pF'. The MCP23008 therefore imposes no requirement that pull-ups be local to it; a board that deliberately omits its own pull-ups because the bus master board provides them is consistent with this datasheet, provided the total bus capacitance stays under 400 pF and the rise time meets param 102 (max 1000 ns at 100 kHz, max 300 ns at 400 kHz).",
+  "INT PIN DEFAULT: at POR the INT pin (8) is an ACTIVE PUSH-PULL, ACTIVE-LOW output (IOCON POR = --00 000-, so ODR = 0 and INTPOL = 0) [Table 1-3 p.8; Register 1-6 p.14]. If INT is to be wire-ORed with any other interrupt source, firmware must set IOCON.ODR = 1 first (open-drain, which overrides INTPOL) and the net needs an external pull-up; until then the pin actively drives high. The interrupt stays asserted until INTCAP or GPIO is read [1.7, p.20].",
+  "INTERNAL WEAK PULL-UPS (when firmware enables them): '...the corresponding PORT pin is internally pulled up with a 100 k resistor' [1.6.7, p.15]. The measured parameter is IPU 40 / 75 / 115 uA at VDD = 5 V with the GP pin at VSS, characterised only over -40 to +85 deg C [D070]. These are input-only pull-ups - they act when the pin is configured as an input.",
+  "TEMPERATURE / VOLTAGE GRADE - READ BEFORE CLAIMING -40..+125 C: the ordering code -E does mean the Extended range, and the PRODUCT IDENTIFICATION SYSTEM (p.41) states 'E = -40 C to +125 C (Extended)' with the footnote '* While these devices are only offered in the E temperature range, the device will operate at different voltages and temperatures as identified in Section 2.0 Electrical Characteristics.' Section 2.0 then qualifies EVERY DC and AC table with TWO operating conditions: '1.8V <= VDD <= 5.5V at -40 C <= TA <= +85 C (I-Temp)' and '4.5V <= VDD <= 5.5V at -40 C <= TA <= +125 C (E-Temp)'. In other words the +125 C corner is only specified for VDD 4.5-5.5 V. AT VDD = 3.3 V THE DATASHEET ONLY GUARANTEES OPERATION TO +85 C. Absolute maximum ambient temperature under bias is -40 C to +125 C, so +125 C at 3.3 V is not a destructive condition, just an unspecified one. Also Features, p.1: I2C 100 kHz needs 1.8-5.5 V (-40..+85 C), 400 kHz needs 2.7-5.5 V (-40..+85 C), 1.7 MHz needs 4.5-5.5 V (-40..+125 C) - so on a 3.3 V rail the bus is limited to 400 kHz.",
+  "SUPPLY AND DRIVE LIMITS: VDD 1.8-5.5 V [D001]; IDD max 1 mA at SCL = 1 MHz [D004]; standby IDDS max 1 uA (2 uA at 4.5-5.5 V / +125 C) [D005]. GPIO output drive VOL max 0.6 V at IOL 8.5 mA (VDD 4.5 V), VOH min VDD-0.7 V at IOH -3.0 mA (VDD 4.5 V) and at IOH -400 uA (VDD 1.8 V) [D080/D090]. Absolute maximum 25 mA sunk or sourced by any one output pin, 150 mA out of VSS, 125 mA into VDD, 700 mW total dissipation. GPIO capacitive load limit CIO 50 pF [D101].",
+  "NO-CONNECT PINS: SSOP pins 7 ('NC', the MCP23S08 CS pin), 10 and 11 ('N/C'). DS20001919F gives no instruction for these - it neither requires them grounded nor forbids it. Leaving them unconnected is the literal reading.",
+  "POWER-ON RESET: 'The on-chip POR circuit holds the device in Reset until VDD has reached a high enough voltage to deactivate the POR circuit' [1.2, p.5]. VDD start voltage to ensure POR VPOR = VSS [D002]; VDD rise rate to ensure POR SVDD min 0.05 V/ms, 'Design guidance only. Not tested.' [D003]. A slow or non-monotonic 3.3 V ramp can therefore leave the part un-reset - if the rail ramp is soft, use the RESET pin.",
+  "GAP: DS20001919F HAS NO PCB LAYOUT SECTION AT ALL - no ground/power plane advice, no keepout, no loop-area or Kelvin-connection guidance, no thermal guidance, and no decoupling recommendation. Everything above is transcribed from the pin table, the register tables, the electrical characteristics and the packaging drawings. Standard practice (a local 100 nF from pin 20 to pin 9, short return) is NOT sourced from this document."
+ ],
+ "abs_max": [
+  {
+   "param": "Ambient temperature under bias (Absolute Maximum Ratings, p.21)",
+   "value": "-40 to +125",
+   "unit": "C"
+  },
+  {
+   "param": "Storage temperature (Absolute Maximum Ratings, p.21)",
+   "value": "-65 to +150",
+   "unit": "C"
+  },
+  {
+   "param": "Voltage on VDD with respect to VSS (Absolute Maximum Ratings, p.21)",
+   "value": "-0.3 to +5.5",
+   "unit": "V"
+  },
+  {
+   "param": "Voltage on all other pins with respect to VSS, except VDD (Absolute Maximum Ratings, p.21) - i.e. SCL, SDA, A2, A1, A0, RESET, INT, GP0-GP7 are NOT 5 V tolerant above VDD+0.6 V",
+   "value": "-0.6 to (VDD + 0.6)",
+   "unit": "V"
+  },
+  {
+   "param": "Total power dissipation (Absolute Maximum Ratings, p.21)",
+   "value": 700,
+   "unit": "mW"
+  },
+  {
+   "param": "Maximum current out of VSS pin (Absolute Maximum Ratings, p.21)",
+   "value": 150,
+   "unit": "mA"
+  },
+  {
+   "param": "Maximum current into VDD pin (Absolute Maximum Ratings, p.21)",
+   "value": 125,
+   "unit": "mA"
+  },
+  {
+   "param": "Input clamp current IIK, VI < 0 or VI > VDD (Absolute Maximum Ratings, p.21)",
+   "value": 20,
+   "unit": "mA"
+  },
+  {
+   "param": "Output clamp current IOK, VO < 0 or VO > VDD (Absolute Maximum Ratings, p.21)",
+   "value": 20,
+   "unit": "mA"
+  },
+  {
+   "param": "Maximum output current sunk by any output pin (Absolute Maximum Ratings, p.21)",
+   "value": 25,
+   "unit": "mA"
+  },
+  {
+   "param": "Maximum output current sourced by any output pin (Absolute Maximum Ratings, p.21)",
+   "value": 25,
+   "unit": "mA"
+  },
+  {
+   "param": "Supply voltage VDD (OPERATING, D001, p.22: min/max)",
+   "value": "1.8 to 5.5",
+   "unit": "V"
+  },
+  {
+   "param": "SPECIFIED OPERATING CONDITION 'I-Temp' (heading of every DC and AC table, p.22-25): VDD range valid over TA -40 to +85 C",
+   "value": "1.8 to 5.5 V at -40 to +85",
+   "unit": "C"
+  },
+  {
+   "param": "SPECIFIED OPERATING CONDITION 'E-Temp' (heading of every DC and AC table, p.22-25): the ONLY VDD range specified up to +125 C - the part is NOT specified at +125 C on a 3.3 V rail",
+   "value": "4.5 to 5.5 V at -40 to +125",
+   "unit": "C"
+  },
+  {
+   "param": "Ordering temperature range, MCP23008T-E/SS ('E' suffix, PRODUCT IDENTIFICATION SYSTEM, p.41)",
+   "value": "-40 to +125 (Extended) - see the footnote and the E-Temp/I-Temp split above",
+   "unit": "C"
+  },
+  {
+   "param": "VDD rise rate to ensure Power-on Reset SVDD (D003, p.22) - 'Design guidance only. Not tested.'",
+   "value": ">= 0.05",
+   "unit": "V/ms"
+  },
+  {
+   "param": "SDA bus capacitance CB (D102, p.22; note 2 on p.25: 'CB is specified to be from 10 to 400 pF')",
+   "value": "<= 400",
+   "unit": "pF"
+  },
+  {
+   "param": "Max I2C bit rate at VDD = 3.3 V (Features p.1: 400 kHz mode requires 2.7-5.5 V, 1.7 MHz mode requires 4.5-5.5 V)",
+   "value": 400,
+   "unit": "kHz"
+  }
+ ],
+ "source_pdf": "boards/lumina-strobe/parts/C629435.pdf (Microchip MCP23008/MCP23S08 8-Bit I/O Expander with Serial Interface, DS20001919F, 2004-2019 Microchip Technology Inc., 43 pages)"
+}

@@ -1,0 +1,74 @@
+{
+  "mpn": "IRF640NSTRLPBF",
+  "lcsc": "C23708",
+  "package": "D2Pak (TO-263AB)",
+  "description": "International Rectifier / Infineon HEXFET fifth-generation planar N-channel power MOSFET, 200 V / 18 A / 0.15 ohm. Datasheet PD-95046A dated 07/23/10, 11 pages, covers THREE package variants under one document: IRF640NPbF (TO-220AB), IRF640NSPbF (D2Pak = TO-263AB) and IRF640NLPbF (TO-262). The ordered part IRF640NSTRLPBF is the D2Pak, tape-and-reel order code; the datasheet's own part name for that variant is IRF640NSPbF. IMPORTANT: because the document is shared, several parameters are footnoted to a specific package - see layout_notes for which thermal numbers apply to D2Pak and which are TO-220AB only. This datasheet contains NO application/layout section, NO decoupling guidance, and NO recommended land pattern (it defers the footprint to IR application note AN-994, which is not part of the PDF). It also never maps the package lead numbers 1/2/3 to Gate/Drain/Source - see OPEN and the per-pin notes.",
+  "pinout": [
+    {
+      "pin": "1",
+      "name": "LEAD1_UNASSIGNED",
+      "type": "unspecified",
+      "notes": "GROUNDING WARNING - DO NOT WIRE FROM MEMORY. The D2Pak (TO-263AB) package outline on p.9 numbers the three gull-wing leads 1, 2, 3 (left to right in the pin-down front view) but the datasheet NEVER states which of them is Gate, Drain or Source. The only G/D/S labels in the entire 11-page PDF are on the MOSFET schematic symbol (p.1 and p.2), which carries no pin numbers. The TO-220AB outline on p.8 is the same: leads numbered 1/2/3, no G/D/S. This name is a deliberate placeholder so no schematic agent can silently wire it."
+    },
+    {
+      "pin": "2",
+      "name": "LEAD2_UNASSIGNED_TAB_STUB",
+      "type": "unspecified",
+      "notes": "GROUNDING WARNING - DO NOT WIRE FROM MEMORY. Centre lead. In the p.9 front view this lead alone is drawn TRUNCATED (it terminates at the body with no formed foot), and the lead dimension callouts read '2x b' and '2x b2' - i.e. only two of the three leads carry the formed-lead metal dimensions. Geometrically therefore lead 2 is a stub of the same stamping as the tab. The PDF still does not state its electrical identity."
+    },
+    {
+      "pin": "3",
+      "name": "LEAD3_UNASSIGNED",
+      "type": "unspecified",
+      "notes": "GROUNDING WARNING - DO NOT WIRE FROM MEMORY. Third gull-wing lead, formed foot, carries the b/b2/L dimensions. Electrical identity (G/D/S) not stated anywhere in this PDF."
+    },
+    {
+      "pin": "TAB",
+      "name": "TAB_THERMAL_PAD",
+      "type": "unspecified",
+      "notes": "Exposed backside metal of the D2Pak. The p.9 outline calls it only a THERMAL PAD (outline note 4: 'THERMAL PAD CONTOUR OPTIONAL WITHIN DIMENSION E, L1, D1 & E1'). Its electrical node is NOT stated by this datasheet. BOARD-LEVEL FACT (from the assignment, not from the PDF): on LUM-DTR-STROBE-A the tab sits in the 48 V drain domain, so it must be treated as a live high-voltage copper surface for clearance/creepage and it is thermally the only path out of the die (RthJC 1.0 C/W)."
+    }
+  ],
+  "land_pattern": {
+    "package": "D2Pak / TO-263AB (p.9 outline note 8: 'OUTLINE CONFORMS TO JEDEC OUTLINE TO-263AB')",
+    "pad_count": 4,
+    "pitch_mm": 2.54,
+    "pin1": "1",
+    "notes": "NOT A RECOMMENDED LAND PATTERN - this datasheet does not publish one. p.11 note: 'This is applied to D2Pak, when mounted on 1\" square PCB (FR-4 or G-10 Material). For recommended footprint and soldering techniques refer to application note #AN-994.' AN-994 is NOT included in this PDF. Everything below is read off the p.9 D2Pak PACKAGE OUTLINE table, i.e. body/lead geometry, not solder-land geometry; treat fp_verify results accordingly. pitch_mm = e = 2.54 BSC (lead pitch, 0.100 in BSC). pad_count = 4 counts the three gull-wing leads (1,2,3) plus the single exposed thermal tab; a KiCad TO-263 footprint that merges the tab land into a lead land (e.g. TabPin2 variants) may report a different copper-pad count - reconcile that before trusting a pad_count error. pad_size_mm DELIBERATELY OMITTED: the PDF gives lead metal widths only, never land sizes. PACKAGE OUTLINE TABLE (mm, min/max): A 4.06/4.83; A1 0.00/0.254; b 0.51/0.99; b1 0.51/0.89; b2 1.14/1.78; b3 1.14/1.73; c 0.38/0.74; c1 0.38/0.58; c2 1.14/1.65; D (body length) 8.38/9.65; D1 6.86/-; E (body width) 9.65/10.67; E1 6.22/-; e 2.54 BSC; H (overall height incl. formed leads) 14.61/15.88; L 1.78/2.79; L1 -/1.65; L2 -/1.78; L3 0.25 BSC; L4 4.78/5.28. OUTLINE NOTES: (3) D & E do not include mold flash; flash shall not exceed 0.127 mm (.005 in) per side, measured at the outermost extremes of the plastic body at datum plane H. (4) Thermal pad contour optional within dimension E, L1, D1 & E1. (5) Dimension b1 and c1 apply to base metal only. (6) Datum A & B to be determined at datum plane H. (7) Controlling dimension: inch. (8) Outline conforms to JEDEC outline TO-263AB."
+  },
+  "exposed_pad": {
+    "present": true
+  },
+  "layout_notes": [
+    "SOA (Fig 8, p.4) - THE PUBLISHED PULSE-WIDTH LINES ARE 10us, 100us, 1ms AND 10ms ONLY. There is NO DC line, and the plot does NOT extend to 100 ms or 200 ms. The legend box reads exactly 'TC = 25 C / TJ = 175 C / Single Pulse' - the SOA is referenced to CASE temperature 25 C, not ambient.",
+    "SOA drain current at Vds = 10 V, taken from the Fig 8 vector geometry (axis calibration cross-checked: the +1-slope left boundary is exactly the Rds(on) = 0.15 ohm line, and the top plateau is exactly Idm = 72 A): 10us -> 72 A (still clamped by the 72 A Idm plateau); 100us -> 72 A (plateau); 1ms -> 53 A; 10ms -> 20 A. The sloped branch of each line is a constant-power line of 8200 W (10us), 2001 W (100us), 534 W (1ms), 200 W (10ms); each line ends at the Vdss = 200 V dashed boundary at 41 A / 10 A / 2.7 A / 1.0 A respectively.",
+    "THE BOARD'S 5-200 ms LINEAR-MODE PULSES ARE OFF THE PUBLISHED SOA AND MUST BE DERIVED. Grounded basis for a derivation, entirely from this PDF: all four Fig 8 constant-power lines satisfy P * Zth(j-c)(t) = 150 C exactly against the Fig 11 single-pulse curve (8200 x 0.0183 = 150; 2001 x 0.0751 = 150; 534 x 0.280 = 150; 200 x 0.749 = 150). This SOA is therefore a PURE THERMAL (Zth) LIMIT - the plot shows no secondary-breakdown / Spirito derating knee anywhere. Extending the same rule gives ~151 W at 100 ms and ~150 W at 200 ms, which lands on the Pd = 150 W @ Tc = 25 C rating. CAVEAT: whether a planar HEXFET is actually thermally stable in linear mode at those pulse widths is NOT answered by this datasheet - see the Fig 3 crossover note.",
+    "Fig 11 (p.5) MAXIMUM EFFECTIVE TRANSIENT THERMAL IMPEDANCE, JUNCTION-TO-CASE, SINGLE PULSE, normalized (multiply by RthJC = 1.0 C/W max): t = 10us -> 0.018; 100us -> 0.075; 1ms -> 0.280; 5ms -> 0.59; 10ms -> 0.749; 25ms -> 0.92; 50ms -> 0.97; 100ms -> 0.99; >=150ms -> 1.00 (fully steady state). Beyond ~150 ms the device is at DC and the limit is the 150 W Pd @ Tc = 25 C with 1.0 W/C linear derating. Fig 11 notes: duty factor D = t1/t2; peak Tj = P_DM x Zth(jc) + Tc.",
+    "THERMAL RESISTANCE (p.2), with the footnotes that decide which package each applies to: RthJC junction-to-case 1.0 C/W MAX (no typ). RthCS case-to-sink, flat greased surface 0.50 C/W typ - footnoted 'This is only applied to TO-220AB package'. RthJA junction-to-ambient 62 C/W max - same TO-220AB-only footnote. RthJA junction-to-ambient (PCB mount) 40 C/W max - footnoted 'This is applied to D2Pak, when mounted on 1\" square PCB (FR-4 or G-10 Material)'. So the ONLY D2Pak RthJA figure in this datasheet, 40 C/W, ASSUMES ONE SQUARE INCH (645 mm2) of FR-4/G-10 PCB copper. p.1 adds that the D2Pak 'can dissipate up to 2.0W in a typical surface mount application'.",
+    "Vgs(th) GATE THRESHOLD VOLTAGE: 2.0 V MIN, 4.0 V MAX, no typ published; conditions Vds = Vgs, Id = 250 uA. The 2.0 V spread between min and max is the matching problem for five paralleled/independent linear stages.",
+    "TRANSFER CHARACTERISTIC / TEMPERATURE COEFFICIENT (Fig 3, p.3; conditions Vds = 50 V, 20 us pulse width). The Tj = 25 C and Tj = 175 C curves CROSS at approximately Vgs = 6.4 V, Id = 24 A (zero-temperature-coefficient point). BELOW ~24 A the Tj = 175 C curve lies ABOVE the Tj = 25 C curve, i.e. POSITIVE current temperature coefficient - the thermally unstable / current-hogging region. The board's ~2.6 A pass current is deep inside that positive-tempco region. Curve sample points (Vgs -> Id at Tj=25 C / Id at Tj=175 C): 4.50 -> 0.71 A / 3.73 A; 4.86 -> 2.4 / 6.5; 5.22 -> 5.8 / 10.1; 5.59 -> 10.7 / 14.2; 5.95 -> 16.6 / 18.7; 6.31 -> 23.1 / 23.3; 6.66 -> 29.9 / 28.2; 7.03 -> 36.5 / 33.1; 8.11 -> 56.7 / 48.3; 9.00 -> 72.0 / 56.7. No numeric temperature coefficient of Vgs(th) or of Id is tabulated anywhere; only the breakdown voltage tempco is given (0.25 V/C typ, ref 25 C, Id = 1 mA).",
+    "GATE DRIVE LOAD (the op-amp drives this gate directly): Qg 67 nC MAX, Qgs 11 nC max, Qgd (Miller) 33 nC max, all at Id = 11 A, Vds = 160 V, Vgs = 10 V. Ciss 1160 pF typ, Coss 185 pF typ, Crss 53 pF typ at Vgs = 0 V, Vds = 25 V, f = 1.0 MHz. Fig 5 (p.4) shows Ciss RISING to roughly 2000 pF as Vds falls toward 1 V - the low-Vds end of a linear-mode drop is the high-capacitance end. Switching times (Vdd = 100 V, Id = 11 A, Rg = 2.5 ohm, Rd = 9.0 ohm): td(on) 10 ns, tr 19 ns, td(off) 23 ns, tf 5.5 ns typ. Internal package inductance: Ld 4.5 nH, Ls 7.5 nH (between lead 6 mm / 0.25 in from package and centre of die contact).",
+    "Rds(on) 0.15 ohm MAX at Vgs = 10 V, Id = 11 A (footnoted: pulse width <= 400 us, duty cycle <= 2%). Fig 4 (p.3) normalized Rds(on) vs Tj at Vgs = 10 V, Id = 18 A: about 0.5x at -60 C, 1.0x at 25 C, rising monotonically to about 2.9x at 175 C. Forward transconductance gfs 6.8 S MIN at Vds = 50 V, Id = 11 A.",
+    "BODY DIODE (source-drain): Is continuous 18 A, Ism pulsed 72 A; Vsd 1.3 V max at Tj = 25 C, Is = 11 A, Vgs = 0 V; trr 167 ns typ / 251 ns max; Qrr 929 nC typ / 1394 nC max at Tj = 25 C, If = 11 A, di/dt = 100 A/us. Peak diode recovery dv/dt 8.1 V/ns max (conditions: Isd <= 11 A, di/dt <= 344 A/us, Vdd <= V(BR)Dss, Tj <= 175 C).",
+    "AVALANCHE: Eas 247 mJ single pulse (conditions: starting Tj = 25 C, L = 4.2 mH, Rg = 25 ohm, Ias = 11 A); Iar 18 A; Ear 15 mJ repetitive (repetitive rating; pulse width limited by max junction temperature). Fig 12c (p.6) plots Eas vs starting Tj for Id = 4.4 A / 7.6 A / 11 A, falling from about 550 mJ at 25 C to zero at 175 C for the 4.4 A curve.",
+    "THE VENDOR PRINTS NO APPLICATION LAYOUT SECTION. The only 'Circuit Layout Considerations' in the document (p.7) belong to the peak-diode-recovery dv/dt TEST FIXTURE, not to an application: 'Low Stray Inductance', 'Ground Plane', 'Low Leakage Inductance Current Transformer'. There is no decoupling guidance, no Kelvin-source guidance, no copper-area recommendation beyond the 1 in-square RthJA condition, and no keepout guidance anywhere in this PDF.",
+    "FOOTPRINT/ASSEMBLY: recommended footprint and soldering technique are explicitly deferred to Infineon/IR application note AN-994 (p.11 note), which is not in this PDF. Soldering temperature 300 C for 10 seconds, 1.6 mm from case. Mounting torque 10 lbf-in (1.1 N-m) for a 6-32 or M3 screw is footnoted TO-220AB-only and is irrelevant to the D2Pak. D2Pak tape & reel data is on p.11 (TRR and TRL feed directions, 330.00 mm max reel)."
+  ],
+  "abs_max": [
+    {"param": "Vdss drain-to-source voltage (headline p.1; V(BR)Dss 200 V min at Vgs=0 V, Id=250 uA, p.2)", "value": 200, "unit": "V"},
+    {"param": "Vgs gate-to-source voltage", "value": "+/-20", "unit": "V"},
+    {"param": "Id continuous drain current at Tc = 25 C, Vgs = 10 V", "value": 18, "unit": "A"},
+    {"param": "Id continuous drain current at Tc = 100 C, Vgs = 10 V", "value": 13, "unit": "A"},
+    {"param": "Idm pulsed drain current (repetitive rating; pulse width limited by max junction temperature)", "value": 72, "unit": "A"},
+    {"param": "Pd power dissipation at Tc = 25 C", "value": 150, "unit": "W"},
+    {"param": "Linear derating factor", "value": 1.0, "unit": "W/C"},
+    {"param": "Eas single pulse avalanche energy (starting Tj = 25 C, L = 4.2 mH, Rg = 25 ohm, Ias = 11 A)", "value": 247, "unit": "mJ"},
+    {"param": "Iar avalanche current (repetitive rating)", "value": 18, "unit": "A"},
+    {"param": "Ear repetitive avalanche energy", "value": 15, "unit": "mJ"},
+    {"param": "dv/dt peak diode recovery (Isd <= 11 A, di/dt <= 344 A/us, Vdd <= V(BR)Dss, Tj <= 175 C)", "value": 8.1, "unit": "V/ns"},
+    {"param": "Tj operating junction and Tstg storage temperature range", "value": "-55 to +175", "unit": "C"},
+    {"param": "Soldering temperature, 10 seconds, 1.6 mm from case", "value": 300, "unit": "C"},
+    {"param": "Mounting torque, 6-32 or M3 screw (TO-220AB only, not applicable to D2Pak)", "value": "10 lbf-in (1.1 N-m)", "unit": "-"}
+  ],
+  "source_pdf": "parts/C23708.pdf"
+}

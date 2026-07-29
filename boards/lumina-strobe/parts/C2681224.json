@@ -1,0 +1,55 @@
+{
+  "mpn": "SN74LVC1G3157DCKR",
+  "lcsc": "C2681224",
+  "package": "SC-70-6",
+  "description": "UMW (UTD Semiconductor Co., Limited) SN74LVC1G3157 single-pole double-throw (2:1) CMOS analogue switch / multiplexer-demultiplexer. Datasheet 'UMW SN74LVC1G3157', Aug.2025, 15 pages, covers three packages under one document: SC70-6 (order code SN74LVC1G3157DCKR, top marking '3157T'), DFN6 (SN74LVC1G3157Y) and SOT23-6 (SN74LVC1G3157DBVR) - the pin ASSIGNMENT differs between DFN6 and the other two, so only the SC70-6 column of the p.2 pinning diagram is used here. Bidirectional: A is the common port, B0/B1 are the two switched ports, Select chooses between them. Break-before-make ('First break and then open protection to prevent short circuit'). Supply 1.65-5.5 V, analogue range 0 to Vcc, Ron ~4 ohm typ near ground at Vcc = 3 V. This datasheet has NO application section, NO decoupling guidance, NO PCB layout guidance and NO recommended land pattern (section 9.1 is a package OUTLINE only).",
+  "pinout": [
+    {"pin": "1", "name": "B1", "type": "bidirectional", "notes": "Switched port 1. p.2 pin-function table classes A, B0, B1 as I/O 'Data Port'. Bidirectional analogue/digital pass port; connected to A when Select = H."},
+    {"pin": "2", "name": "GND", "type": "ground", "notes": "p.2 pin-function table lists GND function as 'Land' (translation of ground/0 V reference)."},
+    {"pin": "3", "name": "B0", "type": "bidirectional", "notes": "Switched port 0. Connected to A when Select = L."},
+    {"pin": "4", "name": "A", "type": "bidirectional", "notes": "COMMON port. Always connected to either B0 or B1 - there is no OFF/high-Z state and no enable pin on this device."},
+    {"pin": "5", "name": "VCC", "type": "power_in", "notes": "Power supply terminal. Recommended operating 1.65 to 5.5 V; abs-max -0.5 to +7.0 V."},
+    {"pin": "6", "name": "Select", "type": "input", "notes": "Control selection, digital input (p.2 pin-function table: I). Select = L routes B0 to A; Select = H routes B1 to A. p.3 note: the Select input 'must be set to a high level or a low level, and cannot be left floating'. p.1: the Select input has over-voltage protection allowing an input voltage above Vcc, up to 7 V, without damage."}
+  ],
+  "land_pattern": {
+    "package": "SC-70-6 (datasheet section 9.1 'SC70-6 Package Outline Dimensions'; 6-lead 3+3 gull-wing, same land family as SOT-363)",
+    "pad_count": 6,
+    "pitch_mm": 0.65,
+    "pin1": "1",
+    "notes": "NOT A RECOMMENDED LAND PATTERN - section 9.1 is titled 'Package Outline Dimensions' and this datasheet publishes no solder-land drawing at all. pitch_mm = e = 0.65 TYP (lead pitch) from the 9.1 table. pad_size_mm and row_spacing_mm DELIBERATELY OMITTED: the PDF gives lead metal width (b) and the across-leads envelope (E) but no land sizes and no land row spacing. PACKAGE OUTLINE TABLE 9.1 (mm, min/max): A 0.90/1.10; A1 0.00/0.10; A2 0.90/1.00; b (lead width) 0.15/0.35; c (lead thickness) 0.08/0.15; D (body length) 2.05/2.25; E (overall width across formed leads) 2.15/2.45; E1 (body width) 1.15/1.35; e 0.65 TYP; e1 (pin1-to-pin3 span, = 2 x e) 1.2/1.4; L (foot length) 0.26/0.46; L1 0.525 REF; lead foot flat 0.20; lead angle theta 0 to 8 degrees. PIN-1 LOCATION: the p.2 SC70-6 pinning diagram places pins 1-2-3 down one side (1 at the top) and 6-5-4 down the other (6 at the top), i.e. pin 1 faces pin 6, pin 2 faces pin 5, pin 3 faces pin 4 - the same opposition the p.2 SOT23-6 view draws physically (bottom row 1-2-3 = B1/GND/B0, top row 6-5-4 = Select/Vcc/A). The 9.1 outline drawing shows the 3+3 lead arrangement but does NOT number the leads and shows no pin-1 index/dot, so the physical pin-1 corner marking is not stated by this PDF."
+  },
+  "exposed_pad": {
+    "present": false
+  },
+  "layout_notes": [
+    "TRUTH TABLE (p.2 'Function Description'): Select = L -> B0 connected to A. Select = H -> B1 connected to A. These are the only two states: there is no OFF / high-impedance state and no enable pin, so the common pin A is ALWAYS bonded to one of B0/B1. Any fail-safe direction must therefore be designed into which of B0/B1 carries the safe node, plus a deterministic default on Select.",
+    "SELECT MUST NOT FLOAT. p.3, note under the Working Environment table, verbatim: 'The input voltage of 2:Select terminal must be set to a high level or a low level, and cannot be left floating.' (The '2:' is a list index in the translated text, not a pin number - Select is pin 6 in SC-70-6.) A floating Select is an unspecified state; drive or pull it deterministically, including during MCU reset/boot.",
+    "BREAK-BEFORE-MAKE. p.1 feature list: 'First break and then open protection to prevent short circuit'. The AC table (p.6) carries tB-M 'Break before connect time'. B0 and B1 are therefore never shorted to each other through the switch during a transition.",
+    "ANALOGUE SIGNAL RANGE = 0 TO VCC, RAIL-TO-RAIL, NO BEYOND-RAIL CAPABILITY. p.4 'Analog level input / Into the scope': min 0, max Vcc, both at TA = 25 C and over TA = -40 to +85 C. p.3 Working Environment repeats it for switch input voltage and output voltage (0 to Vcc). p.1: 'The voltage output range of analog signal and digital signal can be from VCC or GND'. A regulator setpoint sitting just above 0 V is inside the rated range, but note that the Ron specification points stop AT VIN = 0 V - nothing is specified below ground. Abs-max on the switch ports (Vs) is -0.5 to Vcc+0.5 V, so the ports are NOT overvoltage tolerant even though the Select pin is.",
+    "ON-RESISTANCE vs SUPPLY (p.4, Ron; first number = typ at TA = 25 C, second = max over TA = -40 to +85 C). Vcc = 4.5 V: 3 / 7 ohm at Vin = 0 V, Io = 30 mA; 5 / 12 ohm at Vin = 2.4 V; 7 / 15 ohm at Vin = 4.5 V. Vcc = 3 V: 4 / 9 ohm at Vin = 0 V, Io = 24 mA; 10 / 20 ohm at Vin = 3 V, Io = -24 mA. Vcc = 2.3 V: 5 / 12 ohm at Vin = 0 V, Io = 8 mA; 13 / 30 ohm at Vin = 2.3 V. Vcc = 1.65 V: 6.5 / 20 ohm at Vin = 0 V, Io = 4 mA; 17 / 50 ohm at Vin = 1.65 V. Ron is LOWEST near ground and rises steeply toward the positive rail, so a near-ground setpoint is the best-case operating point. Ron is measured as the ratio of the A-to-B voltage difference to the current through the two ports, and is determined by the LOWER-voltage port of A and B (note 3).",
+    "RON MATCHING AND FLATNESS (p.5; typ at 25 C / max over -40 to +85 C). Rrange (full-signal-range on-resistance, 0 <= VBn <= Vcc): Vcc 4.5 V -> 10 ohm typ; 3 V -> 18; 2.3 V -> 45; 1.65 V -> 140. dRon (on-resistance matching between channels, = Ron max - Ron min in the given Vcc/temperature/level range): Vcc 4.5 V -> 0.15 ohm typ; 3 V -> 0.2; 2.3 V -> 0.5; 1.65 V -> 0.5. Rflat (on-resistance flatness): Vcc 4.5 V -> 6 typ / 25 max; 3 V -> 12 / 50; 2.3 V -> 28 / 100; 1.65 V -> 125 / 300 ohm. Note 7 marks Rrange as a design simulation value.",
+    "SELECT-PIN LOGIC THRESHOLDS (p.4). Vih: Vcc 1.65-1.95 V -> 0.7*Vcc typ (0.75*Vcc over temperature); Vcc 2.3-2.8 V -> 1.4 V (1.5 V over temperature); Vcc 3-4.2 V -> 2.3 V (2.4 V over temperature); Vcc 4.5-5.5 V -> 0.6*Vcc. Vil: Vcc 1.65-1.95 V -> 0.25*Vcc; Vcc 2.3-2.8 V -> 0.4 V; Vcc 3-5.5 V -> 0.3*Vcc. Input rise/fall rate limit (p.3): 10 ns/V max at Vcc = 2.3-3.6 V, 5 ns/V max at Vcc = 4.5-5.5 V.",
+    "LEAKAGE AND SUPPLY CURRENT (p.4): Iin input leakage +/-0.05 uA typ, +/-0.1 uA max at 25 C, +/-1 uA max over -40 to +85 C (0 < Vin < 5.5 V). Ioff off-state leakage +/-0.05 typ, +/-0.1 max at 25 C, +/-1 uA max over temperature (0 < A,B < Vcc). Icc quiescent 1 uA max at 25 C, 10 uA max over temperature (Vcc = 5.5 V, Vin = Vcc or GND, Iout = 0). Charge injection 7 pC at Vcc = 5 V (Fig 3, CL = 0.1 nF, Vgen = 0 V, Rgen = 0 ohm; design simulation value). Cin 2.3 pF typ; A-port on-capacitance 15.5 pF typ.",
+    "THERMAL: the ONLY thermal figure in this datasheet is theta_JA = 270 C/W (p.2 section 4 'Thermal Resistance Data'). NO board size, copper area or airflow condition is stated for it. Total power dissipation is rated Pd = 180 mW at 85 C (abs-max table, p.3).",
+    "TEMPERATURE GRADE - READ THIS. This PDF states -40 C to +125 C, NOT -55 C. p.1 Description bullet, verbatim: 'Working temperature -40 degC ~ +125 degC'. p.3 Working Environment: TA min -40, max +125 C. Storage Tstg -65 to +150 C; max junction Tj 150 C. FURTHERMORE every electrical-characteristics table in the document (7.1 DC on p.4-5, 7.2 AC on p.6-7) is headed 'TA = 25 C' and 'TA = -40 C ~ 85 C' - NOTHING at all is specified between +85 C and +125 C. See OPEN: the -55 C claim carried in parts.json is an LCSC attribute string, not a datasheet statement.",
+    "NO DECOUPLING OR PCB LAYOUT GUIDANCE EXISTS IN THIS DATASHEET. There is no application section, no bypass-capacitor recommendation, no ground-plane or keepout advice. Any Vcc bypass (e.g. the usual 100 nF per supply pin) is a house rule, not a vendor requirement, and must be recorded as such.",
+    "ORDERING / MARKING (p.14): order code 'UMW SN74LVC1G3157DCKR', package SC70-6, marking '3157T' (second line 'UMW yww', yww = batch code), base qty 3000, tape and reel. The DFN6 variant is marked 'C6' and the SOT23-6 variant 'CC5F' - useful for incoming-inspection disambiguation since all three share this datasheet.",
+    "AC PERFORMANCE, for reference (p.6, Vcc = 3.0-3.5 V column, typ / max over -40 to +85 C): tPHL/tPLH 2.5 / 2.7 ns; tPZL/tPZH 6.9 / 7.6 ns; tPLZ/tPHZ 5.0 / 5.3 ns; -3 dB bandwidth 350 MHz; off-isolation -57 dB and crosstalk -54 dB at 10 MHz, RL = 50 ohm. Notes 7 and 8 mark several of these as design simulation values rather than measured."
+  ],
+  "abs_max": [
+    {"param": "Vcc supply voltage", "value": "-0.5 to +7.0", "unit": "V"},
+    {"param": "Vs switching voltage (switch ports A, B0, B1)", "value": "-0.5 to Vcc+0.5", "unit": "V"},
+    {"param": "Vin input voltage (Select)", "value": "-0.5 to +7.0", "unit": "V"},
+    {"param": "Iik input clamp diode current at Vin = 0 V", "value": -50, "unit": "mA"},
+    {"param": "Iout output current", "value": 128, "unit": "mA"},
+    {"param": "Icc / Ignd supply-to-ground current", "value": 100, "unit": "mA"},
+    {"param": "Tstg storage temperature range", "value": "-65 to +150", "unit": "C"},
+    {"param": "Tj maximum junction temperature", "value": 150, "unit": "C"},
+    {"param": "Tl lead/wire temperature (welding, 10 seconds)", "value": 260, "unit": "C"},
+    {"param": "Pd total power dissipation at 85 C", "value": 180, "unit": "mW"},
+    {"param": "TA operating ambient temperature (RECOMMENDED OPERATING RANGE, p.3, not abs max)", "value": "-40 to +125", "unit": "C"},
+    {"param": "Vcc supply voltage (RECOMMENDED OPERATING RANGE, p.3, not abs max)", "value": "1.65 to 5.5", "unit": "V"},
+    {"param": "Analogue/switch signal range (RECOMMENDED OPERATING RANGE, p.3/p.4, not abs max)", "value": "0 to Vcc", "unit": "V"}
+  ],
+  "source_pdf": "parts/C2681224.pdf"
+}

@@ -152,13 +152,103 @@ the floor is 38.7 V, if at 39.0 V it is 40.7 V. The board works across the whole
 
 ---
 
-## 3. The charge path
+## 3. The charge path  **[REV C - BLOCKING-04]**
+
+> **REV C, 2026-07-28. BLOCKING-04: the hot-swap controller's fault timer cannot survive normal
+> operation, on either candidate part. The controller is DELETED and the limiter is rebuilt as a
+> discrete loop.** s3.0 is the decision; s3.1-s3.2 are amended; **s3.3 is replaced** (it was the
+> section that predicted this failure); s3.4 is unchanged and is now load-bearing.
+
+### 3.0 BLOCKING-04 - decision and arithmetic
+
+**The defect.** `power_tree.md` s3.3 (rev B) established that the charge path is **in current-limit
+regulation ~87 % of the time** whenever the board is flashing at the sustained budget, and called
+the controller's fault-timer behaviour "the single most important datasheet read at P3", suspecting
+that programming the timer longer than the 653 ms cold start was "necessary but may not be
+sufficient". **P3 read the datasheets and it is not sufficient.** A hot-swap timer pin integrates
+up while the part is in current limit and down while it is not, and the two currents are wildly
+asymmetric:
+
+| controller | TIMER charge (in limit) | TIMER sink (out of limit) | ratio | **break-even duty** |
+|---|---|---|---|---|
+| TPS2490 | 25 uA | 2.5 uA | 10:1 | **9.09 %** |
+| LM5069 | 85 uA | 2.5 uA | 34:1 | **2.86 %** |
+
+**Design duty is 87 %.** The timer therefore integrates strongly positive and reaches its 4 V
+threshold **regardless of `C_TIMER`** - a bigger capacitor buys time, not immunity. LM5069-2 then
+drops into 0.5 %-duty auto-restart and the bank effectively stops charging; LM5069-1 and TPS2490
+latch off. **No controller in this class omits the timer, because the timer is what protects the
+external FET's SOA. This is an architecture defect, not a part substitution.**
+
+**Root cause, named: the design was using a fault protector as a charging regulator.** ICD s6.6
+warns about exactly that one level up - *"the carrier eFuse is a fault protector, not a charging
+regulator"* - and this board reproduced the same mistake one level down. **The fix is to build a
+charging regulator.**
+
+**Route (a), series resistance so the limiter only engages at cold start - REJECTED, and the reason
+is sharper than "insufficient".** A series resistor's current is proportional to `(48 - V_bank)`, so
+the recharge sawtooth turns into a current swing, and:
+
+```
+  headroom between the sustained draw and the PSE-imposed limit:  0.200 - 0.172 = 0.028 A
+  sawtooth current swing at 25 Hz with R = 28 ohm:                +/- (dV/2)/R  = 0.045 A
+```
+
+**The swing is 1.6x the headroom, so the limiter re-enters regulation on every recharge no matter
+how R is chosen.** Chasing it with a bigger resistor collapses the bank instead: at R = 45 ohm the
+peak finally reaches 0.200 A, but the mean bank voltage falls to **40.3 V** - below the 39.7 V floor
+plus its own sawtooth, i.e. the window is gone. Residual duty at a usable R = 28 ohm is ~14 %,
+still **1.5x above the TPS2490's break-even and 5x above the LM5069's**. Route (a) does not close.
+
+**Route (c), let firmware govern the demand so the limiter is never at the limit - REJECTED as
+primary.** It makes a hardware protection function depend on firmware, which is precisely what
+STR-REQ-20, STR-REQ-21 and the whole ENABLE contract exist to prevent. Retained only as secondary
+comfort: the s10.4 governor already caps rail power for thermal reasons and that cap incidentally
+reduces charge duty.
+
+**Route (b), a discrete linear current-limit loop with no fault timer - ADOPTED.** The board
+already contains every element it needs: the four drive stages *are* discrete linear current
+regulators, `protect` already carries two quad comparators and a spare op-amp section, and
+**an NTC already sits in the charge FET's own pour**, wired into the firmware-independent
+over-temperature trip. Rebuilding the charge limiter in the same shape is architecturally
+consistent with the rest of the board and **deletes the timer problem outright rather than tuning
+around it.**
+
+**Route (a) is retained inside route (b) - but for heat, not for duty.** Once there is no timer,
+the loop may sit in regulation as much as it likes, so the series resistor is freed to do the one
+thing it is genuinely good at: **move dissipation out of a D2PAK and into chip resistors**, which
+is worth an entire failing row in s10. See s3.3.
+
+### 3.0.1 What the discrete loop keeps, loses, and where the losses are covered
+
+The LM5069 was selected for four properties. Stated explicitly, as required:
+
+| LM5069 property | discrete loop | where it lands |
+|---|---|---|
+| **Hard current limit** | **KEPT, and improved** | A zener-referenced loop is temperature-stable to a few %. A `Vbe`-referenced limiter would **not** be: `Vbe` drifts 0.69 V (-20 C) to 0.47 V (90 C) = **1.47:1**, against an allowed window of 0.172-0.22 A = **1.28:1**. The tempco alone would consume the entire window, which is why the loop needs a real reference and not two transistors |
+| **Pass element held OFF below POR / with rails dead** | **KEPT, and strictly stronger** | The P-channel's **source-to-gate resistor holds it off passively**, requiring nothing powered. There is no POR window at all, because the OFF state is the unpowered state. The LM5069's hold depended on its own VCC coming up. **Second, independent hold:** ENABLE is passively low (carrier 10 k + daughter 100 k) and gates the loop's reference to zero, so the loop commands zero current through the start-up transient regardless of the op-amp's indeterminate first few hundred microseconds |
+| **100 V GND-referenced enable input** | **RE-IMPLEMENTED in 3 parts** | 2N7002 level shift - the identical pattern the four drive stages already use for their gate clamps |
+| **Programmable POWER limit (PLIM)** | **LOST, and it cost nothing** | Rev B s3.3 already established that "with a 0.20 A current limit the power limit then never engages in any case, which is the correct arrangement". **A function that never engaged is not a loss** |
+| **Programmable UVLO on `+48V_SW`** | **LOST - and this one needs a real answer, not a wave** | It is **not** covered by the bank UVLO comparator (U400 C), which watches `/VBANK`, not the rail. It is covered **by the carrier**: ICD s8.4 states the eFuse's *own* programmed UVLO on the 48 V side opens the FET below threshold, so **`+48V_SW` is either present at full voltage or absent - it is never delivered brownt-out.** The daughter does not need to defend against a sagging rail because the ICD guarantees it will not see one. If that guarantee is ever withdrawn, this is the line item that reopens |
+| **Fault timer** | **DELETED - the point of the exercise** | Replaced by the **NTC already fitted in Q100's pour**, feeding `/OT_TRIP`. Slower, and **correctly matched to the fault it must catch**: the fault is 9.6 W continuous into the charge FET, which cooks a D2PAK in *seconds*, not milliseconds. A millisecond-scale integrator was never the right instrument for a seconds-scale fault - it is the mismatch that produced BLOCKING-04 |
+
+**Second-order wins, confirmed:** deleting **LM5069MM-2 at $6.33/board** removes simultaneously
+**the most expensive part on the board, an Extended part, and a flagged single-source risk.** The
+discrete loop adds ~$1.70 of parts and ~2 new Extended feeders, for a **net saving of about
+$3.60/board.**
+
+**The cost, stated plainly:** the pass element becomes a **P-channel**, which **breaks P3's
+five-FETs-to-one-part-number consolidation** (it now covers the four pass FETs only) and adds a
+feeder back. **N-channel is not an option here:** an N-channel high-side switch needs its gate
+driven above the 48 V rail, i.e. a charge pump - which is exactly the function the deleted
+controller was providing internally. Trading one feeder for the deletion of a blocking defect and
+$6.33 is the right trade.
 
 ### 3.1 Compliance with ICD s6.6 (binding)
 
 | ICD s6.6 requirement | This design |
 |---|---|
-| Soft-start must be **CURRENT-limited, not merely slew-limited** | **Hard current limit at 0.20 A**, set by the controller's sense resistor. A dv/dt gate capacitor shapes the opening edge but is not the limit |
+| Soft-start must be **CURRENT-limited, not merely slew-limited** | **[REV C] Hard current limit at 0.20 A**, set by a **discrete error-amplifier loop** sensing across the series ballast resistor (s3.3). No dv/dt element is used at all - the limit is the control |
 | Operating charge current **<= 0.25 A (af)** | **0.20 A** |
 | Never exceed 1.0 A; never above 1.0 A for > 162 ms | Hard limit is 0.20 A - 5x below the ceiling |
 | Carrier eFuse must never enter current limit | It limits at 1.0 A; the daughter draws 0.20 A. **The 162 ms latch timer never starts** |
@@ -206,23 +296,69 @@ It is not a start-up element that retires once the bank is full: after each flas
 | 25 Hz, armed | 40 ms | 6.95 mC | 35 ms | 87 % |
 | 25 Hz, 44.5 V ceiling | 40 ms | 6.95 mC | 35 ms | 87 % |
 
-**Consequence for P3: the hot-swap controller's fault timer must tolerate an 87 %-duty
-current-limit regime indefinitely.** Programming it longer than the 653 ms cold start (which is what
-`protection-sense` R9 and `research/power.md` s7.2 asked for) is **necessary but may not be
-sufficient** - if the TIMER pin's discharge rate is much slower than its charge rate, a duty-cycled
-limit walks the timer to a latch during normal operation. **This is the single most important
-datasheet read at P3.** See OPEN-2 in `decisions.md`; the design is arranged so that it is not
-load-bearing: the fault the timer exists to catch (a shorted bank, 9.6 W continuous into the charge
-FET) is independently caught within seconds by the **NTC on the charge FET's own tab**, which is
-already fitted and already wired into the firmware-independent over-temperature trip.
+**That 87 % is what killed the hot-swap controller (s3.0), and it is why this prediction has been
+kept verbatim above rather than quietly edited.** The rev B text called it "the single most
+important datasheet read at P3"; P3 made that read and the answer was no. **In the discrete loop
+the 87 % duty is simply the normal operating condition and costs nothing**, because there is no
+integrator watching it.
 
-Also program `PLIM` **above** the normal peak: `V_ds x I_d` = 48 V x 0.20 A = **9.6 W** at the start
-of a cold start, so a 3 W power limit as `protection-sense` suggested would take over and stretch
-the start. **PLIM = 12 W.** With a 0.20 A current limit the power limit then never engages in any
-case, which is the correct arrangement - the current limit is the control and the power limit is a
-ceiling, not a regulator. (Do **not** use power limiting as the ramp control: with `Vds x Id = PLIM`
-the *input* current rises as the cap charges, so input power grows from `PLIM` toward `6 x PLIM`.
-Wrong shape for a fixed-input-power budget.)
+### 3.3 The discrete limiter, as built  **[REV C - replaces the timer trap]**
+
+```
+  +48V_SW --[ R100 || R101 : 2 x 39R 2512 = 19.5 ohm ]--+-- [P-ch FET Q100] --> /VBANK
+                     |                                  |
+                     +----- sense across the ballast ---+
+                                    |
+                        error amp (U100A, LM2904B half,
+                        floating 12 V rail referenced to +48V_SW)
+                                    |
+                        gate, with source-to-gate R = default OFF
+```
+
+**The ballast resistor IS the current sense.** At the 0.20 A limit it develops **3.9 V** - an
+enormous signal next to the LM2904B's 3 mV offset (0.08 % error), so no dedicated shunt, no
+high-side current-sense amplifier and no precision reference are needed. **One part doing two jobs
+is the reason this loop is cheaper than the controller it replaces.**
+
+| element | value | role |
+|---|---|---|
+| `R100`, `R101` | **2 x 39 ohm 2512 2 W in parallel = 19.5 ohm** | Series ballast **and** the current-sense element. Split in two for the same reason the active bleed is (s5.3): halves the per-part heat |
+| `Q100` | **P-channel MOSFET, 100-150 V, D2PAK/DPAK** | Pass element. **P-channel, because an N-channel high-side switch needs its gate above the 48 V rail** - a charge pump, which is the function the deleted controller was providing |
+| `U100A` | LM2904BIDR half, on a **floating 12 V rail** (24 k dropper + 12 V zener from `+48V_SW`) | Error amplifier. Both inputs sit within 3.9 V of `+48V_SW`, inside the floating supply |
+| `R103` | source-to-gate, 100 k | **The interlock of record for the charge path**: passively OFF with every rail dead, no POR window |
+| `Q101` + 2 R | 2N7002 level shift | ENABLE gates the loop's reference to zero. Same pattern as the four drive stages |
+| `D102` | 12 V zener gate-source | Protects Vgs when the loop pulls hard |
+
+**Why a ballast resistor is free, and this is the s3.4 argument reused:** the charge-path energy
+loss is `(48 - V_mean) x Q` **whatever element does the limiting** - FET, resistor, or both. So
+moving the loss into resistors costs **zero extra heat** and buys a much better place to put it:
+
+| | dissipation at 25 Hz, 44.5 V ceiling | at 90 C air | verdict |
+|---|---|---|---|
+| **`R100` + `R101`** (2512, 2 W each derated to 1.53 W at 90 C) | **0.606 W total, 0.303 W each** | 5.1x margin | **passes everywhere** |
+| **`Q100`** (D2PAK, allowance 0.685 W at 90 C) | **0.215 W** | **3.2x margin** | **passes everywhere** |
+| charge path total | 0.821 W - unchanged, the invariant holds | | |
+
+**Rev B's charge FET carried the whole 0.821 W and was one of the two rows that FAILED at 85-90 C
+air (s10.2). It now carries 0.215 W and passes with 3.2x.** That row is deleted from the failing
+set, which loosens the s10.4 governor cap - see s10.4.
+
+**The 44.5 V ceiling stays reachable**, which matters because rev B's two musical modes depend on
+it: at 0.172 A the total series drop is `0.172 x 20 =` 3.44 V, so `V_mean` = **44.5 V**, exactly at
+the ceiling. A larger ballast would have collapsed the window (s3.0's route-(a) arithmetic); 19.5
+ohm is chosen to sit right at the edge where the ceiling is still attainable.
+
+**Cold start improves too.** The loop holds 0.20 A until the ballast alone can no longer exceed it,
+i.e. up to **43.4 V**: **590 ms in regulation, and only 2.56 J into the FET instead of 3.13 J
+(-18 %)**, because the ballast absorbs the rest. That directly improves the s10.3 transient case.
+Total cold start is ~0.9 s including the RC tail, against 653 ms before - comfortably inside the
+10 s ENABLE re-arm contract.
+
+**SOA protection is now thermal, and that is the right instrument.** The fault this must survive is
+a shorted bank: 9.6 W continuous into `Q100`. **The NTC in `Q100`'s pour (`RT404`) is already
+fitted and already wired into `/OT_TRIP`**, and it catches that within seconds - which is the
+timescale on which 9.6 W actually damages a D2PAK. **No new part is needed for the protection that
+replaced the timer.**
 
 ### 3.4 Charge-path efficiency, and why linear is acceptable here
 
@@ -380,8 +516,9 @@ requirements s10.3. "1 colour" = one colour running alone at the full rail budge
 | element | idle | af 7.6 Hz armed, 1 colour | **af 25 Hz armed, 1 colour** | **af 25 Hz normal (44.5 V), 1 colour** | af 25 Hz normal, 4 colours | flagged |
 |---|---|---|---|---|---|---|
 | **worst pass FET** (integrated over the flash, not peak) | 0 | 0.915 W | **1.408 W** | **0.807 W** | **0.202 W each** | **YES** |
-| **charge FET Q100** (steady state) | ~0 | 0.712 W | 0.219 W | 0.821 W | 0.821 W | **YES** |
-| charge FET Q100 (**cold-start event**) | - | **9.6 W peak / 4.8 W mean / 653 ms / 3.13 J** | | | | **YES** |
+| **[REV C] charge ballast R100+R101** (2 x 39R 2512) | ~0 | 0.525 W | 0.162 W | **0.606 W** (0.303 W each) | 0.606 W | no (5.1x at 90 C) |
+| **[REV C] charge FET Q100** (steady state) | ~0 | 0.187 W | 0.057 W | **0.215 W** | 0.215 W | no - **was 0.821 W and flagged; the ballast took it** |
+| charge FET Q100 (**cold-start event**) | - | **[REV C] 8.1 W peak / 4.3 W mean / 590 ms / 2.56 J** | | | | **YES** |
 | shunt, 200 mR 2512, x4 | 0 | 0.089 W (in one) | 0.089 W | 0.089 W | 0.022 W each | no (1.35 W peak, 3 W part) |
 | active bleed 2 x 470R 2512 (ENABLE low only) | - | **1.23 W peak each / 0.37 W mean each / 4.0 s / 3.13 J** | | | | **YES** |
 | passive bleed 100 k 0805 | 23 mW | 23 mW | 23 mW | 23 mW | 23 mW | no |
@@ -779,9 +916,9 @@ allowance is linear in `(125 - T_air)` and the denominator cannot be improved - 
 | **pass FET, 25 Hz normal ceiling, 1 colour** | **0.807 W** | pass 1.67x | pass 1.36x | **FAIL 0.97x** | **FAIL 0.85x** |
 | **pass FET, 25 Hz armed, 1 colour** | **1.408 W** | **FAIL 0.96x** | **FAIL 0.78x** | **FAIL 0.56x** | **FAIL 0.49x** |
 | **pass FET, 25 Hz normal, 4 colours** | 0.202 W each | pass 6.7x | pass 5.4x | pass 3.9x | pass 3.4x |
-| **charge FET Q100, steady, normal ceiling** | **0.821 W** | pass 1.64x | pass 1.33x | **FAIL 0.95x** | **FAIL 0.83x** |
-| charge FET Q100, steady, armed | 0.219 W | pass 6.2x | pass 5.0x | pass 3.6x | pass 3.1x |
-| **charge FET Q100, COLD-START transient** | 4.8 W mean / 653 ms / 3.13 J | see 10.3 | see 10.3 | **marginal** | **marginal** |
+| ~~charge FET Q100, steady, normal ceiling~~ **[REV C] 0.821 W -> 0.215 W** | **0.215 W** | pass 6.3x | pass 5.1x | **pass 3.6x** | **pass 3.2x** |
+| **[REV C] charge ballast, worst 2512 of two** | 0.303 W | pass 6.6x | pass 6.0x | pass 5.4x | pass 5.1x |
+| **[REV C] charge FET Q100, COLD-START transient** | 4.3 W mean / 590 ms / 2.56 J | see 10.3 | see 10.3 | **marginal** | **marginal** |
 | **active bleed, 2 x 470R 2512** | 1.23 W peak each, 4.0 s | pass 1.6x | pass 1.5x | pass 1.34x | **pass 1.24x** |
 | shunt 2512 3 W, x4 (peak, not average) | 1.35 W peak | pass 2.2x | pass 2.1x | pass 1.9x | pass 1.83x |
 
@@ -792,14 +929,15 @@ entirely a problem of the two linear FET families, not of the passives.**
 
 ### 10.3 The cold-start transient, worked
 
-3.13 J into the charge FET over 653 ms at 9.6 W falling to 0 (mean 4.8 W). This is a **transient**,
-so `theta_JA` does not apply - `Zth_JA(0.65 s)` for a D2PAK on ~350 mm2 of copper is **5-9 C/W**:
+**[REV C]** 2.56 J into the charge FET over 590 ms at 8.1 W falling to 0 (mean 4.3 W) - the ballast
+resistor of s3.3 absorbs the rest. This is a **transient**, so `theta_JA` does not apply -
+`Zth_JA(0.6 s)` for a D2PAK on ~350 mm2 of copper is **5-9 C/W**:
 
 ```
-  rise    = 4.8 W x (5..9) C/W        = 24 .. 43 C
+  rise    = 4.3 W x (5..9) C/W        = 22 .. 39 C     (rev B: 24 .. 43 C)
   Tj      = T_air + rise
-          = 56 + (24..43)  =  80 .. 99 C     <- comfortable
-          = 90 + (24..43)  = 114 .. 133 C    <- brackets the 125 C design limit
+          = 56 + (22..39)  =  78 .. 95 C     <- comfortable
+          = 90 + (22..39)  = 112 .. 129 C    <- still brackets the 125 C design limit
 ```
 
 **At 90 C air the cold start brackets the design junction limit and may exceed it by ~8 C, against
@@ -812,22 +950,26 @@ a slower re-arm.
 
 ### 10.4 The mitigation, and it costs nothing but light
 
-Both failing rows are **average-power** rows, and the average is set by `P_rail`. Because 44.5 V
-sits at the balance point (s6), one cap covers both FETs:
+**[REV C] There is now only ONE failing row, not two.** BLOCKING-04's ballast resistor took 0.606 W
+of the 0.821 W out of the charge FET and put it in two 2512s, which pass at every ambient (s3.3).
+**The pass FET is the only package left that fails at 85-90 C**, and the cap is recomputed against
+its factor `(V_mean - V_string - V_shunt)/48` rather than the charge FET's:
 
 ```
-  worst package power  =  P_rail x (48 - V_mean)/48  =  P_rail x 0.09958   (charge FET, 44.5 V ceiling)
-  P_rail_max           =  allowance / 0.09958
+  worst package power  =  P_rail x (43.22 - 38.52)/48  =  P_rail x 0.09792   (pass FET, 44.5 V ceiling)
+  P_rail_max           =  allowance / 0.09792
 ```
 
-| internal air | allowance | **`P_rail` cap** | as % of the 8.242 W budget | light cost |
-|---|---|---|---|---|
-| 56 C | 1.350 W | 13.6 W | no cap needed | none |
-| 69 C | 1.096 W | 11.0 W | no cap needed | none |
-| **85 C** | 0.783 W | **7.86 W** | **95 %** | **-5 %** |
-| **90 C** | 0.685 W | **6.88 W** | **83 %** | **-17 %** |
+| internal air | allowance | **`P_rail` cap** | as % of the 8.242 W budget | light cost | (rev B) |
+|---|---|---|---|---|---|
+| 56 C | 1.350 W | 13.8 W | no cap needed | none | - |
+| 69 C | 1.096 W | 11.2 W | no cap needed | none | - |
+| **85 C** | 0.783 W | **7.99 W** | **97 %** | **-3 %** | was -5 % |
+| **90 C** | 0.685 W | **6.99 W** | **85 %** | **-15 %** | was -17 % |
 
-**The entire 85-90 C problem costs 5-17 % of the light and zero parts.** The cap is enforced by the
+**The entire 85-90 C problem now costs 3-15 % of the light and zero parts** - and it is a *smaller*
+problem than rev B recorded, because deleting a blocking defect happened to delete half of it. The
+cap is enforced by the
 same closed-loop average-energy governor ICD s6.2 already requires, and the carrier already has the
 eFuse current monitor on an ADC to close that loop. **Recommendation: make the governor's power cap
 a function of the LED-module NTC reading on `ADC1`** - the board already has the sensor, and a
@@ -851,8 +993,10 @@ Three items that the >0.5 W screen misses and that matter more than some of the 
 
 1. **The design of record still uses ICD s7.6's 56 C**, because s7.6 is the ICD and this run does
    not get to re-issue it. At 56 C the board passes with 1.64x on its worst package.
-2. **At the par run's independently calculated 85-90 C, two elements fail on average power and the
-   fix is a governor cap costing 5-17 % of the light.** No board change, no part change, no area.
+2. **[REV C] At the par run's independently calculated 85-90 C, ONE element fails on average power
+   and the fix is a governor cap costing 3-15 % of the light.** No board change, no part change, no
+   area. It was two elements in rev B; BLOCKING-04's ballast resistor removed the charge FET from
+   the failing set as a side effect of deleting the timer defect.
 3. **The un-fixable item is the bank's electrolytic life, which falls ~10x.** If s7.6 is re-issued
    at 85-90 C, the honest response is either a 125 C-rated bank (a different, larger, more expensive
    part family) or an accepted ~3-year service interval on the capacitors.

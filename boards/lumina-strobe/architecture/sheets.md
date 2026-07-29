@@ -164,11 +164,14 @@ because there genuinely is a device (a string) between each of them and `/VBANK`
 
 | Refdes | Part | Note |
 |---|---|---|
-| `D100` | TVS, SMBJ58A class, SMB | 58 V standoff / 93.6 V clamp, under the 100 V cap rating |
-| `U100` | Hot-swap / power-limiting controller, TPS2490 class, MSOP-10 | **ILIM 0.20 A, PLIM 12 W, fault timer > 653 ms.** EN is GND-referenced |
-| `Q100` | Charge FET, D2PAK N-channel 100 V, IRF540N class | Tab = drain = `+48V_SW`. **>= 645 mm2 pour** |
-| `R100` | Sense resistor, 0805 or 1206, value from the controller's threshold at P3 | ~250 mohm if the threshold is 50 mV |
-| `R101`, `R102`, `R103`, `C100`, `C101`, `C102`, `R104` | PROG/PLIM divider, TIMER, VCC bypass, dv/dt gate cap, EN series | |
+| `D100` | TVS, **SMBJ58A**, SMB | 58 V standoff / 93.6 V clamp, under the 100 V cap rating. One part number shared with the four drain clamps |
+| **`R100`, `R101`** | **[REV C] Ballast, 2 x 39 ohm 2512 2 W in parallel = 19.5 ohm** | **BLOCKING-04.** Series ballast **and** the loop's current-sense element - 3.9 V at the 0.20 A limit. 0.303 W each. Split in two for the same reason the bleed is |
+| **`Q100`** | **[REV C] Charge FET, D2PAK/DPAK P-channel 100-150 V** | Tab = drain = **`/VBANK`** (it was `+48V_SW` with the N-channel). **P-channel: no charge pump, passively OFF.** `>= 350 mm2 F.Cu + 350 mm2 B.Cu`, sized by the **cold-start transient**, not by the 0.215 W steady row. **NOT part of the four-pass-FET consolidation** |
+| **`U100`** | **[REV C] LM2904BIDR**, SOIC-8, on a **floating 12 V rail** referenced to `+48V_SW` | A = charge-loop error amp; B = spare. **Replaces the deleted LM5069MM-2.** Same part number as the four drive-stage op-amps: a placement, not a feeder |
+| **`R102`, `D101`, `C100`** | **[REV C]** Floating rail: 24 k 0805 dropper (36 V, 54 mW) + 12 V zener + 1 uF | Dies with `+48V_SW`, which is correct - there is nothing to charge without it |
+| **`R103`, `R104`, `D102`** | **[REV C]** Source-to-gate 100 k (**default OFF - the charge path's interlock of record**), gate series, 12 V gate-source zener clamp | No POR window: the OFF state is the unpowered state |
+| **`R105`, `R106`, `C101`** | **[REV C]** Reference divider off the floating rail + loop compensation | Zener-referenced, so the limit is temperature-stable to a few % |
+| **`Q101`, `R107`, `R108`** | **[REV C]** 2N7002 ENABLE level shift + pull-ups | Gates the loop's reference to zero. Same pattern as the four drive-stage gate clamps |
 | `C110`-`C113` | Bank HF: 4 x 10 uF / 100 V X7S 1210 | **2.7 uF each effective at 48 V** |
 | `C120`-`C125` | Bank bulk: **six D18 / 7.5 mm radial footprints, four populated** at 680 uF / 100 V | Second-sources the bank at 470 uF across four vendors; 2720 -> 4080 uF knob with no respin |
 | `R110` | Passive bleed, 100 k 0805, 150 V working | 23 mW, 272 s. **Un-defeatable** |
@@ -192,10 +195,10 @@ part, not a footprint.
 
 | Refdes | Part | Note |
 |---|---|---|
-| `Q<N+0>` | Pass FET, D2PAK planar HEXFET-5, 200 V / 18 A, IRF640N class | Tab = drain = `/drive_x/LED_K`. **>= 350 mm2 F.Cu pour + >= 350 mm2 B.Cu mirror + >= 12 thermal vias** - `power_tree.md` s5 |
+| `Q<N+0>` | **[REV C] `IRF640NSTRLPBF`**, D2PAK planar HEXFET-5, 200 V / 18 A, -55..+175 C | Tab = drain = `/drive_x/LED_K`. **>= 350 mm2 F.Cu pour + >= 350 mm2 B.Cu mirror + >= 12 thermal vias** - `power_tree.md` s5. **One part number across all four pass FETs**; `Q100` is no longer in this consolidation (it is a P-channel, s2.2) |
 | `R<N+0>` | Shunt, 200 mohm 3 W 2512 1 % | 520 mV FS. **Kelvin layout** - sense traces to the pad ends |
-| `U<N+0>` | Dual op-amp, LM2904 class, SOIC-8, **on `+12V`** | A = error amp / gate driver; B = setpoint buffer, free. **-40..+125 C grade is mandatory** |
-| `U<N+1>` | SPDT analogue switch, SGM3157 class, SC-70-6 | Steers the **reference**, not the gate. **[REV B] P3 must confirm a +125 C part number or substitute** - the stock SGM3157 is -40..+85 C and `power_tree.md` s10.5 puts the air at up to 90 C |
+| `U<N+0>` | **[REV C] `LM2904BIDR`**, dual op-amp SOIC-8, **on `+12V`** | A = error amp / gate driver; B = setpoint buffer, free. -40..+125 C. **Same part as the charge loop's `U100`** |
+| `U<N+1>` | **[REV C] `SN74LVC1G3157DCKR`**, SPDT analogue switch, SC-70-6 | Steers the **reference**, not the gate. **-55..+125 C in the same land - this closes rev B's explicit P3 action item on the SGM3157** (-40..+85 C) |
 | `R<N+1>`, `R<N+2>`, `C<N+0>` | Setpoint RC + divider: 10 k + 100 nF, 5k36/1k00 (6.35:1) | tau 1 ms, 4.6 ms to 1 %, 2.6 % ripple at 9.766 kHz |
 | `R<N+3>` | Gate pull-down 4k7 | **The interlock of record** - off with *everything* dead |
 | `R<N+4>` | Gate series | |
@@ -220,10 +223,10 @@ the four shunts; and so on. ~18 components per sheet, 72 across the four.
 | `Q400`-`Q403` | **4 x** 2N7002 fault latch | **Cleared only by `ENABLE` going low** - fault latches, not ENABLE latches. Each latch state also goes to `U420` bits 0-3 |
 | `R430`-`R433` | Bank UVLO and ceiling thresholds, hysteresis | UVLO trip = `max(V_string) + 1.7 V` over all four colours, **set by one 1 % resistor at P3 from the measured strings** |
 | `U410` | TMP112 class, SOT-563, **on `+3V3`** | I2C telemetry. **Fit no pull-ups** |
-| `U420` | **I2C 8-bit I/O expander**, PCF8574 / TCA9534 class, **on `+3V3`** | **[REV B]** bits 0-3 = four fault latch states, 4 = board OT, 5 = LED OT, **6 = `/protect/BANK_ARM_n` (output)**, 7 = spare. **Fit no pull-ups.** Address must not collide with `U410` |
-| `Q410`, `R434`, `R435` | `BANK_ARM_n` fail-safe stage: 2N7002 + 100 k to `+12V` + gate series | **[REV B]** With `+3V3` dead, the expander output floats, the 2N7002 is off, and 100 k to `+12V` holds the ceiling comparator **disarmed**. Fail-safe to the lower-energy state |
-| `J200` | **Harness, JST VH 6-pin THT, 10 A / 250 V per contact** | **[REV B] moved here from `drive`.** 2 x `/VBANK` anode (10.4 A total) + 4 x `/drive_*/LED_K` cathode (2.6 A each). **Top edge.** Pinout fixed by `light-engine-spec.md` LE-12. **P3 must confirm a +105/+125 C housing** or record a derating exception (`power_tree.md` s10.5) |
-| `J300` | 4-way internal landing for the two off-board thermistors | LED-module NTC (trip, `+12V`) and LED-module NTC (telemetry, `+3V3`). **JLC stocks no leaded/probe NTC at all** - these are hand-terminated, not a PCBA line |
+| `U420` | **[REV C] `MCP23008T-E/SS`**, I2C 8-bit I/O expander, SSOP-20, **on `+3V3`** | bits 0-3 = four fault latch states, 4 = board OT, 5 = LED OT, **6 = `ARM` (output, active HIGH)**, 7 = spare. **Fit no pull-ups.** Address must not collide with `U410`. **`RESET` MUST be wired to `ENABLE`, not tied to `+3V3`** - see `blocks.md` s2.4.1 |
+| `Q410`, `R434`, `R435`, **`R436`** | `BANK_ARM_n` fail-safe stage: 2N7002 + 100 k to `+12V` + gate series + **[REV C] 100 k gate-to-GND pull-down** | **[REV C] The gate pull-down is new and load-bearing**: the MCP23008 powers up with every pin as an **input (high-Z)**, not outputs-high like the PCF8574 rev B assumed, and a floating MOSFET gate is neither on nor off. With the pull-down, POR / `+3V3` dead / expander DNP all resolve to **disarmed** |
+| `J200` | **[REV C] CJT `A3963WV-6P`**, VH-compatible 6-pin THT, 10 A, **-40..+105 C** | 2 x `/VBANK` anode (10.4 A total) + 4 x `/drive_*/LED_K` cathode (2.6 A each). **Top edge.** Pinout fixed by `light-engine-spec.md` LE-12. **The +105 C rating CLOSES `power_tree.md` s10.5's housing question - no derating exception is needed** |
+| `J300` | **[REV C] CJT `A2541WV-4P`**, XH-compatible 4-pin, **-40..+105 C** | LED-module NTC (trip, `+12V`) and LED-module NTC (telemetry, `+3V3`). **JLC stocks no leaded/probe NTC at all** - the thermistors themselves are hand-terminated, not a PCBA line |
 | `R440`, `R441` | LED-module NTC divider, **NTC as the TOP leg** | an open harness wire pulls the node low and **trips** - fail-safe on a broken wire |
 | `C410`-`C413` | Decoupling for `U400`, `U401` (`+12V`), `U410`, `U420` (`+3V3`) | |
 | `TP400`, `TP401` | `/OT_TRIP`, `/UVLO_n` | |

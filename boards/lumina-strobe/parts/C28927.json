@@ -1,0 +1,175 @@
+{
+ "mpn": "TMP112AIDRLR",
+ "lcsc": "C28927",
+ "package": "SOT563 (TI package designator DRL, R-PDSO-N6), 6 pins, 0.50 mm pitch. Top-side marking 'OBS'. [Table 1 Package Information, p.2; PACKAGE OPTION ADDENDUM, p.20]",
+ "description": "Texas Instruments TMP112 high-accuracy low-power digital temperature sensor with SMBus / two-wire interface in a SOT563 package. 12-bit resolution (0.0625 deg C/LSB), 13-bit extended mode, no external components required, accuracy 0.5 deg C max over 0 to +65 deg C and 1.0 deg C max over -40 to +125 deg C, supply 1.4 V to 3.6 V, 10 uA max active / 1 uA max shutdown, SMBus alert output, one address pin supporting up to four devices per bus. Source: TI datasheet ZHCS916B (Chinese-language edition; page 1 names the English equivalent as SBOS473), MARCH 2009 - REVISED JUNE 2009, 25 pages. The Package Option Addendum in this same PDF lists TMP112AIDRLR / TMP112AIDRLT as the orderable devices covered.",
+ "pinout": [
+  {
+   "pin": "1",
+   "name": "SCL",
+   "type": "input",
+   "notes": "Two-wire / SMBus serial clock input, open-drain bus line ('connection to the bus is made through the open-drain I/O lines SDA and SCL'). Requires an external pull-up resistor (note under Figure 10: 'SCL, SDA, and ALERT pins require pull-up resistors'). SDA and SCL have integrated spike-suppression filters and Schmitt triggers. The TMP112 never drives SCL - as a slave it 'never drives the SCL line'. Absolute-maximum input voltage for pins 1, 4 and 6 is -0.5 V to +5 V, but the RECOMMENDED VIH maximum is 3.6 V. [Pin Configuration figure p.2; Serial Interface section p.11; Abs Max table p.2; Electrical Characteristics p.3]"
+  },
+  {
+   "pin": "2",
+   "name": "GND",
+   "type": "ground",
+   "notes": "Ground. Only ground pin. [Pin Configuration figure, DRL SOT563 top view, p.2]"
+  },
+  {
+   "pin": "3",
+   "name": "ALERT",
+   "type": "open_collector",
+   "notes": "Overtemperature alert output. Only VOL is specified (V+ > 2 V: 0 to 0.4 V at IOL = 3 mA; V+ < 2 V: 0 to 0.2*(V+) at IOL = 3 mA) and Figure 10 requires a pull-up resistor, so this is an open-drain output. Behaves as a comparator output (TM = 0) or an SMBus interrupt (TM = 1); polarity set by the POL bit; POR default is TM = 0 (comparator mode), POL = 0. IMPORTANT: pin 3 is the ONE pin whose absolute-maximum input voltage is limited to -0.5 V to (VS) + 0.5 V - unlike pins 1/4/6 it is NOT rated to +5 V, so its pull-up must return to V+ (or lower), never to a higher rail. [Pin Configuration p.2; Abs Max table p.2; Electrical Characteristics p.3; SMBus Alert Function p.12]"
+  },
+  {
+   "pin": "4",
+   "name": "ADD0",
+   "type": "input",
+   "notes": "Address select input. Must be strapped - the four legal connections are GND, V+, SDA and SCL, giving the four slave addresses 0x48/0x49/0x4A/0x4B (see layout_notes and Table 13). Absolute-maximum input voltage -0.5 V to +5 V (grouped with pins 1 and 6). [Pin Configuration p.2; Table 13 Address Pin and Slave Address, p.11; Abs Max table p.2]"
+  },
+  {
+   "pin": "5",
+   "name": "V+",
+   "type": "power_in",
+   "notes": "Supply. Operating supply range +1.4 V to +3.6 V; absolute maximum supply voltage 5 V. Quiescent current 7 uA typ / 10 uA max with the serial bus inactive; 15 uA with the bus active at 400 kHz; 85 uA at 3.4 MHz; shutdown 0.5 uA typ / 1 uA max. A 0.01 uF bypass capacitor is recommended at this pin (Figure 10). [Pin Configuration p.2; Electrical Characteristics p.3; Application Information p.6]"
+  },
+  {
+   "pin": "6",
+   "name": "SDA",
+   "type": "bidirectional",
+   "notes": "Two-wire / SMBus serial data, open-drain bidirectional line - requires an external pull-up resistor (note under Figure 10). VOL: V+ > 2 V, IOL = 3 mA -> 0 to 0.4 V; V+ < 2 V, IOL = 3 mA -> 0 to 0.2*(V+). No VOH is specified, confirming open-drain. Absolute-maximum input voltage for pins 1, 4 and 6 is -0.5 V to +5 V, but the RECOMMENDED VIH maximum is 3.6 V. [Pin Configuration p.2; Electrical Characteristics p.3; Serial Interface p.11]"
+  }
+ ],
+ "decoupling": [
+  {
+   "pins": [
+    "5"
+   ],
+   "value": "0.01 uF",
+   "placement": "from V+ (pin 5) to GND (pin 2), at the device - drawn directly across the supply pins in Figure 10 'Typical Connections'",
+   "notes": "GROUNDED: Application Information, p.6 - 'A 0.01 uF bypass capacitor is recommended, as shown [in Figure 10].' Figure 10 draws the 0.01 uF capacitor from V+ to GND at the TMP112. This is the only bypass capacitor the datasheet asks for. No voltage rating, dielectric or bulk capacitor is specified."
+  },
+  {
+   "pins": [
+    "5"
+   ],
+   "value": "optional supply RC filter: RF < 5 kohm in series with V+, CF > 10 nF from V+ to GND",
+   "placement": "series resistor RF in the V+ feed with CF from the TMP112 side of RF to GND (Figure 14, 'Noise Reduction Technique')",
+   "notes": "GROUNDED but OPTIONAL: Noise section, p.12 - 'The TMP112 is a very low-power device and generates very little noise on the supply bus. Applying an RC filter to the V+ pin of the TMP112 can further reduce the noise the TMP112 may propagate to other components. RF should be less than 5 kohm and CF should be greater than 10 nF.' Figure 14 (p.13) shows the network. This filter is for keeping TMP112 switching noise OFF the shared rail, not for the sensor's own accuracy; it is not required. Note that a series RF also drops IQ*RF (max 10 uA * 5 kohm = 50 uV), which is negligible."
+  }
+ ],
+ "land_pattern": {
+  "package": "DRL (R-PDSO-N6) PLASTIC SMALL OUTLINE / SOT563, TI land pattern drawing 4208207-3/E 06/12, 'Example Board Layout'",
+  "pad_count": 6,
+  "pitch_mm": 0.5,
+  "pad_size_mm": [
+   0.3,
+   0.45
+  ],
+  "row_spacing_mm": 1.35,
+  "pin1": "1",
+  "notes": "From the LAND PATTERN DATA sheet (p.24 of the PDF), 'Example Board Layout', all linear dimensions in millimetres: contact pitch 0.50; pad width (X, along the row) 0.30; pad length (Y, radial) 0.45; overall row span outer-edge to outer-edge 1.80; inner-edge to inner-edge gap between the two rows 0.90; span between the centres of pad 1 and pad 3 (2 x pitch) 1.00. row_spacing_mm = 1.35 is DERIVED, not printed: (1.80 outer span) - (0.45 pad length) = 1.35, equivalently 0.90 + 0.45 = 1.35 - the drawing prints 1.80 and 0.90 and the arithmetic is self-consistent (1.80 - 2 x 0.45 = 0.90). Pads are NON-SOLDERMASK DEFINED with a 0.08 mm solder-mask opening all around the pad geometry. Example stencil design (Note E, max stencil thickness 0.127 mm / 5 mils): aperture 0.40 wide x 0.55 long, overall span 1.90, inner gap 0.80, pitch 0.50 - i.e. the paste apertures are DELIBERATELY LARGER than the copper pads (0.40 x 0.55 vs 0.30 x 0.45); notes F and G add that laser-cut trapezoidal-wall apertures with rounded corners release better and that side aperture dimensions over-print the land for an area ratio > 0.66, and may be reduced if the stencil process allows. Note C: 'Publication IPC-7351 is recommended for alternate designs.' Note D: check the fab's minimum solder-mask web between signal pads. Courtyard excess is NOT stated. Pins 1-2-3 are one row, 6-5-4 the opposing row; pin 1 index area is the lower-left corner of the package outline drawing. Package outline for reference (drawing 4205622-3/D 08/2007, mm max/min): overall body+lead extent 1.70/1.50 in both directions, body-only extent across the lead rows 1.50/1.10, lead pitch 0.50, 6X lead width 0.27/0.13, 6X terminal 0.25/0.15, 6X terminal length in bottom view 0.40/0.20, overall height 0.60/0.50, standoff 0.05/0.00, lead thickness 0.18/0.08; mold flash/protrusions may add up to 0.15 mm per end or side; 'JEDEC package registration is pending'."
+ },
+ "exposed_pad": {
+  "present": false
+ },
+ "layout_notes": [
+  "I2C ADDRESS SCHEME - Table 13 'Address Pin and Slave Address' (p.11) gives the complete map. The TMP112 has ONE address pin (ADD0, pin 4) and supports FOUR devices on a single bus ('it also supports up to four devices on one bus', Features/Description p.1). Device two-wire address (7-bit) vs A0 pin connection: 1001000 = 0x48 with ADD0 tied to GND; 1001001 = 0x49 with ADD0 tied to V+; 1001010 = 0x4A with ADD0 tied to SDA; 1001011 = 0x4B with ADD0 tied to SCL. The four fixed leading bits are 1001. Figures 16/17 confirm the address byte as 1 0 0 1 A1 A0 R/W with the note 'The values of A0 and A1 are determined by the ADD0 pin', i.e. the single ADD0 pin sets BOTH variable address bits (a three-level-plus-bus-tied strap, not a simple high/low). ADD0 must therefore be strapped to one of those four nets - the datasheet defines no floating default. NOTE FOR BUS-COLLISION CHECKING: 0x48..0x4B does NOT overlap the MCP23008 range 0x20..0x27.",
+  "I2C BUS PULL-UPS: the note under Figure 10 'Typical Connections' (p.6) states 'SCL, SDA, and ALERT pins require pull-up resistors', and the Application Information text repeats 'pull-up resistors are required on SCL, SDA and ALERT'. NO RESISTOR VALUE is given anywhere in ZHCS916B, and no maximum bus capacitance is specified - the datasheet only constrains the resulting edges through the Timing Diagram Definitions (Table 14, p.13): tR clock/data rise time max 300 ns (fast mode), 160 ns (Hs mode), 1000 ns for SCLK <= 100 kHz; tF fall time max 300 ns. The requirement is on the BUS, not on this device: the TMP112 itself contains no pull-ups and mandates no local ones, so a daughterboard that deliberately omits pull-ups because the carrier provides them is fully consistent with this datasheet, provided the bus edges still meet Table 14. ALERT (pin 3) is a SEPARATE net that also needs a pull-up if it is used - and, because pin 3 is only rated to (VS)+0.5 V, its pull-up must go to V+ (+3V3 here), never to a higher rail.",
+  "I2C BUS VOLTAGE: absolute maximum input voltage on pins 1 (SCL), 4 (ADD0) and 6 (SDA) is -0.5 V to +5 V, so those pins survive a 5 V bus. BUT the Electrical Characteristics 'Digital Input/Output' block (p.3) specifies the input logic levels as VIH = 0.7*(V+) min to 3.6 V MAX and VIL = -0.5 V min to 0.3*(V+) max, and the input-current spec IIN 1 uA max is given for 0 < VIN < 3.6 V. 3.6 V is the specified ceiling for a bus high level; +5 V is only the non-destructive absolute maximum. With V+ = 3.3 V, VIH min = 2.31 V and VIL max = 0.99 V. A bus pulled up to +3V3 is correct; a 5 V bus would be outside the specified operating range even though it is inside abs max.",
+  "SUPPLY: operating range +1.4 V to +3.6 V (Electrical Characteristics, Power section, p.3); absolute maximum supply voltage 5 V. Quiescent current IQ 7 uA typ / 10 uA max with the serial bus inactive, 15 uA with the bus active at 400 kHz, 85 uA at 3.4 MHz; shutdown current ISD 0.5 uA typ / 1 uA max (bus inactive). During a conversion the active quiescent current is 40 uA typ at +27 deg C, dropping to 2.2 uA typ during the inter-conversion delay (p.9). A 3.3 V rail is comfortably inside range; the part is a negligible load.",
+  "THERMAL / SENSING PATH - the vendor's placement guidance (Application Information, p.6): 'The temperature sensor within the TMP112 is the chip itself. The thermal path runs through the package leads as well as the plastic package. The lower thermal resistance of metal causes the leads to provide the primary thermal path. To maintain accuracy in applications requiring air or surface temperature measurement, care should be taken to isolate the package and leads from ambient air temperature. A thermally conductive adhesive helps achieve accurate surface temperature measurement.' Practical consequence for a board-temperature telemetry role: the copper attached to the six pins dominates what this sensor reads, so place it in/near the copper whose temperature matters and keep it away from local self-heating sources if ambient is wanted. Package thermal resistance theta-JA = 260 deg C/W on a JEDEC low-K board (SOT563) - the package has almost no thermal mass of its own.",
+  "SUPPLY NOISE: 'The TMP112 is a very low-power device and generates very little noise on the supply bus. Applying an RC filter to the V+ pin can further reduce the noise the TMP112 may propagate to other components. RF should be less than 5 kohm and CF should be greater than 10 nF' (p.12, Figure 14). Optional, not required.",
+  "POWER-UP BEHAVIOUR AND REGISTER DEFAULTS: after power-up or a general-call reset the TMP112 immediately starts a conversion, and the first result is available after 26 ms typ (35 ms max conversion time). Until that first conversion completes the temperature register reads 0 deg C. Configuration register power-up/reset value (Table 8, p.9) is byte 1 = 0110 0000 and byte 2 = 1010 0000 (0x60A0): SD = 0 (continuous conversion, NOT shutdown), TM = 0 (comparator mode), POL = 0, CR1:CR0 = 10 => 4 Hz conversion rate (the default; Table 9 gives 00 = 0.25 Hz, 01 = 1 Hz, 10 = 4 Hz default, 11 = 8 Hz), AL = 1, EM = 0 (normal 12-bit mode). Limit registers power-up to THIGH = +80 deg C and TLOW = +75 deg C, so an unconfigured TMP112 in comparator mode asserts ALERT above 80 deg C and releases below 75 deg C on its own - relevant if ALERT is wired to anything. Pointer register P1/P0 power-up value is '00', so the temperature register is read by default. Also note the first byte of the configuration register is arranged to be TMP75/TMP275-compatible.",
+  "SMBus GENERAL CALL RESET: the TMP112 responds to the two-wire general-call address 0000000 when the eighth bit is 0; if the second byte is 00000110 the internal registers are reset to their power-up values. The general-call address-fetch command is NOT supported. (p.12)",
+  "BUS TIMEOUT: 'If SCL is held low for 30 ms (typical), the TMP112 resets the serial interface... To avoid activating the timeout function, a communication rate of at least 1 kHz must be maintained for the SCL operating frequency.' Electrical Characteristics gives the timeout as 30 ms min / 40 ms max. SCL frequency range f(SCL) 0.001 to 0.4 MHz in fast mode, 0.001 to 3.4 MHz in Hs mode (2.75 MHz max if VS < 1.7 V). (p.12, Table 14 p.13)",
+  "SMBus ALERT ARBITRATION: when several devices answer an SMBus ALERT command (00011001), the device with the LOWEST two-wire address wins arbitration and clears its ALERT; a loser keeps ALERT asserted. Only relevant if ALERT is bussed. (p.12)",
+  "ACCURACY (for reference when the reading is used as telemetry): -0.5/-0.1/+0.3 deg C at +25 deg C with VS = 3.3 V; +/-0.5 deg C max over 0 to +65 deg C at VS = 3.3 V; +/-1.0 deg C max over -40 to +125 deg C; supply sensitivity +0.0625 typ / +/-0.25 max deg C/V over -40 to +125 deg C; resolution 0.0625 deg C (12-bit); long-term stability < 1 LSB over 3000 hours. Temperature data is 12-bit left-justified two's complement, MSB first (Table 6); 13-bit extended mode (EM = 1) reaches above +128 deg C (Table 7).",
+  "ESD: the device 'contains limited built-in ESD protection'; leads should be shorted together or the device placed in conductive foam during storage/handling to prevent gate damage. Rated HBM 2000 V, CDM 1000 V, MM 200 V. (p.2)",
+  "GAP: ZHCS916B has NO PCB-layout chapter beyond the thermal-isolation paragraph quoted above - no ground/power plane rule, no keepout, no trace-width or loop-area guidance, and no statement about placing the bypass capacitor on a particular side. It is also a 2009 revision of the Chinese-language datasheet; later English revisions of SBOS473 add TMP112A/TMP112B/TMP112N accuracy grades and reformatted layout sections. Everything above is transcribed from THIS PDF."
+ ],
+ "abs_max": [
+  {
+   "param": "Supply voltage (ABSOLUTE MAXIMUM RATINGS table, p.2)",
+   "value": 5,
+   "unit": "V"
+  },
+  {
+   "param": "Input voltage, pins 1 (SCL), 4 (ADD0) and 6 (SDA) (ABSOLUTE MAXIMUM RATINGS, p.2)",
+   "value": "-0.5 to +5",
+   "unit": "V"
+  },
+  {
+   "param": "Input voltage, pin 3 (ALERT) (ABSOLUTE MAXIMUM RATINGS, p.2) - NOT 5 V tolerant, unlike pins 1/4/6",
+   "value": "-0.5 to (VS) + 0.5",
+   "unit": "V"
+  },
+  {
+   "param": "Operating temperature (ABSOLUTE MAXIMUM RATINGS, p.2; repeated as 'operating temperature' in the Temperature Range block of the Electrical Characteristics, p.3)",
+   "value": "-55 to +150",
+   "unit": "C"
+  },
+  {
+   "param": "Storage temperature (ABSOLUTE MAXIMUM RATINGS, p.2)",
+   "value": "-60 to +150",
+   "unit": "C"
+  },
+  {
+   "param": "Junction temperature (ABSOLUTE MAXIMUM RATINGS, p.2)",
+   "value": "+150",
+   "unit": "C"
+  },
+  {
+   "param": "ESD rating, human body model HBM (ABSOLUTE MAXIMUM RATINGS, p.2)",
+   "value": 2000,
+   "unit": "V"
+  },
+  {
+   "param": "ESD rating, charged device model CDM (ABSOLUTE MAXIMUM RATINGS, p.2)",
+   "value": 1000,
+   "unit": "V"
+  },
+  {
+   "param": "ESD rating, machine model MM (ABSOLUTE MAXIMUM RATINGS, p.2)",
+   "value": 200,
+   "unit": "V"
+  },
+  {
+   "param": "SPECIFIED / rated temperature range (Electrical Characteristics, Temperature Range block, p.3, and Temperature Input range, p.3) - all accuracy specs are given over this range",
+   "value": "-40 to +125",
+   "unit": "C"
+  },
+  {
+   "param": "Operating temperature range of the orderable device TMP112AIDRLR (PACKAGE OPTION ADDENDUM 'Op Temp', p.20)",
+   "value": "-40 to 125",
+   "unit": "C"
+  },
+  {
+   "param": "Operating supply range (OPERATING, Electrical Characteristics Power block, p.3: min/max)",
+   "value": "+1.4 to +3.6",
+   "unit": "V"
+  },
+  {
+   "param": "Digital input high level VIH (OPERATING, Electrical Characteristics, p.3: min/max) - 3.6 V is the specified ceiling for a bus high level even though abs max on pins 1/4/6 is +5 V",
+   "value": "0.7*(V+) to 3.6",
+   "unit": "V"
+  },
+  {
+   "param": "Digital input low level VIL (OPERATING, Electrical Characteristics, p.3: min/max)",
+   "value": "-0.5 to 0.3*(V+)",
+   "unit": "V"
+  },
+  {
+   "param": "SCL operating frequency f(SCL), fast mode / Hs mode with VS > 1.7 V (Table 14 Timing Diagram Definitions, p.13)",
+   "value": "0.001 to 0.4 (fast) / 0.001 to 3.4 (Hs)",
+   "unit": "MHz"
+  },
+  {
+   "param": "Package thermal resistance theta-JA, SOT563 on a JEDEC low-K board (Electrical Characteristics, p.3)",
+   "value": 260,
+   "unit": "C/W"
+  }
+ ],
+ "source_pdf": "boards/lumina-strobe/parts/C28927.pdf (Texas Instruments TMP112, ZHCS916B, MARCH 2009 - REVISED JUNE 2009, Chinese-language edition; English equivalent named on p.1 as SBOS473; 25 pages, includes PACKAGE OPTION ADDENDUM dated 11-Apr-2013 and the DRL/R-PDSO-N6 mechanical and land-pattern sheets)"
+}

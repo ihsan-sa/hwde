@@ -26,7 +26,7 @@ rev A2** (the authoritative ICD - the DRAFT-A copy in `brief/06-connector-icd.md
 | **String voltage at 2.6 A, EVERY colour** | **38.0 V +/- 1.0 V** - string length is the MCPCB's trim variable | `light-engine-spec.md` LE-05 |
 | **Bank window floor** | **39.7 V** = `V_string + 1.7 V`, derived not constant; **+ ESR sag when >1 colour fires** | this document, s2 |
 | **Bank normal ceiling** | **44.5 V**; **48.0 V only while `BANK_ARM` is asserted, and only transiently** (s4.4) | `power_tree.md` s6 + s10 |
-| **Charge-path current limit** | **0.20 A hard limit** (not a slew limit) | ICD s6.6 + the af PSE class budget |
+| **Charge-path current limit** | **0.20 A hard limit** (not a slew limit), **[REV C] set by a discrete loop with NO fault timer** | ICD s6.6 + the af PSE class budget; `power_tree.md` s3.0 |
 | **Peak current PER COLOUR** | **2.6 A**, inside every die's DC maximum, zero pulsed headroom. **Not capped, not halved** | s6.1 |
 | **Peak current on `/VBANK`** | **10.4 A** when all four fire together | s6.1 - forces a pour, not a trace |
 | **Drain pour per pass FET** | **>= 350 mm2 F.Cu + >= 350 mm2 B.Cu mirror within 14 mm of the package** | s6.1 - and copper past that buys NOTHING |
@@ -57,8 +57,9 @@ flowchart TB
 
     subgraph CHG["sheet: charge - the 48 V energy store"]
       TVS["input TVS<br/>SMBJ58A class"]
-      HS["hot-swap controller<br/>TPS2490 class<br/>ILIM 0.20 A + PLIM 12 W<br/>EN is GND-referenced"]
-      QC["charge FET Q100<br/>D2PAK N-ch 100 V<br/>0.9 W steady / 3.13 J cold start"]
+      HS["discrete limit loop<br/>LM2904B half on a floating 12V rail<br/>senses across the ballast<br/>ILIM 0.20 A, NO fault timer"]
+      BAL["ballast 2x39R 2512<br/>= 19.5 ohm<br/>0.61 W - and it IS the sense element"]
+      QC["charge FET Q100<br/>D2PAK P-channel 100-150 V<br/>0.215 W steady / 2.56 J cold start"]
       BANK["/VBANK  2720 uF / 100 V<br/>4x 680 uF radial + 4x 10 uF 1210<br/>0.990 J over 48 to 39.7 V"]
       BLD["bleed<br/>100k passive backstop<br/>+ 2x470R active, SELF-POWERED"]
       DIV["bank divider<br/>2x82k + 10k, Rth 9.43k"]
@@ -90,7 +91,8 @@ flowchart TB
 
   LED["OFF-BOARD RGBW LIGHT ENGINE<br/>separate aluminium MCPCB + heatsink<br/>SPECIFIED by light-engine-spec.md,<br/>NOT designed by this run<br/>4 strings, each 38.0 V +/- 1.0 V at 2.6 A"]
 
-  P48 --> TVS --> HS --> QC --> BANK
+  P48 --> TVS --> BAL --> QC --> BANK
+  BAL --> HS --> QC
   BANK --> BLD
   BANK --> DIV
   BANK -->|"up to 10.4 A pulse"| HARN
@@ -151,13 +153,48 @@ mounting holes, and every test point. **No I2C pull-ups** - the carrier owns the
 
 ### 2.2 charge - the 48 V energy store
 
-**Hot-swap / power-limiting controller, TPS2490 class** (MSOP-10, 9-80 V), driving an external
-high-side N-channel **D2PAK 100 V HEXFET, IRF540N class**. Chosen over an NTC, a bare
-gate-RC MOSFET and a 60 V integrated eFuse for the reasons protection-sense s1 established; the
-three properties that make it the right part *here* are (a) its **EN pin is GND-referenced with a
-100 V absolute maximum**, so `ENABLE` drives it directly with no 3.3 V rail present, (b) it holds
-GATE low below its own POR and UVLO, which is exactly ICD s8.3's "48 V is dead at power-up" case
-for free, and (c) it has an explicit programmable current limit, which ICD s6.6 now **requires**.
+**[REV C - BLOCKING-04] The hot-swap controller is DELETED. The charge limiter is a discrete linear
+current-limit loop with no fault timer.** Full decision, arithmetic and the keeps/loses table are
+`power_tree.md` s3.0-s3.3; the summary is:
+
+> A hot-swap controller's fault timer integrates up in current limit and down out of it, at 10:1
+> (TPS2490) or 34:1 (LM5069). Break-even duty is **9.1 %** and **2.9 %** respectively. **This board
+> sits in current limit 87 % of the time by design**, so the timer reaches its threshold regardless
+> of `C_TIMER` and the part latches off or drops to 0.5 %-duty restart. **No controller in this
+> class omits the timer.** Root cause, named: **the design was using a fault protector as a
+> charging regulator** - the same mistake ICD s6.6 warns about one level up. The fix is to build a
+> charging regulator.
+
+**As built:** `+48V_SW` -> **ballast 2 x 39 ohm 2512 in parallel (19.5 ohm)** -> **P-channel
+MOSFET, 100-150 V, D2PAK/DPAK** -> `/VBANK`, with an **LM2904B half on a floating 12 V rail
+(24 k + 12 V zener from `+48V_SW`)** sensing **across the ballast** and driving the gate. ENABLE
+gates the loop's reference to zero through a 2N7002 level shift. Six points that make this the
+right shape here:
+
+- **The ballast IS the sense element.** At the 0.20 A limit it develops **3.9 V**, so no shunt, no
+  high-side current-sense amplifier and no precision reference are needed. One part, two jobs.
+- **P-channel, not N-channel.** An N-channel high-side switch needs its gate above the 48 V rail -
+  a charge pump, which is the function the deleted controller was providing internally.
+- **Passively OFF with every rail dead**, via a source-to-gate resistor. There is **no POR window
+  at all**, because the OFF state is the unpowered state - strictly stronger than the controller's
+  POR-dependent hold.
+- **The ballast is free heat relocation.** Charge-path loss is `(48 - V_mean) x Q` whichever
+  element limits, so moving 0.606 W of the 0.821 W into two 2512s costs nothing and **deletes the
+  charge FET from the 85-90 C failing set** (`power_tree.md` s10.2). Q100 drops 0.821 -> 0.215 W.
+- **SOA protection is now the NTC already in Q100's pour**, feeding `/OT_TRIP`. The fault it must
+  catch is 9.6 W continuous, which cooks a D2PAK in *seconds* - a millisecond-scale integrator was
+  never the right instrument, and that mismatch is what produced the defect.
+- **It deletes LM5069MM-2 at $6.33** - simultaneously the most expensive part on the board, an
+  Extended part, and a flagged single-source risk. Net **-$3.60/board** after the discrete parts.
+
+**What it costs:** the P-channel **breaks P3's five-FETs-to-one-part-number consolidation**, which
+now covers the four pass FETs only, adding one feeder back. **And the loop loses the controller's
+programmable UVLO on `+48V_SW`** - covered by the carrier, not by this board: ICD s8.4 states the
+eFuse's own 48 V-side UVLO opens below threshold, so **`+48V_SW` is never delivered brownt-out.**
+If that ICD guarantee is ever withdrawn, this is the line that reopens.
+
+Rejected alternatives are unchanged and still stand: an NTC inrush thermistor, a bare gate-RC
+MOSFET and a 60 V integrated eFuse, for the reasons `protection-sense` s1 established (see s8).
 
 **Bank: 4 x 680 uF / 100 V radial aluminium electrolytic, Ymin LKMJ class** (D18 x 25, 7.5 mm
 pitch, 105 C / 10,000 h, AEC-Q200, published ripple) **+ 4 x 10 uF / 100 V X7S 1210, Murata GRM32
@@ -191,10 +228,18 @@ per-stage part list is `sheets.md` s2.3; the four sheets are `drive_w`, `drive_r
 `drive_b`. Nothing about the topology changed - what changed is the count, the pour arithmetic
 (s6.1) and the PWM plumbing (s4).
 
-**Temperature grade is now a hard selection rule, not a preference** (see `power_tree.md` s10):
-**every active part on this board must be rated to +125 C ambient.** The `-40..+85 C` grade is
-no longer acceptable anywhere, which retires the SGM3157 as the lead SPDT candidate unless P3
-confirms a +125 C part number for it.
+**Temperature grade is a hard selection rule, not a preference** (see `power_tree.md` s10):
+**every active part on this board must be rated to +125 C ambient.**
+
+> **[REV C] P3 closed this out. The substitutions the architecture now names:**
+> **SPDT `SGM3157` -> `SN74LVC1G3157DCKR`** (-55..+125 C, same SC-70-6 land, $0.053 - the explicit
+> P3 action item this section raised, now resolved). **Op-amp `LM2904` -> `LM2904BIDR`**
+> (-40..+125 C rather than -40..+105 C, +$0.18/board). **Pass FET `IRF640NSTRLPBF`**, D2PAK
+> 200 V / 18 A, -55..+175 C, one part number across all **four** pass FETs (`Q100` leaves the
+> consolidation under BLOCKING-04 - it is now a P-channel, s2.2). **Drain clamp and input TVS: one
+> `SMBJ58A`** across all five positions. **Harness `J200`/`J300`: CJT `A3963WV-6P` and
+> `A2541WV-4P`**, VH/XH-compatible at **-40..+105 C**, which **closes** `power_tree.md` s10.5's
+> "P3 must confirm a +105/+125 C housing" - no derating exception is needed.
 
 **Pass element: D2PAK planar HEXFET-5, 200 V / 18 A class, IRF640N class.** Selected on
 *generation and thermal headroom*, not on Rds(on): no MOSFET on JLCPCB publishes a linear-mode SOA
@@ -221,7 +266,7 @@ the setpoint at zero extra parts.
 LM2904's 7 mV worst-case offset is a 13 % error instead of 54 %. Kelvin *layout* (sense traces to
 the pad ends) - no 4-terminal 2512 exists at JLC.
 
-**Flash gating: SPDT analogue switch, SGM3157 class, SC-70-6.** It steers the regulator *reference*
+**Flash gating: SPDT analogue switch, `SN74LVC1G3157DCKR`, SC-70-6 [REV C].** It steers the regulator *reference*
 between the filtered setpoint and GND. The 3.3 V PWM never touches the gate; steering the reference
 is what gives a square optical edge without fighting the loop. No gate driver and no level shifter
 are needed - the source is within 520 mV of ground, so this is a true low-side device and the
@@ -280,23 +325,58 @@ assert `FAULT`.
 independent `+3V3`-referenced leg. Two thermistors on the module cost about $0.08 and mean a
 shorted telemetry wire cannot defeat the trip.
 
-**[REV B] Second I2C device: an 8-bit I/O expander, PCF8574 / TCA9534 class, on `+3V3`.** It does
-two jobs that RGBW created and that no pin is left for (s4.3):
+**[REV B] Second I2C device: an 8-bit I/O expander on `+3V3`.** It does two jobs that RGBW created
+and that no pin is left for (s4.3).
+
+> **[REV C] The part is `MCP23008T-E/SS` (SSOP-20, -40..+125 C, $1.49), not the PCF8574/TCA9534
+> class rev B assumed - every PCF8574 and TCA9534 in stock is -40..+85 C and fails the +125 C rule.
+> Its POR state is DIFFERENT and it changes the `BANK_ARM_n` fail-safe, so this is a design change,
+> not a substitution.** See s2.4.1.
 
 | Expander bit | Direction | Function |
 |---|---|---|
 | 0-3 | in | The four per-colour Vds-fault latch states. `FAULT` says *something* broke; these say **which colour** |
 | 4 | in | Board over-temperature flag |
 | 5 | in | LED-module over-temperature flag |
-| 6 | **out** | **`/protect/BANK_ARM_n`** - the bank ceiling control that rev A carried on `PWM1`. **Active LOW to arm**, because a PCF8574 powers up with every I/O **high**, so its POR state is *disarmed* |
+| 6 | **out** | **`ARM`** - the bank ceiling control that rev A carried on `PWM1`. **[REV C] Active HIGH to arm** - see s2.4.1, the polarity changed with the part |
 | 7 | - | spare, no connection |
 
 **Why this is safe to put on I2C** (and why the flash path is not): `BANK_ARM` is a slow arm, not
 a per-flash gate, so bus latency is irrelevant; and every failure of the bus, the expander or
-`+3V3` lands on **disarmed**, i.e. the 44.5 V ceiling, which is the lower-energy state. The
-expander drives the ceiling comparator through a **2N7002 + 100 k pull-up to `+12V`** so that a
-dead `+3V3` leaves the node pulled to "disarmed" by a rail the comparator itself depends on -
-not floating.
+`+3V3` must land on **disarmed**, i.e. the 44.5 V ceiling, which is the lower-energy state.
+
+#### 2.4.1 The `BANK_ARM_n` fail-safe, re-derived for the MCP23008  **[REV C]**
+
+**Rev B's polarity was built on the PCF8574's POR state - every I/O weak-HIGH - and defined the
+expander pin as `BANK_ARM_n`, active low to arm. The MCP23008 powers up with every pin configured
+as an INPUT, i.e. high-Z. That is a different POR state and the rev B arrangement does not survive
+it unexamined**, because a high-Z output driving a MOSFET gate leaves the gate *floating*, which is
+neither on nor off.
+
+**As re-derived:** expander `GP6` = **`ARM`, active HIGH**, driving a 2N7002 gate that carries a
+**100 k gate-to-GND pull-down**; the 2N7002 drain is `/protect/BANK_ARM_n` with **100 k to `+12V`**.
+The ceiling comparator reads `BANK_ARM_n`: LOW = armed (48.0 V), HIGH = disarmed (44.5 V).
+
+| case | `GP6` | 2N7002 gate | `BANK_ARM_n` | result |
+|---|---|---|---|---|
+| firmware arms | driven high | high | pulled low | **armed, 48.0 V** |
+| firmware disarms | driven low | low | 100 k to +12V | disarmed |
+| **MCP23008 POR / after RESET** | **high-Z (input)** | **held low by the 100 k pull-down** | +12V | **disarmed** |
+| **`+3V3` dead** | unpowered, high-Z | held low by the pull-down | +12V | **disarmed** |
+| **I2C bus dead, expander unresponsive** | retains last written state | - | - | **holds whatever it was - see RESET** |
+| **expander unpopulated (DNP)** | absent | held low | +12V | **disarmed** |
+| **`+12V` dead** | - | - | no pull-up, but the ceiling comparator is also dead and the drive stages are held off by their passive gate pull-downs | safe |
+
+**The 100 k gate pull-down is the part that makes high-Z unambiguous, and it is new in rev C.**
+Without it the MCP23008's POR state would leave the arming FET's gate floating.
+
+**The one remaining hole, and its answer: a crashed MCU leaves `GP6` latched high.** I2C simply
+stops; the expander keeps driving. **Fix: tie the MCP23008's `RESET` pin to `ENABLE`.** ENABLE is
+passively pulled low by the carrier's 10 k and the daughter's 100 k, so a crashed, reset, brownt-out
+or unprogrammed carrier de-asserts it, which **resets the expander to all-inputs = disarmed** - and
+disables the whole board anyway. **This is not "latching ENABLE locally"** (STR-REQ-21 forbids
+that); it is ENABLE resetting a peripheral, which is the same direction of control ENABLE already
+has over every other stage. **P4 must wire `RESET`; it must not be tied to `+3V3`.**
 
 **What is deliberately NOT on I2C: everything in STR-REQ-20's path.** The over-temperature trip,
 the Vds trip, the UVLO and the gate clamps are hard-wired comparators on `+12V` driving
@@ -528,7 +608,7 @@ Four ways out were considered:
 
 | Option | Cost | ICD change | Verdict |
 |---|---|---|---|
-| **A. I2C 8-bit I/O expander** (PCF8574 / TCA9534 class) drives `BANK_ARM_n` and reads the four per-colour fault latches | **+$0.35 + one 2N7002 + two resistors, ~50 mm2** | **None** | **CHOSEN.** It also answers s2.4's per-colour fault-attribution problem, which otherwise has no answer at all, and every failure mode lands on "disarmed" |
+| **A. I2C 8-bit I/O expander** (`MCP23008T-E/SS` at P3; rev B assumed a PCF8574/TCA9534, all of which are -40..+85 C) drives `BANK_ARM_n` and reads the four per-colour fault latches | **[REV C] +$1.49 + one 2N7002 + three resistors, ~70 mm2** | **None** | **CHOSEN.** It also answers s2.4's per-colour fault-attribution problem, which otherwise has no answer at all, and every failure mode lands on "disarmed" |
 | B. Re-designate the unused `DSPI_CSn` (J4-17) as a GPIO for `BANK_ARM` | zero parts | **s3.3 amendment** - re-purposes a bus pin | Rejected as primary. Cheapest, but it spends ICD capital on a signal that an already-required I2C device carries for free, and it leaves fault attribution unsolved |
 | C. Quad I2C DAC (MCP4728, +$2.66) replaces the four amplitude RCs, freeing `PWM4-7` | **+$2.66**, and it is **single-source** (Microchip only, `drive-stage.md` R4) | None | Rejected. It puts *amplitude* on I2C, so an I2C failure means **no light at all** rather than "no arming". It does save ~12 passives of area, which is the only argument for it |
 | D. Delete `BANK_ARM`; fix the ceiling at 44.5 V | zero | None | **Rejected - it deletes the headline flash mode** |
@@ -733,6 +813,11 @@ B.Cu. **Declared mitigations, in the order they must be reached for at P6:**
 1. **Drop the two unpopulated bank footprints** (6 -> 4 D18 lands): **-400 mm2, takes occupancy to
    73 %.** Cost: the 2720 -> 4080 uF knob and the four-vendor 470 uF second source both go away.
    This is the first lever because it is pure optionality, not function.
+   **[REV C] P3 sharpened what this costs: the 680 uF / 100 V D18x25 is effectively SINGLE-VENDOR
+   (Ymin). The six-footprint layout is what buys the second source, and it only pays off at
+   470 uF, where AISHI, SamYoung, Chengx and Lelon all stock a 7.5 mm-pitch part. So this
+   mitigation and "keep the bank's second source" are not two decisions - they are ONE LEVER, and
+   pulling it accepts a single-vendor bank.**
 2. **Hold every drain pour at exactly 350 mm2 on F.Cu and put all further copper on B.Cu.** Free -
    B.Cu is otherwise empty and s6.1 proves the extra F.Cu was never scoring.
 3. **Two LM2902-class quad op-amps in place of four LM2904 duals**: **-30 mm2** and two fewer
@@ -755,7 +840,7 @@ Replaces H1's "+$4-6" estimate with the built numbers (qty-6 break, from the res
 |---|---|---|
 | 3 x extra drive stage (pass FET + shunt + LM2904 + SPDT + 2 x 2N7002 + TVS + passives) | **+$3.60** | $1.20/stage, as rev A estimated |
 | Protect: 2 x LM2901 quad SOIC-14 replacing 2 x LM2903 dual SOIC-8 | **+$0.15** | 8 sections needed, not 4 |
-| I2C 8-bit I/O expander (PCF8574 / TCA9534 class) | **+$0.35** | `BANK_ARM` + per-colour fault ID (s4.4) |
+| I2C 8-bit I/O expander - **`MCP23008T-E/SS` [REV C]**, the PCF8574/TCA9534 class being -40..+85 C | **+$1.49** | `BANK_ARM` + per-colour fault ID (s4.4) |
 | `BANK_ARM_n` fail-safe stage (2N7002 + 2 R) | **+$0.03** | |
 | 3 x extra tab NTC | **+$0.06** | one per power FET |
 | J200: JST VH 2-pin -> 6-pin | **+$0.05** | |
@@ -793,6 +878,31 @@ Part costs at the qty-6 break, from the live JLCPCB figures in the research frag
 | PCB, **4-layer 100 x 80 mm at qty 5-10** | ~$3 | - |
 | JLC Extended-part handling, ~16 unique Extended parts amortised over 6 boards | **~$8.00** | +0.50 |
 | **Total, this board** | **~$29.25** | **+$4.75** |
+
+**[REV C] P3's sourced figures replace the estimates above.** 39 distinct parts, 160 placements,
+**17 Basic / 22 Extended**:
+
+| | P3 as sourced | **after BLOCKING-04** | note |
+|---|---|---|---|
+| BOM per board at qty 6 | **$20.53** | **~$15.90** | -$6.33 LM5069, +~$1.70 discrete loop |
+| Extended-part setup, ~$3 per distinct part per order over 6 boards | **~$11.00** | ~$11.00 | 22 distinct Extended; BLOCKING-04 deletes 2 feeders and adds 2 |
+| PCB, 4-layer 100 x 80 at qty 5-10 | ~$3 | ~$3 | |
+| **Total, this board** | **~$34.50** | **~$29.90** | |
+
+**The +125 C rule is the single most expensive decision in this BOM after RGBW itself** - P3 costed
+it at **+$4.85/board on two parts alone** (LM5069 +$3.53 over the TPS2490; MCP23008 +$1.14 over the
+TCA9534), and both rejected parts are in stock, cheaper, and functionally fine at the 56 C design
+of record. **BLOCKING-04 has since deleted the more expensive half of that for unrelated reasons.**
+If H2 re-affirms ICD s7.6's 56 C - which `power_tree.md` s10.7 now argues is *conservative* once
+the LED heat leaves through the enclosure wall - **the MCP23008 is the one part worth revisiting as
+a documented derating exception.** That is a decision for the human at H2, not for this run.
+
+**Extended-part setup is now 37 % of the board cost.** Two reductions P3 identified are available
+to P4 and both change declared electrical values, so neither is a sourcing substitution: rebuilding
+the divider top legs from 2 x 100 k Basic instead of 2 x 82 k (Rth 9.43 k -> 9.52 k, still inside
+the ICD's 10 k, at the cost of ~17 % of `ADC0`'s resolution), and replacing the 5.36 k setpoint
+resistor with 4.7 k + 680 R in series (-0.6 % current error, in the safe direction). **Together
+they save ~$1.00/board and 2 feeders.**
 
 Against open question 7's default of **$25/board at qty 6 excluding the LED module**, RGBW lands
 **~17 % over budget**. That is the costed consequence the owner accepted at H1. Note also that
@@ -836,6 +946,11 @@ by far the most expensive line and is now ~5x the cost of the board that drives 
 | **[REV B]** Per-colour current telemetry (4 peak-hold networks) | ~16 parts on an 81 %-occupied board to produce data a one-off P8 bench calibration gives better. The one thing it would catch that nothing else does - an open string - is caught in firmware by bank-droop self-test for free |
 | **[REV B]** Four per-colour thermistors on the MCPCB | Four more harness conductors for a shared thermal mass, producing no decision firmware can act on differently |
 | **[REV B]** LM339 / LM393 comparators | 0..+70 C parts. `power_tree.md` s10 puts internal air at up to 90 C. **Every active part on this board is now a +125 C part** |
+| **[REV C]** Hot-swap / power-limiting controller of any kind (TPS2490, LM5069) as the charge limiter | **BLOCKING-04.** Its fault timer breaks even at 2.9-9.1 % current-limit duty; this board runs at **87 %** by design, so it latches off or auto-restarts regardless of `C_TIMER`. **No part in the class omits the timer.** Root cause: using a fault protector as a charging regulator - the same error ICD s6.6 warns about one level up |
+| **[REV C]** Series ballast alone, with the limiter raised so it only engages at cold start (BLOCKING-04 route a) | The recharge sawtooth's current swing (**+/-0.045 A**) is **1.6x** the headroom between the sustained draw and the PSE-imposed limit (**0.028 A**), so the limiter re-enters regulation on every recharge at any R. Chasing it with a bigger resistor collapses the bank instead - at 45 ohm the peak finally reaches 0.20 A but the mean bank falls to 40.3 V, below the floor. **Retained inside route (b) for HEAT, not for duty** |
+| **[REV C]** Letting firmware govern the recharge so the limiter is never at the limit (route c) | Makes a hardware protection function depend on firmware - exactly what STR-REQ-20/-21 and the ENABLE contract exist to prevent. Kept only as secondary comfort |
+| **[REV C]** N-channel pass element for the discrete charge loop | Needs its gate driven above the 48 V rail, i.e. a charge pump - which is the function the deleted controller was providing internally. **P-channel needs none and is passively OFF by default** |
+| **[REV C]** A `Vbe`-referenced two-transistor current limiter | `Vbe` drifts **1.47:1** over -20..+90 C against an allowed current window of **1.28:1**. The tempco alone consumes the entire window; the loop needs a real reference |
 
 ---
 
@@ -858,3 +973,7 @@ by far the most expensive line and is now ~5x the cost of the board that drives 
 | D-STR-13 | **[H1 follow-up] Enclosure CLOSED: sealed, non-metallic, unvented, LED heatsink bolted to/through the wall.** Shared with the par. **The board's thermal case now depends on the wall-conduction path**, which is specified with an apportioned Rth budget and a gating acceptance test | `light-engine-spec.md` LE-16, `power_tree.md` s10.7 |
 | D-STR-14 | **[H1 follow-up] Emitter selection rule: published thermal data beats optical convenience when a part is sole-source.** `Rth(j-sp)` and `Tj max` are preconditions, not preferences. RGB 3-in-1 + separate white is the credible starting topology | `light-engine-spec.md` LE-25, s3.2 |
 | D-STR-15 | **[H1 follow-up] The light engine is NOT bound to LCSC stock** - it is off-board, so Digi-Key/Mouser/RS are in scope and every part carries its distributor. The par's zero-stock findings on Cree XLamp colour lines do not bind this module | `light-engine-spec.md` s0.1 |
+| **D-STR-16** | **[REV C] BLOCKING-04: the hot-swap controller is DELETED.** Charge limiter rebuilt as a discrete linear loop - ballast 2 x 39R 2512 (which is also the sense element) + P-channel D2PAK + LM2904B half on a floating 12 V rail, ENABLE-gated, **no fault timer**, SOA covered by the NTC already in the pour | `power_tree.md` s3.0-s3.3 |
+| **D-STR-17** | **[REV C] Charge-path dissipation re-split: 0.606 W into two 2512s, 0.215 W in the FET** (was 0.821 W all in the FET). **Deletes the charge FET from the 85-90 C failing set**; the governor cap loosens to 97 % / 85 % of budget | `power_tree.md` s3.3, s10.4 |
+| **D-STR-18** | **[REV C] `BANK_ARM_n` fail-safe re-derived for the MCP23008's high-Z POR**: `ARM` becomes active HIGH, a **100 k gate pull-down** makes high-Z unambiguous, and **`RESET` ties to `ENABLE`** so a crashed MCU cannot leave the bank armed | s2.4.1 |
+| **D-STR-19** | **[REV C] Bank second-source and area mitigation 1 are ONE lever**, not two - the 680 uF D18x25 is single-vendor (Ymin) and only the 6-footprint/470 uF layout buys a second source | s6.3, P3-OPEN-3 |

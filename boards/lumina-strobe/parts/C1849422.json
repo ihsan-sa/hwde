@@ -1,0 +1,169 @@
+{
+  "mpn": "LM2904BIDR",
+  "lcsc": "C1849422",
+  "package": "SOIC-8 (TI 'D' package, drawing D0008A, 'SOIC - 1.75 mm max height'). Device Information table: SOIC (8), 4.90 mm x 3.90 mm nominal body. Package outline D0008A: body length A .189-.197 [4.81-5.00] mm, body width B .150-.157 [3.81-3.98] mm, lead span .228-.244 [5.80-6.19] mm, height .069 MAX [1.75] mm, pitch 6X .050 [1.27] mm, lead width 8X .012-.020 [0.31-0.51] mm, standoff .004-.010 [0.11-0.25] mm, foot .016-.050 [0.41-1.27] mm, lead angle 0-8 deg. Reference JEDEC registration MS-012 variation AA. Orderable addendum: LM2904BIDR = ACTIVE, SOIC, D, 8 pins, 2500/reel, RoHS & Green, NIPDAU plating, MSL Level-1-260C-UNLIM, -40 to 125 degC, top marking 'L2904B'.",
+  "description": "Texas Instruments LM2904B / LM2904BA dual operational amplifier - the next generation of the industry-standard LM2904, two 36 V op-amps in one package. Datasheet ZHCSIT6AA (Chinese translation of English SLOS068), JUNE 1976 - REVISED MARCH 2022, 65 pages; the datasheet covers LM158/LM158A/LM258/LM258A/LM2904/LM2904B/LM2904BA/LM2904V/LM358/LM358A/LM358B/LM358BA and EVERY spec below was taken from the LM2904B/LM2904BA row or column only (the plain LM2904, LM2904V, LM358 and LM158 columns have DIFFERENT supply, VOS and temperature numbers - do not read across). Key stated features (sec 1): wide 3 V to 36 V single-supply range (B / BA versions); 300 uA/channel quiescent current (B / BA); 1.2 MHz unity-gain bandwidth (B / BA); 'common-mode input voltage range includes ground, supports direct sensing near ground'; max input offset voltage 3 mV at 25 degC (A / B versions) and 2 mV (BA version); internal RF and EMI filters (B / BA). Sec 8.1: two independent high-gain, frequency-compensated op-amps designed for single-supply operation over a wide voltage range; split-supply operation is also allowed provided the total (V+)-(V-) stays inside the sec 6.3 supply range AND VS is at least 1.5 V above the input common-mode voltage. THIS BOARD (LUM-DTR-STROBE-A) uses four instances U200/U250/U300/U350 on +12 V; section A is the current-regulation error amp driving a pass-FET gate directly, section B buffers the RC-filtered PWM amplitude setpoint.",
+  "pinout": [
+    {
+      "pin": "1",
+      "name": "OUT1",
+      "type": "output",
+      "notes": "Table 5-1: OUT1, I/O = O, 'output'. Amplifier 1 output. Figure 5-1 (D/DDF/DGK/P/PS/PW/JG, 8-pin SOIC top view) places OUT1 at pin 1, top-left. Push-pull output (see layout_notes for the swing/current numbers) - NOT open collector. AMPLIFIER 1 GROUPING (load-bearing for wiring): OUT1 = 1, IN1- = 2, IN1+ = 3, i.e. the TI order down the left side is OUT, IN-, IN+ (out first, then the INVERTING input, then the non-inverting input). Section A on this board (error amp) is therefore pins 1/2/3."
+    },
+    {
+      "pin": "2",
+      "name": "IN1-",
+      "type": "analog",
+      "notes": "Table 5-1: IN1-, I/O = I, 'negative input' (inverting input of amplifier 1). Figure 5-1 shows it as 'IN1+-' / 'IN1+/-' at pin 2, directly BELOW OUT1."
+    },
+    {
+      "pin": "3",
+      "name": "IN1+",
+      "type": "analog",
+      "notes": "Table 5-1: IN1+, I/O = I, 'positive input' (non-inverting input of amplifier 1). Pin 3, below IN1-. Common-mode range includes (V-)/ground - see layout_notes."
+    },
+    {
+      "pin": "4",
+      "name": "V-",
+      "type": "ground",
+      "notes": "Table 5-1: V-, I/O = '-', described verbatim as 'negative (lowest) supply, or ground for single-supply operation'. On this board V- ties to GND (single +12 V supply). In a split-supply design this pin carries the negative rail. Bottom-left corner of the SOIC-8 (Figure 5-1). The datasheet does NOT ask for a bypass capacitor on V- in single-supply use - sec 11.1 says a single V+ to ground bypass capacitor is adequate for single-supply applications."
+    },
+    {
+      "pin": "5",
+      "name": "IN2+",
+      "type": "analog",
+      "notes": "Table 5-1: IN2+, I/O = I, 'positive input' (non-inverting input of amplifier 2). Pin 5, bottom-right corner. NOTE THE MIRRORED ORDER: on the right-hand side the sequence going UP from pin 5 is IN2+, IN2-, OUT2, V+ - i.e. amplifier 2's inputs are in the OPPOSITE order to amplifier 1's (IN+ before IN-). Section B on this board (setpoint buffer) is pins 5/6/7."
+    },
+    {
+      "pin": "6",
+      "name": "IN2-",
+      "type": "analog",
+      "notes": "Table 5-1: IN2-, I/O = I, 'negative input' (inverting input of amplifier 2). Pin 6. For a unity-gain buffer on section B, IN2- (pin 6) ties to OUT2 (pin 7) - adjacent pins."
+    },
+    {
+      "pin": "7",
+      "name": "OUT2",
+      "type": "output",
+      "notes": "Table 5-1: OUT2, I/O = O, 'output'. Amplifier 2 output. Pin 7."
+    },
+    {
+      "pin": "8",
+      "name": "V+",
+      "type": "power_in",
+      "notes": "Table 5-1: V+, I/O = '-', 'positive (highest) supply'. Top-right corner of the SOIC-8. Recommended operating range 3 V to 36 V (LM2904B/BA, sec 6.3); absolute maximum VS = (V+)-(V-) = 40 V (sec 6.1). +12 V on this board, comfortably inside both. Sec 10 / sec 11.1: place a low-ESR 0.1 uF ceramic bypass capacitor from this pin to ground, as close to the device as possible."
+    }
+  ],
+  "decoupling": [
+    {
+      "pins": [
+        "8"
+      ],
+      "value": "0.1 uF (100 nF) low-ESR ceramic",
+      "placement": "between the supply pin and ground, placed as close to the device as possible",
+      "notes": "GROUNDED, sec 10 'Power Supply Recommendations': 'Place a 0.1 uF bypass capacitor close to the supply pins to reduce errors coupling in from noisy or high-impedance power supplies.' GROUNDED, sec 11.1 'Layout Guidelines' bullet 1: 'Connect a low equivalent-series-resistance (ESR) 0.1 uF ceramic bypass capacitor between each supply pin and ground, placed as close to the device as possible. A single bypass capacitor from V+ to ground is adequate for single-supply applications.' Since this board is single-supply (+12 V, V- = GND), ONE 100 nF from pin 8 to GND per package is the datasheet-grounded requirement - i.e. four caps total for U200/U250/U300/U350. The datasheet does NOT specify a bulk capacitor value, a voltage rating or a dielectric; nothing beyond the 0.1 uF is grounded."
+    }
+  ],
+  "land_pattern": {
+    "package": "SOIC-8, TI D0008A 'EXAMPLE BOARD LAYOUT / LAND PATTERN EXAMPLE' (drawing 4214825/C, 02/2019)",
+    "pad_count": 8,
+    "pitch_mm": 1.27,
+    "pad_size_mm": [
+      0.6,
+      1.55
+    ],
+    "row_spacing_mm": 5.4,
+    "pin1": "1",
+    "notes": "From the RECOMMENDED land pattern drawing (page 51, 'EXAMPLE BOARD LAYOUT'), not the package outline: 8X (.061) [1.55] mm pad length (along the lead axis, horizontal in the drawing), 8X (.024) [0.6] mm pad width, 6X (.050) [1.27] mm pad-to-pad pitch within a row, (.213) [5.4] mm between the two pad rows measured centre-to-centre, (R.002) [0.05] mm typ pad corner radius. Pads are numbered 1-4 down the left column and 5-8 up the right column with SYMM centrelines both ways. Drawing note 6: 'Publication IPC-7351 may have alternate designs.' Note 7: solder-mask tolerances between and around signal pads vary by board fab site. Solder-mask details: non-solder-mask-defined = .0028 MAX [0.07] mm all around; solder-mask-defined = .0028 MIN [0.07] mm all around. Stencil (page 52, 'EXAMPLE STENCIL DESIGN'): same 8X 1.55 x 0.6 mm apertures at 1.27 mm pitch, based on a .005 inch [0.125 mm] thick stencil, 1:1 with the pads (no paste reduction). NO courtyard excess is stated in the drawing, so courtyard_excess_mm is deliberately omitted."
+  },
+  "exposed_pad": {
+    "present": false
+  },
+  "layout_notes": [
+    "OUTPUT STAGE IS PUSH-PULL (not open collector/drain): sec 6.6 specifies both sourcing and sinking output current and a bipolar short-circuit current ISC, and gives an output swing referenced to BOTH rails. No pull-up resistor is required or mentioned anywhere in the datasheet.",
+    "SUPPLY (sec 6.3 recommended): VS = (V+)-(V-) = 3 V to 36 V for LM2904B/LM2904BA. ABSOLUTE MAXIMUM (sec 6.1): VS = +/-20 or 40 V. The board's +12 V rail sits inside both with large margin.",
+    "INPUT COMMON-MODE RANGE (LOAD-BEARING for this board's near-ground shunt sensing) - sec 6.6 states VCM = (V-) to (V+)-1.5 V for VS = 3 V to 36 V at TA = 25 degC, and VCM = (V-) to (V+)-2 V for VS = 5 V to 36 V over TA = -40 degC to +125 degC. Sec 6.3 recommended operating conditions give the conservative VCM = (V-) to (V+)-2 V. The LOWER limit is the negative rail ITSELF, i.e. GROUND in this single-supply board - sec 1 states 'common-mode input voltage range includes ground, supports direct sensing near ground', and sec 8.3.3 repeats: 'the valid common-mode range is from device ground to VS-1.5 V (VS-2 V over the full temperature range)'. A 200 mohm shunt at 2.6 A gives 0.52 V full scale, so the error amp's inputs at 0 V to 0.52 V are INSIDE the guaranteed range with the negative-rail end included by spec, not by extrapolation. CMRR at that condition: 20 typ / 100 max uV/V (VS = 3-36 V, (V-) <= VCM <= (V+)-1.5 V), degrading to 25 typ / 316 max uV/V over -40 to +125 degC.",
+    "INPUT PHASE-REVERSAL / OVERDRIVE RULES (sec 8.3.3, verbatim sense): inputs may exceed VS up to the maximum VS without damaging the device; AT LEAST ONE input must be inside the valid input common-mode range for the output to have the correct phase; if BOTH inputs are outside the valid range the output phase is UNDEFINED; if either input goes more than 0.3 V BELOW V-, the input current must be limited to 1 mA and the output phase is undefined. Consequence for this board: the shunt-sense node can ring below ground during FET switching - series input resistance is needed to hold that input current under 1 mA if the node can go more than -0.3 V.",
+    "INPUT OFFSET VOLTAGE (sets the low-end intensity accuracy, STR-REQ-04) - LM2904B: VOS = +/-0.3 mV typ, +/-3.0 mV max at TA = 25 degC, and +/-4 mV max over TA = -40 to +125 degC. LM2904BA (the tighter grade, a DIFFERENT orderable): +/-2.0 mV max at 25 degC, +/-3.0 mV max over temperature. THE ORDERED PART IS LM2904BIDR = the LM2904B grade, so use +/-3.0 mV max at 25 degC / +/-4 mV max over temperature. Offset drift dVOS/dT = +/-3.5 typ / 12 max uV/degC. PSRR = +/-2 typ / 15 max uV/V. At a 0.52 V full-scale shunt signal, +/-4 mV of offset is +/-0.77 % of full scale; at the 10 % dim point (52 mV) it is +/-7.7 % of the commanded setpoint.",
+    "INPUT BIAS / OFFSET CURRENT: IB = +/-10 typ / +/-35 max nA at 25 degC, +/-50 nA max over -40 to +125 degC. IOS = 0.5 typ / 4 max nA at 25 degC, 5 nA max over temperature. dIOS/dT = 10 pA/degC.",
+    "OUTPUT DRIVE (sec 6.6 'Output'): sourcing - VS = 15 V, VO = (V-), VID = 1 V gives -20 mA min / -30 mA typ (negative sign = current OUT of the device), falling to -10 mA over -40 to +125 degC. Sinking - VS = 15 V, VO = (V+) gives 10 mA min / 20 mA typ, falling to 5 mA over -40 to +125 degC. A third row, VID = -1 V with VO = (V-)+200 mV, gives 60 uA typ / 100 uA max (the low-side leakage/pull-down condition). ISC short-circuit current = +/-40 typ / +/-60 max mA at VS = 20 V, (V+) = 10 V, (V-) = -10 V, VO = 0 V. NOTE: the Chinese-language table labels the VO = (V-) row and the VO = (V+) row with the same 'VID = 1 V' condition; the sign of the current and the forced output rail disambiguate them (out-of-device/source vs into-device/sink) - see OPEN.",
+    "CAPACITIVE LOAD DRIVE IS ONLY 100 pF (sec 6.6, CLOAD = 100 pF typ) AND PHASE MARGIN IS SPECIFIED AT CL = 20 pF (theta_m = 56 deg at G = +1, RL = 10 kohm, CL = 20 pF). THIS IS THE CRITICAL LIMIT FOR DRIVING A MOSFET GATE DIRECTLY: a logic-level power MOSFET's Ciss is typically hundreds to thousands of pF, i.e. one to two orders of magnitude beyond the stated 100 pF. The datasheet gives NO guidance on isolation resistors, snubbers or feedback compensation for capacitive loads. Open-loop output resistance RO = 300 ohm at f = 1 MHz, IO = 0 A. Gate drive must therefore be isolated (series gate resistor outside the feedback loop, or a feedback cap across the loop) - and that mitigation is NOT grounded in this PDF, it is a design obligation flagged here for the schematic reviewer.",
+    "OUTPUT VOLTAGE SWING (sec 6.6): headroom to the POSITIVE rail (V+) - 1.35 V typ / 1.42 V max at IOUT = 50 uA, 1.4 / 1.48 V at 1 mA, 1.5 / 1.61 V at 5 mA. Swing to the NEGATIVE rail (V-) - 100 mV typ / 150 mV max at IOUT = 50 uA, 0.75 V typ / 1 V max at 1 mA, and 5 typ / 20 max mV at VS = 5 V with RL <= 10 kohm to (V-) over -40 to +125 degC. On +12 V the output therefore cannot swing above about 10.5 V, which caps the available gate drive.",
+    "AC / DYNAMIC: AOL = 70 min / 140 typ V/mV at VS = 15 V, VO = 1 to 11 V, RL >= 10 kohm to (V-); 35 V/mV min over -40 to +125 degC. GBW = 1.2 MHz. Slew rate = 0.5 V/us at G = +1. Overload recovery tOR = 10 us. Settling time ts = 4 us to 0.1 % (VS = 5 V, 2 V step, G = +1, CL = 100 pF).",
+    "NOISE: En = 3 uVpp (0.1 Hz to 10 Hz). en = 40 nV/sqrt(Hz) at 1 kHz. Input impedance ZID = 10 Mohm || 0.1 pF differential, ZIC = 4 Gohm || 1.5 pF common-mode.",
+    "SUPPLY CURRENT: IQ = 300 uA typ / 460 uA max PER AMPLIFIER at VS = 5 V, IO = 0 A over -40 to +125 degC; 800 uA per amplifier at VS = 36 V. Four packages = eight amplifiers on this board.",
+    "LAYOUT GUIDELINES (sec 11.1, verbatim sense): (a) noise couples into the analog circuit through every supply pin and through the op-amp itself - bypass capacitors lower coupled noise by giving the local analog circuit a low-impedance supply; connect a low-ESR 0.1 uF ceramic between EACH supply pin and ground as close to the device as possible, and a single V+ to ground cap suffices for single-supply designs; (b) separating the analog and digital grounds is one of the simplest and most effective noise-suppression measures - dedicate one or more layers of a multilayer PCB to a ground plane, which also helps heat spreading and reduces EMI pickup, and keep digital ground physically isolated from analog ground while watching where ground currents run; (c) to reduce parasitic coupling keep input traces as far as possible from supply or output traces - if they cannot be kept apart, cross sensitive and noisy traces at RIGHT ANGLES rather than running them in parallel; (d) place external components as close to the device as possible - keeping RF and RG close to the inverting input minimises parasitic capacitance (Figure 11-1); (e) keep input traces as SHORT as possible - the input traces are the most sensitive part of the circuit; (f) consider a driven low-impedance guard ring around critical traces, which substantially reduces leakage current from nearby traces at different potentials.",
+    "LAYOUT EXAMPLE (Figure 11-1, non-inverting configuration): annotations read 'Run the input traces as far away from the supply lines as possible', 'Only needed for dual-supply operation' (the V- bypass cap - or GND for single supply), 'Place components close to device and to each other to reduce parasitic errors', 'Use low-ESR, ceramic bypass capacitor', 'Ground (GND) plane on another layer'.",
+    "THERMAL (sec 6.4, D / SOIC 8-pin column): RthJA = 124.7 degC/W, RthJC(top) = 66.9 degC/W, RthJB = 67.9 degC/W, psiJT = 19.2 degC/W, psiJB = 67.2 degC/W. No RthJC(bottom) for this package (no exposed pad). TJ max = 150 degC.",
+    "TEMPERATURE GRADE (checked deliberately for this board): the ordered LM2904BIDR is rated TA = -40 degC to +125 degC (sec 6.1 absolute maximum and sec 6.3 recommended operating conditions, LM2904B/LM2904BA row; confirmed independently by the orderable-device addendum row 'LM2904BIDR ACTIVE SOIC D 8 2500 ... -40 to 125 L2904B'). This is NOT the 0 to +70 degC grade - that grade in this same datasheet is LM358/LM358A, and LM358B/LM358BA is -40 to +85 degC. The 125 degC ceiling comes from the LM2904B part number, so any substitution to an LM358x is a temperature-grade DOWNGRADE.",
+    "NO EXPOSED / THERMAL PAD on the D (SOIC-8) package - the D0008A outline shows a plain gull-wing 8-lead body with no bottom-side metal, and the thermal table has no RthJC(bot) entry for D.",
+    "ESD (sec 6.2, LM2904B/LM2904BA): HBM +/-2000 V per ANSI/ESDA/JEDEC JS-001; CDM +/-1500 V per JESD22-C101. (The plain LM2904/LM2904V parts are only +/-500 V HBM - another reason not to substitute.)"
+  ],
+  "abs_max": [
+    {
+      "param": "Supply voltage VS = (V+) - (V-), LM2904B / LM2904BA",
+      "value": "+/-20 or 40",
+      "unit": "V"
+    },
+    {
+      "param": "Differential input voltage VID (IN+ referred to IN-), LM2904B / LM2904BA",
+      "value": "-32 to 32",
+      "unit": "V"
+    },
+    {
+      "param": "Input voltage VI at either input, LM2904B / LM2904BA",
+      "value": "-0.3 to 40",
+      "unit": "V"
+    },
+    {
+      "param": "Output short-circuit to ground duration, one amplifier, at or below TA = 25 degC and VS <= 15 V (short from output to VS causes overheating and eventual damage)",
+      "value": "unlimited",
+      "unit": "s"
+    },
+    {
+      "param": "Operating ambient temperature TA, LM2904B / LM2904BA",
+      "value": "-40 to 125",
+      "unit": "degC"
+    },
+    {
+      "param": "Operating virtual junction temperature TJ",
+      "value": 150,
+      "unit": "degC"
+    },
+    {
+      "param": "Storage temperature Tstg",
+      "value": "-65 to 150",
+      "unit": "degC"
+    },
+    {
+      "param": "ESD HBM (ANSI/ESDA/JEDEC JS-001), LM2904B / LM2904BA",
+      "value": "+/-2000",
+      "unit": "V"
+    },
+    {
+      "param": "ESD CDM (JEDEC JESD22-C101), LM2904B / LM2904BA",
+      "value": "+/-1500",
+      "unit": "V"
+    },
+    {
+      "param": "RECOMMENDED (sec 6.3) supply voltage VS = (V+) - (V-), LM2904B / LM2904BA",
+      "value": "3 to 36",
+      "unit": "V"
+    },
+    {
+      "param": "RECOMMENDED (sec 6.3) common-mode input voltage VCM",
+      "value": "(V-) to (V+) - 2",
+      "unit": "V"
+    },
+    {
+      "param": "RECOMMENDED (sec 6.3) operating ambient temperature TA, LM2904B / LM2904BA",
+      "value": "-40 to 125",
+      "unit": "degC"
+    },
+    {
+      "param": "Thermal resistance RthJA, D (SOIC) 8-pin",
+      "value": 124.7,
+      "unit": "degC/W"
+    }
+  ],
+  "source_pdf": "boards/lumina-strobe/parts/C1849422.pdf (TI ZHCSIT6AA, JUNE 1976 - REVISED MARCH 2022, 65 pages; Chinese-language edition of English datasheet SLOS068)"
+}

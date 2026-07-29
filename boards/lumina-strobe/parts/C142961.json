@@ -1,0 +1,199 @@
+{
+  "mpn": "LM2901DT",
+  "lcsc": "C142961",
+  "package": "SO-14 (ST 'D' suffix, plastic micropackage; the 'T' in LM2901DT denotes tape & reel packing, not a different body). Table 6 SO-14 mechanical data (min/typ/max, mm): A -/-/1.75 overall height, A1 0.10/-/0.25 standoff, A2 1.10/-/1.65, B 0.33/-/0.51 lead width, C 0.19/-/0.25 lead thickness, D 8.55/-/8.75 body length, E 3.80/-/4.00 body width, e -/1.27/- lead pitch, H 5.80/-/6.20 lead span, h 0.25/-/0.50, L 0.40/-/1.27 foot length, k 8 deg max lead angle, ddd 0.10 max. Order code table (Table 8): LM2901DT = SO-14, tape & reel, temperature range -40 degC to +125 degC, top marking '2901'.",
+  "description": "STMicroelectronics LM2901 low-power QUAD voltage comparator - four independent precision voltage comparators designed specifically for single-supply operation over a wide voltage range (split-supply operation also possible). Datasheet Doc ID 2468 Rev 7, February 2012, 17 pages; covers DIP14 (N), SO-14 (D), TSSOP14 (P) and QFN16 3x3 (Q4) - the pinout recorded here is the 14-PIN one from Figure 1 (the QFN16 in the same figure has a COMPLETELY DIFFERENT pin map and must not be used). Stated features (page 1): wide single-supply range +2 V to +36 V or dual supplies +/-1 V to +/-18 V for all devices; very low supply current 1.1 mA independent of supply voltage (1.4 mW/comparator at +5 V); low input bias current 25 nA typ; low input offset current +/-5 nA typ; 'input common-mode voltage range includes negative rail'; low output saturation voltage 250 mV typ at IO = 4 mA; differential input voltage range equal to the supply voltage; TTL, DTL, ECL, MOS, CMOS compatible outputs. Description paragraph 2: 'These comparators also have a unique characteristic in that the input common-mode voltage range includes the negative rail even though operated from a single power supply voltage.' THIS BOARD (LUM-DTR-STROBE-A) uses two instances U400/U401 on +12 V carrying board over-temperature, LED-module over-temperature, bank UVLO, bank ceiling and the four per-colour Vds fault latches.",
+  "pinout": [
+    {
+      "pin": "1",
+      "name": "OUT2",
+      "type": "open_collector",
+      "notes": "Figure 1 'Pin connections (top view)', DIP14/SO-14 body: pin 1 = 'Output 2'. CAUTION - PIN 1 IS OUTPUT 2, NOT OUTPUT 1; the two output pins on the left side are in the order OUT2 (pin 1) then OUT1 (pin 2), which is the reverse of the naive expectation. Output stage is OPEN COLLECTOR (uncommitted NPN collector) - see the layout_notes entry 'OUTPUT STAGE' for the evidence chain. REQUIRES AN EXTERNAL PULL-UP; it can only pull DOWN toward VCC-, never drive high, which is exactly what a wire-OR fault bus needs."
+    },
+    {
+      "pin": "2",
+      "name": "OUT1",
+      "type": "open_collector",
+      "notes": "Figure 1: pin 2 = 'Output 1'. Open collector, external pull-up required. Comparator 1 output."
+    },
+    {
+      "pin": "3",
+      "name": "VCC+",
+      "type": "power_in",
+      "notes": "Figure 1: pin 3 = 'VCC+'. Positive supply. Recommended operating range 2 V to 32 V single supply (or +/-1 V to +/-16 V split) per Table 2; the features page quotes the wider +2 V to +36 V / +/-1 V to +/-18 V and Table 1 absolute maximum is +/-18 to 36 V - see OPEN for that internal inconsistency. +12 V on this board is inside every one of those numbers. NOTE: VCC+ IS PIN 3, NOT PIN 14 - unlike most 14-pin logic, the supply is NOT in the corner."
+    },
+    {
+      "pin": "4",
+      "name": "IN1-",
+      "type": "analog",
+      "notes": "Figure 1: pin 4 = 'Inverting input 1'. COMPARATOR 1 GROUPING: OUT1 = pin 2, IN1- = pin 4, IN1+ = pin 5, i.e. going DOWN the left side the order is INVERTING input first, then non-inverting."
+    },
+    {
+      "pin": "5",
+      "name": "IN1+",
+      "type": "analog",
+      "notes": "Figure 1: pin 5 = 'Non-inverting input 1'. Common-mode range includes the negative rail (0 V in single-supply use) - see layout_notes."
+    },
+    {
+      "pin": "6",
+      "name": "IN2-",
+      "type": "analog",
+      "notes": "Figure 1: pin 6 = 'Inverting input 2'. COMPARATOR 2 GROUPING: OUT2 = pin 1, IN2- = pin 6, IN2+ = pin 7. Note that comparator 2's OUTPUT is at the far end of the package from its inputs."
+    },
+    {
+      "pin": "7",
+      "name": "IN2+",
+      "type": "analog",
+      "notes": "Figure 1: pin 7 = 'Non-inverting input 2'. Bottom-left corner of the 14-pin body."
+    },
+    {
+      "pin": "8",
+      "name": "IN3-",
+      "type": "analog",
+      "notes": "Figure 1: pin 8 = 'Inverting input 3'. Bottom-right corner. COMPARATOR 3 GROUPING: OUT3 = pin 14, IN3- = pin 8, IN3+ = pin 9. On the RIGHT side, going UP from pin 8, the order is IN3-, IN3+, IN4-, IN4+ - so the inverting input still comes first, but the numbering runs upward, mirroring the left side."
+    },
+    {
+      "pin": "9",
+      "name": "IN3+",
+      "type": "analog",
+      "notes": "Figure 1: pin 9 = 'Non-inverting input 3'."
+    },
+    {
+      "pin": "10",
+      "name": "IN4-",
+      "type": "analog",
+      "notes": "Figure 1: pin 10 = 'Inverting input 4'. COMPARATOR 4 GROUPING: OUT4 = pin 13, IN4- = pin 10, IN4+ = pin 11."
+    },
+    {
+      "pin": "11",
+      "name": "IN4+",
+      "type": "analog",
+      "notes": "Figure 1: pin 11 = 'Non-inverting input 4'."
+    },
+    {
+      "pin": "12",
+      "name": "VCC-",
+      "type": "ground",
+      "notes": "Figure 1: pin 12 = 'VCC-'. Negative supply; ties to GND in single-supply operation, which is how this board uses it. NOTE: VCC- IS PIN 12, NOT PIN 7 - it is diagonally opposite VCC+ (pin 3) but neither is in a corner. Figure 2 (schematic diagram) shows every comparator's output-transistor EMITTER returning to this pin, so it carries the summed sink current of all four outputs."
+    },
+    {
+      "pin": "13",
+      "name": "OUT4",
+      "type": "open_collector",
+      "notes": "Figure 1: pin 13 = 'Output 4'. Open collector, external pull-up required."
+    },
+    {
+      "pin": "14",
+      "name": "OUT3",
+      "type": "open_collector",
+      "notes": "Figure 1: pin 14 = 'Output 3'. CAUTION - PIN 14 IS OUTPUT 3, NOT OUTPUT 4; on the right side the order going down from pin 14 is OUT3 (14) then OUT4 (13), again the reverse of the naive expectation. Open collector, external pull-up required."
+    }
+  ],
+  "land_pattern": {
+    "package": "SO-14 (ST 'D' plastic micropackage), section 5.3, Figure 25 + Table 6",
+    "pad_count": 14,
+    "pitch_mm": 1.27,
+    "pin1": "1",
+    "notes": "NO RECOMMENDED LAND PATTERN IS PUBLISHED for SO-14 in this datasheet. Section 5.3 gives ONLY the package mechanical drawing (Figure 25) and the mechanical data table (Table 6) - the datasheet's only 'footprint recommendation' drawing is Figure 24, and that is for the QFN16 3x3 package, NOT for SO-14. The pitch above is grounded: Table 6 'e' = 1.27 mm typ (0.05 in) lead pitch. pad_size_mm and row_spacing_mm are DELIBERATELY OMITTED because the PDF does not state them - derive them from a standard IPC-7351 SOIC127P600X175-14N land pattern, not from this file. Package outline dimensions available for that derivation (Table 6, mm): body D 8.55-8.75 x E 3.80-4.00, lead span H 5.80-6.20, lead width B 0.33-0.51, lead thickness C 0.19-0.25, foot length L 0.40-1.27, standoff A1 0.10-0.25, overall height A 1.35-1.75, lead angle k 8 deg max, coplanarity ddd 0.10 max. Figure 25's bottom view numbers pin 1 at the top-left with pins 1-7 along one side and 8-14 along the other (14 opposite 1)."
+  },
+  "exposed_pad": {
+    "present": false
+  },
+  "layout_notes": [
+    "OUTPUT STAGE IS OPEN COLLECTOR - THIS IS LOAD-BEARING FOR THE BOARD'S WIRE-OR FAULT BUS. The datasheet NEVER uses the words 'open collector' or 'open drain' (verified by full-text search of all 17 pages), so this is established from four independent grounded facts: (1) Figure 2 'Schematic diagram' shows the output stage as a SINGLE NPN transistor whose COLLECTOR is the Vo pin and whose EMITTER returns to VCC-, with NOTHING connecting Vo to VCC+ - i.e. an uncommitted collector; (2) Table 3 specifies IOH 'High level output current' at VCC = Vo = 30 V, Vid = 1 V as 0.1 nA typ / 1 uA max over temperature - a LEAKAGE spec, which only exists for an output that cannot source; (3) Table 3 specifies Isink (6 mA min / 16 mA typ at Vid = -1 V, Vo = 1.5 V) and VOL, but NO source-current and NO VOH parameter at all; (4) every one of the 14 typical application schematics in section 4 (Figures 8-21) hangs an external pull-up resistor (5.1 k, 10 k, 15 k, 100 k) from the output to VCC. Table 1 footnote 1 also warns 'Short-circuits from the output to VCC+ can cause excessive heating and eventual destruction', which presupposes an externally pulled-up output. CONSEQUENCE: the outputs CANNOT drive the FAULT net high; they can only pull it toward VCC-. Wire-ORing several outputs onto one pulled-up node is a supported topology, and a single external pull-up serves the whole bus.",
+    "MAXIMUM OUTPUT CURRENT ~20 mA. Table 1 footnote 1, verbatim: 'The maximum output current is approximately 20 mA, independent of the magnitude of VCC+.' Size the FAULT-net pull-up so that the total sunk current from all wire-ORed outputs (plus any other open-drain source on the net) stays well under 20 mA per device output. Guaranteed sink capability is 6 mA min (Isink at Vid = -1 V, Vo = 1.5 V; 16 mA typ), so the pull-up must not demand more than ~6 mA if VOL is to be honoured.",
+    "OUTPUT LOW LEVEL: VOL = 250 mV typ / 400 mV max at Vid = -1 V and Isink = 4 mA (25 degC), rising to 700 mV max over Tmin to Tmax. Features page: 'Low output saturation voltage: 250 mV typ (IO = 4 mA)'. Check this against whatever threshold reads the FAULT net - at 700 mV worst case, a 3.3 V logic input with VIL = 0.8 V has only 100 mV of margin, so keep the sink current below 4 mA if the receiver is a plain CMOS input.",
+    "SUPPLY RANGE - THE DATASHEET GIVES THREE DIFFERENT NUMBERS, USE THE MOST CONSERVATIVE: features page says '+2 V to +36 V or +/-1 V to +/-18 V'; Table 1 (absolute maximum ratings) says VCC = '+/-18 to 36 V'; Table 2 (OPERATING conditions) says VCC = '2 to 32 V' or '+/-1 to +/-16 V'. The design limit to hold is the Table 2 RECOMMENDED-OPERATING ceiling of 32 V single supply. The board's +12 V rail is far inside all three.",
+    "INPUT COMMON-MODE RANGE INCLUDES THE NEGATIVE RAIL (load-bearing for near-ground sensing). Table 2 operating conditions: Vicm = 0 V to (VCC+ - 1.5 V), and 0 V to (VCC+ - 2 V) over Tmin <= Tamb <= Tmax. The LOWER limit is exactly 0 V (the negative rail, i.e. GND in this single-supply board) - stated twice more on page 1: 'Input common-mode voltage range includes negative rail' and 'these comparators also have a unique characteristic in that the input common-mode voltage range includes the negative rail even though operated from a single power supply voltage'. On +12 V the usable window is therefore 0 V to 10 V (0 V to 10.5 V at 25 degC). Note that Vicm was REMOVED from the Table 3 electrical characteristics in Rev 5 (see the revision history) and survives only in Table 2, so the range is an operating condition, not a tested electrical parameter.",
+    "INPUT ABSOLUTE LIMITS AND THE -0.3 V FLOOR: Table 1 gives Vin = -0.3 V to +36 V and Vid = +/-36 V (differential input voltage). Table 3 footnote 4, verbatim: 'Positive excursions of input voltage may exceed the power supply level. As long as the other voltage remains within the common-mode range, the comparator will provide a proper output state. The low input voltage state must not be less than -0.3 V (or 0.3 V below the negative power supply, if used).' Consequence: an input node that can ring below ground by more than 0.3 V (e.g. a shunt-sense or Vds node during FET switching) needs a series resistor or clamp; unlike the LM2904B, this datasheet gives NO 1 mA input-current allowance below the rail - it simply forbids it.",
+    "INPUT OFFSET VOLTAGE (sets threshold accuracy on every trip point): Vio = 1 mV typ / 7 mV max at 25 degC, and 15 mV max over Tmin to Tmax. Table 3 footnote 1 gives the test condition verbatim: 'At output switch point, VO ~ 1.4 V, RS = 0 with VCC+ from 5 V to 30 V, and over the full input common-mode range (0 V to VCC+ -1.5 V).' Budget +/-15 mV of threshold error over temperature on every comparator trip point - notably on the bank UVLO and bank-ceiling dividers, where 15 mV at the comparator scales up by the divider ratio at the rail.",
+    "INPUT CURRENTS AND THEIR DIRECTION: Iib = 25 nA typ / 250 nA max at 25 degC, 400 nA max over temperature; Iio = 5 nA typ / 50 nA max at 25 degC, 150 nA max over temperature. Table 3 footnote 2, verbatim: 'The direction of the input current is OUT OF the IC due to the PNP input stage. This current is essentially constant, independent of the state of the output, so there is no loading charge on the reference of input lines.' Because the bias current flows OUT of the pin, it develops a POSITIVE offset across any series/divider resistance - keep threshold-divider Thevenin impedance low (400 nA into 100 kohm is 40 mV, far larger than the 15 mV Vio) and match the impedance seen by the two inputs.",
+    "NO HYSTERESIS IS BUILT IN. Table 3 lists no hysteresis parameter and Figure 8 'Basic comparator' has none; Avd (large signal voltage gain) is 25 V/mV min / 200 V/mV typ at VCC = 15 V, RL = 15 kohm, Vo = 1 to 11 V. Slowly-moving inputs (thermistor over-temperature, bank UVLO) WILL chatter without external positive feedback. The datasheet provides no hysteresis design guidance.",
+    "SPEED: small-signal response time tres = 1.3 us typ (RL = 5.1 kohm to VCC+, for a 100 mV input step with 5 mV overdrive per footnote 3). Large-signal response trel with a TTL input (Vref = +1.4 V, RL = 5.1 kohm to VCC+): 500 ns to 50 % of final value, 1 us to 95 % of final value (maximum values guaranteed by design). Figures 6 and 7 plot response time versus input overdrive for negative and positive transitions. This is a SLOW comparator - do not rely on it to catch a fast Vds transient; the per-colour Vds fault detection needs the latch to hold the event, not the comparator to be fast.",
+    "SUPPLY CURRENT: ICC (all four comparators) = 1.1 mA typ / 2 mA max at VCC = +5 V no load, and 1.3 mA typ / 2.5 mA max at VCC = +30 V no load. Two packages on this board, plus the pull-up currents which dominate.",
+    "TEMPERATURE GRADE (checked deliberately for this board): Table 2 operating conditions give Toper = -40 degC to +125 degC, and the Table 8 order-code table confirms LM2901DT (SO-14, tube or tape & reel) is the -40 degC to +125 degC entry. Tj max = +150 degC, Tstg = -65 degC to +150 degC (Table 1). This is NOT a 0 to +70 degC part.",
+    "THERMAL (Table 1, all values typical): Rthja SO-14 = 105 degC/W, Rthjc SO-14 = 31 degC/W. (DIP14 80/33, TSSOP14 100/32, QFN16 45/14.) Table 1 footnote 2: 'Short-circuits can cause excessive heating. Destructive dissipation can result from simultaneous short-circuits on all amplifiers.'",
+    "ESD (Table 1): HBM 500 V, MM 100 V, CDM 1500 V. This is a LOW HBM rating by modern standards - any comparator input that reaches a connector (LED-module thermistor, external sense) needs board-level protection; the datasheet offers none.",
+    "NO DECOUPLING OR BYPASS GUIDANCE EXISTS IN THIS DATASHEET. Full-text search of all 17 pages finds no occurrence of 'bypass', 'decoupling' or any supply-capacitor recommendation, and none of the 14 application schematics in section 4 draws one. The `decoupling` key is therefore ABSENT from this file because no value can be grounded - that is NOT a statement that the part needs no decoupling. Apply the house rule (100 nF ceramic at VCC+ pin 3 of every package, plus board-level bulk) as an ungrounded design decision and record it as such.",
+    "NO PCB LAYOUT SECTION EXISTS IN THIS DATASHEET. There is no layout-guidelines chapter, no layout example, no keepout, plane or Kelvin-connection advice anywhere in Doc ID 2468 Rev 7 - sections are: 1 Pin connection and schematic diagram, 2 Absolute maximum ratings and operating conditions, 3 Electrical characteristics, 4 Typical application schematics, 5 Package information, 6 Ordering information, 7 Revision history. Every layout bullet above is transcribed from spec tables and their footnotes, not from a vendor layout section.",
+    "PACKAGE VARIANT TRAP: Figure 1 also shows the QFN16 3x3 pinout, which is ENTIRELY DIFFERENT (VCC+ = 1, IN1- = 2, NC = 3, IN1+ = 4, IN2- = 5, IN2+ = 6, IN3- = 7, IN3+ = 8, IN4- = 9, NC = 10, IN4+ = 11, VCC- = 12, OUT4 = 13, OUT3 = 14, OUT2 = 15, OUT1 = 16). The pinout in this file is the 14-pin DIP14/SO-14/TSSOP14 map, which is the one that applies to LM2901DT."
+  ],
+  "abs_max": [
+    {
+      "param": "VCC supply voltage (Table 1 absolute maximum ratings; printed as '+/-18 to 36')",
+      "value": "+/-18 to 36",
+      "unit": "V"
+    },
+    {
+      "param": "Vid differential input voltage (Table 1)",
+      "value": "+/-36",
+      "unit": "V"
+    },
+    {
+      "param": "Vin input voltage (Table 1)",
+      "value": "-0.3 to +36",
+      "unit": "V"
+    },
+    {
+      "param": "Output short-circuit to ground (Table 1 footnote 1: allowed; maximum output current approximately 20 mA independent of the magnitude of VCC+; a short from the output to VCC+ can cause excessive heating and eventual destruction)",
+      "value": "approximately 20 (max output current)",
+      "unit": "mA"
+    },
+    {
+      "param": "Tj maximum junction temperature (Table 1)",
+      "value": 150,
+      "unit": "degC"
+    },
+    {
+      "param": "Tstg storage temperature range (Table 1)",
+      "value": "-65 to +150",
+      "unit": "degC"
+    },
+    {
+      "param": "ESD HBM, human body model (Table 1)",
+      "value": 500,
+      "unit": "V"
+    },
+    {
+      "param": "ESD MM, machine model (Table 1)",
+      "value": 100,
+      "unit": "V"
+    },
+    {
+      "param": "ESD CDM, charged device model (Table 1)",
+      "value": 1500,
+      "unit": "V"
+    },
+    {
+      "param": "Rthja thermal resistance junction to ambient, SO-14 (Table 1, typical)",
+      "value": 105,
+      "unit": "degC/W"
+    },
+    {
+      "param": "Rthjc thermal resistance junction to case, SO-14 (Table 1, typical)",
+      "value": 31,
+      "unit": "degC/W"
+    },
+    {
+      "param": "OPERATING (Table 2) VCC supply voltage",
+      "value": "2 to 32 single supply, or +/-1 to +/-16 split",
+      "unit": "V"
+    },
+    {
+      "param": "OPERATING (Table 2) Vicm common-mode input voltage range, Tmin <= Tamb <= Tmax",
+      "value": "0 to (VCC+ - 1.5); 0 to (VCC+ - 2) over the full temperature range",
+      "unit": "V"
+    },
+    {
+      "param": "OPERATING (Table 2) Toper operating free-air temperature range",
+      "value": "-40 to +125",
+      "unit": "degC"
+    },
+    {
+      "param": "FEATURES PAGE supply voltage range (wider than Table 2; see layout_notes and OPEN)",
+      "value": "+2 to +36 single supply, or +/-1 to +/-18 split",
+      "unit": "V"
+    }
+  ],
+  "source_pdf": "boards/lumina-strobe/parts/C142961.pdf (STMicroelectronics LM2901, Doc ID 2468 Rev 7, February 2012, 17 pages)"
+}

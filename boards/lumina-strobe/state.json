@@ -3,7 +3,7 @@
  "board": "lumina-strobe",
  "workspace": "boards/lumina-strobe",
  "created": "2026-07-28T14:59:51",
- "updated": "2026-07-28T20:58:04",
+ "updated": "2026-07-28T21:22:59",
  "phase": "P3",
  "gates": {},
  "human": {
@@ -174,6 +174,30 @@
    "why": "Datasheet-verified at P3: TPS2490 TIMER charges 25 uA / sinks 2.5 uA (10:1); LM5069 charges 85 uA / sinks 2.5 uA (34:1). At 87 pct duty in regulation the timer integrates positive to its 4 V threshold regardless of C_TIMER -> LM5069-2 auto-restarts at 0.5 pct duty (bank stops charging), LM5069-1/TPS2490 latch off. No controller in the class omits the timer. Needs an architecture answer, not a part swap.",
    "phase": "P3",
    "ts": "2026-07-28T20:58:04"
+  },
+  {
+   "what": "BLOCKING-04 RESOLVED: charge path becomes a discrete timerless current limiter - ballast 2x39R 2512 + P-channel D2PAK + LM2904B half sensing across the ballast, ENABLE-gated, SOA covered by the NTC already in the pour",
+   "why": "Break-even timer duty is 9.09 pct (TPS2490) / 2.86 pct (LM5069) against a design duty of 87 pct - no C_TIMER escapes it. Series-ballast-only (route a) rejected: the 25 Hz recharge swing (+/-0.045 A) is 1.6x the headroom (0.028 A), so the limiter re-enters regulation at any R. The ballast IS the sense element (3.9 V at the limit vs 3 mV offset). Dissipation re-splits 0.606 W into two 2512s / 0.215 W in the FET, deleting the charge FET from the 85-90 C failing set. BOM 20.53 -> 15.90 /board.",
+   "phase": "P3",
+   "ts": "2026-07-28T21:22:59"
+  },
+  {
+   "what": "BLOCKING-05: IRF640NS datasheet does NOT state gate/drain/source pin assignment or the tab's electrical node",
+   "why": "Both package outlines number leads 1/2/3 and stop; the only G/D/S labels are on the pinless schematic symbol. Extractor correctly refused to fill it from part-family memory. Four pass-FET placements ride on it. Must be resolved from an authoritative source (IR AN-994 / JEDEC TO-263AB / the pulled EasyEDA symbol) before P4 wiring.",
+   "phase": "P3",
+   "ts": "2026-07-28T21:22:59"
+  },
+  {
+   "what": "MCP23008 and SN74LVC1G3157 kept as DOCUMENTED DERATINGS, not re-sourced",
+   "why": "Datasheets contradict the sourcing rationale: MCP23008's -E +125 C grade is specified ONLY at Vdd 4.5-5.5 V (on +3V3 it is specified to +85 C); the UMW SN74LVC1G3157 is -40..+125 C in the PDF, not -55, and is characterised only to +85 C. Both are within abs max (unspecified, not destructive) and design-of-record ambient is 56 C, which the wall-path analysis showed is conservative. Re-sourcing would re-open the POR fail-safe analysis for a 1.14 USD saving on 6 boards. Reversible; recorded for H2.",
+   "phase": "P3",
+   "ts": "2026-07-28T21:22:59"
+  },
+  {
+   "what": "IRF640NS SOA gap CLOSED by derivation: SOA is a pure thermal limit, no Spirito knee",
+   "why": "All four published SOA lines satisfy P x Zth(j-c) = 150 C exactly against Fig 11, so the curve extends legitimately: ~151 W at 100 ms, ~150 W at 200 ms, landing on the 150 W Pd rating. Offsetting concern recorded: Fig 3 transfer curves cross at Vgs ~6.4 V / 24 A, so at 2.6 A the tempco is POSITIVE (current-hogging region) - single-die linear-mode thermal stability needs watching and paralleling pass FETs is unsafe.",
+   "phase": "P3",
+   "ts": "2026-07-28T21:22:59"
   }
  ],
  "history": [
@@ -420,6 +444,30 @@
   {
    "ts": "2026-07-28T20:58:04",
    "event": "p3_parts_sourced"
+  },
+  {
+   "ts": "2026-07-28T21:22:59",
+   "event": "decision",
+   "what": "BLOCKING-04 RESOLVED: charge path becomes a discrete timerless current limiter - ballast 2x39R 2512 + P-channel D2PAK + LM2904B half sensing across the ballast, ENABLE-gated, SOA covered by the NTC already in the pour"
+  },
+  {
+   "ts": "2026-07-28T21:22:59",
+   "event": "decision",
+   "what": "BLOCKING-05: IRF640NS datasheet does NOT state gate/drain/source pin assignment or the tab's electrical node"
+  },
+  {
+   "ts": "2026-07-28T21:22:59",
+   "event": "decision",
+   "what": "MCP23008 and SN74LVC1G3157 kept as DOCUMENTED DERATINGS, not re-sourced"
+  },
+  {
+   "ts": "2026-07-28T21:22:59",
+   "event": "decision",
+   "what": "IRF640NS SOA gap CLOSED by derivation: SOA is a pure thermal limit, no Spirito knee"
+  },
+  {
+   "ts": "2026-07-28T21:22:59",
+   "event": "p3_datasheets_extracted"
   }
  ]
 }
