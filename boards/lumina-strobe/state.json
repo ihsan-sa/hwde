@@ -3,7 +3,7 @@
  "board": "lumina-strobe",
  "workspace": "boards/lumina-strobe",
  "created": "2026-07-28T14:59:51",
- "updated": "2026-07-28T21:22:59",
+ "updated": "2026-07-28T21:43:06",
  "phase": "P3",
  "gates": {},
  "human": {
@@ -198,6 +198,30 @@
    "why": "All four published SOA lines satisfy P x Zth(j-c) = 150 C exactly against Fig 11, so the curve extends legitimately: ~151 W at 100 ms, ~150 W at 200 ms, landing on the 150 W Pd rating. Offsetting concern recorded: Fig 3 transfer curves cross at Vgs ~6.4 V / 24 A, so at 2.6 A the tempco is POSITIVE (current-hogging region) - single-die linear-mode thermal stability needs watching and paralleling pass FETs is unsafe.",
    "phase": "P3",
    "ts": "2026-07-28T21:22:59"
+  },
+  {
+   "what": "BLOCKING-06 FIXED: strobe kicad lib tables pointed at the REPO ROOT lib/, not the board's own",
+   "why": "fp-lib-table and sym-lib-table used ${KIPRJMOD}/../../../lib/ (repo root) where the carrier correctly uses ${KIPRJMOD}/../lib/. The first lib_pull created a stray untracked repo-root lib/ that other boards could collide with, while boards/lumina-strobe/lib stayed empty. URIs corrected, assets moved into the board's lib/, stray dir deleted.",
+   "phase": "P3",
+   "ts": "2026-07-28T21:43:05"
+  },
+  {
+   "what": "ID_ADC code CLOSED by ICD s3.4 rev A3 (NORMATIVE): LUM-STR-A is code 1, R_ID = 2.7 kohm 1 pct",
+   "why": "The P3 placeholder was 4.7 kohm - which is code 2, LUM-PAR-A. Left unfixed the strobe would have identified itself to carrier firmware as the RGBW par and loaded the wrong daughter profile. Adjacent-code separation is 0.353 V against +/-0.05 V of 1 pct divider error.",
+   "phase": "P3",
+   "ts": "2026-07-28T21:43:05"
+  },
+  {
+   "what": "PWM timer concern DISSOLVED by ICD s3.5 rev A3 (NORMATIVE): the carrier does NOT hard-assign LEDC timers",
+   "why": "The rev-A2 statement that PWM0-3 sit on timer 0 and PWM4-7 on timer 1 is withdrawn - the ICD says it was wrong for the strobe specifically. Each daughter declares its own channel->timer->frequency map in its design document and carrier firmware applies it from the ID_ADC code. The GPIO/RMT one-shot flash gate is explicitly legal. A 14-bit / 4.883 kHz opt-in mode is also now offered (CR-3 granted).",
+   "phase": "P3",
+   "ts": "2026-07-28T21:43:06"
+  },
+  {
+   "what": "C:/Program Files/Git/OT_TRIP -> FAULT level translation VERIFIED against ICD s2 rev A6",
+   "why": "ICD requires a daughter asserting FAULT to sink >= 5 mA (real load ~4.3 mA including the carrier's red fault LED, not the 0.33 mA the 10k pull-up alone implies). The added 2N7002 (Q404) is rated 115 mA continuous with Rds(on) ~1.2-2 ohm, so VOL at 5 mA is ~10 mV, and its 60 V Vds comfortably holds off a 3.3 V pull-up. Meets the ICD with large margin; the 12 V /OT_TRIP node never reaches the connector.",
+   "phase": "P3",
+   "ts": "2026-07-28T21:43:06"
   }
  ],
  "history": [
@@ -468,6 +492,30 @@
   {
    "ts": "2026-07-28T21:22:59",
    "event": "p3_datasheets_extracted"
+  },
+  {
+   "ts": "2026-07-28T21:43:05",
+   "event": "decision",
+   "what": "BLOCKING-06 FIXED: strobe kicad lib tables pointed at the REPO ROOT lib/, not the board's own"
+  },
+  {
+   "ts": "2026-07-28T21:43:05",
+   "event": "decision",
+   "what": "ID_ADC code CLOSED by ICD s3.4 rev A3 (NORMATIVE): LUM-STR-A is code 1, R_ID = 2.7 kohm 1 pct"
+  },
+  {
+   "ts": "2026-07-28T21:43:06",
+   "event": "decision",
+   "what": "PWM timer concern DISSOLVED by ICD s3.5 rev A3 (NORMATIVE): the carrier does NOT hard-assign LEDC timers"
+  },
+  {
+   "ts": "2026-07-28T21:43:06",
+   "event": "decision",
+   "what": "C:/Program Files/Git/OT_TRIP -> FAULT level translation VERIFIED against ICD s2 rev A6"
+  },
+  {
+   "ts": "2026-07-28T21:43:06",
+   "event": "icd_rev_a6_deltas_applied"
   }
  ]
 }

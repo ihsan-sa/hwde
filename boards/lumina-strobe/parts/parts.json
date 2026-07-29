@@ -3,18 +3,44 @@
   "board": "LUM-DTR-STROBE-A",
   "build_quantity": 6,
   "totals": {
-    "distinct_parts": 39,
+    "distinct_parts": 40,
     "distinct_basic": 17,
-    "distinct_extended": 22,
-    "placements_per_board": 160,
-    "bom_cost_per_board_at_qty6": 20.53,
-    "bom_cost_build_6": 123.2,
-    "extended_setup_fee_estimate": "~$3 per distinct Extended part per order = ~$66 over the run (~$11.00/board at 6)"
+    "distinct_extended": 23,
+    "placements_per_board": 167,
+    "bom_cost_per_board_at_qty6": 15.24,
+    "bom_cost_build_6": 91.41,
+    "extended_setup_fee_estimate": "~$3 per distinct Extended part per order = ~$69 over the run (~$11.50/board at 6)"
+  },
+  "revision": "REV C, 2026-07-28 - resourced against blocks.md s2.2 / power_tree.md s3.0-s3.3 rev C, after BLOCKING-04 deleted the hot-swap controller. Rev B of this file raised P3-OPEN-1 (the fault timer cannot survive an 87 %-duty current-limit regime); the architect accepted it, and this revision sources the discrete linear limiter that replaced the controller. Every added part was re-verified live at selection time.",
+  "delta_from_rev_b": {
+    "deleted": [
+      "C111822 LM5069MM-2/NOPB - the hot-swap controller. Was simultaneously the most expensive part on the board ($6.33), an Extended part, and a flagged single-source risk. Deleted outright by BLOCKING-04.",
+      "C50842 0.27R 1206 - the controller's current-limit sense resistor. The 19.5 ohm ballast is the sense element now.",
+      "C22807 150k 0603 - R_PWR, the PLIM power-limit programming resistor. Existed only for the controller; power_tree s3.0.1 records that PLIM never engaged anyway, so nothing is lost with it."
+    ],
+    "added": [
+      "C2622 IRF5210STRLPBF - P-channel 100 V D2PAK charge pass element, x1.",
+      "C175263 CRH2512F39R0E04Z 39R 2512 2 W 1% 200 V - the ballast AND the sense element, x2.",
+      "C500776 MMSZ5242B-7-F 12 V SOD-123 - floating-rail zener + Q100 gate-source clamp, x2.",
+      "C17575 0805W8F2402T5E 24k 0805 1% 150 V - floating-rail dropper from +48V_SW, x1. JLC Basic, so no new feeder."
+    ],
+    "reuse_count_changed": [
+      "C1849422 LM2904BIDR 4 -> 5 (U100 is the charge-loop error amplifier). No new feeder - this is why the new loop adds no IC.",
+      "C8545 2N7002 14 -> 15 (Q101 ENABLE level shift into the loop reference).",
+      "C23708 IRF640NSTRLPBF 5 -> 4 - THE GIVE-BACK. Q100 leaves the consolidation because it is P-channel now, so the five-FETs-one-part-number saving covers the four pass FETs only and one feeder comes back.",
+      "C149504 100k 0805 1 -> 2 (R103, the source-to-gate resistor that is the charge path's interlock of record).",
+      "C25803 100k 0603 4 -> 5 (Q410 gate pull-down, made mandatory by the MCP23008's high-Z POR state).",
+      "C25804 10k 0603 14 -> 16 (the 'Q101 + 2 R' level shift; MY ESTIMATE, values not pinned by the architecture).",
+      "C14663 100nF 0603 14 -> 15 (charge-loop compensation capacitor; MY ADDITION - a linear loop driving a 2.78 nF Ciss needs one and power_tree s3.3 does not enumerate it).",
+      "C28233 100nF 100V 0805 2 -> 1 (the controller VCC bypass went with the controller and the dv/dt gate cap is deleted outright - s3.1 rev C: 'No dv/dt element is used at all'). Retained as the +48V_SW local input bypass.",
+      "C15849 1uF 0603 - quantity unchanged at 1, ROLE changed from C_TIMER to the floating 12 V rail bypass."
+    ],
+    "cost": "BOM $20.53 -> $15.24 per board at qty 6 (-$5.29). Distinct parts 39 -> 40; Basic 17 -> 17; Extended 22 -> 23, so Extended setup goes ~$66 -> ~$69 over the run. All-in with ~$3 PCB: ~$34.50 -> ~$29.74 per board."
   },
   "extended_reduction_options": [
     {
       "target": "C17840 82k 0805 (10 placements)",
-      "option": "build both divider top legs from 2 x 100k 0805 (C149504, JLC Basic, already on this BOM) instead of 2 x 82k. Rth goes 9.43k -> 9.52k, still inside the ICD's 10k ADC limit; the bank and Vds dividers stay identical to each other so the Vds trip stays ratiometric. Cost: ADC0 full scale falls from 3.28 V to 2.71 V at 57 V (the operating 39.7-48 V window reads 1.89-2.29 V instead of 2.28-2.76 V), i.e. ~17 % less resolution on the bank telemetry.",
+      "option": "build both divider top legs from 2 x 100k 0805 (C149504, JLC Basic, already on this BOM) instead of 2 x 82k. Rth goes 9.43k -> 9.52k, still inside the ICD's 10k ADC limit; the bank and Vds dividers stay identical to each other so the Vds trip stays ratiometric. Cost: ADC0 full scale falls from 3.28 V to 2.71 V at 57 V, i.e. ~17 % less resolution on the bank telemetry.",
       "saves": "one distinct Extended part number (~$3 setup, ~$0.50/board at qty 6)",
       "decision_owner": "P4 - it changes a declared divider ratio and the firmware scale factor, so it is not a sourcing substitution"
     },
@@ -26,34 +52,53 @@
     }
   ],
   "deviations_from_architecture": [
-    "U100: LM5069MM-2/NOPB replaces the TPS2490 class. TPS2490's datasheet TA is -40..+85 C, which fails the board-wide +105 C minimum. LM5069 is TJ -40..+125 C with no TA ceiling and keeps all three properties blocks.md s2.2 required (100 V GND-referenced enable, GATE held low below POR/UVLO, programmable current AND power limit). Cost +$3.53/board.",
-    "U420: MCP23008T-E/SS replaces the PCF8574 / TCA9534 class. EVERY PCF8574 and TCA9534 in stock at JLC is -40..+85 C. Cost +$1.14/board against the architecture's $0.35 estimate. P4 must handle the RESET pin and the different POR state (all pins input/high-Z, not outputs-high).",
-    "U201..U351: SN74LVC1G3157DCKR (UMW, -55..+125 C) resolves blocks.md s2.3's explicit P3 action item on the SGM3157, which is -40..+85 C. Same SC-70-6 land.",
-    "U200..U350: LM2904BIDR (-40..+125 C) rather than plain LM2904 (-40..+105 C). +$0.18/board.",
-    "Q100: IRF640NSTRLPBF (200 V) rather than the IRF540N class (100 V), so all five power FETs are one part number. Deletes an Extended part number and lifts Q100's Vds margin to 3.5x.",
-    "J200/J300: CJT A3963WV-6P (VH-series-compatible, 10 A) and A2541WV-4P, both -40..+105 C, rather than genuine JST VH/XH at -25..+85 C. This CLOSES power_tree s10.5's 'P3 must confirm a +105/+125 C housing or record a derating exception' - no exception is needed.",
-    "R100 = 0.27R, derived at P3 from the LM5069's 55 mV typical current-limit threshold (sheets.md s2.2 explicitly defers this value to P3). blocks.md's '~250 mohm if the threshold is 50 mV' was correct arithmetic for the TPS2490."
+    "Q100 = IRF5210STRLPBF rather than a named MPN - blocks.md s2.2 rev C specifies only 'P-channel MOSFET, 100-150 V, D2PAK/DPAK'. Selected on die area at equal price: RthJC 0.75 vs 1.1 C/W and PD 170 vs 110 W against the IRF9540NS, with 3.7x the stock. See P3-OPEN-7 for what its SOA plot does and does not cover.",
+    "U201..U351: SN74LVC1G3157DCKR (UMW) still replaces the SGM3157 the architecture named, but the temperature rationale is CORRECTED - see P3-OPEN-9. Kept as a documented derating exception.",
+    "U420: MCP23008T-E/SS still replaces the PCF8574 / TCA9534 class, but the temperature rationale is CORRECTED and VOID - see P3-OPEN-8. Kept as a documented derating exception.",
+    "U200..U350: LM2904BIDR (-40..+125 C) rather than plain LM2904 (-40..+105 C). +$0.18/board, and the part now also serves the charge loop.",
+    "Q200..Q350: the four pass FETs remain one IRF640NSTRLPBF part number. The rev-B five-FET consolidation is PARTLY REVERSED by BLOCKING-04 - recorded, not hidden.",
+    "J200/J300: CJT A3963WV-6P (VH-series-compatible, 10 A / 250 V) and A2541WV-4P, both -40..+105 C, rather than genuine JST VH/XH at -25..+85 C. THIS CLOSES power_tree s10.5's housing question OUTRIGHT - no derating exception is needed, unlike U420 and U201. It is the one temperature item on this board that is genuinely solved rather than documented."
   ],
   "open_items": [
     {
       "id": "P3-OPEN-1",
-      "severity": "blocking for P4",
-      "item": "The hot-swap controller's fault TIMER is incompatible with power_tree s3.3's 87 %-duty current-limit regime, on BOTH candidate parts. Datasheet-verified this run: TPS2490 TIMER charges at 25 uA and sinks at 2.5 uA (10:1); LM5069 charges at 85 uA (fault detection current) and sinks at 2.5 uA (34:1). power_tree s3.3 says the limiter is in regulation ~87 % of the time whenever the board is flashing, so the timer integrates strongly positive and reaches its 4 V threshold no matter how long C_TIMER programs the cold start. LM5069-2 then enters 0.5 %-duty auto-restart (the bank effectively stops charging); LM5069-1 and TPS2490 latch off. Programming the timer longer than the 653 ms cold start is NECESSARY BUT NOT SUFFICIENT, exactly as power_tree s3.3 suspected - and the numbers now say it does not close. This is an architecture decision, not a sourcing substitution: no hot-swap controller in this class omits the fault timer, because the timer is what protects the external FET's SOA. Options for the architect: (a) set the limit above the natural top-up current so the limiter only engages at cold start, (b) a discrete current-limit loop with no fault timer, (c) re-shape the recharge so it is not at the limit."
+      "severity": "RESOLVED",
+      "item": "The hot-swap controller's fault timer versus the 87 %-duty current-limit regime. Raised by P3 in rev B from the datasheets (TPS2490 25 uA charge / 2.5 uA sink = 9.09 % break-even duty; LM5069 85 uA / 2.5 uA = 2.86 %). Accepted as BLOCKING-04 and fixed in the architecture, not in sourcing: the controller is deleted and the limiter is a discrete linear loop with no timer. This file is resourced against that topology."
     },
     {
-      "id": "P3-OPEN-2",
-      "severity": "cost",
-      "item": "The +105/+125 C rule costs +$4.85/board on two parts alone (LM5069 +$3.53 vs TPS2490; MCP23008 +$1.14 vs TCA9534). Both rejected parts are in stock, cheaper and functionally fine at the 56 C design-of-record air. If H2 re-affirms ICD s7.6's 56 C, the human may prefer to reinstate them as documented derating exceptions."
+      "id": "P3-OPEN-7",
+      "severity": "carry to DOC-01",
+      "item": "NO P-CHANNEL MOSFET IN THE JLC CATALOGUE CHARACTERISES SOA AT THE 590 ms COLD START. Verified against the datasheet, not the attribute strings: the selected IRF5210S Fig 8 'Maximum Safe Operating Area' plots exactly three single-pulse lines - 100 usec, 1 msec, 10 msec - annotated 'Tc = 25 C, Tj = 150 C, Single Pulse'. It is Tc-REFERENCED and there is NO DC LINE at all. IRF9540NS publishes the identical three-line set with the identical annotation. The 590 ms event is 59x beyond the longest plotted curve and sits in the un-characterised gap between 10 ms and DC - the same dead zone blocks.md s8 and power_tree s5.2 already name for every JLC-stocked MOSFET. This is NOT a reason to reject the part (no alternative closes it either); it is why the cold start must be justified by derivation from Zth, as power_tree s10.3 does, and recorded in DOC-01. Thermal data for that derivation, from the datasheet: RthJC 0.75 C/W max, RthJA 40 C/W max with footnote (5) 'when mounted on 1 inch square PCB (FR-4 or G-10)' = 645 mm2 - exactly the check_thermal a_eff clamp, so the datasheet's copper assumption and the P8 gate's coincide. SECOND POINT, and it is new: Q100's Tjmax is 150 C, NOT the pass FETs' 175 C. At the 90 C risk ambient the cold-start rise of 22-39 C puts Tj at 112-129 C against 150 C - passable, but materially thinner headroom than power_tree s10.3's analysis assumed when that part was a 175 C IRF640NS."
+    },
+    {
+      "id": "P3-OPEN-8",
+      "severity": "documented derating exception",
+      "item": "U420 MCP23008T-E/SS: my rev-B rationale for paying +$1.14 over a TCA9534 is VOID. The -E order code does mean -40..+125 C, but every DC and AC table in the datasheet is conditioned on E-Temp = Vdd 4.5-5.5 V. At this board's +3V3 the part is specified only to +85 C - the same ceiling as the TCA9534 it displaced. Abs max ambient under bias remains +125 C, so the gap is UNSPECIFIED, NOT DESTRUCTIVE. KEPT: design-of-record ambient is 56 C, the wall-path analysis shows that is conservative, and re-sourcing would re-open the POR fail-safe analysis to recover $6.84 across the whole build. Also recorded: the 3.3 V I2C ceiling is 400 kHz (1.7 MHz needs 4.5-5.5 V), which is fine - ICD s3.3 specifies 400 kHz."
+    },
+    {
+      "id": "P3-OPEN-9",
+      "severity": "documented derating exception",
+      "item": "U201..U351 SN74LVC1G3157DCKR (UMW): my rev-B '-55..+125 C' claim came from an LCSC ATTRIBUTE STRING, not the datasheet. The PDF says -40 to +125 C, and every electrical characteristics table is characterised only over -40..+85 C - the same specification ceiling as the SGM3157 it replaced. KEPT on the same reasoning as P3-OPEN-8. If H2 re-issues ICD s7.6 at 85-90 C, this row and U420 are the two that need a real answer rather than a note."
+    },
+    {
+      "id": "P3-OPEN-10",
+      "severity": "check at P4",
+      "item": "FLOATING-RAIL BIAS BUDGET. The 24k dropper delivers (48-12)/24k = 1.5 mA at 48 V and 1.9 mA at 57 V. An LM2904B draws up to 1.2 mA, so as little as 0.3 mA may be left to hold D101 above its zener knee, where regulation is poor. Separately the 24k 0805 dissipates 54 mW at 48 V and 84 mW at 57 V against a 125 mW rating - 67 % of rating, the only part of the new loop without comfortable power margin. Lowering the dropper fixes the bias budget and worsens the dissipation; P4 owns the trade and may need a 1206 or a split pair here."
+    },
+    {
+      "id": "P3-OPEN-11",
+      "severity": "note",
+      "item": "C175263 (39R 2512) has the THINNEST STOCK ON THIS BOM at 841 pieces - still 70x the 12-piece need, so it clears the 5x floor comfortably, but it is the row to re-check before the order. ROHM LTR100JZPF39R0 (C2088806) is the same 2 W / 1% / 100 ppm spec at 3810 stock for 2.4x the price if it moves."
     },
     {
       "id": "P3-OPEN-3",
-      "severity": "note",
-      "item": "The 680uF/100V D18x25 bank is effectively SINGLE-VENDOR (Ymin). The 6-footprint / 4-populated layout is what buys the second source, and it only pays off at 470 uF, where AISHI / SamYoung / Chengx / Lelon all stock a 7.5 mm-pitch part. blocks.md s6.3 mitigation 1 (drop the two spare footprints to recover 400 mm2 of F.Cu) therefore also deletes the bank's second source - those two levers are one lever."
+      "severity": "note - CONFIRMED",
+      "item": "The 680uF/100V D18x25 bank is effectively SINGLE-VENDOR (Ymin). CONFIRMED this run: the 6-footprint / 4-populated layout is what buys the second source, and it only pays off at 470 uF, where AISHI / SamYoung / Chengx / Lelon all stock a 7.5 mm-pitch part. So blocks.md s6.3 mitigation 1 (drop the two spare footprints to recover 400 mm2 of F.Cu) and 'keep the bank's second source' are THE SAME LEVER, not two independent ones. P6 cannot spend it twice."
     },
     {
       "id": "P3-OPEN-4",
       "severity": "note",
-      "item": "Protect-sheet resistor quantities (22k, 47k, 10k, 100k in 0603) are ESTIMATES. The exact values for R400-R441 come out of the trip-point arithmetic at P4, and R430-R433's UVLO threshold is trimmed from the MEASURED string voltage (max(V_string) + 1.7 V). All of these are JLC Basic, so any E24 0603/0805 1% value P4 needs adds no feeder fee - only the placement count moves."
+      "item": "Protect-sheet resistor quantities (22k, 47k, 10k, 100k in 0603) are ESTIMATES, and so are the two 10k for the new Q101 level shift and the one 100nF for the charge-loop compensation. Exact values come out of the trip-point and loop arithmetic at P4, and R430-R433's UVLO threshold is trimmed from the MEASURED string voltage (max(V_string) + 1.7 V). All are JLC Basic, so any E24 0603/0805 1% value P4 needs adds no feeder fee - only the placement count moves."
     },
     {
       "id": "P3-OPEN-5",
@@ -333,119 +378,119 @@
       "role": "C1 +12V local bulk. Deliberately <=4.7uF so the error amp dies promptly on unplug (power_tree s7.4); ~3uF effective at 12V DC bias."
     },
     {
-      "ref_prefix_hint": "U",
+      "ref_prefix_hint": "Q",
       "block": "charge",
       "sheets": [
         "charge"
       ],
-      "mpn": "LM5069MM-2/NOPB",
-      "lcsc": "C111822",
-      "value": "LM5069MM-2/NOPB",
-      "package": "VSSOP-10-0.5mm",
+      "mpn": "IRF5210STRLPBF",
+      "lcsc": "C2622",
+      "value": "IRF5210STRLPBF D2PAK P-channel 100V 38A",
+      "package": "D2PAK",
       "basic": false,
-      "stock": 1746,
-      "price": 6.3307,
+      "stock": 38770,
+      "price": 1.0318,
       "qty_per_board": 1,
       "qty_build_6": 6,
-      "ext_cost_build_6": 37.9842,
-      "stock_cover_x": 291.0,
-      "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_1809140211_Texas-Instruments-LM5069MM-2-NOPB_C111822.pdf",
-      "brand": "Texas Instruments",
-      "description": "-40C~+125C 1 1.1mm 16uA 2mA 3mm 3mm 55mV 9V~80V External FET Overcurrent Protection, Short-Circuit  Protection, Under-voltage lockout Surface Mount VSSOP-10-0.5mm Surge Protection Devices (SPDs) ROHS",
+      "ext_cost_build_6": 6.1908,
+      "stock_cover_x": 6461.7,
+      "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Infineon-Technologies-IRF5210STRLPBF_C2622.pdf",
+      "brand": "Infineon Technologies",
+      "description": "-55C~+150C 1 P-Channel 100V 170W 2.78nF 230nC@10V 38A 430pF 4V 60mohm@10V 800pF P-Channel D2PAK MOSFETs ROHS",
       "price_breaks": [
         {
           "qty": 1,
-          "price": 6.3307
+          "price": 1.0318
         },
         {
           "qty": 10,
-          "price": 5.7278
+          "price": 0.8448
         },
         {
           "qty": 30,
-          "price": 5.4199
+          "price": 0.7513
         },
         {
           "qty": 100,
-          "price": 5.0088
+          "price": 0.6594
         },
         {
           "qty": 500,
-          "price": 4.8605
+          "price": 0.5288
         },
         {
-          "qty": 1000,
-          "price": 4.7976
+          "qty": 800,
+          "price": 0.4998
         }
       ],
       "attributes": [
         {
-          "name": "Threshold Voltage",
-          "value": "55mV"
+          "name": "Operating Temperature",
+          "value": "-55C~+150C"
         },
         {
-          "name": "Peak Output Current(Sink)",
-          "value": "2mA"
+          "name": "Type",
+          "value": "P-Channel"
         },
         {
-          "name": "Voltage Rating",
-          "value": "9V~80V"
+          "name": "Input Capacitance(Ciss)",
+          "value": "2.78nF"
         },
         {
-          "name": "FET Type",
-          "value": "External FET"
+          "name": "Number",
+          "value": "1 P-Channel"
         },
         {
-          "name": "Mounting Type",
-          "value": "Surface Mount"
+          "name": "Gate Threshold Voltage (Vgs(th))",
+          "value": "4V"
         },
         {
-          "name": "Peak Output Current(Source)",
-          "value": "16uA"
+          "name": "Gate Charge(Qg)",
+          "value": "230nC@10V"
         },
         {
-          "name": "Length",
-          "value": "3mm"
+          "name": "Reverse Transfer Capacitance (Crss@Vds)",
+          "value": "430pF"
         },
         {
-          "name": "Number of Lines",
-          "value": "1"
+          "name": "Current - Continuous Drain(Id)",
+          "value": "38A"
         },
         {
-          "name": "Features",
-          "value": "Overcurrent Protection, Short-Circuit  Protection, Under-voltage lockout"
+          "name": "Drain to Source Voltage",
+          "value": "100V"
         },
         {
-          "name": "Height",
-          "value": "1.1mm"
+          "name": "Output Capacitance(Coss)",
+          "value": "800pF"
         },
         {
-          "name": "Width",
-          "value": "3mm"
+          "name": "Pd - Power Dissipation",
+          "value": "170W"
         },
         {
-          "name": "Operating temperature",
-          "value": "-40C~+125C"
+          "name": "RDS(on)",
+          "value": "60mohm@10V"
         }
       ],
       "alternates": [
         {
-          "mpn": "LM5069MM-1/NOPB",
-          "lcsc": "C486026",
-          "note": "pin-compatible, latch-off instead of 0.5%-duty auto-restart; $9.52, stock 960"
+          "mpn": "IRF9540NSTRLPBF",
+          "lcsc": "C33903",
+          "note": "same D2PAK land and same SOA curve set (100us/1ms/10ms, Tc=25C, no DC line); smaller die - RthJC 1.1 C/W, PD 110 W, -23 A, Tj -55..+150 C. Stock 10479, $1.014"
         },
         {
-          "mpn": "LM5069MMX-2",
-          "lcsc": "C52940995",
-          "note": "Tokmas second-source of the SAME part at $0.92, stock 1917 - NOT selected: LCSC lists no datasheet for it, so it is unverified per the P3 rule"
+          "mpn": "IRF9530NSTRLPBF",
+          "lcsc": "C157638",
+          "note": "100 V P-ch D2PAK, -14 A, 200 mR, stock 10937, $0.653 - cheapest, but the smallest die of the three and therefore the least linear-mode margin"
         },
         {
-          "mpn": "TPS2490DGSR",
-          "lcsc": "C139631",
-          "note": "the architecture's named lead. NOT pin-compatible (different MSOP-10 pinout). Rejected on temperature grade: datasheet TA -40..+85C (TJ -40..+125C). $2.80, stock 4942. Sense threshold 45/50/55 mV -> R100 would become 0.25R"
+          "mpn": "NCE01P18K",
+          "lcsc": "C115990",
+          "note": "100 V P-ch in DPAK (TO-252), -18 A, stock 15895, $0.717 - smaller package, use only if area forces it"
         }
       ],
-      "role": "U100 hot-swap / power-limiting controller, VSSOP-10, VIN 9-80V, TJ -40..+125C (no TA ceiling - this is why it replaces the architecture's TPS2490 lead, which is TA -40..+85C). Datasheet-verified: current-limit sense VCL 48.5/55/61.5 mV -> R100 = 0.27R gives 0.180/0.204/0.228 A (inside the 0.20 A target and the ICD's 0.25 A ceiling); circuit-breaker 80/105/130 mV; UVLO pin is GND-referenced with a 100 V absolute maximum and a 2.5 V threshold, so ENABLE drives it directly with no 3V3 rail (blocks.md s2.2 property a); POR_EN 8.4-9 V holds GATE low below POR (property b); programmable PWR power-limit pin (property c). VGATE 11.4-12.6 V above VIN. SEE THE OPEN ITEM ON THE TIMER PIN."
+      "role": "Q100 charge-path pass element for the REV C discrete linear limiter. P-CHANNEL IS NOT NEGOTIABLE - an N-channel high-side switch needs its gate above the 48 V rail, i.e. the charge pump the deleted controller provided internally. LINEAR-MODE EVIDENCE, read off the datasheet (Infineon/IR PD-97049B) rather than the LCSC attributes: Fig 8 'Maximum Safe Operating Area' plots only THREE single-pulse lines - 100 usec, 1 msec, 10 msec - annotated 'Tc = 25 C, Tj = 150 C, Single Pulse'. IT IS Tc-REFERENCED, AND THERE IS NO DC LINE AT ALL. The 590 ms cold start is 59x beyond the longest plotted curve, so it lands squarely in the un-characterised gap between the 10 ms line and DC - the same dead zone blocks.md s8 and power_tree s5.2 already name for every JLC-stocked MOSFET. NO PART IN THIS CATALOGUE CLOSES THAT GAP FROM PAPER; the cold start must be justified by derivation from Zth as power_tree s10.3 does, and recorded in DOC-01. THERMAL: RthJC 0.75 C/W max; RthJA 40 C/W max, footnote (5) 'when mounted on 1 inch square PCB (FR-4 or G-10)' = 645 mm2, which is exactly the check_thermal a_eff clamp - so the datasheet's own copper assumption and the P8 gate's agree. PD 170 W at Tc=25 C / 3.1 W at Ta=25 C, derating 1.3 W/C. Tj -55..+150 C. DUTY HERE: 0.215 W steady (11 C rise on the board's 51.1 C/W model) plus 2.56 J over 590 ms at cold start (mean 4.34 W; at Zth_JA(0.6 s) = 5-9 C/W that is a 22-39 C rise, so Tj = 112-129 C at the 90 C risk ambient against a 150 C Tjmax). NOTE Tjmax IS 150 C HERE, NOT the pass FETs' 175 C - the cold-start headroom is thinner than for an IRF640NS and should be stated in DOC-01. Chosen over IRF9540NS on die area at the same price: RthJC 0.75 vs 1.1 C/W, PD 170 vs 110 W, -38 A vs -23 A, and 3.7x the stock. Both publish the identical 100us/1ms/10ms curve set."
     },
     {
       "ref_prefix_hint": "R",
@@ -453,50 +498,50 @@
       "sheets": [
         "charge"
       ],
-      "mpn": "1206W4F270LT5E",
-      "lcsc": "C50842",
-      "value": "0.27R 1206 1% 250mW 200V",
-      "package": "1206",
+      "mpn": "CRH2512F39R0E04Z",
+      "lcsc": "C175263",
+      "value": "39R 2512 1% 2W 200V",
+      "package": "2512",
       "basic": false,
-      "stock": 35592,
-      "price": 0.0094,
-      "qty_per_board": 1,
-      "qty_build_6": 6,
-      "ext_cost_build_6": 0.0564,
-      "stock_cover_x": 5932.0,
-      "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010000_UNI-ROYAL-Uniroyal-Elec-1206W4F270LT5E_C50842.pdf",
-      "brand": "UNI-ROYAL(Uniroyal Elec)",
-      "description": "-55C~+155C 200V 250mW 270mohm Thick Film Resistor +/-1% +/-800ppm/C 1206 Chip Resistor - Surface Mount ROHS",
+      "stock": 841,
+      "price": 0.0589,
+      "qty_per_board": 2,
+      "qty_build_6": 12,
+      "ext_cost_build_6": 0.7068,
+      "stock_cover_x": 70.1,
+      "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Ever-Ohms-Tech-CRH2512F39R0E04Z_C175263.pdf",
+      "brand": "Ever Ohms Tech",
+      "description": "-55C~+155C 200V 2W 39ohm Thick Film Resistor +/-1% +/-100ppm/C 2512 Chip Resistor - Surface Mount ROHS",
       "price_breaks": [
         {
           "qty": 1,
-          "price": 0.0094
+          "price": 0.0589
+        },
+        {
+          "qty": 100,
+          "price": 0.0466
+        },
+        {
+          "qty": 300,
+          "price": 0.0407
         },
         {
           "qty": 1000,
-          "price": 0.0078
+          "price": 0.0362
         },
         {
-          "qty": 5000,
-          "price": 0.0067
+          "qty": 4000,
+          "price": 0.0325
         },
         {
-          "qty": 10000,
-          "price": 0.0062
-        },
-        {
-          "qty": 50000,
-          "price": 0.0057
-        },
-        {
-          "qty": 100000,
-          "price": 0.0054
+          "qty": 8000,
+          "price": 0.0307
         }
       ],
       "attributes": [
         {
           "name": "Resistance",
-          "value": "270mohm"
+          "value": "39ohm"
         },
         {
           "name": "Operating Temperature",
@@ -504,7 +549,7 @@
         },
         {
           "name": "Power(Watts)",
-          "value": "250mW"
+          "value": "2W"
         },
         {
           "name": "Type",
@@ -520,11 +565,195 @@
         },
         {
           "name": "Temperature Coefficient",
-          "value": "+/-800ppm/C"
+          "value": "+/-100ppm/C"
+        }
+      ],
+      "alternates": [
+        {
+          "mpn": "LTR100JZPF39R0",
+          "lcsc": "C2088806",
+          "note": "ROHM 2512, 2 W, +-1%, +-100ppm/C, stock 3810, $0.143 - 4.5x the stock at 2.4x the price"
+        },
+        {
+          "mpn": "RC2512FK-7W39RL",
+          "lcsc": "C7337035",
+          "note": "YAGEO 2512, 2 W, 200 V, +-1%, +-200ppm/C, stock 169"
+        }
+      ],
+      "role": "R100/R101 series ballast, 2 x 39R in parallel = 19.5 ohm. THIS IS ALSO THE CURRENT-SENSE ELEMENT: at the 0.20 A limit it develops 3.9 V, which the LM2904B half senses directly - no shunt, no high-side sense amplifier, no precision reference. TOLERANCE IS LOAD-BEARING, not a formality: it sets the current limit directly as I = Vref/R, so +-1% is specified (this part) and a 5% part would smear the limit +-5% across the 0.172-0.220 A window. +-100 ppm/C adds only 0.35% over a 35 K swing. WORKING VOLTAGE 200 V: each part sees just 3.9 V in normal operation, but a loop failure with the FET fully on into an empty bank would put the full 48 V (57 V worst case) across the pair, so the 200 V rating is what makes that fault a thermal event rather than a flashover. POWER 0.303 W each steady (0.39 W each at the 0.20 A limit) against 2 W derated to 1.53 W at 90 C = 5.1x. Same Ever Ohms CRH2512 family as the 470R active bleed, so one vendor qualification covers both. STOCK IS THE THINNEST ON THIS BOM at 841 (70x the 12-piece need) - see alternates."
+    },
+    {
+      "ref_prefix_hint": "D",
+      "block": "charge",
+      "sheets": [
+        "charge"
+      ],
+      "mpn": "MMSZ5242B-7-F",
+      "lcsc": "C500776",
+      "value": "MMSZ5242B 12V 500mW SOD-123",
+      "package": "SOD-123",
+      "basic": false,
+      "stock": 105870,
+      "price": 0.0465,
+      "qty_per_board": 2,
+      "qty_build_6": 12,
+      "ext_cost_build_6": 0.558,
+      "stock_cover_x": 8822.5,
+      "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Diodes-Incorporated-MMSZ5242B-7-F_C500776.pdf",
+      "brand": "Diodes Incorporated",
+      "description": "-65C~+150C 1 Independent 11.4V~12.6V 12V 1uA@9.1V 30ohm 370mW 600ohm SOD-123 Zener Diodes ROHS",
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 0.0465
+        },
+        {
+          "qty": 100,
+          "price": 0.0365
+        },
+        {
+          "qty": 300,
+          "price": 0.0315
+        },
+        {
+          "qty": 3000,
+          "price": 0.0265
+        },
+        {
+          "qty": 6000,
+          "price": 0.0236
+        },
+        {
+          "qty": 9000,
+          "price": 0.022
+        }
+      ],
+      "attributes": [
+        {
+          "name": "Operating Junction Temperature Range",
+          "value": "-65C~+150C"
+        },
+        {
+          "name": "Diode Configuration",
+          "value": "1 Independent"
+        },
+        {
+          "name": "Impedance(Zzk)",
+          "value": "600ohm"
+        },
+        {
+          "name": "Impedance(Zzt)",
+          "value": "30ohm"
+        },
+        {
+          "name": "Zener Voltage(Range)",
+          "value": "11.4V~12.6V"
+        },
+        {
+          "name": "Zener Voltage(Nom)",
+          "value": "12V"
+        },
+        {
+          "name": "Pd - Power Dissipation",
+          "value": "370mW"
+        },
+        {
+          "name": "Reverse Leakage Current (Ir)",
+          "value": "1uA@9.1V"
+        }
+      ],
+      "alternates": [
+        {
+          "mpn": "MMSZ5242B",
+          "lcsc": "C21567",
+          "note": "Jiangsu Changjing, SOD-123, stock 14928, $0.026"
+        },
+        {
+          "mpn": "BZT52C12",
+          "lcsc": "C43491",
+          "note": "SOD-123 12 V, stock 21714, $0.020"
+        }
+      ],
+      "role": "D101 floating-rail zener (24k dropper from +48V_SW gives the LM2904B half a 12 V supply referenced to the rail) and D102 gate-source clamp on Q100. Same Diodes MMSZ family and package as the 10 V bleed zener D110, so one qualification covers both. P4 MUST CHECK THE FLOATING-RAIL BIAS BUDGET: the 24k dropper delivers only (48-12)/24k = 1.5 mA (1.9 mA at 57 V), and an LM2904B draws up to 1.2 mA, so as little as 0.3 mA may be left to hold the zener above its knee. If the loop needs more headroom the dropper must come down from 24k, which costs dissipation on a 0805."
+    },
+    {
+      "ref_prefix_hint": "R",
+      "block": "charge",
+      "sheets": [
+        "charge"
+      ],
+      "mpn": "0805W8F2402T5E",
+      "lcsc": "C17575",
+      "value": "24k 0805 1% 150V",
+      "package": "0805",
+      "basic": true,
+      "stock": 692706,
+      "price": 0.0072,
+      "qty_per_board": 1,
+      "qty_build_6": 6,
+      "ext_cost_build_6": 0.0432,
+      "stock_cover_x": 115451.0,
+      "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010200_UNI-ROYAL-Uniroyal-Elec-0805W8F2402T5E_C17575.pdf",
+      "brand": "UNI-ROYAL(Uniroyal Elec)",
+      "description": "-55C~+155C 125mW 150V 24kohm Thick Film Resistor +/-1% +/-100ppm/C 0805 Chip Resistor - Surface Mount ROHS",
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 0.0072
+        },
+        {
+          "qty": 1000,
+          "price": 0.0062
+        },
+        {
+          "qty": 5000,
+          "price": 0.0056
+        },
+        {
+          "qty": 10000,
+          "price": 0.0054
+        },
+        {
+          "qty": 50000,
+          "price": 0.0051
+        },
+        {
+          "qty": 50200,
+          "price": 0.0051
+        }
+      ],
+      "attributes": [
+        {
+          "name": "Resistance",
+          "value": "24kohm"
+        },
+        {
+          "name": "Operating Temperature",
+          "value": "-55C~+155C"
+        },
+        {
+          "name": "Power(Watts)",
+          "value": "125mW"
+        },
+        {
+          "name": "Type",
+          "value": "Thick Film Resistor"
+        },
+        {
+          "name": "Voltage-Supply(Max)",
+          "value": "150V"
+        },
+        {
+          "name": "Tolerance",
+          "value": "+/-1%"
+        },
+        {
+          "name": "Temperature Coefficient",
+          "value": "+/-100ppm/C"
         }
       ],
       "alternates": [],
-      "role": "R100 hot-swap current-limit sense resistor. Value SET AT P3 from the LM5069 datasheet: VCL 55 mV typ / 0.27R = 0.204 A nominal limit (0.180 A min, 0.228 A max) - meets power_tree s3.2's 0.20 A and stays under the ICD s6.6 0.25 A ceiling. Dissipation 11 mW. 800 ppm/C tempco is immaterial against the +-12% threshold spread. If TPS2490 is reinstated the value becomes 0.25R."
+      "role": "R102 floating-rail dropper, +48V_SW to the 12 V zener. IN THE 48 V DOMAIN: 0805 per the HV rule, WORKING VOLTAGE 150 V, and it sees 36 V normally / 45 V at the 57 V worst case = 3.3x. Dissipation 54 mW at 48 V, 84 mW at 57 V, against 125 mW - so the 57 V case is at 67 % of rating and this resistor is the one part of the new loop with no comfortable power margin. JLC Basic."
     },
     {
       "ref_prefix_hint": "C",
@@ -1129,7 +1358,7 @@
         }
       ],
       "alternates": [],
-      "role": "C100 LM5069 TIMER capacitor. Must be programmed longer than the 653 ms cold start (power_tree s3.1). SEE THE OPEN ITEM - the timer charge:sink ratio makes this value load-bearing."
+      "role": "C100 floating 12 V rail bypass for the charge-loop error amplifier. REPURPOSED, NOT DELETED: this part was the LM5069 C_TIMER in rev B, and the timer is what BLOCKING-04 removed. It only ever sees the 12 V across the floating rail, not the 48 V, so a 50 V part is legal. JLC Basic."
     },
     {
       "ref_prefix_hint": "C",
@@ -1144,10 +1373,10 @@
       "basic": true,
       "stock": 3240543,
       "price": 0.067,
-      "qty_per_board": 2,
-      "qty_build_6": 12,
-      "ext_cost_build_6": 0.804,
-      "stock_cover_x": 270045.2,
+      "qty_per_board": 1,
+      "qty_build_6": 6,
+      "ext_cost_build_6": 0.402,
+      "stock_cover_x": 540090.5,
       "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL21B104KCFNNNE_C28233.pdf",
       "brand": "Samsung Electro-Mechanics",
       "description": "100V 100nF X7R +/-10% 0805 Multilayer Ceramic Capacitors MLCC - SMD/SMT ROHS",
@@ -1196,13 +1425,12 @@
         }
       ],
       "alternates": [],
-      "role": "C101 controller VIN bypass and C102 gate dV/dt capacitor. JLC BASIC at 100 V - the only 100 V ceramic on this board that costs no feeder fee. Both sit in the 48 V domain so 50 V parts are illegal here."
+      "role": "+48V_SW local input bypass, alongside the TVS and ahead of the ballast. REDUCED FROM 2 TO 1 PLACEMENT: the controller VCC bypass went with the controller, and the gate dV/dt capacitor is deleted outright - power_tree s3.1 rev C states 'No dv/dt element is used at all - the limit is the control'. JLC BASIC at 100 V, which is the only 100 V ceramic here that costs no feeder fee; it is in the 48 V domain so a 50 V part would be illegal."
     },
     {
       "ref_prefix_hint": "Q",
       "block": "drive_w",
       "sheets": [
-        "charge",
         "drive_w",
         "drive_r",
         "drive_g",
@@ -1214,11 +1442,11 @@
       "package": "D2PAK",
       "basic": false,
       "stock": 12000,
-      "price": 0.5772,
-      "qty_per_board": 5,
-      "qty_build_6": 30,
-      "ext_cost_build_6": 17.316,
-      "stock_cover_x": 400.0,
+      "price": 0.6433,
+      "qty_per_board": 4,
+      "qty_build_6": 24,
+      "ext_cost_build_6": 15.4392,
+      "stock_cover_x": 500.0,
       "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Infineon-Technologies-IRF640NSTRLPBF_C23708.pdf",
       "brand": "Infineon Technologies",
       "description": "-55C~+175C 1 N-channel 1.16nF 150W 150mohm@10V 18A 200V 4V 53pF 67nC@10V N-Channel D2PAK MOSFETs ROHS",
@@ -1299,14 +1527,9 @@
           "mpn": "IRF640NSTRLPBF-OSEN",
           "lcsc": "C52994741",
           "note": "TO-263 = same D2PAK land, stock 1570, $0.36 - unbranded second source, no linear-mode data"
-        },
-        {
-          "mpn": "IRF540NSTRLPBF",
-          "lcsc": "C23982",
-          "note": "100V/33A D2PAK, stock 20833, $0.751 - the blocks.md class part; acceptable for Q100 ONLY, never for a pass FET (the LED-short fault puts 57 V across it)"
         }
       ],
-      "role": "Q200/Q250/Q300/Q350 pass FETs AND Q100 charge FET - ONE part number for all five power FETs. Planar HEXFET-5 (Spirito margin, blocks.md s2.3), -55..+175C, Rds(on) 150 mR @10V, Qg 67 nC. DEVIATION FROM blocks.md s2.2: it names a 100 V IRF540N class for Q100; using the 200 V part there too deletes a whole Extended part number (one fewer feeder fee), lifts Q100's Vds margin from 1.75x to 3.5x on the 57 V worst case, and costs 4 mW more of Rds(on) loss at 0.2 A. Each needs >=350 mm2 F.Cu + >=350 mm2 B.Cu mirror + >=12 vias (D-STR-03)."
+      "role": "Q200/Q250/Q300/Q350, the four pass FETs. Planar HEXFET-5 (Spirito margin, blocks.md s2.3), -55..+175C, Rds(on) 150 mR @10V, Qg 67 nC. Each needs >=350 mm2 F.Cu + >=350 mm2 B.Cu mirror + >=12 vias (D-STR-03). GIVE-BACK, RECORDED RATHER THAN HIDDEN: this was 5 placements in the rev-B BOM - one part number for all five power FETs, which deleted a feeder. BLOCKING-04 makes Q100 a P-channel, so the consolidation now covers the four pass FETs ONLY and the fifth feeder comes back. Net still strongly positive: it buys the deletion of a blocking defect and of a $6.33 single-source part."
     },
     {
       "ref_prefix_hint": "R",
@@ -1401,6 +1624,7 @@
       "ref_prefix_hint": "U",
       "block": "drive_w",
       "sheets": [
+        "charge",
         "drive_w",
         "drive_r",
         "drive_g",
@@ -1413,10 +1637,10 @@
       "basic": false,
       "stock": 11720,
       "price": 0.1134,
-      "qty_per_board": 4,
-      "qty_build_6": 24,
-      "ext_cost_build_6": 2.7216,
-      "stock_cover_x": 488.3,
+      "qty_per_board": 5,
+      "qty_build_6": 30,
+      "ext_cost_build_6": 3.402,
+      "stock_cover_x": 390.7,
       "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2303020130_Texas-Instruments-LM2904BIDR_C1849422.pdf",
       "brand": "Texas Instruments",
       "description": "-18V~-2.5V, 2.5V~18V -40C~+125C 1.2MHz 2 20mA 3.5uV/C 300uA 35nA 3V~36V 3mV 40nV/?Hz@1kHz 4nA 500V/ms 80dB EMI filtering/RF suppression SOIC-8 Operational Amplifier ROHS",
@@ -1520,7 +1744,7 @@
           "note": "TSSOP-8, -40..+125C, stock 14562"
         }
       ],
-      "role": "U200/U250/U300/U350 dual op-amp on +12V: A = error amp + gate driver, B = setpoint buffer. -40..+125C, which is the grade the board rule demands; 3-36 V supply. Chosen over the onsemi LM2904DR2G (-40..+105C) and over the JLC-Basic LM358DR2G (0..+70C, rejected at P1). Its tighter Vos also improves the STR-REQ-04 10% dim point, where the setpoint is only 52 mV."
+      "role": "FIVE placements now, not four. U200/U250/U300/U350 are the four drive-stage duals on +12V (A = error amp + gate driver, B = setpoint buffer). U100 is the FIFTH, added by BLOCKING-04: one half is the charge-loop error amplifier on the floating 12 V rail referenced to +48V_SW, with both inputs sitting within 3.9 V of the rail and inside that floating supply. Its 3 mV offset against the ballast's 3.9 V full-scale signal is a 0.08 % limit error - which is why the ballast can be the sense element and no precision reference is needed. -40..+125C, 3-36 V supply; chosen over LM2904DR2G (-40..+105C) and the JLC-Basic LM358DR2G (0..+70C, rejected at P1). REUSING A PART ALREADY ON THE BOM IS WHY THE NEW CHARGE LOOP ADDS NO IC FEEDER."
     },
     {
       "ref_prefix_hint": "U",
@@ -1634,7 +1858,7 @@
           "note": "TI genuine in the same SC-70-6 land, stock 102105, $0.076 - but -40..+85C, so it fails the board temperature rule"
         }
       ],
-      "role": "U201/U251/U301/U351 SPDT analogue switch, steers the regulator REFERENCE between the filtered setpoint and GND. RESOLVES THE P2 FLAG: the SGM3157 lead candidate is -40..+85C and is retired; this part is -55..+125C in the same SC-70-6 (SOT-363) land. 1.65-5.5 V supply, Ron ~10 R at 3.3 V, signal range 0-Vcc which covers the 0-520 mV reference."
+      "role": "U201/U251/U301/U351 SPDT analogue switch, steers the regulator REFERENCE between the filtered setpoint and GND. Same SC-70-6 (SOT-363) land as the retired SGM3157; 1.65-5.5 V supply, signal range 0-Vcc which covers the 0-520 mV reference. TEMPERATURE-GRADE CORRECTION, REV C - my earlier '-55..+125C' claim was wrong. The -55 C figure came from an LCSC ATTRIBUTE STRING, not the datasheet. The PDF says -40 to +125 C, and every electrical characteristics table is characterised only over -40..+85 C. So this part carries the SAME 85 C specification ceiling as the SGM3157 it replaced, and the substitution's stated rationale does not survive. KEPT ANYWAY, as a DOCUMENTED DERATING EXCEPTION and on the same reasoning as U420: the design-of-record ambient is ICD s7.6's 56 C, the +125 C figure is at least an abs-max headroom the SGM3157 lacks, and it is a same-land drop-in at $0.053 with 318k stock. If H2 re-issues s7.6 at 85-90 C, this row and U420 are the two that need a real answer rather than a note."
     },
     {
       "ref_prefix_hint": "D",
@@ -2251,7 +2475,7 @@
           "note": "the architecture's named class, TSSOP-16, $0.75, stock 1731 - REJECTED at -40..+85C"
         }
       ],
-      "role": "U420 8-bit I2C I/O expander: bits 0-3 = the four per-colour Vds fault latch states, 4 = board OT, 5 = LED-module OT, 6 = /protect/BANK_ARM_n (OUTPUT, active low to arm), 7 spare. Address block 0x20-0x27, no collision with U410. -40..+125C, which is why it replaces the PCF8574 / TCA9534 class blocks.md s2.4 names - EVERY PCF8574 and TCA9534 in stock at JLC is -40..+85C. TWO CONSEQUENCES FOR P4: (1) it has a RESET pin that must be tied high; (2) its POR state is ALL PINS INPUT/high-Z, NOT the PCF8574's 'all outputs high' - so the fail-safe now depends entirely on the external 100k-to-+12V pull that blocks.md s4.4 already specifies, and bit 6's 2N7002 gate needs its own pull-down. Cost is $1.49 against the architecture's $0.35 estimate."
+      "role": "U420 8-bit I2C I/O expander: bits 0-3 = the four per-colour Vds fault latch states, 4 = board OT, 5 = LED-module OT, 6 = /protect/BANK_ARM_n (OUTPUT, active low to arm), 7 spare. Address block 0x20-0x27, no collision with U410. Replaces the PCF8574 / TCA9534 class blocks.md s2.4 names. TEMPERATURE-GRADE CORRECTION, REV C - the rationale for paying +$1.14 over a TCA9534 is VOID. The -E order code does mean -40..+125 C, but EVERY DC AND AC TABLE IN THE DATASHEET IS CONDITIONED ON E-Temp = Vdd 4.5-5.5 V. This board runs it at +3V3, where the part is specified only to +85 C - the same ceiling as the TCA9534 it displaced. Abs max ambient under bias is still +125 C, so the gap is UNSPECIFIED, NOT DESTRUCTIVE. KEPT ANYWAY, recorded as a DOCUMENTED DERATING EXCEPTION: the design-of-record ambient is 56 C, the wall-path analysis shows that is conservative, and re-sourcing would re-open the POR fail-safe analysis to recover $6.84 across the whole 6-board build. ALSO NOTE the 3.3 V I2C bus ceiling is 400 kHz (1.7 MHz needs 4.5-5.5 V) - which is fine, ICD s3.3 specifies 400 kHz. TWO CONSEQUENCES FOR P4 REGARDLESS: (1) the RESET pin must be tied high; (2) POR state is ALL PINS INPUT/high-Z, NOT the PCF8574's 'all outputs high' - so the BANK_ARM_n fail-safe depends entirely on the external 100k-to-+12V pull blocks.md s4.4 specifies, PLUS the new dedicated gate pull-down on Q410 (added to the 100k 0603 line at rev C)."
     },
     {
       "ref_prefix_hint": "J",
@@ -2506,10 +2730,10 @@
       "basic": true,
       "stock": 450172,
       "price": 0.0176,
-      "qty_per_board": 14,
-      "qty_build_6": 84,
-      "ext_cost_build_6": 1.4784,
-      "stock_cover_x": 5359.2,
+      "qty_per_board": 15,
+      "qty_build_6": 90,
+      "ext_cost_build_6": 1.584,
+      "stock_cover_x": 5001.9,
       "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Jiangsu-Changjing-Electronics-Technology-Co---Ltd--2N7002_C8545.pdf",
       "brand": "Jiangsu Changjing Electronics Technology Co., Ltd.",
       "description": "1 N-channel 115mA 2.5V 225mW 25pF 50pF 5pF 5ohm@10V 60V N-Channel +/-20V SOT-23 MOSFETs ROHS",
@@ -2597,7 +2821,7 @@
           "note": "onsemi, -55..+150C, stock 483537"
         }
       ],
-      "role": "14 placements, one part number, JLC BASIC: Q111 bleed disarm; Q201/Q202 x4 (ENABLE invert + gate-source clamp, THE PASSIVE INTERLOCK OF RECORD); Q400-Q403 four fault latches; Q410 the BANK_ARM_n fail-safe stage. All are low-voltage nodes - none sits in the 48 V domain."
+      "role": "15 placements, one part number, JLC BASIC: Q111 bleed disarm; Q201/Q202 x4 (ENABLE invert + gate-source clamp, THE PASSIVE INTERLOCK OF RECORD); Q400-Q403 four fault latches; Q410 the BANK_ARM_n fail-safe stage; and NEW at rev C, Q101, the charge loop's ENABLE level shift that gates the limiter reference to zero (power_tree s3.3 - the same pattern the four drive stages already use). All are low-voltage nodes - none sits in the 48 V domain."
     },
     {
       "ref_prefix_hint": "R",
@@ -2784,10 +3008,10 @@
       "basic": true,
       "stock": 6336224,
       "price": 0.0103,
-      "qty_per_board": 1,
-      "qty_build_6": 6,
-      "ext_cost_build_6": 0.0618,
-      "stock_cover_x": 1056037.3,
+      "qty_per_board": 2,
+      "qty_build_6": 12,
+      "ext_cost_build_6": 0.1236,
+      "stock_cover_x": 528018.7,
       "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2205312316_UNI-ROYAL-Uniroyal-Elec-0805W8F1003T5E_C149504.pdf",
       "brand": "UNI-ROYAL(Uniroyal Elec)",
       "description": "-55C~+155C 100kohm 125mW 150V Thick Film Resistor +/-1% +/-100ppm/C 0805 Chip Resistor - Surface Mount ROHS",
@@ -2848,7 +3072,7 @@
         }
       ],
       "alternates": [],
-      "role": "R110 passive bleed backstop, UN-DEFEATABLE. Sees the FULL 57 V as a single part: 0805 at 150 V working = 2.6x. 23 mW standing, tau 272 s (136 s stacked with the carrier's own 100k). JLC Basic."
+      "role": "TWO placements at rev C. R110 the passive bleed backstop, UN-DEFEATABLE, seeing the FULL 57 V as a single part (0805 at 150 V working = 2.6x; 23 mW standing, tau 272 s, 136 s stacked with the carrier's own 100k). R103 is the NEW source-to-gate resistor on Q100 and is THE INTERLOCK OF RECORD FOR THE CHARGE PATH: it holds the P-channel passively OFF with every rail dead, so there is no POR window at all - strictly stronger than the deleted controller's POR-dependent hold. It sits inside the 48 V domain across Vgs, so 0805/150 V applies to it as well. JLC Basic."
     },
     {
       "ref_prefix_hint": "R",
@@ -2864,10 +3088,10 @@
       "basic": true,
       "stock": 7629190,
       "price": 0.0079,
-      "qty_per_board": 4,
-      "qty_build_6": 24,
-      "ext_cost_build_6": 0.1896,
-      "stock_cover_x": 317882.9,
+      "qty_per_board": 5,
+      "qty_build_6": 30,
+      "ext_cost_build_6": 0.237,
+      "stock_cover_x": 254306.3,
       "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010045_UNI-ROYAL-Uniroyal-Elec-0603WAF1003T5E_C25803.pdf",
       "brand": "UNI-ROYAL(Uniroyal Elec)",
       "description": "-55C~+155C 100kohm 100mW 75V Thick Film Resistor +/-1% +/-100ppm/C 0603 Chip Resistor - Surface Mount ROHS",
@@ -2928,12 +3152,13 @@
         }
       ],
       "alternates": [],
-      "role": "R1 the ICD-mandated ENABLE pull-down (s8.2), and R434 the 100k-to-+12V that holds BANK_ARM_n DISARMED with +3V3 dead. Low-voltage nodes only, so 0603 is legal. JLC Basic."
+      "role": "R1 the ICD-mandated ENABLE pull-down (s8.2); R434 the 100k-to-+12V that holds BANK_ARM_n DISARMED with +3V3 dead; and NEW at rev C the Q410 gate pull-down on the protect sheet, which the MCP23008 swap makes mandatory (its POR state is high-Z, not the PCF8574's outputs-high, so the expander output cannot be relied on to define the gate). Low-voltage nodes only, so 0603 is legal. JLC Basic."
     },
     {
       "ref_prefix_hint": "R",
       "block": "drive_w",
       "sheets": [
+        "charge",
         "drive_w",
         "drive_r",
         "drive_g",
@@ -2947,10 +3172,10 @@
       "basic": true,
       "stock": 3937024,
       "price": 0.0076,
-      "qty_per_board": 14,
-      "qty_build_6": 84,
-      "ext_cost_build_6": 0.6384,
-      "stock_cover_x": 46869.3,
+      "qty_per_board": 16,
+      "qty_build_6": 96,
+      "ext_cost_build_6": 0.7296,
+      "stock_cover_x": 41010.7,
       "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010045_UNI-ROYAL-Uniroyal-Elec-0603WAF1002T5E_C25804.pdf",
       "brand": "UNI-ROYAL(Uniroyal Elec)",
       "description": "-55C~+155C 100mW 10kohm 75V Thick Film Resistor +/-1% +/-100ppm/C 0603 Chip Resistor - Surface Mount ROHS",
@@ -3011,7 +3236,7 @@
         }
       ],
       "alternates": [],
-      "role": "Setpoint RC series element x4 (10k + 100nF, tau 1 ms), Vds arming RC x4 (10k + 10nF = 100 us blank), and protect-sheet trip dividers. JLC Basic - no feeder fee, so P4 may add any other E24 0603/0805 1% value at zero setup cost."
+      "role": "Setpoint RC series element x4 (10k + 100nF, tau 1 ms), Vds arming RC x4 (10k + 10nF = 100 us blank), protect-sheet trip dividers, and +2 at rev C for the charge loop's Q101 ENABLE level-shift pair (power_tree s3.3 lists 'Q101 + 2 R' without pinning the values). THOSE TWO ARE MY ESTIMATE, not an architecture figure. JLC Basic - no feeder fee, so P4 may add any other E24 0603/0805 1% value at zero setup cost."
     },
     {
       "ref_prefix_hint": "R",
@@ -3421,89 +3646,11 @@
       "role": "Protect-sheet trip and reference dividers, including the ~0.45 ratiometric Vds thresholds. Quantity is an ESTIMATE - see the 22k entry. JLC Basic."
     },
     {
-      "ref_prefix_hint": "R",
-      "block": "charge",
-      "sheets": [
-        "charge"
-      ],
-      "mpn": "0603WAF1503T5E",
-      "lcsc": "C22807",
-      "value": "150k 0603 1%",
-      "package": "0603",
-      "basic": true,
-      "stock": 1328943,
-      "price": 0.0084,
-      "qty_per_board": 2,
-      "qty_build_6": 12,
-      "ext_cost_build_6": 0.1008,
-      "stock_cover_x": 110745.2,
-      "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010130_UNI-ROYAL-Uniroyal-Elec-0603WAF1503T5E_C22807.pdf",
-      "brand": "UNI-ROYAL(Uniroyal Elec)",
-      "description": "-55C~+155C 100mW 150kohm 75V Thick Film Resistor +/-1% +/-100ppm/C 0603 Chip Resistor - Surface Mount ROHS",
-      "price_breaks": [
-        {
-          "qty": 1,
-          "price": 0.0084
-        },
-        {
-          "qty": 1000,
-          "price": 0.0074
-        },
-        {
-          "qty": 5000,
-          "price": 0.0068
-        },
-        {
-          "qty": 10000,
-          "price": 0.0064
-        },
-        {
-          "qty": 50000,
-          "price": 0.0061
-        },
-        {
-          "qty": 50200,
-          "price": 0.0061
-        }
-      ],
-      "attributes": [
-        {
-          "name": "Resistance",
-          "value": "150kohm"
-        },
-        {
-          "name": "Operating Temperature",
-          "value": "-55C~+155C"
-        },
-        {
-          "name": "Power(Watts)",
-          "value": "100mW"
-        },
-        {
-          "name": "Type",
-          "value": "Thick Film Resistor"
-        },
-        {
-          "name": "Voltage-Supply(Max)",
-          "value": "75V"
-        },
-        {
-          "name": "Tolerance",
-          "value": "+/-1%"
-        },
-        {
-          "name": "Temperature Coefficient",
-          "value": "+/-100ppm/C"
-        }
-      ],
-      "alternates": [],
-      "role": "R_PWR, the LM5069 PWR-pin power-limit programming resistor (the datasheet's 48 V worked example uses 150k). PLIM must be programmed ABOVE the 9.6 W cold-start peak - power_tree s3.3 sets it at 12 W - so the current limit stays the control and the power limit stays a ceiling. JLC Basic."
-    },
-    {
       "ref_prefix_hint": "C",
       "block": "conn",
       "sheets": [
         "conn",
+        "charge",
         "drive_w",
         "drive_r",
         "drive_g",
@@ -3517,10 +3664,10 @@
       "basic": true,
       "stock": 104184799,
       "price": 0.0241,
-      "qty_per_board": 14,
-      "qty_build_6": 84,
-      "ext_cost_build_6": 2.0244,
-      "stock_cover_x": 1240295.2,
+      "qty_per_board": 15,
+      "qty_build_6": 90,
+      "ext_cost_build_6": 2.169,
+      "stock_cover_x": 1157608.9,
       "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2211101700_YAGEO-CC0603KRX7R9BB104_C14663.pdf",
       "brand": "YAGEO",
       "description": "100nF 50V X7R +/-10% 0603 Multilayer Ceramic Capacitors MLCC - SMD/SMT ROHS",
@@ -3569,7 +3716,7 @@
         }
       ],
       "alternates": [],
-      "role": "General decoupling (C2/C5 on conn, C201.. x4 on the drive sheets, C410-C413 on protect) plus the setpoint filter capacitor C200.. x4. LOW-VOLTAGE NODES ONLY - anything in the 48 V domain uses the 100 V 0805 part instead. JLC Basic."
+      "role": "General decoupling (C2/C5 on conn, C201.. x4 on the drive sheets, C410-C413 on protect), the setpoint filter capacitor C200.. x4, and +1 at rev C for the charge loop's compensation capacitor. THAT LAST ONE IS MY ADDITION, NOT AN ARCHITECTURE FIGURE: a linear error-amplifier loop driving a 2.78 nF-Ciss P-channel needs a compensation network, power_tree s3.3 does not enumerate it, and budgeting zero for it would understate the BOM. Value and topology are P4's; it is a Basic part, so whatever P4 picks costs no feeder. All these nodes are low voltage (the compensation cap sits inside the floating 12 V rail) - anything actually across the 48 V domain uses the 100 V 0805 part instead. JLC Basic."
     },
     {
       "ref_prefix_hint": "C",

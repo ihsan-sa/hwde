@@ -232,7 +232,7 @@ per-stage part list is `sheets.md` s2.3; the four sheets are `drive_w`, `drive_r
 **every active part on this board must be rated to +125 C ambient.**
 
 > **[REV C] P3 closed this out. The substitutions the architecture now names:**
-> **SPDT `SGM3157` -> `SN74LVC1G3157DCKR`** (-55..+125 C, same SC-70-6 land, $0.053 - the explicit
+> **SPDT `SGM3157` -> `SN74LVC1G3157DCKR`** (same SC-70-6 land, $0.053 - the explicit
 > P3 action item this section raised, now resolved). **Op-amp `LM2904` -> `LM2904BIDR`**
 > (-40..+125 C rather than -40..+105 C, +$0.18/board). **Pass FET `IRF640NSTRLPBF`**, D2PAK
 > 200 V / 18 A, -55..+175 C, one part number across all **four** pass FETs (`Q100` leaves the
@@ -240,6 +240,18 @@ per-stage part list is `sheets.md` s2.3; the four sheets are `drive_w`, `drive_r
 > `SMBJ58A`** across all five positions. **Harness `J200`/`J300`: CJT `A3963WV-6P` and
 > `A2541WV-4P`**, VH/XH-compatible at **-40..+105 C**, which **closes** `power_tree.md` s10.5's
 > "P3 must confirm a +105/+125 C housing" - no derating exception is needed.
+>
+> **[REV D] TWO OF THESE ARE DOCUMENTED DERATINGS, NOT +125 C PARTS - correcting rev C's claim.**
+> Datasheet extraction found that the **`MCP23008`'s +125 C grade holds only at Vdd 4.5-5.5 V and
+> is +85 C at the 3.3 V this board runs it at**, and that the **UMW `SN74LVC1G3157DCKR` is
+> -40..+125 C but characterised only to +85 C.** **Neither was chosen *for* +125 C operation and
+> the documents must not say they were.** Both are **kept as documented deratings** against the
+> **56 C design-of-record ambient**, which they clear comfortably. **The board-wide +125 C rule
+> therefore holds for the parts that carry real power and real protection** - the op-amps, the
+> comparators, the FETs, the connectors - **and is consciously relaxed for two low-power signal
+> parts.** If ICD s7.6 is ever re-issued at 85-90 C, these two are the first items to revisit;
+> `power_tree.md` s10.7's finding that 56 C is *conservative* once the LED heat leaves through the
+> enclosure wall is what makes the derating defensible today.
 
 **Pass element: D2PAK planar HEXFET-5, 200 V / 18 A class, IRF640N class.** Selected on
 *generation and thermal headroom*, not on Rds(on): no MOSFET on JLCPCB publishes a linear-mode SOA
@@ -260,6 +272,75 @@ up on the shunt and a planar HEXFET needs 5-7 V of Vgs at 2.6 A, so a 3.3 V rail
 worst possible linear pass element. The Basic-shelf LM358 is **rejected on temperature grade**
 (0 to +70 C against 69 C internal air), not on function. The second half of the package buffers
 the setpoint at zero extra parts.
+
+#### 2.3.1 Gate drive and loop compensation - SPECIFIED, not left to P4  **[REV D]**
+
+**Datasheet extraction found the error amp cannot drive the gate as rev A-C drew it.** The LM2904B
+is rated `CLOAD` **100 pF typ**, with phase margin specified at `CL = 20 pF, RO = 300 ohm`, and TI
+gives **no** capacitive-load mitigation guidance at all. The IRF640NS is **Ciss 1160 pF typ, rising
+toward ~2000 pF as Vds falls to 1 V**, with **Qg 67 nC max** - one to two orders of magnitude
+beyond the op-amp's rated load. **This applies in five places: the four pass-FET error amps and the
+charge loop's P-channel gate.**
+
+**The network, per stage:**
+
+| element | value | role |
+|---|---|---|
+| **`R_g`** series gate resistor | **100 ohm** | Isolates the op-amp output from `Ciss`. Puts the gate pole at `1/(2 pi x 100 x 2000p)` = **796 kHz** |
+| **`R_in`** shunt sense into the inverting input | **10 kohm** | Sets the integrator's input resistance. Bias-current error: 250 nA x 10 k = 2.5 mV worst case, 4.8 % of the 52 mV 10 %-dim setpoint - acceptable, and it is a static offset that calibrates out |
+| **`C_f`** feedback cap, output to inverting input | **1 nF** (drive stages) / **100 nF** (charge loop) | **Dominant-pole compensation.** Makes the stage an integrator whose crossover is set here, not by the op-amp's 1.2 MHz GBW |
+
+**Why the capacitive load is inside the loop and cannot be isolated out of it.** The usual fix -
+take feedback from the op-amp output so the load sits outside the loop - **does not apply here**:
+this is a *current* loop, so the feedback path is the shunt, and the gate is the control node by
+construction. **The answer is therefore to dominate-pole the loop well below the gate pole**, not
+to isolate the gate.
+
+**The arithmetic, drive stage:**
+
+```
+  gm(IRF640NS at 2.6 A)  = 6.5 S x sqrt(2.6/11)      = 3.16 S      (scaled from gfs at 11 A)
+  loop constant           = gm x R_shunt = 3.16 x 0.2 = 0.63
+  integrator unity gain   = 1/(2 pi x 10k x 1n)       = 15.9 kHz
+  loop crossover          = 15.9 kHz x 0.63           = 10.1 kHz
+  gate pole               = 796 kHz                   = 79x above crossover -> ~1 degree of phase
+  1 % settling            = 4.6 / (2 pi x 10.1 kHz)   = 73 us
+  gate large-signal slew  = 6 V / 0.5 V/us            = 12 us      (op-amp SR limited, not charge limited:
+                                                                    30 nC at 20 mA is only 1.5 us)
+  TOTAL OPTICAL EDGE      = 12 + 73                   = 85 us
+```
+
+**Against both hard requirements:**
+
+| requirement | value | this network | margin |
+|---|---|---|---|
+| **STR-REQ-11**, optical rise/fall | **< 1 ms** | **85 us** | **12x** |
+| Settle inside the **shortest normal pulse** (25 Hz, s4) | **2.67 ms** | 85 us = **3.2 %** of the pulse | 31x |
+| Settle inside the headline flash | 8.68 ms | 1.0 % of the pulse | 102x |
+
+**Charge loop, same shape, deliberately 6x slower:** `R_in` 10 k, **`C_f` 100 nF**, sensing across
+the 19.5 ohm ballast (loop constant ~9.75), giving **crossover ~1.6 kHz and 472 us settling**. That
+is correct and not a compromise - the charge loop regulates against a 2720 uF bank whose own time
+constant is ~76 ms, and its fastest event is a 590 ms cold start. **A fast charge loop would buy
+nothing and would only make the 48 V-domain node harder to keep quiet.**
+
+**Gate drive headroom - confirmed, because TI's output cannot reach the rail:**
+
+```
+  op-amp output maximum      = V+ - 1.5 V = 12 - 1.5   = 10.50 V
+  less the shunt (FET source sits up on it at 2.6 A)   = -0.52 V
+  ---------------------------------------------------------------
+  Vgs available                                        =  9.98 V
+
+  Vgs required at 2.6 A, WORST-CASE threshold:
+     Vgs(th) max 4.0 V + 2 x Id/gm = 4.0 + 2 x 2.6/3.16 = 5.65 V
+  ---------------------------------------------------------------
+  MARGIN                                               =  1.77x     PASSES
+```
+
+**And this is the arithmetic that retro-justifies rejecting `+3V3` for the analogue bias** (s8): a
+3.3 V rail would deliver 2.78 V of Vgs against a 4.0 V *maximum threshold* - not marginal, simply
+non-functional on a worst-case part.
 
 **Shunt: 200 mohm 3 W 2512, 1 %.** 520 mV full scale, 1.35 W peak at 6.7 % duty (0.091 W average).
 200 mohm rather than 50 mohm because at the STR-REQ-04 10 % dim point the setpoint is 52 mV, so an
@@ -314,8 +395,99 @@ cheaper and fewer packages than four duals). **LM2901, not LM339 or LM393** - th
 | U400 D | **Bank ceiling.** 44.5 V normal / 48.0 V while armed; ~1 V hysteresis | `/CHG_EN_n` |
 | U401 A-D | **Vds fault (LED short), ONE SECTION PER COLOUR.** See s5 | `/OT_TRIP` (wire-OR), each latched, each also readable individually over I2C |
 
-All outputs are **open collector**. `/OT_TRIP` pulls **all four** pass-FET gate clamps *and*
-`FAULT` low.
+All outputs are **open collector**.
+
+#### 2.4.2 Comparator hysteresis - SPECIFIED, because the datasheet offers none  **[REV D]**
+
+**Datasheet extraction: the LM2901 publishes no hysteresis parameter and no hysteresis design
+guidance at all**, and `tres` is 1.3 us. **Every comparator on this board watches a slow-moving
+signal** - two thermal trips, a bank UVLO, a bank ceiling - and the four Vds detectors watch a node
+that ramps. **Without external positive feedback they will chatter, and two of them (`/OT_TRIP`,
+`/UVLO_n`) gate the drive stages, so chatter is not cosmetic - it is a strobe that stutters.**
+
+**The constraint that makes this non-trivial: the outputs are open collector**, so the pull-up
+resistor **participates in the hysteresis divider** and must be specified with it. (The datasheet
+never uses the words "open collector"; it is established from Figure 2 plus a leakage-only `IOH`
+spec plus the *absence* of any `VOH` parameter.)
+
+**Topology, every section: positive feedback to the REFERENCE input, not the signal input.** The
+reference divider's Thevenin impedance is ours to choose; the signal-side impedance is set by the
+NTC network or the bank divider and is not. `R_hyst` runs from the open-collector output back to
+the reference node; `R_pull` = **10 kohm to `+12V`** on every section.
+
+```
+  band  =  R_ref x [ (12 - V_ref)/(R_pull + R_hyst)  +  (V_ref - 0.25)/R_hyst ]
+           where R_ref = R_a || R_b  and  V_ref = 12 x R_b/(R_a + R_b),  V_OL = 0.25 V
+```
+
+| section | `R_a` | `R_b` | `R_hyst` | `V_ref` | **band** | **in physical units** | vs `Vio` |
+|---|---|---|---|---|---|---|---|
+| **U400A board OT** | 56 k | 10 k | **560 k** | 1.818 V | **175 mV** | **5.0 C** of tab temperature | **12x** |
+| **U400B LED-module OT** | 10 k | 10 k | **150 k** | 6.000 V | **379 mV** | **5.2 C** of solder point | **25x** |
+| **U400C bank UVLO** | 22 k | 5.1 k | **820 k** | 2.258 V | **59 mV** | **1.02 V** of bank | 3.9x |
+| **U400D bank ceiling** | 20 k | 5.6 k | **620 k** | 2.625 V | **82 mV** | **1.42 V** of bank | 5.5x |
+| **U401A-D Vds fault, x4** | per P4's trip arithmetic | | **~1 M** | 0.45 x `/VBANK_SENSE` | ~58 mV | **5 %** of the trip threshold | ~4x |
+
+**Sensitivities the physical-unit column is derived from** (10 k NTC, B25/85 = 3380 K):
+
+```
+  board OT:  NTC = 809 ohm at 110 C, dR/R/dT = -2.30 %/K, 2.2k top leg -> dV/dT = -35.4 mV/K
+  LED OT:    NTC = 1024 ohm at 100 C, dR/R/dT = -2.43 %/K, NTC as TOP leg -> dV/dT = +72.9 mV/K
+  bank:      /VBANK_SENSE = /VBANK x 10/174 = x 0.05747      -> 1 V of bank = 57.5 mV
+```
+
+**Three judgement calls worth stating rather than burying:**
+
+1. **`Vio` is 7 mV max, 15 mV max over temperature, and it sets the smallest defensible band** -
+   but `Vio` is a *static offset that shifts both thresholds together*, so it moves the trip point
+   and does **not** cause chatter. That is why **the UVLO is allowed to sit at 3.9x rather than
+   being widened to a nominal 4-5x**: its band costs real time (below), and buying more `Vio`
+   margin would not buy any more chatter immunity.
+2. **The UVLO band costs 16 ms of recovery after a full-window flash** (`2720 uF x 1.02 V /
+   0.172 A`). At `f_full` = 7.6 Hz the period is 132 ms, so it fits with 8x to spare; at 25 Hz the
+   bank never reaches the floor at all (sawtooth 41.97-44.5 V), so UVLO never trips. **Checked in
+   both operating modes, not just one.**
+3. **The four Vds sections are latched (Q400-Q403), so their band is not load-bearing** - the latch
+   prevents chatter by construction. The 5 % band exists only to hand the latch one clean edge, and
+   the healthy-to-faulted ratio is 0.04-0.21 against 1.00, so 5 % costs nothing.
+
+**Reference-divider current is 1.69 mA over the four `U400` sections**, ~2.7 mA including the four
+Vds references. **`+12V` housekeeping therefore goes 8.4 -> 10.4 mA**, `P_avail` 8.242 -> **8.215 W**
+(-0.3 %). Too small to re-tabulate `power_tree.md` s4; recorded there in s1.2.
+
+#### 2.4.3 Three more things the LM2901 datasheet does not give us  **[REV D]**
+
+- **Decoupling: 100 nF X7R 0603 at each comparator's `V+` pin, plus one shared 1 uF.** The datasheet
+  **publishes no decoupling guidance and no layout section**, so this is a **design decision this
+  document owns** - it is "not grounded", not "not needed". A schematic agent must not be left to
+  infer it.
+- **Supply ceiling taken as 32 V.** The datasheet is internally inconsistent (features page 2-36 V;
+  abs max "+/-18 to 36 V"; operating table 2-32 V). **This design takes the most conservative of the
+  three.** It runs at 12 V, so nothing turns on it - the number is recorded so nobody later "finds"
+  the 36 V figure and assumes headroom.
+- **ESD is only 500 V HBM, and one comparator input reaches a connector.** The LED-module
+  thermistor arrives on `J300` from an off-board loom, so `U400B`'s input is exposed to handling
+  ESD the part cannot survive. **Specify: a bidirectional TVS (SMAJ12CA class) plus 10 nF to GND at
+  `J300` on each thermistor line, and a 1 kohm series resistor between the divider tap and the
+  comparator pin.** The series resistor must sit **after** the divider node, not in the loom - in
+  the loom it would join the NTC leg and shift the trip point by ~1 kohm against a ~1 kohm bottom
+  leg. After the tap it carries only 25 nA of input bias = 25 uV. **This is the same class of error
+  as the gate network: a protection component in the wrong place changes a calibrated divider.**
+
+#### 2.4.4 A consequence: `/OT_TRIP` can no longer be the same wire as `FAULT`  **[REV D]**
+
+Specifying the hysteresis forced a local pull-up to `+12V` on every comparator output - and rev B
+had `/OT_TRIP` and `FAULT` as one wire-OR node with **no local pull-up at all**, relying on the
+carrier's 10 k to `+3V3`. **Those two are now incompatible: a 10 k pull-up to +12 V on a net that
+also lands on the carrier's 3.3 V `FAULT` pin would forward-bias the carrier's input clamps.**
+
+**Fix: split them.** `/OT_TRIP` is a **local `+12V` node** (10 k pull-up), which is what the four
+2N7002 gate clamps want anyway - 12 V on a 2N7002 gate is well inside its 20 V `Vgs` limit. **One
+additional 2N7002, `Q404`, translates `/OT_TRIP` down to `FAULT` as an open-drain output with no
+pull-up**, so the carrier's 10 k still owns the net and **`FAULT` is never driven high**, exactly
+as ICD s3.3 requires. Cost: one transistor and two resistors.
+
+`/OT_TRIP` pulls **all four** pass-FET gate clamps directly, and `FAULT` through `Q404`.
 `FAULT` is **never driven high** - this board fits no pull-up; the carrier's 10 k owns it, and an
 open-collector output tied to a 3.3 V net is legal regardless of the comparator's own 12 V supply.
 `/UVLO_n` inhibits the drive stage only; an empty bank at power-up is not a fault and must not
@@ -377,6 +549,13 @@ or unprogrammed carrier de-asserts it, which **resets the expander to all-inputs
 disables the whole board anyway. **This is not "latching ENABLE locally"** (STR-REQ-21 forbids
 that); it is ENABLE resetting a peripheral, which is the same direction of control ENABLE already
 has over every other stage. **P4 must wire `RESET`; it must not be tied to `+3V3`.**
+
+**[REV D] `RESET` has no internal pull-up or pull-down** - the datasheet states it "must be biased
+externally". **The ENABLE tie satisfies that requirement: the pin is always driven, never floated**
+(ENABLE is push-pull from the carrier and passively pulled down by the carrier's 10 k plus this
+board's 100 k whenever it is not). **A floating `RESET` on this part is undefined behaviour and
+would put the arming logic in an unknown state - state it explicitly so no schematic agent leaves
+the pin open.**
 
 **What is deliberately NOT on I2C: everything in STR-REQ-20's path.** The over-temperature trip,
 the Vds trip, the UVLO and the gate clamps are hard-wired comparators on `+12V` driving
@@ -926,7 +1105,8 @@ by far the most expensive line and is now ~5x the cost of the board that drives 
 | Shunt-FET dimming | Keeps burning bank current while the LED is dark; halves the achievable flash rate on this budget |
 | Hard-switched FET + series resistor | `I = (V_bank - Vf)/R` swings 5:1 over the window - the same visible decay, produced resistively |
 | NTC inrush thermistor | 1.0-9.6 A cold inrush against a 1.0 A PD limit; 0.54-0.99 W permanent burn; **5.5-12 A hot re-strike**, which on this board is not an abuse case - it is what happens every time firmware toggles ENABLE |
-| Bare gate-RC soft-start MOSFET | The 0.65 s charge lands in the dead zone between the last plotted 10 ms SOA curve and the DC line on every JLC-stocked MOSFET; no vendor certifies it |
+| Bare gate-RC soft-start MOSFET | The 0.65 s charge lands in the dead zone between the last plotted 10 ms SOA curve and the DC line on every JLC-stocked MOSFET; no vendor certifies it. **[REV D] This rejection survives the `IRF640NS` SOA finding** - that finding covers the four N-channel pass FETs, and the charge FET is now a P-channel part whose SOA is unconfirmed. Gate-RC was in any case rejected on *current limiting*, not only on SOA |
+| **[REV D]** Paralleling pass FETs for thermal headroom | Now **grounded, not inferred**: the `IRF640NS` transfer curves cross at `Vgs` ~6.4 V / 24 A, so at this board's 2.6 A the tempco is **positive** - the current-hogging region. Paralleling in linear mode is unsafe without source ballast, and ballast re-introduces the dropout headroom the window is trying to save |
 | 60 V integrated eFuse (TPS26600 / TPS16630 class) on the daughter | 3 V of headroom over the 57 V worst case, and no power-limit engine |
 | `+3V3` bias for the analogue loop | 2.78 V of Vgs against a worst-case 4 V threshold; forces a trench part, the worst linear pass element |
 | Local 48 V-derived linear bias | 2.7x the budget cost, adds a part inside the 48 V domain, and is dead for the hundreds of ms when `+48V_SW` is dead - exactly when the gate must be actively held low |

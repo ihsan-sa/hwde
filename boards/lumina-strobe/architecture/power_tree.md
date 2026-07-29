@@ -108,6 +108,12 @@ exactly as ICD s6.2 says.
 > re-tabulated - the shift is inside their own rounding, and the governor is a closed-loop
 > average-energy controller (ICD s6.2), not an open-loop schedule.
 >
+> **[REV D] Delta for the comparator hysteresis networks:** the four `U400` reference dividers draw
+> **1.69 mA**, ~2.7 mA including the four Vds references (`blocks.md` s2.4.2). **`+12V` goes 8.4 ->
+> 10.4 mA and `P_avail` 8.242 -> 8.215 W, a 0.3 % reduction.** Below the rounding of every table in
+> s4 and s10, so nothing is re-tabulated - but it is real and it is recorded here rather than
+> absorbed silently. This is the price of not letting eight comparators chatter, and it is cheap.
+>
 > **Delta vs `research/power.md`:** its housekeeping figure was 114 mW.
 > The ICD s6.3 guidance to "take power on `+48V_SW`" is still honoured: **100 % of this board's
 > delivered power** comes off `+48V_SW`, and the 8.4 mA of `+12V` costs 11 mW of conversion penalty
@@ -572,10 +578,32 @@ constant, and declaring it would fail the gate on a condition the board is not d
 
 ### 5.2 Cold start is the larger SOA event, and it repeats
 
-3.13 J into the charge FET, 0 -> 48 V, in linear mode, over 653 ms at a flat 9.6 W falling to zero.
-**This lands in the dead zone between the last plotted 10 ms SOA curve and the DC line on every
-JLC-stocked MOSFET datasheet.** No vendor certifies it; the derivation from `Pd` / `RthJC` /
-`Zthjc` is comfortable but it is a derivation and must be recorded in DOC-01.
+**[REV C]** 2.56 J into the charge FET, 0 -> 48 V, in linear mode, over 590 ms at 8.1 W falling to
+zero - the BLOCKING-04 ballast absorbs the rest (s3.3).
+
+> **[REV D] For the four PASS FETs this SOA question is now CLOSED, and favourably.** Datasheet
+> extraction of the `IRF640NS` found **no Spirito knee**: all four published SOA lines satisfy
+> `P x Zth(j-c) = 150 C` exactly against Fig 11, so the SOA is a **pure thermal limit** and extends
+> legitimately to **~151 W at 100 ms and ~150 W at 200 ms**, landing on the part's own 150 W `Pd`
+> rating. **Rev A's caveat - "the 0.65 s event lands in the dead zone between the last plotted
+> 10 ms curve and the DC line, and no vendor certifies it" - is retired for these four parts**, and
+> the method is stateable rather than hand-waved: the extrapolation is the datasheet's own `Zth`
+> curve applied to its own junction limit, not a guess. Both pass-FET SOA cases clear it outright -
+> the LED-short fault (148 W for < 20 us before the Vds comparator trips) and the flash itself
+> (24.6 W peak, microseconds).
+>
+> **The caveat still stands for the CHARGE FET**, which under BLOCKING-04 is a different,
+> **P-channel** part. Its 8.1 W / 590 ms linear-mode cold start is the demanding case and
+> **P3 must confirm its SOA separately** (s3.0). Record it in DOC-01.
+
+> **[REV D] The offsetting bad news, from the same datasheet: the `IRF640NS` transfer curves cross
+> at `Vgs` ~6.4 V / 24 A, so at this board's 2.6 A the temperature coefficient is POSITIVE** - the
+> current-hogging region. **Single-die linear-mode thermal stability is therefore a property this
+> design depends on, and paralleling pass FETs to gain thermal headroom is UNSAFE.** No mitigation
+> in this package assumes paralleling - it is rejected in `blocks.md` s8 and in s8 below - and both
+> rejections are now grounded in a measured curve rather than in general principle. **The 5 C of
+> hysteresis on the board over-temperature trip (`blocks.md` s2.4.2) is the backstop if a single
+> die does go thermally unstable.**
 
 **Repeat rate is the trap.** Mean charge-FET power = 3.13 J x (ENABLE cycles/s):
 
