@@ -2,8 +2,8 @@
  "script": "order_submit",
  "status": "ready_for_human",
  "board": "pd-trigger.kicad_pcb",
- "generated": "2026-07-29T11:45:26-07:00",
- "order_number": null,
+ "generated": "2026-07-29T11:47:54-07:00",
+ "order_number": "W2026073002475378",
  "payment": "HUMAN - this script never submits payment (SPEC P10)",
  "artifacts": {
   "gerber_zip": {
@@ -67,20 +67,26 @@
  "api": {
   "attempted": true,
   "available": true,
-  "note": "API quote fetched: grand total 12.59 (6.2 pcb + 6.3939358209 freight) vs estimate 19.65",
-  "verdict": "ok",
+  "note": "REAL ORDER PLACED via pcb/create - payment/balance mechanics unverified, check the JLCPCB portal",
+  "verdict": "created",
   "quote_real": 6.2,
   "api_quote_json": "boards\\pd-trigger\\fab\\api_quote.json",
   "file_key": "df5bb49b7e364b068720f510914d6391",
-  "file_key_sha256": "ac8e03ac89de8d2b753e300ab6a0a21c4a32381b540e7be232a7302aee66154c"
+  "file_key_sha256": "ac8e03ac89de8d2b753e300ab6a0a21c4a32381b540e7be232a7302aee66154c",
+  "order": {
+   "orderId": "a660e81dac5d4fa58fb58f80741327fd",
+   "batchNum": "W2026073002475378",
+   "orderType": 1,
+   "orderDate": "2026-07-30T02:47:57+08:00"
+  }
  },
  "human_steps": [
+  "API order created: orderId a660e81dac5d4fa58fb58f80741327fd, batchNum W2026073002475378. Poll with order_track.py --workspace <ws>; verify payment state in the JLCPCB portal (may auto-deduct JLC Balance).",
   "COPPER WAIVER: ordered at 1 oz despite the 2 oz design note (explicit --copper-oz human decision) - current paths sized for 2 oz are derated on this rev",
   "BOARD-SPECIFIC before ordering: (1) 2oz copper MUST be selected at JLC order time (stackup JLC2313_1.6_2oz - the quote page copper-weight option, NOT default 1oz; the 5A path depends on it). (2) PD SOURCES ONLY + e-marked cable for 5A contracts - user docs. (3) Bring-up: measure /VDD at the 5V profile (CH224K IDD unpublished, W2); buzz Q1 E/B/C once (clone PDF unverifiable); continuity SW1 pins 1-3 unpressed. (4) U1 thermal pad ships 100% paste (declined windowing - watch for float on first article). (5) Hand-solder J2/J3 THT after SMT.",
   "Upload boards\\pd-trigger\\fab\\pd-trigger_gerbers.zip to https://jlcdfm.com/ and review the DFM report (V6: no public API).",
   "Upload the same zip at https://cart.jlcpcb.com/quote and confirm the real price against the estimate above.",
   "If assembling: upload BOM.csv and CPL.csv, then CHECK THE RENDERED PART PREVIEW for every polarized part (LED/diode/electrolytic) - rotation corrections are the classic failure mode.",
-  "API quote in boards\\pd-trigger\\fab\\api_quote.json: REAL grand total 12.59 (6.2 pcb + 6.3939358209 freight via HKTHZXR-RMB; our estimate 19.65) - review shipList/achieveDateList/audit findings before any create.",
   "Review, then pay. Payment is always the human's action."
  ]
 }
