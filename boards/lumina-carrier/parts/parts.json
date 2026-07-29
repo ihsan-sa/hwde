@@ -527,7 +527,7 @@
      "note": "Yageo, same 100 V / 0805 / X7R rating, 715239 pcs, $0.0381 - cheaper per piece but Extended, so it costs a feeder fee to save $0.40 across the build."
     }
    ],
-   "role": "U1 VDD-VSS bypass, inside the IEEE 802.3 50-120 nF detection-signature window. 100 V part on the 48 V domain. Note its ground reference is V48_RTN, not GND - P4 needs an explicit gnd_net override on this decoupling entry. JLC Basic."
+   "role": "U1 VDD-VSS bypass, inside the IEEE 802.3 50-120 nF detection-signature window, AND C61/C62/C63 = local HF bypass on the 48 V pins of U20 and U22, required by both datasheets."
   },
   {
    "ref_prefix_hint": "C",
@@ -672,7 +672,7 @@
     }
    ],
    "alternates": [],
-   "role": "R67 ADDED after datasheet extraction as the UVLO-to-OVP middle leg of U22's three-resistor divider (see R66). R1+R2 form the split 24.9 k detection signature with the tap brought out at /poe/DEN_TAP - grounding the tap disables the PD and spoils the signature, which is the clean hardware PD-disable. 0805 per the 48 V-domain resistor rule, 150 V working. R30 re-uses this line as the W5500 EXRES1 bias resistor (12.4 k 1 % to AGND, sets MDI drive amplitude). NOTE from decisions.md D-A2: the magjack's internal rectifier sits in series with the detection path, so RDEN may need trimming UPWARD at P4 - do not port 24.9 k blindly."
+   "role": "R1+R2 form the split 24.9k detection signature with the tap (poe), and W5500 EXRES1 bandgap-bias resistor to AGND (eth). NO LONGER the U22 UVLO middle leg - that moved to 10k (C17414) at the P4 re-derivation."
   },
   {
    "ref_prefix_hint": "R",
@@ -904,7 +904,7 @@
     }
    ],
    "alternates": [],
-   "role": "T2P level-shift network. T2P is an open-drain output referenced to VSS (the raw PoE negative), not to board GND, and can sit tens of volts away from it - it is never a bare GPIO connection. 0805 / 150 V per the 48 V-domain resistor rule. Exact divider values are set at P4 from the TPS2378 datasheet; the orderable part is the same 0805 1% thick-film series either way. JLC Basic."
+   "role": "T2P level-shift network (poe), AND R67 = UVLO/OVP string MIDDLE leg (UVLO to OVP) on U22. Sets UVLO rising 35.02 V / falling 32.74 V; worst-case-high rising 36.42 V stays under the 37 V af legal minimum."
   },
   {
    "ref_prefix_hint": "R",
@@ -2209,160 +2209,6 @@
   {
    "ref_prefix_hint": "R",
    "block": "pwr",
-   "mpn": "0805W8F2002T5E",
-   "lcsc": "C4328",
-   "value": "20k 1% 0805",
-   "qty_per_board": 1,
-   "refs": [
-    "R73"
-   ],
-   "package": "0805",
-   "basic": true,
-   "stock": 3221497,
-   "price": 0.0123,
-   "price_breaks": [
-    {
-     "qty": 1,
-     "price": 0.0123
-    },
-    {
-     "qty": 1000,
-     "price": 0.0111
-    },
-    {
-     "qty": 5000,
-     "price": 0.0106
-    },
-    {
-     "qty": 10000,
-     "price": 0.0101
-    },
-    {
-     "qty": 50000,
-     "price": 0.01
-    },
-    {
-     "qty": 100000,
-     "price": 0.0099
-    }
-   ],
-   "min_qty": 1,
-   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010216_UNI-ROYAL-Uniroyal-Elec-0805W8F2002T5E_C4328.pdf",
-   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0805w8f2002t5e_C4328.html",
-   "brand": "UNI-ROYAL(Uniroyal Elec)",
-   "attributes": [
-    {
-     "name": "Resistance",
-     "value": "20k\u03a9"
-    },
-    {
-     "name": "Operating Temperature",
-     "value": "-55\u2103~+155\u2103"
-    },
-    {
-     "name": "Power(Watts)",
-     "value": "125mW"
-    },
-    {
-     "name": "Type",
-     "value": "Thick Film Resistor"
-    },
-    {
-     "name": "Voltage-Supply(Max)",
-     "value": "150V"
-    },
-    {
-     "name": "Tolerance",
-     "value": "\u00b11%"
-    },
-    {
-     "name": "Temperature Coefficient",
-     "value": "\u00b1100ppm/\u2103"
-    }
-   ],
-   "alternates": [],
-   "role": "U22 OVP-to-GND bottom leg, the third resistor of the UVLO/OVP string (see R66). NEW REFDES: the sheets.md allocation gave R65-R68 for ILIM + divider + IMON + dV/dT, which is one resistor short - the extraction shows UVLO and OVP share a THREE-resistor string (R1 IN-UVLO, R2 UVLO-OVP, R3 OVP-GND, Figure 8-3), not a two-resistor divider. R73 is free in the pwr sheet's R60-R99 block. 0805 per the 48 V-domain rule even though the node itself only reaches ~1.1 V, because an open top leg would expose it to the rail. JLC Basic."
-  },
-  {
-   "ref_prefix_hint": "R",
-   "block": "pwr",
-   "mpn": "0805W8F1004T5E",
-   "lcsc": "C17514",
-   "value": "1M 1% 0805",
-   "qty_per_board": 1,
-   "refs": [
-    "R66"
-   ],
-   "package": "0805",
-   "basic": true,
-   "stock": 3633199,
-   "price": 0.0093,
-   "price_breaks": [
-    {
-     "qty": 1,
-     "price": 0.0093
-    },
-    {
-     "qty": 1000,
-     "price": 0.0084
-    },
-    {
-     "qty": 5000,
-     "price": 0.0078
-    },
-    {
-     "qty": 10000,
-     "price": 0.0075
-    },
-    {
-     "qty": 50000,
-     "price": 0.0073
-    },
-    {
-     "qty": 100000,
-     "price": 0.0071
-    }
-   ],
-   "min_qty": 1,
-   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010200_UNI-ROYAL-Uniroyal-Elec-0805W8F1004T5E_C17514.pdf",
-   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0805w8f1004t5e_C17514.html",
-   "brand": "UNI-ROYAL(Uniroyal Elec)",
-   "attributes": [
-    {
-     "name": "Resistance",
-     "value": "1M\u03a9"
-    },
-    {
-     "name": "Operating Temperature",
-     "value": "-55\u2103~+155\u2103"
-    },
-    {
-     "name": "Power(Watts)",
-     "value": "125mW"
-    },
-    {
-     "name": "Type",
-     "value": "Thick Film Resistor"
-    },
-    {
-     "name": "Voltage-Supply(Max)",
-     "value": "150V"
-    },
-    {
-     "name": "Tolerance",
-     "value": "\u00b11%"
-    },
-    {
-     "name": "Temperature Coefficient",
-     "value": "\u00b1100ppm/\u2103"
-    }
-   ],
-   "alternates": [],
-   "role": "U22 UVLO/OVP divider TOP leg (IN to UVLO) - the only resistor on the board that sees the full 57 V continuously. Sized after datasheet extraction: with R66 = 1 M, R67 = 12.4 k and R73 = 20 k the string gives UVLO rising 38.2 V / falling 35.8 V (inside power_tree.md s6's 36-40 V turn-on window) and OVP cutoff rising 61.9 V / falling 57.9 V, which sits above the 57 V PSE maximum and below the part's 67 V abs max. Divider current is 46.5 uA at 48 V, comfortably over the >= 20x pin-leakage rule (3 uA) the datasheet gives in sec 9.2.2.2. 3.2 mW at 57 V. P4 REVIEW ITEM: the OVP FALLING threshold is only ~0.9 V above the 57 V worst case, so after an overvoltage event the rail must drop below 57.9 V to re-enable - re-tunable within these same stocked values if that margin is judged too thin. NOTE UVLO must never be left floating (sec 8.3.2) and OVP is a LOW-VOLTAGE pin (0-4 V rec, 5.5 V abs max) that must never see the raw rail. JLC Basic."
-  },
-  {
-   "ref_prefix_hint": "R",
-   "block": "pwr",
    "mpn": "0603WAF3002T5E",
    "lcsc": "C22984",
    "value": "30k 1% 0603",
@@ -2655,7 +2501,7 @@
     }
    ],
    "alternates": [],
-   "role": "R70 = the carrier-side bleed on +48V_SW. De-energises the connector's 48 V pins whenever ENABLE is low; 0.5 mA / 23 mW. 0805 per the 48 V-domain rule - 0603 parts are 75 V working and must not be used here. JLC Basic."
+   "role": "R70 = carrier-side bleed on +48V_SW (de-energises the connector 48 V pins whenever ENABLE is low), AND R62 = top leg of the mandatory U20 EN divider (EN abs max is 6 V; divider gives 2.56 V at 57 V)."
   },
   {
    "ref_prefix_hint": "R",
@@ -3756,7 +3602,7 @@
     }
    ],
    "alternates": [],
-   "role": "I2C pull-ups, CARRIER SIDE per ICD-01 s3.3 - daughters must not fit their own. 400 kHz. JLC Basic."
+   "role": "I2C pull-ups CARRIER SIDE per ICD-01 s3.3 (daughters must not fit their own), AND R74 = bottom leg of the U20 EN divider."
   },
   {
    "ref_prefix_hint": "R",
@@ -3835,7 +3681,7 @@
     }
    ],
    "alternates": [],
-   "role": "Series protection on /ID_ADC, /ADC0 and /ADC1. Part of the CAR-REQ-14 survivability story, not just ESD hygiene: a mis-seated daughter can bridge a neighbouring connector pin onto these lines. Small enough to keep the ICD's <= 10 kohm source-impedance rule intact. JLC Basic."
+   "role": "Series protection on /ID_ADC, /ADC0 and /ADC1 (expansion), AND R71 = PGOOD pull-up on U22. 330R was rejected there: it would sink 8.2 mA against the FLT/PGOOD 10 mA absolute maximum."
   },
   {
    "ref_prefix_hint": "D",
@@ -4111,6 +3957,165 @@
    ],
    "alternates": [],
    "role": "General decoupling: six on the W5500's VDD/AVDD pins, C54 = the SCT2A25 bootstrap cap, C58 = U21 output HF bypass, three on the ESP32-S3 module supply, one on the EEPROM. JLC Basic, 104 M in stock."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "pwr",
+   "mpn": "RC0805FR-07620KL",
+   "lcsc": "C185284",
+   "value": "620k 1% 0805",
+   "qty_per_board": 1,
+   "refs": [
+    "R70"
+   ],
+   "package": "0805",
+   "basic": false,
+   "stock": 8603,
+   "price": 0.006,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0103
+    },
+    {
+     "qty": 1000,
+     "price": 0.0091
+    },
+    {
+     "qty": 5000,
+     "price": 0.0085
+    },
+    {
+     "qty": 10000,
+     "price": 0.0081
+    },
+    {
+     "qty": 50000,
+     "price": 0.0079
+    },
+    {
+     "qty": 100000,
+     "price": 0.0078
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2205312316_UNI-ROYAL-Uniroyal-Elec-0805W8F1003T5E_C149504.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0805w8f1003t5e_C149504.html",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {
+     "name": "Resistance",
+     "value": "100k\u03a9"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-55\u2103~+155\u2103"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "125mW"
+    },
+    {
+     "name": "Type",
+     "value": "Thick Film Resistor"
+    },
+    {
+     "name": "Voltage-Supply(Max)",
+     "value": "150V"
+    },
+    {
+     "name": "Tolerance",
+     "value": "\u00b11%"
+    },
+    {
+     "name": "Temperature Coefficient",
+     "value": "\u00b1100ppm/\u2103"
+    }
+   ],
+   "alternates": [
+    {
+     "mpn": "HRC0805F6203FNTN",
+     "lcsc": "C54921216"
+    }
+   ],
+   "role": "R66 = UVLO/OVP string TOP leg (IN to UVLO) on U22. Replaces the 1M that failed the binding thresholds. Sees the full 57 V continuously. String is 620k/10k/12k, sum 642k, 74.8 uA at 48 V = 499x the 150 nA pin leakage. Alt C54921216 (30500 pcs)."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "pwr",
+   "mpn": "0805W8F1202T5E",
+   "lcsc": "C17444",
+   "value": "12k 1% 0805",
+   "qty_per_board": 1,
+   "refs": [
+    "R70"
+   ],
+   "package": "0805",
+   "basic": true,
+   "stock": 823002,
+   "price": 0.0041,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0103
+    },
+    {
+     "qty": 1000,
+     "price": 0.0091
+    },
+    {
+     "qty": 5000,
+     "price": 0.0085
+    },
+    {
+     "qty": 10000,
+     "price": 0.0081
+    },
+    {
+     "qty": 50000,
+     "price": 0.0079
+    },
+    {
+     "qty": 100000,
+     "price": 0.0078
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2205312316_UNI-ROYAL-Uniroyal-Elec-0805W8F1003T5E_C149504.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0805w8f1003t5e_C149504.html",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {
+     "name": "Resistance",
+     "value": "100k\u03a9"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-55\u2103~+155\u2103"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "125mW"
+    },
+    {
+     "name": "Type",
+     "value": "Thick Film Resistor"
+    },
+    {
+     "name": "Voltage-Supply(Max)",
+     "value": "150V"
+    },
+    {
+     "name": "Tolerance",
+     "value": "\u00b11%"
+    },
+    {
+     "name": "Temperature Coefficient",
+     "value": "\u00b1100ppm/\u2103"
+    }
+   ],
+   "alternates": [],
+   "role": "R73 = UVLO/OVP string BOTTOM leg (OVP to GND) on U22. Replaces the 20k that failed the binding thresholds. JLC Basic. Sets OVP rising 64.20 V / falling 60.03 V; worst-case-low falling 57.18 V stays above the 57 V legal PSE maximum."
   }
  ]
 }

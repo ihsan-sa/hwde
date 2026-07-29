@@ -1,0 +1,319 @@
+{
+ "script": "netlist_audit",
+ "status": "pass",
+ "board": "poe_harness.net",
+ "counts": {
+  "total": 14,
+  "by_severity": {
+   "warning": 14
+  },
+  "by_source": {
+   "audit.netlist": 14
+  }
+ },
+ "violations": [
+  {
+   "check": "netlist_audit",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "/ETH_TXP",
+   "refs": [],
+   "msg": "diff_pairs[0] ('/ETH_TXP', '/ETH_TXN') does not follow a differential suffix convention (_P/_N, DP/DM, D+/D-)",
+   "source": "audit.netlist",
+   "items": [
+    {
+     "msg": "diff_pairs[0] ('/ETH_TXP', '/ETH_TXN') does not follow a differential suffix convention (_P/_N, DP/DM, D+/D-)",
+     "pos": null
+    }
+   ],
+   "kind": "diffpair_naming"
+  },
+  {
+   "check": "netlist_audit",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "/ETH_RXP",
+   "refs": [],
+   "msg": "diff_pairs[1] ('/ETH_RXP', '/ETH_RXN') does not follow a differential suffix convention (_P/_N, DP/DM, D+/D-)",
+   "source": "audit.netlist",
+   "items": [
+    {
+     "msg": "diff_pairs[1] ('/ETH_RXP', '/ETH_RXN') does not follow a differential suffix convention (_P/_N, DP/DM, D+/D-)",
+     "pos": null
+    }
+   ],
+   "kind": "diffpair_naming"
+  },
+  {
+   "check": "netlist_audit",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "V48_RAW",
+   "refs": [
+    "C1",
+    "C2",
+    "C4",
+    "C5",
+    "C6",
+    "D1",
+    "J1",
+    "R1",
+    "U1"
+   ],
+   "msg": "declared power net 'V48_RAW' feeds no power_in pin",
+   "source": "audit.netlist",
+   "items": [
+    {
+     "msg": "declared power net 'V48_RAW' feeds no power_in pin",
+     "pos": null
+    }
+   ],
+   "kind": "power_no_consumers"
+  },
+  {
+   "check": "netlist_audit",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "V48_RTN",
+   "refs": [
+    "C1",
+    "D1",
+    "J1",
+    "R3",
+    "U1"
+   ],
+   "msg": "declared power net 'V48_RTN' feeds no power_in pin",
+   "source": "audit.netlist",
+   "items": [
+    {
+     "msg": "declared power net 'V48_RTN' feeds no power_in pin",
+     "pos": null
+    }
+   ],
+   "kind": "power_no_consumers"
+  },
+  {
+   "check": "netlist_audit",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "+3V3",
+   "refs": [
+    "J1",
+    "R4",
+    "R7",
+    "R8"
+   ],
+   "msg": "declared power net '+3V3' feeds no power_in pin",
+   "source": "audit.netlist",
+   "items": [
+    {
+     "msg": "declared power net '+3V3' feeds no power_in pin",
+     "pos": null
+    }
+   ],
+   "kind": "power_no_consumers"
+  },
+  {
+   "check": "netlist_audit",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "/poe/SHIELD",
+   "refs": [
+    "J1"
+   ],
+   "msg": "net '/poe/SHIELD' feeds power_in pins (J1.GND1, J1.GND2) but is not declared in constraints power[]/voltages[]",
+   "source": "audit.netlist",
+   "items": [
+    {
+     "msg": "net '/poe/SHIELD' feeds power_in pins (J1.GND1, J1.GND2) but is not declared in constraints power[]/voltages[]",
+     "pos": null
+    }
+   ],
+   "kind": "power_undeclared"
+  },
+  {
+   "check": "netlist_audit",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "/CDB",
+   "refs": [
+    "U1"
+   ],
+   "msg": "net '/CDB' has a single pin (U1.6) - label typo?",
+   "source": "audit.netlist",
+   "items": [
+    {
+     "msg": "net '/CDB' has a single pin (U1.6) - label typo?",
+     "pos": null
+    }
+   ],
+   "kind": "dangling_net"
+  },
+  {
+   "check": "netlist_audit",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "/ETH_LED_ACT",
+   "refs": [
+    "J1"
+   ],
+   "msg": "net '/ETH_LED_ACT' has a single pin (J1.12) - label typo?",
+   "source": "audit.netlist",
+   "items": [
+    {
+     "msg": "net '/ETH_LED_ACT' has a single pin (J1.12) - label typo?",
+     "pos": null
+    }
+   ],
+   "kind": "dangling_net"
+  },
+  {
+   "check": "netlist_audit",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "/ETH_LED_LINK",
+   "refs": [
+    "J1"
+   ],
+   "msg": "net '/ETH_LED_LINK' has a single pin (J1.14) - label typo?",
+   "source": "audit.netlist",
+   "items": [
+    {
+     "msg": "net '/ETH_LED_LINK' has a single pin (J1.14) - label typo?",
+     "pos": null
+    }
+   ],
+   "kind": "dangling_net"
+  },
+  {
+   "check": "netlist_audit",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "/ETH_RXN",
+   "refs": [
+    "J1"
+   ],
+   "msg": "net '/ETH_RXN' has a single pin (J1.2) - label typo?",
+   "source": "audit.netlist",
+   "items": [
+    {
+     "msg": "net '/ETH_RXN' has a single pin (J1.2) - label typo?",
+     "pos": null
+    }
+   ],
+   "kind": "dangling_net"
+  },
+  {
+   "check": "netlist_audit",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "/ETH_RXP",
+   "refs": [
+    "J1"
+   ],
+   "msg": "net '/ETH_RXP' has a single pin (J1.1) - label typo?",
+   "source": "audit.netlist",
+   "items": [
+    {
+     "msg": "net '/ETH_RXP' has a single pin (J1.1) - label typo?",
+     "pos": null
+    }
+   ],
+   "kind": "dangling_net"
+  },
+  {
+   "check": "netlist_audit",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "/ETH_TXN",
+   "refs": [
+    "J1"
+   ],
+   "msg": "net '/ETH_TXN' has a single pin (J1.6) - label typo?",
+   "source": "audit.netlist",
+   "items": [
+    {
+     "msg": "net '/ETH_TXN' has a single pin (J1.6) - label typo?",
+     "pos": null
+    }
+   ],
+   "kind": "dangling_net"
+  },
+  {
+   "check": "netlist_audit",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "/ETH_TXP",
+   "refs": [
+    "J1"
+   ],
+   "msg": "net '/ETH_TXP' has a single pin (J1.5) - label typo?",
+   "source": "audit.netlist",
+   "items": [
+    {
+     "msg": "net '/ETH_TXP' has a single pin (J1.5) - label typo?",
+     "pos": null
+    }
+   ],
+   "kind": "dangling_net"
+  },
+  {
+   "check": "netlist_audit",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "/T2P",
+   "refs": [
+    "R5"
+   ],
+   "msg": "net '/T2P' has a single pin (R5.2) - label typo?",
+   "source": "audit.netlist",
+   "items": [
+    {
+     "msg": "net '/T2P' has a single pin (R5.2) - label typo?",
+     "pos": null
+    }
+   ],
+   "kind": "dangling_net"
+  }
+ ],
+ "mode": "audit",
+ "nets": 20,
+ "components": 18,
+ "unconnected_pins": 0,
+ "constraint_nets_checked": 8,
+ "decoupling_associations": 5,
+ "power": [
+  {
+   "net": "V48_RAW",
+   "nodes": 9,
+   "power_in": 0,
+   "power_out": 0
+  },
+  {
+   "net": "V48_RTN",
+   "nodes": 6,
+   "power_in": 0,
+   "power_out": 0
+  },
+  {
+   "net": "+3V3",
+   "nodes": 4,
+   "power_in": 0,
+   "power_out": 0
+  }
+ ]
+}

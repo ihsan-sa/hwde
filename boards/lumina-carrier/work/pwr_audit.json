@@ -1,0 +1,93 @@
+{
+ "script": "netlist_audit",
+ "status": "pass",
+ "board": "pwr_harness.net",
+ "counts": {
+  "total": 2,
+  "by_severity": {
+   "warning": 2
+  },
+  "by_source": {
+   "audit.netlist": 2
+  }
+ },
+ "violations": [
+  {
+   "check": "netlist_audit",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "+48V_SW",
+   "refs": [
+    "C63",
+    "R70",
+    "U22"
+   ],
+   "msg": "declared power net '+48V_SW' feeds no power_in pin",
+   "source": "audit.netlist",
+   "items": [
+    {
+     "msg": "declared power net '+48V_SW' feeds no power_in pin",
+     "pos": null
+    }
+   ],
+   "kind": "power_no_consumers"
+  },
+  {
+   "check": "netlist_audit",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "+3V3",
+   "refs": [
+    "C56",
+    "C57",
+    "L21",
+    "R63",
+    "R71",
+    "R72"
+   ],
+   "msg": "declared power net '+3V3' feeds no power_in pin",
+   "source": "audit.netlist",
+   "items": [
+    {
+     "msg": "declared power net '+3V3' feeds no power_in pin",
+     "pos": null
+    }
+   ],
+   "kind": "power_no_consumers"
+  }
+ ],
+ "mode": "audit",
+ "nets": 21,
+ "components": 37,
+ "unconnected_pins": 0,
+ "constraint_nets_checked": 5,
+ "decoupling_associations": 6,
+ "power": [
+  {
+   "net": "V48_RAW",
+   "nodes": 11,
+   "power_in": 5,
+   "power_out": 0
+  },
+  {
+   "net": "+48V_SW",
+   "nodes": 5,
+   "power_in": 0,
+   "power_out": 0
+  },
+  {
+   "net": "+12V",
+   "nodes": 8,
+   "power_in": 1,
+   "power_out": 0
+  },
+  {
+   "net": "+3V3",
+   "nodes": 6,
+   "power_in": 0,
+   "power_out": 0
+  }
+ ]
+}

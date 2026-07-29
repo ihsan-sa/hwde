@@ -1,0 +1,26 @@
+{
+ "_comment": "SCRATCH ONLY - the poe-sheet SUBSET of architecture/constraints.json, so netlist_audit can be run without the root (which another agent owns). Entries naming nets that live on other sheets (/ETH_SCLK, +48V_SW, +12V, thermal U20, placement refs) are omitted; the real kicad/constraints.json is the root's job.",
+ "high_speed": [
+  {"net": "/ETH_TXP", "reference": "GND", "k": 3, "t_rise_ns": 3.0},
+  {"net": "/ETH_TXN", "reference": "GND", "k": 3, "t_rise_ns": 3.0},
+  {"net": "/ETH_RXP", "reference": "GND", "k": 3, "t_rise_ns": 3.0},
+  {"net": "/ETH_RXN", "reference": "GND", "k": 3, "t_rise_ns": 3.0}
+ ],
+ "power": [
+  {"net": "V48_RAW", "current_a": 1.5, "dt_c": 10, "via_amps": 0.5},
+  {"net": "V48_RTN", "current_a": 0.6, "dt_c": 10, "via_amps": 0.5, "pdn": false},
+  {"net": "+3V3", "current_a": 1.0, "dt_c": 10, "via_amps": 0.5}
+ ],
+ "diff_pairs": [
+  {"p": "/ETH_TXP", "n": "/ETH_TXN", "base": "ETH_TX",
+   "impedance_ohm": 100, "gap_mm": 0.47, "max_skew_mm": 2.5, "max_uncoupled_mm": 5.0},
+  {"p": "/ETH_RXP", "n": "/ETH_RXN", "base": "ETH_RX",
+   "impedance_ohm": 100, "gap_mm": 0.47, "max_skew_mm": 2.5, "max_uncoupled_mm": 5.0}
+ ],
+ "voltages": [
+  {"net": "V48_RAW", "voltage": 57},
+  {"net": "V48_RTN", "voltage": -57},
+  {"net": "+3V3", "voltage": 3.3},
+  {"net": "GND", "voltage": 0}
+ ]
+}

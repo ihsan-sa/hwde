@@ -3,9 +3,29 @@
  "board": "lumina-carrier",
  "workspace": "boards/lumina-carrier",
  "created": "2026-07-28T13:36:22",
- "updated": "2026-07-28T19:26:40",
- "phase": "P3",
- "gates": {},
+ "updated": "2026-07-28T20:16:22",
+ "phase": "P4",
+ "gates": {
+  "erc": {
+   "phase": "P4",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-07-28T20:16:22",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0
+   },
+   "history": [
+    {
+     "ts": "2026-07-28T20:16:22",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0
+    }
+   ]
+  }
+ },
  "human": {
   "1": {
    "status": "approved",
@@ -225,6 +245,42 @@
    "why": "J3 (2x7 POWER header, the one actually carrying 48 V raw) was pulled with a 1.80 mm annulus giving only 0.74 mm pad-to-pad and 1.165x over the 0.635 mm HV requirement, while J4 (2x12 signal) had 1.70 mm / 0.84 mm / 1.32x - the two frozen ICD connectors were mutually inconsistent and the HV-carrying one had the WORSE margin. Normalising J3 to 1.70 mm restores 1.32x, makes both connectors share one land pattern, and keeps ICD-01 rev A2's published number true, so no ICD re-issue of the gap is needed. Drill is 1.10 mm not the 1.02 mm the ICD assumed, but gap = pitch - annulus so the conclusion is unaffected; ICD text corrected. TPS16630 swapped to KiCad stock HTSSOP-20-1EP with the 3.4x6.5 copper / 2.96x2.96 mask SMD-defined pad because it is the 48 V hot-swap switch and its thermal pad IS its dissipation path - the pulled part had ~24 percent less exposed metal, asymmetric rows and 24-percent-narrow signal pads. SCT2A25 swapped for a proper IPC heel fillet on a 100 V buck's power pins. J1's two dia-3.25 mounting holes were plated with ZERO annular ring and would trip P7 DRC - made non-plated. DEFERRED deliberately: untented vias-in-pad under the ESP32 thermal land (0.075 mm ring, below JLC's ~0.15 mm PTH minimum) and the HTSSOP pad - the P9 DFM gate should adjudicate these against real fab rules with its own fix loop rather than have them silently changed in the library.",
    "phase": "P3",
    "ts": "2026-07-28T19:26:40"
+  },
+  {
+   "what": "D40-D42 PESD3V3L1BA as sourced is BIDIRECTIONAL (UMW/Youtai), not the unidirectional Nexperia part - orientation-free today, but a second-source hazard",
+   "why": "Librarian withdrew its own polarity-ambiguity flag after fetching the ACTUAL sourced datasheet: UMW/Youtai, states 'Bidirectional configurations', labels the SOD-323 only 'Pin1 Pin2' with no anode/cathode, no V_F spec, and the package carries no polarity feature or band. The symbol's generic 1/2 pin naming is therefore CORRECT, not a library defect, and either orientation is valid on the ADC0/ADC1/ID_ADC clamps. CARRY-FORWARD RISK: genuine Nexperia PESD3V3L1BA IS unidirectional, so if this line is ever second-sourced to real Nexperia stock the orientation starts mattering and a board built either-way would have one clamp backwards. Must be noted on the BOM line and re-checked at any resource change.",
+   "phase": "P4",
+   "ts": "2026-07-28T19:35:27"
+  },
+  {
+   "what": "ICD-01 rev A3: par's blocking thermal issue UPHELD and re-derived; sealed enclosure does NOT close for the 802.3at upgrade",
+   "why": "The par was right - rev A2's 56 C (af) / 69 C (at) pair was internally inconsistent. Convection is near-linear in delta-T at this scale, so ~2x box heat gives ~2x rise; 56 C implies 3.13 K/W while 69 C implies 2.29 K/W. Re-derived on the par's independently sourced 3.6-4.3 K/W for a sealed non-metallic box (which supersedes my optimistic 3.13 K/W): af ~9.9 W gives 61-68 C at a 25 C room and 76-83 C at 40 C; at ~19.2 W gives 94-108 C at 25 C and 109-123 C at 40 C. CONSEQUENCES: (1) the at upgrade REQUIRES a vented enclosure - 94-108 C exceeds both the ESP32-S3's +85 C ambient limit and the par emitter's +85 C Topr max; (2) even af closes only near a 25 C room and is marginal at 40 C, so the Q13 provisional '0-40 C sealed' is not compatible with EITHER build and must go back to the owner; (3) every internal-air figure now carries an explicit room ambient. Root cause worth noting: the P1 power architect flagged exactly this ('the at upgrade needs vents OR ambient below ~30 C') and it was recorded as a decision but never propagated into the ICD's numbers - a hand-off gap between phases, not a physics error.",
+   "phase": "P4",
+   "ts": "2026-07-28T19:56:52"
+  },
+  {
+   "what": "CR-1 GRANTED: ID_ADC board-type code space allocated and published in ICD s3.4 (unblocks the par's P4)",
+   "why": "Carrier owns the code space per CAR-REQ-07. Carrier fits the 10k top leg to +3V3; daughter fits R_ID to GND; V_ID = 3.3 x R_ID/(R_ID+10k). Codes: strobe = 2.7k (0.702 V), par = 4.7k (1.055 V), plus 7.5k/12k/18k/30k reserved, short = FAULT, open = NO DAUGHTER. Minimum adjacent separation 0.353 V against ~+/-0.05 V worst-case 1% divider error, so a +/-0.15 V detection window is safe. Top code deliberately stops at 2.475 V because the ESP32-S3 ADC saturates near 3.1 V at 12 dB attenuation and anything higher could not be told from open. FAULT and NONE both force ENABLE de-asserted. Also granted CR-3 (optional 14-bit / 4.883 kHz mode) and CR-4 (90 degree phase stagger via LEDC hpoint - free in hardware, avoids a 4x input-current step).",
+   "phase": "P4",
+   "ts": "2026-07-28T19:56:53"
+  },
+  {
+   "what": "PWM timer contract REWRITTEN (ICD s3.5): the hard PWM0-3/timer0 + PWM4-7/timer1 assignment is withdrawn - it mis-specified the strobe",
+   "why": "The strobe's flash gate is a 5-200 ms one-shot, not a duty setting: one LEDC period at 9.766 kHz is 102.4 us, so a 5 ms flash is only ~49 periods. It must drive the line as a GPIO/RMT one-shot or re-program the timer it owns. The old ICD text implied all 8 channels sit at the default frequency, which is false. New contract: the carrier does NOT hard-assign timers; it publishes the hardware ceiling (8 channels, 4 timers, low-speed only, 14-bit max, channels sharing a timer share frequency AND resolution) and each daughter declares its own channel->timer->frequency map, which carrier firmware applies from the ID_ADC code. This also absorbs the strobe's switch to RGBW (now consuming all 8 channels) without another ICD change.",
+   "phase": "P4",
+   "ts": "2026-07-28T19:56:53"
+  },
+  {
+   "what": "ICD rev A4: sealed-with-wall-conduction enclosure decided; rev A3's 'at needs venting' conclusion WITHDRAWN; thermal now published as a box-air heat BUDGET",
+   "why": "Owner decided the enclosure: SEALED, non-metallic, LED heat conducted OUT through the wall (not vented), consistent with H1-Q5. That changes the arithmetic materially. Rev A3 charged essentially the whole PoE budget to box air (~9.9 W af / ~19.2 W at) and unsurprisingly did not close - but the light engine is the large term and in this configuration the LED's ~6 W leaves through the wall, so only in-box ELECTRICAL losses heat the air. Re-derived as a budget rather than a temperature, which is what a daughter can actually design against: holding internal air to 70 C (15 K below the +85 C limit shared by the ESP32-S3 and the par emitters) at 3.6-4.3 K/W gives an allowable box-air heat of 10.5-12.5 W at a 25 C room, 9.3-11.1 W at 30 C, 7.0-8.3 W at 40 C. Carrier spends ~2.4 W (af) / ~3.7 W (at) of that. CONCLUSION: sealed closes for BOTH af and at, but ONLY if the LED heat genuinely leaves through the wall - that is now the load-bearing assumption of the entire thermal case, so ICD s7.7 requires every daughter to DECLARE its box-air vs wall split, and states that the wall-conduction path is a mechanical requirement rather than a nicety. If it is not built, the numbers revert to rev A3 and at does not close.",
+   "phase": "P4",
+   "ts": "2026-07-28T20:04:58"
+  },
+  {
+   "what": "CR-5 GRANTED and recorded as firmware requirement FW-01 in new ICD s7.8; four further firmware requirements of record captured alongside it",
+   "why": "Owner committed carrier firmware to PWM-domain dithering of >=3-4 bits - it is the mechanism by which the par's PAR-REQ-01 is met and no hardware on that board can close it, so it is a requirement, not an option. Recorded in ICD s7.8 with the critical qualifier that it MUST be PWM-domain and NOT 60 fps frame-domain, because a 4.4 percent dither at 60 Hz breaches IEEE 1789's no-effect level by itself and would create the very flicker it is meant to avoid. Captured four more firmware commitments in the same table so none can be silently dropped when firmware is written: FW-02 = 90 degree hpoint stagger for 4+ channels on one timer (CR-4); FW-03 = read ID_ADC at boot and never assert ENABLE on FAULT or NONE; FW-04 = apply the daughter's declared timer map rather than assuming the default rate; FW-05 = maintain MPS >= 10 mA DC, which forbids ESP32-S3 deep sleep while PoE-powered. These will also be named in the DOC-01 design document.",
+   "phase": "P4",
+   "ts": "2026-07-28T20:04:58"
   }
  ],
  "history": [
@@ -430,6 +486,58 @@
    "ts": "2026-07-28T19:26:40",
    "event": "decision",
    "what": "Library adjudication: 4 footprint edits approved (J3 annulus normalise, TPS16630 + SCT2A25 stock swaps, J1 mounting holes non-plated); vias-in-pad deferred to P9 DFM"
+  },
+  {
+   "ts": "2026-07-28T19:31:00",
+   "event": "phase",
+   "phase": "P4",
+   "prev": "P3"
+  },
+  {
+   "ts": "2026-07-28T19:35:27",
+   "event": "decision",
+   "what": "D40-D42 PESD3V3L1BA as sourced is BIDIRECTIONAL (UMW/Youtai), not the unidirectional Nexperia part - orientation-free today, but a second-source hazard"
+  },
+  {
+   "ts": "2026-07-28T19:39:11",
+   "event": "P4 sheet agents cancelled by user before writing any output; kicad/gen absent, no partial schematics. State/inputs verified intact (13 part JSONs, 29 footprints, P3 committed cbb9f25). Re-spawning 5 sheet generators with the refdes-source and bidirectional-diode corrections folded into the initial brief."
+  },
+  {
+   "ts": "2026-07-28T19:42:46",
+   "event": "resumed"
+  },
+  {
+   "ts": "2026-07-28T19:56:52",
+   "event": "decision",
+   "what": "ICD-01 rev A3: par's blocking thermal issue UPHELD and re-derived; sealed enclosure does NOT close for the 802.3at upgrade"
+  },
+  {
+   "ts": "2026-07-28T19:56:53",
+   "event": "decision",
+   "what": "CR-1 GRANTED: ID_ADC board-type code space allocated and published in ICD s3.4 (unblocks the par's P4)"
+  },
+  {
+   "ts": "2026-07-28T19:56:53",
+   "event": "decision",
+   "what": "PWM timer contract REWRITTEN (ICD s3.5): the hard PWM0-3/timer0 + PWM4-7/timer1 assignment is withdrawn - it mis-specified the strobe"
+  },
+  {
+   "ts": "2026-07-28T20:04:58",
+   "event": "decision",
+   "what": "ICD rev A4: sealed-with-wall-conduction enclosure decided; rev A3's 'at needs venting' conclusion WITHDRAWN; thermal now published as a box-air heat BUDGET"
+  },
+  {
+   "ts": "2026-07-28T20:04:58",
+   "event": "decision",
+   "what": "CR-5 GRANTED and recorded as firmware requirement FW-01 in new ICD s7.8; four further firmware requirements of record captured alongside it"
+  },
+  {
+   "ts": "2026-07-28T20:16:22",
+   "event": "gate",
+   "gate": "erc",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
   }
  ]
 }

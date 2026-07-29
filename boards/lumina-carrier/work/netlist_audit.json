@@ -1,0 +1,110 @@
+{
+ "script": "netlist_audit",
+ "status": "pass",
+ "board": "lumina-carrier.net",
+ "counts": {
+  "total": 3,
+  "by_severity": {
+   "warning": 3
+  },
+  "by_source": {
+   "audit.netlist": 3
+  }
+ },
+ "violations": [
+  {
+   "check": "netlist_audit",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "/ETH_TXP",
+   "refs": [],
+   "msg": "diff_pairs[0] ('/ETH_TXP', '/ETH_TXN') does not follow a differential suffix convention (_P/_N, DP/DM, D+/D-)",
+   "source": "audit.netlist",
+   "items": [
+    {
+     "msg": "diff_pairs[0] ('/ETH_TXP', '/ETH_TXN') does not follow a differential suffix convention (_P/_N, DP/DM, D+/D-)",
+     "pos": null
+    }
+   ],
+   "kind": "diffpair_naming"
+  },
+  {
+   "check": "netlist_audit",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "/ETH_RXP",
+   "refs": [],
+   "msg": "diff_pairs[1] ('/ETH_RXP', '/ETH_RXN') does not follow a differential suffix convention (_P/_N, DP/DM, D+/D-)",
+   "source": "audit.netlist",
+   "items": [
+    {
+     "msg": "diff_pairs[1] ('/ETH_RXP', '/ETH_RXN') does not follow a differential suffix convention (_P/_N, DP/DM, D+/D-)",
+     "pos": null
+    }
+   ],
+   "kind": "diffpair_naming"
+  },
+  {
+   "check": "netlist_audit",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "+48V_SW",
+   "refs": [
+    "C63",
+    "J3",
+    "R70",
+    "U22"
+   ],
+   "msg": "declared power net '+48V_SW' feeds no power_in pin",
+   "source": "audit.netlist",
+   "items": [
+    {
+     "msg": "declared power net '+48V_SW' feeds no power_in pin",
+     "pos": null
+    }
+   ],
+   "kind": "power_no_consumers"
+  }
+ ],
+ "mode": "audit",
+ "nets": 77,
+ "components": 102,
+ "unconnected_pins": 0,
+ "constraint_nets_checked": 11,
+ "decoupling_associations": 25,
+ "power": [
+  {
+   "net": "V48_RAW",
+   "nodes": 20,
+   "power_in": 6,
+   "power_out": 0
+  },
+  {
+   "net": "V48_RTN",
+   "nodes": 6,
+   "power_in": 2,
+   "power_out": 0
+  },
+  {
+   "net": "+48V_SW",
+   "nodes": 8,
+   "power_in": 0,
+   "power_out": 0
+  },
+  {
+   "net": "+12V",
+   "nodes": 10,
+   "power_in": 1,
+   "power_out": 0
+  },
+  {
+   "net": "+3V3",
+   "nodes": 41,
+   "power_in": 8,
+   "power_out": 0
+  }
+ ]
+}
