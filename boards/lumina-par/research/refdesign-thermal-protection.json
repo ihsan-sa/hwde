@@ -1,0 +1,221 @@
+{
+  "block": "thermal-protection",
+  "board": "lumina-par",
+  "summary": "Sealed-enclosure convection, not the PCB, is the binding constraint. A sealed 120x100x60 mm non-metallic box is 3.6-4.3 degC/W internal-air-to-room; that caps the fixture at roughly 3-4 W of LED electrical power, well under the 7.6-8.5 W af envelope. The ICD's 56 degC (af) internal-air figure is optimistic-but-defensible only at a 25 degC room; its 69 degC (at) figure is optimistic by 20-46 degC and is inconsistent with its own af figure. On-board emitters on 1.6 mm FR4 with no dedicated heatsink can shed 1-2 W, not 7-8 W.",
+  "decisions": [
+    {
+      "id": "D-T1",
+      "what": "Treat the enclosure wall, not the PCB, as the thermal bottleneck. A sealed 120 x 100 x 60 mm non-metallic box (0.0504 m2, all six faces) is 3.6 to 4.3 degC/W from internal air to room air.",
+      "why": "Hoffman's sealed-enclosure curve gives 2.35 degC of rise per W/ft2 (from its worked example: 300 W / 42 ft2 = 7.1 W/ft2 -> 30 F = 16.7 C), i.e. an overall coefficient of about 4.6 W/m2K over all six faces, and it states explicitly that non-metallic enclosures may use the painted-metal curve directly. Rittal independently uses k = 5.5 W/m2K. Nothing done on the PCB changes this number.",
+      "source": "Pentair/Hoffman Spec-00488 D 'Heat Dissipation in Electrical Enclosures' (2011), sections 'Enclosure Materials', 'Enclosure Surface Area', 'Determining Temperature Rise' - https://safe.nrao.edu/wiki/pub/CICADA/GreenBankSpectrometer/Hoffman_Heat_Dissipation_Document.pdf ; cross-checked against Rittal US573-WP-TR 'The Perfect Climate Inside Your Enclosure' section 6 (k = 5.5 W/m2K for steel sheet) - https://www.rittal.com/us_en/apps/download/img/uploads/US573-WP-TR%20Perfect%20Climate%20Inside%20Your%20Enclosure.pdf"
+    },
+    {
+      "id": "D-T2",
+      "what": "A fully sealed enclosure with an internal heatsink caps this fixture at roughly 3-4 W of LED electrical power - less than half the af envelope and about a fifth of the at envelope. DERIVED.",
+      "why": "To hold internal air at 45 degC (leaving a 55 K junction budget, ~7 degC/W, i.e. buildable) with a 25 degC room and a 4.0 degC/W box, total box heat must be <= 5.0 W; the carrier alone takes 2.4 W (af), leaving ~2.6 W of daughter heat.",
+      "source": "DERIVED from Hoffman Spec-00488 D coefficient (see D-T1) and the heat figures in boards/lumina-par/requirements.md s4"
+    },
+    {
+      "id": "D-T3",
+      "what": "The daughter's own copper can shed on the order of 1-2 W total, not 7-8 W. On-board emitters with no dedicated heatsink miss by 4-8x.",
+      "why": "TI's board-to-still-air constant is theta_CA = 500 degC*cm2/W divided by area for a two-sided copper-filled PCB (equivalently 77.5 degC*in2/W; h = 0.001 W/cm2 degC = 10 W/m2K). The whole 100 x 80 mm board is 80 cm2 -> 6.3 degC/W both faces free, 12.5 degC/W with the bottom face blocked by the 11 mm mezzanine gap. That is 2.4 W / 1.2 W for a 15 K copper rise. Cross-checked by OSRAM AN052 Fig 18: an SMT LED on 50 x 50 mm 1.5 mm FR4 in still air saturates at ~150 K/W solder-point-to-ambient, i.e. ~0.4 W for a 60 K rise.",
+      "source": "TI SNVA419C 'AN-2020 Thermal Design By Insight, Not Hindsight' s3.1 Eq.9 and Table 1 - https://www.ti.com/lit/an/snva419c/snva419c.pdf ; ams-OSRAM AN052 'Thermal management of LED light sources' (2022-08-18) s4.1.1 Figure 18 - https://look.ams-osram.com/m/5d74cfe57b5f9c6a/original/Thermal-management-of-LED-light-sources.pdf"
+    },
+    {
+      "id": "D-T4",
+      "what": "If a thermal pad exists on this board: 0.254 mm (10 mil) drill on a 0.635 mm (25 mil) rectilinear grid, 2 oz plating, >= 14 vias under the pad, tented on the bottom side. More than ~14 buys nothing.",
+      "why": "Cree recommends exactly this geometry as the cost/performance/manufacturability optimum and states that beyond fourteen vias 'shows little improvement (this is the maximum achievable density of the area normal to the LED thermal pad)'. TI's equivalent rule is 'as many as will fit, 1 mm spacing'.",
+      "source": "Cree LED CLD-AP37 REV 4A 'Optimizing PCB Thermal Performance for XLamp LEDs', sections 'Recommended Board Layouts' and Chart 5 - https://downloads.cree-led.com/files/da/x/XLamp-PCB-Thermal.pdf ; TI SNVA419C s3.2"
+    },
+    {
+      "id": "D-T5",
+      "what": "Copper pour saturates at ~12 mm across on bare 1.6 mm FR4, and at ~6 mm across once a 14-via array is present. Beyond that it is weight, not cooling.",
+      "why": "Cree Chart 1: 'for the 1.6-mm thick board, increasing the thermal pad width beyond 12 mm provides little improvement'. Chart 6 (14 vias): 'beyond a 6-mm width, there is little improvement'. Cause is thermal spreading resistance (Summary Results point 3).",
+      "source": "Cree LED CLD-AP37 REV 4A, Charts 1, 2, 6 and 'Summary Results of Thermal Simulations'"
+    },
+    {
+      "id": "D-T6",
+      "what": "Specify 2 oz copper only if the board itself must spread heat laterally to its own surface. Do NOT specify it for a via-farm-into-heatsink path.",
+      "why": "Cree measured 1 oz = 9.39, 2 oz = 9.61, 2 oz filled = 9.65, 4 oz = 8.40 degC/W solder-point-through-board (five XP-E per board, 700 mA) - 1 oz vs 2 oz is inside the noise. TI measured 28.3 -> 21.2 degC/W theta_JA (a 25% improvement) for 1 oz vs 2 oz on a 3x3 in board spreading to its own surface, and recommends 2 oz above 3 W, 4 oz above 6 W.",
+      "source": "Cree LED CLD-AP37 REV 4A Table 6 (PCB temperature measurements); TI SNVA419C s3.3 'Rule 3: Copper Thickness'"
+    },
+    {
+      "id": "D-T7",
+      "what": "FR4 stops being viable above 5 W per LED package even with vias and a heatsink. At ~7.6-8.5 W (af) the credible answer is a separate MCPCB LED module on a real heatsink, off this board, wired in by an internal harness.",
+      "why": "Cree's own disclaimer: 'The technique in this application note is not recommended for XLamp LEDs that consume more than 5 W of power'. Cree measured MCPCB at 3.81 degC/W vs 9.39-9.65 degC/W for 1.6 mm FR4 with a 14-via array (both solder point to heat sink). OSRAM: IMS 'is preferable for many heat-intensive applications (e.g. LED), especially for higher power classes'.",
+      "source": "Cree LED CLD-AP37 REV 4A 'Thermal Management Principles' first paragraph and Table 6; ams-OSRAM AN052 s4.2"
+    },
+    {
+      "id": "D-T8",
+      "what": "ICD s7.6's 56 degC (af) internal air is plausible but sits at the optimistic edge and only survives at a 25 degC room. At the requirements' ASSUMED 40 degC external ambient it becomes 72-87 degC.",
+      "why": "DERIVED: box heat 8.9-10.8 W at 3.6-4.3 degC/W gives a 32-47 K rise; the ICD's 56 degC implies a 31 K rise, i.e. the Rittal-optimistic end of the bracket, and assumes a 25 degC room.",
+      "source": "DERIVED from Hoffman Spec-00488 D / Rittal US573-WP-TR (see D-T1) applied to boards/lumina-par/requirements.md s4 heat figures"
+    },
+    {
+      "id": "D-T9",
+      "what": "ICD s7.6's 69 degC (at) internal air is not plausible and is internally inconsistent with its own af figure. Raise as a blocking issue against LUM-CAR-A per ICD s10.",
+      "why": "DERIVED: convection is near-linear in delta-T at this scale, so scaling the ICD's own af point (31 K rise at ~9.9 W) to the at point (~19.2 W) gives ~60 K, i.e. ~85 degC, not 69 degC. The independent Hoffman/Rittal calculation is worse: 89-115 degC at a 25 degC room. Optimistic by 20-46 K.",
+      "source": "DERIVED from Hoffman Spec-00488 D / Rittal US573-WP-TR and from the ICD's own af figure (brief/06-connector-icd.md s7.6)"
+    },
+    {
+      "id": "D-T10",
+      "what": "The junction budget does not close in a sealed box even at af, even with MCPCB. Total junction-to-internal-air budget is 5.9 degC/W; the MCPCB board term alone (3.81 degC/W measured) consumes what is left after the die-to-slug drop, leaving zero for the heatsink. On 1.6 mm FR4 with vias the board term (9.4-9.6 degC/W) misses on its own by 2-3x.",
+      "why": "DERIVED at the ICD's own optimistic 56 degC internal air and a 100 degC red-die target: (100-56)/7.5 W = 5.9 degC/W total. Die-to-slug at ~1.9 W/die and 6-10 degC/W per die (JUDGEMENT, component-scout owns the real number) takes 11-19 K, leaving 3.3-4.4 degC/W solder-point-to-air. Also DERIVED from TI's 500 degC*cm2/W: a 2.0 degC/W natural-convection surface needs ~250 cm2 of two-sided area, about half the whole enclosure's external surface.",
+      "source": "DERIVED from Cree CLD-AP37 REV 4A Table 6 (measured board terms) and TI SNVA419C s3.1 Eq.9"
+    },
+    {
+      "id": "D-T11",
+      "what": "Only two architectures close, and both are enclosure decisions: (1) vent the enclosure so internal air tracks room ambient within ~10-20 K, or (2) conduct the LED heat through the enclosure wall to a shrouded, non-touchable, non-earthed heatsink. Spending money on MCPCB, 2 oz copper and via farms while leaving the box sealed moves a non-binding constraint.",
+      "why": "The enclosure resistance of D-T1 is in series with everything and dominates. Splitting the LED power across more packages relieves the die-to-slug term but not the enclosure term. NOTE: no citable figure was found for vented small-plastic-box performance, so requirement (1) must be written as a measurable acceptance criterion on the enclosure ('internal air within 15 K of room ambient at full output'), not as an assumed number.",
+      "source": "DERIVED from D-T1/D-T2/D-T10; ICD s9 permits option (2) if the heatsink is not touchable and shares no mount with anything earthed"
+    },
+    {
+      "id": "D-T12",
+      "what": "LED module interface: an internal wire-to-board latched header on the daughter, 2.0-2.54 mm pitch, 6-10 conductors (4 LED drive pairs or 4 anodes + common cathode, plus a 2-wire NTC pair). Poke-in terminals are normal on the module end.",
+      "why": "This is what production LED fixtures do. Bridgelux + BJB productised poke-in wire connectivity for the Vero COB family specifically to remove soldering and secondary connectors; Molex Pico-EZmate harnesses mate with headers integrated into LED arrays; WAGO sells back-side wiring terminals for LED modules. A latched header on the driver end is the difference between a bench part and a ceiling fixture.",
+      "source": "Bridgelux/BJB poke-in announcement (vendor, secondary) - https://www.bridgelux.com/bridgelux-and-bjb-announce-poke-availability-vero-series-arrays-0 ; Molex Pico-EZmate harness for Vero (vendor/distributor, secondary) - https://www.digikey.com/en/product-highlight/m/molex-connector/pico-ezmate-harness"
+    },
+    {
+      "id": "D-T13",
+      "what": "Keep +48V_SW off the LED harness and off its header entirely. With only LED drive (<= ~12 V) and the NTC on the harness, the ICD's 0.60 mm creepage regime, 100 V capacitors and 0805-minimum resistor rules do not propagate to the harness or module.",
+      "why": "ICD s5.4 makes 0.60 mm outer-copper spacing (IPC-2221B B2, 51-100 V band, 57 V worst case), 100 V caps and 0805-minimum resistors mandatory anywhere a 48 V net exists. There is no functional reason to put 48 V on an LED harness, and doing so drags all three rules out to the end of a wire.",
+      "source": "brief/06-connector-icd.md s5.1 and s5.4"
+    },
+    {
+      "id": "D-T14",
+      "what": "Couple the LED module's metal substrate thermally but isolate it electrically from board GND (dielectric thermal pad, insulating shoulder washers). Do not bond the heatsink to board GND.",
+      "why": "Board GND is the floating PoE return, up to 57 V above earth. ICD s9: 'The daughter, its LED drivers and its LED wiring are all at PoE potential ... If the heatsink is touchable, metal, or shares a mount with anything earthed, the non-isolated topology is non-conformant.' Isolating the substrate means a single accessibility failure does not immediately energise the heatsink. An MCPCB's own dielectric already isolates the emitter from the aluminium base; the exposure is the mounting hardware.",
+      "source": "brief/06-connector-icd.md s9; matches the recommendation already in boards/lumina-par/requirements.md Q7"
+    },
+    {
+      "id": "D-T16",
+      "what": "Over-temperature protection is three layers: (1) analog thermal foldback from the module NTC into the drivers' current-set pin, (2) hard shutdown from the same NTC via a window comparator onto the enable chain, (3) a separate on-board sensor for the drivers whose trip joins the same kill node and pulls FAULT low.",
+      "why": "TI's analog-foldback app note is the standard firmware-free graceful layer: NTC in the bottom leg of a divider into the driver's IADJ pin, with the bias resistor setting the knee (worked example: 16.9 kohm sets a 115 degC knee, derating 1.2 A -> 1.1 A over 115-150 degC). A driver's own thermal shutdown protects only the driver die (LM3409: 160 degC, 15 degC hysteresis) and is useless for PAR-REQ-12. A resistor-programmed switch IC (TMP390 class: dual hot/cold trips, 5/10/20 degC hysteresis set by two E96 resistors, open-drain, 0.5 uA) is the right on-board driver sensor but cannot sense a remote emitter.",
+      "source": "TI SNIA037 'Analog Thermal Foldback With LED Drivers' (Jun 2020) s1-2.1 - https://www.ti.com/lit/pdf/snia037 ; TI SNVS602L LM3409 datasheet s8.4.2 - https://www.ti.com/lit/ds/symlink/lm3409.pdf ; TI TMP390 datasheet - https://www.ti.com/product/TMP390"
+    },
+    {
+      "id": "D-T17",
+      "what": "ONE emitter NTC can serve both the carrier ADC and the independent shutdown, but only if the comparator is a WINDOW comparator that trips on over-temperature AND on out-of-range (open or shorted sensor).",
+      "why": "Electrically compatible: comparator input bias is nA-pA, so it adds no load, and the ICD's 10 kohm source-impedance ceiling is unaffected - DERIVED, a 10 kohm fixed leg with a 10 kohm NTC has a maximum Thevenin impedance of 5.0 kohm at 25 degC, falling as it heats. But in BOTH divider orientations an open NTC or a broken harness conductor reads as 'cold', which is fail-dangerous against the most likely fault in an off-board module. A window comparator converts that to fail-safe and removes the need for a redundant emitter sensor.",
+      "source": "DERIVED; ICD s3.3 source-impedance requirement (brief/06-connector-icd.md); failure-mode analysis of the divider is arithmetic, not opinion"
+    },
+    {
+      "id": "D-T18",
+      "what": "Two sensors, two jobs, not two sensors for one job: NTC on the LED module for the emitters, plus a separate on-board sensor next to the hottest driver stage.",
+      "why": "The emitter NTC is on the module downstream of a harness and tells you nothing about a driver inductor cooking inside the enclosure. The two failure modes are independent and both are in PAR-REQ-12's scope.",
+      "source": "DERIVED from D-T16/D-T19"
+    },
+    {
+      "id": "D-T19",
+      "what": "Sensor placement: emitter NTC on the LED module, on or immediately adjacent to the emitter thermal-pad copper, within a few mm - NOT on the daughter. Driver sensor on the daughter, on the hottest switching stage's copper, and outside the ICD s7.6 DC-DC hot zone (2,46)-(36,68).",
+      "why": "Cree defines the industry reference point as a thermocouple 'attached to the top copper layer close to the thermal pad', with the ambient sensor 'at least 2 mm away from the heat sink and/or illumination source and not in the path of illuminance'. A sensor on the daughter measures internal air plus driver self-heating - a lagging, wrong-magnitude proxy for the emitter junction. A driver sensor inside the DC-DC hot zone reads the carrier's converter 11 mm below instead of this board's drivers.",
+      "source": "Cree LED CLD-AP37 REV 4A 'Temperature Verification Measurements' and Figure 14; brief/06-connector-icd.md s7.6"
+    },
+    {
+      "id": "D-T20",
+      "what": "Size the daughter's inrush against the PD's 0.85 A MINIMUM operating current limit, not the 1.0 A typical and not the connector's 5.4 A. Target <= 0.3 A of daughter inrush. If a transient does hit the limit it must be shorter than the 500 us MINIMUM foldback deglitch, not the 800 us typical.",
+      "why": "TPS2378 Electrical Characteristics: current limit 0.85/1.0/1.2 A, inrush current limit 100/140/180 mA, foldback threshold V_RTN rising 11/12.3/13.6 V, foldback deglitch time 500/800/1500 us. Mechanism: 'If V(RTN-VSS) rises above approximately 12 V for longer than approximately 800 us, the current limit reverts to the inrush value' - i.e. 140 mA, which browns out the fixture. DERIVED budget at 48 V: carrier 50-77 mA + daughter af steady 180-195 mA = 230-270 mA, leaving ~0.58 A of headroom to the 0.85 A minimum; 0.3 A gives ~2x margin.",
+      "source": "TI SLVSB99C TPS2378 datasheet, Electrical Characteristics (PASS DEVICE / RTN) and s7.3.5 'Internal Pass MOSFET' - https://www.ti.com/lit/ds/symlink/tps2378.pdf"
+    },
+    {
+      "id": "D-T21",
+      "what": "Inrush limiter topology: series pass MOSFET with a gate-to-drain capacitor setting the output slew rate, gate driven from ENABLE through a resistor. Inrush = C_bulk x dV/dt. Check MOSFET SOA at full V_DS, derated for a 56-69 degC ambient.",
+      "why": "TI's hot-swap note: 'An alternative is to limit the inrush current with a dv/dt control circuit ... Cdv/dt limits the slew rate of the gate and the output voltage, which in turn limits the inrush current.' DERIVED sizing at a 0.3 A target: 10 uF -> 30 V/ms -> 1.6 ms ramp; 47 uF -> 7.5 ms; 100 uF -> 16 ms. FET energy ~ 0.5 x 48 V x 0.3 A x t_ramp = 12 mJ at 1.6 ms, 115 mJ at 16 ms. TI warns SOA at high V_DS is far worse than DC ratings suggest ('80 A at 10 V (800 W) or 4 A at 70 V (280 W)' on the 10 ms curve) and that SOA data is at T_case = 25 degC and must be derated.",
+      "source": "TI SLVA673A 'Robust Hot Swap Design' (Nov 2014) s2.2.2 Figure 6 and s2.3.1 Figure 8 - https://www.ti.com/lit/an/slva673a/slva673a.pdf"
+    },
+    {
+      "id": "D-T22",
+      "what": "The daughter's ramp must be the only slow soft-start. Do not stack a second slow ramp inside the daughter's DC-DC or LED drivers on top of the hot-swap ramp.",
+      "why": "ICD s8.2: 'The carrier's eFuse dV/dT is set fast and its limit sits above the daughter's inrush level, deliberately, so the two soft-starts do not fight.' Adding a third ramp makes the composite start time land unpredictably against the PSE's 80 ms window.",
+      "source": "brief/06-connector-icd.md s8.2 and s8.3"
+    },
+    {
+      "id": "D-T23",
+      "what": "Bleed path: a fixed resistor permanently across the daughter's own 48 V bulk, on the daughter side of any series element. 100 kohm across 10 uF gives tau = 1.0 s at 32 mW; 47 kohm across 47 uF gives tau = 2.2 s at 69 mW. Part must be 0805 or larger, or two in series.",
+      "why": "ICD s8.2 makes it mandatory if any 48 V net is tapped, because 'the carrier deliberately fits no series diode on +48V_SW, so the daughter's bleed path is not stranded above the carrier's'. It is a defined-state requirement, not a safety one: DERIVED, 10 uF at 48 V stores 11.5 mJ, and 57 V is below the IEC 62368-1 ES1 limit of 60 V DC. ICD s5.4 is explicit that the package rule 'bites the mandatory bleed resistor'.",
+      "source": "brief/06-connector-icd.md s8.2, s5.4, s9"
+    },
+    {
+      "id": "D-T24",
+      "what": "If power is taken ONLY from +12 V, three obligations disappear: the bleed path, the 100 V capacitor rule, and the 0805-minimum resistor rule (there are then no components on a 48 V net), along with the 48 V hot-swap MOSFET and its SOA analysis.",
+      "why": "CAR-REQ-17 / ICD s8.2 conditions the bleed on tapping a 48 V net; ICD s5.4's component rules apply to components sitting on the 48 V domain.",
+      "source": "brief/06-connector-icd.md s8.2 and s5.4"
+    },
+    {
+      "id": "D-T25",
+      "what": "If power is taken ONLY from +12 V, four obligations remain: the 0.60 mm outer-layer clearance around the J3 48 V pads (unconditional), the inrush obligation (re-aimed at the 2.0 A 12 V converter OCP and the reflected PD current), the ban on energising anything from +12V/+3V3 while +48V_SW is off, and the ENABLE gating obligation.",
+      "why": "requirements.md s8 calls the >30 V condition 'YES, unconditionally' because +48V_SW is present on J3 pins 1/3/5 whether or not this board taps it - the pads exist and check_creepage.py will fail P8 if the DRC is not set up at P5. DERIVED: a 2.0 A step on +12 V is 24 W, reflecting to ~0.55 A at 48 V at 90% efficiency - most of the PD budget by itself - and it also hits the carrier's 2.0 A converter OCP. The 'no path may energise ... while +48V_SW is off' rule is MORE binding in a 12 V-only architecture because +12V and +3V3 are live hundreds of ms before +48V_SW closes.",
+      "source": "boards/lumina-par/requirements.md s8 and s3.3; brief/06-connector-icd.md s3.3, s6.2, s8.2, s8.3"
+    },
+    {
+      "id": "D-T26",
+      "what": "Do not plan on 'PWM to the dim pin, ENABLE to the EN pin'. On many buck LED drivers the EN pin IS the PWM dimming input, so the ENABLE gate must be a separate element in front of the driver.",
+      "why": "LM3409 is the canonical example: its typical-characteristics figures are titled 'Internal EN Pin PWM Dimming' and '20 kHz 50% EN Pin PWM Dimming', and s8.4.1 defines EN as the shutdown control ('low-power shutdown (typically 110 uA) by grounding the EN terminal (any voltage below 0.5 V) ... During normal operation this terminal should be tied to a voltage above 1.74 V'). There is no second independent enable.",
+      "source": "TI SNVS602L LM3409/HV datasheet, Typical Characteristics Figures 13/15/17 and s8.4.1 - https://www.ti.com/lit/ds/symlink/lm3409.pdf"
+    },
+    {
+      "id": "D-T27",
+      "what": "ENABLE gating pattern: DRIVER_IN = PWM AND ENABLE, one 2-input AND gate per channel, powered from +3V3.",
+      "why": "It makes the ~60 us power-up PWM glitch a no-op (ENABLE low forces the output low regardless of PWM); it is purely combinational so 'never latch ENABLE locally' is satisfied by construction and the whole chain de-asserts within one carrier reset; and because +3V3 is live before +48V_SW, the gate holds the drivers off during the hundreds of ms while the 48 V switch is open - which is what makes ICD s3.3's 'no path may energise anything from +12V or +3V3 while +48V_SW is off' hold even in a 12 V-only architecture, since ENABLE is the same signal that closes the carrier's 48 V switch.",
+      "source": "brief/06-connector-icd.md s8.1, s8.2, s8.3, s3.3"
+    },
+    {
+      "id": "D-T28",
+      "what": "Supporting ENABLE rules: 100 kohm pull-down at the daughter's ENABLE pin before any series element; the AND gate's own input must not be able to float high; the over-temperature detector kills the same gated-enable node with an open-drain output; any over-temperature latch must clear when ENABLE de-asserts; FAULT is open drain active low and must never be driven high.",
+      "why": "ICD s8.2 requires the 100 kohm pull-down so the daughter fails de-energised on an unmated, mis-seated or unsoldered connector, and requires the chain to de-assert within one carrier reset. ICD s3.3 defines FAULT as open drain wire-OR'd with the carrier's eFuse fault. DERIVED: the daughter's 100 kohm in parallel with the carrier's 10 kohm is ~9.1 kohm, so the carrier's push-pull driver sources ~0.36 mA.",
+      "source": "brief/06-connector-icd.md s8.1, s8.2, s3.3"
+    },
+    {
+      "id": "D-T29",
+      "what": "Keep the carrier's 9.766 kHz PWM. It is 3.25x above IEEE 1789-2015's NOEL breakpoint and 7.8x above its low-risk breakpoint, compliant at 100% modulation depth with no conditions. There is no flicker-health argument for renegotiating the frequency with the carrier owner.",
+      "why": "IEEE 1789-2015 Recommended Practice 1: 'Below 90 Hz, Modulation (%) is less than 0.025 x frequency. Between 90 Hz and 1250 Hz, Modulation (%) is below 0.08 x frequency. Above 1250 Hz, there is no restriction on Modulation (%).' Clause 8.1.2.3 works the PWM case: low-risk needs f > 1.25 kHz at 100% depth, and 'The recommended NOEL for PWM dimming is 3 kHz ... solving 100% = 0.03333 x f_Flicker'. Empirical basis (s7.4.5): phantom-array discrimination fell to chance at 3000 Hz.",
+      "source": "IEEE Std 1789-2015 'Recommended Practices for Modulating Current in High-Brightness LEDs for Mitigating Health Risks to Viewers', Clause 8 Recommended Practices 1 and 2, s8.1.2.3, s7.4.5 - https://ieeexplore.ieee.org/document/7118618"
+    },
+    {
+      "id": "D-T30",
+      "what": "Flicker compliance is not the low-end dimming problem. IEEE 1789 bounds modulation depth versus frequency and says nothing about whether a CC driver can reproduce a 1.4-6.1 us on-time cleanly.",
+      "why": "The real dimming floor is the driver's PWM settling time (requirements Q9), which is a driver-selection question for the component-scout, not a flicker-standard question.",
+      "source": "IEEE Std 1789-2015 scope (Clause 8); boards/lumina-par/requirements.md Q9"
+    }
+  ],
+  "layout_notes": [
+    "L-1: 0.60 mm outer-layer copper clearance around every 48 V net board-wide (IPC-2221B B2, 51-100 V band, 57 V worst case), 0.10 mm inner, including through the board under any 48 V antipad. Applies even if 48 V is never tapped, because the J3 pads exist. Must be configured in DRC at P5; the 0.13 mm coated column is not claimable because check_creepage.py implements only the uncoated columns. Source: ICD s5.1, s5.4.",
+    "L-2: Any resistor across the 48 V domain must be 0805 or larger, or split into two in series. Bites the bleed resistor and any 48 V rail-sense divider. Source: ICD s5.4.",
+    "L-3: Capacitors on the 48 V domain must be 100 V rated; 63 V is insufficient at 57 V once ceramic DC-bias derating applies. Source: ICD s5.4.",
+    "L-4: Thermal via array, if any thermal pad exists on this board: 0.254 mm drill on a 0.635 mm rectilinear grid, 2 oz plating, >= 14 vias under the pad. Source: Cree CLD-AP37 REV 4A 'Recommended Board Layouts' and Chart 5.",
+    "L-5: Tent thermal vias with soldermask on the bottom side to stop solder wicking, or hold via inner diameter to 0.25-0.30 mm. Source: Cree CLD-AP37 REV 4A 'Solder voiding in open PTH vias'.",
+    "L-6: Thermal pad width gives no benefit beyond ~6 mm with a via array, ~12 mm without, on 1.6 mm FR4. Source: Cree CLD-AP37 REV 4A Charts 1 and 6.",
+    "L-7: Keep the ground pour unbroken from the heat source to the board edges; keep unavoidable trace breaks parallel to heat flow, never perpendicular (TI measured 5.5 degC penalty perpendicular vs 1.5 degC parallel on otherwise identical boards). Source: TI SNVA419C s3.4.",
+    "L-8: Do not specify 2 oz copper for a via-farm-into-heatsink path (measured 9.39 vs 9.61 degC/W). Specify it only if the board itself is the radiator. Source: Cree CLD-AP37 REV 4A Table 6; TI SNVA419C s3.3.",
+    "L-9: Any heatsink or metal bracket bolted to this board must clear the ICD s7.6 antenna column (88,25)-(100,55), which forbids copper on any layer and any metal component, and must clear the DC-DC hot zone (2,46)-(36,68). Source: ICD s7.6.",
+    "L-10: Keep the driver over-temperature sensor outside the DC-DC hot zone (2,46)-(36,68), or it reads the carrier's 48->12 converter 11 mm below instead of this board's drivers. Source: ICD s7.6.",
+    "L-11: NTC sense pair routed away from switching nodes; total series R at the ADC pin <= ~1 kohm so the divider's ~5 kohm Thevenin plus filter stays under the ICD's 10 kohm source-impedance ceiling. Source: ICD s3.3, DERIVED.",
+    "L-12: Keep +48V_SW off the LED harness and off its header, or L-1/L-2/L-3 propagate to the connector and the module. Source: D-T13.",
+    "L-13: Provide a bare-copper thermocouple pad adjacent to the emitter thermal pad (and one on the heatsink) for bring-up thermal verification. Source: Cree CLD-AP37 REV 4A 'Temperature Verification Measurements'.",
+    "L-14: SOA-check the hot-swap MOSFET at full V_DS and derate for a 56-69 degC ambient, not the datasheet's 25 degC case. Source: TI SLVA673A s2.3.1.",
+    "L-15: Any test point must carry the ICD s9 bench-hazard warning - an earthed probe or non-isolated USB-UART breaks PD signature detection outright (detection currents are a few hundred uA). Source: ICD s9; requirements s2.5.",
+    "L-16: The board is a mezzanine 11 mm above another dissipating board, so its bottom face convects into a blocked gap. Assume one-sided convection (theta = 1000 degC*cm2/W over area) for any board-as-radiator estimate. Source: TI SNVA419C Table 1; ICD s7.3."
+  ],
+  "errata": [
+    "E-1: Every FR4 thermal resistance in Cree CLD-AP37 is board-to-HEATSINK, not board-to-air - its footnote 2 assumes 'the PCB is mounted to an infinite heat sink that maintains the back side of the board at 25 degC'. Quoting 9.4 degC/W as a to-air figure is wrong by more than an order of magnitude.",
+    "E-2: Open thermal vias larger than 0.3 mm wick solder during reflow: voids under the package raise interface resistance, and overfilled holes leave bumps on the underside that 'can reduce the contact area between the board and the heat sink' - the defect degrades the heatsink joint too. Source: Cree CLD-AP37 REV 4A.",
+    "E-3: Cree disclaims its own FR4-plus-vias technique above 5 W per LED package ('not recommended for XLamp LEDs that consume more than 5 W of power').",
+    "E-4: Plating vias closed 'can double or triple the cost of your PCB design'; TI's economical alternative is 1 oz plating on standard 12 mil vias for a 10-20% adder (261 -> 140 degC/W per via). At JLCPCB, POFV resin-filled copper-capped via-in-pad is free on 6-20 layer boards but is a paid option on 4-layer. Source: TI SNVA419C s3.2; JLCPCB via-in-pad capability pages.",
+    "E-5: TPS2378 foldback deglitch is 500 us MINIMUM (typ 800, max 1500). Designing to the 800 us typical leaves no margin.",
+    "E-6: TPS2378 operating current limit is 0.85 A MINIMUM (typ 1.0, max 1.2). The ICD's '1.0 A operating current limit' is the typical; size against 0.85 A.",
+    "E-7: 'Additional loading applied between V_VDD and V_RTN during the inrush state may prevent successful PD and subsequent converter start up.' Source: TPS2378 datasheet revision history / Startup and Converter Operation.",
+    "E-8: On common buck LED drivers the EN pin IS the PWM dim pin (LM3409). Any architecture assuming a spare independent enable input must verify it per candidate part.",
+    "E-9: A driver's internal thermal shutdown does not protect the LEDs - LM3409 trips at 160 degC with 15 degC hysteresis, far above any survivable emitter temperature, and it senses the driver die. It cannot satisfy PAR-REQ-12.",
+    "E-10: A single-threshold NTC comparator is fail-dangerous: in both divider orientations an open NTC or broken harness wire reads 'cold' and silently disables the protection. Use a window comparator.",
+    "E-11: Do not copy a MOV-to-earth surge network out of a PoE reference design - an unearthed PD needs none and there is no earth to connect it to. Source: ICD s9.",
+    "E-12: DERIVED over-temperature trip band is uncomfortably narrow: at the ICD's 56 degC internal air the emitter solder point sits around 85-95 degC in NORMAL operation, so a trip near 105-110 degC with 10-15 K hysteresis is only 10-20 K above the operating point. That is a nuisance-trip generator and it is a symptom of the enclosure problem (D-T2/D-T10), not of the protection design."
+  ],
+  "open": [
+    "OPEN-1: Sealed-enclosure convection coefficient. Hoffman's implied ~4.6 W/m2K (painted metallic AND non-metallic, all six faces) vs Rittal's k = 5.5 W/m2K (steel sheet, effective area only). Not averaged: they bracket the box at 3.6-4.3 degC/W. Rittal is the optimistic end and is a steel figure, so the honest planning number is the Hoffman end. Both figures are for cabinet-scale enclosures; a 120 mm box has a shorter characteristic length and may do somewhat better - no cited small-box figure was found.",
+    "OPEN-2: Vented-enclosure performance. No citable figure was found for a small vented plastic box. The requirement must therefore be written as a measurable acceptance criterion on the enclosure, not as an assumed delta-T.",
+    "OPEN-3: Thermal via performance. Cree and TI disagree in absolute terms (Cree: 0.6 mm open 1 oz = 64 degC/W; TI: 0.3 mm open 0.5 oz = 261 degC/W). Different diameters and plating - not contradictory, but not interchangeable either. Both agree plating thickness is worth roughly 2x and that copper-filled beats solder-filled beats open.",
+    "OPEN-4: ICD s7.6's 69 degC (at) internal-air figure is optimistic by 20-46 K and is inconsistent with its own 56 degC (af) figure. Blocking issue against LUM-CAR-A per ICD s10.",
+    "OPEN-5: ICD s9 'no external connector of any kind' vs an internal LED harness. s9 itself anticipates the off-board module case, but the reading needs explicit human confirmation (requirements Q5). Not closed here.",
+    "OPEN-6: Emitter package Rth_j-sp (6-10 degC/W per die assumed) is JUDGEMENT and belongs to the component-scout. The junction-budget arithmetic in D-T10 must be re-run once a real emitter is shortlisted."
+  ]
+}

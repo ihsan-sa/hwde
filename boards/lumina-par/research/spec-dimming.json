@@ -1,0 +1,169 @@
+{
+  "interface": "PWM dimming - flicker standards, perceptual dimming resolution, and the LED-driver PWM timing budget (LUM-DTR-PAR-A / LUM-PAR-A, ICD-01 PWM0..7)",
+  "requirements": [
+    {
+      "what": "Perceptual JND (Weber fraction) used as the acceptance threshold for 'visually stepless' (PAR-REQ-01)",
+      "value": "w = 1.0 % relative luminance step. Corroborated two ways: 'threshold contrast is about 1% for a wide range of targets, independent of size and luminance'; and DICOM GSDF places 1023 JNDs in 0.05-4000 cd/m2 = 4.903 decades = 208.6 JND/decade = 1.11 % per JND. Stress case w = 0.5 %. Industry benchmark for 'smooth' architectural dimming w = 2.8 % (DALI).",
+      "source": "Pelli & Bex, Measuring contrast sensitivity, Vision Research 2013 (PMC3744596); DICOM PS3.14 Grayscale Standard Display Function (Barten model); IEC 62386-102 DALI logarithmic curve"
+    },
+    {
+      "what": "Duty corresponding to '5 % of full output' under each reading of PAR-REQ-01",
+      "value": "5 % of PWM duty = 5.0000 % (20:1). 5 % perceived at gamma 2.2 = 0.05^2.2 = 0.1373 % (728:1). 5 % perceived at gamma 2.0 = 0.2500 % (400:1). 5 % perceived at CIE L*=5 = 5/903.3 = 0.5535 % (181:1). The ambiguity is worth 40x in duty.",
+      "source": "CIE 1976 CIELAB L* piecewise definition; derived (spec-dimming.md s2.1)"
+    },
+    {
+      "what": "PAR-REQ-01 verdict at the carrier default 13-bit / 9.766 kHz (strict reading: 5 % perceived, gamma 2.2)",
+      "value": "FAILS by 8.9x. Code = 0.0013732 * 8192 = 11.25; one code = 1/11.25 = 8.89 % luminance step = 8.89 JND at w = 1 %; codes per JND = 0.112. Only 11 distinct hardware codes exist between zero and the 5 % point, spanning ln(11.25)/ln(1.01) = 243 JNDs - a 22x deficit.",
+      "source": "derived (spec-dimming.md s2.2, s2.3)"
+    },
+    {
+      "what": "PAR-REQ-01 verdict at 12-bit / 19.53 kHz and 14-bit / 4.883 kHz (strict reading)",
+      "value": "12-bit: FAILS by 17.8x (code 5.62, 17.78 JND/code). 14-bit: FAILS by 4.4x (code 22.50, 4.44 JND/code). No ESP32-S3 LEDC configuration passes; the silicon is capped at 14 bits.",
+      "source": "derived (spec-dimming.md s2.2, s2.5)"
+    },
+    {
+      "what": "PWM resolution actually required for one code <= one JND at 5 % perceived output",
+      "value": "N = 1/(w*D). gamma 2.2: 1/(0.01*1.3732e-3) = 72823 codes = 17 bits (18 bits at w = 0.5 %). gamma 2.0: 40000 = 16 bits. CIE L*=5: 18066 = 15 bits. At the 10 % end with gamma 2.2: 15849 = 14 bits. Gap versus LEDC's 14-bit ceiling is 3 bits = 8x.",
+      "source": "derived (spec-dimming.md s2.5)"
+    },
+    {
+      "what": "Smoothness floor of any linear PWM word - the perceived brightness below which one code exceeds one JND",
+      "value": "Stepping is invisible only for code >= 1/w = 100, regardless of resolution. Perceived brightness at code 100 (gamma 2.2): 12-bit 18.5 %, 13-bit 13.5 %, 14-bit 9.85 %, 16-bit 5.25 %, 17-bit 3.83 %. PAR-REQ-01's 5-10 % window lies entirely inside the broken region at 13-bit and at 14-bit.",
+      "source": "derived (spec-dimming.md s2.4)"
+    },
+    {
+      "what": "HEADLINE DRIVER SPEC - maximum tolerable T = t_d(on) + t_r + t_d(off) + t_f",
+      "value": "T <= 141 ns at 13-bit/9.766 kHz for the strict reading (5 % perceived, gamma 2.2, on-time 140.6 ns). Relaxations: CIE L* curve 567 ns; 14-bit/4.883 kHz 281 ns; both together 1.13 us; loose '5 % of duty' reading 5.12 us; 10 % end at 14-bit 1.29 us. Apply a 3x margin for real (non-trapezoidal) current waveforms if the driver must be linear rather than merely conducting: 47 ns / 189 ns / 377 ns respectively.",
+      "source": "derived from the trapezoidal charge model Q(t_c) = I*(t_c + Delta), knee <= T (spec-dimming.md s5.2, s5.3)"
+    },
+    {
+      "what": "Driver on-times at 13-bit / 9.766 kHz (period 102.4 us, 1 LSB = 12.5 ns)",
+      "value": "100 % = 102.40 us; 50 % = 51.20 us; 10 % = 10.24 us; 5 % = 5.12 us; 1 % = 1.024 us; 0.1 % = 102.4 ns; 1 LSB (code 1 of 8191) = 12.5 ns. 5 % perceived: gamma 2.2 = 140.6 ns, gamma 2.0 = 256.0 ns, CIE L*=5 = 566.8 ns. 10 % perceived gamma 2.2 = 646.1 ns.",
+      "source": "derived (spec-dimming.md s5.1)"
+    },
+    {
+      "what": "Feasibility of the 141 ns budget against real silicon (existence proof, NOT a part selection)",
+      "value": "8-channel LINEAR CC driver: PWM turn on/off delay 25 us typ / 45 us max, slew 6 mA/us -> T ~ 73 us, fails by ~520x; rules out the whole linear multi-channel class. Fast-PWM buck CC driver: 'ultra-narrow pulse width down to 50-ns', EC table minimum on time 100 ns -> meets 141 ns bare. Shunt-FET-dimming buck: 'over 1000:1 PWM dimming ratio' = 102 ns minimum pulse at this period -> meets 141 ns bare. 141 ns is at the edge of what exists; 567 ns and above is comfortable.",
+      "source": "TI TPS92638-Q1 SLVSCK5C; TI TPS922050/TPS922051; TI TPS92520-Q1"
+    },
+    {
+      "what": "Driver transfer-function requirement (protects PAR-REQ-01 independently of T)",
+      "value": "Duty-to-flux transfer must be monotonic and single-valued over 0-100 % commanded duty: no dropout, no hysteresis, no discontinuity. Above the knee the transfer is exactly linear with a fixed offset Delta = t_d(off) - t_d(on) + (t_f - t_r)/2, which is calibratable; below the knee it is sub-linear, channel-specific and NOT correctable by a scalar calibration.",
+      "source": "derived (spec-dimming.md s5.2, s5.5)"
+    },
+    {
+      "what": "Prohibited driver operating modes (IEEE 1789 Recommended Practice 3 plus visible artifact)",
+      "value": "No pulse-skipping, burst mode, hiccup mode or audio-band-avoidance modulation at ANY commanded duty. These convert a compliant 9.766 kHz carrier into a sub-90 Hz burst envelope, where IEEE 1789 RP3 sets a hard 5 % modulation limit, and they read as flutter at exactly the 5-10 % operating point PAR-REQ-01 cares about. This is the one place IEEE 1789 changes this board's BOM.",
+      "source": "IEEE Std 1789-2015 Clause 8.1.1 Recommended Practice 3 and 8.1.1.1 Comment 1 (practices apply in failure modes too)"
+    },
+    {
+      "what": "Inter-channel matching required for PAR-REQ-02 / PAR-REQ-06 at the low end",
+      "value": "Relative flux error between channels = (Delta_i - Delta_j)/t_c. For a 1 % match at 13-bit/9.766 kHz: 51.2 ns at 5 % duty; 5.7 ns at 5 % perceived CIE L*; 1.4 ns at 5 % perceived gamma 2.2. 1.4 ns is not achievable by construction, so low-end channel matching MUST be calibrated, not built. What must be specified in hardware is the STABILITY of Delta (over 56-69 C internal air and over each channel's Vf range), not its magnitude.",
+      "source": "derived (spec-dimming.md s5.5)"
+    },
+    {
+      "what": "Calibration-record content requirement on the PAR-REQ-17 EEPROM",
+      "value": "Per channel: gain AND offset (minimum 2 coefficients), ideally plus an 8-16 point LUT over the bottom decade to capture the knee. A gain-only record cannot correct the on-time offset that dominates below ~1 us. Size the EEPROM accordingly (24C02 = 256 B is adequate for 4-5 channels with a 16-point LUT; 24C32 gives headroom).",
+      "source": "derived from Q(t_c) = I*(t_c + Delta) (spec-dimming.md s5.5, R12)"
+    },
+    {
+      "what": "Channel construction requirement for colour stability",
+      "value": "All four channels use the same driver part, same topology and same passive values wherever the Vf spread allows. Common-mode drift of Delta cancels in the colour ratio; differential drift does not. If the red channel must differ (PAR-REQ-10 Vf spread), characterise its Delta drift separately and carry a temperature coefficient in the EEPROM.",
+      "source": "derived (spec-dimming.md s5.5)"
+    },
+    {
+      "what": "IEEE 1789-2015 low-risk boundary (Recommended Practice 1)",
+      "value": "Below 90 Hz: Mod% < 0.025 * f. Between 90 Hz and 1250 Hz: Mod% < 0.08 * f. Above 1250 Hz: no restriction on Mod%. Mod% = 100*(Lmax-Lmin)/(Lmax+Lmin) (Michelson).",
+      "source": "IEEE Std 1789-2015 Clause 8.1.1 Recommended Practice 1, Figures 18 and 20"
+    },
+    {
+      "what": "IEEE 1789-2015 no-observable-effect boundary (Recommended Practice 2, NOEL)",
+      "value": "Below 90 Hz: Mod% < 0.01 * f. Between 90 Hz and 3000 Hz: Mod% < 0.0333 * f. Above 3000 Hz: no restriction on Mod%.",
+      "source": "IEEE Std 1789-2015 Clause 8.1.1 Recommended Practice 2"
+    },
+    {
+      "what": "IEEE 1789-2015 seizure-prevention rule (Recommended Practice 3) - stated as 'shall', with no 'if it is desired' qualifier",
+      "value": "For any lighting source, under all operating scenarios: below 90 Hz, Mod% < 5 %.",
+      "source": "IEEE Std 1789-2015 Clause 8.1.1 Recommended Practice 3; Clause 8.1.1.2 Comment 2 ('a strict rule for seizure prevention ... at all times for all operating conditions')"
+    },
+    {
+      "what": "Where THIS design sits: 9.766 kHz at 100 % modulation depth",
+      "value": "UNRESTRICTED region, above the NOEL threshold, with 3.3x frequency margin. IEEE 1789's own worked PWM example gives f > 1.25 kHz for low-risk (solving 100 % = 0.08*f) and f > 3 kHz for NOEL (solving 100 % = 0.0333*f). Consequence: the PWM carrier imposes NO hardware requirement, and there is 3.3x of frequency headroom available to spend on the driver timing budget before the standard's own PWM recommendation is reached.",
+      "source": "IEEE Std 1789-2015 Clause 8.1.2.3 Example 3: PWM dimming"
+    },
+    {
+      "what": "Adjacent flicker metrics checked and found not to bind",
+      "value": "SVM (stroboscopic visibility measure) is defined for modulation up to 2 kHz and illuminance above 100 lx, so SVM = 0 at 9.766 kHz and any SVM <= 0.4 criterion is met trivially. PstLM (IEC 61000-4-15) addresses direct-view flicker at line-frequency scale and does not reach a 9.766 kHz carrier.",
+      "source": "CIE TN 006:2016 / IEC TR 63158; IEC 61000-4-15"
+    },
+    {
+      "what": "IEEE 1789 position on DELIBERATE low-frequency effects (PAR-REQ-03 / PAR-REQ-04)",
+      "value": "No entertainment, theatrical or 'intentional modulation' carve-out exists. Clause 8.5: 'IEEE Std 1789 does not provide application-specific recommended practices'. PAR-REQ-03 (80 % -> 30 % per kick) is Michelson 100*(0.8-0.3)/(0.8+0.3) = 45.5 % at ~2-5 Hz, breaching RP3's 5 % limit by 9.1x and RP1's low-risk line (0.05-0.125 % at those frequencies) by hundreds of times. PAR-REQ-04 (to ~20 Hz) breaches RP3 at any usable depth (RP3 limit 5 %, RP1 low-risk 0.50 % at 20 Hz). Clause 8 item (a) puts the seizure band at ~1-65 Hz.",
+      "source": "IEEE Std 1789-2015 Clause 8 item (a), Clause 8.1.1 RP3, Clause 8.5"
+    },
+    {
+      "what": "Hardware consequences of the deliberate-effect breach - hardware must not PREVENT the effect, it must prevent UNINTENTIONAL sub-90 Hz modulation",
+      "value": "(1) No burst/skip/hiccup driver mode at any duty. (2) Over-temperature shutdown (PAR-REQ-12) latching or wide-hysteresis, never cycling in 0.1-10 Hz; thermal foldback is doubly disallowed (it is analogue current dimming, banned by PAR-REQ-08, and an RP3 risk). (3) ENABLE gating of every output stage is also the IEEE 1789 power-up argument, not only the ICD's - the carrier PWM pin can glitch ~60 us at power-up and +48V_SW is dead for hundreds of ms. (4) Documentation: photosensitive-epilepsy note in the fixture docs (IEEE 1789 Clause 8.5 cites the video-game warning-label precedent).",
+      "source": "derived from IEEE Std 1789-2015 Clause 8.1.1 RP3 + 8.1.1.1 Comment 1 + 8.5, against ICD-01 s3.3"
+    },
+    {
+      "what": "Rolling-shutter camera banding - the formula",
+      "value": "Worst-case band contrast = min(D, 1-D) * T_pwm / (D * T_exp) = T_pwm / T_exp for duty <= 50 %. Two properties: band contrast is INDEPENDENT of duty below 50 % (dimming does not help), and it is zero when T_exp is an exact integer multiple of T_pwm (but PWM and shutter are unsynchronised and drift, so the worst case is the design figure). Band spatial period in scan lines = T_pwm / t_line.",
+      "source": "derived (spec-dimming.md s4.1)"
+    },
+    {
+      "what": "Rolling-shutter banding numbers - confirming or challenging the ~10 kHz carrier choice",
+      "value": "Worst-case band contrast at 9.766 kHz: 0.61 % at 60 fps, 1.23 % at 120 fps, 2.46 % at 240 fps, 4.92 % at 1/480 s, 10.24 % at 1/1000 s. At the rejected 1.2 kHz: 5.00 %, 10.00 %, 20.00 %, 40.00 %, 83.33 %. Visibility threshold 1-2 % (same ~1 % Weber contrast as any luminance difference). CONFIRMED: 9.766 kHz is 8.1x better than 1.2 kHz and the bands are also 8.1x finer (26.5 lines vs 216 lines at 240 fps / 1080 lines). CHALLENGED on scope: clean to 120 fps, MARGINAL at 240 fps (2.46 %), bands at 480 fps+; 960 fps needs ~29 kHz (trade heuristic) or ~96 kHz (1 % contrast target) and is unreachable at any usable LEDC resolution - declare it out of scope.",
+      "source": "derived; cross-checked against trade guidance 'aim for PWM at least 30x your camera frame rate' (240 fps -> 7-8 kHz), which implies an accepted 3.3 % contrast"
+    },
+    {
+      "what": "The irreducible three-way frequency conflict the architect must arbitrate",
+      "value": "Camera banding wants f_pwm HIGH; the driver timing budget and the dimming resolution both want it LOW. Each halving of f_pwm doubles the tolerable T and doubles the LSB duration (making firmware dithering physically reproducible), and doubles the band contrast. Trade points at 5 % perceived gamma 2.2: 9.766 kHz -> T 141 ns, 0.61 %/2.46 % banding, NOEL 3.3x margin. 4.883 kHz -> 281 ns, 1.23 %/4.92 %, NOEL 1.6x. 2.441 kHz -> 563 ns, 2.46 %/9.83 %, low-risk only. 1.221 kHz -> 1.12 us, 4.92 %/19.7 %, below both lines. JUDGEMENT: 4.883 kHz (14-bit, divider 1) is the defensible compromise.",
+      "source": "derived (spec-dimming.md s4.3, s5.4)"
+    },
+    {
+      "what": "LEDC frequency and resolution are NOT rigidly coupled - correction to the brief's '80 MHz / 2^n' framing",
+      "value": "ESP-IDF computes the LEDC timer divisor as (src_clk << 8) / (freq * 2^duty_resolution), bounded by LEDC_TIMER_DIV_NUM_MAX = 0x3FFFF (divisor up to 1023.996). So f = f_src / (div * 2^bits) and 14-bit is available at ANY frequency at or below 4.883 kHz, down to 4.8 Hz. '80 MHz / 2^n' is the MAXIMUM frequency for that resolution, not the only one. This widens the trade space materially.",
+      "source": "esp-idf components/esp_driver_ledc/src/ledc.c, ledc_calculate_divisor()"
+    },
+    {
+      "what": "Ranked fixes for the resolution shortfall (firmware-free vs hardware)",
+      "value": "Rank 1 (FREE, firmware + carrier agreement): lower f_pwm while holding 14-bit - does not add codes but multiplies each code's physical duration, which is what makes rank 2 possible. Rank 2 (FREE, firmware): temporal dithering, +3-4 effective bits; must run in the PWM domain (pattern repeat >= ~300 Hz), NOT the 60 fps frame domain (a 4.4 % dither at 60 Hz breaches the NOEL limit of 0.0333*60 = 2.0 %); defeated by the driver unless rank 1 is applied first, because one LSB at 13-bit/9.766 kHz is 12.5 ns. Ranks 1 and 2 are a package, not alternatives. Rank 3 (HARDWARE, this board): local >=16-bit PWM generator with per-channel current set, driven over DSPI (<=26 MHz, mode 0, one CS) or I2C (400 kHz) - solves it outright, needs a carrier firmware change and may leave PWM0-7 unused. Rank 4 (HARDWARE): dual-rank current switching, +4 bits; PAR-REQ-08 holds within a rank but not across ranks - needs explicit human sign-off. Rank 5 (FREE): 14-bit/4.883 kHz alone - a 2x mitigation of an 8.9x deficit, NOT a fix. Rank 6 (FREE): renegotiate the reading (CIE L* relaxes 4x, DALI 2.8 %/step relaxes 2.8x; together at 14-bit the DALI criterion passes with margin) - a human decision about what the fixture should look like.",
+      "source": "derived (spec-dimming.md s2.7)"
+    },
+    {
+      "what": "Mitigations if the driver cannot meet T, and PAR-REQ-08 compatibility",
+      "value": "COMPATIBLE: (1) lower f_pwm - T scales 1:1 with period; (2) shunt-FET dimming - FET across the string, converter left in steady state, decouples the dimming edge from the control loop, reaches sub-100 ns; (3) series-FET dimming with the converter held in regulation and the output cap sized not to slow the edge; (4) longer LED strings per channel - raises Vf, faster converter recovery, and also eases the 12 V -> 2.1-3.6 V step-down problem. PARTIALLY COMPATIBLE, needs sign-off: (5) dual-rank current switching - fixed current within each rank preserves the chromaticity argument, but the inter-rank chromaticity step must be calibrated per fixture. NOT COMPATIBLE: (6) continuous analogue current dimming - explicitly banned by PAR-REQ-08, and correctly so (dominant wavelength and phosphor CCT both shift with drive current); (7) thermal foldback as a dimming mechanism; (8) reducing the number of dies driven per channel. Preferred order 1, 2/3, 4, then 5 with sign-off.",
+      "source": "derived (spec-dimming.md s5.7); shunt-FET dimming per TI TPS92520-Q1"
+    },
+    {
+      "what": "LEDC maximum-duty artifact",
+      "value": "At maximum duty resolution for the chosen frequency the duty register cannot be set to 2^n ('the internal duty counter in the hardware will overflow'). Firmware clamps to 2^n - 1, so maximum duty is 8191/8192 = 99.988 %, a 0.012 % shortfall costing one code out of 8192. No hardware consequence; PAR-REQ-11's total-power clamp means four channels never reach 100 % anyway. The clamp is a consequence of running the divider at 1, so it does not apply if 14-bit is run divided down.",
+      "source": "ESP-IDF LEDC API guide, ESP32-S3"
+    }
+  ],
+  "layout_notes": [
+    "DO NOT fit an RC filter on the PWM/DIM lines. The reflex 'noise immunity' network (1 k + 100 pF, tau = 100 ns) would swallow a 141 ns pulse entirely and silently destroy the bottom of the dimming range. If any series/shunt network is fitted, require tau <= t_on(min)/10 = 14 ns at the strict operating point (33 ohm + 100 pF = 3.3 ns is fine; 1 k + 100 pF is not). Record the constraint on the schematic so it survives review.",
+    "Trace-length matching between PWM0..3 is NOT required and should not be spent effort on. A common or differential propagation delay shifts the pulse's PHASE, not its WIDTH, and duty is what sets flux. What must be matched is the driver's t_d/t_r/t_f - a part-selection and thermal matter, not copper.",
+    "Edge jitter is the real routing constraint: at a 141 ns commanded pulse, 1.4 ns of jitter is a 1 % flux error. Route PWM/DIM as short, continuously ground-referenced traces; no long parallel runs alongside a driver switch node or inductor; keep them off split or voided regions of the reference plane.",
+    "Request 90-degree phase stagger across PWM0-3 from the carrier owner (LEDC exposes a per-channel hpoint, and PWM0-3 share timer 0, so hpoint = 0, N/4, N/2, 3N/4 staggers them without changing frequency or duty). Interleaving reduces the worst-case input-current step by up to 4x, directly relieving this board's bulk capacitance and its draw against the 0.75 A sustained +12 V ceiling. Costs nothing - it is a carrier firmware constant. Ask in the same request as the LEDC timer 2/3 / frequency change.",
+    "The eight ICD PWM lines are 3.3 V CMOS with nanosecond-class GPIO edges. Their harmonic content reaches tens of MHz, well below 2.4 GHz, so they are NOT the antenna-column (88,25)-(100,55) desense threat - the driver switch nodes are. Do not over-engineer PWM routing at the expense of switch-node containment.",
+    "If a local PWM generator IC is chosen (fix rank 3), allocate its I2C address alongside the EEPROM and any digital temperature sensor. This board owns the whole I2C address space and the carrier reserves nothing, so any collision is this board's fault. If DSPI is used instead, note the ICD provides only one CS.",
+    "Decoupling at each driver's DIM/EN pin must not be a bulk part; the same tau <= 14 ns rule applies to anything hung on those nodes.",
+    "PWM/DIM nets and the ENABLE gate must both be routed clear of the ICD s7.6 DC-DC hot zone (2,46)-(36,68), where the carrier's 48->12 converter sits directly below in the mezzanine stack - switching noise coupled into a 141 ns command pulse is a flux error, not just an EMC nuisance."
+  ],
+  "risks": [
+    "BLOCKING: the strict reading of PAR-REQ-01 (5 % of PERCEIVED brightness) is not satisfiable by ANY ESP32-S3 LEDC configuration - it needs 17 bits and the silicon gives 14. Until requirements.md question 9 is answered the LED-driver scout cannot shortlist, because the spec swings 40x (141 ns vs 5.12 us).",
+    "BLOCKING for P2: relief on the driver timing budget requires a PWM frequency change, which per ICD-01 s3.3 needs LEDC timers 2/3 and the carrier owner's agreement - 'not a unilateral change'. This is a cross-board dependency that can stall driver selection. Raise the frequency change, the hpoint stagger and the timer 2/3 confirmation as one request now.",
+    "Firmware temporal dithering (the free fix) is DEFEATED BY THE HARDWARE at 13-bit/9.766 kHz: one LSB is 12.5 ns of on-time and no constant-current driver resolves that. Dithering only works after the PWM frequency is lowered. Anyone who plans on dithering without the frequency change is planning on nothing.",
+    "Firmware dithering done at the 60 fps command rate instead of in the PWM domain becomes an IEEE 1789 NOEL violation in its own right (a 4.4 % dither at 60 Hz against a 0.0333*60 = 2.0 % limit). The fix is free but it must be specified, not assumed.",
+    "A driver with a light-load burst/skip/hiccup mode converts the compliant 9.766 kHz carrier into a sub-90 Hz burst envelope - an IEEE 1789 RP3 breach AND visible flutter at exactly the 5-10 % output PAR-REQ-01 cares about. Easy to miss in a datasheet skim; make it a hard selection criterion.",
+    "Thermal foldback or a cycling over-temperature shutdown in a continuously-hot enclosure (56-69 C internal air, no duty-cycle relief) produces large-depth 0.1-10 Hz modulation in a failure mode - and IEEE 1789 Clause 8.1.1.1 Comment 1 extends the practices to failure modes. Foldback is also analogue current dimming, banned by PAR-REQ-08.",
+    "Inter-channel matching at the low end (1.4 ns of delay matching for 1 % flux match at 5 % perceived) is unachievable by construction, so PAR-REQ-06 depends entirely on calibration. A gain-only calibration record CANNOT correct the on-time offset that dominates below ~1 us. If the EEPROM format is fixed as gain-only, PAR-REQ-06 fails at the low end and nothing in hardware saves it.",
+    "The calibration is only as good as Delta's stability over temperature and Vf. In a box at 56-69 C running continuously, an uncharacterised Delta drift means the 6-8 fixtures diverge in tint over the first hour of a set - the exact PAR-REQ-06 failure. Mixing driver types across channels (tempting given PAR-REQ-10's Vf spread) turns common-mode drift into differential drift.",
+    "PAR-REQ-03 and PAR-REQ-04 as written breach IEEE 1789 Recommended Practice 3, the standard's one seizure-prevention 'shall', by ~9x, and there is no entertainment carve-out anywhere in the document. Not a hardware defect - but it needs to be a recorded human decision plus a documentation note, not an accident discovered at review.",
+    "Camera banding at 240 fps is marginal at 9.766 kHz (2.46 % worst-case against a 1-2 % visibility threshold), and every step taken to relieve the driver timing budget makes it worse. 960 fps super-slow-motion is unreachable at any usable LEDC resolution and should be declared out of scope explicitly rather than discovered.",
+    "Source conflict recorded: AZoM's widely-ranked summary of IEEE PAR1789 SWAPS the NOEL and low-risk labels (giving NOEL = 0.025*f / 0.08*f and low-risk = 0.01*f / 0.033*f). That is internally inconsistent - NOEL must be the stricter limit - and contradicts the standard's own Clause 8.1.1 text, which is used throughout this document. A reviewer hitting that page will think the analysis is wrong.",
+    "The requirements doc presents LEDC frequency and resolution as rigidly coupled ('80 MHz / 2^n'). Verified from the ESP-IDF driver source that the timer divisor decouples them. Wherever that coupling is stated as a constraint it artificially narrows the trade space and should be corrected."
+  ]
+}

@@ -50,7 +50,7 @@ Two further reasons the 2.54 mm answer is the right one rather than merely the a
   2.54-2*nnP, HCTL HC-PZ254/HC-PM254). A mezzanine family's footprint is proprietary, so a stockout
   is a respin.
 - **Land-pattern creepage.** See s5: 2.54 mm gives 0.84 mm of pad-to-pad copper gap against a
-  0.60 mm requirement. 1.27 mm gives 0.47 mm and **fails**.
+  0.635 mm requirement. 1.27 mm gives 0.47 mm and **fails**.
 
 ### 1.2 Why split and not one 2x20
 
@@ -211,15 +211,21 @@ blocked on this document.
 
 ### 5.1 The number and its source
 
-**0.60 mm minimum copper-to-copper spacing on outer layers, board-wide, around every 48 V net.**
+**0.635 mm minimum copper-to-copper spacing on outer layers, board-wide, around every 48 V net.**
+
+> **REVISED at P3, rev A2 (2026-07-28).** The original figure was 0.60 mm from IPC-2221B alone.
+> The TPS2378 datasheet's own layout section recommends **0.025 in = 0.635 mm** between VSS and
+> high-voltage signals such as VDD. Rather than waive a vendor recommendation on the board's most
+> safety-critical IC, the LARGER number is adopted board-wide. The delta is 0.035 mm and costs no
+> routing area - the binding connector geometry still clears it at 1.32x. Daughters inherit 0.635 mm.
 
 | Item | Value | Source |
 |---|---|---|
 | Worst-case voltage on the board | **57 V DC** | IEEE 802.3 PSE maximum output |
-| IPC-2221B Table 6-1, column **B2** (external conductors, uncoated, sea level to 3050 m), 51-100 V band | **0.60 mm** | IPC-2221B. This is the table `check_creepage.py` transcribes, so the checker and this ICD agree by construction |
+| IPC-2221B Table 6-1, column **B2** (external conductors, uncoated, sea level to 3050 m), 51-100 V band | 0.60 mm - **the FLOOR, not the requirement** | IPC-2221B. This is the table `check_creepage.py` transcribes. Superseded board-wide by the 0.635 mm vendor figure below |
 | IPC-2221B column B1 (internal conductors), 51-100 V | 0.10 mm | below JLC's 0.127 mm minimum, so the fab minimum dominates on In1/In2 and the HV requirement is free there |
-| Independent vendor corroboration | **0.635 mm** (0.025 in) between VSS and high-voltage signals such as VDD on a PD front end | TI PD application guidance |
-| Insulation class | **functional only** | 57 V DC is below the IEC 62368-1 **ES1** limit of 60 V DC, so no basic/supplementary/reinforced safeguard is required. IPC-2221 does not separate creepage from clearance; 0.60 mm covers both |
+| **BINDING board-wide requirement** | **0.635 mm** (0.025 in) between VSS and high-voltage signals such as VDD | TPS2378 datasheet layout section. Exceeds IPC and is therefore the governing number. `check_creepage.py` demands only 0.60 mm, so a 0.635 mm layout passes the checker by construction; the 0.635 mm figure is enforced by the hand-written `.kicad_dru` rule at P5 (TRAP-1) |
+| Insulation class | **functional only** | 57 V DC is below the IEC 62368-1 **ES1** limit of 60 V DC, so no basic/supplementary/reinforced safeguard is required. IPC-2221 does not separate creepage from clearance; 0.635 mm covers both |
 
 **The 0.13 mm "permanent polymer coating" column (B4) is NOT claimed.** Standard LPI soldermask is
 not a qualified conformal coating, and `check_creepage.py` implements only the uncoated columns -
@@ -230,12 +236,12 @@ a layout designed to 0.13 mm fails P8 with no waiver mechanism.
 The binding geometry is the **PCB land pattern**, not the connector body - `check_creepage` measures
 copper, not air.
 
-| Geometry | Value | vs 0.60 mm |
+| Geometry | Value | vs 0.635 mm |
 |---|---|---|
 | Pitch, both directions | 2.540 mm | - |
-| Pin-to-pin air gap (0.64 mm square pin across flats) | 1.90 mm | 3.2x |
-| **PCB pad-to-pad copper gap, 1.70 mm annulus on a 1.02 mm drill** | **0.84 mm** | **1.4x - this is the binding number** |
-| PCB pad-to-pad gap, 1.60 mm annulus | 0.94 mm | 1.6x |
+| Pin-to-pin air gap (0.64 mm square pin across flats) | 1.90 mm | 3.0x |
+| **PCB pad-to-pad copper gap, 1.70 mm annulus on a 1.02 mm drill** | **0.84 mm** | **1.32x - this is the binding number** |
+| PCB pad-to-pad gap, 1.60 mm annulus | 0.94 mm | 1.48x |
 | Connector rated working voltage (pair bound by the lower of male 250 V / socket 600 V) | **250 V** | 4.4x the 57 V worst case |
 
 For contrast: at **1.27 mm pitch** the pad gap is 0.47-0.65 mm and **fails or has zero margin**.
@@ -261,7 +267,7 @@ annulus on the 48 V pads to 1.60 mm before moving anything else.
 
 ### 5.4 Requirements this places on the daughter's own layout
 
-- **0.60 mm outer-layer clearance around every 48 V net on the daughter too**, board-wide, from the
+- **0.635 mm outer-layer clearance around every 48 V net on the daughter too**, board-wide, from the
   connector pads to the cap bank. This is not inherited automatically - the daughter's DRC must be
   set up for it.
 - **Any resistor sitting across the 48 V domain must be 0805 or larger** (0402/0603 parts are
@@ -270,7 +276,7 @@ annulus on the 48 V pads to 1.60 mm before moving anything else.
 - **Capacitors on the 48 V domain must be 100 V rated** (63 V is not enough at a 57 V worst case
   once ceramic DC bias derating is applied).
 - The clearance applies **through the board too**: a signal on an inner layer or the opposite face
-  passing under a 48 V pin's antipad needs the same 0.10 mm inner / 0.60 mm outer.
+  passing under a 48 V pin's antipad needs the same 0.10 mm inner / 0.635 mm outer.
 
 ---
 
@@ -358,6 +364,37 @@ the design property the pin ordering in s3.1 exists to produce, and it is why th
 
 Row-swapping (row A meeting row B) is not a reachable failure mode: it would require the daughter to
 be inverted about the connector's long axis, which a board-to-board mating cannot do.
+
+---
+
+### 6.6 Bank-charging contract - BINDING on every daughter that taps +48V_SW
+
+Added at P3 (rev A2) after datasheet extraction of the carrier's load switch. **The strobe run must
+design its soft-start to these numbers.**
+
+| Parameter | Value |
+|---|---|
+| Carrier switch | TPS16630 eFuse, HTSSOP-20 |
+| Carrier current limit | **1.0 A** (R(ILIM) = 18 kOhm, per R = 18/I(OL)) |
+| Carrier fault response | **MODE open = LATCH-OFF after 162 ms of continuous current limiting.** Recovery needs an ENABLE (SHDN) toggle or a PD power cycle |
+| Carrier thermal backstop | thermal regulation at TJ 145 C, 1.25 s timeout |
+| **Daughter charge-current ceiling** | **<= 0.25 A (af build) / <= 0.5 A (at build)** - identical to the sustained rail rating in s6.2 |
+| Daughter absolute ceiling | never exceed 1.0 A; never sit above 1.0 A for > 162 ms |
+
+**The daughter's soft-start must be CURRENT-limited, not merely slew-limited.**
+
+Why this is binding, with the arithmetic:
+
+- The carrier eFuse is a **fault protector, not a charging regulator**. If a daughter presents its
+  raw bank, the eFuse limits at 1.0 A and charging 2800 uF across 48 V takes
+  `t = C x V / I = 2800e-6 x 48 / 1.0 =` **134 ms** against the **162 ms** latch-off timer. That is
+  17 % margin before any thermal derating - not a design margin, a coincidence.
+- **Energy is invariant.** Charging 2800 uF to 48 V dissipates `C x V^2 / 2 =` **3.2 J** in whichever
+  element limits the current. That heat must land in the **daughter's** inrush limiter, not in the
+  carrier's HTSSOP-20. This is the physical reason CAR-REQ-14 puts inrush limiting on the daughter -
+  it is not an arbitrary division of labour.
+- At <= 0.25 A the bank charges in ~538 ms; at <= 0.5 A, ~269 ms. **Both keep the carrier eFuse out
+  of current limit entirely**, so the 162 ms timer never starts and the thermal loop never engages.
 
 ---
 
@@ -487,6 +524,37 @@ only after firmware asserts ENABLE. Two consequences for daughters:
 
 ---
 
+### 8.4 How ENABLE actually de-asserts the rail - CAR-REQ-08 realisation (P3-verified)
+
+The carrier switch is a **TPS16630**. It has **no EN pin**. Its only control is **SHDN (pin 13),
+active-low shutdown with an INTERNAL PULL-UP**: open-circuit 2.48 V min / 2.7 V typ, enable
+threshold 2.0 V rising, shutdown 0.8 V falling. **Left alone the part DEFAULTS ON** - the internal
+pull-up sits above its own enable threshold.
+
+CAR-REQ-08 is therefore satisfied by a **mandatory external pull-down**, not by the part's own
+behaviour:
+
+- **R(SHDN) = 10 kOhm, SHDN to GND.** The datasheet requires a pull-down able to sink >= 10 uA while
+  holding < 0.8 V; the internal pull-up sources <= 10 uA, so 10 kOhm holds the pin at ~0.1 V -
+  **8x margin below the 0.8 V shutdown threshold**.
+- **ENABLE** (carrier net, driven by an ESP32-S3 GPIO) drives SHDN **HIGH** to enable. SHDN abs max
+  is 5.5 V, so it is a 3.3 V logic pin and must **never** be exposed to 48 V. The eFuse GND and logic
+  GND are the same node, so no level shifting is required.
+
+**Review gate 4 - the three demanded cases:**
+
+| Case | GPIO state | SHDN | +48V_SW |
+|---|---|---|---|
+| **MCU held in reset** | Hi-Z (ESP32-S3 GPIOs are high-impedance in reset) | ~0.1 V via the pull-down | **OFF** |
+| **Mid firmware update** | Hi-Z through the resets that bracket flashing | ~0.1 V | **OFF** |
+| **Brownout** | GPIO cannot source; the pull-down dominates. Independently the eFuse's own programmed UVLO on the 48 V side opens the FET below threshold | ~0.1 V | **OFF** |
+
+**No part substitution and no added series gate.** The TPS16630 stays; the 10 kOhm pull-down is the
+fail-safe element. A daughter may therefore assume that an unprogrammed, crashed, or unpowered
+carrier presents **0 V**, not 48 V, at J3.
+
+---
+
 ## 9. Isolation, safety and the things daughters inherit
 
 **The entire fixture is non-isolated and floats at PoE potential.** The carrier uses a non-isolated
@@ -510,7 +578,7 @@ carrier:
   any test point.
 
 Positive side: 57 V DC is below the IEC 62368-1 **ES1** limit of 60 V, so no safety-mandated
-creepage applies anywhere - s5's 0.60 mm is **functional insulation** protecting the silicon, not a
+creepage applies anywhere - s5's 0.635 mm is **functional insulation** protecting the silicon, not a
 personnel safeguard. And an unearthed PD needs **no MOV-to-earth surge network**; do not copy one
 out of a reference design.
 

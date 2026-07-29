@@ -517,9 +517,17 @@ is the driver's PWM settling time, not the PWM word length.
 (a) **5-10 % of PWM duty**: on-time 5.1-10.2 us. Most switching CC drivers
 manage this at 10 kHz with some amplitude error.
 (b) **5-10 % of perceived brightness** (i.e. after gamma ~2.2): duty is
-0.14-0.6 %, on-time **1.4-6.1 us**, which is at or below the settling time of
-many CC drivers and is where "visible stair-stepping during slow fades" is
-actually born.
+0.137-0.63 %, on-time **141-646 ns**, which is at or below the settling time of
+essentially every CC driver and is where "visible stair-stepping during slow
+fades" is actually born.
+`CORRECTED 2026-07-28 (orchestrator, verified):` this line previously read
+"on-time 1.4-6.1 us", a 10x error. The duties were right; the on-times were
+not. 0.05^2.2 x 102.4 us = 140.6 ns and 0.10^2.2 x 102.4 us = 646.1 ns. The
+correction is load-bearing: it moves (b) from "several drivers manage it" to
+"no surveyed CC driver manages it with PWM alone" - the best part found in P1
+(TPS92515HV) specs a 0.2 % minimum duty at 10 kHz, i.e. a 200 ns floor, which
+is above the 141 ns that 5 % perceived requires. See `research/led-driver.md`
+and `research/spec-dimming.md`.
 **RECOMMEND: assume (b)**, because that is what a lighting person means by
 "dim to 5 %", and it is the harder requirement - designing for (b) satisfies
 (a) automatically. Please confirm, because it materially narrows the driver

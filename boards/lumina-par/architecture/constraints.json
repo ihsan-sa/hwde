@@ -1,0 +1,85 @@
+{
+  "_comment": "P2 MERGED constraints for lumina-par (LUM-PAR-A), from research/led-driver.json + led-emitter.json + refdesign-thermal-protection.json + spec-dimming.json, reconciled with architecture/sheets.md. Baselined on ICD-01 rev A2 (0.635 mm HV clearance; s8.4 guarantees 0 V at J3 when the carrier is unprogrammed/crashed/brownout/reset). CANONICAL NET NAMES per sheets.md s2: power symbols are global and BARE (GND, +48V_SW, +12V, +3V3); every inter-sheet signal is /NAME and P4 MUST place a root-sheet local label on each so KiCad does not name it /<sheet>/NAME. THIS FILE ASSUMES BRANCH A (+12V feeds the LED stage) - the H1 recommendation in decisions.md D1. If the human selects branch B (+48V_SW), three edits are needed and nothing else: power[] +48V_SW current_a 0.25 -> pdn stays false but the net becomes real, power[] +12V drops out, and power[] /LEDn_A current_a 0.30 -> 0.175. MANDATORY P5 STEP - COORDINATE TRANSLATION: every rect in placement.keepouts and every planes[].region below is in ICD BOARD-LOCAL coordinates (origin = board top-left, x right, y down, per ICD s7.1). board_init.py does NOT place the outline at (0,0): in fixed-outline mode the origin is derived from the packed component bounding box (lib/board_swig.py line 205-211; the existing pd-trigger board's Edge.Cuts starts at 9.80, 27.51). After board_init, read reports/board_init.json.outline_bbox and TRANSLATE every rect below by (x0, y0) before P6 consumes this file. Skipping that step puts the antenna column keepout somewhere else and silently detunes the carrier's 2.4 GHz PCB antenna. planes_gen's region-coverage check gives partial cover for a forgotten translation; placement.keepouts has none. THE ANTENNA COLUMN NEEDS A SECOND, HAND-ADDED MECHANISM: ICD s7.6 forbids copper on EVERY layer at (88,25)-(100,55), and planes_gen has no void support (grep-verified) while nothing at all governs F.Cu/B.Cu copper there. The planes[].region entries below remove inner copper from the whole x>=88 strip; a KiCad rule area (keepout) over (88,25)-(100,55) on all four layers must additionally be added by hand at P5 and verified geometrically at P8. ABSENT KEYS ARE DELIBERATE. (1) GND is NOT a power entry: it is the In1 plane, and declaring it would make check_current demand IPC width on every GND stub and vias in every GND cluster; the requirement is structural instead (solid In1, per-channel harness returns, 7 connector GND pins carrying 0.10 A each). (2) diff_pairs is an EXPLICIT EMPTY LIST, which disables the check - there is no differential net on this board. (3) No impedance_ohm anywhere: no controlled-impedance net exists (PWM 4.9-9.8 kHz, I2C 400 kHz, DSPI unused, ADC paths DC), so JLC04161H-3313's controlled_impedance table is not used. TWO TRAPS CARRIED FROM THE CARRIER RUN: TRAP-1, rules_gen never reads the voltages key, so nothing makes the P7 router honour the 0.635 mm clearance around +48V_SW - add a named .kicad_dru rule keyed on A.NetName (A.Net silently matches nothing) at P5. On branch A the only 48 V copper is three J3 pads plus a stub to a DNP bleed, and the ICD s5.2 land pattern already gives 0.84 mm (1.32x), so this is cheap insurance rather than a routing constraint. TRAP-2, rules_gen puts EVERY power net into one Power netclass at the WIDEST declared width, so +12V's 0.75 A width is applied to +3V3 and to all four /LEDn_A nets and to Freerouting's DSN; here that is harmless (0.75 A is the widest and the board has room) but do not add a wider net without re-checking.",
+
+  "high_speed": [
+    {"net": "/PWM0", "reference": "GND", "k": 3, "t_rise_ns": 2.0},
+    {"net": "/PWM1", "reference": "GND", "k": 3, "t_rise_ns": 2.0},
+    {"net": "/PWM2", "reference": "GND", "k": 3, "t_rise_ns": 2.0},
+    {"net": "/PWM3", "reference": "GND", "k": 3, "t_rise_ns": 2.0}
+  ],
+
+  "power": [
+    {"net": "+12V", "current_a": 0.75, "dt_c": 10, "via_amps": 0.5},
+    {"net": "+3V3", "current_a": 0.02, "dt_c": 10, "via_amps": 0.5},
+    {"net": "+48V_SW", "current_a": 0.25, "dt_c": 10, "via_amps": 0.5, "pdn": false},
+    {"net": "/LED0_A", "current_a": 0.30, "dt_c": 10, "via_amps": 0.5, "pdn": false},
+    {"net": "/LED1_A", "current_a": 0.30, "dt_c": 10, "via_amps": 0.5, "pdn": false},
+    {"net": "/LED2_A", "current_a": 0.30, "dt_c": 10, "via_amps": 0.5, "pdn": false},
+    {"net": "/LED3_A", "current_a": 0.30, "dt_c": 10, "via_amps": 0.5, "pdn": false}
+  ],
+
+  "diff_pairs": [],
+
+  "voltages": [
+    {"net": "+48V_SW", "voltage": 57}
+  ],
+
+  "thermal": [
+    {"ref": "U301", "power_w": 0.15, "net": "GND", "dt_c": 30, "min_vias": 9},
+    {"ref": "U321", "power_w": 0.15, "net": "GND", "dt_c": 30, "min_vias": 9},
+    {"ref": "U341", "power_w": 0.15, "net": "GND", "dt_c": 30, "min_vias": 9},
+    {"ref": "U361", "power_w": 0.15, "net": "GND", "dt_c": 30, "min_vias": 9},
+    {"ref": "D301", "power_w": 0.14, "net": "GND", "dt_c": 30, "min_vias": 4},
+    {"ref": "D321", "power_w": 0.14, "net": "GND", "dt_c": 30, "min_vias": 4},
+    {"ref": "D341", "power_w": 0.14, "net": "GND", "dt_c": 30, "min_vias": 4},
+    {"ref": "D361", "power_w": 0.14, "net": "GND", "dt_c": 30, "min_vias": 4}
+  ],
+
+  "placement": {
+    "edges": [
+      {"ref": "J3", "edge": "bottom", "pos": 0.24, "rot": 0},
+      {"ref": "J4", "edge": "bottom", "pos": 0.72, "rot": 0},
+      {"ref": "J5", "edge": "top", "pos": 0.56, "rot": 0}
+    ],
+
+    "groups": [
+      {"name": "ch0", "anchor": "U301",
+       "members": ["L301", "D301", "R301", "R302", "R303", "C301", "C302", "Q301"]},
+      {"name": "ch1", "anchor": "U321",
+       "members": ["L321", "D321", "R321", "R322", "R323", "C321", "C322", "Q321"]},
+      {"name": "ch2", "anchor": "U341",
+       "members": ["L341", "D341", "R341", "R342", "R343", "C341", "C342", "Q341"]},
+      {"name": "ch3", "anchor": "U361",
+       "members": ["L361", "D361", "R361", "R362", "R363", "C361", "C362", "Q361"]},
+      {"name": "ntc_brd", "anchor": "U301", "members": ["RT401", "R401", "R402"]},
+      {"name": "gate", "anchor": "U202",
+       "members": ["R202", "R203", "R204", "R205", "C202"]},
+      {"name": "analog", "anchor": "U401",
+       "members": ["R403", "R404", "R405", "R406", "R407", "R408", "R409", "R410",
+                   "R411", "R412", "C401", "C402", "C403"]}
+    ],
+
+    "keepouts": [
+      {"rect": [6, 0, 36, 26],
+       "reason": "ICD s7.6 RJ45 relief - this rectangle is CUT AWAY (the mandatory 30x26 mm notch, ICD s7.4 anti-180-degree interlock). Declared as a keepout as well as an outline cut so P6 cannot pack a part here before the Edge.Cuts edit is verified"},
+      {"rect": [2, 46, 36, 68],
+       "reason": "ICD s7.6 DC-DC hot zone - no LED drivers and no aluminium electrolytics. The carrier's 48->12 converter dissipates up to 1.25 W directly below in a stacked mezzanine. This board fits no electrolytics at all, so the binding effect is that all four buck channels must sit outside this rect"},
+      {"rect": [88, 25, 100, 55],
+       "reason": "ICD s7.6 antenna column - NO COPPER ON ANY LAYER and no metal component. Live, because H1-Q8 closed Wi-Fi as a supported control path. Needs the hand-added KiCad rule area as well (see _comment)"},
+      {"rect": [76, 0, 98, 20],
+       "reason": "ICD s7.6 recovery header - keep clear enough for a 6-way jumper lead with this board fitted, or firmware recovery requires removing the daughter"}
+    ],
+
+    "fixed": ["H5"],
+
+    "separation": [
+      {"a": ["U401"], "b": ["L301", "L321", "L341", "L361"], "min_mm": 10},
+      {"a": ["U203"], "b": ["L301", "L321", "L341", "L361"], "min_mm": 8}
+    ]
+  },
+
+  "planes": [
+    {"layer": "In1.Cu", "net": "GND", "region": [0, 0, 88, 80]},
+    {"layer": "In2.Cu", "net": "+12V", "region": [0, 0, 88, 80]}
+  ]
+}

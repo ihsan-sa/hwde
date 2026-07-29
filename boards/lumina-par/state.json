@@ -3,8 +3,8 @@
  "board": "lumina-par",
  "workspace": "boards/lumina-par",
  "created": "2026-07-28T15:00:15",
- "updated": "2026-07-28T15:14:47",
- "phase": "P1",
+ "updated": "2026-07-28T19:48:58",
+ "phase": "P2",
  "gates": {},
  "human": {},
  "artifacts": {},
@@ -39,6 +39,42 @@
    "why": "H1-Q4 closed the stack at 11.0 mm; the carrier's board-edge RJ45 is ~15 mm tall so the notch is a hard mechanical stop and the anti-180-degree interlock (ICD s7.4)",
    "phase": "P0",
    "ts": "2026-07-28T15:14:47"
+  },
+  {
+   "what": "Re-baselined onto ICD rev A2 (copied from boards/lumina-carrier/architecture/connector-icd.md)",
+   "why": "Two changes bind this board: (1) board-wide HV clearance raised 0.60 -> 0.635 mm per TPS2378 vendor layout guidance, daughters inherit it; (2) new s8.4 - the carrier's TPS16630 load switch has a mandatory 10k SHDN pull-down, so a daughter may assume an unprogrammed/crashed/reset/brownout carrier presents 0 V at J3, not 48 V. Rail limits s6.2 and mechanical s7.1/s7.2 are UNCHANGED.",
+   "phase": "P2",
+   "ts": "2026-07-28T19:11:12"
+  },
+  {
+   "what": "LED stage stays on +12V (baseline); the P1 '48V is 16x better for dimming slew' argument is WITHDRAWN as an artifact of holding L fixed",
+   "why": "Verified algebraically by the orchestrator: with L sized for the same ripple fraction k, t_rise+t_fall = 1/(f*k), independent of Vin. At 700 kHz / k=0.30 both rails give 4.762 us (48V only redistributes 3.81/0.95 us between rise and fall). That is 33.8x the 141 ns PAR-REQ-01 budget, so NO rail or inductor choice reaches the requirement by gating the converter - it needs shunt-FET dimming either way. The 48V branch therefore buys nothing on fidelity and costs 0.635 mm creepage, 100 V caps, bleed path and daughter-owned inrush.",
+   "phase": "P2",
+   "ts": "2026-07-28T19:47:13"
+  },
+  {
+   "what": "Stackup JLC04161H-3313, 4 layers, 100.0 x 80.0 mm, 1.6 mm",
+   "why": "Switch-node containment 11 mm above a live 2.4 GHz antenna (H1-Q8 made Wi-Fi a supported control path), continuous GND reference under jitter-sensitive PWM, B.Cu consumed by two reverse-mounted sockets, ~120 parts in ~45 cm2. No controlled-impedance net exists on this board.",
+   "phase": "P2",
+   "ts": "2026-07-28T19:48:43"
+  },
+  {
+   "what": "Dimming topology: shunt FET per channel across the LED string",
+   "why": "Closes the PAR-REQ-01 TIMING wall: TPS92515HV direct PWM floors at 200 ns vs a 141 ns requirement, but its shunt mode is spec'd 10,000:1 = 10.2 ns min pulse. Implemented T ~ 50-100 ns, 1.4-2.8x margin. The RESOLUTION wall (17 bits needed, LEDC caps at 14) is NOT closable on this board and needs carrier firmware dithering (CR-5).",
+   "phase": "P2",
+   "ts": "2026-07-28T19:48:43"
+  },
+  {
+   "what": "Design point 150 mA/die, 4 emitter packages, 2S2P per channel; emitters off-board on aluminium MCPCB",
+   "why": "Full white = 0.718 A on +12V, 4 % under the sustained ceiling and 2.8x under OCP, so the board is electrically incapable of exceeding its budget with every PWM stuck at 100 %. Off-board MCPCB because 1.6 mm FR4 misses the junction budget by 2-3x. >3 A conditional flag CLOSED (max 0.30 A/channel).",
+   "phase": "P2",
+   "ts": "2026-07-28T19:48:43"
+  },
+  {
+   "what": "No fifth (amber) channel on rev A; fit BOTH ID mechanisms (ID_ADC bottom-leg divider + I2C EEPROM)",
+   "why": "Amber dilutes an af envelope that full white already fills to 96 % of the rail ceiling. ICD s3.3 makes the divider and the EEPROM coexist rather than alternatives - the divider gives board type, the EEPROM per-unit calibration - so PAR-REQ-17 is met without spending a pin.",
+   "phase": "P2",
+   "ts": "2026-07-28T19:48:43"
   }
  ],
  "history": [
@@ -74,6 +110,94 @@
    "event": "phase",
    "phase": "P1",
    "prev": "P0"
+  },
+  {
+   "ts": "2026-07-28T15:16:00",
+   "event": "p5_tooling_gap_verified",
+   "gap": "no notch/cutout support anywhere in the pipeline",
+   "checked": [
+    "board_init.py --outline accepts only auto|WxH",
+    "kc.py subcommands: erc drc gerbers drill pos step render sch-pdf netlist - no outline editor",
+    "place_edit ops: place move rotate flip lock add_text move_text - no outline op"
+   ],
+   "consequence": "the mandatory 30x26mm RJ45 relief must be a direct Edge.Cuts edit of the .kicad_pcb after board_init, with place_*/planes_gen/dfm_check/fab_export re-verified against the modified outline",
+   "severity": "P5 implementation risk, not H1-blocking"
+  },
+  {
+   "ts": "2026-07-28T15:34:55",
+   "event": "requirements_corrected",
+   "what": "requirements.md s9 Q9(b) on-time figures were 10x high",
+   "was": "1.4-6.1 us",
+   "now": "141-646 ns",
+   "check": "0.05^2.2 x 102.4us = 140.6 ns; 0.10^2.2 x 102.4us = 646.1 ns",
+   "found_by": "P1 led-driver scout",
+   "verified_by": "orchestrator, independent recompute",
+   "consequence": "5% perceived brightness is below the min-on-time of every surveyed CC driver (best is TPS92515HV at 200 ns); PWM-only dimming cannot reach it at 13-bit/9.766 kHz"
+  },
+  {
+   "ts": "2026-07-28T19:10:39",
+   "event": "resumed",
+   "reason": "API spend limit terminated the P2 architect spawn; limit lifted",
+   "inputs_changed": [
+    "ICD rev A2",
+    "HV clearance 0.635 mm"
+   ]
+  },
+  {
+   "ts": "2026-07-28T19:11:12",
+   "event": "decision",
+   "what": "Re-baselined onto ICD rev A2 (copied from boards/lumina-carrier/architecture/connector-icd.md)"
+  },
+  {
+   "ts": "2026-07-28T19:11:18",
+   "event": "phase",
+   "phase": "P2",
+   "prev": "P1"
+  },
+  {
+   "ts": "2026-07-28T19:47:13",
+   "event": "decision",
+   "what": "LED stage stays on +12V (baseline); the P1 '48V is 16x better for dimming slew' argument is WITHDRAWN as an artifact of holding L fixed"
+  },
+  {
+   "ts": "2026-07-28T19:48:43",
+   "event": "decision",
+   "what": "Stackup JLC04161H-3313, 4 layers, 100.0 x 80.0 mm, 1.6 mm"
+  },
+  {
+   "ts": "2026-07-28T19:48:43",
+   "event": "decision",
+   "what": "Dimming topology: shunt FET per channel across the LED string"
+  },
+  {
+   "ts": "2026-07-28T19:48:43",
+   "event": "decision",
+   "what": "Design point 150 mA/die, 4 emitter packages, 2S2P per channel; emitters off-board on aluminium MCPCB"
+  },
+  {
+   "ts": "2026-07-28T19:48:43",
+   "event": "decision",
+   "what": "No fifth (amber) channel on rev A; fit BOTH ID mechanisms (ID_ADC bottom-leg divider + I2C EEPROM)"
+  },
+  {
+   "ts": "2026-07-28T19:48:43",
+   "event": "h1_ready",
+   "artifact": "architecture/",
+   "design_doc": "reports/design_doc/lumina-par-design-doc.pdf",
+   "pages": 20,
+   "human_questions": 13,
+   "carrier_requests": 6,
+   "blocking_issues": 1
+  },
+  {
+   "ts": "2026-07-28T19:48:58",
+   "event": "blocking_issue_raised",
+   "id": "OPEN-1",
+   "against": "LUM-CAR-A",
+   "mechanism": "ICD-01 s10 change process",
+   "what": "ICD s7.6 internal-air figures are not self-consistent: 69 C (at) vs 56 C (af). Convection is near-linear in dT at this scale, so ~2x the box heat must give ~2x the rise: the ICD own af point (31 K at ~9.9 W) scaled to ~19.2 W gives ~60 K = ~85 C, not 69 C. Independent Hoffman/Rittal calc gives 89-115 C at a 25 C room. Optimistic by 20-46 K. The 56 C af figure survives only at a 25 C room ambient.",
+   "why_daughter_cannot_absorb": "every emitter thermal budget on this board is keyed to these figures, and the selected emitter family Topr max is +85 C",
+   "ask": "re-derive and re-issue s7.6 with a stated room ambient, a self-consistent at figure, and a sealed-vs-vented statement"
   }
  ]
 }
