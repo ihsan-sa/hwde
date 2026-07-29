@@ -1485,3 +1485,39 @@ def test_ship_method_selector(tmp_path, monkeypatch, api_env, capsys):
         pcb, fab, qj, "--api", "--ship-method", "carrier pigeon")) == 2
     order = json.loads((fab / "order.json").read_text(encoding="utf-8"))
     assert "not in the quoted shipList" in json.dumps(order["api"])
+
+
+def test_copper_oz_override_waives_with_note(tmp_path, monkeypatch, api_env,
+                                             capsys):
+    """--copper-oz is the explicit human override: without it a heavier-oz
+    order note refuses; with it the quote proceeds at the override weight
+    and a permanent COPPER WAIVER note is recorded exactly once."""
+    pcb, fab, qj = make_fab(tmp_path)
+    fake = quote_session(price=6.2)
+    monkeypatch.setattr(order_submit, "_make_session", lambda: fake)
+    assert order_submit.main(submit_argv(pcb, fab, qj, "--api")) == 0
+    order = json.loads((fab / "order.json").read_text(encoding="utf-8"))
+    order["human_steps"].insert(
+        0, "BOARD-SPECIFIC: 2oz copper MUST be selected - 5A path")
+    (fab / "order.json").write_text(json.dumps(order), encoding="utf-8")
+
+    fake2 = quote_session(price=6.2)
+    monkeypatch.setattr(order_submit, "_make_session", lambda: fake2)
+    assert order_submit.main(submit_argv(pcb, fab, qj, "--api")) == 2
+    order2 = json.loads((fab / "order.json").read_text(encoding="utf-8"))
+    assert "copper-weight mismatch" in json.dumps(order2["api"])
+
+    for _ in range(2):                       # waiver note stays singular
+        fake3 = quote_session(price=6.2)
+        monkeypatch.setattr(order_submit, "_make_session", lambda: fake3)
+        assert order_submit.main(submit_argv(
+            pcb, fab, qj, "--api", "--copper-oz", "1")) == 0
+        param = [a for n, a in fake3.calls if n == "calculate"][0]["pcbParam"]
+        assert param["copperWeight"] == "1"
+    order3 = json.loads((fab / "order.json").read_text(encoding="utf-8"))
+    steps = order3["human_steps"]
+    assert sum("COPPER WAIVER:" in s for s in steps) == 1
+    assert sum("2oz copper MUST" in s for s in steps) == 1   # note preserved
+    aq = json.loads((fab / "api_quote.json").read_text(encoding="utf-8"))
+    assert aq["copper_weight_oz"] == 1.0
+    assert "human override" in aq["copper_weight_source"]

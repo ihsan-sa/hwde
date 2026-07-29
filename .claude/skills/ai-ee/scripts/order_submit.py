@@ -233,19 +233,33 @@ def derive_copper_oz(workspace: Path) -> tuple[float, str]:
     return 1.0, "no architecture/stackup.md -> default 1 oz"
 
 
-def _check_oz_mentions(man: dict, prior_steps, oz: float) -> None:
+def _check_oz_mentions(man: dict, prior_steps, oz: float,
+                       waived: bool = False) -> None:
     """Refuse the quote when order notes demand a heavier copper than the
     derived value (the pd-trigger board-killer: human_steps say '2oz copper
-    MUST be selected' while the API quote would go out at 1 oz)."""
+    MUST be selected' while the API quote would go out at 1 oz). With
+    waived=True (explicit --copper-oz human override) the mismatch is
+    recorded as a permanent waiver note instead of refusing - the guard's
+    job is to prevent SILENT downgrades, not human decisions."""
     steps = list(man.get("human_steps") or []) + list(prior_steps or [])
     mentioned = [float(m.group(1)) for s in steps
                  for m in _OZ_MENTION_RE.finditer(str(s))]
     if mentioned and max(mentioned) > float(oz):
+        if waived:
+            note = (f"COPPER WAIVER: ordered at {oz:g} oz despite the "
+                    f"{max(mentioned):g} oz design note (explicit "
+                    "--copper-oz human decision) - current paths sized for "
+                    f"{max(mentioned):g} oz are derated on this rev")
+            if not any("COPPER WAIVER:" in str(s)
+                       for s in man.get("human_steps") or []):
+                man["human_steps"].insert(0, note)
+            return
         raise ApiRefused(
             f"copper-weight mismatch: order notes mention {max(mentioned):g} "
             f"oz but the derived copperWeight is {oz:g} - quoting at the "
             "wrong copper weight is a board-killer. Fix architecture/"
-            "stackup.md (`## Chosen:` id) or the order note so they agree")
+            "stackup.md (`## Chosen:` id) or the order note so they agree, "
+            "or pass an explicit --copper-oz to waive")
 
 
 def build_pcb_param(spec: dict) -> dict:
@@ -343,7 +357,8 @@ def _scope_note(man: dict) -> None:
 
 def _api_quote(session, man: dict, fab_dir: Path, prior_steps=None,
                country: str | None = None,
-               ship_method: str | None = None) -> str:
+               ship_method: str | None = None,
+               copper_oz: float | None = None) -> str:
     """uploadGerber -> audit -> calculate -> fab/api_quote.json. NEVER calls
     create. Returns the verdict recorded in man['api']."""
     zip_info = man["artifacts"].get("gerber_zip")
@@ -353,15 +368,19 @@ def _api_quote(session, man: dict, fab_dir: Path, prior_steps=None,
                                    "first; API quote skipped"})
         return "skipped"
 
-    # copper weight: spec override, else stackup.md; refuse on note mismatch
-    # BEFORE any network traffic (the pd-trigger board-killer)
+    # copper weight: explicit human override > spec > stackup.md; a note
+    # mismatch refuses BEFORE any network traffic (the pd-trigger
+    # board-killer) unless the override waives it
     spec = _merged_spec(man)
-    if spec.get("copper_weight_oz"):
+    if copper_oz is not None:
+        oz, oz_source = float(copper_oz), "human override (--copper-oz)"
+        spec["copper_weight_oz"] = oz
+    elif spec.get("copper_weight_oz"):
         oz, oz_source = float(spec["copper_weight_oz"]), "spec snapshot"
     else:
         oz, oz_source = derive_copper_oz(fab_dir.parent)
         spec["copper_weight_oz"] = oz
-    _check_oz_mentions(man, prior_steps, oz)
+    _check_oz_mentions(man, prior_steps, oz, waived=copper_oz is not None)
     pcb_param = build_pcb_param(spec)
 
     if (man["api"].get("file_key")
@@ -792,6 +811,11 @@ def main(argv: list[str] | None = None) -> int:
                     help="pick a quoted shipList option by its options or "
                          "showOptions name (case-insensitive; default: the "
                          "first quoted option); refuses if not quoted")
+    ap.add_argument("--copper-oz", type=float,
+                    help="EXPLICIT copper-weight override (e.g. 1); waives "
+                         "the note-mismatch guard with a permanent COPPER "
+                         "WAIVER human_steps note - current paths sized "
+                         "for heavier copper are derated")
     ap.add_argument("--api", action="store_true",
                     help="live QUOTE-ONLY API flow (upload -> audit -> "
                          "calculate -> fab/api_quote.json); never creates "
@@ -853,7 +877,8 @@ def main(argv: list[str] | None = None) -> int:
                 api_verdict = _api_quote(
                     session, man, Path(args.fab_dir),
                     prior_steps=(prior or {}).get("human_steps"),
-                    country=args.country, ship_method=args.ship_method)
+                    country=args.country, ship_method=args.ship_method,
+                    copper_oz=args.copper_oz)
         except ApiRefused as exc:
             if not exc.recorded:
                 man["api"].update({"verdict": "refused", "note": str(exc)})
