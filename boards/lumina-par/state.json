@@ -3,10 +3,16 @@
  "board": "lumina-par",
  "workspace": "boards/lumina-par",
  "created": "2026-07-28T15:00:15",
- "updated": "2026-07-28T19:48:58",
- "phase": "P2",
+ "updated": "2026-07-28T20:05:39",
+ "phase": "P3",
  "gates": {},
- "human": {},
+ "human": {
+  "1": {
+   "status": "approved",
+   "ts": "2026-07-28T20:03:50",
+   "note": "H1 approved with 4 directed changes: (Q1) enclosure sealed + LED heat conducted through the wall; (Q2) emitter changed to RGB 3-in-1 + separate white, AGAINST the run's recommendation, chosen knowingly for a published 125 C Tj and 3.5x stock over an assumed 12 K/W Rth from a sole source; (Q3) firmware commits to PWM-domain dithering >=3-4 bits, strict gamma-2.2 reading of PAR-REQ-01 binds; (Q4) same-reel sourcing, 24C32 fitted but shipped empty, PAR-REQ-16/17 to be formally amended."
+  }
+ },
  "artifacts": {},
  "open_issues": [],
  "next_issue_id": 1,
@@ -75,6 +81,42 @@
    "why": "Amber dilutes an af envelope that full white already fills to 96 % of the rail ceiling. ICD s3.3 makes the divider and the EEPROM coexist rather than alternatives - the divider gives board type, the EEPROM per-unit calibration - so PAR-REQ-17 is met without spending a pin.",
    "phase": "P2",
    "ts": "2026-07-28T19:48:43"
+  },
+  {
+   "what": "Q1 CLOSED: enclosure sealed with LED heat conducted through the wall (not vented)",
+   "why": "Owner decision: keeps dust out of a basement/garage install over years, and the strobe run independently recommended the same, so both fixtures share one enclosure design. 3.21 W internal -> 38 C air. The wall-conduction path becomes load-bearing for the thermal case and must be written as an explicit testable ENC-x criterion, not an assumption.",
+   "phase": "P2",
+   "ts": "2026-07-28T20:03:51"
+  },
+  {
+   "what": "Q2 CLOSED: emitter is RGB 3-in-1 + separate white discrete, superseding D3's integrated 4-in-1",
+   "why": "Owner decision, taken knowingly against this run's recommendation. Deciding factor: the thermal case now rests on a published 125 C Tj max and 3.5x stock depth rather than on an ASSUMED 12 K/W Rth from a sole-source vendor publishing neither Rth nor Tj max. Retires the 20 K/W marginality risk this run flagged. Consequences owned here: PAR-REQ-15 white/colour fringing becomes the live risk; the entire sustained-power table is stale and must be re-derived; 145 mA/die is reopened.",
+   "phase": "P2",
+   "ts": "2026-07-28T20:03:51"
+  },
+  {
+   "what": "Q3 CLOSED: PAR-REQ-01 met by hardware + firmware. Strict reading (5% perceived, gamma 2.2) binds.",
+   "why": "Carrier firmware commits to PWM-domain dithering >=3-4 bits (CR-5 accepted). Shunt-FET hardware half stands as designed (T ~50-100 ns vs 141 ns). FIRMWARE DEPENDENCY must be named in the design doc so it cannot be silently dropped: without the dither the requirement fails by 4.4-8.9x and no hardware on this board can fix it. Dither must be PWM-domain, not 60 fps frame-domain - a 4.4% dither at 60 Hz breaches IEEE 1789 NOEL on its own.",
+   "phase": "P2",
+   "ts": "2026-07-28T20:03:51"
+  },
+  {
+   "what": "Q4 CLOSED: same-reel sourcing; 24C32 EEPROM fitted but shipped empty; PAR-REQ-16 and PAR-REQ-17 to be formally amended with original text quoted",
+   "why": "No measurement instrument exists today, so colour matching rests on same-reel binning. The EEPROM is fitted so that decision stays reversible. Amending rather than quietly failing PAR-REQ-16 keeps the record honest about what was changed by decision.",
+   "phase": "P2",
+   "ts": "2026-07-28T20:03:51"
+  },
+  {
+   "what": "PAR-REQ-16 and PAR-REQ-17 formally amended (AMD-01, AMD-02 in requirements.md s0), original text quoted",
+   "why": "AMD-01: a chromaticity/flux bin is not an orderable attribute on LCSC/JLC and the selected vendor publishes none, so the BOM line was unbuildable; replaced by single-reel procurement for the whole build. This is a REDUCTION in guarantee, not an equivalent - same-reel is an empirical correlation, a published bin is a contractual limit - so PAR-REQ-06 is carried at reduced confidence with bench verification. AMD-02: hardware (divider + 24C32) is fitted; the calibration DATA is deferred because no colorimeter exists for this build.",
+   "phase": "P2",
+   "ts": "2026-07-28T20:05:38"
+  },
+  {
+   "what": "The RJ45 notch is the coordinator's to implement via a central board_init --cutout flag. This run does NOT hand-edit Edge.Cuts and does NOT shrink the outline.",
+   "why": "Both daughters need the notch, so it is being added centrally rather than worked around per-run. The notch stays a hard keepout in constraints.json meanwhile. Coordinator will confirm the flag exists before this run reaches P5. Supersedes the OPEN-7 remediation (hand Edge.Cuts edit) recorded at H1; the OPEN-7 coordinate-translation trap under fixed-outline board_init still stands and must be re-raised at H2.",
+   "phase": "P2",
+   "ts": "2026-07-28T20:05:38"
   }
  ],
  "history": [
@@ -198,6 +240,65 @@
    "what": "ICD s7.6 internal-air figures are not self-consistent: 69 C (at) vs 56 C (af). Convection is near-linear in dT at this scale, so ~2x the box heat must give ~2x the rise: the ICD own af point (31 K at ~9.9 W) scaled to ~19.2 W gives ~60 K = ~85 C, not 69 C. Independent Hoffman/Rittal calc gives 89-115 C at a 25 C room. Optimistic by 20-46 K. The 56 C af figure survives only at a 25 C room ambient.",
    "why_daughter_cannot_absorb": "every emitter thermal budget on this board is keyed to these figures, and the selected emitter family Topr max is +85 C",
    "ask": "re-derive and re-issue s7.6 with a stated room ambient, a self-consistent at figure, and a sealed-vs-vented statement"
+  },
+  {
+   "ts": "2026-07-28T20:03:50",
+   "event": "human",
+   "checkpoint": "1",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-07-28T20:03:51",
+   "event": "decision",
+   "what": "Q1 CLOSED: enclosure sealed with LED heat conducted through the wall (not vented)"
+  },
+  {
+   "ts": "2026-07-28T20:03:51",
+   "event": "decision",
+   "what": "Q2 CLOSED: emitter is RGB 3-in-1 + separate white discrete, superseding D3's integrated 4-in-1"
+  },
+  {
+   "ts": "2026-07-28T20:03:51",
+   "event": "decision",
+   "what": "Q3 CLOSED: PAR-REQ-01 met by hardware + firmware. Strict reading (5% perceived, gamma 2.2) binds."
+  },
+  {
+   "ts": "2026-07-28T20:03:51",
+   "event": "decision",
+   "what": "Q4 CLOSED: same-reel sourcing; 24C32 EEPROM fitted but shipped empty; PAR-REQ-16 and PAR-REQ-17 to be formally amended with original text quoted"
+  },
+  {
+   "ts": "2026-07-28T20:05:38",
+   "event": "decision",
+   "what": "PAR-REQ-16 and PAR-REQ-17 formally amended (AMD-01, AMD-02 in requirements.md s0), original text quoted"
+  },
+  {
+   "ts": "2026-07-28T20:05:38",
+   "event": "decision",
+   "what": "The RJ45 notch is the coordinator's to implement via a central board_init --cutout flag. This run does NOT hand-edit Edge.Cuts and does NOT shrink the outline."
+  },
+  {
+   "ts": "2026-07-28T20:05:38",
+   "event": "icd_s76_provisional",
+   "status": "carrier asked to re-derive ICD s7.6 internal-air figures; request is open",
+   "instruction": "treat 69 C as PROVISIONAL until re-issued",
+   "h2_deliverable": "state how this board thermal margins move if internal air is 85-90 C instead of 69 C"
+  },
+  {
+   "ts": "2026-07-28T20:05:39",
+   "event": "carrier_requests_status",
+   "CR-1_ID_ADC": "requested, BLOCKS P4",
+   "CR-2_s7.2_coords": "requested, blocks P5",
+   "CR-3_14bit_4.883kHz": "passed on",
+   "CR-4_phase_stagger": "passed on, noted free and worth taking",
+   "CR-5_dither": "ACCEPTED as a firmware commitment",
+   "CR-6_s7.6": "raised as blocking"
+  },
+  {
+   "ts": "2026-07-28T20:05:39",
+   "event": "phase",
+   "phase": "P3",
+   "prev": "P2"
   }
  ]
 }

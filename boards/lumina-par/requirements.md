@@ -22,6 +22,61 @@ TPS2378-class PD controller plus a 100 V buck; the re-derived budget is
 
 ---
 
+## 0. Formal amendments (owner decision at H1, 2026-07-28)
+
+These requirements were **changed by decision at the H1 checkpoint**, not quietly
+failed. The original text is quoted in full so the record shows exactly what was
+altered and why. Both amendments follow from the H1-Q4 decision: **same-reel
+sourcing, with the EEPROM fitted but shipped empty**, because no colour-measuring
+instrument exists for this build today.
+
+### AMD-01 - PAR-REQ-16 changes from a binning specification to a same-reel sourcing requirement
+
+> **Original (brief `03` s4, PAR-REQ-16):** "LED binning specified in the BOM for
+> all four channels. Unbinned parts across 8 fixtures will not satisfy
+> PAR-REQ-06."
+
+**Amended to:** *All emitters for the whole build shall be procured in a single
+transaction from a single reel per part number, and the reel/date code shall be
+recorded in the build record. A chromaticity or flux bin shall be specified in the
+BOM wherever the vendor publishes one; where the vendor publishes none, the
+same-reel requirement stands in its place.*
+
+**Why it could not be met literally:** LCSC/JLC does not generally expose a
+chromaticity or flux bin as an orderable attribute, and the selected emitter
+vendor publishes no bin data at all (`research/led-emitter.md` s9). A BOM line
+demanding a bin that cannot be ordered is unbuildable. Parts from one reel are
+same-batch and closely matched in practice, which is the outcome PAR-REQ-16 was
+written to obtain. **This is a genuine reduction in guarantee, not an equivalent
+substitution:** same-reel is an empirical correlation, whereas a published bin is
+a contractual limit. PAR-REQ-06 (consistent colour across fixtures) is therefore
+carried at **reduced confidence** and its verification moves to a bench comparison
+of the assembled fixtures.
+
+### AMD-02 - PAR-REQ-17's calibration data is deferred, not the hardware
+
+> **Original (brief `03` s4, PAR-REQ-17):** "Provide for per-fixture calibration:
+> measured per-channel scaling stored in the daughter board's ID EEPROM
+> (CAR-REQ-07, EEPROM option) so firmware can normalise fixtures to each other.
+> If the resistor-divider ID option is chosen instead, calibration has to live on
+> the host, and that trade must be made deliberately."
+
+**Amended to:** *The board shall fit the ID divider bottom leg AND a 24C32 I2C
+EEPROM. The EEPROM ships **empty**: per-channel scaling coefficients are not
+measured or populated for the first build. The provision is retained so that
+calibration can be added later without a respin.*
+
+**Why:** the premise that EEPROM and divider are alternatives is not what ICD-01
+says - s2/s3.3 has them coexisting, the divider carrying board type and the
+EEPROM per-unit calibration, which is why the second dedicated ID pin was deleted.
+So the "deliberate trade" the original text asks for does not arise; both are
+fitted. What is genuinely deferred is the **data**, because there is no
+colorimeter or spectrometer in this project today (H1-P10). **Consequence to
+carry:** until the EEPROM is populated, fixture-to-fixture matching rests entirely
+on AMD-01's same-reel sourcing.
+
+---
+
 ## 1. Function
 
 The colour and mood workhorse of the LUMINA fixture set: an RGBW par daughter
