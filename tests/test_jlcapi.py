@@ -1458,3 +1458,30 @@ def test_file_key_reused_when_sha_unchanged(tmp_path, monkeypatch, api_env,
     assert fake3.names()[0] == "upload_gerber"
     aq3 = json.loads((fab / "api_quote.json").read_text(encoding="utf-8"))
     assert aq3["file_key"] == "FKEY2"
+
+
+def test_ship_method_selector(tmp_path, monkeypatch, api_env, capsys):
+    """--ship-method picks a quoted option by name (case-insensitive,
+    options or showOptions); an unquoted name refuses."""
+    pcb, fab, qj = make_fab(tmp_path)
+    ships = [{"options": "DHL EXPRESS", "showOptions": "DHL Express",
+              "cost": "23.84"},
+             {"options": "HKTHZXR-RMB",
+              "showOptions": "Global Standard Direct Line",
+              "cost": "6.39"}]
+    fake = quote_session(price=40.0, ship=ships)
+    monkeypatch.setattr(order_submit, "_make_session", lambda: fake)
+    assert order_submit.main(submit_argv(
+        pcb, fab, qj, "--api", "--country", "US",
+        "--ship-method", "global standard direct line")) == 0
+    aq = json.loads((fab / "api_quote.json").read_text(encoding="utf-8"))
+    assert aq["shipping_method"] == "HKTHZXR-RMB"
+    assert aq["shipping_cost"] == 6.39
+    assert aq["grand_total"] == 46.39
+
+    fake2 = quote_session(price=40.0, ship=ships)
+    monkeypatch.setattr(order_submit, "_make_session", lambda: fake2)
+    assert order_submit.main(submit_argv(
+        pcb, fab, qj, "--api", "--ship-method", "carrier pigeon")) == 2
+    order = json.loads((fab / "order.json").read_text(encoding="utf-8"))
+    assert "not in the quoted shipList" in json.dumps(order["api"])

@@ -342,7 +342,8 @@ def _scope_note(man: dict) -> None:
 
 
 def _api_quote(session, man: dict, fab_dir: Path, prior_steps=None,
-               country: str | None = None) -> str:
+               country: str | None = None,
+               ship_method: str | None = None) -> str:
     """uploadGerber -> audit -> calculate -> fab/api_quote.json. NEVER calls
     create. Returns the verdict recorded in man['api']."""
     zip_info = man["artifacts"].get("gerber_zip")
@@ -436,8 +437,23 @@ def _api_quote(session, man: dict, fab_dir: Path, prior_steps=None,
     shipping_cost = None
     if isinstance(ship_list, list) and ship_list \
             and isinstance(ship_list[0], dict):
-        shipping_method = ship_list[0].get("options")
-        shipping_cost = _to_num(ship_list[0].get("cost"))
+        chosen = ship_list[0]
+        if ship_method:
+            want = ship_method.strip().lower()
+            chosen = next(
+                (s for s in ship_list if isinstance(s, dict)
+                 and (str(s.get("options", "")).lower() == want
+                      or str(s.get("showOptions", "")).lower() == want)),
+                None)
+            if chosen is None:
+                names = ", ".join(
+                    f"{s.get('showOptions')} ({s.get('options')})"
+                    for s in ship_list if isinstance(s, dict))
+                raise ApiRefused(
+                    f"--ship-method {ship_method!r} is not in the quoted "
+                    f"shipList; available: {names}")
+        shipping_method = chosen.get("options")
+        shipping_cost = _to_num(chosen.get("cost"))
     # the confirm token attests the GRAND total (pcb + selected freight) so
     # freight cannot ride outside the human's attestation
     rp = _to_num(real_price)
@@ -772,6 +788,10 @@ def main(argv: list[str] | None = None) -> int:
                          "(e.g. US); without it calculate returns no "
                          "shipList and the grand-total token cannot carry "
                          "freight")
+    ap.add_argument("--ship-method",
+                    help="pick a quoted shipList option by its options or "
+                         "showOptions name (case-insensitive; default: the "
+                         "first quoted option); refuses if not quoted")
     ap.add_argument("--api", action="store_true",
                     help="live QUOTE-ONLY API flow (upload -> audit -> "
                          "calculate -> fab/api_quote.json); never creates "
@@ -833,7 +853,7 @@ def main(argv: list[str] | None = None) -> int:
                 api_verdict = _api_quote(
                     session, man, Path(args.fab_dir),
                     prior_steps=(prior or {}).get("human_steps"),
-                    country=args.country)
+                    country=args.country, ship_method=args.ship_method)
         except ApiRefused as exc:
             if not exc.recorded:
                 man["api"].update({"verdict": "refused", "note": str(exc)})
