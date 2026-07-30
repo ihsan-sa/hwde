@@ -153,3 +153,40 @@
 	(constraint clearance (min 1.3mm))
 	(condition "(A.NetName == '/poe/POE_TAP_A1' || A.NetName == '/poe/POE_TAP_A2' || A.NetName == '/poe/POE_TAP_B1' || A.NetName == '/poe/POE_TAP_B2') && (B.NetName == '/ETH_TXP' || B.NetName == '/ETH_TXN' || B.NetName == '/ETH_RXP' || B.NetName == '/ETH_RXN') && !(A.Type == 'Pad' && B.Type == 'Pad')")
 	(severity error))
+
+# ---------------------------------------------------------------------------
+# PoE tap DIFFERENTIAL pair - A1 vs A2, and B1 vs B2.
+#
+# check_creepage CANNOT enforce this and never will without a model change.
+# It computes dv = v_hv - v_other from constraints.json `voltages`, which is a
+# net-to-REFERENCE table, and skips any pair with abs(dv) <= 30 V. All four PoE
+# centre taps are declared 57 V, so dv = 0 for these two pairs and they are
+# NEVER EVALUATED - yet A1/A2 are the two AC INPUTS of external bridge D2 (and
+# B1/B2 of D3), so the full line potential sits across each pair.
+#
+# This was found at P8 by hand, not by any gate: A1 <-> A2 measured 0.3292 mm
+# on all four layers. It was then fixed to 0.6502 mm (F.Cu) / 0.6524 mm (inner,
+# B.Cu) by moving both transition vias. A SECOND pair on the same two nets, at
+# 0.5500 mm, was hidden behind the first and fixed in the same pass. B1 <-> B2
+# was already 1.4778 mm.
+#
+# This rule exists so DRC holds that line from now on. Without it, any future
+# reroute in the D2/D3 fan-in silently reopens a 57 V gap and NOTHING reports it.
+# Same role as magjack_isolation_barrier above: encode in DRC what the
+# voltage-derived checker structurally cannot express.
+#
+# Threshold 0.60 mm = IPC-2221B table B2 external, 51-100 V band - deliberately
+# NOT the 0.635 mm adopted board-wide, because 0.635 mm is unreachable in the
+# north pocket (boxed in by the SHIELD board-lock oval, SHIELD's B.Cu escape and
+# the 1.30 mm ETH barrier; the balanced optimum is ~0.65 mm and buying more
+# would rob the SHIELD gap to pay this one). A rule set to an unreachable value
+# gets waived, which is worse than a rule that holds a real line.
+#
+# Pad-pair exclusion follows the same reasoning as the HV_48V rules: J1's own
+# VC1-VC4 lead frame is package geometry, not a routing choice.
+# See LEARNINGS 2026-07-29 [check_creepage][gates].
+# ---------------------------------------------------------------------------
+(rule "poe_tap_differential_pair"
+	(constraint clearance (min 0.6mm))
+	(condition "((A.NetName == '/poe/POE_TAP_A1' && B.NetName == '/poe/POE_TAP_A2') || (A.NetName == '/poe/POE_TAP_B1' && B.NetName == '/poe/POE_TAP_B2')) && !(A.Type == 'Pad' && B.Type == 'Pad')")
+	(severity error))

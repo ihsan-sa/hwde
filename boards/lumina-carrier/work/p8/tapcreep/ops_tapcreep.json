@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "_comment": [
+    "A-side PoE tap differential creepage fix (work order tapcreep).",
+    "Both transition vias move to the balanced optimum found by solve.py and drop",
+    "0.60 -> 0.50 mm (min_via_diameter=0.5, min_via_annular_width=0.1 with the",
+    "0.3 mm drill = exactly legal; via 40e3f5b2 on POE_TAP_A2 is already 0.5/0.3).",
+    "A1 via 49f94328 (49.650,74.213) -> (49.675,74.325)",
+    "A2 via 27cb891e (49.200,73.400) -> (49.200,73.275)",
+    "Each via's F.Cu approach stub and B.Cu departure run are re-laid to the new",
+    "position; every other segment on both nets is untouched, so both legs keep",
+    "their original topology, layers, widths (0.2 mm) and endpoints.",
+    "route_edit applies all adds BEFORE all removes (LEARNINGS 2026-07-29",
+    "[route_edit][kicad]); no add here shares a position with a removed item",
+    "within the 0.001 mm dedup tolerance, so nothing is silently skipped."
+  ],
+  "ops": [
+    {"op": "add_via", "at": [49.675, 74.325], "size": 0.5, "drill": 0.3,
+     "net": "/poe/POE_TAP_A1"},
+    {"op": "add_track", "start": [48.5, 74.213], "end": [49.675, 74.325],
+     "width": 0.2, "layer": "F.Cu", "net": "/poe/POE_TAP_A1"},
+    {"op": "add_track", "start": [49.675, 74.325], "end": [49.65, 80.85],
+     "width": 0.2, "layer": "B.Cu", "net": "/poe/POE_TAP_A1"},
+
+    {"op": "add_via", "at": [49.2, 73.275], "size": 0.5, "drill": 0.3,
+     "net": "/poe/POE_TAP_A2"},
+    {"op": "add_track", "start": [49.2, 73.275], "end": [50.25, 72.25],
+     "width": 0.2, "layer": "F.Cu", "net": "/poe/POE_TAP_A2"},
+    {"op": "add_track", "start": [49.2, 73.275], "end": [48.6, 74.0],
+     "width": 0.2, "layer": "B.Cu", "net": "/poe/POE_TAP_A2"},
+
+    {"op": "remove", "uuid": "49f94328-a37d-4f7c-b53f-eb7e557a1dbc"},
+    {"op": "remove", "uuid": "9450339a-8ba1-4793-81c1-4b52f220f07b"},
+    {"op": "remove", "uuid": "a5fa8757-ca7a-4483-bab9-15c271ee76c1"},
+    {"op": "remove", "uuid": "27cb891e-a966-4993-9e66-76dc1fbc2448"},
+    {"op": "remove", "uuid": "e69731be-9d4d-4806-a1a5-49b4bca1f3df"},
+    {"op": "remove", "uuid": "97a60d10-ab0b-4a39-b631-71423086b335"}
+  ]
+}

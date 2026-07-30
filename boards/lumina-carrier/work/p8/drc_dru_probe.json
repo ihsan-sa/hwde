@@ -1,0 +1,554 @@
+{
+  "script": "gate",
+  "gate": "drc_routed",
+  "phase": "P7",
+  "tool": "drc",
+  "input": "boards\\lumina-carrier\\kicad\\lumina-carrier.kicad_pcb",
+  "status": "fail",
+  "criteria": {
+    "fail_severities": [
+      "error",
+      "warning"
+    ],
+    "max_count": 0
+  },
+  "counts": {
+    "total": 17,
+    "by_severity": {
+      "error": 17
+    },
+    "by_source": {
+      "drc": 17
+    }
+  },
+  "failing_count": 17,
+  "failing": [
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        46.3,
+        72.013
+      ],
+      "layer": "F.Cu",
+      "net": "/poe/POE_TAP_A1",
+      "refs": [],
+      "msg": "Clearance violation (rule 'poe_tap_differential_pair' clearance 0.9000 mm; actual 0.8082 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/poe/POE_TAP_A1] on F.Cu, length 3.1113 mm",
+          "pos": [
+            46.3,
+            72.013
+          ],
+          "uuid": "3ac043d9-08e9-4d25-8403-9d3a6e6cf578"
+        },
+        {
+          "msg": "Via [/poe/POE_TAP_A2] on F.Cu - B.Cu",
+          "pos": [
+            49.2,
+            73.275
+          ],
+          "uuid": "caf1ddeb-f4b1-4819-91d7-53666b4efae8"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        49.2,
+        73.275
+      ],
+      "layer": "F.Cu",
+      "net": "/poe/POE_TAP_A2",
+      "refs": [],
+      "msg": "Clearance violation (rule 'poe_tap_differential_pair' clearance 0.9000 mm; actual 0.8002 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/poe/POE_TAP_A2] on F.Cu, length 1.4674 mm",
+          "pos": [
+            49.2,
+            73.275
+          ],
+          "uuid": "6d2b4ff1-6b0c-4d89-ac54-395f5f194a72"
+        },
+        {
+          "msg": "Track [/poe/POE_TAP_A1] on F.Cu, length 1.1803 mm",
+          "pos": [
+            48.5,
+            74.213
+          ],
+          "uuid": "f4487942-6923-4734-aba0-199a38eb9be7"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        49.2,
+        73.275
+      ],
+      "layer": "F.Cu",
+      "net": "/poe/POE_TAP_A2",
+      "refs": [],
+      "msg": "Clearance violation (rule 'poe_tap_differential_pair' clearance 0.9000 mm; actual 0.6502 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Via [/poe/POE_TAP_A2] on F.Cu - B.Cu",
+          "pos": [
+            49.2,
+            73.275
+          ],
+          "uuid": "caf1ddeb-f4b1-4819-91d7-53666b4efae8"
+        },
+        {
+          "msg": "Track [/poe/POE_TAP_A1] on F.Cu, length 1.1803 mm",
+          "pos": [
+            48.5,
+            74.213
+          ],
+          "uuid": "f4487942-6923-4734-aba0-199a38eb9be7"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        47.45,
+        81.55
+      ],
+      "layer": "F.Cu",
+      "net": "/poe/POE_TAP_A1",
+      "refs": [],
+      "msg": "Clearance violation (rule 'poe_tap_differential_pair' clearance 0.9000 mm; actual 0.8500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Via [/poe/POE_TAP_A1] on F.Cu - B.Cu",
+          "pos": [
+            47.45,
+            81.55
+          ],
+          "uuid": "0c3cf07e-2bad-477e-adef-16ed530a6a20"
+        },
+        {
+          "msg": "Track [/poe/POE_TAP_A2] on B.Cu, length 3.7000 mm",
+          "pos": [
+            48.3,
+            80.3
+          ],
+          "uuid": "74189a96-d0e1-4887-9562-b51f0718897f"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        49.675,
+        74.325
+      ],
+      "layer": "F.Cu",
+      "net": "/poe/POE_TAP_A1",
+      "refs": [],
+      "msg": "Clearance violation (rule 'poe_tap_differential_pair' clearance 0.9000 mm; actual 0.8024 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Via [/poe/POE_TAP_A1] on F.Cu - B.Cu",
+          "pos": [
+            49.675,
+            74.325
+          ],
+          "uuid": "6b5eb8ff-e5ad-4e5d-80f2-e773a70964da"
+        },
+        {
+          "msg": "Track [/poe/POE_TAP_A2] on F.Cu, length 1.4674 mm",
+          "pos": [
+            49.2,
+            73.275
+          ],
+          "uuid": "6d2b4ff1-6b0c-4d89-ac54-395f5f194a72"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        49.675,
+        74.325
+      ],
+      "layer": "F.Cu",
+      "net": "/poe/POE_TAP_A1",
+      "refs": [],
+      "msg": "Clearance violation (rule 'poe_tap_differential_pair' clearance 0.9000 mm; actual 0.6524 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Via [/poe/POE_TAP_A1] on F.Cu - B.Cu",
+          "pos": [
+            49.675,
+            74.325
+          ],
+          "uuid": "6b5eb8ff-e5ad-4e5d-80f2-e773a70964da"
+        },
+        {
+          "msg": "Via [/poe/POE_TAP_A2] on F.Cu - B.Cu",
+          "pos": [
+            49.2,
+            73.275
+          ],
+          "uuid": "caf1ddeb-f4b1-4819-91d7-53666b4efae8"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        49.675,
+        74.325
+      ],
+      "layer": "F.Cu",
+      "net": "/poe/POE_TAP_A1",
+      "refs": [],
+      "msg": "Clearance violation (rule 'poe_tap_differential_pair' clearance 0.9000 mm; actual 0.6524 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Via [/poe/POE_TAP_A1] on F.Cu - B.Cu",
+          "pos": [
+            49.675,
+            74.325
+          ],
+          "uuid": "6b5eb8ff-e5ad-4e5d-80f2-e773a70964da"
+        },
+        {
+          "msg": "Via [/poe/POE_TAP_A2] on F.Cu - B.Cu",
+          "pos": [
+            49.2,
+            73.275
+          ],
+          "uuid": "caf1ddeb-f4b1-4819-91d7-53666b4efae8"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        49.2,
+        73.275
+      ],
+      "layer": "B.Cu",
+      "net": "/poe/POE_TAP_A2",
+      "refs": [],
+      "msg": "Clearance violation (rule 'poe_tap_differential_pair' clearance 0.9000 mm; actual 0.6854 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/poe/POE_TAP_A2] on B.Cu, length 0.9411 mm",
+          "pos": [
+            49.2,
+            73.275
+          ],
+          "uuid": "210a64dc-45b8-453d-a2c7-44371481c2a6"
+        },
+        {
+          "msg": "Via [/poe/POE_TAP_A1] on F.Cu - B.Cu",
+          "pos": [
+            49.675,
+            74.325
+          ],
+          "uuid": "6b5eb8ff-e5ad-4e5d-80f2-e773a70964da"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        48.6,
+        74.0
+      ],
+      "layer": "B.Cu",
+      "net": "/poe/POE_TAP_A2",
+      "refs": [],
+      "msg": "Clearance violation (rule 'poe_tap_differential_pair' clearance 0.9000 mm; actual 0.7250 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/poe/POE_TAP_A2] on B.Cu, length 6.0000 mm",
+          "pos": [
+            48.6,
+            74.0
+          ],
+          "uuid": "3f5d20ff-50a6-4c4c-984b-e1404c51ebf6"
+        },
+        {
+          "msg": "Via [/poe/POE_TAP_A1] on F.Cu - B.Cu",
+          "pos": [
+            49.675,
+            74.325
+          ],
+          "uuid": "6b5eb8ff-e5ad-4e5d-80f2-e773a70964da"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        49.675,
+        74.325
+      ],
+      "layer": "F.Cu",
+      "net": "/poe/POE_TAP_A1",
+      "refs": [],
+      "msg": "Clearance violation (rule 'poe_tap_differential_pair' clearance 0.9000 mm; actual 0.6524 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Via [/poe/POE_TAP_A1] on F.Cu - B.Cu",
+          "pos": [
+            49.675,
+            74.325
+          ],
+          "uuid": "6b5eb8ff-e5ad-4e5d-80f2-e773a70964da"
+        },
+        {
+          "msg": "Via [/poe/POE_TAP_A2] on F.Cu - B.Cu",
+          "pos": [
+            49.2,
+            73.275
+          ],
+          "uuid": "caf1ddeb-f4b1-4819-91d7-53666b4efae8"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        49.675,
+        74.325
+      ],
+      "layer": "F.Cu",
+      "net": "/poe/POE_TAP_A1",
+      "refs": [],
+      "msg": "Clearance violation (rule 'poe_tap_differential_pair' clearance 0.9000 mm; actual 0.6524 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Via [/poe/POE_TAP_A1] on F.Cu - B.Cu",
+          "pos": [
+            49.675,
+            74.325
+          ],
+          "uuid": "6b5eb8ff-e5ad-4e5d-80f2-e773a70964da"
+        },
+        {
+          "msg": "Via [/poe/POE_TAP_A2] on F.Cu - B.Cu",
+          "pos": [
+            49.2,
+            73.275
+          ],
+          "uuid": "caf1ddeb-f4b1-4819-91d7-53666b4efae8"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        48.6,
+        80.0
+      ],
+      "layer": "B.Cu",
+      "net": "/poe/POE_TAP_A2",
+      "refs": [],
+      "msg": "Clearance violation (rule 'poe_tap_differential_pair' clearance 0.9000 mm; actual 0.8532 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/poe/POE_TAP_A2] on B.Cu, length 0.4243 mm",
+          "pos": [
+            48.6,
+            80.0
+          ],
+          "uuid": "3c097738-b70f-49cd-94bd-f80a7d3b5269"
+        },
+        {
+          "msg": "Track [/poe/POE_TAP_A1] on B.Cu, length 6.5250 mm",
+          "pos": [
+            49.675,
+            74.325
+          ],
+          "uuid": "cc8b4114-130c-403b-9724-641e92e4dc72"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        49.2,
+        73.275
+      ],
+      "layer": "F.Cu",
+      "net": "/poe/POE_TAP_A2",
+      "refs": [],
+      "msg": "Clearance violation (rule 'poe_tap_differential_pair' clearance 0.9000 mm; actual 0.8024 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Via [/poe/POE_TAP_A2] on F.Cu - B.Cu",
+          "pos": [
+            49.2,
+            73.275
+          ],
+          "uuid": "caf1ddeb-f4b1-4819-91d7-53666b4efae8"
+        },
+        {
+          "msg": "Track [/poe/POE_TAP_A1] on B.Cu, length 6.5250 mm",
+          "pos": [
+            49.675,
+            74.325
+          ],
+          "uuid": "cc8b4114-130c-403b-9724-641e92e4dc72"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        49.2,
+        73.275
+      ],
+      "layer": "B.Cu",
+      "net": "/poe/POE_TAP_A2",
+      "refs": [],
+      "msg": "Clearance violation (rule 'poe_tap_differential_pair' clearance 0.9000 mm; actual 0.8354 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/poe/POE_TAP_A2] on B.Cu, length 0.9411 mm",
+          "pos": [
+            49.2,
+            73.275
+          ],
+          "uuid": "210a64dc-45b8-453d-a2c7-44371481c2a6"
+        },
+        {
+          "msg": "Track [/poe/POE_TAP_A1] on B.Cu, length 6.5250 mm",
+          "pos": [
+            49.675,
+            74.325
+          ],
+          "uuid": "cc8b4114-130c-403b-9724-641e92e4dc72"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        48.6,
+        74.0
+      ],
+      "layer": "B.Cu",
+      "net": "/poe/POE_TAP_A2",
+      "refs": [],
+      "msg": "Clearance violation (rule 'poe_tap_differential_pair' clearance 0.9000 mm; actual 0.8532 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/poe/POE_TAP_A2] on B.Cu, length 6.0000 mm",
+          "pos": [
+            48.6,
+            74.0
+          ],
+          "uuid": "3f5d20ff-50a6-4c4c-984b-e1404c51ebf6"
+        },
+        {
+          "msg": "Track [/poe/POE_TAP_A1] on B.Cu, length 6.5250 mm",
+          "pos": [
+            49.675,
+            74.325
+          ],
+          "uuid": "cc8b4114-130c-403b-9724-641e92e4dc72"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        48.6,
+        80.0
+      ],
+      "layer": "B.Cu",
+      "net": "/poe/POE_TAP_A2",
+      "refs": [],
+      "msg": "Clearance violation (rule 'poe_tap_differential_pair' clearance 0.9000 mm; actual 0.7334 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/poe/POE_TAP_A2] on B.Cu, length 0.4243 mm",
+          "pos": [
+            48.6,
+            80.0
+          ],
+          "uuid": "3c097738-b70f-49cd-94bd-f80a7d3b5269"
+        },
+        {
+          "msg": "Track [/poe/POE_TAP_A1] on B.Cu, length 2.3087 mm",
+          "pos": [
+            49.65,
+            80.85
+          ],
+          "uuid": "e4671682-6077-42fe-9600-46bc18d006f5"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        48.3,
+        80.3
+      ],
+      "layer": "B.Cu",
+      "net": "/poe/POE_TAP_A2",
+      "refs": [],
+      "msg": "Clearance violation (rule 'poe_tap_differential_pair' clearance 0.9000 mm; actual 0.7334 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/poe/POE_TAP_A2] on B.Cu, length 3.7000 mm",
+          "pos": [
+            48.3,
+            80.3
+          ],
+          "uuid": "74189a96-d0e1-4887-9562-b51f0718897f"
+        },
+        {
+          "msg": "Track [/poe/POE_TAP_A1] on B.Cu, length 2.3087 mm",
+          "pos": [
+            49.65,
+            80.85
+          ],
+          "uuid": "e4671682-6077-42fe-9600-46bc18d006f5"
+        }
+      ]
+    }
+  ]
+}

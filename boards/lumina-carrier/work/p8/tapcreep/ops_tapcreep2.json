@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "_comment": [
+    "Second instance of the SAME A1<->A2 defect, in the D2 fan-in (not the pair",
+    "named in the work order, but covered by its target: >= 0.60 mm between ANY",
+    "POE_TAP_A1 and POE_TAP_A2 copper on the outer layers).",
+    "Before: via 17a75fde (0.6 @ 47.450,81.250) was 0.5500 mm from A2's B.Cu run",
+    "74189a96, and A1's B.Cu run d8da1bcb was 0.5826 mm from A2's corner 3c097738.",
+    "Fix: slide the via 0.300 mm SOUTH, away from A2's westward run, and re-lay its",
+    "two attached stubs. Via stays 0.6 mm - it does not need to shrink here, so it",
+    "keeps its 0.15 mm annular ring rather than dropping to the 0.10 mm minimum.",
+    "Kept east of D2 pad 1's east edge (x=47.42) so this does not become a",
+    "via-in-pad on a through-hole bridge-rectifier land."
+  ],
+  "ops": [
+    {"op": "add_via", "at": [47.45, 81.55], "size": 0.6, "drill": 0.3,
+     "net": "/poe/POE_TAP_A1"},
+    {"op": "add_track", "start": [49.65, 80.85], "end": [47.45, 81.55],
+     "width": 0.2, "layer": "B.Cu", "net": "/poe/POE_TAP_A1"},
+    {"op": "add_track", "start": [47.45, 81.55], "end": [47.0, 81.7],
+     "width": 0.2, "layer": "F.Cu", "net": "/poe/POE_TAP_A1"},
+
+    {"op": "remove", "uuid": "17a75fde-d0ae-4f60-82b9-cdda82aa777c"},
+    {"op": "remove", "uuid": "d8da1bcb-d2c2-49e6-861e-6e78d9cf9295"},
+    {"op": "remove", "uuid": "5ca2efef-3079-4743-93cc-efbc64ecf957"}
+  ]
+}

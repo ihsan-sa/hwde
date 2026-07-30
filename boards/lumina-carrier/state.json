@@ -3,7 +3,7 @@
  "board": "lumina-carrier",
  "workspace": "boards/lumina-carrier",
  "created": "2026-07-28T13:36:22",
- "updated": "2026-07-29T18:29:07",
+ "updated": "2026-07-29T18:55:29",
  "phase": "P8",
  "gates": {
   "erc": {
@@ -53,9 +53,9 @@
   "drc_routed": {
    "phase": "P7",
    "status": "pass",
-   "attempts": 1,
+   "attempts": 2,
    "last": {
-    "ts": "2026-07-29T17:21:37",
+    "ts": "2026-07-29T18:55:29",
     "status": "pass",
     "failing_count": 0,
     "total": 0
@@ -63,6 +63,12 @@
    "history": [
     {
      "ts": "2026-07-29T17:21:37",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0
+    },
+    {
+     "ts": "2026-07-29T18:55:29",
      "status": "pass",
      "failing_count": 0,
      "total": 0
@@ -457,6 +463,12 @@
    "why": "Read work/p8/creep_located.json item-by-item instead of trusting the summary. Ten of the fifteen creepage errors are genuinely unfixable pad-to-pad inside one package (U1 SOIC-8 VSS pad 9 against pads 1,2,3,5,6,7,8 all at exactly 0.200 mm = the lead pitch; U20 0.295 mm; U22 0.375 mm and 0.250 mm). But FOUR are PAD-to-TRACK and ONE is TRACK-to-TRACK, all on the /poe/SHIELD or /poe/LED_Y_A nets inside J1 at 0.203-0.220 mm. A track can move; a lead frame cannot. And the connector's own pad-to-pad shield-to-tap gap is 0.6029 mm measured shape-aware, so J1 itself holds 0.60 mm - it is the ROUTED shield copper that erodes it to 0.21 mm. Second cluster: residual_report.json marks all 53 undersized_track items blocked, which is true for widening IN PLACE (the room figure is the widest each segment can be), but the blocker in five cases is a 0.2 mm signal net or a switch node that can move instead. +12V carries 2.0 A through a 0.20 mm x 1.98 mm segment at (66.35,112.05)-(67.75,113.45) in series with the J3 feed - 0.20 mm of 1 oz copper is worth about 0.3 A at dT=10 C, so that is a 6x overload and the worst single number on the board, not a modelling artifact. Dispatching both as ONE bounded fixer order with a 2-attempt-per-item budget and an explicit instruction that a measured unfixable is a better answer than a reroute that trades EMI for a width figure.",
    "phase": "P8",
    "ts": "2026-07-29T18:29:07"
+  },
+  {
+   "what": "A-SIDE TAP CREEPAGE FIXED: POE_TAP_A1 to A2 = 0.3292 -> 0.6502 mm (F.Cu) / 0.6524 mm (In1, In2, B.Cu) against 0.60 mm required. drc_routed still 0/0, verify failing multiset BIT-IDENTICAL to baseline. A SECOND hidden pair on the same two nets was found and fixed in the same pass.",
+   "why": "Two vias moved and dropped 0.6 -> 0.5 mm (min_via_diameter 0.5, annular 0.1 mm = board and JLC 4-layer minimum; via 40e3f5b2 on this same net was already 0.5/0.3, so this is existing practice). The pocket is boxed in on every side - SHIELD board-lock oval J1-19 to the NW, SHIELD B.Cu escape to the NE/E, and the DRC-enforced magjack_isolation_barrier 1.30 mm rule to the S - so the fixer grid-searched both positions maximising the WORST margin rather than the headline gap. Its first optimum gave a 0.726 mm tap gap but left only +0.005 mm to SHIELD, i.e. it robbed one 57 V gap to pay another; the balanced answer equalises them at ~0.65 mm. Final margins: tap +0.05 north / +0.13 south, SHIELD +0.047, ETH barrier +0.060. The 1.30 mm centre-to-centre target in my work order is UNREACHABLE in the north pocket (achieved 1.136 mm) and I was wrong to ask for it. MOST IMPORTANT: the work order named ONE pair and there were TWO. A1's south transition via 17a75fde sat 0.5500 mm from A2's B.Cu run and 0.5826 mm from its corner - also a differential 57 V pair, also below 0.60 mm, and invisible until the 0.3292 mm pair was fixed because a worst-pair-only sweep hides its siblings. Fixed in a second separately-DRC-verified edit. B-side confirmed unchanged at 1.4778 mm on all four layers. That makes FOUR distinct instances on this board of a safety check reporting nothing because it was aimed at the wrong thing, and the fourth was hidden by the third.",
+   "phase": "P8",
+   "ts": "2026-07-29T18:53:39"
   }
  ],
  "history": [
@@ -892,6 +904,19 @@
    "ts": "2026-07-29T18:29:07",
    "event": "decision",
    "what": "TRIAGE REOPENED on two P8 residual clusters my predecessor closed by classification rather than by attempt: 5 of the 15 check_creepage errors are NOT package-internal, and 5 of the 53 undersized tracks carry 1.0-2.0 A on 0.20 mm copper"
+  },
+  {
+   "ts": "2026-07-29T18:53:39",
+   "event": "decision",
+   "what": "A-SIDE TAP CREEPAGE FIXED: POE_TAP_A1 to A2 = 0.3292 -> 0.6502 mm (F.Cu) / 0.6524 mm (In1, In2, B.Cu) against 0.60 mm required. drc_routed still 0/0, verify failing multiset BIT-IDENTICAL to baseline. A SECOND hidden pair on the same two nets was found and fixed in the same pass."
+  },
+  {
+   "ts": "2026-07-29T18:55:29",
+   "event": "gate",
+   "gate": "drc_routed",
+   "status": "pass",
+   "attempt": 2,
+   "failing_count": 0
   }
  ]
 }
