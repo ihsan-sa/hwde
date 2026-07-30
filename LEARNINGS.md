@@ -1632,6 +1632,43 @@ Two more from the same fix, both cheap and both worth doing every time:
   `magjack_isolation_barrier` exists: a voltage-derived checker cannot see a hipot/differential
   requirement, so without the rule any future reroute silently reopens the gap and nothing reports it.
 
+## 2026-07-30 [fab_export][order_submit][jlcapi] The gerber sha256 is NOT a design fingerprint - every export changes it, so a sha-bound order latch self-invalidates
+`fab_export.py` re-exports gerbers whose headers embed a creation timestamp, so **re-running it on an
+unmodified board produces a different zip sha256**. Measured on lumina-carrier: sha
+`3afe6590...` -> `4e192c7e...` across two exports 55 minutes apart with **zero** design change - and the
+only differing line in the entire 12-file package was
+`; DRILL file KiCad 10.0.3 date 2026-07-30T07:07:03` vs `...T08:02:01`. Everything else, including all
+four copper layers, was byte-identical.
+Two consequences that matter:
+1. **A changed sha does not prove the design changed**, and a coordinator or reviewer asking "re-upload,
+   the board changed" may be reacting to nothing. Diff the package with the date lines filtered
+   (`grep -v -iE "creationdate|generation software|^G04 .*20[0-9][0-9]"`) before believing it.
+2. `order_submit`'s order latch is **gerber-sha-bound**, so a harmless re-export invalidates a
+   previously approved quote token and forces a re-upload + re-audit. That is fail-safe (it errs
+   toward re-checking before money), but it means **the sha cannot be used as a "has the design
+   changed" test** - only as a "is this exact file the one I quoted" test.
+Fix worth having: a canonicalised design hash (copper + drill coordinates only, headers stripped) as a
+separate field alongside the file sha.
+
+## 2026-07-30 [jlcapi][order_submit] The Open API has NO assembly surface at all - it cannot answer any PCBA question, even to refute one
+Confirmed by grepping the entire `calculate` response and request: the only assembly-adjacent keys in
+the whole payload are `stencilFee`, `originStencilMoney` and `stencilLayer` - and a stencil is a
+PCB-side product. `calculate_request` carries exactly `{achieveDate, country, fileKey, orderType,
+pcbParam}`: **there is no `bomParam`, no `smtParam`, no assembly quantity, no BOM or CPL reference.**
+`pcb_cost_info` is entirely fabrication line items (`insideCuprumThicknessFee`, `adornPutFee`,
+`halfHoleFee`, ...).
+So questions of the form "does ordering bare PCBs now foreclose assembling a subset later?" are
+**not answerable from this API in either direction** - it has no concept of an assembly order to
+relate a bare order to. Extends the existing "PCB ordering only, no assembly/PCBA API" limit with the
+practical corollary: do not attempt to infer PCBA business rules from `calculate` output, and say
+plainly that it cannot be determined rather than reasoning from the absence of a field.
+Useful real numbers the API *does* give, which the estimator does not: at qty 10 the bare-PCB total was
+**35.47 USD**, of which **17.07 USD (48 %) is `insideCuprumThicknessFee`** - the inner-copper-weight
+charge on a 4-layer 1 oz stackup. `order_quote`'s estimate for the same 10 boards was 9.90 USD of PCB,
+i.e. **3.6x low**, because it models outer-layer area and not inner-copper weight. Also: JLC rejects
+non-standard quantities (`pcb_qty_error` code 2103 for qty 14) but accepts 5/10/15/30, and PCB price is
+**not monotonic per unit** - 10 boards cost 35.47 (3.55 each) while 15 cost 62.70 (4.18 each).
+
 ## 2026-07-30 [board_init][dfm][gates] `min_hole_to_hole: 0.25` at severity WARNING is the SECOND sub-fab floor in the shipped `.kicad_pro` - and it hid two real defects until P9
 Companion to the `min_track_width: 0.1` entry, same shape, found the same way. The generated
 `.kicad_pro` carries `min_hole_to_hole: 0.25` where **every** JLC profile in

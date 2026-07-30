@@ -3,7 +3,7 @@
  "board": "lumina-carrier",
  "workspace": "boards/lumina-carrier",
  "created": "2026-07-28T13:36:22",
- "updated": "2026-07-30T07:12:41",
+ "updated": "2026-07-30T08:04:57",
  "phase": "P10",
  "gates": {
   "erc": {
@@ -559,6 +559,12 @@
    "why": "Both DFM defects were GENERATOR output and both were invisible to DRC by configuration, not by bad luck: the .kicad_pro shipped min_hole_to_hole 0.25 mm at severity WARNING, so 0.3136 mm and 0.3505 mm pairs never fired. That is the SECOND sub-fab floor in the generated project file after min_track_width 0.1 vs JLC 0.1016. Raised to 0.5 mm at severity error and drc_routed still reads 0/0 - board-wide minimum is 0.5016 mm across 440 drills - so it cost nothing and would have caught the first defect at P7. Repair choices were made on measured consequences rather than convenience: for the +3V3 via pair, WHICH via to delete mattered because removing one leaves a 2-via cluster that still passes check_current's 1 A / 2-via rule while removing the other would have split it into two 1-via clusters and ADDED two violations; and the deleted via's orphaned stub was rebuilt at the PWR_3V3 netclass width so no new undersized_track appeared. For the U22 stitch via - the documented via-drill-vs-pad-drill blind spot verbatim, a stitch 0.35 mm from a thermal-via drill inside the very pad it was stitching - it was MOVED to the cell centroid rather than deleted, which held the via count constant so no check_current cluster changed. API LEG: upload succeeded with file_key sha256 3afe6590... matching our zip byte for byte, audit ok code 200 with red[] and yellow[] both EMPTY, and JLC's own audit independently read back setLength 100.0 x setWidth 80.0 - the outline confirmed by the fab, not just by us. One real API finding to carry: qty 14 was REJECTED with pcb_qty_error 2103 because JLC PCB quantities are restricted to standard steps, so the order is 15, not the 14 the cost model had assumed throughout. THE COMPARISON THAT MUST NOT BE MADE CARELESSLY: 62.70 USD real is BARE PCB ONLY because JLC's Open API is PCB-ordering only with no assembly API, while the 195.20 USD estimate includes ~167 USD of assembly service. They are not the same scope and neither includes component purchase cost. Also noted: copper_weight_source reported 'no architecture/stackup.md -> default 1 oz' although that file exists, so the 1 oz value was defaulted rather than read - correct by luck here.",
    "phase": "P10",
    "ts": "2026-07-30T07:12:41"
+  },
+  {
+   "what": "H5 FREIGHT QUOTE COMPUTED, NOTHING CREATED: qty 10 to US 94107, bare PCB 35.47 + Global Standard Direct Line 7.72 = GRAND TOTAL 43.19 USD. qty 10 confirmed accepted by the API. Order creation NOT run and remains latched.",
+   "why": "Owner asked for 'standard direct line shipping, as cheap as possible' and that maps to a LITERAL API option name rather than a judgement: HKTHZXR-RMB / showOptions 'Global Standard Direct Line', 7.7179 USD, 8-13 business days. I re-ran calculate with --ship-method so the 43.19 grand total is API-computed and matches the confirm token format, rather than adding two numbers by hand. TWO CHEAPER ROWS EXIST AND BOTH ARE TRAPS: CADHL 'My DHL Account' and CAFedEx 'My FedEx Account' at 2.50 USD are carrier-ACCOUNT options where 2.50 is a handling fee and the real freight is billed to the owner's own DHL/FedEx account - and both return day: null, no transit estimate. Presenting either as 'the cheapest' would be wrong. qty 10 VERIFIED against the API rather than assumed, since 14 was rejected earlier with pcb_qty_error 2103; 10 returned verdict ok. Notable: PCB price is NOT monotonic per unit - 10 boards cost 35.47 (3.55 each) against 15 at 62.70 (4.18 each) - so dropping 15 to 10 saved 27.23 USD and lowered the per-board price. RE-UPLOAD: done, new file_key 3b829e9d, sha 4e192c7e. But the sha change was a FALSE ALARM - the only differing line across the whole 12-file package was the drill file's creation timestamp; all four copper layers were byte-identical, so the design that was audited before is the design audited now. Audit again clean: ok true, code 200, red[] and yellow[] empty, JLC read back 100.0 x 80.0 mm. ASSEMBLY QUESTION ANSWERED HONESTLY AS UNANSWERABLE: I grepped the entire calculate request and response - calculate_request is {achieveDate, country, fileKey, orderType, pcbParam} with no bomParam or smtParam, and the only assembly-adjacent keys anywhere are stencilFee/originStencilMoney/stencilLayer, a stencil being a PCB-side product. The API has no concept of an assembly order, so it can neither confirm nor refute that a bare order forecloses later PCBA. I am not inferring it from the absence of a field.",
+   "phase": "P10",
+   "ts": "2026-07-30T08:04:57"
   }
  ],
  "history": [
@@ -1137,6 +1143,11 @@
    "ts": "2026-07-30T07:12:41",
    "event": "decision",
    "what": "P9 dfm gate PASS (5 errors -> 0, 87 warnings) and P10 order package built. REAL API quote obtained: 62.70 USD for 15 bare PCBs, JLC audit clean, gerber sha256 verified end to end. Second sub-fab floor found and closed: min_hole_to_hole was 0.25 mm at severity warning against JLC's 0.5 mm."
+  },
+  {
+   "ts": "2026-07-30T08:04:57",
+   "event": "decision",
+   "what": "H5 FREIGHT QUOTE COMPUTED, NOTHING CREATED: qty 10 to US 94107, bare PCB 35.47 + Global Standard Direct Line 7.72 = GRAND TOTAL 43.19 USD. qty 10 confirmed accepted by the API. Order creation NOT run and remains latched."
   }
  ]
 }
