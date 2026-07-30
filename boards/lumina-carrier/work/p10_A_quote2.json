@@ -2,7 +2,7 @@
  "script": "order_submit",
  "status": "ready_for_human",
  "board": "lumina-carrier.kicad_pcb",
- "generated": "2026-07-30T09:01:50-07:00",
+ "generated": "2026-07-30T09:01:29-07:00",
  "order_number": null,
  "payment": "HUMAN - this script never submits payment (SPEC P10)",
  "artifacts": {
@@ -67,8 +67,8 @@
  "api": {
   "attempted": true,
   "available": true,
-  "note": "error: unknown_error (http 200, code 2, trace f90769b3cb184f2cb0e6c2312844639d)",
-  "verdict": "error",
+  "note": "API quote fetched: grand total 26.12 (18.4 pcb + 7.7179074627 freight) vs estimate 173.77",
+  "verdict": "ok",
   "quote_real": 18.4,
   "api_quote_json": "boards\\lumina-carrier\\fab\\api_quote.json",
   "file_key": "3b829e9daada4ab494291c84e629f3f3",
@@ -78,6 +78,7 @@
   "Upload boards\\lumina-carrier\\fab\\lumina-carrier_gerbers.zip to https://jlcdfm.com/ and review the DFM report (V6: no public API).",
   "Upload the same zip at https://cart.jlcpcb.com/quote and confirm the real price against the estimate above.",
   "If assembling: upload BOM.csv and CPL.csv, then CHECK THE RENDERED PART PREVIEW for every polarized part (LED/diode/electrolytic) - rotation corrections are the classic failure mode.",
+  "API quote in boards\\lumina-carrier\\fab\\api_quote.json: REAL grand total 26.12 (18.4 pcb + 7.7179074627 freight via HKTHZXR-RMB; our estimate 173.77) - review shipList/achieveDateList/audit findings before any create.",
   "Review, then pay. Payment is always the human's action."
  ]
 }
