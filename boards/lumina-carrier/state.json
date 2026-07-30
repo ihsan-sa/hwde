@@ -3,8 +3,8 @@
  "board": "lumina-carrier",
  "workspace": "boards/lumina-carrier",
  "created": "2026-07-28T13:36:22",
- "updated": "2026-07-29T17:22:05",
- "phase": "P7",
+ "updated": "2026-07-29T17:25:18",
+ "phase": "P8",
  "gates": {
   "erc": {
    "phase": "P4",
@@ -66,6 +66,25 @@
      "status": "pass",
      "failing_count": 0,
      "total": 0
+    }
+   ]
+  },
+  "verify": {
+   "phase": "P8",
+   "status": "fail",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-07-29T17:25:18",
+    "status": "fail",
+    "failing_count": 220,
+    "total": 224
+   },
+   "history": [
+    {
+     "ts": "2026-07-29T17:25:18",
+     "status": "fail",
+     "failing_count": 220,
+     "total": 224
     }
    ]
   }
@@ -816,6 +835,20 @@
    "ts": "2026-07-29T17:22:05",
    "event": "decision",
    "what": "MY C35 MOVE WAS WRONG AND INTRODUCED A SHORT. Both oracles I validated against passed it. Router caught and reverted it."
+  },
+  {
+   "ts": "2026-07-29T17:24:03",
+   "event": "phase",
+   "phase": "P8",
+   "prev": "P7"
+  },
+  {
+   "ts": "2026-07-29T17:25:18",
+   "event": "gate",
+   "gate": "verify",
+   "status": "fail",
+   "attempt": 1,
+   "failing_count": 220
   }
  ]
 }
