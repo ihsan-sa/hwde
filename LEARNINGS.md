@@ -2045,3 +2045,22 @@ entry, so an unclassified business error yields no guidance; (b) the created-lat
 so it guards a deliberate second order but not an ambiguous FIRST one - the case that actually risks
 double-buying. And there is no order list/search endpoint at all (`order/detail` and `wip/get` both
 require a batchNum you must already hold), so after an ambiguous create the portal is the only oracle.
+
+## 2026-07-30 [stackup][ordering] reference/stackups.yaml's JLC04161H-3313 IS NOT A REAL JLC STACKUP
+Verified live: `getImpedanceTemplateSettingList` for 4L / 1.6 mm / 1 oz outer / 0.5 oz inner returns
+exactly three templates - `JLC04161H-自定义` (20220811093551), `JLC04161H-1080B` (202601040426384154,
+L1-L2 0.2444 mm, core 1.065 mm) and `JLC04161H-7628G` (202607130748059522, L1-L2 0.5124 mm, core
+0.500 mm) - and **no -3313**. Swept plateType 0-3 and delamination 0-3; only plateType 1 returns data
+and it always returns the same three. All three carry `enableFlag: false`.
+This matters because stackups.yaml's -3313 entry (prepreg 0.2104 mm, er 4.05) is the ONLY 4-layer entry
+publishing a 100 ohm differential profile, so it is the reason lumina-carrier is 4-layer at all and it
+produced the routed MDI geometry 0.260 / 0.210 / 0.470 mm. Measured against the real templates at that
+same geometry: 1080B = 105.5 ohm (+5.5%), 7628G = 127.6 ohm (+27.6%), vs 99.9 ohm on the phantom.
+1080B is acceptable for 100BASE-TX (2.7% reflection, spec allows +-15% on the cable) but it is a
+DIFFERENT BOARD than the one solved for, and nothing in the pipeline would have said so.
+Fourth instance on this board of the same failure mode - after the hardcoded 1 oz inner copper, the
+`## Chosen` heading miss, and `impedanceFlag: "no"` on an impedance-controlled design - where the ORDER
+asks the fab for a different board than the one designed and verified. Gates check the design against
+its own stackup file; nothing checks the stackup file against what the fab actually sells.
+Rule: validate any impedance-controlled stackup against the vendor's live template list BEFORE solving
+geometry against it, not at order time.

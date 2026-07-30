@@ -65,6 +65,17 @@ stackups:
     controlled_impedance: []
 
   JLC04161H-3313:
+    # WARNING (2026-07-30, verified live against JLC getImpedanceTemplateSettingList):
+    # JLC DOES NOT OFFER "-3313". For 4L/1.6mm/1oz-outer/0.5oz-inner the API returns
+    # exactly three templates, all with enableFlag=false:
+    #   JLC04161H-自定义 (custom)  20220811093551
+    #   JLC04161H-1080B           202601040426384154   L1-L2 0.2444mm, core 1.065mm
+    #   JLC04161H-7628G           202607130748059522   L1-L2 0.5124mm, core 0.500mm
+    # The 0.2104mm prepreg below is NOT purchasable. Boards solved against it get built
+    # on something else: at the routed 0.260/0.210mm geometry, 1080B measures 105.5 ohm
+    # and 7628G 127.6 ohm against a 100 ohm target (er held at 4.05).
+    # BEFORE relying on this for a controlled-impedance board: pick a real template,
+    # confirm its er from JLC rather than assuming 4.05, and re-solve the geometry.
     description: "JLCPCB standard impedance-controlled 4-layer, 1.6 mm (JLC04161H-3313), 1 oz outer / 0.5 oz inner, HASL."
     layers: 4
     thickness_mm: 1.6
