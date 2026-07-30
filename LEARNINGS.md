@@ -1713,3 +1713,18 @@ offset from the footprint's own pad bbox (0603 -> -1.18, 0805 -> -1.44, 1210 -> 
 idempotent, text-surgery only, verified to keep all footprints parsing under kicad-cli 10.0.3 and fplib.
 Run it after every lib_pull, BEFORE board_init - once footprints are placed the offsets are copied into
 the .kicad_pcb and only place_edit move_text can fix them.
+
+## 2026-07-29 [geometry][fixer] A min-over-endpoints segment distance reports a SHORT as clearance
+`work/p7/pad_gap.py`'s `seg_seg_dist`, copied verbatim into `work/p8/tapcreep/capsule.py`, computes the
+minimum over endpoint-to-segment distances. That is exact for DISJOINT segments but returns a positive
+nearest-endpoint number for two segments that properly CROSS - so a dead short reads as clearance. A P8
+fixer's optimiser found and exploited it, producing an "opens by +0.0037 mm" candidate that DRC rejected
+with 2 x "Tracks crossing"; the fixer's own full-board pre-flight passed it too, because the pre-flight
+used the same primitive. Fix is a `seg_cross()` test returning -1.0 on intersection before measuring
+(reference implementation: `work/p8/hvpwr/board_model.py::gap_of`).
+Scope, verified: the SKILL's checkers are unaffected - none of them use this primitive, and
+check_creepage measures with shapely `.distance()`, which correctly yields 0 for intersecting geometry.
+So the damage was wasted fixer iterations, not corrupted gate results, and any board that passes
+drc_routed 0/0 provably has no crossings, which makes its disjoint-segment gaps exact.
+Rule for fixers: ad-hoc geometry helpers must test intersection FIRST, or just use shapely (already a
+dependency). And a model-based pre-flight gates cheap iteration - it never substitutes for the gate.
