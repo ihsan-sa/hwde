@@ -3,7 +3,7 @@
  "board": "lumina-carrier",
  "workspace": "boards/lumina-carrier",
  "created": "2026-07-28T13:36:22",
- "updated": "2026-07-29T17:44:11",
+ "updated": "2026-07-29T18:15:30",
  "phase": "P8",
  "gates": {
   "erc": {
@@ -445,6 +445,12 @@
    "why": "CAUSE CONFIRMED FROM MY OWN HISTORY, not taken on trust: reports/place/silk*.ops.json is 9 files carrying 160 move_text ops, which the P6 placement agent used to take silk violations 236 -> 5. It pushed refdes outward to clear overlaps and nothing pulled them back, so the board was optimised for a zero-warning gate at the cost of assembly legibility. BASELINE (coordinator-measured, my script agrees on the worst offenders): 116 footprints, 116 visible refdes, median offset 4.079 mm, max 12.955 mm, 100 of 116 refdes more than 1 mm beyond their own part's extent. Worst: C2 12.767 mm offset on a 2.699 mm part = +10.067 mm excess; C62 +8.168; R101 +7.551; C81 +7.377; C1 +6.666. A 0603 whose label sits 8.6 mm away is closer to three other parts than its own and is unattributable on a populated board. WORK NOT STARTED, DELIBERATELY: the P8 verify fixer is concurrently writing the same .kicad_pcb (copper: 191 check_current, 19 check_creepage, 8 check_return_path). move_text and copper edits both rewrite the file, so running them concurrently risks a torn write - the same class of failure as the P4 librarian race. Silk work must SERIALIZE after the fixer completes. Approach when it runs: constrained minimisation, not a sweep - batches of move_text with DRC after each, revert any batch that regresses, then re-run drc_routed and confirm 0/0 before verify. Where a label cannot be placed unambiguously, prefer the position whose nearest OTHER part is clearly further away, because a label adjacent to the wrong part is worse than a distant one. Measurement tool at work/refdes_prox.py is the before/after objective.",
    "phase": "P8",
    "ts": "2026-07-29T17:44:11"
+  },
+  {
+   "what": "NEW SAFETY DEFECT the gate CANNOT see: POE_TAP_A1 to POE_TAP_A2 = 0.3295 mm on all four layers, with full line voltage between them. Third instance of the same class.",
+   "why": "check_creepage computes dv = v_hv - v_other and skips any pair with |dv| <= 30 V. Both A-side taps are declared 57 V, so dv = 0 and the pair is NEVER CHECKED - yet A1 and A2 are the two AC INPUTS of bridge D2, so the full line voltage sits across them. Measured 0.3295 mm on all four layers (the two transition vias at (49.650,74.213) and (49.200,73.400), 0.9295 mm centre-to-centre with 0.6 mm pads) against 0.60 mm outer / 0.20 mm inner required. B1-B2 measures 1.4778 mm and is fine, so it is one via pair. THIS IS THE THIRD TIME on this board that a safety check reported nothing because it was looking at the wrong thing: (1) my DRU rule named V48_RAW when the barrier lives on POE_TAP_*; (2) constraints.json voltages omitted the tap nets entirely so the shield-to-tap gap was invisible; (3) now the voltages MODEL cannot express a differential pair, so two nets at the same declared potential with mains-class AC between them are skipped by construction. Two fixes, both owner decisions: declare each bridge's negative-side tap at -57 V (as V48_RTN already is) so the checker sees a 114 V pair - this adds gate failures rather than hiding them, which is the honest direction; or move the A2 via ~0.30 mm NW to fix the geometry. NOT ACTIONED - I am at my context limit and will not start a copper change I cannot verify.",
+   "phase": "P8",
+   "ts": "2026-07-29T18:15:30"
   }
  ],
  "history": [
@@ -860,6 +866,11 @@
    "ts": "2026-07-29T17:44:11",
    "event": "decision",
    "what": "SILK LEGIBILITY requirement accepted and QUEUED (not yet done): refdes must sit within ~1-1.5 mm of their own part while silk overlap/over-copper/edge stay at zero. Cause confirmed as the P6 sweep."
+  },
+  {
+   "ts": "2026-07-29T18:15:30",
+   "event": "decision",
+   "what": "NEW SAFETY DEFECT the gate CANNOT see: POE_TAP_A1 to POE_TAP_A2 = 0.3295 mm on all four layers, with full line voltage between them. Third instance of the same class."
   }
  ]
 }

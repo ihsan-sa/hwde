@@ -50,6 +50,10 @@ def main():
     ap.add_argument("out")
     ap.add_argument("--nets", default=None)
     ap.add_argument("--report", default=None)
+    ap.add_argument("--to-max", action="store_true",
+                    help="widen BLOCKED segments to the largest width the "
+                         "clearance envelope allows (partial; gate still fails)")
+    ap.add_argument("--min-gain", type=float, default=0.05)
     args = ap.parse_args()
 
     bg = geom.load_board(PCB)
@@ -74,6 +78,12 @@ def main():
                     c = bg.net_copper(onet, layer)
                     if not c.is_empty:
                         others.append((onet, c))
+            # UNNETTED pads (37 on this board: U10 x16, J1 x6, U30/U22 x4 ...)
+            # are copper too and are NOT in bg.nets - they bit the first pass
+            # with 4 clearance errors against U10-18.
+            for p in bg.pads_of():
+                if (not p.net) and layer in p.layers:
+                    others.append((f"<NC pad {p.ref}-{p.number}>", p.poly))
             for t in [x for x in tracks if x.layer == layer]:
                 if t.width + 1e-3 >= req:
                     continue
@@ -98,7 +108,18 @@ def main():
                 if not uids:
                     row["skip"] = "uuid not found"
                 elif lim + 1e-3 < target:
-                    row["skip"] = "blocked"
+                    if args.to_max and lim >= t.width + args.min_gain:
+                        w2 = math.floor(min(lim, target) * 100) / 100.0
+                        ops.append({"op": "remove", "uuid": uids[0]})
+                        ops.append({"op": "add_track", "start": list(a),
+                                    "end": list(b), "width": w2,
+                                    "layer": layer, "net": net})
+                        row["skip"] = None
+                        row["target"] = w2
+                        row["partial"] = True
+                        uu[k] = uids[1:]
+                    else:
+                        row["skip"] = "blocked"
                 else:
                     ops.append({"op": "remove", "uuid": uids[0]})
                     ops.append({"op": "add_track", "start": list(a), "end": list(b),
