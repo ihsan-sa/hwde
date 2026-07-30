@@ -3,8 +3,8 @@
  "board": "lumina-carrier",
  "workspace": "boards/lumina-carrier",
  "created": "2026-07-28T13:36:22",
- "updated": "2026-07-30T06:36:14",
- "phase": "P8",
+ "updated": "2026-07-30T06:38:49",
+ "phase": "P9",
  "gates": {
   "erc": {
    "phase": "P4",
@@ -528,6 +528,12 @@
    "why": "The 189 in the work order was 188 (the agent found the order off by one on F.Cu, 135 not 136) and it is now 187 tracks at 0.110 mm plus 1 at 0.1071 mm - the exception is /ETH_RSTn with 0.0071 mm of room against /eth/EXRES. One /ETH_RSTn 3-segment chain had EXACTLY 0.0000 mm of room, sitting precisely on the resolved Default clearance from a 0.5 mm +3V3 track, so width-only was impossible; the agent nudged two shared nodes 0.03 mm east and reported it as a geometry change rather than burying it. I accept that, and I accept its widening of the two 0.100 mm /eth/XI and /eth/XO landings it flagged - both are PHY-side, 9-11 mm from the oscillator island, byte-identical geometry, DRC held. LED_Y_A left the pocket rather than being nudged because the band between J1's north pin row and POE_TAP_A2's staircase is 0.777 mm tall where a 0.2 mm track needs 1.035 mm; the 2.25 mm B.Cu dive exists solely to pass under LED_G_A's F.Cu corridor. Nearest new copper to any tap is 1.15 mm, which is why the new 0.60 mm rule has room. RULE SCOPING, and this is where the honest work was: hv_tap_general_clearance at 0.635 mm fired 17 times and hv_to_netless_conductor 9 times, and NONE of the 26 was a defect. All 9 netless firings were U22's own no-connect pads 4/5/17 at 0.220-0.250 mm from its own lead frame - decision (c) geometry. 13 of the 17 tap firings were plane ANTIPADS at a uniform 0.5005 mm against In1/In2, where the governing figure is IPC-2221B B1 internal = 0.10 mm, so 0.5005 mm exceeds it five-fold and 0.635 mm was simply the wrong yardstick for an inner-layer antipad. I scoped both rules per refdes and per layer rather than lowering them blindly, and set the tap rule to 0.600 mm = IPC B2 external, consistent with the two tap rules already at 0.600 and reserving TI's 0.635 mm for U1's own pins via the HV_48V_* rules. DISCLOSED rather than hidden by that choice: the tightest tap clearance on the board is a +3V3 via to J1 pad 11 at 0.6215 mm, clearing 0.600 by 21.5 um and missing 0.635 by 13.5 um. LIVENESS PROVEN for all three rules by tightening each and confirming it fires with the expected actuals: track floor at 0.15 mm fires 188x reporting 0.1071/0.1100 (which also independently confirms the widening); tap clearance at 0.9 mm fires 156x with 0.6215 tightest; netless at 0.75 mm fires 5x at 0.6643-0.6946 mm - and those five ARE J1's board locks, so the rule demonstrably reaches the pads it exists for. Note DRC measures the board-lock margin as 0.6643 mm where the P7 shape-aware capsule model gave 0.6029 mm; DRC's is the enforced number.",
    "phase": "P8",
    "ts": "2026-07-30T06:36:14"
+  },
+  {
+   "what": "THREE OPEN ITEMS RECORDED AS EXPLICITLY DEFERRED, not fixed: OI-1 U21 needs an HF input ceramic at VIN (highest-priority rev-B), OI-2 +3V3 and the LED nets are unclamped, OI-3 the skill has no incremental board-from-netlist update. Full detail in reports/open-items.md.",
+   "why": "OI-3 IS THE CAUSE OF THE OTHER TWO, and that is the finding worth carrying to the skill rather than to this board. board_init.py regenerates a board FROM SCRATCH - it does not sync a netlist into an existing .kicad_pcb - and place_edit's op set is place/move/rotate/flip/lock/add_text/move_text with NO add_footprint. So any component addition after P5 costs the entire placement AND the entire routing. On this board that means discarding a hand-tuned oscillator island, four hand-solved 57 V creepage geometries, 188 hand-widened tracks and a 111-op silkscreen pass, in order to add two 0402 capacitors. That asymmetry is what forced the owner's no-rebuild ruling and it will force the same ruling on every future board that finds a missing passive at P8. The natural fix is a place_edit add_footprint op plus a netlist-diff step. OI-1 is a genuine error and I am not softening it: U21's TPS563201 sync buck has ONE input cap 9.89 mm / 8.378 nH from VIN and no HF ceramic at the pin at all, on the converter feeding the ESP32-S3, the W5500 and J3 pins 12/14 to every daughter. check_decoupling missed it by classing the 22 uF as bulk and applying the loose limit - its model is a decoupling loop, but a synchronous buck's input ceramic carries the full trapezoidal switch current with no diode softening. OI-2's geometric half WAS fixed (0.2031 -> 1.1500 mm, 226 pairs -> 0, now held by the hv_tap_general_clearance rule) so only the clamp remains, and a clamp is a new footprint. Also recorded in open-items.md, in ONE place as the owner asked: every H4-accepted waiver with its measured number, including that the ICD B4 question is now CLOSED BY GEOMETRY rather than by argument - the pair was physically rerouted, so ICD s5.1's refusal of the B4 column stands unchanged and needs no rev A8.",
+   "phase": "P9",
+   "ts": "2026-07-30T06:38:49"
   }
  ],
  "history": [
@@ -1070,6 +1076,23 @@
    "ts": "2026-07-30T06:36:14",
    "event": "decision",
    "what": "ALL FOUR H4 ACTIONS COMPLETE. LED_Y_A rerouted 0.2031 -> 1.1500 mm (226 pairs under 0.635 mm -> 0), 188 tracks widened off the fab floor (gate dfm 193 -> 5 errors), ICD re-issued at rev A7, board locks declared and now DRC-enforced. Three new DRU rules, each PROVEN LIVE. drc_routed 0/0."
+  },
+  {
+   "ts": "2026-07-30T06:36:23",
+   "event": "phase",
+   "phase": "P9",
+   "prev": "P8"
+  },
+  {
+   "ts": "2026-07-30T06:36:56",
+   "event": "snapshot",
+   "label": "pre-p9-dfm",
+   "files": 1
+  },
+  {
+   "ts": "2026-07-30T06:38:49",
+   "event": "decision",
+   "what": "THREE OPEN ITEMS RECORDED AS EXPLICITLY DEFERRED, not fixed: OI-1 U21 needs an HF input ceramic at VIN (highest-priority rev-B), OI-2 +3V3 and the LED nets are unclamped, OI-3 the skill has no incremental board-from-netlist update. Full detail in reports/open-items.md."
   }
  ]
 }
