@@ -3,7 +3,7 @@
  "board": "lumina-carrier",
  "workspace": "boards/lumina-carrier",
  "created": "2026-07-28T13:36:22",
- "updated": "2026-07-29T18:55:29",
+ "updated": "2026-07-29T20:24:22",
  "phase": "P8",
  "gates": {
   "erc": {
@@ -469,6 +469,12 @@
    "why": "Two vias moved and dropped 0.6 -> 0.5 mm (min_via_diameter 0.5, annular 0.1 mm = board and JLC 4-layer minimum; via 40e3f5b2 on this same net was already 0.5/0.3, so this is existing practice). The pocket is boxed in on every side - SHIELD board-lock oval J1-19 to the NW, SHIELD B.Cu escape to the NE/E, and the DRC-enforced magjack_isolation_barrier 1.30 mm rule to the S - so the fixer grid-searched both positions maximising the WORST margin rather than the headline gap. Its first optimum gave a 0.726 mm tap gap but left only +0.005 mm to SHIELD, i.e. it robbed one 57 V gap to pay another; the balanced answer equalises them at ~0.65 mm. Final margins: tap +0.05 north / +0.13 south, SHIELD +0.047, ETH barrier +0.060. The 1.30 mm centre-to-centre target in my work order is UNREACHABLE in the north pocket (achieved 1.136 mm) and I was wrong to ask for it. MOST IMPORTANT: the work order named ONE pair and there were TWO. A1's south transition via 17a75fde sat 0.5500 mm from A2's B.Cu run and 0.5826 mm from its corner - also a differential 57 V pair, also below 0.60 mm, and invisible until the 0.3292 mm pair was fixed because a worst-pair-only sweep hides its siblings. Fixed in a second separately-DRC-verified edit. B-side confirmed unchanged at 1.4778 mm on all four layers. That makes FOUR distinct instances on this board of a safety check reporting nothing because it was aimed at the wrong thing, and the fourth was hidden by the third.",
    "phase": "P8",
    "ts": "2026-07-29T18:53:39"
+  },
+  {
+   "what": "REOPENED TRIAGE PAID OFF: check_creepage 15 -> 11 and check_current undersized_track 53 -> 51, drc_routed held at 0/0 throughout. Four of the five 'package-internal' creepage errors were routed SHIELD copper and were fixable; two 0.200 mm power-trunk segments now carry 0.500 mm.",
+   "why": "The four J1 SHIELD-to-tap items were NOT package geometry. Their gaps went 0.213 -> 0.6390 (A1), 0.2142 -> 0.6388 (A2), 0.220 -> 1.7700 (B1), 0.2129 -> 0.6620 (B2) mm by replacing the whole 39-segment SHIELD pad19->pad20 staircase with a 6-segment polyline at the analytic optimum. The corridor is genuinely tight - the pad11/pad12 axis is 2.8398 mm and needs 1.462 + 1.300 = 2.762 mm, leaving 0.0778 mm of TOTAL slack - and the topology was forced rather than chosen (pads 12/13 escape south on F.Cu; the +3V3 via at (45.800,73.450) blocks the north corridor). Re-swept afterwards: 0 of 31 SHIELD items now under 0.600 mm, and the remaining net-pair minima are the connector's own land (0.6029 / 0.6127 mm) which no layout can change. B3 and B4 went 0.200 -> 0.500 mm identically: a signal net hops to B.Cu across the V48_RAW trunk with its two vias 1.050 mm off centreline, and pushing each 0.200 mm out restores 0.700 mm, i.e. +0.065 mm on the 0.635 rule. All five cluster-B segments were confirmed to be BRIDGES in their net's connectivity graph, so each really does carry the full rail current - no parallel path was assumed. Two REJECTIONS worth recording because both were the right call: the fixer's first attempt at the A2/LED_Y_A item did reach the target but only by pulling A2 to 0.2259 mm from J1's board lock, down from 0.7065 mm - trading one 57 V clearance for another - and it rejected its own result after measuring that every other 57 V tap holds >= 0.6608 mm there. And B1/B2 CAN reach 1.1000 mm exactly, but only by spreading the 3.3 V buck switch-node crossing from 1.2024 to 2.100 mm, which is the EMI-for-width trade the work order forbade.",
+   "phase": "P8",
+   "ts": "2026-07-29T20:24:22"
   }
  ],
  "history": [
@@ -917,6 +923,17 @@
    "status": "pass",
    "attempt": 2,
    "failing_count": 0
+  },
+  {
+   "ts": "2026-07-29T18:55:36",
+   "event": "snapshot",
+   "label": "pre-hvpwr-residual",
+   "files": 1
+  },
+  {
+   "ts": "2026-07-29T20:24:22",
+   "event": "decision",
+   "what": "REOPENED TRIAGE PAID OFF: check_creepage 15 -> 11 and check_current undersized_track 53 -> 51, drc_routed held at 0/0 throughout. Four of the five 'package-internal' creepage errors were routed SHIELD copper and were fixable; two 0.200 mm power-trunk segments now carry 0.500 mm."
   }
  ]
 }
