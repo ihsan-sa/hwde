@@ -2029,3 +2029,19 @@ hold that 100 ohm. Nothing downstream would have caught it: the gates check geom
 file, never against what the order actually asks the fab to build. Now derives from
 spec.inner_copper_weight_oz, defaulting to 0.5. Rule: any pcbParam value taken from a vendor EXAMPLE
 rather than from the board's own stackup is a fabrication defect waiting to happen.
+
+## 2026-07-30 [ordering] JLC Open API `pcb/create` refuses 4-layer boards with an unclassified `code 2`, while `calculate` accepts them
+Three live attempts on lumina-carrier (4L, 100x80, qty 10, US, HKTHZXR-RMB) all returned HTTP 200 with
+`{"code": 2, "message": "unknown_error"}` - traces 4e0f08d4…, f90769b3…, b1eba7f4… - differing only in
+`insideCuprumThickness` ('1' / '0.5' / absent). Control: pd-trigger (2L) created successfully as
+W2026073002475378 on the SAME account, API, shippingMethod and country, with a byte-identical payload
+shape and byte-identical values for every shared pcbParam field. `calculate` priced the 4L board
+correctly at every variant; only `create` refuses. So the cause is not the payload, the ship method, the
+freight, the confirm token or the account scope - the remaining differences are `layer` (2 vs 4) and
+board size. Treat 4-layer API ordering as UNAVAILABLE until JLC support explains code 2; the manual cart
+works and the fab package is independently JLC-audited.
+Two related tooling gaps this exposed: (a) jlcapi.classify() has no rule for code 2 and REMEDIATION no
+entry, so an unclassified business error yields no guidance; (b) the created-latch arms only on SUCCESS,
+so it guards a deliberate second order but not an ambiguous FIRST one - the case that actually risks
+double-buying. And there is no order list/search endpoint at all (`order/detail` and `wip/get` both
+require a batchNum you must already hold), so after an ambiguous create the portal is the only oracle.
