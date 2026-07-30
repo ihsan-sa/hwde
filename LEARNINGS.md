@@ -1811,3 +1811,22 @@ And the trap that hid (b): silk layer names are **QUOTED** in KiCad-10 stock foo
 requiring quotes matched nothing, reported silk_top=None for every part, and produced a plausible wrong
 answer with no error - the same silent-failure shape as the min-over-endpoints distance bug. Related:
 KiCad 10 stock also uses a multi-line `(layer "F.CrtYd")` that line-oriented greps miss.
+
+## 2026-07-30 [pipeline] There is no incremental board-from-netlist update, so adding ANY part after P5 costs all of P6+P7
+board_init.py regenerates a .kicad_pcb from a netlist; place_edit's op vocabulary is move/rotate/flip/
+lock/add_text/move_text and CANNOT add a footprint; no script anywhere calls AddFootprint or syncs a
+board against a changed schematic. So a P4 rewind that adds even one passive discards the entire
+placement and routing - there is no KiCad-GUI-style "update PCB from schematic". On lumina-carrier this
+forced two genuine electrical fixes to be deferred to rev B rather than applied: an HF input ceramic on
+the 3.3 V buck (which had one 22 uF at 9.2 mm / 8.378 nH and no ceramic, feeding the MCU, the W5500 and
+every daughter) and PESD clamping on +3V3 / the LED nets. Plan for it: get decoupling and protection
+parts into the schematic BEFORE P5, because after that the choice is a full re-route or a deferral.
+
+## 2026-07-30 [gates][dfm] drc_routed 0/0 does NOT imply fabricable - board_init's track floor is below every JLC profile
+board_init writes `min_track_width: 0.1` mm, but JLC's minimum is 0.1016 mm (4 mil), so a board can route
+to 0.1000 mm tracks, pass drc_routed at 0 errors AND 0 warnings, and then fail the P9 dfm gate - on
+lumina-carrier, 189 of 194 dfm errors were "trace width 0.1000 mm below minimum 0.1016 mm", a 1.6 um gap
+repeated 189 times. It is worse when the board carries a HAND-WRITTEN .kicad_dru (as this one does for
+its 0.635 mm HV rule), because that file then contains none of rules_gen's fab floors at all. Fix at P5:
+set the floor to the fab profile's minimum, and if you hand-write a .kicad_dru, port rules_gen's floors
+into it rather than replacing them.
