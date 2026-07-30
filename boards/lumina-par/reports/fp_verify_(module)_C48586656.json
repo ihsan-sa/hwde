@@ -1,0 +1,89 @@
+{
+ "script": "fp_verify",
+ "status": "violations",
+ "board": "LED-SMD_BD8.0-LS14.5_XL-HD6070UWC-A4-BD.kicad_mod",
+ "counts": {
+  "total": 2,
+  "by_severity": {
+   "error": 1,
+   "warning": 1
+  },
+  "by_source": {
+   "check.fp_verify": 2
+  }
+ },
+ "violations": [
+  {
+   "check": "fp_verify",
+   "severity": "error",
+   "pos": null,
+   "layer": "F.Cu",
+   "net": null,
+   "refs": [
+    "LED-SMD_BD8.0-LS14.5_XL-HD6070UWC-A4-BD"
+   ],
+   "msg": "copper pad count 3 != datasheet 2",
+   "source": "check.fp_verify",
+   "items": [
+    {
+     "msg": "copper pad count 3 != datasheet 2",
+     "pos": null
+    }
+   ],
+   "kind": "pad_count",
+   "expected": 2,
+   "measured": 3
+  },
+  {
+   "check": "fp_verify",
+   "severity": "warning",
+   "pos": null,
+   "layer": "F.Cu",
+   "net": null,
+   "refs": [
+    "LED-SMD_BD8.0-LS14.5_XL-HD6070UWC-A4-BD"
+   ],
+   "msg": "modal pad size (2.0, 2.7) mm != datasheet (1.8, 2.5) mm (tol 0.1)",
+   "source": "check.fp_verify",
+   "items": [
+    {
+     "msg": "modal pad size (2.0, 2.7) mm != datasheet (1.8, 2.5) mm (tol 0.1)",
+     "pos": null
+    }
+   ],
+   "kind": "pad_size",
+   "expected_mm": [
+    1.8,
+    2.5
+   ],
+   "measured_mm": [
+    2.0,
+    2.7
+   ]
+  }
+ ],
+ "footprint": "LED-SMD_BD8.0-LS14.5_XL-HD6070UWC-A4-BD",
+ "footprint_file": "C:\\dev\\ai-ee3\\boards\\lumina-par\\lib\\aiee.pretty\\LED-SMD_BD8.0-LS14.5_XL-HD6070UWC-A4-BD.kicad_mod",
+ "copper_pads": 3,
+ "total_pads": 3,
+ "measured_pitch_mm": 6.9051,
+ "measured_pad_size_mm": [
+  2.0,
+  2.7
+ ],
+ "has_courtyard": true,
+ "has_silk": true,
+ "land_pattern": {
+  "package": "6070 bracket 2-lead (one pad per side, diagonally offset)",
+  "pad_count": 2,
+  "pad_size_mm": [
+   2.5,
+   1.8
+  ],
+  "row_spacing_mm": 12.0,
+  "pin1": "1",
+  "notes": "From the Recommended Soldering Pattern, datasheet p8. PRINTED dimensions: pad 2.5 mm wide x 1.8 mm high; 1.15 mm offset of each pad centre from the package centreline; overall span across the outer pad edges 14.5 mm; central circular thermal land dia 6.0 mm. The two pads are NOT collinear - they are diagonally staggered, each offset 1.15 mm to the opposite side of the centreline, i.e. 2.30 mm centre-to-centre vertical stagger (verified by measuring both pads on the drawing: 2.30 mm). This matches the p8 top view where lead 1 exits low-left and lead 2 exits high-right. row_spacing_mm 12.0 = pad centre to pad centre horizontally (14.5 minus one pad width; scales to 12.04 mm). No pitch_mm is meaningful for a 2-pad staggered layout. The p8 top view also dimensions the metal base/slug width as 7.3 mm. Package tolerance +/-0.25 mm unless noted.",
+  "courtyard_excess_mm": 0
+ },
+ "svg": "C:\\dev\\ai-ee3\\boards\\lumina-par\\reports\\fp_(module)_C48586656.overlay.svg"
+}

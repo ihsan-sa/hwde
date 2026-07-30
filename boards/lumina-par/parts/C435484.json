@@ -1,0 +1,56 @@
+{
+ "mpn": "SMF15A",
+ "lcsc": "C435484",
+ "package": "SOD-123 (molded plastic, 2 leads). Body 2.7 +/-0.2 x 1.8 +/-0.2 mm, height 1.1 +/-0.25 mm, overall lead span 3.7 +/-0.2 mm.",
+ "description": "ANBONSEMI SMF15A - 200 W peak-pulse-power SMD transient voltage suppressor (TVS) diode, UNIDIRECTIONAL, 15 V reverse standoff, in SOD-123. Part of the SMF5.0(C)A ... SMF170(C)A family (5.0 V to 170 V); a trailing 'C' in the part number denotes the BI-directional version, so SMF15A (no C) is the unidirectional device with a defined cathode and anode. Datasheet features: excellent clamping capability, IEC61000-4-2 ESD 15 kV air / 8 kV contact compliance, protects one I/O line, low profile, lead-free/RoHS. Mechanical data: epoxy UL94-V0 rated flame retardant, molded plastic SOD-123 case, plated terminals solderable per MIL-STD-750 Method 2026, POLARITY INDICATED BY CATHODE BAND, mounting position any, weight approximately 0.02 g. Source: ANBONSEMI document AN-3000001, revision D, 4 pages (issued 2009/03/06, revised 2019/05/10). NOTE: this PDF has NO text layer - every value below was read visually from the page images.",
+ "pinout": [
+  {
+   "pin": "1",
+   "name": "K",
+   "type": "passive",
+   "notes": "CATHODE. Directly grounded: the page-4 'Pinning information' table states for the Uni-Directional device 'Pin1 cathode, Pin2 anode', its simplified outline draws the CATHODE BAND at the pin-1 (left) end, and its symbol shows the zener cathode bar facing pin 1. On this board the cathode is the terminal that must face the positive LED-harness line - a reversed SMF15A conducts as a forward diode at ~1 V and shorts the harness."
+  },
+  {
+   "pin": "2",
+   "name": "A",
+   "type": "passive",
+   "notes": "ANODE. Page-4 'Pinning information': 'Pin2 anode' for the Uni-Directional device; the unbanded end. Ties to the harness return / ground. (For reference only: the SMF15CA bi-directional variant has no polarity and its pinning row is left blank - this part is NOT that variant.)"
+  }
+ ],
+ "land_pattern": {
+  "package": "SOD-123 - from the datasheet's own 'Suggested solder pad layout' drawing and table (page 4).",
+  "pad_count": 2,
+  "pitch_mm": 3.00,
+  "pad_size_mm": [1.00, 1.10],
+  "pin1": "1",
+  "notes": "READ THIS BEFORE RUNNING fp_verify. SUGGESTED SOLDER PAD LAYOUT (page 4, table row 'SOD-123', inches (millimeters)): A = 0.044 in (1.10 mm) = pad height, B = 0.040 in (1.00 mm) = pad width, C = 0.079 in (2.00 mm) = the GAP between the two pads (the C dimension arrows point at the inner edge of the left pad and the inner edge of the right pad, not at their centres). DERIVED pad-centre spacing = B + C = 1.00 + 2.00 = 3.00 mm (that is pitch_mm); overall land span = 1.00 + 2.00 + 1.00 = 4.00 mm. CONFLICT WITH THE STOCK LIBRARY (not a datasheet statement): KiCad 10.0 Diode_SMD:D_SOD-123 places its pads at x = +/-1.65 sized 0.9 x 1.2 - centre spacing 3.30 mm. Against that footprint this JSON will produce a pad_pitch ERROR (3.30 measured vs 3.00 expected; 0.30 mm >> the 0.05 mm default tolerance) and a pad_size WARNING (0.9 x 1.2 vs 1.00 x 1.10). Both lands are usable for a SOD-123 body - KiCad's follows the IPC-7351 nominal and gives more toe fillet; this vendor's is tighter - so this is a library-vs-datasheet divergence to be DECIDED, not an extraction error. The datasheet numbers are recorded here because they are what the PDF actually publishes. PACKAGE OUTLINE (page 1 drawing, mm): body 2.7 +/-0.2 (length) x 1.8 +/-0.2 (width), terminal width 1.0 +/-0.2, overall lead span 3.7 +/-0.2, body height 1.1 +/-0.25, terminal thickness 0.10-0.30, terminal length 0.6 +/-0.25."
+ },
+ "exposed_pad": {
+  "present": false
+ },
+ "layout_notes": [
+  "POLARITY MARKING: 'Polarity: Indicated by cathode band' (Mechanical data). Page-1 package outline labels the band 'Cathode Band, Top View' and draws it as a heavy stripe near one end of the body; page-4 Marking shows the Uni-Directional part carrying BOTH the cathode band and a two-letter marking code. The BI-directional part carries only the marking code and no band. If an incoming reel shows no band, it is the SMF15CA bi-directional part, not this one.",
+  "MARKING CODE for SMF15A (unidirectional) is 'LM'; the bi-directional SMF15CA is marked 'UM' (page-2 table, 'Marking Code' columns 'BI-' and 'UNI-'). Use LM to verify the reel at assembly.",
+  "THE FOUR CLAMPING NUMBERS (page-2 Electrical characteristics, SMF15(C)A row, TA = 25 C): VRWM reverse standoff = 15 V; VBR breakdown = 16.7 V MIN to 18.5 V MAX at IT = 1.0 mA (Note 5: VBR measured with an IT current pulse <= 300 us); IR reverse leakage <= 5.0 uA MAX at VRWM = 15 V (Note 6: for bi-directional devices with VRWM of 10 V and under, IR is doubled - does not apply here); VC clamping voltage = 24.4 V MAX at IPP = 8.2 A.",
+  "STANDOFF HEADROOM: with VRWM = 15 V and VBR(min) = 16.7 V, the working line voltage on the protected harness must stay at or below 15 V for the 5 uA leakage spec to hold, and the part will begin conducting somewhere above 16.7 V. Peak clamp is 24.4 V at the full 8.2 A surge - everything downstream on that harness line must survive 24.4 V.",
+  "PEAK PULSE POWER: PPPM = 200 W at TA = 25 C for a 10 x 1000 us waveform (Note 1: non-repetitive current pulse, per Fig. 2, and derated above TA = 25 C per Fig. 1). Fig. 1 is the linear derating curve (100% at 25 C falling to 0% at 150 C); Fig. 4 is the peak-pulse-power vs pulse-width curve (about 10 kW at 0.1 us falling to well under 100 W at 10 ms); Fig. 3 defines the alternative 8 x 20 us waveform. 8.2 A x 24.4 V = 200 W confirms the IPP/VC pair is the 10/1000 us rating point.",
+  "JUNCTION CAPACITANCE is NOT tabulated - only Fig. 5 'Typical junction capacitance' plotting CJ against VRWM for measurement at zero bias and at 50% VRWM. At VRWM = 15 V the curves read roughly 100-200 pF (zero bias) - too coarse to design a signal line around, so treat this TVS as suitable only for the LED power/harness lines, not for anything with signal-integrity requirements.",
+  "ESD: the feature list claims IEC61000-4-2 compliance at 15 kV air / 8 kV contact. No HBM/MM/CDM class and no ESD test data table are published.",
+  "NOT IN THIS DATASHEET: no thermal resistance of any kind, no steady-state power dissipation, no reflow profile, no MSL rating, no response-time figure, no tabulated junction capacitance, and no separate 8/20 us surge current rating (only the waveform definition in Fig. 3).",
+  "PDF QUALITY CAVEAT: C435484.pdf carries NO extractable text (0 characters) - it is a scanned/image-only document. All values here were transcribed visually from zoomed page renders. The page-2 SMF15(C)A row and the page-4 pinning/pad tables were each re-read at high magnification to confirm the digits; re-verify against a fresh vendor copy before committing to fab if any single number is load-bearing."
+ ],
+ "abs_max": [
+  {"param": "PPPM peak pulse power dissipation at TA = 25 C, 10 x 1000 us waveform (Maximum ratings, Note 1: non-repetitive, derate above 25 C per Fig. 1)", "value": 200, "unit": "W"},
+  {"param": "TJ operating junction temperature range (Maximum ratings)", "value": "-55 to +150", "unit": "C"},
+  {"param": "TSTG storage temperature range (Maximum ratings)", "value": "-55 to +150", "unit": "C"},
+  {"param": "VRWM reverse standoff voltage (Electrical characteristics, SMF15(C)A row)", "value": 15, "unit": "V"},
+  {"param": "VBR breakdown voltage at IT = 1.0 mA, min to max (Note 5: measured with an IT pulse <= 300 us)", "value": "16.7 to 18.5", "unit": "V"},
+  {"param": "IT breakdown test current (SMF15(C)A row)", "value": 1.0, "unit": "mA"},
+  {"param": "IR maximum reverse leakage at VRWM = 15 V (Note 6)", "value": 5.0, "unit": "uA"},
+  {"param": "VC maximum clamping voltage at IPP (SMF15(C)A row)", "value": 24.4, "unit": "V"},
+  {"param": "IPP maximum peak pulse current, 10 x 1000 us (SMF15(C)A row)", "value": 8.2, "unit": "A"},
+  {"param": "ESD immunity claimed in the feature list, IEC61000-4-2 air discharge", "value": 15, "unit": "kV"},
+  {"param": "ESD immunity claimed in the feature list, IEC61000-4-2 contact discharge", "value": 8, "unit": "kV"}
+ ],
+ "source_pdf": "boards/lumina-par/parts/C435484.pdf (ANBONSEMI SMF5.0(C)A THRU SMF170(C)A, 200 W SMD transient voltage suppressor diodes, document AN-3000001 rev. D, 4 pages; IMAGE-ONLY PDF - no text layer, read visually)"
+}

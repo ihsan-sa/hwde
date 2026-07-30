@@ -1,0 +1,56 @@
+{
+ "mpn": "DFLS160-7",
+ "lcsc": "C177023",
+ "package": "PowerDI123 (Diodes Inc PowerDI(R) 123). 2-terminal molded plastic, body 2.80 x 1.78 mm typ, overall 3.70 mm terminal-to-terminal, height 0.98 mm typ.",
+ "description": "Diodes Incorporated DFLS160 - 1.0 A / 60 V surface-mount SCHOTTKY BARRIER RECTIFIER in PowerDI123. Guard-ring die construction for transient protection; patented interlocking clip design for high surge capacity; lead-free, RoHS, halogen- and antimony-free 'Green' device; MSL 1 per J-STD-020; UL94V-0 molding compound; matte-tin-over-copper terminals solderable per MIL-STD-202 Method 208; weight ~0.01 g. Ordering: DFLS160-7 = PowerDI123, 3000 pcs tape & reel. An automotive-compliant part (DFLS160Q) exists under a separate datasheet - THIS part is NOT the Q version. Source: document DS30548 Rev. 9-2, August 2022, 5 pages.",
+ "pinout": [
+  {
+   "pin": "1",
+   "name": "K",
+   "type": "passive",
+   "notes": "CATHODE - the LARGE terminal (the die-attach tab). GROUNDING FOR THIS ASSIGNMENT: (a) Mechanical Data states 'Terminal Connections: Cathode Band', i.e. the cathode end is the one carrying the band; (b) the Marking Information figure draws that band as a thick bar at the LEFT of the top-side 'F17' code, read upright, with the date code 'YM' rotated at the right end; (c) thermal note 5 defines RthJS 'from the top center of the die straight down to the PCB/CATHODE TAB solder junction' and note 7 gives a '1.8mm x 2.5mm cathode and 1.8mm x 1.2mm anode' test pad pair - both confirm the cathode is the larger, die-bearing terminal, which is the X1 = 2.40 mm pad of the Suggested Pad Layout. The datasheet does NOT number its terminals; pad number 1 = cathode follows the KiCad convention (Device:D symbol pin 1 = K, and Diode_SMD:D_PowerDI-123 puts its 2.4 mm pad on pad 1)."
+  },
+  {
+   "pin": "2",
+   "name": "A",
+   "type": "passive",
+   "notes": "ANODE - the SMALL terminal, opposite the cathode band, corresponding to the X = 1.05 mm pad of the Suggested Pad Layout and to the two 0.40-0.50 mm L leads in the package bottom view. Not numbered by the datasheet; pad number 2 = anode per the KiCad diode convention."
+  }
+ ],
+ "land_pattern": {
+  "package": "PowerDI123 - from the datasheet's own 'Suggested Pad Layout' drawing and table (page 4).",
+  "pad_count": 2,
+  "pitch_mm": 2.375,
+  "pin1": "1",
+  "notes": "SUGGESTED PAD LAYOUT (page 4, mm): G = 0.65 (gap between the two pads), X = 1.05 (small/ANODE pad width), X1 = 2.40 (large/CATHODE pad width), X2 = 4.10 (overall span), Y = 1.50 and Y1 = 1.50 (both pad heights). Self-consistent: X + G + X1 = 1.05 + 0.65 + 2.40 = 4.10 = X2. DERIVED pad-centre spacing = X/2 + G + X1/2 = 0.525 + 0.65 + 1.20 = 2.375 mm -> that is the pitch_mm above (the nearest-neighbour distance fp_verify measures). pad_size_mm is deliberately OMITTED because the two pads are DIFFERENT sizes (cathode 2.40 x 1.50, anode 1.05 x 1.50); fp_verify's modal-size check would tie-break arbitrarily and report a meaningless result. CROSS-CHECK (not a datasheet statement): KiCad 10.0 Diode_SMD:D_PowerDI-123 has pad 1 at x = -0.85 sized 2.4 x 1.5 and pad 2 at x = +1.525 sized 1.05 x 1.5 - centre spacing 2.375 mm, pad sizes identical to this table, and its pad 1 is the 2.4 mm CATHODE pad. That library footprint matches this datasheet exactly. PACKAGE OUTLINE (page 4 table, min/max/typ mm): A 0.93/1.00/0.98 (height), A3 0.15/0.25/0.20, b 0.85/1.25/1.00, b2 1.025/1.125/1.10, D 1.63/1.93/1.78 (body width), E 3.50/3.90/3.70 (overall length terminal-to-terminal), E1 2.60/3.00/2.80 (body length), L 0.40/0.50/0.45 (2x anode lead), L1 1.25/1.40/1.35 (cathode tab), L3 0.125/0.275/0.20. Two package options (A and B) are drawn; they differ only in the terminal edge profile (option B has notched terminal ends) and share the same dimension table."
+ },
+ "exposed_pad": {
+  "present": false
+ },
+ "layout_notes": [
+  "POLARITY MARKING / PIN 1 ORIENTATION: the CATHODE is identified by a BAND ('Terminal Connections: Cathode Band'). Marking Information figure: top-side laser mark is 'F17' (product type code) with 'YM' (Y = year letter, M = month code) rotated at the far end, and the cathode band is the thick bar at the LEFT end when 'F17' reads upright. Date code key: J = 2022, K = 2023, L = 2024, M = 2025, N = 2026, O = 2027, P = 2028, R = 2029, S = 2030, T = 2031; months Jan-Sep = 1-9, Oct = O, Nov = N, Dec = D. Reversing this diode in a buck catch position shorts the switch node through the forward diode - verify silkscreen band direction against the F17 text direction before release.",
+  "FORWARD VOLTAGE AT 1 A (the efficiency number): VF <= 0.50 V MAX at IF = 1.0 A, TA = +25 C. The datasheet gives NO typical VF and NO hot VF number in the table - only Fig. 1 'Typical Forward Characteristics' curves for TA = -65, 25, 100, 125 and 150 C. Use 0.50 V max for worst-case conduction loss at 25 C; read Fig. 1 for elevated temperature (Schottky VF falls with temperature).",
+  "REVERSE LEAKAGE: IR <= 0.1 mA MAX at VR = 60 V, TA = +25 C (Note 8: short-duration pulse test to minimise self-heating). That is the ONLY tabulated leakage point - there is no leakage figure at reduced VR and no hot-temperature leakage number; Fig. 2 'Typical Reverse Characteristics' plots IR vs VR for -65 to 150 C. 0.1 mA at full 60 V reverse is significant for a Schottky and self-heats: check reverse-leakage power against the thermal budget if the diode idles reverse-biased hot.",
+  "CAPACITANCE: CT = 67 pF typ at VR = 10 V, f = 1.0 MHz (Fig. 3 plots CT vs VR from 0 to 30 V, ~250 pF at 0 V falling toward ~50 pF at 30 V). No max is specified.",
+  "THERMAL - THREE DIFFERENT BOARD ASSUMPTIONS, DO NOT MIX THEM: RthJS = 6 C/W MAX (Note 5, theoretical, die top centre straight down to the PCB/cathode tab solder joint); RthJA = 125 C/W TYP (Note 6, device on a polyimide substrate, 1 inch x 1 inch 2 oz copper double-sided PCB, with the minimum recommended pad layout); RthJC = 18 C/W MAX (Note 7, FR-4 board with 1.8 x 2.5 mm cathode and 1.8 x 1.2 mm anode 1 oz copper pads, TA = +25 C). Fig. 4 forward-current derating uses yet another board (Note 9: 50.8 x 50.8 mm GETEK board, 25.4 x 25.4 mm copper pad, 25% anode / 75% cathode). HEAT LEAVES THROUGH THE CATHODE PAD - give the cathode net the copper.",
+  "CURRENT RATING CONTEXT: the Maximum Ratings block is qualified 'Single phase, half wave, 60Hz, resistive or inductive load. For capacitive load, derate current by 20%.' IF(AV) = 1.0 A is that 60 Hz half-wave average, NOT a DC rating, and Fig. 4 derates it against terminal temperature (flat at 1.0 A to about 100 C on the Note-9 board, then falling to zero at 150 C).",
+  "SURGE: IFSM = 50 A non-repetitive peak forward surge, 8.3 ms single half sine-wave superimposed on rated load.",
+  "NOT IN THIS DATASHEET: no reverse-recovery time (it is a Schottky, but no trr/Qrr is published), no typical VF, no hot-temperature tabulated values, no reflow profile, no solder-paste/stencil recommendation, and no ESD rating."
+ ],
+ "abs_max": [
+  {"param": "VRRM peak repetitive reverse voltage / VRWM working peak reverse voltage / VR DC blocking voltage (Maximum Ratings, TA = +25 C)", "value": 60, "unit": "V"},
+  {"param": "VR(RMS) RMS reverse voltage (Maximum Ratings)", "value": 42, "unit": "V"},
+  {"param": "IF(AV) average forward current (Maximum Ratings; single phase half wave 60 Hz, resistive or inductive load; derate 20% for capacitive load)", "value": 1.0, "unit": "A"},
+  {"param": "IFSM non-repetitive peak forward surge current, 8.3 ms single half sine-wave superimposed on rated load", "value": 50, "unit": "A"},
+  {"param": "TJ, TSTG operating and storage temperature range (Thermal Characteristics)", "value": "-65 to +150", "unit": "C"},
+  {"param": "RthJS thermal resistance junction to soldering point, MAX (Note 5: die top centre to PCB/cathode tab solder junction)", "value": 6, "unit": "C/W"},
+  {"param": "RthJA thermal resistance junction to ambient, TYP (Note 6: polyimide substrate, 1 in x 1 in 2 oz Cu double-sided PCB, minimum recommended pad layout)", "value": 125, "unit": "C/W"},
+  {"param": "RthJC typical thermal resistance, MAX (Note 7: FR-4, 1.8 x 2.5 mm cathode and 1.8 x 1.2 mm anode 1 oz pads, TA = +25 C)", "value": 18, "unit": "C/W"},
+  {"param": "V(BR)R reverse breakdown voltage, MIN (Electrical Characteristics, IR = 0.2 mA, Note 8 short pulse)", "value": 60, "unit": "V"},
+  {"param": "VF forward voltage, MAX at IF = 1.0 A, TA = +25 C (no typ published)", "value": 0.50, "unit": "V"},
+  {"param": "IR leakage current, MAX at VR = 60 V, TA = +25 C (Note 8 short pulse)", "value": 0.1, "unit": "mA"},
+  {"param": "CT total capacitance, TYP at VR = 10 V, f = 1.0 MHz", "value": 67, "unit": "pF"},
+  {"param": "Moisture sensitivity level per J-STD-020", "value": "MSL 1", "unit": "-"}
+ ],
+ "source_pdf": "boards/lumina-par/parts/C177023.pdf (Diodes Incorporated DFLS160, document DS30548 Rev. 9-2, August 2022, 5 pages)"
+}

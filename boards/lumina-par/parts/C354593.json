@@ -1,0 +1,53 @@
+{
+ "mpn": "CKCS4030-47uH/M",
+ "lcsc": "C354593",
+ "package": "CKCS4030 - 4.0 x 4.0 mm SMD magnetic-resin shielded power inductor, 3.0 mm max height, 2 terminals (Fig 3 body style).",
+ "description": "Cenker CKCS series magnetic-resin (composite) shielded SMD power inductor, 47 uH +/-20% ('/M' suffix = +/-20% tolerance; '/N' = +/-30%). Construction (Structural Drawing): (1) Ni-Zn ferrite core, (2) polyurethane-coated copper winding wire, (3) external electrodes, (4) epoxy resin containing ferrite powder. Datasheet claims: closed magnetic circuit with low leakage flux and strong anti-EMI, magnetic-resin coating that reduces buzz noise, rated current >30% higher than a conventional inductor of the same size, and a working frequency range beyond 5 MHz. RoHS and halogen-free. Listed applications: LED lighting, automotive systems, notebooks/desktops/servers/graphics cards. The datasheet is a family catalogue - the numbers below are read from the CKCS4030 specification table and the CKCS4030 row of the shapes/dimensions table.",
+ "pinout": [
+  {
+   "pin": "1",
+   "name": "L1",
+   "type": "passive",
+   "notes": "One winding terminal. THE PART IS NON-POLAR: the datasheet gives no terminal numbering, no polarity mark and no dot convention; the only asymmetric feature is the 'Marking' printed on the top face (Fig 3 top view). Either terminal may be used as either end. Terminal geometry from the CKCS4030 row: two electrodes each E = 1.35 +/-0.3 mm wide on the bottom face, separated by a gap D = 1.3 +/-0.3 mm (E + D + E = 4.0 mm = the full body width A)."
+  },
+  {
+   "pin": "2",
+   "name": "L2",
+   "type": "passive",
+   "notes": "The other winding terminal. Identical geometry to pin 1; interchangeable (see pin 1 note). For a buck output inductor, orient by layout convenience - put the switch-node end on the short, small-area copper and the quiet DC output end on the larger pour."
+  }
+ ],
+ "land_pattern": {
+  "package": "CKCS4030 - from the datasheet's 'Recommended patterns' drawing (F/G/H, Fig 2 sheet) and the CKCS4030 row of the SHAPES AND DIMENSIONS table.",
+  "pad_count": 2,
+  "pitch_mm": 2.60,
+  "pad_size_mm": [1.40, 3.70],
+  "pin1": "1",
+  "notes": "RECOMMENDED PATTERN (CKCS4030 row, mm): F = 1.2 (gap between the two pads), G = 1.40 (pad width, along the 4.0 mm body axis that carries the electrodes), H = 3.7 (pad length, across the body). The 'Recommended patterns' figure dimensions F between the facing pad edges, G across one pad, H down one pad. DERIVED pad-centre spacing = F + G = 1.2 + 1.40 = 2.60 mm (this is pitch_mm); overall land span = G + F + G = 4.00 mm, exactly the body width A. BODY (CKCS4030 row): A = 4.0 +/-0.2 (width), B = 4.0 +/-0.2 (depth), C = 3.0 Max (height), D = 1.3 +/-0.3 (gap between the bottom electrodes), E = 1.35 +/-0.3 (each bottom electrode width); body style Fig 3. CROSS-CHECK / CONFLICT (not a datasheet statement): KiCad 10.0 ships Inductor_SMD:L_Cenker_CKCS4030 with pads at x = +/-1.35 sized 1.9 x 3.7 - i.e. pad-centre spacing 2.70 mm and pad width 1.9 mm, versus this datasheet's 2.60 mm and 1.40 mm. The pad LENGTH (3.7 mm) agrees. Consequence: running fp_verify against that library footprint with this JSON will report a pad_pitch ERROR (2.70 measured vs 2.60 expected, 0.10 > the 0.05 mm default tolerance) and a pad_size WARNING (1.9 vs 1.4). Both lands are physically usable - KiCad's is the more generous one, extending 0.30 mm further outboard and 0.20 mm further inboard - but a decision is needed: either accept the library footprint and relax the tolerance, or generate the land from this datasheet. This is a real library-vs-datasheet divergence, not an extraction error."
+ },
+ "exposed_pad": {
+  "present": false
+ },
+ "layout_notes": [
+  "THE THREE NUMBERS THE BUCK RIPPLE AND EFFICIENCY REST ON (CKCS4030-47uH/M row): DCR = 0.445 ohm, quoted as '+/-30%' (NOT a max - the CKCS4030 table header reads 'DCR (+/-30%)', so worst case is 0.445 x 1.30 = 0.5785 ohm); Isat (Max.) = 0.95 A; Irms (Max.) = 0.72 A. At the Irms rating of 0.72 A the worst-case DCR loss is 0.5785 x 0.72^2 = 0.30 W in a 4 x 4 mm part, so DCR - not saturation - is likely the binding limit here.",
+  "DEFINITIONS AS THE DATASHEET STATES THEM (Remark block under every table): 'Isat: DC current at which the inductance drops approximate 30% from its value without current'; 'Irms: DC current that causes the temperature rise (dT = 40 C) from 25 C ambient'. Note Irms (0.72 A) is BELOW Isat (0.95 A) for this part, so the thermal limit binds first; a 40 C rise from 25 C ambient means ~65 C part temperature at 0.72 A DC on the vendor's (unspecified) test board. The 'Max.' in the column headers is the vendor's wording, not a maximum rating in the abs-max sense.",
+  "INDUCTANCE TEST CONDITION for the CKCS4030 family (Remark 1 on that page): 100 kHz, 1 Vrms, 20 C. Tolerance +/-20% ('/M'). NOTE the small-size families (CKCS201610, CKCS252010, CKCS252012) are instead tested at 1 MHz / 0.25 Vrms - do not carry that condition across to this part.",
+  "S.R.F. (Min.) = 8.4 MHz for CKCS4030-47uH. Keep the switching frequency and its meaningful harmonics well below this; above SRF the part is capacitive.",
+  "OPERATING TEMPERATURE: -25 C to +125 C (Remark 4). This is NARROWER at the cold end than most of the other parts on this board (-55 C) - it sets the assembly's cold limit if an industrial range is claimed.",
+  "NO MARKING CODE IS ASSIGNED for the CKCS4030 family: the 'Marker' column exists only in the CKCS201610 and CKCS252010 tables (letters A-J, or '/'); the CKCS4030 table has no Marker column at all, and the top-face 'Marking' shown in Fig 3 is not decoded anywhere in the document. Incoming inspection cannot verify the inductance value from the body print using this datasheet.",
+  "PACKAGING (for the pick-and-place setup): CKCS4030 ships on 12 mm tape, A0 = 4.3, B0 = 4.3, K0 = 3.4, D = 1.5, P = 8 mm, on a 330 mm reel (A 330, B 100, C 13), 2000 pcs/reel.",
+  "SHIELDING: the magnetic-resin/ferrite-epoxy encapsulation gives a closed magnetic circuit with low leakage - the datasheet's own basis for placing it near sensitive circuitry - but it publishes NO leakage-flux number, NO core-loss data, NO inductance-vs-current (roll-off) curve and NO temperature-rise-vs-current curve, so any switching-loss or thermal model has to come from measurement.",
+  "NOT IN THIS DATASHEET: no absolute maximum ratings table of any kind (no max voltage, no max current beyond Isat/Irms, no max power), no reflow profile, no MSL, no core-loss or AC-resistance data, no L-vs-I curve, no terminal metallurgy, and no soldering/washing restrictions."
+ ],
+ "abs_max": [
+  {"param": "Operating temperature range (Remark 4 under the CKCS4030 specification table)", "value": "-25 to +125", "unit": "C"},
+  {"param": "Isat (Max.) - DC current at which inductance drops approx. 30% from its zero-current value (CKCS4030-47uH/M row)", "value": 0.95, "unit": "A"},
+  {"param": "Irms (Max.) - DC current causing a 40 C temperature rise from 25 C ambient (CKCS4030-47uH/M row)", "value": 0.72, "unit": "A"},
+  {"param": "Inductance at 100 kHz, 1 Vrms, 20 C (CKCS4030-47uH/M row; '/M' = +/-20%)", "value": "47 +/-20%", "unit": "uH"},
+  {"param": "DCR, quoted as +/-30% by the column header (CKCS4030-47uH/M row); worst case 0.5785 ohm", "value": 0.445, "unit": "ohm"},
+  {"param": "S.R.F. (Min.) self-resonant frequency (CKCS4030-47uH/M row)", "value": 8.4, "unit": "MHz"},
+  {"param": "Body height C (SHAPES AND DIMENSIONS, CKCS4030 row)", "value": "3.0 max", "unit": "mm"},
+  {"param": "NO absolute-maximum-ratings table is published in this datasheet (no voltage, power or non-thermal current limit)", "value": "not specified", "unit": "-"}
+ ],
+ "source_pdf": "boards/lumina-par/parts/C354593.pdf (Cenker CKCS series magnetic-resin shielded SMD power inductor family catalogue, 17 pages; CKCS4030 data on the shapes/dimensions sheet, the CKCS4030 specification table and the packaging table)"
+}

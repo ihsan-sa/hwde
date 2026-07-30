@@ -1,0 +1,55 @@
+{
+ "script": "fp_icd_annulus (hand measurement - fp_verify cannot check this)",
+ "requirement": {
+  "source": "ICD-01 rev A3 s5.2 (frozen)",
+  "drill_mm": 1.1,
+  "annulus_mm": 1.7,
+  "annular_ring_mm_per_side": 0.3,
+  "pad_to_pad_gap_mm": 0.84,
+  "hv_min_mm": 0.635,
+  "margin": "1.32x"
+ },
+ "why_the_gate_cannot_see_it": "fp_verify.py and lib/fplib.py contain no drill handling whatsoever, so the 1.10 mm drill is unchecked; and the DS1023 datasheet JSONs deliberately omit pad_size_mm (CONNFLY publishes no pad or annulus at all), so the pad_size check never fires either. BOTH halves of the ICD requirement are invisible to the P3 gate - fp_verify returns rc=0 'pass' for J3 and J4.",
+ "measured": {
+  "J3": {
+   "footprint": "HDR-TH_14P-P2.54-V-F-R2-C7-S2.54-1.kicad_mod",
+   "drill_mm": 1.100024,
+   "annulus_mm": 1.7,
+   "pads": 14,
+   "ref": "J3",
+   "lcsc": "C113344",
+   "role": "POWER block - 48 V raw, HV creepage binds here",
+   "annular_ring_mm_per_side": 0.3,
+   "pad_to_pad_gap_mm": 0.84,
+   "margin_vs_0p635": 1.323,
+   "drill_matches_icd": true,
+   "annulus_matches_icd": true
+  },
+  "J4": {
+   "footprint": "HDR-TH_24P-P2.54-V-F-R2-C12-S2.54.kicad_mod",
+   "drill_mm": 1.100024,
+   "annulus_mm": 1.7,
+   "pads": 24,
+   "ref": "J4",
+   "lcsc": "C92265",
+   "role": "SIGNAL block - no 48 V (ICD s3.2)",
+   "annular_ring_mm_per_side": 0.3,
+   "pad_to_pad_gap_mm": 0.84,
+   "margin_vs_0p635": 1.323,
+   "drill_matches_icd": true,
+   "annulus_matches_icd": true
+  }
+ },
+ "carrier_reference": {
+  "note": "LUM-CAR-A's mating DS1021 footprints, already normalised (carrier lib/EDITS.md edit 1)",
+  "HDR-TH_14P-P2.54-V-M-R2-C7-S2.54-1": {
+   "drill_mm": 1.100024,
+   "annulus_mm": 1.7
+  },
+  "HDR-TH_24P-P2.54-V-M-R2-C12-S2.54": {
+   "drill_mm": 1.100024,
+   "annulus_mm": 1.7
+  }
+ },
+ "verdict": "PASS - J3 and J4 both conform to ICD-01 s5.2 after the approved edits (as pulled: J3 1.80/1.100, J4 1.60/1.050; see lib/EDITS.md entries 1 and 2)"
+}

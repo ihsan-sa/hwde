@@ -1,0 +1,66 @@
+{
+ "script": "fp_verify",
+ "status": "violations",
+ "board": "SOD-123_L2.7-W1.8-LS3.7-RD.kicad_mod",
+ "counts": {
+  "total": 1,
+  "by_severity": {
+   "error": 1
+  },
+  "by_source": {
+   "check.fp_verify": 1
+  }
+ },
+ "violations": [
+  {
+   "check": "fp_verify",
+   "severity": "error",
+   "pos": [
+    -1.63,
+    0.0
+   ],
+   "layer": "F.Cu",
+   "net": null,
+   "refs": [
+    "SOD-123_L2.7-W1.8-LS3.7-RD"
+   ],
+   "msg": "nearest-pad pitch 3.260 mm != datasheet 3.000 mm (tol 0.05)",
+   "source": "check.fp_verify",
+   "items": [
+    {
+     "msg": "nearest-pad pitch 3.260 mm != datasheet 3.000 mm (tol 0.05)",
+     "pos": [
+      -1.63,
+      0.0
+     ]
+    }
+   ],
+   "kind": "pad_pitch",
+   "expected_mm": 3.0,
+   "measured_mm": 3.26
+  }
+ ],
+ "footprint": "SOD-123_L2.7-W1.8-LS3.7-RD",
+ "footprint_file": "C:\\dev\\ai-ee3\\boards\\lumina-par\\lib\\aiee.pretty\\SOD-123_L2.7-W1.8-LS3.7-RD.kicad_mod",
+ "copper_pads": 2,
+ "total_pads": 2,
+ "measured_pitch_mm": 3.26,
+ "measured_pad_size_mm": [
+  1.0,
+  1.1
+ ],
+ "has_courtyard": true,
+ "has_silk": true,
+ "land_pattern": {
+  "package": "SOD-123 - from the datasheet's own 'Suggested solder pad layout' drawing and table (page 4).",
+  "pad_count": 2,
+  "pitch_mm": 3.0,
+  "pad_size_mm": [
+   1.0,
+   1.1
+  ],
+  "pin1": "1",
+  "notes": "READ THIS BEFORE RUNNING fp_verify. SUGGESTED SOLDER PAD LAYOUT (page 4, table row 'SOD-123', inches (millimeters)): A = 0.044 in (1.10 mm) = pad height, B = 0.040 in (1.00 mm) = pad width, C = 0.079 in (2.00 mm) = the GAP between the two pads (the C dimension arrows point at the inner edge of the left pad and the inner edge of the right pad, not at their centres). DERIVED pad-centre spacing = B + C = 1.00 + 2.00 = 3.00 mm (that is pitch_mm); overall land span = 1.00 + 2.00 + 1.00 = 4.00 mm. CONFLICT WITH THE STOCK LIBRARY (not a datasheet statement): KiCad 10.0 Diode_SMD:D_SOD-123 places its pads at x = +/-1.65 sized 0.9 x 1.2 - centre spacing 3.30 mm. Against that footprint this JSON will produce a pad_pitch ERROR (3.30 measured vs 3.00 expected; 0.30 mm >> the 0.05 mm default tolerance) and a pad_size WARNING (0.9 x 1.2 vs 1.00 x 1.10). Both lands are usable for a SOD-123 body - KiCad's follows the IPC-7351 nominal and gives more toe fillet; this vendor's is tighter - so this is a library-vs-datasheet divergence to be DECIDED, not an extraction error. The datasheet numbers are recorded here because they are what the PDF actually publishes. PACKAGE OUTLINE (page 1 drawing, mm): body 2.7 +/-0.2 (length) x 1.8 +/-0.2 (width), terminal width 1.0 +/-0.2, overall lead span 3.7 +/-0.2, body height 1.1 +/-0.25, terminal thickness 0.10-0.30, terminal length 0.6 +/-0.25."
+ },
+ "svg": "C:\\dev\\ai-ee3\\boards\\lumina-par\\reports\\fp_D501_C435484.overlay.svg"
+}

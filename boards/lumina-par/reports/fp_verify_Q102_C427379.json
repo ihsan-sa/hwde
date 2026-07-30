@@ -1,0 +1,66 @@
+{
+ "script": "fp_verify",
+ "status": "pass",
+ "board": "SOT-23-3_L2.9-W1.5-P1.90-LS2.6-BR.kicad_mod",
+ "counts": {
+  "total": 1,
+  "by_severity": {
+   "warning": 1
+  },
+  "by_source": {
+   "check.fp_verify": 1
+  }
+ },
+ "violations": [
+  {
+   "check": "fp_verify",
+   "severity": "warning",
+   "pos": null,
+   "layer": "F.Cu",
+   "net": null,
+   "refs": [
+    "SOT-23-3_L2.9-W1.5-P1.90-LS2.6-BR"
+   ],
+   "msg": "modal pad size (0.7, 1.25) mm != datasheet (0.8, 0.9) mm (tol 0.1)",
+   "source": "check.fp_verify",
+   "items": [
+    {
+     "msg": "modal pad size (0.7, 1.25) mm != datasheet (0.8, 0.9) mm (tol 0.1)",
+     "pos": null
+    }
+   ],
+   "kind": "pad_size",
+   "expected_mm": [
+    0.8,
+    0.9
+   ],
+   "measured_mm": [
+    0.7,
+    1.25
+   ]
+  }
+ ],
+ "footprint": "SOT-23-3_L2.9-W1.5-P1.90-LS2.6-BR",
+ "footprint_file": "C:\\dev\\ai-ee3\\boards\\lumina-par\\lib\\aiee.pretty\\SOT-23-3_L2.9-W1.5-P1.90-LS2.6-BR.kicad_mod",
+ "copper_pads": 3,
+ "total_pads": 3,
+ "measured_pitch_mm": 1.9,
+ "measured_pad_size_mm": [
+  0.7,
+  1.25
+ ],
+ "has_courtyard": true,
+ "has_silk": true,
+ "land_pattern": {
+  "package": "SOT-23 - from the datasheet's own 'Suggested Pad Layout' drawing (page 5). NOTE the drawing's own caveat: 'The pad layout is for reference purposes only.'",
+  "pad_count": 3,
+  "pitch_mm": 1.9,
+  "pad_size_mm": [
+   0.8,
+   0.9
+  ],
+  "pin1": "1",
+  "notes": "SUGGESTED PAD LAYOUT (page 5, inches over millimetres): each pad 0.031 in (0.8 mm) wide by 0.035 in (0.9 mm) tall; the two same-row pads sit 0.037 in (0.95 mm) either side of the package centreline; the opposite-row pad centre is 0.079 in (2.0 mm) from the two-pad row's centreline. Notes on that page: '1. Controlling dimension: in/millimeters. 2. General tolerance: +/-0.05mm. 3. The pad layout is for reference purposes only.' DERIVED: pin1-to-pin2 pad-centre distance = 0.95 + 0.95 = 1.90 mm; pad 1 (or 2) to pad 3 = sqrt(0.95^2 + 2.0^2) = 2.214 mm; therefore the nearest-neighbour distance fp_verify measures is 1.90 mm -> pitch_mm = 1.9 (NOT the 0.95 mm basic lead pitch, which is not a pad-to-pad distance on a 3-lead SOT-23). CROSS-CHECK (not a datasheet statement): KiCad 10.0 Package_TO_SOT_SMD:SOT-23 has pads at (-0.9375, +/-0.95) and (0.9375, 0) sized 1.475 x 0.6 - its nearest-neighbour distance is also 1.90 mm so the PITCH CHECK PASSES, but its pads are 1.475 x 0.6 against this datasheet's 0.8 x 0.9, so fp_verify will raise a pad_size WARNING (warning severity only). The KiCad land is the IPC-7351 gull-wing land with a long toe/heel; this vendor's is a small square 'reference' pad. Prefer the KiCad/IPC land for manufacturability; the warning is expected and benign. PACKAGE OUTLINE (page 5 table, min/max mm): A 0.65/1.40 (height), A1 0.00/0.20 (standoff), b 0.30/0.55 (lead width), c 0.08/0.20 (lead thickness), D 2.70/3.10 (body length), E 1.15/1.65 (body width), E1 2.10/2.80 (overall lead span), e 1.70/2.10 (pin1-to-pin2 spacing), L 0.15/0.50, L1 0.35/0.70, theta 0 to 12 deg."
+ },
+ "svg": "C:\\dev\\ai-ee3\\boards\\lumina-par\\reports\\fp_Q102_C427379.overlay.svg"
+}

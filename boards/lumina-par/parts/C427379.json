@@ -1,0 +1,74 @@
+{
+ "mpn": "BSS123",
+ "lcsc": "C427379",
+ "package": "SOT-23 (3 leads). Body 2.70-3.10 mm (D) x 1.15-1.65 mm (E), overall lead span 2.10-2.80 mm (E1), lead pitch e = 1.70-2.10 mm between pins 1 and 2, height 0.65-1.40 mm (A).",
+ "description": "MDD (Microdiode Electronics) BSS123 - 100 V N-channel enhancement-mode MOSFET in SOT-23, trench Power MV MOSFET technology. Summary box on page 1: V(BR)DSS 100 V, RDS(on) MAX 5.0 ohm at VGS = 10 V and 5.5 ohm at VGS = 4.5 V, ID 200 mA. Features: voltage-controlled small-signal switch, low input capacitance, fast switching speed, low input/output leakage. Applications: small servo motor control, power MOSFET gate drivers, switching applications. This is a SMALL-SIGNAL logic-level switch - ohms of RDS(on), not milliohms. Source: BSS123 datasheet V 1.1, 5 pages.",
+ "pinout": [
+  {
+   "pin": "1",
+   "name": "G",
+   "type": "input",
+   "notes": "GATE. Page-1 'Marking' / package figure states '1. Gate' and the 3D SOT-23 renders number the two leads on one long edge as 1 (left) and 2 (right), with 3 alone on the opposite edge. VGS absolute maximum +/-20 V. VGS(TH) = 1.0 V min / 1.8 V typ / 2.5 V max at VDS = VGS, ID = 250 uA. Gate-source leakage IGSS <= +/-100 nA at VGS = +/-20 V, VDS = 0 V. Ciss = 32 pF typ, Qg = 1.61 nC typ (VGS = 10 V, VDS = 50 V, ID = 0.2 A)."
+  },
+  {
+   "pin": "2",
+   "name": "S",
+   "type": "passive",
+   "notes": "SOURCE. Page-1 figure: '2. Source' - the right-hand lead of the two-lead long edge, diagonally opposite pin 3. Body-diode ANODE is at the source (N-channel): ISD (body-diode source-drain current) 200 mA max, VSD 1.2 V typ at IS = 200 mA, VGS = 0 V."
+  },
+  {
+   "pin": "3",
+   "name": "D",
+   "type": "passive",
+   "notes": "DRAIN. Page-1 figure: '3. Drain' - the SINGLE lead on the edge opposite pins 1 and 2. Body-diode CATHODE is at the drain. VDS absolute maximum 100 V; V(BR)DSS >= 100 V at VGS = 0 V, ID = 250 uA; IDSS <= 1 uA at VDS = 100 V, VGS = 0 V."
+  }
+ ],
+ "land_pattern": {
+  "package": "SOT-23 - from the datasheet's own 'Suggested Pad Layout' drawing (page 5). NOTE the drawing's own caveat: 'The pad layout is for reference purposes only.'",
+  "pad_count": 3,
+  "pitch_mm": 1.9,
+  "pad_size_mm": [0.8, 0.9],
+  "pin1": "1",
+  "notes": "SUGGESTED PAD LAYOUT (page 5, inches over millimetres): each pad 0.031 in (0.8 mm) wide by 0.035 in (0.9 mm) tall; the two same-row pads sit 0.037 in (0.95 mm) either side of the package centreline; the opposite-row pad centre is 0.079 in (2.0 mm) from the two-pad row's centreline. Notes on that page: '1. Controlling dimension: in/millimeters. 2. General tolerance: +/-0.05mm. 3. The pad layout is for reference purposes only.' DERIVED: pin1-to-pin2 pad-centre distance = 0.95 + 0.95 = 1.90 mm; pad 1 (or 2) to pad 3 = sqrt(0.95^2 + 2.0^2) = 2.214 mm; therefore the nearest-neighbour distance fp_verify measures is 1.90 mm -> pitch_mm = 1.9 (NOT the 0.95 mm basic lead pitch, which is not a pad-to-pad distance on a 3-lead SOT-23). CROSS-CHECK (not a datasheet statement): KiCad 10.0 Package_TO_SOT_SMD:SOT-23 has pads at (-0.9375, +/-0.95) and (0.9375, 0) sized 1.475 x 0.6 - its nearest-neighbour distance is also 1.90 mm so the PITCH CHECK PASSES, but its pads are 1.475 x 0.6 against this datasheet's 0.8 x 0.9, so fp_verify will raise a pad_size WARNING (warning severity only). The KiCad land is the IPC-7351 gull-wing land with a long toe/heel; this vendor's is a small square 'reference' pad. Prefer the KiCad/IPC land for manufacturability; the warning is expected and benign. PACKAGE OUTLINE (page 5 table, min/max mm): A 0.65/1.40 (height), A1 0.00/0.20 (standoff), b 0.30/0.55 (lead width), c 0.08/0.20 (lead thickness), D 2.70/3.10 (body length), E 1.15/1.65 (body width), E1 2.10/2.80 (overall lead span), e 1.70/2.10 (pin1-to-pin2 spacing), L 0.15/0.50, L1 0.35/0.70, theta 0 to 12 deg."
+ },
+ "exposed_pad": {
+  "present": false
+ },
+ "layout_notes": [
+  "PIN 1 ORIENTATION / MARKING: no dot, notch or bevel - orientation is defined ONLY by the lead count per edge (pins 1 and 2 together on one long edge, pin 3 alone opposite). Top-side marking is 'SAW' over 'XXX', where XXX is the date code. A 180-degree rotation swaps GATE and SOURCE while DRAIN stays put, so check the silkscreen against the 'SAW' text direction. This is the SAME footprint and the SAME 1=G / 2=S / 3=D pin order as the SSM3K2615R (C22371361) on this board - the two SOT-23-class parts are pin-compatible in orientation, which makes a swapped-part build error easy to miss; rely on the 'SAW' vs 'KFS' marking to tell them apart.",
+  "RDS(ON) IS IN OHMS, NOT MILLIOHMS: 3.0 ohm typ / 5.0 ohm MAX at VGS = 10 V, ID = 200 mA; 3.5 ohm typ / 5.5 ohm MAX at VGS = 4.5 V, ID = 175 mA. There is NO 3.3 V row - Figure 9 (on-resistance vs VGS, ID = 0.2 A, Tj = 25 C) shows resistance climbing steeply below about 3 V, so 3.3 V drive is off-spec territory for this part. At 200 mA and 5.5 ohm the dissipation is 0.22 W against a 350 mW package rating.",
+  "GATE THRESHOLD: VGS(TH) 1.0 V min / 1.8 V typ / 2.5 V MAX at VDS = VGS, ID = 250 uA. Figure 10 gives normalised threshold vs junction temperature (roughly 1.25x at -75 C down to 0.6x at 175 C). For a gate PULL-DOWN role, the relevant limit is the 1.0 V MIN: any residual gate voltage above 1.0 V can partially enhance the device.",
+  "DYNAMIC (all TYP only, no min/max): Ciss 32 pF, Coss 10 pF, Crss 7 pF at VDS = 50 V, VGS = 0 V, f = 1 MHz; Qg 1.61 nC at VGS = 10 V, VDS = 50 V, ID = 0.2 A. Switching at VDS = 50 V, VGS = 10 V, ID = 200 mA, RG = 6 ohm: td(on) 1.7 ns, tr 9 ns, td(off) 17 ns, tf 7 ns.",
+  "BODY DIODE: ISD (source-drain / body-diode current) 200 mA max; VSD 1.2 V typ at IS = 200 mA, VGS = 0 V. Anode = source (pin 2), cathode = drain (pin 3). No trr or Qrr is published.",
+  "THERMAL: PD = 350 mW with RthJA = 357 C/W, both qualified by Note 2 - 'The value of PD & RthJA is measured with the device mounted on 1 in2 FR-4 board with 2oz. Copper, double sided, in a still air environment with Ta = 25 C.' On a small SOT-23 island expect far less than 350 mW. TJ / Tstg -50 to 150 C (note the cold limit is -50 C, not the more usual -55 C).",
+  "IDM (pulsed drain current) = 800 mA, Note 1: pulse width limited by maximum allowable junction temperature. Note 3 (RDS(ON) rows): pulse test, pulse width <= 300 us, duty cycle <= 2%.",
+  "NOT IN THIS DATASHEET: no reflow profile, no MSL rating, no ESD rating or gate-protection statement (no internal clamp is drawn - the 'Equivalent Circuit' heading on page 1 shows only the plain D/G/S MOSFET symbol), no min/max on any dynamic parameter, no body-diode recovery data, and no RDS(ON) below VGS = 4.5 V.",
+  "BOARD ROLE: DNP branch-B gate pull-down on LUM-PAR-A. As a DNP the land and orientation still have to be right; note also that with a 100 V VDS rating it is over-specified for a pull-down and its 32 pF Ciss is what a driver would see if it is ever stuffed."
+ ],
+ "abs_max": [
+  {"param": "VDS drain-source voltage (Absolute Maximum Ratings, TA = 25 C)", "value": 100, "unit": "V"},
+  {"param": "VGS gate-source voltage (Absolute Maximum Ratings)", "value": "+/-20", "unit": "V"},
+  {"param": "ID continuous drain current (Absolute Maximum Ratings)", "value": 200, "unit": "mA"},
+  {"param": "IDM pulsed drain current (Note 1: pulse width limited by maximum allowable junction temperature)", "value": 800, "unit": "mA"},
+  {"param": "PD power dissipation (Note 2: 1 in2 FR-4, 2 oz copper, double sided, still air, Ta = 25 C)", "value": 350, "unit": "mW"},
+  {"param": "RthJA thermal resistance junction to ambient (Note 2: same board)", "value": 357, "unit": "C/W"},
+  {"param": "TJ, Tstg junction and storage temperature (Absolute Maximum Ratings)", "value": "-50 to 150", "unit": "C"},
+  {"param": "V(BR)DSS drain-source breakdown voltage, MIN (VGS = 0 V, ID = 250 uA)", "value": 100, "unit": "V"},
+  {"param": "IDSS drain-source leakage current, MAX (VDS = 100 V, VGS = 0 V)", "value": 1, "unit": "uA"},
+  {"param": "IGSS gate-source leakage current, MAX (VGS = +/-20 V, VDS = 0 V)", "value": "+/-100", "unit": "nA"},
+  {"param": "VGS(TH) gate threshold voltage min/typ/max (VDS = VGS, ID = 250 uA)", "value": "1.0 / 1.8 / 2.5", "unit": "V"},
+  {"param": "RDS(ON) typ/MAX at VGS = 10 V, ID = 200 mA (Note 3 pulse test: PW <= 300 us, duty <= 2%)", "value": "3.0 / 5.0", "unit": "ohm"},
+  {"param": "RDS(ON) typ/MAX at VGS = 4.5 V, ID = 175 mA (Note 3 pulse test)", "value": "3.5 / 5.5", "unit": "ohm"},
+  {"param": "Ciss input capacitance, TYP (VDS = 50 V, VGS = 0 V, f = 1 MHz)", "value": 32, "unit": "pF"},
+  {"param": "Coss output capacitance, TYP (same conditions)", "value": 10, "unit": "pF"},
+  {"param": "Crss reverse transfer capacitance, TYP (same conditions)", "value": 7, "unit": "pF"},
+  {"param": "Qg total gate charge, TYP (VGS = 10 V, VDS = 50 V, ID = 0.2 A)", "value": 1.61, "unit": "nC"},
+  {"param": "td(on) turn-on delay time, TYP (VDS = 50 V, VGS = 10 V, ID = 200 mA, RG = 6 ohm)", "value": 1.7, "unit": "ns"},
+  {"param": "tr turn-on rise time, TYP (same conditions)", "value": 9, "unit": "ns"},
+  {"param": "td(off) turn-off delay time, TYP (same conditions)", "value": 17, "unit": "ns"},
+  {"param": "tf turn-off fall time, TYP (same conditions)", "value": 7, "unit": "ns"},
+  {"param": "ISD source-drain (body diode) current, MAX", "value": 200, "unit": "mA"},
+  {"param": "VSD body-diode forward voltage, TYP (IS = 200 mA, VGS = 0 V)", "value": 1.2, "unit": "V"}
+ ],
+ "source_pdf": "boards/lumina-par/parts/C427379.pdf (MDD / Microdiode Electronics BSS123, 100V N-Channel Enhancement Mode MOSFET, V 1.1, 5 pages)"
+}

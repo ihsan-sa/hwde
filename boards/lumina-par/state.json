@@ -3,7 +3,7 @@
  "board": "lumina-par",
  "workspace": "boards/lumina-par",
  "created": "2026-07-28T15:00:15",
- "updated": "2026-07-28T21:48:33",
+ "updated": "2026-07-28T22:26:27",
  "phase": "P3",
  "gates": {},
  "human": {
@@ -165,6 +165,36 @@
    "why": "Coordinator: 'a margin that only holds while software works is not a margin.' Reversion to 0.68 ohm stays live as a one-code swap through P9.",
    "phase": "P3",
    "ts": "2026-07-28T21:27:52"
+  },
+  {
+   "what": "CR-1 CLOSED: R206 = 4.7 kOhm, 1% REQUIRED (not preferred). LUM-PAR-A is ID_ADC code 2, V_ID = 1.055 V.",
+   "why": "ICD s3.4 rev A3, NORMATIVE. Verified: 3.3 x 4700/(4700+10000) = 1.0551 V. 1% is required because adjacent-code separation is 0.353 V against a +-0.05 V divider error from 1% parts plus a +-0.15 V firmware window - a 5% part eats the margin. Cited by section+amendment revision, not the header (the header reads A3 while its own parenthetical lists amendments through A6). The strobe run found its placeholder was set to THIS board's code and would have shipped announcing itself as the par - the value is functional, not cosmetic.",
+   "phase": "P3",
+   "ts": "2026-07-28T21:58:36"
+  },
+  {
+   "what": "CR-6 CLOSED by ICD s7.7 rev A5 (NORMATIVE): sealed + wall-conducted, internal air 32-33 C at a 25 C room",
+   "why": "The carrier re-derived and reconciled. With the LED wall path WORKING only 1.894 W enters box air (6.8-8.1 K rise); with it FAILING 8.5 W enters and gives 56-62 C - which reproduces the rev A2 af figure to the degree. So the af number was never miscalculated, it was the LED-heat-stays-in-box case at a 25 C room with NEITHER assumption written down. The at figure WAS a genuine error, exactly as this run found. This run's 89-115 C Hoffman/Rittal figure is now recorded as the CONSERVATIVE BOUND and the ICD explicitly says do not average it. Budget: 10.5-12.5 W of box air at a 25 C room holding air to 70 C.",
+   "phase": "P3",
+   "ts": "2026-07-28T21:58:36"
+  },
+  {
+   "what": "PWM allocation NORMATIVE (ICD s3.5 rev A3): LUM-PAR-A runs PWM0-3 on ONE timer, 13-bit / 9.766 kHz, with a 90 degree phase stagger. CR-3 (14-bit/4.883 kHz) is GRANTED and available opt-in; CR-4 (stagger) is GRANTED.",
+   "why": "The prior ICD claim that PWM0-3 sit on timer 0 and PWM4-7 on timer 1 is WITHDRAWN - the carrier does not hard-assign timers; each daughter declares its own map and firmware applies it from the ID_ADC code. Three timers remain free for this board. The 14-bit option doubles the driver timing budget from 141 ns to 281 ns and makes firmware dithering physically reproducible - it costs camera-flicker margin and must be re-tested against a phone camera on the first prototype.",
+   "phase": "P3",
+   "ts": "2026-07-28T21:58:37"
+  },
+  {
+   "what": "ADOPT the 14-bit / 4.883 kHz PWM mode (CR-3, granted) as this board declared timer map, instead of 13-bit / 9.766 kHz",
+   "why": "It doubles the driver timing budget from 141 ns to 281 ns, which converts the shunt-FET timing risk from unverified-and-probably-violated into comfortable margin against the only switching number that exists (toff 150 ns typ). It ALSO doubles the LSB duration, which is what makes firmware PWM-domain dithering physically reproducible - spec-dimming s2.7 ranks 1 and 2 as a package, not alternatives. Cost is camera-flicker margin: band contrast rises from 0.61% to 1.23% at 60 fps (still under the visibility threshold) and 2.46% to 4.92% at 240 fps - and H1-P9 already recommends declaring 240 fps out of scope. ICD s3.5 makes the mode opt-in per daughter and requires a phone-camera re-test on the first prototype.",
+   "phase": "P3",
+   "ts": "2026-07-28T21:59:15"
+  },
+  {
+   "what": "APPROVED library edits: J3 annulus 1.80->1.70; J4 annulus 1.60->1.70 and drill 1.050->1.100; inductor footprint swapped to KiCad stock Inductor_SMD:L_Cenker_CKCS4030; SMF15A accepted as-pulled with a note",
+   "why": "J3/J4: ICD-01 s5.2 mandates 1.70 mm annulus on a 1.10 mm drill and daughters must conform - the carrier already normalised its mating DS1021 pair the same way (its lib/EDITS.md edit 1). Note the as-pulled J3 gap of 0.74 mm still CLEARS the 0.635 mm creepage requirement at 1.165x, so this is an ICD-conformance fix, not a safety fix - but conformance is the point of a frozen interface. Inductor: as-pulled land is 3.20 mm centres against a 2.60 mm datasheet land, a 0.60 mm error with pads hanging 0.40 mm past the body; KiCad stock at 2.70 is a strict superset of the datasheet land. SMF15A: 3.26 vs 3.00 pitch is a 0.13 mm outboard shift with pad size EXACTLY matching the datasheet - solderable, accept.",
+   "phase": "P3",
+   "ts": "2026-07-28T22:26:26"
   }
  ],
  "history": [
@@ -534,6 +564,67 @@
    "stack_height_ungrounded": "no mating header, no mated cross-section, no insertion depth in the PDF. ICD 11.0 mm (2.5 male insulator + 8.5 socket) CANNOT be confirmed from this datasheet; only the 8.5 mm socket term is grounded.",
    "no_pin_numbers": "neither DS1023 view carries pin numbers or a pin-1 marker - numbering must come from ICD-01 s3.1/s3.2",
    "J5_side_entry": "S10B-PH-SM4-TB is SIDE ENTRY (B-prefix = top entry). J5 sits on the top edge feeding an LED module above the board - confirm side entry is the intended harness exit direction at P4, or switch to the top-entry variant."
+  },
+  {
+   "ts": "2026-07-28T21:58:36",
+   "event": "decision",
+   "what": "CR-1 CLOSED: R206 = 4.7 kOhm, 1% REQUIRED (not preferred). LUM-PAR-A is ID_ADC code 2, V_ID = 1.055 V."
+  },
+  {
+   "ts": "2026-07-28T21:58:36",
+   "event": "decision",
+   "what": "CR-6 CLOSED by ICD s7.7 rev A5 (NORMATIVE): sealed + wall-conducted, internal air 32-33 C at a 25 C room"
+  },
+  {
+   "ts": "2026-07-28T21:58:37",
+   "event": "decision",
+   "what": "PWM allocation NORMATIVE (ICD s3.5 rev A3): LUM-PAR-A runs PWM0-3 on ONE timer, 13-bit / 9.766 kHz, with a 90 degree phase stagger. CR-3 (14-bit/4.883 kHz) is GRANTED and available opt-in; CR-4 (stagger) is GRANTED."
+  },
+  {
+   "ts": "2026-07-28T21:58:37",
+   "event": "coff_network_p4_rules",
+   "ROFF1_net": "connects to VLED, which on THIS board is the /LEDn_A anode net running out to J5 - P4 must NOT mistake it for a local node",
+   "ROFF2_source": "MUST come from the device own VCC pin (2). Do NOT re-source from +3V3 or any external rail - the datasheet warns of an internal COFF-to-VCC diode that can pull VCC up and start the device with VIN unpowered",
+   "ROFF1_value": "10k, NOT TI literal 8.2k. ROFF1 and ROFF2 sit permanently in parallel so ROFF2 also charges COFF in normal operation; TI text ignores that and the ripple would land 12% low. E96 exact root 9.53k has zero LCSC stock, so 10k is both correct and orderable. Revert is one line at P4 if disputed.",
+   "placement_groups": "ch0-ch3 groups in constraints.json must gain the COFF siblings (C304/R305/R306 and equivalents) - COFF sits at pin 1 with a short GND return and the annealer can strand it otherwise"
+  },
+  {
+   "ts": "2026-07-28T21:59:15",
+   "event": "shunt_fet_timing_UNVERIFIED",
+   "severity": "HIGH - threatens the PAR-REQ-01 timing wall that H1 closed",
+   "correction": "the orchestrator recommended SSM3K2615R partly on a Ciss x Rg estimate of ~22 ns. That estimate is NOT SUPPORTED and is hereby withdrawn as a claim.",
+   "what_the_datasheet_actually_says": "toff = 150 ns TYP (at VDD 30 V, RG 50 ohm, VGS 0->10 V) which ALREADY EXCEEDS the 141 ns pulse; no switching characterisation at 3.3 V drive exists at all; no min/max on any switching time",
+   "undocumented": "the internal schematic shows a series gate resistor PLUS a bidirectional gate-source zener clamp INSIDE the package - neither value is specified anywhere. That internal RG sets a floor on gate rise/fall that no external Rg choice can beat.",
+   "driver_side_also_unverified": "none of the three logic datasheets specifies an output rise/fall or slew rate either - so BOTH ends of the gate-drive path are ungrounded",
+   "conditions_caveat": "the 150 ns figure is at a 30 V rail and 10 V gate swing including a Miller plateau; our case is a ~7 V string swing at 3.3 V gate, so it is not directly comparable - but it is the only switching number that exists"
+  },
+  {
+   "ts": "2026-07-28T21:59:15",
+   "event": "decision",
+   "what": "ADOPT the 14-bit / 4.883 kHz PWM mode (CR-3, granted) as this board declared timer map, instead of 13-bit / 9.766 kHz"
+  },
+  {
+   "ts": "2026-07-28T21:59:16",
+   "event": "fp_verify_expected_conflicts",
+   "note": "two library-vs-datasheet land conflicts are EXPECTED at fp_verify and are not extraction errors",
+   "CKCS4030_inductor": "datasheet land 2.60 mm centres / 1.4 mm pads vs KiCad L_Cenker_CKCS4030 2.70 mm / 1.9 mm -> pitch ERROR + size warning",
+   "SMF15A_SOD123": "datasheet land 3.00 mm centres / 1.0x1.1 pads vs KiCad D_SOD-123 3.30 mm / 0.9x1.2 -> pitch ERROR + size warning",
+   "BSS123": "pitch agrees (1.9); pad size differs - warning only",
+   "SSM3K2615R": "SOT-23F land judged COMPATIBLE with standard SOT-23 (lead span 2.4, pitch 0.95/e1 1.9, lead width 0.42, body length 2.9 all identical). Deltas: body width 1.8 vs KiCad fab 1.3 mm, and courtyard steps in to +-0.90 so real body corners poke ~0.05 mm outside. No recommended land published.",
+   "pitch_convention": "extractor used nearest-neighbour pad distance not basic lead pitch, because that is what fp_verify compares - SOT-23 is 1.9 not 0.95, TO-252-2L is 4.572"
+  },
+  {
+   "ts": "2026-07-28T22:26:26",
+   "event": "decision",
+   "what": "APPROVED library edits: J3 annulus 1.80->1.70; J4 annulus 1.60->1.70 and drill 1.050->1.100; inductor footprint swapped to KiCad stock Inductor_SMD:L_Cenker_CKCS4030; SMF15A accepted as-pulled with a note"
+  },
+  {
+   "ts": "2026-07-28T22:26:27",
+   "event": "tooling_bugs_found_by_librarian",
+   "lib_pull_false_pass": "reported status pass / 44 of 44 pulled / load_check ok while only 13 parts existed on disk. Root cause: _pull_one only errors when (not fps and not sym_lib.exists()), and aiee.kicad_sym is SHARED - so once the first part lands, every later part reports pulled regardless. Completeness must be re-derived from the filesystem. Worth reporting centrally.",
+   "fp_verify_blind_to_drill": "fp_verify.py/fplib.py have NO drill handling at all, and the DS1023 extractions deliberately omit pad_size_mm, so BOTH halves of the annulus check are unchecked and it returns pass for J3 and J4 while both violate the ICD",
+   "easyeda_403": "CloudFront WAF block on /api/products/*/components only, immune to UA/cookie/header changes, clears in ~60 s. 1 part/15 s is safe; 4 parts/35 s tripped it after 13.",
+   "placelib_rotation": "20 of 22 courtyards exclude their own pads (up to 3.7 mm on TO-252). placelib.extents_local() unions the pad box in, but _pad_box_local ignores pad ROTATION - SOT-23-3 Q102 has all three pads at ROT 90 so placelib sees a 0.70 mm box where the truth is 1.25 mm. Hand to P6."
   }
  ]
 }

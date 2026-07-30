@@ -1,0 +1,67 @@
+{
+ "script": "fp_verify",
+ "status": "pass",
+ "board": "SOIC-14_L8.7-W3.9-P1.27-LS6.0-BL.kicad_mod",
+ "counts": {
+  "total": 1,
+  "by_severity": {
+   "warning": 1
+  },
+  "by_source": {
+   "check.fp_verify": 1
+  }
+ },
+ "violations": [
+  {
+   "check": "fp_verify",
+   "severity": "warning",
+   "pos": null,
+   "layer": "F.Cu",
+   "net": null,
+   "refs": [
+    "SOIC-14_L8.7-W3.9-P1.27-LS6.0-BL"
+   ],
+   "msg": "modal pad size (0.574, 2.038) mm != datasheet (0.6, 1.55) mm (tol 0.1)",
+   "source": "check.fp_verify",
+   "items": [
+    {
+     "msg": "modal pad size (0.574, 2.038) mm != datasheet (0.6, 1.55) mm (tol 0.1)",
+     "pos": null
+    }
+   ],
+   "kind": "pad_size",
+   "expected_mm": [
+    0.6,
+    1.55
+   ],
+   "measured_mm": [
+    0.574,
+    2.038
+   ]
+  }
+ ],
+ "footprint": "SOIC-14_L8.7-W3.9-P1.27-LS6.0-BL",
+ "footprint_file": "C:\\dev\\ai-ee3\\boards\\lumina-par\\lib\\aiee.pretty\\SOIC-14_L8.7-W3.9-P1.27-LS6.0-BL.kicad_mod",
+ "copper_pads": 14,
+ "total_pads": 14,
+ "measured_pitch_mm": 1.27,
+ "measured_pad_size_mm": [
+  0.574,
+  2.038
+ ],
+ "has_courtyard": true,
+ "has_silk": true,
+ "land_pattern": {
+  "package": "SOIC-14 (D, R-PDSO-G14)",
+  "pad_count": 14,
+  "pitch_mm": 1.27,
+  "pad_size_mm": [
+   0.6,
+   1.55
+  ],
+  "row_spacing_mm": 5.4,
+  "pin1": "1",
+  "notes": "From the D (R-PDSO-G14) LAND PATTERN DATA sheet (drawing 4211283-3/E, 08/12), Example Board Layout: 12 x 1.27 mm pitch (7 pads per row), 5.40 mm between the centerlines of the two pad rows. Pad geometry 0.60 mm x 1.55 mm, non-soldermask-defined with solder mask opening 0.07 mm larger all around. Stencil openings 14 x 0.55 mm x 1.50 mm. Identical to the SN74LVC00AD land pattern (same TI drawing)."
+ },
+ "svg": "C:\\dev\\ai-ee3\\boards\\lumina-par\\reports\\fp_U204_C133541.overlay.svg"
+}

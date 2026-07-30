@@ -1,0 +1,31 @@
+{
+ "script": "fp_verify",
+ "status": "pass",
+ "board": "SOT-23F_L2.9-W1.8-P1.90-LS2.4-BR.kicad_mod",
+ "counts": {
+  "total": 0,
+  "by_severity": {},
+  "by_source": {}
+ },
+ "violations": [],
+ "footprint": "SOT-23F_L2.9-W1.8-P1.90-LS2.4-BR",
+ "footprint_file": "C:\\dev\\ai-ee3\\boards\\lumina-par\\lib\\aiee.pretty\\SOT-23F_L2.9-W1.8-P1.90-LS2.4-BR.kicad_mod",
+ "copper_pads": 3,
+ "total_pads": 3,
+ "measured_pitch_mm": 1.9,
+ "measured_pad_size_mm": [
+  0.595,
+  0.785
+ ],
+ "has_courtyard": true,
+ "has_silk": true,
+ "land_pattern": {
+  "package": "SOT-23F (Toshiba). NO RECOMMENDED LAND PATTERN IS PUBLISHED IN THIS DATASHEET - page 8 gives the package OUTLINE only (top view, two side views, bottom view). Every datasheet number below is transcribed from that outline drawing.",
+  "pad_count": 3,
+  "pitch_mm": 1.9,
+  "pin1": "1",
+  "row_spacing_mm": 1.875,
+  "notes": "PITCH FIELD CONVENTION: the datasheet's basic lead pitch is e = 0.95 mm (chain-dimensioned 0.95 + 0.95 from pin 1 to the package centreline to pin 2, with pin 3 on the centreline of the opposite edge). Because only THREE pads exist, the nearest-neighbour pad-centre distance that fp_verify measures is the pin1-to-pin2 span e1 = 1.9 mm, not 0.95 mm - so pitch_mm is set to 1.9. row_spacing_mm 1.875 is NOT a datasheet number: it is the pad-row centre-to-centre spacing of KiCad 10.0's Package_TO_SOT_SMD:SOT-23 land, recorded so fp_verify's nearest-neighbour result is reproducible (min(1.9, sqrt(0.95^2 + 1.875^2) = 2.102) = 1.9); the datasheet constrains only the 2.4 mm toe-to-toe LEAD SPAN. PACKAGE OUTLINE (page 8, unit mm): body length along the 2-lead edge 2.9 +/-0.2; body width 1.8 +/-0.1; overall lead span across the rows 2.4 +/-0.1; lead pitch 0.95 (boxed = basic); lead width 0.42 +0.08/-0.05; lead thickness 0.17 +0.08/-0.07; package height 0.8 +0.08/-0.05; positional tolerance 0.1 (M) to datum A (the body end face); the bottom view carries a (0.1) reference dimension on the lead step; weight 0.011 g typ. DERIVED: each lead protrudes only (2.4 - 1.8)/2 = 0.30 mm beyond the body edge. IS THIS A STANDARD SOT-23 LAND? Lead span (2.4), lead pitch (0.95 / 1.9), lead width (0.42 nom, 0.50 max) and body length (2.9) are all identical to a plain 3-lead SOT-23, so a standard SOT-23 land places the pads CORRECTLY and is usable. TWO DIFFERENCES the footprint must be checked against (measured against KiCad 10.0 Package_TO_SOT_SMD:SOT-23, NOT datasheet statements): (a) BODY WIDTH - SOT-23F is 1.8 mm wide (half-width 0.95 max) but that footprint's F.Fab body is only 1.3 mm wide (+/-0.65) and its courtyard steps in to +/-0.90, so the real body corners sit ~0.05 mm outside the courtyard and the fab outline under-draws the part by 0.5 mm; (b) LEAD FORM - the flat 0.30 mm protrusion (vs a gull-wing SOT-23's ~0.55 mm foot) means the standard land's 1.475 mm long pads run ~0.65 mm under the plastic body and leave ~0.48 mm of bare toe. Electrically harmless (the body is plastic), but it is an oversized, non-IPC-optimal land for this lead form and the fillet forms on a 0.30 x 0.42 mm surface. pad_size_mm is deliberately OMITTED because the datasheet publishes none."
+ },
+ "svg": "C:\\dev\\ai-ee3\\boards\\lumina-par\\reports\\fp_Q301_C22371361.overlay.svg"
+}

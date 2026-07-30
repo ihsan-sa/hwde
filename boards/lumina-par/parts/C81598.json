@@ -1,0 +1,64 @@
+{
+ "mpn": "1N4148W",
+ "lcsc": "C81598",
+ "package": "SOD-123 (plastic surface mounted package, 2 leads). Body 2.60-2.70 x 1.55-1.65 mm, height 1.05-1.15 mm, overall lead span 3.55-3.85 mm.",
+ "description": "Semtech Electronics Ltd 1N4148W - silicon epitaxial planar SWITCHING diode in SOD-123. Fast switching (trr <= 4 ns). The same die is offered in other cases: DO-35 as 1N4148, MiniMELF as LL4148, MicroMELF as MCL4148 - THIS part is the SOD-123 'W' version. Note this is a small-signal switching diode, NOT a Schottky: VF is 0.715 V max at only 1 mA and rises to 1.25 V max at 150 mA, and IF(AV) is 150 mA. Source: 1N4148W datasheet, Semtech Electronics Ltd, Rev 05, dated 20/09/2016, 3 pages.",
+ "pinout": [
+  {
+   "pin": "1",
+   "name": "K",
+   "type": "passive",
+   "notes": "CATHODE. Directly grounded: the page-1 'PINNING' table reads 'PIN 1 / DESCRIPTION Cathode'. The adjacent 'Simplified outline SOD-123 and symbol' figure (Top View) shows pin 1 at the LEFT with a heavy black CATHODE BAND at that end, the marking code 'W1' on the body, and the diode symbol drawn with its cathode bar toward pin 1."
+  },
+  {
+   "pin": "2",
+   "name": "A",
+   "type": "passive",
+   "notes": "ANODE. Page-1 'PINNING' table: 'PIN 2 / Anode'. The unbanded end of the body, drawn at the right of the Top View."
+  }
+ ],
+ "land_pattern": {
+  "package": "SOD-123 - PACKAGE OUTLINE ONLY. This datasheet publishes NO recommended land pattern / suggested pad layout.",
+  "pad_count": 2,
+  "pin1": "1",
+  "notes": "NO LAND PATTERN IS PUBLISHED. Page 3 'PACKAGE OUTLINE - Plastic surface mounted package; 2 leads, SOD-123' gives only the package outline (top, side and end views with symbols A, bp, c, D, E, HE) and its min/max table; there is no pad drawing anywhere in the 3 pages. pitch_mm and pad_size_mm are therefore OMITTED rather than guessed - fp_verify will check pad_count and pin 1 only. OUTLINE TABLE (unit mm, max over min as printed): A 1.05 to 1.15 (height), b (= bp) 0.50 to 0.60 (lead width), c 0.100 to 0.135 (lead thickness), D 2.60 to 2.70 (body length), E 1.55 to 1.65 (body width), HE 3.55 to 3.85 (overall lead span, terminal tip to terminal tip), v 0.2, angle 5 degrees ALL ROUND. USEFUL CROSS-REFERENCES (not statements of this datasheet): the SMF15A on this same board is the same SOD-123 case and ITS datasheet does publish a land - 1.00 x 1.10 mm pads on 3.00 mm centres; KiCad 10.0 Diode_SMD:D_SOD-123 uses 0.9 x 1.2 mm pads on 3.30 mm centres. Either is a reasonable land for this outline; pick one deliberately and apply it consistently to both SOD-123 parts on the board."
+ },
+ "exposed_pad": {
+  "present": false
+ },
+ "layout_notes": [
+  "POLARITY MARKING: cathode = pin 1 = the BANDED end. Marking code on the body is 'W1'. The Top View figure shows the band and 'W1' together, so at incoming inspection the band should be at the left when 'W1' reads upright. There is no other orientation feature on a SOD-123 - a reversed part in a one-shot/steering position simply blocks instead of conducting.",
+  "FORWARD VOLTAGE IS A HARD FOUR-POINT SPEC, MAX ONLY (no typicals published): VF <= 0.715 V at IF = 1 mA; <= 0.855 V at 10 mA; <= 1 V at 50 mA; <= 1.25 V at 150 mA. At the 150 mA rated average current the drop is up to 1.25 V - budget conduction loss at ~0.19 W, which is close to half the 400 mW package rating.",
+  "REVERSE LEAKAGE, FOUR POINTS, MAX ONLY: IR <= 1 uA at VR = 75 V (25 C); <= 25 nA at VR = 20 V (25 C); <= 50 uA at VR = 75 V, TJ = 150 C; <= 30 uA at VR = 25 V, TJ = 150 C. Leakage rises ~1000x from 25 C to 150 C - relevant if this diode sits reverse-biased in a hot corner.",
+  "SPEED: trr <= 4 ns MAX at IF = 10 mA, Irr = 1 mA, VR = 6 V, RL = 100 ohm. Total capacitance CT <= 2 pF MAX at VR = 0 V, f = 1 MHz (the reverse-capacitance curve shows Ctot falling to ~0.75x its 0 V value by VR = 10 V).",
+  "REVERSE VOLTAGE - TWO DIFFERENT LIMITS: VRM (peak reverse voltage) = 100 V absolute maximum, but VR (continuous reverse voltage) = 75 V, and V(BR)R is specified as 75 V MIN at IR = 1 uA. Design to 75 V, not 100 V.",
+  "SURGE: IFSM = 0.5 A at t = 1 s, 1 A at t = 1 ms, 4 A at t = 1 us (non-repetitive peak forward surge).",
+  "THERMAL: Ptot = 400 mW with RthJA = 312 C/W, TJ max 150 C. At 400 mW and 312 C/W the junction is 125 C above ambient, so the 400 mW figure is only reachable at ~25 C ambient - the datasheet's 'Power Dissipation vs Ambient Temperature' curve derates linearly from 400 mW at 25 C to 0 at 150 C. The datasheet does NOT state the board/copper conditions behind RthJA = 312 C/W.",
+  "NOT IN THIS DATASHEET: no recommended land pattern, no typical (only max) VF/IR/CT/trr values, no reflow profile, no MSL rating, no ESD rating, no board definition for RthJA, and no forward-current derating table (only the Ptot-vs-Ta curve).",
+  "BOARD ROLE: this part is a DNP one-shot option on LUM-PAR-A. It still needs a correct land and correct band orientation on the silkscreen so the option can be stuffed later without a rework spin."
+ ],
+ "abs_max": [
+  {"param": "VRM peak reverse voltage (Absolute Maximum Ratings, Ta = 25 C)", "value": 100, "unit": "V"},
+  {"param": "VR reverse voltage (Absolute Maximum Ratings)", "value": 75, "unit": "V"},
+  {"param": "IF(AV) average rectified forward current (Absolute Maximum Ratings)", "value": 150, "unit": "mA"},
+  {"param": "IFSM non-repetitive peak forward surge current at t = 1 s", "value": 0.5, "unit": "A"},
+  {"param": "IFSM non-repetitive peak forward surge current at t = 1 ms", "value": 1, "unit": "A"},
+  {"param": "IFSM non-repetitive peak forward surge current at t = 1 us", "value": 4, "unit": "A"},
+  {"param": "Ptot power dissipation (Absolute Maximum Ratings)", "value": 400, "unit": "mW"},
+  {"param": "RthJA thermal resistance junction to ambient air (board conditions NOT stated)", "value": 312, "unit": "C/W"},
+  {"param": "Tj junction temperature (Absolute Maximum Ratings)", "value": 150, "unit": "C"},
+  {"param": "Tstg storage temperature range (Absolute Maximum Ratings)", "value": "-65 to +150", "unit": "C"},
+  {"param": "V(BR)R reverse breakdown voltage, MIN at IR = 1 uA (Characteristics, Ta = 25 C)", "value": 75, "unit": "V"},
+  {"param": "VF forward voltage, MAX at IF = 1 mA", "value": 0.715, "unit": "V"},
+  {"param": "VF forward voltage, MAX at IF = 10 mA", "value": 0.855, "unit": "V"},
+  {"param": "VF forward voltage, MAX at IF = 50 mA", "value": 1, "unit": "V"},
+  {"param": "VF forward voltage, MAX at IF = 150 mA", "value": 1.25, "unit": "V"},
+  {"param": "IR peak reverse current, MAX at VR = 75 V, Ta = 25 C", "value": 1, "unit": "uA"},
+  {"param": "IR peak reverse current, MAX at VR = 20 V, Ta = 25 C", "value": 25, "unit": "nA"},
+  {"param": "IR peak reverse current, MAX at VR = 75 V, TJ = 150 C", "value": 50, "unit": "uA"},
+  {"param": "IR peak reverse current, MAX at VR = 25 V, TJ = 150 C", "value": 30, "unit": "uA"},
+  {"param": "CT total capacitance, MAX at VR = 0 V, f = 1 MHz", "value": 2, "unit": "pF"},
+  {"param": "trr reverse recovery time, MAX at IF = 10 mA, Irr = 1 mA, VR = 6 V, RL = 100 ohm", "value": 4, "unit": "ns"}
+ ],
+ "source_pdf": "boards/lumina-par/parts/C81598.pdf (Semtech Electronics Ltd 1N4148W, Silicon Epitaxial Planar Switching Diode, Rev 05, dated 20/09/2016, 3 pages)"
+}

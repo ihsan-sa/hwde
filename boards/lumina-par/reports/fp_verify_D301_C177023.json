@@ -1,0 +1,30 @@
+{
+ "script": "fp_verify",
+ "status": "pass",
+ "board": "POWERDI-123_L2.8-W1.8-LS3.7-RD.kicad_mod",
+ "counts": {
+  "total": 0,
+  "by_severity": {},
+  "by_source": {}
+ },
+ "violations": [],
+ "footprint": "POWERDI-123_L2.8-W1.8-LS3.7-RD",
+ "footprint_file": "C:\\dev\\ai-ee3\\boards\\lumina-par\\lib\\aiee.pretty\\POWERDI-123_L2.8-W1.8-LS3.7-RD.kicad_mod",
+ "copper_pads": 2,
+ "total_pads": 2,
+ "measured_pitch_mm": 2.38,
+ "measured_pad_size_mm": [
+  1.5,
+  2.4
+ ],
+ "has_courtyard": true,
+ "has_silk": true,
+ "land_pattern": {
+  "package": "PowerDI123 - from the datasheet's own 'Suggested Pad Layout' drawing and table (page 4).",
+  "pad_count": 2,
+  "pitch_mm": 2.375,
+  "pin1": "1",
+  "notes": "SUGGESTED PAD LAYOUT (page 4, mm): G = 0.65 (gap between the two pads), X = 1.05 (small/ANODE pad width), X1 = 2.40 (large/CATHODE pad width), X2 = 4.10 (overall span), Y = 1.50 and Y1 = 1.50 (both pad heights). Self-consistent: X + G + X1 = 1.05 + 0.65 + 2.40 = 4.10 = X2. DERIVED pad-centre spacing = X/2 + G + X1/2 = 0.525 + 0.65 + 1.20 = 2.375 mm -> that is the pitch_mm above (the nearest-neighbour distance fp_verify measures). pad_size_mm is deliberately OMITTED because the two pads are DIFFERENT sizes (cathode 2.40 x 1.50, anode 1.05 x 1.50); fp_verify's modal-size check would tie-break arbitrarily and report a meaningless result. CROSS-CHECK (not a datasheet statement): KiCad 10.0 Diode_SMD:D_PowerDI-123 has pad 1 at x = -0.85 sized 2.4 x 1.5 and pad 2 at x = +1.525 sized 1.05 x 1.5 - centre spacing 2.375 mm, pad sizes identical to this table, and its pad 1 is the 2.4 mm CATHODE pad. That library footprint matches this datasheet exactly. PACKAGE OUTLINE (page 4 table, min/max/typ mm): A 0.93/1.00/0.98 (height), A3 0.15/0.25/0.20, b 0.85/1.25/1.00, b2 1.025/1.125/1.10, D 1.63/1.93/1.78 (body width), E 3.50/3.90/3.70 (overall length terminal-to-terminal), E1 2.60/3.00/2.80 (body length), L 0.40/0.50/0.45 (2x anode lead), L1 1.25/1.40/1.35 (cathode tab), L3 0.125/0.275/0.20. Two package options (A and B) are drawn; they differ only in the terminal edge profile (option B has notched terminal ends) and share the same dimension table."
+ },
+ "svg": "C:\\dev\\ai-ee3\\boards\\lumina-par\\reports\\fp_D301_C177023.overlay.svg"
+}
