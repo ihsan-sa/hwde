@@ -3,7 +3,7 @@
  "board": "lumina-carrier",
  "workspace": "boards/lumina-carrier",
  "created": "2026-07-28T13:36:22",
- "updated": "2026-07-30T09:03:14",
+ "updated": "2026-07-30T09:06:25",
  "phase": "P10",
  "gates": {
   "erc": {
@@ -577,6 +577,12 @@
    "why": "The 2f0cb1e fix is independently confirmed correct and valuable regardless of the create: pcbParam now carries copperWeight '1' and insideCuprumThickness '0.5', the insideCuprumThicknessFee went to exactly 0.00, and the board will be built to JLC04161H-3313's real 17.5 um inner layers - the geometry the 100 ohm differential MDI was actually solved against (0.260 mm trace / 0.210 mm gap / 0.470 mm pitch). Had a create ever succeeded before this fix, we would have received boards on a stackup nobody designed, and paid 17.07 USD extra for the privilege. aab8921 also verified: derive_copper_oz now finds this board's numbered heading and reports honestly ('Chosen line has no oz marker -> 1 oz') instead of claiming the file is missing; outer stays 1 oz, correct. WHAT THE DIFF AGAINST THE WORKING pd-trigger ORDER RULES OUT: pcbParam is field-for-field identical except where the boards legitimately differ - layer 2 vs 4, 48x30 vs 100x80, and insideCuprumThickness absent vs '0.5' (it is a 4+ layer only field). copperWeight, surfaceFinish, thickness, plateType, viaCovering, flyingProbeTest, impedanceFlag, panel flags, pcbColor, qty and even serviceConfigVos are byte-identical. The create payload shape is the same too: {orderType, fileKey, pcbParam, shippingMethod}. And pd-trigger created successfully with the SAME shippingMethod HKTHZXR-RMB and the SAME country US. So it is not the ship method, not the freight, not the token, not the account scope, and not the payload shape. THE TWO CANDIDATES LEFT, both untestable without spending: (1) insideCuprumThickness is accepted by calculate but rejected by create - the field is known to be validated, since JLC returns 2129 for it on 2-layer boards; (2) this is simply the first FOUR-LAYER create on the account and create has a 4-layer requirement calculate does not enforce. pd-trigger was 2-layer. I am not probing further: every attempt is a live create and the instruction was to stop and report if code 2 recurred. Latch remains unarmed, order_number None, and no batchNum or orderId was returned on either attempt.",
    "phase": "P10",
    "ts": "2026-07-30T09:03:14"
+  },
+  {
+   "what": "THIRD IDENTICAL FAILURE - candidate 1 disproved. Omitting insideCuprumThickness from the create payload changed nothing: code 2 unknown_error, trace b1eba7f4642b494db0cb8a1b104f5b14. STOPPED. Candidate 2 NOT attempted. No order created, nothing spent, latch still unarmed. Escalate to JLC support or the manual cart.",
+   "why": "The experiment was run cleanly and is conclusive for what it tested: calculate kept insideCuprumThickness '0.5' and priced correctly at 26.12 (18.40 pcb + 7.7179 HKTHZXR-RMB, insideCuprumThicknessFee 0.00), while create sent a payload verified field-by-field BEFORE sending to contain no insideCuprumThickness and everything else intact - orderType 1, fileKey, layer 4, copperWeight '1', qty 10, identical serviceConfigVos, shippingMethod HKTHZXR-RMB. JLC still returned HTTP 200 with code 2. So the failing element is NOT that field. THREE ATTEMPTS, THREE TRACES, THREE DIFFERENT PAYLOADS, ONE IDENTICAL UNCLASSIFIED REJECTION: 4e0f08d4e3c04a9b80b19553624c43a8 (inner copper '1'), f90769b3cb184f2cb0e6c2312844639d (inner copper '0.5'), b1eba7f4642b494db0cb8a1b104f5b14 (field absent). Against a control - pd-trigger, same account, same API, same shippingMethod HKTHZXR-RMB, same country US, same payload shape - which created successfully as batchNum W2026073002475378. The only structural differences left are layer count (2 vs 4) and board size (48x30 vs 100x80). I did NOT try candidate 2 because the instruction was explicit that three identical unclassified rejections means the cause is not in the payload and further live creates are guessing with real money. I ALSO REVERTED my experimental edit to order_submit.py rather than leaving it: with the hypothesis disproved, permanently dropping insideCuprumThickness from create would make the script silently discard a genuine 1 oz inner-copper selection on some future board and ship 0.5 oz instead - precisely the class of board-killer that commit 2f0cb1e was written to fix. A failed experiment must not leave a hazard behind. Script is back at 2f0cb1e, git-clean.",
+   "phase": "P10",
+   "ts": "2026-07-30T09:06:25"
   }
  ],
  "history": [
@@ -1170,6 +1176,11 @@
    "ts": "2026-07-30T09:03:14",
    "event": "decision",
    "what": "INNER-COPPER FIX IS REAL AND WORKED, BUT IT WAS NOT THE CREATE BLOCKER. Re-quote dropped Order A from 43.19 to 26.12 (PCB 35.47 -> 18.40, insideCuprumThicknessFee 17.07 -> 0.00) and the create STILL returned code 2 unknown_error, trace f90769b3cb184f2cb0e6c2312844639d. STOPPED per instruction. Order B not attempted. No order created."
+  },
+  {
+   "ts": "2026-07-30T09:06:25",
+   "event": "decision",
+   "what": "THIRD IDENTICAL FAILURE - candidate 1 disproved. Omitting insideCuprumThickness from the create payload changed nothing: code 2 unknown_error, trace b1eba7f4642b494db0cb8a1b104f5b14. STOPPED. Candidate 2 NOT attempted. No order created, nothing spent, latch still unarmed. Escalate to JLC support or the manual cart."
   }
  ]
 }
