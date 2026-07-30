@@ -1632,6 +1632,56 @@ Two more from the same fix, both cheap and both worth doing every time:
   `magjack_isolation_barrier` exists: a voltage-derived checker cannot see a hipot/differential
   requirement, so without the rule any future reroute silently reopens the gap and nothing reports it.
 
+## 2026-07-29 [check_creepage][gates] the violation COUNT is not a violation count - it reports only the WORST pair per net pair, and hid 216 siblings
+`check_creepage` emits one violation per (net_a, net_b, layer) at the minimum spacing. On
+lumina-carrier the single reported item `/poe/POE_TAP_A2 -> /poe/LED_Y_A on F.Cu: 0.203 mm` was
+**1 of 217 pairs under the 0.600 mm requirement** (17 of 36 LED_Y_A segments against 21 of 27 A2 F.Cu
+segments, spanning 0.2031-0.5071 mm over roughly 10 mm of parallel run). A fixer that sizes a repair
+from the one reported coordinate is sizing a 10 mm reroute from a point sample, and a reviewer reading
+"15 creepage errors" is reading a number that understates the real defect count by more than an order
+of magnitude. **Always re-sweep the whole net pair before believing, or acting on, a creepage count.**
+Same shape as the sibling-masking note above, but worse: there the siblings appeared only after the
+worst was fixed; here 216 of them were never reported at all.
+Fix proposal for the script: emit every pair below the requirement, or at minimum carry a
+`pairs_under_requirement` count and the distribution alongside the minimum.
+
+## 2026-07-29 [check_current][gates] no bridge awareness: the script asks the fixer for a parallel path it cannot itself detect
+`check_current`'s `undersized_track` fires per SEGMENT with the full rail current, and its own
+remediation guidance tells the fixer to check whether a parallel same-net path carries some of it -
+but the script has no connectivity graph, so it cannot answer its own question. On lumina-carrier all
+five investigated segments turned out to be **cut edges (bridges) in their net's graph**, so each
+really did carry the whole rail and the widths were genuine defects; but that had to be proven by
+hand. ~40 lines (build the net graph from track endpoints, find bridges) would let the check label
+each undersized segment `bridge: true|false`, which is the difference between "this is a real
+bottleneck" and "this is one of four parallel feeds". Worth doing before anyone waives a width
+finding on a parallelism assumption.
+
+## 2026-07-29 [geometry][pads][python] roundrect pads carry 20 points, not 4 - a `sum/len` centroid silently drops them all
+A shape-aware pad model that windows candidate pads by centroid-from-vertices (`sum(pts)/len(pts)`)
+works for rect (4 points) and breaks for **roundrect**, whose corner arcs are emitted as ~20 points -
+the average is pulled off the true centre enough to fall outside the search window, so every roundrect
+pad vanishes from the model. Consequence measured on lumina-carrier: a "feasible" solve that placed a
+via **inside U22 pin 11's pad**, caught only by a full-board pre-flight against real DRC rather than
+by the solver's own model. Two corollaries: (a) window pads by their BOUNDING BOX, never by a
+vertex-average centroid; (b) roundrect corner radius is load-bearing, not cosmetic - modelling
+U22-11 (1.575 x 0.40, rratio 0.25) as a sharp rectangle understated its gap by ~0.041 mm and flipped
+one item from "capped at 0.4624 mm" to "ceiling 0.5453 mm", i.e. from unfixable to nearly fixable.
+Related: a circumscribed CIRCLE for a 1.90 x 2.50 rect pad hid a real 1.100 mm ceiling entirely.
+This geometry (rotated rect + arc-approximated roundrect + oval stadium + circle + zone fills)
+now exists three times over in `work/` scratch files on this board alone
+(`p7/pad_gap.py`, `p8/tapcreep/capsule.py`, `p8/hvpwr/board_model.py`) because the first two run
+argparse at import and cannot be imported. It belongs in `scripts/lib/`.
+
+## 2026-07-29 [constraints][gates] two copies of constraints.json, two different answers - 61 vs 53 undersized_track
+The playbook says sidecars resolve from the BOARD's directory from P5 onward, so
+`kicad/constraints.json` is canonical - but `architecture/constraints.json` survives as the P2 record
+and nothing keeps them in step. On lumina-carrier the architecture copy still carried
+`V48_RAW current_a: 1.5` after the P8 correction to 1.0, and a check run against it reported
+**61** `undersized_track` instead of **53**. Nothing warns you which file you loaded. Either delete
+the architecture copy at P5 or (as done here) correct it and keep the original value in a
+`_p2_original_current_a` field with the reason - annotation alone in a long `_comment` is too easy to
+miss, and a stale current rating is how a wrong number gets quoted at P9.
+
 ## 2026-07-29 [board_init][rules_gen][dfm][gates] `board_init` writes `min_track_width: 0.1`, BELOW every JLC profile - so `drc_routed` 0/0 does not mean fabricable
 `board_init.write_pro(pro_path, min_track: float = 0.1)` hard-codes 0.1 mm into
 `design_settings.rules.min_track_width`. **Every** JLC profile in
