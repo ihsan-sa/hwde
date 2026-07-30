@@ -46,8 +46,49 @@
       {"ref": "C36", "beyond_extent_mm": 5.477, "board_xy": [113.0, 75.0]}
     ]
   },
-  "cause_confirmed": "reports/place/silk*.ops.json is 9 files carrying 160 move_text ops that the P6 placement agent used to take silk DRC violations 236 -> 5. It pushed refdes OUTWARD to clear overlaps and nothing ever pulled them back. The board was optimised for a zero-warning gate at the cost of assembly legibility. You are the pull-back pass.",
+  "cause_confirmed": {
+    "headline": "THIS IS NOT A HANDFUL OF OUTLIERS. NEARLY EVERY LABEL ON THE BOARD IS WRONG, AND THE ROOT CAUSE IS A LIBRARY DEFECT, NOT A BAD SWEEP.",
+    "library_defect": "easyeda2kicad emits EVERY footprint with its reference text at a blanket (0, -4.0) mm regardless of part size. Confirmed at exactly (0.0, -4.0) on R0603, C0603, R0805, C0805, C1206, C1210, LED0805-R-RD, SOD-323, SOT-23-6, IND-SMD_L5.4, SMB, SMC, SW-SMD, CONN-TH_DS1021 and LED-SMD_L1.6. On an 0603 whose pad extent is 1.2 mm that puts the label ~3 mm clear of its own body and often nearer a neighbour than its owner. The larger packages carry the opposite error - offsets derived from the SILK OUTLINE rather than the pads (ESP32-S3-WROOM-1 at -12.955 mm, LQFP-48 at -8.250 mm, SOIC-8 at -6.600 mm).",
+    "two_populations": [
+      "POPULATION 1, THE MAJORITY: labels still sitting at the inherited (0, -4.0), untouched by any sweep. D21 and R5 both measure exactly (0.0, -4.0) - the owner named them. These are wrong by inheritance, not by anything this run did.",
+      "POPULATION 2: labels a P6 sweep pushed FURTHER out to clear overlaps, at irregular offsets - C2 at (-0.65, -12.75), C62 at (-2.0, -9.8), R101 at (-0.75, -8.75). reports/place/silk*.ops.json is 9 files carrying 160 move_text ops that took silk DRC 236 -> 5 by pushing outward, and nothing ever pulled them back."
+    ],
+    "both_populations_need_pulling_in": "The owner's words were 'they should be as close as possible BY DEFAULT'. Do not treat population 1 as acceptable because it is uniform.",
+    "why_the_library_fix_alone_is_not_enough": "The .kicad_pcb carries its own COPIES of the offsets, so normalizing the library moves nothing on the board. The library HAS already been normalized (lib/EDITS.md edit 8, 31/31 footprints, idempotent) - that fixes future boards. This board must be corrected separately with place_edit move_text ops."
+  },
+  "targets": {
+    "source": "scripts/lib_refdes_norm.py (commit 34a2f6d), run on boards/lumina-carrier/lib/aiee.pretty; full JSON at boards/lumina-carrier/work/p8/silk/lib_targets_applied.json and the dry-run copy at lib_targets_dryrun.json",
+    "formula": "target local y = pad_top - margin(0.25) - text_height/2, i.e. the label sits 0.25 mm clear of the part's own pad bounding box. Local x stays 0.",
+    "how_to_use": "These are LOCAL footprint-frame offsets. For each placed component, look up its footprint name, take the target y, convert (0, target_y) to ABSOLUTE board coordinates through the footprint's own position and rotation, and that is your move_text x/y. Treat it as the DEFAULT target, then deviate only where a silk collision forces it.",
+    "per_footprint_local_y": {
+      "C0603": -1.2, "R0603": -1.182, "C0805": -1.425, "R0805": -1.438,
+      "C1206": -1.614, "C1210": -2.1,
+      "SOD-323_L1.7-W1.3-LS2.6-BI": -1.165,
+      "SOT-23-6_L2.9-W1.6-P0.95-LS2.8-BR": -2.0,
+      "LED0805-R-RD": -1.45, "LED-SMD_L1.6-W0.8-R-RD": -1.15,
+      "IND-SMD_L5.4-W5.2": -2.0, "IND-SMD_L12.6-W13.5": -3.45,
+      "SMB_L4.3-W3.6-LS5.4-R-RD": -2.22, "SMC_L7.1-W6.2-LS8.1-R-RD": -2.66,
+      "SW-SMD_L3.9-W3.0-P4.45": -1.68,
+      "CONN-TH_DS1021-1X6SF11-B": -1.512,
+      "HDR-TH_14P-P2.54-V-M-R2-C7-S2.54-1": -2.87,
+      "HDR-TH_24P-P2.54-V-M-R2-C12-S2.54": -2.87,
+      "OSC-SMD_4P-L3.2-W2.5-BL_SIT8008BI": -2.3,
+      "SOIC-8_L4.9-W3.9-P1.27-LS6.0-BL": -4.25,
+      "SO-8_L4.9-W3.9-P1.27-LS6.0-BL-EP": -4.55,
+      "ESOP-8_L4.9-W3.9-P1.27-LS6.0-BL-EP": -4.26,
+      "SOIC-8-1EP_3.9x4.9mm_P1.27mm_EP2.41x3.3mm": -2.955,
+      "SOIC-8-1EP_3.9x4.9mm_P1.27mm_EP2.95x4.9mm_Mask2.71x3.4mm": -3.2,
+      "HTSSOP-20_L6.5-W4.4-P0.65-LS6.4-TL-EP2.58": -3.551,
+      "HTSSOP-20-1EP_4.4x6.5mm_P0.65mm_EP3.4x6.5mm_Mask2.96x2.96mm_ThermalVias": -4.0,
+      "LQFP-48_L7.0-W7.0-P0.50-LS9.0-BL": -5.75,
+      "ABF_L5.1-W4.4-P4.00-LS6.2-BL": -4.418,
+      "RJ45-TH_LPJG0926HENL_C22457393": -7.982,
+      "RJ45-TH_HY931147C": -9.514,
+      "WIFIM-SMD_ESP32-S3-WROOM-1-N8": -10.15
+    }
+  },
   "guidance": [
+    "ORDER OF WORK: start from the normalizer target for EVERY non-H footprint, not from the current position. Build one candidate ops file that moves all ~111 refdes to their per-footprint target, apply it in batches, and only then deal with the collisions DRC reports. That is far better than nudging 111 labels individually, because the target is the answer for the large majority and the residual set is small.",
     "MECHANISM: place_edit.py move_text ops. Op shape: {\"op\": \"move_text\", \"ref\": \"C2\", \"field\": \"reference\", \"x\": <mm>, \"y\": <mm>, \"deg\": <optional>}. Ops file is {\"version\": 1, \"ops\": [...]}. x/y are ABSOLUTE BOARD coordinates, NOT footprint-local. place_edit converts the stored local field position to absolute for verification using: th = radians(footprint_at_deg); ax = fx + lx*cos(th) + ly*sin(th); ay = fy - lx*sin(th) + ly*cos(th). Derive your local->absolute mapping from that exact expression (read it yourself at place_edit.py::_parse_board_texts) or you will fight sign errors on rotated and bottom-side parts. Round-trip check: after applying, re-read the board and confirm the achieved absolute position matches what you asked for.",
     "PROVEN SOLVER RECIPE, from LEARNINGS.md 2026-07-28 [placement][drc][silk] - this exact problem was solved once already and the recipe is machine-verified: a greedy solver works if it (1) offers BOTH text angles on ALL FOUR sides of the part (0-deg above/below plus 90-deg left/right - four positions only is NOT enough in a channel), (2) scores candidates as (min(clearance, 0.30), -distance_to_own_silk_and_pads) so it stops paying for clearance beyond 0.30 mm and then maximises closeness, and (3) processes the MOST CROWDED parts first (descending neighbour count within 4 mm) - largest-first orphans the boxed-in small caps.",
     "HARD GEOMETRIC LIMIT, also from that entry: a 3-char refdes at text size 1.0 needs about 3.5 x 1.75 mm of clear silk. In a channel narrower than ~4 mm NO label can be closer to its own part than to the parts flanking it. When you hit that, STOP and report the residual with its number - do not relieve it by moving a component. Component moves are FORBIDDEN in this order (see the oracle note below).",

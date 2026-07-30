@@ -179,3 +179,53 @@ gives each of the 8 pads its ~5 x 5 mm pour.
 | J1 48 V tap to SHIELD board lock | **0.487 mm** vs 0.635 mm required - **OPEN, see edit 7a** |
 | Courtyards | 31 / 31 (edit 7c added the only missing one) |
 | `fp_verify.py` on the two new lands | exit 0 on both |
+
+---
+
+## Edit 8 - refdes offset normalized across all 31 footprints (P8, 2026-07-29)
+
+**Authority:** project owner requirement relayed by the coordinating orchestrator
+("labels should be as close as possible **by default**"), applied with the central
+tool `scripts/lib_refdes_norm.py` (commit `34a2f6d`).
+
+**Defect (library-wide, not board-specific).** `easyeda2kicad` emits every
+footprint with `(property "Reference" ... (at 0 -4.0 ...))` - a **blanket 4 mm**
+offset independent of part size. Confirmed at exactly `(0.0, -4.0)` on `R0603`,
+`C0603`, `R0805`, `C0805`, `C1206`, `C1210`, `LED0805-R-RD`, `SOD-323`,
+`SOT-23-6`, `IND-SMD_L5.4`, `SMB`, `SMC`, `SW-SMD`, `CONN-TH_DS1021` and
+`LED-SMD_L1.6`. On an 0603 whose pad extent is 1.2 mm that leaves the label ~3 mm
+clear of its own body and frequently nearer a neighbour than its owner. The larger
+packages carried the opposite error - offsets derived from the silk outline rather
+than the pads, e.g. `WIFIM-SMD_ESP32-S3-WROOM-1-N8` at **-12.955 mm**.
+
+**Change.** Each offset re-derived from the footprint's own pad bounding box:
+`y = pad_top - margin(0.25) - text_height/2`. Text surgery only - no pad, courtyard
+or silk geometry touched.
+
+| Footprint | from | to |
+|---|---|---|
+| `C0603` / `R0603` | -4.000 | **-1.200** / **-1.182** |
+| `C0805` / `R0805` | -4.000 | **-1.425** / **-1.438** |
+| `C1206` / `C1210` | -4.000 | **-1.614** / **-2.100** |
+| `SOD-323` | -4.000 | **-1.165** |
+| `SOT-23-6` | -4.950 | **-2.000** |
+| `LED0805-R-RD` / `LED-SMD_L1.6` | -4.000 | **-1.450** / **-1.150** |
+| `IND-SMD_L5.4` / `IND-SMD_L12.6` | -4.000 | **-2.000** / **-3.450** |
+| `SMB` / `SMC` | -4.000 | **-2.220** / **-2.660** |
+| `SOIC-8_L4.9` / `SO-8_L4.9` / `ESOP-8` | -6.600 / -7.000 / -6.908 | **-4.250** / **-4.550** / **-4.260** |
+| `HTSSOP-20_L6.5` | -6.632 | **-3.551** |
+| `LQFP-48` | -8.250 | **-5.750** |
+| `RJ45-TH_LPJG0926HENL_C22457393` | -10.475 | **-7.982** |
+| `WIFIM-SMD_ESP32-S3-WROOM-1-N8` | -12.955 | **-10.150** |
+
+**Verification.** 31 footprints, 31 changed, 0 skipped, exit 0. A second `--dry-run`
+reports **changed 0 / unchanged 31**, so the transform is idempotent. All 31 files
+still present and parsing.
+
+**Scope note.** This does NOT move anything on `lumina-carrier.kicad_pcb` - the board
+carries its own copies of the offsets, so the board is corrected separately with
+`place_edit` `move_text` ops driven toward these same targets, subject to
+`silk_overlap` / `silk_over_copper` / `silk_edge_clearance` staying at zero. The
+strobe and par libraries were normalized centrally and have no `.kicad_pcb` yet, so
+they are born correct; the carrier is the only board paying for the defect because
+it was placed first.
