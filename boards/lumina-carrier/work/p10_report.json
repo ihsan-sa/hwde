@@ -1,0 +1,75 @@
+{
+ "script": "report_gen",
+ "status": "violations",
+ "board": "lumina-carrier",
+ "workspace": "C:/dev/ai-ee3/boards/lumina-carrier",
+ "tex": "reports/design_doc/lumina-carrier-design-doc.tex",
+ "pdf": "reports/design_doc/lumina-carrier-design-doc.pdf",
+ "pages": 70,
+ "sections": [
+  {
+   "name": "title",
+   "status": "included",
+   "source": "state.json"
+  },
+  {
+   "name": "overview",
+   "status": "included",
+   "source": "fab/order.json"
+  },
+  {
+   "name": "requirements",
+   "status": "missing",
+   "source": "requirements.md"
+  },
+  {
+   "name": "architecture",
+   "status": "included",
+   "source": "state.json decisions, architecture/sheets.md"
+  },
+  {
+   "name": "schematic",
+   "status": "missing",
+   "source": "reports/erc-waivers.md"
+  },
+  {
+   "name": "layout",
+   "status": "included",
+   "source": "reports/renders/lumina-carrier_top.png, reports/renders/lumina-carrier_bottom.png, reports/renders/lumina-carrier_iso.png"
+  },
+  {
+   "name": "verification",
+   "status": "included",
+   "source": "reports/verify_all.json, reports/review-board.md"
+  },
+  {
+   "name": "dfm_fab",
+   "status": "missing",
+   "source": "reports/fab_export.json, fab/order.json"
+  },
+  {
+   "name": "run_record",
+   "status": "included",
+   "source": "log/P0-digest.md, log/P1-digest.md, log/P2-digest.md, log/P3-digest.md, log/P4-digest.md, log/P5-digest.md, log/P6-digest.md, log/P7-digest.md, log/P8-digest.md, log/P9-digest.md, state.json"
+  },
+  {
+   "name": "artifact_index",
+   "status": "included",
+   "source": "workspace scan"
+  }
+ ],
+ "missing": [
+  "reports/schematic.pdf",
+  "reports/bom_cpl.json bom_rows"
+ ],
+ "warnings": [
+  "brief/brief.md not found",
+  "requirements.md not found"
+ ],
+ "compile": {
+  "engine": "C:/Users/ihsan/AppData/Local/Programs/MiKTeX/miktex/bin/x64/pdflatex.EXE",
+  "rc": 0,
+  "passes": 2,
+  "seconds": 2.9
+ }
+}

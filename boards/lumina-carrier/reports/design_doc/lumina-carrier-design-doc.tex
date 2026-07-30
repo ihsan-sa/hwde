@@ -16,7 +16,7 @@
 \begin{center}
 {\LARGE\bfseries lumina-carrier --- Design Document}\\[6pt]
 {\large ai-ee v1 pipeline}\\[2pt]
-generated 2026-07-29 22:46:20
+generated 2026-07-30 07:12:05
 \end{center}
 \tableofcontents
 
@@ -29,14 +29,31 @@ generated 2026-07-29 22:46:20
 \endhead
 board & lumina-carrier \\
 workspace & \texttt{boards/lumina-carrier} \\
-phase & P8 \\
-gate status & 3/4 gates pass (not passing: verify) \\
+phase & P10 \\
+gate status & 4/5 gates pass (not passing: verify) \\
 state created & 2026-07-28T13:36:22 \\
-state updated & 2026-07-29T22:46:11 \\
+state updated & 2026-07-30T07:07:37 \\
 \bottomrule
 \end{longtable}
 }
 \section{Overview}
+\subsection*{Fabrication spec snapshot}
+{\small
+\begin{longtable}{ll}
+\toprule
+\textbf{Key} & \textbf{Value} \\
+\midrule
+\endhead
+layers & 4 \\
+width\_mm & 100.0 \\
+height\_mm & 80.0 \\
+qty & 15 \\
+surface\_finish & HASL \\
+solder\_mask\_color & green \\
+assembly & True \\
+\bottomrule
+\end{longtable}
+}
 \section{Requirements}
 \emph{requirements.md not found.}
 \section{Architecture}
@@ -109,6 +126,9 @@ P8 & REOPENED TRIAGE PAID OFF: check\_creepage 15 -\textgreater{} 11 and check\_
 P8 & ITEM 5 (POE\_TAP\_A2 to LED\_Y\_A, 217 pairs at 0.2031 mm vs 0.600 mm required) LEFT OPEN AND UNRESOLVED, not waived and not closed. Carried to H4 as an owner decision. Prioritised the silk legibility pass ahead of a third solve attempt. & Three things had to be separated. (1) The authorisation to trade A2's board-lock margin was VOIDED by the coordinating orchestrator after the fixer applied, tested and RETRACTED its own result: the +0.0037 mm price came from an ad-hoc seg-seg distance primitive that returns a positive number for INTERSECTING segments, so the trade was never available at that price. Nothing of item 5 is on the board; drc\_routed is back to 0/0 and check\_creepage is 11. The retraction is the right outcome and the fixer surfacing it unprompted is the behaviour that matters. (2) The 9.8 micrometre impossibility proof is VALID but NARROWER than first stated: it proves only the 0.6608 mm floor-enforced variant impossible, as a 1-D packing bound independent of the primitive bug - every term is a fixed pad radius, a fixed rule or an unneckable PoE net, saturating at -0.0223 mm. The 0.600 mm variant is UNRESOLVED, not impossible: a crossing-aware 3-net solve (A2 + LED\_Y\_A necked + LED\_G\_A with the ordering LED\_G\_A\textbar{}LED\_Y\_A\textbar{}A2 explicit at every x) has never been run. (3) SCOPE CHECK ON THAT SOLVE, worth recording before anyone runs it: the proposed lever is necking LED\_Y\_A to 0.100 mm, which is BELOW JLC's 0.1016 mm minimum trace width - the same limit that already generates 189 DFM errors on this board - so the solve must be run at \textgreater{}= 0.1016 mm. The 1.6 micrometre correction is immaterial against the claimed +0.4165 mm of room from adding LED\_G\_A, so the solve remains plausible; it is simply not free. DECISION: the silk legibility pass is an explicit owner requirement, measured, and still entirely unstarted, while item 5 has already consumed two bounded attempts. Silk goes first. If budget remains after silk, verify and the reviewer, the 3-net solve is the next thing to spend it on. Presented at H4 as a disclosed shortfall with the 217-pair count and the 0.2031 mm worst case, because a creepage requirement missed by 3x on a 57 V net is the owner's call, not mine. Note for that decision: the J1 board locks have NO declared potential - netless, so no gate models them - which is why the competing margin is a judgement call at all. \\
 P8 & SILK LEGIBILITY DONE: 111 in-scope refdes pulled in. Median offset 4.079 -\textgreater{} 1.600 mm; refdes more than 1 mm beyond their own part extent 95 -\textgreater{} 3 (excluding out-of-scope H1-H5); more than 1.5 mm beyond, 86 -\textgreater{} 1. 116/116 still visible, drc\_routed 0/0 after every one of 5 batches. & The agent did NOT trust my normalizer targets and was right not to: applied verbatim they produce 283 DRC warnings implicating 85 of 111 refs, because lib\_refdes\_norm.py uses size/2 for the text half-height and ignores each footprint's OWN silk outline. It rebuilt the geometry from KiCad itself - a read-only bundled-python probe emitting board-frame pad and silk polygons plus each label's true INKED stroke box via TransformTextToPolySet - then ran a greedy solver minimising distance to the label's own footprint origin subject to no contact with any silk, pad mask aperture, other label or the board edge, with a HARD filter that the label's own part must be the nearest part. THE LOAD-BEARING MEASUREMENT: at size 1.0 / thickness 0.15, GetTextBox() returns 1.6965 mm of height but DRC's inked stroke box is 1.162 mm - so using GetTextBox over-constrains by about 0.27 mm per side and makes correct targets look infeasible. That single fact is the difference between this working and not. Every candidate set was validated in a throwaway copy of the board (pcb+pro+dru+sch reproduces drc\_routed exactly at 3.4 s per run) before the live board was touched, which is what made 'DRC is the only oracle' affordable across 111 labels. Verified non-regression by snapshot diff: 3294 tracks, 359 vias, 8 zones, 8 board graphics, every pad, every footprint silk and every value field byte-identical; 0 footprints moved, 0 refdes hidden or relayered, no mirrored\_text warnings. Attribution beat closeness on 17 refs, 110 of 111 have their own part as nearest, and 5 previously upside-down labels were corrected to board 0/90 deg. ONE RESIDUAL above 1.5 mm: C35 at 3.861 mm, boxed in on four sides (U10's LQFP silk hull 0.32 mm above, U30's module hull 0.45 mm below, C37's hull 0.79 mm east) and its only wide-enough channel is also C34's ONLY attributable slot - C34's alternative escape is over 5.5 mm and equally unattributable, so C34 keeps it. No position within 7 mm has C35 as nearest part. That is a P6 placement consequence, not a silk problem, and per scope it was not relieved by moving a part. \\
 P8 & P8 REVIEWER TRIAGE: 4 errors + 8 warnings from the fresh-context verify-reviewer. NONE is a scripted P8 fix - two are cross-artifact drift against binding documents and two need a pipeline rewind - so all four go to the owner at H4. My own B4 creepage adjudication is RETRACTED as not-adopted. & E1 MOUNTING PATTERN, verified by me against the ICD text: the board is drilled 94 x 74 mm at a 3.0 mm inset, while connector-icd.md rev A6 line 513 freezes '4x M3 (3.2 mm) at 5 mm inset = a 90 x 70 mm hole rectangle' as the pattern every LUMINA board inherits. lumina-par is P0-complete and lumina-strobe is queued, both treating the ICD as a hard input, so any daughter drilled to s7.1 misses all four standoffs by 2 mm in x and y - not fixable daughter-side. Root cause is MECH-01's inset = margin/2, so the default --margin 6 gives 3 mm; P5 asserted MECH-01 satisfied having compared only the corner radius. E2 CRYSTAL: the 25 MHz oscillator network is 115.567 mm of copper with 10 vias reaching 1.05 mm from the top board edge, with R36 (0 R SERIES DAMPING) and R35 (1 M) at the board edge about 14 mm from both Y10 and the PHY - because constraints.json group eth\_xtal lists only C30/C31 and the anneal placed R35/R36 freely. Nothing could see it: /eth/XI, /eth/XO and /eth/XO\_XTAL are absent from high\_speed so check\_return\_path never evaluated them. E3 BUCK INPUT CAP: U21 (TPS563201 sync buck, the converter feeding the ESP32-S3, the W5500 and every daughter's 3.3 V) has exactly ONE input capacitor, 9.2 mm / 8.378 nH from VIN, and no HF ceramic at the pin at all. check\_decoupling reported nothing because it classed the 22 uF part as 'bulk' and applied the loose limit - its model is a decoupling loop, whereas a synchronous buck's input ceramic carries the full trapezoidal switch current with no diode softening. E4 AND THIS ONE IS AGAINST ME: my B4 re-adjudication of the 217-pair 0.2031 mm gap contradicts a FROZEN document. ICD rev A6 s5.1 says verbatim 'The 0.13 mm permanent polymer coating column (B4) is NOT claimed', the .kicad\_dru header repeats it, and the same section derives the 0.635 mm figure that s5.4 imposes on every daughter PRECISELY BECAUSE B4 was refused. A work/ JSON cannot reverse that. I have marked creepage\_adjudication.json NOT ADOPTED; the shortfall stands until an ICD rev A7 with the owner's signature. The reviewer also found the fact that makes it matter: LED\_Y\_A has only two pads, J1 pin 17 and R7 pin 2, and R7 is 330 R with pin 1 on +3V3 - so the failure product is 57 V onto +3V3 through 330 R, unclamped, leaving the board on J3 pins 12/14 to every daughter, with no PESD anywhere on the LED nets. GOOD NEWS INDEPENDENTLY VERIFIED: the ESP32-S3 antenna keepout PASSES with 0.0000 mm2 of copper on all four layers in the real 18 x 6 mm vendor Antenna Area - the reviewer checked the land pattern rather than the render, having been misled by the render first. STRUCTURAL FINDING WORTH MORE THAN ANY SINGLE ITEM: only 3 of the 7 nets declared at 57 V carry any DRU rule, which is why both the 0.2031 mm gap and P7's 0.6029 mm gap exist on a board with 0 DRC errors. \\
+P8 & OSCILLATOR ISLAND COLLAPSED via a scoped P6/P7 backward edge: routed copper 115.568 -\textgreater{} 33.212 mm (-71 percent), vias 10 -\textgreater{} 4, island-to-board-edge 0.647 -\textgreater{} 3.450 mm, R36-to-driver 31.275 -\textgreater{} 9.533 mm. drc\_routed 0/0 and gate place 0/0. No rebuild. & Owner approved fixing in place at H4. Root cause was a constraints.json defect, not a placement failure: group eth\_xtal was anchor Y10 with members {[}C30, C31{]} only, so R35 (1M feedback) and R36 (0R SERIES DAMPING) were never grouped and the annealer placed them freely at the top board edge, 31 mm and 17 mm from the pins they belong to. Corrected to anchor U10 with members {[}Y10, C30, C31, R35, R36{]} - anchored on the DRIVER, because anchoring on Y10 is what let the whole island float. Also added /eth/XI, /eth/XO and /eth/XO\_XTAL to high\_speed: they were absent, which is why check\_return\_path never once evaluated a 25 MHz net that reached 1.05 mm from a board edge. RESULTS PER NET: /eth/XI 45.697 mm / 6 vias -\textgreater{} 15.336 / 2; /eth/XO 42.800 / 2 -\textgreater{} 13.920 / 2; /eth/XO\_XTAL 27.071 / 2 -\textgreater{} 3.957 / 0. Load caps pulled in: C31 4.001 -\textgreater{} 2.072 mm from Y10, C30 2.489 -\textgreater{} 2.320 mm. Every separation rule still holds and two improved: Y10-to-J1 28.067 -\textgreater{} 41.587 mm against a 25 mm minimum. EMI consequence closed: the 25 MHz loop no longer terminates 1 mm from the board edge of a product whose only external cable is a 100 m Ethernet run, which was the canonical CISPR 32 radiated-emissions exposure with harmonics past 250 MHz. The series damping resistor is now 9.5 mm from its driver instead of 31 mm with \textasciitilde{}45 mm of trace in series, so it can actually damp. And \textasciitilde{}82 mm of copper plus 6 vias came off a 27 pF load network, recovering both start-up negative-resistance margin and part of the 100BASE-TX +/-50 ppm budget. PROCESS NOTE: moving 5 parts on a board with \textasciitilde{}3294 tracks produced 39 silk warnings on the first DRC and ZERO copper errors, because the agent ripped the three nets BEFORE moving the parts rather than after. That ordering is the whole difference between this and the C35 incident earlier in the run. \\
+P8 & ALL FOUR H4 ACTIONS COMPLETE. LED\_Y\_A rerouted 0.2031 -\textgreater{} 1.1500 mm (226 pairs under 0.635 mm -\textgreater{} 0), 188 tracks widened off the fab floor (gate dfm 193 -\textgreater{} 5 errors), ICD re-issued at rev A7, board locks declared and now DRC-enforced. Three new DRU rules, each PROVEN LIVE. drc\_routed 0/0. & The 189 in the work order was 188 (the agent found the order off by one on F.Cu, 135 not 136) and it is now 187 tracks at 0.110 mm plus 1 at 0.1071 mm - the exception is /ETH\_RSTn with 0.0071 mm of room against /eth/EXRES. One /ETH\_RSTn 3-segment chain had EXACTLY 0.0000 mm of room, sitting precisely on the resolved Default clearance from a 0.5 mm +3V3 track, so width-only was impossible; the agent nudged two shared nodes 0.03 mm east and reported it as a geometry change rather than burying it. I accept that, and I accept its widening of the two 0.100 mm /eth/XI and /eth/XO landings it flagged - both are PHY-side, 9-11 mm from the oscillator island, byte-identical geometry, DRC held. LED\_Y\_A left the pocket rather than being nudged because the band between J1's north pin row and POE\_TAP\_A2's staircase is 0.777 mm tall where a 0.2 mm track needs 1.035 mm; the 2.25 mm B.Cu dive exists solely to pass under LED\_G\_A's F.Cu corridor. Nearest new copper to any tap is 1.15 mm, which is why the new 0.60 mm rule has room. RULE SCOPING, and this is where the honest work was: hv\_tap\_general\_clearance at 0.635 mm fired 17 times and hv\_to\_netless\_conductor 9 times, and NONE of the 26 was a defect. All 9 netless firings were U22's own no-connect pads 4/5/17 at 0.220-0.250 mm from its own lead frame - decision (c) geometry. 13 of the 17 tap firings were plane ANTIPADS at a uniform 0.5005 mm against In1/In2, where the governing figure is IPC-2221B B1 internal = 0.10 mm, so 0.5005 mm exceeds it five-fold and 0.635 mm was simply the wrong yardstick for an inner-layer antipad. I scoped both rules per refdes and per layer rather than lowering them blindly, and set the tap rule to 0.600 mm = IPC B2 external, consistent with the two tap rules already at 0.600 and reserving TI's 0.635 mm for U1's own pins via the HV\_48V\_{*} rules. DISCLOSED rather than hidden by that choice: the tightest tap clearance on the board is a +3V3 via to J1 pad 11 at 0.6215 mm, clearing 0.600 by 21.5 um and missing 0.635 by 13.5 um. LIVENESS PROVEN for all three rules by tightening each and confirming it fires with the expected actuals: track floor at 0.15 mm fires 188x reporting 0.1071/0.1100 (which also independently confirms the widening); tap clearance at 0.9 mm fires 156x with 0.6215 tightest; netless at 0.75 mm fires 5x at 0.6643-0.6946 mm - and those five ARE J1's board locks, so the rule demonstrably reaches the pads it exists for. Note DRC measures the board-lock margin as 0.6643 mm where the P7 shape-aware capsule model gave 0.6029 mm; DRC's is the enforced number. \\
+P9 & THREE OPEN ITEMS RECORDED AS EXPLICITLY DEFERRED, not fixed: OI-1 U21 needs an HF input ceramic at VIN (highest-priority rev-B), OI-2 +3V3 and the LED nets are unclamped, OI-3 the skill has no incremental board-from-netlist update. Full detail in reports/open-items.md. & OI-3 IS THE CAUSE OF THE OTHER TWO, and that is the finding worth carrying to the skill rather than to this board. board\_init.py regenerates a board FROM SCRATCH - it does not sync a netlist into an existing .kicad\_pcb - and place\_edit's op set is place/move/rotate/flip/lock/add\_text/move\_text with NO add\_footprint. So any component addition after P5 costs the entire placement AND the entire routing. On this board that means discarding a hand-tuned oscillator island, four hand-solved 57 V creepage geometries, 188 hand-widened tracks and a 111-op silkscreen pass, in order to add two 0402 capacitors. That asymmetry is what forced the owner's no-rebuild ruling and it will force the same ruling on every future board that finds a missing passive at P8. The natural fix is a place\_edit add\_footprint op plus a netlist-diff step. OI-1 is a genuine error and I am not softening it: U21's TPS563201 sync buck has ONE input cap 9.89 mm / 8.378 nH from VIN and no HF ceramic at the pin at all, on the converter feeding the ESP32-S3, the W5500 and J3 pins 12/14 to every daughter. check\_decoupling missed it by classing the 22 uF as bulk and applying the loose limit - its model is a decoupling loop, but a synchronous buck's input ceramic carries the full trapezoidal switch current with no diode softening. OI-2's geometric half WAS fixed (0.2031 -\textgreater{} 1.1500 mm, 226 pairs -\textgreater{} 0, now held by the hv\_tap\_general\_clearance rule) so only the clamp remains, and a clamp is a new footprint. Also recorded in open-items.md, in ONE place as the owner asked: every H4-accepted waiver with its measured number, including that the ICD B4 question is now CLOSED BY GEOMETRY rather than by argument - the pair was physically rerouted, so ICD s5.1's refusal of the B4 column stands unchanged and needs no rev A8. \\
 \bottomrule
 \end{longtable}
 }
@@ -424,7 +444,7 @@ The constraint is close to unsatisfiable with this part: the OVP hysteresis plus
 \section{Layout}
 Gate \texttt{place} (phase P6): \textbf{pass} after 1 attempt(s); last 2026-07-29T11:02:27, failing 0 of 0.
 
-Gate \texttt{drc\_routed} (phase P7): \textbf{pass} after 2 attempt(s); last 2026-07-29T18:55:29, failing 0 of 0.
+Gate \texttt{drc\_routed} (phase P7): \textbf{pass} after 3 attempt(s); last 2026-07-30T06:35:39, failing 0 of 0.
 \begin{center}
 \includegraphics[width=0.72\textwidth]{reports/renders/lumina-carrier_top.png}\\
 {\small\texttt{reports/renders/lumina-carrier\_top.png}}
@@ -438,7 +458,7 @@ Gate \texttt{drc\_routed} (phase P7): \textbf{pass} after 2 attempt(s); last 202
 {\small\texttt{reports/renders/lumina-carrier\_iso.png}}
 \end{center}
 \section{Verification}
-Gate \texttt{verify} (phase P8): \textbf{fail} after 2 attempt(s); last 2026-07-29T22:11:27, failing 114 of 118.
+Gate \texttt{verify} (phase P8): \textbf{fail} after 3 attempt(s); last 2026-07-30T06:36:14, failing 115 of 119.
 \subsection*{Verification checks}
 {\small
 \begin{longtable}{llcp{6cm}}
@@ -693,7 +713,19 @@ Three, each with the reason:
 \textbf{Not waivable:} E1 (a frozen inter-board dimension is wrong in one of two places), E2, E3 (both are real field-failure mechanisms that no check models), E4 (the adjudication needs an ICD rev or a mitigation, not a \texttt{work/} JSON), W1, W2, W3, W4, W5.
 
 \section{DFM and Fabrication}
-\emph{Pending --- produced at P9.}
+Gate \texttt{dfm} (phase P9): \textbf{pass} after 1 attempt(s); last 2026-07-30T07:06:53, failing 0 of 87.
+\subsection*{Fabrication outputs}
+Exported layers: F.Cu, In1.Cu, In2.Cu, B.Cu, F.Silkscreen, B.Silkscreen, F.Mask, B.Mask, F.Paste, B.Paste, Edge.Cuts.
+\subsection*{Quote}
+Estimated total \$195.2 for qty 15 (unit \$13.01). This is an estimate from published pricing; the JLCPCB cart quote page is authoritative.
+\subsection*{Human steps before ordering}
+\begin{enumerate}
+\item Upload boards\textbackslash{}lumina-carrier\textbackslash{}fab\textbackslash{}lumina-carrier\_gerbers.zip to https://jlcdfm.com/ and review the DFM report (V6: no public API).
+\item Upload the same zip at https://cart.jlcpcb.com/quote and confirm the real price against the estimate above.
+\item If assembling: upload BOM.csv and CPL.csv, then CHECK THE RENDERED PART PREVIEW for every polarized part (LED/diode/electrolytic) - rotation corrections are the classic failure mode.
+\item API quote in boards\textbackslash{}lumina-carrier\textbackslash{}fab\textbackslash{}api\_quote.json: REAL grand total 62.7 (62.7 pcb + None freight via None; our estimate 195.2) - review shipList/achieveDateList/audit findings before any create.
+\item Review, then pay. Payment is always the human's action.
+\end{enumerate}
 \section{Run Record (Appendix)}
 \subsection*{Phase digests}
 \paragraph*{P0}
@@ -1199,6 +1231,64 @@ of the SOIC-8 that TI ships.\\
 does {*}{*}not{*}{*} imply fabricable, and the gap is 1.6 micrometres. This is a P9 item, reported not\\
 fixed.
 \end{quote}
+\paragraph*{P9}
+\begin{quote}\small\ttfamily\raggedright
+\# P9 DFM digest - LUMINA carrier (LUM-CAR-A)\\
+~\\
+Artifacts: `fab/gerbers/` (12 files), `fab/lumina-carrier\_gerbers.zip`,\\
+`fab/BOM.csv`, `fab/CPL.csv`, `fab/lumina-carrier-pos.csv`,\\
+`fab/assembly-manual-work.md`, `work/p9/{*}`.\\
+~\\
+- {*}{*}`dfm` gate: PASS - 0 errors, 87 warnings.{*}{*} Entered the phase at {*}{*}5 errors{*}{*}.\\
+- {*}{*}`drc\_routed` still 0/0{*}{*} after the DFM repair, and the four owner-accepted waiver\\
+  counts are byte-identical: `check\_current` 94, `check\_creepage` 10,\\
+  `check\_return\_path` 13, `check\_decoupling` 2 warnings.\\
+~\\
+\#\# The 5 errors were 2 physical defects, both generator output\\
+~\\
+Each defect produced one `hole-to-hole` plus one or two `copper clearance` findings,\\
+because the annular rings were 0.0136-0.0505 mm apart.\\
+~\\
+1. {*}{*}Two same-net +3V3 through-vias 0.3136 mm apart{*}{*} at (98.09, 84.35) and\\
+   (98.65, 84.10), both 0.300 mm drill / 0.600 mm copper. Deleted the first; the\\
+   surviving via's nearest drill is now {*}{*}1.1469 mm{*}{*} (copper gap 0.8469 mm). No legal\\
+   relocation existed for either - the site is fenced by `/ETH\_MISO` on B.Cu, U10's\\
+   0.65 mm pin row and an `/ETH\_RSTn` diagonal - which was {*}{*}measured, not assumed{*}{*}.\\
+   Deleting orphaned U10.8's stub, replaced with two 0.500 mm F.Cu segments at the\\
+   `PWR\_3V3` netclass width so no new `undersized\_track` appeared. Which via to delete\\
+   mattered: removing this one leaves a 2-via cluster that still passes\\
+   `check\_current`'s 1 A / 2-via rule, whereas removing the other would have split it\\
+   into two 1-via clusters and {*}{*}added{*}{*} two violations.\\
+2. {*}{*}A GND stitch via 0.3505 mm from a footprint thermal-via drill{*}{*} - the documented\\
+   blind spot, verbatim. The via sat inside U22's HTSSOP-20 exposed pad, which carries\\
+   its own array of 15 plated thermal vias on a 1.3 mm grid. {*}{*}Moved{*}{*} rather than\\
+   deleted, to the centroid of the surrounding cell -\textgreater{} {*}{*}0.6192 mm{*}{*} hole-to-hole\\
+   (copper gap 0.3192 mm). Moving held the via count constant, so no `check\_current`\\
+   cluster changed and `check\_thermal`'s `nearest\_via\_mm` shifted only 0.27 mm.\\
+~\\
+Board-wide minimum hole-to-hole is now {*}{*}0.5016 mm{*}{*} across 440 drills.\\
+~\\
+\#\# Why P7 did not catch either, and what was changed so it will\\
+~\\
+The shipped `.kicad\_pro` carried {*}{*}`min\_hole\_to\_hole: 0.25` at severity `warning`{*}{*} -\\
+below {*}{*}every{*}{*} JLC profile, all of which specify 0.5 mm. Both defects were above\\
+0.25 mm and therefore never fired. {*}{*}This is the second sub-fab floor found in the\\
+generated project file{*}{*}, the first being `min\_track\_width: 0.1` against JLC's\\
+0.1016 mm (188 tracks, fixed at H4). Raised to {*}{*}0.5 mm at severity `error`{*}{*}, and\\
+`drc\_routed` still reads 0/0 - so it cost nothing and would have caught defect 1 at P7.\\
+~\\
+{*}{*}The general lesson, and it is the important one: `drc\_routed` 0/0 does not imply\\
+manufacturable, because DRC checks the board against rules the pipeline itself wrote.{*}{*}\\
+~\\
+\#\# Fab package\\
+~\\
+12 gerbers + drill, `setLength 100.0 x setWidth 80.0` confirmed {*}{*}by JLC's own audit{*}{*},\\
+not just by us. BOM 56 lines / 111 placements, CPL with {*}{*}5 rotation corrections{*}{*}.\\
+Manual work totalled in `fab/assembly-manual-work.md`: {*}{*}6 THT parts, 72 THT joints{*}{*},\\
+and the "hand-fitted magjack" is corrected there - J1 is {*}{*}wave-soldered{*}{*} by JLC.
+\end{quote}
+\paragraph*{P10}
+\emph{(no digest recorded)}
 \subsection*{Gate attempt history}
 {\small
 \begin{longtable}{llll}
@@ -1213,6 +1303,9 @@ fixed.
 2026-07-29T17:25:18 & verify & fail & 220/224 \\
 2026-07-29T18:55:29 & drc\_routed & pass & 0/0 \\
 2026-07-29T22:11:27 & verify & fail & 114/118 \\
+2026-07-30T06:35:39 & drc\_routed & pass & 0/0 \\
+2026-07-30T06:36:14 & verify & fail & 115/119 \\
+2026-07-30T07:06:53 & dfm & pass & 0/87 \\
 \bottomrule
 \end{longtable}
 }
@@ -1228,7 +1321,7 @@ fixed.
 1 & P2 & approved & 2026-07-28T15:00:34 & Q5 plastic enclosure + heatsink enclosed, non-isolated stands (closes open item C). Q8 Wi-Fi FUNCTIONAL - overrides carrier brief s6; antenna keepout mandatory on every layer, RF review in scope at layout sign-off. Q4 11.0 mm stack + 30x26 mm daughter notch (anti-180 interlock). Q6 adopt derived numbers: 48V 0.25A af / 0.5A at sustained, 1.80 A/pin, eFuse 1.0 A, J3 stays 2x7. Q7 module WROOM-1-N8. \\
 2 & P4 & approved & 2026-07-28T21:27:15 & Magjack: qualify a Bel/Pulse PoE+ ICM off-LCSC (owner rejected af-only for consistency with the par emitter rejection). Q9: Ethernet OTA + Wi-Fi OTA + recovery header, no USB-C, no pogo jig. OVP: 0.1 percent resistors on R66/R67/R73. \\
 3 & P6 & not reached &  &  \\
-4 & P8 & not reached &  &  \\
+4 & P8 & approved & 2026-07-30T04:55:38 & APPROVED with decisions. NO REBUILD - board keeps P6 placement and P7 routing; anything needing a new footprint becomes an open item. Four in-place actions: re-issue ICD at 94x74 @3.0mm inset with a washer-overhang note; scoped P6/P7 backward edge on the eth\_xtal island (fix the constraints group first); widen the 189 sub-0.1016mm tracks and set the rules floor; reroute LED\_Y\_A out of the tap pocket. Endorsed no-further-work: (a) RX MDI skew ACCEPT with the 100BASE-TX reasoning in the design doc, (c) 48V intra-footprint DRU relaxation KEEP, (d) J1 In1-antipad GND deficit ACCEPT, (e) DECLARE the board locks. Deferred open items: U21 HF input ceramic (highest-priority rev-B), +3V3/LED PESD clamping, and the skill gap that there is no incremental board-from-netlist update. Then P9 -\textgreater{} P10 -\textgreater{} H5. \\
 5 & P10 & not reached &  &  \\
 \bottomrule
 \end{longtable}
@@ -1240,11 +1333,15 @@ fixed.
 \textbf{File} & \textbf{Size} & \textbf{Note} \\
 \midrule
 \endhead
-\texttt{state.json} & 99,428 B &  \\
-\texttt{kicad/lumina-carrier.kicad\_pcb} & 2,078,378 B &  \\
+\texttt{state.json} & 110,529 B &  \\
+\texttt{kicad/lumina-carrier.kicad\_pcb} & 2,055,289 B &  \\
 \texttt{kicad/lumina-carrier.kicad\_sch} & 40,312 B &  \\
+\texttt{fab/lumina-carrier\_gerbers.zip} & 301,339 B & sha256 3afe6590a002e701... \\
+\texttt{fab/order.json} & 2,850 B &  \\
+\texttt{fab/BOM.csv} & 2,886 B &  \\
+\texttt{fab/CPL.csv} & 3,839 B &  \\
 \texttt{architecture/blocks.md} & 32,381 B &  \\
-\texttt{architecture/connector-icd.md} & 50,471 B &  \\
+\texttt{architecture/connector-icd.md} & 52,735 B &  \\
 \texttt{architecture/constraints.json} & 8,733 B &  \\
 \texttt{architecture/decisions.md} & 22,677 B &  \\
 \texttt{architecture/power\_tree.md} & 25,946 B &  \\
@@ -1253,6 +1350,7 @@ fixed.
 \texttt{architecture/stackup.md} & 21,413 B &  \\
 \texttt{reports/drc-place.json} & 258,020 B &  \\
 \texttt{reports/erc-waivers.md} & 9,722 B &  \\
+\texttt{reports/fab\_export.json} & 2,733 B &  \\
 \texttt{reports/fp\_D10\_C19829453.overlay.svg} & 2,597 B &  \\
 \texttt{reports/fp\_J1\_C91754.overlay.svg} & 7,027 B &  \\
 \texttt{reports/fp\_U10\_C32843.overlay.svg} & 18,050 B &  \\
@@ -1274,6 +1372,7 @@ fixed.
 \texttt{reports/gate-place.json} & 337 B &  \\
 \texttt{reports/lib\_pull.json} & 14,733 B &  \\
 \texttt{reports/lumina-carrier-schematic.pdf} & 483,671 B &  \\
+\texttt{reports/open-items.md} & 6,574 B &  \\
 \texttt{reports/place\_anneal.json} & 5,013 B &  \\
 \texttt{reports/place\_metrics\_final.json} & 11,906 B &  \\
 \texttt{reports/place\_region\_audit.json} & 3,500 B &  \\

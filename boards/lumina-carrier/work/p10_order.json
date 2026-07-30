@@ -1,0 +1,78 @@
+{
+ "script": "order_submit",
+ "status": "ready_for_human",
+ "board": "lumina-carrier.kicad_pcb",
+ "generated": "2026-07-30T07:08:14-07:00",
+ "order_number": null,
+ "payment": "HUMAN - this script never submits payment (SPEC P10)",
+ "artifacts": {
+  "gerber_zip": {
+   "path": "boards\\lumina-carrier\\fab\\lumina-carrier_gerbers.zip",
+   "sha256": "3afe6590a002e7019fe8222d613b17fbcc2dcd8957aae3de957851aacc8215a7",
+   "bytes": 301339
+  },
+  "bom": {
+   "path": "boards\\lumina-carrier\\fab\\BOM.csv",
+   "sha256": "49c86e4cf7d25690b9a24a8ac9e65a152f80fad96d839183a3c0db9bff2af9e6",
+   "bytes": 2886
+  },
+  "cpl": {
+   "path": "boards\\lumina-carrier\\fab\\CPL.csv",
+   "sha256": "7a3efe6e6c60fe042bde97bfbf2e9ce18f1d47cbe96d345b0d18287951efe31c",
+   "bytes": 3839
+  }
+ },
+ "missing": [],
+ "quote": {
+  "selected": {
+   "qty": 14,
+   "surface_finish": "HASL",
+   "solder_mask_color": "green",
+   "pcb": {
+    "base": 27.9,
+    "base_at_qty": 30,
+    "oversize": 0.0,
+    "options": 0.0,
+    "total": 27.9
+   },
+   "total": 194.52,
+   "assembly": {
+    "setup": 8.0,
+    "feeders": 141.0,
+    "joints": 9.62,
+    "stencil": 8.0,
+    "n_parts": 111,
+    "n_joints": 404,
+    "n_extended_parts": 47,
+    "total": 166.62
+   },
+   "unit_cost": 13.89
+  },
+  "estimate_note": null,
+  "estimated": true,
+  "source": "boards\\lumina-carrier\\work\\p10_quote.json",
+  "authoritative_quote_url": "https://cart.jlcpcb.com/quote"
+ },
+ "spec_snapshot": {
+  "layers": 4,
+  "width_mm": 100.0,
+  "height_mm": 80.0,
+  "thickness_mm": 1.6,
+  "copper_weight_oz": null,
+  "qty": 14,
+  "surface_finish": "HASL",
+  "solder_mask_color": "green",
+  "assembly": true
+ },
+ "api": {
+  "attempted": false,
+  "available": true,
+  "note": "credentials present"
+ },
+ "human_steps": [
+  "Upload boards\\lumina-carrier\\fab\\lumina-carrier_gerbers.zip to https://jlcdfm.com/ and review the DFM report (V6: no public API).",
+  "Upload the same zip at https://cart.jlcpcb.com/quote and confirm the real price against the estimate above.",
+  "If assembling: upload BOM.csv and CPL.csv, then CHECK THE RENDERED PART PREVIEW for every polarized part (LED/diode/electrolytic) - rotation corrections are the classic failure mode.",
+  "Review, then pay. Payment is always the human's action."
+ ]
+}

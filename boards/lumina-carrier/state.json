@@ -3,8 +3,8 @@
  "board": "lumina-carrier",
  "workspace": "boards/lumina-carrier",
  "created": "2026-07-28T13:36:22",
- "updated": "2026-07-30T06:38:49",
- "phase": "P9",
+ "updated": "2026-07-30T07:12:41",
+ "phase": "P10",
  "gates": {
   "erc": {
    "phase": "P4",
@@ -109,6 +109,25 @@
      "status": "fail",
      "failing_count": 115,
      "total": 119
+    }
+   ]
+  },
+  "dfm": {
+   "phase": "P9",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-07-30T07:06:53",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 87
+   },
+   "history": [
+    {
+     "ts": "2026-07-30T07:06:53",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 87
     }
    ]
   }
@@ -534,6 +553,12 @@
    "why": "OI-3 IS THE CAUSE OF THE OTHER TWO, and that is the finding worth carrying to the skill rather than to this board. board_init.py regenerates a board FROM SCRATCH - it does not sync a netlist into an existing .kicad_pcb - and place_edit's op set is place/move/rotate/flip/lock/add_text/move_text with NO add_footprint. So any component addition after P5 costs the entire placement AND the entire routing. On this board that means discarding a hand-tuned oscillator island, four hand-solved 57 V creepage geometries, 188 hand-widened tracks and a 111-op silkscreen pass, in order to add two 0402 capacitors. That asymmetry is what forced the owner's no-rebuild ruling and it will force the same ruling on every future board that finds a missing passive at P8. The natural fix is a place_edit add_footprint op plus a netlist-diff step. OI-1 is a genuine error and I am not softening it: U21's TPS563201 sync buck has ONE input cap 9.89 mm / 8.378 nH from VIN and no HF ceramic at the pin at all, on the converter feeding the ESP32-S3, the W5500 and J3 pins 12/14 to every daughter. check_decoupling missed it by classing the 22 uF as bulk and applying the loose limit - its model is a decoupling loop, but a synchronous buck's input ceramic carries the full trapezoidal switch current with no diode softening. OI-2's geometric half WAS fixed (0.2031 -> 1.1500 mm, 226 pairs -> 0, now held by the hv_tap_general_clearance rule) so only the clamp remains, and a clamp is a new footprint. Also recorded in open-items.md, in ONE place as the owner asked: every H4-accepted waiver with its measured number, including that the ICD B4 question is now CLOSED BY GEOMETRY rather than by argument - the pair was physically rerouted, so ICD s5.1's refusal of the B4 column stands unchanged and needs no rev A8.",
    "phase": "P9",
    "ts": "2026-07-30T06:38:49"
+  },
+  {
+   "what": "P9 dfm gate PASS (5 errors -> 0, 87 warnings) and P10 order package built. REAL API quote obtained: 62.70 USD for 15 bare PCBs, JLC audit clean, gerber sha256 verified end to end. Second sub-fab floor found and closed: min_hole_to_hole was 0.25 mm at severity warning against JLC's 0.5 mm.",
+   "why": "Both DFM defects were GENERATOR output and both were invisible to DRC by configuration, not by bad luck: the .kicad_pro shipped min_hole_to_hole 0.25 mm at severity WARNING, so 0.3136 mm and 0.3505 mm pairs never fired. That is the SECOND sub-fab floor in the generated project file after min_track_width 0.1 vs JLC 0.1016. Raised to 0.5 mm at severity error and drc_routed still reads 0/0 - board-wide minimum is 0.5016 mm across 440 drills - so it cost nothing and would have caught the first defect at P7. Repair choices were made on measured consequences rather than convenience: for the +3V3 via pair, WHICH via to delete mattered because removing one leaves a 2-via cluster that still passes check_current's 1 A / 2-via rule while removing the other would have split it into two 1-via clusters and ADDED two violations; and the deleted via's orphaned stub was rebuilt at the PWR_3V3 netclass width so no new undersized_track appeared. For the U22 stitch via - the documented via-drill-vs-pad-drill blind spot verbatim, a stitch 0.35 mm from a thermal-via drill inside the very pad it was stitching - it was MOVED to the cell centroid rather than deleted, which held the via count constant so no check_current cluster changed. API LEG: upload succeeded with file_key sha256 3afe6590... matching our zip byte for byte, audit ok code 200 with red[] and yellow[] both EMPTY, and JLC's own audit independently read back setLength 100.0 x setWidth 80.0 - the outline confirmed by the fab, not just by us. One real API finding to carry: qty 14 was REJECTED with pcb_qty_error 2103 because JLC PCB quantities are restricted to standard steps, so the order is 15, not the 14 the cost model had assumed throughout. THE COMPARISON THAT MUST NOT BE MADE CARELESSLY: 62.70 USD real is BARE PCB ONLY because JLC's Open API is PCB-ordering only with no assembly API, while the 195.20 USD estimate includes ~167 USD of assembly service. They are not the same scope and neither includes component purchase cost. Also noted: copper_weight_source reported 'no architecture/stackup.md -> default 1 oz' although that file exists, so the 1 oz value was defaulted rather than read - correct by luck here.",
+   "phase": "P10",
+   "ts": "2026-07-30T07:12:41"
   }
  ],
  "history": [
@@ -1093,6 +1118,25 @@
    "ts": "2026-07-30T06:38:49",
    "event": "decision",
    "what": "THREE OPEN ITEMS RECORDED AS EXPLICITLY DEFERRED, not fixed: OI-1 U21 needs an HF input ceramic at VIN (highest-priority rev-B), OI-2 +3V3 and the LED nets are unclamped, OI-3 the skill has no incremental board-from-netlist update. Full detail in reports/open-items.md."
+  },
+  {
+   "ts": "2026-07-30T07:06:53",
+   "event": "gate",
+   "gate": "dfm",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-07-30T07:07:37",
+   "event": "phase",
+   "phase": "P10",
+   "prev": "P9"
+  },
+  {
+   "ts": "2026-07-30T07:12:41",
+   "event": "decision",
+   "what": "P9 dfm gate PASS (5 errors -> 0, 87 warnings) and P10 order package built. REAL API quote obtained: 62.70 USD for 15 bare PCBs, JLC audit clean, gerber sha256 verified end to end. Second sub-fab floor found and closed: min_hole_to_hole was 0.25 mm at severity warning against JLC's 0.5 mm."
   }
  ]
 }

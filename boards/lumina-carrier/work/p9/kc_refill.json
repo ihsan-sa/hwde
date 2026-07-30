@@ -1,0 +1,48 @@
+{
+  "script": "kc",
+  "tool": "drc",
+  "input": "boards\\lumina-carrier\\kicad\\lumina-carrier.kicad_pcb",
+  "units": "mm",
+  "kicad_version": "10.0.3",
+  "options": {
+    "parity": false,
+    "all_track_errors": false,
+    "refill": true,
+    "save_board": true
+  },
+  "counts": {
+    "total": 1,
+    "by_severity": {
+      "warning": 1
+    },
+    "by_source": {
+      "drc": 1
+    }
+  },
+  "status": "violations",
+  "violations": [
+    {
+      "check": "track_dangling",
+      "severity": "warning",
+      "pos": [
+        98.3,
+        84.02
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [],
+      "msg": "Track has unconnected end",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [+3V3] on F.Cu, length 0.2800 mm",
+          "pos": [
+            98.3,
+            84.02
+          ],
+          "uuid": "b9209afd-9a84-49dc-98ef-094a6ee4ecce"
+        }
+      ]
+    }
+  ]
+}

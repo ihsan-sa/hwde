@@ -1632,6 +1632,51 @@ Two more from the same fix, both cheap and both worth doing every time:
   `magjack_isolation_barrier` exists: a voltage-derived checker cannot see a hipot/differential
   requirement, so without the rule any future reroute silently reopens the gap and nothing reports it.
 
+## 2026-07-30 [board_init][dfm][gates] `min_hole_to_hole: 0.25` at severity WARNING is the SECOND sub-fab floor in the shipped `.kicad_pro` - and it hid two real defects until P9
+Companion to the `min_track_width: 0.1` entry, same shape, found the same way. The generated
+`.kicad_pro` carries `min_hole_to_hole: 0.25` where **every** JLC profile in
+`reference/jlc_capabilities.yaml` says `min_hole_to_hole_mm: 0.5` - and it is severity **warning**.
+Consequence on lumina-carrier: two drill pairs at **0.3136 mm** and **0.3505 mm** were above 0.25 and
+therefore never fired, surviving to `gate dfm` as 5 errors (each defect produced one hole-to-hole plus
+one or two copper-clearance findings, because the annular rings were 0.0136 / 0.0505 mm apart).
+Raising the floor to 0.5 mm and the severity to `error` still leaves the board at DRC 0/0 - the
+board-wide minimum is **0.5016 mm** across 440 drills - so this costs nothing and would have caught
+both at P7.
+**Standing check at P7 entry, now covering two fields**: assert
+`.kicad_pro.min_track_width >= profile.min_trace_width_mm` AND
+`.kicad_pro.min_hole_to_hole >= profile.min_hole_to_hole_mm`. Better: have `rules_gen` emit an
+`aiee_hole_to_hole_floor` DRU rule alongside `aiee_track_width_floor`, so a hand-written `.kicad_dru`
+that replaces the generated file loses both floors loudly rather than silently.
+Margin note worth a policy decision: after the fix, 38 drill pairs sit between 0.50 and 0.56 mm, the
+tightest at **0.5016 mm** - legal, but 1.6 micrometres over the fab floor. A router that optimises to
+the bare limit leaves nothing for drill wander.
+
+## 2026-07-30 [kicad][connectivity][route_edit] A track endpoint inside a VIA or PAD is connected; inside another TRACK's body it is NOT
+Machine-verified while repairing a deleted via's stub. KiCad's connectivity treats an endpoint landing
+inside a via or a pad as connected, but an endpoint landing inside another **track's body** is not -
+even well within that track's half-width. A replacement bridge that ended **0.0368 mm** from the stub
+end, i.e. deep inside its 0.250 mm half-width, still produced `track_dangling` in DRC.
+So: **deleting a via that a track end rested on always requires the replacement to share an EXACT
+vertex with that track end**, not merely to overlap it. Snap to the endpoint coordinate, do not
+approximate. This is the same family as the 2026-07-29 `check_diffpair` finding that sub-0.3 mm
+endpoint mismatches split a net's graph into separate components - two different subsystems, one
+underlying rule: **KiCad joins copper at coincident vertices, not at overlapping geometry.**
+
+## 2026-07-30 [stitch_vias][dfm] `stitch_vias` puts a stitch 0.35 mm from a thermal-via drill INSIDE the pad it is stitching
+Both P9 DFM hole-to-hole defects on lumina-carrier were generator output, and one was this: a GND
+stitch via at (44.46, 96.46) landed 0.3505 mm from U22 pad 21's own plated thermal-via array - 15
+drills on a 1.3 mm grid inside the HTSSOP-20 exposed pad. `stitch_vias`' hole floor is a centre-point
+test that does not read footprint-embedded plated pad drills at all (extends the existing note that its
+hole floor cannot see slot extents). It should (a) read footprint pad drills, applying the `-frot` /
+`-prot` position and shape transforms already recorded here, and (b) skip candidates inside a pad that
+already carries its own via array.
+Recovery that worked, and the reasoning is the reusable part: **move the via rather than delete it**,
+to the centroid of the surrounding thermal-via cell - that held the via count constant, so no
+`check_current` cluster changed and `check_thermal`'s `nearest_via_mm` moved only 0.27 mm. When you
+must delete instead, check which member of a via cluster you remove: on the +3V3 cluster here,
+removing one via left a 2-via cluster that still passes `check_current`'s 1 A / 2-via rule, while
+removing the *other* would have split it into two 1-via clusters and ADDED two violations.
+
 ## 2026-07-30 [place_edit][placement][silk] Moving a footprint on a ROUTED board: two things nothing in the pipeline does for you
 From a scoped P6/P7 backward edge that moved 5 parts on a board with ~3294 tracks and landed at
 `drc_routed` 0/0 - but only on the second attempt.
