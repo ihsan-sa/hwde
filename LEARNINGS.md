@@ -2016,3 +2016,16 @@ repeated 189 times. It is worse when the board carries a HAND-WRITTEN .kicad_dru
 its 0.635 mm HV rule), because that file then contains none of rules_gen's fab floors at all. Fix at P5:
 set the floor to the fab profile's minimum, and if you hand-write a .kicad_dru, port rules_gen's floors
 into it rather than replacing them.
+
+## 2026-07-30 [ordering][impedance] insideCuprumThickness was hardcoded to 1 oz, fabricating a different stackup than the one designed
+order_submit.build_pcb_param set `insideCuprumThickness: "1"` on EVERY 4+ layer order, copied from the
+JLC create-example. JLC's standard 4-layer inner copper is 0.5 oz. Two consequences, the second serious:
+(a) it silently bought a premium - measured `insideCuprumThicknessFee` $17.07 on lumina-carrier, 48% of
+the whole PCB cost, which is also why order_quote read 3.6x low against the real API price; and (b) it
+would have FABRICATED A DIFFERENT STACKUP than the impedance was solved against. lumina-carrier targets
+100 ohm differential MDI on JLC04161H-3313, whose inner layers are 17.5 um / 0.5 oz; 35 um inner copper
+moves the reference spacing and the controlled impedance with it - on a board that is 4-layer solely to
+hold that 100 ohm. Nothing downstream would have caught it: the gates check geometry against the stackup
+file, never against what the order actually asks the fab to build. Now derives from
+spec.inner_copper_weight_oz, defaulting to 0.5. Rule: any pcbParam value taken from a vendor EXAMPLE
+rather than from the board's own stackup is a fabrication defect waiting to happen.

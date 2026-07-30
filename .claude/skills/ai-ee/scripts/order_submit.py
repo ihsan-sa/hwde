@@ -340,9 +340,21 @@ def build_pcb_param(spec: dict) -> dict:
     if int(layers) >= 4:
         # inner copper weight is a 4+ layer selection ONLY - live calculate
         # rejects it on 2L with code 2129 "Only boards with four layers or
-        # more support the selection of inner copper weight" (2026-07-29);
-        # create-example value "1"
-        param["insideCuprumThickness"] = "1"
+        # more support the selection of inner copper weight" (2026-07-29).
+        #
+        # This was previously hardcoded to the create-example's "1", i.e. 1 oz
+        # inner copper, on EVERY 4-layer board. That is wrong twice over: JLC's
+        # standard 4-layer inner copper is 0.5 oz, so it silently bought a
+        # premium (measured: insideCuprumThicknessFee $17.07, 48% of the PCB
+        # cost on lumina-carrier) - and, far worse, it fabricates a different
+        # stackup than the one the impedance was solved against. lumina-carrier
+        # targets 100 ohm differential MDI on JLC04161H-3313, whose inner layers
+        # are 17.5 um / 0.5 oz; ordering 35 um inner copper moves the reference
+        # spacing and the controlled impedance with it.
+        inner = spec.get("inner_copper_weight_oz")
+        if inner is None:
+            inner = 0.5          # JLC standard 4-layer inner copper
+        param["insideCuprumThickness"] = "%g" % float(inner)
     return param
 
 
