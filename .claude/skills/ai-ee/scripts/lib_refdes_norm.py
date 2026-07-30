@@ -39,6 +39,15 @@ _PAD = re.compile(
     r'\(pad\s+[^\s]+\s+\S+\s+\S+.*?\(at\s+(-?[\d.]+)\s+(-?[\d.]+)'
     r'(?:\s+-?[\d.]+)?\s*\).*?\(size\s+([\d.]+)\s+([\d.]+)\s*\)', re.S)
 _TEXT_H = re.compile(r'\(size\s+([\d.]+)\s+([\d.]+)\s*\)')
+_THICK = re.compile(r'\(thickness\s+([\d.]+)\s*\)')
+# any silk graphic primitive's coordinate pairs
+# NB layer names are QUOTED in KiCad-10 stock footprints but UNQUOTED in the
+# older format easyeda2kicad emits - `(layer F.SilkS)`. Requiring quotes made
+# silk detection silently return nothing and produce a plausible wrong answer.
+_SILK_ITEM = re.compile(
+    r'\((?:fp_line|fp_rect|fp_poly|fp_circle|fp_arc)\b(.*?)'
+    r'\(layer\s+"?([^"\s)]+)"?\s*\)', re.S)
+_XY = re.compile(r'\((?:start|end|center|mid|xy)\s+(-?[\d.]+)\s+(-?[\d.]+)\s*\)')
 
 
 def pad_top(text: str) -> float | None:
@@ -48,6 +57,37 @@ def pad_top(text: str) -> float | None:
         py, sh = float(m.group(2)), float(m.group(4))
         tops.append(py - sh / 2.0)
     return min(tops) if tops else None
+
+
+def silk_top(text: str) -> float | None:
+    """Topmost y of any F./B.SilkS graphic. The footprint's own outline often
+    extends past its pads, and a label placed only clear of PADS then collides
+    with that outline - which is how the first version of this script produced
+    283 DRC silk warnings across 85 of 111 refdes."""
+    tops = []
+    for m in _SILK_ITEM.finditer(text):
+        if "SilkS" not in m.group(2):
+            continue
+        for xy in _XY.finditer(m.group(1)):
+            tops.append(float(xy.group(2)))
+    return min(tops) if tops else None
+
+
+def inked_half_height(text: str, start: int) -> float:
+    """Half the INKED height of the reference text, not its nominal size.
+
+    KiCad's DRC measures the inked box: glyph height plus stroke thickness
+    (measured: nominal size 1.0 + thickness 0.15 -> 1.162 mm inked, whereas
+    GetTextBox reports 1.6965 mm). Using size/2 under-reserves by ~0.08 mm per
+    side and lands the label on its own silk."""
+    h, t = 1.0, 0.15
+    tm = _TEXT_H.search(text, start, start + 400)
+    if tm:
+        h = float(tm.group(2))
+    th = _THICK.search(text, start, start + 400)
+    if th:
+        t = float(th.group(1))
+    return (h + t) / 2.0
 
 
 def normalize(path: Path, margin: float, min_offset: float,
@@ -62,19 +102,17 @@ def normalize(path: Path, margin: float, min_offset: float,
         return {"footprint": path.stem, "status": "skipped",
                 "detail": "reference block has no (at ...)"}
 
-    top = pad_top(text)
-    if top is None:
+    ptop = pad_top(text)
+    stop = silk_top(text)
+    tops = [t for t in (ptop, stop) if t is not None]
+    if not tops:
         return {"footprint": path.stem, "status": "skipped",
-                "detail": "no pads to measure against"}
+                "detail": "no pads or silk to measure against"}
+    top = min(tops)          # clear the footprint's OWN silk, not just its pads
 
-    # text height: the (size ..) inside the reference block's effects, if any
-    th = 1.0
-    tm = _TEXT_H.search(text, at.end(), at.end() + 400)
-    if tm:
-        th = float(tm.group(2))
-
+    half = inked_half_height(text, at.end())
     old = (float(at.group(1)), float(at.group(2)))
-    new_y = top - (th / 2.0 + margin)
+    new_y = top - (half + margin)
     if abs(new_y) < min_offset:
         new_y = -min_offset
     new = (0.0, round(new_y, 3))
@@ -90,7 +128,9 @@ def normalize(path: Path, margin: float, min_offset: float,
                         encoding="utf-8")
     return {"footprint": path.stem, "status": "changed",
             "from": list(old), "to": list(new),
-            "pad_top": round(top, 3), "text_h": th}
+            "pad_top": round(ptop, 3) if ptop is not None else None,
+            "silk_top": round(stop, 3) if stop is not None else None,
+            "clear_of": round(top, 3), "inked_half_h": round(half, 3)}
 
 
 def main(argv: list[str] | None = None) -> int:

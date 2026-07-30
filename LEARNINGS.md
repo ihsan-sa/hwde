@@ -1796,3 +1796,18 @@ So the damage was wasted fixer iterations, not corrupted gate results, and any b
 drc_routed 0/0 provably has no crossings, which makes its disjoint-segment gaps exact.
 Rule for fixers: ad-hoc geometry helpers must test intersection FIRST, or just use shapely (already a
 dependency). And a model-based pre-flight gates cheap iteration - it never substitutes for the gate.
+
+## 2026-07-29 [parts][silk] Refdes placement must clear the footprint's OWN silk, and layer names are unquoted in easyeda2kicad output
+Two bugs in the first cut of lib_refdes_norm.py, both found only by DRC and by inspecting raw files:
+(a) it reserved `size/2` for the text half-height, but KiCad's DRC measures the INKED box - glyph height
+PLUS stroke thickness (measured: nominal 1.0 + thickness 0.15 -> 1.162 mm inked, while GetTextBox
+reports 1.6965 mm). Correct reservation is `(size_h + thickness)/2`.
+(b) it positioned labels clear of PADS only, ignoring each footprint's own silkscreen outline - which on
+an 0603 sits at y=0.71 vs the pad edge at 0.45, so the label landed on the part's own outline. Applied
+verbatim it produced 283 DRC silk warnings across 85 of 111 refdes. Correct form:
+`min(pad_top, silk_top) - margin - inked_h/2`.
+And the trap that hid (b): silk layer names are **QUOTED** in KiCad-10 stock footprints, `(layer
+"F.SilkS")`, but **UNQUOTED** in the older format easyeda2kicad emits, `(layer F.SilkS)`. A regex
+requiring quotes matched nothing, reported silk_top=None for every part, and produced a plausible wrong
+answer with no error - the same silent-failure shape as the min-over-endpoints distance bug. Related:
+KiCad 10 stock also uses a multi-line `(layer "F.CrtYd")` that line-oriented greps miss.
