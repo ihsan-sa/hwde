@@ -1,0 +1,87 @@
+{
+  "script": "kc",
+  "tool": "drc",
+  "input": "boards\\lumina-carrier\\kicad\\lumina-carrier.kicad_pcb",
+  "units": "mm",
+  "kicad_version": "10.0.3",
+  "options": {
+    "parity": false,
+    "all_track_errors": false,
+    "refill": true,
+    "save_board": true
+  },
+  "counts": {
+    "total": 2,
+    "by_severity": {
+      "error": 2
+    },
+    "by_source": {
+      "drc": 2
+    }
+  },
+  "status": "violations",
+  "violations": [
+    {
+      "check": "tracks_crossing",
+      "severity": "error",
+      "pos": [
+        49.7,
+        66.6
+      ],
+      "layer": "F.Cu",
+      "net": "/poe/LED_G_A",
+      "refs": [],
+      "msg": "Tracks crossing",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/poe/LED_G_A] on F.Cu, length 43.9000 mm",
+          "pos": [
+            49.7,
+            66.6
+          ],
+          "uuid": "20948199-1495-42c1-bf64-25f2fa14c90e"
+        },
+        {
+          "msg": "Track [/poe/LED_Y_A] on F.Cu, length 4.9976 mm",
+          "pos": [
+            52.0889,
+            67.0667
+          ],
+          "uuid": "7666d54a-bc4d-4232-838a-2ba95cd188a5"
+        }
+      ]
+    },
+    {
+      "check": "tracks_crossing",
+      "severity": "error",
+      "pos": [
+        52.0889,
+        67.0667
+      ],
+      "layer": "F.Cu",
+      "net": "/poe/LED_Y_A",
+      "refs": [],
+      "msg": "Tracks crossing",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/poe/LED_Y_A] on F.Cu, length 4.9976 mm",
+          "pos": [
+            52.0889,
+            67.0667
+          ],
+          "uuid": "7666d54a-bc4d-4232-838a-2ba95cd188a5"
+        },
+        {
+          "msg": "Track [/poe/LED_G_A] on F.Cu, length 2.2777 mm",
+          "pos": [
+            48.2248,
+            64.8646
+          ],
+          "uuid": "bedd4ae4-9061-4d02-afbc-f95f3d0dab46"
+        }
+      ]
+    }
+  ]
+}

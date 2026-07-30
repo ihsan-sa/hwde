@@ -218,6 +218,35 @@ def edge_segments(src):
     return segs
 
 
+def _orient(p, q, r):
+    return (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0])
+
+
+def seg_cross(a1, a2, b1, b2):
+    """True if the two centrelines properly intersect.
+
+    capsule.seg_seg_dist (and therefore cap_dist) is a MINIMUM-OVER-ENDPOINTS
+    formula.  That is exact for disjoint segments, but for two segments that
+    cross it silently returns a POSITIVE number - the nearest endpoint
+    distance - so a short looks like clearance.  Two LED_Y_A/LED_G_A crossings
+    passed both the solver and the pre-flight this way and were caught only by
+    DRC ("Tracks crossing").  Every gap query in this work order now goes
+    through gap_of() instead.
+    """
+    d1, d2 = _orient(b1, b2, a1), _orient(b1, b2, a2)
+    d3, d4 = _orient(a1, a2, b1), _orient(a1, a2, b2)
+    if ((d1 > 0) != (d2 > 0)) and ((d3 > 0) != (d4 > 0)):
+        return True
+    return False
+
+
+def gap_of(A, B):
+    """Copper gap between two capsules, -1.0 if their centrelines cross."""
+    if seg_cross(A[0], A[1], B[0], B[1]):
+        return -1.0
+    return cap_dist(A, B)
+
+
 def poly_dist(pt_cap, pts):
     """capsule -> closed polygon boundary distance (0 if inside)."""
     (a1, a2, r) = pt_cap

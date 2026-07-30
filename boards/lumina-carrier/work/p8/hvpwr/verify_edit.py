@@ -15,11 +15,33 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import board_model as bm    # noqa: E402
-from capsule import cap_dist    # noqa: E402
+from capsule import cap_dist    # noqa: E402  (kept for reference)
 
 ops = json.load(open(sys.argv[1]))['ops']
 NEAR = float(sys.argv[2]) if len(sys.argv) > 2 else 2.0
-src, items, zones, edges = bm.load()
+src, items0, zones, edges = bm.load()
+
+# Name J1's two netless 3.20 mm board-lock pads so the required table can see
+# them: they are the connector's shield-potential metal, and the pre-flight has
+# to report the 57 V clearance to them rather than the bare 0.200 mm netclass
+# number it would otherwise infer from "no net".
+LOCK = 'J1-LOCK'
+items = []
+for (L, n, c, t, u) in items0:
+    if not n and 'circle 3.20' in t:
+        n = LOCK
+    items.append((L, n, c, t, u))
+_req = bm.required
+
+
+def _required(a, b):
+    if LOCK in (a, b):
+        other = b if a == LOCK else a
+        return 0.60 if other in bm.HV_ALL else 0.20
+    return _req(a, b)
+
+
+bm.required = _required
 
 rm = {o['uuid'] for o in ops if o['op'] == 'remove'}
 kept = [(L, n, c, t, u) for (L, n, c, t, u) in items if u not in rm]
@@ -45,7 +67,7 @@ for (layers, net, cap, tag) in added:
         for (L2, n2, c2, t2, u2) in kept:
             if L2 != L or n2 == net:
                 continue
-            g = cap_dist(cap, c2)
+            g = bm.gap_of(cap, c2)
             req = bm.required(net, n2) or 0.20
             if g - req < worst[0]:
                 worst = (g - req, (L, n2, t2, u2[:8], g, req))
@@ -66,7 +88,7 @@ for (layers, net, cap, tag) in added:
     for (l3, n3, c3, t3) in added:
         if n3 == net or not set(l3) & set(layers):
             continue
-        g = cap_dist(cap, c3)
+        g = bm.gap_of(cap, c3)
         req = bm.required(net, n3) or 0.20
         if g - req < worst[0]:
             worst = (g - req, ('NEW', n3, t3, '', g, req))

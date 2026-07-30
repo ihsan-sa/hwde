@@ -3,7 +3,7 @@
  "board": "lumina-carrier",
  "workspace": "boards/lumina-carrier",
  "created": "2026-07-28T13:36:22",
- "updated": "2026-07-29T20:24:22",
+ "updated": "2026-07-29T21:08:13",
  "phase": "P8",
  "gates": {
   "erc": {
@@ -475,6 +475,12 @@
    "why": "The four J1 SHIELD-to-tap items were NOT package geometry. Their gaps went 0.213 -> 0.6390 (A1), 0.2142 -> 0.6388 (A2), 0.220 -> 1.7700 (B1), 0.2129 -> 0.6620 (B2) mm by replacing the whole 39-segment SHIELD pad19->pad20 staircase with a 6-segment polyline at the analytic optimum. The corridor is genuinely tight - the pad11/pad12 axis is 2.8398 mm and needs 1.462 + 1.300 = 2.762 mm, leaving 0.0778 mm of TOTAL slack - and the topology was forced rather than chosen (pads 12/13 escape south on F.Cu; the +3V3 via at (45.800,73.450) blocks the north corridor). Re-swept afterwards: 0 of 31 SHIELD items now under 0.600 mm, and the remaining net-pair minima are the connector's own land (0.6029 / 0.6127 mm) which no layout can change. B3 and B4 went 0.200 -> 0.500 mm identically: a signal net hops to B.Cu across the V48_RAW trunk with its two vias 1.050 mm off centreline, and pushing each 0.200 mm out restores 0.700 mm, i.e. +0.065 mm on the 0.635 rule. All five cluster-B segments were confirmed to be BRIDGES in their net's connectivity graph, so each really does carry the full rail current - no parallel path was assumed. Two REJECTIONS worth recording because both were the right call: the fixer's first attempt at the A2/LED_Y_A item did reach the target but only by pulling A2 to 0.2259 mm from J1's board lock, down from 0.7065 mm - trading one 57 V clearance for another - and it rejected its own result after measuring that every other 57 V tap holds >= 0.6608 mm there. And B1/B2 CAN reach 1.1000 mm exactly, but only by spreading the 3.3 V buck switch-node crossing from 1.2024 to 2.100 mm, which is the EMI-for-width trade the work order forbade.",
    "phase": "P8",
    "ts": "2026-07-29T20:24:22"
+  },
+  {
+   "what": "ITEM 5 (POE_TAP_A2 to LED_Y_A, 217 pairs at 0.2031 mm vs 0.600 mm required) LEFT OPEN AND UNRESOLVED, not waived and not closed. Carried to H4 as an owner decision. Prioritised the silk legibility pass ahead of a third solve attempt.",
+   "why": "Three things had to be separated. (1) The authorisation to trade A2's board-lock margin was VOIDED by the coordinating orchestrator after the fixer applied, tested and RETRACTED its own result: the +0.0037 mm price came from an ad-hoc seg-seg distance primitive that returns a positive number for INTERSECTING segments, so the trade was never available at that price. Nothing of item 5 is on the board; drc_routed is back to 0/0 and check_creepage is 11. The retraction is the right outcome and the fixer surfacing it unprompted is the behaviour that matters. (2) The 9.8 micrometre impossibility proof is VALID but NARROWER than first stated: it proves only the 0.6608 mm floor-enforced variant impossible, as a 1-D packing bound independent of the primitive bug - every term is a fixed pad radius, a fixed rule or an unneckable PoE net, saturating at -0.0223 mm. The 0.600 mm variant is UNRESOLVED, not impossible: a crossing-aware 3-net solve (A2 + LED_Y_A necked + LED_G_A with the ordering LED_G_A|LED_Y_A|A2 explicit at every x) has never been run. (3) SCOPE CHECK ON THAT SOLVE, worth recording before anyone runs it: the proposed lever is necking LED_Y_A to 0.100 mm, which is BELOW JLC's 0.1016 mm minimum trace width - the same limit that already generates 189 DFM errors on this board - so the solve must be run at >= 0.1016 mm. The 1.6 micrometre correction is immaterial against the claimed +0.4165 mm of room from adding LED_G_A, so the solve remains plausible; it is simply not free. DECISION: the silk legibility pass is an explicit owner requirement, measured, and still entirely unstarted, while item 5 has already consumed two bounded attempts. Silk goes first. If budget remains after silk, verify and the reviewer, the 3-net solve is the next thing to spend it on. Presented at H4 as a disclosed shortfall with the 217-pair count and the 0.2031 mm worst case, because a creepage requirement missed by 3x on a 57 V net is the owner's call, not mine. Note for that decision: the J1 board locks have NO declared potential - netless, so no gate models them - which is why the competing margin is a judgement call at all.",
+   "phase": "P8",
+   "ts": "2026-07-29T21:08:13"
   }
  ],
  "history": [
@@ -934,6 +940,17 @@
    "ts": "2026-07-29T20:24:22",
    "event": "decision",
    "what": "REOPENED TRIAGE PAID OFF: check_creepage 15 -> 11 and check_current undersized_track 53 -> 51, drc_routed held at 0/0 throughout. Four of the five 'package-internal' creepage errors were routed SHIELD copper and were fixable; two 0.200 mm power-trunk segments now carry 0.500 mm."
+  },
+  {
+   "ts": "2026-07-29T21:07:04",
+   "event": "snapshot",
+   "label": "pre-silklegibility",
+   "files": 1
+  },
+  {
+   "ts": "2026-07-29T21:08:13",
+   "event": "decision",
+   "what": "ITEM 5 (POE_TAP_A2 to LED_Y_A, 217 pairs at 0.2031 mm vs 0.600 mm required) LEFT OPEN AND UNRESOLVED, not waived and not closed. Carried to H4 as an owner decision. Prioritised the silk legibility pass ahead of a third solve attempt."
   }
  ]
 }
