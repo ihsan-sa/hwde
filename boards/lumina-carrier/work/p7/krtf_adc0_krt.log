@@ -1,0 +1,49 @@
+--track-width not given; using the board Default net-class 0.2mm.
+--hole-to-hole-clearance not given; using the board min_hole_to_hole 0.25mm.
+Loading C:\dev\ai-ee3\boards\lumina-carrier\kicad\lumina-carrier.kicad_pcb to expand net patterns...
+Routing 1 nets: ['/ADC0']
+Loaded per-net clearances for 7/85 nets from C:\dev\ai-ee3\boards\lumina-carrier\work\p7\krtf_adc0_netclr.json
+Loading C:\dev\ai-ee3\boards\lumina-carrier\kicad\lumina-carrier.kicad_pcb...
+Auto-read netclass track widths for 9 non-Default net(s) (#435 single-ended companion).
+Using 4 routing layers: ['F.Cu', 'In1.Cu', 'In2.Cu', 'B.Cu']
+  Layer costs: F.Cu=1.0x, In1.Cu=-1.0x, In2.Cu=-1.0x, B.Cu=1.0x
+No BGA components detected - no exclusion zones needed
+Rip-up blocker-select algorithm: mincut
+
+Using MPS ordering strategy...
+MPS: Using segment intersection method (no nets on BGA chips)
+MPS: 1 nets with 0 crossing conflicts detected
+MPS Round 1: 1 units: /ADC0
+
+Routing 1 single-ended net(s)...
+============================================================
+17 pre-existing net(s) eligible for rip-up: /mcu/IO3_STRAP, /expansion/ID_ADC_CONN, /ID_ADC, /ETH_LED_LINK, /poe/LED_Y_A, /ETH_LED_ACT...
+Building base obstacle map...
+Base obstacle map built in 11.55s
+Found 85 unrouted nets in PCB for stub proximity
+Pre-computing net obstacle cache...
+Net obstacle cache built in 1.35s (85 nets)
+
+[1/1] Routing /ADC0 (id=21)
+----------------------------------------
+Probe: forward=60000, backward=60000 iters, trying forward with full iterations...
+Route found in 1731098 iterations, path length: 1554
+  SUCCESS: 69 segments, 8 vias, 1731098 iterations, length=115.77mm (stubs=15.82mm) (0.88s)
+
+Sync pcb_data: 3312 -> 3243 (kept stubs) -> 3312 (after adding 69)
+Closed 3 stub gap(s) to same-net copper
+Cycle prune: removed 6 redundant loop segment(s) across 3 net(s)
+Strict collapse: removed 2 redundant segment(s) (superseded parallel/buried copper)
+
+============================================================
+Routing complete
+============================================================
+  Single-ended:  1/1 routed
+  Total vias:    8
+  Total time:    0.88s
+  Iterations:    1,731,098
+JSON_SUMMARY: {"routed_single": ["/ADC0"], "failed_single": [], "failed_multipoint": [], "multipoint_nets": 0, "multipoint_pads_connected": 0, "multipoint_pads_total": 0, "multipoint_edges_routed": 0, "multipoint_edges_failed": 0, "ripup_success_pairs": [], "rerouted_pairs": [], "single_ended_target_swaps": [], "layer_swaps": 0, "successful": 1, "failed": 0, "total_time": 0.88, "total_iterations": 1731098, "total_vias": 8, "cleanup_disconnected": [], "min_clearance_used": 0.2}
+
+Writing output to C:\dev\ai-ee3\boards\lumina-carrier\work\p7\krtf_adc0.kicad_pcb...
+Removed 2 dead-end input segment(s) from the output
+Successfully wrote C:\dev\ai-ee3\boards\lumina-carrier\work\p7\krtf_adc0.kicad_pcb

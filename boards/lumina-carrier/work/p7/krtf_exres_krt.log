@@ -1,0 +1,134 @@
+--track-width not given; using the board Default net-class 0.2mm.
+--hole-to-hole-clearance not given; using the board min_hole_to_hole 0.25mm.
+Loading C:\dev\ai-ee3\boards\lumina-carrier\kicad\lumina-carrier.kicad_pcb to expand net patterns...
+Routing 1 nets: ['/eth/EXRES']
+Loaded per-net clearances for 7/85 nets from C:\dev\ai-ee3\boards\lumina-carrier\work\p7\krtf_exres_netclr.json
+Loading C:\dev\ai-ee3\boards\lumina-carrier\kicad\lumina-carrier.kicad_pcb...
+Auto-read netclass track widths for 9 non-Default net(s) (#435 single-ended companion).
+Using 4 routing layers: ['F.Cu', 'In1.Cu', 'In2.Cu', 'B.Cu']
+  Layer costs: F.Cu=1.0x, In1.Cu=-1.0x, In2.Cu=-1.0x, B.Cu=1.0x
+No BGA components detected - no exclusion zones needed
+
+Using MPS ordering strategy...
+MPS: Using segment intersection method (no nets on BGA chips)
+MPS: 1 nets with 0 crossing conflicts detected
+MPS Round 1: 1 units: /eth/EXRES
+
+Routing 1 single-ended net(s)...
+============================================================
+Building base obstacle map...
+Base obstacle map built in 11.23s
+Found 85 unrouted nets in PCB for stub proximity
+Pre-computing net obstacle cache...
+Net obstacle cache built in 1.05s (85 nets)
+
+[1/1] Routing /eth/EXRES (id=47)
+----------------------------------------
+forward stuck (184 < 5000), backward=5000
+  forward cell (1964, 1659, layer=0): ok, 3/8 neighbors blocked
+No route found after 5184 iterations (both directions)
+  FAILED: Could not find route (0.24s)
+  [91mROUTE FAILED - no rippable blockers found[0m
+  Hint: search exhausted after only 5184 iterations with no rippable blockers - the start/target pads are boxed in by static obstacles (neighboring pads + clearance), not by congestion. For fine-pitch parts try a finer grid and/or smaller clearance/track, e.g. --grid-step 0.025 scoped to just the failing nets via --nets (board-global it is ~13M cells/layer and may exhaust memory) --clearance 0.15 --track-width 0.15 (current: grid 0.05, clearance 0.2, track 0.2 mm)
+  Hint: the blocking copper belongs to pre-existing net(s) '/ETH_TXP' '/poe/LED_Y_A' '/ETH_TXN' '/ETH_CSn' '/ETH_RSTn' '/ETH_MISO' (committed by an earlier run/step), which this run is not allowed to rip. Retry with --rip-existing-nets '/ETH_TXP' '/poe/LED_Y_A' '/ETH_TXN' '/ETH_CSn' '/ETH_RSTn' '/ETH_MISO' to rip and re-route them in this run (issue #103) -- the decisive blocker may be any of them, so start with the full set (each ripped net is re-routed and the run reports honestly if one cannot be), then bisect if you want a minimal rip.
+
+Per-net fine-parameter rescue (#331/#371): 1 candidate net(s)
+  Rescuing /eth/EXRES (failed, 2 disconnected parts)
+forward stuck (743 < 5000), backward=5000
+  forward cell (3927, 3317, layer=0): ok, 0/8 neighbors blocked
+No route found after 5743 iterations (both directions)
+forward stuck (1345 < 5000), backward=5000
+  forward cell (3927, 3317, layer=0): ok, 0/8 neighbors blocked
+No route found after 6345 iterations (both directions)
+forward stuck (1345 < 5000), backward=5000
+  forward cell (3927, 3317, layer=0): ok, 0/8 neighbors blocked
+No route found after 6345 iterations (both directions)
+    [91mrescue failed[0m (10.2s)
+Rescue pass: 0 recovered, 0 improved, 1 unchanged (10.2s)
+
+============================================================
+Routing complete
+============================================================
+  [91mSingle-ended:  0/1 routed (1 FAILED)[0m
+  Total vias:    0
+  Total time:    0.24s
+  Iterations:    5,184
+
+[91mFailed single-ended nets:[0m
+  [91m/eth/EXRES[0m
+
+============================================================
+FAILED NET HISTORIES
+============================================================
+
+/eth/EXRES:
+  [0] Re-route FAILED: no rippable blockers found
+  [0] preexisting_blockers
+  [0] rescue_failed
+JSON_SUMMARY: {"routed_single": [], "failed_single": ["/eth/EXRES"], "failed_multipoint": [], "multipoint_nets": 0, "multipoint_pads_connected": 0, "multipoint_pads_total": 0, "multipoint_edges_routed": 0, "multipoint_edges_failed": 0, "ripup_success_pairs": [], "rerouted_pairs": [], "single_ended_target_swaps": [], "layer_swaps": 0, "successful": 0, "failed": 1, "total_time": 0.24, "total_iterations": 5184, "total_vias": 0, "cleanup_disconnected": [], "min_clearance_used": 0.2, "rescue": {"attempted": 1, "recovered": [], "improved": [], "unchanged": ["/eth/EXRES"], "pads_reconnected": 0, "time": 10.25}}
+Wrote unchanged copy to C:\dev\ai-ee3\boards\lumina-carrier\work\p7\krtf_exres.kicad_pcb (nothing to route)
+
+Final reconciliation: retrying 1 incomplete net(s) against the finished board: /eth/EXRES
+Loading C:\dev\ai-ee3\boards\lumina-carrier\work\p7\krtf_exres.kicad_pcb...
+Using 4 routing layers: ['F.Cu', 'In1.Cu', 'In2.Cu', 'B.Cu']
+  Layer costs: F.Cu=1.0x, In1.Cu=-1.0x, In2.Cu=-1.0x, B.Cu=1.0x
+No BGA components detected - no exclusion zones needed
+
+Using MPS ordering strategy...
+MPS: Using segment intersection method (no nets on BGA chips)
+MPS: 1 nets with 0 crossing conflicts detected
+MPS Round 1: 1 units: /eth/EXRES
+
+Routing 1 single-ended net(s)...
+============================================================
+Building base obstacle map...
+Base obstacle map built in 11.15s
+Found 85 unrouted nets in PCB for stub proximity
+Pre-computing net obstacle cache...
+Net obstacle cache built in 0.99s (85 nets)
+
+[1/1] Routing /eth/EXRES (id=47)
+----------------------------------------
+forward stuck (184 < 5000), backward=5000
+  forward cell (1964, 1659, layer=0): ok, 3/8 neighbors blocked
+No route found after 5184 iterations (both directions)
+  FAILED: Could not find route (0.22s)
+  [91mROUTE FAILED - no rippable blockers found[0m
+  Hint: search exhausted after only 5184 iterations with no rippable blockers - the start/target pads are boxed in by static obstacles (neighboring pads + clearance), not by congestion. For fine-pitch parts try a finer grid and/or smaller clearance/track, e.g. --grid-step 0.025 scoped to just the failing nets via --nets (board-global it is ~13M cells/layer and may exhaust memory) --clearance 0.15 --track-width 0.15 (current: grid 0.05, clearance 0.2, track 0.2 mm)
+  Hint: the blocking copper belongs to pre-existing net(s) '/ETH_TXP' '/poe/LED_Y_A' '/ETH_TXN' '/ETH_CSn' '/ETH_RSTn' '/ETH_MISO' (committed by an earlier run/step), which this run is not allowed to rip. Retry with --rip-existing-nets '/ETH_TXP' '/poe/LED_Y_A' '/ETH_TXN' '/ETH_CSn' '/ETH_RSTn' '/ETH_MISO' to rip and re-route them in this run (issue #103) -- the decisive blocker may be any of them, so start with the full set (each ripped net is re-routed and the run reports honestly if one cannot be), then bisect if you want a minimal rip.
+
+Per-net fine-parameter rescue (#331/#371): 1 candidate net(s)
+  Rescuing /eth/EXRES (failed, 2 disconnected parts)
+forward stuck (743 < 5000), backward=5000
+  forward cell (3927, 3317, layer=0): ok, 0/8 neighbors blocked
+No route found after 5743 iterations (both directions)
+forward stuck (1345 < 5000), backward=5000
+  forward cell (3927, 3317, layer=0): ok, 0/8 neighbors blocked
+No route found after 6345 iterations (both directions)
+forward stuck (1345 < 5000), backward=5000
+  forward cell (3927, 3317, layer=0): ok, 0/8 neighbors blocked
+No route found after 6345 iterations (both directions)
+    [91mrescue failed[0m (10.2s)
+Rescue pass: 0 recovered, 0 improved, 1 unchanged (10.2s)
+
+============================================================
+Routing complete
+============================================================
+  [91mSingle-ended:  0/1 routed (1 FAILED)[0m
+  Total vias:    0
+  Total time:    0.22s
+  Iterations:    5,184
+
+[91mFailed single-ended nets:[0m
+  [91m/eth/EXRES[0m
+
+============================================================
+FAILED NET HISTORIES
+============================================================
+
+/eth/EXRES:
+  [0] Re-route FAILED: no rippable blockers found
+  [0] preexisting_blockers
+  [0] rescue_failed
+JSON_SUMMARY: {"routed_single": [], "failed_single": ["/eth/EXRES"], "failed_multipoint": [], "multipoint_nets": 0, "multipoint_pads_connected": 0, "multipoint_pads_total": 0, "multipoint_edges_routed": 0, "multipoint_edges_failed": 0, "ripup_success_pairs": [], "rerouted_pairs": [], "single_ended_target_swaps": [], "layer_swaps": 0, "successful": 0, "failed": 1, "total_time": 0.22, "total_iterations": 5184, "total_vias": 0, "cleanup_disconnected": [], "min_clearance_used": 0.2, "rescue": {"attempted": 1, "recovered": [], "improved": [], "unchanged": ["/eth/EXRES"], "pads_reconnected": 0, "time": 10.2}}
+Note: the JSON_SUMMARY above covers only the reconciliation subset; the run's full tally is the earlier JSON_SUMMARY plus these recoveries.

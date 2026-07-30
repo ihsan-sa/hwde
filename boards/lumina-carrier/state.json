@@ -3,7 +3,7 @@
  "board": "lumina-carrier",
  "workspace": "boards/lumina-carrier",
  "created": "2026-07-28T13:36:22",
- "updated": "2026-07-29T16:35:21",
+ "updated": "2026-07-29T17:22:05",
  "phase": "P7",
  "gates": {
   "erc": {
@@ -44,6 +44,25 @@
    "history": [
     {
      "ts": "2026-07-29T11:02:27",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0
+    }
+   ]
+  },
+  "drc_routed": {
+   "phase": "P7",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-07-29T17:21:37",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0
+   },
+   "history": [
+    {
+     "ts": "2026-07-29T17:21:37",
      "status": "pass",
      "failing_count": 0,
      "total": 0
@@ -389,6 +408,18 @@
    "why": "The shrink from 1.524 to 1.200 mm was unnecessary - the barrier met HALO's 1.40 mm at the original size (1.4510 mm). Reverting would restore 0.162 mm of annular ring per side on a THT MDI pad. I am NOT reverting, for three reasons: (1) 0.150 mm ring on a 0.900 mm drill is exactly JLC's stated PTH minimum, so the as-built pad is within spec, not out of it; (2) the barrier is BETTER as built, 1.6130 vs 1.4510 mm; (3) enlarging the pad now would shrink every pad-to-track gap around it on a board the router just brought to 0 clearance errors with a measured 1.4221 mm worst case, forcing a re-verification pass for margin that is not needed. Recorded so the next reader knows the pad size is a deliberate accepted state and not an unexamined leftover.",
    "phase": "P7",
    "ts": "2026-07-29T16:34:28"
+  },
+  {
+   "what": "C35 moved +0.300 mm in y (85.513 -> 85.813): U10 GND fan-out corridor 0.681 -> 1.681 mm. Placement-blocked routing unblocked without touching the planes.",
+   "why": "The router quantified the block precisely: U10's south pad row bottom at y 83.6819 vs C35 pad-1 top at 84.3627 left a 0.6808 mm corridor, while the smallest DRC-legal via here (min_via_diameter 0.5) needs 0.5 + 2x0.2 = 0.900 mm - short by 0.192 mm. It recommended C35 +0.5 mm; that overlapped U30's courtyard by 0.18 mm2 and failed the place gate, so I used the gate as the oracle and backed off to +0.300 mm, the largest offset that passes. Corridor is now 1.6811 mm, nearly 2x what a legal via needs. Verified with BOTH oracles: place gate PASS (0 failing), check_decoupling unchanged at the 2 pre-existing C1 warnings with no new ones - which matters because C34/C35 exist to sit close to U10's supply pins, so moving one could have broken the thing it is for. This is the cheap lever the router flagged as preferable to permitting inner-layer routing, and it costs no plane integrity.",
+   "phase": "P7",
+   "ts": "2026-07-29T16:36:47"
+  },
+  {
+   "what": "MY C35 MOVE WAS WRONG AND INTRODUCED A SHORT. Both oracles I validated against passed it. Router caught and reverted it.",
+   "why": "Two compounding errors. (1) MEASUREMENT: my 0.681 -> 1.681 mm corridor figure read C35's FOOTPRINT origin y, not its PAD-1 CENTRE y - off by exactly 0.700 mm. The real corridor was 0.9811 mm, so the move bought far less than I claimed. (2) WRONG ORACLE, and this is the serious one: at y=85.813 C35's pad 1 landed on an existing /ETH_RSTn run at y 85.55, giving +6 DRC errors including a SHORTING_ITEMS and a solder_mask_bridge. I validated with 'gate place' (PASS) and check_decoupling (unchanged) - and BOTH passed, because placement-phase checkers do not see routed copper. On a board that is already routed, the authoritative oracle for a placement change is DRC, not the place gate. I moved a part on 3089 segments of existing routing and checked it with tools that are blind to tracks. (3) The corridor could never have closed the GND item anyway: the real blocker was a VOID in the In1 GND fill created by neighbouring +3V3 plane vias' clearance holes, so a via there would have connected to nothing - 0 legal 0.5 mm centres across the whole corridor at 0.025 mm step. The router solved it properly by escaping U10 pad 9 NORTH into the LQFP's own die shadow. This is my fourth verification error this phase and the only one that damaged the board; every one was caught by an independent check rather than by me.",
+   "phase": "P7",
+   "ts": "2026-07-29T17:22:05"
   }
  ],
  "history": [
@@ -767,6 +798,24 @@
    "event": "snapshot",
    "label": "pre-c35-move",
    "files": 1
+  },
+  {
+   "ts": "2026-07-29T16:36:47",
+   "event": "decision",
+   "what": "C35 moved +0.300 mm in y (85.513 -> 85.813): U10 GND fan-out corridor 0.681 -> 1.681 mm. Placement-blocked routing unblocked without touching the planes."
+  },
+  {
+   "ts": "2026-07-29T17:21:37",
+   "event": "gate",
+   "gate": "drc_routed",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-07-29T17:22:05",
+   "event": "decision",
+   "what": "MY C35 MOVE WAS WRONG AND INTRODUCED A SHORT. Both oracles I validated against passed it. Router caught and reverted it."
   }
  ]
 }

@@ -1,0 +1,61 @@
+{
+  "script": "gate",
+  "gate": "drc_routed",
+  "phase": "P7",
+  "tool": "drc",
+  "input": "boards\\lumina-carrier\\kicad\\lumina-carrier.kicad_pcb",
+  "status": "fail",
+  "criteria": {
+    "fail_severities": [
+      "error",
+      "warning"
+    ],
+    "max_count": 0
+  },
+  "counts": {
+    "total": 1,
+    "by_severity": {
+      "error": 1
+    },
+    "by_source": {
+      "unconnected": 1
+    }
+  },
+  "failing_count": 1,
+  "failing": [
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        110.31,
+        106.032
+      ],
+      "layer": "F.Cu",
+      "net": "/ADC0",
+      "refs": [
+        "D41",
+        "U30"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 39 [/ADC0] of U30 on F.Cu",
+          "pos": [
+            110.31,
+            106.032
+          ],
+          "uuid": "8bf096bc-addb-4114-a6d0-f6a7972a78c3"
+        },
+        {
+          "msg": "Pad 1 [/ADC0] of D41 on F.Cu",
+          "pos": [
+            90.39,
+            79.25
+          ],
+          "uuid": "4231a6fb-fffb-4bee-b9e4-a486d22685e3"
+        }
+      ]
+    }
+  ]
+}

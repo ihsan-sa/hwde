@@ -1,0 +1,460 @@
+{
+  "script": "gate",
+  "gate": "drc_routed",
+  "phase": "P7",
+  "tool": "drc",
+  "input": "boards\\lumina-carrier\\kicad\\lumina-carrier.kicad_pcb",
+  "status": "fail",
+  "criteria": {
+    "fail_severities": [
+      "error",
+      "warning"
+    ],
+    "max_count": 0
+  },
+  "counts": {
+    "total": 14,
+    "by_severity": {
+      "error": 11,
+      "warning": 3
+    },
+    "by_source": {
+      "drc": 9,
+      "unconnected": 5
+    }
+  },
+  "failing_count": 14,
+  "failing": [
+    {
+      "check": "shorting_items",
+      "severity": "error",
+      "pos": [
+        97.631,
+        85.113
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [
+        "C35"
+      ],
+      "msg": "Items shorting two nets (nets +3V3 and /ETH_RSTn)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Pad 1 [+3V3] of C35 on F.Cu",
+          "pos": [
+            97.631,
+            85.113
+          ],
+          "uuid": "1082b8c0-66f4-4aa9-9374-887585184eda"
+        },
+        {
+          "msg": "Track [/ETH_RSTn] on F.Cu, length 1.2250 mm",
+          "pos": [
+            98.3,
+            85.55
+          ],
+          "uuid": "f9abcded-21dd-4a0a-aca9-9cb769fbbda2"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        97.631,
+        85.113
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [
+        "C35"
+      ],
+      "msg": "Clearance violation (netclass 'PWR_3V3' clearance 0.2000 mm; actual 0.1721 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Pad 1 [+3V3] of C35 on F.Cu",
+          "pos": [
+            97.631,
+            85.113
+          ],
+          "uuid": "1082b8c0-66f4-4aa9-9374-887585184eda"
+        },
+        {
+          "msg": "Track [/ETH_RSTn] on F.Cu, length 0.0707 mm",
+          "pos": [
+            98.35,
+            85.5
+          ],
+          "uuid": "5d0ae15e-1be7-4f61-a151-9cc684ed6a00"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        97.631,
+        85.113
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [
+        "C35"
+      ],
+      "msg": "Clearance violation (netclass 'PWR_3V3' clearance 0.2000 mm; actual 0.1508 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Pad 1 [+3V3] of C35 on F.Cu",
+          "pos": [
+            97.631,
+            85.113
+          ],
+          "uuid": "1082b8c0-66f4-4aa9-9374-887585184eda"
+        },
+        {
+          "msg": "Track [/ETH_RSTn] on F.Cu, length 0.3536 mm",
+          "pos": [
+            97.0,
+            85.6
+          ],
+          "uuid": "84626c2c-c972-477d-8871-4a795aa63df0"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        97.631,
+        85.113
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [
+        "C35"
+      ],
+      "msg": "Clearance violation (netclass 'PWR_3V3' clearance 0.2000 mm; actual 0.1286 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Pad 1 [+3V3] of C35 on F.Cu",
+          "pos": [
+            97.631,
+            85.113
+          ],
+          "uuid": "1082b8c0-66f4-4aa9-9374-887585184eda"
+        },
+        {
+          "msg": "Track [/ETH_RSTn] on F.Cu, length 0.0250 mm",
+          "pos": [
+            97.025,
+            85.6
+          ],
+          "uuid": "a266e16f-98ad-4b03-9d54-6f3a72798627"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        97.631,
+        85.113
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [
+        "C35"
+      ],
+      "msg": "Clearance violation (netclass 'PWR_3V3' clearance 0.2000 mm; actual 0.0623 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Pad 1 [+3V3] of C35 on F.Cu",
+          "pos": [
+            97.631,
+            85.113
+          ],
+          "uuid": "1082b8c0-66f4-4aa9-9374-887585184eda"
+        },
+        {
+          "msg": "Track [/ETH_RSTn] on F.Cu, length 0.0707 mm",
+          "pos": [
+            97.075,
+            85.55
+          ],
+          "uuid": "f61dc021-52e3-4a3d-8648-ce68534a4fe3"
+        }
+      ]
+    },
+    {
+      "check": "solder_mask_bridge",
+      "severity": "error",
+      "pos": [
+        98.3,
+        85.55
+      ],
+      "layer": "F.Cu",
+      "net": "/ETH_RSTn",
+      "refs": [
+        "C35"
+      ],
+      "msg": "Front solder mask aperture bridges items with different nets",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/ETH_RSTn] on F.Cu, length 1.2250 mm",
+          "pos": [
+            98.3,
+            85.55
+          ],
+          "uuid": "f9abcded-21dd-4a0a-aca9-9cb769fbbda2"
+        },
+        {
+          "msg": "Pad 1 [+3V3] of C35 on F.Cu",
+          "pos": [
+            97.631,
+            85.113
+          ],
+          "uuid": "1082b8c0-66f4-4aa9-9374-887585184eda"
+        }
+      ]
+    },
+    {
+      "check": "track_dangling",
+      "severity": "warning",
+      "pos": [
+        112.0,
+        70.0
+      ],
+      "layer": "B.Cu",
+      "net": "/FAULT",
+      "refs": [],
+      "msg": "Track has unconnected end",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/FAULT] on B.Cu, length 2.3500 mm",
+          "pos": [
+            112.0,
+            70.0
+          ],
+          "uuid": "3b61ee72-fc22-4c8f-a403-8a38ec249d03"
+        }
+      ]
+    },
+    {
+      "check": "via_dangling",
+      "severity": "warning",
+      "pos": [
+        103.45,
+        69.4
+      ],
+      "layer": "F.Cu",
+      "net": "/mcu/STATUS",
+      "refs": [],
+      "msg": "Via is not connected or connected on only one layer",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Via [/mcu/STATUS] on F.Cu - B.Cu",
+          "pos": [
+            103.45,
+            69.4
+          ],
+          "uuid": "48ccd3e7-56ae-4689-ad1a-daacac63d901"
+        }
+      ]
+    },
+    {
+      "check": "via_dangling",
+      "severity": "warning",
+      "pos": [
+        94.0,
+        102.6
+      ],
+      "layer": "F.Cu",
+      "net": "/mcu/STATUS",
+      "refs": [],
+      "msg": "Via is not connected or connected on only one layer",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Via [/mcu/STATUS] on F.Cu - B.Cu",
+          "pos": [
+            94.0,
+            102.6
+          ],
+          "uuid": "62944c8a-2c1a-4294-8cd9-078c46e0c7d8"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        94.6758,
+        82.9319
+      ],
+      "layer": "F.Cu",
+      "net": "GND",
+      "refs": [
+        "U10"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 3 [GND] of U10 on F.Cu",
+          "pos": [
+            94.6758,
+            82.9319
+          ],
+          "uuid": "c7763626-a64f-45cd-be38-7440447870fb"
+        },
+        {
+          "msg": "Pad 9 [GND] of U10 on F.Cu",
+          "pos": [
+            97.6758,
+            82.9319
+          ],
+          "uuid": "eac50fdf-07f4-4b1f-b8f0-4c8cd18df986"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        46.8625,
+        96.325
+      ],
+      "layer": "F.Cu",
+      "net": "/FAULT",
+      "refs": [
+        "U22"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 15 [/FAULT] of U22 on F.Cu",
+          "pos": [
+            46.8625,
+            96.325
+          ],
+          "uuid": "e3439284-84a5-4674-8a96-246224e81f60"
+        },
+        {
+          "msg": "Track [/FAULT] on B.Cu, length 0.2828 mm",
+          "pos": [
+            103.65,
+            112.7
+          ],
+          "uuid": "81d0255b-c81b-40d7-bdfe-f351cb0cafe4"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        110.31,
+        106.032
+      ],
+      "layer": "F.Cu",
+      "net": "/ADC0",
+      "refs": [
+        "D41",
+        "U30"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 39 [/ADC0] of U30 on F.Cu",
+          "pos": [
+            110.31,
+            106.032
+          ],
+          "uuid": "8bf096bc-addb-4114-a6d0-f6a7972a78c3"
+        },
+        {
+          "msg": "Pad 1 [/ADC0] of D41 on F.Cu",
+          "pos": [
+            90.39,
+            79.25
+          ],
+          "uuid": "4231a6fb-fffb-4bee-b9e4-a486d22685e3"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        103.45,
+        69.4
+      ],
+      "layer": "F.Cu",
+      "net": "/mcu/STATUS",
+      "refs": [],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Via [/mcu/STATUS] on F.Cu - B.Cu",
+          "pos": [
+            103.45,
+            69.4
+          ],
+          "uuid": "48ccd3e7-56ae-4689-ad1a-daacac63d901"
+        },
+        {
+          "msg": "Via [/mcu/STATUS] on F.Cu - B.Cu",
+          "pos": [
+            94.0,
+            102.6
+          ],
+          "uuid": "62944c8a-2c1a-4294-8cd9-078c46e0c7d8"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        101.619,
+        58.633
+      ],
+      "layer": "F.Cu",
+      "net": "/mcu/RXD0",
+      "refs": [
+        "J2"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "PTH pad 4 [/mcu/RXD0] of J2",
+          "pos": [
+            101.619,
+            58.633
+          ],
+          "uuid": "34085037-987c-4f80-9e70-72cf72a00401"
+        },
+        {
+          "msg": "Track [/mcu/RXD0] on F.Cu, length 0.2828 mm",
+          "pos": [
+            106.5,
+            106.05
+          ],
+          "uuid": "18c521fc-e06d-4bf8-9aaa-6845321a99a6"
+        }
+      ]
+    }
+  ]
+}

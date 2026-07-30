@@ -1,0 +1,161 @@
+{
+  "script": "gate",
+  "gate": "drc_routed",
+  "phase": "P7",
+  "tool": "drc",
+  "input": "boards\\lumina-carrier\\kicad\\lumina-carrier.kicad_pcb",
+  "status": "fail",
+  "criteria": {
+    "fail_severities": [
+      "error",
+      "warning"
+    ],
+    "max_count": 0
+  },
+  "counts": {
+    "total": 4,
+    "by_severity": {
+      "error": 4
+    },
+    "by_source": {
+      "unconnected": 4
+    }
+  },
+  "failing_count": 4,
+  "failing": [
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        94.6758,
+        82.9319
+      ],
+      "layer": "F.Cu",
+      "net": "GND",
+      "refs": [
+        "U10"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 3 [GND] of U10 on F.Cu",
+          "pos": [
+            94.6758,
+            82.9319
+          ],
+          "uuid": "c7763626-a64f-45cd-be38-7440447870fb"
+        },
+        {
+          "msg": "Pad 9 [GND] of U10 on F.Cu",
+          "pos": [
+            97.6758,
+            82.9319
+          ],
+          "uuid": "eac50fdf-07f4-4b1f-b8f0-4c8cd18df986"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        46.8625,
+        96.325
+      ],
+      "layer": "F.Cu",
+      "net": "/FAULT",
+      "refs": [
+        "U22"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 15 [/FAULT] of U22 on F.Cu",
+          "pos": [
+            46.8625,
+            96.325
+          ],
+          "uuid": "e3439284-84a5-4674-8a96-246224e81f60"
+        },
+        {
+          "msg": "Track [/FAULT] on B.Cu, length 0.1500 mm",
+          "pos": [
+            103.45,
+            112.9
+          ],
+          "uuid": "1d511754-f9e7-4e02-a3dd-a655dfe84d2d"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        110.31,
+        106.032
+      ],
+      "layer": "F.Cu",
+      "net": "/ADC0",
+      "refs": [
+        "D41",
+        "U30"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 39 [/ADC0] of U30 on F.Cu",
+          "pos": [
+            110.31,
+            106.032
+          ],
+          "uuid": "8bf096bc-addb-4114-a6d0-f6a7972a78c3"
+        },
+        {
+          "msg": "Pad 1 [/ADC0] of D41 on F.Cu",
+          "pos": [
+            90.39,
+            79.25
+          ],
+          "uuid": "4231a6fb-fffb-4bee-b9e4-a486d22685e3"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        106.699,
+        58.633
+      ],
+      "layer": "F.Cu",
+      "net": "/mcu/BOOT",
+      "refs": [
+        "J2",
+        "SW1"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "PTH pad 6 [/mcu/BOOT] of J2",
+          "pos": [
+            106.699,
+            58.633
+          ],
+          "uuid": "b7c8da9d-a9a6-4934-84f4-ac39e7a7b7d5"
+        },
+        {
+          "msg": "Pad 1 [/mcu/BOOT] of SW1 on F.Cu",
+          "pos": [
+            81.75,
+            58.32
+          ],
+          "uuid": "43dabe85-b042-4d3a-ae6c-fb7728462cee"
+        }
+      ]
+    }
+  ]
+}

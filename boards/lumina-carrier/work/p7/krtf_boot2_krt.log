@@ -1,0 +1,104 @@
+--track-width not given; using the board Default net-class 0.2mm.
+--hole-to-hole-clearance not given; using the board min_hole_to_hole 0.25mm.
+Loading C:\dev\ai-ee3\boards\lumina-carrier\kicad\lumina-carrier.kicad_pcb to expand net patterns...
+Routing 1 nets: ['/mcu/BOOT']
+Loaded per-net clearances for 7/85 nets from C:\dev\ai-ee3\boards\lumina-carrier\work\p7\krtf_boot2_netclr.json
+Loading C:\dev\ai-ee3\boards\lumina-carrier\kicad\lumina-carrier.kicad_pcb...
+Auto-read netclass track widths for 9 non-Default net(s) (#435 single-ended companion).
+Using 4 routing layers: ['F.Cu', 'In1.Cu', 'In2.Cu', 'B.Cu']
+  Layer costs: F.Cu=1.0x, In1.Cu=-1.0x, In2.Cu=-1.0x, B.Cu=1.0x
+No BGA components detected - no exclusion zones needed
+
+Using MPS ordering strategy...
+MPS: Using segment intersection method (no nets on BGA chips)
+MPS: 1 nets with 0 crossing conflicts detected
+MPS Round 1: 1 units: /mcu/BOOT
+
+Routing 1 single-ended net(s)...
+============================================================
+6 pre-existing net(s) eligible for rip-up: /poe/LED_G_A, /mcu/ENABLE_M, /mcu/EN, /eth/XO, /mcu/RXD0, /mcu/TXD0
+Building base obstacle map...
+Base obstacle map built in 11.34s
+Found 85 unrouted nets in PCB for stub proximity
+Pre-computing net obstacle cache...
+Net obstacle cache built in 1.22s (85 nets)
+
+[1/1] Routing /mcu/BOOT (id=41)
+----------------------------------------
+Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+No route found after 200000 iterations (forward), trying backward...
+No route found after 410000 iterations (both directions)
+  FAILED: Could not find route (0.27s)
+  Forward direction failed fastest (205000 iterations, 6268 blocked cells)
+  Frontier blocked by 5 nets (2560 cells, 2560 unique)
+  Coverage: 2560/6268 frontier cells attributed to routed nets; 3708 static/unrippable
+  Top blockers:
+    1. /mcu/EN: 991 (38.7%), 991 uniq (100%)
+    2. /mcu/RXD0: 682 (26.6%), 682 uniq (100%)
+    3. /mcu/TXD0: 416 (16.2%), 416 uniq (100%)
+    4. /poe/LED_G_A: 363 (14.2%), 363 uniq (100%)
+    5. /mcu/ENABLE_M: 108 (4.2%), 108 uniq (100%)
+  Ripping up /mcu/EN to retry...
+    Ripped /mcu/EN
+Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+No route found after 200000 iterations (forward), trying backward...
+No route found after 410000 iterations (both directions)
+  RETRY FAILED (N=1)
+    Retry had 9904 blocked cells
+  Re-analyzing 9904 blocked cells from N=1 retry:
+    Frontier blocked by 5 nets (2856 cells, 2856 unique; near: 0 src, 109 tgt)
+    Coverage: 2856/9904 frontier cells attributed to routed nets; 7048 static/unrippable
+    Top blockers:
+      1. /mcu/TXD0: 721 (25.2%), 721 uniq (100%)
+      2. /eth/XO: 715 (25.0%), 715 uniq (100%), near: 0 src, 109 tgt
+      3. /poe/LED_G_A: 615 (21.5%), 615 uniq (100%)
+      4. /mcu/RXD0: 604 (21.1%), 604 uniq (100%)
+      5. /mcu/ENABLE_M: 201 (7.0%), 201 uniq (100%)
+  Slot-0 guard: re-analysis refutes /mcu/EN -> retrying /mcu/TXD0 ALONE first
+  Ripping up /mcu/TXD0 to retry...
+    Ripped /mcu/TXD0
+Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+Route found in 58641 iterations, path length: 560
+  RETRY SUCCESS (N=1): 43 segments, 2 vias, length=32.91mm
+
+[REROUTE 2/2] Re-routing ripped net /mcu/TXD0
+----------------------------------------
+Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+No route found after 200000 iterations (forward), trying backward...
+No route found after 410000 iterations (both directions)
+  REROUTE FAILED: (0.25s) - attempting rip-up and retry...
+  Frontier blocked by 3 nets (960 cells, 960 unique; near: 37 src, 0 tgt)
+  Coverage: 960/8516 frontier cells attributed to routed nets; 7556 static/unrippable
+  Top blockers:
+    1. /mcu/RXD0: 489 (50.9%), 489 uniq (100%), near: 37 src, 0 tgt
+    2. /mcu/ENABLE_M: 254 (26.5%), 254 uniq (100%)
+    3. /poe/LED_G_A: 217 (22.6%), 217 uniq (100%)
+  Ripping up /mcu/RXD0 to retry reroute...
+Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+Route found in 119353 iterations, path length: 957
+  REROUTE RETRY SUCCESS (N=1): 31 segments, 1 vias, length=54.74mm (stubs=0.00mm)
+
+[REROUTE 3/3] Re-routing ripped net /mcu/RXD0
+----------------------------------------
+Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+Route found in 156217 iterations, path length: 959
+  REROUTE SUCCESS: 36 segments, 4 vias, length=64.59mm (stubs=0.00mm) (0.14s)
+
+Sync pcb_data: 3138 -> 3028 (kept stubs) -> 3138 (after adding 110)
+Cycle prune: removed 14 redundant loop segment(s) across 3 net(s)
+Stripped 92 stale input segment(s) of ripped/re-routed nets not on the final board (#220)
+Stripping 5 stale input via(s) of ripped/re-routed nets not on the final board
+
+============================================================
+Routing complete
+============================================================
+  Single-ended:  1/1 routed
+  Total vias:    7
+  Total time:    0.66s
+  Iterations:    1,154,211
+JSON_SUMMARY: {"routed_single": ["/mcu/BOOT"], "failed_single": [], "failed_multipoint": [], "multipoint_nets": 0, "multipoint_pads_connected": 0, "multipoint_pads_total": 0, "multipoint_edges_routed": 0, "multipoint_edges_failed": 0, "ripup_success_pairs": [], "rerouted_pairs": [], "single_ended_target_swaps": [], "layer_swaps": 0, "successful": 1, "failed": 0, "total_time": 0.66, "total_iterations": 1154211, "total_vias": 7, "cleanup_disconnected": [], "min_clearance_used": 0.2}
+
+Writing output to C:\dev\ai-ee3\boards\lumina-carrier\work\p7\krtf_boot2.kicad_pcb...
+Removed 95 dead-end input segment(s) from the output
+Removed 5 stale input via(s) from the output
+Successfully wrote C:\dev\ai-ee3\boards\lumina-carrier\work\p7\krtf_boot2.kicad_pcb

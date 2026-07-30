@@ -1,0 +1,132 @@
+--track-width not given; using the board Default net-class 0.2mm.
+--hole-to-hole-clearance not given; using the board min_hole_to_hole 0.25mm.
+Loading C:\dev\ai-ee3\boards\lumina-carrier\kicad\lumina-carrier.kicad_pcb to expand net patterns...
+Routing 1 nets: ['/mcu/BOOT']
+Loaded per-net clearances for 7/85 nets from C:\dev\ai-ee3\boards\lumina-carrier\work\p7\krtf_boot_netclr.json
+Loading C:\dev\ai-ee3\boards\lumina-carrier\kicad\lumina-carrier.kicad_pcb...
+Auto-read netclass track widths for 9 non-Default net(s) (#435 single-ended companion).
+Using 4 routing layers: ['F.Cu', 'In1.Cu', 'In2.Cu', 'B.Cu']
+  Layer costs: F.Cu=1.0x, In1.Cu=-1.0x, In2.Cu=-1.0x, B.Cu=1.0x
+No BGA components detected - no exclusion zones needed
+
+Using MPS ordering strategy...
+MPS: Using segment intersection method (no nets on BGA chips)
+MPS: 1 nets with 0 crossing conflicts detected
+MPS Round 1: 1 units: /mcu/BOOT
+
+Routing 1 single-ended net(s)...
+============================================================
+Building base obstacle map...
+Base obstacle map built in 11.27s
+Found 85 unrouted nets in PCB for stub proximity
+Pre-computing net obstacle cache...
+Net obstacle cache built in 1.03s (85 nets)
+
+[1/1] Routing /mcu/BOOT (id=41)
+----------------------------------------
+Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+No route found after 200000 iterations (forward), trying backward...
+No route found after 410000 iterations (both directions)
+  FAILED: Could not find route (0.25s)
+  [91mROUTE FAILED - no rippable blockers found[0m
+  Hint: the blocking copper belongs to pre-existing net(s) '/eth/XO' '/mcu/EN' '/poe/LED_G_A' '/mcu/TXD0' '/mcu/RXD0' '/mcu/ENABLE_M' (committed by an earlier run/step), which this run is not allowed to rip. Retry with --rip-existing-nets '/eth/XO' '/mcu/EN' '/poe/LED_G_A' '/mcu/TXD0' '/mcu/RXD0' '/mcu/ENABLE_M' to rip and re-route them in this run (issue #103) -- the decisive blocker may be any of them, so start with the full set (each ripped net is re-routed and the run reports honestly if one cannot be), then bisect if you want a minimal rip.
+
+Per-net fine-parameter rescue (#331/#371): 1 candidate net(s)
+  Rescuing /mcu/BOOT (failed, 2 disconnected parts)
+Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+No route found after 416598 iterations (forward), trying backward...
+No route found after 1426598 iterations (both directions)
+Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+No route found after 440138 iterations (forward), trying backward...
+No route found after 1450138 iterations (both directions)
+Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+No route found after 446144 iterations (forward), trying backward...
+No route found after 1456144 iterations (both directions)
+    [91mrescue failed[0m (14.1s)
+Rescue pass: 0 recovered, 0 improved, 1 unchanged (14.1s)
+
+============================================================
+Routing complete
+============================================================
+  [91mSingle-ended:  0/1 routed (1 FAILED)[0m
+  Total vias:    0
+  Total time:    0.25s
+  Iterations:    410,000
+
+[91mFailed single-ended nets:[0m
+  [91m/mcu/BOOT[0m
+
+============================================================
+FAILED NET HISTORIES
+============================================================
+
+/mcu/BOOT:
+  [0] Re-route FAILED: no rippable blockers found
+  [0] preexisting_blockers
+  [0] rescue_failed
+JSON_SUMMARY: {"routed_single": [], "failed_single": ["/mcu/BOOT"], "failed_multipoint": [], "multipoint_nets": 0, "multipoint_pads_connected": 0, "multipoint_pads_total": 0, "multipoint_edges_routed": 0, "multipoint_edges_failed": 0, "ripup_success_pairs": [], "rerouted_pairs": [], "single_ended_target_swaps": [], "layer_swaps": 0, "successful": 0, "failed": 1, "total_time": 0.25, "total_iterations": 410000, "total_vias": 0, "cleanup_disconnected": [], "min_clearance_used": 0.2, "rescue": {"attempted": 1, "recovered": [], "improved": [], "unchanged": ["/mcu/BOOT"], "pads_reconnected": 0, "time": 14.08}}
+Wrote unchanged copy to C:\dev\ai-ee3\boards\lumina-carrier\work\p7\krtf_boot.kicad_pcb (nothing to route)
+
+Final reconciliation: retrying 1 incomplete net(s) against the finished board: /mcu/BOOT
+Loading C:\dev\ai-ee3\boards\lumina-carrier\work\p7\krtf_boot.kicad_pcb...
+Using 4 routing layers: ['F.Cu', 'In1.Cu', 'In2.Cu', 'B.Cu']
+  Layer costs: F.Cu=1.0x, In1.Cu=-1.0x, In2.Cu=-1.0x, B.Cu=1.0x
+No BGA components detected - no exclusion zones needed
+
+Using MPS ordering strategy...
+MPS: Using segment intersection method (no nets on BGA chips)
+MPS: 1 nets with 0 crossing conflicts detected
+MPS Round 1: 1 units: /mcu/BOOT
+
+Routing 1 single-ended net(s)...
+============================================================
+Building base obstacle map...
+Base obstacle map built in 11.38s
+Found 85 unrouted nets in PCB for stub proximity
+Pre-computing net obstacle cache...
+Net obstacle cache built in 0.95s (85 nets)
+
+[1/1] Routing /mcu/BOOT (id=41)
+----------------------------------------
+Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+No route found after 200000 iterations (forward), trying backward...
+No route found after 410000 iterations (both directions)
+  FAILED: Could not find route (0.23s)
+  [91mROUTE FAILED - no rippable blockers found[0m
+  Hint: the blocking copper belongs to pre-existing net(s) '/eth/XO' '/mcu/EN' '/poe/LED_G_A' '/mcu/TXD0' '/mcu/RXD0' '/mcu/ENABLE_M' (committed by an earlier run/step), which this run is not allowed to rip. Retry with --rip-existing-nets '/eth/XO' '/mcu/EN' '/poe/LED_G_A' '/mcu/TXD0' '/mcu/RXD0' '/mcu/ENABLE_M' to rip and re-route them in this run (issue #103) -- the decisive blocker may be any of them, so start with the full set (each ripped net is re-routed and the run reports honestly if one cannot be), then bisect if you want a minimal rip.
+
+Per-net fine-parameter rescue (#331/#371): 1 candidate net(s)
+  Rescuing /mcu/BOOT (failed, 2 disconnected parts)
+Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+No route found after 416598 iterations (forward), trying backward...
+No route found after 1426598 iterations (both directions)
+Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+No route found after 440138 iterations (forward), trying backward...
+No route found after 1450138 iterations (both directions)
+Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+No route found after 446144 iterations (forward), trying backward...
+No route found after 1456144 iterations (both directions)
+    [91mrescue failed[0m (13.6s)
+Rescue pass: 0 recovered, 0 improved, 1 unchanged (13.6s)
+
+============================================================
+Routing complete
+============================================================
+  [91mSingle-ended:  0/1 routed (1 FAILED)[0m
+  Total vias:    0
+  Total time:    0.23s
+  Iterations:    410,000
+
+[91mFailed single-ended nets:[0m
+  [91m/mcu/BOOT[0m
+
+============================================================
+FAILED NET HISTORIES
+============================================================
+
+/mcu/BOOT:
+  [0] Re-route FAILED: no rippable blockers found
+  [0] preexisting_blockers
+  [0] rescue_failed
+JSON_SUMMARY: {"routed_single": [], "failed_single": ["/mcu/BOOT"], "failed_multipoint": [], "multipoint_nets": 0, "multipoint_pads_connected": 0, "multipoint_pads_total": 0, "multipoint_edges_routed": 0, "multipoint_edges_failed": 0, "ripup_success_pairs": [], "rerouted_pairs": [], "single_ended_target_swaps": [], "layer_swaps": 0, "successful": 0, "failed": 1, "total_time": 0.23, "total_iterations": 410000, "total_vias": 0, "cleanup_disconnected": [], "min_clearance_used": 0.2, "rescue": {"attempted": 1, "recovered": [], "improved": [], "unchanged": ["/mcu/BOOT"], "pads_reconnected": 0, "time": 13.6}}
+Note: the JSON_SUMMARY above covers only the reconciliation subset; the run's full tally is the earlier JSON_SUMMARY plus these recoveries.

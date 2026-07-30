@@ -1,0 +1,240 @@
+{
+  "script": "gate",
+  "gate": "drc_routed",
+  "phase": "P7",
+  "tool": "drc",
+  "input": "boards\\lumina-carrier\\kicad\\lumina-carrier.kicad_pcb",
+  "status": "fail",
+  "criteria": {
+    "fail_severities": [
+      "error",
+      "warning"
+    ],
+    "max_count": 0
+  },
+  "counts": {
+    "total": 7,
+    "by_severity": {
+      "warning": 2,
+      "error": 5
+    },
+    "by_source": {
+      "drc": 2,
+      "unconnected": 5
+    }
+  },
+  "failing_count": 7,
+  "failing": [
+    {
+      "check": "via_dangling",
+      "severity": "warning",
+      "pos": [
+        104.525,
+        98.275
+      ],
+      "layer": "F.Cu",
+      "net": "/mcu/IO3_STRAP",
+      "refs": [],
+      "msg": "Via is not connected or connected on only one layer",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Via [/mcu/IO3_STRAP] on F.Cu - B.Cu",
+          "pos": [
+            104.525,
+            98.275
+          ],
+          "uuid": "9fa46c35-7486-43db-95a1-98e0d8639814"
+        }
+      ]
+    },
+    {
+      "check": "via_dangling",
+      "severity": "warning",
+      "pos": [
+        95.45,
+        86.975
+      ],
+      "layer": "F.Cu",
+      "net": "/ETH_RSTn",
+      "refs": [],
+      "msg": "Via is not connected or connected on only one layer",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Via [/ETH_RSTn] on F.Cu - B.Cu",
+          "pos": [
+            95.45,
+            86.975
+          ],
+          "uuid": "a1c1a0d0-f928-4caf-902e-85f29af54c3c"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        94.6758,
+        82.9319
+      ],
+      "layer": "F.Cu",
+      "net": "GND",
+      "refs": [
+        "U10"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 3 [GND] of U10 on F.Cu",
+          "pos": [
+            94.6758,
+            82.9319
+          ],
+          "uuid": "c7763626-a64f-45cd-be38-7440447870fb"
+        },
+        {
+          "msg": "Pad 9 [GND] of U10 on F.Cu",
+          "pos": [
+            97.6758,
+            82.9319
+          ],
+          "uuid": "eac50fdf-07f4-4b1f-b8f0-4c8cd18df986"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        46.8625,
+        96.325
+      ],
+      "layer": "F.Cu",
+      "net": "/FAULT",
+      "refs": [
+        "U22"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 15 [/FAULT] of U22 on F.Cu",
+          "pos": [
+            46.8625,
+            96.325
+          ],
+          "uuid": "e3439284-84a5-4674-8a96-246224e81f60"
+        },
+        {
+          "msg": "Track [/FAULT] on B.Cu, length 0.1500 mm",
+          "pos": [
+            103.45,
+            112.9
+          ],
+          "uuid": "1d511754-f9e7-4e02-a3dd-a655dfe84d2d"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        110.31,
+        106.032
+      ],
+      "layer": "F.Cu",
+      "net": "/ADC0",
+      "refs": [
+        "D41",
+        "U30"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 39 [/ADC0] of U30 on F.Cu",
+          "pos": [
+            110.31,
+            106.032
+          ],
+          "uuid": "8bf096bc-addb-4114-a6d0-f6a7972a78c3"
+        },
+        {
+          "msg": "Pad 1 [/ADC0] of D41 on F.Cu",
+          "pos": [
+            90.39,
+            79.25
+          ],
+          "uuid": "4231a6fb-fffb-4bee-b9e4-a486d22685e3"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        102.915,
+        60.9325
+      ],
+      "layer": "F.Cu",
+      "net": "/mcu/ENABLE_M",
+      "refs": [
+        "D31",
+        "U30"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 1 [/mcu/ENABLE_M] of D31 on F.Cu",
+          "pos": [
+            102.915,
+            60.9325
+          ],
+          "uuid": "36ba3977-e381-4bb6-9efd-7f957b4c6447"
+        },
+        {
+          "msg": "Pad 29 [/mcu/ENABLE_M] of U30 on F.Cu",
+          "pos": [
+            97.61,
+            106.032
+          ],
+          "uuid": "3e563551-f921-4add-a782-540f57e5ebb6"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        90.95,
+        76.675
+      ],
+      "layer": "B.Cu",
+      "net": "/ETH_RSTn",
+      "refs": [],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Track [/ETH_RSTn] on B.Cu, length 2.2750 mm",
+          "pos": [
+            90.95,
+            76.675
+          ],
+          "uuid": "db2796a0-9627-445c-b44f-6fac921566c6"
+        },
+        {
+          "msg": "Via [/ETH_RSTn] on F.Cu - B.Cu",
+          "pos": [
+            95.45,
+            86.975
+          ],
+          "uuid": "a1c1a0d0-f928-4caf-902e-85f29af54c3c"
+        }
+      ]
+    }
+  ]
+}

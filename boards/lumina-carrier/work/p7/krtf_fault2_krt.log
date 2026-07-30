@@ -1,0 +1,155 @@
+--track-width not given; using the board Default net-class 0.2mm.
+--hole-to-hole-clearance not given; using the board min_hole_to_hole 0.25mm.
+Loading C:\dev\ai-ee3\boards\lumina-carrier\kicad\lumina-carrier.kicad_pcb to expand net patterns...
+Routing 1 nets: ['/FAULT']
+Loaded per-net clearances for 7/85 nets from C:\dev\ai-ee3\boards\lumina-carrier\work\p7\krtf_fault2_netclr.json
+Loading C:\dev\ai-ee3\boards\lumina-carrier\kicad\lumina-carrier.kicad_pcb...
+Auto-read netclass track widths for 9 non-Default net(s) (#435 single-ended companion).
+Using 4 routing layers: ['F.Cu', 'In1.Cu', 'In2.Cu', 'B.Cu']
+  Layer costs: F.Cu=1.0x, In1.Cu=-1.0x, In2.Cu=-1.0x, B.Cu=1.0x
+No BGA components detected - no exclusion zones needed
+
+Using MPS ordering strategy...
+MPS: Using segment intersection method (no nets on BGA chips)
+MPS: 1 nets with 0 crossing conflicts detected
+MPS Round 1: 1 units: /FAULT
+
+Routing 1 single-ended net(s)...
+============================================================
+Building base obstacle map...
+Base obstacle map built in 11.36s
+Found 85 unrouted nets in PCB for stub proximity
+Pre-computing net obstacle cache...
+Net obstacle cache built in 1.09s (85 nets)
+
+[1/1] Routing /FAULT (id=10)
+----------------------------------------
+  Detected multi-point net with 3 pads (Phase 1: main route only)
+  Existing copper joins 3 terminals into 2 group(s)
+  Multi-point net Phase 1: routing longest MST edge (pads 0 and 2, length=68.21mm)
+  Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+  No route found after 200000 iterations (forward), trying backward...
+  Phase 1 edge (pads 0,2) failed after 410000 iterations
+  Phase 1 exhausted from the pads; deferring 1 edge(s) to Phase 3's island-copper sources (base component: 2 terminal(s))
+  SUCCESS: 0 segments, 0 vias, 410000 iterations, length=83.93mm (stubs=83.93mm) (0.27s)
+
+Sync pcb_data: 3144 -> 3144 (kept stubs) -> 3144 (after adding 0)
+
+============================================================
+Multi-point Phase 3: Routing 1 tap connections
+============================================================
+
+/FAULT (net 10):
+  Seeding tap sources from the base island's existing copper: 69 segment(s), 6 via(s)
+  Multi-point net Phase 3: routing 1 remaining MST edges (longest first)
+    [1/1] Routing MST edge: pad 0 -> pad 2 (length=68.21mm) target=(46.86, 96.33)
+      Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+      No route found after 200000 iterations (forward), trying backward...
+      [93mFailed to route MST edge after 410000 iterations (0.31s)[0m
+    Fallback: attempting orphaned pad 2 directly from connected copper
+    [2/1] (1 failed) Routing MST edge: pad 0 -> pad 2 (length=68.21mm) target=(46.86, 96.33)
+      Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+      No route found after 200000 iterations (forward), trying backward...
+      [93mFailed to route MST edge after 410000 iterations (0.17s)[0m
+  [93mWarning: 1 pad(s) not connected (1 MST edge(s) failed)[0m
+  Phase 3 routing complete: 0 edges, 0 total segments, 0 total vias
+  [91mNOT CONNECTED (so far): /FAULT - U22 pad 15 at (46.86, 96.33) - may still be recovered; final verdict in the end-of-run summary[0m
+  Net total time: 0.59s, 1230000 iterations
+
+Per-net fine-parameter rescue (#331/#371): 1 candidate net(s)
+  Rescuing /FAULT (partial, 2 disconnected parts)
+    [93mgap 59.0mm exceeds rescue limit 40mm - skipped[0m
+    [91mrescue failed[0m (0.0s)
+Rescue pass: 0 recovered, 0 improved, 1 unchanged (0.0s)
+
+============================================================
+Routing complete
+============================================================
+  Single-ended:  0/1 routed
+  [91mMulti-point:   4/5 pads connected (1 FAILED)[0m
+  Total vias:    0
+  Total time:    0.27s
+  Iterations:    410,000
+
+[91mFailed multi-point connections:[0m
+  [91m/FAULT: U22 pad ? at (46.86, 96.33) not connected[0m
+JSON_SUMMARY: {"routed_single": [], "failed_single": [], "failed_multipoint": [{"net_name": "/FAULT", "failed_pads": [{"component_ref": "U22", "pad_number": "?", "x": 46.8625, "y": 96.325}]}], "multipoint_nets": 1, "multipoint_pads_connected": 4, "multipoint_pads_total": 5, "multipoint_edges_routed": 0, "multipoint_edges_failed": 1, "ripup_success_pairs": [], "rerouted_pairs": [], "single_ended_target_swaps": [], "layer_swaps": 0, "successful": 0, "failed": 1, "total_time": 0.27, "total_iterations": 410000, "total_vias": 0, "cleanup_disconnected": [], "min_clearance_used": 0.2, "rescue": {"attempted": 1, "recovered": [], "improved": [], "unchanged": ["/FAULT"], "pads_reconnected": 0, "time": 0.0}}
+
+Writing output to C:\dev\ai-ee3\boards\lumina-carrier\work\p7\krtf_fault2.kicad_pcb...
+Successfully wrote C:\dev\ai-ee3\boards\lumina-carrier\work\p7\krtf_fault2.kicad_pcb
+
+Final reconciliation: retrying 1 incomplete net(s) against the finished board: /FAULT
+Loading C:\dev\ai-ee3\boards\lumina-carrier\work\p7\krtf_fault2.kicad_pcb...
+Using 4 routing layers: ['F.Cu', 'In1.Cu', 'In2.Cu', 'B.Cu']
+  Layer costs: F.Cu=1.0x, In1.Cu=-1.0x, In2.Cu=-1.0x, B.Cu=1.0x
+No BGA components detected - no exclusion zones needed
+
+Using MPS ordering strategy...
+MPS: Using segment intersection method (no nets on BGA chips)
+MPS: 1 nets with 0 crossing conflicts detected
+MPS Round 1: 1 units: /FAULT
+
+Routing 1 single-ended net(s)...
+============================================================
+Building base obstacle map...
+Base obstacle map built in 11.65s
+Found 85 unrouted nets in PCB for stub proximity
+Pre-computing net obstacle cache...
+Net obstacle cache built in 1.13s (85 nets)
+
+[1/1] Routing /FAULT (id=10)
+----------------------------------------
+  Detected multi-point net with 3 pads (Phase 1: main route only)
+  Existing copper joins 3 terminals into 2 group(s)
+  Multi-point net Phase 1: routing longest MST edge (pads 0 and 2, length=68.21mm)
+  Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+  No route found after 200000 iterations (forward), trying backward...
+  Phase 1 edge (pads 0,2) failed after 410000 iterations
+  Phase 1 exhausted from the pads; deferring 1 edge(s) to Phase 3's island-copper sources (base component: 2 terminal(s))
+  SUCCESS: 0 segments, 0 vias, 410000 iterations, length=83.93mm (stubs=83.93mm) (0.26s)
+
+Sync pcb_data: 3144 -> 3144 (kept stubs) -> 3144 (after adding 0)
+
+============================================================
+Multi-point Phase 3: Routing 1 tap connections
+============================================================
+
+/FAULT (net 10):
+  Seeding tap sources from the base island's existing copper: 69 segment(s), 6 via(s)
+  Multi-point net Phase 3: routing 1 remaining MST edges (longest first)
+    [1/1] Routing MST edge: pad 0 -> pad 2 (length=68.21mm) target=(46.86, 96.33)
+      Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+      No route found after 200000 iterations (forward), trying backward...
+      [93mFailed to route MST edge after 410000 iterations (0.28s)[0m
+    Fallback: attempting orphaned pad 2 directly from connected copper
+    [2/1] (1 failed) Routing MST edge: pad 0 -> pad 2 (length=68.21mm) target=(46.86, 96.33)
+      Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+      No route found after 200000 iterations (forward), trying backward...
+      [93mFailed to route MST edge after 410000 iterations (0.18s)[0m
+  [93mWarning: 1 pad(s) not connected (1 MST edge(s) failed)[0m
+  Phase 3 routing complete: 0 edges, 0 total segments, 0 total vias
+  [91mNOT CONNECTED (so far): /FAULT - U22 pad 15 at (46.86, 96.33) - may still be recovered; final verdict in the end-of-run summary[0m
+  Net total time: 0.56s, 1230000 iterations
+
+Per-net fine-parameter rescue (#331/#371): 1 candidate net(s)
+  Rescuing /FAULT (partial, 2 disconnected parts)
+    [93mgap 59.0mm exceeds rescue limit 40mm - skipped[0m
+    [91mrescue failed[0m (0.0s)
+Rescue pass: 0 recovered, 0 improved, 1 unchanged (0.0s)
+
+============================================================
+Routing complete
+============================================================
+  Single-ended:  0/1 routed
+  [91mMulti-point:   4/5 pads connected (1 FAILED)[0m
+  Total vias:    0
+  Total time:    0.26s
+  Iterations:    410,000
+
+[91mFailed multi-point connections:[0m
+  [91m/FAULT: U22 pad ? at (46.86, 96.33) not connected[0m
+JSON_SUMMARY: {"routed_single": [], "failed_single": [], "failed_multipoint": [{"net_name": "/FAULT", "failed_pads": [{"component_ref": "U22", "pad_number": "?", "x": 46.8625, "y": 96.325}]}], "multipoint_nets": 1, "multipoint_pads_connected": 4, "multipoint_pads_total": 5, "multipoint_edges_routed": 0, "multipoint_edges_failed": 1, "ripup_success_pairs": [], "rerouted_pairs": [], "single_ended_target_swaps": [], "layer_swaps": 0, "successful": 0, "failed": 1, "total_time": 0.26, "total_iterations": 410000, "total_vias": 0, "cleanup_disconnected": [], "min_clearance_used": 0.2, "rescue": {"attempted": 1, "recovered": [], "improved": [], "unchanged": ["/FAULT"], "pads_reconnected": 0, "time": 0.0}}
+
+Writing output to C:\dev\ai-ee3\boards\lumina-carrier\work\p7\krtf_fault2.kicad_pcb...
+Successfully wrote C:\dev\ai-ee3\boards\lumina-carrier\work\p7\krtf_fault2.kicad_pcb
+Note: the JSON_SUMMARY above covers only the reconciliation subset; the run's full tally is the earlier JSON_SUMMARY plus these recoveries.

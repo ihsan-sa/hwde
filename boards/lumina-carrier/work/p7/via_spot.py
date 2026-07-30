@@ -33,9 +33,11 @@ ap.add_argument("y1", type=float)
 ap.add_argument("--dia", type=float, default=0.6)
 ap.add_argument("--plane", default="In2.Cu")
 ap.add_argument("--step", type=float, default=0.05)
+ap.add_argument("--ignore", default="", help="nets to treat as absent (what-if for a planned rip); pads never ignored")
 ap.add_argument("--pcb", default=str(
     REPO / "boards/lumina-carrier/kicad/lumina-carrier.kicad_pcb"))
 a = ap.parse_args()
+IGN = {s for s in a.ignore.split(",") if s}
 
 bg = geom.BoardGeom.from_file(a.pcb)
 fill = bg.zone_fill(a.net, a.plane)
@@ -45,14 +47,14 @@ if fill.is_empty:
 
 obs = []          # (geom, required clearance)
 for t in bg.tracks_of():
-    if t.net == a.net:
+    if t.net == a.net or t.net in IGN:
         continue
     clr = 0.635 if (a.net in HV or t.net in HV) else 0.2
     if (a.net in TAPS and t.net in MDI) or (a.net in MDI and t.net in TAPS):
         clr = max(clr, 1.30)
     obs.append((t.poly, clr))
 for v in bg.vias_of():
-    if v.net == a.net:
+    if v.net == a.net or v.net in IGN:
         continue
     clr = 0.635 if (a.net in HV or v.net in HV) else 0.2
     if (a.net in TAPS and v.net in MDI) or (a.net in MDI and v.net in TAPS):
@@ -91,5 +93,7 @@ while y <= a.y1 + 1e-9:
     y += a.step
 print("scanned %d points, %d legal via centres for %s (dia %.2f) on %s"
       % (n, len(found), a.net, a.dia, a.plane))
-for p in found[:40]:
+found=[p for p in found if p[0]-p[1] <= 16.5007]
+print("of which reachable from U10 pad 9 side of the /ETH_RSTn diagonal (x-y<=16.5007): %d" % len(found))
+for p in found[:400]:
     print("   (%.3f, %.3f)" % p)
