@@ -1632,6 +1632,39 @@ Two more from the same fix, both cheap and both worth doing every time:
   `magjack_isolation_barrier` exists: a voltage-derived checker cannot see a hipot/differential
   requirement, so without the rule any future reroute silently reopens the gap and nothing reports it.
 
+## 2026-07-30 [jlcapi][order_submit][SPEND] `pcb/create` returned `unknown_error` code 2 on HTTP 200 - and there is NO way to ask the API whether the order landed
+First live `--api-create` on this account. Everything upstream was clean - `uploadGerber` ok,
+`audit` ok/200 with `red[]` and `yellow[]` empty, `calculate` returning the exact authorised
+43.19 USD - and `pcb/create` came back **HTTP 200 with `{"code": 2, "message": "unknown_error"}`**,
+trace `4e0f08d4e3c04a9b80b19553624c43a8`. `classify()` has no rule for code 2, so it falls through to
+the generic `error` bucket and `REMEDIATION` has no entry, i.e. **the tool cannot tell you what to do
+next and neither can the API**.
+**The dangerous part is not the failure, it is the unobservability.** The Open API exposes
+`pcb/order/detail` and `pcb/wip/get`, and **both require a `batchNum` you must already hold**;
+`wip/get` with an empty payload returns `param_empty` (code 3), and there is **no list/search endpoint
+at all**. So after an ambiguous create you cannot ask "did an order appear on my account?" - the only
+oracle is the JLCPCB web portal. Combined with the fact that an HTTP-200-plus-business-error is
+indistinguishable from a partially-applied create, **a blind retry is how you buy the board twice.**
+Protocol that follows, and it should be in the playbook: on any create verdict that is not `created`,
+STOP. Do not retry. Report the trace id, state that the created-latch is unarmed (so the tool WILL
+allow a retry - the latch is not protecting you here), and require a human portal check before any
+second attempt. The latch only arms on success, which means it defends against a *deliberate* second
+order and not at all against an *ambiguous first* one - the exact case that costs money.
+
+## 2026-07-30 [order_submit][stackup] `derive_copper_oz` silently defaults to 1 oz on a heading it cannot parse, and says "no stackup.md" when the file exists
+`derive_copper_oz` scans `architecture/stackup.md` for a line starting with `## Chosen`. This board's
+heading is `## 1. Chosen stackup` - numbered - so `startswith("## Chosen")` is False, the loop finds
+nothing, and the function falls through to the **wrong** terminal message:
+`"no architecture/stackup.md -> default 1 oz"` on a board whose `stackup.md` is present and 
+readable. Two separate defects in one line: a parser that misses any numbered heading, and a
+diagnostic that blames a missing file for a parse miss.
+It was harmless here only because the board really is 1 oz (JLC04161H-3313). The module's own
+docstring calls copper weight "a board-killer" and `_check_oz_mentions` exists specifically to stop a
+2 oz design being quoted at 1 oz - so a 2 oz board with a numbered stackup heading would defeat that
+guard **silently and by default**, which is the failure the guard was written to prevent. Match on
+`"## " ... "Chosen"` anywhere in the heading, and distinguish "file absent" from "no Chosen line
+found" in the source note.
+
 ## 2026-07-30 [fab_export][order_submit][jlcapi] The gerber sha256 is NOT a design fingerprint - every export changes it, so a sha-bound order latch self-invalidates
 `fab_export.py` re-exports gerbers whose headers embed a creation timestamp, so **re-running it on an
 unmodified board produces a different zip sha256**. Measured on lumina-carrier: sha

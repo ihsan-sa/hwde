@@ -3,7 +3,7 @@
  "board": "lumina-carrier",
  "workspace": "boards/lumina-carrier",
  "created": "2026-07-28T13:36:22",
- "updated": "2026-07-30T08:04:57",
+ "updated": "2026-07-30T08:52:00",
  "phase": "P10",
  "gates": {
   "erc": {
@@ -565,6 +565,12 @@
    "why": "Owner asked for 'standard direct line shipping, as cheap as possible' and that maps to a LITERAL API option name rather than a judgement: HKTHZXR-RMB / showOptions 'Global Standard Direct Line', 7.7179 USD, 8-13 business days. I re-ran calculate with --ship-method so the 43.19 grand total is API-computed and matches the confirm token format, rather than adding two numbers by hand. TWO CHEAPER ROWS EXIST AND BOTH ARE TRAPS: CADHL 'My DHL Account' and CAFedEx 'My FedEx Account' at 2.50 USD are carrier-ACCOUNT options where 2.50 is a handling fee and the real freight is billed to the owner's own DHL/FedEx account - and both return day: null, no transit estimate. Presenting either as 'the cheapest' would be wrong. qty 10 VERIFIED against the API rather than assumed, since 14 was rejected earlier with pcb_qty_error 2103; 10 returned verdict ok. Notable: PCB price is NOT monotonic per unit - 10 boards cost 35.47 (3.55 each) against 15 at 62.70 (4.18 each) - so dropping 15 to 10 saved 27.23 USD and lowered the per-board price. RE-UPLOAD: done, new file_key 3b829e9d, sha 4e192c7e. But the sha change was a FALSE ALARM - the only differing line across the whole 12-file package was the drill file's creation timestamp; all four copper layers were byte-identical, so the design that was audited before is the design audited now. Audit again clean: ok true, code 200, red[] and yellow[] empty, JLC read back 100.0 x 80.0 mm. ASSEMBLY QUESTION ANSWERED HONESTLY AS UNANSWERABLE: I grepped the entire calculate request and response - calculate_request is {achieveDate, country, fileKey, orderType, pcbParam} with no bomParam or smtParam, and the only assembly-adjacent keys anywhere are stencilFee/originStencilMoney/stencilLayer, a stencil being a PCB-side product. The API has no concept of an assembly order, so it can neither confirm nor refute that a bare order forecloses later PCBA. I am not inferring it from the absence of a field.",
    "phase": "P10",
    "ts": "2026-07-30T08:04:57"
+  },
+  {
+   "what": "ORDER A CREATE FAILED AMBIGUOUSLY - pcb/create returned HTTP 200 with code 2 unknown_error, trace 4e0f08d4e3c04a9b80b19553624c43a8. STOPPED. Order B NOT attempted. No retry. Whether an order exists on the JLC account CANNOT be determined from the API and needs a human portal check.",
+   "why": "Pre-flight was clean and verified before spending: no order existed (fab/order.json order_number None, api.order None, created-latch UNARMED, no batchNum or orderId in any artifact, and --api-create had never been invoked in this workspace); uploadGerber ok; audit ok code 200 with red[] and yellow[] both empty and JLC reading back 100.0 x 80.0 mm; calculate returned EXACTLY the authorised 43.19 (35.47 pcb + 7.7179 HKTHZXR-RMB freight) with the gerber sha binding matching byte for byte. The create itself was refused by JLC at the business layer. THE SERIOUS FINDING IS NOT THE FAILURE, IT IS THE UNOBSERVABILITY: the Open API has NO list or search endpoint - pcb/order/detail and pcb/wip/get BOTH require a batchNum you must already hold, and wip/get with an empty payload returns param_empty code 3 - so after an ambiguous create there is no programmatic way to ask whether an order appeared. An HTTP 200 carrying a business error is not distinguishable from a partially applied create, so a blind retry is precisely how the board gets bought twice. I did not retry and did not proceed to Order B, whose procedure required A to succeed first. Note the created-latch does NOT protect this case: it arms only on SUCCESS, so it guards against a deliberate second order and not at all against an ambiguous first one - the tool would happily let me retry. classify() has no rule for code 2 and REMEDIATION has no entry, so neither the API nor the tooling can say what to do next. Ruled OUT as the cause: copperWeight, which is correctly present as the string '1' for this 1 oz JLC04161H-3313 stackup. Found while ruling it out: derive_copper_oz scans for a line starting with '## Chosen' but this board's heading is '## 1. Chosen stackup', so it silently defaults to 1 oz AND reports 'no architecture/stackup.md' although the file exists - correct by luck here, but it would defeat the 2 oz board-killer guard by default on any numbered heading.",
+   "phase": "P10",
+   "ts": "2026-07-30T08:52:00"
   }
  ],
  "history": [
@@ -1148,6 +1154,11 @@
    "ts": "2026-07-30T08:04:57",
    "event": "decision",
    "what": "H5 FREIGHT QUOTE COMPUTED, NOTHING CREATED: qty 10 to US 94107, bare PCB 35.47 + Global Standard Direct Line 7.72 = GRAND TOTAL 43.19 USD. qty 10 confirmed accepted by the API. Order creation NOT run and remains latched."
+  },
+  {
+   "ts": "2026-07-30T08:52:00",
+   "event": "decision",
+   "what": "ORDER A CREATE FAILED AMBIGUOUSLY - pcb/create returned HTTP 200 with code 2 unknown_error, trace 4e0f08d4e3c04a9b80b19553624c43a8. STOPPED. Order B NOT attempted. No retry. Whether an order exists on the JLC account CANNOT be determined from the API and needs a human portal check."
   }
  ]
 }
