@@ -1,0 +1,199 @@
+{
+ "script": "review.board",
+ "board": "lumina-carrier.kicad_pcb",
+ "reviewer": "verify-reviewer (P8 subagent, fresh context)",
+ "date": "2026-07-29",
+ "note": "Board-review findings only. None of these re-triages the 118 known verify findings; the 11 check_creepage items were not re-measured except item 2, whose ADJUDICATION (not measurement) is challenged in board-review-creepage-b4-reverses-icd. Coordinates are ABSOLUTE (.kicad_pcb frame); board origin is (19.58, 57.132), so board-relative = pos - origin. Evidence: work/p8/review/audit1..6.json, renders in reports/renders/.",
+ "counts": {
+  "total": 12,
+  "by_severity": {
+   "error": 4,
+   "warning": 8
+  },
+  "waivers_recommended": 3
+ },
+ "violations": [
+  {
+   "check": "board-review",
+   "severity": "error",
+   "pos": [22.58, 60.132],
+   "layer": null,
+   "net": null,
+   "refs": ["H1", "H2", "H3", "H4"],
+   "msg": "Mounting-hole pattern contradicts the frozen ICD: built 94.0 x 74.0 mm at a 3.0 mm inset (H1 3,3 / H2 97,3 / H3 97,77 / H4 3,77 board-relative, 3.2 mm), but connector-icd.md rev A6 s7.1 freezes '4x M3 (3.2 mm) at 5 mm inset = a 90 x 70 mm hole rectangle' as the footprint every LUMINA board inherits. H5 at (46,74) is correct. Root cause is documented in closed-decisions MECH-01 (inset = margin/2, so --margin 6 gives 3 mm and --margin 10 is needed for 5 mm); P5 ran the default and its digest asserts MECH-01 satisfied without comparing the inset to the ICD. Consequence: lumina-par (P0 complete) and lumina-strobe treat the ICD as a hard input, so every daughter drilled to s7.1 misses all four standoffs by 2 mm in x and 2 mm in y and cannot be bolted down; not fixable daughter-side. Secondary: at a 3 mm inset with a 3.0 mm corner radius the hole wall is 1.3966 mm from the board edge and an M3 washer (7 mm OD) or 5.5 mm A/F standoff flange overhangs the rounded corner. Decide before any daughter is fabricated: re-run board_init with --margin 10, or re-issue the ICD at 94 x 74.",
+   "source": "review.board",
+   "kind": "mounting-pattern-vs-icd"
+  },
+  {
+   "check": "board-review",
+   "severity": "error",
+   "pos": [68.597, 58.932],
+   "layer": "F.Cu",
+   "net": "/eth/XO",
+   "refs": ["R35", "R36", "Y10", "U10", "C31"],
+   "msg": "25 MHz oscillator network is 115.567 mm of routed copper with 10 vias and reaches 1.05 mm from the top board edge. Both oscillator resistors sit at the board edge, ~14 mm from everything they belong to: R36 (0 R series damping, XO->XO_XTAL) at board-rel (49.02, 1.05)-(49.02, 2.55) and R35 (1 M feedback, XI<->XO) at (68.92, 1.62)-(70.42, 1.62), while Y10 is at (56.92,16.97)/(59.12,15.07) and U10's XI/XO pins are 17.5 mm away at (77.10,17.30)/(76.60,17.30). Measured: /eth/XI 37.549 F.Cu + 8.148 B.Cu, 6 vias; /eth/XO 32.641 F + 10.158 B, 2 vias; /eth/XO_XTAL 24.971 F + 2.100 B, 2 vias. C31 (27 pF load cap) is 7.5 mm from the Y10 pin it loads. Root cause: constraints.json group eth_xtal is anchor Y10 with members [C30, C31] only - R35 and R36 were never added, so the anneal placed them freely. Nothing checked it: /eth/XI, /eth/XO and /eth/XO_XTAL are absent from constraints.json high_speed so check_return_path never evaluated them, check_diffpair covers only the declared ETH pairs, and requirements.md s10's layout sign-off gates do not list the crystal. Consequences: (1) a 25 MHz loop terminating 1.05 mm from a board edge on a product whose only external cable is a 100 m Ethernet run - the canonical CISPR 32 radiated-emissions failure with harmonics past 250 MHz; (2) a series damping resistor 28 mm from the driver pin with ~45 mm of trace in series cannot damp anything; (3) ~115 mm of copper plus 10 vias adds several pF to a 27 pF load network, eroding the 100BASE-TX +/-50 ppm budget and the oscillator's negative-resistance start-up margin. Fix is placement: add R35/R36 to eth_xtal and re-place the island at U10's XI/XO pins.",
+   "source": "review.board",
+   "kind": "crystal-loop-and-edge-proximity"
+  },
+  {
+   "check": "board-review",
+   "severity": "error",
+   "pos": [64.0, 113.0],
+   "layer": "F.Cu",
+   "net": "+12V",
+   "refs": ["U21", "C55"],
+   "msg": "U21 (TPS563201DDCR synchronous buck, 12 V -> 3.3 V) has exactly one input capacitor and it is 9.2 mm away, with no HF ceramic at the pin at all. C55 (22 uF 25 V X5R 1206) at board-rel (36.83,55.87)/(40.01,55.87) is 9.89 mm Manhattan / 8.99 mm euclidean / 8.378 nH from U21 pin 3 (VIN) per check_decoupling's own measurement; there is no 100 nF or 1 uF ceramic anywhere on U21's VIN, and C52/C53 (22 uF) are the 48->12 output caps 32+ mm away. check_decoupling reported nothing because it classed a 22 uF part as 'bulk' and applied the loose bulk limit - its model is a decoupling loop, whereas on a synchronous buck the input ceramic carries the full trapezoidal switch current with no diode softening and TI's datasheet layout section requires it directly across pins 3 and 1. Consequence: several volts of VIN ringing every switching edge plus a large radiating current loop 18 mm from J4, on the converter that feeds the ESP32-S3, the W5500 and J3 pins 12/14 to every daughter board. This is the worst power-stage layout defect on the board.",
+   "source": "review.board",
+   "kind": "buck-input-cap-distance"
+  },
+  {
+   "check": "board-review",
+   "severity": "error",
+   "pos": [45.25, 65.913],
+   "layer": "F.Cu",
+   "net": "/poe/POE_TAP_A2",
+   "refs": ["J1", "R7", "U30", "U10"],
+   "msg": "The 0.2031 mm 57 V-to-logic gap is a +3V3 branch, and the P8 resolution reverses two binding documents. Re-measured independently: /poe/POE_TAP_A2 to /poe/LED_Y_A on F.Cu = 0.2031 mm at board-rel (25.67,8.78)/(25.57,8.60), track to track, 8.6 mm from the top board edge (agrees with work/p8/creepage_adjudication.json item 2). What the adjudication does not state is the other side: /poe/LED_Y_A has two pads only - J1 pin 17 and R7 pin 2 - and R7 is 330 R 0603 with pin 1 on +3V3. So the failure product of that gap is 57 V injected onto +3V3 through 330 R, unclamped, and +3V3 leaves the board on J3 pins 12 and 14 to every daughter. No PESD device is on any LED net (D31/D32/D40/D41/D42 are all on expansion signals; D10 TPD4E1U06 clamps only the MDI). The adjudication resolves the pair as PASSES by applying IPC-2221 row B4 (0.13 mm, permanent polymer coating), but connector-icd.md rev A6 s5.1 states 'The 0.13 mm permanent polymer coating column (B4) is NOT claimed' and the kicad_dru header states it is 'deliberately NOT claimed'. The B4 reading is defensible in industry and the adjudication discloses its own doubt honestly, but it cannot be adopted in a work/ JSON while the frozen ICD three boards inherit says the opposite - the same section derives the 0.635 mm figure that s5.4 imposes on every daughter's 48 V copper, and that derivation exists because B4 was refused. Needs either an ICD rev A7 that adopts B4 with the owner's signature and re-derives the daughter inheritance, or the 217-pair shortfall stands. Independent of which row wins, this specific pair deserves a physical mitigation (reroute LED_Y_A out of the tap pocket, or clamp +3V3) because the highest-consequence gap on the board is currently defended only by soldermask. The adjudication's other ten items are accepted as package-internal and were not re-opened.",
+   "source": "review.board",
+   "kind": "creepage-b4-reverses-icd"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": "F.SilkS",
+   "net": null,
+   "refs": [],
+   "msg": "No board-level silkscreen exists at all: board graphics are 8 primitives, all on Edge.Cuts, with zero gr_text, zero gr_text_box and zero board-level silk graphics. ICD s7.4 mechanism 5 requires 'a pin-1 triangle at position 1 of both blocks on both boards, plus a ^^ RJ45 edge arrow on the carrier and a matching arrow on every daughter' - the arrow does not exist, so one of the four named reverse-insertion mechanisms is undelivered. The pin-1 markers DO exist (J3 and J4 each carry a silk circle 1.747 mm from pin 1). Also absent: board name, revision, date, and any 48 V or non-isolated hazard marking on a board carrying 57 V to a user-serviceable connector in a sealed enclosure. check_silk passed with 0 findings because it hunts silk-over-pad and clipping, not missing required markings - a hole, not a pass. Warning severity only because it is a silk-layer edit with no electrical risk, but it is an undelivered ICD clause and should not close silently; the 48 V marking is also the condition on waiving the edge-proximity finding.",
+   "source": "review.board",
+   "kind": "missing-silk-markings"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [111.75, 88.4],
+   "layer": "In1.Cu",
+   "net": "GND",
+   "refs": ["U30"],
+   "msg": "9.813 mm2 of copper sits inside the declared ESP32-S3 antenna keepout, all of it in an 18.724 mm2 band that no DRC rule area covers. FIRST, THE LOAD-BEARING REQUIREMENT PASSES and was verified from the vendor land pattern, not the render: reports/fp_verify_U30_C2913198.json records 'pin 1 and pin 40 are the two pads closest to the antenna end', '7.49 (module top edge to the start of the pads)' and 'ANTENNA AREA: the top 18 x 6 mm ... carries no copper'; U30 is at board-rel (83.05,40.0) rot -90 with pin 1 at (92.0,31.1) and pin 40 at (92.0,48.9), so the antenna faces +x and the Antenna Area is board-rel x 93.94-99.94, y 30.35-49.65. Copper inside it: 0.0000 mm2 on F.Cu, In1.Cu, In2.Cu AND B.Cu; nearest copper 1.35 mm (In1 GND pour edge, In2 +3V3 pour edge) and 1.47 mm (two GND stitching vias). H1-Q8's 'no copper, no pour, no plane under the antenna on any layer' is met and the P5 plane-patch step was done. THE RESIDUAL is a DRC blind spot: constraints.json declares a 220.0 mm2 keepout (board-rel x 90-100, y 29-51) but only 201.276 mm2 is authored as rule areas (antenna_core_keepout x 93.02-100 y 29-51; antenna_margin_keepout x 90-93.02 y 32.068-47.868). The uncovered 18.724 mm2 is two slivers at x 90-93.02, y 29-32.068 and y 47.868-51, and 100 % of the in-keepout copper is in them (0.0000 mm2 lies inside any rule area): F.Cu 6.6623, In1.Cu 0.5651, In2.Cu 0.5651, B.Cu 2.0204 mm2. Occupants: +3V3 1.3636 mm2 F.Cu, GND 1.5722 B.Cu + 0.7002 F.Cu, /ADC0 0.5051, /FAULT 0.1663 B.Cu, /ADC1 0.0504, U30's own pads 1/2/39/40, and two 0.6/0.3 mm GND vias at (92.17,31.268) and (92.17,49.068) spanning all four copper layers - plane-layer copper inside the declared keepout, 1.47 mm from the antenna area. The rule areas were carved around the copper rather than the copper moved out, so DRC now green-lights any future reroute that walks copper toward the antenna. Either shrink the declared keepout to what is enforced and record why, or extend the rule areas and move those two vias; do not leave declared and enforced regions different sizes.",
+   "source": "review.board",
+   "kind": "antenna-keepout-unenforced-band"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [44.67, 64.123],
+   "layer": "B.Cu",
+   "net": "/ETH_LED_LINK",
+   "refs": ["J1", "U10", "R7", "R8"],
+   "msg": "Four unfiltered, unclamped 55-73 mm traces run from the RJ45's LED pins deep into the board, two of them straight onto W5500 pins. Measured: /poe/LED_G_A 72.628 mm F.Cu (J1.15 -> R8 at board-rel 96.45,9.46 - the opposite corner of the board); /poe/LED_Y_A 65.037 F + 1.844 B (J1.17 -> R7 at 70.67,28.87); /ETH_LED_LINK 8.497 F + 55.554 B.Cu (J1.16 -> U10 pin 25 direct); /ETH_LED_ACT 3.844 F + 67.960 B.Cu (J1.18 -> U10 pin 27 direct). Two pads per net: no series resistor, no shunt capacitor, no ESD clamp at the jack. The 330 R parts R7/R8 are anode-side only and sit 44-70 mm from J1. The RJ45's LED pins sit inside the connector shell millimetres from the MDI contacts and are a known cable-borne ESD/surge ingress path; here a transient gets a direct 55-68 mm run into two W5500 pins with nothing in the way, while D10's TPD4E1U06 protects only the four MDI lines. The same 65-73 mm runs are efficient radiators terminating at the connector face, which is where emissions couple onto the cable. Recommend 100-220 pF to GND at the jack end on all four, keeping the existing series R - cheap now, a respin later - or accept and record.",
+   "source": "review.board",
+   "kind": "rj45-led-traces-unfiltered"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [25.5, 110.0],
+   "layer": "F.Cu",
+   "net": "V48_RAW",
+   "refs": ["U20", "C61", "C50", "C51"],
+   "msg": "100 V buck input ceramics are 7.4-8.6 mm from VIN and the HF cap is 4.6 mm, so no ceramic straddles VIN-to-GND at the pin. U20 = SCT2A25STER, VIN = pad 3 (V48_RAW), SW = pad 5, GND = pads 6/8/9. check_decoupling's own numbers to pin 3: C61 (100 nF 100 V 0805) 5.16 mm Manhattan / 4.57 euclid / 0.65 mm GND leg / 1 via / 5.067 nH; C51 (2.2 uF 100 V 1210) 7.37 mm / 6.159 nH; C50 (2.2 uF 100 V 1210) 8.64 mm / 7.048 nH. Input loop is therefore ~5-8 nH and the 48 V switch node will ring at every edge; /pwr/SW carries 33.56 mm2 of copper over a 7.8 x 14.8 mm bbox with 2 layer transitions, more dV/dt surface than a 100 V / 2 A converter needs. check_decoupling passed all three because 5.067 nH is inside its 10 nH mid-class limit - a decoupling limit, not a commutation limit. Two mitigations are real and are why this is a warning not an error: In1 GND is solid directly under the whole converter (107.07 mm2 of GND inside the 115 mm2 switch-node bbox) so the HF return image hugs the forward path, and the In2 +3V3 plane is deliberately excluded from the buck region (0.00 mm2 of +3V3 under the switch-node bbox).",
+   "source": "review.board",
+   "kind": "buck48-input-loop"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [44.0, 96.0],
+   "layer": "F.Cu",
+   "net": "GND",
+   "refs": ["U22", "U20", "U21"],
+   "msg": "U22's thermal land carries 15 unplugged vias-in-pad - the same construct P5 removed from U30 for exactly this reason. In the U22 footprint pad 21 is an F.Cu 3.4 x 6.5 mm heatsink land plus a B.Cu 3.2 x 5.8 mm land plus 15 x 'thru_hole circle' size 0.6 drill 0.3, layers *.Cu, pad_prop_heatsink, net GND - all inside the paste aperture. log/P5-digest.md records removing this construct from the ESP32-S3 footprint because 'thermal vias under a ground land belong to the board, not the footprint ... and that also removes the via-in-pad solder-wicking risk already on the P9 list'; the reasoning was never applied to U22. At JLCPCB PCBA paste wicks down 15 barrels during reflow, giving voids under the eFuse's thermal pad (degrading the theta-JA the design relies on) and solder protrusions on B.Cu. JLC does not plug or tent via-in-pad unless resin plugging is ordered and stated in the fab notes, and fab/ is empty (P9 has not run) so nothing declares it. Compounding: constraints.json thermal declares only U20, so check_thermal passed having evaluated 1 of 3 dissipating parts - U22 (48 V eFuse at 1.0 A ILIM) and U21 were never modelled, and the voiding therefore has no modelled consequence either.",
+   "source": "review.board",
+   "kind": "via-in-pad-thermal-land"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [46.3, 68.173],
+   "layer": null,
+   "net": "/poe/POE_TAP_A2",
+   "refs": ["J1"],
+   "msg": "J1's two board locks are netless 4-layer conductors 0.66 mm from 57 V, and no check can see them; separately, only 3 of the 7 declared 57 V nets have any DRU rule. Measured netless plated pads at board-rel (15.29,11.041) and (26.72,11.041), 3.2 mm, spanning all four copper layers, plus J1 pins 7/8/9/10 also netless 4-layer PTH. Nearest 48 V copper: 0.6617 mm from /poe/POE_TAP_A2 to the (26.72,11.041) board lock; 0.6621 mm from /poe/POE_TAP_B1 to (15.29,11.041); 0.6646 mm to pin 9; 0.6700 mm to pin 10. In the physical LPJG0926HENL the board locks are part of the stamped shield - continuous with the shell and with a shielded patch cable's connector body - but on the board they carry no net and no declared voltage, so check_creepage cannot evaluate them (it derives dv from constraints.json voltages) and the .kicad_dru rules cannot see them (they key on A.NetName). AFTER MEASURING THE VERDICT DOES NOT CHANGE: 0.6617 mm clears the 0.635 mm binding requirement, so this is a blind spot rather than a shortfall - net the board locks and pins 7-10 to /poe/SHIELD or a declared 0 V NC net so the number is defended by a check instead of by luck. THE RELATED STRUCTURAL HOLE IS REAL: of the seven nets constraints.json voltages declares at 57 V, the .kicad_dru enforces 0.635 mm on three (+48V_SW, V48_RAW, V48_RTN); the four /poe/POE_TAP_* nets are enforced at 0.60 mm by check_creepage at best and by nothing in DRC except against each other (0.60 mm) and the MDI (1.30 mm). That is why P7's already-recorded tap-to-SHIELD gaps (pad 19 -> pad 11 = 0.6029 mm, pad 20 -> pad 14 = 0.6127 mm; I re-measured 0.6037 mm at board-rel 27.89,14.60 and 0.6134 mm at 14.11,14.60 and agree) can silently erode on the next reroute: P7 added poe_tap_differential_pair for A1-A2/B1-B2 in that same phase but left tap-to-SHIELD unruled. SHIELD is correctly bonded (R6 1 M + C3 1 nF 2 kV, a proper Bob-Smith bond, not a hard tie) so it floats at ~GND and the full 57 V sits across that 0.60 mm. Add a poe_tap_to_shield DRU rule at 0.60 mm.",
+   "source": "review.board",
+   "kind": "netless-boardlock-and-unruled-hv-nets"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [20.7, 85.2],
+   "layer": "F.Cu",
+   "net": "V48_RAW",
+   "refs": ["C2", "C4", "C5", "C6"],
+   "msg": "57 V copper 1.12 mm from the bare left board edge. V48_RAW's closest approach to the outline is 1.12 mm on F.Cu at board-rel (1.12, 28.068) - the 100 V bulk-cap column (C2/C4/C5/C6, 10 uF 100 V 1210) against the left edge; In1/In2 are 5.72 mm and B.Cu 5.62 mm. +48V_SW is 1.8805 mm from the bottom edge at board-rel (14.53, 78.12), which is J3 pin 1's own pad and is frozen by ICD s7.2. Fab-legal (JLC wants >= 0.3-0.5 mm) and IPC-legal (the board edge is not a conductor), and H1-Q5 gives a sealed non-conductive enclosure, so the exposure is assembly and service handling on a live board plus edge-router copper smear. WAIVER RECOMMENDED on condition the 48 V / non-isolated silk marking of the missing-silk finding is added, so the person holding the board is told. Verified while checking: all five M3 holes are clear of 48 V - nearest 48 V copper is H4 8.936 mm, H1 10.572 mm, H5 23.299 mm, H2 55.349 mm, H3 68.478 mm - so metal standoffs are not a 48 V hazard on this board.",
+   "source": "review.board",
+   "kind": "hv-to-board-edge"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [100.349, 58.633],
+   "layer": "F.Cu",
+   "net": "/mcu/BOOT",
+   "refs": ["J2", "SW1"],
+   "msg": "Recovery is unreachable with a daughter fitted: both recovery controls sit under it. J2 (1x6 2.54 mm recovery header - GND, +3V3, TXD0, RXD0, EN, BOOT) is at board-rel x 73.657-87.881, y 0.739-2.263, a vertical THT header whose pins stand ~8.5 mm above a board with an 11.0 mm mated stack, so a 6-way jumper lead cannot be seated in the remaining ~2.5 mm. SW1 (SMD tactile) at board-rel (61.24-63.1, 0.573-6.163) is also outside the 30 x 26 mm RJ45 notch (x 6-36) and therefore under the daughter. ICD s7.6 already offers the escape hatch ('or accept that the daughter must be removed to recover firmware') so this is a recorded consequence, not an oversight - but requirements.md Q9 default (b) chose 'Ethernet OTA normally, plus a 6-pin header inside the enclosure for recovery', and in a sealed enclosure recovery now means opening the box and unbolting five standoffs. WAIVER RECOMMENDED on condition the owner states the acceptance explicitly rather than inheriting a default that assumed the header would be usable. Minor drift in the same area: J2 spans x 73.657-87.881 while the ICD's recovery-header exclusion zone is (76,0)-(98,20), so the header starts 2.343 mm left of the region daughters are told to keep clear - the zone is advisory but the number should match.",
+   "source": "review.board",
+   "kind": "recovery-under-daughter"
+  }
+ ],
+ "checked_clean": [
+  "ESP32-S3 antenna area (board-rel x 93.94-99.94, y 30.35-49.65, derived from the vendor land pattern) is copper-free on ALL FOUR layers: 0.0000 mm2 on F.Cu/In1.Cu/In2.Cu/B.Cu, nearest copper 1.35 mm. H1-Q8 satisfied; the P5 plane-patch step was done.",
+  "J3 delivers ICD s3.1 pin-for-pin: 14 pins, 7 GND (CAR-REQ-13 / 'GND is the binding rail'), 3 x +48V_SW, 2 x +12V, 2 x +3V3; column 4 (pins 7 and 8) is all-GND so the guard column exists; every supply pin has an adjacent GND; rail order along the connector is 48 -> GND -> 12 -> 3.3.",
+  "J4 delivers ICD s3.2 pin-for-pin: 24 pins, 8 PWM, GND at positions 3/4/9/10/13, SPI, I2C, ADC0/ADC1/ID_ADC, ENABLE and FAULT at the far end from the PWM group. No 48 V anywhere on J4.",
+  "ICD s7.2 frozen datums hit exactly: J3 position 1 (15.380, 77.270), J4 position 1 (57.030, 77.270), both even rows y = 74.730, H5 (46, 74).",
+  "J1 fits the daughter's 30 x 26 mm notch: courtyard board-rel (12.79, 0.001)-(29.21, 21.741) inside (6,0)-(36,26) with 6.79 mm left, 6.79 mm right, 4.26 mm bottom margin. The ICD s7.4.1 keying interlock works and J1 is the only part that breaks the 11.0 mm stack.",
+  "Corner radius 3.0 mm on all four corners, measured from the Edge.Cuts arcs.",
+  "SHIELD bonding correct: R6 1 M + C3 1 nF 2 kV X7R (Bob-Smith bond, not a hard tie).",
+  "In2 +3V3 plane deliberately excluded from the 48 V / buck region (0.00 mm2 under the U20 switch-node bbox) while In1 GND is solid there (107.07 mm2) - a load-bearing stackup decision.",
+  "ESD clamps on the daughter-facing signals: D31 ENABLE_M, D32 FAULT_M, D40 ID_ADC, D41 ADC0, D42 ADC1, plus D10 TPD4E1U06 on the MDI.",
+  "Connector orientation and accessibility sane: RJ45 top edge facing out, both expansion connectors bottom edge inside their frozen land extents, H5 between them for CAR-REQ-15, nothing tall shadowing either connector.",
+  "All five M3 mounting holes clear of 48 V copper (nearest 8.936 mm)."
+ ],
+ "coverage_holes": [
+  "constraints.json thermal declares only U20. check_thermal's PASS covers 1 of 3 dissipating parts; U22 (48 V eFuse at 1.0 A ILIM) and U21 were never modelled.",
+  "constraints.json high_speed declares the 4 MDI nets and /ETH_SCLK only. The 25 MHz oscillator nets /eth/XI, /eth/XO and /eth/XO_XTAL are absent, so check_return_path never evaluated them.",
+  ".kicad_dru enforces the 0.635 mm board-wide figure on 3 of the 7 nets constraints.json declares at 57 V.",
+  "P9 has not run - fab/ is empty. No gerbers, drill, fab notes, BOM/CPL, via-plugging declaration, panelization or fiducial decision; there are no fiducials on the board. Every fabrication-facing claim is unverified.",
+  "check_diffpair's J1 blind spot (true magjack-pad-to-PHY-pad RX skew 6.451 mm / 43.0 ps behind a 0.98 mm PASS) is a known open owner item, unchanged.",
+  "report_gen.py looks for requirements.md and brief/brief.md at the workspace root while the real artifacts are architecture/requirements.md and brief/00|01|05-*.md, so the DOC-01 design document renders those sections as stubs and under-represents the requirements it should trace against."
+ ],
+ "waivers_recommended": [
+  {"kind": "hv-to-board-edge", "condition": "add the 48 V / non-isolated silk marking (see missing-silk-markings) so the person handling a live board is told"},
+  {"kind": "netless-boardlock-and-unruled-hv-nets", "condition": "waive the 0.6029/0.6127 mm tap-to-SHIELD numbers as J1 lead-frame geometry already recorded at P7, but NOT the missing rule - add a poe_tap_to_shield DRU rule at 0.60 mm"},
+  {"kind": "recovery-under-daughter", "condition": "owner states the acceptance explicitly rather than inheriting Q9 default (b), which assumed an in-enclosure header would be usable"}
+ ],
+ "not_waivable": [
+  "mounting-pattern-vs-icd",
+  "crystal-loop-and-edge-proximity",
+  "buck-input-cap-distance",
+  "creepage-b4-reverses-icd",
+  "missing-silk-markings",
+  "antenna-keepout-unenforced-band",
+  "rj45-led-traces-unfiltered",
+  "buck48-input-loop",
+  "via-in-pad-thermal-land"
+ ],
+ "renders": [
+  "boards/lumina-carrier/reports/renders/lumina-carrier_top.png",
+  "boards/lumina-carrier/reports/renders/lumina-carrier_bottom.png",
+  "boards/lumina-carrier/reports/renders/lumina-carrier_iso.png"
+ ],
+ "evidence": [
+  "boards/lumina-carrier/work/p8/review/audit1.json",
+  "boards/lumina-carrier/work/p8/review/audit2.json",
+  "boards/lumina-carrier/work/p8/review/audit3.json",
+  "boards/lumina-carrier/work/p8/review/audit4.json",
+  "boards/lumina-carrier/work/p8/review/audit5.json",
+  "boards/lumina-carrier/work/p8/review/audit6.json"
+ ]
+}

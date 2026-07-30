@@ -3,7 +3,7 @@
  "board": "lumina-carrier",
  "workspace": "boards/lumina-carrier",
  "created": "2026-07-28T13:36:22",
- "updated": "2026-07-29T22:11:27",
+ "updated": "2026-07-29T22:46:11",
  "phase": "P8",
  "gates": {
   "erc": {
@@ -493,6 +493,12 @@
    "why": "The agent did NOT trust my normalizer targets and was right not to: applied verbatim they produce 283 DRC warnings implicating 85 of 111 refs, because lib_refdes_norm.py uses size/2 for the text half-height and ignores each footprint's OWN silk outline. It rebuilt the geometry from KiCad itself - a read-only bundled-python probe emitting board-frame pad and silk polygons plus each label's true INKED stroke box via TransformTextToPolySet - then ran a greedy solver minimising distance to the label's own footprint origin subject to no contact with any silk, pad mask aperture, other label or the board edge, with a HARD filter that the label's own part must be the nearest part. THE LOAD-BEARING MEASUREMENT: at size 1.0 / thickness 0.15, GetTextBox() returns 1.6965 mm of height but DRC's inked stroke box is 1.162 mm - so using GetTextBox over-constrains by about 0.27 mm per side and makes correct targets look infeasible. That single fact is the difference between this working and not. Every candidate set was validated in a throwaway copy of the board (pcb+pro+dru+sch reproduces drc_routed exactly at 3.4 s per run) before the live board was touched, which is what made 'DRC is the only oracle' affordable across 111 labels. Verified non-regression by snapshot diff: 3294 tracks, 359 vias, 8 zones, 8 board graphics, every pad, every footprint silk and every value field byte-identical; 0 footprints moved, 0 refdes hidden or relayered, no mirrored_text warnings. Attribution beat closeness on 17 refs, 110 of 111 have their own part as nearest, and 5 previously upside-down labels were corrected to board 0/90 deg. ONE RESIDUAL above 1.5 mm: C35 at 3.861 mm, boxed in on four sides (U10's LQFP silk hull 0.32 mm above, U30's module hull 0.45 mm below, C37's hull 0.79 mm east) and its only wide-enough channel is also C34's ONLY attributable slot - C34's alternative escape is over 5.5 mm and equally unattributable, so C34 keeps it. No position within 7 mm has C35 as nearest part. That is a P6 placement consequence, not a silk problem, and per scope it was not relieved by moving a part.",
    "phase": "P8",
    "ts": "2026-07-29T22:10:21"
+  },
+  {
+   "what": "P8 REVIEWER TRIAGE: 4 errors + 8 warnings from the fresh-context verify-reviewer. NONE is a scripted P8 fix - two are cross-artifact drift against binding documents and two need a pipeline rewind - so all four go to the owner at H4. My own B4 creepage adjudication is RETRACTED as not-adopted.",
+   "why": "E1 MOUNTING PATTERN, verified by me against the ICD text: the board is drilled 94 x 74 mm at a 3.0 mm inset, while connector-icd.md rev A6 line 513 freezes '4x M3 (3.2 mm) at 5 mm inset = a 90 x 70 mm hole rectangle' as the pattern every LUMINA board inherits. lumina-par is P0-complete and lumina-strobe is queued, both treating the ICD as a hard input, so any daughter drilled to s7.1 misses all four standoffs by 2 mm in x and y - not fixable daughter-side. Root cause is MECH-01's inset = margin/2, so the default --margin 6 gives 3 mm; P5 asserted MECH-01 satisfied having compared only the corner radius. E2 CRYSTAL: the 25 MHz oscillator network is 115.567 mm of copper with 10 vias reaching 1.05 mm from the top board edge, with R36 (0 R SERIES DAMPING) and R35 (1 M) at the board edge about 14 mm from both Y10 and the PHY - because constraints.json group eth_xtal lists only C30/C31 and the anneal placed R35/R36 freely. Nothing could see it: /eth/XI, /eth/XO and /eth/XO_XTAL are absent from high_speed so check_return_path never evaluated them. E3 BUCK INPUT CAP: U21 (TPS563201 sync buck, the converter feeding the ESP32-S3, the W5500 and every daughter's 3.3 V) has exactly ONE input capacitor, 9.2 mm / 8.378 nH from VIN, and no HF ceramic at the pin at all. check_decoupling reported nothing because it classed the 22 uF part as 'bulk' and applied the loose limit - its model is a decoupling loop, whereas a synchronous buck's input ceramic carries the full trapezoidal switch current with no diode softening. E4 AND THIS ONE IS AGAINST ME: my B4 re-adjudication of the 217-pair 0.2031 mm gap contradicts a FROZEN document. ICD rev A6 s5.1 says verbatim 'The 0.13 mm permanent polymer coating column (B4) is NOT claimed', the .kicad_dru header repeats it, and the same section derives the 0.635 mm figure that s5.4 imposes on every daughter PRECISELY BECAUSE B4 was refused. A work/ JSON cannot reverse that. I have marked creepage_adjudication.json NOT ADOPTED; the shortfall stands until an ICD rev A7 with the owner's signature. The reviewer also found the fact that makes it matter: LED_Y_A has only two pads, J1 pin 17 and R7 pin 2, and R7 is 330 R with pin 1 on +3V3 - so the failure product is 57 V onto +3V3 through 330 R, unclamped, leaving the board on J3 pins 12/14 to every daughter, with no PESD anywhere on the LED nets. GOOD NEWS INDEPENDENTLY VERIFIED: the ESP32-S3 antenna keepout PASSES with 0.0000 mm2 of copper on all four layers in the real 18 x 6 mm vendor Antenna Area - the reviewer checked the land pattern rather than the render, having been misled by the render first. STRUCTURAL FINDING WORTH MORE THAN ANY SINGLE ITEM: only 3 of the 7 nets declared at 57 V carry any DRU rule, which is why both the 0.2031 mm gap and P7's 0.6029 mm gap exist on a board with 0 DRC errors.",
+   "phase": "P8",
+   "ts": "2026-07-29T22:46:11"
   }
  ],
  "history": [
@@ -976,6 +982,11 @@
    "status": "fail",
    "attempt": 2,
    "failing_count": 114
+  },
+  {
+   "ts": "2026-07-29T22:46:11",
+   "event": "decision",
+   "what": "P8 REVIEWER TRIAGE: 4 errors + 8 warnings from the fresh-context verify-reviewer. NONE is a scripted P8 fix - two are cross-artifact drift against binding documents and two need a pipeline rewind - so all four go to the owner at H4. My own B4 creepage adjudication is RETRACTED as not-adopted."
   }
  ]
 }
