@@ -1632,6 +1632,41 @@ Two more from the same fix, both cheap and both worth doing every time:
   `magjack_isolation_barrier` exists: a voltage-derived checker cannot see a hipot/differential
   requirement, so without the rule any future reroute silently reopens the gap and nothing reports it.
 
+## 2026-07-30 [place_edit][placement][silk] Moving a footprint on a ROUTED board: two things nothing in the pipeline does for you
+From a scoped P6/P7 backward edge that moved 5 parts on a board with ~3294 tracks and landed at
+`drc_routed` 0/0 - but only on the second attempt.
+1. **`place_edit` / `place_metrics` have no silkscreen model.** Attempt 1 was courtyard-legal AND
+   copper-clean (0 DRC errors) and still failed the gate with **39 silk warnings**, because
+   `drc_routed` counts warnings. A courtyard-legal move is not a legal move. Until `placelib` owns a
+   silk legality class, build the obstacle set from KiCad's own
+   `TransformShapeToPolygon` / `TransformTextToPolySet` (see `work/p8/silk/probe_geom.py`) and screen
+   candidates against it before touching the board.
+2. **Moving a footprint ORPHANS the GND stub and stitching via that served its pads.** Nothing rips
+   them; they become `track_dangling` / `via_dangling` warnings that fail `drc_routed`. On this edit
+   that was 4 stubs + 4 vias, removed by hand after confirming nothing else touched them. A
+   `place_edit`-adjacent detach/reattach-pad-stubs helper should own it
+   (cf. `route_critical.detach_stub_pads`).
+**Correct op order, and it is the whole difference between this and the C35 short earlier in the run:**
+rip the affected nets FIRST (`route_edit` remove by uuid), THEN move the parts, THEN route fresh.
+Moving parts while their old copper is still attached is what lands a pad on a live run.
+Refinement to the transform note above: a footprint text field's stored `at` **angle is ABSOLUTE**,
+not local-plus-footprint, even though its **position** is local. A hand-rolled model that adds the two
+mis-rotates the refdes obstacle of every rotated part - R34's label is 1.21 x 2.68 mm tall, not
+3.0 x 1.15 wide - and then silently optimises against the wrong obstacle set. And a 3-char refdes at
+size 1.0 / thickness 0.15 inks to **2.64-2.69 x 1.16 mm** (advance ~0.845 x size), so guessing 0.8 or
+0.95 per character both give wrong answers. Probe it, do not assume it.
+
+## 2026-07-30 [check_return_path][stackup] On an F / GND / +3V3 / B stackup the check fails EVERY B.Cu trace by construction - name it as a waiver CLASS
+`check_return_path` compares a signal layer against the nearest plane carrying its DECLARED reference.
+On lumina-carrier (F.Cu / In1=GND / In2=+3V3 / B.Cu) the nearest plane to any B.Cu trace is **+3V3**,
+so every GND-referenced B.Cu run reports `corridor_void` no matter how good the layout is. All 13
+current findings are this, including the 2 that appeared the moment three oscillator nets were
+declared in `high_speed`. Consequence worth internalising: **declaring a net can only ever raise the
+finding count**, and on this stackup a B.Cu route is unfixable-by-construction, so the count is not a
+quality signal. Either resolve the reference plane per signal layer (the real fix) or record it once as
+a stackup waiver class - otherwise every future B.Cu route silently adds errors nobody can clear, and
+teams learn to ignore the check.
+
 ## 2026-07-30 [kicad_dru][check_creepage][safety] A DRU rule that covers an HV net against SOME neighbours reads as protection and is not - audit COVERAGE, not existence
 The most important systemic finding of the lumina-carrier run. The board declared **7 nets at
 |V| >= 30 V** and had 5 hand-written HV rules, and a reviewer still found two sub-requirement 57 V
