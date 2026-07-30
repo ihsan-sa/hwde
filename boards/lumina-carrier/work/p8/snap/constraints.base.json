@@ -35,10 +35,9 @@
  "power": [
   {
    "net": "V48_RAW",
-   "current_a": 1.0,
+   "current_a": 1.5,
    "dt_c": 10,
-   "via_amps": 0.5,
-   "_p8_basis": "CORRECTED at P8 (was 1.5 A). 1.5 A came from power_tree.md s4.1 / research/power.md s(table) = 'buck at max PLUS the eFuse at its limit, briefly, off the local bulk cap'. That sum is a real TRANSIENT worst case but it is the WRONG basis for an IPC-2152 dT=10C width, which is a CONTINUOUS thermal rating: (a) ICD-01 s6.1 caps what the PSE can ever source at the PD input at 0.350 A DC (802.3af) / 0.600 A DC (802.3at), so 1.5 A cannot be sustained by the supply at all; (b) the 1.5 A surplus comes out of CBULK = 44 uF, which at 1.5 A and a 5 V droop lasts ~147 us - three orders of magnitude below the copper thermal time constant; (c) ICD-01 s6.2 has the PSE overload timer trip in ~50-75 ms regardless. 1.0 A is the HARDWARE FAULT CEILING and is the basis every other rail in this file already uses: +48V_SW 1.0 A = eFuse ILIM (ICD s6.6, R(ILIM) 18 kOhm), +12V 2.0 A = converter OCP, +3V3 1.0 A = converter rating. V48_RAW sits UPSTREAM of the eFuse so it must be >= +48V_SW; 1.0 A is also the TPS2378 PD hot-swap current limit (ICD s6.1: 0.85 A continuous, ~1.0 A limit, foldback to 140 mA). 1.0 A is therefore the largest current this node can carry for a thermally-relevant time, and it is 1.67x the 802.3at sustained maximum. NOT lowered to pass a gate: 1.0 A still demands 0.500 mm outer copper and 2 vias per layer transition, and 4 V48_RAW segments still fail at that width (see work/p8 report)."
+   "via_amps": 0.5
   },
   {
    "net": "V48_RTN",

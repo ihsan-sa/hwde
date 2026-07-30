@@ -1,0 +1,157 @@
+{
+  "script": "kc",
+  "tool": "drc",
+  "input": "boards\\lumina-carrier\\kicad\\lumina-carrier.kicad_pcb",
+  "units": "mm",
+  "kicad_version": "10.0.3",
+  "options": {
+    "parity": false,
+    "all_track_errors": false,
+    "refill": true,
+    "save_board": true
+  },
+  "counts": {
+    "total": 4,
+    "by_severity": {
+      "error": 4
+    },
+    "by_source": {
+      "drc": 4
+    }
+  },
+  "status": "violations",
+  "violations": [
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        100.6758,
+        78.9319
+      ],
+      "layer": "F.Cu",
+      "net": "<no net>",
+      "refs": [
+        "U10"
+      ],
+      "msg": "Clearance violation (netclass 'PWR_3V3' clearance 0.2000 mm; actual 0.0689 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Pad 18 [<no net>] of U10 on F.Cu",
+          "pos": [
+            100.6758,
+            78.9319
+          ],
+          "uuid": "3637d764-cc1b-4131-a7eb-3352e4a5b330"
+        },
+        {
+          "msg": "Track [+3V3] on F.Cu, length 0.0354 mm",
+          "pos": [
+            99.65,
+            79.125
+          ],
+          "uuid": "66b07f79-0968-4d83-9da4-3b255985c20c"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        99.625,
+        79.05
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [
+        "U10"
+      ],
+      "msg": "Clearance violation (netclass 'PWR_3V3' clearance 0.2000 mm; actual 0.0665 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [+3V3] on F.Cu, length 0.0354 mm",
+          "pos": [
+            99.625,
+            79.05
+          ],
+          "uuid": "111140c1-cd12-4e86-b2c1-4e1acc318a41"
+        },
+        {
+          "msg": "Pad 18 [<no net>] of U10 on F.Cu",
+          "pos": [
+            100.6758,
+            78.9319
+          ],
+          "uuid": "3637d764-cc1b-4131-a7eb-3352e4a5b330"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        99.65,
+        79.175
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [
+        "U10"
+      ],
+      "msg": "Clearance violation (netclass 'PWR_3V3' clearance 0.2000 mm; actual 0.0689 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [+3V3] on F.Cu, length 0.0500 mm",
+          "pos": [
+            99.65,
+            79.175
+          ],
+          "uuid": "1bec35c6-42a0-47e3-b58d-a9d4a3d92558"
+        },
+        {
+          "msg": "Pad 18 [<no net>] of U10 on F.Cu",
+          "pos": [
+            100.6758,
+            78.9319
+          ],
+          "uuid": "3637d764-cc1b-4131-a7eb-3352e4a5b330"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        100.6758,
+        78.9319
+      ],
+      "layer": "F.Cu",
+      "net": "<no net>",
+      "refs": [
+        "U10"
+      ],
+      "msg": "Clearance violation (netclass 'PWR_3V3' clearance 0.2000 mm; actual 0.0665 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Pad 18 [<no net>] of U10 on F.Cu",
+          "pos": [
+            100.6758,
+            78.9319
+          ],
+          "uuid": "3637d764-cc1b-4131-a7eb-3352e4a5b330"
+        },
+        {
+          "msg": "Track [+3V3] on F.Cu, length 0.0500 mm",
+          "pos": [
+            99.625,
+            79.1
+          ],
+          "uuid": "4cc99a71-f5e4-4237-bb5e-6f11467a99cd"
+        }
+      ]
+    }
+  ]
+}

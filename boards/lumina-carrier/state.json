@@ -3,7 +3,7 @@
  "board": "lumina-carrier",
  "workspace": "boards/lumina-carrier",
  "created": "2026-07-28T13:36:22",
- "updated": "2026-07-29T17:25:18",
+ "updated": "2026-07-29T17:44:11",
  "phase": "P8",
  "gates": {
   "erc": {
@@ -439,6 +439,12 @@
    "why": "Two compounding errors. (1) MEASUREMENT: my 0.681 -> 1.681 mm corridor figure read C35's FOOTPRINT origin y, not its PAD-1 CENTRE y - off by exactly 0.700 mm. The real corridor was 0.9811 mm, so the move bought far less than I claimed. (2) WRONG ORACLE, and this is the serious one: at y=85.813 C35's pad 1 landed on an existing /ETH_RSTn run at y 85.55, giving +6 DRC errors including a SHORTING_ITEMS and a solder_mask_bridge. I validated with 'gate place' (PASS) and check_decoupling (unchanged) - and BOTH passed, because placement-phase checkers do not see routed copper. On a board that is already routed, the authoritative oracle for a placement change is DRC, not the place gate. I moved a part on 3089 segments of existing routing and checked it with tools that are blind to tracks. (3) The corridor could never have closed the GND item anyway: the real blocker was a VOID in the In1 GND fill created by neighbouring +3V3 plane vias' clearance holes, so a via there would have connected to nothing - 0 legal 0.5 mm centres across the whole corridor at 0.025 mm step. The router solved it properly by escaping U10 pad 9 NORTH into the LQFP's own die shadow. This is my fourth verification error this phase and the only one that damaged the board; every one was caught by an independent check rather than by me.",
    "phase": "P7",
    "ts": "2026-07-29T17:22:05"
+  },
+  {
+   "what": "SILK LEGIBILITY requirement accepted and QUEUED (not yet done): refdes must sit within ~1-1.5 mm of their own part while silk overlap/over-copper/edge stay at zero. Cause confirmed as the P6 sweep.",
+   "why": "CAUSE CONFIRMED FROM MY OWN HISTORY, not taken on trust: reports/place/silk*.ops.json is 9 files carrying 160 move_text ops, which the P6 placement agent used to take silk violations 236 -> 5. It pushed refdes outward to clear overlaps and nothing pulled them back, so the board was optimised for a zero-warning gate at the cost of assembly legibility. BASELINE (coordinator-measured, my script agrees on the worst offenders): 116 footprints, 116 visible refdes, median offset 4.079 mm, max 12.955 mm, 100 of 116 refdes more than 1 mm beyond their own part's extent. Worst: C2 12.767 mm offset on a 2.699 mm part = +10.067 mm excess; C62 +8.168; R101 +7.551; C81 +7.377; C1 +6.666. A 0603 whose label sits 8.6 mm away is closer to three other parts than its own and is unattributable on a populated board. WORK NOT STARTED, DELIBERATELY: the P8 verify fixer is concurrently writing the same .kicad_pcb (copper: 191 check_current, 19 check_creepage, 8 check_return_path). move_text and copper edits both rewrite the file, so running them concurrently risks a torn write - the same class of failure as the P4 librarian race. Silk work must SERIALIZE after the fixer completes. Approach when it runs: constrained minimisation, not a sweep - batches of move_text with DRC after each, revert any batch that regresses, then re-run drc_routed and confirm 0/0 before verify. Where a label cannot be placed unambiguously, prefer the position whose nearest OTHER part is clearly further away, because a label adjacent to the wrong part is worse than a distant one. Measurement tool at work/refdes_prox.py is the before/after objective.",
+   "phase": "P8",
+   "ts": "2026-07-29T17:44:11"
   }
  ],
  "history": [
@@ -849,6 +855,11 @@
    "status": "fail",
    "attempt": 1,
    "failing_count": 220
+  },
+  {
+   "ts": "2026-07-29T17:44:11",
+   "event": "decision",
+   "what": "SILK LEGIBILITY requirement accepted and QUEUED (not yet done): refdes must sit within ~1-1.5 mm of their own part while silk overlap/over-copper/edge stay at zero. Cause confirmed as the P6 sweep."
   }
  ]
 }
