@@ -1650,3 +1650,16 @@ add to it - do not replace it, or you silently drop the fab floor, the annular f
 hole-size floors; (2) if `board_init` is ever re-run after `rules_gen`, re-run `rules_gen`
 afterwards. Cheap standing check at P7 entry: assert
 `.kicad_pro.min_track_width >= jlc_capabilities[profile].min_trace_width_mm`.
+
+## 2026-07-29 [parts][silk] easyeda2kicad puts EVERY refdes at a blanket (0,-4.0) mm regardless of part size
+Every footprint pulled by lib_pull carries its reference text 4.0 mm above the part origin - which on an
+0603 (pad extent ~1.2 mm) puts the label ~3 mm clear of its own body and frequently nearer a NEIGHBOUR
+than its own part, so a populated board cannot be read. Nothing catches it: KiCad's silk DRC checks
+overlap/edge/copper, never proximity-to-owner, and check_silk only covers silk-over-pad. Measured on
+lumina-carrier: median refdes offset 4.079 mm, and 100 of 116 labels more than 1 mm beyond their own
+part's pad extent. It is a LIBRARY defect, inherited by every board built from the library, so fixing it
+per-board is treating the symptom. New script `lib_refdes_norm.py --lib <dir>.pretty` re-derives each
+offset from the footprint's own pad bbox (0603 -> -1.18, 0805 -> -1.44, 1210 -> -2.1, WROOM -> -10.15);
+idempotent, text-surgery only, verified to keep all footprints parsing under kicad-cli 10.0.3 and fplib.
+Run it after every lib_pull, BEFORE board_init - once footprints are placed the offsets are copied into
+the .kicad_pcb and only place_edit move_text can fix them.
