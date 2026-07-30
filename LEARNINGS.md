@@ -1632,6 +1632,36 @@ Two more from the same fix, both cheap and both worth doing every time:
   `magjack_isolation_barrier` exists: a voltage-derived checker cannot see a hipot/differential
   requirement, so without the rule any future reroute silently reopens the gap and nothing reports it.
 
+## 2026-07-29 [silk][place_edit][kicad] `GetTextBox()` is 1.70 mm where DRC's INKED stroke box is 1.16 mm - use the wrong one and correct refdes targets look infeasible
+Measured on KiCad 10.0.3 at text size 1.0 mm / thickness 0.15 mm: `PCB_TEXT.GetTextBox()` reports
+**1.6965 mm** of height, but the polygon DRC actually tests - `TransformTextToPolySet`, the inked
+stroke outline - is **1.162 mm**. Sizing refdes placement off `GetTextBox` therefore over-constrains by
+about **0.27 mm per side**, which on a 2.5 mm-pitch passive row is the difference between a solvable
+label and an "impossible" one. This is what let a greedy solver take lumina-carrier from 95
+mis-attributed refdes to 3 on its first clean DRC run.
+Four more facts from the same pass, all measured against real DRC on KiCad 10.0.3:
+- KiCad **does** report `silk_overlap` between a footprint's own outline and its own reference field -
+  a part's silk is not exempt from its own label.
+- `silk_over_copper` is silk vs **pad mask apertures only**. Tracks and vias never triggered it across
+  283 sampled violations, so a refdes over a bare track is not a DRC finding (still bad practice).
+- `silk_edge_clearance` fires on actual clipping when `min_silk_clearance` is 0;
+  `min_copper_edge_clearance` (0.5 mm here) does **not** apply to silk.
+- `place_edit._parse_board_texts`' local->absolute transform
+  (`ax = fx + lx*cos + ly*sin`, `ay = fy - lx*sin + ly*cos`) was verified exact on all 116 footprints
+  across 0/90/180/-90 degrees. Trust it; do not re-derive the signs by hand.
+Also: a **sandbox DRC** - copy `pcb + pro + dru + sch` to scratch - reproduces `drc_routed` exactly at
+**3.4 s/run**. That is what makes "DRC is the only oracle" affordable when you have 111 candidate
+edits to screen, and it carries zero risk to the live board. Do this instead of hoping a geometry
+model agrees with the gate.
+Caveat on the metric itself: `refdes_prox.py` compares a LOCAL offset magnitude against a RADIAL
+pad-corner extent, so it is direction-blind and scores large rectangular parts generously (the ESP32
+module's label sits 0.064 mm off the module outline yet scores `beyond = -3.17`). `offset_max` alone is
+not a quality signal - read `beyond_extent` counts.
+Corollary for `lib_refdes_norm.py`: its formula should be
+`min(pad_top, silk_top) - margin - inked_h/2`. As written it ignores the footprint's own silk outline
+and uses `size/2` for the half-height, so applying its targets verbatim to a placed board produced
+**283 DRC warnings across 85 of 111 refs**. The targets are the right *starting point*, not the answer.
+
 ## 2026-07-29 [check_creepage][gates][ipc] `check_creepage` cannot express a COATED board, so it over-reports every outer-layer pair on any soldermasked design
 `check_creepage.py` hardcodes exactly two rows of IPC-2221 Table 6-1 -
 `CLEAR_EXTERNAL = [0.10, 0.10, 0.60, 0.60, ...]` and `CLEAR_INTERNAL` - and its own docstring names
