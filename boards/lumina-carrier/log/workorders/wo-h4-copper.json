@@ -1,0 +1,69 @@
+{
+  "id": "h4-copper",
+  "domain": "router",
+  "phase": "P8",
+  "gate": "drc_routed",
+  "title": "Two owner-approved in-place copper fixes: (A) reroute /poe/LED_Y_A out of the 57 V tap pocket; (B) widen every track below JLC's 0.1016 mm minimum",
+  "board": "boards/lumina-carrier/kicad/lumina-carrier.kicad_pcb",
+  "workspace": "boards/lumina-carrier",
+  "snapshot_label": "pre-h4-copper",
+  "authority": "H4 checkpoint, owner APPROVED. Decision was explicitly NO REBUILD: the board keeps its P6 placement and P7 routing, and anything needing a new footprint becomes a deferred open item instead.",
+  "allowed_scripts": [
+    ".claude/skills/ai-ee/scripts/route_edit.py",
+    ".claude/skills/ai-ee/scripts/gate.py",
+    ".claude/skills/ai-ee/scripts/kc.py",
+    ".claude/skills/ai-ee/scripts/check_creepage.py",
+    ".claude/skills/ai-ee/scripts/check_current.py",
+    ".claude/skills/ai-ee/scripts/dfm_check.py",
+    ".claude/skills/ai-ee/scripts/plane_repair.py"
+  ],
+  "cluster_A": {
+    "title": "Reroute /poe/LED_Y_A out of the 57 V tap pocket - 217 pairs at 0.2031 mm against a 0.600 mm requirement",
+    "authority": "Owner: 'do the part that does not need a component. Reroute LED_Y_A out of the tap pocket, which closes the 217-pair geometry issue physically and makes the IPC-row argument moot.'",
+    "why_it_matters_more_than_the_number": "/poe/LED_Y_A has exactly TWO pads: J1 pin 17 and R7 pin 2. R7 is a 330 ohm 0603 whose pin 1 is on +3V3. So the failure product of this gap is 57 V injected onto +3V3 through 330 ohm, unclamped - and +3V3 leaves the board on J3 pins 12 and 14 to every daughter board. There is no PESD device on any LED net (D31/D32/D40/D41/D42 are all on expansion signals; D10 TPD4E1U06 clamps only the MDI). A +3V3 clamp needs a new part and is therefore DEFERRED, which is exactly why the geometric fix has to land.",
+    "measured_now": {
+      "worst_pair_mm": 0.2031,
+      "pairs_under_0_600_mm": 217,
+      "population": "17 of 36 LED_Y_A segments against 21 of 27 POE_TAP_A2 F.Cu segments, 0.2031-0.5071 mm, over roughly 10 mm of parallel run",
+      "worst_location_board_rel": [[25.67, 8.78], [25.57, 8.60]],
+      "distance_to_top_board_edge_mm": 8.6
+    },
+    "target": ">= 0.635 mm from /poe/LED_Y_A copper to ALL FOUR /poe/POE_TAP_* nets, on every layer, for EVERY pair - not just the worst. 0.635 mm is the board-wide adopted figure (TPS2378 datasheet layout section) and ICD-01 rev A6 s5.1 is explicit that the 0.13 mm B4 coated column is NOT claimed, so do not design to 0.13 mm.",
+    "guidance": [
+      "The clean solution is almost certainly TOPOLOGICAL, not a nudge: LED_Y_A currently runs ~10 mm parallel to POE_TAP_A2 inside J1's tap pocket. Take it OUT of the pocket - drop to an inner layer or B.Cu for the transit and come back up, or route it around the far side of J1's land. LED_Y_A carries about 10 mA to an indicator LED, so it is electrically free to move: any layer, any detour, extra vias are fine.",
+      "Check /poe/LED_G_A, /poe/LED_Y_C and /poe/LED_G_C in the same pocket while you are there and report their minimum to the taps too. A previous fixer found that the reported worst pair hid 216 siblings on this very net pair, so measure the whole population, not the minimum.",
+      "Do NOT solve this by moving any POE_TAP copper. The taps were brought to 0.6502 mm (tap-to-tap) and 0.639-1.770 mm (tap-to-SHIELD) earlier in P8 at real cost, and a new DRU rule poe_tap_differential_pair (0.60 mm) plus magjack_isolation_barrier (1.30 mm) now hold those lines. Breaking either is a regression.",
+      "Do NOT move any footprint. J1 and R7 are both in placement.fixed and the board is fully routed."
+    ]
+  },
+  "cluster_B": {
+    "title": "189 tracks at 0.1000 mm against JLC's 0.1016 mm minimum - widen them",
+    "authority": "Owner: 'Fix the 189 DFM track-width errors in place. Tracks are 0.1000 mm against JLC's 0.1016 mm minimum - a 1.6 um gap. Widen them via route_edit.'",
+    "measured_now": "gate dfm reports 194 errors, of which 189 are 'trace width 0.1000 mm below JLC minimum 0.1016 mm' - 136 on F.Cu, 53 on B.Cu. Also present and NOT yours: 3 copper-clearance and 2 hole-to-hole errors.",
+    "root_cause_for_context_only": "board_init writes min_track_width: 0.1 into the .kicad_pro, below EVERY JLC profile, and this board's hand-written .kicad_dru contains none of rules_gen's generated floors. So DRC never objected. The orchestrator is raising the floor to 0.1016 mm separately - do not edit the .kicad_pro or .kicad_dru yourself.",
+    "target": "No track anywhere on the board below 0.1016 mm. Widen to 0.110 mm where there is room, so the result is not sitting exactly on the fab limit; fall back to 0.1016 mm where 0.110 does not fit; report any track that cannot reach even 0.1016 mm with its measured available room and blocker.",
+    "guidance": [
+      "There IS room: work/p8/residual_report.json measured these same +3V3 escape tracks as having 0.291-0.316 mm of widening headroom against a 0.5 mm requirement, so 0.110 mm is comfortable for the great majority.",
+      "CRITICAL route_edit MECHANIC: route_edit applies ALL adds BEFORE ALL removes, and dedups adds on geometry within 0.001 mm. Widening a track at UNCHANGED geometry therefore needs TWO SEPARATE route_edit invocations - remove first, then add - or the add is silently skipped as a duplicate, the remove then deletes the original, and the whole file rolls back. Widening in one file 'works' only because width is part of the track key; do not rely on that at 189 items. Batch it, and verify the applied count each time.",
+      "Work in batches of 30-50 with a DRC run after each. If a batch regresses, bisect it rather than abandoning it.",
+      "Some of these 0.100 mm tracks are ALSO in the check_current undersized_track set. Widening them to 0.110 mm will not clear check_current (it wants 0.5 mm) and that is fine and expected - do not chase it."
+    ]
+  },
+  "oracle": "gate.py --gate drc_routed <board> must read total 0 (err+warn 0) after EVERY batch. gate place and check_decoupling are STRUCTURALLY BLIND to routed copper - on this board a 0.300 mm placement nudge passed both and still introduced a SHORTING_ITEMS. DRC is the only oracle. Refill with `kc.py drc --refill --save-board` after any plane-crossing edit, then run the gate.",
+  "hard_rules": [
+    "NEVER pass --commit to gate.py, and run NO git command at all - the repo is shared with two paused board runs.",
+    "Do not write board edits from heredoc-inlined python; a permission classifier blocks heredoc writes. Write helper .py files with the file-editing tool, then run them. All board writes go through route_edit.py.",
+    "Do not move any footprint. Do not edit constraints.json, the .kicad_pro or the .kicad_dru.",
+    "Do not touch the owner-accepted waivers: 94 check_current, the 10 package-internal check_creepage items, 11 check_return_path, 2 check_decoupling. Do not make any of them worse.",
+    "The 25 MHz oscillator island (Y10, C30, C31, R35, R36 and nets /eth/XI, /eth/XO, /eth/XO_XTAL) was just re-placed and re-routed by another agent. Do not touch it."
+  ],
+  "artifacts": {"out_dir": "boards/lumina-carrier/work/p8/h4copper"},
+  "report_numbers_required": [
+    "cluster A: LED_Y_A to each of the four POE_TAP nets, minimum and count-under-0.635 mm, before -> after; what you rerouted and onto which layers; the same minima for LED_G_A / LED_Y_C / LED_G_C",
+    "cluster B: count of tracks below 0.1016 mm before -> after; the width distribution you achieved; any track that could not reach 0.1016 mm with its room and blocker",
+    "gate dfm trace-width error count before -> after",
+    "check_creepage total before -> after",
+    "final drc_routed total (must be 0)"
+  ],
+  "termination": "Return the fixer output contract. Do not start other phases' work."
+}

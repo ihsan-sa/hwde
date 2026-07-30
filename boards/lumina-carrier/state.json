@@ -3,7 +3,7 @@
  "board": "lumina-carrier",
  "workspace": "boards/lumina-carrier",
  "created": "2026-07-28T13:36:22",
- "updated": "2026-07-30T04:55:38",
+ "updated": "2026-07-30T06:02:17",
  "phase": "P8",
  "gates": {
   "erc": {
@@ -504,6 +504,12 @@
    "why": "E1 MOUNTING PATTERN, verified by me against the ICD text: the board is drilled 94 x 74 mm at a 3.0 mm inset, while connector-icd.md rev A6 line 513 freezes '4x M3 (3.2 mm) at 5 mm inset = a 90 x 70 mm hole rectangle' as the pattern every LUMINA board inherits. lumina-par is P0-complete and lumina-strobe is queued, both treating the ICD as a hard input, so any daughter drilled to s7.1 misses all four standoffs by 2 mm in x and y - not fixable daughter-side. Root cause is MECH-01's inset = margin/2, so the default --margin 6 gives 3 mm; P5 asserted MECH-01 satisfied having compared only the corner radius. E2 CRYSTAL: the 25 MHz oscillator network is 115.567 mm of copper with 10 vias reaching 1.05 mm from the top board edge, with R36 (0 R SERIES DAMPING) and R35 (1 M) at the board edge about 14 mm from both Y10 and the PHY - because constraints.json group eth_xtal lists only C30/C31 and the anneal placed R35/R36 freely. Nothing could see it: /eth/XI, /eth/XO and /eth/XO_XTAL are absent from high_speed so check_return_path never evaluated them. E3 BUCK INPUT CAP: U21 (TPS563201 sync buck, the converter feeding the ESP32-S3, the W5500 and every daughter's 3.3 V) has exactly ONE input capacitor, 9.2 mm / 8.378 nH from VIN, and no HF ceramic at the pin at all. check_decoupling reported nothing because it classed the 22 uF part as 'bulk' and applied the loose limit - its model is a decoupling loop, whereas a synchronous buck's input ceramic carries the full trapezoidal switch current with no diode softening. E4 AND THIS ONE IS AGAINST ME: my B4 re-adjudication of the 217-pair 0.2031 mm gap contradicts a FROZEN document. ICD rev A6 s5.1 says verbatim 'The 0.13 mm permanent polymer coating column (B4) is NOT claimed', the .kicad_dru header repeats it, and the same section derives the 0.635 mm figure that s5.4 imposes on every daughter PRECISELY BECAUSE B4 was refused. A work/ JSON cannot reverse that. I have marked creepage_adjudication.json NOT ADOPTED; the shortfall stands until an ICD rev A7 with the owner's signature. The reviewer also found the fact that makes it matter: LED_Y_A has only two pads, J1 pin 17 and R7 pin 2, and R7 is 330 R with pin 1 on +3V3 - so the failure product is 57 V onto +3V3 through 330 R, unclamped, leaving the board on J3 pins 12/14 to every daughter, with no PESD anywhere on the LED nets. GOOD NEWS INDEPENDENTLY VERIFIED: the ESP32-S3 antenna keepout PASSES with 0.0000 mm2 of copper on all four layers in the real 18 x 6 mm vendor Antenna Area - the reviewer checked the land pattern rather than the render, having been misled by the render first. STRUCTURAL FINDING WORTH MORE THAN ANY SINGLE ITEM: only 3 of the 7 nets declared at 57 V carry any DRU rule, which is why both the 0.2031 mm gap and P7's 0.6029 mm gap exist on a board with 0 DRC errors.",
    "phase": "P8",
    "ts": "2026-07-29T22:46:11"
+  },
+  {
+   "what": "OSCILLATOR ISLAND COLLAPSED via a scoped P6/P7 backward edge: routed copper 115.568 -> 33.212 mm (-71 percent), vias 10 -> 4, island-to-board-edge 0.647 -> 3.450 mm, R36-to-driver 31.275 -> 9.533 mm. drc_routed 0/0 and gate place 0/0. No rebuild.",
+   "why": "Owner approved fixing in place at H4. Root cause was a constraints.json defect, not a placement failure: group eth_xtal was anchor Y10 with members [C30, C31] only, so R35 (1M feedback) and R36 (0R SERIES DAMPING) were never grouped and the annealer placed them freely at the top board edge, 31 mm and 17 mm from the pins they belong to. Corrected to anchor U10 with members [Y10, C30, C31, R35, R36] - anchored on the DRIVER, because anchoring on Y10 is what let the whole island float. Also added /eth/XI, /eth/XO and /eth/XO_XTAL to high_speed: they were absent, which is why check_return_path never once evaluated a 25 MHz net that reached 1.05 mm from a board edge. RESULTS PER NET: /eth/XI 45.697 mm / 6 vias -> 15.336 / 2; /eth/XO 42.800 / 2 -> 13.920 / 2; /eth/XO_XTAL 27.071 / 2 -> 3.957 / 0. Load caps pulled in: C31 4.001 -> 2.072 mm from Y10, C30 2.489 -> 2.320 mm. Every separation rule still holds and two improved: Y10-to-J1 28.067 -> 41.587 mm against a 25 mm minimum. EMI consequence closed: the 25 MHz loop no longer terminates 1 mm from the board edge of a product whose only external cable is a 100 m Ethernet run, which was the canonical CISPR 32 radiated-emissions exposure with harmonics past 250 MHz. The series damping resistor is now 9.5 mm from its driver instead of 31 mm with ~45 mm of trace in series, so it can actually damp. And ~82 mm of copper plus 6 vias came off a 27 pF load network, recovering both start-up negative-resistance margin and part of the 100BASE-TX +/-50 ppm budget. PROCESS NOTE: moving 5 parts on a board with ~3294 tracks produced 39 silk warnings on the first DRC and ZERO copper errors, because the agent ripped the three nets BEFORE moving the parts rather than after. That ordering is the whole difference between this and the C35 incident earlier in the run.",
+   "phase": "P8",
+   "ts": "2026-07-30T06:02:17"
   }
  ],
  "history": [
@@ -1008,6 +1014,23 @@
    "event": "snapshot",
    "label": "pre-h4-actions",
    "files": 1
+  },
+  {
+   "ts": "2026-07-30T05:47:27",
+   "event": "restore",
+   "label": "pre-h4-actions",
+   "files": 1
+  },
+  {
+   "ts": "2026-07-30T06:01:09",
+   "event": "snapshot",
+   "label": "pre-h4-copper",
+   "files": 1
+  },
+  {
+   "ts": "2026-07-30T06:02:17",
+   "event": "decision",
+   "what": "OSCILLATOR ISLAND COLLAPSED via a scoped P6/P7 backward edge: routed copper 115.568 -> 33.212 mm (-71 percent), vias 10 -> 4, island-to-board-edge 0.647 -> 3.450 mm, R36-to-driver 31.275 -> 9.533 mm. drc_routed 0/0 and gate place 0/0. No rebuild."
   }
  ]
 }
