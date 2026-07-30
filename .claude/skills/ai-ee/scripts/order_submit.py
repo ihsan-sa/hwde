@@ -222,15 +222,23 @@ def derive_copper_oz(workspace: Path) -> tuple[float, str]:
     spec_snapshot/quote.json have no copper producer, so the stackup doc is
     the single source of truth for this board-killer parameter."""
     sm = workspace / "architecture" / "stackup.md"
-    if sm.exists():
-        for line in sm.read_text(encoding="utf-8",
-                                 errors="replace").splitlines():
-            if line.lstrip().startswith("## Chosen"):
-                m = _OZ_ID_RE.search(line)
-                if m:
-                    return float(m.group(1)), f"stackup.md: {line.strip()}"
-                return 1.0, "stackup.md Chosen line has no oz marker -> 1 oz"
-    return 1.0, "no architecture/stackup.md -> default 1 oz"
+    if not sm.exists():
+        return 1.0, "no architecture/stackup.md -> default 1 oz"
+    for line in sm.read_text(encoding="utf-8", errors="replace").splitlines():
+        # Match "Chosen" ANYWHERE in a heading, not just at "## Chosen":
+        # real docs number their headings ("## 1. Chosen stackup"), which a
+        # startswith() test misses. It then fell through to the no-file branch
+        # and reported "no architecture/stackup.md" for a file that exists -
+        # silently defaulting a 2 oz board to 1 oz, the exact board-killer
+        # _check_oz_mentions was written to catch.
+        s = line.lstrip()
+        if s.startswith("#") and "chosen" in s.lower():
+            m = _OZ_ID_RE.search(line)
+            if m:
+                return float(m.group(1)), f"stackup.md: {line.strip()}"
+            return 1.0, "stackup.md Chosen line has no oz marker -> 1 oz"
+    return 1.0, ("architecture/stackup.md present but has no 'Chosen' heading "
+                 "-> default 1 oz (VERIFY: this is not the same as no file)")
 
 
 def _check_oz_mentions(man: dict, prior_steps, oz: float,
