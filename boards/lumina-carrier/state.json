@@ -3,7 +3,7 @@
  "board": "lumina-carrier",
  "workspace": "boards/lumina-carrier",
  "created": "2026-07-28T13:36:22",
- "updated": "2026-07-30T06:02:17",
+ "updated": "2026-07-30T06:36:14",
  "phase": "P8",
  "gates": {
   "erc": {
@@ -53,9 +53,9 @@
   "drc_routed": {
    "phase": "P7",
    "status": "pass",
-   "attempts": 2,
+   "attempts": 3,
    "last": {
-    "ts": "2026-07-29T18:55:29",
+    "ts": "2026-07-30T06:35:39",
     "status": "pass",
     "failing_count": 0,
     "total": 0
@@ -72,18 +72,24 @@
      "status": "pass",
      "failing_count": 0,
      "total": 0
+    },
+    {
+     "ts": "2026-07-30T06:35:39",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0
     }
    ]
   },
   "verify": {
    "phase": "P8",
    "status": "fail",
-   "attempts": 2,
+   "attempts": 3,
    "last": {
-    "ts": "2026-07-29T22:11:27",
+    "ts": "2026-07-30T06:36:14",
     "status": "fail",
-    "failing_count": 114,
-    "total": 118
+    "failing_count": 115,
+    "total": 119
    },
    "history": [
     {
@@ -97,6 +103,12 @@
      "status": "fail",
      "failing_count": 114,
      "total": 118
+    },
+    {
+     "ts": "2026-07-30T06:36:14",
+     "status": "fail",
+     "failing_count": 115,
+     "total": 119
     }
    ]
   }
@@ -510,6 +522,12 @@
    "why": "Owner approved fixing in place at H4. Root cause was a constraints.json defect, not a placement failure: group eth_xtal was anchor Y10 with members [C30, C31] only, so R35 (1M feedback) and R36 (0R SERIES DAMPING) were never grouped and the annealer placed them freely at the top board edge, 31 mm and 17 mm from the pins they belong to. Corrected to anchor U10 with members [Y10, C30, C31, R35, R36] - anchored on the DRIVER, because anchoring on Y10 is what let the whole island float. Also added /eth/XI, /eth/XO and /eth/XO_XTAL to high_speed: they were absent, which is why check_return_path never once evaluated a 25 MHz net that reached 1.05 mm from a board edge. RESULTS PER NET: /eth/XI 45.697 mm / 6 vias -> 15.336 / 2; /eth/XO 42.800 / 2 -> 13.920 / 2; /eth/XO_XTAL 27.071 / 2 -> 3.957 / 0. Load caps pulled in: C31 4.001 -> 2.072 mm from Y10, C30 2.489 -> 2.320 mm. Every separation rule still holds and two improved: Y10-to-J1 28.067 -> 41.587 mm against a 25 mm minimum. EMI consequence closed: the 25 MHz loop no longer terminates 1 mm from the board edge of a product whose only external cable is a 100 m Ethernet run, which was the canonical CISPR 32 radiated-emissions exposure with harmonics past 250 MHz. The series damping resistor is now 9.5 mm from its driver instead of 31 mm with ~45 mm of trace in series, so it can actually damp. And ~82 mm of copper plus 6 vias came off a 27 pF load network, recovering both start-up negative-resistance margin and part of the 100BASE-TX +/-50 ppm budget. PROCESS NOTE: moving 5 parts on a board with ~3294 tracks produced 39 silk warnings on the first DRC and ZERO copper errors, because the agent ripped the three nets BEFORE moving the parts rather than after. That ordering is the whole difference between this and the C35 incident earlier in the run.",
    "phase": "P8",
    "ts": "2026-07-30T06:02:17"
+  },
+  {
+   "what": "ALL FOUR H4 ACTIONS COMPLETE. LED_Y_A rerouted 0.2031 -> 1.1500 mm (226 pairs under 0.635 mm -> 0), 188 tracks widened off the fab floor (gate dfm 193 -> 5 errors), ICD re-issued at rev A7, board locks declared and now DRC-enforced. Three new DRU rules, each PROVEN LIVE. drc_routed 0/0.",
+   "why": "The 189 in the work order was 188 (the agent found the order off by one on F.Cu, 135 not 136) and it is now 187 tracks at 0.110 mm plus 1 at 0.1071 mm - the exception is /ETH_RSTn with 0.0071 mm of room against /eth/EXRES. One /ETH_RSTn 3-segment chain had EXACTLY 0.0000 mm of room, sitting precisely on the resolved Default clearance from a 0.5 mm +3V3 track, so width-only was impossible; the agent nudged two shared nodes 0.03 mm east and reported it as a geometry change rather than burying it. I accept that, and I accept its widening of the two 0.100 mm /eth/XI and /eth/XO landings it flagged - both are PHY-side, 9-11 mm from the oscillator island, byte-identical geometry, DRC held. LED_Y_A left the pocket rather than being nudged because the band between J1's north pin row and POE_TAP_A2's staircase is 0.777 mm tall where a 0.2 mm track needs 1.035 mm; the 2.25 mm B.Cu dive exists solely to pass under LED_G_A's F.Cu corridor. Nearest new copper to any tap is 1.15 mm, which is why the new 0.60 mm rule has room. RULE SCOPING, and this is where the honest work was: hv_tap_general_clearance at 0.635 mm fired 17 times and hv_to_netless_conductor 9 times, and NONE of the 26 was a defect. All 9 netless firings were U22's own no-connect pads 4/5/17 at 0.220-0.250 mm from its own lead frame - decision (c) geometry. 13 of the 17 tap firings were plane ANTIPADS at a uniform 0.5005 mm against In1/In2, where the governing figure is IPC-2221B B1 internal = 0.10 mm, so 0.5005 mm exceeds it five-fold and 0.635 mm was simply the wrong yardstick for an inner-layer antipad. I scoped both rules per refdes and per layer rather than lowering them blindly, and set the tap rule to 0.600 mm = IPC B2 external, consistent with the two tap rules already at 0.600 and reserving TI's 0.635 mm for U1's own pins via the HV_48V_* rules. DISCLOSED rather than hidden by that choice: the tightest tap clearance on the board is a +3V3 via to J1 pad 11 at 0.6215 mm, clearing 0.600 by 21.5 um and missing 0.635 by 13.5 um. LIVENESS PROVEN for all three rules by tightening each and confirming it fires with the expected actuals: track floor at 0.15 mm fires 188x reporting 0.1071/0.1100 (which also independently confirms the widening); tap clearance at 0.9 mm fires 156x with 0.6215 tightest; netless at 0.75 mm fires 5x at 0.6643-0.6946 mm - and those five ARE J1's board locks, so the rule demonstrably reaches the pads it exists for. Note DRC measures the board-lock margin as 0.6643 mm where the P7 shape-aware capsule model gave 0.6029 mm; DRC's is the enforced number.",
+   "phase": "P8",
+   "ts": "2026-07-30T06:36:14"
   }
  ],
  "history": [
@@ -1031,6 +1049,27 @@
    "ts": "2026-07-30T06:02:17",
    "event": "decision",
    "what": "OSCILLATOR ISLAND COLLAPSED via a scoped P6/P7 backward edge: routed copper 115.568 -> 33.212 mm (-71 percent), vias 10 -> 4, island-to-board-edge 0.647 -> 3.450 mm, R36-to-driver 31.275 -> 9.533 mm. drc_routed 0/0 and gate place 0/0. No rebuild."
+  },
+  {
+   "ts": "2026-07-30T06:35:39",
+   "event": "gate",
+   "gate": "drc_routed",
+   "status": "pass",
+   "attempt": 3,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-07-30T06:36:14",
+   "event": "gate",
+   "gate": "verify",
+   "status": "fail",
+   "attempt": 3,
+   "failing_count": 115
+  },
+  {
+   "ts": "2026-07-30T06:36:14",
+   "event": "decision",
+   "what": "ALL FOUR H4 ACTIONS COMPLETE. LED_Y_A rerouted 0.2031 -> 1.1500 mm (226 pairs under 0.635 mm -> 0), 188 tracks widened off the fab floor (gate dfm 193 -> 5 errors), ICD re-issued at rev A7, board locks declared and now DRC-enforced. Three new DRU rules, each PROVEN LIVE. drc_routed 0/0."
   }
  ]
 }

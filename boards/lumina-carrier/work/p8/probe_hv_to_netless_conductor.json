@@ -1,0 +1,192 @@
+{
+  "script": "gate",
+  "gate": "drc_routed",
+  "phase": "P7",
+  "tool": "drc",
+  "input": "boards\\lumina-carrier\\kicad\\lumina-carrier.kicad_pcb",
+  "status": "fail",
+  "criteria": {
+    "fail_severities": [
+      "error",
+      "warning"
+    ],
+    "max_count": 0
+  },
+  "counts": {
+    "total": 5,
+    "by_severity": {
+      "error": 5
+    },
+    "by_source": {
+      "drc": 5
+    }
+  },
+  "failing_count": 5,
+  "failing": [
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        30.95,
+        73.85
+      ],
+      "layer": "F.Cu",
+      "net": "/poe/POE_TAP_B1",
+      "refs": [
+        "J1"
+      ],
+      "msg": "Clearance violation (rule 'hv_to_netless_conductor' clearance 0.7500 mm; actual 0.6643 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/poe/POE_TAP_B1] on F.Cu, length 5.7276 mm",
+          "pos": [
+            30.95,
+            73.85
+          ],
+          "uuid": "0e78fa8d-6983-45fd-ae08-54ac45cf8860"
+        },
+        {
+          "msg": "PTH pad 9 [<no net>] of J1",
+          "pos": [
+            36.14,
+            77.063
+          ],
+          "uuid": "327365d9-85d5-4360-b9cf-1c004d739b36"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        35.0,
+        77.9
+      ],
+      "layer": "F.Cu",
+      "net": "/poe/POE_TAP_B1",
+      "refs": [
+        "J1"
+      ],
+      "msg": "Clearance violation (rule 'hv_to_netless_conductor' clearance 0.7500 mm; actual 0.6643 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/poe/POE_TAP_B1] on F.Cu, length 0.0500 mm",
+          "pos": [
+            35.0,
+            77.9
+          ],
+          "uuid": "1930e6a5-80d8-4f27-ba02-abf8fd71bfab"
+        },
+        {
+          "msg": "PTH pad 9 [<no net>] of J1",
+          "pos": [
+            36.14,
+            77.063
+          ],
+          "uuid": "327365d9-85d5-4360-b9cf-1c004d739b36"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        36.14,
+        77.063
+      ],
+      "layer": "F.Cu",
+      "net": "<no net>",
+      "refs": [
+        "J1"
+      ],
+      "msg": "Clearance violation (rule 'hv_to_netless_conductor' clearance 0.7500 mm; actual 0.6833 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "PTH pad 9 [<no net>] of J1",
+          "pos": [
+            36.14,
+            77.063
+          ],
+          "uuid": "327365d9-85d5-4360-b9cf-1c004d739b36"
+        },
+        {
+          "msg": "Track [/poe/POE_TAP_B1] on F.Cu, length 4.5255 mm",
+          "pos": [
+            35.0,
+            77.95
+          ],
+          "uuid": "563ddd37-3ba2-4c75-9944-a8a2557ddccd"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        34.87,
+        74.523
+      ],
+      "layer": "B.Cu",
+      "net": "<no net>",
+      "refs": [
+        "J1"
+      ],
+      "msg": "Clearance violation (rule 'hv_to_netless_conductor' clearance 0.7500 mm; actual 0.6700 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "PTH pad 10 [<no net>] of J1",
+          "pos": [
+            34.87,
+            74.523
+          ],
+          "uuid": "5110f6cd-9643-46b7-9c89-f5e5ffc40440"
+        },
+        {
+          "msg": "Track [/poe/POE_TAP_B2] on B.Cu, length 5.2000 mm",
+          "pos": [
+            33.45,
+            73.9
+          ],
+          "uuid": "528cd352-47e6-4b7f-bd25-7f307f9202ac"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        34.87,
+        74.523
+      ],
+      "layer": "B.Cu",
+      "net": "<no net>",
+      "refs": [
+        "J1"
+      ],
+      "msg": "Clearance violation (rule 'hv_to_netless_conductor' clearance 0.7500 mm; actual 0.6946 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "PTH pad 10 [<no net>] of J1",
+          "pos": [
+            34.87,
+            74.523
+          ],
+          "uuid": "5110f6cd-9643-46b7-9c89-f5e5ffc40440"
+        },
+        {
+          "msg": "Track [/poe/POE_TAP_B2] on B.Cu, length 1.9799 mm",
+          "pos": [
+            34.85,
+            72.5
+          ],
+          "uuid": "d984bafc-bd26-4dbf-a5a0-d46de12bbe59"
+        }
+      ]
+    }
+  ]
+}

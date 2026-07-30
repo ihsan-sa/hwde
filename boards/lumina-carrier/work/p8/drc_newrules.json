@@ -1,0 +1,869 @@
+{
+  "script": "gate",
+  "gate": "drc_routed",
+  "phase": "P7",
+  "tool": "drc",
+  "input": "boards\\lumina-carrier\\kicad\\lumina-carrier.kicad_pcb",
+  "status": "fail",
+  "criteria": {
+    "fail_severities": [
+      "error",
+      "warning"
+    ],
+    "max_count": 0
+  },
+  "counts": {
+    "total": 26,
+    "by_severity": {
+      "error": 26
+    },
+    "by_source": {
+      "drc": 26
+    }
+  },
+  "failing_count": 26,
+  "failing": [
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        41.1375,
+        95.675
+      ],
+      "layer": "F.Cu",
+      "net": "<no net>",
+      "refs": [
+        "U22"
+      ],
+      "msg": "Clearance violation (rule 'hv_to_netless_conductor' clearance 0.6000 mm; actual 0.2500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Pad 5 [<no net>] of U22 on F.Cu",
+          "pos": [
+            41.1375,
+            95.675
+          ],
+          "uuid": "29b09355-a63e-402c-827c-5f990587efd4"
+        },
+        {
+          "msg": "Track [V48_RAW] on F.Cu, length 1.2075 mm",
+          "pos": [
+            41.1375,
+            96.325
+          ],
+          "uuid": "939d1601-d228-40ee-a187-52f7c4534673"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        41.1375,
+        95.025
+      ],
+      "layer": "F.Cu",
+      "net": "<no net>",
+      "refs": [
+        "U22"
+      ],
+      "msg": "Clearance violation (rule 'hv_to_netless_conductor' clearance 0.6000 mm; actual 0.2500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Pad 4 [<no net>] of U22 on F.Cu",
+          "pos": [
+            41.1375,
+            95.025
+          ],
+          "uuid": "1e83f4be-e751-4085-bfa0-6a8fa36e3a19"
+        },
+        {
+          "msg": "Track [V48_RAW] on F.Cu, length 0.6500 mm",
+          "pos": [
+            41.1375,
+            93.725
+          ],
+          "uuid": "9b41696a-d4fb-48d9-b300-327fadb0d097"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        46.8625,
+        95.025
+      ],
+      "layer": "F.Cu",
+      "net": "<no net>",
+      "refs": [
+        "U22"
+      ],
+      "msg": "Clearance violation (rule 'hv_to_netless_conductor' clearance 0.6000 mm; actual 0.2500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Pad 17 [<no net>] of U22 on F.Cu",
+          "pos": [
+            46.8625,
+            95.025
+          ],
+          "uuid": "6a5d524c-b8c5-4cc7-bf6e-dc4d9035e6c1"
+        },
+        {
+          "msg": "Track [+48V_SW] on F.Cu, length 0.6500 mm",
+          "pos": [
+            46.8625,
+            93.725
+          ],
+          "uuid": "c95e6b10-459a-418f-a4fb-763a4bf24362"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        47.45,
+        81.55
+      ],
+      "layer": "F.Cu",
+      "net": "/poe/POE_TAP_A1",
+      "refs": [],
+      "msg": "Clearance violation (rule 'hv_tap_general_clearance' clearance 0.6350 mm; actual 0.5005 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Via [/poe/POE_TAP_A1] on F.Cu - B.Cu",
+          "pos": [
+            47.45,
+            81.55
+          ],
+          "uuid": "0c3cf07e-2bad-477e-adef-16ed530a6a20"
+        },
+        {
+          "msg": "Zone [GND] on In1.Cu, priority 0",
+          "pos": [
+            19.58,
+            57.132
+          ],
+          "uuid": "bd6fa715-768d-4331-bf0b-1b5be3c2fb27"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        47.45,
+        81.55
+      ],
+      "layer": "F.Cu",
+      "net": "/poe/POE_TAP_A1",
+      "refs": [],
+      "msg": "Clearance violation (rule 'hv_tap_general_clearance' clearance 0.6350 mm; actual 0.5005 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Via [/poe/POE_TAP_A1] on F.Cu - B.Cu",
+          "pos": [
+            47.45,
+            81.55
+          ],
+          "uuid": "0c3cf07e-2bad-477e-adef-16ed530a6a20"
+        },
+        {
+          "msg": "Zone [+3V3] on In2.Cu, priority 0",
+          "pos": [
+            45.58,
+            57.132
+          ],
+          "uuid": "0764fd4f-13c1-458d-9948-3f55d60f8ed7"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        49.675,
+        74.325
+      ],
+      "layer": "F.Cu",
+      "net": "/poe/POE_TAP_A1",
+      "refs": [],
+      "msg": "Clearance violation (rule 'hv_tap_general_clearance' clearance 0.6350 mm; actual 0.5005 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Via [/poe/POE_TAP_A1] on F.Cu - B.Cu",
+          "pos": [
+            49.675,
+            74.325
+          ],
+          "uuid": "6b5eb8ff-e5ad-4e5d-80f2-e773a70964da"
+        },
+        {
+          "msg": "Zone [GND] on In1.Cu, priority 0",
+          "pos": [
+            19.58,
+            57.132
+          ],
+          "uuid": "bd6fa715-768d-4331-bf0b-1b5be3c2fb27"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        49.675,
+        74.325
+      ],
+      "layer": "F.Cu",
+      "net": "/poe/POE_TAP_A1",
+      "refs": [],
+      "msg": "Clearance violation (rule 'hv_tap_general_clearance' clearance 0.6350 mm; actual 0.5005 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Via [/poe/POE_TAP_A1] on F.Cu - B.Cu",
+          "pos": [
+            49.675,
+            74.325
+          ],
+          "uuid": "6b5eb8ff-e5ad-4e5d-80f2-e773a70964da"
+        },
+        {
+          "msg": "Zone [+3V3] on In2.Cu, priority 0",
+          "pos": [
+            45.58,
+            57.132
+          ],
+          "uuid": "0764fd4f-13c1-458d-9948-3f55d60f8ed7"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        44.6,
+        80.3
+      ],
+      "layer": "F.Cu",
+      "net": "/poe/POE_TAP_A2",
+      "refs": [],
+      "msg": "Clearance violation (rule 'hv_tap_general_clearance' clearance 0.6350 mm; actual 0.5005 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Via [/poe/POE_TAP_A2] on F.Cu - B.Cu",
+          "pos": [
+            44.6,
+            80.3
+          ],
+          "uuid": "40e3f5b2-919e-4b76-8c6f-422e47dae431"
+        },
+        {
+          "msg": "Zone [GND] on In1.Cu, priority 0",
+          "pos": [
+            19.58,
+            57.132
+          ],
+          "uuid": "bd6fa715-768d-4331-bf0b-1b5be3c2fb27"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        49.2,
+        73.275
+      ],
+      "layer": "F.Cu",
+      "net": "/poe/POE_TAP_A2",
+      "refs": [],
+      "msg": "Clearance violation (rule 'hv_tap_general_clearance' clearance 0.6350 mm; actual 0.5005 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Via [/poe/POE_TAP_A2] on F.Cu - B.Cu",
+          "pos": [
+            49.2,
+            73.275
+          ],
+          "uuid": "caf1ddeb-f4b1-4819-91d7-53666b4efae8"
+        },
+        {
+          "msg": "Zone [GND] on In1.Cu, priority 0",
+          "pos": [
+            19.58,
+            57.132
+          ],
+          "uuid": "bd6fa715-768d-4331-bf0b-1b5be3c2fb27"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        49.2,
+        73.275
+      ],
+      "layer": "F.Cu",
+      "net": "/poe/POE_TAP_A2",
+      "refs": [],
+      "msg": "Clearance violation (rule 'hv_tap_general_clearance' clearance 0.6350 mm; actual 0.5005 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Via [/poe/POE_TAP_A2] on F.Cu - B.Cu",
+          "pos": [
+            49.2,
+            73.275
+          ],
+          "uuid": "caf1ddeb-f4b1-4819-91d7-53666b4efae8"
+        },
+        {
+          "msg": "Zone [+3V3] on In2.Cu, priority 0",
+          "pos": [
+            45.58,
+            57.132
+          ],
+          "uuid": "0764fd4f-13c1-458d-9948-3f55d60f8ed7"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        33.45,
+        79.1
+      ],
+      "layer": "F.Cu",
+      "net": "/poe/POE_TAP_B2",
+      "refs": [],
+      "msg": "Clearance violation (rule 'hv_tap_general_clearance' clearance 0.6350 mm; actual 0.5005 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Via [/poe/POE_TAP_B2] on F.Cu - B.Cu",
+          "pos": [
+            33.45,
+            79.1
+          ],
+          "uuid": "5eac2bf8-6812-4285-960a-38e5f5217780"
+        },
+        {
+          "msg": "Zone [GND] on In1.Cu, priority 0",
+          "pos": [
+            19.58,
+            57.132
+          ],
+          "uuid": "bd6fa715-768d-4331-bf0b-1b5be3c2fb27"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        39.93,
+        94.375
+      ],
+      "layer": "F.Cu",
+      "net": "V48_RAW",
+      "refs": [
+        "U22"
+      ],
+      "msg": "Clearance violation (rule 'hv_to_netless_conductor' clearance 0.6000 mm; actual 0.2500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [V48_RAW] on F.Cu, length 1.2075 mm",
+          "pos": [
+            39.93,
+            94.375
+          ],
+          "uuid": "15b95748-3b19-4da3-ae04-ec99a8244e47"
+        },
+        {
+          "msg": "Pad 4 [<no net>] of U22 on F.Cu",
+          "pos": [
+            41.1375,
+            95.025
+          ],
+          "uuid": "1e83f4be-e751-4085-bfa0-6a8fa36e3a19"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        39.93,
+        96.325
+      ],
+      "layer": "F.Cu",
+      "net": "V48_RAW",
+      "refs": [
+        "U22"
+      ],
+      "msg": "Clearance violation (rule 'hv_to_netless_conductor' clearance 0.6000 mm; actual 0.2200 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [V48_RAW] on F.Cu, length 1.9500 mm",
+          "pos": [
+            39.93,
+            96.325
+          ],
+          "uuid": "1bf05efd-341c-4dc5-8b85-e602ea0dbfd6"
+        },
+        {
+          "msg": "Pad 4 [<no net>] of U22 on F.Cu",
+          "pos": [
+            41.1375,
+            95.025
+          ],
+          "uuid": "1e83f4be-e751-4085-bfa0-6a8fa36e3a19"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        39.93,
+        96.325
+      ],
+      "layer": "F.Cu",
+      "net": "V48_RAW",
+      "refs": [
+        "U22"
+      ],
+      "msg": "Clearance violation (rule 'hv_to_netless_conductor' clearance 0.6000 mm; actual 0.2200 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [V48_RAW] on F.Cu, length 1.9500 mm",
+          "pos": [
+            39.93,
+            96.325
+          ],
+          "uuid": "1bf05efd-341c-4dc5-8b85-e602ea0dbfd6"
+        },
+        {
+          "msg": "Pad 5 [<no net>] of U22 on F.Cu",
+          "pos": [
+            41.1375,
+            95.675
+          ],
+          "uuid": "29b09355-a63e-402c-827c-5f990587efd4"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        45.8,
+        73.45
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [
+        "J1"
+      ],
+      "msg": "Clearance violation (rule 'hv_tap_general_clearance' clearance 0.6350 mm; actual 0.6215 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Via [+3V3] on F.Cu - B.Cu",
+          "pos": [
+            45.8,
+            73.45
+          ],
+          "uuid": "50a606cf-9d79-489f-a771-0e36a9fe0781"
+        },
+        {
+          "msg": "PTH pad 11 [/poe/POE_TAP_A1] of J1",
+          "pos": [
+            46.3,
+            72.013
+          ],
+          "uuid": "887e8889-2e02-489c-ba95-a6a6167c2487"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        45.8,
+        73.45
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [
+        "J1"
+      ],
+      "msg": "Clearance violation (rule 'hv_tap_general_clearance' clearance 0.6350 mm; actual 0.6215 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Via [+3V3] on F.Cu - B.Cu",
+          "pos": [
+            45.8,
+            73.45
+          ],
+          "uuid": "50a606cf-9d79-489f-a771-0e36a9fe0781"
+        },
+        {
+          "msg": "PTH pad 11 [/poe/POE_TAP_A1] of J1",
+          "pos": [
+            46.3,
+            72.013
+          ],
+          "uuid": "887e8889-2e02-489c-ba95-a6a6167c2487"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        45.8,
+        73.45
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [
+        "J1"
+      ],
+      "msg": "Clearance violation (rule 'hv_tap_general_clearance' clearance 0.6350 mm; actual 0.6215 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Via [+3V3] on F.Cu - B.Cu",
+          "pos": [
+            45.8,
+            73.45
+          ],
+          "uuid": "50a606cf-9d79-489f-a771-0e36a9fe0781"
+        },
+        {
+          "msg": "PTH pad 11 [/poe/POE_TAP_A1] of J1",
+          "pos": [
+            46.3,
+            72.013
+          ],
+          "uuid": "887e8889-2e02-489c-ba95-a6a6167c2487"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        45.8,
+        73.45
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [
+        "J1"
+      ],
+      "msg": "Clearance violation (rule 'hv_tap_general_clearance' clearance 0.6350 mm; actual 0.6215 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Via [+3V3] on F.Cu - B.Cu",
+          "pos": [
+            45.8,
+            73.45
+          ],
+          "uuid": "50a606cf-9d79-489f-a771-0e36a9fe0781"
+        },
+        {
+          "msg": "PTH pad 11 [/poe/POE_TAP_A1] of J1",
+          "pos": [
+            46.3,
+            72.013
+          ],
+          "uuid": "887e8889-2e02-489c-ba95-a6a6167c2487"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        41.1375,
+        94.375
+      ],
+      "layer": "F.Cu",
+      "net": "V48_RAW",
+      "refs": [
+        "U22"
+      ],
+      "msg": "Clearance violation (rule 'hv_to_netless_conductor' clearance 0.6000 mm; actual 0.2500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Pad 3 [V48_RAW] of U22 on F.Cu",
+          "pos": [
+            41.1375,
+            94.375
+          ],
+          "uuid": "d07da20e-35bc-4a4c-a9b2-e45c9045b515"
+        },
+        {
+          "msg": "Pad 4 [<no net>] of U22 on F.Cu",
+          "pos": [
+            41.1375,
+            95.025
+          ],
+          "uuid": "1e83f4be-e751-4085-bfa0-6a8fa36e3a19"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        41.1375,
+        95.675
+      ],
+      "layer": "F.Cu",
+      "net": "<no net>",
+      "refs": [
+        "U22"
+      ],
+      "msg": "Clearance violation (rule 'hv_to_netless_conductor' clearance 0.6000 mm; actual 0.2500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Pad 5 [<no net>] of U22 on F.Cu",
+          "pos": [
+            41.1375,
+            95.675
+          ],
+          "uuid": "29b09355-a63e-402c-827c-5f990587efd4"
+        },
+        {
+          "msg": "Pad 6 [V48_RAW] of U22 on F.Cu",
+          "pos": [
+            41.1375,
+            96.325
+          ],
+          "uuid": "ada8bf4b-4d5d-48f5-b13c-a0b6c33b8849"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        46.3,
+        72.013
+      ],
+      "layer": "In1.Cu",
+      "net": "/poe/POE_TAP_A1",
+      "refs": [
+        "J1"
+      ],
+      "msg": "Clearance violation (rule 'hv_tap_general_clearance' clearance 0.6350 mm; actual 0.5005 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "PTH pad 11 [/poe/POE_TAP_A1] of J1",
+          "pos": [
+            46.3,
+            72.013
+          ],
+          "uuid": "887e8889-2e02-489c-ba95-a6a6167c2487"
+        },
+        {
+          "msg": "Zone [GND] on In1.Cu, priority 0",
+          "pos": [
+            19.58,
+            57.132
+          ],
+          "uuid": "bd6fa715-768d-4331-bf0b-1b5be3c2fb27"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        46.3,
+        72.013
+      ],
+      "layer": "In2.Cu",
+      "net": "/poe/POE_TAP_A1",
+      "refs": [
+        "J1"
+      ],
+      "msg": "Clearance violation (rule 'hv_tap_general_clearance' clearance 0.6350 mm; actual 0.5005 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "PTH pad 11 [/poe/POE_TAP_A1] of J1",
+          "pos": [
+            46.3,
+            72.013
+          ],
+          "uuid": "887e8889-2e02-489c-ba95-a6a6167c2487"
+        },
+        {
+          "msg": "Zone [+3V3] on In2.Cu, priority 0",
+          "pos": [
+            45.58,
+            57.132
+          ],
+          "uuid": "0764fd4f-13c1-458d-9948-3f55d60f8ed7"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        43.76,
+        70.743
+      ],
+      "layer": "In1.Cu",
+      "net": "/poe/POE_TAP_A2",
+      "refs": [
+        "J1"
+      ],
+      "msg": "Clearance violation (rule 'hv_tap_general_clearance' clearance 0.6350 mm; actual 0.5005 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "PTH pad 12 [/poe/POE_TAP_A2] of J1",
+          "pos": [
+            43.76,
+            70.743
+          ],
+          "uuid": "26b3399b-ae3b-4de8-9120-969b1425e417"
+        },
+        {
+          "msg": "Zone [GND] on In1.Cu, priority 0",
+          "pos": [
+            19.58,
+            57.132
+          ],
+          "uuid": "bd6fa715-768d-4331-bf0b-1b5be3c2fb27"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        37.41,
+        70.743
+      ],
+      "layer": "In1.Cu",
+      "net": "/poe/POE_TAP_B1",
+      "refs": [
+        "J1"
+      ],
+      "msg": "Clearance violation (rule 'hv_tap_general_clearance' clearance 0.6350 mm; actual 0.5005 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "PTH pad 13 [/poe/POE_TAP_B1] of J1",
+          "pos": [
+            37.41,
+            70.743
+          ],
+          "uuid": "f7a759d2-affd-4bc7-a0f2-18ae043290e2"
+        },
+        {
+          "msg": "Zone [GND] on In1.Cu, priority 0",
+          "pos": [
+            19.58,
+            57.132
+          ],
+          "uuid": "bd6fa715-768d-4331-bf0b-1b5be3c2fb27"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        34.87,
+        72.013
+      ],
+      "layer": "In1.Cu",
+      "net": "/poe/POE_TAP_B2",
+      "refs": [
+        "J1"
+      ],
+      "msg": "Clearance violation (rule 'hv_tap_general_clearance' clearance 0.6350 mm; actual 0.5005 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "PTH pad 14 [/poe/POE_TAP_B2] of J1",
+          "pos": [
+            34.87,
+            72.013
+          ],
+          "uuid": "4f56cde3-7d72-4d3a-9ca9-75b1b20fc90f"
+        },
+        {
+          "msg": "Zone [GND] on In1.Cu, priority 0",
+          "pos": [
+            19.58,
+            57.132
+          ],
+          "uuid": "bd6fa715-768d-4331-bf0b-1b5be3c2fb27"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        46.8625,
+        95.025
+      ],
+      "layer": "F.Cu",
+      "net": "<no net>",
+      "refs": [
+        "U22"
+      ],
+      "msg": "Clearance violation (rule 'hv_to_netless_conductor' clearance 0.6000 mm; actual 0.2500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Pad 17 [<no net>] of U22 on F.Cu",
+          "pos": [
+            46.8625,
+            95.025
+          ],
+          "uuid": "6a5d524c-b8c5-4cc7-bf6e-dc4d9035e6c1"
+        },
+        {
+          "msg": "Pad 18 [+48V_SW] of U22 on F.Cu",
+          "pos": [
+            46.8625,
+            94.375
+          ],
+          "uuid": "c7fd34cc-69ce-4be5-b0b1-b5c158a4174b"
+        }
+      ]
+    }
+  ]
+}

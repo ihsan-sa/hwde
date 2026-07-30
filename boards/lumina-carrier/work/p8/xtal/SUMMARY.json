@@ -1,0 +1,275 @@
+{
+ "work_order": "collapse the 25 MHz oscillator island (eth_xtal)",
+ "board": "boards/lumina-carrier/kicad/lumina-carrier.kicad_pcb",
+ "gates": {
+  "drc_routed": "PASS 0 failing / 0 total (fail_severities [error,warning], max_count 0, parity + all_track_errors)",
+  "place": "PASS 0 failing / 0 total"
+ },
+ "placement_rel": {
+  "Y10": {
+   "before": null,
+   "after": [
+    70.75,
+    5.0,
+    0
+   ]
+  },
+  "C30": {
+   "before": null,
+   "after": [
+    69.25,
+    8.25,
+    180
+   ]
+  },
+  "C31": {
+   "before": null,
+   "after": [
+    74.5,
+    4.75,
+    0
+   ]
+  },
+  "R35": {
+   "before": null,
+   "after": [
+    72.25,
+    8.0,
+    0
+   ]
+  },
+  "R36": {
+   "before": null,
+   "after": [
+    74.5,
+    7.25,
+    90
+   ]
+  }
+ },
+ "copper": {
+  "before": {
+   "/eth/XI": {
+    "by_layer": {
+     "B.Cu": 8.148,
+     "F.Cu": 37.549
+    },
+    "total_mm": 45.697,
+    "vias": 6
+   },
+   "/eth/XO": {
+    "by_layer": {
+     "B.Cu": 10.158,
+     "F.Cu": 32.641
+    },
+    "total_mm": 42.8,
+    "vias": 2
+   },
+   "/eth/XO_XTAL": {
+    "by_layer": {
+     "B.Cu": 2.1,
+     "F.Cu": 24.971
+    },
+    "total_mm": 27.071,
+    "vias": 2
+   }
+  },
+  "after": {
+   "/eth/XI": {
+    "by_layer": {
+     "B.Cu": 8.206,
+     "F.Cu": 7.13
+    },
+    "total_mm": 15.336,
+    "vias": 2
+   },
+   "/eth/XO": {
+    "by_layer": {
+     "B.Cu": 10.158,
+     "F.Cu": 3.761
+    },
+    "total_mm": 13.92,
+    "vias": 2
+   },
+   "/eth/XO_XTAL": {
+    "by_layer": {
+     "F.Cu": 3.957
+    },
+    "total_mm": 3.957,
+    "vias": 0
+   }
+  },
+  "total_before_mm": 115.568,
+  "total_after_mm": 33.212,
+  "vias_before": 10,
+  "vias_after": 4
+ },
+ "edge": {
+  "before": {
+   "min_island_copper_to_outline_mm": 0.647,
+   "min_island_pad_copper_to_outline_mm": 0.647
+  },
+  "after": {
+   "min_island_copper_to_outline_mm": 3.45,
+   "min_island_pad_copper_to_outline_mm": 3.45
+  }
+ },
+ "pad_pairs": {
+  "before": {
+   "R36.1(XO) -> U10.31 XO driver pin": {
+    "centre_mm": 32.0099,
+    "copper_mm": 30.9929
+   },
+   "R35.1(XI) -> U10.30 XI pin": {
+    "centre_mm": 17.6852,
+    "copper_mm": 16.436
+   },
+   "C30.1 -> Y10.1  (XI load cap to its pin)": {
+    "centre_mm": 4.5992,
+    "copper_mm": 3.4
+   },
+   "C31.1 -> Y10.3  (XO_XTAL load cap to pin)": {
+    "centre_mm": 7.5464,
+    "copper_mm": 6.3863
+   },
+   "R36.2 -> Y10.3  (series R to crystal)": {
+    "centre_mm": 16.0836,
+    "copper_mm": 14.5943
+   }
+  },
+  "after": {
+   "R36.1(XO) -> U10.31 XO driver pin": {
+    "centre_mm": 9.5326,
+    "copper_mm": 8.3119
+   },
+   "R35.1(XI) -> U10.30 XI pin": {
+    "centre_mm": 10.8532,
+    "copper_mm": 9.6153
+   },
+   "C30.1 -> Y10.1  (XI load cap to its pin)": {
+    "centre_mm": 2.3195,
+    "copper_mm": 1.25
+   },
+   "C31.1 -> Y10.3  (XO_XTAL load cap to pin)": {
+    "centre_mm": 2.0718,
+    "copper_mm": 0.85
+   },
+   "R36.2 -> Y10.3  (series R to crystal)": {
+    "centre_mm": 3.609,
+    "copper_mm": 2.0972
+   }
+  }
+ },
+ "routed_xo_driver_to_R36_mm": {
+  "before": 41.189,
+  "after": 12.42
+ },
+ "target2_measured_ceiling": {
+  "note": "search window rel x[64,90] y[3,16.5], step 0.25, same constraints as the applied placement",
+  "U10.31_XO_pad_centre_rel": [
+   76.596,
+   17.299
+  ],
+  "results": [
+   {
+    "ref": "R36",
+    "pad": "1",
+    "legal_poses": 4206,
+    "min_centre_to_U10_31_mm": 5.4593,
+    "min_copper_to_U10_31_mm": 4.6515,
+    "at_rel": [
+     81.75,
+     14.75
+    ],
+    "deg": 90
+   },
+   {
+    "ref": "C31",
+    "pad": "1",
+    "legal_poses": 4160,
+    "min_centre_to_U10_31_mm": 6.0063,
+    "min_copper_to_U10_31_mm": 5.2024,
+    "at_rel": [
+     70.25,
+     15.25
+    ],
+    "deg": 180
+   }
+  ]
+ },
+ "ops_applied": {
+  "rip.json": 81,
+  "place.json": 5,
+  "add.json": 18,
+  "refdes_ops.json": 4
+ },
+ "new_vias_rel": [
+  [
+   "/eth/XI",
+   [
+    72.25,
+    8.8
+   ]
+  ],
+  [
+   "GND",
+   [
+    72.95,
+    5.95
+   ]
+  ],
+  [
+   "GND",
+   [
+    68.5875,
+    4.3347
+   ]
+  ],
+  [
+   "GND",
+   [
+    67.7982,
+    8.5236
+   ]
+  ],
+  [
+   "GND",
+   [
+    76.0,
+    4.75
+   ]
+  ]
+ ],
+ "gnd_vias_rel": {
+  "Y10.2": [
+   72.95,
+   5.95
+  ],
+  "Y10.4": [
+   68.5875,
+   4.3347
+  ],
+  "C30.2": [
+   67.7982,
+   8.5236
+  ],
+  "C31.2": [
+   76.0,
+   4.75
+  ]
+ },
+ "verify_by_source": {
+  "pre_edit_board_same_constraints": {
+   "check_return_path": 16,
+   "check_current": 94,
+   "check_decoupling": 2,
+   "check_creepage": 11
+  },
+  "after": {
+   "check_return_path": 13,
+   "check_current": 94,
+   "check_decoupling": 2,
+   "check_creepage": 11
+  }
+ }
+}

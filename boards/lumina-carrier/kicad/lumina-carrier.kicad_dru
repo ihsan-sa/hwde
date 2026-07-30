@@ -190,3 +190,122 @@
 	(constraint clearance (min 0.6mm))
 	(condition "((A.NetName == '/poe/POE_TAP_A1' && B.NetName == '/poe/POE_TAP_A2') || (A.NetName == '/poe/POE_TAP_B1' && B.NetName == '/poe/POE_TAP_B2')) && !(A.Type == 'Pad' && B.Type == 'Pad')")
 	(severity error))
+
+# ---------------------------------------------------------------------------
+# Fab track-width floor - JLCPCB 4-layer 1 oz minimum.
+#
+# WHY THIS EXISTS: `board_init.write_pro` hard-codes
+# `design_settings.rules.min_track_width = 0.1`, which is BELOW EVERY profile in
+# reference/jlc_capabilities.yaml (4L 1 oz = 0.1016, 2L = 0.127, 2 oz = 0.1524).
+# `rules_gen` emits the correct floor plus its own `aiee_track_width_floor` rule -
+# but THIS .kicad_dru was hand-written for the 48 V rules and therefore REPLACED
+# the generated file instead of extending it, so the floor was simply absent.
+#
+# Consequence, measured at H4 on a board sitting at drc_routed 0 errors /
+# 0 warnings: 188 tracks laid at exactly 0.1000 mm - legal against the board's own
+# DRC, and 1.6 MICROMETRES under what the fab can etch. `gate dfm` reported 188
+# errors. All 188 are now 0.1071-0.110 mm. The .kicad_pro floor was raised to
+# 0.1016 mm at the same time.
+#
+# THE GENERAL LESSON, worth more than this rule: drc_routed 0/0 does NOT imply
+# manufacturable, because DRC checks the board against rules the pipeline wrote.
+# A hand-written .kicad_dru must START from the rules_gen output, never replace it.
+# ---------------------------------------------------------------------------
+(rule "aiee_track_width_floor"
+	(constraint track_width (min 0.1016mm))
+	(severity error))
+
+# ---------------------------------------------------------------------------
+# PoE tap GENERAL clearance - the coverage hole that let two real defects through.
+#
+# Before H4 the four /poe/POE_TAP_* nets were named ONLY in rules that constrained
+# them against a NAMED SUBSET: `magjack_isolation_barrier` (taps vs the four /ETH_*
+# nets) and `poe_tap_differential_pair` (taps vs each other). Nothing held a tap to
+# 0.635 mm against the REST of the board. So of the 7 nets declared at >= 30 V in
+# constraints.json, only 3 (V48_RAW, V48_RTN, +48V_SW) had general coverage.
+#
+# That single gap is why BOTH of these existed on a board reporting 0 DRC errors:
+#   - /poe/POE_TAP_A2 <-> /poe/LED_Y_A at 0.2031 mm, 226 pairs under 0.635 mm.
+#     LED_Y_A reaches +3V3 through R7 (330 R), and +3V3 leaves on J3 pins 12/14 to
+#     every daughter, unclamped - so the failure product was 57 V on +3V3.
+#     Rerouted at H4 to 1.1500 mm.
+#   - tap <-> J1 board lock at 0.6029 mm (see hv_to_netless_conductor below).
+#
+# STANDING CHECK for anyone editing these rules: enumerate every net in
+# constraints.json.voltages with |V| >= 30 and assert each appears in at least one
+# rule whose condition does NOT restrict B to a named list. Grep your own rules for
+# `B.NetName ==` - every occurrence is a coverage hole unless a general rule also
+# covers that A.
+#
+# Pad-pair exclusion for the same reason as the HV_48V rules: J1's VC1-VC4 lead
+# frame is package geometry, not a routing choice, and P8 check_creepage models
+# pad-to-pad independently from constraints.json `voltages`.
+# ---------------------------------------------------------------------------
+# THRESHOLD 0.600 mm, and the choice is deliberate - see the note below on what it
+# does and does not buy. Two SCOPE exclusions, both measured, both justified:
+#
+# (1) SAME-COURTYARD, enumerated per refdes exactly as the HV_48V rules do. Without
+#     it the rule fires on U22's own lead frame - its no-connect pads 4/5/17 sit
+#     0.220-0.250 mm from its own V48_RAW and +48V_SW pads and escapes. That is
+#     package geometry, not a routing choice; owner decision (c) at H4 keeps this
+#     relaxation, and P8 check_creepage models pad-to-pad independently anyway.
+#
+# (2) INNER-LAYER PLANE ANTIPADS. The tap pads and vias clear the In1 GND and In2
+#     +3V3 zones by 0.5005 mm - measured, uniform, 13 instances. That is a plane
+#     antipad, and the governing figure for an INTERNAL conductor at 51-100 V is
+#     IPC-2221B row B1 = 0.10 mm, which 0.5005 mm exceeds FIVE-FOLD. The 0.635 mm
+#     board-wide figure is a TPS2378 datasheet recommendation about BOARD COPPER
+#     around the PD controller's pins; applying an external-conductor number to an
+#     inner-layer antipad is the wrong yardstick, and a rule that fires permanently
+#     gets waived, which is worse than one that holds a real line.
+#
+# WHY 0.600 AND NOT 0.635: 0.600 mm is IPC-2221B row B2 (external, uncoated,
+# 51-100 V) - the actual standard for this geometry - and it is what the other two
+# tap rules already use, for the reasons documented above each of them. The
+# 0.635 mm figure is TI's guidance for U1's OWN pins and is retained board-wide for
+# the three 48 V rails by the HV_48V_* rules.
+#
+# DISCLOSED RESIDUAL, recorded here rather than hidden by the threshold choice:
+# the tightest tap clearance on this board is a +3V3 via against J1 PTH pad 11
+# (/poe/POE_TAP_A1) on F.Cu at **0.6215 mm** - 4 instances. It clears 0.600 mm by
+# +0.0215 mm and misses 0.635 mm by 0.0135 mm. Closing that 13.5 micrometres would
+# mean moving a +3V3 via on a board at DRC 0/0 for no real gain; it is the
+# thinnest margin in the tap domain and is stated so a reader can find it.
+(rule "hv_tap_general_clearance"
+	(constraint clearance (min 0.6mm))
+	(condition "(A.NetName == '/poe/POE_TAP_A1' || A.NetName == '/poe/POE_TAP_A2' || A.NetName == '/poe/POE_TAP_B1' || A.NetName == '/poe/POE_TAP_B2') && !(A.Type == 'Pad' && B.Type == 'Pad') && !(B.Type == 'Zone' && (B.Layer == 'In1.Cu' || B.Layer == 'In2.Cu')) && !(A.intersectsCourtyard('U1') && B.intersectsCourtyard('U1')) && !(A.intersectsCourtyard('U20') && B.intersectsCourtyard('U20')) && !(A.intersectsCourtyard('U22') && B.intersectsCourtyard('U22'))")
+	(severity error))
+
+# ---------------------------------------------------------------------------
+# HV to NETLESS conductor - J1's two board locks.
+#
+# J1's board locks are plated 3.2 mm holes present on all four layers, carrying NO
+# net. They sit 0.66 mm from 57 V copper, and NOTHING modelled them:
+#   - check_creepage skips them because no net means no declared voltage, hence no
+#     `dv` to compare against IPC-2221;
+#   - the pad-pair exclusion the HV rules correctly carry (a lead frame is not a
+#     routing choice) ALSO excludes them, because the tap side is a pad too.
+# So the 0.66 mm was luck, not design. Owner decision (e) at H4: declare them.
+# Declared in constraints.json.voltages as the record; enforced HERE, because that
+# declaration is one check_creepage still cannot evaluate (a net name of empty
+# string matches no copper in its model).
+#
+# THRESHOLD 0.60 mm, NOT 0.635 mm, and deliberately: the J1 land itself only
+# achieves 0.6029 / 0.6127 mm board-lock-to-tap (measured shape-aware at P7,
+# capsule model), and 0.60 mm is IPC-2221B B2 for the 51-100 V band. A rule set
+# above what the land can physically reach fires permanently and gets waived,
+# which is worse than a rule that holds a real line. NO pad-pair exclusion here -
+# that exclusion is exactly what hid this pair, and 0.6029 mm clears 0.60 mm.
+# ---------------------------------------------------------------------------
+# SAME-COURTYARD exclusion, enumerated, for one measured reason: U22 (the eFuse) has
+# NO-CONNECT pads 4, 5 and 17 that sit 0.220-0.250 mm from its own V48_RAW and
+# +48V_SW pads and their escapes. Those NC pads are netless conductors, so this rule
+# catches them - but they are U22's lead frame, which no layout can change, and they
+# are the same class as the intra-footprint relaxation the owner kept at H4 as
+# decision (c). Excluded per refdes, never wildcarded, so it cannot quietly widen.
+# J1's board locks - the pads this rule EXISTS for - are NOT inside any excluded
+# courtyard pair and remain fully checked at 0.6029 / 0.6127 mm.
+(rule "hv_to_netless_conductor"
+	(constraint clearance (min 0.6mm))
+	(condition "(A.NetName == 'V48_RAW' || A.NetName == 'V48_RTN' || A.NetName == '+48V_SW' || A.NetName == '/poe/POE_TAP_A1' || A.NetName == '/poe/POE_TAP_A2' || A.NetName == '/poe/POE_TAP_B1' || A.NetName == '/poe/POE_TAP_B2') && B.NetName == '' && !(A.intersectsCourtyard('U1') && B.intersectsCourtyard('U1')) && !(A.intersectsCourtyard('U20') && B.intersectsCourtyard('U20')) && !(A.intersectsCourtyard('U22') && B.intersectsCourtyard('U22'))")
+	(severity error))
