@@ -3,7 +3,7 @@
  "board": "lumina-carrier",
  "workspace": "boards/lumina-carrier",
  "created": "2026-07-28T13:36:22",
- "updated": "2026-07-29T22:10:21",
+ "updated": "2026-07-29T22:11:27",
  "phase": "P8",
  "gates": {
   "erc": {
@@ -78,12 +78,12 @@
   "verify": {
    "phase": "P8",
    "status": "fail",
-   "attempts": 1,
+   "attempts": 2,
    "last": {
-    "ts": "2026-07-29T17:25:18",
+    "ts": "2026-07-29T22:11:27",
     "status": "fail",
-    "failing_count": 220,
-    "total": 224
+    "failing_count": 114,
+    "total": 118
    },
    "history": [
     {
@@ -91,6 +91,12 @@
      "status": "fail",
      "failing_count": 220,
      "total": 224
+    },
+    {
+     "ts": "2026-07-29T22:11:27",
+     "status": "fail",
+     "failing_count": 114,
+     "total": 118
     }
    ]
   }
@@ -962,6 +968,14 @@
    "ts": "2026-07-29T22:10:21",
    "event": "decision",
    "what": "SILK LEGIBILITY DONE: 111 in-scope refdes pulled in. Median offset 4.079 -> 1.600 mm; refdes more than 1 mm beyond their own part extent 95 -> 3 (excluding out-of-scope H1-H5); more than 1.5 mm beyond, 86 -> 1. 116/116 still visible, drc_routed 0/0 after every one of 5 batches."
+  },
+  {
+   "ts": "2026-07-29T22:11:27",
+   "event": "gate",
+   "gate": "verify",
+   "status": "fail",
+   "attempt": 2,
+   "failing_count": 114
   }
  ]
 }
