@@ -3,7 +3,7 @@
  "board": "lumina-carrier",
  "workspace": "boards/lumina-carrier",
  "created": "2026-07-28T13:36:22",
- "updated": "2026-07-30T09:06:25",
+ "updated": "2026-07-30T09:14:43",
  "phase": "P10",
  "gates": {
   "erc": {
@@ -583,6 +583,12 @@
    "why": "The experiment was run cleanly and is conclusive for what it tested: calculate kept insideCuprumThickness '0.5' and priced correctly at 26.12 (18.40 pcb + 7.7179 HKTHZXR-RMB, insideCuprumThicknessFee 0.00), while create sent a payload verified field-by-field BEFORE sending to contain no insideCuprumThickness and everything else intact - orderType 1, fileKey, layer 4, copperWeight '1', qty 10, identical serviceConfigVos, shippingMethod HKTHZXR-RMB. JLC still returned HTTP 200 with code 2. So the failing element is NOT that field. THREE ATTEMPTS, THREE TRACES, THREE DIFFERENT PAYLOADS, ONE IDENTICAL UNCLASSIFIED REJECTION: 4e0f08d4e3c04a9b80b19553624c43a8 (inner copper '1'), f90769b3cb184f2cb0e6c2312844639d (inner copper '0.5'), b1eba7f4642b494db0cb8a1b104f5b14 (field absent). Against a control - pd-trigger, same account, same API, same shippingMethod HKTHZXR-RMB, same country US, same payload shape - which created successfully as batchNum W2026073002475378. The only structural differences left are layer count (2 vs 4) and board size (48x30 vs 100x80). I did NOT try candidate 2 because the instruction was explicit that three identical unclassified rejections means the cause is not in the payload and further live creates are guessing with real money. I ALSO REVERTED my experimental edit to order_submit.py rather than leaving it: with the hypothesis disproved, permanently dropping insideCuprumThickness from create would make the script silently discard a genuine 1 oz inner-copper selection on some future board and ship 0.5 oz instead - precisely the class of board-killer that commit 2f0cb1e was written to fix. A failed experiment must not leave a hazard behind. Script is back at 2f0cb1e, git-clean.",
    "phase": "P10",
    "ts": "2026-07-30T09:06:25"
+  },
+  {
+   "what": "STOPPED PER STEP 1: JLC04161H-3313 DOES NOT EXIST in JLC's impedance template list. Only three 4L/1.6mm/1oz/0.5oz templates are offered - JLC04161H-custom (20220811093551), JLC04161H-1080B (202601040426384154), JLC04161H-7628G (202607130748059522) - and NONE has the 0.2104 mm 7628 prepreg this board's 100 ohm MDI was solved against. All three also return enableFlag false. No create attempted.",
+   "why": "getImpedanceTemplateSettingList works and is free. Swept plateType 0-3, delamination 0-3 and a minimal payload: plateType 1 is the only value returning anything, and every successful shape returns the SAME three templates. No 3313 under any parameter shape. THE MISMATCH IS IN OUR OWN REFERENCE DATA, not in the order: reference/stackups.yaml line 67 defines JLC04161H-3313 as prepreg 0.2104 mm FR4 7628 er 4.05 with a 1.065 mm core, and architecture/stackup.md s2.1 calls it 'the only stackup in reference/stackups.yaml that publishes a 100 ohm differential profile' - that is what made this board 4-layer and what produced the 0.260 mm / 0.210 mm / 0.470 mm MDI geometry. JLC does not offer it. What JLC actually offers: 1080B has the RIGHT core (1.065 mm, matching exactly) but 1080 glass at 0.084+0.084+0.0764 = 0.2444 mm L1-to-L2, 16.2 percent thicker than assumed; 7628G has the RIGHT prepreg material (7628) but a 0.5 mm core and 0.218+0.218+0.0764 = 0.5124 mm L1-to-L2, 143 percent thicker. Differential Z0 rises with dielectric height, so 1080B lands the pairs somewhere above 100 ohm and 7628G lands them far above - neither is the geometry that was solved. I did NOT choose one: the instruction was explicit that picking an approximate stackup is forbidden because the trace geometry was solved against a specific one, and that is exactly right - swapping the stackup silently invalidates the single reason this board has four layers. THIRD-ORDER CONSEQUENCE worth flagging beyond this order: enableFlag is FALSE on all three, so it is not established that ANY of them is currently selectable via the API. And this applies to lumina-strobe and lumina-par identically, since both are 4-layer and inherit the same stackups.yaml entry. The remaining live-create hypothesis is untested - impedanceFlag is still hardcoded 'no' and no impedanceTemplateCode is sent - but I cannot apply that fix without choosing a template, which is the decision I was told to stop at.",
+   "phase": "P10",
+   "ts": "2026-07-30T09:14:43"
   }
  ],
  "history": [
@@ -1181,6 +1187,11 @@
    "ts": "2026-07-30T09:06:25",
    "event": "decision",
    "what": "THIRD IDENTICAL FAILURE - candidate 1 disproved. Omitting insideCuprumThickness from the create payload changed nothing: code 2 unknown_error, trace b1eba7f4642b494db0cb8a1b104f5b14. STOPPED. Candidate 2 NOT attempted. No order created, nothing spent, latch still unarmed. Escalate to JLC support or the manual cart."
+  },
+  {
+   "ts": "2026-07-30T09:14:43",
+   "event": "decision",
+   "what": "STOPPED PER STEP 1: JLC04161H-3313 DOES NOT EXIST in JLC's impedance template list. Only three 4L/1.6mm/1oz/0.5oz templates are offered - JLC04161H-custom (20220811093551), JLC04161H-1080B (202601040426384154), JLC04161H-7628G (202607130748059522) - and NONE has the 0.2104 mm 7628 prepreg this board's 100 ohm MDI was solved against. All three also return enableFlag false. No create attempted."
   }
  ]
 }
