@@ -1369,3 +1369,284 @@ URL returns HTML). Renders judge MODELS, drills judge BOARDS. fp_verify only cov
 datasheet extracts (pd-trigger had U1 only) - connector footprints deserve the extract+verify
 treatment before ordering, and 3D-model offsets deserve a fix in the workspace lib so design-doc
 renders stop alarming humans.
+
+## 2026-07-29 [geometry][keepout][planes] Keepout checks need STRICT-interior containment: plane regions deliberately ABUT the band they exclude
+Verifying that the ESP32-S3 antenna band was copper-free on lumina-carrier, a hand-written check
+reported **14 violations** on In1.Cu and In2.Cu. All 14 were false.
+
+The cause is structural, not a coding slip. The recipe that carves a hole out of a plane uses three
+positive rectangles per layer, because a single positive rectangle cannot have a hole - so the middle
+region is authored to **stop exactly at the keepout's edge** (`ex2 - 10`, i.e. x = 109.58, the band's
+left boundary). Its fill polygon therefore *legitimately* carries vertices lying precisely ON the
+boundary. An inclusive test (`BAND[0] <= x <= BAND[2]`) counts every one of them as copper inside the
+band. A strict test with a small epsilon (`BAND[0] + EPS < x < BAND[2] - EPS`) returns zero.
+
+**Any containment test against a deliberately-abutting region must be strict, not inclusive.** This
+will bite every future keepout, courtyard, plane-void, board-edge and exclusion-zone check, because
+"the excluded region and the thing excluded from it share an edge" is the normal case, not the
+exception - that is what makes the exclusion exact.
+
+The dangerous part is the failure direction: an inclusive test cries wolf on a board that is
+**correct**, and the obvious "fix" is to tear up good copper or shrink a plane that was already right.
+Fix the checker, not the board. Confirm by sweeping epsilon (0.00 / 0.01 / 0.10 / 0.50 mm) - if the
+count collapses to zero at any nonzero epsilon, every hit was a boundary artifact and the geometry was
+never wrong.
+
+Related: no gate in the pipeline checks a keepout band at all. `constraints.json.placement.keepouts`
+is read only by the P6 placement scripts; the router and `planes_gen` never see it, so an F.Cu/B.Cu
+keepout RULE AREA has to be added at P7 and the inner-layer exclusion has to come from the plane
+region shaping. Verifying it is therefore a manual geometric step - which is exactly why the checker
+being trustworthy matters.
+
+## 2026-07-29 [geometry][creepage][measurement] A pad-gap formula is only valid for one pad SHAPE - using the wrong one moves the answer by 0.3-0.5 mm in either direction
+Measuring the cable-side/PHY-side barrier on lumina-carrier's magjack, I produced **three different
+numbers for the same pair of pads** - 1.451, then 1.148, then 1.613 mm - and reported two of them
+upstream before the third settled it. The cause was never the parser; it was applying a formula that
+did not match the pad shape.
+
+    circle-circle : gap = hypot(dx, dy) - (r1 + r2)                       <- radial form
+    oval          : stadium - distance between the two spine SEGMENTS, minus radii
+    rect-rect     : per-axis - dx = |dx_c| - (w1+w2)/2 ; dy likewise ;
+                    gap = hypot(max(dx,0), max(dy,0))
+
+**The radial form is EXACT for circles and overestimates rectangles** (by 0.303 mm on one diagonal
+pair here). **The rect form is EXACT for rectangles and underestimates circles** (by 0.465 mm on the
+same pair). I used each on the wrong shape in turn, so I first over-reported a gap, then "corrected"
+a number that had been right, declared a false failure, and shrank a pad that did not need shrinking.
+
+KiCad tells you the shape in the pad header - `(pad "2" thru_hole circle ...)` - and it is the second
+token after the pad number. Read it. THT signal pads are usually `circle`; board-lock and shield tabs
+are often `oval`; SMD pads are `rect`/`roundrect`. A single footprint routinely mixes all three, so a
+gap tool that assumes one shape is wrong somewhere in every real footprint.
+
+Write ONE shape-aware helper and use it everywhere. A capsule model covers all three: a circle is a
+degenerate segment with a radius, an oval is a segment along its long axis with radius = half the
+short axis, and only true rectangles need the per-axis form.
+
+Two second-order lessons:
+- **The direction of the error matters more than the size.** Over-reporting a gap hides a real
+  violation; under-reporting invents one and invites you to "fix" correct hardware. I did both, and
+  the under-report was worse - it cost a pad shrink and a retraction.
+- **Re-deriving a number is not the same as re-deriving it correctly.** When a measurement is
+  contested, fix the METHOD and state which model you used, rather than producing another figure.
+
+## 2026-07-29 [routing][parts] KRT's default 200k A* iteration cap, not congestion, is what fails a long haul - and the log says which
+lumina-carrier P7 spent three routers and ~10 rip-set attempts on `/FAULT` (U22 pin 15 -> the J4 end,
+a 68 mm MST edge) and `/ADC0` (D41 -> U30, 59 mm). Every attempt reported `No route found after
+200000 iterations (forward) ... 410000 (both directions)` and `All rip-up attempts failed`; broad rip
+sets only traded one net for another. Raising `--max-iterations` from its 200000 default to 4000000
+(with `--max-probe-iterations 60000`) routed BOTH on the first try, and neither needed a wider rip set
+than the log's own hint list. The tell is in the rip-up ladder's own diagnostic:
+`Coverage: 1863/13659 frontier cells attributed to routed nets; 11796 static/unrippable` - 86 % of the
+blocking frontier was static copper (pads, 48 V tracks at 0.635 mm, plane vias), so no amount of
+ripping could open it; the flood front simply needed to be allowed to go further around. Read that
+Coverage line BEFORE building a rip set: high static share => raise the iteration budget, not the rip set.
+
+## 2026-07-29 [routing][gates] KRT output boards must be refilled before DRC, or the gate reports ~375 phantom zone errors
+`krt_finish.py` writes a new .kicad_pcb with fresh vias but does NOT refill the pours, so
+`gate.py --gate drc_routed` on the raw KRT output reported 375 failing (261 errors) - 371 of them
+`clearance`/`hole_clearance` between a NEW via and a `Zone [GND] on In1.Cu` / `Zone [+3V3] on In2.Cu`
+whose fill still predates the via. Only 4 were real. Copy the KRT output over
+`kicad/<board>.kicad_pcb` first (so the .kicad_pro/.kicad_prl/.kicad_dru sidecars are beside it -
+kicad-cli needs them for correct rules), then
+`kc.run_drc(kc.resolve_cli(), pcb, refill=True, save_board=True)`, and only then gate. Same board,
+same copper: 375 -> 7.
+
+## 2026-07-29 [routing][placement] "Widen the corridor" was the wrong diagnosis for a boxed-in QFP GND pad - measure the pad extent, not the footprint origin
+lumina-carrier U10 (LQFP-48, 0.5 mm pitch) pad 9 (GND) read as needing a wider gap between the south
+pad row (ends y 83.6819) and C35. A P7 predecessor moved C35 +0.300 mm in y, computing the corridor
+from C35's FOOTPRINT y (85.813 - 0.45 = 85.363) instead of its pad-1 CENTRE y (85.113 - 0.45 =
+84.663) - a 0.700 mm error, so the "1.6811 mm corridor" was really 0.9811 mm. The move also put pad 1
+on top of an existing `/ETH_RSTn` run at y 85.55: `gate place` PASS and `check_decoupling` unchanged,
+but +6 DRC errors (1 shorting_items, 4 clearance, 1 solder_mask_bridge). ALWAYS re-run DRC after a
+placement micro-adjust; the place gate does not model copper.
+And the corridor was never the blocker: `via_why.py` showed the real ones were a `+3V3` fan-out rail
+crossing at y 84.02, a void in the In1 GND fill created by the neighbouring +3V3 plane vias' clearance
+holes (the via would land in the void and connect to nothing), and `/ETH_MISO`'s B.Cu descent at
+x 97.55/97.40. The pad escaped NORTH instead, into the QFP's own 7x7 mm die shadow (via at
+(96.35, 80.65), 0.5 mm) - which needed only `/eth/EXRES` ripped and re-routed, because its y-81.85
+horizontal was the one wall sealing the north side (0.2319 mm residual gap; a 0.1 mm track needs 0.5).
+
+## 2026-07-29 [place][gates][routing] STOP: after P7 begins, `gate place` and `check_decoupling` are NOT valid oracles for a placement change - only DRC is
+**This mistake shorted a board and both checkers said PASS.**
+
+On lumina-carrier I moved C35 by +0.300 mm to widen a fan-out corridor on a board that already carried
+**3089 routed segments**. I validated the move the way P6 taught me to:
+
+    gate place            -> PASS (0 failing)
+    check_decoupling      -> unchanged, no new warnings
+
+Then DRC found **6 new errors including `shorting_items` and `solder_mask_bridge`**: the pad had landed
+on an existing `/ETH_RSTn` run at y 85.55.
+
+**Both oracles are structurally blind to routed copper.** `place_metrics`/`placelib` reason about
+courtyards, pad extents, keepouts and the outline. `check_decoupling` reasons about cap-to-pin distance
+and loop inductance. **Neither one looks at a single track or via.** They are complete oracles at P6,
+when there is no copper, and they silently stop being complete the instant the router lays the first
+segment - and nothing in the pipeline tells you that transition happened.
+
+**Rule: any footprint move after routing has started must be validated with `kc.py drc` (or the
+`drc_routed` gate), not with the place gate.** Use the place gate as a NECESSARY-but-not-sufficient
+pre-filter: it still catches courtyard and keepout illegality, which DRC will not phrase as such.
+
+Two aggravating factors worth knowing:
+- The correct sequence is snapshot -> move -> **DRC** -> place gate -> check_decoupling, and revert on
+  any new DRC violation. I had the snapshot (which is why the revert was clean) but ran the checks in
+  the wrong order and stopped at the first PASS.
+- The same move was ALSO built on a bad measurement: the corridor figure read the footprint's `(at ...)`
+  ORIGIN y rather than the **pad-1 centre** y, off by exactly 0.700 mm - so a claimed 1.681 mm corridor
+  was really 0.981 mm. When measuring clearance to a specific pad, resolve the pad, never the footprint
+  origin; on a 0603 they differ by roughly half the pad pitch.
+- And it could not have worked regardless: the true blocker was a **void in the In1 GND fill** created
+  by neighbouring plane vias' clearance holes, so a via in that corridor would have connected to
+  nothing. Check that a plane actually has copper where you intend to land a stitching via.
+
+## 2026-07-29 [routing][krt] KRT's iteration cap, not the rip set, is usually what blocks a long haul - and its own diagnostic tells you which
+Two long nets on lumina-carrier (`/FAULT` 68 mm, `/ADC0` 59 mm) defeated roughly ten rip-set attempts.
+The ladder's own diagnostic line explained why:
+
+    Coverage: 1863/13659 frontier cells attributed to routed nets; 11796 static/unrippable
+
+**86 % of the frontier was static**, i.e. pads, keepouts, plane edges and locked copper - things no rip
+set can move. Ripping more nets could not help by construction. Raising `--max-iterations` from the
+200000 default to **4000000** routed both nets on the first try.
+
+Read that coverage line before choosing a rip set. High static fraction -> raise iterations. Low static
+fraction -> a rip set may genuinely help.
+
+Second finding from the same board: **broad rip sets trade nets 1-for-1.** One set fixed STATUS+RXD0 but
+broke BOOT+I2C_SDA; the next fixed BOOT but broke ENABLE_M+ETH_RSTn. What converged was **one target net
+at a time, with only its own hint list, gate after each attempt, and keep the result only if strictly
+better** - otherwise revert. Keep a snapshot ladder so "strictly better" is enforceable.
+
+## 2026-07-29 [krt][clearance] KRT's `--clearance` is a CAP on the netclass map, not a floor - but `--net-clearances` is not capped
+On a board with a hand-written HV rule (0.635 mm on the 48 V nets) and a 0.2 mm general floor:
+
+- Passing `--clearance 0.2` **silently produced 480 HV violations.** The flag caps the netclass map, so
+  it pulled the HV nets DOWN to 0.2 mm rather than raising anything.
+- Passing an explicit **`--net-clearances` file is NOT capped** (only the auto-read path is), which is
+  how per-net HV clearance survives while everything else keeps the floor.
+
+Also: KRT cannot read a `.kicad_dru`. Every `PWR_*` netclass in the `.kicad_pro` carried 0.2 mm and the
+0.635 mm existed only in the DRU file, so the router had no way to know about it except the explicit
+net-clearances file. If a hand-written DRU rule is the only thing holding a safety clearance, the
+autorouter is not enforcing it - pass it explicitly and re-run DRC after.
+
+Practical note: Git-Bash mangles a leading `/` in net names on the command line, so pass net lists via a
+JSON job file rather than argv.
+
+## 2026-07-29 [geom][drc][clearance] `bg.nets` omits UNNETTED pads, so any clearance model built from it is blind to 37 real copper items
+lumina-carrier P8. A widening pass computed each undersized power segment's max width as
+`2*(dist(centreline, foreign_copper) - clearance)`, iterating foreign copper as
+`for onet in bg.nets: bg.net_copper(onet, layer)`. `BoardGeom.nets` contains only NAMED nets, so every
+pad with no net is invisible to that loop - **37 of them on this board** (U10 x16, J1 x6, U30 x4,
+U22 x4, D10, U20, H1-H5). The pass widened four +3V3 escapes to 0.500 mm and DRC came back with 4
+clearance errors at **0.0665 / 0.0689 mm** against `U10-18`, an unconnected LQFP-48 pin. Fix:
+`for p in bg.pads_of(): if not p.net and layer in p.layers: ...`. Same trap applies to any
+`net_copper`-driven audit (stitch candidates, via placement, creepage sweeps).
+
+Second, related: `net_copper(net, layer)` counts a through VIA's own barrel as copper on **every layer
+it spans**. So "which layers does this via bridge?" answered by intersecting the via with
+`net_copper` returns *all four* on a 4-layer board, always. Build the bridged-layer set from
+tracks + pads + zone fills only.
+
+## 2026-07-29 [route_edit][kicad] route_edit adds BEFORE it removes, so you cannot replace an item at the SAME position in one ops file
+`route_swig.verb_apply_ops` indexes existing items first, applies every `add_*`, and only then applies
+`remove` (documented at the top of the module, easy to miss). `add_via` dedups on
+(position, net) with a 0.001 mm tolerance, so an ops file that does
+`remove <uuid of via at P>` + `add_via at P (different size)` has its add skipped as `"exists"`, the
+removal then deletes the original, and the post-apply verify fails with
+`via at (x, y) (NET) not in saved board` - the whole file rolls back. Changing a via's pad size or a
+track's width **at unchanged geometry** needs TWO route_edit invocations (remove, then add). Widening a
+track works in one file only because the width is part of `_track_key`, so the wider copy is not a
+duplicate.
+
+## 2026-07-29 [check_diffpair][gates] check_diffpair's graph ignores vias AND pads - a 0.14 mm endpoint mismatch silently turns "skew" into TOTAL COPPER LENGTH
+`net_graph()` nodes are track endpoints snapped to 3 dp; **vias and pad copper are not edges.** So two
+track chains that meet only *through* a via (or through a pad's copper) land in different graph
+components, `trunk_length` cannot connect the terminals, and it falls back to
+`sum(all track lengths)` - reported only as `branch_free: false` in `checked`, never as its own
+violation. On lumina-carrier's grafted MDI this produced "skew 35.65 mm / 45.54 mm" against a 2.5 mm
+limit on pairs whose real trunk skew was 6.27 mm and 0.98 mm. Three separate causes, all
+sub-0.3 mm and all electrically fine (the copper OVERLAPS in every case, so DRC and the netlist are
+clean):
+- `/ETH_TXN` B.Cu (93.95, 83.1851) vs (93.80, 83.35) - **0.2229 mm** apart, 0.26 mm tracks
+- `/ETH_RXP` B.Cu (82.7474, 85.8649) vs (83.00, 85.85) - **0.2530 mm** apart
+- `/ETH_RXP` F.Cu escape ending at (96.15, 81.85) and its B.Cu continuation starting at
+  (96.05, 81.95) - joined only by the via at (96.15, 81.85), **0.1414 mm** of endpoint mismatch
+Adding one same-net segment per break (3 tracks, 0.14-0.25 mm long) made both pairs `branch_free:
+true`. **Always read `branch_free` before believing a skew number** - and if it is false, the number is
+not a skew at all.
+
+Second limitation in the same check: `matched_terminals` pairs a p-pad with an n-pad only within
+`TERM_PAIR_MM = 2.5`. A magjack's differential pads are further apart than that (LPJG0926HENL:
+TXP/TXN pads 2.84 mm, RXP/RXN pads **4.58 mm**), so J1 is not a matched terminal and the "trunk" is
+measured from the ESD array to the PHY only. On this board the gate PASSED `/ETH_RXP//ETH_RXN` at
+0.98 mm while the true magjack-pad-to-PHY-pad skew was **6.451 mm (43 ps)**, 4.326 mm of it inside the
+J1 escape the gate never looks at. Measure connector-pad to IC-pad yourself before believing a pass.
+
+## 2026-07-29 [check_current][gates] the via-count rule is unsatisfiable for a PLANE-fed rail, and `overrides` cannot reach it
+Extends the 2026-07-28 pd-trigger entry. `check_current` needs
+`ceil(current_a / via_amps)` vias in EVERY cluster, and `segment_current`'s `overrides` feed only the
+track-width test - vias and pour necks always use the full rail budget. For a rail whose trunk is a
+POUR, every via is a single-pin leaf tap by construction: on lumina-carrier `+3V3` (1.0 A, 0.5 A/via)
+had **27 clusters of exactly one via**, each a pad -> 0.2-0.6 mm escape -> plane tap.
+Machine-measured feasibility of doubling them (0.6/0.3 vias, 0.2 mm clearance, 0.5 mm hole-edge floor,
+companion must sit on the net's copper on the same two layers): **2 of 44 clusters placeable**; 26 had
+**zero** candidate positions because the outer-layer stub is shorter than the 0.8 mm minimum
+via-to-via pitch. Doubling needs new outer-layer copper, i.e. a re-route, not a via drop. Budget for
+this at P5/P7 (fan the rail out with 2-via taps from the start) - it cannot be retrofitted at P8.
+
+## 2026-07-29 [check_creepage][gates] `voltages` is net-to-REFERENCE, so it cannot express a bridge-input PAIR - a 0.33 mm 57 V gap passes silently
+`check_creepage` computes `dv = v_hv - v_other` from `constraints.json.voltages` and skips any pair
+with `abs(dv) <= 30`. The four PoE centre taps are all declared 57 V, so **A1<->A2 and B1<->B2 are
+never checked** - yet those are the two AC inputs of one external bridge, i.e. the full line voltage
+sits between them. Measured on lumina-carrier: `/poe/POE_TAP_A1` <-> `/poe/POE_TAP_A2` =
+**0.3295 mm on all four layers** (the two transition vias at (49.650, 74.213) and (49.200, 73.400),
+0.9295 mm centre-to-centre, 0.6 mm pads), against an IPC-2221B B2 requirement of 0.60 mm outer.
+B1<->B2 measures 1.4778 mm and is fine. Nothing in the gate suite reports the A-pair. Declare the
+negative-side tap of each bridge at **-57 V** (as `V48_RTN` already is) and the pair becomes a
+114 V difference the checker can see - or add an explicit `.kicad_dru` rule.
+
+Also worth knowing: `check_creepage`'s violation `pos` is `ca.representative_point()` - a point
+somewhere on the offending NET's copper, **not** the location of the tight gap. Locating a creepage
+violation means re-deriving the nearest-item pair yourself.
+
+**FOLLOW-UP (same day, after fixing it): a worst-pair-only sweep HIDES ITS SIBLINGS.** The A1<->A2
+fix above moved both transition vias and took the gap to 0.6502 mm (F.Cu) / 0.6524 mm (inner, B.Cu),
+DRC-confirmed. Only *then* did a re-sweep of the same net pair find a SECOND violating pair -
+A1's south transition via against A2's B.Cu run at **0.5500 mm**, and A1's run against A2's corner at
+**0.5826 mm**. Both were masked by the 0.3292 mm pair while it existed. So: after fixing a
+geometric-minimum violation, RE-SWEEP the whole net pair; do not trust the pre-fix list, and do not
+trust one violation per pair as the whole story. Same applies to any check that reports a minimum.
+
+Two more from the same fix, both cheap and both worth doing every time:
+- **A DRU rule that does not parse and a DRU rule that never fires look identical** (DRC just says
+  0 violations). PROVE a new rule is live by temporarily setting its threshold to something
+  unreachable and confirming it fires with the actual distances you expect, then set it back. Raising
+  `poe_tap_differential_pair` from 0.60 to 0.90 mm produced 17 hits reporting `actual 0.6502 mm` and
+  `actual 0.6524 mm` - which simultaneously proved the rule live AND independently confirmed the fix
+  with a second oracle (KiCad DRC) instead of only the geometry script that made the fix.
+- **Where a checker's model structurally cannot express a constraint, encode it in `.kicad_dru`.**
+  The tap-pair gap is now held by a named rule for exactly the reason
+  `magjack_isolation_barrier` exists: a voltage-derived checker cannot see a hipot/differential
+  requirement, so without the rule any future reroute silently reopens the gap and nothing reports it.
+
+## 2026-07-29 [board_init][rules_gen][dfm][gates] `board_init` writes `min_track_width: 0.1`, BELOW every JLC profile - so `drc_routed` 0/0 does not mean fabricable
+`board_init.write_pro(pro_path, min_track: float = 0.1)` hard-codes 0.1 mm into
+`design_settings.rules.min_track_width`. **Every** JLC profile in
+`reference/jlc_capabilities.yaml` is coarser than that: 4-layer 1 oz is
+`min_trace_width_mm: 0.1016` (4 mil), 2-layer is 0.127, 2 oz is 0.1524. `rules_gen` DOES emit the
+right floor (`min_track_width: cap["min_trace_width_mm"]` plus an `aiee_track_width_floor` DRU rule),
+but on lumina-carrier the `.kicad_dru` was hand-written for the 48 V rules and therefore contains
+**zero** `aiee_*` rules, and `board_init` was re-run three times (`work/board_init{,2,3}.json`), so
+the 0.1 default is what survived into the `.kicad_pro`.
+Consequence measured on a board sitting at `drc_routed` **0 errors / 0 warnings**: `gate dfm` reports
+**189 errors of "trace width 0.1000 mm below JLC minimum 0.1016 mm"** (136 F.Cu + 53 B.Cu) out of 194
+total. The traces are legal against the board's own DRC floor and unmanufacturable against the fab's,
+and the gap is **1.6 micrometres** - far too small to notice by eye in any report.
+Two rules follow: (1) whenever you hand-write a `.kicad_dru`, START from the `rules_gen` output and
+add to it - do not replace it, or you silently drop the fab floor, the annular floor and the
+hole-size floors; (2) if `board_init` is ever re-run after `rules_gen`, re-run `rules_gen`
+afterwards. Cheap standing check at P7 entry: assert
+`.kicad_pro.min_track_width >= jlc_capabilities[profile].min_trace_width_mm`.
