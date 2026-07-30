@@ -1,0 +1,50 @@
+{
+  "id": "tapcreep",
+  "domain": "router",
+  "phase": "P8",
+  "gate": "drc_routed",
+  "title": "A-side PoE tap differential creepage: POE_TAP_A1 <-> POE_TAP_A2 = 0.3295 mm, needs >= 0.60 mm (outer) / 0.20 mm (inner)",
+  "board": "boards/lumina-carrier/kicad/lumina-carrier.kicad_pcb",
+  "workspace": "boards/lumina-carrier",
+  "snapshot_label": "pre-tapcreepage",
+  "allowed_scripts": [
+    ".claude/skills/ai-ee/scripts/route_edit.py",
+    ".claude/skills/ai-ee/scripts/gate.py",
+    ".claude/skills/ai-ee/scripts/check_creepage.py",
+    ".claude/skills/ai-ee/scripts/plane_repair.py",
+    ".claude/skills/ai-ee/scripts/render.py"
+  ],
+  "violations": [
+    {
+      "kind": "creepage_differential_pair",
+      "nets": ["/poe/POE_TAP_A1", "/poe/POE_TAP_A2"],
+      "measured_mm": 0.3295,
+      "required_mm_outer": 0.60,
+      "required_mm_inner": 0.20,
+      "layers": ["F.Cu", "In1.Cu", "In2.Cu", "B.Cu"],
+      "geometry": {
+        "via_a": {"at": [49.650, 74.213], "pad_dia_mm": 0.6},
+        "via_b": {"at": [49.200, 73.400], "pad_dia_mm": 0.6},
+        "centre_to_centre_mm": 0.9295
+      },
+      "why_gate_blind": "check_creepage computes dv = v_hv - v_other and skips |dv| <= 30 V. Both taps are declared 57 V in constraints.json, so dv = 0 and this pair is never evaluated. A1 and A2 are the two AC inputs of bridge D2, so the full line potential (up to 57 V, and the two are in antiphase) sits between them. This is a REAL SAFETY DEFECT, not a tool artifact."
+    }
+  ],
+  "guidance": [
+    "TARGET: >= 0.60 mm copper-to-copper between any POE_TAP_A1 and POE_TAP_A2 copper on the two OUTER layers (F.Cu, B.Cu) and >= 0.20 mm on the two inner layers, per IPC-2221B B2 external / B1 internal for the 51-100 V band. With 0.6 mm via pads that means >= 1.20 mm centre-to-centre; if you shrink pads to the board's min_via_diameter (0.5 mm, confirm from the .kicad_pro / .kicad_dru first) it means >= 1.10 mm. Aim for >= 1.30 mm centre-to-centre so there is real margin, not exactly-at-limit.",
+    "PREFERRED FIX: relocate ONE of the two transition vias (whichever has the shorter / less constrained attached copper) far enough away, then re-route its attached track stubs to the new position. route_edit ops are add_track / add_via / remove (by uuid). Remove the old via and its now-wrong segments by uuid, add the via at the new position, add the replacement segments. Keep every segment on its original net and layer, keep widths equal to the abutting same-net copper (do not narrow a 48 V feed - check_current already fails on V48_RAW width).",
+    "SECOND OPTION if geometry cannot move: eliminate the layer transition entirely (route the leg on one layer) so the via pair does not exist. Only do this if it does not lengthen the leg through a congested region.",
+    "DO NOT solve this by re-declaring voltages in constraints.json. The declaration question is an owner decision the orchestrator is carrying separately. Your job is the physical gap.",
+    "AUTHORITATIVE ORACLE: this board is fully routed with ~3089 segments. gate place and check_decoupling are STRUCTURALLY BLIND to routed copper - a previous fix on this board was validated by those two and introduced a SHORT. After every edit run the real DRC: `gate.py --gate drc_routed <board>` and it MUST read total 0 (err+warn=0). Never declare success on any other checker.",
+    "If your via move crosses or lands on a plane region, re-run plane_repair.py / refill as the router.md pattern requires, then re-run DRC.",
+    "Also MEASURE, do not assume: after the move, report the achieved copper-to-copper gap between the two nets on each of the four layers, computed shape-aware (circle-circle uses hypot(dx,dy)-(r1+r2); a rect/oval pair needs the capsule model - work/p7/pad_gap.py already implements this, reuse it). A prior orchestrator reported three different numbers for one gap by using a rectangle model on circular pads.",
+    "Sanity-check the B-side pair too (POE_TAP_B1 <-> POE_TAP_B2, previously measured 1.4778 mm) and report its number so the record covers both bridges.",
+    "Scope discipline: touch NOTHING except the copper needed for this gap. The board has 120 known check_current / check_creepage / check_return_path errors that are being handled elsewhere - do not fix, do not widen, do not add vias for them. List anything you notice in OPEN."
+  ],
+  "artifacts": {
+    "out_dir": "boards/lumina-carrier/work/p8/tapcreep",
+    "verify_reference": "boards/lumina-carrier/work/p8/verify_final.json",
+    "drc_reference_pass": "boards/lumina-carrier/work/p8/drc_confirm.json"
+  },
+  "termination": "Return the fixer output contract. Do not start other phases' work."
+}

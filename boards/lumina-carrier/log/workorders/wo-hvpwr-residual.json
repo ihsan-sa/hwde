@@ -1,0 +1,74 @@
+{
+  "id": "hvpwr-residual",
+  "domain": "router",
+  "phase": "P8",
+  "gate": "drc_routed",
+  "title": "Two bounded P8 residual clusters the previous pass classified without attempting a REROUTE: (A) five J1 SHIELD-vs-PoE-tap creepage errors that are pad-to-TRACK, not package-internal; (B) five power-trunk segments still 0.20-0.25 mm wide while carrying 1.0-2.0 A",
+  "board": "boards/lumina-carrier/kicad/lumina-carrier.kicad_pcb",
+  "workspace": "boards/lumina-carrier",
+  "snapshot_label": "pre-hvpwr-residual",
+  "budget": "2 attempts PER ITEM. There are 10 items. If an item does not survive DRC in 2 attempts, revert THAT item, mark it measured-unfixable with its number, and move to the next. Do NOT thrash and do NOT let one item cost you the whole order.",
+  "allowed_scripts": [
+    ".claude/skills/ai-ee/scripts/route_edit.py",
+    ".claude/skills/ai-ee/scripts/gate.py",
+    ".claude/skills/ai-ee/scripts/check_current.py",
+    ".claude/skills/ai-ee/scripts/check_creepage.py",
+    ".claude/skills/ai-ee/scripts/plane_repair.py",
+    ".claude/skills/ai-ee/scripts/kc.py",
+    "boards/lumina-carrier/work/p8/widen.py",
+    "boards/lumina-carrier/work/p7/pad_gap.py"
+  ],
+  "cluster_A": {
+    "title": "J1 SHIELD-to-PoE-tap creepage: 0.203-0.220 mm against 0.60 mm required",
+    "why_reopened": "These five were bundled with the ten genuinely package-internal creepage errors (U1/U20/U22 adjacent-pin pad-to-pad, which no layout can fix). But look at the item pairs: four of the five are PAD-to-TRACK, and one is TRACK-to-TRACK. A TRACK can move. Nobody has attempted to move them. The connector's own pad-to-pad shield-to-tap gap is 0.6029 mm (measured, shape-aware, work/p7/pad_gap.py), so the CONNECTOR geometry holds ~0.60 mm - it is the routed SHIELD copper that erodes it to 0.21 mm. Restoring the routing to the connector's own 0.60 mm would remove five of the fifteen creepage errors and remove real 57 V surge exposure on F.Cu.",
+    "required_mm": 0.60,
+    "items": [
+      {"net": "/poe/POE_TAP_A1", "other": "/poe/SHIELD", "layer": "F.Cu", "spacing_mm": 0.213, "a": "PAD J1-11", "b": "TRACK (46.500,71.100)-(44.850,71.100) w0.20", "at": [46.3, 71.413], "bt": [46.3, 71.2]},
+      {"net": "/poe/POE_TAP_A2", "other": "/poe/SHIELD", "layer": "F.Cu", "spacing_mm": 0.2142, "a": "PAD J1-12", "b": "TRACK (44.800,71.225)-(44.350,71.675) w0.20", "at": [44.299, 71.282], "bt": [44.45, 71.433]},
+      {"net": "/poe/POE_TAP_B1", "other": "/poe/SHIELD", "layer": "F.Cu", "spacing_mm": 0.22, "a": "PAD J1-13", "b": "TRACK (43.950,71.825)-(35.825,71.825) w0.20", "at": [37.41, 71.505], "bt": [37.41, 71.725]},
+      {"net": "/poe/POE_TAP_B2", "other": "/poe/SHIELD", "layer": "F.Cu", "spacing_mm": 0.2129, "a": "PAD J1-14", "b": "TRACK (35.675,71.550)-(35.625,71.500) w0.20", "at": [35.369, 71.68], "bt": [35.542, 71.556]},
+      {"net": "/poe/POE_TAP_A2", "other": "/poe/LED_Y_A", "layer": "F.Cu", "spacing_mm": 0.2031, "a": "TRACK (45.350,66.000)-(45.300,66.000) w0.20", "b": "TRACK (45.000,65.650)-(45.100,65.650) w0.20", "at": [45.25, 65.913], "bt": [45.15, 65.737]}
+    ],
+    "guidance": [
+      "FIRST, before touching anything: measure whether there IS room. The SHIELD run sits between the tap pad row and the connector mouth / board edge. Compute, for each offending SHIELD track, how far it can move away from the tap pad before it violates something else (board edge clearance, another pad, another net). Report that number per item. If the answer is 'less than the ~0.39 mm needed', say so with the number and stop on that item - that is a legitimate measured-unfixable and is far more useful than a guess.",
+      "Prefer moving the SHIELD (chassis-potential, non-critical, 0.20 mm signal-class) rather than the tap (57 V, current-carrying). Route the SHIELD leg further from the tap pads, or take it to an inner layer / B.Cu for the pinch and via back - SHIELD carries no current so a via is free.",
+      "The POE_TAP_A2 <-> LED_Y_A item is track-to-track; LED_Y_A is a magjack LED cathode carrying ~10 mA, so it is the one to move.",
+      "TARGET the connector's own number, 0.60 mm, not more. Do not chase 0.635 mm (the board-wide adopted value) at the cost of a reroute through congestion - 0.6029 mm is what the J1 land itself achieves and IPC-2221B B2 asks 0.60 mm for the 51-100 V band."
+    ]
+  },
+  "cluster_B": {
+    "title": "Power-trunk segments at 0.20-0.25 mm carrying 1.0-2.0 A - blocked from WIDENING, never attempted as a REROUTE",
+    "why_reopened": "work/p8/residual_report.json marks all 53 undersized_track items 'blocked', which is TRUE for widening in place - the number in each row is the widest that segment can be without a clearance violation. But 'cannot widen' is not 'cannot fix': the blocker in every one of these five cases is a SIGNAL net (0.2 mm, no current) or a switch node, which can be moved instead. The other 48 undersized items are genuinely package-limited (a 0.4 mm track landing on a 0.4 mm IC pin cannot be 0.5 mm) or plane-fed escapes, and are NOT in your scope. These five are the ones where the number is alarming on its own terms: a 2.0 A rail passing through 0.20 mm of 1 oz copper.",
+      "items": [
+      {"net": "+12V", "current_a": 2.0, "w_mm": 0.2, "required_mm": 1.1, "widen_room_mm": 0.202, "blocker": "/pwr/SW33", "start": [66.35, 112.05], "end": [67.75, 113.45], "layer": "F.Cu", "note": "WORST NUMBER ON THE BOARD. ~1.98 mm long, in series with the +12V feed toward J3."},
+      {"net": "+12V", "current_a": 2.0, "w_mm": 0.25, "required_mm": 1.1, "widen_room_mm": 0.25, "blocker": "/pwr/SW33", "start": [67.75, 113.45], "end": [67.75, 114.2], "layer": "F.Cu", "note": "in series with the item above"},
+      {"net": "V48_RAW", "current_a": 1.0, "w_mm": 0.2, "required_mm": 0.5, "widen_room_mm": 0.23, "blocker": "/poe/T2P_OD", "start": [41.15, 89.15], "end": [41.15, 93.1], "layer": "F.Cu"},
+      {"net": "V48_RAW", "current_a": 1.0, "w_mm": 0.2, "required_mm": 0.5, "widen_room_mm": 0.23, "blocker": "/CDB", "start": [27.4, 75.45], "end": [27.4, 73.15], "layer": "F.Cu"},
+      {"net": "+48V_SW", "current_a": 1.0, "w_mm": 0.2, "required_mm": 0.5, "widen_room_mm": 0.216, "blocker": "/pwr/ILIM", "start": [50.45, 97.55], "end": [47.4, 100.6], "layer": "F.Cu"}
+    ],
+    "guidance": [
+      "FIRST check for a PARALLEL PATH: check_current flags each segment individually and does not know about a same-net track running beside it. If one of these segments is shunted by other same-net copper the whole way, the real bottleneck is different - measure it and say so instead of rerouting.",
+      "The fix pattern is: nudge the BLOCKER signal net aside by the deficit (it is 0.2 mm copper carrying microamps to milliamps), then widen the power segment with a remove+add pair. NOTE the route_edit quirk in LEARNINGS.md: add_via/add_track dedup on geometry, so changing a width at UNCHANGED geometry needs TWO route_edit invocations (remove first, then add) - one ops file silently skips the add and then deletes the original, and the whole file rolls back.",
+      "The 48 V nets carry a 0.635 mm .kicad_dru clearance rule (HV_48V_clearance / HV_48V_to_HV_48V / HV_48V_raw_to_rtn) with a same-courtyard exclusion for U1/U20/U22/C1/C61/C62/C63 only. Widening a 48 V track in OPEN board area must still hold 0.635 mm to everything - that is why the room figures are what they are. Do not weaken a DRU rule to pass; if the only way to widen is to relax a rule, report it and stop.",
+      "For the +12V pinch specifically: /pwr/SW33 is the 12 V buck's switch node. It is a high-dV/dt net and its loop area matters, so moving it is NOT free - keep any reroute of SW33 short and inside its own loop, or move the +12V trunk instead. If neither is possible without lengthening SW33, say so: an EMI regression traded for a width number is a bad trade, and the honest answer is a measured waiver.",
+      "Report the achieved width per item, and re-run check_current at the end to give the exact new undersized_track count."
+    ]
+  },
+  "oracle": "gate.py --gate drc_routed <board> must read total 0 (err+warn 0) after EVERY batch. A prior fix on this board passed `gate place` and check_decoupling and still introduced a SHORTING_ITEMS - those two are blind to routed copper. DRC is the only oracle. Refill/plane_repair after any edit that crosses a plane region, then re-run DRC.",
+  "hard_rules": [
+    "NEVER pass --commit to gate.py; run no git command at all. The repo is shared with two paused board runs.",
+    "Do not write board edits from heredoc scripts - a permission classifier blocks heredoc writes. Write helper .py files with the file-writing tool, then run them. All board writes go through route_edit.py.",
+    "Do not touch the other 48 undersized_track items, the 41 insufficient_transition_vias, the 10 package-internal creepage items, the 2 pour_neckdown items or the 9 check_return_path items. List anything you notice in OPEN.",
+    "Do not edit constraints.json, the .kicad_dru or the .kicad_pro. Ratings and rules are owner decisions the orchestrator is carrying separately.",
+    "Do not move any FOOTPRINT. Board is fully routed; a placement move here has already caused one short."
+  ],
+  "artifacts": {"out_dir": "boards/lumina-carrier/work/p8/hvpwr"},
+  "report_numbers_required": [
+    "cluster A: per item, the measured available room and the achieved gap (before -> after), plus which items are measured-unfixable and why",
+    "cluster B: per item, whether a parallel same-net path exists, the achieved width (before -> after), and which are measured-unfixable and why",
+    "check_creepage error count before -> after",
+    "check_current undersized_track count before -> after",
+    "drc_routed total after the final batch (must be 0)"
+  ],
+  "termination": "Return the fixer output contract. Do not start other phases' work."
+}

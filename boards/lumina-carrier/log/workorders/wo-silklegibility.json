@@ -1,0 +1,79 @@
+{
+  "id": "silklegibility",
+  "domain": "placement (silk text only)",
+  "phase": "P8",
+  "gate": "drc_routed",
+  "title": "Silkscreen legibility: pull every refdes back toward its own component, subject to silk_overlap / silk_over_copper / silk_edge_clearance staying at ZERO",
+  "board": "boards/lumina-carrier/kicad/lumina-carrier.kicad_pcb",
+  "workspace": "boards/lumina-carrier",
+  "snapshot_label": "pre-silklegibility",
+  "allowed_scripts": [
+    ".claude/skills/ai-ee/scripts/place_edit.py",
+    ".claude/skills/ai-ee/scripts/gate.py",
+    ".claude/skills/ai-ee/scripts/check_silk.py",
+    ".claude/skills/ai-ee/scripts/kc.py",
+    ".claude/skills/ai-ee/scripts/render.py",
+    "boards/lumina-carrier/work/refdes_prox.py"
+  ],
+  "requirement": {
+    "source": "owner requirement, accepted and recorded in state.json decision 54",
+    "statement": "Each refdes must be visibly close to its OWN component, with no silk overlap. On a populated board a 0603 whose label sits 8.6 mm away is closer to three other parts than to its own and is unattributable.",
+    "objective": "minimise each visible refdes's distance beyond its own part's pad extent",
+    "target": "no visible refdes more than ~1.0-1.5 mm beyond its own part's pad extent, WHERE GEOMETRY ALLOWS",
+    "hard_constraint": "silk_overlap = 0, silk_over_copper = 0, silk_edge_clearance = 0, and the whole drc_routed gate stays at err+warn = 0. This is a CONSTRAINED minimisation, not a free one. Zero silk DRC is already achieved on the board you are given; you must not lose it.",
+    "tie_break_rule": "A LABEL ADJACENT TO THE WRONG PART IS WORSE THAN A DISTANT ONE. Where two candidate positions are comparable, prefer the one whose nearest OTHER part is clearly further away than its own part. Do not chase the last 0.5 mm into a position that reads as belonging to a neighbour.",
+    "out_of_scope_refs": ["H1", "H2", "H3", "H4", "H5"],
+    "out_of_scope_note": "H1-H5 are board-only mounting holes. Ignore them entirely - do not move their text, do not count them in the objective."
+  },
+  "baseline_measured": {
+    "tool": "boards/lumina-carrier/work/refdes_prox.py",
+    "file": "boards/lumina-carrier/work/p8/silk/refdes_before.json",
+    "footprints": 116,
+    "visible_refdes": 116,
+    "offset_median_mm": 4.079,
+    "offset_max_mm": 12.955,
+    "count_beyond_extent_over_1mm": 100,
+    "worst": [
+      {"ref": "C2", "beyond_extent_mm": 10.067, "board_xy": [24.5, 87.0]},
+      {"ref": "C62", "beyond_extent_mm": 8.168, "board_xy": [37.0, 93.5]},
+      {"ref": "R101", "beyond_extent_mm": 7.551, "board_xy": [115.6, 78.6]},
+      {"ref": "C81", "beyond_extent_mm": 7.377, "board_xy": [114.3, 84.7]},
+      {"ref": "C1", "beyond_extent_mm": 6.666, "board_xy": [30.0, 87.0]},
+      {"ref": "R67", "beyond_extent_mm": 6.201, "board_xy": [37.0, 99.0]},
+      {"ref": "C58", "beyond_extent_mm": 6.112, "board_xy": [64.0, 117.5]},
+      {"ref": "C37", "beyond_extent_mm": 5.677, "board_xy": [100.09, 85.6]},
+      {"ref": "C40", "beyond_extent_mm": 5.588, "board_xy": [98.42, 71.92]},
+      {"ref": "C36", "beyond_extent_mm": 5.477, "board_xy": [113.0, 75.0]}
+    ]
+  },
+  "cause_confirmed": "reports/place/silk*.ops.json is 9 files carrying 160 move_text ops that the P6 placement agent used to take silk DRC violations 236 -> 5. It pushed refdes OUTWARD to clear overlaps and nothing ever pulled them back. The board was optimised for a zero-warning gate at the cost of assembly legibility. You are the pull-back pass.",
+  "guidance": [
+    "MECHANISM: place_edit.py move_text ops. Op shape: {\"op\": \"move_text\", \"ref\": \"C2\", \"field\": \"reference\", \"x\": <mm>, \"y\": <mm>, \"deg\": <optional>}. Ops file is {\"version\": 1, \"ops\": [...]}. x/y are ABSOLUTE BOARD coordinates, NOT footprint-local. place_edit converts the stored local field position to absolute for verification using: th = radians(footprint_at_deg); ax = fx + lx*cos(th) + ly*sin(th); ay = fy - lx*sin(th) + ly*cos(th). Derive your local->absolute mapping from that exact expression (read it yourself at place_edit.py::_parse_board_texts) or you will fight sign errors on rotated and bottom-side parts. Round-trip check: after applying, re-read the board and confirm the achieved absolute position matches what you asked for.",
+    "PROVEN SOLVER RECIPE, from LEARNINGS.md 2026-07-28 [placement][drc][silk] - this exact problem was solved once already and the recipe is machine-verified: a greedy solver works if it (1) offers BOTH text angles on ALL FOUR sides of the part (0-deg above/below plus 90-deg left/right - four positions only is NOT enough in a channel), (2) scores candidates as (min(clearance, 0.30), -distance_to_own_silk_and_pads) so it stops paying for clearance beyond 0.30 mm and then maximises closeness, and (3) processes the MOST CROWDED parts first (descending neighbour count within 4 mm) - largest-first orphans the boxed-in small caps.",
+    "HARD GEOMETRIC LIMIT, also from that entry: a 3-char refdes at text size 1.0 needs about 3.5 x 1.75 mm of clear silk. In a channel narrower than ~4 mm NO label can be closer to its own part than to the parts flanking it. When you hit that, STOP and report the residual with its number - do not relieve it by moving a component. Component moves are FORBIDDEN in this order (see the oracle note below).",
+    "TEXT BOX GEOMETRY (measured, LEARNINGS.md line ~304): KiCad PCB_TEXT.GetBoundingBox at size s and stroke thickness t is roughly (n_chars * s * 0.75 + t) wide by (s + t) tall, and DRC's silk rules are silk_to_pad >= 0.25 mm, silk_to_silk >= 0.25 mm. Compute your own candidate boxes, but do not trust them as the verdict.",
+    "ORACLE DISCIPLINE - THIS IS THE MOST IMPORTANT RULE IN THIS ORDER. check_silk is MUCH more lenient than KiCad DRC (measured on an earlier board: check_silk reported 12 hits where DRC found 68). NEVER treat check_silk = 0 as silk-clean. The authoritative oracle is the real DRC: `gate.py --gate drc_routed <board>` which must come back total 0 (err+warn = 0), or `kc.py drc` for a faster inner loop. Run it after EVERY batch.",
+    "BATCH PROTOCOL: work in batches of roughly 15-25 refdes. After each batch run the real DRC. If a batch regresses (any new silk_overlap / silk_over_copper / silk_edge_clearance, or any new error at all), do NOT abandon the batch - BISECT it: re-apply the half that was clean, re-solve the offenders with a larger clearance margin, and re-check. Keep a running record of which refs are settled so you never re-move a settled one.",
+    "SILK OWNERSHIP TRAP: a check_silk violation's `refs` field names the PAD's owner, not the SILK's owner. Attribute the offending silk to its own footprint before blaming a part. DRC's silk messages are the reliable attribution.",
+    "SCOPE - COMPONENT MOVES ARE FORBIDDEN. This board is fully routed (~3089 segments) and drc_routed is at 0/0. `gate place` and check_decoupling are STRUCTURALLY BLIND to routed copper - a prior fix on this board passed BOTH of them and still introduced a SHORTING_ITEMS by moving one 0402 by 0.3 mm. You may move ONLY silkscreen TEXT (the `reference` field, and `value` only if it is visible and in the way). No `place` / `move` / `rotate` / `flip` ops. No copper edits. No footprint-internal silk edits.",
+    "DO NOT hide a refdes to satisfy the objective. All 116 are currently visible and must stay visible.",
+    "MEASURE BEFORE AND AFTER with the same tool so the numbers are comparable: `python boards/lumina-carrier/work/refdes_prox.py <board.kicad_pcb>` writes JSON to stdout. Before-file already exists (see baseline_measured.file). Write the after-file to boards/lumina-carrier/work/p8/silk/refdes_after.json.",
+    "RENDER at the end: `render.py` for top and bottom PNG so the orchestrator can show the owner what changed. Put them in boards/lumina-carrier/reports/render_silk/."
+  ],
+  "artifacts": {
+    "out_dir": "boards/lumina-carrier/work/p8/silk",
+    "before_json": "boards/lumina-carrier/work/p8/silk/refdes_before.json",
+    "after_json": "boards/lumina-carrier/work/p8/silk/refdes_after.json",
+    "render_dir": "boards/lumina-carrier/reports/render_silk",
+    "prior_silk_ops_for_reference": "boards/lumina-carrier/reports/place/silk*.ops.json"
+  },
+  "report_numbers_required": [
+    "offset_median_mm before -> after",
+    "offset_max_mm before -> after",
+    "count_beyond_extent_over_1mm before -> after (out of 116, excluding H1-H5 from the objective)",
+    "the residual list: every ref still more than 1.5 mm beyond its own extent, each with its number and the one-line geometric reason it could not come closer",
+    "drc_routed total after the final batch (must be 0)",
+    "count of refs where the tie_break_rule (ambiguity) drove the choice rather than pure distance"
+  ],
+  "termination": "Return the fixer output contract. Do not start other phases' work."
+}

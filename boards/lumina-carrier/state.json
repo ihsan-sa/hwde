@@ -3,7 +3,7 @@
  "board": "lumina-carrier",
  "workspace": "boards/lumina-carrier",
  "created": "2026-07-28T13:36:22",
- "updated": "2026-07-29T18:15:30",
+ "updated": "2026-07-29T18:29:07",
  "phase": "P8",
  "gates": {
   "erc": {
@@ -451,6 +451,12 @@
    "why": "check_creepage computes dv = v_hv - v_other and skips any pair with |dv| <= 30 V. Both A-side taps are declared 57 V, so dv = 0 and the pair is NEVER CHECKED - yet A1 and A2 are the two AC INPUTS of bridge D2, so the full line voltage sits across them. Measured 0.3295 mm on all four layers (the two transition vias at (49.650,74.213) and (49.200,73.400), 0.9295 mm centre-to-centre with 0.6 mm pads) against 0.60 mm outer / 0.20 mm inner required. B1-B2 measures 1.4778 mm and is fine, so it is one via pair. THIS IS THE THIRD TIME on this board that a safety check reported nothing because it was looking at the wrong thing: (1) my DRU rule named V48_RAW when the barrier lives on POE_TAP_*; (2) constraints.json voltages omitted the tap nets entirely so the shield-to-tap gap was invisible; (3) now the voltages MODEL cannot express a differential pair, so two nets at the same declared potential with mains-class AC between them are skipped by construction. Two fixes, both owner decisions: declare each bridge's negative-side tap at -57 V (as V48_RTN already is) so the checker sees a 114 V pair - this adds gate failures rather than hiding them, which is the honest direction; or move the A2 via ~0.30 mm NW to fix the geometry. NOT ACTIONED - I am at my context limit and will not start a copper change I cannot verify.",
    "phase": "P8",
    "ts": "2026-07-29T18:15:30"
+  },
+  {
+   "what": "TRIAGE REOPENED on two P8 residual clusters my predecessor closed by classification rather than by attempt: 5 of the 15 check_creepage errors are NOT package-internal, and 5 of the 53 undersized tracks carry 1.0-2.0 A on 0.20 mm copper",
+   "why": "Read work/p8/creep_located.json item-by-item instead of trusting the summary. Ten of the fifteen creepage errors are genuinely unfixable pad-to-pad inside one package (U1 SOIC-8 VSS pad 9 against pads 1,2,3,5,6,7,8 all at exactly 0.200 mm = the lead pitch; U20 0.295 mm; U22 0.375 mm and 0.250 mm). But FOUR are PAD-to-TRACK and ONE is TRACK-to-TRACK, all on the /poe/SHIELD or /poe/LED_Y_A nets inside J1 at 0.203-0.220 mm. A track can move; a lead frame cannot. And the connector's own pad-to-pad shield-to-tap gap is 0.6029 mm measured shape-aware, so J1 itself holds 0.60 mm - it is the ROUTED shield copper that erodes it to 0.21 mm. Second cluster: residual_report.json marks all 53 undersized_track items blocked, which is true for widening IN PLACE (the room figure is the widest each segment can be), but the blocker in five cases is a 0.2 mm signal net or a switch node that can move instead. +12V carries 2.0 A through a 0.20 mm x 1.98 mm segment at (66.35,112.05)-(67.75,113.45) in series with the J3 feed - 0.20 mm of 1 oz copper is worth about 0.3 A at dT=10 C, so that is a 6x overload and the worst single number on the board, not a modelling artifact. Dispatching both as ONE bounded fixer order with a 2-attempt-per-item budget and an explicit instruction that a measured unfixable is a better answer than a reroute that trades EMI for a width figure.",
+   "phase": "P8",
+   "ts": "2026-07-29T18:29:07"
   }
  ],
  "history": [
@@ -871,6 +877,21 @@
    "ts": "2026-07-29T18:15:30",
    "event": "decision",
    "what": "NEW SAFETY DEFECT the gate CANNOT see: POE_TAP_A1 to POE_TAP_A2 = 0.3295 mm on all four layers, with full line voltage between them. Third instance of the same class."
+  },
+  {
+   "ts": "2026-07-29T18:17:08",
+   "event": "resumed"
+  },
+  {
+   "ts": "2026-07-29T18:19:52",
+   "event": "snapshot",
+   "label": "pre-tapcreepage",
+   "files": 1
+  },
+  {
+   "ts": "2026-07-29T18:29:07",
+   "event": "decision",
+   "what": "TRIAGE REOPENED on two P8 residual clusters my predecessor closed by classification rather than by attempt: 5 of the 15 check_creepage errors are NOT package-internal, and 5 of the 53 undersized tracks carry 1.0-2.0 A on 0.20 mm copper"
   }
  ]
 }
