@@ -1632,6 +1632,44 @@ Two more from the same fix, both cheap and both worth doing every time:
   `magjack_isolation_barrier` exists: a voltage-derived checker cannot see a hipot/differential
   requirement, so without the rule any future reroute silently reopens the gap and nothing reports it.
 
+## 2026-07-29 [check_creepage][gates][ipc] `check_creepage` cannot express a COATED board, so it over-reports every outer-layer pair on any soldermasked design
+`check_creepage.py` hardcodes exactly two rows of IPC-2221 Table 6-1 -
+`CLEAR_EXTERNAL = [0.10, 0.10, 0.60, 0.60, ...]` and `CLEAR_INTERNAL` - and its own docstring names
+them "Bare board", i.e. **B2 external UNCOATED** and B1 internal. There is no flag, no
+`constraints.json` key, and no per-net way to say the board has soldermask. Every real board does.
+The full table has seven rows, and the 51-100 V band spans **0.10 to 1.50 mm** depending on which one
+applies (verified 2026-07-29 against ema-eda, Altair Pollex - which quotes 6.3.4 verbatim - and
+protoexpress; all three agree):
+
+| row | 51-100 V | 101-150 V | applies to |
+|---|---|---|---|
+| B1 | 0.10 | 0.20 | internal conductors |
+| B2 | 0.60 | 0.60 | external conductors, UNCOATED, <= 3050 m |
+| B3 | 1.50 | 3.20 | external conductors, uncoated, > 3050 m |
+| **B4** | **0.13** | **0.40** | **external conductors with permanent polymer coating** (any elevation) |
+| A5 | 0.13 | 0.40 | external conductors, conformal coating over the assembly |
+| **A6** | **0.50** | **0.80** | **external component lead/termination, UNCOATED** |
+| A7 | 0.13 | 0.40 | external lead/termination with conformal coating |
+
+**B4 is 4.6x more permissive than B2 at 51-100 V.** Cost on lumina-carrier: the single reported item
+`/poe/POE_TAP_A2 <-> /poe/LED_Y_A at 0.2031 mm` is trace-to-trace under soldermask, so its real
+requirement is 0.13 mm and it **passes with +0.073 mm** - but it was reported as a 3x shortfall,
+generated a 217-pair population, consumed two bounded fixer attempts, and produced one edit that had
+to be applied, tested and retracted. That is the most expensive single tool gap this run hit.
+
+**The subtlety that is easy to get wrong** (and that a first reading of this got wrong): exposed
+copper does NOT fall back to B2. IPC-2221 6.3.4 says, verbatim: *"The assembly electrical clearances
+of lands and leads that are not conformably coated require the electrical clearance requirements
+stated in category A6."* B2/B3 describe a board with no coating **at all**. A masked board whose lands
+are open by mask relief puts those lands on **A6 (0.50 mm at 51-100 V, 0.80 mm at 101-150 V)**. So the
+adjudication is per-ITEM-TYPE, not per-layer: masked trace or tented via -> B4; exposed land -> A6;
+inner layer -> B1. Note A6 is *stricter* than B2 in the 101-150 V band.
+Fix proposal (recorded, not implemented): a `--coating {none,soldermask,conformal}` flag or a
+`constraints.json` `"coating"` key, plus per-item-type row selection. Until then, **re-adjudicate every
+outer-layer creepage finding by hand before spending any fix budget on it**, and record which row you
+used - the interpretation of LPI mask as "permanent polymer coating" is industry-standard but is a
+judgement the owner should get to see, not one a tool should make silently.
+
 ## 2026-07-29 [check_creepage][gates] the violation COUNT is not a violation count - it reports only the WORST pair per net pair, and hid 216 siblings
 `check_creepage` emits one violation per (net_a, net_b, layer) at the minimum spacing. On
 lumina-carrier the single reported item `/poe/POE_TAP_A2 -> /poe/LED_Y_A on F.Cu: 0.203 mm` was

@@ -1,0 +1,76 @@
+{
+  "_what": "Re-adjudication of the 11 check_creepage findings against the CORRECT IPC-2221 Table 6-1 row for each item pair. check_creepage.py hardcodes only B2 (external UNCOATED) and B1 (internal) and has no way to declare a coated board, so it over-reports every outer-layer pair on any soldermasked design.",
+  "_rows_verified": {
+    "date": "2026-07-29",
+    "sources": [
+      "https://www.ema-eda.com/ema-resources/blog/pcb-clearance-and-creepage-distance-table/",
+      "https://help.altair.com/Pollex/topics/pollex/verification/dfe_ipc_material_r.htm (quotes IPC-2221 6.3.4 verbatim)",
+      "https://www.protoexpress.com/blog/ipc-2221-circuit-board-design/"
+    ],
+    "note": "All three tabulations agree on every cell used here. 51-100 V: B1 0.10, B2 0.60, B3 1.50, B4 0.13, A5 0.13, A6 0.50, A7 0.13 mm. 101-150 V: B1 0.20, B2 0.60, B4 0.40, A6 0.80 mm.",
+    "correction_to_the_brief": "The instruction said exposed copper stays on B2 (0.60 mm). Per IPC-2221 section 6.3.4, quoted verbatim by the Altair source, that is not what the standard says: 'The assembly electrical clearances of lands and leads that are not conformably coated require the electrical clearance requirements stated in category A6.' B2/B3 are for uncoated CONDUCTORS on a bare board with no coating at all. Where a board IS polymer-coated but its LANDS are exposed by mask openings, the standard directs those lands to A6 = 0.50 mm at 51-100 V (0.80 mm at 101-150 V), not to B2's 0.60 mm. Adjudicated on that basis, which is very slightly more permissive for the 51-100 V pads and STRICTER for the one 114 V pair."
+  },
+  "_basis_and_its_caveat": {
+    "board": "soldermask on both outer layers (LPI), no conformal coating on the assembly",
+    "row_applied_to_masked_trace_or_tented_via": "B4 (external conductors with permanent polymer coating, any elevation)",
+    "row_applied_to_exposed_land": "A6 (external component lead/termination, uncoated)",
+    "row_applied_to_inner_layer": "B1",
+    "judgement_call_disclosed": "Whether LPI soldermask qualifies as IPC's 'permanent polymer coating' is a genuine interpretation, widely accepted in industry but not free of doubt: a conservative reading points at mask registration tolerance and coverage thinning over via barrels and at trace shoulders. Every number below is stated so the owner can re-adjudicate on B2 if they prefer the conservative reading - the affected count is given.",
+    "supporting_fact": "IPC 6.3.4 excludes this configuration from 'any application requiring protection from harsh, humid, contaminated environments'. Per H1-Q5 the enclosure is SEALED and non-metallic, which is the favourable case for that exclusion, not the adverse one."
+  },
+  "items": [
+    {
+      "id": 1, "nets": ["+48V_SW", "GND"], "dv_v": 57, "layer": "F.Cu", "measured_mm": 0.375,
+      "pair": "PAD U22-18 <-> PAD U22-21", "item_types": ["exposed land", "exposed land"],
+      "reported_against": "B2 0.60", "correct_row": "A6 0.50", "verdict": "STILL FAILS by 0.125 mm",
+      "class": "package-internal", "refdes": "U22",
+      "why_unfixable": "HTSSOP-20, 0.65 mm lead pitch. 0.375 mm is the gap between two of the part's own adjacent pins. No board layout can change a vendor lead frame."
+    },
+    {
+      "id": 2, "nets": ["/poe/POE_TAP_A2", "/poe/LED_Y_A"], "dv_v": 57, "layer": "F.Cu", "measured_mm": 0.2031,
+      "pair": "TRACK <-> TRACK (both mask-covered)", "item_types": ["masked conductor", "masked conductor"],
+      "reported_against": "B2 0.60", "correct_row": "B4 0.13", "verdict": "PASSES with +0.0731 mm",
+      "class": "RESOLVED BY RE-ADJUDICATION, not waived",
+      "note": "This is the item that generated 217 pairs under 0.600 mm, the worst at 0.2031 mm. ALL 217 are trace-to-trace under soldermask, and the minimum of the whole population, 0.2031 mm, clears B4's 0.13 mm by 56 percent. Two fixer attempts and one retracted edit were spent on a requirement that does not apply to this geometry. Under a conservative B2 reading it fails and the 217-pair count stands."
+    },
+    {
+      "id": 3, "nets": ["V48_RAW", "/pwr/UVLO"], "dv_v": 57, "layer": "F.Cu", "measured_mm": 0.250,
+      "pair": "TRACK <-> PAD U22-7", "item_types": ["masked conductor", "exposed land"],
+      "reported_against": "B2 0.60", "correct_row": "A6 0.50 (the exposed land governs)", "verdict": "STILL FAILS by 0.250 mm",
+      "class": "package-internal", "refdes": "U22",
+      "why_unfixable": "The track is U22's own pin-7 escape inside its courtyard; the clearance is set by the 0.65 mm lead pitch it has to leave from."
+    },
+    {
+      "id": 4, "nets": ["V48_RAW", "GND"], "dv_v": 57, "layer": "F.Cu", "measured_mm": 0.295,
+      "pair": "PAD U20-3 <-> PAD U20-9", "item_types": ["exposed land", "exposed land"],
+      "reported_against": "B2 0.60", "correct_row": "A6 0.50", "verdict": "STILL FAILS by 0.205 mm",
+      "class": "package-internal", "refdes": "U20",
+      "why_unfixable": "Two of U20's own adjacent pins."
+    },
+    {
+      "id": "5-10", "nets": ["V48_RTN", "/CDB | /poe/APD | /poe/CLS | /poe/DEN | /poe/T2P_OD | GND"],
+      "dv_v": 57, "layer": "F.Cu", "measured_mm": 0.200, "count": 6,
+      "pair": "PAD U1-9 (VSS) <-> PAD U1-6 | U1-8 | U1-3 | U1-2 | U1-7 | U1-5",
+      "item_types": ["exposed land", "exposed land"],
+      "reported_against": "B2 0.60", "correct_row": "A6 0.50", "verdict": "STILL FAILS by 0.300 mm",
+      "class": "package-internal", "refdes": "U1",
+      "why_unfixable": "TPS2378-class PD controller in SOIC-8. 0.200 mm is the inter-lead gap of a 1.27 mm-pitch SOIC, i.e. the package as TI ships it. TI qualifies the part for 100 V operation with VDD and VSS on adjacent pins, so the governing spec here is the PACKAGE's own pin-to-pin rating, not IPC-2221's board-spacing table. Recorded at P6 as the reason the .kicad_dru HV rules carry a pad-pair exclusion."
+    },
+    {
+      "id": 11, "nets": ["V48_RTN", "V48_RAW"], "dv_v": 114, "layer": "F.Cu", "measured_mm": 0.200,
+      "pair": "PAD U1-9 <-> PAD U1-1", "item_types": ["exposed land", "exposed land"],
+      "reported_against": "B2 0.60", "correct_row": "A6 0.80 (101-150 V band)", "verdict": "STILL FAILS by 0.600 mm - and the correct row is STRICTER than the reported one",
+      "class": "package-internal", "refdes": "U1",
+      "why_unfixable": "Same SOIC-8 lead frame. This is the full 114 V across the rectified rail sitting between pin 1 and pin 9 of one package. Worth stating plainly in the design document because it is the single largest nominal shortfall on the board, and it is entirely a package-selection consequence: it would only be fixable by choosing a PD controller in a wider-pitch or creepage-optimised package."
+    }
+  ],
+  "summary": {
+    "reported_by_check_creepage": 11,
+    "resolved_by_correct_row": 1,
+    "resolved_pair_population": 217,
+    "remaining": 10,
+    "remaining_all_one_class": "package-internal: every one is a pad of a single footprint against another pad or against that same footprint's own escape, inside U1 (7), U22 (2) or U20 (1)",
+    "remaining_count_that_a_layout_change_could_fix": 0,
+    "if_owner_prefers_conservative_B2_reading": "item 2 returns as a 217-pair shortfall with a 0.2031 mm worst case; the other 10 are unchanged either way because they fail every applicable row"
+  }
+}
