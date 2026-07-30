@@ -510,10 +510,48 @@ Why this is binding, with the arithmetic:
 |---|---|
 | **Board outline** | **100.0 x 80.0 mm** (derivation: `stackup.md` s4.1) |
 | **Corner radius** | **3.0 mm**, all four corners |
-| **Mounting holes** | **4x M3 (3.2 mm) at 5 mm inset** = a 90 x 70 mm hole rectangle, **plus a 5th M3 at (46, 74)** |
+| **Mounting holes** | **4x M3 (3.2 mm) at 3.0 mm inset** = a **94.0 x 74.0 mm** hole rectangle, **plus a 5th M3 at (46, 74)**. **REVISED at rev A7 - see 7.1.1.** |
 | **Board thickness** | 1.6 mm |
 | Coordinate origin for this ICD | board top-left corner, x right, y down |
 | **RJ45 position on the carrier** | **top edge**, body (10, 0) - (32, 22) |
+
+#### 7.1.1 Mounting-hole inset - REVISED at rev A7. Read before drilling any daughter.
+
+Rev A6 and earlier froze **5 mm inset / 90 x 70 mm**. The carrier as built is
+**3.0 mm inset / 94.0 x 74.0 mm**, and this section is the ICD moving to match the
+board rather than the board moving to match the ICD.
+
+| | rev A6 (withdrawn) | **rev A7 (binding)** |
+|---|---|---|
+| Inset from board edge | 5.0 mm | **3.0 mm** |
+| Hole rectangle | 90 x 70 mm | **94.0 x 74.0 mm** |
+| Hole positions, board-relative | (5,5) (95,5) (95,75) (5,75) | **(3,3) (97,3) (97,77) (3,77)** |
+| Hole diameter | 3.2 mm | 3.2 mm (unchanged) |
+| 5th hole | (46, 74) | (46, 74) (unchanged, correct as built) |
+
+**Why the ICD moved and not the board.** `board_init` derives the mounting inset as
+`margin / 2` (closed-decisions MECH-01), so the default `--margin 6` produced a 3 mm
+inset; reaching 5 mm needs `--margin 10`. P5 asserted MECH-01 satisfied having checked
+only the corner radius, and nothing compared the inset to this table. By the time a
+P8 review caught it the board was placed and routed, and re-running `board_init`
+discards the entire P6 placement and P7 routing. **Both daughters (`lumina-par` at P0,
+`lumina-strobe` not started) are pre-P5 and inherit this table at no cost**, so the
+cheap and safe correction is here. Owner decision at H4: **no rebuild.**
+
+**Had this not been caught, every daughter drilled to rev A6 would have missed all
+four standoffs by 2 mm in x and 2 mm in y** - unfixable daughter-side, and only
+discoverable at mechanical assembly.
+
+**WASHER AND STANDOFF WARNING - this is the real cost of the 3 mm inset.** At a 3.0 mm
+inset against the 3.0 mm corner radius, the hole wall sits **1.3966 mm** from the board
+edge. Consequences for whoever assembles this:
+
+- A standard **M3 washer (7.0 mm OD) overhangs the rounded corner** and will not seat
+  flat. Use a **5.0-5.5 mm OD** washer, or none.
+- A **5.5 mm A/F standoff flange** likewise overhangs. Use a round standoff of
+  **<= 5.0 mm OD** at these four positions.
+- Do not substitute a larger flanged fastener without re-checking this dimension.
+- The 5th hole at (46, 74) is inboard and takes ordinary M3 hardware.
 
 ### 7.2 Connector positions - **FROZEN at P6**
 

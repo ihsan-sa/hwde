@@ -3,7 +3,7 @@
  "board": "lumina-carrier",
  "workspace": "boards/lumina-carrier",
  "created": "2026-07-28T13:36:22",
- "updated": "2026-07-29T22:46:51",
+ "updated": "2026-07-30T04:55:38",
  "phase": "P8",
  "gates": {
   "erc": {
@@ -111,6 +111,11 @@
    "status": "approved",
    "ts": "2026-07-28T21:27:15",
    "note": "Magjack: qualify a Bel/Pulse PoE+ ICM off-LCSC (owner rejected af-only for consistency with the par emitter rejection). Q9: Ethernet OTA + Wi-Fi OTA + recovery header, no USB-C, no pogo jig. OVP: 0.1 percent resistors on R66/R67/R73."
+  },
+  "4": {
+   "status": "approved",
+   "ts": "2026-07-30T04:55:38",
+   "note": "APPROVED with decisions. NO REBUILD - board keeps P6 placement and P7 routing; anything needing a new footprint becomes an open item. Four in-place actions: re-issue ICD at 94x74 @3.0mm inset with a washer-overhang note; scoped P6/P7 backward edge on the eth_xtal island (fix the constraints group first); widen the 189 sub-0.1016mm tracks and set the rules floor; reroute LED_Y_A out of the tap pocket. Endorsed no-further-work: (a) RX MDI skew ACCEPT with the 100BASE-TX reasoning in the design doc, (c) 48V intra-footprint DRU relaxation KEEP, (d) J1 In1-antipad GND deficit ACCEPT, (e) DECLARE the board locks. Deferred open items: U21 HF input ceramic (highest-priority rev-B), +3V3/LED PESD clamping, and the skill gap that there is no incremental board-from-netlist update. Then P9 -> P10 -> H5."
   }
  },
  "artifacts": {},
@@ -991,6 +996,18 @@
   {
    "ts": "2026-07-29T22:46:51",
    "event": "h4_presented_awaiting_owner"
+  },
+  {
+   "ts": "2026-07-30T04:55:38",
+   "event": "human",
+   "checkpoint": "4",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-07-30T04:55:38",
+   "event": "snapshot",
+   "label": "pre-h4-actions",
+   "files": 1
   }
  ]
 }

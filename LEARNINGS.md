@@ -1632,6 +1632,42 @@ Two more from the same fix, both cheap and both worth doing every time:
   `magjack_isolation_barrier` exists: a voltage-derived checker cannot see a hipot/differential
   requirement, so without the rule any future reroute silently reopens the gap and nothing reports it.
 
+## 2026-07-30 [kicad_dru][check_creepage][safety] A DRU rule that covers an HV net against SOME neighbours reads as protection and is not - audit COVERAGE, not existence
+The most important systemic finding of the lumina-carrier run. The board declared **7 nets at
+|V| >= 30 V** and had 5 hand-written HV rules, and a reviewer still found two sub-requirement 57 V
+gaps on a board reporting **0 DRC errors**. Cause: only **3 of the 7** (`V48_RAW`, `V48_RTN`,
+`+48V_SW`) were named in a *general* clearance rule. The four `/poe/POE_TAP_*` nets appeared only in
+rules that constrained them against a NAMED subset - `magjack_isolation_barrier` (taps vs the four
+`/ETH_*` nets) and `poe_tap_differential_pair` (taps vs each other). Nothing held a tap to 0.635 mm
+against the rest of the board, so:
+- `/poe/POE_TAP_A2` <-> `/poe/LED_Y_A` sat at **0.2031 mm** (217 pairs), and
+- tap <-> J1 board lock sat at **0.6029 mm**,
+both invisible to DRC *and* to `check_creepage` (the latter for separate reasons - netless pads have
+no declared voltage, and equal-potential pairs are skipped).
+**Standing check after authoring any HV rule set**: enumerate every net in `constraints.json.voltages`
+with `|V| >= 30` and assert each appears in at least one clearance rule whose condition does NOT
+restrict `B` to a named list. Grep for `B.NetName ==` in your own rules - every occurrence is a
+coverage hole unless a general rule also covers that `A`.
+Second, narrower trap in the same family: **netless conductors**. J1's two board locks are plated
+3.2 mm pads on all four layers with no net, 0.66 mm from 57 V. `check_creepage` cannot see them
+(no net -> no declared voltage -> no `dv`), and a `.kicad_dru` pad-pair exclusion - added for the good
+reason that a lead frame is not a routing choice - also excludes them, because the tap side is a pad
+too. Reach them with `B.NetName == ''`, and set the threshold to what the LAND can actually achieve
+(0.60 mm here, IPC-2221 B2), not the board-wide aspiration, or the rule is permanently waived.
+
+## 2026-07-30 [board_init][rules_gen][dfm] `min_track_width: 0.1` is below EVERY JLC profile - and this is the second time the same defect bit
+Already recorded on 2026-07-29 from the DFM side; repeating the actionable half because it cost a
+second fix cycle. `board_init.write_pro(pro_path, min_track: float = 0.1)` hard-codes 0.1 mm.
+`reference/jlc_capabilities.yaml` minimums are 0.1016 (4-layer 1 oz), 0.127 (2-layer), 0.1524 (2 oz) -
+**all coarser**. `rules_gen` emits the correct floor plus an `aiee_track_width_floor` DRU rule, but a
+hand-written `.kicad_dru` REPLACES that file rather than extending it, so on lumina-carrier the floor
+was absent and 189 tracks were laid at exactly 0.1000 mm - legal against the board's own DRC, and
+**1.6 micrometres** under what the fab can make.
+Two rules: (1) a hand-written `.kicad_dru` must START from the `rules_gen` output, never replace it;
+(2) assert `.kicad_pro.min_track_width >= jlc_capabilities[profile].min_trace_width_mm` at P7 entry.
+The general form of the lesson is the dangerous part: **`drc_routed` 0/0 does not imply
+manufacturable**, because DRC checks the board against rules the pipeline itself wrote.
+
 ## 2026-07-29 [silk][place_edit][kicad] `GetTextBox()` is 1.70 mm where DRC's INKED stroke box is 1.16 mm - use the wrong one and correct refdes targets look infeasible
 Measured on KiCad 10.0.3 at text size 1.0 mm / thickness 0.15 mm: `PCB_TEXT.GetTextBox()` reports
 **1.6965 mm** of height, but the polygon DRC actually tests - `TransformTextToPolySet`, the inked

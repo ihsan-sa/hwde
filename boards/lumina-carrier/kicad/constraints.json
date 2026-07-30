@@ -30,6 +30,27 @@
    "reference": "GND",
    "k": 3,
    "t_rise_ns": 2.0
+  },
+  {
+   "net": "/eth/XI",
+   "reference": "GND",
+   "k": 3,
+   "t_rise_ns": 2.0,
+   "_p8_basis": "P8 REVIEWER FINDING: absent from high_speed, so check_return_path never evaluated a 25 MHz net that reaches 1.05 mm from a board edge. 25 MHz square-ish oscillator output; t_rise 2.0 ns is the conservative CMOS edge for a 25 MHz XO driving a load network."
+  },
+  {
+   "net": "/eth/XO",
+   "reference": "GND",
+   "k": 3,
+   "t_rise_ns": 2.0,
+   "_p8_basis": "P8 REVIEWER FINDING: absent from high_speed, so check_return_path never evaluated a 25 MHz net that reaches 1.05 mm from a board edge. 25 MHz square-ish oscillator output; t_rise 2.0 ns is the conservative CMOS edge for a 25 MHz XO driving a load network."
+  },
+  {
+   "net": "/eth/XO_XTAL",
+   "reference": "GND",
+   "k": 3,
+   "t_rise_ns": 2.0,
+   "_p8_basis": "P8 REVIEWER FINDING: absent from high_speed, so check_return_path never evaluated a 25 MHz net that reaches 1.05 mm from a board edge. 25 MHz square-ish oscillator output; t_rise 2.0 ns is the conservative CMOS edge for a 25 MHz XO driving a load network."
   }
  ],
  "power": [
@@ -131,6 +152,14 @@
   {
    "net": "/poe/SHIELD",
    "voltage": 0
+  },
+  {
+   "net": "",
+   "voltage": 0,
+   "_declares": "J1 BOARD LOCKS - netless plated conductors, DECLARED at H4 by owner decision (e).",
+   "_measured": "Two netless plated 3.2 mm pads at board-rel (15.29,11.041) and (26.72,11.041), present on all four layers, closest approach to 57 V copper 0.66 mm (nearest net /poe/POE_TAP_A2).",
+   "_why": "They are conductors at an undefined potential sitting 0.66 mm from 57 V, and NOTHING modelled them: check_creepage skips them because they carry no net and therefore no declared voltage, and until H4 no .kicad_dru rule referenced them either. The 0.66 mm was luck, not design. Enforced from H4 by the .kicad_dru rule hv_to_netless_conductor at 0.60 mm (IPC-2221 B2, 51-100 V) - set at 0.60 rather than the board-wide 0.635 mm because the connector land itself only achieves 0.6029/0.6127 mm and a rule above what the land can reach would be permanently waived.",
+   "_note": "check_creepage still cannot evaluate this entry - a net name of empty string matches no copper in its model. The entry exists as the DECLARATION of record; DRC is what enforces it."
   }
  ],
  "thermal": [
@@ -188,11 +217,15 @@
    },
    {
     "name": "eth_xtal",
-    "anchor": "Y10",
+    "anchor": "U10",
     "members": [
+     "Y10",
      "C30",
-     "C31"
-    ]
+     "C31",
+     "R35",
+     "R36"
+    ],
+    "_p8_correction": "P8 REVIEWER FINDING. Was anchor Y10 / members [C30, C31] only. R35 (1M feedback, XI<->XO) and R36 (0R series damping, XO->XO_XTAL) were NEVER listed, so the annealer placed them freely: R36 ended up 28 mm from the driver pin it is supposed to damp, both resistors sat at the top board edge, and the oscillator network reached 115.567 mm of copper with 10 vias and came within 1.05 mm of the board edge. Anchor moved to U10 because the island belongs at the PHY XI/XO pins - anchoring on Y10 let the whole island float. U10 is in placement.fixed so it does not move; the five members do."
    },
    {
     "name": "buck48",
@@ -401,5 +434,6 @@
     137.132
    ]
   }
- ]
+ ],
+ "_systemic_finding_H4": "Only 3 of the 7 nets declared at |V| >= 30 V carried any general .kicad_dru clearance rule (V48_RAW, V48_RTN, +48V_SW). The four /poe/POE_TAP_* nets had rules ONLY against the four /ETH_* nets (magjack_isolation_barrier) and against each other (poe_tap_differential_pair, added at P8) - nothing held them to 0.635 mm against the rest of the board. That single gap is why BOTH the 0.2031 mm tap-to-LED_Y_A gap and P7s 0.6029 mm tap-to-board-lock gap existed on a board reporting 0 DRC errors. Closed at H4 by hv_tap_general_clearance and hv_to_netless_conductor. LESSON: after authoring HV rules, enumerate every net in voltages with |V| >= 30 and assert each one appears in at least one general clearance rule - a rule that covers a net against SOME neighbours reads as protection but is not."
 }
