@@ -31,7 +31,7 @@ T7 -> T8 || T9 -> T10. T11 runs as soon as boards arrive (not during T6).
 
 | Step | Title | Status | Date |
 |---|---|---|---|
-| T0 | Ops sweep (tracking refresh + record carrier web order) | pending | - |
+| T0 | Ops sweep (tracking refresh + record carrier web order) | **done** | 2026-08-06 |
 | T1 | Fab-truth hardening (board_init floors, rules_gen netclasses, 4L ordering, stackups.yaml, latch hash) | pending | - |
 | T2 | Gate blind-spot fixes (creepage / current / diffpair / return_path) | pending | - |
 | T3 | Library + authoring hygiene (lib_pull silk autofix, schem_refdes.py) | pending | - |
@@ -1744,3 +1744,37 @@ unless source_ref/sinks declared; pdn_z bounding-rect geometry, no
 VRM/package model. Sim-analyst calibration lesson: bounds are
 engine-version-sensitive at leakage scales - the committed benches hold at
 gmin x1000 and 60 C.
+
+## T0 - Ops sweep (2026-08-06) - DONE
+
+**Built/did:** asked the owner for the lumina-carrier JLC web order number
+(the API `pcb/create` refusal meant the workspace never captured one) ->
+`W2026073100331078`. Refreshed pd-trigger tracking: `order_track.py
+--workspace boards/pd-trigger` -> status changed Pending Review -> **Shipped**
+(total_money 13.08, `boards/pd-trigger/fab/tracking.json` updated). Recorded
+the carrier's web order number into `boards/lumina-carrier/fab/order.json`
+(`order_number` field + a `human_steps` note; no `api.order` block added,
+since the API never created this order) and probed order_track against it:
+`order_track.py --workspace boards/lumina-carrier --batch
+W2026073100331078` returned a normal `pass` payload first try - status
+**Shipped**, total_money 15.72 - resolving the live unknown (web-created
+orders ARE visible through `pcb/order/detail`; it keys purely on
+batchNum/orderUUID, not on how the order was created). No code changes
+needed: `_batch_from_order_json`'s existing fallback to `order_number` (when
+`api.order.batchNum` is absent) already covered this case.
+
+**Finding recorded:** LEARNINGS `[ordering]` 2026-08-06 entry (web order
+trackability, no distinction from API-created orders).
+
+**Deviations:** none.
+
+**Interface notes for later steps:** no code/interface changes. Both real
+boards are now confirmed **Shipped** per JLC - relevant context for T11
+(hardware bring-up leg runs once boards physically arrive).
+
+**Tree status:** clean after commit (only T0's own files: LEARNINGS.md,
+`boards/lumina-carrier/fab/order.json`, `boards/lumina-carrier/fab/tracking.json`
+[new], `boards/pd-trigger/fab/tracking.json`). `check.cmd` not required (no
+code touched); repo verified clean via `git status --short`.
+
+**New verify-later items:** none.

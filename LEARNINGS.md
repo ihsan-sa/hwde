@@ -2062,5 +2062,19 @@ Fourth instance on this board of the same failure mode - after the hardcoded 1 o
 `## Chosen` heading miss, and `impedanceFlag: "no"` on an impedance-controlled design - where the ORDER
 asks the fab for a different board than the one designed and verified. Gates check the design against
 its own stackup file; nothing checks the stackup file against what the fab actually sells.
+
+## 2026-08-06 [ordering] order_track.py sees WEB-created orders fine - `order/detail` keys only on batchNum, not on how the order was created
+lumina-carrier's 4-layer order failed via `pcb/create` (code 2, see the entry above) and was placed
+manually through the JLC cart instead, so the workspace never captured a batchNum the way pd-trigger's
+API-created order did. Owner supplied the web order's batch number (W2026073100331078) this session;
+`order_track.py --workspace boards/lumina-carrier --batch W2026073100331078` returned a normal `pass`
+payload on the first try - status Shipped, total_money 15.72, same shape as pd-trigger's API-created
+order. No distinction in the response between an order the API created and one placed by hand in the
+browser: `pcb/order/detail` (and by extension `pcb/wip/get`) is keyed purely on batchNum/orderUUID, which
+the cart UI surfaces to the human the same way batchNum is returned from `create`. Recorded the number
+into `fab/order.json.order_number` (no `api.order` block, since the API never created it) - order_track's
+`_batch_from_order_json` already falls back to `order_number` when `api.order.batchNum` is absent, so no
+code change was needed. Answers the open question from S12/T0: a 4-layer web order is trackable exactly
+like an API order, once you have its batch number in hand.
 Rule: validate any impedance-controlled stackup against the vendor's live template list BEFORE solving
 geometry against it, not at order time.
