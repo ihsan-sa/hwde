@@ -8,6 +8,13 @@ Per net in constraints.json["high_speed"]:
     copper (fill + tracks + pads + vias) and then keeps only the single
     connected component under the corridor, so "continuous reference copper"
     is honored while same-net stitching copper does not false-positive.
+    The reference NET is RESOLVED per (signal layer, reference layer): when the
+    declared net has no zone fill under the corridor but another net does (an
+    F/GND/PWR/B stack puts a power plane under every B.Cu trace), the corridor
+    is judged against that net's copper in cross-net waiver mode - real plane
+    splits still surface, but as "warning" with waiver_class
+    "cross_net_reference", never "error" (LEARNINGS 2026-07-30: the declared
+    net's via-disk copper otherwise fails every such trace by construction).
  3. Corridor = trace centerline buffered by k x trace_width (k default 3,
     ~return-current spread), flat-capped: the corridor ends where the trace
     ends (a round cap would poke past the landing pad into copper the signal
@@ -66,6 +73,8 @@ ALLOW_CLEARANCE_MM = 0.65      # excision margin beyond item copper edge
                                # (>= the corpus 0.5 mm zone clearance)
 MIN_DEFICIT_MM2 = 0.05         # deficit remainder below this is an artifact
 CROSSING_ERROR_MM = 0.01       # centerline crossing >= this -> error
+WAIVER_CLASS = "cross_net_reference"
+COVER_EPS_MM2 = 1e-6           # fill/corridor overlap below this is numeric noise
 
 
 # ------------------------------------------------------------ constraints
@@ -106,6 +115,37 @@ def corridor_on(bg: geom.BoardGeom, net: str, layer: str, k: float):
         parts.append(chain.buffer(k * w, quad_segs=16, cap_style="flat",
                                   join_style="round"))
     return unary_union(parts), tracks
+
+
+def resolve_reference(bg: geom.BoardGeom, corridor, declared: str,
+                      ref_layer: str) -> tuple[str, bool, float]:
+    """Resolve the net actually providing the reference plane under a corridor
+    on ref_layer. Candidates are nets whose ZONE FILL intersects the corridor
+    - via-disk/track slivers never qualify a net as reference (LEARNINGS
+    2026-07-30: on an F/GND/+3V3/B stack the declared GND has only via disks
+    on In2, which otherwise fails every B.Cu trace by construction). The
+    declared net wins whenever it is a candidate (behavior unchanged); else
+    the largest-coverage candidate is used in cross-net waiver mode; with no
+    candidate at all the declared net stands (no_reference_plane path).
+    Returns (resolved_net, cross_net_waiver, corridor_coverage 0..1)."""
+    fills: dict[str, list] = {}
+    for z in bg.zones_of(layer=ref_layer):
+        if not z.net:
+            continue
+        f = z.fill_on(ref_layer)
+        if not f.is_empty:
+            fills.setdefault(z.net, []).append(f)
+    coverage: dict[str, float] = {}
+    for net_name in sorted(fills):        # sorted -> deterministic tie-break
+        a = unary_union(fills[net_name]).intersection(corridor).area
+        if a > COVER_EPS_MM2:
+            coverage[net_name] = a / corridor.area
+    if declared in coverage:
+        return declared, False, coverage[declared]
+    if coverage:
+        best = max(coverage, key=coverage.get)
+        return best, True, coverage[best]
+    return declared, False, 0.0
 
 
 def excision_disks(bg: geom.BoardGeom, net: str, ref_net: str,
@@ -186,28 +226,57 @@ def stitch_cap_near(bg: geom.BoardGeom, net_a: str, net_b: str,
 
 
 def check_transition(bg: geom.BoardGeom, net: str, entry: dict,
-                     trans: dict, radius: float) -> dict | None:
+                     trans: dict, radius: float,
+                     resolution: dict | None = None) -> dict | None:
     v = trans["via"]
     layers = sorted(trans["layers"], key=bg.copper_layers.index)
     la, lb = layers[0], layers[-1]
-    refs_a = [(rl, reference_net_for(entry, la))
-              for rl in bg.adjacent_copper(la) if rl]
-    refs_b = [(rl, reference_net_for(entry, lb))
-              for rl in bg.adjacent_copper(lb) if rl]
+
+    def resolved_refs(sig_layer):
+        """(ref_layer, resolved net) pairs plus the cross-net-waived
+        (declared, resolved) pairs, from the per-(signal layer, ref layer)
+        resolution built in check_net; declared fallback without one."""
+        refs, waived = [], []
+        for rl in bg.adjacent_copper(sig_layer):
+            if rl is None:
+                continue
+            rec = (resolution or {}).get((sig_layer, rl))
+            if rec is None:
+                refs.append((rl, reference_net_for(entry, sig_layer)))
+            else:
+                refs.append((rl, rec["resolved"]))
+                if rec["waiver_class"]:
+                    waived.append((rec["declared"], rec["resolved"]))
+        return refs, waived
+
+    refs_a, waived_a = resolved_refs(la)
+    refs_b, waived_b = resolved_refs(lb)
     if set(refs_a) == set(refs_b):
         return None  # same reference plane(s) on both sides
+    # A cross-net-resolved side means the declared reference is unreachable by
+    # construction on this stackup (LEARNINGS 2026-07-30): the transition
+    # requirement still holds but is reported as the same waiver class, never
+    # error. Explicit per-layer declarations resolve to themselves -> no waiver.
+    waived = waived_a + waived_b
+    sev = "warning" if waived else "error"
+    waiver_extras = {}
+    if waived:
+        waiver_extras = {"waiver_class": WAIVER_CLASS,
+                         "reference_declared": waived[0][0],
+                         "reference_net": waived[0][1]}
     ref_nets = {n for _, n in refs_a + refs_b}
     if len(ref_nets) > 1:
         a_net, b_net = sorted(ref_nets)[:2]
         if stitch_cap_near(bg, a_net, b_net, v.at, radius):
             return None
         return violation(
-            SCRIPT, "error", v.at, None, net, [],
+            SCRIPT, sev, v.at, None, net, [],
             f"{net} transition {la}->{lb} at ({v.at[0]:.3f}, {v.at[1]:.3f}) "
             f"changes reference net {a_net}->{b_net} with no stitching "
             f"capacitor within {radius:.2f} mm", SCRIPT,
             kind="missing_stitch_cap", radius_mm=checklib.rnd(radius),
-            from_layer=la, to_layer=lb, ref_nets=sorted(ref_nets))
+            from_layer=la, to_layer=lb, ref_nets=sorted(ref_nets),
+            **waiver_extras)
     ref_net = next(iter(ref_nets))
     nearest = None
     for rv in bg.vias_of(ref_net):
@@ -219,13 +288,14 @@ def check_transition(bg: geom.BoardGeom, net: str, entry: dict,
         return None
     near_txt = f"nearest {nearest:.2f} mm" if nearest is not None else "none found"
     return violation(
-        SCRIPT, "error", v.at, None, net, [],
+        SCRIPT, sev, v.at, None, net, [],
         f"{net} layer transition {la}->{lb} at ({v.at[0]:.3f}, {v.at[1]:.3f}) "
         f"has no {ref_net} return via within {radius:.2f} mm ({near_txt})",
         SCRIPT, kind="missing_return_via", radius_mm=checklib.rnd(radius),
         nearest_ref_via_mm=checklib.rnd(nearest) if nearest is not None else None,
         from_layer=la, to_layer=lb, ref_layers=[sorted({rl for rl, _ in refs_a}),
-                                                sorted({rl for rl, _ in refs_b})])
+                                                sorted({rl for rl, _ in refs_b})],
+        **waiver_extras)
 
 
 # ------------------------------------------------------------ per-net check
@@ -241,6 +311,9 @@ def check_net(bg: geom.BoardGeom, entry: dict, k_cli: float):
     radius = net_entry_radius(entry)
     violations: list[dict] = []
     layers_used: list[str] = []
+    # (signal layer, ref layer) -> resolution record; computed once per pair,
+    # reused by check_transition and exported in facts as the waiver record.
+    resolution: dict[tuple[str, str], dict] = {}
 
     for layer in bg.copper_layers:
         corridor, tracks = corridor_on(bg, net, layer, k)
@@ -251,7 +324,14 @@ def check_net(bg: geom.BoardGeom, entry: dict, k_cli: float):
         for ref_layer in bg.adjacent_copper(layer):
             if ref_layer is None:
                 continue
-            ref_net = reference_net_for(entry, layer)
+            declared = reference_net_for(entry, layer)
+            ref_net, waiver, coverage = resolve_reference(
+                bg, corridor, declared, ref_layer)
+            resolution[(layer, ref_layer)] = {
+                "signal_layer": layer, "ref_layer": ref_layer,
+                "declared": declared, "resolved": ref_net,
+                "waiver_class": WAIVER_CLASS if waiver else None,
+                "corridor_coverage": checklib.rnd(coverage)}
             ref_copper = bg.net_copper(ref_net, ref_layer)
             if ref_copper.is_empty:
                 violations.append(violation(
@@ -267,6 +347,13 @@ def check_net(bg: geom.BoardGeom, entry: dict, k_cli: float):
             for poly in deficit_polys(corridor, component, disks):
                 crossing = centerline.intersection(poly).length
                 sev = "error" if crossing >= CROSSING_ERROR_MM else "warning"
+                extras = {}
+                if waiver:
+                    # cross-net resolved plane: a split is still a real return
+                    # path defect, but never an error (waiver class).
+                    sev = "warning"
+                    extras = {"waiver_class": WAIVER_CLASS,
+                              "reference_declared": declared}
                 rp = poly.representative_point()
                 violations.append(violation(
                     SCRIPT, sev, (rp.x, rp.y), ref_layer, net, [],
@@ -277,11 +364,11 @@ def check_net(bg: geom.BoardGeom, entry: dict, k_cli: float):
                     reference_net=ref_net,
                     crossing_len_mm=checklib.rnd(crossing),
                     area_mm2=checklib.rnd(poly.area),
-                    polygon=checklib.poly_coords(poly)))
+                    polygon=checklib.poly_coords(poly), **extras))
 
     transitions = signal_transitions(bg, net)
     for trans in transitions:
-        vio = check_transition(bg, net, entry, trans, radius)
+        vio = check_transition(bg, net, entry, trans, radius, resolution)
         if vio is not None:
             violations.append(vio)
 
@@ -289,7 +376,8 @@ def check_net(bg: geom.BoardGeom, entry: dict, k_cli: float):
              "return_via_radius_mm": checklib.rnd(radius),
              "transitions": [{"pos": [checklib.rnd(t["via"].at[0]),
                                       checklib.rnd(t["via"].at[1])],
-                              "layers": t["layers"]} for t in transitions]}
+                              "layers": t["layers"]} for t in transitions],
+             "reference_resolution": list(resolution.values())}
     return violations, facts
 
 

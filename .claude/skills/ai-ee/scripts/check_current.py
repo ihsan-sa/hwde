@@ -11,6 +11,37 @@ Per net in constraints.json["power"] with a budgeted current:
  - layer transitions: net vias are clustered (<= 2 mm) and each cluster needs
    ceil(I / via_amps) vias (default 0.5 A per via, per spec).
 
+Override reach (LEARNINGS 2026-07-28/29: overrides used to feed only track
+widths, making the via rule net-wide and unsatisfiable for branch taps):
+ - a via CLUSTER whose centroid falls inside an override region is judged at
+   the override current (need = ceil(override / via_amps));
+ - a pour NECK is first evaluated at the full budget; if the failing neck's
+   reported position falls inside an override region the fill is re-tested at
+   the override requirement - passing drops the violation, failing re-emits
+   the re-test's neck at the override current. Approximation: the re-test's
+   neck position may itself land outside the region (the reported point is a
+   representative sample of the split, not the whole neck).
+
+Every undersized_track violation carries extras "bridge": true|false - true
+when the segment is a cut edge of the net's connectivity graph (tracks + vias
++ pads + zone fills, lib/netconn.py), i.e. the sole path: the whole judged
+current really crosses it. false = a parallel same-net path exists (which may
+still be jointly undersized - severity is NOT reduced; the label is for the
+fixer, LEARNINGS 2026-07-29 "no bridge awareness").
+
+Plane-fed rails ("plane_fed": true on the entry): the rail's trunk is its
+zone fill, so every via is a single-pin leaf tap by construction and the
+net-wide budget is unattributable per cluster/segment (LEARNINGS 2026-07-29:
+27 one-via clusters on +3V3, doubling infeasible). Semantics:
+ - no zone fill anywhere on the net -> error "plane_missing", then the entry
+   is checked as if plane_fed were false;
+ - pour necks: unchanged, error at the full budget (a trunk neck is real);
+ - via clusters / track segments OUTSIDE any override region: still checked
+   at the full budget but downgraded to severity "warning" with extras
+   advisory=true (a labeled worst-case screen);
+ - INSIDE an override region: error at the override current (a declared
+   regulator-feed tap stays enforceable).
+
 IPC-2152 basis: 10 degC chart readings at 1 oz outer copper (interpolation
 table vendored from kicad-happy, MIT), converted to copper cross-section so
 inner layers scale by their (thinner) copper thickness from geom's stackup.
@@ -26,10 +57,12 @@ constraints.json["power"] entries:
      "current_a": 0.4,           # required, budgeted rail current
      "dt_c": 10,                 # optional temperature rise (default 10)
      "via_amps": 0.5,            # optional per-via ampacity (default 0.5)
+     "plane_fed": true,          # optional, see plane-fed semantics above
      "overrides": [              # optional per-region current attribution
         {"near": [x, y], "radius_mm": 2.0, "current_a": 0.1}]}
-Segments whose midpoint falls in an override region are checked against the
-override current instead of the full budget (branch traces).
+Segments whose midpoint (via clusters: centroid; pour necks: reported neck
+position) falls in an override region are checked against the override
+current instead of the full budget (branch traces / taps).
 """
 from __future__ import annotations
 
@@ -43,6 +76,7 @@ from shapely.geometry import Point
 sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
 import checklib  # noqa: E402
 import geom  # noqa: E402
+import netconn  # noqa: E402
 from checklib import CheckError, violation  # noqa: E402
 
 SCRIPT = "check_current"
@@ -97,13 +131,19 @@ def cluster_vias(vias: list, max_gap: float = VIA_CLUSTER_MM) -> list[list]:
     return list(groups.values())
 
 
-def segment_current(entry: dict, midpoint) -> float:
+def region_current(entry: dict, pos) -> float | None:
+    """Override current for a position, or None when no region covers it."""
     for ov in entry.get("overrides", []):
         near = ov.get("near")
-        if near and math.hypot(midpoint[0] - near[0],
-                               midpoint[1] - near[1]) <= ov.get("radius_mm", 2.0):
+        if near and math.hypot(pos[0] - near[0],
+                               pos[1] - near[1]) <= ov.get("radius_mm", 2.0):
             return float(ov["current_a"])
-    return float(entry["current_a"])
+    return None
+
+
+def segment_current(entry: dict, midpoint) -> float:
+    ov = region_current(entry, midpoint)
+    return float(entry["current_a"]) if ov is None else ov
 
 
 def pour_neck(bg: geom.BoardGeom, net: str, layer: str, fill,
@@ -155,59 +195,115 @@ def check_net(bg: geom.BoardGeom, entry: dict):
     cu = bg.stackup.copper_thickness
     violations: list[dict] = []
 
+    # ---- plane-fed rail: the declared trunk must exist
+    plane_fed = bool(entry.get("plane_fed", False))
+    if plane_fed and not bg.layers_with_zone(net):
+        pos = None
+        for layer in bg.copper_layers:
+            cop = bg.net_copper(net, layer)
+            if not cop.is_empty:
+                pos = cop.representative_point().coords[0]
+                break
+        violations.append(violation(
+            SCRIPT, "error", pos, None, net, [],
+            f"{net} is declared plane_fed but has no zone fill on any layer",
+            SCRIPT, kind="plane_missing"))
+        plane_fed = False       # rest of the check runs at full semantics
+
     # ---- track segments
     min_seen: dict[str, float] = {}
+    undersized: list[tuple[dict, object]] = []   # (violation, Track)
     for t in bg.tracks_of(net):
         mid = t.shape.interpolate(0.5, normalized=True).coords[0]
-        amps = segment_current(entry, mid)
+        ov = region_current(entry, mid)
+        amps = budget if ov is None else ov
         req = required_width_mm(amps, dt_c, cu[t.layer])
         min_seen[t.layer] = min(min_seen.get(t.layer, 9e9), t.width)
         if t.width + WIDTH_TOL_MM < req:
+            advisory = plane_fed and ov is None
+            msg = (f"{net} track {t.width:.3f} mm wide on {t.layer}; IPC-2152 "
+                   f"needs {req:.3f} mm for {amps:.2f} A at dT={dt_c:.0f}C")
+            extras = {}
+            if advisory:
+                msg += ("; advisory: plane-fed rail, full-budget worst-case "
+                        "screen (per-segment current unattributed)")
+                extras["advisory"] = True
             x0, y0 = t.shape.coords[0]
             x1, y1 = t.shape.coords[-1]
-            violations.append(violation(
-                SCRIPT, "error", mid, t.layer, net, [],
-                f"{net} track {t.width:.3f} mm wide on {t.layer}; IPC-2152 "
-                f"needs {req:.3f} mm for {amps:.2f} A at dT={dt_c:.0f}C",
-                SCRIPT, kind="undersized_track",
+            v = violation(
+                SCRIPT, "warning" if advisory else "error", mid, t.layer,
+                net, [], msg, SCRIPT, kind="undersized_track",
                 width_mm=checklib.rnd(t.width), required_mm=checklib.rnd(req),
                 current_a=amps, segment={"start": [checklib.rnd(x0),
                                                    checklib.rnd(y0)],
                                          "end": [checklib.rnd(x1),
-                                                 checklib.rnd(y1)]}))
+                                                 checklib.rnd(y1)]},
+                **extras)
+            violations.append(v)
+            undersized.append((v, t))
 
-    # ---- pour neckdowns
+    # ---- bridge labeling (LEARNINGS 2026-07-29: cut edge = sole path)
+    if undersized:
+        g = netconn.build(bg, net, include_zones=True)
+        bridges = netconn.bridge_tracks(g)
+        # g.tracks maps edge_id -> the SAME Track objects bg.tracks_of yields
+        # (geom filters one cached list; netconn stores them unchanged), so
+        # identity lookup is sound. Zero-length tracks are absent from the
+        # graph: label those bridge=true (sole-path is the conservative call).
+        edge_of = {id(trk): eid for eid, trk in g.tracks.items()}
+        for v, t in undersized:
+            eid = edge_of.get(id(t))
+            v["bridge"] = True if eid is None else eid in bridges
+
+    # ---- pour neckdowns (always at the full budget; plane_fed keeps error)
     for z in bg.zones_of(net):
         for layer in z.fills:
             fill = z.fill_on(layer)
             if fill.is_empty:
                 continue
+            amps = budget
             req = required_width_mm(budget, dt_c, cu[layer])
             neck = pour_neck(bg, net, layer, fill, req)
+            if neck is not None:
+                ov = region_current(entry, neck[1])
+                if ov is not None:
+                    # failing neck sits in an override region: re-test the
+                    # fill at the override requirement; passing drops it
+                    amps = ov
+                    req = required_width_mm(ov, dt_c, cu[layer])
+                    neck = pour_neck(bg, net, layer, fill, req)
             if neck is not None:
                 width, pos = neck
                 violations.append(violation(
                     SCRIPT, "error", pos, layer, net, [],
                     f"{net} pour on {layer} necks to ~{width:.2f} mm between "
                     f"via attachments; IPC-2152 needs {req:.3f} mm for "
-                    f"{budget:.2f} A at dT={dt_c:.0f}C", SCRIPT,
+                    f"{amps:.2f} A at dT={dt_c:.0f}C", SCRIPT,
                     kind="pour_neckdown", neck_mm=checklib.rnd(width),
-                    required_mm=checklib.rnd(req), current_a=budget))
+                    required_mm=checklib.rnd(req), current_a=amps))
 
-    # ---- transition via count
+    # ---- transition via count (per-cluster override via centroid)
     clusters = cluster_vias(bg.vias_of(net))
-    need = max(1, math.ceil(budget / via_amps))
     for group in clusters:
+        cx = sum(v.at[0] for v in group) / len(group)
+        cy = sum(v.at[1] for v in group) / len(group)
+        ov = region_current(entry, (cx, cy))
+        amps = budget if ov is None else ov
+        need = max(1, math.ceil(amps / via_amps))
         if len(group) < need:
-            cx = sum(v.at[0] for v in group) / len(group)
-            cy = sum(v.at[1] for v in group) / len(group)
+            advisory = plane_fed and ov is None
+            msg = (f"{net} layer transition at ({cx:.2f}, {cy:.2f}) has "
+                   f"{len(group)} via(s); {amps:.2f} A needs {need} "
+                   f"(>= 1 via per {via_amps} A)")
+            extras = {}
+            if advisory:
+                msg += ("; advisory: plane-fed rail, per-cluster current "
+                        "unattributed (each via is a leaf tap off the plane)")
+                extras["advisory"] = True
             violations.append(violation(
-                SCRIPT, "error", (cx, cy), None, net, [],
-                f"{net} layer transition at ({cx:.2f}, {cy:.2f}) has "
-                f"{len(group)} via(s); {budget:.2f} A needs {need} "
-                f"(>= 1 via per {via_amps} A)", SCRIPT,
-                kind="insufficient_transition_vias",
-                vias=len(group), required=need))
+                SCRIPT, "warning" if advisory else "error", (cx, cy), None,
+                net, [], msg, SCRIPT, kind="insufficient_transition_vias",
+                vias=len(group), required=need, **extras))
 
     facts = {"net": net, "current_a": budget, "dt_c": dt_c,
              "required_mm_by_layer": {
@@ -216,6 +312,12 @@ def check_net(bg: geom.BoardGeom, entry: dict):
              "min_track_mm_by_layer": {l: checklib.rnd(w)
                                        for l, w in min_seen.items()},
              "via_clusters": len(clusters)}
+    if undersized:
+        facts["bridge_labeled"] = True
+    if entry.get("plane_fed"):
+        facts["plane_fed"] = True
+        facts["advisory_violations"] = sum(
+            1 for v in violations if v.get("advisory"))
     return violations, facts
 
 

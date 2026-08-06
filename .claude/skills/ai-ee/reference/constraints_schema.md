@@ -26,7 +26,16 @@ Consumers per key (script -> phase):
   // check_pdn decoupling inventory (P8)
   "power": [{
     "net": "+3V3", "current_a": 0.4, "dt_c": 10, "via_amps": 0.5,
-    "overrides": [{"near": [118.5, 108.0], "radius_mm": 5, "current_a": 0.2}]
+    // overrides reach track segments, via clusters AND pour necks (T2).
+    // Neck nuance: a neck is re-tested against an override only after it
+    // FAILS at the full budget (a higher override never tightens a neck).
+    "overrides": [{"near": [118.5, 108.0], "radius_mm": 5, "current_a": 0.2}],
+    // plane_fed (T2): the rail's trunk is a plane - every via is a leaf tap,
+    // so via-count/track findings outside override regions downgrade to
+    // advisory WARNINGS (extras advisory:true); override regions stay ERROR
+    // at their declared current (regulator feed taps). Pour necks stay ERROR
+    // at the full budget. No zone fill on the net -> error plane_missing.
+    "plane_fed": true
   }, {
     // width-only entry: "pdn": false opts a net OUT of check_pdn's
     // decoupling inventory. Use for nets declared solely so rules_gen sizes
@@ -41,11 +50,26 @@ Consumers per key (script -> phase):
   "diff_pairs": [{
     "p": "/USB_DP", "n": "/USB_DM", "base": "USB",
     "impedance_ohm": 90,             // differential target
-    "gap_mm": 0.2, "max_skew_mm": 5, "max_uncoupled_mm": 5
+    "gap_mm": 0.2, "max_skew_mm": 5, "max_uncoupled_mm": 5,
+    "term_pair_mm": 2.5              // cross-ref terminal-match window (T2);
+                                     // same-footprint P/N pads always match
   }],
 
-  // check_creepage (P8): IPC-2221 spacing for pairs > 30 V apart
+  // check_creepage (P8): IPC-2221 spacing for pairs > 30 V apart.
+  // T2: reports EVERY violating item pair (not just the worst per net pair);
+  // violation pos = the actual gap midpoint.
   "voltages": [{"net": "HV_BUS", "voltage": 48}],
+  // voltage_pairs (T2): explicit net-PAIR differential that node voltages
+  // cannot express (bridge/AC inputs - two 57 V taps carry 114 V between
+  // them). Overrides the derived difference for that pair; a pair declared
+  // <= 30 V WAIVES the derived check (recorded in the report).
+  "voltage_pairs": [{"a": "/poe/POE_TAP_A1", "b": "/poe/POE_TAP_A2",
+                     "voltage": 114}],
+  // coating (T2) selects the IPC-2221 Table 6-1 row per item type:
+  // none -> B2 traces/vias, A6 exposed lands; soldermask -> B4 masked
+  // traces/tented vias, A6 lands (mask relief exposes them); conformal ->
+  // A5/A7. Inner layers are always B1. CLI --coating overrides.
+  "coating": "soldermask",
 
   // check_thermal (P8), place_anneal spreading term (P6)
   "thermal": [{"ref": "U2", "power_w": 0.8, "net": "GND", "dt_c": 40,

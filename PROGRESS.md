@@ -33,7 +33,7 @@ T7 -> T8 || T9 -> T10. T11 runs as soon as boards arrive (not during T6).
 |---|---|---|---|
 | T0 | Ops sweep (tracking refresh + record carrier web order) | **done** | 2026-08-06 |
 | T1 | Fab-truth hardening (board_init floors, rules_gen netclasses, 4L ordering, stackups.yaml, latch hash) | **done** | 2026-08-06 |
-| T2 | Gate blind-spot fixes (creepage / current / diffpair / return_path) | pending | - |
+| T2 | Gate blind-spot fixes (creepage / current / diffpair / return_path) | **done** | 2026-08-06 |
 | T3 | Library + authoring hygiene (lib_pull silk autofix, schem_refdes.py) | **done** | 2026-08-06 |
 | T4 | Knowledge ladder triage + trigger-indexed remediations | **done** | 2026-08-06 |
 | T5 | Stage bench + frozen fixtures + composite scores | pending | - |
@@ -2137,3 +2137,111 @@ step turned them into code that runs by default.
 **New verify-later items:** V19 (rotation/mirror transform corpus-verified only at
 0 and 180 degrees - no mirrored symbol instance exists in any of the ten board
 sheets).
+
+## T2 - Gate blind-spot fixes (2026-08-06) - DONE
+
+Ran as the plan's ultracode fan-out: 4 parallel builders (creepage / return_path /
+diffpair+netconn -> current, chained on the new shared lib) + 4 adversarial
+verifiers, all verdict PASS (~715k subagent tokens, 8 agents). Every fix pinned
+by fixtures carrying the EXACT lumina-carrier LEARNINGS geometry, and verifiers
+proved the new tests FAIL on pre-T2 code (defects genuinely pinned, not
+tautologies).
+
+**Built:**
+- `check_creepage`: full IPC-2221 Table 6-1 row model (B1-B4, A5-A7; grid
+  re-verified live vs ema-eda/smpspowersupply, sources in comments) with
+  per-item-type coating adjudication - `coating` constraints key / `--coating`
+  (none|soldermask|conformal): inner->B1, masked trace/tented via->B4, exposed
+  land->A6 even under mask (IPC 6.3.4), conformal A5/A7; pair requirement =
+  max(row_a, row_b). Item-level ALL-pairs enumeration (STRtree prefilter, one
+  violation per violating item pair, pos = the actual gap midpoint, 0.1 mm
+  spatial dedup, 500/pair-layer cap with `truncated` + pre-dedup
+  `pairs_under_requirement` - the 216-hidden-siblings fix). New `voltage_pairs`
+  key: net-PAIR differential (bridge/AC inputs; the 0.3295 mm 114 V POE tap
+  pair now fires); a pair declared <= 30 V deliberately WAIVES the derived
+  sweep (recorded in `skipped_low_voltage_pairs`, docstring + test pin it).
+  `clearance_mm()` byte-compatible (delegates B2/B1).
+- `check_current`: `overrides` now reach via clusters AND pour necks (a neck is
+  re-tested at the override only after failing the full budget - a higher
+  override never tightens a passing neck); `plane_fed: true` = the explicit
+  advisory downgrade (via/track findings outside override regions -> warning +
+  `advisory: true`; override regions stay ERROR at declared current - regulator
+  feed taps stay enforceable; pour necks stay ERROR at budget; no fill at all ->
+  ERROR `plane_missing`). Every `undersized_track` now carries `bridge:
+  true|false` (netconn cut-edge analysis incl. zone-mediated parallel paths).
+- `check_diffpair` + NEW `scripts/lib/netconn.py` (the one shared per-net
+  connectivity graph: coincident snap, same-layer end-cap overlap, via disks,
+  pad polygons, optional zone nodes; Dijkstra + multigraph bridge finding):
+  trunk connects through vias AND pads (the 0.1414 mm endpoint-mismatch class
+  that turned "skew" into total-copper-length), same-ref terminal pairing with
+  no distance cap (magjack RXP/RXN 4.58 mm apart now a matched terminal) +
+  `term_pair_mm` spec key, and `branch_free: false` now also emits a
+  `diffpair_open_trunk` WARNING naming the unreachable terminals (was silent).
+  The old endpoint-snap `net_graph`/`nearest_node` helpers are REMOVED.
+- `check_return_path`: per-(signal layer, ref layer) reference RESOLUTION from
+  zone fills under the corridor. Declared net wins whenever its fill is present
+  (all golden/mutant/synthetic behavior unchanged, incl. the usbbuck4 GND-strip
+  class); else the largest-coverage plane resolves CROSS-NET: corridor_void and
+  transition findings downgrade to WARNING + `waiver_class:
+  "cross_net_reference"` + `reference_declared`/`reference_net` extras - an
+  F/GND/3V3/B board no longer fails every B.Cu trace by construction, and a
+  split in the resolved plane is still reported (as the waiver class).
+  `facts.reference_resolution` is the machine-readable waiver record;
+  `check_transition` gained an optional `resolution` param (back-compatible).
+- Plumbing (orchestrator): `cluster_violations.FIXER_HINTS` += `plane_missing`
+  -> plane, `diffpair_open_trunk` -> router; `reference/constraints_schema.md`
+  documents `voltage_pairs`/`coating`/`power[].plane_fed`/
+  `diff_pairs[].term_pair_mm` + the overrides reach; two verifier-follow-up
+  tests added (low-voltage-pair waiver semantics; `missing_return_via` in
+  waiver mode).
+
+**Acceptance evidence:** 50 new tests across `tests/test_t2_{creepage,current,
+diffpair,returnpath}.py`, all green. Old-code proofs: returnpath 6/6 fail,
+diffpair 5/5 regression fail, current 9/12 fail (3 = controls), creepage
+bridge-input + sibling fixtures fail on HEAD~. Goldens + all existing mutants
+unchanged (targeted golden_clean/mutant selections per check + full suite).
+Full `check.cmd`: 951 passed / 2 failed, BOTH non-T2: `test_net_search
+[AP63203]` (live JLC stock genuinely 0 - probe shows 2 hits with stock 0;
+pre-existing `net`-marked test, T3 recorded the same) and the LEARNINGS triage
+guard (T1's then-uncommitted appends; green after T1's commit e679027 -
+re-verified). check_env exit 0.
+
+**Deviations from the plan (with reasons):**
+1. check_current: plan offered "bridge awareness OR advisory downgrade" - did
+   both (the label alone cannot make a plane-fed rail expressible; the
+   downgrade alone leaves the fixer guessing about parallel paths).
+2. "One new mutant per fix" delivered as in-test synthetic fixtures carrying
+   the exact LEARNINGS coordinates, not corpus mutants (hermetic, no
+   manifest/goldens churn; the golden mutants already cover the caught-defect
+   direction for diffpair/return_path).
+3. Two same-entry limitations fixed beyond the plan text because the cited
+   LEARNINGS entries carry them: diffpair terminal matching (TERM_PAIR_MM
+   magjack miss) and creepage violation pos (representative_point was useless
+   for locating gaps).
+4. LEARNINGS.md deliberately NOT appended this session (T1's uncommitted
+   appends occupied the shared file at session end). The four 2026-07-29/30
+   `[check_*]` entries describe PRE-T2 behavior; THIS entry is the closure
+   record. Ladder-triage register re-levels those rows at the next sweep.
+
+**Interface notes for later steps:**
+- `netconn.py` is the shared net-connectivity graph; T8 `board_update`
+  del_part orphan detection should use it (its join rule IS the plan's
+  "endpoint inside a via/pad is connected; inside another track's body is not",
+  plus measured end-cap overlap).
+- `route_critical.py` consumes `check_diffpair.matched_terminals` (signature
+  intact): same-ref pairing returns MORE terminal pairs on dual-half footprints
+  (magjacks) - eyeball its next real-board run.
+- `boards/lumina-carrier/work/p8/mdi_graph.py` (scratch, past run) calls the
+  removed `net_graph`/`nearest_node`; needs a ~5-line port to netconn if ever
+  re-run.
+- Creepage reports can be LARGE on real HV boards (item-pair enumeration):
+  consumers must not assume <= 1 violation per net pair; cap 500/pair-layer
+  with `truncated: true`.
+- Waiver semantics ride on SEVERITY, not exit codes: any violation still exits
+  1; gates fail on error only, so waived-but-clean boards pass the `verify`
+  gate. Triage/dashboards must key on severity + `waiver_class`.
+- Unclaimed working-tree noise at session end: `boards/{pd-trigger,
+  stm32-blinky}/reports/design_doc` PDF+tex modified by no wave-1 commit -
+  left untouched, owner unknown (likely a report_gen re-run side effect).
+
+**New verify-later items:** none.

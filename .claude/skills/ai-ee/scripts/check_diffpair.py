@@ -15,10 +15,13 @@ diffpair-skew mutant does exactly this) barely moves the length skew but is a
 real signal-integrity defect - it is caught by uncoupled length, not by skew.
 Both are reported; the pair fails on whichever exceeds its threshold.
 
-The trunk is found with a tiny segment graph: endpoints are nodes, segments are
-weighted edges, and the shortest path between the two terminal nodes ignores
-dead-end stubs (a stub branches at a T that is mid-segment, so it lands in its
-own graph component and is simply unreachable).
+The trunk is found on netconn's per-net connectivity graph (segments joined
+through vias, pads and overlapping same-layer end caps - LEARNINGS 2026-07-29:
+an endpoint-snap-only graph turns sub-0.3 mm endpoint mismatches into a
+total-copper-length "skew"). The shortest path between two matched terminal
+PAD nodes ignores dead-end stubs; if the terminals cannot be connected at all
+the length falls back to total copper and a diffpair_open_trunk warning is
+emitted so the bogus skew is never silent.
 
 CLI: --pcb board.kicad_pcb [--constraints constraints.json] [--out report.json]
      exit 0/1/2 per SPEC section 6.
@@ -28,23 +31,23 @@ constraints.json["diff_pairs"] entries (all keys but the nets optional):
      "gap_mm": 0.65,                   # nominal centre-to-centre pitch
      "max_skew_mm": 5.0,               # length-match tolerance
      "max_uncoupled_mm": 5.0,          # allowed one-sided uncoupled run
-     "coupling_factor": 3.0}           # coupled if gap <= factor * nominal
+     "coupling_factor": 3.0,           # coupled if gap <= factor * nominal
+     "term_pair_mm": 2.5}              # cross-ref terminal pairing window
 """
 from __future__ import annotations
 
 import argparse
-import heapq
 import math
 import statistics
 import sys
 from pathlib import Path
 
-from shapely.geometry import Point
 from shapely.ops import unary_union
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
 import checklib  # noqa: E402
 import geom  # noqa: E402
+import netconn  # noqa: E402
 from checklib import CheckError, violation  # noqa: E402
 
 SCRIPT = "check_diffpair"
@@ -52,10 +55,9 @@ C_MM_PER_PS = 0.299792458      # speed of light, mm/ps
 MAX_SKEW_MM = 5.0              # default intra-pair length-match tolerance
 MAX_UNCOUPLED_MM = 5.0         # default one-sided uncoupled run
 COUPLING_FACTOR = 3.0          # coupled where gap <= factor * nominal pitch
-TERM_PAIR_MM = 2.5             # matched terminals sit within this of each other
+TERM_PAIR_MM = 2.5             # cross-ref matched-terminal window (same-ref: none)
 GAP_TOL_MM = 0.5              # coupled-region gap may wander this much (warn)
 SAMPLE_MM = 0.1               # centerline sampling step for gap / uncoupled
-NODE_SNAP = 3                 # decimal places for graph-node identity
 
 # Suffix pairs used to auto-discover pairs: two nets sharing a stem whose final
 # token is (positive, negative). Deliberately conservative - the ambiguous
@@ -98,61 +100,32 @@ def discover_pairs(nets) -> list[tuple[str, str]]:
     return pairs
 
 
-# ------------------------------------------------------------ trunk graph
+# ------------------------------------------------------------ trunk
 
-def _node(pt) -> tuple[float, float]:
-    return (round(pt[0], NODE_SNAP), round(pt[1], NODE_SNAP))
-
-
-def net_graph(bg: geom.BoardGeom, net: str):
-    """Adjacency {node: [(node, length)]} over the net's track segments."""
-    adj: dict[tuple, list] = {}
-    for t in bg.tracks_of(net):
-        a, b = _node(t.shape.coords[0]), _node(t.shape.coords[-1])
-        adj.setdefault(a, []).append((b, t.length))
-        adj.setdefault(b, []).append((a, t.length))
-    return adj
+def _pad_dist(a, b) -> float:
+    return math.hypot(a.center[0] - b.center[0], a.center[1] - b.center[1])
 
 
-def nearest_node(adj, pt, tol=1.0):
-    best, bd = None, tol
-    for nd in adj:
-        d = math.hypot(nd[0] - pt[0], nd[1] - pt[1])
-        if d <= bd:
-            best, bd = nd, d
-    return best
+def matched_terminals(bg, p, n, term_pair_mm=TERM_PAIR_MM):
+    """The (p_pad, n_pad) terminal pairs bounding the coupled trunk.
 
-
-def shortest_path_len(adj, src, dst) -> float | None:
-    """Dijkstra src->dst; None if unreachable (e.g. a stub component)."""
-    if src is None or dst is None:
-        return None
-    dist = {src: 0.0}
-    pq = [(0.0, src)]
-    while pq:
-        d, u = heapq.heappop(pq)
-        if u == dst:
-            return d
-        if d > dist.get(u, math.inf):
-            continue
-        for v, w in adj.get(u, ()):
-            nd = d + w
-            if nd < dist.get(v, math.inf):
-                dist[v] = nd
-                heapq.heappush(pq, (nd, v))
-    return dist.get(dst)
-
-
-def matched_terminals(bg, p, n):
-    """The (p_pad, n_pad) terminal pairs: a p-pad and n-pad within TERM_PAIR_MM.
-    These bound the coupled trunk; unmatched pads (series-R tap, pull-up) are
-    branch ends and excluded."""
+    SAME-REF pairing first, with NO distance cap: a footprint that carries
+    both halves matches its own pads however far apart they sit (LEARNINGS
+    2026-07-29: a magjack's RXP/RXN pads are 4.58 mm apart, so any window
+    drops the connector terminal and the escape is never measured). Only a
+    p-pad with no same-ref n-pad uses the `term_pair_mm` window (spec key
+    "term_pair_mm", default 2.5 mm). Unmatched pads (series-R tap, pull-up)
+    are branch ends and excluded."""
     p_pads, n_pads = bg.pads_of(net=p), bg.pads_of(net=n)
     matches = []
     for pp in p_pads:
-        best, bd = None, TERM_PAIR_MM
+        same = [nn for nn in n_pads if nn.ref == pp.ref]
+        if same:
+            matches.append((pp, min(same, key=lambda nn: _pad_dist(pp, nn))))
+            continue
+        best, bd = None, term_pair_mm
         for nn in n_pads:
-            d = math.hypot(pp.center[0] - nn.center[0], pp.center[1] - nn.center[1])
+            d = _pad_dist(pp, nn)
             if d <= bd:
                 best, bd = nn, d
         if best is not None:
@@ -161,23 +134,25 @@ def matched_terminals(bg, p, n):
 
 
 def trunk_length(bg, net, terminals):
-    """Path length of `net` between its two farthest matched-terminal nodes;
-    falls back to total track length if the graph cannot connect them."""
-    adj = net_graph(bg, net)
+    """(length_mm, branch_free, unreachable): path length of `net` between its
+    two farthest matched-terminal PAD nodes on the netconn connectivity graph.
+    Falls back to total track length (branch_free False) when the graph cannot
+    connect any terminal pair; `unreachable` then names the terminal pads
+    ("REF.pin") so the caller can report the open trunk."""
+    g = netconn.build(bg, net)
     total = sum(t.length for t in bg.tracks_of(net))
     if len(terminals) < 2:
-        return total, False
-    nodes = [nearest_node(adj, pad.center) for pad in terminals]
-    nodes = [nd for nd in nodes if nd is not None]
+        return total, False, sorted(f"{t.ref}.{t.number}" for t in terminals)
+    named = [(f"{t.ref}.{t.number}", netconn.pad_node(g, t)) for t in terminals]
     best = None
-    for i in range(len(nodes)):
-        for j in range(i + 1, len(nodes)):
-            L = shortest_path_len(adj, nodes[i], nodes[j])
+    for i in range(len(named)):
+        for j in range(i + 1, len(named)):
+            L = netconn.shortest_path_len(g, named[i][1], named[j][1])
             if L is not None and (best is None or L > best):
                 best = L
     if best is None:
-        return total, False
-    return best, True
+        return total, False, sorted(name for name, _ in named)
+    return best, True, []
 
 
 # ------------------------------------------------------------ coupling
@@ -241,9 +216,10 @@ def check_pair(bg: geom.BoardGeom, spec: dict):
                     "length_n_mm": checklib.rnd(sum(t.length for t in tracks_n)),
                     "note": "pair not fully routed; coupling not evaluated"}
 
-    term = matched_terminals(bg, p, n)
-    lp, okp = trunk_length(bg, p, [pp for pp, nn in term])
-    ln, okn = trunk_length(bg, n, [nn for pp, nn in term])
+    term = matched_terminals(bg, p, n, float(spec.get("term_pair_mm",
+                                                      TERM_PAIR_MM)))
+    lp, okp, unreach_p = trunk_length(bg, p, [pp for pp, nn in term])
+    ln, okn, unreach_n = trunk_length(bg, n, [nn for pp, nn in term])
     skew = abs(lp - ln)
 
     # nominal pitch drives the coupling threshold
@@ -264,6 +240,22 @@ def check_pair(bg: geom.BoardGeom, spec: dict):
     violations: list[dict] = []
     common = dict(kind=None, pair=[p, n], length_p_mm=checklib.rnd(lp),
                   length_n_mm=checklib.rnd(ln), branch_free=bool(okp and okn))
+
+    # An open trunk means the length above is TOTAL copper, not a trunk - the
+    # skew number is meaningless and must never pass silently (LEARNINGS
+    # 2026-07-29: reported only as branch_free:false, never as a violation).
+    for bad_net, ok, length, unreach in ((p, okp, lp, unreach_p),
+                                         (n, okn, ln, unreach_n)):
+        if ok:
+            continue
+        who = ", ".join(unreach) if unreach else "fewer than 2 matched pads"
+        violations.append(violation(
+            SCRIPT, "warning", _rep_point(bg, bad_net), None, bad_net, [],
+            f"diff pair {p}/{n}: {bad_net} trunk is open - cannot connect "
+            f"terminal(s) {who}; its length {length:.2f} mm is total copper "
+            f"length, so the reported skew is not a trunk skew",
+            SCRIPT, **{**common, "kind": "diffpair_open_trunk",
+                       "fallback_length_mm": checklib.rnd(length)}))
 
     if skew > max_skew:
         violations.append(violation(
