@@ -13,9 +13,14 @@ expressible as a rule becomes a named DRC violation, so the standard DRC gate
      same constraint type match one item, the LATER rule wins (LEARNINGS [drc]), so
      the specific per-net rule overrides the generic floor.
   2. (optional, --pro) net classes written into `<board>.kicad_pro` net_settings:
-     a Power class (wide track + clearance) and one class per differential impedance,
-     assigned by netclass_patterns; plus board.design_settings.rules minimums. These
-     drive the router (S11) and placement; DRU is the DRC enforcer.
+     ONE POWER CLASS PER REQUIRED WIDTH (never one class at the widest - that put
+     pd-trigger's 20 mA /VDD in the same 1.75 mm class as its 5 A VBUS and would
+     have had Freerouting drive 1.75 mm traces into 0.6 mm pads; LEARNINGS
+     2026-07-28 [routing][rules_gen][freerouting]) and one class per differential
+     impedance, assigned by netclass_patterns; plus board.design_settings.rules
+     minimums and the fab-floor severities from lib/fabfloors.py - the same single
+     source board_init writes, so the two files cannot disagree. These drive the
+     router (S11) and placement; DRU is the DRC enforcer.
 
 Conditions use `A.NetName == 'NET'` (NOT `A.Net`, which silently matches nothing -
 LEARNINGS [drc]). kicad-cli auto-loads the .kicad_dru sitting next to the board.
@@ -38,6 +43,7 @@ SCRIPTS = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(SCRIPTS / "lib"))
 import check_current  # noqa: E402  (required_width_mm)
+import fabfloors  # noqa: E402  (the single source of fab minimums)
 import impedance as imp  # noqa: E402
 
 REFERENCE = SCRIPTS.parent / "reference"
@@ -55,10 +61,8 @@ def load_yaml(path: Path) -> dict:
         return yaml.safe_load(f)
 
 
-def capability_class(layers: int, outer_oz: float) -> str:
-    """capabilities key, e.g. (4, 1.0) -> '4layer_1oz'."""
-    oz = int(outer_oz) if float(outer_oz).is_integer() else outer_oz
-    return f"{layers}layer_{oz}oz"
+# capability lookup lives in lib/fabfloors.py (board_init uses the same one)
+capability_class = fabfloors.capability_class
 
 
 # --------------------------------------------------------------- DRU rules
@@ -198,9 +202,22 @@ def outer_microstrip_params(stackup: dict) -> tuple[float, float, float]:
 
 # --------------------------------------------------------------- net classes
 
+def power_class_name(width_mm: float) -> str:
+    """Class name for a power width: 1.75 -> 'Pwr_1p75mm'."""
+    return "Pwr_%smm" % ("%g" % round(width_mm, 4)).replace(".", "p")
+
+
 def net_classes(constraints: dict, power_facts: list[dict],
                 diff_facts: list[dict], cap: dict) -> tuple[list[dict], list[dict]]:
-    """Build net_settings classes + netclass_patterns for the .kicad_pro."""
+    """Build net_settings classes + netclass_patterns for the .kicad_pro.
+
+    Power nets are bucketed BY THEIR OWN required width (one class per
+    distinct width); a net whose IPC-2152 width is at or under the Default
+    class width simply joins Default. Flattening every power net into one
+    class at the widest width is a routing defect, not a conservatism: the
+    netclass width is what the DSN export hands Freerouting, so a 20 mA rail
+    inherited the 5 A trunk's 1.75 mm and could not enter its own pads.
+    """
     classes: list[dict] = []
     patterns: list[dict] = []
 
@@ -217,12 +234,21 @@ def net_classes(constraints: dict, power_facts: list[dict],
             "schematic_color": "rgba(0, 0, 0, 0.000)",
         }
 
-    if power_facts:
-        widest = max(f["min_width_mm"] for f in power_facts)
-        classes.append(base_class("Power", max(widest, cap["min_trace_width_mm"] * 2),
-                                   max(cap["min_clearance_mm"], 0.2)))
-        for f in power_facts:
-            patterns.append({"netclass": "Power", "pattern": f["net"]})
+    default_track = default_class(cap)["track_width"]
+    buckets: dict[float, list[dict]] = {}
+    for f in power_facts:
+        w = round(max(float(f["min_width_mm"]), default_track), 4)
+        buckets.setdefault(w, []).append(f)
+    for w in sorted(buckets):
+        if w <= default_track + 1e-9:
+            cname = "Default"          # thin rails need no wider class
+        else:
+            cname = power_class_name(w)
+            classes.append(base_class(cname, w, max(cap["min_clearance_mm"], 0.2)))
+        for f in buckets[w]:
+            f["netclass"] = cname       # traceability in the JSON report
+            f["class_width_mm"] = w
+            patterns.append({"netclass": cname, "pattern": f["net"]})
     for f in diff_facts:
         cname = f"Diff{f['impedance_ohm']}"
         if not any(c["name"] == cname for c in classes):
@@ -250,8 +276,10 @@ def update_pro(pro_path: Path, classes: list[dict], patterns: list[dict],
     """Read-modify-write the .kicad_pro: net_settings + design-rule minimums.
 
     Keeps the rest of the (minimal, hand-rolled) pro intact - only touches
-    net_settings and board.design_settings.rules (LEARNINGS [kicad]: a minimal
-    pro is the DRC authority; do not paste a full default blob)."""
+    net_settings, board.design_settings.rules and the fab-floor severities
+    (LEARNINGS [kicad]: a minimal pro is the DRC authority; do not paste a
+    full default blob). Floors + severities come from lib/fabfloors.py, the
+    same source board_init writes, and are asserted after the merge."""
     pro = json.loads(pro_path.read_text(encoding="utf-8")) if pro_path.exists() else {}
     all_classes = [default_class(cap)] + classes
     pro["net_settings"] = {
@@ -263,14 +291,13 @@ def update_pro(pro_path: Path, classes: list[dict], patterns: list[dict],
     }
     board = pro.setdefault("board", {})
     ds = board.setdefault("design_settings", {})
-    ds["rules"] = {
-        "min_clearance": cap["min_clearance_mm"],
-        "min_track_width": cap["min_trace_width_mm"],
-        "min_via_diameter": cap["min_via_diameter_mm"],
-        "min_through_hole_diameter": cap["min_via_drill_mm"],
-        "min_hole_to_hole": cap["min_hole_to_hole_mm"],
-        "min_copper_edge_clearance": cap["min_copper_to_edge_mm"],
-    }
+    ds["rules"] = {**(ds.get("rules") or {}), **fabfloors.pro_rules(cap)}
+    ds["rule_severities"] = {**(ds.get("rule_severities") or {}),
+                             **fabfloors.pro_rule_severities()}
+    bad = fabfloors.check_pro(pro, cap)
+    if bad:
+        raise RuntimeError("project file would ship sub-fab floors: "
+                           + "; ".join(bad))
     pro_path.write_text(json.dumps(pro, indent=2), encoding="utf-8")
 
 
@@ -324,18 +351,30 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
 
     try:
-        caps = load_yaml(CAP_FILE)["design_rules"]
-        cls = capability_class(args.layers, args.copper_oz)
-        if cls not in caps:
-            raise SystemExit(f"no capability row {cls!r} in {CAP_FILE.name}")
-        cap = caps[cls]
+        try:
+            cls, cap = fabfloors.profile(args.layers, args.copper_oz)
+        except fabfloors.FabFloorError as exc:
+            raise SystemExit(str(exc)) from exc
 
         stacks = load_yaml(STACKUP_FILE)
         stk_name = args.stackup or stacks["defaults"].get(args.layers)
         stackup = stacks["stackups"].get(stk_name) if stk_name else None
+        if stackup is not None and stackup.get("available") is False \
+                and not args.baseline_only:
+            ret = stackup.get("retired") or {}
+            raise SystemExit(
+                f"stackup {stk_name} is marked available: false in "
+                f"stackups.yaml - {ret.get('reason', 'not offered by JLC')}; "
+                f"use one of: {', '.join(ret.get('replacements') or []) or 'see stackups.yaml'}")
         if stackup is None and not args.baseline_only:
-            # only needed for diff pairs; fall back to a 4-layer default gap model
-            stackup = next(iter(stacks["stackups"].values()))
+            # only needed for diff pairs; fall back to the first AVAILABLE
+            # stackup with a matching layer count, else the first available
+            stackup = next(
+                (s for s in stacks["stackups"].values()
+                 if s.get("available") is not False
+                 and s.get("layers") == args.layers),
+                next(s for s in stacks["stackups"].values()
+                     if s.get("available") is not False))
 
         constraints = {}
         if args.constraints:

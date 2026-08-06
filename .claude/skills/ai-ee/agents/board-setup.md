@@ -15,15 +15,23 @@ scripts with the repo venv python; JSON out, exit 0/1/2. Keep output ASCII.
 
 ## Steps
 1. `scripts/board_init.py --netlist kicad/<top>.net --name <board>
-   --out kicad --layers <2|4> [--stackup <NAME>] [--outline auto|WxH]
-   [--mounting-holes N] [--schematic kicad/<top>.kicad_sch]
-   [--fp-lib <workspace>/lib]`
+   --out kicad --layers <2|4> [--copper-oz 1|2] [--stackup <NAME>]
+   [--outline auto|WxH] [--mounting-holes N]
+   [--schematic kicad/<top>.kicad_sch] [--fp-lib <workspace>/lib]`
    - creates `kicad/<board>.kicad_pcb` + `.kicad_pro`: parts loaded, pad
    nets assigned, shelf-packed, outline + corner mounting holes
    (board_only), stackup block injected from `reference/stackups.yaml`.
    Its SELF-CHECK is the phase gate: schematic parity == 0 AND zero
    non-unconnected violations (unrouted boards always have
    unconnected_items - those are P7's).
+   - The `.kicad_pro` design-rule floors come from the (layers, copper-oz)
+   profile in `jlc_capabilities.yaml` at ERROR severity (lib/fabfloors.py);
+   `--copper-oz` defaults to the stackup's own outer copper. REPORT
+   `fab_profile` + `fab_floors` from the JSON - "drc 0/0" means nothing if
+   the floors are below the fab's (that shipped twice).
+   - A stackup marked `available: false` is REFUSED by name (JLC withdraws
+   templates, and one it never sold sized a real 100R board). If that
+   fires, go back to architecture and pick a listed replacement.
 2. Copy `architecture/constraints.json` (and `kicad/decoupling.json` from
    the P4 build if not already there) NEXT TO the board - every later gate
    resolves sidecars from the board's directory.
@@ -35,6 +43,11 @@ scripts with the repo venv python; JSON out, exit 0/1/2. Keep output ASCII.
    AUTO-LOADS the .kicad_dru sitting beside the board; violated custom
    rules report `rule 'aiee_*'` in their message. Generic rules come first,
    specific per-net rules last - later rules win; do not reorder the file.
+   - `--pro` also writes ONE NETCLASS PER REQUIRED POWER WIDTH
+   (`Pwr_<width>mm`; rails at or under the Default width stay Default) and
+   re-asserts the fab floors. Check the class list before P7: the router
+   traces at class width, so a flattened class is a routing defect.
+   - If board_init is ever re-run, re-run rules_gen after it.
 
 ## Rules
 - Outline `auto` unless requirements fix dimensions; record which.

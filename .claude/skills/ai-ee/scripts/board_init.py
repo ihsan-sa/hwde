@@ -12,13 +12,23 @@ corpus builder. The venv driver here parses the netlist (sexpdata), picks the
 stackup, drives the worker, injects the (stackup) block as text (SWIG can't
 serialize it - LEARNINGS [swig]), writes a minimal .kicad_pro, and self-checks.
 
+The .kicad_pro's design-rule minimums come from the selected JLC capability
+profile via lib/fabfloors.py - never from a hard-coded default - and the
+checks that enforce them are pinned to severity ERROR. Two shipped boards
+proved why: a hard-coded `min_track_width: 0.1` (below EVERY JLC profile)
+plus KiCad's default `min_hole_to_hole: 0.25` at *warning* let 189 unbuildable
+traces and two sub-fab drill pairs pass `drc_routed` 0/0 and only surface at
+the P9 DFM gate (LEARNINGS [board_init][rules_gen][dfm][gates]).
+
 Self-check acceptance (SPEC S8): schematic parity == 0 (every part+net imported
 correctly) AND zero setup DRC violations, EXCLUDING unconnected_items (the board
-is unrouted by design). Emits the normalized DRC report alongside.
+is unrouted by design), AND the written project's floors >= the fab profile.
+Emits the normalized DRC report alongside.
 
 Usage:
   board_init.py --netlist n.net --name board --out dir --layers 4
-                [--stackup NAME] [--outline auto|WxH] [--mounting-holes N]
+                [--copper-oz 1] [--stackup NAME]
+                [--outline auto|WxH] [--mounting-holes N]
                 [--corner-radius R] [--cutout X,Y,W,H ...]
                 [--schematic s.kicad_sch]   # copy next to board -> enables parity
                 [--fp-lib DIR ...] [--out-report r.json]
@@ -43,6 +53,7 @@ SCRIPTS = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(SCRIPTS / "lib"))
 from lib import env  # noqa: E402
+from lib import fabfloors  # noqa: E402
 import kc  # noqa: E402
 
 REFERENCE = SCRIPTS.parent / "reference"
@@ -165,21 +176,39 @@ def inject_stackup(pcb_path: Path, stackup: dict) -> None:
 
 # --------------------------------------------------------------- project file
 
-def write_pro(pro_path: Path, min_track: float = 0.1) -> None:
+def build_pro(pro_name: str, cap: dict) -> dict:
     """Minimal, hand-rolled .kicad_pro (LEARNINGS [kicad]: minimal pro is the
-    DRC authority; suppress library-mismatch noise for imported footprints)."""
-    pro = {
+    DRC authority; suppress library-mismatch noise for imported footprints).
+
+    Design-rule minimums and the severities that enforce them come from the
+    capability profile (lib/fabfloors.py) - the single source rules_gen
+    --pro writes too, so the two can never disagree."""
+    severities = {"lib_footprint_issues": "ignore",
+                  "lib_footprint_mismatch": "ignore"}
+    severities.update(fabfloors.pro_rule_severities())
+    return {
         "board": {"design_settings": {
-            "rule_severities": {"lib_footprint_issues": "ignore",
-                                "lib_footprint_mismatch": "ignore"},
-            "rules": {"min_track_width": min_track}}},
+            "rule_severities": severities,
+            "rules": fabfloors.pro_rules(cap)}},
         "erc": {"rule_severities": {"lib_symbol_issues": "ignore",
                                     "lib_symbol_mismatch": "ignore",
                                     "footprint_link_issues": "ignore"}},
-        "meta": {"filename": pro_path.name, "version": 3},
+        "meta": {"filename": pro_name, "version": 3},
         "schematic": {"legacy_lib_dir": "", "legacy_lib_list": []},
     }
+
+
+def write_pro(pro_path: Path, cap: dict) -> dict:
+    """Write the project file and return the floors it carries. Raises if
+    what was written does not satisfy the profile (a regression guard on
+    build_pro itself, and the standing P7-entry assertion in library form)."""
+    pro = build_pro(pro_path.name, cap)
+    bad = fabfloors.check_pro(pro, cap)
+    if bad:
+        raise RuntimeError("project file would ship sub-fab floors: "
+                           + "; ".join(bad))
     pro_path.write_text(json.dumps(pro, indent=2), encoding="utf-8")
+    return pro["board"]["design_settings"]["rules"]
 
 
 # --------------------------------------------------------------- self check
@@ -235,6 +264,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--name", required=True, help="board basename")
     ap.add_argument("--out", required=True, help="output directory (workspace/kicad)")
     ap.add_argument("--layers", type=int, default=4, choices=[2, 4])
+    ap.add_argument("--copper-oz", type=float,
+                    help="outer copper weight, selects the jlc_capabilities "
+                         "profile whose minimums are written into the "
+                         ".kicad_pro (default: the stackup's own outer copper)")
     ap.add_argument("--stackup", help="stackup name (default: stackups.defaults[layers])")
     ap.add_argument("--outline", default="auto",
                     help="'auto' (bbox+margin) or 'WxH' in mm, e.g. 60x40")
@@ -279,6 +312,24 @@ def main(argv: list[str] | None = None) -> int:
         if stackup["layers"] != args.layers:
             raise RuntimeError(f"stackup {stk_name} is {stackup['layers']}-layer, "
                                f"--layers {args.layers}")
+        if stackup.get("available") is False:
+            # A stackup JLC does not sell must never size a design: the
+            # phantom JLC04161H-3313 is why lumina-carrier's 100R MDI was
+            # solved against a lamination nobody can build (LEARNINGS
+            # 2026-07-30 [stackup][ordering]).
+            ret = stackup.get("retired") or {}
+            raise RuntimeError(
+                f"stackup {stk_name} is marked available: false in "
+                f"stackups.yaml - {ret.get('reason', 'not offered by JLC')}. "
+                f"Use one of: {', '.join(ret.get('replacements') or []) or 'see stackups.yaml'}")
+
+        # Fab floors come from the capability profile for (layers, outer
+        # copper), never from a hard-coded default.
+        outer_oz = args.copper_oz
+        if outer_oz is None:
+            coppers = [ly for ly in stackup["stack"] if ly["type"] == "copper"]
+            outer_oz = float(coppers[0].get("copper_oz", 1.0)) if coppers else 1.0
+        cap_class, cap = fabfloors.profile(args.layers, outer_oz)
 
         outline = {"mode": "auto"}
         if args.outline != "auto":
@@ -318,7 +369,7 @@ def main(argv: list[str] | None = None) -> int:
                                f"{(cp.stdout or cp.stderr)[-600:]}")
 
         inject_stackup(pcb_path, stackup)
-        write_pro(out_dir / f"{args.name}.kicad_pro")
+        floors = write_pro(out_dir / f"{args.name}.kicad_pro", cap)
 
         has_sch = False
         if args.schematic:
@@ -336,6 +387,8 @@ def main(argv: list[str] | None = None) -> int:
             "script": "board_init",
             "status": "pass" if check["clean"] else "violations",
             "board": str(pcb_path), "stackup": stk_name, "layers": args.layers,
+            "fab_profile": cap_class, "copper_oz": outer_oz,
+            "fab_floors": floors,
             "components": len(components), "nets": worker["nets"],
             "outline_bbox": worker["bbox"], "mounting_holes": args.mounting_holes,
             "corner_radius": worker.get("corner_radius", 0.0),

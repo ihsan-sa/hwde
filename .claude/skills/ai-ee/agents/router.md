@@ -41,11 +41,12 @@ Route artifacts (DSN/SES/logs) land in `<board dir>/route/`.
    self-detect a connectivity regression (exit 1 cleanup_regression, board
    left modified): restore the snapshot and CONTINUE WITHOUT cleanup - it
    is optional by design.
-5b. Netclass caution (S14): rules_gen emits ONE "Power" class at the
-   WIDEST power net width - FR routes at class width, so thin power nets
-   (housekeeping rails) get forced fat into fine-pitch pads. If widths
-   differ badly, split classes in the .kicad_pro ONLY (never the .kicad_dru
-   - it stays the DRC authority). Zones are exempt from track width rules -
+5b. Netclass note (T1): rules_gen now emits ONE CLASS PER REQUIRED WIDTH
+   (`Pwr_<width>mm`; rails at or under the Default width stay Default), so
+   FR no longer forces a 20 mA rail to the 5 A trunk's width. Verify the
+   split in the .kicad_pro before routing; any further split is a
+   .kicad_pro edit ONLY (never the .kicad_dru - it stays the DRC
+   authority). Zones are exempt from track width rules -
    pour-based fan-in is the legal answer where rule-width tracks cannot
    reach a pad cluster.
 6. Gate: `scripts/gate.py --gate drc_routed kicad/<board>.kicad_pcb` -

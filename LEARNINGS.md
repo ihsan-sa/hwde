@@ -2138,3 +2138,75 @@ wide). Second trap in the same area: KiCad prints each pin NUMBER alongside its 
 the body and absent from the library graphics, so a field cleared against pin lines alone still
 lands on printed text - model the pin as a band (0.7 mm) not a line.
 
+## 2026-08-06 [stackup][jlcapi][ordering] JLC's impedance-template list CHURNS - and the endpoint lies quietly when you under-specify it
+T1 re-probed `pcb/getImpedanceTemplateSettingList` (read-only, free) to rebuild
+`reference/stackups.yaml` from what JLC actually sells. Three facts worth keeping:
+1. **The list changes week to week.** For 4L / 1.6 mm / 1 oz outer / 0.5 oz inner, 2026-07-30
+   returned THREE templates and 2026-08-06 returns TWO: `JLC04161H-7628G`
+   (202607130748059522) was withdrawn in between, same account, same request. So "verified
+   live" has a shelf life measured in days: re-probe before solving impedance geometry, and
+   record the date next to the numbers (stackups.yaml now does, per entry).
+2. **`insideCuprumThickness` is REQUIRED even where it is meaningless.** Omit it and the API
+   answers `{"code": 3, "message": "param_empty"}` - not an empty list. A 2-layer probe
+   without it therefore looks identical to "no 2L templates exist". WITH it, 2L returns a
+   legitimate empty list at both 1 oz and 2 oz: JLC sells no impedance-controlled 2-layer
+   stackup, which is a real (negative) answer worth recording.
+3. **Inner copper weight selects a different template FAMILY**, not a variant: 1 oz inner
+   returns `JLC041611-7628E/J/K/L`, 0.5 oz inner returns `JLC04161H-1080B`, 2 oz outer
+   returns `JLC04162H-7628A`. Ordering a different `insideCuprumThickness` than the stackup
+   was solved for silently buys a different lamination (see the 2026-07-30 entry).
+Also: `enableFlag: false` on EVERY template of every family, so it does not mean "not
+orderable" - do not gate on it. The API returns materials + thicknesses but NO dielectric
+constant, so er stays an assumption (stackups.yaml flags `epsilon_r_assumed: true`; V12).
+Re-probe recipe: `jlcapi.session_from_env().post_json("/overseas/openapi/pcb/getImpedanceTemplateSettingList",
+{"stencilLayer": 4, "stencilPly": 1.6, "cuprumThickness": "1", "insideCuprumThickness": "0.5", "plateType": 1})`.
+
+## 2026-08-06 [fab_export][ordering][dfm] The exact volatile set in a KiCad fab package - 5 line forms + 2 JSON keys
+Implementing T1's normalized design hash (`lib/fabhash.py`) needed the complete list of what
+KiCad restamps on every export. Measured against real 10.0.3 output, it is exactly:
+gerber `%TF.CreationDate,..*%`, `%TF.GenerationSoftware,..*%`, `G04 Created by KiCad (PCBNEW ..) date ..*`;
+Excellon `; DRILL file KiCad .. date ..`, `; #@! TF.CreationDate,..`, `; #@! TF.GenerationSoftware,..`;
+and in the `.gbrjob` the JSON keys `Header.CreationDate` + `Header.GenerationSoftware`.
+The `.gbrjob` is the trap: `GenerationSoftware` is an OBJECT spanning four lines, so a
+line-filter normalizer silently leaves the version behind and the "design hash" drifts on a
+KiCad upgrade. Parse that file as JSON and drop the keys recursively.
+`%TF.ProjectId` is NOT volatile (stable per project) - keep it hashed, it catches a board
+exported from the wrong project. Verified end to end: two real `fab_export` runs of an
+unchanged golden board produce different zip sha256 and IDENTICAL design hashes, while moving
+one track coordinate changes the design hash (tests/test_fab.py::test_design_hash_*).
+
+## 2026-08-06 [board_init][rules_gen][gates] Raising the .kicad_pro floors to the fab profile at ERROR costs the corpus nothing
+The fear that stopped this fix earlier ("stricter floors will fail existing boards") is
+unfounded, measured: with `min_track_width` at the profile value, `min_hole_to_hole` at
+0.5 mm and both checks pinned to `error` (plus clearance / annular / hole_clearance /
+copper_edge_clearance / drill_out_of_range), `board_init` on golden usbbuck4 still
+self-checks at parity 0 / setup_violations 0, and all three goldens stay DRC-clean.
+lumina-carrier measured the same thing from the other side: its tightest drill pair is
+0.5016 mm across 440 drills.
+The reusable root cause is not the numbers, it is that **two different writers owned the same
+block** - `board_init.write_pro` hard-coded floors while `rules_gen.update_pro` derived them
+from `jlc_capabilities.yaml`, so whichever ran LAST won and re-running board_init silently
+downgraded the board. One source (`lib/fabfloors.py`) + `check_pro()` asserted by both
+writers is what actually fixes it; the severities are stated explicitly so the project never
+inherits a KiCad default (`hole_to_hole` defaults to *warning*).
+
+## 2026-08-06 [tests][skill] A live-run fix that does not update its test leaves the suite RED and nobody notices
+`test_build_pcb_param_inner_copper_by_layer_count` asserted `insideCuprumThickness == "1"`.
+The 2026-07-30 lumina-carrier run FIXED that hardcoded 1 oz inner copper (it was buying a
+premium and fabricating a stackup the impedance was not solved against) but did not update
+the test, so `check.cmd` was already failing when T1 started - and the whole point of the
+green-suite session protocol is that a red suite is a stop sign, not background noise.
+Rule: when a live run edits a script's constant, `grep tests/ for the OLD value` in the same
+change. And a session that opens on a red suite must say so before adding to it.
+
+## 2026-08-06 [tests][freerouting][skill] Wave-1 parallel sessions make the route_auto completion assert flaky - re-run it ALONE before believing it
+`test_route_auto_full_flow` asserts `completion >= 0.9` on blinky2. It failed at **0.8182** in a
+full-suite run while three other v2 sessions (T2/T3/T4) were running their own suites against the
+SAME working tree, and passed minutes later in isolation with nothing changed. Freerouting is
+time-bounded (`-mp` passes plus route_auto's wedge timeout), so CPU contention ends a pass early
+and the failure reads exactly like a routing regression.
+Two consequences for the v2 protocol: (a) a tree-wide pass count from a parallel wave is not
+attributable to one session - report YOUR files' counts and say the full number is shared;
+(b) T5's stage bench must keep wall-clock and completion-ratio metrics out of the deterministic
+class, or run the bench alone. Standing rule: re-run a failing smoke test alone before treating it
+as a regression, and never "fix" a threshold from a contended run.

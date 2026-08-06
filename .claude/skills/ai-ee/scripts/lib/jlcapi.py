@@ -77,6 +77,14 @@ REMEDIATION = {
                    "or clear the whitelist"),
     "rate_limited": ("back off and retry later - JLCPCB publishes no rate "
                      "numbers (business code 1002 / HTTP 429)"),
+    "unknown_error": (
+        "JLC returned business code 2 'unknown_error' on HTTP 200 - the API "
+        "cannot say why and there is NO order list/search endpoint to ask "
+        "whether the call landed (order/detail and wip/get both need a "
+        "batchNum you must already hold). DO NOT RETRY: an ambiguous create "
+        "is how a board gets bought twice. Check the JLCPCB web portal, quote "
+        "the trace id to support, and use the web cart. Known trigger: "
+        "pcb/create with 4+ layers (2-layer works on the same account)"),
 }
 
 
@@ -145,7 +153,8 @@ def normalize_response(http_status: int, headers: dict, body: bytes) -> dict:
 
 def classify(resp: dict) -> str:
     """-> ok | bad_signature | scope_pending | ip_blocked | rate_limited |
-    error. Business code 1000 (Forbidden IP) outranks EVERY HTTP status -
+    unknown_error | error. Business code 1000 (Forbidden IP) outranks EVERY
+    HTTP status -
     a whitelist block can ride any transport wrapper and must never be
     misread as a scope problem. After that, HTTP statuses win. The live-
     observed scope-pending shape (2026-07-28, all services "Reviewing") is
@@ -168,6 +177,13 @@ def classify(resp: dict) -> str:
         return "rate_limited"
     if resp.get("ok"):
         return "ok"
+    if code == 2:
+        # HTTP 200 + business code 2 "unknown_error": JLC's catch-all. It
+        # left the tool with no verdict and no remediation on a live create
+        # (2026-07-30), which is the worst possible state for a
+        # money-spending call - it now classifies, and REMEDIATION says
+        # "do not retry, check the portal".
+        return "unknown_error"
     return "error"
 
 
@@ -346,6 +362,8 @@ _VERDICTS = {
     "bad_signature": "signing broken",
     "ip_blocked": "auth reached the API but this host's IP is not whitelisted",
     "rate_limited": "rate limited - inconclusive, retry later",
+    "unknown_error": "JLC business code 2 (unknown_error) - DO NOT RETRY, "
+                     "check the portal (see remediation)",
     "error": "unexpected API response - see message",
 }
 _EXIT = {"ok": 0, "scope_pending": 0}

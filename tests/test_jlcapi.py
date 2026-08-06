@@ -83,6 +83,7 @@ PYTHON = sys.executable
 sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(SCRIPTS / "lib"))
 
+import fabhash  # noqa: E402
 import jlcapi  # noqa: E402
 import order_submit  # noqa: E402
 import order_track  # noqa: E402
@@ -287,9 +288,21 @@ def test_normalize_non_json_body():
     (ok_resp({"x": 1}), "ok"),
     (err_resp(200, code=1003), "error"),
     (err_resp(500, code=500), "error"),
+    # JLC's catch-all on a live create: HTTP 200 + business code 2
+    (err_resp(200, code=2, message="unknown_error"), "unknown_error"),
+    (err_resp(200, code="2", message="unknown_error"), "unknown_error"),
 ])
 def test_classify_table(resp, want):
     assert jlcapi.classify(resp) == want
+
+
+def test_unknown_error_has_remediation():
+    """The live 4-layer create returned {code 2, unknown_error} with NO
+    classification and NO remediation - the worst state for a money call
+    (LEARNINGS 2026-07-30 [jlcapi][order_submit][SPEND])."""
+    remedy = jlcapi.REMEDIATION["unknown_error"]
+    assert "DO NOT RETRY" in remedy
+    assert "portal" in remedy and "4+ layers" in remedy
 
 
 def test_classify_live_scope_pending_body():
@@ -625,12 +638,19 @@ def api_env(monkeypatch):
     monkeypatch.setenv("AIEE_JLCPCB_SECRET", "SECRET")
 
 
-def make_fab(tmp_path):
+def make_fab(tmp_path, stackup="JLC2313_1.6"):
     fab = tmp_path / "fab"
     fab.mkdir()
     (fab / "b1_gerbers.zip").write_bytes(b"PK\x03\x04zip")
     (fab / "BOM.csv").write_text("Comment\n", encoding="utf-8")
     (fab / "CPL.csv").write_text("Designator\n", encoding="utf-8")
+    # a real workspace always carries the stackup decision; copper weight is
+    # derived from it and REFUSES rather than defaulting (T1)
+    if stackup:
+        arch = tmp_path / "architecture"
+        arch.mkdir(exist_ok=True)
+        (arch / "stackup.md").write_text(
+            f"## Chosen: `{stackup}`\n", encoding="utf-8")
     quote = {"spec": {"layers": 2, "width_mm": 20.0, "height_mm": 25.0,
                       "thickness_mm": 1.6, "assembly": False},
              "estimated": True,
@@ -704,7 +724,7 @@ def test_api_quote_derives_copper_from_stackup(tmp_path, monkeypatch,
     carries the oz marker -> copperWeight "2" goes out."""
     pcb, fab, qj = make_fab(tmp_path)
     arch = tmp_path / "architecture"
-    arch.mkdir()
+    arch.mkdir(exist_ok=True)
     (arch / "stackup.md").write_text(
         "# Stackup\n\n## Chosen: `JLC2313_1.6_2oz` (2-layer, 1.6 mm, "
         "**2 oz** outer copper, HASL)\n", encoding="utf-8")
@@ -822,6 +842,7 @@ def write_api_quote(fab, price=12.5, qty=5, board="b1", age_h=0.0,
                       ).isoformat(timespec="seconds")
     q = {"board": board, "qty": qty, "real_price": price, "file_key": "FKEY1",
          "gerber_sha256": order_submit.sha256(fab / "b1_gerbers.zip"),
+         "design_sha256": fabhash.design_hash(fab / "b1_gerbers.zip"),
          "fetched_at": fetched_at,
          "shipping_cost": ship_cost if shipping else 0.0,
          "grand_total": round(price + (ship_cost if shipping else 0.0), 2),
@@ -966,10 +987,10 @@ def test_rerun_preserves_created_order(tmp_path, monkeypatch, api_env,
 
 def test_api_create_gerber_drift_refused(tmp_path, monkeypatch, api_env,
                                          capsys):
-    """The create is bound to the QUOTED gerbers: a zip that changed after
-    the quote refuses with a re-quote remediation."""
+    """The create is bound to the QUOTED DESIGN: a package whose content
+    changed after the quote refuses with a re-quote remediation."""
     pcb, fab, qj = make_fab(tmp_path)
-    aq = write_api_quote(fab)                  # sha of the current zip
+    aq = write_api_quote(fab)                  # design hash of the current zip
     (fab / "b1_gerbers.zip").write_bytes(b"PK\x03\x04DIFFERENT")
     fake = FakeSession()
     monkeypatch.setattr(order_submit, "_make_session", lambda: fake)
@@ -979,8 +1000,109 @@ def test_api_create_gerber_drift_refused(tmp_path, monkeypatch, api_env,
     assert code == 2
     assert fake.calls == []
     order = json.loads((fab / "order.json").read_text(encoding="utf-8"))
-    assert "sha256 mismatch" in order["api"]["note"]
+    assert "design hash mismatch" in order["api"]["note"]
     assert "re-run --api" in order["api"]["note"]
+
+
+def _gerber_zip(path, *, when="2026-07-28T11:55:55", version="10.0.3",
+                x="X250000"):
+    """A minimal but REAL fab package: gerber + drill + job file, with the
+    two volatile stamps KiCad writes into every export."""
+    import zipfile
+    with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr("b1-F_Cu.gtl",
+                    f"%TF.GenerationSoftware,KiCad,Pcbnew,{version}*%\n"
+                    f"%TF.CreationDate,{when}-07:00*%\n"
+                    "%FSLAX46Y46*%\n"
+                    f"G04 Created by KiCad (PCBNEW {version}) date {when}*\n"
+                    f"{x}Y250000D02*\nM02*\n")
+        zf.writestr("b1.drl",
+                    f"M48\n; DRILL file KiCad {version} date {when}\n"
+                    f"; #@! TF.CreationDate,{when}-07:00\n"
+                    "T1C0.300\nM30\n")
+        zf.writestr("b1-job.gbrjob", json.dumps(
+            {"Header": {"GenerationSoftware": {"Vendor": "KiCad",
+                                               "Version": version},
+                        "CreationDate": f"{when}-07:00"},
+             "GeneralSpecs": {"LayerNumber": 2}}, indent=2))
+
+
+def test_api_create_survives_a_reexport_of_the_same_design(
+        tmp_path, monkeypatch, api_env, capsys):
+    """A re-export changes every gerber's timestamp and the zip sha, but not
+    the design - and must NOT invalidate an approved quote (LEARNINGS
+    2026-07-30 [fab_export][order_submit][jlcapi]). The create still goes out
+    against the quoted fileKey, i.e. the bytes JLC audited."""
+    pcb, fab, qj = make_fab(tmp_path)
+    zip_path = fab / "b1_gerbers.zip"
+    _gerber_zip(zip_path)
+    aq = write_api_quote(fab)
+    quoted_sha = order_submit.sha256(zip_path)
+
+    _gerber_zip(zip_path, when="2026-08-06T09:01:02", version="10.0.4")
+    assert order_submit.sha256(zip_path) != quoted_sha      # file changed
+    fake = FakeSession(create_order=ok_resp(CREATE_OK))
+    monkeypatch.setattr(order_submit, "_make_session", lambda: fake)
+    assert order_submit.main(submit_argv(
+        pcb, fab, qj, "--api-create", "--api-quote-file", str(aq),
+        "--confirm", "b1 5pcs 12.5")) == 0
+    assert fake.names() == ["create_order"]
+    assert fake.calls[0][1]["fileKey"] == "FKEY1"           # the audited bytes
+
+    # ... while a real copper change on the same clock still refuses
+    order = json.loads((fab / "order.json").read_text(encoding="utf-8"))
+    order["api"].pop("order"), order["api"].pop("verdict")
+    (fab / "order.json").write_text(json.dumps(order), encoding="utf-8")
+    _gerber_zip(zip_path, when="2026-08-06T09:01:02", version="10.0.4",
+                x="X260000")
+    fake2 = FakeSession()
+    monkeypatch.setattr(order_submit, "_make_session", lambda: fake2)
+    assert order_submit.main(submit_argv(
+        pcb, fab, qj, "--api-create", "--api-quote-file", str(aq),
+        "--confirm", "b1 5pcs 12.5")) == 2
+    assert fake2.calls == []
+    order2 = json.loads((fab / "order.json").read_text(encoding="utf-8"))
+    assert "design hash mismatch" in order2["api"]["note"]
+
+
+def test_api_create_refuses_four_layer(tmp_path, monkeypatch, api_env,
+                                       capsys):
+    """4+ layer create is refused LOCALLY: JLC answers every 4L payload with
+    HTTP 200 {code 2, unknown_error} and offers no way to ask afterwards
+    whether it landed (LEARNINGS 2026-07-30 [ordering])."""
+    pcb, fab, qj = make_fab(tmp_path, stackup="JLC04161H-1080B")
+    aq = write_api_quote(fab)
+    q = json.loads(aq.read_text(encoding="utf-8"))
+    q["calculate_request"]["pcbParam"]["layer"] = 4
+    aq.write_text(json.dumps(q), encoding="utf-8")
+    fake = FakeSession()                       # any call would KeyError
+    monkeypatch.setattr(order_submit, "_make_session", lambda: fake)
+    code = order_submit.main(submit_argv(
+        pcb, fab, qj, "--api-create", "--api-quote-file", str(aq),
+        "--confirm", "b1 5pcs 12.5"))
+    assert code == 2
+    assert fake.calls == []                    # zero transport calls
+    order = json.loads((fab / "order.json").read_text(encoding="utf-8"))
+    note = order["api"]["note"]
+    assert "4-layer" in note and "web cart" in note
+    assert "--order-number" in note
+
+
+def test_api_quote_still_works_for_four_layer(tmp_path, monkeypatch, api_env,
+                                              capsys):
+    """The guard is create-only: `calculate` prices 4-layer boards correctly
+    and that real price is the whole point of the quote leg."""
+    pcb, fab, qj = make_fab(tmp_path, stackup="JLC04161H-1080B")
+    quote = json.loads(qj.read_text(encoding="utf-8"))
+    quote["spec"]["layers"] = 4
+    qj.write_text(json.dumps(quote), encoding="utf-8")
+    fake = quote_session(price=35.47)
+    monkeypatch.setattr(order_submit, "_make_session", lambda: fake)
+    assert order_submit.main(submit_argv(pcb, fab, qj, "--api")) == 0
+    aq = json.loads((fab / "api_quote.json").read_text(encoding="utf-8"))
+    assert aq["real_price"] == 35.47
+    assert aq["calculate_request"]["pcbParam"]["layer"] == 4
+    assert aq["calculate_request"]["pcbParam"]["insideCuprumThickness"] == "0.5"
 
 
 def test_api_create_ship_json_whitelist(tmp_path, monkeypatch, api_env,
@@ -1296,7 +1418,14 @@ def test_build_pcb_param_inner_copper_by_layer_count():
     two = order_submit.build_pcb_param(dict(BASE_SPEC))
     assert "insideCuprumThickness" not in two
     four = order_submit.build_pcb_param(dict(BASE_SPEC, layers=4))
-    assert four["insideCuprumThickness"] == "1"
+    # JLC's standard 4-layer inner copper is 0.5 oz. The create example's
+    # "1" was hardcoded here and both bought a premium (48% of the PCB cost
+    # on lumina-carrier) and fabricated a stackup the impedance was NOT
+    # solved against (LEARNINGS 2026-07-30 [ordering][impedance]).
+    assert four["insideCuprumThickness"] == "0.5"
+    heavy = order_submit.build_pcb_param(
+        dict(BASE_SPEC, layers=4, inner_copper_weight_oz=1))
+    assert heavy["insideCuprumThickness"] == "1"
 
 
 def test_build_pcb_param_missing_spec_refuses():
@@ -1315,18 +1444,53 @@ def test_build_pcb_param_missing_dimensions_refuses():
 
 
 def test_derive_copper_oz(tmp_path):
+    """Copper weight is a board-killer: derive it or say you cannot - never
+    default to 1 oz (LEARNINGS 2026-07-30 [order_submit][stackup])."""
     ws = tmp_path
-    assert order_submit.derive_copper_oz(ws)[0] == 1.0   # no file
+    oz, src = order_submit.derive_copper_oz(ws)
+    assert oz is None and "no architecture/stackup.md" in src   # no file
     arch = ws / "architecture"
     arch.mkdir()
-    (arch / "stackup.md").write_text(
-        "## Chosen: `JLC7628` (no oz marker)\n", encoding="utf-8")
+
+    # file present, no Chosen heading -> refuse, and SAY it is present
+    (arch / "stackup.md").write_text("# doc\nsome prose\n", encoding="utf-8")
     oz, src = order_submit.derive_copper_oz(ws)
-    assert oz == 1.0 and "stackup.md" in src
+    assert oz is None and "not the same as a missing file" in src
+
+    # explicit oz marker in the id wins
     (arch / "stackup.md").write_text(
         "intro\n## Chosen: `JLC2313_1.6_2oz` (2-layer)\n", encoding="utf-8")
-    oz2, src2 = order_submit.derive_copper_oz(ws)
-    assert oz2 == 2.0 and "JLC2313_1.6_2oz" in src2
+    oz, src = order_submit.derive_copper_oz(ws)
+    assert oz == 2.0 and "2oz" in src
+
+    # the real-world shape that defeated the old parser: a NUMBERED heading
+    # with the id on a later line, and no oz marker in the id at all
+    (arch / "stackup.md").write_text(
+        "# board\n\n## 1. Chosen stackup\n\n**`JLC04161H-1080B`** - JLCPCB "
+        "impedance-controlled 4 layer, 1.6 mm, 1 oz outer / 0.5 oz inner.\n",
+        encoding="utf-8")
+    oz, src = order_submit.derive_copper_oz(ws)
+    assert oz == 1.0 and "stackups.yaml[JLC04161H-1080B]" in src
+
+    # an unknown id with no marker is a refusal, not a 1 oz guess
+    (arch / "stackup.md").write_text(
+        "## Chosen: `SOME_OTHER_FAB_STACK`\n", encoding="utf-8")
+    oz, src = order_submit.derive_copper_oz(ws)
+    assert oz is None and "no stackup known" in src
+
+
+def test_api_quote_refuses_underivable_copper(tmp_path, monkeypatch, api_env,
+                                              capsys):
+    """...and the refusal reaches the wire: zero transport calls."""
+    pcb, fab, qj = make_fab(tmp_path, stackup=None)   # no stackup.md
+    fake = quote_session()
+    monkeypatch.setattr(order_submit, "_make_session", lambda: fake)
+    assert order_submit.main(submit_argv(pcb, fab, qj, "--api")) == 2
+    assert fake.calls == []
+    order = json.loads((fab / "order.json").read_text(encoding="utf-8"))
+    assert order["api"]["verdict"] == "refused"
+    assert "copper weight cannot be derived" in order["api"]["note"]
+    assert "--copper-oz" in order["api"]["note"]
 
 
 # ================================================================ live (net)

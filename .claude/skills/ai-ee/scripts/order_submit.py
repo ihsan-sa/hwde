@@ -38,14 +38,21 @@ api-reference PcbOrderCraftData table, the contract's [SDK/PDF] source):
                 JLCPCB has NO sandbox or test mode: a successful create places
                 a real factory order, and payment mechanics are UNVERIFIED -
                 the platform may auto-deduct the prepaid JLC Balance. Guards:
+                  * LAYER GUARD: 4+ layer boards refuse outright - JLC's own
+                    create returns an unclassifiable code 2 for them and
+                    offers no way to ask whether an ambiguous create landed;
+                    4L ordering is the web-cart path (see agents/ordering.md),
                   * created-latch: refuses when the CANONICAL fab/order.json
                     already records an api.order - --out cannot sidestep it
                     (reordering requires manually clearing the record),
                   * --api-quote-file: a FRESH (<24 h, not future-dated)
                     api_quote.json written by a --api run,
-                  * gerber binding: the current gerber zip's sha256 must equal
-                    the sha recorded at quote time (drifted gerbers -> re-run
-                    --api),
+                  * design binding: the current package's NORMALIZED design
+                    hash (lib/fabhash.py - export timestamps stripped) must
+                    equal the one recorded at quote time. The order still goes
+                    out against the quoted fileKey, i.e. the bytes JLC audited;
+                    a harmless re-export no longer invalidates the quote, a
+                    real copper change still does,
                   * freight attestation: shipping_method must be one of the
                     QUOTED shipList options and its recorded cost must match;
                     the grand total must equal real_price + freight,
@@ -88,7 +95,16 @@ SCRIPTS = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(SCRIPTS / "lib"))
 
+import fabhash  # noqa: E402
 import jlcapi  # noqa: E402
+
+# JLCPCB Open API pcb/create refuses 4+ layer boards: three live attempts on
+# a 4L board all returned HTTP 200 {"code": 2, "message": "unknown_error"}
+# while a 2L board created successfully from the same account, API, ship
+# method and payload shape - and `calculate` prices 4L correctly, so only
+# `create` is affected (LEARNINGS 2026-07-30 [ordering]). Until JLC support
+# explains code 2, 4+ layer ordering is the WEB path.
+API_CREATE_MAX_LAYERS = 2
 
 # pcb/audit is asynchronous on JLC's side: right after upload it returns
 # business code 2501 (no_audit_result_error) until their DFM run finishes
@@ -169,8 +185,12 @@ def collect_package(fab_dir: Path) -> tuple[dict, list[str]]:
     if zip_path is None:
         missing.append("gerber zip")
     else:
+        # sha256 = "is this the exact file I quoted"; design_sha256 =
+        # "is this the same DESIGN" (headers/timestamps stripped). Only the
+        # second survives a re-export (LEARNINGS [fab_export][jlcapi]).
         artifacts["gerber_zip"] = {"path": str(zip_path),
                                    "sha256": sha256(zip_path),
+                                   "design_sha256": fabhash.design_hash(zip_path),
                                    "bytes": zip_path.stat().st_size}
     for label, pats in (("bom", ("BOM.csv", "*BOM*.csv")),
                         ("cpl", ("CPL.csv", "*CPL*.csv", "*-pos.csv"))):
@@ -215,30 +235,72 @@ def _to_num(v):
         return None
 
 
-def derive_copper_oz(workspace: Path) -> tuple[float, str]:
-    """Outer copper weight (oz) from architecture/stackup.md's `## Chosen:`
-    line - stackup ids carry an explicit marker (JLC2313_1.6_2oz -> 2).
-    No marker / no file -> 1 oz (JLC default). -> (oz, source_note).
-    spec_snapshot/quote.json have no copper producer, so the stackup doc is
-    the single source of truth for this board-killer parameter."""
+def _known_stackups() -> dict:
+    """{name: outer copper oz} from reference/stackups.yaml (retired entries
+    included - a shipped board may have been built on one)."""
+    try:
+        import yaml
+        doc = yaml.safe_load(
+            (SCRIPTS.parent / "reference" / "stackups.yaml")
+            .read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001 - reference data is advisory here
+        return {}
+    out = {}
+    for name, s in ((doc or {}).get("stackups") or {}).items():
+        coppers = [ly for ly in s.get("stack", []) if ly.get("type") == "copper"]
+        if coppers:
+            out[name] = float(coppers[0].get("copper_oz", 1.0))
+    return out
+
+
+def derive_copper_oz(workspace: Path) -> tuple[float | None, str]:
+    """Outer copper weight (oz) from architecture/stackup.md's `Chosen`
+    section. -> (oz, source_note); **oz is None when it cannot be derived**
+    and the caller must REFUSE rather than guess.
+
+    Copper weight has no producer in spec_snapshot/quote.json, so this doc is
+    the single source of truth for it - and it is a board-killer: quoting a
+    2 oz design at 1 oz builds the wrong board. The old version defaulted to
+    1 oz on any parse miss (and blamed a missing file for it), which defeats
+    _check_oz_mentions silently and by default (LEARNINGS 2026-07-30
+    [order_submit][stackup]).
+
+    Resolution order, over the Chosen heading AND the lines under it (real
+    docs put the id on its own line below a numbered heading):
+      1. an explicit oz marker in a stackup id (JLC2313_1.6_2oz -> 2)
+      2. a stackup id known to reference/stackups.yaml -> its outer copper
+      3. nothing -> (None, why) so the caller refuses
+    """
     sm = workspace / "architecture" / "stackup.md"
     if not sm.exists():
-        return 1.0, "no architecture/stackup.md -> default 1 oz"
-    for line in sm.read_text(encoding="utf-8", errors="replace").splitlines():
-        # Match "Chosen" ANYWHERE in a heading, not just at "## Chosen":
-        # real docs number their headings ("## 1. Chosen stackup"), which a
-        # startswith() test misses. It then fell through to the no-file branch
-        # and reported "no architecture/stackup.md" for a file that exists -
-        # silently defaulting a 2 oz board to 1 oz, the exact board-killer
-        # _check_oz_mentions was written to catch.
+        return None, ("no architecture/stackup.md - copper weight cannot be "
+                      "derived")
+    lines = sm.read_text(encoding="utf-8", errors="replace").splitlines()
+    start = None
+    for i, line in enumerate(lines):
+        # "Chosen" ANYWHERE in a heading, not just "## Chosen:" - real docs
+        # number their headings ("## 1. Chosen stackup").
         s = line.lstrip()
         if s.startswith("#") and "chosen" in s.lower():
-            m = _OZ_ID_RE.search(line)
-            if m:
-                return float(m.group(1)), f"stackup.md: {line.strip()}"
-            return 1.0, "stackup.md Chosen line has no oz marker -> 1 oz"
-    return 1.0, ("architecture/stackup.md present but has no 'Chosen' heading "
-                 "-> default 1 oz (VERIFY: this is not the same as no file)")
+            start = i
+            break
+    if start is None:
+        return None, ("architecture/stackup.md is present but has NO 'Chosen' "
+                      "heading (this is not the same as a missing file)")
+    window = [lines[start]]
+    for line in lines[start + 1:start + 21]:
+        if line.lstrip().startswith("#"):
+            break
+        window.append(line)
+    text = "\n".join(window)
+    m = _OZ_ID_RE.search(text)
+    if m:
+        return float(m.group(1)), f"stackup.md: {lines[start].strip()} ({m.group(0).strip()})"
+    for name, oz in sorted(_known_stackups().items(), key=lambda kv: -len(kv[0])):
+        if name in text:
+            return oz, f"stackups.yaml[{name}].stack[0].copper_oz"
+    return None, ("architecture/stackup.md 'Chosen' section names no stackup "
+                  "known to reference/stackups.yaml and carries no oz marker")
 
 
 def _check_oz_mentions(man: dict, prior_steps, oz: float,
@@ -399,6 +461,13 @@ def _api_quote(session, man: dict, fab_dir: Path, prior_steps=None,
         oz, oz_source = float(spec["copper_weight_oz"]), "spec snapshot"
     else:
         oz, oz_source = derive_copper_oz(fab_dir.parent)
+        if oz is None:
+            # never guess a board-killer parameter
+            raise ApiRefused(
+                f"copper weight cannot be derived: {oz_source}. Fix the "
+                "`Chosen` section of architecture/stackup.md (name a stackup "
+                "from reference/stackups.yaml, or carry an explicit id marker "
+                "like JLC2313_1.6_2oz) or pass --copper-oz")
         spec["copper_weight_oz"] = oz
     _check_oz_mentions(man, prior_steps, oz, waived=copper_oz is not None)
     pcb_param = build_pcb_param(spec)
@@ -508,7 +577,10 @@ def _api_quote(session, man: dict, fab_dir: Path, prior_steps=None,
         "fetched_at": _dt.datetime.now().astimezone()
         .isoformat(timespec="seconds"),
         "file_key": file_key,
-        "gerber_sha256": zip_info["sha256"],   # binds any create to THIS zip
+        "gerber_sha256": zip_info["sha256"],   # exact file identity (advisory)
+        # binds any create to this DESIGN: a re-export of the same board
+        # changes the file sha and must not invalidate an approved quote
+        "design_sha256": zip_info["design_sha256"],
         "country": country,
         "real_price": real_price,
         "estimate": estimate,
@@ -554,7 +626,8 @@ def _load_fresh_quote(path: Path) -> dict:
     except (OSError, json.JSONDecodeError) as exc:
         raise ApiRefused(f"cannot read api quote {path}: {exc}") from exc
     for key in ("board", "qty", "real_price", "grand_total", "file_key",
-                "gerber_sha256", "calculate_request", "fetched_at"):
+                "gerber_sha256", "design_sha256", "calculate_request",
+                "fetched_at"):
         if q.get(key) in (None, ""):
             raise ApiRefused(f"api quote {path} lacks {key} - re-run --api")
     try:
@@ -596,17 +669,39 @@ def _api_create(session, man: dict, quote_file: Path, confirm: str,
 
     q = _load_fresh_quote(quote_file)
 
-    # gerber binding: the zip on disk must be the zip that was quoted
+    # layer guard: 4+ layer create is refused by JLC itself with an
+    # unclassifiable code 2, and an ambiguous create is unobservable (no
+    # order list/search endpoint exists) - so never send one.
+    param_layers = (q["calculate_request"].get("pcbParam") or {}).get("layer")
+    layers = param_layers or _merged_spec(man).get("layers")
+    if layers and int(layers) > API_CREATE_MAX_LAYERS:
+        raise ApiRefused(
+            f"{int(layers)}-layer boards cannot be ordered through the Open "
+            "API: pcb/create returns HTTP 200 {code 2, unknown_error} for "
+            "every 4-layer payload (three live attempts, 2026-07-30) while "
+            "the identical 2-layer payload succeeds, and there is no "
+            "order list/search endpoint to tell you afterwards whether an "
+            "ambiguous create landed. Order this board through the web cart "
+            f"({JLC_QUOTE_URL}) with the same gerber zip - the API quote in "
+            "this workspace is still the price reference - and record the "
+            "web order number with --order-number")
+
+    # design binding: the board on disk must be the BOARD that was quoted.
+    # Bound to the normalized design hash, NOT the file sha: KiCad stamps a
+    # creation timestamp into every gerber, so a re-export of an unchanged
+    # board changes the sha and used to self-invalidate an approved quote
+    # (LEARNINGS 2026-07-30 [fab_export][order_submit][jlcapi]).
     zip_info = man["artifacts"].get("gerber_zip")
     if not zip_info:
         raise ApiRefused("gerber zip missing from the fab dir - cannot bind "
                          "the create to the quoted gerbers")
-    if zip_info["sha256"] != q["gerber_sha256"]:
+    if zip_info["design_sha256"] != q["design_sha256"]:
         raise ApiRefused(
-            "gerber zip changed since the quote (sha256 mismatch: quote "
-            f"{q['gerber_sha256'][:12]}.. vs current "
-            f"{zip_info['sha256'][:12]}..) - re-run --api to re-quote the "
-            "new gerbers")
+            "the design changed since the quote (design hash mismatch: quote "
+            f"{q['design_sha256'][:12]}.. vs current "
+            f"{zip_info['design_sha256'][:12]}..; this ignores export "
+            "timestamps, so the copper really differs) - re-run --api to "
+            "re-quote the new gerbers")
 
     # freight attestation: the shipping method must be one of the QUOTED
     # options, its recorded cost must match that option, and the grand
@@ -842,9 +937,11 @@ def main(argv: list[str] | None = None) -> int:
                          "an order")
     ap.add_argument("--api-create", action="store_true",
                     help="REAL MONEY: place the order via pcb/create (no "
-                         "sandbox exists); requires --api-quote-file and a "
-                         "matching --confirm token; refuses when order.json "
-                         "already records an API order")
+                         "sandbox exists); 2-layer boards only (JLC refuses "
+                         "4+ with an unclassifiable code 2 - use the web "
+                         "cart); requires --api-quote-file and a matching "
+                         "--confirm token; refuses when order.json already "
+                         "records an API order")
     ap.add_argument("--api-quote-file",
                     help="fresh api_quote.json from a --api run")
     ap.add_argument("--confirm",

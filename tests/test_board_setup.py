@@ -32,6 +32,7 @@ GOLDEN = REPO / "tests" / "golden"
 sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(SCRIPTS / "lib"))
 import env  # noqa: E402
+import fabfloors  # noqa: E402
 import impedance as imp  # noqa: E402
 import rules_gen  # noqa: E402
 import board_init  # noqa: E402
@@ -64,9 +65,13 @@ def test_stackups_yaml_valid():
     for name, s in st["stackups"].items():
         coppers = [ly for ly in s["stack"] if ly["type"] == "copper"]
         assert len(coppers) == s["layers"], f"{name}: copper count != layers"
-        # physical stack sums near the nominal board thickness
+        # the declared lamination total is exactly what the stack sums to,
+        # and the ORDERED (nominal) thickness is within 5% of it - JLC's
+        # real 1.6 mm laminations sum to 1.58-1.66 mm.
         total = sum(ly["thickness_mm"] for ly in s["stack"])
-        assert abs(total - s["thickness_mm"]) < 0.05, f"{name}: stack sums to {total}"
+        assert abs(total - s["stack_total_mm"]) < 1e-6, f"{name}: sums to {total}"
+        assert abs(total - s["thickness_mm"]) / s["thickness_mm"] < 0.05, \
+            f"{name}: nominal {s['thickness_mm']} vs lamination {total}"
         for ci in s.get("controlled_impedance", []):
             assert ci["width_mm"] > 0
             if ci["kind"] == "diff":
@@ -75,6 +80,51 @@ def test_stackups_yaml_valid():
     names = [ly["name"] for ly in st["stackups"][st["defaults"][4]]["stack"]
              if ly["type"] == "copper"]
     assert names == ["F.Cu", "In1.Cu", "In2.Cu", "B.Cu"]
+
+
+def test_stackups_carry_verification_provenance():
+    """T1: every entry says where its numbers came from, and no default
+    points at a stackup JLC does not sell (the JLC04161H-3313 phantom sized
+    a real 100R board; LEARNINGS 2026-07-30 [stackup][ordering])."""
+    st = yaml.safe_load((REFERENCE / "stackups.yaml").read_text("utf-8"))
+    for name, s in st["stackups"].items():
+        assert "available" in s, f"{name}: no availability flag"
+        prov = s.get("provenance")
+        assert isinstance(prov, dict), f"{name}: no provenance block"
+        assert prov.get("method") in {"jlc_open_api", "vendor_page", "none"}, \
+            f"{name}: unknown provenance method {prov.get('method')!r}"
+        assert prov.get("verified"), f"{name}: provenance has no date"
+        if prov["method"] == "jlc_open_api":
+            assert prov.get("template_code"), f"{name}: no JLC template code"
+            assert prov.get("endpoint"), f"{name}: no endpoint recorded"
+        if s["available"] is False:
+            ret = s.get("retired") or {}
+            assert ret.get("reason"), f"{name}: retired without a reason"
+            assert ret.get("replacements"), f"{name}: retired with no successor"
+    for layers, name in st["defaults"].items():
+        assert st["stackups"][name]["available"] is True, \
+            f"defaults[{layers}] = {name} is not available"
+        assert st["stackups"][name]["layers"] == layers
+
+
+def test_controlled_impedance_matches_stack():
+    """The published width/gap are impedance.py's output for the stack's own
+    outer dielectric - regenerate this table whenever the stack changes."""
+    st = yaml.safe_load((REFERENCE / "stackups.yaml").read_text("utf-8"))
+    for name, s in st["stackups"].items():
+        rows = s.get("controlled_impedance") or []
+        if not rows:
+            continue
+        h, er, oz = rules_gen.outer_microstrip_params(s)
+        t = imp.CU_OZ_MM.get(oz, 0.035)
+        for ci in rows:
+            if ci["kind"] == "single":
+                w = imp.solve_width(ci["impedance_ohm"], h, t, er)
+                assert abs(w - ci["width_mm"]) < 5e-4, f"{name}/{ci['profile']}"
+            else:
+                w, g = imp.diff_pair(float(ci["impedance_ohm"]), h, t, er)
+                assert abs(w - ci["width_mm"]) < 5e-4, f"{name}/{ci['profile']} width"
+                assert abs(g - ci["gap_mm"]) < 5e-4, f"{name}/{ci['profile']} gap"
 
 
 def test_rotations_csv_valid():
@@ -153,7 +203,7 @@ def _cap(cls="4layer_1oz"):
     return yaml.safe_load((REFERENCE / "jlc_capabilities.yaml").read_text("utf-8"))["design_rules"][cls]
 
 
-def _stackup(name="JLC04161H-3313"):
+def _stackup(name="JLC04161H-1080B"):
     return yaml.safe_load((REFERENCE / "stackups.yaml").read_text("utf-8"))["stackups"][name]
 
 
@@ -203,9 +253,39 @@ def test_net_classes():
     cons = json.loads((GOLDEN / "usbbuck4" / "constraints.json").read_text("utf-8"))
     _, report = rules_gen.build(cons, _cap(), _stackup(), baseline_only=False)
     cnames = {c["name"] for c in report["classes"]}
-    assert "Power" in cnames and "Diff90" in cnames
+    assert "Diff90" in cnames
     pats = {(p["netclass"], p["pattern"]) for p in report["patterns"]}
-    assert ("Power", "+3V3") in pats and ("Diff90", "/USB_DP") in pats
+    assert ("Diff90", "/USB_DP") in pats
+    # +3V3 (0.4 A -> 0.20 mm) needs nothing wider than the Default class;
+    # VBUS (0.5 A -> 0.25 mm) gets its own class, at ITS width.
+    assert ("Default", "+3V3") in pats
+    assert ("Pwr_0p25mm", "VBUS") in pats
+    assert {c["name"]: c["track_width"] for c in report["classes"]
+            if c["name"].startswith("Pwr_")} == {"Pwr_0p25mm": 0.25}
+
+
+def test_power_netclasses_split_by_current():
+    """A 20 mA rail must NOT inherit a 5 A trunk's width: one class per
+    required width, thin rails on Default. Flattening them into one wide
+    "Power" class is what fed Freerouting 1.75 mm traces for /VDD
+    (LEARNINGS 2026-07-28 [routing][rules_gen][freerouting])."""
+    cons = {"power": [{"net": "VBUS", "current_a": 5.0},
+                      {"net": "/VDD", "current_a": 0.02},
+                      {"net": "/VIND", "current_a": 0.05}]}
+    cap = _cap("2layer_2oz")
+    _, report = rules_gen.build(cons, cap, _stackup("JLC2313_1.6_2oz"),
+                                baseline_only=False)
+    by_net = {f["net"]: f for f in report["power"]}
+    assert by_net["VBUS"]["class_width_mm"] > 1.0          # the 5 A trunk
+    assert by_net["/VDD"]["netclass"] == "Default"
+    assert by_net["/VIND"]["netclass"] == "Default"
+    assert by_net["VBUS"]["netclass"] != by_net["/VDD"]["netclass"]
+    widths = {c["name"]: c["track_width"] for c in report["classes"]}
+    assert len(widths) == 1 and by_net["VBUS"]["netclass"] in widths
+    # and the DRU still holds every net to its OWN minimum
+    rules, _ = rules_gen.build(cons, cap, _stackup("JLC2313_1.6_2oz"), False)
+    dru = {r.name: r.minv for r in rules}
+    assert dru["aiee_pwr_width_VBUS"] > dru["aiee_pwr_width_VDD"]
 
 
 # ============================================================ board_init logic
@@ -292,6 +372,101 @@ def test_last_json_helper():
     assert board_init._last_json("nothing here") is None
 
 
+# ==================================================== T1: fab floors (one source)
+
+def test_fabfloors_profile_and_rules():
+    cls, cap = fabfloors.profile(4, 1.0)
+    assert cls == "4layer_1oz"
+    rules = fabfloors.pro_rules(cap)
+    assert rules["min_track_width"] == cap["min_trace_width_mm"] == 0.1016
+    assert rules["min_hole_to_hole"] == cap["min_hole_to_hole_mm"] == 0.5
+    assert set(rules) == set(fabfloors.PRO_RULE_KEYS)
+    with pytest.raises(fabfloors.FabFloorError, match="99layer_1oz"):
+        fabfloors.profile(99, 1.0)
+
+
+def test_fabfloors_check_pro_catches_the_shipped_defects():
+    """The two defects that shipped on real boards: a floor BELOW the fab
+    profile, and a floor at severity warning (LEARNINGS 2026-07-29 /
+    2026-07-30 [board_init][rules_gen][dfm][gates])."""
+    _, cap = fabfloors.profile(4, 1.0)
+    good = board_init.build_pro("b.kicad_pro", cap)
+    assert fabfloors.check_pro(good, cap) == []
+
+    sub_fab = json.loads(json.dumps(good))
+    sub_fab["board"]["design_settings"]["rules"]["min_track_width"] = 0.1
+    msgs = fabfloors.check_pro(sub_fab, cap)
+    assert any("min_track_width" in m and "BELOW" in m for m in msgs)
+
+    warn = json.loads(json.dumps(good))
+    warn["board"]["design_settings"]["rule_severities"]["hole_to_hole"] = "warning"
+    assert any("hole_to_hole" in m for m in fabfloors.check_pro(warn, cap))
+
+    empty = fabfloors.check_pro({}, cap)
+    assert len(empty) == len(fabfloors.PRO_RULE_KEYS) + len(fabfloors.FLOOR_SEVERITIES)
+
+
+@pytest.mark.parametrize("layers,oz", [(2, 1.0), (2, 2.0), (4, 1.0), (4, 2.0)])
+def test_board_init_pro_floors_at_error(tmp_path, layers, oz):
+    """board_init's project file must never ship a floor below the chosen
+    JLC profile, and the checks that enforce them are ERROR, not warning."""
+    _, cap = fabfloors.profile(layers, oz)
+    pro_path = tmp_path / "b.kicad_pro"
+    floors = board_init.write_pro(pro_path, cap)
+    pro = json.loads(pro_path.read_text("utf-8"))
+    assert fabfloors.check_pro(pro, cap) == []
+    assert floors["min_track_width"] == cap["min_trace_width_mm"]
+    sev = pro["board"]["design_settings"]["rule_severities"]
+    assert sev["hole_to_hole"] == "error" and sev["track_width"] == "error"
+    # the library-noise suppressions survive alongside the floors
+    assert sev["lib_footprint_issues"] == "ignore"
+
+
+def test_board_init_write_pro_refuses_sub_fab(tmp_path, monkeypatch):
+    """A regression guard on build_pro itself: if it ever emits a floor
+    below the profile again, write_pro raises instead of writing."""
+    _, cap = fabfloors.profile(4, 1.0)
+    # board_init imports the module as lib.fabfloors - patch ITS binding
+    monkeypatch.setattr(board_init.fabfloors, "pro_rules",
+                        lambda c: {**{k: float(c[v]) for k, v
+                                      in fabfloors.PRO_RULE_KEYS.items()},
+                                   "min_track_width": 0.1})
+    with pytest.raises(RuntimeError, match="sub-fab floors"):
+        board_init.write_pro(tmp_path / "b.kicad_pro", cap)
+    assert not (tmp_path / "b.kicad_pro").exists()
+
+
+def test_rules_gen_pro_writes_same_floors_and_severities(tmp_path):
+    """rules_gen --pro and board_init must agree by construction: same
+    single source, so a re-run of either cannot lower the floors."""
+    _, cap = fabfloors.profile(4, 1.0)
+    pro_path = tmp_path / "b.kicad_pro"
+    board_init.write_pro(pro_path, cap)
+    before = json.loads(pro_path.read_text("utf-8"))
+    rules_gen.update_pro(pro_path, [], [], cap)
+    after = json.loads(pro_path.read_text("utf-8"))
+    ds_b = before["board"]["design_settings"]
+    ds_a = after["board"]["design_settings"]
+    assert ds_a["rules"] == ds_b["rules"]
+    assert fabfloors.check_pro(after, cap) == []
+    assert ds_a["rule_severities"]["lib_footprint_mismatch"] == "ignore"
+    assert after["net_settings"]["classes"][0]["name"] == "Default"
+
+
+def test_rules_gen_pro_repairs_a_sub_fab_project(tmp_path):
+    """The lumina-carrier shape: a project file already carrying KiCad's
+    0.25 mm hole floor at warning is REPAIRED, not merged around."""
+    _, cap = fabfloors.profile(4, 1.0)
+    pro_path = tmp_path / "b.kicad_pro"
+    pro_path.write_text(json.dumps({"board": {"design_settings": {
+        "rules": {"min_track_width": 0.1, "min_hole_to_hole": 0.25},
+        "rule_severities": {"hole_to_hole": "warning"}}}}), encoding="utf-8")
+    rules_gen.update_pro(pro_path, [], [], cap)
+    pro = json.loads(pro_path.read_text("utf-8"))
+    assert pro["board"]["design_settings"]["rules"]["min_hole_to_hole"] == 0.5
+    assert fabfloors.check_pro(pro, cap) == []
+
+
 # ============================================================ smoke: live kicad
 
 @pytest.fixture(scope="session")
@@ -348,6 +523,52 @@ def test_board_init_end_to_end(cli, usbbuck4_net, tmp_path):
     bg = geom.load_board(tmp_path / "kicad" / "usbbuck4.kicad_pcb")
     assert bg.stackup.assumed is False
     assert bg.stackup.copper_layers == ["F.Cu", "In1.Cu", "In2.Cu", "B.Cu"]
+
+
+@pytest.mark.smoke
+def test_board_init_writes_profile_floors(cli, usbbuck4_net, tmp_path):
+    """ACCEPTANCE (T1): the project file board_init ships satisfies the
+    chosen JLC profile at ERROR severity - and the board it just built is
+    still DRC-clean under those (stricter) floors."""
+    rep = tmp_path / "report.json"
+    rc = board_init.main([
+        "--netlist", str(usbbuck4_net), "--name", "usbbuck4",
+        "--out", str(tmp_path / "kicad"), "--layers", "4",
+        "--schematic", str(GOLDEN / "usbbuck4" / "usbbuck4.kicad_sch"),
+        "--out-report", str(rep)])
+    r = json.loads(rep.read_text("utf-8"))
+    assert rc == 0 and r["status"] == "pass", r
+    assert r["fab_profile"] == "4layer_1oz" and r["copper_oz"] == 1.0
+    _, cap = fabfloors.profile(4, 1.0)
+    pro = json.loads((tmp_path / "kicad" / "usbbuck4.kicad_pro").read_text("utf-8"))
+    assert fabfloors.check_pro(pro, cap) == []
+    # the two values that shipped wrong on real boards
+    rules = pro["board"]["design_settings"]["rules"]
+    assert rules["min_track_width"] == 0.1016 and rules["min_hole_to_hole"] == 0.5
+    assert r["self_check"]["setup_violations"] == []
+
+
+@pytest.mark.smoke
+def test_board_init_refuses_unavailable_stackup(cli, usbbuck4_net, tmp_path):
+    """A stackup JLC does not sell must fail LOUDLY by name, with its
+    replacement - never silently size a board (JLC04161H-3313 phantom)."""
+    rep = tmp_path / "report.json"
+    rc = board_init.main([
+        "--netlist", str(usbbuck4_net), "--name", "usbbuck4",
+        "--out", str(tmp_path / "kicad"), "--layers", "4",
+        "--stackup", "JLC04161H-3313", "--out-report", str(rep)])
+    r = json.loads(rep.read_text("utf-8"))
+    assert rc == 2 and r["status"] == "error"
+    assert "available: false" in r["error"]
+    assert "JLC04161H-1080B" in r["error"]          # names the replacement
+
+
+def test_rules_gen_refuses_unavailable_stackup(tmp_path, capsys):
+    rc = rules_gen.main(["--layers", "4", "--stackup", "JLC04161H-3313",
+                         "--out-dru", str(tmp_path / "b.kicad_dru")])
+    assert rc == 2
+    out = json.loads(capsys.readouterr().out)
+    assert out["status"] == "error" and "JLC04161H-1080B" in out["error"]
 
 
 def _edge_shapes(pcb: Path, kind: str) -> int:
@@ -588,6 +809,9 @@ def test_rules_gen_pro_write_keeps_board_clean(cli, tmp_path):
         "--pro", str(pcb.with_suffix(".kicad_pro")), "--out", str(tmp_path / "r.json")])
     assert rc == 0
     pro = json.loads(pcb.with_suffix(".kicad_pro").read_text("utf-8"))
-    assert {c["name"] for c in pro["net_settings"]["classes"]} >= {"Default", "Power", "Diff90"}
+    names = {c["name"] for c in pro["net_settings"]["classes"]}
+    assert names >= {"Default", "Pwr_0p25mm", "Diff90"}
+    # ... and the written floors still satisfy the fab profile
+    assert fabfloors.check_pro(pro, _cap()) == []
     rep = _drc(cli, pcb, parity=True)
     assert rep["counts"]["total"] == 0, rep["violations"]

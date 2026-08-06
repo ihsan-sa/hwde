@@ -22,7 +22,9 @@ output ASCII.
 2. `power_tree.md` - rails with budgets (lift from research/power.json,
    reconcile against final block choices).
 3. `stackup.md` - chosen stackup NAME from stackups.yaml (e.g. JLC2313_1.6
-   for 2-layer, JLC04161H-3313 for 4-layer) + why (layer count drivers:
+   for 2-layer, JLC04161H-1080B for 4-layer; entries marked
+   `available: false` are REFUSED by board_init - JLC withdraws templates,
+   and one it never sold sized a real 100R board) + why (layer count drivers:
    impedance control, plane needs, density); board class 2L vs 4L.
 4. `sheets.md` - hierarchical sheet plan: sheet name, its blocks, its
    interface nets (these become hier pins/labels at P4 and placement groups

@@ -32,7 +32,7 @@ T7 -> T8 || T9 -> T10. T11 runs as soon as boards arrive (not during T6).
 | Step | Title | Status | Date |
 |---|---|---|---|
 | T0 | Ops sweep (tracking refresh + record carrier web order) | **done** | 2026-08-06 |
-| T1 | Fab-truth hardening (board_init floors, rules_gen netclasses, 4L ordering, stackups.yaml, latch hash) | pending | - |
+| T1 | Fab-truth hardening (board_init floors, rules_gen netclasses, 4L ordering, stackups.yaml, latch hash) | **done** | 2026-08-06 |
 | T2 | Gate blind-spot fixes (creepage / current / diffpair / return_path) | pending | - |
 | T3 | Library + authoring hygiene (lib_pull silk autofix, schem_refdes.py) | **done** | 2026-08-06 |
 | T4 | Knowledge ladder triage + trigger-indexed remediations | **done** | 2026-08-06 |
@@ -102,6 +102,7 @@ kickoff prompt to allow multi-agent workflows (higher token spend - use where ma
 | V14 | Freerouting 2.2.4 DSN-reader recursion on KRT copper | S11 | PolylineTrace.combine infinite recursion before pass 1 on KRT guide-wire copper; mitigated (wedge detection + KRT fallback). Worth an upstream issue with a minimal DSN repro. |
 | V15 | JLCPCB web-viewer upload + polarized-part CPL preview | S12, plan S12 accept | **HUMAN STEP, NOT YET DONE.** Two S12 accept legs need a browser and have no API: (a) upload `usbbuck4_gerbers.zip` to JLC's viewer/quote page and confirm it renders clean, (b) spot-check the rendered CPL preview for 3 polarized parts (D1 LED_0805, plus a diode/electrolytic on a future board). The machine-checkable half (package completeness, hashes, rotation maths) IS tested (test_full_package_flow, test_cpl_rotation_corrections). Do this once before the first real order (S14). |
 | V16 | jlc_pricing.yaml staleness + credentialed ordering API | S12 | order_quote's numbers are transcribed headline prices flagged `estimated: true`, never a quote; JLC's real price depends on panelisation/promotions/region. order_submit implements the manifest + human gate but NOT a live api.jlcpcb.com call (that programme needs an approved access application this host does not have) - `--api` exits 2 with the exact missing prerequisite rather than shipping an untested payment path. Re-verify the table (and wire the API behind `_api_submit()`) when credentials exist. |
+| V18 | stackups.yaml dielectric constants + template churn | T1 | **OPEN, standing.** JLC's `getImpedanceTemplateSettingList` returns materials + thicknesses but NO epsilon_r, so every `epsilon_r` in stackups.yaml is an assumed FR4 value (`epsilon_r_assumed: true` per entry) and 1080-vs-7628 resin differences are NOT modelled - this is the concrete form of V12 for the real stackups. AND the offering itself churns: JLC04161H-7628G was live on 2026-07-30 and gone on 2026-08-06. Before any controlled-impedance board: re-probe the endpoint (recipe in LEARNINGS 2026-08-06 [stackup][jlcapi][ordering]) AND confirm width/gap against JLC's online impedance calculator. |
 | V17 | No scripted silk/text move op (refdes/value) | S13 | **RESOLVED S14**: hit on run (a) day one (J1 polarity legend = reviewer ERROR). place_swig/place_edit gained `add_text` (idempotent board-frame silk text) + `move_text` (refdes/value fields), independently sexpdata-verified incl. rotated parents; 9 tests. Drove ~50 move_text refdes sweeps + 3 boards' functional silk packages. fixer.md/fix_dispatch/SKILL.md updated. |
 | V19 | schem_refdes symbol transform at 90/270 and mirrored instances | T3 | The library->page transform is verified against wired pin positions at rotation 0 and 180 (the only rotations in the corpus: 209 instances at 0, one at 180, ZERO mirrored across all ten board sheets). The 90/270 and `(mirror x|y)` branches are implemented from the KiCad convention but have no fixture. Verify against a wired pin the first time a generator rotates or mirrors a symbol - note LEARNINGS 2026-07-28 already records that schlib and ksa disagree on the SIGN of a 90 deg rotation. |
 
@@ -1865,6 +1866,138 @@ have failed every widen attempt a fixer tried.
   dispatch picks it up; the test suite enforces the shape.
 
 **New verify-later items:** none.
+
+## T1 - Fab-truth hardening (2026-08-06) - DONE
+
+The "0/0 is not fabricable" class. Six defects, all machine-verified on shipped boards.
+
+**Opened on a RED suite** (not caused by this step): `test_build_pcb_param_inner_copper_by_layer_count`
+still asserted the pre-2026-07-30 hardcoded `insideCuprumThickness == "1"` that the
+lumina-carrier run had already fixed in code. Fixed here (asserts the 0.5 oz JLC standard +
+an explicit-override case) and recorded as a LEARNINGS rule: a live-run fix must update its test.
+
+**Built:**
+- `scripts/lib/fabfloors.py` (NEW) - the single source of fab minimums.
+  `profile(layers, outer_oz) -> (class, capability row)`, `pro_rules(cap)` (the
+  `board.design_settings.rules` block), `pro_rule_severities()` (the 7 floor checks pinned to
+  ERROR), `check_pro(pro, cap) -> [failures]`. Root cause of the shipped defect was TWO
+  writers of one block: `board_init.write_pro` hard-coded `min_track_width: 0.1` (below EVERY
+  JLC profile) while `rules_gen.update_pro` derived it - last writer won.
+- `board_init.py` - `build_pro`/`write_pro(pro_path, cap)` write the profile's floors +
+  severities and ASSERT them (`check_pro`) before writing; new `--copper-oz` (defaults to the
+  stackup's own outer copper) selects the profile; report carries `fab_profile`, `copper_oz`,
+  `fab_floors`; a stackup marked `available: false` is refused by name with its replacements.
+- `rules_gen.py` - netclass split: ONE class per required power width (`Pwr_<w>mm`, e.g.
+  `Pwr_0p25mm`), rails at or under the Default width stay Default; power facts carry
+  `netclass`/`class_width_mm`. `update_pro` now merges floors + ERROR severities from
+  fabfloors and asserts them (so it REPAIRS a project already carrying KiCad's 0.25 mm hole
+  floor at warning). `capability_class` re-exported from fabfloors. Refuses unavailable
+  stackups; the no-stackup fallback picks an AVAILABLE one of the right layer count.
+- `reference/stackups.yaml` - rebuilt from JLC's live offering (read-only
+  `pcb/getImpedanceTemplateSettingList` probe, 2026-08-06). Every entry now carries
+  `available` + a `provenance` block (method jlc_open_api | vendor_page | none, request,
+  template_code, live_verified, date). Real 4L entries: **JLC04161H-1080B** (the new
+  `defaults[4]`, template 202601040426384154, L1-L2 0.2444 mm of 1080 prepreg, 1.065 mm core,
+  0.0152 mm inner copper) and **JLC04162H-7628A** (2 oz outer, new). Retired-but-kept:
+  `JLC04161H-3313` (phantom, never sold) and `JLC04161H-7628G` (withdrawn between 2026-07-30
+  and 2026-08-06 - the churn proof). `controlled_impedance` recomputed from each real stack
+  by impedance.py and drift-guarded by a test. 2-layer entries stay vendor-page-sourced with
+  the live NEGATIVE recorded (JLC sells no impedance-controlled 2L).
+- `order_submit.py` - (a) `--api-create` refuses 4+ layer boards locally, before any
+  transport, naming the web-cart path and `--order-number`; the quote leg still prices 4L.
+  (b) `derive_copper_oz` FAILS LOUD: returns `(None, why)` when the stackup doc is missing,
+  has no `Chosen` heading, or names nothing resolvable - and `_api_quote` refuses instead of
+  quoting at a guessed 1 oz. It now scans the Chosen heading AND the lines under it (real
+  docs put the id below a numbered heading) and resolves a known stackup id against
+  stackups.yaml for its outer copper. (c) The create latch binds to a NORMALIZED design hash,
+  not the gerber zip sha.
+- `scripts/lib/fabhash.py` (NEW) - `design_hash(zip)`: sha256 over the package with KiCad's
+  volatile stamps removed (5 gerber/Excellon line forms + JSON-aware `.gbrjob` key removal);
+  `file_sha256` kept alongside with its narrower meaning. Non-zip input falls back to raw
+  bytes (fail-safe). Small CLI: `fabhash.py --zip A [--compare B]` answers "did the design
+  actually change?".
+- `lib/jlcapi.py` - business code 2 now classifies as `unknown_error` with a REMEDIATION that
+  says DO NOT RETRY / check the portal / known trigger is a 4+ layer create (it previously
+  fell through to a generic bucket with no guidance - on the one call that spends money).
+- Docs: `agents/ordering.md` (4L = web order, never retry an ambiguous create, sha vs design
+  hash, copper-weight refusal), `agents/board-setup.md` (--copper-oz, report fab_profile/
+  fab_floors, unavailable-stackup refusal, netclass split), `agents/architect.md` (default 4L
+  stackup name), `agents/router.md` (netclass caution -> netclass note), SKILL.md (unchanged
+  length, 286), two remediation refs de-staled.
+- `design/ladder-triage.md` (T4's register, landed mid-session): all 10 `planned-T1` rows
+  resolved - 7 **done** (79, 139, 140, 142, 148, 155, 163) and 3 **open** with the residual
+  named (138 + 162: the latch still arms only on success, so an AMBIGUOUS first create is
+  still not defended; 160: nothing asserts a hand-written `.kicad_dru` still carries
+  rules_gen's `aiee_*` floors) - plus rows 169-173 for T1's new LEARNINGS entries and
+  refreshed header counts.
+
+**Acceptance evidence:**
+- `board_init` on golden usbbuck4: `fab_profile 4layer_1oz`, `min_track_width 0.1016`,
+  `min_hole_to_hole 0.5`, `check_pro == []`, parity 0, setup_violations 0 - the stricter
+  floors cost the corpus nothing (test_board_init_writes_profile_floors).
+- Two-rail fixture: VBUS (5 A) and /VDD (20 mA) land in DIFFERENT netclasses at their own
+  widths, while the DRU still holds each net to its own minimum
+  (test_power_netclasses_split_by_current); usbbuck4 -> `Pwr_0p25mm` + Default + Diff90 and
+  the golden stays DRC 0/0 with that pro.
+- 4L `--api-create` refuses with ZERO transport calls and a message naming the web cart;
+  4L `--api` still quotes (test_api_create_refuses_four_layer,
+  test_api_quote_still_works_for_four_layer).
+- Design hash: two REAL `fab_export` runs of an unchanged golden board -> different zip
+  sha256, IDENTICAL design hash; a moved coordinate -> different design hash; a re-exported
+  package still passes the create binding while a real copper change refuses
+  (test_design_hash_stable_across_real_reexports,
+  test_api_create_survives_a_reexport_of_the_same_design).
+- Every stackups entry carries provenance; both defaults are `available: true`; the phantom
+  is refused by name by board_init AND rules_gen.
+- T1's own suites green: **203 passed** (test_board_setup 48 + test_fab 65 + test_jlcapi 90),
+  including every live-kicad smoke test. `check.cmd` exit 0 (full tree, check_env exit 0).
+  NOTE: T1-T4 ran as parallel sessions in ONE working tree, so the tree-wide count moved
+  during the session (932 collected at the check.cmd run, 953 by the T1 commit) - the
+  full-tree number is a shared figure, not a T1 metric.
+
+**Deviations from the plan (with reasons):**
+1. The plan said "rebuild stackups.yaml from JLC's live offering"; retired entries are KEPT
+   (`available: false` + `retired.reason/replacements`) rather than deleted, so a board
+   designed against one fails loudly by name instead of hitting "stackup not found". Boards
+   already built on -3313 (lumina-carrier, usb-buck, lumina-strobe docs) therefore still
+   resolve for copper-weight derivation.
+2. `epsilon_r` is NOT rebuilt from JLC data because the API publishes none - values stay
+   assumed FR4 and are now FLAGGED per entry (`epsilon_r_assumed`) -> V18. Two web sources
+   (jlcpcb.com/impedance, a JITX stackup page) were checked and carry no Dk numbers.
+3. Silk floors (`min_text_thickness`) are deliberately NOT injected into the .kicad_pro: the
+   generated DRU already carries `aiee_silk_width_floor`, and pulled footprints routinely
+   ship 0.1 mm silk (T3's area) - injecting it would fail boards for a library defect.
+4. No 6-layer stackup entry added although the API returns six 6L templates: board_init only
+   supports `--layers 2|4`. Recorded in the file header instead.
+5. The `--api` (quote) leg is unchanged for 4L on purpose: `calculate` prices 4-layer boards
+   correctly and that real price is the reason to run it; only `create` is guarded.
+
+**Interface notes for later steps:**
+- **T7 (state/invalidation) must use `lib/fabhash.design_hash`** for the gerber leg - the plan
+  already anticipates it ("gerber normalized per T1"). `normalize_member(name, bytes)` is the
+  per-file primitive if a different container shows up.
+- `lib/fabfloors.check_pro(pro_dict, cap)` is the standing P7-entry assertion the LEARNINGS
+  entries asked for; T2/T9 can call it on any project file (it takes a parsed dict).
+  `fabfloors.profile()` RAISES on an unknown profile - no silent 1 oz fallback.
+- `api_quote.json` gained `design_sha256` (required by `--api-create`; a quote written before
+  T1 is refused with "re-run --api"). `order.json` artifacts gained `design_sha256`.
+- Netclass names changed: `Power` -> `Pwr_<width>mm` / `Default`. Anything matching the old
+  name must read the board's own .kicad_pro (boards built before T1 keep `Power`).
+- `derive_copper_oz` now returns `(float | None, note)` - callers MUST handle None.
+- `reference/remediations/dfm_trace_width.md` + `undersized_track.md` were de-staled where
+  they asserted the old behaviour; other refs may still describe "board_init hard-codes 0.1"
+  / "one Power netclass" as CURRENT - grep before trusting a remediation's root-cause claim.
+- Parallel-wave hygiene, learned the hard way: `test_route_auto_full_flow` (completion >= 0.9)
+  failed at 0.8182 during a full-suite run while T2/T3/T4 suites ran concurrently, and passed
+  alone minutes later unchanged - Freerouting is time-bounded, so contention reads as a
+  routing regression. Re-run a failing smoke test ALONE before believing it (LEARNINGS
+  2026-08-06 [tests][freerouting][skill]); T5's bench must keep timing/completion metrics out
+  of its deterministic class.
+- T6 heads-up: `board_init` and `rules_gen` must not regain their own copies of the floors;
+  any new project-file writer imports fabfloors.
+
+**New verify-later items:** V18 (assumed epsilon_r + template churn). V12 stays open as the
+impedance-model item.
 
 ## T3 - Library + authoring hygiene (2026-08-06) - DONE
 

@@ -270,8 +270,8 @@ never reuse a generator/router conversation for its own review.
   caps must bind at board_init (--outline WxH); architecture "target" sizes
   smaller than the shelf pack are unreachable.
 - placelib pads drop per-pad rotation (extents are rotation-safe via bbox;
-  per-pad geometry is not); rules_gen emits one Power netclass at max width
-  (split classes in .kicad_pro when widths diverge - router.md pattern).
+  per-pad geometry is not). Fab floors (.kicad_pro rules + ERROR severities)
+  come from lib/fabfloors.py; netclasses split per required width (T1).
 - order_quote undercounts Extended feeder fees; every figure is
   estimated:true and the JLC cart is the only real quote.
 - JLCPCB Open API: PCB ordering only - there is NO assembly/PCBA API

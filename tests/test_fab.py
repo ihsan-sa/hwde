@@ -40,6 +40,7 @@ import bom_cpl  # noqa: E402
 import checklib  # noqa: E402
 import dfm_check  # noqa: E402
 import fab_export  # noqa: E402
+import fabhash  # noqa: E402
 import geom  # noqa: E402
 import gerblib  # noqa: E402
 import netlist_audit  # noqa: E402
@@ -597,6 +598,105 @@ def fab_dirs(tmp_path_factory):
         man = fab_export.run(board_path(name), d, make_zip=True)
         out[name] = (d, man)
     return out
+
+
+# ======================================== T1: design hash vs file hash (fabhash)
+
+def _pkg(path, *, when="2026-07-28T11:55:55", version="10.0.3",
+         x="X250000", extra=None):
+    """A minimal but REAL fab package (gerber + Excellon + job file) carrying
+    the volatile stamps KiCad writes into every export."""
+    import zipfile
+    with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr("b-F_Cu.gtl",
+                    f"%TF.GenerationSoftware,KiCad,Pcbnew,{version}*%\n"
+                    f"%TF.CreationDate,{when}-07:00*%\n"
+                    "%TF.ProjectId,b,70642d74-7269-4676,rev?*%\n"
+                    f"G04 Created by KiCad (PCBNEW {version}) date {when}*\n"
+                    f"{x}Y250000D02*\nM02*\n")
+        zf.writestr("b.drl",
+                    f"M48\n; DRILL file KiCad {version} date {when}\n"
+                    f"; #@! TF.CreationDate,{when}-07:00\n"
+                    f"; #@! TF.GenerationSoftware,Kicad,Pcbnew,{version}\n"
+                    "T1C0.300\nM30\n")
+        zf.writestr("b-job.gbrjob", json.dumps(
+            {"Header": {"GenerationSoftware": {"Vendor": "KiCad",
+                                               "Version": version},
+                        "CreationDate": f"{when}-07:00"},
+             "GeneralSpecs": {"LayerNumber": 2, "BoardThickness": 1.6}},
+            indent=2))
+        for name, text in (extra or {}).items():
+            zf.writestr(name, text)
+
+
+def test_design_hash_ignores_export_stamps_not_geometry(tmp_path):
+    """The zip sha256 is NOT a design fingerprint: every export restamps the
+    timestamp headers, which is how an approved quote self-invalidated
+    (LEARNINGS 2026-07-30 [fab_export][order_submit][jlcapi])."""
+    a, b, c = (tmp_path / f"{n}.zip" for n in "abc")
+    _pkg(a)
+    _pkg(b, when="2026-08-06T09:01:02", version="10.0.4")   # re-export only
+    _pkg(c, x="X260000")                                    # one track moved
+    assert fabhash.file_sha256(a) != fabhash.file_sha256(b)
+    assert fabhash.design_hash(a) == fabhash.design_hash(b)
+    assert fabhash.design_hash(a) != fabhash.design_hash(c)
+
+
+def test_design_hash_sees_layer_set_changes(tmp_path):
+    """Adding, renaming or dropping a layer changes the design hash - member
+    NAMES are hashed, not just their content."""
+    a, b = tmp_path / "a.zip", tmp_path / "b.zip"
+    _pkg(a)
+    _pkg(b, extra={"b-B_Cu.gbl": "%FSLAX46Y46*%\nM02*\n"})
+    assert fabhash.design_hash(a) != fabhash.design_hash(b)
+
+
+def test_normalize_member_strips_exactly_the_volatile_lines():
+    gerber = ("%TF.GenerationSoftware,KiCad,Pcbnew,10.0.3*%\n"
+              "%TF.CreationDate,2026-07-28T11:55:55-07:00*%\n"
+              "%TF.ProjectId,b,uuid,rev?*%\n"
+              "G04 Created by KiCad (PCBNEW 10.0.3) date 2026-07-28*\n"
+              "X250000Y250000D02*\n")
+    out = fabhash.normalize_member("b.gtl", gerber.encode()).decode()
+    assert "CreationDate" not in out and "GenerationSoftware" not in out
+    assert "Created by KiCad" not in out
+    assert "%TF.ProjectId" in out and "X250000Y250000D02*" in out
+
+    drill = ("M48\n; DRILL file KiCad 10.0.3 date 2026-07-28T11:55:55\n"
+             "; FORMAT={-:-/ absolute / metric / decimal}\n"
+             "; #@! TF.CreationDate,2026-07-28T11:55:55-07:00\nT1C0.300\n")
+    out = fabhash.normalize_member("b.drl", drill.encode()).decode()
+    assert "DRILL file" not in out and "CreationDate" not in out
+    assert "; FORMAT=" in out and "T1C0.300" in out       # design content kept
+
+    job = json.dumps({"Header": {"CreationDate": "x",
+                                 "GenerationSoftware": {"Version": "10.0.3"}},
+                      "GeneralSpecs": {"BoardThickness": 1.6}})
+    out = fabhash.normalize_member("b-job.gbrjob", job.encode()).decode()
+    assert "CreationDate" not in out and "GenerationSoftware" not in out
+    assert "BoardThickness" in out
+
+
+def test_design_hash_falls_back_to_bytes_for_non_zip(tmp_path):
+    """Fail-safe: an unreadable package binds to its exact bytes."""
+    p, q = tmp_path / "p.zip", tmp_path / "q.zip"
+    p.write_bytes(b"PK\x03\x04NOTAZIP")
+    q.write_bytes(b"PK\x03\x04NOTAZIP-2")
+    assert fabhash.design_hash(p) == fabhash.design_hash(p)
+    assert fabhash.design_hash(p) != fabhash.design_hash(q)
+
+
+@pytest.mark.smoke
+def test_design_hash_stable_across_real_reexports(tmp_path, fab_dirs):
+    """The claim that matters, against KiCad's own output: exporting the SAME
+    board again yields the same design hash."""
+    first = Path(fab_dirs["blinky2"][1]["gerber_zip"])
+    time.sleep(1.1)                       # force a different timestamp stamp
+    again = fab_export.run(board_path("blinky2"), tmp_path / "again",
+                           make_zip=True)
+    second = Path(again["gerber_zip"])
+    assert fabhash.file_sha256(first) != fabhash.file_sha256(second)
+    assert fabhash.design_hash(first) == fabhash.design_hash(second)
 
 
 @pytest.mark.smoke
