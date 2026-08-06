@@ -36,7 +36,7 @@ T7 -> T8 || T9 -> T10. T11 runs as soon as boards arrive (not during T6).
 | T2 | Gate blind-spot fixes (creepage / current / diffpair / return_path) | **done** | 2026-08-06 |
 | T3 | Library + authoring hygiene (lib_pull silk autofix, schem_refdes.py) | **done** | 2026-08-06 |
 | T4 | Knowledge ladder triage + trigger-indexed remediations | **done** | 2026-08-06 |
-| T5 | Stage bench + frozen fixtures + composite scores | pending | - |
+| T5 | Stage bench + frozen fixtures + composite scores | **done** | 2026-08-06 |
 | T6 | Per-stage deep evaluation + improvement fan-out (EXCLUSIVE) | pending | - |
 | T7 | Freshness-aware state + invalidation map | pending | - |
 | T8 | Incremental board update (board_update.py, kills OI-3) | pending | - |
@@ -2245,3 +2245,139 @@ re-verified). check_env exit 0.
   left untouched, owner unknown (likely a report_gen re-run side effect).
 
 **New verify-later items:** none.
+
+## T5 - Stage bench + frozen fixtures + composite scores (2026-08-06) - DONE
+
+The per-stage tuning-loop judge (v2 plan appendix): run ONE pipeline stage in
+isolation on a frozen fixture, get a deterministic score in seconds.
+
+**Suite state at open (protocol note):** 952 passed / 1 failed - the failure is
+`test_net_search_returns_in_stock_hits[AP63203]`, the SAME pre-existing
+`net`-marked live-JLC-stock failure T2 and T3 both recorded (stock genuinely 0;
+parts area untouched by T5).
+
+**Built:**
+- `scripts/lib/benchlib.py` (NEW) - manifest loading + per-file/per-dir sha256
+  pinning (`verify_fixture` -> drift refusal), NEW schematic metrics
+  (`sch_metrics`: wire crossings via interior-crossing minus junction dots,
+  label-label collision pairs, refdes overlaps reusing schem_refdes.audit_sheet,
+  sheet balance), P2 `placement_refs_missing`, known-answer matcher
+  (order/severity-independent: a finding matching ANY expected pattern is
+  excused from forbid_errors), per-stage composite = 100 - weighted penalties
+  (WEIGHTS documented in-file; comparable ONLY within one (stage, fixture)).
+- `scripts/bench.py` (NEW) - stage registry {P2 arch, P4 schematic, P5
+  board_init, P6 place, P7 route, P8 verify, P9 dfm, P10 order-dryrun} with a
+  scorer per stage over the EXISTING pipeline surfaces (netlist_audit,
+  schem_refdes, kc.run_erc/run_drc, place_metrics, geom, route_auto helpers,
+  verify_all, dfm_check, order_quote/order_submit/fabhash - nothing forked).
+  score.json metric classes per the LEARNINGS determinism rule: `metrics`
+  (offline-deterministic, ZERO declared noise), `metrics_live` (deterministic
+  given the pinned kicad-cli; smoke class), `informational` (wall_s, tokens,
+  cost_usd, renders - never compared, never in the composite; bench never runs
+  Freerouting - it scores frozen routed boards). Baselines:
+  `--baseline` writes, `--compare` diffs exactly + fails (exit 1) only on
+  composite regression; refuses (exit 2) cross-toolchain compares
+  (kicad_version), composite_inputs mismatches, drifted fixtures, unpinned
+  sibling .kicad_pro/.kicad_dru on live legs, judge-side overrides under
+  --compare, --render without --work-dir, and known_answer on non-P8/P9
+  stages. `--artifact` = the tuning-loop candidate hook (sha check skipped for
+  the override only; --baseline refused with overrides).
+- `tests/fixtures/stages/` (NEW) - 15 frozen fixtures covering all 8 stages,
+  manifest.yaml with provenance + sha pins. Shipped boards first: pd-trigger
+  (arch/sch/board_init/place[pre-route-critical snapshot]/route/verify/dfm
+  [shipped gerber set]/order) + lumina-carrier verify (the 124-error
+  known-profile board under the post-T2 suite) + golden/mutant corpus
+  referenced in place (blinky2 place, usbbuck4 route, plane-split +
+  missing-return-via verify, cpl-rotation dfm with gerbers exported+frozen
+  this session). pd-trigger fixtures live in per-role dirs under the ORIGINAL
+  stem with .kicad_pro/.kicad_dru beside them (see LEARNINGS below); P5
+  freezes aiee.pretty (68 KB, 16 footprints).
+- `tests/fixtures/stages/baselines/` - 15 committed baseline scores.
+  Reproducibility: every fixture re-run -> delta 0, zero metric diffs,
+  including all live kicad-cli legs. Declared noise = ZERO; a legitimate
+  metric change re-records its baseline in the same commit.
+- `tests/test_bench.py` (NEW) - 41 tests: manifest well-formed/pinned/covering
+  every stage, synthetic-schematic metric units (X-crossing counted, junction
+  and T-join not, label pairs, balance), known-answer matcher incl.
+  severity-order independence, composite rules (floor, unknown-key raise),
+  offline fixtures == baseline (unmarked, pure venv), live fixtures ==
+  baseline + override-regression + unpinned-sibling refusal + render (smoke).
+  Suite cost ~15 s unmarked + ~20 s smoke.
+- Docs: v2 plan appendix rewritten with the concrete loop invocations;
+  LEARNINGS + ladder-triage rows 174-175; SKILL.md UNTOUCHED (286 lines).
+
+**Method (ultracode):** 8-agent parallel survey of the stage surfaces before
+design; then a 4-lens adversarial review (metric correctness / determinism /
+freeze soundness / CLI contract) with per-finding verification agents - 27 raw
+findings, **12 confirmed** (each empirically reproduced by the verifier), 15
+refuted. All confirmed findings fixed this session, the big three:
+1. **Unpinned sibling .kicad_pro fed the live legs** of the two
+   referenced-corpus fixtures (blinky2_sch, golden_usbbuck4_route) - severity
+   maps live there, so config drift would have scored as artifact regression.
+   Pinned both + a standing `_require_pinned_siblings` refusal.
+2. **Every sha pin encoded CRLF worktree bytes** while `.gitattributes`
+   (`* text=auto eol=lf`) materializes LF on fresh checkouts - all 15 fixtures
+   would have been falsely refused on any other clone. 55 pinned files
+   LF-normalized in the worktree (tracked ones verified `i/lf` and
+   hash-identical to their index blobs afterwards - repo content unchanged),
+   pins regenerated, all baselines re-verified exact.
+3. **known-answer matcher was emission-order-dependent** with forbid_errors
+   (first-match claiming); rewritten to pattern-set semantics + regression test.
+
+**Baseline scores (committed; comparable only within a fixture):** P2 arch
+91.0; P4 blinky2 62.0 (the deliberately-dirty s7 fixture: 27 refdes overlaps,
+11 label collisions), pd-trigger 95.0; P5 100.0; P6 blinky2 53.36, pd-trigger
+18.53; P7 usbbuck4 92.54, pd-trigger 91.5 (DRC 0/0, completion 1.0); P8
+pd-trigger 100.0, carrier 37.6 (124 err / 4 warn under the post-T2 checks -
+the live T6 worklist, weights chosen so it keeps gradient), mutants 99.5 each
+(KA matched); P9 pd-trigger 98.0 (19 silk-over-pad warnings, the shipped
+cosmetic class), cpl mutant 99.4 (cpl_polarity D1 caught); P10 100.0
+(ready_for_human, design-hash stable).
+
+**Deviations from the plan (with reasons):**
+1. "Fixtures: harvest from the six board workspaces" - harvested from the TWO
+   shipped workspaces + the golden/mutant corpus. usb-buck / stm32-blinky
+   snapshots duplicate the same stage shapes at lower quality, and
+   lumina-par/strobe are mid-run (their workspaces will mutate under resume
+   runs, and T5 must not freeze moving targets). Every stage still has >= 1
+   fixture, 7 of 8 have >= 2 (P2 has 1: only shipped boards carry a real
+   architecture package).
+2. Golden/mutant corpus files are REFERENCED in place (sha-pinned, method:
+   reference) instead of copied - they are already frozen by the S1 corpus
+   tests, and duplicating boards would double-maintain regeneration. The pins
+   mean a golden regen now also requires re-pinning here (manifest header
+   documents it; `test_every_fixture_pin_matches_disk` enforces).
+3. Token/cost fields are informational pass-throughs (`--tokens/--cost-usd`)
+   the DRIVER session supplies for agent-driven stages - bench cannot know
+   another process's spend. Wall time recorded but never compared.
+4. P4 scores the ROOT sheet only (all current fixtures are single-sheet);
+   hierarchical P4 fixtures need sub-sheet pinning + a sheet-list arg - noted
+   for T6 rather than speculatively built.
+5. Composite weights are v0 constants tuned once against the corpus so no
+   committed fixture sits at the 0 floor (P8/P9 error weight 0.5 for the
+   carrier's 124; P4 unit weights for the dirty s7 sheet). T6 owns any
+   principled re-weighting - and re-records baselines when it does.
+
+**Interface notes for later steps:**
+- T6's protocol is now concrete: `bench.py --list`; per stage `--compare`,
+  edit, `--artifact <candidate> --compare`, keep iff composite improved,
+  `--baseline` in the same commit as an accepted metric change. Carrier P8
+  (37.6) and pd-trigger P6 (18.53) are the fixtures with the most headroom;
+  the 65 `open` ladder rows remain the worklist.
+- Manifest is additive: new fixture = files + sha pins + provenance (+
+  known_answer for P8/P9). bench.py needs no change for new fixtures; new
+  STAGES need a scorer + WEIGHTS entry.
+- KiCad fixtures MUST keep original stems with .kicad_pro/.kicad_dru pinned
+  beside them (live legs refuse unpinned siblings). Pure-geometry consumers
+  (P6/P8 via geom) do not need project files.
+- Any golden/mutant/s7 regeneration now breaks bench pins by design - re-run
+  the manifest pin pass + affected baselines in the same change.
+- LF rule: fixture pins hash WORKTREE bytes; keep fixture trees LF (the repo
+  already mandates eol=lf). A CRLF-writing tool touching a pinned file will
+  show up as drift refusal, not silent skew.
+- state.py snapshots proved to be the highest-value fixture source (the
+  pre-route-critical placed board). T7's state v2 should keep snapshot labels
+  stable - bench provenance points at them.
+
+**New verify-later items:** none. (V19 unchanged; the P4 hierarchical fixture
+gap is deviation 4, owned by T6.)

@@ -2210,3 +2210,24 @@ attributable to one session - report YOUR files' counts and say the full number 
 (b) T5's stage bench must keep wall-clock and completion-ratio metrics out of the deterministic
 class, or run the bench alone. Standing rule: re-run a failing smoke test alone before treating it
 as a regression, and never "fix" a threshold from a contended run.
+
+## 2026-08-06 [bench][kicad-cli][tests] A frozen KiCad fixture is the file PLUS its stem-matched project files
+T5's first P7 bench run reported **122 DRC errors on the shipped pd-trigger board** (114
+clearance + 8 copper_edge_clearance) - a board that shipped DRC 0/0 - and 60 ERC warnings on
+its schematic. Cause: the fixture copy was renamed (`routed.kicad_pcb`), and kicad-cli resolves
+`<stem>.kicad_pro` / `<stem>.kicad_dru` as SIBLINGS BY STEM - netclass clearances, custom
+rules and the severity map all live there, so the orphaned board was judged under KiCad
+defaults. With per-role dirs keeping the ORIGINAL stem (`route/pd-trigger.kicad_pcb` +
+`.kicad_pro` + `.kicad_dru`) the same board scores 0/0 and the sheet ERCs clean. The golden
+boards never showed this because they are referenced IN PLACE next to their project files.
+Rule: a KiCad artifact fixture = artifact + stem-matched project files, all sha-pinned;
+pure-geometry consumers (geom.py, the P8 checks) are exempt - they never read the project.
+
+## 2026-08-06 [bench][schematic][geometry] Label-vs-symbol-body overlap is a pin-line artifact - measure label-vs-label only
+benchlib's first `label_collisions` metric counted label text boxes against symbol bodies too.
+Measured on the SHIPPED pd-trigger sheet: **50 of 50 hits were a local label grazing the pin
+LINE of the very pin it names** (`Sheet.body()` includes pin segments; a stub label sits at
+the wire end by construction) - zero label-label overlaps. The dirty s7 blinky2 fixture shows
+the real signal the other way: 11 genuine label-label text overlaps. So the v0 metric counts
+ONLY label/global/hier/text box PAIRS; field-vs-body coverage already exists in the
+schem_refdes audit (which models pin-number bands properly instead of raw pin lines).

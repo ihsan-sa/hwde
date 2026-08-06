@@ -295,7 +295,23 @@ round-trips to pass/fail; suite green.
 
 ## Appendix: the per-stage tuning loop (post-T5 usage pattern, not a step)
 
-Open a session scoped to one stage. `bench.py <stage> --fixture <f>` → read
-score.json + render → edit the stage's prompt/template/script → re-bench →
-keep iff score improves → commit with the score delta in the message. Cheap
-models are fine for the loop driver; the bench is the judge, not the model.
+Open a session scoped to one stage. The bench (T5) is the judge, not the
+model; cheap models are fine for the loop driver.
+
+    bench.py --list                                        # stages + fixtures
+    bench.py --stage P6 --fixture pd_trigger_place --compare
+    # edit the stage's prompt/template/script, produce a candidate artifact:
+    bench.py --stage P6 --fixture pd_trigger_place \
+             --artifact work/candidate.kicad_pcb --compare  # exit 1 = regressed
+    # keep iff the composite improved; commit with the score delta in the
+    # message. Script stages (P5, P10) re-run the stage itself on the frozen
+    # input, so plain --compare exercises an edited script directly.
+    # A change that legitimately moves a metric re-records its baseline in
+    # the SAME commit:
+    bench.py --stage P6 --fixture pd_trigger_place --baseline
+
+Rules that keep the loop honest: composites compare within ONE
+(stage, fixture) pair only; deterministic metrics have ZERO declared noise
+(any diff = a real change); wall-clock, tokens and live-routing completion
+are informational, never scored (LEARNINGS 2026-08-06 [tests][freerouting]);
+`--render --work-dir DIR` keeps a PNG/PDF next to the score for eyeballing.

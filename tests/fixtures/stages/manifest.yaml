@@ -1,0 +1,309 @@
+# Frozen per-stage bench fixtures (T5).  DO NOT edit the pinned files: bench.py
+# refuses to score a fixture whose sha256 drifted.  method 'copy' = harvested
+# from a live board workspace on the captured date (workspaces keep evolving;
+# these copies do not); method 'reference' = points into the already-frozen
+# golden/s7 corpus in place (no duplication), pinned all the same.
+# Regenerating a golden board or mutant therefore requires re-pinning here.
+# known_answer shapes: see benchlib.match_known_answer.
+version: 1
+fixtures:
+  pd_trigger_arch:
+    stage: P2
+    board: pd-trigger
+    provenance:
+      source: boards/pd-trigger/architecture + kicad/pd-trigger.net
+      method: copy
+      captured: '2026-08-06'
+      note: shipped 2L USB-C PD trigger; P2 output vs final netlist
+    files:
+      constraints:
+        path: tests/fixtures/stages/pd_trigger/arch_constraints.json
+        sha256: e44d7987dddcd08ff0f2ba975abe5c09d4c8e597f72c9a85a892c9f7a7edeec5
+      netlist:
+        path: tests/fixtures/stages/pd_trigger/pd-trigger.net
+        sha256: 7100c1fad6d436c3696efabb0a8a31392854a4d74a3bfa57b403284560e2de2d
+    args:
+      stackup: JLC2313_1.6_2oz
+  pd_trigger_sch:
+    stage: P4
+    board: pd-trigger
+    provenance:
+      source: boards/pd-trigger/kicad
+      method: copy
+      captured: '2026-08-06'
+      note: shipped single-sheet schematic; golden_net = its own exported netlist
+    files:
+      sch:
+        path: tests/fixtures/stages/pd_trigger/sch/pd-trigger.kicad_sch
+        sha256: f0a6892097db60a9c925fc67d0cb4057fee3980007fe798a837f7d56f77a7dde
+      pro:
+        path: tests/fixtures/stages/pd_trigger/sch/pd-trigger.kicad_pro
+        sha256: 3b9c6ea6b1ab97a7b2c27f29ba33ba8b775fee82b3beba08e241a84ae2b0b01f
+      golden_net:
+        path: tests/fixtures/stages/pd_trigger/pd-trigger.net
+        sha256: 7100c1fad6d436c3696efabb0a8a31392854a4d74a3bfa57b403284560e2de2d
+  blinky2_sch:
+    stage: P4
+    board: blinky2
+    provenance:
+      source: tests/s7_regen/blinky2
+      method: reference
+      captured: '2026-08-06'
+      note: S7 regen corpus, already frozen; golden.net is the S7 oracle
+    files:
+      sch:
+        path: tests/s7_regen/blinky2/kicad/blinky2.kicad_sch
+        sha256: 6d29c73dd8c0ee5fe2f927ec03961b44ec5926671cf0c211176e7c20454c0c62
+      pro:
+        path: tests/s7_regen/blinky2/kicad/blinky2.kicad_pro
+        sha256: bf312e1ba0b7777ffe29ce71be50afc2f05c31c241091d25ba8f88cf3b2ca96a
+      golden_net:
+        path: tests/s7_regen/blinky2/golden.net
+        sha256: 4c832fcb33249910d96e4c0d341bd82ae61cd1093953a449d95d87f1a72a80be
+  pd_trigger_board_init:
+    stage: P5
+    board: pd-trigger
+    provenance:
+      source: boards/pd-trigger/kicad/pd-trigger.net
+      method: copy
+      captured: '2026-08-06'
+      note: board_init re-run on the shipped netlist; stackup per architecture/stackup.md
+    files:
+      netlist:
+        path: tests/fixtures/stages/pd_trigger/pd-trigger.net
+        sha256: 7100c1fad6d436c3696efabb0a8a31392854a4d74a3bfa57b403284560e2de2d
+    dirs:
+      fp_lib:
+        path: tests/fixtures/stages/pd_trigger/lib
+        sha256: a8578dcb4f8cbc5507522ab6e8e53b9238299249eb45cd197be5058fe3de3c07
+    args:
+      name: bench-pdtrigger
+      layers: 2
+      stackup: JLC2313_1.6_2oz
+  pd_trigger_place:
+    stage: P6
+    board: pd-trigger
+    provenance:
+      source: boards/pd-trigger/state_snapshots/pre-route-critical
+      method: copy
+      captured: '2026-08-06'
+      note: placed board immediately before critical routing (P7 entry)
+    files:
+      pcb:
+        path: tests/fixtures/stages/pd_trigger/place/pd-trigger.kicad_pcb
+        sha256: 8a91725f657a4f48c811f234e542d38a24e24afb7bf299b319907ed8e0ece838
+      pro:
+        path: tests/fixtures/stages/pd_trigger/place/pd-trigger.kicad_pro
+        sha256: 3b9c6ea6b1ab97a7b2c27f29ba33ba8b775fee82b3beba08e241a84ae2b0b01f
+      dru:
+        path: tests/fixtures/stages/pd_trigger/place/pd-trigger.kicad_dru
+        sha256: d8c96e0ddbb028bd451aadbde6060770ff612158f29562cce1e0405a3c56db68
+      constraints:
+        path: tests/fixtures/stages/pd_trigger/constraints.json
+        sha256: e44d7987dddcd08ff0f2ba975abe5c09d4c8e597f72c9a85a892c9f7a7edeec5
+      decoupling:
+        path: tests/fixtures/stages/pd_trigger/decoupling.json
+        sha256: 9b6bca4717a9c50f70c483f2a7d3e897973a6fbc2d69afcf838fadbd5b502df4
+  golden_blinky2_place:
+    stage: P6
+    board: blinky2
+    provenance:
+      source: tests/golden/blinky2
+      method: reference
+      captured: '2026-08-06'
+      note: S1 golden corpus (already frozen); routed board scored under place metrics
+    files:
+      pcb:
+        path: tests/golden/blinky2/blinky2.kicad_pcb
+        sha256: 08386dbb29ae3da044d5f13010bc8e105c5e550ac24d43559f070ad10300af5e
+      constraints:
+        path: tests/golden/blinky2/constraints.json
+        sha256: 0dbe43889997a249e90850fc8010d65069c97f95af278625a84c454a479fb33e
+      decoupling:
+        path: tests/golden/blinky2/decoupling.json
+        sha256: 930ee0e4a20cc5c62bd99800da194dee67398e740fa443306558a3466f74f3c9
+  pd_trigger_route:
+    stage: P7
+    board: pd-trigger
+    provenance:
+      source: boards/pd-trigger/kicad/pd-trigger.kicad_pcb
+      method: copy
+      captured: '2026-08-06'
+      note: shipped routed board (order W2026073002475378)
+    files:
+      pcb:
+        path: tests/fixtures/stages/pd_trigger/route/pd-trigger.kicad_pcb
+        sha256: 55104b0fe93d72deb9301fd6a35a1ebeecccf5b28b45c4e1f3cfdaa41a58cb8e
+      pro:
+        path: tests/fixtures/stages/pd_trigger/route/pd-trigger.kicad_pro
+        sha256: 3b9c6ea6b1ab97a7b2c27f29ba33ba8b775fee82b3beba08e241a84ae2b0b01f
+      dru:
+        path: tests/fixtures/stages/pd_trigger/route/pd-trigger.kicad_dru
+        sha256: d8c96e0ddbb028bd451aadbde6060770ff612158f29562cce1e0405a3c56db68
+  golden_usbbuck4_route:
+    stage: P7
+    board: usbbuck4
+    provenance:
+      source: tests/golden/usbbuck4
+      method: reference
+      captured: '2026-08-06'
+      note: S1 golden 4-layer corpus board
+    files:
+      pcb:
+        path: tests/golden/usbbuck4/usbbuck4.kicad_pcb
+        sha256: e6afcff4f3a8564e91c825cc6b79bf697424aa59e37e32e217e118e4a4d7d571
+      pro:
+        path: tests/golden/usbbuck4/usbbuck4.kicad_pro
+        sha256: bca06bc69879fb7b1739d2afc45664b9419c49417d2b546b99f7321748008ede
+  pd_trigger_verify:
+    stage: P8
+    board: pd-trigger
+    provenance:
+      source: boards/pd-trigger/kicad
+      method: copy
+      captured: '2026-08-06'
+      note: shipped board; verify gate passed at P8 (3 attempts)
+    files:
+      pcb:
+        path: tests/fixtures/stages/pd_trigger/route/pd-trigger.kicad_pcb
+        sha256: 55104b0fe93d72deb9301fd6a35a1ebeecccf5b28b45c4e1f3cfdaa41a58cb8e
+      constraints:
+        path: tests/fixtures/stages/pd_trigger/constraints.json
+        sha256: e44d7987dddcd08ff0f2ba975abe5c09d4c8e597f72c9a85a892c9f7a7edeec5
+      decoupling:
+        path: tests/fixtures/stages/pd_trigger/decoupling.json
+        sha256: 9b6bca4717a9c50f70c483f2a7d3e897973a6fbc2d69afcf838fadbd5b502df4
+    known_answer:
+      forbid_errors: true
+  carrier_verify:
+    stage: P8
+    board: lumina-carrier
+    provenance:
+      source: boards/lumina-carrier/kicad
+      method: copy
+      captured: '2026-08-06'
+      note: shipped 4L board; verify gate FAILED (115/119 findings) and was waived at H4 - the hard known-profile
+        fixture
+    files:
+      pcb:
+        path: tests/fixtures/stages/lumina_carrier/routed.kicad_pcb
+        sha256: 89fab249993b093f9b9cee76e1ade62c4a82734025698b26976d6453d491c01e
+      constraints:
+        path: tests/fixtures/stages/lumina_carrier/constraints.json
+        sha256: b139d7f0e8fc1abbab84ea3918598482bb0db2ec1a8a943c6d4348bc4b82b1c4
+      decoupling:
+        path: tests/fixtures/stages/lumina_carrier/decoupling.json
+        sha256: fc5e04094584947196a5728fc828bf1b367722a7b9348efdd3367a5c94222a0f
+  mutant_planesplit_verify:
+    stage: P8
+    board: rf4
+    provenance:
+      source: tests/golden/mutants/plane-split-under-clock
+      method: reference
+      captured: '2026-08-06'
+      note: S1 mutant corpus; expect from tests/golden/manifest.yaml
+    files:
+      pcb:
+        path: tests/golden/mutants/plane-split-under-clock/rf4.kicad_pcb
+        sha256: 3ac7ed8d3c261be03403a2d24f1e36a4d5bcfbc9860b06cfafdd415fa83316e8
+      constraints:
+        path: tests/golden/rf4/constraints.json
+        sha256: 34960e4e90b85fd466bf0aa5cdb86e70411d2556b0cdfdb5f2c572d1164a3d64
+      decoupling:
+        path: tests/golden/rf4/decoupling.json
+        sha256: 36ff8f8b71d898c27917a5dc4456600ce0d2aa278d2e0bb98bb3f74a777faa8b
+    known_answer:
+      expected:
+      - check: check_return_path
+        kind: corridor_void
+        net: /RF_FEED
+  mutant_returnvia_verify:
+    stage: P8
+    board: usbbuck4
+    provenance:
+      source: tests/golden/mutants/missing-return-via
+      method: reference
+      captured: '2026-08-06'
+      note: S1 mutant corpus; expect from tests/golden/manifest.yaml
+    files:
+      pcb:
+        path: tests/golden/mutants/missing-return-via/usbbuck4.kicad_pcb
+        sha256: 60d3bbee96811efa0d4e8ae1a41bd8e1c81187724c8adf1fafacc704c6e72532
+      constraints:
+        path: tests/golden/usbbuck4/constraints.json
+        sha256: 8576cdd920259e23419fd5866093a774d5e2c6a4af1cda300291905e5d990070
+      decoupling:
+        path: tests/golden/usbbuck4/decoupling.json
+        sha256: f824f8231eae404995bb8ff06747ea2510a6e8aa82b529eee6d006dce5a5232a
+    known_answer:
+      expected:
+      - check: check_return_path
+        kind: missing_return_via
+        net: /MCO
+  pd_trigger_dfm:
+    stage: P9
+    board: pd-trigger
+    provenance:
+      source: boards/pd-trigger/fab/gerbers
+      method: copy
+      captured: '2026-08-06'
+      note: the SHIPPED gerber set; netlist for polarity
+    files:
+      pcb:
+        path: tests/fixtures/stages/pd_trigger/route/pd-trigger.kicad_pcb
+        sha256: 55104b0fe93d72deb9301fd6a35a1ebeecccf5b28b45c4e1f3cfdaa41a58cb8e
+      netlist:
+        path: tests/fixtures/stages/pd_trigger/pd-trigger.net
+        sha256: 7100c1fad6d436c3696efabb0a8a31392854a4d74a3bfa57b403284560e2de2d
+    dirs:
+      gerbers:
+        path: tests/fixtures/stages/pd_trigger/fab/gerbers
+        sha256: 1c6b3a6e40bec353a8ac9e1a34772eacd31e36210d95253ad6e000ba9a01fe8e
+    args:
+      copper_oz: 2.0
+  mutant_cpl_dfm:
+    stage: P9
+    board: blinky2
+    provenance:
+      source: tests/golden/mutants/cpl-rotation (gerbers exported 2026-08-06 via fab_export, kicad-cli
+        10.0.3)
+      method: copy
+      captured: '2026-08-06'
+      note: 'V9 mutant: D1 mounted backwards; s7_regen golden.net is the polarity oracle'
+    files:
+      pcb:
+        path: tests/golden/mutants/cpl-rotation/blinky2.kicad_pcb
+        sha256: 5633ed87ee0ba796eed07d534996971020794da5c18f3b929a0d568a30371818
+      netlist:
+        path: tests/s7_regen/blinky2/golden.net
+        sha256: 4c832fcb33249910d96e4c0d341bd82ae61cd1093953a449d95d87f1a72a80be
+    dirs:
+      gerbers:
+        path: tests/fixtures/stages/mutant_cpl/gerbers
+        sha256: 3ab31f809136e93b41295304da02b42d3248833234bc13ec3322a84ddc3c03c4
+    args:
+      copper_oz: 1.0
+    known_answer:
+      expected:
+      - check: dfm
+        kind: cpl_polarity
+        ref: D1
+  pd_trigger_order:
+    stage: P10
+    board: pd-trigger
+    provenance:
+      source: boards/pd-trigger/fab
+      method: copy
+      captured: '2026-08-06'
+      note: shipped fab package (zip+BOM+CPL); submit runs on a scratch copy
+    files:
+      pcb:
+        path: tests/fixtures/stages/pd_trigger/route/pd-trigger.kicad_pcb
+        sha256: 55104b0fe93d72deb9301fd6a35a1ebeecccf5b28b45c4e1f3cfdaa41a58cb8e
+    dirs:
+      fab:
+        path: tests/fixtures/stages/pd_trigger/fab
+        sha256: 0173937a90fc94a3d530cf8e49848cd274608f23a0d3f9871ad8596575f0d5fc
+    args:
+      qty: 5
+      copper_oz: 2.0

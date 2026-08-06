@@ -1,7 +1,7 @@
 # Knowledge ladder triage (T4, 2026-08-06)
 
-One row per `LEARNINGS.md` entry (173 of them; the last starts at
-line 2202), placed on the maturity ladder from
+One row per `LEARNINGS.md` entry (175 of them; the last starts at
+line 2226), placed on the maturity ladder from
 `design/routing-knowledge-notes.md` section 6, with the artifact that owns - or
 must own - it.
 
@@ -273,3 +273,5 @@ the row's Now level and status in the same commit as the code.
 | 171 | 2178 | Raising the .kicad_pro floors to the fab profile at ERROR costs the co | [board_init][rules_gen][gates] | L3 | L3 | scripts/lib/fabfloors.py | done | One source for both project-file writers + check_pro asserted before every write; severities stated explicitly so no KiCad default can hide a floor |
 | 172 | 2193 | A live-run fix that does not update its test leaves the suite RED and  | [tests][skill] | L0 | L2 | CLAUDE.md | open | Process rule, currently prose: a red suite at session start is a stop sign, and a live-run fix must update its test in the same change. L2 = a session-start check that reports the suite state before work begins |
 | 173 | 2202 | Wave-1 parallel sessions make the route_auto completion assert flaky - | [tests][freerouting][skill] | L0 | L1 | tests/test_route_auto.py | open | Contended runs make the completion assert read as a regression. L1 = the test reporting its wall-clock/pass count so a contended run is recognisable; T5's bench must keep timing metrics out of the deterministic class |
+| 174 | 2214 | A frozen KiCad fixture is the file PLUS its stem-matched project files | [bench][kicad-cli][tests] | L2 | L2 | tests/fixtures/stages/manifest.yaml | done | T5: fixtures live in per-role dirs under the ORIGINAL stem with .kicad_pro/.kicad_dru sha-pinned beside the artifact; bench.verify_fixture refuses any drift before scoring |
+| 175 | 2226 | Label-vs-symbol-body overlap is a pin-line artifact - measure label-vs-label only | [bench][schematic][geometry] | L3 | L3 | scripts/lib/benchlib.py | done | T5: sch_metrics counts label-label text-box pairs only; the measured 50/50 FP class is pinned in the docstring and the field-vs-body case stays with the schem_refdes audit |

@@ -1,0 +1,51 @@
+{
+ "script": "bench",
+ "stage": "P8",
+ "fixture": "carrier_verify",
+ "board": "lumina-carrier",
+ "metrics": {
+  "errors": 124,
+  "warnings": 4,
+  "by_check": {
+   "check_return_path": 4,
+   "check_current": 94,
+   "check_decoupling": 2,
+   "check_diffpair": 1,
+   "check_creepage": 27,
+   "check_thermal": 0,
+   "check_silk": 0,
+   "check_pdn": 0
+  },
+  "by_kind": {
+   "corridor_void": 4,
+   "creepage": 27,
+   "decoupler_loop": 1,
+   "diffpair_skew": 1,
+   "gnd_stub_long": 1,
+   "insufficient_transition_vias": 41,
+   "pour_neckdown": 2,
+   "undersized_track": 51
+  },
+  "si": {
+   "decap_worst_loop_nh": 13.6834,
+   "decap_worst_manhattan_mm": 15.0125,
+   "diffpair_worst_skew_ps": 30.2347,
+   "diffpair_worst_uncoupled_mm": 3.5213,
+   "return_corridor_voids": 4
+  }
+ },
+ "metrics_live": null,
+ "penalties": {
+  "errors": 124.0,
+  "warnings": 4.0,
+  "known_answer_missed": 0.0,
+  "forbidden_errors": 0.0
+ },
+ "composite": 37.6,
+ "composite_inputs": "full",
+ "known_answer": null,
+ "_baseline": {
+  "created": "2026-08-06",
+  "kicad_version": null
+ }
+}
