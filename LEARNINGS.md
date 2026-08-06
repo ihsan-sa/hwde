@@ -2078,3 +2078,63 @@ code change was needed. Answers the open question from S12/T0: a 4-layer web ord
 like an API order, once you have its batch number in hand.
 Rule: validate any impedance-controlled stackup against the vendor's live template list BEFORE solving
 geometry against it, not at order time.
+
+## 2026-08-06 [kicad-sch-api][python] `Schematic.save()` SILENTLY GUTS lib_symbols for any symbol its cache cannot resolve
+kicad-sch-api 0.5.6 re-serialises the whole `(lib_symbols ...)` block on save from its GLOBAL symbol
+cache, which never reads `sym-lib-table` (see the 2026-07-28 `--pins` entry). Load and save
+`boards/pd-trigger/kicad/pd-trigger.kicad_sch` as-is and the file goes 8879 -> 4359 lines: every
+`aiee:` definition disappears, with no error, no warning and exit 0. The schematic still parses, so
+nothing downstream notices until KiCad opens it. Register the project library FIRST -
+`ksa.get_symbol_cache().add_library_path(<lib>/aiee.kicad_sym)` before `Schematic.load` - and the
+round trip is faithful (8879 -> 8879, 92 cosmetic `(at x y 0)` -> `(at x y 0.0000)` diffs only,
+measured on both pd-trigger and the s7 fixtures). Rule for ANY ksa write path: register the project
+libs, then assert the lib_symbols NAME SET is unchanged after save before trusting the file
+(`schem_refdes.write_placements` does exactly this and raises otherwise). The T3 plan called for
+placement "via kicad-sch-api"; this is why the READ side is a direct s-expression parse instead - the
+schematic's own embedded lib_symbols needs no library resolution at all.
+
+## 2026-08-06 [kicad-sch-api][silk][python] ksa places instance property positions with the WRONG Y SIGN, mirroring every field to the far side of its part
+Library symbol coordinates are y-UP, page coordinates are y-DOWN, so KiCad maps a library offset
+`ly` to `page_y = py - ly`. kicad-sch-api 0.5.6 ADDS it (`page_y = py + ly`), so every Reference and
+Value lands mirrored through the symbol origin. Measured on the s7 blinky2 fixture: C1 at page
+(152.40, 240.03), Device:C Reference library offset (0.635, +2.54) -> written at page y 242.57
+(BELOW the cap) while its pin at library (0, +3.81) is wired at page y 236.22 (ABOVE) - the pin
+proves the sign. Net effect on a generated sheet: reference below / value above, the reverse of
+KiCad's convention, and on a dense sheet the mirrored fields land on wires, labels and neighbours
+(27 overlaps on blinky2 counted against symbol bodies, pin-number bands, wires and labels).
+`schem_refdes.py` re-places both fields from a class table and reports what it cannot clear. Note
+the fields are cosmetic - ERC stays 0 and the exported netlist is byte-identical either way - so
+nothing in the pipeline catches this; it is a readability defect only a human or this script sees.
+
+## 2026-08-06 [easyeda2kicad][drc][parts] The whole known-bad pull set is 16 DRC violations, and one measured recipe takes it to 0 - but only if filled graphics are left alone
+A live pull of the four worst-known parts (C14663 0603, C2286 LED, C7421520 3-pos DIP switch,
+C5184243 GCT USB-C) DRCs at **16 violations = 4 errors + 12 warnings** on a scratch board
+(annular_width x2, clearance x2, padstack x2, silk_overlap x8, silk_over_copper x2) - the exact
+numbers the three shipped boards' `EDITS.md` recorded by hand. `fpfix.py` now applies the same
+recipe at pull time and measures **0** after. Three things the generalisation turns on:
+(a) narrowing is arithmetic, not judgement: a stroke clears copper by `d_centerline - w/2`, so the
+widest legal width is `w_max = 2*(d - min_gap)`, floored to the 0.05 grid and never below JLC's
+0.15 mm line width. Violators sharing an ORIGINAL width narrow together, which reproduces the
+approved hand edit exactly (C0603 0.25 -> 0.20, gaps 0.135 -> 0.160; LED glyph 0.25 -> 0.15, gaps
+0.105/0.135 -> 0.155/0.185).
+(b) a FILLED graphic must be exempt from the "promote sub-0.15 strokes so they print" rule: its ink
+comes from the fill, and widening the stroke grows the printed shape. The DIP switch's three solid
+slider indicators are `fp_poly` at stroke 0 - promoting them would have silently redrawn the part.
+(c) `Path("SW-SMD_6P-...-LS9.3-BL").stem` returns `...-LS9`: footprint names contain dots, so stem
+strips a fake extension and the footprint is skipped with no error. Match on the literal
+`.kicad_mod` suffix instead.
+Unchanged conclusion from the 2026-07-28 CORRECTION: verify silk claims with `kc.py drc`, never with
+a geometry script alone.
+
+## 2026-08-06 [schematic][placement] On a generated sheet the space above and below a symbol is NOT free - the corners are
+The S1/S7 generator pattern stubs a wire and a local label at EVERY pin, so the bands directly above
+and below a block symbol are crossed by a wire every 2.54 mm for the symbol's whole width: on
+blinky2 the STM32's centred-above and centred-below candidates, and every 1.27 mm slide along them,
+all collide. The free area is DIAGONALLY outside the pin bounding box corners, where no stub runs -
+which is where a human puts the label too. A field placer that only offers above/below/left/right
+will report false residue on any real sheet; add corner rings (and for power symbols, lateral
+offsets - two rails 5.08 mm apart cannot both carry a centred `PWR_FLAG`, whose text is 7.5 mm
+wide). Second trap in the same area: KiCad prints each pin NUMBER alongside its pin line, outside
+the body and absent from the library graphics, so a field cleared against pin lines alone still
+lands on printed text - model the pin as a band (0.7 mm) not a line.
+

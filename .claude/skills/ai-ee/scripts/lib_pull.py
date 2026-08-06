@@ -10,6 +10,17 @@ then appends the libraries to <project>/fp-lib-table + sym-lib-table (idempotent
 Footprints load in KiCad 10 despite the legacy format (LEARNINGS 2026-07-22
 [easyeda2kicad]); --verify-load confirms it with `kicad-cli fp export svg`.
 
+A raw pull is NOT fabricable as delivered, so two repairs run by default before
+the pull is reported (both idempotent, both text surgery):
+  fpfix           silk artifacts on pad copper, outlines under the silk-to-copper
+                  bar, plated locating pegs (zero annular ring), legend text
+                  hidden under the body      -> --no-autofix to skip
+  lib_refdes_norm every reference text sits at a blanket (0,-4.0) mm whatever the
+                  part size                  -> --no-refdes-norm to skip
+`--verify-drc` measures the result the only way that counts: one instance of each
+pulled footprint alone on a scratch board, real DRC (LEARNINGS 2026-07-28
+[easyeda2kicad][drc] - geometry checkers and DRC disagree).
+
 Contract (SPEC section 6): argparse, JSON to stdout or --out, exit 0/1/2.
   0 = every requested part pulled (or already present)
   1 = one or more parts failed to pull
@@ -28,8 +39,12 @@ import sys
 import tempfile
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
+SCRIPTS = Path(__file__).resolve().parent
+sys.path.insert(0, str(SCRIPTS))
+sys.path.insert(0, str(SCRIPTS / "lib"))
 import fplib  # noqa: E402
+import fpfix  # noqa: E402
+import lib_refdes_norm  # noqa: E402
 from lib import env  # noqa: E402
 
 
@@ -165,6 +180,40 @@ def _register_project(project: Path, nickname: str, sym_lib: Path | None,
     return out
 
 
+# ------------------------------------------------------------ post-pull hygiene
+
+def _autofix(pretty: Path, names: list[str], dry_run: bool) -> dict:
+    """Sanitise the footprints this pull produced (fpfix rules A-D).
+
+    Every pull ships the same library-inherent defects - silk artifacts on pad
+    copper, outlines under the silk-to-copper bar, plated locating pegs with no
+    annular ring, legend text hidden under the body. They were repaired by hand
+    on three shipped boards (boards/*/lib/EDITS.md) before this ran at pull time.
+    """
+    rep = fpfix.fix_lib(pretty, dry_run=dry_run, names=names)
+    return {"footprints": rep["footprints"], "changed": rep["changed"],
+            "actions": rep["actions"], "residue": rep["residue"],
+            "results": [r for r in rep["results"] if r["changed"] or r["residue"]]}
+
+
+def _refdes_norm(pretty: Path, dry_run: bool) -> dict:
+    """Re-derive every refdes offset from the footprint's own geometry.
+
+    easyeda2kicad parks EVERY reference at a blanket (0, -4.0) mm whatever the
+    part size, so a populated board cannot be read (LEARNINGS 2026-07-29
+    [parts][silk]). Must run AFTER the silk fix - it measures against the silk
+    that survives - and BEFORE board_init, because once footprints are placed
+    the offsets are copied into the .kicad_pcb.
+    """
+    rows = [lib_refdes_norm.normalize(f, 0.25, 1.0, dry_run)
+            for f in sorted(Path(pretty).glob("*.kicad_mod"))]
+    return {"footprints": len(rows),
+            "changed": sum(1 for r in rows if r["status"] == "changed"),
+            "unchanged": sum(1 for r in rows if r["status"] == "unchanged"),
+            "skipped": sum(1 for r in rows if r["status"] == "skipped"),
+            "results": [r for r in rows if r["status"] == "changed"]}
+
+
 # ---------------------------------------------------------- optional load check
 
 def _verify_load(pretty: Path) -> dict:
@@ -208,6 +257,13 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--overwrite", action="store_true", help="re-pull existing parts")
     ap.add_argument("--verify-load", action="store_true",
                     help="confirm footprints load via kicad-cli fp export svg")
+    ap.add_argument("--verify-drc", action="store_true",
+                    help="DRC the pulled footprints alone on a scratch board")
+    ap.add_argument("--no-autofix", action="store_true",
+                    help="skip the fpfix silk/peg/legend sanitiser (NOT advised: "
+                         "every pull ships those defects)")
+    ap.add_argument("--no-refdes-norm", action="store_true",
+                    help="skip the refdes-offset normalisation")
     ap.add_argument("--out", help="write JSON here instead of stdout")
     args = ap.parse_args(argv)
 
@@ -233,11 +289,27 @@ def main(argv: list[str] | None = None) -> int:
         except (OSError, ValueError):
             pass
         out_dir.mkdir(parents=True, exist_ok=True)
+        # easyeda2kicad copies the --output string VERBATIM into every
+        # footprint's (model ...) path, and KiCad resolves a relative one
+        # against the PROJECT dir, where it does not exist - STEP export and 3D
+        # render then silently lose every model (LEARNINGS 2026-07-28
+        # [easyeda2kicad][parts]). Resolve before handing it over.
+        out_dir = out_dir.resolve()
         base = out_dir / args.lib_name
         results = [_pull_one(l, base, args.no_3d, args.overwrite) for l in args.lcsc]
 
         sym_lib = base.with_suffix(".kicad_sym")
         pretty = Path(str(base) + ".pretty")
+
+        pulled_fps = sorted({fp["name"] for r in results
+                             for fp in r.get("footprints", [])})
+        autofix = refdes = None
+        if pulled_fps and pretty.is_dir():
+            if not args.no_autofix:
+                autofix = _autofix(pretty, pulled_fps, dry_run=False)
+            if not args.no_refdes_norm:
+                refdes = _refdes_norm(pretty, dry_run=False)
+
         registered = None
         if args.project:
             registered = _register_project(
@@ -246,17 +318,26 @@ def main(argv: list[str] | None = None) -> int:
                 pretty if pretty.is_dir() else None)
 
         load = _verify_load(pretty) if (args.verify_load and pretty.is_dir()) else None
+        drc = None
+        if args.verify_drc and pulled_fps and pretty.is_dir():
+            d = fpfix.scratch_drc(pretty, pulled_fps)
+            drc = {"status": d["status"], "counts": d["counts"],
+                   "by_check": d["by_check"], "missing": d["missing"]}
 
         failed = [r for r in results if r["status"] == "error"]
         payload = {
             "script": "lib_pull",
-            "status": "fail" if failed else "pass",
+            "status": "fail" if (failed or (drc and drc["counts"]["total"]))
+                      else "pass",
             "lib_name": args.lib_name,
             "symbol_lib": str(sym_lib) if sym_lib.exists() else None,
             "footprint_lib": str(pretty) if pretty.is_dir() else None,
             "results": results,
             "registered": registered,
+            "autofix": autofix,
+            "refdes_norm": refdes,
             "load_check": load,
+            "drc_check": drc,
         }
     except Exception as exc:  # noqa: BLE001 - contract: any error -> exit 2
         print(json.dumps({"script": "lib_pull", "status": "error",

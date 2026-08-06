@@ -34,7 +34,7 @@ T7 -> T8 || T9 -> T10. T11 runs as soon as boards arrive (not during T6).
 | T0 | Ops sweep (tracking refresh + record carrier web order) | **done** | 2026-08-06 |
 | T1 | Fab-truth hardening (board_init floors, rules_gen netclasses, 4L ordering, stackups.yaml, latch hash) | pending | - |
 | T2 | Gate blind-spot fixes (creepage / current / diffpair / return_path) | pending | - |
-| T3 | Library + authoring hygiene (lib_pull silk autofix, schem_refdes.py) | pending | - |
+| T3 | Library + authoring hygiene (lib_pull silk autofix, schem_refdes.py) | **done** | 2026-08-06 |
 | T4 | Knowledge ladder triage + trigger-indexed remediations | **done** | 2026-08-06 |
 | T5 | Stage bench + frozen fixtures + composite scores | pending | - |
 | T6 | Per-stage deep evaluation + improvement fan-out (EXCLUSIVE) | pending | - |
@@ -103,6 +103,7 @@ kickoff prompt to allow multi-agent workflows (higher token spend - use where ma
 | V15 | JLCPCB web-viewer upload + polarized-part CPL preview | S12, plan S12 accept | **HUMAN STEP, NOT YET DONE.** Two S12 accept legs need a browser and have no API: (a) upload `usbbuck4_gerbers.zip` to JLC's viewer/quote page and confirm it renders clean, (b) spot-check the rendered CPL preview for 3 polarized parts (D1 LED_0805, plus a diode/electrolytic on a future board). The machine-checkable half (package completeness, hashes, rotation maths) IS tested (test_full_package_flow, test_cpl_rotation_corrections). Do this once before the first real order (S14). |
 | V16 | jlc_pricing.yaml staleness + credentialed ordering API | S12 | order_quote's numbers are transcribed headline prices flagged `estimated: true`, never a quote; JLC's real price depends on panelisation/promotions/region. order_submit implements the manifest + human gate but NOT a live api.jlcpcb.com call (that programme needs an approved access application this host does not have) - `--api` exits 2 with the exact missing prerequisite rather than shipping an untested payment path. Re-verify the table (and wire the API behind `_api_submit()`) when credentials exist. |
 | V17 | No scripted silk/text move op (refdes/value) | S13 | **RESOLVED S14**: hit on run (a) day one (J1 polarity legend = reviewer ERROR). place_swig/place_edit gained `add_text` (idempotent board-frame silk text) + `move_text` (refdes/value fields), independently sexpdata-verified incl. rotated parents; 9 tests. Drove ~50 move_text refdes sweeps + 3 boards' functional silk packages. fixer.md/fix_dispatch/SKILL.md updated. |
+| V19 | schem_refdes symbol transform at 90/270 and mirrored instances | T3 | The library->page transform is verified against wired pin positions at rotation 0 and 180 (the only rotations in the corpus: 209 instances at 0, one at 180, ZERO mirrored across all ten board sheets). The 90/270 and `(mirror x|y)` branches are implemented from the KiCad convention but have no fixture. Verify against a wired pin the first time a generator rotates or mirrors a symbol - note LEARNINGS 2026-07-28 already records that schlib and ksa disagree on the SIGN of a 90 deg rotation. |
 
 ## S0 - Repo bootstrap and environment (2026-07-06) - DONE
 
@@ -1864,3 +1865,142 @@ have failed every widen attempt a fixer tried.
   dispatch picks it up; the test suite enforces the shape.
 
 **New verify-later items:** none.
+
+## T3 - Library + authoring hygiene (2026-08-06) - DONE
+
+Two independent halves: the footprint library a pull produces, and the schematic
+a generator produces. Both defect classes were repaired BY HAND on the shipped
+boards (`boards/*/lib/EDITS.md`), so the recipes were already measured - this
+step turned them into code that runs by default.
+
+**Smoke tests first (plan Conventions - the step's "verify-later" claims):**
+- **kicad-sch-api round trip: FAITHFUL, but only with the project libs registered.**
+  Load+save `tests/s7_regen/blinky2` -> 5189 lines in, 5189 out, 83 cosmetic
+  `(at x y 0)` -> `(at x y 0.0000)` diffs. Load+save `boards/pd-trigger` -> **8879
+  lines in, 4359 out**: every `aiee:` symbol silently deleted from `lib_symbols`,
+  exit 0, no warning. Cause: ksa re-serialises `lib_symbols` from its GLOBAL cache,
+  which never reads `sym-lib-table`. Register the project lib first and the round
+  trip is faithful (8879 -> 8879). LEARNINGS [kicad-sch-api].
+- **`set_property_effects(name, {"position": ..., "justify_h": ...})` works** and is the
+  only property-position API on 0.5.6 (`Component` has no position setter).
+- **ksa's own geometry is NOT usable**: `get_component_bounding_box` inflates pin
+  NAME text (a 2-pin `Conn_01x02` measures 33 mm wide), so the reader here is a
+  direct s-expression parse instead.
+- **Scratch-board DRC reproduces the EDITS.md numbers exactly**: a live pull of the
+  four known-bad parts DRCs at 16 violations = 4 errors + 12 warnings.
+
+**Built:**
+- `scripts/lib/fpfix.py` (NEW) - the footprint sanitiser, pure text surgery on the
+  raw file (a paren scanner yields each top-level node's span; only nodes that
+  change are rewritten), idempotent, both file formats. Four rules:
+  **A** sub-0.15 mm silk (unprintable at JLC's line-width floor): PROMOTED to the
+  floor when it clears copper (this is how a pin-1 mark is kept and made
+  printable), DELETED when it does not. Filled graphics are exempt - their ink is
+  the fill, and widening the stroke would redraw the part.
+  **B** silk under the silk-to-copper bar: narrowed, never moved. The width is
+  arithmetic, not judgement - `w_max = 2*(d_centerline - min_gap)` floored to the
+  0.05 grid - and violators sharing an ORIGINAL width narrow together so an
+  outline keeps one uniform stroke. Reproduces the approved hand edit exactly
+  (C0603 0.25 -> 0.20, gaps 0.135 -> 0.160; LED glyph 0.25 -> 0.15).
+  **C** plated locating pegs (unnamed `thru_hole`, copper diameter == drill, zero
+  annular ring) -> `np_thru_hole`; position/size/drill untouched.
+  **D** `fp_text user` legend marks inside the body that collide with the
+  footprint's own silk -> deleted (hidden under the part once assembled); `%R`
+  placeholders survive.
+  Anything no rule can repair is reported as `residue_silk_gap`, never guessed at.
+  Also ships the SPEC section 6 CLI (`--lib`, `--only`, `--dry-run`, `--verify-drc`).
+- `scripts/lib/fp_scratch.py` (NEW) - bundled-python SWIG worker: one instance of
+  each footprint, 30 mm apart, inside a bare Edge.Cuts rectangle. This is the
+  measurement method every library claim in LEARNINGS was verified with, now
+  callable (`fpfix.scratch_drc`) instead of hand-built.
+- `scripts/lib_pull.py` - post-pull hygiene now runs BY DEFAULT: fpfix, then
+  `lib_refdes_norm` (that order matters - refdes offsets are measured against the
+  silk that SURVIVES). `--no-autofix` / `--no-refdes-norm` opt out, `--verify-drc`
+  measures the pull on a scratch board and fails the payload on any violation.
+  `--out-dir` is resolved to an absolute path before easyeda2kicad sees it (a
+  relative one is copied verbatim into every `(model ...)` and never resolves).
+  Payload gains `autofix`, `refdes_norm`, `drc_check`.
+- `scripts/schem_refdes.py` (NEW) - deterministic schematic refdes/value placement.
+  Reads the sheet's OWN embedded `lib_symbols` (so project symbols need no library
+  resolution), builds page-coordinate geometry for bodies, pin lines, pin-number
+  bands, wires, labels, junctions, no-connects, sheets and sheet pins, then places
+  each visible field from a class table (power / 2-pin vertical / 2-pin horizontal
+  / block) down a deterministic candidate ladder: primary offset, slides along the
+  free axis, corner rings, then further out, with the field's CURRENT position as
+  the last resort. Writes through kicad-sch-api with the project libs registered
+  and a post-save guard that RAISES if the `lib_symbols` name set shrank. Modes:
+  `--audit` (measure only), `--dry-run`, apply. Every placement is written with an
+  explicit justification, so a "centered" choice cannot silently inherit the
+  file's old `(justify left)` and land half a text-width off.
+- `tests/fixtures/lib/pristine/` (NEW) - four UNTOUCHED easyeda2kicad pulls
+  captured live this session (C14663 0603 cap, C2286 LED, C7421520 3-pos DIP
+  switch, C5184243 GCT USB-C), 3D-model paths made portable. They carry all four
+  defect classes and are the hermetic corpus for the rules.
+- `tests/test_lib_hygiene.py` (NEW) - 22 tests: 13 hermetic rule/CLI/residue tests
+  (incl. "filled graphics unchanged", "no coordinate moved", "%R survives", the
+  dotted-footprint-name trap), 2 lib_pull integration, 4 schem_refdes (transform
+  vs a wired pin, justification, consistency-within-class, lib_symbols preserved),
+  and 3 `smoke` (scratch DRC 16 -> 0, footprints still load, placement is
+  electrically inert).
+
+**Acceptance evidence (all measured, live 10.0.3):**
+- **Footprints: 16 -> 0 real DRC violations** on the pristine set
+  (`annular_width` 2, `clearance` 2, `padstack` 2, `silk_overlap` 8,
+  `silk_over_copper` 2 -> nothing), second pass changes nothing (idempotent), all
+  four still plot under `kicad-cli fp export svg`.
+- **End-to-end live pull** of the two worst parts (USB-C + DIP switch) through the
+  new `lib_pull`: `status pass`, autofix 2 changed / 0 residue, refdes 2 changed,
+  `drc_check` total 0, `load_check` ok, exit 0.
+- **Schematic: 36 field overlaps -> 0** across the four s7 sheets (27 blinky2, 2
+  hierdemo root, 6 power, 1 load), 0 residue, exit 0; a second run moves nothing;
+  same-class offsets identical across instances; `lib_symbols` intact.
+- **Electrically inert**: ERC 0 on both projects after placement, and the exported
+  netlist is IDENTICAL to `tests/s7_regen/blinky2/golden.net` under
+  `netlist_audit --compare` (0 violations). Rendered PDF eyeballed.
+- Suite: `tests/test_lib_hygiene.py` 22/22. Full `pytest` 938 passed / 1 failed -
+  the failure is `test_net_search_returns_in_stock_hits[AP63203]`, a `net`-marked
+  LIVE LCSC query returning 0 hits (reproduced standalone twice; `parts_search` is
+  untouched by this step and the other four queries pass). `check_env` exit 0. NOTE:
+  that run shared a working tree with the in-flight T1/T2 sessions.
+
+**Deviations from the plan (with reasons):**
+1. The plan says schematic placement "via kicad-sch-api". WRITING is (as planned);
+   READING is a direct s-expression parse, because ksa's cache cannot see project
+   symbol libraries and its bounding boxes are unusable (both measured above). The
+   ksa write path is guarded so the lib_symbols trap cannot bite silently.
+2. Rule A PROMOTES sub-0.15 mm silk that is clear of copper instead of the blanket
+   "drop everything under 0.15" the LEARNINGS entry proposed: the blanket rule
+   deletes pin-1 marks (the entry itself notes U2 then has none). Promotion keeps
+   the cue and makes it printable, and is gated on the same measured clearance.
+3. C0603 narrowed 8 of its 10 outline elements, where the hand edit narrowed all
+   10 - the two end-cap lines at x = +/-1.39 already clear copper by 0.165 mm. The
+   rule only touches measured violators; the result is DRC-identical.
+4. The "cheap-model pass for residue" the plan allows was not needed - the ladder
+   leaves 0 residue on every fixture - so no model call was wired in.
+5. DECLINED, recorded in the triage register (#104): folding the easyeda2kicad
+   D2PAK/TO-263 pad RENUMBER into the pull-time fixes. Renumbering pads changes the
+   pad -> net mapping; a sanitiser that silently rewires a part is a worse defect
+   than the one it fixes. Owner is the extraction JSON / P4 wiring path.
+6. Not in scope, still open (#60): the pulled-symbol pin-electrical-type retype
+   pass. The plan's T3 build list does not include it; it belongs to the same
+   lib_pull surface and is the obvious next promotion there.
+
+**Interface notes for later steps:**
+- `fpfix.sanitize(text, **opts) -> (new_text, actions)` is pure and importable;
+  `fix_lib(pretty, names=[...])`, `analyze(text)`, and `scratch_drc(pretty, names)`
+  (bundled-python + `kc.run_drc`) are the library surface. Action shape:
+  `{rule A|B|C|D, action, ...}`; `residue_*` actions mean a human/geometry call.
+- **Any future kicad-sch-api WRITE path must register the project symbol library
+  first and verify `lib_symbols` after save** - copy
+  `schem_refdes._register_project_libs` + the guard in `write_placements`. This is
+  the single most dangerous ksa behaviour found so far.
+- `schem_refdes.py --audit` is a cheap readability metric for a sheet (field
+  overlaps against every drawn item) - usable as a P4 bench metric at T5 without
+  changing anything.
+- Footprint names contain dots; use `fpfix._fp_stem`, never `Path().stem`.
+- Fixtures: `tests/fixtures/lib/pristine/` is the pull-defect corpus. If a re-pull
+  ever lands clean, `test_pristine_fixtures_carry_the_four_defect_classes` says so.
+
+**New verify-later items:** V19 (rotation/mirror transform corpus-verified only at
+0 and 180 degrees - no mirrored symbol instance exists in any of the ten board
+sheets).
