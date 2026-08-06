@@ -36,7 +36,7 @@ T0 + {T1, T2, T3, T4}   NOW — T0 is trivial ops; T1–T4 mutually parallel, di
 → T7                    prereq for T8/T9/T10 (state schema + invalidation map)
 → {T8 ∥ T9}
 → T10
-→ T11                   FINAL step
+T11: as soon as boards arrive — independent of the chain; do not overlap T6
 ```
 
 Board runs (lumina-par P3 resume, lumina-strobe P4 resume via `/ai-ee --resume`)
@@ -58,7 +58,7 @@ validation for later steps.
 | T8 | Incremental board update | after T7 | T9 | Fable 5 | max | yes | large |
 | T9 | External-board intake | after T7 | T8 | Opus 5 | high | - | medium |
 | T10 | Task router + SKILL v2 | after T8+T9 | — | Fable 5 | max | - | medium |
-| T11 | Hardware bring-up leg | last, after T10 | — | Opus 5 | high | - | small |
+| T11 | Hardware bring-up leg | boards arrived | any but T6 | Opus 5 | high | - | small |
 
 Why the tiers: Fable max where the artifact is novel or correctness is subtle
 (gate algorithms, bench metric design, state semantics, board mutation, the
@@ -269,7 +269,7 @@ displaced into refs/scripts, per the ladder).
 regression on a blinky-class fixture behaves as v1 did; SKILL.md ≤ 286 lines;
 suite green.
 
-### T11 — Hardware bring-up leg (final step)
+### T11 — Hardware bring-up leg (run as soon as boards arrive)
 **Read:** `boards/pd-trigger/` + `boards/lumina-carrier/` design docs, BOM/CPL,
 sim results (`sim` gate outputs carry expected-rail bounds),
 `fab/assembly-manual-work.md` (carrier: 47 extended parts).

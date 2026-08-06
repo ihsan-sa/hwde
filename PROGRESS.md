@@ -27,7 +27,7 @@ Session protocol: repo `CLAUDE.md` ("run step N"). Update this file + commit at 
 
 Session setup (model/effort/ultracode) and step specs live in the v2 plan. Order
 (owner-confirmed 2026-08-06): T0 + T1-T4 parallel NOW -> T5 -> T6 (exclusive) ->
-T7 -> T8 || T9 -> T10 -> T11 final.
+T7 -> T8 || T9 -> T10. T11 runs as soon as boards arrive (not during T6).
 
 | Step | Title | Status | Date |
 |---|---|---|---|
