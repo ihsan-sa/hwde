@@ -25,8 +25,9 @@ Session protocol: repo `CLAUDE.md` ("run step N"). Update this file + commit at 
 
 ## v2 status board (T-steps - plan: `ai-ee-v2-plan.md`)
 
-Session setup (model/effort/ultracode) and dependency graph live in the v2 plan.
-Wave 1 (T1-T4) may run as parallel sessions; T6 is exclusive.
+Session setup (model/effort/ultracode) and step specs live in the v2 plan. Order
+(owner-confirmed 2026-08-06): T0 + T1-T4 parallel NOW -> T5 -> T6 (exclusive) ->
+T7 -> T8 || T9 -> T10 -> T11 final.
 
 | Step | Title | Status | Date |
 |---|---|---|---|
