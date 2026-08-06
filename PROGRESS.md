@@ -35,7 +35,7 @@ T7 -> T8 || T9 -> T10. T11 runs as soon as boards arrive (not during T6).
 | T1 | Fab-truth hardening (board_init floors, rules_gen netclasses, 4L ordering, stackups.yaml, latch hash) | pending | - |
 | T2 | Gate blind-spot fixes (creepage / current / diffpair / return_path) | pending | - |
 | T3 | Library + authoring hygiene (lib_pull silk autofix, schem_refdes.py) | pending | - |
-| T4 | Knowledge ladder triage + trigger-indexed remediations | pending | - |
+| T4 | Knowledge ladder triage + trigger-indexed remediations | **done** | 2026-08-06 |
 | T5 | Stage bench + frozen fixtures + composite scores | pending | - |
 | T6 | Per-stage deep evaluation + improvement fan-out (EXCLUSIVE) | pending | - |
 | T7 | Freshness-aware state + invalidation map | pending | - |
@@ -1776,5 +1776,91 @@ boards are now confirmed **Shipped** per JLC - relevant context for T11
 `boards/lumina-carrier/fab/order.json`, `boards/lumina-carrier/fab/tracking.json`
 [new], `boards/pd-trigger/fab/tracking.json`). `check.cmd` not required (no
 code touched); repo verified clean via `git status --short`.
+
+**New verify-later items:** none.
+
+## T4 - Knowledge ladder triage + trigger-indexed remediations (2026-08-06) - DONE
+
+**Built:**
+- `design/ladder-triage.md` - the triage register: one row per LEARNINGS entry
+  (**164**, not the plan's estimated ~95) on the L0-L3 maturity ladder
+  (routing-knowledge-notes section 6), each with entry line, tags, current
+  level, target level, owning artifact, status and what promotion needs.
+  Where the knowledge sits today: **L3 62 / L2 37 / L1 7 / L0 58**; where it
+  belongs: **L3 119 / L2 34 / L1 6 / L0 5**. Status: done 65, **open 65**,
+  planned 28 (T1 10, T2 10, T3 6, T8 1, T10 1), n/a 6. The 65 `open` rows are
+  the gaps no plan step owns - concentrated in lib_pull (5), route_critical
+  (5), fp_verify (4), placelib (4) - and are the intended T6 worklist.
+- `.claude/skills/ai-ee/reference/remediations/` - 14 trigger-indexed refs +
+  `README.md`. One file per FINDING TYPE (`<check_id>.md`, the same key
+  `cluster_violations.kind_of()` dispatches on), covering every check_id that
+  fired >= 100 times across the six committed board workspaces:
+  unconnected_items 8574, undersized_track 1433, clearance 1145,
+  insufficient_transition_vias 1072, silk_overlap 680, dfm_trace_width 377,
+  creepage 365, track_width 365, lib_footprint_issues 333, silk_over_copper
+  319, corridor_void 284, silk_edge_clearance 159, copper_edge_clearance 112,
+  track_dangling 105. Fixed shape: what the measurement means and the exact
+  violation fields -> "Is it real?" (false-positive and bad-input classes,
+  incl. the checks that are known-blind) -> cheapest-first fix ladder with
+  real script invocations -> "Do not" (the traps already paid for) -> Verify
+  commands -> Sources (LEARNINGS line + file:line for every claim).
+- `fix_dispatch.py`: `remediation_paths()` + `REMEDIATION_GUIDANCE`. Every work
+  order now carries `remediations: [...]` for its cluster's kinds, with a
+  read-this-first line prepended to the domain guidance; the summary payload
+  carries the paths per order plus `counts.with_remediation`. Lookup is FILE
+  EXISTENCE - dropping a new `<kind>.md` in the dir wires it in, no table.
+- `agents/fixer.md`: one Inputs bullet for the `remediations` list (3 lines).
+- `tests/test_remediations.py` - 77 tests: refs exist for the top firing ids,
+  shape/ASCII/<=90 lines, trigger key is a real FIXER_HINTS kind, no
+  hallucinated scripts, every `--flag` shown exists in that script, every
+  LEARNINGS citation lands in a real entry (ranges inside ONE entry, dates
+  must match), dispatch attaches the right ref (canned findings file), triage
+  covers every LEARNINGS entry with well-formed rows, SKILL.md <= 286.
+
+**Health baseline (plan-mandated):** `SKILL.md` = **286 lines** at T4.
+`test_skill_md_does_not_grow` pins that ceiling: the always-loaded playbook may
+only shrink as knowledge climbs. Nothing was added to SKILL.md this step - the
+refs reach the fixer through the work order, which is the point.
+
+**Method (ultracode, as the plan directs):** 8 triage agents x 21 entries, each
+level claim grounded by a repo grep/read; then a deterministic 27-row sample
+(16%) re-derived by independent adversarial verifiers instructed to refute -
+**9 of 27 refuted** and corrected here (mostly OWNER mis-attribution; 4 real
+level errors: #75 #81 #111 #129). Honest read, recorded in the doc: the LEVEL
+column survived attack, the OWNER column is right about 2 times in 3 on an
+unverified row. The 14 refs were written then adversarially fact-checked
+per-file (28 agents): **84 defects found and fixed**, including a hallucinated
+`route_edit` ops envelope (nested instead of flat `{"op": ...}`) that would
+have failed every widen attempt a fixer tried.
+
+**Deviations from the plan (with reasons):**
+1. 164 entries, not "~95" - the plan's estimate predated the lumina-carrier
+   run. All 164 are triaged; the extra volume is why the fan-out was 8 ways.
+2. "top ~10 firing check_ids" -> 14, from an explicit rule (>= 100 occurrences
+   in the committed reports) rather than a judgement call. The rule and the
+   next candidates below the bar are recorded in the refs README.
+3. Firing tally is over all SIX workspaces, not "the three shipped-board runs":
+   it is a superset, and lumina-carrier (the newest, hardest board) dominates
+   every count. Per-board distribution is in the README table.
+4. Ref cap is <= 90 lines in the test (the writers' brief said 70; the
+   fact-checkers landed everything at 63-70). Density beat brevity where the
+   evidence was load-bearing.
+5. No SKILL.md edit at all (see Health baseline).
+
+**Interface notes for later steps:**
+- Work-order schema gained `remediations: [path...]` (list, possibly empty) and
+  `guidance[0]` may now be `fix_dispatch.REMEDIATION_GUIDANCE`. Anything reading
+  work orders (T10's recipes) can rely on both keys existing.
+- `fix_dispatch.remediation_paths(kinds)` is importable and pure; the summary's
+  `counts.with_remediation` is the coverage signal for a run.
+- **Appending a LEARNINGS entry now requires appending its triage row** in the
+  same commit - `test_every_learnings_entry_has_a_triage_row` fails otherwise
+  and prints the ready-to-paste row. This is deliberate (the ladder rule is
+  worthless if new knowledge skips triage), and it applies to every future
+  session, including the wave-1 siblings.
+- T6 should start from the 65 `open` rows: they are already grouped by owning
+  artifact in the doc's summary.
+- New refs are additive: write `reference/remediations/<kind>.md` and the
+  dispatch picks it up; the test suite enforces the shape.
 
 **New verify-later items:** none.

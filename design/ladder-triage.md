@@ -1,0 +1,266 @@
+# Knowledge ladder triage (T4, 2026-08-06)
+
+One row per `LEARNINGS.md` entry (164 of them; the last starts at
+line 2066), placed on the maturity ladder from
+`design/routing-knowledge-notes.md` section 6, with the artifact that owns - or
+must own - it.
+
+The failure mode is knowledge sitting at the WRONG LEVEL, not knowledge volume:
+**if a script can check it, it does not belong in the prompt.** This register is
+the outer-loop worklist. `open` rows (65) are the gaps nothing owns yet -
+they are the input to T6 (per-stage deep evaluation) and to any later step
+looking for the next promotion.
+
+## Levels
+
+| L | Form | Context cost | Guarantee |
+|---|---|---|---|
+| L0 | prose in a prompt, or written down only in LEARNINGS | every run | a hope |
+| L1 | a script measures it and reports the number | zero | you find out afterward |
+| L2 | a check with a failing threshold - a gate fails on it | zero | it cannot ship broken |
+| L3 | a generator/pin/template makes it correct by construction | zero | it cannot be built broken |
+
+## Statuses
+
+- **done** - already at target; the named artifact really encodes it (grep-verified).
+- **planned-T`<N>`** - the v2 plan step that already owns the promotion.
+- **open** - a real gap no plan step owns. Also used when the LEVEL is right but
+  the owning artifact is wrong or incomplete (those rows read `Lx -> Lx` with the
+  residual in the Note).
+- **n/a** - cannot climb: external-service behaviour, a human/process step, or a
+  host fact already recorded once.
+
+## Summary
+
+| Level | now | target |
+|---|---|---|
+| L0 | 58 | 5 |
+| L1 | 7 | 6 |
+| L2 | 37 | 34 |
+| L3 | 62 | 119 |
+
+80 entries want to climb at least one level. Status: **done 65**,
+**open 65**, **n/a 6**, planned 28
+(T1 10, T10 1, T2 10, T3 6, T8 1).
+
+Read that as: 62 entries are already correct-by-construction and 37
+are gated, but 58 still live only as prose or as this file - and 119
+of all 164 belong at L3. The backlog is concentrated in the library/parts
+pull path, the placement legality model, and the KRT/Freerouting driver.
+
+Open rows by owning artifact (top of the T6 worklist):
+
+- `scripts/lib_pull.py` x5
+- `scripts/route_critical.py` x5
+- `scripts/fp_verify.py` x4
+- `scripts/lib/placelib.py` x4
+- `scripts/lib/checklib.py` x3
+- `scripts/schlib.py` x3
+- `scripts/datasheet_extract.py` x3
+- `scripts/place_anneal.py` x2
+- `scripts/gate.py` x2
+- `scripts/netlist_audit.py` x2
+- `scripts/stitch_vias.py` x2
+- `scripts/planes_gen.py` x2
+
+## Health metric
+
+`SKILL.md` = **286 lines** at T4 (the baseline). The playbook must shrink as
+knowledge climbs, never grow; `tests/test_remediations.py::test_skill_md_does_not_grow`
+enforces the ceiling. Knowledge that would have been appended to it belongs in a
+script, a gate threshold, a template, or `reference/remediations/<check_id>.md`.
+
+## Method, and how far to trust a row
+
+Eight agents triaged 164 entries in slices of 21. Every level claim was
+grounded in a grep or file read of this repo (evidence lives in the workflow
+transcript; the Note column carries what a promotion needs instead). A
+deterministic 27-row sample (16%) was then
+re-derived by independent adversarial verifiers instructed to refute:
+**9 of 27 were refuted** and are corrected here - mostly OWNER
+mis-attribution, plus four genuine level errors (#75, #81, #111, #129).
+
+So: the LEVEL column held up well under attack; the OWNER column did not, at
+roughly a 1-in-3 rate on the sample. Re-check a row before acting on it, and fix
+it here when you do.
+
+- Corrected after refutation: #15, #57, #63, #75, #81, #111, #129, #141, #153
+- Verified and upheld: #3, #9, #21, #27, #33, #39, #45, #51, #69, #87, #93, #99, #105, #117, #123, #135, #147, #159
+
+## Appending
+
+Adding a LEARNINGS entry means appending its row here in the same commit -
+`tests/test_remediations.py::test_every_learnings_entry_has_a_triage_row` fails
+otherwise and prints the row for you to paste. Promoting knowledge means editing
+the row's Now level and status in the same commit as the code.
+
+`#` = entry order in LEARNINGS.md, `LN` = its header line there.
+
+## Register
+
+| # | LN | Entry | Tags | Now | Target | Owner | Status | Note |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 9 | cp1252 console crashes on non-ASCII output | [windows] | L0 | L3 | scripts/lib/checklib.py | open | Call checklib.utf8_stdout() from every CLI main; add a test asserting each script's stdout is pure ASCII. |
+| 2 | 14 | Python does not resolve MSYS /c/ paths | [windows] | L0 | L0 | LEARNINGS.md | n/a | Agent-side shell convention; no script surface can enforce how a bash heredoc is written. |
+| 3 | 18 | File formats are not forward-compatible - pin ONE KiCad | [kicad] | L3 | L3 | scripts/lib/env.py | done |  |
+| 4 | 24 | kicad-cli host quirks: not on PATH, refill-zones 10.x-only, pos inches | [kicad-cli] | L3 | L3 | scripts/kc.py | done |  |
+| 5 | 31 | No kicad-cli api-server - sandboxed-GUI IPC works instead | [ipc] | L1 | L1 | scripts/smoke_ipc.py | done |  |
+| 6 | 39 | pcbnew lives in KiCad's BUNDLED bin/python.exe | [swig] | L3 | L3 | scripts/lib/board_swig.py | done |  |
+| 7 | 47 | freerouting 2.2.4 needs Java 25; batch flags are non-obvious | [freerouting] | L3 | L3 | scripts/lib/routelib.py | done |  |
+| 8 | 55 | easyeda2kicad footprints: missing courtyards, defects, UA 403s | [easyeda2kicad] | L1 | L2 | scripts/fp_verify.py | open | Add the per-part DRC baseline fp_verify was specced for (EP pad with no net, drill under min hole); T3 covers pull-time fixes only |
+| 9 | 62 | skidl prints env-var warnings on import - keep JSON stdout clean | [python] | L3 | L3 | scripts/check_env.py | done |  |
+| 10 | 67 | skidl drops <script>.log/.erc files in CWD on import | [python] | L3 | L3 | scripts/check_env.py | done |  |
+| 11 | 73 | Deep routing/placement/fab gotchas archived in the old repos | [prior-attempts] | L0 | L0 | LEARNINGS.md | n/a | Read-only external reference by user directive; individual facts get promoted on their own when used. |
+| 12 | 79 | pcbnew.ZONE_FILLER segfaults headless - fill via kicad-cli | [swig] | L3 | L3 | scripts/planes_gen.py | done |  |
+| 13 | 86 | .kicad_pro is the DRC/ERC authority; keep it minimal | [kicad] | L3 | L3 | scripts/board_init.py | done |  |
+| 14 | 94 | kicad-sch-api 0.5.6 quirks | [python] | L3 | L3 | scripts/schlib.py | done |  |
+| 15 | 103 | kiutils needs encoding=utf-8 passed explicitly on Windows | [python] | L3 | L3 | scripts/lib/fplib.py (sexpdata, not kiutils) | done | kiutils is pinned but imported nowhere; pad-size-is-pre-rotation half is tracked at #69/#110 |
+| 16 | 109 | KiCad 10 board files store nets by NAME - mutation surgery | [kicad] | L0 | L2 | tests/test_golden.py | open | Re-run each mutation and byte-compare to the committed mutant so a golden regen fails loudly instead of leaving stale mutants. |
+| 17 | 115 | kicad-cli render uses --width/--height; ERC exit = count | [kicad-cli] | L3 | L3 | scripts/render.py | done |  |
+| 18 | 121 | A stale persistent AIEE_KICAD_CLI silently pins the WRONG KiCad | [kicad-cli][windows] | L0 | L2 | scripts/lib/env.py | open | Validate the resolved version against the 10.x pin: env.py should reject a 9.x pin (or check_env fail) since 9.x cannot load 10-fo |
+| 19 | 132 | DRC/ERC JSON: layer/net/refdes embedded in description strings | [kicad-cli] | L3 | L3 | scripts/kc.py | done |  |
+| 20 | 141 | cpl-rotation mutant does NOT fail --schematic-parity | [kicad] | L2 | L2 | tests/golden/manifest.yaml | open | Delete the refuted 'intentionally fails DRC --schematic-parity too' sentence from manifest.yaml; S2 measured 0 parity violations. |
+| 21 | 149 | Pad absolute geometry: center = fp + R(-fp_angle).local | [geometry][kicad] | L3 | L3 | scripts/lib/geom.py | done |  |
+| 22 | 163 | KiCad-10 pcb: net refs by NAME; zone fills are keyhole rings | [geometry][kicad] | L3 | L3 | scripts/lib/geom.py | done |  |
+| 23 | 172 | FLIP is baked into the file (no parser mirror); keepouts never fill | [geometry][kicad] | L3 | L3 | scripts/lib/geom.py | done |  |
+| 24 | 186 | Per-net copper = union of tracks/pads/vias/zone-fills; pcbnew oracle | [shapely] | L3 | L3 | scripts/lib/geom.py | done |  |
+| 25 | 194 | Return-path corridor FPs on clean boards - 3 artifact classes | [geometry][shapely] | L2 | L2 | scripts/check_return_path.py | done |  |
+| 26 | 208 | linemerge() raises ValueError on a bare LineString input | [shapely] | L3 | L3 | scripts/check_return_path.py | done |  |
+| 27 | 214 | Custom .kicad_dru auto-loaded by kicad-cli; rule name in description | [kicad-cli][drc] | L2 | L2 | scripts/rules_gen.py | done |  |
+| 28 | 222 | DRU token is A.NetName (A.Net matches nothing); LATER rule wins | [kicad-cli][drc] | L3 | L3 | scripts/rules_gen.py | done |  |
+| 29 | 231 | Headless netlist->board SWIG import; bbox-pack to avoid density DRC | [swig][kicad] | L3 | L3 | scripts/board_init.py | done |  |
+| 30 | 242 | Stackup: SWIG cannot build it - inject the (stackup) block as text | [kicad][swig][geometry] | L3 | L3 | scripts/board_init.py | done |  |
+| 31 | 251 | easyeda2kicad 1.0.1 wraps an ANONYMOUS JLCPCB parts search | [parts][easyeda2kicad] | L3 | L3 | scripts/lib/partslib.py | done |  |
+| 32 | 265 | easyeda2kicad LEGACY (module ...) footprints still load in KiCad 10 | [easyeda2kicad][kicad-cli] | L3 | L3 | scripts/fp_verify.py | done |  |
+| 33 | 277 | fp export svg needs the output dir to EXIST first | [kicad-cli] | L3 | L3 | scripts/lib_pull.py | done |  |
+| 34 | 283 | No PDF lib was in the venv; added pypdf 6.14.2 (pure-python) | [datasheet][python] | L3 | L3 | requirements.txt | done |  |
+| 35 | 291 | KiCad 10 stores refdes as (property ...); text angle is ABSOLUTE | [geometry][kicad] | L3 | L3 | scripts/check_silk.py | done |  |
+| 36 | 303 | KiCad text bbox calibrated vs pcbnew; center-in / 50% cover rule | [geometry][kicad] | L3 | L3 | scripts/check_silk.py | done |  |
+| 37 | 311 | Diff-pair skew mutant is a COUPLING defect, not a length mismatch | [shapely][geometry] | L2 | L2 | scripts/check_diffpair.py | done |  |
+| 38 | 324 | kicad-sch-api hierarchical sheets serialize; global labels do not | [python] | L3 | L3 | scripts/schlib.py | done |  |
+| 39 | 335 | Labels attach anywhere ALONG a wire; every endpoint needs pin or label | [python][erc] | L2 | L3 | scripts/schlib.py | open | schlib should reject label anchors / caps_at landing on an existing wire run at generation time; no v2 step owns this |
+| 40 | 343 | Netlist facts: multiline sexpr, unconnected-* nets, PWR/FLG excluded | [kicad-cli] | L2 | L2 | scripts/netlist_audit.py | done |  |
+| 41 | 351 | Sandboxed-GUI IPC REGRESSED on this host: KiCad is not ready to reply | [ipc] | L1 | L1 | scripts/check_env.py | n/a | External/host fact: headless kipy only arrives with KiCad 11; nothing to promote until then, probe already reports it |
+| 42 | 362 | Placement-edit SWIG API facts on 10.0.3 (angle norm, mmToIU, flip) | [swig] | L3 | L3 | scripts/lib/place_swig.py | done |  |
+| 43 | 374 | Courtyard containment needs edge-part exemptions (corpus-calibrated) | [geometry][placement] | L3 | L3 | scripts/lib/placelib.py | done |  |
+| 44 | 384 | Spring embedding: classic F-R attraction is d^2/k, not linear-in-d | [placement][python] | L3 | L3 | scripts/place_seed.py | done |  |
+| 45 | 393 | SA stall detection must not count the hot phase | [placement][python] | L3 | L3 | scripts/place_anneal.py | done |  |
+| 46 | 404 | S11 DSN/SES roundtrip verified on 10.0.3 (V1/V7/V3 resolved) | [swig][freerouting] | L3 | L3 | scripts/lib/route_swig.py | done |  |
+| 47 | 416 | Freerouting 2.2.4 verified flags + completion parse | [freerouting] | L3 | L3 | scripts/lib/routelib.py | done |  |
+| 48 | 425 | KRT 0.19.0 vendored: no-KiCad headless router | [parts][python] | L3 | L3 | scripts/lib/env.py | done |  |
+| 49 | 435 | FR DSN reader can WEDGE on KRT copper - detect + fall back | [freerouting][routing] | L3 | L3 | scripts/route_auto.py | done |  |
+| 50 | 445 | P7 chain order is board-class dependent; plane nets not outer-trunked | [routing][placement] | L0 | L3 | agents/router.md | planned-T10 | T10 task recipes should encode the per-class stage order so it cannot drift; plane half already correct by construction |
+| 51 | 453 | Via-candidate obstacles = WIRED copper only; 1-layer-bond vias dangle | [stitch][geometry] | L3 | L3 | scripts/stitch_vias.py | done |  |
+| 52 | 461 | zones_intersect fires on same-net same-priority overlaps | [kicad-cli][drc][zones] | L3 | L3 | scripts/planes_gen.py | done |  |
+| 53 | 467 | Courtyard-only packing is silk-blind; KRT leaves sub-grid crumbs | [placement][routing] | L0 | L3 | scripts/place_anneal.py | open | place_anneal cost has no silk term (grep silk in place_anneal -> 0 hits); add silk-clearance to legality/cost so packing cannot sh |
+| 54 | 478 | ArcPoly.outline drops curvature - tessellate arcs before shapely | [gerbonara][gerber][geometry] | L3 | L3 | scripts/lib/gerblib.py | done |  |
+| 55 | 488 | Annular ring must be measured against PAD FLASHES only, never pours | [dfm][gerber] | L3 | L3 | scripts/dfm_check.py | done |  |
+| 56 | 495 | CPL polarity: compare per PAD NUMBER, not per net | [dfm][kicad] | L2 | L2 | scripts/dfm_check.py | done |  |
+| 57 | 504 | Clearance from gerbers = gaps between UNIONED copper islands | [dfm][gerber] | L3 | L3 | scripts/lib/gerblib.py + dfm_check.py | done | union/components lives in gerblib.py:80-87; dfm_check consumes it |
+| 58 | 511 | JLC export facts (10.0.3, verified on our goldens) | [jlc][kicad-cli][fab] | L3 | L3 | scripts/fab_export.py | done |  |
+| 59 | 523 | gate.py --commit is a repo-root git add -A - dirty trees get swept | [skill][git] | L0 | L3 | scripts/gate.py | open | scope the gate commit to the design workspace paths, or make --commit refuse when unrelated files are dirty; no v2 step owns this |
+| 60 | 531 | Pulled-lib pin electrical types are junk; ERC needs a retype pass | [easyeda2kicad][erc][python] | L2 | L3 | scripts/lib_pull.py | open | T3 lists silk/refdes/plated-peg fixes at pull time but NOT pin retype; port lib_pin_types.py into lib_pull so ERC gate cannot be b |
+| 61 | 548 | P5 gate: --schematic SameFileError + LCSC field parity warnings | [board_init][kicad] | L3 | L3 | scripts/board_init.py | done |  |
+| 62 | 561 | P6 gate was courtyard-blind: seed shorted 9 pad pairs while gate=PASS | [placement][drc][geometry] | L3 | L3 | scripts/lib/placelib.py | done |  |
+| 63 | 576 | Coordinate descent cannot evict a blocker; repair candidates not seed | [placement][python] | L0 | L3 | scripts/place_anneal.py + agents/placement.md | open | blocker eviction belongs in place_anneal (_repair/quench); placement.md:36 still states the refuted rule |
+| 64 | 587 | Symbol pulls not idempotent; lib_pull hides a failed symbol pull | [easyeda2kicad][parts] | L0 | L3 | scripts/lib_pull.py | open | lib_pull must de-dup symbol blocks by sanitized name and verify one symbol per LCSC id; EasyEDA rate-limit half is n/a (external) |
+| 65 | 605 | LCSC datasheet PDFs fetchable via the wmsc.lcsc.com path transform | [datasheet][parts] | L0 | L3 | scripts/datasheet_extract.py | open | add a URL fetch that rewrites www.lcsc.com/datasheet/lcsc_datasheet_* to the wmsc PDF mirror, with a browser UA |
+| 66 | 615 | Pulled footprints ship silk <0.25mm from copper; dots inside pad 1 | [easyeda2kicad][drc] | L2 | L3 | scripts/lib_pull.py | planned-T3 | T3: drop F.SilkS graphics with width <0.15 mm at pull time so the defect cannot enter the project library |
+| 67 | 628 | Fix recipe for the silk-on-pad dots, measured against real DRC | [easyeda2kicad][drc] | L2 | L3 | scripts/lib_pull.py | planned-T3 | T3 must encode the measured recipe: delete artifact circles, NARROW stroke to 0.20 (never move), printable 0.15-wide pin-1 dot |
+| 68 | 650 | Hierarchical netlist export drops no-connect singleton nets | [kicad-cli][python] | L0 | L1 | scripts/netlist_audit.py | open | netlist_audit should compare symbol pins to netlist nodes and report pins that reach board_init with NO net at all |
+| 69 | 667 | placelib FpPad DROPS per-pad rotation - re-derive pad boxes | [placement][geometry] | L0 | L3 | scripts/lib/placelib.py | open | parse (at x y ROT) in _parse_fp and swap w/h at 90/270; every pad-pad and pad-edge clearance consumer inherits the error |
+| 70 | 677 | Connector mating direction: read the WRL, not the silk outline | [placement][kicad] | L0 | L3 | NEW reference/connector_orientation.yaml | open | record the mouth vector per connector footprint once and have place_seed orient from the table instead of guessing |
+| 71 | 687 | Pulled footprints park Reference 4 mm off-origin -> silk DRC noise | [placement][drc][silk] | L2 | L3 | scripts/lib_pull.py | planned-T3 | T3 auto-runs lib_refdes_norm at pull. The greedy text solver (both angles x 4 sides, crowded-first) is still unowned prose |
+| 72 | 701 | lib_pull with a RELATIVE --out-dir bakes unresolvable 3D model paths | [easyeda2kicad][parts] | L0 | L3 | scripts/lib_pull.py | open | resolve --out-dir to absolute before the pull (one line) or rewrite the (model ...) lines after; not listed in T3's scope |
+| 73 | 712 | Pulled USB-C peg holes = 4 DRC errors; DIP switch ships 8 silk_overlap | [easyeda2kicad][drc] | L2 | L3 | scripts/lib_pull.py | planned-T3 | T3: convert ?0.65 peg pads to np_thru_hole and drop the DIP switch's inside-body fp_text at pull time |
+| 74 | 731 | WRL bbox is a coincidence trap; use orthographic side renders | [placement][kicad][render] | L0 | L1 | agents/placement.md | open | make the side-view orientation check a required placement step; if WRL is used at all, fit below-board pins, never the bbox |
+| 75 | 754 | DRC on a board copy OUTSIDE the project dir silently changes the rules | [drc][kicad-cli] | L3 | L3 | scripts/lib/checklib.py (lift _stage_board) | open | 3 scripts already stage by construction (route_auto:71, route_critical:403, planes_gen:436); lift ONE helper, add fp-lib-table |
+| 76 | 763 | Freerouting cannot merge a USB-C's two VBUS pads at 1.75 mm | [routing][placement] | L0 | L1 | scripts/route_auto.py | open | probe must list WHICH connections stayed unrouted (net + pads) so a topology cap is not misread as a placement defect |
+| 77 | 776 | place_edit ops files need the {version, ops} envelope | [placement][python] | L0 | L3 | scripts/lib/place_swig.py | open | document that place/move set the footprint ORIGIN (or add a courtyard-centre op); the envelope half is already done |
+| 78 | 782 | A net-wide track_width DRU floor can be UNMEETABLE at a fine-pitch pad | [routing][kicad][drc] | L0 | L2 | scripts/rules_gen.py | open | measure widest connectable track per power pad when emitting a floor and warn/zone instead; planes_gen needs a connect_pads key |
+| 79 | 798 | rules_gen puts EVERY power net in one Power netclass at the widest width | [routing][rules_gen][freerouting] | L0 | L3 | scripts/rules_gen.py | planned-T1 | T1 owns per-net width from per-net current; delete the 'split classes in .kicad_pro' prose from SKILL/router once it lands |
+| 80 | 808 | check_current's via-count rule is NET-WIDE, no per-segment override | [routing][check_current] | L2 | L2 | scripts/check_current.py | planned-T2 | fold into T2's check_current work: let overrides attribute current to via clusters and pour necks, not just track width |
+| 81 | 819 | hole_to_hole skips via drill vs same-net THT pad drill | [routing][stitch][drc] | L2 | L3 | scripts/stitch_vias.py + lib/geom.py | open | dfm_check:220 catches it at P9 from the drill file; the generator must space against the real hole edge at P7 |
+| 82 | 832 | USB-C SMD GND pads need a pour lobe + via field, not one via per pad | [routing][placement] | L0 | L3 | scripts/planes_gen.py | open | planes_gen needs a connect_pads/solid key plus per-pad current sizing for connector lobes; GND return current is audited nowhere |
+| 83 | 843 | Silk strap tables must print SWITCH positions, not raw config bits | [skill][fab] | L0 | L0 | reference/checklists/connector.md | n/a | Semantic design-review call, not scriptable; at best one connector-checklist line. Mirror half already L3 (place_swig.py:85) |
+| 84 | 851 | Zooming a datasheet drawing without a rasterizer: pypdf crop + scale | [datasheet][python] | L0 | L3 | scripts/datasheet_extract.py | open | add a --crop/--zoom single-page extractor to datasheet_extract so the trick is one flag, not re-derived by each extractor agent |
+| 85 | 858 | kicad-sch-api preserves compound pad names (A4-B9) through save | [python] | L0 | L0 | scripts/schlib.py | n/a | Negative finding: nothing to build. Library behaviour recorded once; the simple-name fixup machinery already exists at L3. |
+| 86 | 864 | place_anneal separation refs absent from the board silently dropped | [placement] | L1 | L2 | scripts/netlist_audit.py | open | Make an unresolvable constraints.json ref an ERROR like missing_net (netlist_audit.py:252), so a refdes rename cannot mute a const |
+| 87 | 869 | pdfpages 2026 passes an artifact key older graphics stacks reject | [latex][windows] | L3 | L3 | scripts/report_gen.py | done |  |
+| 88 | 876 | JLCPCB Open API facts (JOP auth, error taxonomy, no sandbox) | [jlc][api] | L3 | L3 | scripts/lib/jlcapi.py | done |  |
+| 89 | 889 | pcbParam keys are layer/width/length/qty/thickness - NOT stencil* | [jlc][api] | L3 | L3 | scripts/order_submit.py | done |  |
+| 90 | 899 | LaTeX escaping: [ and * are context-sensitive, brace-wrap them | [latex] | L3 | L3 | scripts/report_gen.py | done |  |
+| 91 | 908 | Recomputed arc endpoints made arc outlines parse as POLYGON EMPTY | [geom][layout] | L3 | L3 | scripts/lib/geom.py | done |  |
+| 92 | 918 | tests/test_report.py is not concurrency-safe - diffs global git status | [testing][windows] | L0 | L3 | tests/test_report.py | open | Scope the porcelain diff to the board workspace path (or a tmp clone) so a concurrent run or stray repo-root file cannot fail the  |
+| 93 | 927 | Corner radius must be clamped to the mounting-hole inset | [layout] | L3 | L3 | scripts/lib/board_swig.py | done |  |
+| 94 | 933 | Power symbol net name comes from its VALUE field, not the pin name | [kicad][python] | L0 | L3 | scripts/schlib.py | open | Give power_flag/power_symbol_at_pin an explicit rail-value argument (and reject a label that disagrees) so the exported net is rig |
+| 95 | 946 | add_hierarchical_label drops shape; rotated 2-pin stubs point INWARD | [python][kicad-sch-api] | L0 | L3 | scripts/schlib.py | open | Fix the stub_dir vs kicad-sch-api rotation-sign disagreement, or refuse a non-zero rotation on 2-pin auto-stub parts. Shape drop s |
+| 96 | 964 | An inner Edge.Cuts gr_rect silently BECOMES the board outline | [geom][layout] | L3 | L3 | scripts/lib/geom.py | open | Parser residual: hand-edited or imported boards (T9 intake) still parse a window as the outline. Collect all closed loops and subt |
+| 97 | 974 | InSpice + KiCad bundled ngspice.dll: the working recipe has traps | [spice][windows] | L3 | L3 | scripts/lib/simlib.py | done |  |
+| 98 | 991 | PDN cavity-model band edges are validity limits, not layout facts | [spice][geometry] | L3 | L3 | scripts/check_pdn_z.py | done |  |
+| 99 | 999 | parts_search www.lcsc datasheet URLs are unfetchable; use wmsc mirror | [parts][datasheet] | L0 | L3 | scripts/parts_search.py | open | Rewrite www.lcsc.com/datasheet/lcsc_datasheet_<stem> to the wmsc host in parts_search output so no agent ever sees the unfetchable |
+| 100 | 1026 | parts_search returns zero rows for value tokens like 10K | [parts] | L0 | L3 | scripts/parts_search.py | open | Normalize value tokens (10K -> '10 kohm') or, on an empty result set, emit a distinct hint so a stock-out and a bad query are not  |
+| 101 | 1035 | LCSC www/datasheet URLs return HTML; verify %PDF magic bytes | [parts] | L0 | L2 | scripts/datasheet_extract.py | open | Fail --pdf at exit 2 when the first 4 bytes are not %PDF: an HTML shell currently extracts as a pinout, and that is the only sourc |
+| 102 | 1045 | TI SN74LVC00A pin table has shifted TYPE/DESCRIPTION columns | [datasheet][parts] | L0 | L3 | NEW reference/part_errata.yaml | open | Per-part errata table keyed by LCSC id, cross-checked by datasheet_extract --validate; plus a 'pin DIAGRAM outranks the table' rul |
+| 103 | 1054 | LM339LV pin drawing and pin table transpose the channel names | [datasheet] | L0 | L3 | NEW reference/part_errata.yaml | open | Errata entry: wire quad comparators by pin NUMBER (out1<->in6/7 etc), no internal hysteresis, 30 us Hi-Z POR - so P4 cannot wire b |
+| 104 | 1065 | A wrong lib-table URI silently pulls into the REPO ROOT | [librarian][kicad] | L3 | L3 | scripts/lib_pull.py | planned-T3 | Residual: fold the easyeda2kicad D2PAK/TO-263 pad renumber into T3's known-footprint-fix table so fp_verify pad_count 4-vs-3 stops |
+| 105 | 1091 | JST catalog PDFs hide dimensions in a non-embedded CID font | [datasheet] | L0 | L3 | NEW scripts/lib/pdflib.py | open | Add a CID-stream decoder (CID = ASCII-31; 692-695 = + - +/- x) with per-glyph coords to the extractor text path; applies to any JS |
+| 106 | 1099 | lib_pull --out-dir default is RELATIVE, lands in repo root, shared by runs | [parts][concurrency] | L3 | L3 | scripts/lib_pull.py | done |  |
+| 107 | 1110 | check_creepage only knows working VOLTAGE, misses magjack isolation barrier | [check_creepage][gates][magnetics] | L0 | L2 | scripts/check_creepage.py | planned-T2 | T2 net-PAIR voltage input must also accept a datasheet/standard barrier gap for a net pair, independent of rail voltage |
+| 108 | 1134 | lib_pull reports pulled for parts it never pulled, once lib is non-empty | [easyeda2kicad][parts] | L2 | L3 | scripts/lib_pull.py | open | assert per part: aiee.kicad_sym holds a symbol with (property "LCSC Part" <id>) whose Footprint resolves in aiee.pretty |
+| 109 | 1153 | EasyEDA CAD rate-limit is a CloudFront WAF block on one path, clears in ~60 s | [easyeda2kicad][parts] | L0 | L3 | scripts/lib_pull.py | open | build pacing into lib_pull: one part per ~15 s, 90 s backoff+retry on 403, re-verify each part on disk before reporting pass |
+| 110 | 1167 | Pulled courtyards enclose the BODY only - 20 of 22 exclude their own pads | [easyeda2kicad][placement] | L2 | L3 | scripts/lib/placelib.py | open | swap w/h (or rotate the pad box) for pads at rot 90/270; ROT-90 SOT-23 pads currently under-report 0.275 mm per side |
+| 111 | 1186 | fp_verify's pad-size check uses the MODE, so asymmetric packages slip through | [librarian][easyeda2kicad] | L1 | L2 | scripts/fp_verify.py | open | pad_size is severity warning only (fp_verify.py:98-104); bound pad min AND max vs the datasheet, not the mode |
+| 112 | 1210 | Bridge rectifier CURRENT rating is not a thermal rating - check RthJA | [parts][thermal] | L0 | L2 | scripts/check_thermal.py | open | accept per-part package rthja_cw and mean rectifying current from datasheet_extract; fail when package theta dominates copper spre |
+| 113 | 1226 | Magjack shell board-lock pads can collapse HV-to-shield creepage | [magnetics][check_creepage] | L2 | L2 | scripts/check_creepage.py | done |  |
+| 114 | 1245 | lib_pull reported every part pulled once ONE part had landed | [parts] | L2 | L2 | scripts/lib_pull.py | done |  |
+| 115 | 1256 | fp_verify has NO drill handling, so a wrong THT annulus passes silently | [gates] | L0 | L2 | scripts/fp_verify.py | open | parse (drill d) in fplib, check annulus (pad-drill)/2 vs IPC floor and vs an ICD-declared annulus/drill when one is given |
+| 116 | 1265 | First live JLC calculate: field rules the doc tables get wrong | [jlc][api] | L3 | L3 | scripts/order_submit.py | done |  |
+| 117 | 1280 | A net-wide HV clearance rule makes fine-pitch HV PADS unroutable | [routing][drc] | L0 | L2 | NEW scripts/check_hv_escape.py | open | pre-route check: per HV pad, min distance to foreign copper vs the DRU floor; rules_gen must emit per-refdes courtyard exclusions |
+| 118 | 1294 | Netclass clearance is PAD-BLIND - it cannot carry an HV rule | [routing][kicad] | L0 | L0 | scripts/rules_gen.py | n/a | Pure tool-behaviour fact, recorded once; the consequence (DRU is the authority, post-route audit) is already covered by check_cree |
+| 119 | 1302 | KRT: a 3-pad diff net routes as a MESH, and only the FIRST leg closes | [routing][parts] | L0 | L3 | scripts/route_critical.py | open | teach route_critical to route N-pad diff nets leg-by-leg on separate branches with disjoint layer costs, then graft via route_edit |
+| 120 | 1318 | KRT: relative --work-dir silently breaks, and bash mangles net names | [parts][python] | L0 | L3 | scripts/route_critical.py | open | resolve --work-dir and every path handed to KRT to absolute; take pair net names from a file, never from a Git-Bash argv |
+| 121 | 1327 | planes_gen cannot see existing vias-in-pad or touching plane regions | [planes_gen][drc] | L0 | L3 | scripts/planes_gen.py | open | skip/derate the EP via grid when the land already ships thru-hole vias; give touching same-layer rects distinct priorities (zones_ |
+| 122 | 1338 | drc_routed --parity finds mismatches the P6 place gate never runs | [drc][gates] | L2 | L2 | reference/gates.yaml | open | add a --parity DRC at the end of P6 (own gate or place drc_options) so symbol/footprint mismatches are fixed before routing |
+| 123 | 1345 | A module's own pads can sit INSIDE its declared antenna keepout | [routing][kicad] | L0 | L3 | NEW scripts/rule_area.py | open | SWIG generator that derives the antenna band from footprint at+courtyard and refuses any band overlapping a pad of that module |
+| 124 | 1359 | 3D-model origin offsets in renders are NOT footprint defects | [easyeda2kicad][kicad] | L0 | L1 | scripts/fp_verify.py | open | extend fp_verify to connectors via datasheet_extract and report 3D-model origin offset as a separate benign class, not a defect |
+| 125 | 1373 | Keepout checks need STRICT-interior containment, not inclusive | [geometry][keepout][planes] | L0 | L2 | NEW scripts/check_keepout.py | open | copper-free keepout check with a strict epsilon test; abutting plane regions legitimately place fill vertices ON the band boundary |
+| 126 | 1401 | A pad-gap formula is only valid for one pad SHAPE | [geometry][creepage][measurement] | L2 | L3 | scripts/lib/geom.py | planned-T2 | T2 pad-shape-correct gap should surface one geom-backed pad-pair gap helper/CLI so footprint reviews stop re-deriving the formula |
+| 127 | 1433 | KRT default 200k A* iteration cap, not congestion, fails a long haul | [routing][parts] | L0 | L3 | scripts/route_critical.py | open | Scale --max-iterations with net length (or retry x20 on 'No route found'), and parse KRT's Coverage line into JSON facts. |
+| 128 | 1445 | KRT output boards must be refilled before DRC or ~375 phantom zone errors | [routing][gates] | L2 | L3 | scripts/gate.py | open | gate drc should call geom assert_fresh and report stale-fill instead of grading phantom clearance errors on a hand-run KRT board. |
+| 129 | 1455 | Measure the pad extent, not the footprint origin, for a corridor gap | [routing][placement] | L2 | L3 | scripts/lib/placelib.py + place_edit.py | open | placelib:67-97 already resolves pad boxes; expose a pad-to-pad gap query so agents cannot measure from the (at ...) origin |
+| 130 | 1470 | After routing starts, gate place and check_decoupling are not valid oracles | [place][gates][routing] | L0 | L2 | scripts/place_edit.py | open | place_edit must detect existing tracks and refuse/flag until drc_routed is re-run; this mistake shorted a board with both oracles  |
+| 131 | 1504 | High static frontier share means raise iterations, not widen the rip set | [routing][krt] | L0 | L3 | scripts/route_critical.py | open | Duplicate of #127 plus the one-net-at-a-time rule; keep-if-strictly-better already exists at route_auto.py:210, extend it to per-n |
+| 132 | 1522 | KRT --clearance is a CAP on the netclass map; --net-clearances is not capped | [krt][clearance] | L2 | L3 | scripts/route_critical.py | open | Emit a net-clearances job file from the generated .kicad_dru per-net rules so HV clearance reaches the router, not just post-hoc D |
+| 133 | 1538 | bg.nets omits UNNETTED pads, so any clearance model built from it is blind | [geom][drc][clearance] | L0 | L3 | scripts/lib/geom.py | open | layer_copper must include netless pads; add a bridged-layer helper from tracks+pads+zones since net_copper counts a via barrel on  |
+| 134 | 1553 | route_edit adds BEFORE it removes, so no same-position replace in one file | [route_edit][kicad] | L0 | L2 | scripts/route_edit.py | open | Validate the ops list: a remove whose item coincides with an add must be rejected by name, not surface as a post-apply verify roll |
+| 135 | 1564 | check_diffpair's graph ignores vias AND pads; skew becomes total copper length | [check_diffpair][gates] | L1 | L2 | scripts/check_diffpair.py | planned-T2 | T2 adds vias+pads as graph edges; also make branch_free:false its own violation and widen/parameterize TERM_PAIR_MM for magjack pa |
+| 136 | 1588 | via-count rule is unsatisfiable for a PLANE-fed rail and overrides cannot reac | [check_current][gates] | L2 | L2 | scripts/check_current.py | planned-T2 | T2 'plane-fed rails expressible'; the P5/P7 2-via-tap fan-out habit it implies belongs to T6 layout templates. |
+| 137 | 1600 | voltages is net-to-REFERENCE so a bridge-input PAIR gap passes silently | [check_creepage][gates] | L2 | L2 | scripts/check_creepage.py | planned-T2 | T2 net-PAIR voltage input + report ALL violating pairs (a worst-pair sweep hid two siblings) + return the actual gap location. |
+| 138 | 1635 | pcb/create returned unknown_error code 2 and no API can say if the order lande | [jlcapi][order_submit][SPEND] | L0 | L2 | scripts/order_submit.py | planned-T1 | T1's 4-layer create guard must also encode the STOP protocol: any non-created verdict = no retry, report trace id, human portal ch |
+| 139 | 1654 | derive_copper_oz defaults 1 oz on an unparsed heading and blames a missing fil | [order_submit][stackup] | L1 | L2 | scripts/order_submit.py | planned-T1 | T1 'derive_copper_oz fails loud': the no-Chosen-line branch should refuse the quote rather than default a possible 2 oz board to 1 |
+| 140 | 1668 | The gerber sha256 is not a design fingerprint, so a sha-bound latch self-inval | [fab_export][order_submit][jlcapi] | L2 | L3 | scripts/order_submit.py | planned-T1 | T1 'order latch keyed to a NORMALIZED design hash': hash copper+drill coordinates with headers stripped, keep the file sha as a se |
+| 141 | 1686 | The Open API has NO assembly surface, and order_quote is 3.6x low on 4-layer | [jlcapi][order_submit] | L0 | L3 | reference/jlc_pricing.yaml + order_quote.py | open | a yaml line item has no consumer: pcb_cost (order_quote.py:69-92) has no copper-weight term and snaps qty silently |
+| 142 | 1705 | min_hole_to_hole 0.25 at WARNING is the second sub-fab floor in the shipped pr | [board_init][dfm][gates] | L2 | L3 | scripts/board_init.py | planned-T1 | T1 'fab floors from the capability profile at ERROR severity': board_init must seed both floors and the rule_severities, not rely  |
+| 143 | 1724 | An endpoint inside a via or pad is connected; inside another track's body it i | [kicad][connectivity][route_edit] | L2 | L3 | scripts/route_edit.py | open | add_track should snap to (or require) an exact coincident vertex within tolerance; overlap-only joins split nets for graph-based c |
+| 144 | 1735 | stitch_vias puts a stitch 0.35 mm from a thermal-via drill inside the pad | [stitch_vias][dfm] | L2 | L3 | scripts/stitch_vias.py | open | Read footprint pad drills with the -frot/-prot transforms and skip candidates inside a pad that already carries its own via array. |
+| 145 | 1750 | Moving a footprint on a ROUTED board: no silk model, and GND stubs are orphane | [place_edit][placement][silk] | L2 | L3 | scripts/lib/placelib.py | open | placelib needs a silk legality class (text at:angle is ABSOLUTE; 3-char refdes inks 2.64 x 1.16 mm) and place_edit a stub detach/r |
+| 146 | 1774 | On F/GND/+3V3/B the check fails EVERY B.Cu trace by construction | [check_return_path][stackup] | L2 | L2 | scripts/check_return_path.py | planned-T2 | T2 'expected reference per stackup + formal waiver CLASS'; without it declaring a net can only raise an uncleanable count and team |
+| 147 | 1785 | Audit HV rule COVERAGE, not existence; netless conductors reach nothing | [kicad_dru][check_creepage][safety] | L0 | L2 | NEW scripts/check_hv_coverage.py | open | Assert every /V/>=30 net appears in a clearance rule whose B side is unrestricted, and cover netless pads via B.NetName == '' at t |
+| 148 | 1808 | min_track_width 0.1 is below every JLC profile (2nd recurrence) | [board_init][rules_gen][dfm] | L2 | L3 | scripts/board_init.py | planned-T1 | T1: board_init sources the floor from the JLC capability profile; add a P7-entry assert pro.min_track_width >= profile min |
+| 149 | 1821 | GetTextBox 1.70 mm vs DRC inked stroke box 1.16 mm | [silk][place_edit][kicad] | L3 | L3 | scripts/place_edit.py | open | Library side done. Placed-board side has no inked-box feasibility model and no cheap sandbox-DRC screen for candidate move_text ed |
+| 150 | 1851 | check_creepage cannot express a COATED board | [check_creepage][gates][ipc] | L2 | L3 | scripts/check_creepage.py | planned-T2 | T2: --coating flag plus per-item-type row select (masked trace B4 / exposed land A6 / inner B1); full IPC table into reference/ |
+| 151 | 1889 | creepage count reports only the WORST pair per net pair | [check_creepage][gates] | L2 | L2 | scripts/check_creepage.py | planned-T2 | T2: emit every pair below the requirement, or at minimum carry pairs_under_requirement plus the distribution |
+| 152 | 1902 | check_current has no bridge awareness for parallel same-net paths | [check_current][gates] | L2 | L2 | scripts/check_current.py | planned-T2 | T2: build the net graph from track endpoints, find cut edges, label each undersized segment bridge true/false |
+| 153 | 1913 | roundrect pads carry 20 points - a sum/len centroid drops them all | [geometry][pads][python] | L3 | L3 | scripts/lib/geom.py | done | geom.py:260-296 is fully shape-aware; the residual is agent-side prose -> reference/remediations/ |
+| 154 | 1929 | two copies of constraints.json, two different answers - 61 vs 53 | [constraints][gates] | L0 | L2 | scripts/lib/checklib.py | open | Resolve one canonical sidecar and error when architecture/ and kicad/ copies disagree; T7-adjacent but no plan step owns it |
+| 155 | 1939 | board_init writes min_track_width 0.1 below every JLC profile | [board_init][rules_gen][dfm][gates] | L2 | L3 | scripts/board_init.py | planned-T1 | T1: floor from the capability profile at ERROR severity; also re-run rules_gen whenever board_init is re-run |
+| 156 | 1958 | easyeda2kicad puts EVERY refdes at a blanket (0,-4.0) mm | [parts][silk] | L0 | L3 | scripts/lib_pull.py | planned-T3 | T3: lib_pull runs lib_refdes_norm automatically before board_init; no check measures refdes-to-owner proximity anywhere |
+| 157 | 1971 | min-over-endpoints segment distance reports a SHORT as clearance | [geometry][fixer] | L3 | L3 | agents/fixer.md | open | Fixer prompt must require lib/geom.py or shapely (intersection tested first) for ad-hoc geometry; grep geom in agents/fixer.md ->  |
+| 158 | 1986 | refdes must clear the footprint's OWN silk; layer names unquoted | [parts][silk] | L3 | L3 | scripts/lib_refdes_norm.py | done |  |
+| 159 | 2001 | no incremental board-from-netlist update - adding a part costs P6+P7 | [pipeline] | L0 | L3 | NEW scripts/board_update.py | planned-T8 | T8: apply a netlist diff (add_part/swap/del) to a placed and routed board while preserving copper |
+| 160 | 2011 | drc_routed 0/0 does NOT imply fabricable | [gates][dfm] | L2 | L3 | scripts/rules_gen.py | planned-T1 | T1 fixes the pro floor. Still unowned: nothing asserts a hand-written .kicad_dru still contains rules_gen's aiee_* fab floors |
+| 161 | 2020 | insideCuprumThickness hardcoded to 1 oz = different stackup built | [ordering][impedance] | L3 | L3 | scripts/order_submit.py | done |  |
+| 162 | 2033 | JLC Open API pcb/create refuses 4-layer boards with code 2 | [ordering] | L0 | L3 | scripts/order_submit.py | planned-T1 | T1: 4L create -> web-manual guard. Unowned: the latch arms only on success (order_submit.py:584-589), not on an ambiguous first cr |
+| 163 | 2049 | stackups.yaml JLC04161H-3313 IS NOT A REAL JLC STACKUP | [stackup][ordering] | L0 | L3 | reference/stackups.yaml | planned-T1 | T1: rebuild stackups.yaml from live getImpedanceTemplateSettingList; validate the template exists before any geometry is solved ag |
+| 164 | 2066 | order_track sees WEB-created orders fine - detail keys on batchNum | [ordering] | L3 | L3 | scripts/order_track.py | done |  |

@@ -12,6 +12,9 @@ scripts with the repo venv python; JSON out, exit 0/1/2. Keep output ASCII.
   (with coordinates/uuids), fixer domain, `allowed_scripts`, `guidance`,
   artifact paths, and the gate to re-run. The work order is the whole
   brief - do not go hunting for more context.
+- `remediations`: reference file(s) keyed to your finding types. When the
+  list is non-empty, READ THEM FIRST - they carry the false-positive
+  classes, the cheapest-first fix ladder and the traps already paid for.
 
 ## Protocol
 1. Read the work order. Confirm a pre-fix snapshot exists (the orchestrator

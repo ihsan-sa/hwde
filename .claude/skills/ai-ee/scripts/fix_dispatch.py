@@ -16,7 +16,7 @@ Exit: 0 nothing to dispatch, 1 orders written (work to do), 2 error.
 
 Work order shape (log/workorders/wo-<id>.json):
     {"id", "gate", "phase", "board", "fixer", "role_prompt",
-     "allowed_scripts": [...], "guidance": [...],
+     "allowed_scripts": [...], "guidance": [...], "remediations": [...],
      "cluster": {net, kinds, checks, severity, count, region, violations[]},
      "artifacts": {name: path...}, "scope":
      "fix ONLY these violations; do not touch unrelated nets/regions"}
@@ -148,6 +148,28 @@ DOMAINS: dict[str, dict] = {
 
 SIDECARS = ["constraints.json", "decoupling.json", "parts.json"]
 
+# Trigger-indexed knowledge (T4): reference/remediations/<check_id>.md, keyed
+# by the FINDING type, never by topic - the fixer never knows it "needs EMI
+# knowledge", it knows which check fired. Lookup is file existence: drop a new
+# <kind>.md in that dir and every work order carrying that kind picks it up.
+REMEDIATION_DIR = SKILL / "reference" / "remediations"
+REMEDIATION_GUIDANCE = (
+    "Read the remediation reference(s) listed in `remediations` FIRST: what "
+    "the measurement means, the known false-positive classes for this finding "
+    "type, the cheapest-first fix ladder, and the traps this project already "
+    "hit. They are keyed to your cluster's kinds."
+)
+
+
+def remediation_paths(kinds) -> list[str]:
+    """The remediation refs that exist for a cluster's kinds (sorted, unique)."""
+    out = []
+    for kind in sorted({k for k in (kinds or []) if k}):
+        ref = REMEDIATION_DIR / f"{kind}.md"
+        if ref.is_file():
+            out.append(str(ref).replace("\\", "/"))
+    return out
+
 
 def load_input(path: Path) -> tuple[list[dict], dict]:
     """Accept a gate.py result (failing[]), a checklib/kc report
@@ -266,13 +288,18 @@ def run(argv=None):
             oid = rec["id"]
         else:
             oid = len(orders) + 1
+        remediations = remediation_paths(c.get("kinds"))
+        guidance = list(domain["guidance"])
+        if remediations:
+            guidance.insert(0, REMEDIATION_GUIDANCE)
         order = {
             "id": oid, "created": ts,
             "gate": meta.get("gate"), "phase": meta.get("phase"),
             "board": artifacts["board"], "fixer": c["fixer"],
             "role_prompt": str(SKILL / "agents" / "fixer.md").replace("\\", "/"),
             "allowed_scripts": domain["scripts"],
-            "guidance": domain["guidance"],
+            "guidance": guidance,
+            "remediations": remediations,
             "cluster": {k: c[k] for k in ("net", "kinds", "checks", "severity",
                                           "count", "region", "violations")},
             "artifacts": artifacts,
@@ -299,11 +326,14 @@ def run(argv=None):
         "status": "violations" if orders else "pass",
         "board": board.name, "gate": meta.get("gate"),
         "counts": {"orders": len(orders), "violations": len(violations),
-                   "by_domain": by_domain},
+                   "by_domain": by_domain,
+                   "with_remediation": sum(1 for o in orders
+                                           if o["remediations"])},
         "orders": [{"id": o["id"], "fixer": o["fixer"],
                     "severity": o["cluster"]["severity"],
                     "net": o["cluster"]["net"], "kinds": o["cluster"]["kinds"],
                     "count": o["cluster"]["count"],
+                    "remediations": o["remediations"],
                     "work_order": str(out_dir / f"wo-{o['id']}.json")
                     .replace("\\", "/")}
                    for o in orders],
