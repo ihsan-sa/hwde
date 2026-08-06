@@ -23,6 +23,26 @@ Session protocol: repo `CLAUDE.md` ("run step N"). Update this file + commit at 
 | S13 | Agents, orchestrator, SKILL.md | **done** | 2026-07-27 |
 | S14 | End-to-end hardening | **done** (v1 FROZEN) | 2026-07-28 |
 
+## v2 status board (T-steps - plan: `ai-ee-v2-plan.md`)
+
+Session setup (model/effort/ultracode) and dependency graph live in the v2 plan.
+Wave 1 (T1-T4) may run as parallel sessions; T6 is exclusive.
+
+| Step | Title | Status | Date |
+|---|---|---|---|
+| T0 | Ops sweep (tracking refresh + record carrier web order) | pending | - |
+| T1 | Fab-truth hardening (board_init floors, rules_gen netclasses, 4L ordering, stackups.yaml, latch hash) | pending | - |
+| T2 | Gate blind-spot fixes (creepage / current / diffpair / return_path) | pending | - |
+| T3 | Library + authoring hygiene (lib_pull silk autofix, schem_refdes.py) | pending | - |
+| T4 | Knowledge ladder triage + trigger-indexed remediations | pending | - |
+| T5 | Stage bench + frozen fixtures + composite scores | pending | - |
+| T6 | Per-stage deep evaluation + improvement fan-out (EXCLUSIVE) | pending | - |
+| T7 | Freshness-aware state + invalidation map | pending | - |
+| T8 | Incremental board update (board_update.py, kills OI-3) | pending | - |
+| T9 | External-board intake (intake.py) | pending | - |
+| T10 | Task router + SKILL v2 (taxonomy, recipes, full run = special case) | pending | - |
+| T11 | Hardware bring-up leg (run when boards arrive) | pending | - |
+
 Dependency graph (plan): S0 -> S1 -> S2 -> S3 -> {S4, S5}; S0 -> S6 -> S7; S2 -> S8 -> S9 -> S10 -> S11;
 {S5, S7, S8, S11} -> S12 -> S13 -> S14. S4-S7 may run in parallel with S8-S10 (separate sessions/terminals).
 
