@@ -3,7 +3,7 @@
  "board": "lumina-par",
  "workspace": "boards/lumina-par",
  "created": "2026-07-28T15:00:15",
- "updated": "2026-08-07T13:20:24",
+ "updated": "2026-08-07T13:25:09",
  "phase": "P4",
  "gates": {
   "erc": {
@@ -49,6 +49,11 @@
    "status": "approved",
    "ts": "2026-07-28T20:03:50",
    "note": "H1 approved with 4 directed changes: (Q1) enclosure sealed + LED heat conducted through the wall; (Q2) emitter changed to RGB 3-in-1 + separate white, AGAINST the run's recommendation, chosen knowingly for a published 125 C Tj and 3.5x stock over an assumed 12 K/W Rth from a sole source; (Q3) firmware commits to PWM-domain dithering >=3-4 bits, strict gamma-2.2 reading of PAR-REQ-01 binds; (Q4) same-reel sourcing, 24C32 fitted but shipped empty, PAR-REQ-16/17 to be formally amended."
+  },
+  "2": {
+   "status": "approved",
+   "ts": "2026-08-07T13:23:55",
+   "note": "H2 approved 2026-08-07 with 3 directed decisions: (1) proceed to P5; (2) ACCEPT the 8.6 K emitter-hot band - trip is exact at 89.9 C and only the release sits high, and widening trades against the emitter-open margin that catches a broken harness; R207 100k->10k explicitly NOT taken, its justification having been removed by the thermal rework; (3) re-derive the optical budget NOW, before P5, because the diffuser was specced against a 140/120 deg delta that OPEN-8 proved does not exist."
   }
  },
  "artifacts": {
@@ -303,6 +308,18 @@
    "why": "the hier-pin route works electrically (netlist carried /PWM0 = J4-1 + R202-1 + U202-1) but is NOT ERC-clean: 4x label_dangling, because the root subgraph for those nets is wire + label + exactly ONE sheet pin and KiCad 10.0.3 requires a real connection point. Two probes settled the rule: a second same-named root label does NOT satisfy it (8 errors, both flagged), while one TestPoint pin per root PWM wire takes the identical project to 0/0 - so buying the bare name would mean adding four PARTS to the root, a design change rather than a stitch fix. Every other root net escapes this only because two children expose it. lumina-carrier never exercised it: all 70 of its root labels appear 2-3 times. Outcome is equivalent for the seven high_speed consumers, which match on exact name and do not validate name shape",
    "phase": "P4",
    "ts": "2026-08-07T11:58:05"
+  },
+  {
+   "what": "H2: emitter-hot hysteresis band ACCEPTED at 8.6 K (trip 89.9 C, release 81.2 C) against a 15 K aspiration; R207 stays 100k",
+   "why": "trip is exact on spec at 89.9 C and only the release sits high. Widening needs a smaller feedback resistor, which trades directly against the emitter-OPEN channel margin - and emitter-open is the fail-safe that catches the broken harness this block exists for. Board-hot is already on spec at 110.2/92.9. The R207 route was recommended against and rejected: the thermal rework removed its justification (released FAULT now >=2.81 V in every corner incl. unmated-hot, which used to sag to 1.80 V below U201 VIH) and a stronger pull-up would shift every trip point, forcing a full MNA re-solve for no remaining benefit",
+   "phase": "P4",
+   "ts": "2026-08-07T13:23:55"
+  },
+  {
+   "what": "Optical budget to be RE-DERIVED before P5, on the OPEN-8 refutation",
+   "why": "both emitters are 140 deg 2Theta1/2 per their own datasheets; the LCSC parametric record for the white part contradicts its own datasheet. The diffuser strength - and therefore its 30-45 pct flux cost, and the compounded 36-50 pct reduction against the H1-approved flux - was sized on a 140/120 deg delta that does not exist. Owner chose to re-derive now rather than defer, since that number is what the fixture gets judged on and the correction may recover real light",
+   "phase": "P4",
+   "ts": "2026-08-07T13:23:55"
   }
  ],
  "history": [
@@ -1030,6 +1047,28 @@
    "why_it_is_moot": "BOTH symptoms were the mis-sized hysteresis feedback, not the pull-up. After the E-2/W-1 rework the released FAULT sits >=2.81 V in EVERY corner including unmated-hot, and all four bands are positive (+8.6/+17.3/+17.3/+18.7 K). The root cause is fixed at source.",
    "cost_if_taken_now": "a stronger pull-up raises V_FAULT_armed, which raises the comparator-node offset, which shifts EVERY trip point - all four channels would need re-solving against the new MNA model. Real work, no remaining benefit.",
    "recommendation": "DO NOT take it. Keep R207 at 100k. If the owner still wants the emitter-hot band widened from 8.6 K toward 15 K, that is a separate and honest trade against the emitter-open margin, and it should be argued on its own terms rather than through the pull-up."
+  },
+  {
+   "ts": "2026-08-07T13:23:55",
+   "event": "human",
+   "checkpoint": "2",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-08-07T13:23:55",
+   "event": "decision",
+   "what": "H2: emitter-hot hysteresis band ACCEPTED at 8.6 K (trip 89.9 C, release 81.2 C) against a 15 K aspiration; R207 stays 100k"
+  },
+  {
+   "ts": "2026-08-07T13:23:55",
+   "event": "decision",
+   "what": "Optical budget to be RE-DERIVED before P5, on the OPEN-8 refutation"
+  },
+  {
+   "ts": "2026-08-07T13:25:09",
+   "event": "spawn",
+   "role": "research-component-scout",
+   "model": "opus"
   }
  ],
  "spawns": [
@@ -1152,6 +1191,14 @@
    "effort": "high",
    "phase": "P4",
    "note": "control E-3 DRV_EN pulldowns"
+  },
+  {
+   "ts": "2026-08-07T13:25:09",
+   "role": "research-component-scout",
+   "model": "opus",
+   "effort": "high",
+   "phase": "P4",
+   "note": "optical budget re-derivation after the OPEN-8 refutation (no optics role exists in the skill - closest analyst role used, recorded as a deviation)"
   }
  ],
  "edits": []

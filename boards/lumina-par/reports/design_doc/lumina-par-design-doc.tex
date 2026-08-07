@@ -16,7 +16,7 @@
 \begin{center}
 {\LARGE\bfseries lumina-par --- Design Document}\\[6pt]
 {\large ai-ee v1 pipeline}\\[2pt]
-generated 2026-07-28 19:48:21
+generated 2026-08-07 13:20:56
 \end{center}
 \tableofcontents
 
@@ -29,10 +29,10 @@ generated 2026-07-28 19:48:21
 \endhead
 board & lumina-par \\
 workspace & \texttt{boards/lumina-par} \\
-phase & P2 \\
-gate status & no gates recorded yet \\
+phase & P4 \\
+gate status & all 1 recorded gates pass \\
 state created & 2026-07-28T15:00:15 \\
-state updated & 2026-07-28T19:47:13 \\
+state updated & 2026-08-07T13:20:24 \\
 \bottomrule
 \end{longtable}
 }
@@ -44,6 +44,25 @@ Sources, in precedence order (later overrides earlier): 1. \texttt{brief/00-lumi
 Unstated low-risk items are marked \texttt{ASSUMED:} inline. Section 9 holds every unknown that changes the design or touches safety. Section 8 flags one \textgreater{}30 V condition that is unconditional (48 V is on the connector whether or not this board taps it) and one conditional \textgreater{}3 A condition.
 
 Two figures in the briefs are dead and are NOT used anywhere below: the "\textasciitilde{}8.5 W sustained" daughter budget in \texttt{00} s5.1 and \texttt{03} PAR-REQ-11, and the Si3402-B / AN956 "\textasciitilde{}10 W regulated" it derives from. The carrier uses a TPS2378-class PD controller plus a 100 V buck; the re-derived budget is \textbf{8.6-9.3 W (af) / 18.7-20.0 W (at)}. PAR-REQ-11 itself still holds hard.
+
+---
+
+\subsubsection*{0. Formal amendments (owner decision at H1, 2026-07-28)}
+These requirements were \textbf{changed by decision at the H1 checkpoint}, not quietly failed. The original text is quoted in full so the record shows exactly what was altered and why. Both amendments follow from the H1-Q4 decision: {*}{*}same-reel sourcing, with the EEPROM fitted but shipped empty{*}{*}, because no colour-measuring instrument exists for this build today.
+
+\paragraph*{AMD-01 - PAR-REQ-16 changes from a binning specification to a same-reel sourcing requirement}
+\textgreater{} \textbf{Original (brief `03` s4, PAR-REQ-16):} "LED binning specified in the BOM for \textgreater{} all four channels. Unbinned parts across 8 fixtures will not satisfy \textgreater{} PAR-REQ-06."
+
+\textbf{Amended to:} {*}All emitters for the whole build shall be procured in a single transaction from a single reel per part number, and the reel/date code shall be recorded in the build record. A chromaticity or flux bin shall be specified in the BOM wherever the vendor publishes one; where the vendor publishes none, the same-reel requirement stands in its place.{*}
+
+\textbf{Why it could not be met literally:} LCSC/JLC does not generally expose a chromaticity or flux bin as an orderable attribute, and the selected emitter vendor publishes no bin data at all (\texttt{research/led-emitter.md} s9). A BOM line demanding a bin that cannot be ordered is unbuildable. Parts from one reel are same-batch and closely matched in practice, which is the outcome PAR-REQ-16 was written to obtain. {*}{*}This is a genuine reduction in guarantee, not an equivalent substitution:{*}{*} same-reel is an empirical correlation, whereas a published bin is a contractual limit. PAR-REQ-06 (consistent colour across fixtures) is therefore carried at \textbf{reduced confidence} and its verification moves to a bench comparison of the assembled fixtures.
+
+\paragraph*{AMD-02 - PAR-REQ-17's calibration data is deferred, not the hardware}
+\textgreater{} \textbf{Original (brief `03` s4, PAR-REQ-17):} "Provide for per-fixture calibration: \textgreater{} measured per-channel scaling stored in the daughter board's ID EEPROM \textgreater{} (CAR-REQ-07, EEPROM option) so firmware can normalise fixtures to each other. \textgreater{} If the resistor-divider ID option is chosen instead, calibration has to live on \textgreater{} the host, and that trade must be made deliberately."
+
+\textbf{Amended to:} {*}The board shall fit the ID divider bottom leg AND a 24C32 I2C EEPROM. The EEPROM ships \textbf{empty}: per-channel scaling coefficients are not measured or populated for the first build. The provision is retained so that calibration can be added later without a respin.{*}
+
+\textbf{Why:} the premise that EEPROM and divider are alternatives is not what ICD-01 says - s2/s3.3 has them coexisting, the divider carrying board type and the EEPROM per-unit calibration, which is why the second dedicated ID pin was deleted. So the "deliberate trade" the original text asks for does not arise; both are fitted. What is genuinely deferred is the \textbf{data}, because there is no colorimeter or spectrometer in this project today (H1-P10). {*}{*}Consequence to carry:{*}{*} until the EEPROM is populated, fixture-to-fixture matching rests entirely on AMD-01's same-reel sourcing.
 
 ---
 
@@ -360,6 +379,34 @@ P0 & ICD-01 (brief/06-connector-icd.md) treated as a frozen hard input; no local
 P0 & Common footprint adopted from ICD s7.1: 100.0 x 80.0 mm, R3.0 corners, 5x M3 (4 corners at 5 mm inset + H5 at (46,74)), 1.6 mm FR4, with a mandatory 30x26 mm RJ45 notch at (6,0)-(36,26) & H1-Q4 closed the stack at 11.0 mm; the carrier's board-edge RJ45 is \textasciitilde{}15 mm tall so the notch is a hard mechanical stop and the anti-180-degree interlock (ICD s7.4) \\
 P2 & Re-baselined onto ICD rev A2 (copied from boards/lumina-carrier/architecture/connector-icd.md) & Two changes bind this board: (1) board-wide HV clearance raised 0.60 -\textgreater{} 0.635 mm per TPS2378 vendor layout guidance, daughters inherit it; (2) new s8.4 - the carrier's TPS16630 load switch has a mandatory 10k SHDN pull-down, so a daughter may assume an unprogrammed/crashed/reset/brownout carrier presents 0 V at J3, not 48 V. Rail limits s6.2 and mechanical s7.1/s7.2 are UNCHANGED. \\
 P2 & LED stage stays on +12V (baseline); the P1 '48V is 16x better for dimming slew' argument is WITHDRAWN as an artifact of holding L fixed & Verified algebraically by the orchestrator: with L sized for the same ripple fraction k, t\_rise+t\_fall = 1/(f{*}k), independent of Vin. At 700 kHz / k=0.30 both rails give 4.762 us (48V only redistributes 3.81/0.95 us between rise and fall). That is 33.8x the 141 ns PAR-REQ-01 budget, so NO rail or inductor choice reaches the requirement by gating the converter - it needs shunt-FET dimming either way. The 48V branch therefore buys nothing on fidelity and costs 0.635 mm creepage, 100 V caps, bleed path and daughter-owned inrush. \\
+P2 & Stackup JLC04161H-3313, 4 layers, 100.0 x 80.0 mm, 1.6 mm & Switch-node containment 11 mm above a live 2.4 GHz antenna (H1-Q8 made Wi-Fi a supported control path), continuous GND reference under jitter-sensitive PWM, B.Cu consumed by two reverse-mounted sockets, \textasciitilde{}120 parts in \textasciitilde{}45 cm2. No controlled-impedance net exists on this board. \\
+P2 & Dimming topology: shunt FET per channel across the LED string & Closes the PAR-REQ-01 TIMING wall: TPS92515HV direct PWM floors at 200 ns vs a 141 ns requirement, but its shunt mode is spec'd 10,000:1 = 10.2 ns min pulse. Implemented T \textasciitilde{} 50-100 ns, 1.4-2.8x margin. The RESOLUTION wall (17 bits needed, LEDC caps at 14) is NOT closable on this board and needs carrier firmware dithering (CR-5). \\
+P2 & Design point 150 mA/die, 4 emitter packages, 2S2P per channel; emitters off-board on aluminium MCPCB & Full white = 0.718 A on +12V, 4 \% under the sustained ceiling and 2.8x under OCP, so the board is electrically incapable of exceeding its budget with every PWM stuck at 100 \%. Off-board MCPCB because 1.6 mm FR4 misses the junction budget by 2-3x. \textgreater{}3 A conditional flag CLOSED (max 0.30 A/channel). \\
+P2 & No fifth (amber) channel on rev A; fit BOTH ID mechanisms (ID\_ADC bottom-leg divider + I2C EEPROM) & Amber dilutes an af envelope that full white already fills to 96 \% of the rail ceiling. ICD s3.3 makes the divider and the EEPROM coexist rather than alternatives - the divider gives board type, the EEPROM per-unit calibration - so PAR-REQ-17 is met without spending a pin. \\
+P2 & Q1 CLOSED: enclosure sealed with LED heat conducted through the wall (not vented) & Owner decision: keeps dust out of a basement/garage install over years, and the strobe run independently recommended the same, so both fixtures share one enclosure design. 3.21 W internal -\textgreater{} 38 C air. The wall-conduction path becomes load-bearing for the thermal case and must be written as an explicit testable ENC-x criterion, not an assumption. \\
+P2 & Q2 CLOSED: emitter is RGB 3-in-1 + separate white discrete, superseding D3's integrated 4-in-1 & Owner decision, taken knowingly against this run's recommendation. Deciding factor: the thermal case now rests on a published 125 C Tj max and 3.5x stock depth rather than on an ASSUMED 12 K/W Rth from a sole-source vendor publishing neither Rth nor Tj max. Retires the 20 K/W marginality risk this run flagged. Consequences owned here: PAR-REQ-15 white/colour fringing becomes the live risk; the entire sustained-power table is stale and must be re-derived; 145 mA/die is reopened. \\
+P2 & Q3 CLOSED: PAR-REQ-01 met by hardware + firmware. Strict reading (5\% perceived, gamma 2.2) binds. & Carrier firmware commits to PWM-domain dithering \textgreater{}=3-4 bits (CR-5 accepted). Shunt-FET hardware half stands as designed (T \textasciitilde{}50-100 ns vs 141 ns). FIRMWARE DEPENDENCY must be named in the design doc so it cannot be silently dropped: without the dither the requirement fails by 4.4-8.9x and no hardware on this board can fix it. Dither must be PWM-domain, not 60 fps frame-domain - a 4.4\% dither at 60 Hz breaches IEEE 1789 NOEL on its own. \\
+P2 & Q4 CLOSED: same-reel sourcing; 24C32 EEPROM fitted but shipped empty; PAR-REQ-16 and PAR-REQ-17 to be formally amended with original text quoted & No measurement instrument exists today, so colour matching rests on same-reel binning. The EEPROM is fitted so that decision stays reversible. Amending rather than quietly failing PAR-REQ-16 keeps the record honest about what was changed by decision. \\
+P2 & PAR-REQ-16 and PAR-REQ-17 formally amended (AMD-01, AMD-02 in requirements.md s0), original text quoted & AMD-01: a chromaticity/flux bin is not an orderable attribute on LCSC/JLC and the selected vendor publishes none, so the BOM line was unbuildable; replaced by single-reel procurement for the whole build. This is a REDUCTION in guarantee, not an equivalent - same-reel is an empirical correlation, a published bin is a contractual limit - so PAR-REQ-06 is carried at reduced confidence with bench verification. AMD-02: hardware (divider + 24C32) is fitted; the calibration DATA is deferred because no colorimeter exists for this build. \\
+P2 & The RJ45 notch is the coordinator's to implement via a central board\_init --cutout flag. This run does NOT hand-edit Edge.Cuts and does NOT shrink the outline. & Both daughters need the notch, so it is being added centrally rather than worked around per-run. The notch stays a hard keepout in constraints.json meanwhile. Coordinator will confirm the flag exists before this run reaches P5. Supersedes the OPEN-7 remediation (hand Edge.Cuts edit) recorded at H1; the OPEN-7 coordinate-translation trap under fixed-outline board\_init still stands and must be re-raised at H2. \\
+P3 & P5 outline procedure fixed: board\_init --outline 100x80 --corner-radius 3 --mounting-holes 4 --cutout 6,0,30,26, then verify geometry against an expected area of 7212.274 mm2 & Coordinator added --cutout centrally (commit 18613d3) so both daughters share it. Expected area derived here so P5 has a number to check rather than eyeballing: 100x80 = 8000, minus the 30x26 notch = 780, minus 4 corners at r=3 = 4 x r\textasciicircum{}2(1-pi/4) = 7.7257. The outline\_origin translation is the trap that would otherwise silently misplace every keepout. \\
+P3 & Emitter set: 4x XL-HD6070RGBC-A46L-BD (C22434861) + 4x XL-HD6070UWC-A4-BD (C48586656); 2S2P, 150 mA/die, 300 mA/channel. Headline 0.717 A = 95.6\% of the 0.75 A ceiling. & Both live-verified via parts\_search this session and spot-checked independently by the orchestrator. The headline survives the package change because BOTH packages publish identical Vf ranges (R 1.8-2.4, G/B/W 2.8-3.4), so the 2S2P/150 mA arrangement falls out the same way - a derived result, not a copy-forward. All nine power rows independently recomputed by the orchestrator and reproduce exactly. \\
+P3 & 150 mA/die confirmed over 145 (H1-P7 re-derived, not carried forward) & Every genuine HARDWARE ceiling passes at both: 2.8x on the 2.0 A OCP, 3.4x on the TPS2378 0.85 A MINIMUM limit. The only figure 150 fails is the ICD 8.5 W total, which ICD s6.2 itself calls a firmware-governed average, not a trip. Flips to 145 if the carrier owner declares 8.5 W a hardware limit. \\
+P3 & Sense resistor 0.75 ohm (not 0.68), nominal 275 mA/channel - the COMPLIANT value is the default & P3 found that 0.68 ohm with IADJ tied to VCC gives a +-5.6\% threshold band -\textgreater{} ILED 284-324 mA -\textgreater{} 0.775 A worst case = 103\% of the ICD 0.75 A +12V sustained ceiling. Orchestrator reproduced it and also costed the proposed IADJ divider: the divider tightens the band but lowers the threshold too, landing at essentially the same light (0.928 vs 0.917 of nominal) for 8 extra resistors - REJECTED. Compliant-by-construction is the right default because the stuck-PWM backstop is exactly the case where firmware is dead and cannot govern the average. Costs 8.3\% light vs the H1 point. Reversible: BOM value only, zero layout impact, changeable to P9. Flagged for H2. \\
+P3 & Shunt FET switched to TOSHIBA SSM3K2615R,LXGF (C22371361, SOT-23F) & Closes two P3 open items at once. Ciss 150 pF into the 150 R gate resistor is tau \textasciitilde{}22 ns, so gate edges land in the tens of ns against PAR-REQ-01's 141 ns pulse - the previously selected part was estimated at 100-140 ns, which would have eaten the entire timing budget. And Rds(on) 580 mohm is specified AT 3.3 V, so it is guaranteed on at our gate drive rather than inferred. Also resolves the no-first-tier-brand-in-stock risk. Dissipation 69 mW at 0.345 A peak. Package is SOT-23F not SOT-23 - fp\_verify needs extra attention. \\
+P3 & Keep the THT reverse-mounted ICD sockets; REJECT the HC-PM254 SMD equivalents & ICD s5.2 derives its 0.84 mm pad-to-pad creepage from the THT land pattern (1.70 mm annulus on a 1.02 mm drill), and that geometry is the carrier owner's frozen number. An SMD land pattern changes it and would require the ICD to be re-issued. Two hand-solder operations across 8 boards is the cheaper side of that trade. \\
+P3 & Re-synced ICD copy again; daughters MUST use a 1.70 mm annulus on the connector pads (1.10 mm drill, 0.300 mm/side ring) & The carrier's P3 library work corrected the drill from the assumed 1.02 mm to an actual 1.10 mm, and normalised J3's annulus from 1.80 to 1.70 mm so both frozen connectors share one land pattern. The 0.84 mm pad-to-pad gap and the 1.32x clearance conclusion are unchanged, but the annulus is now an explicit daughter requirement - this is a librarian/fp\_verify checkpoint, not just a note. \\
+P3 & 0.75 ohm sense resistor ENDORSED by the coordinator; C2934269 recorded as the explicit 0.68 ohm alternate & Coordinator: 'a margin that only holds while software works is not a margin.' Reversion to 0.68 ohm stays live as a one-code swap through P9. \\
+P3 & CR-1 CLOSED: R206 = 4.7 kOhm, 1\% REQUIRED (not preferred). LUM-PAR-A is ID\_ADC code 2, V\_ID = 1.055 V. & ICD s3.4 rev A3, NORMATIVE. Verified: 3.3 x 4700/(4700+10000) = 1.0551 V. 1\% is required because adjacent-code separation is 0.353 V against a +-0.05 V divider error from 1\% parts plus a +-0.15 V firmware window - a 5\% part eats the margin. Cited by section+amendment revision, not the header (the header reads A3 while its own parenthetical lists amendments through A6). The strobe run found its placeholder was set to THIS board's code and would have shipped announcing itself as the par - the value is functional, not cosmetic. \\
+P3 & CR-6 CLOSED by ICD s7.7 rev A5 (NORMATIVE): sealed + wall-conducted, internal air 32-33 C at a 25 C room & The carrier re-derived and reconciled. With the LED wall path WORKING only 1.894 W enters box air (6.8-8.1 K rise); with it FAILING 8.5 W enters and gives 56-62 C - which reproduces the rev A2 af figure to the degree. So the af number was never miscalculated, it was the LED-heat-stays-in-box case at a 25 C room with NEITHER assumption written down. The at figure WAS a genuine error, exactly as this run found. This run's 89-115 C Hoffman/Rittal figure is now recorded as the CONSERVATIVE BOUND and the ICD explicitly says do not average it. Budget: 10.5-12.5 W of box air at a 25 C room holding air to 70 C. \\
+P3 & PWM allocation NORMATIVE (ICD s3.5 rev A3): LUM-PAR-A runs PWM0-3 on ONE timer, 13-bit / 9.766 kHz, with a 90 degree phase stagger. CR-3 (14-bit/4.883 kHz) is GRANTED and available opt-in; CR-4 (stagger) is GRANTED. & The prior ICD claim that PWM0-3 sit on timer 0 and PWM4-7 on timer 1 is WITHDRAWN - the carrier does not hard-assign timers; each daughter declares its own map and firmware applies it from the ID\_ADC code. Three timers remain free for this board. The 14-bit option doubles the driver timing budget from 141 ns to 281 ns and makes firmware dithering physically reproducible - it costs camera-flicker margin and must be re-tested against a phone camera on the first prototype. \\
+P3 & ADOPT the 14-bit / 4.883 kHz PWM mode (CR-3, granted) as this board declared timer map, instead of 13-bit / 9.766 kHz & It doubles the driver timing budget from 141 ns to 281 ns, which converts the shunt-FET timing risk from unverified-and-probably-violated into comfortable margin against the only switching number that exists (toff 150 ns typ). It ALSO doubles the LSB duration, which is what makes firmware PWM-domain dithering physically reproducible - spec-dimming s2.7 ranks 1 and 2 as a package, not alternatives. Cost is camera-flicker margin: band contrast rises from 0.61\% to 1.23\% at 60 fps (still under the visibility threshold) and 2.46\% to 4.92\% at 240 fps - and H1-P9 already recommends declaring 240 fps out of scope. ICD s3.5 makes the mode opt-in per daughter and requires a phone-camera re-test on the first prototype. \\
+P3 & APPROVED library edits: J3 annulus 1.80-\textgreater{}1.70; J4 annulus 1.60-\textgreater{}1.70 and drill 1.050-\textgreater{}1.100; inductor footprint swapped to KiCad stock Inductor\_SMD:L\_Cenker\_CKCS4030; SMF15A accepted as-pulled with a note & J3/J4: ICD-01 s5.2 mandates 1.70 mm annulus on a 1.10 mm drill and daughters must conform - the carrier already normalised its mating DS1021 pair the same way (its lib/EDITS.md edit 1). Note the as-pulled J3 gap of 0.74 mm still CLEARS the 0.635 mm creepage requirement at 1.165x, so this is an ICD-conformance fix, not a safety fix - but conformance is the point of a frozen interface. Inductor: as-pulled land is 3.20 mm centres against a 2.60 mm datasheet land, a 0.60 mm error with pads hanging 0.40 mm past the body; KiCad stock at 2.70 is a strict superset of the datasheet land. SMF15A: 3.26 vs 3.00 pitch is a 0.13 mm outboard shift with pad size EXACTLY matching the datasheet - solderable, accept. \\
+P4 & P4 schematic-block agents run at opus/high instead of the tier table's fable/medium & Fable 5 credits exhausted account-wide. The skill's own tier table ranks fable/medium ABOVE opus/high, so opus is the nearest substitution that is not the silent downgrade the spawn rules forbid; user chose it over a cheaper mixed or all-sonnet split with the drivers/thermal safety content in view \\
+P4 & The power sheet owns ALL FOUR PWR\_FLAGs (GND, +12V, +3V3, +48V\_SW); every other sheet places consuming power symbols only & each rail enters the board through J3's passive pins on the power sheet, so that is the one honest driver; PWR\_FLAG's pin is power\_out and a second flag on the same rail collides power\_out\textless{}-\textgreater{}power\_out and fails the erc gate \\
+P4 & J5 entry-direction question CLOSED: S10B-PH-SM4-TB is SIDE ENTRY and is the CORRECT part - no swap-part & datasheet p3 splits the model table into Top entry (B2B..B16B-PH-SM4-TB) and Side entry (S2B..S15B-PH-SM4-TB) columns, repeated twice more for the THT and LIF variants: the entry code is the LEADING letter, and the B in '10B' appears in every model of the series. Side entry is also right for this board - the module mounts to the enclosure wall so the harness leaves laterally regardless, and J5 is on B.Cu inside the ICD's 11.0 mm mezzanine gap where a top-entry PHR-10 housing plus bend radius would foul the carrier \\
+P4 & The /PWM0..3 nets MUST carry the canonical root-level names /PWM0../PWM3; preferred mechanism is exposing them as hierarchical pins from control, with re-spelling constraints.json to /control/PWMn as the sanctioned fallback if that is not ERC-clean & sheets.md s2 states these are the names the schematic must produce, and constraints.json.high\_speed feeds SEVEN consumers (check\_return\_path, planes\_gen, route\_critical, rules\_gen, stitch\_vias, constraints\_lint, netlist\_audit) - a mismatch silently drops the jitter-sensitive PWM nets from every one of them, on the board whose hardest requirement is the PAR-REQ-01 141 ns timing wall. It also fails netlist\_audit outright (missing\_net is an error), so it must be settled before the root build. sheets.md is internally inconsistent here - it lists PWM in the INTERFACE net table while its own From-\textgreater{}to column calls them control-internal - so the tie-break is which artifact ends up TRUE: name-match is required either way, and the hier-pin route keeps one uniform convention across all root nets \\
+P4 & REVERSAL of the earlier P4 ruling: /PWM0..3 keep their real netlist names /control/PWM0..3, and constraints.json high\_speed was re-spelled to match. The preferred hier-pin mechanism was tried, measured and REJECTED & the hier-pin route works electrically (netlist carried /PWM0 = J4-1 + R202-1 + U202-1) but is NOT ERC-clean: 4x label\_dangling, because the root subgraph for those nets is wire + label + exactly ONE sheet pin and KiCad 10.0.3 requires a real connection point. Two probes settled the rule: a second same-named root label does NOT satisfy it (8 errors, both flagged), while one TestPoint pin per root PWM wire takes the identical project to 0/0 - so buying the bare name would mean adding four PARTS to the root, a design change rather than a stitch fix. Every other root net escapes this only because two children expose it. lumina-carrier never exercised it: all 70 of its root labels appear 2-3 times. Outcome is equivalent for the seven high\_speed consumers, which match on exact name and do not validate name shape \\
 \bottomrule
 \end{longtable}
 }
@@ -465,7 +512,7 @@ These are the names the schematic \textbf{must} produce. \texttt{constraints.jso
 \textbar{} Net \textbar{} Type \textbar{} From -\textgreater{} to \textbar{} Note \textbar{}\\
 \textbar{}---\textbar{}---\textbar{}---\textbar{}---\textbar{}\\
 \textbar{} `+48V\_SW` \textbar{} power \textbar{} `power` (J3 1/3/5) \textbar{} {*}{*}landed, not tapped{*}{*} on branch A. Declared in `voltages` at 57 V so `check\_creepage` enforces the clearance \textbar{}\\
-\textbar{} `+12V` \textbar{} power \textbar{} `power` -\textgreater{} `drivers` \textbar{} 0.718 A max \textbar{}\\
+\textbar{} `+12V` \textbar{} power \textbar{} `power` -\textgreater{} `drivers` \textbar{} 0.717 A max (`power\_tree.md` s3, revision B) \textbar{}\\
 \textbar{} `+3V3` \textbar{} power \textbar{} `power` -\textgreater{} `control`, `thermal` \textbar{} \textless{}= 5 mA \textbar{}\\
 \textbar{} `GND` \textbar{} power \textbar{} everywhere \textbar{} In1 plane \textbar{}\\
 \textbar{} `/PWM0` .. `/PWM3` \textbar{} in \textbar{} `control` (J4) internal \textbar{} 3.3 V CMOS. {*}{*}No RC filter; if any network, tau \textless{}= 14 ns{*}{*} \textbar{}\\
@@ -520,9 +567,52 @@ Declared in \texttt{constraints.json} under \texttt{placement.groups}. Each buck
 \subsubsection*{4. Sheet-level P4 notes}
 1. \textbf{The DNP option sets must be in the netlist}, not added later: the branch-B front end (\texttt{power} Q101/Q102/R101-R104/C106-C108) and the converter-idle one-shot (\texttt{control} U204/R210-R213/C210-C213/D201-D204). A DNP part still has pads, so its clearance and area are accounted for at P6/P7 and the option stays a populate change rather than a respin. Mark them \texttt{DNP} in the BOM variant field so \texttt{bom\_cpl} at P9 excludes them. 2. \textbf{`FAULT` is open drain.} ERC will want a driving pin somewhere; the comparator outputs plus R207 are it. Do not let a fix loop add a push-pull driver. 3. \textbf{No I2C pull-ups.} Fitting them is an ICD violation, and P4's reflex is to add them. Record it on the schematic. 4. {*}\emph{`PWM4..7` and `DSPI\_}` are deliberate no-connects.{*}{*} 5. \textbf{R206's value is unknown until the carrier owner allocates it.} Place the part with a \texttt{TBD} value field and a schematic note; do not guess a value - that is exactly the silent divergence ICD-01's preamble forbids.
 
+---
+
+\subsubsection*{5. P4 AMENDMENTS (2026-08-07)}
+This file was written at P2. The items below were settled during P4 schematic capture and its adversarial review, and \textbf{they supersede the sections above}. \texttt{architecture/p4-wiring-notes.md} remains binding for wiring rules.
+
+\paragraph*{5.1 s1.2 \texttt{control} - new parts}
+\begin{quote}\small\ttfamily\raggedright
+\textbar{} Ref \textbar{} Part \textbar{} Note \textbar{}\\
+\textbar{}---\textbar{}---\textbar{}---\textbar{}\\
+\textbar{} {*}{*}R218-R221{*}{*} \textbar{} 4x {*}{*}10 k{*}{*} \textbar{} `/DRV\_EN0..3` fail-safe pull-downs, one per channel, on the `/DRV\_ENn` side of the R214-R217 links. {*}{*}10 k is load-bearing - do NOT "harmonise" these to the board's usual 100 k.{*}{*} The TPS92515HV enable pin sources up to 25 uA, so 100 k sits at 2.5 V, above the 1.0 V threshold. Without them, every power-up window with `+12V` up and `+3V3` not yet (and any 12 V-only bench bring-up) leaves all four drivers undriven and latching ON - a full-current LED flash, defeating ICD s8.2. Placed with their DRIVER, not with the links. \textbar{}
+\end{quote}
+\texttt{R206} is \textbf{4.7 k 1 \%} (CR-1), not "VALUE TBD". parts.json is re-issued.
+
+\paragraph*{5.2 s1.3 \texttt{drivers} - new parts and one changed value}
+The COFF network (C304/R305/R306 per channel, s1.3 had none of it) is joined by the {*}{*}BOOT network, which s1.3 also omitted and without which the converter cannot switch at all{*}{*}:
+
+\begin{quote}\small\ttfamily\raggedright
+\textbar{} Ref (ch0; +20/channel) \textbar{} Part \textbar{} Note \textbar{}\\
+\textbar{}---\textbar{}---\textbar{}---\textbar{}\\
+\textbar{} {*}{*}C305{*}{*} \textbar{} 100 nF \textbar{} BOOT capacitor at pin 4 - the high-side FET's gate supply \textbar{}\\
+\textbar{} {*}{*}D302{*}{*} \textbar{} 1N4148W \textbar{} BOOT diode, anode on the device's own VCC (pin 2), cathode on BOOT \textbar{}\\
+\textbar{} {*}{*}C306{*}{*} \textbar{} 4.7 uF \textbar{} VCC decoupler at pin 2, datasheet sec 8.3.6 \textbar{}
+\end{quote}
+\textbf{ROFF2 (R306 etc) is 30 k, NOT 47 k.} The original 47 k was sized from TI Equation 9, which assumes VCC charges COFF through ROFF2 alone - false at ROFF1 = 10 k. The shunted COFF node then asymptotes \textbf{below} the 1.00 V VOFT at every corner, the off-timer never trips, and shunt-dimming linearity is lost - the exact Figure-43 failure the network was added to prevent. 30 k is solved jointly (\texttt{dIL\_shunt == dIL\_normal}); 0 of 243 corners now fail. {*}{*}Do not re-derive this from TI's text alone{*}{*}: Eq 1 and Eq 8 disagree about the freewheel diode drop and lead to an unsafe \textasciitilde{}38 k.
+
+\paragraph*{5.3 s1.4 \texttt{thermal} - range extended, values changed}
+\begin{itemize}
+\item Ladder + hysteresis is \textbf{R405-R416}, not R405-R412.
+\item \textbf{R402/R404 are 150 R, not "\textless{}= 1 k"}, and C402/C403 are {*}{*}4.7 uF 0805, not
+100 nF 0603{*}{*} (footprint change) so the filter stays slow at the lower R.
+\item \textbf{R413/R415} (10 k) series-protect the comparator inputs and \textbf{D401}
+(1N4148W) clamps \texttt{/NTC\_LED} to \texttt{+3V3}. The LM339LV inputs are diode-clamped
+to GND \textbf{only}, with no clamp to V+, so a series resistor alone does not
+protect them from a harness fault that puts an LED anode (6.8 V nominal,
+16.7-24.4 V at the TVS clamp) onto the sense line.
+\item Hysteresis is returned to the \textbf{protected comparator nodes}, not the sensor
+dividers. See the blocks.md B4 amendment for the solved thresholds.
+\end{itemize}
+\paragraph*{5.4 s2 net table - \texttt{/PWM0..3} correction}
+\textbf{The s2 table's `/PWM0`..`/PWM3` spelling is not what the netlist produces.} Those nets are \texttt{control}-internal and come out \textbf{`/control/PWM0..3`}; \texttt{constraints.json.high\_speed} was re-spelled to match, so all seven high\_speed consumers bind correctly. Promoting them to root-crossing names was tried and measured: it is electrically correct but raises 4x \texttt{label\_dangling}, because such a net reaches the root as wire + label + exactly ONE sheet pin, and buying the bare name would mean adding four PARTS to the root. \texttt{/ENABLE}, \texttt{/ID\_ADC}, \texttt{/I2C\_SCL} and \texttt{/I2C\_SDA} are in the identical position and are also \texttt{/control/NAME}. No constraint references those four.
+
 Full architecture narrative (not inlined; see the artifact index): \texttt{architecture/blocks.md}, \texttt{architecture/decisions.md}, \texttt{architecture/power\_tree.md}, \texttt{architecture/stackup.md}.
 \section{Schematic}
-\emph{Pending --- produced at P4.}
+Gate \texttt{erc} (phase P4): \textbf{pass} after 2 attempt(s); last 2026-08-07T13:18:16, failing 0 of 0.
+The full schematic PDF follows.
+\includepdf[pages=-]{reports/schematic.pdf}
 \section{Layout}
 \emph{Pending --- produced at P6.}
 \section{Verification}
@@ -649,10 +739,54 @@ constraints.json, decisions.md). This is the H1 checkpoint package.\\
   component bbox (every rect in constraints.json needs a P5 translation), and the\\
   antenna column has no automated checker on F.Cu/B.Cu.
 \end{quote}
+\paragraph*{P3}
+\begin{quote}\small\ttfamily\raggedright
+\# P3 Parts + Library digest - lumina-par\\
+~\\
+Artifact: `parts/parts.json` (47 lines), 18 datasheet extracts, `lib/` (91 sym /\\
+23 fp), `reports/fp\_verify\_{*}`. Ran 2026-07-28; digest written at the resume.\\
+~\\
+- Emitters 4x C22434861 RGB + 4x C48586656 white, 2S2P, 150 mA/die.\\
+- {*}{*}OPEN-8 REFUTED{*}{*}: no 140/120 deg beam mismatch - both datasheets say 140, the\\
+  LCSC record is wrong. Diffuser spec and its 30-45 \% flux cost must be re-derived.\\
+- Sense 0.75 ohm (275 mA/ch); shunt FET SSM3K2615R (C22371361).\\
+- {*}{*}COFF network was MISSING, now fitted{*}{*}: 12 parts, ROFF1 = 10k not TI's 8.2k;\\
+  without it the shunt topology loses dimming linearity (TPS92515HV 8.3.4).\\
+- CR-1 closed: R206 = 4.7 k 1 \% (supersedes sheets.md "TBD"). CR-3 adopted:\\
+  14-bit / 4.883 kHz PWM. CR-6 closed by ICD s7.7 A5. Emitter Rth still absent.\\
+- fp\_verify: 4 violations, all adjudicated (2 off-board emitter modules, thermal\\
+  pad; L301/D501 approved KiCad-stock land deltas).\\
+- {*}{*}To H2{*}{*}: shunt-FET switching UNVERIFIED at 3.3 V (toff 150 ns TYP \textgreater{} the 141 ns\\
+  pulse; both gate-path ends ungrounded -\textgreater{} P8 bench); compounded light budget;\\
+  power\_tree.md quotes 300 mA where the board builds 275 mA.\\
+- Tooling defects (central): lib\_pull false-pass, fp\_verify blind to drill,\\
+  placelib ignores pad rotation -\textgreater{} hand to P6.
+\end{quote}
+\paragraph*{P4}
+\emph{(no digest recorded)}
 \subsection*{Gate attempt history}
-\emph{(no entries)}
+{\small
+\begin{longtable}{llll}
+\toprule
+\textbf{Timestamp} & \textbf{Gate} & \textbf{Status} & \textbf{Failing/Total} \\
+\midrule
+\endhead
+2026-08-07T11:58:05 & erc & pass & 0/0 \\
+2026-08-07T13:18:16 & erc & pass & 0/0 \\
+\bottomrule
+\end{longtable}
+}
 \subsection*{Issues}
-\emph{(no entries)}
+{\small
+\begin{longtable}{llp{5cm}ll}
+\toprule
+\textbf{Id} & \textbf{Phase} & \textbf{Kinds} & \textbf{Severity} & \textbf{Status} \\
+\midrule
+\endhead
+1 &  & coff-shunt-timer-dead, drv-en-undriven-no-3v3, hysteresis-on-sensor-node, missing-bench-hazard-note, ntc-harness-input-unprotected & error & fixed \\
+\bottomrule
+\end{longtable}
+}
 \subsection*{Human checkpoints}
 {\small
 \begin{longtable}{lllp{2.6cm}p{6.4cm}}
@@ -660,7 +794,7 @@ constraints.json, decisions.md). This is the H1 checkpoint package.\\
 \textbf{Id} & \textbf{Phase} & \textbf{Status} & \textbf{When} & \textbf{Note} \\
 \midrule
 \endhead
-1 & P2 & not reached &  &  \\
+1 & P2 & approved & 2026-07-28T20:03:50 & H1 approved with 4 directed changes: (Q1) enclosure sealed + LED heat conducted through the wall; (Q2) emitter changed to RGB 3-in-1 + separate white, AGAINST the run's recommendation, chosen knowingly for a published 125 C Tj and 3.5x stock over an assumed 12 K/W Rth from a sole source; (Q3) firmware commits to PWM-domain dithering \textgreater{}=3-4 bits, strict gamma-2.2 reading of PAR-REQ-01 binds; (Q4) same-reel sourcing, 24C32 fitted but shipped empty, PAR-REQ-16/17 to be formally amended. \\
 2 & P4 & not reached &  &  \\
 3 & P6 & not reached &  &  \\
 4 & P8 & not reached &  &  \\
@@ -675,14 +809,62 @@ constraints.json, decisions.md). This is the H1 checkpoint package.\\
 \textbf{File} & \textbf{Size} & \textbf{Note} \\
 \midrule
 \endhead
-\texttt{state.json} & 5,826 B &  \\
-\texttt{requirements.md} & 39,521 B &  \\
-\texttt{architecture/blocks.md} & 28,172 B &  \\
-\texttt{architecture/constraints.json} & 7,703 B &  \\
-\texttt{architecture/decisions.md} & 34,689 B &  \\
-\texttt{architecture/power\_tree.md} & 17,385 B &  \\
-\texttt{architecture/sheets.md} & 12,214 B &  \\
-\texttt{architecture/stackup.md} & 24,580 B &  \\
+\texttt{state.json} & 74,449 B &  \\
+\texttt{kicad/lumina-par.kicad\_sch} & 21,586 B &  \\
+\texttt{requirements.md} & 42,639 B &  \\
+\texttt{architecture/blocks.md} & 36,027 B &  \\
+\texttt{architecture/constraints.json} & 16,716 B &  \\
+\texttt{architecture/decisions.md} & 63,672 B &  \\
+\texttt{architecture/p4-wiring-notes.md} & 6,439 B &  \\
+\texttt{architecture/power\_tree.md} & 36,065 B &  \\
+\texttt{architecture/sheets.md} & 15,823 B &  \\
+\texttt{architecture/stackup.md} & 45,870 B &  \\
+\texttt{reports/fp\_(module)\_C22434861.overlay.svg} & 2,952 B &  \\
+\texttt{reports/fp\_(module)\_C48586656.overlay.svg} & 1,512 B &  \\
+\texttt{reports/fp\_courtyard\_adequacy.json} & 3,018 B &  \\
+\texttt{reports/fp\_D201\_C81598.overlay.svg} & 1,128 B &  \\
+\texttt{reports/fp\_D301\_C177023.overlay.svg} & 1,146 B &  \\
+\texttt{reports/fp\_D501\_C435484.overlay.svg} & 1,131 B &  \\
+\texttt{reports/fp\_icd\_annulus.json} & 2,010 B &  \\
+\texttt{reports/fp\_J3\_C113344.overlay.svg} & 5,550 B &  \\
+\texttt{reports/fp\_J4\_C92265.overlay.svg} & 9,250 B &  \\
+\texttt{reports/fp\_J5\_C265014.overlay.svg} & 4,809 B &  \\
+\texttt{reports/fp\_L301\_C354593.overlay.svg} & 1,130 B &  \\
+\texttt{reports/fp\_Q101\_C115989.overlay.svg} & 1,514 B &  \\
+\texttt{reports/fp\_Q102\_C427379.overlay.svg} & 1,513 B &  \\
+\texttt{reports/fp\_Q301\_C22371361.overlay.svg} & 1,519 B &  \\
+\texttt{reports/fp\_U201\_C7666.overlay.svg} & 2,237 B &  \\
+\texttt{reports/fp\_U202\_C485072.overlay.svg} & 5,590 B &  \\
+\texttt{reports/fp\_U203\_C7998.overlay.svg} & 3,353 B &  \\
+\texttt{reports/fp\_U204\_C133541.overlay.svg} & 5,590 B &  \\
+\texttt{reports/fp\_U301\_C213553.overlay.svg} & 4,415 B &  \\
+\texttt{reports/fp\_U401\_C3658338.overlay.svg} & 5,517 B &  \\
+\texttt{reports/fp\_verify\_(module)\_C22434861.json} & 2,488 B &  \\
+\texttt{reports/fp\_verify\_(module)\_C48586656.json} & 2,806 B &  \\
+\texttt{reports/fp\_verify\_D201\_C81598.json} & 1,892 B &  \\
+\texttt{reports/fp\_verify\_D301\_C177023.json} & 2,273 B &  \\
+\texttt{reports/fp\_verify\_D501\_C435484.json} & 2,827 B &  \\
+\texttt{reports/fp\_verify\_J3\_C113344.json} & 2,036 B &  \\
+\texttt{reports/fp\_verify\_J4\_C92265.json} & 2,035 B &  \\
+\texttt{reports/fp\_verify\_J5\_C265014.json} & 2,417 B &  \\
+\texttt{reports/fp\_verify\_L301\_C354593.json} & 3,481 B &  \\
+\texttt{reports/fp\_verify\_Q101\_C115989.json} & 2,311 B &  \\
+\texttt{reports/fp\_verify\_Q102\_C427379.json} & 3,137 B &  \\
+\texttt{reports/fp\_verify\_Q301\_C22371361.json} & 3,277 B &  \\
+\texttt{reports/fp\_verify\_summary.json} & 9,032 B &  \\
+\texttt{reports/fp\_verify\_U201\_C7666.json} & 1,274 B &  \\
+\texttt{reports/fp\_verify\_U202\_C485072.json} & 1,827 B &  \\
+\texttt{reports/fp\_verify\_U203\_C7998.json} & 1,330 B &  \\
+\texttt{reports/fp\_verify\_U204\_C133541.json} & 1,844 B &  \\
+\texttt{reports/fp\_verify\_U301\_C213553.json} & 2,429 B &  \\
+\texttt{reports/fp\_verify\_U401\_C3658338.json} & 1,290 B &  \\
+\texttt{reports/lib\_pin\_types.json} & 20,659 B &  \\
+\texttt{reports/lib\_pull.json} & 6,069 B &  \\
+\texttt{reports/netlist\_audit.json} & 3,457 B &  \\
+\texttt{reports/review-schematic.json} & 4,062 B &  \\
+\texttt{reports/review-schematic.md} & 18,880 B &  \\
+\texttt{reports/schematic.pdf} & 491,501 B &  \\
+\texttt{reports/top.net} & 251,873 B &  \\
 \bottomrule
 \end{longtable}
 }
