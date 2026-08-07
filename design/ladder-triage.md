@@ -1,13 +1,13 @@
 # Knowledge ladder triage (T4, 2026-08-06)
 
-One row per `LEARNINGS.md` entry (186 of them; the last starts at
-line 2371), placed on the maturity ladder from
+One row per `LEARNINGS.md` entry (187 of them; the last starts at
+line 2383), placed on the maturity ladder from
 `design/routing-knowledge-notes.md` section 6, with the artifact that owns - or
 must own - it.
 
 The failure mode is knowledge sitting at the WRONG LEVEL, not knowledge volume:
 **if a script can check it, it does not belong in the prompt.** This register is
-the outer-loop worklist. `open` rows (36) are the gaps nothing owns yet -
+the outer-loop worklist. `open` rows (37) are the gaps nothing owns yet -
 they are the input to T6 (per-stage deep evaluation) and to any later step
 looking for the next promotion.
 
@@ -37,15 +37,16 @@ looking for the next promotion.
 | L0 | 30 | 5 |
 | L1 | 7 | 8 |
 | L2 | 36 | 39 |
-| L3 | 113 | 134 |
+| L3 | 114 | 135 |
 
-35 entries want to climb at least one level. Status: **done 132**,
-**open 36**, **n/a 6**, planned 12
-(T10 1, T2 10, T8 1).
+35 entries want to climb at least one level. Status: **done 133**,
+**open 37**, **n/a 6**, planned 11
+(T2 10, T8 1 - both steps have since shipped; those rows need re-reading,
+see the T9 observation in PROGRESS).
 
-Read that as: 113 entries are already correct-by-construction and 36
-are gated, but 30 still live only as prose or as this file - and 134
-of all 186 belong at L3. The backlog is concentrated in the library/parts
+Read that as: 114 entries are already correct-by-construction and 36
+are gated, but 30 still live only as prose or as this file - and 135
+of all 187 belong at L3. The backlog is concentrated in the library/parts
 pull path, the placement legality model, and the KRT/Freerouting driver.
 
 Open rows by owning artifact (top of the T6 worklist):
@@ -149,7 +150,7 @@ the row's Now level and status in the same commit as the code.
 | 47 | 416 | Freerouting 2.2.4 verified flags + completion parse | [freerouting] | L3 | L3 | scripts/lib/routelib.py | done |  |
 | 48 | 425 | KRT 0.19.0 vendored: no-KiCad headless router | [parts][python] | L3 | L3 | scripts/lib/env.py | done |  |
 | 49 | 435 | FR DSN reader can WEDGE on KRT copper - detect + fall back | [freerouting][routing] | L3 | L3 | scripts/route_auto.py | done |  |
-| 50 | 445 | P7 chain order is board-class dependent; plane nets not outer-trunked | [routing][placement] | L0 | L3 | agents/router.md | planned-T10 | T10 task recipes should encode the per-class stage order so it cannot drift; plane half already correct by construction |
+| 50 | 445 | P7 chain order is board-class dependent; plane nets not outer-trunked | [routing][placement] | L0 | L3 | agents/router.md | open | T10 declined it: the chain order is a router-INTERNAL stage sequence, and copying it into reference/recipes/full-run.md would create a SECOND copy to drift (the recipe points at agents/router.md instead). Real promotion = route_auto/route_critical selecting the chain from the board's layer count in code; no step owns that yet. Plane half already correct by construction (route_critical skips plane-carried nets) |
 | 51 | 453 | Via-candidate obstacles = WIRED copper only; 1-layer-bond vias dangle | [stitch][geometry] | L3 | L3 | scripts/stitch_vias.py | done |  |
 | 52 | 461 | zones_intersect fires on same-net same-priority overlaps | [kicad-cli][drc][zones] | L3 | L3 | scripts/planes_gen.py | done |  |
 | 53 | 467 | Courtyard-only packing is silk-blind; KRT leaves sub-grid crumbs | [placement][routing] | L3 | L3 | scripts/place_anneal.py + scripts/silk_place.py | done | T6 (P6A-6+p1): --margin-mm soft spacing (default 0.0; buffers SA overlap term + repair targets, legality keeps true courtyards) and silk_place.py owns the refdes sweep with real-DRC verify; a full silk model in SA was evaluated and rejected |
@@ -286,3 +287,4 @@ the row's Now level and status in the same commit as the code.
 | 184 | 2337 | KiCad 10 ships its OWN demos in KiCad-9 format, and `sch upgrade` does | [kicad-cli][kicad][intake] | L2 | L2 | scripts/intake.py | done | T9: intake upgrades EVERY .kicad_pcb/.kicad_sch copy (the hierarchy walk, not just the root) and then refuses any project whose files of one type still disagree; the upgrade's own non-zero exit is the "newer than the pin" probe, so no format-version table is hardcoded anywhere |
 | 185 | 2358 | A user-RENAMED copper layer changes the gerber FILE NAME, and every na | [gerber][dfm][gerblib] | L3 | L3 | scripts/lib/gerblib.py | done | T9: FabStack._scan falls back to the Protel extension (.gtl/.gbl/.g<n>) when the canonical layer token is absent, so dfm_check works on any board whose copper layers were renamed; both naming styles pinned by tests |
 | 186 | 2371 | `${KICAD<n>_FOOTPRINT_DIR}` is a KiCad-INTERNAL variable, not an OS en | [kicad][intake][parts] | L3 | L3 | scripts/intake.py | done | T9: classify_uri resolves the KICAD<n>_* family against the pinned install's share dir (KIPRJMOD escapes are imported + rewritten); residual - only intake resolves lib-table URIs today, any future consumer must reuse classify_uri rather than os.path.expandvars |
+| 187 | 2383 | A `--flag` that APPEARS in a script is not a flag it accepts - validate | [skill][tests][router] | L3 | L3 | scripts/task_router.py | done | T10: validate_registry checks every recipe command against the script's add_argument declarations AND its add_parser subcommands (loop-registered ones included); test_flag_check_rejects_a_flag_that_only_appears_in_the_source and test_subcommand_check_catches_a_typo pin both halves. Deliberately NOT retro-fitted to reference/remediations (its citation style makes nearest-script attribution false) |

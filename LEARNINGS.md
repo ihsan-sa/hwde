@@ -2379,3 +2379,25 @@ another generation (`KICAD9_*` under the 10 pin) still resolves there - worth ON
 not one warning per library. `${KIPRJMOD}` is the only variable a copy-in importer must resolve
 itself, and a `${KIPRJMOD}/../..`-style URI that climbs OUT of the project is the shared-library
 trap from 2026-07-28 [librarian][kicad]: import the target and rewrite the URI in the COPY.
+
+## 2026-08-07 [skill][tests][router] A `--flag` that APPEARS in a script is not a flag it accepts - validate against add_argument, or ship invocations that die instantly
+T4's remediation-ref test asserts `flag in source_text`. T10 reused that rule for the task
+recipes and it green-lit FOUR invocations that would have failed on first use, because a script
+that drives other tools naturally contains their flags: `gate.py --pcb <board>` (gate.py's input
+is POSITIONAL; the `--pcb` in its source belongs to the kc.py commands it builds), `route_auto.py
+--nets X` (route_auto has NO net scope at all - that string is what it passes to KRT's route.py;
+the per-net router is `route_critical.py --nets`), `lib_pull.py --full` (passed through to
+easyeda2kicad), and `parts_search.py "<query>"` (the query is `--query`, not positional). The
+strong form is: collect `add_argument("--flag")` declarations, and for subcommand scripts collect
+`add_parser("name")` INCLUDING the loop-registered ones (state.py adds show/resume/freshness via
+`for name in (...)`, so a literal-only scrape declares `state.py resume` unknown). Scope matters
+though: retro-fitting the strict rule to the 14 T4 refs produces 5 findings that are ALL false -
+their citation style ("route_critical.py passes `--board-edge-clearance`", "`kc.py:461-462` ...
+re-run with `--verify-fill`") defeats nearest-script attribution. Strict validation belongs where
+commands are written to be RUN (reference/tasks.yaml, reference/recipes/), not where they are
+cited as provenance. Second half of the same lesson, found by hand right after: existence is not
+SEMANTICS. `route_critical.py --nets` IS declared and passed the strict check, but it is consumed
+only by the `--pad-window` probe (route_critical.py:1146-1147) - routing scope is `--only
+diff|rf|power` from constraints, and NO script re-routes one named net end to end (that is a
+route_edit op list). A checker can prove a flag exists; only reading the code proves it does what
+the sentence around it claims.

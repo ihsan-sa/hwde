@@ -41,7 +41,7 @@ T7 -> T8 || T9 -> T10. T11 runs as soon as boards arrive (not during T6).
 | T7 | Freshness-aware state + invalidation map | **done** | 2026-08-07 |
 | T8 | Incremental board update (board_update.py, kills OI-3) | **done** | 2026-08-07 |
 | T9 | External-board intake (intake.py) | **done** | 2026-08-07 |
-| T10 | Task router + SKILL v2 (taxonomy, recipes, full run = special case) | pending | - |
+| T10 | Task router + SKILL v2 (taxonomy, recipes, full run = special case) | **done** | 2026-08-07 |
 | T11 | Hardware bring-up leg (run when boards arrive) | pending | - |
 
 Dependency graph (plan): S0 -> S1 -> S2 -> S3 -> {S4, S5}; S0 -> S6 -> S7; S2 -> S8 -> S9 -> S10 -> S11;
@@ -2901,3 +2901,164 @@ the upgrade leg. LEARNINGS 2026-08-07 [kicad-cli][kicad][intake].
 
 **New verify-later items:** none. (V20 unchanged - intake exercises gates on
 imported boards, not the T6 route_cleanup live-run leg.)
+
+## T10 - Task router + SKILL v2 (2026-08-07) - DONE
+
+The skill is an EE picking up a project in any state: `/ai-ee <task>` matches an
+explicit verb table FIRST, the recipe is planned deterministically, and the full
+pipeline is one of the verbs rather than a separate code path.
+
+**Suite state at open:** 1368 passed / 1 failed - the standing `net`-marked
+AP63203 live-stock test (T2/T3/T5/T6/T8/T9 precedent). Dirty tree at open (NOT
+mine, still uncommitted from a prior session): pd-trigger + stm32-blinky
+design-doc pdf/tex regenerations.
+
+**Built:**
+- `reference/tasks.yaml` (NEW) - the taxonomy: 13 verbs (review, fix-finding,
+  move, swap-part, add-part, remove-part, reroute-net, make-footprint,
+  dfm-check, order, track, resume-phase, full-run), each with match regexes
+  (`any` / `all` / `not` / `weight`), typed argument slots carrying the question
+  to ask, preconditions, and a step list. Step vocabulary: `do` (a concrete
+  command), `gate`, `agent` (+ tier), `human`, `recipe` (composition), `note`.
+  `variants` (conditions `has_arg:` / `has_workspace` / `matches:<re>` /
+  `always`) express the two shapes of `review` (external intake vs an existing
+  workspace) and of `move` (footprint = move_fp hold 1 vs label = silk_edit
+  hold 0). **Gates and ceremony are never restated**: a verb names its
+  `edit_class` and the router reads `reference/invalidation.yaml` for the gate
+  set + human_hold (T7's interface note); the schema REFUSES a verb that carries
+  both (test-pinned).
+- `scripts/task_router.py` (NEW) - the front door. Matching is scored regex
+  (distinct `any` hits + weight); a unique winner plans (exit 0), a tie returns
+  `candidates` + the question (exit 1 `ambiguous`), nothing returns `unknown`,
+  and **the LLM fallback lands back in the same machinery via `--verb`** - there
+  is one planner, not two. Arg extraction is deterministic with a per-arg policy
+  (`only` default / `first` = the grammatical subject / `none`): "move C12
+  closer to U1" binds C12, "add a cap on U1" binds NOTHING (that refdes names
+  the IC being decoupled, not the new part), and an LCSC id is never confused
+  with a capacitor refdes. Paths bind through `statelib.kind_path`, so a
+  workspace with a registry override plans against ITS layout. Preconditions are
+  evaluated against live state (`gates_fresh:<g>` uses the T7 two-layer verdict,
+  plus `no_open_issues`, `board_exists`, ...) -> exit 1 `blocked` with the
+  reason. `--validate` is a registry self-check; `--list` is the verb table.
+- `reference/recipes/<verb>.md` (NEW, 13 + README) - the judgment half of each
+  recipe: what the step means, what it is blind to, when to stop and ask. The
+  per-phase playbook and the sim legs moved OUT of SKILL.md into `full-run.md`
+  (the recipe loads exactly when it is needed - the ladder rule).
+- `SKILL.md` v2: **281 -> 226 lines** (ceiling 286). New front-door section
+  (route first, read `recipe.doc`, exit-1 statuses say whose decision it is),
+  gate table gains `drc` and `sim` (both existed in gates.yaml and were missing
+  from the playbook), rule 3 now names `state.py edit --class` (the thing that
+  stamps derived artifacts stale), the fix loop gains the declare-the-class
+  step, and the rewind note points at T8's verbs instead of a full re-place.
+  `commands/ai-ee.md` rewritten for task entry.
+- `tests/test_task_router.py` (NEW, 115 tests: 114 pure / 1 smoke).
+
+  Two honesty details worth naming: every gate step carries its `input` and
+  `input_exists`, because the map lists `sim` for every part-level edit class
+  while a board without testbenches has no `kicad/sims` - and `gate.py` RAISES
+  on a missing input rather than reporting a skip, so the plan says "skip it"
+  up front. And the flag check reaches PROSE, not just commands.
+
+**Acceptance evidence (plan criteria):**
+- **Dry-run per verb**: `test_every_verb_plans_on_a_real_workspace` builds a
+  pd-trigger workspace from the frozen stage fixtures (routed board + sidecars +
+  schematic + netlist, state v2 with all five gates recorded so the T7 input
+  hashes exist) and plans all 13 verbs end to end: every step bound (no `{slot}`
+  survives), every command naming an existing script, every agent prompt
+  present, and for the classed verbs the gate set + hold equal to
+  invalidation.yaml's.
+- **Full-run behaves as v1**: `test_full_run_gate_sequence_is_the_pipeline_gate_order`
+  asserts the recipe's gate steps ARE `state.GATE_ORDER`, and the S13 dry-run
+  (`test_dryrun_p4_p8_with_kill_and_resume`: P4->P8 on a blinky2-derived
+  workspace with two injected mutations, killed and resumed) passes unchanged
+  after the SKILL restructure - re-run in isolation as well as in the suite.
+- **Front-door honesty**: 22 canonical phrasings each route to exactly one verb
+  with a strictly higher score; "fix or move C12" returns candidates instead of
+  a coin flip; "make the LEDs prettier" asks; `--verb` forces; ordering on a
+  workspace whose board changed after the dfm gate is `blocked` with "gate dfm
+  is marked stale".
+- **Registry is real**: `--validate` -> 0 problems; every script, flag,
+  subcommand, agent prompt, gate, edit class and doc named in tasks.yaml or in a
+  recipe doc exists (see the LEARNINGS entry below - the strict form caught four
+  hallucinated invocations that a T4-style check had passed).
+- SKILL.md 226 <= 286 (`test_skill_md_does_not_grow`); every verb appears in
+  both SKILL.md and tasks.yaml (`test_skill_md_lists_exactly_the_registry_verbs`).
+- Suite at close: **1483 passed / 1 failed** (check.cmd's two legs run
+  directly: pytest, then check_env --quiet exit 0). +115 vs T9's 1368, and
+  1368 + 115 = 1483 confirms every new test ran; the one failure is the same
+  standing `net`-marked AP63203 live-stock test (the anonymous JLCPCB search
+  returns 0 hits for it today - parts code untouched this session).
+
+**Live defect caught while building (why the flag check was hardened):** the
+first draft of tasks.yaml shipped `gate.py --pcb ... --reports-dir`,
+`route_auto.py --nets`, `lib_pull.py --full` and `parts_search.py "<query>"` -
+all four PASSED a T4-style `flag in source_text` check, because a script that
+drives other tools contains their flags. gate.py's input is positional;
+route_auto has no net scope at all (the per-net router is `route_critical.py
+--nets`); `--full` belongs to easyeda2kicad; the query is `--query`. Fixed in
+the recipes and in the validator (add_argument declarations plus add_parser
+subcommands, loop-registered ones included) - and the check reaches PROSE too:
+a `note` telling the operator to run `kc.py drc --refill-zones` is as wrong as
+a command that says it (kc.py's flag is `--refill`; `--refill-zones` is
+kicad-cli's), and two live notes carried exactly that. The prose scan stops at
+the first ordinary word, so a true negative statement ("route_auto has no
+--nets") is left alone - both halves are test-pinned.
+
+Then the second half of the same lesson, found by READING the code rather than
+by any checker: existence is not semantics. `route_critical.py --nets` IS
+declared and passed the strict check, but it feeds the `--pad-window` probe only
+(route_critical.py:1146-1147); routing scope is `--only diff|rf|power` from
+constraints, and **no script re-routes one named net end to end** - that is a
+route_edit op list. The reroute-net recipe now says exactly that, and gained the
+pad-window measurement as its "before you widen" step. LEARNINGS 2026-08-07
+[skill][tests][router] (both halves), triage row 187.
+
+**Deviations from the plan (with reasons):**
+1. "LLM classification only as fallback" is implemented as a ROUND TRIP
+   (`exit 1 ambiguous/unknown` -> the model picks -> `--verb <name>`) rather
+   than as a second in-script path: one planner, and the classification is
+   visible in the payload (`match.how = table|forced`).
+2. The router PLANS, it does not EXECUTE. Executing would move the
+   orchestrator's judgment (which agent, when to stop) into a script and break
+   rule 1's division of labour. "Dry-run per verb" is therefore: bind the plan
+   against a real workspace, prove every command is runnable, and check
+   preconditions - which is what the tests do.
+3. Ladder-triage row 50 (P7 chain order per board class) was marked
+   `planned-T10`; T10 DECLINED it and set it back to `open` with the reason:
+   copying the chain into `recipes/full-run.md` would create a second copy of
+   what `agents/router.md` already says. The real promotion is route_auto /
+   route_critical choosing the chain from the layer count in code; no step owns
+   that yet.
+4. `reference/remediations/` was deliberately NOT re-validated under the strict
+   flag rule: its citation style ("route_critical.py passes
+   `--board-edge-clearance`", "`kc.py:461-462` ... re-run with `--verify-fill`")
+   defeats nearest-script attribution and produces 5 findings, all false.
+5. Recipe docs cap at 120 lines (the remediation refs' cap is 90):
+   `full-run.md` legitimately carries the whole per-phase playbook that left
+   SKILL.md. Every other recipe lands at 25-62.
+
+**Interface notes for later steps:**
+- T11 (bring-up): a `bringup` verb is additive - a row in
+  `reference/tasks.yaml` plus `reference/recipes/bringup.md`; the tests enforce
+  the shape and `--validate` names anything missing. Add the verb name to
+  SKILL.md's verb line in the same commit (a test asserts the two lists are
+  equal).
+- Plan payload (stable): `{status, match{verb,how,score,matched}, candidates[],
+  workspace, board, workspace_exists, args{}, needs[{arg,question}],
+  preconditions[{name,ok,detail}], recipe{verb,summary,doc,variant,edit_class,
+  human_hold,human_hold_source,gates,gates_source,stale_artifacts,steps[],
+  remediations[]}, state{phase,gates_passed,gates_stale,
+  gates_freshness_unknown,human_hold_pending,open_issues}}`. Exit 0 planned /
+  1 ambiguous|unknown|needs_args|blocked / 2 error.
+- `task_router.validate_registry()` is importable and pure - the shape check for
+  any future verb, and the strict flag/subcommand checker other doc tests can
+  reuse (`_declared_flags` in tests/test_task_router.py shows the form).
+- A verb with an `edit_class` may not carry `gates` or `human_hold`; the router
+  appends the mapped gates (in phase order) after the recipe's own steps, so a
+  recipe only lists a gate when its ORDER matters mid-sequence.
+- `fix-finding` infers `{gate}` and its report path when the workspace has
+  EXACTLY ONE failing gate and that report is on disk; two failing gates ->
+  `needs_args`, never a guess.
+
+**New verify-later items:** none. (V20 unchanged - the router is planning-only
+and touches no board; its first live exercise is the next real run.)

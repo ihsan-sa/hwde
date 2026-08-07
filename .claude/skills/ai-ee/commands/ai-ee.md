@@ -1,20 +1,28 @@
-# /ai-ee - AI PCB design pipeline
+# /ai-ee - AI PCB engineer
 
 Usage:
-- `/ai-ee <board description>` - start a new design run (attach docs freely:
-  requirements, datasheets, mechanical constraints - they land in `brief/`).
+- `/ai-ee <task>` - anything an EE would be asked: "review this board",
+  "fix the verify findings", "move C12 off the connector", "swap R5 for a 10k",
+  "add a 100nF on U1 pin 12", "re-route +3V3", "make a footprint for C5184243",
+  "is this manufacturable", "order 5 boards", "where's my order" - and
+  "design me a USB-C PD trigger board", which is the whole pipeline.
+  Attach docs freely (requirements, datasheets, mechanical constraints) - they
+  land in `brief/`.
 - `/ai-ee --resume <workspace>` - continue a run from its `state.json`
   (e.g. `/ai-ee --resume boards/rf-amp-ctrl`).
 
 On invocation:
-1. Read `.claude/skills/ai-ee/SKILL.md` (the orchestrator playbook) and
-   follow it exactly - it defines the phase machine, gates, fix loops,
-   state recording, and human checkpoints.
-2. New run: derive a short kebab-case board name from the description,
-   create `boards/<name>/`, run `scripts/check_env.py`, `state.py init`,
-   and enter P0 (requirements intake).
-3. Resume: `state.py resume --workspace <ws>`, log the resume event, and
-   re-enter at the next unmet gate or checkpoint.
+1. Read `.claude/skills/ai-ee/SKILL.md` (the orchestrator playbook) and follow
+   it exactly - it defines the front door, the phase machine, gates, the fix
+   loop, state recording, and human checkpoints.
+2. Route the task FIRST:
+   `scripts/task_router.py --task "<the user's words>" [--workspace boards/<name>]`
+   exit 0 -> follow `recipe.doc` + `recipe.steps`; exit 1 -> the payload says
+   whether to classify (`--verb`), ask the user, or clear a blocked
+   precondition. Never hand-assemble a recipe the table already has.
+3. A task that needs a NEW workspace (a full run, or importing an outside
+   project) derives a short kebab-case board name, creates `boards/<name>/`,
+   and runs `check_env.py` + `state.py init` as the recipe's first steps.
 
-The orchestrator never opens design files; all design work happens in
-spawned subagents using the role prompts in `.claude/skills/ai-ee/agents/`.
+The orchestrator never opens design files; all design work happens in spawned
+subagents using the role prompts in `.claude/skills/ai-ee/agents/`.
