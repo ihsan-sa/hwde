@@ -216,10 +216,11 @@ def sch_metrics(sch_paths: list[Path], clearance: float = 0.254) -> dict:
 # ------------------------------------------------------ P2 constraints leg
 
 def placement_refs_missing(constraints: dict, components: dict) -> list[str]:
-    """Placement-section refs that do not exist in the netlist components.
-
-    netlist_audit checks nets; this covers the refs the plan's P2 scorer
-    needs (edges/groups anchors+members/separation lists).
+    """Constraints refs that do not exist in the netlist components
+    (placement edges/groups/fixed/separation + thermal[].ref - the same
+    walk netlist_audit's missing_ref check performs; bench's score_p2
+    counts the defect HERE and filters kind missing_ref out of its
+    audit_errors tally so it keeps exactly one weight).
     """
     placement = constraints.get("placement") or {}
     refs: list[str] = []
@@ -228,9 +229,12 @@ def placement_refs_missing(constraints: dict, components: dict) -> list[str]:
     for g in placement.get("groups") or []:
         refs.append(g.get("anchor"))
         refs.extend(g.get("members") or [])
+    refs.extend(placement.get("fixed") or [])
     for s in placement.get("separation") or []:
         refs.extend(s.get("a") or [])
         refs.extend(s.get("b") or [])
+    for t in constraints.get("thermal") or []:
+        refs.append(t.get("ref"))
     missing = sorted({r for r in refs if r and r not in components})
     return missing
 

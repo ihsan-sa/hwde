@@ -2241,3 +2241,19 @@ Silent-failure shape: no error, just a wrong empty set. `git status --porcelain 
 lists every untracked FILE individually and the prefix filter works. Any code that
 partitions porcelain output by path prefix (scoped staging, litter assertions, workspace
 diffs) needs `-uall` or a directory-aware matcher.
+
+## 2026-08-06 [kicad-sch-api][kicad][python] ksa mirrors PIN POSITIONS at 90/270; KiCad rotates FIRST then mirrors - and ERC cannot see swapped pins
+Two transform facts settled by the T6 rotmirror fixture (kicad-cli 10.0.3 ERC + netlist
+oracle, tests/fixtures/sch/rotmirror), correcting the 2026-07-28 "inward stubs" entry:
+(a) The V19 inward-stub defect was NEVER stub_dir's sign - stub_dir's composition matches
+real KiCad at every rotation. kicad-sch-api 0.5.6 `get_component_pin_position` rotates the
+wrong way at 90/270, returning the true position MIRRORED through the anchor (R(-t) vs
+R(t); at right angles the correction is a point reflection). ERC-measured: rot-90 Device:R
+pin1 (lib (0,+3.81)) is truly at anchor x-3.81; ksa says x+3.81. schlib.pin_pos now
+reflects ksa's answer back through the anchor for rot 90/270, so generators may rotate
+freely. (b) KiCad composes instance transforms ROTATION FIRST, THEN mirror (page frame).
+schem_refdes.to_page originally mirrored first - identical results for mirror-only or
+rotation-only instances, but a rot90+mirror part gets its two pins SWAPPED. ERC is blind
+to this (the pin position SET is unchanged - both wires still land on pins); only the
+exported netlist shows the wrong memberships. Any transform fixture must therefore assert
+per-pin NET assignment, not just ERC 0/0.

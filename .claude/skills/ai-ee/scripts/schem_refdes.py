@@ -217,28 +217,35 @@ def to_page(lx: float, ly: float, at: tuple[float, float, float],
             mirror: str | None) -> tuple[float, float]:
     """Library coordinates (y up) -> page coordinates (y down).
 
-    Verified against wire endpoints: a Device:C pin at library (0, +3.81) with
-    the symbol at page (152.40, 240.03) is wired at page y 236.22 = 240.03-3.81.
+    KiCad applies the instance ROTATION first, then the mirror across the
+    page axis (T6 rotmirror fixture: kicad-cli ERC + netlist oracle over
+    rot 0/90/180/270, mirror x/y and rot90+mirror x - the reversed order
+    swaps the pins of a rotated+mirrored part; also verified against wire
+    endpoints: a Device:C pin at library (0, +3.81) with the symbol at page
+    (152.40, 240.03) is wired at page y 236.22 = 240.03-3.81).
     """
     ux, uy = lx, -ly
-    if mirror == "y":
-        ux = -ux
-    elif mirror == "x":
-        uy = -uy
     a = math.radians(at[2])
     ca, sa = math.cos(a), math.sin(a)
-    return (at[0] + ux * ca + uy * sa, at[1] - ux * sa + uy * ca)
+    rx, ry = ux * ca + uy * sa, -ux * sa + uy * ca
+    if mirror == "y":
+        rx = -rx
+    elif mirror == "x":
+        ry = -ry
+    return (at[0] + rx, at[1] + ry)
 
 
 def _xform_geom(g, at, mirror):
+    """Same composition as to_page: y-flip, rotate, THEN mirror (KiCad
+    order - see to_page's fixture note); no-op difference when unmirrored."""
     from shapely import affinity
+    g = affinity.scale(g, xfact=1, yfact=-1, origin=(0, 0))   # y up -> y down
+    if at[2] % 360:
+        g = affinity.rotate(g, -at[2], origin=(0, 0))
     if mirror == "y":
         g = affinity.scale(g, xfact=-1, yfact=1, origin=(0, 0))
     elif mirror == "x":
         g = affinity.scale(g, xfact=1, yfact=-1, origin=(0, 0))
-    g = affinity.scale(g, xfact=1, yfact=-1, origin=(0, 0))   # y up -> y down
-    if at[2] % 360:
-        g = affinity.rotate(g, -at[2], origin=(0, 0))
     return affinity.translate(g, at[0], at[1])
 
 

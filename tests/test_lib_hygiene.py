@@ -31,6 +31,7 @@ sys.path.insert(0, str(SCRIPTS / "lib"))
 import fpfix  # noqa: E402
 import lib_pull  # noqa: E402
 import schem_refdes as sr  # noqa: E402
+import schlib  # noqa: E402
 
 C0603 = "C0603"
 LED = "LED-SMD_L1.6-W0.8-R-RD"
@@ -298,6 +299,132 @@ def test_cli_exit_codes(tmp_path, sheets):
     assert rc == 0
     assert json.loads(out.read_text(encoding="utf-8"))["mode"] == "dry-run"
     assert sr.main(["--sch", str(tmp_path / "missing.kicad_sch")]) == 2
+
+
+# ------------------------------------------------- V19 rotation/mirror oracle
+#
+# tests/fixtures/sch/rotmirror: 7 Device:R instances (rot 0/90/180/270,
+# mirror x, mirror y, rot90+mirror x), every pin wired stub+label, captured
+# ONLY after kicad-cli 10.0.3 ERC reported 0/0 AND the exported netlist put
+# every pin on its designed net.  What the build falsified (T6): the V19
+# "inward stubs" were ksa's pin POSITIONS mirrored at 90/270 (fixed in
+# schlib.pin_pos), NOT stub_dir's sign; and to_page originally composed
+# mirror BEFORE rotation - KiCad rotates first, which SWAPS the pins of a
+# rotated+mirrored part (caught by the netlist leg, invisible to ERC).
+
+ROTMIRROR = ROOT / "tests" / "fixtures" / "sch" / "rotmirror" / "rotmirror.kicad_sch"
+
+# the fixture's design table: ref -> (rotation, mirror, {pin: net})
+ROTMIRROR_DESIGN = {
+    "R1": (0.0, None, {"1": "N1", "2": "N7"}),
+    "R2": (90.0, None, {"1": "N2", "2": "N1"}),
+    "R3": (180.0, None, {"1": "N3", "2": "N2"}),
+    "R4": (270.0, None, {"1": "N4", "2": "N3"}),
+    "R5": (0.0, "x", {"1": "N5", "2": "N4"}),
+    "R6": (0.0, "y", {"1": "N6", "2": "N5"}),
+    "R7": (90.0, "x", {"1": "N7", "2": "N6"}),
+}
+
+
+def _numbered_lib_pins(sheet, lib_id):
+    """[(number, (lx, ly), lib_rotation, length)] of an embedded symbol."""
+    block = sr._kid(sheet.root, "lib_symbols")
+    for sym in sr._kids(block, "symbol"):
+        if str(sr._tok(sym[1])) != lib_id:
+            continue
+        out = []
+        for sub in [sym] + sr._kids(sym, "symbol"):
+            for g in sub[1:]:
+                if isinstance(g, list) and g and sr._tok(g[0]) == "pin":
+                    a = sr._nums(sr._kid(g, "at"))
+                    ln = sr._nums(sr._kid(g, "length"))
+                    num = str(sr._tok(sr._kid(g, "number")[1]))
+                    out.append((num, (a[0], a[1]), a[2], ln[0]))
+        return out
+    raise AssertionError(f"{lib_id} not embedded in the fixture")
+
+
+def _wires_and_labels(sheet):
+    wires = [sr._pts(w) for w in sr._kids(sheet.root, "wire")]
+    labels = []
+    for lb in sr._kids(sheet.root, "label"):
+        a = sr._nums(sr._kid(lb, "at"))
+        labels.append((str(sr._tok(lb[1])), (a[0], a[1])))
+    return wires, labels
+
+
+def _close(a, b, tol=0.01):
+    return abs(a[0] - b[0]) < tol and abs(a[1] - b[1]) < tol
+
+
+def test_rotmirror_covers_all_configs_and_to_page_hits_wire_endpoints():
+    """to_page(pin) must BE a wire endpoint for every rot/mirror config."""
+    sheet = sr.Sheet(ROTMIRROR)
+    got = {s["ref"]: (s["at"][2], s["mirror"]) for s in sheet.symbols}
+    assert got == {r: (rot, mir)
+                   for r, (rot, mir, _n) in ROTMIRROR_DESIGN.items()}
+    wires, _ = _wires_and_labels(sheet)
+    endpoints = [p for w in wires for p in (w[0], w[-1])]
+    for sym in sheet.symbols:
+        for _num, lp, _rot, _ln in _numbered_lib_pins(sheet, sym["lib_id"]):
+            page = sr.to_page(lp[0], lp[1], sym["at"], sym["mirror"])
+            assert any(_close(page, e) for e in endpoints), \
+                f"{sym['ref']} pin at {page}: no wire endpoint there"
+
+
+def test_rotmirror_per_pin_net_assignment():
+    """Each pin's wire must end at the label of ITS designed net - pins
+    swapped by a wrong transform order pass ERC but fail here (this is the
+    hermetic twin of the netlist oracle the fixture was captured against)."""
+    sheet = sr.Sheet(ROTMIRROR)
+    wires, labels = _wires_and_labels(sheet)
+    for sym in sheet.symbols:
+        _rot, _mir, nets = ROTMIRROR_DESIGN[sym["ref"]]
+        for num, lp, _lr, _ln in _numbered_lib_pins(sheet, sym["lib_id"]):
+            page = sr.to_page(lp[0], lp[1], sym["at"], sym["mirror"])
+            far = next((w[-1] if _close(page, w[0]) else w[0]
+                        for w in wires
+                        if _close(page, w[0]) or _close(page, w[-1])), None)
+            assert far is not None, f"{sym['ref']}.{num}: no wire at {page}"
+            hit = next((n for n, at in labels if _close(far, at)), None)
+            assert hit == nets[num], (
+                f"{sym['ref']}.{num}: wired to '{hit}', designed "
+                f"'{nets[num]}'")
+
+
+def test_rotmirror_stub_dir_agrees_with_transform():
+    """schlib.stub_dir vs the to_page-derived outward pin axis: they agree
+    at every rotation (V19's sign bug was ksa's positions, not stub_dir)."""
+    sheet = sr.Sheet(ROTMIRROR)
+    for sym in sheet.symbols:
+        if sym["mirror"] is not None:
+            continue                      # stub_dir has no mirror input
+        for num, lp, librot, ln in _numbered_lib_pins(sheet, sym["lib_id"]):
+            conn = sr.to_page(lp[0], lp[1], sym["at"], None)
+            import math
+            body = sr.to_page(lp[0] + ln * math.cos(math.radians(librot)),
+                              lp[1] + ln * math.sin(math.radians(librot)),
+                              sym["at"], None)
+            d = (conn[0] - body[0], conn[1] - body[1])
+            n = max(abs(d[0]), abs(d[1]))
+            outward = (round(d[0] / n), round(d[1] / n))
+            assert schlib.stub_dir(librot, sym["at"][2]) == outward, \
+                f"{sym['ref']}.{num}"
+
+
+def test_rotmirror_place_sheet_clears_every_field():
+    res = sr.place_sheet(sr.Sheet(ROTMIRROR))
+    assert res["residue"] == []
+
+
+@pytest.mark.smoke
+def test_rotmirror_erc_oracle():
+    """The machine oracle itself: kicad-cli ERC must stay 0/0."""
+    erc = subprocess.run([sys.executable, str(SCRIPTS / "kc.py"), "erc",
+                          str(ROTMIRROR)], capture_output=True, text=True,
+                         encoding="utf-8", errors="replace")
+    payload = json.loads(erc.stdout)
+    assert payload["counts"]["total"] == 0, payload["violations"]
 
 
 @pytest.mark.smoke

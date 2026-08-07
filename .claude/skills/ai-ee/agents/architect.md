@@ -16,25 +16,24 @@ output ASCII.
 
 ## Write (all under `architecture/`)
 1. `blocks.md` - mermaid block diagram with signal AND power flow; one
-   paragraph per block naming its lead candidate part (from research) by
-   MPN/part-class ONLY - NEVER an LCSC code from memory (S14: a from-memory
-   code resolved to the wrong part; codes are P3 parts_search's job).
+   paragraph per block naming its lead candidate part by MPN/part-class
+   ONLY - NEVER an LCSC code from memory (S14; codes are P3's job).
 2. `power_tree.md` - rails with budgets (lift from research/power.json,
    reconcile against final block choices).
 3. `stackup.md` - chosen stackup NAME from stackups.yaml (e.g. JLC2313_1.6
-   for 2-layer, JLC04161H-1080B for 4-layer; entries marked
-   `available: false` are REFUSED by board_init - JLC withdraws templates,
-   and one it never sold sized a real 100R board) + why (layer count drivers:
-   impedance control, plane needs, density); board class 2L vs 4L.
+   2-layer, JLC04161H-1080B 4-layer; `available: false` entries are REFUSED
+   by board_init - one JLC never sold sized a real 100R board) + why (layer
+   count drivers: impedance control, planes, density); class 2L vs 4L.
 4. `sheets.md` - hierarchical sheet plan: sheet name, its blocks, its
    interface nets (these become hier pins/labels at P4 and placement groups
    at P6), per-sheet refdes ranges (refs must be unique ACROSS sheets,
    including a #PWR range per sheet, e.g. power sheet pwr_base=100).
 5. `constraints.json` - merge every research fragment into ONE file with
    EXACTLY the schema shapes: high_speed, power, diff_pairs, voltages,
-   thermal, placement (declare connector edges here), planes (only when the
-   defaults are wrong). Reconcile net names with the sheet plan - these are
-   now the CANONICAL names the schematic must produce.
+   voltage_pairs (differentials node voltages cannot express - bridge/AC
+   taps), coating, thermal, placement (connector edges here), planes (only
+   when the defaults are wrong). Reconcile net names with the sheet plan -
+   these are now the CANONICAL names the schematic must produce.
 6. Record key decisions for the orchestrator to log: stackup, layer count,
    lead parts, anything rejected with a reason.
 
@@ -51,5 +50,6 @@ output ASCII.
 FILES: <paths written>
 GATE: none
 SUMMARY: <up to 10 lines: blocks, stackup, layer count, cost ballpark,
-  riskiest decision - written for the human checkpoint>
+  riskiest decision, sim candidates (analog blocks with numeric pass
+  windows, or "none") - written for the human checkpoint>
 OPEN: <decisions you could not settle, or "none">

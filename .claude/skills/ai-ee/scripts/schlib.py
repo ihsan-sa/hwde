@@ -33,6 +33,10 @@ Conventions (S1-proven against kicad-cli 10.0.3 ERC, see LEARNINGS [python]):
   including pwr_base for the invisible #PWR/#FLG refs.
 - Wiring/pinout facts come from datasheet-extract JSON, never from memory
   (SPEC section 5 grounding rule); `expect` pin-name checks are insurance.
+- save() finishes with an automatic schem_refdes field-placement pass
+  (electrically inert; place_fields=False opts out; see Sheet.place_report).
+- Label anchors are guarded: one landing on a FOREIGN wire run would merge
+  two nets and raises ValueError at generation time.
 
 Decoupling metadata: `place_ic_with_decoupling` records cap<->pin
 associations in the exact shape S4's check_decoupling.py consumes;
@@ -89,9 +93,24 @@ def stub_dir(pin_rotation: float, comp_rotation: float) -> tuple[int, int]:
 
     KiCad pin rotation points from the connection point TOWARD the body
     (0=right, 90=up, ...). Outward is the opposite, with y inverted for
-    sheet coordinates."""
+    sheet coordinates. T6 rotmirror fixture: this composition matches real
+    KiCad at every rotation - the V19 "inward stubs" defect was ksa's pin
+    POSITIONS at 90/270 (see pin_pos), never this sign."""
     r = math.radians((pin_rotation + comp_rotation) % 360)
     return (round(-math.cos(r)), round(math.sin(r)))
+
+
+def _point_on_segment(pos, a, b, tol: float = 1e-6) -> bool:
+    """Is pos on segment a-b (endpoints included)? Wires are axis-aligned
+    grid stubs, but the cross/dot form costs nothing extra."""
+    ax, ay = a
+    bx, by = b
+    px, py = pos
+    cross = (bx - ax) * (py - ay) - (by - ay) * (px - ax)
+    if abs(cross) > tol:
+        return False
+    dot = (px - ax) * (bx - ax) + (py - ay) * (by - ay)
+    return -tol <= dot <= (bx - ax) ** 2 + (by - ay) ** 2 + tol
 
 
 def _label_rotation(d: tuple[int, int]) -> float:
@@ -113,10 +132,14 @@ class Sheet:
                                  company=company)
         self.decoupling: list[dict] = []      # S4 association contract
         self.hier_pins: dict[str, str] = {}   # net -> shape (stitch contract)
+        self.place_report: dict | None = None  # save-time field placement
         self._fixups: list[dict] = []         # saved-file pin-number repairs
         self._api_num: dict[tuple[str, str], str] = {}  # (lib_id, right)->wrong
         self._lib_ids: dict[str, str] = {}    # ref -> lib_id
         self._rotations: dict[str, float] = {}
+        self._anchors: dict[str, tuple[float, float]] = {}
+        self._wires: list[tuple] = []         # segments, for the label guard
+        self._pin_nets: dict[tuple[str, str], str] = {}  # (ref, pad) -> net
         self._pwr_i = pwr_base - 1
         self._flg_i = pwr_base - 1
 
@@ -141,6 +164,7 @@ class Sheet:
             c.set_property(key, val)
         self._lib_ids[ref] = lib_id
         self._rotations[ref] = rotation
+        self._anchors[ref] = (at[0], at[1])
         for fx in fixups or []:
             fx = dict(fx, lib_id=lib_id)
             self._fixups.append(fx)
@@ -161,7 +185,17 @@ class Sheet:
         p = self.sch.get_component_pin_position(ref, self._api_pad(ref, pad))
         if p is None:
             raise ValueError(f"{ref} pin {pad}: no such pin in symbol")
-        return (round(p.x, 4), round(p.y, 4))
+        x, y = p.x, p.y
+        if self._rotations.get(ref, 0) % 360 in (90, 270):
+            # V19 (T6, kicad-cli ERC-measured): kicad-sch-api 0.5.6 rotates
+            # pin positions the WRONG WAY at 90/270 - its answer is the
+            # true position mirrored through the anchor (R(-t) vs R(t);
+            # correction R(2t) = -I at right angles). Real KiCad puts a
+            # rot-90 Device:R pin1 (lib (0,+3.81)) at anchor x-3.81; ksa
+            # says x+3.81. Reflect back through the anchor.
+            ax, ay = self._anchors[ref]
+            x, y = 2 * ax - x, 2 * ay - y
+        return (round(x, 4), round(y, 4))
 
     def _pin_out_dir(self, ref: str, pad: str) -> tuple[int, int]:
         c = self.sch.components.get(ref)
@@ -169,6 +203,29 @@ class Sheet:
         return stub_dir(rot, self._rotations.get(ref, 0))
 
     # ---------------------------------------------------------- wiring
+    def _add_wire(self, start, end) -> tuple:
+        """Add a wire and record its segment for the label guard."""
+        self.sch.add_wire(start=start, end=end)
+        seg = ((round(start[0], 4), round(start[1], 4)),
+               (round(end[0], 4), round(end[1], 4)))
+        self._wires.append(seg)
+        return seg
+
+    def _assert_label_clear(self, pos, net: str, own: tuple | None = None):
+        """Labels attach anywhere ALONG a wire (LEARNINGS [erc]): an anchor
+        landing on a FOREIGN wire run - interior or endpoint - silently
+        merges two nets. Reject at generation time (ladder row 39).
+        Segments geometrically identical to `own` are the label's own
+        wire and are exempt."""
+        p = (round(pos[0], 4), round(pos[1], 4))
+        for seg in self._wires:
+            if own is not None and seg == own:
+                continue
+            if _point_on_segment(p, seg[0], seg[1]):
+                raise ValueError(
+                    f"label '{net}' at {p} lands on an existing wire run "
+                    f"{seg[0]}-{seg[1]} - it would merge nets")
+
     def wire_pin(self, ref: str, pad: str, net: str) -> None:
         """The auto-wire idiom: outward stub from the pin's actual position
         plus a local label naming the net. net == "NC" -> no-connect."""
@@ -179,8 +236,10 @@ class Sheet:
             return
         d = self._pin_out_dir(ref, pad)
         end = (round(p[0] + d[0] * STUB, 4), round(p[1] + d[1] * STUB, 4))
-        self.sch.add_wire(start=p, end=end)
+        seg = self._add_wire(p, end)
+        self._assert_label_clear(end, net, own=seg)
         self.sch.add_label(net, position=end)
+        self._pin_nets[(ref, pad)] = net
 
     def wire_pins(self, ref: str, pins: dict) -> None:
         """Wire every pad of `pins` ({pad: net}); deterministic order."""
@@ -199,7 +258,7 @@ class Sheet:
         x, y = at
         assert_on_grid((x, y), f"rail {net}")
         end = (x + (2 if sym and flag else 1) * STUB, y)
-        self.sch.add_wire(start=(x, y), end=end)
+        seg = self._add_wire((x, y), end)
         # every wire ENDPOINT must carry a pin or a label, or ERC flags it
         if sym and flag:
             label_at = (x + STUB, y)      # symbol start, flag end: label mid
@@ -207,11 +266,14 @@ class Sheet:
             label_at = end                # symbol start, label terminates end
         else:
             label_at = (x, y)             # label terminates start, flag end
+        self._assert_label_clear(label_at, net, own=seg)
         self.sch.add_label(net, position=label_at)
         if sym:
             self._pwr_i += 1
-            self._place_pin1(sym, f"#PWR{self._pwr_i:02d}",
-                             sym.split(":")[1], (x, y))
+            # VALUE = the rail net: a power symbol's exported net name is
+            # its VALUE, and the symbol WINS over a coincident label
+            # (LEARNINGS [kicad]; ladder row 94) - equal by construction.
+            self._place_pin1(sym, f"#PWR{self._pwr_i:02d}", net, (x, y))
         if flag:
             self._flg_i += 1
             self._place_pin1("power:PWR_FLAG", f"#FLG{self._flg_i:02d}",
@@ -220,18 +282,31 @@ class Sheet:
     def power_symbol_at_pin(self, ref: str, pad: str, sym: str) -> None:
         """Hang a power symbol off an existing pin stub end (no extra wire:
         avoids an unconnected-endpoint warning on driven rails that must not
-        carry a PWR_FLAG)."""
+        carry a PWR_FLAG). The symbol's VALUE - which names the exported
+        global net - is taken from the net the pin was wired to, so the
+        divergence class of ladder row 94 cannot exist. Wire the pin first."""
+        net = self._pin_nets.get((ref, pad))
+        if net is None:
+            raise ValueError(
+                f"{ref} pin {pad}: not wired yet - power_symbol_at_pin "
+                f"derives the symbol VALUE (= global net name) from the "
+                f"pin's wired net; call wire_pin/wire_pins first")
         p = self.pin_pos(ref, pad)
         d = self._pin_out_dir(ref, pad)
         tgt = (round(p[0] + d[0] * STUB, 4), round(p[1] + d[1] * STUB, 4))
         self._pwr_i += 1
-        self._place_pin1(sym, f"#PWR{self._pwr_i:02d}", sym.split(":")[1], tgt)
+        self._place_pin1(sym, f"#PWR{self._pwr_i:02d}", net, tgt)
 
     def _place_pin1(self, lib_id: str, ref: str, value: str, at) -> None:
-        """Add a one-pin symbol with its PIN (not anchor) at `at`."""
+        """Add a one-pin symbol with its PIN (not anchor) at `at`. The
+        VALUE is enforced through the dedicated attribute too: on power
+        symbols it names the exported global net, and set_property("Value")
+        is a silent no-op on ksa 0.5.6 (LEARNINGS [kicad-sch-api])."""
         with _quiet():
             c = self.sch.components.add(lib_id, reference=ref, value=value,
                                         position=at)
+            if getattr(c, "value", None) != value:
+                c.value = value
         got = self.sch.get_component_pin_position(c.reference, "1")
         c.translate(round(at[0] - got.x, 4), round(at[1] - got.y, 4))
 
@@ -249,14 +324,18 @@ class Sheet:
             assert_on_grid(p, f"{ref} pin {pad}")
             d = self._pin_out_dir(ref, pad)
             end = (round(p[0] + d[0] * STUB, 4), round(p[1] + d[1] * STUB, 4))
-            self.sch.add_wire(start=p, end=end)
+            seg = self._add_wire(p, end)
+            self._assert_label_clear(end, net, own=seg)
             self.sch.add_hierarchical_label(net, position=end, shape=shape,
                                             rotation=_label_rotation(d))
+            self._pin_nets[(ref, pad)] = net
         elif at is not None:
             x, y = at[:2]
             assert_on_grid((x, y), f"hier pin {net}")
             end = (round(x + STUB, 4), y)
-            self.sch.add_wire(start=(x, y), end=end)
+            seg = self._add_wire((x, y), end)
+            self._assert_label_clear((x, y), net, own=seg)
+            self._assert_label_clear(end, net, own=seg)
             self.sch.add_label(net, position=(x, y))
             self.sch.add_hierarchical_label(net, position=end, shape=shape)
         else:
@@ -339,16 +418,39 @@ class Sheet:
         return p
 
     # ---------------------------------------------------------- save
-    def save(self, out_dir: Path | str, project: bool = True) -> Path:
+    def save(self, out_dir: Path | str, project: bool = True,
+             place_fields: bool = True) -> Path:
+        """Write the sheet. place_fields (default) runs schem_refdes on the
+        saved file so Reference/Value land on the correct side and clear of
+        wires/labels/bodies (ksa mirrors every field to the wrong side -
+        T6, ladder row 166 L3). Electrically inert; see self.place_report."""
         out_dir = Path(out_dir)
         out_dir.mkdir(parents=True, exist_ok=True)
         path = out_dir / f"{self.name}.kicad_sch"
         with _quiet():
             self.sch.save(str(path))
         apply_pin_number_fixups(self._fixups, path)
+        if place_fields:
+            self._place_fields(path)
         if project:
             write_project(self.name, out_dir)
         return path
+
+    def _place_fields(self, path: Path) -> None:
+        """NON-FATAL field placement: a failure must never break
+        generation - the file is restored to the valid un-placed state and
+        the error recorded in self.place_report."""
+        import schem_refdes as sr  # sibling script; deferred (shapely)
+        snapshot = path.read_text(encoding="utf-8")
+        try:
+            res = sr.place_sheet(sr.Sheet(path))
+            sr.write_placements(path, res)   # project libs + lib_symbols guard
+            self.place_report = {
+                "moved": sum(1 for p in res["placements"] if p["moved"]),
+                "residue": res["residue"]}
+        except Exception as exc:  # noqa: BLE001 - never break generation
+            path.write_text(snapshot, encoding="utf-8")
+            self.place_report = {"error": f"{type(exc).__name__}: {exc}"}
 
 
 class Project:
@@ -389,7 +491,8 @@ class Project:
             px, py = sp["position"]["x"], sp["position"]["y"]
             assert_on_grid((px, py), f"sheet pin {net}")
             end = (round(px - label_stub, 4), py)
-            self.root.sch.add_wire(start=(px, py), end=end)
+            seg = self.root._add_wire((px, py), end)
+            self.root._assert_label_clear(end, root_label, own=seg)
             self.root.sch.add_label(root_label, position=end)
         if child not in self.children:
             self.children.append(child)
@@ -402,11 +505,13 @@ class Project:
         return out
 
     def save(self, out_dir: Path | str,
-             decoupling: Path | str | None = None) -> Path:
+             decoupling: Path | str | None = None,
+             place_fields: bool = True) -> Path:
         out_dir = Path(out_dir)
         for c in self.children:
-            c.save(out_dir, project=False)
-        path = self.root.save(out_dir, project=True)
+            c.save(out_dir, project=False, place_fields=place_fields)
+        path = self.root.save(out_dir, project=True,
+                              place_fields=place_fields)
         if decoupling is not None:
             payload = {"associations": self.decoupling}
             p = Path(decoupling)

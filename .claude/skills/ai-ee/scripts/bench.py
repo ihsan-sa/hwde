@@ -156,6 +156,11 @@ def score_p2(ctx):
     payload, _ = netlist_audit.run(["--netlist", str(net_p),
                                     "--constraints", str(cons_p)])
     errors, warnings = _sev(payload["violations"])
+    # missing_ref already scores through placement_refs_missing (weight 10);
+    # do not double-count the same defect in audit_errors (weight 15)
+    errors -= sum(1 for x in payload["violations"]
+                  if x.get("severity") == "error"
+                  and x.get("kind") == "missing_ref")
     parsed = netlist_audit.parse_netlist(net_p)
     cons = json.loads(cons_p.read_text(encoding="utf-8"))
     missing = benchlib.placement_refs_missing(cons, parsed["components"])

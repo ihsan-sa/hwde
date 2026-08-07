@@ -7,12 +7,23 @@ schematic-level structural problems BEFORE board work starts:
  - missing_net (error): a net referenced anywhere in constraints.json
    (high_speed[].net + reference nets, power[].net, voltages[].net,
    diff_pairs[].p/.n, thermal[].net) does not exist in the netlist.
+ - missing_ref (error): a refdes referenced by constraints.json
+   (placement edges/groups/fixed/separation, thermal[].ref) that is not a
+   netlist component - a P4 refdes rename/split would otherwise silently
+   mute the constraint (place_anneal drops unknown refs; ladder row 86).
  - diffpair_naming (warning): an explicit diff_pairs entry whose p/n names
    do not follow a recognized differential suffix convention (_P/_N, DP/DM,
    D+/D-; check_diffpair.py's conservative families).
  - diffpair_unpaired (warning): a netlist net carrying a strong differential
    suffix whose partner net is absent.
- - power_no_consumers (warning): a declared power net with no power_in pin.
+ - power_no_consumers (warning): a declared power net with no power_in pin
+   AND no series escape - a 2-pin member whose far pin leaves the rail to a
+   non-ground net (passive loads - LEDs, droppers, fuses - never carry
+   pintype power_in; such rails are recorded as passive_fed, not warned).
+ - pin_no_net (warning): a symbol pin (per the export's own libparts/units
+   inventory) that appears in NO net, not even an unconnected-* singleton.
+   Hierarchical exports DROP no-connect singleton nets, so these pads reach
+   board_init with no net at all and nothing else reports them (row 68).
  - power_undeclared (warning): a net feeding power_in pins that is neither
    declared (power[] / voltages[]) nor ground-named (GND*/;*GND/VSS*/0V).
  - dangling_net (warning): a single-pin net not named unconnected-* - the
@@ -80,10 +91,13 @@ def _atom(node, key, default=None):
 
 
 def parse_netlist(path: Path | str) -> dict:
-    """kicadsexpr netlist -> {"components": {ref: {value, footprint}},
-    "nets": {name: [{ref, pin, pintype}]}}. Multiline or single-line
+    """kicadsexpr netlist -> {"components": {ref: {value, footprint,
+    libsource?, unit_pins?}}, "nets": {name: [{ref, pin, pintype}]},
+    "libparts": {(lib, part): set(pin numbers)}}. Multiline or single-line
     formatting both parse (sexpdata, not regex - kicad-cli 10 pretty-prints
-    netlists)."""
+    netlists). unit_pins (kicad 10 per-comp units block) is the placed
+    instance's own pin inventory; libparts is the shared per-symbol union
+    (all units) used as the fallback."""
     p = Path(path)
     try:
         with open(p, encoding="utf-8") as fh:
@@ -94,13 +108,39 @@ def parse_netlist(path: Path | str) -> dict:
         raise checklib.CheckError(f"netlist {p} does not parse: {exc}") from exc
     if not isinstance(data, list) or not data or str(data[0]) != "export":
         raise checklib.CheckError(f"netlist {p}: not a kicadsexpr export")
+
+    def _pin_nums(node) -> set[str]:
+        out = set()
+        for pblk in _kids(node, "pins"):
+            for pin in _kids(pblk, "pin"):
+                num = _atom(pin, "num")
+                if num:
+                    out.add(num)
+        return out
+
     comps: dict[str, dict] = {}
     for blk in _kids(data, "components"):
         for c in _kids(blk, "comp"):
             ref = _atom(c, "ref")
-            if ref:
-                comps[ref] = {"value": _atom(c, "value"),
-                              "footprint": _atom(c, "footprint")}
+            if not ref:
+                continue
+            comps[ref] = {"value": _atom(c, "value"),
+                          "footprint": _atom(c, "footprint")}
+            src = _kids(c, "libsource")
+            if src:
+                comps[ref]["libsource"] = (_atom(src[0], "lib") or "",
+                                           _atom(src[0], "part") or "")
+            unit_pins: set[str] = set()
+            for ub in _kids(c, "units"):
+                for u in _kids(ub, "unit"):
+                    unit_pins |= _pin_nums(u)
+            if unit_pins:
+                comps[ref]["unit_pins"] = sorted(unit_pins)
+    libparts: dict[tuple, set] = {}
+    for blk in _kids(data, "libparts"):
+        for lp in _kids(blk, "libpart"):
+            key = (_atom(lp, "lib") or "", _atom(lp, "part") or "")
+            libparts.setdefault(key, set()).update(_pin_nums(lp))
     nets: dict[str, list] = {}
     for blk in _kids(data, "nets"):
         for n in _kids(blk, "net"):
@@ -110,7 +150,7 @@ def parse_netlist(path: Path | str) -> dict:
             nets[name] = [{"ref": _atom(nd, "ref"), "pin": _atom(nd, "pin"),
                            "pintype": _atom(nd, "pintype", "")}
                           for nd in _kids(n, "node")]
-    return {"components": comps, "nets": nets}
+    return {"components": comps, "nets": nets, "libparts": libparts}
 
 
 def _memberships(parsed: dict) -> dict[str, tuple]:
@@ -234,6 +274,50 @@ def _pair_follows_convention(p: str, n: str) -> bool:
     return False
 
 
+def _constraint_refs(constraints: dict) -> dict[str, list[str]]:
+    """Every refdes constraints.json references, keyed by where."""
+    where: dict[str, list[str]] = {}
+
+    def add(ref, src):
+        if isinstance(ref, str) and ref:
+            where.setdefault(ref, []).append(src)
+
+    placement = constraints.get("placement") or {}
+    for i, e in enumerate(placement.get("edges") or []):
+        add(e.get("ref"), f"placement.edges[{i}].ref")
+    for i, g in enumerate(placement.get("groups") or []):
+        add(g.get("anchor"), f"placement.groups[{i}].anchor")
+        for j, m in enumerate(g.get("members") or []):
+            add(m, f"placement.groups[{i}].members[{j}]")
+    for i, r in enumerate(placement.get("fixed") or []):
+        add(r, f"placement.fixed[{i}]")
+    for i, s in enumerate(placement.get("separation") or []):
+        for side in ("a", "b"):
+            for j, r in enumerate(s.get(side) or []):
+                add(r, f"placement.separation[{i}].{side}[{j}]")
+    for i, t in enumerate(constraints.get("thermal") or []):
+        add(t.get("ref"), f"thermal[{i}].ref")
+    return where
+
+
+def _series_escapes(rail: str, members: list[dict],
+                    comp_pins: dict[str, dict[str, str]]) -> list[str]:
+    """2-pin members whose far pin leaves the rail through a non-ground,
+    non-NC net: current has a path out through a series/load element
+    (polyfuse, dropper, LED resistor), which never carries pintype
+    power_in. A typo'd dead rail (source + caps to GND only) has none."""
+    out = set()
+    for m in members:
+        pins = comp_pins.get(m["ref"], {})
+        if len(pins) != 2:
+            continue
+        other = next((n for p, n in pins.items() if p != m["pin"]), None)
+        if (other and other != rail and not _is_ground_name(other)
+                and not other.startswith("unconnected-")):
+            out.add(m["ref"])
+    return sorted(out)
+
+
 def audit(parsed: dict, constraints: dict,
           decoupling: dict | None) -> tuple[list[dict], dict]:
     nets = parsed["nets"]
@@ -253,6 +337,15 @@ def audit(parsed: dict, constraints: dict,
               f"constraints net '{net}' ({', '.join(sources)}) not in "
               f"netlist", constraint_sources=sources)
 
+    # 1b. every constraints-referenced refdes exists (ladder row 86: a
+    # refdes rename/split must not silently mute a placement constraint)
+    ref_where = _constraint_refs(constraints)
+    for ref, sources in sorted(ref_where.items()):
+        if ref not in comps:
+            v("error", "missing_ref", None, [ref],
+              f"constraints ref '{ref}' ({', '.join(sources)}) not in "
+              f"netlist components", constraint_sources=sources)
+
     # 2. explicit diff pairs follow the _P/_N (or DP/DM, D+/D-) convention
     for i, ent in enumerate(constraints.get("diff_pairs", []) or []):
         p, n = ent.get("p"), ent.get("n")
@@ -271,6 +364,14 @@ def audit(parsed: dict, constraints: dict,
               f"net '{name}' looks differential but partner "
               f"'{partner}' does not exist")
 
+    # per-component pin->net map over ALL nets (incl. unconnected-*):
+    # serves the series-escape scan (4) and the pin inventory (4c)
+    comp_pins: dict[str, dict[str, str]] = {}
+    for name, members in nets.items():
+        for m in members:
+            if m["ref"]:
+                comp_pins.setdefault(m["ref"], {})[m["pin"]] = name
+
     # 4. power tree: declared rails have consumers; feeders are declared
     declared_power = [ent.get("net")
                      for ent in constraints.get("power", []) or []]
@@ -284,12 +385,20 @@ def audit(parsed: dict, constraints: dict,
         n_in = sum(1 for m in members if _base_type(m["pintype"]) == "power_in")
         n_out = sum(1 for m in members
                     if _base_type(m["pintype"]) == "power_out")
-        power_facts.append({"net": net, "nodes": len(members),
-                            "power_in": n_in, "power_out": n_out})
+        fact = {"net": net, "nodes": len(members),
+                "power_in": n_in, "power_out": n_out}
         if n_in == 0:
-            v("warning", "power_no_consumers", net,
-              sorted({m["ref"] for m in members}),
-              f"declared power net '{net}' feeds no power_in pin")
+            # passive loads (LEDs, droppers, fuses) never carry power_in:
+            # a series escape means the rail feeds SOMETHING - record the
+            # fact instead of a false-positive warning (T6 calibration)
+            escapes = _series_escapes(net, members, comp_pins)
+            if escapes:
+                fact["passive_fed_via"] = escapes
+            else:
+                v("warning", "power_no_consumers", net,
+                  sorted({m["ref"] for m in members}),
+                  f"declared power net '{net}' feeds no power_in pin")
+        power_facts.append(fact)
     for name in sorted(nets):
         if name in declared_all or name.startswith("unconnected-"):
             continue
@@ -303,6 +412,30 @@ def audit(parsed: dict, constraints: dict,
               f"net '{name}' feeds power_in pins "
               f"({', '.join(f'{m['ref']}.{m['pin']}' for m in feeders)}) "
               f"but is not declared in constraints power[]/voltages[]")
+
+    # 4c. pin inventory vs net membership (ladder row 68): hierarchical
+    # exports DROP no-connect singleton nets; a flat export's NC pins live
+    # in unconnected-* nets (counted as connected here) and must not fire.
+    libparts = parsed.get("libparts") or {}
+    pins_expected = pins_connected = 0
+    for ref in sorted(comps):
+        comp = comps[ref]
+        exp = set(comp.get("unit_pins") or ())
+        if not exp:
+            exp = set(libparts.get(comp.get("libsource")) or ())
+        if not exp:
+            continue  # no inventory in this export (synthetic/old netlist)
+        have = set(comp_pins.get(ref, ()))
+        pins_expected += len(exp)
+        pins_connected += len(exp & have)
+        missing = sorted(exp - have,
+                         key=lambda p: (0, int(p)) if p.isdigit() else (1, p))
+        if missing:
+            v("warning", "pin_no_net", None, [ref],
+              f"pin(s) {', '.join(ref + '.' + p for p in missing)} exist "
+              f"in the symbol but reach NO net (hierarchical exports drop "
+              f"no-connect singletons; these pads arrive at board_init "
+              f"with no net at all)", pins=missing)
 
     # 5. dangling single-pin nets (label-typo signature)
     for name in sorted(nets):
@@ -367,6 +500,9 @@ def audit(parsed: dict, constraints: dict,
         "unconnected_pins": sum(1 for n in nets
                                 if n.startswith("unconnected-")),
         "constraint_nets_checked": len(referenced),
+        "constraint_refs_checked": len(ref_where),
+        "pins_expected": pins_expected,
+        "pins_connected": pins_connected,
         "decoupling_associations": n_assoc,
         "power": power_facts,
     }

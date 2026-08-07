@@ -250,6 +250,142 @@ def test_audit_power_tree(tmp_path):
     assert payload["status"] == "pass"
 
 
+def test_audit_power_series_escape_suppresses_passive_load_rails(tmp_path):
+    """T6 P2-1: a declared rail whose loads are all passive series elements
+    (LED resistors, droppers, fuses) is passive_fed, NOT a warning; a rail
+    with only caps-to-GND (typo'd dead rail signature) still warns."""
+    net = write_netlist(tmp_path, "p.net", {
+        # /VLED feeds two LEDs through series resistors - real consumers
+        "/VLED": [("J1", "1", "passive"), ("R1", "1", "passive"),
+                  ("R2", "1", "passive"), ("C3", "1", "passive")],
+        "/LED_A": [("R1", "2", "passive"), ("D1", "1", "passive")],
+        "/LED_B": [("R2", "2", "passive"), ("D2", "1", "passive")],
+        # /DEAD has only a connector pin and a cap to GND - nothing escapes
+        "/DEAD": [("J2", "1", "passive"), ("C4", "1", "passive")],
+        "GND": [("C3", "2", "passive"), ("C4", "2", "passive"),
+                ("D1", "2", "passive"), ("D2", "2", "passive")]})
+    payload = audit_violations(net, {
+        "power": [{"net": "/VLED", "current_a": 0.1},
+                  {"net": "/DEAD", "current_a": 0.1}]}, tmp_path)
+    warned = [x["net"] for x in payload["violations"]
+              if x["kind"] == "power_no_consumers"]
+    assert warned == ["/DEAD"]
+    facts = {p["net"]: p for p in payload["power"]}
+    assert facts["/VLED"]["passive_fed_via"] == ["R1", "R2"]
+    assert "passive_fed_via" not in facts["/DEAD"]
+    # a 2-pin part whose far pin is NC is not an escape either
+    net2 = write_netlist(tmp_path, "p2.net", {
+        "/X": [("F9", "1", "passive"), ("C5", "1", "passive")],
+        "unconnected-(F9-Pad2)": [("F9", "2", "passive+no_connect")],
+        "GND": [("C5", "2", "passive")]})
+    payload2 = audit_violations(
+        net2, {"power": [{"net": "/X", "current_a": 0.1}]}, tmp_path)
+    assert ("power_no_consumers", "warning") in kinds(payload2)
+
+
+def test_audit_missing_ref_error(tmp_path):
+    """T6 P4-4/P2-3 (ladder row 86): the pd-trigger near-miss verbatim -
+    a separation ref 'R2' left behind after an R2A/R2B split is an ERROR."""
+    net = write_netlist(tmp_path, "r.net", {
+        "/A": [("R2A", "1", "passive"), ("R2B", "1", "passive"),
+               ("U1", "1", "passive"), ("J1", "1", "passive")],
+        "GND": [("R2A", "2", "passive"), ("R2B", "2", "passive"),
+                ("U1", "2", "passive"), ("J1", "2", "passive")]},
+        comps=[("R2A", "510", "R1206"), ("R2B", "510", "R1206"),
+               ("U1", "MCU", "LQFP"), ("J1", "USB", "USBC")])
+    cons = {"placement": {
+        "edges": [{"ref": "J1", "edge": "left"}],
+        "groups": [{"name": "g", "anchor": "U1", "members": ["R2A", "NOPE"]}],
+        "fixed": ["H9"],
+        "separation": [{"a": ["R2"], "b": ["U1"], "min_mm": 8}]},
+        "thermal": [{"ref": "U7", "power_w": 1.0}]}
+    payload = audit_violations(net, cons, tmp_path)
+    missing = {x["refs"][0]: x for x in payload["violations"]
+               if x["kind"] == "missing_ref"}
+    assert set(missing) == {"R2", "NOPE", "H9", "U7"}
+    assert all(x["severity"] == "error" for x in missing.values())
+    assert "placement.separation[0].a[0]" in missing["R2"]["msg"]
+    assert "thermal[0].ref" in missing["U7"]["msg"]
+    assert payload["status"] == "violations"
+    # clean constraints: every ref resolves, nothing fires
+    ok = audit_violations(net, {"placement": {
+        "separation": [{"a": ["R2A", "R2B"], "b": ["U1"], "min_mm": 8}]}},
+        tmp_path)
+    assert "missing_ref" not in {x["kind"] for x in ok["violations"]}
+    assert ok["constraint_refs_checked"] == 3
+
+
+def _netlist_with_libparts(tmp_path, name, nets, drop_pin3=True):
+    """Synthetic netlist with libparts + libsource: U1 -> (Lib, Part) whose
+    libpart declares pins 1-3."""
+    node_s = ""
+    for i, (nname, nodes) in enumerate(nets.items(), 1):
+        ns = "".join(f'(node (ref "{r}") (pin "{p}") (pintype "{t}"))'
+                     for r, p, t in nodes)
+        node_s += f'(net (code "{i}") (name "{nname}") {ns})'
+    text = ('(export (version "E") (components '
+            '(comp (ref "U1") (value "X") (footprint "F") '
+            '(libsource (lib "Lib") (part "Part")))) '
+            '(libparts (libpart (lib "Lib") (part "Part") (pins '
+            '(pin (num "1") (name "A") (type "passive")) '
+            '(pin (num "2") (name "B") (type "passive")) '
+            '(pin (num "3") (name "C") (type "passive"))))) '
+            f'(nets {node_s}))')
+    p = tmp_path / name
+    p.write_text(text, encoding="utf-8")
+    return p
+
+
+def test_audit_pin_no_net_via_libparts(tmp_path):
+    """T6 P4-5/P2-7 (ladder row 68): a pin in the symbol inventory that
+    reaches NO net warns (hierarchical exports drop NC singletons)."""
+    net = _netlist_with_libparts(tmp_path, "h.net", {
+        "/A": [("U1", "1", "passive")],
+        "/B": [("U1", "2", "passive")]})
+    cpath = tmp_path / "c.json"
+    cpath.write_text("{}", encoding="utf-8")
+    payload, _ = na.run(["--netlist", str(net), "--constraints", str(cpath)])
+    hits = [x for x in payload["violations"] if x["kind"] == "pin_no_net"]
+    assert len(hits) == 1 and hits[0]["severity"] == "warning"
+    assert hits[0]["refs"] == ["U1"] and "U1.3" in hits[0]["msg"]
+    assert payload["status"] == "pass"          # warning does not fail
+    assert (payload["pins_expected"], payload["pins_connected"]) == (3, 2)
+    # flat-style export: the NC pin is represented as an unconnected-* net
+    net2 = _netlist_with_libparts(tmp_path, "f.net", {
+        "/A": [("U1", "1", "passive")],
+        "/B": [("U1", "2", "passive")],
+        "unconnected-(U1-C-Pad3)": [("U1", "3", "passive+no_connect")]})
+    payload2, _ = na.run(["--netlist", str(net2), "--constraints",
+                          str(cpath)])
+    assert "pin_no_net" not in {x["kind"] for x in payload2["violations"]}
+    assert (payload2["pins_expected"], payload2["pins_connected"]) == (3, 3)
+
+
+def test_audit_pin_no_net_prefers_comp_units_block(tmp_path):
+    """A kicad-10 per-comp units block is the placed instance's own pin
+    inventory and beats the all-units libpart union (multi-unit symbols
+    must not fire on the unplaced unit's pins)."""
+    text = ('(export (version "E") (components '
+            '(comp (ref "U1") (value "X") (footprint "F") '
+            '(libsource (lib "Lib") (part "Part")) '
+            '(units (unit (name "A") (pins (pin (num "1")) (pin (num "2")))))'
+            ')) '
+            '(libparts (libpart (lib "Lib") (part "Part") (pins '
+            '(pin (num "1") (name "A") (type "passive")) '
+            '(pin (num "2") (name "B") (type "passive")) '
+            '(pin (num "3") (name "C") (type "passive"))))) '
+            '(nets (net (code "1") (name "/A") '
+            '(node (ref "U1") (pin "1") (pintype "passive")) '
+            '(node (ref "U1") (pin "2") (pintype "passive")))))')
+    p = tmp_path / "u.net"
+    p.write_text(text, encoding="utf-8")
+    cpath = tmp_path / "c.json"
+    cpath.write_text("{}", encoding="utf-8")
+    payload, _ = na.run(["--netlist", str(p), "--constraints", str(cpath)])
+    assert "pin_no_net" not in {x["kind"] for x in payload["violations"]}
+    assert (payload["pins_expected"], payload["pins_connected"]) == (2, 2)
+
+
 def test_audit_metadata_mismatch_kinds(tmp_path):
     comps = [("C1", "100nF", "C_0603"), ("C2", "10uF", "C_0805"),
              ("U1", "MCU", "LQFP")]
@@ -332,6 +468,17 @@ def test_stub_dir():
     assert schlib.stub_dir(90, 0) == (0, 1)     # pin points up -> stub down
     assert schlib.stub_dir(270, 0) == (0, -1)
     assert schlib.stub_dir(0, 90) == (0, 1)     # component rotation composes
+    # Device:R pins (lib rot 270/90) on a rot-90 part: outward is horizontal
+    assert schlib.stub_dir(270, 90) == (-1, 0)  # left pin -> stub left
+    assert schlib.stub_dir(90, 90) == (1, 0)    # right pin -> stub right
+
+
+def test_point_on_segment():
+    seg = ((127.0, 63.5), (127.0, 68.58))
+    assert schlib._point_on_segment((127.0, 65.0), *seg)      # interior
+    assert schlib._point_on_segment((127.0, 63.5), *seg)      # endpoint
+    assert not schlib._point_on_segment((127.01, 65.0), *seg)  # off-axis
+    assert not schlib._point_on_segment((127.0, 70.0), *seg)   # past the end
 
 
 def test_snap_and_grid_assert():
@@ -403,6 +550,8 @@ def test_smoke_regen_blinky2_full_acceptance(tmp_path):
     assert summary["decoupling_associations"] == 6
     sch = tmp_path / "blinky2.kicad_sch"
     assert _erc_total(sch) == 0                     # ERC clean
+    import schem_refdes as sr
+    assert sr.audit_sheet(sr.Sheet(sch)) == []      # P4-1: fields born clean
     fresh = _export_net(sch, tmp_path / "fresh.net")
     r = na.compare_netlists(na.parse_netlist(fresh),
                             na.parse_netlist(GOLDEN_NET))
@@ -434,6 +583,10 @@ def test_smoke_hierdemo_full(tmp_path):
     assert (tmp_path / "power.kicad_sch").exists()
     assert (tmp_path / "load.kicad_sch").exists()
     assert _erc_total(root) == 0
+    import schem_refdes as sr
+    for name in ("hierdemo", "power", "load"):
+        sch_p = tmp_path / f"{name}.kicad_sch"
+        assert sr.audit_sheet(sr.Sheet(sch_p)) == [], name  # P4-1
     fresh = _export_net(root, tmp_path / "h.net")
     p = na.parse_netlist(fresh)
     members = {net: sorted((m["ref"], m["pin"]) for m in ms)
@@ -469,6 +622,100 @@ def test_smoke_schlib_pins_cli():
                         capture_output=True, text=True, timeout=120)
     assert cp.returncode == 2
     assert json.loads(cp.stdout)["status"] == "error"  # stdout stays JSON
+
+
+@pytest.mark.smoke
+def test_smoke_rotated_parts_wire_outward_and_erc_clean(tmp_path):
+    """V19 regression: ksa mirrors pin positions at 90/270 (schlib.pin_pos
+    corrects it) - rotated 2-pin parts must get outward stubs on the TRUE
+    pins.  ERC 0 proves the wires land on real pin positions."""
+    sh = schlib.Sheet("rot")
+    for i, rot in enumerate([0, 90, 180, 270]):
+        ref = f"R{i + 1}"
+        at = (127.0 + i * 25.4, 63.5)
+        sh.add_component("Device:R", ref, "10k", at=at, rotation=rot)
+        sh.wire_pins(ref, {"1": f"N{i + 1}", "2": f"N{i if i else 4}"})
+        for pad in ("1", "2"):
+            p = sh.pin_pos(ref, pad)
+            assert abs(p[0] - at[0]) + abs(p[1] - at[1]) == pytest.approx(
+                3.81), f"{ref}.{pad} not on the pin ring: {p}"
+    # rot 90: pins swing onto the x axis - the pre-fix ksa answer put pin 1
+    # at anchor+3.81 (mirrored); the ERC-measured truth is anchor-3.81
+    assert sh.pin_pos("R2", "1") == (152.4 - 3.81, 63.5)
+    assert sh.pin_pos("R4", "1") == (203.2 + 3.81, 63.5)
+    sh.save(tmp_path)
+    assert _erc_total(tmp_path / "rot.kicad_sch") == 0
+
+
+@pytest.mark.smoke
+def test_smoke_power_symbol_value_is_rail_net(tmp_path):
+    """Ladder row 94: power_flag(net='+3V3_MCU', sym='power:+3V3') must
+    export net '+3V3_MCU' - the symbol VALUE names the global net and WINS
+    over a coincident label, so schlib now sets VALUE = net."""
+    sh = schlib.Sheet("pwrval")
+    sh.add_component("Device:R", "R1", "10k", at=(127.0, 63.5))
+    sh.wire_pins("R1", {"1": "+3V3_MCU", "2": "GND"})
+    sh.power_flag("+3V3_MCU", at=(101.6, 63.5), sym="power:+3V3", flag=True)
+    sh.power_flag("GND", at=(101.6, 76.2), sym="power:GND", flag=False)
+    sh.save(tmp_path)
+    net = _export_net(tmp_path / "pwrval.kicad_sch", tmp_path / "p.net")
+    parsed = na.parse_netlist(net)
+    assert "+3V3_MCU" in parsed["nets"]
+    assert "+3V3" not in parsed["nets"], sorted(parsed["nets"])
+    members = {(m["ref"], m["pin"]) for m in parsed["nets"]["+3V3_MCU"]}
+    assert ("R1", "1") in members
+    # power_symbol_at_pin derives the VALUE from the wired net - and
+    # refuses an unwired pin outright
+    sh2 = schlib.Sheet("pwrval2")
+    sh2.add_component("Device:R", "R1", "10k", at=(127.0, 63.5))
+    sh2.wire_pins("R1", {"1": "+1V8_SNS", "2": "GND"})
+    sh2.power_symbol_at_pin("R1", "1", "power:+1V8")
+    with pytest.raises(ValueError, match="not wired yet"):
+        sh2.power_symbol_at_pin("R1", "3", "power:+1V8")
+    sh2.power_flag("GND", at=(101.6, 76.2), sym="power:GND", flag=False)
+    sh2.save(tmp_path / "b")
+    net2 = _export_net(tmp_path / "b" / "pwrval2.kicad_sch",
+                       tmp_path / "b" / "p.net")
+    parsed2 = na.parse_netlist(net2)
+    assert "+1V8_SNS" in parsed2["nets"] and "+1V8" not in parsed2["nets"]
+
+
+@pytest.mark.smoke
+def test_smoke_label_on_foreign_wire_rejected(tmp_path):
+    """Ladder row 39: a label anchor landing on another wire's RUN merges
+    two nets silently - schlib must raise at generation time."""
+    sh = schlib.Sheet("guard")
+    # R1's pin-2 stub runs straight down from (127, 67.31) to (127, 69.85)
+    sh.add_component("Device:R", "R1", "10k", at=(127.0, 63.5))
+    sh.wire_pins("R1", {"1": "A", "2": "B"})
+    # R2 placed so its pin-1 stub END (label anchor) hits that run mid-span
+    sh.add_component("Device:R", "R2", "10k", at=(127.0, 74.93),
+                     rotation=0)
+    with pytest.raises(ValueError, match="would merge nets"):
+        sh.wire_pin("R2", "1", "C")
+
+
+@pytest.mark.smoke
+def test_smoke_save_place_fields_flag(tmp_path):
+    """P4-1: save() runs schem_refdes by default (clean fields, report
+    recorded); place_fields=False leaves the raw ksa output untouched."""
+    def build():
+        sh = schlib.Sheet("pf")
+        sh.add_component("Device:R", "R1", "10k", at=(127.0, 63.5))
+        sh.wire_pins("R1", {"1": "A", "2": "B"})
+        return sh
+    a = build()
+    a.save(tmp_path / "on")
+    assert a.place_report is not None and "error" not in a.place_report
+    assert a.place_report["moved"] > 0 and a.place_report["residue"] == []
+    import schem_refdes as sr
+    assert sr.audit_sheet(sr.Sheet(tmp_path / "on" / "pf.kicad_sch")) == []
+    b = build()
+    b.save(tmp_path / "off", place_fields=False)
+    assert b.place_report is None
+    on_text = (tmp_path / "on" / "pf.kicad_sch").read_text(encoding="utf-8")
+    off_text = (tmp_path / "off" / "pf.kicad_sch").read_text(encoding="utf-8")
+    assert on_text != off_text          # the placement pass really ran
 
 
 @pytest.mark.smoke
