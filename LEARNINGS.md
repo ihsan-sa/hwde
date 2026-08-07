@@ -2265,3 +2265,16 @@ first tented-pad implementation reported the same pad 9 times. Area/union checks
 noticed (they union everything first), which is why this stayed invisible since S12.
 Any NEW check that iterates lg.pads per-aperture (counting, per-pad predicates) must
 group by connected component first - LayerGeom.components() is the honest unit.
+
+## 2026-08-06 [bench][git][windows] sha-pin INDEX content, not working-tree bytes - stale CRLF checkouts and CRLF-writing tools break pins on fresh clones
+T6 P3-BENCH pinning tests/fixtures/lib/pristine: the working copies were CRLF while the
+index was LF (`git ls-files --eol`: i/lf w/crlf) - they were checked out BEFORE
+`.gitattributes` pinned `* text=auto eol=lf`, and git rewrites eol only at checkout, so
+the stale smudge persists indefinitely with `git diff` EMPTY the whole time. A sha256 pin
+of those working-tree bytes passes every local test and drift-refuses on every fresh
+clone (which checks out LF). Two more CRLF producers in the same capture path: kicad-cli
+netlist export writes CRLF on Windows, and Python `write_text` default-translates 
+ to
+os.linesep (bench.py's own --baseline files land CRLF). Rule: capture fixture bytes from
+the INDEX (`git show :path`) or explicitly LF-normalize before hashing, and verify with
+`git ls-files --eol` that w/ matches i/ for every pinned file.

@@ -295,6 +295,11 @@ def match_known_answer(known: dict, violations: list[dict]) -> dict:
 WEIGHTS = {
     "P2": {"audit_errors": 15.0, "audit_warnings": 3.0,
            "placement_refs_missing": 10.0, "stackup_bad": 25.0},
+    # known-answer style weighting (mirrors P8/P9): the pristine-pull fixture
+    # has an exact 16 -> 0 real-DRC answer, so any before-count drift or
+    # post-fix residue must visibly sink the composite, not shave points.
+    "P3": {"after_violations": 10.0, "residue": 10.0,
+           "missing_footprints": 25.0, "before_drift": 40.0},
     # unit weights on the drawing metrics + 0.5/ERC-warning: the s7 blinky2
     # fixture (deliberately dirty, 27 field overlaps) and the shipped
     # pd-trigger sheet (60 default-severity ERC warnings) must both stay off
@@ -303,7 +308,7 @@ WEIGHTS = {
            "refdes_overlaps": 1.0, "sheet_balance_excess": 5.0,
            "erc_errors": 10.0, "erc_warnings": 0.5, "netlist_diffs": 25.0},
     "P5": {"setup_violations": 10.0, "not_clean": 25.0,
-           "transient_silk": 1.0},
+           "transient_silk": 1.0, "pro_floor_failures": 25.0},
     "P6": {"hpwl_total_mm": 0.05, "crossings": 1.0, "congestion_max": 2.0,
            "legality_violations": 5.0, "decap_worst_mm": 0.5},
     "P7": {"incompletion_pct": 1.0, "drc_errors": 5.0, "drc_warnings": 1.0,

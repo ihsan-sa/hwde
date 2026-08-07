@@ -24,6 +24,42 @@ fixtures:
         sha256: 7100c1fad6d436c3696efabb0a8a31392854a4d74a3bfa57b403284560e2de2d
     args:
       stackup: JLC2313_1.6_2oz
+  pristine_lib:
+    stage: P3
+    board: pristine-pulls
+    provenance:
+      source: tests/fixtures/lib/pristine
+      method: reference
+      captured: '2026-08-06'
+      note: 'UNTOUCHED easyeda2kicad pulls (C14663 0603 cap, C2286 red LED, C7421520 DIP switch,
+        C5184243 GCT USB-C), the test_lib_hygiene corpus frozen 2026-08-06. Known answer: 16
+        real-DRC violations before fpfix (profile pinned in args.expect_before_by_check), 0
+        after fix_lib + refdes norm. A before-count drift means an fpfix behavior change that
+        must re-record this baseline in the same commit.'
+    files:
+      fp_c0603:
+        path: tests/fixtures/lib/pristine/C0603.kicad_mod
+        sha256: 8904dff7800b675ed2411e9be156ef116856c8f5ac480f5513591741c4ae15b6
+      fp_led:
+        path: tests/fixtures/lib/pristine/LED-SMD_L1.6-W0.8-R-RD.kicad_mod
+        sha256: 4ebb9084828c19f7afdaddfc594a5408c9fa9c59f292a24d631d8275fbc4b259
+      fp_switch:
+        path: tests/fixtures/lib/pristine/SW-SMD_6P-L7.6-W6.0-P2.54-LS9.3-BL.kicad_mod
+        sha256: abe96a502ab2d402cb563b812eed415a314e61926182a4a571b17469eb3bdc2d
+      fp_usbc:
+        path: tests/fixtures/lib/pristine/USB-C-SMD_MC-311D.kicad_mod
+        sha256: de7a22c2fd64a37a84cf432afcb6d057423344dd1693fac6c229916012cb10ab
+    dirs:
+      fp_lib:
+        path: tests/fixtures/lib/pristine
+        sha256: d166197d658ccc5593d6ea283377b1dad71ba1982278caebc896216cf7a80bc8
+    args:
+      expect_before_by_check:
+        annular_width: 2
+        clearance: 2
+        padstack: 2
+        silk_overlap: 8
+        silk_over_copper: 2
   pd_trigger_sch:
     stage: P4
     board: pd-trigger
@@ -60,6 +96,36 @@ fixtures:
       golden_net:
         path: tests/s7_regen/blinky2/golden.net
         sha256: 4c832fcb33249910d96e4c0d341bd82ae61cd1093953a449d95d87f1a72a80be
+  usbbuck_sch:
+    stage: P4
+    board: usb-buck
+    provenance:
+      source: boards/usb-buck/kicad
+      method: copy
+      captured: '2026-08-06'
+      note: 'shipped hierarchical schematic (root + usb/power/mcu children) - the first
+        multi-sheet P4 fixture (T6 P4-3); sheets copied verbatim from the committed
+        workspace (child Sheetfile refs resolve inside the fixture dir); golden_net
+        exported from the frozen root copy at capture (kicad-cli 10.0.3, LF-normalized)'
+    files:
+      sch:
+        path: tests/fixtures/stages/usb_buck/sch/usb-buck.kicad_sch
+        sha256: 31115c1204ce42380a5f6ece0449a2d7f09d434c5b5c2d4c08206ecd1423ff02
+      sch_mcu:
+        path: tests/fixtures/stages/usb_buck/sch/mcu.kicad_sch
+        sha256: 6e4e5d6fd665ef8c61d72f334bd927e8fb7f2f1ae5bebbdf91eece66b1c45d9a
+      sch_power:
+        path: tests/fixtures/stages/usb_buck/sch/power.kicad_sch
+        sha256: 161fb54a60ca8177b9f5f75515a223fa7c4d0ce6a786c5d1680c5ea2ceb16864
+      sch_usb:
+        path: tests/fixtures/stages/usb_buck/sch/usb.kicad_sch
+        sha256: a0def027e6b45eefd83ea316a97eedf4057ea7696816597ced05abdaa0b685c9
+      pro:
+        path: tests/fixtures/stages/usb_buck/sch/usb-buck.kicad_pro
+        sha256: c6ffbe93d5297bc9ed07be65b4022d8befb5e692287095d67ca65de7e50270b0
+      golden_net:
+        path: tests/fixtures/stages/usb_buck/sch/usb-buck.net
+        sha256: bb8920e789e8582d0e1bee53847b4bae506ab364f94c7f6fd01bd004680a9c33
   pd_trigger_board_init:
     stage: P5
     board: pd-trigger
@@ -67,11 +133,17 @@ fixtures:
       source: boards/pd-trigger/kicad/pd-trigger.net
       method: copy
       captured: '2026-08-06'
-      note: board_init re-run on the shipped netlist; stackup per architecture/stackup.md
+      note: board_init re-run on the shipped netlist (stackup per architecture/stackup.md);
+        rules_gen leg (T6 P5-2) generates DRU + netclasses from constraints.json into the
+        board_init pro - capability class / netclass split / IPC-2152 widths / pro floors
+        are baseline-tracked
     files:
       netlist:
         path: tests/fixtures/stages/pd_trigger/pd-trigger.net
         sha256: 7100c1fad6d436c3696efabb0a8a31392854a4d74a3bfa57b403284560e2de2d
+      constraints:
+        path: tests/fixtures/stages/pd_trigger/constraints.json
+        sha256: e44d7987dddcd08ff0f2ba975abe5c09d4c8e597f72c9a85a892c9f7a7edeec5
     dirs:
       fp_lib:
         path: tests/fixtures/stages/pd_trigger/lib

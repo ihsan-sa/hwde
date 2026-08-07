@@ -6,8 +6,9 @@ change iff the composite improves.  Fixtures are frozen under
 tests/fixtures/stages/ (manifest.yaml, every file sha256-pinned); a score
 computed from a drifted fixture is refused (exit 2).
 
-Stages (registry below): P2 architecture, P4 schematic, P5 board_init,
-P6 place, P7 route, P8 verify, P9 dfm, P10 order-dryrun.
+Stages (registry below): P2 architecture, P3 library sanitise (fpfix vs
+real DRC), P4 schematic, P5 board_init + rules_gen, P6 place, P7 route,
+P8 verify, P9 dfm, P10 order-dryrun.
 
 score.json metric classes (the determinism contract, LEARNINGS 2026-08-06
 [tests][freerouting]):
@@ -70,6 +71,7 @@ SCRIPT = "bench"
 # stage -> {title, primary artifact key (--artifact target), live legs}
 STAGES = {
     "P2": {"title": "architecture (constraints vs netlist)", "primary": "constraints", "live": "none"},
+    "P3": {"title": "library sanitise (fpfix vs real DRC)", "primary": "fp_lib", "live": "required"},
     "P4": {"title": "schematic", "primary": "sch", "live": "optional"},
     "P5": {"title": "board_init", "primary": "netlist", "live": "required"},
     "P6": {"title": "place", "primary": "pcb", "live": "none"},
@@ -187,9 +189,61 @@ def score_p2(ctx):
     return metrics, None, penalties, payload["violations"]
 
 
+def score_p3(ctx):
+    """Library sanitise vs REAL DRC (T6 P3-BENCH): copy the frozen pristine
+    pull set to a scratch dir, measure it with fpfix.scratch_drc (the only
+    honest silk oracle - geometry checkers and KiCad DRC disagree), run the
+    pull-time repair pipeline (fpfix.fix_lib + refdes norm), measure again.
+    The fixture's args pin the expected BEFORE profile: drift means either a
+    fixture edit (refused upstream by sha) or an fpfix behavior change that
+    must re-record its baseline in the same commit."""
+    import fpfix
+    import lib_pull
+    src = Path(ctx["files"]["fp_lib"])
+    work_lib = ctx["work"] / "bench.pretty"
+    if work_lib.exists():
+        shutil.rmtree(work_lib)
+    shutil.copytree(src, work_lib)
+
+    before = fpfix.scratch_drc(work_lib)
+    fix = fpfix.fix_lib(work_lib)
+    norm = lib_pull._refdes_norm(work_lib, dry_run=False)
+    after = fpfix.scratch_drc(work_lib)
+
+    expect = (ctx["args"] or {}).get("expect_before_by_check") or {}
+    drift = sum(abs(int(before["by_check"].get(k, 0)) - int(expect.get(k, 0)))
+                for k in set(before["by_check"]) | set(expect)) if expect else 0
+    missing = sorted(set(before.get("missing") or [])
+                     | set(after.get("missing") or []))
+
+    metrics = {"footprints": fix["footprints"],
+               "fix_changed": fix["changed"], "fix_actions": fix["actions"],
+               "fix_residue": fix["residue"],
+               "refdes_changed": norm["changed"],
+               "refdes_skipped": norm["skipped"]}
+    live = {"before_total": before["counts"]["total"],
+            "before_by_check": dict(sorted(before["by_check"].items())),
+            "after_total": after["counts"]["total"],
+            "after_by_check": dict(sorted(after["by_check"].items())),
+            "missing_footprints": missing,
+            "kicad_version": _cli_version(ctx["cli"])}
+    penalties = {"after_violations": live["after_total"],
+                 "residue": fix["residue"],
+                 "missing_footprints": len(missing),
+                 "before_drift": drift}
+    return metrics, live, penalties, []
+
+
 def score_p4(ctx):
     sch = ctx["files"]["sch"]
-    metrics = benchlib.sch_metrics([sch])
+    # multi-sheet plumbing (T6 P4-3): score every pinned sheet - root 'sch'
+    # plus any 'sch_*' children (or an explicit args.sheets order).  The live
+    # ERC/netlist legs stay root-only: kicad-cli walks the hierarchy itself,
+    # and the pinned children sit in the same fixture dir so child refs
+    # resolve.
+    names = (ctx["args"] or {}).get("sheets") or \
+        (["sch"] + sorted(n for n in ctx["files"] if n.startswith("sch_")))
+    metrics = benchlib.sch_metrics([ctx["files"][n] for n in names])
     penalties = {
         "wire_crossings": metrics["wire_crossings"],
         "label_collisions": metrics["label_collisions"],
@@ -261,11 +315,51 @@ def score_p5(ctx):
     penalties = {"setup_violations": live["setup_violations"],
                  "not_clean": 0 if live["clean"] else 1,
                  "transient_silk": live["transient_silk"]}
+
+    # rules_gen leg (T6 P5-2): the T1 surface - per-current netclass split,
+    # IPC-2152 widths, capability class, ERROR-severity fab floors written
+    # into the .kicad_pro - becomes baseline-tracked.  Pure computation
+    # (zero declared noise); fabfloors.check_pro re-asserts the written pro
+    # INDEPENDENTLY of rules_gen's own internal assertion.
+    metrics = {}
+    if "constraints" in ctx["files"]:
+        import fabfloors
+        rg_out = ctx["work"] / "rules_gen_report.json"
+        pro = next(out_dir.glob("*.kicad_pro"), None)
+        if pro is None:
+            raise CheckError("board_init left no .kicad_pro for the "
+                             "rules_gen leg")
+        cmd = [sys.executable, str(SCRIPTS / "rules_gen.py"),
+               "--constraints", str(ctx["files"]["constraints"]),
+               "--layers", str(args.get("layers", 2)),
+               "--out-dru", str(ctx["work"] / "bench.kicad_dru"),
+               "--pro", str(pro), "--out", str(rg_out)]
+        if args.get("stackup"):
+            cmd += ["--stackup", args["stackup"]]
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+        if not rg_out.is_file():
+            raise CheckError(f"rules_gen emitted no report (rc {r.returncode}): "
+                             f"{(r.stdout or r.stderr)[-400:]}")
+        rg = json.loads(rg_out.read_text(encoding="utf-8"))
+        if rg.get("status") != "pass":
+            raise CheckError(f"rules_gen error: {str(rg.get('error', '?'))[:400]}")
+        cls, cap = fabfloors.profile(int(args.get("layers", 2)),
+                                     float(rg["copper_oz"]))
+        pro_floor_failures = len(fabfloors.check_pro(
+            json.loads(pro.read_text(encoding="utf-8")), cap))
+        metrics = {"capability_class": rg["capability_class"],
+                   "netclass_split": sorted(rg["classes"]),
+                   "power_widths_mm": {p["net"]: p.get("class_width_mm")
+                                       for p in rg.get("power") or []},
+                   "rule_count": rg["rule_count"],
+                   "pro_floor_failures": pro_floor_failures}
+        penalties["pro_floor_failures"] = pro_floor_failures
+
     if ctx["render"]:
         pcb = next(out_dir.glob("*.kicad_pcb"), None)
         if pcb:
             _render_pcb(ctx["cli"], pcb, ctx["work"], ctx["renders"])
-    return {}, live, penalties, []
+    return metrics, live, penalties, []
 
 
 def score_p6(ctx):
@@ -470,8 +564,9 @@ def score_p10(ctx):
     return metrics, None, penalties, []
 
 
-SCORERS = {"P2": score_p2, "P4": score_p4, "P5": score_p5, "P6": score_p6,
-           "P7": score_p7, "P8": score_p8, "P9": score_p9, "P10": score_p10}
+SCORERS = {"P2": score_p2, "P3": score_p3, "P4": score_p4, "P5": score_p5,
+           "P6": score_p6, "P7": score_p7, "P8": score_p8, "P9": score_p9,
+           "P10": score_p10}
 
 
 # ---------------------------------------------------------------- baselines
@@ -534,7 +629,11 @@ def run(argv=None):
                     "artifact instead of the frozen one (tuning-loop "
                     "candidate). For live ERC/DRC legs put copies of the "
                     "fixture's .kicad_pro/.kicad_dru next to the candidate - "
-                    "they carry severities/netclasses the score depends on")
+                    "they carry severities/netclasses the score depends on. "
+                    "On a hierarchical P4 fixture this overrides only the "
+                    "ROOT sheet; child-sheet overrides (--file sch_*=...) are "
+                    "judge-side and refused under --compare, so hierarchy "
+                    "tuning on children scores without --compare")
     ap.add_argument("--file", action="append", default=None, metavar="NAME=PATH",
                     help="override any manifest file entry by name")
     ap.add_argument("--baseline", action="store_true",

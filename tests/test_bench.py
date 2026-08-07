@@ -2,8 +2,8 @@
 composite rules, and committed-baseline reproducibility.
 
 Offline tests are unmarked (pure venv - P2/P6/P8/P9/P10 legs run without
-kicad-cli).  Live-toolchain legs (P4 ERC/netlist, P5 board_init, P7 DRC)
-are @pytest.mark.smoke per repo convention.
+kicad-cli).  Live-toolchain legs (P3 scratch DRC, P4 ERC/netlist, P5
+board_init + rules_gen, P7 DRC) are @pytest.mark.smoke per repo convention.
 
 Baseline rule (the declared noise): deterministic metrics have ZERO noise -
 a bench re-run must reproduce every metrics/metrics_live/penalties value
@@ -43,7 +43,8 @@ OFFLINE_FIXTURES = [
     ("P10", "pd_trigger_order"),
 ]
 SMOKE_FIXTURES = [
-    ("P4", "blinky2_sch"), ("P4", "pd_trigger_sch"),
+    ("P3", "pristine_lib"),
+    ("P4", "blinky2_sch"), ("P4", "pd_trigger_sch"), ("P4", "usbbuck_sch"),
     ("P5", "pd_trigger_board_init"),
     ("P7", "golden_usbbuck4_route"), ("P7", "pd_trigger_route"),
 ]
@@ -151,6 +152,32 @@ def test_sheet_balance(tmp_path):
     assert m["symbols"] == 0
 
 
+def _p4_ctx(tmp_path, files, args=None):
+    return {"entry": {}, "files": files, "args": args, "work": tmp_path,
+            "cli": None, "render": False, "renders": [], "overridden": set()}
+
+
+def test_score_p4_scores_root_plus_sch_children(tmp_path):
+    """T6 P4-3: every pinned sheet enters sch_metrics - root 'sch' plus the
+    sorted 'sch_*' children; non-sheet entries (pro, golden_net) do not."""
+    root = _sheet_file(tmp_path, "")
+    child = tmp_path / "c.kicad_sch"
+    child.write_text(_SCH_TEMPLATE.format(
+        body="""(wire (pts (xy 0 5) (xy 10 5)))
+  (wire (pts (xy 5 0) (xy 5 10)))"""), encoding="utf-8")
+    files = {"sch": root, "sch_child": child,
+             "pro": tmp_path / "x.kicad_pro", "golden_net": tmp_path / "x.net"}
+    metrics, live, penalties, _ = bench.score_p4(_p4_ctx(tmp_path, files))
+    assert metrics["sheets"] == 2
+    assert metrics["wire_crossings"] == 1     # the child's crossing counted
+    assert live is None                       # offline ctx: no live leg
+
+    # an explicit args.sheets order overrides the naming convention
+    metrics, _, _, _ = bench.score_p4(
+        _p4_ctx(tmp_path, files, args={"sheets": ["sch"]}))
+    assert metrics["sheets"] == 1 and metrics["wire_crossings"] == 0
+
+
 def test_match_known_answer_paths():
     vs = [{"check": "check_return_path", "kind": "corridor_void",
            "net": "/X", "severity": "error", "refs": []},
@@ -244,6 +271,18 @@ def test_list_covers_all_fixtures():
     payload, _ = bench.run(["--list"])
     listed = [f for s in payload["stages"].values() for f in s["fixtures"]]
     assert sorted(listed) == sorted(FIXTURES)
+    # T6 P3-BENCH: the library-sanitise stage is registered and live-required
+    # (scratch DRC is the only honest silk oracle)
+    assert payload["stages"]["P3"]["live"] == "required"
+    assert payload["stages"]["P3"]["fixtures"] == ["pristine_lib"]
+
+
+def test_live_required_stage_refused_without_kicad(monkeypatch):
+    """P3 has no offline leg: with no kicad-cli the run must refuse (exit 2
+    at the CLI), never emit a partial score."""
+    monkeypatch.setattr(bench, "_find_cli", lambda: None)
+    with pytest.raises(Exception, match="needs kicad-cli"):
+        bench.run(["--stage", "P3", "--fixture", "pristine_lib"])
 
 
 def test_wrong_stage_for_fixture_refused():
