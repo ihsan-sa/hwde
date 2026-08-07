@@ -2474,3 +2474,35 @@ spelling is available only to genuinely inter-sheet nets. For a single-sheet net
 to the netlist's name (`/control/PWMn`) - every consumer keys off the exported name and none
 validates its shape (constraints_lint has no net-name pattern) - or accept adding a part. Do not
 reach for the .kicad_pro severity: the finding is real, it is telling you the label buys nothing.
+
+## 2026-08-07 [datasheet][parts] TI's TPS92515HV Eq 1 and Eq 8 disagree about the freewheel diode, and re-deriving from the text alone lands on an unsafe value
+Found on lumina-par P4 while fixing a dead shunt-dimming off-timer. Two compounding traps in one
+vendor's own equations. (a) **Eq 9 sizes ROFF2 as if VCC charged COFF through ROFF2 alone**, which
+is only true when ROFF1 >> ROFF2. With a shunt FET across the string, ROFF1 returns to the LED
+anode - which the shunt pulls to ~0 V - so COFF sees a DIVIDER, and at ROFF1 = 10 k / ROFF2 = 47 k
+its asymptote is 0.93-1.00 V against a 1.00 V VOFT: the timer never trips at ANY corner, every
+shunted cycle stretches to tOFF(max), and the dimming linearity the network exists to protect is
+lost. The failure is silent - ERC, netlist_audit and every machine gate pass. (b) Worse for anyone
+re-deriving it: **Eq 1 omits the freewheel diode drop while Eq 8 includes it as 0.7 V.** Under the
+physically consistent convention (and a 0.45 V Schottky) the "exact ripple match" moves to ~38 k,
+which is DEAD at the cold/low-Rds corner. So the tidier-looking derivation is the unsafe one. The
+constraint that actually binds is **V_inf vs VOFT across corners, not the Eq 8 off-time target** -
+solve the divider asymptote first, then check timing. Method that settled it: a 243-corner box
+(VCC x Rds(on) x VOFT x tolerance); 47 k failed 176 of 243, 30 k fails 0 with +12.6 % margin.
+
+## 2026-08-07 [erc][schematic][gates] The P4 machine gates cannot see a wrong VALUE, and two hand-derivations of the same network disagreed
+Three ERROR-class defects on lumina-par survived a schematic with `erc` 0 errors / 0 warnings and
+`netlist_audit` exit 0, and all three were found only by an adversarial fresh-context reviewer: a
+dead off-timer (values, above), unprotected comparator inputs on a harness that also carries 6.8-24 V
+LED anodes, and four enable pins with no pull-down that latch their drivers ON during the +12V-before-
++3V3 power-up window. **Connectivity gates verify topology; nothing in the toolchain checks a value
+against the physics of the pins it connects.** Two consequences worth building on. (1) The trap in
+the enable fix is machine-checkable and general: a pull resistor must be sized against any specified
+bias/hysteresis current on the pins of its net - here a reflex 100 k sits at 2.5 V from the enable
+pin's own 25 uA, above its 1.0 V threshold, so the "fix" would not have fixed anything. The numbers
+are already in `parts/<lcsc>.json`. (2) The comparator-hysteresis finding produced two confident and
+CONTRADICTORY hand-derivations (the sheet author's and the reviewer's). It was settled only by
+building an MNA nodal solver, validating it against the as-built (it reproduced the author's figures
+to 0.1 K), and then re-solving - verdict: a dead open latches, as the author said, but a PROGRESSIVE
+crimp failure passes through the chatter window, as the reviewer said. There is no DC-solve anywhere
+in the skill, so this class of question is currently an argument rather than a gate.
