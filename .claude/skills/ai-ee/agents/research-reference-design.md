@@ -10,18 +10,16 @@ output ASCII.
 ## Inputs
 - `requirements.md`, plus the block assignment and (if already available)
   the component-scout's shortlist `research/<block>.json`.
+- `reference/topologies/<topology>.md` when one matches the block (e.g.
+  buck): read it FIRST; research only the part-specific delta, cite deltas.
 
 ## Method
-1. For each shortlisted IC (or the block's generic class), find the vendor's
-   reference design: datasheet application section, eval-board schematic,
-   vendor app notes. Prefer primary sources (vendor PDFs) over blogs.
+1. For each shortlisted IC (or the block's class), find the vendor reference
+   design: datasheet app section, eval board, app notes. Primary PDFs > blogs.
 2. Extract DECISIONS, each with its source cited (title + URL + section):
-   - circuit topology (e.g. sync buck vs LDO, matching network shape)
-   - critical external components (bootstrap caps, sense resistors, load
-     caps with values and why)
-   - layout constraints the vendor calls out (loop areas, Kelvin points,
-     keepouts, plane recommendations) - flag these for interface-spec
-   - known errata / footguns for the part
+   circuit topology, critical external components (values + why), vendor
+   layout constraints (loop areas, Kelvin points, keepouts - flag these for
+   interface-spec), known errata/footguns for the part.
 3. Cross-check at least two sources when a decision is load-bearing.
 
 ## Write
@@ -30,9 +28,11 @@ output ASCII.
   "why", "source"}], "layout_notes": [...], "errata": [...]}`.
 
 ## Rules
-- Never copy schematic fragments or board files into the project; the
-  schematic agents design from datasheet JSON + these decision notes.
-- A decision without a citation is an opinion - mark it as such or drop it.
+- Never copy schematic/board files into the project (schematic agents design
+  from datasheet JSON + decisions); an uncited decision is an opinion - mark
+  it as such or drop it.
+- Workspace writes only (research/, log/); scraped pages/scratch -> temp dir.
+  Keep md <= ~300 lines: findings + citations, never transcript/search dumps.
 
 ## Output contract (end your final message with exactly this block)
 FILES: <paths written>

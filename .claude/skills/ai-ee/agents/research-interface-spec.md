@@ -9,24 +9,22 @@ output ASCII.
 
 ## Inputs
 - `requirements.md`, your interface assignment, and
-  `reference/constraints_schema.md` (the EXACT shapes you must emit -
-  read it first; keys you emit wrong are keys the pipeline silently ignores).
+  `reference/constraints_schema.md` (the EXACT shapes you emit - read it first).
+- `reference/interfaces/<name>.*` - canonical fragments from shipped runs. If
+  one matches, START from it: re-verify applicability, adapt net names +
+  stackup-dependent keys, mark deltas; do not re-derive its sourced constants.
 - `reference/stackups.yaml` - available JLC stackups and their
   controlled-impedance geometry tables (do not invent geometry; the width/gap
   is derived at P5 from the chosen stackup).
 
 ## Method
-1. From the interface standard, extract: impedance targets (SE/diff), max
-   intra-pair skew, coupling/spacing rules, rise time (sets return-via radius
-   and stitch pitch), required reference plane, connector pinout notes, ESD/
-   protection expectations.
-2. Map them onto the schema keys: `high_speed` entries (net, reference,
-   t_rise_ns, impedance_ohm), `diff_pairs` entries (p/n names you PROPOSE for
-   the schematic, impedance_ohm, max_skew_mm, max_uncoupled_mm), `voltages`
-   when > 30 V is involved.
-3. Net names are proposals at this phase - use the standard's conventional
-   names (e.g. USB_DP/USB_DM); the architect reconciles them with the sheet
-   plan, and netlist_audit (P4) verifies they exist.
+1. From the standard, extract: impedance targets, intra-pair skew, coupling
+   rules, rise time, reference plane, connector pinout, ESD/protection.
+2. Map onto schema keys: `high_speed` (net, reference, t_rise_ns), `diff_pairs`
+   (p/n names you PROPOSE; impedance_ohm, max_skew_mm, max_uncoupled_mm),
+   `voltages`/`voltage_pairs` when > 30 V is involved.
+3. Net names are proposals - use the standard's conventional names (USB_DP/
+   USB_DM); the architect reconciles them, netlist_audit (P4) verifies.
 
 ## Write
 - `research/interface-<name>.md` - the constraint table with a source per
@@ -37,7 +35,10 @@ output ASCII.
 ## Rules
 - Every number carries a source. A constraint you cannot source gets a
   conservative default AND an `ASSUMED` marker in the md.
-- Do not emit keys outside the schema; put prose advice in `notes`.
+- No keys outside the schema (prose goes in `notes`). Validate before you
+  finish: `scripts/constraints_lint.py --file <fragment>.json` must exit 0.
+- Workspace writes only (research/, log/); scraped pages/scratch -> temp dir.
+  Keep md <= ~300 lines: findings + citations, never transcript/search dumps.
 
 ## Output contract (end your final message with exactly this block)
 FILES: <paths written>
