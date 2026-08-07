@@ -2401,3 +2401,76 @@ only by the `--pad-window` probe (route_critical.py:1146-1147) - routing scope i
 diff|rf|power` from constraints, and NO script re-routes one named net end to end (that is a
 route_edit op list). A checker can prove a flag exists; only reading the code proves it does what
 the sentence around it claims.
+
+## 2026-08-07 [kicad-sch-api][schematic][bom] DNP is unreachable from a generator, and NOTHING in the skill reads a DNP mark
+Found by the lumina-par P4 `power` sheet agent, confirmed by grep. kicad-sch-api 0.5.5 exposes no
+`dnp` field on `SchematicSymbol` and its writer hard-codes `(dnp no)`, so KiCad's NATIVE do-not-populate
+flag cannot be set from inside a `build()`. The workaround is a `Variant=DNP` component field, which
+does reach the netlist as a component property. But that only makes the mark *present*, not *honoured*:
+grep across `scripts/` finds no reader of any DNP marking anywhere - the single hit is a COMMENT in
+`bom_cpl.py`. `bom_cpl` builds its list from the board pos export, so every DNP option set ships as a
+populated part. On lumina-par that is 9 branch-B front-end parts plus the converter-idle one-shot.
+Consequence for any board using DNP option sets (sheets.md s4 rule 1 mandates they be IN the netlist,
+because a DNP part still has pads and must be accounted at P6/P7): the option is correct on the
+schematic and wrong on the BOM. A P9 filter keyed on `parts.json` `dnp:true` or the `Variant` field is
+missing infrastructure, not a board defect - do not let it be "fixed" by deleting the parts.
+
+## 2026-08-07 [parts][datasheet] JST PH entry direction is the LEADING letter, not the "B" in the circuit count
+A P3 extract flagged `S10B-PH-SM4-TB` as side entry while a reviewer read the "B" as the JST top-entry
+code, leaving a P4 open action on a connector whose exit direction drove an enclosure decision. The
+datasheet settles it and the extract was right: `parts/C265014.pdf` p3 splits the Model No. table into
+`Top entry type` and `Side entry type` COLUMNS - top entry is B2B..B16B-PH-SM4-TB, side entry is
+S2B..S15B-PH-SM4-TB - and the same split repeats for the THT (B*B-PH-K-S / S*B-PH-K-S) and
+low-insertion-force (B*B-PH-KL / S*B-PH-KL) families. So the entry code is the FIRST letter; the "B"
+after the circuit count appears in every model number of the series, both columns, and carries no
+entry information at all. Generalisation worth keeping: when a part-number convention and an extract
+disagree, the convention is the thing to re-derive from the datasheet's own model table - a
+half-remembered naming rule reads as authority and is not. Second-order fact for placement: a
+side-entry PH land is ASYMMETRIC front-to-back (tabs 0.2 mm beyond the wafer's mating face, circuit
+pads 5.5-9.0 mm behind it), so it has a correct orientation AND must not be mirrored - a symmetric
+hole grid does not mean a symmetric part.
+
+## 2026-08-07 [kicad-sch-api][schematic][erc] Multi-unit symbols: ksa reports EVERY unit's pins on ANY instance, so a natural placement silently floats most of the part
+Found on lumina-par P4 `thermal`. `LM339LVPWR` is a FOUR-UNIT symbol (the only multi-unit symbol in
+that board's pulled lib). kicad-sch-api places ONE unit per component, but `get_component_pins` /
+`--pins` reports the pins of EVERY unit on ANY instance - so wiring "the symbol" the ordinary way
+builds clean, renders clean, and leaves units B/C/D absent. kicad-cli ERC is what catches it:
+`missing_unit [B, C, D]` plus one `unconnected_wire_endpoint` per silently floating pin (9 here:
+2/4/5/8/9/10/11/13/14). Second trap on top of the first: stack the units on one anchor and the
+bodies overlap, so a standard stub from one pin ENDS ON another unit's pin - here pin 7's stub
+landed on pin 10 and shorted two nets that ERC then reports as a legitimate connection. Recipe that
+worked: place each unit on its OWN anchor under a temporary distinct ref, wire it, then rename to
+the shared ref afterwards - ksa refuses duplicate refs in BOTH `components.add` and the `reference`
+setter, so the rename must come last. Generalisation: `--pins` output is a LIBRARY fact, not an
+instance fact; for any symbol with units, count units first and treat the pin table per unit.
+
+## 2026-08-07 [erc][schematic][kicad-cli] A child sheet's own ERC is uninformative - stitch it under a throwaway root to tell artifact from defect
+Every lumina-par P4 sheet agent hit this independently. Running `kc.py erc` on a hierarchical child
+built standalone reports a wall of findings that are ALL artifacts of having no parent: each
+hierarchical label raises `pin_not_connected` ("hierarchical label in root sheet cannot be connected
+to non-existent parent sheet"), each single-pin hier net raises `isolated_pin_label`, and each
+CONSUMED rail raises `power_pin_not_driven` (because PWR_FLAG lives on whichever sheet owns rail
+entry). Counts seen: power 4, led_if 7, control 20, drivers 22, and every one of them benign. The
+useful move, which the `drivers` agent invented and the `thermal` agent repeated: stitch the child
+under a THROWAWAY root plus a stimulus sheet in a scratch dir - one load per interface net, plus the
+PWR_FLAGs the owning sheet will carry - and re-run. Both boards' sheets went to 0 errors / 0 warnings
+that way, which is the only evidence that separates a real defect from the no-parent noise. Do this
+BEFORE reporting a sheet clean; a subagent that reports raw standalone ERC counts has told you
+nothing either way.
+
+## 2026-08-07 [erc][schematic][kicad-cli] You cannot rename a single-sheet net to `/NAME` by crossing the root: one sheet pin is not a connection
+lumina-par P4 root stitch. `constraints.json.high_speed` spelled the four PWM nets `/PWM0..3`, but
+J4, the pull-downs and the NAND inputs all live on `control`, so KiCad names them `/control/PWMn`
+and `netlist_audit` raises missing_net. The obvious fix - expose the net as a hier pin so the ROOT's
+local label spells it bare - BUILDS and produces a byte-correct netlist (`/PWM0` = J4-1 + R202-1 +
+U202-1) and then fails ERC: **4x `label_dangling` "Label not connected"** on the root labels. The
+root subgraph is wire + label + ONE sheet pin, and KiCad 10.0.3 wants a real CONNECTION POINT there.
+Two probes pinned the rule, both on the real board: a second same-named root label does NOT satisfy
+it (8 errors - both labels flagged, so it is not "the name appears once"), while dropping one
+`Connector:TestPoint` pin onto each root PWM wire takes the same project to 0/0. Every other root net
+escapes it only because TWO children expose the net, giving the root two sheet pins - checked against
+lumina-carrier, where all 70 root labels appear exactly 2-3 times. Consequence: the bare `/NAME`
+spelling is available only to genuinely inter-sheet nets. For a single-sheet net, fix the CONSTRAINT
+to the netlist's name (`/control/PWMn`) - every consumer keys off the exported name and none
+validates its shape (constraints_lint has no net-name pattern) - or accept adding a part. Do not
+reach for the .kicad_pro severity: the finding is real, it is telling you the label buys nothing.
