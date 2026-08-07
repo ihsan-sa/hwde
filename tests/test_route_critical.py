@@ -296,6 +296,202 @@ def test_detach_missing_pad_or_ref_raises(tmp_path):
         rc.restore_stub_pads("unrelated text", [("gone", "orig")])
 
 
+# ============================================================ pure: T6 KRT facts
+
+CARRIER_COVERAGE = ("Coverage: 1863/13659 frontier cells attributed to "
+                    "routed nets; 11796 static/unrippable")
+
+
+def test_coverage_static_share_parses_carrier_line():
+    share = rc.coverage_static_share(
+        "noise\n" + CARRIER_COVERAGE + "\nmore\n")
+    assert share == pytest.approx(11796 / 13659)      # ~0.86
+    assert rc.coverage_static_share("no such line") is None
+    assert rc.coverage_static_share("") is None
+    # the LAST line wins
+    two = (CARRIER_COVERAGE + "\n"
+           "Coverage: 5/10 frontier cells attributed to routed nets; "
+           "5 static/unrippable\n")
+    assert rc.coverage_static_share(two) == pytest.approx(0.5)
+
+
+def test_parse_dru_rules_and_net_floors(tmp_path):
+    dru = tmp_path / "b.kicad_dru"
+    dru.write_text("""(version 1)
+(rule "aiee_clearance_floor"
+\t(constraint clearance (min 0.1524mm))
+)
+(rule "aiee_pwr_width_VBUS"
+\t(constraint track_width (min 1.7500mm))
+\t(condition "A.NetName == 'VBUS' && A.Type == 'track'")
+)
+(rule "aiee_hv_clearance"
+\t(constraint clearance (min 0.635mm))
+\t(condition "A.NetName == 'V48_RAW' || B.NetName == 'V48_RAW'")
+)
+""", encoding="utf-8")
+    rules = rc.parse_dru_rules(dru.read_text(encoding="utf-8"))
+    assert {r["name"] for r in rules} == {
+        "aiee_clearance_floor", "aiee_pwr_width_VBUS", "aiee_hv_clearance"}
+    base = next(r for r in rules if r["name"] == "aiee_clearance_floor")
+    assert base["nets"] == [] and base["min_mm"] == 0.1524
+    assert rc.dru_net_floors(dru, "track_width") == {"VBUS": 1.75}
+    assert rc.dru_net_floors(dru, "clearance") == {"V48_RAW": 0.635}
+    assert rc.dru_net_floors(None, "clearance") == {}
+    assert rc.dru_net_floors(tmp_path / "nope.kicad_dru", "clearance") == {}
+
+
+def test_build_net_clearances_class_plus_dru(tmp_path):
+    pro = tmp_path / "b.kicad_pro"
+    pro.write_text(json.dumps({"net_settings": {
+        "classes": [{"name": "Default", "clearance": 0.15},
+                    {"name": "HV", "clearance": 0.4}],
+        "netclass_patterns": [{"netclass": "HV", "pattern": "V48*"}],
+    }}), encoding="utf-8")
+    dru = tmp_path / "b.kicad_dru"
+    dru.write_text("""(rule "hv"
+\t(constraint clearance (min 0.635mm))
+\t(condition "A.NetName == 'V48_RAW' || B.NetName == 'V48_RAW'")
+)
+""", encoding="utf-8")
+    nets = {"V48_RAW", "V48_RTN", "/SIG", "GND"}
+    m = rc.build_net_clearances(pro, dru, nets)
+    # class gives both V48 nets 0.4; the DRU raises V48_RAW to 0.635;
+    # nothing is ever capped DOWN (max of class and DRU)
+    assert m == {"V48_RAW": 0.635, "V48_RTN": 0.4}
+    # no sources at all -> None (no file emitted)
+    assert rc.build_net_clearances(None, None, nets) is None
+    # unparseable pro -> fail OPEN (None), never wrong values
+    bad = tmp_path / "bad.kicad_pro"
+    bad.write_text("{not json", encoding="utf-8")
+    assert rc.build_net_clearances(bad, dru, nets) is None
+
+
+def test_run_krt_passes_net_clearances_and_captures_stdout(tmp_path,
+                                                          monkeypatch):
+    seen = {}
+
+    class CP:
+        returncode = 0
+        stdout = 'pre\nJSON_SUMMARY: {"successful": 1}\n'
+        stderr = ""
+
+    def fake_run(args, **kw):
+        seen["args"] = args
+        return CP()
+
+    monkeypatch.setattr(rc.subprocess, "run", fake_run)
+    sink: list[str] = []
+    ncl = tmp_path / "ncl.json"
+    summary = rc.run_krt(tmp_path, "route.py", tmp_path / "b.kicad_pcb",
+                         tmp_path / "o.kicad_pcb", ["--nets", "X"],
+                         rc.KICAD_DEFAULTS, tmp_path / "fab.txt", 0.05, 60,
+                         net_clearances=ncl, stdout_sink=sink)
+    assert summary == {"successful": 1}
+    a = seen["args"]
+    assert "--net-clearances" in a and str(ncl) in a
+    assert a.index("--net-clearances") < a.index("--nets")  # before extra
+    assert sink and "JSON_SUMMARY" in sink[0]
+    # omitted -> flag absent
+    rc.run_krt(tmp_path, "route.py", tmp_path / "b.kicad_pcb",
+               tmp_path / "o.kicad_pcb", [], rc.KICAD_DEFAULTS,
+               tmp_path / "fab.txt", 0.05, 60)
+    assert "--net-clearances" not in seen["args"]
+
+
+def _retry_ctx(tmp_path) -> dict:
+    pcb = _pair_board(tmp_path)
+    staged = tmp_path / "staged.kicad_pcb"
+    shutil.copy2(pcb, staged)
+    return {"staged": staged, "work": tmp_path, "krt": tmp_path,
+            "floors": dict(rc.KICAD_DEFAULTS),
+            "fab_file": tmp_path / "fab.txt",
+            "grid_step": 0.05, "timeout_s": 60}
+
+
+def test_iteration_ladder_retries_failed_nets_once(tmp_path, monkeypatch):
+    """LEARNINGS 1433/1504 as script behavior: no-route + static frontier
+    -> ONE retry, failed nets only, at 4M iterations."""
+    ctx = _retry_ctx(tmp_path)
+    calls = []
+
+    def fake_krt(krt, script, staged, out, extra, floors, fab, grid, t_s,
+                 net_clearances=None, stdout_sink=None):
+        calls.append(list(extra))
+        shutil.copy2(staged, out)
+        if len(calls) == 1:
+            if stdout_sink is not None:
+                stdout_sink.append("No route found after 200000 iterations "
+                                  "(forward)\n" + CARRIER_COVERAGE + "\n")
+            return {"failed_single": ["+3V3"]}
+        return {"failed_single": []}
+
+    monkeypatch.setattr(rc, "run_krt", fake_krt)
+    facts, violations = rc._route_single_item(
+        ctx, "power", ["+3V3"], ["--layers", "F.Cu"], {"+3V3": {}})
+    assert violations == []
+    assert len(calls) == 2
+    assert calls[1][:2] == ["--nets", "+3V3"]
+    assert "--max-iterations" in calls[1]
+    assert calls[1][calls[1].index("--max-iterations") + 1] == "4000000"
+    assert "--max-probe-iterations" in calls[1]
+    assert facts[0]["iteration_retry"] is True
+    retry = facts[0]["krt_retry"]
+    assert retry["kept"] is True and retry["nets"] == ["+3V3"]
+    assert retry["static_share"] == pytest.approx(11796 / 13659)
+
+
+def test_no_retry_when_frontier_is_rippable(tmp_path, monkeypatch):
+    """Low static share -> a rip set may genuinely help: no blind retry;
+    the violation carries the share so the router can triage."""
+    ctx = _retry_ctx(tmp_path)
+    calls = []
+
+    def fake_krt(krt, script, staged, out, extra, floors, fab, grid, t_s,
+                 net_clearances=None, stdout_sink=None):
+        calls.append(list(extra))
+        shutil.copy2(staged, out)
+        if stdout_sink is not None:
+            stdout_sink.append(
+                "No route found after 200000 iterations (forward)\n"
+                "Coverage: 9000/10000 frontier cells attributed to routed "
+                "nets; 1000 static/unrippable\n")
+        return {"failed_single": ["+3V3"]}
+
+    monkeypatch.setattr(rc, "run_krt", fake_krt)
+    facts, violations = rc._route_single_item(
+        ctx, "power", ["+3V3"], [], {"+3V3": {}})
+    assert len(calls) == 1                       # no retry
+    assert facts == []
+    assert violations[0]["kind"] == "critical_route_failed"
+    assert violations[0]["static_share"] == pytest.approx(0.1)
+    assert violations[0]["iteration_retry"] is False
+
+
+def test_relative_work_dir_is_resolved(tmp_path, monkeypatch):
+    """LEARNINGS 1318: KRT runs with cwd=<plugins dir>, so a relative
+    --work-dir must be resolved before anything is staged into it."""
+    pcb = _pair_board(tmp_path)
+    (tmp_path / "constraints.json").write_text(json.dumps(
+        {"power": [{"net": "+3V3", "current_a": 0.4}]}), encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(rc, "_tools", lambda: (Path("cli"), Path("krt")))
+    drc = {"counts": {"total": 0, "by_severity": {}, "by_source": {}},
+           "violations": []}
+    monkeypatch.setattr(rc.kc, "run_drc", lambda *a, **k: dict(drc))
+    seen = {}
+
+    def fake_power(ctx, specs):
+        seen["work"] = ctx["work"]
+        return [], []
+
+    monkeypatch.setattr(rc, "route_power_item", fake_power)
+    payload, _ = rc.run(["--pcb", str(pcb), "--work-dir", "relwork"])
+    assert payload["status"] == "pass"
+    assert seen["work"].is_absolute()
+    assert seen["work"] == (tmp_path / "relwork").resolve()
+
+
 # ============================================================ pure: CLI/tools
 
 def test_missing_krt_is_a_check_error(monkeypatch):

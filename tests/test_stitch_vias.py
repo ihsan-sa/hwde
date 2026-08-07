@@ -126,7 +126,9 @@ def _scene(clearance=0.2, holes=()):
 
     sc = stitch_vias.Scene(["F.Cu", "B.Cu"], fof, box(0, 0, 20, 20),
                            clearance)
-    sc.holes = list(holes)
+    # T6: holes are DRILL EXTENTS; (x, y) shorthand = a standard 0.3 drill
+    # (same verdicts as the old 0.5 mm centre floor for standard vias)
+    sc.holes = [Point(x, y).buffer(0.15, quad_segs=16) for x, y in holes]
     return sc
 
 
@@ -166,6 +168,78 @@ def test_scene_track_corridor():
     # committed foreign copper blocks the corridor too
     sc.commit_track((2, 5), (8, 5), 0.2, "SIG", "F.Cu")
     assert sc.track_ok((2, 5.2), (8, 5.2), 0.2, "GND", "F.Cu") is False
+
+
+# ============================================================ pure: drill floor
+
+def test_hole_floor_is_drill_edge_aware():
+    """T6 (P7A-4/P7B-4): the floor is edge-to-edge against real drill
+    extents. A 1.0 mm drill 0.5 mm away passed the old centre-only model
+    with the holes overlapping 0.1 mm."""
+    sc = _scene()
+    sc.holes.append(Point(5, 5).buffer(0.5, quad_segs=16))  # 1.0 mm drill
+    r = 0.3
+    assert sc.via_check(5.5, 5.0, r, "GND", 0.5) == "hole_to_hole"
+    # edge gap 0.2 + new drill r 0.15 -> centre must be >= 0.85 from centre
+    assert sc.via_check(5.84, 5.0, r, "GND", 0.5) == "hole_to_hole"
+    assert sc.via_check(5.86, 5.0, r, "GND", 0.5) is None
+    # two standard 0.3 drills at 0.5 mm centres still accept exactly
+    sc2 = _scene(holes=[(5.0, 5.0)])
+    assert sc2.via_check(5.5, 5.0, r, "GND", 0.5) is None
+    assert sc2.via_check(5.49, 5.0, r, "GND", 0.5) == "hole_to_hole"
+
+
+def test_slot_drill_extents_are_seen():
+    """A slot (oval) drill rejects along its long axis where the centre
+    model accepted (0.9 mm centre distance >= 0.5 passed before)."""
+    sc = _scene()
+    # 0.6 x 2.0 slot centred at (5, 5), long axis vertical
+    sc.holes.append(LineString([(5, 4.3), (5, 5.7)]).buffer(0.3,
+                                                            quad_segs=16))
+    r = 0.3
+    assert sc.via_check(5.0, 6.2, r, "GND", 0.5) == "hole_to_hole"  # 0.2 edge
+    assert sc.via_check(5.0, 6.6, r, "GND", 0.5) is None            # 0.6 edge
+    assert sc.via_check(5.9, 5.0, r, "GND", 0.5) is None            # short axis
+
+
+def test_build_scene_reads_pad_drills_with_rotation(tmp_path):
+    """geom.Pad.drill_poly reaches the scene: a rotated THT oval pad's slot
+    extents reject candidates along the slot axis (LEARNINGS 819/827 - the
+    pd-trigger case shipped 0.12 mm hole-edge spacing DRC-green)."""
+    body = _fp("J9", 15, 15,
+               '    (pad "1" thru_hole oval (at 0 0 90) (size 1.6 3.2)'
+               ' (drill oval 0.8 2.4) (layers "*.Cu") (net "SIG"))\n')
+    body += _zone(1, "GND", "B.Cu", 1, 1, 29, 29)
+    pcb = _board(tmp_path, "slotpad", body)
+    bg = geom.BoardGeom.from_file(pcb)
+    sc = stitch_vias.build_scene(bg, 0.2)
+    r = 0.3
+    # slot spans x 13.8..16.2 after the -angle rotation; hole edge at
+    # 16.32 is 0.12 mm out -> rejected (old centre model: 1.62 >= 0.5 ok)
+    assert sc.via_check(16.32, 15.0, r, "GND", 0.5) == "hole_to_hole"
+    # >= 0.35 mm from the slot edge is drill-legal again (16.2 + 0.35)
+    assert sc.via_check(16.56, 15.0, r, "GND", 0.5) != "hole_to_hole"
+    # far from copper AND drill: fully legal
+    assert sc.via_check(19.0, 15.0, r, "GND", 0.5) is None
+
+
+def test_dry_run_respects_tht_drill_edges(tmp_path):
+    """End-to-end: no planned via may land inside the edge floor of a big
+    THT drill (the class KiCad DRC cannot see - LEARNINGS 819)."""
+    body = _fp("U1", 10, 10, _pad("1", 0, 0, "GND"))
+    body += _fp("J1", 12, 10,
+                '    (pad "1" thru_hole circle (at 0 0) (size 2.0 2.0)'
+                ' (drill 1.2) (layers "*.Cu") (net "SIG"))\n')
+    body += _zone(1, "GND", "B.Cu", 1, 1, 29, 29)
+    pcb = _board(tmp_path, "bigdrill", body)
+    payload, _ = stitch_vias.run(
+        ["--pcb", str(pcb), "--dry-run", "--pitch", "8"])
+    assert payload["status"] == "pass"
+    drill_edge = Point(12, 10).buffer(0.6)
+    for op in payload["ops"]:
+        assert op["op"] == "add_via"
+        # centre >= edge_gap(0.2) + new drill r (0.15) from the drill edge
+        assert drill_edge.distance(Point(op["at"])) >= 0.35 - 1e-9, op
 
 
 # ============================================================ pure: CLI fixtures

@@ -554,9 +554,13 @@ def via_blocked_union(bg: geom.BoardGeom, net: str):
     """Where a jumper via center may NOT go: foreign WIRED copper (tracks/
     pads/vias - zone fills re-flow around a new via at refill, so they are
     not obstacles; S11 review finding) on ANY copper layer buffered to via
-    clearance, every rule area (via barrel spans all layers), and a
-    MIN_HOLE_DIST disc around every existing drill (vias + multi-layer pad
-    barrels - same-net drills too; hole-to-hole DRC is net-agnostic)."""
+    clearance, every rule area (via barrel spans all layers), and every
+    existing DRILL EXTENT (vias at their real drill, multi-layer pad
+    barrels incl. slot stadiums via geom.Pad.drill_poly - same-net drills
+    too; hole-to-hole DRC is net-agnostic) buffered edge-to-edge:
+    (MIN_HOLE_DIST - 0.3) + VIA_DRILL/2 (T6, P7A-4 - identical to the old
+    MIN_HOLE_DIST centre disc for standard 0.3 mm drills, honest for
+    bigger/slotted ones)."""
     parts = []
     for lyr in bg.copper_layers:
         wired = [t.poly for t in bg.tracks_of(layer=lyr) if t.net != net]
@@ -565,10 +569,16 @@ def via_blocked_union(bg: geom.BoardGeom, net: str):
         if wired:
             parts.append(unary_union(wired).buffer(
                 VIA_SIZE / 2.0 + CLEARANCE, quad_segs=8))
-    holes = [Point(v.at) for v in bg.vias_of()]
-    holes += [Point(p.center) for p in bg.pads_of() if len(p.layers) > 1]
+    holes = [Point(v.at).buffer(max(v.drill, 0.3) / 2.0, quad_segs=8)
+             for v in bg.vias_of()]
+    for p in bg.pads_of():
+        if len(p.layers) > 1:
+            dp = p.drill_poly
+            holes.append(dp if not dp.is_empty
+                         else Point(p.center).buffer(0.15, quad_segs=8))
     if holes:
-        parts.append(unary_union(holes).buffer(MIN_HOLE_DIST, quad_segs=8))
+        parts.append(unary_union(holes).buffer(
+            (MIN_HOLE_DIST - 0.3) + VIA_DRILL / 2.0, quad_segs=8))
     ko = all_keepouts(bg)
     if not ko.is_empty:
         parts.append(ko.buffer(VIA_SIZE / 2.0, quad_segs=8))

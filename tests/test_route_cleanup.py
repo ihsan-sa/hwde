@@ -141,6 +141,71 @@ def test_uuidless_items_are_anchors_never_removed():
     assert gone_s == [] and gone_v == []
 
 
+# ============================================================ pure: V13 fix
+
+def test_endpoint_inside_wide_trunk_copper_is_not_free():
+    """T6/V13 root cause: a stub ending 1.0 mm from a 3.0 mm trunk's
+    CENTERLINE sits 0.5 mm inside its copper - connected, never dangling."""
+    trunk = S("trunk", (0, 0), (30, 0), width=3.0)
+    stub = S("stub", (5, 1.0), (5, 4.0), width=0.3)
+    # trunk anchored at both ends, stub far end on a pad
+    pads = [PD((0, 0)), PD((30, 0)), PD((5, 4.0))]
+    gone_s, _ = rcl.find_dangling([trunk, stub], [], pads, EMPTY)
+    assert gone_s == []
+    # control: pull the stub past the copper + clearance -> genuinely free
+    stub2 = S("stub2", (5, 2.0), (5, 5.0), width=0.3)
+    gone_s2, _ = rcl.find_dangling([trunk, stub2], [], pads[:2], EMPTY)
+    assert gone_s2 == ["stub2"]
+
+
+def test_via_and_pad_touch_use_copper_overlap():
+    # via barrel (r 0.3) + track half width (0.125): centre distance 0.4
+    # overlaps copper -> anchored; the old centerline rule called it free.
+    # A B.Cu pad under the via gives it its 2nd contact (via stays).
+    pads = [PD((0, 0)), PD((2.4, 0), layers=("B.Cu",))]
+    segs = [S("s1", (0, 0), (2, 0), width=0.25)]
+    vias = [V("v1", (2.4, 0))]
+    gone_s, gone_v = rcl.find_dangling(segs, vias, pads, EMPTY)
+    assert gone_s == [] and gone_v == []
+    # pad copper within half-width of the endpoint anchors too
+    pads2 = [PD((0, 0)), PD((2.6, 0), half=0.5)]   # pad edge at x=2.1
+    gone_s2, _ = rcl.find_dangling(segs, [], pads2, EMPTY)
+    assert gone_s2 == []
+
+
+def test_regression_pd_trigger_vbus_stubs_survive():
+    """V13 regression fixture: on the frozen pd-trigger route board the
+    dangling pass must remove NOTHING, and the two VBUS stubs the old
+    centerline model cut (unconnected 0->2 live) must not be targeted by
+    any remove op. No toolchain needed (build_plan is pure analysis)."""
+    pcb = (REPO / "tests" / "fixtures" / "stages" / "pd_trigger" / "route"
+           / "pd-trigger.kicad_pcb")
+    bg = geom.BoardGeom.from_file(pcb)
+    segs, vias = rcl.parse_items(pcb, bg.copper_layers)
+    plan = rcl.build_plan(bg, segs, vias)
+    assert plan["dangling_removed"] == 0
+    stubs = {"01de587b-2d22-4335-9d71-8d473a2a3c84",
+             "e0b8be12-082a-41f9-bafb-41ddd1208bc8"}
+    removed = {o["uuid"] for o in plan["ops"] if o["op"] == "remove"}
+    assert not (removed & stubs), removed & stubs
+    # deterministic plan; the genuine loop still breaks, orphans follow
+    plan2 = rcl.build_plan(bg, segs, vias)
+    assert json.dumps(plan["ops"], sort_keys=True) == \
+        json.dumps(plan2["ops"], sort_keys=True)
+    assert plan["loops_broken"] == 1
+    assert plan["orphaned_after_loops"] == 2
+    assert plan["loop_bridge_vetoed"] == 0
+
+
+def test_loop_bridge_veto_unmatched_victim_is_vetoed(tmp_path_factory):
+    p = _dirty_synthetic(tmp_path_factory, "veto")
+    bg = geom.BoardGeom.from_file(p)
+    ghost = S("gh", (1.23, 4.56), (7.89, 1.23), net="VCC")
+    removable, vetoed = rcl.loop_bridge_veto(bg, [ghost])
+    assert removable == [] and vetoed == ["gh"]
+    assert rcl.loop_bridge_veto(bg, []) == ([], [])
+
+
 # ============================================================ pure: loops
 
 RECT = [S("aaa", (0, 0), (6, 0), width=0.4),
@@ -543,9 +608,14 @@ def test_cleanup_acceptance_blinky2(dirty_board, tmp_path):
     assert p1["dangling_segments"] == 1 and p1["dangling_vias"] == 0
     assert p1["loops_broken"] == 1
     assert p1["corners_smoothed"] == 1
+    # T6: after the loop breaks, its two remaining short sides orphan IFF
+    # the victim was a middle side (uuid tie-break decides which 6 mm side
+    # loses, so both outcomes are legal); orphans are then removed too.
+    orphans = p1["orphaned_after_loops"]
+    assert orphans in (0, 2)
     planned = {o["uuid"] for o in p1["ops"] if o["op"] == "remove"}
     assert dirty_board["stub"] in planned
-    assert len(planned & set(dirty_board["rect"])) == 1
+    assert len(planned & set(dirty_board["rect"])) == 1 + orphans
     assert set(dirty_board["corner"]) <= planned
     assert dirty_board["chain"] not in planned
 
@@ -559,7 +629,8 @@ def test_cleanup_acceptance_blinky2(dirty_board, tmp_path):
     rc = rcl.main(["--pcb", str(pcb), "--out-report", str(rep)])
     r = json.loads(rep.read_text("utf-8"))
     assert rc == 0 and r["status"] == "pass", r
-    assert r["ops_applied"] == 7  # stub + loop side + (2 removes + 3 adds)
+    # stub + loop side (+ orphaned short sides) + (2 removes + 3 adds)
+    assert r["ops_applied"] == 7 + r["orphaned_after_loops"]
     assert r["drc_after"]["unconnected"] <= r["drc_before"]["unconnected"]
     assert r["drc_after"]["errors"] <= r["drc_before"]["errors"]
     assert "dangling_flagged" in r["drc_before"]
@@ -567,7 +638,8 @@ def test_cleanup_acceptance_blinky2(dirty_board, tmp_path):
 
     text = pcb.read_text("utf-8")
     assert dirty_board["stub"] not in text                      # stub gone
-    assert sum(u in text for u in dirty_board["rect"]) == 3     # loop broken
+    assert sum(u in text for u in dirty_board["rect"]) == \
+        3 - r["orphaned_after_loops"]                           # loop broken
     assert dirty_board["chain"] in text                         # chain kept
     assert all(u not in text for u in dirty_board["corner"])    # chamfered
 

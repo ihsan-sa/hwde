@@ -249,7 +249,10 @@ def route_probe(pcb: Path, *, passes: int = 4, timeout_s: int = 180,
     """
     pcb = Path(pcb).resolve()
     cli, bp, java, jar = _tools()
-    work = _fresh_work_dir(Path(work_dir) if work_dir
+    # .resolve(): Freerouting runs with cwd=dsn.parent and KRT with
+    # cwd=<plugins dir>, so relative work paths break silently
+    # (LEARNINGS 1318; same fix as route_critical).
+    work = _fresh_work_dir(Path(work_dir).resolve() if work_dir
                            else pcb.parent / "route_probe")
     staged = _stage_board(pcb, work)
     bg = geom.BoardGeom.from_file(staged)
@@ -301,7 +304,8 @@ def run(argv: list[str] | None = None):
         return payload, args.out_report
 
     cli, bp, java, jar = _tools()
-    work = _fresh_work_dir(Path(args.work_dir) if args.work_dir
+    # .resolve(): see route_probe - relative work paths break KRT/Freerouting
+    work = _fresh_work_dir(Path(args.work_dir).resolve() if args.work_dir
                            else pcb.parent / "route")
     staged = _stage_board(pcb, work)
 

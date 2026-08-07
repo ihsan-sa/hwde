@@ -25,6 +25,8 @@ Route artifacts (DSN/SES/logs) land in `<board dir>/route/`.
    at IPC-2152 x1.5 width, RF at impedance width + fence handoff. It SKIPS
    plane-carried power nets by design (the plane IS the trunk; an outer
    trunk starves thermal spokes) - do not force them.
+   Premise check: `--pad-window` measures each power pad's width ceiling -
+   run it before forcing a rule width at a connector (exit 1 = unmeetable).
 2. `scripts/stitch_vias.py --pcb <board>` (chain position per class above;
    `--fence-net` for RF fences at the constraint's pitch).
 3. `scripts/route_auto.py --pcb <board>` - refill -> DSN export -> the
@@ -41,14 +43,9 @@ Route artifacts (DSN/SES/logs) land in `<board dir>/route/`.
    self-detect a connectivity regression (exit 1 cleanup_regression, board
    left modified): restore the snapshot and CONTINUE WITHOUT cleanup - it
    is optional by design.
-5b. Netclass note (T1): rules_gen now emits ONE CLASS PER REQUIRED WIDTH
-   (`Pwr_<width>mm`; rails at or under the Default width stay Default), so
-   FR no longer forces a 20 mA rail to the 5 A trunk's width. Verify the
-   split in the .kicad_pro before routing; any further split is a
-   .kicad_pro edit ONLY (never the .kicad_dru - it stays the DRC
-   authority). Zones are exempt from track width rules -
-   pour-based fan-in is the legal answer where rule-width tracks cannot
-   reach a pad cluster.
+5b. Netclasses are per-required-width since T1 (glance-check the .kicad_pro
+   split; further splits are .kicad_pro ONLY, never the .kicad_dru). Width
+   unmeetable at a pad? Pour fan-in per reference/remediations/track_width.md.
 6. Gate: `scripts/gate.py --gate drc_routed kicad/<board>.kicad_pcb` -
    exit 0 (parity + all track errors, err+warn zero).
 

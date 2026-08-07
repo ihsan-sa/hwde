@@ -7,7 +7,13 @@ emits route_edit ops:
 
   1. DANGLING: iteratively (fixpoint, cap 20) remove track segments and vias
      with a free end - an endpoint touching NO other same-net item (segment,
-     via, pad copper, or same-net zone fill on that layer; tol 0.01 mm).
+     via, pad copper, or same-net zone fill on that layer). "Touches" is
+     COPPER-BODY overlap, not centerline proximity (T6/V13 root cause: two
+     VBUS stubs ending 1.0 mm from a 3.0 mm trunk's centerline sit 0.5 mm
+     INSIDE its copper - KiCad-connected, DRC 0 unconnected - and the old
+     centerline test called them free and cut the net). On a DRC-clean board
+     real gaps keep centerline distance >= (w1+w2)/2 + clearance, so the
+     widened test cannot join across a legal gap.
      A free end INSIDE same-net fill is a legal pour termination (kept); a via
      is kept when it joins 2+ same-net items or sits in same-net fill on any
      layer it spans. Our own graph analysis is the source of truth; DRC's
@@ -16,7 +22,10 @@ emits route_edit ops:
      spanned layers); cycles made ONLY of track segments lose their single
      longest segment (connectivity preserved); fixpoint, cap 10. Paths through
      zone fill or pad copper never form edges, so parallel drops to a plane
-     are NOT treated as loops.
+     are NOT treated as loops. Guard (T6): a victim whose netconn edge is a
+     BRIDGE of the net's full copper graph (tracks+vias+pads+zones) is load-
+     bearing by definition and is vetoed, never removed. After loop removal
+     the dangling sweep re-runs once (a broken loop can orphan a stub).
   3. CORNERS (skip with --no-smooth): same-net/layer/width segment pairs
      meeting at 88-92 deg with both legs >= 3*width get a 45-deg chamfer:
      both legs shortened by c = min(min_leg/3, 2*width, 1.0 mm) plus the
@@ -56,6 +65,7 @@ from shapely.geometry import LineString, Point  # noqa: E402
 import checklib  # noqa: E402
 import geom  # noqa: E402
 import kc  # noqa: E402
+import netconn  # noqa: E402
 import route_edit  # noqa: E402
 from checklib import CheckError  # noqa: E402
 
@@ -217,30 +227,40 @@ def _fill_touches(fillfn, net, layer, p, tol) -> bool:
 # ============================================================ pass 1: dangling
 
 def _endpoint_free(seg: Seg, p, segs, vias, pads, fillfn, arcs, tol) -> bool:
-    """True if endpoint p of `seg` touches no other same-net item."""
+    """True if endpoint p of `seg` touches no other same-net item.
+
+    "Touches" is COPPER overlap, not centerline proximity (T6/V13 fix): the
+    endpoint's round cap (radius seg.width/2) overlapping another item's
+    body counts as connected - exactly KiCad's connectivity model. On a
+    DRC-clean board this cannot join across a real gap (centerline distance
+    of legally separated copper >= (w1+w2)/2 + clearance > every reach used
+    here)."""
     pt = Point(p)
+    half = seg.width / 2.0
     for o in segs:
         if o is seg or o.net != seg.net or o.layer != seg.layer:
             continue
-        if _pt_seg_dist(p, o.a, o.b) <= tol:
+        if _pt_seg_dist(p, o.a, o.b) <= (seg.width + o.width) / 2.0 + tol:
             return False
-    for net, layer, line in arcs:
-        if net == seg.net and layer == seg.layer and line.distance(pt) <= tol:
+    for net, layer, line, aw in arcs:
+        if net == seg.net and layer == seg.layer \
+                and line.distance(pt) <= (seg.width + aw) / 2.0 + tol:
             return False
     for v in vias:
         if (v.net == seg.net and seg.layer in v.layers
-                and math.dist(p, v.at) <= v.size / 2.0 + tol):
+                and math.dist(p, v.at) <= v.size / 2.0 + half + tol):
             return False
     for pd in pads:
         if (pd.net == seg.net and seg.layer in pd.layers
-                and pd.poly.distance(pt) <= tol):
+                and pd.poly.distance(pt) <= half + tol):
             return False
     return not _fill_touches(fillfn, seg.net, seg.layer, p, tol)
 
 
 def _via_keep(v: ViaItem, segs, pads, fillfn, tol) -> bool:
     """Keep a via if it sits in same-net fill on any spanned layer or joins
-    2+ same-net items (tracks/pads); otherwise it has a free end."""
+    2+ same-net items (tracks/pads); otherwise it has a free end. Track
+    contact is copper overlap (barrel + track half-width, T6/V13 fix)."""
     for layer in v.layers:
         if _fill_touches(fillfn, v.net, layer, v.at, tol):
             return True
@@ -248,7 +268,7 @@ def _via_keep(v: ViaItem, segs, pads, fillfn, tol) -> bool:
     contacts = 0
     for s in segs:
         if (s.net == v.net and s.layer in v.layers
-                and _pt_seg_dist(v.at, s.a, s.b) <= r):
+                and _pt_seg_dist(v.at, s.a, s.b) <= r + s.width / 2.0):
             contacts += 1
             if contacts >= 2:
                 return True
@@ -398,6 +418,47 @@ def find_loops(segs, vias, cap=LOOP_CAP) -> tuple[list[str], int]:
     return removed, loops
 
 
+def loop_bridge_veto(bg: geom.BoardGeom, victims: list[Seg]
+                     ) -> tuple[list[str], list[str]]:
+    """Split loop victims into (removable_uuids, vetoed_uuids).
+
+    A victim whose netconn edge is a BRIDGE (cut edge) of the net's FULL
+    copper connectivity graph (tracks + vias + pads + zones) is load-bearing
+    by definition - the loop model disagreed with real connectivity, so the
+    removal is vetoed (T6/V13 guard; the veto can only prevent removals).
+    Victims that cannot be matched to a netconn edge are vetoed too (never
+    remove what cannot be verified)."""
+    removable: list[str] = []
+    vetoed: list[str] = []
+    by_net: dict[str, list[Seg]] = {}
+    for s in victims:
+        by_net.setdefault(s.net, []).append(s)
+    for net in sorted(by_net):
+        g = netconn.build(bg, net, include_zones=True)
+        bridges = netconn.bridge_tracks(g)
+        tracks = bg.tracks_of(net)
+
+        def edge_of(s: Seg):
+            for i, t in enumerate(tracks):
+                if t.layer != s.layer or len(t.shape.coords) != 2:
+                    continue
+                c0 = t.shape.coords[0]
+                c1 = t.shape.coords[-1]
+                if ((math.dist(c0, s.a) <= 1e-3 and math.dist(c1, s.b) <= 1e-3)
+                        or (math.dist(c0, s.b) <= 1e-3
+                            and math.dist(c1, s.a) <= 1e-3)):
+                    return i
+            return None
+
+        for s in by_net[net]:
+            eid = edge_of(s)
+            if eid is None or eid in bridges:
+                vetoed.append(s.uuid)
+            else:
+                removable.append(s.uuid)
+    return sorted(removable), sorted(vetoed)
+
+
 # ============================================================ pass 3: corners
 
 def _r4(p) -> list[float]:
@@ -493,7 +554,7 @@ def build_plan(bg: geom.BoardGeom, segs, vias, smooth: bool = True) -> dict:
     """All three passes over one parse -> {ops, op_layers, facts...}."""
     pads = [PadItem(p.net, tuple(p.layers), p.center, p.poly)
             for p in bg.pads_of()]
-    arcs = tuple((t.net, t.layer, t.shape) for t in bg.tracks_of()
+    arcs = tuple((t.net, t.layer, t.shape, t.width) for t in bg.tracks_of()
                  if len(t.shape.coords) > 2)  # arcs anchor, never removed
     cache: dict = {}
 
@@ -507,9 +568,24 @@ def build_plan(bg: geom.BoardGeom, segs, vias, smooth: bool = True) -> dict:
     dead = set(gone_s) | set(gone_v)
     alive_s = [s for s in segs if s.uuid not in dead]
     alive_v = [v for v in vias if v.uuid not in dead]
-    loop_uuids, loops = find_loops(alive_s, alive_v)
+    loop_uuids, _loops = find_loops(alive_s, alive_v)
+    # T6/V13 guard: a victim that is a bridge of the net's FULL connectivity
+    # graph is load-bearing - veto its removal (the loop stays, warning-level
+    # outcome; the veto can only PREVENT copper loss).
+    victim_segs = [s for s in alive_s if s.uuid in set(loop_uuids)]
+    loop_uuids, loop_vetoed = loop_bridge_veto(bg, victim_segs)
     dead |= set(loop_uuids)
     alive_s = [s for s in alive_s if s.uuid not in dead]
+    # a broken loop can orphan a stub: one more dangling sweep on the
+    # remainder (counted separately - orphaned_after_loops)
+    orphan_s: list[str] = []
+    orphan_v: list[str] = []
+    if loop_uuids:
+        orphan_s, orphan_v = find_dangling(alive_s, alive_v, pads, fillfn,
+                                           arcs)
+        dead |= set(orphan_s) | set(orphan_v)
+        alive_s = [s for s in alive_s if s.uuid not in dead]
+        alive_v = [v for v in alive_v if v.uuid not in dead]
     corner_ops: list[dict] = []
     corners: list[dict] = []
     if smooth:
@@ -519,6 +595,8 @@ def build_plan(bg: geom.BoardGeom, segs, vias, smooth: bool = True) -> dict:
     ops = ([{"op": "remove", "uuid": u} for u in gone_s]
            + [{"op": "remove", "uuid": u} for u in gone_v]
            + [{"op": "remove", "uuid": u} for u in loop_uuids]
+           + [{"op": "remove", "uuid": u} for u in orphan_s]
+           + [{"op": "remove", "uuid": u} for u in orphan_v]
            + corner_ops)
     layer_of = {s.uuid: (s.layer,) for s in segs}
     layer_of.update({v.uuid: v.layers for v in vias})
@@ -532,7 +610,9 @@ def build_plan(bg: geom.BoardGeom, segs, vias, smooth: bool = True) -> dict:
         "ops": ops, "op_layers": op_layers,
         "dangling_segments": len(gone_s), "dangling_vias": len(gone_v),
         "dangling_removed": len(gone_s) + len(gone_v),
-        "loops_broken": loops, "corners_smoothed": len(corners),
+        "loops_broken": len(loop_uuids), "loop_bridge_vetoed": len(loop_vetoed),
+        "orphaned_after_loops": len(orphan_s) + len(orphan_v),
+        "corners_smoothed": len(corners),
         "corners": corners,
     }
 
@@ -572,7 +652,8 @@ def run(argv: list[str] | None = None):
     plan = build_plan(bg, segs, vias, smooth=not args.no_smooth)
     facts = {k: plan[k] for k in (
         "dangling_removed", "dangling_segments", "dangling_vias",
-        "loops_broken", "corners_smoothed", "corners")}
+        "loops_broken", "loop_bridge_vetoed", "orphaned_after_loops",
+        "corners_smoothed", "corners")}
 
     if args.dry_run:
         payload = checklib.report(

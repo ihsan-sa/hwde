@@ -39,7 +39,10 @@ check id - the board-setup floor (`.kicad_pro` `design_settings.rules.min_track_
    "layer":"F.Cu","net":"NET"}]}`, W = max(required min, abutting same-net width).
 4. Cannot fit (a clearance violation appears at the same pos, or the pad fan-in is pinched): do NOT neck
    back. Escalate to the `plane` domain - a zone is not a track, so the width rule does not apply and the
-   filler necks around foreign pads (LEARNINGS 782).
+   filler necks around foreign pads (LEARNINGS 782). Measure first: `route_critical.py --pad-window`
+   reports each power pad's width ceiling vs its DRU floor. Concrete invocation:
+   `planes_gen.py --constraints <planes-only sidecar>` with `"connect": "solid"` on the fan-in zone
+   (solid pad connection - thermal relief would spoke-starve a 5 A pad; LEARNINGS 782/791).
 5. Escalate: a P5 input defect - `rules_gen` must regenerate the `.kicad_dru` floors and the `.kicad_pro`
    `min_track_width` from the fab profile, then re-route/re-gate. Copper edits cannot fix a wrong floor.
 

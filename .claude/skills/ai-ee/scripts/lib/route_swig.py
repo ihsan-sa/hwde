@@ -44,7 +44,8 @@ job JSON: {"verb": ..., "result": out.json, ...} with verbs:
       board. Zone shape:
         {"net": "GND", "layer": "In1.Cu", "poly": [[x,y], ...] |
          "rect": [x1,y1,x2,y2], "priority": 0, "min_island_mm2": null,
-         "clearance": mm, "min_width": mm}
+         "clearance": mm, "min_width": mm,
+         "connect": "solid"|"thermal"|null}   # solid -> (connect_pads yes)
 """
 import json
 import sys
@@ -239,6 +240,11 @@ def verb_add_zones(job):
         if z.get("min_island_mm2") is not None:
             zone.SetIslandRemovalMode(pcbnew.ISLAND_REMOVAL_MODE_AREA)
             zone.SetMinIslandArea(int(float(z["min_island_mm2"]) * 1e12))
+        if z.get("connect") == "solid":
+            # (connect_pads yes ...) - solid pad connection for fan-in
+            # lobes (T6 P7B-2; ZONE_CONNECTION::FULL == 2 in KiCad 10)
+            zone.SetPadConnection(
+                getattr(pcbnew, "ZONE_CONNECTION_FULL", 2))
         pts = z.get("poly")
         if pts is None:
             x1, y1, x2, y2 = z["rect"]

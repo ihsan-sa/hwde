@@ -189,6 +189,41 @@ def test_same_net_overlap_gets_distinct_priorities(tmp_path):
     assert plan[0]["priority"] != plan[1]["priority"]
 
 
+def test_touching_rects_get_distinct_priorities(tmp_path):
+    """T6 (P7A-5b / LEARNINGS 1327b): rects sharing a mere EDGE are still
+    zones_intersect errors in KiCad 10 at equal priority - the keepout-band
+    pattern of adjacent positive rectangles must never tie."""
+    bg = _bg(tmp_path)
+    con = {"planes": [
+        {"net": "GND", "layer": "B.Cu", "region": [1, 1, 30, 39]},
+        {"net": "GND", "layer": "B.Cu", "region": [30, 1, 59, 39]}]}
+    plan, _ = planes_gen.build_plan(bg, con)
+    assert plan[0]["priority"] != plan[1]["priority"]
+    # disjoint rects (a real gap) still tie at 0 - no needless stacking
+    con2 = {"planes": [
+        {"net": "GND", "layer": "B.Cu", "region": [1, 1, 29, 39]},
+        {"net": "GND", "layer": "B.Cu", "region": [31, 1, 59, 39]}]}
+    plan2, _ = planes_gen.build_plan(bg, con2)
+    assert plan2[0]["priority"] == plan2[1]["priority"] == 0
+
+
+def test_connect_solid_key_validated_and_forwarded(tmp_path):
+    """T6 (P7B-2): the sidecar 'connect' key reaches the worker zone dicts;
+    bad values refuse before any toolchain runs."""
+    bg = _bg(tmp_path)
+    con = {"planes": [
+        {"net": "GND", "layer": "B.Cu"},
+        {"net": "VCC", "layer": "B.Cu", "region": [10, 10, 30, 30],
+         "connect": "solid"}]}
+    plan, _ = planes_gen.build_plan(bg, con)
+    zones = planes_gen.worker_zones(plan)
+    assert zones[0]["connect"] is None          # default stays thermal
+    assert zones[1]["connect"] == "solid"
+    with pytest.raises(CheckError, match="connect"):
+        planes_gen.build_plan(bg, {"planes": [
+            {"net": "GND", "layer": "B.Cu", "connect": "full"}]})
+
+
 # ============================================================ pure: shapes
 
 def test_worker_zone_dicts_and_layer_types(tmp_path):
@@ -203,7 +238,8 @@ def test_worker_zone_dicts_and_layer_types(tmp_path):
     assert zones[0] == {"net": "GND", "layer": "In1.Cu",
                         "rect": [0.5, 0.5, 59.5, 39.5], "priority": 0,
                         "min_island_mm2": None, "clearance": None,
-                        "min_width": planes_gen.MIN_WIDTH_MM}
+                        "min_width": planes_gen.MIN_WIDTH_MM,
+                        "connect": None}
     assert zones[1]["clearance"] == 0.3
     assert zones[1]["min_width"] == 0.3
     assert zones[1]["min_island_mm2"] == 2.0
@@ -250,6 +286,51 @@ def test_ep_candidates(tmp_path):
     ops2, pads2 = planes_gen.thermal_via_ops(bg, {"GND"}, ep_min_mm2=0.2)
     assert {p["ref"] for p in pads2} == {"U1"}
     assert len(ops2) == 9
+
+
+_VIA = ('  (via (at {x} {y}) (size 0.6) (drill 0.3)'
+        ' (layers "F.Cu" "B.Cu") (net "GND"))\n')
+
+
+def test_thermal_grid_avoids_existing_drills(tmp_path):
+    """T6 (P7A-5a / LEARNINGS 1327a): grid points inside the hole floor of
+    drills already in the land are dropped (U22 shipped 15 vias-in-pad;
+    planes_gen stacked 21 more on top -> 24 hole_to_hole)."""
+    body = _fp("U1", 20, 20, _pad("9", 0, 0, "GND", 4, 4))
+    for dx in (-1.2, 0.0, 1.2):
+        body += _VIA.format(x=20 + dx, y=20)
+    bg = _bg(tmp_path, body=body)
+    ops, pads = planes_gen.thermal_via_ops(bg, {"GND"})
+    assert pads == [{"ref": "U1", "pad": "9", "net": "GND", "vias": 6}]
+    assert len(ops) == 6                      # 9-grid minus the 3 occupied
+    occupied = {(18.8, 20.0), (20.0, 20.0), (21.2, 20.0)}
+    assert not any(tuple(op["at"]) in occupied for op in ops)
+
+
+def test_thermal_grid_skips_land_with_own_via_array(tmp_path):
+    body = _fp("U1", 20, 20, _pad("9", 0, 0, "GND", 4, 4))
+    for dx, dy in ((-1.2, 0), (0, 0), (1.2, 0), (0, 1.2)):
+        body += _VIA.format(x=20 + dx, y=20 + dy)
+    bg = _bg(tmp_path, body=body)
+    ops, pads = planes_gen.thermal_via_ops(bg, {"GND"})
+    assert ops == []
+    assert pads[0]["vias"] == 0
+    assert "own via array" in pads[0]["note"]
+
+
+def test_thermal_grid_counts_same_footprint_tht_pads(tmp_path):
+    """Footprint-shipped thru-hole vias-in-pad (the U22 eFuse pattern) are
+    pads of the SAME footprint, not board vias - counted too."""
+    tht = ('    (pad "{n}" thru_hole circle (at {x} {y}) (size 0.6 0.6)'
+           ' (drill 0.3) (layers "*.Cu") (net "GND"))\n')
+    spots = ((-1.2, 0), (1.2, 0), (0, -1.2), (0, 1.2))
+    body = _fp("U1", 20, 20, _pad("9", 0, 0, "GND", 4, 4)
+               + "".join(tht.format(n=10 + i, x=x, y=y)
+                         for i, (x, y) in enumerate(spots)))
+    bg = _bg(tmp_path, body=body)
+    ops, pads = planes_gen.thermal_via_ops(bg, {"GND"})
+    assert ops == []
+    assert pads and pads[0]["vias"] == 0 and "own via array" in pads[0]["note"]
 
 
 # ============================================================ pure: validation
@@ -564,6 +645,26 @@ def test_thermal_vias_under_exposed_pad_live(cli, blinky2_seeded, tmp_path):
     # pour filled and no NEW DRC violations from pour+vias
     assert json.loads(rep.read_text("utf-8"))["status"] == "pass"
     assert _drc_sig(kc.run_drc(cli, pcb)) - before == set()
+
+
+@pytest.mark.smoke
+def test_connect_solid_zone_live(cli, blinky2_seeded, tmp_path):
+    """T6 (P7B-2): a planes-only sidecar with "connect": "solid" produces a
+    zone whose s-expr carries (connect_pads yes ...) - the scripted form of
+    the pd-trigger fan-in hand patch (LEARNINGS 791)."""
+    pcb = _copy_board(blinky2_seeded, tmp_path / "b")
+    con = tmp_path / "planes.json"
+    con.write_text(json.dumps({"planes": [
+        {"net": "GND", "layer": "B.Cu", "connect": "solid"}]}),
+        encoding="utf-8")
+    rep = tmp_path / "r.json"
+    assert planes_gen.main(["--pcb", str(pcb), "--constraints", str(con),
+                            "--out-report", str(rep)]) == 0
+    r = json.loads(rep.read_text("utf-8"))
+    assert r["status"] == "pass"
+    text = pcb.read_text(encoding="utf-8")
+    assert re.search(r"\(connect_pads\s+yes", text), \
+        "solid pad connection missing from the saved zone"
 
 
 @pytest.mark.smoke

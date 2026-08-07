@@ -182,11 +182,43 @@ class Pad:
     angle: float          # absolute board-frame degrees
     rratio: float
     layers: tuple[str, ...]  # copper layers occupied
+    # Drill geometry (T6, P7A-4): (w, h) mm - circle drills store (d, d),
+    # `(drill oval w h)` stores (w, h); None for SMD pads. drill_offset is
+    # the pad-local `(drill ... (offset x y))`, rotated with the pad.
+    drill: Optional[tuple[float, float]] = None
+    drill_offset: tuple[float, float] = (0.0, 0.0)
 
     @cached_property
     def poly(self) -> Polygon:
         return _pad_polygon(self.shape, self.size[0], self.size[1],
                             self.rratio, self.center, self.angle)
+
+    @cached_property
+    def drill_poly(self) -> Polygon:
+        """Hole extents as board-frame copper-free area: a disc for round
+        drills, a stadium for `(drill oval w h)` slots. The SHAPE rotates by
+        -self.angle - the pad's stored angle is the ABSOLUTE board angle
+        (LEARNINGS [routing][stitch][drc] 2026-07-28: using prot - frot
+        silently yields a drill turned 90 deg). Empty polygon for SMD pads.
+        """
+        if self.drill is None:
+            return Polygon()
+        w, h = self.drill
+        if w <= 0 or h <= 0:
+            return Polygon()
+        if abs(w - h) < 1e-9:
+            g = Point(0, 0).buffer(w / 2.0, quad_segs=_QUAD_SEGS)
+        elif w > h:
+            half = (w - h) / 2.0
+            g = LineString([(-half, 0), (half, 0)]).buffer(
+                h / 2.0, quad_segs=_QUAD_SEGS)
+        else:
+            half = (h - w) / 2.0
+            g = LineString([(0, -half), (0, half)]).buffer(
+                w / 2.0, quad_segs=_QUAD_SEGS)
+        g = affinity.translate(g, self.drill_offset[0], self.drill_offset[1])
+        g = affinity.rotate(g, -self.angle, origin=(0, 0), use_radians=False)
+        return affinity.translate(g, self.center[0], self.center[1])
 
     def on(self, layer: str) -> bool:
         return layer in self.layers
@@ -621,10 +653,27 @@ class BoardGeom:
         layers = self._copper_of(_kid(pad, "layers"))
         if not layers:
             return  # no copper (e.g. NPTH mechanical or paste-only pad)
+        drill = None
+        drill_off = (0.0, 0.0)
+        dnode = _kid(pad, "drill")
+        if dnode is not None:
+            dnums = _nums(dnode)
+            oval = any(_tok(x) == "oval" for x in dnode[1:]
+                       if isinstance(x, (sexpdata.Symbol, str)))
+            if oval and len(dnums) >= 2:
+                drill = (dnums[0], dnums[1])
+            elif dnums:
+                drill = (dnums[0], dnums[0])
+            onode = _kid(dnode, "offset")
+            if onode is not None:
+                on = _nums(onode)
+                if len(on) >= 2:
+                    drill_off = (on[0], on[1])
         self._pads.append(Pad(
             ref=ref, number=number, net=self._resolve_net(pad),
             shape=pshape, size=(w, h), center=center, angle=pad_angle,
-            rratio=rratio, layers=layers))
+            rratio=rratio, layers=layers, drill=drill,
+            drill_offset=drill_off))
 
     def _parse_zones(self, root):
         zid = 0

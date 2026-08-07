@@ -28,7 +28,10 @@ constraints.json["planes"] schema (this module is the owner):
                               #   wins (power island inside a pour)
      "min_island_mm2": null,  # optional island-removal area threshold
      "clearance": null,       # optional local zone clearance mm
-     "min_width": 0.25},      # optional min fill width mm (corpus default)
+     "min_width": 0.25,       # optional min fill width mm (corpus default)
+     "connect": "thermal"},   # optional "solid" -> (connect_pads yes ...)
+                              #   for high-current fan-in lobes (T6 P7B-2;
+                              #   thermal relief starves a 5 A pad)
     ...]
 
 When the key is absent, defaults are derived from the board:
@@ -90,7 +93,10 @@ EXISTING_COVER = 0.80   # existing-fill coverage above which an entry is skipped
 
 _INNER_RE = re.compile(r"^In\d+\.Cu$")
 _PLANE_KEYS = {"net", "layer", "region", "priority", "min_island_mm2",
-               "clearance", "min_width"}
+               "clearance", "min_width", "connect"}
+_CONNECT_VALUES = {"solid", "thermal"}
+HOLE_EDGE_GAP = 0.2     # mm drill edge-to-edge floor (0.5 centre for 0.3s)
+EP_OWN_ARRAY = 4        # existing thru-hole items in the land -> skip grid
 
 
 # ------------------------------------------------------------------ planning
@@ -182,15 +188,20 @@ def _rect_area(z: dict) -> float:
 
 
 def _rects_overlap(a, b) -> bool:
-    return a[0] < b[2] and b[0] < a[2] and a[1] < b[3] and b[1] < a[3]
+    # <= not <: rects that merely TOUCH along a shared edge still trip
+    # KiCad 10 zones_intersect at equal priority (LEARNINGS 1327 (b), the
+    # keepout-band pattern), so touching counts as conflicting; same-net
+    # fills at distinct priorities still merge into one island.
+    return a[0] <= b[2] and b[0] <= a[2] and a[1] <= b[3] and b[1] <= a[3]
 
 
 def assign_priorities(plan: list[dict]) -> None:
     """A smaller zone overlapping a larger one on the same layer needs a
     STRICTLY higher priority or the island never fills (KiCad fills the
     higher-priority zone first and the lower one keeps clear of it). ANY
-    same-layer overlap gets distinct priorities: KiCad 10 DRC flags
-    same-priority overlapping zones (zones_intersect) even for the same net.
+    same-layer overlap - INCLUDING a shared edge - gets distinct
+    priorities: KiCad 10 DRC flags same-priority overlapping/touching zones
+    (zones_intersect) even for the same net.
     Explicit priorities are honored when they already satisfy that."""
     order = sorted(range(len(plan)), key=lambda i: (-_rect_area(plan[i]), i))
     done: list[int] = []
@@ -237,6 +248,11 @@ def build_plan(bg: geom.BoardGeom, constraints: dict | None,
                              f"layer of this board {bg.copper_layers}")
         if net not in bg.nets:
             raise CheckError(f"planes[{i}]: net {net!r} not on board")
+        if z.get("connect") is not None \
+                and z["connect"] not in _CONNECT_VALUES:
+            raise CheckError(f"planes[{i}]: connect must be one of "
+                             f"{sorted(_CONNECT_VALUES)}, got "
+                             f"{z['connect']!r}")
 
     # every high-speed reference net must end up with a plane
     added: list[dict] = []
@@ -287,12 +303,18 @@ def _existing_cover(bg: geom.BoardGeom, net: str, layer: str, rect) -> float:
 
 
 def worker_zones(plan: list[dict]) -> list[dict]:
-    """Plan entries -> lib/route_swig.py add_zones zone dicts."""
+    """Plan entries -> lib/route_swig.py add_zones zone dicts. The optional
+    "connect": "solid" key (T6, P7B-2) makes the zone connect pads SOLID
+    ((connect_pads yes ...)) instead of KiCad's default thermal relief -
+    the scripted form of the pd-trigger pour fan-in hand patch (LEARNINGS
+    791: thermal spokes would starve a 5 A pad), which router.md's
+    never-hand-edit rule used to contradict."""
     return [{"net": z["net"], "layer": z["layer"], "rect": list(z["_rect"]),
              "priority": z["priority"],
              "min_island_mm2": z.get("min_island_mm2"),
              "clearance": z.get("clearance"),
-             "min_width": z.get("min_width", MIN_WIDTH_MM)}
+             "min_width": z.get("min_width", MIN_WIDTH_MM),
+             "connect": z.get("connect")}
             for z in plan]
 
 
@@ -352,15 +374,50 @@ def via_grid(poly: Polygon, *, size: float = VIA_SIZE_MM,
     return pts
 
 
+def _ep_existing_drills(bg: geom.BoardGeom, ep) -> list:
+    """Drill extents already inside an EP's land: board vias whose centre
+    lies in the pad plus same-footprint thru-hole pads (the U22 eFuse ships
+    15 vias-in-pad in its OWN land - LEARNINGS 1327 (a); gridding on top
+    produced 24 hole_to_hole + 2 holes_co_located)."""
+    out = []
+    for v in bg.vias_of():
+        if ep.poly.covers(Point(v.at)):
+            out.append(Point(v.at).buffer(max(v.drill, 0.3) / 2.0,
+                                          quad_segs=8))
+    for p in bg.pads_of(ref=ep.ref):
+        if len(p.layers) > 1 and ep.poly.covers(Point(p.center)):
+            dp = p.drill_poly
+            out.append(dp if not dp.is_empty
+                       else Point(p.center).buffer(0.15, quad_segs=8))
+    return out
+
+
 def thermal_via_ops(bg: geom.BoardGeom, plane_nets: set[str], *,
                     ep_min_mm2: float = EP_MIN_MM2, size: float = VIA_SIZE_MM,
                     drill: float = VIA_DRILL_MM,
                     pitch: float = VIA_PITCH_MM) -> tuple[list[dict], list[dict]]:
-    """-> (route_edit add_via ops, per-pad facts)."""
+    """-> (route_edit add_via ops, per-pad facts). T6 (P7A-5): existing
+    drills inside the land are respected - grid points inside the hole
+    floor of any of them are dropped, and a land already carrying >=
+    EP_OWN_ARRAY thru-hole items skips the grid entirely (the footprint
+    ships its own via array)."""
     ops: list[dict] = []
     pads: list[dict] = []
     for ep in ep_pads(bg, plane_nets, ep_min_mm2):
+        existing = _ep_existing_drills(bg, ep)
+        if len(existing) >= EP_OWN_ARRAY:
+            pads.append({"ref": ep.ref, "pad": ep.number, "net": ep.net,
+                         "vias": 0,
+                         "note": f"footprint ships its own via array "
+                                 f"({len(existing)} thru-hole items in the "
+                                 "land); grid skipped"})
+            continue
         pts = via_grid(ep.poly, size=size, pitch=pitch)
+        if existing:
+            floor = HOLE_EDGE_GAP + drill / 2.0
+            pts = [p for p in pts
+                   if all(h.distance(Point(p)) >= floor - 1e-9
+                          for h in existing)]
         if not pts:
             continue
         for x, y in pts:

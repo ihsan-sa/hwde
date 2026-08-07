@@ -83,14 +83,21 @@ Contract (SPEC section 6):
   route_critical.py --pcb B.kicad_pcb [--constraints c.json]
       [--only diff|power|rf] [--plan plan.json] [--grid-step MM]
       [--timeout-s S] [--work-dir DIR] [--out-report r.json]
+      [--pad-window [--nets A,B]]
   exit 0 = every critical item routed + DRC gained nothing + diff-pair check
   passes; 1 = some item failed or a check flags (board still updated with
   what succeeded - only reachable when DRC gained no new errors); 2 = error
   (original board untouched).
+  --pad-window (T6, ladder row 78): pure-geometry probe, no KRT and no
+  writes - reports the widest connectable track per pad of each power net
+  ({ref, pad, net, widest_mm, rule_min_mm, ok}) and exits 1 when a DRU
+  per-net width floor is geometrically unmeetable at a pad (the pd-trigger
+  USB-C VBUS case: 1.75 mm rule vs ~1.49 mm ceiling).
 """
 from __future__ import annotations
 
 import argparse
+import fnmatch
 import json
 import math
 import re
@@ -103,6 +110,9 @@ from pathlib import Path
 SCRIPTS = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(SCRIPTS / "lib"))
+
+from shapely.geometry import box  # noqa: E402
+from shapely.ops import unary_union  # noqa: E402
 
 import check_current  # noqa: E402  (required_width_mm - rules_gen's helper)
 import check_diffpair  # noqa: E402  (discover_pairs / matched_terminals / check_pair)
@@ -121,6 +131,21 @@ POWER_MARGIN = 1.5          # IPC-2152 minimum * this
 POWER_WIDTH_FLOOR = 0.3     # mm - never route a declared power net thinner
 FALLBACK_PAIR_WIDTH = 0.2   # mm - diff ladder rung 2 (fine-pitch escape)
 BASE_TRACK_WIDTH = 0.2      # mm - KRT base width (power-tap neckdown target)
+# KRT iteration ladder (T6, LEARNINGS 1433/1504): the 200k default A*
+# iteration cap - not congestion - is what fails a 60-70 mm haul; 4M routed
+# both carrier hauls first try. Retry once, failed nets only, when KRT says
+# "No route found after N iterations" and the Coverage diagnostic blames a
+# mostly-STATIC frontier (share >= 0.7 - rip sets cannot help by
+# construction; unknown share retries too, the no-route line alone marks
+# iteration exhaustion).
+RETRY_MAX_ITERATIONS = 4_000_000
+RETRY_MAX_PROBE_ITERATIONS = 60_000
+STATIC_RETRY_SHARE = 0.7
+NO_ROUTE_RE = re.compile(r"No route found after \d+ iterations")
+COVERAGE_RE = re.compile(
+    r"Coverage: (\d+)/(\d+) frontier cells attributed to routed nets; "
+    r"(\d+) static/unrippable")
+PAD_WINDOW_CAP = 8.0        # mm - widest track the --pad-window probe reports
 KRT_REMEDIATION = (
     "KiCadRoutingTools not found (env.find_krt). Re-fetch: download "
     "https://github.com/drandyhaas/KiCadRoutingTools/releases/download/"
@@ -152,6 +177,22 @@ def parse_summary(stdout: str) -> dict | None:
         return json.loads(last)
     except json.JSONDecodeError:
         return None
+
+
+def coverage_static_share(stdout: str) -> float | None:
+    """Static/unrippable share of the blocking frontier from KRT's LAST
+    'Coverage: A/T frontier cells ...; S static/unrippable' diagnostic
+    (LEARNINGS 1504: >0.7 means raise iterations, never widen rip sets).
+    None when the line never appeared."""
+    last = None
+    for m in COVERAGE_RE.finditer(stdout or ""):
+        last = m
+    if last is None:
+        return None
+    total = int(last.group(2))
+    if total <= 0:
+        return None
+    return int(last.group(3)) / total
 
 
 def power_width_mm(current_a: float, dt_c: float = 10.0,
@@ -257,8 +298,12 @@ def grading_floors(pro_path: Path | None) -> dict:
     rules = proj.get("board", {}).get("design_settings", {}).get("rules", {})
     if rules.get("min_track_width"):
         floors["track_width"] = float(rules["min_track_width"])
-    if rules.get("min_copper_to_edge"):
-        floors["edge_clearance"] = float(rules["min_copper_to_edge"])
+    # KiCad writes "min_copper_edge_clearance" (fabfloors.PRO_RULE_KEYS);
+    # the legacy "min_copper_to_edge" spelling is kept for compatibility.
+    edge = rules.get("min_copper_edge_clearance") \
+        or rules.get("min_copper_to_edge")
+    if edge:
+        floors["edge_clearance"] = float(edge)
     if rules.get("min_via_diameter"):
         floors["via_diameter"] = float(rules["min_via_diameter"])
     if rules.get("min_through_hole_diameter"):
@@ -269,6 +314,87 @@ def grading_floors(pro_path: Path | None) -> dict:
     if clearances:
         floors["clearance"] = float(max(clearances))
     return floors
+
+
+# ------------------------------------------------------------ DRU parsing
+
+_DRU_RULE_RE = re.compile(r'\(rule\s+"([^"]+)"(.*?)\n\)', re.S)
+_DRU_CONSTRAINT_RE = re.compile(
+    r'\(constraint\s+(\w+)\s+\(min\s+([\d.]+)\s*mm\)\)')
+_DRU_NETNAME_RE = re.compile(r"\.NetName\s*==\s*'([^']+)'")
+
+
+def parse_dru_rules(text: str) -> list[dict]:
+    """Named (rule ...) blocks with a (min Xmm) constraint ->
+    [{name, constraint, min_mm, nets}]. nets = NetName literals in the
+    condition ([] for unconditioned/baseline rules). Only the shapes
+    rules_gen emits are recognized; anything else simply yields no row."""
+    out: list[dict] = []
+    for m in _DRU_RULE_RE.finditer(text or ""):
+        name, body = m.group(1), m.group(2)
+        c = _DRU_CONSTRAINT_RE.search(body)
+        if not c:
+            continue
+        out.append({"name": name, "constraint": c.group(1),
+                    "min_mm": float(c.group(2)),
+                    "nets": sorted(set(_DRU_NETNAME_RE.findall(body)))})
+    return out
+
+
+def dru_net_floors(dru_path: Path | None, constraint: str) -> dict[str, float]:
+    """Per-net minimums of one constraint type from a .kicad_dru
+    (e.g. 'track_width' -> {net: floor_mm}). Missing file -> {}."""
+    if dru_path is None or not Path(dru_path).is_file():
+        return {}
+    try:
+        text = Path(dru_path).read_text(encoding="utf-8")
+    except OSError:
+        return {}
+    floors: dict[str, float] = {}
+    for rule in parse_dru_rules(text):
+        if rule["constraint"] != constraint:
+            continue
+        for net in rule["nets"]:
+            floors[net] = max(floors.get(net, 0.0), rule["min_mm"])
+    return floors
+
+
+def build_net_clearances(pro_path: Path | None, dru_path: Path | None,
+                         board_nets) -> dict[str, float] | None:
+    """Per-net clearance map for KRT's --net-clearances (LEARNINGS 1522):
+    KRT's --clearance is a CAP on its auto-read netclass map (it silently
+    pulled 0.635 mm HV nets DOWN to 0.2), and KRT cannot read a .kicad_dru,
+    so DRU-only HV clearance never reaches the router without this file.
+
+    Values = max(netclass clearance, DRU per-net clearance rules) - the max
+    over the class value means nothing is ever capped DOWN. Fails OPEN
+    (returns None -> no file emitted -> today's behavior) on anything
+    unparseable rather than emit wrong values."""
+    try:
+        out: dict[str, float] = {}
+        nets = list(board_nets)
+        if pro_path is not None and Path(pro_path).is_file():
+            proj = json.loads(Path(pro_path).read_text(encoding="utf-8"))
+            ns = proj.get("net_settings") or {}
+            classes = {c.get("name"): c for c in ns.get("classes") or []
+                       if isinstance(c, dict)}
+            for pat in ns.get("netclass_patterns") or []:
+                cls = classes.get(pat.get("netclass"))
+                pattern = pat.get("pattern")
+                if not cls or not pattern \
+                        or not isinstance(cls.get("clearance"), (int, float)):
+                    continue
+                for net in nets:
+                    if fnmatch.fnmatchcase(net, pattern):
+                        out[net] = max(out.get(net, 0.0),
+                                       float(cls["clearance"]))
+        for net, clr in dru_net_floors(dru_path, "clearance").items():
+            if net in board_nets:
+                out[net] = max(out.get(net, 0.0), clr)
+        out = {n: round(v, 4) for n, v in sorted(out.items()) if v > 0}
+        return out or None
+    except Exception:  # noqa: BLE001 - fail open, never emit wrong values
+        return None
 
 
 def pair_geometry(bg: geom.BoardGeom, impedance_ohm: float,
@@ -304,6 +430,138 @@ def rf_width(bg: geom.BoardGeom, impedance_ohm: float) -> float:
     er = bg.stackup.epsilon_between(outer, below)
     t = bg.stackup.copper_thickness.get(outer, 0.035)
     return round(imp.solve_width(float(impedance_ohm), h, t, er), 4)
+
+
+# ------------------------------------------------------------ pad window
+
+def _pad_window_foreign(bg: geom.BoardGeom, net: str, layer: str):
+    """WIRED foreign copper on `layer`: tracks/pads/vias of every OTHER net
+    INCLUDING unnetted pads (bg.nets omits them - LEARNINGS 1538: 37
+    invisible no-net items caused 4 real clearance errors), but never zone
+    fills (fills re-flow around new copper at refill)."""
+    parts = [t.poly for t in bg.tracks_of(layer=layer) if t.net != net]
+    parts += [p.poly for p in bg.pads_of(layer=layer) if p.net != net]
+    parts += [v.poly for v in bg.vias_of(layer=layer) if v.net != net]
+    return unary_union(parts) if parts else None
+
+
+def widest_connectable_mm(pad, foreign, outline, clearance: float,
+                          edge_clearance: float,
+                          cap: float = PAD_WINDOW_CAP) -> float:
+    """The widest track that can legally touch this pad (LEARNINGS 795):
+    sup over centreline points P of 2*(dist(P, foreign) - CLR) subject to
+    dist(P, pad copper) <= W/2, with P additionally kept on the board
+    (outline eroded by edge_clearance + W/2). Solved by bisection on W -
+    feasible(W) iff pad.buffer(W/2), clipped to the eroded outline, minus
+    foreign.buffer(CLR + W/2) still has area. Returns cap when unbounded
+    within the cap."""
+    fl = None
+    if foreign is not None and not foreign.is_empty:
+        window = box(*pad.poly.buffer(cap + clearance + 0.1).bounds)
+        fl = foreign.intersection(window)
+        if fl.is_empty:
+            fl = None
+
+    def feasible(w: float) -> bool:
+        region = pad.poly.buffer(w / 2.0)
+        if outline is not None and not outline.is_empty:
+            region = region.intersection(
+                outline.buffer(-(edge_clearance + w / 2.0)))
+        if fl is not None and not region.is_empty:
+            region = region.difference(fl.buffer(clearance + w / 2.0))
+        return not region.is_empty and region.area > 1e-9
+
+    if feasible(cap):
+        return float(cap)
+    lo, hi = 0.0, cap
+    for _ in range(14):                      # cap/2^14 < 0.001 mm
+        mid = (lo + hi) / 2.0
+        if feasible(mid):
+            lo = mid
+        else:
+            hi = mid
+    return round(lo, 3)
+
+
+def _clearance_floor(pro_path: Path | None) -> float:
+    """The board's minimum copper clearance (rules.min_clearance, else the
+    Default netclass) - the OPTIMISTIC floor for the pad window: if the
+    width is unmeetable even at the floor, it is unmeetable, full stop."""
+    if pro_path is not None and Path(pro_path).is_file():
+        try:
+            proj = json.loads(Path(pro_path).read_text(encoding="utf-8"))
+            rules = (proj.get("board", {}).get("design_settings", {})
+                     .get("rules", {}))
+            if isinstance(rules.get("min_clearance"), (int, float)) \
+                    and rules["min_clearance"] > 0:
+                return float(rules["min_clearance"])
+            for c in (proj.get("net_settings", {}).get("classes") or []):
+                if c.get("name") == "Default" \
+                        and isinstance(c.get("clearance"), (int, float)):
+                    return float(c["clearance"])
+        except (OSError, json.JSONDecodeError):
+            pass
+    return KICAD_DEFAULTS["clearance"]
+
+
+def pad_window_report(pcb: Path, constraints: dict,
+                      nets_arg: str | None) -> dict:
+    """--pad-window: deterministic no-routing probe - the measured width
+    ceiling per pad of each power net vs its DRU per-net track_width floor
+    (ladder row 78; converts the pd-trigger premise falsification and the
+    carrier's ad-hoc pad_gap.py into one scripted call)."""
+    bg = geom.BoardGeom.from_file(pcb)
+    if nets_arg:
+        nets = [s.strip() for s in nets_arg.split(",") if s.strip()]
+    else:
+        nets = [e.get("net") for e in constraints.get("power") or []
+                if isinstance(e, dict) and e.get("net")]
+    if not nets:
+        raise CheckError("--pad-window: no target nets (pass --nets or "
+                         "declare constraints['power'])")
+    pro = pcb.with_suffix(".kicad_pro")
+    clearance = _clearance_floor(pro if pro.is_file() else None)
+    edge = grading_floors(pro if pro.is_file() else None)["edge_clearance"]
+    rule_floors = dru_net_floors(pcb.with_suffix(".kicad_dru"), "track_width")
+    outer = set(_outer_layers(bg))
+    rows: list[dict] = []
+    violations: list[dict] = []
+    missing: list[str] = []
+    for net in nets:
+        if net not in bg.nets:
+            missing.append(net)
+            continue
+        f_cache: dict = {}
+        for pad in sorted(bg.pads_of(net=net),
+                          key=lambda p: (p.ref, p.number)):
+            layers = [l for l in pad.layers if l in outer] \
+                or [pad.layers[0]]
+            widest = 0.0
+            for layer in layers:            # best attach layer wins
+                if layer not in f_cache:
+                    f_cache[layer] = _pad_window_foreign(bg, net, layer)
+                widest = max(widest, widest_connectable_mm(
+                    pad, f_cache[layer], bg.outline, clearance, edge))
+            rule_min = rule_floors.get(net)
+            ok = rule_min is None or widest >= rule_min - 1e-9
+            rows.append({"ref": pad.ref, "pad": pad.number, "net": net,
+                         "widest_mm": widest, "rule_min_mm": rule_min,
+                         "ok": ok})
+            if not ok:
+                violations.append(violation(
+                    SCRIPT, "error", list(pad.center), layers[0], net,
+                    [pad.ref],
+                    f"power pad {pad.ref}.{pad.number} ({net}): widest "
+                    f"connectable track {widest} mm < DRU floor {rule_min} "
+                    "mm - no legal rule-width track can reach this pad; "
+                    "pour fan-in instead "
+                    "(reference/remediations/track_width.md step 4)",
+                    SCRIPT, kind="pad_window_unmeetable",
+                    widest_mm=widest, rule_min_mm=rule_min))
+    return checklib.report(SCRIPT, str(pcb), violations, facts={
+        "probe": "pad_window", "pad_window": rows, "nets": nets,
+        "missing_nets": missing, "clearance_mm": clearance,
+        "edge_clearance_mm": edge, "cap_mm": PAD_WINDOW_CAP})
 
 
 # ------------------------------------------------------------ stub-pad surgery
@@ -427,9 +685,16 @@ def write_fab_overrides(work: Path, floors: dict) -> Path:
 
 def run_krt(krt_dir: Path, script: str, staged: Path, out: Path,
             extra: list[str], floors: dict, fab_file: Path,
-            grid_step: float, timeout_s: int) -> dict:
+            grid_step: float, timeout_s: int,
+            net_clearances: Path | None = None,
+            stdout_sink: list | None = None) -> dict:
     """One KRT run staged -> fresh out. Returns the parsed LAST JSON_SUMMARY.
-    Args are a list (no shell) so net names like '/USB_DP' survive."""
+    Args are a list (no shell) so net names like '/USB_DP' survive.
+    net_clearances: optional per-net clearance JSON for KRT's
+    --net-clearances (NOT capped by --clearance - LEARNINGS 1522; this is
+    the only path a DRU-only HV clearance reaches the router).
+    stdout_sink: when given, KRT's full stdout is appended to it (the
+    Coverage / no-route diagnostics live there, not in the summary)."""
     args = [sys.executable, script, str(staged), "--output", str(out),
             "--no-fix-drc-settings",
             "--grid-step", str(grid_step),
@@ -437,13 +702,18 @@ def run_krt(krt_dir: Path, script: str, staged: Path, out: Path,
             "--via-size", str(floors["via_diameter"]),
             "--via-drill", str(floors["via_drill"]),
             "--board-edge-clearance", str(floors["edge_clearance"]),
-            "--fab-overrides", str(fab_file)] + extra
+            "--fab-overrides", str(fab_file)]
+    if net_clearances is not None:
+        args += ["--net-clearances", str(net_clearances)]
+    args += extra
     try:
         cp = subprocess.run(args, cwd=str(krt_dir), capture_output=True,
                             text=True, encoding="utf-8", errors="replace",
                             timeout=timeout_s)
     except subprocess.TimeoutExpired as exc:
         raise CheckError(f"KRT {script} timed out after {timeout_s}s") from exc
+    if stdout_sink is not None:
+        stdout_sink.append(cp.stdout or "")
     summary = parse_summary(cp.stdout or "")
     if summary is None:
         # KRT's "nothing to route" path (every target net already fully
@@ -538,7 +808,8 @@ def route_diff_item(ctx: dict, spec: dict) -> tuple[dict | None, dict | None]:
                 ["--nets", p, n, "--layers", *outer, "--layer-costs", *costs,
                  "--track-width", f"{rw:g}", "--diff-pair-gap", f"{rg:g}"],
                 ctx["floors"], ctx["fab_file"], ctx["grid_step"],
-                ctx["timeout_s"])
+                ctx["timeout_s"],
+                net_clearances=ctx.get("net_clearances"))
             if summary.get("already_routed"):
                 # idempotent re-run: both nets already fully connected; the
                 # post-run check_diffpair pass still validates coupling.
@@ -579,32 +850,73 @@ def route_diff_item(ctx: dict, spec: dict) -> tuple[dict | None, dict | None]:
 
 def _route_single_item(ctx: dict, kind: str, nets: list[str],
                        extra: list[str], per_net_meta: dict) -> tuple[list, list]:
-    """Shared route.py runner for power/rf. Returns (facts, violations)."""
+    """Shared route.py runner for power/rf. Returns (facts, violations).
+
+    Iteration ladder (T6, LEARNINGS 1433/1504): when KRT reports
+    'No route found after N iterations' and the Coverage diagnostic blames a
+    mostly-static frontier, the failed nets get ONE retry at 4M iterations -
+    the scripted form of the fix that routed both carrier long hauls first
+    try, replacing ~10 manual rip-set attempts."""
     staged = ctx["staged"]
     out = _next_out(ctx, kind)
+    sink: list[str] = []
     summary = run_krt(ctx["krt"], "route.py", staged, out,
                       ["--nets", *nets] + extra,
                       ctx["floors"], ctx["fab_file"], ctx["grid_step"],
-                      ctx["timeout_s"])
+                      ctx["timeout_s"],
+                      net_clearances=ctx.get("net_clearances"),
+                      stdout_sink=sink)
     os.replace(out, staged)  # keep partial successes; failures become violations
+    stdout = sink[0] if sink else ""
+    share = coverage_static_share(stdout)
+    reasons = {net: _net_failed(summary, net) for net in nets}
+    failed = sorted(n for n, r in reasons.items() if r)
+    retry = None
+    if failed and NO_ROUTE_RE.search(stdout) \
+            and (share is None or share >= STATIC_RETRY_SHARE):
+        retry = {"nets": failed, "static_share": share,
+                 "max_iterations": RETRY_MAX_ITERATIONS, "kept": False}
+        out2 = _next_out(ctx, f"{kind}_hi")
+        try:
+            s2 = run_krt(ctx["krt"], "route.py", staged, out2,
+                         ["--nets", *failed] + extra
+                         + ["--max-iterations", str(RETRY_MAX_ITERATIONS),
+                            "--max-probe-iterations",
+                            str(RETRY_MAX_PROBE_ITERATIONS)],
+                         ctx["floors"], ctx["fab_file"], ctx["grid_step"],
+                         ctx["timeout_s"],
+                         net_clearances=ctx.get("net_clearances"))
+        except CheckError as exc:
+            retry["error"] = str(exc)[:200]
+        else:
+            os.replace(out2, staged)
+            retry["kept"] = True
+            for net in failed:
+                reasons[net] = _net_failed(s2, net)
     bg2 = geom.BoardGeom.from_file(staged)
     facts, violations = [], []
     for net in nets:
-        reason = _net_failed(summary, net)
+        reason = reasons[net]
         layers = sorted({t.layer for t in bg2.tracks_of(net=net)})
         if reason is None:
-            facts.append({"kind": kind, "nets": [net], **per_net_meta.get(net, {}),
-                          "layers_used": layers,
-                          "krt": _slim(summary, ("successful", "failed",
-                                                 "multipoint_pads_connected",
-                                                 "multipoint_pads_total",
-                                                 "total_vias", "total_time"))})
+            fact = {"kind": kind, "nets": [net], **per_net_meta.get(net, {}),
+                    "layers_used": layers,
+                    "krt": _slim(summary, ("successful", "failed",
+                                           "multipoint_pads_connected",
+                                           "multipoint_pads_total",
+                                           "total_vias", "total_time"))}
+            if retry and net in retry["nets"]:
+                fact["iteration_retry"] = True
+            facts.append(fact)
         else:
             violations.append(violation(
                 SCRIPT, "error", None, None, net, [],
                 f"critical {kind} net {net} failed to route: {reason}",
                 SCRIPT, kind="critical_route_failed", reason=reason,
-                layers_used=layers))
+                layers_used=layers, static_share=share,
+                iteration_retry=bool(retry)))
+    if retry and facts:
+        facts[0]["krt_retry"] = retry
     return facts, violations
 
 
@@ -810,6 +1122,13 @@ def run(argv: list[str] | None = None):
     ap.add_argument("--only", choices=list(DEFAULT_ORDER), default=None)
     ap.add_argument("--plan", default=None,
                     help='plan.json {"order": ["diff","rf","power"]}')
+    ap.add_argument("--pad-window", action="store_true",
+                    help="no-routing probe: widest connectable track per "
+                         "pad of each power net vs its DRU width floor "
+                         "(exit 1 when a floor is geometrically unmeetable)")
+    ap.add_argument("--nets", default=None,
+                    help="--pad-window net list (comma; default: "
+                         "constraints['power'] nets)")
     ap.add_argument("--grid-step", type=float, default=0.05,
                     help="KRT routing grid (mm); 0.05 keeps 0.5 mm-pitch tap "
                          "corridors routable")
@@ -824,6 +1143,8 @@ def run(argv: list[str] | None = None):
         raise CheckError(f"board not found: {pcb}")
     cons_path = _sidecar(pcb, args.constraints, "constraints.json")
     constraints = checklib.load_json(cons_path, "constraints") if cons_path else {}
+    if args.pad_window:   # pure geometry probe: no KRT, board untouched
+        return pad_window_report(pcb, constraints, args.nets), args.out_report
     plan = checklib.load_json(args.plan, "plan") if args.plan else None
     order = plan_order(args.only, plan)
 
@@ -847,13 +1168,27 @@ def run(argv: list[str] | None = None):
         return payload, args.out_report
 
     cli, krt = _tools()
-    work = Path(args.work_dir) if args.work_dir else pcb.parent / "route_critical"
+    # .resolve(): KRT subprocesses run with cwd=<plugins dir>, so a relative
+    # work dir makes KRT die with "fab-overrides file not found" -> "no
+    # JSON_SUMMARY" (LEARNINGS 1318, live on lumina-carrier).
+    work = (Path(args.work_dir).resolve() if args.work_dir
+            else pcb.parent / "route_critical")
     routelib.fresh_work_dir(work)
     staged = _stage_board(pcb, work)
     floors = grading_floors(work / (pcb.stem + ".kicad_pro"))
     ctx = {"staged": staged, "work": work, "krt": krt, "floors": floors,
            "fab_file": write_fab_overrides(work, floors),
            "grid_step": args.grid_step, "timeout_s": args.timeout_s}
+    # Per-net clearances for KRT (T6, LEARNINGS 1522): --clearance is a CAP
+    # on KRT's auto-read netclass map and KRT cannot read a .kicad_dru, so
+    # HV clearance must travel in an explicit --net-clearances file.
+    ncl = build_net_clearances(work / (pcb.stem + ".kicad_pro"),
+                               work / (pcb.stem + ".kicad_dru"), bg0.nets)
+    if ncl:
+        ncl_file = work / "net_clearances.json"
+        ncl_file.write_text(json.dumps(ncl, indent=1, sort_keys=True) + "\n",
+                            encoding="utf-8")
+        ctx["net_clearances"] = ncl_file
 
     # fresh fills before the baseline so stale pours don't skew the DRC delta
     if bg0.zones_of():
@@ -906,6 +1241,7 @@ def run(argv: list[str] | None = None):
         "diffpair_check": "pass" if not dp_viol else "violations",
         "diffpair_facts": dp_facts,
         "floors": floors,
+        "net_clearances": ncl,
         "board_updated": board_updated,
         "work_dir": str(work),
     })
