@@ -11,7 +11,11 @@ Checks (land_pattern fields drive which run):
   - pad_count : # copper pads vs land_pattern.pad_count            (error)
   - pin1      : a copper pad numbered land_pattern.pin1 ('1')      (error)
   - pad_pitch : nearest-neighbour pad spacing vs pitch_mm          (error)
-  - pad_size  : modal pad size vs pad_size_mm                      (warning)
+  - pad_size  : MIN and MAX pad size vs pad_size_mm (the mode hid a (warning)
+                tied asymmetric column 0.25 mm over max - LEARNINGS
+                2026-07-28 SSOP-20)
+  - annulus   : THT (min(size)-drill)/2 vs the 0.15 mm JLC floor,  (error)
+                and vs land_pattern drill_mm/annulus_mm when given
   - courtyard : a courtyard layer is present                       (warning)
 
 Exit (SPEC section 6): 0 = no error-severity findings (warnings allowed),
@@ -34,6 +38,10 @@ import checklib  # noqa: E402
 import fplib  # noqa: E402
 
 SOURCE = "check.fp_verify"
+
+# JLC minimum annular ring (jlc_capabilities.yaml, the EDITS.md acceptance
+# bar); a THT pad below it cannot fab reliably whatever the datasheet says.
+ANNULUS_FLOOR_MM = 0.15
 
 
 def _nearest_neighbour_pitch(centers: list[tuple[float, float]]) -> float | None:
@@ -95,14 +103,48 @@ def verify(footprint: Path, ds: dict, pitch_tol: float, size_tol: float) -> tupl
               f"{exp:.3f} mm (tol {pitch_tol})",
               "pad_pitch", expected_mm=exp, measured_mm=round(measured_pitch, 4))
 
-    # --- pad size (warning)
-    if land.get("pad_size_mm") and measured_size is not None:
+    # --- pad size (warning): bound MIN and MAX, never the mode - a 10/10 tie
+    # on an asymmetric SSOP-20 hid a column 0.25 mm over the datasheet max
+    # (LEARNINGS 2026-07-28 [librarian][easyeda2kicad])
+    if land.get("pad_size_mm") and copper:
         exp = tuple(sorted(float(x) for x in land["pad_size_mm"]))
-        if any(abs(m - e) > size_tol for m, e in zip(measured_size, exp)):
+        distinct = sorted({tuple(round(v_, 3) for v_ in sorted(p.size))
+                           for p in copper})
+        extremes = [distinct[0]] if len(distinct) == 1 else [distinct[0], distinct[-1]]
+        offending = [list(s) for s in extremes
+                     if any(abs(m - e) > size_tol for m, e in zip(s, exp))]
+        if offending:
             v("warning", None,
-              f"modal pad size {tuple(measured_size)} mm != datasheet "
-              f"{exp} mm (tol {size_tol})",
-              "pad_size", expected_mm=list(exp), measured_mm=list(measured_size))
+              f"pad size(s) {offending} mm != datasheet {list(exp)} mm "
+              f"(tol {size_tol}; min/max of {len(distinct)} distinct sizes)",
+              "pad_size", expected_mm=list(exp), measured_mm=offending)
+
+    # --- THT annulus (error): drill-aware; a wrong annulus passed silently
+    # before fplib parsed (drill ...) at all (ladder rows 111/115)
+    for p in copper:
+        if p.ptype != "thru_hole" or p.drill is None:
+            continue
+        ann = (min(p.size) - p.drill) / 2.0
+        if ann < ANNULUS_FLOOR_MM - 1e-9:
+            v("error", p.center,
+              f"pad {p.number}: THT annulus {ann:.3f} mm < {ANNULUS_FLOOR_MM} mm "
+              f"JLC floor (pad {min(p.size):g} mm on {p.drill:g} mm drill)",
+              "annulus_floor", measured_mm=round(ann, 4),
+              floor_mm=ANNULUS_FLOOR_MM, drill_mm=p.drill)
+        if land.get("drill_mm") is not None and \
+                abs(p.drill - float(land["drill_mm"])) > size_tol:
+            v("error", p.center,
+              f"pad {p.number}: drill {p.drill:g} mm != datasheet "
+              f"{float(land['drill_mm']):g} mm (tol {size_tol})",
+              "drill_mismatch", expected_mm=float(land["drill_mm"]),
+              measured_mm=p.drill)
+        if land.get("annulus_mm") is not None and \
+                abs(ann - float(land["annulus_mm"])) > size_tol:
+            v("error", p.center,
+              f"pad {p.number}: annulus {ann:.3f} mm != datasheet "
+              f"{float(land['annulus_mm']):g} mm (tol {size_tol})",
+              "annulus_mismatch", expected_mm=float(land["annulus_mm"]),
+              measured_mm=round(ann, 4))
 
     # --- courtyard presence (warning; LEARNINGS: easyeda2kicad sometimes omits it)
     if not fp.has_courtyard:

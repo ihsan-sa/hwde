@@ -6,8 +6,15 @@ reads the PDF pages); this script owns the deterministic half:
 
   --pdf FILE        pull machine-readable text per page (pypdf) and emit a
                     grounding payload {text_by_page, schema, template} for the
-                    agent to fill. Image-only datasheets yield little/no text -
-                    the agent then reads the rendered pages directly.
+                    agent to fill. Refuses non-PDF bytes (exit 2): the
+                    www.lcsc.com datasheet URLs serve an HTML viewer shell and
+                    an HTML "pinout" must never reach the extractor. Pages with
+                    no schema-relevant keywords are emitted as stubs
+                    {page, first_line, chars} to keep the grounding payload
+                    proportional to schema needs, not datasheet length
+                    (--full-text restores them). Image-only datasheets yield
+                    little/no text - the agent then reads the rendered pages
+                    directly.
   --validate FILE   validate a candidate extraction against the schema.
                     exit 0 = valid, 1 = schema violations, 2 = unreadable.
   --schema          print the JSON Schema (single source of truth).
@@ -83,6 +90,8 @@ DATASHEET_SCHEMA: dict = {
                     "minItems": 2, "maxItems": 2,
                 },
                 "row_spacing_mm": {"type": "number", "minimum": 0},
+                "drill_mm": {"type": "number", "exclusiveMinimum": 0},
+                "annulus_mm": {"type": "number", "exclusiveMinimum": 0},
                 "courtyard_excess_mm": {"type": "number", "minimum": 0},
                 "pin1": {"type": "string",
                          "description": "pad number that is pin 1 (default '1')"},
@@ -148,13 +157,52 @@ def extract_pdf_text(pdf_path: Path) -> list[dict]:
     return pages
 
 
+# Pages whose text carries none of these are stubbed out of the grounding
+# payload: extractor context must scale with SCHEMA needs, not datasheet
+# length (measured: 85-97 KB groundings dominated by electrical-characteristics
+# and application pages the schema never reads).
+GROUNDING_KEYWORDS = ("pin", "function", "land pattern", "recommended",
+                      "absolute maximum", "layout", "decoupl", "bypass",
+                      "thermal pad", "exposed pad", "package outline", "solder")
+
+
+def _trim_pages(pages: list[dict]) -> tuple[list[dict], int]:
+    """Full text only for schema-relevant pages; stubs for the rest."""
+    out, trimmed = [], 0
+    for p in pages:
+        text = p.get("text", "")
+        low = text.lower()
+        if p.get("error") or any(k in low for k in GROUNDING_KEYWORDS):
+            out.append(p)
+            continue
+        first = next((ln.strip() for ln in text.splitlines() if ln.strip()), "")
+        out.append({"page": p["page"], "first_line": first[:120],
+                    "chars": len(text)})
+        trimmed += 1
+    return out, trimmed
+
+
 def do_pdf(args) -> tuple[dict, int]:
     pdf = Path(args.pdf)
     if not pdf.exists():
         return {"script": "datasheet_extract", "status": "error",
                 "error": f"PDF not found: {pdf}"}, 2
+    with pdf.open("rb") as fh:
+        head = fh.read(16)
+    if not head.startswith(b"%PDF"):
+        # An HTML shell would otherwise be text-extracted into a "pinout" -
+        # and the extraction is the ONLY pinout source P4 may wire from.
+        return {"script": "datasheet_extract", "status": "error",
+                "error": (f"{pdf} is not a PDF (starts {head!r}); "
+                          "www.lcsc.com/datasheet URLs serve an HTML viewer "
+                          "shell - re-download from the wmsc.lcsc.com mirror "
+                          "(parts_search emits the wmsc form) with a browser "
+                          "User-Agent")}, 2
     pages = extract_pdf_text(pdf)
-    total_chars = sum(len(p["text"]) for p in pages)
+    total_chars = sum(len(p.get("text", "")) for p in pages)
+    trimmed = 0
+    if not args.full_text:
+        pages, trimmed = _trim_pages(pages)
     payload = {
         "script": "datasheet_extract",
         "status": "extracted",
@@ -162,12 +210,16 @@ def do_pdf(args) -> tuple[dict, int]:
         "lcsc": args.lcsc or "",
         "n_pages": len(pages),
         "text_chars": total_chars,
+        "pages_trimmed": trimmed,
         "text_by_page": pages,
         "schema": DATASHEET_SCHEMA,
         "template": blank_template(),
         "note": ("Fill the template from text_by_page and the PDF pages, then "
-                 "re-run with --validate. If text_chars is ~0 the PDF is "
-                 "image-only; read the rendered pages directly."),
+                 "re-run with --validate. Pages without schema-relevant "
+                 "keywords are stubs {page, first_line, chars} - read those "
+                 "PDF pages directly if needed, or re-run with --full-text. "
+                 "If text_chars is ~0 the PDF is image-only; read the "
+                 "rendered pages directly."),
     }
     return payload, 0
 
@@ -211,6 +263,8 @@ def main(argv: list[str] | None = None) -> int:
     mode.add_argument("--validate", help="validate a candidate extraction JSON")
     mode.add_argument("--schema", action="store_true", help="print the JSON schema")
     ap.add_argument("--lcsc", help="tag the output with this LCSC id (--pdf)")
+    ap.add_argument("--full-text", action="store_true",
+                    help="--pdf: emit full text for EVERY page (no stubbing)")
     ap.add_argument("--out", help="write JSON here instead of stdout")
     args = ap.parse_args(argv)
 

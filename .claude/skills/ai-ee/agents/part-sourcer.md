@@ -17,8 +17,9 @@ relative); scripts emit JSON, exit 0/1/2. Keep output ASCII.
   [--min-stock N] [--max-price X]` - the ONLY source of stock/price truth.
 
 ## Selection rules (SPEC P3)
-1. Passives: prefer JLC **Basic** (no feeder fee); standard packages (0402/
-   0603/0805); E24 values unless a constraint says otherwise.
+1. Passives: `parts_search --pick basic-passive --qty N` picks them (Basic,
+   0402/0603/0805, stock >= 5x qty, cheapest; E24 default) - spend your
+   judgment on ICs, connectors, mechanicals, and on REJECTING bad picks.
 2. Stock >= 5x build quantity for every part; higher for Extended parts.
 3. Not PCBA (hand solder)? No packages below 0402, no leadless (QFN/DFN)
    without a stated exception the human approved.
@@ -41,9 +42,7 @@ attributes). One entry per DISTINCT part, not per refdes.
 - The datasheet URL feeds the datasheet-extractor: it must be present for
   every nontrivial IC.
 - Do not invent parts from memory; parts_search or it does not exist.
-- REJECT "JLCPCB Assembly" placeholder rows (generic ~$0.04 entries with no
-  real brand/datasheet that masquerade as in-stock hits - S14 finding);
-  a candidate without a fetchable datasheet is not verified.
+- parts_search drops JLC placeholder rows; no fetchable datasheet = unverified.
 
 ## Output contract (end your final message with exactly this block)
 FILES: <paths written>

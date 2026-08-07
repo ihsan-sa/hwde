@@ -63,6 +63,7 @@ class Pad:
     at: tuple[float, float, float]   # x, y, rotation(deg)
     size: tuple[float, float]
     layers: list[str] = field(default_factory=list)
+    drill: float | None = None       # largest drill dimension, mm (None for SMD)
 
     @property
     def center(self) -> tuple[float, float]:
@@ -112,9 +113,14 @@ def _parse_pad(node) -> Pad | None:
     if len(an) < 2 or len(sn) < 2:
         return None
     rot = an[2] if len(an) >= 3 else 0.0
+    # (drill D) or (drill oval W H): keep the LARGEST dimension - the annulus
+    # worst case (fp_verify checks (min(size) - drill) / 2 against the floor).
+    drill = _kid(node, "drill")
+    dn = _nums(drill) if drill is not None else []
     return Pad(number=number, ptype=ptype, shape=shape,
                at=(an[0], an[1], rot), size=(sn[0], sn[1]),
-               layers=[str(_tok(t)) for t in (_kid(node, "layers") or [None])[1:]])
+               layers=[str(_tok(t)) for t in (_kid(node, "layers") or [None])[1:]],
+               drill=max(dn) if dn else None)
 
 
 def _strip_lib_prefix(name: str) -> str:
@@ -152,19 +158,55 @@ def footprint_files(pretty_dir: str | Path) -> list[Path]:
     return sorted(d.glob("*.kicad_mod")) if d.is_dir() else []
 
 
-def symbol_names(kicad_sym_path: str | Path) -> list[str]:
-    """Top-level symbol names in a .kicad_sym library (best-effort)."""
+def _symbol_lib_root(kicad_sym_path: str | Path):
     p = Path(kicad_sym_path)
     if not p.exists():
-        return []
+        return None
     try:
         root = sexpdata.loads(p.read_text(encoding="utf-8", errors="replace"))
     except Exception:
-        return []
+        return None
     if not _is_node(root) or _head(root) != "kicad_symbol_lib":
+        return None
+    return root
+
+
+def symbol_names(kicad_sym_path: str | Path) -> list[str]:
+    """Top-level symbol names in a .kicad_sym library (best-effort)."""
+    root = _symbol_lib_root(kicad_sym_path)
+    if root is None:
         return []
     names = []
     for child in root[1:]:
         if _is_node(child) and _head(child) == "symbol" and len(child) > 1:
             names.append(str(_tok(child[1])))
     return names
+
+
+def symbol_index(kicad_sym_path: str | Path) -> list[dict]:
+    """Top-level symbols with their 'LCSC Part' + 'Footprint' properties.
+
+    The per-part presence ground truth (LEARNINGS 2026-07-28 [easyeda2kicad]
+    [parts]): a part is present iff the symbol lib holds a top-level
+    (symbol ...) block carrying (property "LCSC Part" "<id>") whose Footprint
+    property resolves to a file in the .pretty dir. Footprint files are SHARED
+    across parts and record only the FIRST puller's id, so never map
+    LCSC -> footprint by grepping .kicad_mod text (C2580 also substring-matches
+    C25804's file). Reads utf-8 with errors='replace': pulled libs carry
+    CJK/Ohm characters.
+    """
+    root = _symbol_lib_root(kicad_sym_path)
+    if root is None:
+        return []
+    out = []
+    for child in root[1:]:
+        if not (_is_node(child) and _head(child) == "symbol" and len(child) > 1):
+            continue
+        props: dict[str, str] = {}
+        for c in child[1:]:
+            if _is_node(c) and _head(c) == "property" and len(c) >= 3:
+                props[str(_tok(c[1]))] = str(_tok(c[2]))
+        out.append({"name": str(_tok(child[1])),
+                    "lcsc": props.get("LCSC Part", ""),
+                    "footprint": props.get("Footprint", "")})
+    return out

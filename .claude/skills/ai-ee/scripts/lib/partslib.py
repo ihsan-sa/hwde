@@ -24,6 +24,7 @@ import contextlib
 import io
 import json
 import logging
+import re
 import sqlite3
 from pathlib import Path
 from typing import Any
@@ -81,6 +82,25 @@ def _as_float(v: Any) -> float | None:
         return None
 
 
+_WWW_DATASHEET = re.compile(
+    r"^https?://www\.lcsc\.com/datasheet/lcsc_datasheet_(.+\.pdf)$", re.I)
+
+
+def fix_datasheet_url(url: str) -> str:
+    """Rewrite www.lcsc.com datasheet URLs to the fetchable wmsc mirror.
+
+    www.lcsc.com/datasheet/lcsc_datasheet_<stem>.pdf serves a JS viewer SHELL
+    (HTML, curl exit 0) to any non-browser client; the same file is a real PDF
+    at wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/<stem>.pdf (LEARNINGS
+    2026-07-28 [parts][datasheet]: 7/7 + 18/18 recovered on first retry).
+    Pure string transform, idempotent; wmsc-form and other hosts pass through.
+    """
+    m = _WWW_DATASHEET.match(url or "")
+    if m:
+        return "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/" + m.group(1)
+    return url or ""
+
+
 def normalize(item: dict) -> dict:
     """One JLC search result -> the pipeline's candidate-part shape.
 
@@ -102,7 +122,8 @@ def normalize(item: dict) -> dict:
         "price": _as_float(item.get("price")),
         "price_breaks": item.get("price_breaks", []) or [],
         "min_qty": item.get("min_qty", 1),
-        "datasheet": item.get("datasheet", "") or "",
+        # rewrite the unfetchable www form at the SOURCE so no agent sees it
+        "datasheet": fix_datasheet_url(item.get("datasheet", "") or ""),
         "url": item.get("url", "") or "",
         "attributes": item.get("attributes", []) or [],
     }
@@ -215,10 +236,12 @@ def utf8_stdout() -> None:
 
 
 def emit(payload: dict, out: str | None) -> int:
-    """Write/print JSON; exit 0 for pass/empty, 2 for error (SPEC section 6)."""
+    """Write/print JSON; exit 0 for pass/empty/no_candidate, 2 for error
+    (SPEC section 6: a search has no exit-1 "violations" notion - a query
+    that ran but found no conforming pick is still a completed query)."""
     text = json.dumps(payload, indent=1, ensure_ascii=True)
     if out:
         Path(out).write_text(text, encoding="utf-8")
     else:
         print(text)
-    return 0 if payload.get("status") in ("pass", "empty") else 2
+    return 0 if payload.get("status") in ("pass", "empty", "no_candidate") else 2

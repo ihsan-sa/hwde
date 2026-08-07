@@ -20,6 +20,7 @@ Examples:
 from __future__ import annotations
 
 import argparse
+import re
 import sys
 from pathlib import Path
 
@@ -27,6 +28,65 @@ sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
 import partslib  # noqa: E402
 
 _FILTER_KEYS = {"package", "type", "min_stock", "max_price", "brand", "contains"}
+
+# JLC placeholder rows: generic ~$0.04 "JLCPCB Assembly" entries with no real
+# brand/datasheet that masquerade as in-stock hits (S14 finding). Both
+# conditions required, so a real-brand row with a missing datasheet URL
+# survives (e.g. the Tokmas LM5069 row in the lumina-strobe sweep).
+_PLACEHOLDER_BRANDS = {"", "jlcpcb", "jlcpcb assembly"}
+
+_VAL_SUFFIX = re.compile(r"^(\d+(?:\.\d+)?)([kKmMrR])$")
+_VAL_INFIX = re.compile(r"^(\d+)([kKmMrR])(\d+)$")
+_UNIT_WORD = {"k": "kohm", "m": "Mohm", "r": "ohm"}
+
+_EMPTY_HINT = ("zero rows for value tokens like 10K is a known JLC search "
+               "quirk, not proof of a stock-out - retry with an exact MPN or "
+               "a spelled-out value")
+
+
+def _normalize_value_query(query: str) -> str | None:
+    """Spell out resistor-style value tokens (10K -> '10 kohm', 4R7 ->
+    '4.7 ohm'); None when nothing matched. The JLC search silently returns
+    zero rows for the shorthand forms (LEARNINGS 2026-07-28 [parts])."""
+    out, changed = [], False
+    for tok in query.split():
+        m = _VAL_SUFFIX.match(tok)
+        if m:
+            out.append(f"{m.group(1)} {_UNIT_WORD[m.group(2).lower()]}")
+            changed = True
+            continue
+        m = _VAL_INFIX.match(tok)
+        if m:
+            out.append(f"{m.group(1)}.{m.group(3)} {_UNIT_WORD[m.group(2).lower()]}")
+            changed = True
+            continue
+        out.append(tok)
+    return " ".join(out) if changed else None
+
+
+def _split_placeholders(parts: list[dict]) -> tuple[list[dict], int]:
+    keep, dropped = [], 0
+    for p in parts:
+        if p["brand"].strip().lower() in _PLACEHOLDER_BRANDS and not p["datasheet"]:
+            dropped += 1
+        else:
+            keep.append(p)
+    return keep, dropped
+
+
+_PICK_PACKAGES = {"0402", "0603", "0805"}
+
+
+def _pick_basic_passive(parts: list[dict], qty: int) -> dict | None:
+    """part-sourcer rules 1-2, deterministically: JLC Basic (no feeder fee),
+    standard package, stock >= 5x build qty; cheapest conforming row wins."""
+    conforming = [p for p in parts
+                  if p["basic"] and p["package"] in _PICK_PACKAGES
+                  and p["stock"] >= 5 * qty]
+    conforming.sort(key=lambda p: (p["price"] is None,
+                                   p["price"] if p["price"] is not None else 0.0,
+                                   -p["stock"]))
+    return conforming[0] if conforming else None
 
 
 def _parse_filters(pairs: list[str]) -> dict:
@@ -81,6 +141,19 @@ def search(args) -> dict:
     except Exception as exc:  # noqa: BLE001 - network layer is fragile; fall through
         raw = []
 
+    # Value tokens like 10K silently return zero rows; retry once spelled out
+    # so a bad query is not mistaken for a stock-out (ladder row 100).
+    query_retried = None
+    if not raw:
+        norm_q = _normalize_value_query(args.query)
+        if norm_q:
+            query_retried = norm_q
+            try:
+                raw, total = partslib.live_search(
+                    norm_q, page=args.page, page_size=window, part_type=part_type)
+            except Exception:  # noqa: BLE001
+                raw = []
+
     if not raw:
         # Empty live result: cached DB > web-search hint. Disambiguate offline.
         if args.db:
@@ -94,32 +167,54 @@ def search(args) -> dict:
                 "fall back to web search for the MPN.")
         else:
             # Reachable but genuinely no matches - not an error.
-            return {
+            payload = {
                 "script": "parts_search", "status": "empty", "source": source,
                 "query": args.query, "total": 0, "count": 0, "results": [],
-                "filters": filters,
+                "filters": filters, "placeholders_filtered": 0,
+                "hint": _EMPTY_HINT,
             }
+            if query_retried:
+                payload["query_retried"] = query_retried
+            return payload
     else:
         parts = [partslib.normalize(it) for it in raw]
 
+    dropped = 0
+    if not args.include_placeholders:
+        parts, dropped = _split_placeholders(parts)
     parts = partslib.apply_filters(
         parts, basic_only=basic_only, package=filters.get("package"),
         min_stock=min_stock, max_price=max_price, brand=filters.get("brand"),
         contains=filters.get("contains"))
     parts.sort(key=partslib.rank_key)
+    if args.pick == "basic-passive":
+        sel = _pick_basic_passive(parts, args.qty)
+        parts = [sel] if sel is not None else []
     top = parts[: args.limit]
     for i, p in enumerate(top):
         p["rank"] = i
-    return {
+    payload = {
         "script": "parts_search",
-        "status": "pass" if top else "empty",
+        "status": ("pass" if top else
+                   ("no_candidate" if args.pick else "empty")),
         "source": source,
         "query": args.query,
         "total": total,
         "count": len(top),
         "results": top,
         "filters": filters,
+        "placeholders_filtered": dropped,
     }
+    if args.pick:
+        payload["pick"] = args.pick
+        if not top:
+            payload["hint"] = (
+                "no conforming Basic passive (Basic + 0402/0603/0805 + stock "
+                f">= 5x qty {args.qty}): a stock-out of the standard form, "
+                "not a bad query - pick by judgment")
+    if query_retried:
+        payload["query_retried"] = query_retried
+    return payload
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -136,6 +231,14 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--contains", help="require this substring in description/MPN")
     ap.add_argument("--filters", nargs="*", default=[],
                     help="key=value filters: " + " ".join(sorted(_FILTER_KEYS)))
+    ap.add_argument("--pick", choices=["basic-passive"],
+                    help="deterministic auto-pick: Basic + 0402/0603/0805 + "
+                         "stock >= 5x --qty, cheapest conforming row")
+    ap.add_argument("--qty", type=int, default=1,
+                    help="build quantity for the --pick stock rule (default 1)")
+    ap.add_argument("--include-placeholders", action="store_true",
+                    help="keep JLC placeholder rows (no-brand/no-datasheet "
+                         "~$0.04 entries) that are excluded by default")
     ap.add_argument("--db", help="jlcparts SQLite cache for offline fallback")
     ap.add_argument("--out", help="write JSON here instead of stdout")
     args = ap.parse_args(argv)

@@ -13,27 +13,27 @@ scripts with the repo venv python; JSON out, exit 0/1/2. Keep output ASCII.
   (land_pattern section) as they become available.
 
 ## Scripts (in order)
-1. `scripts/lib_pull.py --lcsc Cxxxx --project <workspace>/kicad
-   [--verify-load]` - easyeda2kicad pull + lib-table registration
-   (idempotent). `--verify-load` proves KiCad parses the footprint
-   (fp export svg). Footprints may arrive in LEGACY `(module ...)` format -
-   that is NORMAL and loads fine in KiCad 10.
-2. `scripts/fp_verify.py --footprint <lib.pretty/name.kicad_mod>
-   --datasheet-json parts/<lcsc>.json` - pad count/pitch/pin-1/size diff vs
-   the land pattern + SVG overlay for human review. Errors (pad_count,
-   pin1_missing, pad_pitch) FAIL; warnings (pad_size, no_courtyard) pass but
-   must be listed in your summary.
+1. `scripts/lib_pull.py --parts parts/parts.json --project <workspace>/kicad
+   [--verify-load]` - ONE paced batch pull (auto 15 s spacing, 90 s backoff
+   retry on 403) + lib-table registration + per-part on-disk verification.
+   Review the per-part report; re-pull only reported failures individually
+   (`--lcsc Cxxxx`). LEGACY `(module ...)` footprints are NORMAL (KiCad 10).
+2. `scripts/lib_pin_types.py --lib <lib>/aiee.kicad_sym --datasheet-json
+   parts/*.json` - once extracts exist: retype pulled pin electrical types
+   (idempotent; the P4 ERC gate cannot pass on an untouched pulled lib).
+3. `scripts/fp_verify.py --footprint <lib.pretty/name.kicad_mod>
+   --datasheet-json parts/<lcsc>.json` - pad count/pitch/pin-1/size/drill
+   diff vs the land pattern + SVG overlay. Errors FAIL; warnings (pad_size,
+   no_courtyard) pass but must be listed in your summary.
 
 ## Method
-1. Pull every part; registration is idempotent, re-runs are safe.
-2. fp_verify every IC and connector against its datasheet JSON; passives
+1. fp_verify every IC and connector against its datasheet JSON; passives
    with standard packages need only the pull + load check.
-3. A missing courtyard degrades placement legality checks - list every
+2. A missing courtyard degrades placement legality checks - list every
    courtyard-less footprint (warning `no_courtyard`).
-4. Check polarity/pin-1 indicators exist for polarized parts (diodes, LEDs,
-   electrolytics, ICs): the SVG overlay + datasheet drawing. cpl polarity is
-   re-checked at P9, but a wrong-footprint polarity mark is cheapest here.
-5. Mismatch -> flag for human with the SVG overlay path; do NOT hand-edit
+3. Polarity/pin-1 marks on polarized parts (diodes, LEDs, electrolytics,
+   ICs): verify via SVG overlay + datasheet drawing (P9 re-checks cpl).
+4. Mismatch -> flag for human with the SVG overlay path; do NOT hand-edit
    footprints without orchestrator approval (a manual edit must be flagged
    in the summary).
 

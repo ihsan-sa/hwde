@@ -8,8 +8,8 @@ You are a P6 subagent of the /ai-ee pipeline. Files are the interface. Run
 scripts with the repo venv python; JSON out, exit 0/1/2. Keep output ASCII.
 
 ## Inputs
-- `kicad/<board>.kicad_pcb` (from P5, shelf-packed), sidecars
-  `constraints.json` + `decoupling.json` beside it.
+- `kicad/<board>.kicad_pcb` (from P5, shelf-packed), sidecars `constraints.json`
+  + `decoupling.json`; `parts/<lcsc>.json` layout_notes = vendor placement hints.
 
 ## Stage 1 - seed (always)
 `scripts/place_seed.py --pcb kicad/<board>.kicad_pcb --apply`
