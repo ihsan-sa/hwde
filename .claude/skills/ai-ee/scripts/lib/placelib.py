@@ -48,6 +48,11 @@ class FpPad:
     local: tuple[float, float]  # offset from fp anchor, pre-rotation frame
     size: tuple[float, float]
     through: bool
+    rot: float = 0.0            # rotation RELATIVE to the footprint, degrees.
+    # The file stores the pad angle CUMULATIVE with the footprint angle
+    # (machine-verified: every rotated 2-pad part carries pad ROT == fp angle),
+    # so the parser captures (file_rot - fp_angle); the relative value stays
+    # valid when the model later rotates the footprint via place_center.
 
 
 @dataclass
@@ -65,16 +70,24 @@ class Footprint:
 
     # -- derived, local frame -------------------------------------------
     def _pad_box_local(self) -> Polygon | None:
+        """Pad-field bbox with PER-PAD ROTATION applied (T6, ladder rows
+        69+110: a ROT-90 SOT-23 pad (size 0.7 1.25) must yield a 1.25 mm-wide
+        box - the unrotated read under-reported 0.275 mm per side)."""
         if not self.pads:
             return None
-        xs, ys, hs, vs = zip(*((p.local[0], p.local[1],
-                                p.size[0] / 2, p.size[1] / 2)
-                               for p in self.pads))
         m = 0.25
-        return box(min(x - h for x, h in zip(xs, hs)) - m,
-                   min(y - v for y, v in zip(ys, vs)) - m,
-                   max(x + h for x, h in zip(xs, hs)) + m,
-                   max(y + v for y, v in zip(ys, vs)) + m)
+        x0 = y0 = math.inf
+        x1 = y1 = -math.inf
+        for p in self.pads:
+            th = math.radians(p.rot)
+            c, s = abs(math.cos(th)), abs(math.sin(th))
+            hx = p.size[0] / 2 * c + p.size[1] / 2 * s
+            hy = p.size[0] / 2 * s + p.size[1] / 2 * c
+            x0 = min(x0, p.local[0] - hx)
+            y0 = min(y0, p.local[1] - hy)
+            x1 = max(x1, p.local[0] + hx)
+            y1 = max(y1, p.local[1] + hy)
+        return box(x0 - m, y0 - m, x1 + m, y1 + m)
 
     def extents_local(self) -> Polygon:
         """EFFECTIVE courtyard: the declared courtyard expanded to at least
@@ -199,9 +212,12 @@ class PlaceModel:
             if pnet is not None:
                 ns = _strs(pnet)
                 net = ns[-1] if ns else None
+            # pad (at x y ROT): ROT is cumulative with the footprint angle
+            # (absent token = absolute 0); store the RELATIVE rotation
+            pad_abs = pn[2] if len(pn) > 2 else 0.0
             pads.append(FpPad(number, net, (pn[0], pn[1]),
                               (sz[0] if sz else 0.0, sz[1] if len(sz) > 1 else 0.0),
-                              through))
+                              through, rot=(pad_abs - angle) % 360.0))
 
         want = "B.CrtYd" if side == "back" else "F.CrtYd"
         courtyard = _courtyard_poly(fp, want)
@@ -270,6 +286,23 @@ def _courtyard_poly(fp_node, layer_name: str) -> Polygon | None:
     return u if (u.geom_type == "Polygon" and u.area > EPS_AREA) else None
 
 
+# ---------------------------------------------------------------- net classes
+
+def class_sets(constraints: dict | None, decoupling: dict | None):
+    """(gnd_nets, power_nets) from constraints.power + decoupling associations.
+
+    Single source for the net-class partition (T6 P6A-1): the annealer's MST
+    objective excludes gnd-class nets (they ride planes), so every consumer
+    that measures crossings/congestion "signal" must use the same partition.
+    """
+    power = {p.get("net") for p in (constraints or {}).get("power", [])}
+    power |= {a.get("rail") for a in (decoupling or {}).get("associations", [])}
+    power.discard(None)
+    gnd = {"GND"} | {a.get("gnd", "GND")
+                     for a in (decoupling or {}).get("associations", [])}
+    return gnd, power
+
+
 # ---------------------------------------------------------------- clusters
 
 @dataclass
@@ -283,6 +316,7 @@ class Cluster:
     anchor: str
     satellites: list[Satellite] = field(default_factory=list)
     edge: dict | None = None    # placement.edges entry pinned to this cluster
+    template: str | None = None  # placement.groups[].template ("crystal", ...)
 
     @property
     def refs(self) -> list[str]:
@@ -323,8 +357,11 @@ def build_clusters(model: PlaceModel, decoupling: dict | None,
         cap, ic, pin = a.get("cap"), a.get("ic"), a.get("pin")
         if cap and ic:
             claim(cap, ic, str(pin) if pin is not None else None, "decoupling")
+    tmpl_of: dict[str, str] = {}
     for g in (placement or {}).get("groups", []):
         anchor = g.get("anchor")
+        if anchor and g.get("template"):
+            tmpl_of[anchor] = g["template"]
         for m in g.get("members", []):
             claim(m, anchor, None, f"group {g.get('name', anchor)}")
 
@@ -341,7 +378,8 @@ def build_clusters(model: PlaceModel, decoupling: dict | None,
         if ref in owner:
             continue
         c = Cluster(anchor=ref, satellites=sorted(
-            sat_of.get(ref, []), key=lambda s: s.ref))
+            sat_of.get(ref, []), key=lambda s: s.ref),
+            template=tmpl_of.get(ref))
         anchor_edge = edges.get(ref)
         for s in c.satellites:
             if s.ref in edges and anchor_edge is None:
@@ -523,10 +561,15 @@ def flight_lines(model: PlaceModel) -> dict[str, list]:
             for net, pts in model.nets_with_pads().items()}
 
 
-def crossings(model: PlaceModel) -> dict:
-    """Pairs of MST flight-line segments of DIFFERENT nets that cross."""
+def crossings(model: PlaceModel, exclude: frozenset = frozenset()) -> dict:
+    """Pairs of MST flight-line segments of DIFFERENT nets that cross.
+
+    `exclude` skips nets entirely (T6 P6A-1: pass the gnd-class set for the
+    "signal" variant - gnd flight lines ride planes and are never
+    point-to-point routed, so counting them points the gradient at
+    quantities no placement change should chase)."""
     segs = [(net, LineString(e)) for net, edges in flight_lines(model).items()
-            for e in edges if LineString(e).length > 1e-6]
+            if net not in exclude for e in edges if LineString(e).length > 1e-6]
     count, worst = 0, {}
     for i, (na, sa) in enumerate(segs):
         for nb, sb in segs[i + 1:]:
@@ -539,12 +582,15 @@ def crossings(model: PlaceModel) -> dict:
     return {"count": count, "pairs": pairs[:20]}
 
 
-def congestion(model: PlaceModel, cell_mm: float = 2.0) -> dict:
+def congestion(model: PlaceModel, cell_mm: float = 2.0,
+               exclude: frozenset = frozenset()) -> dict:
     minx, miny, maxx, maxy = model.outline.bounds
     cols = max(1, math.ceil((maxx - minx) / cell_mm))
     rows = max(1, math.ceil((maxy - miny) / cell_mm))
     demand: dict[tuple[int, int], int] = {}
     for _net, edges in flight_lines(model).items():
+        if _net in exclude:
+            continue
         for (ax, ay), (bx, by) in edges:
             length = math.dist((ax, ay), (bx, by))
             steps = max(1, math.ceil(length / (cell_mm / 2)))
@@ -566,3 +612,26 @@ def congestion(model: PlaceModel, cell_mm: float = 2.0) -> dict:
                           "center": [checklib.rnd(minx + (c[0] + .5) * cell_mm),
                                      checklib.rnd(miny + (c[1] + .5) * cell_mm)],
                           "demand": d} for c, d in hot]}
+
+
+# ---------------------------------------------------------------- silk text
+
+# Measured KiCad stroke-font metrics (LEARNINGS 2026-07-30 [place_edit]
+# [placement][silk]: a 3-char refdes at size 1.0 / thickness 0.15 inks to
+# ~2.64-2.69 x 1.16 mm, i.e. per-char advance ~0.845 * size and height
+# size + thickness). Guessing 0.75 or 1.0 per char both give wrong answers.
+TEXT_ADVANCE = 0.845
+
+
+def text_box(text: str, size: float, thickness: float,
+             x: float, y: float, deg: float = 0.0) -> Polygon:
+    """Absolute-frame bounding box of a silk text.
+
+    CRUCIAL (ladder row 145): a footprint text field's stored angle is
+    ABSOLUTE board-frame - callers must pass it verbatim, never add the
+    footprint rotation (adding both mis-rotates every rotated part's label
+    obstacle)."""
+    w = max(1, len(text)) * TEXT_ADVANCE * size + thickness
+    h = size + thickness
+    b = box(x - w / 2, y - h / 2, x + w / 2, y + h / 2)
+    return affinity.rotate(b, -deg, origin=(x, y)) if deg % 180.0 else b

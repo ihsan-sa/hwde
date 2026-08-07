@@ -277,21 +277,39 @@ def score_p6(ctx):
         argv += ["--decoupling", str(ctx["files"]["decoupling"])]
     payload, _ = place_metrics.run(argv)
     m = payload["metrics"]
-    decap_worst = max((f.get("manhattan_mm") or 0)
-                      for f in m.get("decoupling") or [{}]) if m.get("decoupling") else 0.0
+    # decap gradient (T6 P6A-1): caps the sidecar EXPLICITLY classes "bulk"
+    # have no distance requirement (bulk-at-entry is a design position, e.g.
+    # pd-trigger's VBUS caps at the connector).  The exemption requires the
+    # explicit class - check_decoupling derives "bulk" from value alone for
+    # unclassed 1 uF+ caps and those must still count (C5 caveat).
+    bulk: set = set()
+    if "decoupling" in ctx["files"]:
+        dec = json.loads(Path(ctx["files"]["decoupling"])
+                         .read_text(encoding="utf-8"))
+        bulk = {a.get("cap") for a in dec.get("associations", [])
+                if a.get("class") == "bulk"}
+    dists = [(f.get("manhattan_mm") or 0) for f in m.get("decoupling") or []
+             if f.get("cap") not in bulk]
+    decap_worst = max(dists) if dists else 0.0
     metrics = {"footprints": m["counts"]["footprints"],
                "nets": m["counts"]["nets"],
                "hpwl_total_mm": m["hpwl"]["total_mm"],
                "crossings": m["crossings"]["count"],
+               "crossings_signal": m["crossings_signal"]["count"],
                "congestion_max": m["congestion"]["max"],
+               "congestion_signal_max": m["congestion_signal_max"],
                "congestion_mean_nonzero": m["congestion"]["mean_nonzero"],
                "violations_total": payload["counts"]["total"],
                "by_kind": _kinds(payload["violations"]),
                "decap_worst_mm": decap_worst,
                "utilization": m["utilization"]["ratio"]}
+    # penalty KEY names unchanged (benchlib.WEIGHTS untouched); the crossing/
+    # congestion VALUES are the signal variants - gnd-class flight lines ride
+    # planes and the annealer is right to ignore them, so scoring them gave
+    # the tuning loop a gradient no placement change should chase (T6 P6A-1)
     penalties = {"hpwl_total_mm": metrics["hpwl_total_mm"],
-                 "crossings": metrics["crossings"],
-                 "congestion_max": metrics["congestion_max"],
+                 "crossings": metrics["crossings_signal"],
+                 "congestion_max": metrics["congestion_signal_max"],
                  "legality_violations": metrics["violations_total"],
                  "decap_worst_mm": decap_worst}
     if ctx["render"] and ctx["cli"]:

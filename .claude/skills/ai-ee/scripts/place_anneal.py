@@ -16,7 +16,16 @@ accept time):
   w_cross   * weighted MST flight-line crossings (pair weight = w(a)*w(b))
   w_rule    * rule terms: high-current path length (current_a * hpwl of each
               constraints.power net), separation groups
-              (placement.separation), thermal spreading (constraints.thermal)
+              (placement.separation), thermal spreading (constraints.thermal),
+              corridor keep-clear (placement.corridors: bodies other than the
+              two endpoints pay CORRIDOR_W per mm^2 inside the swath - T6
+              P6A-5 cost-only version; seed/legality integration deferred)
+
+--margin-mm buffers every body/obstacle poly by margin/2 for the SA overlap
+term and repair targets ONLY (true courtyards stay the legality oracle), so
+packed-but-legal is accepted but cost-discouraged - the courtyard-margin
+answer to silk-blind packing (ladder row 53). Default 0.0 = exact prior
+behavior.
 
 Adaptive schedule: T0 from sampled uphill deltas; per-epoch cooling and move
 window scaled by the epoch acceptance ratio (TimberWolf-style). Deterministic
@@ -80,14 +89,15 @@ MST_PWR, MST_SIG = 0.5, 1.0
 
 FB_GAIN = 2.0            # cong/cross boost per (1 - completion)
 
+# rule-term scale per mm^2 of body intrusion into a declared corridor -
+# same magnitude as the overlap weight, so a body parked in a 5 A channel
+# costs like a courtyard overlap (pd-trigger: the annealer's corridor
+# blindness forced a full hand floorplan at +40% HPWL)
+CORRIDOR_W = 30.0
 
-def _class_sets(constraints: dict, decoupling: dict):
-    power = {p.get("net") for p in (constraints or {}).get("power", [])}
-    power |= {a.get("rail") for a in (decoupling or {}).get("associations", [])}
-    power.discard(None)
-    gnd = {"GND"} | {a.get("gnd", "GND")
-                     for a in (decoupling or {}).get("associations", [])}
-    return gnd, power
+# T6 P6A-1: the net-class partition moved to placelib (one source for the
+# annealer objective and the bench/metrics signal terms)
+_class_sets = placelib.class_sets
 
 
 # ---------------------------------------------------------------- bodies
@@ -110,11 +120,16 @@ class Body:
         return self.cluster.refs
 
 
-def _build_bodies(model: PlaceModel, clusters, warnings) -> list[Body]:
+def _build_bodies(model: PlaceModel, clusters, warnings,
+                  margin_mm: float = 0.0) -> list[Body]:
     bodies = []
     for cid, c in enumerate(clusters):
         slots = place_seed.layout_satellites(model, c, warnings)
         rel_poly, ac = place_seed.cluster_rel_poly(model, c, slots)
+        if margin_mm > 0:
+            # soft spacing margin (T6 P6A-6): shapes the SA overlap term and
+            # repair targets only - placelib legality keeps TRUE courtyards
+            rel_poly = rel_poly.buffer(margin_mm / 2.0, join_style=2)
         anchor = model.footprints[c.anchor]
         pads = []
         for p in anchor.pads:
@@ -169,7 +184,7 @@ class Engine:
     def __init__(self, model: PlaceModel, bodies: list[Body],
                  constraints: dict, decoupling: dict, *,
                  cell_mm: float = 2.0, cong_cap: int = 4,
-                 weights: dict | None = None):
+                 weights: dict | None = None, margin_mm: float = 0.0):
         self.model = model
         self.bodies = bodies
         self.weights = dict(DEFAULT_WEIGHTS)
@@ -245,6 +260,38 @@ class Engine:
                     self.th_pairs.append((min(i, j), max(i, j), pa * pb))
         self.th_spread_mm = 10.0
 
+        # --- corridors (T6 P6A-5, cost-only): placement.corridors entries
+        # [{"a": "J1", "b": "J2", "width_mm": 5.5, "net": "VBUS"?}] declare a
+        # keep-clear swath between two endpoints; every OTHER body pays
+        # CORRIDOR_W per mm^2 of intrusion through the rule term. Endpoints
+        # may be cluster refs (swath follows them) or fixed/locked footprints
+        # (static anchor). Unknown refs are surfaced, never silently dropped
+        # (S14 separation lesson).
+        self.corridors = []      # [(end_a, end_b, width_mm, ref_a, ref_b)]
+        #                          end = ("cid", cid) | ("pt", (x, y))
+        self.corridor_unknown_refs: list[str] = []
+        for cor in placement.get("corridors", []):
+            refs = (cor.get("a"), cor.get("b"))
+            ends, unknown = [], []
+            for r in refs:
+                if r in ref2cid:
+                    ends.append(("cid", ref2cid[r]))
+                elif r in model.footprints:
+                    ends.append(("pt", model.footprints[r].center_abs()))
+                else:
+                    unknown.append(str(r))
+            if unknown:
+                self.corridor_unknown_refs += sorted(set(unknown))
+                continue
+            if ends[0] == ends[1]:
+                continue
+            self.corridors.append((ends[0], ends[1],
+                                   float(cor.get("width_mm", 3.0)),
+                                   refs[0], refs[1]))
+        self._corr_end_cids = [
+            {v for kind, v in (ea, eb) if kind == "cid"}
+            for ea, eb, _w, _ra, _rb in self.corridors]
+
         # --- obstacles / keepouts (fixed for the whole run)
         fixed_extra = set(placement.get("fixed", []))
         self.obstacles = []      # [(poly, side, thru)]
@@ -255,7 +302,10 @@ class Engine:
             if not f.is_movable or ref in fixed_extra:
                 thru = "through_hole" in f.attrs or any(p.through
                                                         for p in f.pads)
-                self.obstacles.append((f.extents_abs(), f.side, thru))
+                opoly = f.extents_abs()
+                if margin_mm > 0:
+                    opoly = opoly.buffer(margin_mm / 2.0, join_style=2)
+                self.obstacles.append((opoly, f.side, thru))
         self.forbidden = {
             side: [p for p, _w in placelib._forbidden(model, placement, side)]
             for side in ("front", "back")}
@@ -392,6 +442,7 @@ class Engine:
         self.out_ov = [self._outside_area(b.cid, self.polys[b.cid])
                        for b in self.bodies]
         self._resync_overlap_totals()
+        self._corridor_sync()
         self.rule_total = self._rule_full()
 
     def _resync_overlap_totals(self) -> None:
@@ -450,7 +501,66 @@ class Engine:
         th = sum(pp * max(0.0, self.th_spread_mm
                           - math.dist(self.centers[i], self.centers[j]))
                  for i, j, pp in self.th_pairs)
-        return cur + sep + th
+        return cur + sep + th + CORRIDOR_W * self.corridor_area
+
+    # ------------------------------------------------------------ corridors
+    def _corr_end_pt(self, end):
+        kind, v = end
+        return self.centers[v] if kind == "cid" else v
+
+    def _corridor_rect(self, k: int):
+        ea, eb, w, _a, _b = self.corridors[k]
+        ca, cb = self._corr_end_pt(ea), self._corr_end_pt(eb)
+        if math.dist(ca, cb) < 1e-6:
+            return None
+        from shapely.geometry import LineString
+        return LineString([ca, cb]).buffer(w / 2.0, cap_style=2)
+
+    def _corr_body_area(self, rect, cid: int) -> float:
+        poly = self.polys[cid]
+        rx0, ry0, rx1, ry1 = rect.bounds
+        x0, y0, x1, y1 = poly.bounds
+        if x0 > rx1 or x1 < rx0 or y0 > ry1 or y1 < ry0:
+            return 0.0
+        a = poly.intersection(rect).area
+        return a if a > EPS else 0.0
+
+    def _corridor_one(self, k: int) -> None:
+        """(Re)derive corridor k's rect and every body's intrusion area."""
+        for key in [key for key in self._corr_area if key[0] == k]:
+            self.corridor_area -= self._corr_area.pop(key)
+        rect = self._corridor_rect(k)
+        self._corr_rects[k] = rect
+        if rect is None:
+            return
+        for b in self.bodies:
+            if b.cid in self._corr_end_cids[k]:
+                continue
+            a = self._corr_body_area(rect, b.cid)
+            if a > 0:
+                self._corr_area[(k, b.cid)] = a
+                self.corridor_area += a
+
+    def _corridor_sync(self) -> None:
+        self._corr_rects = [None] * len(self.corridors)
+        self._corr_area: dict[tuple[int, int], float] = {}
+        self.corridor_area = 0.0
+        for k in range(len(self.corridors)):
+            self._corridor_one(k)
+
+    def corridor_report(self) -> list[dict]:
+        out = []
+        for k, (_i, _j, w, ra, rb) in enumerate(self.corridors):
+            area = 0.0
+            intruders: set[str] = set()
+            for (kk, cid), a in self._corr_area.items():
+                if kk == k:
+                    area += a
+                    intruders.update(self.bodies[cid].refs)
+            out.append({"a": ra, "b": rb, "width_mm": w,
+                        "intrusion_mm2": checklib.rnd(area),
+                        "intruders": sorted(intruders)})
+        return out
 
     # ------------------------------------------------------------ moves
     def set_state(self, cid: int, center, angle) -> None:
@@ -530,7 +640,20 @@ class Engine:
         self.overlap_total += max(0.0, self.out_ov[cid]
                                   - self.out_base[cid]) - old_out
 
-        if self.sep_pairs or self.th_pairs:
+        for k in range(len(self.corridors)):
+            if cid in self._corr_end_cids[k]:
+                self._corridor_one(k)      # endpoint moved: rect changed
+            else:
+                rect = self._corr_rects[k]
+                if rect is None:
+                    continue
+                old = self._corr_area.pop((k, cid), 0.0)
+                a = self._corr_body_area(rect, cid)
+                if a > 0:
+                    self._corr_area[(k, cid)] = a
+                self.corridor_area += a - old
+
+        if self.sep_pairs or self.th_pairs or self.corridors:
             self.rule_total = self._rule_partial_resync()
 
     def _rule_partial_resync(self) -> float:
@@ -542,7 +665,7 @@ class Engine:
         th = sum(pp * max(0.0, self.th_spread_mm
                           - math.dist(self.centers[i], self.centers[j]))
                  for i, j, pp in self.th_pairs)
-        return cur + sep + th
+        return cur + sep + th + CORRIDOR_W * self.corridor_area
 
     # ------------------------------------------------------------ cost
     def cost(self) -> float:
@@ -559,7 +682,8 @@ class Engine:
                 "overlap_mm2": checklib.rnd(self.overlap_total),
                 "cong_overflow": self.overflow,
                 "crossings_weighted": checklib.rnd(self.cross_total),
-                "rule": checklib.rnd(self.rule_total)}
+                "rule": checklib.rnd(self.rule_total),
+                "corridor_mm2": checklib.rnd(self.corridor_area)}
 
 
 def _bbox_hp(pts) -> float:
@@ -598,6 +722,7 @@ class Params:
     edge_margin: float = 0.8
     feedback_every: int = 10
     weights: dict | None = None
+    margin_mm: float = 0.0     # soft body-spacing margin (0.0 = legacy)
 
 
 class Annealer:
@@ -926,10 +1051,11 @@ def anneal(pcb: Path, constraints: dict, decoupling: dict, params: Params,
     hpwl_input = placelib.hpwl(model)["total_mm"]
 
     clusters, warnings = placelib.build_clusters(model, decoupling, placement)
-    bodies = _build_bodies(model, clusters, warnings)
+    bodies = _build_bodies(model, clusters, warnings,
+                           margin_mm=params.margin_mm)
     engine = Engine(model, bodies, constraints, decoupling,
                     cell_mm=params.cell_mm, cong_cap=params.cong_cap,
-                    weights=params.weights)
+                    weights=params.weights, margin_mm=params.margin_mm)
     ann = Annealer(engine, params, route_probe=route_probe)
     start_terms = engine.terms()
     result = ann.run()
@@ -972,7 +1098,7 @@ def anneal(pcb: Path, constraints: dict, decoupling: dict, params: Params,
         score = final_cost * (1.0 + engine.weights["feedback"]
                               * (1.0 - comp)) if comp is not None \
             else final_cost
-        candidates.append({
+        cand = {
             "rank": k + 1,
             "cost": checklib.rnd(final_cost, 3),
             "score": checklib.rnd(score, 3),
@@ -983,7 +1109,10 @@ def anneal(pcb: Path, constraints: dict, decoupling: dict, params: Params,
             "completion": comp,
             "violations": viol,
             "ops": ops,
-        })
+        }
+        if engine.corridors:
+            cand["corridors"] = engine.corridor_report()
+        candidates.append(cand)
     candidates.sort(key=lambda c: (not c["legal"], c["score"]))
     for k, c in enumerate(candidates):
         c["rank"] = k + 1
@@ -992,6 +1121,7 @@ def anneal(pcb: Path, constraints: dict, decoupling: dict, params: Params,
     facts = {
         "seed": params.seed,
         "separation_unknown_refs": sorted(set(engine.sep_unknown_refs)),
+        "corridor_unknown_refs": sorted(set(engine.corridor_unknown_refs)),
         "clusters": len(bodies),
         "movable_clusters": len(ann.free) + len(ann.edge),
         "hpwl_input_mm": hpwl_input,
@@ -1084,6 +1214,11 @@ def run(argv: list[str] | None = None):
     ap.add_argument("--cell-mm", type=float, default=2.0)
     ap.add_argument("--cong-cap", type=int, default=4)
     ap.add_argument("--edge-margin-mm", type=float, default=0.8)
+    ap.add_argument("--margin-mm", type=float, default=0.0,
+                    help="soft body-spacing margin: buffers bodies/obstacles "
+                         "by margin/2 in the SA overlap term + repair targets "
+                         "(legality keeps true courtyards). Use ~0.5 on "
+                         "boards with silk-debt history")
     for name in ("hpwl", "overlap", "cong", "cross", "rule", "feedback"):
         ap.add_argument(f"--w-{name}", type=float, default=None)
     ap.add_argument("--out-report", default=None)
@@ -1118,7 +1253,7 @@ def run(argv: list[str] | None = None):
                     grid=args.grid_mm, cell_mm=args.cell_mm,
                     cong_cap=args.cong_cap, edge_margin=args.edge_margin_mm,
                     feedback_every=args.feedback_every,
-                    weights=weights or None)
+                    weights=weights or None, margin_mm=args.margin_mm)
 
     candidates, facts, _model = anneal(pcb, constraints, decoupling, params,
                                        route_probe=route_probe)

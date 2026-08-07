@@ -352,6 +352,129 @@ def test_all_locked_yields_note(tmp_path_factory):
     assert len(candidates) == 1
 
 
+# ============================================================ pure: margin
+
+def test_margin_buffers_overlap_term_only(tmp_path_factory):
+    """T6 P6A-6 (ladder row 53): with --margin-mm two bodies closer than the
+    margin pay overlap cost even though their TRUE courtyards are clear;
+    default 0.0 keeps the exact legacy behavior."""
+    pcb = _scatter_board(tmp_path_factory, "margin")
+    eng0, _m0 = _engine(pcb)
+    r1 = next(b.cid for b in eng0.bodies if b.cluster.anchor == "R1")
+    r2 = next(b.cid for b in eng0.bodies if b.cluster.anchor == "R2")
+    # park the parts 2.3 mm apart center-to-center: effective extents
+    # (courtyard union pad box, +-1.05) leave a 0.2 mm true gap - legal and
+    # overlap-free at margin 0
+    eng0.set_state(r1, (30.0, 20.0), 0.0)
+    eng0.set_state(r2, (32.3, 20.0), 0.0)
+    assert eng0.overlap_total == pytest.approx(0.0, abs=1e-9)
+
+    model = placelib.PlaceModel(pcb)
+    placement = SCATTER_CON.get("placement") or {}
+    clusters, warns = placelib.build_clusters(model, SCATTER_DEC, placement)
+    bodies = place_anneal._build_bodies(model, clusters, warns, margin_mm=0.6)
+    eng1 = Engine(model, bodies, SCATTER_CON, SCATTER_DEC, margin_mm=0.6)
+    eng1.set_state(r1, (30.0, 20.0), 0.0)
+    eng1.set_state(r2, (32.3, 20.0), 0.0)
+    assert eng1.overlap_total > 0.0          # buffered polys now overlap
+    # legality still uses true courtyards: no violation at this spacing
+    place_anneal._apply_state(model, eng1.bodies, eng1.centers, eng1.angles)
+    assert not [v for v in placelib.legality_violations(model, placement)
+                if v["kind"] == "courtyard_overlap"]
+
+
+def test_margin_anneal_keeps_min_gap(tmp_path_factory):
+    """Roomy board + --margin-mm 0.6: the best candidate keeps clear air
+    between CLUSTERS (intra-cluster satellite gaps are not margined)."""
+    pcb = _scatter_board(tmp_path_factory, "margingap")
+    candidates, _f, _m = _run_anneal(pcb, margin_mm=0.6)
+    best = candidates[0]
+    assert best["legal"]
+    model = placelib.PlaceModel(pcb)
+    for o in best["ops"]:
+        fp = model.footprints[o["ref"]]
+        fp.pos = (o["x"], o["y"])
+        fp.angle = o["deg"]
+    clusters, _w = placelib.build_clusters(
+        model, SCATTER_DEC, SCATTER_CON.get("placement"))
+    owner = {r: c.anchor for c in clusters for r in c.refs}
+    ext = {r: f.extents_abs() for r, f in model.footprints.items()}
+    refs = sorted(owner)
+    gaps = [ext[a].distance(ext[b])
+            for i, a in enumerate(refs) for b in refs[i + 1:]
+            if owner[a] != owner[b]]
+    assert min(gaps) >= 0.3   # soft target: no packed-tight pair remains
+
+
+# ============================================================ pure: corridor
+
+def _corridor_board(tmp_path_factory, name="corr"):
+    """A1/A2 fixed at both ends; R1 shares a net with both so HPWL pulls it
+    straight into the A1-A2 band; R2 is neutral."""
+    body = _fp("A1", 5, 20, pads=_pad("1", 0, 0, "N"))
+    body += _fp("A2", 55, 20, pads=_pad("1", 0, 0, "N"))
+    body += _fp("R1", 30, 20, pads=_pad("1", -0.5, 0, "N")
+                + _pad("2", 0.5, 0, "X"))
+    body += _fp("R2", 30, 5, pads=_pad("1", 0, 0, "X"))
+    return _pcb(tmp_path_factory, name, body)
+
+
+CORR_CON = {"placement": {"fixed": ["A1", "A2"],
+                          "corridors": [{"a": "A1", "b": "A2",
+                                         "width_mm": 6.0}]}}
+
+
+def test_corridor_term_reacts_and_matches_full_sync(tmp_path_factory):
+    import random
+    pcb = _corridor_board(tmp_path_factory, "correng")
+    eng, _m = _engine(pcb, CORR_CON, {})
+    r1 = next(b.cid for b in eng.bodies if b.cluster.anchor == "R1")
+    eng.set_state(r1, (30.0, 20.0), 0.0)     # dead center of the swath
+    assert eng.corridor_area > 0
+    assert eng.terms()["corridor_mm2"] > 0
+    in_cost = eng.cost()
+    eng.set_state(r1, (30.0, 5.0), 0.0)      # well outside
+    assert eng.corridor_area == pytest.approx(0.0, abs=1e-9)
+    assert eng.cost() < in_cost
+    # incremental maintenance == full re-derivation after random churn
+    rng = random.Random(7)
+    movable = [b.cid for b in eng.bodies if b.kind != "edge_fixed"]
+    for _ in range(40):
+        eng.set_state(rng.choice(movable),
+                      (rng.uniform(2, 58), rng.uniform(2, 38)),
+                      rng.choice((0.0, 90.0, 180.0, 270.0)))
+    kept = (eng.corridor_area, eng.rule_total)
+    eng.full_sync()
+    assert kept[0] == pytest.approx(eng.corridor_area, abs=1e-6)
+    assert kept[1] == pytest.approx(eng.rule_total, abs=1e-6)
+
+
+def test_corridor_clears_the_swath(tmp_path_factory):
+    """T6 P6A-5 acceptance: with the corridor declared the best candidate
+    leaves the swath body-free; without it R1 parks inside (the pd-trigger
+    hand-floorplan failure mode)."""
+    pcb = _corridor_board(tmp_path_factory, "corrbest")
+    cands, facts, _m = _run_anneal(pcb, constraints=CORR_CON, decoupling={})
+    best = cands[0]
+    assert best["corridors"][0]["intrusion_mm2"] == 0.0
+    assert best["terms"]["corridor_mm2"] == 0.0
+    assert facts["corridor_unknown_refs"] == []
+    no_con = {"placement": {"fixed": ["A1", "A2"]}}
+    cands2, _f2, _m2 = _run_anneal(pcb, constraints=no_con, decoupling={})
+    r1 = next(o for o in cands2[0]["ops"] if o["ref"] == "R1")
+    assert 17.0 <= r1["y"] <= 23.0           # sits in the (undeclared) swath
+
+
+def test_corridor_unknown_ref_surfaced(tmp_path_factory):
+    pcb = _corridor_board(tmp_path_factory, "corrunk")
+    con = {"placement": {"fixed": ["A1", "A2"],
+                         "corridors": [{"a": "ZZ9", "b": "A2",
+                                        "width_mm": 3.0}]}}
+    eng, _m = _engine(pcb, con, {})
+    assert eng.corridor_unknown_refs == ["ZZ9"]
+    assert eng.corridors == []               # malformed entry never scores
+
+
 # ============================================================ pure: feedback
 
 def test_route_feedback_flag_wires_the_s11_probe(tmp_path_factory, monkeypatch):

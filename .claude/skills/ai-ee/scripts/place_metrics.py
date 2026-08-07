@@ -11,10 +11,17 @@ facts block for the annealer/agent:
     counts: {footprints, movable, nets},
     hpwl: {total_mm, by_net},                        # half-perimeter wirelength
     crossings: {count, pairs[:20]},                  # MST flight-line crossings
+    crossings_signal: {count, pairs[:20]},           # gnd-class nets excluded
     congestion: {cell_mm, cols, rows, max, mean_nonzero, hotspots[:10]},
+    congestion_signal_max: int,                      # gnd-class nets excluded
     decoupling: [check_association facts...],        # distances pre-route
     utilization: {component_mm2, board_mm2, ratio},
   }
+
+The *_signal variants (T6 P6A-1) exclude gnd-class nets via
+placelib.class_sets - the same partition the annealer optimizes with (gnd
+rides planes and is never point-to-point routed), so they are the terms a
+tuning loop should chase; the all-net fields stay for information.
 
 constraints.json / decoupling.json default to the board's own directory (the
 gate.py convention); pass --constraints/--decoupling to override. Exit 0 clean
@@ -50,13 +57,14 @@ def collect(pcb: Path, constraints_path: Path | None,
     constraints = (checklib.load_json(constraints_path, "constraints")
                    if constraints_path else {})
     placement = constraints.get("placement")
+    meta = (checklib.load_json(decoupling_path, "decoupling metadata")
+            if decoupling_path else {})
 
     violations = placelib.legality_violations(model, placement)
     decoupling_facts: list[dict] = []
     if decoupling_path:
         import check_decoupling
         bg = geom.load_board(pcb)
-        meta = checklib.load_json(decoupling_path, "decoupling metadata")
         for a in meta.get("associations", []):
             vs, facts = check_decoupling.check_association(bg, a)
             violations.extend(v for v in vs
@@ -64,6 +72,7 @@ def collect(pcb: Path, constraints_path: Path | None,
             if facts:
                 decoupling_facts.append(facts)
 
+    gnd = frozenset(placelib.class_sets(constraints, meta)[0])
     comp = sum(f.extents_abs().area for f in model.footprints.values()
                if f.is_movable)
     metrics = {
@@ -72,7 +81,10 @@ def collect(pcb: Path, constraints_path: Path | None,
                    "nets": len(model.nets_with_pads())},
         "hpwl": placelib.hpwl(model),
         "crossings": placelib.crossings(model),
+        "crossings_signal": placelib.crossings(model, exclude=gnd),
         "congestion": placelib.congestion(model, cell_mm),
+        "congestion_signal_max": placelib.congestion(model, cell_mm,
+                                                     exclude=gnd)["max"],
         "decoupling": decoupling_facts,
         "utilization": {"component_mm2": checklib.rnd(comp),
                         "board_mm2": checklib.rnd(model.outline.area),

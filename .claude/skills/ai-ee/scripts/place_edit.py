@@ -29,6 +29,7 @@ import argparse
 import json
 import math
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -58,6 +59,16 @@ OP_FIELDS = {  # op -> (required, optional)
 TEXT_LAYERS = {"F.SilkS", "B.SilkS", "F.Fab", "B.Fab"}
 POS_TOL = 1e-3   # mm
 ANG_TOL = 0.05   # deg
+FOOTPRINT_OPS = {"place", "move", "rotate", "flip"}  # copper-relevant ops
+
+
+def board_routed(pcb: Path) -> bool:
+    """Cheap scan: does the board already carry routed copper?
+
+    Matches top-level (segment ...) / (via ...) nodes; the trailing \\s keeps
+    rule-area '(vias not_allowed)' tokens from false-positiving."""
+    text = Path(pcb).read_text(encoding="utf-8")
+    return re.search(r"\((?:segment|via)\s", text) is not None
 
 
 def validate_ops(doc: dict) -> list[dict]:
@@ -305,13 +316,37 @@ def run(argv: list[str] | None = None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--pcb", required=True)
     ap.add_argument("--ops", required=True)
+    ap.add_argument("--allow-routed", action="store_true",
+                    help="permit footprint ops on a board that already has "
+                         "tracks/vias (they invalidate the gate place / "
+                         "check_decoupling oracles - rip the affected nets "
+                         "first and re-run drc_routed after)")
     ap.add_argument("--out-report", default=None)
     args = ap.parse_args(argv)
 
     ops = validate_ops(checklib.load_json(args.ops, "ops file"))
-    results = apply_ops(Path(args.pcb), ops)
+    pcb = Path(args.pcb)
+    if not pcb.is_file():
+        raise CheckError(f"board not found: {pcb}")
+    # T6 P6A-4 (ladder row 130): a courtyard-legal footprint move on a ROUTED
+    # board shorted a board while gate place + check_decoupling stayed green.
+    # Text ops (silk sweeps) stay legitimate on routed boards and are exempt.
+    fp_ops = [op for op in ops if op["op"] in FOOTPRINT_OPS]
+    routed = board_routed(pcb) if fp_ops else False
+    if fp_ops and routed and not args.allow_routed:
+        raise CheckError(
+            "board has routing - footprint moves invalidate the gate place / "
+            "check_decoupling oracles (LEARNINGS 2026-07-30: rip the "
+            "affected nets FIRST, then move, then route fresh). Pass "
+            "--allow-routed to proceed deliberately and re-run drc_routed "
+            "after")
+    results = apply_ops(pcb, ops)
     payload = {"script": "place_edit", "status": "pass", "board": args.pcb,
                "applied": len(ops), "verified": True, "results": results}
+    if fp_ops and routed:
+        payload["routed_board"] = True
+        payload["warnings"] = ["footprint ops applied on a routed board "
+                               "(--allow-routed): re-run the drc_routed gate"]
     return payload, args.out_report
 
 

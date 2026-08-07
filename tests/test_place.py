@@ -152,6 +152,52 @@ def test_back_side_parsed_literally(tmp_path_factory):
     assert not m.footprints["B1"].courtyard_missing  # B.CrtYd found
 
 
+# ------------------------------------------------- per-pad rotation (T6)
+
+def _rot_pad(num, x, y, rot, w, h, net="N"):
+    return (f'    (pad "{num}" smd rect (at {x} {y} {rot}) (size {w} {h})'
+            f' (layers "F.Cu") (net "{net}"))\n')
+
+
+def test_pad_rotation_swaps_box(tmp_path_factory):
+    """Ladder rows 69+110: fp angle 0, pad (at 0 0 90) (size 0.7 1.25) must
+    yield a 1.25 mm-wide box (was 0.7 - under-reporting 0.275 mm/side)."""
+    body = _fp("Q1", 10, 10, courtyard=None,
+               pads=_rot_pad("1", 0, 0, 90, 0.7, 1.25))
+    m = _model(tmp_path_factory, "rotswap", body)
+    q1 = m.footprints["Q1"]
+    assert q1.pads[0].rot == 90.0
+    x0, y0, x1, y1 = q1._pad_box_local().bounds
+    assert x1 >= 1.25 / 2 + 0.25 - 1e-9      # swapped width + margin
+    assert y1 == pytest.approx(0.7 / 2 + 0.25)
+
+
+def test_pad_rotation_cumulative_convention(tmp_path_factory):
+    """File pad angles are CUMULATIVE with the fp angle (corpus-verified:
+    every rotated 2-pad part carries pad ROT == fp angle): fp 90 + pad
+    file-angle 90 = relative 0 -> NO swap."""
+    body = _fp("Q2", 10, 10, 90, courtyard=None,
+               pads=_rot_pad("1", 0, 0, 90, 0.7, 1.25))
+    m = _model(tmp_path_factory, "rotrel", body)
+    q2 = m.footprints["Q2"]
+    assert q2.pads[0].rot == 0.0
+    x0, y0, x1, y1 = q2._pad_box_local().bounds
+    assert x1 == pytest.approx(0.7 / 2 + 0.25)   # unswapped
+    assert y1 == pytest.approx(1.25 / 2 + 0.25)
+
+
+def test_pad_box_invariant_under_place_center(tmp_path_factory):
+    """FpPad.rot is stored RELATIVE, so rotating the model via place_center
+    must not corrupt the local pad box (the file-absolute reading would)."""
+    body = _fp("Q3", 10, 10, courtyard=None,
+               pads=_rot_pad("1", 0, 0, 90, 0.7, 1.25))
+    m = _model(tmp_path_factory, "rotinv", body)
+    q3 = m.footprints["Q3"]
+    before = q3._pad_box_local().bounds
+    q3.place_center((15.0, 10.0), 90.0)
+    assert q3._pad_box_local().bounds == before
+
+
 # ============================================================ pure: clusters
 
 DECOUP = {"associations": [
@@ -423,6 +469,64 @@ def test_apply_ops_missing_ref_rolls_back(tmp_path_factory):
         place_edit.apply_ops(p, [{"op": "move", "ref": "C1", "x": 1, "y": 1},
                                  {"op": "move", "ref": "ZZ9", "x": 1, "y": 1}])
     assert p.read_bytes() == before
+
+
+# ------------------------------------- routed-board guard (T6, ladder 130)
+
+_SEG = ('  (segment (start 5 5) (end 10 5) (width 0.25) (layer "F.Cu")'
+        ' (net 0))\n')
+_RULE_AREA = ('  (zone (net 0) (net_name "") (layer "F.Cu") (name "keep")\n'
+              '    (keepout (tracks not_allowed) (vias not_allowed))\n'
+              '    (polygon (pts (xy 0 0) (xy 1 0) (xy 1 1))))\n')
+
+
+def test_board_routed_scan(tmp_path_factory):
+    clean = _pcb(tmp_path_factory, "brclean", _fp("C1", 10, 10) + _RULE_AREA)
+    assert not place_edit.board_routed(clean)   # (vias not_allowed) exempt
+    routed = _pcb(tmp_path_factory, "brrouted", _fp("C1", 10, 10) + _SEG)
+    assert place_edit.board_routed(routed)
+
+
+def _ops_file(tmp_path, ops):
+    f = tmp_path / "ops.json"
+    f.write_text(json.dumps({"version": 1, "ops": ops}), encoding="utf-8")
+    return f
+
+
+def test_footprint_op_on_routed_board_refused(tmp_path_factory, tmp_path,
+                                              monkeypatch):
+    """A courtyard-legal move on a routed board shorted a board while both
+    P6 oracles stayed green (LEARNINGS 2026-07-30) - refuse without the
+    flag, BEFORE any worker runs."""
+    p = _pcb(tmp_path_factory, "guardref", _fp("C1", 10, 10) + _SEG)
+    monkeypatch.setattr(place_edit, "apply_ops",
+                        lambda *a, **k: pytest.fail("worker must not run"))
+    f = _ops_file(tmp_path, [{"op": "move", "ref": "C1", "x": 1, "y": 1}])
+    assert place_edit.main(["--pcb", str(p), "--ops", str(f)]) == 2
+
+
+def test_text_ops_exempt_from_routed_guard(tmp_path_factory, tmp_path,
+                                           monkeypatch):
+    p = _pcb(tmp_path_factory, "guardtxt", _fp("C1", 10, 10) + _SEG)
+    called = {}
+    monkeypatch.setattr(place_edit, "apply_ops",
+                        lambda pcb, ops: called.setdefault("ops", ops) or [])
+    f = _ops_file(tmp_path, [{"op": "move_text", "ref": "C1",
+                              "field": "reference", "x": 9.0, "y": 8.0}])
+    payload, _ = place_edit.run(["--pcb", str(p), "--ops", str(f)])
+    assert called["ops"]                      # silk sweep went through
+    assert "routed_board" not in payload
+
+
+def test_allow_routed_flag_applies_and_warns(tmp_path_factory, tmp_path,
+                                             monkeypatch):
+    p = _pcb(tmp_path_factory, "guardflag", _fp("C1", 10, 10) + _SEG)
+    monkeypatch.setattr(place_edit, "apply_ops", lambda pcb, ops: [])
+    f = _ops_file(tmp_path, [{"op": "move", "ref": "C1", "x": 1, "y": 1}])
+    payload, _ = place_edit.run(["--pcb", str(p), "--ops", str(f),
+                                 "--allow-routed"])
+    assert payload["routed_board"] is True
+    assert any("drc_routed" in w for w in payload["warnings"])
 
 
 # ============================================================ pure: seed
