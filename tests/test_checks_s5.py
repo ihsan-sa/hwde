@@ -414,7 +414,21 @@ def test_golden_clean_diffpair(board):
 @pytest.mark.parametrize("board", BOARDS)
 def test_golden_clean_silk(board):
     payload, _ = check_silk.run(["--pcb", str(board_path(board))])
-    assert payload["status"] == "pass", json.dumps(payload["violations"])
+    if board == "rf4":
+        # T6: the refdes-attribution metric found a TRUE instance in this
+        # golden - C14's refdes sits 4.14 mm beyond its own pads and 0.50 mm
+        # from C1 (the EasyEDA (0,-4) blanket-offset class the check was
+        # built for). The golden predates the check and is generator-owned
+        # (fixing it means regenerating the S1 corpus), so the finding is
+        # pinned EXACTLY: any second finding, severity change or kind change
+        # still trips this test. Zero FALSE positives on goldens holds.
+        vs = payload["violations"]
+        assert [v["kind"] for v in vs] == ["silk_misattributed"], \
+            json.dumps(vs)
+        assert vs[0]["refs"] == ["C14"] and vs[0]["nearest_ref"] == "C1"
+        assert vs[0]["severity"] == "warning"
+    else:
+        assert payload["status"] == "pass", json.dumps(payload["violations"])
 
 
 @pytest.mark.parametrize("board", BOARDS)
@@ -449,11 +463,19 @@ def test_verify_all_goldens_clean(tmp_path):
              "--constraints", str(GOLDEN / board / "constraints.json"),
              "--decoupling", str(GOLDEN / board / "decoupling.json"),
              "--reports-dir", str(tmp_path / board)])
-        assert summary["status"] == "pass", json.dumps(summary["counts"])
+        if board == "rf4":
+            # exactly the one known C14 silk_misattributed warning
+            # (see test_golden_clean_silk) - nothing else
+            assert summary["counts"]["by_severity"] == {"warning": 1}, \
+                json.dumps(summary["counts"])
+        else:
+            assert summary["status"] == "pass", json.dumps(summary["counts"])
         # every built check actually ran (not skipped) on a golden
         for name in ("check_return_path", "check_current", "check_decoupling",
                      *S5_CHECKS):
-            assert summary["checks"][name]["status"] == "pass", name
+            expect = "violations" if (board, name) == ("rf4", "check_silk") \
+                else "pass"
+            assert summary["checks"][name]["status"] == expect, name
 
 
 # ============================================================ corpus: mutants
@@ -504,6 +526,15 @@ def test_non_target_mutants_stay_clean(mutant):
         elif script == "check_thermal":
             argv += ["--constraints", str(GOLDEN / board / "constraints.json")]
         payload, _ = mod.run(argv)
+        if script == "check_silk" and board == "rf4":
+            # rf4-derived mutants inherit the golden's one known C14
+            # silk_misattributed warning (see test_golden_clean_silk);
+            # pinned exactly so real cross-talk still trips
+            vs = payload["violations"]
+            assert [v["kind"] for v in vs] == ["silk_misattributed"] \
+                and vs[0]["refs"] == ["C14"], \
+                f"{script} fired on {mutant}: {json.dumps(vs)}"
+            continue
         assert payload["status"] == "pass", \
             f"{script} fired on {mutant}: {json.dumps(payload['violations'])}"
 
@@ -740,6 +771,141 @@ def test_verify_all_no_stale_report(tmp_path):
         ["--pcb", str(board), "--constraints", str(cons),
          "--reports-dir", str(reports)])
     assert summary["checks"]["check_current"]["status"] == "error"
+
+
+# ================================================ T6: refdes attribution (P8B-5)
+
+_MISATTR_BODY = """  (footprint "t:R" (at 5 5) (layer "F.Cu")
+    (property "Reference" "R1" (at 7 0 0) (layer "F.SilkS")
+      (effects (font (size 1 1) (thickness 0.15))))
+    (pad "1" smd rect (at 0 0) (size 1 1) (layers "F.Cu") (net "A")))
+  (footprint "t:R" (at 12 5) (layer "F.Cu")
+    (property "Reference" "R2" (at 0 -1.2 0) (layer "F.SilkS")
+      (effects (font (size 1 1) (thickness 0.15))))
+    (pad "1" smd rect (at 0 0) (size 1 1) (layers "F.Cu") (net "B")))
+"""
+
+
+def test_silk_misattributed_fires(tmp_path_factory):
+    """R1's refdes sits over R2's pads (5.4 mm beyond its own): flagged with
+    the attribution extras; R2's tight refdes stays clean."""
+    bg = _board(tmp_path_factory, "misattr", _MISATTR_BODY)
+    payload, _ = check_silk.run(["--pcb", str(bg.path)])
+    vs = [v for v in payload["violations"] if v["kind"] == "silk_misattributed"]
+    assert len(vs) == 1, json.dumps(payload["violations"])
+    v = vs[0]
+    assert v["severity"] == "warning"
+    assert v["refs"] == ["R1"]
+    assert v["nearest_ref"] == "R2"
+    assert v["offset_mm"] > 1.0 and v["nearest_mm"] < 1.0
+    assert "move_text" in v["msg"]
+    assert payload["checked"][0]["refdes_checked"] == 2
+
+
+def test_silk_misattributed_far_but_unambiguous_clean(tmp_path_factory):
+    """A refdes far from its part with NOTHING nearby is not misattributed
+    (attribution beats closeness - the carrier sweep's rule)."""
+    body = """  (footprint "t:R" (at 5 5) (layer "F.Cu")
+    (property "Reference" "R1" (at 0 -3 0) (layer "F.SilkS")
+      (effects (font (size 1 1) (thickness 0.15))))
+    (pad "1" smd rect (at 0 0) (size 1 1) (layers "F.Cu") (net "A")))
+"""
+    bg = _board(tmp_path_factory, "farlone", body)
+    payload, _ = check_silk.run(["--pcb", str(bg.path)])
+    assert not [v for v in payload["violations"]
+                if v["kind"] == "silk_misattributed"]
+
+
+def test_silk_misattributed_hidden_ref_skipped(tmp_path_factory):
+    body = _MISATTR_BODY.replace(
+        '(property "Reference" "R1" (at 7 0 0) (layer "F.SilkS")',
+        '(property "Reference" "R1" (at 7 0 0) (layer "F.SilkS") (hide yes)')
+    bg = _board(tmp_path_factory, "hiddenref", body)
+    payload, _ = check_silk.run(["--pcb", str(bg.path)])
+    assert not [v for v in payload["violations"]
+                if v["kind"] == "silk_misattributed"]
+
+
+def test_silk_misattributed_routes_to_silk_domain():
+    assert cluster_violations.FIXER_HINTS["silk_misattributed"] == "silk"
+
+
+# ============================================ T6: constraints twin drift (P8B-6)
+
+_DRIFT_BOARD = """(kicad_pcb (version 20260206) (generator "test")
+  (general (thickness 1.6))
+  (layers (0 "F.Cu" signal) (2 "B.Cu" signal) (25 "Edge.Cuts" user)) (setup)
+  (gr_rect (start 0 0) (end 20 10) (stroke (width 0.1)) (fill no)
+    (layer "Edge.Cuts"))
+  (segment (start 1 1) (end 9 1) (width 0.5) (layer "F.Cu") (net "+3V3"))
+)
+"""
+
+
+def _drift_ws(tmp_path, kicad_obj, arch_obj):
+    ws = tmp_path / "ws"
+    (ws / "kicad").mkdir(parents=True)
+    board = ws / "kicad" / "b.kicad_pcb"
+    board.write_text(_DRIFT_BOARD, encoding="utf-8")
+    cons = ws / "kicad" / "constraints.json"
+    cons.write_text(json.dumps(kicad_obj), encoding="utf-8")
+    if arch_obj is not None:
+        (ws / "architecture").mkdir()
+        (ws / "architecture" / "constraints.json").write_text(
+            arch_obj if isinstance(arch_obj, str) else json.dumps(arch_obj),
+            encoding="utf-8")
+    return board, cons
+
+
+def test_constraints_drift_warning(tmp_path):
+    obj = {"power": [{"net": "+3V3", "current_a": 0.2}]}
+    stale = {"power": [{"net": "+3V3", "current_a": 1.5}]}
+    board, cons = _drift_ws(tmp_path, obj, stale)
+    summary, _ = verify_all.run(
+        ["--pcb", str(board), "--constraints", str(cons),
+         "--reports-dir", str(tmp_path / "r")])
+    drift = [v for v in summary["violations"]
+             if v["kind"] == "constraints_drift"]
+    assert len(drift) == 1, json.dumps(summary["counts"])
+    assert drift[0]["severity"] == "warning"     # surfaces at H4, never fails
+    assert "reconcile" in drift[0]["msg"]
+    assert summary["counts"]["by_check"]["verify_all"] == 1
+    assert summary["status"] == "violations"
+
+
+def test_constraints_drift_formatting_only_ok(tmp_path):
+    """Parsed-object compare: whitespace/key-order drift is NOT a finding."""
+    obj = {"power": [{"net": "+3V3", "current_a": 0.2}], "z": 1}
+    twin_text = json.dumps({"z": 1, "power": [
+        {"current_a": 0.2, "net": "+3V3"}]}, indent=4)
+    board, cons = _drift_ws(tmp_path, obj, twin_text)
+    summary, _ = verify_all.run(
+        ["--pcb", str(board), "--constraints", str(cons),
+         "--reports-dir", str(tmp_path / "r")])
+    assert not [v for v in summary["violations"]
+                if v["kind"] == "constraints_drift"]
+
+
+def test_constraints_drift_no_twin_ok(tmp_path):
+    obj = {"power": [{"net": "+3V3", "current_a": 0.2}]}
+    board, cons = _drift_ws(tmp_path, obj, None)
+    summary, _ = verify_all.run(
+        ["--pcb", str(board), "--constraints", str(cons),
+         "--reports-dir", str(tmp_path / "r")])
+    assert not [v for v in summary["violations"]
+                if v["kind"] == "constraints_drift"]
+    assert summary["status"] == "pass"
+
+
+def test_constraints_drift_unreadable_twin_warns(tmp_path):
+    obj = {"power": [{"net": "+3V3", "current_a": 0.2}]}
+    board, cons = _drift_ws(tmp_path, obj, "{not json")
+    summary, _ = verify_all.run(
+        ["--pcb", str(board), "--constraints", str(cons),
+         "--reports-dir", str(tmp_path / "r")])
+    drift = [v for v in summary["violations"]
+             if v["kind"] == "constraints_drift"]
+    assert len(drift) == 1 and drift[0]["severity"] == "warning"
 
 
 # ============================================================ smoke: timing

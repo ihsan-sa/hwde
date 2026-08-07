@@ -279,8 +279,10 @@ def test_dispatch_writes_actionable_work_orders(tmp_path):
     ]
     payload, _ = run_dispatch(tmp_path, failing)
     assert payload["status"] == "violations"
-    assert payload["counts"]["orders"] == 3
-    assert payload["counts"]["by_domain"] == {"router": 2, "schematic": 1}
+    # T6 (XC-2): the two single-violation router clusters batch into ONE
+    # work order (same domain, small clusters); schematic stays separate
+    assert payload["counts"]["orders"] == 2
+    assert payload["counts"]["by_domain"] == {"router": 1, "schematic": 1}
     for o in payload["orders"]:
         wo = json.loads(Path(o["work_order"]).read_text(encoding="utf-8"))
         assert wo["allowed_scripts"] and wo["guidance"] and wo["scope"]
@@ -288,12 +290,12 @@ def test_dispatch_writes_actionable_work_orders(tmp_path):
         assert wo["artifacts"]["board"].endswith("b.kicad_pcb")
         assert wo["artifacts"]["constraints"].endswith("constraints.json")
         assert wo["role_prompt"].endswith("agents/fixer.md")
-    # DRC uuid travels into the work order for remove-by-uuid fixes
-    router_orders = [o for o in payload["orders"] if o["fixer"] == "router"]
-    wos = [json.loads(Path(o["work_order"]).read_text(encoding="utf-8"))
-           for o in router_orders]
-    uuids = [v["items"][0].get("uuid") for wo in wos
-             for v in wo["cluster"]["violations"]]
+    # DRC uuid travels into the work order for remove-by-uuid fixes; the
+    # merged order keeps every violation's coordinates
+    router = [o for o in payload["orders"] if o["fixer"] == "router"][0]
+    wo = json.loads(Path(router["work_order"]).read_text(encoding="utf-8"))
+    assert len(wo["cluster"]["violations"]) == 2
+    uuids = [v["items"][0].get("uuid") for v in wo["cluster"]["violations"]]
     assert "u-1" in uuids
 
 

@@ -38,6 +38,7 @@ OFFLINE_FIXTURES = [
     ("P6", "golden_blinky2_place"), ("P6", "pd_trigger_place"),
     ("P8", "pd_trigger_verify"), ("P8", "carrier_verify"),
     ("P8", "mutant_planesplit_verify"), ("P8", "mutant_returnvia_verify"),
+    ("P8", "mutant_gndchoke_verify"),
     ("P9", "pd_trigger_dfm"), ("P9", "mutant_cpl_dfm"),
     ("P10", "pd_trigger_order"),
 ]
@@ -224,6 +225,12 @@ def test_known_answers_fire_where_expected():
     assert ka["status"] == "ok" and ka["matched"] == 1
     ka = run_bench("P8", "pd_trigger_verify")["known_answer"]
     assert ka["status"] == "ok" and ka["forbidden_errors"] == 0
+    # T6: the pre-fix GND-choke board fires the derived return-net coverage
+    ka = run_bench("P8", "mutant_gndchoke_verify")["known_answer"]
+    assert ka["status"] == "ok" and ka["matched"] == 2
+    # T6: the carrier's 8 surviving true-defect clusters are pinned
+    ka = run_bench("P8", "carrier_verify")["known_answer"]
+    assert ka["status"] == "ok" and ka["matched"] == 8
 
 
 def test_p10_hash_stable_and_ready():

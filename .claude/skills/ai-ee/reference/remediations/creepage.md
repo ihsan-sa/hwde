@@ -20,9 +20,12 @@ have same-layer copper closer than the IPC-2221 Table 6-1 minimum for the adjudi
   constraints.json can. lumina-carrier declares no key: 27 findings default, 26 at soldermask.
 - A soldermask declaration will NOT clear a pad finding: mask relief exposes lands, so pads stay on
   A6 under any mask (IPC-2221 6.3.4; check_creepage.py:106-109).
-- A pad pair inside ONE footprint is not placement's to fix - test `item.ref == other_item.ref`;
-  16 of lumina-carrier's 26 are that. Moving the part changes nothing, and a DRU floor above a
-  package's own pad gap is unsatisfiable (1280). Report it as parts/library, not a placement fix.
+- A pad pair inside ONE footprint is not placement's to fix - since T6 the check encodes that:
+  same-footprint pad pairs arrive as WARNING with `waiver_class: "land_pattern_pitch"` and
+  `same_footprint: true` (16 of lumina-carrier's 26 were that; summary carries
+  `same_footprint_under`). Moving the part changes nothing, and a DRU floor above a package's own
+  pad gap is unsatisfiable (1280). The class is parts/library (P3) scope - a CUSTOM-edited land
+  pattern under this waiver still deserves a look before you trust it.
 - Absence is not safety. Netless copper carries no declared voltage and is invisible: J1's board
   locks sat 0.66 mm from 57 V and neither this check nor DRC saw them (1785). An equal-potential
   pair (bridge input, 0.3295 mm at 57 V - 1600) is seen ONLY if declared in `voltage_pairs`.

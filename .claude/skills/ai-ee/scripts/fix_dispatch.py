@@ -197,6 +197,58 @@ def erc_fallback(clusters: list[dict]) -> None:
             c["fixer"] = "schematic"
 
 
+# XC-2 (T6): production dispatches were dominated by one-violation clusters -
+# pd-trigger P8 alone produced 10 single-violation orders, and SKILL.md says
+# "spawn one fixer per order" (= 10 fixer sessions for work one agent provably
+# did in one pass). Small same-domain clusters therefore batch into one order.
+MERGE_MAX_SRC = 2   # clusters at/below this size are merge candidates
+MERGE_CAP = 8       # max violations in one merged order
+
+
+def merge_small_clusters(clusters: list[dict]) -> list[dict]:
+    """Batch same-fixer clusters of <= MERGE_MAX_SRC violations into one
+    cluster (capped at MERGE_CAP violations); larger clusters and lone
+    candidates pass through untouched. Region becomes the union bbox; the
+    per-violation coordinates are all preserved in `violations`."""
+    small: dict[str, list[dict]] = {}
+    out: list[dict] = []
+    for c in clusters:
+        if c["count"] <= MERGE_MAX_SRC:
+            small.setdefault(c["fixer"], []).append(c)
+        else:
+            out.append(c)
+    for fixer, cands in small.items():
+        if len(cands) == 1:
+            out.append(cands[0])
+            continue
+        batch: list[dict] = []
+        for c in cands + [None]:                    # None flushes the tail
+            if c is not None and (not batch or
+                    sum(b["count"] for b in batch) + c["count"] <= MERGE_CAP):
+                batch.append(c)
+                continue
+            if len(batch) == 1:
+                out.append(batch[0])
+            elif batch:
+                vs = [v for b in batch for v in b["violations"]]
+                nets = {b.get("net") for b in batch}
+                sev = max((b["severity"] for b in batch),
+                          key=lambda s: cluster_violations.SEV_RANK.get(s, 0))
+                out.append({
+                    "net": nets.pop() if len(nets) == 1 else None,
+                    "kinds": sorted({k for b in batch for k in b["kinds"]}),
+                    "checks": sorted({k for b in batch for k in b["checks"]}),
+                    "severity": sev, "count": len(vs),
+                    "region": cluster_violations.region_of(vs),
+                    "fixer": fixer, "violations": vs,
+                    "merged_from": len(batch),
+                })
+            batch = [c] if c is not None else []
+    out.sort(key=lambda c: (-cluster_violations.SEV_RANK.get(c["severity"], 0),
+                            -c["count"]))
+    return out
+
+
 def parallel_groups(orders: list[dict]) -> list[list[int]]:
     """Group order ids whose regions don't overlap (bbox test, 1 mm margin):
     orders inside one group are safe to run in parallel; groups run in
@@ -251,6 +303,7 @@ def run(argv=None):
     violations, meta = load_input(Path(args.input))
     clusters = cluster_violations.cluster(violations, args.radius)
     erc_fallback(clusters)
+    clusters = merge_small_clusters(clusters)
 
     st = None
     if args.state:

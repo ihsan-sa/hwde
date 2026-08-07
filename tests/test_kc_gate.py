@@ -191,25 +191,235 @@ def test_gates_yaml_valid():
             f"{name}: bad tool {g['tool']}"
         for sev in g.get("fail_severities", ["error"]):
             assert sev in ("error", "warning", "exclusion")
+    # T6 (ladder row 122): the P6 interim drc gate runs schematic parity so
+    # a symbol/footprint mismatch surfaces BEFORE routing, not at drc_routed
+    assert gates["drc"]["drc_options"]["parity"] is True
+    # T6 (ladder row 128): drc_routed refuses stale fills instead of grading
+    # phantom zone clearance errors
+    assert gates["drc_routed"]["drc_options"]["require_fresh_fills"] is True
+
+
+def test_drc_gate_parity_flows_to_kc(monkeypatch, tmp_path):
+    """The P6 drc gate's parity option must reach kc.run_drc."""
+    data = yaml.safe_load(GATES_YAML.read_text(encoding="utf-8"))
+    seen = {}
+
+    def fake_run_drc(cli, pcb, *, parity=False, all_track_errors=False,
+                     refill=False, save_board=False):
+        seen.update(parity=parity, all_track_errors=all_track_errors)
+        return {"input": str(pcb), "violations": [], "counts": {"total": 0}}
+
+    monkeypatch.setattr(kc, "resolve_cli", lambda: Path("kicad-cli"))
+    monkeypatch.setattr(kc, "run_drc", fake_run_drc)
+    board = tmp_path / "b.kicad_pcb"
+    board.write_text("(kicad_pcb)", encoding="utf-8")
+    gate.run_report_for_gate(data["gates"]["drc"], board)
+    assert seen == {"parity": True, "all_track_errors": False}
+
+
+def test_drc_routed_gate_refuses_stale_fills(tmp_path):
+    """A board with an unfilled zone exits 2 with a stale-fill message
+    instead of being graded (offline: the preflight runs before kicad-cli
+    resolution)."""
+    board = tmp_path / "stale.kicad_pcb"
+    board.write_text("""(kicad_pcb (version 20260206) (generator "test")
+  (general (thickness 1.6))
+  (layers (0 "F.Cu" signal) (2 "B.Cu" signal) (25 "Edge.Cuts" user)) (setup)
+  (gr_rect (start 0 0) (end 20 10) (stroke (width 0.1)) (fill no)
+    (layer "Edge.Cuts"))
+  (zone (net "GND") (layer "B.Cu")
+    (polygon (pts (xy 0 0) (xy 20 0) (xy 20 10) (xy 0 10)))))
+""", encoding="utf-8")
+    proc = subprocess.run(
+        [sys.executable, str(SCRIPTS / "gate.py"), "--gate", "drc_routed",
+         str(board)], capture_output=True, text=True, encoding="utf-8",
+        errors="replace")
+    assert proc.returncode == 2
+    payload = json.loads(proc.stdout)
+    assert payload["status"] == "error"
+    assert "stale" in payload["error"]
+    assert "--refill" in payload["error"]
+
+
+# ------------------------------------------------------------- waivers (T6)
+
+def _wv(check=None, kind=None, net=None, refs=None,
+        reason="pkg-internal gap", approved="H4 2026-08-06"):
+    w = {"reason": reason, "approved": approved}
+    if check:
+        w["check"] = check
+    if kind:
+        w["kind"] = kind
+    if net:
+        w["net"] = net
+    if refs:
+        w["refs"] = refs
+    return w
+
+
+def _creep(net="V48_RTN", refs=("U22",), sev="error"):
+    return {"check": "check_creepage", "kind": "creepage", "severity": sev,
+            "net": net, "refs": list(refs), "pos": [1.0, 1.0],
+            "msg": "x", "source": "check_creepage"}
+
+
+def test_waiver_matching_passes_gate():
+    g = {"tool": "verify", "fail_severities": ["error"], "max_count": 0}
+    report = _report([_creep()])
+    res = gate.evaluate("verify", g, report,
+                        waivers=[_wv(kind="creepage", net="V48_RTN")])
+    assert res["status"] == "pass"
+    assert res["failing_count"] == 0
+    assert res["waived_count"] == 1
+    assert res["waived"][0]["net"] == "V48_RTN"
+
+
+def test_waiver_nonmatching_still_fails():
+    g = {"tool": "verify", "fail_severities": ["error"], "max_count": 0}
+    report = _report([_creep(), _creep(net="+48V_SW")])
+    res = gate.evaluate("verify", g, report,
+                        waivers=[_wv(kind="creepage", net="V48_RTN")])
+    assert res["status"] == "fail"               # +48V_SW is not waived
+    assert res["failing_count"] == 1 and res["waived_count"] == 1
+    assert res["failing"][0]["net"] == "+48V_SW"
+
+
+def test_waiver_refs_subset_matching():
+    w = _wv(kind="creepage", net="V48_RTN", refs=["U22", "U1"])
+    assert gate.waiver_matches(w, _creep(refs=("U22",)))
+    assert gate.waiver_matches(w, _creep(refs=("U22", "U1")))
+    assert not gate.waiver_matches(w, _creep(refs=("U22", "U9")))
+    # check-keyed waivers match on check OR source
+    w2 = _wv(check="check_creepage", net="V48_RTN")
+    assert gate.waiver_matches(w2, _creep())
+    assert not gate.waiver_matches(_wv(kind="corridor_void", net="V48_RTN"),
+                                   _creep())
+
+
+def test_waiver_without_reason_is_refused(tmp_path):
+    f = tmp_path / "verify-waivers.json"
+    f.write_text(json.dumps({"waivers": [
+        {"kind": "creepage", "net": "X", "reason": "", "approved": "H4"}]}),
+        encoding="utf-8")
+    with pytest.raises(RuntimeError, match="reason"):
+        gate.load_waivers(f)
+    f.write_text(json.dumps({"waivers": [
+        {"net": "X", "reason": "r", "approved": "H4"}]}), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="check"):
+        gate.load_waivers(f)
+
+
+def test_waivers_cli_exit_codes(tmp_path):
+    """--report + --waivers end to end: waived residual -> exit 0; a waiver
+    file missing `approved` -> exit 2."""
+    report = tmp_path / "r.json"
+    report.write_text(json.dumps(
+        {"input": "x.kicad_pcb", "violations": [_creep()],
+         "counts": {"total": 1}}), encoding="utf-8")
+    wv = tmp_path / "w.json"
+    wv.write_text(json.dumps({"waivers": [
+        {"kind": "creepage", "net": "V48_RTN", "reason": "TI SOIC-8 land",
+         "approved": "H4 2026-08-06"}]}), encoding="utf-8")
+    proc = subprocess.run(
+        [sys.executable, str(SCRIPTS / "gate.py"), "--gate", "verify",
+         "--report", str(report), "--waivers", str(wv)],
+        capture_output=True, text=True, encoding="utf-8", errors="replace")
+    assert proc.returncode == 0, proc.stdout
+    assert json.loads(proc.stdout)["waived_count"] == 1
+    wv.write_text(json.dumps({"waivers": [
+        {"kind": "creepage", "net": "V48_RTN", "reason": "r"}]}),
+        encoding="utf-8")
+    proc2 = subprocess.run(
+        [sys.executable, str(SCRIPTS / "gate.py"), "--gate", "verify",
+         "--report", str(report), "--waivers", str(wv)],
+        capture_output=True, text=True, encoding="utf-8", errors="replace")
+    assert proc2.returncode == 2
 
 
 # ------------------------------------------------------- git-commit helper
 
-def test_git_commit_on_pass(tmp_path):
+def _tmp_repo(tmp_path):
     repo = tmp_path / "r"
     repo.mkdir()
 
     def git(*a):
-        return subprocess.run(["git", *a], cwd=repo, capture_output=True, text=True)
+        return subprocess.run(["git", *a], cwd=repo, capture_output=True,
+                              text=True)
     assert git("init").returncode == 0
     git("config", "user.email", "t@t")
     git("config", "user.name", "t")
+    return repo, git
+
+
+def test_git_commit_on_pass(tmp_path):
+    repo, git = _tmp_repo(tmp_path)
     (repo / "a.txt").write_text("hi", encoding="utf-8")
     res = gate.git_commit_on_pass("gate erc pass", repo)
     assert res["committed"] is True and res["commit"]
     # nothing left to commit -> clean skip, not an error
     res2 = gate.git_commit_on_pass("noop", repo)
     assert res2["committed"] is False and "nothing to commit" in res2["reason"]
+
+
+def test_git_commit_scoped_to_workspace(tmp_path):
+    """T6 (ladder row 59): a boards/<name>/ input scopes staging to that
+    workspace; a parallel session's dirty file stays OUT of the gate commit
+    and is reported, not swept."""
+    repo, git = _tmp_repo(tmp_path)
+    ws = repo / "boards" / "foo" / "kicad"
+    ws.mkdir(parents=True)
+    board = ws / "foo.kicad_pcb"
+    board.write_text("(kicad_pcb)", encoding="utf-8")
+    (ws / "constraints.json").write_text("{}", encoding="utf-8")
+    (repo / "scratch.txt").write_text("parallel-session WIP", encoding="utf-8")
+
+    res = gate.git_commit_on_pass("gate verify pass", repo, input_file=board)
+    assert res["committed"] is True
+    assert res["scope"] == "boards/foo"
+    assert res["excluded_dirty"] == ["scratch.txt"]
+    shown = git("show", "--name-only", "--format=", "HEAD").stdout
+    assert "boards/foo/kicad/foo.kicad_pcb" in shown
+    assert "boards/foo/kicad/constraints.json" in shown
+    assert "scratch.txt" not in shown
+    # the WIP file is still dirty, untouched
+    assert "scratch.txt" in git("status", "--porcelain").stdout
+
+
+def test_git_commit_non_boards_input_refuses_outside_dirty(tmp_path):
+    """A non-boards input (bench/test invocation) never sweeps: -A is only
+    allowed when every dirty path is inside the input's own tree."""
+    repo, git = _tmp_repo(tmp_path)
+    ws = repo / "ws"
+    ws.mkdir()
+    board = ws / "b.kicad_pcb"
+    board.write_text("(kicad_pcb)", encoding="utf-8")
+    (repo / "other.txt").write_text("x", encoding="utf-8")
+
+    res = gate.git_commit_on_pass("gate pass", repo, input_file=board)
+    assert res["committed"] is False
+    assert "dirty paths outside workspace" in res["reason"]
+    assert "other.txt" in res["reason"]
+    # with only the input's tree dirty, the commit proceeds
+    (repo / "other.txt").unlink()
+    res2 = gate.git_commit_on_pass("gate pass", repo, input_file=board)
+    assert res2["committed"] is True
+
+
+def test_git_commit_workspace_only_outside_dirty(tmp_path):
+    """Nothing dirty INSIDE the workspace -> clean skip with the outside
+    paths reported."""
+    repo, git = _tmp_repo(tmp_path)
+    ws = repo / "boards" / "bar"
+    ws.mkdir(parents=True)
+    board = ws / "bar.kicad_pcb"
+    board.write_text("(kicad_pcb)", encoding="utf-8")
+    res = gate.git_commit_on_pass("first", repo, input_file=board)
+    assert res["committed"] is True
+    (repo / "stray.txt").write_text("x", encoding="utf-8")
+    res2 = gate.git_commit_on_pass("noop", repo, input_file=board)
+    assert res2["committed"] is False
+    assert "inside the workspace" in res2["reason"]
+    assert res2["excluded_dirty"] == ["stray.txt"]
 
 
 # ------------------------------------------------------------------ fixtures

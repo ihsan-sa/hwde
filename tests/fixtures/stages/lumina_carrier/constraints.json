@@ -85,9 +85,13 @@
    "net": "+3V3",
    "current_a": 1.0,
    "dt_c": 10,
-   "via_amps": 0.5
+   "via_amps": 0.5,
+   "plane_fed": true,
+   "_t6_basis": "T6 calibration (P8A-1): In2.Cu IS the +3V3 plane (planes[] declares 3 regions); all 33 undersized stubs are PHY leaf taps at x94-101 around U10 and all 27 one-via clusters are plane taps, while the actual regulator feed at L21 is a compliant 3-via cluster at (69.45,112-114). check_current's plane_fed semantics (built at T2 FROM this board's measurements) judge exactly these 60 as advisory warnings and keep the 2 In2 pour-trunk necks at error. No override region needed."
   }
  ],
+ "coating": "soldermask",
+ "_coating_basis": "T6 calibration (P8A-1): the board is JLC LPI-soldermasked; with no key check_creepage adjudicated tracks on B2 (0.60 mm at 51-100 V) instead of B4 (0.13 mm). Declaring it drops exactly one finding (V48_RAW-/pwr/UVLO 0.35 mm track-track), the class the P8 digest hand-adjudicated. Pads stay on A6 regardless (mask relief exposes lands).",
  "diff_pairs": [
   {
    "p": "/ETH_TXP",

@@ -5,18 +5,23 @@
  "board": "pd-trigger",
  "metrics": {
   "errors": 0,
-  "warnings": 0,
+  "warnings": 56,
   "by_check": {
    "check_return_path": 0,
-   "check_current": 0,
+   "check_current": 53,
    "check_decoupling": 0,
    "check_diffpair": 0,
    "check_creepage": 0,
    "check_thermal": 0,
-   "check_silk": 0,
+   "check_silk": 3,
    "check_pdn": 0
   },
-  "by_kind": {},
+  "by_kind": {
+   "insufficient_transition_vias": 17,
+   "pour_neckdown": 2,
+   "silk_misattributed": 3,
+   "undersized_track": 34
+  },
   "si": {
    "decap_worst_loop_nh": 13.1004,
    "decap_worst_manhattan_mm": 15.97,
@@ -28,11 +33,11 @@
  "metrics_live": null,
  "penalties": {
   "errors": 0.0,
-  "warnings": 0.0,
+  "warnings": 56.0,
   "known_answer_missed": 0.0,
   "forbidden_errors": 0.0
  },
- "composite": 100.0,
+ "composite": 94.4,
  "composite_inputs": "full",
  "known_answer": {
   "status": "ok",

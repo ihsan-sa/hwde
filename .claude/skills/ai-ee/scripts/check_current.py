@@ -49,6 +49,20 @@ Below the first table row the requirement interpolates linearly to (0, 0),
 consistent with published chart readings (~0.20 mm at 0.4 A). dT != 10 scales
 the equivalent current by (10/dT)^0.44 (IPC curve-family approximation).
 
+Derived return-net coverage (T6; the pd-trigger 5A GND choke class): no board
+ever declares its return net, so return-path ampacity went unchecked - the
+worst real defect of any run (5A return choked through 0.2 mm GND necks rated
+0.80 A, caught only by the reviewer AFTER verify passed 8/8). When the largest
+declared rail is >= RETURN_SYNTH_MIN_A (3.0 A) and the return net (optional
+per-entry "return_net", default "GND") exists on the board with a zone fill
+and is not itself declared, ONE entry is synthesized for it at the max rail's
+budget with plane-fed semantics. ALL derived findings - pour necks included -
+are advisory warnings with extras derived=true: the budget is a heuristic
+(max of declared rails), so error severity is not justified (measured: the
+SHIPPED pd-trigger board necks 0.86 mm vs the 1.75 mm 5 A requirement on a
+plane fed from multiple directions). Below the threshold the screen is noise:
+the rf4 golden fires a 0.07 mm sliver neck at a 0.15 A budget.
+
 CLI: --pcb board.kicad_pcb --constraints constraints.json [--out report.json]
      exit 0/1/2 per SPEC section 6.
 
@@ -88,6 +102,8 @@ OZ1_MM = 0.035                 # 1 oz copper thickness the table assumes
 VIA_AMPS_DEFAULT = 0.5         # spec: >= 1 via per 0.5 A at transitions
 VIA_CLUSTER_MM = 2.0           # vias within this distance share current
 WIDTH_TOL_MM = 1e-3
+RETURN_SYNTH_MIN_A = 3.0       # derive return-net coverage at/above this rail
+PLANE_HINT_SINGLE_VIA_FRAC = 0.8  # plane_fed_candidate hint threshold
 
 
 def width_1oz_10c(current_a: float) -> float:
@@ -192,6 +208,7 @@ def check_net(bg: geom.BoardGeom, entry: dict):
     budget = float(entry["current_a"])
     dt_c = float(entry.get("dt_c", 10.0))
     via_amps = float(entry.get("via_amps", VIA_AMPS_DEFAULT))
+    derived = bool(entry.get("derived", False))
     cu = bg.stackup.copper_thickness
     violations: list[dict] = []
 
@@ -274,13 +291,22 @@ def check_net(bg: geom.BoardGeom, entry: dict):
                     neck = pour_neck(bg, net, layer, fill, req)
             if neck is not None:
                 width, pos = neck
+                msg = (f"{net} pour on {layer} necks to ~{width:.2f} mm "
+                       f"between via attachments; IPC-2152 needs {req:.3f} mm "
+                       f"for {amps:.2f} A at dT={dt_c:.0f}C")
+                extras = {}
+                if derived:
+                    # derived return entry: the budget itself is a heuristic
+                    # (max declared rail), so the neck is a labeled screen,
+                    # not an error - see module docstring (T6).
+                    msg += ("; advisory: derived return-net coverage "
+                            "(no declared entry; budget = max declared rail)")
+                    extras["advisory"] = True
                 violations.append(violation(
-                    SCRIPT, "error", pos, layer, net, [],
-                    f"{net} pour on {layer} necks to ~{width:.2f} mm between "
-                    f"via attachments; IPC-2152 needs {req:.3f} mm for "
-                    f"{amps:.2f} A at dT={dt_c:.0f}C", SCRIPT,
+                    SCRIPT, "warning" if derived else "error", pos, layer,
+                    net, [], msg, SCRIPT,
                     kind="pour_neckdown", neck_mm=checklib.rnd(width),
-                    required_mm=checklib.rnd(req), current_a=amps))
+                    required_mm=checklib.rnd(req), current_a=amps, **extras))
 
     # ---- transition via count (per-cluster override via centroid)
     clusters = cluster_vias(bg.vias_of(net))
@@ -318,7 +344,44 @@ def check_net(bg: geom.BoardGeom, entry: dict):
         facts["plane_fed"] = True
         facts["advisory_violations"] = sum(
             1 for v in violations if v.get("advisory"))
+    if derived:
+        facts["derived"] = True
+        for v in violations:
+            v["derived"] = True
+    elif (not entry.get("plane_fed") and clusters
+            and bg.layers_with_zone(net)):
+        # sidecar-adoption lint (T6, facts only): a rail with a zone fill
+        # whose via clusters are almost all single-via is the plane-fed
+        # shape - the entry probably wants "plane_fed": true (the carrier
+        # +3V3 gap: T2 built the key, no sidecar ever adopted it).
+        single = sum(1 for g in clusters if len(g) == 1)
+        if single >= PLANE_HINT_SINGLE_VIA_FRAC * len(clusters):
+            facts["plane_fed_candidate"] = True
     return violations, facts
+
+
+def derived_return_entry(entries: list[dict], bg: geom.BoardGeom) -> dict | None:
+    """Synthesize the return-net entry (module docstring, T6), or None.
+
+    Only when: a declared rail reaches RETURN_SYNTH_MIN_A, the return net
+    (per-entry "return_net", default "GND") is on the board with a zone fill,
+    and it is not already a declared power entry."""
+    real = [e for e in entries if e.get("net") and "current_a" in e]
+    if not real:
+        return None
+    mx = max(real, key=lambda e: float(e["current_a"]))
+    if float(mx["current_a"]) < RETURN_SYNTH_MIN_A:
+        return None
+    ret = mx.get("return_net") or next(
+        (e["return_net"] for e in real if e.get("return_net")), "GND")
+    if ret in {e["net"] for e in real}:
+        return None                      # already declared - owner's numbers win
+    if ret not in bg.nets or not bg.layers_with_zone(ret):
+        return None                      # routed-only return: not judgeable here
+    return {"net": ret, "current_a": float(mx["current_a"]),
+            "dt_c": float(mx.get("dt_c", 10.0)),
+            "via_amps": float(mx.get("via_amps", VIA_AMPS_DEFAULT)),
+            "plane_fed": True, "derived": True}
 
 
 def run(argv=None):
@@ -339,6 +402,11 @@ def run(argv=None):
     checked: list[dict] = []
     for entry in entries:
         vs, facts = check_net(bg, entry)
+        violations.extend(vs)
+        checked.append(facts)
+    ret_entry = derived_return_entry(entries, bg)
+    if ret_entry is not None:
+        vs, facts = check_net(bg, ret_entry)
         violations.extend(vs)
         checked.append(facts)
 

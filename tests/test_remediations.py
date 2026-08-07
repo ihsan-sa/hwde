@@ -35,13 +35,18 @@ import fix_dispatch  # noqa: E402
 
 # The check_ids that actually fired >=100 times across the six committed board
 # workspaces (T4 tally, cumulative over every report JSON incl. fix-loop
-# intermediates). These are the ones a fixer meets in practice.
+# intermediates), PLUS (T6) every kind that fired on a SHIPPED board's final
+# checks with no ref. Update from boards/*/reports/checks/*.json when a new
+# kind fires on a shipped board - do not auto-derive from boards/ (workspaces
+# are not stable test inputs).
 TOP_FIRING = [
     "unconnected_items", "undersized_track", "clearance",
     "insufficient_transition_vias", "silk_overlap", "dfm_trace_width",
     "creepage", "track_width", "lib_footprint_issues", "silk_over_copper",
     "corridor_void", "silk_edge_clearance", "copper_edge_clearance",
     "track_dangling",
+    # T6: fired on lumina-carrier's shipped P8 (check_current x2, x1, x1)
+    "pour_neckdown", "decoupler_loop", "gnd_stub_long",
 ]
 
 REQUIRED_SECTIONS = ["## Is it real?", "## Fix ladder", "## Do not",
@@ -239,8 +244,12 @@ def test_work_orders_carry_the_matching_remediation(tmp_path):
             _violation("check_current", kind="undersized_track", net="+5V",
                        source="check_current"),
             _violation("silk_overlap", pos=(60.0, 60.0), net=None),
-            # no ref for this kind -> order still valid, just no pointer
+            # T6: pour_neckdown now HAS a ref; same-domain singles merge, so
+            # the two router kinds land in ONE order carrying BOTH refs
             _violation("pour_neckdown", kind="pour_neckdown", pos=(90.0, 90.0),
+                       net="+12V", source="check_current"),
+            # no ref for this kind -> order still valid, just no pointer
+            _violation("check_current", kind="plane_missing", pos=(30.0, 30.0),
                        net="+12V", source="check_current"),
         ],
     }
@@ -251,18 +260,24 @@ def test_work_orders_carry_the_matching_remediation(tmp_path):
 
     assert payload["counts"]["orders"] == 3
     assert payload["counts"]["with_remediation"] == 2
-    by_kind = {o["kinds"][0]: o for o in payload["orders"]}
-    for kind in ("undersized_track", "silk_overlap"):
-        order = by_kind[kind]
-        assert [Path(p).stem for p in order["remediations"]] == [kind]
+    by_fixer = {o["fixer"]: o for o in payload["orders"]}
+    assert set(by_fixer) == {"router", "silk", "plane"}
+
+    router = by_fixer["router"]  # merged order carries the union of refs
+    assert router["kinds"] == ["pour_neckdown", "undersized_track"]
+    assert [Path(p).stem for p in router["remediations"]] == \
+        ["pour_neckdown", "undersized_track"]
+    silk = by_fixer["silk"]
+    assert [Path(p).stem for p in silk["remediations"]] == ["silk_overlap"]
+    for order in (router, silk):
         wo = json.loads(Path(order["work_order"]).read_text(encoding="utf-8"))
         assert wo["remediations"] == order["remediations"]
-        assert Path(wo["remediations"][0]).is_file()
-        # the fixer is told to read it, ahead of the domain guidance
+        assert all(Path(p).is_file() for p in wo["remediations"])
+        # the fixer is told to read them, ahead of the domain guidance
         assert wo["guidance"][0] == fix_dispatch.REMEDIATION_GUIDANCE
         assert len(wo["guidance"]) == \
             len(fix_dispatch.DOMAINS[wo["fixer"]]["guidance"]) + 1
-    plain = by_kind["pour_neckdown"]
+    plain = by_fixer["plane"]
     assert plain["remediations"] == []
     wo = json.loads(Path(plain["work_order"]).read_text(encoding="utf-8"))
     assert wo["guidance"] == fix_dispatch.DOMAINS[wo["fixer"]]["guidance"]

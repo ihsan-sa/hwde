@@ -1,45 +1,47 @@
 {
  "script": "bench",
  "stage": "P8",
- "fixture": "mutant_planesplit_verify",
- "board": "rf4",
+ "fixture": "mutant_gndchoke_verify",
+ "board": "pd-trigger",
  "metrics": {
-  "errors": 1,
-  "warnings": 1,
+  "errors": 0,
+  "warnings": 52,
   "by_check": {
-   "check_return_path": 1,
-   "check_current": 0,
+   "check_return_path": 0,
+   "check_current": 49,
    "check_decoupling": 0,
    "check_diffpair": 0,
    "check_creepage": 0,
    "check_thermal": 0,
-   "check_silk": 1,
+   "check_silk": 3,
    "check_pdn": 0
   },
   "by_kind": {
-   "corridor_void": 1,
-   "silk_misattributed": 1
+   "insufficient_transition_vias": 14,
+   "pour_neckdown": 1,
+   "silk_misattributed": 3,
+   "undersized_track": 34
   },
   "si": {
-   "decap_worst_loop_nh": 5.5675,
-   "decap_worst_manhattan_mm": 5.725,
+   "decap_worst_loop_nh": 13.1004,
+   "decap_worst_manhattan_mm": 15.97,
    "diffpair_worst_skew_ps": null,
    "diffpair_worst_uncoupled_mm": null,
-   "return_corridor_voids": 1
+   "return_corridor_voids": 0
   }
  },
  "metrics_live": null,
  "penalties": {
-  "errors": 1.0,
-  "warnings": 1.0,
+  "errors": 0.0,
+  "warnings": 52.0,
   "known_answer_missed": 0.0,
   "forbidden_errors": 0.0
  },
- "composite": 99.4,
+ "composite": 94.8,
  "composite_inputs": "full",
  "known_answer": {
   "status": "ok",
-  "matched": 1,
+  "matched": 2,
   "missed": [],
   "forbidden_errors": 0
  },

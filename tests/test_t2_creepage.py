@@ -226,6 +226,97 @@ def test_soldermask_exposed_land_stays_a6(tmp_path_factory, tmp_path):
     assert "R1" in v["refs"]
 
 
+# ---- T6 (P8A-2): same-footprint pad pairs = land_pattern_pitch waiver ------
+
+_HV_PAD_VOLT = {"voltages": [{"net": "HV", "voltage": 114},
+                             {"net": "GND", "voltage": 0}]}
+
+
+def _pad_pair_body(ref_a, ref_b, y_b):
+    """Two 1x1 mm pads 0.45 mm apart vertically; refs configurable."""
+    fp_a = (f'  (footprint "t:U" (at 10 2) (layer "F.Cu")\n'
+            f'    (property "Reference" "{ref_a}" (at 0 0 0) (layer "F.SilkS"))\n'
+            f'    (pad "1" smd rect (at 0 0) (size 1 1) (layers "F.Cu") '
+            f'(net "HV"))')
+    if ref_a == ref_b:
+        return (fp_a + f'\n    (pad "2" smd rect (at 0 {y_b}) (size 1 1) '
+                f'(layers "F.Cu") (net "GND")))\n')
+    return (fp_a + ')\n'
+            f'  (footprint "t:U" (at 10 {2 + y_b}) (layer "F.Cu")\n'
+            f'    (property "Reference" "{ref_b}" (at 0 0 0) (layer "F.SilkS"))\n'
+            f'    (pad "1" smd rect (at 0 0) (size 1 1) (layers "F.Cu") '
+            f'(net "GND")))\n')
+
+
+def test_same_footprint_pad_pair_is_waived_warning(tmp_path_factory, tmp_path):
+    """Both pads of ONE footprint under requirement -> warning with the
+    land_pattern_pitch waiver class, still visible in violations."""
+    bg = _board(tmp_path_factory, "samefp", _pad_pair_body("U9", "U9", 1.45))
+    payload = _run(bg, _cons(tmp_path, _HV_PAD_VOLT))
+    assert payload["status"] == "violations"
+    vs = payload["violations"]
+    assert len(vs) == 1, json.dumps(vs)
+    v = vs[0]
+    assert v["kind"] == "creepage"
+    assert v["severity"] == "warning"
+    assert v["same_footprint"] is True
+    assert v["waiver_class"] == "land_pattern_pitch"
+    assert "part-selection scope" in v["msg"]
+    assert v["refs"] == ["U9"]
+    # A6/A6 at 114 V -> 0.80 mm; the 0.45 mm gap is under it
+    assert v["required_mm"] == 0.80
+    assert v["spacing_mm"] == pytest.approx(0.45, abs=0.005)
+    # summary carries the class count
+    pairs = [p for e in payload["checked"] for p in e.get("pairs", [])]
+    assert sum(p["same_footprint_under"] for p in pairs) >= 1
+
+
+def test_cross_footprint_pad_pair_stays_error(tmp_path_factory, tmp_path):
+    bg = _board(tmp_path_factory, "crossfp", _pad_pair_body("U8", "U7", 1.45))
+    payload = _run(bg, _cons(tmp_path, _HV_PAD_VOLT))
+    assert payload["status"] == "violations"
+    vs = payload["violations"]
+    assert len(vs) == 1, json.dumps(vs)
+    v = vs[0]
+    assert v["severity"] == "error"
+    assert "same_footprint" not in v
+    assert "waiver_class" not in v
+    assert sorted(v["refs"]) == ["U7", "U8"]
+
+
+def test_track_pair_never_waived(tmp_path_factory, tmp_path):
+    """The waiver is pad-pair-only: track/via items keep error severity."""
+    bg = _board(tmp_path_factory, "trkerr", _C_TRACKS)
+    payload = _run(bg, _cons(tmp_path, _C_VOLT))
+    assert payload["violations"][0]["severity"] == "error"
+
+
+# ---- T6 (P8A-4): coating-undeclared hint (facts only) ----------------------
+
+def test_coating_undeclared_hint_fires_on_b2_rows(tmp_path_factory, tmp_path):
+    bg = _board(tmp_path_factory, "hint_none", _C_TRACKS)
+    payload = _run(bg, _cons(tmp_path, _C_VOLT))     # coating defaults none
+    assert payload["coating_undeclared_hint"] is True
+    assert payload["coating_undeclared_count"] == 1
+    # facts only: same violation count/severities as before the hint existed
+    assert [v["severity"] for v in payload["violations"]] == ["error"]
+
+
+def test_coating_declared_no_hint(tmp_path_factory, tmp_path):
+    bg = _board(tmp_path_factory, "hint_mask", _C_TRACKS)
+    payload = _run(bg, _cons(tmp_path, {**_C_VOLT, "coating": "soldermask"}))
+    assert "coating_undeclared_hint" not in payload
+
+
+def test_pad_only_findings_no_hint(tmp_path_factory, tmp_path):
+    """A6 rows are coating-independent for pads: no hint when nothing was
+    adjudicated on B2/B3."""
+    bg = _board(tmp_path_factory, "hint_pads", _pad_pair_body("U8", "U7", 1.45))
+    payload = _run(bg, _cons(tmp_path, _HV_PAD_VOLT))
+    assert payload["status"] == "violations"
+    assert "coating_undeclared_hint" not in payload
+
+
 # ---- table sanity: the pinned clearance_mm API delegates to B2/B1 ----------
 
 def test_clearance_mm_delegates_to_rows():

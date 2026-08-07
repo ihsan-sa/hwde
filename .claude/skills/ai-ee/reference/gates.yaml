@@ -9,8 +9,12 @@
 #   phase        pipeline phase this gate guards (documentation)
 #   tool         kc.py report to run: "erc" (needs a .kicad_sch) or
 #                "drc" (needs a .kicad_pcb)
-#   drc_options  for tool: drc - {parity, all_track_errors} (both default false;
-#                gates never refill/save, so evaluation cannot mutate the board)
+#   drc_options  for tool: drc - {parity, all_track_errors, require_fresh_fills}
+#                (all default false; gates never refill/save, so evaluation
+#                cannot mutate the board). require_fresh_fills: refuse (exit 2)
+#                on stale/unfilled zones instead of grading phantom clearance
+#                errors (T6; set on drc_routed - the P6 interim gate may
+#                legitimately see boards whose zones predate filling).
 #   fail_severities  severities that count toward failure (default [error]).
 #                    "clean" gates include warning.
 #   max_count    max counted violations allowed to still pass (default 0)
@@ -52,7 +56,11 @@ gates:
   drc:
     phase: P6
     tool: drc
-    drc_options: {parity: false, all_track_errors: false}
+    # parity: true since T6 (ladder row 122): a symbol/footprint mismatch
+    # introduced by P4-P6 edits must surface BEFORE routing - drc_routed
+    # finding it first costs a full re-route cycle. A placed-unrouted board's
+    # unconnected items are warnings and do not fail this [error]-only gate.
+    drc_options: {parity: true, all_track_errors: false}
     fail_severities: [error]
     max_count: 0
     description: Board DRC has no error-level violations (interim placement gate).
@@ -60,7 +68,7 @@ gates:
   drc_routed:
     phase: P7
     tool: drc
-    drc_options: {parity: true, all_track_errors: true}
+    drc_options: {parity: true, all_track_errors: true, require_fresh_fills: true}
     fail_severities: [error, warning]
     max_count: 0
     description: >-
@@ -86,6 +94,10 @@ gates:
       P8 verification suite (verify_all.py): return path, current, decoupling,
       diff pairs, creepage, thermal, silk, PDN. Fails on any error-severity
       finding; warnings are surfaced for human review, not auto-failed.
+      Human-approved residuals can be waived via the verify-waivers.json
+      sidecar (gate.py --waivers; every entry needs reason + approved) so a
+      board with justified exceptions can record a true pass (T6; the carrier
+      shipped with gates.verify permanently 'fail').
 
   sim:
     phase: P8

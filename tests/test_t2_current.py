@@ -277,6 +277,114 @@ def test_no_undersized_no_bridge_fact(tmp_path_factory):
     assert "bridge_labeled" not in facts
 
 
+# ---- T6 (P8B-3): derived return-net coverage -------------------------------
+# The pd-trigger 5A GND choke class: no board declares its return net, so
+# return-path ampacity was unchecked. A >=3A rail synthesizes ONE plane-fed
+# entry for the return net; ALL derived findings are advisory warnings.
+
+_GND_RETURN_BODY = """  (segment (start 1 1) (end 19 1) (width 2.0) (layer "F.Cu") (net "VBUS"))
+  (zone (net "GND") (layer "B.Cu")
+    (polygon (pts (xy 0 0) (xy 15 0) (xy 15 5) (xy 0 5)))
+    (filled_polygon (layer "B.Cu")
+      (pts (xy 0 0) (xy 5 0) (xy 5 2.4) (xy 10 2.4) (xy 10 0) (xy 15 0)
+           (xy 15 5) (xy 10 5) (xy 10 2.6) (xy 5 2.6) (xy 5 5) (xy 0 5))))
+  (via (at 2 2) (size 0.6) (drill 0.3) (layers "F.Cu" "B.Cu") (net "GND"))
+  (via (at 13 2) (size 0.6) (drill 0.3) (layers "F.Cu" "B.Cu") (net "GND"))
+  (segment (start 2 2) (end 2.8 2) (width 0.3) (layer "F.Cu") (net "GND"))
+"""
+
+
+def _run_cli(bg, power):
+    cons = bg.path.parent / "cons.json"
+    cons.write_text(json.dumps({"power": power}), encoding="utf-8")
+    return check_current.run(["--pcb", str(bg.path),
+                              "--constraints", str(cons)])[0]
+
+
+def test_derived_return_fires_at_5a(tmp_path_factory):
+    bg = _board(tmp_path_factory, "gndret", _GND_RETURN_BODY)
+    payload = _run_cli(bg, [{"net": "VBUS", "current_a": 5.0}])
+    derived = [e for e in payload["checked"] if e.get("derived")]
+    assert len(derived) == 1 and derived[0]["net"] == "GND"
+    gnd_vs = [v for v in payload["violations"] if v["net"] == "GND"]
+    assert gnd_vs, "derived GND coverage produced no findings"
+    # the choke class is visible: pour neck between the via attachments
+    necks = [v for v in gnd_vs if v["kind"] == "pour_neckdown"]
+    assert len(necks) == 1
+    # ...and EVERY derived finding is an advisory warning, never an error
+    assert all(v["severity"] == "warning" for v in gnd_vs)
+    assert all(v["derived"] is True for v in gnd_vs)
+    assert necks[0]["advisory"] is True
+    assert "derived return-net coverage" in necks[0]["msg"]
+
+
+def test_derived_return_below_threshold_skipped(tmp_path_factory):
+    bg = _board(tmp_path_factory, "gndlow", _GND_RETURN_BODY)
+    payload = _run_cli(bg, [{"net": "VBUS", "current_a": 2.0}])
+    assert not any(e.get("derived") for e in payload["checked"])
+    assert not any(v["net"] == "GND" for v in payload["violations"])
+
+
+def test_derived_return_skipped_when_declared(tmp_path_factory):
+    """An explicitly declared return net is the owner's judgment - no
+    synthesis on top of it."""
+    bg = _board(tmp_path_factory, "gnddecl", _GND_RETURN_BODY)
+    payload = _run_cli(bg, [{"net": "VBUS", "current_a": 5.0},
+                            {"net": "GND", "current_a": 5.0,
+                             "plane_fed": True}])
+    assert not any(e.get("derived") for e in payload["checked"])
+    # the declared entry still runs (pour neck at ERROR: declared plane_fed)
+    necks = [v for v in payload["violations"] if v["kind"] == "pour_neckdown"]
+    assert necks and all(v["severity"] == "error" for v in necks)
+
+
+def test_derived_return_needs_a_zone(tmp_path_factory):
+    """Routed-only return (no zone fill) is not judgeable at plane-fed
+    semantics - no synthesis, no noise."""
+    body = ('  (segment (start 1 1) (end 19 1) (width 2.0) (layer "F.Cu") '
+            '(net "VBUS"))\n'
+            '  (segment (start 1 5) (end 19 5) (width 0.3) (layer "F.Cu") '
+            '(net "GND"))\n')
+    bg = _board(tmp_path_factory, "gndtrk", body)
+    payload = _run_cli(bg, [{"net": "VBUS", "current_a": 5.0}])
+    assert not any(e.get("derived") for e in payload["checked"])
+    assert not any(v["net"] == "GND" for v in payload["violations"])
+
+
+def test_derived_return_net_field_overrides_default(tmp_path_factory):
+    body = _GND_RETURN_BODY.replace('"GND"', '"AGND"')
+    bg = _board(tmp_path_factory, "agnd", body)
+    payload = _run_cli(bg, [{"net": "VBUS", "current_a": 5.0,
+                             "return_net": "AGND"}])
+    derived = [e for e in payload["checked"] if e.get("derived")]
+    assert len(derived) == 1 and derived[0]["net"] == "AGND"
+
+
+# ---- T6 (P8A-4): plane_fed_candidate hint (facts only) ---------------------
+
+def test_plane_fed_candidate_hint(plane_fed_bg):
+    """The plane-fed shape without the key gets the facts hint; severities
+    are untouched (still the old errors - the hint is machine-visible only)."""
+    vs, facts = check_current.check_net(plane_fed_bg, dict(ENTRY_A))
+    assert facts["plane_fed_candidate"] is True
+    assert any(v["severity"] == "error" for v in vs)  # unchanged behavior
+
+
+def test_no_hint_when_plane_fed_declared(plane_fed_bg):
+    _, facts = check_current.check_net(
+        plane_fed_bg, dict(ENTRY_A, plane_fed=True))
+    assert "plane_fed_candidate" not in facts
+
+
+def test_no_hint_without_zone(tmp_path_factory):
+    body = _PADS_PWR + _DIRECT + (
+        '  (via (at 2 5) (size 0.6) (drill 0.3) (layers "F.Cu" "B.Cu") '
+        '(net "PWR"))\n')
+    bg = _board(tmp_path_factory, "nohint", body)
+    _, facts = check_current.check_net(bg, {"net": "PWR", "current_a": 2.0})
+    assert "plane_fed_candidate" not in facts
+
+
 # ---- exit codes / run() CLI contract ---------------------------------------
 
 def test_cli_exit_codes(tmp_path_factory, plane_fed_bg):

@@ -30,6 +30,16 @@ SCRIPT = "cluster_violations"
 DEFAULT_RADIUS_MM = 5.0
 SEV_RANK = {"error": 2, "warning": 1, "info": 0}
 
+# The fixer domains fix_dispatch.py defines (kept in sync by
+# tests/test_fix_dispatch.py; not imported - fix_dispatch imports this
+# module). A violation carrying an explicit "domain" from this set (the
+# verify-reviewer transcribes one per finding since T6) routes there
+# directly - reviewer kinds are free slugs FIXER_HINTS cannot enumerate,
+# which is why all 19 production review orders dead-ended in 'review'.
+FIXER_DOMAINS = frozenset({
+    "router", "placement", "plane", "silk", "schematic", "library",
+    "fab", "parts", "review"})
+
 # kind -> the fixer domain best suited to resolve it (fix_dispatch.py routes
 # the actual agent dispatch off these; domains map to allowed-script sets and
 # guidance there). Violations without a `kind` fall back to their `check`
@@ -48,7 +58,12 @@ FIXER_HINTS = {
     "creepage": "placement", "plane_missing": "plane",
     "thermal_area": "plane", "thermal_vias": "router",
     "silk_over_pad": "silk", "silk_illegible": "silk", "silk_thin": "silk",
+    "silk_misattributed": "silk",
     "pdn_undecoupled": "schematic", "pdn_no_bulk": "schematic",
+    # sim gate (sim_run.py) - a failed bound is a schematic-value defect;
+    # engine/measure trouble needs triage, not a copper fixer
+    "sim_bound_fail": "schematic", "sim_measure_missing": "review",
+    "sim_engine_error": "review",
     # S9 placement legality
     "courtyard_overlap": "placement", "outside_outline": "placement",
     "edge_violation": "placement", "keepout_violation": "placement",
@@ -153,10 +168,16 @@ def cluster(violations: list[dict], radius: float) -> list[dict]:
             kinds = sorted({k for g in group if (k := kind_of(g))})
             checks = sorted({c for g in group
                              if (c := g.get("source") or g.get("check"))})
+            # explicit per-violation domain wins when the group agrees on
+            # exactly one valid name; else the kind-keyed hint table
+            doms = {d for g in group
+                    if (d := g.get("domain")) in FIXER_DOMAINS}
+            fixer = doms.pop() if len(doms) == 1 \
+                else FIXER_HINTS.get(kind, "review")
             clusters.append({
                 "net": net, "kinds": kinds, "checks": checks, "severity": sev,
                 "count": len(group), "region": region_of(group),
-                "fixer": FIXER_HINTS.get(kind, "review"),
+                "fixer": fixer,
                 "violations": group,
             })
     # most severe, largest first; stable id

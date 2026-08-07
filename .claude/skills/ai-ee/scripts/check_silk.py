@@ -9,6 +9,18 @@ One concern: silkscreen that will not assemble or read.
  - LEGIBILITY: silk text below a minimum height / stroke thickness prints
    illegibly. (Silk LINE width vs the fab minimum is a gerber-level concern,
    left to S12 dfm_check - the independent second geometry path.)
+ - ATTRIBUTION (T6): a reference designator printed so far from its own part
+   that it reads as a NEIGHBOR's label - the biggest real silk defect class of
+   every shipped run (EasyEDA blanket (0,-4.0) mm Reference offset; carrier:
+   95 refs beyond their own pad extent, fixed by 111 move_text ops). Ported
+   from the carrier P8 sweep (work/p8/silk/refdes_*.json): a visible refdes
+   is silk_misattributed (warning) when it sits more than MISATTR_OWN_MM
+   beyond its own footprint's pad-extent bbox AND some OTHER footprint's pad
+   extent is both nearer than its own and within MISATTR_NEAR_MM - i.e. the
+   text visually attaches to the wrong part ("attribution beats closeness").
+   Calibrated on the corpus: flags the carrier's exact 3 shipped residuals
+   and the rf4 golden's C14 (a true instance predating this check); zero on
+   every other golden/mutant/shipped board.
 
 Silk geometry is parsed here (not in geom.py, which is copper-only): top-level
 gr_text / gr_line / gr_poly / gr_rect / gr_circle / gr_arc on *.SilkS, plus the
@@ -44,6 +56,8 @@ COVER_FRAC = 0.5      # silk covering >= this fraction of a pad -> over-pad
 MIN_OVERLAP_MM2 = 0.10
 MIN_TEXT_H = 0.8      # legible silk text height floor (mm)
 MIN_TEXT_TH = 0.12    # legible silk stroke thickness floor (mm)
+MISATTR_OWN_MM = 1.0  # refdes farther than this from its own pads: suspect
+MISATTR_NEAR_MM = 1.0  # ... and this close to ANOTHER part's pads: flagged
 
 
 # ------------------------------------------------------------ s-expr helpers
@@ -261,6 +275,72 @@ def parse_silk(root) -> list[Silk]:
     return items
 
 
+# ------------------------------------------------------ refdes attribution
+
+def refdes_texts(root) -> list[tuple[str, "Silk"]]:
+    """(refdes, Silk) for every visible Reference field on a silk layer."""
+    out: list[tuple[str, Silk]] = []
+    for fp in _kids(root, "footprint"):
+        fat = _kid(fp, "at")
+        fn = _nums(fat) if fat is not None else [0, 0, 0]
+        fx, fy = fn[0], fn[1]
+        fangle = fn[2] if len(fn) > 2 else 0.0
+        for prop in _kids(fp, "property"):
+            pv = _strs(prop)
+            if len(pv) < 2 or pv[0] != "Reference":
+                continue
+            ln = _kid(prop, "layer")
+            strs = _strs(ln) if ln is not None else []
+            side = _silk_side(strs[0]) if strs else None
+            if side is None:
+                continue
+            it = _text_item(prop, fx, fy, fangle, side, pv[1])
+            if it is not None:
+                out.append((pv[1], it))
+    return out
+
+
+def check_attribution(bg: geom.BoardGeom, root) -> list[dict]:
+    """silk_misattributed: refdes text that reads against a neighbor (see
+    module docstring). Distances are text-bbox to pad-extent bbox per ref."""
+    extent: dict[str, list[float]] = {}
+    for p in bg.pads_of():
+        b = p.poly.bounds
+        e = extent.get(p.ref)
+        if e is None:
+            extent[p.ref] = list(b)
+        else:
+            e[0] = min(e[0], b[0]); e[1] = min(e[1], b[1])
+            e[2] = max(e[2], b[2]); e[3] = max(e[3], b[3])
+    boxes = {r: box(*b) for r, b in extent.items()}
+    violations: list[dict] = []
+    for ref, s in refdes_texts(root):
+        own = boxes.get(ref)
+        if own is None:
+            continue                     # padless footprint (logo, graphic)
+        own_off = s.geom.distance(own)
+        if own_off <= MISATTR_OWN_MM:
+            continue
+        nearest_ref, nearest_d = None, None
+        for other, ob in boxes.items():
+            if other == ref:
+                continue
+            d = s.geom.distance(ob)
+            if nearest_d is None or d < nearest_d:
+                nearest_ref, nearest_d = other, d
+        if nearest_ref is None or nearest_d >= min(MISATTR_NEAR_MM, own_off):
+            continue
+        violations.append(violation(
+            SCRIPT, "warning", s.pos, f"{s.side}.SilkS", None, [ref],
+            f'refdes "{ref}" sits {own_off:.2f} mm beyond its own pads and '
+            f"{nearest_d:.2f} mm from {nearest_ref} - reads as {nearest_ref}'s "
+            "label; scripted fix: place_edit.py move_text", SCRIPT,
+            kind="silk_misattributed", ref=ref,
+            offset_mm=checklib.rnd(own_off), nearest_ref=nearest_ref,
+            nearest_mm=checklib.rnd(nearest_d)))
+    return violations
+
+
 # ------------------------------------------------------------ checks
 
 def pad_side(pad) -> set[str]:
@@ -336,12 +416,14 @@ def run(argv=None):
     root = sexpdata.loads(Path(args.pcb).read_text(encoding="utf-8"))
     silks = parse_silk(root)
     violations = run_checks(bg, silks)
+    violations.extend(check_attribution(bg, root))
 
     payload = checklib.report(
         SCRIPT, args.pcb, violations,
         checked=[{"silk_items": len(silks),
                   "texts": sum(1 for s in silks if s.kind == "text"),
-                  "graphics": sum(1 for s in silks if s.kind != "text")}])
+                  "graphics": sum(1 for s in silks if s.kind != "text"),
+                  "refdes_checked": len(refdes_texts(root))}])
     return payload, args.out
 
 

@@ -17,6 +17,13 @@ reported (not just the worst per net pair - LEARNINGS 2026-07-29: worst-only
 hid 216 siblings), spatially deduped at 0.1 mm and capped at 500 per
 (net pair, layer).
 
+Waiver class (T6, follows check_return_path's precedent): a violating PAD pair
+whose two pads belong to ONE footprint is the vendor land pattern - unfixable
+at layout (the P8 lumina-carrier digest hand-adjudicated exactly this class:
+"0.200 mm is the inter-lead gap of the SOIC-8 that TI ships"). Emitted at
+severity "warning" with waiver_class="land_pattern_pitch" and
+same_footprint=true - never silently dropped; part-selection (P3) scope.
+
 The corpus carries no >30 V nets, so this check is clean on all goldens; supply
 voltages via constraints.json to exercise it (synthetic HV fixtures are tested).
 
@@ -213,20 +220,38 @@ def sweep_pair(bg: geom.BoardGeom, prim: str, sec: str, dv: float,
                 continue
             kept.append(h)
         truncated = len(kept) > MAX_EMIT_PER_PAIR_LAYER
+
+        def _same_fp(a, b) -> bool:
+            return (a[0] == "pad" and b[0] == "pad"
+                    and bool(a[3]) and a[3] == b[3])
+
+        sf_under = sum(1 for h in hits if _same_fp(h[2], h[3]))
         for dist, mid, a, b, rows, req in kept[:MAX_EMIT_PER_PAIR_LAYER]:
             refs = [r for r in (a[3], b[3]) if r]
+            msg = (f"{prim_label} to {sec} on {layer}: {dist:.3f} mm copper "
+                   f"spacing < IPC-2221 {req:.2f} mm ({rows[0]}/{rows[1]}) "
+                   f"for {abs(dv):.0f} V")
+            extras = {}
+            severity = "error"
+            if _same_fp(a, b):
+                # both pads of ONE footprint: the land pattern itself - not
+                # fixable by placement/routing; named waiver class, visible.
+                severity = "warning"
+                extras = {"same_footprint": True,
+                          "waiver_class": "land_pattern_pitch"}
+                msg += (f"; land-pattern pitch (same footprint {a[3]}) - "
+                        "part-selection scope, not layout")
             violations.append(violation(
-                SCRIPT, "error", mid, layer, prim, refs,
-                f"{prim_label} to {sec} on {layer}: {dist:.3f} mm copper "
-                f"spacing < IPC-2221 {req:.2f} mm ({rows[0]}/{rows[1]}) "
-                f"for {abs(dv):.0f} V",
+                SCRIPT, severity, mid, layer, prim, refs, msg,
                 SCRIPT, kind="creepage", other_net=sec,
                 delta_v=checklib.rnd(abs(dv)), spacing_mm=checklib.rnd(dist),
-                required_mm=req, rows=rows, item=a[2], other_item=b[2]))
+                required_mm=req, rows=rows, item=a[2], other_item=b[2],
+                **extras))
         summaries.append({
             "other_net": sec, "layer": layer, "delta_v": checklib.rnd(abs(dv)),
             "pairs_checked": len(ia) * len(ib),
             "pairs_under_requirement": n_under,
+            "same_footprint_under": sf_under,
             # min gap among prefiltered candidates; None = all pairs on this
             # layer are farther apart than the largest possible requirement
             "min_gap_mm": checklib.rnd(min_gap) if min_gap is not None else None,
@@ -324,10 +349,22 @@ def run(argv=None):
                         "voltage_pair": True, "pairs_checked": len(summ),
                         "pairs": summ})
 
+    # sidecar-adoption lint (T6, facts only - never a violation): when no
+    # coating is declared and findings were adjudicated on the uncoated
+    # B2/B3 rows, a "coating" constraints key would change those verdicts.
+    # The carrier run burned 2 fixer attempts on exactly this gap.
+    hint: dict = {}
+    if coating == "none":
+        n = sum(1 for v in violations
+                if {"B2", "B3"} & set(v.get("rows") or []))
+        if n:
+            hint = {"coating_undeclared_hint": True,
+                    "coating_undeclared_count": n}
+
     payload = checklib.report(SCRIPT, args.pcb, violations, checked=checked,
                               skipped_absent_nets=skipped,
                               skipped_low_voltage_pairs=skipped_lv_pairs,
-                              coating=coating)
+                              coating=coating, **hint)
     return payload, args.out
 
 

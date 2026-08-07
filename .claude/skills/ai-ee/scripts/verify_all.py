@@ -103,6 +103,39 @@ def run_one(check: dict, inputs: dict, reports_dir: Path) -> dict:
     }
 
 
+def constraints_drift(constraints_path: str | None) -> dict | None:
+    """Twin-sidecar preflight (T6, ladder row 154): the pipeline keeps
+    constraints.json in BOTH <ws>/architecture/ and <ws>/kicad/; checks run
+    against the given (kicad/) copy. When the architecture twin exists and
+    parses to a DIFFERENT object (formatting drift is fine), return a
+    warning violation - the 61-vs-53-answers class becomes visible at H4.
+    Reconciliation is an owner decision; no winner is picked here."""
+    if not constraints_path:
+        return None
+    given = Path(constraints_path)
+    twin = given.resolve().parent.parent / "architecture" / "constraints.json"
+    if not twin.is_file():
+        return None
+    try:
+        a = json.loads(twin.read_text(encoding="utf-8"))
+        b = json.loads(given.read_text(encoding="utf-8"))
+        same = a == b
+    except (OSError, json.JSONDecodeError) as exc:
+        same, a = False, f"unreadable twin: {exc}"
+    if same:
+        return None
+    return {
+        "check": "verify_all", "severity": "warning", "pos": None,
+        "layer": None, "net": None, "refs": [],
+        "msg": (f"architecture/constraints.json diverges from {given.name} "
+                f"in {given.parent.name}/; checks ran against the latter - "
+                "reconcile or delete the stale twin"),
+        "source": "verify_all", "kind": "constraints_drift",
+        "twin": str(twin).replace("\\", "/"),
+        "items": [{"msg": "constraints twin drift", "pos": None}],
+    }
+
+
 def merge(board, results: list[dict]) -> dict:
     all_v: list[dict] = []
     checks: dict[str, dict] = {}
@@ -154,6 +187,15 @@ def run(argv=None):
         results = list(ex.map(lambda c: run_one(c, inputs, reports_dir), CHECKS))
     # keep CHECKS order (ThreadPoolExecutor.map preserves input order)
     summary = merge(pcb, results)
+    drift = constraints_drift(args.constraints)
+    if drift is not None:
+        summary["violations"].append(drift)
+        counts = checklib.summarize(summary["violations"])
+        counts["by_check"] = {**summary["counts"]["by_check"],
+                              "verify_all": 1}
+        summary["counts"] = counts
+        if summary["status"] == "pass":
+            summary["status"] = "violations"
     (reports_dir / "summary.json").write_text(
         json.dumps(summary, indent=1), encoding="utf-8")
     return summary, args.out

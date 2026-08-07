@@ -347,3 +347,20 @@ crossing splits).
   custom rule caveat
 - [Freerouting issue #574](https://github.com/freerouting/freerouting/issues/574) — `kicad-cli` DRC
   integration discussion
+
+
+---
+
+## T6 position record (P8A-6, 2026-08-06): NO generic free-form waiver list in constraints
+
+Question asked by the T6 P8 evaluation: is the waiver mechanism expressive enough? After the
+land_pattern_pitch class (T6) joined return_path's cross-net class, the answer is yes for every
+class observed across six boards - and deliberately so. Both shipped waiver classes are
+AUTO-DERIVED from ground truth (return_path: stackup geometry; creepage: same-footprint
+identity), so they cannot rot, cannot be fat-fingered onto a real defect, and need no per-board
+authoring. A free-form constraints `waivers[]` (match by check/kind/net/ref) would let a board
+run silence anything - exactly the check-weakening T6 is forbidden to do, made ambient. The H4
+wholesale-waiver failure on lumina-carrier shows humans under pressure waive coarsely. The
+HUMAN-approved per-finding path exists at the GATE instead (gate.py --waivers sidecar, T6
+P8B-4: mandatory reason + approved, refs-subset matching, never agent-invented). Revisit only
+if a third class appears that ground truth cannot derive.

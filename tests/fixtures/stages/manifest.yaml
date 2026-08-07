@@ -183,17 +183,78 @@ fixtures:
       method: copy
       captured: '2026-08-06'
       note: shipped 4L board; verify gate FAILED (115/119 findings) and was waived at H4 - the hard known-profile
-        fixture
+        fixture. T6 calibration (P8A-1) adopted plane_fed(+3V3)+coating(soldermask) in the frozen
+        sidecar (sha re-pinned); known_answer (P8A-3) pins one signature per surviving TRUE-defect
+        cluster so future check edits cannot silently drop them (each must keep matching or
+        known_answer_missed fires at weight 40). No forbid_errors - the board legitimately carries
+        unlisted errors.
     files:
       pcb:
         path: tests/fixtures/stages/lumina_carrier/routed.kicad_pcb
         sha256: 89fab249993b093f9b9cee76e1ade62c4a82734025698b26976d6453d491c01e
       constraints:
         path: tests/fixtures/stages/lumina_carrier/constraints.json
-        sha256: b139d7f0e8fc1abbab84ea3918598482bb0db2ec1a8a943c6d4348bc4b82b1c4
+        sha256: 254544d89932544cb6fb721050b0ea6a2738a17f6a3a8ae5ad25394896b627a1
       decoupling:
         path: tests/fixtures/stages/lumina_carrier/decoupling.json
         sha256: fc5e04094584947196a5728fc828bf1b367722a7b9348efdd3367a5c94222a0f
+    known_answer:
+      expected:
+      - check: check_current
+        kind: undersized_track
+        net: V48_RAW
+      - check: check_current
+        kind: undersized_track
+        net: +48V_SW
+      - check: check_current
+        kind: undersized_track
+        net: +12V
+      - check: check_current
+        kind: insufficient_transition_vias
+        net: +12V
+      - check: check_current
+        kind: insufficient_transition_vias
+        net: V48_RTN
+      - check: check_current
+        kind: pour_neckdown
+        net: +3V3
+      - check: check_creepage
+        kind: creepage
+        net: V48_RTN
+      - check: check_return_path
+        kind: corridor_void
+        net: /ETH_RXN
+  mutant_gndchoke_verify:
+    stage: P8
+    board: pd-trigger
+    provenance:
+      source: boards/pd-trigger/state_snapshots/pre-fix-review-p8 (CRLF normalized to LF)
+      method: copy
+      captured: '2026-08-06'
+      note: 'T6 (P8B-3): the board BEFORE the P8 fix loop - the 5A GND return still choked at J1
+        (0.2mm necks / 0.80A capacity, 1 via; verify passed 8/8, only the reviewer caught it).
+        Derived return-net coverage must see the class: pour_neckdown + insufficient_transition_vias
+        on GND (advisory warnings - the derived budget is a heuristic). NOTE the FIXED board also
+        fires these kinds at better numbers (neck 0.86mm vs 0.29mm) - this fixture pins visibility
+        of the class, not pre/post discrimination (known_answer cannot express positions).'
+    files:
+      pcb:
+        path: tests/fixtures/stages/pd_trigger/prefix_p8/pd-trigger.kicad_pcb
+        sha256: 964c86cdd3303c8d03b591103f7ece281e9a3839d02656a074a7216d7c06216a
+      constraints:
+        path: tests/fixtures/stages/pd_trigger/constraints.json
+        sha256: e44d7987dddcd08ff0f2ba975abe5c09d4c8e597f72c9a85a892c9f7a7edeec5
+      decoupling:
+        path: tests/fixtures/stages/pd_trigger/decoupling.json
+        sha256: 9b6bca4717a9c50f70c483f2a7d3e897973a6fbc2d69afcf838fadbd5b502df4
+    known_answer:
+      expected:
+      - check: check_current
+        kind: pour_neckdown
+        net: GND
+      - check: check_current
+        kind: insufficient_transition_vias
+        net: GND
   mutant_planesplit_verify:
     stage: P8
     board: rf4

@@ -2231,3 +2231,13 @@ the wire end by construction) - zero label-label overlaps. The dirty s7 blinky2 
 the real signal the other way: 11 genuine label-label text overlaps. So the v0 metric counts
 ONLY label/global/hier/text box PAIRS; field-vs-body coverage already exists in the
 schem_refdes audit (which models pin-number bands properly instead of raw pin lines).
+
+## 2026-08-06 [git][gates][windows] `git status --porcelain` collapses an untracked directory to one `dir/` line - scoped staging must use `-uall`
+T6 gate.py commit scoping: the workspace filter matched porcelain paths against the
+`boards/<name>/` prefix, but for a NEW workspace porcelain emits a single collapsed
+`?? boards/` line, so the "inside the workspace" set came up empty and the scoped commit
+refused with "nothing to commit inside the workspace" while the files sat right there.
+Silent-failure shape: no error, just a wrong empty set. `git status --porcelain -uall`
+lists every untracked FILE individually and the prefix filter works. Any code that
+partitions porcelain output by path prefix (scoped staging, litter assertions, workspace
+diffs) needs `-uall` or a directory-aware matcher.

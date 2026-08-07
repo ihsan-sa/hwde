@@ -602,8 +602,13 @@ def pdflatex_bin():
     return p
 
 
-def git_status_lines() -> set[str]:
-    r = subprocess.run(["git", "-C", str(REPO), "status", "--porcelain"],
+def git_status_lines(scope: str) -> set[str]:
+    """Porcelain lines SCOPED to the workspace under test (ladder row 92 /
+    LEARNINGS 2026-07-28 [testing][windows]): a global diff makes any
+    concurrent session's dirty file - or a stray repo-root file - fail the
+    litter assertion falsely. The assertion keeps full power within scope."""
+    r = subprocess.run(["git", "-C", str(REPO), "status", "--porcelain",
+                        "--", scope],
                        capture_output=True, text=True, timeout=60)
     return {ln for ln in r.stdout.splitlines() if ln.strip()}
 
@@ -635,13 +640,13 @@ def assert_real_run(r: subprocess.CompletedProcess, board: str) -> dict:
 @pytest.mark.smoke
 def test_smoke_pd_trigger_with_residue_and_rerun(pdflatex_bin):
     """render_final/{top,bottom}.png convention + full pipeline data."""
-    before = git_status_lines()
+    before = git_status_lines("boards/pd-trigger")
     payload = assert_real_run(run_cli("boards/pd-trigger"), "pd-trigger")
     assert "render_final/top.png" in json.dumps(payload["sections"])
     # second run must overwrite cleanly
     assert_real_run(run_cli("boards/pd-trigger"), "pd-trigger")
     # residue: nothing new outside reports/design_doc/, no tracked file touched
-    new = git_status_lines() - before
+    new = git_status_lines("boards/pd-trigger") - before
     assert all(ln.startswith("?? ") and "/reports/design_doc/" in ln
                for ln in new), sorted(new)
 
@@ -649,11 +654,11 @@ def test_smoke_pd_trigger_with_residue_and_rerun(pdflatex_bin):
 @pytest.mark.smoke
 def test_smoke_stm32_blinky(pdflatex_bin):
     """renders/<board>_{top,bottom,iso}.png convention + labeled + layers."""
-    before = git_status_lines()
+    before = git_status_lines("boards/stm32-blinky")
     payload = assert_real_run(run_cli("boards/stm32-blinky"), "stm32-blinky")
     src = json.dumps(payload["sections"])
     assert "renders/stm32-blinky_top.png" in src
     assert "render_labeled/stm32-blinky_top.png" in src
-    new = git_status_lines() - before
+    new = git_status_lines("boards/stm32-blinky") - before
     assert all(ln.startswith("?? ") and "/reports/design_doc/" in ln
                for ln in new), sorted(new)
