@@ -58,7 +58,7 @@ Constant inductor ripple - and therefore linear shunt-FET dimming, the ONLY
 thing that closes PAR-REQ-01's 141 ns wall - is then impossible.
 
 Per channel: C304 = COFF (470 pF C0G, at pin 1, short return to GND),
-R305 = ROFF1, R306 = ROFF2. Four rules that silently break the board:
+R305 = ROFF1, R306 = ROFF2. Three rules that silently break the board:
 
   1. **R305 (ROFF1) goes to VLED = the `LEDn_A` ANODE net** that leaves the
      board through J5. It is not a local node.
@@ -69,17 +69,9 @@ R305 = ROFF1, R306 = ROFF2. Four rules that silently break the board:
      to attempt operation" (sec 8.3.4).
   3. **ROFF1 = 10 k, NOT TI's literal 8.2 k.** ROFF1 and ROFF2 sit
      permanently in parallel, so ROFF2 also charges COFF in normal
-     operation; TI's text ignores that and its literal 8.2 k lands the
-     ripple 12 % low.
-  4. **ROFF2 = 30 k, NOT the 47 k that TI's Equation 9 returns** (review
-     finding E-1). Eq 9 assumes ROFF1 >> ROFF2 and so ignores ROFF1
-     entirely; at ROFF1 = 10 k that assumption is false and the SHUNTED
-     COFF node is a divider that asymptotes BELOW the 1 V VOFT threshold,
-     killing the timer at every corner. **ROFF1 and ROFF2 must be solved
-     JOINTLY** - they set both the normal and the shunted off-time - against
-     sec 8.3.4's stated goal of an equal inductor DC value in both states.
-     Full derivation, corner table and margins live at the ROFF2
-     `add_component` call; do not re-derive either resistor alone.
+     operation; solving the Thevenin back onto the architecture's 90 mA
+     ripple design point gives 9.53 k, which has zero LCSC stock, so 10 k
+     (649 ns, 93.9 mA, +4 %). TI's literal 8.2 k lands the ripple 12 % low.
 
 NO PWR_FLAG ON ANY VCC NODE
 ---------------------------
@@ -123,7 +115,7 @@ blocks.md, p4-wiring-notes.md or parts.json allocates them:
      rectifier would not). ARITHMETIC, from parts/C81598.json and the
      TPS92515HV EC table - Vf costs gate drive, so this is the number to
      watch:
-       average boot current = 3e-9 x fSW = 2.2 mA at 717 kHz (sec 8.3.10's
+       average boot current = 3e-9 x fSW = 2.0 mA at 668 kHz (sec 8.3.10's
          own external-source rule), against IF(AV) 150 mA;
        the cap settles at VCC - Vf(tail, ~1 mA), Vf <= 0.715 V MAX at 1 mA,
          so BOOT-SW = 4.09 / 4.29 / 4.49 V over VCC's 4.8 / 5.0 / 5.2 V;
@@ -147,20 +139,6 @@ blocks.md, p4-wiring-notes.md or parts.json allocates them:
   4. R301/R321/R341/R361 carry the value string "0.75R 1% 0805" rather than
      parts.json's bare "0.75", so the P9 BOM comment is legible. Same part
      (FRL0805FR750TS / C2930223), same 275 mA/channel.
-  5. **R306/R326/R346/R366 (ROFF2) are now 30 k, LCSC C22984** - a NEW BOM
-     line replacing C25819 (47 k), which was wrong (review finding E-1; the
-     derivation is at the ROFF2 call). C22984 = UNI-ROYAL 0603WAF3002T5E,
-     30 kOhm 0603 1 %, **JLC Basic**, stock 3.0 M, $0.0121 - the same
-     0603WAF...T5E family as every other resistor on this BOM. TWO things
-     the orchestrator must fold back, because this agent owns only this file:
-       a. parts.json: re-issue the R306/R326/R346/R366 line onto C22984.
-          C25819 (47 k) then has NO remaining user on this board.
-       b. lib/aiee.kicad_sym: `lib_pull` a 0603WAF3002T5E symbol. Until then
-          the component is stamped with the in-library 27 k symbol as a
-          FOOTPRINT CARRIER only - the same deliberate placeholder pattern
-          control.py documents for R206 - with the real value ("30k 1% 0603")
-          and the real LCSC field on the part, which is what bom_cpl and the
-          fab actually consume.
 
 P6 CONSEQUENCE: constraints.json `placement.groups.ch<n>` lists the COFF
 network but not these three new parts. C305 (BOOT-SW) and C306 (VCC) must
@@ -214,12 +192,7 @@ SYM_R150 = f"{FP}:0603WAF1500T5E"
 SYM_R100K = f"{FP}:0603WAF1003T5E"
 SYM_R10R = f"{FP}:0603WAF100JT5E"
 SYM_R10K = f"{FP}:0603WAF1002T5E"
-# ROFF2 is 30 k (see the COFF section of the docstring). lib/aiee.kicad_sym
-# holds no 30 k 0603 symbol - it was pulled against the OLD 47 k value - and
-# this agent must not run lib_pull (sibling sheet agents are live). The
-# in-library 27 k symbol is used as a FOOTPRINT CARRIER exactly as control.py
-# does for R206, with the real value and the real LCSC code on the component.
-SYM_R30K = f"{FP}:0603WAF2702T5E"
+SYM_R47K = f"{FP}:0603WAF4702T5E"
 SYM_C4U7 = f"{FP}:CC0805KKX7R8BB475"
 SYM_C100N = f"{FP}:CC0603KRX7R9BB104"
 SYM_C1N = f"{FP}:CC0603KRX7R0BB102"
@@ -236,7 +209,7 @@ V_150R = "150R 1% 0603"
 V_100K = "100k 1% 0603"
 V_10R = "10R 0603"
 V_10K = "10k 1% 0603"
-V_30K = "30k 1% 0603"
+V_47K = "47k 1% 0603"
 V_4U7 = "4.7uF 25V X7R 0805"
 V_100N = "100nF 50V X7R 0603"
 V_1N = "1nF 100V X7R 0603"
@@ -257,7 +230,7 @@ LCSC = {
     "R_GPD": "C25803",    # 100k 0603
     "R_SNUB": "C22859",   # 10R 0603         (DNP)
     "R_OFF1": "C25804",   # 10k 0603
-    "R_OFF2": "C22984",   # 30k 0603         - NEW BOM LINE (was C25819 47k)
+    "R_OFF2": "C25819",   # 47k 0603
     "C_VIN": "C354262",   # 4.7uF 25V 0805
     "C_VINHF": "C14663",  # 100nF 50V 0603
     "C_SNUB": "C106247",  # 1nF 100V 0603    (DNP)
@@ -354,9 +327,9 @@ def _channel(sh: schlib.Sheet, n: int) -> None:
                 "10": "IADJ", "11": "EP"},
         decoupling=[
             # CIN sizing, Equation 21: CIN-MIN = ILED x (1/fSW - tOFF) /
-            # dVIN-PP. At 0.275 A, 717 kHz, tOFF 604 ns and the datasheet's
+            # dVIN-PP. At 0.275 A, 668 kHz, tOFF 649 ns and the datasheet's
             # own hard limit dVIN-PP <= min(10 % of VIN, 2 V) = 1.2 V, that
-            # is 181 nF. 4.7 uF is 26x it - the binding constraint is the
+            # is 195 nF. 4.7 uF is 24x it - the binding constraint is the
             # LOOP2 area, not the value (sec 11.1).
             {"cap": C_VIN, "pin": "8", "rail": "+12V", "value": V_4U7,
              "lib_id": SYM_C4U7, "footprint": C0805},
@@ -454,77 +427,30 @@ def _channel(sh: schlib.Sheet, n: int) -> None:
     # ROFF1 from VLED. On this board VLED IS the LEDn_A anode net that runs
     # out to J5 - not a local node. tOFF = dIL x L / VLED = 622 ns at 90 mA
     # / 47 uH / 6.8 V; eq 7 gives ROFF = 8.32 k -> E24 8.2 k, but ROFF2 sits
-    # permanently in parallel and also charges COFF from 5 V, so the pair
-    # must be solved together (see ROFF2 below, review finding E-1). Against
-    # the 30 k ROFF2 that solve returns, TI's literal 8.2 k gives 513 ns /
-    # 74.2 mA (-18 %); an exact 90 mA landing wants 10.37 k. **10 k is kept
-    # unchanged** (p4-wiring-notes s2, a binding decision): 604 ns, 87.4 mA,
-    # -2.9 % against the design point, 717 kHz. Moving ROFF1 to chase the
-    # last 2.9 % would cost a second new BOM line and re-open a closed
-    # decision for no measurable gain.
+    # permanently in parallel and also charges COFF from 5 V, which would
+    # shorten tOFF to 545 ns (-12 % ripple). Re-solving the Thevenin onto
+    # the 90 mA design point gives 9.53 k (zero LCSC stock), so 10 k:
+    # 649 ns, 93.9 mA, +4 %, 668 kHz. Reverting to TI's literal 8.2 k is a
+    # one-line change if disputed.
     r_off1 = sh.add_component(SYM_R10K, R_OFF1, V_10K, at(COL_A, Y_ROFF1),
                               footprint=R0603)
     sh.wire_pins(R_OFF1, {"1": LED_A, "2": COFF})
     r_off1.set_property("Note", "ROFF1 from VLED (LED anode) - sec 8.3.4")
 
-    # ROFF2 from THE DEVICE'S OWN VCC PIN 2. **30 k, NOT the 47 k that TI's
-    # Equation 9 returns** - review finding E-1 (severity ERROR, all four
-    # channels). Eq 9 models VCC charging COFF through ROFF2 ALONE, which is
-    # only valid when ROFF1 >> ROFF2. Here ROFF1 = 10 k, so with the string
-    # shunted ROFF1 is a hard pull-down to VSHUNT and the COFF node is a
-    # DIVIDER whose asymptote, not VCC, is what the 1 V VOFT threshold is
-    # chased against:
-    #     V_inf = (VSHUNT/ROFF1 + VCC/ROFF2) / (1/ROFF1 + 1/ROFF2)
-    # At 47 k that asymptote is 0.928 / 0.963 / 0.998 V over VCC 4.8/5.0/5.2 -
-    # BELOW VOFT at every corner. The OFF-timer therefore never trips, every
-    # shunted cycle runs to tOFF(max) 230 us, and the board lands in exactly
-    # the Figure-43 failure (ripple and dimming linearity lost) that this
-    # network exists to prevent. 176 of 243 corners were dead, and the 67 that
-    # tripped stretched to 26.9 us against a 5.3 us target.
-    #
-    # THE SIZING IS A JOINT SOLVE, NOT A ONE-VALUE SWAP. ROFF1 and ROFF2 set
-    # BOTH states, so both must be solved at once against the one design goal
-    # sec 8.3.4 states ("an inductor current that maintains the same DC value
-    # when shunted or when not shunted"), i.e. dIL_shunt == dIL_normal:
-    #     tOFF   = -(ROFF1||ROFF2) x COFF x ln(1 - VOFT/V_inf)   [Eq 7 form]
-    #     normal   V_inf = 6.350 V (VLED 6.8 mixed with VCC through the pair)
-    #     shunted  V_inf = 1.328 V (VSHUNT 0.105 mixed with VCC)
-    #     dIL_n = VLED x tOFF_n / L        [Eq 1]
-    #     dIL_s = (VSHUNT + 0.7) x tOFF_s / L   [Eq 8]
-    # With ROFF1 pinned at 10 k (p4-wiring-notes s2, unchanged) the equality
-    # solves to ROFF2 = 30.68 k; 30 k is the nearest E24 value with real LCSC
-    # stock (C22984, JLC Basic, 3.0 M, same UNI-ROYAL 0603WAF...T5E family as
-    # every other resistor on this BOM). RESULT at VLED 6.8 / VCC 5.0 /
-    # RDS(on) 380 mOhm:
-    #     normal   V_inf 6.350 V, tOFF 604 ns, dIL 87.4 mA, fSW 717 kHz
-    #     shunted  V_inf 1.328 V, tOFF 4.93 us, dIL 84.3 mA  (Eq 8 target
-    #              5.11 us for that dIL; 5.26 us for the 90 mA design point)
-    # The normal-mode ripple lands CLOSER to the architecture's 90 mA design
-    # point than the as-built network did: 87.4 mA (-2.9 %) against 93.9 mA
-    # (+4.3 %). blocks.md B3 rule 2's ripple is not broken to fix the shunt.
-    #
-    # MARGIN, and which direction each corner pushes. VOFT is 0.95/1.00/1.05,
-    # so V_inf must clear 1.05 V. The Toshiba publishes RDS(on) 380 mOhm typ /
-    # 580 mOhm max at VGS 3.3 V and NO minimum and NO hot value, so the worst
-    # case is taken as RDS(on) -> 0, i.e. VSHUNT -> 0: HOTTER SILICON RAISES
-    # RDS(on), RAISES VSHUNT AND HELPS, so cold/low-RDS is the direction relied
-    # on here. Over VCC 4.8-5.2 x RDS(on) 0/380/580 mOhm x VOFT 0.95/1.00/1.05
-    # x 1 % resistor tolerance (243 corners) the timer trips at EVERY one; the
-    # floor is V_inf = 1.182 V at VCC 4.80, VSHUNT = 0, ROFF1 -1 %, ROFF2 +1 %
-    # = 12.6 % over VOFT(max), and 21.7 % at the datasheet's own 380 mOhm typ.
-    # Worst-corner tOFF_s is 7.69 us, far short of the 230 us cap.
-    # Load on VCC is 5.0 V / 30 k = 167 uA per DEVICE (173 uA at VCC 5.2)
-    # against the 500 uA external allowance - each channel has its own VCC pin,
-    # so it is never 4x that on one regulator.
-    #
+    # ROFF2 from THE DEVICE'S OWN VCC PIN 2. Eq 8/9 with VSHUNT = the shunt
+    # FET's RDS(on) drop at 0.320 A (0.122 V typ / 0.186 V max) give 49.1 k
+    # / 45.5 k, so E24 47 k sits between them; it is exactly right at
+    # RDS(on) = 494 mOhm, mid-band for the Toshiba's 380-580 mOhm. Load is
+    # 5.0 V / 47 k = 106 uA per DEVICE against the 500 uA external-load
+    # allowance - each channel has its own VCC pin, so it is never 424 uA
+    # on one regulator.
     # DO NOT re-source this from +3V3 or any external rail: the internal
     # COFF-to-VCC diode can then pull VCC up and start the device with VIN
-    # unpowered (sec 8.3.4). The TOPOLOGY was reviewed and is correct - only
-    # this value was wrong.
-    r_off2 = sh.add_component(SYM_R30K, R_OFF2, V_30K, at(COL_A, Y_ROFF2),
+    # unpowered (sec 8.3.4).
+    r_off2 = sh.add_component(SYM_R47K, R_OFF2, V_47K, at(COL_A, Y_ROFF2),
                               footprint=R0603)
     sh.wire_pins(R_OFF2, {"1": VCC, "2": COFF})
-    r_off2.set_property("Note", "ROFF2 30k from OWN VCC pin 2 - never +3V3")
+    r_off2.set_property("Note", "ROFF2 from OWN VCC pin 2 - never +3V3")
 
     # =====================================================================
     # DNP SW-node RC snubber footprint (sheets.md s1.3)

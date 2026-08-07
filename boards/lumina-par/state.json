@@ -3,20 +3,20 @@
  "board": "lumina-par",
  "workspace": "boards/lumina-par",
  "created": "2026-07-28T15:00:15",
- "updated": "2026-08-07T11:58:05",
+ "updated": "2026-08-07T13:20:24",
  "phase": "P4",
  "gates": {
   "erc": {
    "phase": "P4",
    "status": "pass",
-   "attempts": 1,
+   "attempts": 2,
    "last": {
-    "ts": "2026-08-07T11:58:05",
+    "ts": "2026-08-07T13:18:16",
     "status": "pass",
     "failing_count": 0,
     "total": 0,
     "inputs": {
-     "sch": "sexpr_no_uuid:5059aeb42e06354313ad637e89336bade2b014f9e83729045259a3e3725594ab",
+     "sch": "sexpr_no_uuid:99be0558ad25dab22c55f7d4d54de08574cd93b59f35fa0cf594a3d8e66c0e83",
      "pro": "json_canonical:6830e3a3b05e406140bb008f11bd24e5329bfca65c3924bb1642598804f43fbb"
     }
    },
@@ -28,6 +28,16 @@
      "total": 0,
      "inputs": {
       "sch": "sexpr_no_uuid:5059aeb42e06354313ad637e89336bade2b014f9e83729045259a3e3725594ab",
+      "pro": "json_canonical:6830e3a3b05e406140bb008f11bd24e5329bfca65c3924bb1642598804f43fbb"
+     }
+    },
+    {
+     "ts": "2026-08-07T13:18:16",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "sch": "sexpr_no_uuid:99be0558ad25dab22c55f7d4d54de08574cd93b59f35fa0cf594a3d8e66c0e83",
       "pro": "json_canonical:6830e3a3b05e406140bb008f11bd24e5329bfca65c3924bb1642598804f43fbb"
      }
     }
@@ -45,21 +55,48 @@
   "sch": {
    "path": "kicad/lumina-par.kicad_sch",
    "kind": "sch",
-   "sha256": "sexpr_no_uuid:5059aeb42e06354313ad637e89336bade2b014f9e83729045259a3e3725594ab",
-   "hashed": "2026-08-07T11:58:05"
+   "sha256": "sexpr_no_uuid:99be0558ad25dab22c55f7d4d54de08574cd93b59f35fa0cf594a3d8e66c0e83",
+   "hashed": "2026-08-07T13:18:16"
   },
   "pro": {
    "path": "kicad/lumina-par.kicad_pro",
    "kind": "pro",
    "sha256": "json_canonical:6830e3a3b05e406140bb008f11bd24e5329bfca65c3924bb1642598804f43fbb",
-   "hashed": "2026-08-07T11:58:05"
+   "hashed": "2026-08-07T13:18:16"
   }
  },
- "open_issues": [],
- "next_issue_id": 1,
+ "open_issues": [
+  {
+   "id": 1,
+   "status": "fixed",
+   "agent": "3 fixers: drivers/thermal+led_if/control",
+   "attempts": 0,
+   "opened": "2026-08-07T12:30:03",
+   "closed": "2026-08-07T13:18:16",
+   "gate": null,
+   "phase": null,
+   "fixer": "review",
+   "net": null,
+   "kinds": [
+    "coff-shunt-timer-dead",
+    "drv-en-undriven-no-3v3",
+    "hysteresis-on-sensor-node",
+    "missing-bench-hazard-note",
+    "ntc-harness-input-unprotected"
+   ],
+   "severity": "error",
+   "count": 5,
+   "region": {
+    "bbox": null,
+    "center": null
+   },
+   "work_order": "boards/lumina-par/log/workorders/wo-1.json"
+  }
+ ],
+ "next_issue_id": 2,
  "budgets": {
   "fix_loops": {
-   "erc": 3,
+   "erc": 2,
    "place": 3,
    "drc_routed": 3,
    "verify": 3,
@@ -876,6 +913,123 @@
    "same_class_as_PWM": "/ENABLE, /I2C_SCL, /I2C_SDA and /ID_ADC are all wholly internal to control and carry /control/NAME in the netlist. No constraint references any of them, so nothing was changed.",
    "doc_debt": "architecture/sheets.md s2 canonical-net table still prints /PWM0 and is now CONTRADICTED by constraints.json. p4-wiring-notes.md supersedes sheets.md, but s2 should be amended before the design doc quotes it.",
    "scope_note": "the root agent also edited control.py docstring/comments (not HIER_NETS - electrically identical) to record the measured outcome, and appended one LEARNINGS entry on the label_dangling rule. Both slightly beyond its stated scope; both disclosed and both kept."
+  },
+  {
+   "ts": "2026-08-07T11:59:30",
+   "event": "spawn",
+   "role": "schematic-reviewer",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-07T12:29:46",
+   "event": "budget",
+   "path": "fix_loops.erc",
+   "remaining": 2
+  },
+  {
+   "ts": "2026-08-07T12:29:53",
+   "event": "snapshot",
+   "label": "pre-fix-erc-a1-review",
+   "files": 13
+  },
+  {
+   "ts": "2026-08-07T12:30:03",
+   "event": "issue_open",
+   "id": 1,
+   "gate": null,
+   "fixer": "review",
+   "kinds": [
+    "coff-shunt-timer-dead",
+    "drv-en-undriven-no-3v3",
+    "hysteresis-on-sensor-node",
+    "missing-bench-hazard-note",
+    "ntc-harness-input-unprotected"
+   ]
+  },
+  {
+   "ts": "2026-08-07T12:31:25",
+   "event": "issue",
+   "id": 1,
+   "status": "fixing",
+   "agent": "3 fixers: drivers/thermal+led_if/control",
+   "attempts": 0
+  },
+  {
+   "ts": "2026-08-07T12:33:29",
+   "event": "spawn",
+   "role": "fixer",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-07T12:33:29",
+   "event": "spawn",
+   "role": "fixer",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-07T12:33:29",
+   "event": "spawn",
+   "role": "fixer",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-07T12:33:29",
+   "event": "p4_review_fix_loop_opened",
+   "reviewer_result": "3 errors / 2 warnings from a fresh-context adversarial review; erc gate itself is 0/0 and netlist_audit exit 0, so every finding is one the machines cannot see",
+   "E1_confirmed_by_orchestrator": "COFF asymptote recomputed independently: ROFF1=10k/ROFF2=47k gives V_inf 0.928/0.963/0.998 V at VCC 4.8/5.0/5.2 against a 1.00 V VOFT - fails at EVERY corner, not just worst case. Orchestrator used the as-built 275 mA (0.75R sense) where the reviewer used a 0.5 A datapoint, so the real margin is slightly WORSE than reported. The COFF network added at P3 to make shunt dimming work does not work as valued.",
+   "E3_trap_precomputed": "the reflex 100k pull-down does NOT fix E-3: the TPS92515HV enable pin sources -20 uA, so 100k sits at 2.00 V - still above the 1.0 V threshold. Handed the fixer the table (47k=0.94V marginal, 22k=0.44V, 10k=0.20V) as a constraint to satisfy, not an answer to copy",
+   "dispatch_deviation": "fix_dispatch.py lumped all 5 findings into ONE order with fixer=review and zero remediations - it clusters coordinate-bearing gate failures, and review findings carry no coordinates. Dispatched 3 fixers BY DOMAIN on disjoint generator files instead (drivers / thermal+led_if / control), which the playbook leaves to orchestrator judgment. Issue 1 remains the single tracked record.",
+   "verified_clean_by_review": "BOOT network complete and correctly polarised x4; NO output cap on any string; /FAULT has no push-pull driver and LM339LV clears the rev-A6 5 mA sink; U401 all four units present and grouped by the CORRECTED pin numbers; U202 wired from the package diagram; U203 0x50 with WC to VSS; zero I2C pull-ups; full abs-max sweep passes (tightest VIN-CSN 276 mV vs 300 mV); J3/J4 match ICD-01 s3.1/s3.2 pin for pin"
+  },
+  {
+   "ts": "2026-08-07T12:50:04",
+   "event": "test",
+   "a": "b"
+  },
+  {
+   "ts": "2026-08-07T12:50:52",
+   "event": "p4_fix_e1_coff_resolved",
+   "change": "ROFF2 47k -> 30k (R306/R326/R346/R366), LCSC C25819 -> C22984 (UNI-ROYAL 0603WAF3002T5E, JLC Basic, 3.0M stock). ROFF1 stays 10k per p4-wiring-notes s2. Topology untouched - ROFF2 still sources from the device's own VCC pin 2.",
+   "derivation": "joint re-solve, not a one-value swap: setting dIL_shunt equal to dIL_normal (TI sec 8.3.4's stated goal) gives ROFF2 = 30.68k exact; 30k is the nearest stocked E24. Evaluated 27k/30k/33k/36k/39k over a 243-corner box - 36k and 39k DEAD at the worst corner, 33k only 4.7 pct VOFT margin, 27k undershoots the Eq 8 off-time by 21 pct.",
+   "result": "243-corner box (VCC x Rds x VOFT 0.95/1.00/1.05 x 1 pct tol): 0 never-trip, was 176. Min V_inf 1.182 V = +12.6 pct over VOFT(max). Shunted off-time 4.93 us, was pinned at tOFF(max) 230 us. Normal ripple 87.4 mA vs the 90 mA design point (-2.9 pct, BETTER than as-built's +4.3 pct), so blocks.md B3 rule 2 is not broken.",
+   "judgment_on_record": "TI's equations are internally inconsistent - Eq 1 omits the freewheel diode drop, Eq 8 includes it as 0.7 V, and this board uses a ~0.45 V Schottky. Under the physically consistent convention the EXACT ripple match wants ~38k, which is DEAD at the VCC-4.8/low-Rds corner. An exact ripple match and robust VOFT margin are NOT simultaneously achievable here; the fixer prioritised margin because the failure being fixed is total. Residual DC step at the shunt edge is 6.4 pct of setpoint, decaying in ~1.4 us against a 205 us PWM period.",
+   "rds_direction": "no min and no hot Rds(on) is published, so the floor is taken as Rds->0 (VSHUNT=0); hotter silicon raises Rds and VSHUNT and HELPS. Cold/low-Rds is the worst case.",
+   "open_bench_item_p8": "shunted demanded on-time is ~236 ns at 30k against tLEB max 275 ns - NO safe ROFF2 clears tLEB(max) (33k would at 283 ns but drops VOFT margin to 4.7 pct), so at that corner the shunted converter is minimum-on-time limited REGARDLESS of this fix. Pre-existing consequence of the ~4.6 pct shunted duty, already flagged by blocks.md B3 rule 3. Belongs in P8 bring-up, not a value change.",
+   "orchestrator_actions": "(1) parts.json: re-issue R306/R326/R346/R366 onto C22984; C25819 (47k) then has NO remaining user on this board. (2) lib_pull 0603WAF3002T5E - lib/aiee.kicad_sym has no 30k symbol, so the part is currently stamped on the in-library 27k symbol as a FOOTPRINT CARRIER with the real value/LCSC on the component, the same deliberate pattern control.py documents for R206."
+  },
+  {
+   "ts": "2026-08-07T13:18:16",
+   "event": "gate",
+   "gate": "erc",
+   "status": "pass",
+   "attempt": 2,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-07T13:18:16",
+   "event": "issue",
+   "id": 1,
+   "status": "fixed",
+   "agent": "3 fixers: drivers/thermal+led_if/control",
+   "attempts": 0
+  },
+  {
+   "ts": "2026-08-07T13:18:16",
+   "event": "p4_review_fixes_verified",
+   "all_three_errors_fixed_and_verified": "E-1 ROFF2 47k->30k x4; E-2 R413/R415 series 10k + D401 clamp to +3V3; E-3 R218-R221 10k /DRV_ENn pull-downs. W-1 feedback moved onto the protected comparator nodes and re-sized; W-2 bench-hazard text added.",
+   "verification": "project rebuilt once by the orchestrator (fixers wrote generators only). erc gate PASS 0/0 attempt 2, netlist_audit exit 0. Fresh netlist re-exported (the first check read an 11:55 stale board.net and reported false FAILs - caught and corrected). 155 components / 76 nets, up from 146/72 = exactly the 9 new parts. Per-fix membership and value assertions all pass; blocks.md B3 rule 1 re-verified directly - every /LEDn_A carries only {TVS, J5, inductor, shunt FET, ROFF1} and NO capacitor.",
+   "w1_tiebreak": "the thermal fixer built an MNA nodal solver and VALIDATED it against the as-built (reproducing the sheet author figures to 0.1 K), then used it to adjudicate. Verdict: the reviewer was right in substance. A DEAD open does latch (the author claim, true), but a PROGRESSIVE crimp failure passes through 110-200k on its way to open and chatters FAULT -> /EN_OK -> all four drivers. Root cause was sizing, not topology: CMP_LED is IN+ for two channels and IN- for a third, so feedback there is unavoidably positive for two and negative for one, and the 112k landed on the divider where source impedance swings 0.86k hot to 10k cold - an 11.7:1 step swing, one end sized right and the other oscillating.",
+   "bands_now": "all four positive: emitter hot +8.6 K (89.9/81.2 C), emitter short +17.3 K, board hot +17.3 K (110.2/92.9 C), emitter open +18.7 K. Latching re-checked at dead open, 150k partial open (mid-window on the old design) and dead short - all trip AND hold.",
+   "icd_compliance_gained": "ADC source impedance at a broken harness 10.18k -> 9.70k, INSIDE the ICD s3.3 10k ceiling for the first time. The old figure was only that low because the W-1 feedback shunted the cold end - it was buying ICD margin with the defect."
+  },
+  {
+   "ts": "2026-08-07T13:20:24",
+   "event": "h2_r207_superseded",
+   "status": "the R207 100k->10k proposal is now RECOMMENDED AGAINST - its reason was removed by the P4 thermal rework",
+   "why_it_was_raised": "thermal originally wanted a stronger FAULT pull-up because the released FAULT level sagged to 2.42/1.80 V on a J3-only bench mate - below U201 VIH 2.0 V when hot - and because the hysteresis bands were narrow (1.2-4.0 K)",
+   "why_it_is_moot": "BOTH symptoms were the mis-sized hysteresis feedback, not the pull-up. After the E-2/W-1 rework the released FAULT sits >=2.81 V in EVERY corner including unmated-hot, and all four bands are positive (+8.6/+17.3/+17.3/+18.7 K). The root cause is fixed at source.",
+   "cost_if_taken_now": "a stronger pull-up raises V_FAULT_armed, which raises the comparator-node offset, which shifts EVERY trip point - all four channels would need re-solving against the new MNA model. Real work, no remaining benefit.",
+   "recommendation": "DO NOT take it. Keep R207 at 100k. If the owner still wants the emitter-hot band widened from 8.6 K toward 15 K, that is a separate and honest trade against the emitter-open margin, and it should be argued on its own terms rather than through the pull-up."
   }
  ],
  "spawns": [
@@ -966,6 +1120,38 @@
    "effort": "high",
    "phase": "P4",
    "note": "root stitch + project ERC (tier table says sonnet/high for a THIN root stitch; escalated because this one also settles the /PWM naming contract and owns the first real hierarchy ERC)"
+  },
+  {
+   "ts": "2026-08-07T11:59:30",
+   "role": "schematic-reviewer",
+   "model": "opus",
+   "effort": "high",
+   "phase": "P4",
+   "note": "fresh context, adversarial P4 review (tier fable/high unavailable)"
+  },
+  {
+   "ts": "2026-08-07T12:33:29",
+   "role": "fixer",
+   "model": "opus",
+   "effort": "high",
+   "phase": "P4",
+   "note": "drivers E-1 COFF values"
+  },
+  {
+   "ts": "2026-08-07T12:33:29",
+   "role": "fixer",
+   "model": "opus",
+   "effort": "high",
+   "phase": "P4",
+   "note": "thermal+led_if E-2/W-1/W-2"
+  },
+  {
+   "ts": "2026-08-07T12:33:29",
+   "role": "fixer",
+   "model": "opus",
+   "effort": "high",
+   "phase": "P4",
+   "note": "control E-3 DRV_EN pulldowns"
   }
  ],
  "edits": []

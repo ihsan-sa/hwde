@@ -34,34 +34,16 @@ sheets.md s2 files them as `control`-internal, which would have produced
 `/control/PWM0..3` - a `netlist_audit` missing_net, and a silent drop from
 all seven high_speed consumers (check_return_path, planes_gen,
 route_critical, rules_gen, stitch_vias, constraints_lint, netlist_audit) on
-the board whose hardest requirement is PAR-REQ-01's 141 ns wall.
+the board whose hardest requirement is PAR-REQ-01's 141 ns wall.  Per the
+orchestrator's ruling the four `("PWM<n>", "input")` tuples were appended to
+`control.HIER_NETS`, so they cross the root here and take the `/PWM0..3`
+spelling.  They have no consumer on the root side - the crossing exists to
+NAME the net, which is legal and electrically inert.  Verified, not assumed:
+project ERC 0/0 and the exported netlist carries `/PWM0`..`/PWM3`.
 
-The orchestrator's PREFERRED fix - append the four `("PWM<n>", "input")`
-tuples to `control.HIER_NETS` so they cross the root and take the `/PWM0..3`
-spelling - was built and MEASURED HERE, and REJECTED.  It is electrically
-correct (the netlist carried `/PWM0` = J4-1 + R202-1 + U202-1) but it is not
-ERC-clean: 4x `label_dangling`, because the root subgraph for such a net is
-wire + label + exactly ONE sheet pin and KiCad 10.0.3 wants a real connection
-point there.  Two probes pinned the rule: a second same-named root label does
-NOT satisfy it (8 errors, both flagged), while one `Connector:TestPoint` pin
-per root PWM wire takes the identical project to 0/0.  Buying the bare name
-would therefore mean adding four PARTS to the root - a design change, not a
-stitch fix.  Every other root net escapes this only because TWO children
-expose it; lumina-carrier never exercised the rule, as all 70 of its root
-labels appear 2-3 times.
-
-So the SANCTIONED FALLBACK was taken instead: `control.HIER_NETS` keeps its
-original 12 entries, the nets stay `control`-internal, and the four
-`high_speed` entries were re-spelled `/control/PWM0..3` in BOTH
-`architecture/constraints.json` and `kicad/constraints.json`.  All seven
-consumers match on the exact name; none validates name shape.  Verified, not
-assumed: project ERC 0/0, `netlist_audit` exit 0 with no missing_net, and the
-exported netlist carries `/control/PWM0`..`/control/PWM3`.
-
-`/ENABLE`, `/ID_ADC`, `/I2C_SCL`, `/I2C_SDA` are in the identical position and
-also come out `/control/NAME`.  No constraint names any of them; reported, not
-changed.  NOTE: `architecture/sheets.md` s2 still prints `/PWM0` in its
-canonical-net table and is now contradicted by constraints.json.
+`/ENABLE`, `/ID_ADC`, `/I2C_SCL`, `/I2C_SDA` remain `control`-internal and
+come out `/control/NAME`.  No constraint names any of them; reported, not
+changed.
 
 SHEET GEOMETRY
 --------------

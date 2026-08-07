@@ -1,0 +1,38 @@
+{
+ "script": "fix_dispatch",
+ "status": "violations",
+ "board": "lumina-par.kicad_sch",
+ "gate": null,
+ "counts": {
+  "orders": 1,
+  "violations": 5,
+  "by_domain": {
+   "review": 1
+  },
+  "with_remediation": 0
+ },
+ "orders": [
+  {
+   "id": 1,
+   "fixer": "review",
+   "severity": "error",
+   "net": null,
+   "kinds": [
+    "coff-shunt-timer-dead",
+    "drv-en-undriven-no-3v3",
+    "hysteresis-on-sensor-node",
+    "missing-bench-hazard-note",
+    "ntc-harness-input-unprotected"
+   ],
+   "count": 5,
+   "remediations": [],
+   "work_order": "boards/lumina-par/log/workorders/wo-1.json"
+  }
+ ],
+ "parallel_groups": [
+  [
+   1
+  ]
+ ],
+ "out_dir": "boards/lumina-par/log/workorders"
+}

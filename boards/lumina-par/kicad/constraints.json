@@ -180,9 +180,10 @@
      "R306",
      "C305",
      "C306",
-     "D302"
+     "D302",
+     "R218"
     ],
-    "note": "COFF network (C304 COFF, R305 ROFF1 from the /LED0_A anode node, R306 ROFF2 from the driver's own VCC pin 2) must stay in this cluster: COFF sits at pin 1 with a short GND return. TPS92515HV sec 8.3.4 - do not strip. ADDED AT P4: C305 (BOOT cap, pin 4), D302 (BOOT diode, VCC->BOOT) and C306 (VCC decoupler, pin 2) are all pin-adjacent to the driver and must stay in this cluster. The BOOT loop is the high-side gate supply; stranding it is a switching defect, not a layout blemish."
+    "note": "COFF network (C304 COFF, R305 ROFF1 from the /LED0_A anode node, R306 ROFF2 from the driver's own VCC pin 2) must stay in this cluster: COFF sits at pin 1 with a short GND return. TPS92515HV sec 8.3.4 - do not strip. ADDED AT P4: C305 (BOOT cap, pin 4), D302 (BOOT diode, VCC->BOOT) and C306 (VCC decoupler, pin 2) are all pin-adjacent to the driver and must stay in this cluster. The BOOT loop is the high-side gate supply; stranding it is a switching defect, not a layout blemish. ADDED AT P4: R218 is the /DRV_EN0 fail-safe pull-down. It lives on the CONTROL sheet (refdes 2xx) but must be placed HERE, beside this driver's enable pin - a pull-down at the far end of a long enable run is not a fail-safe."
    },
    {
     "name": "ch1",
@@ -201,9 +202,10 @@
      "R326",
      "C325",
      "C326",
-     "D322"
+     "D322",
+     "R219"
     ],
-    "note": "COFF network (C324 COFF, R325 ROFF1 from the /LED1_A anode node, R326 ROFF2 from the driver's own VCC pin 2) must stay in this cluster: COFF sits at pin 1 with a short GND return. TPS92515HV sec 8.3.4 - do not strip. ADDED AT P4: C325 (BOOT cap, pin 4), D322 (BOOT diode, VCC->BOOT) and C326 (VCC decoupler, pin 2) are all pin-adjacent to the driver and must stay in this cluster. The BOOT loop is the high-side gate supply; stranding it is a switching defect, not a layout blemish."
+    "note": "COFF network (C324 COFF, R325 ROFF1 from the /LED1_A anode node, R326 ROFF2 from the driver's own VCC pin 2) must stay in this cluster: COFF sits at pin 1 with a short GND return. TPS92515HV sec 8.3.4 - do not strip. ADDED AT P4: C325 (BOOT cap, pin 4), D322 (BOOT diode, VCC->BOOT) and C326 (VCC decoupler, pin 2) are all pin-adjacent to the driver and must stay in this cluster. The BOOT loop is the high-side gate supply; stranding it is a switching defect, not a layout blemish. ADDED AT P4: R219 is the /DRV_EN1 fail-safe pull-down. It lives on the CONTROL sheet (refdes 2xx) but must be placed HERE, beside this driver's enable pin - a pull-down at the far end of a long enable run is not a fail-safe."
    },
    {
     "name": "ch2",
@@ -222,9 +224,10 @@
      "R346",
      "C345",
      "C346",
-     "D342"
+     "D342",
+     "R220"
     ],
-    "note": "COFF network (C344 COFF, R345 ROFF1 from the /LED2_A anode node, R346 ROFF2 from the driver's own VCC pin 2) must stay in this cluster: COFF sits at pin 1 with a short GND return. TPS92515HV sec 8.3.4 - do not strip. ADDED AT P4: C345 (BOOT cap, pin 4), D342 (BOOT diode, VCC->BOOT) and C346 (VCC decoupler, pin 2) are all pin-adjacent to the driver and must stay in this cluster. The BOOT loop is the high-side gate supply; stranding it is a switching defect, not a layout blemish."
+    "note": "COFF network (C344 COFF, R345 ROFF1 from the /LED2_A anode node, R346 ROFF2 from the driver's own VCC pin 2) must stay in this cluster: COFF sits at pin 1 with a short GND return. TPS92515HV sec 8.3.4 - do not strip. ADDED AT P4: C345 (BOOT cap, pin 4), D342 (BOOT diode, VCC->BOOT) and C346 (VCC decoupler, pin 2) are all pin-adjacent to the driver and must stay in this cluster. The BOOT loop is the high-side gate supply; stranding it is a switching defect, not a layout blemish. ADDED AT P4: R220 is the /DRV_EN2 fail-safe pull-down. It lives on the CONTROL sheet (refdes 2xx) but must be placed HERE, beside this driver's enable pin - a pull-down at the far end of a long enable run is not a fail-safe."
    },
    {
     "name": "ch3",
@@ -243,9 +246,10 @@
      "R366",
      "C365",
      "C366",
-     "D362"
+     "D362",
+     "R221"
     ],
-    "note": "COFF network (C364 COFF, R365 ROFF1 from the /LED3_A anode node, R366 ROFF2 from the driver's own VCC pin 2) must stay in this cluster: COFF sits at pin 1 with a short GND return. TPS92515HV sec 8.3.4 - do not strip. ADDED AT P4: C365 (BOOT cap, pin 4), D362 (BOOT diode, VCC->BOOT) and C366 (VCC decoupler, pin 2) are all pin-adjacent to the driver and must stay in this cluster. The BOOT loop is the high-side gate supply; stranding it is a switching defect, not a layout blemish."
+    "note": "COFF network (C364 COFF, R365 ROFF1 from the /LED3_A anode node, R366 ROFF2 from the driver's own VCC pin 2) must stay in this cluster: COFF sits at pin 1 with a short GND return. TPS92515HV sec 8.3.4 - do not strip. ADDED AT P4: C365 (BOOT cap, pin 4), D362 (BOOT diode, VCC->BOOT) and C366 (VCC decoupler, pin 2) are all pin-adjacent to the driver and must stay in this cluster. The BOOT loop is the high-side gate supply; stranding it is a switching defect, not a layout blemish. ADDED AT P4: R221 is the /DRV_EN3 fail-safe pull-down. It lives on the CONTROL sheet (refdes 2xx) but must be placed HERE, beside this driver's enable pin - a pull-down at the far end of a long enable run is not a fail-safe."
    },
    {
     "name": "ntc_brd",
@@ -283,8 +287,14 @@
      "R412",
      "C401",
      "C402",
-     "C403"
-    ]
+     "C403",
+     "R413",
+     "R414",
+     "R415",
+     "R416",
+     "D401"
+    ],
+    "note": "ADDED AT P4: R413/R415 series protection, R414/R416 re-sized feedback/ladder legs, and D401 the /NTC_LED clamp to +3V3. D401 belongs immediately beside U401 - a clamp with a long stub does not clamp. Whole group stays >= 10 mm from every inductor."
    },
    {
     "name": "enable_pd",

@@ -1,0 +1,59 @@
+{
+  "violations": [
+    {
+      "check": "schematic-review",
+      "severity": "error",
+      "pos": null,
+      "layer": null,
+      "net": null,
+      "refs": ["U301", "U321", "U341", "U361", "R305", "R306", "R325", "R326", "R345", "R346", "R365", "R366", "C304", "C324", "C344", "C364"],
+      "msg": "ROFF2=47k was sized from TI Equation 9 (VCC charging COFF through ROFF2 alone), which is only valid when ROFF1>>ROFF2, but ROFF1=10k here, so with the string shunted the COFF node is a divider that asymptotes to 0.978 V at VCC 5.0 V and the shunt FET's typical 380 mOhm - below the 1.00 V VOFT threshold - and the OFF-timer therefore never trips, stretching every shunted cycle to tOFF(max) 230 us instead of the 5.15 us Equation-8 target and producing exactly the Figure-43 loss of constant inductor ripple and shunt-dimming linearity that this network was added to prevent.",
+      "source": "review.schematic",
+      "kind": "coff-shunt-timer-dead"
+    },
+    {
+      "check": "schematic-review",
+      "severity": "error",
+      "pos": null,
+      "layer": null,
+      "net": "/NTC_LED",
+      "refs": ["U401", "J5", "R403"],
+      "msg": "/NTC_LED runs from J5 pin 10 straight onto U401 pins 4, 7 and 11 with no series limiting resistor and no clamp, but the LM339LV inputs are abs-max 6 V with no ESD clamp to V+ and share the same 10-way harness as four LED anodes that sit at up to 6.8 V normally and reach the SMF15A 16.7-24.4 V clamp region whenever a string is open, so one harness short or crimp error destroys the board's only over-temperature protection - the very fault class the window detector exists to catch.",
+      "source": "review.schematic",
+      "kind": "ntc-harness-input-unprotected"
+    },
+    {
+      "check": "schematic-review",
+      "severity": "error",
+      "pos": null,
+      "layer": null,
+      "net": null,
+      "refs": ["R214", "R215", "R216", "R217", "U201", "U301", "U321", "U341", "U361"],
+      "msg": "/DRV_EN0..3 carry no pull-down and their only driver U201 is high-Z in the power-off state by design (SN74LVC1G08 partial-power-down rating), so during the window on every power-up where the carrier's 48->12->3.3 chain has +12V up but +3V3 not yet - and permanently on a 12 V-only bench bring-up - the four TPS92515HV PWM/enable pins are undriven and the pin's own -20 uA UVLO hysteresis current latches all four drivers on once any noise crosses the 1.0 V threshold, giving a full-current LED flash and defeating ICD s8.2's binding requirement that every output stage be gated by ENABLE.",
+      "source": "review.schematic",
+      "kind": "drv-en-undriven-no-3v3"
+    },
+    {
+      "check": "schematic-review",
+      "severity": "warning",
+      "pos": null,
+      "layer": null,
+      "net": null,
+      "refs": ["R409", "R410", "R411", "R412", "U401", "RT401"],
+      "msg": "The comparator positive feedback is returned to the sensor nodes (R409+R411 = 112k onto /NTC_LED, R412 = 56k onto /thermal/NTC_BRD) instead of the reference-ladder taps the sizing arithmetic assumed, so the idle-high /FAULT node pulls both dividers up and shifts the DC trip points (board-hot 110.8 -> 117.0 C, emitter-hot 89.7 -> 92.5 C), biases the /ADC0 and /ADC1 telemetry the carrier reads cold by 2-7 K, and leaves the emitter-open channel with net NEGATIVE feedback (trip needs Rntc > 106.2k, release needs Rntc < 191.0k) so it oscillates anywhere in that window.",
+      "source": "review.schematic",
+      "kind": "hysteresis-on-sensor-node"
+    },
+    {
+      "check": "schematic-review",
+      "severity": "warning",
+      "pos": null,
+      "layer": null,
+      "net": null,
+      "refs": ["TP501", "TP502"],
+      "msg": "The led_if sheet contains no text objects at all, so the ICD s9 bench-hazard warning that sheets.md s1.5 assigns to TP501/TP502 has no source for the P6/P7 silk op, leaving two bare-copper pads tied to a GND that floats at PoE potential without the warning ICD s9 requires on any daughter test point.",
+      "source": "review.schematic",
+      "kind": "missing-bench-hazard-note"
+    }
+  ]
+}

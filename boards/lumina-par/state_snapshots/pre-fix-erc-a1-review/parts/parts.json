@@ -1214,7 +1214,7 @@
    "mpn": "0603WAF1003T5E",
    "lcsc": "C25803",
    "value": "100k 0603 1%",
-   "qty_per_board": 14,
+   "qty_per_board": 10,
    "refs": [
     "R201",
     "R202",
@@ -1225,11 +1225,7 @@
     "R303",
     "R323",
     "R343",
-    "R363",
-    "R409",
-    "R411",
-    "R412",
-    "R414"
+    "R363"
    ],
    "package": "0603",
    "basic": true,
@@ -1297,7 +1293,7 @@
    ],
    "price_at_build_qty": 0.0079,
    "alternates": [],
-   "role": "Ten fitted 100 k pull-downs/pull-ups, every one of them a fail-safe. R201 = the ICD s8.2 mandatory ENABLE pull-down, at the CONNECTOR END and BEFORE any series element (with the carrier's 10 k that is 9.09 kOhm and the carrier GPIO sources 0.363 mA). R202-R205 = PWM0-3 pull-downs at J4, so an unpowered or undriven carrier cannot float a gate input high. R207 = the local FAULT pull-up that keeps the open-drain node defined when unmated. R303/R323/R343/R363 = shunt-gate pull-downs so an unpowered 74LVC00A cannot leave a shunt FET half-on. ADDED AT P4: R409/R411/R412/R414 are the re-sized comparator hysteresis feedback, moved off the sensor dividers onto the protected comparator nodes to cure the emitter-open channel's net-NEGATIVE feedback (it chattered through a progressive crimp failure)."
+   "role": "Ten fitted 100 k pull-downs/pull-ups, every one of them a fail-safe. R201 = the ICD s8.2 mandatory ENABLE pull-down, at the CONNECTOR END and BEFORE any series element (with the carrier's 10 k that is 9.09 kOhm and the carrier GPIO sources 0.363 mA). R202-R205 = PWM0-3 pull-downs at J4, so an unpowered or undriven carrier cannot float a gate input high. R207 = the local FAULT pull-up that keeps the open-drain node defined when unmated. R303/R323/R343/R363 = shunt-gate pull-downs so an unpowered 74LVC00A cannot leave a shunt FET half-on."
   },
   {
    "ref_prefix_hint": "R",
@@ -1543,18 +1539,11 @@
    "mpn": "0603WAF1002T5E",
    "lcsc": "C25804",
    "value": "10k 0603 1%",
-   "qty_per_board": 10,
+   "qty_per_board": 3,
    "refs": [
     "R209",
-    "R218",
-    "R219",
-    "R220",
-    "R221",
     "R401",
-    "R403",
-    "R410",
-    "R413",
-    "R415"
+    "R403"
    ],
    "package": "0603",
    "basic": true,
@@ -1622,7 +1611,7 @@
    ],
    "price_at_build_qty": 0.0076,
    "alternates": [],
-   "role": "R209 = EEPROM WP strap. R401/R403 = the fixed top legs of the board and module NTC dividers. The 10 k / 10 k pairing is what bounds the Thevenin source impedance at 5.0 kOhm maximum at 25 C, falling monotonically as the NTC heats; with R402/R404 held at <= 1 k that keeps the total <= 6 kOhm against the ICD s3.3 10 kOhm ceiling (D-T16, L-11). ADDED AT P4: R218-R221 are the /DRV_ENn fail-safe pull-downs - 10k is LOAD-BEARING, not the board's usual 100k, because the TPS92515HV enable pin sources up to 25 uA and 100k would sit at 2.5 V, above the 1.0 V threshold, leaving the defect in place. R410/R413/R415 are the re-sized thermal feedback/protection legs."
+   "role": "R209 = EEPROM WP strap. R401/R403 = the fixed top legs of the board and module NTC dividers. The 10 k / 10 k pairing is what bounds the Thevenin source impedance at 5.0 kOhm maximum at 25 C, falling monotonically as the NTC heats; with R402/R404 held at <= 1 k that keeps the total <= 6 kOhm against the ICD s3.3 10 kOhm ceiling (D-T16, L-11)."
   },
   {
    "ref_prefix_hint": "C",
@@ -1630,7 +1619,7 @@
    "mpn": "CC0603KRX7R9BB104",
    "lcsc": "C14663",
    "value": "100nF 50V X7R 0603",
-   "qty_per_board": 15,
+   "qty_per_board": 17,
    "refs": [
     "C105",
     "C201",
@@ -1646,7 +1635,9 @@
     "C345",
     "C362",
     "C365",
-    "C401"
+    "C401",
+    "C402",
+    "C403"
    ],
    "package": "0603",
    "basic": true,
@@ -2374,14 +2365,12 @@
    "mpn": "0603WAF1500T5E",
    "lcsc": "C22808",
    "value": "150R 0603 1%",
-   "qty_per_board": 6,
+   "qty_per_board": 4,
    "refs": [
     "R302",
     "R322",
     "R342",
-    "R362",
-    "R402",
-    "R404"
+    "R362"
    ],
    "package": "0603",
    "basic": true,
@@ -2449,7 +2438,7 @@
    ],
    "price_at_build_qty": 0.0088,
    "alternates": [],
-   "role": "Shunt-FET gate series resistor. Bounds the 74LVC00A output current to 22 mA and gives ~30 ns edges into a <= 3 nC gate (blocks.md B2). DO NOT raise this into an RC filter: the 141 ns PAR-REQ-01 response budget is the entire reason this architecture exists. ADDED AT P4: R402/R404 moved here from 1k. The ADC series resistors were re-sized 1k -> 150R so the worst-case source impedance (a BROKEN harness, the COLD end) lands at 9.70k, INSIDE the ICD s3.3 10k ceiling for the first time - the old 10.18k was over, and was only that low because the W-1 feedback was shunting the cold end."
+   "role": "Shunt-FET gate series resistor. Bounds the 74LVC00A output current to 22 mA and gives ~30 ns edges into a <= 3 nC gate (blocks.md B2). DO NOT raise this into an RC filter: the 141 ns PAR-REQ-01 response budget is the entire reason this architecture exists."
   },
   {
    "ref_prefix_hint": "C",
@@ -2457,7 +2446,7 @@
    "mpn": "CC0805KKX7R8BB475",
    "lcsc": "C354262",
    "value": "4.7uF 25V X7R 0805",
-   "qty_per_board": 10,
+   "qty_per_board": 8,
    "refs": [
     "C301",
     "C306",
@@ -2466,9 +2455,7 @@
     "C341",
     "C346",
     "C361",
-    "C366",
-    "C402",
-    "C403"
+    "C366"
    ],
    "package": "0805",
    "basic": false,
@@ -2530,7 +2517,7 @@
      "note": "Same 0805 X7R 25 V, 30050 in stock at roughly half the price."
     }
    ],
-   "role": "Local VIN bulk at each driver. With C101/C102 the board holds ~40 uF nameplate / ~25 uF effective after DC-bias derating - decoupling, not storage (power_tree s8). Keep the C301-U301 VIN/GND loop tight: that loop is the primary mitigation for the thin branch-B abs-max margin and for SW-node ringing generally. ADDED AT P4: C306/C326/C346/C366 are the TPS92515HV VCC decouplers at pin 2 (internal LDO output), per datasheet sec 8.3.6 (>=1 uF and >=10x the BOOT cap). MANDATORY, and already ASSUMED by p4-wiring-notes s2, which sources ROFF2 from VCC - only the BOM line was missing. ADDED AT P4: C402/C403 moved here from 100nF 0603 - note the FOOTPRINT CHANGE 0603 -> 0805. With R402/R404 at 150R the NTC filter had to grow to stay a SLOW-signal filter (tau 100 us -> 705 us, corner 1.6 kHz -> 226 Hz, LEDC 9.766 kHz rejection -16 -> -33 dB)."
+   "role": "Local VIN bulk at each driver. With C101/C102 the board holds ~40 uF nameplate / ~25 uF effective after DC-bias derating - decoupling, not storage (power_tree s8). Keep the C301-U301 VIN/GND loop tight: that loop is the primary mitigation for the thin branch-B abs-max margin and for SW-node ringing generally. ADDED AT P4: C306/C326/C346/C366 are the TPS92515HV VCC decouplers at pin 2 (internal LDO output), per datasheet sec 8.3.6 (>=1 uF and >=10x the BOOT cap). MANDATORY, and already ASSUMED by p4-wiring-notes s2, which sources ROFF2 from VCC - only the BOM line was missing."
   },
   {
    "ref_prefix_hint": "Q",
@@ -2804,6 +2791,87 @@
     }
    ],
    "role": "*** ROFF1 - OFF-TIME PROGRAMMING RESISTOR, from VLED (the /LEDn_A anode node) to COFF. Part of the sec 8.3.4 / Figure 14 shunt-dimming compensation network - DO NOT STRIP. *** ARITHMETIC: target ripple dIL_pp = 90 mA at L = 47 uH and VLED = 6.8 V gives tOFF = dIL x L / VLED = 622 ns (D = 0.567, f = 697 kHz - this reproduces blocks.md B3 rule 2 exactly). Datasheet eq 7, tOFF = -ROFF x COFF x ln(1 - VOFT/VLED) with VOFT = 1 V and COFF = 470 pF, gives ROFF = 8.32 kOhm -> E24 8.2 k. DELIBERATE DEVIATION FROM THE DATASHEET'S LITERAL TEXT, and it is the reason this is 10 k and not 8.2 k: sec 8.3.4 says 'the value of ROFF1 becomes the previously calculated value of ROFF', but in NORMAL (unshunted) operation ROFF2 sits in PARALLEL with ROFF1 and also charges COFF, from 5 V. The Thevenin of 8.2 k/6.8 V with 47 k/5.0 V is 6.98 kOhm at 6.533 V, which shortens tOFF to 545 ns - ripple 79 mA (-12 %) and f = 795 kHz. Re-solving the Thevenin so the ripple lands back on the architecture's own 90 mA design point: 10 k gives 649 ns, 93.9 mA (+4 %), 668 kHz. 9.53 k (E96) would be the exact solution (622 ns, 90.1 mA) but it is CHECKED AND OUT OF STOCK at LCSC (C23127, 0 pcs), so 10 k is both the practical and the stocked answer. SAME LCSC PART as the R209/R401/R403 10 k entry; split out only so this role note is discoverable per refdes. See OPEN - reverting to TI's literal 8.2 k is a one-line change if P4 disagrees with the re-solve."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "drivers",
+   "mpn": "0603WAF4702T5E",
+   "lcsc": "C25819",
+   "value": "47k 0603 1%",
+   "qty_per_board": 4,
+   "refs": [
+    "R306",
+    "R326",
+    "R346",
+    "R366"
+   ],
+   "package": "0603",
+   "basic": true,
+   "stock": 897289,
+   "price": 0.0112,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0112
+    },
+    {
+     "qty": 1000,
+     "price": 0.01
+    },
+    {
+     "qty": 5000,
+     "price": 0.0094
+    },
+    {
+     "qty": 10000,
+     "price": 0.0088
+    },
+    {
+     "qty": 50000,
+     "price": 0.0084
+    },
+    {
+     "qty": 100000,
+     "price": 0.0083
+    }
+   ],
+   "min_qty": 800,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010045_UNI-ROYAL-Uniroyal-Elec-0603WAF4702T5E_C25819.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0603waf4702t5e_C25819.html",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {
+     "name": "Resistance",
+     "value": "47kΩ"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-55℃~+155℃"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "100mW"
+    },
+    {
+     "name": "Type",
+     "value": "Thick Film Resistor"
+    },
+    {
+     "name": "Voltage-Supply(Max)",
+     "value": "75V"
+    },
+    {
+     "name": "Tolerance",
+     "value": "±1%"
+    },
+    {
+     "name": "Temperature Coefficient",
+     "value": "±100ppm/℃"
+    }
+   ],
+   "price_at_build_qty": 0.0112,
+   "alternates": [],
+   "role": "*** ROFF2 - THE SHUNT-COMPENSATION RESISTOR, from VCC (pin 2, the internal 5 V regulator) to COFF, in parallel with ROFF1. This is the element that makes shunt-FET dimming linear per sec 8.3.4 / Figure 14 - DO NOT STRIP IT, and do NOT re-source it from +3V3 or any external rail: the datasheet warns of an internal COFF-to-VCC diode that can pull VCC up and start the device with VIN unpowered. Feeding it from the device's OWN VCC pin cannot do that. *** ARITHMETIC: eq 8, tOFF-Shunt = (dIL_pk-pk x L)/(VSHUNT + 0.7). VSHUNT is a DESIGN INPUT the datasheet does not supply - it is the shunt FET's RDS(on) drop at the inductor current. With the selected SSM3K2615R at 0.320 A peak: 0.122 V at its 380 mOhm typ, 0.186 V at its 580 mOhm max. That gives tOFF-Shunt = 5.15 us / 4.78 us, and eq 9, ROFF2 = -tOFF-Shunt/(COFF x ln(1 - 1/VCC)) with COFF = 470 pF and VCC = 5.0 V, gives 49.1 k / 45.5 k -> E24 47 k sits between them. BACK-CHECK AND SENSITIVITY (this is the number to watch): 47 k is exactly right at VSHUNT = 0.158 V, i.e. RDS(on) = 494 mOhm - almost dead centre of the Toshiba's 380-580 mOhm band. Shunted-state ripple error across that band is only -4 % / +3 %. At the pathological limits it is -18 % (VSHUNT = 0, ideal short) and +17 % (VSHUNT = 0.30 V). Those are dimming-LINEARITY errors, not stability errors. VCC's own 4.8-5.2 V regulation band contributes a further +4.7 % / -4.3 %. LOAD: ROFF2 draws 5.0 V / 47 k = 106 uA from VCC, against the datasheet's 500 uA external-load allowance - and each of the four channels has its own VCC pin, so it is 106 uA per device, not 424 uA on one."
   },
   {
    "ref_prefix_hint": "C",
@@ -3191,6 +3259,85 @@
   {
    "ref_prefix_hint": "R",
    "block": "thermal",
+   "mpn": "0603WAF1001T5E",
+   "lcsc": "C21190",
+   "value": "1k 0603 1%",
+   "qty_per_board": 2,
+   "refs": [
+    "R402",
+    "R404"
+   ],
+   "package": "0603",
+   "basic": true,
+   "stock": 3416299,
+   "price": 0.009,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.009
+    },
+    {
+     "qty": 1000,
+     "price": 0.0081
+    },
+    {
+     "qty": 5000,
+     "price": 0.0077
+    },
+    {
+     "qty": 10000,
+     "price": 0.0071
+    },
+    {
+     "qty": 50000,
+     "price": 0.0069
+    },
+    {
+     "qty": 50200,
+     "price": 0.0069
+    }
+   ],
+   "min_qty": 996,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010130_UNI-ROYAL-Uniroyal-Elec-0603WAF1001T5E_C21190.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0603waf1001t5e_C21190.html",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {
+     "name": "Resistance",
+     "value": "1kΩ"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-55℃~+155℃"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "100mW"
+    },
+    {
+     "name": "Type",
+     "value": "Thick Film Resistor"
+    },
+    {
+     "name": "Voltage-Supply(Max)",
+     "value": "75V"
+    },
+    {
+     "name": "Tolerance",
+     "value": "±1%"
+    },
+    {
+     "name": "Temperature Coefficient",
+     "value": "±100ppm/℃"
+    }
+   ],
+   "price_at_build_qty": 0.009,
+   "alternates": [],
+   "role": "ADC series-protection resistors on /ADC0 and /ADC1. HELD AT <= 1 kOhm ON PURPOSE: the NTC divider's own Thevenin impedance is up to 5.0 kOhm, so the total source impedance presented to the carrier stays <= 6 kOhm against the ICD s3.3 10 kOhm ceiling (D-T16, L-11). With C401-C403 they form a slow-signal filter, not a pulse filter."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "thermal",
    "mpn": "0603WAF2701T5E",
    "lcsc": "C13167",
    "value": "2.7k 0603 1%",
@@ -3428,10 +3575,9 @@
    "mpn": "0603WAF1601T5E",
    "lcsc": "C22847",
    "value": "1.6k 0603 1%",
-   "qty_per_board": 2,
+   "qty_per_board": 1,
    "refs": [
-    "R408",
-    "R416"
+    "R408"
    ],
    "package": "0603",
    "basic": false,
@@ -3500,6 +3646,87 @@
    "price_at_build_qty": 0.0058,
    "alternates": [],
    "role": "Comparator reference ladder, BOTTOM segment to GND - it sets the 110 C board-hot threshold. Full arithmetic on R405. Extended rather than Basic, but it is a 0603 resistor with 754903 in stock; if a Basic-only BOM is ever required, the Basic 1.5 k moves that threshold to about 113 C."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "thermal",
+   "mpn": "0603WAF5602T5E",
+   "lcsc": "C23206",
+   "value": "56k 0603 1%",
+   "qty_per_board": 4,
+   "refs": [
+    "R409",
+    "R410",
+    "R411",
+    "R412"
+   ],
+   "package": "0603",
+   "basic": true,
+   "stock": 1106858,
+   "price": 0.0081,
+   "price_breaks": [
+    {
+     "qty": 1,
+     "price": 0.0081
+    },
+    {
+     "qty": 1000,
+     "price": 0.0072
+    },
+    {
+     "qty": 5000,
+     "price": 0.0068
+    },
+    {
+     "qty": 10000,
+     "price": 0.0063
+    },
+    {
+     "qty": 50000,
+     "price": 0.006
+    },
+    {
+     "qty": 50200,
+     "price": 0.006
+    }
+   ],
+   "min_qty": 1,
+   "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010116_UNI-ROYAL-Uniroyal-Elec-0603WAF5602T5E_C23206.pdf",
+   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0603waf5602t5e_C23206.html",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {
+     "name": "Resistance",
+     "value": "56kΩ"
+    },
+    {
+     "name": "Operating Temperature",
+     "value": "-55℃~+155℃"
+    },
+    {
+     "name": "Power(Watts)",
+     "value": "100mW"
+    },
+    {
+     "name": "Type",
+     "value": "Thick Film Resistor"
+    },
+    {
+     "name": "Voltage-Supply(Max)",
+     "value": "75V"
+    },
+    {
+     "name": "Tolerance",
+     "value": "±1%"
+    },
+    {
+     "name": "Temperature Coefficient",
+     "value": "±100ppm/℃"
+    }
+   ],
+   "price_at_build_qty": 0.0081,
+   "alternates": [],
+   "role": "Positive-feedback hysteresis resistor, one per comparator channel. Sized on the emitter-hot channel: 90 C trip / 75 C release is 0.284 V -> 0.428 V at the divider node, i.e. 146 mV of hysteresis, and against the ~2.6 kOhm ladder source impedance at that tap a 56 k feedback path from a 3.3 V open-drain pull-up gives ~150 mV. HYSTERESIS, NOT A LATCH: ICD s8.2 forbids latching ENABLE locally and spec-dimming R10 forbids cycling in the 0.1-10 Hz band; a >= 15 K band against a heatsinked module's 30-120 s thermal time constant puts any cycle at <= 0.02 Hz, 50x below IEEE 1789's 1-65 Hz seizure band. Provisional together with R405-R408."
   },
   {
    "ref_prefix_hint": "J",
@@ -3744,7 +3971,7 @@
    "mpn": "XL-HD6070RGBC-A46L-BD",
    "lcsc": "C22434861",
    "value": "XL-HD6070RGBC-A46L-BD RGB 3-in-1 power LED, SMD8080-6P",
-   "qty_per_board": 1,
+   "qty_per_board": 0,
    "refs": [
     "(module)"
    ],
@@ -3871,7 +4098,7 @@
    "mpn": "XL-HD6070UWC-A4-BD",
    "lcsc": "C48586656",
    "value": "XL-HD6070UWC-A4-BD 3W cold-white LED, 6000-6500K",
-   "qty_per_board": 1,
+   "qty_per_board": 0,
    "refs": [
     "(module)"
    ],
@@ -3964,7 +4191,7 @@
    "mpn": "RC0805FR-071R5L",
    "lcsc": "C137572",
    "value": "1.5R 0805 1% 200ppm",
-   "qty_per_board": 1,
+   "qty_per_board": 0,
    "refs": [
     "(module)"
    ],
@@ -4049,13 +4276,12 @@
    "mpn": "1N4148W",
    "lcsc": "C81598",
    "value": "1N4148W switching diode, SOD-123",
-   "qty_per_board": 5,
+   "qty_per_board": 4,
    "refs": [
     "D302",
     "D322",
     "D342",
-    "D362",
-    "D401"
+    "D362"
    ],
    "package": "SOD-123",
    "basic": true,
@@ -4127,88 +4353,7 @@
    ],
    "price_at_build_qty": 0.0117,
    "alternates": [],
-   "role": "ADDED AT P4. TPS92515HV bootstrap diode, anode on the device's own VCC (pin 2), cathode on BOOT (pin 4). MANDATORY - it recharges the BOOT cap each cycle. Deliberately a SEPARATE line from the D201-D204 one-shot diodes, which share this LCSC code but are dnp:true; folding these into that line would mark the boot diodes do-not-populate. Margin: BOOT-SW settles 4.09/4.29/4.49 V against BOOT-UVLO falling 2.0/2.8/3.5 V = 0.59 V (17%) worst case. A Schottky buys ~0.4 V but needs a new LCSC line - H2 call. ALSO D401 (added at P4): the /NTC_LED input clamp to +3V3. Silicon, NOT Schottky - a Schottky's 85 C leakage would be tens of uA into a 10k source. The LM339LV inputs are diode-clamped to GND ONLY with no clamp to V+, so a series resistor alone does not protect them."
-  },
-  {
-   "ref_prefix_hint": "R",
-   "block": "drivers",
-   "mpn": "0603WAF3002T5E",
-   "lcsc": "C22984",
-   "value": "30k 0603 1%",
-   "qty_per_board": 4,
-   "refs": [
-    "R306",
-    "R326",
-    "R346",
-    "R366"
-   ],
-   "package": "0603",
-   "basic": true,
-   "stock": 3026681,
-   "price": 0.0121,
-   "price_breaks": [
-    {
-     "qty": 1,
-     "price": 0.0121
-    },
-    {
-     "qty": 1000,
-     "price": 0.011
-    },
-    {
-     "qty": 5000,
-     "price": 0.0104
-    },
-    {
-     "qty": 10000,
-     "price": 0.0099
-    },
-    {
-     "qty": 50000,
-     "price": 0.0096
-    },
-    {
-     "qty": 100000,
-     "price": 0.0094
-    }
-   ],
-   "min_qty": 1,
-   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2206010116_UNI-ROYAL-Uniroyal-Elec-0603WAF3002T5E_C22984.pdf",
-   "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0603waf3002t5e_C22984.html",
-   "brand": "UNI-ROYAL(Uniroyal Elec)",
-   "attributes": [
-    {
-     "name": "Resistance",
-     "value": "30kΩ"
-    },
-    {
-     "name": "Operating Temperature",
-     "value": "-55℃~+155℃"
-    },
-    {
-     "name": "Power(Watts)",
-     "value": "100mW"
-    },
-    {
-     "name": "Type",
-     "value": "Thick Film Resistor"
-    },
-    {
-     "name": "Voltage-Supply(Max)",
-     "value": "75V"
-    },
-    {
-     "name": "Tolerance",
-     "value": "±1%"
-    },
-    {
-     "name": "Temperature Coefficient",
-     "value": "±100ppm/℃"
-    }
-   ],
-   "price_at_build_qty": 0.0121,
-   "alternates": [],
-   "role": "ROFF2, the COFF off-timer's VCC-side leg, one per channel, sourced from each driver's OWN VCC pin 2. RE-ISSUED AT P4 from 47k after an adversarial review found the 47k/10k pair dead: TI Eq 9 sizes ROFF2 as if VCC charged COFF through ROFF2 alone, which is false at ROFF1=10k, so the shunted COFF node asymptoted BELOW the 1.00 V VOFT at every corner and the off-timer never tripped. 30k solved jointly from dIL_shunt == dIL_normal (exact 30.68k); 243-corner box now has 0 never-trip cases, min margin +12.6% over VOFT(max). DO NOT 'restore' 47k, and do not re-derive from TI's text alone - Eq 1 and Eq 8 disagree about the freewheel diode drop and lead to an unsafe ~38k."
+   "role": "ADDED AT P4. TPS92515HV bootstrap diode, anode on the device's own VCC (pin 2), cathode on BOOT (pin 4). MANDATORY - it recharges the BOOT cap each cycle. Deliberately a SEPARATE line from the D201-D204 one-shot diodes, which share this LCSC code but are dnp:true; folding these into that line would mark the boot diodes do-not-populate. Margin: BOOT-SW settles 4.09/4.29/4.49 V against BOOT-UVLO falling 2.0/2.8/3.5 V = 0.59 V (17%) worst case. A Schottky buys ~0.4 V but needs a new LCSC line - H2 call."
   }
  ]
 }

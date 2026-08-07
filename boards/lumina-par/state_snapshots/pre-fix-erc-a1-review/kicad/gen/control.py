@@ -60,43 +60,6 @@ FAIL-SAFE RULES THAT MUST SURVIVE EVERY LATER EDIT
   is a P6 placement obligation. See OPEN in the return block:
   constraints.json binds R202-R205 to the `gate` group but binds R201 to
   nothing.
-* R218-R221 ARE THE `/DRV_ENn` FAIL-SAFE PULL-DOWNS AND MUST STAY 10 k.
-  They are the only thing holding the four TPS92515HV PWM/enable pins low
-  in the window where `+12V` is up and `+3V3` is not - every power-up
-  passes through it, and a 12 V-only bench bring-up sits in it forever.
-  U201 is Ioff-disabled there (partial-power-down, SCES217Y) and drives
-  nothing, so without these the pins are undriven and ICD s8.2's "every
-  output stage gated by ENABLE" does not hold.
-  DO NOT "harmonise" them to the 100 k this board uses for every other
-  pull-down. The PWM/UVLO pin SOURCES its own hysteresis current above
-  threshold - IPWM(uvlo-hys) = -25 / -20 / -15 uA (parts/C213553.json
-  sec 7.5; size to the 25 uA MAGNITUDE, which is the MIN column of a
-  negative spec) - so any pull-down floats at I x R:
-      100 k -> 2.50 V    47 k -> 1.18 V    22 k -> 0.55 V    10 k -> 0.25 V
-  The release criterion is the worst-case FALLING threshold,
-  VPWM(uvlo)min - VPWM(uvlo-hys)max = 0.95 - 0.150 = 0.80 V. 100 k and
-  47 k sit ABOVE it: one noise event over 1.0 V latches all four drivers
-  ON at full LED current and they never release. 22 k has no margin left
-  once the rest of the node is counted.
-  WHOLE-NODE WORST CASE AT 10 k (R214-R217 fitted, so `/EN_OK` and the
-  four `/DRV_ENn` are one electrical node carrying four pull-downs in
-  parallel = 2.5 k):
-      4 x 25 uA (U301/U321/U341/U361 hysteresis)
-    +     10 uA (U201-4 Ioff, VO = 5.5 V, SCES217Y)
-    + 4 x  5 uA (U202 1B/2B/3B/4B II, SCAS279R - that datasheet has no
-                 Ioff row, so II is the bound used)
-    = 130 uA x 2.5 k = 0.325 V, i.e. 2.5x below the 0.80 V threshold.
-  With the one-shot option populated the links come out and each channel
-  stands alone: (25 + 5) uA x 10 k = 0.30 V. Same answer.
-  COST: 4 x 3.3 V / 10 k = 1.32 mA on `+3V3` when `/EN_OK` is high (only
-  1.22 mA of it from the rail - the hysteresis current is sourced from the
-  drivers' own VCC). That takes power_tree.md s4's housekeeping inventory
-  from 1.4 mA to 2.7 mA against a <= 5 mA budget. U201 sinks/sources it
-  against a +-24 mA rating. Reported in OPEN: the s4 inventory needs the row.
-  THEY BELONG ON THE `/DRV_ENn` SIDE OF R214-R217, NOT ON `/EN_OK`. The
-  one-shot option removes those links, and U204 is powered from `+3V3`
-  too, so an `/EN_OK`-side pull-down (one 2.5 k would be the same current)
-  would put this exact defect straight back whenever the option is fitted.
 
 NET NAMING - THE CONTRACT, AND THE /PWM0../PWM3 CASE (SETTLED)
 ---------------------------------------------------------------
@@ -315,10 +278,6 @@ LCSC = {
     "R208": "C21189", "R209": "C25804",
     "R210": "C25803", "R211": "C25803", "R212": "C25803", "R213": "C25803",
     "R214": "C21189", "R215": "C21189", "R216": "C21189", "R217": "C21189",
-    # R218-R221: the /DRV_ENn fail-safe pull-downs. C25804 = 10k 0603 1%,
-    # already on the BOM (R209/R305/R325/R345/R365/R401/R403), so this adds
-    # four pieces to an existing reel and no new line.
-    "R218": "C25804", "R219": "C25804", "R220": "C25804", "R221": "C25804",
     "C201": "C14663", "C202": "C14663", "C203": "C14663", "C204": "C14663",
     "C205": "C14663",
     "C210": "C57112", "C211": "C57112", "C212": "C57112", "C213": "C57112",
@@ -369,8 +328,6 @@ NOTES = (
     "DNP OPTION. IF IT IS EVER POPULATED, REMOVE R214-R217.",
     "J4 IS REVERSE-MOUNTED ON THE BOTTOM SIDE, FACING DOWN (ICD s7.3). Pin 1 "
     "needs a silkscreen triangle and MUST be checked in the MATED view.",
-    "R218-R221 = 10k /DRV_ENn pull-downs, FITTED. NOT 100k: the TPS92515HV "
-    "PWM pin sources 25 uA, so 100k rests at 2.5 V and latches the driver ON.",
 )
 
 
@@ -523,28 +480,6 @@ def build() -> schlib.Sheet:
         sh.add_component(S_R_0R, ref, V_0R, at=(317.5, 88.9 + i * 12.7),
                          footprint=F_R0603)
         sh.wire_pins(ref, {"1": "EN_OK", "2": f"DRV_EN{i}"})
-
-    # ============================ R218-R221 - /DRV_ENn fail-safe pull-downs
-    # THE VALUE IS 10 k AND IT IS LOAD-BEARING - see the R218-R221 bullet in
-    # the module docstring for the full arithmetic before touching it. Short
-    # form: the TPS92515HV PWM/enable pin sources up to 25 uA of its own UVLO
-    # hysteresis current above threshold, so a pull-down rests at I x R and
-    # must stay under the worst-case 0.80 V falling threshold. 100 k (this
-    # board's value for every OTHER pull-down) rests at 2.5 V and latches the
-    # driver ON; 10 k rests at 0.325 V worst case with the whole node counted.
-    #
-    # They hang off `/DRV_ENn`, DOWNSTREAM of the R214-R217 links, so they
-    # survive the U204 one-shot option that removes those links. Same reason
-    # R202-R205 sit on the connector side of their gates: put the fail-safe
-    # where the thing being made safe is, not where the driver happens to be.
-    #
-    # P6 obligation, same class as R201's "connector end": place each one AT
-    # THE DRIVER, next to the U3x1 PWM pin it protects, not next to its link.
-    for i in range(4):
-        ref = f"R{218 + i}"
-        sh.add_component(S_R_10K, ref, V_10K, at=(317.5, 139.7 + i * 12.7),
-                         footprint=F_R0603)
-        sh.wire_pins(ref, {"1": f"DRV_EN{i}", "2": "GND"})
 
     # ============================== converter-idle one-shot - DNP option set
     # See the module docstring for the topology and why /SHUNTn is the source.

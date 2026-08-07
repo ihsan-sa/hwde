@@ -355,6 +355,19 @@ and the arithmetic is what makes it legal:
   stays **<= 6 kohm** at every temperature of interest, against the ICD's
   **10 kohm** ceiling (D-T16, L-11).
 
+  > **P4 AMENDMENT - the sentence above is WRONG about the direction, and it is
+  > the cold end that binds.** Source impedance falls going HOT and **RISES going
+  > COLD**, toward 10 k as the NTC approaches open. "Maximum at 25 C" is
+  > therefore false; 25 C is near the middle. Solved values on the as-amended
+  > sheet: **5.03 k at 25 C, 1.00 k at 90 C, 8.90 k at -20 C, and 9.70 k at a
+  > BROKEN HARNESS** - which is the real worst case and the one the window
+  > detector exists to catch. The pre-fix design measured **10.18 k there, i.e.
+  > OVER the ICD ceiling**, and was only that low because the mis-sized
+  > hysteresis feedback was shunting the cold end - it was buying ICD margin
+  > with a defect. The ADC series resistors were re-sized **1 k -> 150 R** (and
+  > C402/C403 100 nF 0603 -> 4.7 uF 0805 to keep the filter slow) to bring it
+  > inside 10 k honestly for the first time.
+
 **But a single-threshold comparator is fail-dangerous.** In *either* divider
 orientation, an open NTC or a broken harness conductor **reads as cold** and
 silently disables the protection - and a wire is the most likely fault in an
@@ -371,6 +384,19 @@ of rail accuracy.
 | CMP2 | emitter NTC implausibly cold / **open circuit** | below ~ -20 C equivalent |
 | CMP3 | emitter NTC rail-pinned / **short circuit** | above ~3.1 V at the divider node |
 | CMP4 | board NTC hot | **110 C**, release 95 C |
+
+> **P4 AMENDMENT to the CMP3 row.** "above ~3.1 V at the divider node" is the
+> **INVERTED-orientation** number and does not apply to the sheet as built. The
+> dividers are bottom-leg NTC (`+3V3` -> 10 k -> node -> NTC -> GND), so a hot
+> or shorted NTC pulls the node **DOWN**, and "above 3.1 V" is the **OPEN**
+> case (CMP2), not the short. Solved trip/release on the as-amended sheet,
+> mated: **CMP1 emitter hot 89.9 / 81.2 C (+8.6 K), CMP2 emitter open -22.5 /
+> -3.8 C (+18.7 K), CMP3 emitter short 110.2 / 92.9 C (+17.3 K), CMP4 board hot
+> 110.2 / 92.9 C (+17.3 K).** Every band is positive; before the P4 fix the
+> emitter-open channel had a **net NEGATIVE band** and chattered anywhere in a
+> progressive crimp failure. CMP1's 8.6 K is short of the 15 K aspiration -
+> widening it trades directly against CMP2's margin, and the stop was
+> deliberate.
 
 All four open drains **wire-OR onto `FAULT`** (J4-24) - open drain, active low,
 pulled up by the carrier's 10 k, **never driven high**. A local 100 k pull-up to

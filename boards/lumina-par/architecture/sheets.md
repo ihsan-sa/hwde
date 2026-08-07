@@ -200,3 +200,65 @@ row on a bottom-side part).
 5. **R206's value is unknown until the carrier owner allocates it.** Place the part
    with a `TBD` value field and a schematic note; do not guess a value - that is
    exactly the silent divergence ICD-01's preamble forbids.
+
+---
+
+## 5. P4 AMENDMENTS (2026-08-07)
+
+This file was written at P2. The items below were settled during P4 schematic
+capture and its adversarial review, and **they supersede the sections above**.
+`architecture/p4-wiring-notes.md` remains binding for wiring rules.
+
+### 5.1 s1.2 `control` - new parts
+
+| Ref | Part | Note |
+|---|---|---|
+| **R218-R221** | 4x **10 k** | `/DRV_EN0..3` fail-safe pull-downs, one per channel, on the `/DRV_ENn` side of the R214-R217 links. **10 k is load-bearing - do NOT "harmonise" these to the board's usual 100 k.** The TPS92515HV enable pin sources up to 25 uA, so 100 k sits at 2.5 V, above the 1.0 V threshold. Without them, every power-up window with `+12V` up and `+3V3` not yet (and any 12 V-only bench bring-up) leaves all four drivers undriven and latching ON - a full-current LED flash, defeating ICD s8.2. Placed with their DRIVER, not with the links. |
+
+`R206` is **4.7 k 1 %** (CR-1), not "VALUE TBD". parts.json is re-issued.
+
+### 5.2 s1.3 `drivers` - new parts and one changed value
+
+The COFF network (C304/R305/R306 per channel, s1.3 had none of it) is joined by
+the **BOOT network, which s1.3 also omitted and without which the converter
+cannot switch at all**:
+
+| Ref (ch0; +20/channel) | Part | Note |
+|---|---|---|
+| **C305** | 100 nF | BOOT capacitor at pin 4 - the high-side FET's gate supply |
+| **D302** | 1N4148W | BOOT diode, anode on the device's own VCC (pin 2), cathode on BOOT |
+| **C306** | 4.7 uF | VCC decoupler at pin 2, datasheet sec 8.3.6 |
+
+**ROFF2 (R306 etc) is 30 k, NOT 47 k.** The original 47 k was sized from TI
+Equation 9, which assumes VCC charges COFF through ROFF2 alone - false at
+ROFF1 = 10 k. The shunted COFF node then asymptotes **below** the 1.00 V VOFT at
+every corner, the off-timer never trips, and shunt-dimming linearity is lost -
+the exact Figure-43 failure the network was added to prevent. 30 k is solved
+jointly (`dIL_shunt == dIL_normal`); 0 of 243 corners now fail. **Do not
+re-derive this from TI's text alone**: Eq 1 and Eq 8 disagree about the
+freewheel diode drop and lead to an unsafe ~38 k.
+
+### 5.3 s1.4 `thermal` - range extended, values changed
+
+- Ladder + hysteresis is **R405-R416**, not R405-R412.
+- **R402/R404 are 150 R, not "<= 1 k"**, and C402/C403 are **4.7 uF 0805, not
+  100 nF 0603** (footprint change) so the filter stays slow at the lower R.
+- **R413/R415** (10 k) series-protect the comparator inputs and **D401**
+  (1N4148W) clamps `/NTC_LED` to `+3V3`. The LM339LV inputs are diode-clamped
+  to GND **only**, with no clamp to V+, so a series resistor alone does not
+  protect them from a harness fault that puts an LED anode (6.8 V nominal,
+  16.7-24.4 V at the TVS clamp) onto the sense line.
+- Hysteresis is returned to the **protected comparator nodes**, not the sensor
+  dividers. See the blocks.md B4 amendment for the solved thresholds.
+
+### 5.4 s2 net table - `/PWM0..3` correction
+
+**The s2 table's `/PWM0`..`/PWM3` spelling is not what the netlist produces.**
+Those nets are `control`-internal and come out **`/control/PWM0..3`**;
+`constraints.json.high_speed` was re-spelled to match, so all seven high_speed
+consumers bind correctly. Promoting them to root-crossing names was tried and
+measured: it is electrically correct but raises 4x `label_dangling`, because
+such a net reaches the root as wire + label + exactly ONE sheet pin, and buying
+the bare name would mean adding four PARTS to the root. `/ENABLE`, `/ID_ADC`,
+`/I2C_SCL` and `/I2C_SDA` are in the identical position and are also
+`/control/NAME`. No constraint references those four.

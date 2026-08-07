@@ -245,25 +245,6 @@ HIER_NETS = [
 # silkscreen - a P6 silk task, recorded here so it is not lost.
 TC_PADS = ["TP501", "TP502"]
 
-# Bench-hazard wording. Same constant, same words as the `power` sheet uses on
-# TP101-TP103, because it is the same obligation from the same clause: ICD s9
-# says the whole fixture floats at PoE potential and that an earthed probe
-# BREAKS PD signature detection outright (detection currents are a few hundred
-# microamps), then makes it binding on daughters - "daughters must carry the
-# same warning on any test point". No upstream document publishes literal silk
-# text, so this is the content, not a quotation.
-TP_HAZARD = "ICD s9 BENCH HAZARD silk - floating at PoE potential"
-
-
-def _note(sh, at, lines, dy=5.08):
-    """A block of sheet text, ONE add_text per line - an embedded newline in
-    a quoted s-expression is not a form kicad-sch-api is known to round-trip,
-    and a note is not worth risking the file over (helper copied from the
-    `power` sheet so both sheets carry the warning in the same form)."""
-    x, y = at
-    for i, line in enumerate(lines):
-        sh.sch.add_text(line, position=(x, round(y + i * dy, 4)))
-
 
 def build() -> schlib.Sheet:
     sh = schlib.Sheet(
@@ -304,15 +285,9 @@ def build() -> schlib.Sheet:
     # board GND is the floating PoE return, so an earthed thermocouple here
     # breaks PD signature detection. One-line change if the orchestrator
     # would rather have them isolated.
-    # The `Note` field is the per-part half of the ICD s9 obligation and the
-    # _note block below is the sheet half - the P6/P7 silk op reads one or the
-    # other, and before this revision the sheet carried NEITHER (review finding
-    # W-2, `missing-bench-hazard-note`: two bare-copper pads tied to a GND that
-    # floats at PoE potential, with no warning anywhere on the sheet).
     for i, ref in enumerate(TC_PADS):
         sh.add_component(S_TP, ref, V_TC, at=(266.7, 55.88 + i * 20.32),
-                         footprint=F_TC_PAD, expect={"1": "1"},
-                         fields={"Note": TP_HAZARD})
+                         footprint=F_TC_PAD, expect={"1": "1"})
         sh.wire_pin(ref, "1", "GND")
 
     # ============================================= hierarchical sheet pins x5
@@ -329,46 +304,6 @@ def build() -> schlib.Sheet:
             sh.hier_pin(net, shape=shape, ref="J5", pad="10")
         else:
             sh.hier_pin(net, shape=shape, at=(215.9, 55.88 + i * 10.16))
-
-    # ===================================== sheet notes (ICD s9 / P6 sources)
-    # W-2: TP501/TP502 are the reason this block is mandatory. The other two
-    # are the P6 obligations this sheet's docstring records as having NO gate
-    # behind them - a sheet with no text objects gives the layout op nowhere
-    # to read them from, which is the same defect W-2 names.
-    _note(sh, (241.3, 111.76), [
-        "TP501/TP502 CARRY THE ICD s9 BENCH-HAZARD",
-        "SILKSCREEN. These are BARE-COPPER pads on",
-        "GND, and this board's GND floats at PoE",
-        "potential: an earthed scope probe or a",
-        "non-isolated USB-UART adapter ties it to",
-        "earth and BREAKS PD SIGNATURE DETECTION",
-        "outright (detection is a few hundred uA),",
-        "on top of the shock and damage risk.",
-        "Probe only through an isolated instrument.",
-        "Silk text is a P6/P7 place_edit add_text op.",
-    ])
-    # kicad-sch-api CENTRES a text object on its anchor, so x must leave
-    # half the block's width inside the sheet border.
-    _note(sh, (63.5, 152.4), [
-        "J5 IS SIDE ENTRY AND ITS LAND IS",
-        "ASYMMETRIC: the two solder tabs sit 0.2 mm",
-        "beyond the wafer's MATING end face, the 10",
-        "circuit pads 5.5-9.0 mm behind it. P6 must",
-        "point that end face OUT across the top",
-        "edge and must NOT mirror the footprint -",
-        "mirrored puts the opening on the wrong",
-        "side of the edge. Check it in the MATED",
-        "view, as ICD s7.2 requires for J3/J4.",
-    ])
-    _note(sh, (63.5, 203.2), [
-        "PIN 9 IS A DEDICATED NTC SENSE RETURN.",
-        "It is GND in the netlist and there is no",
-        "way to say more there, so P6/P7 owns it:",
-        "pin 9's copper must reach GND at the",
-        "analogue reference point near U401, NOT be",
-        "stitched into the plane at the connector",
-        "(blocks.md B6). No gate enforces this.",
-    ])
 
     for ref, code in LCSC.items():
         sh.sch.components.get(ref).set_property("LCSC", code)

@@ -354,7 +354,19 @@ Unchanged by the package swap - nothing on `+3V3` touches the emitters.
 | Comparator reference ladder | 0.10 mA |
 | Pull-downs: ENABLE, 4x PWM, 4x shunt gate; FAULT pull-up (all 100 k) | 0.30 mA |
 | 24C32 EEPROM standby | 1 uA |
-| **Total** | **~1.4 mA; budget <= 5 mA (0.017 W)** |
+| **4x `/DRV_ENn` fail-safe pull-downs (10 k) - ADDED AT P4** | **1.22 mA** |
+| **Total** | **~2.7 mA; budget <= 5 mA (0.017 W)** |
+
+**P4 amendment.** The row above is new and it is the single largest `+3V3`
+line item. Original total read "~1.4 mA". The pull-downs are **10 k, not the
+board's usual 100 k, and the value is load-bearing**: the TPS92515HV enable
+pin sources up to 25 uA, so 100 k would sit at 2.5 V - above the 1.0 V
+threshold - and would leave the fail-safe defect it was added to fix
+(adversarial review E-3: with +12V up and +3V3 not yet, the four enable pins
+are undriven and latch all four drivers on, a full-current LED flash). Of the
+1.32 mA total only 1.22 mA comes off `+3V3`; the remaining 0.10 mA is the
+drivers' own hysteresis current, sourced from their +12V-derived VCC. The
+rail table's `+3V3` design-max of 0.005 A still holds, with 46 % headroom.
 
 `+3V3` is **logic and sense only, never LED current** (D-02).
 
