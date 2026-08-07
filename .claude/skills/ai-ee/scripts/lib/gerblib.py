@@ -41,6 +41,13 @@ _MASK_RE = re.compile(r"-(F|B)_Mask\.(gts|gbs|gbr)$", re.I)
 _PASTE_RE = re.compile(r"-(F|B)_Paste\.(gtp|gbp|gbr)$", re.I)
 _EDGE_RE = re.compile(r"-Edge_Cuts\.(gm1|gbr)$", re.I)
 _DRILL_RE = re.compile(r"\.(drl|xln|txt)$", re.I)
+# ...except that KiCad names the file after the layer's USER name, and copper
+# layers are the ones users rename (KiCad 10 demo ecc83: "top_cu"/"bottom_cu"
+# -> ecc83-pp-top_cu.gtl). The Protel extension still states the layer
+# function, so it is the fallback key: .gtl=F.Cu, .gbl=B.Cu, .g<n>=In<n>.Cu
+# (verified against this repo's own 4-layer exports). Silk/mask/paste/edge
+# names cannot be renamed in KiCad, so only copper needs the fallback.
+_COPPER_EXT_RE = re.compile(r"\.(?:(gtl)|(gbl)|g(\d+))$", re.I)
 
 
 def _layer_key(token: str) -> str:
@@ -209,6 +216,10 @@ class FabStack:
                 self.edge_file = p
             elif _DRILL_RE.search(n) and not n.lower().endswith(".gbrjob"):
                 self.drill_files.append(p)
+            elif (m := _COPPER_EXT_RE.search(n)):
+                key = ("F.Cu" if m.group(1) else "B.Cu" if m.group(2)
+                       else f"In{int(m.group(3))}.Cu")
+                self.copper_files.setdefault(key, p)
 
     # ------------------------------------------------------------ accessors
     def _get(self, path: Path | None, name: str) -> LayerGeom | None:

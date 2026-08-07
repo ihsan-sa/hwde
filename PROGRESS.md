@@ -40,7 +40,7 @@ T7 -> T8 || T9 -> T10. T11 runs as soon as boards arrive (not during T6).
 | T6 | Per-stage deep evaluation + improvement fan-out (EXCLUSIVE) | **done** | 2026-08-06 |
 | T7 | Freshness-aware state + invalidation map | **done** | 2026-08-07 |
 | T8 | Incremental board update (board_update.py, kills OI-3) | **done** | 2026-08-07 |
-| T9 | External-board intake (intake.py) | pending | - |
+| T9 | External-board intake (intake.py) | **done** | 2026-08-07 |
 | T10 | Task router + SKILL v2 (taxonomy, recipes, full run = special case) | pending | - |
 | T11 | Hardware bring-up leg (run when boards arrive) | pending | - |
 
@@ -2770,3 +2770,134 @@ region scan is front-side-only and obstacle-conservative.
 del/add/replace runs exercised route_edit + refill + drc_routed-style
 gating on the frozen fixtures, but the route_cleanup live-run leg of V20
 is untouched.)
+
+## T9 - External-board intake (2026-08-07) - DONE
+
+`intake.py`: any KiCad project -> a normal ai-ee workspace (copy-in, format
+pinned, state v2, baseline gates, digest) without ever writing to the source.
+
+**Suite state at open:** 1343 passed / 1 failed - the standing `net`-marked
+AP63203 live-stock test (T2/T3/T5/T6/T8 precedent). Dirty tree at open (NOT
+mine, still uncommitted from a prior session): pd-trigger + stm32-blinky
+design-doc pdf/tex regenerations.
+
+**Smoke tests first (the plan's "KiCad 9 via sch/pcb upgrade" claim, live on
+10.0.3 before any code):** `pcb upgrade` / `sch upgrade` exist, rewrite IN
+PLACE, are idempotent no-ops on current files ("Board file was not updated",
+bytes identical) and exit 0 either way; a file NEWER than the pin exits
+non-zero ("Failed to load board") - so the upgrade attempt IS the version
+probe and no format-version table is hardcoded. `sch upgrade` does NOT recurse
+into hierarchical sheets. Biggest surprise: **KiCad 10 ships its own demos in
+KiCad-9 format** (ecc83 pcb 20241229 / sch 20250114, generator "9.0"), and our
+goldens' schematics are 20250114 too - so both acceptance fixtures exercise
+the upgrade leg. LEARNINGS 2026-08-07 [kicad-cli][kicad][intake].
+
+**Built:**
+- `scripts/intake.py` (NEW) - discover (project stem, ambiguity refused with
+  `--project`; recursive `Sheetfile` hierarchy; lib tables) -> stage a copy
+  under `<ws>.intake-tmp/kicad/` preserving the project's relative layout ->
+  rename the top-level stem files to the board name (+ patch `.kicad_pro`
+  meta.filename; sub-sheets/.kicad_sym/.pretty keep their names, they are
+  referenced by name/URI) -> `kicad-cli upgrade` every board and sheet ->
+  refuse what cannot be unified -> materialize by directory rename ->
+  `State.init` at the phase the design is really in (P4 sch-only / P6 board
+  without copper / P8 routed) -> netlist export + `netlist_audit` -> gates
+  erc / drc_routed / verify / dfm (each `record_gate`d, which is what
+  establishes the T7 input hashes) -> renders + schematic PDF ->
+  `reports/intake-digest.md` + `reports/intake.json` + `report_gen` design
+  document. Lib URIs are classified and made workspace-local: `${KIPRJMOD}`
+  targets are imported in place, an escaping `${KIPRJMOD}/../..` target is
+  imported to `kicad/imported_libs/` and the URI rewritten IN THE COPY (the
+  2026-07-28 shared-library trap), `${KICAD<n>_*}` resolves against the pinned
+  install, anything unreadable becomes a warning. ai-ee sidecars
+  (constraints/decoupling/parts.json) travel when the source has them; waivers
+  deliberately do not (human artifacts).
+- `scripts/lib/gerblib.py` - copper files are keyed by Protel extension
+  (.gtl/.gbl/.g<n>) when the canonical layer token is absent. Live defect: the
+  ecc83 demo renames its copper layers ("top_cu"), kicad-cli names the gerber
+  after the USER name, and `dfm_check` died with "no copper gerbers found" -
+  the whole P9 gate was unavailable for that board. LEARNINGS 2026-08-07
+  [gerber][dfm][gerblib].
+- `tests/test_intake.py` (NEW, 25 tests: 22 pure / 3 smoke). Pure tests build a
+  synthetic foreign project in tmp_path (no fixture committed); the smoke legs
+  use the golden corpus and KiCad's installed demos (skipped when absent).
+
+**Acceptance evidence (plan criteria, all machine-verified):**
+- Golden leg: `tests/golden/blinky2` -> workspace with all four gates PASS, all
+  8 verify checks really run (the golden's own constraints/decoupling sidecars
+  travel), netlist audit clean, `state.py resume` reports every gate passed AND
+  hash-fresh (0 stale, 0 unknown), digest + verify_all + netlist emitted, and
+  the source tree byte-identical (sha256 over every file before and after).
+- Foreign leg: KiCad's `ecc83` demo -> pcb 20241229->20260206 and sch
+  20250114->20260306 on the COPIES, source byte-identical; erc PASS,
+  drc_routed FAIL (2 DRC + 6 parity warnings), verify FAIL (11 check_silk),
+  dfm PASS (1 warning) - the board's findings are the deliverable, so intake
+  itself exits 0. Hierarchical case (`pic_programmer`, root + pic_sockets):
+  both sheets upgraded and unified, 7 stock `${KICAD10_*}` libs resolved with
+  zero spurious findings.
+- Refusals, each with a clear message and no staging dir left behind:
+  ambiguous source dir (names both projects), mixed `.kicad_sch` versions, a
+  future-format file ("the pinned kicad-cli cannot load this file"), an
+  existing workspace without `--force`, and `--force` pointed at a directory
+  that is not a workspace (refuses to delete it).
+- `report_gen` produces the design-doc PDF for an imported board (phase P8
+  makes schematic.pdf + renders due; intake emits both).
+- Suite at close: **1368 passed / 1 failed** in 11m14s (check.cmd; +25 vs
+  T8's 1343, the same standing `net`-marked AP63203 live-stock test being the
+  one failure - an isolated re-run confirms the anonymous JLCPCB search
+  currently returns 0 hits for it; parts code untouched this session).
+
+**Deviations from the plan (with reasons):**
+1. "Refuse mixed-version projects" is enforced AFTER the upgrade pass, not
+   before: upgrading is precisely the cure for a mixed source (KiCad's own
+   demos ship a 2024 board beside a 2025 schematic), so a pre-copy refusal
+   would reject healthy projects. What intake refuses is what cannot be
+   unified - files of ONE type still disagreeing, or a file the pin cannot
+   load at all. (A .kicad_pcb and .kicad_sch at different version numbers is
+   normal: the two formats are versioned independently.)
+2. Exit codes read the SPEC 6 contract deliberately: the BOARD's findings
+   (ERC/DRC/verify/DFM violations) are the deliverable, not intake failures,
+   so exit 1 is reserved for INTAKE-level problems (a gate that could not run,
+   an unresolvable library, a missing schematic, a degraded design document).
+   Documented in the module docstring; the digest carries the gate table.
+3. `netlist_audit` needs a constraints file, so intake feeds it an EMPTY one
+   from a temp dir - the netlist-intrinsic findings (dangling nets, unpaired
+   diff pairs, pins on no net) still fire, and no `constraints.json` is planted
+   in `kicad/`, which would turn verify's honest "skipped" into a vacuous
+   "pass".
+4. Beyond the plan letter: the gerblib copper-extension fallback (without it
+   the dfm gate is unavailable for any board with renamed copper layers - the
+   accept criterion "gates run" would have been vacuous on the foreign
+   fixture); a `drc` fallback when `drc_routed` refuses stale fills; and the
+   `${KICAD<n>_*}` resolver.
+5. SKILL.md untouched (281 lines): intake is script-owned per the maturity
+   ladder; T10's router owns the "review this board" front door.
+
+**Interface notes for later steps:**
+- T10 (router): the `review`/intake verb is ONE `intake.py --source ...`
+  invocation. Report fields: `status` (intake-level), `phase` (what to resume
+  at), `baseline.gates{status,failing_count,report}`,
+  `baseline.verify_checks{name:status}` (skipped == not verified),
+  `baseline.netlist_audit`, `libs[]`, `formats[]`, `deliverables{digest,
+  design_doc}`, `next_actions[]` (already phrased as operator steps).
+  `--no-gates --no-renders --no-report --no-upgrade` is the toolchain-free
+  copy-in mode.
+- An imported workspace is a NORMAL workspace: state v2, gates recorded with
+  input hashes, `boards/<name>/` layout - `board_update.py`, the fix loop and
+  `--resume` all work on it unchanged.
+- Project-lib registration: intake makes the IMPORTED tables resolve inside
+  the workspace and deliberately does NOT pre-register an `aiee` library (a
+  lib-table entry pointing at a directory that does not exist yet is DRC
+  noise). A later `lib_pull.py --project <ws>/kicad` registers on demand, and
+  because the workspace has `kicad/` and `lib/` as siblings its relpath URI
+  comes out as the correct `${KIPRJMOD}/../lib/aiee.pretty`.
+- Renders land at `reports/<board>_{top,bottom,iso}.png` (report_gen's third
+  ladder rung); gate results at `reports/gate-<name>.json`; the full verify
+  summary at `reports/verify_all.json` (what report_gen reads).
+- Observation for whoever next touches `design/ladder-triage.md`: 11 rows still
+  read `planned-T2`/`planned-T8` although those steps are done; the file's own
+  summary numbers were stale and are now recomputed from the table (186 rows,
+  36 open).
+
+**New verify-later items:** none. (V20 unchanged - intake exercises gates on
+imported boards, not the T6 route_cleanup live-run leg.)

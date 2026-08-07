@@ -1,13 +1,13 @@
 # Knowledge ladder triage (T4, 2026-08-06)
 
-One row per `LEARNINGS.md` entry (181 of them; the last starts at
-line 2292), placed on the maturity ladder from
+One row per `LEARNINGS.md` entry (186 of them; the last starts at
+line 2371), placed on the maturity ladder from
 `design/routing-knowledge-notes.md` section 6, with the artifact that owns - or
 must own - it.
 
 The failure mode is knowledge sitting at the WRONG LEVEL, not knowledge volume:
 **if a script can check it, it does not belong in the prompt.** This register is
-the outer-loop worklist. `open` rows (72) are the gaps nothing owns yet -
+the outer-loop worklist. `open` rows (36) are the gaps nothing owns yet -
 they are the input to T6 (per-stage deep evaluation) and to any later step
 looking for the next promotion.
 
@@ -34,18 +34,18 @@ looking for the next promotion.
 
 | Level | now | target |
 |---|---|---|
-| L0 | 56 | 5 |
-| L1 | 7 | 7 |
-| L2 | 31 | 36 |
-| L3 | 79 | 125 |
+| L0 | 30 | 5 |
+| L1 | 7 | 8 |
+| L2 | 36 | 39 |
+| L3 | 113 | 134 |
 
-75 entries want to climb at least one level. Status: **done 74**,
-**open 66**, **n/a 6**, planned 22
-(T1 10, T10 1, T2 10, T8 1).
+35 entries want to climb at least one level. Status: **done 132**,
+**open 36**, **n/a 6**, planned 12
+(T10 1, T2 10, T8 1).
 
-Read that as: 71 entries are already correct-by-construction and 34
-are gated, but 56 still live only as prose or as this file - and 123
-of all 168 belong at L3. The backlog is concentrated in the library/parts
+Read that as: 113 entries are already correct-by-construction and 36
+are gated, but 30 still live only as prose or as this file - and 134
+of all 186 belong at L3. The backlog is concentrated in the library/parts
 pull path, the placement legality model, and the KRT/Freerouting driver.
 
 Open rows by owning artifact (top of the T6 worklist):
@@ -283,3 +283,6 @@ the row's Now level and status in the same commit as the code.
 | 181 | 2292 | v1 artifact-registry names COLLIDE with v2 kinds - a name match is not | [pipeline][state] | L3 | L3 | scripts/lib/statelib.py | done | T7: kind_path honors an override only when entry.kind == kind; state_migrate types an entry only at the kind's default path; rehash never re-infers kind from a name. Regression: test_migration_does_not_bless_name_collisions_as_kind_overrides |
 | 182 | 2306 | Body-overlap evidence is CONTRADICTORY (T-junction lobes pass DRC, a | [kicad][connectivity][board_update] | L3 | L3 | scripts/board_update.py | done | T8: copper_analysis stays netconn-strict; plan_orphans baseline-subtracts (netconn_unanchored_kept) and apply_update rolls back on any DRC dangling increase; fan-in-lobe survival pinned by test_del_apply_rips_orphans_and_silk |
 | 183 | 2325 | An overlap-only copper test places pads 0.05 mm from a pour - candid | [board_update][placement][drc] | L3 | L3 | scripts/board_update.py | done | T8: resolve_placement inflates candidate pads by PAD_CLEAR 0.2 mm (covers JLC floors) before the foreign-copper test; add-region smoke asserts new_errors == 0 |
+| 184 | 2337 | KiCad 10 ships its OWN demos in KiCad-9 format, and `sch upgrade` does | [kicad-cli][kicad][intake] | L2 | L2 | scripts/intake.py | done | T9: intake upgrades EVERY .kicad_pcb/.kicad_sch copy (the hierarchy walk, not just the root) and then refuses any project whose files of one type still disagree; the upgrade's own non-zero exit is the "newer than the pin" probe, so no format-version table is hardcoded anywhere |
+| 185 | 2358 | A user-RENAMED copper layer changes the gerber FILE NAME, and every na | [gerber][dfm][gerblib] | L3 | L3 | scripts/lib/gerblib.py | done | T9: FabStack._scan falls back to the Protel extension (.gtl/.gbl/.g<n>) when the canonical layer token is absent, so dfm_check works on any board whose copper layers were renamed; both naming styles pinned by tests |
+| 186 | 2371 | `${KICAD<n>_FOOTPRINT_DIR}` is a KiCad-INTERNAL variable, not an OS en | [kicad][intake][parts] | L3 | L3 | scripts/intake.py | done | T9: classify_uri resolves the KICAD<n>_* family against the pinned install's share dir (KIPRJMOD escapes are imported + rewritten); residual - only intake resolves lib-table URIs today, any future consumer must reuse classify_uri rather than os.path.expandvars |

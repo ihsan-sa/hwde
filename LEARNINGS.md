@@ -2333,3 +2333,49 @@ inflate each candidate pad polygon by PAD_CLEAR = 0.2 mm (covers every JLC floor
 generator/placement heuristic that screens against existing copper must test at
 copper + clearance, never bare copper - DRC remains the truth, the screen just has to be on the
 same side of it.
+
+## 2026-08-07 [kicad-cli][kicad][intake] KiCad 10 ships its OWN demos in KiCad-9 format, and `sch upgrade` does not follow hierarchical sheets
+Facts probed on this host while building `intake.py` (T9), all on the 10.0.3 pin:
+- `C:/Program Files/KiCad/**10.0**/share/kicad/demos/ecc83` is `(version 20241229)` pcb +
+  `(version 20250114)` sch, both `generator_version "9.0"` - a 10.x install is NOT evidence that
+  the files beside it are 10-format. Our own goldens are the same shape on the schematic side
+  (kicad-sch-api writes 20250114), so intaking a golden upgrades its `.kicad_sch`.
+- `kicad-cli pcb upgrade FILE` / `sch upgrade FILE` rewrite IN PLACE (no --output) and are
+  idempotent: on an already-current file they print "Board/Schematic file was not updated" and
+  leave the bytes byte-identical; otherwise "Successfully saved ... using the latest format"
+  (pcb -> 20260206, sch -> 20260306). Exit 0 either way.
+- A file NEWER than the pin exits non-zero with "Failed to load board". That failure IS the
+  version probe: intake needs no hardcoded format-version table - it upgrades a COPY and lets
+  kicad-cli decide readable/not.
+- `sch upgrade` operates on ONE file: upgrading `pic_programmer.kicad_sch` (20260101 -> 20260306)
+  left its child `pic_sockets.kicad_sch` at 20260101. Walk the hierarchy (`(property "Sheetfile"
+  "...")`) and upgrade every sheet, or the project ends up mixed-version.
+- Side effect: `sch upgrade` drops a `<stem>.kicad_prl` beside the schematic.
+Consequence for any importer: upgrade the copies, then assert that all files of ONE TYPE agree on
+their format version - upgrading is precisely the cure for a mixed SOURCE, so "refuse mixed
+versions" only means anything AFTER the upgrade pass.
+
+## 2026-08-07 [gerber][dfm][gerblib] A user-RENAMED copper layer changes the gerber FILE NAME, and every name-keyed consumer goes blind
+The ecc83 demo declares `(0 "F.Cu" signal "top_cu")` - KiCad lets users rename copper (and user)
+layers, and `kicad-cli pcb export gerbers` names each file after the layer's USER name:
+`ecc83-pp-top_cu.gtl`, `ecc83-pp-bottom_cu.gbl`. `gerblib`'s `_COPPER_RE` keyed on the canonical
+token (`-F_Cu|B_Cu|In\d+_Cu`), matched nothing, and `dfm_check` died with "no copper gerbers
+found" - the whole P9 gate was unavailable for that board, on a package kicad-cli had exported
+perfectly. Our corpus never renamed a layer, so nothing caught it in v1.
+Fix (T9): fall back to the PROTEL EXTENSION, which states the layer function regardless of the
+display name - `.gtl` = F.Cu, `.gbl` = B.Cu, `.g<n>` = In<n>.Cu (verified against this repo's own
+4-layer exports: `-In1_Cu.g1`, `-In2_Cu.g2`). Silk/mask/paste/edge names are safe (KiCad does not
+let those be renamed). Rule: key gerbers on the extension or the X2 `%TF.FileFunction%`
+attribute, never on the layer's display name.
+
+## 2026-08-07 [kicad][intake][parts] `${KICAD<n>_FOOTPRINT_DIR}` is a KiCad-INTERNAL variable, not an OS env var - expandvars marks every stock library "missing"
+`pic_programmer`'s fp-lib-table reaches 7 stock libraries through `${KICAD10_FOOTPRINT_DIR}/...`.
+`os.path.expandvars` leaves those untouched (the variable exists only inside KiCad), so a naive
+resolver reports seven unresolvable libraries on a completely healthy project - noise that would
+train the reader to ignore the real ones. Resolve the family against the PINNED install instead,
+derived from the resolved kicad-cli (`<cli>/../../share/kicad/{footprints,symbols,3dmodels,
+template}`): `KICAD<n>_FOOTPRINT_DIR`, `_SYMBOL_DIR`, `_3DMODEL_DIR`, `_TEMPLATE_DIR`. A URI naming
+another generation (`KICAD9_*` under the 10 pin) still resolves there - worth ONE aggregated note,
+not one warning per library. `${KIPRJMOD}` is the only variable a copy-in importer must resolve
+itself, and a `${KIPRJMOD}/../..`-style URI that climbs OUT of the project is the shared-library
+trap from 2026-07-28 [librarian][kicad]: import the target and rewrite the URI in the COPY.
