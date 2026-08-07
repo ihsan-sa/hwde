@@ -2302,3 +2302,34 @@ requires entry.kind == kind (statelib.kind_path), migration types an entry only 
 kind's default location, and rehash never re-infers kind from an entry's name (the auto-register on
 the next record-gate reclaims the slot with the typed entry). Regression:
 tests/test_state_v2.py::test_migration_does_not_bless_name_collisions_as_kind_overrides.
+
+## 2026-08-07 [kicad][connectivity][board_update] Body-overlap evidence is CONTRADICTORY (T-junction lobes pass DRC, a lapped stub gets flagged) - copper-removal decisions need baseline subtraction, not a smarter join rule
+Two machine-verified observations on 10.0.3 that no single join rule explains: (a) on the frozen
+pd-trigger route fixture, two wide VBUS fan-in lobes (2.0 / 1.75 mm) end with their far endpoint
+INSIDE another VBUS track's body (a T-junction, no shared vertex) and the board reports DRC
+**0 errors / 0 warnings**; (b) an adversarial-review probe on the same fixture injected a
+DRC-clean chain whose last segment body-crossed the F.Cu GND island with its free endpoint just
+off the fill - after its neighbor was removed, KiCad flagged THAT track `track_dangling` even
+though its body lapped its own net's pour. So body overlap sometimes reads as connected (a) and
+sometimes not (b), and the earlier 0.0368 mm cap-to-cap flag (2026-07-30) adds a third data
+point. Consequence for `board_update`'s orphan surgery: do NOT encode any body-overlap mercy
+(the first build's "pour-lap veto" kept exactly the track KiCad then flagged, hard-rolling-back
+a legitimate del_part). Safety comes from two layers that need no connectivity theory:
+(1) **baseline subtraction** - anything the analysis cannot anchor on the PRE-edit board is kept
+untouched and reported (`netconn_unanchored_kept`), so a live T-fed chain is never ripped; and
+(2) the **DRC dangling delta gate** - if the staged board carries more `track_dangling` /
+`via_dangling` than the original, the whole update rolls back. Pattern worth reusing: when the
+tool's own connectivity model is uncertain, diff AGAINST THE BASELINE and let KiCad's DRC
+arbitrate the delta, rather than arguing with its connectivity rules.
+
+## 2026-08-07 [board_update][placement][drc] An overlap-only copper test places pads 0.05 mm from a pour - candidate scans must inflate by the clearance floor
+First live add_part smoke: `resolve_placement`'s region scan scored candidates by pad-copper
+INTERSECTION with foreign nets only, picked a spot whose GND pad sat **0.0500 mm** from the VBUS
+pour, and DRC failed it against `aiee_clearance_floor` (0.1524 mm) - a "clear" candidate by the
+scan, an error by the fab rules. Overlap tests answer "does copper touch?", clearance rules ask
+"is there a GAP?", and the gap between those questions is exactly the clearance floor. Fix:
+inflate each candidate pad polygon by PAD_CLEAR = 0.2 mm (covers every JLC floor,
+0.1016-0.1524 mm) before the foreign-copper intersection test. General rule: any
+generator/placement heuristic that screens against existing copper must test at
+copper + clearance, never bare copper - DRC remains the truth, the screen just has to be on the
+same side of it.

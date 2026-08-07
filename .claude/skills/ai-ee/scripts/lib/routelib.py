@@ -91,8 +91,12 @@ def swap_in(staged: Path, pcb: Path) -> None:
 
 
 def run_worker(bundled_python: Path, job: dict, stage: Path,
-               timeout: int = 300) -> dict:
-    """Run one route_swig verb; job/result via files under `stage`."""
+               timeout: int = 300, worker: Path | None = None) -> dict:
+    """Run one SWIG-worker verb; job/result via files under `stage`.
+
+    Default worker is route_swig; board_update passes lib/update_swig.py
+    (same job/result-file protocol - bulk Remove sprays stdout, results
+    must travel by file)."""
     tag = uuid.uuid4().hex[:8]
     job_file = stage / f"job_{tag}.json"
     result_file = stage / f"result_{tag}.json"
@@ -101,22 +105,23 @@ def run_worker(bundled_python: Path, job: dict, stage: Path,
     job_file.write_text(json.dumps(job), encoding="utf-8")
     try:
         cp = subprocess.run(
-            [str(bundled_python), str(WORKER), str(job_file)],
+            [str(bundled_python), str(worker or WORKER), str(job_file)],
             capture_output=True, text=True, encoding="utf-8",
             errors="replace", timeout=timeout)
     except subprocess.TimeoutExpired as exc:
         raise CheckError(
-            f"route_swig {job.get('verb')} timed out after {timeout}s "
-            "(wedged SWIG/wx call - board untouched)") from exc
+            f"{(worker or WORKER).stem} {job.get('verb')} timed out after "
+            f"{timeout}s (wedged SWIG/wx call - board untouched)") from exc
     if not result_file.is_file():
         tail = (cp.stderr or cp.stdout or "").strip()[-300:]
         raise CheckError(
-            f"route_swig {job.get('verb')} wrote no result "
+            f"{(worker or WORKER).stem} {job.get('verb')} wrote no result "
             f"(exit {cp.returncode}): {tail}")
     result = json.loads(result_file.read_text(encoding="utf-8"))
     if not result.get("ok"):
         raise CheckError(
-            f"route_swig {job.get('verb')} failed: {result.get('error')}")
+            f"{(worker or WORKER).stem} {job.get('verb')} failed: "
+            f"{result.get('error')}")
     return result
 
 

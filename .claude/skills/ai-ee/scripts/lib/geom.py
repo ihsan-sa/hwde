@@ -119,6 +119,15 @@ def _strs(n) -> list[str]:
     return [x for x in n[1:] if isinstance(x, str)]
 
 
+def _uuid_of(node) -> "Optional[str]":
+    """(uuid "...") / legacy (tstamp ...) child of a board item, else None."""
+    for key in ("uuid", "tstamp"):
+        u = _kid(node, key)
+        if u is not None and len(u) > 1:
+            return str(_tok(u[1]))
+    return None
+
+
 def _pts(node) -> list[tuple[float, float]]:
     """Coordinates from a (pts (xy x y) ...) node."""
     out = []
@@ -144,6 +153,9 @@ class Track:
     layer: str
     width: float
     shape: LineString  # centerline
+    # KiCad item uuid (T8): lets board_update/route_edit name this exact item
+    # for removal. None on synthetic boards without (uuid ...) tokens.
+    uuid: Optional[str] = None
 
     @cached_property
     def poly(self) -> Polygon:
@@ -162,6 +174,7 @@ class Via:
     diameter: float
     drill: float
     layers: tuple[str, ...]  # copper layers spanned (inclusive)
+    uuid: Optional[str] = None  # see Track.uuid
 
     @cached_property
     def poly(self) -> Polygon:
@@ -571,7 +584,8 @@ class BoardGeom:
             a, b = _nums(s), _nums(e)
             self._tracks.append(Track(
                 net=self._resolve_net(seg) or "", layer=ln,
-                width=_nums(w)[0], shape=LineString([tuple(a[:2]), tuple(b[:2])])))
+                width=_nums(w)[0], shape=LineString([tuple(a[:2]), tuple(b[:2])]),
+                uuid=_uuid_of(seg)))
         for arc in _kids(root, "arc"):
             s, m, e = _kid(arc, "start"), _kid(arc, "mid"), _kid(arc, "end")
             w, layer = _kid(arc, "width"), _kid(arc, "layer")
@@ -583,7 +597,7 @@ class BoardGeom:
             pts = _arc_points(tuple(_nums(s)[:2]), tuple(_nums(m)[:2]), tuple(_nums(e)[:2]))
             self._tracks.append(Track(
                 net=self._resolve_net(arc) or "", layer=ln,
-                width=_nums(w)[0], shape=LineString(pts)))
+                width=_nums(w)[0], shape=LineString(pts), uuid=_uuid_of(arc)))
 
     def _parse_vias(self, root):
         for via in _kids(root, "via"):
@@ -609,7 +623,7 @@ class BoardGeom:
                 net=self._resolve_net(via) or "", at=(a[0], a[1]),
                 diameter=_nums(size)[0],
                 drill=_nums(drill)[0] if drill and _nums(drill) else 0.0,
-                layers=spanned))
+                layers=spanned, uuid=_uuid_of(via)))
 
     def _parse_footprints(self, root):
         for fp in _kids(root, "footprint"):

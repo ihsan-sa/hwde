@@ -39,7 +39,7 @@ T7 -> T8 || T9 -> T10. T11 runs as soon as boards arrive (not during T6).
 | T5 | Stage bench + frozen fixtures + composite scores | **done** | 2026-08-06 |
 | T6 | Per-stage deep evaluation + improvement fan-out (EXCLUSIVE) | **done** | 2026-08-06 |
 | T7 | Freshness-aware state + invalidation map | **done** | 2026-08-07 |
-| T8 | Incremental board update (board_update.py, kills OI-3) | pending | - |
+| T8 | Incremental board update (board_update.py, kills OI-3) | **done** | 2026-08-07 |
 | T9 | External-board intake (intake.py) | pending | - |
 | T10 | Task router + SKILL v2 (taxonomy, recipes, full run = special case) | pending | - |
 | T11 | Hardware bring-up leg (run when boards arrive) | pending | - |
@@ -2616,3 +2616,157 @@ LEARNINGS 2026-08-07 [pipeline][state].
 **New verify-later items:** none. (V20 unchanged; the map's per-class gate
 lists get their first live validation in T8's mutant runs, which the plan
 already owns.)
+
+## T8 - Incremental board update (2026-08-07) - DONE
+
+board_update.py: netlist-diff surgery on a placed/routed board, copper
+preserved - kills OI-3 (LEARNINGS 2026-07-30 [pipeline]: any part added
+after P5 used to cost all of P6+P7).
+
+**Suite state at open:** 1310 passed (T7 close). Dirty tree at open (NOT
+mine, left uncommitted): pd-trigger + stm32-blinky design-doc pdf/tex
+regenerations from a prior session (same files T7 noted).
+
+**Built:**
+- `scripts/board_update.py` (NEW) - the driver. Diffs a kicadsexpr netlist
+  (board_init.parse_netlist - the P5 reader) against the board
+  (placelib.PlaceModel + a field parse) and classifies per ref:
+  swap_same_fp (fields only), add (declared placement), del (footprint +
+  orphaned copper), swap_new_fp (= del+add at the old spot, override via
+  --placements); board_only footprints excluded; case-only fpid drift and
+  netlist-removed fields become notes, not surgery; anything else
+  (pad-net rewires / renames) is UNSUPPORTED - dry-run reports (exit 1),
+  apply refuses (exit 2). NC equivalence class: unconnected-* ==
+  netlist-absent pin == netless pad (hierarchical exports drop NC
+  singletons, row 68). Orphan analysis (copper_analysis/plan_orphans):
+  netconn graph + local via-in-pad joins, zero-anchor components fully
+  orphaned, dangling chains pruned to fixpoint with via
+  attachment-layer counting, zero-length crumbs judged by direct copper
+  touch against dead pads; BASELINE-SUBTRACTED (pre-edit unanchored
+  copper - T-junction fan-in lobes etc. - is kept and reported, never
+  "fixed"). Apply: place_edit-pattern staging (pcb + pro/dru/prl
+  sidecars), one update_swig run, independent venv verify (fields, adds
+  placed+netted+fpid, dels gone, orphan uuids gone, full pad->net parity
+  vs the netlist, copper inventory == before minus orphans, worker silk
+  removals confirmed, netconn re-analysis finds no NEW dangling), then
+  kicad-cli refill (boards with zones) + DRC with a HARD gate: more
+  track/via_dangling than before -> rollback. os.replace swap-in; any
+  failure leaves the board byte-identical. --state records the classes
+  via state.py apply_edit (pre-validated before mutation; post-apply
+  state errors degrade to loud warnings); report carries human_hold +
+  gates_to_rerun from invalidation.yaml.
+- `scripts/lib/update_swig.py` (NEW) - bundled-python worker, one verb
+  apply_update: reads-first (uuid index, doomed footprint OBJECTS, silk
+  capture inside doomed bboxes reporting FILE-token layer names), field
+  updates, footprint adds (FootprintLoad, same-ref tolerated when that
+  ref is being replaced), ALL removals last + Save (LEARNINGS [swig]
+  bulk-Remove rule); result via file (route_swig protocol).
+- `scripts/lib/geom.py` - Track.uuid / Via.uuid (additive; parse via
+  `_uuid_of`, legacy tstamp covered) so orphans are removable by name.
+- `scripts/lib/routelib.py` - run_worker gains an optional worker path
+  (update_swig reuses the job/result-file protocol + error surface).
+- `tests/test_board_update.py` (NEW, 34 tests: 24 pure / 10 smoke) -
+  mutant netlists generated in-test by sexpdata surgery on the frozen
+  fixture netlists; nothing extra committed for pd-trigger.
+- Fixture additions: `tests/fixtures/stages/lumina_carrier/
+  {lumina-carrier.net, routed.kicad_pro, routed.kicad_dru}` - the carrier
+  work/board.net parity-matches the frozen routed.kicad_pcb (probed:
+  empty diff); sidecars named to the routed.* stem so DRC uses them.
+
+**Acceptance evidence (plan criteria, all machine-verified):**
+- swap: normalized board delta (statelib sexpr_no_uuid) is EXACTLY the
+  swapped property lines; copper + placement inventories identical;
+  bom_cpl regen moves only the swapped group, CPL byte-identical; edit
+  recorded as swap_part_same_fp (human_hold 2, gates_to_rerun == map).
+- add: region scan lands courtyard-legal + clearance-clear (PAD_CLEAR
+  0.2 after the 0.05 mm-gap smoke defect), existing copper untouched,
+  DRC delta = ratsnest only; replace flow (del C2 + add C99 at the freed
+  spot) closes its GND leg through the STANDARD fix loop (route_edit via
+  + kicad-cli refill) and reaches **DRC 0 errors / 0 warnings**.
+- del: C2 -> footprint + its GND stub + via ripped (worker removed_items
+  2), silk label inside the bbox removed and verified gone, VBUS feeder
+  and the two pre-existing T-junction lobes preserved, DRC total 0.
+- carrier 4L: del C62 rips exactly its two plane-feed vias (GND +
+  V48_RAW), same-invocation region add lands legally, planes refill, no
+  new dangling - under the carrier's own pro/dru.
+- new_fp swap: C5 C0603->C1206 applies in one invocation (replacement
+  present, netted, old stubs gone, no new dangling).
+- Atomicity: worker-failure, verify-failure and dangling-gate paths all
+  roll back byte-identically (sha-pinned tests).
+- Suite at close: **1343 passed / 1 failed** (check.cmd; +34 T8 tests vs
+  T7's 1310, minus 1: the standing `net`-marked AP63203 live-stock test -
+  isolated re-run confirms the anonymous JLCPCB search currently returns
+  0 hits for it; T2/T3/T5/T6 precedent, parts code untouched this
+  session).
+
+**Ultracode adversarial review (plan-mandated):** 5-lens find + per-finding
+refute workflow, 42 agents / ~3M tokens. 37 deduped findings -> 8 refuted,
+29 confirmed (3 critical, 9 major, 17 minor). ALL criticals + majors fixed
+same-session, each with a test tooth:
+- CRITICAL: swap_new_fp apply was dead on arrival - update_swig's
+  duplicate-ref guard fired before deferred removals AND removal-by-ref
+  would have ripped the replacement; fixed (doomed OBJECTS captured in the
+  read pass, guard tolerates replaced refs) + test_new_fp_swap_apply.
+- Pour-lap veto rested on a false premise - the review's probe proved a
+  body-lapped unsupported track still goes track_dangling on 10.0.3, so
+  the veto could ONLY create rollbacks; removed (LEARNINGS updated to the
+  contradictory-evidence form).
+- Zero-length crumbs (netconn-invisible) under a deleted pad made the del
+  permanently un-appliable; now judged by direct copper touch + regression
+  test replicating the review's probe.
+- No via-to-pad edge poisoned baselines for via-in-pad-only copper; local
+  joins added in copper_analysis.
+- NC pads on hierarchical netlists misclassified as pad_net_change
+  (refusal); fixed by the NC equivalence class.
+- Silk verify was vacuous (GetLayerName "F.Silkscreen" vs sexpr
+  "F.SilkS"); worker now reports file tokens, test asserts them.
+- Multi-region adds stacked on one spot; resolved courtyards now feed the
+  next scan's obstacles + no-stacking test.
+- --state validated only after mutation; now pre-validated (fail before
+  surgery) with the post-apply degrade-to-warning kept.
+- DRC-dangling gate had no test; wiring test added.
+Minors fixed: board_only collision refuses at plan time; case-only fpid =
+note not destructive swap; netlist-removed fields noted (vocabulary-
+filtered); PCB_TEXT GetClass check (dimensions exempt from silk strip);
+carrier fixture sidecars renamed so DRC uses them. Minors ACCEPTED with
+reasons (docstring "Known limitations"): new_fp swaps do not reuse the old
+package's stubs and drop board-only fields; dangling delta compares
+unrefilled-before vs refilled-after; verify inventory is tracks+vias;
+region scan is front-side-only and obstacle-conservative.
+
+**Deviations from the plan (with reasons):**
+1. "refill + DRC after every mutation" implemented per INVOCATION (one
+   staged batch = one logical edit), not per individual op - the modes
+   compose in one worker run and per-op refill would multiply kicad-cli
+   cost with no correctness gain; the gate sees the same final board.
+2. Beyond the plan letter: swap_part_new_fp composed from del+add (the
+   T7 interface notes promise the 1:1 class mapping and detection had to
+   exist anyway to avoid mis-bucketing as same-fp swap).
+3. add_part's "ratsnest stub" = pads netted from the netlist (DRC
+   unconnected items ARE the ratsnest); no copper stub is drawn - the
+   fix loop owns routing (proven to DRC 0/0 in the replace test).
+4. SKILL.md untouched (281 lines): board_update is script-owned per the
+   maturity ladder; T10's router owns surfacing it.
+
+**Interface notes for later steps:**
+- T10 (router): verbs swap-part/add-part/remove-part map to ONE
+  board_update invocation each; `--dry-run` is the classification
+  primitive (exit 1 = unsupported changes present - route those to
+  reroute/manual recipes). Report fields: plan.{swap_same_fp,swap_new_fp,
+  add,del,unsupported,notes}, orphans.netconn_unanchored_kept (pre-
+  existing, NOT fixed), applied.drc deltas, gates_to_rerun (from
+  invalidation.yaml), state.human_hold. After re-exporting fab docs run
+  `state.py rehash --names gerbers bom cpl` (T7 note stands).
+- T9 (intake): geom Track/Via now carry .uuid on any KiCad-10 board -
+  intake audits can name copper items.
+- placements JSON: {ref: {x,y[,deg][,side]}} | {ref: {region:[x1,y1,x2,
+  y2][,deg]}}; region search is front-side only.
+- routelib.run_worker(bp, job, stage, worker=...) is the generic SWIG
+  worker runner now (route_swig default).
+- board_update REFUSES boards whose zone fills are stale (assert_fresh)
+  at apply time only; dry-run classification works on stale boards.
+
+**New verify-later items:** none. (V20 gains evidence: this session's
+del/add/replace runs exercised route_edit + refill + drc_routed-style
+gating on the frozen fixtures, but the route_cleanup live-run leg of V20
+is untouched.)
