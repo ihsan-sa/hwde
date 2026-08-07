@@ -38,7 +38,7 @@ T7 -> T8 || T9 -> T10. T11 runs as soon as boards arrive (not during T6).
 | T4 | Knowledge ladder triage + trigger-indexed remediations | **done** | 2026-08-06 |
 | T5 | Stage bench + frozen fixtures + composite scores | **done** | 2026-08-06 |
 | T6 | Per-stage deep evaluation + improvement fan-out (EXCLUSIVE) | **done** | 2026-08-06 |
-| T7 | Freshness-aware state + invalidation map | pending | - |
+| T7 | Freshness-aware state + invalidation map | **done** | 2026-08-07 |
 | T8 | Incremental board update (board_update.py, kills OI-3) | pending | - |
 | T9 | External-board intake (intake.py) | pending | - |
 | T10 | Task router + SKILL v2 (taxonomy, recipes, full run = special case) | pending | - |
@@ -2485,3 +2485,134 @@ AP63203 stock test (T2/T3/T5 precedent); check_env exit 0. +280 tests vs open.
 
 **New verify-later items:** V20 (T6 live-validation bundle + carrier DRU
 defect). V12/V13/V14/V18/V19 register rows updated in place.
+
+## T7 - Freshness-aware state + invalidation map (2026-08-07) - DONE
+
+state.json v2: gate results keyed to normalized input-content hashes, an
+edit-class invalidation map, and the XC-8 handoff (spawn ledger, event-name
+hygiene, artifacts registry revived via auto-register).
+
+**Suite state at open:** 1272 passed / 1 failed - only the standing
+`net`-marked AP63203 stock failure (T2/T3/T5/T6 precedent). Dirty tree at
+open (NOT mine, left uncommitted): pd-trigger + stm32-blinky design-doc
+pdf/tex regenerations from a prior session.
+
+**Built:**
+- `scripts/lib/statelib.py` (NEW) - normalized hashing + freshness core, pure
+  venv (no kicad-cli). Normalizers (every stored hash is "<norm>:<sha256>" so
+  a normalizer change can never false-match): `sexpr_no_uuid` (board/sch:
+  EOL-normalized, (uuid ..)/(tstamp ..) stripped - full re-uuid of the real
+  routed pd-trigger board = identical hash, one nudged coordinate = different;
+  version/generator headers KEPT so a toolchain resave invalidates),
+  `netlist_canonical` (netlist_audit.parse_netlist -> components ref->
+  value/footprint + nets name->sorted (ref,pin,pintype), canonical JSON -
+  date/tool/order invisible, a value swap hits), `json_canonical` (.kicad_pro
+  / sidecars), `text_eol` (dru/bom/cpl - CRLF churn invisible), `dir_text`
+  (sims), `gerber_design` (= T1 fabhash.design_hash, per the plan).
+  Unparsable input falls back to raw-bytes ("raw:") - staleness can be over-
+  but never under-reported. Plus map loading/validation, kind->path
+  resolution ({board} templates + registry override gated on entry.kind ==
+  kind), `gate_freshness` / `freshness_report` (two-layer verdict).
+- `reference/invalidation.yaml` (NEW) - 13 artifact kinds; `gate_inputs`
+  verified against gate.py run_report_for_gate (dfm reads BOARD+sch+parts,
+  never the shipped zip - LEARNINGS 2026-08-07); `edit_classes` = the 10 plan
+  classes with {mutates, stale_artifacts, gates, human_hold 0-3}. Weights:
+  silk_edit 0; move_fp/reroute_net 1; part swaps/add/del, plane_edit,
+  rule_change 2; stackup_change 3 (the V18 fab-truth class). Two-layer
+  semantics documented in the header: hashes catch ANY edit, marks catch
+  derived artifacts whose files have not changed yet.
+- `scripts/state.py` -> schema v2: record-gate stores per-input normalized
+  hashes in the attempt entry, auto-registers hashed kinds (XC-8: the
+  registry was dead on 4/6 boards because registration was manual), and
+  clears that gate's stale marks (pass or fail - the result is current);
+  `edit --class` stamps the mapped stale set (marks land on RECORDED gates +
+  mapped artifacts, full sets reported, human_hold returned); `freshness`
+  (read-only, never saves); `rehash` (bare = clear marks only where the hash
+  actually changed, so an untouched derived artifact keeps its mark;
+  --names = force-clear, "I regenerated these"); `spawn` + `log --event
+  spawn` both feed the first-class spawns[] ledger (SKILL.md step-5 form
+  kept working - SKILL untouched at 281 lines); CLI log event names must
+  match [a-z][a-z0-9_-]{0,31} (XC-8: a live run stored paragraphs as event
+  keys); resume_summary gains gates_passed_fresh / gates_stale /
+  gates_freshness_unknown / human_hold_pending; snapshot reads v2 artifact
+  objects (labels/dir untouched - T5 bench provenance pins them); load()
+  refuses non-v2 naming state_migrate.py.
+- `scripts/state_migrate.py` (NEW) - v1->v2: artifacts str->typed objects
+  hashed now; spawns lifted from history spawn events; edits seeded; gates
+  UNTOUCHED (pre-v2 results carry no input hashes -> freshness "unknown",
+  honestly unverifiable, never assumed fresh). v2 input = byte-level no-op.
+  --workspace or --boards-dir sweep.
+- `report_gen.py` - requirements-registry read handles v2 dict entries.
+- `tests/test_state_v2.py` (NEW, 36 tests) + 1 updated in test_orchestrator.
+
+**Acceptance evidence (plan criteria):**
+- Unit tests per edit class: parametrized over all 10 - stale gate set,
+  artifact marks, human_hold and hash-layer neutrality each equal the map.
+- Simulated move_fp on a pd-trigger fixture (real frozen stage files, real
+  hashes): marks EXACTLY {place, drc, drc_routed, verify, dfm} + gerbers,
+  erc/sim stay fresh, human_hold_pending 1; re-gating drc_routed clears its
+  mark while the gerber mark survives a bare rehash and clears on an
+  explicit one. Real-edit twin: one coordinate nudge hash-invalidates
+  exactly the pcb-input gates.
+- Migration idempotent on all six live workspaces: 6 migrated, second sweep
+  0/6 already_v2, state.json files byte-identical; live files committed.
+- Suite at close: **1310 passed / 0 failed** (check.cmd exit 0, +38 vs open;
+  even the standing net-marked AP63203 stock test passed - live stock is
+  back). The S13 dry-run smoke (kill/resume) passes on v2 record-gate
+  hashing unchanged. One mid-session full run failed ONLY
+  test_every_learnings_entry_has_a_triage_row - the T4 discipline test doing
+  its job on this session's two new LEARNINGS entries; rows 180-181 added.
+
+**Live defect caught during migration (fixed + regression-tested):**
+lumina-strobe's v1 registry named "constraints" -> architecture/
+constraints.json (the P2 output), which the unqualified name-keyed override
+turned into the constraints KIND path - gate hashing would track a file the
+verify gate never reads, making real sidecar edits invisible. Fixed
+three-sided (override needs entry.kind == kind; migration types only
+default-location paths; rehash never re-infers kind from a name); the six
+workspaces were re-migrated from their committed v1 form with the fix.
+LEARNINGS 2026-08-07 [pipeline][state].
+
+**Deviations from the plan (with reasons):**
+1. "A gate is valid iff hashes match" shipped as TWO layers (hash + explicit
+   marks): hash-matching alone cannot see a derived artifact that has not
+   been regenerated (after move_fp the gerber zip still matches its recorded
+   hash - even its design hash - yet no longer derives from the board). The
+   mark layer is what makes the acceptance's "marks the mapped set stale"
+   expressible at all.
+2. Migrated v1 gate results report freshness "unknown" rather than seeding
+   current hashes as inputs: claiming a 2026-07-28 gate ran against today's
+   files would be invented provenance; each gate becomes fresh on its next
+   record-gate.
+3. Beyond the plan letter: the T6 XC-8 handoff folded in (spawn ledger
+   first-class, log event hygiene, artifacts auto-register) and bom/cpl
+   added as kinds so swap_part_* can honestly mark ordering docs stale.
+4. SKILL.md deliberately untouched (281): freshness is script-owned per the
+   maturity ladder; T10's router owns surfacing it in the front door.
+
+**Interface notes for later steps:**
+- T8 (board_update): call `state.py edit --class <mode>` per mutation
+  (move_fp / swap_part_same_fp / swap_part_new_fp / add_part / del_part map
+  1:1 to its modes), then re-run the gates `freshness` lists as stale;
+  human_hold weight is the ceremony dial (0 none / 1 log / 2 checkpoint
+  summary / 3 approve-before-order). After re-exporting fab docs:
+  `rehash --names gerbers bom cpl`.
+- T9 (intake): State.init -> record baseline gates; hashes establish
+  themselves at first record-gate (no seeding step). state_migrate handles
+  any imported v1 state.
+- T10 (router): `resume` now carries gates_passed_fresh / gates_stale /
+  gates_freshness_unknown / human_hold_pending - "what must re-run" is a
+  state query, not playbook prose. Task recipes should consume
+  invalidation.yaml's per-class gates rather than restating them.
+- Kind-override rule: a registry entry redirects a standard kind ONLY when
+  entry.kind == kind (set via `state.py artifact --name <kind> --path ...`).
+  Same-named entries with other kinds are inert for resolution.
+- statelib is pure venv; freshness never needs kicad-cli. Hash prefix
+  "<norm>:" means map/normalizer evolution self-invalidates old hashes
+  (conservative direction).
+- The six live state.json files are v2 now;
+  test_all_live_workspaces_are_v2 pins that invariant repo-wide.
+
+**New verify-later items:** none. (V20 unchanged; the map's per-class gate
+lists get their first live validation in T8's mutant runs, which the plan
+already owns.)

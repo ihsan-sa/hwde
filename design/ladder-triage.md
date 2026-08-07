@@ -1,7 +1,7 @@
 # Knowledge ladder triage (T4, 2026-08-06)
 
-One row per `LEARNINGS.md` entry (175 of them; the last starts at
-line 2226), placed on the maturity ladder from
+One row per `LEARNINGS.md` entry (181 of them; the last starts at
+line 2292), placed on the maturity ladder from
 `design/routing-knowledge-notes.md` section 6, with the artifact that owns - or
 must own - it.
 
@@ -279,3 +279,5 @@ the row's Now level and status in the same commit as the code.
 | 177 | 2245 | ksa mirrors PIN POSITIONS at 90/270; KiCad rotates FIRST then mirrors | [kicad-sch-api][kicad][python] | L3 | L3 | scripts/schlib.py + schem_refdes.py | done | T6 (P4-2): pin_pos reflects ksa's 90/270 answer through the anchor; to_page rotates before mirroring; rotmirror fixture pins both with ERC AND per-pin netlist assertions (ERC alone cannot see swapped pins) |
 | 178 | 2260 | gerblib LayerGeom.pads holds PRIMITIVE FRAGMENTS, not one polygon per  | [gerbonara][gerber][dfm] | L3 | L3 | scripts/dfm_check.py | done | T6 (P9-3): check_pad_tented iterates paste.components() (one connected component = one aperture); loop comment names the trap; mutant_paste fixture asserts exactly ONE dfm_pad_tented for the C8 aperture |
 | 179 | 2269 | sha-pin INDEX content, not working-tree bytes - stale CRLF checkouts br | [bench][git][windows] | L0 | L2 | scripts/lib/benchlib.py | open | T6 (P3-BENCH/P4-3): pins taken from git show :path, working copies + exported net LF-normalized before hashing. L2 gap: verify_fixture could refuse a CRLF text fixture outright so a bad future capture cannot pass locally |
+| 180 | 2282 | The dfm gate's freshness inputs are the BOARD + schematic + parts.json | [gates][dfm][pipeline] | L2 | L2 | reference/invalidation.yaml | done | T7: gate_inputs transcribed from gate.py run_report_for_gate and pinned by tests (map covers every gates.yaml gate; move_fp acceptance proves dfm goes stale via the pcb hash while the zip needs the mark layer). Residual: a gate.py input change must be mirrored here by hand - the map is not derived |
+| 181 | 2292 | v1 artifact-registry names COLLIDE with v2 kinds - a name match is not | [pipeline][state] | L3 | L3 | scripts/lib/statelib.py | done | T7: kind_path honors an override only when entry.kind == kind; state_migrate types an entry only at the kind's default path; rehash never re-infers kind from a name. Regression: test_migration_does_not_bless_name_collisions_as_kind_overrides |

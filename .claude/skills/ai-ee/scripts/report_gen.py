@@ -469,6 +469,8 @@ class DocBuilder:
         ones at P0 exit."""
         self.start("Requirements")
         reg = (self.st.get("artifacts") or {}).get("requirements")
+        if isinstance(reg, dict):           # state v2 registry entry (T7)
+            reg = reg.get("path")
         candidates = ([str(reg).replace("\\", "/")] if reg else []) + \
             ["requirements.md", "architecture/requirements.md"]
         req = rel = None

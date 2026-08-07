@@ -1,9 +1,9 @@
 {
- "version": 1,
+ "version": 2,
  "board": "lumina-par",
  "workspace": "boards/lumina-par",
  "created": "2026-07-28T15:00:15",
- "updated": "2026-07-28T22:26:27",
+ "updated": "2026-08-07T01:58:03",
  "phase": "P3",
  "gates": {},
  "human": {
@@ -625,6 +625,14 @@
    "fp_verify_blind_to_drill": "fp_verify.py/fplib.py have NO drill handling at all, and the DS1023 extractions deliberately omit pad_size_mm, so BOTH halves of the annulus check are unchecked and it returns pass for J3 and J4 while both violate the ICD",
    "easyeda_403": "CloudFront WAF block on /api/products/*/components only, immune to UA/cookie/header changes, clears in ~60 s. 1 part/15 s is safe; 4 parts/35 s tripped it after 13.",
    "placelib_rotation": "20 of 22 courtyards exclude their own pads (up to 3.7 mm on TO-252). placelib.extents_local() unions the pad box in, but _pad_box_local ignores pad ROTATION - SOT-23-3 Q102 has all three pads at ROT 90 so placelib sees a 0.70 mm box where the truth is 1.25 mm. Hand to P6."
+  },
+  {
+   "ts": "2026-08-07T01:58:03",
+   "event": "migrated",
+   "from_version": 1,
+   "to_version": 2
   }
- ]
+ ],
+ "spawns": [],
+ "edits": []
 }

@@ -2278,3 +2278,27 @@ netlist export writes CRLF on Windows, and Python `write_text` default-translate
 os.linesep (bench.py's own --baseline files land CRLF). Rule: capture fixture bytes from
 the INDEX (`git show :path`) or explicitly LF-normalize before hashing, and verify with
 `git ls-files --eol` that w/ matches i/ for every pinned file.
+
+## 2026-08-07 [gates][dfm][pipeline] The dfm gate's freshness inputs are the BOARD + schematic + parts.json - NOT the shipped gerber zip
+gate.py run_dfm exports gerbers to a SCRATCH dir from the .kicad_pcb on every run and reads the
+sibling schematic (CPL-polarity oracle) + parts.json (BOM leg); the fab/<board>_gerbers.zip it never
+touches is an ORDERING artifact whose freshness is the T1 design-hash latch's job. Consequence for
+invalidation (T7): a pcb edit makes the dfm GATE stale via the pcb hash, while the shipped zip goes
+stale only via the edit-class MARK - its bytes (and even its design hash) are unchanged on disk until
+re-export, so no hash comparison can see it. Wiring the zip as a dfm gate input would have made dfm
+immune to board edits made after the last export - the exact staleness the map exists to catch.
+Encoded in reference/invalidation.yaml gate_inputs (verified against gate.py run_report_for_gate).
+
+## 2026-08-07 [pipeline][state] v1 artifact-registry names COLLIDE with v2 kinds - a name match is not a kind override
+state.json v2 lets a registry entry named for a standard kind redirect that kind's path (non-standard
+layouts opt in). But v1 registries reused those names for DIFFERENT pipeline artifacts:
+lumina-strobe registered "constraints" = architecture/constraints.json (the P2 architecture output),
+while the verify/place gates read kicad/constraints.json - same name, different artifact. Blessing
+the name match at migration redirected gate-input hashing to the architecture file: hashes then
+track a file the gate never reads, and an edit to the real sidecar is INVISIBLE - missed staleness,
+the failure class T7 exists to kill, silently reintroduced by its own migration. Caught by
+diff-eyeballing the migrated output, not by the (passing) tests. Fix is three-sided: a kind override
+requires entry.kind == kind (statelib.kind_path), migration types an entry only when its path IS the
+kind's default location, and rehash never re-infers kind from an entry's name (the auto-register on
+the next record-gate reclaims the slot with the typed entry). Regression:
+tests/test_state_v2.py::test_migration_does_not_bless_name_collisions_as_kind_overrides.

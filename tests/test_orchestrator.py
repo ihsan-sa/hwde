@@ -110,7 +110,11 @@ def test_state_record_gate_attempts_and_history(tmp_path):
 def test_state_artifact_decision_human(tmp_path):
     st = make_state(tmp_path)
     st.set_artifact("pcb", "kicad\\b.kicad_pcb")
-    assert st.data["artifacts"]["pcb"] == "kicad/b.kicad_pcb"
+    # v2 (T7): registry entries are typed objects; the file is absent here so
+    # the normalized hash records null
+    entry = st.data["artifacts"]["pcb"]
+    assert entry["path"] == "kicad/b.kicad_pcb"
+    assert entry["kind"] == "pcb" and entry["sha256"] is None
     st.add_decision("4-layer", "USB + buck")
     assert st.data["decisions"][0]["phase"] == "P4"
     st.record_human("2", "approved", note="ok")

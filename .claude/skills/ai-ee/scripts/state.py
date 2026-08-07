@@ -6,40 +6,62 @@ and records every transition here. Every mutating subcommand appends a
 timestamped event to `history`, so the file is both current state AND audit
 trail (`a killed-and-resumed session continues from the last gate`).
 
-Schema (version 1):
+Schema (version 2 - T7 freshness; v1 files upgrade via state_migrate.py):
     {
-      "version": 1, "board": str, "workspace": str, "created": ts, "updated": ts,
+      "version": 2, "board": str, "workspace": str, "created": ts, "updated": ts,
       "phase": "P0".."P10" | "done",
       "gates": {gate_name: {phase, status: pass|fail, attempts: int,
-                            last: {ts, status, failing_count, total},
-                            history: [same shape as last, oldest first]}},
+                            last: {ts, status, failing_count, total,
+                                   inputs: {kind: "<norm>:<sha>"|null}},
+                            history: [same shape as last, oldest first],
+                            stale: [mark]?}},        # cleared on record-gate
       "human": {checkpoint_id: {status: approved|rejected|skipped, ts, note}},
-      "artifacts": {name: workspace-relative path},
+      "artifacts": {name: {path, kind|null, sha256|null, hashed: ts,
+                           stale: [mark]?}},
       "open_issues": [{id, gate, phase, fixer, net, kinds[], severity, count,
                        region, work_order, status: open|fixing|fixed|escalated|
                        waived, agent, attempts, opened, closed}],
       "next_issue_id": int,
       "budgets": {"fix_loops": {gate_name: remaining}, ...},
       "decisions": [{what, why, phase, ts}],
+      "edits": [{ts, class, refs, note, human_hold, gates, gates_marked,
+                 stale_artifacts}],                   # edit-class ledger
+      "spawns": [{ts, role, model, effort?, phase?, tokens?, cost_usd?,
+                  note?}],                            # subagent ledger (XC-8)
       "history": [{ts, event, ...detail}]
     }
+    mark = {ts, edit_class, refs, human_hold} - stamped by `edit` from
+    reference/invalidation.yaml, cleared by record-gate (gates) / re-register
+    (artifacts). A gate is FRESH iff its recorded input hashes all match the
+    current normalized hashes AND it carries no mark (lib/statelib.py; the
+    two-layer semantics are documented in invalidation.yaml).
 
 CLI (spec 6 contract: argparse, JSON to stdout, exit 0 ok / 2 error; state.py
 has no violation concept so exit 1 is unused):
     state.py init --workspace DIR --board NAME [--phase P0] [--force]
-    state.py show|resume [--workspace DIR | --state FILE]
+    state.py show|resume|freshness [--workspace DIR | --state FILE]
     state.py set-phase --phase P7 ...
     state.py record-gate --gate NAME --result gate_result.json [--phase PN] ...
     state.py artifact --name pcb --path kicad/b.kicad_pcb ...
+    state.py edit --class move_fp [--refs U1 U2] [--note TEXT] ...
+    state.py rehash [--names gerbers bom] ...
+    state.py spawn --role fixer --model opus [--effort high] [--tokens N] ...
     state.py decision --what W --why Y ...
     state.py human --checkpoint 2 --status approved [--note N] ...
     state.py issue --id 3 --status fixed [--agent fixer-1] [--bump-attempts] ...
     state.py budget --path fix_loops.drc_routed [--consume] ...
-    state.py log --event TEXT [--data JSON] ...
+    state.py log --event name [--data JSON] ...
     state.py snapshot --label L [--files F ...] / restore --label L ...
+
+CLI `log` event names are machine keys: ^[a-z][a-z0-9_-]{0,31}$ (XC-8: a live
+run stored paragraphs as event names; prose belongs in --data {"msg": ...}).
+`log --event spawn --data {...}` additionally appends the data to the
+first-class `spawns` ledger (the SKILL.md step-5 form keeps working).
 
 Writes are atomic (tmp file + os.replace, same directory). Single-writer by
 design: the orchestrator serializes all state mutations (SPEC 4 concurrency).
+Snapshot labels/dirs are STABLE interfaces - bench fixture provenance points
+at state_snapshots/<label> paths (T5).
 """
 from __future__ import annotations
 
@@ -55,9 +77,13 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
 import checklib  # noqa: E402
+import statelib  # noqa: E402
 from checklib import CheckError  # noqa: E402
 
 SCRIPT = "state"
+VERSION = 2
+# CLI log event names are machine keys (XC-8): short, greppable, no prose.
+EVENT_RE = re.compile(r"[a-z][a-z0-9_-]{0,31}\Z")
 PHASES = ["P0", "P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "P9", "P10",
           "done"]
 # Machine-gate order along the pipeline (SPEC 3). The interim `drc` gate is a
@@ -115,13 +141,13 @@ class State:
             (workspace / d).mkdir(exist_ok=True)
         ts = now()
         data = {
-            "version": 1, "board": board,
+            "version": VERSION, "board": board,
             "workspace": str(workspace).replace("\\", "/"),
             "created": ts, "updated": ts, "phase": phase,
             "gates": {}, "human": {}, "artifacts": {}, "open_issues": [],
             "next_issue_id": 1,
             "budgets": json.loads(json.dumps(DEFAULT_BUDGETS)),
-            "decisions": [],
+            "decisions": [], "edits": [], "spawns": [],
             "history": [{"ts": ts, "event": "init", "board": board,
                          "phase": phase}],
         }
@@ -133,9 +159,11 @@ class State:
     def load(cls, path: Path) -> "State":
         path = Path(path)
         data = checklib.load_json(path, "state file")
-        if data.get("version") != 1:
-            raise CheckError(f"{path}: unsupported state version "
-                             f"{data.get('version')!r}")
+        if data.get("version") != VERSION:
+            raise CheckError(
+                f"{path}: state version {data.get('version')!r} unsupported "
+                f"(this build reads v{VERSION}; upgrade v1 with "
+                f"state_migrate.py --workspace {path.parent})")
         return cls(path, data)
 
     def save(self) -> None:
@@ -179,7 +207,8 @@ class State:
                              f"got {status!r}")
         entry = {"ts": now(), "status": status,
                  "failing_count": result.get("failing_count", 0),
-                 "total": (result.get("counts") or {}).get("total", 0)}
+                 "total": (result.get("counts") or {}).get("total", 0),
+                 "inputs": self._hash_gate_inputs(gate)}
         g = self.data["gates"].setdefault(
             gate, {"phase": phase or result.get("phase"), "status": None,
                    "attempts": 0, "last": None, "history": []})
@@ -189,13 +218,149 @@ class State:
         g["status"] = status
         g["last"] = entry
         g["history"].append(entry)
+        # the gate just ran against the CURRENT inputs: whatever edit marks it
+        # carried are resolved (pass or fail - the result is current either way)
+        g.pop("stale", None)
         self._log("gate", gate=gate, status=status, attempt=g["attempts"],
                   failing_count=entry["failing_count"])
         return g
 
+    def _imap(self) -> dict:
+        return statelib.load_map()
+
+    def _hash_gate_inputs(self, gate: str) -> dict:
+        """Normalized hashes of every artifact the gate reads (statelib),
+        resolved against the state file's own directory - the freshness key
+        the result stays valid under. Hashed kinds are silently auto-
+        registered in the artifacts registry (XC-8: the registry was dead
+        because registration was a separate manual step)."""
+        imap = self._imap()
+        ws = self.path.parent
+        board = self.data.get("board") or ""
+        registry = self.data["artifacts"]
+        inputs: dict[str, str | None] = {}
+        for kind in imap["gate_inputs"].get(gate, []):
+            rel, sha = statelib.hash_kind(ws, board, kind, imap, registry)
+            inputs[kind] = sha
+            entry = registry.get(kind)
+            if not isinstance(entry, dict):
+                entry = {}
+            entry.update({"path": rel, "kind": kind, "sha256": sha,
+                          "hashed": now()})
+            registry[kind] = entry          # stale marks (if any) survive
+        return inputs
+
     def set_artifact(self, name: str, path: str) -> None:
-        self.data["artifacts"][name] = str(path).replace("\\", "/")
-        self._log("artifact", name=name, path=self.data["artifacts"][name])
+        """Register/refresh an artifact by name. Explicit registration means
+        "this file was (re)produced": the entry is re-hashed and any stale
+        marks on it are cleared."""
+        rel = str(path).replace("\\", "/")
+        imap = self._imap()
+        kind = name if name in imap["artifact_kinds"] else None
+        norm = (imap["artifact_kinds"][kind]["norm"] if kind
+                else statelib.norm_for_path(self.path.parent / rel))
+        sha = statelib.hash_artifact(self.path.parent / rel, norm)
+        self.data["artifacts"][name] = {"path": rel, "kind": kind,
+                                        "sha256": sha, "hashed": now()}
+        self._log("artifact", name=name, path=rel)
+
+    def apply_edit(self, edit_class: str, refs: list[str] | None = None,
+                   note: str | None = None) -> dict:
+        """Record a declared edit: stamp the invalidation map's stale set.
+        Marks land on RECORDED gates (an unrun gate has no result to
+        distrust) and on the mapped derived artifacts (registry entries are
+        created at their current hash when absent, so later regeneration is
+        detectable). Returns the full mapped sets + the ceremony weight."""
+        imap = self._imap()
+        ec = imap["edit_classes"].get(edit_class)
+        if ec is None:
+            raise CheckError(
+                f"unknown edit class {edit_class!r} "
+                f"(known: {', '.join(sorted(imap['edit_classes']))})")
+        ts = now()
+        mark = {"ts": ts, "edit_class": edit_class, "refs": refs or [],
+                "human_hold": ec["human_hold"]}
+        marked_gates = []
+        for gname in ec["gates"]:
+            g = self.data["gates"].get(gname)
+            if g is not None:
+                g.setdefault("stale", []).append(mark)
+                marked_gates.append(gname)
+        ws = self.path.parent
+        board = self.data.get("board") or ""
+        registry = self.data["artifacts"]
+        for kind in ec["stale_artifacts"]:
+            entry = registry.get(kind)
+            if not isinstance(entry, dict):
+                rel, sha = statelib.hash_kind(ws, board, kind, imap, registry)
+                entry = {"path": rel, "kind": kind, "sha256": sha,
+                         "hashed": ts}
+                registry[kind] = entry
+            entry.setdefault("stale", []).append(mark)
+        rec = {"ts": ts, "class": edit_class, "refs": refs or [],
+               "note": note, "human_hold": ec["human_hold"],
+               "gates": list(ec["gates"]), "gates_marked": marked_gates,
+               "stale_artifacts": list(ec["stale_artifacts"])}
+        self.data["edits"].append(rec)
+        self._log("edit", edit_class=edit_class, refs=refs or [],
+                  human_hold=ec["human_hold"])
+        return rec
+
+    def rehash(self, names: list[str] | None = None) -> dict:
+        """Re-hash artifacts. Explicit --names = "I regenerated these": their
+        stale marks are force-cleared. A bare rehash refreshes every
+        registered entry plus every standard kind whose file exists, clearing
+        marks only where the hash actually CHANGED (an untouched derived
+        artifact keeps its mark - it still does not derive from the current
+        design)."""
+        imap = self._imap()
+        ws = self.path.parent
+        board = self.data.get("board") or ""
+        registry = self.data["artifacts"]
+        explicit = names is not None
+        if names is None:
+            names = sorted(set(registry) | {
+                k for k in imap["artifact_kinds"]
+                if (ws / statelib.kind_path(k, board, imap, registry)).exists()})
+        out = {}
+        for name in names:
+            entry = registry.get(name)
+            if not isinstance(entry, dict):
+                if name not in imap["artifact_kinds"]:
+                    raise CheckError(f"unknown artifact {name!r} (not "
+                                     "registered, not a standard kind)")
+                entry = {"kind": name}
+            # an existing entry's kind is authoritative - a null kind on a
+            # kind-named entry is DELIBERATE (migration: same name, different
+            # file) and must not be resurrected from the name here
+            kind = entry.get("kind")
+            if kind not in imap["artifact_kinds"]:
+                kind = None
+            rel = entry.get("path") or statelib.kind_path(
+                kind or name, board, imap, registry)
+            norm = (imap["artifact_kinds"][kind]["norm"] if kind
+                    else statelib.norm_for_path(ws / rel))
+            old = entry.get("sha256")
+            sha = statelib.hash_artifact(ws / rel, norm)
+            entry.update({"path": rel, "kind": kind, "sha256": sha,
+                          "hashed": now()})
+            if entry.get("stale") and (explicit or sha != old):
+                entry.pop("stale", None)
+            registry[name] = entry
+            out[name] = {"path": rel, "sha256": sha, "changed": sha != old,
+                         "stale_marks": len(entry.get("stale") or [])}
+        self._log("rehash", names=sorted(out))
+        return out
+
+    def record_spawn(self, record: dict) -> dict:
+        """Append a subagent spawn to the first-class ledger (XC-8: tier
+        choices survived only as digest prose; the SKILL step-5 log form
+        routes here too)."""
+        rec = {"ts": now(), **{k: v for k, v in record.items()
+                               if v is not None}}
+        self.data["spawns"].append(rec)
+        self._log("spawn", role=rec.get("role"), model=rec.get("model"))
+        return rec
 
     def add_decision(self, what: str, why: str, phase: str | None = None) -> None:
         self.data["decisions"].append(
@@ -270,8 +435,9 @@ class State:
         dest = ws / SNAP_DIR / label
         if dest.exists():
             shutil.rmtree(dest)
-        rels = files or [p for p in self.data["artifacts"].values()
-                         if (ws / p).is_file()]
+        rels = files or [a["path"] for a in self.data["artifacts"].values()
+                         if isinstance(a, dict) and a.get("path")
+                         and (ws / a["path"]).is_file()]
         manifest = []
         for rel in rels:
             src = ws / rel
@@ -308,6 +474,13 @@ class State:
         self._log("restore", label=label, files=len(restored))
         return {"label": label, "restored": restored}
 
+    # ---- freshness -------------------------------------------------------
+    def freshness(self) -> dict:
+        """Read-only two-layer freshness report (statelib): per recorded gate
+        hash validity + stale marks, per artifact registered-vs-current."""
+        return statelib.freshness_report(self.data, self.path.parent,
+                                         self._imap())
+
     # ---- resume ----------------------------------------------------------
     def resume_summary(self) -> dict:
         gates = self.data["gates"]
@@ -324,10 +497,16 @@ class State:
                          if PHASES.index(self.data["phase"]) >
                          PHASES.index(ph) and cp not in self.data["human"]]
         last = self.data["history"][-1] if self.data["history"] else None
+        fresh = self.freshness()
         return {
             "script": SCRIPT, "board": self.data["board"],
             "workspace": self.data["workspace"], "phase": self.data["phase"],
             "gates_passed": passed, "next_gate": next_gate,
+            "gates_passed_fresh": [g for g in passed
+                                   if fresh["gates"][g]["fresh"]],
+            "gates_stale": fresh["summary"]["stale"],
+            "gates_freshness_unknown": fresh["summary"]["unknown"],
+            "human_hold_pending": fresh["summary"]["human_hold_pending"],
             "open_issues": open_issues, "pending_human": sorted(pending_human),
             "budgets": self.data["budgets"],
             "artifacts": self.data["artifacts"], "last_event": last,
@@ -363,7 +542,7 @@ def run(argv=None):
     p.add_argument("--force", action="store_true")
     p.add_argument("--out")
 
-    for name in ("show", "resume"):
+    for name in ("show", "resume", "freshness"):
         common(sub.add_parser(name))
 
     p = sub.add_parser("set-phase")
@@ -381,6 +560,30 @@ def run(argv=None):
     common(p)
     p.add_argument("--name", required=True)
     p.add_argument("--path", required=True)
+
+    p = sub.add_parser("edit", help="record a declared edit; stamps the "
+                       "invalidation.yaml stale set")
+    common(p)
+    p.add_argument("--class", dest="edit_class", required=True,
+                   help="edit class from reference/invalidation.yaml")
+    p.add_argument("--refs", nargs="*", default=None,
+                   help="refdes/net names the edit touches (for the record)")
+    p.add_argument("--note")
+
+    p = sub.add_parser("rehash", help="re-hash artifacts; --names = "
+                       "force-clear their stale marks (regenerated)")
+    common(p)
+    p.add_argument("--names", nargs="*", default=None)
+
+    p = sub.add_parser("spawn", help="record a subagent spawn in the ledger")
+    common(p)
+    p.add_argument("--role", required=True)
+    p.add_argument("--model", required=True)
+    p.add_argument("--effort")
+    p.add_argument("--phase")
+    p.add_argument("--tokens", type=int)
+    p.add_argument("--cost-usd", type=float, dest="cost_usd")
+    p.add_argument("--note")
 
     p = sub.add_parser("decision")
     common(p)
@@ -438,6 +641,8 @@ def run(argv=None):
         return {**result, **st.data}, args.out
     if args.cmd == "resume":
         return {**result, **st.resume_summary()}, args.out
+    if args.cmd == "freshness":                     # read-only: never saves
+        return {**result, **st.freshness()}, args.out
 
     if args.cmd == "set-phase":
         warnings = st.set_phase(args.phase)
@@ -451,7 +656,19 @@ def run(argv=None):
                       attempts=g["attempts"])
     elif args.cmd == "artifact":
         st.set_artifact(args.name, args.path)
-        result.update(name=args.name, path=args.path)
+        result.update(name=args.name, path=args.path,
+                      sha256=st.data["artifacts"][args.name]["sha256"])
+    elif args.cmd == "edit":
+        rec = st.apply_edit(args.edit_class, args.refs, args.note)
+        result.update(edit=rec)
+    elif args.cmd == "rehash":
+        result.update(artifacts=st.rehash(args.names))
+    elif args.cmd == "spawn":
+        rec = st.record_spawn({
+            "role": args.role, "model": args.model, "effort": args.effort,
+            "phase": args.phase, "tokens": args.tokens,
+            "cost_usd": args.cost_usd, "note": args.note})
+        result.update(spawn=rec)
     elif args.cmd == "decision":
         st.add_decision(args.what, args.why, args.phase)
         result.update(what=args.what)
@@ -466,10 +683,20 @@ def run(argv=None):
         remaining = st.budget(args.bpath, args.consume)
         result.update(path=args.bpath, remaining=remaining)
     elif args.cmd == "log":
+        if not EVENT_RE.fullmatch(args.event or ""):
+            raise CheckError(
+                f"bad event name {args.event!r}: event names are machine "
+                "keys matching [a-z][a-z0-9_-]{0,31} - put prose in "
+                '--data {"msg": ...}')
         extra = json.loads(args.data) if args.data else {}
         if not isinstance(extra, dict):
             raise CheckError("--data must be a JSON object")
-        st._log(args.event, **extra)
+        if args.event == "spawn":
+            # SKILL step-5 form: the spawn ledger is first-class (XC-8);
+            # record_spawn writes both the ledger entry and the history event
+            result.update(spawn=st.record_spawn(extra))
+        else:
+            st._log(args.event, **extra)
         result.update(event=args.event)
     elif args.cmd == "snapshot":
         result.update(st.snapshot(args.label, args.files))
