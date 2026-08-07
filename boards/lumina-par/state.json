@@ -3,9 +3,37 @@
  "board": "lumina-par",
  "workspace": "boards/lumina-par",
  "created": "2026-07-28T15:00:15",
- "updated": "2026-08-07T01:58:03",
- "phase": "P3",
- "gates": {},
+ "updated": "2026-08-07T11:58:05",
+ "phase": "P4",
+ "gates": {
+  "erc": {
+   "phase": "P4",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-08-07T11:58:05",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0,
+    "inputs": {
+     "sch": "sexpr_no_uuid:5059aeb42e06354313ad637e89336bade2b014f9e83729045259a3e3725594ab",
+     "pro": "json_canonical:6830e3a3b05e406140bb008f11bd24e5329bfca65c3924bb1642598804f43fbb"
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-07T11:58:05",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "sch": "sexpr_no_uuid:5059aeb42e06354313ad637e89336bade2b014f9e83729045259a3e3725594ab",
+      "pro": "json_canonical:6830e3a3b05e406140bb008f11bd24e5329bfca65c3924bb1642598804f43fbb"
+     }
+    }
+   ]
+  }
+ },
  "human": {
   "1": {
    "status": "approved",
@@ -13,7 +41,20 @@
    "note": "H1 approved with 4 directed changes: (Q1) enclosure sealed + LED heat conducted through the wall; (Q2) emitter changed to RGB 3-in-1 + separate white, AGAINST the run's recommendation, chosen knowingly for a published 125 C Tj and 3.5x stock over an assumed 12 K/W Rth from a sole source; (Q3) firmware commits to PWM-domain dithering >=3-4 bits, strict gamma-2.2 reading of PAR-REQ-01 binds; (Q4) same-reel sourcing, 24C32 fitted but shipped empty, PAR-REQ-16/17 to be formally amended."
   }
  },
- "artifacts": {},
+ "artifacts": {
+  "sch": {
+   "path": "kicad/lumina-par.kicad_sch",
+   "kind": "sch",
+   "sha256": "sexpr_no_uuid:5059aeb42e06354313ad637e89336bade2b014f9e83729045259a3e3725594ab",
+   "hashed": "2026-08-07T11:58:05"
+  },
+  "pro": {
+   "path": "kicad/lumina-par.kicad_pro",
+   "kind": "pro",
+   "sha256": "json_canonical:6830e3a3b05e406140bb008f11bd24e5329bfca65c3924bb1642598804f43fbb",
+   "hashed": "2026-08-07T11:58:05"
+  }
+ },
  "open_issues": [],
  "next_issue_id": 1,
  "budgets": {
@@ -195,6 +236,36 @@
    "why": "J3/J4: ICD-01 s5.2 mandates 1.70 mm annulus on a 1.10 mm drill and daughters must conform - the carrier already normalised its mating DS1021 pair the same way (its lib/EDITS.md edit 1). Note the as-pulled J3 gap of 0.74 mm still CLEARS the 0.635 mm creepage requirement at 1.165x, so this is an ICD-conformance fix, not a safety fix - but conformance is the point of a frozen interface. Inductor: as-pulled land is 3.20 mm centres against a 2.60 mm datasheet land, a 0.60 mm error with pads hanging 0.40 mm past the body; KiCad stock at 2.70 is a strict superset of the datasheet land. SMF15A: 3.26 vs 3.00 pitch is a 0.13 mm outboard shift with pad size EXACTLY matching the datasheet - solderable, accept.",
    "phase": "P3",
    "ts": "2026-07-28T22:26:26"
+  },
+  {
+   "what": "P4 schematic-block agents run at opus/high instead of the tier table's fable/medium",
+   "why": "Fable 5 credits exhausted account-wide. The skill's own tier table ranks fable/medium ABOVE opus/high, so opus is the nearest substitution that is not the silent downgrade the spawn rules forbid; user chose it over a cheaper mixed or all-sonnet split with the drivers/thermal safety content in view",
+   "phase": "P4",
+   "ts": "2026-08-07T10:56:36"
+  },
+  {
+   "what": "The power sheet owns ALL FOUR PWR_FLAGs (GND, +12V, +3V3, +48V_SW); every other sheet places consuming power symbols only",
+   "why": "each rail enters the board through J3's passive pins on the power sheet, so that is the one honest driver; PWR_FLAG's pin is power_out and a second flag on the same rail collides power_out<->power_out and fails the erc gate",
+   "phase": "P4",
+   "ts": "2026-08-07T11:16:48"
+  },
+  {
+   "what": "J5 entry-direction question CLOSED: S10B-PH-SM4-TB is SIDE ENTRY and is the CORRECT part - no swap-part",
+   "why": "datasheet p3 splits the model table into Top entry (B2B..B16B-PH-SM4-TB) and Side entry (S2B..S15B-PH-SM4-TB) columns, repeated twice more for the THT and LIF variants: the entry code is the LEADING letter, and the B in '10B' appears in every model of the series. Side entry is also right for this board - the module mounts to the enclosure wall so the harness leaves laterally regardless, and J5 is on B.Cu inside the ICD's 11.0 mm mezzanine gap where a top-entry PHR-10 housing plus bend radius would foul the carrier",
+   "phase": "P4",
+   "ts": "2026-08-07T11:16:49"
+  },
+  {
+   "what": "The /PWM0..3 nets MUST carry the canonical root-level names /PWM0../PWM3; preferred mechanism is exposing them as hierarchical pins from control, with re-spelling constraints.json to /control/PWMn as the sanctioned fallback if that is not ERC-clean",
+   "why": "sheets.md s2 states these are the names the schematic must produce, and constraints.json.high_speed feeds SEVEN consumers (check_return_path, planes_gen, route_critical, rules_gen, stitch_vias, constraints_lint, netlist_audit) - a mismatch silently drops the jitter-sensitive PWM nets from every one of them, on the board whose hardest requirement is the PAR-REQ-01 141 ns timing wall. It also fails netlist_audit outright (missing_net is an error), so it must be settled before the root build. sheets.md is internally inconsistent here - it lists PWM in the INTERFACE net table while its own From->to column calls them control-internal - so the tie-break is which artifact ends up TRUE: name-match is required either way, and the hier-pin route keeps one uniform convention across all root nets",
+   "phase": "P4",
+   "ts": "2026-08-07T11:23:05"
+  },
+  {
+   "what": "REVERSAL of the earlier P4 ruling: /PWM0..3 keep their real netlist names /control/PWM0..3, and constraints.json high_speed was re-spelled to match. The preferred hier-pin mechanism was tried, measured and REJECTED",
+   "why": "the hier-pin route works electrically (netlist carried /PWM0 = J4-1 + R202-1 + U202-1) but is NOT ERC-clean: 4x label_dangling, because the root subgraph for those nets is wire + label + exactly ONE sheet pin and KiCad 10.0.3 requires a real connection point. Two probes settled the rule: a second same-named root label does NOT satisfy it (8 errors, both flagged), while one TestPoint pin per root PWM wire takes the identical project to 0/0 - so buying the bare name would mean adding four PARTS to the root, a design change rather than a stitch fix. Every other root net escapes this only because two children expose it. lumina-carrier never exercised it: all 70 of its root labels appear 2-3 times. Outcome is equivalent for the seven high_speed consumers, which match on exact name and do not validate name shape",
+   "phase": "P4",
+   "ts": "2026-08-07T11:58:05"
   }
  ],
  "history": [
@@ -631,8 +702,271 @@
    "event": "migrated",
    "from_version": 1,
    "to_version": 2
+  },
+  {
+   "ts": "2026-08-07T10:44:10",
+   "event": "resumed",
+   "session": "lumina-par resume 2026-08-07",
+   "found_phase": "P3",
+   "gates": "none recorded",
+   "next_gate": "erc@P4",
+   "p3_verified_on_disk": "47 part lines, 23 footprints, 91 symbols, 18 fp_verify (4 violations all pre-approved: 2 off-board emitter modules + L301/D501 KiCad-stock land deltas)",
+   "env": "check_env exit 0"
+  },
+  {
+   "ts": "2026-08-07T10:45:33",
+   "event": "phase",
+   "phase": "P4",
+   "prev": "P3"
+  },
+  {
+   "ts": "2026-08-07T10:49:34",
+   "event": "p4_setup",
+   "lib_pin_retype": "applied lib_pin_types.py to lib/aiee.kicad_sym: 44 symbols, 18/18 extracts matched, 193 pins retyped (121 unspecified->passive, 56 input->passive, 11 ->power_in, 4 output->passive, 1 ->power_out)",
+   "why": "pulled-lib pin types are junk; the erc gate (errors+warnings=0) cannot pass untouched - LEARNINGS 2026-07-27",
+   "power_out_note": "TPS92515HV pin 2 VCC is the internal LDO output - correct as power_out, but no PWR_FLAG may go on a driver VCC node or ERC raises power_out<->power_out",
+   "p4_notes": "architecture/p4-wiring-notes.md written - binding facts superseding sheets.md (R206=4.7k, 0.75R sense, SSM3K2615R, COFF network, LM339LV/LVC00A errata, connector actions)"
+  },
+  {
+   "ts": "2026-08-07T10:53:11",
+   "event": "spawn",
+   "role": "schematic-block",
+   "model": "fable"
+  },
+  {
+   "ts": "2026-08-07T10:53:11",
+   "event": "spawn",
+   "role": "schematic-block",
+   "model": "fable"
+  },
+  {
+   "ts": "2026-08-07T10:53:11",
+   "event": "spawn",
+   "role": "schematic-block",
+   "model": "fable"
+  },
+  {
+   "ts": "2026-08-07T10:53:12",
+   "event": "spawn",
+   "role": "schematic-block",
+   "model": "fable"
+  },
+  {
+   "ts": "2026-08-07T10:53:12",
+   "event": "spawn",
+   "role": "schematic-block",
+   "model": "fable"
+  },
+  {
+   "ts": "2026-08-07T10:55:06",
+   "event": "spawn_aborted",
+   "what": "all 5 P4 schematic-block agents spawned at the SKILL tier fable/medium; 2 died on a Fable 5 credit exhaustion, 3 stopped pre-emptively",
+   "files_written": "none - kicad/gen/ still empty, no partial sheets on disk",
+   "blocked_on": "model tier substitution decision - fable is unavailable account-wide",
+   "note": "tier table ranks schematic-block at fable/medium, which sits ABOVE opus/high in the same table, so sonnet would be a silent downgrade the skill forbids"
+  },
+  {
+   "ts": "2026-08-07T10:56:36",
+   "event": "decision",
+   "what": "P4 schematic-block agents run at opus/high instead of the tier table's fable/medium"
+  },
+  {
+   "ts": "2026-08-07T10:59:30",
+   "event": "spawn",
+   "role": "schematic-block",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-07T10:59:30",
+   "event": "spawn",
+   "role": "schematic-block",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-07T10:59:30",
+   "event": "spawn",
+   "role": "schematic-block",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-07T10:59:31",
+   "event": "spawn",
+   "role": "schematic-block",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-07T10:59:31",
+   "event": "spawn",
+   "role": "schematic-block",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-07T11:16:48",
+   "event": "decision",
+   "what": "The power sheet owns ALL FOUR PWR_FLAGs (GND, +12V, +3V3, +48V_SW); every other sheet places consuming power symbols only"
+  },
+  {
+   "ts": "2026-08-07T11:16:49",
+   "event": "decision",
+   "what": "J5 entry-direction question CLOSED: S10B-PH-SM4-TB is SIDE ENTRY and is the CORRECT part - no swap-part"
+  },
+  {
+   "ts": "2026-08-07T11:16:49",
+   "event": "p4_sheet_findings",
+   "dnp_has_no_consumer": "SEVERITY: ships wrong parts. kicad-sch-api 0.5.5 exposes no dnp field on SchematicSymbol and its writer hard-codes (dnp no), so KiCads native DNP flag is unreachable from a generator. power.py used a Variant=DNP component field, which DOES reach the netlist - but nothing in scripts/ reads any DNP marking (one comment in bom_cpl.py is the only hit). P9 bom_cpl builds from the board pos export and will SHIP the 9 branch-B parts + the control sheets one-shot set unless a filter is added.",
+   "j5_pin_map_is_new_interface": "led_if DEFINED the J5 harness circuit numbering (no upstream doc assigned it): 1 /LED0_A, 2 GND, 3 /LED1_A, 4 GND, 5 /LED2_A, 6 GND, 7 /LED3_A, 8 GND, 9 GND (NTC sense return), 10 /NTC_LED. Anode adjacent to its own return = one crimp pair per channel; NTC at the extreme end with two grounds between it and the nearest switching anode. MUST reach the harness/module build sheet.",
+   "ntc_return_single_point_join_ungated": "J5 pin 9 is its own circuit so no LED current shares the sense wire (netlist-visible), but pins 2/4/6/8/9 are all GND and sheets.md s2 defines no separate return net. blocks.md B6 joined to GND only at the comparator reference point is therefore a P6/P7 copper obligation with NO gate enforcing it.",
+   "j5_placement_asymmetry_for_p6": "side-entry land is asymmetric front-to-back: solder tabs 0.2 mm beyond the wafer mating end face, 10 circuit pads 5.5-9.0 mm behind it, 9.2 mm total land depth. J5 must be oriented wafer-end-face OUT across the top edge and MUST NOT be mirrored.",
+   "c113344_symbol_ref_prefix": "the pulled C113344 symbols default Reference is H, not J - anything that annotates from the symbol would call J3 H1"
+  },
+  {
+   "ts": "2026-08-07T11:22:49",
+   "event": "p4_bom_gap_boot_network",
+   "severity": "blocking for P9, and the board cannot switch without these parts",
+   "finding": "the TPS92515HV BOOT network and VCC decoupler are allocated NOWHERE - not sheets.md, blocks.md, p4-wiring-notes.md or parts.json. p4-wiring-notes s2 even ASSUMES the VCC decoupler exists (ROFF2 sources from VCC) while no BOM line creates it.",
+   "added_by_drivers_agent": "12 refdes on LCSC lines the BOM already carries (lumina-carrier pwr.py precedent): C305/C325/C345/C365 BOOT cap 100nF (C14663, pin 4 - without it the high-side FET has no gate supply); D302/D322/D342/D362 BOOT diode 1N4148W (C81598, anode VCC to cathode BOOT); C306/C326/C346/C366 VCC decoupler 4.7uF (C354262, sec 8.3.6 1uF / >=10x BOOT window)",
+   "orchestrator_action": "fold all 12 into parts.json and add C305/C306/D302 (+20/channel) to constraints.json placement.groups.ch<n>",
+   "boot_margin": "BOOT-SW settles 4.09/4.29/4.49 V vs BOOT-UVLO falling 2.0/2.8/3.5 V = 0.59 V (17 pct) worst case. Adequate but not lavish; a Schottky buys ~0.4 V but needs a new LCSC line - a human call at H2, not a P4 one"
+  },
+  {
+   "ts": "2026-08-07T11:22:50",
+   "event": "p4_control_findings",
+   "r206_symbol_gap": "lib/aiee.kicad_sym has no 4.7k symbol - lib_pull ran off a parts.json line that still says VALUE TBD. control.py placed R206 on aiee:0603WAF1002T5E as a FOOTPRINT CARRIER (parts.json role text explicitly authorises a 0603 placeholder) with Value 4.7k 0603 1% and LCSC C23162. parts.json R206 must be re-issued (TBD -> 4.7k, C25804 -> the real 4.7k line) because a parts.json entry OVERRIDES the board field in bom_cpl",
+   "r201_ungrouped": "ICD s8.2 requires the 100k ENABLE pull-down AT THE CONNECTOR END. Schematically it is directly across J4-23 with no series element, but constraints.json placement.groups binds R202-R205 to gate (anchored on U202) and binds R201 to NOTHING, so P6 may park it anywhere. Add R201 to a J4-anchored group",
+   "oneshot_topology_assumed": "sheets.md names the DNP one-shot parts but not its wiring. control.py sourced it from /SHUNTn (R21n 100k with D20n across it, C21n 10nF to GND, one LVC14A inverter per channel) - the only source that fits 4 channels in a 6-gate hex, and /SHUNTn already carries /EN_OK so blocks.md B2 fail-safe behaviour falls out free",
+   "oneshot_bench_items_if_populated": "(a) the 1N4148 clamps IDLEn ~0.5-0.7 V above /SHUNTn against the LVC14A VT- ~1.0 V at 3V3 - only 0.3-0.5 V margin, a BAT54-class Schottky is safer. (b) the diode hangs 10nF off /SHUNTn, a net blocks.md B2 caps at tau<=14ns. Neither affects the default build (set is DNP)",
+   "c205_orphan": "C205 is fitted while its IC U204 is DNP - deliberate per parts.json, but it is an orphan 100nF beside an empty SOIC-14 if the one-shot is never populated"
+  },
+  {
+   "ts": "2026-08-07T11:23:05",
+   "event": "decision",
+   "what": "The /PWM0..3 nets MUST carry the canonical root-level names /PWM0../PWM3; preferred mechanism is exposing them as hierarchical pins from control, with re-spelling constraints.json to /control/PWMn as the sanctioned fallback if that is not ERC-clean"
+  },
+  {
+   "ts": "2026-08-07T11:38:18",
+   "event": "h2_agenda_r207",
+   "item": "R207 100k -> 10k on the control sheet, recommended by the thermal agent",
+   "effect_if_taken": "widens hysteresis bands from the achieved 1.2-4.0 K toward the 15 K target and fixes the unmated-bench case",
+   "why_not_taken_now": "NOT a one-line change - thermal solved its entire DC network (R409+R411=112k series feedback and all four thresholds) against a 10k||100k FAULT pull-up. Changing R207 invalidates the solved ladder and would require re-deriving thermal.py. Goes to the fresh-context reviewer and H2 with numbers instead",
+   "icd_check_done": "ICD s3/s5 puts the REAL pull-up on the CARRIER (10k to +3V3); R207 is only the local defined-when-unmated pull-up, so mated effective is 10k||100k = 9.09k today and would be 5k if taken. ICD rev A6 requires a daughter to sink >=5 mA with real load ~4.3 mA; the change adds ~0.33 mA, still well inside the eFuse 10 mA FLT limit. No ICD conflict either way - this is a tuning choice, not a compliance one",
+   "current_state_is_acceptable": "narrow bands are in the FAIL-SAFE direction and still <=0.02 Hz against a 30-120 s module time constant, so spec-dimming R10 is satisfied as built"
+  },
+  {
+   "ts": "2026-08-07T11:42:28",
+   "event": "spawn",
+   "role": "schematic-block",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-07T11:58:05",
+   "event": "gate",
+   "gate": "erc",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-07T11:58:05",
+   "event": "decision",
+   "what": "REVERSAL of the earlier P4 ruling: /PWM0..3 keep their real netlist names /control/PWM0..3, and constraints.json high_speed was re-spelled to match. The preferred hier-pin mechanism was tried, measured and REJECTED"
+  },
+  {
+   "ts": "2026-08-07T11:58:05",
+   "event": "p4_naming_residuals",
+   "same_class_as_PWM": "/ENABLE, /I2C_SCL, /I2C_SDA and /ID_ADC are all wholly internal to control and carry /control/NAME in the netlist. No constraint references any of them, so nothing was changed.",
+   "doc_debt": "architecture/sheets.md s2 canonical-net table still prints /PWM0 and is now CONTRADICTED by constraints.json. p4-wiring-notes.md supersedes sheets.md, but s2 should be amended before the design doc quotes it.",
+   "scope_note": "the root agent also edited control.py docstring/comments (not HIER_NETS - electrically identical) to record the measured outcome, and appended one LEARNINGS entry on the label_dangling rule. Both slightly beyond its stated scope; both disclosed and both kept."
   }
  ],
- "spawns": [],
+ "spawns": [
+  {
+   "ts": "2026-08-07T10:53:11",
+   "role": "schematic-block",
+   "model": "fable",
+   "effort": "medium",
+   "phase": "P4",
+   "note": "sheet: power"
+  },
+  {
+   "ts": "2026-08-07T10:53:11",
+   "role": "schematic-block",
+   "model": "fable",
+   "effort": "medium",
+   "phase": "P4",
+   "note": "sheet: control"
+  },
+  {
+   "ts": "2026-08-07T10:53:11",
+   "role": "schematic-block",
+   "model": "fable",
+   "effort": "medium",
+   "phase": "P4",
+   "note": "sheet: drivers"
+  },
+  {
+   "ts": "2026-08-07T10:53:12",
+   "role": "schematic-block",
+   "model": "fable",
+   "effort": "medium",
+   "phase": "P4",
+   "note": "sheet: thermal"
+  },
+  {
+   "ts": "2026-08-07T10:53:12",
+   "role": "schematic-block",
+   "model": "fable",
+   "effort": "medium",
+   "phase": "P4",
+   "note": "sheet: led_if"
+  },
+  {
+   "ts": "2026-08-07T10:59:30",
+   "role": "schematic-block",
+   "model": "opus",
+   "effort": "high",
+   "phase": "P4",
+   "note": "sheet: power (re-spawn after fable credit exhaustion)"
+  },
+  {
+   "ts": "2026-08-07T10:59:30",
+   "role": "schematic-block",
+   "model": "opus",
+   "effort": "high",
+   "phase": "P4",
+   "note": "sheet: control (re-spawn after fable credit exhaustion)"
+  },
+  {
+   "ts": "2026-08-07T10:59:30",
+   "role": "schematic-block",
+   "model": "opus",
+   "effort": "high",
+   "phase": "P4",
+   "note": "sheet: drivers (re-spawn after fable credit exhaustion)"
+  },
+  {
+   "ts": "2026-08-07T10:59:31",
+   "role": "schematic-block",
+   "model": "opus",
+   "effort": "high",
+   "phase": "P4",
+   "note": "sheet: thermal (re-spawn after fable credit exhaustion)"
+  },
+  {
+   "ts": "2026-08-07T10:59:31",
+   "role": "schematic-block",
+   "model": "opus",
+   "effort": "high",
+   "phase": "P4",
+   "note": "sheet: led_if (re-spawn after fable credit exhaustion)"
+  },
+  {
+   "ts": "2026-08-07T11:42:28",
+   "role": "schematic-block",
+   "model": "opus",
+   "effort": "high",
+   "phase": "P4",
+   "note": "root stitch + project ERC (tier table says sonnet/high for a THIN root stitch; escalated because this one also settles the /PWM naming contract and owns the first real hierarchy ERC)"
+  }
+ ],
  "edits": []
 }

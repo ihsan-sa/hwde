@@ -1,0 +1,163 @@
+{
+ "script": "netlist_audit",
+ "status": "pass",
+ "board": "lumina-par.net",
+ "counts": {
+  "total": 3,
+  "by_severity": {
+   "warning": 3
+  },
+  "by_source": {
+   "audit.netlist": 3
+  }
+ },
+ "violations": [
+  {
+   "check": "netlist_audit",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": null,
+   "refs": [
+    "J4"
+   ],
+   "msg": "pin(s) J4.7, J4.8, J4.11, J4.12, J4.14, J4.15, J4.16, J4.17 exist in the symbol but reach NO net (hierarchical exports drop no-connect singletons; these pads arrive at board_init with no net at all)",
+   "source": "audit.netlist",
+   "items": [
+    {
+     "msg": "pin(s) J4.7, J4.8, J4.11, J4.12, J4.14, J4.15, J4.16, J4.17 exist in the symbol but reach NO net (hierarchical exports drop no-connect singletons; these pads arrive at board_init with no net at all)",
+     "pos": null
+    }
+   ],
+   "kind": "pin_no_net",
+   "pins": [
+    "7",
+    "8",
+    "11",
+    "12",
+    "14",
+    "15",
+    "16",
+    "17"
+   ]
+  },
+  {
+   "check": "netlist_audit",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": null,
+   "refs": [
+    "J5"
+   ],
+   "msg": "pin(s) J5.11, J5.12 exist in the symbol but reach NO net (hierarchical exports drop no-connect singletons; these pads arrive at board_init with no net at all)",
+   "source": "audit.netlist",
+   "items": [
+    {
+     "msg": "pin(s) J5.11, J5.12 exist in the symbol but reach NO net (hierarchical exports drop no-connect singletons; these pads arrive at board_init with no net at all)",
+     "pos": null
+    }
+   ],
+   "kind": "pin_no_net",
+   "pins": [
+    "11",
+    "12"
+   ]
+  },
+  {
+   "check": "netlist_audit",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": null,
+   "refs": [
+    "U204"
+   ],
+   "msg": "pin(s) U204.10, U204.12 exist in the symbol but reach NO net (hierarchical exports drop no-connect singletons; these pads arrive at board_init with no net at all)",
+   "source": "audit.netlist",
+   "items": [
+    {
+     "msg": "pin(s) U204.10, U204.12 exist in the symbol but reach NO net (hierarchical exports drop no-connect singletons; these pads arrive at board_init with no net at all)",
+     "pos": null
+    }
+   ],
+   "kind": "pin_no_net",
+   "pins": [
+    "10",
+    "12"
+   ]
+  }
+ ],
+ "mode": "audit",
+ "nets": 72,
+ "components": 146,
+ "unconnected_pins": 0,
+ "constraint_nets_checked": 12,
+ "constraint_refs_checked": 89,
+ "pins_expected": 416,
+ "pins_connected": 404,
+ "decoupling_associations": 17,
+ "power": [
+  {
+   "net": "+12V",
+   "nodes": 21,
+   "power_in": 4,
+   "power_out": 0
+  },
+  {
+   "net": "+3V3",
+   "nodes": 20,
+   "power_in": 5,
+   "power_out": 0
+  },
+  {
+   "net": "+48V_SW",
+   "nodes": 7,
+   "power_in": 0,
+   "power_out": 0,
+   "passive_fed_via": [
+    "R101"
+   ]
+  },
+  {
+   "net": "/LED0_A",
+   "nodes": 5,
+   "power_in": 0,
+   "power_out": 0,
+   "passive_fed_via": [
+    "L301",
+    "R305"
+   ]
+  },
+  {
+   "net": "/LED1_A",
+   "nodes": 5,
+   "power_in": 0,
+   "power_out": 0,
+   "passive_fed_via": [
+    "L321",
+    "R325"
+   ]
+  },
+  {
+   "net": "/LED2_A",
+   "nodes": 5,
+   "power_in": 0,
+   "power_out": 0,
+   "passive_fed_via": [
+    "L341",
+    "R345"
+   ]
+  },
+  {
+   "net": "/LED3_A",
+   "nodes": 5,
+   "power_in": 0,
+   "power_out": 0,
+   "passive_fed_via": [
+    "L361",
+    "R365"
+   ]
+  }
+ ]
+}
