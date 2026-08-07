@@ -30,6 +30,13 @@ from pathlib import Path
 
 # Minimum KiCad per SPEC.md section 1.
 MIN_KICAD = (9, 0, 5)
+# The pipeline authors all boards in KiCad 10 format (pinned 10.0.3) and
+# formats are not forward-compatible: a 9.x kicad-cli exits 3 on them. An
+# EXPLICIT pin (AIEE_KICAD_CLI / AIEE_KICAD_ROOT) below major 10 is therefore
+# always a stale-pin mistake and is rejected loudly (ladder row 18). Plain
+# discovery still accepts >= MIN_KICAD, so 9.0.5 stays reachable for manual
+# experiments by NOT pinning.
+PIN_MIN_MAJOR = 10
 # Preference order among installed majors. 10.x preferred: it adds
 # `pcb drc --refill-zones --save-board` (headless zone refill without SWIG)
 # and `sch upgrade`. 9.0.5 is the verified fallback.
@@ -107,6 +114,27 @@ def _cli_of_root(root: Path) -> Path:
     raise EnvError(f"AIEE_KICAD_ROOT has no bin/{_cli_name()}: {root}")
 
 
+def _validate_pin(path: Path, var: str = "AIEE_KICAD_CLI",
+                  ver: tuple[int, ...] | None = None) -> Path:
+    """Reject an explicit KiCad pin whose major is below the pipeline format.
+
+    ver is probed from the binary when not given (tests pass a stub tuple)."""
+    if ver is None:
+        ver = kicad_cli_version(path)
+    if not ver:
+        raise EnvError(
+            f"{var} points at {path} but its version could not be determined "
+            "(not a working kicad-cli?); unset the pin or point it at the "
+            "10.0.3 install")
+    if ver[0] < PIN_MIN_MAJOR:
+        vs = ".".join(str(x) for x in ver)
+        raise EnvError(
+            f"{var} pins KiCad {vs}: pipeline file formats are 10.x "
+            "(9.x cannot load them); unset the stale pin or point it at the "
+            "10.0.3 install")
+    return path
+
+
 def find_kicad_cli() -> Path | None:
     """Resolve the pipeline's kicad-cli. Explicit pin > PATH > preferred install."""
     pin = os.environ.get("AIEE_KICAD_CLI")
@@ -114,10 +142,10 @@ def find_kicad_cli() -> Path | None:
         p = Path(pin)
         if not p.exists():
             raise EnvError(f"AIEE_KICAD_CLI does not exist: {pin}")
-        return p
+        return _validate_pin(p, "AIEE_KICAD_CLI")
     root_pin = os.environ.get("AIEE_KICAD_ROOT")
     if root_pin:
-        return _cli_of_root(Path(root_pin))
+        return _validate_pin(_cli_of_root(Path(root_pin)), "AIEE_KICAD_ROOT")
     w = shutil.which("kicad-cli")
     if w:
         return Path(w)

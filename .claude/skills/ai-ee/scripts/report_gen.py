@@ -461,15 +461,31 @@ class DocBuilder:
             self.record("overview", "missing", "brief/brief.md")
 
     def sec_requirements(self) -> None:
+        """Resolution ladder (T6 reportgen-fallback): the state.json artifacts
+        registry entry, then the workspace root, then the one live stray
+        location (lumina-carrier shipped a 'not found' stub while the file
+        sat at architecture/requirements.md). Off-root hits stay a warning so
+        the misplacement remains visible - check_requirements.py prevents new
+        ones at P0 exit."""
         self.start("Requirements")
-        req = read_text(self.ws, "requirements.md")
+        reg = (self.st.get("artifacts") or {}).get("requirements")
+        candidates = ([str(reg).replace("\\", "/")] if reg else []) + \
+            ["requirements.md", "architecture/requirements.md"]
+        req = rel = None
+        for cand in candidates:
+            req = read_text(self.ws, cand)
+            if req is not None:
+                rel = cand
+                break
         if req is None:
             self.warn("requirements.md not found")
             self.body.append(r"\emph{requirements.md not found.}")
             self.record("requirements", "missing", "requirements.md")
             return
+        if rel != "requirements.md":
+            self.warn(f"requirements.md found at {rel}, not workspace root")
         self.body.append(md_to_latex(req))
-        self.record("requirements", "included", "requirements.md")
+        self.record("requirements", "included", rel)
 
     def sec_architecture(self) -> None:
         used = []

@@ -47,6 +47,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import shutil
 import sys
 import time
@@ -71,6 +72,14 @@ DEFAULT_BUDGETS = {
     "place_edit_iterations": 8,
 }
 SNAP_DIR = "state_snapshots"
+# Standard workspace layout (T6 state-scaffold): init owns the scaffold so
+# the orchestrator playbook does not transcribe a directory list every run.
+SUBDIRS = ("brief", "architecture", "research", "parts", "lib", "kicad",
+           "routing", "reports", "fab", "log")
+# Digest discipline (T6 XC-4): SKILL says 5-10 lines per phase digest; the
+# post-v1 runs drifted to 23-82. Warn (never fail) when the digest for the
+# phase just left is missing or exceeds this cap (headroom for dense phases).
+DIGEST_LINE_CAP = 15
 
 
 def now() -> str:
@@ -102,6 +111,8 @@ class State:
         if phase not in PHASES:
             raise CheckError(f"unknown phase {phase!r}")
         workspace.mkdir(parents=True, exist_ok=True)
+        for d in SUBDIRS:  # idempotent scaffold; pre-existing content survives
+            (workspace / d).mkdir(exist_ok=True)
         ts = now()
         data = {
             "version": 1, "board": board,
@@ -135,12 +146,31 @@ class State:
         self.data["history"].append({"ts": now(), "event": event, **detail})
 
     # ---- mutators --------------------------------------------------------
-    def set_phase(self, phase: str) -> None:
+    def set_phase(self, phase: str) -> list[dict]:
+        """Record the phase; return warn-only digest-discipline findings for
+        the phase just left (T6 XC-4 - drift becomes recorded fact, exit 0)."""
         if phase not in PHASES:
             raise CheckError(f"unknown phase {phase!r}")
         prev = self.data["phase"]
         self.data["phase"] = phase
         self._log("phase", phase=phase, prev=prev)
+        warnings: list[dict] = []
+        if prev != phase and re.fullmatch(r"P\d+", prev or ""):
+            digest = self.path.parent / "log" / f"{prev}-digest.md"
+            if not digest.is_file():
+                warnings.append({
+                    "kind": "digest_discipline",
+                    "msg": f"log/{prev}-digest.md missing for the phase just "
+                           "left (SKILL: write 5-10 lines before set-phase)"})
+            else:
+                n = len(digest.read_text(encoding="utf-8",
+                                         errors="replace").splitlines())
+                if n > DIGEST_LINE_CAP:
+                    warnings.append({
+                        "kind": "digest_discipline",
+                        "msg": f"log/{prev}-digest.md is {n} lines "
+                               f"(cap {DIGEST_LINE_CAP}; SKILL says 5-10)"})
+        return warnings
 
     def record_gate(self, gate: str, result: dict, phase: str | None = None) -> dict:
         status = result.get("status")
@@ -398,7 +428,8 @@ def run(argv=None):
         st = State.init(Path(args.workspace), args.board, args.phase,
                         args.force)
         return {"script": SCRIPT, "cmd": "init", "state": str(st.path),
-                "board": args.board, "phase": args.phase}, args.out
+                "board": args.board, "phase": args.phase,
+                "subdirs": list(SUBDIRS)}, args.out
 
     st = State.load(_find_state(args))
     result: dict = {"script": SCRIPT, "cmd": args.cmd}
@@ -409,8 +440,10 @@ def run(argv=None):
         return {**result, **st.resume_summary()}, args.out
 
     if args.cmd == "set-phase":
-        st.set_phase(args.phase)
+        warnings = st.set_phase(args.phase)
         result["phase"] = args.phase
+        if warnings:
+            result["warnings"] = warnings
     elif args.cmd == "record-gate":
         gres = checklib.load_json(args.result, "gate result")
         g = st.record_gate(args.gate, gres, args.phase)

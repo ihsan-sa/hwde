@@ -48,6 +48,38 @@ def test_state_init_show_and_force(tmp_path):
     assert state_mod.State.load(st.path).data["board"] == "demo2"
 
 
+def test_state_init_creates_standard_subdirs(tmp_path):
+    """T6 state-scaffold: init owns the workspace scaffold (the SKILL.md
+    run-start dir list moves down-ladder); pre-existing content survives."""
+    ws = tmp_path / "ws"
+    (ws / "brief").mkdir(parents=True)
+    (ws / "brief" / "brief.md").write_text("the brief", encoding="utf-8")
+    state_mod.State.init(ws, "demo")
+    for d in state_mod.SUBDIRS:
+        assert (ws / d).is_dir(), d
+    assert (ws / "brief" / "brief.md").read_text(encoding="utf-8") \
+        == "the brief"
+
+
+def test_set_phase_digest_discipline(tmp_path):
+    """T6 XC-4: leaving a phase without a <=15-line digest yields a warn-only
+    digest_discipline finding; a compliant digest stays silent."""
+    st = make_state(tmp_path)                      # phase P4
+    ws = tmp_path / "ws"
+    warns = st.set_phase("P5")                     # no log/P4-digest.md
+    assert [w["kind"] for w in warns] == ["digest_discipline"]
+    assert "P4-digest.md missing" in warns[0]["msg"]
+    (ws / "log" / "P5-digest.md").write_text(
+        "\n".join(f"line {i}" for i in range(12)), encoding="utf-8")
+    assert st.set_phase("P6") == []                # 12 lines: compliant
+    (ws / "log" / "P6-digest.md").write_text(
+        "\n".join(f"line {i}" for i in range(20)), encoding="utf-8")
+    warns = st.set_phase("P7")
+    assert [w["kind"] for w in warns] == ["digest_discipline"]
+    assert "20 lines" in warns[0]["msg"]
+    assert st.set_phase("P7") == []                # no-op: nothing was left
+
+
 def test_state_phase_validation(tmp_path):
     st = make_state(tmp_path)
     st.set_phase("P7")
@@ -119,7 +151,7 @@ def test_state_snapshot_restore(tmp_path):
     st = make_state(tmp_path)
     ws = Path(st.data["workspace"])
     f = ws / "kicad" / "b.txt"
-    f.parent.mkdir(parents=True)
+    f.parent.mkdir(parents=True, exist_ok=True)  # init already scaffolds it
     f.write_text("original", encoding="utf-8")
     st.set_artifact("pcb", "kicad/b.txt")
     snap = st.snapshot("pre-fix-1")
@@ -159,6 +191,14 @@ def test_state_cli_contract(tmp_path, capsys):
     assert rc == 0
     out = json.loads(capsys.readouterr().out)
     assert out["cmd"] == "init"
+    assert out["subdirs"] == list(state_mod.SUBDIRS)
+    # digest warning surfaces in the set-phase result JSON, exit stays 0
+    rc = state_mod.main(["set-phase", "--workspace", str(ws),
+                         "--phase", "P1"])
+    assert rc == 0
+    out = json.loads(capsys.readouterr().out)
+    assert any(w["kind"] == "digest_discipline"
+               for w in out.get("warnings", []))
     rc = state_mod.main(["show", "--workspace", str(ws)])
     assert rc == 0
     assert json.loads(capsys.readouterr().out)["board"] == "b"

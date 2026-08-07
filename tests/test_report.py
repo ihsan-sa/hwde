@@ -503,6 +503,54 @@ def test_bracket_content_never_breaks_latex(tmp_path, capsys):
     assert "\\item [" not in text
 
 
+def test_requirements_fallback_architecture(tmp_path, capsys):
+    """T6 reportgen-fallback: an off-root requirements.md (the shipped
+    carrier escape) is included via the architecture/ fallback with a
+    visible warning, never a 'not found' stub."""
+    ws = make_workspace(tmp_path)
+    body = (ws / "requirements.md").read_text(encoding="utf-8")
+    (ws / "requirements.md").unlink()
+    (ws / "architecture" / "requirements.md").write_text(body,
+                                                         encoding="utf-8")
+    code, payload = run_main(["--workspace", str(ws), "--tex-only"],
+                             tmp_path, capsys)
+    assert code == 0, payload
+    by_name = {s["name"]: s for s in payload["sections"]}
+    assert by_name["requirements"]["status"] == "included"
+    assert by_name["requirements"]["source"] == "architecture/requirements.md"
+    assert any("not workspace root" in w for w in payload["warnings"])
+    text = (ws / payload["tex"]).read_text(encoding="utf-8")
+    assert "Does a thing at 5A" in text          # the real body, not a stub
+    assert "requirements.md not found" not in text
+
+
+def test_requirements_registry_path_wins(tmp_path, capsys):
+    """The artifacts registry outranks the path ladder; a registry entry at
+    the root stays warning-free."""
+    ws = make_workspace(tmp_path)
+    (ws / "docs").mkdir()
+    (ws / "requirements.md").rename(ws / "docs" / "req.md")
+    state = json.loads((ws / "state.json").read_text(encoding="utf-8"))
+    state["artifacts"]["requirements"] = "docs/req.md"
+    (ws / "state.json").write_text(json.dumps(state, indent=1),
+                                   encoding="utf-8")
+    code, payload = run_main(["--workspace", str(ws), "--tex-only"],
+                             tmp_path, capsys)
+    assert code == 0, payload
+    by_name = {s["name"]: s for s in payload["sections"]}
+    assert by_name["requirements"]["source"] == "docs/req.md"
+    assert any("not workspace root" in w for w in payload["warnings"])
+    # registry pointing at the root -> no warning (root is the contract)
+    state["artifacts"]["requirements"] = "requirements.md"
+    (ws / "state.json").write_text(json.dumps(state, indent=1),
+                                   encoding="utf-8")
+    (ws / "docs" / "req.md").rename(ws / "requirements.md")
+    code, payload = run_main(["--workspace", str(ws), "--tex-only"],
+                             tmp_path, capsys, name="out2")
+    assert code == 0, payload
+    assert not any("not workspace root" in w for w in payload["warnings"])
+
+
 def test_compile_failure_adds_warning(tmp_path, capsys, monkeypatch):
     """F5: a failed or timed-out compile must explain itself in warnings."""
     ws = make_workspace(tmp_path)
