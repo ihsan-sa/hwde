@@ -290,8 +290,12 @@ round-trips to pass/fail; suite green.
 - lumina-par / lumina-strobe resumes: `/ai-ee --resume`, anytime after T1+T2.
 - SPICE v2 items (vendor model fetch, openEMS/WSL2): tracked in the sim
   amendment of PROGRESS.md; unchanged by this plan.
-- Boards → separate GitHub repo (`git subtree split --prefix=boards`): owner
-  decision pending; independent of all steps.
+- Downstream repo syncs (both DONE 2026-08-07, re-run at milestones):
+  skill → `ihsan-sa/ai-ee` (mirror-commit of the tracked
+  `.claude/skills/ai-ee` tree); boards → `ihsan-sa/ai-ee3-boards`
+  (`git subtree split --prefix=boards -b boards-split` then push
+  `boards-split:main` — deterministic, fast-forward, branch deletable after).
+  Both private; `ai-ee3` remains canonical.
 
 ## Appendix: the per-stage tuning loop (post-T5 usage pattern, not a step)
 
