@@ -19,6 +19,8 @@ JLC capability profile does not allow:
   pro_rules(cap)             -> board.design_settings.rules block
   pro_rule_severities()      -> the floor checks, forced to ERROR
   check_pro(pro, cap)        -> [] or human-readable failures
+  check_dru(dru_text, cap)   -> [] or failures (the .kicad_dru half: the
+                                aiee_* baseline rules survive hand edits)
 
 `check_pro` is the standing assertion the LEARNINGS entries ask for at P7
 entry; board_init runs it against what it just wrote, and any later stage
@@ -33,6 +35,7 @@ Not a CLI - library only (imported by board_init.py and rules_gen.py).
 """
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import yaml
@@ -71,6 +74,24 @@ FLOOR_SEVERITIES = {
     "copper_edge_clearance": "error",
     "annular_width": "error",
     "drill_out_of_range": "error",
+}
+
+
+# The eight fab-floor BASELINE rules rules_gen emits into every .kicad_dru,
+# mapped to their jlc_capabilities.yaml key. rules_gen.baseline_rules pulls
+# its minimums FROM this map and check_dru asserts against the same map, so
+# the writer and the checker cannot drift (T6 P5-5, ladder row 160: nothing
+# previously asserted that a HAND-EDITED .kicad_dru still carried the
+# aiee_* floors - the lumina-carrier failure path).
+DRU_FLOOR_KEYS = {
+    "aiee_track_width_floor": "min_trace_width_mm",
+    "aiee_clearance_floor": "min_clearance_mm",
+    "aiee_via_drill_floor": "min_via_drill_mm",
+    "aiee_via_diameter_floor": "min_via_diameter_mm",
+    "aiee_annular_floor": "min_annular_ring_mm",
+    "aiee_edge_clearance_floor": "min_copper_to_edge_mm",
+    "aiee_hole_to_hole_floor": "min_hole_to_hole_mm",
+    "aiee_silk_width_floor": "min_silk_width_mm",
 }
 
 
@@ -146,4 +167,54 @@ def check_pro(pro: dict, cap: dict) -> list[str]:
         if got != level:
             bad.append(f"rule_severities.{check} is {got!r}, must be {level!r}"
                        " (a fab floor at warning hides real defects)")
+    return bad
+
+
+def _rule_block(dru_text: str, name: str) -> str | None:
+    """Extract one balanced `(rule "name" ...)` block, or None.
+
+    Paren-balanced scan (NOT a line regex): hand-edited DRUs close rules on
+    the same line as their last clause (lumina-carrier style), and condition
+    strings legally contain parens - quoted spans are skipped."""
+    start = dru_text.find(f'(rule "{name}"')
+    if start < 0:
+        return None
+    depth, in_str = 0, False
+    for j in range(start, len(dru_text)):
+        c = dru_text[j]
+        if c == '"':
+            in_str = not in_str
+        elif not in_str:
+            if c == "(":
+                depth += 1
+            elif c == ")":
+                depth -= 1
+                if depth == 0:
+                    return dru_text[start:j + 1]
+    return None  # unbalanced - treat as missing
+
+
+def check_dru(dru_text: str, cap: dict) -> list[str]:
+    """Assert a .kicad_dru still carries the aiee_* fab-floor baseline.
+
+    The DRU half of `check_pro` (ladder row 160): DRUs DO get hand-edited
+    (carrier appended HV rules), and a dropped or lowered aiee_* rule was
+    previously invisible until the P9 DFM gate. -> [] when every baseline
+    rule in DRU_FLOOR_KEYS is present with `(min ...)` >= the capability
+    row's floor; otherwise one message per failure. Same >= semantics as
+    check_pro. Callable via `rules_gen.py --check-dru PATH`."""
+    bad: list[str] = []
+    for name, cap_key in DRU_FLOOR_KEYS.items():
+        want = float(cap[cap_key])
+        block = _rule_block(dru_text, name)
+        if block is None:
+            bad.append(f'rule "{name}" missing (fab floor {want:g} mm)')
+            continue
+        m = re.search(r"\(min\s+([0-9.]+)mm\)", block)
+        if m is None:
+            bad.append(f'rule "{name}" has no (min ...) constraint '
+                       f"(fab floor {want:g} mm)")
+        elif float(m.group(1)) < want - 1e-9:
+            bad.append(f'rule "{name}" min {float(m.group(1)):g} mm is BELOW '
+                       f"the fab floor {want:g} mm")
     return bad

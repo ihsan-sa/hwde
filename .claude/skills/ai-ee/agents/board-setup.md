@@ -39,7 +39,12 @@ scripts with the repo venv python; JSON out, exit 0/1/2. Keep output ASCII.
    [--stackup NAME] --out-dru kicad/<board>.kicad_dru --pro
    kicad/<board>.kicad_pro`
    - fab-floor baseline (from `reference/jlc_capabilities.yaml`) + per-net
-   power widths (IPC-2152) + diff-pair gaps (impedance geometry). kicad-cli
+   power widths (IPC-2152) + diff-pair gaps (impedance geometry) + HV
+   clearance rules from constraints `voltages`/`voltage_pairs` (IPC-2221;
+   never hand-author these). Copper weight is DERIVED from the stackup like
+   board_init's - do not pass `--copper-oz` (an explicit value contradicting
+   the named stackup exits 2). Check the JSON's `capability_class` matches
+   the board's copper (e.g. `2layer_2oz` on a 2-oz build). kicad-cli
    AUTO-LOADS the .kicad_dru sitting beside the board; violated custom
    rules report `rule 'aiee_*'` in their message. Generic rules come first,
    specific per-net rules last - later rules win; do not reorder the file.

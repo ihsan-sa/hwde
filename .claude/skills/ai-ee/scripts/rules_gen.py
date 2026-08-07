@@ -6,12 +6,21 @@ expressible as a rule becomes a named DRC violation, so the standard DRC gate
 (gate.py drc) carries it for free. This script emits:
 
   1. A `<board>.kicad_dru` = fab-floor BASELINE (from reference/jlc_capabilities.yaml
-     for the board's layer count / copper weight) + DESIGN rules from constraints:
+     for the board's layer count / copper weight - the weight is DERIVED from the
+     stackup's own outer copper unless --copper-oz overrides, and an explicit
+     mismatch against a named stackup is refused, T6 P5-1) + DESIGN rules from
+     constraints:
        - power nets  -> minimum track width (IPC-2152 via check_current) per net
-       - diff pairs  -> diff_pair_gap rule + differential width (impedance.py + stackup)
+       - diff pairs  -> diff_pair_gap rule + differential width (impedance.py +
+         stackup) + inner-layer `disallow track` (V12: only OUTER microstrip is
+         solved, T6 P5-4)
+       - voltages / voltage_pairs -> named HV clearance rules from the IPC-2221
+         table in check_creepage (T6 P5-3; carrier hand-authored these before)
      Baseline rules are emitted FIRST and per-net rules LAST: when two rules of the
      same constraint type match one item, the LATER rule wins (LEARNINGS [drc]), so
      the specific per-net rule overrides the generic floor.
+     `--check-dru PATH` instead ASSERTS an existing DRU still carries the aiee_*
+     fab-floor baseline (T6 P5-5, ladder row 160 - DRUs do get hand-edited).
   2. (optional, --pro) net classes written into `<board>.kicad_pro` net_settings:
      ONE POWER CLASS PER REQUIRED WIDTH (never one class at the widest - that put
      pd-trigger's 20 mA /VDD in the same 1.75 mm class as its 5 A VBUS and would
@@ -99,21 +108,29 @@ class Rule:
 
 
 def baseline_rules(cap: dict) -> list[Rule]:
-    """Fab-floor rules from a jlc_capabilities.yaml design-rule row."""
+    """Fab-floor rules from a jlc_capabilities.yaml design-rule row.
+
+    Minimums come from fabfloors.DRU_FLOOR_KEYS - the same map
+    fabfloors.check_dru asserts against - so the writer and the checker
+    cannot drift (T6 P5-5)."""
+    def floor(name: str) -> float:
+        return cap[fabfloors.DRU_FLOOR_KEYS[name]]
+
     r: list[Rule] = []
-    r.append(Rule("aiee_track_width_floor", "track_width", cap["min_trace_width_mm"],
+    r.append(Rule("aiee_track_width_floor", "track_width", floor("aiee_track_width_floor"),
                   condition="A.Type == 'track'"))
-    r.append(Rule("aiee_clearance_floor", "clearance", cap["min_clearance_mm"]))
-    r.append(Rule("aiee_via_drill_floor", "hole_size", cap["min_via_drill_mm"],
+    r.append(Rule("aiee_clearance_floor", "clearance", floor("aiee_clearance_floor")))
+    r.append(Rule("aiee_via_drill_floor", "hole_size", floor("aiee_via_drill_floor"),
                   condition="A.Type == 'via'"))
-    r.append(Rule("aiee_via_diameter_floor", "via_diameter", cap["min_via_diameter_mm"],
+    r.append(Rule("aiee_via_diameter_floor", "via_diameter", floor("aiee_via_diameter_floor"),
                   condition="A.Type == 'via'"))
-    r.append(Rule("aiee_annular_floor", "annular_width", cap["min_annular_ring_mm"],
+    r.append(Rule("aiee_annular_floor", "annular_width", floor("aiee_annular_floor"),
                   condition="A.Type == 'via'"))
-    r.append(Rule("aiee_edge_clearance_floor", "edge_clearance", cap["min_copper_to_edge_mm"]))
-    r.append(Rule("aiee_hole_to_hole_floor", "hole_to_hole", cap["min_hole_to_hole_mm"]))
-    r.append(Rule("aiee_silk_width_floor", "text_thickness", cap["min_silk_width_mm"],
+    r.append(Rule("aiee_edge_clearance_floor", "edge_clearance", floor("aiee_edge_clearance_floor")))
+    r.append(Rule("aiee_hole_to_hole_floor", "hole_to_hole", floor("aiee_hole_to_hole_floor")))
+    r.append(Rule("aiee_silk_width_floor", "text_thickness", floor("aiee_silk_width_floor"),
                   condition="A.Type == 'text' && (A.Layer == 'F.Silkscreen' || A.Layer == 'B.Silkscreen')"))
+    assert {x.name for x in r} == set(fabfloors.DRU_FLOOR_KEYS)
     return r
 
 
@@ -180,8 +197,109 @@ def diff_pair_rules(pairs: list[dict], stackup: dict) -> tuple[list[Rule], list[
         rules.append(Rule(
             f"aiee_diff_gap_{safe}", "diff_pair_gap", round(gap, 4),
             condition=(f"A.NetName == '{dp['p']}' || A.NetName == '{dp['n']}'")))
+        # V12 guard (T6 P5-4): impedance.py solves OUTER microstrip only -
+        # inner-layer geometry for a solved pair is silently wrong (1080B
+        # inner dielectrics are nothing like the microstrip model). Until a
+        # stripline solver exists, an inner-layer segment of the pair is a
+        # NAMED DRC violation instead of a silent impedance error. Layer
+        # transitions via vias remain legal (vias are not tracks). Waiver
+        # path: reference/remediations - delete the rule consciously only
+        # after a hand stripline solve against the fab's calculator.
+        rules.append(Rule(
+            f"aiee_diff_outer_only_{safe}", "disallow track", layer="inner",
+            condition=(f"A.NetName == '{dp['p']}' || A.NetName == '{dp['n']}'")))
         facts.append({"pair": [dp["p"], dp["n"]], "impedance_ohm": dp["impedance_ohm"],
                       "width_mm": w, "gap_mm": gap})
+    return rules, facts
+
+
+# --------------------------------------------------------------- HV clearance
+
+def _vtag(volts: float) -> str:
+    """48.0 -> '48', 12.5 -> '12p5' (for rule names)."""
+    return ("%g" % abs(volts)).replace(".", "p")
+
+
+def _safe(net: str) -> str:
+    return re.sub(r"[^A-Za-z0-9]", "_", net).strip("_")
+
+
+def hv_clearance_mm(dv: float, coating: str) -> float:
+    """Worst-case OUTER-layer IPC-2221 spacing for a dv-volt pair under
+    `coating`: max over the track/via/zone row and the exposed-land row -
+    the largest requirement check_creepage can adjudicate for any item
+    pair, so one net-wide DRU value covers every combination. Table lives
+    in check_creepage (single source - no numbers duplicated here)."""
+    import check_creepage as cc
+    rows = {cc.item_row("track", True, coating), cc.item_row("pad", True, coating)}
+    return max(cc.row_clearance_mm(dv, r) for r in rows)
+
+
+def voltage_rules(constraints: dict, cap: dict) -> tuple[list[Rule], list[dict]]:
+    """HV clearance DRU rules from constraints voltages/voltage_pairs (T6
+    P5-3 == P2-4, ladder rows 117/118 context).
+
+    rules_gen previously never read `voltages`, so 48 V spacing on
+    lumina-carrier was hand-authored into the DRU at P5 (L0 prose in P2
+    recipes). Emits, AFTER the baseline (later-wins ordering):
+      - one `aiee_hv_<V>v_<net>` clearance rule per net with |V| above the
+        IPC-2221 threshold, conditioned on A.NetName only (clearance is
+        pairwise, so a single-net condition enforces the net against
+        everything - the shape carrier hand-wrote as HV_48V_clearance);
+        sorted ascending by clearance so a pair matching two HV rules
+        resolves to the LARGER value (later rule wins).
+      - one pair-scoped rule per explicit voltage_pairs entry (emitted
+        last: an explicit pair OVERRIDES the derived per-net value, same
+        semantics as check_creepage). A pair declared at or under the
+        threshold between nets that carry a derived HV rule restores the
+        baseline clearance for that pair - the check_creepage waiver,
+        mirrored in the DRU (`aiee_hv_waived_*`).
+    Severity stays error; the voltage is encoded in the rule name so P8
+    triage can waive consciously. The pad-escape pre-check remains ladder
+    row 117's separate item - not folded in here."""
+    import check_creepage as cc
+    coating = constraints.get("coating", "none")
+    if coating not in cc.COATINGS:
+        raise ValueError(f"unknown coating {coating!r} (use one of {cc.COATINGS})")
+    vmap = cc.voltage_map(constraints)
+    threshold = cc.HV_THRESHOLD_V
+    rules: list[Rule] = []
+    facts: list[dict] = []
+
+    net_rules: list[tuple[float, Rule, dict]] = []
+    hv_nets: set[str] = set()
+    for net in sorted(n for n, v in vmap.items() if abs(v) > threshold):
+        dv = abs(vmap[net])
+        clr = hv_clearance_mm(dv, coating)
+        name = f"aiee_hv_{_vtag(dv)}v_{_safe(net)}"
+        rule = Rule(name, "clearance", round(clr, 4),
+                    condition=f"A.NetName == '{net}'")
+        net_rules.append((clr, rule, {"net": net, "voltage": vmap[net],
+                                      "clearance_mm": round(clr, 4),
+                                      "coating": coating, "rule": name}))
+        hv_nets.add(net)
+    for clr, rule, fact in sorted(net_rules, key=lambda t: (t[0], t[1].name)):
+        rules.append(rule)
+        facts.append(fact)
+
+    for a, b, pv in cc.voltage_pair_list(constraints):
+        if pv > threshold:
+            clr = hv_clearance_mm(pv, coating)
+            name = f"aiee_hv_{_vtag(pv)}v_{_safe(a)}__{_safe(b)}"
+            waiver = False
+        elif a in hv_nets or b in hv_nets:
+            # explicit sub-threshold pair between derived-HV nets = waiver:
+            # restore the fab-floor clearance for exactly this pair
+            clr = float(cap["min_clearance_mm"])
+            name = f"aiee_hv_waived_{_safe(a)}__{_safe(b)}"
+            waiver = True
+        else:
+            continue  # sub-threshold pair with no derived rule to override
+        rules.append(Rule(name, "clearance", round(clr, 4),
+                          condition=f"A.NetName == '{a}' && B.NetName == '{b}'"))
+        facts.append({"pair": [a, b], "voltage": pv,
+                      "clearance_mm": round(clr, 4), "coating": coating,
+                      "rule": name, "waiver": waiver})
     return rules, facts
 
 
@@ -317,17 +435,20 @@ def build(constraints: dict, cap: dict, stackup: dict, baseline_only: bool
     outer_oz = cap.get("outer_copper_oz", 1.0)
     cu_mm = CU_OZ_MM.get(outer_oz, 0.035)
     rules = baseline_rules(cap)
-    report: dict = {"power": [], "diff_pairs": [], "classes": [], "patterns": []}
+    report: dict = {"power": [], "diff_pairs": [], "classes": [], "patterns": [],
+                    "hv_rules": []}
     if not baseline_only:
         pr, pf = power_rules(constraints, cu_mm)
         pairs = detect_diff_pairs(constraints)
         dr, df = diff_pair_rules(pairs, stackup)
-        rules += pr + dr
+        hr, hf = voltage_rules(constraints, cap)
+        rules += pr + dr + hr
         classes, patterns = net_classes(constraints, pf, df, cap)
         report["power"] = pf
         report["diff_pairs"] = df
         report["classes"] = classes
         report["patterns"] = patterns
+        report["hv_rules"] = hf
     return rules, report
 
 
@@ -339,23 +460,32 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--constraints", help="constraints.json (high_speed/power/diff_pairs)")
     ap.add_argument("--layers", type=int, default=4)
-    ap.add_argument("--copper-oz", type=float, default=1.0,
-                    help="outer copper weight (default 1.0)")
+    ap.add_argument("--copper-oz", type=float, default=None,
+                    help="outer copper weight (default: derived from the "
+                         "stackup's own outer copper, like board_init; an "
+                         "explicit value contradicting an explicitly named "
+                         "stackup is refused)")
     ap.add_argument("--stackup", help="stackup name from stackups.yaml "
                     "(default: defaults[<layers>])")
     ap.add_argument("--out-dru", help="write the .kicad_dru here")
     ap.add_argument("--pro", help="also update this .kicad_pro (net classes + minimums)")
     ap.add_argument("--baseline-only", action="store_true",
                     help="emit only the fab-floor baseline (for template generation)")
+    ap.add_argument("--check-dru", metavar="PATH",
+                    help="check an EXISTING .kicad_dru for the aiee_* fab-floor "
+                         "baseline instead of generating (exit 1 on failures); "
+                         "resolves the capability row from --layers/--stackup/"
+                         "--copper-oz like generation does")
     ap.add_argument("--out", help="write the JSON report here instead of stdout")
     args = ap.parse_args(argv)
 
     try:
-        try:
-            cls, cap = fabfloors.profile(args.layers, args.copper_oz)
-        except fabfloors.FabFloorError as exc:
-            raise SystemExit(str(exc)) from exc
-
+        # Stackup resolution FIRST: the copper weight (-> capability row and
+        # every fab floor) is derived from it (T6 P5-1). rules_gen previously
+        # defaulted --copper-oz to 1.0 REGARDLESS of --stackup, silently
+        # selecting sub-fab 1-oz floors and double-width IPC-2152 power
+        # classes on every 2-oz board - the exact defect family T1 killed in
+        # board_init (board-setup.md's own step-3 command omits the flag).
         stacks = load_yaml(STACKUP_FILE)
         stk_name = args.stackup or stacks["defaults"].get(args.layers)
         stackup = stacks["stackups"].get(stk_name) if stk_name else None
@@ -366,6 +496,47 @@ def main(argv: list[str] | None = None) -> int:
                 f"stackup {stk_name} is marked available: false in "
                 f"stackups.yaml - {ret.get('reason', 'not offered by JLC')}; "
                 f"use one of: {', '.join(ret.get('replacements') or []) or 'see stackups.yaml'}")
+
+        derived_oz = None
+        if stackup is not None:
+            coppers = [ly for ly in stackup["stack"] if ly["type"] == "copper"]
+            if coppers:
+                derived_oz = float(coppers[0].get("copper_oz", 1.0))
+        if args.copper_oz is not None and args.stackup and derived_oz is not None \
+                and abs(args.copper_oz - derived_oz) > 1e-9:
+            raise SystemExit(
+                f"--copper-oz {args.copper_oz:g} contradicts stackup "
+                f"{stk_name} (outer copper {derived_oz:g} oz). Drop the flag "
+                f"- it is derived from the stackup - or pick the matching "
+                f"stackup; a board must never quietly get another copper "
+                f"weight's fab floors (T1)")
+        outer_oz = args.copper_oz if args.copper_oz is not None else \
+            (derived_oz if derived_oz is not None else 1.0)
+
+        try:
+            cls, cap = fabfloors.profile(args.layers, outer_oz)
+        except fabfloors.FabFloorError as exc:
+            raise SystemExit(str(exc)) from exc
+
+        if args.check_dru:
+            # T6 P5-5 (ladder row 160): assert a (possibly hand-edited) DRU
+            # still carries the aiee_* fab floors. Read-only; exit 1 = the
+            # named failures below, for the fix-loop / a later gate wiring.
+            failures = fabfloors.check_dru(
+                Path(args.check_dru).read_text(encoding="utf-8"), cap)
+            result = {
+                "script": "rules_gen", "mode": "check_dru",
+                "status": "pass" if not failures else "fail",
+                "dru": args.check_dru, "capability_class": cls,
+                "copper_oz": outer_oz, "failures": failures,
+            }
+            out = json.dumps(result, indent=2)
+            if args.out:
+                Path(args.out).write_text(out, encoding="utf-8")
+            else:
+                print(out)
+            return 0 if not failures else 1
+
         if stackup is None and not args.baseline_only:
             # only needed for diff pairs; fall back to the first AVAILABLE
             # stackup with a matching layer count, else the first available
@@ -391,9 +562,11 @@ def main(argv: list[str] | None = None) -> int:
         result = {
             "script": "rules_gen", "status": "pass",
             "capability_class": cls, "stackup": stk_name,
+            "copper_oz": outer_oz,
             "rule_count": len(rules),
             "rule_names": [r.name for r in rules],
             "power": report["power"], "diff_pairs": report["diff_pairs"],
+            "hv_rules": report["hv_rules"],
             "classes": [c["name"] for c in report["classes"]],
             "out_dru": args.out_dru, "pro": args.pro if not args.baseline_only else None,
         }

@@ -55,9 +55,11 @@ Consumers per key (script -> phase):
                                      // same-footprint P/N pads always match
   }],
 
-  // check_creepage (P8): IPC-2221 spacing for pairs > 30 V apart.
-  // T2: reports EVERY violating item pair (not just the worst per net pair);
-  // violation pos = the actual gap midpoint.
+  // check_creepage (P8) + rules_gen (P5, T6): IPC-2221 spacing for pairs
+  // > 30 V apart. rules_gen emits named aiee_hv_* clearance DRU rules from
+  // these (never hand-author HV rules); check_creepage audits the routed
+  // copper. T2: reports EVERY violating item pair (not just the worst per
+  // net pair); violation pos = the actual gap midpoint.
   "voltages": [{"net": "HV_BUS", "voltage": 48}],
   // voltage_pairs (T2): explicit net-PAIR differential that node voltages
   // cannot express (bridge/AC inputs - two 57 V taps carry 114 V between

@@ -38,6 +38,7 @@ I/O: SPEC section 6 - argparse, JSON to stdout or --out-report, exit 0/1/2.
 from __future__ import annotations
 
 import argparse
+import datetime as _dt
 import json
 import re
 import shutil
@@ -252,6 +253,47 @@ def self_check(cli: Path, pcb: Path, has_sch: bool) -> dict:
     }
 
 
+# --------------------------------------------------------- stackup freshness
+
+FRESHNESS_MAX_AGE_DAYS = 14
+
+
+def stackup_freshness(stackup: dict, today: _dt.date | None = None,
+                      max_age_days: int = FRESHNESS_MAX_AGE_DAYS) -> dict | None:
+    """V18 partial (T6 P5-7, ladder row 169): warn when an impedance-
+    controlled stackup's JLC provenance is stale.
+
+    JLC's template list CHURNS - JLC04161H-7628G vanished within 7 days of a
+    verified live probe - and the recorded provenance.verified date was never
+    checked by any script. For a stackup with a non-empty controlled_impedance
+    list read back via jlc_open_api, returns a warning dict when the verified
+    date is older than `max_age_days`; None otherwise. WARNING ONLY (the
+    offering may be fine) - the credentialed live re-probe belongs with the
+    ordering owner. NOT a bench metric: age is today-dependent, and score_p5
+    cherry-picks its metric fields (test-pinned)."""
+    prov = (stackup or {}).get("provenance") or {}
+    if prov.get("method") != "jlc_open_api":
+        return None
+    if not (stackup or {}).get("controlled_impedance"):
+        return None
+    verified = prov.get("verified")
+    if not verified:
+        return None
+    warning = ("JLC template list churns (7628G vanished in <7 days) - "
+               "re-probe getImpedanceTemplateSettingList before routing "
+               "controlled impedance; recipe in stackups.yaml header")
+    try:
+        age = (today or _dt.date.today()
+               ) - _dt.date.fromisoformat(str(verified))
+    except ValueError:
+        return {"verified": str(verified), "age_days": None,
+                "warning": f"unparseable provenance.verified date; {warning}"}
+    if age.days <= max_age_days:
+        return None
+    return {"verified": str(verified), "age_days": age.days,
+            "warning": f"verified {verified} ({age.days} days ago); {warning}"}
+
+
 # --------------------------------------------------------------- main
 
 def main(argv: list[str] | None = None) -> int:
@@ -383,6 +425,11 @@ def main(argv: list[str] | None = None) -> int:
 
         check = self_check(cli, pcb_path, has_sch)
 
+        worker_notes = list(worker.get("notes", []))
+        fresh = stackup_freshness(stackup)
+        if fresh:
+            worker_notes.append(f"stackup_freshness: {fresh['warning']}")
+
         result = {
             "script": "board_init",
             "status": "pass" if check["clean"] else "violations",
@@ -394,8 +441,10 @@ def main(argv: list[str] | None = None) -> int:
             "corner_radius": worker.get("corner_radius", 0.0),
             "outline_origin": worker.get("outline_origin"),
             "cutouts": worker.get("cutouts", []),
-            "self_check": check, "worker_notes": worker.get("notes", []),
+            "self_check": check, "worker_notes": worker_notes,
         }
+        if fresh:
+            result["stackup_freshness"] = fresh
         _emit(result, args.out_report)
         return 0 if check["clean"] else 1
     except Exception:

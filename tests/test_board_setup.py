@@ -798,6 +798,301 @@ def test_baseline_template_no_false_positive(cli, tmp_path, board, template, lay
     assert rep["counts"]["total"] == 0, rep["violations"]
 
 
+# ================================= T6 P5-1: copper-oz derived from the stackup
+
+FIXTURES = REPO / "tests" / "fixtures" / "stages"
+
+
+def test_rules_gen_derives_copper_oz_from_stackup(tmp_path):
+    """The pd-trigger trap: --stackup JLC2313_1.6_2oz WITHOUT --copper-oz
+    previously selected the 1-oz capability row (sub-fab floors) and 1-oz
+    IPC-2152 widths (VBUS 3.5 mm instead of 1.75 - the pad-entry disaster
+    class). The weight must come from the stackup, like board_init."""
+    out = tmp_path / "r.json"
+    rc = rules_gen.main([
+        "--constraints", str(FIXTURES / "pd_trigger" / "constraints.json"),
+        "--layers", "2", "--stackup", "JLC2313_1.6_2oz",
+        "--out-dru", str(tmp_path / "pd.kicad_dru"), "--out", str(out)])
+    assert rc == 0
+    r = json.loads(out.read_text("utf-8"))
+    assert r["capability_class"] == "2layer_2oz"
+    assert r["copper_oz"] == 2.0
+    byn = {f["net"]: f for f in r["power"]}
+    assert byn["VBUS"]["min_width_mm"] == pytest.approx(1.75, abs=0.01)
+    assert "Pwr_1p75mm" in r["classes"]
+    # and the DRU floors are the 2-oz row's, not the 1-oz row's
+    dru = (tmp_path / "pd.kicad_dru").read_text("utf-8")
+    assert fabfloors.check_dru(dru, _cap("2layer_2oz")) == []
+
+
+def test_rules_gen_refuses_copper_oz_stackup_mismatch(tmp_path, capsys):
+    """An explicit --copper-oz contradicting an explicitly named stackup is
+    the T1 'never quietly become 1 oz' rule - exit 2 naming both values."""
+    rc = rules_gen.main(["--layers", "2", "--stackup", "JLC2313_1.6_2oz",
+                         "--copper-oz", "1",
+                         "--out-dru", str(tmp_path / "x.kicad_dru")])
+    assert rc == 2
+    out = json.loads(capsys.readouterr().out)
+    assert out["status"] == "error"
+    assert "JLC2313_1.6_2oz" in out["error"]
+    assert "1" in out["error"] and "2" in out["error"]
+
+
+def test_rules_gen_no_stackup_no_flag_falls_back_1oz(tmp_path):
+    """No resolvable stackup (6-layer has no default) + no flag = today's
+    1.0 fallback, keeping template generation paths intact."""
+    out = tmp_path / "r.json"
+    rc = rules_gen.main(["--layers", "6", "--baseline-only",
+                         "--out-dru", str(tmp_path / "b.kicad_dru"),
+                         "--out", str(out)])
+    assert rc == 0
+    r = json.loads(out.read_text("utf-8"))
+    assert r["capability_class"] == "6layer_1oz"
+    assert r["copper_oz"] == 1.0
+
+
+# ==================== T6 P5-3: HV clearance rules from voltages/voltage_pairs
+
+def test_voltage_rules_hv_net():
+    """48 V net -> one named clearance rule at the IPC-2221 outer value
+    (coating none: max(B2 0.60, A6 0.40) = 0.60 mm), emitted AFTER the
+    baseline so later-wins resolves it over the generic floor."""
+    cons = {"voltages": [{"net": "V48", "voltage": 48},
+                         {"net": "GND", "voltage": 0}]}
+    cap = _cap("2layer_2oz")
+    rules, report = rules_gen.build(cons, cap, _stackup("JLC2313_1.6_2oz"), False)
+    byname = {r.name: r for r in rules}
+    rule = byname["aiee_hv_48v_V48"]
+    assert rule.constraint == "clearance"
+    assert rule.minv == pytest.approx(0.60)
+    assert rule.condition == "A.NetName == 'V48'"
+    names = [r.name for r in rules]
+    assert names.index("aiee_hv_48v_V48") > names.index("aiee_clearance_floor")
+    assert report["hv_rules"][0]["net"] == "V48"
+
+
+def test_voltage_rules_subthreshold_emits_nothing():
+    """pd-trigger class: every net at or under 30 V -> zero HV rules
+    (bench-neutral by construction)."""
+    cons = {"voltages": [{"net": "VBUS", "voltage": 20},
+                         {"net": "/VDD", "voltage": 3.3}]}
+    rules, report = rules_gen.build(cons, _cap("2layer_2oz"),
+                                    _stackup("JLC2313_1.6_2oz"), False)
+    assert not [r for r in rules if r.name.startswith("aiee_hv_")]
+    assert report["hv_rules"] == []
+
+
+def test_voltage_rules_explicit_pair_and_waiver():
+    """voltage_pairs: an explicit >30 V pair gets a pair-scoped rule (114 V,
+    coating none -> A6 row 0.80 dominates B2 0.60); an explicit sub-threshold
+    pair against a derived-HV net RESTORES the baseline clearance for exactly
+    that pair (the check_creepage waiver, mirrored in the DRU) and is emitted
+    after the net rule so later-wins applies the override."""
+    cons = {"voltages": [{"net": "V48", "voltage": 48}],
+            "voltage_pairs": [{"a": "/TAP_A", "b": "/TAP_B", "voltage": 114},
+                              {"a": "V48", "b": "/SNS", "voltage": 10}]}
+    cap = _cap("2layer_2oz")
+    rules, report = rules_gen.build(cons, cap, _stackup("JLC2313_1.6_2oz"), False)
+    byname = {r.name: r for r in rules}
+    pair = byname["aiee_hv_114v_TAP_A__TAP_B"]
+    assert pair.minv == pytest.approx(0.80)
+    assert pair.condition == "A.NetName == '/TAP_A' && B.NetName == '/TAP_B'"
+    waived = byname["aiee_hv_waived_V48__SNS"]
+    assert waived.minv == pytest.approx(cap["min_clearance_mm"])
+    names = [r.name for r in rules]
+    assert names.index("aiee_hv_waived_V48__SNS") > names.index("aiee_hv_48v_V48")
+    facts = {f["rule"]: f for f in report["hv_rules"]}
+    assert facts["aiee_hv_waived_V48__SNS"]["waiver"] is True
+    assert facts["aiee_hv_114v_TAP_A__TAP_B"]["waiver"] is False
+
+
+@pytest.mark.smoke
+def test_voltage_rules_enforced_live(cli, tmp_path):
+    """Live proof on pinned 10.0.3: declaring VBUS at 48 V makes the
+    generated aiee_hv rule fire as named clearance violations on a board
+    routed at normal clearances - HV spacing is DRC-enforced, not digest
+    prose (the carrier previously hand-authored this rule shape)."""
+    pcb = _prep_golden(tmp_path)
+    cons = tmp_path / "cons.json"
+    cons.write_text(json.dumps(
+        {"voltages": [{"net": "VBUS", "voltage": 48},
+                      {"net": "GND", "voltage": 0}]}), encoding="utf-8")
+    rc = rules_gen.main(["--constraints", str(cons), "--layers", "4",
+                         "--out-dru", str(pcb.with_suffix(".kicad_dru")),
+                         "--out", str(tmp_path / "r.json")])
+    assert rc == 0
+    rep = _drc(cli, pcb)
+    hits = [v for v in rep["violations"]
+            if "aiee_hv_48v_VBUS" in (v["msg"] or "")]
+    assert hits, "generated HV rule did not fire"
+    assert all(v["check"] == "clearance" for v in hits)
+
+
+def test_voltage_rules_coating_selects_rows():
+    """soldermask moves tracks to B4 but lands stay A6 (mask relief exposes
+    them): 48 V -> max(B4 0.13, A6 0.40) = 0.40 mm."""
+    assert rules_gen.hv_clearance_mm(48, "none") == pytest.approx(0.60)
+    assert rules_gen.hv_clearance_mm(48, "soldermask") == pytest.approx(0.40)
+
+
+# ============================ T6 P5-4: V12 guard - inner disallow for pairs
+
+def test_diff_outer_only_rule_emitted():
+    """Every solved pair carries an inner-layer 'disallow track' rule -
+    impedance.py has no stripline model, so inner routing of a solved pair
+    must be a NAMED violation, not a silent impedance error."""
+    cons = json.loads((GOLDEN / "usbbuck4" / "constraints.json").read_text("utf-8"))
+    rules, _ = rules_gen.build(cons, _cap(), _stackup(), baseline_only=False)
+    byname = {r.name: r for r in rules}
+    rule = byname["aiee_diff_outer_only_USB"]
+    assert rule.constraint == "disallow track"
+    assert rule.layer == "inner"
+    assert "A.NetName == '/USB_DP'" in rule.condition
+    assert "A.NetName == '/USB_DM'" in rule.condition
+    rendered = rule.render()
+    assert "(layer inner)" in rendered
+    assert "(constraint disallow track)" in rendered
+    # no pairs -> no disallow rules
+    rules2, _ = rules_gen.build({}, _cap(), _stackup(), baseline_only=False)
+    assert not [r for r in rules2 if "outer_only" in r.name]
+
+
+@pytest.mark.smoke
+def test_diff_outer_only_enforced(cli, tmp_path):
+    """Live proof of the (layer inner) + disallow syntax on pinned 10.0.3:
+    an In1.Cu segment on /USB_DP fails DRC naming the rule (check id
+    items_not_allowed, remediation ref of the same name)."""
+    pcb = _prep_golden(tmp_path)
+    rules_gen.main(["--constraints", str(GOLDEN / "usbbuck4" / "constraints.json"),
+                    "--layers", "4", "--out-dru", str(pcb.with_suffix(".kicad_dru")),
+                    "--out", str(tmp_path / "r.json")])
+    text = pcb.read_text("utf-8")
+    seg = ('\t(segment\n\t\t(start 141.4 116.25)\n\t\t(end 140.8 116.25)\n'
+           '\t\t(width 0.25)\n\t\t(layer "In1.Cu")\n\t\t(net "/USB_DP")\n'
+           '\t\t(uuid "aaaaaaaa-0000-0000-0000-000000000001")\n\t)\n')
+    i = text.rfind(")")
+    pcb.write_text(text[:i] + seg + text[i:], encoding="utf-8")
+    rep = _drc(cli, pcb)
+    assert "aiee_diff_outer_only_USB" in _rule_names(rep), rep["violations"]
+    hit = [v for v in rep["violations"]
+           if "aiee_diff_outer_only_USB" in (v["msg"] or "")]
+    assert hit and hit[0]["check"] == "items_not_allowed"
+
+
+# ========================= T6 P5-5: check_dru (ladder row 160 - the DRU half)
+
+def test_check_dru_passes_generated_dru(tmp_path):
+    cap = _cap("2layer_2oz")
+    rules, _ = rules_gen.build({}, cap, _stackup("JLC2313_1.6_2oz"), False)
+    dru = rules_gen.render_dru(rules)
+    assert fabfloors.check_dru(dru, cap) == []
+
+
+def test_check_dru_catches_dropped_and_lowered_floors():
+    """The lumina-carrier failure path: a hand-written DRU that drops or
+    lowers an aiee_* floor must produce one NAMED failure per defect."""
+    cap = _cap("2layer_2oz")
+    dru = rules_gen.render_dru(rules_gen.baseline_rules(cap))
+    # drop the hole-to-hole rule entirely
+    block = fabfloors._rule_block(dru, "aiee_hole_to_hole_floor")
+    dropped = dru.replace(block, "")
+    msgs = fabfloors.check_dru(dropped, cap)
+    assert any("aiee_hole_to_hole_floor" in m and "missing" in m for m in msgs)
+    # lower the track-width floor below the profile
+    lowered = dru.replace(f"(min {cap['min_trace_width_mm']:.4f}mm)",
+                          "(min 0.1000mm)", 1)
+    msgs = fabfloors.check_dru(lowered, cap)
+    assert any("aiee_track_width_floor" in m and "BELOW" in m for m in msgs)
+
+
+def test_check_dru_parses_hand_edited_style():
+    """Hand-edited DRUs close rules on the last clause's line and carry
+    parens inside condition strings (carrier style) - the balanced scan must
+    still find the floors."""
+    cap = _cap("4layer_1oz")
+    hand = "(version 1)\n"
+    for name, key in fabfloors.DRU_FLOOR_KEYS.items():
+        hand += (f'(rule "{name}"\n'
+                 f'\t(constraint clearance (min {cap[key]:.4f}mm))\n'
+                 f'\t(condition "!(A.Type == \'Pad\' && B.Type == \'Pad\')")'
+                 f'\t(severity error))\n')
+    assert fabfloors.check_dru(hand, cap) == []
+
+
+def test_rules_gen_check_dru_cli(tmp_path, capsys):
+    """--check-dru: exit 0 clean / 1 with named failures (SPEC 6), resolving
+    the capability row with the same stackup-derived copper weight."""
+    cap = _cap("2layer_2oz")
+    dru_path = tmp_path / "b.kicad_dru"
+    dru_path.write_text(
+        rules_gen.render_dru(rules_gen.baseline_rules(cap)), encoding="utf-8")
+    rc = rules_gen.main(["--check-dru", str(dru_path), "--layers", "2",
+                         "--stackup", "JLC2313_1.6_2oz"])
+    assert rc == 0
+    out = json.loads(capsys.readouterr().out)
+    assert out["mode"] == "check_dru" and out["status"] == "pass"
+    assert out["capability_class"] == "2layer_2oz" and out["failures"] == []
+
+    bad = dru_path.read_text("utf-8").replace('(rule "aiee_clearance_floor"',
+                                              '(rule "renamed_away"')
+    dru_path.write_text(bad, encoding="utf-8")
+    rc = rules_gen.main(["--check-dru", str(dru_path), "--layers", "2",
+                         "--stackup", "JLC2313_1.6_2oz"])
+    assert rc == 1
+    out = json.loads(capsys.readouterr().out)
+    assert out["status"] == "fail"
+    assert any("aiee_clearance_floor" in f for f in out["failures"])
+
+
+def test_baseline_rules_share_the_check_dru_map():
+    """Writer/checker anti-drift: baseline_rules emits exactly the rule set
+    check_dru asserts, with minimums from the same capability keys."""
+    cap = _cap("4layer_1oz")
+    rules = {r.name: r for r in rules_gen.baseline_rules(cap)}
+    assert set(rules) == set(fabfloors.DRU_FLOOR_KEYS)
+    for name, key in fabfloors.DRU_FLOOR_KEYS.items():
+        assert rules[name].minv == cap[key]
+
+
+# ==================== T6 P5-7: stackup freshness warning (V18, ladder row 169)
+
+def _fresh_date(*ymd):
+    import datetime
+    return datetime.date(*ymd)
+
+
+def test_stackup_freshness_warns_when_stale():
+    s = _stackup("JLC04161H-1080B")           # jlc_open_api, verified 2026-08-06
+    verified = s["provenance"]["verified"]
+    f = board_init.stackup_freshness(s, today=_fresh_date(2026, 9, 15))
+    assert f is not None and f["verified"] == verified
+    assert f["age_days"] > board_init.FRESHNESS_MAX_AGE_DAYS
+    assert "getImpedanceTemplateSettingList" in f["warning"]
+
+
+def test_stackup_freshness_quiet_when_fresh_or_uncontrolled():
+    s = _stackup("JLC04161H-1080B")
+    verified = s["provenance"]["verified"]
+    y, m, d = (int(x) for x in verified.split("-"))
+    fresh_day = _fresh_date(y, m, d) + __import__("datetime").timedelta(days=7)
+    assert board_init.stackup_freshness(s, today=fresh_day) is None
+    # vendor_page 2-layer stackups never warn (no controlled impedance to rot)
+    s2 = _stackup("JLC2313_1.6_2oz")
+    assert board_init.stackup_freshness(s2, today=_fresh_date(2030, 1, 1)) is None
+
+
+def test_bench_score_p5_excludes_freshness():
+    """stackup_freshness is today-dependent - it must NEVER enter the bench
+    metric set (score_p5 cherry-picks its fields; pin them)."""
+    src = (SCRIPTS / "bench.py").read_text("utf-8")
+    m = re.search(r"def score_p5\(ctx\):(.*?)\ndef \w+\(", src, re.S)
+    assert m, "score_p5 not found in bench.py"
+    body = m.group(1)
+    assert "stackup_freshness" not in body
+    for key in ("setup_violations", "not_clean", "transient_silk"):
+        assert key in body   # the pinned penalty set is intact
+
+
 @pytest.mark.smoke
 def test_rules_gen_pro_write_keeps_board_clean(cli, tmp_path):
     """Writing net_settings into the .kicad_pro must not break the board
