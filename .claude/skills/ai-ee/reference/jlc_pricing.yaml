@@ -24,6 +24,25 @@ meta:
   source_urls:
     - https://jlcpcb.com/
     - https://jlcpcb.com/capabilities/pcb-capabilities
+  # MEASURED estimate-vs-API bias (credentialed --api calculate runs against
+  # this table's pcb_cost output). The table has no copper-weight term and
+  # _nearest_qty_price snaps qty silently, so the headline estimate runs
+  # 1.9-3.1x LOW on real boards. order_quote surfaces the observed ratio in
+  # every quote payload ("calibration") and extends the disclaimer with
+  # "treat as a LOWER BOUND". Do NOT invent copper/4L adders here without
+  # freshly transcribed price points - the honesty contract forbids
+  # fabricated precision; the API calculate leg remains the real price.
+  measured_vs_api:
+    - {board: pd-trigger, layers: 2, date: "2026-07-29",
+       estimate_pcb: 2.00, api_price: 6.20}
+    - {board: lumina-carrier, layers: 4, date: "2026-07-30",
+       estimate_pcb: 9.90, api_price: 18.40}
+  # refresh_recipe: open the instant-quote page (authoritative_quote_url)
+  # once per layer count (2/4/6) at 100x100 mm, qty 5/10/30; transcribe the
+  # headline base table into pcb.base below; bump meta.verified to the
+  # transcription date. Add a measured_vs_api point (estimate_pcb from
+  # order_quote, api_price from a credentialed --api run) whenever a new
+  # board gets a live quote.
 
 # Base PCB price for the standard promo tier: boards within `promo_max_mm`
 # on both sides, standard thickness/colour, at the listed quantity.

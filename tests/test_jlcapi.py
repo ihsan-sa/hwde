@@ -46,6 +46,11 @@ Criteria -> tests:
   - order_submit --api-create: created-latch (second create refuses, zero
     transport calls) that --out CANNOT bypass (canonical fab/order.json is
     the record of truth, written on every run; --out only adds a copy),
+    latch also armed by a recorded WEB order_number, create_attempt record
+    pre-armed ON DISK before the transport call (in_flight / ambiguous
+    failed:unknown_error blocks every retry until a human clears it;
+    clean refusals write no record; unambiguous rejects retry freely),
+    PCB-only estimate scope for assembly-inclusive quote rows,
     gerber sha binding, fresh/future/unparseable fetched_at guards,
     --ship-json whitelist (injection refused), freight attestation (grand
     total = pcb + quoted freight; hand-edited method or drifted cost
@@ -695,6 +700,7 @@ def test_api_quote_end_to_end(tmp_path, monkeypatch, api_env, capsys):
     assert aq["real_price"] == 12.5 and aq["file_key"] == "FKEY1"
     assert aq["board"] == "b1" and aq["qty"] == 5
     assert aq["estimate"] == 4.0
+    assert aq["estimate_scope"] == "total"     # row carries no assembly
     assert aq["ship_list"][0]["options"] == "DHL"
     assert aq["shipping_method"] == "DHL"        # first shipList option
     assert aq["shipping_cost"] == 20.0
@@ -963,6 +969,192 @@ def test_idless_create_still_arms_latch(tmp_path, monkeypatch, api_env,
     assert any("WITHOUT orderId/batchNum" in s for s in order2["human_steps"])
 
 
+def test_api_create_refuses_after_recorded_web_order(tmp_path, monkeypatch,
+                                                     api_env, capsys):
+    """P10-1a: a WEB order recorded via --order-number arms the latch too -
+    the same workspace must never be API-ordered again (the lumina-carrier
+    structural bypass: order_number set, api.verdict 'error', latch unarmed).
+    The refusal names BOTH clearing paths."""
+    pcb, fab, qj = make_fab(tmp_path)
+    assert order_submit.main(submit_argv(pcb, fab, qj,
+                                         "--order-number", "W555")) == 0
+    aq = write_api_quote(fab)
+    fake = FakeSession()
+    monkeypatch.setattr(order_submit, "_make_session", lambda: fake)
+    code = order_submit.main(submit_argv(
+        pcb, fab, qj, "--api-create", "--api-quote-file", str(aq),
+        "--confirm", "b1 5pcs 12.5"))
+    assert code == 2
+    assert fake.calls == []                    # zero transport calls
+    order = json.loads((fab / "order.json").read_text(encoding="utf-8"))
+    assert order["order_number"] == "W555"     # record intact
+    assert "already recorded" in order["api"]["note"]
+    assert "W555" in order["api"]["note"]
+    assert "api.order" in order["api"]["note"]           # clearing path 1
+    assert "order_number" in order["api"]["note"]        # clearing path 2
+
+
+def test_api_create_prearms_attempt_on_disk_before_transport(
+        tmp_path, monkeypatch, api_env, capsys):
+    """P10-1b: the create_attempt record hits DISK before create_order is
+    called, so even a hard process kill mid-create leaves the refusal armed.
+    A successful create updates it to state 'created'."""
+    pcb, fab, qj = make_fab(tmp_path)
+    aq = write_api_quote(fab)
+    seen = {}
+
+    class PeekSession(FakeSession):
+        def create_order(self, payload):
+            self.calls.append(("create_order", payload))
+            on_disk = json.loads((fab / "order.json")
+                                 .read_text(encoding="utf-8"))
+            seen["attempt"] = (on_disk.get("api") or {}).get("create_attempt")
+            return ok_resp(CREATE_OK)
+
+    fake = PeekSession()
+    monkeypatch.setattr(order_submit, "_make_session", lambda: fake)
+    code = order_submit.main(submit_argv(
+        pcb, fab, qj, "--api-create", "--api-quote-file", str(aq),
+        "--confirm", "b1 5pcs 12.5"))
+    assert code == 0
+    assert seen["attempt"]["state"] == "in_flight"   # armed BEFORE the call
+    assert seen["attempt"]["grand_total"] == 12.5
+    assert seen["attempt"]["at"]
+    order = json.loads((fab / "order.json").read_text(encoding="utf-8"))
+    assert order["api"]["create_attempt"]["state"] == "created"
+    assert order["api"]["verdict"] == "created"
+
+
+def test_api_create_ambiguous_failure_blocks_retry(tmp_path, monkeypatch,
+                                                   api_env, capsys):
+    """P10-1b: business code 2 (unknown_error) is ambiguous - an order MAY
+    have landed and no endpoint can say. The attempt record persists as
+    failed:unknown_error and the next --api-create refuses with ZERO
+    transport calls, pointing at the portal."""
+    pcb, fab, qj = make_fab(tmp_path)
+    aq = write_api_quote(fab)
+    argv = submit_argv(pcb, fab, qj, "--api-create",
+                       "--api-quote-file", str(aq),
+                       "--confirm", "b1 5pcs 12.5")
+    fake = FakeSession(create_order=err_resp(200, code=2,
+                                             message="unknown_error"))
+    monkeypatch.setattr(order_submit, "_make_session", lambda: fake)
+    assert order_submit.main(argv) == 2
+    assert fake.names() == ["create_order"]
+    order = json.loads((fab / "order.json").read_text(encoding="utf-8"))
+    assert order["api"]["create_attempt"]["state"] == "failed:unknown_error"
+
+    fake2 = FakeSession(create_order=ok_resp(CREATE_OK))
+    monkeypatch.setattr(order_submit, "_make_session", lambda: fake2)
+    assert order_submit.main(argv) == 2
+    assert fake2.calls == []                   # blocked before transport
+    order2 = json.loads((fab / "order.json").read_text(encoding="utf-8"))
+    assert "ended ambiguously" in order2["api"]["note"]
+    assert "portal" in order2["api"]["note"]
+    assert order2["api"]["create_attempt"]["state"] == "failed:unknown_error"
+
+
+def test_api_create_transport_loss_leaves_in_flight_and_blocks(
+        tmp_path, monkeypatch, api_env, capsys):
+    """P10-1b: transport dies mid-create -> the PRE-ARMED record stays
+    in_flight on disk and the next --api-create refuses mechanically."""
+    pcb, fab, qj = make_fab(tmp_path)
+    aq = write_api_quote(fab)
+    argv = submit_argv(pcb, fab, qj, "--api-create",
+                       "--api-quote-file", str(aq),
+                       "--confirm", "b1 5pcs 12.5")
+
+    class DyingSession(FakeSession):
+        def create_order(self, payload):
+            self.calls.append(("create_order", payload))
+            raise jlcapi.JlcApiError("connection lost mid-create")
+
+    fake = DyingSession()
+    monkeypatch.setattr(order_submit, "_make_session", lambda: fake)
+    assert order_submit.main(argv) == 2
+    order = json.loads((fab / "order.json").read_text(encoding="utf-8"))
+    assert order["api"]["create_attempt"]["state"] == "in_flight"
+    assert order["api"]["verdict"] == "transport"
+
+    fake2 = FakeSession(create_order=ok_resp(CREATE_OK))
+    monkeypatch.setattr(order_submit, "_make_session", lambda: fake2)
+    assert order_submit.main(argv) == 2
+    assert fake2.calls == []                   # an order may exist - refuse
+    order2 = json.loads((fab / "order.json").read_text(encoding="utf-8"))
+    assert "ended ambiguously" in order2["api"]["note"]
+
+
+def test_api_create_clean_refusal_writes_no_attempt(tmp_path, monkeypatch,
+                                                    api_env, capsys):
+    """P10-1: pre-transport refusals (e.g. a bad confirm token) never create
+    an attempt record - fixing the input and retrying stays mechanical."""
+    pcb, fab, qj = make_fab(tmp_path)
+    aq = write_api_quote(fab)
+    fake = FakeSession()
+    monkeypatch.setattr(order_submit, "_make_session", lambda: fake)
+    assert order_submit.main(submit_argv(
+        pcb, fab, qj, "--api-create", "--api-quote-file", str(aq),
+        "--confirm", "b1 5pcs 99.0")) == 2
+    order = json.loads((fab / "order.json").read_text(encoding="utf-8"))
+    assert "create_attempt" not in order["api"]
+
+
+def test_api_create_unambiguous_reject_does_not_block_retry(
+        tmp_path, monkeypatch, api_env, capsys):
+    """P10-1: bad_signature is NOT ambiguous (the order definitely did not
+    land) - the failed:bad_signature attempt record does not block the next
+    create once the credentials are fixed."""
+    pcb, fab, qj = make_fab(tmp_path)
+    aq = write_api_quote(fab)
+    argv = submit_argv(pcb, fab, qj, "--api-create",
+                       "--api-quote-file", str(aq),
+                       "--confirm", "b1 5pcs 12.5")
+    fake = FakeSession(create_order=err_resp(401, message="sig fail"))
+    monkeypatch.setattr(order_submit, "_make_session", lambda: fake)
+    assert order_submit.main(argv) == 2
+    order = json.loads((fab / "order.json").read_text(encoding="utf-8"))
+    assert order["api"]["create_attempt"]["state"] == "failed:bad_signature"
+
+    fake2 = FakeSession(create_order=ok_resp(CREATE_OK))
+    monkeypatch.setattr(order_submit, "_make_session", lambda: fake2)
+    assert order_submit.main(argv) == 0
+    assert fake2.names() == ["create_order"]
+    order2 = json.loads((fab / "order.json").read_text(encoding="utf-8"))
+    assert order2["api"]["verdict"] == "created"
+    assert order2["api"]["create_attempt"]["state"] == "created"
+
+
+def test_api_quote_pcb_only_estimate_for_assembly_rows(tmp_path, monkeypatch,
+                                                       api_env, capsys):
+    """P10-3: an assembly-inclusive quote row contributes its PCB sub-total
+    as the H5 estimate (the Open API prices bare PCBs ONLY), with the
+    excluded assembly total surfaced separately - comparing the combined
+    total against the API's PCB price told the human the wrong direction of
+    error on both credentialed runs."""
+    pcb, fab, qj = make_fab(tmp_path)
+    quote = {"spec": {"layers": 2, "width_mm": 20.0, "height_mm": 25.0,
+                      "thickness_mm": 1.6, "assembly": True},
+             "estimated": True,
+             "matrix": [{"qty": 5, "surface_finish": "HASL",
+                         "solder_mask_color": "green",
+                         "pcb": {"total": 4.0},
+                         "assembly": {"total": 15.65},
+                         "total": 19.65, "unit_cost": 3.93}]}
+    qj.write_text(json.dumps(quote), encoding="utf-8")
+    fake = quote_session(price=6.2, ship=[{"options": "DHL", "cost": 1.0}])
+    monkeypatch.setattr(order_submit, "_make_session", lambda: fake)
+    assert order_submit.main(submit_argv(pcb, fab, qj, "--api")) == 0
+    aq = json.loads((fab / "api_quote.json").read_text(encoding="utf-8"))
+    assert aq["estimate"] == 4.0               # PCB-only, NOT 19.65
+    assert aq["estimate_scope"] == "pcb_only"
+    assert aq["estimate_assembly_excluded"] == 15.65
+    order = json.loads((fab / "order.json").read_text(encoding="utf-8"))
+    step = next(s for s in order["human_steps"]
+                if s.startswith("API quote in "))
+    assert "PCB-only estimate 4.0" in step
+    assert "bare PCBs only" in step
+
+
 def test_rerun_preserves_created_order(tmp_path, monkeypatch, api_env,
                                        capsys):
     """A plain re-run (no api flags) deep-merges the existing api block:
@@ -1050,8 +1242,11 @@ def test_api_create_survives_a_reexport_of_the_same_design(
     assert fake.calls[0][1]["fileKey"] == "FKEY1"           # the audited bytes
 
     # ... while a real copper change on the same clock still refuses
+    # (manual reorder clear = api.order + verdict + order_number, exactly
+    # the paths the extended latch refusal names)
     order = json.loads((fab / "order.json").read_text(encoding="utf-8"))
     order["api"].pop("order"), order["api"].pop("verdict")
+    order.pop("order_number", None)
     (fab / "order.json").write_text(json.dumps(order), encoding="utf-8")
     _gerber_zip(zip_path, when="2026-08-06T09:01:02", version="10.0.4",
                 x="X260000")

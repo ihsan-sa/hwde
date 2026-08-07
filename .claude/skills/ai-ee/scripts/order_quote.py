@@ -106,8 +106,17 @@ def assembly_cost(pricing: dict, qty: int, n_parts: int, n_joints: int,
             "n_extended_parts": n_extended, "total": round(total, 2)}
 
 
-def _assembly_counts(pcb: Path, parts_json: Path | None) -> tuple[int, int, int]:
-    """(n_parts, n_joints, n_extended) from the board's real pads."""
+def _assembly_counts(pcb: Path,
+                     parts_json: Path | None) -> tuple[int, int, int, str]:
+    """(n_parts, n_joints, n_extended, n_extended_source) from the board's
+    real pads + parts.json.
+
+    JLC's feeder fee is charged per UNIQUE Extended part (jlc_pricing.yaml
+    assembly.note), so n_extended counts DISTINCT parts, never refs. The
+    pipeline's parts.json (S6) is the per-distinct-part shape: one entry per
+    part with a `basic` flag and NO refs/ref key - the old ref-based mapping
+    produced n_extended == 0 on every pipeline board (13 of 24 Extended on
+    pd-trigger priced at $0)."""
     bg = geom.load_board(pcb)
     refs: dict[str, int] = {}
     for pad in bg.pads_of():
@@ -117,22 +126,39 @@ def _assembly_counts(pcb: Path, parts_json: Path | None) -> tuple[int, int, int]
     n_parts = len(refs)
     n_joints = sum(refs.values())
     n_extended = 0
+    source = "no_parts_json"
     if parts_json is not None and Path(parts_json).exists():
-        import bom_cpl
-        pmap = bom_cpl.load_parts_map(Path(parts_json))
         data = json.loads(Path(parts_json).read_text(encoding="utf-8"))
         items = data.get("parts", data) if isinstance(data, dict) else data
-        basic_by_ref: dict[str, bool] = {}
-        if isinstance(items, list):
-            for ent in items:
+        flagged = (isinstance(items, list)
+                   and any(isinstance(e, dict) and ("basic" in e or "type" in e)
+                           for e in items))
+        if flagged:
+            # entry-level counting: one dict entry == one distinct part in
+            # both list shapes (per-distinct S6, or per-ref entries carrying
+            # a basic flag); de-dupe by lcsc in case a part repeats
+            seen: set = set()
+            n_extended = 0
+            for i, ent in enumerate(items):
                 if not isinstance(ent, dict):
                     continue
-                is_basic = bool(ent.get("basic", ent.get("type", "") == "Basic"))
-                for r in (ent.get("refs") or
-                          ([ent["ref"]] if ent.get("ref") else [])):
-                    basic_by_ref[str(r)] = is_basic
-        n_extended = sum(1 for r in pmap if not basic_by_ref.get(r, False))
-    return n_parts, n_joints, n_extended
+                key = ent.get("lcsc") or ent.get("LCSC") or f"#idx{i}"
+                if key in seen:
+                    continue
+                seen.add(key)
+                if not ent.get("basic", ent.get("type", "") == "Basic"):
+                    n_extended += 1
+            source = "per_distinct_entries"
+        else:
+            # fallback for shapes without any basic/type flag: count unique
+            # parts (by lcsc) and treat unflagged parts as Extended - the
+            # conservative (higher-fee) direction for an estimate
+            import bom_cpl
+            pmap = bom_cpl.load_parts_map(Path(parts_json))
+            n_extended = len({(v.get("lcsc") or r)
+                              for r, v in pmap.items()})
+            source = "per_ref_lcsc_fallback_unflagged_as_extended"
+    return n_parts, n_joints, n_extended, source
 
 
 def run(pcb: Path, qtys: list[int], finishes: list[str], colors: list[str],
@@ -144,8 +170,10 @@ def run(pcb: Path, qtys: list[int], finishes: list[str], colors: list[str],
     layers = len(bg.stackup.copper_layers)
 
     n_parts, n_joints, n_extended = (0, 0, 0)
+    n_extended_source = None
     if assembly:
-        n_parts, n_joints, n_extended = _assembly_counts(pcb, parts_json)
+        n_parts, n_joints, n_extended, n_extended_source = \
+            _assembly_counts(pcb, parts_json)
 
     matrix = []
     for qty in qtys:
@@ -173,26 +201,59 @@ def run(pcb: Path, qtys: list[int], finishes: list[str], colors: list[str],
             if assembly else 0,
             "note": lt.get("note")}
 
-    return {
+    # measured estimate-vs-API bias (jlc_pricing.yaml meta.measured_vs_api):
+    # surfaces the KNOWN underestimate magnitude in the artifact the human
+    # reads at H5, instead of leaving it as prose in SKILL/LEARNINGS
+    disclaimer = ("Estimates from reference/jlc_pricing.yaml - NOT a quote. "
+                  "Confirm at the authoritative quote URL before ordering.")
+    calibration = None
+    mva = pricing.get("meta", {}).get("measured_vs_api")
+    if isinstance(mva, list):
+        ratios = []
+        for pt in mva:
+            if not isinstance(pt, dict):
+                continue
+            est, api = pt.get("estimate_pcb"), pt.get("api_price")
+            if est and api:
+                ratios.append(float(api) / float(est))
+        if ratios:
+            lo, hi = min(ratios), max(ratios)
+            calibration = {
+                "observed_underestimate":
+                    f"{lo:.1f}-{hi:.1f}x low vs live API calculate (measured)",
+                "points": mva,
+            }
+            disclaimer += (f" Measured live API prices ran {lo:.1f}-{hi:.1f}x "
+                           "HIGHER than this table - treat these figures as "
+                           "a LOWER BOUND.")
+
+    spec = {"layers": layers, "width_mm": round(w, 2),
+            "height_mm": round(h, 2), "area_dm2": round(area_dm2, 4),
+            "thickness_mm": thickness, "assembly": assembly,
+            "n_parts": n_parts, "n_joints": n_joints,
+            "n_extended_parts": n_extended}
+    if assembly:
+        # only in assembly runs, so the P10 bench spec stays byte-identical
+        spec["n_extended_source"] = n_extended_source
+
+    payload = {
         "script": "order_quote",
         "status": "pass",
         "board": pcb.name,
         "estimated": True,
-        "disclaimer": "Estimates from reference/jlc_pricing.yaml - NOT a quote. "
-                      "Confirm at the authoritative quote URL before ordering.",
+        "disclaimer": disclaimer,
         "authoritative_quote_url":
             pricing.get("meta", {}).get("authoritative_quote_url"),
         "pricing_verified": pricing.get("meta", {}).get("verified"),
         "currency": pricing.get("meta", {}).get("currency", "USD"),
-        "spec": {"layers": layers, "width_mm": round(w, 2),
-                 "height_mm": round(h, 2), "area_dm2": round(area_dm2, 4),
-                 "thickness_mm": thickness, "assembly": assembly,
-                 "n_parts": n_parts, "n_joints": n_joints,
-                 "n_extended_parts": n_extended},
+        "spec": spec,
         "lead_time": lead,
         "matrix": matrix,
         "cheapest": matrix[0] if matrix else None,
     }
+    if calibration is not None:
+        payload["calibration"] = calibration
+    return payload
 
 
 def main(argv: list[str] | None = None) -> int:

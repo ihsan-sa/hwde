@@ -43,8 +43,19 @@ api-reference PcbOrderCraftData table, the contract's [SDK/PDF] source):
                     offers no way to ask whether an ambiguous create landed;
                     4L ordering is the web-cart path (see agents/ordering.md),
                   * created-latch: refuses when the CANONICAL fab/order.json
-                    already records an api.order - --out cannot sidestep it
-                    (reordering requires manually clearing the record),
+                    already records ANY order - api.order ids, a "created"
+                    verdict, or a WEB order_number recorded via
+                    --order-number - --out cannot sidestep it (reordering
+                    requires manually clearing the record),
+                  * ambiguous-attempt block: an api.create_attempt record is
+                    pre-armed ON DISK immediately before the transport call;
+                    a record left "in_flight" (crash / transport loss
+                    mid-create) or "failed:unknown_error"/"failed:error"
+                    (JLC answered ambiguously) refuses every later create
+                    until a human verifies the portal and manually clears
+                    api.create_attempt. Unambiguous rejections
+                    (bad_signature/scope_pending/ip_blocked/rate_limited)
+                    do not block a retry,
                   * --api-quote-file: a FRESH (<24 h, not future-dated)
                     api_quote.json written by a --api run,
                   * design binding: the current package's NORMALIZED design
@@ -539,7 +550,20 @@ def _api_quote(session, man: dict, fab_dir: Path, prior_steps=None,
         return cls
     data = calc.get("data") if isinstance(calc.get("data"), dict) else {}
     real_price = data.get("priceWithoutFreight")
-    estimate = (man["quote"].get("selected") or {}).get("total")
+    # like-for-like H5 comparison: the Open API prices bare PCBs ONLY (no
+    # assembly surface exists), so an assembly-inclusive quote row must
+    # contribute its PCB sub-total, never PCB+assembly - comparing the
+    # combined total against the API's PCB price told the human the wrong
+    # DIRECTION of error on both credentialed runs.
+    sel = man["quote"].get("selected") or {}
+    if "assembly" in sel:
+        estimate = (sel.get("pcb") or {}).get("total")
+        estimate_scope = "pcb_only"
+        estimate_assembly_excluded = (sel.get("assembly") or {}).get("total")
+    else:
+        estimate = sel.get("total")
+        estimate_scope = "total"
+        estimate_assembly_excluded = None
     ship_list = data.get("shipList")
     shipping_method = None
     shipping_cost = None
@@ -584,6 +608,8 @@ def _api_quote(session, man: dict, fab_dir: Path, prior_steps=None,
         "country": country,
         "real_price": real_price,
         "estimate": estimate,
+        "estimate_scope": estimate_scope,
+        "estimate_assembly_excluded": estimate_assembly_excluded,
         "estimate_note": man["quote"].get("estimate_note"),
         "estimate_source": man["quote"].get("source"),
         "copper_weight_oz": oz,
@@ -603,19 +629,24 @@ def _api_quote(session, man: dict, fab_dir: Path, prior_steps=None,
     out = fab_dir / "api_quote.json"
     out.write_text(json.dumps(api_quote, indent=1), encoding="utf-8")
 
+    if estimate_scope == "pcb_only":
+        est_txt = (f"our PCB-only estimate {estimate}; assembly estimated "
+                   f"separately at {estimate_assembly_excluded} - the Open "
+                   "API prices bare PCBs only")
+    else:
+        est_txt = f"our estimate {estimate}"
     man["api"].update({
         "verdict": "ok",
         "quote_real": real_price,
         "api_quote_json": str(out),
         "note": f"API quote fetched: grand total {grand_total} "
-                f"({real_price} pcb + {shipping_cost} freight) vs estimate "
-                f"{estimate}",
+                f"({real_price} pcb + {shipping_cost} freight) vs {est_txt}",
     })
     man["api"].pop("quote_stale", None)        # this quote is fresh
     man["human_steps"].insert(-1, (
         f"API quote in {out}: REAL grand total {grand_total} ({real_price} "
-        f"pcb + {shipping_cost} freight via {shipping_method}; our estimate "
-        f"{estimate}) - review shipList/achieveDateList/audit findings "
+        f"pcb + {shipping_cost} freight via {shipping_method}; {est_txt}) "
+        "- review shipList/achieveDateList/audit findings "
         "before any create."))
     return "ok"
 
@@ -649,23 +680,49 @@ def _load_fresh_quote(path: Path) -> dict:
 
 
 def _api_create(session, man: dict, quote_file: Path, confirm: str,
-                ship_json: Path | None) -> str:
+                ship_json: Path | None,
+                canonical: Path | None = None) -> str:
     """REAL MONEY. The only caller of session.create_order, reachable only
-    past the created-latch, a fresh quote file, the gerber sha binding, the
-    freight attestation, the qty cross-check and an exactly-matching
-    grand-total confirm token."""
-    # created-latch: one recorded API order per workspace, period. Armed by
-    # recorded ids OR a prior "created" verdict - a create that returned ok
-    # without ids must still latch (round-3 S-2 defense-in-depth).
+    past the created-latch, the ambiguous-attempt block, a fresh quote file,
+    the gerber sha binding, the freight attestation, the qty cross-check and
+    an exactly-matching grand-total confirm token."""
+    # created-latch: one recorded order per workspace, period. Armed by
+    # recorded API ids, a prior "created" verdict (a create that returned ok
+    # without ids must still latch, round-3 S-2 defense-in-depth), OR a
+    # recorded order_number - a WEB order registered via --order-number is an
+    # order too, and API-buying the same board again is the double-buy.
     prior_order = man["api"].get("order") or {}
     if (prior_order.get("batchNum") or prior_order.get("orderId")
-            or man["api"].get("verdict") == "created"):
+            or man["api"].get("verdict") == "created"
+            or man.get("order_number")):
         raise ApiRefused(
-            f"an API order is already recorded (batchNum "
+            f"an order is already recorded for this workspace (api batchNum "
             f"{prior_order.get('batchNum')}, orderId "
-            f"{prior_order.get('orderId')}) - refusing to create again. "
-            "To intentionally reorder, manually clear the api.order block "
-            "from fab/order.json first")
+            f"{prior_order.get('orderId')}, order_number "
+            f"{man.get('order_number')}) - refusing to create again. To "
+            "intentionally reorder, manually clear the api.order block AND "
+            "the top-level order_number from fab/order.json first")
+
+    # ambiguous-attempt block: a prior create that is still in_flight (crash
+    # or transport failure mid-create) or failed ambiguously (unknown_error /
+    # error: JLC answered but nothing says whether an order landed, and no
+    # order list/search endpoint exists to ask) MUST NOT be retried
+    # mechanically - that is the exact case that buys a board twice.
+    # Clean pre-transport refusals never write an attempt record, and
+    # unambiguous rejections (bad_signature/scope_pending/ip_blocked/
+    # rate_limited: the order definitely did not land) do not block a retry.
+    attempt = man["api"].get("create_attempt") or {}
+    astate = str(attempt.get("state") or "")
+    if astate == "in_flight" or astate in ("failed:unknown_error",
+                                           "failed:error"):
+        raise ApiRefused(
+            f"a prior create attempt (at {attempt.get('at')}, grand_total "
+            f"{attempt.get('grand_total')}) ended ambiguously (state "
+            f"{astate!r}) - an order MAY exist server-side and the API has "
+            "no order list/search endpoint to check. Verify orders + balance "
+            "in the JLCPCB web portal FIRST; only after confirming no order "
+            "landed, manually remove the api.create_attempt block from "
+            "fab/order.json to clear this refusal")
 
     q = _load_fresh_quote(quote_file)
 
@@ -765,8 +822,24 @@ def _api_create(session, man: dict, quote_file: Path, confirm: str,
                 "overridable")
         payload.update(extra)
 
+    # PRE-ARM the attempt record ON DISK before any money can move: if the
+    # process dies (or the transport fails) mid-create, the next --api-create
+    # finds state "in_flight" and refuses until a human checks the portal.
+    # This is the fail-safe direction - a stale in_flight record after a
+    # success also refuses, which a portal check clears.
+    attempt = {"at": _dt.datetime.now().astimezone()
+               .isoformat(timespec="seconds"),
+               "state": "in_flight", "grand_total": q["grand_total"]}
+    man["api"]["create_attempt"] = attempt
+    if canonical is None:
+        # fallback: derive the canonical fab/order.json from the gerber zip
+        canonical = Path(zip_info["path"]).parent / "order.json"
+    canonical.parent.mkdir(parents=True, exist_ok=True)
+    canonical.write_text(json.dumps(man, indent=1), encoding="utf-8")
+
     resp = session.create_order(payload)
     cls = jlcapi.classify(resp)
+    attempt["state"] = "created" if cls == "ok" else f"failed:{cls}"
     if cls != "ok":
         _record_api_failure(man, cls, resp)
         raise ApiRefused(f"create rejected ({cls}): {resp.get('message')}",
@@ -821,7 +894,7 @@ def _merge_prior_api(man: dict, prior: dict | None) -> None:
     if isinstance(prior_api, dict):
         for key in ("verdict", "quote_real", "api_quote_json", "order",
                     "file_key", "file_key_sha256", "last_quote_verdict",
-                    "last_create_verdict", "quote_stale"):
+                    "last_create_verdict", "quote_stale", "create_attempt"):
             if key in prior_api and key not in man["api"]:
                 man["api"][key] = prior_api[key]
     if man.get("order_number") is None and prior.get("order_number"):
@@ -941,7 +1014,8 @@ def main(argv: list[str] | None = None) -> int:
                          "4+ with an unclassifiable code 2 - use the web "
                          "cart); requires --api-quote-file and a matching "
                          "--confirm token; refuses when order.json already "
-                         "records an API order")
+                         "records ANY order (api or web) or an ambiguous "
+                         "prior create attempt")
     ap.add_argument("--api-quote-file",
                     help="fresh api_quote.json from a --api run")
     ap.add_argument("--confirm",
@@ -989,7 +1063,8 @@ def main(argv: list[str] | None = None) -> int:
                         '--confirm "<board> <qty>pcs <total>"')
                 api_verdict = _api_create(
                     session, man, Path(args.api_quote_file), args.confirm,
-                    Path(args.ship_json) if args.ship_json else None)
+                    Path(args.ship_json) if args.ship_json else None,
+                    canonical=canonical)
             else:
                 api_verdict = _api_quote(
                     session, man, Path(args.fab_dir),

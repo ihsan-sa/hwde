@@ -704,6 +704,89 @@ def test_quote_assembly_feeders_only_for_extended_parts():
     assert ext["total"] > basic["total"]
 
 
+def test_quote_extended_count_per_distinct_parts_json(tmp_path):
+    """P10-2: the pipeline's parts.json (S6 per-DISTINCT-part shape: `basic`
+    flag, NO refs/ref keys) must count Extended parts - the old ref-based
+    mapping produced n_extended 0 on every pipeline board (13 of 24 Extended
+    on pd-trigger priced at $0). The feeder fee is per UNIQUE part."""
+    parts = {"parts": [
+        {"mpn": "A", "lcsc": "C1", "basic": True, "qty_per_board": 2},
+        {"mpn": "B", "lcsc": "C2", "basic": False, "qty_per_board": 1},
+        {"mpn": "C", "lcsc": "C3", "basic": False, "qty_per_board": 4},
+    ]}
+    pj = tmp_path / "parts.json"
+    pj.write_text(json.dumps(parts), encoding="utf-8")
+    rep = order_quote.run(board_path("blinky2"), [5], ["HASL"], ["green"],
+                          assembly=True, parts_json=pj)
+    assert rep["spec"]["n_extended_parts"] == 2
+    assert rep["spec"]["n_extended_source"] == "per_distinct_entries"
+    row = rep["matrix"][0]
+    assert row["assembly"]["feeders"] == 6.00    # 2 unique Extended x 3.00
+    assert row["assembly"]["n_extended_parts"] == 2
+
+
+def test_quote_extended_count_dedupes_repeated_lcsc(tmp_path):
+    """A part repeated across entries (same lcsc) is ONE feeder fee."""
+    parts = {"parts": [
+        {"mpn": "B", "lcsc": "C2", "basic": False},
+        {"mpn": "B", "lcsc": "C2", "basic": False},
+    ]}
+    pj = tmp_path / "parts.json"
+    pj.write_text(json.dumps(parts), encoding="utf-8")
+    rep = order_quote.run(board_path("blinky2"), [5], ["HASL"], ["green"],
+                          assembly=True, parts_json=pj)
+    assert rep["spec"]["n_extended_parts"] == 1
+
+
+def test_quote_extended_count_per_ref_fallback_dedupes_by_lcsc(tmp_path):
+    """Per-ref shapes WITHOUT any basic/type flag: unique parts (by lcsc)
+    count as Extended - the conservative (higher-fee) direction."""
+    parts = [
+        {"refs": ["R1", "R2", "R3"], "lcsc": "C10"},
+        {"ref": "U1", "lcsc": "C11"},
+    ]
+    pj = tmp_path / "parts.json"
+    pj.write_text(json.dumps(parts), encoding="utf-8")
+    rep = order_quote.run(board_path("blinky2"), [5], ["HASL"], ["green"],
+                          assembly=True, parts_json=pj)
+    assert rep["spec"]["n_extended_parts"] == 2  # 2 unique lcsc, not 4 refs
+    assert rep["spec"]["n_extended_source"] == \
+        "per_ref_lcsc_fallback_unflagged_as_extended"
+
+
+def test_quote_no_extended_source_key_without_assembly():
+    """The bench (score_p10) runs without assembly: its spec dict must stay
+    byte-identical - no n_extended_source key leaks in."""
+    rep = order_quote.run(board_path("blinky2"), [5], ["HASL"], ["green"])
+    assert "n_extended_source" not in rep["spec"]
+    assert rep["spec"]["n_extended_parts"] == 0
+
+
+def test_quote_calibration_surfaced_from_measured_points():
+    """P10-4: meta.measured_vs_api in jlc_pricing.yaml -> every quote payload
+    carries the OBSERVED estimate-vs-API ratio and the disclaimer says
+    LOWER BOUND (the 1.9-3.1x underestimate was L0 prose only)."""
+    rep = order_quote.run(board_path("blinky2"), [5], ["HASL"], ["green"])
+    cal = rep["calibration"]
+    assert cal["observed_underestimate"] == \
+        "1.9-3.1x low vs live API calculate (measured)"
+    boards = {p["board"] for p in cal["points"]}
+    assert boards == {"pd-trigger", "lumina-carrier"}
+    assert "LOWER BOUND" in rep["disclaimer"]
+
+
+def test_quote_no_calibration_without_measured_points(tmp_path):
+    pricing = yaml.safe_load(
+        (REFERENCE / "jlc_pricing.yaml").read_text(encoding="utf-8"))
+    pricing["meta"].pop("measured_vs_api", None)
+    pp = tmp_path / "pricing.yaml"
+    pp.write_text(yaml.safe_dump(pricing), encoding="utf-8")
+    rep = order_quote.run(board_path("blinky2"), [5], ["HASL"], ["green"],
+                          pricing_path=pp)
+    assert "calibration" not in rep
+    assert "LOWER BOUND" not in rep["disclaimer"]
+
+
 def test_order_submit_reports_incomplete_package(tmp_path):
     man = order_submit.run(board_path("blinky2"), tmp_path)
     assert man["status"] == "incomplete"
