@@ -56,13 +56,11 @@ onward.
 ## Run start / resume
 
 **New run** (`/ai-ee <description>`):
-1. Create the workspace `boards/<board-name>/` (inside this repo, so gate
-   commits work): `brief/ architecture/ research/ parts/ lib/ kicad/
-   routing/ reports/ fab/ log/`. Copy user inputs into `brief/`.
-2. `scripts/check_env.py` - exit 0 required; on failure present its
+1. `scripts/check_env.py` - exit 0 required; on failure present its
    remediation strings and stop.
-3. `scripts/state.py init --workspace boards/<name> --board <name>`.
-4. Enter P0.
+2. `scripts/state.py init --workspace boards/<name> --board <name>` -
+   creates the workspace + standard subdirs (in-repo so gate commits
+   work). Copy user inputs into `brief/`. Enter P0.
 
 **Resume** (`/ai-ee --resume <workspace>`):
 1. `scripts/state.py resume --workspace <ws>` - gives phase, gates passed,
@@ -87,9 +85,10 @@ only script JSON, never design files). Judgment roles stay agents; the two
 reviewers stay FRESH-context agents always. Small boards may use ONE
 schematic agent for all sheets (record the deviation).
 
-- **P0 Intake**: spawn `requirements-analyst`. Present its OPEN questions to
-  the user in ONE batch. Blocking: safety-relevant unknowns (mains, battery,
-  high current) do not proceed on guesses. Artifact: `requirements.md`.
+- **P0 Intake**: spawn `requirements-analyst`; OPEN questions go to the user
+  in ONE batch; lint the artifact: `scripts/check_requirements.py`. Safety
+  unknowns (mains/battery/>3A) are never guessed - unattended runs record
+  delegate answers as PROVISIONAL decisions, re-confirmed at H1.
 - **P1 Research** (parallel): from requirements pick the roster -
   `research-component-scout` (one per major function),
   `research-reference-design` (one per novel block),
@@ -99,28 +98,24 @@ schematic agent for all sheets (record the deviation).
 - **P2 Architecture**: spawn `architect`. Record its decisions
   (`state.py decision`). **Checkpoint H1** (blocking): present blocks,
   stackup, cost ballpark, key parts, riskiest decision.
-- **P3 Parts+Library**: spawn `part-sourcer`; then `datasheet-extractor`
-  per nontrivial IC (parallel); then `librarian` (needs the extracts for
-  fp_verify). Librarian failures (pad geometry mismatch) are blocking -
-  resolve part or footprint before P4.
+- **P3 Parts+Library**: spawn `part-sourcer`; `datasheet-extractor` per
+  nontrivial IC (parallel) - reuse a prior board's `parts/<lcsc>.json` on
+  LCSC match (re-run `--validate`); then `librarian` (extracts feed
+  fp_verify). Librarian pad-geometry failures block P4.
 - **P4 Schematic**: spawn one `schematic-block` per sheet from
   `architecture/sheets.md` (parallel where independent; the root-sheet agent
   stitches and runs ERC + netlist_audit). Gate `erc`. Then spawn
   `schematic-reviewer` (fresh context); triage its findings: errors ->
   fix loop (below), warnings -> waivers file `reports/erc-waivers.md`.
   **Checkpoint H2** (blocking): schematic PDF + reviewer findings + waivers.
-- **P5 Board Setup**: spawn `board-setup`. Its self-check is the phase
-  criterion (parity 0, setup violations 0). Ensure sidecars sit beside the
-  board.
+- **P5 Board Setup**: run inline (board_init then rules_gen per
+  `agents/board-setup.md`); spawn `board-setup` only for impedance or
+  library-repair boards. Parity 0, setup 0; sidecars beside the board.
 - **P6 Placement**: spawn `placement` (seed -> anneal -> select/repair,
   <= 8 edit iterations). Gate `place`. **Checkpoint H3** (optional, default
-  ON): top/bottom render. Silk caveat: courtyard-tight annealed placements
-  can put refdes over pads and fail P7's err+warn gate - prefer roomier
-  candidates, and use place_edit `move_text` ops to clear refdes collisions
-  (S14: a 47->0 silk sweep is routine). The place gate is pad-aware since
-  S14 (effective courtyard covers pad fields), but agents still verify with
-  full kicad-cli DRC - gate blind spots are found by refusing to trust one
-  checker.
+  ON): top/bottom render. Silk/refdes collisions are scripted fixes
+  (silk_place/move_text); agents verify with full kicad-cli DRC - never
+  trust one checker.
 - **P7 Routing**: spawn `router` (chain order is board-class dependent -
   its prompt carries the verified 2L/4L orders). Gate `drc_routed`.
   If the router returns a `placement_adjust_request`, take the SANCTIONED
@@ -129,15 +124,16 @@ schematic agent for all sheets (record the deviation).
 - **P8 Verification**: run the `verify` gate (it executes all 8 checks).
   Then spawn `verify-reviewer` (fresh context) with the summary + renders.
   Triage: script-check errors -> fix loop; reviewer errors -> fix loop or
-  human; warnings -> waiver candidates. After ANY copper/placement fix
-  here, re-run `drc_routed` before re-running `verify` (fixes must not
-  regress earlier gates). **Checkpoint H4** (blocking): verification
+  human; warnings -> waivers (`reports/verify-waivers.json` re-gates). After
+  ANY copper/placement fix, re-run `drc_routed` before `verify` (fixes must
+  not regress earlier gates). **Checkpoint H4** (blocking): verification
   summary + annotated renders + waivers.
-- **P9 DFM**: spawn `dfm`. Gate `dfm`. Its JLCDFM/browser leg is human -
-  fold into H5's steps.
-- **P10 Ordering**: spawn `ordering` (with AIEE_JLCPCB_* creds set it also
-  runs the `--api` quote leg: gerber upload -> API DFM audit -> real
-  calculate; `scope_pending` is a normal reported state). **Checkpoint H5**
+- **P9 DFM**: run inline (lean): fab_export -> bom_cpl -> gate `dfm`; spawn
+  `dfm` only on failures needing narrative. JLCDFM leg is human (H5).
+- **P10 Ordering**: run inline (spawn `ordering` only for substitution/
+  waiver judgment). With AIEE_JLCPCB_* creds also run the `--api` quote leg
+  (upload -> API DFM audit -> real calculate; `scope_pending` is normal).
+  **Checkpoint H5**
   (blocking, always): present the quote matrix row, the API quote + audit
   findings when available (real price beside estimate), order.json, and
   the `human_steps` list (upload zip, JLCDFM second opinion, CPL polarity
@@ -146,7 +142,7 @@ schematic agent for all sheets (record the deviation).
   ORCHESTRATOR run `order_submit.py --api-create --confirm
   "<board> <N>pcs <grand>"` (grand total incl. freight exactly as
   api_quote.json records it) - one latched order per workspace,
-  gerber-sha-bound, REAL SPEND, no sandbox. After creation, poll
+  design-hash-bound (fabhash), REAL SPEND, no sandbox. After creation, poll
   `scripts/order_track.py --workspace <ws>` at checkpoints/resume
   (non-blocking) and log status milestones to state.
 
@@ -196,18 +192,13 @@ On gate fail (exit 1, result JSON has `failing` with coordinates):
 
 Special cases:
 - `cleanup_regression` (route_cleanup exit 1): restore the snapshot and
-  continue WITHOUT cleanup - it is optional by design. S14: the loop-breaker
-  regressed on every live run (2L and 4L); the safe protocol is DRY-RUN
-  first, inspect the removal list, and cherry-pick via route_edit - or skip
-  cleanup entirely (2L pour boards especially).
+  continue WITHOUT cleanup - optional by design (see Known limits).
 - A fixer reporting `requires_pipeline_rewind` (schematic/library change
   needed after P5): stop the loop, present the tradeoff to the human -
   rewinding re-enters at P4/P5 for the affected scope and re-runs every
   gate from there.
-- Silk findings: place_edit now carries `add_text` / `move_text` ops (S14,
-  closed V17) - silk labels and refdes moves are scripted fixes. Pin-locked
-  labels ONLY (a label readable against the wrong pin is worse than none);
-  footprint-INTERNAL silk defects remain librarian edits (approval + EDITS.md).
+- Silk findings: scripted fixes (silk_place.py, place_edit add_text/
+  move_text); pin-locked labels ONLY; footprint-INTERNAL silk stays librarian.
 
 **Escalate** (budget exhausted or unfixable): render the board
 (`scripts/render.py`), write a digest (what failed, what was tried, the
@@ -246,8 +237,19 @@ Every Task spawn contains exactly:
 3. Its assignment specifics (which block/sheet/interface/work order).
 4. Termination: "return the output contract; do not start other phases'
    work."
+5. Log it: `state.py log --event spawn --data {"role":..,"model":..,"phase":..}`.
 Reviewers (`schematic-reviewer`, `verify-reviewer`) get FRESH context -
 never reuse a generator/router conversation for its own review.
+
+Spawn tiers (T6-measured; escalate one tier when a role must overrule its
+inputs, never silently downgrade):
+| fable/max | router (novel board; proven-chain re-run: sonnet/medium) |
+| fable/high | architect, placement, schematic-reviewer, verify-reviewer, requirements-analyst |
+| fable/medium | schematic-block (thin root-stitch: sonnet/high) |
+| opus/high | research-interface-spec, research-power-architect, sim-analyst, fixer (copper/route) |
+| sonnet/high | research-component-scout, research-reference-design, part-sourcer, datasheet-extractor |
+| sonnet/medium | librarian, fixer (silk/sch/parts/fab), placement (backward-edge re-spawn) |
+| inline-default | board-setup, ordering, dfm (spawn = exception path) |
 
 ## Known limits (be honest about these - v1, post-S14)
 
@@ -256,24 +258,17 @@ never reuse a generator/router conversation for its own review.
 - JLCDFM and payment are human steps by design (no public APIs).
 - kipy/IPC is the KiCad-11 migration target; this pin drives SWIG bundled
   python via the edit scripts - never bypass them.
-- route_cleanup's loop-breaker regressed on every S14 live run: treat it as
-  dry-run-inspect-cherry-pick or skip; never blind-apply.
-- Drill-spacing models are incomplete two ways (S14-proven): stitch_vias'
-  hole floor is center-point (cannot see slot extents), and KiCad DRC never
-  checks a via drill against a same-net THT pad drill - the DRC gate +
-  route_edit removal is the working recovery; routers must eyeball drills
-  near THT pads.
-- check_current cannot measure pour-channel width on a net with <2 vias
-  (pour_neck needs via anchors) - viasless pour feeds must be disclosed by
-  the router with measured numbers (pd-trigger C1B precedent).
+- route_cleanup's V13 dangling-pass defect was root-cause-fixed at T6; keep
+  dry-run + inspect on its first live run, then retire this caveat.
+- Residual check blind spots are trigger-indexed in
+  reference/remediations/<check_id>.md (viasless pour-channel disclosure
+  stays a router duty; drill classes closed at T6 by drill-aware floors).
 - No outline-shrink step exists: the P5 outline is final, so requirement
   caps must bind at board_init (--outline WxH); architecture "target" sizes
   smaller than the shelf pack are unreachable.
-- placelib pads drop per-pad rotation (extents are rotation-safe via bbox;
-  per-pad geometry is not). Fab floors (.kicad_pro rules + ERROR severities)
-  come from lib/fabfloors.py; netclasses split per required width (T1).
-- order_quote undercounts Extended feeder fees; every figure is
-  estimated:true and the JLC cart is the only real quote.
+- Fab floors (.kicad_pro rules + ERROR severities) come from
+  lib/fabfloors.py; netclasses split per required width (T1).
+- order_quote figures are estimated:true; the JLC cart is the only real quote.
 - JLCPCB Open API: PCB ordering only - there is NO assembly/PCBA API
   (BOM/CPL ordering stays the JLC web flow). JLC Balance payment
   mechanics, PCB tracking-number surface, and copperWeight type

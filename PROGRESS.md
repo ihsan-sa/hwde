@@ -37,7 +37,7 @@ T7 -> T8 || T9 -> T10. T11 runs as soon as boards arrive (not during T6).
 | T3 | Library + authoring hygiene (lib_pull silk autofix, schem_refdes.py) | **done** | 2026-08-06 |
 | T4 | Knowledge ladder triage + trigger-indexed remediations | **done** | 2026-08-06 |
 | T5 | Stage bench + frozen fixtures + composite scores | **done** | 2026-08-06 |
-| T6 | Per-stage deep evaluation + improvement fan-out (EXCLUSIVE) | pending | - |
+| T6 | Per-stage deep evaluation + improvement fan-out (EXCLUSIVE) | **done** | 2026-08-06 |
 | T7 | Freshness-aware state + invalidation map | pending | - |
 | T8 | Incremental board update (board_update.py, kills OI-3) | pending | - |
 | T9 | External-board intake (intake.py) | pending | - |
@@ -97,14 +97,15 @@ kickoff prompt to allow multi-agent workflows (higher token spend - use where ma
 | V9 | cpl-rotation mutant catchable at DFM | S2 finding, spec P9 | **RESOLVED S12**: dfm_check compares board `pad number -> net` against the netlist's `pin -> net` (parity is net-level and stays blind to the swap, as S2 found). The mutant is caught as `cpl_polarity`, ref D1, **rotation_delta_deg 180.0** - exactly the manifest's expectation - and the pad geometry supplies that angle. Test is HERMETIC (committed s7_regen netlist as oracle). LEARNINGS [dfm][kicad]. |
 | V10 | Flipped (back-side) footprint pad geometry | S3, spec 6.3 | **RESOLVED S3 (Fable review)**: built a SWIG-flipped fixture (flip_fixture.py); pcbnew bakes the mirror INTO the file (locals mirrored, angles negated, layers renamed B.*), so the front-side transform covers flipped parts with NO special handling. geom's original mirror+swap DOUBLE-flipped - removed; 15/15 pads exact vs pcbnew; regression test in test_geom.py. |
 | V11 | "Remove unused inner via pads" not modeled | S3 | geom treats a through via as copper on ALL inner layers (matches corpus + oracle default). A board enabling JLC's inner-pad removal would over-count inner via copper. S8 did not add it (rules_gen has no via-pad-removal knob); revisit at S12 DFM if used. |
-| V12 | Controlled-impedance geometry not validated vs JLC's calculator | S8, spec P5 | S8 `lib/impedance.py` computes trace width/diff gap from IPC-2141A microstrip + the published edge-coupled correction (50R/1.6mm FR4 -> 3.02mm matches textbook ~2.95mm; diff round-trips exactly). These are first-order estimates for sizing DRU rules + S5 targets; only OUTER-layer microstrip is modelled (no inner stripline). Confirm against JLC's online impedance calculator before ordering a controlled-impedance board (S12/S14). |
-| V13 | route_cleanup loop-breaker vs plane-mediated connectivity | S11 | **CLOSED S14 (as v1 disposition)**: regressed on ALL THREE live boards (2L x2, 4L would-have via dry-run) - demoted to dry-run-inspect-cherry-pick or skip (router.md + SKILL.md); root cause (union-find/fill edge) documented, not fixed - v1 known-issue #1. |
-| V14 | Freerouting 2.2.4 DSN-reader recursion on KRT copper | S11 | PolylineTrace.combine infinite recursion before pass 1 on KRT guide-wire copper; mitigated (wedge detection + KRT fallback). Worth an upstream issue with a minimal DSN repro. |
+| V12 | Controlled-impedance geometry not validated vs JLC's calculator | S8, spec P5 | S8 `lib/impedance.py` computes trace width/diff gap from IPC-2141A microstrip + the published edge-coupled correction (50R/1.6mm FR4 -> 3.02mm matches textbook ~2.95mm; diff round-trips exactly). Only OUTER-layer microstrip is modelled (no inner stripline). **T6 mitigation**: rules_gen now emits a DRU `disallow track` on inner layers for impedance-solved nets - silent missizing became a named gate violation. Still confirm against JLC's calculator before ordering controlled impedance. |
+| V13 | route_cleanup loop-breaker vs plane-mediated connectivity | S11 | **ROOT-CAUSE FIXED T6**: the live regression was the DANGLING pass, not the loop-breaker - `_endpoint_free` tested endpoint-to-CENTERLINE <= 0.01mm, blind to copper overlap (reproduced disconnecting VBUS on the frozen pd-trigger fixture). Fixed with copper-touch tests + netconn bridge veto + regression fixture (batch G, 11ed6e5). V20 covers the first-live-run validation before the dry-run protocol retires. |
+| V14 | Freerouting 2.2.4 DSN-reader recursion on KRT copper | S11 | PolylineTrace.combine infinite recursion before pass 1 on KRT guide-wire copper; mitigated (wedge detection + KRT fallback). Worth an upstream issue with a minimal DSN repro. **T6 assessed**: the design-notes DSN post-process assertion set remains UNBUILT (deferred with spec in the P7 eval - runtime wedge-detect is the only defense). |
 | V15 | JLCPCB web-viewer upload + polarized-part CPL preview | S12, plan S12 accept | **HUMAN STEP, NOT YET DONE.** Two S12 accept legs need a browser and have no API: (a) upload `usbbuck4_gerbers.zip` to JLC's viewer/quote page and confirm it renders clean, (b) spot-check the rendered CPL preview for 3 polarized parts (D1 LED_0805, plus a diode/electrolytic on a future board). The machine-checkable half (package completeness, hashes, rotation maths) IS tested (test_full_package_flow, test_cpl_rotation_corrections). Do this once before the first real order (S14). |
 | V16 | jlc_pricing.yaml staleness + credentialed ordering API | S12 | order_quote's numbers are transcribed headline prices flagged `estimated: true`, never a quote; JLC's real price depends on panelisation/promotions/region. order_submit implements the manifest + human gate but NOT a live api.jlcpcb.com call (that programme needs an approved access application this host does not have) - `--api` exits 2 with the exact missing prerequisite rather than shipping an untested payment path. Re-verify the table (and wire the API behind `_api_submit()`) when credentials exist. |
-| V18 | stackups.yaml dielectric constants + template churn | T1 | **OPEN, standing.** JLC's `getImpedanceTemplateSettingList` returns materials + thicknesses but NO epsilon_r, so every `epsilon_r` in stackups.yaml is an assumed FR4 value (`epsilon_r_assumed: true` per entry) and 1080-vs-7628 resin differences are NOT modelled - this is the concrete form of V12 for the real stackups. AND the offering itself churns: JLC04161H-7628G was live on 2026-07-30 and gone on 2026-08-06. Before any controlled-impedance board: re-probe the endpoint (recipe in LEARNINGS 2026-08-06 [stackup][jlcapi][ordering]) AND confirm width/gap against JLC's online impedance calculator. |
+| V18 | stackups.yaml dielectric constants + template churn | T1 | **OPEN, standing.** JLC's `getImpedanceTemplateSettingList` returns materials + thicknesses but NO epsilon_r, so every `epsilon_r` in stackups.yaml is an assumed FR4 value (`epsilon_r_assumed: true` per entry) and 1080-vs-7628 resin differences are NOT modelled - this is the concrete form of V12 for the real stackups. AND the offering itself churns: JLC04161H-7628G was live on 2026-07-30 and gone on 2026-08-06. Before any controlled-impedance board: re-probe the endpoint (recipe in LEARNINGS 2026-08-06 [stackup][jlcapi][ordering]) AND confirm width/gap against JLC's online impedance calculator. **T6 partial**: board_init now warns when an impedance-controlled stackup's verified date is stale (detection half at L2; the re-probe itself still needs credentials + a human). |
 | V17 | No scripted silk/text move op (refdes/value) | S13 | **RESOLVED S14**: hit on run (a) day one (J1 polarity legend = reviewer ERROR). place_swig/place_edit gained `add_text` (idempotent board-frame silk text) + `move_text` (refdes/value fields), independently sexpdata-verified incl. rotated parents; 9 tests. Drove ~50 move_text refdes sweeps + 3 boards' functional silk packages. fixer.md/fix_dispatch/SKILL.md updated. |
-| V19 | schem_refdes symbol transform at 90/270 and mirrored instances | T3 | The library->page transform is verified against wired pin positions at rotation 0 and 180 (the only rotations in the corpus: 209 instances at 0, one at 180, ZERO mirrored across all ten board sheets). The 90/270 and `(mirror x|y)` branches are implemented from the KiCad convention but have no fixture. Verify against a wired pin the first time a generator rotates or mirrors a symbol - note LEARNINGS 2026-07-28 already records that schlib and ksa disagree on the SIGN of a 90 deg rotation. |
+| V19 | schem_refdes symbol transform at 90/270 and mirrored instances | T3 | **RESOLVED T6**: rotmirror fixture (7 Device:R at 0/90/180/270, mirror x/y, rot90+mirror; every pin wired, ERC oracle) FALSIFIED the suspected stub_dir sign defect - the real bug was in ksa pin-position reads; fixed in schlib.pin_pos + save-time field placement (batch D, 3b10380). All branches now fixture-pinned. |
+| V20 | T6 mechanisms awaiting first live-run validation | T6 | The T6-built mechanisms proven by tests/bench but not yet exercised on a live board run: route_cleanup root-cause fix (dry-run + inspect its first live run, then retire the SKILL caveat), silk_place solver at scale, corridor cost term on a PD-class board, KRT iteration-ladder/Coverage facts, HV DRU emission on a real >30V board, spawn-tier downgrades (watch the deterministic backstops), lib_pull paced batch on a 40+ part board. Also: lumina-carrier's shipped .kicad_dru fails the new check_dru (7 of 8 aiee_* floors missing - hand-edit erased them; board defect, fix at carrier resume). |
 
 ## S0 - Repo bootstrap and environment (2026-07-06) - DONE
 
@@ -2381,3 +2382,106 @@ cosmetic class), cpl mutant 99.4 (cpl_polarity D1 caught); P10 100.0
 
 **New verify-later items:** none. (V19 unchanged; the P4 hierarchical fixture
 gap is deviation 4, owned by T6.)
+
+## T6 - Per-stage deep evaluation + improvement fan-out (2026-08-06) - DONE
+
+The owner-mandated EXCLUSIVE step: every pipeline stage evaluated in isolation,
+improvements proposed AND applied, adversarially verified via bench + suite.
+
+**Suite state at open (protocol note):** 992 passed / 2 failed - the standing
+`net`-marked AP63203 stock failure (T2/T3/T5 precedent) plus a
+`test_route_auto_full_flow` flake under 15-agent CPU load (re-run ALONE in
+batch G's verification: green; not a regression).
+
+**Method (ultracode, the plan's biggest spend):** 16 read-only stage evaluators
+(11 stages; doubled lenses on P3/P6/P7/P8 + one cross-cutting; every bench
+fixture re-run and matched against its T5 baseline first) -> synthesis of ~118
+proposals into ~60 accepted after cross-lens dedup -> 11 SEQUENTIAL
+self-verifying apply batches (commits `T6 Batch A..K`, each: implement, scoped
+tests, bench --compare, re-baseline same commit, ladder rows, explicit-path
+add) -> 11 stage-eval docs + XC/overview -> SKILL.md surgery + this entry.
+~5.2M subagent tokens. Evaluator claims were treated as hypotheses: two were
+REFUTED at apply time (P7B-6 diffpair pairing already landed in T2; V19's
+suspected stub_dir sign - real bug was ksa pin-position reads) and two eval
+expectations falsified by measurement (shipped pd-trigger fires derived
+return-coverage warnings, so they ship as advisory not error; rf4 golden
+carries a TRUE silk_misattributed defect at C14 - pinned in tests, golden left
+generator-owned).
+
+**Delivered (detail per stage in `design/stage-evals/`):**
+- `design/stage-evals/P0..P10.md, XC.md, overview.md` - findings, applied
+  diffs, no-change verdicts, deferred specs, before/after bench, cost table,
+  spawn-tier table.
+- Deterministic promotions (35 ladder rows closed/promoted): check_requirements
+  lint + KiCad-pin validation (A); scout JSON contract + reference/interfaces
+  + topologies/buck + constraints_lint (B); lib_pull symbol-truth gate +
+  paced batches + wmsc/%PDF + grounding trim + lib_pin_types + fp_verify
+  min/max+drill (C); netlist_audit series-escape/missing_ref/pin_no_net +
+  schlib save-time field placement + label/power-VALUE guards + V19 fixture
+  (D); rules_gen stackup-oz + HV DRU from voltages + V12 inner disallow +
+  check_dru + stackup freshness (E); bench-P6 signal metrics + per-pad
+  rotation + corridor term + silk_place solver + crystal template +
+  routed-board guard (F); route_cleanup V13 root fix + KRT facts +
+  drill-aware floors + pad-window probe + connect:solid (G); carrier
+  recalibration (plane_fed/coating adoption + land_pattern_pitch waiver +
+  47 true defects known-answer-pinned) + reviewer->domain routing +
+  fix_dispatch batching + gate commit scoping + stale-fill preflight +
+  verify waiver sidecar + silk_misattributed + return-net coverage + twin
+  drift + P6 parity (H); dfm stackup-oz + release-truth + tented-pad (I);
+  ordering double-buy latch + honest feeder/H5 compares (J); bench P3 stage +
+  hierarchical P4 + rules_gen leg (K).
+- Bench: 3 NEW fixtures (mutant_gndchoke_verify 94.8, pristine_lib 100.0,
+  usbbuck_sch 90.95); honest re-baselines pd_trigger_arch 91->100,
+  pd_trigger_place 18.53->48.02, golden_blinky2_place 53.36->72.36,
+  carrier_verify 37.6->68.2, pd_trigger_verify 100->94.4 (advisory-only),
+  mutant_planesplit 99.5->99.4 (true rf4 finding). Every mutant known-answer
+  still fires; collateral sweeps delta 0.
+- SKILL.md 286 -> 281 lines: spawn-tier table + spawn ledger added, funded by
+  cutting script-owned/duplicated prose; P5/P9/P10 inline defaults; P0
+  delegate protocol; P3 extract reuse; verify-waivers pointer; design-hash
+  latch prose fixed.
+- Cost model (overview.md): est. ~1.5M->0.9M tokens/run (2L) and
+  ~2.2M->1.4M (4L) from tier table + P1/P3 payload discipline + dispatch
+  batching + inline defaults. Spawn ledger exists to replace estimates with
+  measurements.
+
+**Deviations from the plan (with reasons):**
+1. "1-2 subagents per stage" widened to 16 evaluators (doubled lenses where
+   open-row concentration or bench headroom justified) and the apply ran as
+   11 sequential repo batches rather than per-stage worktrees - worktrees
+   lack the gitignored venv/tools so agents could not have verified there;
+   sequential merge with per-batch bench/suite gates is the plan's
+   "merge stage-by-stage" with correctness over wall-clock.
+2. Template mandate: decap = explicit no-change (already L3 in
+   placelib/place_seed), crystal template shipped, corridor shipped as anneal
+   cost term; buck hot-loop + full corridor primitive + blocker eviction
+   DEFERRED with specs recorded (P6.md) - role-inference risk did not fit the
+   session tail.
+3. P8B-3 derived return-net findings are advisory WARNINGS (eval wanted
+   error): the shipped-clean pd-trigger board itself fires 2 pour necks at
+   the heuristic 5A budget - error severity would fail a shipped board on a
+   heuristic number.
+4. requirements-analyst kept fable/high against the XC draft's sonnet/medium
+   (P0 lens evidence, negligible absolute cost).
+
+**Interface notes for later steps:**
+- T7: XC-8 handoff notes in XC.md (event-name hygiene, artifacts registry,
+  spawn ledger -> state v2 first-class). state.py set-phase digest warning is
+  warn-only by design. bench fixture pins now include the pristine lib set;
+  T5's snapshot-label stability note still applies.
+- Board resumes: lumina-carrier's .kicad_dru fails check_dru (7/8 floors
+  hand-edit-erased, V20) - run `rules_gen --check-dru` at resume; carrier
+  fix-run owns the 47 pinned true defects (known-answer list in
+  manifest.yaml is the tripwire that they stay visible).
+- T10: chain orders stay in router.md until task recipes (ladder row 50);
+  gates.yaml gained `require_fresh_fills` + verify `--waivers` sidecar
+  (reports/verify-waivers.json).
+- The 65-row open-ladder worklist is now ~30 rows; the remaining
+  concentration is route_critical residuals, fp_verify baseline-DRC, and the
+  deferred P6 templates.
+
+**Suite at close:** 1272 passed / 1 failed - only the standing `net`-marked
+AP63203 stock test (T2/T3/T5 precedent); check_env exit 0. +280 tests vs open.
+
+**New verify-later items:** V20 (T6 live-validation bundle + carrier DRU
+defect). V12/V13/V14/V18/V19 register rows updated in place.
