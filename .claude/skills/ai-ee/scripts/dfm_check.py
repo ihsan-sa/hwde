@@ -19,11 +19,21 @@ Checks (all thresholds from reference/jlc_capabilities.yaml, keyed
   mask     silk_over_pad (silk ink inside a mask opening = unprintable/
            unsolderable), solder-mask dam between openings
   silk     min silk stroke width
+  paste    paste aperture with NO mask opening (tented SMD pad - the stencil
+           deposits paste on mask and the part cannot be soldered; a classic
+           wrong-layer/footprint export defect)
   assembly CPL polarity: board pad->net vs schematic pin->net. KiCad's own
            --schematic-parity is net-level and does NOT catch a polarized part
            mounted backwards (LEARNINGS/V9); comparing per PAD NUMBER does, and
            the pad geometry gives the apparent rotation delta.
-  release  gerber layer completeness, drill validity, BOM completeness
+  release  gerber layer completeness (against the BOARD's declared layer set,
+           never the files being audited - a package that dropped a layer must
+           read as incomplete, not as a smaller board), drill validity,
+           closed Edge.Cuts outline, BOM completeness
+
+The capability key (<layers>layer_<oz>oz) is derived from the BOARD: layer
+count from its (layers ...) block, copper weight from its (stackup ...) block
+(0.035 mm = 1 oz), unless --copper-oz pins it explicitly.
 
 Severity policy: a JLCPCB manufacturing minimum that is actually violated is an
 ERROR. Advisory classes that legitimate boards routinely trip - silk stroke
@@ -34,7 +44,7 @@ netlist_audit precedent).
 Emits the S2 normalized violation schema via checklib; exit 0/1/2.
 
 CLI:
-  dfm_check.py --pcb board.kicad_pcb [--fab-dir DIR] [--copper-oz 1]
+  dfm_check.py --pcb board.kicad_pcb [--fab-dir DIR] [--copper-oz N]
                [--schematic s.kicad_sch | --netlist b.net | --no-polarity]
                [--parts parts.json] [--capabilities cap.yaml] [--out r.json]
 """
@@ -42,6 +52,7 @@ from __future__ import annotations
 
 import argparse
 import math
+import re
 import sys
 import tempfile
 import warnings
@@ -113,6 +124,57 @@ def pick_rules(caps: dict, layers: int, copper_oz: float) -> tuple[str, dict]:
         avail = ", ".join(sorted(caps["design_rules"]))
         raise CheckError(f"no capability entry '{key}' (have: {avail})")
     return key, rules
+
+
+def _sexp_block(text: str, start: int) -> str:
+    """The balanced (...) block whose opening paren is at/after `start`."""
+    depth = 0
+    for j in range(start, len(text)):
+        c = text[j]
+        if c == "(":
+            depth += 1
+        elif c == ")":
+            depth -= 1
+            if depth == 0:
+                return text[start:j + 1]
+    return text[start:]
+
+
+def derive_copper_oz(pcb: Path) -> tuple[float, str]:
+    """Outer copper weight from the board's own (stackup ...) block.
+
+    -> (oz, source) with source "stackup" (derived) or "default" (no stackup
+    block / no copper-layer thickness: today's 1 oz behavior). The gate calls
+    run() with no copper_oz, so without this every board was checked against
+    the 1 oz floors - a 2 oz board (6 mil min trace) judged at 5 mil is a
+    latent false-pass. 0.035 mm = 1 oz; rounded to the nearest half-oz so a
+    nonstandard thickness still lands on a capability-table key.
+    """
+    try:
+        text = pcb.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return 1.0, "default"
+    m = re.search(r"\(stackup\b", text)
+    if m is None:
+        return 1.0, "default"
+    block = _sexp_block(text, m.start())
+    coppers: list[tuple[str, float]] = []
+    for lm in re.finditer(r'\(layer\s+"([^"]+)"', block):
+        sub = _sexp_block(block, lm.start())
+        if not re.search(r'\(type\s+"copper"\)', sub):
+            continue
+        tm = re.search(r"\(thickness\s+([0-9.]+)", sub)
+        if tm:
+            coppers.append((lm.group(1), float(tm.group(1))))
+    if not coppers:
+        return 1.0, "default"
+    # F.Cu is the outer weight (capability keys are outer-copper keyed);
+    # stackup blocks list layers top->bottom, so fall back to the first.
+    outer = dict(coppers).get("F.Cu", coppers[0][1])
+    oz = round(outer / 0.035 * 2) / 2
+    if oz <= 0:
+        return 1.0, "default"
+    return oz, "stackup"
 
 
 # ------------------------------------------------------------ copper checks
@@ -396,6 +458,37 @@ def check_mask_dam(fab, rules, vios: list) -> None:
                 count=len(thin)))
 
 
+def check_pad_tented(fab, vios: list) -> None:
+    """A solder-PASTE aperture whose pad has no solder-mask opening: the pad
+    is tented under mask, the stencil deposits paste ON the mask, and the
+    part cannot be soldered (JLCDFM's 'pad covered by solder mask' class -
+    previously only discoverable at P10's API audit / human browser step).
+
+    Gating on paste flashes (stencil aperture = assembly intent) keeps tented
+    vias, paste-less test points and fiducials out of scope by construction:
+    they have no paste aperture. Registration slop is irrelevant - the test
+    is intersection-empty, not a clearance."""
+    for side in ("F", "B"):
+        paste = fab.paste(side)
+        mask = fab.mask(side)
+        if paste is None or mask is None:
+            continue
+        openings = mask.union()
+        # One aperture per connected component: KiCad's RoundRect macro
+        # decomposes into several primitives per flash, and reporting each
+        # would turn one tented pad into nine violations.
+        for comp in paste.components():
+            if not comp.intersection(openings).is_empty:
+                continue
+            pt = comp.representative_point()
+            vios.append(checklib.violation(
+                CHECK, "error", (pt.x, pt.y), f"{side}.Paste", None, [],
+                f"solder-paste aperture ({comp.area:.4f} mm2) with no "
+                f"solder-mask opening on {side} - pad is tented and cannot "
+                f"be assembled", SOURCE, kind="dfm_pad_tented",
+                paste_mm2=checklib.rnd(comp.area)))
+
+
 # ----------------------------------------------------------- CPL polarity
 
 def _angle(cx, cy, x, y) -> float:
@@ -478,14 +571,33 @@ def check_polarity(bg, netlist: dict, vios: list) -> dict:
 
 # ------------------------------------------------------------ release gate
 
-def check_release(fab, layers: int, vios: list, parts_report: dict | None
-                  ) -> dict:
+def check_outline(fab, vios: list) -> None:
+    """An Edge.Cuts file that does not polygonize (open contour) silently
+    yields an EMPTY outline, and both edge-distance checks early-return on
+    it - so an unclosable outline used to disable copper-to-edge AND
+    hole-to-edge without a trace. Make the silence an error."""
+    if fab.edge_file is not None and fab.outline.is_empty:
+        vios.append(checklib.violation(
+            CHECK, "error", None, "Edge.Cuts", None, [],
+            "Edge.Cuts present but does not form a closed outline - "
+            "copper/hole edge-distance checks cannot run",
+            SOURCE, kind="dfm_open_outline"))
+
+
+def check_release(fab, expected_cu: list[str], vios: list,
+                  parts_report: dict | None) -> dict:
     """Fab-release completeness (SPEC P8 table): every layer present, drill
-    valid, BOM complete."""
+    valid, BOM complete.
+
+    `expected_cu` is the BOARD's declared copper layer set (fab_export.
+    copper_layers, pure text scan) - never derived from the files being
+    audited. Counting the package's own files was circular: a 4-layer export
+    that dropped both inner gerbers read as a valid 2-layer package, no
+    missing-layer error, and the 2-layer capability table applied."""
     facts = {}
     missing = []
     have = set(fab.copper_files)
-    want_cu = {"F.Cu", "B.Cu"} | {f"In{i}.Cu" for i in range(1, layers - 1)}
+    want_cu = set(expected_cu)
     for lyr in sorted(want_cu - have):
         missing.append(lyr)
     for side in ("F", "B"):
@@ -496,10 +608,17 @@ def check_release(fab, layers: int, vios: list, parts_report: dict | None
     if fab.edge_file is None:
         missing.append("Edge.Cuts")
     if missing:
+        msg = f"fab package is missing layer(s): {', '.join(missing)}"
+        cu_missing = sorted(want_cu - have)
+        if cu_missing:
+            # Name both sets so a deliberately curated --layers export can be
+            # recognized (and waived) by a human instead of guessed at.
+            msg += (f" - board declares copper [{', '.join(expected_cu)}], "
+                    f"package has [{', '.join(sorted(have))}]")
         vios.append(checklib.violation(
-            CHECK, "error", None, None, None, [],
-            f"fab package is missing layer(s): {', '.join(missing)}",
-            SOURCE, kind="dfm_missing_layer", layers=missing))
+            CHECK, "error", None, None, None, [], msg,
+            SOURCE, kind="dfm_missing_layer", layers=missing,
+            expected_copper=list(expected_cu), found_copper=sorted(have)))
     facts["layers_present"] = sorted(have) + \
         [f"{s}.Mask" for s in sorted(fab.mask_files)] + \
         [f"{s}.Silkscreen" for s in sorted(fab.silk_files)]
@@ -544,18 +663,28 @@ def _resolve_netlist(pcb: Path, schematic: Path | None,
     return netlist_audit.parse_netlist(out), None
 
 
-def run(pcb: Path, fab_dir: Path | None = None, copper_oz: float = 1.0,
+def run(pcb: Path, fab_dir: Path | None = None, copper_oz: float | None = None,
         capabilities: Path | None = None, schematic: Path | None = None,
         netlist: Path | None = None, polarity: bool = True,
         parts: Path | None = None, skip: tuple[str, ...] = ()) -> dict:
     if not pcb.exists():
         raise CheckError(f"board not found: {pcb}")
     caps = load_capabilities(capabilities or CAPABILITIES)
+    if copper_oz is None:
+        oz, oz_source = derive_copper_oz(pcb)
+    else:
+        oz, oz_source = float(copper_oz), "cli"
+
+    # The BOARD's declared copper set (pure text scan) is the truth the
+    # package is audited AGAINST - both for completeness and for the
+    # capability key. Never count the files being checked.
+    import fab_export
+    expected_cu = fab_export.copper_layers(pcb)
+    n_layers = len(expected_cu)
 
     with tempfile.TemporaryDirectory(prefix="aiee_dfm_") as td:
         tmp = Path(td)
         if fab_dir is None:
-            import fab_export
             man = fab_export.run(pcb, tmp / "fab", make_zip=False)
             gdir = Path(man["gerber_dir"])
         else:
@@ -563,15 +692,18 @@ def run(pcb: Path, fab_dir: Path | None = None, copper_oz: float = 1.0,
             if (gdir / "gerbers").is_dir():
                 gdir = gdir / "gerbers"
         fab = gerblib.open_fab(gdir)
-        n_layers = len(fab.copper_layer_names())
-        if n_layers == 0:
+        if not fab.copper_files:
             raise CheckError(f"no copper gerbers found in {gdir}")
-        key, rules = pick_rules(caps, n_layers, copper_oz)
+        if oz_source == "stackup" \
+                and rule_key(n_layers, oz) not in caps["design_rules"]:
+            oz, oz_source = 1.0, "default"  # unknown key: today's behavior
+        key, rules = pick_rules(caps, n_layers, oz)
 
         bg = geom.load_board(pcb)
         vios: list = []
         facts: dict = {}
 
+        check_outline(fab, vios)
         if "copper" not in skip:
             check_trace_width(fab, rules, vios)
             check_clearance(fab, rules, vios)
@@ -582,12 +714,13 @@ def run(pcb: Path, fab_dir: Path | None = None, copper_oz: float = 1.0,
         if "silk" not in skip:
             check_silk(fab, rules, vios, bg=bg)
             check_mask_dam(fab, rules, vios)
+            check_pad_tented(fab, vios)
 
         parts_report = None
         if parts is not None:
             import bom_cpl
             parts_report = bom_cpl.run(pcb, tmp / "bom", parts_json=parts)
-        facts.update(check_release(fab, n_layers, vios, parts_report))
+        facts.update(check_release(fab, expected_cu, vios, parts_report))
 
         if polarity:
             nl, reason = _resolve_netlist(pcb, schematic, netlist, tmp)
@@ -602,7 +735,8 @@ def run(pcb: Path, fab_dir: Path | None = None, copper_oz: float = 1.0,
         facts.update({
             "capability_key": key,
             "layer_count": n_layers,
-            "copper_oz": copper_oz,
+            "copper_oz": oz,
+            "copper_oz_source": oz_source,
             "gerber_dir": str(gdir),
             "min_trace_width_mm": min(
                 (w for n in fab.copper_layer_names()
@@ -623,8 +757,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--pcb", required=True, help="input .kicad_pcb")
     ap.add_argument("--fab-dir", help="pre-exported fab dir (else export to a "
                                       "temp dir)")
-    ap.add_argument("--copper-oz", type=float, default=1.0,
-                    help="outer copper weight (capability table key)")
+    ap.add_argument("--copper-oz", type=float, default=None,
+                    help="outer copper weight (capability table key); default: "
+                         "auto from the board's stackup block, 1 oz if absent")
     ap.add_argument("--capabilities", help="override jlc_capabilities.yaml")
     ap.add_argument("--schematic", help="schematic for the polarity oracle")
     ap.add_argument("--netlist", help="netlist for the polarity oracle")

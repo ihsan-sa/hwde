@@ -17,6 +17,7 @@ Public API:
     FabStack.copper(layer)   -> LayerGeom  (traces, pads, pours, widths)
     FabStack.silk(side)      -> LayerGeom
     FabStack.mask(side)      -> LayerGeom  (flashes = mask OPENINGS)
+    FabStack.paste(side)     -> LayerGeom  (flashes = stencil apertures)
     FabStack.outline         -> shapely Polygon | None (from Edge.Cuts)
     FabStack.holes           -> [Hole{x, y, diameter, plated}]
 """
@@ -236,6 +237,10 @@ class FabStack:
 
     def mask(self, side: str) -> LayerGeom | None:
         return self._get(self.mask_files.get(side), f"{side}.Mask")
+
+    def paste(self, side: str) -> LayerGeom | None:
+        """Paste layer (stencil apertures). Flashes = pads that get paste."""
+        return self._get(self.paste_files.get(side), f"{side}.Paste")
 
     @property
     def holes(self) -> list[Hole]:

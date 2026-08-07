@@ -21,6 +21,7 @@ written by hand). Tests that export gerbers via kicad-cli are `smoke`.
 from __future__ import annotations
 
 import json
+import shutil
 import sys
 import time
 from pathlib import Path
@@ -51,6 +52,10 @@ MANIFEST = yaml.safe_load((GOLDEN / "manifest.yaml").read_text(encoding="utf-8")
 BOARDS = list(MANIFEST["golden_boards"])
 GATES_YAML = REFERENCE / "gates.yaml"
 BLINKY_NET = REPO / "tests" / "s7_regen" / "blinky2" / "golden.net"
+STAGES = REPO / "tests" / "fixtures" / "stages"
+PD_PCB = STAGES / "pd_trigger" / "route" / "pd-trigger.kicad_pcb"
+PD_GERBERS = STAGES / "pd_trigger" / "fab" / "gerbers"
+PD_NET = STAGES / "pd_trigger" / "pd-trigger.net"
 
 
 def board_path(name: str) -> Path:
@@ -104,7 +109,8 @@ def write_drill(path: Path, holes=()) -> None:
 
 
 def synth_fab(tmp_path: Path, *, traces=(), flashes=(), holes=(),
-              silk=(), mask=(), outline_mm=(0.0, 0.0, 20.0, 20.0)) -> object:
+              silk=(), mask=(), paste=(),
+              outline_mm=(0.0, 0.0, 20.0, 20.0)) -> object:
     """Build a minimal 2-layer fab dir and open it with gerblib."""
     d = tmp_path / "synth"
     d.mkdir(exist_ok=True)
@@ -114,6 +120,8 @@ def synth_fab(tmp_path: Path, *, traces=(), flashes=(), holes=(),
     write_gerber(d / "synth-B_Silkscreen.gbo")
     write_gerber(d / "synth-F_Mask.gts", flashes=mask)
     write_gerber(d / "synth-B_Mask.gbs")
+    write_gerber(d / "synth-F_Paste.gtp", flashes=paste)
+    write_gerber(d / "synth-B_Paste.gbp")
     x0, y0, x1, y1 = outline_mm
     write_gerber(d / "synth-Edge_Cuts.gm1", traces=[
         (0.1, x0, y0, x1, y0), (0.1, x1, y0, x1, y1),
@@ -423,16 +431,146 @@ def test_dfm_missing_layer_is_release_error(tmp_path):
     (fab.dir / "synth-B_Mask.gbs").unlink()
     fab2 = gerblib.open_fab(fab.dir)
     vios: list = []
-    dfm_check.check_release(fab2, 2, vios, None)
+    dfm_check.check_release(fab2, ["F.Cu", "B.Cu"], vios, None)
     assert "dfm_missing_layer" in [v["kind"] for v in vios]
 
 
 def test_dfm_bom_incomplete_is_warning_only(tmp_path):
     fab = synth_fab(tmp_path)
     vios: list = []
-    dfm_check.check_release(fab, 2, vios, {"missing_lcsc": ["U1", "C3"]})
+    dfm_check.check_release(fab, ["F.Cu", "B.Cu"], vios,
+                            {"missing_lcsc": ["U1", "C3"]})
     v = [x for x in vios if x["kind"] == "dfm_bom_incomplete"]
     assert len(v) == 1 and v[0]["severity"] == "warning"
+
+
+def test_release_missing_inner_layers_board_truth(tmp_path):
+    """T6 P9-2 circularity fix: the expected copper set comes from the BOARD,
+    so a package that dropped BOTH inner gerbers reads as incomplete - not
+    as a valid 2-layer board (which is what counting the audited files did)."""
+    fab = synth_fab(tmp_path)                       # F.Cu + B.Cu only
+    vios: list = []
+    dfm_check.check_release(fab, ["F.Cu", "In1.Cu", "In2.Cu", "B.Cu"],
+                            vios, None)
+    v = [x for x in vios if x["kind"] == "dfm_missing_layer"]
+    assert len(v) == 1
+    assert {"In1.Cu", "In2.Cu"} <= set(v[0]["layers"])
+    # both sets are named so a curated export can be waived knowingly
+    assert "board declares copper" in v[0]["msg"]
+    assert v[0]["expected_copper"] == ["F.Cu", "In1.Cu", "In2.Cu", "B.Cu"]
+
+
+# ================================= T6 P9-1: copper weight from the stackup
+
+def test_derive_copper_oz_from_stackup_block():
+    # pd-trigger fixture: both copper layers at (thickness 0.07) = 2 oz
+    assert dfm_check.derive_copper_oz(PD_PCB) == (2.0, "stackup")
+    # golden blinky2 has no (stackup ...) block -> today's 1 oz behavior
+    assert dfm_check.derive_copper_oz(board_path("blinky2")) == \
+        (1.0, "default")
+
+
+def test_dfm_run_derives_capability_key_from_board():
+    """The gate calls run() without copper_oz (gate.py run_dfm builds only
+    schematic/parts kwargs): pd-trigger, a 2 oz board, must be judged
+    against the 2layer_2oz floors, not the old copper_oz=1.0 default."""
+    rep = dfm_check.run(PD_PCB, fab_dir=PD_GERBERS, polarity=False,
+                        skip=("copper", "drill", "silk"))
+    assert rep["capability_key"] == "2layer_2oz"
+    assert rep["copper_oz"] == 2.0
+    assert rep["copper_oz_source"] == "stackup"
+    # an explicit pin still wins, recorded as such (bench/manifest path)
+    rep2 = dfm_check.run(PD_PCB, fab_dir=PD_GERBERS, copper_oz=1.0,
+                         polarity=False, skip=("copper", "drill", "silk"))
+    assert rep2["capability_key"] == "2layer_1oz"
+    assert rep2["copper_oz_source"] == "cli"
+
+
+# ==================================== T6 P9-2: unclosable Edge.Cuts outline
+
+def test_dfm_open_outline_is_error(tmp_path):
+    """gerblib returns an EMPTY polygon for an unclosable Edge.Cuts and both
+    edge-distance checks early-return on it - the silence must be an error."""
+    fab = synth_fab(tmp_path)                       # closed rectangle: clean
+    vios: list = []
+    dfm_check.check_outline(fab, vios)
+    assert vios == []
+
+    d = tmp_path / "open"
+    d.mkdir()
+    for name in ("o-F_Cu.gtl", "o-B_Cu.gbl", "o-F_Silkscreen.gto",
+                 "o-B_Silkscreen.gbo", "o-F_Mask.gts", "o-B_Mask.gbs"):
+        write_gerber(d / name)
+    write_gerber(d / "o-Edge_Cuts.gm1",             # two sides only: open
+                 traces=[(0.1, 0.0, 0.0, 20.0, 0.0),
+                         (0.1, 20.0, 0.0, 20.0, 20.0)])
+    write_drill(d / "o.drl")
+    fab2 = gerblib.open_fab(d)
+    vios2: list = []
+    dfm_check.check_outline(fab2, vios2)
+    assert [v["kind"] for v in vios2] == ["dfm_open_outline"]
+    assert vios2[0]["severity"] == "error"
+
+
+def test_dfm_open_outline_through_run(tmp_path):
+    dst = tmp_path / "gerbers"
+    shutil.copytree(PD_GERBERS, dst)
+    write_gerber(dst / "pd-trigger-Edge_Cuts.gm1",  # replace with open contour
+                 traces=[(0.1, 0.0, 0.0, 20.0, 0.0),
+                         (0.1, 20.0, 0.0, 20.0, 20.0)])
+    rep = dfm_check.run(PD_PCB, fab_dir=dst, polarity=False,
+                        skip=("copper", "drill", "silk"))
+    assert "dfm_open_outline" in [v["kind"] for v in rep["violations"]]
+    assert rep["status"] == "violations"
+
+
+# ============================ T6 P9-3: tented pad (paste, no mask opening)
+
+def test_gerblib_paste_accessor(tmp_path):
+    fab = synth_fab(tmp_path, paste=[(0.5, 5.0, -5.0)])
+    lg = fab.paste("F")
+    assert lg is not None and len(lg.pads) == 1
+    assert fab.paste("B") is not None and fab.paste("B").pads == []
+
+
+def test_dfm_flags_tented_pad(tmp_path):
+    """A paste aperture with no mask opening = tented pad = unassemblable.
+    Gating on paste flashes keeps tented vias / paste-less test points out
+    of scope: they have no stencil aperture."""
+    fab = synth_fab(tmp_path, paste=[(0.5, 5.0, -5.0)],
+                    mask=[(1.0, 12.0, -12.0)])      # only opening: elsewhere
+    vios: list = []
+    dfm_check.check_pad_tented(fab, vios)
+    assert [v["kind"] for v in vios] == ["dfm_pad_tented"]
+    assert vios[0]["severity"] == "error"
+    assert vios[0]["pos"] == pytest.approx([5.0, 5.0], abs=0.05)
+
+    (tmp_path / "ok").mkdir()
+    fab2 = synth_fab(tmp_path / "ok", paste=[(0.5, 5.0, -5.0)],
+                     mask=[(1.0, 5.0, -5.0)])       # opening present: clean
+    vios2: list = []
+    dfm_check.check_pad_tented(fab2, vios2)
+    assert vios2 == []
+
+
+def test_dfm_pad_tented_mutant_fixture():
+    """Frozen known answer: mutant_paste is the blinky2 cpl-rotation gerber
+    set with exactly ONE mask-opening flash deleted (C8 pad 1, F.Mask); its
+    paste aperture is untouched -> exactly one dfm_pad_tented error there,
+    and the inherited cpl_polarity catch is unaffected."""
+    d = STAGES / "mutant_paste"
+    rep = dfm_check.run(d / "blinky2.kicad_pcb", fab_dir=d / "gerbers",
+                        netlist=BLINKY_NET)
+    tented = [v for v in rep["violations"] if v["kind"] == "dfm_pad_tented"]
+    assert len(tented) == 1
+    assert tented[0]["severity"] == "error"
+    assert tented[0]["pos"] == pytest.approx([118.4, 129.625], abs=0.5)
+    assert any(v["kind"] == "cpl_polarity" for v in rep["violations"])
+    # the untouched source set stays clean (zero false positives)
+    clean = gerblib.open_fab(STAGES / "mutant_cpl" / "gerbers")
+    vios: list = []
+    dfm_check.check_pad_tented(clean, vios)
+    assert vios == []
 
 
 def test_dfm_silk_sliver_is_warning_real_overlap_error(tmp_path):
@@ -785,6 +923,28 @@ def test_dfm_negative_control_mutants(mut, board):
                         schematic=GOLDEN / board / f"{board}.kicad_sch")
     errors = [v for v in rep["violations"] if v["severity"] == "error"]
     assert errors == [], f"{mut}: {errors}"
+
+
+@pytest.mark.smoke
+def test_dfm_missing_inner_layers_end_to_end(fab_dirs, tmp_path):
+    """T6 P9-2: a 4-layer export that silently dropped BOTH inner gerbers
+    must fail release completeness AND stay under the 4-layer capability
+    table (the board's declared layer set is the truth, not the file count)."""
+    _, man = fab_dirs["usbbuck4"]
+    dst = tmp_path / "gerbers"
+    shutil.copytree(Path(man["gerber_dir"]), dst)
+    dropped = [f for f in dst.iterdir()
+               if "In1_Cu" in f.name or "In2_Cu" in f.name]
+    assert len(dropped) == 2
+    for f in dropped:
+        f.unlink()
+    rep = dfm_check.run(board_path("usbbuck4"), fab_dir=dst, polarity=False)
+    miss = [v for v in rep["violations"] if v["kind"] == "dfm_missing_layer"]
+    assert len(miss) == 1
+    assert {"In1.Cu", "In2.Cu"} <= set(miss[0]["layers"])
+    assert rep["capability_key"].startswith("4layer")
+    assert rep["layer_count"] == 4
+    assert rep["status"] == "violations"
 
 
 @pytest.mark.smoke

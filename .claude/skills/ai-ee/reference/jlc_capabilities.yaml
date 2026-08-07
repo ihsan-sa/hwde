@@ -12,6 +12,27 @@
 #
 # Values are JLCPCB's *manufacturing minimums*. rules_gen may set a design to a
 # more conservative value; dfm_check flags anything BELOW these.
+#
+# COVERAGE BOUNDARY - a key's presence here does NOT imply a local check reads
+# it. Verified consumption (T6):
+#   dfm_check-enforced (gerber-level): min_trace_width_mm, min_clearance_mm,
+#     min_copper_to_edge_mm, min_hole_diameter_mm, min_hole_to_hole_mm,
+#     min_hole_to_edge_mm, min_annular_ring_mm, min_silk_width_mm,
+#     min_solder_mask_dam_mm. (Its paste/outline/release checks are threshold-
+#     free: dfm_pad_tented, dfm_open_outline, dfm_missing_layer.)
+#   rules_gen/fabfloors seeds ONLY (design-rule generation, never gerber-
+#     checked): min_via_drill_mm, min_via_diameter_mm, outer_copper_oz
+#     (inner_copper_oz is descriptive profile metadata).
+#   consumed by NO code: min_pad_size_mm, min_silk_height_mm,
+#     min_solder_mask_clearance_mm. These and the remaining JLCDFM classes
+#     (silk text height, min pad size, mask-to-copper clearance, copper
+#     slivers, acid traps, via-in-pad, castellation) are covered by P10's API
+#     DFM audit + the human jlcdfm.com step (V6 resolution, PROGRESS.md) -
+#     do not infer local coverage from a key listed here.
+#   V11 verdict (unchanged): JLC's inner via-pad removal stays unmodeled BY
+#     POLICY - the pipeline never enables that ordering option, and both
+#     geometry paths (geom.py, gerblib) consistently model inner pads present.
+#     Revisit only if order_submit ever requests pad removal.
 
 meta:
   manufacturer: JLCPCB

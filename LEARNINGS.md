@@ -2257,3 +2257,11 @@ rotation-only instances, but a rot90+mirror part gets its two pins SWAPPED. ERC 
 to this (the pin position SET is unchanged - both wires still land on pins); only the
 exported netlist shows the wrong memberships. Any transform fixture must therefore assert
 per-pin NET assignment, not just ERC 0/0.
+## 2026-08-06 [gerbonara][gerber][dfm] gerblib LayerGeom.pads holds PRIMITIVE FRAGMENTS, not one polygon per flash - a KiCad RoundRect aperture is 9 of them
+T6 P9-3 (check_pad_tented): _flash_polys expands each Flash via to_primitives(), and
+KiCad's RoundRect aperture MACRO decomposes into 9 primitives (1 box polygon + 4 corner
+circles + 4 edge rects), so ONE paste aperture contributed 9 entries to lg.pads and the
+first tented-pad implementation reported the same pad 9 times. Area/union checks never
+noticed (they union everything first), which is why this stayed invisible since S12.
+Any NEW check that iterates lg.pads per-aperture (counting, per-pad predicates) must
+group by connected component first - LayerGeom.components() is the honest unit.
