@@ -1,0 +1,169 @@
+{
+  "script": "rules_gen",
+  "status": "pass",
+  "capability_class": "4layer_1oz",
+  "stackup": "JLC04161H-1080B",
+  "copper_oz": 1.0,
+  "rule_count": 23,
+  "rule_names": [
+    "aiee_track_width_floor",
+    "aiee_clearance_floor",
+    "aiee_via_drill_floor",
+    "aiee_via_diameter_floor",
+    "aiee_annular_floor",
+    "aiee_edge_clearance_floor",
+    "aiee_hole_to_hole_floor",
+    "aiee_silk_width_floor",
+    "aiee_pwr_width_40V",
+    "aiee_pwr_width_5V",
+    "aiee_pwr_width_5V_DRV",
+    "aiee_pwr_width_SW",
+    "aiee_pwr_width_tank_TANK_A",
+    "aiee_pwr_width_tank_TANK_B",
+    "aiee_pwr_width_tank_RFOUT",
+    "aiee_hv_50v_tank_TANK_B",
+    "aiee_hv_51v_40V",
+    "aiee_hv_143v_SW",
+    "aiee_hv_145v_tank_RFOUT",
+    "aiee_hv_180v_tank_TANK_A",
+    "aiee_hv_203v_SW__tank_TANK_A",
+    "aiee_hv_151v_tank_TANK_A__tank_TANK_B",
+    "aiee_hv_135v_tank_TANK_B__tank_RFOUT"
+  ],
+  "power": [
+    {
+      "net": "+40V",
+      "current_a": 7.0,
+      "dt_c": 10.0,
+      "min_width_mm": 5.5,
+      "netclass": "Pwr_5p5mm",
+      "class_width_mm": 5.5
+    },
+    {
+      "net": "+5V",
+      "current_a": 0.3,
+      "dt_c": 10.0,
+      "min_width_mm": 0.15,
+      "netclass": "Default",
+      "class_width_mm": 0.2
+    },
+    {
+      "net": "+5V_DRV",
+      "current_a": 0.3,
+      "dt_c": 10.0,
+      "min_width_mm": 0.15,
+      "netclass": "Default",
+      "class_width_mm": 0.2
+    },
+    {
+      "net": "/SW",
+      "current_a": 9.2,
+      "dt_c": 5.0,
+      "min_width_mm": 11.8942,
+      "netclass": "Pwr_11p8942mm",
+      "class_width_mm": 11.8942
+    },
+    {
+      "net": "/tank/TANK_A",
+      "current_a": 7.0,
+      "dt_c": 5.0,
+      "min_width_mm": 8.4123,
+      "netclass": "Pwr_8p4123mm",
+      "class_width_mm": 8.4123
+    },
+    {
+      "net": "/tank/TANK_B",
+      "current_a": 7.0,
+      "dt_c": 5.0,
+      "min_width_mm": 8.4123,
+      "netclass": "Pwr_8p4123mm",
+      "class_width_mm": 8.4123
+    },
+    {
+      "net": "/tank/RFOUT",
+      "current_a": 7.0,
+      "dt_c": 5.0,
+      "min_width_mm": 8.4123,
+      "netclass": "Pwr_8p4123mm",
+      "class_width_mm": 8.4123
+    }
+  ],
+  "diff_pairs": [],
+  "hv_rules": [
+    {
+      "net": "/tank/TANK_B",
+      "voltage": 50.0,
+      "clearance_mm": 0.4,
+      "coating": "soldermask",
+      "rule": "aiee_hv_50v_tank_TANK_B"
+    },
+    {
+      "net": "+40V",
+      "voltage": 51.0,
+      "clearance_mm": 0.5,
+      "coating": "soldermask",
+      "rule": "aiee_hv_51v_40V"
+    },
+    {
+      "net": "/SW",
+      "voltage": 143.0,
+      "clearance_mm": 0.8,
+      "coating": "soldermask",
+      "rule": "aiee_hv_143v_SW"
+    },
+    {
+      "net": "/tank/RFOUT",
+      "voltage": 145.0,
+      "clearance_mm": 0.8,
+      "coating": "soldermask",
+      "rule": "aiee_hv_145v_tank_RFOUT"
+    },
+    {
+      "net": "/tank/TANK_A",
+      "voltage": 180.0,
+      "clearance_mm": 0.8,
+      "coating": "soldermask",
+      "rule": "aiee_hv_180v_tank_TANK_A"
+    },
+    {
+      "pair": [
+        "/SW",
+        "/tank/TANK_A"
+      ],
+      "voltage": 203.0,
+      "clearance_mm": 0.8,
+      "coating": "soldermask",
+      "rule": "aiee_hv_203v_SW__tank_TANK_A",
+      "waiver": false
+    },
+    {
+      "pair": [
+        "/tank/TANK_A",
+        "/tank/TANK_B"
+      ],
+      "voltage": 151.0,
+      "clearance_mm": 0.8,
+      "coating": "soldermask",
+      "rule": "aiee_hv_151v_tank_TANK_A__tank_TANK_B",
+      "waiver": false
+    },
+    {
+      "pair": [
+        "/tank/TANK_B",
+        "/tank/RFOUT"
+      ],
+      "voltage": 135.0,
+      "clearance_mm": 0.8,
+      "coating": "soldermask",
+      "rule": "aiee_hv_135v_tank_TANK_B__tank_RFOUT",
+      "waiver": false
+    }
+  ],
+  "classes": [
+    "Pwr_5p5mm",
+    "Pwr_8p4123mm",
+    "Pwr_11p8942mm"
+  ],
+  "out_dru": "kicad/rf-de-20m.kicad_dru",
+  "pro": "kicad/rf-de-20m.kicad_pro"
+}

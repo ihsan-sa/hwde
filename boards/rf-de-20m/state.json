@@ -3,14 +3,19 @@
  "board": "rf-de-20m",
  "workspace": "boards/rf-de-20m",
  "created": "2026-08-07T20:58:16",
- "updated": "2026-08-08T00:22:50",
- "phase": "P4",
+ "updated": "2026-08-08T12:12:58",
+ "phase": "P6",
  "gates": {},
  "human": {
   "1": {
    "status": "approved",
    "ts": "2026-08-07T22:07:56",
    "note": "Architecture approved incl. override of frozen single-FET spec to 2x EPC2019 parallel; unipolar 0/+5V drive; controlled-Z relaxed; outline 100x80 with pre-auth growth to 120x80"
+  },
+  "2": {
+   "status": "approved",
+   "ts": "2026-08-08T10:21:46",
+   "note": "Schematic approved (erc 0/0, netlist_audit exit 0, 10/10 review findings fixed). Continue P5-P9 to fab-ready; P10 ordering held pending EPC2019 restock"
   }
  },
  "artifacts": {},
@@ -147,6 +152,18 @@
    "why": "Fixer extracted datasheet vector geometry and refuted the librarian report. Applying 0.68 would have shifted the GATE pad 0.11 mm off a 0.25 mm pad",
    "phase": "P3",
    "ts": "2026-08-07T23:30:13"
+  },
+  {
+   "what": "Board 120x80 mm, 4-layer JLC04161H-1080B, 1oz outer, 4x M3 corner holes. rules_gen: 23 rules, netclasses Pwr_5p5mm/Pwr_8p4123mm/Pwr_11p8942mm, HV clearances per net (TANK_A 180V)",
+   "why": "Owner pre-authorised growth to 120x80; L301 courtyard fit at 100x80 was 0.01 mm, not a real margin. /SW needs 11.89 mm and +40V 5.5 mm track width at 200 W",
+   "phase": "P5",
+   "ts": "2026-08-08T12:12:58"
+  },
+  {
+   "what": "Added explicit Description field to L301/L302 in tank.py to match the spiral footprints' descr",
+   "why": "Stock Device:L Description is 'Inductor', which mismatched the custom footprint descr and failed board_init schematic parity (2 -> 0)",
+   "phase": "P5",
+   "ts": "2026-08-08T12:12:58"
   }
  ],
  "edits": [],
@@ -318,6 +335,34 @@
    "event": "snapshot",
    "label": "pre-fix-schreview",
    "files": 5
+  },
+  {
+   "ts": "2026-08-08T10:21:46",
+   "event": "human",
+   "checkpoint": "2",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-08-08T10:21:46",
+   "event": "phase",
+   "phase": "P5",
+   "prev": "P4"
+  },
+  {
+   "ts": "2026-08-08T12:12:58",
+   "event": "decision",
+   "what": "Board 120x80 mm, 4-layer JLC04161H-1080B, 1oz outer, 4x M3 corner holes. rules_gen: 23 rules, netclasses Pwr_5p5mm/Pwr_8p4123mm/Pwr_11p8942mm, HV clearances per net (TANK_A 180V)"
+  },
+  {
+   "ts": "2026-08-08T12:12:58",
+   "event": "decision",
+   "what": "Added explicit Description field to L301/L302 in tank.py to match the spiral footprints' descr"
+  },
+  {
+   "ts": "2026-08-08T12:12:58",
+   "event": "phase",
+   "phase": "P6",
+   "prev": "P5"
   }
  ]
 }

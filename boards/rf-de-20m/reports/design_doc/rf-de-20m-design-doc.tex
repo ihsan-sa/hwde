@@ -16,7 +16,7 @@
 \begin{center}
 {\LARGE\bfseries rf-de-20m --- Design Document}\\[6pt]
 {\large ai-ee v1 pipeline}\\[2pt]
-generated 2026-08-07 22:06:16
+generated 2026-08-08 01:05:50
 \end{center}
 \tableofcontents
 
@@ -29,10 +29,10 @@ generated 2026-08-07 22:06:16
 \endhead
 board & rf-de-20m \\
 workspace & \texttt{boards/rf-de-20m} \\
-phase & P2 \\
+phase & P4 \\
 gate status & no gates recorded yet \\
 state created & 2026-08-07T20:58:16 \\
-state updated & 2026-08-07T21:33:52 \\
+state updated & 2026-08-08T00:22:50 \\
 \bottomrule
 \end{longtable}
 }
@@ -327,12 +327,26 @@ P0 & Defaults taken (owner did not specify): qty 5; no hard cost ceiling; outlin
 P1 & CORRECTED EPC2019 specs from datasheet: Coss(er) 156 pF (not 110), package 2.77x0.95mm solder bars (not 1.35mm LGA), Rds(on) 22 typ/42 max (not 36), Qg 2.4/2.9 nC & Brief figures came from a web summary, not the datasheet. Two P1 agents independently verified. External C\_shunt drops to \textasciitilde{}161 pF \\
 P1 & L\_s and L\_m to be etched as PCB air-core spirals, NOT catalog inductors & No LCSC part closes it: power inductors give Q 20-40 at 20 MHz (25-50 W); RF inductors rated 120-140 mA vs 6.6 A needed. Paralleling does NOT reduce loss (Q\_total = Q\_each). Spiral gives Q\textasciitilde{}130-150 at zero BOM cost \\
 P1 & Two-zone floorplan mandatory: heatsink zone (Q1/L1/bulk/driver) vs magnetics zone (L\_s/L\_m/tank caps) with L2 plane keepout under spirals only & A metal heatsink or solid ground plane under a PCB spiral is a shorted turn. L2 stays unbroken under the power loop; cut out ONLY under spirals \\
+P2 & TWO EPC2019 in parallel (overrides the frozen single-FET brief) & H1 owner approval. Only config where thermal closes: Tj 103 C vs 138 C. 2x Coss(er)=312 pF meets the 317 pF shunt need, deleting the external cap. 2-FET layout can build with one populated; reverse is impossible \\
+P2 & Drive input is unipolar 0/+5V (generator TTL/CMOS mode); DC-coupled, no level shift, no AC coupling & H1 owner answer. LMG1020 input abs max -0.3 V forbids bipolar swing; AC coupling would destroy duty-cycle control that Class E depends on \\
+P2 & Controlled-impedance 50 ohm output trace RELAXED to a wide low-loss pour & H1 owner approval. At 20 MHz a 15 mm run is lambda/550, perturbs load \textless{}2\%; the controlled-Z 0.4332 mm geometry would run 50-75 C at 2 A rms \\
+P2 & Outline 100x80 mm, P6 PRE-AUTHORISED to grow to 120x80 if a spiral cannot reach area. No hard --outline cap at P5 & H1 owner approval. Spiral Q drives the dominant 16 W magnetics loss; \textasciitilde{}+\$3-6/board is worth protecting it \\
+P3 & EPC2019 (C2836675) is OUT OF STOCK at LCSC (stock=0, price up 2.17-\textgreater{}3.93). Design CONTINUES; order held pending restock. Re-verify at P10 & Verified twice independently. No in-stock GaN substitute exists: 650V parts have Coss 239-760pF and 110-600mohm (8-11W conduction); EPC2051/2036 are 100-120V forcing a 25-33V bus. Stock-out does not change footprint/pinout/schematic, and it was in stock this morning, so design work is not wasted \\
+P3 & LMG1020YFFR primary = Tokmas C6423790; alternate = genuine TI-branded C506817 (in stock) & Part-sourcer found a real TI listing, resolving the architecture's authenticity flag \\
+P3 & RF choke L201 = 2x FXL0630-R47-M (470nH, 4.1mohm, 20A) in SERIES & No single LCSC part meets L/SRF/DCR/Isat together (SRF is essentially never published for adequately-rated parts). Uses the architecture's pre-authorised escape \\
+P2 & AMENDED operating point (Sokal finite Q\_L=5 coefficients): R\_opt 4.13 ohm, C\_shunt 403 pF, L\_s 164 nH, C\_s 518 pF, L\_m 110 nH, C\_m 530 pF, I\_tank 6.96 A rms. Bus STAYS 40 V & Frozen brief used 1/(wR{*}5.4466), which is Sokal's Q\_L-\textgreater{}infinity constant, but the board runs Q\_L=5. Loss 38.6 W / 83.8\%, inside the frozen band \\
+P2 & External shunt trim cap POPULATED at 3x33 pF (\textasciitilde{}87 pF), not DNP & EPC2019 Coss spreads 110-150 pF (+36\%). If device Coss is the whole shunt, that spread lands on ZVS with no absorber. The external cap is the only trim element \\
+P2 & TWO EPC2019 now MANDATORY (not merely preferred): single FET reaches Tj 160 C with a hypothetical 0 C/W heatsink, above the 150 C abs max & Real Rds(on) 36/50 mohm (65/90 hot). Pair gives 114 C nominal / 133 C max-corner at theta\_HS \textless{}= 0.7 C/W. Dissipation is flat N=1-\textgreater{}2; the win is RthJB halving per die \\
+P3 & SMA re-sourced to C22418168 CONSMA001-SMD-G-T (TE/Linx), verified TRUE SMD from manufacturer drawing; 100\% SMT preserved. Cost 0.39 -\textgreater{} 2.97 each & Previous BWSMA-KE-P001 was a THT vertical panel jack despite an SMD label. LCSC package/type fields are unreliable for mount style; verified via pad-layer inspection + customer drawing \\
+P3 & EPC2019 footprint: end columns are 0.45 mm c-c (corrected 0.46 -\textgreater{} 0.450). The 0.68-0.70 mm figure is the OUTER ENVELOPE and was NOT applied & Fixer extracted datasheet vector geometry and refuted the librarian report. Applying 0.68 would have shifted the GATE pad 0.11 mm off a 0.25 mm pad \\
 \bottomrule
 \end{longtable}
 }
 \subsection*{Sheet plan}
 \subsection*{rf-de-20m - hierarchical sheet plan}
-Three sheets under a root that contains nothing but the sheet symbols and the inter-sheet wiring. \textasciitilde{}58 parts. \textbf{Deliberately not decomposed further} - this is one function (a Class E stage) and the only organising principle that earns its keep is the floorplan, so the sheets map 1:1 onto the zones in \texttt{stackup.md} s3.
+\textbf{AMENDED 2026-08-07 (P2-A):} part values and net currents re-derived at the corrected operating point (\textbf{R = 4.13 ohm}, from Sokal's Q\_L = 5 coefficients) on the real EPC2019 datasheet. The sheet split, refdes blocks and net-naming contract are unchanged. See \texttt{blocks.md} s0 and \texttt{decisions.md} D11.
+
+Three sheets under a root that contains nothing but the sheet symbols and the inter-sheet wiring. \textasciitilde{}60 parts. \textbf{Deliberately not decomposed further} - this is one function (a Class E stage) and the only organising principle that earns its keep is the floorplan, so the sheets map 1:1 onto the zones in \texttt{stackup.md} s3.
 
 \begin{quote}\small\ttfamily\raggedright
 \textbar{} Sheet \textbar{} Blocks (`blocks.md`) \textbar{} Zone \textbar{} Refdes block \textbar{} `\#PWR` base \textbar{}\\
@@ -355,18 +369,18 @@ Power nets are \textbf{bare global symbols}: \texttt{+40V}, \texttt{+5V}, \textt
 \begin{quote}\small\ttfamily\raggedright
 \textbar{} Canonical net \textbar{} Scope \textbar{} Carries \textbar{}\\
 \textbar{}---\textbar{}---\textbar{}---\textbar{}\\
-\textbar{} `+40V` \textbar{} global \textbar{} 5.94 A DC nominal, 7.0 A declared. Ring to 51 V \textbar{}\\
-\textbar{} `+5V` \textbar{} global \textbar{} 143 mA avg, \textasciitilde{}1.6 A/gate peaks \textbar{}\\
+\textbar{} `+40V` \textbar{} global \textbar{} {*}{*}5.96 A{*}{*} DC nominal, 7.0 A declared. Ring to 51 V \textbar{}\\
+\textbar{} `+5V` \textbar{} global \textbar{} {*}{*}99 mA{*}{*} avg (real Qg 1.8 nC), \textasciitilde{}1.6 A/gate peaks \textbar{}\\
 \textbar{} `GND` \textbar{} global \textbar{} In1 + In2 + B.Cu plane stack, zones A and C \textbar{}\\
-\textbar{} {*}{*}`/SW`{*}{*} \textbar{} {*}{*}`stage` -\textgreater{} `tank`, root label required{*}{*} \textbar{} drain node. {*}{*}9.0 A rms, 142.5 V pk{*}{*} \textbar{}\\
+\textbar{} {*}{*}`/SW`{*}{*} \textbar{} {*}{*}`stage` -\textgreater{} `tank`, root label required{*}{*} \textbar{} drain node. {*}{*}9.17 A rms, 17.1 A pk, 142.5 V pk{*}{*} \textbar{}\\
 \textbar{} `/stage/DRIVE` \textbar{} `stage` \textbar{} J201 -\textgreater{} R201/R202 -\textgreater{} U201 IN+ \textbar{}\\
 \textbar{} `/stage/GATE\_ON` \textbar{} `stage` \textbar{} U201 OUTH -\textgreater{} the two turn-on legs \textbar{}\\
 \textbar{} `/stage/GATE\_OFF` \textbar{} `stage` \textbar{} U201 OUTL -\textgreater{} the two turn-off legs \textbar{}\\
 \textbar{} `/stage/GATE\_Q1` \textbar{} `stage` \textbar{} gate of Q201 \textbar{}\\
 \textbar{} `/stage/GATE\_Q2` \textbar{} `stage` \textbar{} gate of Q202 \textbar{}\\
-\textbar{} {*}{*}`/tank/TANK\_A`{*}{*} \textbar{} `tank` \textbar{} L301 / C\_s junction. {*}{*}6.58 A rms, 170 V pk - the highest node on the board{*}{*} \textbar{}\\
-\textbar{} `/tank/TANK\_B` \textbar{} `tank` \textbar{} C\_s / L302 junction. 6.58 A rms, 43 V pk \textbar{}\\
-\textbar{} `/tank/RFOUT` \textbar{} `tank` \textbar{} L302 -\textgreater{} C\_m -\textgreater{} J301. 6.58 A rms at the C\_m node, 2.0 A into the load, 141 V pk \textbar{}
+\textbar{} {*}{*}`/tank/TANK\_A`{*}{*} \textbar{} `tank` \textbar{} L301 / C\_s junction. {*}{*}6.96 A rms, 156 V pk - the highest node on the board{*}{*} \textbar{}\\
+\textbar{} `/tank/TANK\_B` \textbar{} `tank` \textbar{} C\_s / L302 junction. 6.96 A rms, 41 V pk \textbar{}\\
+\textbar{} `/tank/RFOUT` \textbar{} `tank` \textbar{} L302 -\textgreater{} C\_m -\textgreater{} J301. 6.96 A rms at the C\_m node, 2.0 A into the load, 141 V pk \textbar{}
 \end{quote}
 \textbf{The OUTH/OUTL nets are named `\_ON`/`\_OFF`, NOT `\_H`/`\_L`, on purpose.} \texttt{rules\_gen.detect\_diff\_pairs} auto-pairs \texttt{high\_speed} nets whose names end in \texttt{\_H}/\texttt{\_L} (as well as \texttt{\_P}/\texttt{\_N}, \texttt{\_DP}/\texttt{\_DM}, \texttt{+}/\texttt{-}) and would silently treat the turn-on and turn-off legs as a 100 ohm differential pair, emitting a \texttt{diff\_pair\_gap} rule and an inner-layer \texttt{disallow track} rule on the two most inductance-critical nets on the board. Do not rename them back.
 
@@ -409,14 +423,16 @@ This sheet is the board. Everything on it lives in one \textasciitilde{}15 x 15 
 \textbar{} R207, R208 \textbar{} 2x 4.0 R 0603 in parallel \textbar{} OUTL -\textgreater{} `/stage/GATE\_Q1` \textbar{}\\
 \textbar{} R209, R210 \textbar{} 2x 4.0 R 0603 in parallel \textbar{} OUTL -\textgreater{} `/stage/GATE\_Q2` \textbar{}\\
 \textbar{} {*}{*}Q201, Q202{*}{*} \textbar{} {*}{*}2x EPC2019{*}{*} 200 V eGaN \textbar{} {*}{*}MIRRORED PAIR about the U201 axis.{*}{*} Both populated by default \textbar{}\\
-\textbar{} C203-C206 \textbar{} 4x 56 pF / 1 kV C0G 1206 \textbar{} {*}{*}C\_shunt TRIM - DNP by default.{*}{*} In the power loop, not on a stub \textbar{}\\
+\textbar{} C203-C206 \textbar{} 4x 33 pF / 1 kV C0G 1206, {*}{*}0-133 pF in 33 pF steps{*}{*} \textbar{} {*}{*}C\_shunt trim - POPULATE 3 (99 pF) at P2-A{*}{*}, no longer DNP. The FET pair supplies 316 pF of the 403 pF shunt; this bank supplies the balance AND is the only absorber of the part's 110-150 pF Coss spread. {*}{*}In the power loop, not on a stub{*}{*} \textbar{}\\
 \textbar{} {*}{*}L201{*}{*} \textbar{} RF choke, {*}{*}\textgreater{}= 0.82 uH, SRF \textgreater{}= 80 MHz, DCR \textless{}= 25 mohm, I\_sat \textgreater{}= 12 A, \textgreater{}= 8 A rms{*}{*} \textbar{} Hardest part on the BOM. {*}{*}Pre-authorised escape: 2x 0.47 uH in series.{*}{*} Not authorised: a smaller choke - see `blocks.md` B6 \textbar{}\\
 \textbar{} C207-C210 \textbar{} 4x 10 nF / 100 V C0G 0603 \textbar{} bus HF bank, {*}{*}within 3 mm of L201's bus-side pad{*}{*} \textbar{}\\
 \textbar{} C211, C212 \textbar{} 2x 1 nF / 100 V C0G 0603 \textbar{} terminates the bank's self-resonance \textbar{}
 \end{quote}
-\textbf{Four resistors per FET pair per polarity is not over-specification.} Individual gate resistors are what damp the differential mode between the two gate loops; a shared resistor leaves the two gate nodes coupled through the driver output and free to oscillate. Two 0603s in parallel per leg rather than one 0805 keeps each part at 0.047 W (a single part is at or over its derated rating at 100 C) and roughly halves the leg's parasitic inductance. See \texttt{blocks.md} s3.
+\textbf{Four resistors per FET pair per polarity is not over-specification.} Individual gate resistors are what damp the differential mode between the two gate loops; a shared resistor leaves the two gate nodes coupled through the driver output and free to oscillate. Two 0603s in parallel per leg rather than one 0805 keeps each part at \textbf{0.029 W} (the real Qg of 1.8 nC drops the pair's gate-loop energy to 0.36 W) and roughly halves the leg's parasitic inductance. See \texttt{blocks.md} s3.
 
-{*}{*}The gate-loop budget is the acceptance criterion for this whole cluster: \textless{}= 0.8 nH per FET, matched to +/-0.1 nH.{*}{*} At R = 3.1 ohm that mismatch is 32 ps of skew against a \textasciitilde{}1 ns edge. {*}{*}Match the loops geometrically, not the trace lengths electrically{*}{*} - propagation on FR4 is \textasciitilde{}6.7 ps/mm, so length matching is not the mechanism.
+{*}{*}The gate-loop budget is the acceptance criterion for this whole cluster, and P2-A TIGHTENED it: \textless{}= 0.48 nH per FET, matched to +/-0.1 nH.{*}{*} The datasheet gives Ciss 200 pF and Crss 0.7 pF, so C\_GS \textasciitilde{} 199 pF, and EPC WP008 Eq.1 at R\_G + R\_src = 3.1 ohm gives 0.48 nH (the retracted Qg of 2.4 nC had implied \textasciitilde{}350 pF and 0.84 nH). \textbf{This is the tightest layout spec on the board} - two parallel 0603s are \textasciitilde{}0.15-0.2 nH, leaving \textasciitilde{}0.3 nH for vias and interconnect. \textbf{Stated fallback: R\_G = 3 ohm relaxes the budget to 0.84 nH} at \textasciitilde{}+0.3 W turn-off loss and \textasciitilde{}+1.6 C of Tj; take it consciously.
+
+\textbf{Match the loops geometrically, not the trace lengths electrically} - FR4 is \textasciitilde{}6.7 ps/mm, so length matching is not the mechanism. The +/-0.1 nH exists to damp the differential mode and equalise static sharing; \textbf{skew itself is benign} in a soft-switched topology (at turn-on the drain is at \textasciitilde{}0 V, so an early device has nothing to hog).
 
 \textbf{Common source star.} Both source bars return to \textbf{one} via cluster on the mirror axis, and the LMG1020's GND connects to the source plane \textbf{only at that star point} (TI LMG1020DS s10.1.1 - single-point ground). Separate source returns would make common-source inductance differential and imbalance the pair.
 
@@ -426,13 +442,13 @@ This sheet is the board. Everything on it lives in one \textasciitilde{}15 x 15 
 \begin{quote}\small\ttfamily\raggedright
 \textbar{} Ref \textbar{} Part / class \textbar{} Zone \textbar{} Note \textbar{}\\
 \textbar{}---\textbar{}---\textbar{}---\textbar{}---\textbar{}\\
-\textbar{} {*}{*}L301{*}{*} \textbar{} {*}{*}L\_s 184 nH - etched PCB air-core spiral{*}{*} \textbar{} B \textbar{} 2 turns, OD 30-34 mm, 1.5 mm trace, \textasciitilde{}900-1150 mm\textasciicircum{}2. {*}{*}No LCSC code. `PCB feature - do not place`.{*}{*} SPIRAL-1..6 \textbar{}\\
-\textbar{} C301-C308 \textbar{} 8x 56 pF / {*}{*}1 kV{*}{*} C0G 1206 = 448 pF \textbar{} B \textbar{} C\_s. 0.82 A rms and \textasciitilde{}145 mW each. {*}{*}No X7R{*}{*} \textbar{}\\
-\textbar{} {*}{*}L302{*}{*} \textbar{} {*}{*}L\_m 115 nH - etched PCB air-core spiral{*}{*} \textbar{} B \textbar{} {*}{*}\textgreater{}= 900 mm\textasciicircum{}2 despite being the smaller inductance{*}{*} - the constraint is dissipation area, not L (SPIRAL-3) \textbar{}\\
-\textbar{} C309-C317 \textbar{} 9x 56 pF / 1 kV C0G 1206 = \textasciitilde{}504 pF \textbar{} C \textbar{} C\_m. Carries {*}{*}6.27 A rms{*}{*}, not the 2 A load current - 0.70 A each \textbar{}\\
+\textbar{} {*}{*}L301{*}{*} \textbar{} {*}{*}L\_s 164 nH - etched PCB air-core spiral{*}{*} \textbar{} B \textbar{} 2 turns, OD 30-34 mm, {*}{*}\textasciitilde{}2.5-3 mm trace{*}{*} (wider than before - the lower L target at the same OD needs it, and it buys Q), {*}{*}\textgreater{}= 1430 mm\textasciicircum{}2 at Q 100{*}{*}. {*}{*}No LCSC code. `PCB feature - do not place`.{*}{*} SPIRAL-1..6 \textbar{}\\
+\textbar{} C301-C309 \textbar{} {*}{*}9x 56 pF / 1 kV C0G 1206 = 504 pF{*}{*} (target 518 pF {*}{*}+/-5\%{*}{*}) \textbar{} B \textbar{} C\_s. 0.77 A rms and \textasciitilde{}105 mW each. {*}{*}No X7R.{*}{*} The +/-5\% is OPEN-12: the P1 fragment's C\_series coefficient is refuted and SIM-4 is the arbiter - keep it a parallel bank so it trims by depopulation \textbar{}\\
+\textbar{} {*}{*}L302{*}{*} \textbar{} {*}{*}L\_m 110 nH - etched PCB air-core spiral{*}{*} \textbar{} B \textbar{} {*}{*}\textgreater{}= 950 mm\textasciicircum{}2 at Q 100 - nearly as large as L301 despite being 67\% of the inductance{*}{*}, because the constraint is dissipation area, not L (SPIRAL-3) \textbar{}\\
+\textbar{} C310-C319 \textbar{} {*}{*}10x 1206 C0G 1 kV = 530 pF +/-3\%{*}{*} \textbar{} C \textbar{} C\_m. Carries {*}{*}6.66 A rms{*}{*}, not the 2 A load current - 0.67 A each \textbar{}\\
 \textbar{} {*}{*}J301{*}{*} \textbar{} SMD edge-launch SMA, 50 ohm - {*}{*}same part as J201{*}{*} \textbar{} C \textbar{} right edge. 100 Vrms / 2.0 A rms \textbar{}
 \end{quote}
-\textbf{Why C\_m sits in zone C and C\_s does not.} C\_s is a \emph{series} element and floats - it needs no ground reference and belongs beside the coils. C\_m returns to GND and carries 6.27 A rms, so it must sit where the ground plane exists.
+\textbf{Why C\_m sits in zone C and C\_s does not.} C\_s is a \emph{series} element and floats - it needs no ground reference and belongs beside the coils. C\_m returns to GND and carries 6.66 A rms, so it must sit where the ground plane exists.
 
 \textbf{L301 and L302 are schematic symbols with custom footprints, not annotations.} The footprint carries the spiral copper on F.Cu (and B.Cu under SPIRAL-2), a courtyard equal to the thermal footprint, and its two terminal pads. Copper that no tool knows about gets routed over, poured under and placed on top of.
 
@@ -445,8 +461,8 @@ This sheet is the board. Everything on it lives in one \textasciitilde{}15 x 15 
 \textbar{}---\textbar{}---\textbar{}---\textbar{}---\textbar{}\\
 \textbar{} `switch` \textbar{} {*}{*}Q201{*}{*} \textbar{} Q202, U201, R203-R210, C201-C212, L201 \textbar{} {*}{*}The whole thing.{*}{*} Power loop + gate loop + choke + bus HF in one \textasciitilde{}15 x 15 mm cluster \textbar{}\\
 \textbar{} `drive\_in` \textbar{} J201 \textbar{} R201, R202 \textbar{} 50 ohm termination at the connector, not at the driver \textbar{}\\
-\textbar{} `tank\_ls` \textbar{} L301 \textbar{} C301-C308 \textbar{} C\_s bank adjacent to the L\_s spiral \textbar{}\\
-\textbar{} `tank\_lm` \textbar{} L302 \textbar{} C309-C317, J301 \textbar{} L\_m -\textgreater{} C\_m -\textgreater{} SMA, in that order, shortest possible \textbar{}\\
+\textbar{} `tank\_ls` \textbar{} L301 \textbar{} C301-C309 \textbar{} C\_s bank adjacent to the L\_s spiral \textbar{}\\
+\textbar{} `tank\_lm` \textbar{} L302 \textbar{} C310-C319, J301 \textbar{} L\_m -\textgreater{} C\_m -\textgreater{} SMA, in that order, shortest possible \textbar{}\\
 \textbar{} `hk` \textbar{} U101 \textbar{} L101, C105-C109, R101-R103 \textbar{} buck and its loop \textbar{}\\
 \textbar{} `bus\_in` \textbar{} J101 \textbar{} C101-C104 \textbar{} bulk at the terminal \textbar{}
 \end{quote}
@@ -478,19 +494,21 @@ The annealer optimises a cost function; none of the constraints below are expres
 \textbar{} Zone \textbar{} x \textbar{} Sheets \textbar{} Contents \textbar{}\\
 \textbar{}---\textbar{}---\textbar{}---\textbar{}---\textbar{}\\
 \textbar{} {*}{*}A{*}{*} \textbar{} 0 - 48 \textbar{} `hk`, `stage` \textbar{} everything except the tank \textbar{}\\
-\textbar{} {*}{*}B{*}{*} \textbar{} 48 - 88 \textbar{} `tank` \textbar{} L301, L302, C301-C308. {*}{*}Nothing else may be placed here{*}{*} \textbar{}\\
-\textbar{} {*}{*}C{*}{*} \textbar{} 88 - 100 \textbar{} `tank` \textbar{} C309-C317, J301 \textbar{}
+\textbar{} {*}{*}B{*}{*} \textbar{} 48 - 88 \textbar{} `tank` \textbar{} L301, L302, C301-C309. {*}{*}Nothing else may be placed here{*}{*} \textbar{}\\
+\textbar{} {*}{*}C{*}{*} \textbar{} 88 - 100 \textbar{} `tank` \textbar{} C310-C319, J301 \textbar{}
 \end{quote}
 Heatsink land on B.Cu: \textbf{{[}5, 10, 36, 70{]}}, declared as a back-side keepout.
 
 ---
 
 \subsubsection*{6. Sheet-level P4 notes}
-1. \textbf{The C\_shunt trim bank (C203-C206) must be in the netlist}, marked DNP. A DNP part still has pads, so its clearance and area are accounted for at P6/P7 and the one-FET fallback stays a populate change rather than a respin. Mark them \texttt{DNP} in the BOM variant field so \texttt{bom\_cpl} excludes them at P9. 2. \textbf{`/SW` needs a root-sheet local label} or it becomes \texttt{/stage/SW} and six \texttt{constraints.json} entries silently stop matching. 3. \textbf{Both spirals need schematic symbols.} Do not let them become a layout-only feature; their nets must be real. 4. \textbf{The drive input is DC-coupled.} Do not add a series blocking capacitor "for safety" - it destroys duty-cycle control (\texttt{blocks.md} B3). Record it on the schematic. 5. \textbf{No protection parts.} No TVS, no fuse, no clamp, no OCP, no OVP, no thermal shutdown. Owner-acknowledged at P0 Q11. If ERC or a reviewer wants one, the response is \emph{"waived, owner-acknowledged at P0"}. 6. \textbf{L201's value is a floor, not a target.} \textgreater{}= 0.82 uH. If P3 cannot source it, the answer is 2x 0.47 uH in series - \textbf{not} a smaller single part. 7. \textbf{`IN-` on U201 ties to GND.} No bias divider, no buffer. 8. \textbf{Silkscreen hazard markings}: zone B (two \textasciitilde{}130 C copper structures, one on each face if SPIRAL-2 is adopted), \texttt{/tank/TANK\_A} (170 V pk), \texttt{/SW} (142.5 V pk), and J301 (200 W RF - burn and RF-exposure hazard). This is an unenclosed bench board with no interlocks of any kind.
+1. {*}{*}The C\_shunt trim bank (C203-C206) must be in the netlist, and at P2-A it is POPULATED (3 of 4 sites, 99 pF), not DNP.{*}{*} The FET pair supplies 316 pF of the 403 pF shunt; the bank supplies the balance and is the \textbf{only} mechanism that absorbs the part's 110-150 pF Coss spread. The fourth site stays unpopulated as headroom. All four have pads either way, so their clearance and area are accounted for at P6/P7 and the trim stays a populate change rather than a respin. 2. \textbf{`/SW` needs a root-sheet local label} or it becomes \texttt{/stage/SW} and six \texttt{constraints.json} entries silently stop matching. 3. \textbf{Both spirals need schematic symbols.} Do not let them become a layout-only feature; their nets must be real. 4. \textbf{The drive input is DC-coupled.} Do not add a series blocking capacitor "for safety" - it destroys duty-cycle control (\texttt{blocks.md} B3). Record it on the schematic. 5. \textbf{No protection parts.} No TVS, no fuse, no clamp, no OCP, no OVP, no thermal shutdown. Owner-acknowledged at P0 Q11. If ERC or a reviewer wants one, the response is \emph{"waived, owner-acknowledged at P0"}. 6. \textbf{L201's value is a floor, not a target.} \textgreater{}= 0.82 uH. If P3 cannot source it, the answer is 2x 0.47 uH in series - \textbf{not} a smaller single part. 7. \textbf{`IN-` on U201 ties to GND.} No bias divider, no buffer. 8. \textbf{Silkscreen hazard markings}: zone B (two \textasciitilde{}130 C copper structures, one on each face if SPIRAL-2 is adopted), \texttt{/tank/TANK\_A} (\textbf{156 V pk}), \texttt{/SW} (142.5 V pk), and J301 (200 W RF - burn and RF-exposure hazard). This is an unenclosed bench board with no interlocks of any kind. 9. \textbf{Silkscreen the bus voltage as a RANGE, not a value: "40 V max, 34-40 V".} P2-A makes the bus a deliberate bring-up and derating knob (\texttt{decisions.md} D1), and ZVS is Vdd-independent, so a 36 V bench setting is a valid operating point at \textasciitilde{}160 W - not a fault.
 
 Full architecture narrative (not inlined; see the artifact index): \texttt{architecture/blocks.md}, \texttt{architecture/decisions.md}, \texttt{architecture/power\_tree.md}, \texttt{architecture/stackup.md}.
 \section{Schematic}
-\emph{Pending --- produced at P4.}
+Gate \texttt{erc}: \emph{not recorded}.
+The full schematic PDF follows.
+\includepdf[pages=-]{reports/schematic.pdf}
 \section{Layout}
 \emph{Pending --- produced at P6.}
 \section{Verification}
@@ -507,118 +525,169 @@ Full architecture narrative (not inlined; see the artifact index): \texttt{archi
 \begin{quote}\small\ttfamily\raggedright
 \# P2 Architecture digest - rf-de-20m (20 MHz Class E GaN stage, 200 W)\\
 ~\\
+{*}{*}AMENDED 2026-08-07 (P2-A){*}{*} after the orchestrator read the EPC2019 datasheet\\
+(rev (c)2021) directly and retracted two P1 figures. This digest reflects the\\
+amended package.\\
+~\\
 Artifacts: `architecture/blocks.md`, `power\_tree.md`, `stackup.md`, `sheets.md`,\\
 `constraints.json`, `decisions.md`.\\
 ~\\
-- {*}{*}Chain:{*}{*} SMA drive in -\textgreater{} 50 ohm DC-coupled termination -\textgreater{} LMG1020 -\textgreater{} {*}{*}two\\
-  paralleled EPC2019 in a mirrored pair{*}{*} -\textgreater{} Coss-only shunt (312 pF) -\textgreater{} etched PCB\\
-  spiral L\_s 184 nH -\textgreater{} 8x 56 pF 1 kV C0G -\textgreater{} etched spiral L\_m 115 nH -\textgreater{} 9x 56 pF\\
-  C\_m -\textgreater{} SMA out. Housekeeping: LM5017-class 100 V COT buck off the 40 V bus.\\
-- {*}{*}Stackup:{*}{*} `JLC04161H-1080B`, 4L, 1.6 mm, 1 oz outer / 0.5 oz inner. Chosen for\\
-  {*}{*}one number - the 0.2444 mm L1-L2 dielectric{*}{*}, which is what makes EPC's stacked\\
-  self-cancelling power loop possible. Not impedance, not density. {*}{*}1 oz, not 2 oz{*}{*}:\\
-  the 2 oz lamination doubles the L1-L2 gap and therefore the power-loop inductance.\\
-- {*}{*}Fab class:{*}{*} 100 x 80 mm, {*}{*}TG155+ high-Tg{*}{*} (spiral copper 100-140 C), {*}{*}ENIG\\
-  not HASL{*}{*} (EPC AN009; solder-bar LGA + 0.4 mm WCSP), {*}{*}epoxy-filled-and-capped\\
-  via-in-pad{*}{*} (LMG1020 VDD/GND, without which the VDD loop exceeds 0.3 nH). All\\
-  three are order-time options, none expressible in `stackups.yaml`.\\
-- {*}{*}Cost:{*}{*} \textasciitilde{}\$28-35 per assembled board at qty 5 (\textasciitilde{}\$140-175 for 5), plus \$10-20 of\\
-  off-board heatsink and fan. No cost ceiling was set (P0 Q2).\\
-- {*}{*}`constraints.json` lint-clean{*}{*}: 0 errors, 0 warnings (4 high\_speed, 6 power,\\
-  explicit empty diff\_pairs, 5 voltages, {*}{*}3 voltage\_pairs{*}{*}, 7 thermal, 6 planes,\\
-  placement edges/groups/keepouts/separation/fixed).\\
+---\\
 ~\\
-\#\# The four rulings\\
+\#\# AMENDMENT P2-A - a retraction, plus two further errors found while re-deriving\\
 ~\\
-1. {*}{*}THE THERMAL BLOCKER -\textgreater{} build for TWO EPC2019.{*}{*} RthJB 7.5 C/W is inside the\\
-   package: one FET is Tj {*}{*}138 C nominal{*}{*} and {*}{*}\textasciitilde{}203 C on a max-Rds part out of\\
-   JLC's reel{*}{*} - not a viable build. Two dies: Tj {*}{*}103 C nominal, \textasciitilde{}141 C worst{*}{*}\\
-   (under the 150 C abs max). {*}{*}k = 2 is simultaneously the ZVS ceiling and the\\
-   thermal optimum{*}{*}: `Coss(er) \textless{}= 317 pF` caps the area factor at 2.03, and\\
-   2 x 156 = 312 pF, so {*}no single larger LCSC GaN can beat the pair - only tie it{*}.\\
-   Cost: +\$2.17, {*}{*}-0.9 pt efficiency{*}{*}, and a mirror-symmetry layout discipline.\\
-   Bought: -35 C, a survivable worst case, no external shunt cap, and the heatsink\\
-   relaxed {*}{*}0.3 -\textgreater{} 1.4 C/W{*}{*} - which is what makes the two-zone floorplan\\
-   geometrically possible at all.\\
-2. {*}{*}C\_shunt -\textgreater{} the datasheet wins.{*}{*} `output-network.json`'s 4 x 56 pF = 224 pF is\\
-   {*}{*}withdrawn{*}{*} (derived from the brief's refuted 110 pF Coss; 39\% high, would lose\\
-   ZVS). With the pair there is {*}{*}no external shunt cap{*}{*}; C203-C206 become four DNP\\
-   trim sites in the power loop.\\
-3. {*}{*}L\_s and L\_m are etched spirals, as first-class pipeline objects{*}{*} - BOM line\\
-   with no LCSC code, schematic symbol, custom footprint, explicit place + lock,\\
-   hand-added four-layer keepout. Six acceptance criteria SPIRAL-1..6.\\
-4. {*}{*}Two-zone floorplan -\textgreater{} the conflict was an artefact.{*}{*} The power loop {*}ends{*} at\\
-   the drain node and the tank {*}begins{*} there, so "unbroken L2 under the power loop"\\
-   and "no plane under the spirals" apply to disjoint regions. Three bands:\\
-   A {[}0,48{]} full plane stack + heatsink, B {[}48,88{]} {*}{*}no inner or bottom copper, no\\
-   heatsink{*}{*}, C {[}88,100{]} planes restored for the RF output.\\
+{*}{*}RETRACTED.{*}{*} `research/power.json` supplied {*}{*}Coss(er) 156 pF{*}{*} and {*}{*}Rds(on)\\
+22 typ / 42 max mohm{*}{*}. The datasheet publishes {*}{*}no Coss(er), no Coss(tr) and no\\
+Eoss anywhere{*}{*} - the 156 pF was invented - and Rds(on) is {*}{*}36 typ / 50 max mohm{*}{*}.\\
+The original ruling {*}"2 x Coss(er) = 312 pF lands on the required 317 pF, so the\\
+external shunt cap disappears"{*} is void.\\
 ~\\
-\#\# Findings no P1 fragment had\\
+{*}{*}ENDORSED.{*}{*} The orchestrator's method is right: {*}{*}`Coss(tr) = Qoss/V` (charge-\\
+equivalent) is the correct basis for Class E{*}{*}, because the drain waveform is\\
+produced by integrating current into charge. `Coss(er)` is the {*}hard-switching\\
+energy{*} equivalent (\textasciitilde{}119 pF here, 25\% low) and the 110 pF small-signal figure is\\
+quoted at 100 V where Coss has already fallen. Both would have under-sized the\\
+shunt.\\
 ~\\
-- {*}{*}`/tank/TANK\_A` is the highest node on the board at 170 V pk - 27 V above the\\
-  drain.{*}{*} Series-resonant magnification at Q\_L = 5. The brief's "\textasciitilde{}215 V pk on the\\
-  tank" is the voltage {*}across L\_s{*}, not a node voltage; the genuine element-across\\
-  differentials (215 / 165 / 135 V pk) go into {*}{*}`voltage\_pairs`{*}{*}, where node\\
-  arithmetic would give 57 V for the L\_s pair - 3.8x too low.\\
-- {*}{*}The gate-loop spec is 0.8 nH per FET, not 0.3 nH.{*}{*} `power.md`'s 0.3 nH assumes\\
-  a zero-resistance loop; with TI's mandatory \textgreater{}= 2 ohm resistor the peak gate current\\
-  is 1.6 A, not 7 A, and EPC WP008 Eq.1 gives `L\_G \textless{}= 0.84 nH`. Matching is\\
-  {*}{*}+/-0.1 nH = 32 ps of L/R skew{*}{*} - a {*}loop{*} problem, not a length-matching\\
-  problem (FR4 is 6.7 ps/mm, so 15 mm of length error is only 100 ps).\\
-- {*}{*}AC-coupling the drive input would break duty-cycle control.{*}{*} DC restore pins the\\
-  average at the bias point; at D = 0.4 both logic levels sit above threshold and the\\
-  FETs never turn off. -\textgreater{} DC-coupled, generator must be unipolar 0/+5 V ({*}{*}OPEN-1{*}{*}).\\
-- {*}{*}SPIRAL-2 (verify-later upside):{*}{*} paralleling each spiral's winding on F.Cu AND\\
-  B.Cu halves its resistance for the same L - magnetics loss {*}{*}16.3 -\textgreater{} \textasciitilde{}10 W, +2 pts\\
-  of board efficiency for zero BOM cost.{*}{*} Not banked; every number in\\
-  `power\_tree.md` is quoted for the conservative single-layer case.\\
-- {*}{*}L\_m needs a spiral nearly as large as L\_s{*}{*} despite being 62\% of the inductance,\\
-  because the binding constraint is dissipation area, not L.\\
+{*}{*}ERROR 1 - wrong voltage range.{*}{*} `18 nC/100 V = 180 pF` is the average over\\
+0-100 V; this drain swings to {*}{*}142.5 V{*}{*} and Coss keeps falling. Two independent\\
+extrapolations (power-law fit anchored on {*}both{*} published numbers, and a\\
+flat-above-100 V bound) {*}{*}agree to 1.5\%: Coss(tr) = 158 pF typ / 205 pF max{*}{*}.\\
+~\\
+{*}{*}ERROR 2, the bigger one - wrong Sokal coefficient.{*}{*} `0.1836/(omega.R)` is the\\
+{*}{*}Q\_L -\textgreater{} infinity{*}{*} constant; this board runs {*}{*}Q\_L = 5{*}{*}, and\\
+`refdesign-classE-stage.json` D9 already said so. Sokal's published fits reproduce\\
+the fragment's power and shunt coefficients {*}{*}to 0.008\% and 0.13\%{*}{*}, confirming\\
+both. {*}{*}The frozen operating point itself was computed with Q\_L -\textgreater{} infinity\\
+constants on a Q\_L = 5 design.{*}{*}\\
+~\\
+\textbar{} \textbar{} Frozen \textbar{} Orchestrator's fix \textbar{} {*}{*}P2-A{*}{*} \textbar{}\\
+\textbar{}---\textbar{}---\textbar{}---\textbar{}---\textbar{}\\
+\textbar{} Vdd \textbar{} 40 V \textbar{} 37.5 V \textbar{} {*}{*}40 V - frozen input preserved{*}{*} \textbar{}\\
+\textbar{} R\_opt \textbar{} 4.614 ohm \textbar{} 4.06 ohm \textbar{} {*}{*}4.13 ohm{*}{*} \textbar{}\\
+\textbar{} C\_shunt required \textbar{} 317 pF \textbar{} 360 pF \textbar{} {*}{*}403 pF{*}{*} (+38-46 pF finite-choke term) \textbar{}\\
+\textbar{} Coss(tr) per FET \textbar{} (invented 156) \textbar{} 180 pF \textbar{} {*}{*}158 typ / 205 max{*}{*} \textbar{}\\
+\textbar{} Pair supplies \textbar{} 312 pF \textbar{} 360 pF \textbar{} {*}{*}316 typ / 410 max{*}{*} \textbar{}\\
+\textbar{} External C0G trim \textbar{} 5 pF \textbar{} 0 pF \textbar{} {*}{*}87 pF, 0-133 pF of range{*}{*} \textbar{}\\
+~\\
+{*}{*}The two errors pull opposite ways and the second dominates: the bus stays at\\
+40 V, and the external trim capacitor comes back.{*}{*} That last point is the most\\
+valuable outcome - the original ruling treated its disappearance as elegance, but\\
+it is a {*}{*}defect{*}{*}: Coss spread on this part is 110-150 pF (+36\%), and the external\\
+cap is the {*}{*}only{*}{*} absorber. At 100\% device shunt a max-Coss part is unfixable\\
+without reworking etched copper.\\
+~\\
+---\\
+~\\
+\#\# The four rulings, as amended\\
+~\\
+1. {*}{*}TWO EPC2019 - REINFORCED, and now absolute.{*}{*} With the real Rds(on), a single\\
+   FET reaches {*}{*}Tj 160 C with a HYPOTHETICAL 0 C/W heatsink - above the 150 C\\
+   absolute maximum.{*}{*} There is no heatsink, TIM, via array or copper weight that\\
+   saves a one-FET build (it was "138 C against a 125 C target" before). The pair:\\
+   {*}{*}114 C nominal / 133 C at the max-datasheet corner{*}{*} at theta\_HS 0.7 C/W.\\
+   {*}{*}The "k = 2 is exactly the ZVS ceiling" sub-argument is RETRACTED{*}{*} (the real\\
+   ceiling is 2.55) and replaced by a quantitative one:\\
+   `P\_FET(N) = 5.48/N + 2.42N + ...` gives {*}{*}11.17 / 11.25 / 13.16 W at N = 1/2/3{*}{*}.\\
+   {*}{*}Paralleling does not reduce dissipation at all - it halves thermal resistance.{*}{*}\\
+   N=3 pays +1.9 W and a three-way gate match that cannot be mirrored.\\
+2. {*}{*}C\_shunt = 403 pF: 316 pF from the pair + \textasciitilde{}87 pF external.{*}{*} C203-C206 are four\\
+   1206 C0G sites, {*}{*}3 populated (99 pF), no longer DNP{*}{*}, in the power loop.\\
+3. {*}{*}PCB spirals, re-derived: L\_s 164 nH, L\_m 110 nH.{*}{*} The {*}{*}losses barely moved{*}{*}\\
+   (1000/Q and 666/Q) because `P = 200.Q/Q\_ind` is {*}{*}independent of R{*}{*} - the tank\\
+   current rises exactly as fast as the reactance falls. The lower L is\\
+   geometrically helpful: 164 nH at the same OD wants a {*}wider{*} trace, which is what\\
+   Q and the thermal area want anyway.\\
+4. {*}{*}Two-zone floorplan - unchanged.{*}{*} The power loop {*}ends{*} where the tank\\
+   {*}begins{*}, so the two plane rules apply to disjoint regions.\\
+~\\
+\#\# New findings at P2-A\\
+~\\
+- {*}{*}The frozen tank was wrong for its own Q\_L.{*}{*} R 4.614 -\textgreater{} {*}{*}4.13 ohm{*}{*};\\
+  C\_shunt 317 -\textgreater{} {*}{*}403 pF{*}{*}; L\_s 184 -\textgreater{} {*}{*}164 nH{*}{*}; C\_s 447 -\textgreater{} {*}{*}518 pF +/-5\%{*}{*};\\
+  L\_m 115 -\textgreater{} {*}{*}110 nH{*}{*}; C\_m 500 -\textgreater{} {*}{*}530 pF{*}{*}; I\_tank 6.58 -\textgreater{} {*}{*}6.96 A rms{*}{*}.\\
+  Tank conductor widths grow \textasciitilde{}12\% (7.2 mm, was 6.4).\\
+- {*}{*}A third P1 coefficient is refuted and NOT adopted.{*}{*} The fragment's\\
+  `C\_series.omega.R = 0.63467` implies a net series reactance of {*}{*}3.4 R{*}{*} - not a\\
+  Class E network. Sokal's fit gives {*}{*}0.26906 -\textgreater{} 518 pF and 1.283 R{*}{*}, which also\\
+  agrees within 3.5\% with the independent `X\_net = 1.1525 R` relation.\\
+  {*}{*}SIM-4 gained a measure (`x\_net\_series\_over\_r`) specifically to arbitrate it.{*}{*}\\
+- {*}{*}Vdd is NOT a ZVS knob - but it IS a free thermal derating knob.{*}{*} ZVS in Class E\\
+  is a property of the {*}network{*}: the equations are linear in Vdd and the ZVS/ZdVS\\
+  conditions constrain only the current waveform shape. So the bus can be backed\\
+  down at bring-up without losing ZVS: {*}{*}40 V/200 W/Tj 133 C -\textgreater{} 36 V/162 W/Tj 119 C{*}{*}\\
+  at the max corner, zero rework. This is the mitigation for the compounded worst\\
+  case (170 C), and it corrects the orchestrator's framing - lowering the bus alone\\
+  cannot fix a shunt-capacitance error.\\
+- {*}{*}The gate-loop budget TIGHTENED to 0.48 nH per FET{*}{*} (was 0.84). The datasheet's\\
+  Ciss 200 pF / Crss 0.7 pF give C\_GS \textasciitilde{} 199 pF, not the \textasciitilde{}350 pF the retracted Qg\\
+  implied. {*}{*}Now the tightest layout spec on the board{*}{*}, with a stated fallback\\
+  (R\_G 3 ohm -\textgreater{} 0.84 nH, at +0.3 W turn-off loss).\\
+- {*}{*}The real Qg of 1.8 nC IMPROVED the +5 V rail{*}{*}: 143 -\textgreater{} {*}{*}99 mA{*}{*}, 3.0x headroom,\\
+  and gate-resistor dissipation 0.047 -\textgreater{} 0.029 W per part.\\
+- {*}{*}HS-1 tightened: theta\_HS \textless{}= 0.7 C/W{*}{*} (was 1.4). A passive bolt-on will not do it.\\
+- {*}{*}BOM +\$4/board{*}{*}: EPC2019 is {*}{*}OUT OF STOCK at LCSC (stock 0), repriced\\
+  \$2.17 -\textgreater{} \$3.93{*}{*}. Owner approved continuing and {*}{*}holding the order{*}{*}; P10\\
+  re-verifies. Delivered estimate {*}{*}\textasciitilde{}\$32-40/board (\textasciitilde{}\$160-200 for 5){*}{*}.\\
+~\\
+\#\# Unchanged\\
+~\\
+Stackup `JLC04161H-1080B` (chosen for its 0.2444 mm L1-L2 gap), 1 oz outer,\\
+TG155 + ENIG + POFV, 100 x 80 mm with pre-authorised growth to 120 x 80, the\\
+two-zone floorplan and plane regions, the relaxed controlled-Z output (D7),\\
+DC-coupled unipolar drive (D8), no protection parts, three sheets and the\\
+net-naming contract. {*}{*}Vds,pk stays 142.5 V{*}{*} - it depends only on Vdd.\\
 ~\\
 \#\# Pipeline traps - two carried, one retired\\
 ~\\
-1. {*}{*}`rules\_gen` only solves impedance for DIFFERENTIAL pairs{*}{*} (read\\
-   `detect\_diff\_pairs` / `diff\_pair\_rules`). A lone single-ended `high\_speed` entry\\
-   with `impedance\_ohm: 50` emits {*}{*}no width rule at all{*}{*} - it looks declared and\\
-   does nothing. `/tank/RFOUT` is therefore declared under `power`, which is also the\\
-   right physics: at 20 MHz a 15 mm run is lambda/550 and perturbs the load \textless{}2\%,\\
-   while the 0.4332 mm `se\_50` geometry would run 50-75 C hot at 2 A rms. {*}{*}This\\
-   contradicts a frozen requirement and is raised as OPEN-2, not absorbed.{*}{*}\\
-2. {*}{*}`detect\_diff\_pairs` auto-pairs `high\_speed` nets ending `\_H`/`\_L`.{*}{*} The\\
-   OUTH/OUTL legs are named `/stage/GATE\_ON` / `\_OFF` on purpose - `\_H`/`\_L` would\\
-   have put a `diff\_pair\_gap` rule and an inner-layer `disallow track` rule on the\\
-   two most inductance-critical nets on the board.\\
-3. {*}{*}`planes\_gen` still has no void or keepout support{*}{*}, so zone B is unpoured by\\
-   construction (six region entries, three layers, two regions each), and the spiral\\
-   courtyards need hand-added KiCad rule areas at P6 plus geometric verification at\\
-   P8. `board\_init` still does not origin the outline at (0,0) - {*}{*}translate every\\
-   rect by `outline\_bbox` at P5.{*}{*}\\
-4. {*}{*}RETIRED:{*}{*} the lumina-run trap "`rules\_gen` puts every power net in ONE Power\\
-   class at the widest width" is {*}{*}fixed in the current script{*}{*} - it now buckets one\\
-   class per required width. Declaring `/tank/RFOUT` at 6.6 A no longer widens `+5V`.\\
+1. {*}{*}`rules\_gen` only solves impedance for DIFFERENTIAL pairs.{*}{*} A single-ended\\
+   `high\_speed` entry with `impedance\_ohm: 50` emits {*}{*}no width rule at all{*}{*}.\\
+   `/tank/RFOUT` is declared under `power` instead - which is also the right physics\\
+   ({*}{*}OPEN-2{*}{*}).\\
+2. {*}{*}`detect\_diff\_pairs` auto-pairs `high\_speed` nets ending `\_H`/`\_L`{*}{*}, hence\\
+   `/stage/GATE\_ON` / `\_OFF`.\\
+3. {*}{*}`planes\_gen` has no void or keepout support{*}{*}; zone B is unpoured by\\
+   construction and the spiral courtyards need hand-added rule areas at P6.\\
+   {*}{*}`board\_init` does not origin the outline at (0,0){*}{*} - translate every rect by\\
+   `outline\_bbox` at P5.\\
+4. {*}{*}RETIRED:{*}{*} "`rules\_gen` puts every power net in ONE class at the widest width"\\
+   is {*}{*}fixed{*}{*} in the current script (one class per required width).\\
 ~\\
 \#\# Riskiest decision\\
 ~\\
-{*}{*}Paralleling the FETs trades a well-characterised loss for a poorly-characterised\\
-one.{*}{*} With two dies, {*}{*}Coss hysteresis becomes the dominant term (5.7 W of\\
-10.9 W){*}{*} and it rests on an assumed 10\% of stored energy that {*}{*}EPC does not\\
-publish{*}{*}; at 15\% the pair's loss is \textasciitilde{}12.7 W. The mitigation is already in the\\
-architecture and costs nothing: the trim-site footprints and the fact that a\\
-two-FET layout builds fine with one FET populated. {*}{*}First bring-up step: measure DC\\
-input power at 200 W out and thermal-image both dies.{*}{*}\\
+{*}{*}Coss hysteresis is now the dominant FET loss term (4.83 W of 11.25 W) and rests\\
+on an assumed 10\% of stored energy that EPC does not publish{*}{*} - the same class of\\
+gap that produced the retracted Coss(er). At 15\% the pair reaches \textasciitilde{}13.7 W and Tj\\
+\textasciitilde{}127 C. Mitigations are in the architecture at zero cost: the trim bank, the\\
+bus-derating ladder, and a first bring-up step that settles it in an afternoon\\
+(measure DC input power at 200 W out, thermal-image both dies).\\
 ~\\
-\#\# Sim candidates nominated for the P8 `sim` gate\\
+\#\# `constraints.json`\\
 ~\\
-SIM-1 `classe\_zvs\_nominal` (Vds at turn-on \textless{}= 5 V, dVds/dt within +/-0.2 V/ns,\\
-Pout 190-210 W, Vds peak \textless{}= 155 V) - {*}{*}the bench that decides whether this board\\
-works.{*}{*} SIM-2 `cshunt\_sweep` (280-420 pF; retune \textless{}= +/-15\% must restore SIM-1) -\\
-{*}{*}must pass before P4 fixes any tank value.{*}{*} SIM-3 `gate\_symmetry` (at +/-0.15 nH\\
-mismatch: Id imbalance \textless{}= 15\%, Vgs inside -4.0/+5.75 V). SIM-4 `tank\_match`\\
-(Zin 4.15-5.08 ohm at 20 MHz, H2 \textless{}= -20 dBc, H3 \textless{}= -33 dBc, {*}{*}including the\\
-spiral-to-spiral mutual k{*}{*}). SIM-5 `loss\_split` (FET pair \textless{}= 12.0 W typ /\\
-\textless{}= 17.0 W max-Rds - the numbers the 1.4 C/W heatsink was solved against).\\
-SIM-6 `gate\_loop` (advisory).
+{*}{*}Lint-clean: 0 errors, 0 warnings.{*}{*} 4 high\_speed, 6 power, explicit empty\\
+diff\_pairs, 5 voltages, 3 voltage\_pairs, 7 thermal, 6 planes, placement\\
+edges/groups/keepouts/separation/fixed. Every current, voltage and power figure\\
+re-derived at R = 4.13 ohm.\\
+~\\
+\#\# Sim gate - SEVEN benches (SIM-7 added at P2-A)\\
+~\\
+{*}{*}SIM-1{*}{*} `classe\_zvs\_nominal` (Vds@turn-on \textless{}= 5 V, dVds/dt +/-0.2 V/ns, Pout\\
+190-210 W, Vds pk \textless{}= 155 V). {*}{*}SIM-2{*}{*} `cshunt\_sweep` - {*}{*}now validates the whole\\
+amended basis{*}{*}, with `coss\_tr\_per\_fet\_pf` bounded to {*}{*}140-180 pF{*}{*} from the vendor\\
+nonlinear model plus a 300-430 pF sweep and `trim\_pf\_needed \textless{}= 133`; must pass\\
+before P4 fixes any tank value. {*}{*}SIM-3{*}{*} `gate\_symmetry` (Id imbalance \textless{}= 15\% at\\
++/-0.15 nH, Vgs inside -4.0/+5.75 V). {*}{*}SIM-4{*}{*} `tank\_match` (Zin 3.72-4.54 ohm,\\
+H2 \textless{}= -20 dBc, H3 \textless{}= -33 dBc, {*}{*}plus `x\_net\_series\_over\_r` in 1.0-1.6 to arbitrate\\
+C\_s{*}{*}, and the spiral-to-spiral mutual k). {*}{*}SIM-5{*}{*} `loss\_split` (pair \textless{}= 13.0 W\\
+typ / \textless{}= 16.0 W max-corner - the numbers the 0.7 C/W heatsink was solved against).\\
+{*}{*}SIM-6{*}{*} `gate\_loop` (advisory). {*}{*}SIM-7{*}{*} `bus\_derating` {*}{*}(new){*}{*} - re-run SIM-1\\
+at 40/38/36/34 V with the network unchanged, to confirm ZVS is Vdd-independent and\\
+the derating ladder is real.
 \end{quote}
+\paragraph*{P3}
+\emph{(no digest recorded)}
+\paragraph*{P4}
+\emph{(no digest recorded)}
 \subsection*{Gate attempt history}
 \emph{(no entries)}
 \subsection*{Issues}
@@ -630,7 +699,7 @@ SIM-6 `gate\_loop` (advisory).
 \textbf{Id} & \textbf{Phase} & \textbf{Status} & \textbf{When} & \textbf{Note} \\
 \midrule
 \endhead
-1 & P2 & not reached &  &  \\
+1 & P2 & approved & 2026-08-07T22:07:56 & Architecture approved incl. override of frozen single-FET spec to 2x EPC2019 parallel; unipolar 0/+5V drive; controlled-Z relaxed; outline 100x80 with pre-auth growth to 120x80 \\
 2 & P4 & not reached &  &  \\
 3 & P6 & not reached &  &  \\
 4 & P8 & not reached &  &  \\
@@ -645,15 +714,20 @@ SIM-6 `gate\_loop` (advisory).
 \textbf{File} & \textbf{Size} & \textbf{Note} \\
 \midrule
 \endhead
-\texttt{state.json} & 5,991 B &  \\
+\texttt{state.json} & 13,328 B &  \\
+\texttt{kicad/rf-de-20m.kicad\_sch} & 7,267 B &  \\
 \texttt{brief/brief.md} & 4,153 B &  \\
 \texttt{requirements.md} & 16,663 B &  \\
-\texttt{architecture/blocks.md} & 33,156 B &  \\
-\texttt{architecture/constraints.json} & 19,958 B &  \\
-\texttt{architecture/decisions.md} & 26,772 B &  \\
-\texttt{architecture/power\_tree.md} & 15,268 B &  \\
-\texttt{architecture/sheets.md} & 12,601 B &  \\
-\texttt{architecture/stackup.md} & 17,322 B &  \\
+\texttt{architecture/blocks.md} & 37,342 B &  \\
+\texttt{architecture/constraints.json} & 24,610 B &  \\
+\texttt{architecture/decisions.md} & 30,793 B &  \\
+\texttt{architecture/power\_tree.md} & 17,822 B &  \\
+\texttt{architecture/sheets.md} & 14,529 B &  \\
+\texttt{architecture/stackup.md} & 18,766 B &  \\
+\texttt{reports/review-schematic.json} & 7,817 B &  \\
+\texttt{reports/review-schematic.md} & 20,810 B &  \\
+\texttt{reports/schematic.pdf} & 232,266 B &  \\
+\texttt{reports/top.net} & 129,049 B &  \\
 \bottomrule
 \end{longtable}
 }

@@ -1,0 +1,1490 @@
+{
+  "script": "board_init",
+  "status": "violations",
+  "board": "kicad\\rf-de-20m.kicad_pcb",
+  "stackup": "JLC04161H-1080B",
+  "layers": 4,
+  "fab_profile": "4layer_1oz",
+  "copper_oz": 1.0,
+  "fab_floors": {
+    "min_clearance": 0.1016,
+    "min_track_width": 0.1016,
+    "min_via_diameter": 0.45,
+    "min_through_hole_diameter": 0.2,
+    "min_via_annular_width": 0.1,
+    "min_hole_to_hole": 0.5,
+    "min_copper_edge_clearance": 0.3
+  },
+  "components": 70,
+  "nets": 20,
+  "outline_bbox": [
+    6.635,
+    39.335,
+    126.635,
+    119.335
+  ],
+  "mounting_holes": 4,
+  "corner_radius": 0.0,
+  "outline_origin": [
+    6.635,
+    39.335
+  ],
+  "cutouts": [],
+  "self_check": {
+    "drc": {
+      "total": 191,
+      "by_severity": {
+        "error": 187,
+        "warning": 4
+      },
+      "by_source": {
+        "drc": 44,
+        "unconnected": 147
+      }
+    },
+    "setup_violations": [
+      {
+        "check": "clearance",
+        "severity": "error",
+        "pos": [
+          69.053,
+          57.809999
+        ],
+        "layer": "F.Cu",
+        "net": "/stage/GATE_Q1",
+        "refs": [
+          "Q201"
+        ],
+        "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Pad 1 [/stage/GATE_Q1] of Q201 on F.Cu",
+            "pos": [
+              69.053,
+              57.809999
+            ],
+            "uuid": "887b5b65-6d6e-46d0-9cd8-6227f277d8f5"
+          },
+          {
+            "msg": "Pad 3 [/SW] of Q201 on F.Cu",
+            "pos": [
+              69.653,
+              58.034999
+            ],
+            "uuid": "c37f03c3-d9d8-4634-97e9-ad6eb97c0cbd"
+          }
+        ]
+      },
+      {
+        "check": "clearance",
+        "severity": "error",
+        "pos": [
+          69.053,
+          58.259999
+        ],
+        "layer": "F.Cu",
+        "net": "GND",
+        "refs": [
+          "Q201"
+        ],
+        "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Pad 2 [GND] of Q201 on F.Cu",
+            "pos": [
+              69.053,
+              58.259999
+            ],
+            "uuid": "ef3c4d8b-cbdf-44d6-b9c6-77acc1807c20"
+          },
+          {
+            "msg": "Pad 3 [/SW] of Q201 on F.Cu",
+            "pos": [
+              69.653,
+              58.034999
+            ],
+            "uuid": "c37f03c3-d9d8-4634-97e9-ad6eb97c0cbd"
+          }
+        ]
+      },
+      {
+        "check": "clearance",
+        "severity": "error",
+        "pos": [
+          69.653,
+          58.034999
+        ],
+        "layer": "F.Cu",
+        "net": "/SW",
+        "refs": [
+          "Q201"
+        ],
+        "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Pad 3 [/SW] of Q201 on F.Cu",
+            "pos": [
+              69.653,
+              58.034999
+            ],
+            "uuid": "c37f03c3-d9d8-4634-97e9-ad6eb97c0cbd"
+          },
+          {
+            "msg": "Pad 4 [GND] of Q201 on F.Cu",
+            "pos": [
+              70.253,
+              58.034999
+            ],
+            "uuid": "3ce618f8-a642-4c86-a820-34e179142028"
+          }
+        ]
+      },
+      {
+        "check": "clearance",
+        "severity": "error",
+        "pos": [
+          70.253,
+          58.034999
+        ],
+        "layer": "F.Cu",
+        "net": "GND",
+        "refs": [
+          "Q201"
+        ],
+        "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Pad 4 [GND] of Q201 on F.Cu",
+            "pos": [
+              70.253,
+              58.034999
+            ],
+            "uuid": "3ce618f8-a642-4c86-a820-34e179142028"
+          },
+          {
+            "msg": "Pad 5 [/SW] of Q201 on F.Cu",
+            "pos": [
+              70.853,
+              58.034999
+            ],
+            "uuid": "aed28a79-4f53-4aa0-bee4-7a4a2b3c0f57"
+          }
+        ]
+      },
+      {
+        "check": "clearance",
+        "severity": "error",
+        "pos": [
+          70.853,
+          58.034999
+        ],
+        "layer": "F.Cu",
+        "net": "/SW",
+        "refs": [
+          "Q201"
+        ],
+        "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Pad 5 [/SW] of Q201 on F.Cu",
+            "pos": [
+              70.853,
+              58.034999
+            ],
+            "uuid": "aed28a79-4f53-4aa0-bee4-7a4a2b3c0f57"
+          },
+          {
+            "msg": "Pad 6 [GND] of Q201 on F.Cu",
+            "pos": [
+              71.453,
+              58.259999
+            ],
+            "uuid": "5b5ee847-3153-4004-8ccc-046f08b84a32"
+          }
+        ]
+      },
+      {
+        "check": "clearance",
+        "severity": "error",
+        "pos": [
+          70.853,
+          58.034999
+        ],
+        "layer": "F.Cu",
+        "net": "/SW",
+        "refs": [
+          "Q201"
+        ],
+        "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Pad 5 [/SW] of Q201 on F.Cu",
+            "pos": [
+              70.853,
+              58.034999
+            ],
+            "uuid": "aed28a79-4f53-4aa0-bee4-7a4a2b3c0f57"
+          },
+          {
+            "msg": "Pad 7 [GND] of Q201 on F.Cu",
+            "pos": [
+              71.453,
+              57.809999
+            ],
+            "uuid": "b65f4f20-d99d-4a52-a897-eb26350ad43d"
+          }
+        ]
+      },
+      {
+        "check": "clearance",
+        "severity": "error",
+        "pos": [
+          77.973,
+          57.809999
+        ],
+        "layer": "F.Cu",
+        "net": "/stage/GATE_Q2",
+        "refs": [
+          "Q202"
+        ],
+        "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Pad 1 [/stage/GATE_Q2] of Q202 on F.Cu",
+            "pos": [
+              77.973,
+              57.809999
+            ],
+            "uuid": "06a1d5c1-cbdf-4c85-9524-34e0a39ec81a"
+          },
+          {
+            "msg": "Pad 3 [/SW] of Q202 on F.Cu",
+            "pos": [
+              78.573,
+              58.034999
+            ],
+            "uuid": "01c4d8a2-164e-4fbc-a1d4-06eb50817d3d"
+          }
+        ]
+      },
+      {
+        "check": "clearance",
+        "severity": "error",
+        "pos": [
+          77.973,
+          58.259999
+        ],
+        "layer": "F.Cu",
+        "net": "GND",
+        "refs": [
+          "Q202"
+        ],
+        "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Pad 2 [GND] of Q202 on F.Cu",
+            "pos": [
+              77.973,
+              58.259999
+            ],
+            "uuid": "533f6b13-5838-4f4b-b188-f2e2554c1886"
+          },
+          {
+            "msg": "Pad 3 [/SW] of Q202 on F.Cu",
+            "pos": [
+              78.573,
+              58.034999
+            ],
+            "uuid": "01c4d8a2-164e-4fbc-a1d4-06eb50817d3d"
+          }
+        ]
+      },
+      {
+        "check": "clearance",
+        "severity": "error",
+        "pos": [
+          78.573,
+          58.034999
+        ],
+        "layer": "F.Cu",
+        "net": "/SW",
+        "refs": [
+          "Q202"
+        ],
+        "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Pad 3 [/SW] of Q202 on F.Cu",
+            "pos": [
+              78.573,
+              58.034999
+            ],
+            "uuid": "01c4d8a2-164e-4fbc-a1d4-06eb50817d3d"
+          },
+          {
+            "msg": "Pad 4 [GND] of Q202 on F.Cu",
+            "pos": [
+              79.173,
+              58.034999
+            ],
+            "uuid": "c87fe239-4790-4d5b-bf0f-34adee9d87d7"
+          }
+        ]
+      },
+      {
+        "check": "clearance",
+        "severity": "error",
+        "pos": [
+          79.173,
+          58.034999
+        ],
+        "layer": "F.Cu",
+        "net": "GND",
+        "refs": [
+          "Q202"
+        ],
+        "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Pad 4 [GND] of Q202 on F.Cu",
+            "pos": [
+              79.173,
+              58.034999
+            ],
+            "uuid": "c87fe239-4790-4d5b-bf0f-34adee9d87d7"
+          },
+          {
+            "msg": "Pad 5 [/SW] of Q202 on F.Cu",
+            "pos": [
+              79.773,
+              58.034999
+            ],
+            "uuid": "50b91238-2ef0-4b1e-ad5c-c651f5a9701d"
+          }
+        ]
+      },
+      {
+        "check": "clearance",
+        "severity": "error",
+        "pos": [
+          99.06,
+          35.424999
+        ],
+        "layer": "F.Cu",
+        "net": "<no net>",
+        "refs": [
+          "U101"
+        ],
+        "msg": "Clearance violation (rule 'aiee_clearance_floor' clearance 0.1016 mm; actual 0.2500 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "PTH pad [<no net>] of U101",
+            "pos": [
+              99.06,
+              35.424999
+            ],
+            "uuid": "bf34a884-41cb-428a-b711-e4a186c2b068"
+          },
+          {
+            "msg": "Pad 9 [GND] of U101 on F.Cu",
+            "pos": [
+              99.91,
+              36.074999
+            ],
+            "uuid": "05098361-2bd5-4621-bea6-6b8071c4a632"
+          }
+        ]
+      },
+      {
+        "check": "clearance",
+        "severity": "error",
+        "pos": [
+          79.773,
+          58.034999
+        ],
+        "layer": "F.Cu",
+        "net": "/SW",
+        "refs": [
+          "Q202"
+        ],
+        "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Pad 5 [/SW] of Q202 on F.Cu",
+            "pos": [
+              79.773,
+              58.034999
+            ],
+            "uuid": "50b91238-2ef0-4b1e-ad5c-c651f5a9701d"
+          },
+          {
+            "msg": "Pad 6 [GND] of Q202 on F.Cu",
+            "pos": [
+              80.373,
+              58.259999
+            ],
+            "uuid": "9595de4d-0984-4949-ba53-7a8c2c5b75ea"
+          }
+        ]
+      },
+      {
+        "check": "clearance",
+        "severity": "error",
+        "pos": [
+          79.773,
+          58.034999
+        ],
+        "layer": "F.Cu",
+        "net": "/SW",
+        "refs": [
+          "Q202"
+        ],
+        "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Pad 5 [/SW] of Q202 on F.Cu",
+            "pos": [
+              79.773,
+              58.034999
+            ],
+            "uuid": "50b91238-2ef0-4b1e-ad5c-c651f5a9701d"
+          },
+          {
+            "msg": "Pad 7 [GND] of Q202 on F.Cu",
+            "pos": [
+              80.373,
+              57.809999
+            ],
+            "uuid": "c5e1302a-6558-46d6-933c-efa2c0f6823b"
+          }
+        ]
+      },
+      {
+        "check": "clearance",
+        "severity": "error",
+        "pos": [
+          99.06,
+          36.724999
+        ],
+        "layer": "F.Cu",
+        "net": "<no net>",
+        "refs": [
+          "U101"
+        ],
+        "msg": "Clearance violation (rule 'aiee_clearance_floor' clearance 0.1016 mm; actual 0.2500 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "PTH pad [<no net>] of U101",
+            "pos": [
+              99.06,
+              36.724999
+            ],
+            "uuid": "9249bd58-6a2e-46ce-af83-696fe2e1fa7a"
+          },
+          {
+            "msg": "Pad 9 [GND] of U101 on F.Cu",
+            "pos": [
+              99.91,
+              36.074999
+            ],
+            "uuid": "05098361-2bd5-4621-bea6-6b8071c4a632"
+          }
+        ]
+      },
+      {
+        "check": "clearance",
+        "severity": "error",
+        "pos": [
+          100.76,
+          35.424999
+        ],
+        "layer": "F.Cu",
+        "net": "<no net>",
+        "refs": [
+          "U101"
+        ],
+        "msg": "Clearance violation (rule 'aiee_clearance_floor' clearance 0.1016 mm; actual 0.2500 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "PTH pad [<no net>] of U101",
+            "pos": [
+              100.76,
+              35.424999
+            ],
+            "uuid": "e3d611fd-0aac-4e97-9a10-037356d9e433"
+          },
+          {
+            "msg": "Pad 9 [GND] of U101 on F.Cu",
+            "pos": [
+              99.91,
+              36.074999
+            ],
+            "uuid": "05098361-2bd5-4621-bea6-6b8071c4a632"
+          }
+        ]
+      },
+      {
+        "check": "clearance",
+        "severity": "error",
+        "pos": [
+          100.76,
+          36.724999
+        ],
+        "layer": "F.Cu",
+        "net": "<no net>",
+        "refs": [
+          "U101"
+        ],
+        "msg": "Clearance violation (rule 'aiee_clearance_floor' clearance 0.1016 mm; actual 0.2500 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "PTH pad [<no net>] of U101",
+            "pos": [
+              100.76,
+              36.724999
+            ],
+            "uuid": "62c00733-6fc5-4a56-9737-5adb555b51c4"
+          },
+          {
+            "msg": "Pad 9 [GND] of U101 on F.Cu",
+            "pos": [
+              99.91,
+              36.074999
+            ],
+            "uuid": "05098361-2bd5-4621-bea6-6b8071c4a632"
+          }
+        ]
+      },
+      {
+        "check": "copper_edge_clearance",
+        "severity": "error",
+        "pos": [
+          6.634999,
+          39.334999
+        ],
+        "layer": "Edge.Cuts",
+        "net": "/tank/TANK_B",
+        "refs": [
+          "L302"
+        ],
+        "msg": "Board edge clearance violation (rule 'aiee_edge_clearance_floor' clearance 0.3000 mm; actual 0.0000 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Rectangle on Edge.Cuts",
+            "pos": [
+              6.634999,
+              39.334999
+            ],
+            "uuid": "d22bfeaa-5216-4ce3-a1f0-1456ca93c9ed"
+          },
+          {
+            "msg": "PTH pad 1 [/tank/TANK_B] of L302",
+            "pos": [
+              99.67,
+              119.554999
+            ],
+            "uuid": "bd1faf6e-04f1-4d61-939c-d9d383e33d74"
+          }
+        ]
+      },
+      {
+        "check": "copper_edge_clearance",
+        "severity": "error",
+        "pos": [
+          6.634999,
+          39.334999
+        ],
+        "layer": "Edge.Cuts",
+        "net": "/tank/TANK_B",
+        "refs": [
+          "L302"
+        ],
+        "msg": "Board edge clearance violation (rule 'aiee_edge_clearance_floor' clearance 0.3000 mm; actual 0.0000 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Rectangle on Edge.Cuts",
+            "pos": [
+              6.634999,
+              39.334999
+            ],
+            "uuid": "d22bfeaa-5216-4ce3-a1f0-1456ca93c9ed"
+          },
+          {
+            "msg": "Pad 1 [/tank/TANK_B] of L302 on F.Cu",
+            "pos": [
+              100.42,
+              122.854999
+            ],
+            "uuid": "e6e4732f-e857-44d8-862f-03f467b6ddb0"
+          }
+        ]
+      },
+      {
+        "check": "copper_edge_clearance",
+        "severity": "error",
+        "pos": [
+          6.634999,
+          39.334999
+        ],
+        "layer": "Edge.Cuts",
+        "net": "/tank/TANK_B",
+        "refs": [
+          "L302"
+        ],
+        "msg": "Board edge clearance violation (rule 'aiee_edge_clearance_floor' clearance 0.3000 mm; actual 0.0000 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Rectangle on Edge.Cuts",
+            "pos": [
+              6.634999,
+              39.334999
+            ],
+            "uuid": "d22bfeaa-5216-4ce3-a1f0-1456ca93c9ed"
+          },
+          {
+            "msg": "Pad 1 [/tank/TANK_B] of L302 on B.Cu",
+            "pos": [
+              100.42,
+              122.854999
+            ],
+            "uuid": "68ce2b6e-61da-48f8-9c5c-a561f4761a3a"
+          }
+        ]
+      },
+      {
+        "check": "copper_edge_clearance",
+        "severity": "error",
+        "pos": [
+          6.634999,
+          39.334999
+        ],
+        "layer": "Edge.Cuts",
+        "net": "/tank/TANK_B",
+        "refs": [
+          "L302"
+        ],
+        "msg": "Board edge clearance violation (rule 'aiee_edge_clearance_floor' clearance 0.3000 mm; actual 0.0000 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Rectangle on Edge.Cuts",
+            "pos": [
+              6.634999,
+              39.334999
+            ],
+            "uuid": "d22bfeaa-5216-4ce3-a1f0-1456ca93c9ed"
+          },
+          {
+            "msg": "PTH pad 1 [/tank/TANK_B] of L302",
+            "pos": [
+              101.17,
+              119.554999
+            ],
+            "uuid": "dbf2d7e9-6c04-4e74-aae7-73b39cfeb206"
+          }
+        ]
+      },
+      {
+        "check": "copper_edge_clearance",
+        "severity": "error",
+        "pos": [
+          6.634999,
+          39.334999
+        ],
+        "layer": "Edge.Cuts",
+        "net": "/tank/RFOUT",
+        "refs": [
+          "L302"
+        ],
+        "msg": "Board edge clearance violation (rule 'aiee_edge_clearance_floor' clearance 0.3000 mm; actual 0.0000 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Rectangle on Edge.Cuts",
+            "pos": [
+              6.634999,
+              39.334999
+            ],
+            "uuid": "d22bfeaa-5216-4ce3-a1f0-1456ca93c9ed"
+          },
+          {
+            "msg": "PTH pad 2 [/tank/RFOUT] of L302",
+            "pos": [
+              63.6,
+              119.554999
+            ],
+            "uuid": "2616f6c6-8d2b-4c23-8f37-71cbcfaacfda"
+          }
+        ]
+      },
+      {
+        "check": "copper_edge_clearance",
+        "severity": "error",
+        "pos": [
+          6.634999,
+          39.334999
+        ],
+        "layer": "Edge.Cuts",
+        "net": "/tank/RFOUT",
+        "refs": [
+          "L302"
+        ],
+        "msg": "Board edge clearance violation (rule 'aiee_edge_clearance_floor' clearance 0.3000 mm; actual 0.0000 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Rectangle on Edge.Cuts",
+            "pos": [
+              6.634999,
+              39.334999
+            ],
+            "uuid": "d22bfeaa-5216-4ce3-a1f0-1456ca93c9ed"
+          },
+          {
+            "msg": "Pad 2 [/tank/RFOUT] of L302 on F.Cu",
+            "pos": [
+              64.35,
+              122.854999
+            ],
+            "uuid": "0c9d4946-1907-466a-ae48-fb1d9019ac2a"
+          }
+        ]
+      },
+      {
+        "check": "copper_edge_clearance",
+        "severity": "error",
+        "pos": [
+          6.634999,
+          39.334999
+        ],
+        "layer": "Edge.Cuts",
+        "net": "/tank/RFOUT",
+        "refs": [
+          "L302"
+        ],
+        "msg": "Board edge clearance violation (rule 'aiee_edge_clearance_floor' clearance 0.3000 mm; actual 0.0000 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Rectangle on Edge.Cuts",
+            "pos": [
+              6.634999,
+              39.334999
+            ],
+            "uuid": "d22bfeaa-5216-4ce3-a1f0-1456ca93c9ed"
+          },
+          {
+            "msg": "Pad 2 [/tank/RFOUT] of L302 on B.Cu",
+            "pos": [
+              64.35,
+              122.854999
+            ],
+            "uuid": "9ec158d2-6621-4b90-a8b7-22b8befa9638"
+          }
+        ]
+      },
+      {
+        "check": "copper_edge_clearance",
+        "severity": "error",
+        "pos": [
+          6.634999,
+          39.334999
+        ],
+        "layer": "Edge.Cuts",
+        "net": "/tank/RFOUT",
+        "refs": [
+          "L302"
+        ],
+        "msg": "Board edge clearance violation (rule 'aiee_edge_clearance_floor' clearance 0.3000 mm; actual 0.0000 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Rectangle on Edge.Cuts",
+            "pos": [
+              6.634999,
+              39.334999
+            ],
+            "uuid": "d22bfeaa-5216-4ce3-a1f0-1456ca93c9ed"
+          },
+          {
+            "msg": "PTH pad 2 [/tank/RFOUT] of L302",
+            "pos": [
+              65.1,
+              119.554999
+            ],
+            "uuid": "728d0644-ad64-497e-a50f-21474a465cd8"
+          }
+        ]
+      },
+      {
+        "check": "copper_edge_clearance",
+        "severity": "error",
+        "pos": [
+          6.634999,
+          39.334999
+        ],
+        "layer": "Edge.Cuts",
+        "net": "/SW",
+        "refs": [
+          "L301"
+        ],
+        "msg": "Board edge clearance violation (rule 'aiee_edge_clearance_floor' clearance 0.3000 mm; actual 0.1850 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Rectangle on Edge.Cuts",
+            "pos": [
+              6.634999,
+              39.334999
+            ],
+            "uuid": "d22bfeaa-5216-4ce3-a1f0-1456ca93c9ed"
+          },
+          {
+            "msg": "PTH pad 1 [/SW] of L301",
+            "pos": [
+              53.1,
+              119.819999
+            ],
+            "uuid": "e6cf0035-ebe4-42c1-a806-40a7f62818f9"
+          }
+        ]
+      },
+      {
+        "check": "copper_edge_clearance",
+        "severity": "error",
+        "pos": [
+          6.634999,
+          39.334999
+        ],
+        "layer": "Edge.Cuts",
+        "net": "/SW",
+        "refs": [
+          "L301"
+        ],
+        "msg": "Board edge clearance violation (rule 'aiee_edge_clearance_floor' clearance 0.3000 mm; actual 0.0000 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Rectangle on Edge.Cuts",
+            "pos": [
+              6.634999,
+              39.334999
+            ],
+            "uuid": "d22bfeaa-5216-4ce3-a1f0-1456ca93c9ed"
+          },
+          {
+            "msg": "Pad 1 [/SW] of L301 on F.Cu",
+            "pos": [
+              53.85,
+              123.119999
+            ],
+            "uuid": "fef839e9-27ab-4b5e-bb2d-a459e129aaf9"
+          }
+        ]
+      },
+      {
+        "check": "copper_edge_clearance",
+        "severity": "error",
+        "pos": [
+          6.634999,
+          39.334999
+        ],
+        "layer": "Edge.Cuts",
+        "net": "/SW",
+        "refs": [
+          "L301"
+        ],
+        "msg": "Board edge clearance violation (rule 'aiee_edge_clearance_floor' clearance 0.3000 mm; actual 0.0000 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Rectangle on Edge.Cuts",
+            "pos": [
+              6.634999,
+              39.334999
+            ],
+            "uuid": "d22bfeaa-5216-4ce3-a1f0-1456ca93c9ed"
+          },
+          {
+            "msg": "Pad 1 [/SW] of L301 on B.Cu",
+            "pos": [
+              53.85,
+              123.119999
+            ],
+            "uuid": "8f8a685e-d270-4b14-8cf4-008880756a3d"
+          }
+        ]
+      },
+      {
+        "check": "copper_edge_clearance",
+        "severity": "error",
+        "pos": [
+          6.634999,
+          39.334999
+        ],
+        "layer": "Edge.Cuts",
+        "net": "/SW",
+        "refs": [
+          "L301"
+        ],
+        "msg": "Board edge clearance violation (rule 'aiee_edge_clearance_floor' clearance 0.3000 mm; actual 0.1850 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Rectangle on Edge.Cuts",
+            "pos": [
+              6.634999,
+              39.334999
+            ],
+            "uuid": "d22bfeaa-5216-4ce3-a1f0-1456ca93c9ed"
+          },
+          {
+            "msg": "PTH pad 1 [/SW] of L301",
+            "pos": [
+              54.6,
+              119.819999
+            ],
+            "uuid": "0772741c-b432-4bfc-94eb-8425bdca1887"
+          }
+        ]
+      },
+      {
+        "check": "copper_edge_clearance",
+        "severity": "error",
+        "pos": [
+          6.634999,
+          39.334999
+        ],
+        "layer": "Edge.Cuts",
+        "net": "/tank/TANK_A",
+        "refs": [
+          "L301"
+        ],
+        "msg": "Board edge clearance violation (rule 'aiee_edge_clearance_floor' clearance 0.3000 mm; actual 0.1850 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Rectangle on Edge.Cuts",
+            "pos": [
+              6.634999,
+              39.334999
+            ],
+            "uuid": "d22bfeaa-5216-4ce3-a1f0-1456ca93c9ed"
+          },
+          {
+            "msg": "PTH pad 2 [/tank/TANK_A] of L301",
+            "pos": [
+              16.5,
+              119.819999
+            ],
+            "uuid": "0aa25869-4f98-4dcc-a0d8-4235cf52490c"
+          }
+        ]
+      },
+      {
+        "check": "copper_edge_clearance",
+        "severity": "error",
+        "pos": [
+          6.634999,
+          39.334999
+        ],
+        "layer": "Edge.Cuts",
+        "net": "/tank/TANK_A",
+        "refs": [
+          "L301"
+        ],
+        "msg": "Board edge clearance violation (rule 'aiee_edge_clearance_floor' clearance 0.3000 mm; actual 0.0000 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Rectangle on Edge.Cuts",
+            "pos": [
+              6.634999,
+              39.334999
+            ],
+            "uuid": "d22bfeaa-5216-4ce3-a1f0-1456ca93c9ed"
+          },
+          {
+            "msg": "Pad 2 [/tank/TANK_A] of L301 on F.Cu",
+            "pos": [
+              17.25,
+              123.119999
+            ],
+            "uuid": "e0f7aa2a-bcd9-4b69-bf7e-6dbf5f8b47b3"
+          }
+        ]
+      },
+      {
+        "check": "copper_edge_clearance",
+        "severity": "error",
+        "pos": [
+          6.634999,
+          39.334999
+        ],
+        "layer": "Edge.Cuts",
+        "net": "/tank/TANK_A",
+        "refs": [
+          "L301"
+        ],
+        "msg": "Board edge clearance violation (rule 'aiee_edge_clearance_floor' clearance 0.3000 mm; actual 0.0000 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Rectangle on Edge.Cuts",
+            "pos": [
+              6.634999,
+              39.334999
+            ],
+            "uuid": "d22bfeaa-5216-4ce3-a1f0-1456ca93c9ed"
+          },
+          {
+            "msg": "Pad 2 [/tank/TANK_A] of L301 on B.Cu",
+            "pos": [
+              17.25,
+              123.119999
+            ],
+            "uuid": "75578dd0-9734-408a-8dad-ea8b7b4061f1"
+          }
+        ]
+      },
+      {
+        "check": "copper_edge_clearance",
+        "severity": "error",
+        "pos": [
+          6.634999,
+          39.334999
+        ],
+        "layer": "Edge.Cuts",
+        "net": "/tank/TANK_A",
+        "refs": [
+          "L301"
+        ],
+        "msg": "Board edge clearance violation (rule 'aiee_edge_clearance_floor' clearance 0.3000 mm; actual 0.1850 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Rectangle on Edge.Cuts",
+            "pos": [
+              6.634999,
+              39.334999
+            ],
+            "uuid": "d22bfeaa-5216-4ce3-a1f0-1456ca93c9ed"
+          },
+          {
+            "msg": "PTH pad 2 [/tank/TANK_A] of L301",
+            "pos": [
+              18.0,
+              119.819999
+            ],
+            "uuid": "29b5b954-de5e-4776-adf0-55593858c87b"
+          }
+        ]
+      },
+      {
+        "check": "copper_edge_clearance",
+        "severity": "error",
+        "pos": [
+          6.634999,
+          39.334999
+        ],
+        "layer": "Edge.Cuts",
+        "net": "GND",
+        "refs": [
+          "U101"
+        ],
+        "msg": "Board edge clearance violation (rule 'aiee_edge_clearance_floor' clearance 0.3000 mm; actual 0.0000 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Rectangle on Edge.Cuts",
+            "pos": [
+              6.634999,
+              39.334999
+            ],
+            "uuid": "d22bfeaa-5216-4ce3-a1f0-1456ca93c9ed"
+          },
+          {
+            "msg": "Pad 1 [GND] of U101 on F.Cu",
+            "pos": [
+              98.01,
+              38.844999
+            ],
+            "uuid": "a7551482-4a4d-44f0-af88-cb9f24b9aeb6"
+          }
+        ]
+      },
+      {
+        "check": "copper_edge_clearance",
+        "severity": "error",
+        "pos": [
+          6.634999,
+          39.334999
+        ],
+        "layer": "Edge.Cuts",
+        "net": "+40V",
+        "refs": [
+          "U101"
+        ],
+        "msg": "Board edge clearance violation (rule 'aiee_edge_clearance_floor' clearance 0.3000 mm; actual 0.0000 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Rectangle on Edge.Cuts",
+            "pos": [
+              6.634999,
+              39.334999
+            ],
+            "uuid": "d22bfeaa-5216-4ce3-a1f0-1456ca93c9ed"
+          },
+          {
+            "msg": "Pad 2 [+40V] of U101 on F.Cu",
+            "pos": [
+              99.28,
+              38.844999
+            ],
+            "uuid": "59ebbca8-63d1-4911-94da-379a24f3daf7"
+          }
+        ]
+      },
+      {
+        "check": "copper_edge_clearance",
+        "severity": "error",
+        "pos": [
+          6.634999,
+          39.334999
+        ],
+        "layer": "Edge.Cuts",
+        "net": "+40V",
+        "refs": [
+          "U101"
+        ],
+        "msg": "Board edge clearance violation (rule 'aiee_edge_clearance_floor' clearance 0.3000 mm; actual 0.0000 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Rectangle on Edge.Cuts",
+            "pos": [
+              6.634999,
+              39.334999
+            ],
+            "uuid": "d22bfeaa-5216-4ce3-a1f0-1456ca93c9ed"
+          },
+          {
+            "msg": "Pad 3 [+40V] of U101 on F.Cu",
+            "pos": [
+              100.54,
+              38.844999
+            ],
+            "uuid": "5592e624-61ac-415f-bf54-6121bf37a1dd"
+          }
+        ]
+      },
+      {
+        "check": "copper_edge_clearance",
+        "severity": "error",
+        "pos": [
+          6.634999,
+          39.334999
+        ],
+        "layer": "Edge.Cuts",
+        "net": "/hk/RON",
+        "refs": [
+          "U101"
+        ],
+        "msg": "Board edge clearance violation (rule 'aiee_edge_clearance_floor' clearance 0.3000 mm; actual 0.0000 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Rectangle on Edge.Cuts",
+            "pos": [
+              6.634999,
+              39.334999
+            ],
+            "uuid": "d22bfeaa-5216-4ce3-a1f0-1456ca93c9ed"
+          },
+          {
+            "msg": "Pad 4 [/hk/RON] of U101 on F.Cu",
+            "pos": [
+              101.81,
+              38.844999
+            ],
+            "uuid": "50676890-31dd-4ea6-8f9f-9b2d3915026c"
+          }
+        ]
+      },
+      {
+        "check": "solder_mask_bridge",
+        "severity": "error",
+        "pos": [
+          99.06,
+          35.424999
+        ],
+        "layer": "F.Cu",
+        "net": "<no net>",
+        "refs": [
+          "U101"
+        ],
+        "msg": "Front solder mask aperture bridges items with different nets",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "PTH pad [<no net>] of U101",
+            "pos": [
+              99.06,
+              35.424999
+            ],
+            "uuid": "bf34a884-41cb-428a-b711-e4a186c2b068"
+          },
+          {
+            "msg": "Pad 9 [GND] of U101 on F.Cu",
+            "pos": [
+              99.91,
+              36.074999
+            ],
+            "uuid": "05098361-2bd5-4621-bea6-6b8071c4a632"
+          }
+        ]
+      },
+      {
+        "check": "solder_mask_bridge",
+        "severity": "error",
+        "pos": [
+          99.06,
+          36.724999
+        ],
+        "layer": "F.Cu",
+        "net": "<no net>",
+        "refs": [
+          "U101"
+        ],
+        "msg": "Front solder mask aperture bridges items with different nets",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "PTH pad [<no net>] of U101",
+            "pos": [
+              99.06,
+              36.724999
+            ],
+            "uuid": "9249bd58-6a2e-46ce-af83-696fe2e1fa7a"
+          },
+          {
+            "msg": "Pad 9 [GND] of U101 on F.Cu",
+            "pos": [
+              99.91,
+              36.074999
+            ],
+            "uuid": "05098361-2bd5-4621-bea6-6b8071c4a632"
+          }
+        ]
+      },
+      {
+        "check": "solder_mask_bridge",
+        "severity": "error",
+        "pos": [
+          100.76,
+          35.424999
+        ],
+        "layer": "F.Cu",
+        "net": "<no net>",
+        "refs": [
+          "U101"
+        ],
+        "msg": "Front solder mask aperture bridges items with different nets",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "PTH pad [<no net>] of U101",
+            "pos": [
+              100.76,
+              35.424999
+            ],
+            "uuid": "e3d611fd-0aac-4e97-9a10-037356d9e433"
+          },
+          {
+            "msg": "Pad 9 [GND] of U101 on F.Cu",
+            "pos": [
+              99.91,
+              36.074999
+            ],
+            "uuid": "05098361-2bd5-4621-bea6-6b8071c4a632"
+          }
+        ]
+      },
+      {
+        "check": "solder_mask_bridge",
+        "severity": "error",
+        "pos": [
+          100.76,
+          36.724999
+        ],
+        "layer": "F.Cu",
+        "net": "<no net>",
+        "refs": [
+          "U101"
+        ],
+        "msg": "Front solder mask aperture bridges items with different nets",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "PTH pad [<no net>] of U101",
+            "pos": [
+              100.76,
+              36.724999
+            ],
+            "uuid": "62c00733-6fc5-4a56-9737-5adb555b51c4"
+          },
+          {
+            "msg": "Pad 9 [GND] of U101 on F.Cu",
+            "pos": [
+              99.91,
+              36.074999
+            ],
+            "uuid": "05098361-2bd5-4621-bea6-6b8071c4a632"
+          }
+        ]
+      },
+      {
+        "check": "padstack",
+        "severity": "warning",
+        "pos": [
+          77.435,
+          122.854999
+        ],
+        "layer": "In1.Cu",
+        "net": "/tank/RFOUT",
+        "refs": [
+          "L302"
+        ],
+        "msg": "Padstack is questionable (SMD pad has no outer layers)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Pad 2 [/tank/RFOUT] of L302 on In1.Cu and others",
+            "pos": [
+              77.435,
+              122.854999
+            ],
+            "uuid": "4a7e33d6-0b32-4165-82e2-1024ea26e365"
+          }
+        ]
+      },
+      {
+        "check": "padstack",
+        "severity": "warning",
+        "pos": [
+          28.85,
+          123.119999
+        ],
+        "layer": "In1.Cu",
+        "net": "/tank/TANK_A",
+        "refs": [
+          "L301"
+        ],
+        "msg": "Padstack is questionable (SMD pad has no outer layers)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Pad 2 [/tank/TANK_A] of L301 on In1.Cu and others",
+            "pos": [
+              28.85,
+              123.119999
+            ],
+            "uuid": "157507a0-b6ac-43be-a3cc-0c511dac1365"
+          }
+        ]
+      }
+    ],
+    "transient_silk": [
+      {
+        "check": "silk_edge_clearance",
+        "severity": "warning",
+        "pos": [
+          6.634999,
+          39.334999
+        ],
+        "layer": "Edge.Cuts",
+        "net": null,
+        "refs": [
+          "J101"
+        ],
+        "msg": "Silkscreen clipped by board edge",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Rectangle on Edge.Cuts",
+            "pos": [
+              6.634999,
+              39.334999
+            ],
+            "uuid": "d22bfeaa-5216-4ce3-a1f0-1456ca93c9ed"
+          },
+          {
+            "msg": "Segment of J101 on F.Silkscreen",
+            "pos": [
+              33.185,
+              42.835
+            ],
+            "uuid": "6797c4d7-d0d0-4e23-986a-4dafbb907d3d"
+          }
+        ]
+      },
+      {
+        "check": "silk_edge_clearance",
+        "severity": "warning",
+        "pos": [
+          6.634999,
+          39.334999
+        ],
+        "layer": "Edge.Cuts",
+        "net": null,
+        "refs": [
+          "J101"
+        ],
+        "msg": "Silkscreen clipped by board edge",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Rectangle on Edge.Cuts",
+            "pos": [
+              6.634999,
+              39.334999
+            ],
+            "uuid": "d22bfeaa-5216-4ce3-a1f0-1456ca93c9ed"
+          },
+          {
+            "msg": "Segment of J101 on F.Silkscreen",
+            "pos": [
+              43.345,
+              32.135
+            ],
+            "uuid": "9875086a-35f8-4b50-8b19-260924217e7c"
+          }
+        ]
+      }
+    ],
+    "parity_count": 0,
+    "unconnected_count": 147,
+    "clean": false
+  },
+  "worker_notes": []
+}

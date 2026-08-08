@@ -3,18 +3,27 @@
     "design_settings": {
       "rule_severities": {
         "lib_footprint_issues": "ignore",
-        "lib_footprint_mismatch": "ignore"
+        "lib_footprint_mismatch": "ignore",
+        "track_width": "error",
+        "clearance": "error",
+        "hole_to_hole": "error",
+        "hole_clearance": "error",
+        "copper_edge_clearance": "error",
+        "annular_width": "error",
+        "drill_out_of_range": "error"
       },
       "rules": {
-        "min_track_width": 0.127
+        "min_clearance": 0.1016,
+        "min_track_width": 0.1016,
+        "min_via_diameter": 0.45,
+        "min_through_hole_diameter": 0.2,
+        "min_via_annular_width": 0.1,
+        "min_hole_to_hole": 0.5,
+        "min_copper_edge_clearance": 0.3
       }
     }
   },
   "erc": {
-    "erc_exclusions": [],
-    "meta": {
-      "version": 0
-    },
     "rule_severities": {
       "lib_symbol_issues": "ignore",
       "lib_symbol_mismatch": "ignore",

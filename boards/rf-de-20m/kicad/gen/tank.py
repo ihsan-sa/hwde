@@ -26,25 +26,34 @@ TANK_A is the highest node on the board at **156 V pk**, 14 V ABOVE the drain -
 ordinary series-resonant magnification at Q_L = 5, declared at 180 V in
 constraints.json and silkscreened at P6 (sheets.md s6 note 8).
 
-THE SPIRALS ARE REAL SCHEMATIC COMPONENTS WITH NO FOOTPRINT
-------------------------------------------------------------
+THE SPIRALS ARE REAL SCHEMATIC COMPONENTS WHOSE FOOTPRINT *IS* THE PART
+------------------------------------------------------------------------
 L301 and L302 are ETCHED PCB AIR-CORE SPIRALS, not purchasable parts
 (decisions.md D3: no LCSC part class closes them - molded power inductors sit
 at Q 20-40 at 20 MHz, i.e. 25-50 W in one part, and genuine high-Q RF chip
 inductors are rated 120-140 mA against 6.96 A rms; paralleling rescues
 neither because Q_total = Q_each exactly).
 
-They are placed here as stock `Device:L` symbols with **the Footprint field
-deliberately left BLANK** - P6 authors the copper and the custom footprint.
-They must exist as components so their NETS are real: "copper that no tool
-knows about gets routed over, poured under and placed on top of" is the whole
-reason D3 calls them first-class layout objects. They carry no LCSC code and
-are marked `in_bom = False`.
+They are stock `Device:L` symbols carrying no LCSC code and marked
+`in_bom = False`, but they DO carry a footprint: the copper is the component,
+so the winding lives inside the footprint rather than being drawn by hand at
+P6.  Authored 2026-08-08 by `kicad/gen/spirals.py`, derived and cross-checked
+in `reports/spiral-design.md`:
 
-CONSEQUENCE FOR P5, FLAGGED NOT WORKED AROUND: a component with no footprint
-cannot be placed by `board_init`. P6 must supply the footprint (or a
-placeholder land) before the board is built, or L301/L302 will be absent from
-the .kicad_pcb while their nets still exist in the netlist.
+    L301  aiee:SPIRAL_L164N   3 turns, OD 33.10 mm, 2.5 mm trace, 1.0 mm gap
+    L302  aiee:SPIRAL_L110N   2 turns, OD 32.57 mm, 2.5 mm trace, 1.0 mm gap
+
+Both are wound on F.Cu AND B.Cu in parallel (SPIRAL-2) with the inner terminal
+escaping on an In1+In2 radial bridge (SPIRAL-4), and both are KiCad NET TIES:
+pad 1 and pad 2 are deliberately joined by the winding, which is what an
+inductor is at DC.  Each part also carries its own four-layer rule area, so
+"no plane under a spiral" travels with the footprint.
+
+This unblocks P5: `board_init` can now place them.  What it does NOT do is
+place them well - SPIRAL-5 (>= 38 mm centre-to-centre) and SPIRAL-6 (no metal
+within 15 mm in plan view, either face) are still P6's to enforce, and the
+courtyard is 39.99 x 33.69 mm (L301) / 39.46 x 33.16 mm (L302), which fits
+zone B's 40 mm width with ~0.01 mm to spare in the E-W orientation only.
 
 CAPACITOR BANK SIZING - MIXED-VALUE C_m AND FOUR TRIM SITES (P4 review W1)
 ---------------------------------------------------------------------------
@@ -153,7 +162,9 @@ S_SMA = "aiee:CONSMA001-SMD-G-T"          # default Reference "RF" -> J301
 # --------------------------------------------------------------- footprints
 F_C1206 = "aiee:C1206"
 F_SMA = "aiee:SMA-SMD_CONSMA001-SMD-G-T"
-# L301/L302: NO footprint - see the module docstring.
+# The spirals - the copper IS the part. kicad/gen/spirals.py authors both.
+F_SPIRAL_LS = "aiee:SPIRAL_L164N"
+F_SPIRAL_LM = "aiee:SPIRAL_L110N"
 
 # ------------------------------------------------------------------- values
 V_C56P = "56pF 1kV C0G 1206"
@@ -169,6 +180,28 @@ CM_TRIM = [("C322", 27, True), ("C323", 27, True)]
 
 CS_REFS = CS_BANK + CS_TRIM
 CM_REFS = CM_BANK + CM_TRIM
+
+# The spiral symbols are stock Device:L, whose Description ("Inductor") does not
+# match the rich `descr` the custom footprints carry. board_init's schematic
+# parity check compares the two and reports footprint_symbol_field_mismatch,
+# which is a P5 phase-gate failure. Carry the footprint text as an explicit
+# Description field so symbol and footprint agree.
+# MUST stay byte-identical to `(descr ...)` in lib/aiee.pretty/SPIRAL_*.kicad_mod
+# - kicad/gen/spirals.py authors both, so change them together.
+DESCR = {
+    "L301": (
+        "Etched PCB air-core planar spiral 164nH at 20MHz (rf-de-20m L_s, "
+        "L301). 3 turns, OD 33.10mm, 2.5mm trace, 1.0mm gap, F.Cu||B.Cu "
+        "parallel winding, In1+In2 inner-terminal bridge. NET TIE: pads 1-2 "
+        "are joined by the winding. No plane or heatsink beneath - shorted turn."
+    ),
+    "L302": (
+        "Etched PCB air-core planar spiral 110nH at 20MHz (rf-de-20m L_m, "
+        "L302). 2 turns, OD 32.57mm, 2.5mm trace, 1.0mm gap, F.Cu||B.Cu "
+        "parallel winding, In1+In2 inner-terminal bridge. NET TIE: pads 1-2 "
+        "are joined by the winding. No plane or heatsink beneath - shorted turn."
+    ),
+}
 
 LCSC = {"J301": "C22418168"}
 for _r, _pf, _d in CS_REFS + CM_REFS:
@@ -192,6 +225,9 @@ def _add(sh, ref, lib_id, value, at, footprint=None, expect=None, note=None,
         fields["Variant"] = "DNP"
     if note:
         fields["Note"] = note
+    descr = DESCR.get(ref)
+    if descr:
+        fields["Description"] = descr
     c = sh.add_component(lib_id, ref, value, at, rotation=rotation,
                          footprint=footprint, fields=fields or None,
                          expect=expect)
@@ -223,13 +259,15 @@ def build() -> schlib.Sheet:
     # =====================================================================
     # B7 - series resonant tank
     # =====================================================================
-    # L301 = L_s = 164 nH. ETCHED PCB SPIRAL: Device:L, NO footprint, not in
-    # the BOM. SPIRAL-1: >= 1430 mm2 of copper at Q 100 (10.0 W, the hottest
-    # single item on the board and 70 C of rise BY DESIGN, not a defect).
-    _add(sh, "L301", S_L, "164nH", (114.3, 114.3), footprint=None,
+    # L301 = L_s = 164 nH. ETCHED PCB SPIRAL: Device:L, custom footprint that
+    # IS the copper, not in the BOM. As drawn: 3 turns, OD 33.10 mm, 2.5 mm
+    # trace / 1.0 mm gap, F.Cu||B.Cu -> 164.0 nH, Q 388, 2.6 W over 860 mm2
+    # (2.99 mW/mm2 against the 7 mW/mm2 SPIRAL-1 ceiling).
+    _add(sh, "L301", S_L, "164nH", (114.3, 114.3), footprint=F_SPIRAL_LS,
          expect={"1": "1", "2": "2"}, in_bom=False,
-         note="L_s - PCB AIR-CORE SPIRAL, do not place. P6 authors the copper "
-              "and the footprint. >=1430mm2 at Q100, no plane beneath")
+         note="L_s - ETCHED PCB AIR-CORE SPIRAL (net tie, pads 1-2 joined by "
+              "the winding). 3T OD 33.1mm F.Cu||B.Cu. NO plane or heatsink "
+              "beneath - shorted turn. See reports/spiral-design.md")
     sh.wire_pins("L301", {"1": SW, "2": TANK_A})
 
     # C_s bank: 9 x 56 pF = 504 pF against a 518 pF +/-5% target, plus two
@@ -251,13 +289,15 @@ def build() -> schlib.Sheet:
     # =====================================================================
     # B8 - L-match to 50 ohm
     # =====================================================================
-    # L302 = L_m = 110 nH. SPIRAL-3: >= 950 mm2 at Q 100 - nearly as large as
-    # L301 despite being 67% of the inductance, because the binding constraint
-    # is DISSIPATION AREA, not L. Do not let a reviewer shrink it.
-    _add(sh, "L302", S_L, "110nH", (330.2, 114.3), footprint=None,
+    # L302 = L_m = 110 nH. SPIRAL-3: nearly as large as L301 despite being 67%
+    # of the inductance, because the binding constraint is DISSIPATION AREA,
+    # not L. Do not let a reviewer shrink it. As drawn: 2 turns, OD 32.57 mm,
+    # same 2.5/1.0 trace -> 110.0 nH, Q 325, 2.1 W over 833 mm2.
+    _add(sh, "L302", S_L, "110nH", (330.2, 114.3), footprint=F_SPIRAL_LM,
          expect={"1": "1", "2": "2"}, in_bom=False,
-         note="L_m - PCB AIR-CORE SPIRAL, do not place. >=950mm2 at Q100. "
-              "Centre-to-centre >=38mm from L301 (SPIRAL-5)")
+         note="L_m - ETCHED PCB AIR-CORE SPIRAL (net tie, pads 1-2 joined by "
+              "the winding). 2T OD 32.57mm F.Cu||B.Cu. Centre-to-centre "
+              ">=38mm from L301 (SPIRAL-5). See reports/spiral-design.md")
     sh.wire_pins("L302", {"1": TANK_B, "2": RFOUT})
 
     # C_m bank: 9 x 56 + 1 x 27 = 531 pF against the 530.4 pF ideal L-match
@@ -292,21 +332,28 @@ def build() -> schlib.Sheet:
     # sheet notes
     # =====================================================================
     _note(sh, (88.9, 355.6), [
-        "L301 AND L302 ARE ETCHED PCB AIR-CORE SPIRALS.",
-        "They are real components with real nets and NO FOOTPRINT -",
-        "P6 authors the copper. No LCSC code, excluded from the BOM.",
-        "SPIRAL-1: L +/-3%, Q >= 120 at 20 MHz, copper area >= P/7 mW.mm-2",
-        "  (L301 >= 1430 mm2 at Q 100, L302 >= 950 mm2 at Q 100).",
-        "SPIRAL-5: centre-to-centre >= 38 mm, and P8 must compute the",
-        "  residual mutual coupling k and fold it into the tank solve -",
-        "  the two spirals are NOT independent components.",
+        "L301 AND L302 ARE ETCHED PCB AIR-CORE SPIRALS - THE COPPER IS",
+        "THE PART. No LCSC code, excluded from the BOM. The winding",
+        "lives inside the footprint (kicad/gen/spirals.py); see",
+        "reports/spiral-design.md for both inductance derivations.",
+        "  L301 aiee:SPIRAL_L164N  3T OD 33.10mm, 2.5/1.0 trace/gap",
+        "  L302 aiee:SPIRAL_L110N  2T OD 32.57mm, 2.5/1.0 trace/gap",
+        "Both are KiCad NET TIES: pads 1-2 are joined by the winding,",
+        "  which is what an inductor is at DC. Do not 'fix' the short.",
+        "SPIRAL-2 is TAKEN: F.Cu and B.Cu carry identical windings in",
+        "  parallel, stitched 14 vias per terminal, inner terminal out",
+        "  on a 5 mm In1+In2 radial bridge (SPIRAL-4). Q 388 / 325,",
+        "  2.6 W / 2.1 W - not the 10 W the power tree budgeted.",
+        "SPIRAL-5: centre-to-centre >= 38 mm. At 38 mm the computed",
+        "  mutual is -2.0 nH (k 1.5%), i.e. -4.1 nH / -1.5% on the",
+        "  series total. P8 folds it in; the trim sites cover it.",
         "SPIRAL-6: no metal within 15 mm in plan view on either face.",
         "  A conductive plate under a spiral is a SHORTED TURN and no",
         "  copper cutout prevents it - that includes the heatsink,",
         "  brackets, standoffs and fasteners.",
-        "Zone B carries no plane on In1/In2/B.Cu by construction, and a",
-        "  four-layer KiCad rule area must be hand-added over each",
-        "  courtyard at P6 after the spirals are placed and LOCKED.",
+        "Each footprint carries its own 4-layer rule area (no pour on",
+        "  F/B, no tracks or vias on In1/In2) out to 20.5 mm radius.",
+        "  Zone B's blanket In1/In2 void is still required beyond that.",
     ])
     _note(sh, (88.9, 431.8), [
         "C_m IS 531 pF: 9 x 56 pF + 1 x 27 pF (C319), against the ideal",
