@@ -73,31 +73,3 @@
 	(constraint clearance (min 0.6350mm))
 	(condition "A.NetName == '+48V_SW'")
 )
-(rule "aiee_hv_57v_V48_B"
-	# P6 HAND EDIT - the SECOND 57 V net, found by the placement agent.
-	# /power/V48_B is the branch-B front-end node (Q101 drain -> C106/C107/
-	# C108). It carries the same 57 V as +48V_SW whenever branch B is
-	# populated, and ICD-01 s5 requires 0.635 mm around EVERY 48 V net - but
-	# it was never listed in constraints.voltages, so it inherited only the
-	# 0.1016 mm global floor: SIX TIMES too tight. Its parts are DNP on
-	# branch A, and a DNP part still has pads, so P7 would have routed it at
-	# the floor and the clearance would have been wrong in copper forever.
-	# Now also declared in constraints.json voltages so check_creepage sees
-	# it at P8. Same rules_gen overwrite hazard as the rule above.
-	# The exclusion is deliberate and is NOT a fudge to clear a violation.
-	# ICD-01 s5 cites TPS2378: "0.025 in between VSS and high-voltage signals
-	# such as VDD" - the rule governs the 48 V domain against OTHER domains,
-	# not spacing WITHIN it. /power/Q101_G is the hot-swap FET's own gate, in
-	# the same domain as its drain, and C108 (the Cgd dV/dt network) bridges
-	# them across a single 0805 land whose intrinsic pad gap is 0.590 mm.
-	# Without this exclusion the rule fails on the FOOTPRINT's own geometry,
-	# which no placement can fix.
-	# STILL WORTH A HUMAN LOOK (flagged, not buried): 0.590 mm is also under
-	# the IPC-2221B B2 31-50 V floor of 0.60 mm, and during branch-B turn-on
-	# the drain swings while the gate is held, so the pair does see tens of
-	# volts transiently. Branch A never energises V48_B (Q101 is DNP), so the
-	# BUILT board is unaffected - this is a branch-B populate-option review
-	# item, recorded in state.json.
-	(constraint clearance (min 0.6350mm))
-	(condition "A.NetName == '/power/V48_B' && B.NetName != '/power/Q101_G'")
-)

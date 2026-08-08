@@ -1,0 +1,762 @@
+{
+ "script": "place_metrics",
+ "status": "violations",
+ "board": "try.kicad_pcb",
+ "counts": {
+  "total": 2,
+  "by_severity": {
+   "error": 2
+  },
+  "by_source": {
+   "check.place": 2
+  }
+ },
+ "violations": [
+  {
+   "check": "place",
+   "severity": "error",
+   "pos": [
+    107.3799,
+    90.95
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C323",
+    "TP501"
+   ],
+   "msg": "courtyard overlap C323/TP501 (3.28 mm2)",
+   "source": "check.place",
+   "items": [
+    {
+     "msg": "courtyard overlap C323/TP501 (3.28 mm2)",
+     "pos": [
+      107.3799,
+      90.95
+     ]
+    }
+   ],
+   "kind": "courtyard_overlap",
+   "overlap_mm2": 3.2763
+  },
+  {
+   "check": "place",
+   "severity": "error",
+   "pos": [
+    111.6564,
+    90.3348
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R324",
+    "TP502"
+   ],
+   "msg": "courtyard overlap R324/TP502 (0.12 mm2)",
+   "source": "check.place",
+   "items": [
+    {
+     "msg": "courtyard overlap R324/TP502 (0.12 mm2)",
+     "pos": [
+      111.6564,
+      90.3348
+     ]
+    }
+   ],
+   "kind": "courtyard_overlap",
+   "overlap_mm2": 0.1193
+  }
+ ],
+ "metrics": {
+  "counts": {
+   "footprints": 159,
+   "movable": 84,
+   "nets": 76
+  },
+  "hpwl": {
+   "total_mm": 3194.3326,
+   "by_net": {
+    "+12V": 113.3178,
+    "+3V3": 128.8284,
+    "+48V_SW": 139.202,
+    "/ADC0": 74.1807,
+    "/ADC1": 83.3798,
+    "/DRV_EN0": 64.3091,
+    "/DRV_EN1": 39.3424,
+    "/DRV_EN2": 74.1218,
+    "/DRV_EN3": 53.0143,
+    "/EN_OK": 30.9843,
+    "/FAULT": 121.7172,
+    "/LED0_A": 48.3659,
+    "/LED1_A": 53.5884,
+    "/LED2_A": 74.474,
+    "/LED3_A": 79.4971,
+    "/NTC_LED": 47.5627,
+    "/SHUNT0": 101.3186,
+    "/SHUNT1": 83.8049,
+    "/SHUNT2": 117.3786,
+    "/SHUNT3": 79.0703,
+    "/control/EE_ADDR": 24.7945,
+    "/control/EE_WC": 26.8895,
+    "/control/ENABLE": 103.7919,
+    "/control/I2C_SCL": 95.2666,
+    "/control/I2C_SDA": 99.0766,
+    "/control/IDLE0": 52.6318,
+    "/control/IDLE1": 65.4295,
+    "/control/IDLE2": 60.7019,
+    "/control/IDLE3": 61.1743,
+    "/control/ID_ADC": 69.299,
+    "/control/PWM0": 68.4759,
+    "/control/PWM1": 69.0995,
+    "/control/PWM2": 86.6547,
+    "/control/PWM3": 78.4121,
+    "/drivers/BOOT0": 6.17,
+    "/drivers/BOOT1": 6.17,
+    "/drivers/BOOT2": 6.17,
+    "/drivers/BOOT3": 6.17,
+    "/drivers/COFF0": 8.69,
+    "/drivers/COFF1": 8.69,
+    "/drivers/COFF2": 8.69,
+    "/drivers/COFF3": 8.69,
+    "/drivers/CSN0": 3.79,
+    "/drivers/CSN1": 3.79,
+    "/drivers/CSN2": 3.79,
+    "/drivers/CSN3": 3.79,
+    "/drivers/SHG0": 4.01,
+    "/drivers/SHG1": 4.01,
+    "/drivers/SHG2": 4.01,
+    "/drivers/SHG3": 4.01,
+    "/drivers/SNUB0": 2.05,
+    "/drivers/SNUB1": 2.05,
+    "/drivers/SNUB2": 2.05,
+    "/drivers/SNUB3": 2.05,
+    "/drivers/SW0": 12.99,
+    "/drivers/SW1": 12.99,
+    "/drivers/SW2": 12.99,
+    "/drivers/SW3": 12.99,
+    "/drivers/VCC0": 13.96,
+    "/drivers/VCC1": 13.96,
+    "/drivers/VCC2": 13.96,
+    "/drivers/VCC3": 13.96,
+    "/power/Q101_G": 20.4654,
+    "/power/Q102_D": 39.9776,
+    "/power/Q102_G": 43.6462,
+    "/power/V48_B": 34.6951,
+    "/thermal/CMP_BRD": 7.2462,
+    "/thermal/CMP_LED": 23.3462,
+    "/thermal/HYS_BRD": 4.5716,
+    "/thermal/HYS_LED": 4.7568,
+    "/thermal/LAD_D": 13.314,
+    "/thermal/NTC_BRD": 37.0348,
+    "/thermal/VREF_EHOT": 10.1038,
+    "/thermal/VREF_HOT2": 14.213,
+    "/thermal/VREF_OPEN": 16.5159,
+    "GND": 148.6499
+   }
+  },
+  "crossings": {
+   "count": 737,
+   "pairs": [
+    {
+     "nets": [
+      "+3V3",
+      "GND"
+     ],
+     "crossings": 12
+    },
+    {
+     "nets": [
+      "+12V",
+      "GND"
+     ],
+     "crossings": 9
+    },
+    {
+     "nets": [
+      "/control/I2C_SDA",
+      "GND"
+     ],
+     "crossings": 9
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/DRV_EN0"
+     ],
+     "crossings": 7
+    },
+    {
+     "nets": [
+      "+48V_SW",
+      "GND"
+     ],
+     "crossings": 7
+    },
+    {
+     "nets": [
+      "/DRV_EN0",
+      "GND"
+     ],
+     "crossings": 7
+    },
+    {
+     "nets": [
+      "/control/I2C_SCL",
+      "GND"
+     ],
+     "crossings": 7
+    },
+    {
+     "nets": [
+      "/control/PWM1",
+      "GND"
+     ],
+     "crossings": 7
+    },
+    {
+     "nets": [
+      "/FAULT",
+      "GND"
+     ],
+     "crossings": 6
+    },
+    {
+     "nets": [
+      "/LED3_A",
+      "GND"
+     ],
+     "crossings": 6
+    },
+    {
+     "nets": [
+      "/control/ID_ADC",
+      "GND"
+     ],
+     "crossings": 6
+    },
+    {
+     "nets": [
+      "/control/PWM2",
+      "GND"
+     ],
+     "crossings": 6
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/FAULT"
+     ],
+     "crossings": 5
+    },
+    {
+     "nets": [
+      "/ADC1",
+      "GND"
+     ],
+     "crossings": 5
+    },
+    {
+     "nets": [
+      "/DRV_EN3",
+      "GND"
+     ],
+     "crossings": 5
+    },
+    {
+     "nets": [
+      "/SHUNT0",
+      "GND"
+     ],
+     "crossings": 5
+    },
+    {
+     "nets": [
+      "/control/IDLE3",
+      "GND"
+     ],
+     "crossings": 5
+    },
+    {
+     "nets": [
+      "/control/PWM3",
+      "GND"
+     ],
+     "crossings": 5
+    },
+    {
+     "nets": [
+      "+12V",
+      "+3V3"
+     ],
+     "crossings": 4
+    },
+    {
+     "nets": [
+      "+12V",
+      "/ADC1"
+     ],
+     "crossings": 4
+    }
+   ]
+  },
+  "crossings_signal": {
+   "count": 546,
+   "pairs": [
+    {
+     "nets": [
+      "+3V3",
+      "/DRV_EN0"
+     ],
+     "crossings": 7
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/FAULT"
+     ],
+     "crossings": 5
+    },
+    {
+     "nets": [
+      "+12V",
+      "+3V3"
+     ],
+     "crossings": 4
+    },
+    {
+     "nets": [
+      "+12V",
+      "/ADC1"
+     ],
+     "crossings": 4
+    },
+    {
+     "nets": [
+      "+12V",
+      "+48V_SW"
+     ],
+     "crossings": 3
+    },
+    {
+     "nets": [
+      "+12V",
+      "/ADC0"
+     ],
+     "crossings": 3
+    },
+    {
+     "nets": [
+      "+12V",
+      "/FAULT"
+     ],
+     "crossings": 3
+    },
+    {
+     "nets": [
+      "+12V",
+      "/LED3_A"
+     ],
+     "crossings": 3
+    },
+    {
+     "nets": [
+      "+12V",
+      "/control/I2C_SDA"
+     ],
+     "crossings": 3
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/DRV_EN1"
+     ],
+     "crossings": 3
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/SHUNT1"
+     ],
+     "crossings": 3
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/control/IDLE1"
+     ],
+     "crossings": 3
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/thermal/NTC_BRD"
+     ],
+     "crossings": 3
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/thermal/VREF_OPEN"
+     ],
+     "crossings": 3
+    },
+    {
+     "nets": [
+      "/DRV_EN2",
+      "/EN_OK"
+     ],
+     "crossings": 3
+    },
+    {
+     "nets": [
+      "/LED2_A",
+      "/control/ID_ADC"
+     ],
+     "crossings": 3
+    },
+    {
+     "nets": [
+      "/LED3_A",
+      "/NTC_LED"
+     ],
+     "crossings": 3
+    },
+    {
+     "nets": [
+      "/SHUNT1",
+      "/SHUNT2"
+     ],
+     "crossings": 3
+    },
+    {
+     "nets": [
+      "/SHUNT1",
+      "/SHUNT3"
+     ],
+     "crossings": 3
+    },
+    {
+     "nets": [
+      "/control/I2C_SCL",
+      "/drivers/VCC2"
+     ],
+     "crossings": 3
+    }
+   ]
+  },
+  "congestion": {
+   "cell_mm": 2.0,
+   "cols": 50,
+   "rows": 41,
+   "max": 9,
+   "mean_nonzero": 2.5,
+   "hotspots": [
+    {
+     "cell": [
+      26,
+      8
+     ],
+     "center": [
+      107.9375,
+      74.1925
+     ],
+     "demand": 9
+    },
+    {
+     "cell": [
+      33,
+      27
+     ],
+     "center": [
+      121.9375,
+      112.1925
+     ],
+     "demand": 9
+    },
+    {
+     "cell": [
+      15,
+      19
+     ],
+     "center": [
+      85.9375,
+      96.1925
+     ],
+     "demand": 8
+    },
+    {
+     "cell": [
+      21,
+      27
+     ],
+     "center": [
+      97.9375,
+      112.1925
+     ],
+     "demand": 8
+    },
+    {
+     "cell": [
+      26,
+      10
+     ],
+     "center": [
+      107.9375,
+      78.1925
+     ],
+     "demand": 8
+    },
+    {
+     "cell": [
+      28,
+      19
+     ],
+     "center": [
+      111.9375,
+      96.1925
+     ],
+     "demand": 8
+    },
+    {
+     "cell": [
+      9,
+      16
+     ],
+     "center": [
+      73.9375,
+      90.1925
+     ],
+     "demand": 7
+    },
+    {
+     "cell": [
+      11,
+      18
+     ],
+     "center": [
+      77.9375,
+      94.1925
+     ],
+     "demand": 7
+    },
+    {
+     "cell": [
+      14,
+      18
+     ],
+     "center": [
+      83.9375,
+      94.1925
+     ],
+     "demand": 7
+    },
+    {
+     "cell": [
+      17,
+      19
+     ],
+     "center": [
+      89.9375,
+      96.1925
+     ],
+     "demand": 7
+    }
+   ]
+  },
+  "congestion_signal_max": 8,
+  "decoupling": [
+   {
+    "cap": "C201",
+    "pin": "U201.5",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 2.4033,
+    "euclid_mm": 1.7063,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 4.6823
+   },
+   {
+    "cap": "C202",
+    "pin": "U202.14",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 2.9443,
+    "euclid_mm": 2.082,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 5.061
+   },
+   {
+    "cap": "C203",
+    "pin": "U203.8",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 2.3931,
+    "euclid_mm": 1.6958,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 4.6752
+   },
+   {
+    "cap": "C205",
+    "pin": "U204.14",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 2.9443,
+    "euclid_mm": 2.082,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 5.061
+   },
+   {
+    "cap": "C301",
+    "pin": "U301.8",
+    "rail": "+12V",
+    "class": "bulk",
+    "manhattan_mm": 2.24,
+    "euclid_mm": 2.24,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 4.568
+   },
+   {
+    "cap": "C302",
+    "pin": "U301.8",
+    "rail": "+12V",
+    "class": "mid",
+    "manhattan_mm": 6.09,
+    "euclid_mm": 4.6007,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 7.263
+   },
+   {
+    "cap": "C306",
+    "pin": "U301.2",
+    "rail": "/drivers/VCC0",
+    "class": "bulk",
+    "manhattan_mm": 3.91,
+    "euclid_mm": 3.012,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 5.737
+   },
+   {
+    "cap": "C321",
+    "pin": "U321.8",
+    "rail": "+12V",
+    "class": "bulk",
+    "manhattan_mm": 2.24,
+    "euclid_mm": 2.24,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 4.568
+   },
+   {
+    "cap": "C322",
+    "pin": "U321.8",
+    "rail": "+12V",
+    "class": "mid",
+    "manhattan_mm": 6.09,
+    "euclid_mm": 4.6007,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 7.263
+   },
+   {
+    "cap": "C326",
+    "pin": "U321.2",
+    "rail": "/drivers/VCC1",
+    "class": "bulk",
+    "manhattan_mm": 3.91,
+    "euclid_mm": 3.012,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 5.737
+   },
+   {
+    "cap": "C341",
+    "pin": "U341.8",
+    "rail": "+12V",
+    "class": "bulk",
+    "manhattan_mm": 2.24,
+    "euclid_mm": 2.24,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 4.568
+   },
+   {
+    "cap": "C342",
+    "pin": "U341.8",
+    "rail": "+12V",
+    "class": "mid",
+    "manhattan_mm": 6.09,
+    "euclid_mm": 4.6007,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 7.263
+   },
+   {
+    "cap": "C346",
+    "pin": "U341.2",
+    "rail": "/drivers/VCC2",
+    "class": "bulk",
+    "manhattan_mm": 3.91,
+    "euclid_mm": 3.012,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 5.737
+   },
+   {
+    "cap": "C361",
+    "pin": "U361.8",
+    "rail": "+12V",
+    "class": "bulk",
+    "manhattan_mm": 2.24,
+    "euclid_mm": 2.24,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 4.568
+   },
+   {
+    "cap": "C362",
+    "pin": "U361.8",
+    "rail": "+12V",
+    "class": "mid",
+    "manhattan_mm": 6.09,
+    "euclid_mm": 4.6007,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 7.263
+   },
+   {
+    "cap": "C366",
+    "pin": "U361.2",
+    "rail": "/drivers/VCC3",
+    "class": "bulk",
+    "manhattan_mm": 3.91,
+    "euclid_mm": 3.012,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 5.737
+   },
+   {
+    "cap": "C401",
+    "pin": "U401.3",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 2.4455,
+    "euclid_mm": 1.9453,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 4.7118
+   }
+  ],
+  "utilization": {
+   "component_mm2": 974.5358,
+   "board_mm2": 7212.229,
+   "ratio": 0.135
+  }
+ }
+}

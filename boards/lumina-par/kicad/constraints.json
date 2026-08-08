@@ -81,6 +81,11 @@
   {
    "net": "+48V_SW",
    "voltage": 57
+  },
+  {
+   "net": "/power/V48_B",
+   "voltage": 57,
+   "_note": "ADDED AT P6. Branch-B front-end node (Q101 drain -> C106/C107/C108). Carries the SAME 57 V as +48V_SW whenever branch B is populated, and ICD s5 requires 0.635 mm around EVERY 48 V net - but it was never declared, so it inherited only the 0.1016 mm global floor, 6x too tight. The parts are DNP on branch A and DNP parts still have pads, so P7 would have routed it at the floor."
   }
  ],
  "thermal": [

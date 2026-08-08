@@ -1,0 +1,117 @@
+{
+ "script": "place_anneal",
+ "status": "violations",
+ "board": "lumina-par.kicad_pcb",
+ "counts": {
+  "total": 1,
+  "by_severity": {
+   "error": 1
+  },
+  "by_source": {
+   "check.place": 1
+  }
+ },
+ "violations": [
+  {
+   "check": "place",
+   "severity": "error",
+   "pos": [
+    148.4249,
+    129.232
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "H3",
+    "R412"
+   ],
+   "msg": "courtyard overlap H3/R412 (0.14 mm2)",
+   "source": "check.place",
+   "items": [
+    {
+     "msg": "courtyard overlap H3/R412 (0.14 mm2)",
+     "pos": [
+      148.4249,
+      129.232
+     ]
+    }
+   ],
+   "kind": "courtyard_overlap",
+   "overlap_mm2": 0.1446
+  }
+ ],
+ "candidates": [
+  {
+   "rank": 1,
+   "cost": 2727.791,
+   "score": 2727.791,
+   "hpwl_mm": 2286.3521,
+   "terms": {
+    "hpwl_raw_mm": 2286.3521,
+    "hpwl_weighted": 1922.5691,
+    "overlap_mm2": 1.1583,
+    "cong_overflow": 21,
+    "crossings_weighted": 159.25,
+    "rule": 166.7289,
+    "corridor_mm2": 0.0
+   },
+   "legal": false,
+   "repaired": false,
+   "completion": null,
+   "ops_file": "boards\\lumina-par\\kicad\\anneal\\cand1.ops.json",
+   "n_violations": 1
+  },
+  {
+   "rank": 2,
+   "cost": 2727.791,
+   "score": 2727.791,
+   "hpwl_mm": 2286.3521,
+   "terms": {
+    "hpwl_raw_mm": 2286.3521,
+    "hpwl_weighted": 1922.5691,
+    "overlap_mm2": 1.1583,
+    "cong_overflow": 21,
+    "crossings_weighted": 159.25,
+    "rule": 166.7289,
+    "corridor_mm2": 0.0
+   },
+   "legal": false,
+   "repaired": false,
+   "completion": null,
+   "ops_file": "boards\\lumina-par\\kicad\\anneal\\cand2.ops.json",
+   "n_violations": 1
+  }
+ ],
+ "seed": 1,
+ "separation_unknown_refs": [
+  "L301",
+  "L321",
+  "L341",
+  "L361"
+ ],
+ "corridor_unknown_refs": [],
+ "clusters": 58,
+ "movable_clusters": 57,
+ "hpwl_input_mm": 3508.3657,
+ "hpwl_start_mm": 3508.3652,
+ "hpwl_best_mm": 2286.3521,
+ "improvement_pct": 34.83,
+ "start_terms": {
+  "hpwl_raw_mm": 3508.3652,
+  "hpwl_weighted": 3119.6323,
+  "overlap_mm2": 30.3427,
+  "cong_overflow": 107,
+  "crossings_weighted": 436.25,
+  "rule": 199.143,
+  "corridor_mm2": 0.0
+ },
+ "epochs": 90,
+ "moves": 232132,
+ "accepted": 108101,
+ "t0": 8719.0469,
+ "t_end": 6.435299,
+ "feedback_used": false,
+ "last_completion": null,
+ "runtime_s": 863.42,
+ "warnings": []
+}

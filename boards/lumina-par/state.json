@@ -3,8 +3,8 @@
  "board": "lumina-par",
  "workspace": "boards/lumina-par",
  "created": "2026-07-28T15:00:15",
- "updated": "2026-08-07T18:30:15",
- "phase": "P5",
+ "updated": "2026-08-07T20:07:58",
+ "phase": "P6",
  "gates": {
   "erc": {
    "phase": "P4",
@@ -42,6 +42,35 @@
      }
     }
    ]
+  },
+  "place": {
+   "phase": "P6",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-08-07T20:05:19",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0,
+    "inputs": {
+     "pcb": "sexpr_no_uuid:5027fd035af335060dc10a7051ca797bfd24a2522e7d78c41fbc248bdf7cbfe0",
+     "constraints": "json_canonical:e72fc431df934cdf2c4de80698dc4644e364d412ac2898555c55fa3290abbd57",
+     "decoupling": "json_canonical:45abce9be400fc8f5bf060329beecfdbaa2b4b334d98cdfc5fd84d76b099d6e6"
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-07T20:05:19",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:5027fd035af335060dc10a7051ca797bfd24a2522e7d78c41fbc248bdf7cbfe0",
+      "constraints": "json_canonical:e72fc431df934cdf2c4de80698dc4644e364d412ac2898555c55fa3290abbd57",
+      "decoupling": "json_canonical:45abce9be400fc8f5bf060329beecfdbaa2b4b334d98cdfc5fd84d76b099d6e6"
+     }
+    }
+   ]
   }
  },
  "human": {
@@ -68,6 +97,24 @@
    "kind": "pro",
    "sha256": "json_canonical:6830e3a3b05e406140bb008f11bd24e5329bfca65c3924bb1642598804f43fbb",
    "hashed": "2026-08-07T13:18:16"
+  },
+  "pcb": {
+   "path": "kicad/lumina-par.kicad_pcb",
+   "kind": "pcb",
+   "sha256": "sexpr_no_uuid:5027fd035af335060dc10a7051ca797bfd24a2522e7d78c41fbc248bdf7cbfe0",
+   "hashed": "2026-08-07T20:05:19"
+  },
+  "constraints": {
+   "path": "kicad/constraints.json",
+   "kind": "constraints",
+   "sha256": "json_canonical:e72fc431df934cdf2c4de80698dc4644e364d412ac2898555c55fa3290abbd57",
+   "hashed": "2026-08-07T20:05:19"
+  },
+  "decoupling": {
+   "path": "kicad/decoupling.json",
+   "kind": "decoupling",
+   "sha256": "json_canonical:45abce9be400fc8f5bf060329beecfdbaa2b4b334d98cdfc5fd84d76b099d6e6",
+   "hashed": "2026-08-07T20:05:19"
   }
  },
  "open_issues": [
@@ -1184,6 +1231,65 @@
    "event": "p5_rerun_after_pin_swap",
    "p5_rerun": "board_init + rules_gen re-run after the pin swap. 155 components / 76 nets, stackup JLC04161H-1080B, parity 0, outline 100x80 with the cutout at (6,0,30,26) board-local. 10 residual setup violations are the same shelf-pack artifacts (8 copper_edge_clearance + 2 courtyards_overlap) that P6 placement resolves; utilization is 24.6 pct.",
    "dru_edit_lost_and_reapplied": "CONFIRMED HAZARD: rules_gen OVERWRITES the whole .kicad_dru, and it silently reverted the 0.6350 mm +48V_SW clearance back to the 0.6000 mm IPC floor. Caught by grep because the P5 record said to check. Re-applied with a stronger in-file warning. Any future rules_gen run must be followed by re-applying it - this is now a KNOWN recurring failure, not a one-off."
+  },
+  {
+   "ts": "2026-08-07T18:36:05",
+   "event": "phase",
+   "phase": "P6",
+   "prev": "P5"
+  },
+  {
+   "ts": "2026-08-07T18:36:05",
+   "event": "spawn",
+   "role": "placement",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-07T18:36:06",
+   "event": "p6_connectors_locked",
+   "connectors_locked": "J3 board-local (23.000,76.000) B.Cu rot 0; J4 (71.000,76.000) B.Cu rot 0; H5 (46.000,74.000) F.Cu - all locked BEFORE the annealer, per sheets.md s3. Coordinates are the measured as-built carrier geometry, not the stale ICD table.",
+   "mated_verified": "0 crossings across J3+J4 after the row swap, re-checked against the carriers netlist with the connectors in their final locked positions",
+   "phase": "P6 placement agent dispatched at opus/high (tier fable/high unavailable)"
+  },
+  {
+   "ts": "2026-08-07T20:05:19",
+   "event": "gate",
+   "gate": "place",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-07T20:07:58",
+   "event": "p6_placement_done",
+   "gate": "place PASS 0/0, independently re-run by the orchestrator. kc.py drc = 346 violations, ALL unconnected_items (expected pre-routing), zero clearance/silk/courtyard. Route probe completion 0.9971 (345/346) against a 0.98 bar.",
+   "hpwl": "3103 -> 2403 mm after repair; anneal itself 3508 -> 2286 (-34.8 pct), crossings 436 -> 159, congestion 107 -> 21",
+   "channel_override": "the annealer cost function has no model of a buck switching loop, so the agent hand-built ONE TPS92515HV tile (TI LOOP1/LOOP2, Kelvin RSENSE, BOOT, COFF) and instantiated it identically on all four drivers as a 2x2, then re-seeded and re-annealed with the channels pinned so everything else legalised around them. Per channel: SW-node bbox 88 -> 17 mm2, catch diode 8.6 -> 3.7 mm, L-to-D 9.8 -> 3.7, RSENSE Kelvin 5.0 -> 2.7, BOOT 6.3 -> 2.4, EN pull-down 9.5 -> 2.6.",
+   "rt401": "seated 0.42 mm off U301 copper, and ch0 was assigned the BOTTOM-LEFT tile deliberately: all four drivers dissipate 0.15 W so hottest is environmental, and that slot is the one adjacent to the carriers 1.25 W DC-DC. Cost ~8 mm of LED net length.",
+   "silk": "329 -> 0 DRC findings via silk_place + widened push + analog spacing relief"
+  },
+  {
+   "ts": "2026-08-07T20:07:58",
+   "event": "p6_three_group_defects",
+   "root_cause": "ONE cause, three symptoms: a part that belongs to a network but is ABSENT from constraints.json placement.groups is invisible to seed and anneal, and nothing warns.",
+   "r201_never_placed": "the enable_pd group the orchestrator added at P4 is anchored on J4 - which the orchestrator then LOCKED. build_clusters DROPS satellites whose anchor is immovable, so R201 was never placed at all and sat OUTSIDE the board outline. Self-inflicted: anchoring a group on a part you intend to lock silently deletes the group.",
+   "snubbers_stranded": "C3x3/R3x4, the switch-node RC snubbers on all four channels, are in no group at all, so seed and anneal treated them as free singletons and left them 22-50 mm from their own switch node. A snubber that far away is a resonant tank, not a damper. Pulled to 4.09 mm to the diode SW pad, 2.05 mm C-to-R.",
+   "u203_separation_voided": "locking the inductors made them cluster-less, which SILENTLY voided the placement.separation rules (separation_unknown_refs), and the anneal then parked the EEPROM 3.31 mm from L341 against a declared 8 mm. Moved 27 mm to clear 10.83 mm."
+  },
+  {
+   "ts": "2026-08-07T20:07:58",
+   "event": "p6_v48b_clearance_gap",
+   "found_by": "the placement agent, flagged as out of scope; fixed by the orchestrator before P7 could route it",
+   "gap": "/power/V48_B (Q101 drain -> C106/C107/C108) carries the SAME 57 V as +48V_SW whenever branch B is populated, but was never listed in constraints.voltages and had no DRU rule, so it inherited only the 0.1016 mm global floor - SIX TIMES tighter than the ICD s5 board-wide 0.635 mm for every 48 V net. Its parts are DNP on branch A and a DNP part still has pads, so P7 would have routed it at the floor.",
+   "fix": "declared in constraints.json voltages at 57 V (both copies) and given its own 0.635 mm DRU rule. Adding the rule IMMEDIATELY produced a real violation, which is the proof the gap was not theoretical.",
+   "c108_branch_b_item": "the violation is C108s OWN two pads - /power/Q101_G to /power/V48_B at 0.590 mm on a single 0805 land. Both are inside the 48 V domain, and ICD s5 cites TPS2378 for spacing between the 48 V domain and OTHER domains, not within it, so the rule now excludes that pair. BUT 0.590 mm is also under the IPC-2221B B2 31-50 V floor of 0.60 mm, and during branch-B turn-on the drain swings while the gate is held, so the pair does see tens of volts transiently. Branch A never energises V48_B, so the BUILT board is unaffected. This is a branch-B populate-option review item: the ICD chose 0805 for the 48 V domain on VOLTAGE RATING grounds (s5.4) and never checked that an 0805 lands own pad gap meets its own 0.635 mm creepage rule."
+  },
+  {
+   "ts": "2026-08-07T20:07:58",
+   "event": "p6_fragility_warning",
+   "channel_template_is_not_reproducible": "the four channel interiors are a HAND-BUILT template, not a solver output. Re-running place_seed.py or place_anneal.py will SILENTLY overwrite all of it and lose every loop-geometry gain above. Anyone resuming at P6 must know this before touching either script.",
+   "refdes_debt": "R408s refdes sits 11.6 mm from its part; 35 of 155 exceed 3 mm, median 0.85 mm. That is the price paid for silk-clean DRC - a human may prefer a warning to a label that points at nothing.",
+   "antenna_edge": "the analog cluster sits 0.26 mm below the antenna keepout (no copper on any layer, and unchecked by any gate). P7 has almost no routing room on that edge."
   }
  ],
  "spawns": [
@@ -1314,6 +1420,14 @@
    "effort": "high",
    "phase": "P4",
    "note": "optical budget re-derivation after the OPEN-8 refutation (no optics role exists in the skill - closest analyst role used, recorded as a deviation)"
+  },
+  {
+   "ts": "2026-08-07T18:36:05",
+   "role": "placement",
+   "model": "opus",
+   "effort": "high",
+   "phase": "P6",
+   "note": "seed+anneal+repair; J3/J4/H5 pre-locked at carrier-confirmed mating geometry"
   }
  ],
  "edits": []
