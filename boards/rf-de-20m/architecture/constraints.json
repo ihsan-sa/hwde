@@ -1,0 +1,329 @@
+{
+ "_comment_amendment_P2A": "AMENDED 2026-08-07 (P2-A). The P1 research/power.json EPC2019 figures are RETRACTED - the orchestrator read the datasheet (rev (c)2021) directly. Coss(er) 156 pF DOES NOT EXIST (the datasheet publishes no Coss(er), no Coss(tr) and no Eoss), and Rds(on) is 36 typ / 50 max mohm, not 22/42. TWO FURTHER ERRORS were found while re-deriving and both are fixed here: (1) the charge-equivalent capacitance Qoss/V must be evaluated over the ACTUAL 0->142.5 V drain swing, not over the 0->100 V range the datasheet quotes it at - two independent extrapolations (power-law fit anchored on Coss(100V) AND Qoss(100V), and a flat-above-100V bound) agree to 1.5% on Coss(tr) = 158 pF typ / 205 pF max per FET, not 180 pF; (2) the frozen operating point used Sokal's Q_L->infinity constants (0.5768 / 0.1836) on a Q_L = 5 design - the correct finite-Q_L coefficients (0.51659 / 0.20907, supplied by research/refdesign-classE-stage.json D9 and independently reproduced from Sokal's published fits to within 0.13%) give R_opt = 4.13 ohm and C_shunt = 403 pF, NOT 4.614 ohm and 317 pF. NET EFFECT: the 40 V bus is PRESERVED (no change to a frozen input), two paralleled EPC2019 supply 316 pF of the 403 pF shunt, and ~87 pF of external C0G trim reappears - which is a feature, not an inelegance, because the external capacitor is the ONLY mechanism that absorbs the part's 110-150 pF Coss spread. EVERY CURRENT, VOLTAGE AND POWER FIGURE BELOW WAS RE-DERIVED AT R = 4.13 OHM. Unchanged: two FETs, PCB spiral magnetics, the two-zone floorplan, the relaxed controlled-Z output, 100x80 mm with pre-authorised growth to 120x80, unipolar 0/+5 V DC-coupled drive, no protection parts. BOM note (recorded, not acted on): EPC2019 is OUT OF STOCK at LCSC (stock 0, price 2.17 -> 3.93); owner approved continuing the design and holding the order; P10 re-verifies. Full derivations: architecture/blocks.md s0.",
+
+ "_comment": "P2 MERGED constraints for rf-de-20m (20 MHz Class E GaN stage, 200 W into 50 ohm, 40 V bus). CANONICAL NET NAMES per sheets.md s1: power symbols are global and BARE (+40V, +5V, GND); exactly ONE signal net crosses a sheet boundary (/SW) and P4 MUST place a root-sheet local label spelled SW on it or it becomes /stage/SW and six entries below silently stop matching; every other signal net is sheet-internal and therefore carries its sheet prefix (/stage/..., /tank/...) - deliberate, not a typo. IF THE HUMAN SELECTS A ONE-FET BUILD AT CHECKPOINT 1, DON'T: at the amended numbers a single EPC2019 reaches Tj 160 C with a HYPOTHETICAL 0 C/W heatsink, i.e. above the 150 C absolute maximum - there is no heatsink that saves it. The layout is built for two either way. MANDATORY P5 STEP - COORDINATE TRANSLATION: every rect in planes[].region and placement.keepouts is BOARD-LOCAL (origin = board top-left, x right, y down, 100 x 80 mm outline). board_init.py does NOT place the outline at (0,0) - the origin comes from the packed component bounding box (the pd-trigger board's Edge.Cuts starts at 9.80, 27.51). After board_init, read reports/board_init.json.outline_bbox and TRANSLATE every rect by (x0, y0) before P6/P7 consume this file. planes_gen's region-coverage check gives partial cover for a forgotten translation; placement.keepouts has NONE. TWO THINGS THIS FILE CANNOT EXPRESS, TO BE HAND-ADDED AT P5/P6: (1) planes_gen has NO void or keepout support (verified by reading the script), so zone B (x 48-88, the magnetics zone) is left unpoured BY CONSTRUCTION - the six planes[] entries pour GND on In1/In2/B.Cu over zone A [0,0,48,80] and zone C [88,0,100,80] only. Nothing governs F.Cu or B.Cu copper inside a spiral courtyard, so after L301/L302 are placed and LOCKED a KiCad rule area must be hand-added over each courtyard on all four layers and verified geometrically at P8. A solid plane under a PCB air-core spiral is a shorted turn. (2) The heatsink is OFF-BOARD: HS-1 (theta_HS <= 0.7 C/W at the design airflow - TIGHTENED at P2-A from 1.4 C/W by the real Rds(on) and Coss), HS-2 (contact face inside [5,10,36,70], never past x = 40 mm, >= 14 mm clear of every spiral edge) and HS-3 (clear of every THT pin) live in blocks.md s4.4 and must reach whoever specifies it. ABSENT KEYS ARE DELIBERATE: GND is NOT a power entry (it is the plane stack; declaring it would make check_current demand IPC width on every GND stub); diff_pairs is an EXPLICIT EMPTY LIST because no differential net exists; and /tank/RFOUT is declared under power, NOT under high_speed with impedance_ohm 50 - rules_gen only solves impedance for DIFFERENTIAL pairs (verified by reading detect_diff_pairs/diff_pair_rules), so a lone single-ended impedance_ohm would look declared and do nothing, and the 0.4332 mm se_50 geometry would run 50-75 C hot at 2.0 A rms anyway (stackup.md s5). CAUTION: the OUTH/OUTL legs are named /stage/GATE_ON and /stage/GATE_OFF, not _H/_L, because rules_gen.detect_diff_pairs auto-pairs high_speed nets ending in _H/_L. THE WIDTHS check_current COMPUTES ARE A FLOOR, NOT A PASS: IPC-2152 is DC ampacity, wrong above ~1 MHz. The binding AC numbers (power_tree.md s7, all ~12% wider after the P2-A current increase) are ~7.2 mm of poured copper on the tank nets and ~5.1 mm on /SW, at an AC/DC factor of 2.5 on 1 oz copper at 20 MHz (skin depth 14.6 um).",
+
+ "high_speed": [
+  {
+   "net": "/SW",
+   "reference": "GND",
+   "k": 3,
+   "t_rise_ns": 2.0,
+   "_note": "The drain node. This entry makes check_return_path audit the single most important structure on the board: EPC WP010's stacked self-cancelling power loop, F.Cu loop directly over an unbroken In1 GND return at the 0.2444 mm L1-L2 spacing. Loop area, not trace width, protects the 1.40x derate on a 200 V part swinging to 142.5 V by design. NO impedance_ohm - this is not a transmission line, it is a 9.2 A rms power node."
+  },
+  {
+   "net": "/stage/GATE_Q1",
+   "reference": "GND",
+   "k": 3,
+   "t_rise_ns": 1.0
+  },
+  {
+   "net": "/stage/GATE_Q2",
+   "reference": "GND",
+   "k": 3,
+   "t_rise_ns": 1.0,
+   "_note": "TIGHTENED AT P2-A. GATE_Q1 and GATE_Q2 must be geometric MIRRORS about the U201 axis, each with loop inductance <= 0.48 nH (EPC WP008 Eq.1 at R_G+R_src = 3.1 ohm and the DATASHEET C_GS ~ 199 pF from Ciss 200 pF - Crss 0.7 pF; the retracted Qg of 2.4 nC had implied ~350 pF and a 0.84 nH budget). This is the tightest layout spec on the board: two parallel 0603s contribute ~0.15-0.2 nH, leaving ~0.3 nH for vias and interconnect. STATED FALLBACK if P7 cannot meet it: raise R_G to 3 ohm, which relaxes the budget to 0.84 nH, at ~+0.3 W turn-off loss and ~+1.6 C of Tj - take it consciously, not by drifting. Matching is +/-0.1 nH and exists to damp the differential mode and equalise static sharing, NOT to align edges: skew is benign in a soft-switched topology (at turn-on the drain is at ~0 V, so an early device has nothing to hog). Do not length-match electrically - FR4 is ~6.7 ps/mm, so 15 mm of length error is only 100 ps and is not the mechanism."
+  },
+  {
+   "net": "/stage/DRIVE",
+   "reference": "GND",
+   "k": 3,
+   "t_rise_ns": 1.0,
+   "_note": "SMA -> 50 ohm termination (R201||R202) -> U201 IN+. DC-COUPLED: an AC-coupled input pins the waveform average at the bias point and destroys duty-cycle control, which is both the primary Class E tuning knob AND - after the P2-A amendment - the primary ZVS trim (blocks.md s4.2)."
+  }
+ ],
+
+ "power": [
+  {
+   "net": "+40V",
+   "current_a": 7.0,
+   "dt_c": 10,
+   "via_amps": 0.5,
+   "_note": "5.96 A nominal / 6.45 A at the compounded worst case, declared 7.0 A with margin. DC only, so IPC-2152 sizing is genuinely valid here (~2.5-3.0 mm at 1 oz external). NOT plane_fed: the path is a short terminal -> bulk -> HF bank -> choke run. Every part rated >= 63 V - the bus rings to ~51 V on turn-on."
+  },
+  {
+   "net": "+5V",
+   "current_a": 0.3,
+   "dt_c": 10,
+   "via_amps": 0.5,
+   "_note": "99 mA average for the FET PAIR (72 mA gate charge at the DATASHEET Qg of 1.8 nC + 27 mA LMG1020 internal); 0.3 A declared, 3.0x headroom - the real Qg IMPROVED this rail versus the retracted 2.4 nC figure. WIDTH IS NOT THE CONSTRAINT: the VDD bypass loop inductance is, at <= 0.3 nH (100 nF 0402 X7R + 10 nF 0201 C0G straddling the VDD ball at < 0.5 mm, via-in-pad ground return). That via-in-pad on a 0.4 mm-pitch WCSP is why the board needs epoxy-filled-and-capped vias (stackup.md s4). NB the 0.3 nH here is the VDD loop; the GATE loop budget is 0.48 nH and is a different, resistance-limited path."
+  },
+  {
+   "net": "/SW",
+   "current_a": 9.2,
+   "dt_c": 5,
+   "via_amps": 0.5,
+   "pdn": false,
+   "_note": "Drain node. 9.17 A rms (Class E ideal I_sw,rms = 1.5375 x I_dc at I_dc 5.96 A), 17.1 A peak, 142.5 V peak. IPC-2152 UNDERSTATES this net: the binding requirement is ~5.1 mm of poured copper for a <= 0.2 W budget over a 10 mm run at an AC/DC factor of 2.5."
+  },
+  {
+   "net": "/tank/TANK_A",
+   "current_a": 7.0,
+   "dt_c": 5,
+   "via_amps": 0.5,
+   "pdn": false,
+   "_note": "L301 / C_s junction. 6.96 A rms = sqrt(200/4.13) - UP 5.8% at P2-A because R fell from 4.614 to 4.13 ohm. Binding requirement is ~7.2 mm of poured copper (<= 0.5 W over the developed path at an AC/DC factor of 2.5), not DC ampacity. via_amps 0.5 also sizes the SPIRAL-4 inner-terminal crossings at >= 14 vias each."
+  },
+  {
+   "net": "/tank/TANK_B",
+   "current_a": 7.0,
+   "dt_c": 5,
+   "via_amps": 0.5,
+   "pdn": false
+  },
+  {
+   "net": "/tank/RFOUT",
+   "current_a": 7.0,
+   "dt_c": 5,
+   "via_amps": 0.5,
+   "pdn": false,
+   "_note": "L302 -> C_m bank -> J301. Declared at the full 6.96 A rms even though only 2.0 A reaches the load, because C_m carries 6.66 A rms (sqrt(6.96^2 - 2.0^2)) and the whole node is one net. THIS ENTRY IS THE 50 OHM RULING (stackup.md s5): route as a wide F.Cu pour over solid In1 GND, <= 15 mm from the C_m node into the J301 centre pad. Do NOT build the stackup's 0.4332 mm se_50 microstrip - at 20 MHz a 15 mm run is lambda/550 and its impedance perturbs the load by < 2% (inside the L-match's tuning range), while the 50 ohm geometry is a ~3.2 A DC-equivalent conductor and would run 50-75 C hot."
+  }
+ ],
+
+ "diff_pairs": [],
+
+ "voltages": [
+  {
+   "net": "/SW",
+   "voltage": 143,
+   "_note": "142.5 V pk = 3.562 x Vdd. UNCHANGED by the amendment - it depends only on Vdd, which stays at 40 V. The 1.40x derate against the 200 V rating is the entire margin and it is protected by POWER LOOP AREA, not by clearance."
+  },
+  {
+   "net": "/tank/TANK_A",
+   "voltage": 180,
+   "_note": "156 V pk (110.7 V rms) at the amended R = 4.13 ohm (was 170 V pk at R = 4.614). STILL THE HIGHEST NODE ON THE BOARD, 14 V above the drain - ordinary series-resonant voltage magnification at Q_L = 5, flagged by no P1 fragment. Declared at 180 V with margin for harmonic content. NOTE the frozen brief's '~215 V pk on the tank' is the voltage ACROSS L_s (now 203 V pk), not a node voltage - see voltage_pairs."
+  },
+  {
+   "net": "/tank/RFOUT",
+   "voltage": 145,
+   "_note": "141 V pk = sqrt(200 x 50) x sqrt(2) = 100 V rms. Set by P_out and the 50 ohm load, so unchanged by the R correction."
+  },
+  {
+   "net": "/tank/TANK_B",
+   "voltage": 50,
+   "_note": "41 V pk = I x R_opt = 6.96 x 4.13 = 28.8 V rms, as it must be."
+  },
+  {
+   "net": "+40V",
+   "voltage": 51,
+   "_note": "Not 40 V: a live supply into 220 uF through ~1 uH of cable inductance gives zeta 0.37 and 27% overshoot. More bulk REDUCES this."
+  }
+ ],
+
+ "voltage_pairs": [
+  {
+   "a": "/SW",
+   "b": "/tank/TANK_A",
+   "voltage": 203,
+   "_note": "The voltage ACROSS L301 (L_s): 6.96 A x 20.7 ohm = 143.5 V rms = 203 V pk (was 215 V pk at the frozen R). Node voltages give only 180 - 143 = 37 V for this pair - 5.5x too low - because the two nodes are not in phase. This is what the brief's '~215 V pk' actually refers to."
+  },
+  {
+   "a": "/tank/TANK_A",
+   "b": "/tank/TANK_B",
+   "voltage": 151,
+   "_note": "Across the C_s bank: 6.96 A x 15.4 ohm = 107 V rms = 151 V pk. The 1 kV C0G parts give 6.6x margin. Node difference would give 139 V."
+  },
+  {
+   "a": "/tank/TANK_B",
+   "b": "/tank/RFOUT",
+   "voltage": 135,
+   "_note": "Across L302 (L_m): 6.96 A x 13.8 ohm = 95.9 V rms = 135 V pk. Node difference would give 104 V."
+  }
+ ],
+
+ "coating": "soldermask",
+
+ "thermal": [
+  {
+   "ref": "Q201",
+   "power_w": 5.63,
+   "net": "GND",
+   "dt_c": 25,
+   "min_vias": 10,
+   "_note": "EPC2019, one of a MIRRORED PAIR. 5.63 W of the pair's 11.25 W nominal (7.28 W each at the max-datasheet corner). RE-DERIVED AT P2-A on the real datasheet: Rds(on) 36 typ / 50 max mohm (65 / 90 mohm hot), NOT the retracted 22/42. RthJB 7.5 C/W per package cannot be improved by layout - it is inside the package - and it is why a SINGLE FET reaches Tj 160 C with a HYPOTHETICAL 0 C/W heatsink, i.e. above the 150 C ABSOLUTE MAXIMUM. There is no heatsink that saves a one-FET build. With the pair: Tj 114 C nominal / 133 C at the max-datasheet corner, at theta_HS 0.7 C/W. min_vias 10 requires 0.3 mm COPPER-FILLED vias (barrel-only is ~2.5x worse) BESIDE the source lands, not in them - the EPC2019's solder bars are ~0.2 mm wide and cannot take a via. Mask-opened land on B.Cu. blocks.md s4.1."
+  },
+  {
+   "ref": "Q202",
+   "power_w": 5.63,
+   "net": "GND",
+   "dt_c": 25,
+   "min_vias": 10,
+   "_note": "The second EPC2019. MUST share Q201's thermal island so their board temperatures track - that is what lets the positive Rds(on) tempco (~1.8x from 25 to 125 C) do its current-sharing work, and the real 36-50 mohm spread makes that mechanism more important than the retracted 22-42 spread implied. Both FETs are members of the 'switch' placement group and therefore ONE cluster body, so place_anneal's thermal-spreading term does not push them apart (it skips same-body pairs). NOTE: paralleling does NOT reduce total FET dissipation here (11.17 W at N=1 vs 11.25 W at N=2 - conduction halves while Coss hysteresis doubles); it halves theta_JB and theta_BS. That is the entire mechanism, and it is why N=3 loses (13.16 W and a three-way gate symmetry problem that cannot be mirrored)."
+  },
+  {
+   "ref": "L301",
+   "power_w": 10.0,
+   "dt_c": 70,
+   "min_vias": 0,
+   "_note": "L_s, RE-DERIVED to 164 nH at P2-A (was 184 nH; R fell from 4.614 to 4.13 ohm). An ETCHED PCB AIR-CORE SPIRAL, not a placed part. P = 200 x Q_L/Q_ind = 1000/Q watts - INDEPENDENT OF R, so the loss did not move with the inductance: the tank current rises exactly as fast as the reactance falls. 6.7 W at Q 150, 10.0 W at Q 100, 12.5 W at Q 80. No discrete SMD inductor can dissipate this (theta 30-50 C/W in forced air). dt_c 70 is DESIGN INTENT, not a defect. Needs >= 1430 mm2 of copper at Q 100 (>= P / 7 mW.mm-2), no plane on ANY inner layer beneath it, and NO heatsink coverage - a metal plate under a spiral is a shorted turn. The lower L target is geometrically HELPFUL: 164 nH at the same 30-34 mm OD needs a wider (~2.5-3 mm) trace, which is what both Q and the thermal area want. SPIRAL-1..6 in blocks.md s4.3."
+  },
+  {
+   "ref": "L302",
+   "power_w": 6.7,
+   "dt_c": 70,
+   "min_vias": 0,
+   "_note": "L_m, re-derived to 110 nH at P2-A (was 115 nH). Also an etched spiral. Absent from the frozen loss list, and the SECOND HOTTEST item on the board: it carries the same 6.96 A rms as L_s because it is a series element, so P = 200 x Q_m/Q_ind = 666/Q watts. NEEDS >= 950 mm2 at Q 100 - nearly as large a spiral as L301 despite being 67% of the inductance, because the binding constraint is dissipation area, not L. Do not let a reviewer shrink it."
+  },
+  {
+   "ref": "L201",
+   "power_w": 0.89,
+   "net": "+40V",
+   "dt_c": 40,
+   "min_vias": 4,
+   "_note": "RF drain choke. P = I_dc^2 x DCR = 35.5 x DCR; 0.89 W at 25 mohm. Spec: L >= 0.82 uH, SRF >= 80 MHz, DCR <= 25 mohm, I_sat >= 12 A, >= 8 A rms. The Kazimierczuk/EPC omega.L/R >= 22 floor actually FALLS to 0.72 uH at the amended R = 4.13 ohm - KEEP 0.82 uH, the margin is free, and there is a second reason at P2-A: Sokal's full C1 expression carries a finite-DC-feed term +0.6/(omega^2.L1) worth +46 pF at 0.82 uH and +38 pF at 1.0 uH, so a SMALLER choke RAISES the required shunt capacitance. This is carried as the 403-449 pF uncertainty band on C_shunt. Hard to source at LCSC. PRE-AUTHORISED escape: 2 x 0.47 uH in series. NOT authorised: a smaller single choke."
+  },
+  {
+   "ref": "U201",
+   "power_w": 0.42,
+   "net": "GND",
+   "dt_c": 40,
+   "min_vias": 2,
+   "_note": "LMG1020 driving BOTH gates. Below the 0.5 W flag threshold but declared because its junction temperature is board-temperature-driven and it sits 1-2 mm from the hottest silicon on the board. Use PsiJB 38.3 C/W against the LOCAL board temperature, not RthJA 133.6 C/W: Tj = T_board + 12 C, safe while the copper under it stays below ~110 C. The pair's total gate-loop energy is only 0.36 W at the datasheet Qg of 1.8 nC (was 0.58 W on the retracted 2.9 nC)."
+  },
+  {
+   "ref": "U101",
+   "power_w": 0.13,
+   "net": "GND",
+   "dt_c": 40,
+   "min_vias": 4,
+   "_note": "5 V buck, SOIC-8-EP. 0.50 W out / 80% efficiency."
+  }
+ ],
+
+ "placement": {
+  "edges": [
+   {
+    "ref": "J101",
+    "edge": "left",
+    "pos": 0.5,
+    "rot": 0
+   },
+   {
+    "ref": "J201",
+    "edge": "top",
+    "pos": 0.2,
+    "rot": 0
+   },
+   {
+    "ref": "J301",
+    "edge": "right",
+    "pos": 0.5,
+    "rot": 0
+   }
+  ],
+  "groups": [
+   {
+    "name": "switch",
+    "anchor": "Q201",
+    "members": [
+     "Q202", "U201",
+     "R203", "R204", "R205", "R206", "R207", "R208", "R209", "R210",
+     "C201", "C202", "C203", "C204", "C205", "C206",
+     "C207", "C208", "C209", "C210", "C211", "C212",
+     "L201"
+    ],
+    "_note": "THE WHOLE STAGE IN ONE ~15 x 15 mm CLUSTER: power loop + gate loop + drain choke + bus HF bank. Deliberately one group and not four, so place_anneal's thermal-spreading term (which skips same-body pairs) cannot push Q201 and Q202 apart - they are a MIRRORED PAIR and must be adjacent on one thermal island. C203-C206 are the C_shunt trim sites and must sit IN the power loop, not on a stub: a trim cap on a stub adds inductance instead of capacitance. AT P2-A THIS BANK IS POPULATED (~87-133 pF), NOT DNP - it supplies the balance of the 403 pF shunt that the FET pair's 316 pF does not, and it is the only mechanism that absorbs the part's 110-150 pF Coss spread. This group's geometry is NOT achievable by annealing: Q201, Q202, U201 and R203-R210 must be placed by explicit place_edit ops and LOCKED before place_anneal runs (sheets.md s5.3)."
+   },
+   {
+    "name": "drive_in",
+    "anchor": "J201",
+    "members": ["R201", "R202"],
+    "_note": "The 50 ohm termination belongs at the CONNECTOR, not at the driver. 2x 100 R 0805 in parallel: ~0.125 W total is over a single 0603's derated rating in a 100 C-class environment."
+   },
+   {
+    "name": "tank_ls",
+    "anchor": "L301",
+    "members": ["C301", "C302", "C303", "C304", "C305", "C306", "C307", "C308", "C309"],
+    "_note": "C_s = 518 pF as 9 x 56 pF 1 kV C0G 1206 (504 pF, -2.7%), 0.77 A rms and ~105 mW each. C_s is a SERIES element and floats - it needs no ground reference, which is why it can live in zone B where there is no plane. C_S CARRIES THE LARGEST SINGLE UNCERTAINTY IN THE TANK: the P1 refdesign fragment's C_series coefficient 0.63467 gives 1222 pF and a net series reactance of 3.4 R, which is not a Class E network; Sokal's published fit gives 0.26906 -> 518 pF and 1.283 R, which is right. SIM-4 is the arbiter. Keep the bank a parallel array so it can be trimmed by depopulation."
+   },
+   {
+    "name": "tank_lm",
+    "anchor": "L302",
+    "members": [
+     "C310", "C311", "C312", "C313", "C314", "C315", "C316", "C317", "C318", "C319",
+     "J301"
+    ],
+    "_note": "C_m = 530 pF as ~10 x 1206 C0G 1 kV, 0.67 A rms each. C_m RETURNS TO GROUND and carries 6.66 A rms - nearly the full tank current, not the 2 A load current - so unlike C_s it must sit in zone C where the plane stack exists. Order L302 -> C_m -> J301, shortest possible: /tank/RFOUT must stay <= 15 mm (stackup.md s5)."
+   },
+   {
+    "name": "hk",
+    "anchor": "U101",
+    "members": ["L101", "C105", "C106", "C107", "C108", "C109", "R101", "R102", "R103"],
+    "_note": "Buck at the DC-input end, as far from the gate loop and the tank as zone A allows."
+   },
+   {
+    "name": "bus_in",
+    "anchor": "J101",
+    "members": ["C101", "C102", "C103", "C104"]
+   }
+  ],
+  "keepouts": [
+   {
+    "rect": [5, 10, 36, 70],
+    "side": "back",
+    "reason": "BOTTOM-SIDE HEATSINK CONTACT LAND (HS-2). Flat, solder-free, mask-opened GND face. No parts, no through-hole pins, no untented vias. J101 is the only THT part on the board and sits on the left edge at x < 5 mm, outside this rect (HS-3). HS-1 TIGHTENED AT P2-A to theta_HS <= 0.7 C/W (from 1.4) at the design airflow while carrying ~21 W - roughly a 31 x 60 mm base with 30-40 mm fins in FORCED air; a passive bolt-on will not do it. THE HEATSINK ITSELF MUST NOT EXTEND PAST x = 40 mm: SPIRAL-6 requires >= 14 mm of in-plane clearance to the nearest spiral edge on either face, because a conductive plate under a PCB air-core spiral is a shorted turn and no copper cutout prevents it. If more area is needed it grows in -x, +/-y and fin height, NEVER in +x."
+   }
+  ],
+  "separation": [
+   {
+    "a": ["L301"],
+    "b": ["L302"],
+    "min_mm": 38,
+    "reason": "Mutual coupling between the two spirals. Coplanar loop mutual falls as d^-3; at ~39 mm centre-to-centre k is ~2% (M ~3 nH), perturbing L_m by ~3%. THE TWO SPIRALS ARE NOT INDEPENDENT COMPONENTS - P8 must compute k and fold it into the tank solve (SIM-4). NOTE place_anneal measures separation between CLUSTER BODY CENTRES, and each spiral is grouped with its cap bank, so the measured centres are group centroids rather than coil centres; this entry is a hint and the binding mechanism is the explicit place_edit + lock at P6."
+   },
+   {
+    "a": ["U201"],
+    "b": ["L301", "L302"],
+    "min_mm": 30,
+    "reason": "Keep the gate loop away from the spirals. Quantified so nobody over-reacts: a 2-turn 30 mm coil carrying 6.96 A gives ~14 uT at 50 mm, and the induced EMF in a loop of area A is ~1740 x A volts - a 1 mm2 gate loop sees 1.7 mV against a 1.4 V threshold. With the mandated <= 0.48 nH gate loops this mechanism never appears; cheap insurance, not the reason the loops must be small."
+   },
+   {
+    "a": ["U101"],
+    "b": ["L301", "L302"],
+    "min_mm": 30,
+    "reason": "The buck and its switch node belong at the DC-input end of zone A."
+   }
+  ],
+  "fixed": [
+   "Q201", "Q202", "U201",
+   "R203", "R204", "R205", "R206", "R207", "R208", "R209", "R210",
+   "L301", "L302", "J101", "J301"
+  ]
+ },
+
+ "planes": [
+  {
+   "layer": "In1.Cu",
+   "net": "GND",
+   "region": [0, 0, 48, 80]
+  },
+  {
+   "layer": "In1.Cu",
+   "net": "GND",
+   "region": [88, 0, 100, 80]
+  },
+  {
+   "layer": "In2.Cu",
+   "net": "GND",
+   "region": [0, 0, 48, 80]
+  },
+  {
+   "layer": "In2.Cu",
+   "net": "GND",
+   "region": [88, 0, 100, 80]
+  },
+  {
+   "layer": "B.Cu",
+   "net": "GND",
+   "region": [0, 0, 48, 80]
+  },
+  {
+   "layer": "B.Cu",
+   "net": "GND",
+   "region": [88, 0, 100, 80]
+  }
+ ],
+
+ "_planes_note": "SIX ENTRIES, THREE LAYERS, TWO REGIONS EACH, AND THE GAP BETWEEN THEM IS THE POINT. Zone A [0,0,48,80] carries the full plane stack because EPC WP010's stacked self-cancelling power loop needs an unbroken In1 GND return 0.2444 mm under the F.Cu loop, and because In1+In2+B.Cu is the thermal path that makes theta_BS 1.5 C/W. Zone C [88,0,100,80] carries it because the RF output needs a ground reference into the SMA. ZONE B (x 48-88) IS LEFT UNPOURED BY CONSTRUCTION on In1, In2 and B.Cu - a solid plane under a PCB air-core spiral is a shorted turn and collapses its Q, exactly as a metal heatsink would. The two regions do not touch (48 < 88), so planes_gen's overlap rule leaves them at equal priority. The apparent conflict between 'L2 must be unbroken under the power loop' and 'no plane under the spirals' is an artefact of stating both board-wide: the power loop ENDS at the drain node and the tank BEGINS there, so the two rules apply to disjoint regions and nothing straddles the boundary. B.Cu in zone B is reserved for the OTHER HALF OF EACH SPIRAL under blocks.md SPIRAL-2 (paralleled F.Cu + B.Cu windings, ~1.6-1.8x Q for zero BOM cost, verify-later; single-layer F.Cu is the documented fallback and every loss number in power_tree.md is quoted for that conservative case). Both inner layers still carry the SPIRAL-4 inner-terminal bridges - short, radial, >= 4 mm wide patches only. Do NOT solve the inner-terminal escape with a wide inner-layer slab: that is the eddy-current structure the zone was voided to prevent."
+}

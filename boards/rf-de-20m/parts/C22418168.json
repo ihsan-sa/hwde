@@ -1,0 +1,60 @@
+{
+ "mpn": "CONSMA001-SMD-G-T",
+ "lcsc": "C22418168",
+ "package": "SMA jack (female socket), vertical, PCB SURFACE MOUNT. 4 ground lands + 1 centre signal land, all on the component-side copper only. Body 1/4-36UNS-2A threaded barrel, 10.40mm tall above the mounting plane, 7.00mm across flats. Tape and reel, 400 pieces per reel.",
+ "description": "TE Connectivity / Linx Technologies CONSMA001-SMD-G-T. 50 ohm SMA jack, gold plated brass body, BeCu centre socket, PTFE dielectric. LCSC lists 18 GHz; the Linx product page lists 12.4 GHz - either is ~600x the 20 MHz this board runs at, so the RF rating is not a selection constraint here. MOUNT STYLE VERIFIED AGAINST THE MANUFACTURER DRAWING, NOT THE LCSC LISTING: TE customer drawing C-CONSMA001-SMD Rev G, sheet 1, states verbatim 'Connector: SMA Jack (Female Socket)' / 'Termination: PCB Surface Mount'. Local copy: parts/C22418168_TE_customer_drawing.pdf.",
+ "pinout": [
+  {
+   "pin": "1",
+   "name": "GND",
+   "type": "ground",
+   "notes": "Ground land, corner. One of four 2.44 x 2.44mm square lands at (+/-2.66, +/-2.66)mm. Connector outer body / shield. All four must be tied to the RF ground plane; stitch vias immediately outside the lands (never inside - see layout_notes)."
+  },
+  {
+   "pin": "2",
+   "name": "GND",
+   "type": "ground",
+   "notes": "Ground land, corner. Same geometry as pin 1."
+  },
+  {
+   "pin": "3",
+   "name": "GND",
+   "type": "ground",
+   "notes": "Ground land, corner. Same geometry as pin 1."
+  },
+  {
+   "pin": "4",
+   "name": "GND",
+   "type": "ground",
+   "notes": "Ground land, corner. Same geometry as pin 1."
+  },
+  {
+   "pin": "5",
+   "name": "RF",
+   "type": "passive",
+   "notes": "Centre signal contact. Round 2.05mm land at the footprint origin, concentric with the four ground lands. Centre-contact-to-mounting-plane standoff is specified 0.00-0.10mm (TE drawing sheet 1, DETAIL A) - the contact sits ON the land, nothing protrudes below the board. 50 ohm reference plane."
+  }
+ ],
+ "decoupling": [],
+ "land_pattern": {
+  "package": "TE/Linx C-CONSMA001-SMD Rev G, sheet 2, 'RECOMMENDED FOOTPRINT'",
+  "pad_count": 5,
+  "pad_size_mm": [
+   2.44,
+   2.44
+  ],
+  "pin1": "1",
+  "notes": "TE recommended footprint, all dimensions read off sheet 2 of the customer drawing: 7.76mm [.306] overall square envelope; 3.88mm [.153] centre-to-outer-edge; four square ground lands 2.44 x 2.44mm [.096] whose centres therefore sit at (+/-2.66, +/-2.66)mm; centre signal land 2.05mm [.081] diameter; 4.56mm [.180] and 2.88mm [.113] inter-land clearances; 1.44mm [.057] land-to-land gap. SCHEMA LIMITATION: pad_size_mm above describes only the four 2.44mm square GROUND lands. The fifth pad (centre RF contact) is deliberately a 2.05mm ROUND land, so fp_verify's min/max pad-size check raises one expected warning - that is the geometry the manufacturer specifies, not a defect. pitch_mm is intentionally omitted: there is no single meaningful pitch (ground-land centres are 5.32mm apart on each axis, but the nearest neighbour of any pad is the centre land at 3.76mm diagonal), so a pitch assertion would fire a false error.",
+  "courtyard_excess_mm": 0.25
+ },
+ "exposed_pad": {
+  "present": false
+ },
+ "layout_notes": [
+  "MOUNT STYLE - THE POINT OF THIS PART. TE customer drawing C-CONSMA001-SMD Rev G sheet 1 states 'Termination: PCB Surface Mount' in the manufacturer's own words, and the recommended footprint on sheet 2 is five top-side lands with no drilled holes and no bottom-side copper. This replaces C496550 / BWSMA-KE-P001, which the LCSC listing described as 'Board Side ... SMA SMD' but whose manufacturer datasheet (parts/C496550.pdf pp.4-6) is a vertical THROUGH-HOLE screw-thread panel-mount jack. LCSC's 'SMD' package field and 'Board Side' connector-type field are NOT evidence of mount style for this product category - both parts carry identical LCSC wording. Always read the manufacturer drawing.",
+  "FLAT-BOTTOM COMPATIBILITY (the board-level requirement): every land is on F.Cu/F.Paste/F.Mask only and the centre-contact standoff is 0.00-0.10mm above the mounting plane, so nothing protrudes through or below the board. J201 and J301 can therefore sit anywhere on the top face, INCLUDING over the [5,10,36,70] heatsink land, without the placement restriction that the KF128 screw terminal (J101) carries.",
+  "DERIVED, not a literal datasheet statement: ground stitching must go immediately OUTSIDE the four 2.44mm ground lands, not inside them - via-in-pad here would be unplugged copper directly under the connector body and, more importantly, would breach the flat bottom face. Four ground lands on the top layer alone are the only shield return, so ring them with stitch vias to the inner ground plane.",
+  "At 20 MHz / 200 W the electrical duty is trivial for SMA: 100 Vrms (141 Vpk) and 2 Arms into 50 ohm, against a standard SMA working-voltage class of 335 Vrms and a 12.4-18 GHz bandwidth rating. Mount style and stock, not RF performance, were the binding selection criteria."
+ ],
+ "source_pdf": "parts/C22418168_TE_customer_drawing.pdf"
+}

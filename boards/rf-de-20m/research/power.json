@@ -1,0 +1,143 @@
+{
+  "_meta": {
+    "board": "rf-de-20m",
+    "phase": "P1",
+    "agent": "research-power-architect",
+    "date": "2026-08-07",
+    "source": "requirements.md s3 (frozen) + EPC2019 datasheet (EPC 2022) + LMG1020 SNOSD45B (TI 2018)",
+    "refdes_note": "All ref values are PROVISIONAL - no schematic exists at P1. P2 must remap to the real refdes. Q1=EPC2019, U1=LMG1020, U2=5V buck, L1=RF drain choke, L2=L_s tank inductor 184nH, L3=L_m match inductor 115nH.",
+    "netname_note": "Power nets are bare per convention. RF net names (/SW, /TANK, /RFOUT) are PROVISIONAL and must be remapped by P2 to the final netlist names or the entries will silently no-op."
+  },
+
+  "rails": [
+    {
+      "net": "+40V",
+      "vin": "external bench PSU, 40 V DC, >=7 A, via 2-pos screw terminal >=10 A",
+      "topology": "direct",
+      "current_a": 5.88,
+      "current_a_max": 6.26,
+      "consumers": [
+        {"ref": "L1", "what": "RF drain choke -> Q1 drain (the 200 W stage)", "current_a": 5.88, "basis": "(200 W + 35.0 W loss)/40 V at the 85.1% nominal efficiency point; 6.26 A at the 79.8% worst case. Reproduces the frozen 5.8 A."},
+        {"ref": "U2", "what": "5 V buck input", "current_a": 0.015, "basis": "0.42 W out / 0.80 eff / 40 V"}
+      ],
+      "dissipation_w": 0.0,
+      "note": "Unregulated, unprotected bus - owner-acknowledged at P0 Q11. Transient overshoot to ~51 V on turn-on (LC ring with cable inductance, power.md s7): every part on this net must be rated >=63 V."
+    },
+    {
+      "net": "+5V",
+      "vin": "+40V",
+      "topology": "buck",
+      "current_a": 0.3,
+      "current_a_nominal": 0.085,
+      "consumers": [
+        {"ref": "U1", "what": "LMG1020 gate charge", "current_a": 0.058, "basis": "EPC2019 Qg 2.9 nC max at Vgs 5 V x 20 MHz"},
+        {"ref": "U1", "what": "LMG1020 internal operating current", "current_a": 0.027, "basis": "LMG1020 I_VDD,op 40 mA typ at 30 MHz / 0.1 pF, scaled to 20 MHz"},
+        {"ref": "U1", "what": "LMG1020 quiescent", "current_a": 0.0001, "basis": "I_VDD,Q 75 uA max"}
+      ],
+      "dissipation_w": 0.11,
+      "note": "MUST be a buck, not an LDO: an LDO burns (40-5)*0.085 = 3.0 W for a 0.42 W load. Buck spec: Vin 40 V nom / >=63 V abs max, Vout 5.0 V +/-4% (LMG1020 recommends 4.75-5.4 V, abs max 5.75 V, UVLO 4.33 V max rising), Iout >=0.3 A, LCSC-stocked. The 0.3 A budget also covers the two-paralleled-FET option (143 mA). Low average / HIGH PEAK rail: 7 A source peaks with 375 ps rise - see thermal/decoupling notes, loop inductance is the binding spec, not capacitance."
+    }
+  ],
+
+  "power_constraints": [
+    {
+      "net": "+40V",
+      "current_a": 7.0,
+      "dt_c": 10,
+      "via_amps": 0.5,
+      "note": "5.88 A nominal / 6.26 A at the 80% efficiency floor, sized 7.0 A with margin; screw terminal and wiring rated >=10 A. DC only - IPC-2152 sizing is valid on this net (approx 2.5-3.0 mm at 1 oz external). Not plane_fed: the path is a short terminal -> bulk -> choke run."
+    },
+    {
+      "net": "+5V",
+      "current_a": 0.3,
+      "dt_c": 10,
+      "via_amps": 0.5,
+      "note": "Average current only 85 mA; 0.3 A declared as the budget. Width is not the constraint on this rail - the LMG1020's 7 A / 375 ps peaks require total VDD+gate loop inductance <= 0.3 nH (100 nF X7R 0402 + 10 nF C0G 0201 at the VDD ball, via-in-pad return)."
+    },
+    {
+      "net": "/SW",
+      "current_a": 9.0,
+      "dt_c": 5,
+      "via_amps": 0.5,
+      "pdn": false,
+      "note": "PROVISIONAL NET NAME - Q1 drain / switch node. 9.0 A rms (Class E I_sw,rms = 1.5375 x I_dc), 142.5 V peak. IPC-2152 DC sizing UNDERSTATES this net: at 20 MHz the skin depth is 14.6 um so the AC/DC resistance factor is ~2.5. Binding requirement is ~4.9 mm of poured copper for a <=0.2 W loss budget over a 10 mm run, not the DC width."
+    },
+    {
+      "net": "/TANK",
+      "current_a": 6.6,
+      "dt_c": 5,
+      "via_amps": 0.5,
+      "pdn": false,
+      "note": "PROVISIONAL NET NAME - series tank path L_s / C_s / L_m. 6.58 A rms = sqrt(200/4.614); sees ~215 V peak. Binding requirement is ~6.4 mm of poured copper (<=0.5 W over a 60 mm developed path at an AC/DC factor of 2.5), not DC ampacity."
+    },
+    {
+      "net": "/RFOUT",
+      "current_a": 2.0,
+      "dt_c": 5,
+      "via_amps": 0.5,
+      "pdn": false,
+      "note": "PROVISIONAL NET NAME - match output to SMA. 2.0 A rms = sqrt(200/50), 100 V rms. Width is set by the 50 ohm controlled-impedance requirement, not by current."
+    }
+  ],
+
+  "thermal_constraints": [
+    {
+      "ref": "Q1",
+      "power_w": 8.9,
+      "net": "GND",
+      "dt_c": 25,
+      "min_vias": 20,
+      "note": "EPC2019. BINDING CONSTRAINT ON THE BOARD. 8.86 W nominal (conduction 3.24 + Coss hysteresis 2.84 + turn-off 0.70 + ZVS residual 1.98 + gate 0.10), 14.79 W worst case with a max-Rds(on) part. Datasheet RthJB 7.5 C/W alone consumes 66 C of the 85 C junction budget and CANNOT be improved by layout. dt_c 25 = the board land must stay within 25 C of the 40 C ambient. min_vias 20 requires 0.3 mm COPPER-FILLED vias (plated-barrel-only is ~2.5x worse) in and immediately around the source lands, with a soldermask-opened bottom pad. Requires theta_HS <= 0.3 C/W forced-air heatsink. Even so Tj lands at ~138 C against a 125 C target. See power.md s5 and OPEN item 1."
+    },
+    {
+      "ref": "L2",
+      "power_w": 10.0,
+      "dt_c": 70,
+      "min_vias": 0,
+      "note": "L_s series tank inductor 184 nH. P = 43.35 * (w*L)/Q = 1001/Q watts; 6.7 W at Q=150, 10.0 W at Q=100, 12.5 W at Q=80. NO discrete SMD inductor can dissipate this (theta ~30-50 C/W in forced air). PCB air-core spiral is the primary implementation, not the fallback. Needs plane cutouts on ALL inner layers AND no heatsink coverage beneath it (a metal heatsink under a spiral is a shorted turn). Expect 100-140 C copper - specify high-Tg FR4 (TG155+)."
+    },
+    {
+      "ref": "L3",
+      "power_w": 6.3,
+      "dt_c": 70,
+      "min_vias": 0,
+      "note": "L_m L-match inductor 115 nH. NOT in the frozen loss list - carries the same 6.58 A rms as L_s because it is a series element. P = 626/Q watts; 4.2 W at Q=150, 6.3 W at Q=100, 7.8 W at Q=80. Second hottest item on the board. Same treatment as L2."
+    },
+    {
+      "ref": "L1",
+      "power_w": 0.86,
+      "net": "+40V",
+      "dt_c": 40,
+      "min_vias": 4,
+      "note": "RF drain choke. P = 34.2 * DCR; 0.86 W at 25 mohm DCR. Spec: L 0.47-1.0 uH, SRF >= 80 MHz, DCR <= 25 mohm, I_sat >= 12 A, >= 8 A rms. Hard part to source at LCSC - flag to component-scout. Smaller L trades easier sourcing for more bus ripple (absorbed cheaply by the HF C0G bank)."
+    },
+    {
+      "ref": "U1",
+      "power_w": 0.32,
+      "net": "GND",
+      "dt_c": 40,
+      "min_vias": 2,
+      "note": "LMG1020. Below the 0.5 W flag threshold but listed because its junction temperature is board-temperature-driven and it must sit 1-2 mm from the hottest part on the board. Use PsiJB 38.3 C/W against the LOCAL board temperature, not RthJA 133.6 C/W: Tj = T_board + 12 C. Safe provided the copper under it stays below ~110 C (recommended Tj max 125 C). 0.32 W = 67% of the 0.29 W gate loop energy + its own 27 mA internal current."
+    }
+  ],
+
+  "assumptions": [
+    "Tj design target 125 C for the EPC2019 (25 C derate on the 150 C abs max), 40 C ambient per P0 Q7.",
+    "theta_BS (Q1 land -> heatsink base) = 3.0 C/W ASSUMED: >=20 x 0.3 mm copper-filled vias (2.3) + bottom copper spreading (0.7) + mask-opened pad with thin grease TIM over ~40 mm2 (0.5). VERIFY-LATER - this number has not been simulated.",
+    "~18 W nominal (27 W worst) enters the bottom heatsink; the balance leaves the top surface into the forced air. Split assumes ~40% of the magnetics loss conducts into the board.",
+    "Class E ideal waveforms: I_sw,rms = 1.5375 x I_dc, I_sw,pk = 2.862 x I_dc = 16.7 A (matches the frozen ~16 A).",
+    "Coss hysteresis taken as 5/10/15 % of the 1.42 uJ stored energy at 142.5 V. Not vendor-published for the EPC2019; the 10 % nominal is the standard eGaN figure.",
+    "Capacitor bank losses (C_s 0.90 W, C_m 0.80 W nominal) adopted from the sibling fragment research/output-network.json, which derives them from tanD on real LCSC C0G parts - higher and better grounded than this agent's first ESR estimate. C_shunt external bank still on an assumed 5/10/25 mohm bank ESR.",
+    "AC/DC resistance factor 2.5 on 1 oz copper at 20 MHz (skin depth 14.6 um).",
+    "Un-modelled losses taken at +15 % of the modelled subtotal (FR4 dielectric loss at 20 MHz, harmonic currents in the match, parasitic resonances). With this term the bottom-up budget reproduces the frozen band closely: 35.0 W / 85.1 % / 5.88 A nominal and 50.5 W / 79.8 % / 6.26 A worst case, against the frozen 35-50 W / 80-85 % / 5.8 A."
+  ],
+
+  "flags_for_p2": [
+    "CONTRADICTION BETWEEN P1 FRAGMENTS: EPC2019 datasheet Coss(er) is 156 pF, not the 110 pF in the brief -> the external C0G shunt cap should be ~161 pF, not ~200 pF. research/output-network.json picks 4 x 56 pF = 224 pF from the brief's figure, which is 39% high. That fragment flags its pick as a planning default pending P2 simulation, so the two are reconcilable, but P2 must rule. Directly affects ZVS.",
+    "EPC2019 die is 2.77 x 0.95 mm with solder bars, not the 1.35 mm square stated in the brief -> footprint and thermal via plan both change.",
+    "EPC2019 Rds(on) is 22 mohm typ / 42 mohm MAX at 25 C (~1.8x at 125 C). A max-Rds part pushes Tj to ~203 C and destroys the board. Build-yield risk across the 5-board run.",
+    "Floorplan must split into a heatsink zone (Q1, L1, bulk, driver - solid bottom copper, heatsink bolted on) and a magnetics zone (L2, L3, tank caps - all planes cut away, NO heatsink coverage, top-side forced air only). The heatsink footprint must not extend under the spiral inductors.",
+    "Specify high-Tg FR4 (TG155 or better) - the spiral inductor copper is expected to run 100-140 C, at the limit of JLC standard FR4.",
+    "Layout loop priority: (1) C_shunt/source loop, (2) gate + VDD loop <= 0.3 nH, (3) 40 V bus decoupling. The 40 V rail is NOT in the RF loop - the choke keeps it out."
+  ]
+}

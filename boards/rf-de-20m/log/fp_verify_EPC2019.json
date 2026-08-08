@@ -1,0 +1,96 @@
+{
+ "script": "fp_verify",
+ "status": "violations",
+ "board": "TRS-SMD_EPC2019.kicad_mod",
+ "counts": {
+  "total": 2,
+  "by_severity": {
+   "error": 1,
+   "warning": 1
+  },
+  "by_source": {
+   "check.fp_verify": 2
+  }
+ },
+ "violations": [
+  {
+   "check": "fp_verify",
+   "severity": "error",
+   "pos": [
+    0.0,
+    0.0
+   ],
+   "layer": "F.Cu",
+   "net": null,
+   "refs": [
+    "TRS-SMD_EPC2019"
+   ],
+   "msg": "nearest-pad pitch 0.460 mm != datasheet 0.600 mm (tol 0.05)",
+   "source": "check.fp_verify",
+   "items": [
+    {
+     "msg": "nearest-pad pitch 0.460 mm != datasheet 0.600 mm (tol 0.05)",
+     "pos": [
+      0.0,
+      0.0
+     ]
+    }
+   ],
+   "kind": "pad_pitch",
+   "expected_mm": 0.6,
+   "measured_mm": 0.46
+  },
+  {
+   "check": "fp_verify",
+   "severity": "warning",
+   "pos": null,
+   "layer": "F.Cu",
+   "net": null,
+   "refs": [
+    "TRS-SMD_EPC2019"
+   ],
+   "msg": "pad size(s) [[0.23, 0.23]] mm != datasheet [0.25, 0.7] mm (tol 0.1; min/max of 2 distinct sizes)",
+   "source": "check.fp_verify",
+   "items": [
+    {
+     "msg": "pad size(s) [[0.23, 0.23]] mm != datasheet [0.25, 0.7] mm (tol 0.1; min/max of 2 distinct sizes)",
+     "pos": null
+    }
+   ],
+   "kind": "pad_size",
+   "expected_mm": [
+    0.25,
+    0.7
+   ],
+   "measured_mm": [
+    [
+     0.23,
+     0.23
+    ]
+   ]
+  }
+ ],
+ "footprint": "TRS-SMD_EPC2019",
+ "footprint_file": "boards\\rf-de-20m\\lib\\aiee.pretty\\TRS-SMD_EPC2019.kicad_mod",
+ "copper_pads": 7,
+ "total_pads": 7,
+ "measured_pitch_mm": 0.46,
+ "measured_pad_size_mm": [
+  0.23,
+  0.23
+ ],
+ "has_courtyard": true,
+ "has_silk": true,
+ "land_pattern": {
+  "package": "7-bar solder-bar row, mixed round/elongated pad geometry",
+  "pad_count": 7,
+  "pitch_mm": 0.6,
+  "pad_size_mm": [
+   0.25,
+   0.7
+  ],
+  "pin1": "1",
+  "notes": "SCHEMA LIMITATION: pad_size_mm above captures only the 3 elongated BAR pads (pins 3,4,5 = drain/drain/source): die-bump 0.25mm wide x 0.70mm long, solder-mask opening ~0.23 x 0.68mm. The other 4 pads (pins 1,2,6,7 = gate/source/source/substrate) are ROUND instead: die-bump diameter 0.25mm (0.247-0.253mm), solder-mask opening dia 0.23mm (mask is 10um smaller per side than the bump, per datasheet note). Layout: 5 columns at uniform 0.6mm pitch - col1={pin2 top, pin1 bottom}, col2=pin3, col3=pin4, col4=pin5, col5={pin6 top, pin7 bottom}. Column-1 internal pad spacing ~0.68-0.70mm (matches full bar length, dim 'c'); column-5 internal pad spacing 0.45mm (dim 'h') - the two end columns are NOT mirror-symmetric. Edge clearances: die-edge-to-column-1 offset (dim e) 0.183mm nominal; a second edge/offset dimension near column 5 (dim i) 0.25mm nominal. Overall envelope 2.766 x 0.950mm, matches the die outline exactly (land = die footprint, direct solder-bar attach). Land pattern is solder-mask defined; recommended stencil is 4mil (100um) laser-cut with R60 corner radius, for SAC305 Type 3 solder (88.5% metals)."
+ },
+ "svg": "boards\\rf-de-20m\\reports\\fp_verify\\EPC2019.overlay.svg"
+}

@@ -1,0 +1,101 @@
+{
+  "block": "classE-stage",
+  "decisions": [
+    {
+      "what": "Interleave drain/source current paths on the eGaN LGA/solder-bar row; use the source pad nearest the gate as the gate-return star point (EPC2019 pad2 next to gate pad1).",
+      "why": "Opposing-current small loops self-cancel their magnetic fields, cutting total loop inductance; this is the general LGA-without-dedicated-gate-return-pin case EPC's own figure is drawn for, and it maps exactly onto EPC2019's real 7-pad row pinout.",
+      "source": "WP010 'Optimizing PCB Layout' (EPC White Paper, 2019), Introduction + Fig.1-2. https://epc-co.com/epc/Portals/0/epc/documents/papers/Optimizing%20PCB%20Layout%20with%20eGaN%20FETs.pdf"
+    },
+    {
+      "what": "Via spec for 200V-class eGaN dual-sided/filled-via termination: 8 mil (200um) drilled hole, 12 mil (300um) annular ring, 2 vias per pad side, staggered; in-pad vias must be filled and capped.",
+      "why": "200V devices (EPC2019 is 200V) get a larger via spec than 40/100V parts in EPC's own tiered recommendation; an uncapped in-pad via lets solder wick away during reflow, varying die standoff and causing tilt/cleaning/thermal-cycling problems.",
+      "source": "WP008 'eGaN FET Drivers and Layout Considerations' (EPC White Paper, 2016), 'Suggested Layouts', p.4-5. https://epc-co.com/epc/Portals/0/epc/documents/papers/eGaN%20FET%20Drivers%20and%20Layout%20Considerations.pdf"
+    },
+    {
+      "what": "Use the 'optimal' stacked self-cancelling power loop (top-layer loop directly over an inner-layer-2 return of the same shape) rather than a lateral (shielded single-layer) or vertical (top/bottom split) loop; minimize the top-to-inner-layer spacing.",
+      "why": "Measured ~65% lower loop inductance than the best conventional layout, largely independent of total board thickness; quantified device-level payoff: loop inductance 1.6nH->0.4nH cut overshoot 100%->30% of Vin and gained ~4% efficiency; optimal vs conventional gave 500% faster switching with 40% less overshoot.",
+      "source": "WP010, 'Optimal eGaN FET Layout for Reduced Parasitics', Table I, Fig.3, Fig.7-10, p.3-6. https://epc-co.com/epc/Portals/0/epc/documents/papers/Optimizing%20PCB%20Layout%20with%20eGaN%20FETs.pdf"
+    },
+    {
+      "what": "Gate loop inductance ceiling: L_G <= 1/4 x (R_G + R_Source)^2 x C_GS for zero gate overshoot. The blanket <=0.5-ohm pull-down-resistor rule for higher-voltage eGaN parts is waived when Q_GD/(Q_GS x V_TH) < 1 (a 'good Miller ratio'); EPC2019 computes to 0.54 (using its own datasheet Q_GD=0.6nC, Q_GS=0.8nC, V_TH typ=1.4V), so it qualifies for the waiver.",
+      "why": "EPC2019's Vgs window is only -4V/+6V, so any avoidable gate overshoot must be engineered out via loop inductance, not tolerated; the Miller-ratio waiver lets LMG1020's own >=2-ohm gate-resistor floor (a separate TI decision) stand without reopening Miller turn-on risk.",
+      "source": "WP008, 'Driving eGaN FETs' + 'Gate drive loop inductance', p.1,3, Eq.1-2, cross-referenced against EPC2019DS charge table (ratio arithmetic is this agent's substitution of cited datasheet values into EPC's published formula). https://epc-co.com/epc/Portals/0/epc/documents/papers/eGaN%20FET%20Drivers%20and%20Layout%20Considerations.pdf ; https://epc-co.com/epc/Portals/0/epc/documents/datasheets/EPC2019_datasheet.pdf"
+    },
+    {
+      "what": "LMG1020 ground return must be a Layer-2 plane immediately under the top (component) layer, with vias immediately adjacent to both the FET source and the LMG1020 GND pin, and that plane connected to the source power plane ONLY at the FET (single-point ground).",
+      "why": "Minimizes gate-drive loop inductance and common-source inductance and avoids coupling noise into the ground plane; TI states a 4-layer-or-higher board is required (not optional) to reach rated performance, consistent with this board's already-frozen 4-layer stackup.",
+      "source": "LMG1020 datasheet, TI SNOSD45B (rev Oct 2018), Section 10.1, 10.1.1 'Gate Drive Loop Inductance and Ground Connection'. https://www.ti.com/lit/gpn/LMG1020"
+    },
+    {
+      "what": "LMG1020 bypass network: 0.1uF (0402 or feed-through, X7R or better, LICC/IDC/feed-through/LGA body preferred) placed on top layer immediately adjacent to the IC, plus a second 1uF (0603) capacitor as close as practical.",
+      "why": "TI's own explicit recommendation for lowest ESL/ESR bypass at VDD/GND to support the high peak current drawn from VDD during FET turn-on; matches TI's own reference layout (Fig.15-16).",
+      "source": "LMG1020DS, Section 9 'Power Supply Recommendations', Section 10.1.2 'Bypass Capacitor'. https://www.ti.com/lit/gpn/LMG1020"
+    },
+    {
+      "what": "Gate resistor floor: at least 2 ohm at each of OUTH and OUTL to avoid voltage overstress from inductive ringing (ringing must not exceed the absolute max pin voltage); OUTL can be shorted directly to gate for fastest turn-off; OUTH/OUTL may be shorted to a single shared resistor for symmetric single-ended drive (applicable here - one FET, no complementary device).",
+      "why": "TI's explicit design rule from the LMG1020 typical-application section; directly actionable for this single-ended stage.",
+      "source": "LMG1020DS, Section 8.2 'Typical Application', 8.2.1. https://www.ti.com/lit/gpn/LMG1020"
+    },
+    {
+      "what": "Absolute ceiling on the FET gate node is set by EPC2019 (+6V/-4V), not by LMG1020's own OUTH pin rating (5.75V); at 5V nominal drive this leaves only 1V of headroom to the FET's ceiling. EPC2019's own guidance is 5V ON / 0V OFF, 'negative voltage not needed' - no negative-bias or clamp scheme is called for by either manufacturer.",
+      "why": "Identifies the true design constraint for ringing/overshoot budgeting: the FET, not the driver, is the tighter limit, and the fix path both vendors point to is loop-inductance minimization plus the gate resistor floor, not negative bias.",
+      "source": "EPC2019 datasheet rev Oct 2022, 'Maximum Ratings' table + 'Application Notes' box; LMG1020DS Section 6.1 'Absolute Maximum Ratings'. https://epc-co.com/epc/Portals/0/epc/documents/datasheets/EPC2019_datasheet.pdf ; https://www.ti.com/lit/gpn/LMG1020"
+    },
+    {
+      "what": "LMG1020 is validated by TI's own bring-up test at 40V bus / 60A / 1.5ns pulse / 300ps fall - our exact bus voltage - and that same reference test still shows ~20V of drain overshoot 'due to the inductance in the power loop' even in TI's own layout.",
+      "why": "Direct, part-specific precedent at our bus voltage; confirms loop-area/layout (not the driver IC) is the dominant lever for overshoot control at 40V, reinforcing D1-D3.",
+      "source": "LMG1020DS, Section 8.2.5 'Application Curves', Fig.13-14. https://www.ti.com/lit/gpn/LMG1020"
+    },
+    {
+      "what": "Exact Sokal Class-E design coefficients for Q_L=5 (this board's frozen loaded Q): P.R/(Vcc-Vo)^2=0.51659, C_shunt.2*pi*f*R=0.20907, C_series.2*pi*f*R=0.63467 - continuous-function fits accurate to +-0.15% of the exact numerical solution.",
+      "why": "Traceability for this board's already-frozen L_s/C_s/C_shunt network math; supersedes the Q_L-independent constants (0.1836/0.3672) used in EPC's own 6.78MHz AN021 example, which assume Q_L->infinity.",
+      "source": "N. O. Sokal, 'Class-E RF Power Amplifiers', QEX Jan/Feb 2001, pp.9-20, Table 1 + Eq.4-9. https://people.physics.anu.edu.au/~dxt103/160m/class_E_amplifier_design.pdf"
+    },
+    {
+      "what": "RF choke (drain-feed) sizing floor: omega x L_RFck / R_load > 22 (single-ended Class E, per Kazimierczuk 1984 as cited by EPC). At R_opt=4.614 ohm, f=20MHz this gives L_RFck > ~0.81uH as an order-of-magnitude floor; oversizing has no design-equation penalty, only cost/size.",
+      "why": "Ensures the choke's AC ripple current contribution to the ideal Class-E waveforms is negligible so the frozen design equations (D-Sokal coefficients above) hold in practice.",
+      "source": "AN021 'eGaN FETs for Low Cost Resonant Wireless Power Applications' (EPC App Note, 2018), p.2, citing M. Kazimierczuk 1984. https://epc-co.com/epc/Portals/0/epc/documents/application-notes/an021%20fets%20for%20low%20cost%20class%20e%20wipo.pdf"
+    },
+    {
+      "what": "The choke's self-resonant frequency must sit ABOVE the 20MHz operating point, not merely be 'large'; operating above SRF is the dominant real-world failure mode (choke turns capacitive, low impedance at high internal RF voltage, can arc). Rule of thumb: several thousand ohms of impedance across the operating range, verified empirically (dummy load + RF detector sweep), because winding self-capacitance and nearby copper both pull the real SRF down from the datasheet number.",
+      "why": "Gives a mechanism and a bench test method behind requirements.md's already-frozen constraint ('must be a real RF choke with self-resonance well above 20 MHz'); flagged as a practitioner (non-vendor, non-peer-reviewed) source, used only to corroborate an already-frozen requirement, not to introduce a new one.",
+      "source": "T. Rauch (W8JI), 'RF Choke Selection Guide'. https://www.w8ji.com/rf_plate_choke.htm"
+    },
+    {
+      "what": "Harmonic suppression from the load network alone at Q_L~5.1 (matches this board's Q_L=5), unfiltered: 2nd harmonic ~-20dBc (~1% of fundamental power), 3rd harmonic ~-36dBc (~0.025%).",
+      "why": "Quantifies expected harmonic content for the EMC/compliance discussion already in requirements.md Section 8 item 3 (dummy-load-only, not a certifiable transmitter); real suppression exists but is far short of any transmit compliance mask.",
+      "source": "Sokal2001, 'Harmonic Filtering and Associated Changes to Design Equations', p.13. https://people.physics.anu.edu.au/~dxt103/160m/class_E_amplifier_design.pdf"
+    },
+    {
+      "what": "Load-mismatch sensitivity is quantified, not just qualitative: ideal Class E switch stress is 3.56x Vdd, but EPC's own measured differential eGaN Class-E amplifier (EPC9051) shows peak stress reaching as high as 7x Vdd once load impedance moves off the nominal design point.",
+      "why": "Direct, cited, quantified confirmation of the load-sensitivity hazard already owner-acknowledged in requirements.md Section 8 item 4 / Q11 (this board is explicitly frozen to dummy-load-only operation because of exactly this failure mode).",
+      "source": "AN021, 'Class E amplifier design basics', p.2. https://epc-co.com/epc/Portals/0/epc/documents/application-notes/an021%20fets%20for%20low%20cost%20class%20e%20wipo.pdf"
+    },
+    {
+      "what": "Use EPC2019's own datasheet thermal numbers for any budget math, not the generic eGaN-family estimate: R-th,JC=2.7 C/W, R-th,JB=7.5 C/W, R-th,JA=72 C/W (1 sq-in single-layer 2oz Cu on FR4) - these differ materially from WP008's family-wide ~40 C/W R-th,JA / ~8 C/W R-th,JC-for-small-area-FETs estimate.",
+      "why": "Part-specific datasheet numbers supersede a generic family estimate written for a different (and unstated) set of package sizes; this board's single-sided-top / bottom-heatsink plan needs explicit modeling of the die->solder-bars->PCB-copper->bottom-copper->heatsink path at the interface-spec/thermal phase, not a single borrowed number from either WP008 idealized case.",
+      "source": "EPC2019 datasheet rev Oct 2022, 'Thermal Characteristics' table; cross-checked against WP008 'Single-Sided Cooling'/'Double-Sided Cooling', p.6-7. https://epc-co.com/epc/Portals/0/epc/documents/datasheets/EPC2019_datasheet.pdf ; https://epc-co.com/epc/Portals/0/epc/documents/papers/eGaN%20FET%20Drivers%20and%20Layout%20Considerations.pdf"
+    },
+    {
+      "what": "EPC2019 has direct assembly precedent in EPC's own literature: AN009 uses EPC2019 (paired with an LM5113 low-side driver, same functional role as our LMG1020) as its own worked X-ray good-vs-bad-reflow example. For 200V-class devices, AN009 recommends 12-mil minimum core thickness between layers 1-2 (mirrored 3-4) for creepage, vs. 5-mil for 100V-class parts; plus SMD (not NSMD) footprint, min 10-mil via-to-via spacing, ENIG finish, 50psi max die placement pressure, 235-250C peak reflow.",
+      "why": "Part-specific (not generic) precedent directly usable at the interface-spec/stack-up phase, and the 200V/12-mil creepage number is directly relevant given requirements.md's own >=215V peak creepage/clearance constraint on the drain net.",
+      "source": "AN009 'Assembling eGaN FETs and Integrated Circuits' (EPC App Note, rev July 2021), 'Vias', 'Layer stack-up', Fig.20-22, p.3-4,7. https://epc-co.com/epc/Portals/0/epc/documents/product-training/Appnote_GaNassembly.pdf"
+    }
+  ],
+  "layout_notes": [
+    "4-layer minimum is required by BOTH EPC (loop-inductance optimal layout, WP010) and TI (LMG1020DS Section 10.1) independently - already frozen in requirements.md, now double-corroborated.",
+    "Minimize top-to-inner-layer (L1-L2) spacing for the optimal power loop (WP010) AND for the LMG1020 gate-drive-loop return (LMG1020DS 10.1.1) - same physical requirement serves both the FET power loop and the driver's gate loop; do not treat them as separate stack-up asks.",
+    "200V-class via spec (EPC2019): 8mil drill / 12mil annular ring, staggered, 2 per pad side; in-pad vias must be filled+capped.",
+    "200V-class creepage core thickness (EPC2019, AN009): >=12mil between layers 1-2 and 3-4, vs 5mil for 100V-class eGaN parts.",
+    "LMG1020 GND-to-source-plane connection must be single-point (only at the FET) to avoid ground-plane coupling.",
+    "SMD (solder-mask-defined), not NSMD, footprint mandatory for the EPC2019 land pattern (AN009).",
+    "Recommended land pattern / stencil dimensions are published directly in EPC2019DS (solder-mask-defined, units in um) - use verbatim at footprint-build time rather than re-deriving from the general LGA guidance in D1-D2."
+  ],
+  "errata": [
+    "EPC2019 Vgs absolute max is a narrow -4V/+6V window; at 5V nominal drive only 1V of headroom exists to the +6V ceiling, and this FET rating (not LMG1020's 5.75V pin rating) is the tighter limit on gate-loop ringing.",
+    "EPC2019's own datasheet states negative gate drive is 'not needed' (0V OFF is EPC's own recommendation) - do not add a negative-bias/clamp scheme; the mitigation path both vendors point to is loop-inductance minimization + LMG1020's own >=2 ohm gate-resistor floor.",
+    "No formal errata sheet found for either EPC2019 or LMG1020 (neither datasheet publishes a dedicated errata section as of the revisions fetched: EPC2019DS Oct 2022, LMG1020DS Oct 2018).",
+    "OPEN: EPC2019's physical package in the current datasheet (2.77 x 0.95mm, 7-bar row) does not match the '1.35 mm chip-scale LGA' description carried in this board's brief/requirements.md - re-verify before finalizing the footprint.",
+    "OPEN: EPC2019's current-datasheet Coss (135pF typ/163pF max) and Qoss (20-24nC) at VGS=0V/VDS=100V do not match the 'Coss 110pF / Qoss 18nC @ 100V' figures already baked into this board's frozen C_shunt=317pF split - re-verify against the datasheet before the shunt-cap value is finalized downstream."
+  ]
+}

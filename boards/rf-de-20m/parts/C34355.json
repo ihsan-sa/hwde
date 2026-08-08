@@ -1,0 +1,97 @@
+{
+ "mpn": "LM5017MRX/NOPB",
+ "lcsc": "C34355",
+ "package": "SOIC-8 PowerPAD, exposed pad on bottom (TI package drawing DDA0008B / MRA08B Rev B, \"SO PowerPAD-8\", DDA suffix). Datasheet also documents an alternate WSON-8 (NGU0008B/SDC08B) package with identical pin numbering/function table - NOT applicable to this LCSC listing (C34355 = DDA/SOIC variant per TI Package Option Addendum table, which lists LM5017MRX/NOPB as \"SO PowerPAD DDA, 8 pins\").",
+ "description": "LM5017: 100V input synchronous constant-on-time (COT) step-down (buck) switching regulator. Integrated 100V N-channel high-side (buck) switch and N-channel synchronous (low-side) rectifier, no external diode. COT control needs no loop compensation. Rated up to 0.6A / 650mA output (Section 7.1/8.1). Protections: dual-level UVLO, intelligent current-limit off-timer, thermal shutdown at 165C.",
+
+ "pinout": [
+  {"pin": "1", "name": "RTN", "type": "ground",
+   "notes": "Ground connection of the IC. Datasheet I/O column shows '-' (dash), described directly as Ground. Exposed pad must be tied to this pin."},
+  {"pin": "2", "name": "VIN", "type": "power_in",
+   "notes": "Input Voltage. Operating input range 7.5V to 100V (Recommended Operating Conditions). Datasheet I/O column literally marks this 'I'; classified power_in here since it is the converter's main supply input."},
+  {"pin": "3", "name": "UVLO", "type": "analog",
+   "notes": "Input pin of undervoltage comparator. Resistor divider from VIN to UVLO to GND programs the undervoltage detection threshold: VIN(UVLO,rising) = 1.225V x (RUV2/RUV1 + 1); hysteresis VIN(HYS) = IHYS x RUV2, IHYS = 20uA typ (internal current source enabled when UVLO > 1.225V). UVLO pulled below 0.66V externally = shutdown mode (remote shutdown threshold 0.32-0.66V, hysteresis 110mV). If tied directly to VIN, regulator starts as soon as VCC UVLO (4.5V) is satisfied."},
+  {"pin": "4", "name": "RON", "type": "analog",
+   "notes": "On-time control. Resistor from this pin to VIN sets the buck switch on-time as a function of VIN (COT scheme, no loop compensation needed). Minimum recommended on-time is 100 ns at max input voltage - this bounds the maximum practical switching frequency at high VIN (see layout_notes for the fSW equations)."},
+  {"pin": "5", "name": "FB", "type": "analog",
+   "notes": "Feedback; connects to the inverting input of the internal regulation comparator. Regulation level (internal reference) = 1.225V typ (1.2/1.225/1.25 min/typ/max). Overvoltage comparator trips at 1.62V and immediately terminates the on-time pulse."},
+  {"pin": "6", "name": "VCC", "type": "power_out",
+   "notes": "Output of the internal high-voltage linear (series-pass) regulator, regulated at 7.6V typ (6.25-8.55V over temp, VIN=48V, ICC=20mA). Internally current-limited to ~30mA (26mA typ current-limit spec point). Supplies gate drivers and internal logic; also recharges the BST cap through an internal diode each cycle. VCC UVLO enables the IC at 4.5V rising (4.15-4.9V range), 300mV hysteresis. Datasheet I/O column marks this 'O'."},
+  {"pin": "7", "name": "BST", "type": "passive",
+   "notes": "Bootstrap. Datasheet's own I/O column marks this 'I' (input), but functionally it is a floating high-side gate-driver supply rail referenced to SW, not a driven signal - classified 'passive' here (external-capacitor node) for schematic-wiring clarity; the literal datasheet I/O designation is 'I'. Requires an external ceramic capacitor (0.01uF / 10nF) between BST and SW. Charged from VCC through an internal diode whenever SW is low; the 144ns minimum forced off-time exists in part to guarantee recharge time each cycle."},
+  {"pin": "8", "name": "SW", "type": "output",
+   "notes": "Power switching node - connect to the output inductor and to the bootstrap capacitor. Switches rapidly between VIN and GND every cycle; per Layout Guidelines this node's copper area should be minimized and must not be inadvertently tied to a plane or pour."},
+  {"pin": "EP", "name": "Exposed Pad", "type": "ground",
+   "notes": "Must be connected to the RTN pin (pin 1). Solder to the system ground plane on the application board for reduced thermal resistance (RthJA 41.1C/W, RthJC-bottom 2.4C/W, RthJB 30.6C/W for the DDA/SOIC PowerPAD-8 package per Thermal Information table). Datasheet Layout section does not state a specific thermal-via count/pattern under the EP - see OPEN."}
+ ],
+
+ "decoupling": [
+  {"pins": ["VCC"], "value": "1.0uF ceramic, >=16V rating (per Sec 8.2.1.2.6 application guidance; Sec 5 pin table just says '1.0uF decoupling capacitor recommended')",
+   "placement": "As close to the IC as possible; minimize connecting trace length and loop area (Layout Guideline #2, ties CVCC and CBST together as one placement rule).",
+   "notes": "Also supplies the internal diode that recharges the BST bootstrap cap each off-time."},
+  {"pins": ["BST"], "value": "0.01uF (10nF) ceramic, must withstand the BST-to-SW abs-max of 13V (so >=16V-rated part recommended)",
+   "placement": "As close to the IC as possible, minimized loop with the SW trace (Layout Guideline #2).",
+   "notes": "Required every cycle: charged from VCC via internal diode while SW is low."},
+  {"pins": ["VIN", "RTN"], "value": "0.1uF or 0.47uF local bypass directly across VIN/RTN, PLUS a separate larger bulk cap (bulk value set by input-ripple target, worked example: CIN(min) ~= IOUT_MAX / (8 x fSW x dVIN))",
+   "placement": "The 0.1-0.47uF bypass cap must sit directly across VIN and RTN (pins 2 and 1) with minimized loop area (Layout Guideline #1: 'the loop consisting of CIN, VIN pin, and RTN pin carries switching currents'); if the full bulk cap cannot fit at the IC, place the bulk portion as close as possible instead.",
+   "notes": "Voltage rating must cover max input voltage under all conditions; the datasheet's own 12.5-95V design example specifies 100V X7R dielectric for CIN."}
+ ],
+
+ "land_pattern": {
+  "package": "DDA0008B (SO PowerPAD-8, DDA suffix), TI recommended land pattern MRA08B Rev B",
+  "pad_count": 8,
+  "pitch_mm": 1.27,
+  "pad_size_mm": [1.91, 0.61],
+  "row_spacing_mm": 5.56,
+  "pin1": "1",
+  "notes": "Land pattern MRA08B Rev B, read directly off the datasheet mechanical page (page index 28, 'RECOMMENDED LAND PATTERN'): 8 leads, pitch (6X) 0.050in/1.27mm, per-pad land (8X) 0.075in x 0.024in = 1.91mm x 0.61mm, outer-row-to-outer-row span (.219in) 5.56mm. Central exposed-pad land is called out separately at (.122in)[3.1mm] wide x (.095in)[2.41mm] tall, centered on SYMM - not represented by the pad_size_mm/pitch_mm fields above (those describe the 8 signal leads only); see exposed_pad. Package body (top-view outline, same page): 0.193+-0.004in [4.9+-0.11mm] pin-tip-to-pin-tip span, 0.230-0.244in [5.84-6.70mm] overall length, 0.154+-0.004in [3.90+-0.1mm] body width, 0.056-0.066in [1.42-1.68mm] body height/standoff, lead width 0.0135-0.0192in [0.35-0.49mm], foot length 0.040in [1.01mm], 0deg-8deg foot angle."
+ },
+
+ "exposed_pad": {
+  "present": true,
+  "connect_to": "RTN (pin 1) / system ground plane"
+ },
+
+ "layout_notes": [
+  "[Vendor Sec 10.1, Layout Guideline 1 - CIN] The loop formed by the input capacitor, VIN pin, and RTN pin carries switching current: place a 0.1uF-0.47uF cap directly across VIN/RTN, close to the IC, with minimized loop area; place remaining bulk capacitance as close as possible if it cannot all fit at the pins.",
+  "[Vendor Sec 10.1, Layout Guideline 2 - CVCC/CBST] The VCC and bootstrap (BST) bypass capacitors supply switching current to the high- and low-side gate drivers: place both as close to the IC as possible and minimize connecting trace length / loop area.",
+  "[Vendor Sec 10.1, Layout Guideline 3 - FB trace] The feedback trace carries the output-voltage info plus a small ripple component needed for COT regulation: route it away from magnetic components and do not run it parallel to any switching trace, to avoid coupled noise.",
+  "[Vendor Sec 10.1, Layout Guideline 4 - SW node] SW switches rapidly between VIN and GND every cycle and is a noise source: minimize its copper area; it must not be inadvertently connected to a copper plane or pour.",
+  "[Vendor Sec 6.1 abs-max footnote] The RTN pin is the GND reference electrically connected to the package substrate/EP.",
+  "[Design equation, Sec 8.2.1.2.1] Output set point: VOUT = VFB x (RFB2/RFB1 + 1), VFB = 1.225V typ, where RFB2 is the top leg (VOUT side) and RFB1 is the bottom leg (FB-to-GND side) of the external divider (matches parts.json R101=top/RFB2, R102=bottom/RFB1 role labels).",
+  "[Design equation, Sec 8.2.1.2.2] fSW is resistor-set: fSW = VOUT / (K x RON), K = 9e-11. Practical fSW ceiling is bounded independently at both ends of the VIN range by timer minimums: fSW(MAX) = (1-DMAX)/TOFF(MIN) at min VIN (worked example gives 1 MHz), and fSW(MAX) = DMIN/TON(MIN) at max VIN (worked example gives 1.05 MHz), TON(MIN) = 100ns recommended floor, TOFF(MIN) = 144ns hard floor (Minimum Off-Timer spec, Electrical Characteristics).",
+  "[RF-stage isolation, not datasheet text - flagged per this board's brief] This board's RF stage runs at 20 MHz. The COT buck's fundamental fSW will land far below that (design equation above realistically bounds it under ~1 MHz for any RON choice), but a squarewave switcher's harmonics extend well past its fundamental (e.g. the 20th-plus harmonic of a 1 MHz fSW lands at/above 20 MHz) - physical separation from the RF stage, ground-plane partitioning, and filtering on the +5V feed to LMG1020 are needed regardless of the exact RON/fSW chosen; not resolved by component selection alone. P4/P6 concern.",
+  "[Ripple-injection / output-cap ESR requirement, Sec 7.3.1 and 7.3.11] COT regulation requires the FB voltage to fall monotonically during the off-time, driven by >=25mV of in-phase (resistive/ESR) ripple at FB; capacitive ripple from a low-ESR cap is NOT in phase and does not satisfy this. A pure low-ESR ceramic output cap (e.g. the board's C108, 22uF X7R) with no added ESR/ripple path can produce unstable multi-pulse COT switching (Sec 7.3.11). The datasheet's own worked examples with 22uF/1uF ceramic COUT both pair it with an explicit Type III ripple-injection network (Rr+Cr+Cac from SW to FB, e.g. Rr=46.4k / Cr=3300pF / Cac=0.1uF in the 12.5-95V example) or, for Type I, added series ESR (RC) at the output. parts.json's current buck passive list (R101/R102 FB divider, R103 RON, C105-C109) does NOT appear to include an Rr/Cr/Cac ripple-injection network or output-ESR resistor - flagged in OPEN, this is a P4 schematic-completeness question, not something this extraction resolves.",
+  "[Minimum load / light-load behavior, Sec 7.1 and 7.3.8] The synchronous rectifier has NO diode-emulation mode, so the regulator stays in continuous conduction mode (CCM) 'regardless of the output loading', including at zero/near-zero load (inductor current is permitted to ramp negative). The datasheet states no minimum-load requirement for regulation to hold - relevant given this board's light (~85mA avg, intermittent) load. See OPEN for the light-load efficiency/dissipation caveat that comes with this.",
+  "[Current limit, Electrical Characteristics] Current-limit threshold 0.7A min / 1.02A typ / 1.3A max (peak, cycle-by-cycle, forced off-timer response, 150ns response time) - comfortably above this application's 0.3A budget."
+ ],
+
+ "abs_max": [
+  {"param": "VIN to RTN, max", "value": 100, "unit": "V"},
+  {"param": "VIN to RTN, min", "value": -0.3, "unit": "V"},
+  {"param": "UVLO to RTN, max", "value": 100, "unit": "V"},
+  {"param": "UVLO to RTN, min", "value": -0.3, "unit": "V"},
+  {"param": "SW to RTN, max", "value": "VIN + 0.3", "unit": "V"},
+  {"param": "SW to RTN, min", "value": -1.5, "unit": "V"},
+  {"param": "SW to RTN (100 ns transient), max", "value": "VIN + 0.3", "unit": "V"},
+  {"param": "SW to RTN (100 ns transient), min", "value": -5, "unit": "V"},
+  {"param": "BST to VCC, max", "value": 100, "unit": "V"},
+  {"param": "BST to SW, max", "value": 13, "unit": "V"},
+  {"param": "RON to RTN, max", "value": 100, "unit": "V"},
+  {"param": "RON to RTN, min", "value": -0.3, "unit": "V"},
+  {"param": "VCC to RTN, max", "value": 13, "unit": "V"},
+  {"param": "VCC to RTN, min", "value": -0.3, "unit": "V"},
+  {"param": "FB to RTN, max", "value": 5, "unit": "V"},
+  {"param": "FB to RTN, min", "value": -0.3, "unit": "V"},
+  {"param": "Lead temperature (soldering, max 4s)", "value": 200, "unit": "C"},
+  {"param": "Maximum junction temperature", "value": 150, "unit": "C"},
+  {"param": "Storage temperature, max", "value": 150, "unit": "C"},
+  {"param": "Storage temperature, min", "value": -55, "unit": "C"},
+  {"param": "VIN operating range, min (Recommended Operating Conditions, not abs-max)", "value": 7.5, "unit": "V"},
+  {"param": "VIN operating range, max (Recommended Operating Conditions, not abs-max)", "value": 100, "unit": "V"},
+  {"param": "Operating junction temperature, min", "value": -40, "unit": "C"},
+  {"param": "Operating junction temperature, max", "value": 125, "unit": "C"}
+ ],
+
+ "source_pdf": "boards/rf-de-20m/parts/C34355.pdf"
+}

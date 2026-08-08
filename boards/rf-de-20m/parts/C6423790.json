@@ -1,0 +1,126 @@
+{
+  "mpn": "LMG1020YFFR",
+  "lcsc": "C6423790",
+  "package": "DSBGA / WCSP-6 (TI package code YFF0006), die-size ball grid array, 0.8mm x 1.2mm x 0.625mm max height",
+  "description": "LMG1020YFFR - TI single-channel, low-side gate driver for enhancement-mode GaN FETs and logic-level Si FETs, in a 0.8mm x 1.2mm 6-ball DSBGA/WCSP (YFF0006), chosen specifically to minimize gate-loop parasitic inductance (Sec 7.1). Split OUTH (pull-up/source-only) and OUTL (pull-down/sink-only) outputs, each independently resistor-set, for independent turn-on/turn-off slew control. 7A peak source / 5A peak sink. Two single-ended logic inputs (IN+, IN-) combined through an internal AND function (output follows IN+ AND NOT IN-) with Schmitt-trigger hysteresis and opposite internal bias (IN+ pulled down to GND, IN- pulled up to VDD) - NOT usable as a true differential pair (Sec 7.3.1). 1 ns minimum input pulse width, up to 60 MHz operation, 2.5 ns typ / 4.5 ns max propagation delay, 400 ps typical rise/fall time (Sec 1 Features; Sec 6.6 Switching Characteristics). 5V nominal supply (4.75-5.4V recommended, 5.75V absolute max), UVLO (~4.06-4.33V rising) and over-temperature (170 degC) protection built in. Datasheet-listed applications: LiDAR, time-of-flight laser drivers, facial recognition, Class-E wireless chargers, VHF resonant power converters, GaN-based synchronous rectifiers, augmented reality.",
+  "pinout": [
+    {
+      "pin": "A1",
+      "name": "VDD",
+      "type": "power_in",
+      "notes": "Input voltage supply. Decouple through a small size, low-inductance capacitor to GND (Sec 5 Pin Functions table). Nominal 5V, recommended range 4.75-5.4V (Sec 6.3), absolute max 5.75V (Sec 6.1). Internal UVLO trips at 4.06-4.33V rising (typ 4.19V) with 85mV hysteresis (Sec 6.5); OUTL is held low during a UVLO condition to prevent unintended charge accumulation on the FET's Ciss (Sec 7.3.3)."
+    },
+    {
+      "pin": "A2",
+      "name": "OUTH",
+      "type": "output",
+      "notes": "Pullup gate drive output. Connect through a resistor (R1; TI recommends >=2 ohm) to the target transistor's gate (Sec 5 Pin Functions; Sec 8.2 Typical Application). Source-ONLY (pull-up) output: sources up to 7A peak, and goes OPEN (high-Z) whenever not actively driving high (Table 1 Truth Table) - it never sinks current."
+    },
+    {
+      "pin": "B1",
+      "name": "GND",
+      "type": "ground",
+      "notes": "Ground (Sec 5 Pin Functions). Per Sec 10.1.1, should be connected as close as possible / lowest-inductance to the target FET's source; connect the GND plane to the source power plane ONLY at the FET to avoid common-source inductance and reduce coupling into the ground plane."
+    },
+    {
+      "pin": "B2",
+      "name": "OUTL",
+      "type": "output",
+      "notes": "Pulldown gate drive output. Connect through an optional resistor (R2; TI recommends >=2 ohm if used) to the target transistor's gate (Sec 5 Pin Functions; Sec 8.2). Sink-ONLY (pull-down) output: sinks up to 5A peak, and is OPEN (high-Z) only in the (IN-=L, IN+=H) 'drive high' state - it is held/pulled LOW in every other input state, including during UVLO (Sec 7.3.2, Table 1)."
+    },
+    {
+      "pin": "C1",
+      "name": "IN+",
+      "type": "input",
+      "notes": "Positive logic-level input (Sec 5 Pin Functions). Schmitt-trigger input with internal pull-DOWN to GND (RIN+ = 100-250 kOhm, typ 150 kOhm, Sec 6.5). Threshold VIL 1.1-1.8V / VIH 1.7-2.6V, hysteresis 0.5-1V (Sec 6.5). Output follows IN+ AND (NOT IN-): taking IN+ high (with IN- low) drives OUTH high (Sec 7.3.1, Table 1). ABSOLUTE MAX input range is -0.3V to VDD+0.3V (Sec 6.1 Absolute Maximum Ratings, row 'VIN IN+, IN- pin voltage'); recommended operating range is 0 to VDD (Sec 6.3)."
+    },
+    {
+      "pin": "C2",
+      "name": "IN-",
+      "type": "input",
+      "notes": "Negative logic-level input (Sec 5 Pin Functions). Schmitt-trigger input with internal pull-UP to VDD (RIN- = 100-250 kOhm, typ 150 kOhm, Sec 6.5) - inverted internally before the AND gate. Same threshold/hysteresis specs as IN+ (Sec 6.5). Taking IN- high forces OUTL low (turns the output off) regardless of IN+ (Table 1). IN+ and IN- are both single-ended inputs and 'cannot be used as a differential input pair' (Sec 7.3.1). Same absolute-max (-0.3V to VDD+0.3V) and recommended range (0 to VDD) as IN+ (Sec 6.1/6.3)."
+    }
+  ],
+  "decoupling": [
+    {
+      "pins": ["A1"],
+      "value": "0.1uF up to 1uF, X7R or better (closest cap) PLUS an additional 1uF placed as close to the IC as practical",
+      "placement": "Cap must be on the TOP layer, as close as possible to the IC, connected to VDD and GND via large power planes - NOT through vias to another layer (Sec 9: via-hole inductance imposes excessive ringing on the IC pins). Place the additional 1uF cap close to the first.",
+      "notes": "Sec 9 Power Supply Recommendations: 'A low-ESR/ESL ceramic capacitor must be connected close to the IC, between VDD and GND pins to support the high peak current being drawn from VDD during turnon of the FETs.' Recommends a three-terminal/feed-through capacitor in shunt-through configuration for lowest ESL, closest to the IC, plus a larger-capacitance cap placed close to it; 'general practice: the combination of a 0.1uF of 0402 or feed-through capacitor (closest to LMG1020) and a 1uF 0603 capacitor is recommended.' Sec 10.1.2 Bypass Capacitor: bypass cap must be >=0.1uF up to 1uF, X7R or better; recommended body types Low Inductance Chip Capacitor (LICC), Inter-Digitated Capacitor (IDC), Feed-through, or LGA; 'an additional 1uF capacitor must be placed as close to the IC as practical' (separate from the first cap)."
+    }
+  ],
+  "land_pattern": {
+    "package": "DSBGA/WCSP (TI drawing YFF0006), die-size ball grid array, 3 rows (A/B/C, top to bottom per Sec 5 top-view diagram) x 2 columns (1/2), 0.4mm ball pitch both axes, pin A1 at the marked corner",
+    "pad_count": 6,
+    "pitch_mm": 0.4,
+    "pad_size_mm": [0.23, 0.23],
+    "row_spacing_mm": 0.4,
+    "pin1": "A1",
+    "notes": "From TI Package Outline (YFF0006, doc 4223785/A 06/2017), 'Example Board Layout', and 'Example Stencil Design' drawings. Body: D (long axis, 3-ball direction) max 1.285mm / min 1.225mm; E (short axis, 2-ball direction) max 0.885mm / min 0.825mm (matches the 0.8mm x 1.2mm nominal body size). Overall package height 0.625mm max. Ball diameter (as-built, package outline view): 6X, 0.30mm max / 0.20mm min ('BALL TYP'), ball height/standoff 0.30/0.12mm. RECOMMENDED LAND PATTERN (Example Board Layout, scale 30x): 6x round copper pads, metal diameter 0.23mm, on a 0.4mm x 0.4mm grid (both TYP). NON-SOLDER-MASK-DEFINED (NSMD) is the PREFERRED style: solder mask opening pulled back 0.05mm max clearance from the 0.23mm metal pad. An alternate SOLDER-MASK-DEFINED (SMD) style is also shown: 0.23mm diameter solder mask opening over a larger metal pad, with 0.05mm min metal overlap under the mask. STENCIL (Example Stencil Design, scale 35x, based on a 0.1mm-thick stencil): 6x apertures, 0.25mm diameter with 0.05mm corner radius (trapezoidal walls with rounded corners recommended for better paste release), same 0.4mm x 0.4mm pitch grid. Note 3 on the drawing: final dimensions may vary for manufacturing tolerance / routing constraints; TI refers to literature SNVA009 for BGA land pattern guidance."
+  },
+  "exposed_pad": {
+    "present": false,
+    "connect_to": "n/a - DSBGA/WCSP ball-grid package has no exposed thermal pad; all 6 balls are functional signal/power balls (VDD, GND, IN+, IN-, OUTH, OUTL). Thermal path is via RthJB (junction-to-board, 38.1 degC/W) and RthJC(top) (1.7 degC/W), i.e. through the balls/board and the top of the die, not a bottom exposed pad (Sec 6.4 Thermal Information)."
+  },
+  "layout_notes": [
+    "Sec 10.1 Layout Guidelines: a 4-layer or higher layer-count board is required to reduce parasitic inductance and achieve suitable performance. 0201-package R/C parts are recommended near the IC to minimize inductance and board space; verify the 0201 resistor's power rating against the calculated gate-drive power loss.",
+    "Sec 10.1.1 Gate Drive Loop Inductance and Ground Connection: place LMG1020 as close to the GaN FET as possible, with gate resistors R1 (OUTH) and R2 (OUTL) immediately connecting to the FET gate. Use large traces to minimize resistance and parasitic inductance.",
+    "To minimize gate-drive loop inductance, the source return should be on layer 2 of the PCB, immediately under the top (component) layer. Vias immediately adjacent to BOTH the FET source and the LMG1020 GND pin connect to this plane with minimal impedance.",
+    "Connect the GND plane to the source power plane ONLY AT THE FET, to minimize common-source inductance and reduce coupling into the ground plane.",
+    "Sec 10.1.2 Bypass Capacitor: VDD must be bypassed to GND immediately adjacent to the IC; bypass cap placement and value are critical given the fast gate drive current. Cap must sit on the TOP layer, as close as possible to the IC, connected to VDD/GND via large power planes (not routed to another layer through vias - Sec 9: via-hole inductance imposes excessive ringing on the IC pins).",
+    "Bypass cap: >=0.1uF up to 1uF, X7R or better. Recommended body styles: Low Inductance Chip Capacitor (LICC), Inter-Digitated Capacitor (IDC), Feed-through, or LGA - a three-terminal/feed-through part in shunt-through configuration gives the lowest ESL. An ADDITIONAL 1uF capacitor must also be placed as close to the IC as practical (general practice per Sec 9: 0.1uF 0402/feed-through closest + 1uF 0603 second).",
+    "Sec 8.2 Typical Application: TI recommends using AT LEAST a 2-ohm resistor at each OUTH and OUTL to avoid voltage overstress from inductive ringing; ringing overshoot must not exceed the absolute max supply voltage (5.75V). For applications requiring smaller resistance values, contact TI E2E for guidance.",
+    "R2 (OUTL series resistor) may be shorted for the fastest/strongest turn-off, with OUTL connected directly to the gate. For symmetric drive strengths, OUTH and OUTL may instead be shorted together and share a single gate resistor.",
+    "Sec 8.2.3 VDD and Overshoot: fast, high-current switching rings with PCB parasitic inductance; design practice is to limit overshoot to the absolute-max pin voltages via careful layout (minimize parasitic L), low-ESL components, and series resistance to limit rise time. Example given: 0.5V of overshoot is tolerable with VDD held to a 5.25V max (5% supply variability); larger overshoots require tighter supply regulation.",
+    "Sec 7.3.2 Output Stage / split output: OUTH is a pull-up-ONLY (source) output; OUTL is a pull-down-ONLY (sink) output - each floats (goes OPEN/high-Z) when not actively driving (Table 1 Truth Table). This is why two independent series resistors (R1 on OUTH, R2 on OUTL) are used: they set turn-on and turn-off drive strength/slew rate independently, with no flyback/steering diode needed. OUTL is additionally held low during a UVLO condition to prevent unintended charge buildup on the FET's Ciss.",
+    "Table 1 Truth Table (IN-, IN+ -> OUTH, OUTL): (L,L)->(OPEN,L); (L,H)->(H,OPEN); (H,L)->(OPEN,L); (H,H)->(OPEN,L). Only the IN-=L, IN+=H state drives OUTH high; every other input state pulls/holds OUTL low and floats OUTH. IN+ and IN- are single-ended inputs run through an internal AND function (IN+ AND NOT IN-) and are NOT usable as a true differential input pair (Sec 7.3.1).",
+    "Sec 8.2.2.1 Handling Ground Bounce (relevant to input-drive integrity): connecting LMG1020 GND close/low-inductance to the FET source (best for switching performance) can cause GND to bounce relative to controller/system ground, risking false input transitions. Mitigations discussed: (a) built-in input hysteresis (min 0.5V) limits tolerable di/dt via di/dt_max = VHYST/L_RS - only about 1 A/ns for an assumed 0.5nH source-ground inductance, often insufficient alone; (b) drive the PWM signal into IN- (the inverting input) with IN+ tied locally to VDD, for positive-feedback stabilization - add a 100-ohm current-limiting series resistor at IN- to limit spike current; (c) a simple series-R input filter (using the driver's own CIN) for moderate ground bounce, acceptable when extra delay is tolerable and pulse width is not extremely short (~1ns range); (d) a common-mode choke on IN+/IN- for the most extreme cases (no tolerable delay + very short pulse width).",
+    "Sec 8.2.2.2 Creating Nanosecond Pulses: a short output pulse can be generated by taking IN+ high, then IN- high after a controlled delay (via a separately delayed digital signal, or an RC-delay + buffer) - the internal AND-gate structure produces an output pulse whose width equals the IN+/IN- delay, easing the requirement to directly drive the IC with an equivalently narrow input pulse.",
+    "Sec 8.2.4 Operating at Higher Frequency: at very high effective pulsing rates, use burst-mode pulse trains with pauses between bursts to avoid device overheating while preserving high transient (burst) frequency; higher decoupling capacitance is needed to supply the HF charging current into the capacitive (gate) load."
+  ],
+  "abs_max": [
+    {"param": "VDD supply voltage, max", "value": 5.75, "unit": "V"},
+    {"param": "VIN IN+, IN- pin voltage, min", "value": -0.3, "unit": "V"},
+    {"param": "VIN IN+, IN- pin voltage, max", "value": "VDD + 0.3", "unit": "V"},
+    {"param": "VOUT OUTH, OUTL pin voltage", "value": "-0.3 to 5.75", "unit": "V"},
+    {"param": "TSTG storage temperature", "value": "-55 to 150", "unit": "degC"},
+    {"param": "TJ operating (junction) temperature, absolute max", "value": "-40 to 150", "unit": "degC"},
+    {"param": "V(ESD) human body model (HBM), per ANSI/ESDA/JEDEC JS-001, all pins", "value": "+/-2000", "unit": "V"},
+    {"param": "V(ESD) charged device model (CDM), per JEDEC JESD22-C101, all pins", "value": "+/-500", "unit": "V"},
+    {"param": "RECOMMENDED: VDD supply voltage", "value": "4.75 to 5.4 (nom 5)", "unit": "V"},
+    {"param": "RECOMMENDED: VINx IN+ or IN- input voltage", "value": "0 to VDD", "unit": "V"},
+    {"param": "RECOMMENDED: TJ operating temperature", "value": "-40 to 125", "unit": "degC"},
+    {"param": "THERMAL: RthJA junction-to-ambient (6-ball WCSP)", "value": 133.6, "unit": "degC/W"},
+    {"param": "THERMAL: RthJC(top) junction-to-case(top)", "value": 1.7, "unit": "degC/W"},
+    {"param": "THERMAL: RthJB junction-to-board", "value": 38.1, "unit": "degC/W"},
+    {"param": "THERMAL: PsiJT junction-to-top characterization parameter", "value": 0.5, "unit": "degC/W"},
+    {"param": "THERMAL: PsiJB junction-to-board characterization parameter", "value": 38.3, "unit": "degC/W"},
+    {"param": "ELEC: IVDD,Q quiescent current (IN+ = IN- = 0V)", "value": 75, "unit": "uA"},
+    {"param": "ELEC: IVDD,op operating current (fsw=30MHz, 2ohm, 0.1pF load)", "value": 40, "unit": "mA"},
+    {"param": "ELEC: IVDD,op operating current (fsw=30MHz, 2ohm, 100pF load)", "value": 51, "unit": "mA"},
+    {"param": "ELEC: VDD UVLO threshold, rising (min/typ/max)", "value": "4.06 / 4.19 / 4.33", "unit": "V"},
+    {"param": "ELEC: VDD UVLO hysteresis", "value": 85, "unit": "mV"},
+    {"param": "ELEC: over-temperature shutdown threshold, rising edge", "value": 170, "unit": "degC"},
+    {"param": "ELEC: over-temperature hysteresis", "value": 18, "unit": "degC"},
+    {"param": "ELEC: VIH IN+, IN- input high threshold", "value": "1.7 to 2.6", "unit": "V"},
+    {"param": "ELEC: VIL IN+, IN- input low threshold", "value": "1.1 to 1.8", "unit": "V"},
+    {"param": "ELEC: VHYST IN+, IN- input hysteresis", "value": "0.5 to 1", "unit": "V"},
+    {"param": "ELEC: RIN+ positive-input pull-down resistance, to GND (min/typ/max)", "value": "100 / 150 / 250", "unit": "kOhm"},
+    {"param": "ELEC: RIN- negative-input pull-up resistance, to VDD (min/typ/max)", "value": "100 / 150 / 250", "unit": "kOhm"},
+    {"param": "ELEC: CIN input pin capacitance, to GND", "value": 1.3, "unit": "pF"},
+    {"param": "ELEC: VOL OUTL voltage (IOUTL=100mA, IN+=IN-=0V)", "value": 36, "unit": "mV"},
+    {"param": "ELEC: VDD-VOH OUTH voltage drop (IOUTH=100mA, IN+=5V, IN-=0V)", "value": 50, "unit": "mV"},
+    {"param": "ELEC: IOH peak source current, OUTH (VOUTH=0V, IN+=5V, IN-=0V)", "value": 7, "unit": "A"},
+    {"param": "ELEC: IOL peak sink current, OUTL (VOUTL=5V, IN+=IN-=0V)", "value": 5, "unit": "A"},
+    {"param": "SWITCHING: tstart startup time, VDD rising above UVLO (4.2V to OUTH rising), typ/max", "value": "40 / 70", "unit": "us"},
+    {"param": "SWITCHING: tshut-off, UVLO falling (VDD falling below 4.1V to OUTH falling), min/typ/max", "value": "1 / 1.9 / 3.1", "unit": "us"},
+    {"param": "SWITCHING: tpd,r propagation delay turn-on (IN+ to OUTH, 100pF load), min/typ/max", "value": "1.5 / 2.5 / 4.1", "unit": "ns"},
+    {"param": "SWITCHING: tpd,f propagation delay turn-off (IN+ to OUTL, 100pF load), min/typ/max", "value": "1.8 / 2.6 / 4.3", "unit": "ns"},
+    {"param": "SWITCHING: delta-tpd pulse positive distortion (tpd,f - tpd,r), typ/max", "value": "230 / 603", "unit": "ps"},
+    {"param": "SWITCHING: trise output rise time (0ohm series, 100pF load, 20-80%), typ", "value": 375, "unit": "ps"},
+    {"param": "SWITCHING: tfall output fall time (0ohm series, 100pF load, 20-80%), typ", "value": 350, "unit": "ps"},
+    {"param": "SWITCHING: tmin minimum input pulse width (0ohm series, 100pF load)", "value": 1, "unit": "ns"},
+    {"param": "FEATURE: maximum switching frequency (Sec 1 Features / Sec 8.1)", "value": 60, "unit": "MHz"}
+  ],
+  "source_pdf": "boards/rf-de-20m/parts/C6423790.pdf"
+}

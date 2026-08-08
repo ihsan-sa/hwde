@@ -1,0 +1,90 @@
+{
+ "mpn": "EPC2019",
+ "lcsc": "C2836675",
+ "package": "Bare die, passivated, solder-bar attach - 7-bar row (no mold, no leadframe). Overall die/land envelope 2.766 x 0.950 mm nominal (A=2.736-2.796mm, B=0.920-0.980mm). NOT a chip-scale LGA/BGA - confirmed from the datasheet's own DIE OUTLINE and RECOMMENDED LAND PATTERN drawings (visually inspected, not just OCR text).",
+ "description": "EPC2019 - 200V enhancement-mode eGaN power transistor. Headline RDS(on) 50mOhm (max), ID 8.5A continuous / 42A pulsed. Supplied only as passivated bare die with solder bars, direct-attach mount (no package body). MSL 1.",
+
+ "pinout": [
+  {"pin": "1", "name": "GATE", "type": "input",
+   "notes": "Round pad, column 1 (leftmost), BOTTOM position (below pin 2 in the Solder Bar View). Die-bump dia 0.25mm nominal (0.247-0.253mm) / solder-mask-opening dia 0.23mm. Directly adjacent to pin 2 (Source) - the nearest source pad to the gate; use pin 2 as the gate-drive return/star point."},
+  {"pin": "2", "name": "SOURCE", "type": "passive",
+   "notes": "Round pad, column 1 (leftmost), TOP position (above pin 1). Same geometry as pin 1. Nearest source pad to the Gate (pin 1) - gate-return star point."},
+  {"pin": "3", "name": "DRAIN", "type": "passive",
+   "notes": "Elongated bar pad, column 2. Die-bump 0.25mm wide (f: 0.245-0.255mm) x 0.70mm long (c: 0.697-0.703mm); solder-mask opening ~0.23 x 0.68mm. Column pitch to pin 1/2 column and to pin 4 column: 0.6mm (g, fixed)."},
+  {"pin": "4", "name": "SOURCE", "type": "passive",
+   "notes": "Elongated bar pad, column 3 (center). Same geometry as pin 3. 0.6mm pitch to columns on both sides."},
+  {"pin": "5", "name": "DRAIN", "type": "passive",
+   "notes": "Elongated bar pad, column 4. Same geometry as pin 3. 0.6mm pitch to columns on both sides."},
+  {"pin": "6", "name": "SOURCE", "type": "passive",
+   "notes": "Round pad, column 5 (rightmost), TOP position (above pin 7). Same round geometry as pins 1/2. Column-5 internal pad-to-pad spacing (pin6-to-pin7, dimension h) is 0.45mm. CORRECTION 2026-08-07: an earlier revision of this file claimed column 1 was ~0.68-0.70mm and that the die was 'asymmetric end-to-end'. That is WRONG and was a misreading of the drawing's dimension labels. Both end columns are 0.45mm centre-to-centre - see land_pattern.notes for the measurement and the three independent cross-checks. The part IS still orientation-sensitive (pin 1 = Gate, pin 7 = Substrate), but not because of pad spacing; use the die-orientation dot / laser marking, not pad geometry, to orient it."},
+  {"pin": "7", "name": "SUBSTRATE", "type": "passive",
+   "notes": "Round pad, column 5 (rightmost), BOTTOM position (below pin 6). MUST be tied to Source - stated explicitly and repeatedly in the datasheet ('*Substrate pin should be connected to Source', shown on both the die-outline and land-pattern figures; also 'All measurements were done with substrate connected to source' on the characteristics pages)."}
+ ],
+
+ "decoupling": [],
+
+ "land_pattern": {
+  "package": "7-bar solder-bar row, mixed round/elongated pad geometry",
+  "pad_count": 7,
+  "pitch_mm": 0.6,
+  "pad_size_mm": [0.25, 0.70],
+  "pin1": "1",
+  "notes": "SCHEMA LIMITATION: pad_size_mm above captures only the 3 elongated BAR pads (pins 3,4,5 = drain/drain/source): die-bump 0.25mm wide x 0.70mm long, solder-mask opening ~0.23 x 0.68mm. The other 4 pads (pins 1,2,6,7 = gate/source/source/substrate) are ROUND instead: die-bump diameter 0.25mm (0.247-0.253mm), solder-mask opening dia 0.23mm (mask is 10um smaller per side than the bump, per datasheet note). Layout: 5 columns at uniform 0.6mm pitch - col1={pin2 top, pin1 bottom}, col2=pin3, col3=pin4, col4=pin5, col5={pin6 top, pin7 bottom}. GEOMETRY CORRECTED 2026-08-07 - BOTH END COLUMNS ARE 0.45mm CENTRE-TO-CENTRE (dim 'h'); the die is symmetric end to end. An earlier revision of this file recorded column 1 as ~0.68-0.70mm and the die as asymmetric; that was a misreading of the drawing's dimension labels and it propagated a real risk of a 0.11mm-misregistered GATE pad. Method used to settle it: the vector geometry of the datasheet's own DIE OUTLINE, RECOMMENDED LAND PATTERN and RECOMMENDED STENCIL drawings (p.6) was extracted from the PDF content stream and measured, rather than reading the dimension text. All three drawings place the two round pads of column 1 at exactly the same y-coordinates as the two round pads of column 5 (34.23pt separation at a measured 13.216 um/pt scale = 452um, i.e. dim h = 450um). Three independent cross-checks confirm it: (1) 450 + 230 mask-opening dia = 680, and 450 + 250 bump dia = 700 = dim 'c' = the bar-pad length - so the 680/700 numbers printed at the LEFT of the land-pattern drawing are the OUTER ENVELOPE of an end column, which is shared with the bar length, not a centre spacing; (2) (B - h)/2 = (950 - 450)/2 = 250 = dim 'i', the die-edge-to-pad-centre offset, which only closes if h applies to both ends; (3) a 680um centre spacing would put the round bumps 10um from the die edge in a 950um-wide die, which is not physically credible. Edge clearances: die-edge-to-column-1 offset (dim e) 0.183mm nominal; a second edge/offset dimension near column 5 (dim i) 0.25mm nominal. Overall envelope 2.766 x 0.950mm, matches the die outline exactly (land = die footprint, direct solder-bar attach). Land pattern is solder-mask defined; recommended stencil is 4mil (100um) laser-cut with R60 corner radius, for SAC305 Type 3 solder (88.5% metals)."
+ },
+
+ "exposed_pad": {
+  "present": false
+ },
+
+ "layout_notes": [
+  "PACKAGE IDENTITY CONFIRMED FROM DATASHEET DRAWINGS (not the package outline table alone - the DIE OUTLINE and RECOMMENDED LAND PATTERN figures were visually inspected at high resolution): this is a 7-bar solder-bar-row die, overall envelope 2.766 x 0.950mm nominal. It is NOT a 1.35mm chip-scale LGA/BGA - that figure, which appears elsewhere in this project's prior notes, does not match this datasheet and should be treated as wrong.",
+  "Pad geometry: 4 round pads (pins 1,2,6,7) at die-bump dia 0.25mm / mask-opening dia 0.23mm; 3 elongated bar pads (pins 3,4,5 = drain/source) at die-bump 0.25mm wide x 0.70mm long / mask-opening ~0.23 x 0.68mm. Uniform 0.6mm column pitch across all 5 columns.",
+  "DERIVED, not a literal datasheet statement: every pad dimension (0.23-0.25mm) is far too narrow for via-in-pad - no standard drill diameter plus annular ring fits inside a 0.23-0.25mm-wide land. Any thermal/stitching vias must land in copper pour immediately adjacent to the pads, never inside them.",
+  "Pin map, left to right in the Solder Bar View: col1={pin2 SOURCE (top), pin1 GATE (bottom)}; col2=pin3 DRAIN; col3=pin4 SOURCE; col4=pin5 DRAIN; col5={pin6 SOURCE (top), pin7 SUBSTRATE (bottom)}. Reading the top row alone: SOURCE(2)-DRAIN(3)-SOURCE(4)-DRAIN(5)-SOURCE(6) - drain and source are interleaved across the row as expected.",
+  "Gate-return star point: pin 1 (Gate) is in the same column as, and immediately adjacent to, pin 2 (Source) - the nearest source pad to the gate. Use pin 2 as the gate-drive return/star point.",
+  "Substrate (pin 7) MUST be connected to Source - stated 3 times in the datasheet (die-outline note, land-pattern note, and 'substrate connected to source' test-condition footnote on the characteristics pages).",
+  "Land pattern is solder-mask defined: copper pad = die-bump size; solder-mask opening = bump size minus 0.02mm total (0.01mm/10um smaller per side than the bump).",
+  "Recommended stencil: 4mil (100um) thick, laser cut, R60 corner radius, opening matches the mask-opening dimensions above. Intended for SAC305 Type 3 solder, ~88.5% metals content.",
+  "No conventional exposed thermal pad exists on this part - it is direct solder-bar attach on all 7 contacts. Thermal path (RthJB 7.5 C/W typ) runs mainly through the drain/source bars (pins 3,4,5) into board copper/vias; size that copper generously but never place a via inside the narrow pad itself (see via-in-pad note above).",
+  "Tape & reel: 4mm pitch, 8mm wide tape, 7-inch reel; die placed solder-bar-side DOWN (face down) in the tape pocket. MSL 1 (moisture sensitivity level 1) per IPC/JEDEC.",
+  "DISCREPANCY FLAG vs this project's own LEARNINGS.md (2026-08-07 'CORRECTION' entry): that entry claims RDS(on) 22 typ/42 max mOhm, Coss(er) 156pF, Qg 2.4 typ/2.9 max nC for this part. THIS datasheet - downloaded from the exact URL given in parts.json, EPC2019 datasheet 'Revised April, 2021', values re-confirmed by visual inspection of the rendered PDF tables, not just OCR text - instead states RDS(on) 36 typ/50 max mOhm, Coss 110 typ/150 max pF with NO Coss(er)/effective-Coss figure anywhere in the 6-page document, and Qg 1.8 typ/2.5 max nC. See OPEN below; this needs owner reconciliation before it feeds thermal/shunt-cap math."
+ ],
+
+ "abs_max": [
+  {"param": "VDS_continuous", "value": 200, "unit": "V"},
+  {"param": "ID_continuous (TA=25C, RthJA=18C/W per this rating's own footnote)", "value": 8.5, "unit": "A"},
+  {"param": "ID_pulsed (25C, 300us pulse)", "value": 42, "unit": "A"},
+  {"param": "VGS_max", "value": 6, "unit": "V"},
+  {"param": "VGS_min", "value": -4, "unit": "V"},
+  {"param": "TJ_range", "value": "-40 to 150", "unit": "C"},
+  {"param": "TSTG_range", "value": "-40 to 150", "unit": "C"},
+  {"param": "RthJC_typ", "value": 2.7, "unit": "C/W"},
+  {"param": "RthJB_typ", "value": 7.5, "unit": "C/W"},
+  {"param": "RthJA_typ (1 sq-in copper pad, single-layer 2oz Cu on FR4)", "value": 72, "unit": "C/W"},
+  {"param": "BVDSS_min (VGS=0V, ID=125uA)", "value": 200, "unit": "V"},
+  {"param": "VGSth_min", "value": 0.8, "unit": "V"},
+  {"param": "VGSth_typ", "value": 1.4, "unit": "V"},
+  {"param": "VGSth_max", "value": 2.5, "unit": "V"},
+  {"param": "RdsOn_typ (VGS=5V, ID=7A)", "value": 36, "unit": "mOhm"},
+  {"param": "RdsOn_max (VGS=5V, ID=7A)", "value": 50, "unit": "mOhm"},
+  {"param": "Ciss_typ (VGS=100V test setup labeling as printed, VDS=0V)", "value": 200, "unit": "pF"},
+  {"param": "Ciss_max", "value": 270, "unit": "pF"},
+  {"param": "Coss_typ", "value": 110, "unit": "pF"},
+  {"param": "Coss_max", "value": 150, "unit": "pF"},
+  {"param": "Crss_typ", "value": 0.7, "unit": "pF"},
+  {"param": "Crss_max", "value": 1, "unit": "pF"},
+  {"param": "RG_typ", "value": 0.4, "unit": "Ohm"},
+  {"param": "Qg_typ (VDS=100V, VGS=5V, ID=7A)", "value": 1.8, "unit": "nC"},
+  {"param": "Qg_max", "value": 2.5, "unit": "nC"},
+  {"param": "Qgs_typ (VDS=100V, ID=7A)", "value": 0.6, "unit": "nC"},
+  {"param": "Qgd_typ (VDS=100V, ID=7A)", "value": 0.35, "unit": "nC"},
+  {"param": "Qgd_max", "value": 0.6, "unit": "nC"},
+  {"param": "Qg_at_threshold_typ", "value": 0.4, "unit": "nC"},
+  {"param": "Qoss_typ (VDS=100V, VGS=0V)", "value": 18, "unit": "nC"},
+  {"param": "Qoss_max", "value": 23, "unit": "nC"},
+  {"param": "Qrr_typ", "value": 0, "unit": "nC"},
+  {"param": "VSD_typ (IS=0.5A, VGS=0V)", "value": 1.8, "unit": "V"}
+ ],
+
+ "source_pdf": "boards/rf-de-20m/parts/C2836675.pdf"
+}

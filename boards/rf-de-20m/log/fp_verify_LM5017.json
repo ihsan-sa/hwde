@@ -1,0 +1,122 @@
+{
+ "script": "fp_verify",
+ "status": "violations",
+ "board": "SOIC-8_L5.0-W4.0-P1.27-LS6.0-BL-EP2.0.kicad_mod",
+ "counts": {
+  "total": 3,
+  "by_severity": {
+   "error": 2,
+   "warning": 1
+  },
+  "by_source": {
+   "check.fp_verify": 3
+  }
+ },
+ "violations": [
+  {
+   "check": "fp_verify",
+   "severity": "error",
+   "pos": null,
+   "layer": "F.Cu",
+   "net": null,
+   "refs": [
+    "SOIC-8_L5.0-W4.0-P1.27-LS6.0-BL-EP2.0"
+   ],
+   "msg": "copper pad count 13 != datasheet 8",
+   "source": "check.fp_verify",
+   "items": [
+    {
+     "msg": "copper pad count 13 != datasheet 8",
+     "pos": null
+    }
+   ],
+   "kind": "pad_count",
+   "expected": 8,
+   "measured": 13
+  },
+  {
+   "check": "fp_verify",
+   "severity": "error",
+   "pos": [
+    -1.9,
+    2.77
+   ],
+   "layer": "F.Cu",
+   "net": null,
+   "refs": [
+    "SOIC-8_L5.0-W4.0-P1.27-LS6.0-BL-EP2.0"
+   ],
+   "msg": "nearest-pad pitch 0.707 mm != datasheet 1.270 mm (tol 0.05)",
+   "source": "check.fp_verify",
+   "items": [
+    {
+     "msg": "nearest-pad pitch 0.707 mm != datasheet 1.270 mm (tol 0.05)",
+     "pos": [
+      -1.9,
+      2.77
+     ]
+    }
+   ],
+   "kind": "pad_pitch",
+   "expected_mm": 1.27,
+   "measured_mm": 0.7071
+  },
+  {
+   "check": "fp_verify",
+   "severity": "warning",
+   "pos": null,
+   "layer": "F.Cu",
+   "net": null,
+   "refs": [
+    "SOIC-8_L5.0-W4.0-P1.27-LS6.0-BL-EP2.0"
+   ],
+   "msg": "pad size(s) [[0.574, 2.038], [2.0, 2.0]] mm != datasheet [0.61, 1.91] mm (tol 0.1; min/max of 3 distinct sizes)",
+   "source": "check.fp_verify",
+   "items": [
+    {
+     "msg": "pad size(s) [[0.574, 2.038], [2.0, 2.0]] mm != datasheet [0.61, 1.91] mm (tol 0.1; min/max of 3 distinct sizes)",
+     "pos": null
+    }
+   ],
+   "kind": "pad_size",
+   "expected_mm": [
+    0.61,
+    1.91
+   ],
+   "measured_mm": [
+    [
+     0.574,
+     2.038
+    ],
+    [
+     2.0,
+     2.0
+    ]
+   ]
+  }
+ ],
+ "footprint": "SOIC-8_L5.0-W4.0-P1.27-LS6.0-BL-EP2.0",
+ "footprint_file": "boards\\rf-de-20m\\lib\\aiee.pretty\\SOIC-8_L5.0-W4.0-P1.27-LS6.0-BL-EP2.0.kicad_mod",
+ "copper_pads": 13,
+ "total_pads": 13,
+ "measured_pitch_mm": 0.7071,
+ "measured_pad_size_mm": [
+  0.574,
+  2.038
+ ],
+ "has_courtyard": true,
+ "has_silk": true,
+ "land_pattern": {
+  "package": "DDA0008B (SO PowerPAD-8, DDA suffix), TI recommended land pattern MRA08B Rev B",
+  "pad_count": 8,
+  "pitch_mm": 1.27,
+  "pad_size_mm": [
+   1.91,
+   0.61
+  ],
+  "row_spacing_mm": 5.56,
+  "pin1": "1",
+  "notes": "Land pattern MRA08B Rev B, read directly off the datasheet mechanical page (page index 28, 'RECOMMENDED LAND PATTERN'): 8 leads, pitch (6X) 0.050in/1.27mm, per-pad land (8X) 0.075in x 0.024in = 1.91mm x 0.61mm, outer-row-to-outer-row span (.219in) 5.56mm. Central exposed-pad land is called out separately at (.122in)[3.1mm] wide x (.095in)[2.41mm] tall, centered on SYMM - not represented by the pad_size_mm/pitch_mm fields above (those describe the 8 signal leads only); see exposed_pad. Package body (top-view outline, same page): 0.193+-0.004in [4.9+-0.11mm] pin-tip-to-pin-tip span, 0.230-0.244in [5.84-6.70mm] overall length, 0.154+-0.004in [3.90+-0.1mm] body width, 0.056-0.066in [1.42-1.68mm] body height/standoff, lead width 0.0135-0.0192in [0.35-0.49mm], foot length 0.040in [1.01mm], 0deg-8deg foot angle."
+ },
+ "svg": "boards\\rf-de-20m\\reports\\fp_verify\\LM5017.overlay.svg"
+}

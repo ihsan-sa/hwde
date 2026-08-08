@@ -1,0 +1,115 @@
+{
+  "block": "output-network",
+  "candidates": [
+    {
+      "mpn": "PCB air-core spiral, 2T, OD30/ID20mm, 1.5mm trace",
+      "lcsc": "N/A - copper, not an LCSC part",
+      "package": "PCB copper spiral, ~30x30mm footprint",
+      "basic": true,
+      "stock": 0,
+      "price": 0.0,
+      "datasheet": "",
+      "rank": 1,
+      "fit": "L_s primary pick. Wheeler-formula L=189.7nH, skin-depth ESR gives Q~130-150 (1.3-1.5x proximity derate), P~6.8-7.9W - matches the frozen Q=150/6.7W budget. Zero BOM cost, JLC-native, trimmable at bring-up. Real Q depends on an L2 ground-plane keepout under the coil (P4/P5 layout decision, not yet made) and needs bench confirmation."
+    },
+    {
+      "mpn": "SLO0630HR68MTT",
+      "lcsc": "C207835",
+      "package": "SMD,7.1x6.6mm",
+      "basic": false,
+      "stock": 1759,
+      "price": 0.1168,
+      "datasheet": "",
+      "rank": 2,
+      "fit": "L_s Plan-B fallback, unverified: N=4 in parallel (680nH units -> ~170nH total). 15A/5.5mOhm DCR gives huge current margin, but 20MHz Q is NOT published by this vendor family (Sunltech, molded shielded inductor). Paralleling divides current/heat but does NOT raise Q (Q_total=Q_unit for identical parallel units) - do not trust without a bench VNA measurement first."
+    },
+    {
+      "mpn": "MWSA0503S-R68MT",
+      "lcsc": "C408354",
+      "package": "SMD,5.4x5.2mm",
+      "basic": false,
+      "stock": 811,
+      "price": 0.1525,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2310251550_Sunlord-MWSA0503S-R20MT_C408351.pdf",
+      "rank": 3,
+      "fit": "L_s Plan-B fallback, unverified: N=4 in parallel (680nH units -> ~170nH total). Sunlord's own MWSA-S catalog specs inductance ONLY at 100kHz - no Q, ESR, or SRF at any frequency near 20MHz anywhere in the datasheet. Same bench-verification caveat as the Sunltech pick."
+    },
+    {
+      "mpn": "IHLP2020CZER1R0M01 (or nearby ~1uH IHLP value)",
+      "lcsc": "C845018",
+      "package": "SMD,6.9x6.5mm",
+      "basic": false,
+      "stock": 10109,
+      "price": 0.5448,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2312181733_Vishay-Intertech-IHLP2020CZERR68M01_C845011.pdf",
+      "rank": 4,
+      "fit": "L_s Plan-B fallback, WORST-CASE-KNOWN: the one family with a real vendor Q-vs-frequency chart (read for the datasheet's smaller values). Vishay's own Features line states 'Frequency range up to 5.0 MHz' - 4x below our 20MHz operating point. Reading the chart past that stated range gives Q~20-40 at 20MHz, i.e. P~25-50W in a single 184nH-equivalent part - this is the concrete evidence that catalog molded/shielded inductors are the wrong technology class here, not just an unverified guess."
+    },
+    {
+      "mpn": "LQW18ANR18G00D",
+      "lcsc": "C98091",
+      "package": "0603",
+      "basic": false,
+      "stock": 15391,
+      "price": 0.0529,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Murata-Electronics-LQW18ANR18G00D_C98091.pdf",
+      "rank": 5,
+      "fit": "NOT usable, listed for completeness: genuine high-Q RF wire-wound inductor (Q=25min @100MHz per Murata's real spec, SRF=1300MHz), i.e. the right frequency class - but rated only 140mA vs the 6.6A needed, a 47x shortfall before even considering paralleling ~50 units. Confirms the fundamental current-vs-Q split in this part space: nothing on LCSC has both."
+    },
+    {
+      "mpn": "CC1206JKNPOCBN560",
+      "lcsc": "C113875",
+      "package": "1206",
+      "basic": false,
+      "stock": 8106,
+      "price": 0.0524,
+      "datasheet": "",
+      "rank": 1,
+      "fit": "C_s primary pick: 8x in parallel = 448pF (0.2% off the 447pF target). C0G/NP0, 1kV rating (4.6x margin over ~215Vpk peak). Loss is tanD-limited (~0.77-1.16W total for the whole bank regardless of split count); 8-way split keeps each part at ~0.825A rms / ~145mW, comfortable for a 1206. Also doubles as the C_shunt building block (see below) for BOM commonality."
+    },
+    {
+      "mpn": "CC0805JRNPOBBN221",
+      "lcsc": "C576977",
+      "package": "0805",
+      "basic": false,
+      "stock": 21591,
+      "price": 0.0201,
+      "datasheet": "",
+      "rank": 2,
+      "fit": "C_s alt: 2x in parallel = 440pF (1.6% off target). Cheaper per part and fewer parts, but each carries ~3.3A rms / ~580mW - likely too much self-heating for an 0805 body; prefer the 8x56pF/1206 pick unless board area is tighter than thermal margin."
+    },
+    {
+      "mpn": "CC1206JKNPOZBN471",
+      "lcsc": "C309498",
+      "package": "1206",
+      "basic": false,
+      "stock": 437,
+      "price": 0.0736,
+      "datasheet": "",
+      "rank": 3,
+      "fit": "C_s alt: 470pF/630V single-value option if fewer BOM lines are preferred over even current-splitting; stock is thinner (437pcs) than the primary pick."
+    },
+    {
+      "mpn": "CC1206JKNPOCBN560",
+      "lcsc": "C113875",
+      "package": "1206",
+      "basic": false,
+      "stock": 8106,
+      "price": 0.0524,
+      "datasheet": "",
+      "rank": 1,
+      "fit": "C_shunt primary pick (same part as C_s): 4x in parallel = 224pF (12% over the 200pF external nominal - acceptable, gets tuned against actual Coss tolerance anyway). Exact current/parallel-count needs P2's switched-drain simulation to firm up; this is a reasonable planning default, not a verified final value."
+    },
+    {
+      "mpn": "CC1206JKNPODBN221",
+      "lcsc": "C469629",
+      "package": "1206",
+      "basic": false,
+      "stock": 105005,
+      "price": 0.067,
+      "datasheet": "",
+      "rank": 2,
+      "fit": "C_shunt alt: single 220pF part at 2kV rating - huge voltage margin if drain-node ringing exceeds the nominal ~215Vpk estimate. Very deep stock (105k)."
+    }
+  ]
+}

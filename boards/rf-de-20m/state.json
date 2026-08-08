@@ -1,0 +1,317 @@
+{
+ "version": 2,
+ "board": "rf-de-20m",
+ "workspace": "boards/rf-de-20m",
+ "created": "2026-08-07T20:58:16",
+ "updated": "2026-08-07T23:30:13",
+ "phase": "P4",
+ "gates": {},
+ "human": {
+  "1": {
+   "status": "approved",
+   "ts": "2026-08-07T22:07:56",
+   "note": "Architecture approved incl. override of frozen single-FET spec to 2x EPC2019 parallel; unipolar 0/+5V drive; controlled-Z relaxed; outline 100x80 with pre-auth growth to 120x80"
+  }
+ },
+ "artifacts": {},
+ "open_issues": [],
+ "next_issue_id": 1,
+ "budgets": {
+  "fix_loops": {
+   "erc": 3,
+   "place": 3,
+   "drc_routed": 3,
+   "verify": 3,
+   "dfm": 3
+  },
+  "freerouting_retries": 2,
+  "place_edit_iterations": 8
+ },
+ "decisions": [
+  {
+   "what": "Thermal: continuous 200 W duty, bottom-side heatsink pad + thermal via array under EPC2019, forced air assumed; single-sided (top) assembly so bottom is a heatsink mounting face",
+   "why": "Owner answer at P0 batch. 35-50 W loss with output inductor ~7 W hotter than the GaN; worst-case design chosen",
+   "phase": "P0",
+   "ts": "2026-08-07T21:07:10"
+  },
+  {
+   "what": "SAFETY ACK: no VSWR/OCP/OVP/thermal protection; matched or dummy 50 ohm load ONLY. Open/short output at 200 W will likely destroy the FET",
+   "why": "Owner explicitly acknowledged. Class E loses ZVS under load pull; drain exceeds the 142.5 V design peak. Protection stays out of scope per power-stage-only brief",
+   "phase": "P0",
+   "ts": "2026-08-07T21:07:10"
+  },
+  {
+   "what": "RF output connector = SMA (edge/PCB mount, 50 ohm, LCSC-stocked)",
+   "why": "200 W into 50 ohm at 20 MHz = 100 Vrms / 2 Arms, within SMA HF limits. N-type would break the 100% JLC PCBA rule",
+   "phase": "P0",
+   "ts": "2026-08-07T21:07:10"
+  },
+  {
+   "what": "Drive input: 50 ohm termination direct to LMG1020 input, NO buffer stage",
+   "why": "Owner gen supplies ~5 Vpp into 50 ohm with adjustable duty. Closes brief MUST-RESOLVE #4; fewest parts and lowest added delay",
+   "phase": "P0",
+   "ts": "2026-08-07T21:07:10"
+  },
+  {
+   "what": "Defaults taken (owner did not specify): qty 5; no hard cost ceiling; outline ~100x80 mm SOFT (no hard cap); 4x M3 corner holes; 40 V bus via 2-pos screw terminal >=10 A; ambient 25 C bench w/ margin to 40 C; 5 V rail from onboard buck off the 40 V bus",
+   "why": "Routine judgement calls. Outline deliberately left SOFT so the PCB air-core spiral inductor fallback stays available for the 6.6 A rms tank",
+   "phase": "P0",
+   "ts": "2026-08-07T21:07:10"
+  },
+  {
+   "what": "CORRECTED EPC2019 specs from datasheet: Coss(er) 156 pF (not 110), package 2.77x0.95mm solder bars (not 1.35mm LGA), Rds(on) 22 typ/42 max (not 36), Qg 2.4/2.9 nC",
+   "why": "Brief figures came from a web summary, not the datasheet. Two P1 agents independently verified. External C_shunt drops to ~161 pF",
+   "phase": "P1",
+   "ts": "2026-08-07T21:33:34"
+  },
+  {
+   "what": "L_s and L_m to be etched as PCB air-core spirals, NOT catalog inductors",
+   "why": "No LCSC part closes it: power inductors give Q 20-40 at 20 MHz (25-50 W); RF inductors rated 120-140 mA vs 6.6 A needed. Paralleling does NOT reduce loss (Q_total = Q_each). Spiral gives Q~130-150 at zero BOM cost",
+   "phase": "P1",
+   "ts": "2026-08-07T21:33:35"
+  },
+  {
+   "what": "Two-zone floorplan mandatory: heatsink zone (Q1/L1/bulk/driver) vs magnetics zone (L_s/L_m/tank caps) with L2 plane keepout under spirals only",
+   "why": "A metal heatsink or solid ground plane under a PCB spiral is a shorted turn. L2 stays unbroken under the power loop; cut out ONLY under spirals",
+   "phase": "P1",
+   "ts": "2026-08-07T21:33:35"
+  },
+  {
+   "what": "TWO EPC2019 in parallel (overrides the frozen single-FET brief)",
+   "why": "H1 owner approval. Only config where thermal closes: Tj 103 C vs 138 C. 2x Coss(er)=312 pF meets the 317 pF shunt need, deleting the external cap. 2-FET layout can build with one populated; reverse is impossible",
+   "phase": "P2",
+   "ts": "2026-08-07T22:07:56"
+  },
+  {
+   "what": "Drive input is unipolar 0/+5V (generator TTL/CMOS mode); DC-coupled, no level shift, no AC coupling",
+   "why": "H1 owner answer. LMG1020 input abs max -0.3 V forbids bipolar swing; AC coupling would destroy duty-cycle control that Class E depends on",
+   "phase": "P2",
+   "ts": "2026-08-07T22:07:56"
+  },
+  {
+   "what": "Controlled-impedance 50 ohm output trace RELAXED to a wide low-loss pour",
+   "why": "H1 owner approval. At 20 MHz a 15 mm run is lambda/550, perturbs load <2%; the controlled-Z 0.4332 mm geometry would run 50-75 C at 2 A rms",
+   "phase": "P2",
+   "ts": "2026-08-07T22:07:56"
+  },
+  {
+   "what": "Outline 100x80 mm, P6 PRE-AUTHORISED to grow to 120x80 if a spiral cannot reach area. No hard --outline cap at P5",
+   "why": "H1 owner approval. Spiral Q drives the dominant 16 W magnetics loss; ~+$3-6/board is worth protecting it",
+   "phase": "P2",
+   "ts": "2026-08-07T22:07:56"
+  },
+  {
+   "what": "EPC2019 (C2836675) is OUT OF STOCK at LCSC (stock=0, price up 2.17->3.93). Design CONTINUES; order held pending restock. Re-verify at P10",
+   "why": "Verified twice independently. No in-stock GaN substitute exists: 650V parts have Coss 239-760pF and 110-600mohm (8-11W conduction); EPC2051/2036 are 100-120V forcing a 25-33V bus. Stock-out does not change footprint/pinout/schematic, and it was in stock this morning, so design work is not wasted",
+   "phase": "P3",
+   "ts": "2026-08-07T22:26:27"
+  },
+  {
+   "what": "LMG1020YFFR primary = Tokmas C6423790; alternate = genuine TI-branded C506817 (in stock)",
+   "why": "Part-sourcer found a real TI listing, resolving the architecture's authenticity flag",
+   "phase": "P3",
+   "ts": "2026-08-07T22:26:28"
+  },
+  {
+   "what": "RF choke L201 = 2x FXL0630-R47-M (470nH, 4.1mohm, 20A) in SERIES",
+   "why": "No single LCSC part meets L/SRF/DCR/Isat together (SRF is essentially never published for adequately-rated parts). Uses the architecture's pre-authorised escape",
+   "phase": "P3",
+   "ts": "2026-08-07T22:26:28"
+  },
+  {
+   "what": "AMENDED operating point (Sokal finite Q_L=5 coefficients): R_opt 4.13 ohm, C_shunt 403 pF, L_s 164 nH, C_s 518 pF, L_m 110 nH, C_m 530 pF, I_tank 6.96 A rms. Bus STAYS 40 V",
+   "why": "Frozen brief used 1/(wR*5.4466), which is Sokal's Q_L->infinity constant, but the board runs Q_L=5. Loss 38.6 W / 83.8%, inside the frozen band",
+   "phase": "P2",
+   "ts": "2026-08-07T23:30:13"
+  },
+  {
+   "what": "External shunt trim cap POPULATED at 3x33 pF (~87 pF), not DNP",
+   "why": "EPC2019 Coss spreads 110-150 pF (+36%). If device Coss is the whole shunt, that spread lands on ZVS with no absorber. The external cap is the only trim element",
+   "phase": "P2",
+   "ts": "2026-08-07T23:30:13"
+  },
+  {
+   "what": "TWO EPC2019 now MANDATORY (not merely preferred): single FET reaches Tj 160 C with a hypothetical 0 C/W heatsink, above the 150 C abs max",
+   "why": "Real Rds(on) 36/50 mohm (65/90 hot). Pair gives 114 C nominal / 133 C max-corner at theta_HS <= 0.7 C/W. Dissipation is flat N=1->2; the win is RthJB halving per die",
+   "phase": "P2",
+   "ts": "2026-08-07T23:30:13"
+  },
+  {
+   "what": "SMA re-sourced to C22418168 CONSMA001-SMD-G-T (TE/Linx), verified TRUE SMD from manufacturer drawing; 100% SMT preserved. Cost 0.39 -> 2.97 each",
+   "why": "Previous BWSMA-KE-P001 was a THT vertical panel jack despite an SMD label. LCSC package/type fields are unreliable for mount style; verified via pad-layer inspection + customer drawing",
+   "phase": "P3",
+   "ts": "2026-08-07T23:30:13"
+  },
+  {
+   "what": "EPC2019 footprint: end columns are 0.45 mm c-c (corrected 0.46 -> 0.450). The 0.68-0.70 mm figure is the OUTER ENVELOPE and was NOT applied",
+   "why": "Fixer extracted datasheet vector geometry and refuted the librarian report. Applying 0.68 would have shifted the GATE pad 0.11 mm off a 0.25 mm pad",
+   "phase": "P3",
+   "ts": "2026-08-07T23:30:13"
+  }
+ ],
+ "edits": [],
+ "spawns": [
+  {
+   "ts": "2026-08-07T20:58:47",
+   "role": "requirements-analyst",
+   "model": "fable",
+   "phase": "P0"
+  },
+  {
+   "ts": "2026-08-07T21:33:52",
+   "role": "architect",
+   "model": "opus",
+   "phase": "P2"
+  }
+ ],
+ "history": [
+  {
+   "ts": "2026-08-07T20:58:16",
+   "event": "init",
+   "board": "rf-de-20m",
+   "phase": "P0"
+  },
+  {
+   "ts": "2026-08-07T20:58:47",
+   "event": "spawn",
+   "role": "requirements-analyst",
+   "model": "fable"
+  },
+  {
+   "ts": "2026-08-07T21:07:10",
+   "event": "decision",
+   "what": "Thermal: continuous 200 W duty, bottom-side heatsink pad + thermal via array under EPC2019, forced air assumed; single-sided (top) assembly so bottom is a heatsink mounting face"
+  },
+  {
+   "ts": "2026-08-07T21:07:10",
+   "event": "decision",
+   "what": "SAFETY ACK: no VSWR/OCP/OVP/thermal protection; matched or dummy 50 ohm load ONLY. Open/short output at 200 W will likely destroy the FET"
+  },
+  {
+   "ts": "2026-08-07T21:07:10",
+   "event": "decision",
+   "what": "RF output connector = SMA (edge/PCB mount, 50 ohm, LCSC-stocked)"
+  },
+  {
+   "ts": "2026-08-07T21:07:10",
+   "event": "decision",
+   "what": "Drive input: 50 ohm termination direct to LMG1020 input, NO buffer stage"
+  },
+  {
+   "ts": "2026-08-07T21:07:10",
+   "event": "decision",
+   "what": "Defaults taken (owner did not specify): qty 5; no hard cost ceiling; outline ~100x80 mm SOFT (no hard cap); 4x M3 corner holes; 40 V bus via 2-pos screw terminal >=10 A; ambient 25 C bench w/ margin to 40 C; 5 V rail from onboard buck off the 40 V bus"
+  },
+  {
+   "ts": "2026-08-07T21:07:10",
+   "event": "phase",
+   "phase": "P1",
+   "prev": "P0"
+  },
+  {
+   "ts": "2026-08-07T21:33:34",
+   "event": "decision",
+   "what": "CORRECTED EPC2019 specs from datasheet: Coss(er) 156 pF (not 110), package 2.77x0.95mm solder bars (not 1.35mm LGA), Rds(on) 22 typ/42 max (not 36), Qg 2.4/2.9 nC"
+  },
+  {
+   "ts": "2026-08-07T21:33:35",
+   "event": "decision",
+   "what": "L_s and L_m to be etched as PCB air-core spirals, NOT catalog inductors"
+  },
+  {
+   "ts": "2026-08-07T21:33:35",
+   "event": "decision",
+   "what": "Two-zone floorplan mandatory: heatsink zone (Q1/L1/bulk/driver) vs magnetics zone (L_s/L_m/tank caps) with L2 plane keepout under spirals only"
+  },
+  {
+   "ts": "2026-08-07T21:33:52",
+   "event": "spawn",
+   "role": "architect",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-07T21:33:52",
+   "event": "phase",
+   "phase": "P2",
+   "prev": "P1"
+  },
+  {
+   "ts": "2026-08-07T22:07:56",
+   "event": "human",
+   "checkpoint": "1",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-08-07T22:07:56",
+   "event": "decision",
+   "what": "TWO EPC2019 in parallel (overrides the frozen single-FET brief)"
+  },
+  {
+   "ts": "2026-08-07T22:07:56",
+   "event": "decision",
+   "what": "Drive input is unipolar 0/+5V (generator TTL/CMOS mode); DC-coupled, no level shift, no AC coupling"
+  },
+  {
+   "ts": "2026-08-07T22:07:56",
+   "event": "decision",
+   "what": "Controlled-impedance 50 ohm output trace RELAXED to a wide low-loss pour"
+  },
+  {
+   "ts": "2026-08-07T22:07:56",
+   "event": "decision",
+   "what": "Outline 100x80 mm, P6 PRE-AUTHORISED to grow to 120x80 if a spiral cannot reach area. No hard --outline cap at P5"
+  },
+  {
+   "ts": "2026-08-07T22:07:56",
+   "event": "phase",
+   "phase": "P3",
+   "prev": "P2"
+  },
+  {
+   "ts": "2026-08-07T22:26:27",
+   "event": "decision",
+   "what": "EPC2019 (C2836675) is OUT OF STOCK at LCSC (stock=0, price up 2.17->3.93). Design CONTINUES; order held pending restock. Re-verify at P10"
+  },
+  {
+   "ts": "2026-08-07T22:26:28",
+   "event": "decision",
+   "what": "LMG1020YFFR primary = Tokmas C6423790; alternate = genuine TI-branded C506817 (in stock)"
+  },
+  {
+   "ts": "2026-08-07T22:26:28",
+   "event": "decision",
+   "what": "RF choke L201 = 2x FXL0630-R47-M (470nH, 4.1mohm, 20A) in SERIES"
+  },
+  {
+   "ts": "2026-08-07T23:30:13",
+   "event": "decision",
+   "what": "AMENDED operating point (Sokal finite Q_L=5 coefficients): R_opt 4.13 ohm, C_shunt 403 pF, L_s 164 nH, C_s 518 pF, L_m 110 nH, C_m 530 pF, I_tank 6.96 A rms. Bus STAYS 40 V"
+  },
+  {
+   "ts": "2026-08-07T23:30:13",
+   "event": "decision",
+   "what": "External shunt trim cap POPULATED at 3x33 pF (~87 pF), not DNP"
+  },
+  {
+   "ts": "2026-08-07T23:30:13",
+   "event": "decision",
+   "what": "TWO EPC2019 now MANDATORY (not merely preferred): single FET reaches Tj 160 C with a hypothetical 0 C/W heatsink, above the 150 C abs max"
+  },
+  {
+   "ts": "2026-08-07T23:30:13",
+   "event": "decision",
+   "what": "SMA re-sourced to C22418168 CONSMA001-SMD-G-T (TE/Linx), verified TRUE SMD from manufacturer drawing; 100% SMT preserved. Cost 0.39 -> 2.97 each"
+  },
+  {
+   "ts": "2026-08-07T23:30:13",
+   "event": "decision",
+   "what": "EPC2019 footprint: end columns are 0.45 mm c-c (corrected 0.46 -> 0.450). The 0.68-0.70 mm figure is the OUTER ENVELOPE and was NOT applied"
+  },
+  {
+   "ts": "2026-08-07T23:30:13",
+   "event": "phase",
+   "phase": "P4",
+   "prev": "P3"
+  }
+ ]
+}
