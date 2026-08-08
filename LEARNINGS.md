@@ -2506,3 +2506,79 @@ building an MNA nodal solver, validating it against the as-built (it reproduced 
 to 0.1 K), and then re-solving - verdict: a dead open latches, as the author said, but a PROGRESSIVE
 crimp failure passes through the chatter window, as the reviewer said. There is no DC-solve anywhere
 in the skill, so this class of question is currently an argument rather than a gate.
+
+## 2026-08-07 [dfm][gerblib][gates] A 1-NANOMETRE gerber round-off empties the outline, and `dfm` PASSES with two checks silently dead
+lumina-carrier passed `dfm` at P9 with 0 errors. Re-run today it reports one error, from T6 Batch I's
+new `dfm_open_outline`. **The outline is not broken.** Edge.Cuts exports as 8 segments / 8 endpoints /
+zero dangling ends, but three corner joints disagree by exactly **1e-6 mm - one nanometre**, gerber
+round-off at the format's own resolution. `shapely.polygonize` has no snap tolerance, returns nothing,
+and `fab.outline` is EMPTY. `set_precision(..., 1e-5)` closes it instantly; JLC's own audit read
+`setLength 100.0 x setWidth 80.0` off these very files, so it was always fabricable.
+**The consequence is the finding:** `check_copper_to_edge` and the hole-to-edge leg of `check_holes`
+BOTH early-return on an empty outline, silently - so that P9 PASS never evaluated either, and the
+report gave no hint. This is the same class as the P9-era lesson that `drc_routed` 0/0 does not imply
+manufacturable: **a green gate proves the checks that ran, not the checks it lists.**
+Second trap, found while fixing the first: `gerblib` flattens Edge.Cuts arcs to **chords**, cutting a
+3.0 mm rounded corner ~0.879 mm inboard. Patch the snap without also interpolating arcs and you get
+two brand-new FALSE `copper_to_edge` errors on every rounded-corner board - I generated exactly those,
+then cleared them by rebuilding the true arc outline (7992.27 mm2, vs the `.kicad_pcb`'s own arc-aware
+7992.23 mm2) and re-measuring: zero real violations on either check.
+Rule: an early-return on missing/degenerate input must emit a `skipped` finding, never silence. Any
+check that can no-op needs to say so in the report, or its gate result is unfalsifiable.
+
+## 2026-08-07 [check_creepage][constraints] A SIGNED voltage in constraints.json doubles the requirement and invents failures
+T2 taught `check_creepage` to evaluate all net pairs via `dv = v_hv - v_other`. lumina-carrier declares
+`V48_RAW: 57` and `V48_RTN: -57`, so the pair computes **dv = 114 V**, selects the 101-150 V IPC-2221
+row, demands **0.80 mm**, and produced 8 of the board's 11 creepage ERRORS at 0.657-0.745 mm.
+No such potential exists. The netlist settles it in one query: **U1 is the only part touching both
+`V48_RTN` and `GND`** - the TPS2378's return IS system ground in a non-isolated PD. Two nets on one
+57 V PoE bus cannot be 114 V apart. At the true 57 V the row is 0.60 mm and all eight gaps pass, as
+does the board's stricter 0.635 mm house rule. Fixing one constraints line drops `verify` 108 -> 100.
+The sign was written to mean "the negative rail", which is true as topology and wrong as a potential.
+Rule: `voltages[]` entries are **node potentials against the board's 0 V reference**, not rail
+polarity labels. Declare the reference node as 0 and everything else relative to it; if you catch
+yourself writing a negative, first ask what net is 0 V - and confirm it from the netlist, not intent.
+A useful tell: any `dv` above the design's own maximum bus voltage is a declaration bug, not a defect.
+`constraints_lint.py` could assert exactly that.
+
+## 2026-08-07 [placement][constraints] placement.groups is load-bearing and ALL THREE of its failure modes are silent
+Three P6 defects on lumina-par, one root cause: a part that belongs to a network but is absent (or
+unreachable) in `constraints.json placement.groups` is invisible to `place_seed` and `place_anneal`,
+and nothing warns. (a) **A group anchored on a LOCKED ref is silently deleted** - `build_clusters`
+drops satellites whose anchor is immovable, so R201 (the ICD-mandated ENABLE pull-down, anchored on
+J4 precisely to hold it at the connector) was never placed AT ALL and sat outside the board outline.
+Anchoring a group on a part you then lock destroys the group; anchor on a movable neighbour, or place
+the satellite explicitly and lock it too. (b) **Parts in NO group become free singletons**: the four
+switch-node RC snubbers (C3x3/R3x4) ended 22-50 mm from their own switch node - a snubber that far
+away is a resonant tank, not a damper. (c) **Locking a part voids `placement.separation` rules that
+name it**, reported only as `separation_unknown_refs`: locking the inductors let the anneal park the
+I2C EEPROM 3.31 mm from L341 against a declared 8 mm. Corollary for any P6: after locking anything,
+re-read the seed/anneal report for dropped clusters and unknown-ref warnings - the gate will not tell
+you, because a part that was never placed cannot violate a placement rule.
+
+## 2026-08-07 [drc][kicad][fab] A voltage-class DRU rule only protects the nets you NAMED, and the ICD's own part-size policy can violate its own creepage rule
+Two coupled findings from lumina-par P6. (a) `rules_gen` writes an HV clearance rule per net listed in
+`constraints.voltages`. lumina-par declared only `+48V_SW`, but `/power/V48_B` - the branch-B hot-swap
+output (Q101 drain -> bulk) - carries the same 57 V and was never declared, so it inherited the
+0.1016 mm global floor: SIX TIMES tighter than the ICD's board-wide 0.635 mm for "every 48 V net".
+Its parts are DNP, and **a DNP part still has pads**, so P7 would have routed it at the floor and the
+clearance would have been wrong in copper forever. Declaring it and adding the rule immediately
+produced a real violation - which is the proof the gap was not theoretical. Sweep EVERY net that can
+reach a rail voltage, not just the one the architecture named. (b) The violation it found was C108's
+OWN two pads at 0.590 mm on a single 0805 land. The ICD mandates 0805 for the 48 V domain on
+VOLTAGE-RATING grounds and separately mandates 0.635 mm creepage board-wide - and never checked that
+an 0805 land's intrinsic pad gap (0.59 mm) satisfies it. It does not, and it is under IPC-2221B B2's
+0.60 mm floor too. A footprint's internal geometry is not reachable by placement or routing: if a
+creepage rule is tighter than a land pattern's own pad gap, the PART choice is the defect.
+
+## 2026-08-07 [placement][kicad] An annealer has no model of a switching loop - build the tile by hand and pin it
+lumina-par P6: both anneal candidates converged identically (hpwl -34.8%, crossings 436->159), so
+candidate SELECTION carried no information - the win came from overriding the cost function. Its
+objective is wirelength/crossings/congestion and it has no term for a buck converter's commutation
+loops, so it spread each TPS92515HV channel over a 13.5 x 6.5 mm switch-node bbox. Recipe that worked:
+hand-build ONE channel tile (TI LOOP1/LOOP2, Kelvin RSENSE return, BOOT loop, COFF at the pin),
+instantiate it identically on all four channels, then RE-RUN seed+anneal with the channels pinned so
+the optimizer legalises everything else around them. Result per channel: SW-node bbox 88 -> 17 mm2,
+catch diode 8.6 -> 3.7 mm, L-to-D 9.8 -> 3.7, BOOT 6.3 -> 2.4. **The cost is reproducibility**: the
+tile is hand-built, so re-running place_seed or place_anneal silently overwrites every bit of it.
+Record that loudly in the workspace - it is a trap for whoever resumes at P6.
