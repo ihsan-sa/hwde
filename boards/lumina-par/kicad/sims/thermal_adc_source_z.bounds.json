@@ -1,0 +1,27 @@
+[
+  {
+    "measure": "zsrc_kohm",
+    "min": 8.0,
+    "max": 10.0,
+    "severity": "error",
+    "msg": "ICD D-T16 / L-11 caps the source impedance presented to the carrier's ADC at 10 kohm, and a broken emitter harness is the binding case. SPICE returns 9.6955 k, independently confirming the 9.70 k that architecture/blocks.md B4 claims for the amended sheet - and the PRE-P4 design sat at 10.18 k, i.e. OVER the ceiling. MARGIN IS THIN BY DESIGN (3 %), so this bound is worth keeping tight: hand-checking the worst-case 1 % corner (R402 151.5, R403 10.1k, R413 10.1k, R409+R411 202k) gives 9.79 k, still inside. The lower limit catches a wrong R403 or R413, which would move every emitter threshold too."
+  },
+  {
+    "measure": "fault_v",
+    "max": 0.15,
+    "severity": "error",
+    "msg": "the impedance above is only meaningful in the correct operating state: with the harness broken /FAULT must be ASSERTED (23 mV), which terminates the 200 k hysteresis path on a stiff ~37 ohm node instead of a 9 k pull-up. Measuring in the de-asserted state would flatter the answer."
+  },
+  {
+    "measure": "s_eopen",
+    "min": 0.99,
+    "severity": "error",
+    "msg": "and it must be the EMITTER-OPEN channel that is asserting, not some other channel incidentally holding /FAULT low. Measured exactly 1.0."
+  },
+  {
+    "measure": "adc_v",
+    "min": 3.0,
+    "severity": "error",
+    "msg": "the carrier's ADC must also be able to SEE the broken harness, not just the hardware comparator: /ADC0 reads 3.151 V, hard against the rail and far outside any plausible temperature. architecture/blocks.md B4 puts the graceful roll-back layer in firmware off ADC0/ADC1, so firmware needs an unambiguous reading here."
+  }
+]

@@ -1,0 +1,304 @@
+{
+ "script": "review_board",
+ "board": "lumina-par.kicad_pcb",
+ "phase": "P8",
+ "reviewer": "verify-reviewer (fresh context)",
+ "renders": [
+  "reports/renders/lumina-par_top.png",
+  "reports/renders/lumina-par_bottom.png",
+  "reports/renders/lumina-par_iso.png"
+ ],
+ "frame": "pos[] is PCB-absolute mm; board-local = pos - (54.9375, 57.1925)",
+ "counts": {
+  "error": 5,
+  "warning": 15,
+  "waivers_recommended": 4
+ },
+ "violations": [
+  {
+   "check": "board-review",
+   "severity": "error",
+   "pos": [59.938, 62.193],
+   "layer": "Edge.Cuts",
+   "net": null,
+   "refs": ["H1"],
+   "msg": "H1 (3.2 mm M3 hole, board-local 5.000,5.000) is only 1.000 mm from the RJ45 notch wall at board-local x=6.000: 1.04 of 8.04 mm2 of the hole lies off-board and it opens into the notch as a 2.50 mm wide slot. H1 is not a usable mounting point - an M3 screw has no retention on the notch side, and an 11 mm standoff body overhangs by 4.95 mm2 (pan head 6.50, washer 8.25). The corner nearest the magjack loses its standoff, the 74 mm connector span loses 1 of 5 supports, and the 6 mm finger is left with 1.4 mm of FR4 beside a routed slot. Root cause is ICD-01 itself: s7.1 puts corner holes at a 5 mm inset while s7.6 starts the relief at x=6, and a 3.2 mm hole at x=5 needs material to x=6.6 - every LUMINA daughter inherits it. Invisible to DRC because edge_clearance applies to copper and H1 is NPTH.",
+   "source": "review.board",
+   "kind": "mounting-hole-breaches-outline",
+   "domain": "placement"
+  },
+  {
+   "check": "board-review",
+   "severity": "error",
+   "pos": [77.0, 128.5],
+   "layer": "F.SilkS",
+   "net": "+48V_SW",
+   "refs": ["TP103", "TP101", "TP102", "TP501", "TP502"],
+   "msg": "The ICD s9 bench-hazard silkscreen does not exist. The design doc states twice that it is fitted ('TP103 carries the ICD s9 bench-hazard silkscreen'; 'TP501, TP502 ... ICD s9 bench-hazard silkscreen') and requirements.md s2.5 makes it mandatory, but the board carries ZERO silkscreen text other than reference designators - no gr_text at all, and every non-refdes fp_text is on F.Fab/B.Fab, which is not fabricated. TP103 is a bare 1.5 mm pad on +48V_SW (57 V) on a fixture that floats at PoE potential with no chassis earth; ICD s9 says an earthed probe there breaks PD signature detection outright, not merely risks damage. A marking the design record asserts and the board will not have is worse than one never promised.",
+   "source": "review.board",
+   "kind": "missing-hazard-silkscreen",
+   "domain": "silk"
+  },
+  {
+   "check": "board-review",
+   "severity": "error",
+   "pos": [122.0, 110.5],
+   "layer": "F.Cu",
+   "net": "GND",
+   "refs": ["U341", "U301", "U321", "U361"],
+   "msg": "U341 has 6 thermal vias in its exposed pad where U301/U321/U361 each have 8 - a 25% conduction deficit against three parts of identical footprint, identical declared power (0.15 W) and identical channel topology, with no recorded reason. On a fixture whose purpose is colour consistency (PAR-REQ-06, already at reduced confidence since AMD-01) a thermally asymmetric channel is a chromatically asymmetric one. No gate can see it: check_thermal only emits its thermal_vias violation when need_vias is true (copper area alone cannot reach dt_c), which at 0.15 W it is not - so all eight declared min_vias floors in constraints.json are never evaluated and the check reports pass truthfully about something else.",
+   "source": "review.board",
+   "kind": "thermal-via-asymmetry",
+   "domain": "router"
+  },
+  {
+   "check": "board-review",
+   "severity": "error",
+   "pos": [68.746, 130.462],
+   "layer": "B.SilkS",
+   "net": null,
+   "refs": ["J3", "J4"],
+   "msg": "The J3/J4 pin-1 marker fails three ways at once. (a) It is an fp_circle of radius 0.03 mm stroked at 0.06 mm with fill:no - a 0.12 mm outside diameter, roughly a third of JLC's ~0.153 mm silkscreen minimum, so it will not print; systemically 89 silk graphics on this board are at 0.06 mm and 43 at 0.12 mm, and the DRU's aiee_silk_width_floor is scoped to A.Type=='text' so no rule tests graphic silk. (b) It is a circle, where ICD s3 and s7.4 mechanism 5 both specify a triangle. (c) It marks the wrong row: footprint pad 1 is at board-local (15.379,74.730) on J3 and (57.029,74.730) on J4, while the carrier's position 1 is at (15.380,77.270)/(57.030,77.270) per ICD s7.2 rev A7 - so the daughter's mark is 2.54 mm from the carrier's and identifies the contact that mates carrier position 2. ICD s7.4's fifth anti-mis-mate mechanism does not just fail, it reads as a one-row offset on a correctly seated pair.",
+   "source": "review.board",
+   "kind": "pin1-mark-unprintable-and-wrong-row",
+   "domain": "silk"
+  },
+  {
+   "check": "board-review",
+   "severity": "error",
+   "pos": [125.937, 133.192],
+   "layer": null,
+   "net": null,
+   "refs": ["J3", "J4"],
+   "msg": "Board pad numbering on J3/J4 is the mirror of the ICD position numbering that requirements.md prints as authoritative. MATING GEOMETRY IS CORRECT - I checked all 38 positions against ICD s7.2 rev A7 and every net lands on the carrier pin carrying the same net (J3 +48V_SW on daughter pads 2/4/6 at y=77.269 where the carrier's 1/3/5 sit; J4 PWM0 on pad 2, ENABLE on 24, FAULT on 23, ID_ADC on 21, ADC0 on 19, I2C_SCL on 17, all matching). The defect is documentation: board pad n carries ICD position n+1 for odd n and n-1 for even n, while requirements.md s2.1 still prints '1/3/5 +48V_SW; 2/4/6/7/8/10/13 GND' and s2.2 'PWM0..7 at positions 1,2,5,6,7,8,11,12'. Anyone metering this board against requirements.md reads a 57 V rail on the wrong pin. Needs a daughter-side pad table published before the board is handled powered.",
+   "source": "review.board",
+   "kind": "pad-numbering-vs-icd-drift",
+   "domain": "review"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [113.0, 91.0],
+   "layer": "In1.Cu",
+   "net": "GND",
+   "refs": [],
+   "msg": "In1.Cu is not the solid GND plane the design's return-path argument rests on. constraints.json omits GND from power[] because 'the requirement is structural instead (solid In1 ...)'; measured, In1.Cu carries 226 mm of foreign track and 106 foreign vias: +3V3 87.2 mm, /NTC_LED 58.9 mm, /LED0_A 38.8 mm at 0.4 mm width (a slot straight down the driver band, bought by the P8 check_current fix), /EN_OK 14.2 mm, /thermal/CMP_LED 14.1 mm, /ADC0 12.6 mm. In2.Cu (+12V) carries a further 166 mm and 195 foreign vias. The plane is NOT fragmented - In1 GND is 5833 mm2 in 5 pieces, one of 5826 mm2 plus four 0.75-2.70 mm2 slivers between J3's pads, all pad-connected through THT barrels - the defect is slot topology. check_return_path is scoped to the four declared high_speed nets, so six plane-cutting nets are never checked as victims.",
+   "source": "review.board",
+   "kind": "plane-cut-by-routing",
+   "domain": "router"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [146.0, 121.5],
+   "layer": "In1.Cu",
+   "net": "GND",
+   "refs": ["U401", "R403", "R404", "R405", "R406", "R407", "R408", "R409", "R410", "R411", "R412", "C401", "D401"],
+   "msg": "The x>88 strip has no reference plane at all and the board's independent over-temperature comparator lives in it. Both pours stop at board-local x=88 over the full 80 mm height, but ICD s7.6 only reserves y 25-55 - the removal outside that band is a choice, not a constraint. U401 (LM339LV TSSOP-14) spans board-local x 89.1-93.0, y 61.5-67.1, entirely off both planes and 6.5 mm clear of the reserved column. In the (84,54)-(100,78) box: 50.0 mm2 of In1 GND (all at x<88), 6.1 mm2 F.Cu GND, 0.9 mm2 B.Cu GND, 4 GND vias; over the whole 956 mm2 strip only 2.39 mm2 F.Cu GND. This block drives /FAULT and p4-wiring-notes s3 records the LM339LV has no internal hysteresis, so it is all external - an unreferenced comparator bank 25 mm from four switching converters is how offset becomes chatter on the fixture's fault line. The plane can legally be restored at x 88-100 for y<23 and y>57.",
+   "source": "review.board",
+   "kind": "no-reference-plane-under-analog",
+   "domain": "plane"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [120.9, 113.7],
+   "layer": "B.Cu",
+   "net": "/control/PWM0",
+   "refs": [],
+   "msg": "PWM0-3 return through the +12V plane, not GND. Stackup is F.Cu|0.2444|In1(GND)|1.0650|In2(+12V)|0.2444|B.Cu, so every B.Cu trace references In2=+12V at 0.244 mm rather than GND at 1.31 mm. PWM0 runs 29.6 of 38.6 mm on B.Cu, PWM1 28.8/50.3, PWM2 38.3/52.6, PWM3 36.2/45.0; /SHUNT0 48.3, /SHUNT2 23.3, /SHUNT1 19.4 mm likewise. constraints.high_speed declares reference GND with t_rise_ns 2.0. Eleven of the thirteen check_return_path warnings carry waiver_class cross_net_reference with reference_declared GND and reference_net +12V - the checker is reporting that it measured a different plane from the one declared. Individually the deficits (0.13-1.75 mm2) are waivable; collectively ~133 mm of 2 ns-edge PWM plus 91 mm of shunt-gate drive inject return current into the rail feeding all four LED channels. Declare +12V as the B.Cu reference and re-run, or move PWM0-3 to F.Cu - do not leave declaration and copper disagreeing.",
+   "source": "review.board",
+   "kind": "pwm-returns-to-12v-plane",
+   "domain": "router"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [103.6, 114.95],
+   "layer": "F.Cu",
+   "net": "GND",
+   "refs": ["D301", "D321", "D341", "D361"],
+   "msg": "All four catch diodes declare min_vias 4 in constraints.json and have 0. Their GND land is 1.05 x 1.5 mm; four 0.45 mm vias at the 0.5 mm hole-to-hole floor do not fit in 1.6 mm2 and two might, so this is as much a constraints defect as a layout one - but it is a declared requirement that is both unmet and unmeasured, for the same reason as U341 (check_thermal skips min_vias whenever need_vias is false). The declared 0.14 W is the shunted-idle case, i.e. the worst case at unchanged channel current, on a continuous-duty board.",
+   "source": "review.board",
+   "kind": "declared-thermal-vias-absent",
+   "domain": "router"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [150.974, 125.673],
+   "layer": "F.SilkS",
+   "net": null,
+   "refs": ["R410", "C363", "C204", "R342", "R416", "R411", "R412", "H3", "R344", "R325"],
+   "msg": "42 of 155 reference designators (27%) sit closer to a neighbouring part than to their own - R410 0.00 mm from U401, C363 0.06 mm from L361, C204 0.09 mm from J4, R342 0.12 mm from U201, R416 0.15 mm from R414, and 37 more. On this board that is a mis-build mechanism, not cosmetics: 30 parts are DNP (the branch-B front end, the converter-idle one-shot, the driver snubbers) and per the already-logged BOM item they will ship, so an operator must decide from the legend which 0603 to fit and which to leave. C363 is DNP and sits 0.06 mm from its own misplaced label next to L361, which is not. check_silk names the scripted fix (place_edit.py move_text). Real risk - not recommended for waiver.",
+   "source": "review.board",
+   "kind": "refdes-misattributed",
+   "domain": "silk"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "+3V3",
+   "refs": ["C101", "C102", "C103", "C104", "C105", "C402", "C403"],
+   "msg": "check_pdn's '+3V3 has no bulk reservoir' is a false alarm and the reason it fired is worse than the warning. +3V3 does carry bulk: C103 and C104 are 10 uF 16 V X7R 0805. check_pdn inventories only capacitors listed in kicad/decoupling.json, and C101, C102, C103, C104, C105, C402 and C403 are all absent from it - both +3V3 bulk parts, both 22 uF +12V bulk parts and both ADC filters. Seven capacitors are invisible to check_pdn, and check_decoupling (reported pass) works from the same partial list. Waive the hardware claim; fix the metadata, which is silently narrowing two P8 checks.",
+   "source": "review.board",
+   "kind": "decoupling-metadata-incomplete",
+   "domain": "review"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [65.25, 128.5],
+   "layer": "F.Cu",
+   "net": "+3V3",
+   "refs": ["C103", "C104", "C101", "C102"],
+   "msg": "Both bulk reservoirs are parked in the vacant left third, far from entry and far from load. C103 (10 uF, +3V3) is 18.1 mm from J3's +3V3 pad and 26.6/70.6/81.1 mm from U203/U202/U401; C104 is 41.7 mm from the entry and 47.5 mm from the nearest load. C101/C102 (22 uF, +12V) are 38.0 and 26.5 mm from J3's +12V pads. +3V3 arrives on two pins of a 2.54 mm connector with tens of nH of loop and its only reservoir is 18 mm away in the opposite corner from every load. Visible in lumina-par_top.png: the whole left third (x 0-36, y 26-80) is empty apart from the DNP branch-B front end, while the analog block is squeezed off the plane edge at x>88 and 42 refdes collide. The annealer had a large free region and filled it with the parts that least needed it.",
+   "source": "review.board",
+   "kind": "bulk-caps-remote-from-entry-and-load",
+   "domain": "placement"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [148.937, 97.192],
+   "layer": null,
+   "net": null,
+   "refs": ["R212", "TP102"],
+   "msg": "Antenna column VERIFIED CLEAR and nothing orphaned - two residuals. Measured copper strictly inside board-local (88,25)-(100,55): 0.0000 mm2 on F.Cu, In1.Cu, In2.Cu and B.Cu. The rule area aiee_antenna_column_no_copper is present on all four layers at the exactly translated rect and the inner pours stop at x=142.937. Truncating the planes there orphaned nothing: In1 GND is 5833 mm2 in 5 pieces, one of 5826 mm2 plus four slivers of 0.75/1.41/1.94/2.70 mm2 at board-local x 17-24 between J3's pads, each touching 1-3 through-hole pads and tied through the barrels; In2 +12V is a single 5859 mm2 piece. Residual 1: the rule area sets pads=allowed and footprints=allowed, so only tracks/vias/copperpour are actually prevented and a later place_edit or route_edit could drop metal in it with DRC silent. Residual 2: R212's pads sit 0.94 mm west of the wall (board-local x 87.06) and TP102, a bare 1.5 mm pad at (95.81,22.56), 2.44 mm north of it - both compliant with s7.6 as written, both in the antenna's near field 11 mm above the radiator.",
+   "source": "review.board",
+   "kind": "antenna-keepout-residuals",
+   "domain": "plane"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [77.937, 133.192],
+   "layer": "B.Cu",
+   "net": null,
+   "refs": ["J3", "J4", "C204", "R201", "U203", "TP103", "R207"],
+   "msg": "Reverse-mounted THT on a fully populated top side is a hand-solder-only operation and no fab note says so. The mezzanine geometry itself is clean - J3 and J4 are the only bottom-side parts (157 of 159 footprints are F.Cu), their 8.5 mm bodies leave 2.5 mm for the male insulator in the 11.0 mm gap, and nothing else is on B.Cu to foul it. But the bodies are on the bottom while all 38 leads solder on the TOP face, which carries the entire SMD assembly: the pair cannot pass a wave or a selective nozzle without masking the top side. Nearest top-side neighbours to a J3/J4 pad: C204 2.96 mm, R201 3.18 mm, U203 (the EEPROM) 3.27 mm, TP103 3.55 mm, R207 3.72 mm - a fine conical tip only. Quoted as ordinary THT this gets built wrong or re-quoted late.",
+   "source": "review.board",
+   "kind": "reverse-mount-tht-assembly-note-missing",
+   "domain": "fab"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [70.897, 128.402],
+   "layer": "F.Cu",
+   "net": "+48V_SW",
+   "refs": ["J3"],
+   "msg": "+48V_SW clears the binding 0.635 mm by 12 um - less than the etch tolerance. Measured minimum outer-layer gaps: F.Cu to +3V3 0.6470 mm at board-local (15.96,71.21); F.Cu to GND 0.6516 mm at (14.07,76.04); B.Cu to GND 0.6611 mm at (14.06,76.05). All pass, all within a typical +/-0.05 mm outer-layer etch tolerance of the requirement, so on a bad panel the ICD's binding creepage figure is not met. check_creepage demands only 0.60 and passes by construction; the DRU rule aiee_hv_57v_48V_SW is satisfied by 12 um at the worst point. ICD s5.2 names the lever and it has not been pulled - J3's pads are still at the 1.70 mm annulus, and dropping the three +48V_SW pads to 1.60 mm buys 0.05 mm at zero routing cost.",
+   "source": "review.board",
+   "kind": "hv-clearance-margin-below-etch-tolerance",
+   "domain": "router"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [71.25, 86.5],
+   "layer": "F.Cu",
+   "net": "/power/V48_B",
+   "refs": ["C108", "Q101"],
+   "msg": "Evidence added to the existing V48_B exclusion, not re-opened. Measured per-neighbour distance from /power/V48_B on F.Cu: 0.5900 mm to /power/Q101_G (C108's own 0805 land), then 0.6626 mm to GND and 0.6637 mm to /EN_OK. The B.NetName != '/power/Q101_G' carve-out in aiee_hv_57v_V48_B therefore hides exactly one pair and nothing else on that net drops below 0.635 mm - the DRU's own note is accurate and correctly scoped. Q101 is DNP on branch A so V48_B is never energised on the built board; carry it on the branch-B populate checklist, not on this build's defect list.",
+   "source": "review.board",
+   "kind": "v48b-exclusion-confirmed",
+   "domain": "review"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [141.937, 67.192],
+   "layer": null,
+   "net": null,
+   "refs": ["H2"],
+   "msg": "The recovery-header choice was made by omission. ICD s7.6 offers a binary: keep board-local (76,0)-(98,20) clear enough for a 6-way jumper lead with the daughter fitted, or accept that the daughter must be removed to recover firmware. The board presents solid FR4 over the whole rect (only H2 is inside it) at an 11.0 mm stack height, and a 6-way jumper on 2.54 mm sockets plus wire bend does not fit in 11 mm - so the board has chosen option two. requirements.md s5.2, architecture/decisions.md and the design doc all quote the ICD sentence verbatim and none records a verdict. The accepted cost is unbolting five 11 mm standoffs and unmating a 38-position pair for every firmware recovery, on 6-8 fixtures. Someone should sign that, not inherit it.",
+   "source": "review.board",
+   "kind": "recovery-header-decision-undocumented",
+   "domain": "review"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [109.353, 62.16],
+   "layer": "F.Cu",
+   "net": null,
+   "refs": ["J5"],
+   "msg": "J5 is CORRECT on the board and the design doc's surviving rationale describes it wrongly. Verified: S10B-PH-SM4-TB side entry, on F.Cu at board-local (54.416,4.967), rotation 0, not mirrored; the asymmetric land is the right way round, with ten 1.0x3.5 mm signal pads inboard at y=7.738 and two 1.5x3.4 mm board-lock pads outboard at y=2.197, silk front face at y=0.167, so the wafer opening faces -y out across the top edge. It clears the RJ45 notch (J5 spans x 42.3-66.6 against 6-36) and the recovery keepout (76-98). But the P4 close-out in lumina-par-design-doc.tex reads '...and J5 is on B.Cu inside the ICD's 11.0 mm mezzanine gap where a top-entry PHR-10 housing plus bend radius would foul the carrier'. J5 is not on B.Cu; a 10-way PH in the mezzanine gap would be a defect, and the stale sentence is the record a future reviewer will use to decide not to re-check.",
+   "source": "review.board",
+   "kind": "design-doc-j5-side-drift",
+   "domain": "review"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": "F.Cu",
+   "net": null,
+   "refs": ["U301", "U321", "U341", "U361", "U401"],
+   "msg": "No fiducials anywhere on the board, with 4x MSOP-10-EP at 0.50 mm pitch (the TPS92515HV drivers) and 1x TSSOP-14 at 0.65 mm (U401). JLCPCB does not require fiducials and registers from the board edge, so this is not a blocker - but 0.50 mm pitch is where local fiducials start to earn their place, and there is 956 mm2 of free space in the right-hand strip plus an empty left third to put them in. Decide once rather than discovering it at first-article.",
+   "source": "review.board",
+   "kind": "no-fiducials",
+   "domain": "fab"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": null,
+   "refs": [],
+   "msg": "verify_all's constraints_drift warning is expected and should stay expected. architecture/constraints.json and kicad/constraints.json differ ONLY in the documented coordinate frame - every placement.keepouts rect and every planes[].region in the kicad copy is the architecture copy translated by (+54.937,+57.192), plus a _coordinate_frame key explaining it; I diffed both in full and there is no other difference. Justified waiver, but it fires on every P8 run forever and its remediation text ('reconcile or delete the stale twin') is wrong for this board, because the board-local copy is the declared source of truth.",
+   "source": "review.board",
+   "kind": "constraints-twin-drift-expected",
+   "domain": "review"
+  }
+ ],
+ "warning_triage": {
+  "check_return_path_cross_net_reference": {
+   "count": 11,
+   "verdict": "waive individually (0.13-1.75 mm2 each), escalate as a class",
+   "escalated_to": "pwm-returns-to-12v-plane"
+  },
+  "check_return_path_in1_gnd_corridor_void": {
+   "count": 2,
+   "verdict": "justified waiver - antipad-scale voids (0.14 and 0.29 mm2) in an otherwise continuous plane, PWM1 on F.Cu at board-local (72.5,44.6) and (72.1,45.0)"
+  },
+  "check_silk_silk_misattributed": {
+   "count": 42,
+   "verdict": "real risk, do not waive",
+   "escalated_to": "refdes-misattributed"
+  },
+  "check_pdn_pdn_no_bulk": {
+   "count": 1,
+   "verdict": "false alarm - waive the hardware claim; C103/C104 are 10 uF on +3V3. Finding is the decoupling.json gap",
+   "escalated_to": "decoupling-metadata-incomplete"
+  },
+  "verify_all_constraints_drift": {
+   "count": 1,
+   "verdict": "justified waiver, permanent by design"
+  },
+  "total": 57,
+  "waived": 15,
+  "escalated": 42
+ },
+ "waivers_recommended": [
+  "11 x check_return_path cross_net_reference - waive the individual geometries; require the class decision (declare +12V as the B.Cu reference, or move PWM0-3 to F.Cu) to be recorded",
+  "2 x check_return_path In1/GND corridor voids - waive outright",
+  "1 x check_pdn pdn_no_bulk on +3V3 - waive the hardware claim, open a decoupling.json completeness item",
+  "1 x verify_all constraints_drift - waive permanently, the twin is intentional and directional"
+ ],
+ "not_reopened": [
+  "3 x check_silk silk_over_pad errors on TP101/TP102/TP103 - already logged as a checker bug (unfilled ring vs pad, no intersection). One datum added only: those three test points are also the ones missing the ICD s9 hazard legend.",
+  "~30 DNP parts shipping in the BOM because nothing in the toolchain reads a DNP mark - already logged; cited only as the reason the 42 misattributed refdes are a build risk rather than cosmetics.",
+  "shunt-FET switching time and the tLEB minimum-on-time corner - P8 BENCH items, not layout defects."
+ ],
+ "open": [
+  "Component heights: no trustworthy 3D height data except J3/J4 (8.5 mm from the ICD). L301/L321/L341/L361 (L_Cenker_CKCS4030) height unconfirmed - top-side so the 11 mm mezzanine gap is safe, but enclosure lid clearance and the J5 harness bend radius over the top edge are outside what a render can settle.",
+  "Whether U301 is genuinely the hottest stage: RT401 is 2.10 mm from U301's pads over In1 GND and 19.9-29.0 mm from the other three drivers, so it is a channel-0 sensor. All four drivers are declared at an identical 0.15 W so the declaration cannot distinguish them, while power_tree.md gives the red string a different duty from G/B/W. Which channel is red is a schematic question I did not chase.",
+  "Pin-1 and polarity marks on the 157 top-side SMD footprints after assembly - I audited the connectors only; with 42 refdes already misplaced this deserves a dedicated pass.",
+  "The enclosure: ICD s7.7.3's load-bearing wall-conduction assumption is not testable from this board."
+ ]
+}

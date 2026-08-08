@@ -1,0 +1,167 @@
+* LUM-PAR-A thermal window detector - HARNESS FAULT sweep, in VOLTS
+* (the whole /FAULT window mapped against the emitter sense-node voltage, plus
+*  the R413 + D401 protection network under an LED-anode contact fault)
+*
+* SOURCE NETLIST: work/board.net (kicadsexpr export, P6 routed board). Topology
+*   synthesized with sim_run.py --fragment (refs R401,R403,R405-R416,R207,D401,
+*   U401) and the "unresolved" U401 / RT401 / off-board NTC wired by hand from
+*   the fragment pin tables. Every R value is the netlist value, not re-typed.
+*
+* NET RENAME MAP (simlib.spice_net_name):
+*   +3V3 -> P3V3   GND -> 0   /FAULT -> N_FAULT   /NTC_LED -> N_NTC_LED
+*   /thermal/CMP_LED   -> N_THERMAL_CMP_LED    /thermal/CMP_BRD -> N_THERMAL_CMP_BRD
+*   /thermal/HYS_LED   -> N_THERMAL_HYS_LED    /thermal/HYS_BRD -> N_THERMAL_HYS_BRD
+*   /thermal/LAD_D     -> N_THERMAL_LAD_D      /thermal/NTC_BRD -> N_THERMAL_NTC_BRD
+*   /thermal/VREF_EHOT -> N_THERMAL_VREF_EHOT  /thermal/VREF_HOT2 -> N_THERMAL_VREF_HOT2
+*   /thermal/VREF_OPEN -> N_THERMAL_VREF_OPEN
+*   TB / S_* / I_R413 / P_R413 are SIM-ONLY probe nodes.
+*
+* ====================== WHY THIS BENCH, AND NOT A 5TH SWEEP =================
+* The other three benches sweep TEMPERATURE, which is the right variable for the
+* two over-temperature channels and for the cold/open channel. It is the WRONG
+* variable for the emitter-SHORT channel: a genuine short is zero ohms, not a
+* temperature, and a harness that touches an LED anode is a voltage source, not
+* a thermistor. This bench therefore replaces the off-board emitter NTC with a
+* forced sense-node voltage V(/NTC_LED) and sweeps it 0 -> 24.4 -> 0 V, which is
+* exactly what the three real harness faults do:
+*     0 V     conductor shorted to GND (or NTC shorted)
+*     3.3 V   conductor OPEN - /NTC_LED floats up to the rail through R403
+*     24.4 V  conductor touching an LED anode at the TVS clamp (architecture/
+*             sheets.md s5.3: "6.8 V nominal, 16.7-24.4 V at the TVS clamp")
+* Forcing the node is faithful: given V(/NTC_LED), R403 and the NTC no longer
+* influence V(CMP_LED) at all, so every threshold below is identical to the real
+* circuit's. It also maps the window in VOLTS, which is what a bench probe can
+* actually measure on hardware - the temperature benches cannot be checked that
+* directly.
+*
+* IT ALSO PROVES THE PROTECTION NETWORK. The LM339LV inputs are diode-clamped to
+* GND ONLY, with no clamp to V+ (architecture/sheets.md s5.3), so a series
+* resistor alone does not survive an LED anode on the sense line. R413 (10 k) +
+* D401 (1N4148W to +3V3) are the fix. NOTE the netlist places D401's ANODE on
+* /thermal/CMP_LED - the PROTECTED side of R413 - not on /NTC_LED as sheets.md
+* s5.3 loosely words it. The netlist placement is the correct one: R413 limits
+* the clamp current to ~2 mA instead of leaving D401 to absorb the fault
+* unlimited. This bench measures that current and the resulting clamp voltage.
+*
+* WHAT IS MODELLED, AND WHAT IS NOT
+*   - The emitter NTC branch is REPLACED by the forced source (see above). R403
+*     is retained so its current is real. RT401 stays in circuit at 40 C.
+*   - +3V3 is an ideal source, so the ~2 mA that D401 pushes back into the rail
+*     at the 24.4 V fault does not move it. On the real board that current is
+*     small against the rail's other loads, but a rail that could be pushed up
+*     is NOT proven here - see OPEN in the report.
+*   - R402/R404 + C402/C403 (carrier ADC feed, high-Z) carry no DC current and
+*     are omitted; verified against the netlist, /ADC0 and /ADC1 have no other
+*     loads. Their separate promise is benched in thermal_adc_source_z.cir.
+*
+* MODEL PROVENANCE (agent-authored generic cards - no vendored vendor files)
+*   D401 1N4148W (LCSC C81598) - THE PART UNDER TEST HERE. Fitted to the
+*     datasheet MAX-VF envelope from parts/C81598.json: 0.715 V at 1 mA and
+*     0.855 V at 10 mA give N*Vt = 0.140/ln(10) -> N = 2.35, and IS = 1 mA *
+*     exp(-0.715/(N*Vt)) = 7.8 nA; RS = 1.0 ohm trims the 50 mA (1.0 V) and
+*     150 mA (1.25 V) points. Fitting the MAX curve rather than a typical one is
+*     deliberate and conservative: it yields the HIGHEST clamp voltage, which is
+*     the direction that endangers the comparator input.
+*   RT401, HNTC0603-103F3950FB, LCSC C49247666: R(T) = 10k * exp(3950*(1/T -
+*     1/298.15)). *** THIS PART PUBLISHES NO VENDOR DATASHEET *** -
+*     parts/parts.json records datasheet:"" and url:"" for it; R25 = 10 k +-1%
+*     and B25/50 = 3950 K +-1% from the LCSC parametric record are its ENTIRE
+*     specification. It is held at a fixed 40 C here and only has to stay quiet.
+*   U401 LM339LV (LCSC C3658338) - Tier-B BOUNDARY model, never IC internals:
+*     S_* = 0.5*(1+tanh((V(IN-)-V(IN+))/200u)), an ideal comparator smoothed over
+*     ~200 uV; output is an OPEN-DRAIN SINK ONLY. RON = 37.5 ohm from the VOL
+*     point 150 mV typ at ISINK = 4 mA; GOFF = 3.03e-11 S from ILKG 100 pA at
+*     VPULLUP = V+. Relevant abs-max values used as bounds, from
+*     parts/C3658338.json: input pins -0.3 to 6 V (RECOMMENDED -0.1 to 5.6 V),
+*     current into input pins -10 to +10 mA.
+*     *** WIRED BY PIN NUMBER, NOT CHANNEL NAME *** (Figure 5-3 and Table 5.2
+*     transpose the channel names; the table's own footnote 1 admits it):
+*       out 1  <- IN- 6  VREF_EHOT / IN+ 7  CMP_LED     emitter hot
+*       out 2  <- IN- 4  CMP_LED   / IN+ 5  VREF_OPEN   emitter open
+*       out 14 <- IN- 8  VREF_HOT2 / IN+ 9  CMP_BRD     board hot
+*       out 13 <- IN- 10 VREF_HOT2 / IN+ 11 CMP_LED     emitter shorted <-- HERE
+*
+* SWEEP: V(/NTC_LED) 0 -> 24.4 -> 0 V at 1 V/s, 5 mV resolution. Purely
+* resistive apart from D401, so the rate is arbitrary and the run is a sequence
+* of quasi-static DC solves. Sweeping BOTH directions is what exposes the window
+* edges as hysteretic pairs.
+* .options rshunt=1e9 is injected by the runner (simlib.prepare_circuit).
+
+* ---------------------------------------------------------------- rail
+Vdd P3V3 0 DC 3.3
+
+* ------------------------------------- reference ladder R405-R408 + R416
+R405 P3V3 N_THERMAL_VREF_OPEN 2.7k
+R406 N_THERMAL_VREF_OPEN N_THERMAL_VREF_EHOT 27k
+R407 N_THERMAL_VREF_EHOT N_THERMAL_VREF_HOT2 1.2k
+R408 N_THERMAL_VREF_HOT2 N_THERMAL_LAD_D 1.6k
+R416 N_THERMAL_LAD_D 0 1.6k
+
+* ------- emitter sense node: FORCED by the harness fault (NTC branch removed)
+R403 P3V3 N_NTC_LED 10k
+VHARN N_NTC_LED 0 PWL(0 0 24.4 24.4 48.8 0)
+
+* ------------------------------------- board sense divider (RT401), held 40 C
+R401 P3V3 N_THERMAL_NTC_BRD 10k
+VTB TB 0 DC 40
+BRT401 N_THERMAL_NTC_BRD 0 I = v(N_THERMAL_NTC_BRD)/(10000*exp(3950*(1/(v(TB)+273.15)-1/298.15)))
+
+* ------------------------------- comparator input protection + rail clamp
+R413 N_NTC_LED N_THERMAL_CMP_LED 10k
+R415 N_THERMAL_NTC_BRD N_THERMAL_CMP_BRD 10k
+D401 N_THERMAL_CMP_LED P3V3 DCLAMP
+.model DCLAMP D(IS=7.8n N=2.35 RS=1.0)
+
+* --------------------- hysteresis, returned to the PROTECTED comparator nodes
+R409 N_FAULT N_THERMAL_HYS_LED 100k
+R411 N_THERMAL_HYS_LED N_THERMAL_CMP_LED 100k
+R412 N_FAULT N_THERMAL_HYS_BRD 100k
+R414 N_THERMAL_HYS_BRD N_THERMAL_CMP_BRD 100k
+R410 N_FAULT N_THERMAL_VREF_OPEN 10k
+
+* ---------------- /FAULT pull-ups: R207 local 100 k || carrier 10 k (MATED)
+R207 P3V3 N_FAULT 100k
+RCARRIER P3V3 N_FAULT 10k
+
+* -------------------------------------- U401 decision nodes (sim-only probes)
+BS_EHOT   S_EHOT   0 V = 0.5*(1+tanh((v(N_THERMAL_VREF_EHOT)-v(N_THERMAL_CMP_LED))/200u))
+BS_EOPEN  S_EOPEN  0 V = 0.5*(1+tanh((v(N_THERMAL_CMP_LED)-v(N_THERMAL_VREF_OPEN))/200u))
+BS_BHOT   S_BHOT   0 V = 0.5*(1+tanh((v(N_THERMAL_VREF_HOT2)-v(N_THERMAL_CMP_BRD))/200u))
+BS_ESHORT S_ESHORT 0 V = 0.5*(1+tanh((v(N_THERMAL_VREF_HOT2)-v(N_THERMAL_CMP_LED))/200u))
+
+* ------------------- U401 open-drain outputs, all four wire-OR'd onto /FAULT
+BOUT1  N_FAULT 0 I = v(N_FAULT)*(3.03e-11+(1/37.5-3.03e-11)*v(S_EHOT))
+BOUT2  N_FAULT 0 I = v(N_FAULT)*(3.03e-11+(1/37.5-3.03e-11)*v(S_EOPEN))
+BOUT14 N_FAULT 0 I = v(N_FAULT)*(3.03e-11+(1/37.5-3.03e-11)*v(S_BHOT))
+BOUT13 N_FAULT 0 I = v(N_FAULT)*(3.03e-11+(1/37.5-3.03e-11)*v(S_ESHORT))
+
+* ------------------------------------------- derived probes (sim-only nodes)
+* R413 current in mA and dissipation in mW (0603, 100 mW / 75 V rated)
+BIR413 I_R413 0 V = (v(N_NTC_LED)-v(N_THERMAL_CMP_LED))/10000*1000
+BPR413 P_R413 0 V = (v(N_NTC_LED)-v(N_THERMAL_CMP_LED))*(v(N_NTC_LED)-v(N_THERMAL_CMP_LED))/10000*1000
+
+.tran 0.005 48.8 0 0.005
+
+* ---- the /FAULT window mapped in volts of the sense node ----
+* rising leg: 0 V is a dead short (asserted); /FAULT releases at the low edge,
+* then re-asserts at the open edge. Falling leg gives the other two edges.
+.meas tran win_lo_rel_v  find v(N_NTC_LED) when v(N_FAULT)=1.65 rise=1
+.meas tran win_hi_trip_v find v(N_NTC_LED) when v(N_FAULT)=1.65 fall=1
+.meas tran win_hi_rel_v  find v(N_NTC_LED) when v(N_FAULT)=1.65 rise=2
+.meas tran win_lo_trip_v find v(N_NTC_LED) when v(N_FAULT)=1.65 fall=2
+.meas tran win_lo_band_mv param='(win_lo_rel_v-win_lo_trip_v)*1000'
+.meas tran win_hi_band_mv param='(win_hi_trip_v-win_hi_rel_v)*1000'
+* ---- the emitter-SHORT channel's own edges (U401 out 13) ----
+.meas tran eshort_rel_v  find v(N_NTC_LED) when v(S_ESHORT)=0.5 fall=1
+.meas tran eshort_trip_v find v(N_NTC_LED) when v(S_ESHORT)=0.5 rise=1
+* ---- /FAULT must be ASSERTED at all three real harness faults ----
+.meas tran fault_at_short_v find v(N_FAULT) at=0.01
+.meas tran fault_at_open_v  find v(N_FAULT) at=3.3
+.meas tran fault_at_24v_v   find v(N_FAULT) at=24.4
+* ---- and DE-asserted in normal operation (1.1433 V == emitter at 40 C) ----
+.meas tran fault_at_40c_v find v(N_FAULT) at=1.1433
+* ---- R413 + D401 protection under the 24.4 V LED-anode fault ----
+.meas tran cmp_led_clamp_v find v(N_THERMAL_CMP_LED) at=24.4
+.meas tran i_r413_ma       find v(I_R413) at=24.4
+.meas tran p_r413_mw       find v(P_R413) at=24.4
+.end

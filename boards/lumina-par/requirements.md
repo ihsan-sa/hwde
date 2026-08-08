@@ -116,6 +116,26 @@ non-isolated PoE topology compliant.
 - Rail order along the connector is 48 -> GND -> 12 -> 3.3 so that no
   single-position mis-seat can put a higher rail on a lower rail's pin.
 
+> **P8 AMENDMENT 2026-08-08 - THE MAPS ABOVE ARE ICD *POSITION* NUMBERS, NOT
+> THIS BOARD'S PAD NUMBERS. On a bench meter they differ.** J3/J4 are
+> reverse-mounted on B.Cu facing down (s7.3 above), and flipping a 2-row
+> connector to the back **swaps its rows**: carrier position `2k+1` physically
+> mates this board's pad `2k+2`. The schematic pin assignment was mirrored to
+> compensate - verified pin-by-pin against the carrier's own netlist, 0 of 38
+> contacts crossed - so the MATED pair is correct. But it means:
+>
+> * **ICD position 1 = this board's pad 2.** Probing "pin 1" by the map above
+>   on the daughter reads `GND`, not `+48V_SW`; probing pad 1 reads 57 V while
+>   the map says GND. Both mistakes are available and one of them is dangerous.
+> * The silkscreen triangle added at P8 marks the pad that mates **carrier
+>   position 1** - i.e. it marks pad 2, deliberately. It is a MATED-VIEW mark.
+>   A stale, unprintable circle from the footprint still sits on pad 1; ignore it.
+>
+> Before this was found, both boards transcribed the ICD map literally by pin
+> number, which crossed 12 of 14 J3 contacts and **shorted +48V_SW to GND at six
+> of them**. That is why this note exists. When probing this board, use the pad
+> numbers in `boards/lumina-par/work/board.net`, never the position map above.
+
 ### 2.2 J4 - SIGNAL block, 2x12, daughter side
 
 - Part: **CONNFLY DS1023-2*12SF11** socket (24 pos, 600 V, 3 A/contact,

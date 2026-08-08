@@ -1,0 +1,79 @@
+[
+  {
+    "measure": "bhot_trip_c",
+    "min": 106.0,
+    "max": 114.0,
+    "severity": "error",
+    "msg": "board-hot trip must land on the 110 C promise (requirements PAR-REQ-12, architecture/blocks.md B4; hand-solved 110.2 C, SPICE 109.80 C). The 106 C floor also enforces the ORDERING that makes the design safe: thermal_emitter_hot.cir bounds the emitter trip at <= 94 C, so the emitter channel is guaranteed at least 12 K of separation and always acts first. Window widened for the single-beta EXTRAPOLATION - the NTC C49247666 publishes no datasheet and B25/50 = 3950 K is fitted between 25 and 50 C, a long way below 110 C."
+  },
+  {
+    "measure": "bhot_rel_c",
+    "min": 88.0,
+    "max": 99.0,
+    "severity": "error",
+    "msg": "board-hot release (requirement 95 C, hand-solved 92.9 C, SPICE 92.90 C). Above this window the band collapses; below it the board stays disabled far longer than intended."
+  },
+  {
+    "measure": "bhot_band_k",
+    "min": 12.0,
+    "max": 24.0,
+    "severity": "error",
+    "msg": "board-hot hysteresis band, TRIP minus RELEASE for this hot-side channel (hand-solved +17.3 K, SPICE +16.90 K). Must be comfortably positive: blocks.md B4 requires hysteresis and forbids a latch (ICD s8.2), and spec-dimming R10 forbids cycling in the 0.1-10 Hz band, which a collapsed band would produce against the board's thermal time constant."
+  },
+  {
+    "measure": "bhot_trip_div_v",
+    "min": 0.155,
+    "max": 0.18,
+    "severity": "error",
+    "msg": "the trip edge as an unloaded board-divider voltage: SPICE 0.1667 V against the earlier hand solve's published 'ladder tap C = 0.1625 V' (2.6 % apart; the temperatures agree to 0.4 K). Tap C is SHARED - it references both this channel (U401 pin 8) and the emitter-short channel (pin 10)."
+  },
+  {
+    "measure": "bhot_rel_div_v",
+    "min": 0.242,
+    "max": 0.28,
+    "severity": "error",
+    "msg": "the release edge as an unloaded board-divider voltage (0.2603 V). With bhot_trip_div_v this pins the board window in volts, which is what a bench probe can actually check on hardware."
+  },
+  {
+    "measure": "hys_b_idle_mv",
+    "min": 20.0,
+    "severity": "error",
+    "msg": "SIGN CHECK, /FAULT de-asserted: R412+R414 must push the PROTECTED node (CMP_BRD) ABOVE the sensor node through R415 (measured +92.8 mV). If the hysteresis were returned to the sensor divider - the pre-P4 defect in log/P4-digest.md - no current would flow in R415 and this would collapse to ~0 mV."
+  },
+  {
+    "measure": "hys_b_fault_mv",
+    "max": -2.0,
+    "severity": "error",
+    "msg": "SIGN CHECK, /FAULT asserted: the board-side offset must FLIP NEGATIVE. It is only -5.1 mV here, an order of magnitude smaller than the emitter side's -148 mV, and that is expected rather than wrong: the offset scales with (V(node) - V(/FAULT))/20, and at 120 C the sensor node is already down at 0.129 V, close to the asserted /FAULT level. Most of this channel's 16.9 K band therefore comes from the idle-side offset plus the ladder shift, not from the fault-side offset."
+  },
+  {
+    "measure": "s_ehot_max",
+    "max": 0.01,
+    "severity": "error",
+    "msg": "NO CROSS-TALK: the emitter-hot channel must never assert while the emitter sits at a benign 40 C, even though the board channel asserting drags the shared reference ladder down (R410 sinks into the low /FAULT) and flips the hysteresis offset on the emitter comparator node. Measured exactly 0."
+  },
+  {
+    "measure": "s_eopen_max",
+    "max": 0.01,
+    "severity": "error",
+    "msg": "NO CROSS-TALK: the emitter-open channel must never assert during a board over-temperature event. Its reference VREF_OPEN is the tap R410 moves most, so this is the channel most exposed to the disturbance. Measured exactly 0."
+  },
+  {
+    "measure": "s_eshort_max",
+    "max": 0.01,
+    "severity": "error",
+    "msg": "NO CROSS-TALK: the emitter-short channel shares tap VREF_HOT2 with this board channel (U401 pins 10 and 8 on the same net), so a board fault moves its reference directly. It must still not assert with the emitter at 40 C. Measured exactly 0."
+  },
+  {
+    "measure": "fault_vol_v",
+    "max": 0.15,
+    "severity": "error",
+    "msg": "asserted /FAULT must be an unambiguous low (23 mV, one channel sinking). LM339LV VOL is specified 150 mV typ / 300 mV max at ISINK = 4 mA (parts/C3658338.json) and this network sinks only ~0.36 mA through R207 || the carrier's 10 k."
+  },
+  {
+    "measure": "fault_voh_v",
+    "min": 2.6,
+    "severity": "error",
+    "msg": "de-asserted /FAULT must be a valid CMOS high for U201 and the carrier (0.7 x VCC = 2.31 V floor on 3.3 V). Measured 3.09 V; R410's hysteresis current is what holds it below the rail. ICD: /FAULT is open drain, active low, never driven high."
+  }
+]

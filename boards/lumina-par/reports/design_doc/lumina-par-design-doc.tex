@@ -16,7 +16,7 @@
 \begin{center}
 {\LARGE\bfseries lumina-par --- Design Document}\\[6pt]
 {\large ai-ee v1 pipeline}\\[2pt]
-generated 2026-08-07 13:20:56
+generated 2026-08-08 12:30:27
 \end{center}
 \tableofcontents
 
@@ -29,10 +29,10 @@ generated 2026-08-07 13:20:56
 \endhead
 board & lumina-par \\
 workspace & \texttt{boards/lumina-par} \\
-phase & P4 \\
-gate status & all 1 recorded gates pass \\
+phase & P8 \\
+gate status & all 5 recorded gates pass \\
 state created & 2026-07-28T15:00:15 \\
-state updated & 2026-08-07T13:20:24 \\
+state updated & 2026-08-08T12:29:19 \\
 \bottomrule
 \end{longtable}
 }
@@ -88,6 +88,8 @@ Position 1 silkscreen-marked with a triangle.
 \item Rail order along the connector is 48 -\textgreater{} GND -\textgreater{} 12 -\textgreater{} 3.3 so that no
 single-position mis-seat can put a higher rail on a lower rail's pin.
 \end{itemize}
+\textgreater{} {*}\emph{P8 AMENDMENT 2026-08-08 - THE MAPS ABOVE ARE ICD }POSITION{*} NUMBERS, NOT \textgreater{} THIS BOARD'S PAD NUMBERS. On a bench meter they differ.{*}{*} J3/J4 are \textgreater{} reverse-mounted on B.Cu facing down (s7.3 above), and flipping a 2-row \textgreater{} connector to the back \textbf{swaps its rows}: carrier position \texttt{2k+1} physically \textgreater{} mates this board's pad \texttt{2k+2}. The schematic pin assignment was mirrored to \textgreater{} compensate - verified pin-by-pin against the carrier's own netlist, 0 of 38 \textgreater{} contacts crossed - so the MATED pair is correct. But it means: \textgreater{} \textgreater{} {*} \textbf{ICD position 1 = this board's pad 2.} Probing "pin 1" by the map above \textgreater{}   on the daughter reads \texttt{GND}, not \texttt{+48V\_SW}; probing pad 1 reads 57 V while \textgreater{}   the map says GND. Both mistakes are available and one of them is dangerous. \textgreater{} {*} The silkscreen triangle added at P8 marks the pad that mates {*}{*}carrier \textgreater{}   position 1{*}{*} - i.e. it marks pad 2, deliberately. It is a MATED-VIEW mark. \textgreater{}   A stale, unprintable circle from the footprint still sits on pad 1; ignore it. \textgreater{} \textgreater{} Before this was found, both boards transcribed the ICD map literally by pin \textgreater{} number, which crossed 12 of 14 J3 contacts and {*}{*}shorted +48V\_SW to GND at six \textgreater{} of them{*}{*}. That is why this note exists. When probing this board, use the pad \textgreater{} numbers in \texttt{boards/lumina-par/work/board.net}, never the position map above.
+
 \paragraph*{2.2 J4 - SIGNAL block, 2x12, daughter side}
 \begin{itemize}
 \item Part: {*}\emph{CONNFLY DS1023-2}12SF11{*}{*} socket (24 pos, 600 V, 3 A/contact,
@@ -407,6 +409,14 @@ P4 & The power sheet owns ALL FOUR PWR\_FLAGs (GND, +12V, +3V3, +48V\_SW); every
 P4 & J5 entry-direction question CLOSED: S10B-PH-SM4-TB is SIDE ENTRY and is the CORRECT part - no swap-part & datasheet p3 splits the model table into Top entry (B2B..B16B-PH-SM4-TB) and Side entry (S2B..S15B-PH-SM4-TB) columns, repeated twice more for the THT and LIF variants: the entry code is the LEADING letter, and the B in '10B' appears in every model of the series. Side entry is also right for this board - the module mounts to the enclosure wall so the harness leaves laterally regardless, and J5 is on B.Cu inside the ICD's 11.0 mm mezzanine gap where a top-entry PHR-10 housing plus bend radius would foul the carrier \\
 P4 & The /PWM0..3 nets MUST carry the canonical root-level names /PWM0../PWM3; preferred mechanism is exposing them as hierarchical pins from control, with re-spelling constraints.json to /control/PWMn as the sanctioned fallback if that is not ERC-clean & sheets.md s2 states these are the names the schematic must produce, and constraints.json.high\_speed feeds SEVEN consumers (check\_return\_path, planes\_gen, route\_critical, rules\_gen, stitch\_vias, constraints\_lint, netlist\_audit) - a mismatch silently drops the jitter-sensitive PWM nets from every one of them, on the board whose hardest requirement is the PAR-REQ-01 141 ns timing wall. It also fails netlist\_audit outright (missing\_net is an error), so it must be settled before the root build. sheets.md is internally inconsistent here - it lists PWM in the INTERFACE net table while its own From-\textgreater{}to column calls them control-internal - so the tie-break is which artifact ends up TRUE: name-match is required either way, and the hier-pin route keeps one uniform convention across all root nets \\
 P4 & REVERSAL of the earlier P4 ruling: /PWM0..3 keep their real netlist names /control/PWM0..3, and constraints.json high\_speed was re-spelled to match. The preferred hier-pin mechanism was tried, measured and REJECTED & the hier-pin route works electrically (netlist carried /PWM0 = J4-1 + R202-1 + U202-1) but is NOT ERC-clean: 4x label\_dangling, because the root subgraph for those nets is wire + label + exactly ONE sheet pin and KiCad 10.0.3 requires a real connection point. Two probes settled the rule: a second same-named root label does NOT satisfy it (8 errors, both flagged), while one TestPoint pin per root PWM wire takes the identical project to 0/0 - so buying the bare name would mean adding four PARTS to the root, a design change rather than a stitch fix. Every other root net escapes this only because two children expose it. lumina-carrier never exercised it: all 70 of its root labels appear 2-3 times. Outcome is equivalent for the seven high\_speed consumers, which match on exact name and do not validate name shape \\
+P4 & H2: emitter-hot hysteresis band ACCEPTED at 8.6 K (trip 89.9 C, release 81.2 C) against a 15 K aspiration; R207 stays 100k & trip is exact on spec at 89.9 C and only the release sits high. Widening needs a smaller feedback resistor, which trades directly against the emitter-OPEN channel margin - and emitter-open is the fail-safe that catches the broken harness this block exists for. Board-hot is already on spec at 110.2/92.9. The R207 route was recommended against and rejected: the thermal rework removed its justification (released FAULT now \textgreater{}=2.81 V in every corner incl. unmated-hot, which used to sag to 1.80 V below U201 VIH) and a stronger pull-up would shift every trip point, forcing a full MNA re-solve for no remaining benefit \\
+P4 & Optical budget to be RE-DERIVED before P5, on the OPEN-8 refutation & both emitters are 140 deg 2Theta1/2 per their own datasheets; the LCSC parametric record for the white part contradicts its own datasheet. The diffuser strength - and therefore its 30-45 pct flux cost, and the compounded 36-50 pct reduction against the H1-approved flux - was sized on a 140/120 deg delta that does not exist. Owner chose to re-derive now rather than defer, since that number is what the fixture gets judged on and the correction may recover real light \\
+P5 & Stackup changed JLC04161H-3313 -\textgreater{} JLC04161H-1080B & board\_init REFUSED -3313 by name: stackups.yaml marks it available:false - it is a PHANTOM that JLC has never offered for 4L/1.6mm/1oz/0.5oz, and it was stackups.yaml own 4-layer default until it was retired 2026-08-06, which is exactly why the P2 architecture (2026-07-28) picked it. 1080B is JLCs only real lamination in this class, live-verified 2026-08-06. FORCED, not a judgment call - the original is unorderable. Low impact here: this board has NO controlled-impedance net, so the consequence that hit lumina-carrier (100 ohm MDI solved on -3313 measuring 105.5 ohm on real 1080B geometry) does not apply. Stack total 1.5908 -\textgreater{} 1.6542 mm \\
+P5 & .kicad\_dru HV clearance hand-edited 0.6000 -\textgreater{} 0.6350 mm on +48V\_SW & ICD-01 s5 TRAP-1 and stackup.md s7 rule 1 both state it explicitly: the BINDING requirement is 0.635 mm (TPS2378 layout section), while rules\_gen emits 0.6000 mm - the IPC-2221B B2 51-100 V FLOOR. check\_creepage.py only ever demands 0.60, so a 0.635 layout passes it BY CONSTRUCTION and the extra 0.035 mm is enforced ONLY by this DRU rule. stackup.md: do not skip it because P8 goes green. RE-APPLY after any rules\_gen re-run - rules\_gen overwrites the file \\
+P6 & ICD s7.2 RE-ISSUED from the carrier as-placed geometry: J3 anchor board-local (23.000, 76.000) pad1 (15.380, 77.270); J4 anchor (71.000, 76.000) pad1 (57.030, 77.270); H5 (46.000, 74.000) unchanged. The daughter places to THESE, not to the old nominal table. & ICD s7.2 was the one section never frozen at H1 and explicitly required the carrier owner to compare placed positions and re-issue before any daughter run; lumina-carrier reached P10 without that step. Measured delta is +7.970 mm in Y on BOTH connectors identically (X agrees within 0.08/0.27 mm, and H5 matches exactly, confirming a shared origin convention) - the carrier annealer moved the connector row and the table was never corrected. Owner ruled the as-built carrier is ground truth: it is at P10 and fab-ready, so moving it is the expensive direction. Placing this daughter on the stale table would have put its sockets \textasciitilde{}8 mm from the carrier headers - a non-mating pair, and invisible to every gate because nothing in the pipeline compares two boards. \\
+P6 & J3 and J4 net-to-pin maps SWAPPED row A \textless{}-\textgreater{} row B on this board (ICD s3.1/s3.2 transcribed MIRRORED, not literally) & the daughter reverse-mounts both sockets on B.Cu facing down (ICD s7.3), and flipping a 2-row connector to the back swaps its ROWS while columns stay put - measured on the real boards, all 14 J3 pad positions coincide exactly but carrier pin 2k+1 contacts daughter pin 2k+2. ICD s3.1/s3.2 give ONE table with no mirroring instruction and LUM-CAR-A transcribed it literally on its top-side male header, so a literal transcription here crossed 12 of 14 J3 contacts INCLUDING SIX THAT SHORT +48V\_SW TO GND, plus 12 live J4 crossings (PWM0\textless{}-\textgreater{}PWM1, ENABLE\textless{}-\textgreater{}FAULT, I2C\_SDA\textless{}-\textgreater{}ADC0, and the carriers driven DSPI\_SCK onto GND). Re-verified after the swap: 0 crossings on both connectors. Found only because the mated view was checked against the carriers own netlist - erc 0/0, netlist\_audit exit 0 and every other gate passed throughout, since every check in ai-ee compares a board against ITSELF \\
+P8 & H1 (top-left M3 mounting hole) DELETED from the board; assembly ships on 4 standoffs. ICD-01 re-issued to rev A8. & ICD s7.1 (5 mm corner inset) and s7.6 (RJ45 relief starting at x=6) are mutually incompatible: they leave a 6 mm tongue, and an M3 clearance hole of 1.6 mm radius centred at (5,5) reaches x=6.6, breaching the notch wall by 0.601 mm. Orchestrator-verified: 1.046 of 8.042 mm2 (13.0 pct) off-board, opening a 2.500 mm slot - that corner never had a usable standoff on any daughter. Invisible to every gate because edge\_clearance is a COPPER rule and a mounting hole is NPTH. Owner ruled drop it: the lost corner is mostly notch, H2/H3/H4/H5 still bracket the board including the connector edge, and the CARRIER needs no change (its hole simply goes unused), so a board already at P10 is not reworked. Removed via the update\_swig worker directly - board\_update PLANNER deliberately ignores board\_only footprints so it will never plan this, but the worker it drives supports remove\_refs. drc\_routed and verify both still PASS after removal. \\
+P8 & ACCEPT U341 at 7 in-pad thermal vias (8 near-part) against a declared min\_vias 9, and D361 at 3 against a declared 4. No further routing cycle. & check\_thermal measures every driver at a 7.67 C rise against a 30 C allowance (theta\_ja 51.1, 0.15 W) and every catch diode at 7.15 C - roughly 4x margin, so the via-count delta is thermally irrelevant at these dissipations. The blockers are real and both would cost a routing change: U341 8th seat fails min\_hole\_clearance by 12.6 um because /control/PWM1 runs on B.Cu directly under its exposed pad (a 0.01 mm scan of the whole EP found ZERO legal seats), and D361 is blocked by /EN\_OK on In2 crossing under its land. PWM1 is one of the two jitter-critical nets just relocated to fix a return-path defect; moving it again to chase a thermally-unnecessary via is a bad trade. The declared 9 stays in constraints.json as design intent, NOT lowered to match the board - lowering a spec to fit the artifact is how a requirement quietly disappears. \\
 \bottomrule
 \end{longtable}
 }
@@ -492,6 +502,8 @@ Four identical channels; channel \texttt{n} is based at \texttt{300 + 20n}. Chan
 \textbar{} C401-C403 \textbar{} decoupling + NTC filter \textbar{} filter caps sized so R402/R404 x C stays a slow-signal filter, not a pulse filter \textbar{}
 \end{quote}
 Four comparator channels: {*}{*}emitter hot (90 C, release 75 C) / emitter open / emitter short / board hot (110 C, release 95 C){*}{*}. The window (open + short) converts the most likely fault in an off-board module - a broken harness wire, which reads as \emph{cold} in either divider orientation - from fail-dangerous to fail-safe (D-T17, E-10).
+
+\textgreater{} {*}{*}P8 SPICE AMENDMENT 2026-08-08 - the fault window has THREE functionally \textgreater{} distinct channels, not four.{*}{*} An independent SPICE bench (which reproduced \textgreater{} the hand MNA solve to within 0.4 K on every channel) measured {*}{*}CMP3 \textgreater{} (emitter short) as functionally redundant with CMP1{*}{*}: its tap sits at \textgreater{} 0.311 V, BELOW CMP1's 0.427 V, and both detect "sense node low", so CMP1 \textgreater{} always asserts \texttt{/FAULT} first. CMP3 measured a degenerate \textbf{1.1 mV band} and \textgreater{} can never define a \texttt{/FAULT} edge. This is a leftover from the inverted- \textgreater{} orientation spec that the blocks.md B4 amendment already corrected. \textgreater{} It is harmless and free - worth keeping as redundancy against a single \textgreater{} comparator failing - but {*}{*}no document should claim four independent fault \textgreater{} detectors.{*}{*} Measured trip/release: emitter hot 89.67/81.26 C (+8.41 K), \textgreater{} emitter open -22.30/-3.82 C (+18.47 K), board hot 109.80/92.90 C (+16.90 K).
 
 \paragraph*{1.5 \texttt{led\_if} (500-599, \texttt{\#PWR} 500)}
 \begin{quote}\small\ttfamily\raggedright
@@ -598,7 +610,10 @@ The COFF network (C304/R305/R306 per channel, s1.3 had none of it) is joined by 
 \item \textbf{R402/R404 are 150 R, not "\textless{}= 1 k"}, and C402/C403 are {*}{*}4.7 uF 0805, not
 100 nF 0603{*}{*} (footprint change) so the filter stays slow at the lower R.
 \item \textbf{R413/R415} (10 k) series-protect the comparator inputs and \textbf{D401}
-(1N4148W) clamps \texttt{/NTC\_LED} to \texttt{+3V3}. The LM339LV inputs are diode-clamped
+(1N4148W) clamps the PROTECTED comparator node \texttt{/thermal/CMP\_LED} to
+\texttt{+3V3} - NOT \texttt{/NTC\_LED} itself. (Corrected at P8 from the netlist, which is
+authoritative: R413 sits between them and limits the clamp current to
+2.03 mA.) The LM339LV inputs are diode-clamped
 to GND \textbf{only}, with no clamp to V+, so a series resistor alone does not
 protect them from a harness fault that puts an LED anode (6.8 V nominal,
 16.7-24.4 V at the TVS clamp) onto the sense line.
@@ -614,9 +629,331 @@ Gate \texttt{erc} (phase P4): \textbf{pass} after 2 attempt(s); last 2026-08-07T
 The full schematic PDF follows.
 \includepdf[pages=-]{reports/schematic.pdf}
 \section{Layout}
-\emph{Pending --- produced at P6.}
+Gate \texttt{place} (phase P6): \textbf{pass} after 1 attempt(s); last 2026-08-07T20:05:19, failing 0 of 0.
+
+Gate \texttt{drc\_routed} (phase P8): \textbf{pass} after 3 attempt(s); last 2026-08-08T01:02:43, failing 0 of 0.
+\begin{center}
+\includegraphics[width=0.72\textwidth]{reports/renders/lumina-par_top.png}\\
+{\small\texttt{reports/renders/lumina-par\_top.png}}
+\end{center}
+\begin{center}
+\includegraphics[width=0.72\textwidth]{reports/renders/lumina-par_bottom.png}\\
+{\small\texttt{reports/renders/lumina-par\_bottom.png}}
+\end{center}
+\begin{center}
+\includegraphics[width=0.72\textwidth]{reports/renders/lumina-par_iso.png}\\
+{\small\texttt{reports/renders/lumina-par\_iso.png}}
+\end{center}
 \section{Verification}
-\emph{Pending --- produced at P8.}
+Gate \texttt{verify} (phase P8): \textbf{pass} after 3 attempt(s); last 2026-08-08T10:22:11, failing 0 of 60.
+\emph{reports/verify\_all.json not available.}
+\subsection*{Design review of record}
+\subsection*{LUM-PAR-A board review (P8, adversarial)}
+Reviewer: fresh-context P8 board reviewer. No part of this board was placed or routed by me. Every number below is measured from \texttt{kicad/lumina-par.kicad\_pcb} or from an artifact named inline; renders are the ones I generated at \texttt{reports/renders/lumina-par\_\{top,bottom,iso\}.png}.
+
+Board-local coordinates are ICD frame (origin = board top-left, x right, y down). PCB-absolute = board-local + (54.9375, 57.1925). Both are given where it matters; the JSON carries PCB-absolute so \texttt{fix\_dispatch} can find things.
+
+\textbf{Gate state I am reviewing against, not from:} erc 0/0, place 0/0, drc\_routed 0/0, verify PASS (0 failing, 3 waived, 57 warnings). Nothing below is contradicted by a gate - that is the point. Where a gate is structurally incapable of seeing a defect, I say which gate and why.
+
+\textbf{5 errors, 15 warnings, 4 waiver recommendations.}
+
+---
+
+\subsubsection*{Errors}
+\paragraph*{E1. H1's mounting hole is cut open by the RJ45 notch - the corner has no standoff}
+H1 sits at board-local (5.000, 5.000) with a 3.2 mm drill. The RJ45 relief's left wall is an \texttt{Edge.Cuts} line at x = 6.000 (absolute 60.9375) running the full 26 mm of the notch. Hole centre to that edge is \textbf{1.000 mm} against a 1.600 mm hole radius, so:
+
+\begin{itemize}
+\item \textbf{1.04 mm2 of the 8.04 mm2 hole lies outside the board} (13 \%). The hole is
+not a hole: it opens into the notch as a \textbf{2.50 mm wide slot}.
+\item An M3 screw at H1 has no material on the notch side. An 11 mm F-F standoff
+body (\textasciitilde{}5 mm across) overhangs by 4.95 mm2, an M3 pan head (5.5 mm) by
+6.50 mm2, a plain washer (6.0 mm) by 8.25 mm2.
+\item What is left of the 6 mm finger between the board edge and the notch is
+\textbf{1.4 mm of FR4 at the narrowest}, with a routed slot through it - a crack
+initiator at exactly the corner a technician grips while unmating.
+\end{itemize}
+Visible in \texttt{lumina-par\_iso.png} (near-left corner, marked H1: compare its scalloped opening against the closed circle at H4) and in \texttt{lumina-par\_top.png} at the top-left of the notch.
+
+\textbf{Root cause is in ICD-01, not in this board.} s7.1 puts the four corner holes at a 5 mm inset; s7.6 starts the RJ45 relief at x = 6 and says "the outline rectangle, corner radius and 5-hole pattern are \textbf{unchanged}". A 3.2 mm hole centred at x = 5 needs material out to x = 6.6. The two clauses cannot both hold, and \textbf{every LUMINA daughter inherits the collision} - the carrier does not, because it has no notch. Per ICD s10 this is a blocking issue against LUM-CAR-A, not a local variant.
+
+\textbf{Why no gate sees it.} KiCad's \texttt{edge\_clearance} constraint applies to copper items; H1 is \texttt{MountingHole\_3.2mm\_M3}, an NPTH pad with no copper layer, so DRC has nothing to test. \texttt{check\_{*}} has no mechanical-outline check at all.
+
+Two candidate fixes, both needing the carrier owner: move H1 to (3.0, 5.0) (1.4 mm to the edge, 1.4 mm to the notch - still poor), or start the notch at x = 8 and shorten it to 28 mm. Neither is this board's call.
+
+\paragraph*{E2. The ICD s9 bench-hazard silkscreen is claimed in the design doc and does not exist on the board}
+\texttt{reports/design\_doc/lumina-par-design-doc.tex} states, twice, that the marking is fitted: \emph{"TP103 carries the ICD s9 bench-hazard silkscreen"} (test-point table) and \emph{"TP501, TP502 ... ICD s9 bench-hazard silkscreen"}. \texttt{requirements.md} s2.5 makes it mandatory: {*}"Any test point fitted must carry the ICD s9 bench-hazard warning."{*}
+
+The board carries {*}{*}no silkscreen text of any kind other than component reference designators{*}{*}. There are zero \texttt{gr\_text} items on the board, and every \texttt{fp\_text} that is not a refdes is on \texttt{F.Fab} / \texttt{B.Fab}, which is not fabricated. Confirmed visually: no legend anywhere in \texttt{lumina-par\_top.png} or \texttt{lumina-par\_bottom.png}.
+
+TP103 is a bare 1.5 mm pad on \texttt{+48V\_SW} at board-local (22.06, 71.31) - 57 V worst case, on a fixture that floats at PoE potential with no chassis earth. ICD s9's published consequence of clipping an earthed probe or a non-isolated USB-UART there is not merely shock and damage: it {*}{*}breaks PD signature detection outright{*}{*}, because detection currents are a few hundred microamps. TP501/TP502 are bare thermocouple pads on GND - the same floating return.
+
+A safety marking that the design record asserts and the fabricated board will not have is worse than one that was never promised: the next person reads the design doc, believes the board is marked, and does not add it.
+
+\paragraph*{E3. U341 has 6 thermal vias where its three identical siblings have 8, and the gate cannot see the difference}
+Measured inside each declared thermal pad's polygon (+0.05 mm halo):
+
+\begin{quote}\small\ttfamily\raggedright
+\textbar{} ref \textbar{} declared `min\_vias` \textbar{} vias found \textbar{}\\
+\textbar{}---\textbar{}---\textbar{}---\textbar{}\\
+\textbar{} U301 \textbar{} 9 \textbar{} 8 \textbar{}\\
+\textbar{} U321 \textbar{} 9 \textbar{} 8 \textbar{}\\
+\textbar{} {*}{*}U341{*}{*} \textbar{} 9 \textbar{} {*}{*}6{*}{*} \textbar{}\\
+\textbar{} U361 \textbar{} 9 \textbar{} 8 \textbar{}\\
+\textbar{} D301 / D321 / D341 / D361 \textbar{} 4 each \textbar{} {*}{*}0 each{*}{*} \textbar{}
+\end{quote}
+The 8-not-9 result on three drivers is the documented geometric maximum at the 0.5 mm hole-to-hole floor and is fine. \textbf{U341 at 6 is not} - it is a 25 \% conduction deficit against three parts that are the same footprint, the same power (0.15 W declared) and the same channel topology, with no recorded reason. On a fixture whose whole purpose is colour consistency (PAR-REQ-06, carried at reduced confidence since AMD-01), a thermally asymmetric channel is a chromatically asymmetric channel.
+
+\textbf{Why no gate sees it.} \texttt{check\_thermal} only emits its \texttt{thermal\_vias} violation when \texttt{need\_vias} is true - that is, when the copper-area model alone cannot reach \texttt{dt\_c}. At 0.15 W and 0.14 W it can, so \texttt{need\_vias} is False and \textbf{all eight declared `min\_vias` floors are never evaluated}. The board declares eight thermal-via requirements and the P8 suite tests none of them. \texttt{check\_thermal} reports \texttt{pass} with 0 violations, truthfully, about something else.
+
+The four catch diodes at zero vias are carried separately as W4 - their declared floor of 4 may not even be geometrically achievable in a 1.05 x 1.5 mm land, which is itself a constraints defect rather than a layout one.
+
+\paragraph*{E4. The J3/J4 pin-1 marker is unprintable, is the wrong shape, and points at the wrong row}
+Three separate defects in one 0.12 mm feature.
+
+\textbf{(a) It will not print.} The marker on both connectors is an \texttt{fp\_circle} with \texttt{center} and \texttt{end} 0.03 mm apart - radius 0.03 mm - stroked at \textbf{0.06 mm} with \texttt{fill no}. Outside diameter 0.12 mm. JLC's silkscreen minimum line width is \textasciitilde{}0.153 mm. This is roughly a third of the minimum feature and will be dropped or smeared by the screen. J3's marker is at board-local (13.81, 73.27), J4's at (55.66, 73.33), both on \texttt{B.SilkS}.
+
+This is systemic, not local: {*}{*}89 silk graphics on this board are stroked at 0.06 mm and 43 at 0.12 mm{*}{*}, all below the fab floor. The DRU does carry \texttt{aiee\_silk\_width\_floor} at 0.150 mm, but its condition is \texttt{A.Type == 'text' \&\& ...}, so it constrains only text objects. No rule anywhere tests graphic silk width, which is why drc\_routed is 0/0.
+
+\textbf{(b) It is a circle, not a triangle.} ICD s3 ("Position 1 is silkscreen-marked with a triangle on \textbf{both} boards") and s7.4 mechanism 5 ("A pin-1 triangle at position 1 of both blocks on \textbf{both} boards") both specify a triangle.
+
+\textbf{(c) It marks the wrong row.} After the reverse-mount flip, footprint pad 1 is at board-local (15.379, 74.730) on J3 and (57.029, 74.730) on J4. The carrier's position 1 - per ICD s7.2 rev A7, the re-issued as-built table - is at (15.380, 77.270) and (57.030, 77.270): \textbf{the other row}. So the daughter's pin-1 mark sits 2.54 mm from the carrier's and identifies the contact that mates with the carrier's position \textbf{2}.
+
+ICD s7.4 lists five anti-mis-mate mechanisms and silkscreen is the fifth. Here it does not merely fail to help - a technician who checks that the two pin-1 marks line up will read a one-row offset and conclude the pair is mis-seated when it is correct. Both connector bodies also sit over their own silk (the sockets are 8.5 mm and cover the outline), so the corner mark is the only part of it visible after assembly, and it is the part that is wrong.
+
+\paragraph*{E5. The board's J3/J4 pad numbering is the mirror of the ICD map that requirements.md prints as authoritative}
+{*}{*}The mating geometry is correct - I verified all 38 positions and found no electrical error.{*}{*} Every net on the daughter lands on the carrier pin carrying the same net under ICD s7.2 rev A7:
+
+\begin{itemize}
+\item J3: \texttt{+48V\_SW} on daughter pads 2/4/6 at board-local y = 77.269, which is
+where the carrier's positions 1/3/5 are; GND opposite at y = 74.730 against
+the carrier's 2/4/6; \texttt{+12V} on 10/12, \texttt{+3V3} on 11/13, GND on 7/8/9/14 -
+all matching the carrier pin at the same (x, y).
+\item J4: PWM0 on daughter pad 2 (carrier position 1), PWM1 on pad 1, PWM2 on 6,
+PWM3 on 5, \texttt{I2C\_SCL} on 17 (carrier 18), \texttt{I2C\_SDA} on 20 (carrier 19),
+\texttt{ADC0} on 19 (carrier 20), \texttt{ADC1} on 22 (carrier 21), \texttt{ID\_ADC} on 21
+(carrier 22), \texttt{ENABLE} on 24 (carrier 23), \texttt{FAULT} on 23 (carrier 24), and
+every carrier PWM4-7 / DSPI position landing on an unconnected daughter pad.
+\end{itemize}
+{*}{*}The problem is that the daughter's pad numbering is now offset by one row from ICD position numbering{*}{*} - board pad \emph{n} carries ICD position \emph{n}+1 for odd \emph{n} and \emph{n}-1 for even \emph{n}, on both connectors - and nothing in the project's documents says so:
+
+\begin{itemize}
+\item \texttt{requirements.md} s2.1 still prints {*}"Pin map (ICD s3.1), authoritative, do
+not re-derive: 1/3/5 \texttt{+48V\_SW}; 2/4/6/7/8/10/13 \texttt{GND}; 9/11 \texttt{+12V}; 12/14
+\texttt{+3V3}"{*}. On this board J3.1 is GND and J3.2 is \texttt{+48V\_SW}.
+\item s2.2 likewise prints \emph{"`PWM0..7` at positions 1,2,5,6,7,8,11,12"}. On this
+board J4.1 is PWM1.
+\end{itemize}
+Anyone who brings this board up with a meter against \texttt{requirements.md} reads a 57 V rail on the wrong pin. This is the same class of defect as the row-swap that was caught this session, one artifact downstream - and it is the artifact a bench technician actually opens. It needs a daughter-side pad table stating that daughter pad \emph{n} mates carrier position \emph{n}-/+1, published in \texttt{requirements.md} s2.1/s2.2 and the design doc, before this board is handled powered.
+
+---
+
+\subsubsection*{Warnings}
+\paragraph*{W1. In1.Cu is not the solid GND plane the whole return-path argument rests on}
+\texttt{architecture/constraints.json} justifies leaving GND out of \texttt{power{[}{]}} on the grounds that {*}"the requirement is structural instead (solid In1, per-channel harness returns, 7 connector GND pins ...)"{*}. Measured, In1.Cu carries \textbf{226 mm of foreign track and 106 foreign vias}:
+
+\begin{quote}\small\ttfamily\raggedright
+\textbar{} net on In1.Cu \textbar{} length \textbar{} board-local extent \textbar{}\\
+\textbar{}---\textbar{}---\textbar{}---\textbar{}\\
+\textbar{} `+3V3` \textbar{} 87.2 mm \textbar{} (40.7, 25.4) -\textgreater{} (91.6, 68.9) \textbar{}\\
+\textbar{} `/NTC\_LED` \textbar{} 58.9 mm \textbar{} (45.7, 13.2) -\textgreater{} (90.3, 73.4) \textbar{}\\
+\textbar{} `/LED0\_A` \textbar{} 38.8 mm @ 0.4 mm \textbar{} (52.5, 17.2) -\textgreater{} (62.0, 51.3) \textbar{}\\
+\textbar{} `/EN\_OK` \textbar{} 14.2 mm \textbar{} (34.4, 30.6) -\textgreater{} (46.3, 33.7) \textbar{}\\
+\textbar{} `/thermal/CMP\_LED` \textbar{} 14.1 mm \textbar{} (85.7, 58.6) -\textgreater{} (93.3, 69.5) \textbar{}\\
+\textbar{} `/ADC0` \textbar{} 12.6 mm \textbar{} (51.5, 55.0) -\textgreater{} (79.9, 74.7) \textbar{}
+\end{quote}
+In2.Cu (+12V) carries a further 166 mm and 195 foreign vias, including \texttt{/SHUNT0} 9.1 mm and \texttt{/LED0\_A} 7.9 mm.
+
+The \texttt{/LED0\_A} run is a 38.8 mm slot straight down the middle of the driver band - the P8 fix that took \texttt{check\_current} from 36 to 0 bought its IPC width by cutting the reference plane. \texttt{+3V3} and \texttt{/NTC\_LED} between them thread the plane over most of the board's width and height.
+
+\textbf{The plane is not fragmented, and I want that on the record separately:} the In1 GND fill is 5833 mm2 in 5 pieces - one of 5826 mm2 plus four slivers of 0.75-2.70 mm2 between J3's pads at board-local x 17-24, each touching 1-3 THT pads and therefore connected through the barrels. Nothing is orphaned. The defect is slot topology, not islands.
+
+The only check that would see this is \texttt{check\_return\_path}, and it is scoped to the four nets declared in \texttt{constraints.high\_speed}. Six nets cut the plane; none of the six is checked as a victim.
+
+\paragraph*{W2. The right-hand 12 mm strip has no reference plane at all - and the independent over-temperature comparator lives in it}
+Both pours stop at board-local \textbf{x = 88 over the full 80 mm height} (zone outlines (54.937, 57.192)-(142.937, 137.192) on In1 and In2). ICD s7.6 only reserves y 25-55 in that column. The removal outside 25-55 is a choice, not a constraint.
+
+U401 (LM339LV, TSSOP-14) spans board-local x 89.1-93.0, y 61.5-67.1 - {*}{*}6.5 mm clear of the reserved column and entirely off both planes{*}{*} - with R403-R416, C401-C403 and D401 around it. Measured in the (84, 54)-(100, 78) box: 50.0 mm2 of In1 GND (all of it at x \textless{} 88), 6.1 mm2 of F.Cu GND, 0.9 mm2 of B.Cu GND and \textbf{4 GND vias}. Over the whole x \textgreater{} 88 strip (956 mm2 of board) there is 2.39 mm2 of F.Cu GND and 0.83 mm2 of In1 GND.
+
+This block is the board's hardware backstop: \texttt{/FAULT} is driven by U401.1/2/13/14 wire-OR'd to the carrier. \texttt{architecture/p4-wiring-notes.md} s3 records that the LM339LV has \textbf{no internal hysteresis}, so all of it is external (R405-R412). A comparator bank with external-only hysteresis, no ground reference and four switching converters 25 mm away is how a few millivolts of offset becomes chatter on the fixture's fault line. \texttt{check\_return\_path} never looks here.
+
+The plane can legally be restored at x 88-100 for y \textless{} 23 and y \textgreater{} 57, which covers the whole analog block while leaving the ICD column void intact.
+
+\paragraph*{W3. PWM0-3 return through the +12V plane, not GND - 11 of the 13 return-path warnings say so and the class matters more than the geometry}
+Stackup from the board: F.Cu \textbar{} 0.2444 \textbar{} In1(GND) \textbar{} 1.0650 \textbar{} In2(+12V) \textbar{} 0.2444 \textbar{} B.Cu. \textbf{Every B.Cu trace on this board references In2 = +12V}, 0.244 mm away, not GND at 1.31 mm.
+
+\begin{quote}\small\ttfamily\raggedright
+\textbar{} net \textbar{} total \textbar{} on B.Cu \textbar{}\\
+\textbar{}---\textbar{}---\textbar{}---\textbar{}\\
+\textbar{} `/control/PWM0` \textbar{} 38.6 mm \textbar{} 29.6 mm \textbar{}\\
+\textbar{} `/control/PWM1` \textbar{} 50.3 mm \textbar{} 28.8 mm \textbar{}\\
+\textbar{} `/control/PWM2` \textbar{} 52.6 mm \textbar{} 38.3 mm \textbar{}\\
+\textbar{} `/control/PWM3` \textbar{} 45.0 mm \textbar{} 36.2 mm \textbar{}\\
+\textbar{} `/SHUNT0` \textbar{} 72.0 mm \textbar{} 48.3 mm \textbar{}\\
+\textbar{} `/SHUNT2` \textbar{} 42.8 mm \textbar{} 23.3 mm \textbar{}\\
+\textbar{} `/SHUNT1` \textbar{} 55.4 mm \textbar{} 19.4 mm \textbar{}
+\end{quote}
+\texttt{constraints.high\_speed} declares \texttt{"reference": "GND"} with \texttt{t\_rise\_ns: 2.0} for all four PWMs. Eleven of the thirteen \texttt{check\_return\_path} warnings carry \texttt{waiver\_class: "cross\_net\_reference"}, \texttt{reference\_declared: "GND"}, \texttt{reference\_net: "+12V"} - the checker is telling you it measured a different plane from the one declared, and then measuring corridor voids in it.
+
+Individually the deficits are 0.13-1.75 mm2 and are not worth a fix. {*}{*}The class is:{*}{*} roughly 133 mm of 2 ns-edge PWM and 91 mm of shunt-gate drive inject their return current into the rail that feeds all four LED channels. \texttt{+12V} is well bypassed to GND (2 x 22 uF 1210 plus 4 x 4.7 uF at the drivers) so it is a serviceable AC ground - but that is an argument that should be written down and waived, not left as eleven silent warnings whose text says the reference is wrong.
+
+Recommendation: either declare \texttt{+12V} as the reference for the B.Cu segments and re-run, or move PWM0-3 to F.Cu where In1 GND is 0.244 mm away. Do not leave the declaration and the copper disagreeing.
+
+\paragraph*{W4. Four declared thermal sites have zero of their required vias - and the requirement may be impossible as written}
+D301/D321/D341/D361 each declare \texttt{min\_vias: 4} in \texttt{constraints.json}; each has \textbf{0}. Their GND land is 1.05 x 1.5 mm. Four 0.45 mm vias at the 0.5 mm hole-to-hole floor do not fit in 1.6 mm2; two might. So this is a constraints defect as much as a layout one - but it is a declared requirement that is unmet and unmeasured (see E3 for why \texttt{check\_thermal} is silent). The declared 0.14 W is the shunted-idle case, which is the \emph{worst} case at unchanged channel current, so it is a steady-state number on a continuous-duty board.
+
+\paragraph*{W5. 42 refdes name the wrong part - that is a mis-build mechanism on this board, not cosmetics}
+All 42 \texttt{check\_silk} warnings are \texttt{silk\_misattributed}: {*}{*}27 \% of the 155 reference designators sit closer to a neighbouring part than to their own.{*}{*} The worst are effectively touching:
+
+\begin{itemize}
+\item R410 - \textbf{0.00 mm} from U401
+\item C363 - 0.06 mm from L361
+\item C204 - 0.09 mm from J4
+\item R342 - 0.12 mm from U201
+\item R416 - 0.15 mm from R414
+\item R411 0.23 mm from R412, R412 0.19 mm from H3, R344 0.23 mm from R205, H3 0.29 mm from R411, R325 0.41 mm from R214 ...
+\end{itemize}
+Ordinarily this is a warning you take on the chin. Not here. {*}{*}30 parts on this board are DNP{*}{*} (C106-C108, C210-C213, C303/C323/C343/C363, D201-D204, Q101, Q102, R101-R104, R210-R213, R304/R324/R344/R364, U204) and - per the already logged BOM item - they will ship. A build operator resolving "which of these two 0603s is C363 (DNP) and which is L361 (fit)" from a legend that is 0.06 mm from the wrong part will get it wrong, and the shunt-FET snubbers and the converter-idle one-shot are precisely the parts that must \textbf{not} be fitted on branch A. \texttt{check\_silk} even names the scripted fix (\texttt{place\_edit.py move\_text}). This is real risk; I do not recommend waiving it.
+
+\paragraph*{W6. \texttt{check\_pdn}'s "+3V3 has no bulk reservoir" is a false alarm, and the reason it fired is worse than the warning}
+The rail does have bulk: {*}{*}C103 and C104 are 10 uF 16 V X7R 0805 on \texttt{+3V3}/GND{*}{*}. The warning listed only C201, C202, C203, C205, C401.
+
+\texttt{check\_pdn} inventories only capacitors listed in \texttt{kicad/decoupling.json}. Absent from that file: \textbf{C101, C102, C103, C104, C105, C402, C403} - both \texttt{+3V3} bulk parts, both 22 uF \texttt{+12V} bulk parts, and both ADC filters. So the PDN check is blind to 7 of the board's capacitors, and \texttt{check\_decoupling} (which reported \texttt{pass}) is working from the same partial list.
+
+Verdict on the warning itself: \textbf{waive} - the hardware claim is wrong. The finding is the metadata gap, which silently narrows two P8 checks.
+
+\paragraph*{W7. Both bulk reservoirs are parked in the vacant left third, far from entry and far from load}
+\begin{quote}\small\ttfamily\raggedright
+\textbar{} cap \textbar{} board-local \textbar{} to its J3 entry pad \textbar{} to nearest load \textbar{}\\
+\textbar{}---\textbar{}---\textbar{}---\textbar{}---\textbar{}\\
+\textbar{} C103 (10 uF, +3V3) \textbar{} (10.3, 71.3) \textbar{} 18.1 mm \textbar{} 26.6 mm (U203); U202 70.6, U401 81.1 \textbar{}\\
+\textbar{} C104 (10 uF, +3V3) \textbar{} (3.6, 41.1) \textbar{} 41.7 mm \textbar{} 47.5 mm (U203) \textbar{}\\
+\textbar{} C101 (22 uF, +12V) \textbar{} (34.6, 40.3) \textbar{} 38.0 mm \textbar{} 14.2 mm (U361) \textbar{}\\
+\textbar{} C102 (22 uF, +12V) \textbar{} (52.1, 76.6) \textbar{} 26.5 mm \textbar{} 24.8 mm (U301) \textbar{}
+\end{quote}
+\texttt{+3V3} arrives on two pins of a 2.54 mm connector - tens of nH of loop - and its only reservoir is 18 mm away in the opposite corner from every load. The four per-channel 4.7 uF input caps do the real work on \texttt{+12V}; C101/C102 at 26-38 mm from the connector are contributing little at the entry and little at the loads.
+
+The cause is visible in \texttt{lumina-par\_top.png}: the whole left third (x 0-36, y 26-80) is empty apart from the DNP branch-B front end, while the analog block is squeezed out past the plane edge at x \textgreater{} 88 (W2) and 42 refdes collide (W5). The annealer had a large free region and used it for the parts that least needed it.
+
+\paragraph*{W8. Antenna column: verified genuinely clear, nothing orphaned, two residuals}
+Answering the specific question directly. Measured copper strictly inside the board-local rect (88, 25)-(100, 55):
+
+\begin{quote}\small\ttfamily\raggedright
+F.Cu   0.0000 mm2      In1.Cu 0.0000 mm2\\
+In2.Cu 0.0000 mm2      B.Cu   0.0000 mm2
+\end{quote}
+The rule area \texttt{aiee\_antenna\_column\_no\_copper} is present on all four layers at absolute (142.937, 82.192)-(154.937, 112.192), which is the ICD rect translated exactly. The inner pours stop at x = 142.937 as intended. Visible as the bare right-hand column in \texttt{lumina-par\_top.png}.
+
+\textbf{Nothing was orphaned by stopping the plane there.} In1 GND fills 5833 mm2 in 5 pieces: one of 5826 mm2, and four slivers of 0.75/1.41/1.94/2.70 mm2 located at board-local x 17-24, y \textasciitilde{} 75.6-76.0 - between J3's pads, nowhere near the column - each touching 1-3 through-hole pads and therefore tied through the barrels. In2 +12V is a single piece of 5859 mm2. No net lost connectivity to the truncation.
+
+Two residuals:
+
+\begin{itemize}
+\item \textbf{The rule area allows `pads` and `footprints`} (\texttt{pads allowed},
+\texttt{footprints allowed}; only tracks, vias and copperpour are \texttt{not\_allowed}).
+Today the column is clean, but nothing prevents a later \texttt{place\_edit} or
+\texttt{route\_edit} from dropping a pad or a part in it, and DRC will not object.
+\item {*}{*}Two metal features sit just outside the boundary, in the antenna's near
+field 11 mm above the radiator:{*}{*} R212's pads at board-local x 87.06
+(0.94 mm west of the wall) and TP102, a bare 1.5 mm pad at (95.81, 22.56),
+2.44 mm north of it. Both compliant with s7.6 as written. Flagging because
+s7.6's rectangle is a minimum, not a guarantee, and Q8 kept the radio a
+supported control path.
+\end{itemize}
+\paragraph*{W9. Reverse-mounted THT on a fully populated top side is a hand-solder-only operation and no fab note says so}
+The mezzanine geometry itself is clean: {*}{*}J3 and J4 are the only bottom-side parts on the board{*}{*} (157 of 159 footprints are F.Cu), their 8.5 mm bodies leave 2.5 mm for the male insulator in the 11.0 mm gap, and there is nothing else on B.Cu to foul it. \texttt{lumina-par\_bottom.png} shows a bare bottom side apart from the two sockets and routing.
+
+The assembly consequence is the problem. The bodies are on the bottom and the {*}{*}38 leads are soldered on the top face, which carries the entire SMD assembly{*}{*}. That pair cannot go through a wave or a selective nozzle without masking the whole top side; it is manual. Nearest top-side parts to a J3/J4 pad: C204 2.96 mm, R201 3.18 mm, U203 3.27 mm, TP103 3.55 mm, R207 3.72 mm - workable with a fine conical tip, not with a standard chisel, and U203 is the EEPROM.
+
+Nothing in the fab package flags it. Quoted as ordinary THT, this gets built wrong or gets re-quoted late.
+
+\paragraph*{W10. \texttt{+48V\_SW} clears the binding 0.635 mm by 12 um - less than the etch tolerance}
+Measured minimum outer-layer copper gap on the 48 V net:
+
+\begin{quote}\small\ttfamily\raggedright
+\textbar{} where \textbar{} gap \textbar{} vs ICD 0.635 mm \textbar{}\\
+\textbar{}---\textbar{}---\textbar{}---\textbar{}\\
+\textbar{} F.Cu, `+48V\_SW` \textless{}-\textgreater{} `+3V3`, board-local (15.96, 71.21) \textbar{} {*}{*}0.6470 mm{*}{*} \textbar{} +0.012 mm \textbar{}\\
+\textbar{} F.Cu, `+48V\_SW` \textless{}-\textgreater{} GND, (14.07, 76.04) \textbar{} 0.6516 mm \textbar{} +0.017 mm \textbar{}\\
+\textbar{} B.Cu, `+48V\_SW` \textless{}-\textgreater{} GND, (14.06, 76.05) \textbar{} 0.6611 mm \textbar{} +0.026 mm \textbar{}
+\end{quote}
+All pass. All three are inside a typical +/-0.05 mm outer-layer etch tolerance of the requirement, so on a bad panel the binding creepage figure is not met. \texttt{check\_creepage} demands 0.60 and passes by construction; the DRU rule \texttt{aiee\_hv\_57v\_48V\_SW} at 0.635 mm is satisfied by 12 um at the worst point.
+
+ICD s5.2 names the lever and it has not been pulled: {*}"if P6/P7 needs more margin, shrink the annulus on the 48 V pads to 1.60 mm before moving anything else."{*} J3's pads are still 1.70 mm. Dropping the three \texttt{+48V\_SW} pads to 1.60 mm buys 0.05 mm at zero routing cost.
+
+\paragraph*{W11. The V48\_B 0.590 mm exclusion is correctly scoped - evidence added, not re-opened}
+Confirming the DRU's own note rather than re-deriving it. Per-neighbour distance from \texttt{/power/V48\_B} on F.Cu:
+
+\begin{quote}\small\ttfamily\raggedright
+0.5900 mm -\textgreater{} /power/Q101\_G      (C108's own 0805 land)\\
+0.6626 mm -\textgreater{} GND\\
+0.6637 mm -\textgreater{} /EN\_OK
+\end{quote}
+The \texttt{B.NetName != '/power/Q101\_G'} carve-out in \texttt{aiee\_hv\_57v\_V48\_B} hides exactly one pair and nothing else on that net drops below 0.635 mm. Q101 is DNP on branch A so V48\_B is never energised on the built board. Carry it on the branch-B populate checklist, not on this build's defect list.
+
+\paragraph*{W12. The recovery-header choice was made by omission}
+ICD s7.6 offers a binary: keep board-local (76, 0)-(98, 20) clear enough that a 6-way jumper lead can be attached with the daughter fitted, \textbf{or} accept that the daughter must be removed to recover firmware. The board presents solid FR4 over the whole rect (only H2 is inside it) at an 11.0 mm stack height. A 6-way jumper on 2.54 mm sockets plus wire bend does not fit in 11 mm, so the board has chosen option two.
+
+\texttt{requirements.md} s5.2, \texttt{architecture/decisions.md} and the design doc all quote the ICD sentence verbatim and none of them records a verdict. The accepted cost is: unbolt five 11 mm standoffs and unmate a 38-position pair every time the carrier's firmware needs recovery, on 6-8 fixtures. That is a decision someone should sign, not inherit.
+
+\paragraph*{W13. The design doc's surviving rationale for J5 says it is on B.Cu; it is on F.Cu}
+\textbf{The board is right and the entry direction is correct - I verified it.} J5 is \texttt{S10B-PH-SM4-TB}, side entry, on \textbf{F.Cu} at board-local (54.416, 4.967), rotation 0, not mirrored. The land is asymmetric front-to-back exactly as it should be: the ten 1.0 x 3.5 mm signal pads sit inboard at y = 7.738 and the two 1.5 x 3.4 mm board-lock pads sit outboard at y = 2.197, with the silk body front face drawn at y = 0.167. The wafer opening therefore faces {*}{*}-y, out across the top edge{*}{*}. It clears the RJ45 notch (J5 spans x 42.3-66.6 against the notch's 6-36) and the recovery keepout (76-98).
+
+But the P4 close-out in \texttt{lumina-par-design-doc.tex} reads: {*}"...and J5 is on B.Cu inside the ICD's 11.0 mm mezzanine gap where a top-entry PHR-10 housing plus bend radius would foul the carrier."{*} J5 is not on B.Cu. A 10-way PH in the mezzanine gap would be a defect; the board avoided it. The stale sentence is the record a future reviewer will use to decide not to re-check, and it happens to describe the failure mode it claims to have avoided.
+
+\paragraph*{W14. No fiducials, with 0.5 mm pitch on the board}
+Zero fiducial footprints. The board carries 4 x MSOP-10 with exposed pad at 0.50 mm pitch (the TPS92515HV drivers) and 1 x TSSOP-14 at 0.65 mm (U401). JLCPCB does not require fiducials and registers from the board edge, so this is not a blocker - but 0.50 mm pitch is where local fiducials start to earn their place, and the board has 956 mm2 of free space in the right-hand strip and a whole empty left third to put them in. Low priority; decide once rather than discovering it at first-article.
+
+\paragraph*{W15. \texttt{verify\_all}'s constraints-drift warning is expected and should stay expected}
+\texttt{architecture/constraints.json} and \texttt{kicad/constraints.json} differ only in the documented coordinate frame: every \texttt{placement.keepouts} rect and every \texttt{planes{[}{]}.region} in the kicad copy is the architecture copy translated by (+54.937, +57.192), plus a \texttt{\_coordinate\_frame} key explaining it. I diffed both files in full; there is no other difference. \textbf{Justified waiver} - but it will fire on every P8 run forever, and the remediation text ("reconcile or delete the stale twin") is wrong for this board, because the board-local copy is the source of truth per its own header.
+
+---
+
+\subsubsection*{Triage summary of the 57 verify warnings}
+\begin{quote}\small\ttfamily\raggedright
+\textbar{} source \textbar{} n \textbar{} verdict \textbar{}\\
+\textbar{}---\textbar{}---\textbar{}---\textbar{}\\
+\textbar{} `check\_return\_path`, In2.Cu / `+12V` reference, `waiver\_class: cross\_net\_reference` \textbar{} 11 \textbar{} {*}{*}Waive individually{*}{*} (0.13-1.75 mm2 each), {*}{*}escalate as a class{*}{*} -\textgreater{} W3 \textbar{}\\
+\textbar{} `check\_return\_path`, In1.Cu / GND, PWM1 on F.Cu, 0.14 and 0.29 mm2 at board-local (72.5, 44.6) and (72.1, 45.0) \textbar{} 2 \textbar{} {*}{*}Justified waiver{*}{*} - antipad-scale voids in an otherwise continuous plane \textbar{}\\
+\textbar{} `check\_silk` `silk\_misattributed` \textbar{} 42 \textbar{} {*}{*}Real risk, do not waive{*}{*} -\textgreater{} W5 \textbar{}\\
+\textbar{} `check\_pdn` `pdn\_no\_bulk` on `+3V3` \textbar{} 1 \textbar{} {*}{*}False alarm, waive the claim{*}{*} - C103/C104 are 10 uF; the finding is the `decoupling.json` gap -\textgreater{} W6 \textbar{}\\
+\textbar{} `verify\_all` `constraints\_drift` \textbar{} 1 \textbar{} {*}{*}Justified waiver{*}{*}, permanent by design -\textgreater{} W15 \textbar{}\\
+\textbar{} {*}{*}total{*}{*} \textbar{} {*}{*}57{*}{*} \textbar{} 15 waived, 42 escalated \textbar{}
+\end{quote}
+Plus the 3 waived \texttt{check\_silk} errors (TP101/102/103 rings): already logged as a checker bug, not re-opened. I add one datum only - those three test points are also the ones E2 says should be carrying a hazard legend and are not.
+
+---
+
+\subsubsection*{Waiver recommendations for checkpoint 4}
+1. \textbf{11 x `check\_return\_path` cross-net-reference} - waive the individual geometries; require the class decision in W3 to be recorded (declare \texttt{+12V} as the B.Cu reference, or move PWM0-3 to F.Cu). 2. \textbf{2 x `check\_return\_path` In1/GND corridor voids} - waive outright. 3. \textbf{1 x `check\_pdn` `pdn\_no\_bulk`} - waive the hardware claim; open a \texttt{decoupling.json} completeness item instead. 4. \textbf{1 x `verify\_all` `constraints\_drift`} - waive permanently with a note that the twin is intentional and directional.
+
+Not recommended for waiver: the 42 \texttt{silk\_misattributed} (W5), and all five errors.
+
+---
+
+\subsubsection*{What I could not judge}
+\begin{itemize}
+\item \textbf{Component heights.} The board has no 3D height data I can trust for
+anything but J3/J4 (8.5 mm from the ICD). L301/L321/L341/L361 are
+\texttt{L\_Cenker\_CKCS4030} - a 4.0 x 4.0 mm part whose height I did not confirm.
+They are on the top side so the 11 mm mezzanine gap is not at risk, but the
+enclosure lid clearance and the J5 harness bend radius over the top edge are
+outside what a render can settle.
+\item \textbf{Whether U301 is genuinely the hottest stage.} RT401 is 2.10 mm from
+U301's pads, sitting over In1 GND, and 19.9-29.0 mm from the other three
+drivers, so it is a channel-0 sensor, not a board-average one. All four
+drivers are declared at an identical 0.15 W in \texttt{constraints.json}, so the
+declaration cannot distinguish them; \texttt{power\_tree.md} gives the red string a
+different duty from G/B/W, which should make one stage hotter than the rest.
+Which channel is red, and whether it is channel 0, is a schematic question I
+did not chase.
+\item \textbf{Pin-1 and polarity marks on the SMD parts after assembly.} I confirmed
+the connector markers (E4) but did not audit all 157 top-side footprints for
+post-assembly visibility of their own polarity marks; with 42 refdes already
+misplaced (W5) it is worth a dedicated pass.
+\item \textbf{The enclosure.} Wall conduction is the load-bearing assumption in ICD
+s7.7.3 and none of it is on this board.
+\end{itemize}
 \section{DFM and Fabrication}
 \emph{Pending --- produced at P9.}
 \section{Run Record (Appendix)}
@@ -763,6 +1100,37 @@ Artifact: `parts/parts.json` (47 lines), 18 datasheet extracts, `lib/` (91 sym /
   placelib ignores pad rotation -\textgreater{} hand to P6.
 \end{quote}
 \paragraph*{P4}
+\begin{quote}\small\ttfamily\raggedright
+\# P4 Schematic digest - lumina-par\\
+~\\
+Artifact: `kicad/lumina-par.kicad\_sch` + 5 child sheets, built from\\
+`kicad/gen/{*}.py`. {*}{*}erc PASS 0/0; netlist\_audit exit 0.{*}{*} 155 components,\\
+76 nets, 46 BOM lines, 152 placed (30 DNP), \textasciitilde{}\$17.44/board. H2 approved.\\
+~\\
+- ERC passed first attempt; the one fix loop went on REVIEW findings (2 of 3 left).\\
+- {*}{*}Adversarial review found 3 errors the gates cannot see{*}{*}, all fixed: COFF\\
+  ROFF2 47k-\textgreater{}30k (off-timer could never trip while shunted - dead in 176/243\\
+  corners); `/NTC\_LED` unprotected into 6.8-24.4 V harness (added R413/R415 +\\
+  D401); `/DRV\_EN0..3` no pull-down, latching all drivers ON in the\\
+  +12V-before-+3V3 window (added R218-R221 at {*}{*}10k, not 100k{*}{*} - the enable\\
+  pin's own 25 uA puts 100k at 2.5 V, above threshold).\\
+- {*}{*}Sheets found 3 more first{*}{*}: BOOT network allocated nowhere (12 parts, the\\
+  converter cannot switch without it); LM339LV is a 4-unit symbol that silently\\
+  floated 9 pins; hysteresis wrong in SIGN on 3 of 4 channels - a broken harness\\
+  chattered. All four bands now positive (+8.6/+17.3/+17.3/+18.7 K).\\
+- ADC source impedance at a broken harness 10.18k -\textgreater{} 9.70k, inside the ICD\\
+  ceiling for the first time (the old value bought margin with the defect).\\
+- `/PWM0..3` are `/control/PWM0..3`; root-level naming measured and rejected.\\
+- Open to P5+: DNP marking has no consumer (\textasciitilde{}30 parts); shunt-FET switching and\\
+  tLEB unverified vs the 141 ns pulse (P8 bench).
+\end{quote}
+\paragraph*{P5}
+\emph{(no digest recorded)}
+\paragraph*{P6}
+\emph{(no digest recorded)}
+\paragraph*{P7}
+\emph{(no digest recorded)}
+\paragraph*{P8}
 \emph{(no digest recorded)}
 \subsection*{Gate attempt history}
 {\small
@@ -773,6 +1141,14 @@ Artifact: `parts/parts.json` (47 lines), 18 datasheet extracts, `lib/` (91 sym /
 \endhead
 2026-08-07T11:58:05 & erc & pass & 0/0 \\
 2026-08-07T13:18:16 & erc & pass & 0/0 \\
+2026-08-07T20:05:19 & place & pass & 0/0 \\
+2026-08-07T22:45:28 & drc\_routed & pass & 0/0 \\
+2026-08-08T00:10:50 & drc\_routed & pass & 0/0 \\
+2026-08-08T00:10:50 & verify & fail & 7/67 \\
+2026-08-08T01:02:43 & drc\_routed & pass & 0/0 \\
+2026-08-08T01:02:43 & verify & fail & 3/60 \\
+2026-08-08T10:22:11 & verify & pass & 0/60 \\
+2026-08-08T11:27:06 & sim & pass & 0/0 \\
 \bottomrule
 \end{longtable}
 }
@@ -795,9 +1171,9 @@ Artifact: `parts/parts.json` (47 lines), 18 datasheet extracts, `lib/` (91 sym /
 \midrule
 \endhead
 1 & P2 & approved & 2026-07-28T20:03:50 & H1 approved with 4 directed changes: (Q1) enclosure sealed + LED heat conducted through the wall; (Q2) emitter changed to RGB 3-in-1 + separate white, AGAINST the run's recommendation, chosen knowingly for a published 125 C Tj and 3.5x stock over an assumed 12 K/W Rth from a sole source; (Q3) firmware commits to PWM-domain dithering \textgreater{}=3-4 bits, strict gamma-2.2 reading of PAR-REQ-01 binds; (Q4) same-reel sourcing, 24C32 fitted but shipped empty, PAR-REQ-16/17 to be formally amended. \\
-2 & P4 & not reached &  &  \\
-3 & P6 & not reached &  &  \\
-4 & P8 & not reached &  &  \\
+2 & P4 & approved & 2026-08-07T13:23:55 & H2 approved 2026-08-07 with 3 directed decisions: (1) proceed to P5; (2) ACCEPT the 8.6 K emitter-hot band - trip is exact at 89.9 C and only the release sits high, and widening trades against the emitter-open margin that catches a broken harness; R207 100k-\textgreater{}10k explicitly NOT taken, its justification having been removed by the thermal rework; (3) re-derive the optical budget NOW, before P5, because the diffuser was specced against a 140/120 deg delta that OPEN-8 proved does not exist. \\
+3 & P6 & skipped & 2026-08-07T20:09:42 & H3 is optional (default on). Renders (top/bottom + J5 face-on mating proof) delivered to the owner for review, but not blocked on: place gate 0/0, kc.py drc clean of everything but the expected unrouted nets, route probe 0.9971. Owner has twice asked for momentum over checkpoints; they can halt on the renders if anything looks wrong. \\
+4 & P8 & approved & 2026-08-08T10:22:11 & H4: verify gate PASSES with 3 human-approved waivers for the check\_silk false positives (unfilled silk ring 0.890-1.010 mm vs a 0.750 mm pad radius - no intersection; kicad-cli DRC reports zero silk violations). Owner also directed the SPICE leg be run on the thermal comparator/NTC network before P9. \\
 5 & P10 & not reached &  &  \\
 \bottomrule
 \end{longtable}
@@ -809,16 +1185,20 @@ Artifact: `parts/parts.json` (47 lines), 18 datasheet extracts, `lib/` (91 sym /
 \textbf{File} & \textbf{Size} & \textbf{Note} \\
 \midrule
 \endhead
-\texttt{state.json} & 74,449 B &  \\
+\texttt{state.json} & 131,613 B &  \\
+\texttt{kicad/lumina-par.kicad\_pcb} & 1,556,878 B &  \\
 \texttt{kicad/lumina-par.kicad\_sch} & 21,586 B &  \\
-\texttt{requirements.md} & 42,639 B &  \\
+\texttt{requirements.md} & 44,654 B &  \\
 \texttt{architecture/blocks.md} & 36,027 B &  \\
-\texttt{architecture/constraints.json} & 16,716 B &  \\
+\texttt{architecture/constraints.json} & 18,020 B &  \\
 \texttt{architecture/decisions.md} & 63,672 B &  \\
 \texttt{architecture/p4-wiring-notes.md} & 6,439 B &  \\
 \texttt{architecture/power\_tree.md} & 36,065 B &  \\
-\texttt{architecture/sheets.md} & 15,823 B &  \\
+\texttt{architecture/sheets.md} & 17,197 B &  \\
 \texttt{architecture/stackup.md} & 45,870 B &  \\
+\texttt{reports/board\_init.json} & 22,972 B &  \\
+\texttt{reports/fix-silk-hazard.json} & 1,357 B &  \\
+\texttt{reports/fix-thermal-vias.json} & 1,473 B &  \\
 \texttt{reports/fp\_(module)\_C22434861.overlay.svg} & 2,952 B &  \\
 \texttt{reports/fp\_(module)\_C48586656.overlay.svg} & 1,512 B &  \\
 \texttt{reports/fp\_courtyard\_adequacy.json} & 3,018 B &  \\
@@ -858,13 +1238,26 @@ Artifact: `parts/parts.json` (47 lines), 18 datasheet extracts, `lib/` (91 sym /
 \texttt{reports/fp\_verify\_U204\_C133541.json} & 1,844 B &  \\
 \texttt{reports/fp\_verify\_U301\_C213553.json} & 2,429 B &  \\
 \texttt{reports/fp\_verify\_U401\_C3658338.json} & 1,290 B &  \\
+\texttt{reports/gate-verify-postfix.json} & 2,872 B &  \\
+\texttt{reports/gate\_drc\_routed.json} & 403 B &  \\
 \texttt{reports/lib\_pin\_types.json} & 20,659 B &  \\
 \texttt{reports/lib\_pull.json} & 6,069 B &  \\
 \texttt{reports/netlist\_audit.json} & 3,457 B &  \\
+\texttt{reports/optical-budget-rederivation.md} & 25,523 B &  \\
+\texttt{reports/planes\_gen.json} & 1,393 B &  \\
+\texttt{reports/refill-drc.json} & 397 B &  \\
+\texttt{reports/review-board.json} & 23,934 B &  \\
+\texttt{reports/review-board.md} & 29,111 B &  \\
 \texttt{reports/review-schematic.json} & 4,062 B &  \\
 \texttt{reports/review-schematic.md} & 18,880 B &  \\
+\texttt{reports/route\_auto.json} & 85,823 B &  \\
+\texttt{reports/route\_critical.json} & 4,117 B &  \\
 \texttt{reports/schematic.pdf} & 491,501 B &  \\
+\texttt{reports/sim.json} & 3,145 B &  \\
+\texttt{reports/stitch\_vias.json} & 18,412 B &  \\
 \texttt{reports/top.net} & 251,873 B &  \\
+\texttt{reports/verify-waivers.json} & 2,892 B &  \\
+\texttt{reports/verify.json} & 2,892 B &  \\
 \bottomrule
 \end{longtable}
 }

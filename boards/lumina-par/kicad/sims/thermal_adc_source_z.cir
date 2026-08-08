@@ -1,0 +1,140 @@
+* LUM-PAR-A thermal sheet - ADC SOURCE IMPEDANCE at a BROKEN EMITTER HARNESS
+* (the emitter sense divider seen from the carrier's ADC on J4.19, worst case)
+*
+* SOURCE NETLIST: work/board.net (kicadsexpr export, P6 routed board). Topology
+*   synthesized with sim_run.py --fragment (refs R402,R403,R405-R416,R207,D401,
+*   U401); R402 = 150R and R403 = 10k are the netlist values. /ADC0 membership
+*   verified from the netlist: C402.1, J4.19, R402.2 - no other loads.
+*
+* NET RENAME MAP (simlib.spice_net_name):
+*   +3V3 -> P3V3   GND -> 0   /FAULT -> N_FAULT   /NTC_LED -> N_NTC_LED
+*   /ADC0 -> N_ADC0
+*   /thermal/CMP_LED   -> N_THERMAL_CMP_LED    /thermal/CMP_BRD -> N_THERMAL_CMP_BRD
+*   /thermal/HYS_LED   -> N_THERMAL_HYS_LED    /thermal/HYS_BRD -> N_THERMAL_HYS_BRD
+*   /thermal/LAD_D     -> N_THERMAL_LAD_D      /thermal/NTC_BRD -> N_THERMAL_NTC_BRD
+*   /thermal/VREF_EHOT -> N_THERMAL_VREF_EHOT  /thermal/VREF_HOT2 -> N_THERMAL_VREF_HOT2
+*   /thermal/VREF_OPEN -> N_THERMAL_VREF_OPEN
+*   TB / S_* are SIM-ONLY probe nodes.
+*
+* ========================== WHY THIS BENCH EXISTS ===========================
+* ICD D-T16 / L-11 caps the source impedance the carrier's ADC may see at
+* 10 kohm. architecture/blocks.md B4 records that the PRE-P4 design measured
+* 10.18 k at a broken harness - OVER the ceiling - and, worse, "was only that low
+* because the mis-sized hysteresis feedback was shunting the cold end: it was
+* buying ICD margin with a defect." The fix re-sized R402/R404 from 1 k to 150 R
+* (and C402/C403 100 nF 0603 -> 4.7 uF 0805 to keep the filter slow) and the
+* amended sheet claims 9.70 k. That number therefore has the same provenance as
+* everything else on this sheet - re-derived after a defect was found - and it is
+* the last un-simmed numeric promise in the block, so it gets a bench.
+*
+* A BROKEN HARNESS IS THE WORST CASE, not 25 C. blocks.md's original text said
+* source impedance was "maximum at 25 C"; its P4 amendment corrects that - the
+* impedance FALLS going hot and RISES going cold, toward 10 k as the NTC
+* approaches open. Solved on the amended sheet: 5.03 k at 25 C, 1.00 k at 90 C,
+* 8.90 k at -20 C, 9.70 k at a broken harness. Only the binding case is simmed
+* here; a bench that swept all four would prove less about the one that matters.
+*
+* METHOD: the emitter NTC is REMOVED (that is what a broken harness IS), leaving
+* /NTC_LED fed only by R403 to the rail, R402 to the ADC and R413 to the
+* protected comparator node. A DC probe current is swept 0 -> 1 uA out of /ADC0
+* and the impedance read as dV/dI. 1 uA is small enough to be a true small-signal
+* measurement (it moves the node by ~10 mV, far less than any threshold) and the
+* network is linear here anyway. The operating point matters and is preserved:
+* with the harness broken /NTC_LED floats to the rail, the open-window channel
+* asserts, and /FAULT is LOW - which makes the 200 k hysteresis path terminate on
+* a stiff ~37 ohm node rather than a 9 k pull-up. Measuring in the wrong /FAULT
+* state would flatter the answer.
+*
+* WHAT IS MODELLED, AND WHAT IS NOT
+*   - C402 (4.7 uF) is omitted: this is a DC measurement and the capacitor is an
+*     open circuit to it. It only sets the filter corner, not the source
+*     impedance the ADC sees at DC settling.
+*   - The carrier's own ADC input leakage and sampling capacitance are NOT
+*     modelled - they are the carrier's side of the ICD boundary. This bench
+*     proves only that THIS board presents an impedance under the ceiling.
+*   - +3V3 is an ideal source; SPICE's .temp is default and irrelevant (every
+*     resistor here is ideal / tempco-free).
+*
+* MODEL PROVENANCE (agent-authored generic cards - no vendored vendor files)
+*   RT401, HNTC0603-103F3950FB, LCSC C49247666: R(T) = 10k*exp(3950*(1/T -
+*     1/298.15)). *** THIS PART PUBLISHES NO VENDOR DATASHEET *** -
+*     parts/parts.json records datasheet:"" and url:"" for it; R25 = 10 k +-1%
+*     and B25/50 = 3950 K +-1% from the LCSC parametric record are its ENTIRE
+*     specification. Held at 40 C here and only has to stay quiet. NOTE the
+*     measured impedance itself does NOT depend on the NTC model at all in this
+*     case - the emitter thermistor is absent by definition of the fault - so
+*     this is the one bound on the sheet that does NOT inherit the single-beta
+*     uncertainty.
+*   U401 LM339LV (LCSC C3658338) - Tier-B BOUNDARY model, never IC internals:
+*     S_* = 0.5*(1+tanh((V(IN-)-V(IN+))/200u)); output an OPEN-DRAIN SINK ONLY.
+*     RON = 37.5 ohm from the VOL point 150 mV typ at ISINK = 4 mA; GOFF =
+*     3.03e-11 S from ILKG 100 pA at VPULLUP = V+. Wired BY PIN NUMBER (the
+*     datasheet transposes channel names; parts/C3658338.json footnote 1).
+*   D401 1N4148W (LCSC C81598): N = 2.35, IS = 7.8n, RS = 1.0, fitted to the
+*     datasheet MAX-VF envelope. Reverse-biased here.
+*
+* .options rshunt=1e9 is injected by the runner (simlib.prepare_circuit). It puts
+* 1 Gohm from every node to ground, which is 5 orders of magnitude above the
+* ~10 k being measured and cannot flatter the result.
+
+* ---------------------------------------------------------------- rail
+Vdd P3V3 0 DC 3.3
+
+* ------------------------------------- reference ladder R405-R408 + R416
+R405 P3V3 N_THERMAL_VREF_OPEN 2.7k
+R406 N_THERMAL_VREF_OPEN N_THERMAL_VREF_EHOT 27k
+R407 N_THERMAL_VREF_EHOT N_THERMAL_VREF_HOT2 1.2k
+R408 N_THERMAL_VREF_HOT2 N_THERMAL_LAD_D 1.6k
+R416 N_THERMAL_LAD_D 0 1.6k
+
+* --- emitter sense divider with the harness BROKEN: the NTC is simply absent
+R403 P3V3 N_NTC_LED 10k
+R402 N_NTC_LED N_ADC0 150
+
+* ------------------------------------- board sense divider (RT401), held 40 C
+R401 P3V3 N_THERMAL_NTC_BRD 10k
+VTB TB 0 DC 40
+BRT401 N_THERMAL_NTC_BRD 0 I = v(N_THERMAL_NTC_BRD)/(10000*exp(3950*(1/(v(TB)+273.15)-1/298.15)))
+
+* ------------------------------- comparator input protection + rail clamp
+R413 N_NTC_LED N_THERMAL_CMP_LED 10k
+R415 N_THERMAL_NTC_BRD N_THERMAL_CMP_BRD 10k
+D401 N_THERMAL_CMP_LED P3V3 DCLAMP
+.model DCLAMP D(IS=7.8n N=2.35 RS=1.0)
+
+* --------------------- hysteresis, returned to the PROTECTED comparator nodes
+R409 N_FAULT N_THERMAL_HYS_LED 100k
+R411 N_THERMAL_HYS_LED N_THERMAL_CMP_LED 100k
+R412 N_FAULT N_THERMAL_HYS_BRD 100k
+R414 N_THERMAL_HYS_BRD N_THERMAL_CMP_BRD 100k
+R410 N_FAULT N_THERMAL_VREF_OPEN 10k
+
+* ---------------- /FAULT pull-ups: R207 local 100 k || carrier 10 k (MATED)
+R207 P3V3 N_FAULT 100k
+RCARRIER P3V3 N_FAULT 10k
+
+* -------------------------------------- U401 decision nodes (sim-only probes)
+BS_EHOT   S_EHOT   0 V = 0.5*(1+tanh((v(N_THERMAL_VREF_EHOT)-v(N_THERMAL_CMP_LED))/200u))
+BS_EOPEN  S_EOPEN  0 V = 0.5*(1+tanh((v(N_THERMAL_CMP_LED)-v(N_THERMAL_VREF_OPEN))/200u))
+BS_BHOT   S_BHOT   0 V = 0.5*(1+tanh((v(N_THERMAL_VREF_HOT2)-v(N_THERMAL_CMP_BRD))/200u))
+BS_ESHORT S_ESHORT 0 V = 0.5*(1+tanh((v(N_THERMAL_VREF_HOT2)-v(N_THERMAL_CMP_LED))/200u))
+
+* ------------------- U401 open-drain outputs, all four wire-OR'd onto /FAULT
+BOUT1  N_FAULT 0 I = v(N_FAULT)*(3.03e-11+(1/37.5-3.03e-11)*v(S_EHOT))
+BOUT2  N_FAULT 0 I = v(N_FAULT)*(3.03e-11+(1/37.5-3.03e-11)*v(S_EOPEN))
+BOUT14 N_FAULT 0 I = v(N_FAULT)*(3.03e-11+(1/37.5-3.03e-11)*v(S_BHOT))
+BOUT13 N_FAULT 0 I = v(N_FAULT)*(3.03e-11+(1/37.5-3.03e-11)*v(S_ESHORT))
+
+* -------------------- the probe: sweep 0 -> 1 uA drawn out of the ADC node
+IPROBE N_ADC0 0 DC 0
+.dc IPROBE 0 1u 0.5u
+
+.meas dc v_i0_v     find v(N_ADC0) at=0
+.meas dc v_i1u_v    find v(N_ADC0) at=1u
+.meas dc zsrc_kohm  param='(v_i0_v-v_i1u_v)/1e-6/1000'
+* the fault state this impedance is measured in must be the asserted one
+.meas dc fault_v    find v(N_FAULT) at=0
+.meas dc s_eopen    find v(S_EOPEN) at=0
+* and the node the ADC actually reads at a broken harness (near-rail = "cold")
+.meas dc adc_v      find v(N_ADC0) at=0
+.end

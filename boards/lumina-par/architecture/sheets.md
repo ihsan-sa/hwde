@@ -98,6 +98,19 @@ converts the most likely fault in an off-board module - a broken harness wire,
 which reads as *cold* in either divider orientation - from fail-dangerous to
 fail-safe (D-T17, E-10).
 
+> **P8 SPICE AMENDMENT 2026-08-08 - the fault window has THREE functionally
+> distinct channels, not four.** An independent SPICE bench (which reproduced
+> the hand MNA solve to within 0.4 K on every channel) measured **CMP3
+> (emitter short) as functionally redundant with CMP1**: its tap sits at
+> 0.311 V, BELOW CMP1's 0.427 V, and both detect "sense node low", so CMP1
+> always asserts `/FAULT` first. CMP3 measured a degenerate **1.1 mV band** and
+> can never define a `/FAULT` edge. This is a leftover from the inverted-
+> orientation spec that the blocks.md B4 amendment already corrected.
+> It is harmless and free - worth keeping as redundancy against a single
+> comparator failing - but **no document should claim four independent fault
+> detectors.** Measured trip/release: emitter hot 89.67/81.26 C (+8.41 K),
+> emitter open -22.30/-3.82 C (+18.47 K), board hot 109.80/92.90 C (+16.90 K).
+
 ### 1.5 `led_if` (500-599, `#PWR` 500)
 
 | Ref | Part | Note |
@@ -244,7 +257,10 @@ freewheel diode drop and lead to an unsafe ~38 k.
 - **R402/R404 are 150 R, not "<= 1 k"**, and C402/C403 are **4.7 uF 0805, not
   100 nF 0603** (footprint change) so the filter stays slow at the lower R.
 - **R413/R415** (10 k) series-protect the comparator inputs and **D401**
-  (1N4148W) clamps `/NTC_LED` to `+3V3`. The LM339LV inputs are diode-clamped
+  (1N4148W) clamps the PROTECTED comparator node `/thermal/CMP_LED` to
+  `+3V3` - NOT `/NTC_LED` itself. (Corrected at P8 from the netlist, which is
+  authoritative: R413 sits between them and limits the clamp current to
+  2.03 mA.) The LM339LV inputs are diode-clamped
   to GND **only**, with no clamp to V+, so a series resistor alone does not
   protect them from a harness fault that puts an LED anode (6.8 V nominal,
   16.7-24.4 V at the TVS clamp) onto the sense line.

@@ -1,6 +1,6 @@
 # ICD-01 - LUMINA expansion connector interface control document
 
-**Owner:** LUM-CAR-A (carrier board). **Status: frozen at H1. Rev A3** (A2 = 0.635 mm creepage + bank-charging contract; A3 = ID_ADC codes + PWM/timer contract; A4 = sealed-with-wall-conduction thermal budget + firmware requirements; A5 = thermal assumptions stated + at-ventilation closed; A6 = FAULT sink current, IMON accuracy caveat).
+**Owner:** LUM-CAR-A (carrier board). **Status: frozen at H1. Rev A8** (A2 = 0.635 mm creepage + bank-charging contract; A3 = ID_ADC codes + PWM/timer contract; A4 = sealed-with-wall-conduction thermal budget + firmware requirements; A5 = thermal assumptions stated + at-ventilation closed; A6 = FAULT sink current, IMON accuracy caveat).
 **Consumers:** LUM-STR-A (strobe daughter), LUM-PAR-A (RGBW par daughter), and every future LUMINA
 daughter.
 
@@ -510,7 +510,7 @@ Why this is binding, with the arithmetic:
 |---|---|
 | **Board outline** | **100.0 x 80.0 mm** (derivation: `stackup.md` s4.1) |
 | **Corner radius** | **3.0 mm**, all four corners |
-| **Mounting holes** | **4x M3 (3.2 mm) at 5 mm inset** = a 90 x 70 mm hole rectangle, **plus a 5th M3 at (46, 74)** |
+| **Mounting holes** | **3x M3 (3.2 mm) at 5 mm inset** (top-right, bottom-right, bottom-left) **plus a 4th M3 at (46, 74)**. **The top-left corner hole is DELETED - see the rev A8 note below.** |
 | **Board thickness** | 1.6 mm |
 | Coordinate origin for this ICD | board top-left corner, x right, y down |
 | **RJ45 position on the carrier** | **top edge**, body (10, 0) - (32, 22) |
@@ -561,7 +561,27 @@ Why this is binding, with the arithmetic:
 | Arrangement | **Stacked mezzanine, daughter above the carrier** (Q4 option a) |
 | **Mated board-to-board height** | **11.0 mm** hard-seated (2.5 mm male insulator + 8.5 mm socket body), against a positive mechanical stop |
 | Male mating pin length | 6.0 mm |
-| **Standoffs** | **5x M3 female-female, 11.0 mm** - the four corners plus H5 |
+| **Standoffs** | **4x M3 female-female, 11.0 mm** - three corners plus H5. **NOT the top-left corner** (rev A8). |
+
+> **REV A8, 2026-08-08 - THE TOP-LEFT CORNER STANDOFF IS DELETED. This section previously
+> specified 5.** Found at LUM-PAR-A's P8 board review and verified geometrically: **s7.1's
+> 5 mm corner inset and s7.6's RJ45 relief at x=6 are mutually incompatible.** They leave a
+> 6 mm-wide tongue at the top-left, and an M3 clearance hole (1.6 mm radius) centred at
+> (5, 5) reaches x=6.6 - breaching the notch wall by 0.601 mm. Measured: **1.046 of
+> 8.042 mm2 (13.0 %) of the hole is off-board and it opens as a 2.500 mm slot**, so that
+> corner never had a usable standoff on ANY daughter. The other four holes are clear
+> (checked: H2 59.0 mm, H3 76.7 mm, H4 49.0 mm, H5 49.0 mm from the nearest notch corner).
+>
+> **No DRC or gate can see this**: `edge_clearance` is a COPPER rule and a mounting hole is
+> NPTH, so the breach is invisible to every automated check in the pipeline. It survived the
+> carrier's whole run and LUM-PAR-A's P5-P7 unnoticed.
+>
+> **Resolution, ruled by the system owner 2026-08-08:** the daughter DELETES the hole and the
+> assembly ships on four standoffs. The lost corner is mostly notch anyway, and H2/H3/H4/H5
+> still bracket the board including the whole connector edge. The CARRIER is unchanged - its
+> own hole at that corner simply goes unused, which is why this needs no rework of a board
+> already at P10. **Every future daughter inherits the 4-standoff pattern; do not
+> re-introduce a top-left corner hole at a 5 mm inset.**
 | Daughter socket orientation | **Faces downward** - a reverse-mounted THT part on the daughter's bottom side, or a bottom-side SMD equivalent. This is a daughter assembly instruction, but it is mating geometry and so it lives here |
 | First-mate / last-mate control | **none.** A dual-row header has no sequencing, so **the daughter must tolerate 48 V arriving before or after 3.3 V, in either order** |
 

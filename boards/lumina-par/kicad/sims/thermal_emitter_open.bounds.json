@@ -1,0 +1,61 @@
+[
+  {
+    "measure": "eopen_band_k",
+    "min": 12.0,
+    "max": 26.0,
+    "severity": "error",
+    "msg": "THE HEADLINE BOUND OF THIS BOARD. Emitter-open hysteresis band, defined RELEASE MINUS TRIP because this is the cold-side channel (asserts going down, releases going up). Hand-solved +18.7 K; SPICE independently returns +18.47 K. A pre-P4 revision returned hysteresis to the SENSOR divider instead of the protected comparator node and this band came out NET NEGATIVE, meaning a progressive crimp failure on the off-board emitter harness makes /FAULT chatter - strobing every output stage - instead of latching. Any value at or below zero is that defect returning; the 12 K floor also catches a merely-undersized feedback resistor."
+  },
+  {
+    "measure": "eopen_trip_c",
+    "min": -30.0,
+    "max": -18.0,
+    "severity": "error",
+    "msg": "cold edge of the window (blocks.md B4: 'below ~ -20 C equivalent', hand-solved -22.5 C; SPICE -22.30 C). The upper limit keeps the edge clear of any legitimate cold ambient so a healthy harness never false-trips; the lower limit keeps a real open detectable. Window widened for the single-beta EXTRAPOLATION: the NTC C49247666 publishes no datasheet, B25/50 = 3950 K is fitted between 25 and 50 C, and -22 C is a long way outside that fit."
+  },
+  {
+    "measure": "eopen_rel_c",
+    "min": -12.0,
+    "max": 2.0,
+    "severity": "error",
+    "msg": "warm edge at which the open-fault clears (hand-solved -3.8 C; SPICE -3.82 C). Must stay below normal cold ambient, or an ordinary cold venue would hold /FAULT asserted with a perfectly healthy harness."
+  },
+  {
+    "measure": "hys_off_idle_mv",
+    "min": 20.0,
+    "severity": "error",
+    "msg": "SIGN CHECK, /FAULT de-asserted: the feedback must push the PROTECTED node ABOVE the sensor node (measured +90 mV). If the hysteresis were returned to the sensor divider - the pre-P4 defect - no current would flow in R413 and this would collapse to ~0 mV in both states."
+  },
+  {
+    "measure": "hys_off_fault_mv",
+    "max": -50.0,
+    "severity": "error",
+    "msg": "SIGN CHECK, /FAULT asserted: the offset must FLIP NEGATIVE (measured -148 mV). This flip IS the hysteresis mechanism - the +90 mV to -148 mV swing at the protected node is what produces the 18.5 K band. log/P4-digest.md records the pre-fix defect as 'hysteresis wrong in SIGN on 3 of 4 channels - a broken harness chattered'; this bound is the direct test for it."
+  },
+  {
+    "measure": "eopen_trip_div_v",
+    "min": 2.95,
+    "max": 3.12,
+    "severity": "error",
+    "msg": "the trip edge expressed as an unloaded emitter-divider voltage: SPICE 3.049 V against the earlier hand solve's published 'ladder tap A = 3.0258 V' (0.8 % apart; the temperatures agree to 0.2 K). Bounding it lets a reviewer compare the two analyses without converting temperatures."
+  },
+  {
+    "measure": "eopen_rel_div_v",
+    "min": 2.5,
+    "max": 2.8,
+    "severity": "error",
+    "msg": "the release edge as an unloaded divider voltage (2.657 V). Together with eopen_trip_div_v this pins the window in volts, which is what a bench probe can actually check on hardware."
+  },
+  {
+    "measure": "fault_vol_v",
+    "max": 0.15,
+    "severity": "error",
+    "msg": "asserted /FAULT must be an unambiguous low with only ONE channel sinking (23 mV here vs 11 mV in thermal_emitter_hot where two sink). LM339LV VOL is specified 150 mV typ / 300 mV max at ISINK = 4 mA (parts/C3658338.json) and this network sinks only ~0.36 mA."
+  },
+  {
+    "measure": "cmp_led_max_v",
+    "max": 3.9,
+    "severity": "error",
+    "msg": "D401 must stay REVERSE-BIASED through the entire cold sweep - with the fitted max-VF card it starts conducting near 4.05 V, and if it conducted here it would clamp the open-detection edge and blunt the very fault this channel exists to catch. Measured peak 3.057 V. The LM339LV recommended input ceiling (5.6 V, abs max 6.0 V) is the looser limit and is exercised in thermal_harness_fault.cir instead."
+  }
+]

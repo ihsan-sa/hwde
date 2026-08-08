@@ -3,7 +3,7 @@
  "board": "lumina-par",
  "workspace": "boards/lumina-par",
  "created": "2026-07-28T15:00:15",
- "updated": "2026-08-08T01:02:43",
+ "updated": "2026-08-08T12:30:46",
  "phase": "P8",
  "gates": {
   "erc": {
@@ -129,15 +129,15 @@
   },
   "verify": {
    "phase": "P8",
-   "status": "fail",
-   "attempts": 2,
+   "status": "pass",
+   "attempts": 4,
    "last": {
-    "ts": "2026-08-08T01:02:43",
-    "status": "fail",
-    "failing_count": 3,
+    "ts": "2026-08-08T12:30:46",
+    "status": "pass",
+    "failing_count": 0,
     "total": 60,
     "inputs": {
-     "pcb": "sexpr_no_uuid:48414fcf65a2fc4e568ada5e425c6c870c8aa8c263844f3a4ba5946f4977fde2",
+     "pcb": "sexpr_no_uuid:84a83244ca187eb554c1ef970e45b1e6e3f518cd0404761003328e0e2afc97b7",
      "constraints": "json_canonical:b6660f6837f182bcbbaf67d3ff60ae233a0baf7ec6d146bc5627acb209977a6f",
      "decoupling": "json_canonical:45abce9be400fc8f5bf060329beecfdbaa2b4b334d98cdfc5fd84d76b099d6e6",
      "waivers": null
@@ -167,6 +167,55 @@
       "decoupling": "json_canonical:45abce9be400fc8f5bf060329beecfdbaa2b4b334d98cdfc5fd84d76b099d6e6",
       "waivers": null
      }
+    },
+    {
+     "ts": "2026-08-08T10:22:11",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 60,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:48414fcf65a2fc4e568ada5e425c6c870c8aa8c263844f3a4ba5946f4977fde2",
+      "constraints": "json_canonical:b6660f6837f182bcbbaf67d3ff60ae233a0baf7ec6d146bc5627acb209977a6f",
+      "decoupling": "json_canonical:45abce9be400fc8f5bf060329beecfdbaa2b4b334d98cdfc5fd84d76b099d6e6",
+      "waivers": null
+     }
+    },
+    {
+     "ts": "2026-08-08T12:30:46",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 60,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:84a83244ca187eb554c1ef970e45b1e6e3f518cd0404761003328e0e2afc97b7",
+      "constraints": "json_canonical:b6660f6837f182bcbbaf67d3ff60ae233a0baf7ec6d146bc5627acb209977a6f",
+      "decoupling": "json_canonical:45abce9be400fc8f5bf060329beecfdbaa2b4b334d98cdfc5fd84d76b099d6e6",
+      "waivers": null
+     }
+    }
+   ]
+  },
+  "sim": {
+   "phase": "P8",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-08-08T11:27:06",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0,
+    "inputs": {
+     "sims": "dir_text:a263bd6c3670cccc6e3f0e5a21c8fff62ae503e7d5bad0507d7eb3db48c589a8"
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-08T11:27:06",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "sims": "dir_text:a263bd6c3670cccc6e3f0e5a21c8fff62ae503e7d5bad0507d7eb3db48c589a8"
+     }
     }
    ]
   }
@@ -186,6 +235,11 @@
    "status": "skipped",
    "ts": "2026-08-07T20:09:42",
    "note": "H3 is optional (default on). Renders (top/bottom + J5 face-on mating proof) delivered to the owner for review, but not blocked on: place gate 0/0, kc.py drc clean of everything but the expected unrouted nets, route probe 0.9971. Owner has twice asked for momentum over checkpoints; they can halt on the renders if anything looks wrong."
+  },
+  "4": {
+   "status": "approved",
+   "ts": "2026-08-08T10:22:11",
+   "note": "H4: verify gate PASSES with 3 human-approved waivers for the check_silk false positives (unfilled silk ring 0.890-1.010 mm vs a 0.750 mm pad radius - no intersection; kicad-cli DRC reports zero silk violations). Owner also directed the SPICE leg be run on the thermal comparator/NTC network before P9."
   }
  },
  "artifacts": {
@@ -204,20 +258,20 @@
   "pcb": {
    "path": "kicad/lumina-par.kicad_pcb",
    "kind": "pcb",
-   "sha256": "sexpr_no_uuid:48414fcf65a2fc4e568ada5e425c6c870c8aa8c263844f3a4ba5946f4977fde2",
-   "hashed": "2026-08-08T01:02:43"
+   "sha256": "sexpr_no_uuid:84a83244ca187eb554c1ef970e45b1e6e3f518cd0404761003328e0e2afc97b7",
+   "hashed": "2026-08-08T12:30:46"
   },
   "constraints": {
    "path": "kicad/constraints.json",
    "kind": "constraints",
    "sha256": "json_canonical:b6660f6837f182bcbbaf67d3ff60ae233a0baf7ec6d146bc5627acb209977a6f",
-   "hashed": "2026-08-08T01:02:43"
+   "hashed": "2026-08-08T12:30:46"
   },
   "decoupling": {
    "path": "kicad/decoupling.json",
    "kind": "decoupling",
    "sha256": "json_canonical:45abce9be400fc8f5bf060329beecfdbaa2b4b334d98cdfc5fd84d76b099d6e6",
-   "hashed": "2026-08-08T01:02:43"
+   "hashed": "2026-08-08T12:30:46"
   },
   "dru": {
    "path": "kicad/lumina-par.kicad_dru",
@@ -229,7 +283,13 @@
    "path": "kicad/reports/verify-waivers.json",
    "kind": "waivers",
    "sha256": null,
-   "hashed": "2026-08-08T01:02:43"
+   "hashed": "2026-08-08T12:30:46"
+  },
+  "sims": {
+   "path": "kicad/sims",
+   "kind": "sims",
+   "sha256": "dir_text:a263bd6c3670cccc6e3f0e5a21c8fff62ae503e7d5bad0507d7eb3db48c589a8",
+   "hashed": "2026-08-08T11:27:06"
   }
  },
  "open_issues": [
@@ -506,6 +566,18 @@
    "why": "the daughter reverse-mounts both sockets on B.Cu facing down (ICD s7.3), and flipping a 2-row connector to the back swaps its ROWS while columns stay put - measured on the real boards, all 14 J3 pad positions coincide exactly but carrier pin 2k+1 contacts daughter pin 2k+2. ICD s3.1/s3.2 give ONE table with no mirroring instruction and LUM-CAR-A transcribed it literally on its top-side male header, so a literal transcription here crossed 12 of 14 J3 contacts INCLUDING SIX THAT SHORT +48V_SW TO GND, plus 12 live J4 crossings (PWM0<->PWM1, ENABLE<->FAULT, I2C_SDA<->ADC0, and the carriers driven DSPI_SCK onto GND). Re-verified after the swap: 0 crossings on both connectors. Found only because the mated view was checked against the carriers own netlist - erc 0/0, netlist_audit exit 0 and every other gate passed throughout, since every check in ai-ee compares a board against ITSELF",
    "phase": "P6",
    "ts": "2026-08-07T18:30:15"
+  },
+  {
+   "what": "H1 (top-left M3 mounting hole) DELETED from the board; assembly ships on 4 standoffs. ICD-01 re-issued to rev A8.",
+   "why": "ICD s7.1 (5 mm corner inset) and s7.6 (RJ45 relief starting at x=6) are mutually incompatible: they leave a 6 mm tongue, and an M3 clearance hole of 1.6 mm radius centred at (5,5) reaches x=6.6, breaching the notch wall by 0.601 mm. Orchestrator-verified: 1.046 of 8.042 mm2 (13.0 pct) off-board, opening a 2.500 mm slot - that corner never had a usable standoff on any daughter. Invisible to every gate because edge_clearance is a COPPER rule and a mounting hole is NPTH. Owner ruled drop it: the lost corner is mostly notch, H2/H3/H4/H5 still bracket the board including the connector edge, and the CARRIER needs no change (its hole simply goes unused), so a board already at P10 is not reworked. Removed via the update_swig worker directly - board_update PLANNER deliberately ignores board_only footprints so it will never plan this, but the worker it drives supports remove_refs. drc_routed and verify both still PASS after removal.",
+   "phase": "P8",
+   "ts": "2026-08-08T11:35:22"
+  },
+  {
+   "what": "ACCEPT U341 at 7 in-pad thermal vias (8 near-part) against a declared min_vias 9, and D361 at 3 against a declared 4. No further routing cycle.",
+   "why": "check_thermal measures every driver at a 7.67 C rise against a 30 C allowance (theta_ja 51.1, 0.15 W) and every catch diode at 7.15 C - roughly 4x margin, so the via-count delta is thermally irrelevant at these dissipations. The blockers are real and both would cost a routing change: U341 8th seat fails min_hole_clearance by 12.6 um because /control/PWM1 runs on B.Cu directly under its exposed pad (a 0.01 mm scan of the whole EP found ZERO legal seats), and D361 is blocked by /EN_OK on In2 crossing under its land. PWM1 is one of the two jitter-critical nets just relocated to fix a return-path defect; moving it again to chase a thermally-unnecessary via is a bad trade. The declared 9 stays in constraints.json as design intent, NOT lowered to match the board - lowering a spec to fit the artifact is how a requirement quietly disappears.",
+   "phase": "P8",
+   "ts": "2026-08-08T12:29:19"
   }
  ],
  "history": [
@@ -1618,6 +1690,91 @@
    "residual_warning": "one new waived-class warning: PWM0 B.Cu now crosses the /NTC_LED In2 trace at (122.06,115.11), 0.48 mm2 - the IDENTICAL cross_net_reference finding PWM1/2/3 already carry at that same crossing.",
    "open_for_later": "In1.Cu still carries signal traces for +3V3, /ADC0, /EN_OK, /LED0_A, /NTC_LED and /thermal/CMP_LED. None currently sits under a high_speed corridor, but any future F.Cu reroute in their neighbourhood hits this same defect class.",
    "script_proposals": "(1) a route_preflight.py taking a route_edit ops file and reporting clearance/hole-to-hole across all four layers - the shapely checker has now been hand-rebuilt three times this session. (2) route_edit should warn when a remove/add leaves a via single-layer (via_dangling); it only surfaced after a full refill+DRC cycle."
+  },
+  {
+   "ts": "2026-08-08T10:22:11",
+   "event": "gate",
+   "gate": "verify",
+   "status": "pass",
+   "attempt": 3,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-08T10:22:11",
+   "event": "human",
+   "checkpoint": "4",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-08-08T11:27:06",
+   "event": "gate",
+   "gate": "sim",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-08T11:27:07",
+   "event": "p8_sim_gate_pass",
+   "gate": "sim PASS 0/0 across 5 testbenches, 51 bounds, ngspice 46. Independently re-run by the orchestrator.",
+   "cross_validation": "SPICE independently REPRODUCED the hand-built MNA solve on every channel - the second opinion this leg was commissioned for. emitter hot 89.67/81.26 (+8.41 K) vs MNA +8.6; emitter open -22.30/-3.82 (+18.47 K) vs +18.7; board hot 109.80/92.90 (+16.90 K) vs +17.3; ADC source Z at a broken harness 9.6955 k vs 9.70. All deltas <= 0.4 K. Every band POSITIVE.",
+   "defect_seeding_the_important_result": "the analyst seeded three defects. The NAMED one - hysteresis returned to the sensor node - did NOT fail the way the brief predicted: the band went to 22.98 K, still POSITIVE and still inside the band window. It was caught ONLY by the two SIGN bounds, which collapsed from +90/-148 mV to +0.08/+0.07 mV. Had the bench bounded only the band, that defect would have SHIPPED. Corollary recorded: a net-negative band does not appear as a negative number in a quasi-static sweep - trip and release simply coincide near 0 - so a min:0 bound cannot catch it and the floor must be strictly positive.",
+   "cmp3_functionally_redundant": "DESIGN FINDING: CMP3 (emitter short) is functionally redundant with CMP1. Its tap sits at 0.311 V, BELOW CMP1 0.427 V, and both detect sense-node-low, so CMP1 always asserts first; CMP3 measured a degenerate 1.1 mV band and can never define a /FAULT edge. A leftover from the inverted-orientation spec that the blocks.md P4 amendment already flagged. Worth its zero cost as redundancy against a single-comparator failure, but THE FAIL-SAFE HAS 3 FUNCTIONALLY DISTINCT CHANNELS, NOT 4 - the design doc should not claim four.",
+   "my_brief_figures_were_wrong": "two numbers I passed the analyst do not match the board. (1) the ladder taps A/B/C I quoted are sensor-node TRIP voltages, not ladder node voltages (actual 3.0495/0.4273/0.3108 V). (2) ladder current 101.5 uA measures 92.77 uA quiescent - which matters because power_tree budgets exactly 0.10 mA.",
+   "doc_drift": "sheets.md s5.3 says D401 clamps /NTC_LED; the netlist puts its anode on /thermal/CMP_LED. The NETLIST is right (R413 limits clamp current to 2.03 mA); the doc wording is stale.",
+   "residual": "zsrc_kohm has only 3 pct margin to the ICD 10 k ceiling; the worst-case 1 pct corner hand-checks at 9.79 k, still inside but tight. +3V3 was modelled ideal, so the ~2 mA D401 pushes back during a 24.4 V harness fault is NOT proven harmless to rail regulation. Unmated carrier case not benched. Every absolute temperature inherits the NTC uncertainty - C49247666 publishes NO vendor datasheet."
+  },
+  {
+   "ts": "2026-08-08T11:27:07",
+   "event": "p8_board_review",
+   "result": "5 errors / 15 warnings / 4 waivers recommended, from a FRESH-context reviewer with every machine gate green.",
+   "e1_h1_breaches_outline": "ORCHESTRATOR-VERIFIED. H1 (M3, board-local 5.000,5.000, 1.6 mm radius) sits 0.999 mm from the RJ45 notch wall at x=6.000, so 1.046 of 8.042 mm2 (13.0 pct) is off-board and the hole opens as a 2.500 mm SLOT - no usable standoff at that corner. Root cause is ICD-01 itself: s7.1 mandates a 5 mm corner inset while s7.6 starts the RJ45 relief at x=6, leaving a 6 mm tongue too narrow for an M3 hole at 5 mm inset. EVERY daughter inherits it. Invisible to DRC because edge_clearance is a COPPER rule and H1 is NPTH. I re-checked all five holes: H2/H3/H4/H5 are clear (my first script mis-flagged H2 - it failed to bound the notch right edge; corrected).",
+   "e2_hazard_silk_missing": "the ICD s9 bench-hazard silkscreen DOES NOT EXIST on the board. The design doc asserts twice that it is fitted and requirements.md s2.5 mandates it; the board carries zero silk text beyond refdes. TP103 is a bare pad on +48V_SW on a fixture that floats at PoE potential.",
+   "e3_thermal_vias": "U341 has 6 thermal vias where U301/U321/U361 have 8; D301/D321/D341/D361 have 0 against a declared 4. check_thermal SKIPS min_vias entirely whenever need_vias is false, so all eight declared floors were never tested.",
+   "e4_pin1_marker": "the J3/J4 pin-1 marker fails three ways: stroked at 0.06 mm (below JLC ~0.153 mm, and the DRU silk floor covers TEXT only - 89 graphics sit at 0.06); a CIRCLE where the ICD specifies a triangle; and on the WRONG ROW - it marks the contact that mates the carriers position 2, defeating ICD s7.4 mechanism 5.",
+   "e5_pad_numbering_doc_drift": "mating geometry itself is CORRECT - the reviewer checked all 38 positions against ICD s7.2 rev A7 - but board pad numbering is now the MIRROR of the ICD map that requirements.md still prints as authoritative, so a bench meter reads 57 V on the wrong pin. This is the documentation half of the row-swap fix, not a copper defect.",
+   "confirmed_good": "the antenna column is genuinely clear (0.0000 mm2 on all four layers) and truncating the planes orphaned nothing (In1 GND 5826 mm2 plus four pad-connected slivers by J3).",
+   "warnings_worth_knowing": "In1.Cu is NOT a solid GND plane - 226 mm of foreign track and 106 foreign vias thread it, and the x>88 strip has no plane at all, where U401 (the fault comparator, external-hysteresis-only) sits entirely. PWM0-3 return through the +12V plane, not GND: B.Cu nearest neighbour is In2 at 0.244 mm - that is 11 of the 13 return-path warnings. 42 misattributed refdes (R410 0.00 mm from U401, C363 0.06 mm from L361) are a MIS-BUILD mechanism, not cosmetics, because ~30 DNP parts ship and the operator resolves them from the legend. check_pdn +3V3 no bulk is a FALSE alarm - C103/C104 are 10 uF - but seven caps are missing from decoupling.json, which blinds two P8 checks."
+  },
+  {
+   "ts": "2026-08-08T11:33:40",
+   "event": "snapshot",
+   "label": "pre-h1-removal",
+   "files": 1
+  },
+  {
+   "ts": "2026-08-08T11:35:22",
+   "event": "decision",
+   "what": "H1 (top-left M3 mounting hole) DELETED from the board; assembly ships on 4 standoffs. ICD-01 re-issued to rev A8."
+  },
+  {
+   "ts": "2026-08-08T11:37:42",
+   "event": "snapshot",
+   "label": "pre-review-fix",
+   "files": 1
+  },
+  {
+   "ts": "2026-08-08T12:29:19",
+   "event": "decision",
+   "what": "ACCEPT U341 at 7 in-pad thermal vias (8 near-part) against a declared min_vias 9, and D361 at 3 against a declared 4. No further routing cycle."
+  },
+  {
+   "ts": "2026-08-08T12:29:19",
+   "event": "p8_review_fixes_done",
+   "silk": "8 hazard texts added at 0.16 mm stroke (JLC floor ~0.153): a 4-line ICD s9 legend above TP103 plus PoE HV / PoE HAZARD tags at TP101/TP102/TP501/TP502. Verified legible in a top render.",
+   "pin1": "ground truth taken from the CARRIER board: its J3/J4 pad 1 sit at board-local (15.380,77.270)/(57.030,77.270), which on THIS board are J3 pad 2 and J4 pad 2 - the mirror, exactly as the row-swap fix implies. Triangles added on B.SilkS directly below those pads, x-aligned so B-side mirroring cannot flip the meaning. THE OLD WRONG-ROW CIRCLE REMAINS (footprint-internal, not deletable with place_edit) - two marks now exist, but the old one is 0.12 mm OD stroked at 0.06 mm, about a third of JLC minimum, so it will not print.",
+   "stroke_census": "141 pre-existing silk GRAPHICS are below JLC ~0.153 mm (89 at 0.06, 43 at 0.12, 9 at 0.10) plus 27 at stroke 0.0. All 370 pre-existing silk TEXTS are at 0.150. Not restroked - footprint-internal, a library job.",
+   "vias": "12 added (0.45/0.20 GND). U341 6->7; D301/D321/D341 to 4 attached each; D361 2 new -> 3.",
+   "method": "a shapely pre-flight checker plus a dry run on a board COPY caught two defects the first pass missed: min_hole_clearance 0.25 mm (drill-to-copper, which the checker had not modelled) and the fact that silk_place.parse_board returns refdes fields in a SEPARATE dict and never puts them in the silk obstacle list - so 5 of 10 texts collided with reference designators.",
+   "script_proposals": "(1) place_edit has add_text but NO remove_text and no move for board-frame gr_text (move_text only handles footprint reference/value fields), and add_text idempotency keys on position - so \"moving\" a label silently creates a second copy and a misplaced hazard label is permanent without a raw edit. (2) check_thermal skips min_vias entirely when need_vias is false, so all eight declared floors on this board are STILL untested and the gate passes about something else. (3) silk_place.parse_board omits Reference/Value field boxes from its silk dict; any caller using it as an obstacle set places text on refdes and finds out at DRC."
+  },
+  {
+   "ts": "2026-08-08T12:30:46",
+   "event": "gate",
+   "gate": "verify",
+   "status": "pass",
+   "attempt": 4,
+   "failing_count": 0
   }
  ],
  "spawns": [

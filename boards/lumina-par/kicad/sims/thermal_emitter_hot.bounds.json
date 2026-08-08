@@ -1,0 +1,82 @@
+[
+  {
+    "measure": "ehot_trip_c",
+    "min": 86.0,
+    "max": 94.0,
+    "severity": "error",
+    "msg": "emitter-hot trip must land on the 90 C promise (requirements PAR-REQ-12, architecture/blocks.md B4; hand-solved 89.9 C). +-4 K covers 1% ladder resistors (~1.1 K), NTC R25 +-1% and B +-1% (~1.0 K), LM339LV Vos +-3 mV max over temperature (~0.4 K), and headroom for the single-beta EXTRAPOLATION from B25/50 to 90 C - the NTC C49247666 publishes no datasheet, so that error is unquantifiable. A wrong ladder or feedback resistor moves this by tens of K."
+  },
+  {
+    "measure": "ehot_rel_c",
+    "min": 76.0,
+    "max": 86.0,
+    "severity": "error",
+    "msg": "emitter-hot release (hand-solved 81.2 C; the original 75 C aspiration was superseded and the narrower band deliberately accepted, blocks.md B4). Release above this window collapses the hysteresis band; below it the module stays disabled far longer than intended."
+  },
+  {
+    "measure": "ehot_band_k",
+    "min": 5.0,
+    "max": 13.0,
+    "severity": "error",
+    "msg": "HEADLINE: the hysteresis band must be comfortably POSITIVE (hand-solved +8.6 K). A pre-P4 revision returned hysteresis to the SENSOR node and drove a channel's band net-NEGATIVE, which makes /FAULT chatter through a progressive failure instead of latching cleanly. The upper limit is real too: blocks.md records that widening CMP1 trades directly against the emitter-OPEN channel's margin."
+  },
+  {
+    "measure": "ch3_trip_c",
+    "min": 84.0,
+    "severity": "error",
+    "msg": "the emitter-SHORT channel (out 13) transitions at ~92.8 C on an emitter heat sweep, i.e. INSIDE the region where CMP1 already holds /FAULT low (release 81.3 C). It must stay above CMP1's release or it would add a second /FAULT edge to a single heat cycle. Its own band is degenerate here by construction - see the .cir header."
+  },
+  {
+    "measure": "fault_voh_v",
+    "min": 2.6,
+    "severity": "error",
+    "msg": "de-asserted /FAULT must be a valid CMOS high for U201 and for the carrier (0.7 x VCC = 2.31 V floor on a 3.3 V rail). R410's hysteresis current is what pulls the idle level below the rail; measured 3.09 V. ICD: /FAULT is open drain, active low, never driven high."
+  },
+  {
+    "measure": "fault_vol_v",
+    "max": 0.15,
+    "severity": "error",
+    "msg": "asserted /FAULT must be an unambiguous low. LM339LV VOL is specified 150 mV typ / 300 mV max at ISINK = 4 mA (parts/C3658338.json); this network sinks only ~0.36 mA through R207 || the carrier's 10 k, so VOL must sit far below the 4 mA figure. Measured 11 mV."
+  },
+  {
+    "measure": "hys_off_mv",
+    "min": 20.0,
+    "severity": "error",
+    "msg": "SIGN CHECK on the hysteresis. With /FAULT de-asserted the feedback must push the PROTECTED node ABOVE the sensor node (measured +93 mV at 41 C). log/P4-digest.md records the pre-fix defect as 'hysteresis wrong in SIGN on 3 of 4 channels - a broken harness chattered'. A negative or near-zero value here is that defect returning."
+  },
+  {
+    "measure": "ladder_i_ua",
+    "min": 80.0,
+    "max": 100.0,
+    "severity": "error",
+    "msg": "quiescent reference-ladder draw from +3V3 (through R405). architecture/power_tree.md s4 budgets 0.10 mA for the comparator reference ladder; measured 92.8 uA. The lower limit catches an oversized ladder resistor, which would also move every threshold."
+  },
+  {
+    "measure": "vref_ehot_v",
+    "min": 0.406,
+    "max": 0.449,
+    "severity": "error",
+    "msg": "ladder tap feeding U401 pin 6 (emitter-hot reference), loaded. Nominal 0.4273 V from R405/R406/R407/R408/R416 = 2.7k/27k/1.2k/1.6k/1.6k. +-5% against 1% parts localises a wrong ladder value to the ladder rather than to the NTC model or the feedback."
+  },
+  {
+    "measure": "vref_hot2_v",
+    "min": 0.295,
+    "max": 0.327,
+    "severity": "error",
+    "msg": "ladder tap feeding U401 pins 8 and 10 (board-hot AND emitter-short references share it), loaded. Nominal 0.3108 V. Note R407+R408+R416 fixes the vref_ehot/vref_hot2 ratio at exactly 4.4/3.2 = 1.375 regardless of loading - the comparator inputs draw 5 pA."
+  },
+  {
+    "measure": "vref_open_v",
+    "min": 2.9,
+    "max": 3.2,
+    "severity": "error",
+    "msg": "ladder tap feeding U401 pin 5 (emitter-open reference), loaded, /FAULT de-asserted. Nominal 3.0495 V. This tap is the one R410 moves for hysteresis, so it must sit below the rail but well above the normal sense band."
+  },
+  {
+    "measure": "ehot_trip_div_v",
+    "min": 0.27,
+    "max": 0.299,
+    "severity": "error",
+    "msg": "cross-tool traceability: the unloaded emitter-divider voltage at the trip point, which the earlier hand-built MNA solve published as 'ladder tap B = 0.2843 V'. SPICE returns 0.28429 V independently. Bounding it lets a reviewer compare the two analyses without converting temperatures."
+  }
+]

@@ -1,0 +1,128 @@
+{
+ "script": "sim_run",
+ "status": "pass",
+ "board": "sims",
+ "counts": {
+  "total": 0,
+  "by_severity": {},
+  "by_source": {}
+ },
+ "violations": [],
+ "input": "kicad\\sims",
+ "engine": {
+  "dll": "C:\\Program Files\\KiCad\\10.0\\bin\\ngspice.dll",
+  "ngspice_version": 46
+ },
+ "timeout_s": 60.0,
+ "testbenches": [
+  {
+   "name": "thermal_adc_source_z",
+   "cir": "kicad\\sims\\thermal_adc_source_z.cir",
+   "bounds": 4,
+   "elapsed_s": 0.645,
+   "measures": {
+    "v_i0_v": 3.15113,
+    "v_i1u_v": 3.14143,
+    "zsrc_kohm": 9.69546,
+    "fault_v": 0.0233277,
+    "s_eopen": 1.0,
+    "adc_v": 3.15113
+   },
+   "status": "pass"
+  },
+  {
+   "name": "thermal_board_hot",
+   "cir": "kicad\\sims\\thermal_board_hot.cir",
+   "bounds": 12,
+   "elapsed_s": 0.784,
+   "measures": {
+    "bhot_trip_c": 109.795,
+    "bhot_rel_c": 92.8993,
+    "bhot_band_k": 16.8956,
+    "ch4_trip_c": 109.796,
+    "ch4_rel_c": 92.9004,
+    "bhot_trip_div_v": 0.16671,
+    "bhot_rel_div_v": 0.260343,
+    "hys_b_idle_mv": 92.7726,
+    "hys_b_fault_mv": -5.05213,
+    "s_ehot_max": 0.0,
+    "s_eopen_max": 0.0,
+    "s_eshort_max": 0.0,
+    "fault_vol_v": 0.022792,
+    "fault_voh_v": 3.09306
+   },
+   "status": "pass"
+  },
+  {
+   "name": "thermal_emitter_hot",
+   "cir": "kicad\\sims\\thermal_emitter_hot.cir",
+   "bounds": 12,
+   "elapsed_s": 0.799,
+   "measures": {
+    "ehot_trip_c": 89.6749,
+    "ehot_rel_c": 81.2648,
+    "ehot_band_k": 8.41009,
+    "ch1_trip_c": 89.6756,
+    "ch1_rel_c": 81.2653,
+    "ch1_band_k": 8.41025,
+    "ch3_trip_c": 92.8365,
+    "ch3_rel_c": 92.839,
+    "fault_voh_v": 3.09306,
+    "fault_vol_v": 0.0114461,
+    "ladder_i_ua": 92.7661,
+    "hys_off_mv": 92.8457,
+    "vref_ehot_v": 0.427323,
+    "vref_hot2_v": 0.31078,
+    "vref_open_v": 3.04953,
+    "ladder_i_fault_ua": 320.026,
+    "ehot_trip_div_v": 0.284291
+   },
+   "status": "pass"
+  },
+  {
+   "name": "thermal_emitter_open",
+   "cir": "kicad\\sims\\thermal_emitter_open.cir",
+   "bounds": 9,
+   "elapsed_s": 0.798,
+   "measures": {
+    "eopen_trip_c": -22.2979,
+    "eopen_rel_c": -3.82488,
+    "eopen_band_k": 18.473,
+    "ch2_trip_c": -22.2981,
+    "ch2_rel_c": -3.82503,
+    "ch2_band_k": 18.4731,
+    "eopen_trip_div_v": 3.0492,
+    "eopen_rel_div_v": 2.65655,
+    "hys_off_idle_mv": 90.0159,
+    "hys_off_fault_mv": -148.146,
+    "fault_vol_v": 0.023325,
+    "cmp_led_max_v": 3.05701
+   },
+   "status": "pass"
+  },
+  {
+   "name": "thermal_harness_fault",
+   "cir": "kicad\\sims\\thermal_harness_fault.cir",
+   "bounds": 14,
+   "elapsed_s": 0.773,
+   "measures": {
+    "win_lo_rel_v": 0.359066,
+    "win_hi_trip_v": 3.05379,
+    "win_hi_rel_v": 2.55988,
+    "win_lo_trip_v": 0.295167,
+    "win_lo_band_mv": 63.8987,
+    "win_hi_band_mv": 493.91,
+    "eshort_rel_v": 0.2589,
+    "eshort_trip_v": 0.26,
+    "fault_at_short_v": 0.0114279,
+    "fault_at_open_v": 0.0233541,
+    "fault_at_24v_v": 0.0235245,
+    "fault_at_40c_v": 3.09302,
+    "cmp_led_clamp_v": 4.05945,
+    "i_r413_ma": 2.03405,
+    "p_r413_mw": 41.3738
+   },
+   "status": "pass"
+  }
+ ]
+}

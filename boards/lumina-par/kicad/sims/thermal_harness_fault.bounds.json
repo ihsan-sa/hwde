@@ -1,0 +1,93 @@
+[
+  {
+    "measure": "fault_at_short_v",
+    "max": 0.15,
+    "severity": "error",
+    "msg": "FAIL-SAFE: /FAULT must be ASSERTED with the emitter sense conductor shorted to GND (0 V). Measured 11 mV. This is the whole point of the window detector - in the bottom-leg divider a short and an over-temperature look the same, and both must gate the output stages."
+  },
+  {
+    "measure": "fault_at_open_v",
+    "max": 0.15,
+    "severity": "error",
+    "msg": "FAIL-SAFE: /FAULT must be ASSERTED with the emitter conductor OPEN, which floats /NTC_LED to +3V3 through R403. Measured 23 mV. An open harness reads as COLD in this orientation, which is exactly the fault a single-threshold detector would silently ignore while disabling all protection."
+  },
+  {
+    "measure": "fault_at_24v_v",
+    "max": 0.15,
+    "severity": "error",
+    "msg": "FAIL-SAFE: /FAULT must be ASSERTED with the sense conductor touching an LED anode at the TVS clamp, 24.4 V (architecture/sheets.md s5.3: 6.8 V nominal, 16.7-24.4 V clamped). Measured 24 mV - the open-window channel catches it because D401 holds CMP_LED above the VREF_OPEN tap."
+  },
+  {
+    "measure": "fault_at_40c_v",
+    "min": 2.6,
+    "severity": "error",
+    "msg": "and the converse: /FAULT must be DE-asserted at a healthy 40 C emitter (sense node 1.1433 V). Measured 3.09 V. Without this bound every other fail-safe bound could be satisfied by a detector that simply asserts always."
+  },
+  {
+    "measure": "cmp_led_clamp_v",
+    "max": 5.6,
+    "severity": "error",
+    "msg": "ABS-MAX: R413 + D401 must hold the LM339LV input inside its range under the 24.4 V LED-anode fault. Measured 4.059 V against the RECOMMENDED input ceiling of 5.6 V and the ABSOLUTE MAXIMUM of 6.0 V (parts/C3658338.json). The LM339LV inputs are diode-clamped to GND only with no clamp to V+, so without D401 this node would sit near 24 V. The diode card is fitted to the datasheet MAX-VF envelope, so 4.059 V is the conservative (highest) clamp estimate."
+  },
+  {
+    "measure": "i_r413_ma",
+    "max": 10.0,
+    "severity": "error",
+    "msg": "ABS-MAX: fault current arriving at the protected node, 2.034 mA, against the LM339LV 'current into input pins -10 to +10 mA' absolute maximum (parts/C3658338.json). That limit is what binds if D401 ever fails open; with D401 present the current flows into +3V3 instead and D401 sees 2.0 mA against its own IF(AV) of 150 mA - a 74x margin (parts/C81598.json)."
+  },
+  {
+    "measure": "p_r413_mw",
+    "max": 100.0,
+    "severity": "error",
+    "msg": "R413 dissipation during a sustained 24.4 V harness fault: 41.4 mW against the 0603 part's 100 mW rating (parts/parts.json 0603WAF1002T5E, 'Power(Watts) = 100mW'). This is a CONTINUOUS condition - it lasts until someone repairs the harness - so the 41 % loading matters. Its 75 V maximum working voltage is untroubled by the ~20 V it drops."
+  },
+  {
+    "measure": "win_hi_trip_v",
+    "min": 2.9,
+    "max": 3.2,
+    "severity": "error",
+    "msg": "upper (open/cold) window edge as an ACTUAL sense-node voltage, 3.0538 V. NOTE this is deliberately a different quantity from thermal_emitter_open.cir's eopen_trip_div_v (3.049 V), which is the UNLOADED divider equivalent: here the node is forced by the fault source and has zero source impedance, whereas the real divider's Thevenin impedance lets the hysteresis current shift the node. The two agree once that shift is accounted for."
+  },
+  {
+    "measure": "win_hi_rel_v",
+    "min": 2.4,
+    "max": 2.72,
+    "severity": "error",
+    "msg": "upper window release edge, 2.5599 V actual node voltage. The corresponding unloaded-divider figure in thermal_emitter_open.cir is 2.657 V; the 97 mV difference is exactly the 12.0 uA hysteresis current flowing in the real divider's 8.04 k Thevenin impedance at that point, and the two benches agree to under 1 mV once that is applied."
+  },
+  {
+    "measure": "win_hi_band_mv",
+    "min": 350.0,
+    "max": 650.0,
+    "severity": "error",
+    "msg": "the open/cold window's hysteresis expressed in millivolts at the sense node: +494 mV, POSITIVE. This is the volt-domain statement of the same promise thermal_emitter_open.cir makes in kelvin (+18.5 K), and it is the form a bench probe can check on hardware."
+  },
+  {
+    "measure": "win_lo_trip_v",
+    "min": 0.24,
+    "max": 0.35,
+    "severity": "error",
+    "msg": "lower (hot/short) window edge on a falling sense node, 0.2952 V. Set by CMP1 against tap VREF_EHOT, not by the emitter-short channel - see eshort_trip_v."
+  },
+  {
+    "measure": "win_lo_rel_v",
+    "min": 0.3,
+    "max": 0.42,
+    "severity": "error",
+    "msg": "lower window release edge on a rising sense node, 0.3591 V."
+  },
+  {
+    "measure": "win_lo_band_mv",
+    "min": 30.0,
+    "max": 110.0,
+    "severity": "error",
+    "msg": "the hot/short window's hysteresis in millivolts at the sense node: +63.9 mV, POSITIVE. Narrow in volts but that is inherent - the divider is compressed down there (about 7.7 mV/K at 90 C), and it corresponds to the +8.4 K band thermal_emitter_hot.cir measures."
+  },
+  {
+    "measure": "eshort_trip_v",
+    "min": 0.2,
+    "max": 0.32,
+    "severity": "error",
+    "msg": "FINDING, not a defect: the emitter-SHORT channel (U401 out 13, referenced to tap VREF_HOT2) trips at 0.2600 V and releases at 0.2589 V - a degenerate 1.1 mV band. That is expected and unavoidable in the as-built BOTTOM-LEG orientation: CMP3's reference tap (0.311 V) sits BELOW CMP1's (0.427 V), and both channels detect the same 'sense node low' condition, so CMP1 always asserts first and is already holding /FAULT low before CMP3 moves. CMP3 can therefore never be the channel that defines a /FAULT edge, and the short-detection credit actually belongs to CMP1. blocks.md's original CMP3 row ('above ~3.1 V at the divider node') was written for the INVERTED orientation and its P4 amendment already recognises the flip. CMP3 remains worth its zero marginal cost as redundancy against a single-comparator failure, but the fail-safe has THREE functionally distinct channels, not four. This bound just holds CMP3's edge on tap C where the ladder puts it."
+  }
+]

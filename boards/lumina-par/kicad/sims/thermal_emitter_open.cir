@@ -1,0 +1,171 @@
+* LUM-PAR-A thermal window detector - EMITTER-OPEN / implausibly-cold channel
+* (U401 ch2, out pin 2, IN- pin 4 = CMP_LED, IN+ pin 5 = VREF_OPEN)
+*
+* SOURCE NETLIST: work/board.net (kicadsexpr export, P6 routed board). Topology
+*   synthesized with sim_run.py --fragment (refs R401,R403,R405-R416,R207,D401,
+*   U401) and the "unresolved" U401 / RT401 / off-board NTC wired by hand from
+*   the fragment pin tables. Every R value is the netlist value, not re-typed.
+*
+* NET RENAME MAP (simlib.spice_net_name):
+*   +3V3 -> P3V3   GND -> 0   /FAULT -> N_FAULT   /NTC_LED -> N_NTC_LED
+*   /thermal/CMP_LED   -> N_THERMAL_CMP_LED    /thermal/CMP_BRD -> N_THERMAL_CMP_BRD
+*   /thermal/HYS_LED   -> N_THERMAL_HYS_LED    /thermal/HYS_BRD -> N_THERMAL_HYS_BRD
+*   /thermal/LAD_D     -> N_THERMAL_LAD_D      /thermal/NTC_BRD -> N_THERMAL_NTC_BRD
+*   /thermal/VREF_EHOT -> N_THERMAL_VREF_EHOT  /thermal/VREF_HOT2 -> N_THERMAL_VREF_HOT2
+*   /thermal/VREF_OPEN -> N_THERMAL_VREF_OPEN
+*   TE / TB / S_* / HYS_OFF / V_DIV_E are SIM-ONLY probe nodes.
+*
+* ============================ WHY THIS BENCH EXISTS ==========================
+* This is the highest-value bench on the board. The emitter NTC is OFF-BOARD,
+* reached through J5 pin 10 and a crimped harness, so a broken conductor is the
+* single most likely fault in the system - and in the bottom-leg divider used
+* here (+3V3 -> 10 k -> node -> NTC -> GND) an open NTC reads as COLD, which is
+* exactly the direction a naive single-threshold detector ignores. CMP2 is the
+* window's cold edge and the only thing that catches it.
+*
+* A PRE-P4 REVISION OF THIS NETWORK RETURNED HYSTERESIS TO THE SENSOR DIVIDER
+* INSTEAD OF THE PROTECTED COMPARATOR NODE, and this channel came out with a NET
+* NEGATIVE hysteresis band (log/P4-digest.md: "hysteresis wrong in SIGN on 3 of
+* 4 channels - a broken harness chattered"). A negative band means a progressive
+* crimp failure makes /FAULT oscillate instead of latching, so every output
+* stage strobes. Two capable analyses disagreed about whether this network
+* latched or chattered and it was settled only by a hand-built MNA nodal solver.
+* This bench is the independent second opinion. Solved reference (blocks.md B4
+* P4 amendment, mated): CMP2 trip -22.5 C, release -3.8 C, band +18.7 K.
+*
+* SIGN CONVENTION - READ BEFORE JUDGING eopen_band_k. This is the COLD-side
+* channel: it ASSERTS on the way DOWN (-22.5 C) and RELEASES on the way UP
+* (-3.8 C), so the trip temperature is LOWER than the release temperature and
+* the band is RELEASE MINUS TRIP. The hot channels are the other way round. A
+* band computed trip-minus-release here would read -18.7 K and look like the
+* very defect this bench exists to disprove.
+*
+* WHAT IS MODELLED, AND WHAT IS NOT
+*   - Hysteresis returns to the PROTECTED comparator nodes through R413/R415,
+*     never to the sensor dividers. That is the P4 fix under test.
+*   - R402/R404 (150 R) + C402/C403 (4.7 uF) feed the carrier's high-Z ADC
+*     inputs (J4.19 / J4.22) and carry no DC current, so they cannot move a
+*     threshold; omitted. Verified against the netlist: /ADC0 and /ADC1 have no
+*     other loads. Their separate promise (source impedance <= 10 k at a broken
+*     harness) is benched in thermal_adc_source_z.cir.
+*   - +3V3 is an ideal source. SPICE's own .temp is left at default and is
+*     IRRELEVANT: sensor temperature is the sim-only node TE (1 V == 1 degC) and
+*     every resistor in this deck is ideal / tempco-free.
+*
+* MODEL PROVENANCE (agent-authored generic cards - no vendored vendor files)
+*   NTC (emitter, off-board) and RT401, HNTC0603-103F3950FB, LCSC C49247666:
+*     R(T) = 10k * exp(3950 * (1/T - 1/298.15)), T in kelvin.
+*     *** THIS PART PUBLISHES NO VENDOR DATASHEET. *** parts/parts.json records
+*     datasheet:"" and url:"" for it. R25 = 10 k +-1% and B25/50 = 3950 K +-1%
+*     from the LCSC parametric record are its ENTIRE specification. A
+*     single-beta law fitted between 25 and 50 C is therefore EXTRAPOLATED to
+*     -22 C here, and real NTCs deviate from single-beta by several kelvin that
+*     far out. Every temperature bound in the sidecar inherits that uncertainty
+*     and is widened for it. The BAND bound does not: a band is a difference of
+*     two points on the same curve and is far less sensitive to beta error than
+*     either absolute temperature is.
+*   U401 LM339LV (LCSC C3658338) - Tier-B BOUNDARY model, never IC internals:
+*     decision node S_* = 0.5*(1+tanh((V(IN-)-V(IN+))/200u)), an ideal
+*     comparator smoothed over ~200 uV to emulate finite gain; the output is an
+*     OPEN-DRAIN SINK ONLY (a conductance to GND, never a source), per
+*     parts/C3658338.json "open-drain (sinking-only)". RON = 37.5 ohm from the
+*     datasheet VOL point 150 mV typ at ISINK = 4 mA. GOFF = 3.03e-11 S from
+*     ILKG 100 pA at VPULLUP = V+ = 3.3 V. Vos (+-3 mV max over temperature) and
+*     IB (5 pA) are not modelled - IB is negligible against 10 k of series
+*     resistance and Vos is folded into the sidecar windows.
+*     *** WIRED BY PIN NUMBER, NOT CHANNEL NAME *** - parts/C3658338.json
+*     records that the datasheet's Figure 5-3 and Table 5.2 transpose the
+*     channel names (its own footnote 1 admits it). Groupings from the netlist:
+*       out 1  <- IN- 6  VREF_EHOT / IN+ 7  CMP_LED     emitter hot
+*       out 2  <- IN- 4  CMP_LED   / IN+ 5  VREF_OPEN   emitter open  <-- HERE
+*       out 14 <- IN- 8  VREF_HOT2 / IN+ 9  CMP_BRD     board hot
+*       out 13 <- IN- 10 VREF_HOT2 / IN+ 11 CMP_LED     emitter shorted
+*   D401 1N4148W (LCSC C81598): fitted to the datasheet MAX-VF envelope
+*     (0.715 V at 1 mA, 0.855 V at 10 mA) -> N = 2.35, IS = 7.8n, RS = 1.0 ohm.
+*     Reverse-biased throughout this bench; cmp_led_max_v proves it stays so.
+*
+* SWEEP: emitter NTC 40 -> -60 -> 40 C at 1 K/s. Purely resistive network, so
+* the rate is arbitrary and the run is a sequence of quasi-static DC solves.
+* Board NTC held at 40 C so only the emitter channel moves.
+* .options rshunt=1e9 is injected by the runner (simlib.prepare_circuit).
+
+* ---------------------------------------------------------------- rail
+Vdd P3V3 0 DC 3.3
+
+* ------------------------------------- reference ladder R405-R408 + R416
+R405 P3V3 N_THERMAL_VREF_OPEN 2.7k
+R406 N_THERMAL_VREF_OPEN N_THERMAL_VREF_EHOT 27k
+R407 N_THERMAL_VREF_EHOT N_THERMAL_VREF_HOT2 1.2k
+R408 N_THERMAL_VREF_HOT2 N_THERMAL_LAD_D 1.6k
+R416 N_THERMAL_LAD_D 0 1.6k
+
+* ------------------- emitter sense divider (NTC is OFF-BOARD, via J5 pin 10)
+R403 P3V3 N_NTC_LED 10k
+VTE TE 0 PWL(0 40 100 -60 200 40)
+BRT_LED N_NTC_LED 0 I = v(N_NTC_LED)/(10000*exp(3950*(1/(v(TE)+273.15)-1/298.15)))
+
+* ------------------------------------------- board sense divider (RT401)
+R401 P3V3 N_THERMAL_NTC_BRD 10k
+VTB TB 0 DC 40
+BRT401 N_THERMAL_NTC_BRD 0 I = v(N_THERMAL_NTC_BRD)/(10000*exp(3950*(1/(v(TB)+273.15)-1/298.15)))
+
+* ------------------------------- comparator input protection + rail clamp
+R413 N_NTC_LED N_THERMAL_CMP_LED 10k
+R415 N_THERMAL_NTC_BRD N_THERMAL_CMP_BRD 10k
+D401 N_THERMAL_CMP_LED P3V3 DCLAMP
+.model DCLAMP D(IS=7.8n N=2.35 RS=1.0)
+
+* --------------------- hysteresis, returned to the PROTECTED comparator nodes
+R409 N_FAULT N_THERMAL_HYS_LED 100k
+R411 N_THERMAL_HYS_LED N_THERMAL_CMP_LED 100k
+R412 N_FAULT N_THERMAL_HYS_BRD 100k
+R414 N_THERMAL_HYS_BRD N_THERMAL_CMP_BRD 100k
+R410 N_FAULT N_THERMAL_VREF_OPEN 10k
+
+* ---------------- /FAULT pull-ups: R207 local 100 k || carrier 10 k (MATED)
+R207 P3V3 N_FAULT 100k
+RCARRIER P3V3 N_FAULT 10k
+
+* -------------------------------------- U401 decision nodes (sim-only probes)
+BS_EHOT   S_EHOT   0 V = 0.5*(1+tanh((v(N_THERMAL_VREF_EHOT)-v(N_THERMAL_CMP_LED))/200u))
+BS_EOPEN  S_EOPEN  0 V = 0.5*(1+tanh((v(N_THERMAL_CMP_LED)-v(N_THERMAL_VREF_OPEN))/200u))
+BS_BHOT   S_BHOT   0 V = 0.5*(1+tanh((v(N_THERMAL_VREF_HOT2)-v(N_THERMAL_CMP_BRD))/200u))
+BS_ESHORT S_ESHORT 0 V = 0.5*(1+tanh((v(N_THERMAL_VREF_HOT2)-v(N_THERMAL_CMP_LED))/200u))
+
+* ------------------- U401 open-drain outputs, all four wire-OR'd onto /FAULT
+BOUT1  N_FAULT 0 I = v(N_FAULT)*(3.03e-11+(1/37.5-3.03e-11)*v(S_EHOT))
+BOUT2  N_FAULT 0 I = v(N_FAULT)*(3.03e-11+(1/37.5-3.03e-11)*v(S_EOPEN))
+BOUT14 N_FAULT 0 I = v(N_FAULT)*(3.03e-11+(1/37.5-3.03e-11)*v(S_BHOT))
+BOUT13 N_FAULT 0 I = v(N_FAULT)*(3.03e-11+(1/37.5-3.03e-11)*v(S_ESHORT))
+
+* ------------------------------------------- derived probes (sim-only nodes)
+* hysteresis offset the feedback puts on the PROTECTED node, in millivolts.
+* Positive with /FAULT de-asserted, negative once asserted - that sign FLIP is
+* the whole hysteresis mechanism, and its collapse was the pre-P4 defect.
+BHOFF HYS_OFF 0 V = (v(N_THERMAL_CMP_LED)-v(N_NTC_LED))*1000
+* UNLOADED emitter divider voltage - a pure readout of TE, independent of the
+* step that jumps the real /NTC_LED node at the snap. This is the number the
+* earlier hand solves published as "ladder tap A = 3.0258 V".
+BVDIVE V_DIV_E 0 V = 3.3*(10000*exp(3950*(1/(v(TE)+273.15)-1/298.15)))/(10000+10000*exp(3950*(1/(v(TE)+273.15)-1/298.15)))
+
+.tran 0.02 200 0 0.02
+
+* ---- system level: what /FAULT actually does through a cooling/warming cycle
+.meas tran eopen_trip_c find v(TE) when v(N_FAULT)=1.65 fall=1
+.meas tran eopen_rel_c  find v(TE) when v(N_FAULT)=1.65 rise=1
+* COLD-side channel: band is RELEASE minus TRIP (see the sign note above)
+.meas tran eopen_band_k param='eopen_rel_c-eopen_trip_c'
+* ---- per-channel attribution (probe nodes, no circuit loading) ----
+.meas tran ch2_trip_c find v(TE) when v(S_EOPEN)=0.5 rise=1
+.meas tran ch2_rel_c  find v(TE) when v(S_EOPEN)=0.5 fall=1
+.meas tran ch2_band_k param='ch2_rel_c-ch2_trip_c'
+* ---- the same two edges expressed as unloaded divider voltages ----
+.meas tran eopen_trip_div_v find v(V_DIV_E) when v(S_EOPEN)=0.5 rise=1
+.meas tran eopen_rel_div_v  find v(V_DIV_E) when v(S_EOPEN)=0.5 fall=1
+* ---- the hysteresis mechanism itself: the offset must FLIP SIGN ----
+.meas tran hys_off_idle_mv  find v(HYS_OFF) at=1
+.meas tran hys_off_fault_mv find v(HYS_OFF) at=100
+* ---- /FAULT levels, and proof D401 never conducts in normal cold operation --
+.meas tran fault_vol_v   find v(N_FAULT) at=100
+.meas tran cmp_led_max_v max v(N_THERMAL_CMP_LED) from=0 to=200
+.end

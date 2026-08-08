@@ -1,0 +1,29 @@
+{
+ "_comment": "P8 verify waivers for lumina-par. Each entry is a HUMAN decision (gate.py load_waivers refuses an entry lacking reason/approved). Waived findings still appear in the gate result under 'waived' - they are recorded, not erased.",
+ "waivers": [
+  {
+   "check": "check_silk",
+   "kind": "silk_over_pad",
+   "net": "+12V",
+   "refs": ["TP101"],
+   "reason": "FALSE POSITIVE in check_silk, refuted by the footprint geometry. TP101 uses stock TestPoint:TestPoint_Pad_D1.5mm, whose F.SilkS fp_circle is radius 0.950 mm with (fill no) and a 0.12 mm stroke - so the printed ring spans radius 0.890 to 1.010 mm, while the pad is radius 0.750 mm. They do not intersect; there is a 0.140 mm gap. The reported 1.77 mm2 is exactly the WHOLE pad area (pi x 0.75^2 = 1.767), which is the signature of intersecting the pad with a FILLED disc of radius 0.95 - i.e. check_silk is not honouring (fill no). Corroborated two ways: kicad-cli DRC, which the skill's own guidance says to trust over check_silk, reports ZERO silk violations on this board; and the 2.0x2.0 mm TestPoint variant used on TP501/TP502, whose silk is drawn as four fp_lines outside the pad, is not flagged. P9 dfm_check runs a different implementation on the exported gerbers and will re-check this independently. Fix belongs in check_silk (honour fill no, intersect the annulus), not in this board.",
+   "approved": "Ihsan S. (system owner), 2026-08-08, at the P8/H4 checkpoint, on the geometry evidence above; recorded in state.json"
+  },
+  {
+   "check": "check_silk",
+   "kind": "silk_over_pad",
+   "net": "+3V3",
+   "refs": ["TP102"],
+   "reason": "FALSE POSITIVE in check_silk - identical cause and evidence to the TP101 entry above. Stock TestPoint_Pad_D1.5mm: unfilled silk ring at radius 0.890-1.010 mm versus a pad of radius 0.750 mm, no intersection; reported area equals the whole pad, the signature of treating the unfilled circle as a filled disc. kicad-cli DRC reports zero silk violations.",
+   "approved": "Ihsan S. (system owner), 2026-08-08, at the P8/H4 checkpoint, on the geometry evidence above; recorded in state.json"
+  },
+  {
+   "check": "check_silk",
+   "kind": "silk_over_pad",
+   "net": "+48V_SW",
+   "refs": ["TP103"],
+   "reason": "FALSE POSITIVE in check_silk - identical cause and evidence to the TP101 entry above. Stock TestPoint_Pad_D1.5mm: unfilled silk ring at radius 0.890-1.010 mm versus a pad of radius 0.750 mm, no intersection; reported area equals the whole pad, the signature of treating the unfilled circle as a filled disc. kicad-cli DRC reports zero silk violations. NOTE: TP103 sits on +48V_SW and carries the ICD s9 bench-hazard silkscreen obligation - that silk is a separate P6/P7 add_text op and is NOT what this waiver concerns.",
+   "approved": "Ihsan S. (system owner), 2026-08-08, at the P8/H4 checkpoint, on the geometry evidence above; recorded in state.json"
+  }
+ ]
+}
