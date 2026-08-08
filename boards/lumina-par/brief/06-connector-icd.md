@@ -523,11 +523,36 @@ Why this is binding, with the arithmetic:
 | **H5** | M3 support | centre **(46, 74)** | between the two blocks |
 | **J4** | SIGNAL 2x12 | (56, 68) - (88, 78) | (57.3, 69.3), long axis along +x |
 
-**These coordinates are provisional until the end of P6.** P6 places the board; the carrier owner
-must compare the placed positions against this table, correct them with `place_edit` if the
-annealer has moved them, and **re-issue this ICD with the confirmed coordinates before any daughter
-run starts.** This is the one section of this document that is not frozen at H1, and daughters are
-blocked on it.
+> **RE-ISSUED 2026-08-07 (rev A7) - THE TABLE ABOVE IS SUPERSEDED. Original text
+> quoted below.** The compare-and-re-issue step this section required was never
+> performed: LUM-CAR-A reached P10 with its connectors placed, and the table was
+> never corrected. Measured from the as-built carrier (footprint anchor + pad
+> offset + rotation, board-local on the same common 100.000 x 80.000 mm outline):
+>
+> | Ref | Anchor (board-local) | **Pad 1 (board-local)** | vs old table |
+> |---|---|---|---|
+> | **J3** | (23.000, 76.000) | **(15.380, 77.270)** | X +0.080, **Y +7.970** |
+> | **J4** | (71.000, 76.000) | **(57.030, 77.270)** | X -0.270, **Y +7.970** |
+> | **H5** | - | **(46.000, 74.000)** | exact, unchanged |
+>
+> The Y shift is +7.970 mm on BOTH connectors identically - the carrier's annealer
+> moved the connector row toward the bottom edge. H5 matching exactly confirms the
+> two boards share an origin convention, so this is a real placement delta and not
+> a frame error. **These as-placed figures are now the binding mating geometry;
+> daughters place to them.** Placing a daughter on the old nominal table would put
+> its sockets ~8 mm from the carrier's headers - a non-mating pair, and one no gate
+> in the pipeline can see, because every check compares a board against itself.
+>
+> Ruled by the system owner 2026-08-07: the as-built carrier is ground truth, it
+> being at P10 and fab-ready. Recorded in `boards/lumina-par/state.json`.
+
+*Original text, superseded:*
+
+> **These coordinates are provisional until the end of P6.** P6 places the board; the carrier owner
+> must compare the placed positions against this table, correct them with `place_edit` if the
+> annealer has moved them, and **re-issue this ICD with the confirmed coordinates before any daughter
+> run starts.** This is the one section of this document that is not frozen at H1, and daughters are
+> blocked on it.
 
 ### 7.3 Stack height and standoffs
 

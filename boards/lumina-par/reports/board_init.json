@@ -1,0 +1,921 @@
+{
+  "script": "board_init",
+  "status": "violations",
+  "board": "boards\\lumina-par\\kicad\\lumina-par.kicad_pcb",
+  "stackup": "JLC04161H-1080B",
+  "layers": 4,
+  "fab_profile": "4layer_1oz",
+  "copper_oz": 1.0,
+  "fab_floors": {
+    "min_clearance": 0.1016,
+    "min_track_width": 0.1016,
+    "min_via_diameter": 0.45,
+    "min_through_hole_diameter": 0.2,
+    "min_via_annular_width": 0.1,
+    "min_hole_to_hole": 0.5,
+    "min_copper_edge_clearance": 0.3
+  },
+  "components": 155,
+  "nets": 76,
+  "outline_bbox": [
+    54.937,
+    57.192,
+    154.937,
+    137.192
+  ],
+  "mounting_holes": 4,
+  "corner_radius": 3.0,
+  "outline_origin": [
+    54.937,
+    57.192
+  ],
+  "cutouts": [
+    [
+      60.937,
+      57.192,
+      90.937,
+      83.192
+    ]
+  ],
+  "self_check": {
+    "drc": {
+      "total": 372,
+      "by_severity": {
+        "error": 356,
+        "warning": 16
+      },
+      "by_source": {
+        "drc": 26,
+        "unconnected": 346
+      }
+    },
+    "setup_violations": [
+      {
+        "check": "courtyards_overlap",
+        "severity": "error",
+        "pos": [
+          145.765,
+          61.485
+        ],
+        "layer": null,
+        "net": null,
+        "refs": [
+          "H2",
+          "R215"
+        ],
+        "msg": "Courtyards overlap",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Footprint R215",
+            "pos": [
+              145.765,
+              61.485
+            ],
+            "uuid": "08a3da50-3f2d-4a97-bc99-587055f44098"
+          },
+          {
+            "msg": "Footprint H2",
+            "pos": [
+              149.937499,
+              62.192499
+            ],
+            "uuid": "49e5cee3-6799-497b-bec0-f7319f3bf068"
+          }
+        ]
+      },
+      {
+        "check": "courtyards_overlap",
+        "severity": "error",
+        "pos": [
+          146.505,
+          131.375
+        ],
+        "layer": null,
+        "net": null,
+        "refs": [
+          "H3",
+          "R346"
+        ],
+        "msg": "Courtyards overlap",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Footprint R346",
+            "pos": [
+              146.505,
+              131.375
+            ],
+            "uuid": "4c4e095d-345a-4b66-a11b-083d2b2552b7"
+          },
+          {
+            "msg": "Footprint H3",
+            "pos": [
+              149.937499,
+              132.1925
+            ],
+            "uuid": "9fc25ae3-a91b-4f44-93ad-f67e80491a29"
+          }
+        ]
+      },
+      {
+        "check": "copper_edge_clearance",
+        "severity": "error",
+        "pos": [
+          54.937499,
+          134.1925
+        ],
+        "layer": "Edge.Cuts",
+        "net": "/LED1_A",
+        "refs": [
+          "R325"
+        ],
+        "msg": "Board edge clearance violation (rule 'aiee_edge_clearance_floor' clearance 0.3000 mm; actual 0.0295 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Segment on Edge.Cuts",
+            "pos": [
+              54.937499,
+              134.1925
+            ],
+            "uuid": "99dc45db-8c01-4a86-a2ef-3db8eabdc30a"
+          },
+          {
+            "msg": "Pad 1 [/LED1_A] of R325 on F.Cu",
+            "pos": [
+              54.505,
+              131.375
+            ],
+            "uuid": "e6f77866-1a4c-4f40-93c2-76144e50465c"
+          }
+        ]
+      },
+      {
+        "check": "copper_edge_clearance",
+        "severity": "error",
+        "pos": [
+          90.937499,
+          83.1925
+        ],
+        "layer": "Edge.Cuts",
+        "net": "GND",
+        "refs": [
+          "U203"
+        ],
+        "msg": "Board edge clearance violation (rule 'aiee_edge_clearance_floor' clearance 0.3000 mm; actual 0.1235 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Segment on Edge.Cuts",
+            "pos": [
+              90.937499,
+              83.1925
+            ],
+            "uuid": "4dabf3c4-3be3-4ef8-b231-d24bdd9b507b"
+          },
+          {
+            "msg": "Pad 4 [GND] of U203 on F.Cu",
+            "pos": [
+              91.345,
+              78.615
+            ],
+            "uuid": "4f4720aa-86ca-4540-99f3-33789cbec05b"
+          }
+        ]
+      },
+      {
+        "check": "copper_edge_clearance",
+        "severity": "error",
+        "pos": [
+          90.937499,
+          83.1925
+        ],
+        "layer": "Edge.Cuts",
+        "net": "/control/I2C_SDA",
+        "refs": [
+          "U203"
+        ],
+        "msg": "Board edge clearance violation (rule 'aiee_edge_clearance_floor' clearance 0.3000 mm; actual 0.1235 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Segment on Edge.Cuts",
+            "pos": [
+              90.937499,
+              83.1925
+            ],
+            "uuid": "4dabf3c4-3be3-4ef8-b231-d24bdd9b507b"
+          },
+          {
+            "msg": "Pad 5 [/control/I2C_SDA] of U203 on F.Cu",
+            "pos": [
+              91.345,
+              73.195
+            ],
+            "uuid": "77592a57-32ea-4f2e-97cb-166f95a5c361"
+          }
+        ]
+      },
+      {
+        "check": "copper_edge_clearance",
+        "severity": "error",
+        "pos": [
+          54.937499,
+          134.1925
+        ],
+        "layer": "Edge.Cuts",
+        "net": "/control/EE_ADDR",
+        "refs": [
+          "R208"
+        ],
+        "msg": "Board edge clearance violation (rule 'aiee_edge_clearance_floor' clearance 0.3000 mm; actual 0.0295 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Segment on Edge.Cuts",
+            "pos": [
+              54.937499,
+              134.1925
+            ],
+            "uuid": "99dc45db-8c01-4a86-a2ef-3db8eabdc30a"
+          },
+          {
+            "msg": "Pad 1 [/control/EE_ADDR] of R208 on F.Cu",
+            "pos": [
+              54.505,
+              61.485
+            ],
+            "uuid": "143676fe-7cca-4447-886c-89ea4b7c49b9"
+          }
+        ]
+      },
+      {
+        "check": "copper_edge_clearance",
+        "severity": "error",
+        "pos": [
+          154.937499,
+          60.192499
+        ],
+        "layer": "Edge.Cuts",
+        "net": "/drivers/SW3",
+        "refs": [
+          "D361"
+        ],
+        "msg": "Board edge clearance violation (rule 'aiee_edge_clearance_floor' clearance 0.3000 mm; actual 0.0000 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Segment on Edge.Cuts",
+            "pos": [
+              154.937499,
+              60.192499
+            ],
+            "uuid": "514d84f6-ee8a-46bf-9858-0a8eb64a3e4c"
+          },
+          {
+            "msg": "Pad 1 [/drivers/SW3] of D361 on F.Cu",
+            "pos": [
+              155.355,
+              102.6
+            ],
+            "uuid": "41597804-80d4-4c0b-a183-46982e24881f"
+          }
+        ]
+      },
+      {
+        "check": "copper_edge_clearance",
+        "severity": "error",
+        "pos": [
+          54.937499,
+          134.1925
+        ],
+        "layer": "Edge.Cuts",
+        "net": "/drivers/VCC3",
+        "refs": [
+          "C366"
+        ],
+        "msg": "Board edge clearance violation (rule 'aiee_edge_clearance_floor' clearance 0.3000 mm; actual 0.0000 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Segment on Edge.Cuts",
+            "pos": [
+              54.937499,
+              134.1925
+            ],
+            "uuid": "99dc45db-8c01-4a86-a2ef-3db8eabdc30a"
+          },
+          {
+            "msg": "Pad 1 [/drivers/VCC3] of C366 on F.Cu",
+            "pos": [
+              55.125,
+              102.515
+            ],
+            "uuid": "8ac8640e-8c3a-463e-9136-3e17c6a4754c"
+          }
+        ]
+      },
+      {
+        "check": "copper_edge_clearance",
+        "severity": "error",
+        "pos": [
+          54.937499,
+          134.1925
+        ],
+        "layer": "Edge.Cuts",
+        "net": "/EN_OK",
+        "refs": [
+          "U201"
+        ],
+        "msg": "Board edge clearance violation (rule 'aiee_edge_clearance_floor' clearance 0.3000 mm; actual 0.0475 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Segment on Edge.Cuts",
+            "pos": [
+              54.937499,
+              134.1925
+            ],
+            "uuid": "99dc45db-8c01-4a86-a2ef-3db8eabdc30a"
+          },
+          {
+            "msg": "Pad 4 [/EN_OK] of U201 on F.Cu",
+            "pos": [
+              54.34,
+              72.87
+            ],
+            "uuid": "d2e38296-1508-4a1c-a095-01abc700bdb2"
+          }
+        ]
+      },
+      {
+        "check": "copper_edge_clearance",
+        "severity": "error",
+        "pos": [
+          54.937499,
+          134.1925
+        ],
+        "layer": "Edge.Cuts",
+        "net": "+3V3",
+        "refs": [
+          "U201"
+        ],
+        "msg": "Board edge clearance violation (rule 'aiee_edge_clearance_floor' clearance 0.3000 mm; actual 0.0475 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Segment on Edge.Cuts",
+            "pos": [
+              54.937499,
+              134.1925
+            ],
+            "uuid": "99dc45db-8c01-4a86-a2ef-3db8eabdc30a"
+          },
+          {
+            "msg": "Pad 5 [+3V3] of U201 on F.Cu",
+            "pos": [
+              54.34,
+              74.77
+            ],
+            "uuid": "209f433e-9df8-428e-9104-5b403a7ac087"
+          }
+        ]
+      }
+    ],
+    "transient_silk": [
+      {
+        "check": "silk_edge_clearance",
+        "severity": "warning",
+        "pos": [
+          54.937499,
+          134.1925
+        ],
+        "layer": "Edge.Cuts",
+        "net": null,
+        "refs": [
+          "R325"
+        ],
+        "msg": "Silkscreen clipped by board edge",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Segment on Edge.Cuts",
+            "pos": [
+              54.937499,
+              134.1925
+            ],
+            "uuid": "99dc45db-8c01-4a86-a2ef-3db8eabdc30a"
+          },
+          {
+            "msg": "Reference field of R325",
+            "pos": [
+              55.255,
+              129.89
+            ],
+            "uuid": "db17db55-6b7f-4b33-981a-a8fee993b03f"
+          }
+        ]
+      },
+      {
+        "check": "silk_edge_clearance",
+        "severity": "warning",
+        "pos": [
+          90.937499,
+          83.1925
+        ],
+        "layer": "Edge.Cuts",
+        "net": null,
+        "refs": [
+          "U203"
+        ],
+        "msg": "Silkscreen clipped by board edge",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Segment on Edge.Cuts",
+            "pos": [
+              90.937499,
+              83.1925
+            ],
+            "uuid": "4dabf3c4-3be3-4ef8-b231-d24bdd9b507b"
+          },
+          {
+            "msg": "Reference field of U203",
+            "pos": [
+              89.445,
+              71.395
+            ],
+            "uuid": "7d51bd21-6760-4415-9a84-bbe0c908c5ae"
+          }
+        ]
+      },
+      {
+        "check": "silk_edge_clearance",
+        "severity": "warning",
+        "pos": [
+          90.937499,
+          83.1925
+        ],
+        "layer": "Edge.Cuts",
+        "net": null,
+        "refs": [
+          "U203"
+        ],
+        "msg": "Silkscreen clipped by board edge",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Segment on Edge.Cuts",
+            "pos": [
+              90.937499,
+              83.1925
+            ],
+            "uuid": "4dabf3c4-3be3-4ef8-b231-d24bdd9b507b"
+          },
+          {
+            "msg": "Segment of U203 on F.Silkscreen",
+            "pos": [
+              86.945,
+              74.405
+            ],
+            "uuid": "682cbf8a-c31a-4622-bee4-f33a1ed37fd7"
+          }
+        ]
+      },
+      {
+        "check": "silk_edge_clearance",
+        "severity": "warning",
+        "pos": [
+          90.937499,
+          83.1925
+        ],
+        "layer": "Edge.Cuts",
+        "net": null,
+        "refs": [
+          "U203"
+        ],
+        "msg": "Silkscreen clipped by board edge",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Segment on Edge.Cuts",
+            "pos": [
+              90.937499,
+              83.1925
+            ],
+            "uuid": "4dabf3c4-3be3-4ef8-b231-d24bdd9b507b"
+          },
+          {
+            "msg": "Segment of U203 on F.Silkscreen",
+            "pos": [
+              86.945,
+              77.405
+            ],
+            "uuid": "58f00857-db2b-4e80-a56f-22b30dfecb1b"
+          }
+        ]
+      },
+      {
+        "check": "silk_edge_clearance",
+        "severity": "warning",
+        "pos": [
+          57.9375,
+          60.1925
+        ],
+        "layer": "Edge.Cuts",
+        "net": null,
+        "refs": [
+          "R208"
+        ],
+        "msg": "Silkscreen clipped by board edge",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Arc on Edge.Cuts",
+            "pos": [
+              57.9375,
+              60.1925
+            ],
+            "uuid": "2cc7b879-fdcb-40b3-8b8f-60e513a1e844"
+          },
+          {
+            "msg": "Reference field of R208",
+            "pos": [
+              55.255,
+              60.0
+            ],
+            "uuid": "70f04748-b41e-4396-8d64-f9d37281b9ed"
+          }
+        ]
+      },
+      {
+        "check": "silk_edge_clearance",
+        "severity": "warning",
+        "pos": [
+          154.937499,
+          60.192499
+        ],
+        "layer": "Edge.Cuts",
+        "net": null,
+        "refs": [
+          "D361"
+        ],
+        "msg": "Silkscreen clipped by board edge",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Segment on Edge.Cuts",
+            "pos": [
+              154.937499,
+              60.192499
+            ],
+            "uuid": "514d84f6-ee8a-46bf-9858-0a8eb64a3e4c"
+          },
+          {
+            "msg": "Reference field of D361",
+            "pos": [
+              156.545,
+              100.775
+            ],
+            "uuid": "163ef8cb-7454-4387-865b-8c9f1775fa35"
+          }
+        ]
+      },
+      {
+        "check": "silk_edge_clearance",
+        "severity": "warning",
+        "pos": [
+          154.937499,
+          60.192499
+        ],
+        "layer": "Edge.Cuts",
+        "net": null,
+        "refs": [
+          "D361"
+        ],
+        "msg": "Silkscreen clipped by board edge",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Segment on Edge.Cuts",
+            "pos": [
+              154.937499,
+              60.192499
+            ],
+            "uuid": "514d84f6-ee8a-46bf-9858-0a8eb64a3e4c"
+          },
+          {
+            "msg": "Segment of D361 on F.Silkscreen",
+            "pos": [
+              154.545,
+              103.6
+            ],
+            "uuid": "f475156d-d8c2-4960-805e-ca3c63189a7b"
+          }
+        ]
+      },
+      {
+        "check": "silk_edge_clearance",
+        "severity": "warning",
+        "pos": [
+          154.937499,
+          60.192499
+        ],
+        "layer": "Edge.Cuts",
+        "net": null,
+        "refs": [
+          "D361"
+        ],
+        "msg": "Silkscreen clipped by board edge",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Segment on Edge.Cuts",
+            "pos": [
+              154.937499,
+              60.192499
+            ],
+            "uuid": "514d84f6-ee8a-46bf-9858-0a8eb64a3e4c"
+          },
+          {
+            "msg": "Segment of D361 on F.Silkscreen",
+            "pos": [
+              157.745,
+              101.6
+            ],
+            "uuid": "7b8adffc-30eb-4e1c-a1f5-827838074d7b"
+          }
+        ]
+      },
+      {
+        "check": "silk_edge_clearance",
+        "severity": "warning",
+        "pos": [
+          54.937499,
+          134.1925
+        ],
+        "layer": "Edge.Cuts",
+        "net": null,
+        "refs": [
+          "C366"
+        ],
+        "msg": "Silkscreen clipped by board edge",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Segment on Edge.Cuts",
+            "pos": [
+              54.937499,
+              134.1925
+            ],
+            "uuid": "99dc45db-8c01-4a86-a2ef-3db8eabdc30a"
+          },
+          {
+            "msg": "Reference field of C366",
+            "pos": [
+              56.125,
+              100.79
+            ],
+            "uuid": "96a8cb4b-8f97-476c-910d-f783053c6500"
+          }
+        ]
+      },
+      {
+        "check": "silk_edge_clearance",
+        "severity": "warning",
+        "pos": [
+          54.937499,
+          134.1925
+        ],
+        "layer": "Edge.Cuts",
+        "net": null,
+        "refs": [
+          "C366"
+        ],
+        "msg": "Silkscreen clipped by board edge",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Segment on Edge.Cuts",
+            "pos": [
+              54.937499,
+              134.1925
+            ],
+            "uuid": "99dc45db-8c01-4a86-a2ef-3db8eabdc30a"
+          },
+          {
+            "msg": "Segment of C366 on F.Silkscreen",
+            "pos": [
+              54.315,
+              101.615
+            ],
+            "uuid": "26c54a36-70e8-4a9c-a23a-20ddde69b54d"
+          }
+        ]
+      },
+      {
+        "check": "silk_edge_clearance",
+        "severity": "warning",
+        "pos": [
+          54.937499,
+          134.1925
+        ],
+        "layer": "Edge.Cuts",
+        "net": null,
+        "refs": [
+          "C366"
+        ],
+        "msg": "Silkscreen clipped by board edge",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Segment on Edge.Cuts",
+            "pos": [
+              54.937499,
+              134.1925
+            ],
+            "uuid": "99dc45db-8c01-4a86-a2ef-3db8eabdc30a"
+          },
+          {
+            "msg": "Segment of C366 on F.Silkscreen",
+            "pos": [
+              55.725,
+              103.415
+            ],
+            "uuid": "c5adb088-7a0f-40c8-9c1e-8e941342107f"
+          }
+        ]
+      },
+      {
+        "check": "silk_edge_clearance",
+        "severity": "warning",
+        "pos": [
+          54.937499,
+          134.1925
+        ],
+        "layer": "Edge.Cuts",
+        "net": null,
+        "refs": [
+          "C324"
+        ],
+        "msg": "Silkscreen clipped by board edge",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Segment on Edge.Cuts",
+            "pos": [
+              54.937499,
+              134.1925
+            ],
+            "uuid": "99dc45db-8c01-4a86-a2ef-3db8eabdc30a"
+          },
+          {
+            "msg": "Reference field of C324",
+            "pos": [
+              56.645,
+              88.89
+            ],
+            "uuid": "3f0dcce7-2aed-4e64-b88c-19c1d7e1c438"
+          }
+        ]
+      },
+      {
+        "check": "silk_edge_clearance",
+        "severity": "warning",
+        "pos": [
+          54.937499,
+          134.1925
+        ],
+        "layer": "Edge.Cuts",
+        "net": null,
+        "refs": [
+          "U201"
+        ],
+        "msg": "Silkscreen clipped by board edge",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Segment on Edge.Cuts",
+            "pos": [
+              54.937499,
+              134.1925
+            ],
+            "uuid": "99dc45db-8c01-4a86-a2ef-3db8eabdc30a"
+          },
+          {
+            "msg": "Reference field of U201",
+            "pos": [
+              55.64,
+              71.445
+            ],
+            "uuid": "f67dcc5b-f69f-45f1-82f7-1ee83bab15bd"
+          }
+        ]
+      },
+      {
+        "check": "silk_edge_clearance",
+        "severity": "warning",
+        "pos": [
+          54.937499,
+          134.1925
+        ],
+        "layer": "Edge.Cuts",
+        "net": null,
+        "refs": [
+          "U201"
+        ],
+        "msg": "Silkscreen clipped by board edge",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Segment on Edge.Cuts",
+            "pos": [
+              54.937499,
+              134.1925
+            ],
+            "uuid": "99dc45db-8c01-4a86-a2ef-3db8eabdc30a"
+          },
+          {
+            "msg": "Segment of U201 on F.Silkscreen",
+            "pos": [
+              54.74,
+              72.27
+            ],
+            "uuid": "0ee820ae-8be9-4d5a-a0c0-11fd2dfb98c1"
+          }
+        ]
+      },
+      {
+        "check": "silk_edge_clearance",
+        "severity": "warning",
+        "pos": [
+          54.937499,
+          134.1925
+        ],
+        "layer": "Edge.Cuts",
+        "net": null,
+        "refs": [
+          "U201"
+        ],
+        "msg": "Silkscreen clipped by board edge",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Segment on Edge.Cuts",
+            "pos": [
+              54.937499,
+              134.1925
+            ],
+            "uuid": "99dc45db-8c01-4a86-a2ef-3db8eabdc30a"
+          },
+          {
+            "msg": "Segment of U201 on F.Silkscreen",
+            "pos": [
+              54.74,
+              75.37
+            ],
+            "uuid": "bf40d859-058e-4553-9b72-e44f28b8b92f"
+          }
+        ]
+      },
+      {
+        "check": "silk_edge_clearance",
+        "severity": "warning",
+        "pos": [
+          154.937499,
+          60.192499
+        ],
+        "layer": "Edge.Cuts",
+        "net": null,
+        "refs": [
+          "R304"
+        ],
+        "msg": "Silkscreen clipped by board edge",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Segment on Edge.Cuts",
+            "pos": [
+              154.937499,
+              60.192499
+            ],
+            "uuid": "514d84f6-ee8a-46bf-9858-0a8eb64a3e4c"
+          },
+          {
+            "msg": "Reference field of R304",
+            "pos": [
+              153.305,
+              115.34
+            ],
+            "uuid": "231995e3-2d23-4d43-8f99-9f6dcead1b83"
+          }
+        ]
+      }
+    ],
+    "parity_count": 0,
+    "unconnected_count": 346,
+    "clean": false
+  },
+  "worker_notes": []
+}

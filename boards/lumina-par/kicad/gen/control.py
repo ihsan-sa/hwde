@@ -266,19 +266,44 @@ V_R206 = "4.7k 0603 1%"
 # The interleaved GND pins (3/4, 9/10, 13) are deliberate return paths beside
 # the PWM edges - they are not filler.
 # "NC" -> schlib emits an explicit no-connect at the pin (rule 4 above).
+# ===================== MATED-VIEW ROW SWAP - READ BEFORE EDITING ============
+# This map is the ICD s3.2 table with **row A and row B EXCHANGED**, and that
+# is deliberate. It is NOT a transcription error. See the identical block in
+# `power.py` for J3, which carries the full derivation.
+#
+# J4 is reverse-mounted on B.Cu facing down (ICD s7.3). Flipping a 2-row
+# connector to the back swaps its ROWS while columns stay put, so carrier pin
+# 2k+1 physically contacts this board's pin 2k+2. Measured on the real boards
+# at P6, then verified pin-by-pin against boards/lumina-carrier's netlist.
+#
+# A literal transcription of ICD s3.2 on BOTH boards crossed 12 live contacts:
+#     PWM0<->PWM1, PWM2<->PWM3, ENABLE<->FAULT, I2C_SDA<->ADC0,
+#     ADC1<->ID_ADC, and the carrier's DSPI_SCK (a driven push-pull output)
+#     landing on this board's GND.
+# ENABLE<->FAULT is the dangerous one: FAULT is open-drain and must never be
+# driven high, and it would have been wired to the carrier's ENABLE driver.
+#
+# NO GATE IN THIS PIPELINE CAN SEE THIS - erc, netlist_audit, DRC and verify
+# all compare a board against ITSELF; the defect exists only BETWEEN boards.
+#
+# The NC positions move with the swap: they are the ICD's PWM4-7 and DSPI_*,
+# which this board does not use, so which physical pin they land on is
+# immaterial - but they must still occupy the MIRRORED slot so the live pins
+# land correctly around them.
+# ===========================================================================
 J4_PINS = {
-    "1": "PWM0",      "2": "PWM1",
+    "1": "PWM1",      "2": "PWM0",
     "3": "GND",       "4": "GND",
-    "5": "PWM2",      "6": "PWM3",
-    "7": "NC",        "8": "NC",        # PWM4 / PWM5 - no fifth channel
+    "5": "PWM3",      "6": "PWM2",
+    "7": "NC",        "8": "NC",        # PWM5 / PWM4 - no fifth channel
     "9": "GND",       "10": "GND",
-    "11": "NC",       "12": "NC",       # PWM6 / PWM7
-    "13": "GND",      "14": "NC",       # DSPI_SCK
-    "15": "NC",       "16": "NC",       # DSPI_MOSI / DSPI_MISO
-    "17": "NC",       "18": "I2C_SCL",  # DSPI_CSn
-    "19": "I2C_SDA",  "20": "ADC0",
-    "21": "ADC1",     "22": "ID_ADC",
-    "23": "ENABLE",   "24": "FAULT",
+    "11": "NC",       "12": "NC",       # PWM7 / PWM6
+    "13": "NC",       "14": "GND",      # DSPI_SCK side
+    "15": "NC",       "16": "NC",       # DSPI_MISO / DSPI_MOSI
+    "17": "I2C_SCL",  "18": "NC",       # DSPI_CSn side
+    "19": "ADC0",     "20": "I2C_SDA",
+    "21": "ID_ADC",   "22": "ADC1",
+    "23": "FAULT",    "24": "ENABLE",
 }
 
 # ------------------------------------------------------------- cross-sheet pins

@@ -309,10 +309,16 @@ def build() -> schlib.Sheet:
     # other, and before this revision the sheet carried NEITHER (review finding
     # W-2, `missing-bench-hazard-note`: two bare-copper pads tied to a GND that
     # floats at PoE potential, with no warning anywhere on the sheet).
+    # in_bom=False: bare copper, nothing to buy. KiCad's stock TestPoint
+    # FOOTPRINT already carries "exclude from BOM"; if the SYMBOL disagrees,
+    # kicad-cli DRC raises footprint_symbol_mismatch per pad. That is only a
+    # WARNING - it clears P5 and P6 - but `drc_routed` at P7 fails on warnings
+    # too, and by then it is a schematic change behind a routed board.
     for i, ref in enumerate(TC_PADS):
-        sh.add_component(S_TP, ref, V_TC, at=(266.7, 55.88 + i * 20.32),
-                         footprint=F_TC_PAD, expect={"1": "1"},
-                         fields={"Note": TP_HAZARD})
+        c = sh.add_component(S_TP, ref, V_TC, at=(266.7, 55.88 + i * 20.32),
+                             footprint=F_TC_PAD, expect={"1": "1"},
+                             fields={"Note": TP_HAZARD})
+        c.in_bom = False
         sh.wire_pin(ref, "1", "GND")
 
     # ============================================= hierarchical sheet pins x5

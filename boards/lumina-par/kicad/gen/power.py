@@ -38,11 +38,15 @@ Load-bearing facts, with the trap each one avoids:
     p4-wiring-notes s4). J3_PINS below is a transcription of the ICD table -
     if that table is re-issued, this map moves with it.
   * **J3 is reverse-mounted on the BOTTOM side, facing down** (ICD s7.3).
-    That is a placement/side property, not a schematic one: it is set at P6
-    with a `place_edit` flip op, and **pin 1 must be checked in the MATED
-    view, not from the footprint** - numbering mirrors across the row on a
-    bottom-side part (p4-wiring-notes s4). Nothing in this file can express
-    it; the netlist is side-agnostic and correct either way.
+    That is a placement/side property, and it is set at P6 with a `place_edit`
+    flip op - but **it is NOT schematic-neutral, and the original claim here
+    that "the netlist is side-agnostic and correct either way" was WRONG and
+    is the direct cause of a 48 V-to-GND short found at P6.** Flipping a 2-row
+    connector to the back swaps its ROWS, so a literal transcription of the
+    ICD table on both boards crosses 12 of 14 contacts. `J3_PINS` below is
+    therefore the ICD table with rows A/B EXCHANGED - see the block comment
+    above it. Pin 1 is checked in the MATED view, against the carrier's own
+    netlist, not from the footprint.
   * **`+48V_SW` is LANDED, NOT TAPPED** (blocks.md B1). Its three pins reach
     TP103 and the DNP bleed R104 and stop. Landing it rather than floating
     the pads is what makes the net visible to `check_creepage` at P8, so the
@@ -234,14 +238,43 @@ DNP_REFS = ("Q101", "Q102", "R101", "R102", "R103", "R104",
 #   * column 4 (pins 7/8) is an all-GND guard column;
 #   * rail order along the connector is 48 -> GND -> 12 -> 3.3, so no
 #     single-position mis-seat can put a higher rail on a lower rail's pin.
+# ===================== MATED-VIEW ROW SWAP - READ BEFORE EDITING ============
+# This map is the ICD s3.1 table with **row A and row B EXCHANGED**, and that
+# is deliberate. It is NOT a transcription error.
+#
+# J3 is reverse-mounted on B.Cu facing down (ICD s7.3). Flipping a 2-row
+# connector to the back permutes its pin map: the two ROWS swap while the
+# columns stay put. Measured on the real boards at P6 - with this board's J3
+# at the carrier's anchor, all 14 pad positions coincide EXACTLY (so the pair
+# mates mechanically) but carrier pin 2k+1 physically contacts daughter pin
+# 2k+2.
+#
+# ICD s3.1 gives ONE table, pin number -> net, with no mirroring instruction,
+# and LUM-CAR-A transcribed it literally on its top-side male header. If this
+# board also transcribed it literally, the mated pair would join:
+#     carrier 1/3/5 +48V_SW  ->  daughter 2/4/6 GND      <-- 48 V SHORTED TO GND
+#     carrier 2/4/6 GND      ->  daughter 1/3/5 +48V_SW  <-- at SIX contacts
+#     carrier 9 +12V -> daughter 10 GND, carrier 12 +3V3 -> daughter 11 +12V
+# i.e. 12 of 14 contacts crossed, and the board destroys itself (and probably
+# the carrier's eFuse) on first power-up.
+#
+# NO GATE IN THIS PIPELINE CAN SEE THAT: erc, netlist_audit, DRC and verify all
+# compare a board against ITSELF. The defect exists only BETWEEN two boards.
+# The ICD and sheets.md both flagged "check pin 1 in the MATED view, not from
+# the footprint" as an open designer's-call item; this map is that check's
+# answer, verified pin-by-pin against boards/lumina-carrier's own netlist.
+#
+# CONSEQUENCE: if J3 is ever moved to the TOP side, or the ICD re-issues s3.1,
+# this swap must be re-derived - do not carry it forward blindly.
+# ===========================================================================
 J3_PINS = {
-    "1": V48,   "2": GND,
-    "3": V48,   "4": GND,
-    "5": V48,   "6": GND,
-    "7": GND,   "8": GND,      # column 4: the all-GND guard column
-    "9": V12,   "10": GND,
-    "11": V12,  "12": V3V3,
-    "13": GND,  "14": V3V3,
+    "1": GND,   "2": V48,
+    "3": GND,   "4": V48,
+    "5": GND,   "6": V48,
+    "7": GND,   "8": GND,      # column 4: the all-GND guard column (swap is a no-op)
+    "9": GND,   "10": V12,
+    "11": V3V3, "12": V12,
+    "13": V3V3, "14": GND,
 }
 
 # Rails: (net, stock symbol, cluster origin). schlib.power_flag draws
@@ -261,8 +294,17 @@ TP_HAZARD = "ICD s9 BENCH HAZARD silk - floating at PoE potential"
 
 
 def _add(sh, ref, lib_id, value, at, footprint=None, expect=None,
-         dnp=False, note=None):
-    """add_component + the three identity fields this board stamps."""
+         dnp=False, note=None, in_bom=True):
+    """add_component + the three identity fields this board stamps.
+
+    `in_bom=False` for the non-purchasable parts (H5's hole, the bare-copper
+    test pads).  KiCad's stock MountingHole/TestPoint FOOTPRINTS already carry
+    "exclude from BOM"; if the SYMBOL does not agree, kicad-cli DRC raises
+    `footprint_symbol_mismatch` ("'Exclude from bill of materials' settings
+    differ") once per part.  That is a WARNING, so it clears the P5/P6 gates -
+    but `drc_routed` at P7 fails on warnings too, and by then the fix is a
+    schematic change behind a placed and routed board.  Set it here.
+    """
     fields = {}
     code = LCSC.get(ref)
     if code:
@@ -273,8 +315,11 @@ def _add(sh, ref, lib_id, value, at, footprint=None, expect=None,
         fields["Variant"] = "DNP"
     if note:
         fields["Note"] = note
-    return sh.add_component(lib_id, ref, value, at, footprint=footprint,
-                            fields=fields or None, expect=expect)
+    c = sh.add_component(lib_id, ref, value, at, footprint=footprint,
+                         fields=fields or None, expect=expect)
+    if not in_bom:
+        c.in_bom = False
+    return c
 
 
 def _note(sh, at, lines, dy=5.08):
@@ -319,7 +364,7 @@ def build() -> schlib.Sheet:
                         ("TP102", V3V3, 203.2),
                         ("TP103", V48, 228.6)):
         _add(sh, ref, S_TP, V_TP, (x, 55.88), footprint=F_TP,
-             expect={"1": "1"}, note=TP_HAZARD)
+             expect={"1": "1"}, note=TP_HAZARD, in_bom=False)
         sh.wire_pin(ref, "1", net)
 
     # =====================================================================
@@ -332,7 +377,8 @@ def build() -> schlib.Sheet:
     # ZERO pins, so it joins no net; it is on the schematic purely to own an
     # identity that P6 can address.
     _add(sh, "H5", S_HOLE, V_HOLE, (279.4, 55.88), footprint=F_HOLE,
-         note="ICD s7.5 - place_edit to (46,74) board-local at P6")
+         note="ICD s7.5 - place_edit to (46,74) board-local at P6",
+         in_bom=False)
 
     # =====================================================================
     # B.  Bulk and HF decoupling of the two LOADED rails

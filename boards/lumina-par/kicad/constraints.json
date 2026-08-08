@@ -308,37 +308,37 @@
   "keepouts": [
    {
     "rect": [
-     6,
-     0,
-     36,
-     26
+     60.937,
+     57.192,
+     90.937,
+     83.192
     ],
     "reason": "ICD s7.6 RJ45 relief - this rectangle is CUT AWAY (the mandatory 30x26 mm notch, ICD s7.4 anti-180-degree interlock). Declared as a keepout as well as an outline cut so P6 cannot pack a part here before the cut is verified. HARD KEEPOUT - DO NOT REMOVE. The cut itself is produced centrally by the orchestrator's --cutout flag; NOBODY is to hand-edit Edge.Cuts and NOBODY is to shrink the 100.0 x 80.0 mm outline to avoid the notch (MECH-02: ai-ee has no outline-shrink step and the P5 outline is permanent). This keepout stands whether or not the cut has been made yet"
    },
    {
     "rect": [
-     2,
-     46,
-     36,
-     68
+     56.937,
+     103.192,
+     90.937,
+     125.192
     ],
     "reason": "ICD s7.6 DC-DC hot zone - no LED drivers and no aluminium electrolytics. The carrier's 48->12 converter dissipates up to 1.25 W directly below in a stacked mezzanine. This board fits no electrolytics at all, so the binding effect is that all four buck channels must sit outside this rect"
    },
    {
     "rect": [
-     88,
-     25,
-     100,
-     55
+     142.937,
+     82.192,
+     154.937,
+     112.192
     ],
     "reason": "ICD s7.6 antenna column - NO COPPER ON ANY LAYER and no metal component. Live, because H1-Q8 closed Wi-Fi as a supported control path. Needs the hand-added KiCad rule area as well (see _comment)"
    },
    {
     "rect": [
-     76,
-     0,
-     98,
-     20
+     130.937,
+     57.192,
+     152.937,
+     77.192
     ],
     "reason": "ICD s7.6 recovery header - keep clear enough for a 6-way jumper lead with this board fitted, or firmware recovery requires removing the daughter"
    }
@@ -378,21 +378,22 @@
    "layer": "In1.Cu",
    "net": "GND",
    "region": [
-    0,
-    0,
-    88,
-    80
+    54.937,
+    57.192,
+    142.937,
+    137.192
    ]
   },
   {
    "layer": "In2.Cu",
    "net": "+12V",
    "region": [
-    0,
-    0,
-    88,
-    80
+    54.937,
+    57.192,
+    142.937,
+    137.192
    ]
   }
- ]
+ ],
+ "_coordinate_frame": "pcb_absolute - translated from ICD board-local (top-left origin) by (+54.937, +57.192) at P5 per stackup.md TRAP 2. board_init does NOT put the outline at the PCB origin. architecture/constraints.json remains in board-local and is the source of truth; do NOT re-apply this translation."
 }

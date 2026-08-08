@@ -3,8 +3,8 @@
  "board": "lumina-par",
  "workspace": "boards/lumina-par",
  "created": "2026-07-28T15:00:15",
- "updated": "2026-08-07T13:25:09",
- "phase": "P4",
+ "updated": "2026-08-07T18:30:15",
+ "phase": "P5",
  "gates": {
   "erc": {
    "phase": "P4",
@@ -320,6 +320,30 @@
    "why": "both emitters are 140 deg 2Theta1/2 per their own datasheets; the LCSC parametric record for the white part contradicts its own datasheet. The diffuser strength - and therefore its 30-45 pct flux cost, and the compounded 36-50 pct reduction against the H1-approved flux - was sized on a 140/120 deg delta that does not exist. Owner chose to re-derive now rather than defer, since that number is what the fixture gets judged on and the correction may recover real light",
    "phase": "P4",
    "ts": "2026-08-07T13:23:55"
+  },
+  {
+   "what": "Stackup changed JLC04161H-3313 -> JLC04161H-1080B",
+   "why": "board_init REFUSED -3313 by name: stackups.yaml marks it available:false - it is a PHANTOM that JLC has never offered for 4L/1.6mm/1oz/0.5oz, and it was stackups.yaml own 4-layer default until it was retired 2026-08-06, which is exactly why the P2 architecture (2026-07-28) picked it. 1080B is JLCs only real lamination in this class, live-verified 2026-08-06. FORCED, not a judgment call - the original is unorderable. Low impact here: this board has NO controlled-impedance net, so the consequence that hit lumina-carrier (100 ohm MDI solved on -3313 measuring 105.5 ohm on real 1080B geometry) does not apply. Stack total 1.5908 -> 1.6542 mm",
+   "phase": "P5",
+   "ts": "2026-08-07T13:50:46"
+  },
+  {
+   "what": ".kicad_dru HV clearance hand-edited 0.6000 -> 0.6350 mm on +48V_SW",
+   "why": "ICD-01 s5 TRAP-1 and stackup.md s7 rule 1 both state it explicitly: the BINDING requirement is 0.635 mm (TPS2378 layout section), while rules_gen emits 0.6000 mm - the IPC-2221B B2 51-100 V FLOOR. check_creepage.py only ever demands 0.60, so a 0.635 layout passes it BY CONSTRUCTION and the extra 0.035 mm is enforced ONLY by this DRU rule. stackup.md: do not skip it because P8 goes green. RE-APPLY after any rules_gen re-run - rules_gen overwrites the file",
+   "phase": "P5",
+   "ts": "2026-08-07T13:50:46"
+  },
+  {
+   "what": "ICD s7.2 RE-ISSUED from the carrier as-placed geometry: J3 anchor board-local (23.000, 76.000) pad1 (15.380, 77.270); J4 anchor (71.000, 76.000) pad1 (57.030, 77.270); H5 (46.000, 74.000) unchanged. The daughter places to THESE, not to the old nominal table.",
+   "why": "ICD s7.2 was the one section never frozen at H1 and explicitly required the carrier owner to compare placed positions and re-issue before any daughter run; lumina-carrier reached P10 without that step. Measured delta is +7.970 mm in Y on BOTH connectors identically (X agrees within 0.08/0.27 mm, and H5 matches exactly, confirming a shared origin convention) - the carrier annealer moved the connector row and the table was never corrected. Owner ruled the as-built carrier is ground truth: it is at P10 and fab-ready, so moving it is the expensive direction. Placing this daughter on the stale table would have put its sockets ~8 mm from the carrier headers - a non-mating pair, and invisible to every gate because nothing in the pipeline compares two boards.",
+   "phase": "P6",
+   "ts": "2026-08-07T14:05:29"
+  },
+  {
+   "what": "J3 and J4 net-to-pin maps SWAPPED row A <-> row B on this board (ICD s3.1/s3.2 transcribed MIRRORED, not literally)",
+   "why": "the daughter reverse-mounts both sockets on B.Cu facing down (ICD s7.3), and flipping a 2-row connector to the back swaps its ROWS while columns stay put - measured on the real boards, all 14 J3 pad positions coincide exactly but carrier pin 2k+1 contacts daughter pin 2k+2. ICD s3.1/s3.2 give ONE table with no mirroring instruction and LUM-CAR-A transcribed it literally on its top-side male header, so a literal transcription here crossed 12 of 14 J3 contacts INCLUDING SIX THAT SHORT +48V_SW TO GND, plus 12 live J4 crossings (PWM0<->PWM1, ENABLE<->FAULT, I2C_SDA<->ADC0, and the carriers driven DSPI_SCK onto GND). Re-verified after the swap: 0 crossings on both connectors. Found only because the mated view was checked against the carriers own netlist - erc 0/0, netlist_audit exit 0 and every other gate passed throughout, since every check in ai-ee compares a board against ITSELF",
+   "phase": "P6",
+   "ts": "2026-08-07T18:30:15"
   }
  ],
  "history": [
@@ -1069,6 +1093,97 @@
    "event": "spawn",
    "role": "research-component-scout",
    "model": "opus"
+  },
+  {
+   "ts": "2026-08-07T13:41:27",
+   "event": "optical_rederived",
+   "headline": "the budget DOES NOT MOVE - 20.7-25.9 lx against 20.7-26.3 lx on record. No light was recovered and none was manufactured.",
+   "why_it_cancels": "two errors of opposite sign. The diffuser was over-charged (x0.55-0.70 -> x0.60-0.75, compounded 0.504-0.642 -> 0.550-0.688) because it was sized against the phantom 140/120 mismatch - but the BASELINE was also stale: the recorded ~41 lx belongs to the SUPERSEDED 4-in-1 emitter set. The correct H1-Q2 baseline is 447 lm/fixture = 37.7 lx (package change -13 pct, better thermal model +6.5 pct). The two corrections cancel.",
+   "open8_closed_quantitatively": "both datasheet p4 optical-electrical tables print 2Theta1/2 = 140 deg TYP and both p1 headlines repeat it. The beam-mismatch colour-gradient mechanism goes to exactly 0.0 pct at every angle. Radiation plots cannot settle it in either direction (RGB plot states no test current; white plot is at 1000 mA, a pulse-only condition) - the tables are the evidence.",
+   "fixture_verdict": "stays a dark-room instrument at af. Best af package (ring + 0.68R) reaches 27-33 lx. Only the at upgrade clears the original ~41 lx."
+  },
+  {
+   "ts": "2026-08-07T13:41:27",
+   "event": "optical_new_defect_arrangement",
+   "severity": "real, and NO diffuser removes it",
+   "finding": "the 3x3 checkerboard matches the two emitter families CENTROIDS but not their RADII - RGB sits at 22.6 mm, white at 16.0 mm - leaving 17.3 pct colour error at a shadow edge. stackup.md s5.2.5 Test C PASSES it, so it was invisible to the existing check. 3 mm of diffuser blur moves it only 0.5 pct.",
+   "fix": "alternating 8-position ring at r = 21 mm cuts it to 5.8 pct. ZERO flux cost, ZERO board cost, zero power change. It also licences the weaker x0.70-0.85 diffuser, taking delivery to 24.2-29.4 lx.",
+   "cost": "MCPCB 55 -> 62 mm; revises stackup.md s5.2.2 and decisions.md D14. Module/enclosure change, NOT a PCB change - it does not gate P5 or anything downstream on this board."
+  },
+  {
+   "ts": "2026-08-07T13:41:28",
+   "event": "optical_levers_for_owner",
+   "ring_arrangement": "RECOMMENDED. Fixes a real 17.3 pct colour defect for free and improves delivery to 24.2-29.4 lx. Owner of the module/enclosure must accept MCPCB 55 -> 62 mm.",
+   "at_upgrade": "the ONLY lever that stops the fixture being dim: 0.47 ohm sense = 233 mA/die -> 41.0-49.7 lx, compliant at 1.194 A against the 1.25 A at ceiling. Costs a PoE+ switch plus one carrier class resistor and four sense resistors. NO RESPIN - same 0603 footprint, so it stays a live BOM-value call through P9.",
+   "weakest_number": "no diffuser part is pinned anywhere in the workspace and no diffuser datasheet exists in parts/ - EVERY transmittance figure, old and new, is an engineering band. That is the least-grounded term in the whole budget.",
+   "rth_still_the_thermal_gap": "neither emitter datasheet publishes any Rth, so Tj 76.2 C rests on an assumed 12 K/W plus ENC-8 (<=8.0 K/W) which is an ACCEPTANCE CRITERION, not a measurement - and that term is 45 K of the 51 K rise."
+  },
+  {
+   "ts": "2026-08-07T13:42:07",
+   "event": "phase",
+   "phase": "P5",
+   "prev": "P4"
+  },
+  {
+   "ts": "2026-08-07T13:50:46",
+   "event": "decision",
+   "what": "Stackup changed JLC04161H-3313 -> JLC04161H-1080B"
+  },
+  {
+   "ts": "2026-08-07T13:50:46",
+   "event": "decision",
+   "what": ".kicad_dru HV clearance hand-edited 0.6000 -> 0.6350 mm on +48V_SW"
+  },
+  {
+   "ts": "2026-08-07T13:50:46",
+   "event": "p5_board_setup",
+   "board_init": "exit 1 (violations) but parity 0 and the only non-unconnected findings are shelf-pack artifacts",
+   "stackup": "JLC04161H-1080B, fab_profile 4layer_1oz",
+   "fab_floors": "min_clearance 0.1016, min_track_width 0.1016, min_via_dia 0.45, min_through_hole 0.2, min_via_annular 0.1, min_hole_to_hole 0.5, min_copper_edge_clearance 0.3",
+   "geometry_verified": "outline bbox 100.000 x 80.000 mm, corner radius 3.0, 4 corner mounting holes, cutout at (6,0,30,26) relative to the outline origin - matches ICD s7.1 exactly",
+   "parity": "6 -> 0 after setting in_bom=False on H5 and TP101-103/TP501-502 (KiCad stock MountingHole/TestPoint footprints carry exclude-from-BOM; the symbols did not, and kicad-cli raises footprint_symbol_mismatch per part). Only a WARNING, so it clears P5 and P6 - but drc_routed at P7 fails on warnings, and by then it is a schematic change behind a routed board",
+   "residual_10_violations": "8 copper_edge_clearance + 2 courtyards_overlap (parts packed against the edges and over board_init own corner holes H2/H3). Shelf-pack artifacts, resolved by P6 placement by construction. NOTE this is the ONLY board of four whose board_init self-check is not clean - pd-trigger, stm32-blinky and usb-buck all report clean:true - so it is a packer limitation that shows up on the first board with a cutout AND 155 parts, not a capacity problem",
+   "utilization_proves_it": "component area 1773.1 mm2 in a 7212.2 mm2 board = 24.6 pct. There is ample room; P6 has plenty of freedom",
+   "sidecars": "constraints.json and decoupling.json are beside the board in kicad/"
+  },
+  {
+   "ts": "2026-08-07T14:03:05",
+   "event": "p6_blocked_icd_s72",
+   "severity": "BLOCKING - placing the daughter on the ICD table produces a board that does not mate",
+   "icd_s72_status": "still marked provisional in brief/06-connector-icd.md: These coordinates are provisional until the end of P6 ... re-issue this ICD with the confirmed coordinates before any daughter run starts. This is the one section of this document that is not frozen at H1, and daughters are blocked on it.",
+   "carrier_is_done": "lumina-carrier is at P10 with place/drc_routed/dfm passed, so its P6 finished long ago - but nobody performed the compare-and-re-issue step the ICD requires",
+   "measured": "carrier Edge.Cuts is the same common 100.000 x 80.000 mm. Pad-1 positions computed from the carrier board (footprint anchor + pad offset + rotation), board-local: J3 pad1 (15.380, 77.270), J4 pad1 (57.030, 77.270). H5 is at (46.000, 74.000), matching nominal EXACTLY, which confirms the origin conventions agree.",
+   "delta_vs_icd": "ICD s7.2 nominal pos 1: J3 (15.300, 69.300), J4 (57.300, 69.300). X agrees within 0.08 mm (J3) and 0.27 mm (J4). Y is off by +7.970 mm on BOTH connectors - a systematic ~8 mm shift toward the bottom edge, identical for both, i.e. the carrier annealer moved the connector row and the table was never corrected.",
+   "consequence": "if this daughter places J3/J4 on the ICD table numbers, its sockets sit ~8 mm from the carrier headers and the two boards cannot mate. That is the most expensive failure available at this point and it is invisible to every gate in the pipeline - no ERC, DRC, verify or DFM check compares two different boards.",
+   "also_pending": "pin-1 mirroring. The daughter sockets are bottom-side facing down, so the footprint mirrors in place; sheets.md s3 requires checking pin 1 in the MATED view, not from the footprint. That check is only meaningful once the authoritative coordinates are settled."
+  },
+  {
+   "ts": "2026-08-07T14:05:29",
+   "event": "decision",
+   "what": "ICD s7.2 RE-ISSUED from the carrier as-placed geometry: J3 anchor board-local (23.000, 76.000) pad1 (15.380, 77.270); J4 anchor (71.000, 76.000) pad1 (57.030, 77.270); H5 (46.000, 74.000) unchanged. The daughter places to THESE, not to the old nominal table."
+  },
+  {
+   "ts": "2026-08-07T14:14:33",
+   "event": "p6_mated_view_short_found",
+   "severity": "CATASTROPHIC - the mated pair shorts +48V_SW to GND at six contacts. Destroys hardware on first power-up.",
+   "what": "The daughter reverse-mounts J3/J4 on B.Cu facing down (ICD s7.3). Flipping a 2-row connector to the back permutes the pin map: the two ROWS swap while columns stay put. Measured on the real boards, not derived: with the daughter J3 at the carrier anchor, all 14 pad positions coincide EXACTLY (so they mate mechanically) but carrier pin 2k+1 meets daughter pin 2k+2.",
+   "why_it_happened": "ICD s3.1/s3.2 give ONE pin table (pin number -> net) and carry no mirroring instruction. BOTH boards transcribed it faithfully by pin number. Identical tables + a row-swapping flip = crossed nets. The ICD and sheets.md BOTH flagged this as an open item - PIN-1 MIRRORING is the designers call and must be handled explicitly at P4/P6, this is exactly the mated-view check the ICD warns about - and nobody performed it.",
+   "j3_measured": "12 of 14 contacts join different nets. SIX short 48 V to GND: carrier pin1/3/5 (+48V_SW) meet daughter pin2/4/6 (GND), and carrier pin2/4/6 (GND) meet daughter pin1/3/5 (+48V_SW). Also +12V meets GND, +3V3 meets +12V.",
+   "j4_measured": "12 real crossings after normalising local net names and excluding deliberate daughter no-connects: PWM0<->PWM1, PWM2<->PWM3, ENABLE<->FAULT, I2C_SDA<->ADC0, ADC1<->ID_ADC, and carrier DSPI_SCK (a driven push-pull output) onto daughter GND.",
+   "invisible_to_every_gate": "erc 0/0, netlist_audit exit 0, and every downstream check passes - because every gate in the pipeline compares a board against ITSELF. Nothing in ai-ee compares two boards across a connector.",
+   "fix_validated": "swapping the daughter odd/even net assignment on J3 and J4 takes J3 to 0 crossings and J4 to 0 real crossings (the 3 residuals are pure name differences - carrier ADC0_CONN vs daughter ADC0 etc). Verified by re-running the same mated comparison against the proposed mapping.",
+   "cost_now_vs_later": "a P4 net-to-pin change with nothing routed - cheap. board_update REFUSES pad-net rewires, so after routing this would be a schematic + full re-route job, and after fab it is two dead boards."
+  },
+  {
+   "ts": "2026-08-07T18:30:15",
+   "event": "decision",
+   "what": "J3 and J4 net-to-pin maps SWAPPED row A <-> row B on this board (ICD s3.1/s3.2 transcribed MIRRORED, not literally)"
+  },
+  {
+   "ts": "2026-08-07T18:30:15",
+   "event": "p5_rerun_after_pin_swap",
+   "p5_rerun": "board_init + rules_gen re-run after the pin swap. 155 components / 76 nets, stackup JLC04161H-1080B, parity 0, outline 100x80 with the cutout at (6,0,30,26) board-local. 10 residual setup violations are the same shelf-pack artifacts (8 copper_edge_clearance + 2 courtyards_overlap) that P6 placement resolves; utilization is 24.6 pct.",
+   "dru_edit_lost_and_reapplied": "CONFIRMED HAZARD: rules_gen OVERWRITES the whole .kicad_dru, and it silently reverted the 0.6350 mm +48V_SW clearance back to the 0.6000 mm IPC floor. Caught by grep because the P5 record said to check. Re-applied with a stronger in-file warning. Any future rules_gen run must be followed by re-applying it - this is now a KNOWN recurring failure, not a one-off."
   }
  ],
  "spawns": [
