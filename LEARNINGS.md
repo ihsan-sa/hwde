@@ -2644,37 +2644,3 @@ time Git touches it" on every one of these commits). Net effect: append an entry
 and the entry is gone with no error anywhere. Practical rule: `git add LEARNINGS.md && git commit` in
 the SAME turn as the append, never "I'll commit the learnings at the end", and if a line count moves
 the wrong way after an append, check `grep -c` for the entry rather than trusting the number.
-
-## 2026-08-08 [kicad][footprint][connectivity] Footprint copper GRAPHICS are not in KiCad 10 connectivity - an etched-copper part must be made of PADS
-Building the rf-de-20m PCB spiral inductors (`boards/rf-de-20m/kicad/gen/spirals.py`). KiCad's own
-`NetTie.pretty` library draws its shorting bar as an `fp_poly` on F.Cu, so `fp_poly` on a copper
-layer looks like the natural way to author an etched component (spiral inductor, PCB antenna,
-current shunt, coplanar structure). It is not. Measured on 10.0.3 with a scratch board
-(`CreateEmptyBoard` + `FootprintLoad` + pad nets + `kc.py drc`):
-- an `fp_poly` on F.Cu joining two same-net pads 18 mm apart leaves them **`unconnected_items`** -
-  the graphic carries no net and conducts nothing as far as connectivity is concerned;
-- it additionally raises **`shorting_items` "Items shorting two nets (nets <blank> and NA)"** against
-  every netted pad it touches, because it is netless copper;
-- `(net_tie_pad_groups "1, 2")` suppresses the `shorting_items` half but NOT the unconnected half.
-The stock NetTie footprints get away with it only because each of their nets has exactly one pad, so
-there is nothing left to be unconnected to. Diagnosis is easy to misread: a footprint whose winding
-is a graphic DRCs "clean" apart from an unconnected count that looks like a placement problem.
-Correct encoding for copper-is-the-component parts, all verified on 10.0.3:
-- winding/antenna body = `(pad "N" smd custom ... (primitives (gr_poly ...)))`, one per copper layer;
-  ~440-point primitives load, round-trip and plot fine;
-- `(net_tie_pad_groups "1, 2")` for the deliberate pad1-pad2 short (an inductor IS a DC short);
-  pads of DIFFERENT numbers may overlap inside a tie with no violation;
-- footprint-level rule areas `(zone ... (keepout (tracks not_allowed) (vias not_allowed)
-  (pads allowed) (copperpour not_allowed)))` ARE supported, round-trip through pcbnew
-  (`fp.Zones()` -> `GetIsRuleArea() True`), and are how a "no plane under this part" rule travels
-  with the footprint;
-- an SMD pad on inner layers only (In1+In2 bridge) works but costs one **`padstack` WARNING**
-  ("SMD pad has no outer layers") that has to be waived;
-- duplicate pad numbers mixing `smd custom`, `smd rect` and `thru_hole` in one footprint are legal
-  and connect correctly wherever they share a layer - `thru_hole` is the ONLY thing that ties an
-  F.Cu pad to an In1/In2 pad at the same x,y.
-Second-order trap: **DRC cannot check clearances inside a net tie.** The tie exempts pad1<->pad2
-entirely, so the inner-land-to-adjacent-turn gap (0.014 mm in the first cut of this part - a shorted
-turn that would have collapsed the inductance) reports nothing at all. Any critical spacing between
-tied pads must be enforced in the generator and measured out-of-band; a scratch-board DRC pass is
-NOT evidence that a net-tie part is geometrically sound.
