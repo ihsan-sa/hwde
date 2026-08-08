@@ -325,14 +325,13 @@
   "keepouts": [
    {
     "rect": [
-     11.635,
-     49.335,
-     42.635,
-     109.335
+     5,
+     10,
+     36,
+     70
     ],
     "side": "back",
-    "reason": "BOTTOM-SIDE HEATSINK CONTACT LAND (HS-2). Flat, solder-free, mask-opened GND face. No parts, no through-hole pins, no untented vias. J101 is the only THT part on the board and sits on the left edge at x < 5 mm, outside this rect (HS-3). HS-1 TIGHTENED AT P2-A to theta_HS <= 0.7 C/W (from 1.4) at the design airflow while carrying ~21 W - roughly a 31 x 60 mm base with 30-40 mm fins in FORCED air; a passive bolt-on will not do it. THE HEATSINK ITSELF MUST NOT EXTEND PAST x = 40 mm: SPIRAL-6 requires >= 14 mm of in-plane clearance to the nearest spiral edge on either face, because a conductive plate under a PCB air-core spiral is a shorted turn and no copper cutout prevents it. If more area is needed it grows in -x, +/-y and fin height, NEVER in +x.",
-    "_coord_note": "ABSOLUTE BOARD COORDINATES (P6 2026-08-08). Was the board-local [5,10,36,70]; placelib._forbidden and planes_gen._region_rect both consume this rect VERBATIM as board coordinates and neither translates, so the untranslated rect landed at board-local [-1.6,-29.3,29.4,30.7] - mostly off the board. Translated by board_init outline_origin (6.635, 39.335); board-local equivalent is unchanged at [5,10,36,70]. stackup.md s2.1 flagged this as a MANDATORY P5 step; it was missed."
+    "reason": "BOTTOM-SIDE HEATSINK CONTACT LAND (HS-2). Flat, solder-free, mask-opened GND face. No parts, no through-hole pins, no untented vias. J101 is the only THT part on the board and sits on the left edge at x < 5 mm, outside this rect (HS-3). HS-1 TIGHTENED AT P2-A to theta_HS <= 0.7 C/W (from 1.4) at the design airflow while carrying ~21 W - roughly a 31 x 60 mm base with 30-40 mm fins in FORCED air; a passive bolt-on will not do it. THE HEATSINK ITSELF MUST NOT EXTEND PAST x = 40 mm: SPIRAL-6 requires >= 14 mm of in-plane clearance to the nearest spiral edge on either face, because a conductive plate under a PCB air-core spiral is a shorted turn and no copper cutout prevents it. If more area is needed it grows in -x, +/-y and fin height, NEVER in +x."
    }
   ],
   "separation": [
@@ -388,77 +387,64 @@
    "layer": "In1.Cu",
    "net": "GND",
    "region": [
-    6.635,
-    39.335,
-    57.635,
-    119.335
-   ],
-   "_note": "Zone A. Extended 48 -> 51 board-local: /SW now runs to L301's west land at x 55.1, and EPC WP010's stacked self-cancelling loop wants the In1 return image under the whole drain pour. 51 stops 0.45 mm short of L301's r=20.55 keepout, so nothing is carved."
+    0,
+    0,
+    48,
+    80
+   ]
   },
   {
    "layer": "In1.Cu",
    "net": "GND",
    "region": [
-    102.635,
-    39.335,
-    126.635,
-    119.335
-   ],
-   "_note": "Zone C. Was [88,0,100,80] for a 100 mm board; zone C's parts now sit at x 105-119. In1 deliberately starts at 96 (further right than In2/B.Cu) to stay clear of the TANK_A descent at x 88-93 - In1 is only 0.2444 mm under F.Cu, so plane there is ~5x the shunt capacitance of In2. It still fully covers the RFOUT pour and the C_m bank, which decisions.md D7 requires."
-  },
-  {
-   "layer": "In2.Cu",
-   "net": "GND",
-   "region": [
-    6.635,
-    39.335,
-    57.635,
-    119.335
+    88,
+    0,
+    100,
+    80
    ]
   },
   {
    "layer": "In2.Cu",
    "net": "GND",
    "region": [
-    98.635,
-    39.335,
-    126.635,
-    119.335
+    0,
+    0,
+    48,
+    80
+   ]
+  },
+  {
+   "layer": "In2.Cu",
+   "net": "GND",
+   "region": [
+    88,
+    0,
+    100,
+    80
    ]
   },
   {
    "layer": "B.Cu",
    "net": "GND",
    "region": [
-    6.635,
-    39.335,
-    57.635,
-    119.335
+    0,
+    0,
+    48,
+    80
    ]
   },
   {
    "layer": "B.Cu",
    "net": "GND",
    "region": [
-    98.635,
-    39.335,
-    126.635,
-    119.335
+    88,
+    0,
+    100,
+    80
    ]
-  },
-  {
-   "layer": "B.Cu",
-   "net": "GND",
-   "region": [
-    55.635,
-    69.335,
-    100.635,
-    87.335
-   ],
-   "_note": "THE RF GROUND RETURN BRIDGE - added at P6. Without it In1/In2/B.Cu GND are two disjoint islands (zone A and zone C) and the tank's 6.96 A rms return from C_m and J301's shell has NO path back to the Q201/Q202 sources. B.Cu ONLY, deliberately: (1) B.Cu is 1 oz vs the inner layers' 0.5 oz, so 0.64 vs 1.13 mOhm/sq at 20 MHz; (2) it is 1.554 mm below F.Cu, ~6x less TANK_A-to-GND shunt capacitance than In1 and ~1.2x less than In2; (3) it leaves In1 and In2 completely unpoured in zone B, exactly as blocks.md s4.4 / stackup.md s3 specify. The two spiral footprints' r=20.55 mm rule areas carve this rect automatically; the surviving channel is 6.0 mm at its narrowest (x=78.5, y 37.1..43.1 board-local) and 10-45 mm elsewhere. It overlaps zone A and zone C by 2 mm so planes_gen's auto-priority makes one merged same-net island. P7: keep the TANK_A pour narrow (~6 mm) where it crosses this band, and do NOT mirror TANK_A onto B.Cu there."
   }
  ],
- "_planes_note": "ABSOLUTE BOARD COORDINATES (P6 2026-08-08) - origin (6.635, 39.335), so board-local [a,b,c,d] is written [a+6.635, b+39.335, c+6.635, d+39.335]. The pre-P6 file held UNTRANSLATED board-local rects, which planes_gen would have poured in the wrong place entirely (zone C's [88,0,100,80] landed over L301, not over the C_m bank). SIX ENTRIES, THREE LAYERS, TWO REGIONS EACH, AND THE GAP BETWEEN THEM IS THE POINT. Zone A [0,0,48,80] carries the full plane stack because EPC WP010's stacked self-cancelling power loop needs an unbroken In1 GND return 0.2444 mm under the F.Cu loop, and because In1+In2+B.Cu is the thermal path that makes theta_BS 1.5 C/W. Zone C [88,0,100,80] carries it because the RF output needs a ground reference into the SMA. ZONE B (x 48-88) IS LEFT UNPOURED BY CONSTRUCTION on In1, In2 and B.Cu - a solid plane under a PCB air-core spiral is a shorted turn and collapses its Q, exactly as a metal heatsink would. The two regions do not touch (48 < 88), so planes_gen's overlap rule leaves them at equal priority. The apparent conflict between 'L2 must be unbroken under the power loop' and 'no plane under the spirals' is an artefact of stating both board-wide: the power loop ENDS at the drain node and the tank BEGINS there, so the two rules apply to disjoint regions and nothing straddles the boundary. B.Cu in zone B is reserved for the OTHER HALF OF EACH SPIRAL under blocks.md SPIRAL-2 (paralleled F.Cu + B.Cu windings, ~1.6-1.8x Q for zero BOM cost, verify-later; single-layer F.Cu is the documented fallback and every loss number in power_tree.md is quoted for that conservative case). Both inner layers still carry the SPIRAL-4 inner-terminal bridges - short, radial, >= 4 mm wide patches only. Do NOT solve the inner-terminal escape with a wide inner-layer slab: that is the eddy-current structure the zone was voided to prevent.",
+ "_planes_note": "SIX ENTRIES, THREE LAYERS, TWO REGIONS EACH, AND THE GAP BETWEEN THEM IS THE POINT. Zone A [0,0,48,80] carries the full plane stack because EPC WP010's stacked self-cancelling power loop needs an unbroken In1 GND return 0.2444 mm under the F.Cu loop, and because In1+In2+B.Cu is the thermal path that makes theta_BS 1.5 C/W. Zone C [88,0,100,80] carries it because the RF output needs a ground reference into the SMA. ZONE B (x 48-88) IS LEFT UNPOURED BY CONSTRUCTION on In1, In2 and B.Cu - a solid plane under a PCB air-core spiral is a shorted turn and collapses its Q, exactly as a metal heatsink would. The two regions do not touch (48 < 88), so planes_gen's overlap rule leaves them at equal priority. The apparent conflict between 'L2 must be unbroken under the power loop' and 'no plane under the spirals' is an artefact of stating both board-wide: the power loop ENDS at the drain node and the tank BEGINS there, so the two rules apply to disjoint regions and nothing straddles the boundary. B.Cu in zone B is reserved for the OTHER HALF OF EACH SPIRAL under blocks.md SPIRAL-2 (paralleled F.Cu + B.Cu windings, ~1.6-1.8x Q for zero BOM cost, verify-later; single-layer F.Cu is the documented fallback and every loss number in power_tree.md is quoted for that conservative case). Both inner layers still carry the SPIRAL-4 inner-terminal bridges - short, radial, >= 4 mm wide patches only. Do NOT solve the inner-terminal escape with a wide inner-layer slab: that is the eddy-current structure the zone was voided to prevent.",
  "_comment_amendment_P4": "AMENDED AT P4 (2026-08-07) BY THE SCHEMATIC BUILD. Exactly one change, and it is a refdes split, not a design change: the RF drain choke L201 is TWO parts in series (2 x FXL0630-R47-M, the architecture's own pre-authorised escape in blocks.md B6 - no single LCSC part meets L>=0.82uH AND SRF>=80MHz AND DCR<=25mohm AND Isat>=12A). parts.json spelled them L201A/L201B; the schematic uses L201 and L202 instead, because letter-suffixed refdes are a known pipeline hazard (place_anneal silently drops refs it does not recognise, LEARNINGS 2026-07-28) and because netlist_audit raises missing_ref at ERROR severity for any constraints refdes absent from the netlist. Consequently: (a) thermal[] now carries L201 AND L202 at 0.45 W each rather than L201 alone at 0.89 W - the declared total is preserved, and it is conservative, since the real pair dissipates I_dc^2 x 8.2 mohm = 0.29 W; (b) placement.groups 'switch' gains L202. architecture/constraints.json and parts/parts.json need the SAME edit - reported to the orchestrator, not applied here (P4 writes only inside kicad/). P6 must still place the two chokes PHYSICALLY SEPARATED (parts.json role note). NOTHING ELSE IN THIS FILE WAS TOUCHED: every net name in high_speed, power, voltages and voltage_pairs is produced verbatim by the generated schematic and was verified by netlist_audit against the exported netlist. SECOND P4 EDIT: placement.groups 'switch' gains C213, the LMG1020's TI-mandated 1 uF local reservoir added on the `stage` sheet (see that generator's docstring). Same reporting caveat as L202.",
  "_comment_amendment_P4_FIX": "AMENDED 2026-08-08 BY THE P4 ADVERSARIAL-REVIEW FIX PASS (reports/review-schematic.md). Six errors and four warnings were addressed; only the ones that touch THIS file are listed, and each is also explained in place on the entry it changes. (1) E1 GATE RESISTORS: 8 x 3R9 0603 -> 4 x 4R7 0805. TI's >= 2 ohm mandate is at each OUTH/OUTL PIN, and both EPC2019 hang off the same pins, so the pre-fix build presented 4 x 3R9 = 0.975 ohm - less than half the floor, 5.1 A of peak drive against ~1.1 V of headroom to the EPC2019's +6 V VGS absolute maximum. Each branch is now 4.7 ohm (one resistor per leg per FET, Q201 and Q202 identical), giving 2.35 ohm at each pin and 2.13 A peak. R207-R210 are GONE from placement.groups[switch] and placement.fixed. (2) E6 TERMINATION: R201/R202 0805 -> 2010 (0.25 W total on the mandated unipolar 0/+5 V drive, not the 0.125 W a bipolar swing would give). (3) W1 TANK: C_m 10 x 56 pF = 560 pF -> 9 x 56 + 1 x 27 = 531 pF, and FOUR 27 pF DNP bench-trim sites added - C320/C321 in tank_ls, C322/C323 in tank_lm. (4) W4 RAIL SPLIT: FB201 (ferrite bead) creates a new global rail '+5V_DRV' for the driver, declared in power[] above and grouped with the switch cluster. NOT CHANGED, DELIBERATELY: the high_speed[] gate-loop budget still reads 0.48 nH even though the critical-damping limit relaxed to ~1.70 nH at the new R_G - see the switch group's note. NOT APPLIED HERE, REPORTED INSTEAD: architecture/constraints.json needs the same edits (P4 writes only inside kicad/), as do the E1/E6/W1/W2/W3 part changes in parts/parts.json, which this pass DID rewrite because it is the BOM of record (E4/E5)."
 }

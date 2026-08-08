@@ -496,3 +496,207 @@ entirely, so the inner-land-to-adjacent-turn gap (0.014 mm in the first cut of t
 turn that would have collapsed the inductance) reports nothing at all. Any critical spacing between
 tied pads must be enforced in the generator and measured out-of-band; **a scratch-board DRC pass is
 NOT evidence that a net-tie part is geometrically sound.**
+
+## 2026-08-08 [placement][p6] Locking a group ANCHOR silently orphans the whole group in place_seed/place_anneal
+
+`constraints.json.placement.fixed` on this board holds Q201, U201, R203-R206, L301, L302, J101,
+J301 - i.e. the anchors of `switch`, `tank_ls`, `tank_lm`, `drive_in`, `bus_in`. `placelib.
+build_clusters` sends any footprint that is `not is_movable or ref in placement.fixed` to the
+**fixed** list, so a group whose anchor is fixed produces **no cluster at all**: place_seed's report
+listed only 4 clusters (C110, C111, R104, U101) out of 6 declared groups, and C101-C104, C207-C212,
+L201, L202, R201, R202 were left untouched at their P5 shelf coordinates (they then read as
+`outside_outline` / `courtyard_overlap`). The same mechanism drops `separation` entries -
+place_anneal reported `separation_unknown_refs: ["L301","L302","U201"]`, so the declared
+"U101 >= 30 mm from either spiral" was never enforced and had to be checked by hand.
+
+**Consequence for any board with a hand-built floorplan: everything in a group whose anchor you
+lock is yours to place.** Here that meant hand-placing 50 of 70 parts and leaving only the `hk`
+cluster (the one anchor NOT in `fixed`) to seed+anneal.
+
+## 2026-08-08 [drc][gan][footprint] The EPC2019 land pattern cannot meet this board's own /SW HV clearance rule
+
+`rules_gen` emits `aiee_hv_143v_SW (clearance min 0.8mm)` from `constraints.json.voltages` for the
+142.5 V drain node. The EPC2019's datasheet land pattern is a 0.6 mm-pitch solder-bar row, so
+drain-to-source pad gaps are **0.35 mm** by construction -> **12 intra-footprint clearance errors
+(6 per FET) that no placement can fix**. Same class: the easyeda2kicad `SOIC-8 ... EP2.0` used for
+U101 carries **4 netless PTH holes inside the exposed pad**, giving 4 more clearance errors + 4
+`solder_mask_bridge`. Both need a DRU exception or a P8 waiver, not moves.
+
+**And the U101 holes are a floorplan constraint, not just a DRC nuisance**: they pierce the board,
+so they violate HS-2 ("no through-hole pins, no untented vias" in the bottom heatsink land
+[5,10,36,70]). The buck had to be moved out of that rect (+14 mm in x) - which is the *opposite*
+of `blocks.md` B2's "place at the DC-input end", because the DC-input end IS the heatsink land.
+
+## 2026-08-08 [placement][routing] The spiral's 20.55 mm pour keepout vs the tank nets' 8.4-11.9 mm DRU width floor
+
+`aiee_pwr_width_SW` = 11.89 mm, `aiee_pwr_width_tank_TANK_A/B/RFOUT` = 8.41 mm - those apply to
+**tracks only**; a zone is not a track (see root LEARNINGS, pd-trigger). But the spiral footprints
+carry `copperpour not_allowed` (tracks/vias/pads allowed) on F.Cu+B.Cu out to r = 20.55 mm, so
+**inside a 41 mm circle around each spiral the tank nets can only be tracks, and a track there must
+be >= 8.41 mm wide.** Placement consequence: every tank pour must live OUTSIDE both keepout circles
+and reach the terminal lands with a short, full-width track (2-3 mm long, which fits: the lands are
+8 mm tall). The pour-legal channel between the two circles is the binding dimension - at L301
+(72,18) / L302 (85,62) it is **~5.0 mm at its narrowest (x ~ 79)**, which is why the spirals are
+offset 13 mm in x rather than stacked on the same centre line (same-x would pinch it to 3.9 mm).
+
+## 2026-08-08 [placement][gate-drive] LMG1020 at 270 deg is the only rotation that makes four gate legs exact mirrors
+
+The YFF0006 has OUTH (A2) and OUTL (B2) in the SAME COLUMN at 0/180 deg, so they can never both sit
+on a horizontal mirror axis. At **270 deg** the map is local (lx,ly) -> (-ly, lx), which puts
+OUTH and OUTL on the same y row (`Yu+0.2`) with the inputs on the other row - so both outputs land
+ON the axis and the four legs are congruent by reflection. Measured on this board: OUTH->R203 and
+OUTH->R204 both **2.332 mm**, R203->gate(Q201) and R204->gate(Q202) both **2.012 mm**, OUTL legs
+both 4.244 / 2.280 mm. Put the OUTH (7 A source) pair on the INNER slots - the outer pair is
+~2.4 mm longer and that difference should be spent on the 5 A sink, not the fast edge.
+
+Corollary on die orientation: the EPC2019's gate (pin 1) and its nearest source (pin 2) share the
+-x end column 0.45 mm apart, so **both FETs must be at the SAME angle and stacked in y**, drains
+escaping inward into a shared /SW channel and sources outward into two GND islands. A 180 deg
+"mirror" of one die swaps its drain and source sides and forces /SW and GND to cross.
+
+## 2026-08-08 [kicad][silk] place_edit `add_text` is idempotent only at the SAME coordinates - and there is no delete op
+
+`add_text` matches an existing text by (string, layer, position within 0.01 mm). Emitting the same
+string at a *new* position therefore ADDS a second copy, and no `del_text` op exists. A misplaced
+silk mark cannot be un-done through the ops interface. On this board the C101/C102 polarity "+"
+landed on pad 1; the fix was to **move the capacitors** 1 mm instead of moving the text.
+
+## 2026-08-08 [placement][mech] J101 (KF128 at the left edge) cannot satisfy HS-3 and silk_edge_clearance at once
+
+The KF128's F.SilkS body outline spans local y -5.40..+5.30; at 270 deg (opening out the left edge,
+confirmed by an orthographic `--views left` render) that is abs x -5.30..+5.40 about the centre.
+HS-3 requires the THT pads clear of the heatsink rect x >= 5, i.e. centre x <= 3.8 -> the silk
+overhangs the board edge by 1.6 mm -> **6 `silk_edge_clearance` warnings**. Centre x = 5.65 makes
+the silk clean but puts the 2.4 mm pads 1.85 mm into the heatsink land. Structure wins: J101 stays
+at x = 3.7 and the silk overhang is a P7 footprint trim (or a P8 waiver).
+
+Also confirmed from the same render: **`SMA-SMD_CONSMA001-SMD-G-T` is a VERTICAL (top-mount) jack,
+not an edge launch** - 4-fold symmetric GND pads with the signal pin at the footprint origin, barrel
+standing perpendicular to the board. `blocks.md` B3/B8 call it "SMD edge-launch"; that description
+is wrong, though the choice is still correct (no bottom-face solder joints). Rotation is
+electrically irrelevant for J201/J301, and neither actually needs to be at a board edge.
+
+## 2026-08-08 [drc][creepage][gan] A qualified die's OWN terminal pitch is not a board creepage violation - the "part choice is the defect" rule has an exception
+
+Refines the root-LEARNINGS entry "a voltage-class DRU rule only protects the nets you NAMED, and the
+ICD's own part-size policy can violate its own creepage rule", whose conclusion was: *if a creepage
+rule is tighter than a land pattern's own pad gap, the PART choice is the defect.*
+
+That holds when the part was chosen by policy and a larger one exists (lumina-par's 0805 -> 1206).
+**It does not hold here.** P6 on rf-de-20m produced 12 `clearance` errors that are all intra-EPC2019:
+its 0.6 mm solder-bar pitch leaves ~0.35 mm drain-to-source gaps, against the board's own
+`aiee_hv_143v_SW` rule of 0.8 mm (IPC-2221, derived from /SW's 143 V peak).
+
+Why this one is a waiver and not a part-selection defect:
+- The 0.35 mm gap is **die geometry** on a manufacturer-qualified **200 V** device. EPC rates the
+  part at 200 V *with that pitch*; the spacing is internal to a passivated die, not board copper.
+- **IPC-2221 creepage/clearance governs board-level conductor spacing**, not the terminal geometry
+  of a qualified component. Applying it inside a footprint is a category error.
+- There is **no alternative part**: EPC2019 is the only 200 V GaN that closes this design, and every
+  eGaN FET in this class has comparable bar pitch. "Choose a bigger part" has no referent.
+
+**Practical rule:** when an HV DRU rule fires *inside* a single footprint, first ask whether the
+pads belong to a qualified component or to board copper. Component-internal -> document and waive
+with the vendor's own voltage rating as evidence. Board copper (including two discrete parts placed
+close, or one part's pads on a land YOU specified) -> the original rule applies and it is a real defect.
+
+Same board, same class, DIFFERENT verdict: U101's 4 `solder_mask_bridge` errors come from netless
+PTH holes inside the LM5017's exposed pad. Those ARE ours (a pulled-footprint artefact), so they get
+fixed or re-drawn, not waived.
+
+## 2026-08-08 [constraints][COORDINATE TRAP] P5 never translated the board-local rects - `planes` and the heatsink keepout were pouring/checking the WRONG PART OF THE BOARD
+
+`stackup.md` s2.1 calls this out as a **MANDATORY P5 step** and it was missed. Verified by reading
+the consumers: `planes_gen._region_rect` takes `planes[].region` **verbatim as board coordinates**
+(no translation anywhere in the module) and `placelib._forbidden` builds `box(*k["rect"])` the same
+way. `board_init` put this outline at **origin (6.635, 39.335)** (`log/P5-board_init.json.
+outline_origin`), so the untranslated rects landed like this:
+
+| declared (board-local) | what the script actually used | effect |
+|---|---|---|
+| zone A `[0,0,48,80]` | absolute (0,0)-(48,80) | poured only board-local x 0-41.4, **y 0-40.7** - the bottom half of zone A, including the buck and half the FET thermal island, would have had NO plane |
+| zone C `[88,0,100,80]` | absolute (88,0)-(100,80) | landed at board-local x 81.4-93.4, **on top of L301** - nowhere near the C_m bank |
+| heatsink keepout `[5,10,36,70]` | absolute (5,10)-(36,70) | board-local [-1.6,-29.3,29.4,30.7] |
+
+**Why nothing caught it:** `constraints_lint` does not know the outline; `place_metrics` never fired
+the keepout because it is declared `side: "back"` while every part is front-side **and** because
+`_forbidden` is gated on `f.is_movable` (everything was locked by then). A bad rect is silent until
+P7 pours copper in the wrong place.
+
+Fixed at P6: every rect in `kicad/constraints.json` is now **absolute**, with `_coord_note` /
+`_planes_note` recording the translation and the board-local equivalent. **Check this on any board
+whose `board_init` outline does not start at (0,0) - which is all of them.**
+
+## 2026-08-08 [planes][rf] Zone B split the GND plane in two - the tank's 6.96 A return had no path at all
+
+Two 41 mm keepout discs (r = 20.55 mm) stacked across an 80 mm board leave no route around either
+edge: at y=0 L301 blocks x 61-83, at y=80 L302 blocks x 79-91. With `planes` declaring only zone A
+and zone C, In1/In2/B.Cu GND are **two disjoint islands** and the return from C_m + J301's shell to
+the Q201/Q202 sources does not exist.
+
+**The corridor is 5.0 mm, not 2.8 mm** - 2.8 mm is the answer for a *straight horizontal strip*
+(the intersection over all x of the two circles' y-spans); a pour may bend, and the true minimum is
+the perpendicular gap `d - 2R` projected onto the corridor direction. Nudging the centres to
+(72,17.6) / (85,62.6) takes d from 45.88 to 46.84 mm and the channel from 5.01 to **6.02 mm**,
+costing 0.4 mm of copper-to-edge margin each (1.05 / 1.11 mm remain) and *reducing* mutual coupling.
+
+**Carry the bridge on B.Cu, not the inner layers.** B.Cu is 1 oz against the inner layers' 0.5 oz
+(0.64 vs 1.13 mOhm/sq at 20 MHz) and sits 1.554 mm below F.Cu, so a TANK_A pour crossing it couples
+~4.7 pF instead of ~29 pF on In1 - and In1/In2 stay completely unpoured in zone B exactly as the
+architecture specifies. Verified geometrically after the fix: **B.Cu = one 6393 mm2 island spanning
+x 0-120; In1 and In2 = two islands each, deliberately.**
+
+**Numbers, so the corridor width is not argued by adjective.** 6.96 A rms, pinch ~16 mm long:
+at 6 mm wide R = 1.7 mOhm (82 mW, 0.85 mW/mm2 - 8x under the 7 mW/mm2 rule) and partial L = 7.2 nH;
+at 10 mm wide, 1.0 mOhm (49 mW) and 5.8 nH. **Widening 6 -> 10 mm buys 33 mW and 1.4 nH** - 0.5 %
+of the 274 nH series tank, against the ~25-35 nH the TANK_A/TANK_B bridge already contributes. That
+is why the r=20.55 keepout was NOT cut: it is an undocumented 4.0 mm guard band (no derivation
+exists in `spiral-design.md`), cutting it is an un-analysed magnetics change to the board's
+highest-value component, and it would need both footprints regenerated and re-imported onto a board
+carrying 66 locked placements.
+
+## 2026-08-08 [PIPELINE BUG][planes][constraints] constraints rects are consumed as ABSOLUTE board coords, but board_init does not place the outline at the origin
+
+**This is a skill-level defect, not a board-level one - it should be promoted to root LEARNINGS.md
+once the concurrent runs settle.** Found at rf-de-20m P6 while chasing a missing GND return.
+
+`planes_gen._region_rect` and `placelib._forbidden` consume `constraints.planes[].region` and
+`placement` `rect` **verbatim as absolute board coordinates**. But `board_init` placed this 120x80
+outline at origin **(6.635, 39.335)**, not (0,0). Architecture authors rects in the natural
+board-local frame, so every rect silently lands displaced by the outline origin:
+
+| Declared (board-local) | What it actually meant | Consequence |
+|---|---|---|
+| zone A `[0,0,48,80]` | poured only board-local x 0-41, **y 0-41** | buck + half the FET thermal island get **NO plane** |
+| zone C `[88,0,100,80]` | landed **on top of L301** | plane over a spiral = shorted turn |
+| heatsink keepout `[5,10,36,70]` | equally displaced | keepout guarding nothing |
+
+**Nothing in the pipeline catches this:** `constraints_lint` does not know the board outline, and
+`place_metrics` never fires the keepout (it is declared `side:"back"` and gated on `is_movable`).
+`stackup.md` s2.1 documents translation as a mandatory P5 step - and it is simply skippable, with no
+gate behind it. The failure is silent and survives to fab: you get a board that DRCs clean with no
+plane where you thought you had one.
+
+**Practical rules:**
+1. After `board_init`, read the outline origin and translate EVERY rect in `constraints.json`
+   (`planes[].region`, `placement` rects/keepouts) into absolute coordinates before `planes_gen`.
+2. Record the translation in the file (`_coord_note` / `_planes_note` with the board-local
+   equivalent) so the next reader cannot mistake the frame.
+3. **After the P7 pour, re-run a geometric island check** - the FILL is the authority, not the
+   planned rectangle. Verify each plane net forms the island count you intended.
+
+## 2026-08-08 [layout][rf] A pour can bend: the "corridor width" between two keepout discs is the perpendicular gap, not the straight-strip intersection
+
+Orchestrator error worth keeping. Given two circular keepouts, I computed the clear corridor as the
+intersection over all x of their y-spans - the widest straight horizontal strip - and got 2.8 mm,
+concluding the ground return was unroutable.
+
+That is the wrong measure, because **copper pours are not required to be straight**. The real
+constraint is the perpendicular gap `d - 2R` between the disc edges, projected onto the corridor:
+`45.88 - 41.10 = 4.78 mm` perpendicular = **5.01 mm** measured as a vertical section. Scanning the
+actual clearance along x: 80 mm at x=48, 45 at x=60, 9.5 at x=70, **5.0 at x=78** (the pinch),
+14 at x=90, 44 at x=95.
+
+The underlying concern was still valid (and the real cause was the coordinate bug above), but the
+number was wrong by 1.8x. **Measure a routing corridor as the minimum perpendicular gap along the
+path, not as the largest inscribed rectangle.**

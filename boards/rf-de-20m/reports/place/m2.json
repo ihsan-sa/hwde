@@ -1,0 +1,652 @@
+{
+ "script": "place_metrics",
+ "status": "violations",
+ "board": "rf-de-20m.kicad_pcb",
+ "counts": {
+  "total": 4,
+  "by_severity": {
+   "warning": 4
+  },
+  "by_source": {
+   "check_decoupling": 4
+  }
+ },
+ "violations": [
+  {
+   "check": "check_decoupling",
+   "severity": "warning",
+   "pos": [
+    52.7837,
+    70.1138
+   ],
+   "layer": "F.Cu",
+   "net": "/hk/VCC",
+   "refs": [
+    "C106",
+    "U101"
+   ],
+   "msg": "C106 (2.2uF 50V X7R 0805) rail pad is 3.4 mm Manhattan (2.7 mm direct) from U101 pin 6 (bulk class limit 3.0 mm)",
+   "source": "check_decoupling",
+   "items": [
+    {
+     "msg": "C106 (2.2uF 50V X7R 0805) rail pad is 3.4 mm Manhattan (2.7 mm direct) from U101 pin 6 (bulk class limit 3.0 mm)",
+     "pos": [
+      52.7837,
+      70.1138
+     ]
+    }
+   ],
+   "kind": "decoupler_distance",
+   "cap_class": "bulk",
+   "manhattan_mm": 3.3838,
+   "euclid_mm": 2.6967,
+   "loop_nh": 5.3687,
+   "vias_in_loop": 3,
+   "pin": "U101.6",
+   "limit_mm": 3.0
+  },
+  {
+   "check": "check_decoupling",
+   "severity": "warning",
+   "pos": [
+    30.315,
+    61.435
+   ],
+   "layer": "F.Cu",
+   "net": "+5V_DRV",
+   "refs": [
+    "C201",
+    "U201"
+   ],
+   "msg": "C201 (100nF 16V X7R 0402) rail pad is 3.1 mm Manhattan (2.4 mm direct) from U201 pin A1 (mid class limit 0.5 mm)",
+   "source": "check_decoupling",
+   "items": [
+    {
+     "msg": "C201 (100nF 16V X7R 0402) rail pad is 3.1 mm Manhattan (2.4 mm direct) from U201 pin A1 (mid class limit 0.5 mm)",
+     "pos": [
+      30.315,
+      61.435
+     ]
+    }
+   ],
+   "kind": "decoupler_distance",
+   "cap_class": "mid",
+   "manhattan_mm": 3.095,
+   "euclid_mm": 2.4183,
+   "loop_nh": 5.1665,
+   "vias_in_loop": 3,
+   "pin": "U201.A1",
+   "limit_mm": 0.5
+  },
+  {
+   "check": "check_decoupling",
+   "severity": "warning",
+   "pos": [
+    30.465,
+    62.685
+   ],
+   "layer": "F.Cu",
+   "net": "+5V_DRV",
+   "refs": [
+    "C202",
+    "U201"
+   ],
+   "msg": "C202 (10nF 25V X7R 0201) rail pad is 1.7 mm Manhattan (1.2 mm direct) from U201 pin A1 (mid class limit 0.5 mm)",
+   "source": "check_decoupling",
+   "items": [
+    {
+     "msg": "C202 (10nF 25V X7R 0201) rail pad is 1.7 mm Manhattan (1.2 mm direct) from U201 pin A1 (mid class limit 0.5 mm)",
+     "pos": [
+      30.465,
+      62.685
+     ]
+    }
+   ],
+   "kind": "decoupler_distance",
+   "cap_class": "mid",
+   "manhattan_mm": 1.695,
+   "euclid_mm": 1.2246,
+   "loop_nh": 4.1865,
+   "vias_in_loop": 3,
+   "pin": "U201.A1",
+   "limit_mm": 0.5
+  },
+  {
+   "check": "check_decoupling",
+   "severity": "warning",
+   "pos": [
+    30.035,
+    59.935
+   ],
+   "layer": "F.Cu",
+   "net": "+5V_DRV",
+   "refs": [
+    "C213",
+    "U201"
+   ],
+   "msg": "C213 (1uF 16V X7R 0603) rail pad is 4.9 mm Manhattan (3.9 mm direct) from U201 pin A1 (bulk class limit 3.0 mm)",
+   "source": "check_decoupling",
+   "items": [
+    {
+     "msg": "C213 (1uF 16V X7R 0603) rail pad is 4.9 mm Manhattan (3.9 mm direct) from U201 pin A1 (bulk class limit 3.0 mm)",
+     "pos": [
+      30.035,
+      59.935
+     ]
+    }
+   ],
+   "kind": "decoupler_distance",
+   "cap_class": "bulk",
+   "manhattan_mm": 4.875,
+   "euclid_mm": 3.932,
+   "loop_nh": 6.4125,
+   "vias_in_loop": 3,
+   "pin": "U201.A1",
+   "limit_mm": 3.0
+  }
+ ],
+ "metrics": {
+  "counts": {
+   "footprints": 74,
+   "movable": 13,
+   "nets": 20
+  },
+  "hpwl": {
+   "total_mm": 856.5049,
+   "by_net": {
+    "+40V": 94.7179,
+    "+5V": 43.6781,
+    "+5V_DRV": 7.345,
+    "/SW": 35.95,
+    "/hk/BST": 10.2767,
+    "/hk/BUCK_SW": 61.5924,
+    "/hk/FB": 61.1647,
+    "/hk/RINJ": 86.789,
+    "/hk/RON": 9.8223,
+    "/hk/VCC": 3.3838,
+    "/stage/DRIVE": 24.265,
+    "/stage/GATE_OFF": 9.4,
+    "/stage/GATE_ON": 4.4,
+    "/stage/GATE_Q1": 4.1,
+    "/stage/GATE_Q2": 4.1,
+    "/stage/L201_MID": 8.5,
+    "/tank/RFOUT": 69.535,
+    "/tank/TANK_A": 88.94,
+    "/tank/TANK_B": 39.125,
+    "GND": 189.42
+   }
+  },
+  "crossings": {
+   "count": 44,
+   "pairs": [
+    {
+     "nets": [
+      "+40V",
+      "GND"
+     ],
+     "crossings": 4
+    },
+    {
+     "nets": [
+      "+5V",
+      "GND"
+     ],
+     "crossings": 3
+    },
+    {
+     "nets": [
+      "/hk/RINJ",
+      "/tank/TANK_B"
+     ],
+     "crossings": 3
+    },
+    {
+     "nets": [
+      "+40V",
+      "/stage/L201_MID"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "+5V_DRV",
+      "GND"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "/SW",
+      "GND"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "/hk/FB",
+      "GND"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "+40V",
+      "/SW"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "+40V",
+      "/hk/BST"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "+40V",
+      "/hk/BUCK_SW"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "+40V",
+      "/hk/FB"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "+40V",
+      "/hk/RON"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "+40V",
+      "/stage/DRIVE"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "+5V",
+      "+5V_DRV"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "+5V",
+      "/SW"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "+5V",
+      "/hk/BUCK_SW"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "+5V",
+      "/stage/GATE_OFF"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "+5V_DRV",
+      "/stage/GATE_OFF"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/hk/BST",
+      "/hk/BUCK_SW"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/hk/BST",
+      "GND"
+     ],
+     "crossings": 1
+    }
+   ]
+  },
+  "crossings_signal": {
+   "count": 24,
+   "pairs": [
+    {
+     "nets": [
+      "/hk/RINJ",
+      "/tank/TANK_B"
+     ],
+     "crossings": 3
+    },
+    {
+     "nets": [
+      "+40V",
+      "/stage/L201_MID"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "+40V",
+      "/SW"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "+40V",
+      "/hk/BST"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "+40V",
+      "/hk/BUCK_SW"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "+40V",
+      "/hk/FB"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "+40V",
+      "/hk/RON"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "+40V",
+      "/stage/DRIVE"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "+5V",
+      "+5V_DRV"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "+5V",
+      "/SW"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "+5V",
+      "/hk/BUCK_SW"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "+5V",
+      "/stage/GATE_OFF"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "+5V_DRV",
+      "/stage/GATE_OFF"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/hk/BST",
+      "/hk/BUCK_SW"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/hk/BUCK_SW",
+      "/hk/RINJ"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/hk/BUCK_SW",
+      "/tank/TANK_A"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/hk/BUCK_SW",
+      "/tank/TANK_B"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/hk/FB",
+      "/hk/RON"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/hk/FB",
+      "/hk/VCC"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/hk/FB",
+      "/tank/TANK_A"
+     ],
+     "crossings": 1
+    }
+   ]
+  },
+  "congestion": {
+   "cell_mm": 2.0,
+   "cols": 60,
+   "rows": 40,
+   "max": 11,
+   "mean_nonzero": 1.6957,
+   "hotspots": [
+    {
+     "cell": [
+      33,
+      31
+     ],
+     "center": [
+      73.635,
+      102.335
+     ],
+     "demand": 11
+    },
+    {
+     "cell": [
+      51,
+      31
+     ],
+     "center": [
+      109.635,
+      102.335
+     ],
+     "demand": 11
+    },
+    {
+     "cell": [
+      12,
+      11
+     ],
+     "center": [
+      31.635,
+      62.335
+     ],
+     "demand": 7
+    },
+    {
+     "cell": [
+      12,
+      12
+     ],
+     "center": [
+      31.635,
+      64.335
+     ],
+     "demand": 7
+    },
+    {
+     "cell": [
+      16,
+      13
+     ],
+     "center": [
+      39.635,
+      66.335
+     ],
+     "demand": 7
+    },
+    {
+     "cell": [
+      35,
+      9
+     ],
+     "center": [
+      77.635,
+      58.335
+     ],
+     "demand": 7
+    },
+    {
+     "cell": [
+      40,
+      31
+     ],
+     "center": [
+      87.635,
+      102.335
+     ],
+     "demand": 7
+    },
+    {
+     "cell": [
+      15,
+      11
+     ],
+     "center": [
+      37.635,
+      62.335
+     ],
+     "demand": 6
+    },
+    {
+     "cell": [
+      15,
+      13
+     ],
+     "center": [
+      37.635,
+      66.335
+     ],
+     "demand": 6
+    },
+    {
+     "cell": [
+      16,
+      11
+     ],
+     "center": [
+      39.635,
+      62.335
+     ],
+     "demand": 6
+    }
+   ]
+  },
+  "congestion_signal_max": 11,
+  "decoupling": [
+   {
+    "cap": "C105",
+    "pin": "U101.2",
+    "rail": "+40V",
+    "class": "mid",
+    "manhattan_mm": 2.9154,
+    "euclid_mm": 2.3433,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 5.0408
+   },
+   {
+    "cap": "C106",
+    "pin": "U101.6",
+    "rail": "/hk/VCC",
+    "class": "bulk",
+    "manhattan_mm": 3.3838,
+    "euclid_mm": 2.6967,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 5.3687
+   },
+   {
+    "cap": "C201",
+    "pin": "U201.A1",
+    "rail": "+5V_DRV",
+    "class": "mid",
+    "manhattan_mm": 3.095,
+    "euclid_mm": 2.4183,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 5.1665
+   },
+   {
+    "cap": "C202",
+    "pin": "U201.A1",
+    "rail": "+5V_DRV",
+    "class": "mid",
+    "manhattan_mm": 1.695,
+    "euclid_mm": 1.2246,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 4.1865
+   },
+   {
+    "cap": "C213",
+    "pin": "U201.A1",
+    "rail": "+5V_DRV",
+    "class": "bulk",
+    "manhattan_mm": 4.875,
+    "euclid_mm": 3.932,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 6.4125
+   }
+  ],
+  "utilization": {
+   "component_mm2": 119.9159,
+   "board_mm2": 9600.0,
+   "ratio": 0.012
+  }
+ }
+}

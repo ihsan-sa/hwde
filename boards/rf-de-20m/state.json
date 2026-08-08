@@ -3,8 +3,8 @@
  "board": "rf-de-20m",
  "workspace": "boards/rf-de-20m",
  "created": "2026-08-07T20:58:16",
- "updated": "2026-08-08T12:12:58",
- "phase": "P6",
+ "updated": "2026-08-08T13:35:01",
+ "phase": "P7",
  "gates": {},
  "human": {
   "1": {
@@ -16,6 +16,11 @@
    "status": "approved",
    "ts": "2026-08-08T10:21:46",
    "note": "Schematic approved (erc 0/0, netlist_audit exit 0, 10/10 review findings fixed). Continue P5-P9 to fab-ready; P10 ordering held pending EPC2019 restock"
+  },
+  "3": {
+   "status": "approved",
+   "ts": "2026-08-08T13:23:42",
+   "note": "Placement approved. SMA vertical top-mount (not edge-launch) accepted by owner - it is the only true-SMD 50R SMA at LCSC with no bottom-side joints, which the flat heatsink face requires"
   }
  },
  "artifacts": {},
@@ -164,6 +169,30 @@
    "why": "Stock Device:L Description is 'Inductor', which mismatched the custom footprint descr and failed board_init schematic parity (2 -> 0)",
    "phase": "P5",
    "ts": "2026-08-08T12:12:58"
+  },
+  {
+   "what": "SMA jacks are vertical top-mount; cables exit upward. Owner accepted at H3",
+   "why": "Only genuinely surface-mount 50R SMA at LCSC without B.Cu lands. Edge-launch would need THT + a heatsink notch or an off-catalog part",
+   "phase": "P6",
+   "ts": "2026-08-08T13:23:42"
+  },
+  {
+   "what": "12 intra-EPC2019 clearance errors to be WAIVED at P8 (0.35 mm die bar gap vs the 0.8 mm aiee_hv_143v_SW IPC-2221 rule)",
+   "why": "Die geometry on a manufacturer-qualified 200 V part; IPC-2221 creepage governs board conductors, not a qualified component's internal terminals. No alternative part exists. U101's 4 solder_mask_bridge errors are NOT waived - those are a pulled-footprint artefact and get fixed",
+   "phase": "P6",
+   "ts": "2026-08-08T13:24:42"
+  },
+  {
+   "what": "All constraints.json rects translated to ABSOLUTE coords (outline origin 6.635,39.335). New B.Cu-only GND bridge board-local [49,30,94,48]; zone A extended 48->51; zone C In2/B.Cu at x=92, In1 held to x=96",
+   "why": "planes_gen/placelib consume rects verbatim as absolute. Board-local rects meant zone A poured only y 0-41 (no plane under the buck) and zone C landed on top of L301. B.Cu bridge chosen over In2: 1oz vs 0.5oz, and 1.554mm below F.Cu so a TANK_A crossing couples ~4.7pF not ~29pF",
+   "phase": "P6",
+   "ts": "2026-08-08T13:35:01"
+  },
+  {
+   "what": "Spiral keepout radius NOT shrunk (stays r=20.55). Spirals nudged in y only; corridor 5.01 -> 6.02 mm, centre separation 46.84 mm",
+   "why": "Widening 6->10 mm buys only 33 mW and 1.4 nH (0.5% of the 274 nH tank) against an un-analysed magnetics change to the Q 388/325 spirals. Nudge improves SPIRAL-5 margin and mutual coupling simultaneously",
+   "phase": "P6",
+   "ts": "2026-08-08T13:35:01"
   }
  ],
  "edits": [],
@@ -363,6 +392,38 @@
    "event": "phase",
    "phase": "P6",
    "prev": "P5"
+  },
+  {
+   "ts": "2026-08-08T13:23:42",
+   "event": "human",
+   "checkpoint": "3",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-08-08T13:23:42",
+   "event": "decision",
+   "what": "SMA jacks are vertical top-mount; cables exit upward. Owner accepted at H3"
+  },
+  {
+   "ts": "2026-08-08T13:24:42",
+   "event": "decision",
+   "what": "12 intra-EPC2019 clearance errors to be WAIVED at P8 (0.35 mm die bar gap vs the 0.8 mm aiee_hv_143v_SW IPC-2221 rule)"
+  },
+  {
+   "ts": "2026-08-08T13:35:01",
+   "event": "decision",
+   "what": "All constraints.json rects translated to ABSOLUTE coords (outline origin 6.635,39.335). New B.Cu-only GND bridge board-local [49,30,94,48]; zone A extended 48->51; zone C In2/B.Cu at x=92, In1 held to x=96"
+  },
+  {
+   "ts": "2026-08-08T13:35:01",
+   "event": "decision",
+   "what": "Spiral keepout radius NOT shrunk (stays r=20.55). Spirals nudged in y only; corridor 5.01 -> 6.02 mm, centre separation 46.84 mm"
+  },
+  {
+   "ts": "2026-08-08T13:35:01",
+   "event": "phase",
+   "phase": "P7",
+   "prev": "P6"
   }
  ]
 }
