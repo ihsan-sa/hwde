@@ -1,6 +1,21 @@
-"""Shared post-save helpers for the rf-de-20m generators.
+"""Shared helpers for the rf-de-20m generators.
 
-Currently one job: hide the AUXILIARY component fields.
+Two jobs: stamp the LCSC field on components a helper placed without it, and
+hide the AUXILIARY component fields after save.
+
+WHY stamp_lcsc EXISTS (P4 review E5, 2026-08-08)
+------------------------------------------------
+Each sheet's local `_add` wrapper attaches `fields={"LCSC": ...}` to every
+purchased part - but `schlib.place_ic_with_decoupling` calls
+`Sheet.add_component` DIRECTLY and takes no `fields` argument, so the IC and
+its decoupling caps came out of the generator with NO `LCSC` instance
+property. That hit U101, U201, C105, C106, C201, C202 and C213, and it is
+invisible until P9: `bom_cpl.board_lcsc_map` matches on
+`pname.upper() == "LCSC"` only, so the symbol's inherited `LCSC Part`
+property does not satisfy it and the board-file fallback misses exactly those
+refs. (KiCad 10 DRC also raises `footprint_symbol_field_mismatch` for a
+missing symbol field at P5/P6.) `stamp_lcsc` closes it after the fact rather
+than by forking the shared schlib helper.
 
 `schlib.add_component(fields={...})` writes each extra field as a normal
 `(property ...)` node, and kicad-sch-api gives it VISIBLE effects - so every
@@ -26,6 +41,26 @@ from __future__ import annotations
 from pathlib import Path
 
 VISIBLE = {"Reference", "Value", "Variant"}
+
+
+def stamp_lcsc(sh, lcsc: dict, refs) -> list[str]:
+    """Set the `LCSC` instance property on `refs` from the `lcsc` map.
+
+    For components placed by `schlib.place_ic_with_decoupling`, which has no
+    `fields` parameter. Idempotent; raises on an unknown ref or a ref with no
+    code, because a silently skipped stamp is the exact defect this closes.
+    """
+    done = []
+    for ref in refs:
+        code = lcsc.get(ref)
+        if not code:
+            raise KeyError(f"stamp_lcsc: no LCSC code for {ref}")
+        comp = sh.sch.components.get(ref)
+        if comp is None:
+            raise KeyError(f"stamp_lcsc: {ref} not placed on sheet {sh.name}")
+        comp.set_property("LCSC", code)
+        done.append(ref)
+    return done
 
 
 def _match(text: str, open_idx: int) -> int:

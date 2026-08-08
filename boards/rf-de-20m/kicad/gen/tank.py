@@ -15,10 +15,12 @@ parts/parts.json, parts/C22418168.json (SMA), plus the library pin tables.
 
 TOPOLOGY (one series chain, one shunt bank)
 --------------------------------------------
-    /SW --[ L301  L_s 164nH ]-- /tank/TANK_A --[ C301..C309  C_s ]--
+    /SW --[ L301  L_s 164nH ]-- /tank/TANK_A --[ C301..C309 + C320/C321 ]--
         /tank/TANK_B --[ L302  L_m 110nH ]-- /tank/RFOUT --[ J301 ]
                                                   |
-                                          [ C310..C319  C_m ] -- GND
+                                 [ C310..C319 + C322/C323  C_m ] -- GND
+
+    (C320-C323 are DNP bench-trim sites - see the bank-sizing block below.)
 
 TANK_A is the highest node on the board at **156 V pk**, 14 V ABOVE the drain -
 ordinary series-resonant magnification at Q_L = 5, declared at 180 V in
@@ -44,42 +46,61 @@ cannot be placed by `board_init`. P6 must supply the footprint (or a
 placeholder land) before the board is built, or L301/L302 will be absent from
 the .kicad_pcb while their nets still exist in the netlist.
 
-CAPACITOR BANK SIZING - AND THE ONE VALUE THAT CANNOT BE HIT EXACTLY
----------------------------------------------------------------------
-Both banks use the SAME sourced part, CC1206JKNPOCBN560 (56 pF / 1 kV C0G
-1206, C113875) - parts.json's stated "one part, three roles" intent. C0G,
-never X7R: X7R's voltage and temperature coefficients detune a resonant tank,
-which is the one place on this board where capacitance is a frequency-setting
-quantity rather than a bypass.
+CAPACITOR BANK SIZING - MIXED-VALUE C_m AND FOUR TRIM SITES (P4 review W1)
+---------------------------------------------------------------------------
+Both banks are built from 1 kV C0G 1206 parts. C0G, never X7R: X7R's voltage
+and temperature coefficients detune a resonant tank, which is the one place
+on this board where capacitance is a frequency-setting quantity rather than a
+bypass. TWO values are now stocked - CC1206JKNPOCBN560 (56 pF, C113875) and
+CC1206JKNPOCBN270 (27 pF, C541492, the same Yageo family/rating/package).
 
-    C_s  target 518 pF +/-5% (492-544)   built  9 x 56 pF = 504 pF  (-2.7%)  OK
-    C_m  target 530 pF +/-3% (514-546)   built 10 x 56 pF = 560 pF  (+5.7%)  OUT
+    C_s  target 518 pF +/-5% (492-544)   built 9 x 56           = 504 pF
+    C_m  target 530.4 pF (ideal L-match) built 9 x 56 + 1 x 27  = 531 pF
 
-**A single-value 56 pF bank cannot land inside C_m's +/-3% window**: 9 parts
-give 504 pF (-4.9%) and 10 give 560 pF (+5.7%), and 530 pF sits between the
-steps. 10 sites is taken, deliberately, because the two directions are NOT
-symmetric in consequence:
+The pre-review build was 10 x 56 = 560 pF for C_m, +5.7 % on the ideal match,
+and the sheet argued that the high side was the recoverable one. The review
+priced what that actually costs, and it is not free:
 
-  * C_m HIGH  -> Q_m 3.519, R_in 3.74 ohm -> ~221 W at a 40 V bus. Recoverable
-    for free by backing the bus down to ~38 V, which is exactly the knob
-    decisions.md D1/OPEN-4 already documents ("bring-up sets the bus to hit
-    exactly 200 W", 38-40 V).
-  * C_m LOW   -> R_in 4.53 ohm -> ~182 W at 40 V, and the bus is already at
-    its ceiling on a 200 V part, so there is no knob left.
+    build              Z seen by the tank   VSWR    series X/R   Pout at 40 V
+    560 pF (was)       3.737 + j0.675       1.220      1.47        ~221 W
+    531 pF (now)       4.122 + j0.072       1.018      1.19        ~200 W
+    ideal 530.4 pF     4.136 + j0.050       1.012      1.18         200 W
 
-Depopulating one site returns the 504 pF option at bring-up. If SIM-4 wants
-530 pF literally, the fix is one added BOM line (a 51 pF or 27 pF 1 kV C0G
-1206): 4 x 56 + 6 x 51 = 530 pF exactly, or 9 x 56 + 1 x 27 = 531 pF. That is
-a P3 re-source, not something to invent here.
+Both errors pushed the same way: R_in 9.5 % low raised P_out to ~221 W and
+with it I_dc, conduction loss and the 11.25 W / Tj 114 C two-FET thermal
+budget the whole paralleling decision rests on; and total series reactance
+moved to X/R 1.47 against the Class E optimum 1.1525, so ZVS was off and
+switching loss appeared on top. ONE 27 pF part in place of one 56 pF fixes
+both: X/R 1.19 (the residual comes from C_s at 504 pF, and 504 pF is within
+1 % of the 499 pF that would put X/R exactly on 1.1525 - it is not worth a
+second value to chase). Numbers computed at 20 MHz with L_s 164 nH,
+C_s 504 pF, L_m 110 nH into 50 ohm.
 
-C_s carries the largest single uncertainty in the tank (OPEN-12: the P1
-fragment's C_series coefficient is refuted and SIM-4 is the arbiter), which is
-why both banks stay PARALLEL ARRAYS - they trim by depopulation.
+TRIM SITES: C320/C321 (C_s) and C322/C323 (C_m), 27 pF, DNP
+------------------------------------------------------------
+Neither bank had a trim site - only C_shunt got DNP pads (C205/C206) - so the
+tank could only be trimmed DOWN, in 56 pF (11 %) steps, by depopulation. Four
+27 pF DNP sites give each bank a bidirectional bench trim:
+
+    C_s   504 pF as built;  +27 / +54 pF by populating C320/C321
+                            -56 pF per depopulated 56 pF site
+                            FINE DOWN-TRIM: drop one 56 and populate both
+                            27s -> 8 x 56 + 2 x 27 = 502 pF (-0.4 %)
+    C_m   531 pF as built;  +27 / +54 pF by populating C322/C323
+                            -27 pF by depopulating C319 (the 27 pF part)
+                            -56 pF per depopulated 56 pF site
+
+This matters because L301/L302 are ETCHED SPIRALS whose realised inductance
+is the largest unknown in the tank - a +/-10 % spiral is ordinary, and the
+capacitor banks are the only knob that answers it. C_s additionally carries
+OPEN-12 (the P1 fragment's C_series coefficient is refuted; SIM-4 arbitrates),
+which is why both banks stay PARALLEL ARRAYS rather than single parts.
 
 Per-part duty, so nobody "simplifies" the split: C_s 0.77 A rms and ~105 mW
-each; C_m 0.67 A rms each, because C_m carries 6.66 A rms - nearly the full
-tank current, NOT the 2.0 A load current. The 1 kV rating is 6.6x the 151 V pk
-across the C_s bank.
+each; in C_m the current divides in proportion to capacitance, so each 56 pF
+part carries 56/531 x 6.66 = 0.70 A rms and the 27 pF part 0.34 A - because
+C_m carries 6.66 A rms, nearly the full tank current, NOT the 2.0 A load
+current. The 1 kV rating is 6.6x the 151 V pk across the C_s bank.
 
 NET NAMING (sheets.md s1 - BINDING)
 ------------------------------------
@@ -126,6 +147,7 @@ RFOUT = "RFOUT"        # -> /tank/RFOUT
 # ------------------------------------------------------------------ symbols
 S_L = "Device:L"                          # PCB spiral - stock symbol, no fp
 S_C56P = "aiee:CC1206JKNPOCBN560"         # 56pF 1kV C0G 1206
+S_C27P = "aiee:CC1206JKNPOCBN270"         # 27pF 1kV C0G 1206 (W1)
 S_SMA = "aiee:CONSMA001-SMD-G-T"          # default Reference "RF" -> J301
 
 # --------------------------------------------------------------- footprints
@@ -135,22 +157,39 @@ F_SMA = "aiee:SMA-SMD_CONSMA001-SMD-G-T"
 
 # ------------------------------------------------------------------- values
 V_C56P = "56pF 1kV C0G 1206"
+V_C27P = "27pF 1kV C0G 1206"
 V_SMA = "SMA jack 50R SMD (CONSMA001)"
 
-LCSC = {"J301": "C22418168"}
-for _i in range(301, 320):
-    LCSC[f"C{_i}"] = "C113875"
+# Bank membership. (ref, pF, dnp) - the ONLY place the banks are defined.
+CS_BANK = [(f"C{n}", 56, False) for n in range(301, 310)]        # 504 pF
+CM_BANK = ([(f"C{n}", 56, False) for n in range(310, 319)]
+           + [("C319", 27, False)])                              # 531 pF
+CS_TRIM = [("C320", 27, True), ("C321", 27, True)]
+CM_TRIM = [("C322", 27, True), ("C323", 27, True)]
 
-CS_REFS = [f"C{n}" for n in range(301, 310)]    # C_s : 9 x 56 pF = 504 pF
-CM_REFS = [f"C{n}" for n in range(310, 320)]    # C_m : 10 x 56 pF = 560 pF
+CS_REFS = CS_BANK + CS_TRIM
+CM_REFS = CM_BANK + CM_TRIM
+
+LCSC = {"J301": "C22418168"}
+for _r, _pf, _d in CS_REFS + CM_REFS:
+    LCSC[_r] = "C113875" if _pf == 56 else "C541492"
+
+
+def _pf_total(bank) -> int:
+    return sum(pf for _, pf, dnp in bank if not dnp)
 
 
 def _add(sh, ref, lib_id, value, at, footprint=None, expect=None, note=None,
-         in_bom=True, rotation=0):
+         in_bom=True, rotation=0, dnp=False):
     fields = {}
     code = LCSC.get(ref)
     if code:
         fields["LCSC"] = code
+    if dnp:
+        # kicad-sch-api's writer hard-codes `(dnp no)`, so `Variant` is the
+        # only do-not-populate marking reachable from a generator and it is
+        # kept VISIBLE by genlib (LEARNINGS 2026-08-07). P9 filters by hand.
+        fields["Variant"] = "DNP"
     if note:
         fields["Note"] = note
     c = sh.add_component(lib_id, ref, value, at, rotation=rotation,
@@ -193,14 +232,20 @@ def build() -> schlib.Sheet:
               "and the footprint. >=1430mm2 at Q100, no plane beneath")
     sh.wire_pins("L301", {"1": SW, "2": TANK_A})
 
-    # C_s bank: 9 x 56 pF = 504 pF against a 518 pF +/-5% target. C_s is a
-    # SERIES element and floats, which is why it can live in zone B where
-    # there is no ground plane.
-    for i, ref in enumerate(CS_REFS):
-        _add(sh, ref, S_C56P, V_C56P, (88.9 + (i % 5) * 76.2,
-                                       190.5 + (i // 5) * 38.1),
-             footprint=F_C1206, expect={"1": "1", "2": "2"},
-             note="C_s bank 9x56pF=504pF (target 518pF +/-5%). C0G, never X7R")
+    # C_s bank: 9 x 56 pF = 504 pF against a 518 pF +/-5% target, plus two
+    # 27 pF DNP TRIM SITES (W1). C_s is a SERIES element and floats, which is
+    # why it can live in zone B where there is no ground plane. Trim sites are
+    # part of the bank and must be placed IN it, not on a stub.
+    for i, (ref, pf, dnp) in enumerate(CS_REFS):
+        _add(sh, ref, S_C56P if pf == 56 else S_C27P,
+             V_C56P if pf == 56 else V_C27P,
+             (88.9 + (i % 6) * 76.2, 190.5 + (i // 6) * 38.1),
+             footprint=F_C1206, expect={"1": "1", "2": "2"}, dnp=dnp,
+             note=("C_s TRIM SITE - DNP. Populate for +27pF; for a fine "
+                   "DOWN-trim drop one 56pF and populate both (502pF)"
+                   if dnp else
+                   "C_s bank 9x56pF=504pF (target 518pF +/-5%, X/R-optimal "
+                   "499pF). C0G, never X7R"))
         sh.wire_pins(ref, {"1": TANK_A, "2": TANK_B})
 
     # =====================================================================
@@ -215,16 +260,20 @@ def build() -> schlib.Sheet:
               "Centre-to-centre >=38mm from L301 (SPIRAL-5)")
     sh.wire_pins("L302", {"1": TANK_B, "2": RFOUT})
 
-    # C_m bank: 10 x 56 pF = 560 pF against a 530 pF +/-3% target - see the
-    # module docstring for why the high side of the step is the safe one.
-    # C_m RETURNS TO GROUND and carries 6.66 A rms, so it lives in zone C
-    # where the plane stack exists, unlike C_s.
-    for i, ref in enumerate(CM_REFS):
-        _add(sh, ref, S_C56P, V_C56P, (88.9 + (i % 5) * 76.2,
-                                       279.4 + (i // 5) * 38.1),
-             footprint=F_C1206, expect={"1": "1", "2": "2"},
-             note="C_m bank 10x56pF=560pF (target 530pF). Carries 6.66A rms, "
-                  "not the 2A load current")
+    # C_m bank: 9 x 56 + 1 x 27 = 531 pF against the 530.4 pF ideal L-match
+    # (W1 - the 10 x 56 = 560 pF build gave 3.74 ohm, VSWR 1.22 and ~221 W),
+    # plus two 27 pF DNP TRIM SITES. C_m RETURNS TO GROUND and carries
+    # 6.66 A rms, so it lives in zone C where the plane stack exists.
+    for i, (ref, pf, dnp) in enumerate(CM_REFS):
+        _add(sh, ref, S_C56P if pf == 56 else S_C27P,
+             V_C56P if pf == 56 else V_C27P,
+             (88.9 + (i % 6) * 76.2, 279.4 + (i // 6) * 38.1),
+             footprint=F_C1206, expect={"1": "1", "2": "2"}, dnp=dnp,
+             note=("C_m TRIM SITE - DNP. Populate for +27pF; depopulate C319 "
+                   "for -27pF"
+                   if dnp else
+                   "C_m bank 9x56+1x27 = 531pF (ideal 530.4pF). Carries "
+                   "6.66A rms, not the 2A load current"))
         sh.wire_pins(ref, {"1": RFOUT, "2": GND})
 
     # =====================================================================
@@ -260,14 +309,18 @@ def build() -> schlib.Sheet:
         "  courtyard at P6 after the spirals are placed and LOCKED.",
     ])
     _note(sh, (88.9, 431.8), [
-        "C_m IS 560 pF, NOT 530 pF. A single-value 56 pF bank cannot",
-        "land inside the +/-3% window (9 parts = 504, 10 parts = 560).",
-        "The HIGH side is chosen because it is the recoverable one:",
-        "high C_m raises P_out to ~221 W at 40 V, and the bus is already",
-        "a documented derating knob (38-40 V, OPEN-4). Low C_m would give",
-        "~182 W with no knob left - the bus is at its ceiling on a 200 V",
-        "part. Depopulate one site for 504 pF; a literal 530 pF needs one",
-        "added BOM line (4x56 + 6x51 = 530 exactly). SIM-4 arbitrates.",
+        "C_m IS 531 pF: 9 x 56 pF + 1 x 27 pF (C319), against the ideal",
+        "L-match value of 530.4 pF. The 10 x 56 = 560 pF single-value bank",
+        "was +5.7%: 3.74 + j0.68 ohm, VSWR 1.22, series X/R 1.47 against",
+        "the Class E optimum 1.1525, and ~221 W not 200 W at a 40 V bus.",
+        "As built: 4.12 + j0.07 ohm, VSWR 1.02, X/R 1.19, ~200 W.",
+        "C_s stays 9 x 56 = 504 pF (target 518 +/-5%; 499 pF would put X/R",
+        "exactly on 1.1525, so 504 is within 1% and needs no third value).",
+        "TRIM SITES C320/C321 (C_s) and C322/C323 (C_m) are 27 pF DNP.",
+        "Populate for +27/+54 pF; depopulate for -27 (C319) or -56 pF.",
+        "Fine C_s down-trim: drop one 56 and populate both 27s -> 502 pF.",
+        "The spirals' realised L is the tank's largest unknown - these",
+        "sites are how bring-up answers it. SIM-4 still arbitrates C_s.",
     ])
     _note(sh, (88.9, 482.6), [
         "NO X7R ANYWHERE IN THE TANK. C0G/NP0 only - X7R's voltage and",
@@ -295,8 +348,9 @@ def main(argv=None) -> int:
         "components": len(list(sh.sch.components)),
         "hier_pins": sorted(sh.hier_pins),
         "internal_nets": sorted({TANK_A, TANK_B, RFOUT}),
-        "c_s_pf": 56 * len(CS_REFS),
-        "c_m_pf": 56 * len(CM_REFS),
+        "c_s_pf": _pf_total(CS_REFS),
+        "c_m_pf": _pf_total(CM_REFS),
+        "dnp": sorted(r for r, _, d in CS_REFS + CM_REFS if d),
         "decoupling_associations": len(sh.decoupling),
         "field_placement": sh.place_report,
         "aux_fields_hidden": hidden,

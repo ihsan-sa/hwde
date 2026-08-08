@@ -1,19 +1,19 @@
 {
  "_meta": {
   "board": "rf-de-20m",
-  "phase": "P3",
-  "date": "2026-08-07",
+  "phase": "P4",
+  "date": "2026-08-08",
   "build_qty": 5,
   "assembly": "100% JLCPCB PCBA, single-sided (top) SMT + 1 THT connector (J101, pre-approved exception, see its role note)",
-  "note": "All stock/price figures below are LIVE parts_search.py re-verifications run 2026-08-07 during P3, not carried from P1/P2 research without re-check. See OPEN in the handoff message for the one build-blocking finding (EPC2019 out of stock)."
+  "note": "REWRITTEN 2026-08-08 BY THE P4 ADVERSARIAL-REVIEW FIX PASS (reports/review-schematic.md, findings E4 and E5, plus every part change made for E1/E3/E6/W1/W2/W3/W4). THE BOM OF RECORD IS NOW REF-EXACT: every parts[].refdes is an explicit list of individual refdes - no range strings like 'C301..C308' (bom_cpl does not expand them, and those two strings also silently missed C318/C319), no annotations inside a refdes ('C206 (DNP by default)'), and no letter suffixes ('L201A'/'L201B' -> L201/L202). RECONCILED AGAINST THE EXPORTED NETLIST: 70 components, 68 of them purchased, and each maps to exactly one BOM line; the only two refs without an LCSC code are L301/L302, the etched PCB spirals, which are deliberate PCB features. DNP sites are carried in refdes_dnp with qty_per_board_populated beside qty_per_board, so a reader never has to infer them. LINES DELETED because the fix pass left them with no refdes at all: C25553 (30.0k 5% 0402 - E3 replaced it with a 1% part), C25741 (100k 0402 - W2 moved R103/R104 to 0805 for working voltage), C519422 (2.2nF 25V - E4: the bootstrap cap is 10nF and always was in the schematic), C23020 (3R9 0603 - E1 replaced the 8-resistor gate bank with four 4R7 0805), C17408 (100R 0805 - E6 replaced the termination with 2010). All stock/price figures below were re-verified LIVE with parts_search.py on 2026-08-08 for every changed and every new line, and re-checked against the 5x-build-need rule at the NEW per-board quantities. STILL OPEN, UNCHANGED: EPC2019 (C2836675) is out of stock at LCSC - owner-accepted, P10 re-verifies."
  },
-
  "parts": [
-
   {
    "ref_prefix_hint": "J",
    "block": "hk",
-   "refdes": ["J101"],
+   "refdes": [
+    "J101"
+   ],
    "qty_per_board": 1,
    "mpn": "KF128-5.08-2P-AA",
    "lcsc": "C474952",
@@ -26,11 +26,13 @@
    "alternates": [],
    "role": "40V DC bus input, >=6A. CONFIRMED THT (only THT part on the board, by architecture design - blocks.md/sheets.md already place it at x<5mm, outside the [5,10,36,70] heatsink land, HS-3). This is a pre-resolved exception to single-sided SMT assembly, not a new conflict: JLC PCBA supports a single THT part mixed with SMT on an otherwise top-side-only build. No action needed, just confirming the placement discipline stays intact at P6."
   },
-
   {
    "ref_prefix_hint": "C",
    "block": "hk",
-   "refdes": ["C101", "C102"],
+   "refdes": [
+    "C101",
+    "C102"
+   ],
    "qty_per_board": 2,
    "mpn": "RVT63V100M10X10",
    "lcsc": "C51953411",
@@ -39,15 +41,23 @@
    "basic": false,
    "stock": 23372,
    "price": 0.1806,
-   "datasheet": "",
-   "alternates": [{"mpn": "JVJ80V100M10x10", "lcsc": "C46550424", "note": "RECOMMENDED FREE UPGRADE, needs an owner ruling. 100uF 80V, identical D10xL10.5mm can and therefore the identical footprint, stock 61436 (2.6x deeper), $0.1703 (marginally CHEAPER). Only difference is the voltage rating: it takes the ~51V LC inrush overshoot from 81% of rating down to 64%, which is the difference between 'inside the usual 80% electrolytic derating guideline' and 'comfortably inside it'. Not swapped in unilaterally because 63V is the architecture's documented spec and the handoff named C51953411 explicitly - see OPEN."}],
-   "role": "Bulk on +40V at the terminal. RE-SOURCED 2026-08-07: the previous entry C54321630 / MA63V100M10X10 has NO EasyEDA CAD data (3 pull attempts failed, not a 403/rate-limit pattern), so it could never reach a footprint. Swapped to the documented alternate, which pulls cleanly (footprint CAP-SMD_BD10.0-L10.3-W10.3-LS11.0-FD_1, symbol registered) and is deeply stocked - 23372 vs the 5x10=50 required, 467x margin. Still an SMD can with no bottom-face leads, so the heatsink face stays clear. 63V rating still satisfies the P1 finding that LC inrush overshoots to ~51V (transient 81% of rating; steady-state 40V = 63%). DIELECTRIC SUBSTITUTED POLYMER -> ALUMINIUM ELECTROLYTIC: the old entry was specified as a polymer cap, and this replacement is a plain aluminium electrolytic with much higher ESR (order 0.4-1 ohm vs order 20 mohm) and a modest 200mA@120Hz ripple rating. Judged acceptable, and flagged rather than hidden, because this cap is DC-bus hold-up only, not an RF part: at 20 MHz it is far past self-resonance and contributes nothing either way, and the switching-frequency and RF ripple are carried by C103/C104 (2.2uF 100V X7R) and the C207-C212 HF bank. If P4 finds the bus needs real low-ESR bulk, that is a re-source, not a tweak. FOOTPRINT NOTE: the pull shipped this part with attr 'through_hole' despite both lands being surface pads - corrected to 'smd' in the footprint, otherwise C101/C102 would have landed in the THT column of the P9 CPL and broken the single-sided-SMT build. A courtyard was also added; the pull shipped none."
+   "datasheet": "https://datasheet.lcsc.com/datasheet/pdf/b62932148c4d9d6f60e49356f14710e8.pdf",
+   "alternates": [
+    {
+     "mpn": "JVJ80V100M10x10",
+     "lcsc": "C46550424",
+     "note": "RECOMMENDED FREE UPGRADE, needs an owner ruling. 100uF 80V, identical D10xL10.5mm can and therefore the identical footprint, stock 61436 (2.6x deeper), $0.1703 (marginally CHEAPER). Only difference is the voltage rating: it takes the ~51V LC inrush overshoot from 81% of rating down to 64%, which is the difference between 'inside the usual 80% electrolytic derating guideline' and 'comfortably inside it'. Not swapped in unilaterally because 63V is the architecture's documented spec and the handoff named C51953411 explicitly - see OPEN."
+    }
+   ],
+   "role": "Bulk on +40V at the terminal. POLARITY SETTLED 2026-08-08 (P4 review E2), and this is the finding the empty datasheet field caused: the reviewer could not adjudicate pin 1 because the EasyEDA symbol puts '+' at pin 1 while the footprint's only asymmetric silk feature - two chamfered corners - sits on the PAD-1 side, and a chamfered base corner conventionally marks the CATHODE on V-chip electrolytics. The manufacturer document is now fetched, committed at parts/C51953411.pdf (JIERR, 'RVT series', 6 pp; page 6 lists this exact PN 100uF/10X10.5/200mA/tan-d 0.14) and the datasheet field above is filled. Page 2's dimension drawing labels the two terminals 'Positive' and 'Negative' explicitly, and the 'Positive' leader lands on the CHAMFERED end; the D=10.0 row (A=10.3, B=10.3, C=11.1, P=4.5) matches the pulled footprint name BD10.0-L10.3-W10.3-LS11.0 exactly. Cross-checked against the Lumimax SMDGP/RVT-series drawing, whose top-view marking figure puts the black negative stripe on the SQUARE-cornered side - same conclusion from the opposite face. SO: chamfer = ANODE on this family, the footprint's chamfers are on the pad-1 side, pad 1 = anode, and the schematic's pin-1-to-+40V wiring is CORRECT. No part swap needed. P6 OBLIGATION UNCHANGED AND NOW BETTER SPECIFIED: the footprint carries no polarity mark on F.SilkS or F.Fab, and the silk body square (+/-5.23 mm) is entirely hidden by the 10.3 mm plastic base once assembled, so the chamfer cue is invisible for inspection - P6 must add a silk '+' OUTSIDE the body square near pad 1 (free space at about x=-6.0, |y|=2.5-5.0, inside the courtyard and clear of the pads) plus an F.Fab body outline with a polarity marker. Everything below is the P3 sourcing record and is unchanged. RE-SOURCED 2026-08-07: the previous entry C54321630 / MA63V100M10X10 has NO EasyEDA CAD data (3 pull attempts failed), so it could never reach a footprint. Swapped to the documented alternate, which pulls cleanly and is deeply stocked - 23372 vs the 5x10=50 required. 63V rating still satisfies the P1 finding that LC inrush overshoots to ~51V (transient 81% of rating; steady-state 40V = 63%). Still an SMD can with no bottom-face leads, so the heatsink face stays clear. DIELECTRIC SUBSTITUTED POLYMER -> ALUMINIUM ELECTROLYTIC: much higher ESR (order 0.4-1 ohm vs order 20 mohm) and a modest 200mA@120Hz ripple rating, judged acceptable because this cap is DC-bus hold-up only - at 20 MHz it is far past self-resonance, the switching and RF ripple are carried by C103/C104 and the C207-C212 HF bank, and the ESR actively DAMPS the turn-on ring. FOOTPRINT NOTE: the pull shipped this part with attr 'through_hole' despite both lands being surface pads - corrected to 'smd' in the footprint, otherwise C101/C102 would have landed in the THT column of the P9 CPL and broken the single-sided-SMT build. A courtyard was also added; the pull shipped none."
   },
-
   {
    "ref_prefix_hint": "C",
    "block": "hk",
-   "refdes": ["C103", "C104"],
+   "refdes": [
+    "C103",
+    "C104"
+   ],
    "qty_per_board": 2,
    "mpn": "CC1206KKX7R0BB225",
    "lcsc": "C577211",
@@ -57,14 +67,20 @@
    "stock": 1074247,
    "price": 0.2854,
    "datasheet": "",
-   "alternates": [{"mpn": "TCC1206X7R225K101HT", "lcsc": "C7393990"}],
+   "alternates": [
+    {
+     "mpn": "TCC1206X7R225K101HT",
+     "lcsc": "C7393990"
+    }
+   ],
    "role": "Mid-frequency tier on +40V bus. PACKAGE SUBSTITUTED 0805->1206: the only 0805 2.2uF/100V X7R found at LCSC (CIA0805X7R225K101MT, C51295056) has stock=17, far short of the 5x-qty rule. 1206 is the same electrical part, just larger footprint - not load-bearing since this cap lives in zone A (plenty of room), not the tight switch cluster. X7R is correct here per architecture (bus tier, not tank)."
   },
-
   {
    "ref_prefix_hint": "U",
    "block": "hk",
-   "refdes": ["U101"],
+   "refdes": [
+    "U101"
+   ],
    "qty_per_board": 1,
    "mpn": "LM5017MRX/NOPB",
    "lcsc": "C34355",
@@ -74,14 +90,21 @@
    "stock": 435,
    "price": 1.353,
    "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Texas-Instruments-LM5017MRX-NOPB_C34355.pdf",
-   "alternates": [{"mpn": "TPS54360BDDAR", "lcsc": "C524806", "note": "documented architecture fallback, NOT pin-compatible - async peak-current-mode part needing an added RC compensation network. Only reach for this if LM5017MRX/NOPB stock drops further; 435pcs is fine for a 5-board build (need 1x5=5, x5 margin=25)."}],
+   "alternates": [
+    {
+     "mpn": "TPS54360BDDAR",
+     "lcsc": "C524806",
+     "note": "documented architecture fallback, NOT pin-compatible - async peak-current-mode part needing an added RC compensation network. Only reach for this if LM5017MRX/NOPB stock drops further; 435pcs is fine for a 5-board build (need 1x5=5, x5 margin=25)."
+    }
+   ],
    "role": "+5V housekeeping buck off the 40V bus. Confirmed TI-branded, genuine part number, stock re-verified live (was 435 at research time too - stable)."
   },
-
   {
    "ref_prefix_hint": "L",
    "block": "hk",
-   "refdes": ["L101"],
+   "refdes": [
+    "L101"
+   ],
    "qty_per_board": 1,
    "mpn": "SWPA4030S220MT",
    "lcsc": "C83472",
@@ -94,12 +117,15 @@
    "alternates": [],
    "role": "Buck inductor. PLACEHOLDER VALUE per architecture (sheets.md: 'P4 sizes against the chosen Fsw'). 22uH sits in the stated 15-47uH window and clears the >=0.5A budget comfortably (1A rated)."
   },
-
   {
    "ref_prefix_hint": "C",
    "block": "hk",
-   "refdes": ["C105", "C109"],
-   "qty_per_board": 2,
+   "refdes": [
+    "C105",
+    "C109",
+    "C111"
+   ],
+   "qty_per_board": 3,
    "mpn": "CC0603KRX7R0BB104",
    "lcsc": "C113803",
    "value": "100nF 100V X7R",
@@ -109,13 +135,14 @@
    "price": 0.0283,
    "datasheet": "",
    "alternates": [],
-   "role": "C105 = buck Vin local bypass. C109 = buck Vout HF cap (same part reused - standard practice, avoids an extra distinct-part line for a non-critical value)."
+   "role": "100nF 100V X7R 0603, THREE sites: C105 = buck Vin local bypass, C109 = buck Vout HF cap, and C111 = Cac, the Type 3 ripple-injection ac-coupling cap on `hk` (P4 added that network; this line was never updated for it - review E5). Same part reused across all three - standard practice, avoids extra distinct-part lines for non-critical values. Cac's job is to pass the ramp while blocking DC: 100 nF into the divider's 7.5k Thevenin is tau 750 us against a 1.8 us switching period, which is what makes the ramp's mean zero and the E3 divider solve valid. Stock re-verified live 2026-08-08."
   },
-
   {
    "ref_prefix_hint": "C",
-   "block": "hk",
-   "refdes": ["C106"],
+   "block": "stage",
+   "refdes": [
+    "C213"
+   ],
    "qty_per_board": 1,
    "mpn": "CC0603KRX7R7BB105",
    "lcsc": "C106248",
@@ -126,30 +153,14 @@
    "price": 0.0303,
    "datasheet": "",
    "alternates": [],
-   "role": "Buck VCC decoupler."
+   "role": "C213 ONLY as of 2026-08-08. This part used to serve both C106 (the LM5017's VCC decoupler, on `hk`) and C213 (the LMG1020's TI-mandated additional 1 uF reservoir, on `stage`); P4 review W3 moved C106 to a 2.2uF/50V 0805 part because a 16V X7R sitting on VCC's 7.6-8.55 V rail derates to 0.5-0.65 uF against a 1.0 uF requirement. C213 keeps this part: it sits on +5V_DRV at ~5.0-5.2 V, i.e. ~32% of the 16 V rating, where an 0603 1uF X7R retains roughly 0.7-0.8 uF - short of a literal 1.0 uF but against a requirement TI words as a recommendation ('an additional 1 uF capacitor must be placed as close to the IC as practical', s10.1.2) rather than a computed minimum, and the review did not flag it. NOT SILENTLY UPGRADED - see OPEN. Stock re-verified live 2026-08-08."
   },
-
   {
    "ref_prefix_hint": "C",
    "block": "hk",
-   "refdes": ["C107"],
-   "qty_per_board": 1,
-   "mpn": "CC0603KRX7R8BB222",
-   "lcsc": "C519422",
-   "value": "2.2nF 25V X7R",
-   "package": "0603",
-   "basic": false,
-   "stock": 38849,
-   "price": 0.0097,
-   "datasheet": "",
-   "alternates": [],
-   "role": "Buck bootstrap cap. PLACEHOLDER VALUE - P4 confirms against LM5017's internal HS driver bootstrap spec."
-  },
-
-  {
-   "ref_prefix_hint": "C",
-   "block": "hk",
-   "refdes": ["C108"],
+   "refdes": [
+    "C108"
+   ],
    "qty_per_board": 1,
    "mpn": "TCC1206X7R226K160HT",
    "lcsc": "C22392398",
@@ -159,31 +170,20 @@
    "stock": 66190,
    "price": 0.2412,
    "datasheet": "",
-   "alternates": [{"mpn": "CS3216X7R226K160NRI", "lcsc": "C5252682"}],
+   "alternates": [
+    {
+     "mpn": "CS3216X7R226K160NRI",
+     "lcsc": "C5252682"
+    }
+   ],
    "role": "Buck Vout bulk on +5V rail."
   },
-
   {
    "ref_prefix_hint": "R",
    "block": "hk",
-   "refdes": ["R101"],
-   "qty_per_board": 1,
-   "mpn": "0402WGJ0303TCE",
-   "lcsc": "C25553",
-   "value": "30.0k",
-   "package": "0402",
-   "basic": false,
-   "stock": 63827,
-   "price": 0.0048,
-   "datasheet": "",
-   "alternates": [],
-   "role": "FB divider top leg. PLACEHOLDER VALUE (30k/10k gives 5.0V for a 1.25V-class COT reference) - P4 confirms exact ratio against the actual LM5017 FB reference in the datasheet."
-  },
-
-  {
-   "ref_prefix_hint": "R",
-   "block": "hk",
-   "refdes": ["R102"],
+   "refdes": [
+    "R102"
+   ],
    "qty_per_board": 1,
    "mpn": "0402WGF1002TCE",
    "lcsc": "C25744",
@@ -196,28 +196,13 @@
    "alternates": [],
    "role": "FB divider bottom leg. See R101 note."
   },
-
-  {
-   "ref_prefix_hint": "R",
-   "block": "hk",
-   "refdes": ["R103"],
-   "qty_per_board": 1,
-   "mpn": "0402WGF1003TCE",
-   "lcsc": "C25741",
-   "value": "100k",
-   "package": "0402",
-   "basic": true,
-   "stock": 5259955,
-   "price": 0.0076,
-   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2206010100_UNI-ROYAL-Uniroyal-Elec-0402WGF1003TCE_C25741.pdf",
-   "alternates": [],
-   "role": "COT RON (Fsw-setting) resistor. PLACEHOLDER VALUE - P4 must compute the real value from LM5017's RON formula against the chosen switching frequency (same pattern as L101)."
-  },
-
   {
    "ref_prefix_hint": "J",
    "block": "stage",
-   "refdes": ["J201", "J301"],
+   "refdes": [
+    "J201",
+    "J301"
+   ],
    "qty_per_board": 2,
    "mpn": "CONSMA001-SMD-G-T",
    "lcsc": "C22418168",
@@ -227,31 +212,21 @@
    "stock": 1744,
    "price": 2.9743,
    "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2408271131_TE-Connectivity-CONSMA001-SMD-G-T_C22418168.pdf",
-   "alternates": [{"mpn": "KH-SMAK-SMT", "lcsc": "C22371060", "note": "Shenzhen Kinghelm, 50 ohm DC-6GHz, VSWR 1.35, stock 647, $0.5416 - 5.5x cheaper. Its pulled footprint is likewise F.Cu-only (4x 1.4mm square lands at 5.08mm pitch + 1.6mm centre land) and its datasheet's recommended PCB layout is 4 square lands + a centre circle, which is consistent with surface mount. NOT DATASHEET-CONFIRMED: the drawing's cross-section is ambiguous about whether the 4 SQ0.9 legs protrude below the seating plane, and the sheet lists a wave-solder rating. Do NOT substitute this in without re-reading the mechanical drawing to the same standard applied to the primary - that shortcut is exactly what produced the C496550 error."}],
+   "alternates": [
+    {
+     "mpn": "KH-SMAK-SMT",
+     "lcsc": "C22371060",
+     "note": "Shenzhen Kinghelm, 50 ohm DC-6GHz, VSWR 1.35, stock 647, $0.5416 - 5.5x cheaper. Its pulled footprint is likewise F.Cu-only (4x 1.4mm square lands at 5.08mm pitch + 1.6mm centre land) and its datasheet's recommended PCB layout is 4 square lands + a centre circle, which is consistent with surface mount. NOT DATASHEET-CONFIRMED: the drawing's cross-section is ambiguous about whether the 4 SQ0.9 legs protrude below the seating plane, and the sheet lists a wave-solder rating. Do NOT substitute this in without re-reading the mechanical drawing to the same standard applied to the primary - that shortcut is exactly what produced the C496550 error."
+    }
+   ],
    "role": "J201 = drive input (I1). J301 = RF output (I2), same part per architecture. RE-SOURCED 2026-08-07, replacing C496550 / BWSMA-KE-P001. MOUNT STYLE VERIFIED AGAINST THE MANUFACTURER DRAWING: TE customer drawing C-CONSMA001-SMD Rev G, SHEET 1, states verbatim 'Connector: SMA Jack (Female Socket)' and 'Termination: PCB Surface Mount'; SHEET 2 'RECOMMENDED FOOTPRINT' gives five top-side lands only (four 2.44mm squares at +/-2.66mm, one 2.05mm round centre, 7.76mm overall) with no drilled holes and no bottom-side copper, and sheet 1 DETAIL A specifies a 0.00-0.10mm centre-contact-to-mounting-plane standoff, i.e. nothing protrudes below the board. Local copy of that drawing is committed at parts/C22418168_TE_customer_drawing.pdf; the pulled EasyEDA footprint matches all three of its land dimensions exactly. WHY THE OLD PART WAS WRONG: C496550's LCSC listing says 'Board Side Inner hole Offset Pin SMA SMD' and its EasyEDA footprint is nominally 'SMD', but its manufacturer datasheet (parts/C496550.pdf pp.4-6) is a vertical THROUGH-HOLE 1/4-36 UNEF screw-thread panel-mount jack with 4 round pin legs, and its pulled footprint carries B.Cu lands. LCSC's package field and 'Board Side' connector type are NOT evidence of mount style in this category - the same wording appears on both parts. FLAT-HEATSINK IMPACT: none. Every land is F.Cu/F.Paste/F.Mask only, so unlike J101 these two connectors carry NO placement restriction relative to the [5,10,36,70] heatsink land, and the 100%-SMT goal is preserved. ELECTRICAL: 50 ohm, 18 GHz (LCSC) / 12.4 GHz (Linx) vs 20 MHz operation, and 100 Vrms / 141 Vpk / 2 Arms at 200 W into 50 ohm vs the ~335 Vrms standard SMA working class - electrically undemanding, as briefed, so mount style and stock drove the choice. STOCK/COST: 1744 in stock vs the 5x10=50 required (35x margin). Price is the one real regression: $2.97 vs $0.388, i.e. $29.74 vs $3.88 across the 10 pieces a 5-board build needs. That ~$26 delta buys the only SMA on the catalogue whose surface-mount termination is stated in the manufacturer's own drawing; see the alternate for a $0.54 option that would need the same verification done first."
   },
-
-  {
-   "ref_prefix_hint": "R",
-   "block": "stage",
-   "refdes": ["R201", "R202"],
-   "qty_per_board": 2,
-   "mpn": "0805W8F1000T5E",
-   "lcsc": "C17408",
-   "value": "100 ohm",
-   "package": "0805",
-   "basic": true,
-   "stock": 7758609,
-   "price": 0.0103,
-   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2411221126_UNI-ROYAL-Uniroyal-Elec-0805W8F1000T5E_C17408.pdf",
-   "alternates": [],
-   "role": "50 ohm input termination (2x100R parallel). 125mW rating per part comfortably covers the ~0.0625W each sees. DC-coupled per architecture ruling D8 - no series cap."
-  },
-
   {
    "ref_prefix_hint": "U",
    "block": "stage",
-   "refdes": ["U201"],
+   "refdes": [
+    "U201"
+   ],
    "qty_per_board": 1,
    "mpn": "LMG1020YFFR",
    "lcsc": "C6423790",
@@ -261,14 +236,21 @@
    "stock": 7809,
    "price": 0.721,
    "datasheet": "",
-   "alternates": [{"mpn": "LMG1020YFFR", "lcsc": "C506817", "note": "GENUINE Texas Instruments-branded listing of the identical part number, stock 554, price $2.79. Exists specifically to resolve the authenticity flag below - swap primary<->alternate if the owner wants zero counterfeit risk on the fastest-switching part on the board; the ~$10 total cost delta across 5 boards is trivial against that risk."}],
+   "alternates": [
+    {
+     "mpn": "LMG1020YFFR",
+     "lcsc": "C506817",
+     "note": "GENUINE Texas Instruments-branded listing of the identical part number, stock 554, price $2.79. Exists specifically to resolve the authenticity flag below - swap primary<->alternate if the owner wants zero counterfeit risk on the fastest-switching part on the board; the ~$10 total cost delta across 5 boards is trivial against that risk."
+    }
+   ],
    "role": "SINGLE-SOURCE IC, AUTHENTICITY RISK: this LCSC listing (C6423790) brands the part 'Tokmas', not Texas Instruments, despite carrying TI's exact MPN. Carried forward from P0/P1 as an explicit flag (OPEN-6 in decisions.md) - verify authenticity on receipt, or use the genuine-TI alternate C506817 instead. No other pin-compatible low-side GaN driver at this speed class exists at LCSC (see board LEARNINGS.md: LMG1210/LMG1205/UCC27714/IR2304/IR21844/FAN73932/SLM2101 were all already surveyed and rejected at P0/P1 for wrong topology or 100s-of-kHz speed class)."
   },
-
   {
    "ref_prefix_hint": "C",
    "block": "stage",
-   "refdes": ["C201"],
+   "refdes": [
+    "C201"
+   ],
    "qty_per_board": 1,
    "mpn": "CC0402KRX7R7BB104",
    "lcsc": "C60474",
@@ -281,11 +263,12 @@
    "alternates": [],
    "role": "LMG1020 VDD bypass, primary. Per architecture: <0.5mm from the VDD ball, via-in-pad ground return (P6 layout item, not a sourcing concern)."
   },
-
   {
    "ref_prefix_hint": "C",
    "block": "stage",
-   "refdes": ["C202"],
+   "refdes": [
+    "C202"
+   ],
    "qty_per_board": 1,
    "mpn": "0201B103K250NT",
    "lcsc": "C285010",
@@ -295,31 +278,21 @@
    "stock": 3055089,
    "price": 0.0033,
    "datasheet": "",
-   "alternates": [{"mpn": "GRM033R71A103KA01D", "lcsc": "C76941"}],
+   "alternates": [
+    {
+     "mpn": "GRM033R71A103KA01D",
+     "lcsc": "C76941"
+    }
+   ],
    "role": "LMG1020 VDD bypass, second (straddles the ball). DIELECTRIC SUBSTITUTED C0G->X7R: architecture (blocks.md/sheets.md) calls for '10nF 0201 C0G' but this does not exist as an orderable part - checked LCSC broadly, every 0201 C0G part tops out around 50pF (0 stock even there); 10nF at 0201 size is only physically achievable in X7R. This is not a P3 substitution of convenience: TI's own reference design (research/refdesign-classE-stage.json) specifies 'X7R or better' for this exact bypass network, so X7R is arguably the more correct call, and the architecture's own project-wide rule is 'no X7R in the TANK', not on the driver's local bypass loop. Flagging for P2/P4 awareness rather than silently deciding it - see OPEN."
   },
-
-  {
-   "ref_prefix_hint": "R",
-   "block": "stage",
-   "refdes": ["R203", "R204", "R205", "R206", "R207", "R208", "R209", "R210"],
-   "qty_per_board": 8,
-   "mpn": "0603WAF390KT5E",
-   "lcsc": "C23020",
-   "value": "3.9 ohm 1%",
-   "package": "0603",
-   "basic": false,
-   "stock": 20825,
-   "price": 0.0043,
-   "datasheet": "",
-   "alternates": [{"mpn": "FRC0603J3R9", "lcsc": "C2907146", "note": "5% tol, 580k stock, even deeper margin"}],
-   "role": "Gate resistors, 2x per leg x4 legs. VALUE SUBSTITUTED 4.0R->3.9R: 4.0 ohm is not an E24 value and no such SKU is stocked; 3.9 ohm is the nearest standard value and clears TI's >=2 ohm floor with margin. 1% tolerance helps the +/-0.1nH gate-loop matching discipline (blocks.md s3) more than a 5% part would."
-  },
-
   {
    "ref_prefix_hint": "Q",
    "block": "stage",
-   "refdes": ["Q201", "Q202"],
+   "refdes": [
+    "Q201",
+    "Q202"
+   ],
    "qty_per_board": 2,
    "mpn": "EPC2019",
    "lcsc": "C2836675",
@@ -332,13 +305,39 @@
    "alternates": [],
    "role": "OUT OF STOCK AT LCSC RIGHT NOW - stock=0, confirmed both via parts_search.py (live) and an independent LCSC page fetch ('Out of Stock', pricing shown as reference-only). This is a same-day change: board LEARNINGS.md records this exact part as 'in stock' during P1 research earlier today at ~$2.17; it is now $3.93 reference price with zero available units. Searched every other 200V-class GaN on LCSC (EPC2010C/C3288346 also 0 stock; EPC2022/C5331187 stock=7 at $13.11; EPC2034C/C3288334 stock=15 at $14.64) - none clears the 5x25=125-unit stock bar even before checking whether they meet D1's reopening window (Coss(er)<=300pF, Rds(on)<=12mohm typ, RthJB<=4.0C/W). alternates left empty because no candidate is both in the qualifying window AND in stock; see OPEN. This is the single blocking finding of this P3 pass."
   },
-
   {
    "ref_prefix_hint": "C",
    "block": "stage+tank",
-   "refdes": ["C203", "C204", "C205", "C206 (DNP by default)", "C301..C308", "C309..C317"],
-   "qty_per_board": 21,
-   "qty_per_board_populated": 17,
+   "refdes": [
+    "C203",
+    "C204",
+    "C205",
+    "C206",
+    "C301",
+    "C302",
+    "C303",
+    "C304",
+    "C305",
+    "C306",
+    "C307",
+    "C308",
+    "C309",
+    "C310",
+    "C311",
+    "C312",
+    "C313",
+    "C314",
+    "C315",
+    "C316",
+    "C317",
+    "C318"
+   ],
+   "refdes_dnp": [
+    "C205",
+    "C206"
+   ],
+   "qty_per_board": 22,
+   "qty_per_board_populated": 20,
    "mpn": "CC1206JKNPOCBN560",
    "lcsc": "C113875",
    "value": "56pF 1kV C0G/NP0",
@@ -347,14 +346,22 @@
    "stock": 8106,
    "price": 0.0524,
    "datasheet": "",
-   "alternates": [{"mpn": "1206N560J102CT", "lcsc": "C384717", "note": "Walsin, same spec, stock 3002, cheaper at $0.0379"}],
-   "role": "ONE PART, THREE ROLES, per architecture's explicit BOM commonality note: C_s tank bank (C301-C308, 8x, 448pF), C_m match bank (C309-C317, 9x, 504pF), and the C_shunt trim sites (C203-C206, 4x, DNP by default - only populate 3 for a one-FET fallback build). 21 possible positions/board x5 boards = 105 max realistic demand (17 populated + full trim contingency); re-verified stock 8106 clears 5x105=525 with room to spare. 1kV rating gives >=4.6x margin over the ~215Vpk (across L_s) / 170Vpk (TANK_A node) worst case. C0G confirmed - correct, no X7R in the tank per architecture rule."
+   "alternates": [
+    {
+     "mpn": "1206N560J102CT",
+     "lcsc": "C384717",
+     "note": "Walsin, same spec, stock 3002, cheaper at $0.0379"
+    }
+   ],
+   "role": "ONE PART, THREE ROLES, per architecture's explicit BOM commonality note: the C_shunt trim sites (C203-C206, 4 sites, C205/C206 DNP - populate to raise C_shunt, empty the bank for a max-Coss FET pair), the C_s tank bank (C301-C309, 9x, 504 pF) and the C_m match bank (C310-C318, 9x). CHANGED 2026-08-08 BY P4 REVIEW W1: C_m used to be 10 x 56 pF = 560 pF from this part alone, which is +5.7% on the 530.4 pF ideal L-match and presented 3.74 + j0.68 ohm to the tank (VSWR 1.22, series X/R 1.47 against the Class E optimum 1.1525, ~221 W not 200 W at a 40 V bus). One of those ten sites (C319) is now a 27 pF part of the same family, giving 531 pF, 4.12 + j0.07 ohm, VSWR 1.02, X/R 1.19 and ~200 W. So this line drops from 21 to 22 SITES but from 10 to 9 in the C_m bank. Current sharing follows capacitance, so each 56 pF part in C_m now carries 56/531 x 6.66 = 0.70 A rms (was 0.67 A); C_s parts carry 0.77 A rms and ~105 mW each. 22 sites x 5 boards = 110 pieces at full population; re-verified stock 8106 clears 5x110=550. 1kV C0G confirmed - no X7R anywhere in the tank, per the architecture rule, and 1 kV is >=6.6x the 151 V pk across the C_s bank."
   },
-
   {
    "ref_prefix_hint": "L",
    "block": "stage",
-   "refdes": ["L201A", "L201B"],
+   "refdes": [
+    "L201",
+    "L202"
+   ],
    "qty_per_board": 2,
    "mpn": "FXL0630-R47-M",
    "lcsc": "C167212",
@@ -364,15 +371,26 @@
    "stock": 4372,
    "price": 0.1476,
    "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2404260921_cjiang--Changjiang-Microelectronics-Tech-FXL0630-R47-M_C167212.pdf",
-   "alternates": [{"mpn": "SLO0618HR47MTT", "lcsc": "C216186", "note": "Sunltech, 470nH, 8.4mohm DCR, 18A Isat/11A rated, stock 5003, $0.2372 - also clears every stated spec, slightly worse DCR"}],
-   "role": "L201 RF drain choke, PRE-AUTHORISED ESCAPE ROUTE (2x0.47uH in series - architecture's own documented fallback, not a P3 improvisation). No single LCSC part combines L>=0.82uH + SRF>=80MHz + DCR<=25mohm + Isat>=12A: every catalog power/shielded/molded inductor searched either omits SRF entirely (the norm for this part class - confirmed by checking research/raw/*.json and fresh searches across SRP/SPM/SDCM/wirewound/molded families) or the rare parts that DO publish SRF (Sagami/FH 'RF'/'high-frequency' 0603 chip inductors) top out at 300mA current rating, 40x short of the ~6-9A this choke carries. Series pair: combined L=0.94uH (14% over floor), combined DCR=8.2mohm (67% UNDER the 25mohm budget - dissipation will beat the 0.88W design number), each leg Isat 20A (>>12A required). SRF not datasheet-published for either candidate - this is not a new gap: the architecture's own research (refdesign-classE-stage.json) already states SRF must be verified empirically at bring-up (dummy load + RF detector sweep) regardless of any datasheet claim, because winding self-capacitance and nearby copper pull the real SRF down from nominal. Physically separate the two inductors per the escape route's own requirement (P6 layout item)."
+   "alternates": [
+    {
+     "mpn": "SLO0618HR47MTT",
+     "lcsc": "C216186",
+     "note": "Sunltech, 470nH, 8.4mohm DCR, 18A Isat/11A rated, stock 5003, $0.2372 - also clears every stated spec, slightly worse DCR"
+    }
+   ],
+   "role": "RF drain choke, L201 + L202 IN SERIES (refdes corrected 2026-08-08 from the L201A/L201B this file used to carry - review E5; letter-suffixed refdes are a known pipeline hazard, place_anneal silently drops refs it does not recognise, and kicad/constraints.json has named L201 AND L202 since the P4 schematic build). This is the architecture's own PRE-AUTHORISED escape (blocks.md B6, '2 x 0.47 uH in series'), not an improvisation: no single LCSC part combines L>=0.82uH + SRF>=80MHz + DCR<=25mohm + Isat>=12A - every catalog power/shielded/molded family either omits SRF entirely or, where SRF IS published (Sagami/FH 'RF' 0603 chip inductors), tops out at 300 mA against the ~6-9 A this choke carries. Series pair: combined L=0.94uH (14% over floor), combined DCR=8.2mohm (67% under the 25mohm budget), each leg Isat 20A. SRF NOT DATASHEET-PUBLISHED for either candidate and STILL NOT CLOSED - the P4 review lists it under 'what could not be verified' and it is worth closing before fab, because a choke resonating near 20 MHz stops being a choke; the architecture's own research already requires an empirical SRF sweep at bring-up (dummy load + RF detector) regardless of any datasheet claim. P6 must place the two PHYSICALLY SEPARATED."
   },
-
   {
    "ref_prefix_hint": "C",
-   "block": "stage",
-   "refdes": ["C207", "C208", "C209", "C210"],
-   "qty_per_board": 4,
+   "block": "hk+stage",
+   "refdes": [
+    "C107",
+    "C207",
+    "C208",
+    "C209",
+    "C210"
+   ],
+   "qty_per_board": 5,
    "mpn": "CC0603KRX7R0BB103",
    "lcsc": "C107059",
    "value": "10nF 100V X7R",
@@ -382,14 +400,17 @@
    "price": 0.0159,
    "datasheet": "",
    "alternates": [],
-   "role": "Bus HF decoupling bank, 4x of the 4x10nF+2x1nF pair. DIELECTRIC SUBSTITUTED C0G->X7R: architecture (blocks.md B6) specifies '100V C0G'; live search found genuine 100V/10nF C0G stock is effectively zero across every package (0805/1206 all 0 stock; the sole 1210 hit, C2310521, has only 96pcs - short of the 5x20=100 rule). This is a legitimate substitution, not a compromise: these caps sit on the +40V bus feed to L201, NOT in the resonant tank, and the assignment brief itself states 'X7R is fine on the DC bus but NEVER in the tank' - the tank caps (C_s/C_m, entry above) correctly stayed C0G."
+   "role": "10nF 100V X7R 0603, FIVE sites now: C207-C210 (bus HF decoupling bank, 4x of the 4x10nF+2x1nF pair) AND C107, the LM5017 BOOTSTRAP cap. THE C107 ASSIGNMENT IS P4 REVIEW E4, AND IT IS THE WHOLE POINT OF THAT FINDING: parts.json used to map C107 to C519422, a 2.2 nF 25 V part carrying the role text 'PLACEHOLDER VALUE - P4 confirms against LM5017's internal HS driver bootstrap spec'. P4 confirmed it in the SCHEMATIC (10 nF per datasheet s8.2.1.2.6, 'A good value for CBST = 0.01 uF') and never wrote back here - and because bom_cpl builds the BOM from parts.json, the assembled boards would have shipped a bootstrap cap 4.5x under spec with no gate catching it, since the ref DID have an LCSC number, just the wrong one. C519422 is deleted. 100 V against a 13 V BST-to-SW absolute maximum is 7.7x. DIELECTRIC SUBSTITUTED C0G->X7R for the C207-C210 role: architecture (blocks.md B6) specifies '100V C0G' and live search found genuine 100V/10nF C0G stock is effectively zero across every package; legitimate here because these caps sit on the +40V bus feed to L201, NOT in the resonant tank, and the brief itself states 'X7R is fine on the DC bus but NEVER in the tank'. Stock re-verified live 2026-08-08 against the new 5x25=125 need."
   },
-
   {
    "ref_prefix_hint": "C",
-   "block": "stage",
-   "refdes": ["C211", "C212"],
-   "qty_per_board": 2,
+   "block": "hk+stage",
+   "refdes": [
+    "C110",
+    "C211",
+    "C212"
+   ],
+   "qty_per_board": 3,
    "mpn": "CC0603JRNPO0BN102",
    "lcsc": "C113793",
    "value": "1nF 100V C0G/NP0",
@@ -398,14 +419,192 @@
    "stock": 147212,
    "price": 0.0259,
    "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2008121132_YAGEO-CC0603JRNPO0BN102_C113793.pdf",
-   "alternates": [{"mpn": "0603N102J101CT", "lcsc": "C388030"}],
-   "role": "Bus HF bank, terminates the bank's self-resonance. Genuine C0G in stock at the correct value/voltage/package - no substitution needed here."
+   "alternates": [
+    {
+     "mpn": "0603N102J101CT",
+     "lcsc": "C388030"
+    }
+   ],
+   "role": "1nF 100V C0G 0603, THREE sites: C211/C212 terminate the bus HF bank's self-resonance, and C110 is Cr, the Type 3 ripple-injection ramp integrator on `hk` (P4 added that network; this line was never updated for it - review E5). Genuine C0G at the correct value/voltage/package, no substitution. Cr's tolerance matters more than a bypass cap's: it sets the injected ramp amplitude and therefore, through the COT valley-regulation mechanism, the DC level of the +5 V rail - the E3 divider solve carries Cr's +/-5% explicitly. Stock re-verified live 2026-08-08."
   },
-
+  {
+   "ref_prefix_hint": "R",
+   "block": "hk",
+   "refdes": [
+    "R101"
+   ],
+   "qty_per_board": 1,
+   "mpn": "0402WGF3092TCE",
+   "lcsc": "C270615",
+   "value": "30.9k 1%",
+   "package": "0402",
+   "basic": false,
+   "stock": 4867,
+   "price": 0.0018,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2205312300_UNI-ROYAL-Uniroyal-Elec-0402WGF3092TCE_C270615.pdf",
+   "alternates": [
+    {
+     "mpn": "RC0402FR-0730K9L",
+     "lcsc": "C185428",
+     "note": "Yageo, same 30.9k 0402 1%, stock 9204, $0.0038 - use if the Uniroyal line runs down. Any 1% 30.9k 0402 works; the tolerance is the load-bearing spec, not the brand."
+    }
+   ],
+   "role": "FB divider TOP leg (RFB2). ADDED 2026-08-08 BY P4 REVIEW E3, replacing C25553 / 0402WGJ0303TCE - a 30.0k part whose 'J' code is +/-5%, while R102/R103/R104 were all 'F' = 1%. The top leg is the dominant term, so the 5% part alone dragged the rail's low corner to 4.586 V, under the LMG1020's 4.75 V minimum VDD, and broke the IN+ absolute maximum (VDD+0.3 = 4.886 V) against the mandated unipolar 0/+5 V drive - the drive would forward-bias the input clamp on every cycle. The fix is BOTH 1% AND a re-centred ratio: 30.9k/10.0k gives N = 4.090, and the rail clears 4.75-5.40 V under both readings of where a COT part with Type 3 ripple injection actually regulates (envelope 4.835-5.381 V; IN+ margin +135 mV; EPC2019 VGS margin 0.62 V; LM5017 FB OVP 1.62 V vs a 1.34 V worst-case FB peak). The full two-model derivation, including why the reviewer's suggested 31.6k is NOT taken, is in kicad/gen/hk.py's docstring. 5 pieces needed, 5x25 rule cleared 195x. Stock verified live 2026-08-08."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "hk",
+   "refdes": [
+    "R103",
+    "R104"
+   ],
+   "qty_per_board": 2,
+   "mpn": "0805W8F1003T5E",
+   "lcsc": "C149504",
+   "value": "100k 1%",
+   "package": "0805",
+   "basic": true,
+   "stock": 5998540,
+   "price": 0.0103,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2205312316_UNI-ROYAL-Uniroyal-Elec-0805W8F1003T5E_C149504.pdf",
+   "alternates": [],
+   "role": "R103 = COT RON (Fsw-setting) resistor, RON pin to VIN, fSW = VOUT/(K.RON) = 562 kHz. R104 = Rr, the Type 3 ripple-injection resistor, BUCK_SW to RINJ. ADDED 2026-08-08 BY P4 REVIEW W2, replacing C25741 / 0402WGF1003TCE at the same 100k value. THE LIMIT IS WORKING VOLTAGE, NOT POWER (16 mW): a thick-film 0402 is rated 50 V maximum working voltage, and R103 sits from the RON pin - held near ground by the on-timer - to +40V, so the whole bus stands across it continuously. 40 V is 80% of an 0402's limit with nothing left for the ~51 V LC turn-on overshoot P1 predicted on this bus, which exceeds it outright. R104 MOVED TOO, which the review did not require but which is the same defect one step quieter: Rr spans BUCK_SW to RINJ, so it stands off VIN-VOUT = 35 V normally and ~46 V on that same ring - 92% of an 0402's rating. The 0805 part is rated 150 V: 3.8x on the 40 V steady state, 2.9x on the ring. Moving both onto one part also DELETES a BOM line (the 100k 0402 disappears entirely). JLC Basic part, 6.0M in stock against a 5x10=50 need."
+  },
+  {
+   "ref_prefix_hint": "C",
+   "block": "hk",
+   "refdes": [
+    "C106"
+   ],
+   "qty_per_board": 1,
+   "mpn": "CC0805KKX7R9BB225",
+   "lcsc": "C125847",
+   "value": "2.2uF 50V X7R, 10%",
+   "package": "0805",
+   "basic": false,
+   "stock": 149551,
+   "price": 0.1379,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_YAGEO-CC0805KKX7R9BB225_C125847.pdf",
+   "alternates": [
+    {
+     "mpn": "CS2012X7R225K500NRE",
+     "lcsc": "C17702473",
+     "note": "Samwha, same 2.2uF 50V X7R 0805 10%, stock 17780, $0.062 - 2.2x cheaper and still clears 5x5=25 by 711x. Kept as the alternate rather than the primary only because the Yageo line is the one already used elsewhere on this BOM."
+    }
+   ],
+   "role": "LM5017 VCC decoupler (C106). ADDED 2026-08-08 BY P4 REVIEW W3, replacing the 1uF 16V 0603 (C106248) this ref used to carry. THE DEFECT IS DC-BIAS DERATING, NOT THE NOMINAL VALUE: the datasheet wants 1.0 uF of REAL capacitance on VCC, and VCC is an internal linear regulator output at 7.6 V typ (up to 8.55 V over temperature). A 16 V 0603 X7R at 48-53% of its rated bias loses 35-50% of its value and lands at 0.5-0.65 uF - half the requirement - and that same cap sources the internal-diode recharge of the bootstrap cap every cycle, so the shortfall compounds C107. At 8.55 V the 50 V part sits at 17% of rating, where an 0805 X7R loses roughly 15-25%: >= 1.65 uF effective. Startup is unaffected - VCC's ~26 mA internal current limit charges 2.2 uF to 7.6 V in ~0.6 ms - and the datasheet sets no upper bound on CVCC."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "stage",
+   "refdes": [
+    "R201",
+    "R202"
+   ],
+   "qty_per_board": 2,
+   "mpn": "201007F1000T4E",
+   "lcsc": "C421954",
+   "value": "100 ohm 1%, 750mW, 200V",
+   "package": "2010",
+   "basic": false,
+   "stock": 11718,
+   "price": 0.0529,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2205312016_UNI-ROYAL-Uniroyal-Elec-201007F1000T4E_C421954.pdf",
+   "alternates": [
+    {
+     "mpn": "FRC1206F2000TS",
+     "lcsc": "C2930418",
+     "note": "200 ohm 1206 1% 250mW, stock 336268, $0.007 - the FOUR-in-parallel alternative (4 x 200 = 50 ohm, 0.0625 W each = 39% of the 100 C derated rating). Equivalent margin in smaller bodies at twice the part count; take it if 2010 bodies are awkward at the connector."
+    }
+   ],
+   "role": "50 ohm drive-input termination, R201||R202, AT THE CONNECTOR. ADDED 2026-08-08 BY P4 REVIEW E6, replacing C17408 / 0805W8F1000T5E at the same 100 ohm value. THE OLD SIZING WAS OFF BY EXACTLY 2x because it was computed for a bipolar +/-2.5 V waveform: the design MANDATES unipolar 0/+5 V (decisions.md D8), and a 0/+5 V square at the Class-E nominal 50% duty dissipates P = (5^2/50) x 0.5 = 0.250 W in the termination, i.e. 0.125 W per part - exactly 100% of an 0805's 1/8 W rating at 70 C and ~154% of its capability in the 100 C-class local environment blocks.md itself assumes. They would have drifted and then opened, leaving the SMA line unterminated and putting the reflected edge on an input whose absolute maximum E3 had already shown to be marginal. The 2010 part is 750 mW (485 mW derated to 100 C): 25.8% used, 3.9x margin. Package parasitics are irrelevant at 20 MHz - about 1.5 nH per 2010, 0.75 nH for the pair, j0.09 ohm against 50 ohm. DC-coupled per D8; no series cap. 10 pieces needed, 5x50 rule cleared 234x."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "stage",
+   "refdes": [
+    "R203",
+    "R204",
+    "R205",
+    "R206"
+   ],
+   "qty_per_board": 4,
+   "mpn": "RK73H2ATTD4R70F",
+   "lcsc": "C160081",
+   "value": "4.7 ohm 1%, 250mW, 150V",
+   "package": "0805",
+   "basic": false,
+   "stock": 14856,
+   "price": 0.0099,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_KOA-Speer-Elec-RK73H2ATTD4R70F_C160081.pdf",
+   "alternates": [
+    {
+     "mpn": "RC1206FR-074R7L",
+     "lcsc": "C137258",
+     "note": "Yageo 4.7 ohm 1206 1% 250mW, stock 227952, $0.0346 - same power rating in a larger body, and the gate-loop budget (now ~1.70 nH) can afford it. Use if the KOA 0805 line runs down. Do NOT substitute an 0603: 100 mW is 65 mW once derated to a 90 C local board, against 0.100 W of actual dissipation at the max-Qg corner."
+    }
+   ],
+   "role": "GATE RESISTORS R203-R206, one per leg per FET. ADDED 2026-08-08 BY P4 REVIEW E1 - the highest-risk defect on the board - replacing C23020 / 0603WAF390KT5E, of which EIGHT were fitted as 2-in-parallel on each of four legs. TI'S >= 2 OHM MANDATE IS AT EACH OUTH/OUTL PIN, AND BOTH EPC2019 HANG OFF THE SAME PINS: 4 x 3R9 in parallel presented 0.975 ohm at OUTH and the same at OUTL, less than half the floor, with 5.1 A of peak drive current against only ~1.1 V of headroom to the EPC2019's +6 V VGS absolute maximum and 0.85 V to the driver's 5.75 V. An eGaN gate has no avalanche margin: exceeding +6 V destroys both FETs on the first pulse. With N devices on one pin each branch must be >= N x 2 ohm, so at N = 2 the branch floor is 4 ohm; 4.7 ohm is the nearest E24 value with real margin and gives 4.7/2 = 2.35 ohm per pin (2.33 ohm at -1% tolerance) and 2.13 A of peak drive, against 7 A source / 5 A sink capability. Q201 and Q202 branches are IDENTICAL by construction - same part, same value, same 1% tolerance, one per leg - which is what keeps static sharing and differential-mode damping symmetric. PACKAGE IS 0805 BECAUSE OF DISSIPATION, and this is the E6 mistake deliberately not repeated: Qg 1.8 nC typ / 2.5 nC max means P = Qg.VDD.fSW = 0.18/0.25 W per FET, half on each edge, of which the external resistor takes ~80% -> 0.072 W typ / 0.100 W max PER PART. An 0603 is rated 0.100 W, which is 65 mW once derated to a 90 C local board; this 0805 is rated 0.250 W (191 mW at 90 C) = 52% used at the max-Qg corner. TWO CONSEQUENCES RECORDED SO NOBODY RE-TIGHTENS THEM: (a) the gate-loop critical-damping budget RELAXES from 0.478 nH to ~1.70 nH per FET (EPC WP008 Eq.1, L <= R^2.C_GS/4, at R = 4.7+0.4+0.75 = 5.85 ohm and C_GS 199 pF) - that 3.6x is what pays for the larger body and for dropping to one resistor per leg, and constraints.json still declares 0.48 nH on purpose; (b) turn-off is slower, and scaling decisions.md D6's sanctioned R_G = 3 ohm fallback (+0.3 W, +1.6 C) by R^2 puts the cost at roughly +1 W across the pair and ~+5 C of Tj - about 119 C nominal / 138 C at the max-datasheet corner, still inside the 150 C absolute maximum. 20 pieces needed, 5x100 rule cleared 148x."
+  },
+  {
+   "ref_prefix_hint": "FB",
+   "block": "stage",
+   "refdes": [
+    "FB201"
+   ],
+   "qty_per_board": 1,
+   "mpn": "BLM21PG121SN1D",
+   "lcsc": "C79382",
+   "value": "120 ohm @ 100MHz ferrite bead, 3A, 30mohm DCR",
+   "package": "0805",
+   "basic": false,
+   "stock": 196939,
+   "price": 0.0303,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Murata-Electronics-BLM21PG121SN1D_C79382.pdf",
+   "alternates": [
+    {
+     "mpn": "MPZ2012S101AT000",
+     "lcsc": "C15957",
+     "note": "TDK, 100 ohm@100MHz, 20 mohm DCR, 4A, 0805, stock 222251, $0.027 - equivalent, marginally lower DCR. Do NOT substitute a 600-ohm-class bead: those run 220-300 mohm and would spend 22-30 mV of the ~85 mV rail margin E3 fought for."
+    }
+   ],
+   "role": "FB201 - series filter between the buck output (+5V) and the driver's VDD rail (+5V_DRV). ADDED 2026-08-08 BY P4 REVIEW W4, which is the finding parts/C34355.json layout_notes[7] had explicitly deferred to P4/P6 ('filtering on the +5V feed to LMG1020 is needed regardless of the exact RON/fSW chosen; not resolved by component selection alone'). P4 resolved the DECOUPLING (C201/C202/C213 at the driver, C108/C109 at the buck, all correct per their datasheets) but added no series element, leaving +5V one low-impedance node from L101 to U201.A1. The driver draws 2 x Qg x fSW = 72 mA typ / 100 mA max AT A 20 MHz REPETITION RATE; with nothing in series that current returns across the whole board to C108 - which sits on `hk` at the far end of zone A by design - instead of staying inside the driver's local 1.1 uF, i.e. a board-scale 20 MHz loop running past the FB trace TI's own layout guideline 3 says to keep clear of switching nodes. The bead turns C108 || FB201 || (C201+C202+C213) into a pi filter. CHOSEN FOR DCR, NOT PEAK IMPEDANCE: 30 mohm is a 3 mV drop at 100 mA, and E3's rail floor has only ~85 mV of margin to the LMG1020's 4.75 V minimum. Charge transfer per switching cycle is 2 x Qg = 5 nC max, which droops the local 1.1 uF by 4.5 mV - the bead does not starve the driver. NOT A PROTECTION PART (no TVS/fuse/NTC is added anywhere; owner-acknowledged at P0 Q11). Consequence for the netlist: +5V_DRV is a separate global rail with its own PWR_FLAG on `stage` and its own power[] entry in kicad/constraints.json."
+  },
+  {
+   "ref_prefix_hint": "C",
+   "block": "tank",
+   "refdes": [
+    "C319",
+    "C320",
+    "C321",
+    "C322",
+    "C323"
+   ],
+   "refdes_dnp": [
+    "C320",
+    "C321",
+    "C322",
+    "C323"
+   ],
+   "qty_per_board": 5,
+   "qty_per_board_populated": 1,
+   "mpn": "CC1206JKNPOCBN270",
+   "lcsc": "C541492",
+   "value": "27pF 1kV C0G/NP0, 5%",
+   "package": "1206",
+   "basic": false,
+   "stock": 7680,
+   "price": 0.0534,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2006151141_YAGEO-CC1206JKNPOCBN270_C541492.pdf",
+   "alternates": [],
+   "role": "TANK FINE-TUNE AND BENCH-TRIM PART. ADDED 2026-08-08 BY P4 REVIEW W1. Same Yageo family, rating and package as the 56 pF part (C113875) - deliberately, so the tank keeps its one-footprint discipline. TWO JOBS. (1) C319 is POPULATED and completes C_m: 9 x 56 + 1 x 27 = 531 pF against the 530.4 pF ideal L-match, replacing a 10 x 56 = 560 pF bank that presented 3.74 + j0.68 ohm to the tank - VSWR 1.22, series X/R 1.47 against the Class E optimum 1.1525, and ~221 W rather than 200 W at a 40 V bus, which inflated I_dc, FET conduction loss and the 11.25 W / Tj 114 C two-FET thermal budget the whole paralleling decision rests on. As built now: 4.12 + j0.07 ohm, VSWR 1.02, X/R 1.19, ~200 W (20 MHz, L_s 164 nH, C_s 504 pF, L_m 110 nH into 50 ohm). C_s stays 9 x 56 = 504 pF - inside its 518 pF +/-5% window and within 1% of the 499 pF that would put X/R exactly on 1.1525, so it needs no third value. (2) C320-C323 are DNP BENCH-TRIM SITES, two per bank, which neither bank had: only C_shunt got DNP pads, so the tank could previously only be trimmed DOWN in 56 pF (11%) steps by depopulation. Now each bank trims both ways - +27/+54 pF by populating, -27 pF by depopulating C319, -56 pF per depopulated 56 pF site, and a fine C_s down-trim of 8 x 56 + 2 x 27 = 502 pF. That matters because L301/L302 are ETCHED SPIRALS whose realised inductance is the largest unknown in the tank (+/-10% is ordinary) and the capacitor banks are the only knob that answers it; SIM-4 still arbitrates C_s (OPEN-12). Current sharing follows capacitance: the 27 pF part in C_m carries 27/531 x 6.66 = 0.34 A rms. 5 sites x 5 boards = 25 pieces at full population; stock 7680 clears 5x25=125 by 61x."
+  },
   {
    "ref_prefix_hint": "L",
    "block": "tank",
-   "refdes": ["L301"],
+   "refdes": [
+    "L301"
+   ],
    "qty_per_board": 1,
    "mpn": "",
    "lcsc": "",
@@ -418,11 +617,12 @@
    "alternates": [],
    "role": "PCB FEATURE - DO NOT PLACE. Not a purchasable part; no LCSC code exists or should be searched for (architecture D3/blocks.md s4.3: no LCSC part class closes L_s - catalog inductors are either too-low-Q at 20MHz or rated ~40x under the 6.6A rms this carries). Per architecture's explicit P3 instruction: 'each spiral is a BOM line with no LCSC code, marked PCB feature - do not place, excluded from bom_cpl at P9.' Kept as a line item here (rather than omitted) so downstream P4 schematic/P9 BOM tooling has a place to key off; zero cost, zero stock check applicable."
   },
-
   {
    "ref_prefix_hint": "L",
    "block": "tank",
-   "refdes": ["L302"],
+   "refdes": [
+    "L302"
+   ],
    "qty_per_board": 1,
    "mpn": "",
    "lcsc": "",
@@ -435,6 +635,5 @@
    "alternates": [],
    "role": "PCB FEATURE - DO NOT PLACE. Same treatment as L301 - see that entry. SPIRAL-3: needs a footprint nearly as large as L301 despite being the smaller inductance, because the binding constraint is dissipation area (626/Q watts), not L."
   }
-
  ]
 }

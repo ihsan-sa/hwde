@@ -34,12 +34,46 @@ THE FOUR WIRING FACTS THAT CANNOT BE GOT FROM MEMORY
    and is held low in every other state (parts/C6423790.json, Table 1). That
    is why each gets its OWN series resistor and why NO steering diode is
    needed - the two resistors independently set turn-on and turn-off slew and
-   the idle path is the OUTL pull-down. TI mandates >= 2 ohm on each; the BOM
-   part is 3.9 ohm (4.0 ohm is not an E24 value), two in parallel per leg =
-   1.95 ohm per leg, which with the EPC2019's own 0.4 ohm RG puts the loop at
-   R_G + R_src = 3.1 ohm - exactly the number decisions.md D6's 0.48 nH
-   gate-loop budget was solved at. Both resistors of a leg land on the FET
-   gate net.
+   the idle path is the OUTL pull-down.
+
+   **TI's >= 2 ohm mandate is on the PIN, and TWO FETs share each pin.**
+   (P4 review E1, fixed 2026-08-08.) The pre-review build put 2 x 3R9 in
+   parallel on each of four legs, so OUTH saw 4 x 3R9 = 0.975 ohm and OUTL
+   the same - less than half the floor, at 5.1 A of peak source current
+   against only ~1.1 V of headroom to the EPC2019's +6 V VGS abs max. With
+   N FETs on one pin the per-BRANCH value must be >= N x 2 ohm; at N = 2
+   that is >= 4 ohm, so the bank is now ONE 4.7 ohm 0805 per leg per FET:
+
+       OUTH (A2) --+-- R203 4R7 --> GATE_Q1     parallel at the pin:
+                   +-- R204 4R7 --> GATE_Q2       4.7 / 2 = 2.35 ohm
+       OUTL (B2) --+-- R205 4R7 --> GATE_Q1       (2.33 ohm at -1% tol)
+                   +-- R206 4R7 --> GATE_Q2       vs TI's 2.00 ohm floor
+
+   Peak drive current falls to 5.0 / 2.35 = **2.13 A** at each pin (was
+   5.1 A), against 7 A source / 5 A sink capability. Per-FET branch current
+   is 5.0 / (4.7 + 0.4 + 0.75) = 0.85 A.
+
+   TWO CONSEQUENCES, BOTH RECORDED SO NOBODY RE-TIGHTENS THEM:
+   * **The 0.48 nH gate-loop budget RELAXES to ~1.70 nH per FET.** EPC WP008
+     Eq.1 is L <= R^2.C_GS/4; at the old R_G+R_src = 3.1 ohm and C_GS 199 pF
+     that gave 0.478 nH, and at the new 4.7 + 0.4 + 0.75 = 5.85 ohm it gives
+     1.70 nH. That 3.6x is what pays for the bigger 0805 body and for
+     dropping to one resistor per leg. constraints.json still declares the
+     tighter 0.48 nH - deliberately: it costs nothing to keep aiming there.
+   * **Turn-off is slower and the stage pays for it.** decisions.md D6's
+     sanctioned fallback was R_G = 3 ohm at +0.3 W / +1.6 C; scaling that
+     fit (turn-off loss ~ R^2) to 5.85 ohm total gives roughly +1 W across
+     the pair and ~+5 C of Tj - Tj ~119 C nominal / ~138 C at the
+     max-datasheet corner, still inside the 150 C absolute maximum. This is
+     the direction the TI floor forces and it is taken consciously.
+
+   Per-resistor dissipation, which is why the package grew 0603 -> 0805:
+   Qg 1.8 nC typ / 2.5 nC max, so P per FET = Qg.VDD.fSW = 0.18 / 0.25 W,
+   half on each edge, of which the external resistor takes ~80% ->
+   **0.072 W typ / 0.100 W max per part**. An 0603 is rated 0.100 W (65 mW
+   once derated to a 90 C local board) and would have repeated the E6
+   defect; the 0805 part here is rated 0.250 W (191 mW at 90 C) = 52 % used
+   at the max-Qg corner.
 
 3. **IN- ties to GND and the drive goes to IN+.** From the truth table
    (parts/C6423790.json layout_notes, datasheet Table 1):
@@ -65,6 +99,17 @@ THE FOUR WIRING FACTS THAT CANNOT BE GOT FROM MEMORY
    generator violates it (OPEN-1, owner, before bring-up). Termination is
    R201||R202 = 50 ohm to GND AT THE CONNECTOR.
 
+   **THE TERMINATION IS 2 x 100 R in 2010, NOT 0805** (P4 review E6, fixed
+   2026-08-08). The 0805 sizing was computed for a bipolar +/-2.5 V drive
+   (0.125 W total); the MANDATED unipolar 0/+5 V square at 50 % duty puts
+   **0.250 W** into the termination - P = (5^2/50) x 0.5 - i.e. 0.125 W per
+   part, exactly 100 % of an 0805's 1/8 W rating at 70 C and ~154 % of its
+   capability in the 100 C-class local environment blocks.md assumes. The
+   2010 part is rated 0.750 W (0.485 W derated to 100 C), so each resistor
+   now runs at **25.8 % of its derated capability - 3.9x margin**. Package
+   parasitics are irrelevant at 20 MHz: ~1.5 nH per 2010, 0.75 nH for the
+   pair, j0.09 ohm against 50 ohm.
+
 VALUE DEVIATION RECORDED HERE: THE C_shunt TRIM BANK IS 56 pF, NOT 33 pF
 ------------------------------------------------------------------------
 blocks.md/sheets.md describe C203-C206 as "4x 33 pF, populate 3 = 99 pF".
@@ -86,6 +131,30 @@ emptying the bank, which is the whole reason D2 calls the bank load-bearing.
 The cost of the coarser step is 56 pF instead of 33 pF of resolution; if
 SIM-2's `trim_pf_needed` lands between the steps, P3 adds a 33 pF 1 kV C0G
 1206 line and the sites take it unchanged.
+
+THE +5 V RAIL IS SPLIT: +5V (buck) -> FB201 -> +5V_DRV (driver)
+----------------------------------------------------------------
+P4 review W4. `parts/C34355.json` layout_notes[7] deferred "filtering on the
++5V feed to LMG1020" to P4/P6, and P4 originally resolved only the decoupling,
+leaving +5V one low-impedance node from L101 all the way to U201.A1. The
+driver draws 2 x Qg x fSW = 72 mA typ / 100 mA max AT A 20 MHz REPETITION
+RATE; with nothing in series that current returns across the whole board to
+C108 (22 uF, on `hk`, at the far end of zone A by design) instead of staying
+inside the driver's local 1.1 uF - a board-scale 20 MHz loop running past the
+FB trace TI's own layout guideline 3 says to keep clear of switching nodes.
+
+FB201 (Murata BLM21PG121SN1D, 120 ohm at 100 MHz, 0805) turns C108 || FB201
+|| (C201+C202+C213) into a pi filter and contains the loop. The bead is
+chosen for **DCR, not for peak impedance**: 30 mohm gives a 3 mV DC drop at
+100 mA, which matters because E3's rail floor has only ~85 mV of margin to
+the LMG1020's 4.75 V minimum - a 300 mohm 600-ohm-class bead would have
+spent a third of it. NOT a protection part; no TVS/fuse/NTC is added.
+
+Net-naming consequence: the driver side is a SEPARATE rail, `+5V_DRV`, and it
+needs its OWN PWR_FLAG on this sheet. That does NOT contradict the "hk owns
+every PWR_FLAG" rule, which exists because two flags on the SAME net collide
+power_out <-> power_out; +5V_DRV is a different net and is undriven without
+one (U201.A1 is a power_in pin). `+5V` on `hk` keeps its own single flag.
 
 TWO OTHER DELIBERATE DEVIATIONS FROM parts.json
 ------------------------------------------------
@@ -149,6 +218,7 @@ ksa.get_symbol_cache().add_library_path(str(BOARD / "lib" / "aiee.kicad_sym"))
 GND = "GND"
 V40 = "+40V"
 V5 = "+5V"
+V5D = "+5V_DRV"            # driver side of FB201 - global bare rail, own FLAG
 SW = "SW"                  # hier, out to `tank` via the root -> /SW
 DRIVE = "DRIVE"            # -> /stage/DRIVE
 GATE_ON = "GATE_ON"        # -> /stage/GATE_ON   (OUTH leg - NOT _H)
@@ -159,12 +229,13 @@ L_MID = "L201_MID"         # -> /stage/L201_MID  junction of the series chokes
 
 # ------------------------------------------------------------------ symbols
 S_SMA = "aiee:CONSMA001-SMD-G-T"          # default Reference "RF" -> J201
-S_R100 = "aiee:0805W8F1000T5E"
+S_R100 = "aiee:201007F1000T4E"            # 100R 2010 1% 750mW (E6)
 S_U201 = "aiee:LMG1020YFFR"
 S_C100N_0402 = "aiee:CC0402KRX7R7BB104"   # 100nF 16V X7R 0402
 S_C10N_0201 = "aiee:0201B103K250NT"       # 10nF 25V X7R 0201
 S_C1U_0603 = "aiee:CC0603KRX7R7BB105"     # 1uF 16V X7R 0603
-S_R3R9 = "aiee:0603WAF390KT5E"
+S_R4R7 = "aiee:RK73H2ATTD4R70F"           # 4R7 0805 1% 250mW (E1)
+S_FB = "aiee:BLM21PG121SN1D"              # 120R@100MHz 0805 bead, 30mohm (W4)
 S_Q = "aiee:EPC2019"
 S_C56P = "aiee:CC1206JKNPOCBN560"         # 56pF 1kV C0G 1206
 S_L201 = "aiee:FXL0630-R47-M"             # 470nH molded, 20A Isat
@@ -173,8 +244,9 @@ S_C1N_100V = "aiee:CC0603JRNPO0BN102"     # 1nF 100V C0G 0603
 
 # --------------------------------------------------------------- footprints
 F_SMA = "aiee:SMA-SMD_CONSMA001-SMD-G-T"
+F_R2010 = "aiee:R2010"
 F_R0805 = "aiee:R0805"
-F_R0603 = "aiee:R0603"
+F_L0805 = "aiee:L0805"
 F_U201 = "aiee:BGA-6_L1.3-W0.8-P0.40-TL_PTMAG3001A2YBGR"
 F_C0402 = "aiee:C0402"
 F_C0201 = "aiee:C0201"
@@ -185,12 +257,13 @@ F_L201 = "aiee:IND-SMD_L7.0-W6.6_FXL0630"
 
 # ------------------------------------------------------------------- values
 V_SMA = "SMA jack 50R SMD (CONSMA001)"
-V_R100 = "100R 0805 1%"
+V_R100 = "100R 2010 1% 750mW"
 V_U201 = "LMG1020 5V GaN driver 7A/5A"
 V_C100N = "100nF 16V X7R 0402"
 V_C10N_0201 = "10nF 25V X7R 0201"
 V_C1U = "1uF 16V X7R 0603"
-V_R3R9 = "3R9 0603 1%"
+V_R4R7 = "4R7 0805 1% 250mW"
+V_FB = "120R@100MHz bead 3A 30mohm"
 V_Q = "EPC2019 200V eGaN"
 V_C56P = "56pF 1kV C0G 1206"
 V_L201 = "470nH 20A 4.1mohm"
@@ -199,8 +272,9 @@ V_C1N = "1nF 100V C0G 0603"
 
 LCSC = {
     "J201": "C22418168",
-    "R201": "C17408", "R202": "C17408",
+    "R201": "C421954", "R202": "C421954",
     "U201": "C6423790",
+    "FB201": "C79382",
     "C201": "C60474", "C202": "C285010", "C213": "C106248",
     "Q201": "C2836675", "Q202": "C2836675",
     "L201": "C167212", "L202": "C167212",
@@ -208,12 +282,12 @@ LCSC = {
     "C207": "C107059", "C208": "C107059", "C209": "C107059", "C210": "C107059",
     "C211": "C113793", "C212": "C113793",
 }
-for _r in ("R203", "R204", "R205", "R206", "R207", "R208", "R209", "R210"):
-    LCSC[_r] = "C23020"
+for _r in ("R203", "R204", "R205", "R206"):
+    LCSC[_r] = "C160081"
 
 # LMG1020 pin map (parts/C6423790.json + `--pins aiee:LMG1020YFFR`).
 U201_PINS = {
-    "A1": V5,        # VDD, power_in
+    "A1": V5D,       # VDD, power_in - DRIVER side of the FB201 bead (W4)
     "A2": GATE_ON,   # OUTH - source-only, high-Z when idle
     "B1": GND,       # GND - single-point tie to the source star (TI s10.1.1)
     "B2": GATE_OFF,  # OUTL - sink-only, held low in every non-drive state
@@ -231,27 +305,33 @@ def _fet_pins(gate: str) -> dict:
 FET_EXPECT = {"1": "GATE", "2": "SOURCE", "3": "DRAIN", "4": "SOURCE",
               "5": "DRAIN", "6": "SOURCE", "7": "SOURCE"}
 
-# The four gate legs. Two 0603s in parallel per leg: it roughly halves the
-# leg's parasitic inductance and keeps each part at 0.029 W (blocks.md s3).
+# The four gate legs - ONE 4R7 0805 each (P4 review E1; see the docstring).
 # An INDIVIDUAL resistor per FET per polarity is what damps the differential
 # mode between the two gate loops - a shared resistor leaves the gates coupled
 # through the driver output and free to oscillate against each other (B4).
+# Q201's and Q202's branches are IDENTICAL by construction: same part, same
+# value, same tolerance, one per leg, so static sharing and the differential
+# damping stay symmetric.
 GATE_LEGS = [
-    ("R203", GATE_ON, GATE_Q1), ("R204", GATE_ON, GATE_Q1),
-    ("R205", GATE_ON, GATE_Q2), ("R206", GATE_ON, GATE_Q2),
-    ("R207", GATE_OFF, GATE_Q1), ("R208", GATE_OFF, GATE_Q1),
-    ("R209", GATE_OFF, GATE_Q2), ("R210", GATE_OFF, GATE_Q2),
+    ("R203", GATE_ON, GATE_Q1),
+    ("R204", GATE_ON, GATE_Q2),
+    ("R205", GATE_OFF, GATE_Q1),
+    ("R206", GATE_OFF, GATE_Q2),
 ]
 
 # C_shunt trim sites. See the module docstring for the 33 pF -> 56 pF ruling.
 CSHUNT_SITES = [("C203", False), ("C204", False),
                 ("C205", True), ("C206", True)]      # (ref, dnp)
 
-RAILS = [                       # symbols only - `hk` owns every PWR_FLAG
+RAILS = [                       # symbols only - `hk` owns THESE rails' flags
     (GND, "power:GND", (25.4, 25.4)),
     (V5, "power:+5V", (25.4, 40.64)),
     (V40, "power:+48V", (25.4, 55.88)),
 ]
+# +5V_DRV exists only on this sheet (it is created here, by FB201), so its
+# PWR_FLAG lives here too - U201.A1 is a power_in pin and nothing else on the
+# net is a driver. Not a collision with `hk`: different net, one flag each.
+RAIL_DRV_AT = (25.4, 71.12)
 
 
 def _add(sh, ref, lib_id, value, at, footprint=None, expect=None, note=None,
@@ -289,6 +369,10 @@ def build() -> schlib.Sheet:
     # rails: consuming symbols only (flag=False) - see module docstring
     for net, sym, at in RAILS:
         sh.power_flag(net, at=at, sym=sym, flag=False)
+    # ...except +5V_DRV, which is BORN on this sheet and must carry its own
+    # flag (W4). Symbol + flag: the symbol makes the net global and bare, the
+    # flag drives U201.A1's power_in pin.
+    sh.power_flag(V5D, at=RAIL_DRV_AT, sym="power:+5V", flag=True)
 
     # =====================================================================
     # B3 - RF drive input.  DC-COUPLED.  50 ohm AT THE CONNECTOR.
@@ -300,50 +384,62 @@ def build() -> schlib.Sheet:
          note="Drive in, 20 MHz unipolar 0/+5V. DC-COUPLED - no series cap")
     sh.wire_pins("J201", {"1": GND, "2": GND, "3": GND, "4": GND, "5": DRIVE})
 
-    # 2 x 100 R in parallel = 50 ohm. ~0.125 W total in the termination, which
-    # is over a single 0603's derated rating in a 100 C-class environment, so
-    # the split is a rating decision and not decoration (blocks.md B3).
+    # 2 x 100 R in parallel = 50 ohm. The UNIPOLAR 0/+5 V drive this design
+    # mandates puts 0.250 W into the termination, not the 0.125 W the 0805
+    # was sized for (P4 review E6) - hence 2010, 750 mW, 25.8% used after
+    # derating to 100 C. See the module docstring.
     for ref, x in (("R201", 203.2), ("R202", 266.7)):
-        _add(sh, ref, S_R100, V_R100, (x, 88.9), footprint=F_R0805,
+        _add(sh, ref, S_R100, V_R100, (x, 88.9), footprint=F_R2010,
              expect={"1": "1", "2": "2"},
-             note="50R termination = R201||R202, at the connector")
+             note="50R termination = R201||R202 at the connector. 0.125W each "
+                  "of 0.25W total (unipolar 0/+5V, 50% duty); 2010 750mW")
         sh.wire_pins(ref, {"1": DRIVE, "2": GND})
 
     # =====================================================================
     # B4 - gate driver
     # =====================================================================
+    # FB201 FIRST: the driver's VDD ball hangs off +5V_DRV, not +5V (W4).
+    _add(sh, "FB201", S_FB, V_FB, (25.4, 127.0), footprint=F_L0805,
+         expect={"1": "1", "2": "2"},
+         note="W4 series filter: +5V -> +5V_DRV. 30mohm DCR = 3mV at 100mA, "
+              "chosen for DCR not peak Z (E3 rail floor has ~85mV of margin)")
+    sh.wire_pins("FB201", {"1": V5, "2": V5D})
+
     # All three bypass caps are recorded as decoupling ASSOCIATIONS on VDD:
-    # the rail is the global bare "+5V", so no rail_net override is needed.
-    # max_loop_nh 0.3 is constraints.json's VDD-loop budget (a DIFFERENT and
-    # tighter path than the 0.48 nH GATE loop - one is inductance-limited with
-    # no series resistor, the other is resistance-limited by R_G).
+    # the rail is the global bare "+5V_DRV", so no rail_net override is
+    # needed. max_loop_nh 0.3 is constraints.json's VDD-loop budget (a
+    # DIFFERENT and tighter path than the GATE loop - one is
+    # inductance-limited with no series resistor, the other resistance-limited
+    # by R_G). The bead sits UPSTREAM of all three: they are the pi filter's
+    # load-side capacitance and must stay at the ball.
     sh.place_ic_with_decoupling(
         "U201", S_U201, V_U201, at=(114.3, 177.8), pins=U201_PINS,
         footprint=F_U201,
         expect={"A1": "VDD", "A2": "OUTH", "B1": "GND", "B2": "OUTL",
                 "C1": "IN+", "C2": "IN-"},
         decoupling=[
-            {"cap": "C201", "pin": "A1", "rail": V5, "value": V_C100N,
+            {"cap": "C201", "pin": "A1", "rail": V5D, "value": V_C100N,
              "lib_id": S_C100N_0402, "footprint": F_C0402,
              "max_dist_mm": 0.5, "max_loop_nh": 0.3},
-            {"cap": "C202", "pin": "A1", "rail": V5, "value": V_C10N_0201,
+            {"cap": "C202", "pin": "A1", "rail": V5D, "value": V_C10N_0201,
              "lib_id": S_C10N_0201, "footprint": F_C0201,
              "max_dist_mm": 0.5, "max_loop_nh": 0.3},
             # TI s9 / s10.1.2: an ADDITIONAL 1 uF as close as practical.
-            {"cap": "C213", "pin": "A1", "rail": V5, "value": V_C1U,
+            {"cap": "C213", "pin": "A1", "rail": V5D, "value": V_C1U,
              "lib_id": S_C1U_0603, "footprint": F_C0603, "max_dist_mm": 3.0},
         ],
         caps_at=(266.7, 177.8), caps_dx=63.5)
+    # place_ic_with_decoupling takes no `fields`, so these four would ship
+    # with no LCSC instance property and fall out of P9's BOM (review E5).
+    genlib.stamp_lcsc(sh, LCSC, ["U201", "C201", "C202", "C213"])
 
-    # Four legs, two 0603 in parallel each. Both OUTH resistors of a FET and
-    # both OUTL resistors of the same FET land on that FET's gate net.
+    # Four legs, ONE 4R7 0805 each -> 2.35 ohm at each driver pin (E1).
     for i, (ref, src, dst) in enumerate(GATE_LEGS):
-        x = 88.9 + (i % 4) * 63.5
-        y = 241.3 + (i // 4) * 25.4
-        _add(sh, ref, S_R3R9, V_R3R9, (x, y), footprint=F_R0603,
+        x = 88.9 + i * 63.5
+        _add(sh, ref, S_R4R7, V_R4R7, (x, 241.3), footprint=F_R0805,
              expect={"1": "1", "2": "2"},
-             note="gate leg %s -> %s (TI floor >=2R; pair = 1.95R)"
-                  % (src, dst))
+             note="gate leg %s -> %s. 4R7 per branch; the TWO branches on "
+                  "each pin give 2.35R >= TI's 2R floor" % (src, dst))
         sh.wire_pins(ref, {"1": src, "2": dst})
 
     # =====================================================================
@@ -429,11 +525,13 @@ def build() -> schlib.Sheet:
         "OUTH AND OUTL ARE SEPARATE OUTPUTS.",
         "OUTH sources only and floats when idle;",
         "OUTL sinks only and is held low otherwise.",
-        "Each gets its OWN >=2 ohm resistor (TI",
-        "mandate). NO steering diode is needed or",
-        "wanted. 2 x 3R9 per leg = 1.95R; with the",
-        "FET's own 0.4R that is the 3.1 ohm the",
-        "0.48 nH gate-loop budget was solved at.",
+        "NO steering diode is needed or wanted.",
+        "TI'S >=2 OHM MANDATE IS AT THE PIN, AND",
+        "TWO FETs SHARE EACH PIN, so each branch",
+        "must be >= 2 x 2 = 4 ohm. ONE 4R7 0805 per",
+        "leg per FET -> 4.7/2 = 2.35R at OUTH and at",
+        "OUTL (2.33R at -1%), peak drive 2.13 A.",
+        "Do NOT parallel these back down.",
     ])
     _note(sh, (469.9, 111.76), [
         "IN- IS TIED TO GND, DRIVE GOES TO IN+.",
@@ -469,16 +567,18 @@ def build() -> schlib.Sheet:
         "pair, which is the point of it existing.",
     ])
     _note(sh, (469.9, 271.78), [
-        "GATE LOOPS ARE THE TIGHTEST SPEC ON THE",
-        "BOARD: <= 0.48 nH per FET, matched +/-0.1 nH,",
-        "and geometrically MIRRORED about the U201",
-        "axis. Do NOT length-match electrically -",
-        "FR4 is 6.7 ps/mm and skew is benign in a",
-        "soft-switched topology. Matching exists to",
-        "damp the differential mode and equalise",
-        "static sharing. Fallback if P7 cannot meet",
-        "it: R_G = 3 ohm -> 0.84 nH, at +0.3 W and",
-        "+1.6 C. Take it consciously.",
+        "GATE LOOPS: aim for <= 0.48 nH per FET,",
+        "matched +/-0.1 nH, geometrically MIRRORED",
+        "about the U201 axis. The CRITICAL-DAMPING",
+        "budget is now 1.70 nH (EPC WP008 Eq.1 at",
+        "R = 4.7 + 0.4 + 0.75 = 5.85 ohm, C_GS 199",
+        "pF) - 3.6x looser than the 0.48 nH solved",
+        "at the old 3.1 ohm, which is what pays for",
+        "the 0805 bodies. Keep aiming at 0.48 nH.",
+        "Do NOT length-match electrically - FR4 is",
+        "6.7 ps/mm and skew is benign in a soft-",
+        "switched topology; matching damps the",
+        "differential mode and equalises sharing.",
     ])
     _note(sh, (469.9, 330.2), [
         "L201 + L202 ARE ONE CHOKE, IN SERIES.",
@@ -493,6 +593,18 @@ def build() -> schlib.Sheet:
         "clamp, no negative bias. Owner-acknowledged",
         "at P0 Q11. The 1.40x derate on a 200 V part",
         "is protected by POWER LOOP AREA at P6/P7.",
+        "FB201 IS A FILTER, NOT PROTECTION.",
+    ])
+    _note(sh, (469.9, 396.24), [
+        "+5V IS SPLIT AT FB201: +5V (buck) feeds the",
+        "bead, +5V_DRV feeds U201.A1 and C201/C202/",
+        "C213 only. That containment is the point -",
+        "the 72-100 mA of gate charge at 20 MHz must",
+        "return inside the local 1.1 uF, not across",
+        "the board to C108. P6: bead and all three",
+        "caps stay on the DRIVER side, at the ball.",
+        "+5V_DRV carries its OWN PWR_FLAG here; that",
+        "is not a duplicate of hk's - different net.",
     ])
     return sh
 
@@ -514,6 +626,9 @@ def main(argv=None) -> int:
         "hier_pins": sorted(sh.hier_pins),
         "internal_nets": sorted({DRIVE, GATE_ON, GATE_OFF, GATE_Q1, GATE_Q2,
                                  L_MID}),
+        "rails_flagged": [V5D],
+        "gate_r_per_branch_ohm": 4.7,
+        "gate_r_per_driver_pin_ohm": 2.35,
         "dnp": sorted(r for r, d in CSHUNT_SITES if d),
         "decoupling_associations": len(sh.decoupling),
         "field_placement": sh.place_report,

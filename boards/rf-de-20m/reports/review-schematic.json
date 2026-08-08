@@ -1,0 +1,114 @@
+{
+  "violations": [
+    {
+      "check": "schematic-review",
+      "severity": "error",
+      "pos": null,
+      "layer": null,
+      "net": "/stage/GATE_ON",
+      "refs": ["U201", "Q201", "Q202", "R203", "R204", "R205", "R206", "R207", "R208", "R209", "R210"],
+      "msg": "Both paralleled EPC2019 hang off the same LMG1020 output pins, so OUTH (and OUTL) each drive four 3R9 resistors in parallel = 0.975 ohm, less than half TI's mandated >=2 ohm per output (and the per-branch 1.95 ohm is already under both TI's floor and blocks.md's own '2 ohm minimum per leg' spec); peak source current doubles to 5.1 A and gate-loop di/dt with it, against only 1.1 V of headroom to the EPC2019's +6 V VGS absolute maximum and 0.85 V to the driver's 5.75 V abs max, so the first pulse can destroy both GaN gates non-recoverably.",
+      "source": "review.schematic",
+      "kind": "gate-r-below-floor"
+    },
+    {
+      "check": "schematic-review",
+      "severity": "error",
+      "pos": null,
+      "layer": null,
+      "net": "+40V",
+      "refs": ["C101", "C102"],
+      "msg": "C101/C102 polarity rests only on the auto-converted EasyEDA symbol's '+' glyph at pin 1 while the footprint carries no polarity mark and its sole asymmetric silk feature (chamfered corners) sits on the pad-1 side, which on V-chip aluminium electrolytics conventionally marks the CATHODE - and parts.json's datasheet field for C51953411 is empty with no manufacturer drawing anywhere in the workspace, so a 100 uF 63 V can may be reverse-biased at 40 V from a >=6 A supply and vent.",
+      "source": "review.schematic",
+      "kind": "polarity-unverified"
+    },
+    {
+      "check": "schematic-review",
+      "severity": "error",
+      "pos": null,
+      "layer": null,
+      "net": "+5V",
+      "refs": ["R101", "R102", "U101", "U201"],
+      "msg": "FB divider top leg R101 is a 5% part (C25553 = 0402WGJ0303TCE, J suffix) against a 1% bottom leg and an LM5017 reference of 1.200/1.225/1.250 V, so the +5V rail spans 4.586-5.227 V (nominal 4.900 V, already 100 mV low); the 4.586 V corner is below the LMG1020's 4.75 V recommended minimum VDD and makes the mandated unipolar 0/+5 V drive exceed the IN+ absolute maximum of VDD+0.3 V = 4.886 V on every cycle, while also pushing EPC2019 Rds(on) above the VGS=5 V value the 11.25 W thermal budget assumes.",
+      "source": "review.schematic",
+      "kind": "rail-tolerance"
+    },
+    {
+      "check": "schematic-review",
+      "severity": "error",
+      "pos": null,
+      "layer": null,
+      "net": "/hk/BST",
+      "refs": ["C107"],
+      "msg": "parts.json (the BOM of record that bom_cpl.py builds from) still carries the unresolved placeholder C519422 2.2 nF 25 V for C107 while the schematic correctly specifies the datasheet-required 10 nF (C107059), so assembled boards get a bootstrap cap 4.5x under spec that cannot hold the LM5017's high-side gate rail across the 225 ns on-time - and no downstream gate catches it because the ref does have an LCSC number, just the wrong one.",
+      "source": "review.schematic",
+      "kind": "bom-wrong-part"
+    },
+    {
+      "check": "schematic-review",
+      "severity": "error",
+      "pos": null,
+      "layer": null,
+      "net": null,
+      "refs": ["C301", "C302", "C303", "C304", "C305", "C306", "C307", "C308", "C309", "C310", "C311", "C312", "C313", "C314", "C315", "C316", "C317", "C318", "C319", "L201", "L202", "C110", "C111", "R104", "C213", "C206"],
+      "msg": "26 schematic refs have no usable BOM-of-record entry: parts.json stores the entire C_s/C_m banks as unexpandable range strings ('C301..C308', 'C309..C317', which also miss C318/C319), the drain choke as L201A/L201B, C206 as the literal ref 'C206 (DNP by default)', and omits C110/C111/R104 (the ripple-injection network) and C213 entirely - while the board-file fallback also misses U101/U201/C105/C106/C201/C202/C213 because their placed instances carry 'LCSC Part' but not the 'LCSC' property bom_cpl.board_lcsc_map matches on, so the fab release either trips the no-LCSC gate or ships boards with no tank, no drain choke and no ripple injection.",
+      "source": "review.schematic",
+      "kind": "bom-missing-refs"
+    },
+    {
+      "check": "schematic-review",
+      "severity": "error",
+      "pos": null,
+      "layer": null,
+      "net": "/stage/DRIVE",
+      "refs": ["R201", "R202"],
+      "msg": "The 50 ohm termination was sized on a bipolar +/-2.5 V waveform (blocks.md '0.125 W', parts.json '~0.0625W each') but the design ruling mandates unipolar 0/+5 V, which at 50% duty dissipates 0.250 W total = 0.125 W per 0805 - exactly the 1/8 W rating of C17408 at 70 C and about 154% of its derated capability in the 100 C-class local environment blocks.md itself assumes, so under continuous duty the parts drift and open, leaving the SMA line unterminated and its reflected edge on an input whose abs max is already only 200 mV away.",
+      "source": "review.schematic",
+      "kind": "termination-overpower"
+    },
+    {
+      "check": "schematic-review",
+      "severity": "warning",
+      "pos": null,
+      "layer": null,
+      "net": "/tank/RFOUT",
+      "refs": ["C310", "C311", "C312", "C313", "C314", "C315", "C316", "C317", "C318", "C319", "L302"],
+      "msg": "C_m is built as 10 x 56 pF = 560 pF against the 530 pF L-match target (blocks.md's '530 pF, 10x 1206' arithmetic never closed, and the schematic's own note still says 'target 530pF'), so the match presents 3.737 + j0.675 ohm instead of 4.13 + j0 ohm - VSWR 1.22 at the drain, load resistance 9.5% low giving ~221 W instead of 200 W at a 40 V bus, and total series reactance X/R = 1.47 against the Class-E optimum 1.1525 so ZVS is off; C_s at 504 pF does not compensate and neither bank has a trim site.",
+      "source": "review.schematic",
+      "kind": "match-detuned"
+    },
+    {
+      "check": "schematic-review",
+      "severity": "warning",
+      "pos": null,
+      "layer": null,
+      "net": "+40V",
+      "refs": ["R103"],
+      "msg": "R103 is an 0402 sitting between the LM5017 RON pin (held near ground by the on-timer) and +40V, so the full bus appears across a single 0402 whose thick-film maximum working voltage is 50 V - 80% of rating continuously, and outright exceeded by the ~51 V LC turn-on overshoot P1 predicted on this bus, contradicting the hk sheet's own claim that 'every +40V part >=63 V'.",
+      "source": "review.schematic",
+      "kind": "resistor-working-voltage"
+    },
+    {
+      "check": "schematic-review",
+      "severity": "warning",
+      "pos": null,
+      "layer": null,
+      "net": "/hk/VCC",
+      "refs": ["C106"],
+      "msg": "C106 is a 1 uF 16 V X7R 0603 on the LM5017's VCC rail, which regulates to 7.6 V typ and up to 8.55 V over temperature; DC-bias derating at ~50% of rated voltage typically removes 35-50% of the capacitance, leaving 0.5-0.65 uF against the datasheet's 1.0 uF requirement for a cap that also sources the bootstrap recharge every cycle, compounding the undersized BST cap.",
+      "source": "review.schematic",
+      "kind": "cap-dc-bias-derating"
+    },
+    {
+      "check": "schematic-review",
+      "severity": "warning",
+      "pos": null,
+      "layer": null,
+      "net": "+5V",
+      "refs": ["U101", "U201", "C108"],
+      "msg": "The LM5017 datasheet extraction explicitly deferred '+5V feed filtering to LMG1020' to P4, and P4 added local decoupling at both ends but no series element, so +5V is one low-impedance node from L101 to U201.A1 and the driver's 72-100 mA of 20 MHz-rate gate charge returns across the whole board to C108 instead of staying inside its local 1.1 uF - a board-scale 20 MHz current loop running past the FB trace TI's layout guideline 3 says to keep clear of switching nodes.",
+      "source": "review.schematic",
+      "kind": "rail-filtering-missing"
+    }
+  ]
+}

@@ -390,3 +390,68 @@ Not yet verified on hardware - carry into the layout step:
   path is vias straight into plane copper. At ~92% efficiency, 200 W means ~16 W to remove.
 - Input decoupling must be multiple small-case (0402/0603) C0G/NP0 right at the FET pair; bulk
   electrolytic does nothing at 20 MHz. Avoid X7R for the tank (voltage/temp coefficient); use C0G.
+
+## 2026-08-08 [driver][gan][gate] TI's ">=2 ohm at each output" is a PER-PIN floor, and paralleled FETs multiply it
+
+The LMG1020 datasheet (s8.2 Typical Application) says "use at least a 2-ohm resistor at each OUTH and
+OUTL". Read as a per-LEG spec that is easy to satisfy and easy to get wrong. This board hangs BOTH
+paralleled EPC2019 off the same OUTH/OUTL pins, so the pin sees the PARALLEL combination of every
+branch on it: 2 x 3R9 per leg x 2 FETs = 4 x 3R9 = **0.975 ohm**, less than half the floor, while
+each individual leg looked like a compliant-ish 1.95 ohm and the schematic note said so. Nothing in
+ERC, netlist_audit or check_* can see it - it is arithmetic over a net, not a rule violation.
+
+The general form: with N devices on one driver pin, **each branch must be >= N x (the datasheet
+floor)**. Here N=2 -> 4 ohm/branch minimum; 4R7 was taken (2.35 ohm/pin, 2.13 A peak instead of
+5.1 A). The floor exists to bound gate-loop di/dt, and on an eGaN part the consequence of ringing is
+not degradation but destruction: VGS abs max is +6 V against a 5 V drive, ~1 V of headroom, no
+avalanche margin, gone on the first pulse.
+
+TWO SECOND-ORDER EFFECTS THAT BOTH POINT THE SAME WAY, and are worth knowing BEFORE choosing R:
+- **The gate-loop inductance budget scales as R^2.** EPC WP008 Eq.1 is L <= R^2.C_GS/4, so going
+  3.1 -> 5.85 ohm total moved "the tightest layout spec on the board" from 0.48 nH to 1.70 nH. Raising
+  R_G to fix a driver-floor violation BUYS layout margin; do not also keep treating the old
+  inductance number as binding when picking package sizes.
+- **Per-resistor dissipation goes UP even though total gate power does not.** Total is Qg.VDD.fSW per
+  FET regardless of R; what changes is the split between the driver's internal impedance and the
+  external resistor, and collapsing 2 parallel parts into 1 doubles the per-part share on top. Here
+  0.029 W/part -> 0.100 W/part at Qg_max, which an 0603 (100 mW, 65 mW derated to a 90 C local board)
+  cannot take. Size the package from Qg_max x VDD x fSW / 2 x R_ext/R_total, derated to the LOCAL
+  board temperature, not the 70 C datasheet point.
+
+## 2026-08-08 [lm5017][cot][power] Type 3 ripple injection RAISES the DC output by half the injected FB ripple
+
+A constant-on-time regulator ends its off-time when FB falls back through VREF, i.e. it regulates the
+**valley** of FB, not its average. With Type 3 injection the ramp is AC-coupled into FB (Cac 100 nF
+into a ~7.5k Thevenin divider = tau 750 us against a 1.8 us period, so DC is genuinely blocked and the
+ramp's mean is zero), which means FB_dc = VREF + Vramp/2 and therefore
+
+    VOUT = (1 + R_top/R_bot) x (VREF + Vramp_pkpk / 2)
+
+NOT VREF x the divider ratio. At 78.6 mV of injected ripple that is +3.2 % - 5.06 V where a naive
+valley calculation says 4.90 V. A P4 reviewer computed the rail's min/nom/max entirely without the
+term and concluded the nominal was 100 mV low; the sheet's own docstring had it right. Both readings
+matter in practice because Vramp carries Rr, Cr and K tolerance, so the honest thing is to solve the
+divider against the UNION - effective reference in [VREF_min, VREF_max + Vramp_max/2] - and check
+both corners. Doing that here forced 30.9k/10.0k rather than the reviewer's suggested 31.6k, which
+is fine under the valley reading and ~60 mV over the driver's recommended VDD max under the ramp one.
+Also check the FB OVERVOLTAGE comparator against FB's PEAK (VREF + full Vramp), not its average: the
+LM5017 trips at 1.62 V and terminates the on-time pulse.
+
+## 2026-08-08 [footprint][sourcing][polarity] On the RVT (JIERR/Lumimax) V-chip electrolytic family the CHAMFERED corners mark the ANODE
+
+The usual reading of a chamfered/bevelled base corner on an SMD aluminium electrolytic is "cathode",
+and a P4 review flagged C101/C102 as unadjudicated on exactly that basis: the EasyEDA symbol puts "+"
+at pin 1 while the footprint's only asymmetric feature - two chamfers - sits on the PAD-1 side, so
+symbol and footprint appeared to contradict each other. The manufacturer drawing settles it the other
+way. JIERR "RVT series" (LCSC C51953411, now committed at parts/C51953411.pdf) page 2 labels the two
+terminals "Positive" and "Negative" with leaders, and **"Positive" lands on the chamfered end**;
+Lumimax's SMDGP/RVT drawing agrees from the opposite face, putting the black negative top-stripe on
+the SQUARE-cornered side. So the pull was self-consistent and correct all along.
+
+Two transferable points. (1) LCSC's product page is HTML at `lcsc.com/datasheet/C<code>.pdf`; the
+real PDF link is inside it (`datasheet.lcsc.com/datasheet/pdf/<hash>.pdf`) - an empty `datasheet`
+field in parts.json usually means nobody followed the redirect, not that no datasheet exists. Fill it
+at P3; a blank one on a POLARIZED part is what turned this into an unresolvable review finding.
+(2) A chamfer is a BODY-OUTLINE feature, not a marking: this footprint's silk body square is +/-5.23 mm
+and the part's plastic base is 10.3 mm, so once assembled the cue is invisible for inspection. Even
+when the geometry is right, a polarized part still needs a real silk "+" placed OUTSIDE the body.

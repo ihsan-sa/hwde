@@ -43,7 +43,14 @@
    "current_a": 0.3,
    "dt_c": 10,
    "via_amps": 0.5,
-   "_note": "99 mA average for the FET PAIR (72 mA gate charge at the DATASHEET Qg of 1.8 nC + 27 mA LMG1020 internal); 0.3 A declared, 3.0x headroom - the real Qg IMPROVED this rail versus the retracted 2.4 nC figure. WIDTH IS NOT THE CONSTRAINT: the VDD bypass loop inductance is, at <= 0.3 nH (100 nF 0402 X7R + 10 nF 0201 C0G straddling the VDD ball at < 0.5 mm, via-in-pad ground return). That via-in-pad on a 0.4 mm-pitch WCSP is why the board needs epoxy-filled-and-capped vias (stackup.md s4). NB the 0.3 nH here is the VDD loop; the GATE loop budget is 0.48 nH and is a different, resistance-limited path."
+   "_note": "99 mA average for the FET PAIR (72 mA gate charge at the DATASHEET Qg of 1.8 nC + 27 mA LMG1020 internal); 0.3 A declared, 3.0x headroom - the real Qg IMPROVED this rail versus the retracted 2.4 nC figure. WIDTH IS NOT THE CONSTRAINT: the VDD bypass loop inductance is, at <= 0.3 nH (100 nF 0402 X7R + 10 nF 0201 C0G straddling the VDD ball at < 0.5 mm, via-in-pad ground return). That via-in-pad on a 0.4 mm-pitch WCSP is why the board needs epoxy-filled-and-capped vias (stackup.md s4). NB the 0.3 nH here is the VDD loop; the GATE loop budget is 0.48 nH and is a different, resistance-limited path. P4-FIX 2026-08-08 (review W4): THIS ENTRY IS NOW THE BUCK SIDE ONLY. FB201 splits the rail; the driver side is '+5V_DRV' below. The declared 0.3 A is unchanged because the same current flows through both segments in series."
+  },
+  {
+   "net": "+5V_DRV",
+   "current_a": 0.3,
+   "dt_c": 10,
+   "via_amps": 0.5,
+   "_note": "ADDED AT P4-FIX 2026-08-08 (review W4). Driver side of FB201 (Murata BLM21PG121SN1D, 120 ohm at 100 MHz, 30 mohm DCR, 0805): U201.A1 plus C201/C202/C213 and nothing else. Same 99 mA as +5V - the bead is in series, not a second load. THE BEAD EXISTS TO CONTAIN A LOOP, so the layout rule is topological, not width-based: FB201 upstream, all three caps at the VDD ball, and the 20 MHz gate-charge current (72 mA typ / 100 mA max = 2 x Qg x fSW) returns inside the local 1.1 uF instead of crossing the board to C108 past the FB trace. The bead was chosen for DCR (3 mV at 100 mA), not peak impedance: the E3 rail floor has only ~85 mV of margin to the LMG1020's 4.75 V minimum. Width per IPC is trivial at 0.3 A; VDD-loop inductance <= 0.3 nH is the real spec and it is stated on the +5V entry above."
   },
   {
    "net": "/SW",
@@ -222,13 +229,10 @@
      "R204",
      "R205",
      "R206",
-     "R207",
-     "R208",
-     "R209",
-     "R210",
      "C201",
      "C202",
      "C213",
+     "FB201",
      "C203",
      "C204",
      "C205",
@@ -242,7 +246,7 @@
      "L201",
      "L202"
     ],
-    "_note": "THE WHOLE STAGE IN ONE ~15 x 15 mm CLUSTER: power loop + gate loop + drain choke + bus HF bank. Deliberately one group and not four, so place_anneal's thermal-spreading term (which skips same-body pairs) cannot push Q201 and Q202 apart - they are a MIRRORED PAIR and must be adjacent on one thermal island. C203-C206 are the C_shunt trim sites and must sit IN the power loop, not on a stub: a trim cap on a stub adds inductance instead of capacitance. AT P2-A THIS BANK IS POPULATED (~87-133 pF), NOT DNP - it supplies the balance of the 403 pF shunt that the FET pair's 316 pF does not, and it is the only mechanism that absorbs the part's 110-150 pF Coss spread. This group's geometry is NOT achievable by annealing: Q201, Q202, U201 and R203-R210 must be placed by explicit place_edit ops and LOCKED before place_anneal runs (sheets.md s5.3). P4 ADDITION: C213 is the 1 uF local reservoir TI's LMG1020 datasheet mandates in s9/s10.1.2 ('an additional 1 uF capacitor must be placed as close to the IC as practical') and which the architecture's C201+C202 pair did not include - the only other +5V bulk (C108) sits on `hk` at the far end of zone A by design. It is a member of this group for that reason."
+    "_note": "THE WHOLE STAGE IN ONE ~15 x 15 mm CLUSTER: power loop + gate loop + drain choke + bus HF bank. Deliberately one group and not four, so place_anneal's thermal-spreading term (which skips same-body pairs) cannot push Q201 and Q202 apart - they are a MIRRORED PAIR and must be adjacent on one thermal island. C203-C206 are the C_shunt trim sites and must sit IN the power loop, not on a stub: a trim cap on a stub adds inductance instead of capacitance. AT P2-A THIS BANK IS POPULATED (~87-133 pF), NOT DNP - it supplies the balance of the 403 pF shunt that the FET pair's 316 pF does not, and it is the only mechanism that absorbs the part's 110-150 pF Coss spread. This group's geometry is NOT achievable by annealing: Q201, Q202, U201 and R203-R210 must be placed by explicit place_edit ops and LOCKED before place_anneal runs (sheets.md s5.3). P4 ADDITION: C213 is the 1 uF local reservoir TI's LMG1020 datasheet mandates in s9/s10.1.2 ('an additional 1 uF capacitor must be placed as close to the IC as practical') and which the architecture's C201+C202 pair did not include - the only other +5V bulk (C108) sits on `hk` at the far end of zone A by design. It is a member of this group for that reason. P4-FIX 2026-08-08: the gate bank is now FOUR resistors, not eight (review E1 - TI's >=2 ohm floor is per DRIVER PIN and two FETs share each pin, so each branch must be >=4 ohm; one 4R7 0805 per leg per FET gives 2.35 ohm at OUTH and at OUTL). R207-R210 no longer exist. FB201 JOINS THIS GROUP: it is the W4 series bead that creates +5V_DRV, and it must sit between C108's feed and C201/C202/C213 - i.e. inside this cluster, upstream of the three VDD caps, or the containment it exists for is defeated. THE GATE-LOOP CRITICAL-DAMPING BUDGET RELAXED to ~1.70 nH per FET (EPC WP008 Eq.1 at R = 4.7+0.4+0.75 = 5.85 ohm, C_GS 199 pF) from the 0.478 nH solved at 3.1 ohm; high_speed[] below still declares 0.48 nH deliberately - it costs nothing to keep aiming there and it is what buys back the slower gate edge."
    },
    {
     "name": "drive_in",
@@ -251,7 +255,7 @@
      "R201",
      "R202"
     ],
-    "_note": "The 50 ohm termination belongs at the CONNECTOR, not at the driver. 2x 100 R 0805 in parallel: ~0.125 W total is over a single 0603's derated rating in a 100 C-class environment."
+    "_note": "The 50 ohm termination belongs at the CONNECTOR, not at the driver. 2x 100 R 0805 in parallel: ~0.125 W total is over a single 0603's derated rating in a 100 C-class environment. P4-FIX 2026-08-08 (review E6): R201/R202 ARE NOW 2010, NOT 0805. The 0.125 W figure was for a bipolar +/-2.5 V drive; the mandated unipolar 0/+5 V square at 50 % duty puts 0.250 W into the termination (0.125 W each), which is 100 % of an 0805's rating at 70 C and ~154 % of its capability at 100 C. The 2010 parts are 750 mW - 25.8 % used after derating to 100 C."
    },
    {
     "name": "tank_ls",
@@ -265,9 +269,11 @@
      "C306",
      "C307",
      "C308",
-     "C309"
+     "C309",
+     "C320",
+     "C321"
     ],
-    "_note": "C_s = 518 pF as 9 x 56 pF 1 kV C0G 1206 (504 pF, -2.7%), 0.77 A rms and ~105 mW each. C_s is a SERIES element and floats - it needs no ground reference, which is why it can live in zone B where there is no plane. C_S CARRIES THE LARGEST SINGLE UNCERTAINTY IN THE TANK: the P1 refdesign fragment's C_series coefficient 0.63467 gives 1222 pF and a net series reactance of 3.4 R, which is not a Class E network; Sokal's published fit gives 0.26906 -> 518 pF and 1.283 R, which is right. SIM-4 is the arbiter. Keep the bank a parallel array so it can be trimmed by depopulation."
+    "_note": "C_s = 518 pF as 9 x 56 pF 1 kV C0G 1206 (504 pF, -2.7%), 0.77 A rms and ~105 mW each. C_s is a SERIES element and floats - it needs no ground reference, which is why it can live in zone B where there is no plane. C_S CARRIES THE LARGEST SINGLE UNCERTAINTY IN THE TANK: the P1 refdesign fragment's C_series coefficient 0.63467 gives 1222 pF and a net series reactance of 3.4 R, which is not a Class E network; Sokal's published fit gives 0.26906 -> 518 pF and 1.283 R, which is right. SIM-4 is the arbiter. Keep the bank a parallel array so it can be trimmed by depopulation. P4-FIX 2026-08-08 (review W1): C320/C321 are 27 pF DNP BENCH-TRIM SITES and are members of this group - a trim cap on a stub adds inductance instead of capacitance, exactly as for C203-C206. Populate for +27/+54 pF; for a fine DOWN-trim depopulate one 56 pF site and populate both 27s (8x56 + 2x27 = 502 pF)."
    },
    {
     "name": "tank_lm",
@@ -283,9 +289,11 @@
      "C317",
      "C318",
      "C319",
+     "C322",
+     "C323",
      "J301"
     ],
-    "_note": "C_m = 530 pF as ~10 x 1206 C0G 1 kV, 0.67 A rms each. C_m RETURNS TO GROUND and carries 6.66 A rms - nearly the full tank current, not the 2 A load current - so unlike C_s it must sit in zone C where the plane stack exists. Order L302 -> C_m -> J301, shortest possible: /tank/RFOUT must stay <= 15 mm (stackup.md s5)."
+    "_note": "C_m = 530 pF as ~10 x 1206 C0G 1 kV, 0.67 A rms each. C_m RETURNS TO GROUND and carries 6.66 A rms - nearly the full tank current, not the 2 A load current - so unlike C_s it must sit in zone C where the plane stack exists. Order L302 -> C_m -> J301, shortest possible: /tank/RFOUT must stay <= 15 mm (stackup.md s5). P4-FIX 2026-08-08 (review W1): C_m IS NOW 531 pF, NOT 560 - 9 x 56 pF plus one 27 pF (C319) against the 530.4 pF ideal L-match. The single-value 560 pF bank presented 3.74 + j0.68 ohm (VSWR 1.22, series X/R 1.47 vs the Class E optimum 1.1525) and made ~221 W at a 40 V bus, which inflated every current and the two-FET thermal budget with it; 531 pF gives 4.12 + j0.07 ohm, VSWR 1.02, X/R 1.19, ~200 W. C322/C323 are 27 pF DNP trim sites and belong in the bank, not on a stub."
    },
    {
     "name": "hk",
@@ -368,10 +376,6 @@
    "R204",
    "R205",
    "R206",
-   "R207",
-   "R208",
-   "R209",
-   "R210",
    "L301",
    "L302",
    "J101",
@@ -441,5 +445,6 @@
   }
  ],
  "_planes_note": "SIX ENTRIES, THREE LAYERS, TWO REGIONS EACH, AND THE GAP BETWEEN THEM IS THE POINT. Zone A [0,0,48,80] carries the full plane stack because EPC WP010's stacked self-cancelling power loop needs an unbroken In1 GND return 0.2444 mm under the F.Cu loop, and because In1+In2+B.Cu is the thermal path that makes theta_BS 1.5 C/W. Zone C [88,0,100,80] carries it because the RF output needs a ground reference into the SMA. ZONE B (x 48-88) IS LEFT UNPOURED BY CONSTRUCTION on In1, In2 and B.Cu - a solid plane under a PCB air-core spiral is a shorted turn and collapses its Q, exactly as a metal heatsink would. The two regions do not touch (48 < 88), so planes_gen's overlap rule leaves them at equal priority. The apparent conflict between 'L2 must be unbroken under the power loop' and 'no plane under the spirals' is an artefact of stating both board-wide: the power loop ENDS at the drain node and the tank BEGINS there, so the two rules apply to disjoint regions and nothing straddles the boundary. B.Cu in zone B is reserved for the OTHER HALF OF EACH SPIRAL under blocks.md SPIRAL-2 (paralleled F.Cu + B.Cu windings, ~1.6-1.8x Q for zero BOM cost, verify-later; single-layer F.Cu is the documented fallback and every loss number in power_tree.md is quoted for that conservative case). Both inner layers still carry the SPIRAL-4 inner-terminal bridges - short, radial, >= 4 mm wide patches only. Do NOT solve the inner-terminal escape with a wide inner-layer slab: that is the eddy-current structure the zone was voided to prevent.",
- "_comment_amendment_P4": "AMENDED AT P4 (2026-08-07) BY THE SCHEMATIC BUILD. Exactly one change, and it is a refdes split, not a design change: the RF drain choke L201 is TWO parts in series (2 x FXL0630-R47-M, the architecture's own pre-authorised escape in blocks.md B6 - no single LCSC part meets L>=0.82uH AND SRF>=80MHz AND DCR<=25mohm AND Isat>=12A). parts.json spelled them L201A/L201B; the schematic uses L201 and L202 instead, because letter-suffixed refdes are a known pipeline hazard (place_anneal silently drops refs it does not recognise, LEARNINGS 2026-07-28) and because netlist_audit raises missing_ref at ERROR severity for any constraints refdes absent from the netlist. Consequently: (a) thermal[] now carries L201 AND L202 at 0.45 W each rather than L201 alone at 0.89 W - the declared total is preserved, and it is conservative, since the real pair dissipates I_dc^2 x 8.2 mohm = 0.29 W; (b) placement.groups 'switch' gains L202. architecture/constraints.json and parts/parts.json need the SAME edit - reported to the orchestrator, not applied here (P4 writes only inside kicad/). P6 must still place the two chokes PHYSICALLY SEPARATED (parts.json role note). NOTHING ELSE IN THIS FILE WAS TOUCHED: every net name in high_speed, power, voltages and voltage_pairs is produced verbatim by the generated schematic and was verified by netlist_audit against the exported netlist. SECOND P4 EDIT: placement.groups 'switch' gains C213, the LMG1020's TI-mandated 1 uF local reservoir added on the `stage` sheet (see that generator's docstring). Same reporting caveat as L202."
+ "_comment_amendment_P4": "AMENDED AT P4 (2026-08-07) BY THE SCHEMATIC BUILD. Exactly one change, and it is a refdes split, not a design change: the RF drain choke L201 is TWO parts in series (2 x FXL0630-R47-M, the architecture's own pre-authorised escape in blocks.md B6 - no single LCSC part meets L>=0.82uH AND SRF>=80MHz AND DCR<=25mohm AND Isat>=12A). parts.json spelled them L201A/L201B; the schematic uses L201 and L202 instead, because letter-suffixed refdes are a known pipeline hazard (place_anneal silently drops refs it does not recognise, LEARNINGS 2026-07-28) and because netlist_audit raises missing_ref at ERROR severity for any constraints refdes absent from the netlist. Consequently: (a) thermal[] now carries L201 AND L202 at 0.45 W each rather than L201 alone at 0.89 W - the declared total is preserved, and it is conservative, since the real pair dissipates I_dc^2 x 8.2 mohm = 0.29 W; (b) placement.groups 'switch' gains L202. architecture/constraints.json and parts/parts.json need the SAME edit - reported to the orchestrator, not applied here (P4 writes only inside kicad/). P6 must still place the two chokes PHYSICALLY SEPARATED (parts.json role note). NOTHING ELSE IN THIS FILE WAS TOUCHED: every net name in high_speed, power, voltages and voltage_pairs is produced verbatim by the generated schematic and was verified by netlist_audit against the exported netlist. SECOND P4 EDIT: placement.groups 'switch' gains C213, the LMG1020's TI-mandated 1 uF local reservoir added on the `stage` sheet (see that generator's docstring). Same reporting caveat as L202.",
+ "_comment_amendment_P4_FIX": "AMENDED 2026-08-08 BY THE P4 ADVERSARIAL-REVIEW FIX PASS (reports/review-schematic.md). Six errors and four warnings were addressed; only the ones that touch THIS file are listed, and each is also explained in place on the entry it changes. (1) E1 GATE RESISTORS: 8 x 3R9 0603 -> 4 x 4R7 0805. TI's >= 2 ohm mandate is at each OUTH/OUTL PIN, and both EPC2019 hang off the same pins, so the pre-fix build presented 4 x 3R9 = 0.975 ohm - less than half the floor, 5.1 A of peak drive against ~1.1 V of headroom to the EPC2019's +6 V VGS absolute maximum. Each branch is now 4.7 ohm (one resistor per leg per FET, Q201 and Q202 identical), giving 2.35 ohm at each pin and 2.13 A peak. R207-R210 are GONE from placement.groups[switch] and placement.fixed. (2) E6 TERMINATION: R201/R202 0805 -> 2010 (0.25 W total on the mandated unipolar 0/+5 V drive, not the 0.125 W a bipolar swing would give). (3) W1 TANK: C_m 10 x 56 pF = 560 pF -> 9 x 56 + 1 x 27 = 531 pF, and FOUR 27 pF DNP bench-trim sites added - C320/C321 in tank_ls, C322/C323 in tank_lm. (4) W4 RAIL SPLIT: FB201 (ferrite bead) creates a new global rail '+5V_DRV' for the driver, declared in power[] above and grouped with the switch cluster. NOT CHANGED, DELIBERATELY: the high_speed[] gate-loop budget still reads 0.48 nH even though the critical-damping limit relaxed to ~1.70 nH at the new R_G - see the switch group's note. NOT APPLIED HERE, REPORTED INSTEAD: architecture/constraints.json needs the same edits (P4 writes only inside kicad/), as do the E1/E6/W1/W2/W3 part changes in parts/parts.json, which this pass DID rewrite because it is the BOM of record (E4/E5)."
 }
