@@ -2608,3 +2608,39 @@ reason layer-by-layer. Two general points: fan-out diagonals from a dense IC for
 later nets on layers you are not looking at, so check all layers as one 3D problem; and where two new
 connections must cross, assign them different layers in the SAME op list rather than routing one and
 discovering the other. route_edit is atomic, so a pre-flighted list either lands whole or not at all.
+
+## 2026-08-08 [gate][waivers] The verify gate's DEFAULT waiver path resolves next to the BOARD, not in the workspace reports/ dir
+Small but costly: gate.py documents the default as `<input dir>/reports/verify-waivers.json`, and the
+gate's input is the .kicad_pcb - which lives in `<workspace>/kicad/`. So the default it actually looks
+for is `<workspace>/kicad/reports/verify-waivers.json`, NOT the `<workspace>/reports/` directory where
+every other P8 artifact (verify.json, renders, review reports) is written. A waiver file placed in the
+obvious workspace `reports/` folder is silently ignored - the gate simply reports the same failures
+with `waived: 0`, which reads exactly like a waiver that failed to MATCH rather than one that was
+never LOADED. Pass `--waivers <path>` explicitly and check the `waived` count in the result, which is
+the only positive confirmation that the sidecar was read at all.
+
+## 2026-08-08 [check_silk][drc][geometry] check_silk treats an UNFILLED fp_circle as a filled disc - three false silk-over-pad errors on stock KiCad test points
+lumina-par P8. `check_silk` failed the verify gate with `silk circle on F.SilkS covers pad TPxxx.1
+(1.77 mm2)` on TP101/TP102/TP103, all stock `TestPoint:TestPoint_Pad_D1.5mm`. The geometry refutes
+it: that footprint's silk `fp_circle` is radius **0.950 mm with `(fill no)`** and 0.12 mm stroke, so
+the printed ring spans radius 0.890-1.010 mm while the pad is radius 0.750 mm - a 0.140 mm gap, no
+intersection at all. The giveaway is the reported area: 1.77 mm2 is exactly the WHOLE pad
+(pi x 0.75^2 = 1.767), which is what you get by intersecting the pad with a FILLED disc of radius
+0.95. kicad-cli DRC - which the skill already says to trust over check_silk - reports zero silk
+violations on the same board, and the 2.0x2.0 mm TestPoint variant (silk drawn as four fp_LINES
+outside the pad) is not flagged; both consistent with the fill bug. Two lessons: (1) the earlier
+entry "check_silk is far more LENIENT than DRC" is not the whole story - it is also STRICTER in this
+specific way, so the two disagree in BOTH directions and neither is a superset; (2) the tempting fix
+was swapping the footprint, which on a fully-routed board means a schematic rebuild, a board_update
+and re-routing three stubs - measuring the actual silk/pad radii first cost one grep and avoided all
+of it. Fix belongs in check_silk: honour `(fill no)` and intersect the ANNULUS.
+
+## 2026-08-08 [git][learnings] An uncommitted LEARNINGS append can be silently reverted by the scoped gate commits - commit it in the same turn
+Lost an entry this session and only caught it by noticing `wc -l` went DOWN after an append. The
+`gate.py --commit` path runs git operations scoped to `boards/<name>/` and correctly reports
+LEARNINGS.md under `excluded_dirty` - but the file still ends up reverted to its committed state
+(a CRLF-normalising checkout is the likely mechanism: git warns "CRLF will be replaced by LF the next
+time Git touches it" on every one of these commits). Net effect: append an entry, run a gate commit,
+and the entry is gone with no error anywhere. Practical rule: `git add LEARNINGS.md && git commit` in
+the SAME turn as the append, never "I'll commit the learnings at the end", and if a line count moves
+the wrong way after an append, check `grep -c` for the entry rather than trusting the number.
