@@ -1,0 +1,8 @@
+{
+ "version": 1,
+ "_note": "Bridge two 0.024 mm breaks in the /ADC0 F.Cu run. Both are crumb-sweep damage: the sub-0.05 mm segment that joined each pair was removed as a 'crumb', and at 0.2 mm width the neighbouring round caps do NOT overlap across the 0.2236 mm endpoint separation, so the chain really is open. Each bridge reuses the existing endpoints inside an already-proven corridor.",
+ "ops": [
+  {"op": "add_track", "start": [115.525, 121.85], "end": [115.725, 121.95], "width": 0.2, "layer": "F.Cu", "net": "/ADC0"},
+  {"op": "add_track", "start": [119.375, 124.125], "end": [119.575, 124.225], "width": 0.2, "layer": "F.Cu", "net": "/ADC0"}
+ ]
+}

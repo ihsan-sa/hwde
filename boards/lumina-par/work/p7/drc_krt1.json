@@ -1,0 +1,1750 @@
+{
+  "script": "kc",
+  "tool": "drc",
+  "input": "boards\\lumina-par\\kicad\\lumina-par.kicad_pcb",
+  "units": "mm",
+  "kicad_version": "10.0.3",
+  "options": {
+    "parity": true,
+    "all_track_errors": true,
+    "refill": true,
+    "save_board": true
+  },
+  "counts": {
+    "total": 54,
+    "by_severity": {
+      "warning": 6,
+      "error": 48
+    },
+    "by_source": {
+      "drc": 6,
+      "unconnected": 48
+    }
+  },
+  "status": "violations",
+  "violations": [
+    {
+      "check": "track_dangling",
+      "severity": "warning",
+      "pos": [
+        144.375,
+        131.325
+      ],
+      "layer": "F.Cu",
+      "net": "/thermal/CMP_LED",
+      "refs": [],
+      "msg": "Track has unconnected end",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/thermal/CMP_LED] on F.Cu, length 0.9546 mm",
+          "pos": [
+            144.375,
+            131.325
+          ],
+          "uuid": "93161a28-ad43-484c-a062-7ab83ecd7596"
+        }
+      ]
+    },
+    {
+      "check": "track_dangling",
+      "severity": "warning",
+      "pos": [
+        144.65,
+        131.425
+      ],
+      "layer": "F.Cu",
+      "net": "/thermal/CMP_LED",
+      "refs": [],
+      "msg": "Track has unconnected end",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/thermal/CMP_LED] on F.Cu, length 0.0750 mm",
+          "pos": [
+            144.65,
+            131.425
+          ],
+          "uuid": "fcd7c962-6c4b-42dd-93fa-8ccac595b556"
+        }
+      ]
+    },
+    {
+      "check": "track_dangling",
+      "severity": "warning",
+      "pos": [
+        147.225,
+        120.35
+      ],
+      "layer": "B.Cu",
+      "net": "/thermal/CMP_LED",
+      "refs": [],
+      "msg": "Track has unconnected end",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/thermal/CMP_LED] on B.Cu, length 0.0707 mm",
+          "pos": [
+            147.225,
+            120.35
+          ],
+          "uuid": "0252dc5c-bb19-42f7-8134-dc1f3b87d990"
+        }
+      ]
+    },
+    {
+      "check": "track_dangling",
+      "severity": "warning",
+      "pos": [
+        149.75,
+        121.25
+      ],
+      "layer": "B.Cu",
+      "net": "/thermal/CMP_LED",
+      "refs": [],
+      "msg": "Track has unconnected end",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/thermal/CMP_LED] on B.Cu, length 0.0750 mm",
+          "pos": [
+            149.75,
+            121.25
+          ],
+          "uuid": "0c8c1039-22c5-4d9e-9668-b0fdcb7884a9"
+        }
+      ]
+    },
+    {
+      "check": "track_dangling",
+      "severity": "warning",
+      "pos": [
+        147.5,
+        120.45
+      ],
+      "layer": "B.Cu",
+      "net": "/thermal/CMP_LED",
+      "refs": [],
+      "msg": "Track has unconnected end",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/thermal/CMP_LED] on B.Cu, length 0.0750 mm",
+          "pos": [
+            147.5,
+            120.45
+          ],
+          "uuid": "92c23cc9-36fa-49cb-a067-26bf68bf62a5"
+        }
+      ]
+    },
+    {
+      "check": "track_dangling",
+      "severity": "warning",
+      "pos": [
+        149.65,
+        120.975
+      ],
+      "layer": "B.Cu",
+      "net": "/thermal/CMP_LED",
+      "refs": [],
+      "msg": "Track has unconnected end",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/thermal/CMP_LED] on B.Cu, length 0.0707 mm",
+          "pos": [
+            149.65,
+            120.975
+          ],
+          "uuid": "cbf4f0f2-c58d-46b1-a6c5-41f4f2da531c"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        123.0,
+        88.61
+      ],
+      "layer": "F.Cu",
+      "net": "/drivers/SW1",
+      "refs": [
+        "C325",
+        "U321"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 5 [/drivers/SW1] of U321 on F.Cu",
+          "pos": [
+            123.0,
+            88.61
+          ],
+          "uuid": "e49076a4-6e00-4c9e-9121-1b8e579ec6d0"
+        },
+        {
+          "msg": "Pad 2 [/drivers/SW1] of C325 on F.Cu",
+          "pos": [
+            123.45,
+            90.95
+          ],
+          "uuid": "74ef0e41-536f-4ab5-a793-a70e5222d74b"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        140.5,
+        127.2
+      ],
+      "layer": "In2.Cu",
+      "net": "GND",
+      "refs": [
+        "U401"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Track [GND] on In2.Cu, length 0.1000 mm",
+          "pos": [
+            140.5,
+            127.2
+          ],
+          "uuid": "570ac3c5-80fd-4032-bea7-710729abdf29"
+        },
+        {
+          "msg": "Pad 12 [GND] of U401 on F.Cu",
+          "pos": [
+            146.65,
+            124.3
+          ],
+          "uuid": "6d490178-7a8e-49ae-83a0-7737634abc5f"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        119.45,
+        113.1
+      ],
+      "layer": "F.Cu",
+      "net": "/drivers/VCC2",
+      "refs": [
+        "U341"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Track [/drivers/VCC2] on F.Cu, length 1.0607 mm",
+          "pos": [
+            119.45,
+            113.1
+          ],
+          "uuid": "f97b6854-f101-432a-b3b2-e1cfd2ca1e7a"
+        },
+        {
+          "msg": "Pad 2 [/drivers/VCC2] of U341 on F.Cu",
+          "pos": [
+            121.5,
+            112.61
+          ],
+          "uuid": "b486aa11-2ac9-4596-baef-f1f46dbc961e"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        121.0,
+        108.39
+      ],
+      "layer": "F.Cu",
+      "net": "/drivers/VCC2",
+      "refs": [
+        "C346",
+        "U341"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 10 [/drivers/VCC2] of U341 on F.Cu",
+          "pos": [
+            121.0,
+            108.39
+          ],
+          "uuid": "31579608-e5da-48ac-ae57-c4700409e757"
+        },
+        {
+          "msg": "Pad 1 [/drivers/VCC2] of C346 on F.Cu",
+          "pos": [
+            118.7,
+            111.5
+          ],
+          "uuid": "8f05244d-7f13-4b34-b274-13c3ba418778"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        121.5,
+        84.39
+      ],
+      "layer": "F.Cu",
+      "net": "/DRV_EN1",
+      "refs": [
+        "U321"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 9 [/DRV_EN1] of U321 on F.Cu",
+          "pos": [
+            121.5,
+            84.39
+          ],
+          "uuid": "4ff6a805-f7b1-4fb9-9dc7-4c5deb63ad59"
+        },
+        {
+          "msg": "Track [/DRV_EN1] on In1.Cu, length 1.2728 mm",
+          "pos": [
+            119.0,
+            83.25
+          ],
+          "uuid": "7521b8af-1d5c-47c0-8493-79cb51d72bb7"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        146.65,
+        116.85
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [
+        "U401"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Track [+3V3] on F.Cu, length 0.6000 mm",
+          "pos": [
+            146.65,
+            116.85
+          ],
+          "uuid": "d0dd1109-a508-42d4-a55a-ed5a8a65ce25"
+        },
+        {
+          "msg": "Pad 3 [+3V3] of U401 on F.Cu",
+          "pos": [
+            146.65,
+            118.7
+          ],
+          "uuid": "747caf62-9829-4a87-8c20-ea7bbc1a1fa3"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        118.05,
+        89.7
+      ],
+      "layer": "F.Cu",
+      "net": "/drivers/COFF1",
+      "refs": [
+        "U321"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Track [/drivers/COFF1] on F.Cu, length 1.6500 mm",
+          "pos": [
+            118.05,
+            89.7
+          ],
+          "uuid": "67baad39-81c2-4405-870a-32e865805f91"
+        },
+        {
+          "msg": "Pad 1 [/drivers/COFF1] of U321 on F.Cu",
+          "pos": [
+            121.0,
+            88.61
+          ],
+          "uuid": "ecb34c94-1e45-4580-b3fa-e6137493bddf"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        99.0,
+        112.61
+      ],
+      "layer": "F.Cu",
+      "net": "/drivers/BOOT0",
+      "refs": [
+        "C305",
+        "U301"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 4 [/drivers/BOOT0] of U301 on F.Cu",
+          "pos": [
+            99.0,
+            112.61
+          ],
+          "uuid": "d9279480-42a3-4adb-b716-3f350dba3d6f"
+        },
+        {
+          "msg": "Pad 1 [/drivers/BOOT0] of C305 on F.Cu",
+          "pos": [
+            98.55,
+            114.95
+          ],
+          "uuid": "1737f920-1827-4f20-ac18-c40f8013275c"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        99.5,
+        112.61
+      ],
+      "layer": "F.Cu",
+      "net": "/drivers/SW0",
+      "refs": [
+        "U301"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 5 [/drivers/SW0] of U301 on F.Cu",
+          "pos": [
+            99.5,
+            112.61
+          ],
+          "uuid": "a1919d22-72f9-4081-aaed-b66b95276a13"
+        },
+        {
+          "msg": "Track [/drivers/SW0] on F.Cu, length 2.4500 mm",
+          "pos": [
+            102.4,
+            114.95
+          ],
+          "uuid": "c7f03299-600d-4de4-a11c-947b177e0aaa"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        122.5,
+        112.61
+      ],
+      "layer": "F.Cu",
+      "net": "/drivers/BOOT2",
+      "refs": [
+        "U341"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 4 [/drivers/BOOT2] of U341 on F.Cu",
+          "pos": [
+            122.5,
+            112.61
+          ],
+          "uuid": "73fc50c2-9a6c-446a-a85a-eda2ec383645"
+        },
+        {
+          "msg": "Track [/drivers/BOOT2] on F.Cu, length 0.3536 mm",
+          "pos": [
+            122.05,
+            114.95
+          ],
+          "uuid": "e0f1ab1f-45ac-4d56-be84-efe2545d4d57"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        123.0,
+        112.61
+      ],
+      "layer": "F.Cu",
+      "net": "/drivers/SW2",
+      "refs": [
+        "U341"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 5 [/drivers/SW2] of U341 on F.Cu",
+          "pos": [
+            123.0,
+            112.61
+          ],
+          "uuid": "9a9d1407-db85-4b74-9349-1e23623b2f9e"
+        },
+        {
+          "msg": "Track [/drivers/SW2] on F.Cu, length 2.4500 mm",
+          "pos": [
+            125.9,
+            114.95
+          ],
+          "uuid": "71dac54e-fd64-49f0-a736-8704f29a2a37"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        96.0,
+        107.2
+      ],
+      "layer": "F.Cu",
+      "net": "/DRV_EN0",
+      "refs": [
+        "U301"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Track [/DRV_EN0] on F.Cu, length 0.8485 mm",
+          "pos": [
+            96.0,
+            107.2
+          ],
+          "uuid": "8807bdec-a995-4bd6-919a-d19f56dd3cf4"
+        },
+        {
+          "msg": "Pad 9 [/DRV_EN0] of U301 on F.Cu",
+          "pos": [
+            98.0,
+            108.39
+          ],
+          "uuid": "4b3886f8-2348-4ad1-905d-422f00ed5259"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        121.5,
+        108.39
+      ],
+      "layer": "F.Cu",
+      "net": "/DRV_EN2",
+      "refs": [
+        "U341"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 9 [/DRV_EN2] of U341 on F.Cu",
+          "pos": [
+            121.5,
+            108.39
+          ],
+          "uuid": "9bdb1171-3d0e-4b2e-8502-814cd72b2c2e"
+        },
+        {
+          "msg": "Track [/DRV_EN2] on F.Cu, length 0.2000 mm",
+          "pos": [
+            119.9,
+            106.15
+          ],
+          "uuid": "34e63c5b-9e2d-4228-aeda-685c93ff826a"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        98.0,
+        84.39
+      ],
+      "layer": "F.Cu",
+      "net": "/DRV_EN3",
+      "refs": [
+        "U361"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 9 [/DRV_EN3] of U361 on F.Cu",
+          "pos": [
+            98.0,
+            84.39
+          ],
+          "uuid": "7fc58d59-4ecd-4f20-8427-38e61306d832"
+        },
+        {
+          "msg": "Track [/DRV_EN3] on F.Cu, length 0.0707 mm",
+          "pos": [
+            96.9,
+            82.1
+          ],
+          "uuid": "360ff319-2cbc-4f89-b902-69d3c3d18b5b"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        98.5,
+        82.8
+      ],
+      "layer": "F.Cu",
+      "net": "+12V",
+      "refs": [
+        "U361"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Via [+12V] on F.Cu - B.Cu",
+          "pos": [
+            98.5,
+            82.8
+          ],
+          "uuid": "807b81ae-d988-4fe8-a4f8-d5209e50e7b1"
+        },
+        {
+          "msg": "Pad 8 [+12V] of U361 on F.Cu",
+          "pos": [
+            98.5,
+            84.39
+          ],
+          "uuid": "8b273095-0aaa-41fc-a424-fd8f7446a0ab"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        98.5,
+        106.8
+      ],
+      "layer": "F.Cu",
+      "net": "+12V",
+      "refs": [
+        "U301"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Via [+12V] on F.Cu - B.Cu",
+          "pos": [
+            98.5,
+            106.8
+          ],
+          "uuid": "906de12e-92d7-4df1-b9a8-b8a8adf83769"
+        },
+        {
+          "msg": "Pad 8 [+12V] of U301 on F.Cu",
+          "pos": [
+            98.5,
+            108.39
+          ],
+          "uuid": "4b7d2f64-c14b-48a9-9e9d-86bf1c057ebf"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        122.0,
+        82.8
+      ],
+      "layer": "F.Cu",
+      "net": "+12V",
+      "refs": [
+        "U321"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Via [+12V] on F.Cu - B.Cu",
+          "pos": [
+            122.0,
+            82.8
+          ],
+          "uuid": "936fe6aa-da9e-43e6-9c93-4f4434bd568d"
+        },
+        {
+          "msg": "Pad 8 [+12V] of U321 on F.Cu",
+          "pos": [
+            122.0,
+            84.39
+          ],
+          "uuid": "5043d29e-15a6-44a5-a648-0ad80764eb7a"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        122.0,
+        108.39
+      ],
+      "layer": "F.Cu",
+      "net": "+12V",
+      "refs": [
+        "U341"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 8 [+12V] of U341 on F.Cu",
+          "pos": [
+            122.0,
+            108.39
+          ],
+          "uuid": "096d6506-7da7-4ac4-82ae-e4960622289c"
+        },
+        {
+          "msg": "Via [+12V] on F.Cu - B.Cu",
+          "pos": [
+            122.0,
+            106.8
+          ],
+          "uuid": "729ea9a8-80b1-4590-835b-9efdb65973a0"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        150.4,
+        117.35
+      ],
+      "layer": "F.Cu",
+      "net": "/thermal/VREF_EHOT",
+      "refs": [
+        "U401"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Track [/thermal/VREF_EHOT] on F.Cu, length 0.2000 mm",
+          "pos": [
+            150.4,
+            117.35
+          ],
+          "uuid": "ea666114-0ff2-4c36-b86f-33635cc8097e"
+        },
+        {
+          "msg": "Pad 6 [/thermal/VREF_EHOT] of U401 on F.Cu",
+          "pos": [
+            144.7,
+            118.7
+          ],
+          "uuid": "632a0a79-ea57-46bb-be92-de58b2b7b4d4"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        144.05,
+        124.3
+      ],
+      "layer": "F.Cu",
+      "net": "/thermal/VREF_HOT2",
+      "refs": [
+        "U401"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 8 [/thermal/VREF_HOT2] of U401 on F.Cu",
+          "pos": [
+            144.05,
+            124.3
+          ],
+          "uuid": "53691dd6-07ee-4aa0-9cca-710e8d3aa494"
+        },
+        {
+          "msg": "Pad 10 [/thermal/VREF_HOT2] of U401 on F.Cu",
+          "pos": [
+            145.35,
+            124.3
+          ],
+          "uuid": "d6194017-c3a3-4c5b-b0c8-217d4d42b0ce"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        145.35,
+        124.3
+      ],
+      "layer": "F.Cu",
+      "net": "/thermal/VREF_HOT2",
+      "refs": [
+        "U401"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 10 [/thermal/VREF_HOT2] of U401 on F.Cu",
+          "pos": [
+            145.35,
+            124.3
+          ],
+          "uuid": "d6194017-c3a3-4c5b-b0c8-217d4d42b0ce"
+        },
+        {
+          "msg": "Track [/thermal/VREF_HOT2] on In1.Cu, length 1.9092 mm",
+          "pos": [
+            151.65,
+            120.15
+          ],
+          "uuid": "da6d469b-4d25-4869-9eb4-e8f73b7d4e27"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        97.5,
+        84.39
+      ],
+      "layer": "F.Cu",
+      "net": "/drivers/VCC3",
+      "refs": [
+        "U361"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 10 [/drivers/VCC3] of U361 on F.Cu",
+          "pos": [
+            97.5,
+            84.39
+          ],
+          "uuid": "3811b039-adaf-4f02-b003-829f2d985997"
+        },
+        {
+          "msg": "Track [/drivers/VCC3] on F.Cu, length 0.5500 mm",
+          "pos": [
+            95.2,
+            88.05
+          ],
+          "uuid": "821958af-6b6e-46be-bee4-786282823d1f"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        98.0,
+        88.61
+      ],
+      "layer": "F.Cu",
+      "net": "/drivers/VCC3",
+      "refs": [
+        "U361"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 2 [/drivers/VCC3] of U361 on F.Cu",
+          "pos": [
+            98.0,
+            88.61
+          ],
+          "uuid": "8c0d0991-e631-4c14-b36a-a4aa59e34314"
+        },
+        {
+          "msg": "Track [/drivers/VCC3] on F.Cu, length 1.0607 mm",
+          "pos": [
+            95.95,
+            88.8
+          ],
+          "uuid": "093dce16-68d4-4ee5-add5-749d8e3043b1"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        97.5,
+        88.61
+      ],
+      "layer": "F.Cu",
+      "net": "/drivers/COFF3",
+      "refs": [
+        "U361"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 1 [/drivers/COFF3] of U361 on F.Cu",
+          "pos": [
+            97.5,
+            88.61
+          ],
+          "uuid": "91da6387-0332-4e00-aab2-8c97dfc05da3"
+        },
+        {
+          "msg": "Track [/drivers/COFF3] on F.Cu, length 0.5500 mm",
+          "pos": [
+            96.9,
+            91.5
+          ],
+          "uuid": "593d0ec3-d8ee-45fa-9fa8-f40f008602ca"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        136.75,
+        128.25
+      ],
+      "layer": "F.Cu",
+      "net": "/FAULT",
+      "refs": [
+        "R207",
+        "U201"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 1 [/FAULT] of R207 on F.Cu",
+          "pos": [
+            136.75,
+            128.25
+          ],
+          "uuid": "4f6761c3-a7ce-4209-9623-65ce8a6ab637"
+        },
+        {
+          "msg": "Pad 2 [/FAULT] of U201 on F.Cu",
+          "pos": [
+            133.75,
+            127.8
+          ],
+          "uuid": "a3bb13bb-379e-40d9-b109-40c7bb27633e"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        147.95,
+        118.7
+      ],
+      "layer": "F.Cu",
+      "net": "/FAULT",
+      "refs": [
+        "U401"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 1 [/FAULT] of U401 on F.Cu",
+          "pos": [
+            147.95,
+            118.7
+          ],
+          "uuid": "533b859b-c2a4-499f-a756-40a0a672ecd2"
+        },
+        {
+          "msg": "Pad 2 [/FAULT] of U401 on F.Cu",
+          "pos": [
+            147.3,
+            118.7
+          ],
+          "uuid": "9f38ba3a-2f82-4490-baa1-6fe25f10e2d8"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        147.95,
+        124.3
+      ],
+      "layer": "F.Cu",
+      "net": "/FAULT",
+      "refs": [
+        "U401"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 14 [/FAULT] of U401 on F.Cu",
+          "pos": [
+            147.95,
+            124.3
+          ],
+          "uuid": "9f8e581b-e679-4c3d-8e8a-9656301cf545"
+        },
+        {
+          "msg": "Pad 13 [/FAULT] of U401 on F.Cu",
+          "pos": [
+            147.3,
+            124.3
+          ],
+          "uuid": "b2b4855a-0be8-4c46-8ce7-ff2783e2f9b0"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        145.35,
+        118.7
+      ],
+      "layer": "F.Cu",
+      "net": "/thermal/VREF_OPEN",
+      "refs": [
+        "U401"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 5 [/thermal/VREF_OPEN] of U401 on F.Cu",
+          "pos": [
+            145.35,
+            118.7
+          ],
+          "uuid": "342371d3-64db-4a4c-b07b-b28de95f41e9"
+        },
+        {
+          "msg": "Track [/thermal/VREF_OPEN] on F.Cu, length 0.5500 mm",
+          "pos": [
+            151.4,
+            117.05
+          ],
+          "uuid": "f2bb4d85-4e2d-49c3-b490-9d282a94af06"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        144.375,
+        131.325
+      ],
+      "layer": "F.Cu",
+      "net": "/thermal/CMP_LED",
+      "refs": [],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Track [/thermal/CMP_LED] on F.Cu, length 0.9546 mm",
+          "pos": [
+            144.375,
+            131.325
+          ],
+          "uuid": "93161a28-ad43-484c-a062-7ab83ecd7596"
+        },
+        {
+          "msg": "Track [/thermal/CMP_LED] on F.Cu, length 0.0750 mm",
+          "pos": [
+            144.65,
+            131.425
+          ],
+          "uuid": "fcd7c962-6c4b-42dd-93fa-8ccac595b556"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        145.7,
+        119.375
+      ],
+      "layer": "B.Cu",
+      "net": "/thermal/CMP_LED",
+      "refs": [
+        "U401"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Track [/thermal/CMP_LED] on B.Cu, length 3.6770 mm",
+          "pos": [
+            145.7,
+            119.375
+          ],
+          "uuid": "a9d6c4e3-4ef9-4ef8-a49f-c9242e9e8a8e"
+        },
+        {
+          "msg": "Pad 7 [/thermal/CMP_LED] of U401 on F.Cu",
+          "pos": [
+            144.05,
+            118.7
+          ],
+          "uuid": "ffeb6c51-f913-4c87-89a2-9f63a5f5d4da"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        146.0,
+        118.7
+      ],
+      "layer": "F.Cu",
+      "net": "/thermal/CMP_LED",
+      "refs": [
+        "U401"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 4 [/thermal/CMP_LED] of U401 on F.Cu",
+          "pos": [
+            146.0,
+            118.7
+          ],
+          "uuid": "aa2f9913-9c8b-4369-afbc-d01db695baf8"
+        },
+        {
+          "msg": "Track [/thermal/CMP_LED] on B.Cu, length 0.5250 mm",
+          "pos": [
+            146.225,
+            119.375
+          ],
+          "uuid": "261baad3-313f-447d-897e-63c4dec69390"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        147.5,
+        120.45
+      ],
+      "layer": "B.Cu",
+      "net": "/thermal/CMP_LED",
+      "refs": [],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Track [/thermal/CMP_LED] on B.Cu, length 0.0750 mm",
+          "pos": [
+            147.5,
+            120.45
+          ],
+          "uuid": "92c23cc9-36fa-49cb-a067-26bf68bf62a5"
+        },
+        {
+          "msg": "Track [/thermal/CMP_LED] on B.Cu, length 0.0707 mm",
+          "pos": [
+            147.225,
+            120.35
+          ],
+          "uuid": "0252dc5c-bb19-42f7-8134-dc1f3b87d990"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        147.5,
+        120.45
+      ],
+      "layer": "B.Cu",
+      "net": "/thermal/CMP_LED",
+      "refs": [
+        "U401"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Track [/thermal/CMP_LED] on B.Cu, length 0.0750 mm",
+          "pos": [
+            147.5,
+            120.45
+          ],
+          "uuid": "92c23cc9-36fa-49cb-a067-26bf68bf62a5"
+        },
+        {
+          "msg": "Pad 11 [/thermal/CMP_LED] of U401 on F.Cu",
+          "pos": [
+            146.0,
+            124.3
+          ],
+          "uuid": "189794f2-9874-46ac-b8ef-d85ca5ffb467"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        149.65,
+        120.975
+      ],
+      "layer": "B.Cu",
+      "net": "/thermal/CMP_LED",
+      "refs": [],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Track [/thermal/CMP_LED] on B.Cu, length 0.0707 mm",
+          "pos": [
+            149.65,
+            120.975
+          ],
+          "uuid": "cbf4f0f2-c58d-46b1-a6c5-41f4f2da531c"
+        },
+        {
+          "msg": "Track [/thermal/CMP_LED] on B.Cu, length 0.0750 mm",
+          "pos": [
+            149.75,
+            121.25
+          ],
+          "uuid": "0c8c1039-22c5-4d9e-9668-b0fdcb7884a9"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        121.0,
+        112.61
+      ],
+      "layer": "F.Cu",
+      "net": "/drivers/COFF2",
+      "refs": [
+        "U341"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 1 [/drivers/COFF2] of U341 on F.Cu",
+          "pos": [
+            121.0,
+            112.61
+          ],
+          "uuid": "fc795e2d-53b6-4fbb-bed2-77f3f2e4b9bc"
+        },
+        {
+          "msg": "Track [/drivers/COFF2] on F.Cu, length 0.5500 mm",
+          "pos": [
+            120.4,
+            115.5
+          ],
+          "uuid": "26a5b147-022c-4c88-bd36-f6df79e5b677"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        95.95,
+        115.1
+      ],
+      "layer": "In1.Cu",
+      "net": "/drivers/VCC0",
+      "refs": [
+        "U301"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Track [/drivers/VCC0] on In1.Cu, length 1.5500 mm",
+          "pos": [
+            95.95,
+            115.1
+          ],
+          "uuid": "7d6fa0d8-3dde-4971-9b9d-06383dbd1b7e"
+        },
+        {
+          "msg": "Pad 2 [/drivers/VCC0] of U301 on F.Cu",
+          "pos": [
+            98.0,
+            112.61
+          ],
+          "uuid": "4df535ee-379f-4bd3-bd6b-033830c488ac"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        97.5,
+        108.39
+      ],
+      "layer": "F.Cu",
+      "net": "/drivers/VCC0",
+      "refs": [
+        "U301"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 10 [/drivers/VCC0] of U301 on F.Cu",
+          "pos": [
+            97.5,
+            108.39
+          ],
+          "uuid": "79a915ad-1554-4082-a474-b6c207bf3ad9"
+        },
+        {
+          "msg": "Track [/drivers/VCC0] on F.Cu, length 1.3000 mm",
+          "pos": [
+            95.2,
+            112.8
+          ],
+          "uuid": "7f078cd7-9d8d-4770-a27a-2089fc0953e9"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        97.5,
+        112.61
+      ],
+      "layer": "F.Cu",
+      "net": "/drivers/COFF0",
+      "refs": [
+        "U301"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 1 [/drivers/COFF0] of U301 on F.Cu",
+          "pos": [
+            97.5,
+            112.61
+          ],
+          "uuid": "00215518-3f65-47a8-b8cc-4d1311029be7"
+        },
+        {
+          "msg": "Track [/drivers/COFF0] on F.Cu, length 0.5500 mm",
+          "pos": [
+            96.9,
+            115.5
+          ],
+          "uuid": "bc26bddc-6a11-4074-bb9e-254a5b77d69e"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        99.0,
+        84.39
+      ],
+      "layer": "F.Cu",
+      "net": "/drivers/CSN3",
+      "refs": [
+        "U361"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 7 [/drivers/CSN3] of U361 on F.Cu",
+          "pos": [
+            99.0,
+            84.39
+          ],
+          "uuid": "d9f40de0-f74c-490a-aa89-7b0a1e759ce3"
+        },
+        {
+          "msg": "Pad 6 [/drivers/CSN3] of U361 on F.Cu",
+          "pos": [
+            99.5,
+            84.39
+          ],
+          "uuid": "38dbe457-5b26-4b9f-84f2-f75911fb405d"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        122.5,
+        84.39
+      ],
+      "layer": "F.Cu",
+      "net": "/drivers/CSN1",
+      "refs": [
+        "U321"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 7 [/drivers/CSN1] of U321 on F.Cu",
+          "pos": [
+            122.5,
+            84.39
+          ],
+          "uuid": "f4d742bb-4ed1-4274-ac09-75b0488145e4"
+        },
+        {
+          "msg": "Pad 6 [/drivers/CSN1] of U321 on F.Cu",
+          "pos": [
+            123.0,
+            84.39
+          ],
+          "uuid": "d32d526b-8e22-458d-b8bc-661dc0d229f2"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        121.0,
+        84.39
+      ],
+      "layer": "F.Cu",
+      "net": "/drivers/VCC1",
+      "refs": [
+        "C326",
+        "U321"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 10 [/drivers/VCC1] of U321 on F.Cu",
+          "pos": [
+            121.0,
+            84.39
+          ],
+          "uuid": "a28d3415-fbd6-4acf-b638-c2e8c52cdc0e"
+        },
+        {
+          "msg": "Pad 1 [/drivers/VCC1] of C326 on F.Cu",
+          "pos": [
+            118.7,
+            87.5
+          ],
+          "uuid": "6939a1a3-5c84-481a-98f7-a4a913446653"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        121.5,
+        88.61
+      ],
+      "layer": "F.Cu",
+      "net": "/drivers/VCC1",
+      "refs": [
+        "U321"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 2 [/drivers/VCC1] of U321 on F.Cu",
+          "pos": [
+            121.5,
+            88.61
+          ],
+          "uuid": "32a7b239-b940-4f59-8669-ed63d10c5102"
+        },
+        {
+          "msg": "Track [/drivers/VCC1] on B.Cu, length 2.2627 mm",
+          "pos": [
+            121.25,
+            90.3
+          ],
+          "uuid": "04fac6e6-4b09-432e-8f4f-c8acdf73e8e1"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        122.5,
+        108.39
+      ],
+      "layer": "F.Cu",
+      "net": "/drivers/CSN2",
+      "refs": [
+        "U341"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 7 [/drivers/CSN2] of U341 on F.Cu",
+          "pos": [
+            122.5,
+            108.39
+          ],
+          "uuid": "f20f1508-998f-478f-99be-59bc4fa5e07e"
+        },
+        {
+          "msg": "Pad 6 [/drivers/CSN2] of U341 on F.Cu",
+          "pos": [
+            123.0,
+            108.39
+          ],
+          "uuid": "47607d0b-8065-4448-aac3-00778bdd404e"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        99.0,
+        108.39
+      ],
+      "layer": "F.Cu",
+      "net": "/drivers/CSN0",
+      "refs": [
+        "U301"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 7 [/drivers/CSN0] of U301 on F.Cu",
+          "pos": [
+            99.0,
+            108.39
+          ],
+          "uuid": "93aabc5d-1823-40d9-b547-06dea708c0e4"
+        },
+        {
+          "msg": "Pad 6 [/drivers/CSN0] of U301 on F.Cu",
+          "pos": [
+            99.5,
+            108.39
+          ],
+          "uuid": "e225193e-9c7f-46fa-a69d-e2ec435d6fd4"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        99.5,
+        88.61
+      ],
+      "layer": "F.Cu",
+      "net": "/drivers/SW3",
+      "refs": [
+        "U361"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 5 [/drivers/SW3] of U361 on F.Cu",
+          "pos": [
+            99.5,
+            88.61
+          ],
+          "uuid": "94734f54-4cd8-462a-a763-2341babc88c7"
+        },
+        {
+          "msg": "Track [/drivers/SW3] on F.Cu, length 2.4500 mm",
+          "pos": [
+            102.4,
+            90.95
+          ],
+          "uuid": "38b29b10-9315-49b1-bc3b-9f204ab44711"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        122.5,
+        88.61
+      ],
+      "layer": "F.Cu",
+      "net": "/drivers/BOOT1",
+      "refs": [
+        "C325",
+        "U321"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 4 [/drivers/BOOT1] of U321 on F.Cu",
+          "pos": [
+            122.5,
+            88.61
+          ],
+          "uuid": "0b686a7d-a65c-4e85-927a-a7bd8a180586"
+        },
+        {
+          "msg": "Pad 1 [/drivers/BOOT1] of C325 on F.Cu",
+          "pos": [
+            122.05,
+            90.95
+          ],
+          "uuid": "62d485f8-ee01-44e3-8283-6a88d36cb09e"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        144.7,
+        124.3
+      ],
+      "layer": "F.Cu",
+      "net": "/thermal/CMP_BRD",
+      "refs": [
+        "U401"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 9 [/thermal/CMP_BRD] of U401 on F.Cu",
+          "pos": [
+            144.7,
+            124.3
+          ],
+          "uuid": "e58482e3-8d92-45a0-85df-53370ca7abce"
+        },
+        {
+          "msg": "Track [/thermal/CMP_BRD] on B.Cu, length 3.5002 mm",
+          "pos": [
+            139.525,
+            122.425
+          ],
+          "uuid": "75d0b398-d10f-434d-9732-680b32da7d95"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        99.0,
+        88.61
+      ],
+      "layer": "F.Cu",
+      "net": "/drivers/BOOT3",
+      "refs": [
+        "C365",
+        "U361"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 4 [/drivers/BOOT3] of U361 on F.Cu",
+          "pos": [
+            99.0,
+            88.61
+          ],
+          "uuid": "055b78ac-896c-4c09-a6ef-27413b45dae7"
+        },
+        {
+          "msg": "Pad 1 [/drivers/BOOT3] of C365 on F.Cu",
+          "pos": [
+            98.55,
+            90.95
+          ],
+          "uuid": "177f45db-ce96-4755-a0d7-c028d837f34a"
+        }
+      ]
+    }
+  ]
+}

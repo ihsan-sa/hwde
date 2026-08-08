@@ -1,0 +1,209 @@
+{
+ "script": "route_critical",
+ "status": "violations",
+ "board": "lumina-par.kicad_pcb",
+ "counts": {
+  "total": 1,
+  "by_severity": {
+   "error": 1
+  },
+  "by_source": {
+   "route_critical": 1
+  }
+ },
+ "violations": [
+  {
+   "check": "route_critical",
+   "severity": "error",
+   "pos": null,
+   "layer": null,
+   "net": "+3V3",
+   "refs": [],
+   "msg": "critical power net +3V3 failed to route: multipoint: 1 pad(s) unconnected",
+   "source": "route_critical",
+   "items": [
+    {
+     "msg": "critical power net +3V3 failed to route: multipoint: 1 pad(s) unconnected",
+     "pos": null
+    }
+   ],
+   "kind": "critical_route_failed",
+   "reason": "multipoint: 1 pad(s) unconnected",
+   "layers_used": [
+    "B.Cu",
+    "F.Cu"
+   ],
+   "static_share": 0.9972946034458209,
+   "iteration_retry": true
+  }
+ ],
+ "facts": {
+  "routed": [
+   {
+    "kind": "power",
+    "nets": [
+     "+12V"
+    ],
+    "plane_carried": true,
+    "current_a": 0.75,
+    "plane_layers": [
+     "In2.Cu"
+    ],
+    "note": "plane is the trunk; SMD pads stitched by stitch_vias, PTH pads via thermal spokes",
+    "width_normalization": {
+     "widened": 0,
+     "crumbs_removed": 0
+    }
+   },
+   {
+    "kind": "power",
+    "nets": [
+     "+48V_SW"
+    ],
+    "current_a": 0.25,
+    "width_mm": 0.3,
+    "ipc_min_mm": 0.125,
+    "neckdown": true,
+    "layers_used": [
+     "B.Cu",
+     "F.Cu"
+    ],
+    "krt": {
+     "successful": 0,
+     "failed": 1,
+     "multipoint_pads_connected": 20,
+     "multipoint_pads_total": 21,
+     "total_vias": 1,
+     "total_time": 0.25
+    },
+    "krt_retry": {
+     "nets": [
+      "+3V3"
+     ],
+     "static_share": 0.9972946034458209,
+     "max_iterations": 4000000,
+     "kept": true
+    }
+   },
+   {
+    "kind": "power",
+    "nets": [
+     "/LED0_A"
+    ],
+    "current_a": 0.3,
+    "width_mm": 0.3,
+    "ipc_min_mm": 0.15,
+    "neckdown": true,
+    "layers_used": [
+     "B.Cu",
+     "F.Cu"
+    ],
+    "krt": {
+     "successful": 0,
+     "failed": 1,
+     "multipoint_pads_connected": 20,
+     "multipoint_pads_total": 21,
+     "total_vias": 1,
+     "total_time": 0.25
+    }
+   },
+   {
+    "kind": "power",
+    "nets": [
+     "/LED1_A"
+    ],
+    "current_a": 0.3,
+    "width_mm": 0.3,
+    "ipc_min_mm": 0.15,
+    "neckdown": true,
+    "layers_used": [
+     "B.Cu",
+     "F.Cu"
+    ],
+    "krt": {
+     "successful": 0,
+     "failed": 1,
+     "multipoint_pads_connected": 20,
+     "multipoint_pads_total": 21,
+     "total_vias": 1,
+     "total_time": 0.25
+    }
+   },
+   {
+    "kind": "power",
+    "nets": [
+     "/LED2_A"
+    ],
+    "current_a": 0.3,
+    "width_mm": 0.3,
+    "ipc_min_mm": 0.15,
+    "neckdown": true,
+    "layers_used": [
+     "B.Cu",
+     "F.Cu"
+    ],
+    "krt": {
+     "successful": 0,
+     "failed": 1,
+     "multipoint_pads_connected": 20,
+     "multipoint_pads_total": 21,
+     "total_vias": 1,
+     "total_time": 0.25
+    }
+   },
+   {
+    "kind": "power",
+    "nets": [
+     "/LED3_A"
+    ],
+    "current_a": 0.3,
+    "width_mm": 0.3,
+    "ipc_min_mm": 0.15,
+    "neckdown": true,
+    "layers_used": [
+     "F.Cu"
+    ],
+    "krt": {
+     "successful": 0,
+     "failed": 1,
+     "multipoint_pads_connected": 20,
+     "multipoint_pads_total": 21,
+     "total_vias": 1,
+     "total_time": 0.25
+    }
+   }
+  ],
+  "skipped": [],
+  "drc_delta": {
+   "before": {
+    "unconnected_items": 324
+   },
+   "after": {
+    "unconnected_items": 283
+   },
+   "new": {},
+   "new_warnings": {}
+  },
+  "diffpair_check": "pass",
+  "diffpair_facts": [],
+  "floors": {
+   "clearance": 0.635,
+   "track_width": 0.1016,
+   "via_diameter": 0.45,
+   "via_drill": 0.2,
+   "edge_clearance": 0.3
+  },
+  "net_clearances": {
+   "+12V": 0.2,
+   "+3V3": 0.1016,
+   "+48V_SW": 0.635,
+   "/LED0_A": 0.1016,
+   "/LED1_A": 0.1016,
+   "/LED2_A": 0.1016,
+   "/LED3_A": 0.1016,
+   "/power/V48_B": 0.635
+  },
+  "board_updated": true,
+  "work_dir": "C:\\dev\\ai-ee3\\boards\\lumina-par\\route\\critical"
+ }
+}

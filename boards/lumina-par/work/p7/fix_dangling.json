@@ -1,0 +1,14 @@
+{
+ "version": 1,
+ "_note": "Remove two orphan spur tracks flagged track_dangling. Each has one free end and leads nowhere: the +3V3 stub hangs off the analog-cluster network and /control/PWM1 is otherwise fully connected, so neither carries a connection. They fail the drc_routed gate, which counts warnings.",
+ "ops": [
+  {
+   "op": "remove",
+   "uuid": "0546a15e-6546-48d6-807e-510204f84d59"
+  },
+  {
+   "op": "remove",
+   "uuid": "0c12434b-08e5-4507-a90a-65dfcfa965f8"
+  }
+ ]
+}

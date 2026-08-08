@@ -1,0 +1,41 @@
+2026-08-07 20:30:53.456 INFO   Freerouting v2.2.4 (build-date: 2026-05-13)
+2026-08-07 20:30:55.095 WARN   DSN file 'lumina-par.dsn' was loaded with 2 warning(s).
+2026-08-07 20:30:55.278 INFO   [F152D4\B6E735] Job 'F152D4\B6E735' started at 2026-08-08T03:30:55.278960400Z.
+2026-08-07 20:30:55.338 INFO   New version available: v2.3.0
+2026-08-07 20:30:55.885 ERROR  Error during routing passes
+java.lang.NullPointerException: Cannot load from object array because "to_trace_entries" is null
+	at app.freerouting.board.ShapeSearchTree.merge_entries_in_front(ShapeSearchTree.java:175)
+	at app.freerouting.board.SearchTreeManager.merge_entries_in_front(SearchTreeManager.java:245)
+	at app.freerouting.board.PolylineTrace.combine_at_start(PolylineTrace.java:289)
+	at app.freerouting.board.PolylineTrace.combine(PolylineTrace.java:175)
+	at app.freerouting.board.PolylineTrace.normalize(PolylineTrace.java:781)
+	at app.freerouting.board.PolylineTrace.normalize(PolylineTrace.java:735)
+	at app.freerouting.board.BasicBoard.normalize_traces(BasicBoard.java:830)
+	at app.freerouting.autoroute.InsertFoundConnectionAlgo.get_instance(InsertFoundConnectionAlgo.java:87)
+	at app.freerouting.autoroute.AutorouteEngine.autoroute_connection(AutorouteEngine.java:241)
+	at app.freerouting.autoroute.BatchAutorouter.autoroute_item(BatchAutorouter.java:1104)
+	at app.freerouting.autoroute.BatchAutorouter.autoroute_pass(BatchAutorouter.java:451)
+	at app.freerouting.autoroute.BatchAutorouter.runBatchLoop(BatchAutorouter.java:744)
+	at app.freerouting.management.RoutingJobSchedulerActionThread.thread_action(RoutingJobSchedulerActionThread.java:114)
+	at app.freerouting.core.StoppableThread.run(StoppableThread.java:22)
+2026-08-07 20:31:14.817 INFO   [F152D4\B6E735] Auto-router pass #1 on board '0c9a709483c036b200abf45a5f044c65' was completed in 19.29 seconds with the score of 677.20 (348 unrouted), using 18.64 CPU seconds and the job allocated 12.80 GB of memory so far.
+2026-08-07 20:31:35.674 INFO   [F152D4\B6E735] Auto-router pass #2 on board '1c2037786a86116384b49670ac81f4a2' was completed in 20.82 seconds with the score of 677.20 (348 unrouted), using 39.34 CPU seconds and the job allocated 29.56 GB of memory so far.
+2026-08-07 20:31:35.682 INFO   [F152D4\B6E735] Board state has not changed since pass #2 (hash 1c2037786a86116384b49670ac81f4a2). The auto-router cannot make further progress; stopping.
+2026-08-07 20:31:35.849 INFO   [F152D4\B6E735] Auto-router session completed: started with 297 unrouted nets, completed in 40.46 seconds, final score: 723.73 (297 unrouted), using 39.34 total CPU seconds, 29.56 GB total allocated, and 580.33 MB peak heap usage.
+
+2026-08-07 20:30:55.885 ERROR  Error during routing passes
+java.lang.NullPointerException: Cannot load from object array because "to_trace_entries" is null
+	at app.freerouting.board.ShapeSearchTree.merge_entries_in_front(ShapeSearchTree.java:175)
+	at app.freerouting.board.SearchTreeManager.merge_entries_in_front(SearchTreeManager.java:245)
+	at app.freerouting.board.PolylineTrace.combine_at_start(PolylineTrace.java:289)
+	at app.freerouting.board.PolylineTrace.combine(PolylineTrace.java:175)
+	at app.freerouting.board.PolylineTrace.normalize(PolylineTrace.java:781)
+	at app.freerouting.board.PolylineTrace.normalize(PolylineTrace.java:735)
+	at app.freerouting.board.BasicBoard.normalize_traces(BasicBoard.java:830)
+	at app.freerouting.autoroute.InsertFoundConnectionAlgo.get_instance(InsertFoundConnectionAlgo.java:87)
+	at app.freerouting.autoroute.AutorouteEngine.autoroute_connection(AutorouteEngine.java:241)
+	at app.freerouting.autoroute.BatchAutorouter.autoroute_item(BatchAutorouter.java:1104)
+	at app.freerouting.autoroute.BatchAutorouter.autoroute_pass(BatchAutorouter.java:451)
+	at app.freerouting.autoroute.BatchAutorouter.runBatchLoop(BatchAutorouter.java:744)
+	at app.freerouting.management.RoutingJobSchedulerActionThread.thread_action(RoutingJobSchedulerActionThread.java:114)
+	at app.freerouting.core.StoppableThread.run(StoppableThread.java:22)

@@ -400,5 +400,6 @@
    ]
   }
  ],
- "_coordinate_frame": "pcb_absolute - translated from ICD board-local (top-left origin) by (+54.937, +57.192) at P5 per stackup.md TRAP 2. board_init does NOT put the outline at the PCB origin. architecture/constraints.json remains in board-local and is the source of truth; do NOT re-apply this translation."
+ "_coordinate_frame": "pcb_absolute - translated from ICD board-local (top-left origin) by (+54.937, +57.192) at P5 per stackup.md TRAP 2. board_init does NOT put the outline at the PCB origin. architecture/constraints.json remains in board-local and is the source of truth; do NOT re-apply this translation.",
+ "_comment_in2_shrink": "In2.Cu +12V pour: a P7 shrink to x=76 board-local was ATTEMPTED and ABANDONED. Rationale was sound (+12V's last load is at x=70.1 while the pour ran to x=88, and the board was short of routing layers) but planes_gen reported the zone as status:existing / zones_added:0 and did NOT resize the existing polygon - so the change never reached the board, and the orchestrator's claim that ~900 mm2 was freed was WRONG. The last-mile router caught the discrepancy by hashing the board against the pre-shrink snapshot. It then closed all 8 remaining connections WITHOUT the extra layer, so the shrink is not needed. Constraints are reverted to x=88 to MATCH THE BOARD - a divergence here would make check_pdn_z at P8 model a plane that does not exist. Note for anyone trying this later: planes_gen will not resize an existing zone."
 }

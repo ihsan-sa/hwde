@@ -3,8 +3,8 @@
  "board": "lumina-par",
  "workspace": "boards/lumina-par",
  "created": "2026-07-28T15:00:15",
- "updated": "2026-08-07T20:07:58",
- "phase": "P6",
+ "updated": "2026-08-07T22:46:04",
+ "phase": "P7",
  "gates": {
   "erc": {
    "phase": "P4",
@@ -71,6 +71,37 @@
      }
     }
    ]
+  },
+  "drc_routed": {
+   "phase": "P7",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-08-07T22:45:28",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0,
+    "inputs": {
+     "pcb": "sexpr_no_uuid:5666f43779e1b7e3725ae37cbe8b6de1e050a617e336cc951ecfff8f1ae573dd",
+     "sch": "sexpr_no_uuid:24f2d062b65e2521b9163c2a3f36af34fb4b54b1407455ddbb2230cbc04c808a",
+     "pro": "json_canonical:a5e873455f1001dc48ebdb451a7984118e007fce24ca594748aed07fc7366928",
+     "dru": "text_eol:58e8e40bafb4ad0802d10f6e4a983db3be033cdd066c35ccbd0f2ade2ccced9d"
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-07T22:45:28",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:5666f43779e1b7e3725ae37cbe8b6de1e050a617e336cc951ecfff8f1ae573dd",
+      "sch": "sexpr_no_uuid:24f2d062b65e2521b9163c2a3f36af34fb4b54b1407455ddbb2230cbc04c808a",
+      "pro": "json_canonical:a5e873455f1001dc48ebdb451a7984118e007fce24ca594748aed07fc7366928",
+      "dru": "text_eol:58e8e40bafb4ad0802d10f6e4a983db3be033cdd066c35ccbd0f2ade2ccced9d"
+     }
+    }
+   ]
   }
  },
  "human": {
@@ -83,26 +114,31 @@
    "status": "approved",
    "ts": "2026-08-07T13:23:55",
    "note": "H2 approved 2026-08-07 with 3 directed decisions: (1) proceed to P5; (2) ACCEPT the 8.6 K emitter-hot band - trip is exact at 89.9 C and only the release sits high, and widening trades against the emitter-open margin that catches a broken harness; R207 100k->10k explicitly NOT taken, its justification having been removed by the thermal rework; (3) re-derive the optical budget NOW, before P5, because the diffuser was specced against a 140/120 deg delta that OPEN-8 proved does not exist."
+  },
+  "3": {
+   "status": "skipped",
+   "ts": "2026-08-07T20:09:42",
+   "note": "H3 is optional (default on). Renders (top/bottom + J5 face-on mating proof) delivered to the owner for review, but not blocked on: place gate 0/0, kc.py drc clean of everything but the expected unrouted nets, route probe 0.9971. Owner has twice asked for momentum over checkpoints; they can halt on the renders if anything looks wrong."
   }
  },
  "artifacts": {
   "sch": {
    "path": "kicad/lumina-par.kicad_sch",
    "kind": "sch",
-   "sha256": "sexpr_no_uuid:99be0558ad25dab22c55f7d4d54de08574cd93b59f35fa0cf594a3d8e66c0e83",
-   "hashed": "2026-08-07T13:18:16"
+   "sha256": "sexpr_no_uuid:24f2d062b65e2521b9163c2a3f36af34fb4b54b1407455ddbb2230cbc04c808a",
+   "hashed": "2026-08-07T22:45:29"
   },
   "pro": {
    "path": "kicad/lumina-par.kicad_pro",
    "kind": "pro",
-   "sha256": "json_canonical:6830e3a3b05e406140bb008f11bd24e5329bfca65c3924bb1642598804f43fbb",
-   "hashed": "2026-08-07T13:18:16"
+   "sha256": "json_canonical:a5e873455f1001dc48ebdb451a7984118e007fce24ca594748aed07fc7366928",
+   "hashed": "2026-08-07T22:45:29"
   },
   "pcb": {
    "path": "kicad/lumina-par.kicad_pcb",
    "kind": "pcb",
-   "sha256": "sexpr_no_uuid:5027fd035af335060dc10a7051ca797bfd24a2522e7d78c41fbc248bdf7cbfe0",
-   "hashed": "2026-08-07T20:05:19"
+   "sha256": "sexpr_no_uuid:5666f43779e1b7e3725ae37cbe8b6de1e050a617e336cc951ecfff8f1ae573dd",
+   "hashed": "2026-08-07T22:45:29"
   },
   "constraints": {
    "path": "kicad/constraints.json",
@@ -115,6 +151,12 @@
    "kind": "decoupling",
    "sha256": "json_canonical:45abce9be400fc8f5bf060329beecfdbaa2b4b334d98cdfc5fd84d76b099d6e6",
    "hashed": "2026-08-07T20:05:19"
+  },
+  "dru": {
+   "path": "kicad/lumina-par.kicad_dru",
+   "kind": "dru",
+   "sha256": "text_eol:58e8e40bafb4ad0802d10f6e4a983db3be033cdd066c35ccbd0f2ade2ccced9d",
+   "hashed": "2026-08-07T22:45:29"
   }
  },
  "open_issues": [
@@ -150,7 +192,7 @@
   "fix_loops": {
    "erc": 2,
    "place": 3,
-   "drc_routed": 3,
+   "drc_routed": 2,
    "verify": 3,
    "dfm": 3
   },
@@ -1290,6 +1332,119 @@
    "channel_template_is_not_reproducible": "the four channel interiors are a HAND-BUILT template, not a solver output. Re-running place_seed.py or place_anneal.py will SILENTLY overwrite all of it and lose every loop-geometry gain above. Anyone resuming at P6 must know this before touching either script.",
    "refdes_debt": "R408s refdes sits 11.6 mm from its part; 35 of 155 exceed 3 mm, median 0.85 mm. That is the price paid for silk-clean DRC - a human may prefer a warning to a label that points at nothing.",
    "antenna_edge": "the analog cluster sits 0.26 mm below the antenna keepout (no copper on any layer, and unchecked by any gate). P7 has almost no routing room on that edge."
+  },
+  {
+   "ts": "2026-08-07T20:09:42",
+   "event": "human",
+   "checkpoint": "3",
+   "status": "skipped"
+  },
+  {
+   "ts": "2026-08-07T20:09:42",
+   "event": "snapshot",
+   "label": "pre-p7-route",
+   "files": 3
+  },
+  {
+   "ts": "2026-08-07T20:09:42",
+   "event": "phase",
+   "phase": "P7",
+   "prev": "P6"
+  },
+  {
+   "ts": "2026-08-07T20:10:40",
+   "event": "spawn",
+   "role": "router",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-07T20:24:25",
+   "event": "snapshot",
+   "label": "p7-planes-done",
+   "files": 5
+  },
+  {
+   "ts": "2026-08-07T21:03:31",
+   "event": "snapshot",
+   "label": "p7-krt-45unconn",
+   "files": 5
+  },
+  {
+   "ts": "2026-08-07T21:29:22",
+   "event": "restore",
+   "label": "p7-planes-done",
+   "files": 5
+  },
+  {
+   "ts": "2026-08-07T21:35:25",
+   "event": "snapshot",
+   "label": "p7-fr-32",
+   "files": 5
+  },
+  {
+   "ts": "2026-08-07T21:43:48",
+   "event": "snapshot",
+   "label": "p7-pre-lastmile",
+   "files": 5
+  },
+  {
+   "ts": "2026-08-07T21:54:41",
+   "event": "snapshot",
+   "label": "p7-pre-planerepair",
+   "files": 5
+  },
+  {
+   "ts": "2026-08-07T22:01:22",
+   "event": "budget",
+   "path": "fix_loops.drc_routed",
+   "remaining": 2
+  },
+  {
+   "ts": "2026-08-07T22:01:22",
+   "event": "snapshot",
+   "label": "pre-in2-shrink",
+   "files": 3
+  },
+  {
+   "ts": "2026-08-07T22:03:29",
+   "event": "spawn",
+   "role": "router",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-07T22:03:29",
+   "event": "p7_first_pass_and_in2_shrink",
+   "p7_first_pass": "324 unconnected -> 8. ZERO clearance, track-width, hole-to-hole, HV-creepage, parity or dangling violations. 1564 tracks / 2482 mm / 205 vias. drc_routed gate FAIL only on the 8 unconnected_items.",
+   "freerouting_defect": "Freerouting CANNOT PARSE this board once KRT copper is on it - all 3 rungs die at PolylineTrace.combine_at_start (NPE), 297 unrouted in / 297 out, and a later probe HUNG. This is the LEARNINGS 2026-07-23 wedge, but it exits 0 WITH parsed pass lines so route_auto detector (timed_out AND no passes) never fires. Consequence for this board class: route_critical must NOT precede route_auto.",
+   "my_premise_refuted": "I briefed the router that the P6 route probe of 0.9971 was the target and a big shortfall meant a regression. That was WRONG and the agent corrected it with evidence: the probe was measured BEFORE the planes existed. With In1/In2 poured, only F.Cu/B.Cu carry signals and FR on the SAME placement probes 0.689. Nothing regressed - my target was invalid.",
+   "root_cause": "short of routing LAYERS, not area: In1 GND plane + In2 +12V plane + B.Cu largely consumed by the two reverse-mounted THT sockets = effectively one free signal layer in the congested strip.",
+   "orchestrator_action": "measured the +12V geography - its last LOAD is at x=70.1 board-local while the In2 pour ran to x=88, so ~18 mm of plane carried nothing directly under the congested cluster (U201 78.8, U202 78.1, C402 84.4, R403 89.6, U401 91.1). Shrunk In2 to x=76 and re-poured: 5874 -> 4971 mm2, ~900 mm2 of inner layer freed for signal exactly where the 8 residuals are. In1/GND untouched so high_speed return paths are unaffected.",
+   "router_additions_worth_keeping": "it added two things nothing in the pipeline creates - the ICD s7.6 antenna keepout rule area on all 4 layers, and 8-via thermal arrays on the four drivers (8 is the GEOMETRIC max at the 0.5 mm hole-to-hole floor, not the 9 that constraints ask for; check_thermal need_vias is false at 0.15 W anyway). It also split the two 57 V nets into their own netclasses, since a DRU-only rule is invisible to FR/KRT - with V48_B capped at 0.500 because a netclass is pad-blind and C108 own pads sit 0.590 apart."
+  },
+  {
+   "ts": "2026-08-07T22:40:05",
+   "event": "snapshot",
+   "label": "p7-pre-lastmile-2",
+   "files": 5
+  },
+  {
+   "ts": "2026-08-07T22:45:29",
+   "event": "gate",
+   "gate": "drc_routed",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-07T22:46:04",
+   "event": "p7_routed_100pct",
+   "gate": "drc_routed PASS - 0 errors / 0 warnings at the strictest criteria (fail_severities error AND warning, max_count 0), independently re-run by the orchestrator. 100 pct routed, 0 unconnected. 1586 tracks / 212 vias.",
+   "last_mile": "all 8 closed in ONE atomic route_edit (29 ops: 22 tracks, 7 vias). GND U401.12 to the GND In2 spine; /EN_OK R216.1 via In2, U202.2+U202.13 through the TSSOP-14 UNDER-BODY channel at y=106.21 with no vias at all, U201.4 via In2->B.Cu->F.Cu; +3V3 R403.1 and /NTC_LED R403.2 onto In1; /ADC0 C402.1 through a 0.78 mm channel onto In2. Connections 5 and 8 cross, so they were deliberately put on different layers.",
+   "method_worth_keeping": "the agent built a shapely PRE-FLIGHT clearance checker and iterated the op list against it until clean BEFORE writing any copper - it caught 5 collisions that hand-geometry had missed, including /ADC0 being boxed in by three parallel 45-degree escape walls across In2 and B.Cu.",
+   "orchestrator_error_corrected": "I claimed the In2 shrink freed ~900 mm2 and briefed the router on that basis. FALSE. planes_gen reported status:existing / zones_added:0 and did NOT resize the existing zone; I misread its reported area_mm2 as a new poured area. The board was byte-identical to the pre-shrink snapshot. The agent caught it by hashing the board and reported it as the FIRST line of its result rather than routing around a premise it could not verify. Constraints have been reverted to x=88 to match the board.",
+   "second_brief_error": "I also guessed GND U401.12 would just need a via down to the plane. Wrong - BOTH zone polygons stop at x=142.937, so the whole board-local x>=88 strip has no inner pour at all. It had to reach the GND In2 spine.",
+   "p8_items": "two long DC sense runs (/NTC_LED ~10 mm on In1, /ADC0 ~13 mm on In2) and the /NTC_LED In1 leg cuts a ~10 mm slot in the GND plane - check_return_path should look, though both are DC thermistor/ADC lines. Tightest new clearance 0.133 mm vs the 0.1016 floor: legal and DRC-confirmed, but thin.",
+   "plane_repair": "no splits. +12V In2 5874.0 -> 5859.5 mm2, GND In1 5866.3 -> 5829.7 mm2. The 4 small unanchored GND islands are pre-existing, identical before and after."
   }
  ],
  "spawns": [
@@ -1428,6 +1583,22 @@
    "effort": "high",
    "phase": "P6",
    "note": "seed+anneal+repair; J3/J4/H5 pre-locked at carrier-confirmed mating geometry"
+  },
+  {
+   "ts": "2026-08-07T20:10:40",
+   "role": "router",
+   "model": "opus",
+   "effort": "high",
+   "phase": "P7",
+   "note": "4L chain; DRU hand edits + hand-built channel tiles + locked connectors all declared off-limits"
+  },
+  {
+   "ts": "2026-08-07T22:03:29",
+   "role": "router",
+   "model": "opus",
+   "effort": "high",
+   "phase": "P7",
+   "note": "last-mile: close final 8 with In2 freed as a signal layer at x>76"
   }
  ],
  "edits": []

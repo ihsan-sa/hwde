@@ -1,0 +1,5063 @@
+{
+ "script": "route_auto",
+ "status": "violations",
+ "board": "C:\\dev\\ai-ee3\\boards\\lumina-par\\kicad\\lumina-par.kicad_pcb",
+ "counts": {
+  "total": 187,
+  "by_severity": {
+   "error": 25,
+   "warning": 162
+  },
+  "by_source": {
+   "drc": 16,
+   "unconnected": 16,
+   "parity": 155
+  }
+ },
+ "violations": [
+  {
+   "check": "clearance",
+   "severity": "error",
+   "pos": [
+    61.0483,
+    87.9317
+   ],
+   "layer": "F.Cu",
+   "net": "/power/V48_B",
+   "refs": [
+    "C106"
+   ],
+   "msg": "Clearance violation (rule 'aiee_hv_57v_V48_B' clearance 0.6350 mm; actual 0.5170 mm)",
+   "source": "drc",
+   "items": [
+    {
+     "msg": "Track [/power/V48_B] on F.Cu, length 0.7531 mm",
+     "pos": [
+      61.0483,
+      87.9317
+     ],
+     "uuid": "240922b9-e385-48be-a040-de0913fc972e"
+    },
+    {
+     "msg": "Pad 2 [GND] of C106 on F.Cu",
+     "pos": [
+      63.0,
+      89.02
+     ],
+     "uuid": "6716bd47-ccb1-416d-aace-3cbea9f3c94c"
+    }
+   ]
+  },
+  {
+   "check": "clearance",
+   "severity": "error",
+   "pos": [
+    61.3508,
+    90.8308
+   ],
+   "layer": "F.Cu",
+   "net": "/power/V48_B",
+   "refs": [
+    "C107"
+   ],
+   "msg": "Clearance violation (rule 'aiee_hv_57v_V48_B' clearance 0.6350 mm; actual 0.5237 mm)",
+   "source": "drc",
+   "items": [
+    {
+     "msg": "Track [/power/V48_B] on F.Cu, length 0.4278 mm",
+     "pos": [
+      61.3508,
+      90.8308
+     ],
+     "uuid": "368e0a41-1ed4-4c75-937d-90ae37329b06"
+    },
+    {
+     "msg": "Pad 2 [GND] of C107 on F.Cu",
+     "pos": [
+      59.73,
+      92.25
+     ],
+     "uuid": "80829012-b5d0-4ad1-82ed-6a8a9ed48e8e"
+    }
+   ]
+  },
+  {
+   "check": "clearance",
+   "severity": "error",
+   "pos": [
+    63.0,
+    89.02
+   ],
+   "layer": "F.Cu",
+   "net": "GND",
+   "refs": [
+    "C106"
+   ],
+   "msg": "Clearance violation (rule 'aiee_hv_57v_V48_B' clearance 0.6350 mm; actual 0.5017 mm)",
+   "source": "drc",
+   "items": [
+    {
+     "msg": "Pad 2 [GND] of C106 on F.Cu",
+     "pos": [
+      63.0,
+      89.02
+     ],
+     "uuid": "6716bd47-ccb1-416d-aace-3cbea9f3c94c"
+    },
+    {
+     "msg": "Track [/power/V48_B] on F.Cu, length 2.5966 mm",
+     "pos": [
+      61.0483,
+      90.5283
+     ],
+     "uuid": "b5b98b05-5e50-456d-be69-02ca05dbfc85"
+    }
+   ]
+  },
+  {
+   "check": "clearance",
+   "severity": "error",
+   "pos": [
+    59.73,
+    92.25
+   ],
+   "layer": "F.Cu",
+   "net": "GND",
+   "refs": [
+    "C107"
+   ],
+   "msg": "Clearance violation (rule 'aiee_hv_57v_V48_B' clearance 0.6350 mm; actual 0.5237 mm)",
+   "source": "drc",
+   "items": [
+    {
+     "msg": "Pad 2 [GND] of C107 on F.Cu",
+     "pos": [
+      59.73,
+      92.25
+     ],
+     "uuid": "80829012-b5d0-4ad1-82ed-6a8a9ed48e8e"
+    },
+    {
+     "msg": "Track [/power/V48_B] on F.Cu, length 2.5966 mm",
+     "pos": [
+      61.0483,
+      90.5283
+     ],
+     "uuid": "b5b98b05-5e50-456d-be69-02ca05dbfc85"
+    }
+   ]
+  },
+  {
+   "check": "hole_to_hole",
+   "severity": "error",
+   "pos": [
+    138.697,
+    102.308
+   ],
+   "layer": "F.Cu",
+   "net": "GND",
+   "refs": [],
+   "msg": "Drilled hole too close to other hole (rule 'aiee_hole_to_hole_floor' min 0.4995 mm; actual 0.3997 mm)",
+   "source": "drc",
+   "items": [
+    {
+     "msg": "Via [GND] on F.Cu - B.Cu",
+     "pos": [
+      138.697,
+      102.308
+     ],
+     "uuid": "76d9ffa8-4ab2-421d-b9b3-0dbc4a1af258"
+    },
+    {
+     "msg": "Via [/control/PWM2] on F.Cu - B.Cu",
+     "pos": [
+      138.0479,
+      102.3362
+     ],
+     "uuid": "de70a25c-c803-4ff4-8aea-573b31b359c0"
+    }
+   ]
+  },
+  {
+   "check": "track_width",
+   "severity": "error",
+   "pos": [
+    98.5,
+    83.2435
+   ],
+   "layer": "F.Cu",
+   "net": "+12V",
+   "refs": [],
+   "msg": "Track width (rule 'aiee_pwr_width_12V' min width 0.3750 mm; actual 0.2798 mm)",
+   "source": "drc",
+   "items": [
+    {
+     "msg": "Track [+12V] on F.Cu, length 1.1465 mm",
+     "pos": [
+      98.5,
+      83.2435
+     ],
+     "uuid": "1cdc70ce-a30a-4572-b888-8e6861e42190"
+    }
+   ]
+  },
+  {
+   "check": "track_width",
+   "severity": "error",
+   "pos": [
+    98.5,
+    107.2435
+   ],
+   "layer": "F.Cu",
+   "net": "+12V",
+   "refs": [],
+   "msg": "Track width (rule 'aiee_pwr_width_12V' min width 0.3750 mm; actual 0.2798 mm)",
+   "source": "drc",
+   "items": [
+    {
+     "msg": "Track [+12V] on F.Cu, length 1.1465 mm",
+     "pos": [
+      98.5,
+      107.2435
+     ],
+     "uuid": "33e33564-2a81-49b0-8cd7-e0f76111706c"
+    }
+   ]
+  },
+  {
+   "check": "track_width",
+   "severity": "error",
+   "pos": [
+    122.0,
+    83.2435
+   ],
+   "layer": "F.Cu",
+   "net": "+12V",
+   "refs": [],
+   "msg": "Track width (rule 'aiee_pwr_width_12V' min width 0.3750 mm; actual 0.2798 mm)",
+   "source": "drc",
+   "items": [
+    {
+     "msg": "Track [+12V] on F.Cu, length 1.1465 mm",
+     "pos": [
+      122.0,
+      83.2435
+     ],
+     "uuid": "a02797fa-cbe6-4077-a300-3575bcc53bcf"
+    }
+   ]
+  },
+  {
+   "check": "track_width",
+   "severity": "error",
+   "pos": [
+    122.0,
+    107.2435
+   ],
+   "layer": "F.Cu",
+   "net": "+12V",
+   "refs": [],
+   "msg": "Track width (rule 'aiee_pwr_width_12V' min width 0.3750 mm; actual 0.2798 mm)",
+   "source": "drc",
+   "items": [
+    {
+     "msg": "Track [+12V] on F.Cu, length 1.1465 mm",
+     "pos": [
+      122.0,
+      107.2435
+     ],
+     "uuid": "b20fbb7b-8547-4bc5-925c-913167a0f568"
+    }
+   ]
+  },
+  {
+   "check": "track_dangling",
+   "severity": "warning",
+   "pos": [
+    129.1577,
+    112.7631
+   ],
+   "layer": "F.Cu",
+   "net": "GND",
+   "refs": [],
+   "msg": "Track has unconnected end",
+   "source": "drc",
+   "items": [
+    {
+     "msg": "Track [GND] on F.Cu, length 0.2031 mm",
+     "pos": [
+      129.1577,
+      112.7631
+     ],
+     "uuid": "e2f695f4-71b9-4e67-bb57-e00994d9d0f0"
+    }
+   ]
+  },
+  {
+   "check": "via_dangling",
+   "severity": "warning",
+   "pos": [
+    118.0427,
+    71.2533
+   ],
+   "layer": "F.Cu",
+   "net": "/LED0_A",
+   "refs": [],
+   "msg": "Via is not connected or connected on only one layer",
+   "source": "drc",
+   "items": [
+    {
+     "msg": "Via [/LED0_A] on F.Cu - B.Cu",
+     "pos": [
+      118.0427,
+      71.2533
+     ],
+     "uuid": "820dadc1-9a47-49b8-8adc-afbe387a7965"
+    }
+   ]
+  },
+  {
+   "check": "via_dangling",
+   "severity": "warning",
+   "pos": [
+    107.41,
+    118.6
+   ],
+   "layer": "F.Cu",
+   "net": "/LED0_A",
+   "refs": [],
+   "msg": "Via is not connected or connected on only one layer",
+   "source": "drc",
+   "items": [
+    {
+     "msg": "Via [/LED0_A] on F.Cu - B.Cu",
+     "pos": [
+      107.41,
+      118.6
+     ],
+     "uuid": "ae481c33-8d15-43a9-9518-fb5d2ac06ec5"
+    }
+   ]
+  },
+  {
+   "check": "track_dangling",
+   "severity": "warning",
+   "pos": [
+    118.5324,
+    120.9879
+   ],
+   "layer": "F.Cu",
+   "net": "/ADC0",
+   "refs": [],
+   "msg": "Track has unconnected end",
+   "source": "drc",
+   "items": [
+    {
+     "msg": "Track [/ADC0] on F.Cu, length 15.8854 mm",
+     "pos": [
+      118.5324,
+      120.9879
+     ],
+     "uuid": "70bac381-4977-4a99-afff-0589b2dc2410"
+    }
+   ]
+  },
+  {
+   "check": "track_dangling",
+   "severity": "warning",
+   "pos": [
+    139.0076,
+    119.9516
+   ],
+   "layer": "F.Cu",
+   "net": "/ADC0",
+   "refs": [],
+   "msg": "Track has unconnected end",
+   "source": "drc",
+   "items": [
+    {
+     "msg": "Track [/ADC0] on F.Cu, length 0.1885 mm",
+     "pos": [
+      139.0076,
+      119.9516
+     ],
+     "uuid": "8ac9b6cb-c840-47c1-bd92-c1b7d2d2cd84"
+    }
+   ]
+  },
+  {
+   "check": "track_dangling",
+   "severity": "warning",
+   "pos": [
+    135.6413,
+    120.9879
+   ],
+   "layer": "B.Cu",
+   "net": "/ADC0",
+   "refs": [],
+   "msg": "Track has unconnected end",
+   "source": "drc",
+   "items": [
+    {
+     "msg": "Track [/ADC0] on B.Cu, length 0.6514 mm",
+     "pos": [
+      135.6413,
+      120.9879
+     ],
+     "uuid": "d5e9681d-f92b-494c-b68a-0e631dfd1f12"
+    }
+   ]
+  },
+  {
+   "check": "track_dangling",
+   "severity": "warning",
+   "pos": [
+    125.032,
+    109.1657
+   ],
+   "layer": "B.Cu",
+   "net": "/control/PWM1",
+   "refs": [],
+   "msg": "Track has unconnected end",
+   "source": "drc",
+   "items": [
+    {
+     "msg": "Track [/control/PWM1] on B.Cu, length 0.9059 mm",
+     "pos": [
+      125.032,
+      109.1657
+     ],
+     "uuid": "0c12434b-08e5-4507-a90a-65dfcfa965f8"
+    }
+   ]
+  },
+  {
+   "check": "unconnected_items",
+   "severity": "error",
+   "pos": [
+    146.65,
+    124.3
+   ],
+   "layer": "F.Cu",
+   "net": "GND",
+   "refs": [
+    "U401"
+   ],
+   "msg": "Missing connection between items",
+   "source": "unconnected",
+   "items": [
+    {
+     "msg": "Pad 12 [GND] of U401 on F.Cu",
+     "pos": [
+      146.65,
+      124.3
+     ],
+     "uuid": "6d490178-7a8e-49ae-83a0-7737634abc5f"
+    },
+    {
+     "msg": "Track [GND] on In1.Cu, length 0.0707 mm",
+     "pos": [
+      139.7,
+      126.55
+     ],
+     "uuid": "165994b5-5e86-4f60-94d1-c51c84ff0ae4"
+    }
+   ]
+  },
+  {
+   "check": "unconnected_items",
+   "severity": "error",
+   "pos": [
+    94.95,
+    97.65
+   ],
+   "layer": "F.Cu",
+   "net": "/EN_OK",
+   "refs": [
+    "R217"
+   ],
+   "msg": "Missing connection between items",
+   "source": "unconnected",
+   "items": [
+    {
+     "msg": "Track [/EN_OK] on F.Cu, length 2.9698 mm",
+     "pos": [
+      94.95,
+      97.65
+     ],
+     "uuid": "05e41977-8b62-407d-ac78-d2304ed57b90"
+    },
+    {
+     "msg": "Pad 1 [/EN_OK] of R217 on F.Cu",
+     "pos": [
+      89.75,
+      90.5
+     ],
+     "uuid": "e175c8b0-76b6-462b-b576-d263e9fd6d37"
+    }
+   ]
+  },
+  {
+   "check": "unconnected_items",
+   "severity": "error",
+   "pos": [
+    111.75,
+    85.75
+   ],
+   "layer": "F.Cu",
+   "net": "/EN_OK",
+   "refs": [
+    "R216"
+   ],
+   "msg": "Missing connection between items",
+   "source": "unconnected",
+   "items": [
+    {
+     "msg": "Pad 1 [/EN_OK] of R216 on F.Cu",
+     "pos": [
+      111.75,
+      85.75
+     ],
+     "uuid": "f0f36587-c8bf-43df-a2a2-6f57d15b072e"
+    },
+    {
+     "msg": "Track [/EN_OK] on In2.Cu, length 3.4500 mm",
+     "pos": [
+      107.45,
+      88.6
+     ],
+     "uuid": "af416082-875f-4d53-89f1-16c8079d9e33"
+    }
+   ]
+  },
+  {
+   "check": "unconnected_items",
+   "severity": "error",
+   "pos": [
+    118.25,
+    98.5
+   ],
+   "layer": "F.Cu",
+   "net": "/EN_OK",
+   "refs": [
+    "R214"
+   ],
+   "msg": "Missing connection between items",
+   "source": "unconnected",
+   "items": [
+    {
+     "msg": "Pad 1 [/EN_OK] of R214 on F.Cu",
+     "pos": [
+      118.25,
+      98.5
+     ],
+     "uuid": "8a1c8fca-db24-4f30-a1f9-8ce2766a92a6"
+    },
+    {
+     "msg": "Track [/EN_OK] on In2.Cu, length 15.1321 mm",
+     "pos": [
+      122.8,
+      102.75
+     ],
+     "uuid": "0af91e78-f1b2-4427-9fff-163c4c79dad5"
+    }
+   ]
+  },
+  {
+   "check": "unconnected_items",
+   "severity": "error",
+   "pos": [
+    130.38,
+    106.21
+   ],
+   "layer": "F.Cu",
+   "net": "/EN_OK",
+   "refs": [
+    "U202"
+   ],
+   "msg": "Missing connection between items",
+   "source": "unconnected",
+   "items": [
+    {
+     "msg": "Pad 2 [/EN_OK] of U202 on F.Cu",
+     "pos": [
+      130.38,
+      106.21
+     ],
+     "uuid": "ff4a9a32-2846-4592-9ca2-64c901cb601b"
+    },
+    {
+     "msg": "Track [/EN_OK] on In2.Cu, length 0.0707 mm",
+     "pos": [
+      132.15,
+      108.3
+     ],
+     "uuid": "6d3eb674-3582-455c-af69-3de671efee46"
+    }
+   ]
+  },
+  {
+   "check": "unconnected_items",
+   "severity": "error",
+   "pos": [
+    130.38,
+    110.02
+   ],
+   "layer": "F.Cu",
+   "net": "/EN_OK",
+   "refs": [
+    "U202"
+   ],
+   "msg": "Missing connection between items",
+   "source": "unconnected",
+   "items": [
+    {
+     "msg": "Pad 5 [/EN_OK] of U202 on F.Cu",
+     "pos": [
+      130.38,
+      110.02
+     ],
+     "uuid": "dce70390-4422-4436-92d7-edb778e721d0"
+    },
+    {
+     "msg": "Track [/EN_OK] on In2.Cu, length 4.9000 mm",
+     "pos": [
+      132.1,
+      108.35
+     ],
+     "uuid": "780c8f43-9a52-410b-ae0c-95049c2475db"
+    }
+   ]
+  },
+  {
+   "check": "unconnected_items",
+   "severity": "error",
+   "pos": [
+    134.35,
+    110.0
+   ],
+   "layer": "F.Cu",
+   "net": "/EN_OK",
+   "refs": [
+    "U201"
+   ],
+   "msg": "Missing connection between items",
+   "source": "unconnected",
+   "items": [
+    {
+     "msg": "Track [/EN_OK] on F.Cu, length 1.1314 mm",
+     "pos": [
+      134.35,
+      110.0
+     ],
+     "uuid": "1ed7d726-9f14-4df4-a338-afcf04504254"
+    },
+    {
+     "msg": "Pad 4 [/EN_OK] of U201 on F.Cu",
+     "pos": [
+      134.7,
+      125.2
+     ],
+     "uuid": "d2e38296-1508-4a1c-a095-01abc700bdb2"
+    }
+   ]
+  },
+  {
+   "check": "unconnected_items",
+   "severity": "error",
+   "pos": [
+    135.62,
+    106.21
+   ],
+   "layer": "F.Cu",
+   "net": "/EN_OK",
+   "refs": [
+    "U202"
+   ],
+   "msg": "Missing connection between items",
+   "source": "unconnected",
+   "items": [
+    {
+     "msg": "Pad 13 [/EN_OK] of U202 on F.Cu",
+     "pos": [
+      135.62,
+      106.21
+     ],
+     "uuid": "5a6e2a92-9b9c-4bc4-80d5-c454aebaa12b"
+    },
+    {
+     "msg": "Track [/EN_OK] on In2.Cu, length 1.1314 mm",
+     "pos": [
+      133.5,
+      109.1
+     ],
+     "uuid": "8c4c2a5a-3630-4d0e-9d95-d3b737bf5157"
+    }
+   ]
+  },
+  {
+   "check": "unconnected_items",
+   "severity": "error",
+   "pos": [
+    135.62,
+    104.94
+   ],
+   "layer": "F.Cu",
+   "net": "+3V3",
+   "refs": [
+    "U202"
+   ],
+   "msg": "Missing connection between items",
+   "source": "unconnected",
+   "items": [
+    {
+     "msg": "Pad 14 [+3V3] of U202 on F.Cu",
+     "pos": [
+      135.62,
+      104.94
+     ],
+     "uuid": "75741b1a-2f36-45f5-8aad-d340f3cac5df"
+    },
+    {
+     "msg": "Track [+3V3] on F.Cu, length 0.9192 mm",
+     "pos": [
+      135.95,
+      102.85
+     ],
+     "uuid": "9fc83187-7bd0-4e82-9275-e73c18d31607"
+    }
+   ]
+  },
+  {
+   "check": "unconnected_items",
+   "severity": "error",
+   "pos": [
+    142.25,
+    112.55
+   ],
+   "layer": "In1.Cu",
+   "net": "+3V3",
+   "refs": [
+    "D401"
+   ],
+   "msg": "Missing connection between items",
+   "source": "unconnected",
+   "items": [
+    {
+     "msg": "Track [+3V3] on In1.Cu, length 3.7477 mm",
+     "pos": [
+      142.25,
+      112.55
+     ],
+     "uuid": "d7d32fe8-9c25-4a5b-a90b-87202ec2f4f5"
+    },
+    {
+     "msg": "Pad 1 [+3V3] of D401 on F.Cu",
+     "pos": [
+      143.937,
+      114.9304
+     ],
+     "uuid": "c124a4c7-9693-4670-a6a6-1c9338d0c924"
+    }
+   ]
+  },
+  {
+   "check": "unconnected_items",
+   "severity": "error",
+   "pos": [
+    142.25,
+    112.55
+   ],
+   "layer": "In1.Cu",
+   "net": "+3V3",
+   "refs": [
+    "R403"
+   ],
+   "msg": "Missing connection between items",
+   "source": "unconnected",
+   "items": [
+    {
+     "msg": "Track [+3V3] on In1.Cu, length 3.7477 mm",
+     "pos": [
+      142.25,
+      112.55
+     ],
+     "uuid": "d7d32fe8-9c25-4a5b-a90b-87202ec2f4f5"
+    },
+    {
+     "msg": "Pad 1 [+3V3] of R403 on F.Cu",
+     "pos": [
+      145.2753,
+      113.1365
+     ],
+     "uuid": "c582fcd8-8ed2-4dc8-931f-d5898eeff895"
+    }
+   ]
+  },
+  {
+   "check": "unconnected_items",
+   "severity": "error",
+   "pos": [
+    144.9,
+    115.2
+   ],
+   "layer": "F.Cu",
+   "net": "+3V3",
+   "refs": [
+    "U401"
+   ],
+   "msg": "Missing connection between items",
+   "source": "unconnected",
+   "items": [
+    {
+     "msg": "Track [+3V3] on F.Cu, length 2.3335 mm",
+     "pos": [
+      144.9,
+      115.2
+     ],
+     "uuid": "60921d56-6100-45ab-ba0e-7d6f246dbe6b"
+    },
+    {
+     "msg": "Pad 3 [+3V3] of U401 on F.Cu",
+     "pos": [
+      146.65,
+      118.7
+     ],
+     "uuid": "747caf62-9829-4a87-8c20-ea7bbc1a1fa3"
+    }
+   ]
+  },
+  {
+   "check": "unconnected_items",
+   "severity": "error",
+   "pos": [
+    121.31,
+    66.8833
+   ],
+   "layer": "F.Cu",
+   "net": "/LED0_A",
+   "refs": [],
+   "msg": "Missing connection between items",
+   "source": "unconnected",
+   "items": [
+    {
+     "msg": "Track [/LED0_A] on F.Cu, length 2.9565 mm",
+     "pos": [
+      121.31,
+      66.8833
+     ],
+     "uuid": "82ed0498-5c7b-43d0-8ad2-9751efcb63e2"
+    },
+    {
+     "msg": "Via [/LED0_A] on F.Cu - B.Cu",
+     "pos": [
+      118.0427,
+      71.2533
+     ],
+     "uuid": "820dadc1-9a47-49b8-8adc-afbe387a7965"
+    }
+   ]
+  },
+  {
+   "check": "unconnected_items",
+   "severity": "error",
+   "pos": [
+    104.5,
+    108.05
+   ],
+   "layer": "F.Cu",
+   "net": "/NTC_LED",
+   "refs": [
+    "R402",
+    "R403"
+   ],
+   "msg": "Missing connection between items",
+   "source": "unconnected",
+   "items": [
+    {
+     "msg": "Pad 1 [/NTC_LED] of R402 on F.Cu",
+     "pos": [
+      104.5,
+      108.05
+     ],
+     "uuid": "1f93eb67-8e26-47fd-9682-5e9917e32a69"
+    },
+    {
+     "msg": "Pad 2 [/NTC_LED] of R403 on F.Cu",
+     "pos": [
+      143.7753,
+      113.1365
+     ],
+     "uuid": "6f575f5a-099d-4433-ac80-9a2a578fbd21"
+    }
+   ]
+  },
+  {
+   "check": "unconnected_items",
+   "severity": "error",
+   "pos": [
+    145.2058,
+    130.2574
+   ],
+   "layer": "F.Cu",
+   "net": "/NTC_LED",
+   "refs": [
+    "R403",
+    "R413"
+   ],
+   "msg": "Missing connection between items",
+   "source": "unconnected",
+   "items": [
+    {
+     "msg": "Pad 1 [/NTC_LED] of R413 on F.Cu",
+     "pos": [
+      145.2058,
+      130.2574
+     ],
+     "uuid": "d2c04a9b-b89f-4cf6-9999-1cea4e001541"
+    },
+    {
+     "msg": "Pad 2 [/NTC_LED] of R403 on F.Cu",
+     "pos": [
+      143.7753,
+      113.1365
+     ],
+     "uuid": "6f575f5a-099d-4433-ac80-9a2a578fbd21"
+    }
+   ]
+  },
+  {
+   "check": "unconnected_items",
+   "severity": "error",
+   "pos": [
+    139.0076,
+    119.9516
+   ],
+   "layer": "F.Cu",
+   "net": "/ADC0",
+   "refs": [],
+   "msg": "Missing connection between items",
+   "source": "unconnected",
+   "items": [
+    {
+     "msg": "Track [/ADC0] on F.Cu, length 0.1885 mm",
+     "pos": [
+      139.0076,
+      119.9516
+     ],
+     "uuid": "8ac9b6cb-c840-47c1-bd92-c1b7d2d2cd84"
+    },
+    {
+     "msg": "Track [/ADC0] on B.Cu, length 0.6514 mm",
+     "pos": [
+      135.6413,
+      120.9879
+     ],
+     "uuid": "d5e9681d-f92b-494c-b68a-0e631dfd1f12"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    130.7,
+    90.95
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C323"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C323",
+     "pos": [
+      130.7,
+      90.95
+     ],
+     "uuid": "00752219-619e-47d3-926d-1b89cd45cc7a"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    127.26,
+    94.6
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "L321"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint L321",
+     "pos": [
+      127.26,
+      94.6
+     ],
+     "uuid": "018844cd-d789-4450-845a-dc87a68f2e9f"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    143.8,
+    134.0
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R201"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R201",
+     "pos": [
+      143.8,
+      134.0
+     ],
+     "uuid": "01bbc1db-cd35-4e47-8e67-5bb13289ebc2"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    112.1,
+    97.8
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R363"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R363",
+     "pos": [
+      112.1,
+      97.8
+     ],
+     "uuid": "026a1cfe-b95d-4f36-9efa-a4e299f8e928"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    118.7,
+    110.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C346"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C346",
+     "pos": [
+      118.7,
+      110.5
+     ],
+     "uuid": "02cb9248-5544-488d-b11b-696a29fc1ce3"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    135.6,
+    97.8
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R323"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R323",
+     "pos": [
+      135.6,
+      97.8
+     ],
+     "uuid": "057520b6-05d3-4210-9969-3e9764ebab7a"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    103.25,
+    84.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R215"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R215",
+     "pos": [
+      103.25,
+      84.5
+     ],
+     "uuid": "08a3da50-3f2d-4a97-bc99-587055f44098"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    137.1049,
+    102.7806
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C202"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C202",
+     "pos": [
+      137.1049,
+      102.7806
+     ],
+     "uuid": "08cf9f29-7394-427f-8b4f-288f9ee1cfb5"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    131.4898,
+    123.407
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C201"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C201",
+     "pos": [
+      131.4898,
+      123.407
+     ],
+     "uuid": "0cd57a98-c4fd-464d-9762-c1a266a7dbc3"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    116.45,
+    90.95
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R325"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R325",
+     "pos": [
+      116.45,
+      90.95
+     ],
+     "uuid": "100faa93-73c9-4581-b0cc-688e6c22f063"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    99.25,
+    114.95
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C305"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C305",
+     "pos": [
+      99.25,
+      114.95
+     ],
+     "uuid": "16139d80-5483-4878-a20b-d451e01f7934"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    122.75,
+    114.95
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C345"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C345",
+     "pos": [
+      122.75,
+      114.95
+     ],
+     "uuid": "1799f49e-4f9d-43c7-a845-5ca761ddecb2"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    127.26,
+    118.6
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "L341"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint L341",
+     "pos": [
+      127.26,
+      118.6
+     ],
+     "uuid": "17d53f42-dfdd-4ced-84f5-7b10625f5801"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    104.0,
+    126.0
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R206"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R206",
+     "pos": [
+      104.0,
+      126.0
+     ],
+     "uuid": "18bc97d6-7b0a-42a6-9e97-794d98b3b907"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    109.3535,
+    62.16
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "J5"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint J5",
+     "pos": [
+      109.3535,
+      62.16
+     ],
+     "uuid": "1a209567-fa0c-4df9-998c-32e3256fce1d"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    111.25,
+    124.75
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R209"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R209",
+     "pos": [
+      111.25,
+      124.75
+     ],
+     "uuid": "1a63e6d4-2479-4a8c-a639-5ee5d74ac313"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    140.5647,
+    116.9392
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C403"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C403",
+     "pos": [
+      140.5647,
+      116.9392
+     ],
+     "uuid": "1d280704-b140-4f91-9ea6-0345b22bfa0f"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    98.75,
+    74.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "D504"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint D504",
+     "pos": [
+      98.75,
+      74.5
+     ],
+     "uuid": "1df8d28b-ec8c-44dc-9c7b-5baa9def13f5"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    108.5,
+    94.6
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "Q361"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint Q361",
+     "pos": [
+      108.5,
+      94.6
+     ],
+     "uuid": "1e0c7fea-4d37-4cef-88c1-523d274a7808"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    108.75,
+    77.25
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "U204"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint U204",
+     "pos": [
+      108.75,
+      77.25
+     ],
+     "uuid": "2254c70a-3f5d-40e1-8bf6-5cc2d0cbc9b9"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    72.25,
+    91.75
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R102"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R102",
+     "pos": [
+      72.25,
+      91.75
+     ],
+     "uuid": "28b86423-2525-4569-8371-27d582bb940f"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    96.6,
+    79.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C362"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C362",
+     "pos": [
+      96.6,
+      79.5
+     ],
+     "uuid": "295635ba-3689-4a9b-b509-ac5078dde347"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    77.0,
+    128.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "TP103"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint TP103",
+     "pos": [
+      77.0,
+      128.5
+     ],
+     "uuid": "2a34aa0c-0fe4-4421-819c-18a61828c685"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    152.1009,
+    119.2794
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R407"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R407",
+     "pos": [
+      152.1009,
+      119.2794
+     ],
+     "uuid": "2cef07a6-943c-4a82-9050-e1b4bdd63943"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    108.5,
+    118.6
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "Q301"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint Q301",
+     "pos": [
+      108.5,
+      118.6
+     ],
+     "uuid": "2d94d614-a563-4391-9b06-4dc69c6c7517"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    114.7194,
+    81.3549
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C205"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C205",
+     "pos": [
+      114.7194,
+      81.3549
+     ],
+     "uuid": "2e49e240-a1a0-49f1-9809-ceec305049dd"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    93.9,
+    93.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R366"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R366",
+     "pos": [
+      93.9,
+      93.5
+     ],
+     "uuid": "2f89d545-57dd-4b39-a9ad-d0e8efd7c3cf"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    122.0,
+    105.15
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C341"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C341",
+     "pos": [
+      122.0,
+      105.15
+     ],
+     "uuid": "2fbd73cd-85dc-4e94-afdb-9bce5b598f12"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    120.1,
+    103.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C342"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C342",
+     "pos": [
+      120.1,
+      103.5
+     ],
+     "uuid": "3015c006-d430-4177-a477-ac62950c045b"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    119.35,
+    82.15
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R219"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R219",
+     "pos": [
+      119.35,
+      82.15
+     ],
+     "uuid": "32d9bdb3-10a1-43a9-a453-89883d12c3b5"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    139.3326,
+    119.0733
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C402"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C402",
+     "pos": [
+      139.3326,
+      119.0733
+     ],
+     "uuid": "33f36fd8-272c-4558-8c39-40cf693ea62d"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    146.841,
+    127.777
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R412"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R412",
+     "pos": [
+      146.841,
+      127.777
+     ],
+     "uuid": "34944d58-40fd-4c46-a4de-6a1a3af27ad9"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    93.25,
+    70.0
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "TP501"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint TP501",
+     "pos": [
+      93.25,
+      70.0
+     ],
+     "uuid": "36f7c803-7fb0-4601-87e5-f2f333ec2979"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    91.532,
+    132.32
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "U203"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint U203",
+     "pos": [
+      91.532,
+      132.32
+     ],
+     "uuid": "392d9eb1-ecb7-420d-8151-d479e26be6af"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    150.9735,
+    117.3267
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R406"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R406",
+     "pos": [
+      150.9735,
+      117.3267
+     ],
+     "uuid": "397d77a9-39b6-4d78-b680-46d6a8a25305"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    103.6,
+    114.95
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "D301"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint D301",
+     "pos": [
+      103.6,
+      114.95
+     ],
+     "uuid": "39e6bf86-9efc-4625-8552-02f4f1c8f92c"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    92.95,
+    90.95
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R365"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R365",
+     "pos": [
+      92.95,
+      90.95
+     ],
+     "uuid": "3c0113f9-fe17-4ffd-b1cc-a4faef7c7c21"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    118.25,
+    97.75
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R214"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R214",
+     "pos": [
+      118.25,
+      97.75
+     ],
+     "uuid": "3c89ec67-f389-4703-a6c1-8db997d60547"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    138.75,
+    128.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C204"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C204",
+     "pos": [
+      138.75,
+      128.5
+     ],
+     "uuid": "3cf91476-e88a-4b7f-b6e7-3485c24d7995"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    128.4783,
+    102.5265
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R203"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R203",
+     "pos": [
+      128.4783,
+      102.5265
+     ],
+     "uuid": "3e29cbf1-f05c-4589-8679-1c03b0c132ed"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    63.0,
+    87.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C106"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C106",
+     "pos": [
+      63.0,
+      87.5
+     ],
+     "uuid": "3f60bf1e-e426-40ca-8170-18110a627582"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    152.457,
+    127.625
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R411"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R411",
+     "pos": [
+      152.457,
+      127.625
+     ],
+     "uuid": "43c72ca4-d399-41ef-af4f-eccc91db746f"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    111.25,
+    89.25
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R211"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R211",
+     "pos": [
+      111.25,
+      89.25
+     ],
+     "uuid": "44aabd70-4651-42b6-b552-b55263002ec8"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    61.25,
+    92.25
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C107"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C107",
+     "pos": [
+      61.25,
+      92.25
+     ],
+     "uuid": "4677fa16-ddc0-42f2-8d20-91f7ee5c897c"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    132.0,
+    94.6
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "Q321"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint Q321",
+     "pos": [
+      132.0,
+      94.6
+     ],
+     "uuid": "477494fd-0c27-4dea-91f1-ffed937c8581"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    142.207,
+    114.9304
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "D401"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint D401",
+     "pos": [
+      142.207,
+      114.9304
+     ],
+     "uuid": "48827de1-b500-4839-946f-84d0a3276f58"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    117.4,
+    117.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R346"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R346",
+     "pos": [
+      117.4,
+      117.5
+     ],
+     "uuid": "4c4e095d-345a-4b66-a11b-083d2b2552b7"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    133.0,
+    108.75
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "U202"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint U202",
+     "pos": [
+      133.0,
+      108.75
+     ],
+     "uuid": "4c950821-8a50-4f04-8d86-4c14ed658f30"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    93.9,
+    117.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R306"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R306",
+     "pos": [
+      93.9,
+      117.5
+     ],
+     "uuid": "4ec7b209-83b9-4f10-ad92-fab3cd12d312"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    101.55,
+    82.15
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R361"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R361",
+     "pos": [
+      101.55,
+      82.15
+     ],
+     "uuid": "500f4e5b-c9e1-46ed-876b-1948e998ee88"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    152.1009,
+    123.7206
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R409"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R409",
+     "pos": [
+      152.1009,
+      123.7206
+     ],
+     "uuid": "5085ef14-a074-4acb-b342-2cca3922eab3"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    96.2,
+    90.95
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C364"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C364",
+     "pos": [
+      96.2,
+      90.95
+     ],
+     "uuid": "51509a99-e252-4e50-a6d0-d389ad42765d"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    132.0,
+    118.6
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "Q341"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint Q341",
+     "pos": [
+      132.0,
+      118.6
+     ],
+     "uuid": "5321c79a-a837-4d9f-8d71-53c40c160542"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    123.25,
+    69.75
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "D501"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint D501",
+     "pos": [
+      123.25,
+      69.75
+     ],
+     "uuid": "5729acf7-aeb4-4cba-99eb-2a55da90ad90"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    125.05,
+    82.15
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R321"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R321",
+     "pos": [
+      125.05,
+      82.15
+     ],
+     "uuid": "5740538c-b778-4d83-b035-d6a9d9a6ee70"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    117.4,
+    93.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R326"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R326",
+     "pos": [
+      117.4,
+      93.5
+     ],
+     "uuid": "57bb6c51-6979-4f58-8ff3-b94a10741fcf"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    125.05,
+    106.15
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R341"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R341",
+     "pos": [
+      125.05,
+      106.15
+     ],
+     "uuid": "5ec00ccc-5c37-4e4e-a2d1-10579fe4b854"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    79.45,
+    92.0
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "Q101"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint Q101",
+     "pos": [
+      79.45,
+      92.0
+     ],
+     "uuid": "5fce7aeb-b9c6-417a-a961-a889219ad3ce"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    135.25,
+    87.0
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "D201"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint D201",
+     "pos": [
+      135.25,
+      87.0
+     ],
+     "uuid": "60596aaa-93fb-41c2-bc9a-8e086d3daef0"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    133.25,
+    81.25
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C105"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C105",
+     "pos": [
+      133.25,
+      81.25
+     ],
+     "uuid": "616f2b7c-e408-4162-bb88-2018109ce988"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    115.25,
+    112.25
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R208"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R208",
+     "pos": [
+      115.25,
+      112.25
+     ],
+     "uuid": "61eb8af0-bcc2-4289-98a6-5ef36a296eb2"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    110.7,
+    90.95
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R364"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R364",
+     "pos": [
+      110.7,
+      90.95
+     ],
+     "uuid": "62b57604-506b-4071-99c3-f266ff318606"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    98.1,
+    117.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "D302"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint D302",
+     "pos": [
+      98.1,
+      117.5
+     ],
+     "uuid": "6437542c-6b99-4584-b62a-73bea46bc6bf"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    98.5,
+    110.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "U301"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint U301",
+     "pos": [
+      98.5,
+      110.5
+     ],
+     "uuid": "656e60fa-80c3-4599-b019-b0e494306e51"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    135.6,
+    95.55
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R322"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R322",
+     "pos": [
+      135.6,
+      95.55
+     ],
+     "uuid": "66272e99-76ad-43f6-80e0-b9dea92b43e4"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    135.6,
+    119.55
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R342"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R342",
+     "pos": [
+      135.6,
+      119.55
+     ],
+     "uuid": "67d2496a-7abd-4fb6-bff8-346735c7eeb9"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    112.1,
+    121.8
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R303"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R303",
+     "pos": [
+      112.1,
+      121.8
+     ],
+     "uuid": "6bb10c1c-2eeb-42f3-b355-c3bf51c32303"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    127.75,
+    78.25
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C210"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C210",
+     "pos": [
+      127.75,
+      78.25
+     ],
+     "uuid": "6c92e18e-d36d-4b35-b8a4-089f8c5b9d1f"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    125.6838,
+    111.1272
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R202"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R202",
+     "pos": [
+      125.6838,
+      111.1272
+     ],
+     "uuid": "6ec12cec-639d-4278-bc49-0bffc26fa81f"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    103.6,
+    90.95
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "D361"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint D361",
+     "pos": [
+      103.6,
+      90.95
+     ],
+     "uuid": "700b96d2-2416-40bd-bb1b-c3e01a42f91a"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    138.6972,
+    100.9084
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R204"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R204",
+     "pos": [
+      138.6972,
+      100.9084
+     ],
+     "uuid": "7371693c-5baf-47ce-9e99-ebcac99c99a9"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    101.55,
+    106.15
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R301"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R301",
+     "pos": [
+      101.55,
+      106.15
+     ],
+     "uuid": "7500fcab-7bf4-4e81-b860-a8ce2800e464"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    122.0,
+    110.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "U341"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint U341",
+     "pos": [
+      122.0,
+      110.5
+     ],
+     "uuid": "76927705-1830-4cd5-bb69-8c814c32d591"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    78.75,
+    98.75
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R103"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R103",
+     "pos": [
+      78.75,
+      98.75
+     ],
+     "uuid": "782f905d-dd89-4f36-8a60-0dcccd54c711"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    88.25,
+    86.75
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R104"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R104",
+     "pos": [
+      88.25,
+      86.75
+     ],
+     "uuid": "793118c3-d0af-475e-bb97-3ee0fab1ae9c"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    144.5253,
+    113.1365
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R403"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R403",
+     "pos": [
+      144.5253,
+      113.1365
+     ],
+     "uuid": "79361bb3-c425-48e9-a669-1c4086fdf0d9"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    107.0,
+    133.75
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C102"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C102",
+     "pos": [
+      107.0,
+      133.75
+     ],
+     "uuid": "7a61c27c-2738-4e82-86a1-24b9e18504de"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    117.25,
+    70.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "D503"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint D503",
+     "pos": [
+      117.25,
+      70.5
+     ],
+     "uuid": "7afb10e0-a1b6-4bd6-8bb1-66516d129721"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    92.95,
+    114.95
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R305"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R305",
+     "pos": [
+      92.95,
+      114.95
+     ],
+     "uuid": "7b645b2b-0737-4abe-8d2f-88003e1386a5"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    96.6,
+    103.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C302"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C302",
+     "pos": [
+      96.6,
+      103.5
+     ],
+     "uuid": "7ca42211-7615-4825-b60d-bb3d1f03ab02"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    122.0,
+    86.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "U321"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint U321",
+     "pos": [
+      122.0,
+      86.5
+     ],
+     "uuid": "7dbdb94a-9da3-4d9e-8d37-4ea02cb4639c"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    142.7538,
+    127.1226
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R414"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R414",
+     "pos": [
+      142.7538,
+      127.1226
+     ],
+     "uuid": "7e20857a-0a8c-4a9b-b2a0-feecf362440e"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    95.2,
+    86.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C366"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C366",
+     "pos": [
+      95.2,
+      86.5
+     ],
+     "uuid": "843f4dba-79e8-484f-b578-3ce99df0cf7e"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    107.2,
+    90.95
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C363"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C363",
+     "pos": [
+      107.2,
+      90.95
+     ],
+     "uuid": "84fd90e0-6fcf-40fb-9ec9-0cd295c42559"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    121.6,
+    93.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "D322"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint D322",
+     "pos": [
+      121.6,
+      93.5
+     ],
+     "uuid": "86b2aef2-4dbc-4962-b501-a7895fd5e2d5"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    119.35,
+    106.15
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R220"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R220",
+     "pos": [
+      119.35,
+      106.15
+     ],
+     "uuid": "86f17241-e3f7-4a87-9de2-321549fc900e"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    112.1,
+    119.55
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R302"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R302",
+     "pos": [
+      112.1,
+      119.55
+     ],
+     "uuid": "89817ffa-bada-49e6-a042-a213d8cb9813"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    142.0,
+    84.75
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R212"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R212",
+     "pos": [
+      142.0,
+      84.75
+     ],
+     "uuid": "91c328a8-1a6e-4fb0-ae73-ebeb6a5c61ac"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    89.5,
+    97.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C101"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C101",
+     "pos": [
+      89.5,
+      97.5
+     ],
+     "uuid": "93dab60e-23a1-4cf4-b86e-5be180c095b9"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    147.91,
+    113.442
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R404"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R404",
+     "pos": [
+      147.91,
+      113.442
+     ],
+     "uuid": "96a28643-dac5-454a-95c6-72f42dd25d2b"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    57.5,
+    70.0
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "TP502"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint TP502",
+     "pos": [
+      57.5,
+      70.0
+     ],
+     "uuid": "9921f547-affa-40e8-a344-2ef745e33723"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    112.1,
+    95.55
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R362"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R362",
+     "pos": [
+      112.1,
+      95.55
+     ],
+     "uuid": "9f378b35-a93f-4555-a722-23d9cad94431"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    95.2,
+    110.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C306"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C306",
+     "pos": [
+      95.2,
+      110.5
+     ],
+     "uuid": "a00dc780-48f2-42ab-abf2-59753b41c135"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    101.1,
+    110.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "RT401"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint RT401",
+     "pos": [
+      101.1,
+      110.5
+     ],
+     "uuid": "a0eab432-b14d-44ba-ad4d-7107ccda746b"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    119.7,
+    90.95
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C324"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C324",
+     "pos": [
+      119.7,
+      90.95
+     ],
+     "uuid": "a338a56a-14b4-464e-ad87-af811fcc2a11"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    140.032,
+    121.799
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R415"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R415",
+     "pos": [
+      140.032,
+      121.799
+     ],
+     "uuid": "a43d9c62-231e-4963-a859-4146ba84fbc8"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    135.6,
+    121.8
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R343"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R343",
+     "pos": [
+      135.6,
+      121.8
+     ],
+     "uuid": "a9a95fdb-6bdb-4a75-b81a-e8e6823c1e5c"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    152.4925,
+    121.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R408"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R408",
+     "pos": [
+      152.4925,
+      121.5
+     ],
+     "uuid": "aa234d3b-9c2d-48c0-896b-9318d5a06799"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    103.76,
+    94.6
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "L361"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint L361",
+     "pos": [
+      103.76,
+      94.6
+     ],
+     "uuid": "aabb7ac5-19cf-47e4-af0c-17d8103e62bf"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    65.25,
+    128.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C103"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C103",
+     "pos": [
+      65.25,
+      128.5
+     ],
+     "uuid": "ad0e9ac8-6c52-4a8e-9e54-209ddabbee29"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    108.75,
+    104.75
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "D204"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint D204",
+     "pos": [
+      108.75,
+      104.75
+     ],
+     "uuid": "ae3b45a0-6a00-493c-bab4-ace807dd9198"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    99.25,
+    90.95
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C365"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C365",
+     "pos": [
+      99.25,
+      90.95
+     ],
+     "uuid": "b734a684-4338-46cc-9e78-a1ac978cdb0e"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    106.0,
+    102.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "TP101"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint TP101",
+     "pos": [
+      106.0,
+      102.5
+     ],
+     "uuid": "b769a3d4-9efc-4cf9-b5c0-8aaad43a90cd"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    95.85,
+    82.15
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R221"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R221",
+     "pos": [
+      95.85,
+      82.15
+     ],
+     "uuid": "b925bfdc-c542-4dc3-88b0-4d7b54d14435"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    144.4558,
+    130.2574
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R413"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R413",
+     "pos": [
+      144.4558,
+      130.2574
+     ],
+     "uuid": "bab3dc7c-9ff6-4579-9bb1-2004a3970cce"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    95.85,
+    106.15
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R218"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R218",
+     "pos": [
+      95.85,
+      106.15
+     ],
+     "uuid": "bc7fda4f-9bf6-4e95-bf3b-2110f66aff01"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    139.8991,
+    123.7206
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R416"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R416",
+     "pos": [
+      139.8991,
+      123.7206
+     ],
+     "uuid": "bce31fef-e3a0-468c-a9ae-c0faaa680ecd"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    121.6,
+    117.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "D342"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint D342",
+     "pos": [
+      121.6,
+      117.5
+     ],
+     "uuid": "be22734b-85f8-48a4-bb7b-6cc084978b3f"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    71.25,
+    86.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C108"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C108",
+     "pos": [
+      71.25,
+      86.5
+     ],
+     "uuid": "c06ed6a7-cce3-40c1-8dce-7924a43f41d9"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    58.5,
+    98.25
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C104"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C104",
+     "pos": [
+      58.5,
+      98.25
+     ],
+     "uuid": "c07e3418-855c-45fc-b799-8a7259072c04"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    134.2,
+    114.95
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R344"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R344",
+     "pos": [
+      134.2,
+      114.95
+     ],
+     "uuid": "c0ff5f04-895c-4bb0-a388-7927bd901156"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    96.2,
+    114.95
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C304"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C304",
+     "pos": [
+      96.2,
+      114.95
+     ],
+     "uuid": "c20bf732-86d4-4d77-989b-34fc11095297"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    100.937,
+    131.192
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "H5"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint H5",
+     "pos": [
+      100.937,
+      131.192
+     ],
+     "uuid": "c279e602-bed1-4e5b-bc09-c63020e62d9e"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    150.75,
+    79.75
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "TP102"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint TP102",
+     "pos": [
+      150.75,
+      79.75
+     ],
+     "uuid": "c2ddb0af-5959-40c7-a6fd-627b822b3102"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    135.25,
+    84.25
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "D203"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint D203",
+     "pos": [
+      135.25,
+      84.25
+     ],
+     "uuid": "c678174f-d985-4bb8-8d31-78c1583bf59b"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    72.0,
+    96.25
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "Q102"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint Q102",
+     "pos": [
+      72.0,
+      96.25
+     ],
+     "uuid": "c71074bc-75a9-4e19-8497-8cc64e69cb97"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    127.1,
+    90.95
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "D321"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint D321",
+     "pos": [
+      127.1,
+      90.95
+     ],
+     "uuid": "c77d964b-3d7b-4a94-b233-e828a7d71094"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    111.75,
+    85.0
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R216"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R216",
+     "pos": [
+      111.75,
+      85.0
+     ],
+     "uuid": "ca685d52-fdb8-4ef1-9a6d-14e2be5a053d"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    98.1,
+    93.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "D362"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint D362",
+     "pos": [
+      98.1,
+      93.5
+     ],
+     "uuid": "cb667022-2105-4db2-9666-385d34fd3bb1"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    98.5,
+    86.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "U361"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint U361",
+     "pos": [
+      98.5,
+      86.5
+     ],
+     "uuid": "cddb0f21-55be-4ecb-bbec-2d866c5dfe67"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    108.685,
+    87.344
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "D202"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint D202",
+     "pos": [
+      108.685,
+      87.344
+     ],
+     "uuid": "ce438cd0-a383-4117-b202-d4e6e6529c11"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    122.0,
+    81.15
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C321"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C321",
+     "pos": [
+      122.0,
+      81.15
+     ],
+     "uuid": "ce453eae-3366-4b16-af5e-2f15aacfe46f"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    140.3162,
+    111.1272
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R205"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R205",
+     "pos": [
+      140.3162,
+      111.1272
+     ],
+     "uuid": "cf9effbd-9f43-4e1c-9510-ff1e653ea0bd"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    150.9735,
+    125.6733
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R410"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R410",
+     "pos": [
+      150.9735,
+      125.6733
+     ],
+     "uuid": "d0e7ba82-9b14-46bf-a6da-4218fc93c566"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    107.2,
+    114.95
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C303"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C303",
+     "pos": [
+      107.2,
+      114.95
+     ],
+     "uuid": "d22aa840-5a72-40e5-90da-681f5fbb785e"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    98.5,
+    105.15
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C301"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C301",
+     "pos": [
+      98.5,
+      105.15
+     ],
+     "uuid": "d31b7558-6727-4b8f-9e34-4fea8c8aa959"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    134.2,
+    90.95
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R324"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R324",
+     "pos": [
+      134.2,
+      90.95
+     ],
+     "uuid": "d51b930c-3d8e-4c8d-9411-18751ea3297d"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    102.5,
+    72.0
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C211"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C211",
+     "pos": [
+      102.5,
+      72.0
+     ],
+     "uuid": "d60b6833-6256-4e08-b945-35088439b661"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    130.7,
+    114.95
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C343"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C343",
+     "pos": [
+      130.7,
+      114.95
+     ],
+     "uuid": "d8d0de3c-0702-43ad-9aee-e44e6ad973eb"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    119.7,
+    114.95
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C344"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C344",
+     "pos": [
+      119.7,
+      114.95
+     ],
+     "uuid": "da5a4bb2-a288-416c-9aa8-e1c4a95187c1"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    125.5,
+    99.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R213"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R213",
+     "pos": [
+      125.5,
+      99.5
+     ],
+     "uuid": "db07a634-6507-4c54-824f-f34bb99d27af"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    105.75,
+    87.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C213"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C213",
+     "pos": [
+      105.75,
+      87.5
+     ],
+     "uuid": "dd8910e8-0dae-40b4-b6fd-a29176af7a6b"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    103.76,
+    118.6
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "L301"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint L301",
+     "pos": [
+      103.76,
+      118.6
+     ],
+     "uuid": "ddc7e3c8-f984-4e28-bce8-12539588b5e5"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    104.5,
+    107.3
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R402"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R402",
+     "pos": [
+      104.5,
+      107.3
+     ],
+     "uuid": "e187274f-1bb5-4524-a62f-e7a390a6d79b"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    128.5,
+    76.0
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R210"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R210",
+     "pos": [
+      128.5,
+      76.0
+     ],
+     "uuid": "e2390d0d-4f55-44ea-a34b-368485a98871"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    69.5,
+    91.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R101"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R101",
+     "pos": [
+      69.5,
+      91.5
+     ],
+     "uuid": "e3ddfe85-6fbd-4f2d-bde3-c03250358aee"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    150.613,
+    114.589
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R405"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R405",
+     "pos": [
+      150.613,
+      114.589
+     ],
+     "uuid": "e58b73db-a0be-4aa5-9165-2740b3065851"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    133.75,
+    126.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "U201"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint U201",
+     "pos": [
+      133.75,
+      126.5
+     ],
+     "uuid": "e5e90320-253b-475c-9cce-5032f5c84a83"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    89.75,
+    89.75
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R217"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R217",
+     "pos": [
+      89.75,
+      89.75
+     ],
+     "uuid": "e6d8419a-0f95-437f-9f3e-f83d91157ad6"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    104.5,
+    110.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R401"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R401",
+     "pos": [
+      104.5,
+      110.5
+     ],
+     "uuid": "ebc533ee-c47f-490d-b573-cbead0bf158a"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    141.5,
+    81.25
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C212"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C212",
+     "pos": [
+      141.5,
+      81.25
+     ],
+     "uuid": "ebd930d8-4f46-45de-a500-fc8601c2209d"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    136.75,
+    127.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R207"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R207",
+     "pos": [
+      136.75,
+      127.5
+     ],
+     "uuid": "ed1909d0-2cfb-4a9a-9fb8-58b084b30578"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    146.0,
+    121.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "U401"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint U401",
+     "pos": [
+      146.0,
+      121.5
+     ],
+     "uuid": "ed3ae528-737a-477d-a4ed-e1cd334ecdb6"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    116.45,
+    114.95
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R345"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R345",
+     "pos": [
+      116.45,
+      114.95
+     ],
+     "uuid": "ee9bbfff-a217-46fd-b6bd-b1065cd7888f"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    118.7,
+    86.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C326"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C326",
+     "pos": [
+      118.7,
+      86.5
+     ],
+     "uuid": "effbc027-cc98-40da-9c08-da1ef7084162"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    120.1,
+    79.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C322"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C322",
+     "pos": [
+      120.1,
+      79.5
+     ],
+     "uuid": "f1e3e530-b5f5-4b4d-b803-ffadcebf9fd0"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    147.2426,
+    116.1472
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C401"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C401",
+     "pos": [
+      147.2426,
+      116.1472
+     ],
+     "uuid": "f306ef68-323f-474c-8a8a-342942bb0a15"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    110.7,
+    114.95
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R304"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint R304",
+     "pos": [
+      110.7,
+      114.95
+     ],
+     "uuid": "f4e69fce-5181-48b0-9de1-91806a872733"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    122.75,
+    90.95
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C325"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C325",
+     "pos": [
+      122.75,
+      90.95
+     ],
+     "uuid": "f7e6d9d2-7d96-45b8-953c-9d37a70fd395"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    93.75,
+    63.5
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "D502"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint D502",
+     "pos": [
+      93.75,
+      63.5
+     ],
+     "uuid": "f956f972-f94d-4205-a697-5789b1973b9f"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    96.06,
+    129.145
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C203"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C203",
+     "pos": [
+      96.06,
+      129.145
+     ],
+     "uuid": "fcc3112b-b9ee-40a3-b048-48ba24201a3f"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    127.1,
+    114.95
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "D341"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint D341",
+     "pos": [
+      127.1,
+      114.95
+     ],
+     "uuid": "fd55a15d-cd36-48d2-8705-0b24755a8915"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    98.5,
+    81.15
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C361"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint C361",
+     "pos": [
+      98.5,
+      81.15
+     ],
+     "uuid": "fecad87a-3fe8-4fb2-89c3-af25d6e707e6"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    125.937,
+    133.192
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "J4"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint J4",
+     "pos": [
+      125.937,
+      133.192
+     ],
+     "uuid": "514096b7-4a9f-4b8d-b0f5-f8473e99f38f"
+    }
+   ]
+  },
+  {
+   "check": "extra_footprint",
+   "severity": "warning",
+   "pos": [
+    77.937,
+    133.192
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "J3"
+   ],
+   "msg": "Extra footprint",
+   "source": "parity",
+   "items": [
+    {
+     "msg": "Footprint J3",
+     "pos": [
+      77.937,
+      133.192
+     ],
+     "uuid": "8ece61cd-73dd-4bd3-9136-ee81657d5b0d"
+    }
+   ]
+  }
+ ],
+ "facts": {
+  "completion": 0.9211,
+  "routable_nets": 76,
+  "unrouted_nets": [
+   "+3V3",
+   "/ADC0",
+   "/EN_OK",
+   "/LED0_A",
+   "/NTC_LED",
+   "GND"
+  ],
+  "tracks_before": 20,
+  "tracks_after": 1351,
+  "ses_items_added": 1240,
+  "best_rung": 1,
+  "rungs": [
+   {
+    "rung": 1,
+    "options": {
+     "mp": 20
+    },
+    "unrouted": 15,
+    "started_unrouted": 309,
+    "final_score": 984.02,
+    "passes": 5,
+    "timed_out": false,
+    "ses_written": true
+   },
+   {
+    "rung": 2,
+    "options": {
+     "mp": 60,
+     "oit": 0.05
+    },
+    "unrouted": 15,
+    "started_unrouted": 309,
+    "final_score": 984.02,
+    "passes": 5,
+    "timed_out": false,
+    "ses_written": true
+   },
+   {
+    "rung": 3,
+    "options": {
+     "mp": 100,
+     "us": "global"
+    },
+    "unrouted": 15,
+    "started_unrouted": 309,
+    "final_score": 984.02,
+    "passes": 5,
+    "timed_out": false,
+    "ses_written": true
+   }
+  ],
+  "fr_completion": 0.9514563106796117,
+  "power_layers": [
+   "In1.Cu",
+   "In2.Cu"
+  ],
+  "krt_finish": {
+   "kept": true,
+   "nets": [
+    "+3V3",
+    "/ADC0",
+    "/ADC1",
+    "/EN_OK",
+    "/FAULT",
+    "/LED0_A",
+    "/NTC_LED",
+    "/SHUNT0",
+    "/SHUNT1",
+    "/control/EE_ADDR",
+    "/control/IDLE1",
+    "/control/IDLE2",
+    "/control/IDLE3",
+    "/control/PWM0",
+    "/control/PWM1",
+    "/control/PWM2",
+    "/control/PWM3",
+    "/thermal/CMP_LED",
+    "/thermal/VREF_OPEN",
+    "GND"
+   ],
+   "ripped_vias": 40,
+   "errors_before": {
+    "drc:clearance": 5,
+    "drc:hole_clearance": 40,
+    "drc:hole_to_hole": 1,
+    "drc:track_width": 4,
+    "unconnected:unconnected_items": 3
+   },
+   "errors_after": {
+    "drc:clearance": 4,
+    "drc:hole_to_hole": 1,
+    "drc:track_width": 4,
+    "unconnected:unconnected_items": 16
+   }
+  },
+  "ses_echo_dups_removed": 0,
+  "work_dir": "C:\\dev\\ai-ee3\\boards\\lumina-par\\route\\auto2",
+  "placement_adjust_request": {
+   "request": "placement_adjust",
+   "nets": [
+    "+3V3",
+    "/ADC0",
+    "/EN_OK",
+    "/LED0_A",
+    "/NTC_LED",
+    "GND"
+   ],
+   "refs": [
+    "C101",
+    "C102",
+    "C103",
+    "C104",
+    "C105",
+    "C106",
+    "C107",
+    "C201",
+    "C202",
+    "C203",
+    "C204",
+    "C205",
+    "C210",
+    "C211",
+    "C212",
+    "C213",
+    "C301",
+    "C302",
+    "C304",
+    "C306",
+    "C321",
+    "C322",
+    "C324",
+    "C326",
+    "C341",
+    "C342",
+    "C344",
+    "C346",
+    "C361",
+    "C362",
+    "C364",
+    "C366",
+    "C401",
+    "C402",
+    "C403",
+    "D301",
+    "D321",
+    "D341",
+    "D361",
+    "D401",
+    "D501",
+    "D502",
+    "D503",
+    "D504",
+    "J3",
+    "J4",
+    "J5",
+    "L301",
+    "Q102",
+    "Q301",
+    "Q321",
+    "Q341",
+    "Q361",
+    "R103",
+    "R104",
+    "R201",
+    "R202",
+    "R203",
+    "R204",
+    "R205",
+    "R206",
+    "R207",
+    "R208",
+    "R209",
+    "R214",
+    "R215",
+    "R216",
+    "R217",
+    "R218",
+    "R219",
+    "R220",
+    "R221",
+    "R303",
+    "R304",
+    "R305",
+    "R323",
+    "R324",
+    "R343",
+    "R344",
+    "R363",
+    "R364",
+    "R401",
+    "R402",
+    "R403",
+    "R405",
+    "R413",
+    "R416",
+    "RT401",
+    "TP102",
+    "TP501",
+    "TP502",
+    "U201",
+    "U202",
+    "U203",
+    "U204",
+    "U301",
+    "U321",
+    "U341",
+    "U361",
+    "U401"
+   ],
+   "region": [
+    57.5,
+    63.5,
+    150.75,
+    135.27
+   ],
+   "reason": "unrouted after 3 freerouting rungs",
+   "suggestions": [
+    "spread the named clusters apart / off the congested region",
+    "clear a ~3 mm escape ring around the anchor IC",
+    "consider more board area or more layers if congestion persists"
+   ]
+  }
+ }
+}

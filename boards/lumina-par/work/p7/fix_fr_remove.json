@@ -1,0 +1,12 @@
+{
+ "version": 1,
+ "_note": "P7 post-route repair, removal pass (route_edit applies all adds before any removes, so a width change at fixed geometry needs two invocations). (a) 4 x +12V tracks at 0.2798 mm, under the 0.375 mm aiee_pwr_width_12V rule - re-added at width in the add pass; measured centreline-to-foreign-copper is 0.360 mm, i.e. 0.5168 mm of width headroom at the 0.1016 mm floor, so 0.375 mm clears. (b) GND via at (138.697, 102.308), 0.3997 mm from the /control/PWM2 via vs the 0.4995 mm hole_to_hole floor - it carries no track and stops 0.247 mm short of R204 pad 2, so it connects nothing; the PWM2 via is load-bearing (F.Cu + B.Cu runs) and stays. (c) 0.2031 mm dangling GND crumb.",
+ "ops": [
+  {"op": "remove", "uuid": "1cdc70ce-a30a-4572-b888-8e6861e42190"},
+  {"op": "remove", "uuid": "33e33564-2a81-49b0-8cd7-e0f76111706c"},
+  {"op": "remove", "uuid": "a02797fa-cbe6-4077-a300-3575bcc53bcf"},
+  {"op": "remove", "uuid": "b20fbb7b-8547-4bc5-925c-913167a0f568"},
+  {"op": "remove", "uuid": "76d9ffa8-4ab2-421d-b9b3-0dbc4a1af258"},
+  {"op": "remove", "uuid": "e2f695f4-71b9-4e67-bb57-e00994d9d0f0"}
+ ]
+}

@@ -1,0 +1,1347 @@
+--track-width not given; using the board Default net-class 0.2mm.
+--hole-to-hole-clearance not given; using the board min_hole_to_hole 0.5mm.
+  WARNING: --clearance 0.1016 is below the fab floor 0.635 for the selected --fab-tier; pinning up to 0.635 (the fab can't make it smaller). Pass --fab-overrides to declare a smaller fab capability, or raise the value to silence this.
+Loading C:\dev\ai-ee3\boards\lumina-par\route\krt-main\lumina-par.kicad_pcb to expand net patterns...
+Using all 4 copper layers: F.Cu In1.Cu In2.Cu B.Cu (override with --layers)
+Routing 6 nets: ['+3V3', '/ADC0', '/EN_OK', '/LED0_A', '/NTC_LED']...
+Loaded per-net clearances for 8/76 nets from C:\dev\ai-ee3\boards\lumina-par\route\critical\net_clearances.json
+Loading C:\dev\ai-ee3\boards\lumina-par\route\krt-main\lumina-par.kicad_pcb...
+Auto-read netclass track widths for 3 non-Default net(s) (#435 single-ended companion).
+Using 4 routing layers: ['F.Cu', 'In1.Cu', 'In2.Cu', 'B.Cu']
+  Layer costs: F.Cu=1.0x, In1.Cu=1.0x, In2.Cu=1.0x, B.Cu=1.0x
+No BGA components detected - no exclusion zones needed
+
+Analyzing layer swaps for 2 multi-point net(s) spanning layers...
+  No common layer found for 1 multi-point net(s) (left as-is)
+
+Using MPS ordering strategy...
+MPS: Using segment intersection method (no nets on BGA chips)
+MPS: 6 nets with 15 crossing conflicts detected
+WARNING: Could not find pads for both stub groups in GND (found 1 pads)
+MPS Round 1: 1 units: +3V3
+MPS Round 2: 1 units: /ADC0
+MPS Round 3: 1 units: /EN_OK
+MPS Round 4: 1 units: /LED0_A
+MPS Round 5: 1 units: GND
+MPS Round 6: 1 units: /NTC_LED
+
+Routing 6 single-ended net(s)...
+============================================================
+Building base obstacle map...
+Base obstacle map built in 11.03s
+Found 76 unrouted nets in PCB for stub proximity
+Pre-computing net obstacle cache...
+Net obstacle cache built in 0.92s (76 nets)
+
+[1/6] Routing +3V3 (id=11)
+----------------------------------------
+  Detected multi-point net with 28 pads (Phase 1: main route only)
+  Existing copper joins 28 terminals into 4 group(s)
+  Multi-point net Phase 1: routing longest MST edge (pads 6 and 23, length=13.14mm)
+  backward stuck (1 < 800000), forward=800000
+    backward cell (2712, 2099, layer=0): ok, 8/8 neighbors blocked
+      ALL neighbors blocked: (2711,2098), (2711,2099), (2711,2100), (2712,2098), (2712,2100), (2713,2098), (2713,2099), (2713,2100)
+      Blocking obstacles: /SHUNT3(2)
+  Phase 1 edge (pads 6,23) failed after 800001 iterations - trying next MST edge
+  Multi-point net Phase 1: retrying with next MST edge (2/3) (pads 22 and 25, length=3.13mm)
+  backward stuck (1 < 800000), forward=800000
+    backward cell (2906, 2263, layer=0): ok, 8/8 neighbors blocked
+      ALL neighbors blocked: (2905,2262), (2905,2263), (2905,2264), (2906,2262), (2906,2264), (2907,2262), (2907,2263), (2907,2264)
+      Blocking obstacles: /ADC1(1)
+  Phase 1 edge (pads 22,25) failed after 800001 iterations - trying next MST edge
+  Multi-point net Phase 1: retrying with next MST edge (3/3) (pads 12 and 27, length=1.95mm)
+  backward stuck (1 < 800000), forward=800000
+    backward cell (2933, 2374, layer=0): ok, 8/8 neighbors blocked
+      ALL neighbors blocked: (2932,2373), (2932,2374), (2932,2375), (2933,2373), (2933,2375), (2934,2373), (2934,2374), (2934,2375)
+      Blocking obstacles: /thermal/CMP_LED(2), /FAULT(2)
+  Phase 1 edge (pads 12,27) failed after 800001 iterations
+  Stub layer switch: +3V3 stub at (143.80,115.35) F.Cu -> In1.Cu
+  Existing copper joins 28 terminals into 4 group(s)
+  Multi-point net Phase 1: routing longest MST edge (pads 6 and 23, length=13.14mm)
+  backward stuck (1 < 800000), forward=800000
+    backward cell (2712, 2099, layer=0): ok, 8/8 neighbors blocked
+      ALL neighbors blocked: (2711,2098), (2711,2099), (2711,2100), (2712,2098), (2712,2100), (2713,2098), (2713,2099), (2713,2100)
+      Blocking obstacles: /SHUNT3(2)
+  Phase 1 edge (pads 6,23) failed after 800001 iterations - trying next MST edge
+  Multi-point net Phase 1: retrying with next MST edge (2/3) (pads 22 and 25, length=3.13mm)
+  backward stuck (1 < 800000), forward=800000
+    backward cell (2906, 2263, layer=0): ok, 8/8 neighbors blocked
+      ALL neighbors blocked: (2905,2262), (2905,2263), (2905,2264), (2906,2262), (2906,2264), (2907,2262), (2907,2263), (2907,2264)
+      Blocking obstacles: /ADC1(1)
+  Phase 1 edge (pads 22,25) failed after 800001 iterations - trying next MST edge
+  Multi-point net Phase 1: retrying with next MST edge (3/3) (pads 12 and 27, length=1.95mm)
+  backward stuck (1 < 800000), forward=800000
+    backward cell (2933, 2374, layer=0): ok, 8/8 neighbors blocked
+      ALL neighbors blocked: (2932,2373), (2932,2374), (2932,2375), (2933,2373), (2933,2375), (2934,2373), (2934,2374), (2934,2375)
+      Blocking obstacles: /FAULT(2), /thermal/CMP_LED(2)
+  Phase 1 edge (pads 12,27) failed after 800001 iterations
+  Phase 1 exhausted from the pads; deferring 3 edge(s) to Phase 3's island-copper sources (base component: 25 terminal(s))
+  Phase 1 exhausted from the pads; deferring 3 edge(s) to Phase 3's island-copper sources (base component: 25 terminal(s))
+  SUCCESS: 0 segments, 0 vias, 2400003 iterations, length=265.31mm (stubs=265.31mm) (3.40s)
+
+[2/6] Routing /ADC0 (id=40)
+----------------------------------------
+  Detected multi-point net with 3 pads (Phase 1: main route only)
+  Multi-point net Phase 1: routing longest MST edge (pads 0 and 1, length=48.36mm)
+  forward stuck (2318 < 800000), backward=800000
+    forward cell (2807, 2381, layer=0): ok, 0/8 neighbors blocked
+  Phase 1 edge (pads 0,1) failed after 802318 iterations - trying next MST edge
+  Multi-point net Phase 1: retrying with next MST edge (2/2) (pads 0 and 2, length=18.35mm)
+  forward stuck (2844 < 800000), backward=800000
+    forward cell (2807, 2381, layer=0): ok, 0/8 neighbors blocked
+  Phase 1 edge (pads 0,2) failed after 802844 iterations
+  Failed to route a main edge after 1605162 iterations (2 edge(s) tried)
+  FAILED: Could not find route (0.78s)
+  [91mROUTE FAILED - no rippable blockers found[0m
+  Hint: the blocking copper belongs to pre-existing net(s) '/thermal/CMP_LED' '/ADC1' '/thermal/NTC_BRD' '/control/ID_ADC' '/control/I2C_SDA' '/SHUNT2' (committed by an earlier run/step), which this run is not allowed to rip. Retry with --rip-existing-nets '/thermal/CMP_LED' '/ADC1' '/thermal/NTC_BRD' '/control/ID_ADC' '/control/I2C_SDA' '/SHUNT2' to rip and re-route them in this run (issue #103) -- the decisive blocker may be any of them, so start with the full set (each ripped net is re-routed and the run reports honestly if one cannot be), then bisect if you want a minimal rip.
+
+[3/6 (1 failed)] Routing /EN_OK (id=9)
+----------------------------------------
+  Detected multi-point net with 10 pads (Phase 1: main route only)
+  Multi-point net Phase 1: routing longest MST edge (pads 0 and 9, length=20.25mm)
+  backward stuck (1 < 800000), forward=800000
+    backward cell (1795, 1810, layer=0): ok, 8/8 neighbors blocked
+      ALL neighbors blocked: (1794,1809), (1794,1810), (1794,1811), (1795,1809), (1795,1811), (1796,1809), (1796,1810), (1796,1811)
+      Blocking obstacles: /LED3_A(3)
+  [92mVia-in-pad unblock: dropped 1 fab-floor via(s) to reach a boxed endpoint[0m
+  Phase 1 routed in 20266 iterations, 34 segments
+  SUCCESS: 34 segments, 2 vias, 20266 iterations, length=22.66mm (stubs=0.00mm) (0.63s)
+
+[4/6 (1 failed)] Routing /LED0_A (id=19)
+----------------------------------------
+  Detected multi-point net with 5 pads (Phase 1: main route only)
+  Multi-point net Phase 1: routing longest MST edge (pads 0 and 1, length=64.61mm)
+  Phase 1 routed in 210474 iterations, 32 segments
+  SUCCESS: 32 segments, 3 vias, 210474 iterations, length=64.17mm (stubs=0.00mm) (0.10s)
+
+[5/6 (1 failed)] Routing GND (id=5)
+----------------------------------------
+  Detected multi-point net with 112 pads (Phase 1: main route only)
+  Existing copper joins 112 terminals into 3 group(s)
+  Multi-point net Phase 1: routing longest MST edge (pads 80 and 93, length=8.08mm)
+  backward stuck (1 < 800000), forward=800000
+    backward cell (2933, 2486, layer=0): ok, 8/8 neighbors blocked
+      ALL neighbors blocked: (2932,2485), (2932,2486), (2932,2487), (2933,2485), (2933,2487), (2934,2485), (2934,2486), (2934,2487)
+      Blocking obstacles: /FAULT(2), /thermal/CMP_LED(2)
+  Phase 1 edge (pads 80,93) failed after 800001 iterations - trying next MST edge
+  Multi-point net Phase 1: retrying with next MST edge (2/2) (pads 43 and 66, length=2.01mm)
+  backward stuck (1 < 800000), forward=800000
+    backward cell (2774, 2033, layer=0): ok, 8/8 neighbors blocked
+      ALL neighbors blocked: (2773,2032), (2773,2033), (2773,2034), (2774,2032), (2774,2034), (2775,2032), (2775,2033), (2775,2034)
+      Blocking obstacles: /control/PWM2(3)
+  [92mVia-in-pad unblock: dropped 1 fab-floor via(s) to reach a boxed endpoint[0m
+  Phase 1 routed in 800652 iterations, 9 segments
+  SUCCESS: 9 segments, 1 vias, 800652 iterations, length=59.98mm (stubs=55.08mm) (1.23s)
+
+[6/6 (1 failed)] Routing /NTC_LED (id=21)
+----------------------------------------
+  Detected multi-point net with 4 pads (Phase 1: main route only)
+  Multi-point net Phase 1: routing longest MST edge (pads 0 and 3, length=47.27mm)
+  Phase 1 routed in 138994 iterations, 47 segments
+  SUCCESS: 47 segments, 2 vias, 138994 iterations, length=51.15mm (stubs=0.00mm) (0.07s)
+
+Sync pcb_data: 1407 -> 1288 (kept stubs) -> 1407 (after adding 119)
+
+============================================================
+Multi-point Phase 3: Routing 17 tap connections
+============================================================
+Phase 3 order (boxed-in risk first): GND, +3V3, /EN_OK, /LED0_A, /NTC_LED
+
+GND (net 5):
+  Multi-point net Phase 3: routing 1 remaining MST edges (longest first)
+    [1/17] Routing MST edge: pad 80 -> pad 93 (length=8.08mm) target=(146.65, 124.30)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2933, 2486, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2932,2485), (2932,2486), (2932,2487), (2933,2485), (2933,2487), (2934,2485), (2934,2486), (2934,2487)
+          Blocking obstacles: /thermal/CMP_LED(2), /FAULT(2)
+      [93mFailed to route MST edge after 800001 iterations (0.51s)[0m
+    Fallback: attempting orphaned pad 93 directly from connected copper
+    [2/17] (1 failed) Routing MST edge: pad 66 -> pad 93 (length=30.59mm) target=(146.65, 124.30)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2933, 2486, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2932,2485), (2932,2486), (2932,2487), (2933,2485), (2933,2487), (2934,2485), (2934,2486), (2934,2487)
+          Blocking obstacles: /FAULT(2), /thermal/CMP_LED(2)
+      [93mFailed to route MST edge after 800001 iterations (0.48s)[0m
+  [93mWarning: 1 pad(s) not connected (2 MST edge(s) failed)[0m
+  Phase 3 routing complete: 0 edges, 8 total segments, 1 total vias
+  [91mNOT CONNECTED (so far): GND - U401 pad 12 at (146.65, 124.30) - may still be recovered; final verdict in the end-of-run summary[0m
+  Net total time: 1.49s, 2400654 iterations
+
++3V3 (net 11):
+  Seeding tap sources from the base island's existing copper: 220 segment(s), 12 via(s)
+  Multi-point net Phase 3: routing 3 remaining MST edges (longest first)
+    [3/17] (2 failed) Routing MST edge: pad 6 -> pad 23 (length=13.14mm) target=(135.62, 104.94)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2712, 2099, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2711,2098), (2711,2099), (2711,2100), (2712,2098), (2712,2100), (2713,2098), (2713,2099), (2713,2100)
+          Blocking obstacles: /SHUNT3(2)
+      [93mFailed to route MST edge after 800001 iterations (0.50s)[0m
+    [4/17] (3 failed) Routing MST edge: pad 22 -> pad 25 (length=3.13mm) target=(145.28, 113.14)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2906, 2263, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2905,2262), (2905,2263), (2905,2264), (2906,2262), (2906,2264), (2907,2262), (2907,2263), (2907,2264)
+          Blocking obstacles: /ADC1(1)
+      [93mFailed to route MST edge after 800001 iterations (0.53s)[0m
+    [5/17] (4 failed) Routing MST edge: pad 12 -> pad 27 (length=1.95mm) target=(146.65, 118.70)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2933, 2374, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2932,2373), (2932,2374), (2932,2375), (2933,2373), (2933,2375), (2934,2373), (2934,2374), (2934,2375)
+          Blocking obstacles: /FAULT(2), /thermal/CMP_LED(2)
+      [93mFailed to route MST edge after 800001 iterations (0.54s)[0m
+    Fallback: attempting orphaned pad 27 directly from connected copper
+    [6/17] (5 failed) Routing MST edge: pad 12 -> pad 27 (length=1.95mm) target=(146.65, 118.70)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2933, 2374, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2932,2373), (2932,2374), (2932,2375), (2933,2373), (2933,2375), (2934,2373), (2934,2374), (2934,2375)
+          Blocking obstacles: /thermal/CMP_LED(2), /FAULT(2)
+      [93mFailed to route MST edge after 800001 iterations (0.54s)[0m
+    Fallback: attempting orphaned pad 25 directly from connected copper
+    [6/17] (5 failed) Routing MST edge: pad 22 -> pad 25 (length=3.13mm) target=(145.28, 113.14)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2906, 2263, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2905,2262), (2905,2263), (2905,2264), (2906,2262), (2906,2264), (2907,2262), (2907,2263), (2907,2264)
+          Blocking obstacles: /ADC1(1)
+      [93mFailed to route MST edge after 800001 iterations (0.54s)[0m
+    Fallback: attempting orphaned pad 23 directly from connected copper
+    [6/17] (5 failed) Routing MST edge: pad 6 -> pad 23 (length=13.14mm) target=(135.62, 104.94)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2712, 2099, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2711,2098), (2711,2099), (2711,2100), (2712,2098), (2712,2100), (2713,2098), (2713,2099), (2713,2100)
+          Blocking obstacles: /SHUNT3(2)
+      [93mFailed to route MST edge after 800001 iterations (0.52s)[0m
+  [93mWarning: 3 pad(s) not connected (3 MST edge(s) failed)[0m
+  Phase 3 routing complete: 0 edges, 0 total segments, 0 total vias
+  Stub layer switch: +3V3 stub at (146.55,116.85) In1.Cu -> B.Cu
+  Seeding tap sources from the base island's existing copper: 220 segment(s), 12 via(s)
+  Multi-point net Phase 3: routing 3 remaining MST edges (longest first)
+    [5/17] (5 failed) Routing MST edge: pad 6 -> pad 23 (length=13.14mm) target=(135.62, 104.94)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2712, 2099, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2711,2098), (2711,2099), (2711,2100), (2712,2098), (2712,2100), (2713,2098), (2713,2099), (2713,2100)
+          Blocking obstacles: /SHUNT3(2)
+      [93mFailed to route MST edge after 800001 iterations (0.51s)[0m
+    [6/17] (6 failed) Routing MST edge: pad 22 -> pad 25 (length=3.13mm) target=(145.28, 113.14)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2906, 2263, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2905,2262), (2905,2263), (2905,2264), (2906,2262), (2906,2264), (2907,2262), (2907,2263), (2907,2264)
+          Blocking obstacles: /ADC1(1)
+      [93mFailed to route MST edge after 800001 iterations (0.54s)[0m
+    [7/17] (7 failed) Routing MST edge: pad 12 -> pad 27 (length=1.95mm) target=(146.65, 118.70)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2933, 2374, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2932,2373), (2932,2374), (2932,2375), (2933,2373), (2933,2375), (2934,2373), (2934,2374), (2934,2375)
+          Blocking obstacles: /FAULT(2), /thermal/CMP_LED(2)
+      [93mFailed to route MST edge after 800001 iterations (0.51s)[0m
+    Fallback: attempting orphaned pad 27 directly from connected copper
+    [8/17] (8 failed) Routing MST edge: pad 12 -> pad 27 (length=1.95mm) target=(146.65, 118.70)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2933, 2374, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2932,2373), (2932,2374), (2932,2375), (2933,2373), (2933,2375), (2934,2373), (2934,2374), (2934,2375)
+          Blocking obstacles: /FAULT(2), /thermal/CMP_LED(2)
+      [93mFailed to route MST edge after 800001 iterations (0.49s)[0m
+    Fallback: attempting orphaned pad 25 directly from connected copper
+    [8/17] (8 failed) Routing MST edge: pad 22 -> pad 25 (length=3.13mm) target=(145.28, 113.14)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2906, 2263, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2905,2262), (2905,2263), (2905,2264), (2906,2262), (2906,2264), (2907,2262), (2907,2263), (2907,2264)
+          Blocking obstacles: /ADC1(1)
+      [93mFailed to route MST edge after 800001 iterations (0.53s)[0m
+    Fallback: attempting orphaned pad 23 directly from connected copper
+    [8/17] (8 failed) Routing MST edge: pad 6 -> pad 23 (length=13.14mm) target=(135.62, 104.94)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2712, 2099, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2711,2098), (2711,2099), (2711,2100), (2712,2098), (2712,2100), (2713,2098), (2713,2099), (2713,2100)
+          Blocking obstacles: /SHUNT3(2)
+      [93mFailed to route MST edge after 800001 iterations (0.54s)[0m
+  [93mWarning: 3 pad(s) not connected (3 MST edge(s) failed)[0m
+  Phase 3 routing complete: 0 edges, 0 total segments, 0 total vias
+  [91mNOT CONNECTED (so far): +3V3 - U202 pad 14 at (135.62, 104.94) - may still be recovered; final verdict in the end-of-run summary[0m
+  [91mNOT CONNECTED (so far): +3V3 - R403 pad 1 at (145.28, 113.14) - may still be recovered; final verdict in the end-of-run summary[0m
+  [91mNOT CONNECTED (so far): +3V3 - U401 pad 3 at (146.65, 118.70) - may still be recovered; final verdict in the end-of-run summary[0m
+  Net total time: 6.92s, 7200009 iterations
+
+/EN_OK (net 9):
+  Multi-point net Phase 3: routing 8 remaining MST edges (longest first)
+    [5/17] (5 failed) Routing MST edge: pad 9 -> pad 6 (length=20.25mm) target=(78.75, 99.75)
+      Routed in 870 iterations (0.00s)
+    [6/17] (5 failed) Routing MST edge: pad 0 -> pad 7 (length=9.00mm) target=(111.75, 85.75)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2235, 1715, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2234,1714), (2234,1715), (2234,1716), (2235,1714), (2235,1716), (2236,1714), (2236,1715), (2236,1716)
+          Blocking obstacles: /control/IDLE1(3)
+      [93mFailed to route MST edge after 800001 iterations (0.53s)[0m
+    Fallback: attempting orphaned pad 7 directly from connected copper
+    [7/17] (6 failed) Routing MST edge: pad 0 -> pad 7 (length=9.00mm) target=(111.75, 85.75)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2235, 1715, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2234,1714), (2234,1715), (2234,1716), (2235,1714), (2235,1716), (2236,1714), (2236,1715), (2236,1716)
+          Blocking obstacles: /control/IDLE1(3)
+      [93mFailed to route MST edge after 800001 iterations (0.47s)[0m
+    Fallback: attempting orphaned pad 1 directly from connected copper
+    [7/17] (6 failed) Routing MST edge: pad 0 -> pad 1 (length=28.25mm) target=(118.25, 98.50)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2365, 1970, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2364,1969), (2364,1970), (2364,1971), (2365,1969), (2365,1971), (2366,1969), (2366,1970), (2366,1971)
+          Blocking obstacles: /SHUNT3(1)
+      [92mVia-in-pad unblock: dropped 1 fab-floor via(s) to reach a boxed endpoint[0m
+      Routed in 16942 iterations (0.56s)
+    [8/17] (6 failed) Routing MST edge: pad 1 -> pad 2 (length=19.84mm) target=(130.38, 106.21)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2608, 2124, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2607,2123), (2607,2124), (2607,2125), (2608,2123), (2608,2125), (2609,2123), (2609,2124), (2609,2125)
+          Blocking obstacles: /control/PWM1(2)
+      [93mFailed to route MST edge after 800001 iterations (0.56s)[0m
+    [9/17] (7 failed) Routing MST edge: pad 1 -> pad 7 (length=19.25mm) target=(111.75, 85.75)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2235, 1715, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2234,1714), (2234,1715), (2234,1716), (2235,1714), (2235,1716), (2236,1714), (2236,1715), (2236,1716)
+          Blocking obstacles: /control/IDLE1(3)
+      [93mFailed to route MST edge after 800001 iterations (0.46s)[0m
+    Fallback: attempting orphaned pad 2 directly from connected copper
+    [10/17] (8 failed) Routing MST edge: pad 1 -> pad 2 (length=19.84mm) target=(130.38, 106.21)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2608, 2124, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2607,2123), (2607,2124), (2607,2125), (2608,2123), (2608,2125), (2609,2123), (2609,2124), (2609,2125)
+          Blocking obstacles: /control/PWM1(2)
+      [93mFailed to route MST edge after 800001 iterations (0.49s)[0m
+    Fallback: attempting orphaned pad 3 directly from connected copper
+    [10/17] (8 failed) Routing MST edge: pad 1 -> pad 3 (length=23.65mm) target=(130.38, 110.02)
+      Routed in 13970 iterations (0.01s)
+    [11/17] (8 failed) Routing MST edge: pad 3 -> pad 4 (length=5.24mm) target=(135.62, 110.02)
+      Routed in 105 iterations (0.00s)
+    [12/17] (8 failed) Routing MST edge: pad 4 -> pad 8 (length=16.10mm) target=(134.70, 125.20)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2694, 2504, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2693,2503), (2693,2504), (2693,2505), (2694,2503), (2694,2505), (2695,2503), (2695,2504), (2695,2505)
+          Blocking obstacles: /thermal/NTC_BRD(5)
+      [93mFailed to route MST edge after 800001 iterations (0.58s)[0m
+    [13/17] (9 failed) Routing MST edge: pad 3 -> pad 2 (length=3.81mm) target=(130.38, 106.21)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2608, 2124, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2607,2123), (2607,2124), (2607,2125), (2608,2123), (2608,2125), (2609,2123), (2609,2124), (2609,2125)
+          Blocking obstacles: /control/PWM1(2)
+      [93mFailed to route MST edge after 800001 iterations (0.50s)[0m
+    [14/17] (10 failed) Routing MST edge: pad 4 -> pad 5 (length=3.81mm) target=(135.62, 106.21)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2712, 2124, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2711,2123), (2711,2124), (2711,2125), (2712,2123), (2712,2125), (2713,2123), (2713,2124), (2713,2125)
+          Blocking obstacles: /SHUNT3(5)
+      [93mFailed to route MST edge after 800001 iterations (0.55s)[0m
+    Fallback: attempting orphaned pad 5 directly from connected copper
+    [15/17] (11 failed) Routing MST edge: pad 4 -> pad 5 (length=3.81mm) target=(135.62, 106.21)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2712, 2124, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2711,2123), (2711,2124), (2711,2125), (2712,2123), (2712,2125), (2713,2123), (2713,2124), (2713,2125)
+          Blocking obstacles: /SHUNT3(5)
+      [93mFailed to route MST edge after 800001 iterations (0.52s)[0m
+    Fallback: attempting orphaned pad 8 directly from connected copper
+    [15/17] (11 failed) Routing MST edge: pad 4 -> pad 8 (length=16.10mm) target=(134.70, 125.20)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2694, 2504, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2693,2503), (2693,2504), (2693,2505), (2694,2503), (2694,2505), (2695,2503), (2695,2504), (2695,2505)
+          Blocking obstacles: /thermal/NTC_BRD(5)
+      [93mFailed to route MST edge after 800001 iterations (0.53s)[0m
+  [93mWarning: 4 pad(s) not connected (6 MST edge(s) failed)[0m
+  Phase 3 routing complete: 4 edges, 93 total segments, 4 total vias
+    Ripping +3V3 (net 11) to retry tap route...
+  Multi-point net Phase 3: routing 8 remaining MST edges (longest first)
+    [15/17] (11 failed) Routing MST edge: pad 9 -> pad 6 (length=20.25mm) target=(78.75, 99.75)
+      Routed in 870 iterations (0.00s)
+    [16/17] (11 failed) Routing MST edge: pad 0 -> pad 7 (length=9.00mm) target=(111.75, 85.75)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2235, 1715, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2234,1714), (2234,1715), (2234,1716), (2235,1714), (2235,1716), (2236,1714), (2236,1715), (2236,1716)
+          Blocking obstacles: /control/IDLE1(3)
+      [93mFailed to route MST edge after 800001 iterations (0.48s)[0m
+    Fallback: attempting orphaned pad 7 directly from connected copper
+    [17/17] (12 failed) Routing MST edge: pad 0 -> pad 7 (length=9.00mm) target=(111.75, 85.75)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2235, 1715, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2234,1714), (2234,1715), (2234,1716), (2235,1714), (2235,1716), (2236,1714), (2236,1715), (2236,1716)
+          Blocking obstacles: /control/IDLE1(3)
+      [93mFailed to route MST edge after 800001 iterations (0.50s)[0m
+    Fallback: attempting orphaned pad 1 directly from connected copper
+    [17/17] (12 failed) Routing MST edge: pad 0 -> pad 1 (length=28.25mm) target=(118.25, 98.50)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2365, 1970, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2364,1969), (2364,1970), (2364,1971), (2365,1969), (2365,1971), (2366,1969), (2366,1970), (2366,1971)
+          Blocking obstacles: /SHUNT3(1)
+      [92mVia-in-pad unblock: dropped 1 fab-floor via(s) to reach a boxed endpoint[0m
+      Routed in 17940 iterations (0.56s)
+    [18/17] (12 failed) Routing MST edge: pad 1 -> pad 2 (length=19.84mm) target=(130.38, 106.21)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2608, 2124, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2607,2123), (2607,2124), (2607,2125), (2608,2123), (2608,2125), (2609,2123), (2609,2124), (2609,2125)
+          Blocking obstacles: /control/PWM1(2)
+      [93mFailed to route MST edge after 800001 iterations (0.49s)[0m
+    [19/17] (13 failed) Routing MST edge: pad 1 -> pad 7 (length=19.25mm) target=(111.75, 85.75)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2235, 1715, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2234,1714), (2234,1715), (2234,1716), (2235,1714), (2235,1716), (2236,1714), (2236,1715), (2236,1716)
+          Blocking obstacles: /control/IDLE1(3)
+      [93mFailed to route MST edge after 800001 iterations (0.46s)[0m
+    Fallback: attempting orphaned pad 2 directly from connected copper
+    [20/17] (14 failed) Routing MST edge: pad 1 -> pad 2 (length=19.84mm) target=(130.38, 106.21)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2608, 2124, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2607,2123), (2607,2124), (2607,2125), (2608,2123), (2608,2125), (2609,2123), (2609,2124), (2609,2125)
+          Blocking obstacles: /control/PWM1(2)
+      [93mFailed to route MST edge after 800001 iterations (0.51s)[0m
+    Fallback: attempting orphaned pad 3 directly from connected copper
+    [20/17] (14 failed) Routing MST edge: pad 1 -> pad 3 (length=23.65mm) target=(130.38, 110.02)
+      Routed in 13904 iterations (0.01s)
+    [21/17] (14 failed) Routing MST edge: pad 3 -> pad 4 (length=5.24mm) target=(135.62, 110.02)
+      Routed in 105 iterations (0.00s)
+    [22/17] (14 failed) Routing MST edge: pad 4 -> pad 8 (length=16.10mm) target=(134.70, 125.20)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2694, 2504, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2693,2503), (2693,2504), (2693,2505), (2694,2503), (2694,2505), (2695,2503), (2695,2504), (2695,2505)
+          Blocking obstacles: /thermal/NTC_BRD(5)
+      [93mFailed to route MST edge after 800001 iterations (0.51s)[0m
+    [23/17] (15 failed) Routing MST edge: pad 3 -> pad 2 (length=3.81mm) target=(130.38, 106.21)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2608, 2124, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2607,2123), (2607,2124), (2607,2125), (2608,2123), (2608,2125), (2609,2123), (2609,2124), (2609,2125)
+          Blocking obstacles: /control/PWM1(2)
+      [93mFailed to route MST edge after 800001 iterations (0.51s)[0m
+    [24/17] (16 failed) Routing MST edge: pad 4 -> pad 5 (length=3.81mm) target=(135.62, 106.21)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2712, 2124, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2711,2123), (2711,2124), (2711,2125), (2712,2123), (2712,2125), (2713,2123), (2713,2124), (2713,2125)
+          Blocking obstacles: /SHUNT3(5)
+      [93mFailed to route MST edge after 800001 iterations (0.49s)[0m
+    Fallback: attempting orphaned pad 5 directly from connected copper
+    [25/17] (17 failed) Routing MST edge: pad 4 -> pad 5 (length=3.81mm) target=(135.62, 106.21)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2712, 2124, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2711,2123), (2711,2124), (2711,2125), (2712,2123), (2712,2125), (2713,2123), (2713,2124), (2713,2125)
+          Blocking obstacles: /SHUNT3(5)
+      [93mFailed to route MST edge after 800001 iterations (0.53s)[0m
+    Fallback: attempting orphaned pad 8 directly from connected copper
+    [25/17] (17 failed) Routing MST edge: pad 4 -> pad 8 (length=16.10mm) target=(134.70, 125.20)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2694, 2504, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2693,2503), (2693,2504), (2693,2505), (2694,2503), (2694,2505), (2695,2503), (2695,2504), (2695,2505)
+          Blocking obstacles: /thermal/NTC_BRD(5)
+      [93mFailed to route MST edge after 800001 iterations (0.51s)[0m
+  [93mWarning: 4 pad(s) not connected (6 MST edge(s) failed)[0m
+  Phase 3 routing complete: 4 edges, 91 total segments, 4 total vias
+    /EN_OK: Retry FAILED (N=1): still 6 failed edges
+      Retry had 60065 blocked cells
+    Re-analyzing 60065 blocked cells from N=1 retry:
+      Frontier blocked by 3 nets (6378 cells, 6378 unique; near: 0 src, 258 tgt)
+      Coverage: 6378/39375 frontier cells attributed to routed nets; 32997 static/unrippable
+      Top blockers:
+        1. GND: 4912 (77.0%), 4912 uniq (100%)
+        2. /LED0_A: 781 (12.2%), 781 uniq (100%), near: 0 src, 258 tgt
+        3. /NTC_LED: 685 (10.7%), 685 uniq (100%)
+    Extending to N=2: ripping GND (net 5)...
+  Multi-point net Phase 3: routing 8 remaining MST edges (longest first)
+    [15/17] (11 failed) Routing MST edge: pad 9 -> pad 6 (length=20.25mm) target=(78.75, 99.75)
+      Routed in 870 iterations (0.00s)
+    [16/17] (11 failed) Routing MST edge: pad 0 -> pad 7 (length=9.00mm) target=(111.75, 85.75)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2235, 1715, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2234,1714), (2234,1715), (2234,1716), (2235,1714), (2235,1716), (2236,1714), (2236,1715), (2236,1716)
+          Blocking obstacles: /control/IDLE1(3)
+      [93mFailed to route MST edge after 800001 iterations (0.48s)[0m
+    Fallback: attempting orphaned pad 7 directly from connected copper
+    [17/17] (12 failed) Routing MST edge: pad 0 -> pad 7 (length=9.00mm) target=(111.75, 85.75)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2235, 1715, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2234,1714), (2234,1715), (2234,1716), (2235,1714), (2235,1716), (2236,1714), (2236,1715), (2236,1716)
+          Blocking obstacles: /control/IDLE1(3)
+      [93mFailed to route MST edge after 800001 iterations (0.50s)[0m
+    Fallback: attempting orphaned pad 1 directly from connected copper
+    [17/17] (12 failed) Routing MST edge: pad 0 -> pad 1 (length=28.25mm) target=(118.25, 98.50)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2365, 1970, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2364,1969), (2364,1970), (2364,1971), (2365,1969), (2365,1971), (2366,1969), (2366,1970), (2366,1971)
+          Blocking obstacles: /SHUNT3(1)
+      [92mVia-in-pad unblock: dropped 1 fab-floor via(s) to reach a boxed endpoint[0m
+      Routed in 17940 iterations (0.53s)
+    [18/17] (12 failed) Routing MST edge: pad 1 -> pad 2 (length=19.84mm) target=(130.38, 106.21)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2608, 2124, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2607,2123), (2607,2124), (2607,2125), (2608,2123), (2608,2125), (2609,2123), (2609,2124), (2609,2125)
+          Blocking obstacles: /control/PWM1(2)
+      [93mFailed to route MST edge after 800001 iterations (0.51s)[0m
+    [19/17] (13 failed) Routing MST edge: pad 1 -> pad 7 (length=19.25mm) target=(111.75, 85.75)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2235, 1715, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2234,1714), (2234,1715), (2234,1716), (2235,1714), (2235,1716), (2236,1714), (2236,1715), (2236,1716)
+          Blocking obstacles: /control/IDLE1(3)
+      [93mFailed to route MST edge after 800001 iterations (0.47s)[0m
+    Fallback: attempting orphaned pad 2 directly from connected copper
+    [20/17] (14 failed) Routing MST edge: pad 1 -> pad 2 (length=19.84mm) target=(130.38, 106.21)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2608, 2124, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2607,2123), (2607,2124), (2607,2125), (2608,2123), (2608,2125), (2609,2123), (2609,2124), (2609,2125)
+          Blocking obstacles: /control/PWM1(2)
+      [93mFailed to route MST edge after 800001 iterations (0.51s)[0m
+    Fallback: attempting orphaned pad 3 directly from connected copper
+    [20/17] (14 failed) Routing MST edge: pad 1 -> pad 3 (length=23.65mm) target=(130.38, 110.02)
+      Routed in 13807 iterations (0.01s)
+    [21/17] (14 failed) Routing MST edge: pad 3 -> pad 4 (length=5.24mm) target=(135.62, 110.02)
+      Routed in 105 iterations (0.00s)
+    [22/17] (14 failed) Routing MST edge: pad 4 -> pad 8 (length=16.10mm) target=(134.70, 125.20)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2694, 2504, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2693,2503), (2693,2504), (2693,2505), (2694,2503), (2694,2505), (2695,2503), (2695,2504), (2695,2505)
+          Blocking obstacles: /thermal/NTC_BRD(5)
+      [93mFailed to route MST edge after 800001 iterations (0.53s)[0m
+    [23/17] (15 failed) Routing MST edge: pad 3 -> pad 2 (length=3.81mm) target=(130.38, 106.21)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2608, 2124, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2607,2123), (2607,2124), (2607,2125), (2608,2123), (2608,2125), (2609,2123), (2609,2124), (2609,2125)
+          Blocking obstacles: /control/PWM1(2)
+      [93mFailed to route MST edge after 800001 iterations (0.54s)[0m
+    [24/17] (16 failed) Routing MST edge: pad 4 -> pad 5 (length=3.81mm) target=(135.62, 106.21)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2712, 2124, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2711,2123), (2711,2124), (2711,2125), (2712,2123), (2712,2125), (2713,2123), (2713,2124), (2713,2125)
+          Blocking obstacles: /SHUNT3(5)
+      [93mFailed to route MST edge after 800001 iterations (0.51s)[0m
+    Fallback: attempting orphaned pad 5 directly from connected copper
+    [25/17] (17 failed) Routing MST edge: pad 4 -> pad 5 (length=3.81mm) target=(135.62, 106.21)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2712, 2124, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2711,2123), (2711,2124), (2711,2125), (2712,2123), (2712,2125), (2713,2123), (2713,2124), (2713,2125)
+          Blocking obstacles: /SHUNT3(5)
+      [93mFailed to route MST edge after 800001 iterations (0.53s)[0m
+    Fallback: attempting orphaned pad 8 directly from connected copper
+    [25/17] (17 failed) Routing MST edge: pad 4 -> pad 8 (length=16.10mm) target=(134.70, 125.20)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2694, 2504, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2693,2503), (2693,2504), (2693,2505), (2694,2503), (2694,2505), (2695,2503), (2695,2504), (2695,2505)
+          Blocking obstacles: /thermal/NTC_BRD(5)
+      [93mFailed to route MST edge after 800001 iterations (0.50s)[0m
+  [93mWarning: 4 pad(s) not connected (6 MST edge(s) failed)[0m
+  Phase 3 routing complete: 4 edges, 91 total segments, 4 total vias
+    /EN_OK: Retry FAILED (N=2): still 6 failed edges
+      Retry had 60065 blocked cells
+    Re-analyzing 60065 blocked cells from N=2 retry:
+      Frontier blocked by 2 nets (1467 cells, 1467 unique; near: 0 src, 256 tgt)
+      Coverage: 1467/39298 frontier cells attributed to routed nets; 37831 static/unrippable
+      Top blockers:
+        1. /LED0_A: 768 (52.4%), 768 uniq (100%), near: 0 src, 256 tgt
+        2. /NTC_LED: 699 (47.6%), 699 uniq (100%)
+    Extending to N=3: ripping /LED0_A (net 19)...
+  Multi-point net Phase 3: routing 8 remaining MST edges (longest first)
+    [15/17] (11 failed) Routing MST edge: pad 9 -> pad 6 (length=20.25mm) target=(78.75, 99.75)
+      Routed in 870 iterations (0.00s)
+    [16/17] (11 failed) Routing MST edge: pad 0 -> pad 7 (length=9.00mm) target=(111.75, 85.75)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2235, 1715, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2234,1714), (2234,1715), (2234,1716), (2235,1714), (2235,1716), (2236,1714), (2236,1715), (2236,1716)
+          Blocking obstacles: /control/IDLE1(3)
+      [93mFailed to route MST edge after 800001 iterations (0.52s)[0m
+    Fallback: attempting orphaned pad 7 directly from connected copper
+    [17/17] (12 failed) Routing MST edge: pad 0 -> pad 7 (length=9.00mm) target=(111.75, 85.75)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2235, 1715, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2234,1714), (2234,1715), (2234,1716), (2235,1714), (2235,1716), (2236,1714), (2236,1715), (2236,1716)
+          Blocking obstacles: /control/IDLE1(3)
+      [93mFailed to route MST edge after 800001 iterations (0.47s)[0m
+    Fallback: attempting orphaned pad 1 directly from connected copper
+    [17/17] (12 failed) Routing MST edge: pad 0 -> pad 1 (length=28.25mm) target=(118.25, 98.50)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2365, 1970, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2364,1969), (2364,1970), (2364,1971), (2365,1969), (2365,1971), (2366,1969), (2366,1970), (2366,1971)
+          Blocking obstacles: /SHUNT3(1)
+      [92mVia-in-pad unblock: dropped 1 fab-floor via(s) to reach a boxed endpoint[0m
+      Routed in 17940 iterations (0.55s)
+    [18/17] (12 failed) Routing MST edge: pad 1 -> pad 2 (length=19.84mm) target=(130.38, 106.21)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2608, 2124, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2607,2123), (2607,2124), (2607,2125), (2608,2123), (2608,2125), (2609,2123), (2609,2124), (2609,2125)
+          Blocking obstacles: /control/PWM1(2)
+      [93mFailed to route MST edge after 800001 iterations (0.50s)[0m
+    [19/17] (13 failed) Routing MST edge: pad 1 -> pad 7 (length=19.25mm) target=(111.75, 85.75)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2235, 1715, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2234,1714), (2234,1715), (2234,1716), (2235,1714), (2235,1716), (2236,1714), (2236,1715), (2236,1716)
+          Blocking obstacles: /control/IDLE1(3)
+      [93mFailed to route MST edge after 800001 iterations (0.48s)[0m
+    Fallback: attempting orphaned pad 2 directly from connected copper
+    [20/17] (14 failed) Routing MST edge: pad 1 -> pad 2 (length=19.84mm) target=(130.38, 106.21)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2608, 2124, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2607,2123), (2607,2124), (2607,2125), (2608,2123), (2608,2125), (2609,2123), (2609,2124), (2609,2125)
+          Blocking obstacles: /control/PWM1(2)
+      [93mFailed to route MST edge after 800001 iterations (0.50s)[0m
+    Fallback: attempting orphaned pad 3 directly from connected copper
+    [20/17] (14 failed) Routing MST edge: pad 1 -> pad 3 (length=23.65mm) target=(130.38, 110.02)
+      Routed in 13807 iterations (0.01s)
+    [21/17] (14 failed) Routing MST edge: pad 3 -> pad 4 (length=5.24mm) target=(135.62, 110.02)
+      Routed in 105 iterations (0.00s)
+    [22/17] (14 failed) Routing MST edge: pad 4 -> pad 8 (length=16.10mm) target=(134.70, 125.20)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2694, 2504, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2693,2503), (2693,2504), (2693,2505), (2694,2503), (2694,2505), (2695,2503), (2695,2504), (2695,2505)
+          Blocking obstacles: /thermal/NTC_BRD(5)
+      [93mFailed to route MST edge after 800001 iterations (0.55s)[0m
+    [23/17] (15 failed) Routing MST edge: pad 3 -> pad 2 (length=3.81mm) target=(130.38, 106.21)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2608, 2124, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2607,2123), (2607,2124), (2607,2125), (2608,2123), (2608,2125), (2609,2123), (2609,2124), (2609,2125)
+          Blocking obstacles: /control/PWM1(2)
+      [93mFailed to route MST edge after 800001 iterations (0.53s)[0m
+    [24/17] (16 failed) Routing MST edge: pad 4 -> pad 5 (length=3.81mm) target=(135.62, 106.21)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2712, 2124, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2711,2123), (2711,2124), (2711,2125), (2712,2123), (2712,2125), (2713,2123), (2713,2124), (2713,2125)
+          Blocking obstacles: /SHUNT3(5)
+      [93mFailed to route MST edge after 800001 iterations (0.53s)[0m
+    Fallback: attempting orphaned pad 5 directly from connected copper
+    [25/17] (17 failed) Routing MST edge: pad 4 -> pad 5 (length=3.81mm) target=(135.62, 106.21)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2712, 2124, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2711,2123), (2711,2124), (2711,2125), (2712,2123), (2712,2125), (2713,2123), (2713,2124), (2713,2125)
+          Blocking obstacles: /SHUNT3(5)
+      [93mFailed to route MST edge after 800001 iterations (0.52s)[0m
+    Fallback: attempting orphaned pad 8 directly from connected copper
+    [25/17] (17 failed) Routing MST edge: pad 4 -> pad 8 (length=16.10mm) target=(134.70, 125.20)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2694, 2504, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2693,2503), (2693,2504), (2693,2505), (2694,2503), (2694,2505), (2695,2503), (2695,2504), (2695,2505)
+          Blocking obstacles: /thermal/NTC_BRD(5)
+      [93mFailed to route MST edge after 800001 iterations (0.55s)[0m
+  [93mWarning: 4 pad(s) not connected (6 MST edge(s) failed)[0m
+  Phase 3 routing complete: 4 edges, 91 total segments, 4 total vias
+    /EN_OK: Retry FAILED (N=3): still 6 failed edges
+      Retry had 60065 blocked cells
+    [91m/EN_OK: All rip-up attempts failed, restoring 3 net(s)...[0m
+  [91mNOT CONNECTED (so far): /EN_OK - U202 pad 2 at (130.38, 106.21) - may still be recovered; final verdict in the end-of-run summary[0m
+  [91mNOT CONNECTED (so far): /EN_OK - U202 pad 13 at (135.62, 106.21) - may still be recovered; final verdict in the end-of-run summary[0m
+  [91mNOT CONNECTED (so far): /EN_OK - R216 pad 1 at (111.75, 85.75) - may still be recovered; final verdict in the end-of-run summary[0m
+  [91mNOT CONNECTED (so far): /EN_OK - U201 pad 4 at (134.70, 125.20) - may still be recovered; final verdict in the end-of-run summary[0m
+  Added 60 tap segments, 2 tap vias
+  Net total time: 24.30s, 8052163 iterations
+
+/LED0_A (net 19):
+  Multi-point net Phase 3: routing 3 remaining MST edges (longest first)
+    [15/17] (11 failed) Routing MST edge: pad 0 -> pad 2 (length=11.35mm) target=(124.88, 69.75)
+      Routed in 203 iterations (0.00s)
+    [16/17] (11 failed) Routing MST edge: pad 1 -> pad 4 (length=2.30mm) target=(105.11, 118.60)
+      Routed in 47 iterations (0.00s)
+    [17/17] (11 failed) Routing MST edge: pad 4 -> pad 3 (length=16.56mm) target=(92.20, 114.95)
+      Routed in 6611 iterations (0.00s)
+  Phase 3 routing complete: 3 edges, 79 total segments, 3 total vias
+  Added 48 tap segments, 0 tap vias
+  Net total time: 0.14s, 217335 iterations
+
+/NTC_LED (net 21):
+  Multi-point net Phase 3: routing 2 remaining MST edges (longest first)
+    [18/17] (11 failed) Routing MST edge: pad 3 -> pad 1 (length=44.36mm) target=(143.78, 113.14)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2876, 2263, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2875,2262), (2875,2263), (2875,2264), (2876,2262), (2876,2264), (2877,2262), (2877,2263), (2877,2264)
+          Blocking obstacles: /ADC1(2)
+      [93mFailed to route MST edge after 800001 iterations (0.53s)[0m
+    Fallback: attempting orphaned pad 1 directly from connected copper
+    [19/17] (12 failed) Routing MST edge: pad 3 -> pad 1 (length=44.36mm) target=(143.78, 113.14)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2876, 2263, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2875,2262), (2875,2263), (2875,2264), (2876,2262), (2876,2264), (2877,2262), (2877,2263), (2877,2264)
+          Blocking obstacles: /ADC1(2)
+      [93mFailed to route MST edge after 800001 iterations (0.52s)[0m
+    Fallback: attempting orphaned pad 2 directly from connected copper
+    [19/17] (12 failed) Routing MST edge: pad 3 -> pad 2 (length=62.91mm) target=(145.21, 130.26)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2904, 2605, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2903,2604), (2903,2605), (2903,2606), (2904,2604), (2904,2606), (2905,2604), (2905,2605), (2905,2606)
+          Blocking obstacles: /thermal/CMP_LED(2)
+      [92mVia-in-pad unblock: dropped 1 fab-floor via(s) to reach a boxed endpoint[0m
+      Routed in 180976 iterations (0.69s)
+    [20/17] (12 failed) Routing MST edge: pad 2 -> pad 1 (length=18.55mm) target=(143.78, 113.14)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2876, 2263, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2875,2262), (2875,2263), (2875,2264), (2876,2262), (2876,2264), (2877,2262), (2877,2263), (2877,2264)
+          Blocking obstacles: /ADC1(2)
+      [93mFailed to route MST edge after 800001 iterations (0.50s)[0m
+  [93mWarning: 1 pad(s) not connected (2 MST edge(s) failed)[0m
+  Phase 3 routing complete: 1 edges, 123 total segments, 5 total vias
+  [91mNOT CONNECTED (so far): /NTC_LED - R403 pad 2 at (143.78, 113.14) - may still be recovered; final verdict in the end-of-run summary[0m
+  Added 76 tap segments, 3 tap vias
+  Net total time: 2.58s, 2719973 iterations
+
+Per-net fine-parameter rescue (#331/#371): 5 candidate net(s)
+  Rescuing +3V3 (partial, 4 disconnected parts)
+backward stuck (1 < 800000), forward=800000
+  backward cell (5425, 4198, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (5424,4197), (5424,4198), (5424,4199), (5425,4197), (5425,4199), (5426,4197), (5426,4198), (5426,4199)
+    Blocking obstacles: /SHUNT3(2)
+No route found after 800001 iterations (both directions)
+backward stuck (1 < 800000), forward=800000
+  backward cell (5425, 4198, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (5424,4197), (5424,4198), (5424,4199), (5425,4197), (5425,4199), (5426,4197), (5426,4198), (5426,4199)
+    Blocking obstacles: /SHUNT3(2)
+No route found after 800001 iterations (both directions)
+Both directions stuck (forward=756220, backward=1 < 800000)
+  forward cell (5688, 4472, layer=1): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (5687,4471), (5687,4472), (5687,4473), (5688,4471), (5688,4473), (5689,4471), (5689,4472), (5689,4473)
+  forward cell (5688, 4472, layer=1): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (5687,4471), (5687,4472), (5687,4473), (5688,4471), (5688,4473), (5689,4471), (5689,4472), (5689,4473)
+  forward cell (5688, 4498, layer=1): ok, 0/8 neighbors blocked
+  backward cell (5866, 4748, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (5865,4747), (5865,4748), (5865,4749), (5866,4747), (5866,4749), (5867,4747), (5867,4748), (5867,4749)
+    Blocking obstacles: /FAULT(2), /thermal/CMP_LED(2)
+No route found after 756221 iterations (both directions)
+Both directions stuck (forward=786411, backward=1 < 800000)
+  forward cell (5688, 4472, layer=1): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (5687,4471), (5687,4472), (5687,4473), (5688,4471), (5688,4473), (5689,4471), (5689,4472), (5689,4473)
+  forward cell (5688, 4472, layer=1): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (5687,4471), (5687,4472), (5687,4473), (5688,4471), (5688,4473), (5689,4471), (5689,4472), (5689,4473)
+  forward cell (5688, 4498, layer=1): ok, 0/8 neighbors blocked
+  backward cell (5866, 4748, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (5865,4747), (5865,4748), (5865,4749), (5866,4747), (5866,4749), (5867,4747), (5867,4748), (5867,4749)
+    Blocking obstacles: /FAULT(2), /thermal/CMP_LED(2)
+No route found after 786412 iterations (both directions)
+Route found in 72451 iterations, path length: 120
+    [91mrescue failed[0m (9.4s)
+  Rescuing /ADC0 (failed, 3 disconnected parts)
+forward stuck (11463 < 800000), backward=800000
+  forward cell (5613, 4763, layer=0): ok, 0/8 neighbors blocked
+No route found after 811463 iterations (both directions)
+forward stuck (12637 < 800000), backward=800000
+  forward cell (5613, 4763, layer=0): ok, 0/8 neighbors blocked
+No route found after 812637 iterations (both directions)
+Route found in 588499 iterations, path length: 1430
+    [92mrescued a gap[0m: grid 0.025, clearance 0.635, track 0.2 (44 segs, 4 vias, 588499 iters)
+backward stuck (11213 < 800000), forward=800000
+  backward cell (5613, 4763, layer=0): ok, 0/8 neighbors blocked
+No route found after 811213 iterations (both directions)
+backward stuck (12347 < 800000), forward=800000
+  backward cell (5613, 4763, layer=0): ok, 0/8 neighbors blocked
+No route found after 812347 iterations (both directions)
+    [92mimproved[0m (3 -> 2 parts, 34.4s)
+  Rescuing /EN_OK (partial, 5 disconnected parts)
+backward stuck (8 < 800000), forward=800000
+  backward cell (4958, 4142, layer=2): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (4957,4141), (4957,4142), (4957,4143), (4958,4141), (4958,4143), (4959,4141), (4959,4142), (4959,4143)
+  backward cell (4958, 4142, layer=2): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (4957,4141), (4957,4142), (4957,4143), (4958,4141), (4958,4143), (4959,4141), (4959,4142), (4959,4143)
+  backward cell (5424, 4400, layer=0): ok, 7/8 neighbors blocked
+No route found after 800008 iterations (both directions)
+backward stuck (8 < 800000), forward=800000
+  backward cell (4958, 4142, layer=2): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (4957,4141), (4957,4142), (4957,4143), (4958,4141), (4958,4143), (4959,4141), (4959,4142), (4959,4143)
+  backward cell (4958, 4142, layer=2): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (4957,4141), (4957,4142), (4957,4143), (4958,4141), (4958,4143), (4959,4141), (4959,4142), (4959,4143)
+  backward cell (5424, 4400, layer=0): ok, 7/8 neighbors blocked
+No route found after 800008 iterations (both directions)
+backward stuck (2 < 800000), forward=800000
+  backward cell (5215, 4248, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (5214,4247), (5214,4248), (5214,4249), (5215,4247), (5215,4249), (5216,4247), (5216,4248), (5216,4249)
+    Blocking obstacles: /control/PWM1(3)
+  backward cell (5425, 4248, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (5424,4247), (5424,4248), (5424,4249), (5425,4247), (5425,4249), (5426,4247), (5426,4248), (5426,4249)
+    Blocking obstacles: /SHUNT3(5)
+No route found after 800002 iterations (both directions)
+backward stuck (2 < 800000), forward=800000
+  backward cell (5215, 4248, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (5214,4247), (5214,4248), (5214,4249), (5215,4247), (5215,4249), (5216,4247), (5216,4248), (5216,4249)
+    Blocking obstacles: /control/PWM1(1)
+  backward cell (5425, 4248, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (5424,4247), (5424,4248), (5424,4249), (5425,4247), (5425,4249), (5426,4247), (5426,4248), (5426,4249)
+    Blocking obstacles: /SHUNT3(3)
+No route found after 800002 iterations (both directions)
+backward stuck (1 < 800000), forward=800000
+  backward cell (4470, 3430, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (4469,3429), (4469,3430), (4469,3431), (4470,3429), (4470,3431), (4471,3429), (4471,3430), (4471,3431)
+    Blocking obstacles: /control/IDLE1(3)
+No route found after 800001 iterations (both directions)
+backward stuck (1 < 800000), forward=800000
+  backward cell (4470, 3430, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (4469,3429), (4469,3430), (4469,3431), (4470,3429), (4470,3431), (4471,3429), (4471,3430), (4471,3431)
+    Blocking obstacles: /control/IDLE1(3)
+No route found after 800001 iterations (both directions)
+backward stuck (1 < 800000), forward=800000
+  backward cell (5388, 5008, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (5387,5007), (5387,5008), (5387,5009), (5388,5007), (5388,5009), (5389,5007), (5389,5008), (5389,5009)
+    Blocking obstacles: /thermal/NTC_BRD(5)
+No route found after 800001 iterations (both directions)
+backward stuck (1 < 800000), forward=800000
+  backward cell (5388, 5008, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (5387,5007), (5387,5008), (5387,5009), (5388,5007), (5388,5009), (5389,5007), (5389,5008), (5389,5009)
+    Blocking obstacles: /thermal/NTC_BRD(3)
+No route found after 800001 iterations (both directions)
+    [91mrescue failed[0m (25.7s)
+  Rescuing /NTC_LED (partial, 2 disconnected parts)
+backward stuck (1 < 800000), forward=800000
+  backward cell (5751, 4525, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (5750,4524), (5750,4525), (5750,4526), (5751,4524), (5751,4526), (5752,4524), (5752,4525), (5752,4526)
+    Blocking obstacles: /ADC1(2)
+No route found after 800001 iterations (both directions)
+backward stuck (1 < 800000), forward=800000
+  backward cell (5751, 4525, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (5750,4524), (5750,4525), (5750,4526), (5751,4524), (5751,4526), (5752,4524), (5752,4525), (5752,4526)
+    Blocking obstacles: /ADC1(2)
+No route found after 800001 iterations (both directions)
+    [91mrescue failed[0m (7.6s)
+  Rescuing GND (partial, 2 disconnected parts)
+backward stuck (1 < 800000), forward=800000
+  backward cell (5866, 4972, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (5865,4971), (5865,4972), (5865,4973), (5866,4971), (5866,4973), (5867,4971), (5867,4972), (5867,4973)
+    Blocking obstacles: /thermal/CMP_LED(2), /FAULT(2)
+No route found after 800001 iterations (both directions)
+backward stuck (1 < 800000), forward=800000
+  backward cell (5866, 4972, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (5865,4971), (5865,4972), (5865,4973), (5866,4971), (5866,4973), (5867,4971), (5867,4972), (5867,4973)
+    Blocking obstacles: /FAULT(2), /thermal/CMP_LED(2)
+No route found after 800001 iterations (both directions)
+    [91mrescue failed[0m (5.4s)
+Rescue pass: 0 recovered, 1 improved, 4 unchanged (82.5s)
+Closed 6 stub gap(s) to same-net copper
+Strict collapse: removed 1 redundant segment(s) (superseded parallel/buried copper)
+Bridged 13 same-net soft joint(s) with a tiny connector
+Stripped 1 stale input segment(s) of ripped/re-routed nets not on the final board (#220)
+
+============================================================
+Routing complete
+============================================================
+  Single-ended:  1/6 routed
+  [91mMulti-point:   136/145 pads connected (9 FAILED)[0m
+  Total vias:    17
+  Total time:    6.20s
+  Iterations:    5,175,551
+
+[91mFailed multi-point connections:[0m
+  [91m/EN_OK: U202 pad ? at (130.38, 106.21) not connected[0m
+  [91m/EN_OK: U202 pad ? at (135.62, 106.21) not connected[0m
+  [91m/EN_OK: R216 pad ? at (111.75, 85.75) not connected[0m
+  [91m/EN_OK: U201 pad ? at (134.70, 125.20) not connected[0m
+  [91m/NTC_LED: R403 pad ? at (143.78, 113.14) not connected[0m
+  [91mGND: U401 pad ? at (146.65, 124.30) not connected[0m
+  [91m+3V3: U202 pad ? at (135.62, 104.94) not connected[0m
+  [91m+3V3: R403 pad ? at (145.28, 113.14) not connected[0m
+  [91m+3V3: U401 pad ? at (146.65, 118.70) not connected[0m
+  [91m/ADC0: C402 pad ? at (140.33, 119.07) not connected[0m
+JSON_SUMMARY: {"routed_single": ["/LED0_A"], "failed_single": [], "failed_multipoint": [{"net_name": "/EN_OK", "failed_pads": [{"component_ref": "U202", "pad_number": "?", "x": 130.38, "y": 106.21}, {"component_ref": "U202", "pad_number": "?", "x": 135.62, "y": 106.21}, {"component_ref": "R216", "pad_number": "?", "x": 111.75, "y": 85.75}, {"component_ref": "U201", "pad_number": "?", "x": 134.7, "y": 125.2}]}, {"net_name": "/NTC_LED", "failed_pads": [{"component_ref": "R403", "pad_number": "?", "x": 143.7753, "y": 113.1365}]}, {"net_name": "GND", "failed_pads": [{"component_ref": "U401", "pad_number": "?", "x": 146.65, "y": 124.3}]}, {"net_name": "+3V3", "failed_pads": [{"component_ref": "U202", "pad_number": "?", "x": 135.62, "y": 104.94}, {"component_ref": "R403", "pad_number": "?", "x": 145.2753, "y": 113.1365}, {"component_ref": "U401", "pad_number": "?", "x": 146.65, "y": 118.7}]}, {"net_name": "/ADC0", "failed_pads": [{"component_ref": "C402", "pad_number": "?", "x": 140.3326, "y": 119.0733}]}], "multipoint_nets": 5, "multipoint_pads_connected": 136, "multipoint_pads_total": 145, "multipoint_edges_routed": 12, "multipoint_edges_failed": 13, "ripup_success_pairs": [], "rerouted_pairs": [], "single_ended_target_swaps": [], "layer_swaps": 0, "successful": 1, "failed": 5, "total_time": 6.2, "total_iterations": 5175551, "total_vias": 17, "cleanup_disconnected": [], "min_clearance_used": 0.635, "rescue": {"attempted": 5, "recovered": [], "improved": ["/ADC0"], "unchanged": ["+3V3", "/EN_OK", "/NTC_LED", "GND"], "pads_reconnected": 0, "time": 82.53}}
+
+Writing output to C:\dev\ai-ee3\boards\lumina-par\route\krt-main\krt_out.kicad_pcb...
+Removed 1 dead-end input segment(s) from the output
+Successfully wrote C:\dev\ai-ee3\boards\lumina-par\route\krt-main\krt_out.kicad_pcb
+
+Final reconciliation: retrying 5 incomplete net(s) against the finished board: /EN_OK, /NTC_LED, GND, +3V3, /ADC0
+Loading C:\dev\ai-ee3\boards\lumina-par\route\krt-main\krt_out.kicad_pcb...
+Using 4 routing layers: ['F.Cu', 'In1.Cu', 'In2.Cu', 'B.Cu']
+  Layer costs: F.Cu=1.0x, In1.Cu=1.0x, In2.Cu=1.0x, B.Cu=1.0x
+No BGA components detected - no exclusion zones needed
+
+Analyzing layer swaps for 1 single-ended net(s) needing via...
+
+Analyzing layer swaps for 2 multi-point net(s) spanning layers...
+  Multi-point per-cluster: GND -> 2 layer(s) (1 stub(s) moved)
+Applied 1 multi-point per-cluster assignment(s)
+
+Using MPS ordering strategy...
+MPS: Using segment intersection method (no nets on BGA chips)
+MPS: 5 nets with 10 crossing conflicts detected
+WARNING: Could not find pads for both stub groups in GND (found 1 pads)
+MPS Round 1: 1 units: /EN_OK
+MPS Round 2: 1 units: /ADC0
+MPS Round 3: 1 units: /NTC_LED
+MPS Round 4: 1 units: GND
+MPS Round 5: 1 units: +3V3
+
+Routing 5 single-ended net(s)...
+============================================================
+Building base obstacle map...
+Base obstacle map built in 14.15s
+Found 76 unrouted nets in PCB for stub proximity
+Pre-computing net obstacle cache...
+Net obstacle cache built in 1.47s (76 nets)
+
+[1/5] Routing /EN_OK (id=9)
+----------------------------------------
+  Detected multi-point net with 5 pads (Phase 1: main route only)
+  Multi-point net Phase 1: routing longest MST edge (pads 3 and 1, length=39.09mm)
+  Both directions stuck (forward=1, backward=1 < 800000)
+    forward cell (2235, 1715, layer=0): ok, 8/8 neighbors blocked
+      ALL neighbors blocked: (2234,1714), (2234,1715), (2234,1716), (2235,1714), (2235,1716), (2236,1714), (2236,1715), (2236,1716)
+      Blocking obstacles: /control/IDLE1(3)
+    backward cell (2608, 2124, layer=0): ok, 8/8 neighbors blocked
+      ALL neighbors blocked: (2607,2123), (2607,2124), (2607,2125), (2608,2123), (2608,2125), (2609,2123), (2609,2124), (2609,2125)
+      Blocking obstacles: /control/PWM1(2)
+  Phase 1 edge (pads 3,1) failed after 2 iterations - trying next MST edge
+  Multi-point net Phase 1: retrying with next MST edge (2/4) (pads 2 and 4, length=19.91mm)
+  Both directions stuck (forward=1, backward=1 < 800000)
+    forward cell (2712, 2124, layer=0): ok, 8/8 neighbors blocked
+      ALL neighbors blocked: (2711,2123), (2711,2124), (2711,2125), (2712,2123), (2712,2125), (2713,2123), (2713,2124), (2713,2125)
+      Blocking obstacles: /SHUNT3(5)
+    backward cell (2694, 2504, layer=0): ok, 8/8 neighbors blocked
+      ALL neighbors blocked: (2693,2503), (2693,2504), (2693,2505), (2694,2503), (2694,2505), (2695,2503), (2695,2504), (2695,2505)
+      Blocking obstacles: /thermal/NTC_BRD(5)
+  Phase 1 edge (pads 2,4) failed after 2 iterations - trying next MST edge
+  Multi-point net Phase 1: retrying with next MST edge (3/4) (pads 0 and 3, length=12.55mm)
+  backward stuck (1 < 800000), forward=800000
+    backward cell (2235, 1715, layer=0): ok, 8/8 neighbors blocked
+      ALL neighbors blocked: (2234,1714), (2234,1715), (2234,1716), (2235,1714), (2235,1716), (2236,1714), (2236,1715), (2236,1716)
+      Blocking obstacles: /control/IDLE1(3)
+  Phase 1 edge (pads 0,3) failed after 800001 iterations - trying next MST edge
+  Multi-point net Phase 1: retrying with next MST edge (4/4) (pads 1 and 2, length=5.24mm)
+  Both directions stuck (forward=1, backward=1 < 800000)
+    forward cell (2608, 2124, layer=0): ok, 8/8 neighbors blocked
+      ALL neighbors blocked: (2607,2123), (2607,2124), (2607,2125), (2608,2123), (2608,2125), (2609,2123), (2609,2124), (2609,2125)
+      Blocking obstacles: /control/PWM1(2)
+    backward cell (2712, 2124, layer=0): ok, 8/8 neighbors blocked
+      ALL neighbors blocked: (2711,2123), (2711,2124), (2711,2125), (2712,2123), (2712,2125), (2713,2123), (2713,2124), (2713,2125)
+      Blocking obstacles: /SHUNT3(5)
+  Phase 1 edge (pads 1,2) failed after 2 iterations
+  Phase 1 exhausted from the pads; deferring 4 edge(s) to Phase 3's island-copper sources (base component: 1 terminal(s))
+  SUCCESS: 0 segments, 0 vias, 800007 iterations, length=79.47mm (stubs=79.47mm) (2.10s)
+
+[2/5] Routing /ADC0 (id=40)
+----------------------------------------
+backward stuck (2045 < 800000), forward=800000
+  backward cell (2807, 2381, layer=0): ok, 0/8 neighbors blocked
+No route found after 802045 iterations (both directions)
+  FAILED: Could not find route (0.74s)
+  [91mROUTE FAILED - no rippable blockers found[0m
+  Hint: the blocking copper belongs to pre-existing net(s) '+3V3' '/thermal/CMP_LED' '/thermal/NTC_BRD' '/control/ID_ADC' '/ADC1' '/control/ENABLE' (committed by an earlier run/step), which this run is not allowed to rip. Retry with --rip-existing-nets '+3V3' '/thermal/CMP_LED' '/thermal/NTC_BRD' '/control/ID_ADC' '/ADC1' '/control/ENABLE' to rip and re-route them in this run (issue #103) -- the decisive blocker may be any of them, so start with the full set (each ripped net is re-routed and the run reports honestly if one cannot be), then bisect if you want a minimal rip.
+
+[3/5 (1 failed)] Routing /NTC_LED (id=21)
+----------------------------------------
+backward stuck (2 < 800000), forward=800000
+  backward cell (2876, 2263, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (2875,2262), (2875,2263), (2875,2264), (2876,2262), (2876,2264), (2877,2262), (2877,2263), (2877,2264)
+    Blocking obstacles: /ADC1(2)
+  backward cell (2904, 2605, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (2903,2604), (2903,2605), (2903,2606), (2904,2604), (2904,2606), (2905,2604), (2905,2605), (2905,2606)
+    Blocking obstacles: /thermal/CMP_LED(2)
+No route found after 800002 iterations (both directions)
+  FAILED: Could not find route (0.90s)
+  [91mROUTE FAILED - no rippable blockers found[0m
+  Hint: the blocking copper belongs to pre-existing net(s) '+3V3' '/thermal/CMP_LED' '/ADC1' '/FAULT' '/SHUNT2' '/control/PWM2' (committed by an earlier run/step), which this run is not allowed to rip. Retry with --rip-existing-nets '+3V3' '/thermal/CMP_LED' '/ADC1' '/FAULT' '/SHUNT2' '/control/PWM2' to rip and re-route them in this run (issue #103) -- the decisive blocker may be any of them, so start with the full set (each ripped net is re-routed and the run reports honestly if one cannot be), then bisect if you want a minimal rip.
+
+[4/5 (2 failed)] Routing GND (id=5)
+----------------------------------------
+  Detected multi-point net with 111 pads (Phase 1: main route only)
+  Existing copper joins 111 terminals into 2 group(s)
+  Multi-point net Phase 1: routing longest MST edge (pads 79 and 92, length=8.08mm)
+  backward stuck (1 < 800000), forward=800000
+    backward cell (2933, 2486, layer=0): ok, 8/8 neighbors blocked
+      ALL neighbors blocked: (2932,2485), (2932,2486), (2932,2487), (2933,2485), (2933,2487), (2934,2485), (2934,2486), (2934,2487)
+      Blocking obstacles: /thermal/CMP_LED(2), /FAULT(2)
+  Phase 1 edge (pads 79,92) failed after 800001 iterations
+  Phase 1 exhausted from the pads; deferring 1 edge(s) to Phase 3's island-copper sources (base component: 110 terminal(s))
+  SUCCESS: 0 segments, 0 vias, 800001 iterations, length=58.22mm (stubs=58.22mm) (0.77s)
+
+[5/5 (2 failed)] Routing +3V3 (id=11)
+----------------------------------------
+  Detected multi-point net with 12 pads (Phase 1: main route only)
+  Existing copper joins 12 terminals into 4 group(s)
+  Multi-point net Phase 1: routing longest MST edge (pads 9 and 7, length=17.85mm)
+  Both directions stuck (forward=1, backward=1 < 800000)
+    forward cell (2906, 2263, layer=0): ok, 8/8 neighbors blocked
+      ALL neighbors blocked: (2905,2262), (2905,2263), (2905,2264), (2906,2262), (2906,2264), (2907,2262), (2907,2263), (2907,2264)
+      Blocking obstacles: /ADC1(1)
+    backward cell (2712, 2099, layer=0): ok, 8/8 neighbors blocked
+      ALL neighbors blocked: (2711,2098), (2711,2099), (2711,2100), (2712,2098), (2712,2100), (2713,2098), (2713,2099), (2713,2100)
+      Blocking obstacles: /SHUNT3(2)
+  Phase 1 edge (pads 9,7) failed after 2 iterations - trying next MST edge
+  Multi-point net Phase 1: retrying with next MST edge (2/3) (pads 6 and 9, length=3.13mm)
+  backward stuck (1 < 800000), forward=800000
+    backward cell (2906, 2263, layer=0): ok, 8/8 neighbors blocked
+      ALL neighbors blocked: (2905,2262), (2905,2263), (2905,2264), (2906,2262), (2906,2264), (2907,2262), (2907,2263), (2907,2264)
+      Blocking obstacles: /ADC1(1)
+  Phase 1 edge (pads 6,9) failed after 800001 iterations - trying next MST edge
+  Multi-point net Phase 1: retrying with next MST edge (3/3) (pads 2 and 11, length=2.85mm)
+  backward stuck (1 < 800000), forward=800000
+    backward cell (2933, 2374, layer=0): ok, 8/8 neighbors blocked
+      ALL neighbors blocked: (2932,2373), (2932,2374), (2932,2375), (2933,2373), (2933,2375), (2934,2373), (2934,2374), (2934,2375)
+      Blocking obstacles: /FAULT(2), /thermal/CMP_LED(2)
+  Phase 1 edge (pads 2,11) failed after 800001 iterations
+  Stub layer switch: +3V3 stub at (143.80,115.35) F.Cu -> In1.Cu
+  Existing copper joins 12 terminals into 4 group(s)
+  Multi-point net Phase 1: routing longest MST edge (pads 9 and 7, length=17.85mm)
+  Both directions stuck (forward=1, backward=1 < 800000)
+    forward cell (2906, 2263, layer=0): ok, 8/8 neighbors blocked
+      ALL neighbors blocked: (2905,2262), (2905,2263), (2905,2264), (2906,2262), (2906,2264), (2907,2262), (2907,2263), (2907,2264)
+      Blocking obstacles: /ADC1(1)
+    backward cell (2712, 2099, layer=0): ok, 8/8 neighbors blocked
+      ALL neighbors blocked: (2711,2098), (2711,2099), (2711,2100), (2712,2098), (2712,2100), (2713,2098), (2713,2099), (2713,2100)
+      Blocking obstacles: /SHUNT3(2)
+  Phase 1 edge (pads 9,7) failed after 2 iterations - trying next MST edge
+  Multi-point net Phase 1: retrying with next MST edge (2/3) (pads 6 and 9, length=3.13mm)
+  backward stuck (1 < 800000), forward=800000
+    backward cell (2906, 2263, layer=0): ok, 8/8 neighbors blocked
+      ALL neighbors blocked: (2905,2262), (2905,2263), (2905,2264), (2906,2262), (2906,2264), (2907,2262), (2907,2263), (2907,2264)
+      Blocking obstacles: /ADC1(1)
+  Phase 1 edge (pads 6,9) failed after 800001 iterations - trying next MST edge
+  Multi-point net Phase 1: retrying with next MST edge (3/3) (pads 2 and 11, length=2.85mm)
+  backward stuck (1 < 800000), forward=800000
+    backward cell (2933, 2374, layer=0): ok, 8/8 neighbors blocked
+      ALL neighbors blocked: (2932,2373), (2932,2374), (2932,2375), (2933,2373), (2933,2375), (2934,2373), (2934,2374), (2934,2375)
+      Blocking obstacles: /FAULT(2), /thermal/CMP_LED(2)
+  Phase 1 edge (pads 2,11) failed after 800001 iterations
+  Phase 1 exhausted from the pads; deferring 3 edge(s) to Phase 3's island-copper sources (base component: 9 terminal(s))
+  Phase 1 exhausted from the pads; deferring 3 edge(s) to Phase 3's island-copper sources (base component: 9 terminal(s))
+  SUCCESS: 0 segments, 0 vias, 1600004 iterations, length=266.11mm (stubs=266.11mm) (2.64s)
+
+Sync pcb_data: 1650 -> 1650 (kept stubs) -> 1650 (after adding 0)
+
+============================================================
+Multi-point Phase 3: Routing 8 tap connections
+============================================================
+Phase 3 order (boxed-in risk first): GND, +3V3, /EN_OK
+
+GND (net 5):
+  Seeding tap sources from the base island's existing copper: 152 segment(s), 44 via(s)
+  Multi-point net Phase 3: routing 1 remaining MST edges (longest first)
+    [1/8] Routing MST edge: pad 79 -> pad 92 (length=8.08mm) target=(146.65, 124.30)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2933, 2486, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2932,2485), (2932,2486), (2932,2487), (2933,2485), (2933,2487), (2934,2485), (2934,2486), (2934,2487)
+          Blocking obstacles: /thermal/CMP_LED(2), /FAULT(2)
+      [93mFailed to route MST edge after 800001 iterations (0.49s)[0m
+    Fallback: attempting orphaned pad 92 directly from connected copper
+    [2/8] (1 failed) Routing MST edge: pad 79 -> pad 92 (length=8.08mm) target=(146.65, 124.30)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2933, 2486, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2932,2485), (2932,2486), (2932,2487), (2933,2485), (2933,2487), (2934,2485), (2934,2486), (2934,2487)
+          Blocking obstacles: /FAULT(2), /thermal/CMP_LED(2)
+      [93mFailed to route MST edge after 800001 iterations (0.45s)[0m
+  [93mWarning: 1 pad(s) not connected (1 MST edge(s) failed)[0m
+  Phase 3 routing complete: 0 edges, 0 total segments, 0 total vias
+  [91mNOT CONNECTED (so far): GND - U401 pad 12 at (146.65, 124.30) - may still be recovered; final verdict in the end-of-run summary[0m
+  Net total time: 1.17s, 2400003 iterations
+
++3V3 (net 11):
+  Seeding tap sources from the base island's existing copper: 236 segment(s), 12 via(s)
+  Multi-point net Phase 3: routing 3 remaining MST edges (longest first)
+    [1/8] (1 failed) Routing MST edge: pad 6 -> pad 9 (length=3.13mm) target=(145.28, 113.14)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2906, 2263, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2905,2262), (2905,2263), (2905,2264), (2906,2262), (2906,2264), (2907,2262), (2907,2263), (2907,2264)
+          Blocking obstacles: /ADC1(1)
+      [93mFailed to route MST edge after 800001 iterations (0.46s)[0m
+    [2/8] (2 failed) Routing MST edge: pad 2 -> pad 11 (length=2.85mm) target=(146.65, 118.70)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2933, 2374, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2932,2373), (2932,2374), (2932,2375), (2933,2373), (2933,2375), (2934,2373), (2934,2374), (2934,2375)
+          Blocking obstacles: /thermal/CMP_LED(2), /FAULT(2)
+      [93mFailed to route MST edge after 800001 iterations (0.46s)[0m
+    Fallback: attempting orphaned pad 11 directly from connected copper
+    [3/8] (3 failed) Routing MST edge: pad 2 -> pad 11 (length=2.85mm) target=(146.65, 118.70)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2933, 2374, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2932,2373), (2932,2374), (2932,2375), (2933,2373), (2933,2375), (2934,2373), (2934,2374), (2934,2375)
+          Blocking obstacles: /FAULT(2), /thermal/CMP_LED(2)
+      [93mFailed to route MST edge after 800001 iterations (0.45s)[0m
+    Fallback: attempting orphaned pad 9 directly from connected copper
+    [3/8] (3 failed) Routing MST edge: pad 6 -> pad 9 (length=3.13mm) target=(145.28, 113.14)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2906, 2263, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2905,2262), (2905,2263), (2905,2264), (2906,2262), (2906,2264), (2907,2262), (2907,2263), (2907,2264)
+          Blocking obstacles: /ADC1(1)
+      [93mFailed to route MST edge after 800001 iterations (0.45s)[0m
+    Fallback: attempting orphaned pad 7 directly from connected copper
+    [3/8] (3 failed) Routing MST edge: pad 6 -> pad 7 (length=18.31mm) target=(135.62, 104.94)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2712, 2099, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2711,2098), (2711,2099), (2711,2100), (2712,2098), (2712,2100), (2713,2098), (2713,2099), (2713,2100)
+          Blocking obstacles: /SHUNT3(2)
+      [93mFailed to route MST edge after 800001 iterations (0.44s)[0m
+  [93mWarning: 3 pad(s) not connected (3 MST edge(s) failed)[0m
+  Phase 3 routing complete: 0 edges, 0 total segments, 0 total vias
+  Stub layer switch: +3V3 stub at (146.55,116.85) In1.Cu -> B.Cu
+  Seeding tap sources from the base island's existing copper: 236 segment(s), 12 via(s)
+  Multi-point net Phase 3: routing 3 remaining MST edges (longest first)
+    [3/8] (4 failed) Routing MST edge: pad 6 -> pad 9 (length=3.13mm) target=(145.28, 113.14)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2906, 2263, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2905,2262), (2905,2263), (2905,2264), (2906,2262), (2906,2264), (2907,2262), (2907,2263), (2907,2264)
+          Blocking obstacles: /ADC1(1)
+      [93mFailed to route MST edge after 800001 iterations (0.54s)[0m
+    [4/8] (5 failed) Routing MST edge: pad 2 -> pad 11 (length=2.85mm) target=(146.65, 118.70)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2933, 2374, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2932,2373), (2932,2374), (2932,2375), (2933,2373), (2933,2375), (2934,2373), (2934,2374), (2934,2375)
+          Blocking obstacles: /FAULT(2), /thermal/CMP_LED(2)
+      [93mFailed to route MST edge after 800001 iterations (0.46s)[0m
+    Fallback: attempting orphaned pad 11 directly from connected copper
+    [5/8] (6 failed) Routing MST edge: pad 2 -> pad 11 (length=2.85mm) target=(146.65, 118.70)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2933, 2374, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2932,2373), (2932,2374), (2932,2375), (2933,2373), (2933,2375), (2934,2373), (2934,2374), (2934,2375)
+          Blocking obstacles: /thermal/CMP_LED(2), /FAULT(2)
+      [93mFailed to route MST edge after 800001 iterations (0.42s)[0m
+    Fallback: attempting orphaned pad 9 directly from connected copper
+    [5/8] (6 failed) Routing MST edge: pad 6 -> pad 9 (length=3.13mm) target=(145.28, 113.14)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2906, 2263, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2905,2262), (2905,2263), (2905,2264), (2906,2262), (2906,2264), (2907,2262), (2907,2263), (2907,2264)
+          Blocking obstacles: /ADC1(1)
+      [93mFailed to route MST edge after 800001 iterations (0.46s)[0m
+    Fallback: attempting orphaned pad 7 directly from connected copper
+    [5/8] (6 failed) Routing MST edge: pad 6 -> pad 7 (length=18.31mm) target=(135.62, 104.94)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2712, 2099, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2711,2098), (2711,2099), (2711,2100), (2712,2098), (2712,2100), (2713,2098), (2713,2099), (2713,2100)
+          Blocking obstacles: /SHUNT3(2)
+      [93mFailed to route MST edge after 800001 iterations (0.45s)[0m
+  [93mWarning: 3 pad(s) not connected (3 MST edge(s) failed)[0m
+  Phase 3 routing complete: 0 edges, 0 total segments, 0 total vias
+  [91mNOT CONNECTED (so far): +3V3 - U202 pad 14 at (135.62, 104.94) - may still be recovered; final verdict in the end-of-run summary[0m
+  [91mNOT CONNECTED (so far): +3V3 - R403 pad 1 at (145.28, 113.14) - may still be recovered; final verdict in the end-of-run summary[0m
+  [91mNOT CONNECTED (so far): +3V3 - U401 pad 3 at (146.65, 118.70) - may still be recovered; final verdict in the end-of-run summary[0m
+  Net total time: 4.79s, 5600009 iterations
+
+/EN_OK (net 9):
+  Seeding tap sources from the base island's existing copper: 93 segment(s), 4 via(s)
+  Multi-point net Phase 3: routing 4 remaining MST edges (longest first)
+    [3/8] (4 failed) Routing MST edge: pad 0 -> pad 3 (length=12.55mm) target=(111.75, 85.75)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2235, 1715, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2234,1714), (2234,1715), (2234,1716), (2235,1714), (2235,1716), (2236,1714), (2236,1715), (2236,1716)
+          Blocking obstacles: /control/IDLE1(3)
+      [93mFailed to route MST edge after 800001 iterations (0.42s)[0m
+    Fallback: attempting orphaned pad 3 directly from connected copper
+    [4/8] (5 failed) Routing MST edge: pad 0 -> pad 3 (length=12.55mm) target=(111.75, 85.75)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2235, 1715, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2234,1714), (2234,1715), (2234,1716), (2235,1714), (2235,1716), (2236,1714), (2236,1715), (2236,1716)
+          Blocking obstacles: /control/IDLE1(3)
+      [93mFailed to route MST edge after 800001 iterations (0.45s)[0m
+    Fallback: attempting orphaned pad 1 directly from connected copper
+    [4/8] (5 failed) Routing MST edge: pad 0 -> pad 1 (length=47.64mm) target=(130.38, 106.21)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2608, 2124, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2607,2123), (2607,2124), (2607,2125), (2608,2123), (2608,2125), (2609,2123), (2609,2124), (2609,2125)
+          Blocking obstacles: /control/PWM1(2)
+      [93mFailed to route MST edge after 800001 iterations (0.48s)[0m
+    Fallback: attempting orphaned pad 2 directly from connected copper
+    [5/8] (6 failed) Routing MST edge: pad 0 -> pad 2 (length=52.88mm) target=(135.62, 106.21)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2712, 2124, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2711,2123), (2711,2124), (2711,2125), (2712,2123), (2712,2125), (2713,2123), (2713,2124), (2713,2125)
+          Blocking obstacles: /SHUNT3(5)
+      [93mFailed to route MST edge after 800001 iterations (0.45s)[0m
+    Fallback: attempting orphaned pad 4 directly from connected copper
+    [6/8] (7 failed) Routing MST edge: pad 0 -> pad 4 (length=70.95mm) target=(134.70, 125.20)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2694, 2504, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2693,2503), (2693,2504), (2693,2505), (2694,2503), (2694,2505), (2695,2503), (2695,2504), (2695,2505)
+          Blocking obstacles: /thermal/NTC_BRD(5)
+      [93mFailed to route MST edge after 800001 iterations (0.45s)[0m
+  [93mWarning: 4 pad(s) not connected (4 MST edge(s) failed)[0m
+  Phase 3 routing complete: 0 edges, 0 total segments, 0 total vias
+    Ripping +3V3 (net 11) to retry tap route...
+  Seeding tap sources from the base island's existing copper: 93 segment(s), 4 via(s)
+  Multi-point net Phase 3: routing 4 remaining MST edges (longest first)
+    [6/8] (8 failed) Routing MST edge: pad 0 -> pad 3 (length=12.55mm) target=(111.75, 85.75)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2235, 1715, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2234,1714), (2234,1715), (2234,1716), (2235,1714), (2235,1716), (2236,1714), (2236,1715), (2236,1716)
+          Blocking obstacles: /control/IDLE1(3)
+      [93mFailed to route MST edge after 800001 iterations (0.45s)[0m
+    Fallback: attempting orphaned pad 3 directly from connected copper
+    [7/8] (9 failed) Routing MST edge: pad 0 -> pad 3 (length=12.55mm) target=(111.75, 85.75)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2235, 1715, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2234,1714), (2234,1715), (2234,1716), (2235,1714), (2235,1716), (2236,1714), (2236,1715), (2236,1716)
+          Blocking obstacles: /control/IDLE1(3)
+      [93mFailed to route MST edge after 800001 iterations (0.44s)[0m
+    Fallback: attempting orphaned pad 1 directly from connected copper
+    [7/8] (9 failed) Routing MST edge: pad 0 -> pad 1 (length=47.64mm) target=(130.38, 106.21)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2608, 2124, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2607,2123), (2607,2124), (2607,2125), (2608,2123), (2608,2125), (2609,2123), (2609,2124), (2609,2125)
+          Blocking obstacles: /control/PWM1(2)
+      [93mFailed to route MST edge after 800001 iterations (0.44s)[0m
+    Fallback: attempting orphaned pad 2 directly from connected copper
+    [8/8] (10 failed) Routing MST edge: pad 0 -> pad 2 (length=52.88mm) target=(135.62, 106.21)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2712, 2124, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2711,2123), (2711,2124), (2711,2125), (2712,2123), (2712,2125), (2713,2123), (2713,2124), (2713,2125)
+          Blocking obstacles: /SHUNT3(5)
+      [93mFailed to route MST edge after 800001 iterations (0.47s)[0m
+    Fallback: attempting orphaned pad 4 directly from connected copper
+    [9/8] (11 failed) Routing MST edge: pad 0 -> pad 4 (length=70.95mm) target=(134.70, 125.20)
+      backward stuck (1 < 800000), forward=800000
+        backward cell (2694, 2504, layer=0): ok, 8/8 neighbors blocked
+          ALL neighbors blocked: (2693,2503), (2693,2504), (2693,2505), (2694,2503), (2694,2505), (2695,2503), (2695,2504), (2695,2505)
+          Blocking obstacles: /thermal/NTC_BRD(5)
+      [93mFailed to route MST edge after 800001 iterations (0.46s)[0m
+  [93mWarning: 4 pad(s) not connected (4 MST edge(s) failed)[0m
+  Phase 3 routing complete: 0 edges, 0 total segments, 0 total vias
+    /EN_OK: Retry FAILED (N=1): still 4 failed edges
+      Retry had 40045 blocked cells
+    Re-analyzing 40045 blocked cells from N=1 retry:
+      No previously-routed nets blocking (likely blocked by pads/stubs/zones)
+    No additional rippable blockers from retry analysis
+    [91m/EN_OK: All rip-up attempts failed, restoring 1 net(s)...[0m
+  [91mNOT CONNECTED (so far): /EN_OK - U202 pad 2 at (130.38, 106.21) - may still be recovered; final verdict in the end-of-run summary[0m
+  [91mNOT CONNECTED (so far): /EN_OK - U202 pad 13 at (135.62, 106.21) - may still be recovered; final verdict in the end-of-run summary[0m
+  [91mNOT CONNECTED (so far): /EN_OK - R216 pad 1 at (111.75, 85.75) - may still be recovered; final verdict in the end-of-run summary[0m
+  [91mNOT CONNECTED (so far): /EN_OK - U201 pad 4 at (134.70, 125.20) - may still be recovered; final verdict in the end-of-run summary[0m
+  Net total time: 4.95s, 4800012 iterations
+
+Per-net fine-parameter rescue (#331/#371): 5 candidate net(s)
+  Rescuing +3V3 (partial, 4 disconnected parts)
+backward stuck (1 < 800000), forward=800000
+  backward cell (5425, 4198, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (5424,4197), (5424,4198), (5424,4199), (5425,4197), (5425,4199), (5426,4197), (5426,4198), (5426,4199)
+    Blocking obstacles: /SHUNT3(2)
+No route found after 800001 iterations (both directions)
+backward stuck (1 < 800000), forward=800000
+  backward cell (5425, 4198, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (5424,4197), (5424,4198), (5424,4199), (5425,4197), (5425,4199), (5426,4197), (5426,4198), (5426,4199)
+    Blocking obstacles: /SHUNT3(2)
+No route found after 800001 iterations (both directions)
+Both directions stuck (forward=756222, backward=1 < 800000)
+  forward cell (5688, 4472, layer=1): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (5687,4471), (5687,4472), (5687,4473), (5688,4471), (5688,4473), (5689,4471), (5689,4472), (5689,4473)
+  forward cell (5688, 4472, layer=1): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (5687,4471), (5687,4472), (5687,4473), (5688,4471), (5688,4473), (5689,4471), (5689,4472), (5689,4473)
+  forward cell (5688, 4498, layer=1): ok, 0/8 neighbors blocked
+  backward cell (5866, 4748, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (5865,4747), (5865,4748), (5865,4749), (5866,4747), (5866,4749), (5867,4747), (5867,4748), (5867,4749)
+    Blocking obstacles: /thermal/CMP_LED(2), /FAULT(2)
+No route found after 756223 iterations (both directions)
+Both directions stuck (forward=786413, backward=1 < 800000)
+  forward cell (5688, 4472, layer=1): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (5687,4471), (5687,4472), (5687,4473), (5688,4471), (5688,4473), (5689,4471), (5689,4472), (5689,4473)
+  forward cell (5688, 4472, layer=1): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (5687,4471), (5687,4472), (5687,4473), (5688,4471), (5688,4473), (5689,4471), (5689,4472), (5689,4473)
+  forward cell (5688, 4498, layer=1): ok, 0/8 neighbors blocked
+  backward cell (5866, 4748, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (5865,4747), (5865,4748), (5865,4749), (5866,4747), (5866,4749), (5867,4747), (5867,4748), (5867,4749)
+    Blocking obstacles: /FAULT(2), /thermal/CMP_LED(2)
+No route found after 786414 iterations (both directions)
+Route found in 72451 iterations, path length: 120
+    [91mrescue failed[0m (8.7s)
+  Rescuing /ADC0 (failed, 2 disconnected parts)
+backward stuck (11213 < 800000), forward=800000
+  backward cell (5613, 4763, layer=0): ok, 0/8 neighbors blocked
+No route found after 811213 iterations (both directions)
+backward stuck (12347 < 800000), forward=800000
+  backward cell (5613, 4763, layer=0): ok, 0/8 neighbors blocked
+No route found after 812347 iterations (both directions)
+    [91mrescue failed[0m (8.0s)
+  Rescuing /EN_OK (partial, 5 disconnected parts)
+backward stuck (8 < 800000), forward=800000
+  backward cell (4958, 4142, layer=2): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (4957,4141), (4957,4142), (4957,4143), (4958,4141), (4958,4143), (4959,4141), (4959,4142), (4959,4143)
+  backward cell (4958, 4142, layer=2): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (4957,4141), (4957,4142), (4957,4143), (4958,4141), (4958,4143), (4959,4141), (4959,4142), (4959,4143)
+  backward cell (5424, 4400, layer=0): ok, 7/8 neighbors blocked
+No route found after 800008 iterations (both directions)
+backward stuck (8 < 800000), forward=800000
+  backward cell (4958, 4142, layer=2): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (4957,4141), (4957,4142), (4957,4143), (4958,4141), (4958,4143), (4959,4141), (4959,4142), (4959,4143)
+  backward cell (4958, 4142, layer=2): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (4957,4141), (4957,4142), (4957,4143), (4958,4141), (4958,4143), (4959,4141), (4959,4142), (4959,4143)
+  backward cell (5424, 4400, layer=0): ok, 7/8 neighbors blocked
+No route found after 800008 iterations (both directions)
+backward stuck (2 < 800000), forward=800000
+  backward cell (5215, 4248, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (5214,4247), (5214,4248), (5214,4249), (5215,4247), (5215,4249), (5216,4247), (5216,4248), (5216,4249)
+    Blocking obstacles: /control/PWM1(3)
+  backward cell (5425, 4248, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (5424,4247), (5424,4248), (5424,4249), (5425,4247), (5425,4249), (5426,4247), (5426,4248), (5426,4249)
+    Blocking obstacles: /SHUNT3(5)
+No route found after 800002 iterations (both directions)
+backward stuck (2 < 800000), forward=800000
+  backward cell (5215, 4248, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (5214,4247), (5214,4248), (5214,4249), (5215,4247), (5215,4249), (5216,4247), (5216,4248), (5216,4249)
+    Blocking obstacles: /control/PWM1(1)
+  backward cell (5425, 4248, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (5424,4247), (5424,4248), (5424,4249), (5425,4247), (5425,4249), (5426,4247), (5426,4248), (5426,4249)
+    Blocking obstacles: /SHUNT3(3)
+No route found after 800002 iterations (both directions)
+backward stuck (1 < 800000), forward=800000
+  backward cell (4470, 3430, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (4469,3429), (4469,3430), (4469,3431), (4470,3429), (4470,3431), (4471,3429), (4471,3430), (4471,3431)
+    Blocking obstacles: /control/IDLE1(3)
+No route found after 800001 iterations (both directions)
+backward stuck (1 < 800000), forward=800000
+  backward cell (4470, 3430, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (4469,3429), (4469,3430), (4469,3431), (4470,3429), (4470,3431), (4471,3429), (4471,3430), (4471,3431)
+    Blocking obstacles: /control/IDLE1(3)
+No route found after 800001 iterations (both directions)
+backward stuck (1 < 800000), forward=800000
+  backward cell (5388, 5008, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (5387,5007), (5387,5008), (5387,5009), (5388,5007), (5388,5009), (5389,5007), (5389,5008), (5389,5009)
+    Blocking obstacles: /thermal/NTC_BRD(5)
+No route found after 800001 iterations (both directions)
+backward stuck (1 < 800000), forward=800000
+  backward cell (5388, 5008, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (5387,5007), (5387,5008), (5387,5009), (5388,5007), (5388,5009), (5389,5007), (5389,5008), (5389,5009)
+    Blocking obstacles: /thermal/NTC_BRD(3)
+No route found after 800001 iterations (both directions)
+    [91mrescue failed[0m (23.3s)
+  Rescuing /NTC_LED (failed, 2 disconnected parts)
+backward stuck (1 < 800000), forward=800000
+  backward cell (5751, 4525, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (5750,4524), (5750,4525), (5750,4526), (5751,4524), (5751,4526), (5752,4524), (5752,4525), (5752,4526)
+    Blocking obstacles: /ADC1(2)
+No route found after 800001 iterations (both directions)
+backward stuck (1 < 800000), forward=800000
+  backward cell (5751, 4525, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (5750,4524), (5750,4525), (5750,4526), (5751,4524), (5751,4526), (5752,4524), (5752,4525), (5752,4526)
+    Blocking obstacles: /ADC1(2)
+No route found after 800001 iterations (both directions)
+    [91mrescue failed[0m (7.1s)
+  Rescuing GND (partial, 2 disconnected parts)
+backward stuck (1 < 800000), forward=800000
+  backward cell (5866, 4972, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (5865,4971), (5865,4972), (5865,4973), (5866,4971), (5866,4973), (5867,4971), (5867,4972), (5867,4973)
+    Blocking obstacles: /thermal/CMP_LED(2), /FAULT(2)
+No route found after 800001 iterations (both directions)
+backward stuck (1 < 800000), forward=800000
+  backward cell (5866, 4972, layer=0): ok, 8/8 neighbors blocked
+    ALL neighbors blocked: (5865,4971), (5865,4972), (5865,4973), (5866,4971), (5866,4973), (5867,4971), (5867,4972), (5867,4973)
+    Blocking obstacles: /thermal/CMP_LED(2), /FAULT(2)
+No route found after 800001 iterations (both directions)
+    [91mrescue failed[0m (5.0s)
+Rescue pass: 0 recovered, 0 improved, 5 unchanged (52.1s)
+Bridged 1 same-net soft joint(s) with a tiny connector
+Stripped 1 stale input segment(s) of ripped/re-routed nets not on the final board (#220)
+
+============================================================
+Routing complete
+============================================================
+  [91mSingle-ended:  0/5 routed (2 FAILED)[0m
+  [91mMulti-point:   128/136 pads connected (8 FAILED)[0m
+  Total vias:    0
+  Total time:    7.14s
+  Iterations:    4,802,059
+
+[91mFailed single-ended nets:[0m
+  [91m/ADC0[0m
+  [91m/NTC_LED[0m
+
+[91mFailed multi-point connections:[0m
+  [91m/EN_OK: U202 pad ? at (130.38, 106.21) not connected[0m
+  [91m/EN_OK: U202 pad ? at (135.62, 106.21) not connected[0m
+  [91m/EN_OK: R216 pad ? at (111.75, 85.75) not connected[0m
+  [91m/EN_OK: U201 pad ? at (134.70, 125.20) not connected[0m
+  [91mGND: U401 pad ? at (146.65, 124.30) not connected[0m
+  [91m+3V3: U202 pad ? at (135.62, 104.94) not connected[0m
+  [91m+3V3: R403 pad ? at (145.28, 113.14) not connected[0m
+  [91m+3V3: U401 pad ? at (146.65, 118.70) not connected[0m
+
+============================================================
+FAILED NET HISTORIES
+============================================================
+
+/ADC0:
+  [0] Re-route FAILED: no rippable blockers found
+  [0] preexisting_blockers
+  [0] rescue_failed
+
+/NTC_LED:
+  [0] Re-route FAILED: no rippable blockers found
+  [0] preexisting_blockers
+  [0] rescue_failed
+JSON_SUMMARY: {"routed_single": [], "failed_single": ["/ADC0", "/NTC_LED"], "failed_multipoint": [{"net_name": "/EN_OK", "failed_pads": [{"component_ref": "U202", "pad_number": "?", "x": 130.38, "y": 106.21}, {"component_ref": "U202", "pad_number": "?", "x": 135.62, "y": 106.21}, {"component_ref": "R216", "pad_number": "?", "x": 111.75, "y": 85.75}, {"component_ref": "U201", "pad_number": "?", "x": 134.7, "y": 125.2}]}, {"net_name": "GND", "failed_pads": [{"component_ref": "U401", "pad_number": "?", "x": 146.65, "y": 124.3}]}, {"net_name": "+3V3", "failed_pads": [{"component_ref": "U202", "pad_number": "?", "x": 135.62, "y": 104.94}, {"component_ref": "R403", "pad_number": "?", "x": 145.2753, "y": 113.1365}, {"component_ref": "U401", "pad_number": "?", "x": 146.65, "y": 118.7}]}], "multipoint_nets": 3, "multipoint_pads_connected": 128, "multipoint_pads_total": 136, "multipoint_edges_routed": 0, "multipoint_edges_failed": 8, "ripup_success_pairs": [], "rerouted_pairs": [], "single_ended_target_swaps": [], "layer_swaps": 1, "successful": 0, "failed": 5, "total_time": 7.14, "total_iterations": 4802059, "total_vias": 0, "cleanup_disconnected": [], "min_clearance_used": 0.635, "rescue": {"attempted": 5, "recovered": [], "improved": [], "unchanged": ["+3V3", "/ADC0", "/EN_OK", "/NTC_LED", "GND"], "pads_reconnected": 0, "time": 52.08}}
+
+Writing output to C:\dev\ai-ee3\boards\lumina-par\route\krt-main\krt_out.kicad_pcb...
+Removed 1 dead-end input segment(s) from the output
+Applied 4 segment layer modifications (layer switching)
+Successfully wrote C:\dev\ai-ee3\boards\lumina-par\route\krt-main\krt_out.kicad_pcb
+Note: the JSON_SUMMARY above covers only the reconciliation subset; the run's full tally is the earlier JSON_SUMMARY plus these recoveries.

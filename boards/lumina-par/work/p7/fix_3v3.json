@@ -1,0 +1,9 @@
+{
+ "version": 1,
+ "_note": "Three +3V3 repairs in the analog cluster. (1) A through via at (146.55,116.85): an In1.Cu +3V3 track and two B.Cu +3V3 tracks meet at that point with NO via, so the layer transition was never made - this is why track 60921d56 reads track_dangling and U401 pad 3 reads unconnected. (2) F.Cu stub from that via up into U401 pad 3; it runs below the pad row through open space and keeps 0.35 mm to pads 2 and 4 (0.65 mm pitch, 0.25 mm pad gaps). (3) F.Cu stub from the (136.6,103.5) track end into U202 pad 14, approaching from below the package edge.",
+ "ops": [
+  {"op": "add_via", "at": [146.55, 116.85], "size": 0.45, "drill": 0.2, "net": "+3V3"},
+  {"op": "add_track", "start": [146.55, 116.85], "end": [146.65, 118.4], "width": 0.2, "layer": "F.Cu", "net": "+3V3"},
+  {"op": "add_track", "start": [136.6, 103.5], "end": [136.45, 104.9], "width": 0.2, "layer": "F.Cu", "net": "+3V3"}
+ ]
+}

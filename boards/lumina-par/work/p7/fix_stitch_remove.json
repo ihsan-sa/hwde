@@ -1,0 +1,15 @@
+{
+ "version": 1,
+ "_note": "P7 fix pass 1/2 - REMOVALS. route_edit applies every add before any remove, so a width change at unchanged geometry needs two invocations (LEARNINGS 2026-07-29 route_edit). Removed here: (a) 4 stitch vias that landed 0.69 mm from the sibling via already inside the channel's +12V bulk-cap pad -> hole_to_hole 0.390 mm vs the 0.4995 mm fab floor; each sat 0.09 mm OUTSIDE U3x1 pin 8, so it attached nothing and FR routes the pin-to-cap hop instead. (b) the GND stitch via at (73.439, 97.929), 0.571 mm from a +48V_SW track vs the 0.635 mm ICD rule - it sat 0.139 mm outside Q102 pad 2, so it likewise attached nothing. (c) the 4 stitch stub tracks at 0.300 mm, under the 0.375 mm +12V DRU width rule; re-added at width in pass 2.",
+ "ops": [
+  {"op": "remove", "uuid": "f7c0db3e-6c0e-4128-b442-b2eb42dedfda"},
+  {"op": "remove", "uuid": "5d356e95-3426-42d4-b296-0c7f0f1d9825"},
+  {"op": "remove", "uuid": "6fafea4a-dcba-491c-8aa0-1d8fdac1e135"},
+  {"op": "remove", "uuid": "a6b73d40-3a54-4f84-850d-cb071b81bec1"},
+  {"op": "remove", "uuid": "a587351a-10dd-4b68-b923-6e1d207708ea"},
+  {"op": "remove", "uuid": "331d69de-6c13-4359-8d17-2097452f6b98"},
+  {"op": "remove", "uuid": "5ff57f73-caf8-4ae1-ab5e-510cfe96843c"},
+  {"op": "remove", "uuid": "d3f14ccc-78e4-40c8-808a-054e28b39f8d"},
+  {"op": "remove", "uuid": "f5b3752d-9c5c-457a-942c-953b2bf812f3"}
+ ]
+}
