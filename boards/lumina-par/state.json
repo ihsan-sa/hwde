@@ -3,8 +3,8 @@
  "board": "lumina-par",
  "workspace": "boards/lumina-par",
  "created": "2026-07-28T15:00:15",
- "updated": "2026-08-07T22:46:04",
- "phase": "P7",
+ "updated": "2026-08-08T00:12:54",
+ "phase": "P8",
  "gates": {
   "erc": {
    "phase": "P4",
@@ -73,18 +73,18 @@
    ]
   },
   "drc_routed": {
-   "phase": "P7",
+   "phase": "P8",
    "status": "pass",
-   "attempts": 1,
+   "attempts": 2,
    "last": {
-    "ts": "2026-08-07T22:45:28",
+    "ts": "2026-08-08T00:10:50",
     "status": "pass",
     "failing_count": 0,
     "total": 0,
     "inputs": {
-     "pcb": "sexpr_no_uuid:5666f43779e1b7e3725ae37cbe8b6de1e050a617e336cc951ecfff8f1ae573dd",
+     "pcb": "sexpr_no_uuid:03e04a3cc0e58e8474f38817ec1e64f383c524f650d7019313439010eecb5c29",
      "sch": "sexpr_no_uuid:24f2d062b65e2521b9163c2a3f36af34fb4b54b1407455ddbb2230cbc04c808a",
-     "pro": "json_canonical:a5e873455f1001dc48ebdb451a7984118e007fce24ca594748aed07fc7366928",
+     "pro": "json_canonical:4ded07372ac09300a37dd1f16a448a8f3704f9cb7b01044943f7611149779ea9",
      "dru": "text_eol:58e8e40bafb4ad0802d10f6e4a983db3be033cdd066c35ccbd0f2ade2ccced9d"
     }
    },
@@ -99,6 +99,49 @@
       "sch": "sexpr_no_uuid:24f2d062b65e2521b9163c2a3f36af34fb4b54b1407455ddbb2230cbc04c808a",
       "pro": "json_canonical:a5e873455f1001dc48ebdb451a7984118e007fce24ca594748aed07fc7366928",
       "dru": "text_eol:58e8e40bafb4ad0802d10f6e4a983db3be033cdd066c35ccbd0f2ade2ccced9d"
+     }
+    },
+    {
+     "ts": "2026-08-08T00:10:50",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:03e04a3cc0e58e8474f38817ec1e64f383c524f650d7019313439010eecb5c29",
+      "sch": "sexpr_no_uuid:24f2d062b65e2521b9163c2a3f36af34fb4b54b1407455ddbb2230cbc04c808a",
+      "pro": "json_canonical:4ded07372ac09300a37dd1f16a448a8f3704f9cb7b01044943f7611149779ea9",
+      "dru": "text_eol:58e8e40bafb4ad0802d10f6e4a983db3be033cdd066c35ccbd0f2ade2ccced9d"
+     }
+    }
+   ]
+  },
+  "verify": {
+   "phase": "P8",
+   "status": "fail",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-08-08T00:10:50",
+    "status": "fail",
+    "failing_count": 7,
+    "total": 67,
+    "inputs": {
+     "pcb": "sexpr_no_uuid:03e04a3cc0e58e8474f38817ec1e64f383c524f650d7019313439010eecb5c29",
+     "constraints": "json_canonical:b6660f6837f182bcbbaf67d3ff60ae233a0baf7ec6d146bc5627acb209977a6f",
+     "decoupling": "json_canonical:45abce9be400fc8f5bf060329beecfdbaa2b4b334d98cdfc5fd84d76b099d6e6",
+     "waivers": null
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-08T00:10:50",
+     "status": "fail",
+     "failing_count": 7,
+     "total": 67,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:03e04a3cc0e58e8474f38817ec1e64f383c524f650d7019313439010eecb5c29",
+      "constraints": "json_canonical:b6660f6837f182bcbbaf67d3ff60ae233a0baf7ec6d146bc5627acb209977a6f",
+      "decoupling": "json_canonical:45abce9be400fc8f5bf060329beecfdbaa2b4b334d98cdfc5fd84d76b099d6e6",
+      "waivers": null
      }
     }
    ]
@@ -126,37 +169,43 @@
    "path": "kicad/lumina-par.kicad_sch",
    "kind": "sch",
    "sha256": "sexpr_no_uuid:24f2d062b65e2521b9163c2a3f36af34fb4b54b1407455ddbb2230cbc04c808a",
-   "hashed": "2026-08-07T22:45:29"
+   "hashed": "2026-08-08T00:10:50"
   },
   "pro": {
    "path": "kicad/lumina-par.kicad_pro",
    "kind": "pro",
-   "sha256": "json_canonical:a5e873455f1001dc48ebdb451a7984118e007fce24ca594748aed07fc7366928",
-   "hashed": "2026-08-07T22:45:29"
+   "sha256": "json_canonical:4ded07372ac09300a37dd1f16a448a8f3704f9cb7b01044943f7611149779ea9",
+   "hashed": "2026-08-08T00:10:50"
   },
   "pcb": {
    "path": "kicad/lumina-par.kicad_pcb",
    "kind": "pcb",
-   "sha256": "sexpr_no_uuid:5666f43779e1b7e3725ae37cbe8b6de1e050a617e336cc951ecfff8f1ae573dd",
-   "hashed": "2026-08-07T22:45:29"
+   "sha256": "sexpr_no_uuid:03e04a3cc0e58e8474f38817ec1e64f383c524f650d7019313439010eecb5c29",
+   "hashed": "2026-08-08T00:10:50"
   },
   "constraints": {
    "path": "kicad/constraints.json",
    "kind": "constraints",
-   "sha256": "json_canonical:e72fc431df934cdf2c4de80698dc4644e364d412ac2898555c55fa3290abbd57",
-   "hashed": "2026-08-07T20:05:19"
+   "sha256": "json_canonical:b6660f6837f182bcbbaf67d3ff60ae233a0baf7ec6d146bc5627acb209977a6f",
+   "hashed": "2026-08-08T00:10:50"
   },
   "decoupling": {
    "path": "kicad/decoupling.json",
    "kind": "decoupling",
    "sha256": "json_canonical:45abce9be400fc8f5bf060329beecfdbaa2b4b334d98cdfc5fd84d76b099d6e6",
-   "hashed": "2026-08-07T20:05:19"
+   "hashed": "2026-08-08T00:10:50"
   },
   "dru": {
    "path": "kicad/lumina-par.kicad_dru",
    "kind": "dru",
    "sha256": "text_eol:58e8e40bafb4ad0802d10f6e4a983db3be033cdd066c35ccbd0f2ade2ccced9d",
-   "hashed": "2026-08-07T22:45:29"
+   "hashed": "2026-08-08T00:10:50"
+  },
+  "waivers": {
+   "path": "kicad/reports/verify-waivers.json",
+   "kind": "waivers",
+   "sha256": null,
+   "hashed": "2026-08-08T00:10:50"
   }
  },
  "open_issues": [
@@ -193,7 +242,7 @@
    "erc": 2,
    "place": 3,
    "drc_routed": 2,
-   "verify": 3,
+   "verify": 1,
    "dfm": 3
   },
   "freerouting_retries": 2,
@@ -1445,6 +1494,78 @@
    "second_brief_error": "I also guessed GND U401.12 would just need a via down to the plane. Wrong - BOTH zone polygons stop at x=142.937, so the whole board-local x>=88 strip has no inner pour at all. It had to reach the GND In2 spine.",
    "p8_items": "two long DC sense runs (/NTC_LED ~10 mm on In1, /ADC0 ~13 mm on In2) and the /NTC_LED In1 leg cuts a ~10 mm slot in the GND plane - check_return_path should look, though both are DC thermistor/ADC lines. Tightest new clearance 0.133 mm vs the 0.1016 floor: legal and DRC-confirmed, but thin.",
    "plane_repair": "no splits. +12V In2 5874.0 -> 5859.5 mm2, GND In1 5866.3 -> 5829.7 mm2. The 4 small unanchored GND islands are pre-existing, identical before and after."
+  },
+  {
+   "ts": "2026-08-07T23:10:54",
+   "event": "phase",
+   "phase": "P8",
+   "prev": "P7"
+  },
+  {
+   "ts": "2026-08-07T23:13:07",
+   "event": "budget",
+   "path": "fix_loops.verify",
+   "remaining": 2
+  },
+  {
+   "ts": "2026-08-07T23:13:07",
+   "event": "snapshot",
+   "label": "pre-fix-verify-a1",
+   "files": 2
+  },
+  {
+   "ts": "2026-08-07T23:15:29",
+   "event": "p8_silk_false_positive",
+   "verdict": "FALSE POSITIVE in check_silk - it treats an UNFILLED fp_circle as a filled disc",
+   "evidence": "TestPoint_Pad_D1.5mm silk circle: radius 0.950 mm, fill=no, stroke width 0.12 -> the ring occupies radius 0.890..1.010 mm. Pad: radius 0.750 mm. They do not intersect; there is a 0.140 mm gap. check_silk reported exactly 1.77 mm2 covered on each of TP101/TP102/TP103, which is precisely the WHOLE pad area (pi x 0.75^2 = 1.767) - the signature of intersecting the pad with a FILLED disc of radius 0.95.",
+   "corroboration": "kicad-cli DRC - the authoritative silk checker, and the one the playbook says to trust over check_silk - reports ZERO silk violations on this board. The 2.0x2.0 mm TestPoint variant on TP501/TP502 draws its silk as four fp_LINES outside the pad and is not flagged, which is consistent.",
+   "why_it_matters": "the tempting fix was to swap TP101-103 to the 2.0x2.0 footprint, which would have meant a schematic rebuild, a board_update on a fully routed board, and re-routing three stubs - all to chase a checker bug. Measuring the geometry first avoided it.",
+   "disposition": "needs a HUMAN-APPROVED waiver (gate.py load_waivers requires non-empty reason AND approved: waivers are human artifacts, never agent-invented). Batched for H4. It does NOT threaten P9 - dfm_check runs on exported gerbers with a different implementation.",
+   "central_fix": "check_silk should honour (fill no) on fp_circle and intersect the ANNULUS, not the disc. Reported here rather than patched, since it is a skill script with a 1483-test suite and out of this boards scope."
+  },
+  {
+   "ts": "2026-08-08T00:10:50",
+   "event": "gate",
+   "gate": "drc_routed",
+   "status": "pass",
+   "attempt": 2,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-08T00:10:50",
+   "event": "gate",
+   "gate": "verify",
+   "status": "fail",
+   "attempt": 1,
+   "failing_count": 7
+  },
+  {
+   "ts": "2026-08-08T00:10:51",
+   "event": "budget",
+   "path": "fix_loops.verify",
+   "remaining": 1
+  },
+  {
+   "ts": "2026-08-08T00:10:51",
+   "event": "snapshot",
+   "label": "pre-fix-verify-a2",
+   "files": 1
+  },
+  {
+   "ts": "2026-08-08T00:12:54",
+   "event": "spawn",
+   "role": "fixer",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-08T00:12:54",
+   "event": "p8_verify_fix_a1",
+   "attempt_1_result": "check_current 36 -> 0. verify 43 errors -> 7. drc_routed still PASS 0/0. Warnings unchanged at 60, so no errors were traded for warnings.",
+   "group_a_led0a": "21 inner-layer segments at 0.2 mm widened IN PLACE to 0.4 mm (IPC-2152 needs 0.345 on 15.2 um inner copper). The fixer ROUTED the alternative first before rejecting it: moving to B.Cu like LED1/2/3_A had only +0.006 mm of slack against LED2_A via hole clearance, and the only comfortable B.Cu corridor was a 54.3 mm 9-segment detour (+23 pct length). Widening pre-flighted at +0.394 mm slack. Evidence-backed, not assumed.",
+   "group_b_12v": "15 parallel vias + 14 F.Cu fanout stubs. Each +12V plane tap has a tiny outer island (decap pad + ~0.65 mm stub), so a naive second via lands in a pad; solving each as a fanout kept 13 of 15 clear of pads.",
+   "my_error_caught_by_the_fixer": "my work order said it owned 40 of 43 errors but the two copper groups total 36 (21+15). With the 3 silk excluded that left 4 check_return_path errors UNASSIGNED. The fixer flagged the arithmetic rather than silently absorbing or ignoring them.",
+   "pre_existing_dfm_smell_for_p9": "all 15 ORIGINAL +12V transition vias already partially overlap their decap/testpoint pads (0.011-0.236 mm2) - via-in-pad without plugging, which wicks solder on JLC standard process. The fixer avoided it on 13 of its 15 new vias; the two tightest sites (C301.1, C361.1) had no legal alternative inside the 2.0 mm cluster radius and overlap at 0.206/0.130 mm2, within the existing range. Decide at P9 whether the convention gets reworked.",
+   "script_proposal": "check_current insufficient_transition_vias is unsatisfiable-by-construction for a plane tap whose outer island is a pad plus a sub-mm stub - the only in-place answer is via-in-pad. +12V has a solid In2 pour but is NOT declared plane_fed in constraints.json, so these 15 taps graded as ERRORS rather than the advisory warnings the plane-fed semantics exist for. The fixer deliberately did NOT edit constraints.json, calling that fixing the check rather than the board. Correct call."
   }
  ],
  "spawns": [
@@ -1599,6 +1720,14 @@
    "effort": "high",
    "phase": "P7",
    "note": "last-mile: close final 8 with In2 freed as a signal layer at x>76"
+  },
+  {
+   "ts": "2026-08-08T00:12:54",
+   "role": "fixer",
+   "model": "opus",
+   "effort": "high",
+   "phase": "P8",
+   "note": "verify a2: PWM0/PWM1 return paths - move signal off the In1 GND plane layer"
   }
  ],
  "edits": []
