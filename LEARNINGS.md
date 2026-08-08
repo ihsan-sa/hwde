@@ -2582,3 +2582,29 @@ the optimizer legalises everything else around them. Result per channel: SW-node
 catch diode 8.6 -> 3.7 mm, L-to-D 9.8 -> 3.7, BOOT 6.3 -> 2.4. **The cost is reproducibility**: the
 tile is hand-built, so re-running place_seed or place_anneal silently overwrites every bit of it.
 Record that loudly in the workspace - it is a trap for whoever resumes at P6.
+
+## 2026-08-07 [planes_gen][constraints] planes_gen will NOT resize an existing zone - it reports the REQUESTED region and zones_added:0, and the board never changes
+lumina-par P7. The board was short of routing layers (In1 GND plane + In2 +12V plane + a B.Cu largely
+consumed by two reverse-mounted THT sockets = effectively one free signal layer), so the In2 +12V
+pour was shrunk in `constraints.json` from x=88 to x=76 board-local - sound, because +12V's last LOAD
+is at x=70.1 and ~18 mm of pour sat under the congested cluster carrying nothing. `planes_gen` then
+returned `status: pass` with the NEW region echoed back, a plausible smaller `area_mm2`, and - the
+part that matters - **`"status": "existing"` and `"zones_added": 0`**. It had not touched the zone
+polygon. The board stayed byte-identical; the "freed" copper never existed. Two lessons. (1) The
+echoed `region`/`area_mm2` in planes_gen's report describe what was REQUESTED, not what is in the
+file - verify a pour change by reading the zone polygon out of the .kicad_pcb (`(zone ... (xy ...))`
+bounds), not from the tool's own report. (2) A downstream agent hashing the board against the
+snapshot it was told about is what caught this; brief subagents with the snapshot label so they CAN
+check your premises, and treat "your premise is false" as a successful outcome rather than a
+deviation.
+
+## 2026-08-07 [route_edit][routing] Pre-flight the op list against a geometry checker before writing copper on a dense board
+The lumina-par P7 last mile closed 8 connections in a single atomic `route_edit` (29 ops) on a board
+with 1564 tracks already down. What made it work first time: building a shapely clearance checker and
+iterating the proposed op list against existing copper until clean BEFORE invoking route_edit. It
+caught 5 collisions hand-geometry had missed - including one net boxed in on all four layers at once
+by three PARALLEL 45-degree escape diagonals stacked across In2 and B.Cu, which is invisible if you
+reason layer-by-layer. Two general points: fan-out diagonals from a dense IC form walls that block
+later nets on layers you are not looking at, so check all layers as one 3D problem; and where two new
+connections must cross, assign them different layers in the SAME op list rather than routing one and
+discovering the other. route_edit is atomic, so a pre-flighted list either lands whole or not at all.
