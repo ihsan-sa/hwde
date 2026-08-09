@@ -1,0 +1,111 @@
+{
+ "script": "check_silk",
+ "status": "violations",
+ "board": "sbuck-5v3a.kicad_pcb",
+ "counts": {
+  "total": 3,
+  "by_severity": {
+   "warning": 3
+  },
+  "by_source": {
+   "check_silk": 3
+  }
+ },
+ "violations": [
+  {
+   "check": "check_silk",
+   "severity": "warning",
+   "pos": [
+    35.695,
+    48.06
+   ],
+   "layer": "F.SilkS",
+   "net": null,
+   "refs": [
+    "C9"
+   ],
+   "msg": "refdes \"C9\" sits 2.30 mm beyond its own pads and 0.00 mm from C7 - reads as C7's label; scripted fix: place_edit.py move_text",
+   "source": "check_silk",
+   "items": [
+    {
+     "msg": "refdes \"C9\" sits 2.30 mm beyond its own pads and 0.00 mm from C7 - reads as C7's label; scripted fix: place_edit.py move_text",
+     "pos": [
+      35.695,
+      48.06
+     ]
+    }
+   ],
+   "kind": "silk_misattributed",
+   "ref": "C9",
+   "offset_mm": 2.3,
+   "nearest_ref": "C7",
+   "nearest_mm": 0.0
+  },
+  {
+   "check": "check_silk",
+   "severity": "warning",
+   "pos": [
+    53.298,
+    55.725
+   ],
+   "layer": "F.SilkS",
+   "net": null,
+   "refs": [
+    "R7"
+   ],
+   "msg": "refdes \"R7\" sits 2.55 mm beyond its own pads and 0.00 mm from C12 - reads as C12's label; scripted fix: place_edit.py move_text",
+   "source": "check_silk",
+   "items": [
+    {
+     "msg": "refdes \"R7\" sits 2.55 mm beyond its own pads and 0.00 mm from C12 - reads as C12's label; scripted fix: place_edit.py move_text",
+     "pos": [
+      53.298,
+      55.725
+     ]
+    }
+   ],
+   "kind": "silk_misattributed",
+   "ref": "R7",
+   "offset_mm": 2.55,
+   "nearest_ref": "C12",
+   "nearest_mm": 0.0
+  },
+  {
+   "check": "check_silk",
+   "severity": "warning",
+   "pos": [
+    44.995,
+    52.775
+   ],
+   "layer": "F.SilkS",
+   "net": null,
+   "refs": [
+    "C2"
+   ],
+   "msg": "refdes \"C2\" sits 2.89 mm beyond its own pads and 0.72 mm from C3 - reads as C3's label; scripted fix: place_edit.py move_text",
+   "source": "check_silk",
+   "items": [
+    {
+     "msg": "refdes \"C2\" sits 2.89 mm beyond its own pads and 0.72 mm from C3 - reads as C3's label; scripted fix: place_edit.py move_text",
+     "pos": [
+      44.995,
+      52.775
+     ]
+    }
+   ],
+   "kind": "silk_misattributed",
+   "ref": "C2",
+   "offset_mm": 2.8923,
+   "nearest_ref": "C3",
+   "nearest_mm": 0.725
+  }
+ ],
+ "checked": [
+  {
+   "silk_items": 399,
+   "texts": 62,
+   "graphics": 337,
+   "refdes_checked": 44
+  }
+ ]
+}

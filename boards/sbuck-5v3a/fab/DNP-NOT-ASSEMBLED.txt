@@ -1,0 +1,14 @@
+sbuck-5v3a - parts deliberately EXCLUDED from BOM.csv and CPL.csv
+==============================================================
+
+These four are on the board and in the schematic, but must NOT be
+machine-assembled. They were filtered out by hand because no script in
+the pipeline reads a DNP mark - see DECISIONS.md.
+
+  J1    THT screw terminal - hand-soldered on receipt (requirements Q25)
+  J2    THT screw terminal - hand-soldered on receipt (requirements Q25)
+  R9    DNP snubber resistor - populate only if bring-up shows SW ringing
+  C16   DNP snubber capacitor - populate only if bring-up shows SW ringing
+
+The unfiltered files are kept alongside as BOM-all.csv / CPL-all.csv
+so the exclusion is auditable rather than invisible.

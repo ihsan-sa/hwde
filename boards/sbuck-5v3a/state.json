@@ -3,8 +3,8 @@
  "board": "sbuck-5v3a",
  "workspace": "boards/sbuck-5v3a",
  "created": "2026-08-08T22:12:30",
- "updated": "2026-08-09T06:30:37",
- "phase": "P8",
+ "updated": "2026-08-09T06:58:09",
+ "phase": "P9",
  "gates": {
   "erc": {
    "phase": "P4",
@@ -140,16 +140,16 @@
    ]
   },
   "verify": {
-   "phase": "P8",
+   "phase": "P9",
    "status": "pass",
-   "attempts": 3,
+   "attempts": 4,
    "last": {
-    "ts": "2026-08-09T06:30:36",
+    "ts": "2026-08-09T06:54:58",
     "status": "pass",
     "failing_count": 0,
-    "total": 23,
+    "total": 16,
     "inputs": {
-     "pcb": "sexpr_no_uuid:9e63cfc395f232df8ed31130d4a8fd4296d1acf17512a52d3e89fa71e5f09cc3",
+     "pcb": "sexpr_no_uuid:44a1a369a2af6edac1b9660b3c3dc28dfa139a17510cf629269d0ed5f3ee2854",
      "constraints": "json_canonical:04146e77f99be15b600c03ef1ef8345403e56f354d082bd30b233c0296115c33",
      "decoupling": "json_canonical:0768feecc0273397a722601b543aa284770fca455c08c6e38b20d1853774ad3a",
      "waivers": null
@@ -191,6 +191,47 @@
       "decoupling": "json_canonical:0768feecc0273397a722601b543aa284770fca455c08c6e38b20d1853774ad3a",
       "waivers": null
      }
+    },
+    {
+     "ts": "2026-08-09T06:54:58",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 16,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:44a1a369a2af6edac1b9660b3c3dc28dfa139a17510cf629269d0ed5f3ee2854",
+      "constraints": "json_canonical:04146e77f99be15b600c03ef1ef8345403e56f354d082bd30b233c0296115c33",
+      "decoupling": "json_canonical:0768feecc0273397a722601b543aa284770fca455c08c6e38b20d1853774ad3a",
+      "waivers": null
+     }
+    }
+   ]
+  },
+  "dfm": {
+   "phase": "P9",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-08-09T06:54:57",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 16,
+    "inputs": {
+     "pcb": "sexpr_no_uuid:44a1a369a2af6edac1b9660b3c3dc28dfa139a17510cf629269d0ed5f3ee2854",
+     "sch": "sexpr_no_uuid:1f28e2ac20524eab857ec2aae1708cc47758bce4362f10581083cfeec50adc4b",
+     "parts": null
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-09T06:54:57",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 16,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:44a1a369a2af6edac1b9660b3c3dc28dfa139a17510cf629269d0ed5f3ee2854",
+      "sch": "sexpr_no_uuid:1f28e2ac20524eab857ec2aae1708cc47758bce4362f10581083cfeec50adc4b",
+      "parts": null
+     }
     }
    ]
   }
@@ -205,6 +246,11 @@
    "status": "approved",
    "ts": "2026-08-09T02:14:45",
    "note": "DELEGATE approval per the brief's DECISION POLICY. erc 0/0, review 0 errors/7 warnings, 2 fixed + 5 waived. Load step accepted AT the 200mV limit on the corrected reading - disclosed, not smoothed."
+  },
+  "4": {
+   "status": "approved",
+   "ts": "2026-08-09T06:58:09",
+   "note": "DELEGATE approval per the brief's DECISION POLICY. All gates pass. Load step AT the 200mV limit and loop PM unbounded at the true Cout floor - both disclosed, bring-up bench item #1."
   }
  },
  "artifacts": {
@@ -212,7 +258,7 @@
    "path": "kicad/sbuck-5v3a.kicad_sch",
    "kind": "sch",
    "sha256": "sexpr_no_uuid:1f28e2ac20524eab857ec2aae1708cc47758bce4362f10581083cfeec50adc4b",
-   "hashed": "2026-08-09T06:30:36"
+   "hashed": "2026-08-09T06:54:57"
   },
   "pro": {
    "path": "kicad/sbuck-5v3a.kicad_pro",
@@ -223,20 +269,20 @@
   "pcb": {
    "path": "kicad/sbuck-5v3a.kicad_pcb",
    "kind": "pcb",
-   "sha256": "sexpr_no_uuid:9e63cfc395f232df8ed31130d4a8fd4296d1acf17512a52d3e89fa71e5f09cc3",
-   "hashed": "2026-08-09T06:30:36"
+   "sha256": "sexpr_no_uuid:44a1a369a2af6edac1b9660b3c3dc28dfa139a17510cf629269d0ed5f3ee2854",
+   "hashed": "2026-08-09T06:54:58"
   },
   "constraints": {
    "path": "kicad/constraints.json",
    "kind": "constraints",
    "sha256": "json_canonical:04146e77f99be15b600c03ef1ef8345403e56f354d082bd30b233c0296115c33",
-   "hashed": "2026-08-09T06:30:36"
+   "hashed": "2026-08-09T06:54:58"
   },
   "decoupling": {
    "path": "kicad/decoupling.json",
    "kind": "decoupling",
    "sha256": "json_canonical:0768feecc0273397a722601b543aa284770fca455c08c6e38b20d1853774ad3a",
-   "hashed": "2026-08-09T06:30:36"
+   "hashed": "2026-08-09T06:54:58"
   },
   "dru": {
    "path": "kicad/sbuck-5v3a.kicad_dru",
@@ -248,7 +294,13 @@
    "path": "kicad/reports/verify-waivers.json",
    "kind": "waivers",
    "sha256": null,
-   "hashed": "2026-08-09T06:30:36"
+   "hashed": "2026-08-09T06:54:58"
+  },
+  "parts": {
+   "path": "kicad/parts.json",
+   "kind": "parts",
+   "sha256": null,
+   "hashed": "2026-08-09T06:54:57"
   }
  },
  "open_issues": [
@@ -320,7 +372,7 @@
    "place": 3,
    "drc_routed": 3,
    "verify": 1,
-   "dfm": 3
+   "dfm": 2
   },
   "freerouting_retries": 2,
   "place_edit_iterations": 8
@@ -709,6 +761,30 @@
    "why": "The reviewer showed check_thermal's 0.83 C headroom is NOT a layout property - a_eff measures 2137mm2 and clamps to A_SAT 645, so theta is constant for any 4L board above 645mm2 and the vias/planes move it 0.00 C. The believable number is the P1/P2 ladder, corrected: it still assumed 16 vias at 2.16 K/W, and 12 vias gives ~2.88 K/W = +0.76 C",
    "phase": "P8",
    "ts": "2026-08-09T06:30:37"
+  },
+  {
+   "what": "ORCHESTRATOR DIAGNOSIS WRONG: the TP silk dfm error was NOT a mask-aperture overlap",
+   "why": "I estimated a ~0.92mm aperture; measured it is 1.7664mm2 = exactly pi*0.75^2, zero mask expansion. Real cause is lib/gerblib.py read_gerber chording drawn arcs, so KiCad's two 180-degree arcs collapse onto the diameter - a phantom 1.5x0.12mm bar = 0.1798mm2 exactly. My suggested fallback (enlarge the ring) could never have worked, since the chord crosses the centre at any radius",
+   "phase": "P9",
+   "ts": "2026-08-09T06:54:58"
+  },
+  {
+   "what": "SCRIPT DEFECT (high value, NOT fixed this run): lib/gerblib.py chords drawn arcs",
+   "why": "The S12 approximate_arcs fix was applied to _flash_polys only, not to Line/Arc in read_gerber, so EVERY footprint drawing a silk ring around a pad - every stock TestPoint, many polarity rings - will fail the dfm gate forever. Recorded for a future T-step rather than fixed here, because deletion already cleared this board and skill work belongs in its own session",
+   "phase": "P9",
+   "ts": "2026-08-09T06:54:58"
+  },
+  {
+   "what": "12.7um clearance was a priority-0 pour crumb in a 0.02mm inter-zone lane",
+   "why": "KiCad deburrs a pour at min_thickness BEFORE subtracting higher-priority zone outlines, so a sub-min_thickness lane between two zone outlines gets refilled and never deburred; the P8 Z2 edge at y=51.12 'clearing' zone 2 at 51.1 is what manufactured it. Fixed with a priority-6 bridge zone; a second unflagged 0.02x1.93mm hair went with it",
+   "phase": "P9",
+   "ts": "2026-08-09T06:54:58"
+  },
+  {
+   "what": "DISCLOSE, do not fix: 2 residual etch slivers and a 0.5um island-gap margin",
+   "why": "Slivers 0.05x1.71mm and 0.078x0.497mm are fused to neighbouring copper so no gate fires, but a fab may query them; the min F.Cu island gap is 0.1021mm against JLC's 0.1016 floor, so ANY further pour edit risks tripping dfm_clearance - the risk of touching exceeds the risk of leaving",
+   "phase": "P9",
+   "ts": "2026-08-09T06:54:58"
   }
  ],
  "edits": [],
@@ -1450,6 +1526,66 @@
    "ts": "2026-08-09T06:30:37",
    "event": "decision",
    "what": "THERMAL RESTATED: Tj ~98.7 C, margin 6.3 C (not 7.1), band 87.5-108.4 C at +/-30%"
+  },
+  {
+   "ts": "2026-08-09T06:31:00",
+   "event": "phase",
+   "phase": "P9",
+   "prev": "P8"
+  },
+  {
+   "ts": "2026-08-09T06:32:22",
+   "event": "budget",
+   "path": "fix_loops.dfm",
+   "remaining": 2
+  },
+  {
+   "ts": "2026-08-09T06:32:22",
+   "event": "snapshot",
+   "label": "pre-fix-dfm-a1",
+   "files": 1
+  },
+  {
+   "ts": "2026-08-09T06:54:57",
+   "event": "gate",
+   "gate": "dfm",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-09T06:54:58",
+   "event": "gate",
+   "gate": "verify",
+   "status": "pass",
+   "attempt": 4,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-09T06:54:58",
+   "event": "decision",
+   "what": "ORCHESTRATOR DIAGNOSIS WRONG: the TP silk dfm error was NOT a mask-aperture overlap"
+  },
+  {
+   "ts": "2026-08-09T06:54:58",
+   "event": "decision",
+   "what": "SCRIPT DEFECT (high value, NOT fixed this run): lib/gerblib.py chords drawn arcs"
+  },
+  {
+   "ts": "2026-08-09T06:54:58",
+   "event": "decision",
+   "what": "12.7um clearance was a priority-0 pour crumb in a 0.02mm inter-zone lane"
+  },
+  {
+   "ts": "2026-08-09T06:54:58",
+   "event": "decision",
+   "what": "DISCLOSE, do not fix: 2 residual etch slivers and a 0.5um island-gap margin"
+  },
+  {
+   "ts": "2026-08-09T06:58:09",
+   "event": "human",
+   "checkpoint": "4",
+   "status": "approved"
   }
  ]
 }

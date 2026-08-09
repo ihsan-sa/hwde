@@ -3122,3 +3122,22 @@ clearance - at refdes size 1.0 mm the inked label is ~2.6-3.2 mm wide against a 
 pitch. Re-running the search at size 0.8 / thickness 0.12 (still above `check_silk`'s MIN_TEXT_H 0.8
 and JLC's floor) clears R7 and C2 and leaves only C9. `move_text` has no `size` field, so refdes
 resize is the next real gap.
+
+## 2026-08-09 [dfm][gerber][gerbonara][silk] gerblib flattens DRAWN arcs to their chord, so every silk circle around a pad reads as a phantom diameter line
+`gerblib.read_gerber` turns each `Line`/`Arc` object into `LineString([(x1,y1),(x2,y2)])` - an
+explicit, commented decision ("Arcs are approximated by their chord ... the corpus routes arcs only
+as chamfers"). KiCad exports a full `fp_circle` as TWO 180-degree G02 arcs whose endpoints are
+`(cx-r, cy)` and `(cx+r, cy)`, so both chords collapse onto the SAME straight segment: the circle's
+DIAMETER. On sbuck-5v3a's seven stock `TestPoint:TestPoint_Pad_D1.5mm` instances this produced a
+1.9 mm x 0.12 mm bar straight through each pad and 7 x `dfm_silk_over_pad` ERRORS
+("silkscreen printed over a solder-mask opening (0.1798 mm2)" = the 1.5 mm aperture x the 0.12 mm
+stroke, exactly). The ring is innocent: measured on the real gerber, the F.Mask aperture is
+1.7664 mm2 = pi*0.75^2, i.e. EXACTLY the 1.5 mm pad with zero mask expansion, while the ring spans
+r 0.89-1.01 and clears it by 0.14 mm. Consequences worth remembering: (a) the S12 fix
+`approximate_arcs(max_error=1e-3)` was applied to `_flash_polys` (Flash/Region) ONLY - drawn arcs
+still chord; (b) `dfm_silk_over_pad` on a footprint that draws a circle AROUND a pad is a
+false positive by construction, and it fires on the same innocent geometry that `check_silk`
+already false-positives on for a different reason (it buffers an unfilled `fp_circle` into a filled
+disc, check_silk.py:172) - two independent tool defects on one ring, so "two checkers agree" is
+NOT corroboration here; (c) ENLARGING the ring cannot fix it - the chord runs through the centre at
+any radius - so the only board-side fix is deleting the circle.

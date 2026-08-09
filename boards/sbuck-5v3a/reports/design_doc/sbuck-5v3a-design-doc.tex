@@ -16,7 +16,7 @@
 \begin{center}
 {\LARGE\bfseries sbuck-5v3a --- Design Document}\\[6pt]
 {\large ai-ee v1 pipeline}\\[2pt]
-generated 2026-08-09 02:15:14
+generated 2026-08-09 06:58:19
 \end{center}
 \tableofcontents
 
@@ -29,10 +29,10 @@ generated 2026-08-09 02:15:14
 \endhead
 board & sbuck-5v3a \\
 workspace & \texttt{boards/sbuck-5v3a} \\
-phase & P3 \\
-gate status & all 1 recorded gates pass \\
+phase & P9 \\
+gate status & all 5 recorded gates pass \\
 state created & 2026-08-08T22:12:30 \\
-state updated & 2026-08-09T02:14:45 \\
+state updated & 2026-08-09T06:58:09 \\
 \bottomrule
 \end{longtable}
 }
@@ -351,6 +351,33 @@ P4 & Load-step prediction restated as 181 mV (not 148 mV) against the 200 mV lim
 P4 & Load step accepted AT the 200 mV limit on the corrected reading (148 mV modelled); R5=75k stands, no rework & Measured R5 sweep shows no value clears fc, PM and dV together - 82k and 91k FAIL phase margin, the binding requirement; and dV is mathematically invariant in COUT (fc scales 1/COUT so fc{*}COUT is constant), so buying more output capacitance would be pure cost for zero transient gain \\
 P4 & The fc 25-50 kHz target was an ORCHESTRATOR proxy, not a requirement - the 24.4 kHz floor is not a miss & The real spec is 100 us recovery; at 24.4 kHz settling is 32.6 us, a 3.1x margin. Recorded so no later phase re-litigates a 2.4\% shortfall against a number that was never the specification \\
 P4 & Loop compensation is the board's \#1 bring-up bench item; R5/C2/C3 are three adjacent 0603 parts, re-tunable without a respin & Every loop number rests on extrapolating a one-point vendor calibration onto a different circuit, and the vendor's published GM matches no reader-built model - only a bench Bode plot can close it \\
+P5 & Mounting holes come from the schematic (H1-H4), not board\_init - re-run with --mounting-holes 0 & Passing 4 duplicated the schematic's own H1-H4 and produced the last 2 parity items; sourcing them from the schematic keeps them real parts with nets and BOM semantics, and P6 places them at the corners \\
+P6 & Thermal via array is 12, not the specified 16 - 16 is geometrically impossible & EP is 3.502x2.613mm; four 0.55mm lands at 1.0mm pitch need 3.55mm, and JLC's 0.5mm hole-to-hole floor caps it at 3x4=12 at 0.9-0.95mm pitch. Cost is R\_via 2.48 vs 1.90 K/W = +0.5 C of Tj, inside the margin. check\_thermal would not have caught this \\
+P6 & J1/J2 rotations corrected in placement.edges: J1=270, J2=90 (were 0 and 180) & The declared rotations pointed BOTH screw-terminal wire entries into the board; proven by orthographic side render, because the mouth is the SHORTER plastic face on this part and the WRL bbox alone would have misled \\
+P6 & Anneal candidates REJECTED on merit; hand structure kept & Candidates reached HPWL 224.6 vs 234.0 but the 3.1\% is almost entirely plane-fed GND, all four carried 5-7 courtyard overlaps after repair, and cand1 pulled R7 3.5mm closer to L1 and lengthened /FB \\
+P6 & TOOLCHAIN GOTCHA: placement.fixed silently disables separation constraints & Fixed refs are excluded from the annealer's cluster list, so all 8 separation pairs landed in separation\_unknown\_refs at zero cost weight; verified all 8 by hand instead (C4-U1 22.2mm, F1-U1 11.1, R6-L1 9.8, J2-L1 16.5) - all pass \\
+P6 & P7 must pour the four GND planes AND pour /SW as a zone BEFORE any autoroute & The 0.83 route probe is an artifact: GND is 25 of 71 connections and plane-fed, so unpoured Freerouting tried it as 2.055mm tracks; and aiee\_pwr\_width\_SW (2.31mm) applies to every /SW track including the 0603 bootstrap cap's - a zone is not a track, so the rule does not bind it \\
+P6 & P5 omitted the mandatory keepout translation; corrected at P6 & placement.keepouts rects were still board-local, so three landed off-board entirely and the fourth produced a phantom violation; translated in constraints.json and annotated \\
+P6 & 25 structural footprints left LOCKED - P8 fixers must unlock before nudging & Placement cost 8 edit iterations and the hot-loop geometry is the design; locking prevents a later fixer from silently undoing it, but the lock must be visible to whoever needs to move something \\
+P6 & thermal.min\_vias lowered 16 -\textgreater{} 12 in constraints.json with the geometry recorded & 16 cannot physically fit (EP 3.502x2.613mm vs 3.55mm needed at 1.0mm pitch, JLC 0.5mm hole-to-hole floor); 16 was our own derivation not a vendor spec, and leaving it would fail check\_thermal at P8 on an unachievable target. Copper-area criteria unchanged, Tj cost +0.5 C \\
+P7 & C:/Program Files/Git/SW poured as a ZONE, not routed as tracks & aiee\_pwr\_width\_SW demands 2.31mm on every /SW track including the 0603 bootstrap cap's, which is impossible at that pad; a zone is not a track so the rule does not bind it - the alternative would have been weakening a current-carrying rule \\
+P7 & Forced --power-layers In1.Cu,In2.Cu,B.Cu instead of the auto heuristic & auto considers inner layers only, so B.Cu would have been fair game for power routing and would have cut the second radiating face on a board that closes on 7 C of thermal margin \\
+P7 & Freerouting necking fixed by pour fan-in; no rule weakened & FR routed at exactly the pad widths (0.8058mm = 0402 pad) despite --pad-window clearing all 61 power pads; remediation ladder step 4 applied, leaving .kicad\_dru, .kicad\_pro netclasses and constraints.json byte-unchanged \\
+P7 & ORCHESTRATOR ERROR corrected by the router: B.Cu \textgreater{}=650 mm2 within 14.3mm of U1 is impossible & That disc clipped to the 50x40 outline is only 608.3 mm2; the constraint's \_note says 650 is check\_thermal's A\_sat SUMMED over layers, which measures 2169.7 mm2. I restated the constraint wrongly in the spawn prompt \\
+P7 & route\_critical and route\_cleanup both skipped, deliberately & route\_critical skips plane/pour-carried power nets by design and every power net ended up plane- or pour-carried; route\_cleanup's loop-breaker has regressed on pour boards twice and DRC was already 0/0 \\
+P8 & ACCEPT deletion of 3 of 9 U1 ring vias; U1 keeps 12 EP + 6 ring = 18 & Each sat in a 1.06-1.58mm GND finger, so it was current-limited by the finger not the via and carried no real share; the nearest legal \textgreater{}=2.055mm spot was 5-6.5mm away ACROSS the /SW pour, which would route return current under the switch node - exactly what the brief forbids. Deleting beats relocating, and 18 still exceeds the min\_vias 12 requirement \\
+P8 & SCRIPT DEFECT: check\_current.pour\_neck erodes each zone fill in isolation & A pour split across zone objects (KiCad knocks a lower-priority same-net zone out of a higher-priority one) reports a phantom 0.00mm neck with pos in a different structure from the real defect; it should union same-net fills per layer or emit a distinct fill\_fragmented kind. Cost most of this fix's analysis time \\
+P8 & SCRIPT GAP: stitch\_vias accepts a candidate whose surrounding same-net pour is narrower than the net's IPC-2152 width & The (60.72,60.225) stitch landed in a 1.06mm GND channel and became a P8 error; existing rejects (foreign\_copper, near\_same\_net\_via) do not cover pour width \\
+P8 & SELF-CORRECTION: reverted pdn=false on +5V and GND; used waivers instead & pdn=false silenced check\_pdn's category error but ALSO excluded both nets from check\_irdrop - the two highest-current nets on the board. A waiver states 'this check does not apply' without disabling unrelated analysis. Restored coverage now reads +5V 9.0mV / GND 1.1mV drop \\
+P8 & SPICE sim gate NOT run - deliberate scope call, recorded as a deviation & P2 nominated only SIM-1 (FB divider setpoint) and SIM-2 (EN/UVLO thresholds), both static DC-tolerance fragments already verified TWICE analytically with exact numbers by the P4 author and independently by the fresh-context reviewer (who showed 1\% parts miss by 32-36mV); house policy forbids simming the buck switching for lack of vendor models, so SPICE would restate arithmetic rather than test anything new \\
+P8 & CRITICAL FIX: D2 cathode marker was on the anode end; moved (41.720,59.125) -\textgreater{} (45.900,59.000) & Assembled per the wrong silk, the 15V Zener reverses into a forward diode holding Vgs at -0.7V, Q1 never enhances, 2.6A runs in its body diode at \textasciitilde{}2.1W in an SO-8 - Q1 and the reverse-polarity protection both destroyed. Netlist was always correct; only the marker was wrong. Now 0.640mm from pad 1 (cathode) vs 3.036mm from pad 2, agreeing with the footprint band and pin-1 dot \\
+P8 & ACCEPT 3 residual misattributed refdes labels (C9-\textgreater{}C7, R7-\textgreater{}C12, C2-\textgreater{}C3); 8 fixed & At 1.0mm refdes size the inked label is 2.6-3.2mm wide against a 2.5-3.0mm passive pitch, so no attribution-clean position exists at any legal clearance; 0.8mm text would clear two but move\_text has no size field. Mitigation: all FUNCTIONAL legends are correct (VIN/VOUT/polarity/TP names), SMT is machine-placed from the CPL not from silk, and only J1/J2 are hand-soldered - their legends are correct \\
+P8 & KEEP the fixer's remove\_text addition to place\_edit.py/place\_swig.py (out-of-protocol skill change) & add\_text matches on (layer,string,position) so it can create or update in place but never RELOCATE; without remove\_text the only options were raw-editing the board (forbidden) or shipping the board-killing D2 marker. Additive, regression-tested, 66/66 place tests pass \\
+P8 & THERMAL RESTATED: Tj \textasciitilde{}98.7 C, margin 6.3 C (not 7.1), band 87.5-108.4 C at +/-30\% & The reviewer showed check\_thermal's 0.83 C headroom is NOT a layout property - a\_eff measures 2137mm2 and clamps to A\_SAT 645, so theta is constant for any 4L board above 645mm2 and the vias/planes move it 0.00 C. The believable number is the P1/P2 ladder, corrected: it still assumed 16 vias at 2.16 K/W, and 12 vias gives \textasciitilde{}2.88 K/W = +0.76 C \\
+P9 & ORCHESTRATOR DIAGNOSIS WRONG: the TP silk dfm error was NOT a mask-aperture overlap & I estimated a \textasciitilde{}0.92mm aperture; measured it is 1.7664mm2 = exactly pi{*}0.75\textasciicircum{}2, zero mask expansion. Real cause is lib/gerblib.py read\_gerber chording drawn arcs, so KiCad's two 180-degree arcs collapse onto the diameter - a phantom 1.5x0.12mm bar = 0.1798mm2 exactly. My suggested fallback (enlarge the ring) could never have worked, since the chord crosses the centre at any radius \\
+P9 & SCRIPT DEFECT (high value, NOT fixed this run): lib/gerblib.py chords drawn arcs & The S12 approximate\_arcs fix was applied to \_flash\_polys only, not to Line/Arc in read\_gerber, so EVERY footprint drawing a silk ring around a pad - every stock TestPoint, many polarity rings - will fail the dfm gate forever. Recorded for a future T-step rather than fixed here, because deletion already cleared this board and skill work belongs in its own session \\
+P9 & 12.7um clearance was a priority-0 pour crumb in a 0.02mm inter-zone lane & KiCad deburrs a pour at min\_thickness BEFORE subtracting higher-priority zone outlines, so a sub-min\_thickness lane between two zone outlines gets refilled and never deburred; the P8 Z2 edge at y=51.12 'clearing' zone 2 at 51.1 is what manufactured it. Fixed with a priority-6 bridge zone; a second unflagged 0.02x1.93mm hair went with it \\
+P9 & DISCLOSE, do not fix: 2 residual etch slivers and a 0.5um island-gap margin & Slivers 0.05x1.71mm and 0.078x0.497mm are fused to neighbouring copper so no gate fires, but a fab may query them; the min F.Cu island gap is 0.1021mm against JLC's 0.1016 floor, so ANY further pour edit risks tripping dfm\_clearance - the risk of touching exceeds the risk of leaving \\
 \bottomrule
 \end{longtable}
 }
@@ -475,13 +502,386 @@ Parts to place by explicit \texttt{place\_edit} and \textbf{lock} before the ann
 
 Full architecture narrative (not inlined; see the artifact index): \texttt{architecture/blocks.md}, \texttt{architecture/decisions.md}, \texttt{architecture/power\_tree.md}, \texttt{architecture/stackup.md}.
 \section{Schematic}
-\emph{Pending --- produced at P4.}
+Gate \texttt{erc} (phase P4): \textbf{pass} after 2 attempt(s); last 2026-08-09T02:14:15, failing 0 of 0.
+\subsection*{Review waivers}
+\subsection*{ERC / schematic-review waivers - sbuck-5v3a P4}
+ERC gate: \textbf{0 errors, 0 warnings} (kc.py erc, exit 0). Schematic review (fresh context): \textbf{0 errors, 7 warnings}. No netlist change was required by any finding. Full detail: \texttt{reports/review-schematic.md} + \texttt{.json}.
+
+Two warnings were FIXED rather than waived (see below). Five are waived here.
+
+---
+
+\subsubsection*{FIXED, not waived}
+\textbf{F1. DNP snubber overstressed its own resistor.} C\emph{V\textasciicircum{}2}fsw = 162 mW at 18 V and 338 mW at the declared 26 V ring, into an 0603 rated 0.1 W. A DNP footprint that destroys itself when populated is a trap, not a feature. Fixed: R9 0603 -\textgreater{} 1206 (\textgreater{}= 0.25 W), C16 1 nF X7R -\textgreater{} 470 pF C0G 1206. New figures 76 mW at 18 V, 159 mW at 26 V. Both values stay inside the documented 10-33 ohm / 470 pF-2.2 nF bring-up range from blocks.md B9.
+
+\textbf{F2. Loop calibration claim withdrawn.} P4 claimed its model was validated against the vendor Bode plot ("PM 79-84 deg vs published 81.6"). The reviewer read Fig.29 and found the plotted circuit HAS C4 = 33 pF fitted, so the comparison used the wrong model variant. The x0.83 realisation factor is therefore unevidenced. The claim is withdrawn from the record; the design is re-stated on its worst reading.
+
+---
+
+\subsubsection*{WAIVED}
+\textbf{W1. Loop phase margin is less certain than P4 claimed.} Reviewer's independent re-derivation reproduces P4's fc/PM/\textbar{}T\textbar{} table to the digit, so the arithmetic is right; what fails is the calibration against the vendor plot. Worst-case reading gives PM \textasciitilde{}46-53 deg against the \textgreater{}= 45 deg requirement. \emph{Waived because}: it still meets requirement on every reading, and the vendor's own published GM (-26.8 dB) matches neither model variant (-8.3 with feedforward, -18.4 without), i.e. the vendor's "first-order calculated" model carries HF poles that no reader-built model reproduces. Closing this needs a real loop measurement or the vendor's own model - not more reading. \textbf{Carried to P8 as a bench item.}
+
+\textbf{W2. Load step: 148 mV modelled, 200 mV on the corrected reading - AT the limit.} SUPERSEDED TWICE, and the honest number got worse each time. The first restatement (181 mV) still carried the withdrawn 0.83 factor. Re-running the vendor comparison like-for-like - model WITH C4=33pF and C6=47pF fitted, matching the circuit actually plotted in Fig.29 - gives a factor of 0.743, not 0.83, and the model is optimistic on all three axes (fc +35\%, PM +19.4 deg, GM +18.5 dB). Applying those offsets: \textbf{dV = 200 mV against a 200 mV limit.} Additionally the 0-\textgreater{}3 A step STARTS IN PFM (automatic PWM/PFM, no MODE pin) which the CCM model does not describe.
+
+\emph{Waived - as an at-limit DISCLOSURE, not a pass} - because: 1. \textbf{No R5 value clears all three targets.} Measured sweep, recorded in root.py s2.5a so the "just raise R5" reflex is answered in the source: 75k -\textgreater{} PM 45.6 deg / dV 200 mV; 82k -\textgreater{} PM 44.1 deg FAIL / dV 183 mV; 91k -\textgreater{} PM 39.9 deg FAIL / dV 165 mV. Raising fc buys sampling-pole lag. 75k is the only value that keeps phase margin - the binding requirement - above its floor. 2. \textbf{Adding output capacitance does not help.} fc scales as 1/COUT at fixed compensation, so fc\emph{COUT is constant and dV = dI/(2}pi\emph{fc}COUT) is INVARIANT in COUT. Buying more caps would be pure cost for zero transient improvement. 3. \textbf{It is not a measurement.} It extrapolates a one-point vendor calibration, taken at a different operating point, onto a different circuit. It is a plausibility band, not a second reading. 4. \textbf{The dominant uncertainty is larger than the shortfall.} The COUT derating band is +/-13\% around its mean with no vendor DC-bias curve behind it. 5. \textbf{Re-tunable without a respin}: R5, C2 and C3 are three adjacent 0603 parts.
+
+\textbf{Carried to P8 and to bring-up as the board's \#1 bench item.}
+
+{*}{*}W2b. P8 UPDATE - the phase-margin floor is NOT actually bounded, and this disclosure must stop reading as "0.6 deg clear".{*}{*} The P8 fresh-context review accepted the dV COUT-invariance argument but found the PM argument incomplete: PM is NOT invariant in COUT, and the {[}75.0, 96.8{]} uF band is \textbf{DC-bias-only}. Hot X7R derating and aging are named in root.py as pushing toward the low end but were never STACKED. Stacked, the effective bank is \textasciitilde{}62.7 uF - about 20\% below the swept corner - which on the sweep's own slope costs \textasciitilde{}3 deg and puts {*}{*}PM at roughly 42-44 deg, under the 45 deg floor{*}{*}. No respin is implied (R5/C2/C3 are three 0603 parts and this is already bring-up bench item \#1), but the honest statement is that the loop margin at the true COUT floor is UNBOUNDED BY ANALYSIS, not comfortably clear. Closing it needs a network analyser, not more modelling.
+
+\textbf{W2a. The fc floor of 24.4 kHz is NOT a requirement miss.} The "fc 25-50 kHz" target was the ORCHESTRATOR's proxy, written into the P4 spawn prompt as a stand-in for the real requirement, which is "recovery within 100 us". At fc = 24.4 kHz settling is 5/(2\emph{pi}fc) = \textbf{32.6 us, a 3.1x margin on the 100 us spec}. The proxy was simply stricter than the requirement it stood for. Recorded so that no later phase re-litigates a 2.4\% miss against a number that was never the spec.
+
+\textbf{W3. Hot-plug inrush peak cannot be bounded from published data.} The 57 A figure comes from the 0.30 ohm path row; the 26 V node rating comes from the 0.05 ohm row of the same table, which assumes an ALL-CERAMIC Cin. At 0.10 ohm the formula gives 180 A against Q1's -60 A channel IDM. \emph{Waived because}: this board deliberately does NOT have an all-ceramic Cin - C4 carries 80 mOhm ESR as a stated DAMPING requirement - so the 0.05 ohm row is not this configuration. The 26 V declaration is kept anyway as conservative headroom for part ratings. Residual and honest: AO4407A's body-diode single-pulse capability is not published, and screw terminals are a wire-then-power connector, not a hot-plug one. \textbf{Recorded in DECISIONS.md as an accepted, quantified risk.}
+
+\textbf{W4. Q1 gate dv/dt immunity is unbounded.} parts/C16072.json publishes Qg and Rg but no Ciss/Crss/Coss for the AO4407A. \emph{Waived because}: the datum does not exist in the sourced datasheet, so no analysis can close it. Stated as a limit of knowledge rather than assumed benign.
+
+{*}{*}W5. UVLO effective anti-motorboating margin is 0.32 V, not the 0.41 V argued at P2{*}{*} (the fuse and FET drops were omitted from that argument). \emph{Waived because}: the margin is still POSITIVE, and the raw hysteresis (0.905 V, VON 6.230 / VOFF 5.325, verified exactly against the vendor's pull-up-inclusive Eq.2/3) comfortably exceeds the 0.49 V cable drop that motivated the P2 override. Worst-case VON 6.67 V sits 0.33 V below the 7.0 V minimum input, so the converter starts across its whole rated range.
+
+---
+
+\subsubsection*{Non-violations the reviewer flagged for the record}
+\begin{itemize}
+\item \textbf{The clean ERC is weak evidence for U1.} Nearly every U1 pin is declared
+\texttt{passive} in the pulled library, so ERC structurally cannot catch a mis-wired IC
+pin here. The real pin-level evidence is the datasheet-extract cross-check plus
+the reviewer's independent netlist read. Do not cite "ERC 0/0" as pinout proof.
+\item The schematic plot is stub-label style, so bring-up needs the netlist alongside it.
+\item \textbf{Silkscreen connector labelling is unreachable from a schematic generator} but is
+delegate Q30's ONLY mitigation for a swapped input/output connection (both
+terminals are identical 5.08 mm 2-pin parts). {*}{*}Carried to P6/P8 as a tracked
+requirement so it cannot die in a P4 note.{*}{*}
+\end{itemize}
+\subsubsection*{Unresolvable from sourced data (stated, not assumed away)}
+\begin{itemize}
+\item No vendor DC-bias curve exists for ANY MLCC on this board, so the {[}75.0, 96.8{]} uF
+COUT band - and therefore every loop number above - rests on conventional
+estimates. This is why COUT was closed over a band rather than a point.
+\item No datasheet exists for D1 (KT-0805G), so Vf = 2.8 V is unverified. Bracketed:
+0.82-1.36 mA over any plausible green Vf. Outcome is insensitive.
+\item No vendor snubber value is published by any of the three candidate ICs.
+\item FB input bias current is unpublished (irrelevant at a 40 uA divider current).
+\end{itemize}
+\emph{reports/schematic.pdf not available.}
 \section{Layout}
-\emph{Pending --- produced at P6.}
+Gate \texttt{place} (phase P6): \textbf{pass} after 1 attempt(s); last 2026-08-09T03:22:36, failing 0 of 0.
+
+Gate \texttt{drc\_routed} (phase P8): \textbf{pass} after 4 attempt(s); last 2026-08-09T06:30:36, failing 0 of 0.
+\begin{center}
+\includegraphics[width=0.72\textwidth]{reports/renders/sbuck-5v3a_top.png}\\
+{\small\texttt{reports/renders/sbuck-5v3a\_top.png}}
+\end{center}
+\begin{center}
+\includegraphics[width=0.72\textwidth]{reports/renders/sbuck-5v3a_bottom.png}\\
+{\small\texttt{reports/renders/sbuck-5v3a\_bottom.png}}
+\end{center}
+\begin{center}
+\includegraphics[width=0.72\textwidth]{reports/renders/sbuck-5v3a_iso.png}\\
+{\small\texttt{reports/renders/sbuck-5v3a\_iso.png}}
+\end{center}
 \section{Verification}
-\emph{Pending --- produced at P8.}
+Gate \texttt{verify} (phase P9): \textbf{pass} after 4 attempt(s); last 2026-08-09T06:54:58, failing 0 of 16.
+\subsection*{Verification checks}
+{\small
+\begin{longtable}{llcp{6cm}}
+\toprule
+\textbf{Check} & \textbf{Status} & \textbf{Findings} & \textbf{Note} \\
+\midrule
+\endhead
+\texttt{check\_return\_path} & skipped & 0 & skipped - no constraints \\
+\texttt{check\_current} & skipped & 0 & skipped - no constraints \\
+\texttt{check\_decoupling} & skipped & 0 & skipped - no decoupling \\
+\texttt{check\_diffpair} & pass & 0 &  \\
+\texttt{check\_creepage} & skipped & 0 & skipped - no constraints \\
+\texttt{check\_thermal} & skipped & 0 & skipped - no constraints \\
+\texttt{check\_silk} & violations & 3 &  \\
+\texttt{check\_pdn} & skipped & 0 & skipped - no constraints/decoupling \\
+\bottomrule
+\end{longtable}
+}
+\subsection*{Design review of record}
+\subsection*{P8 board review - sbuck-5v3a (fresh context, adversarial)}
+Reviewer did not place, route or fix this board. Every geometric number below was re-measured from \texttt{kicad/sbuck-5v3a.kicad\_pcb} with pcbnew + shapely, not read from a prior phase's report. Renders regenerated at 2400 px: \texttt{reports/renders/sbuck-5v3a\_\{top,bottom,iso\}.png}.
+
+{*}{*}Gate: 2 errors, 12 warnings. Both existing waiver groups upheld (9 findings), one with a corrected justification. Two new items recommended for documented-deviation status (W1 \texttt{/SW} length, W12 mounting-hole keepout).{*}{*}
+
+Independent re-runs (my own, not inherited):
+
+\begin{itemize}
+\item \texttt{verify\_all} reproduces the gate exactly: 28 total, 9 error (all waived), 19 warning.
+Nothing was SKIPPED for missing inputs.
+\item \texttt{kc.py drc --parity --all-track-errors}: \textbf{0 violations, 0 unconnected}. Confirmed.
+\item \texttt{check\_irdrop} / \texttt{check\_pdn\_z} / \texttt{check\_thermal} re-read; arithmetic re-derived below.
+\end{itemize}
+---
+
+\subsubsection*{ERRORS}
+\paragraph*{E1. D2's cathode marker \texttt{K} is printed at the anode end - \texttt{F.SilkS}, \texttt{(41.720, 59.125)}}
+The board-level \texttt{gr\_text "K"} added at P6 sits at x 41.72. D2 is at (43.620, 60.825) rot 180:
+
+\begin{quote}\small\ttfamily\raggedright
+\textbar{} \textbar{} board x \textbar{} net \textbar{} role \textbar{}\\
+\textbar{}---\textbar{}---\textbar{}---\textbar{}---\textbar{}\\
+\textbar{} pad 1 \textbar{} 45.26 \textbar{} `+VIN` \textbar{} {*}{*}cathode{*}{*} \textbar{}\\
+\textbar{} pad 2 \textbar{} 41.98 \textbar{} `/QGATE` \textbar{} anode \textbar{}
+\end{quote}
+Evidence the cathode is pad 1, three ways: the symbol (\texttt{lib/aiee.kicad\_sym}, BZT52C15) declares pin 1 name \texttt{K}, pin 2 name \texttt{A}; the footprint (\texttt{lib/aiee.pretty/SOD-123\_L2.7-W1.6-LS3.7-RD.kicad\_mod}) draws its band at local x -0.97 and its pin-1 dot at local (-1.85, 0.80), \textbf{both on the pad-1 side}; and the netlist puts pad 1 on \texttt{+VIN}, which is where the cathode of a Vgs clamp belongs.
+
+The \texttt{K} text is 0.26 mm from pad 2's x-span (it sits directly above the anode pad) and 3.54 mm from the cathode. \textbf{It contradicts the same part's own band and dot.} Two conflicting cathode indications is worse than none.
+
+Consequence, if a board is hand-built or reworked to the silk: D2 goes in backwards and becomes a plain forward diode from \texttt{+VIN} to \texttt{/QGATE}, holding Vgs at about -0.7 V. AO4407A's Vgs(th) is -1 to -3 V, so Q1 never enhances and the whole 2.6 A input current runs in its body diode - roughly 0.8 V x 2.6 A = \textbf{2.1 W in an SO-8 with no heatsinking}. Q1 dies and the reverse-polarity protection goes with it.
+
+The circuit is correct; only the marker is wrong. Fix: \texttt{silk\_place} the text to \textasciitilde{}(45.6, 59.1), or delete it and let the footprint band do the job. \textbf{domain: silk.}
+
+Cross-check that this is an isolated slip, not a systematic one: D1's \texttt{K} at (64.770, 71.625) IS correct - \texttt{LED0805-R-RD} puts pad 1 at local +1.05 (anode, net \texttt{/LEDA}) and pad 2 at -1.05 with the chamfered cathode bracket, and the marker is at pad 2. Only D2 is wrong.
+
+\paragraph*{E2. Eight refdes labels are attributed to the wrong part - \texttt{F.SilkS}}
+These are \texttt{check\_silk}'s eight \texttt{silk\_misattributed} \textbf{warnings}. They were neither fixed nor waived - they simply fell through the P8 gate, which only fails on \texttt{error}. They are real, and three of them are worse than "misattributed":
+
+\begin{itemize}
+\item \textbf{`R5` / `C2` / `R3` print as a left-to-right row above the parts C2 / R5 / C3}
+(x 40.22 / 43.22 / 46.22, all at y 55.025). Every label in that row names a different
+part from the one beneath it. \texttt{C2}'s text at (44.995, 53.025) is 0.47 mm from C3;
+\texttt{R3}'s at (46.72, 53.318) is 0.27 mm from R6 and 1.7 mm above C3, while the real R3 is
+4.6 mm away at (44.720, 57.425). Values involved: C2 = 3.3 nF, R5 = 75 k, C3 = 10 pF,
+R3 = 24.0 k - four different parts, three swappable 0603 bodies. Visible directly on
+\texttt{reports/renders/sbuck-5v3a\_top.png}.
+\item \textbf{`C9` at (35.695, 48.060) prints ON C7} (0.00 mm). C9 is the 100 nF 0603 that sets the
+hot loop; C7 is a 4.7 uF 1206.
+\item \textbf{`R7` at (53.298, 55.725) prints ON C12.}
+\end{itemize}
+Plus \texttt{Q1}-\textgreater{}C4 (0.65 mm), \texttt{TP1}-\textgreater{}F1 (0.29 mm), \texttt{TP2}-\textgreater{}R9 (0.25 mm), \texttt{TP7}-\textgreater{}TP6 (0.70 mm).
+
+Why this is an error and not cosmetics on this board specifically: \texttt{parts/parts.json} records J1/J2 as \textbf{DNP for JLC assembly, hand-soldered on receipt}, so a human is building part of this board from the silk; and TP1/TP2/TP7 mislabel probe points on a live 18 V converter.
+
+The \textbf{functional} test-point legends are fine and correctly placed - \texttt{+VIN}, \texttt{SW}, \texttt{EN}, \texttt{GND}, \texttt{GND-S}, \texttt{FB}, \texttt{+5V} each sit adjacent to their own pad (verified on the render). This finding is about the refdes layer only.
+
+Scripted fix, no copper touched: \texttt{place\_edit.py move\_text} / \texttt{silk\_place.py}. \textbf{domain: silk.}
+
+---
+
+\subsubsection*{WAIVER AUDIT - the nine waived findings}
+\paragraph*{Waiver group 1: 7 x \texttt{check\_silk} "silk circle covers pad TPn.1 (1.77 mm2)" - \textbf{UPHELD}}
+Verified on three independent legs. The first two are decisive; the third I had to prove rather than accept.
+
+\textbf{(a) The geometry, read straight out of the board file.} All seven TPs carry:
+
+\begin{quote}\small\ttfamily\raggedright
+(fp\_circle (center 0 0) (end 0 0.95) (stroke (width 0.12) (type solid)) (fill no) (layer "F.SilkS"))\\
+(pad "1" smd circle (at 0 0) (size 1.5 1.5) (layers "F.Cu" "F.Mask"))
+\end{quote}
+pcbnew reports \texttt{GetFillMode() = 1}, and \texttt{pcbnew.FILL\_T\_NO\_FILL == 1} (KiCad's enum starts at 1; \texttt{FILLED\_SHAPE == 2}). Ring inner edge = 0.95 - 0.12/2 = \textbf{0.89 mm}; pad radius = \textbf{0.75 mm}; clearance \textbf{0.14 mm}. The claim is exactly right.
+
+\textbf{(b) The checker bug, located.} \texttt{check\_silk.py:167-172}:
+
+\begin{quote}\small\ttfamily\raggedright
+if kind.endswith("circle"):\\
+    c, e = \_nums(\_kid(node, "center")), \_nums(\_kid(node, "end"))\\
+    r = math.hypot(e{[}0{]} - c{[}0{]}, e{[}1{]} - c{[}1{]})\\
+    return Point(xf((c{[}0{]}, c{[}1{]}))).buffer(r + w2)      \# \textless{}- FILLED disc
+\end{quote}
+\texttt{\_shape\_geom} never reads the \texttt{(fill ...)} node at all, for any shape kind. So the ring becomes a filled disc of radius 0.95 + 0.06 = 1.01 mm, which swallows the pad whole. Reported overlap 1.7659 mm2 vs pi{*}0.75\textasciicircum{}2 = 1.76715 - a 0.07\% shortfall that is just shapely's polygon approximation of a circle. Exactly the signature the waiver claims.
+
+\textbf{(c) The DRC cross-check is valid here, but its stated generality is not.} I did not take "kicad-cli DRC reports 0 violations" on trust. On a scratch copy I shrank TP4's silk ring to r = 0.30 - \textbf{entirely inside} the 0.75 mm pad - and `kicad-cli pcb drc --severity-all` still reported \textbf{0 violations}. I then injected two fat silk segments \textbf{crossing} TP3, U1.2, U1.9 and C9's pads and got 5 x \texttt{silk\_over\_copper} + 9 x \texttt{silk\_overlap} warnings. So:
+
+\textgreater{} KiCad's \texttt{silk\_over\_copper} fires on silk that crosses a pad's mask aperture, and stays \textgreater{} silent on silk fully enclosed inside one.
+
+A ring at r = 0.95 overlapping a 0.75 mm pad would be a \emph{crossing}, so DRC's silence on this board \textbf{is} real evidence and leg (c) stands. But the waiver's wider phrasing - "the playbook itself directs that silk be verified with \texttt{kc.py drc} rather than \texttt{check\_silk}" - is too broad and should be narrowed in the record: \texttt{kc.py drc} is not a general substitute for \texttt{check\_silk}, and this board has no working automated check for enclosed-silk cases.
+
+\textbf{Verdict: waiving the checker, not the geometry. Correct. Keep all seven.}
+
+\paragraph*{Waiver group 2: 2 x \texttt{check\_pdn} "+5V / GND has no decoupling capacitors" - \textbf{UPHELD, but the stated reason is wrong in a way that matters}}
+The \textbf{call} is right. The \textbf{reason} is not, and the difference changes what the human should be told.
+
+\texttt{check\_pdn} does not model "a supply rail must have decoupling capacitors near its IC pins". Reading the source: \texttt{rail\_caps()} filters \texttt{decoupling.json{[}"associations"{]}} by \texttt{rail == \textless{}net\textgreater{}} and raises an error if that list is empty. \textbf{It never looks at the board.} Near-pin geometry is \texttt{check\_decoupling}'s job, and that check passed on its five \texttt{+VIN} associations (loop 5.05-11.50 nH).
+
+So the finding is not a category error about IC pins. It is a literal and true statement about the project's own metadata: {*}{*}no \texttt{decoupling.json} association names \texttt{+5V}, so no automated check has ever looked at the output bank.{*}{*} "Nothing is hidden" overstates it.
+
+What I verified about the rails themselves, so the human knows the substance is sound:
+
+\begin{itemize}
+\item The \texttt{+5V} bank exists and is connected: C10-C14 (5 x 22 uF 1210) and C15 (4.7 uF 0805)
+all carry a \texttt{+5V} pad and a \texttt{GND} partner; \texttt{+5V} F.Cu is \textbf{one 198.93 mm2 island};
+\texttt{kc.py drc --parity} is clean, so schematic and board agree.
+\item \texttt{check\_irdrop} DID run on both nets with the real geometry (they were correctly NOT
+given \texttt{pdn:false}): \texttt{+5V} worst drop \textbf{8.96 mV}, \texttt{GND} \textbf{1.15 mV}, against a
++/-100 mV output window. This is the leg that actually covers these two rails.
+\item \texttt{GND} is a return net; decoupling to itself is meaningless. Correct.
+\end{itemize}
+{*}{*}Verdict: keep both waivers, but restate the reason as "check\_pdn is a metadata inventory and \texttt{+5V} has no association declared; coverage for this rail comes from check\_irdrop and P4 arithmetic, not from a PDN check". Also fix \texttt{decoupling.json}'s \texttt{\_note}, which still claims \texttt{+5V} is handled by \texttt{pdn=false} - \texttt{constraints.json} records that as reverted.{*}{*}
+
+---
+
+\subsubsection*{THE SPECIFIC CLAIMS, RE-MEASURED}
+\begin{quote}\small\ttfamily\raggedright
+\textbar{} claim \textbar{} stated \textbar{} my measurement \textbar{} verdict \textbar{}\\
+\textbar{}---\textbar{}---\textbar{}---\textbar{}---\textbar{}\\
+\textbar{} vias inside the hot-loop region x 38.87-43.02 / y 46.90-49.20 \textbar{} 0 \textbar{} {*}{*}0{*}{*}. Nearest are the EP thermal array at x 43.42, outside the region and inside the return path anyway \textbar{} confirmed \textbar{}\\
+\textbar{} In1 GND under that region \textbar{} unbroken image plane \textbar{} {*}{*}100.00\%{*}{*} coverage - 9.545 of 9.545 mm2 \textbar{} confirmed \textbar{}\\
+\textbar{} `/SW` copper \textbar{} 30.4431 mm2, F.Cu only, \textless{}= 40, \textgreater{}= 2.5 mm wide \textbar{} {*}{*}30.4422 mm2{*}{*}, F.Cu only, {*}{*}1 island{*}{*}; conduction path U1.8 -\textgreater{} L1.1 survives a {*}{*}1.5 mm{*}{*} erosion, so it is {*}{*}\textgreater{}= 3.0 mm wide throughout{*}{*} \textbar{} confirmed (area + width) \textbar{}\\
+\textbar{} `/SW` length \textbar{} \textless{}= 8 mm \textbar{} {*}{*}10.490 mm{*}{*} \textbar{} {*}{*}exceeded - see W1{*}{*} \textbar{}\\
+\textbar{} `/SW` near an edge or connector \textbar{} no \textbar{} 5.704 mm to the outline, 16.63 mm to J2, 17.22 mm to J1 \textbar{} confirmed \textbar{}\\
+\textbar{} `/SW` inner-layer copper \textbar{} none \textbar{} {*}{*}none{*}{*} - the board has 28 vias total and every one is GND; every non-GND net is F.Cu-only \textbar{} confirmed \textbar{}\\
+\textbar{} FB senses at C12's `+5V` pad \textbar{} \textasciitilde{}2.21 mm, not the inductor pin \textbar{} R6.1 taps the `+5V` node at (51.700, 52.997); copper path R6.1 -\textgreater{} node = 1.97 mm, node -\textgreater{} C12.1 = 2.03 mm. L1.2 is {*}{*}13.3 mm{*}{*} away. The divider taps the same node C12 does \textbar{} confirmed \textbar{}\\
+\textbar{} FB routed away from `/SW` and L1 \textbar{} yes \textbar{} FB copper -\textgreater{} SW copper {*}{*}2.935 mm{*}{*}; FB copper never overlaps L1's body (FB x 48.27-48.58, L1 body starts x 50.17 -\textgreater{} \textasciitilde{}1.6 mm horizontal); R6\textless{}-\textgreater{}L1 9.835 mm and R7\textless{}-\textgreater{}L1 13.994 mm against the 5 mm constraint \textbar{} confirmed \textbar{}\\
+\textbar{} U1 EP thermal vias \textbar{} 12 \textbar{} {*}{*}exactly 12{*}{*}, 3 cols x 4 rows, {*}{*}0.9 mm pitch both axes{*}{*}, 0.3 mm drill -\textgreater{} {*}{*}0.600 mm{*}{*} hole-to-hole against JLC's 0.5 floor \textbar{} confirmed \textbar{}\\
+\textbar{} 16 geometrically impossible \textbar{} yes \textbar{} 4 columns inside the EP's {*}{*}2.613 mm{*}{*} need pitch \textless{}= (2.613-0.6)/3 = {*}{*}0.671 mm{*}{*} -\textgreater{} 0.371 mm hole gap, {*}{*}under{*}{*} the 0.5 floor. 4 at 1.0 mm pitch needs 3.55 mm. Impossible either way \textbar{} confirmed \textbar{}\\
+\textbar{} ring vias \textbar{} 6 (3 of 9 deleted) \textbar{} {*}{*}6{*}{*}, at y 45.700 and y 51.500, x \{43.1, 44.1, 45.1\} and \{43.6, 44.6, 45.6\} \textbar{} confirmed \textbar{}\\
+\textbar{} In1 solid GND \textbar{} 444.4 mm2 within 12 mm, one piece, no split \textbar{} {*}{*}444.92 mm2{*}{*} within 12 mm; {*}{*}ONE island of 1850.07 mm2{*}{*}; 14 voids, every one of them a mounting hole or a J1/J2 THT antipad, {*}{*}none within 12 mm of U1{*}{*} \textbar{} confirmed \textbar{}\\
+\textbar{} F.Cu GND island at U1 \textbar{} \textgreater{}= 100 mm2, contiguous with the EP \textbar{} {*}{*}1340.60 mm2{*}{*}, contains the EP \textbar{} confirmed, 13x over \textbar{}\\
+\textbar{} B.Cu GND \textbar{} \textgreater{}= 1500 mm2 of 2000 \textbar{} {*}{*}1850.07 mm2 = 92.1\%{*}{*} of the 2009 mm2 outline \textbar{} confirmed \textbar{}\\
+\textbar{} L1 `+5V` pour \textbar{} grown to 153.3 mm2 \textbar{} {*}{*}153.23 mm2{*}{*} within 14.3 mm \textbar{} confirmed \textbar{}\\
+\textbar{} J1/J2 wire entry \textbar{} off-board \textbar{} {*}{*}confirmed on the iso render{*}{*}: J1 entry -x, J2 entry +x, screws top-accessible, bodies 0.325 mm inside their edges \textbar{} confirmed \textbar{}
+\end{quote}
+\paragraph*{Was deleting 3 of the 9 ring vias right?}
+Yes, on the evidence. The ring vias sit 1.12-1.17 mm outside the EP edges and serve secondary spreading; the 12-via EP array is the primary junction-to-plane path and is untouched. The stated reason (they sat in 1.06-1.58 mm GND fingers) is the right kind of reason, because a 0.6 mm via in a 1.06 mm finger leaves 0.23 mm each side. And the check that would catch the consequence is armed: \texttt{GND} is declared \texttt{plane\_fed: true}, which keeps \textbf{pour-neck findings at ERROR severity at the full 3.3 A budget}, and \texttt{check\_current} reports \textbf{zero} pour-neck errors - only the ten leaf-tap advisories. Thermal cost of 9 -\textgreater{} 6 in the ring is second-order against the EP array.
+
+\paragraph*{The mounting-hole keepout that was never built}
+\texttt{constraints.json} placement note (3) asked for a 6.5 mm mask/copper keepout at each M3 hole, hand-added as rule areas after the pours. \textbf{There are no rule areas on this board.} I checked the consequence rather than assuming it: all four layers are GND at every hole (In1/In2/B.Cu each void a 3.7 mm circle around the 3.2 mm NPTH, so no inner copper is exposed at the barrel), and the nearest \textbf{non-GND} copper to any hole is \textbf{5.38 mm} (H2, F.Cu) against an M3 washer radius of 3.25 mm - \textbf{2.13 mm clear}. Benign. Record it as a knowingly-dropped constraint rather than leaving it silently unmet.
+
+---
+
+\subsubsection*{U1's THERMAL NUMBER - which model to believe}
+{*}{*}Do not report "54.17 C against 55 allowed, 0.83 C of headroom" as this board's tightest number. It is not a measurement of this board at all.{*}{*}
+
+\texttt{check\_thermal} computes `a\_eff = min(A\_SAT = 645, sum over layers of heatsink-net copper within 14.3 mm)\texttt{. I measured that sum: {*}{*}2137.56 mm2{*}{*}. So }a\_eff` \textbf{clamps} to 645, and
+
+\begin{quote}\small\ttfamily\raggedright
+theta = 45 + 95 {*} exp(-645/235) = 45 + 95{*}0.06427 = 51.1055 C/W\\
+rise  = 1.06 {*} 51.1055 = 54.17 C
+\end{quote}
+At the clamp, \texttt{theta} is a \textbf{universal constant} for any 4-layer board with \textgreater{}= 645 mm2 of heatsink copper. The 12 thermal vias, the three 1850 mm2 planes, U1's position near board centre - every one of them moves this result by exactly \textbf{0.00 C}. What "54.17 vs 55" measures is the distance between two \emph{declared inputs}: \texttt{power\_w = 1.06} and \texttt{dt\_c = 55}.
+
+\texttt{check\_thermal} is also \textbf{not additive}: U1's 54.17 C and L1's 42.51 C are each computed as if that part were the only heat source on the board. They cannot both be "the rise".
+
+\textbf{Believe the P1/P2 board-level ladder.} I re-derived its inputs from scratch before looking at its answer:
+
+\begin{quote}\small\ttfamily\raggedright
+h\_conv = 1.42{*}(dT/L)\textasciicircum{}0.25 = 1.42{*}(37/0.05)\textasciicircum{}0.25            = 7.41 W/m2K\\
+h\_rad  = 0.9{*}sigma{*}(358\textasciicircum{}2+323\textasciicircum{}2){*}(358+323)                 = 8.08 W/m2K   (they used 8.2)\\
+h\_tot  = 15.5 W/m2K over A\_eff 3.4e-3 m2  -\textgreater{}  R\_ba         = 19.0 C/W
+\end{quote}
+That reproduces their \texttt{R\_ba = 19 C/W} to about 2\%, from textbook flat-plate correlations, and the ladder \texttt{Tj = Ta + P\_board{*}R\_ba + dT\_local + P\_IC{*}(theta\_JC,bot + R\_via)} is the correct physics for a near-isothermal board (spreading length 32 mm \textgreater{} the 20-25 mm board half-dimension). Worst \textbf{Tj = 97.9 C at 7 V}.
+
+Two corrections to that ladder that nobody has applied:
+
+1. \textbf{It still carries the 16-via array at 2.16 K/W.} The board has 12. \texttt{R\_1via = 29.4 K/W} -\textgreater{} 12 in parallel at the same 0.85 crowding factor is \textasciitilde{}2.88 K/W, so \texttt{+1.058 {*} (2.88 - 2.16) = +0.76 C}. \textbf{Worst Tj \textasciitilde{}= 98.7 C, margin 6.3 C, not 7.1 C.} The P2 digest table was not updated for the P6 16 -\textgreater{} 12 change. 2. \textbf{The honest band.} \texttt{R\_ba} is stated at +/-30\%, and only the \texttt{P\_board{*}R\_ba} term scales: \texttt{50 + 34.7{*}0.7 + 6 + 7.2 = 87.5 C} to \texttt{50 + 34.7{*}1.3 + 6 + 7.2 = 108.4 C}. The upper edge crosses the 105 C \emph{design} limit but stays {*}{*}17 C below the 125 C conservative spec floor\textbf{ and }51 C below AP64350's actual 150 C Tj max{*}{*}.
+
+\textbf{What to say to the human.} The thermal risk on this board is dominated by {*}{*}mounting, not layout{*}{*}. 53\% of the cooling path is radiation from two faces. Boxing this board, conformal-coating it, or bolting it flat against a surface removes a large share of that and costs tens of degrees - far more than any 0.83 C. That belongs in the assembly note in bold. The layout side is already 3x over its copper criteria and cannot be improved meaningfully.
+
+L1's 42.51 C / 45 C is conservative for the same structural reason: \texttt{a\_eff} counts only the 153.23 mm2 of \texttt{+5V} copper, excluding the 30.44 mm2 \texttt{/SW} pad and the 1838.91 mm2 of GND under the part. Counting \texttt{/SW} too gives 39.8 C. The number that matters for L1 is the board-level \texttt{T\_L1 surface 100.7-106.5 C} against the part's 155 C rating.
+
+---
+
+\subsubsection*{RECOMPUTED ELECTRICALS (the brief's closing checklist)}
+\begin{quote}\small\ttfamily\raggedright
+\textbar{} quantity \textbar{} recomputed \textbar{} spec \textbar{} margin \textbar{}\\
+\textbar{}---\textbar{}---\textbar{}---\textbar{}---\textbar{}\\
+\textbar{} inductor ripple, Vin 18 V \textbar{} `5(18-5)/(18{*}6.8u{*}500k)` = {*}{*}1.062 A{*}{*} p-p \textbar{} - \textbar{} - \textbar{}\\
+\textbar{} inductor peak \textbar{} 3 + 0.531 = {*}{*}3.531 A{*}{*} \textbar{} Isat 14 A (12.3 A max-col) \textbar{} {*}{*}3.5x{*}{*}; constraints declare 3.6 A, conservative \textbar{}\\
+\textbar{} Cin RMS \textbar{} `3{*}sqrt(D(1-D))` maximises at D=0.5 -\textgreater{} Vin 10 V (inside range) = {*}{*}1.500 A{*}{*} \textbar{} C5-C8 share 375 mA each, \textasciitilde{}0.7 mW each at 5 mOhm ESR \textbar{} large \textbar{}\\
+\textbar{} output ripple, Vin 18 V \textbar{} `1.062/(8{*}97u{*}500k)` = 2.74 mV + ESR 1.062{*}\textasciitilde{}1 mOhm = 1.1 mV -\textgreater{} {*}{*}\textasciitilde{}3.8 mV{*}{*} p-p \textbar{} 50 mV \textbar{} {*}{*}13x{*}{*} \textbar{}\\
+\textbar{} setpoint \textbar{} `0.8{*}(1+105/20.0)` = {*}{*}5.0000 V{*}{*} nominal; corners with VFB 792/808 mV and 0.1\% parts = {*}{*}4.942 / 5.058 V (+/-1.16\%){*}{*} \textbar{} 4.90-5.10 V \textbar{} see below \textbar{}\\
+\textbar{} Tj worst \textbar{} {*}{*}\textasciitilde{}98.7 C{*}{*} (ladder, 12-via corrected); band 87.5-108.4 C \textbar{} 105 C design / 125 C spec floor / 150 C actual \textbar{} 6.3 C to design \textbar{}
+\end{quote}
+\textbf{Setpoint stack - one term is missing from the record.} \texttt{root.py} quotes the VFB tolerance and the resistor tolerance but not resistor \textbf{tempco}. ERA3AEB1053V and RT0603BRD0720KL are both +/-25 ppm/K; worst-case differential drift over the 55 K rise from 50 C to the \textasciitilde{}105 C board is \texttt{2{*}25e-6{*}55 = 0.275\%} = \textbf{14 mV}. Adding that plus load regulation and the uncompensated C12 -\textgreater{} J2 IR drop (\texttt{check\_irdrop} worst \texttt{+5V} drop 8.96 mV) to the +/-58 mV corner gives \textbf{\textasciitilde{}82 mV worst case against the 100 mV window} - still passing, with \textasciitilde{}18 mV left. Worth adding the term to the record.
+
+\textbf{SPICE: I agree it can be skipped.} SIM-1 (the setpoint sweep) is a four-term worst-case sum, closed above in closed form. A sweep would add no information. The bench item that actually matters is the loop, and no SPICE model of this board closes that either - it needs a network analyser.
+
+---
+
+\subsubsection*{WARNINGS - full list with verdicts}
+Every \texttt{verify\_all} warning gets a verdict here.
+
+\begin{quote}\small\ttfamily\raggedright
+\textbar{} \# \textbar{} finding \textbar{} verdict \textbar{}\\
+\textbar{}---\textbar{}---\textbar{}---\textbar{}\\
+\textbar{} W1 \textbar{} {*}{*}`/SW` pour is 10.490 mm long vs the 8 mm ceiling{*}{*} (bbox 10.490 x 4.421). Excess is entirely the C1(BST)/TP2/R9 stub, 5.32 mm to -x of the SW pin; the load-carrying run U1.8 -\textgreater{} L1.1 is 3.73 mm. Physics benign: `C = e0{*}er{*}A/d = 4.85 pF`, `I = C{*}dV/dt = 17.5 mA` at 18 V / 5 ns, returning into the plane 0.244 mm below. {*}{*}Undisclosed anywhere.{*}{*} \textbar{} document as accepted deviation; do not move the BST cap \textbar{}\\
+\textbar{} W2 \textbar{} {*}{*}check\_thermal's 0.83 C is not a layout property{*}{*} (clamped `a\_eff`, non-additive) - full analysis above \textbar{} escalate to a documentation correction \textbar{}\\
+\textbar{} W3 \textbar{} {*}{*}L1's 42.51/45 C measures the wrong path{*}{*} (excludes `/SW` pad and all GND) \textbar{} conservative, no action \textbar{}\\
+\textbar{} W4 \textbar{} {*}{*}The PM floor is not actually bounded.{*}{*} The dV COUT-invariance argument is correct and I do not re-litigate it (`2{*}pi{*}fc{*}COUT = R5{*}gm{*}VFB/(RTsense{*}VOUT)` is COUT-free). But PM is {*}not{*} invariant: root.py's own table gives PM(corrected) 45.6-47.2 deg at COUT 75.0 uF vs 51.3-52.8 at 96.8 - 0.6 deg over the floor at the low corner. And {[}75.0, 96.8{]} uF is a {*}{*}DC-bias band{*}{*}: the low end IS the vendor's DC-bias-only ratio (68.2\%), so root.py 2.2's remark that hot X7R and aging "push toward the low end" {*}names{*} those effects without stacking them. Stack X7R hot-end loss (\textasciitilde{}-10\% at the board's own stated 83-87 C) and 1000 h aging (\textasciitilde{}-5\%) on 75.0 uF -\textgreater{} {*}{*}\textasciitilde{}62.7 uF{*}{*}, \textasciitilde{}20\% below the swept corner; on the sweep's own slope (75k -\textgreater{} 82k = +9\% fc for -1.5 deg PM) that is roughly {*}{*}-3 deg -\textgreater{} PM \textasciitilde{}42-44 deg, under the 45 floor{*}{*} \textbar{} no respin (R5/C2/C3 are three adjacent 0603s, already bench item \#1) - but the disclosure must say COUT\_min is DC-bias-only, so PM reads as unbounded, not 0.6 deg clear \textbar{}\\
+\textbar{} W5 \textbar{} {*}{*}DNP snubber loop \textasciitilde{}12 mm.{*}{*} `/SW` -\textgreater{} R9.1 (47.420,43.905) -\textgreater{} R9.2 (47.420,40.945) -\textgreater{} C16.1 (44.310,40.425) -\textgreater{} C16.2 GND (41.130,40.425). `L' = mu0{*}h/w = 0.256 nH/mm` at w 1.2 / h 0.2444 -\textgreater{} \textasciitilde{}3.1 nH + \textasciitilde{}2 nH component ESL = \textasciitilde{}5 nH; with 470 pF that self-resonates at {*}{*}\textasciitilde{}104 MHz{*}{*}, inside the band a SW snubber exists to damp. C16's GND pad is 6.7 mm from U1's EP \textbar{} record; DNP, do not respin \textbar{}\\
+\textbar{} W6 \textbar{} {*}{*}C12's ground leg is one via into a 4.41 mm2 orphan F.Cu island.{*}{*} Four GND pads sit on orphans - C12.2, C2.2 (16.65), R1.2 (14.20), R4.2 (3.60) - each with exactly one stitching via, so nothing floats and three are small-signal. C12 is a 22 uF output bulk cap; one 0.3 mm via adds \textasciitilde{}0.6-1 nH, comparable to its own impedance at 500 kHz. C10/C11/C13 (4.84 / 6.79 / 8.10 mm from L1.2) are on the main island so the bank still works \textbar{} add a second via at \textasciitilde{}(54.7, 54.6): one op, zero risk, clears one advisory \textbar{}\\
+\textbar{} W7 \textbar{} {*}{*}J1 and J2 carry `+` on opposite edges.{*}{*} J1 pin1 (`/VIN\_RAW`) upper at y 54.685, J2 pin1 (`+5V`) lower at y 59.765. Forced by the wire-entry requirement (both verified off-board on the iso render), so the mirror is not an accident. Silk does mark it: `+`/`-` at (34.12, 54.685)/(34.12, 59.625) and `-`/`+` at (61.22, 54.685)/(61.22, 59.765), plus `VIN 7-18V` and `VOUT 5V 3A`, all clear of the connector bodies and still visible after assembly. Residual: this silk is the ONLY mitigation for delegate Q30, and getting `+` onto the same physical edge needs J2's pin/net assignment swapped in the {*}{*}schematic{*}{*} \textbar{} confirm as a decision at checkpoint 4; not a P8 defect \textbar{}\\
+\textbar{} W8 \textbar{} {*}{*}Every power net is routed at exactly its IPC-2152 minimum.{*}{*} `check\_current` min\_track == required on all of them: 1.52 mm (`/VIN\_RAW`, `/VIN`, `+VIN`), 2.055 mm (`+5V`), 2.31 mm (`/SW`). At JLC's \textasciitilde{}+/-0.05 mm etch that is -2.4\% on `+5V` -\textgreater{} dT \textasciitilde{}10.5 C instead of 10 \textbar{} acceptable; state that dT=10 C is nominal, not worst case \textbar{}\\
+\textbar{} W9 \textbar{} {*}{*}Two verification legs are hollow.{*}{*} `check\_pdn\_z` checked {*}{*}zero pairs{*}{*} (skipped `+VIN` for "no plane pair detected", attempted nothing else) - a direct and expected consequence of the deliberate 4 x GND stackup, so it is not coverage. And `kc.py drc` has no silk test for {*}{*}enclosed{*}{*} silk: proved by shrinking TP4's ring to r=0.30 inside its pad (0 violations) versus injecting crossing segments (14 violations) \textbar{} say so; do not count either as a pass \textbar{}\\
+\textbar{} W10 \textbar{} {*}{*}`constraints\_drift`.{*}{*} I diffed both files leaf by leaf: the ONLY differences are the 16 numbers of the four mounting-hole keepout rects - the documented board-local -\textgreater{} absolute translation. Everything else identical; checks ran against the correct `kicad/` copy \textbar{} justified waiver; annotate or delete the `architecture/` twin \textbar{}\\
+\textbar{} W11 \textbar{} {*}{*}`decoupling.json`'s `\_note` is stale{*}{*} - it says `+5V` is handled by `pdn=false`, which `constraints.json` records as reverted. Two files, opposite statements, and the stale one is what feeds `check\_pdn` and `check\_decoupling` \textbar{} one-line documentation fix \textbar{}\\
+\textbar{} W12 \textbar{} {*}{*}The 6.5 mm mounting-hole mask/copper keepout was never built{*}{*} (no rule areas exist). Benign: all four layers are GND at every hole and the nearest non-GND copper is 5.38 mm vs an M3 washer radius of 3.25 mm - see the section above \textbar{} record as a knowingly-dropped constraint \textbar{}\\
+\textbar{} - \textbar{} {*}{*}10 x `check\_current insufficient\_transition\_vias`{*}{*} (all `GND`, all "1 via, 3.30 A needs 7") \textbar{} {*}{*}justified.{*}{*} Every one is a leaf tap: five are perimeter stitching vias at x/y 30.72/45.72/60.72 carrying no net current, and four are the sole vias of the orphan islands above (of which only C12's carries meaningful current - see W6). `GND` is `plane\_fed`, which keeps {*}{*}pour necks at ERROR{*}{*} at the full 3.3 A, and there are {*}{*}zero{*}{*} pour-neck errors. Advisory is the right severity \textbar{}
+\end{quote}
+---
+
+\subsubsection*{THINGS I CHECKED AND FOUND CLEAN}
+\begin{itemize}
+\item \texttt{kc.py drc --parity --all-track-errors}: 0 violations, 0 unconnected, schematic/PCB
+parity clean. Re-run by me at P8, not inherited from P7.
+\item \texttt{check\_return\_path} 0, \texttt{check\_decoupling} 0 (five \texttt{+VIN} associations, loop 5.05-11.50 nH,
+C9 closest at 2.14 mm / 5.05 nH), \texttt{check\_diffpair} 0, \texttt{check\_creepage} 0.
+\item \texttt{check\_irdrop}: \texttt{+VIN} 13.96 mV, \texttt{+5V} 8.96 mV, \texttt{GND} 1.15 mV. Against a +/-100 mV
+output window the sense-point-to-terminal error is \textasciitilde{}0.2\%. No concern.
+\item No copper on any inner layer for any non-GND net (28 vias, all GND).
+\item B.Cu is a bare, uninterrupted 1850 mm2 GND face with only the four J1/J2 THT annular
+rings and the vias breaking it - exactly what the radiation budget needs. Note for the
+assembly doc: J1.1 (\texttt{+VIN}) and J2.1 (\texttt{+5V}) are exposed on B.Cu, so insulating
+standoffs are required if the board is mounted over metal.
+\item No fiducials. JLC's SMT service does not require board fiducials and the connectors are
+DNP/hand-soldered, so this is a note for P9, not a finding.
+\item LCSC stock present for all 24 BOM lines. {*}{*}L1 (FAUL1050-6R8MT, C5298292) at 763 pcs is
+the only thin line{*}{*} - single-source, no like-for-like alternate that clears
+DCR \textless{}= 25 mOhm hot at 6.8 uH. Every other line clears its floor by \textgreater{}= 4x. Schedule
+risk for P9, not a board defect.
+\end{itemize}
+\subsubsection*{OPEN - not judgeable from the artifacts}
+\begin{itemize}
+\item Loop phase margin at the true COUT floor (W4). Needs a network-analyser measurement;
+no model available to this project closes it.
+\item AO4407A dv/dt immunity - no Ciss/Crss/Coss published (already disclosed as P4 W4).
+\item Whether the enclosure preserves the two radiating faces (W2). The single largest
+thermal lever on this board and it lives outside the board.
+\item Whether a human ever reads the silk on this board. E2's severity depends on it; I
+graded it as an error because \texttt{parts.json} says J1/J2 are hand-soldered on receipt.
+\end{itemize}
 \section{DFM and Fabrication}
-\emph{Pending --- produced at P9.}
+Gate \texttt{dfm} (phase P9): \textbf{pass} after 1 attempt(s); last 2026-08-09T06:54:57, failing 0 of 16.
+DFM findings by severity: warning: 16.
+\subsection*{Fabrication outputs}
+Exported layers: F.Cu, In1.Cu, In2.Cu, B.Cu, F.Silkscreen, B.Silkscreen, F.Mask, B.Mask, F.Paste, B.Paste, Edge.Cuts.
+\subsection*{Bill of materials}
+{\small
+\begin{longtable}{p{4.4cm}p{2.8cm}p{4.6cm}l}
+\toprule
+\textbf{Comment} & \textbf{Designator} & \textbf{Footprint} & \textbf{LCSC} \\
+\midrule
+\endhead
+100nF 50V X7R & C1,C9 & C0603 & C14663 \\
+3.3nF 50V X7R & C2 & C0603 & C1613 \\
+10pF 50V C0G & C3 & C0603 & C106245 \\
+100uF 35V 80mOhm & C4 & CAP-SMD\_BD6.3-L6.5-W6.5-LS7.2-FD & C2982822 \\
+4.7uF 50V X7R & C5,C6,C7,C8 & C1206 & C29823 \\
+22uF 25V X7R & C10,C11,C12,C13,C14 & C1210 & C49118556 \\
+4.7uF 16V X7R & C15 & C0805 & C277499 \\
+470pF 1kV C0G & C16 & C1206 & C107177 \\
+GREEN & D1 & LED0805-R-RD & C2297 \\
+BZT52C15 15V & D2 & SOD-123\_L2.7-W1.6-LS3.7-RD & C173427 \\
+5A slow-blow & F1 & Fuse\_1206\_C1T\_BelVendorLand & C3163312 \\
+SCREW\_5.08\_2P & J1,J2 & CONN-TH\_2P-P5.08\_DB128L-5.08-2P & C395868 \\
+6.8uH & L1 & IND-SMD\_L11.5-W10.0 & C5298292 \\
+AO4407A & Q1 & SOIC-8\_L4.9-W3.9-P1.27-LS6.0-BL & C16072 \\
+100k 1\% & R1 & R0603 & C25803 \\
+105k 1\% & R2 & R0603 & C16840 \\
+24.0k 1\% & R3 & R0603 & C23352 \\
+200k 1\% & R4 & R0603 & C25811 \\
+75k 1\% & R5 & R0603 & C23242 \\
+105k 0.1\% & R6 & R0603 & C491109 \\
+20.0k 0.1\% & R7 & R0603 & C723637 \\
+2.2k 1\% & R8 & R0603 & C4190 \\
+22R 1\% 0.25W & R9 & R1206 & C17958 \\
+AP64350SP-13 & U1 & SO-8\_L4.9-W3.9-P1.27-LS6.0-BL-EP & C2071691 \\
+\bottomrule
+\end{longtable}
+}
+1 CPL rotation correction(s) applied; no missing LCSC numbers.
+\emph{fab/order.json not available.}
 \section{Run Record (Appendix)}
 \subsection*{Phase digests}
 \paragraph*{P0}
@@ -587,6 +987,335 @@ Full architecture narrative (not inlined; see the artifact index): \texttt{archi
 - Carried to P4: C4 polarity must come from the footprint silk mark, not its\\
   generic 1/2 symbol pins.
 \end{quote}
+\paragraph*{P4}
+\begin{quote}\small\ttfamily\raggedright
+\# P4 Schematic digest - sbuck-5v3a\\
+~\\
+- Gates: `erc` {*}{*}0 errors / 0 warnings{*}{*} (2 attempts, both pass; 2nd after the snubber\\
+  rewire). `netlist\_audit` exit 0, 0 violations. 15 nets, 44 components, 86/86 pins\\
+  connected. Regen identity confirmed (two builds electrically identical).\\
+- Fresh-context review: {*}{*}0 errors / 7 warnings{*}{*}. No netlist change was required by\\
+  any finding. 2 warnings FIXED, 5 waived -\textgreater{} `reports/erc-waivers.md`.\\
+- Vout = 5.0000 V exactly (105k/20.0k, both 0.1\%), corners 4.9417/5.0585 V = +/-42 mV\\
+  margin. The reviewer showed 1\% parts MISS by 32-36 mV, so 0.1\% is proven, not asserted.\\
+- UVLO VON 6.230 / VOFF 5.325 V, 0.905 V hysteresis, verified against the vendor's\\
+  pull-up-inclusive Eq.2/3 - and the vendor's own constants shown self-consistent.\\
+- Compensation R5=75k, C2=3.3nF, C3=10pF. The reviewer reproduced P4's table TO THE\\
+  DIGIT independently, then falsified its calibration: the vendor's Fig.29 plot has\\
+  C4=33pF fitted, so the claimed validation compared the wrong variant. Claim withdrawn.\\
+  Like-for-like factor is 0.743, not 0.83 - the model is optimistic on all three axes.\\
+- {*}{*}Honest standing of the loop{*}{*}: PM 45.6-52.8 deg vs a 45 deg floor. Load step\\
+  {*}{*}200 mV against a 200 mV limit{*}{*} on the corrected reading (148 mV modelled). No R5\\
+  value clears fc, PM and dV together (sweep in root.py s2.5a), and dV is INVARIANT in\\
+  COUT, so more capacitance would be pure cost. Accepted as an at-limit disclosure and\\
+  logged as the board's \#1 bring-up bench item; R5/C2/C3 are 3 adjacent 0603 parts.\\
+- The fc "24.4 kHz vs 25 kHz" shortfall is NOT a requirement miss - 25 kHz was the\\
+  orchestrator's own proxy; the real spec is 100 us recovery and settling is 32.6 us (3.1x).\\
+- Fixed, not waived: DNP snubber overstressed its own resistor (162 mW at 18 V into an\\
+  0603 rated 0.1 W). R9 -\textgreater{} 1206 0.25 W, C16 -\textgreater{} 470pF C0G 1206. Now 76 mW, 30\% of rating.\\
+- C3 refitted as the Eq.19 COMP pole; the reviewer measured the Eq.20 feedforward as\\
+  CONDITIONALLY UNSTABLE, not merely low-margin - a stronger result than P4 knew.\\
+- Caveat on evidence quality: the clean ERC is WEAK proof for U1, since nearly every\\
+  U1 pin is `passive` in the pulled library. Pin-level confidence comes from the\\
+  datasheet extract + the reviewer's independent netlist read, not from the gate.\\
+- Carried forward: silkscreen connector labelling (Q30's ONLY mitigation for a swapped\\
+  input/output, unreachable from a generator) -\textgreater{} P6/P8. DNP filtering -\textgreater{} P9 manual.\\
+  SIM-1/SIM-2 -\textgreater{} P8.
+\end{quote}
+\paragraph*{P5}
+\begin{quote}\small\ttfamily\raggedright
+\# P5 Board Setup digest - sbuck-5v3a\\
+~\\
+- `board\_init`: 50 x 40 mm exactly (bbox 22.72,37.225 -\textgreater{} 72.72,77.225), 4 layer,\\
+  stackup JLC04161H-1080B, 1 oz outer / 0.5 oz inner, 44 components, 15 nets.\\
+- {*}{*}parity = 0{*}{*} after two fixes. Both were real:\\
+  (a) 11 x "Exclude from BOM settings differ" on H1-H4 + TP1-TP7 - the footprints\\
+      declare exclude\_from\_bom, the symbols did not. Fixed at the generator\\
+      (`in\_bom = False`), not by loosening anything.\\
+  (b) 2 x duplicate/value mismatch on H1 - caused by MY passing `--mounting-holes 4`\\
+      when the schematic already carries H1-H4. Re-run with `--mounting-holes 0`.\\
+      The 4x M3 now come from the schematic as real parts; P6 must place them at\\
+      the corners, inset 3.5 mm.\\
+- Fab floors at ERROR severity from profile `4layer\_1oz`: clearance 0.1016, track\\
+  0.1016, via dia 0.45, hole 0.2, annular 0.1, hole-to-hole 0.5, edge 0.3 mm.\\
+  Stated explicitly because "DRC 0/0" is meaningless if the floors sit under the fab's.\\
+- `rules\_gen`: 14 rules, capability\_class 4layer\_1oz, copper derived from the stackup.\\
+  Netclasses split PER REQUIRED WIDTH (not flattened to one max-width Power class):\\
+  Pwr\_1p52mm (/VIN\_RAW, /VIN, +VIN @ 2.6 A), Pwr\_2p055mm (+5V, GND @ 3.3 A),\\
+  Pwr\_2p31mm (/SW @ 3.6 A). Matches the architect's IPC-2152 numbers exactly.\\
+- `diff\_pairs` is an explicit empty list and stayed empty - that is what stops /SW,\\
+  the highest-current node, from silently acquiring differential-pair gap rules and\\
+  an inner-layer track ban. `hv\_rules` empty (no pair reaches the 30 V IPC-2221 trigger).\\
+- Residual, NOT resolved at P5: 22 copper\_edge\_clearance errors + 2 silk\_over\_copper\\
+  warnings, all from the naive shelf pack at the outline origin corner, plus 71\\
+  unconnected. P6 placement and P7 routing own these respectively.\\
+- Sidecars (constraints.json, decoupling.json) sit beside the board as required.
+\end{quote}
+\paragraph*{P6}
+\begin{quote}\small\ttfamily\raggedright
+\# P6 Placement digest - sbuck-5v3a\\
+~\\
+Gate `place`: {*}{*}PASS, 0 violations.{*}{*} Final DRC: 2 warnings (a footprint defect,\\
+not placement) + 71 unconnected (P7's). 8 of 8 edit iterations used.\\
+~\\
+\#\# The four numbers the brief demanded\\
+~\\
+\textbar{} Deliverable \textbar{} Result \textbar{} Limit \textbar{}\\
+\textbar{}---\textbar{}---\textbar{}---\textbar{}\\
+\textbar{} Input hot-loop enclosed area \textbar{} {*}{*}2.57 mm\textasciicircum{}2{*}{*} (C9 out 2.14 mm, return 3.69 mm) \textbar{} minimise \textbar{}\\
+\textbar{} /SW copper area \textbar{} {*}{*}\textasciitilde{}26 mm\textasciicircum{}2{*}{*} (17.4 pour + 8.6 taps) \textbar{} \textless{}= 40 mm\textasciicircum{}2 \textbar{}\\
+\textbar{} /FB run \textbar{} {*}{*}2.21 mm{*}{*} R6-\textgreater{}U1.5; 7.04 mm incl. R7 \textbar{} short \textbar{}\\
+\textbar{} Thermal vias under U1 \textbar{} {*}{*}12{*}{*} (not 16 - see below) \textbar{} - \textbar{}\\
+~\\
+C9 (100 nF) sits 0.7 mm off U1's VIN pad on F.Cu, GND pad aligned to the BST\textbar{}VIN\\
+inter-pad slot, return through a 0.67 mm slot - {*}{*}no vias in the loop{*}{*}. C5-C8 form\\
+the next ring 4-6 mm out. C4 is 22.2 mm away as constraints require. /SW is 5.97 mm\\
+long, \textgreater{}= 2.5 mm wide, 6.25 mm from the nearest edge and 9.7 mm from J2. FB senses at\\
+{*}{*}C12's +5V terminal{*}{*}, not the inductor pin.\\
+~\\
+\#\# Findings that changed other phases\\
+~\\
+- {*}{*}16 thermal vias is geometrically impossible.{*}{*} EP 3.502 x 2.613 mm; four 0.55 mm\\
+  lands at 1.0 mm pitch need 3.55 mm, and JLC's 0.5 mm hole-to-hole floor caps it at\\
+  3x4 = 12 at 0.9-0.95 mm pitch. R\_via 2.48 vs 1.90 K/W = {*}{*}+0.5 C of Tj{*}{*}, inside\\
+  the margin. `check\_thermal` would not have caught this.\\
+- {*}{*}`placement.fixed` silently disabled all 8 separation constraints{*}{*} - fixed refs\\
+  are excluded from the annealer's cluster list, so every pair landed in\\
+  `separation\_unknown\_refs` at zero cost weight. Verified all 8 by hand; all pass.\\
+- {*}{*}P5 omitted the mandatory keepout translation{*}{*} - rects were still board-local,\\
+  three landed off-board, the fourth produced a phantom violation. Corrected.\\
+- {*}{*}Both connector rotations in `placement.edges` were wrong{*}{*} (J1 0, J2 180 pointed\\
+  both wire entries INTO the board). Correct: J1=270, J2=90. Proven by orthographic\\
+  side render - the mouth is the SHORTER plastic face here, so the WRL bbox alone\\
+  would have misled.\\
+~\\
+\#\# Judgment calls\\
+~\\
+- {*}{*}Anneal rejected on merit.{*}{*} Candidates hit HPWL 224.6 vs the hand structure's\\
+  234.0, but the 3.1\% is almost entirely plane-fed GND, all four carried 5-7\\
+  courtyard overlaps after repair, and cand1 pulled R7 3.5 mm closer to L1 and\\
+  lengthened /FB.\\
+- Silk complete and DRC-verified, 112 warnings -\textgreater{} 2: "VIN 7-18V" / "VOUT 5V 3A" with\\
+  polarity at both terminals, pin-1/polarity on C4/D1/D2/U1, all 7 test points\\
+  labelled by signal, board name + REV A + date. This is Q30's ONLY mitigation for a\\
+  swapped connector, so it was a requirement, not decoration.\\
+~\\
+\#\# Handed to P7\\
+~\\
+- {*}{*}Pour the four GND planes AND pour /SW as a zone BEFORE any autoroute.{*}{*} The 0.83\\
+  route probe is an artifact: GND is 25 of 71 connections and plane-fed, so unpoured\\
+  Freerouting tried it as 2.055 mm tracks. And `aiee\_pwr\_width\_SW` (2.31 mm) applies\\
+  to EVERY /SW track including the 0603 bootstrap cap's - a zone is not a track.\\
+- 25 structural footprints are LOCKED; P8 fixers must unlock before nudging.\\
+- 2 residual DRC warnings are a D2 SOD-123 footprint defect (silk clips pad 2's mask\\
+  by \textasciitilde{}0.05 mm) - library fix approved and in progress.\\
+- Cosmetic: C9's refdes label sits over C7's body; `silk\_place` found no better spot.
+\end{quote}
+\paragraph*{P7}
+\begin{quote}\small\ttfamily\raggedright
+\# P7 Routing digest - sbuck-5v3a\\
+~\\
+Gate `drc\_routed`: {*}{*}PASS, exit 0{*}{*} - 0 errors, 0 warnings, 0 unrouted, parity clean,\\
+`--all-track-errors` on. Completion {*}{*}1.00{*}{*} (71/71 connections closed).\\
+Board: 115 tracks (all F.Cu), 31 vias (all GND), 14 zones, 0 unfilled.\\
+~\\
+\#\# The numbers the brief demanded\\
+~\\
+\textbar{} Deliverable \textbar{} Result \textbar{} Limit \textbar{}\\
+\textbar{}---\textbar{}---\textbar{}---\textbar{}\\
+\textbar{} /SW copper, F.Cu \textbar{} {*}{*}30.44 mm\textasciicircum{}2{*}{*} (22.94 main node + 7.51 tap arm) \textbar{} \textless{}= 40 mm\textasciicircum{}2 \textbar{}\\
+\textbar{} /SW min cross-section, U1.8 -\textgreater{} L1.1 \textbar{} {*}{*}3.50 mm{*}{*} \textbar{} \textgreater{}= 2.5 mm \textbar{}\\
+\textbar{} /SW main-node length U1.8 -\textgreater{} L1.1 \textbar{} {*}{*}5.97 mm{*}{*} (bbox incl. BST/TP2/snubber arm 10.49) \textbar{} \textless{}= 8 mm \textbar{}\\
+\textbar{} /SW on inner or bottom copper \textbar{} {*}{*}0.000 mm\textasciicircum{}2{*}{*} on In1/In2/B.Cu \textbar{} zero \textbar{}\\
+\textbar{} Thermal vias in U1 exposed pad \textbar{} {*}{*}12{*}{*} (3 x 4 at 0.90 mm pitch, 0.6/0.3) \textbar{} 12 \textbar{}\\
+\textbar{} Stitch vias within 6 mm of U1 EP \textbar{} {*}{*}11{*}{*} \textbar{} \textgreater{}= 8 \textbar{}\\
+\textbar{} F.Cu GND island contiguous with U1 EP \textbar{} {*}{*}1395.2 mm\textasciicircum{}2{*}{*} \textbar{} \textgreater{}= 100 mm\textasciicircum{}2 \textbar{}\\
+\textbar{} In1 GND within 12 mm of U1 \textbar{} {*}{*}444.9 mm\textasciicircum{}2, ONE piece{*}{*} (99.0\% of the disc) \textbar{} \textgreater{}= 400, no split \textbar{}\\
+\textbar{} B.Cu GND total \textbar{} {*}{*}1850.1 mm\textasciicircum{}2{*}{*} \textbar{} \textgreater{}= 1500 mm\textasciicircum{}2 \textbar{}\\
+\textbar{} GND within 14.3 mm of U1, summed over layers \textbar{} {*}{*}2169.7 mm\textasciicircum{}2{*}{*} \textbar{} 529 pass / 650 A\_sat \textbar{}\\
+\textbar{} Vias inside the C9 -\textgreater{} U1 hot loop \textbar{} {*}{*}0{*}{*} \textbar{} 0 \textbar{}\\
+\textbar{} GND tracks anywhere \textbar{} {*}{*}0{*}{*} - all return is plane/pour \textbar{} 0 \textbar{}\\
+~\\
+Min via hole-to-hole 0.600 mm (JLC floor 0.500). `/FB` 13.34 mm total, 3.13 mm from\\
+/SW copper, 3.52 mm from L1, still sensing at C12's +5V terminal. In2.Cu came out\\
+{*}{*}GND{*}{*}, not +5V - checked explicitly. No placement was touched; all 25 locks intact.\\
+~\\
+\#\# Chain that ran\\
+~\\
+`planes\_gen` (7 zones) -\textgreater{} 12 in-pad thermal vias (`route\_edit`) -\textgreater{} 9 hand-placed U1\\
+ring vias -\textgreater{} `stitch\_vias` (6 area vias, 15 mm auto pitch) -\textgreater{} `route\_auto`\\
+(`--power-layers In1.Cu,In2.Cu,B.Cu` so every track lands on F.Cu; FR rung 1, 124\\
+tracks, KRT finish rejected on merit) -\textgreater{} pour fan-in pass B + 9 rips -\textgreater{} 4 island-bond\\
+vias -\textgreater{} `plane\_repair` (no repair needed: 0 split, 0 dead islands) -\textgreater{} gate.\\
+`route\_cleanup` {*}{*}skipped{*}{*} - DRC was already 0/0 and its loop-breaker has regressed\\
+twice on pour boards; nothing to gain, a real regression risk.\\
+~\\
+\#\# Three findings (all in LEARNINGS)\\
+~\\
+- {*}{*}`planes\_gen` rejects `\_note`.{*}{*} `\_PLANE\_KEYS` is a strict whitelist, so\\
+  `constraints.planes{[}{]}` - which carries this file's most load-bearing note - cannot be\\
+  fed to the documented step-0 invocation at all. Used planes-only sidecars\\
+  (`kicad/planes\_p7.json`, `kicad/planes\_p7b.json`) instead of stripping the notes.\\
+- {*}{*}A clean `--pad-window` does not predict Freerouting's width.{*}{*} All 61 power pads\\
+  probed `ok` (R6.1/R8.1 reported 6.97/8.00 mm against a 2.055 mm floor); FR then routed\\
+  those 0402 taps at {*}{*}0.8058 mm - the pad width{*}{*} - and necked +5V to 1.6348 (1210 pad)\\
+  and +VIN to 1.4848 (0805 pad). 9 `track\_width` errors, fixed by pour fan-in per the\\
+  remediation ladder step 4, not by necking or by weakening a rule.\\
+- {*}{*}`planes\_gen`'s via grid can only be odd x odd.{*}{*} It is centroid-centred and\\
+  pitch-stepped, so U1's 2.613 x 3.502 mm pad yields 3 x 3 = 9, never the 12 that fits.\\
+  Hand-placed the 3 x 4 array with a half-pitch y stagger.\\
+~\\
+\#\# Judgment calls\\
+~\\
+- {*}{*}Power is poured, not trunked.{*}{*} +VIN (2 rects), +5V (3 rects) and /SW (2 rects) are\\
+  F.Cu zones at priority above the GND pours. This is the only way to satisfy net-wide\\
+  `aiee\_pwr\_width\_{*}` floors at 0402/0603 stubs without touching the `.kicad\_dru`. The\\
+  `.kicad\_dru`, `.kicad\_pro` netclasses and `constraints.json` are byte-unchanged.\\
+- {*}{*}All four GND planes kept solid; every track on F.Cu.{*}{*} `--power-layers` was forced to\\
+  include B.Cu (the `auto` heuristic only ever considers INNER layers, so B.Cu would have\\
+  been fair game for Freerouting and the second radiating face would have been cut).\\
+- {*}{*}F.Cu GND uses thermal relief except where it must not.{*}{*} Board pour is priority 0\\
+  thermal (J1/J2 screw terminals stay hand-solderable); a priority-3 `connect: solid`\\
+  island covers U1's EP, PGND pin and C9's return, and two priority-4 solid patches clear\\
+  the `starved\_thermal` on R1.2 / C3.2.\\
+- {*}{*}M3 washer keepouts not added as rule areas.{*}{*} All four planes are GND, so a screw or\\
+  washer bridging pour to pour is a GND-to-GND short. Verified instead that the nearest\\
+  non-GND copper to each hole is 5.38 / 6.89 / 10.18 / 11.60 mm - all well past the\\
+  3.25 mm washer radius. Flagged for P8 to confirm the reasoning rather than the rule.\\
+~\\
+\#\# Handed to P8\\
+~\\
+- 2 `/SW` tracks at exactly 2.31 mm survive inside the pour (FR's U1.8 -\textgreater{} L1.1 legs).\\
+  Legal and load-bearing; they are counted in the 30.44 mm\textasciicircum{}2.\\
+- The `/SW` bbox is 10.49 mm end to end because P6 put the BST cap, TP2 and the DNP\\
+  snubber on the west side of the node. The switching current path is the 5.97 mm leg;\\
+  the arm is 7.51 mm\textasciicircum{}2 of quiet tap copper. Judge the ceiling on area, which holds.\\
+- `+5V`, `+VIN` fan-in pours mean check\_current will see pour necks, not tracks;\\
+  `pour\_neck` only measures between via attachments and these pours are via-free.
+\end{quote}
+\paragraph*{P8}
+\begin{quote}\small\ttfamily\raggedright
+\# P8 Verification digest - sbuck-5v3a\\
+~\\
+Gates: `verify` PASS (0 failing, 2 waivers), `drc\_routed` PASS 0/0. 2 of 3 fix-loop\\
+attempts used. Fresh-context review: 2 errors / 12 warnings, both errors FIXED.\\
+~\\
+\#\# The review found two errors that every gate had passed\\
+~\\
+- {*}{*}CRITICAL - D2's `K` cathode marker was on the ANODE end.{*}{*} Silk said pad 2\\
+  (`/QGATE`); the cathode is pad 1 (`+VIN`). The netlist was always right. Fitted per\\
+  that silk, the 15 V Zener reverses to a forward diode holding Vgs at -0.7 V, Q1\\
+  never enhances, 2.6 A runs in its body diode at \textasciitilde{}2.1 W in an SO-8 - Q1 and the\\
+  reverse-polarity protection both destroyed. Moved to (45.900, 59.000): 0.640 mm from\\
+  pad 1, 3.036 mm from pad 2, agreeing with the footprint band and pin-1 dot.\\
+- {*}{*}8 refdes labels named the wrong part{*}{*} (`silk\_misattributed` WARNINGS, so the\\
+  error-only gate passed them). 8 fixed, 3 residual - at 1.0 mm text the label is\\
+  2.6-3.2 mm wide against a 2.5-3.0 mm passive pitch, so no clean position exists.\\
+~\\
+\#\# Machine findings, and what they turned out to be\\
+~\\
+- `check\_thermal` L1: REAL. 100.7 mm\textasciicircum{}2 of +5V copper -\textgreater{} 48.10 C rise vs 45 allowed.\\
+  Grew a +5V pour around L1's body -\textgreater{} 153.3 mm\textasciicircum{}2, {*}{*}42.51 C{*}{*}.\\
+- `check\_current` GND x2: a MEASUREMENT ARTIFACT over three real defects. `pour\_neck`\\
+  erodes each zone fill in isolation, so a pour split across zone objects reports a\\
+  phantom 0.00 mm neck. Underneath were three genuine sub-2.055 mm via attachments in\\
+  1.06-1.58 mm fingers. Repartitioned the zones; 3 unhomeable ring vias deleted.\\
+- `check\_silk` x7: CHECKER DEFECT (check\_silk.py:172 buffers an unfilled circle into a\\
+  filled disc). Waived, then the underlying rings were deleted at P9 anyway.\\
+- `check\_pdn` x2: waived. Corrected reason - it never looks at the board, it filters\\
+  decoupling.json and errors on an empty list, so it is a TRUE statement that no\\
+  association named those rails. Coverage comes from check\_irdrop instead.\\
+~\\
+\#\# IR drop on the real copper (all three power nets)\\
+~\\
+\textbar{} Net \textbar{} I \textbar{} R \textbar{} worst drop \textbar{} jmax \textbar{}\\
+\textbar{}---\textbar{}---\textbar{}---\textbar{}---\textbar{}---\textbar{}\\
+\textbar{} +VIN \textbar{} 2.60 A \textbar{} 5.36 mOhm \textbar{} 14.0 mV \textbar{} 2.65 A/mm \textbar{}\\
+\textbar{} +5V \textbar{} 3.30 A \textbar{} 2.71 mOhm \textbar{} {*}{*}9.0 mV{*}{*} \textbar{} 2.41 A/mm \textbar{}\\
+\textbar{} GND \textbar{} 3.30 A \textbar{} 0.34 mOhm \textbar{} {*}{*}1.1 mV{*}{*} \textbar{} 0.46 A/mm \textbar{}\\
+~\\
+`check\_pdn\_z` passes. Richardson deltas 0.03-0.05, so the grids converged.\\
+~\\
+\#\# Self-correction worth recording\\
+~\\
+Setting `pdn: false` on +5V and GND silenced check\_pdn's finding but ALSO excluded\\
+both nets from check\_irdrop - the two highest-current nets on the board. Reverted and\\
+waived instead: a waiver says "this check does not apply" without disabling unrelated\\
+analysis.\\
+~\\
+\#\# Thermal, restated honestly\\
+~\\
+check\_thermal's "0.83 C headroom" on U1 is NOT a layout property: a\_eff measures\\
+2137 mm\textasciicircum{}2 and clamps to A\_SAT 645, so theta is constant for any 4L board above\\
+645 mm\textasciicircum{}2 - the 12 vias and three planes move it by 0.00 C. The believable figure is\\
+the P1/P2 board ladder, corrected for 12 vias rather than 16 (2.16 -\textgreater{} 2.88 K/W):\\
+{*}{*}Tj \textasciitilde{}98.7 C, margin 6.3 C{*}{*} against the 105 C design limit, with a +/-30\% band of\\
+87.5-108.4 C. Spec floor is 125 C and abs max 150 C. The dominant lever is MOUNTING,\\
+not layout - 53\% of cooling is radiation from two faces.
+\end{quote}
+\paragraph*{P9}
+\begin{quote}\small\ttfamily\raggedright
+\# P9 DFM digest - sbuck-5v3a\\
+~\\
+Gate `dfm`: {*}{*}PASS, 0 failing / 16 total{*}{*} (16 warnings), measured on gerbers\\
+re-exported after the fixes. 1 of 3 fix-loop attempts used.\\
+~\\
+\#\# Two real findings, both invisible until the gerbers existed\\
+~\\
+{*}{*}1. Silk over the solder-mask opening, 7 test points, 0.1798 mm\textasciicircum{}2 each.{*}{*}\\
+My diagnosis was WRONG and the fixer corrected it. I assumed an oversized mask\\
+aperture (\textasciitilde{}0.92 mm radius). Measured: the aperture is {*}{*}1.7664 mm\textasciicircum{}2 = exactly\\
+pi{*}0.75\textasciicircum{}2, zero mask expansion{*}{*}. The real cause is `lib/gerblib.py:read\_gerber`\\
+approximating drawn arcs {*}{*}by their chord{*}{*} - KiCad exports a full circle as two\\
+180-degree arcs, so both chords collapse onto the DIAMETER, a phantom 1.5 x 0.12 mm\\
+bar through the pad centre. 0.1798 = 1.5 x 0.12 exactly.\\
+My proposed fallback (enlarge the ring) {*}{*}could never have worked{*}{*} - the chord runs\\
+through the centre at any radius. Deletion of the 7 decorative rings was the only\\
+board-side fix. The signal-name labels, which carry the actual information, are untouched.\\
+~\\
+This is a SECOND false positive on the same innocent ring, from a DIFFERENT tool\\
+defect than the P8 `check\_silk` one. {*}{*}Two checkers agreeing was not corroboration.{*}{*}\\
+~\\
+{*}{*}2. Copper clearance 0.0127 mm at (39.67, 51.05).{*}{*}\\
+Both features were GND. The second was a {*}{*}0.0029 mm\textasciicircum{}2 crumb of the priority-0 board\\
+pour{*}{*}, trapped in the 0.02 mm lane between zone 2's top (51.1) and the P8 Z2's bottom\\
+(51.12). Mechanism: {*}{*}KiCad deburrs a pour at min\_thickness BEFORE subtracting\\
+higher-priority zone outlines{*}{*}, so a sub-min\_thickness lane between two zone outlines\\
+gets refilled and is never deburred away. The P8 "clears zone 2 by 0.02 mm" choice is\\
+exactly what manufactured it. Fixed with a priority-6 GND bridge zone straddling the\\
+seam; a second, longer 0.02 x 1.93 mm hair that nothing had flagged went with it.\\
+F.Cu GND islands 5 -\textgreater{} 4. Min island gap 0.01267 -\textgreater{} {*}{*}0.1021 mm{*}{*}.\\
+~\\
+\#\# Fab package\\
+~\\
+`fab/`: gerbers + zip, drill, `BOM.csv` (21 rows), `CPL.csv` (29 rows),\\
+`BOM-all.csv` / `CPL-all.csv` (unfiltered, for audit), `DNP-NOT-ASSEMBLED.txt`.\\
+One rotation correction applied against JLCPCB's convention: {*}{*}Q1 SOIC-8, +270 deg{*}{*}.\\
+`bom\_complete: true`, no missing LCSC codes.\\
+~\\
+{*}{*}DNP filtering was done BY HAND{*}{*} - no script in the pipeline reads a DNP mark, so\\
+left alone JLC would have populated both hand-solder screw terminals and the snubber.\\
+Excluded: J1, J2 (THT, hand-soldered on receipt per Q25), R9, C16 (snubber, populate\\
+only if bring-up shows SW ringing).\\
+~\\
+\#\# Disclosed, deliberately NOT fixed\\
+~\\
+- Two residual etch slivers (0.05 x 1.71 mm and 0.078 x 0.497 mm), fused to\\
+  neighbouring copper so no gate fires, but a fab may query them.\\
+- {*}{*}Min F.Cu island gap is 0.1021 mm against JLC's 0.1016 floor - 0.5 um of margin.{*}{*}\\
+  Pre-existing and unchanged by this work, but it means ANY further pour edit risks\\
+  tripping `dfm\_clearance`. The risk of touching exceeds the risk of leaving.\\
+- 16 dfm warnings remain (15 pin-1 dot slivers + 1 silk width), unchanged.\\
+~\\
+\#\# Script defects found, recorded not fixed (skill work belongs in its own session)\\
+~\\
+- `lib/gerblib.py` chords drawn arcs - the S12 `approximate\_arcs` fix reached\\
+  `\_flash\_polys` only. {*}{*}Every footprint drawing a silk ring around a pad will fail\\
+  the dfm gate forever{*}{*} until this is fixed in the tool.\\
+- `planes\_gen` should refuse or warn when a planned region edge lands within\\
+  `min\_thickness` of an existing same-layer zone outline - fully detectable at plan time.\\
+- No script owns footprint-internal silk on a placed board.
+\end{quote}
 \subsection*{Gate attempt history}
 {\small
 \begin{longtable}{llll}
@@ -596,11 +1325,31 @@ Full architecture narrative (not inlined; see the artifact index): \texttt{archi
 \endhead
 2026-08-09T01:31:22 & erc & pass & 0/0 \\
 2026-08-09T02:14:15 & erc & pass & 0/0 \\
+2026-08-09T03:22:36 & place & pass & 0/0 \\
+2026-08-09T04:07:57 & drc\_routed & pass & 0/0 \\
+2026-08-09T04:09:23 & drc\_routed & pass & 0/0 \\
+2026-08-09T04:58:04 & drc\_routed & pass & 0/0 \\
+2026-08-09T04:58:04 & verify & pass & 0/26 \\
+2026-08-09T04:59:41 & verify & pass & 0/28 \\
+2026-08-09T06:30:36 & drc\_routed & pass & 0/0 \\
+2026-08-09T06:30:36 & verify & pass & 0/23 \\
+2026-08-09T06:54:57 & dfm & pass & 0/16 \\
+2026-08-09T06:54:58 & verify & pass & 0/16 \\
 \bottomrule
 \end{longtable}
 }
 \subsection*{Issues}
-\emph{(no entries)}
+{\small
+\begin{longtable}{llp{5cm}ll}
+\toprule
+\textbf{Id} & \textbf{Phase} & \textbf{Kinds} & \textbf{Severity} & \textbf{Status} \\
+\midrule
+\endhead
+1 & P8 & pour\_neckdown & error & fixed \\
+2 & P8 & thermal\_area & error & fixed \\
+\bottomrule
+\end{longtable}
+}
 \subsection*{Human checkpoints}
 {\small
 \begin{longtable}{lllp{2.6cm}p{6.4cm}}
@@ -611,7 +1360,7 @@ Full architecture narrative (not inlined; see the artifact index): \texttt{archi
 1 & P2 & approved & 2026-08-08T23:30:37 & DELEGATE approval under the brief's DECISION POLICY (no clarifying questions). Architecture, stackup, IC and constraint set accepted as written. User may still interject - nothing is fabricated yet. \\
 2 & P4 & approved & 2026-08-09T02:14:45 & DELEGATE approval per the brief's DECISION POLICY. erc 0/0, review 0 errors/7 warnings, 2 fixed + 5 waived. Load step accepted AT the 200mV limit on the corrected reading - disclosed, not smoothed. \\
 3 & P6 & not reached &  &  \\
-4 & P8 & not reached &  &  \\
+4 & P8 & approved & 2026-08-09T06:58:09 & DELEGATE approval per the brief's DECISION POLICY. All gates pass. Load step AT the 200mV limit and loop PM unbounded at the true Cout floor - both disclosed, bring-up bench item \#1. \\
 5 & P10 & not reached &  &  \\
 \bottomrule
 \end{longtable}
@@ -623,32 +1372,116 @@ Full architecture narrative (not inlined; see the artifact index): \texttt{archi
 \textbf{File} & \textbf{Size} & \textbf{Note} \\
 \midrule
 \endhead
-\texttt{state.json} & 29,318 B &  \\
-\texttt{kicad/sbuck-5v3a.kicad\_sch} & 162,089 B &  \\
+\texttt{state.json} & 59,508 B &  \\
+\texttt{kicad/sbuck-5v3a.kicad\_pcb} & 437,739 B &  \\
+\texttt{kicad/sbuck-5v3a.kicad\_sch} & 162,078 B &  \\
+\texttt{fab/sbuck-5v3a\_gerbers.zip} & 80,994 B &  \\
+\texttt{fab/BOM.csv} & 812 B &  \\
+\texttt{fab/CPL.csv} & 1,001 B &  \\
 \texttt{brief/brief.md} & 5,387 B &  \\
 \texttt{requirements.md} & 20,496 B &  \\
 \texttt{architecture/blocks.md} & 12,147 B &  \\
-\texttt{architecture/constraints.json} & 17,110 B &  \\
+\texttt{architecture/constraints.json} & 18,544 B &  \\
 \texttt{architecture/decisions.md} & 15,216 B &  \\
 \texttt{architecture/power\_tree.md} & 12,708 B &  \\
 \texttt{architecture/sheets.md} & 10,238 B &  \\
 \texttt{architecture/stackup.md} & 7,559 B &  \\
+\texttt{reports/board\_init.json} & 67,194 B &  \\
+\texttt{reports/board\_update\_dryrun\_D2check.json} & 368 B &  \\
+\texttt{reports/bom\_cpl.json} & 13,008 B &  \\
 \texttt{reports/erc-p4.json} & 276 B &  \\
-\texttt{reports/erc-waivers.md} & 7,174 B &  \\
+\texttt{reports/erc-waivers.md} & 8,048 B &  \\
+\texttt{reports/fab\_export.json} & 2,643 B &  \\
+\texttt{reports/fix\_dispatch\_verify.json} & 923 B &  \\
 \texttt{reports/fp\_verify\_J1J2.json} & 756 B &  \\
 \texttt{reports/fp\_verify\_Q1\_jedec.json} & 1,472 B &  \\
 \texttt{reports/fp\_verify\_U1.json} & 3,312 B &  \\
 \texttt{reports/fp\_verify\_U1\_v2.json} & 3,324 B &  \\
+\texttt{reports/gate-dfm.json} & 390 B &  \\
+\texttt{reports/gate-drc\_routed.json} & 403 B &  \\
 \texttt{reports/gate-erc.json} & 1,663 B &  \\
+\texttt{reports/gate-place.json} & 1,410 B &  \\
+\texttt{reports/gate-verify.json} & 1,800 B &  \\
 \texttt{reports/lib\_pin\_types.json} & 6,314 B &  \\
 \texttt{reports/lib\_pin\_types\_v2.json} & 666 B &  \\
 \texttt{reports/lib\_pull\_F1\_retry1.json} & 864 B &  \\
 \texttt{reports/lib\_pull\_remainder.json} & 9,013 B &  \\
 \texttt{reports/lib\_pull\_snubber\_v2.json} & 3,592 B &  \\
 \texttt{reports/netlist\_audit-p4.json} & 1,135 B &  \\
+\texttt{reports/p6\_drc\_final.json} & 55,379 B &  \\
+\texttt{reports/p6\_drc\_post\_silk.json} & 53,845 B &  \\
+\texttt{reports/p6\_drc\_pre\_silk.json} & 136,457 B &  \\
+\texttt{reports/p6\_edit1.json} & 5,404 B &  \\
+\texttt{reports/p6\_edit2.json} & 1,353 B &  \\
+\texttt{reports/p6\_edit3.json} & 2,425 B &  \\
+\texttt{reports/p6\_edit4.json} & 3,117 B &  \\
+\texttt{reports/p6\_edit5.json} & 3,502 B &  \\
+\texttt{reports/p6\_edit6.json} & 2,617 B &  \\
+\texttt{reports/p6\_edit7.json} & 266 B &  \\
+\texttt{reports/p6\_edit8.json} & 282 B &  \\
+\texttt{reports/p6\_fix2.ops.json} & 973 B &  \\
+\texttt{reports/p6\_fix3.ops.json} & 1,820 B &  \\
+\texttt{reports/p6\_fix5.ops.json} & 2,158 B &  \\
+\texttt{reports/p6\_fix7.ops.json} & 158 B &  \\
+\texttt{reports/p6\_fix8.ops.json} & 128 B &  \\
+\texttt{reports/p6\_lock.ops.json} & 1,663 B &  \\
+\texttt{reports/p6\_silktext.ops.json} & 3,442 B &  \\
+\texttt{reports/p6\_struct.ops.json} & 4,174 B &  \\
+\texttt{reports/p7\_bond\_vias.json} & 643 B &  \\
+\texttt{reports/p7\_bond\_vias.ops.json} & 544 B &  \\
+\texttt{reports/p7\_drc\_after\_planes.json} & 32,075 B &  \\
+\texttt{reports/p7\_drc\_b.json} & 3,377 B &  \\
+\texttt{reports/p7\_drc\_c.json} & 412 B &  \\
+\texttt{reports/p7\_pad\_window.json} & 8,751 B &  \\
+\texttt{reports/p7\_plane\_repair.json} & 3,518 B &  \\
+\texttt{reports/p7\_planes\_gen.json} & 1,958 B &  \\
+\texttt{reports/p7\_planes\_gen\_b.json} & 1,874 B &  \\
+\texttt{reports/p7\_render.json} & 327 B &  \\
+\texttt{reports/p7\_rip\_necks.json} & 716 B &  \\
+\texttt{reports/p7\_rip\_necks.ops.json} & 772 B &  \\
+\texttt{reports/p7\_route\_auto.json} & 9,350 B &  \\
+\texttt{reports/p7\_stitch.json} & 1,593 B &  \\
+\texttt{reports/p7\_stitch\_dryrun.json} & 1,579 B &  \\
+\texttt{reports/p7\_thermal\_vias.json} & 1,493 B &  \\
+\texttt{reports/p7\_thermal\_vias.ops.json} & 1,558 B &  \\
+\texttt{reports/p7\_u1\_ring.json} & 1,173 B &  \\
+\texttt{reports/p7\_u1\_ring.ops.json} & 1,150 B &  \\
+\texttt{reports/p8\_drc\_check.json} & 399 B &  \\
+\texttt{reports/p8\_fix1\_d2k.json} & 365 B &  \\
+\texttt{reports/p8\_fix1\_d2k.ops.json} & 550 B &  \\
+\texttt{reports/p8\_fix1b\_d2k.json} & 362 B &  \\
+\texttt{reports/p8\_fix1b\_d2k.ops.json} & 736 B &  \\
+\texttt{reports/p8\_fix2\_silk.json} & 1,395 B &  \\
+\texttt{reports/p8\_fix2\_silk.ops.json} & 1,543 B &  \\
+\texttt{reports/p8\_fix2\_silk\_dryrun.json} & 4,953 B &  \\
+\texttt{reports/p8\_fix2\_silk\_pass2.json} & 371 B &  \\
+\texttt{reports/p8\_fix2\_silk\_pass2.ops.json} & 290 B &  \\
+\texttt{reports/p8\_fix3\_c12via.json} & 305 B &  \\
+\texttt{reports/p8\_fix3\_c12via.ops.json} & 565 B &  \\
+\texttt{reports/p8\_fix\_render.json} & 293 B &  \\
+\texttt{reports/p8\_gate\_drc\_after.json} & 403 B &  \\
+\texttt{reports/p8\_gnd\_vias.json} & 542 B &  \\
+\texttt{reports/p8\_gnd\_vias.ops.json} & 387 B &  \\
+\texttt{reports/p8\_irdrop.json} & 4,987 B &  \\
+\texttt{reports/p8\_pdnz.json} & 650 B &  \\
+\texttt{reports/p8\_planes\_5v.json} & 596 B &  \\
+\texttt{reports/p8\_planes\_gnd.json} & 812 B &  \\
+\texttt{reports/p9\_dfm\_full.json} & 11,646 B &  \\
+\texttt{reports/p9\_planes\_seam.json} & 596 B &  \\
+\texttt{reports/place\_anneal.json} & 5,082 B &  \\
+\texttt{reports/place\_seed.json} & 12,085 B &  \\
+\texttt{reports/place\_seed.ops.json} & 2,170 B &  \\
+\texttt{reports/render\_final.json} & 791 B &  \\
+\texttt{reports/review-board.json} & 14,861 B &  \\
+\texttt{reports/review-board.md} & 25,420 B &  \\
 \texttt{reports/review-schematic.json} & 5,178 B &  \\
 \texttt{reports/review-schematic.md} & 20,610 B &  \\
+\texttt{reports/route\_probe.json} & 324 B &  \\
+\texttt{reports/rules\_gen.json} & 1,909 B &  \\
 \texttt{reports/sbuck-5v3a-schematic.pdf} & 116,910 B &  \\
+\texttt{reports/silk\_place.json} & 5,992 B &  \\
+\texttt{reports/verify-waivers.json} & 3,210 B &  \\
+\texttt{reports/verify\_all.json} & 3,942 B &  \\
 \bottomrule
 \end{longtable}
 }

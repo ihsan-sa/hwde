@@ -268,3 +268,39 @@ after** - confirms nothing else on the board moved, connected, or disconnected.
 | D2 board propagation | **EXECUTED**, UUID-scoped 2-line patch, `board_update.py` bypassed (dry-run confirmed zero diff, would not have applied) |
 | Board DRC (`kc.py drc`) | **73 -> 71 violations**, `silk_over_copper` 2 -> 0, `unconnected_items` 71 -> 71 (identical set) |
 | D2 lock/position/pads/nets | `(locked yes)`, `(at 43.62 60.825 180)`, pad 1 `+VIN`, pad 2 `/QGATE` - all unchanged |
+
+## Edit 6. Seven `TestPoint:TestPoint_Pad_D1.5mm` silk rings deleted from the BOARD's embedded footprints (TP1-TP7)
+
+- **Authority:** explicit orchestrator approval (P9 DFM work order, this run) - "Preferred fix:
+  DELETE the silk ring from all seven test-point instances on the board", with explicit approval to
+  use the same UUID-scoped text-level surgery used for the D2 propagation above.
+- **Scope:** the BOARD copy only (`kicad/sbuck-5v3a.kicad_pcb`). These are KiCad STOCK footprints,
+  not project-library files - nothing in `lib/aiee.pretty` was touched, and the stock library is
+  unchanged.
+- **Why (corrected root cause - NOT the reason given in the work order):** the work order believed
+  the solder-mask aperture was larger than the pad (~0.92 mm radius) so the ring's inner edge
+  overlapped it. **Measured on the exported gerber, that is false**: the F.Mask aperture at every
+  test point is 1.7664 mm2 = pi*0.75^2, i.e. EXACTLY the 1.5 mm pad, zero mask expansion; the ring
+  spans r 0.89-1.01 and clears the aperture by 0.14 mm. The real cause is a measurement defect:
+  `lib/gerblib.py` `read_gerber` approximates every drawn arc by its CHORD (explicit code comment),
+  and KiCad exports a full circle as two 180-degree arcs from (cx-r, cy) to (cx+r, cy) - so both
+  chords collapse onto the circle's DIAMETER, a 1.9 x 0.12 mm phantom bar through the pad centre.
+  0.1798 mm2 = 1.5 mm aperture x 0.12 mm stroke, exactly. Deletion was still the right action
+  (the rings are decorative - every TP carries its own signal-name silk label - and the work order's
+  fallback, enlarging the ring, could not have worked: the chord crosses the centre at any radius).
+- **Change:** seven `(fp_circle (center 0 0) (end 0 0.95) (stroke (width 0.12) (type solid))
+  (fill no) (layer "F.SilkS") (uuid ...))` blocks removed, uuids `96e44b70`, `2a5dcfe2`, `bd313d56`,
+  `dd693f3e`, `1497818f`, `66cff29f`, `588f8554`. Each was confirmed to sit inside a
+  `(footprint "TestPoint:TestPoint_Pad_D1.5mm"` block before removal. 77 lines deleted
+  (7 x 11), 14046 -> 13969; `git diff` shows no other line touched in any of the seven footprints -
+  pads, nets, positions, courtyard circles, Reference/Value/Note properties and the F.Fab text are
+  byte-identical.
+- **Functional silk explicitly preserved:** the TP1-TP7 signal-name labels, "VIN 7-18V",
+  "VOUT 5V 3A", the board name/rev/date block, polarity marks and D2's `K` cathode marker are all
+  untouched (18 `gr_text` items before and after; `K` still at (45.9, 59), the pad-1/cathode side of
+  D2, whose pad 1 `+VIN` sits at x 45.26 against pad 2 `/QGATE` at x 41.98).
+- **Verification:** `fab_export.py` re-run, then `dfm_check` on the FRESH gerbers - the seven
+  `dfm_silk_over_pad` errors are gone (8 errors -> 0) and no silk trace remains within 1.2 mm of any
+  test-point centre. `gate.py --gate drc_routed` 0/0. `gate.py --gate verify` PASS: check_silk
+  findings 10 -> 3 (the 7 waived `silk_over_pad` entries no longer exist at all, so those 7 waivers
+  in `reports/verify-waivers.json` are now MOOT and should be pruned; waived_count 9 -> 2).
