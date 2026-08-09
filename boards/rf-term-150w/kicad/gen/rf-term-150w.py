@@ -122,6 +122,14 @@ C1_FIELDS = {
     "DigiKey": "1956-1000-ND",
     "Datasheet": "https://mm.digikey.com/Volume0/opasdata/d220001/medias/"
                  "docus/6592/KnowlesTrimmersCatalogueweb177409287.pdf",
+    # Byte-identical to the footprint's own Description property
+    # (lib/aiee.pretty/CAP-ADJ-TH_2P-BD7.5_5602.kicad_mod) so DRC --parity's
+    # footprint_symbol_field_mismatch clears; kept concise on purpose (see
+    # the footprint's much longer `descr` for the full derivation).
+    "Description": "Johanson 5602 air trimmer, 1-30pF 250VDC -65/+125C, "
+                    "top-adjust panel-mount. Pad 1=CASE/THREAD -> GND, "
+                    "Pad 2=LEAD -> RF (physical assignment, state.json P3 "
+                    "decision 2026-08-09).",
 }
 
 # ------------------------------------------------------------- sheet notes
@@ -178,9 +186,13 @@ def build() -> schlib.Sheet:
     # Value is short ("SMA", not the MPN) on purpose: at rot 0 the Value field
     # lands beside the #PWR GND symbol's own VALUE text and a 7-character
     # string overprints it on the plot. The MPN lives in its own field.
+    # footprint is aiee's own clone of the stock Connector_Coaxial part
+    # (lib/aiee.pretty/SMA_BAT_Wireless_BWSMA-KWE-Z001.kicad_mod - identical
+    # geometry, only the Datasheet property populated) so DRC --parity's
+    # footprint_symbol_field_mismatch clears; stock library footprints must
+    # not be edited in the KiCad install (LEARNINGS 2026-07-27 (b)).
     sh.add_component("Connector:Conn_Coaxial", "J1", "SMA", (63.5, 76.2),
-                     footprint="Connector_Coaxial:"
-                               "SMA_BAT_Wireless_BWSMA-KWE-Z001",
+                     footprint="aiee:SMA_BAT_Wireless_BWSMA-KWE-Z001",
                      fields=J1_FIELDS, expect={"1": "In", "2": "Ext"})
     sh.wire_pins("J1", {"1": RF, "2": GND})
     sh.power_symbol_at_pin("J1", "2", "power:GND")

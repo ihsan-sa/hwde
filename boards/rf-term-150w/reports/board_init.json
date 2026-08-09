@@ -1,0 +1,351 @@
+{
+  "script": "board_init",
+  "status": "violations",
+  "board": "boards\\rf-term-150w\\kicad\\rf-term-150w.kicad_pcb",
+  "stackup": "JLC2313_1.6",
+  "layers": 2,
+  "fab_profile": "2layer_1oz",
+  "copper_oz": 1.0,
+  "fab_floors": {
+    "min_clearance": 0.127,
+    "min_track_width": 0.127,
+    "min_via_diameter": 0.6,
+    "min_through_hole_diameter": 0.3,
+    "min_via_annular_width": 0.15,
+    "min_hole_to_hole": 0.5,
+    "min_copper_edge_clearance": 0.3
+  },
+  "components": 6,
+  "nets": 2,
+  "outline_bbox": [
+    24.985,
+    20.512,
+    50.985,
+    40.513
+  ],
+  "mounting_holes": 0,
+  "corner_radius": 0.0,
+  "outline_origin": [
+    24.985,
+    20.512
+  ],
+  "cutouts": [],
+  "self_check": {
+    "drc": {
+      "total": 20,
+      "by_severity": {
+        "error": 18,
+        "warning": 2
+      },
+      "by_source": {
+        "drc": 9,
+        "unconnected": 11
+      }
+    },
+    "setup_violations": [
+      {
+        "check": "copper_edge_clearance",
+        "severity": "error",
+        "pos": [
+          24.985,
+          20.5125
+        ],
+        "layer": "Edge.Cuts",
+        "net": "/RF",
+        "refs": [
+          "R1"
+        ],
+        "msg": "Board edge clearance violation (board setup constraints edge clearance 0.3000 mm; actual 0.0000 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Rectangle on Edge.Cuts",
+            "pos": [
+              24.985,
+              20.5125
+            ],
+            "uuid": "3d37611c-ddf1-49ea-b525-065317fc080d"
+          },
+          {
+            "msg": "Pad 1 [/RF] of R1 on F.Cu",
+            "pos": [
+              51.635,
+              33.599999
+            ],
+            "uuid": "3b12fb4d-247c-4303-a355-a2c8d75d3c70"
+          }
+        ]
+      },
+      {
+        "check": "copper_edge_clearance",
+        "severity": "error",
+        "pos": [
+          24.985,
+          20.5125
+        ],
+        "layer": "Edge.Cuts",
+        "net": "GND",
+        "refs": [
+          "H2"
+        ],
+        "msg": "Board edge clearance violation (board setup constraints edge clearance 0.3000 mm; actual 0.0000 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Rectangle on Edge.Cuts",
+            "pos": [
+              24.985,
+              20.5125
+            ],
+            "uuid": "3d37611c-ddf1-49ea-b525-065317fc080d"
+          },
+          {
+            "msg": "PTH pad 1 [GND] of H2",
+            "pos": [
+              48.574999,
+              18.475
+            ],
+            "uuid": "86280684-33b1-4788-be6a-6eafde78e08c"
+          }
+        ]
+      },
+      {
+        "check": "copper_edge_clearance",
+        "severity": "error",
+        "pos": [
+          24.985,
+          20.5125
+        ],
+        "layer": "Edge.Cuts",
+        "net": "GND",
+        "refs": [
+          "H1"
+        ],
+        "msg": "Board edge clearance violation (board setup constraints edge clearance 0.3000 mm; actual 0.0000 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Rectangle on Edge.Cuts",
+            "pos": [
+              24.985,
+              20.5125
+            ],
+            "uuid": "3d37611c-ddf1-49ea-b525-065317fc080d"
+          },
+          {
+            "msg": "PTH pad 1 [GND] of H1",
+            "pos": [
+              35.625,
+              18.475
+            ],
+            "uuid": "0a366157-7529-4eec-a089-7cbe72eb484d"
+          }
+        ]
+      },
+      {
+        "check": "copper_edge_clearance",
+        "severity": "error",
+        "pos": [
+          24.985,
+          20.5125
+        ],
+        "layer": "Edge.Cuts",
+        "net": "/RF",
+        "refs": [
+          "J1"
+        ],
+        "msg": "Board edge clearance violation (board setup constraints edge clearance 0.3000 mm; actual 0.1875 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Rectangle on Edge.Cuts",
+            "pos": [
+              24.985,
+              20.5125
+            ],
+            "uuid": "3d37611c-ddf1-49ea-b525-065317fc080d"
+          },
+          {
+            "msg": "PTH pad 1 [/RF] of J1",
+            "pos": [
+              32.125,
+              41.85
+            ],
+            "uuid": "b8fff6b9-9f24-4abe-b576-da277446e83f"
+          }
+        ]
+      },
+      {
+        "check": "copper_edge_clearance",
+        "severity": "error",
+        "pos": [
+          24.985,
+          20.5125
+        ],
+        "layer": "Edge.Cuts",
+        "net": "GND",
+        "refs": [
+          "J1"
+        ],
+        "msg": "Board edge clearance violation (board setup constraints edge clearance 0.3000 mm; actual 0.1125 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Rectangle on Edge.Cuts",
+            "pos": [
+              24.985,
+              20.5125
+            ],
+            "uuid": "3d37611c-ddf1-49ea-b525-065317fc080d"
+          },
+          {
+            "msg": "PTH pad 2 [GND] of J1",
+            "pos": [
+              29.575,
+              39.3
+            ],
+            "uuid": "322fca74-6a39-4faf-a259-2e0731dc208d"
+          }
+        ]
+      },
+      {
+        "check": "copper_edge_clearance",
+        "severity": "error",
+        "pos": [
+          24.985,
+          20.5125
+        ],
+        "layer": "Edge.Cuts",
+        "net": "GND",
+        "refs": [
+          "J1"
+        ],
+        "msg": "Board edge clearance violation (board setup constraints edge clearance 0.3000 mm; actual 0.1125 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Rectangle on Edge.Cuts",
+            "pos": [
+              24.985,
+              20.5125
+            ],
+            "uuid": "3d37611c-ddf1-49ea-b525-065317fc080d"
+          },
+          {
+            "msg": "PTH pad 2 [GND] of J1",
+            "pos": [
+              34.675,
+              39.3
+            ],
+            "uuid": "719472f0-c095-48fe-9553-ecfd5e9be949"
+          }
+        ]
+      },
+      {
+        "check": "copper_edge_clearance",
+        "severity": "error",
+        "pos": [
+          24.985,
+          20.5125
+        ],
+        "layer": "Edge.Cuts",
+        "net": "/RF",
+        "refs": [
+          "C1"
+        ],
+        "msg": "Board edge clearance violation (board setup constraints edge clearance 0.3000 mm; actual 0.0000 mm)",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Rectangle on Edge.Cuts",
+            "pos": [
+              24.985,
+              20.5125
+            ],
+            "uuid": "3d37611c-ddf1-49ea-b525-065317fc080d"
+          },
+          {
+            "msg": "PTH pad 2 [/RF] of C1",
+            "pos": [
+              25.075,
+              19.75
+            ],
+            "uuid": "c133c09d-a418-425b-938d-16f49cfdae01"
+          }
+        ]
+      }
+    ],
+    "transient_silk": [
+      {
+        "check": "silk_edge_clearance",
+        "severity": "warning",
+        "pos": [
+          24.985,
+          20.5125
+        ],
+        "layer": "Edge.Cuts",
+        "net": null,
+        "refs": [
+          "R1"
+        ],
+        "msg": "Silkscreen clipped by board edge",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Rectangle on Edge.Cuts",
+            "pos": [
+              24.985,
+              20.5125
+            ],
+            "uuid": "3d37611c-ddf1-49ea-b525-065317fc080d"
+          },
+          {
+            "msg": "Footprint text of R1 (FLANGE/TAB CL)",
+            "pos": [
+              51.635,
+              38.399999
+            ],
+            "uuid": "a112e91a-e87c-4848-a0d2-ac503516ac75"
+          }
+        ]
+      },
+      {
+        "check": "silk_edge_clearance",
+        "severity": "warning",
+        "pos": [
+          24.985,
+          20.5125
+        ],
+        "layer": "Edge.Cuts",
+        "net": null,
+        "refs": [
+          "J1"
+        ],
+        "msg": "Silkscreen clipped by board edge",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Rectangle on Edge.Cuts",
+            "pos": [
+              24.985,
+              20.5125
+            ],
+            "uuid": "3d37611c-ddf1-49ea-b525-065317fc080d"
+          },
+          {
+            "msg": "Rectangle of J1 on F.Silkscreen",
+            "pos": [
+              28.215,
+              37.94
+            ],
+            "uuid": "7baece39-81dd-465d-9d95-8630eb48fb88"
+          }
+        ]
+      }
+    ],
+    "parity_count": 0,
+    "unconnected_count": 11,
+    "clean": false
+  },
+  "worker_notes": []
+}

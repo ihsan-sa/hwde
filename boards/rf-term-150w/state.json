@@ -3,8 +3,8 @@
  "board": "rf-term-150w",
  "workspace": "boards/rf-term-150w",
  "created": "2026-08-08T22:33:40",
- "updated": "2026-08-09T01:28:24",
- "phase": "P2",
+ "updated": "2026-08-09T02:00:44",
+ "phase": "P6",
  "gates": {
   "sim": {
    "phase": "P4",
@@ -30,6 +30,33 @@
      }
     }
    ]
+  },
+  "erc": {
+   "phase": "P4",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-08-09T01:47:45",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0,
+    "inputs": {
+     "sch": "sexpr_no_uuid:a6844623cff7843125fa373e73d7d58c538c6a9a6e6495fd251d1ac772a50213",
+     "pro": "json_canonical:ac2fc2bf0113e4a737b4cf949e1b2a9d54731faa2f3edce9355c9a14c211b5aa"
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-09T01:47:45",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "sch": "sexpr_no_uuid:a6844623cff7843125fa373e73d7d58c538c6a9a6e6495fd251d1ac772a50213",
+      "pro": "json_canonical:ac2fc2bf0113e4a737b4cf949e1b2a9d54731faa2f3edce9355c9a14c211b5aa"
+     }
+    }
+   ]
   }
  },
  "human": {},
@@ -39,6 +66,18 @@
    "kind": "sims",
    "sha256": "dir_text:89b35ed399050e35af73281c645f730f102436805796b3ac0e687cd9249f23c9",
    "hashed": "2026-08-09T00:33:55"
+  },
+  "sch": {
+   "path": "kicad/rf-term-150w.kicad_sch",
+   "kind": "sch",
+   "sha256": "sexpr_no_uuid:a6844623cff7843125fa373e73d7d58c538c6a9a6e6495fd251d1ac772a50213",
+   "hashed": "2026-08-09T01:47:45"
+  },
+  "pro": {
+   "path": "kicad/rf-term-150w.kicad_pro",
+   "kind": "pro",
+   "sha256": "json_canonical:ac2fc2bf0113e4a737b4cf949e1b2a9d54731faa2f3edce9355c9a14c211b5aa",
+   "hashed": "2026-08-09T01:47:45"
   }
  },
  "open_issues": [],
@@ -336,6 +375,12 @@
    "why": "R1's first-pass footprint used the GUI display alias on 16 items. It round-trips fine through pcbnew and fp_verify never sees it, but kicad-cli REFUSES to load the board (exit 3, no report) - it would have blocked every downstream gate with no diagnostic. Fixed and logged to LEARNINGS.",
    "phase": "P3",
    "ts": "2026-08-09T01:28:24"
+  },
+  {
+   "what": "P5 complete: 26x20 2L JLC2313_1.6, parity 0, 10 rules",
+   "why": "board_init parity cleared 3->0 by adding Datasheet/Description properties to the LIBRARY footprints (incl. a local clone of J1's stock footprint) rather than by board surgery - the board was not yet placed or routed so regeneration was free. Root cause confirmed empirically: DRC parity compares only fields present on the schematic symbol INSTANCE, not inherited library defaults.",
+   "phase": "P5",
+   "ts": "2026-08-09T02:00:44"
   }
  ],
  "edits": [],
@@ -719,6 +764,31 @@
    "ts": "2026-08-09T01:28:24",
    "event": "decision",
    "what": "Canonical layer token is Dwgs.User, never User.Drawings"
+  },
+  {
+   "ts": "2026-08-09T01:47:45",
+   "event": "gate",
+   "gate": "erc",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-09T01:55:21",
+   "event": "snapshot",
+   "label": "pre-fix-parity",
+   "files": 5
+  },
+  {
+   "ts": "2026-08-09T02:00:44",
+   "event": "phase",
+   "phase": "P6",
+   "prev": "P2"
+  },
+  {
+   "ts": "2026-08-09T02:00:44",
+   "event": "decision",
+   "what": "P5 complete: 26x20 2L JLC2313_1.6, parity 0, 10 rules"
   }
  ]
 }

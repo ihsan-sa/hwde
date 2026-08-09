@@ -1,0 +1,45 @@
+{
+  "script": "rules_gen",
+  "status": "pass",
+  "capability_class": "2layer_1oz",
+  "stackup": "JLC2313_1.6",
+  "copper_oz": 1.0,
+  "rule_count": 10,
+  "rule_names": [
+    "aiee_track_width_floor",
+    "aiee_clearance_floor",
+    "aiee_via_drill_floor",
+    "aiee_via_diameter_floor",
+    "aiee_annular_floor",
+    "aiee_edge_clearance_floor",
+    "aiee_hole_to_hole_floor",
+    "aiee_silk_width_floor",
+    "aiee_pwr_width_RF",
+    "aiee_hv_122p5v_RF"
+  ],
+  "power": [
+    {
+      "net": "/RF",
+      "current_a": 1.732,
+      "dt_c": 10.0,
+      "min_width_mm": 0.9392,
+      "netclass": "Pwr_0p9392mm",
+      "class_width_mm": 0.9392
+    }
+  ],
+  "diff_pairs": [],
+  "hv_rules": [
+    {
+      "net": "/RF",
+      "voltage": 122.5,
+      "clearance_mm": 0.8,
+      "coating": "soldermask",
+      "rule": "aiee_hv_122p5v_RF"
+    }
+  ],
+  "classes": [
+    "Pwr_0p9392mm"
+  ],
+  "out_dru": "boards/rf-term-150w/kicad/rf-term-150w.kicad_dru",
+  "pro": "boards/rf-term-150w/kicad/rf-term-150w.kicad_pro"
+}
