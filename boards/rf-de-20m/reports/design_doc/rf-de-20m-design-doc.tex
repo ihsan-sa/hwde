@@ -16,7 +16,7 @@
 \begin{center}
 {\LARGE\bfseries rf-de-20m --- Design Document}\\[6pt]
 {\large ai-ee v1 pipeline}\\[2pt]
-generated 2026-08-08 21:16:03
+generated 2026-08-09 00:18:11
 \end{center}
 \tableofcontents
 
@@ -29,10 +29,10 @@ generated 2026-08-08 21:16:03
 \endhead
 board & rf-de-20m \\
 workspace & \texttt{boards/rf-de-20m} \\
-phase & P7 \\
-gate status & no gates recorded yet \\
+phase & P9 \\
+gate status & 3/5 gates pass (not passing: drc\_routed, sim) \\
 state created & 2026-08-07T20:58:16 \\
-state updated & 2026-08-08T19:40:47 \\
+state updated & 2026-08-09T00:14:32 \\
 \bottomrule
 \end{longtable}
 }
@@ -345,6 +345,14 @@ P6 & SMA jacks are vertical top-mount; cables exit upward. Owner accepted at H3 
 P6 & 12 intra-EPC2019 clearance errors to be WAIVED at P8 (0.35 mm die bar gap vs the 0.8 mm aiee\_hv\_143v\_SW IPC-2221 rule) & Die geometry on a manufacturer-qualified 200 V part; IPC-2221 creepage governs board conductors, not a qualified component's internal terminals. No alternative part exists. U101's 4 solder\_mask\_bridge errors are NOT waived - those are a pulled-footprint artefact and get fixed \\
 P6 & All constraints.json rects translated to ABSOLUTE coords (outline origin 6.635,39.335). New B.Cu-only GND bridge board-local {[}49,30,94,48{]}; zone A extended 48-\textgreater{}51; zone C In2/B.Cu at x=92, In1 held to x=96 & planes\_gen/placelib consume rects verbatim as absolute. Board-local rects meant zone A poured only y 0-41 (no plane under the buck) and zone C landed on top of L301. B.Cu bridge chosen over In2: 1oz vs 0.5oz, and 1.554mm below F.Cu so a TANK\_A crossing couples \textasciitilde{}4.7pF not \textasciitilde{}29pF \\
 P6 & Spiral keepout radius NOT shrunk (stays r=20.55). Spirals nudged in y only; corridor 5.01 -\textgreater{} 6.02 mm, centre separation 46.84 mm & Widening 6-\textgreater{}10 mm buys only 33 mW and 1.4 nH (0.5\% of the 274 nH tank) against an un-analysed magnetics change to the Q 388/325 spirals. Nudge improves SPIRAL-5 margin and mutual coupling simultaneously \\
+P8 & DERATE to 36 V bus / \textasciitilde{}162 W (from 40 V / 200 W) & H4 owner ruling. theta\_BS was assumed 1.5 C/W but is realistically 4.05-7.3 C/W (1.065 mm core, 18 vias), putting Tj 151-188 C nominal vs a 150 C abs max. Derate buys \textasciitilde{}14 C; the four board fixes buy \textasciitilde{}20 C more. Bus voltage is a bench knob, raisable once real Tj is measured \\
+P8 & Revert gate resistors 6R8 -\textgreater{} 4R7 & Common-source inductance measured 0.157 nH, \textasciitilde{}5x smaller than the estimate 6R8 was bought against. Recovers \textasciitilde{}4 C of Tj at no real ring cost (-0.85 V vs a -4 V floor) \\
+P8 & All 8 verify/drc waiver classes APPROVED by owner at H4 & Creepage set audited independently: all 21 verified inside the two die pad bboxes, /SW pour min distance to GND 0.8004 mm - nothing hiding. check\_thermal confirmed heatsink-blind in source \\
+P8 & OWNER REPRIORITISATION 2026-08-08: bench target is 25-30 V bus / 100-150 W with big fans. Thermals and max power DEPRIORITISED. Priorities are now (1) ZVS, (2) noisy-loop reduction, (3) does it work at all & Owner ruling. At 30 V, Vds pk \textasciitilde{}107 V on a 200 V part and dissipation falls \textasciitilde{}Vdd\textasciicircum{}2, so the theta\_BS blocker stops binding. ZVS is LINEAR in Vdd, so the tank/shunt/match values stay valid unchanged at the lower bus - the derate costs nothing in correctness \\
+P8 & SUPERSEDES the H4 fix list: drop the heatsink clamping holes, extra thermal vias and full 162 W re-derivation. Keep the B.Cu mask land + fiducials (cheap fab hygiene). Add: RUN the SPICE benches, which have never executed & Owner deprioritised thermals. SIM-1 (ZVS) and SIM-4 (tank/match) are the arbiters of whether the board functions, and verify\_all has no sim\_run member so the gate passed with them unexecuted \\
+P8 & P8 FIX a3 - ZVS POPULATE: C308/C309 DNP, C320 populated 27pF (C\_s 504 -\textgreater{} 419 pF), C203 DNP (C\_shunt bank 83 -\textgreater{} 27 pF). Applied in kicad/gen/tank.py + stage.py; parts.json quantities follow (56pF line 18 -\textgreater{} 15 populated of 21, 27pF line 2 -\textgreater{} 3 of 6). No new part, no new land, no netlist change. & The P8 SPICE benches (first execution of this board's declared sims) proved the board missed ZVS as built: \textasciitilde{}30 nH of un-imaged zone-B copper in series with the C\_s bank pushed X\_net/R from 1.283 to 2.00, Vds at turn-on 15.6 V and P\_out 53 W of 113 W. Extra series L is cancelled by LESS series C. Measured after: X\_net/R 1.285, Vds 1.36-1.41 V, dVds/dt -1.21 V/ns, P\_out 113.8 W, Vds,pk 122.3 V; holds across the whole 25-35 nH stray band. \\
+P8 & verify-waivers.json written at reports/verify-waivers.json, 8 entries, all approved 'Ihsan S. 2026-08-08 (checkpoint H4)'. gate verify PASS 0 failing / 31 waived. & Owner approved all 8 waiver classes at H4 (state.json human.4). Entries carry the reasons from reports/verify-waivers.md verbatim in substance. NB gate.py's default sidecar path is \textless{}pcb-dir\textgreater{}/reports/ (kicad/reports/), so the gate MUST be run with an explicit --waivers or the sidecar is silently ignored. \\
+P8 & OPEN: vds\_pk\_40v\_v = 172.5 V against the 155 V derate line is the ONE remaining sim error and was NOT waived or weakened. One populate cannot serve both 30 V and 40 V. & A populate trimmed at 30 V is under-shunted at 40 V because the charge-equivalent Coss falls as the swing grows. At the declared 25-30 V bench the peak is 98.2-122.2 V and at the H4 36 V ruling it is 152.1 V, both inside. Owner ruling needed: declare the bus ceiling at 36 V (bench setting, zero board change) or re-populate C203 at 56 pF and re-run bus\_derating before ever running 40 V. \\
 \bottomrule
 \end{longtable}
 }
@@ -512,13 +520,13 @@ Heatsink land on B.Cu: \textbf{{[}5, 10, 36, 70{]}}, declared as a back-side kee
 
 Full architecture narrative (not inlined; see the artifact index): \texttt{architecture/blocks.md}, \texttt{architecture/decisions.md}, \texttt{architecture/power\_tree.md}, \texttt{architecture/stackup.md}.
 \section{Schematic}
-Gate \texttt{erc}: \emph{not recorded}.
+Gate \texttt{erc} (phase P4): \textbf{pass} after 1 attempt(s); last 2026-08-08T23:51:21, failing 0 of 0.
 The full schematic PDF follows.
 \includepdf[pages=-]{reports/schematic.pdf}
 \section{Layout}
 Gate \texttt{place}: \emph{not recorded}.
 
-Gate \texttt{drc\_routed}: \emph{not recorded}.
+Gate \texttt{drc\_routed} (phase P7): \textbf{fail} after 1 attempt(s); last 2026-08-08T23:51:20, failing 55 of 55.
 \begin{center}
 \includegraphics[width=0.72\textwidth]{reports/renders/rf-de-20m_top.png}\\
 {\small\texttt{reports/renders/rf-de-20m\_top.png}}
@@ -532,9 +540,344 @@ Gate \texttt{drc\_routed}: \emph{not recorded}.
 {\small\texttt{reports/renders/rf-de-20m\_iso.png}}
 \end{center}
 \section{Verification}
-\emph{Pending --- produced at P8.}
+Gate \texttt{verify} (phase P8): \textbf{pass} after 1 attempt(s); last 2026-08-08T23:51:20, failing 0 of 189.
+\emph{reports/verify\_all.json not available.}
+\subsection*{Design review of record}
+\subsection*{rf-de-20m P8 - adversarial board review}
+Authored 2026-08-08 by the P8 \texttt{verify-reviewer} (fresh context, no routing or fixing history inherited). Inputs: \texttt{kicad/rf-de-20m.kicad\_pcb} as committed, \texttt{reports/gate-verify.json} (31 err / 159 warn), \texttt{reports/gate-drc\_routed.json} (55, 0 unconnected), \texttt{reports/route-notes.md}, \texttt{reports/spiral-design.md}, \texttt{reports/verify-waivers.md}, \texttt{architecture/{*}}, \texttt{parts/{*}}, and renders re-made from the CURRENT board (\texttt{reports/renders/rf-de-20m\_\{top,bottom,iso\}.png} - the pre-existing set was 7 h older than the P8 copper edits).
+
+Everything below was measured on the actual board geometry with \texttt{lib/geom.py}, or re-derived from the datasheets. Scripts are quoted so the numbers can be reproduced.
+
+\textbf{Result: 5 errors, 3 warnings.} All 8 existing waiver classes are recommended for approval, {*}{*}six of them unconditionally and two with conditions{*}{*} (s3). The errors are things no check on this board can see.
+
+---
+
+\subsubsection*{1. The audit you asked for first: is a real creepage violation hiding?}
+\textbf{No. Verified item-by-item, and the waiver's claim is exactly right.}
+
+\texttt{check\_creepage} was re-run standalone and its full per-pair summary read (not just the failing list). Across {*}{*}all 5 declared HV nets, all 3 \texttt{voltage\_pairs}, all 4 copper layers and every other net on the board, only THREE (net, net, layer) combinations produce a single item pair closer than the largest applicable IPC-2221 requirement{*}{*}:
+
+\begin{quote}\small\ttfamily\raggedright
+\textbar{} primary \textbar{} other \textbar{} layer \textbar{} min gap \textbar{} raw pairs under req \textbar{}\\
+\textbar{}---\textbar{}---\textbar{}---\textbar{}---\textbar{}---\textbar{}\\
+\textbar{} `/SW` \textbar{} `/stage/GATE\_Q1` \textbar{} F.Cu \textbar{} 0.350 mm \textbar{} 3 \textbar{}\\
+\textbar{} `/SW` \textbar{} `/stage/GATE\_Q2` \textbar{} F.Cu \textbar{} 0.350 mm \textbar{} 4 \textbar{}\\
+\textbar{} `/SW` \textbar{} `GND` \textbar{} F.Cu \textbar{} 0.350 mm \textbar{} 40 \textbar{}
+\end{quote}
+Every other pair - including \texttt{/tank/TANK\_A} at 180 V against all 16 other nets, \texttt{/tank/RFOUT} at 145 V, \texttt{+40V} at 51 V, and the three \texttt{voltage\_pairs} (\texttt{/SW}-\texttt{TANK\_A} at \textbf{203 V}, \texttt{TANK\_A}-\texttt{TANK\_B} 151 V, \texttt{TANK\_B}-\texttt{RFOUT} 135 V)
+
+\begin{itemize}
+\item reports \texttt{min\_gap\_mm: null}, i.e. {*}{*}no copper anywhere on the board is even
+\end{itemize}
+within the requirement distance{*}{*}. The 47 raw hits dedupe (0.1 mm spatial) to the 21 errors + 3 warnings reported.
+
+Then, per finding, the two colliding items were dumped by TYPE:
+
+\begin{itemize}
+\item \textbf{21 of 21 involve only EPC2019 pads and the 0.25/0.45 mm die-escape tracks.}
+Not one involves a \textbf{zone fill}. The composition is 8 pad-to-track,
+11 track-to-track (drain column vs source/gate escape) and 2 pad-to-track at
+0.389/0.391 mm.
+\item \textbf{All 21 gap midpoints lie strictly inside the two die pad bounding boxes}
+(Q201 \texttt{{[}36.810, 61.885, 39.460, 62.585{]}}, Q202 `{[}36.810, 66.085, 39.460,
+66.785{]}\texttt{), split {*}{*}Q201 x10 / Q202 x11{*}{*} - the split }verify-waivers.md`
+claims.
+\item The 0.350 mm figure is the land pattern's own arithmetic: 0.600 mm column
+pitch minus the 0.250 mm bar width. 0.375/0.389/0.391 are the round-bump
+diagonals.
+\end{itemize}
+\textbf{And the pour is clean, measured directly.} The \texttt{/SW} zone fill's minimum distance to \emph{any} GND copper on F.Cu is \textbf{0.8004 mm} (to pads 0.8005, to tracks 0.8005, to GND zone fill 0.8004) - the \texttt{aiee\_hv\_143v\_SW} rule honoured to 0.4 um. There is no board-copper creepage violation hiding in the set.
+
+{*}{*}Verdict: waiver entry 1 (21 \texttt{check\_creepage}) and the matching \texttt{drc\_routed} clearance class (48) are sound. Approve.{*}{*} The caveat \texttt{verify-waivers.md} already carries - 10 of the 21 have empty \texttt{refs}, so the subset matcher cannot exclude a future empty-refs finding elsewhere - is the correct compensating control and should be kept: {*}{*}if the count ever exceeds 21, read the delta, do not waive it.{*}{*}
+
+---
+
+\subsubsection*{2. The five errors}
+\paragraph*{E1 - the thermal budget rests on theta\_BS = 1.5 C/W for the pair, and that number is optimistic by 2.5-4x. At my estimate the EPC2019 exceeds its 150 C absolute maximum. (error)}
+This is the worst thing on the board and it is the one thing \texttt{verify-waivers.md} entry 6 asserts rather than measures.
+
+\textbf{The waiver's premise is correct.} I read \texttt{check\_thermal.theta\_ja()}: \texttt{tfloor + (t0 - tfloor){*}exp(-A/tau)} with \texttt{A\_SAT\_MM2 = 645.0}. Copper area is its only input; there is no heatsink, TIM or airflow term. The "645 mm2" in the message is the model's \textbf{saturation cap}, not a measurement of this board's island. So yes - the check is heatsink-blind and its 288 C is meaningless here.
+
+\textbf{The substitute numbers are what fail.} The claimed path is \texttt{theta\_JB 3.75 + theta\_BS 1.5 + theta\_HS 0.7 = 5.95 C/W} for the pair. \texttt{theta\_JB} is right (EPC2019 \texttt{RthJB\_typ} 7.5 C/W per die, halved for two in parallel - \texttt{parts/C2836675.json}). \texttt{theta\_HS \textless{}= 0.7} is a hard, measured, external requirement (HS-1) and is out of my scope. {*}{*}\texttt{theta\_BS} - F.Cu under the dies through the board to B.Cu - is assumed, and the board's own stackup says it cannot be 1.5.{*}{*}
+
+Stackup read off the board: F.Cu 35 um / \textbf{0.2444 mm} / In1 \textbf{15.2 um} / \textbf{1.065 mm} / In2 15.2 um / 0.2444 mm / B.Cu 35 um. The 1.065 mm core between two \textbf{half-ounce} planes is the dominant term and it is crossed by only \textbf{18 vias} (9 per FET, measured - see E5).
+
+Two bounding estimates, FR4 through-plane k = 0.3-0.4 W/mK, copper 400 W/mK:
+
+\begin{quote}\small\ttfamily\raggedright
+\textbar{} model \textbar{} R(F.Cu-\textgreater{}B.Cu), pair \textbar{}\\
+\textbar{}---\textbar{}---\textbar{}\\
+\textbar{} {*}{*}optimistic{*}{*} - heat magically spread over the full 645 mm2 island at every layer, k = 0.4, in parallel with 18 barrel vias (12.4 C/W incl. lateral access) \textbar{} {*}{*}4.05 C/W{*}{*} \textbar{}\\
+\textbar{} {*}{*}realistic{*}{*} - exponential spreading length per layer (`lambda = sqrt(k\_cu.t\_cu.h/k\_fr4)` = 3.38 / 4.65 / 2.23 mm), effective areas 110 / 392 / 589 mm2, k = 0.3 \textbar{} {*}{*}7.3 C/W{*}{*} \textbar{}
+\end{quote}
+Even the optimistic bound is \textbf{2.7x} the assumed 1.5 C/W. Feeding it back:
+
+\begin{quote}\small\ttfamily\raggedright
+\textbar{} theta\_BS \textbar{} theta\_JA(pair) \textbar{} Tj at 11.25 W nom \textbar{} Tj at 14.6 W max-corner \textbar{}\\
+\textbar{}---\textbar{}---\textbar{}---\textbar{}---\textbar{}\\
+\textbar{} 1.5 (assumed) \textbar{} 5.95 \textbar{} \textasciitilde{}123 C (as claimed) \textbar{} \textasciitilde{}142 C \textbar{}\\
+\textbar{} {*}{*}4.0 (optimistic){*}{*} \textbar{} 8.45 \textbar{} {*}{*}\textasciitilde{}151 C{*}{*} \textbar{} {*}{*}\textasciitilde{}180 C{*}{*} \textbar{}\\
+\textbar{} {*}{*}7.3 (realistic){*}{*} \textbar{} 11.75 \textbar{} {*}{*}\textasciitilde{}188 C{*}{*} \textbar{} {*}{*}\textasciitilde{}228 C{*}{*} \textbar{}
+\end{quote}
+(Ambient 40 C, and the +9 C the waiver's own 6R8 gate-loss adder carries over the \texttt{constraints.json} baseline. EPC2019 \texttt{TJ\_range} absolute maximum is \textbf{150 C}.)
+
+\texttt{verify-waivers.md} s3 already names this as \textbf{OPEN-10} - "theta\_BS = 1.5 C/W for the pair is assumed, not simulated, and carries 17 C of the 85 C junction budget". That is the right instinct but the wrong magnitude: it carries far more than 17 C, and it is the term that decides whether this board survives its own design point. {*}{*}The \texttt{check\_thermal} waiver must not be approved as "waivable, real numbers are fine" - it should be approved as "the gate is blind, AND the real number is unresolved and blocking."{*}{*}
+
+Levers, cheapest first, all of which move this materially: 1. \textbf{Order 1 oz inner layers} instead of 0.5 oz - halves the In1/In2 lateral spreading resistance, an order-time option, no layout change. 2. \textbf{Build the missing B.Cu mask-opened land} (E3) and get the vias fixed (E5). 3. \textbf{Derate the bus to 36 V / 162 W} - already costed by the architecture at \textbf{-14 C}. 4. \textbf{Revert R205/R206 to 4R7} - \textbf{-4 C}, and W1 below shows the threat that bought 6R8 was over-estimated \textasciitilde{}5x. 5. Close OPEN-10 with a 3-D thermal solve or a first-article measurement \textbf{before ordering}, not after.
+
+\paragraph*{E2 - the C\_m bank ships 8.8 \% high because the mandated RFOUT pour capacitance was never folded in. The as-built match is WORSE than the 560 pF bank P4 explicitly rejected. (error)}
+P7 measured the pours' added capacitance to GND (\texttt{route-notes.md} s7) and handed the populate decision to P8. \texttt{verify-waivers.md} s16 records the outcome: \emph{"the s7 populate recommendation is untouched."} It was never taken.
+
+\textbf{I re-derived the number independently} rather than trusting it: the \texttt{/tank/RFOUT} F.Cu pour is \textbf{371.5 mm2}, of which \textbf{84.5 \% (313.9 mm2)} sits over In1 GND at 0.2444 mm. Parallel plate at the board's declared \texttt{epsilon\_r = 4.05} gives \textbf{46.1 pF} (48.9 pF at 4.3). P7's figure was 46.06 pF. Confirmed.
+
+That 46.1 pF is a lumped shunt at the RFOUT node at 20 MHz - {*}{*}directly in parallel with C\_m and the 50 ohm load{*}{*}. So:
+
+\begin{quote}\small\ttfamily\raggedright
+\textbar{} C\_m \textbar{} Z presented to the tank \textbar{} series X/R \textbar{} P\_out at 40 V \textbar{}\\
+\textbar{}---\textbar{}---\textbar{}---\textbar{}---\textbar{}\\
+\textbar{} 484 pF physical + 46 stray = {*}{*}530{*}{*} (the ideal) \textbar{} 4.13 + j0.00 \textbar{} 1.153 \textbar{} 200 W \textbar{}\\
+\textbar{} {*}{*}531 pF populated, stray ignored{*}{*} (the BOM's own solve) \textbar{} 4.12 + j0.07 \textbar{} 1.19 \textbar{} \textasciitilde{}200 W \textbar{}\\
+\textbar{} 560 pF - {*}{*}rejected at P4 review W1{*}{*} \textbar{} 3.74 + j0.67 \textbar{} 1.47 \textbar{} \textasciitilde{}221 W \textbar{}\\
+\textbar{} {*}{*}531 + 46.1 = 577 pF, AS SHIPPED{*}{*} \textbar{} {*}{*}3.53 + j1.01{*}{*} \textbar{} {*}{*}1.65{*}{*} \textbar{} {*}{*}\textasciitilde{}233 W{*}{*} \textbar{}
+\end{quote}
+(\texttt{omega L\_s} 20.607 - \texttt{1/omega C\_s} 15.790 + X\_load, R\_load from \texttt{50 \textbar{}\textbar{} 1/jwC\_m} + \texttt{jwL\_m}; reproduces both published anchors exactly.)
+
+{*}{*}P4 review W1 added a whole new BOM line (\texttt{C541492}, 27 pF) for the sole purpose of getting the bank off 560 pF{*}\emph{, on the argument that 221 W }"inflated I\_dc, FET conduction loss and the 11.25 W / Tj 114 C two-FET thermal budget the whole paralleling decision rests on"{*} (\texttt{parts/parts.json}, C541492 role note). The board as it stands lands \textbf{past} that rejected point: \textasciitilde{}233 W, +17 \% I\_dc, \textbf{+37 \% FET conduction loss}, on the board of E1 above.
+
+\textbf{Fix is one BOM line and it is already specified:} depopulate one 56 pF site from C\_m (C310-C318 -\textgreater{} 8 populated), keep C319. 8x56 + 27 = 475 pF + 46.1 = \textbf{521 pF, -1.8 \% on the ideal} - exactly P7's recommendation. Domain \texttt{parts}.
+
+Two smaller siblings, folded in for completeness and NOT separately reported: the \texttt{/tank/TANK\_A} pour adds 13.4 pF from the mid-node to GND (shunts \textasciitilde{}2.7 \% of the tank current - reactive, so it detunes rather than dissipates), and the two spirals' mutual at the as-placed 46.8 mm centres is about {*}{*}-1.1 nH each, -0.8 \% on the 274 nH series tank{*}{*} (\texttt{spiral-design.md} s6, which asks P8 to "fold the number in rather than ignore it" - also not done).
+
+\paragraph*{E3 - there is no mask-opened heatsink land on B.Cu. There is no solder-mask aperture on B.Cu anywhere. (error)}
+\texttt{architecture/stackup.md} ("Thermal vias under the FETs") and \texttt{constraints.json:thermal{[}Q201{]}} both require \emph{"mask-opened land on B.Cu"}.
+
+Measured on the board: the \textbf{only} layer sets that reach a mask layer are \texttt{"F.Cu" "F.Mask" "F.Paste"} (161 component pads) and \texttt{"{*}.Cu" "{*}.Mask"} (6 items = J101's two THT pins + the four NPTH mounting holes). {*}{*}Zero B.Cu-only mask apertures exist.{*}{*} \texttt{reports/renders/rf-de-20m\_bottom.png} confirms it visually - the whole bottom face is green, including the entire HS-2 rect \texttt{{[}5, 10, 36, 70{]}} board-local.
+
+So the sink presently bolts onto \textbf{solder mask}, which nobody decided. This is a fork the owner has to rule, not something to silently accept:
+
+\begin{itemize}
+\item \textbf{Keep the mask} - then say so, and add the mask term (\textasciitilde{}25 um at
+k \textasciitilde{}0.25 W/mK; 0.05 C/W if the contact really is 1860 mm2, \textbf{0.5 C/W} if the
+effective spreading area is only \textasciitilde{}200 mm2) to the E1 budget explicitly.
+\item \textbf{Open it} - then the {*}{*}HASL -\textgreater{} ENIG override already in \texttt{stackup.md} becomes
+load-bearing, not a nicety{*}{*}: HASL on a 31 x 60 mm bare-copper land leaves
+5-25 um of solder relief and destroys the flatness the whole thermal case
+assumes.
+\end{itemize}
+Either way, this is an unimplemented, explicitly-stated architecture requirement on the path that carries most of the junction budget.
+
+\paragraph*{E4 - nothing on this board can clamp the heatsink over the FETs. (error)}
+HS-1 requires {*}{*}theta\_HS \textless{}= 0.7 C/W measured, in forced air, over a \textasciitilde{}31 x 60 mm base{*}{*}, and E1 shows the interface resistance is where this design's margin lives. The board provides no way to make that interface.
+
+\begin{itemize}
+\item Mounting holes are \texttt{4x M3 (3.2 mm) at corners}, board-local (3,3), (117,3),
+(117,77), (3,77) - the P0 Q4 default, chosen before the heatsink existed.
+\item \textbf{H2 and H3 are at x = 117.} HS-2 forbids the sink past x = 40 mm, so they
+cannot hold it.
+\item That leaves \textbf{H1 and H4 only, both at x = 3, collinear on the west edge} -
+two bolts on one line, 28-30 mm away in x from the dies at (31.5, 22.9) and
+(31.5, 27.1). A base clamped on one edge cannot control contact pressure at
+the far corner of a 31 x 60 mm face, and pressure is what sets the TIM
+bondline.
+\item There are \textbf{no holes inside the HS-2 rect} and nothing in \texttt{blocks.md},
+\texttt{stackup.md} or \texttt{requirements.md} specifies a fastening scheme at all -
+"fastener" appears once, in SPIRAL-6, only as a thing to keep away.
+\end{itemize}
+I checked that adding holes is geometrically legal: with the sink confined to \texttt{x \textless{}= 40}, SPIRAL-6 (no metal within 15 mm of a spiral's outer copper edge) is satisfied with 19.4 mm to spare, and the existing corner holes are 18.8 mm and 30.8 mm clear of L302/L301. Recommendation: {*}{*}2-4 M3 NPTH holes inside or on the boundary of \texttt{{[}5, 10, 36, 70{]}}{*}{*}, placed to miss the power loop and the In1/In2 planes' critical area, or an explicit clamp-bar/spring-clip scheme recorded as a mechanical deliverable. Owner decision at H4.
+
+\paragraph*{E5 - 9 thermal vias per FET against a required \textgreater{}= 10, none nearer than 1.1 mm to a source land, and "copper-filled" is not a JLC process. (error)}
+Measured from each die centroid:
+
+\begin{quote}\small\ttfamily\raggedright
+\textbar{} \textbar{} vias \textless{}= 2.27 mm \textbar{} vias \textless{}= 4.0 mm \textbar{} nearest \textbar{}\\
+\textbar{}---\textbar{}---\textbar{}---\textbar{}---\textbar{}\\
+\textbar{} Q201 \textbar{} 3 \textbar{} {*}{*}9{*}{*} \textbar{} 1.581 mm \textbar{}\\
+\textbar{} Q202 \textbar{} 3 \textbar{} {*}{*}9{*}{*} \textbar{} 1.598 mm \textbar{}
+\end{quote}
+The \texttt{check\_thermal} \texttt{thermal\_vias} warning's triage in \texttt{verify-waivers.md} s3 is \textbf{arithmetically correct} - the check's window really is 2.27 mm and the real count really is 9 - but it then argues 9-vs-10 is worth "\textless{}0.1 C". Under E1's numbers the via array is not a "parallel helper worth a few percent": with the 1.065 mm core in the bulk path, {*}{*}18 barrel vias at \textasciitilde{}187 C/W each carry roughly half the total heat flow.{*}{*} Two things follow:
+
+1. \texttt{blocks.md} s4.1 and \texttt{stackup.md} require {*}{*}"\textgreater{}= 10 x 0.3 mm COPPER-FILLED vias per FET, in and immediately around the source lands"{*}{*}. The board has 9, and the nearest is 1.58 mm from the centroid (\textasciitilde{}1.1 mm from the nearest source pad) because \texttt{aiee\_hv\_143v\_SW} at 0.8 mm caps the landing area. Neither the count nor the "immediately around" is met. 2. \textbf{JLC does not sell copper-filled vias.} The order-time option in \texttt{stackup.md} is \textbf{POFV - epoxy filled and capped} (specified there for the LMG1020 balls). Resin fill is not copper: the "filled, not plated-barrel-only (\textasciitilde{}2.5x worse)" factor the thermal budget assumes {*}{*}is not purchasable on this vendor{*}{*}, and no one has said so. Carry to P10 as a hard constraint on the thermal case, not as a nice-to-have.
+
+Note also that the LMG1020 via-in-pad that POFV was requested for {*}{*}was never built{*}{*} - the nearest GND via to U201 is at (30.777, 63.315), 0.3 mm outside the ball array, not in a pad. That is consistent with, and part of the cause of, the \texttt{check\_decoupling} loop warnings (s3).
+
+---
+
+\subsubsection*{3. Warnings}
+\paragraph*{W1 - common-source inductance was escalated from P7 to P8 and was never closed; my estimate says it is survivable, and that the 4R7 -\textgreater{} 6R8 change was bought against a \textasciitilde{}5x over-estimate (warning)}
+\texttt{route-notes.md} s14 raises it explicitly - {*}"This deserves a P8 SIM item - it was never modelled by the architecture"{*} - and \texttt{verify-waivers.md} does not mention it anywhere. Closing it here.
+
+The source escapes were measured (all 0.25 mm wide, F.Cu, over In1 at 0.2444 mm, \texttt{mu0.h/w} = 1.23 nH/mm):
+
+\begin{quote}\small\ttfamily\raggedright
+\textbar{} pad \textbar{} escape \textbar{} L \textbar{}\\
+\textbar{}---\textbar{}---\textbar{}---\textbar{}\\
+\textbar{} 2 (gate-return star point) \textbar{} 0.400 mm west \textbar{} 0.49 nH \textbar{}\\
+\textbar{} 6 \textbar{} 0.450 mm east \textbar{} 0.55 nH \textbar{}\\
+\textbar{} 7 \textbar{} 0.450 mm east \textbar{} 0.55 nH \textbar{}\\
+\textbar{} 4 \textbar{} 1.200 mm outward \textbar{} 1.47 nH \textbar{}
+\end{quote}
+The die's internal source metal ties all four, and {*}{*}all four land on the same F.Cu GND island{*}{*} (one 311.7 mm2 island that also carries U201's ground and C203/C204's ground - verified). So the inductance common to the gate loop and the power loop is the \textbf{parallel combination, \textasciitilde{}0.157 nH}, not the 0.768 nH single escape P7 used. That changes the answer by 5x:
+
+\begin{itemize}
+\item turn-off, per FET: \texttt{I\_off \textasciitilde{}5 A / t\_f \textasciitilde{}2.1 ns} -\textgreater{} \texttt{di/dt 2.4 A/ns} -\textgreater{}
+\textbf{+0.38 V} on VGS (worst case at P7's 8 A/ns pair figure: \textbf{+0.63 V});
+\item Miller: \texttt{Crss 0.7-1.0 pF x dV/dt 24.8 V/ns} = 17-25 mA into \textasciitilde{}8 ohm -\textgreater{}
+\textbf{+0.14-0.20 V};
+\item total \textbf{+0.5 to +0.8 V} against \texttt{VGSth\_min} \textbf{0.8 V} (typ 1.4 V).
+\end{itemize}
+\textbf{Not a destruct path, but only \textasciitilde{}1.3x margin at the datasheet minimum}, and it is the mechanism a second-order RLC model cannot contain. It should be a named bring-up measurement (VGS at the die during the turn-off edge), not an assumption. There is also a layout answer if it ever bites: pad 2's escape is currently merged into the shared GND pour 0.4 mm from the die, i.e. {*}{*}there is no Kelvin source{*}{*} - routing pad 2 separately to U201's ground would remove the term entirely, at the cost of a re-place.
+
+\textbf{Consequence for R205/R206.} P7 chose 6R8 over 4R7 partly on {*}"a \texttt{L\_common.di/dt} term of the order of volts"{*}. At 0.157 nH it is 0.4-0.6 V, not volts. On the published numbers 4R7 already passes both rails (-0.85 V against -4 V; +5.005 V against +6 V). {*}{*}Reverting to 4R7 recovers \textasciitilde{}4 C of the E1 budget for no new risk{*}{*} - worth taking if E1 stays tight. This is a recommendation, not a defect; the 6R8 decision was ruled twice and is the owner's.
+
+\paragraph*{W2 - C\_shunt ships at 455 pF, 1.4 \% above the top of the design's own 403-449 pF band (warning)}
+Same root cause as E2 and the same abandoned P7 handoff. \texttt{stage.py}'s recorded deviation solves \texttt{316 (pair Coss) + 112 (2 x 56 pF) = 428 pF}, "the MIDDLE of the 403-449 pF requirement". It predates P7's measurement of \textbf{+27.4 pF} of \texttt{/SW} pour capacitance to In1. As shipped: \textbf{455.4 pF}, above the band, and 13 \% above the ideal-choke value.
+
+Much less serious than E2, because the trim is real and downward: depopulating C204 gives 316 + 56 + 27.4 = \textbf{399 pF}. \textbf{Ship it as a bring-up instruction} ("if ZVS lands late, pull C204 first"), or take P7's \textasciitilde{}60 pF recommendation now. Domain \texttt{parts}.
+
+\paragraph*{W3 - no fiducials anywhere on the board (warning)}
+\texttt{grep -i fiducial} over the .kicad\_pcb returns nothing; the renders confirm it. This board carries a \textbf{0.4 mm-pitch WCSP} (U201, 1.0 x 0.6 mm ball array) and \textbf{two bare passivated die} whose lands are 0.23 mm solder-mask-defined openings with 0.25 mm bumps - the three finest-pitch things a JLC PCBA line will see on this order. JLC will use panel fiducials, but local fiducials are the standard mitigation below 0.5 mm pitch and cost nothing. Recommend \textbf{3 x 1 mm copper / 2 mm mask fiducials} on F.Cu, in the empty area around board-local (10, 10) / (110, 10) / (10, 70), all outside the HS-2 rect and \textgreater{}= 15 mm from either spiral. Domain \texttt{fab}.
+
+---
+
+\subsubsection*{4. Verdicts on the rest of the machine output}
+Every residual class, with a verdict. Nothing here needs re-work.
+
+\begin{quote}\small\ttfamily\raggedright
+\textbar{} class \textbar{} count \textbar{} verdict \textbar{}\\
+\textbar{}---\textbar{}---\textbar{}---\textbar{}\\
+\textbar{} `check\_creepage` 21 err + 3 warn \textbar{} 24 \textbar{} {*}{*}Waiver sound - independently verified, s1.{*}{*} Approve, keep the "count is fixed at 21" control. \textbar{}\\
+\textbar{} `drc\_routed` clearance, Q20x \textbar{} 48 \textbar{} Same geometry, same evidence. {*}{*}Approve.{*}{*} \textbar{}\\
+\textbar{} `check\_current` `undersized\_track` `/SW` \textbar{} 3 \textbar{} {*}{*}Waiver sound, and the consequence is benign - I measured it.{*}{*} The 0.25 mm drain escapes are only \textasciitilde{}1.0 mm long: the `/SW` {*}{*}pour reaches x = 37.42 into the inter-die gap and is 9.58 mm wide continuous from y 63.4 to 65.0{*}{*}, so the constricted section is 2 x 0.25 mm x \textasciitilde{}1.0 mm per FET, 1.31 mOhm, \textasciitilde{}55 mW, and a both-ends-clamped fin gives {*}{*}dT \textasciitilde{}2 C{*}{*} (`P.L/(8.k.A)`). IPC-2152 does not apply to a 1 mm neck. Approve. \textbar{}\\
+\textbar{} `check\_current` `undersized\_track` `/tank/RFOUT` \textbar{} 1 \textbar{} Geometrically unmeetable (9.106 mm corridor, 0.8 mm HV each side). {*}{*}Approve.{*}{*} \textbar{}\\
+\textbar{} `check\_current` `pour\_neckdown` `+40V` \textbar{} 1 \textbar{} Per-zone erosion artefact at 3 of 30 vias; the P8 resistive-sheet solve is the better evidence. {*}{*}Approve.{*}{*} \textbar{}\\
+\textbar{} `check\_return\_path` `/SW` \textbar{} 1 \textbar{} {*}{*}Waiver sound - re-measured independently.{*}{*} `/SW` pour 191.30 mm2, of which {*}{*}183.90 mm2 = 96.13 \% over continuous In1 GND{*}{*} (matches the claim to 2 dp), and the whole loop sits on {*}{*}one{*}{*} In1 island (In1 has 3 islands - zone A 3931 mm2, zone C 1637 mm2, a 0.3 mm2 sliver - and the drain node, C\_shunt, U201 and the gate legs are all on zone A). GATE\_Q1/GATE\_Q2/GATE\_ON/GATE\_OFF are {*}{*}100.0 \%{*}{*} imaged; DRIVE 96.9 \%. The deficit is the L301 land at the zone-B boundary, exactly as argued. {*}{*}Approve.{*}{*} \textbar{}\\
+\textbar{} `check\_thermal` Q201/Q202 \textbar{} 2 \textbar{} {*}{*}Approve the waiver on its premise (the check is heatsink-blind - confirmed in source), but NOT on its numbers.{*}{*} See E1. \textbar{}\\
+\textbar{} `check\_thermal` L301/L302 \textbar{} 2 \textbar{} {*}{*}Approve.{*}{*} The winding is a pad, so the check measures the tank pour, not the conductor; `spiral-design.md` s4 is authoritative and its 2.99 / 2.48 mW.mm-2 against SPIRAL-1's 7 is 2.3x clear. Independently sane: `P = 200.Q\_L/Q\_ind` reproduces 2.58 / 2.05 W. \textbar{}\\
+\textbar{} `check\_current` 119 `insufficient\_transition\_vias` + 13 `pour\_neckdown` + 8 `undersized\_track`, all derived-GND \textbar{} 140 \textbar{} Synthesised return-net entry at the largest rail's 7.0 A. Documented labelled worst case. {*}{*}Waive.{*}{*} \textbar{}\\
+\textbar{} `check\_decoupling` 4 distance + 2 loop (C201 6.1 nH, C202 3.1 nH vs 0.3 nH) \textbar{} 6 \textbar{} {*}{*}Real, correctly attributed to the P6 backward edge, and low-consequence HERE - which the waiver does not say and should.{*}{*} I traced C202's link: 2.49 mm of 0.2 mm track, no vias, \textasciitilde{}3.8 nH by `mu0.h/w`, so the estimator is right. But the VDD loop is only in the {*}{*}turn-ON{*}{*} path (turn-off sinks through OUTL to GND), and Class E turn-on is ZVS - the drain is already at 0 V, so a \textasciitilde{}2.3 ns edge (zeta 0.85 at L 5.55 nH, R 9 ohm, C\_GS 199 pF) costs almost nothing. {*}{*}Waive, with that reason recorded.{*}{*} \textbar{}\\
+\textbar{} `check\_creepage` 3 warnings \textbar{} 3 \textbar{} Pad-to-pad inside one EPC2019 land pattern; the check labels them itself. {*}{*}Waive.{*}{*} \textbar{}\\
+\textbar{} `check\_thermal` `thermal\_vias` \textbar{} 2 \textbar{} Count triage correct; conclusion wrong. {*}{*}See E5.{*}{*} \textbar{}\\
+\textbar{} `check\_silk` `silk\_misattributed` \textbar{} 6 \textbar{} Real, unfixable for R203 (0 legal positions found by the P8 grid search), and JLC places from the CPL. {*}{*}Waive.{*}{*} \textbar{}\\
+\textbar{} `check\_pdn` `pdn\_no\_bulk` `+40V` \textbar{} 1 \textbar{} Sidecar scope artefact; C101/C102 are the bulk. {*}{*}Waive.{*}{*} \textbar{}\\
+\textbar{} `verify\_all` `constraints\_drift` \textbar{} 1 \textbar{} Records question. {*}{*}Waive, and take the P8 recommendation to retire `architecture/constraints.json`{*}{*} - a second copy in a different coordinate frame is how the P6 bug happened. \textbar{}\\
+\textbar{} `padstack` x2, `copper\_sliver` x1 \textbar{} 3 \textbar{} Deliberate inner-only bridge pad; unlocatable sliver. {*}{*}Waive.{*}{*} \textbar{}
+\end{quote}
+\textbf{No check was SKIPPED.} All 8 \texttt{verify\_all} members ran (\texttt{by\_check} in \texttt{gate-verify.json} lists every one, \texttt{check\_diffpair} legitimately 0).
+
+{*}{*}But a different hole exists, and no gate can see it: none of SIM-1..SIM-6 has ever been run.{*}{*} There is no \texttt{kicad/sims/}, no sim report, nothing in \texttt{state.json} (\texttt{open\_issues: {[}{]}}, \texttt{gates: \{\}}, phase still \texttt{P7}). \texttt{decisions.md} declares \textbf{SIM-4 `tank\_match` at ERROR severity} and calls it \emph{"the C\_s arbiter"} (OPEN-12); SIM-1/SIM-2 are the arbiters of the 403-449 pF C\_shunt band. \texttt{verify\_all} has no \texttt{sim\_run} member, so a board can reach a green verify gate with every declared simulation gate unexecuted. {*}{*}E2 and W2 are exactly the questions SIM-4 and SIM-2 exist to answer.{*}{*} Recommend the owner treat "SIM-4 unrun" as blocking alongside E1/E2 at checkpoint 4.
+
+---
+
+\subsubsection*{5. Things I checked that are FINE (so nobody re-checks them)}
+\begin{itemize}
+\item \textbf{Tank capacitor family and rating.} \texttt{CC1206JKNPOCBN560} / \texttt{CC1206JKNPOCBN270}
+\begin{itemize}
+\item \textbf{1 kV C0G (NP0), 1206, no X7R anywhere in the tank} (X7R appears only on
+the buck rails and the driver VDD, where it belongs). 1 kV against the 151 V
+pk across the C\_s bank is 6.6x; against TANK\_A's 180 V node, 5.5x.
+\end{itemize}
+\item \textbf{Tank current sharing.} The banks are parallel arrays of identical parts, so
+sharing follows capacitance: 0.77 A rms per 56 pF part in C\_s, 0.70 A in C\_m,
+0.34 A in the 27 pF. The C\_s column is 24 mm long, but its series inductance
+(\textasciitilde{}0.7 nH, j0.09 ohm) is 0.06 \% of each cap's 142 ohm - {*}{*}sharing is not
+degraded by the column geometry.{*}{*} Bank ESR loss is \textasciitilde{}1.0-1.1 W each at C0G
+Q \textasciitilde{}700, which is real and is not itemised in \texttt{power\_tree.md}; it is inside the
+27-39 W envelope, so noted not reported.
+\item \textbf{Gate-leg symmetry.} GATE\_Q1 and GATE\_Q2 are \textbf{identical to the micron}:
+three segments, 1.000 + 0.989 + 1.451 = 3.440 mm each, widths 0.400 / 1.000 /
+1.000, mirrored about y = 64.110 - which is exactly the midpoint of the two
+\textbf{gate pads} (62.010, 66.210), so the mirror lands correctly despite the two
+dies being translated rather than mirrored. Both legs are {*}{*}100 \% over In1
+GND{*}{*}. The die-local return geometry is identical (pad 2 at +0.450 mm from
+pad 1 on both, 0.400 mm west escape on both). The +/-0.1 nH matching spec is
+met by construction.
+\item \textbf{The drain escape} - see s4; measured, \textasciitilde{}2 C, benign.
+\item \textbf{The `/SW` power loop.} One 263 mm2 F.Cu island, 96.13 \% imaged on In1, the
+C\_shunt bank and L202.1 100 \% imaged, In1 unbroken beneath the whole loop.
+The C203/C204-populated / C205/C206-DNP asymmetry costs Q202 about {*}{*}4 mm of
+extra travel in a 9.58 mm-wide pour = \textasciitilde{}0.13 nH{*}{*} - immaterial, because the
+stacked-loop architecture is doing its job.
+\item \textbf{Spiral encoding.} All spiral pads are copper-only (\texttt{"F.Cu"}, \texttt{"B.Cu"},
+\texttt{"In1.Cu" "In2.Cu"}, and 84 \texttt{"{*}.Cu"} plated holes) - {*}{*}no F.Mask and no
+F.Paste anywhere on either spiral.{*}{*} The windings are fully mask-covered and
+no stencil aperture will ever be cut over them. This was the failure mode I
+went looking for; it is not present.
+\item \textbf{B.Cu spiral vs the sink.} SPIRAL-6 holds: the heatsink land ends at
+x = 36 board-local and L301's outer copper starts at 55.45 - 19.4 mm clear.
+The corner mounting holes are 18.8 mm (H3/L302) and 30.8 mm (H2/L301) clear.
+\item \textbf{HS-3.} J101 is the only THT part, at board-local x = 3.7, outside the
+\texttt{{[}5, 10, 36, 70{]}} rect. Its two \texttt{"{*}.Cu" "{*}.Mask"} pads are the only B.Cu
+copper the sink could touch, and they are clear.
+\item \textbf{Via tenting.} No pad or via on the board declares a B.Mask aperture, so
+the six non-GND vias inside the heatsink land (2 x \texttt{+5V}, 2 x \texttt{+5V\_DRV},
+2 x \texttt{/stage/DRIVE}) are tented by construction. The P7/P8 FAB NOTE
+("do not enable via-tenting-off at plot time") remains the right control -
+carry it to P9.
+\item \textbf{EPC2019 land pattern.} Copper = bump size, mask -0.01 mm/side giving the
+datasheet's 0.23 / 0.23 x 0.68 mm openings, paste the same. Pad-4 escapes run
+\textbf{away} from the inter-die gap (north from Q201, south from Q202), which is
+why the gap is clean. A pin-1 dot exists on F.SilkS at (-1.40, -0.63).
+\item \textbf{LMG1020 input abs-max} with a bench generator - already found and fixed at
+P4 (review E3). Not re-reported.
+\item \textbf{Minor, prose only:} the EPC2019 courtyard is \texttt{2.76 x 0.94 mm} - {*}{*}exactly
+the die envelope, zero IPC-7351 excess.{*}{*} Nothing collides today (nearest
+neighbour C203 is 1.3 mm away), but any future re-place gets no warning.
+Also, the round 0.23 mm pads' stencil area ratio is 0.58 at 0.1 mm foil,
+under the usual 0.66 - acceptable \textbf{only} because the EPC2019 arrives with
+its own solder bars and the paste is largely a flux carrier. Worth knowing at
+first article, not worth a finding.
+\end{itemize}
+---
+
+\subsubsection*{6. Reproduce}
+.venv/Scripts/python .claude/skills/ai-ee/scripts/check\_creepage.py \textbackslash{} --pcb boards/rf-de-20m/kicad/rf-de-20m.kicad\_pcb \textbackslash{} --constraints boards/rf-de-20m/kicad/constraints.json --out creep.json \# then read checked{[}{]}.pairs{[}{]}.min\_gap\_mm - only 3 pairs are non-null
+
+.venv/Scripts/python .claude/skills/ai-ee/scripts/render.py \textbackslash{} boards/rf-de-20m/kicad/rf-de-20m.kicad\_pcb --views top,bottom,iso \textbackslash{} --w 2400 --out-dir boards/rf-de-20m/reports/renders
+
+Geometry measurements (pad bboxes, zone-fill distances, the inter-die pour probe, In1/In2 island split, the RFOUT-over-In1 area) were made with \texttt{.claude/skills/ai-ee/scripts/lib/geom.py} \texttt{load\_board()} + \texttt{net\_copper(net, layer)} / \texttt{zones\_of()} / \texttt{pads\_of()}; the exact probes are quoted inline above.
+
 \section{DFM and Fabrication}
-\emph{Pending --- produced at P9.}
+Gate \texttt{dfm} (phase P9): \textbf{pass} after 1 attempt(s); last 2026-08-09T00:14:32, failing 0 of 0.
+DFM findings by severity: none.
+\subsection*{Fabrication outputs}
+Exported layers: F.Cu, In1.Cu, In2.Cu, B.Cu, F.Silkscreen, B.Silkscreen, F.Mask, B.Mask, F.Paste, B.Paste, Edge.Cuts.
+\subsection*{Bill of materials}
+{\small
+\begin{longtable}{p{4.4cm}p{2.8cm}p{4.6cm}l}
+\toprule
+\textbf{Comment} & \textbf{Designator} & \textbf{Footprint} & \textbf{LCSC} \\
+\midrule
+\endhead
+100uF 63V alu electrolytic & C101,C102 & CAP-SMD\_BD10.0-L10.3-W10.3-LS11.0-FD\_1 & C51953411 \\
+2.2uF 100V X7R 1206 & C103,C104 & C1206 & C577211 \\
+100nF 100V X7R 0603 & C105,C109,C111 & C0603 & C113803 \\
+2.2uF 50V X7R 0805 & C106 & C0805 & C125847 \\
+10nF 100V X7R 0603 & C107,C207,C208,C209,C210 & C0603 & C107059 \\
+22uF 16V X7R 1206 & C108 & C1206 & C22392398 \\
+1nF 100V C0G 0603 & C110,C211,C212 & C0603 & C113793 \\
+100nF 16V X7R 0402 & C201 & C0402 & C60474 \\
+10nF 25V X7R 0201 & C202 & C0201 & C285010 \\
+56pF 1kV C0G 1206 & C203,C205,C206,C301,C302,C303,C304,C305,C306,C307,C308,C309,C310,C311,C312,C313,C314,C315,C316,C317,C318 & C1206 & C113875 \\
+27pF 1kV C0G 1206 & C204,C319,C320,C321,C322,C323 & C1206 & C541492 \\
+1uF 16V X7R 0603 & C213 & C0603 & C106248 \\
+120R@100MHz bead 3A 30mohm & FB201 & L0805 & C79382 \\
+KF128-5.08-2P 2pos 5.08mm 24A/250V & J101 & CONN-TH\_P5.08\_KF128-5.08-2P\_EDGETRIM & C474952 \\
+SMA jack 50R SMD (CONSMA001) & J201,J301 & SMA-SMD\_CONSMA001-SMD-G-T & C22418168 \\
+22uH 1A shielded & L101 & IND-SMD\_L4.0-W4.0\_SLW4010S & C83472 \\
+470nH 20A 4.1mohm & L201,L202 & IND-SMD\_L7.0-W6.6\_FXL0630 & C167212 \\
+EPC2019 200V eGaN & Q201,Q202 & TRS-SMD\_EPC2019 & C2836675 \\
+30.9k 0402 1\% & R101 & R0402 & C270615 \\
+10.0k 0402 1\% & R102 & R0402 & C25744 \\
+100k 0805 1\% 150V & R103,R104 & R0805 & C149504 \\
+100R 2010 1\% 750mW & R201,R202 & R2010 & C421954 \\
+4R7 0805 1\% 250mW & R203,R204,R205,R206 & R0805 & C160081 \\
+LM5017 100V sync COT buck & U101 & SOIC-8-EP\_LM5017\_TI-MRA08B & C34355 \\
+LMG1020 5V GaN driver 7A/5A & U201 & BGA-6\_L1.3-W0.8-P0.40-TL\_PTMAG3001A2YBGR & C6423790 \\
+\bottomrule
+\end{longtable}
+}
+1 CPL rotation correction(s) applied; no missing LCSC numbers.
+\emph{fab/order.json not available.}
 \section{Run Record (Appendix)}
 \subsection*{Phase digests}
 \paragraph*{P0}
@@ -714,8 +1057,25 @@ the derating ladder is real.
 \emph{(no digest recorded)}
 \paragraph*{P7}
 \emph{(no digest recorded)}
+\paragraph*{P8}
+\emph{(no digest recorded)}
+\paragraph*{P9}
+\emph{(no digest recorded)}
 \subsection*{Gate attempt history}
-\emph{(no entries)}
+{\small
+\begin{longtable}{llll}
+\toprule
+\textbf{Timestamp} & \textbf{Gate} & \textbf{Status} & \textbf{Failing/Total} \\
+\midrule
+\endhead
+2026-08-08T23:51:20 & drc\_routed & fail & 55/55 \\
+2026-08-08T23:51:20 & sim & fail & 1/4 \\
+2026-08-08T23:51:20 & verify & pass & 0/189 \\
+2026-08-08T23:51:21 & erc & pass & 0/0 \\
+2026-08-09T00:14:32 & dfm & pass & 0/0 \\
+\bottomrule
+\end{longtable}
+}
 \subsection*{Issues}
 \emph{(no entries)}
 \subsection*{Human checkpoints}
@@ -728,7 +1088,7 @@ the derating ladder is real.
 1 & P2 & approved & 2026-08-07T22:07:56 & Architecture approved incl. override of frozen single-FET spec to 2x EPC2019 parallel; unipolar 0/+5V drive; controlled-Z relaxed; outline 100x80 with pre-auth growth to 120x80 \\
 2 & P4 & approved & 2026-08-08T10:21:46 & Schematic approved (erc 0/0, netlist\_audit exit 0, 10/10 review findings fixed). Continue P5-P9 to fab-ready; P10 ordering held pending EPC2019 restock \\
 3 & P6 & approved & 2026-08-08T13:23:42 & Placement approved. SMA vertical top-mount (not edge-launch) accepted by owner - it is the only true-SMD 50R SMA at LCSC with no bottom-side joints, which the flat heatsink face requires \\
-4 & P8 & not reached &  &  \\
+4 & P8 & approved & 2026-08-08T21:18:05 & Owner approved all 8 waiver classes; owner chose: fix the four board-level thermal defects AND derate to 36V/\textasciitilde{}162W. Re-confirms schematic approval after the 3 post-H2 human\_hold edits \\
 5 & P10 & not reached &  &  \\
 \bottomrule
 \end{longtable}
@@ -740,9 +1100,12 @@ the derating ladder is real.
 \textbf{File} & \textbf{Size} & \textbf{Note} \\
 \midrule
 \endhead
-\texttt{state.json} & 22,468 B &  \\
-\texttt{kicad/rf-de-20m.kicad\_pcb} & 872,962 B &  \\
+\texttt{state.json} & 36,368 B &  \\
+\texttt{kicad/rf-de-20m.kicad\_pcb} & 918,171 B &  \\
 \texttt{kicad/rf-de-20m.kicad\_sch} & 7,267 B &  \\
+\texttt{fab/rf-de-20m\_gerbers.zip} & 165,232 B &  \\
+\texttt{fab/BOM.csv} & 1,438 B &  \\
+\texttt{fab/CPL.csv} & 2,074 B &  \\
 \texttt{brief/brief.md} & 4,153 B &  \\
 \texttt{requirements.md} & 16,663 B &  \\
 \texttt{architecture/blocks.md} & 37,342 B &  \\
@@ -751,21 +1114,32 @@ the derating ladder is real.
 \texttt{architecture/power\_tree.md} & 17,822 B &  \\
 \texttt{architecture/sheets.md} & 14,529 B &  \\
 \texttt{architecture/stackup.md} & 18,766 B &  \\
+\texttt{reports/bom\_cpl.json} & 23,968 B &  \\
+\texttt{reports/dfm\_check-shipped.json} & 631 B &  \\
 \texttt{reports/erc.json} & 274 B &  \\
-\texttt{reports/gate-drc\_routed.json} & 41,805 B &  \\
+\texttt{reports/fab\_export.json} & 2,623 B &  \\
+\texttt{reports/filter\_dnp.json} & 3,403 B &  \\
+\texttt{reports/gate-dfm.json} & 333 B &  \\
+\texttt{reports/gate-drc\_routed.json} & 41,824 B &  \\
 \texttt{reports/gate-erc.json} & 394 B &  \\
 \texttt{reports/gate-place.json} & 398 B &  \\
-\texttt{reports/gate-verify.json} & 38,909 B &  \\
+\texttt{reports/gate-sim.json} & 1,698 B &  \\
+\texttt{reports/gate-verify.json} & 38,964 B &  \\
 \texttt{reports/netlist\_audit.json} & 1,593 B &  \\
+\texttt{reports/plane\_repair.json} & 7,587 B &  \\
 \texttt{reports/review-board.json} & 10,477 B &  \\
 \texttt{reports/review-board.md} & 27,499 B &  \\
 \texttt{reports/review-schematic.json} & 7,817 B &  \\
 \texttt{reports/review-schematic.md} & 20,810 B &  \\
-\texttt{reports/route-notes.md} & 34,765 B &  \\
+\texttt{reports/route-notes.md} & 37,058 B &  \\
 \texttt{reports/schematic.pdf} & 232,266 B &  \\
+\texttt{reports/sim-notes.md} & 28,481 B &  \\
+\texttt{reports/sim.json} & 10,278 B &  \\
 \texttt{reports/spiral-design.md} & 16,842 B &  \\
 \texttt{reports/top.net} & 129,049 B &  \\
-\texttt{reports/verify-waivers.md} & 23,842 B &  \\
+\texttt{reports/verify-waivers.json} & 13,339 B &  \\
+\texttt{reports/verify-waivers.md} & 25,635 B &  \\
+\texttt{reports/verify.json} & 162,972 B &  \\
 \bottomrule
 \end{longtable}
 }

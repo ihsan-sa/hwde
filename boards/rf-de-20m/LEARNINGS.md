@@ -1392,3 +1392,81 @@ Second-order and easy to miss: **depopulating C_s sites raises the duty on the s
 Current divides in proportion to capacitance, so 9 x 56 pF -> 7 x 56 + 1 x 27 took each remaining
 56 pF part from 0.77 to 0.93 A rms (+21 %) and ~105 -> ~150 mW. Fine for a 1 kV C0G 1206, but it
 is a real cost of the fix and it belongs in the bring-up list, not in an assumption.
+
+## 2026-08-09 [P9][gate][pipeline][PIPELINE BUG] `gate.py --gate dfm` looks for `parts.json` BESIDE THE BOARD, so the BOM-completeness leg silently never runs on this workspace
+
+Exactly the same shape as the `verify-waivers.json` default-path bug already recorded above
+(2026-08-08 `[P8][gate][waivers]`), and it deserves the same treatment because it is silent in the
+same way. `gate.py:run_dfm` is:
+
+    parts = board.parent / "parts.json"
+    if parts.exists(): kwargs["parts"] = parts
+
+i.e. `kicad/parts.json`. This board - like every ai-ee workspace - keeps its BOM of record at
+`parts/parts.json`. So `dfm_check` runs with `parts=None`, `check_release` skips the
+`missing_lcsc` leg entirely, and **the gate reports a clean `dfm` pass having never looked at the
+BOM at all.** `reference/invalidation.yaml` has the same assumption baked in
+(`parts: {path: "kicad/parts.json"}`), which is why the `parts` artifact hashes to null.
+
+Nothing distinguishes "BOM complete" from "BOM never checked" in the gate JSON: `missing_lcsc`
+is simply absent from `facts`. **Always follow the gate with an explicit run:**
+
+    dfm_check.py --pcb ... --fab-dir fab/ --parts parts/parts.json --schematic ... --out ...
+
+which also audits the SHIPPED package rather than a scratch re-export. On rf-de-20m both agree at
+0 findings and the explicit run adds `missing_lcsc: []` over 68 lines.
+
+## 2026-08-09 [P9][fab][tenting][gerber] Board-level via tenting does NOT protect a via that lands inside a PAD's mask opening - and the board file cannot tell you
+
+The instruction carried into P9 three times was "the signal vias in the bottom heatsink land must
+stay tented; do not enable via-tenting-off at plot time". Both halves of that are satisfiable and
+were satisfied - `(tenting (front yes) (back yes))` at board level, **zero of the 230 vias carrying
+a per-via `(tenting ...)` override**, and no tenting flag in `kicad-cli pcb export gerbers` (the
+wrapper passes only `-o` and `--layers`). But that is not the whole question, because:
+
+**KiCad's "tented" means it does not GENERATE a mask aperture for the via. It does not SUBTRACT the
+via from someone else's aperture.** Any via that falls inside a pad's mask opening is bare in the
+exported gerber no matter what the tenting setting says. Measured on rf-de-20m's export:
+
+| | count |
+|---|---|
+| vias with a mask opening because of their own tenting setting | **0** |
+| vias sitting inside an `F.Mask` PAD opening (via-in-pad) | **30** |
+| of those, ALSO inside the `B.Mask` heatsink-land aperture -> open at BOTH ends | **17** |
+
+All 17 are GND at 0.30 mm drill, so there is no electrical hazard here (the sink is at land
+potential), but they are a solder wick path from a top joint to the heatsink mating face - which is
+the exact failure mode HS-2 exists to prevent. Two of the owning pads (`C203.2`, `C205.2`, 4 vias
+each) belong to **DNP** sites, so they carry unconstrained bare paste with nothing to hold it.
+
+**How to actually prove tenting on a fab package: enumerate the mask gerber's openings and account
+for every one.** Reading the board's tenting setting proves nothing about the shipped files.
+rf-de-20m's `B.Mask` has exactly 11 openings - 3 for the HS1 land (1430.150 mm2, 100 % over B.Cu
+copper), 4 M3 holes, 2 J101 THT pads, 2 M2 clamp holes - and not one is a via. That is the
+statement worth making; "the board says tenting yes" is not.
+
+Consequence for the order: **POFV (epoxy filled + capped) stays specified.** Its original rationale
+(an LMG1020 via-in-pad, `stackup.md` s5) was retired by `review-board.md` s2.2 because that via was
+never built - but the 17 measured here re-justify it, on flatness. Do not let a retired rationale
+retire the option.
+
+## 2026-08-09 [P9][gerber][drill][gerblib] `Hole.plated` is ALWAYS True on KiCad's merged drill export - do not use it as an NPTH oracle
+
+`fab_export.py` calls `kc.export_drill(..., fmt="excellon")` with no `--excellon-separate-th`, so
+KiCad 10.0.3 writes ONE `.drl` with `TF.FileFunction,MixedPlating,1,4` and carries plating per TOOL
+as an X2 attribute comment:
+
+    ; #@! TA.AperFunction,Plated,PTH,ViaDrill        T1C0.200 / T2C0.300
+    ; #@! TA.AperFunction,NonPlated,NPTH,ComponentDrill   T5C2.200 / T6C3.200
+
+`gerblib._holes` does `plated = getattr(obj, "plated", True)` and gerbonara does not surface the
+attribute, so **all 326 holes on rf-de-20m read `plated=True`**, including the four M3 mounting
+holes and the two M2 heatsink clamp holes that the board declares `np_thru_hole`.
+
+Latent consequence: `dfm_check.check_annular_ring` gates on `if not h.plated: continue`, so an NPTH
+hole is graded as if it needed an annular ring. It did not fire here only because the ring test
+needs a PAD FLASH containing the hole centre, and a `size == drill` mounting-hole pad leaves no
+copper to flash (pours are regions, not flashes). A mounting hole placed inside a real SMD pad would
+produce a phantom annular-ring error with no way to see why. **The plating truth is in the drill
+file's `TA.AperFunction` lines, not in the parsed hole objects** - and it is the one thing to
+eyeball in JLC's viewer, since a mixed-plating file is where a fab can get NPTH wrong.
