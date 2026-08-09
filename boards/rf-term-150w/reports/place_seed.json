@@ -1,0 +1,102 @@
+{
+ "script": "place_seed",
+ "status": "violations",
+ "board": "rf-term-150w.kicad_pcb",
+ "counts": {
+  "total": 2,
+  "by_severity": {
+   "error": 2
+  },
+  "by_source": {
+   "check.place": 2
+  }
+ },
+ "violations": [
+  {
+   "check": "place",
+   "severity": "error",
+   "pos": [
+    48.575,
+    18.475
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "H2"
+   ],
+   "msg": "seed could not legalize cluster H2",
+   "source": "check.place",
+   "items": [
+    {
+     "msg": "seed could not legalize cluster H2",
+     "pos": [
+      48.575,
+      18.475
+     ]
+    }
+   ],
+   "kind": "seed_unplaced"
+  },
+  {
+   "check": "place",
+   "severity": "error",
+   "pos": [
+    18.475,
+    33.3
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "H3"
+   ],
+   "msg": "seed could not legalize cluster H3",
+   "source": "check.place",
+   "items": [
+    {
+     "msg": "seed could not legalize cluster H3",
+     "pos": [
+      18.475,
+      33.3
+     ]
+    }
+   ],
+   "kind": "seed_unplaced"
+  }
+ ],
+ "clusters": [
+  {
+   "anchor": "H1",
+   "satellites": [],
+   "edge": null
+  },
+  {
+   "anchor": "H2",
+   "satellites": [],
+   "edge": null
+  },
+  {
+   "anchor": "H3",
+   "satellites": [],
+   "edge": null
+  },
+  {
+   "anchor": "J1",
+   "satellites": [
+    "C1"
+   ],
+   "edge": "top"
+  },
+  {
+   "anchor": "R1",
+   "satellites": [],
+   "edge": "bottom"
+  }
+ ],
+ "warnings": [
+  "cluster H2 could not be legalized - left at its input position",
+  "cluster H3 could not be legalized - left at its input position"
+ ],
+ "hpwl_before_mm": 112.845,
+ "hpwl_seed_mm": 86.7963,
+ "ops_out": "boards/rf-term-150w/anneal/seed.ops.json"
+}

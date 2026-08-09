@@ -1,0 +1,28 @@
+{
+  "mpn": "N/A - generic mechanical feature",
+  "package": "M3 clearance mounting hole, THT, 1 copper pad tied to GND (grounded screw head). Not a purchased part - no datasheet.",
+  "description": "aiee local footprint lib/aiee.pretty/MountingHole_3.2mm_M3_Pad_5.0mm.kicad_mod. Clone of stock MountingHole:MountingHole_3.2mm_M3_Pad with the pad shrunk 6.4mm->5.0mm diameter (drill unchanged 3.2mm) so H1-H3 fit beside R1 on this board's 26x20mm outline - see LEARNINGS 2026-08-09 [placement][geometry][python] for the courtyard-union-pad-bbox arithmetic that makes the stock 6.4mm pad unplaceable here.",
+  "pinout": [
+    {
+      "pin": "1",
+      "name": "GND",
+      "type": "ground",
+      "notes": "The single THT pad. Tied to GND in the schematic (Mechanical:MountingHole_Pad, power_symbol_at_pin) because the M3 screw head is a grounded metal object sitting on the top surface once the board is bolted down (rf-term-150w/kicad/gen/rf-term-150w.py module docstring, 'WHY H1-H3 CARRY A PAD AND ARE STILL NOT A BOM LINE')."
+    }
+  ],
+  "land_pattern": {
+    "package": "1 THT pad, circle, 5.0mm copper diameter on a 3.2mm drill (0.9mm annular ring)",
+    "pad_count": 1,
+    "pin1": "1",
+    "drill_mm": 3.2,
+    "annulus_mm": 0.9,
+    "notes": "pad_size_mm/pitch_mm deliberately omitted (single-pad footprint, no pitch to check). drill_mm/annulus_mm are design choices (this pass), not vendor figures - there is no vendor datasheet for a generic M3 clearance hole. 5.0mm pad chosen to satisfy the placement-legality inequality pad_diameter<=5.35mm (LEARNINGS 2026-08-09); 3.2mm drill kept identical to the stock KiCad footprint (MountingHole.pretty/MountingHole_3.2mm_M3_Pad.kicad_mod) it clones, which is itself sized for a clearance fit on an M3 screw (nominal 3.0mm) per common KiCad convention."
+  },
+  "exposed_pad": {"present": false},
+  "layout_notes": [
+    "Courtyard: F.CrtYd circle radius 2.75mm (pad radius 2.5mm + 0.25mm margin), the same margin convention the stock footprint uses (pad radius 3.2mm + 0.25mm = 3.45mm) and the same convention this repo uses elsewhere for hand-drawn courtyards (LEARNINGS 2026-08-09 [easyeda2kicad][fab][parts], '0.25mm beyond the pad-field bounding box').",
+    "attr exclude_from_pos_files exclude_from_bom carried over unchanged from the stock footprint so BOM/CPL accounting is unaffected - the symbol (Mechanical:MountingHole_Pad) already sets in_bom=false at the schematic component (rf-term-150w.py: 'c.in_bom = False'), matching LEARNINGS 2026-07-29 [drc][gates] (lumina-carrier H5: exclude flags must agree between symbol and footprint or --parity's footprint_symbol_mismatch fires)."
+  ],
+  "abs_max": [],
+  "source_pdf": null
+}

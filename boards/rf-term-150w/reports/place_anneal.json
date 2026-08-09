@@ -1,0 +1,138 @@
+{
+ "script": "place_anneal",
+ "status": "violations",
+ "board": "rf-term-150w.kicad_pcb",
+ "counts": {
+  "total": 2,
+  "by_severity": {
+   "error": 2
+  },
+  "by_source": {
+   "check.place": 2
+  }
+ },
+ "violations": [
+  {
+   "check": "place",
+   "severity": "error",
+   "pos": [
+    38.0598,
+    34.8375
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "J1",
+    "R1"
+   ],
+   "msg": "courtyard overlap J1/R1 (30.29 mm2)",
+   "source": "check.place",
+   "items": [
+    {
+     "msg": "courtyard overlap J1/R1 (30.29 mm2)",
+     "pos": [
+      38.0598,
+      34.8375
+     ]
+    }
+   ],
+   "kind": "courtyard_overlap",
+   "overlap_mm2": 30.295
+  },
+  {
+   "check": "place",
+   "severity": "error",
+   "pos": [
+    54.3094,
+    28.5875
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C1"
+   ],
+   "msg": "C1 extends 77.55 mm2 outside the board outline",
+   "source": "check.place",
+   "items": [
+    {
+     "msg": "C1 extends 77.55 mm2 outside the board outline",
+     "pos": [
+      54.3094,
+      28.5875
+     ]
+    }
+   ],
+   "kind": "outside_outline",
+   "outside_mm2": 77.5525
+  }
+ ],
+ "candidates": [
+  {
+   "rank": 1,
+   "cost": 7354.669,
+   "score": 7354.669,
+   "hpwl_mm": 67.6363,
+   "terms": {
+    "hpwl_raw_mm": 67.6363,
+    "hpwl_weighted": 27.7501,
+    "overlap_mm2": 30.295,
+    "cong_overflow": 0,
+    "crossings_weighted": 0.0,
+    "rule": 56.1186,
+    "corridor_mm2": 0.0
+   },
+   "legal": false,
+   "repaired": false,
+   "completion": null,
+   "ops_file": "boards\\rf-term-150w\\anneal\\cand1.ops.json",
+   "n_violations": 2
+  },
+  {
+   "rank": 2,
+   "cost": 7354.874,
+   "score": 7354.874,
+   "hpwl_mm": 68.4579,
+   "terms": {
+    "hpwl_raw_mm": 68.4579,
+    "hpwl_weighted": 27.9555,
+    "overlap_mm2": 30.295,
+    "cong_overflow": 0,
+    "crossings_weighted": 0.0,
+    "rule": 56.1186,
+    "corridor_mm2": 0.0
+   },
+   "legal": false,
+   "repaired": false,
+   "completion": null,
+   "ops_file": "boards\\rf-term-150w\\anneal\\cand2.ops.json",
+   "n_violations": 2
+  }
+ ],
+ "seed": 1,
+ "separation_unknown_refs": [],
+ "corridor_unknown_refs": [],
+ "clusters": 5,
+ "movable_clusters": 3,
+ "hpwl_input_mm": 68.4579,
+ "hpwl_start_mm": 68.4579,
+ "hpwl_best_mm": 67.6363,
+ "improvement_pct": 1.2,
+ "start_terms": {
+  "hpwl_raw_mm": 68.4579,
+  "hpwl_weighted": 27.9555,
+  "overlap_mm2": 30.295,
+  "cong_overflow": 0,
+  "crossings_weighted": 0.0,
+  "rule": 56.1186,
+  "corridor_mm2": 0.0
+ },
+ "epochs": 140,
+ "moves": 33720,
+ "accepted": 18380,
+ "t0": 13355.8111,
+ "t_end": 0.015464,
+ "feedback_used": false,
+ "last_completion": null,
+ "runtime_s": 7.8,
+ "warnings": []
+}

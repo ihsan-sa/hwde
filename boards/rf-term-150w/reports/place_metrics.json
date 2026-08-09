@@ -1,0 +1,199 @@
+{
+ "script": "place_metrics",
+ "status": "violations",
+ "board": "rf-term-150w.kicad_pcb",
+ "counts": {
+  "total": 1,
+  "by_severity": {
+   "error": 1
+  },
+  "by_source": {
+   "check.place": 1
+  }
+ },
+ "violations": [
+  {
+   "check": "place",
+   "severity": "error",
+   "pos": [
+    45.06,
+    35.7375
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "H2",
+    "R1"
+   ],
+   "msg": "courtyard overlap H2/R1 (16.10 mm2)",
+   "source": "check.place",
+   "items": [
+    {
+     "msg": "courtyard overlap H2/R1 (16.10 mm2)",
+     "pos": [
+      45.06,
+      35.7375
+     ]
+    }
+   ],
+   "kind": "courtyard_overlap",
+   "overlap_mm2": 16.1025
+  }
+ ],
+ "metrics": {
+  "counts": {
+   "footprints": 6,
+   "movable": 6,
+   "nets": 2
+  },
+  "hpwl": {
+   "total_mm": 49.95,
+   "by_net": {
+    "/RF": 16.3,
+    "GND": 33.65
+   }
+  },
+  "crossings": {
+   "count": 1,
+   "pairs": [
+    {
+     "nets": [
+      "/RF",
+      "GND"
+     ],
+     "crossings": 1
+    }
+   ]
+  },
+  "crossings_signal": {
+   "count": 0,
+   "pairs": []
+  },
+  "congestion": {
+   "cell_mm": 2.0,
+   "cols": 13,
+   "rows": 11,
+   "max": 3,
+   "mean_nonzero": 1.275,
+   "hotspots": [
+    {
+     "cell": [
+      5,
+      2
+     ],
+     "center": [
+      35.985,
+      25.5125
+     ],
+     "demand": 3
+    },
+    {
+     "cell": [
+      8,
+      2
+     ],
+     "center": [
+      41.985,
+      25.5125
+     ],
+     "demand": 3
+    },
+    {
+     "cell": [
+      4,
+      9
+     ],
+     "center": [
+      33.985,
+      39.5125
+     ],
+     "demand": 2
+    },
+    {
+     "cell": [
+      5,
+      4
+     ],
+     "center": [
+      35.985,
+      29.5125
+     ],
+     "demand": 2
+    },
+    {
+     "cell": [
+      5,
+      5
+     ],
+     "center": [
+      35.985,
+      31.5125
+     ],
+     "demand": 2
+    },
+    {
+     "cell": [
+      7,
+      4
+     ],
+     "center": [
+      39.985,
+      29.5125
+     ],
+     "demand": 2
+    },
+    {
+     "cell": [
+      8,
+      5
+     ],
+     "center": [
+      41.985,
+      31.5125
+     ],
+     "demand": 2
+    },
+    {
+     "cell": [
+      10,
+      7
+     ],
+     "center": [
+      45.985,
+      35.5125
+     ],
+     "demand": 2
+    },
+    {
+     "cell": [
+      11,
+      7
+     ],
+     "center": [
+      47.985,
+      35.5125
+     ],
+     "demand": 2
+    },
+    {
+     "cell": [
+      1,
+      8
+     ],
+     "center": [
+      27.985,
+      37.5125
+     ],
+     "demand": 1
+    }
+   ]
+  },
+  "congestion_signal_max": 2,
+  "decoupling": [],
+  "utilization": {
+   "component_mm2": 473.285,
+   "board_mm2": 520.0,
+   "ratio": 0.91
+  }
+ }
+}

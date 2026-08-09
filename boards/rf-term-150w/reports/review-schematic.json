@@ -1,0 +1,88 @@
+{
+ "script": "review-schematic",
+ "status": "violations",
+ "board": "rf-term-150w",
+ "phase": "P4",
+ "counts": {
+  "total": 4,
+  "by_severity": {
+   "error": 1,
+   "warning": 3
+  },
+  "by_source": {
+   "review.schematic": 4
+  }
+ },
+ "violations": [
+  {
+   "check": "schematic-review",
+   "severity": "error",
+   "pos": null,
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R1"
+   ],
+   "msg": "R1 (the 50 ohm 250 W termination, the whole function of the board) is absent from the delivered BOM.csv and CPL.csv - bom_cpl.py run on the committed .kicad_pcb emits only C1 and J1 (n_parts 2, bom_complete false) because lib/aiee.pretty/R_LapPad_T50R0-250-12X.kicad_mod carries (attr smd exclude_from_pos_files) and bom_cpl derives BOTH files from the pos export, so a builder ordering from the delivered BOM gets no load resistor and acceptance criteria 8/13/16 are evaluated on an incomplete BOM.",
+   "source": "review.schematic",
+   "kind": "bom-missing-part"
+  },
+  {
+   "check": "schematic-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": null,
+   "refs": [
+    "R1",
+    "C1"
+   ],
+   "msg": "R1 and C1 are DigiKey-only and carry a 'DigiKey' field that NO script in the repo reads (grep for 'digikey' across scripts/, reference/ and the agent markdown returns zero hits), while bom_cpl.py keys on 'LCSC' only via board_lcsc_map() and load_parts_map() whose put() drops any ref without an lcsc - and no parts/parts.json exists here - so once the missing-part defect is fixed both parts still land in the BOM with an empty LCSC column and no orderable number, which P9 must supply by hand (4353-T50R0-250-12X-ND, 1956-1000-ND) plus the split LCSC/DigiKey sourcing note in the README.",
+   "source": "review.schematic",
+   "kind": "bom-no-distributor-key"
+  },
+  {
+   "check": "schematic-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": null,
+   "refs": [],
+   "msg": "kicad/rf-term-150w.kicad_pro sets erc.rule_severities.footprint_link_issues (and lib_symbol_issues/lib_symbol_mismatch) to 'ignore', which makes the P4 ERC gate blind to an unresolvable footprint - proven by mutation: renaming R1's footprint to aiee:R_LapPad_BOGUS_XYZ yields 2 ERC warnings under default severities but 0 total / status pass under the project config; today's four footprints all resolve, so this is a gate blind spot to narrow or waive explicitly, not a live defect.",
+   "source": "review.schematic",
+   "kind": "erc-severity-blind-spot"
+  },
+  {
+   "check": "schematic-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": null,
+   "refs": [],
+   "msg": "The recorded P4 ERC pass in state.json refers to a superseded schematic and project file - gates.erc.last.inputs is sexpr_no_uuid:a6844623... / json_canonical:ac2fc2bf... but statelib.hash_artifact on the current files gives sexpr_no_uuid:420fe624... / json_canonical:767fd0c8..., because the schematic was regenerated at 01:58:35 and .kicad_pro rewritten at 02:00:13 and both rode into the P5 commit 56c5e8d un-regated (reports/schematic.pdf is stale for the same reason); re-running ERC on the current pair is still 0/0, so the record is wrong rather than the board.",
+   "source": "review.schematic",
+   "kind": "stale-gate-record"
+  }
+ ],
+ "verified_clean": [
+  "netlist topology matches intent: /RF = {C1.2, J1.1, R1.1}, GND = {C1.1, J1.2, R1.2, H1.1, H2.1, H3.1}; C1 is a true shunt at the port node, not in series",
+  "C1 safety pin assignment verified through generator -> schematic -> netlist -> footprint -> committed .kicad_pcb: pad 1 (drill 6.3, threaded case) on GND, pad 2 (drill 0.8, insulated lead) on /RF; STATOR/ROTOR pin names are hidden mechanical descriptors and do not drive the assignment",
+  "net names /RF and GND match kicad/constraints.json exactly (decision 26 trap avoided)",
+  "kicad-cli sch export bom returns exactly 3 lines (C1, J1, R1); H1-H3 and #PWR/#FLG absent; 6 footprints total; budget <=4 lines / <=6 placements met",
+  "Value, Footprint, Datasheet, MPN, Manufacturer present on all three; LCSC on J1; DigiKey PNs on R1 and C1",
+  "all five assembly/safety text blocks present on the plotted PDF and numerically consistent with the state.json decisions they came from",
+  "R1 2-pin symbol against a 3-pad footprint is correctly handled - kicad-cli pcb drc --schematic-parity on the committed board reports 0 parity violations",
+  "H1-H3 in_pos_files question closed: KiCad 10 writes no per-instance in_pos_files, parity has nothing to compare, and in_bom no on the symbol matches the footprint's exclude_from_bom (lumina-carrier H5 trap avoided)",
+  "all four footprint references resolve (default-severity ERC 0/0 and a clean board_init import)",
+  "ERC on the current schematic: 0 errors / 0 warnings"
+ ],
+ "notes": [
+  "C1's pin names are hidden on the plot, so the case=GND fact is single-sourced on the drawing (assembly note 3 only)",
+  "requirements s8 flags F3 (HOT SURFACE, normal condition) and F2 (never key unmated) are not on the sheet; requirements assigns both to the README",
+  "sheet note 2 omits the shim material - decision 31 superseded decision 29's METAL requirement and freed the shims to be INSULATING (preferred); README owes it",
+  "requirements criterion 1 still claims the +/-2% is met by datasheet tolerance; decision 11 superseded that with select-on-test and sheet note 4 documents the real method",
+  "J1 uses the BAT Wireless BWSMA-KWE-Z001 land pattern for the ordered Lian Xin SMA-KWE; vendored copy is byte-identical to KiCad 10 stock except the Datasheet property; 5.1 mm leg pitch is a derived, documented figure",
+  "netlist_audit's lone warning (declared power net /RF feeds no power_in pin) is benign on a passive load",
+  "R1's as-built lap pad is 5.0 x 7.0 mm vs the 4.4 x 7.1 mm used in decision 21's inductance budget - immaterial at 11x margin"
+ ]
+}

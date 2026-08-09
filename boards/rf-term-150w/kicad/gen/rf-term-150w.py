@@ -52,7 +52,14 @@ lumina-carrier's H5 had `exclude_from_bom` on the FOOTPRINT and `(in_bom yes)`
 on the symbol and drew a `footprint_symbol_mismatch` at the first --parity
 DRC. `MountingHole:MountingHole_3.2mm_M3_Pad` carries
 `(attr exclude_from_pos_files exclude_from_bom)`, so the symbol must agree.
-Result: BOM stays at 3 lines / 3 placements, 6 footprints total.
+Result: BOM stays at 3 lines / 3 placements, 6 footprints total. Footprint is
+now `aiee:MountingHole_3.2mm_M3_Pad_5.0mm` (fixer pass, 2026-08-09), a local
+clone with the pad shrunk 6.4mm->5.0mm - the stock 6.4mm pad's placement
+extent (courtyard UNION pad-bbox, always a pad_diameter+0.5mm square for a
+circular THT pad) made H1-H3 unplaceable flanking R1 on this board's 26mm
+edge (LEARNINGS 2026-08-09 [placement][geometry][python]). The clone carries
+the identical `(attr exclude_from_pos_files exclude_from_bom)`, so the BOM/
+CPL accounting above is unchanged.
 
 PIN MAPPING - THE TWO CALLS THAT MATTER
 ---------------------------------------
@@ -130,6 +137,28 @@ C1_FIELDS = {
                     "top-adjust panel-mount. Pad 1=CASE/THREAD -> GND, "
                     "Pad 2=LEAD -> RF (physical assignment, state.json P3 "
                     "decision 2026-08-09).",
+}
+# H1-H3 (fixer pass, 2026-08-09): the local aiee:MountingHole_3.2mm_M3_Pad_5.0mm
+# footprint (lib/aiee.pretty, clone of stock MountingHole:MountingHole_3.2mm_
+# M3_Pad with the pad shrunk 6.4mm->5.0mm - LEARNINGS 2026-08-09 [placement]
+# [geometry][python]) declares Datasheet/Description properties, so the
+# symbol INSTANCE must carry byte-identical text or DRC --parity's
+# footprint_symbol_field_mismatch fires (Datasheet/Description are in
+# board_init.py's _NATIVE_FIELDS - KiCad checks them itself, no board_swig
+# copy step). The stock Mechanical:MountingHole_Pad symbol's own library
+# defaults (Datasheet="", Description="Mounting Hole with connection") are
+# NOT reused here on purpose: the footprint is no longer the stock one, so
+# its properties describe the aiee-local part instead.
+H_FIELDS = {
+    "Datasheet": "N/A - generic M3 clearance hole (mechanical standard "
+                 "feature, not a sourced/purchased part); no manufacturer "
+                 "datasheet applies.",
+    "Description": "aiee local M3 clearance mounting hole, pad-diameter-"
+                    "reduced clone of stock MountingHole:MountingHole_3.2mm_"
+                    "M3_Pad (3.2mm drill unchanged, pad 6.4mm->5.0mm, 0.9mm "
+                    "annular ring) so H1-H3 can flank R1 on this board's "
+                    "26x20mm outline - LEARNINGS 2026-08-09 [placement]"
+                    "[geometry][python].",
 }
 
 # ------------------------------------------------------------- sheet notes
@@ -221,14 +250,17 @@ def build() -> schlib.Sheet:
     sh.power_symbol_at_pin("R1", "2", "power:GND")
 
     # ---- H1-H3: M3 mounting holes WITH a pad, tied to GND. Not BOM lines
-    # (in_bom False below) - see the module docstring.
+    # (in_bom False below) - see the module docstring. Footprint is aiee's
+    # own pad-reduced clone (see H_FIELDS comment above and LEARNINGS
+    # 2026-08-09 [placement][geometry][python]): the stock 6.4mm pad makes
+    # H1-H3 unplaceable flanking R1 on this board's 26mm edge.
     for i, x in enumerate((177.8, 196.85, 215.9), start=1):
         ref = f"H{i}"
         c = sh.add_component("Mechanical:MountingHole_Pad", ref, "M3",
                              (x, 71.12),
-                             footprint="MountingHole:"
-                                       "MountingHole_3.2mm_M3_Pad",
-                             expect={"1": "1"})
+                             footprint="aiee:"
+                                       "MountingHole_3.2mm_M3_Pad_5.0mm",
+                             fields=H_FIELDS, expect={"1": "1"})
         c.in_bom = False        # a mounting hole is not a BOM line
         c.on_board = True       # ... but it IS a placement (6 footprints)
         sh.wire_pin(ref, "1", GND)

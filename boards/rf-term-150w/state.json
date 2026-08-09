@@ -3,7 +3,7 @@
  "board": "rf-term-150w",
  "workspace": "boards/rf-term-150w",
  "created": "2026-08-08T22:33:40",
- "updated": "2026-08-09T02:00:44",
+ "updated": "2026-08-09T03:36:21",
  "phase": "P6",
  "gates": {
   "sim": {
@@ -34,15 +34,15 @@
   "erc": {
    "phase": "P4",
    "status": "pass",
-   "attempts": 1,
+   "attempts": 2,
    "last": {
-    "ts": "2026-08-09T01:47:45",
+    "ts": "2026-08-09T02:12:27",
     "status": "pass",
     "failing_count": 0,
     "total": 0,
     "inputs": {
-     "sch": "sexpr_no_uuid:a6844623cff7843125fa373e73d7d58c538c6a9a6e6495fd251d1ac772a50213",
-     "pro": "json_canonical:ac2fc2bf0113e4a737b4cf949e1b2a9d54731faa2f3edce9355c9a14c211b5aa"
+     "sch": "sexpr_no_uuid:420fe62493c77c30d0907c71e55503312432940c837489b1a046fc30c898d275",
+     "pro": "json_canonical:767fd0c802179e295e841c806a5f586b3071e4b47a139e1a5021a562afd55c29"
     }
    },
    "history": [
@@ -55,11 +55,61 @@
       "sch": "sexpr_no_uuid:a6844623cff7843125fa373e73d7d58c538c6a9a6e6495fd251d1ac772a50213",
       "pro": "json_canonical:ac2fc2bf0113e4a737b4cf949e1b2a9d54731faa2f3edce9355c9a14c211b5aa"
      }
+    },
+    {
+     "ts": "2026-08-09T02:12:27",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "sch": "sexpr_no_uuid:420fe62493c77c30d0907c71e55503312432940c837489b1a046fc30c898d275",
+      "pro": "json_canonical:767fd0c802179e295e841c806a5f586b3071e4b47a139e1a5021a562afd55c29"
+     }
+    }
+   ]
+  },
+  "place": {
+   "phase": "P6",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-08-09T03:35:33",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0,
+    "inputs": {
+     "pcb": "sexpr_no_uuid:e91ca64470d994d69c7404806c67c1924017653694bdc8caa2fe57570fb79555",
+     "constraints": "json_canonical:30ad1b62651038573a1b7415ccbaf6d6f8b8b5660693a0492f71c0fb643b15aa",
+     "decoupling": null
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-09T03:35:33",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:e91ca64470d994d69c7404806c67c1924017653694bdc8caa2fe57570fb79555",
+      "constraints": "json_canonical:30ad1b62651038573a1b7415ccbaf6d6f8b8b5660693a0492f71c0fb643b15aa",
+      "decoupling": null
+     }
     }
    ]
   }
  },
- "human": {},
+ "human": {
+  "2": {
+   "status": "approved",
+   "ts": "2026-08-09T02:13:02",
+   "note": "auto-approved under the user's no-questions directive; reviewer: circuit clean, 1 P9 BOM-delivery error recorded, 3 warnings"
+  },
+  "3": {
+   "status": "approved",
+   "ts": "2026-08-09T03:36:21",
+   "note": "auto-approved under the no-questions directive; top render reviewed and matches intent; place gate 0 violations, DRC 0 warn / 0 parity"
+  }
+ },
  "artifacts": {
   "sims": {
    "path": "kicad/sims",
@@ -70,14 +120,32 @@
   "sch": {
    "path": "kicad/rf-term-150w.kicad_sch",
    "kind": "sch",
-   "sha256": "sexpr_no_uuid:a6844623cff7843125fa373e73d7d58c538c6a9a6e6495fd251d1ac772a50213",
-   "hashed": "2026-08-09T01:47:45"
+   "sha256": "sexpr_no_uuid:420fe62493c77c30d0907c71e55503312432940c837489b1a046fc30c898d275",
+   "hashed": "2026-08-09T02:12:27"
   },
   "pro": {
    "path": "kicad/rf-term-150w.kicad_pro",
    "kind": "pro",
-   "sha256": "json_canonical:ac2fc2bf0113e4a737b4cf949e1b2a9d54731faa2f3edce9355c9a14c211b5aa",
-   "hashed": "2026-08-09T01:47:45"
+   "sha256": "json_canonical:767fd0c802179e295e841c806a5f586b3071e4b47a139e1a5021a562afd55c29",
+   "hashed": "2026-08-09T02:12:27"
+  },
+  "pcb": {
+   "path": "kicad/rf-term-150w.kicad_pcb",
+   "kind": "pcb",
+   "sha256": "sexpr_no_uuid:e91ca64470d994d69c7404806c67c1924017653694bdc8caa2fe57570fb79555",
+   "hashed": "2026-08-09T03:35:33"
+  },
+  "constraints": {
+   "path": "kicad/constraints.json",
+   "kind": "constraints",
+   "sha256": "json_canonical:30ad1b62651038573a1b7415ccbaf6d6f8b8b5660693a0492f71c0fb643b15aa",
+   "hashed": "2026-08-09T03:35:33"
+  },
+  "decoupling": {
+   "path": "kicad/decoupling.json",
+   "kind": "decoupling",
+   "sha256": null,
+   "hashed": "2026-08-09T03:35:33"
   }
  },
  "open_issues": [],
@@ -381,6 +449,54 @@
    "why": "board_init parity cleared 3->0 by adding Datasheet/Description properties to the LIBRARY footprints (incl. a local clone of J1's stock footprint) rather than by board surgery - the board was not yet placed or routed so regeneration was free. Root cause confirmed empirically: DRC parity compares only fields present on the schematic symbol INSTANCE, not inherited library defaults.",
    "phase": "P5",
    "ts": "2026-08-09T02:00:44"
+  },
+  {
+   "what": "BLOCKING FOR P9: deliver the BOM from the schematic, not from bom_cpl's pos export",
+   "why": "Verified by reading bom_cpl.py: build_bom() iterates the parts list derived from the POS export, so --parts can only attach an LCSC to a ref already there - a footprint with exclude_from_pos_files can never appear. R1 carries that attr (correctly - it is not a machine-placed part), so the delivered BOM would ship with C1 and J1 and NO 50 ohm load resistor. No gate catches this: dfm_check's missing_lcsc only inspects parts already in the pos report. Deliver BOM.csv authored from kicad-cli sch export bom (3 lines) with DigiKey PNs hand-carried, and use bom_cpl only for the CPL.",
+   "phase": "P9",
+   "ts": "2026-08-09T02:13:02"
+  },
+  {
+   "what": "CPL legitimately contains 2 rows (C1, J1); R1 is documented as not machine-placed",
+   "why": "R1's body bolts to the user's heatsink off-board - its only board feature is the tab lap pad, so a CPL 'position' for it would mislead an assembler. Board is hand-built anyway (A5). README states BOM = 3 lines, CPL = 2 placements, both inside the <=4 line / <=6 placement cap.",
+   "phase": "P9",
+   "ts": "2026-08-09T02:13:02"
+  },
+  {
+   "what": "H2 checkpoint auto-approved on the user's standing delegation",
+   "why": "The user instructed: do not ask clarifying questions, make assumptions, record them, and proceed. Schematic reviewer returned 1 error (BOM completeness - a P9 delivery issue, not a circuit defect) and 3 warnings, all recorded with owners. The circuit itself reviewed CLEAN on every axis including the C1 safety property, verified in the committed .kicad_pcb. Proceeding to P6; all findings surface in the final report.",
+   "phase": "P4",
+   "ts": "2026-08-09T02:13:02"
+  },
+  {
+   "what": "Mounting-hole pad shrunk 6.4 -> 5.0 mm dia; outline stays 26x20",
+   "why": "Placement proved the intent geometrically impossible: legality uses pad-BBOX, making R1 a 14.2x7.5 mm solid rect and each M3 hole a 6.9 mm square, so only one hole fits in R1's Y-band. Flanking holes need offset >=10.55 mm but the board allows <=9.50 - short 1.05 mm per side. D<=5.35 closes it; D=5.0 gives a 0.9 mm annular ring on a 3.2 mm drill, well inside fab floors, and was verified legal with zero violations. Footprint swap only - growing the board to 28.1 mm would need a full P5 redo because the outline binds permanently.",
+   "phase": "P6",
+   "ts": "2026-08-09T02:34:53"
+  },
+  {
+   "what": "OVERRIDING my own no-launch-trade instruction: move J1 to Yj=4.20, launch 4.50 -> 8.45 mm",
+   "why": "New information the instruction predates: at the launch floor the SMA coupling nut sweeps to 0.45 mm from C1's body in plan, ~2 mm above the board, on an axis height SCALED OFF A DRAWING and not published by the vendor. A nut that fouls the trimmer makes the board unusable and the tuning requirement unmeetable. Cost is +1.9 nH = 0.03 dB against 6.14 dB of margin and a 12.07 ohm / 76.9 nH failure threshold; it also removes 4 silk warnings. The instruction existed to stop casual spreading, not to override a mechanical conflict.",
+   "phase": "P6",
+   "ts": "2026-08-09T02:34:54"
+  },
+  {
+   "what": "R1 footprint silk must be repaired: 0.12 mm text vs the 0.15 mm board floor, plus silk-over-copper",
+   "why": "All 13 silk warnings belong to R1's own footprint graphics (BOLT CL / FLANGE/TAB CL labels), not to refdes, so place_edit cannot fix them - it needs a footprint edit. drc_routed requires err+warn = 0 at any severity, so these are blocking, not cosmetic.",
+   "phase": "P6",
+   "ts": "2026-08-09T02:34:54"
+  },
+  {
+   "what": "AMENDS the P2 collinearity decision: J1 sits 2.70 mm west of R1's tab axis",
+   "why": "Symmetric flanking holes pin R1's axis to x in [12.65,13.35]. With J1 collinear, C1 only fits rotated 90/270, which needs 11.1 mm of Y and leaves a 0.3 mm window where the M3 head keepout lands 0.64 mm from C1's RF pad - under the 0.80 mm HV floor. Rotating C1 to 180 needs 8.1 mm of Y but forces J1 to x <= 10.40. Cost of the offset is +0.39 mm of trace = +0.12 nH against a 9.5x margin. blocks.md s3.3 and constraints.json._note_edges are superseded by this.",
+   "phase": "P6",
+   "ts": "2026-08-09T03:36:21"
+  },
+  {
+   "what": "Flanking holes sit 3.87 mm north of the strap lands, not beside them",
+   "why": "R1's own BOLT CL footprint silk (glyph top at y 16.695) vetoes anything lower. Benign under the adopted B3 decision because the SOLDERED STRAPS carry the RF return, not the screws - this geometry would only matter under the superseded screw-return assumption.",
+   "phase": "P6",
+   "ts": "2026-08-09T03:36:21"
   }
  ],
  "edits": [],
@@ -789,6 +905,74 @@
    "ts": "2026-08-09T02:00:44",
    "event": "decision",
    "what": "P5 complete: 26x20 2L JLC2313_1.6, parity 0, 10 rules"
+  },
+  {
+   "ts": "2026-08-09T02:12:27",
+   "event": "gate",
+   "gate": "erc",
+   "status": "pass",
+   "attempt": 2,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-09T02:13:02",
+   "event": "decision",
+   "what": "BLOCKING FOR P9: deliver the BOM from the schematic, not from bom_cpl's pos export"
+  },
+  {
+   "ts": "2026-08-09T02:13:02",
+   "event": "decision",
+   "what": "CPL legitimately contains 2 rows (C1, J1); R1 is documented as not machine-placed"
+  },
+  {
+   "ts": "2026-08-09T02:13:02",
+   "event": "decision",
+   "what": "H2 checkpoint auto-approved on the user's standing delegation"
+  },
+  {
+   "ts": "2026-08-09T02:13:02",
+   "event": "human",
+   "checkpoint": "2",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-08-09T02:34:53",
+   "event": "decision",
+   "what": "Mounting-hole pad shrunk 6.4 -> 5.0 mm dia; outline stays 26x20"
+  },
+  {
+   "ts": "2026-08-09T02:34:54",
+   "event": "decision",
+   "what": "OVERRIDING my own no-launch-trade instruction: move J1 to Yj=4.20, launch 4.50 -> 8.45 mm"
+  },
+  {
+   "ts": "2026-08-09T02:34:54",
+   "event": "decision",
+   "what": "R1 footprint silk must be repaired: 0.12 mm text vs the 0.15 mm board floor, plus silk-over-copper"
+  },
+  {
+   "ts": "2026-08-09T03:35:33",
+   "event": "gate",
+   "gate": "place",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-09T03:36:21",
+   "event": "decision",
+   "what": "AMENDS the P2 collinearity decision: J1 sits 2.70 mm west of R1's tab axis"
+  },
+  {
+   "ts": "2026-08-09T03:36:21",
+   "event": "decision",
+   "what": "Flanking holes sit 3.87 mm north of the strap lands, not beside them"
+  },
+  {
+   "ts": "2026-08-09T03:36:21",
+   "event": "human",
+   "checkpoint": "3",
+   "status": "approved"
   }
  ]
 }

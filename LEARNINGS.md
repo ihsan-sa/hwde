@@ -2824,3 +2824,129 @@ that KiCad prepends, which is exactly what `schlib`'s docstring means by "sheet-
 `/NAME` (root)". Same trap in reverse for power symbols: those Values ARE the literal net name and
 must stay bare (`+VIN`, not `/+VIN`). Verify by dumping the exported names
 (`grep -oE '\(name "[^"]*"' board.net | sort -u`), not by reading the schematic.
+
+## 2026-08-09 [schematic][kicad-sch-api][schem_refdes] A rot-90 symbol's Reference and Value overprint each other: KiCad rotates field TEXT with the symbol, schem_refdes does not
+rf-term-150w P4, C1 (a 2-pin trimmer drawn as a vertical shunt at `rotation=90`). The saved file
+looked correct - `(property "Reference" ... (at 102.36 74.93 0))` and `(property "Value" ... (at
+102.36 77.47 0))`, two distinct points 2.54 mm apart, field angle 0, and `schem_refdes` reported
+`residue: []`. The PLOT showed `1-3(C1)0pF`: KiCad ADDS the symbol's rotation to the field's own
+angle, so both strings render VERTICALLY, and two vertical strings whose only separation is 2.54 mm
+of Y overlap almost completely (each is ~8 mm long in Y). schem_refdes separates the pair along Y
+because it models the text as horizontal. Cosmetic only - ERC 0/0 and the netlist is identical - so
+no gate sees it. Cheapest fix on a 2-pin passive is to draw it HORIZONTALLY (rot 0/180) and let the
+GND power symbol carry the "this is a shunt" meaning; the general fix would be for schem_refdes to
+add the symbol rotation to the field angle before choosing an axis. Related: a narrow custom symbol
+that SHOWS long pin names (`aiee:5602`, names "STATOR"/"ROTOR" on a 1.02 mm-wide body) prints them
+on top of each other and of the fields at any rotation - `(pin_names (offset 1.016) (hide yes))` on
+the library symbol is the fix, and `expect={...}` pin-name insurance still works because the name is
+only hidden, not removed.
+
+## 2026-08-09 [schematic][kicad-sch-api] Sheet text is CENTRED on its `at` point and `add_text` has no justify parameter - long note blocks run off the page
+Same board. `sch.add_text(line, position=(25.4, y))` for a 90-character assembly note put the middle
+of the line at x = 25.4, so half of every line rendered off the left edge of the A4 sheet - visible
+only on the plot, never in the file. `kicad_sch_api` 0.5.6 exposes bold/italic/size/color/face on
+`add_text` but NOT justification (`labels.py` takes `justify_h`, `texts.py` does not), so the only
+route is a post-save pass that inserts `(justify left)` into each top-level `(text ...)`'s
+`(effects ...)`. Two more measured limits on the same block: the A4 title block starts at about
+y = 185 mm, so a note block must end above it; and a title longer than ~45 characters is clipped by
+the right edge of the title block.
+
+## 2026-08-09 [placement][geometry][python] placelib's effective courtyard is `declared courtyard UNION the single pad BBOX` - a spread multi-pad part claims the empty space between its pads and can make a small board unplaceable
+rf-term-150w P6 (6 footprints, 26 x 20 mm, 2 nets). `Footprint.extents_local()` unions the declared
+F.CrtYd with `_pad_box_local()`, and that helper is ONE bbox over ALL pads, not per-pad boxes. Two
+consequences measured on this board: (a) `MountingHole:MountingHole_3.2mm_M3_Pad` draws a 6.9 mm
+CIRCLE courtyard but its effective extent is a 6.9 mm SQUARE (6.4 pad + 0.25), because the circle
+does not contain the pad box - 47.6 mm2 not 37.4; (b) the custom `aiee:R_LapPad_T50R0-250-12X`
+(5.0 x 7.0 lap pad + two 3.5 x 2.0 strap lands at +/-5.10 mm) gets a 14.2 x 7.5 mm solid rectangle,
+so the ~4 x 5 mm of BARE BOARD either side of the lap pad is claimed even though the part's body is
+entirely off-board. Trimming the footprint's F.CrtYd does NOT help - the pad-bbox union re-inflates it.
+Result: with R1 pinned to a 26 mm edge, the two side strips beside its extent sum to
+26 - 14.2 - 0.1 = 11.7 mm, so only ONE 6.9 mm hole can ever sit beside it, and the four free items
+(C1 + 3 holes) provably cannot all be placed - `place_seed` reported "could not legalize cluster
+H2/H3" and all 3 `place_anneal` candidates came back 4-5 violations / 48-64 mm2. The arithmetic that
+predicts this before you place anything: for a part of extent width W centred on axis Xa on a board
+of width B, a square extent of side S fits beside it iff `B >= W + 2*S + 2*edge_inset`. Corollary for
+scoping: a mounting hole's PAD diameter, not its drill, sets the board width - dropping M3 pads from
+6.4 to <=5.35 mm made this same intent fully legal with no outline change.
+
+## 2026-08-09 [placement][constraints] `placement.fixed` silently DISABLES every separation constraint that names those refs
+sbuck-5v3a P6. `placement.fixed` does two things, only one of which is documented: (a) `place_seed`
+and `place_anneal` never move those footprints (they become obstacles - `place_seed.py:441`,
+`place_anneal.py:302`); (b) because separation pairs are resolved through `ref2cid` (cluster ids) and
+fixed refs are excluded from the cluster list, EVERY `placement.separation` entry that references a
+fixed ref is dropped. Here `fixed = [H1-H4, J1, J2, U1, L1]` turned into
+`separation_unknown_refs = ['C4','F1','J2','L1','U1']` - i.e. all four separations (C4>=12 mm from
+U1/L1, F1>=10, R6/R7>=5 from L1, J2>=14 from U1/L1) had ZERO cost weight. The refs are surfaced in
+`facts.separation_unknown_refs` (S14 fix) but the run still "succeeds". Separation is also a SOFT
+squared-distance cost on cluster CENTRES, never a legality violation, so `gate place` cannot catch it
+either. If a separation matters, the P6 agent must measure it by hand after placing.
+
+## 2026-08-09 [placement][kicad] Schematic-sourced mounting holes trip their OWN keepout rects - lock them
+With `board_init --mounting-holes 0` the M3 holes arrive as ordinary schematic footprints, so
+`f.is_movable` is True and `legality_violations` tests them against `placement.keepouts` - each hole
+intersects the very rect that exists to protect it (4 x 37.33 mm2 "keepout_violation"). Both the
+keepout test and the outside-outline test are gated on `is_movable`, so a single
+`{"op":"lock","ref":"H1","locked":true}` clears it; no geometry change is needed. Real `board_only`
+holes (the `--mounting-holes N` path) are exempt by construction.
+
+## 2026-08-09 [constraints][placement] The board-local -> absolute keepout translation is a real, silently-skipped step
+`constraints.json` for sbuck-5v3a warns in its own `_comment` that `placement.keepouts` rects are
+BOARD-LOCAL and must be translated by `reports/board_init.json.outline_bbox` before P6. P5 did not do
+it. The failure mode is exactly as advertised - silent: three of the four untranslated corner rects
+landed entirely off-board (no effect at all), and the fourth, `[43,33,50,40]`, landed at board-local
+`[20.3,-4.2,27.3,2.8]` and produced ONE phantom violation against an unrelated part (C16) in the top
+edge band. Sanity check before trusting any keepout: compare `rect` against
+`board_init.json.outline_bbox` - if the numbers start near 0 while the outline starts at 22.72/37.225,
+nothing has been translated.
+
+## 2026-08-09 [placement][kicad][render] DB128L-5.08-2P wire entry is at local +Y, same as KF128 (270 = out the LEFT edge, 90 = out the RIGHT)
+Second footprint family confirming the 2026-07-28 KF128 finding, and again the constraint file was
+wrong: `placement.edges` declared `J1 rot 0` / `J2 rot 180`, which points both wire entries INTO the
+board. `render.py <board> --views left,right` settled it in one shot - the mouth shows as two dark
+cavities with the metal clamp visible, face-on, in exactly one view. The WRL alone was NOT decisive
+here: the mouth-end plastic face is the SHORTER one (z to ~7 mm vs ~10 mm at the closed end), which is
+the opposite of the "tall wall = wire entry" intuition, and the below-board pin cluster only fixes the
+x/y mapping, not which Y face is open. Use the side render; treat the WRL as corroboration.
+
+## 2026-08-09 [placement][thermal] SO-8EP (AP64350) cannot hold a 4x4 in-pad thermal via array - 12 is the geometric maximum
+`constraints.thermal[U1].min_vias = 16` and power.md's "target 16" are both unachievable: the vendor
+EP is 3.502 x 2.613 mm, and 4 rows of 0.55 mm lands at the 1.0 mm pitch need 3.55 mm, more than the
+2.613 mm axis. With JLC's `min_hole_to_hole 0.5` and a 0.3 mm drill the pitch floor is 0.8 mm, so the
+best in-pad array is 3 x 4 = 12 vias at 0.9-0.95 mm pitch. power.md's own "3.4 mm fits 4x4" assumed a
+SQUARE pad. Thermal cost of 12 vs 16: R_via = 25.3/(0.85*N) = 2.48 vs 1.90 K/W, i.e. +0.5 C of Tj at
+1.0 W - inside margin (the same note prices 9 vias at +1.3 C). Make the target "12 in-pad + >=8
+stitching vias in the surrounding F.Cu island", and never write a `min_vias` that the land pattern
+cannot physically hold - `check_thermal` will not catch it (its via warning needs dt_c/power_w < 51.1).
+
+## 2026-08-09 [routing][rules_gen][placement] A per-net `track_width` floor makes every SMALL-PART STUB on that net illegal, not just the trunk
+sbuck-5v3a's `.kicad_dru` carries `aiee_pwr_width_SW (min 2.31mm)` for `/SW`. `/SW` does not only
+reach the inductor - it also reaches the bootstrap cap (0603, 0.8 x 0.9 mm pads), the DNP snubber
+(1206) and TP2. A 2.31 mm track cannot sensibly land on a 0.9 mm pad, and each such stub also spends
+the design's `<= 40 mm2` SW-area budget at 2.31 mm width. Same class as the 2026-07-28 pd-trigger VBUS
+finding, and the same fix: pour `/SW` as a ZONE (a zone is not a track, so the width rule does not
+apply and KiCad necks around foreign pads by itself). P6 consequence: place the BST cap / snubber /
+SW test point so their pads sit 0.7-1.2 mm from the main pour, otherwise the stubs alone blow the area
+ceiling.
+
+## 2026-08-09 [placement][drc][silk] Off-board-part footprint SILK (registration marks/labels) is a hard placement keepout for mounting holes
+rf-term-150w P6. `R_LapPad_T50R0-250-12X` carries two `BOLT CL` labels 9.21 mm off its own axis, on
+F.SilkS, so a builder can align a heatsink drilling template. They land 2.5 mm inboard of R1's origin,
+i.e. in the exact band where the two flanking M3 holes want to sit. Nothing in `placelib` sees them
+(legality is courtyard/pad-bbox only), and `check_silk` is lenient - but `drc_routed` fails on
+warnings, so a `silk_over_copper` there is a P7 blocker. Practical numbers for a 5.0 mm pad: the hole
+copper must clear the GLYPH extent, which is `+/-(size/2 + thickness/2)` = +/-0.475 mm at size 0.8 -
+NOT the `+/-(1.6*size+t)/2` = +/-0.715 mm GetBoundingBox height. Designing to the bbox costs 0.24 mm
+of board per side. Confirmed live: `min_silk_clearance` is 0.0 in the generated `.kicad_pro`, so DRC
+fires only on real glyph overlap. Consequence here: the flanking holes had to sit 3.9 mm north of the
+strap lands they flank.
+
+## 2026-08-09 [placement][anneal] place_anneal cannot rotate a `placement.groups` satellite - a big satellite makes the board unsolvable by SA
+rf-term-150w declares `{"name":"port","anchor":"J1","members":["C1"]}`. C1 is a 7.5 mm trimmer whose
+courtyard is 11.1 x 8.1 mm; J1's courtyard is 8.3 x 16.2 mm. The satellite rides its anchor as a rigid
+unit at whatever rotation the seed gave it, so on a 26 x 20 mm board neither seed nor anneal ever finds
+a legal placement: `place_seed` exits 1 with `courtyard overlap J1/R1` + `C1 extends 77.6 mm2 outside
+the outline`, and `place_anneal` returns 2 candidates, both `legal: false`, after 33 720 moves (it only
+had 3 movable clusters - the two edge-pinned parts and the satellite are all frozen). This is NOT the
+"escalate, board too small" case: hand placement solved it at HPWL 54.4 mm vs seed 68.5 / anneal 67.6.
+Read `movable_clusters` in the anneal report first - if it is <= half the footprint count, stage 3 is
+the whole job and the SA numbers are noise.

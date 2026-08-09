@@ -1,0 +1,81 @@
+{
+ "script": "silk_place",
+ "status": "violations",
+ "board": "rf-term-150w.kicad_pcb",
+ "counts": {
+  "total": 1,
+  "by_severity": {
+   "warning": 1
+  },
+  "by_source": {
+   "silk_place": 1
+  }
+ },
+ "violations": [
+  {
+   "check": "silk_place",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": null,
+   "refs": [
+    "J1"
+   ],
+   "msg": "J1: no collision-free candidate within +3.0 mm push (channel narrower than the label)",
+   "source": "silk_place",
+   "items": [
+    {
+     "msg": "J1: no collision-free candidate within +3.0 mm push (channel narrower than the label)",
+     "pos": null
+    }
+   ],
+   "kind": "silk_residual"
+  }
+ ],
+ "targets": 6,
+ "moved": 5,
+ "residual": [
+  {
+   "ref": "J1",
+   "reason": "no collision-free candidate within +3.0 mm push (channel narrower than the label)"
+  }
+ ],
+ "skipped": [],
+ "min_silk_clearance": 0.0,
+ "median_beyond_extent_mm_before": 0.375,
+ "median_beyond_extent_mm": 0.35,
+ "ops_out": "boards\\rf-term-150w\\kicad\\silk_ops.json",
+ "results": [
+  {
+   "ref": "R1",
+   "moved": true,
+   "clearance_mm": 0.1,
+   "beyond_extent_mm": 2.1
+  },
+  {
+   "ref": "C1",
+   "moved": true,
+   "clearance_mm": 0.3,
+   "beyond_extent_mm": 0.35
+  },
+  {
+   "ref": "H1",
+   "moved": true,
+   "clearance_mm": 0.3,
+   "beyond_extent_mm": 0.35
+  },
+  {
+   "ref": "H2",
+   "moved": true,
+   "clearance_mm": 0.3,
+   "beyond_extent_mm": 0.35
+  },
+  {
+   "ref": "H3",
+   "moved": true,
+   "clearance_mm": 0.3,
+   "beyond_extent_mm": 0.35
+  }
+ ],
+ "applied": true
+}
