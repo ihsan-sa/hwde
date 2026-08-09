@@ -63,30 +63,45 @@ defence in depth, not the primary protection.
    re-optimising per frequency is not what the spec means.
 6. Remove the tool, re-read, then apply full power.
 
-### Tuning range
+### Tuning range - and an honest limitation
 
-C1 is a Johanson 5602, **1-30 pF**, plus ~1.3 pF of unavoidable pad/mounting
-parasitic in parallel = **2.3-31.3 pF** in circuit.
+C1 is a Johanson 5602, **1-30 pF**. It is *not* the only capacitance at the
+port: the as-routed launch (15.065 mm of mostly-wide trace plus the 5.0 x 7.0 mm
+lap pad) contributes **~4.7 pF** of its own. Total in circuit is therefore
+**5.7-34.7 pF**.
 
 Solved from the true null condition `wC = X/(R^2 + X^2)` (not the `C = L/R^2`
 approximation, which is 7 % optimistic at the top of the range):
 
-| Trimmer | In-circuit C | Cancels series X at 25 MHz | Equivalent series L |
+| C1 setting | Total shunt C | Cancels series X at 25 MHz | Equivalent series L |
 |---|---|---|---|
-| full CCW | 2.3 pF | 0.904 ohm | **5.75 nH** |
-| full CW | 31.3 pF | 13.14 ohm | **83.65 nH** |
+| full CCW (1 pF) | 5.7 pF | 2.243 ohm | **14.28 nH** |
+| full CW (30 pF) | 34.7 pF | 14.825 ohm | **94.38 nH** |
 
-**Adjustment range: residual series inductance 5.75 nH to 83.65 nH** can be
-nulled exactly. Below 5.75 nH the trimmer bottoms out, but its over-correction
-there is worth under 0.4 % reflection, so **>= 26 dB is actually held from
-0 nH to ~103 nH**. This board's own as-routed residual is **7.21 nH**, which
-sits just inside the exact-null window with authority in both directions.
+> ### Achievable adjustment range: residual series inductance **14.3 nH to 94.4 nH**.
 
-That is deliberate, and it is why the RF trace is not flared as wide as it
-would go: widening further would have pushed the residual *below* 5.75 nH, so
-C1 would have bottomed out and there would be no demonstrable two-sided null -
-i.e. optimising the headline inductance would have broken the very
-"operator-adjustable" requirement the trimmer exists to satisfy.
+> ### Limitation, stated plainly: this board's own residual is 7.21 nH, which is
+> ### BELOW that window. C1 sits at its low stop with upward-only authority.
+
+**What that means in practice.** The launch's own shunt capacitance already
+over-compensates the residual inductance, so there is no null for the operator
+to find - turning C1 up only makes the match worse. This is not a failure of
+the load: at the low stop it measures **39.1 dB** nominal and **31.2 dB** at the
++5 % resistance corner, against a 26 dB spec. The launch nulls itself better
+than the trimmer could.
+
+C1 still earns its place - it covers builds whose residual lands *inside*
+14.3-94.4 nH, which is what you get with a long tab lap, thick or long ground
+straps, or a rework. It is insurance against build variation, not a
+nominal-case adjustment.
+
+**If you require a genuine two-sided null at Fc**, say so and I will respin:
+the launch must be made deliberately worse - roughly +7 nH of series
+inductance (a meander at the 0.9392 mm current-limited minimum width) or a
+smaller lap pad to cut the parasitic. The return-loss cost is small (a 20 nH
+residual still gives ~31.6 dB at the +5 % corner), but it is a real
+degradation of the primary spec bought to exercise a secondary feature, so I
+did not do it unasked.
 
 ### What the trimmer cannot do
 
@@ -106,8 +121,9 @@ Spec is 26 dB. Even the corner nobody should ship - an unselected +5 % part -
 clears it by 6.2 dB.
 
 This is also why an ordinary "non-inductive" bolt-down power resistor cannot
-substitute: at the typical 0.1 uH spec limit, X = 15.7 ohm gives 26.6 dB at
-best and 25.5 dB with a +5 % part - a spec failure the trimmer cannot rescue.
+substitute: at the typical 0.1 uH spec limit, X = 15.71 ohm gives **26.55 dB**
+at best and **23.46 dB** with a +5 % part - a spec failure the trimmer cannot
+rescue, because it is a *resistive* error by the time it reaches the port.
 
 ---
 
@@ -214,6 +230,17 @@ entire error budget. A 3x change in inductance moves return loss by <1 dB; the
   cool-down before handling.
 - **>30 V.** 122.5 Vpeak at the port. Never tune at full power; see 2.
 - **Never key the transmitter with the port unmated.**
+- **No protection of any kind.** This is a bare passive load: no fusing, no
+  over-temperature cutout, no interlock, no VSWR trip, no enclosure. If it is
+  driven beyond the derated power for its heatsink, nothing intervenes -
+  the element runs up its derating curve until it fails. Provide external
+  protection if the driving source can exceed the rating.
+- **R1's datasheet publishes no maximum voltage or current rating at all.**
+  The 86.6 Vrms / 1.732 Arms operating point is inferred from the 250 W power
+  rating into 50 ohm, not read off a limit line. Do not assume headroom.
+- **SMA is a low-mating-cycle connector** (typically a few hundred cycles, not
+  published for this part). For a load that gets moved between rigs often,
+  expect the jack to wear out before anything else does.
 
 ---
 

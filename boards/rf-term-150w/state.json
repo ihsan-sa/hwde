@@ -3,7 +3,7 @@
  "board": "rf-term-150w",
  "workspace": "boards/rf-term-150w",
  "created": "2026-08-08T22:33:40",
- "updated": "2026-08-09T04:14:21",
+ "updated": "2026-08-09T04:35:15",
  "phase": "P9",
  "gates": {
   "sim": {
@@ -199,6 +199,11 @@
    "status": "approved",
    "ts": "2026-08-09T03:36:21",
    "note": "auto-approved under the no-questions directive; top render reviewed and matches intent; place gate 0 violations, DRC 0 warn / 0 parity"
+  },
+  "4": {
+   "status": "approved",
+   "ts": "2026-08-09T04:35:15",
+   "note": "auto-approved under the no-questions directive. Verify reviewer: 0 errors, 11 warnings, both waiver groups confirmed independently. V1 (stale shunt-C budget) accepted as a documented partial miss on requirement 4; V2-V7 fixed."
   }
  },
  "artifacts": {
@@ -642,6 +647,18 @@
    "why": "Inherited from the stock KiCad SMA footprint. dfm gate PASSES (warning severity). Fixing needs surgery on a routed, gate-clean board plus a full drc_routed/verify/dfm re-gate, to improve legibility of a connector outline whose orientation is already unambiguous from four symmetric ground legs and a centre pin. Regression risk outweighs a cosmetic gain.",
    "phase": "P9",
    "ts": "2026-08-09T04:12:24"
+  },
+  {
+   "what": "PARTIAL MISS on brief requirement 4 accepted and documented: C1 has upward-only authority, no two-sided null",
+   "why": "The as-routed launch (15.065 mm of wide trace + a 5x7 mm lap pad) contributes ~4.7 pF of shunt C, not the 1.30 pF the P2 architecture assumed from a 3.55 mm launch. Total 5.7-34.7 pF nulls residual L from 14.28 to 94.38 nH, but the board's own residual is 7.21 nH - BELOW the window - so C1 bottoms out. Confirmed three ways (reviewer, my closed form, and the parallel-plate + C'=0.176 pF/mm estimate). NOT respun: at the low stop the board still measures 39.1 dB nominal / 31.2 dB at the +5 pct corner against a 26 dB spec, and restoring a two-sided null needs ~+7 nH of deliberate meander or a smaller solder lap - degrading the PRIMARY spec and the 1.7 A joint to exercise a secondary feature. Documented in README with the respin offer and its price.",
+   "phase": "P8",
+   "ts": "2026-08-09T04:35:15"
+  },
+  {
+   "what": "Reverses decision 58's stated rationale for stopping the flare",
+   "why": "Decision 58 said the router stopped flaring to stay above C1's null floor. With the parasitic corrected to 4.7 pF that floor is 14.28 nH, not 5.75 nH, so the board was already below it and flaring further would not have changed the outcome. The stopping point remains fine; the REASON recorded for it was wrong and is corrected here rather than left to mislead a later reader.",
+   "phase": "P8",
+   "ts": "2026-08-09T04:35:15"
   }
  ],
  "edits": [],
@@ -1204,6 +1221,22 @@
    "ts": "2026-08-09T04:14:21",
    "event": "phase_complete",
    "note": "P9 complete: fab package exported, BOM authored from schematic, dfm pass. P10 ordering NOT requested (A9)."
+  },
+  {
+   "ts": "2026-08-09T04:35:15",
+   "event": "decision",
+   "what": "PARTIAL MISS on brief requirement 4 accepted and documented: C1 has upward-only authority, no two-sided null"
+  },
+  {
+   "ts": "2026-08-09T04:35:15",
+   "event": "decision",
+   "what": "Reverses decision 58's stated rationale for stopping the flare"
+  },
+  {
+   "ts": "2026-08-09T04:35:15",
+   "event": "human",
+   "checkpoint": "4",
+   "status": "approved"
   }
  ]
 }

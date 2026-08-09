@@ -1,14 +1,14 @@
-Designator,Qty per board,Value,MPN,Manufacturer,Distributor,Distributor PN,Unit price qty-5 USD,Extended for 5 boards USD,Notes
-R1,1,50R 250W,T50R0-250-12X,Vishay Intertechnology (Barry Industries),DigiKey,4353-T50R0-250-12X-ND,24.40,122.00,"50 ohm +/-5% 250 W thick film on BeO flanged termination DC-4 GHz. SELECT-ON-TEST: 4-wire measure each part, accept 49.00-51.00 ohm, order spares. BeO substrate - do not machine, drill or break. Mounts OFF-BOARD to the user's heatsink; only its RF tab laps onto the PCB. Not a machine-placed part, so absent from CPL.csv by design."
-C1,1,1-30pF,5602,Johanson Manufacturing Corp. (Knowles Precision Devices),DigiKey,1956-1000-ND,63.37,316.85,"Air-dielectric trimmer 1-30 pF, 250 VDC, -65/+125 C, top-adjust. Tuning tool Johanson 8764 (0.130 in shank). Threaded case = GND, insulated lead = RF. Chosen over the cheaper Vishay BFC280811339 ONLY because that part is rated -40/+70 C and this board runs 74-88 C at full 150 W CW - see README section 6 for the reduced-duty alternative that saves 272 USD per build of 5."
-J1,1,SMA,SMA-KWE,Lian Xin Technology,LCSC,C7498154,0.561,2.81,"SMA female right-angle THT jack, 50 ohm, 335 Vrms working, DC-6 GHz."
-,,,,,,,BOM subtotal for 5 boards,441.66,
-,,,,,,,PCB 2L 26x20 mm qty 5 (JLC estimate; treat as a lower bound),2.00,"jlc_pricing.yaml measured bias: the headline estimate runs 1.9-3.1x low on real boards, so budget ~4-6 USD. Excludes shipping and tax."
-,,,,,,,TOTAL for a build of 5,443.66,"Against the brief's 40 USD cap - about 11x. Reported, not engineered away. R1 is a materials floor (>=250 W class needs BeO/AlN RF ceramic); C1 is bought entirely by the CW duty assumption A2."
-,,,,,,,,,
-,,,,,,,USER-SUPPLIED HARDWARE (not PCB placements),,
-,,,,,,,3x M3 screw + 1.0 mm shim washer,,"Prefer INSULATING shims (PEEK/nylon/fibre) - they are not needed electrically and they keep C1 cooler. 1.0 mm sets top copper at 2.635 mm against R1's tab underside at 2.667 mm."
-,,,,,,,2x M3 screw for R1 flange,,"Into the heatsink, 18.42 mm apart, through R1's own 3.302 mm flange holes."
-,,,,,,,2x copper strap,,"Soldered R1 flange -> the two PCB GND lands. THIS IS THE ONLY RF RETURN PATH - do not rely on the bolted heatsink joint (418 pF / 15.2 ohm at 25 MHz on an anodised sink)."
-,,,,,,,Thermal grease,,"Thin even joint. On the 2.359 cm2 flange a 0.5 C.cm2/W joint costs 0.212 C/W - a third of the whole 0.633 C/W budget."
-,,,,,,,Heatsink,,"Must be <=0.421 C/W in free air for 150 W CW. Needs a >=7 mm dia, >=5 mm deep clearance hole under C1 (its case protrudes 4.75 mm below the PCB). See README section 3."
+Designator,Qty per board,Value,MPN,Manufacturer,Distributor,Distributor PN,Unit price qty-5 USD,Extended for 5 boards USD,Notes,Stock at check,Stock verified
+R1,1,50R 250W,T50R0-250-12X,Vishay Intertechnology (Barry Industries),DigiKey,4353-T50R0-250-12X-ND,24.40,122.00,"50 ohm +/-5% 250 W thick film on BeO flanged termination DC-4 GHz. SELECT-ON-TEST: 4-wire measure each part, accept 49.00-51.00 ohm, order spares. BeO substrate - do not machine, drill or break. Mounts OFF-BOARD to the user's heatsink; only its RF tab laps onto the PCB. Not a machine-placed part, so absent from CPL.csv by design.",139 (DigiKey),2026-08-08
+C1,1,1-30pF,5602,Johanson Manufacturing Corp. (Knowles Precision Devices),DigiKey,1956-1000-ND,63.37,316.85,"Air-dielectric trimmer 1-30 pF, 250 VDC, -65/+125 C, top-adjust. Tuning tool Johanson 8764 (0.130 in shank). Threaded case = GND, insulated lead = RF. Chosen over the cheaper Vishay BFC280811339 ONLY because that part is rated -40/+70 C and this board runs 74-88 C at full 150 W CW - see README section 6 for the reduced-duty alternative that saves 272 USD per build of 5.",373 (DigiKey),2026-08-09
+J1,1,SMA,SMA-KWE,Lian Xin Technology,LCSC,C7498154,0.561,2.81,"SMA female right-angle THT jack, 50 ohm, 335 Vrms working, DC-6 GHz.",11800 (LCSC),2026-08-08
+,,,,,,,BOM subtotal for 5 boards,441.66,,,
+,,,,,,,PCB 2L 26x20 mm qty 5 (JLC estimate; treat as a lower bound),2.00,"jlc_pricing.yaml measured bias: the headline estimate runs 1.9-3.1x low on real boards, so budget ~4-6 USD. Excludes shipping and tax.",,
+,,,,,,,TOTAL for a build of 5,443.66,"Against the brief's 40 USD cap - about 11x. Reported, not engineered away. R1 is a materials floor (>=250 W class needs BeO/AlN RF ceramic); C1 is bought entirely by the CW duty assumption A2.",,
+,,,,,,,,,,,
+,,,,,,,USER-SUPPLIED HARDWARE (not PCB placements),,,,
+,,,,,,,3x M3 screw + 1.0 mm shim washer,,Prefer INSULATING shims (PEEK/nylon/fibre) - they are not needed electrically and they keep C1 cooler. 1.0 mm sets top copper at 2.635 mm against R1's tab underside at 2.667 mm.,,
+,,,,,,,2x M3 screw for R1 flange,,"Into the heatsink, 18.42 mm apart, through R1's own 3.302 mm flange holes.",,
+,,,,,,,2x copper strap,,Soldered R1 flange -> the two PCB GND lands. THIS IS THE ONLY RF RETURN PATH - do not rely on the bolted heatsink joint (418 pF / 15.2 ohm at 25 MHz on an anodised sink).,,
+,,,,,,,Thermal grease,,Thin even joint. On the 2.359 cm2 flange a 0.5 C.cm2/W joint costs 0.212 C/W - a third of the whole 0.633 C/W budget.,,
+,,,,,,,Heatsink,,"Must be <=0.421 C/W in free air for 150 W CW. Needs a >=7 mm dia, >=5 mm deep clearance hole under C1 (its case protrudes 4.75 mm below the PCB). See README section 3.",,
