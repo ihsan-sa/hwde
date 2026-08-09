@@ -147,6 +147,106 @@ Orchestrator-approved edits only.
   `lib_pin_types.py` re-run: 0 unexpected changes on the 19 untouched symbols (only the
   2 newly-pulled parts' pins changed) - confirms nothing else was disturbed.
 
+## Edit 5. D2 `SOD-123_L2.7-W1.6-LS3.7-RD` - silk stubs pulled back off pad 2's solder mask
+
+- **Authority:** explicit orchestrator approval (coordinator message, this P3 run). P6
+  found the defect during placement and correctly deferred it to the library owner
+  rather than hand-editing under placement pressure - `EDITS.md` requires orchestrator
+  sign-off for library edits, and P6 respected that.
+- **Why:** P6's routed-board DRC (`reports/p6_drc_final.json`) reported 2x
+  `silk_over_copper` "Silkscreen clipped by solder mask" warnings on D2, both against
+  pad 2 (net `/QGATE`, the anode). These are the only 2 warnings left in an otherwise
+  err+warn=0 P6 gate, and would fail P8 unchanged.
+- **Verified the coordinator's diagnosis independently before touching anything** (per
+  their explicit "do not take my transcription on faith"): reproduced the exact same 2
+  `silk_over_copper` warnings on an ISOLATED scratch board carrying a single instance of
+  this footprint alone (`fpfix.scratch_drc`, the same bundled-pcbnew "one footprint,
+  bare board, real `kicad-cli` DRC" method LEARNINGS 2026-07-28 documents for library
+  claims) - confirms the defect is intrinsic to the footprint, not an artifact of D2's
+  placement/rotation on the real board. The board's `pad_to_mask_clearance` is 0 (mask
+  = copper boundary exactly), so pad 2's Y half-extent (0.61 mm, from its
+  0.910 x 1.220 mm pad) plus the silk stroke's own half-width (0.075 mm) is what the
+  silk stub's near-end Y coordinate has to clear.
+- **Found the true DRC boundary by sweeping it, not by computing it:** temporarily
+  edited an ISOLATED COPY of the footprint (never the real library file) and re-ran the
+  same scratch-board DRC across candidate Y values. Result: **y=0.68 (the as-pulled
+  value) fails with the exact 2 violations; y=0.69 already clears completely, and stays
+  clear at every value tested up to 0.90.** The coordinator's proposed fix (0.68 ->
+  0.80) does clear, with roughly 0.11-0.12 mm of margin past the empirical fail/pass
+  boundary.
+- **Chose 0.85, not the proposed 0.80:** the general board-wide silk-to-copper
+  convention used elsewhere on this board (LEARNINGS' P6 recipe, `>= 0.25 mm`) is not
+  achievable here without deleting the stub outright - the segment's far end is 0.93,
+  and 0.61 (pad half-Y) + 0.075 (stroke half-width) + 0.25 = 0.935, past the far end.
+  Rather than either accept a value only ~0.01-0.02 mm off the measured failure
+  boundary (barely, the thing the coordinator explicitly ruled out) or delete the
+  feature, split the difference: **0.85** sits roughly at the midpoint between the
+  proposed value and the segment's own far end, giving real, deliberate headroom
+  (about 0.16-0.17 mm past the empirical clean boundary, well over the coordinator's
+  0.80) while still leaving a visible 0.08 mm decorative stub rather than erasing it.
+- **Change:** two `fp_line` segments only -
+  `(end 1.38 -0.68)` -> `(end 1.38 -0.85)` and `(end 1.38 0.68)` -> `(end 1.38 0.85)`.
+  Both are the near-pad ends of the short vertical silk stubs beside pad 2 (right
+  side). Nothing else in the file touched - confirmed by `git diff`: a 2-line change,
+  byte-identical everywhere else, including both pads, the courtyard, the pin-1/cathode
+  silk dot (`fp_circle` at -1.85, 0.80) and the two cathode-band corner `fp_poly`
+  squares.
+- **Polarity mark explicitly re-verified unchanged:** the cathode indicator sits on pad
+  1's side (left, x=-1.85/-1.3..-1.6), pad 2 (right, the edit site) is the anode - the
+  edit is nowhere near the polarity mark geometry, and the diff confirms it byte-for-
+  byte. Symbol pin1=K / pin2=A mapping (verified earlier this run) is untouched by a
+  footprint-only edit.
+- **Verification:** `fpfix.scratch_drc` on the real (now-edited) library file: **0
+  violations, status pass** (was 2). `kicad-cli fp export svg`: loads clean, exit 0.
+  Courtyard geometry (4 `fp_line` on `F.CrtYd`) confirmed byte-identical via `git diff`.
+
+## Propagation to the placed board - EXECUTED (orchestrator-approved, after this edit was proposed and verified in isolation)
+
+D2 was already placed on `boards/sbuck-5v3a/kicad/sbuck-5v3a.kicad_pcb` (P6 completed,
+25 structural footprints LOCKED after 8 edit iterations, D2 itself `(locked yes)`), so
+the library fix alone did not touch the board copy of D2's footprint - the two
+warnings would have persisted on the real board without a separate propagation step.
+
+**`board_update.py` does not apply here - confirmed empirically, not just read from its
+docstring.** A read-only `--dry-run` against the board's own current (unchanged)
+netlist reports `changes: 0` in every category (swap_same_fp/swap_new_fp/add/del) - D2
+does not appear at all, because nothing in the NETLIST changed (only the library
+`.kicad_mod` file did). Forcing a diff (e.g. bumping D2's footprint reference to make
+it look like a `swap_new_fp`) would work mechanically but is disproportionate for a
+silk-only fix: that mode is a del+add - it rips D2's 2 existing copper stubs (small,
+but real re-route work), resets rotation to 0 degrees unless the exact current
+`(at 43.62 60.825 180)` is captured and passed via `--placements`, and does not
+preserve `(locked yes)` (`update_swig.py` never touches the locked flag in any mode; a
+freshly `FootprintLoad`-ed footprint starts unlocked).
+
+**Executed path:** mirrored the identical 2-line text edit directly onto D2's OWN
+footprint block inside `sbuck-5v3a.kicad_pcb`, UUID-scoped exactly as recommended -
+`3888cf93-dc36-45b6-926f-d1c0c27fa277` (top, `end 1.38 0.68` -> `0.85`) and
+`4aafcafa-c025-4b5b-bc40-935f4eed1487` (bottom, `end 1.38 -0.68` -> `-0.85`). Nothing
+else in the file was touched: both `Edit` calls matched a unique string (grep-confirmed
+before editing), and a full re-read of D2's entire footprint block afterward, compared
+line-for-line against the pre-edit capture, shows every other line byte-identical -
+`(locked yes)`, `(at 43.62 60.825 180)`, both pads (`1`=`+VIN` at -1.64,0,180 size
+0.91x1.22; `2`=`/QGATE` at 1.64,0,180 size 0.91x1.22), the courtyard, the cathode dot
+and both cathode-band polys, the 3D model. File line count unchanged (10488 before and
+after - no lines added or removed, only two numbers changed in place). A whole-file
+grep confirms exactly 2 occurrences of `1.38 +/-0.85` (the new values) and zero
+remaining `1.38 +/-0.68` (the old ones) anywhere in the board.
+
+**Verified with real `kicad-cli` DRC on the actual board** (`kc.py drc`, plain, no
+`--refill`):
+
+| | before (`p6_drc_final.json`) | after (`p6_drc_post_silk.json`) |
+|---|---|---|
+| total violations | **73** | **71** |
+| `silk_over_copper` (warning) | 2 | **0** |
+| `unconnected_items` (error) | 71 | 71 |
+
+Delta is exactly -2, entirely accounted for by the two `silk_over_copper` warnings
+clearing. The 71 `unconnected_items` were compared by signature (check + refs + net +
+message) between the two reports, not just by count: **identical set, before and
+after** - confirms nothing else on the board moved, connected, or disconnected.
+
 ## Verified state (post-edit)
 
 | Check | Result |
@@ -162,3 +262,9 @@ Orchestrator-approved edits only.
 | Symbols in `aiee.kicad_sym` | **21** (23 - 4 pruned + 2 new pulls), `kicad-cli sym export svg` exit 0 |
 | Footprints in `aiee.pretty` | **14** (12 pulled/original + Fuse_1206_C1T_BelVendorLand + R1206; C1206 reused) |
 | `lib_pin_types.py` | idempotent re-run clean, 0 unexpected changes |
+| D2 silk stubs (edit 5) | `(end 1.38 +/-0.68)` -> `(end 1.38 +/-0.85)`, library AND board |
+| D2 `fpfix.scratch_drc` (library) | **0 violations** (was 2x `silk_over_copper`), status pass |
+| D2 courtyard / polarity mark | byte-identical (library AND board, confirmed by diff) |
+| D2 board propagation | **EXECUTED**, UUID-scoped 2-line patch, `board_update.py` bypassed (dry-run confirmed zero diff, would not have applied) |
+| Board DRC (`kc.py drc`) | **73 -> 71 violations**, `silk_over_copper` 2 -> 0, `unconnected_items` 71 -> 71 (identical set) |
+| D2 lock/position/pads/nets | `(locked yes)`, `(at 43.62 60.825 180)`, pad 1 `+VIN`, pad 2 `/QGATE` - all unchanged |

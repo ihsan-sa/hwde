@@ -3,7 +3,7 @@
  "board": "sbuck-5v3a",
  "workspace": "boards/sbuck-5v3a",
  "created": "2026-08-08T22:12:30",
- "updated": "2026-08-09T02:22:32",
+ "updated": "2026-08-09T03:36:10",
  "phase": "P6",
  "gates": {
   "erc": {
@@ -42,6 +42,35 @@
      }
     }
    ]
+  },
+  "place": {
+   "phase": "P6",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-08-09T03:22:36",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0,
+    "inputs": {
+     "pcb": "sexpr_no_uuid:13ee691533d7efcdd33091cae62ff43671c66a791b3f69a9a271bd462b3ad654",
+     "constraints": "json_canonical:81251014775e1f60d6918baa6dadbe14530efad22ef022331867a90a574cd318",
+     "decoupling": "json_canonical:fb272ae9b37a513b2ae33f0dea88bb3dc41e3edfe5194b524ea2805d06a1c483"
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-09T03:22:36",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:13ee691533d7efcdd33091cae62ff43671c66a791b3f69a9a271bd462b3ad654",
+      "constraints": "json_canonical:81251014775e1f60d6918baa6dadbe14530efad22ef022331867a90a574cd318",
+      "decoupling": "json_canonical:fb272ae9b37a513b2ae33f0dea88bb3dc41e3edfe5194b524ea2805d06a1c483"
+     }
+    }
+   ]
   }
  },
  "human": {
@@ -68,6 +97,24 @@
    "kind": "pro",
    "sha256": "json_canonical:b5da9c4d80f80a326c20d10a6f85a62e666a88d75eb9583baeaed6646aaa0ec8",
    "hashed": "2026-08-09T02:14:15"
+  },
+  "pcb": {
+   "path": "kicad/sbuck-5v3a.kicad_pcb",
+   "kind": "pcb",
+   "sha256": "sexpr_no_uuid:13ee691533d7efcdd33091cae62ff43671c66a791b3f69a9a271bd462b3ad654",
+   "hashed": "2026-08-09T03:22:36"
+  },
+  "constraints": {
+   "path": "kicad/constraints.json",
+   "kind": "constraints",
+   "sha256": "json_canonical:81251014775e1f60d6918baa6dadbe14530efad22ef022331867a90a574cd318",
+   "hashed": "2026-08-09T03:22:36"
+  },
+  "decoupling": {
+   "path": "kicad/decoupling.json",
+   "kind": "decoupling",
+   "sha256": "json_canonical:fb272ae9b37a513b2ae33f0dea88bb3dc41e3edfe5194b524ea2805d06a1c483",
+   "hashed": "2026-08-09T03:22:36"
   }
  },
  "open_issues": [],
@@ -335,6 +382,54 @@
    "why": "Passing 4 duplicated the schematic's own H1-H4 and produced the last 2 parity items; sourcing them from the schematic keeps them real parts with nets and BOM semantics, and P6 places them at the corners",
    "phase": "P5",
    "ts": "2026-08-09T02:22:32"
+  },
+  {
+   "what": "Thermal via array is 12, not the specified 16 - 16 is geometrically impossible",
+   "why": "EP is 3.502x2.613mm; four 0.55mm lands at 1.0mm pitch need 3.55mm, and JLC's 0.5mm hole-to-hole floor caps it at 3x4=12 at 0.9-0.95mm pitch. Cost is R_via 2.48 vs 1.90 K/W = +0.5 C of Tj, inside the margin. check_thermal would not have caught this",
+   "phase": "P6",
+   "ts": "2026-08-09T03:22:37"
+  },
+  {
+   "what": "J1/J2 rotations corrected in placement.edges: J1=270, J2=90 (were 0 and 180)",
+   "why": "The declared rotations pointed BOTH screw-terminal wire entries into the board; proven by orthographic side render, because the mouth is the SHORTER plastic face on this part and the WRL bbox alone would have misled",
+   "phase": "P6",
+   "ts": "2026-08-09T03:22:37"
+  },
+  {
+   "what": "Anneal candidates REJECTED on merit; hand structure kept",
+   "why": "Candidates reached HPWL 224.6 vs 234.0 but the 3.1% is almost entirely plane-fed GND, all four carried 5-7 courtyard overlaps after repair, and cand1 pulled R7 3.5mm closer to L1 and lengthened /FB",
+   "phase": "P6",
+   "ts": "2026-08-09T03:22:37"
+  },
+  {
+   "what": "TOOLCHAIN GOTCHA: placement.fixed silently disables separation constraints",
+   "why": "Fixed refs are excluded from the annealer's cluster list, so all 8 separation pairs landed in separation_unknown_refs at zero cost weight; verified all 8 by hand instead (C4-U1 22.2mm, F1-U1 11.1, R6-L1 9.8, J2-L1 16.5) - all pass",
+   "phase": "P6",
+   "ts": "2026-08-09T03:22:37"
+  },
+  {
+   "what": "P7 must pour the four GND planes AND pour /SW as a zone BEFORE any autoroute",
+   "why": "The 0.83 route probe is an artifact: GND is 25 of 71 connections and plane-fed, so unpoured Freerouting tried it as 2.055mm tracks; and aiee_pwr_width_SW (2.31mm) applies to every /SW track including the 0603 bootstrap cap's - a zone is not a track, so the rule does not bind it",
+   "phase": "P6",
+   "ts": "2026-08-09T03:23:01"
+  },
+  {
+   "what": "P5 omitted the mandatory keepout translation; corrected at P6",
+   "why": "placement.keepouts rects were still board-local, so three landed off-board entirely and the fourth produced a phantom violation; translated in constraints.json and annotated",
+   "phase": "P6",
+   "ts": "2026-08-09T03:23:01"
+  },
+  {
+   "what": "25 structural footprints left LOCKED - P8 fixers must unlock before nudging",
+   "why": "Placement cost 8 edit iterations and the hot-loop geometry is the design; locking prevents a later fixer from silently undoing it, but the lock must be visible to whoever needs to move something",
+   "phase": "P6",
+   "ts": "2026-08-09T03:23:01"
+  },
+  {
+   "what": "thermal.min_vias lowered 16 -> 12 in constraints.json with the geometry recorded",
+   "why": "16 cannot physically fit (EP 3.502x2.613mm vs 3.55mm needed at 1.0mm pitch, JLC 0.5mm hole-to-hole floor); 16 was our own derivation not a vendor spec, and leaving it would fail check_thermal at P8 on an unachievable target. Copper-area criteria unchanged, Tj cost +0.5 C",
+   "phase": "P6",
+   "ts": "2026-08-09T03:36:10"
   }
  ],
  "edits": [],
@@ -416,6 +511,12 @@
    "role": "schematic-reviewer",
    "model": "opus",
    "phase": "P4"
+  },
+  {
+   "ts": "2026-08-09T03:22:36",
+   "role": "placement",
+   "model": "opus",
+   "phase": "P6"
   }
  ],
  "history": [
@@ -782,6 +883,66 @@
    "event": "phase",
    "phase": "P6",
    "prev": "P5"
+  },
+  {
+   "ts": "2026-08-09T03:22:36",
+   "event": "spawn",
+   "role": "placement",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-09T03:22:36",
+   "event": "gate",
+   "gate": "place",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-09T03:22:37",
+   "event": "decision",
+   "what": "Thermal via array is 12, not the specified 16 - 16 is geometrically impossible"
+  },
+  {
+   "ts": "2026-08-09T03:22:37",
+   "event": "decision",
+   "what": "J1/J2 rotations corrected in placement.edges: J1=270, J2=90 (were 0 and 180)"
+  },
+  {
+   "ts": "2026-08-09T03:22:37",
+   "event": "decision",
+   "what": "Anneal candidates REJECTED on merit; hand structure kept"
+  },
+  {
+   "ts": "2026-08-09T03:22:37",
+   "event": "decision",
+   "what": "TOOLCHAIN GOTCHA: placement.fixed silently disables separation constraints"
+  },
+  {
+   "ts": "2026-08-09T03:23:01",
+   "event": "decision",
+   "what": "P7 must pour the four GND planes AND pour /SW as a zone BEFORE any autoroute"
+  },
+  {
+   "ts": "2026-08-09T03:23:01",
+   "event": "decision",
+   "what": "P5 omitted the mandatory keepout translation; corrected at P6"
+  },
+  {
+   "ts": "2026-08-09T03:23:01",
+   "event": "decision",
+   "what": "25 structural footprints left LOCKED - P8 fixers must unlock before nudging"
+  },
+  {
+   "ts": "2026-08-09T03:35:03",
+   "event": "snapshot",
+   "label": "pre-d2-silk-surgery",
+   "files": 1
+  },
+  {
+   "ts": "2026-08-09T03:36:10",
+   "event": "decision",
+   "what": "thermal.min_vias lowered 16 -> 12 in constraints.json with the geometry recorded"
   }
  ]
 }

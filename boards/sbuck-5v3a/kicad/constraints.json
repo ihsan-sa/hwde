@@ -82,8 +82,8 @@
    "power_w": 1.06,
    "net": "GND",
    "dt_c": 55,
-   "min_vias": 16,
-   "_note": "1.058 W is the Vin = 18 V worst case for the IC alone (switching scales with Vin, LS conduction with 1-D). Raised from the P1 figure of 1.001 W because AP64350's guaranteed maximum Rds(on) is 75/45 mOhm, above the P1 part limit of 65/42 - paid for out of the inductor's DCR saving, see power_tree.md s2. dt_c 55 = Tj_design 105 C (125 C spec floor minus 20 C margin) above the 50 C ambient. check_thermal needs >= 529 mm^2 of GND copper within 14.3 mm of U1 summed over layers to pass and >= 650 mm^2 to reach its A_sat; with U1 near board centre and three full GND planes this passes about 3x over. WARNING: dt_c/power_w = 51.9 > 51.1, so check_thermal's via warning will NOT fire - the 16-via array is a P6/P7 requirement enforced by review only."
+   "min_vias": 12,
+   "_note": "1.058 W is the Vin = 18 V worst case for the IC alone (switching scales with Vin, LS conduction with 1-D). Raised from the P1 figure of 1.001 W because AP64350's guaranteed maximum Rds(on) is 75/45 mOhm, above the P1 part limit of 65/42 - paid for out of the inductor's DCR saving, see power_tree.md s2. dt_c 55 = Tj_design 105 C (125 C spec floor minus 20 C margin) above the 50 C ambient. check_thermal needs >= 529 mm^2 of GND copper within 14.3 mm of U1 summed over layers to pass and >= 650 mm^2 to reach its A_sat; with U1 near board centre and three full GND planes this passes about 3x over. WARNING: dt_c/power_w = 51.9 > 51.1, so check_thermal's via warning will NOT fire - the 16-via array is a P6/P7 requirement enforced by review only. P6 CORRECTION 2026-08-09: min_vias lowered 16 -> 12. 16 is geometrically IMPOSSIBLE on this pad: the EP is 3.502 x 2.613 mm, four 0.55 mm via lands at 1.0 mm pitch need 3.55 mm, and JLC's 0.5 mm hole-to-hole floor caps the array at 3 x 4 = 12 at 0.9-0.95 mm pitch. Thermal cost is R_via 2.48 vs 1.90 K/W = +0.5 C of Tj (97.9 -> ~98.4 C against the 105 C design limit), inside margin. The 16 figure was OUR derivation, not a vendor spec - the AP64350 datasheet says only 'add as many vias as possible'. The copper-area criteria below are unchanged."
   },
   {
    "ref": "L1",
@@ -189,43 +189,47 @@
   "keepouts": [
    {
     "rect": [
-     0,
-     0,
-     7,
-     7
+     22.72,
+     37.225,
+     29.72,
+     44.225
     ],
     "side": "front",
-    "reason": "M3 mounting hole H1 - 3.2 mm NPTH centred at (3.5, 3.5) with a 6.5 mm washer keepout. BOARD-LOCAL COORDINATES: translate by reports/board_init.json.outline_bbox before use."
+    "reason": "M3 mounting hole H1 - 3.2 mm NPTH centred at (3.5, 3.5) with a 6.5 mm washer keepout. BOARD-LOCAL COORDINATES: translate by reports/board_init.json.outline_bbox before use.",
+    "_note": "M3 mounting hole H1 - 3.2 mm NPTH centred at (3.5, 3.5) with a 6.5 mm washer keepout. BOARD-LOCAL COORDINATES: translate by reports/board_init.json.outline_bbox before use. [P6: TRANSLATED board-local -> absolute by outline_origin (22.72, 37.225); P5 skipped the mandatory translation]"
    },
    {
     "rect": [
-     43,
-     0,
-     50,
-     7
+     65.72,
+     37.225,
+     72.72,
+     44.225
     ],
     "side": "front",
-    "reason": "M3 mounting hole H2 at (46.5, 3.5). Board-local - translate first."
+    "reason": "M3 mounting hole H2 at (46.5, 3.5). Board-local - translate first.",
+    "_note": "M3 mounting hole H2 at (46.5, 3.5). Board-local - translate first. [P6: TRANSLATED board-local -> absolute by outline_origin (22.72, 37.225); P5 skipped the mandatory translation]"
    },
    {
     "rect": [
-     0,
-     33,
-     7,
-     40
+     22.72,
+     70.225,
+     29.72,
+     77.225
     ],
     "side": "front",
-    "reason": "M3 mounting hole H3 at (3.5, 36.5). Board-local - translate first."
+    "reason": "M3 mounting hole H3 at (3.5, 36.5). Board-local - translate first.",
+    "_note": "M3 mounting hole H3 at (3.5, 36.5). Board-local - translate first. [P6: TRANSLATED board-local -> absolute by outline_origin (22.72, 37.225); P5 skipped the mandatory translation]"
    },
    {
     "rect": [
-     43,
-     33,
-     50,
-     40
+     65.72,
+     70.225,
+     72.72,
+     77.225
     ],
     "side": "front",
-    "reason": "M3 mounting hole H4 at (46.5, 36.5). Board-local - translate first."
+    "reason": "M3 mounting hole H4 at (46.5, 36.5). Board-local - translate first.",
+    "_note": "M3 mounting hole H4 at (46.5, 36.5). Board-local - translate first. [P6: TRANSLATED board-local -> absolute by outline_origin (22.72, 37.225); P5 skipped the mandatory translation]"
    }
   ],
   "fixed": [
