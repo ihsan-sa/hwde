@@ -1,0 +1,69 @@
+{
+  "block": "buck",
+  "decisions": [
+    {
+      "what": "AP6335x family (AP63356QZV-7 / AP63357QZV-7) is adjustable-only; no Fixed-output SKU exists in this family. R1=157k / R2=30k gives 5V from the 0.8V reference (R1=R2*(VOUT/0.8V-1)).",
+      "why": "Resolves the scout's flagged catalogue conflict. Datasheet section 10 states divider-set adjustable output starting at 0.8V; Ordering Information table has an Operation-Mode column (PWM Only / PFM+PWM) but no Fixed/Adjustable column at all; LCSC's own live parametric attribute for both C3194571 and C3194572 reads Output Type: Adjustable. The scout likely conflated this with the sibling AP63200-series, which genuinely does split Fixed (AP63203) vs Adjustable (AP63200/1) per house buck.md s4.",
+      "source": "Diodes AP63356Q/AP63357Q datasheet DS41948 Rev.1-2 (2020), s10 'Setting the Output Voltage' + Ordering Information table p.26; cross-checked live against lcsc.com product pages for C3194571 and C3194572"
+    },
+    {
+      "what": "5V/3A BOM (internal compensation): L=6.8uH, C_IN=10uF ceramic, C_OUT=2x22uF ceramic, C_BST=100nF ceramic, R1=157k, R2=30k, C4(feedforward)=open.",
+      "why": "Vendor's own recommended-components table for the 5.0V output row; internal compensation (COMP tied to GND) avoids the extra R5/C5/C6 external-compensation network for the simplest BOM meeting this board's spec.",
+      "source": "DS41948 Table 1 'Recommended Components Selections Using Internal Compensation', s10-14"
+    },
+    {
+      "what": "Soft-start is internal and fixed at 4ms typical; there is no SS pin and no external SS cap or resistor.",
+      "why": "Simplifies BOM vs. a generic expectation of an SS pin; sets the output-cap inrush profile the source sees at power-up (relevant if a future revision adds inrush-sensitive upstream circuitry).",
+      "source": "DS41948 Electrical Characteristics table (tSS row) + Application Information s1"
+    },
+    {
+      "what": "EN self-starts: an internal 1.5uA pull-up from the internal LDO VCC guarantees the device enables if EN is left floating; EN can also be tied directly to VIN. No external EN circuitry is required.",
+      "why": "This board has no external enable/on-off input per requirements A6, so EN should simply be tied to VIN (or left floating) for automatic startup as VIN rises past the ~1.18V (typ) logic-high threshold.",
+      "source": "DS41948 s3 'Enable' + Pin Descriptions table (EN row)"
+    },
+    {
+      "what": "No FSEL/MODE/SYNC pin exists on this device (9 functional pins: VIN, EN, FB, COMP, PG, BST, NC, GND, SW). PWM-only vs PFM/PWM behavior is fixed by part number, not pin-selectable.",
+      "why": "Answers the assignment's question directly - there is nothing to configure at the pin level for switching mode; the choice is made at BOM/part-selection time between AP63356Q and AP63357Q.",
+      "source": "DS41948 Pin Assignments figure + Pin Descriptions table"
+    },
+    {
+      "what": "Recommend AP63356Q (PWM-only sibling) over AP63357Q (PFM-capable) for this board.",
+      "why": "Binding spec A3 requires <=50mV pk-pk output ripple across the full 0-3A load range, with no stated minimum load. AP63357Q's PFM mode (entered below a ~700mA COMP-clamped threshold) trades ripple amplitude at light/no load for efficiency (up to 86% at 5mA, Iq 22uA vs AP63356Q's 258uA); the datasheet's own scope captures (Fig.20 vs Fig.32, both at 50mA/50mV-div) show AP63357Q's PFM ripple envelope visibly larger/burstier than AP63356Q's forced-PWM envelope at the same operating point. This is a mains-fed 15W board, not a battery/standby design, so the efficiency gain is low-value against the ripple risk.",
+      "source": "DS41948 s1-2 'PWM/PFM Operation', Feature list, and Typical Performance Characteristics Figures 20-21 (AP63356Q) vs 32-33 (AP63357Q)"
+    },
+    {
+      "what": "Minimum on-time (100ns typ @ 450kHz typ fsw) is not a constraint anywhere in this board's 7-18V input window; required duty at 18Vin/5Vout (~27.8%, ton~618ns) and even at the part's 32V abs-max Vin (~15.6%, ton~347ns) both stay well above ton_min.",
+      "why": "Rules out a pulse-skipping/dropout footgun the assignment specifically asked to check.",
+      "source": "DS41948 Electrical Characteristics table (ton_min, fsw rows)"
+    },
+    {
+      "what": "40V/400ms transient input rating vs 35V DC absolute-max is a real, separate limit (not the same number) and is not this board's binding constraint: steady-state max input is 18V (binding answer A1 closes the automotive/load-dump flag).",
+      "why": "Confirms the exact numbers the assignment asked to verify; the 40V/400ms allowance only matters for hot-plug/cable-ringing transients, which A1 already assigns to a separate input TVS, not to this IC's own rating.",
+      "source": "DS41948 Absolute Maximum Ratings table (VIN row), p.4"
+    },
+    {
+      "what": "Reverse-polarity PMOS gate clamp: 100-330 Ohm gate resistor + Zener rated below the chosen FET's Vgs(max). With the board's own top-ranked candidates (AOD403 PMOS, Vgs(max)=+-25V; SMBJ20A TVS, Vc=32.4V), a bare gate-pulldown-only design is unsafe under a surge event - the Zener (recommend 15-18V) is load-bearing, not optional, because the TVS clamp voltage (32.4V) exceeds the FET's Vgs(max) (25V).",
+      "why": "Grounds the assignment's generic app-note guidance against this board's actual shortlisted parts, turning a generic rule into a specific, checkable margin.",
+      "source": "components101.com 'Design Guide - PMOS MOSFET for Reverse Voltage Polarity Protection Circuit' (app note, not a primary datasheet) for the gate-resistor/Zener rule; ElecSuper AOD403 datasheet Rev-1.4 Absolute Maximum Rating table for Vgs(max)=+-25V; boards/buck-5v3a/research/powerpath.json for the SMBJ20A Vc=32.4V figure already on this board's own shortlist"
+    }
+  ],
+  "layout_notes": [
+    "2oz copper recommended on both top and bottom layers - device runs at 3.5A and heat dissipation is the stated driver (DS41948 PCB Layout rule 1).",
+    "Input capacitor(s) placed as close across VIN and GND pins as possible (rule 2) - matches house buck.md hot-loop rule, no delta.",
+    "Inductor placed as close to the SW pin as possible (rule 3); keep SW copper minimal per house buck.md s5 switch-node-containment rule.",
+    "Output capacitor(s) placed as close to GND as possible (rule 4).",
+    "FB network (R1/R2/C4) placed as close to the FB pin as possible (rule 5); per Figure 47, FB senses at the output-cap node, routed away from SW/L, matching house buck.md s4 FB-routing rule with no delta.",
+    "On 4+ layer stackups, dedicate layers 2 and 3 to GND for thermal performance (rule 6).",
+    "Via-stitch heavily around the GND pin/plane and the VIN pin/plane to all copper layers (rules 7-8) - vendor gives no numeric via count or diameter, qualitative 'as many as possible' only; flagged as a gap.",
+    "theta-JA = 25 C/W is a TESTED figure specific to a 4-layer FR4 board, 2oz copper, 'minimum recommended pad layout' (DS41948 Note 6). If this board's stackup ends up lighter (fewer layers/thinner copper), treat 25 C/W as optimistic - needs re-verification at P2/P5, not assumed here.",
+    "BST cap (100nF) placed directly adjacent to the BST/SW pins per Figure 47.",
+    "No published eval-board gerbers/BOM beyond the datasheet's own Figure 47 abstracted recommended-layout diagram - that figure is the most concrete vendor layout artifact available."
+  ],
+  "errata": [
+    "VIN absolute max: -0.3 to +35.0V DC, -0.3 to +40.0V for 400ms (transient allowance is real and distinct from the DC rating, per DS41948 Absolute Maximum Ratings table) - not a binding limit for this board (steady-state max input is 18V per binding answer A1).",
+    "VDFN-13/SWP 'Type A1' package has wettable flanks (aids AOI solder-joint inspection on a leadless part) and is MSL1 per J-STD-020 (no dry-pack/bake-out handling required).",
+    "No vendor-stated via count/diameter for the exposed thermal pad - only qualitative 'as many vias as possible' guidance; theta-JA=25C/W was tested on a 4-layer/2oz-Cu board and may not hold on a lighter stackup.",
+    "Minimum on-time (100ns typ) is not a limiting factor anywhere in this board's 7-18Vin/5Vout operating window - duty cycle stays well above the min-on-time floor even at the part's 32V absolute-max input.",
+    "AP63357Q's PFM light-load mode increases output ripple amplitude at light/no load versus AP63356Q's forced-PWM-always behavior (visible directly in the datasheet's own Fig.20 vs Fig.32 scope captures at the same 50mA/50mV-div conditions) - relevant because this board's ripple spec (<=50mV pk-pk) applies across the full 0-3A range with no stated minimum load."
+  ]
+}

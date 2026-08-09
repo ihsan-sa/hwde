@@ -1,0 +1,168 @@
+{
+  "_note": "P1 power-architect output for buck-5v3a. This board IS the power conversion stage, so the 'rail tree' is one converted rail; the engineering content is the loss/thermal budget in research/power.md. Net names are CONVENTIONAL - re-key every entry against the P4 netlist before merging into constraints.json. thermal_constraints[].ref is a PROPOSAL (check_thermal exits 2 on a refdes with no pads): re-key or delete at P3/P5. Extra keys (stackup_recommendation, layout_notes, planes_hint, part_class) are carried outside the agreed shape because power.json has no slot for them; P2 owns whether they land in constraints.json or architecture/.",
+
+  "_headline": [
+    "4-LAYER IS REQUIRED, and the number that decides it is the regulator's junction temperature at 50 C ambient with no airflow. Worst corner is LOW LINE (7 V in), not 12 V or 18 V: high duty puts the loss in the high-side FET. Best-in-class part (45/20 mohm) -> T_j ~ 90 C on 4L vs ~109 C on 2L; a mainstream 3 A-class part (95/66 mohm) -> ~122 C on 4L and ~153 C on 2L (over the 150 C absolute max). 4L + low-RDS(on) is the only combination with real margin.",
+    "The part CLASS is a thermal decision, not a cost decision: RDS(on)_HS + RDS(on)_LS <= 90 mohm typ at 25 C is the selection filter. It is worth ~0.5 W and ~30 C of junction temperature versus the 95/66 mohm mainstream 3 A parts.",
+    "Total board loss 1.20 W at 7 V / 1.03 W at 12 V / 1.03 W at 18 V -> efficiency 92.6 / 93.6 / 93.6 %. Input power 16.0-16.2 W; input current 2.31 A worst case (7 V). Copper and screw-terminal contact resistance is 0.09-0.13 W of that - not noise on a 1 W budget.",
+    "Input capacitor RMS ripple peaks at 1.51 A at Vin = 10 V - INSIDE the 7-18 V window, not at either end (I_rms maximises at D = 0.5). Size Cin for 1.5 A RMS at 500 kHz and 100 C, i.e. X7R only - X5R (85 C) is disqualified by the board's own ~90 C hotspot.",
+    "Output ripple is a non-problem: 2-3 x 22 uF X7R gives ~10 mV pk-pk against the 50 mV budget. The binding output-cap question is the LOAD TRANSIENT of an unknown external load, not ripple (see open[0]).",
+    "The 4 A input fuse (A5) is thermally marginal: SMD fuses derate to ~70 % of rating at 85-95 C local board temperature -> 2.8 A effective against a 2.31 A worst-case operating current (21 % margin). Recommend 5 A time-lag, or place the fuse in the coolest corner and accept the margin. See open[1].",
+    "Reverse-polarity P-FET must be specified at Vgs = -4.5 V, not -10 V: at the 7 V low-line corner the gate only has 7 V to work with. RDS(on) <= 15 mohm at Vgs = -4.5 V gives 80 mW at 2.31 A, inside A4's 100 mW target."
+  ],
+
+  "rails": [
+    {
+      "net": "/VIN",
+      "vin": "J1 2-pin 5.08 mm screw terminal, 7-18 V DC, 12 V nominal. Source is a bench supply or AC-DC adapter (A1) - not a battery, not automotive, so no load-dump campaign and no -40 C rating.",
+      "topology": "direct",
+      "current_a": 3.0,
+      "current_a_typ": 1.34,
+      "current_a_peak": 2.31,
+      "consumers": [
+        {
+          "ref": "U1",
+          "part": "buck regulator input (whole board)",
+          "typ_a": 1.34,
+          "peak_a": 2.31,
+          "basis": "Iin = Pin / Vin. Pin = 15 W out + modelled losses = 16.20 W at 7 V, 16.03 W at 12 V, 16.03 W at 18 V (loss model in power.md s3). 16.20/7 = 2.31 A worst case; 16.03/12 = 1.34 A nominal; 16.03/18 = 0.89 A at high line."
+        }
+      ],
+      "dissipation_w": 0.198,
+      "notes": "Raw, unprotected stub: J1 pin 1 -> F1 (fuse) -> Q1 (P-FET) source. /VIN_F is the same net electrically between F1 and Q1 and carries the same budget. Series loss at the 7 V corner: F1 0.118 W (22 mohm class) + Q1 0.080 W (15 mohm at Vgs = -4.5 V). current_a 3.0 A is the design ceiling: it covers the 2.31 A operating worst case AND makes the copper survive the fuse's non-blow current (1.80 mm at 1 oz outer carries 4 A at ~19 C rise). pdn false - nothing decouples a pre-protection stub by design."
+    },
+    {
+      "net": "+VIN",
+      "vin": "/VIN through F1 and Q1 (reverse-polarity P-FET drain)",
+      "topology": "direct",
+      "current_a": 3.0,
+      "current_a_typ": 1.34,
+      "current_a_peak": 2.31,
+      "consumers": [
+        {
+          "ref": "U1",
+          "part": "regulator VIN pin (pulsed switch current)",
+          "typ_a": 1.34,
+          "peak_a": 2.31,
+          "basis": "same DC budget as /VIN. The RMS current in the Cin -> VIN -> GND loop is Io*sqrt(D) = 3*sqrt(0.714) = 2.54 A at the 7 V corner - covered by the 3.0 A ceiling."
+        },
+        {
+          "ref": "U1",
+          "part": "regulator bias (non-switching IQ)",
+          "typ_a": 0.000024,
+          "peak_a": 0.000034,
+          "basis": "LMR33630 SNVSAN3F Electrical Characteristics: IQ 24 uA typ / 34 uA max, non-switching, measured at VIN. Class-typical; AP64500 quotes 25 uA in PFM."
+        }
+      ],
+      "dissipation_w": 0.008,
+      "notes": "Protected input rail: Q1 drain, TVS, Cin bank (2 x 10 uF 50 V X7R + 100 nF at the VIN pin), U1 VIN, optional EN/UVLO divider. Dissipation shown is Cin ESR loss only (1.51 A RMS worst case x ~4 mohm bank ESR). This is the hot-loop node: Cin -> VIN -> GND -> Cin is the shortest loop on the board (buck.md s3)."
+    },
+    {
+      "net": "+5V",
+      "vin": "+VIN",
+      "topology": "buck",
+      "regulator": "CLASS ONLY (part-sourcer picks the part): integrated-FET SYNCHRONOUS buck, VIN abs max >= 40 V, >= 4 A rated (5 A preferred), RDS(on)_HS + RDS(on)_LS <= 90 mohm typ at 25 C, fsw 400-600 kHz, exposed-pad package (SO-8EP / HSOIC-8 PowerPAD / EP-QFN), internal soft-start, hiccup current limit + thermal shutdown, FIXED 5 V option preferred over adjustable. Exemplars for the loss model only: AP64500 (Diodes, 40 V, 5 A, SO-8EP, 45/20 mohm) and LMR33630 (TI, 36 V, 3 A, HSOIC-8, 95/66 mohm).",
+      "current_a": 3.5,
+      "current_a_typ": 3.002,
+      "current_a_peak": 3.53,
+      "consumers": [
+        {
+          "ref": "J2",
+          "part": "external load on the output screw terminal",
+          "typ_a": 3.0,
+          "peak_a": 3.0,
+          "basis": "STATED (requirements s3) and bounded by A2: 3 A is the absolute maximum, no peak allowance above it. This is the only real consumer - the board is a converter, not a board with a power section."
+        },
+        {
+          "ref": "D1",
+          "part": "green power LED + series resistor",
+          "typ_a": 0.0019,
+          "peak_a": 0.004,
+          "basis": "A6 requires one green LED on +5V. (5.0 - 3.1 V Vf) / 1 kohm = 1.9 mA typ; 470 ohm would give 4.0 mA. 1 kohm recommended - the LED adds heat to an already hot board and 1.9 mA is plainly visible on a modern green part."
+        },
+        {
+          "ref": "TP1-TP3",
+          "part": "test points VIN / 5V / GND",
+          "typ_a": 0.0,
+          "peak_a": 0.0,
+          "basis": "A6. Pads on the pour, no current."
+        },
+        {
+          "ref": "R_FB",
+          "part": "feedback divider (adjustable variant only)",
+          "typ_a": 0.0001,
+          "peak_a": 0.0001,
+          "basis": "~50 kohm string = 0.1 mA. Zero if a FIXED 5 V part is used - which is the recommendation, see notes."
+        }
+      ],
+      "dissipation_w": 0.63,
+      "notes": "Budget: 3.002 A of consumers; current_a 3.5 A is the design ceiling = peak inductor current at the 18 V corner (3.0 + 1.06/2 = 3.53 A), which is the current the L -> Cout -> J2 copper actually carries. dissipation_w is the REGULATOR's own loss at the worst (7 V) corner, not the rail's. Accuracy: A3 wants +/-3 % DC. A fixed-output class part meets that alone (LMR33630 SNVSAN3F System Characteristics: -1.5 %/+1.5 % for Vout = 5 V over 7-36 V, 1 A to max load). An ADJUSTABLE part adds divider tolerance to a +/-1.5 % reference -> use 0.5 % resistors or the window closes. buck.md s4 FB trap applies: fixed variants tie FB to the output sense point - do NOT copy the adjustable figure's divider."
+    }
+  ],
+
+  "power_constraints": [
+    {"net": "/VIN", "current_a": 3.0, "dt_c": 10, "via_amps": 0.5, "pdn": false},
+    {"net": "/VIN_F", "current_a": 3.0, "dt_c": 10, "via_amps": 0.5, "pdn": false},
+    {"net": "+VIN", "current_a": 3.0, "dt_c": 10, "via_amps": 0.5},
+    {"net": "/SW", "current_a": 3.5, "dt_c": 20, "via_amps": 0.5, "pdn": false},
+    {"net": "+5V", "current_a": 3.5, "dt_c": 10, "via_amps": 0.5},
+    {"net": "GND", "current_a": 3.5, "dt_c": 10, "via_amps": 0.5, "plane_fed": true, "pdn": false}
+  ],
+
+  "thermal_constraints": [
+    {"ref": "U1", "power_w": 0.8, "net": "GND", "dt_c": 55, "min_vias": 12}
+  ],
+
+  "_constraint_rationale": {
+    "U1_power_w": "0.63 W modelled at the 7 V worst corner for the recommended 45/20 mohm class, + ~27 % for part-to-part RDS(on) spread = 0.8 W. If part-sourcer lands on a part whose typ RDS(on) sum exceeds ~90 mohm, this number must be re-derived (a 95/66 mohm part is 1.21 W) and the thermal verdict revisited.",
+    "U1_dt_c": "55 C allowed rise = 105 C junction target (requirements s3) at 50 C ambient (A9). Deliberately encodes the stackup decision: check_thermal's calibrated model saturates at 51.1 C/W on >= 4 layers (0.8 W -> 40.9 C rise, PASS with 14 C margin) and at 73.9 C/W on 2 layers (0.8 W -> 59.1 C rise, FAIL). A 2-layer build of this board fails P8 by construction, which is the intended behaviour.",
+    "U1_min_vias": "12 GND vias within ~4 mm of the part centroid: a 3x3 array of 0.3 mm vias at 1.0 mm pitch inside the exposed-pad land plus >= 3 in the surrounding top-side GND pour. check_thermal will not raise its via warning at this power/dt (need_vias is false), so the floor is documentary - it is enforced by P6/P7 layout review, not the gate.",
+    "SW_dt_c": "20 C rather than 10 C: /SW is a deliberately SHORT node (buck.md s5 containment) and 3.5 A at dT 20 needs 1.51 mm instead of 2.23 mm. Keeps the switch-node polygon small without under-sizing it.",
+    "GND_plane_fed": "GND is declared explicitly rather than left to check_current's derived-return synthesis (which downgrades everything to advisory): on a 15 W converter the return path deserves ERROR-class pour-neck checking at the full 3.5 A."
+  },
+
+  "part_class": {
+    "regulator": "integrated-FET synchronous buck; VIN abs max >= 40 V; Iout >= 4 A (5 A preferred); RDS(on)_HS + RDS(on)_LS <= 90 mohm typ at 25 C; fsw 400-600 kHz (fixed or programmable); exposed-pad package; internal soft-start; hiccup-mode current limit + thermal shutdown; fixed 5 V output preferred. Reject: asynchronous parts (A/spec), MHz-class parts (switching loss), packages without an exposed pad.",
+    "inductor": "shielded composite/moulded power inductor, 6.8 uH +/-20 %, Isat >= 6 A (must beat the class 4.5-5.5 A peak current limit, not the 3 A load - buck.md s2), DCR <= 25 mohm, 7x7 to 10x10 mm, rated 125 C.",
+    "cin": "2 x 10 uF 50 V X7R 1210 + 100 nF 50 V 0603 at the VIN pin. 50 V rating is required twice over: DC-bias derating (a 25 V part loses ~50 % at 12 V) and the hot-plug ring. >= 1.5 A RMS at 500 kHz. NOT X5R (85 C max vs a ~90 C board hotspot).",
+    "cout": "2-3 x 22 uF 25 V X7R 1210 (~15-17 uF each after 5 V DC bias). Confirm against the chosen part's stated C/ESR stability window (buck.md s4). Optional 100 uF polymer at J2 if the load steps - see open[0].",
+    "rpp_fet": "P-channel MOSFET, Vds >= -40 V, Vgs(max) >= -20 V, RDS(on) <= 15 mohm AT Vgs = -4.5 V, Id >= 6 A, exposed-pad SO-8 / DFN. Gate network: 100 kohm to GND-side + 12-15 V zener clamp (protects Vgs at 18 V in); optional 10-100 nF gate cap for hot-plug soft-start.",
+    "fuse": "SMD time-lag (slow-blow) fuse, 4 A per A5 or 5 A recommended (see open[1]), >= 50 V rating, cold resistance <= 25 mohm, 1206/1812.",
+    "tvs": "unidirectional TVS on +VIN (AFTER the P-FET so a reverse connection does not short it): standoff 20-24 V, clamping voltage <= 33 V at 10 A, SMB/SMA."
+  },
+
+  "stackup_recommendation": {
+    "layers": 4,
+    "copper": "1 oz outer / 0.5 oz inner (JLC standard 4-layer, 1.6 mm)",
+    "assignment": {
+      "F.Cu": "components (top-side SMT only per A11), the hot loop, /SW polygon, +5V output pour, GND pours",
+      "In1.Cu": "solid GND - unbroken under U1 and the entire Cin/VIN/GND hot loop; this is both the return plane and the primary heat spreader",
+      "In2.Cu": "GND again (NOT +5V). +5V travels ~15 mm on F.Cu and needs no plane; a second GND plane is worth more as thermal mass and lets the EP via array see copper on both inner layers",
+      "B.Cu": "GND pour, kept clear of SMT parts (A11), used as the bottom heat-radiating surface"
+    },
+    "why": "The 4-layer case wins on two independent mechanisms: (1) the EP thermal-via array only has to reach In1 at ~0.21 mm depth (~22 C/W per 0.3 mm via -> 2.4 C/W for 9) instead of the full 1.6 mm to B.Cu (~176 C/W per via -> 19.6 C/W for 9); (2) two full-area inner planes roughly double the spreading area within the ~14 mm radius that matters. Calibrated model: 51 C/W vs 74 C/W. See power.md s4."
+  },
+
+  "planes_hint": [
+    {"layer": "In1.Cu", "net": "GND"},
+    {"layer": "In2.Cu", "net": "GND"}
+  ],
+
+  "layout_notes": [
+    "HOT LOOP FIRST (buck.md s3): Cin (both 10 uF + the 100 nF) on the same layer as U1, VIN pad to GND pad loop as short as physically possible, In1 GND solid directly beneath it. This outranks every other placement preference on this board.",
+    "/SW: F.Cu only, ZERO vias, >= 1.51 mm wide, area as small as the 3.5 A width allows. check_current's via rule is net-wide (LEARNINGS 2026-07-28): one via on /SW would demand ceil(3.5/0.5) = 7 vias in that cluster.",
+    "+5V: F.Cu pour from L1 / Cout to J2, ZERO vias, >= 2.23 mm equivalent width. The pd-trigger recipe applies - a via-free pour is also exempt from check_current's pour-neck test (necks are only measured between via attachments).",
+    "U1 exposed pad: land >= EP size, 3x3 array of 0.3 mm vias at 1.0 mm pitch (tented on B.Cu; via-in-pad epoxy fill is NOT required at this power level), >= 200 mm2 of contiguous F.Cu GND pour joined to the land, >= 12 GND vias within 4 mm of the part.",
+    "Thermal separation: keep L1 (0.24-0.28 W) >= 5 mm from U1 so the two hot spots do not stack; keep the fuse F1 in the coolest corner near J1 (its rating derates ~30 % at 90 C board temperature).",
+    "No aluminium electrolytic anywhere on this board: a 105 C part at a ~90 C board temperature has ~5.7 kh of life. Cin/Cout are all-ceramic X7R; if bulk is added for the load transient, use polymer.",
+    "P6/P7 must add check_current overrides once placement exists: the D1 LED tap on +5V ({\"radius_mm\": 6, \"current_a\": 0.05}) and any thin test-point stub, otherwise every 0.25 mm branch reads as an undersized 3.5 A track.",
+    "Leave a footprint pair for an optional input CM/pi filter (A7) between J1 and F1 - unpopulated by default.",
+    "J1 and J2 on opposite edges, wire entry facing outward, silk-labelled VIN 7-18V and 5V 3A; A8 four M3 holes inset from the corners of the 50 x 40 outline."
+  ],
+
+  "open": [
+    "LOAD TRANSIENT: what does the external load do? Ripple is met with margin (10 mV of a 50 mV budget) but a 0 -> 3 A step against 40 uF effective output capacitance and a ~40 kHz loop dips the rail ~300 mV (6 %), outside A3's +/-3 % window if that window is meant to hold dynamically. Cheap hedge: one 100 uF polymer at J2. Confirm the step size/rate, or accept the +/-3 % window as a DC/line-load-regulation spec only (which is how it is written).",
+    "FUSE RATING: A5 fixes ~4 A. At the 85-95 C local board temperature a 4 A SMD fuse derates to ~2.8 A against a 2.31 A worst-case operating current - 21 % margin, which risks nuisance opening at the 7 V corner. Recommend 5 A time-lag instead (the regulator's hiccup limit, not the fuse, is what protects the output). Needs an explicit yes/no because it relaxes a binding answer.",
+    "JUNCTION-TEMPERATURE CEILING: confirm the requirements' assumed <= 105 C junction target is a HARD part-selection filter. It is the gate that eliminates mainstream 95/66 mohm 3 A-class parts (~122 C on 4 layers) and forces the 45/20 mohm 5 A class (~90 C). If 125 C is acceptable instead (TI SNVSAN3F note: operating above 125 C is possible but degrades lifetime), the part field widens and cost drops slightly."
+  ]
+}

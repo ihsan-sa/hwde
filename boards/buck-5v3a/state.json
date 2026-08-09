@@ -1,0 +1,239 @@
+{
+ "version": 2,
+ "board": "buck-5v3a",
+ "workspace": "boards/buck-5v3a",
+ "created": "2026-08-08T22:10:35",
+ "updated": "2026-08-08T23:16:50",
+ "phase": "P2",
+ "gates": {},
+ "human": {},
+ "artifacts": {},
+ "open_issues": [],
+ "next_issue_id": 1,
+ "budgets": {
+  "fix_loops": {
+   "erc": 3,
+   "place": 3,
+   "drc_routed": 3,
+   "verify": 3,
+   "dfm": 3
+  },
+  "freerouting_retries": 2,
+  "place_edit_iterations": 8
+ },
+ "decisions": [
+  {
+   "what": "Input source is bench supply / AC-DC adapter; NOT battery, NOT automotive",
+   "why": "User answer A1: closes the >30V and battery safety flags; 18V steady-state max stands, no load-dump campaign, 0C min ambient",
+   "phase": "P0",
+   "ts": "2026-08-08T22:23:50"
+  },
+  {
+   "what": "3 A is the absolute output max; no peak allowance above 3 A",
+   "why": "User answer A2: inductor saturation and current limit sized to regulator limit (~4-5 A), not to an external burst",
+   "phase": "P0",
+   "ts": "2026-08-08T22:23:50"
+  },
+  {
+   "what": "Reverse-polarity protection = series P-channel MOSFET, target <=100 mW at 2.4 A",
+   "why": "User answer A4: Schottky rejected on thermal grounds (50C ambient, no airflow, 50x40mm)",
+   "phase": "P0",
+   "ts": "2026-08-08T22:23:50"
+  },
+  {
+   "what": "JLCPCB PCBA top-side SMT only; screw terminals THT (JLC if priced sanely, else hand); bottom side reserved as thermal/return plane",
+   "why": "User answer A11",
+   "phase": "P0",
+   "ts": "2026-08-08T22:23:51"
+  },
+  {
+   "what": "Defaults accepted for output tolerance (+/-3%, <=50mV ripple), 4A input fuse + hiccup limit, power LED + 3 test points, no formal EMC, 4x M3 holes + 15mm height, indoor open board 0-50C, qty 5 proto, JLC Basic preference",
+   "why": "User accepted requirements-analyst defaults Q3,Q5-Q10 in the P0 batch",
+   "phase": "P0",
+   "ts": "2026-08-08T22:23:51"
+  },
+  {
+   "what": "Stackup JLC04162H-7628A: 4 layers, 2 oz outer / 0.5 oz inner, 1.6 mm; outline 50x40 mm (the full cap)",
+   "why": "check_thermal on the real part: AP63356Q 0.88 W at the 7 V corner -> Tj 95 C on 4L (pass) vs 115 C on 2L (fail). 45x35 does not fit ~557 mm2 of parts plus the GND pour and is the same JLC price tier",
+   "phase": "P2",
+   "ts": "2026-08-08T23:16:50"
+  },
+  {
+   "what": "Lead regulator AP63356QZV-7 (PWM-only sibling), not AP63357Q",
+   "why": "PFM light-load ripple threatens the <=50 mV pk-pk spec which has no stated minimum load; light-load efficiency is not a requirement here",
+   "phase": "P2",
+   "ts": "2026-08-08T23:16:50"
+  },
+  {
+   "what": "CONFLICT RULED: datasheet theta_JA 25 C/W rejected in favour of the repo calibrated 51 C/W (4L)",
+   "why": "Datasheet figure is a JEDEC 8710 mm2 coupon; this board gives ~2000 mm2, and 51 C/W is what the P8 verify gate applies - using the datasheet number would pass P2 and fail P8",
+   "phase": "P2",
+   "ts": "2026-08-08T23:16:50"
+  },
+  {
+   "what": "power.json's '<=90 mohm RDS(on)' part filter DELETED; loss table re-derived at 1.48 W / 91.0 % / Iin 2.35 A at 7 V",
+   "why": "The filter was derived from generic part classes and would have rejected the entire real shortlist including the part that measurably passes",
+   "phase": "P2",
+   "ts": "2026-08-08T23:16:50"
+  },
+  {
+   "what": "ONE FLAT SCHEMATIC SHEET, no hierarchy",
+   "why": "One function, one rail, 25 parts; also dodges the /<sheet>/<LABEL> net-prefix trap. Deviation from the default hierarchical plan, recorded per full-run.md",
+   "phase": "P2",
+   "ts": "2026-08-08T23:16:50"
+  }
+ ],
+ "edits": [],
+ "spawns": [
+  {
+   "ts": "2026-08-08T22:11:04",
+   "role": "requirements-analyst",
+   "model": "fable/high",
+   "phase": "P0"
+  },
+  {
+   "ts": "2026-08-08T22:24:28",
+   "role": "research-power-architect",
+   "model": "opus/high",
+   "phase": "P1"
+  },
+  {
+   "ts": "2026-08-08T22:24:28",
+   "role": "research-component-scout",
+   "model": "sonnet/high",
+   "phase": "P1"
+  },
+  {
+   "ts": "2026-08-08T22:24:29",
+   "role": "research-component-scout",
+   "model": "sonnet/high",
+   "phase": "P1"
+  },
+  {
+   "ts": "2026-08-08T22:24:29",
+   "role": "research-reference-design",
+   "model": "sonnet/high",
+   "phase": "P1"
+  },
+  {
+   "ts": "2026-08-08T22:49:11",
+   "role": "architect",
+   "model": "opus/high",
+   "phase": "P2"
+  }
+ ],
+ "history": [
+  {
+   "ts": "2026-08-08T22:10:35",
+   "event": "init",
+   "board": "buck-5v3a",
+   "phase": "P0"
+  },
+  {
+   "ts": "2026-08-08T22:11:04",
+   "event": "spawn",
+   "role": "requirements-analyst",
+   "model": "fable/high"
+  },
+  {
+   "ts": "2026-08-08T22:23:50",
+   "event": "decision",
+   "what": "Input source is bench supply / AC-DC adapter; NOT battery, NOT automotive"
+  },
+  {
+   "ts": "2026-08-08T22:23:50",
+   "event": "decision",
+   "what": "3 A is the absolute output max; no peak allowance above 3 A"
+  },
+  {
+   "ts": "2026-08-08T22:23:50",
+   "event": "decision",
+   "what": "Reverse-polarity protection = series P-channel MOSFET, target <=100 mW at 2.4 A"
+  },
+  {
+   "ts": "2026-08-08T22:23:51",
+   "event": "decision",
+   "what": "JLCPCB PCBA top-side SMT only; screw terminals THT (JLC if priced sanely, else hand); bottom side reserved as thermal/return plane"
+  },
+  {
+   "ts": "2026-08-08T22:23:51",
+   "event": "decision",
+   "what": "Defaults accepted for output tolerance (+/-3%, <=50mV ripple), 4A input fuse + hiccup limit, power LED + 3 test points, no formal EMC, 4x M3 holes + 15mm height, indoor open board 0-50C, qty 5 proto, JLC Basic preference"
+  },
+  {
+   "ts": "2026-08-08T22:23:51",
+   "event": "model_tier_deviation",
+   "role": "requirements-analyst",
+   "planned": "fable/high",
+   "actual": "opus/high",
+   "reason": "Fable 5 out of usage credits on this account; API error on spawn"
+  },
+  {
+   "ts": "2026-08-08T22:24:28",
+   "event": "phase",
+   "phase": "P1",
+   "prev": "P0"
+  },
+  {
+   "ts": "2026-08-08T22:24:28",
+   "event": "spawn",
+   "role": "research-power-architect",
+   "model": "opus/high"
+  },
+  {
+   "ts": "2026-08-08T22:24:28",
+   "event": "spawn",
+   "role": "research-component-scout",
+   "model": "sonnet/high"
+  },
+  {
+   "ts": "2026-08-08T22:24:29",
+   "event": "spawn",
+   "role": "research-component-scout",
+   "model": "sonnet/high"
+  },
+  {
+   "ts": "2026-08-08T22:24:29",
+   "event": "spawn",
+   "role": "research-reference-design",
+   "model": "sonnet/high"
+  },
+  {
+   "ts": "2026-08-08T22:49:11",
+   "event": "phase",
+   "phase": "P2",
+   "prev": "P1"
+  },
+  {
+   "ts": "2026-08-08T22:49:11",
+   "event": "spawn",
+   "role": "architect",
+   "model": "opus/high"
+  },
+  {
+   "ts": "2026-08-08T23:16:50",
+   "event": "decision",
+   "what": "Stackup JLC04162H-7628A: 4 layers, 2 oz outer / 0.5 oz inner, 1.6 mm; outline 50x40 mm (the full cap)"
+  },
+  {
+   "ts": "2026-08-08T23:16:50",
+   "event": "decision",
+   "what": "Lead regulator AP63356QZV-7 (PWM-only sibling), not AP63357Q"
+  },
+  {
+   "ts": "2026-08-08T23:16:50",
+   "event": "decision",
+   "what": "CONFLICT RULED: datasheet theta_JA 25 C/W rejected in favour of the repo calibrated 51 C/W (4L)"
+  },
+  {
+   "ts": "2026-08-08T23:16:50",
+   "event": "decision",
+   "what": "power.json's '<=90 mohm RDS(on)' part filter DELETED; loss table re-derived at 1.48 W / 91.0 % / Iin 2.35 A at 7 V"
+  },
+  {
+   "ts": "2026-08-08T23:16:50",
+   "event": "decision",
+   "what": "ONE FLAT SCHEMATIC SHEET, no hierarchy"
+  }
+ ]
+}

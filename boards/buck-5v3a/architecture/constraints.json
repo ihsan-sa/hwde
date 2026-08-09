@@ -1,0 +1,77 @@
+{
+  "_note": "buck-5v3a MERGED constraint set (P2). Net names are CANONICAL - the schematic must produce exactly these (architecture/sheets.md s3). Refdes are BINDING (sheets.md s2). Derivations: power_tree.md (loss model, widths), stackup.md (thermal, layer count). Copy to kicad/constraints.json at P5 and keep ONE copy - two copies gave two different answers on a prior board (LEARNINGS 2026-07-29).",
+
+  "_superseded": "research/power.json's power_constraints/thermal_constraints are superseded by this file: /VIN -> /VIN_RAW, /VIN_F -> /VIN_FUSED, /SW and +5V ceilings 3.5 -> 3.6 A (peak I_L re-derived at 450 kHz with L = 6.8 uH), U1 power_w 0.8 -> 0.95 W (real 74/40 mohm RDS(on), DS41948 p.5, not the assumed 45/20 mohm class).",
+
+  "power": [
+    {"net": "/VIN_RAW", "current_a": 3.0, "dt_c": 10, "via_amps": 0.5, "pdn": false,
+     "_why": "J1.1 -> F1. Operating worst case is 2.35 A at the 7 V corner; 3.0 A is the design ceiling so the copper also survives the 4 A fuse's non-blow current. pdn false: nothing decouples a pre-protection stub by design."},
+    {"net": "/VIN_FUSED", "current_a": 3.0, "dt_c": 10, "via_amps": 0.5, "pdn": false,
+     "_why": "F1 -> Q1 source. Same budget as /VIN_RAW."},
+    {"net": "+VIN", "current_a": 3.0, "dt_c": 10, "via_amps": 0.5,
+     "_why": "Protected rail: Q1 drain, D2, C1-C3, U1 VIN, EN divider. RMS in the Cin->VIN->GND loop is Io*sqrt(D) = 2.54 A at the 7 V corner, covered by the 3.0 A ceiling. MUST BE VIA-FREE: at 0.5 A/via one via demands 6 in that cluster (net-wide rule, LEARNINGS 2026-07-28)."},
+    {"net": "/SW", "current_a": 3.6, "dt_c": 20, "via_amps": 0.5, "pdn": false,
+     "_why": "Peak inductor current 3.59 A at the 18 V corner. dT 20 not 10 deliberately: /SW is the aggressor node and must stay SMALL (buck.md s5) - 0.78 mm at 2 oz instead of 1.16 mm. ZERO VIAS, F.Cu only."},
+    {"net": "+5V", "current_a": 3.6, "dt_c": 10, "via_amps": 0.5,
+     "_why": "L1 -> C5/C6 -> J2 carries the full peak inductor current. 1.16 mm at 2 oz. ZERO VIAS - a via-free pour is also exempt from check_current's pour-neck test. P6/P7 must add an override for the D1 LED tap (~0.05 A, ~6 mm radius) once positions exist, else every 0.25 mm branch reads as an undersized 3.6 A track."},
+    {"net": "GND", "current_a": 3.6, "dt_c": 10, "via_amps": 0.5, "plane_fed": true, "pdn": false,
+     "_why": "Declared explicitly rather than left to check_current's derived-return synthesis (which downgrades everything to advisory): on a 15 W converter the return deserves ERROR-class pour-neck checking at the full budget. plane_fed makes the unsatisfiable per-cluster via count advisory (LEARNINGS 2026-07-29)."}
+  ],
+
+  "thermal": [
+    {"ref": "U1", "power_w": 0.95, "net": "GND", "dt_c": 55, "min_vias": 12,
+     "_power_basis": "0.881 W modelled at the 7 V low-line corner for AP63356QZV-7 with RDS(on) 92/48 mohm at ~105 C (DS41948 p.5 typ 74/40 at 25 C, scaled by Fig.5), + ~8 % for the unpublished tr/tf and for part-to-part RDS(on) spread - the datasheet publishes NO maximum RDS(on), which is itself the risk this margin covers. Re-derive if P3 substitutes a different regulator.",
+     "_dt_basis": "55 C allowed rise = the 105 C junction target (requirements s3) at 50 C ambient (A9). Machine-verified with check_thermal on a synthetic model of this layout: 48.6 C rise on 4 layers (PASS, 6.4 C margin) vs 70.2 C on 2 layers (FAIL). A 2-layer build of this board fails P8 by construction, which is the intended behaviour. NOTE: check_thermal models one hot part on an otherwise-ambient board; the other 0.37-0.60 W of board loss adds ~10 C that this number does not contain - see stackup.md s2.4.",
+     "_vias_basis": "12 GND vias within ~4 mm of the part centroid: a 3x3 array of 0.3 mm vias at 1.0 mm pitch inside the exposed-pad land plus >= 3 in the surrounding top-side GND pour. check_thermal does not raise its via warning at this power/dt (need_vias is false), so this floor is enforced by P6/P7 review, not by the gate."}
+  ],
+
+  "diff_pairs": [],
+
+  "voltages": [
+    {"net": "/VIN_RAW", "voltage": 18},
+    {"net": "/VIN_FUSED", "voltage": 18},
+    {"net": "+VIN", "voltage": 18},
+    {"net": "/SW", "voltage": 18},
+    {"net": "+5V", "voltage": 5}
+  ],
+
+  "coating": "soldermask",
+
+  "planes": [
+    {"net": "GND", "layer": "In1.Cu",
+     "_why": "Solid GND, unbroken under U1 and the whole Cin/VIN/GND hot loop. Return plane AND primary heat spreader, 0.43 mm below the exposed-pad via array."},
+    {"net": "GND", "layer": "In2.Cu",
+     "_why": "GND again, NOT the +5V rail. Overrides planes_gen's 4-layer default (In2 = dominant power net): +5V travels ~20 mm on F.Cu and needs no plane, while a second GND plane is worth more as thermal mass and lets the EP via array see copper on both inner layers. DS41948 PCB Layout rule 6 asks for exactly this."},
+    {"net": "GND", "layer": "B.Cu",
+     "_why": "Bottom heat-radiating surface and via-array landing. Kept clear of SMT parts (A11)."},
+    {"net": "GND", "layer": "F.Cu",
+     "_why": "Top GND pour joined to U1's exposed-pad land - the >= 200 mm2 of contiguous copper the thermal model counts on, and the hot loop's return. Poured at P7.2 after routing."}
+  ],
+
+  "placement": {
+    "edges": [
+      {"ref": "J1", "edge": "left", "pos": 0.5},
+      {"ref": "J2", "edge": "right", "pos": 0.5}
+    ],
+    "groups": [
+      {"name": "hotloop", "anchor": "U1", "members": ["C1", "C2", "C3", "C4"]},
+      {"name": "fb", "anchor": "U1", "members": ["R1", "R2", "R3", "R4"]},
+      {"name": "output", "anchor": "L1", "members": ["C5", "C6"]},
+      {"name": "rpp", "anchor": "Q1", "members": ["R6", "D3", "D2"]}
+    ],
+    "keepouts": [
+      {"rect": [-200, -200, 400, 400], "side": "back",
+       "reason": "A11: JLCPCB top-side SMT assembly only - the bottom side stays clear as a thermal/return plane. J1/J2 are THT and unaffected."}
+    ],
+    "fixed": ["H1", "H2", "H3", "H4"],
+    "separation": [
+      {"a": ["U1"], "b": ["L1"], "min_mm": 8},
+      {"a": ["U1"], "b": ["F1"], "min_mm": 15}
+    ],
+    "_separation_note": "min_mm is CENTROID-to-centroid and is a place_anneal cost term, not a legality rule. 8 mm between a 3x2 mm U1 and an 8x8 mm L1 is a ~2.5 mm body gap - a deliberate compromise: DS41948 rule 3 ('inductor as close to SW as possible') and buck.md s5 switch-node containment WIN over research/power.md's '>= 5 mm from U1' thermal preference, because a long /SW polygon is a worse problem than two adjacent 0.9 W and 0.3 W bodies on a board with two solid GND planes. 15 mm U1<->F1 keeps the fuse in the cool corner by J1 where its 30 % high-temperature derating does not bite.",
+    "_edges_note": "P6 must set J1/J2 rotation so wire entry faces off-board, and must read it from the 3D model or an orthographic side render - NOT from the silk outline (LEARNINGS 2026-07-28)."
+  },
+
+  "_no_high_speed": "Deliberately absent. There is no controlled-impedance, standards-bound or clocked net on this board. The only fast node is /SW, which is contained on F.Cu over an unbroken In1 GND plane and is governed by the layout rules in blocks.md/stackup.md, not by a return-path check - declaring it would add a check that passes trivially while risking spurious corridor findings.",
+  "_no_voltage_pairs": "Deliberately absent. Maximum node voltage is 18 V and the maximum pair difference is 18 V, both below check_creepage's 30 V threshold; there is no bridge/AC tap on this board. The voltages list above is declared anyway so that A1's closure of the >30 V flag is machine-visible."
+}
