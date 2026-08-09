@@ -2771,3 +2771,43 @@ MAX of the footprint's distinct pad sizes against that single pair - so the larg
 always warn even when they exactly match the vendor drawing. This is a schema limitation, not a
 footprint defect; do not try to "fix" it by editing pad geometry, and do not treat the warning as
 newly-introduced when re-verifying a footprint you just repaired for something else.
+
+## 2026-08-09 [check_thermal][thermal][stackup] `check_thermal` is an area/layer-count screen: it scores identically with ZERO thermal vias and NO top pour, and its 2-layer branch is a 1 oz calibration
+buck-5v3a P2 thermal re-check, after the U1 exposed-pad refutation (entry above). Two facts that
+change how much weight the gate can carry, both machine-verified on a synthetic probe:
+(1) **The gate cannot see the heat path.** `check_thermal.check_part` computes `a_eff` = heatsink-net
+copper within a 14.3 mm radius summed over ALL layers and capped at `A_SAT_MM2` = 645, then
+`theta_ja(a_eff, multilayer)`. On any 4-layer board with GND planes the cap saturates, so the gate
+reports **exactly 51.106 C/W** regardless of layout - and a probe stripped of every thermal via AND
+the entire top GND pour returned the identical `rise_c` and still passed. Its `need_vias` warning
+only fires when `dt/power < theta_ja(A_SAT)` (51.1 on 4L), so a comfortable `dt_c` also disables the
+only via check. Corollary: a via/pour prescription written into `constraints.json` `min_vias` is
+DOCUMENTARY - nothing enforces it but P6/P7 review. Say so in the constraint's `_basis` text.
+(2) **`MODEL_2L` is documented as "1 oz / 2-layer"** (module docstring) and `MODEL_ML` as "2 oz /
+4-layer", and the only stackup input is `len(bg.copper_layers) >= 4`. On a board with 2 oz OUTERS the
+model therefore overstates the 4L-vs-2L gap badly: it claims 51.1 vs 73.8 C/W (~20 C of T_j), but a
+first-principles radial spreader model puts it at ~3 C, because 0.5 oz inner planes add only 0.030 mm
+of copper against 0.140 mm on 2 oz outers (18 % more lateral sheet conductance), and a 50 x 40 board
+is already near-isothermal at two layers. Do not justify a layer count on `check_thermal`'s delta
+alone - and if the real reason for 4 layers is the return plane, write that down instead.
+Also worth keeping: the same first-principles model reproduces a vendor's JEDEC-board theta_JA within
+5 % (25.3 vs 25 C/W for AP63356Q on a 2s2p coupon), which is what licenses using it on the real
+board; and a small board's `theta_JA` is dominated by BOARD AREA, not inner copper weight (swapping
+1 oz -> 0.5 oz inners on the JEDEC board moved it ~2 C/W, while shrinking 8710 -> 2000 mm^2 moved it
+~11 C/W). Keep the probe generator next to the board (`research/raw/`) - the P2 probe was thrown away
+and had to be rebuilt from scratch to re-check one number.
+
+## 2026-08-09 [kicad][schematic][erc] A LITERAL `/` in a local label becomes `{slash}` - the root prefix is added by KiCad, never typed
+sbuck-5v3a P4, flat root sheet. `architecture/sheets.md` spells the canonical nets `/VIN`, `/SW`,
+`/FB`... and `constraints.json` matches those exact strings, so the obvious move is to pass that
+string straight to `Sheet.wire_pin(ref, pad, "/VIN")`. KiCad 10.0.3 then **escapes the slash**: the
+exported net is `/{slash}VIN`, not `/VIN`. Nothing warns - the generator exits 0, the schematic
+opens, `kc.py erc` is 0/0, and the only symptom is `netlist_audit --constraints` raising
+`missing_net` for every affected net (here `/VIN` and `/SW`, i.e. the two most current-carrying nets
+on the board, each declared in TWO constraint sections). The `{slash}` token appears only if you dump
+the netlist's net names; the schematic still renders the label as "/VIN". Rule: **label text is
+always BARE** (`VIN`, `SW`, `COMPZ`); the leading `/` in the exported name is the ROOT SHEET PATH
+that KiCad prepends, which is exactly what `schlib`'s docstring means by "sheet-local labels become
+`/NAME` (root)". Same trap in reverse for power symbols: those Values ARE the literal net name and
+must stay bare (`+VIN`, not `/+VIN`). Verify by dumping the exported names
+(`grep -oE '\(name "[^"]*"' board.net | sort -u`), not by reading the schematic.
