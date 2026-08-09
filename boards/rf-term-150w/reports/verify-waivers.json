@@ -1,0 +1,31 @@
+{
+  "board": "rf-term-150w",
+  "phase": "P8",
+  "_note": "Every waiver here is a TOOL limitation or a structural impossibility, evidenced below. None is a judgement call about an accepted risk on the board itself. All are surfaced in the run's final report and in README.md section 7.",
+  "waivers": [
+    {
+      "check": "check_silk",
+      "kind": "silk_over_pad",
+      "net": "/RF",
+      "refs": ["J1"],
+      "reason": "FALSE POSITIVE - check_silk.py bug. Its shape builder (check_silk.py lines 161-166) converts any *_rect into Polygon(pts).buffer(w2), i.e. it treats the rectangle INTERIOR as solid ink and ignores the fill token entirely. J1's F.SilkS rect carries an explicit '(fill no)' and is an outline of 0.12 mm stroke around the connector body - it does not cover any pad. Three independent proofs: (1) the fill token is literally 'no' in lib/aiee.pretty/SMA_BAT_Wireless_BWSMA-KWE-Z001.kicad_mod; (2) the reported areas are EXACT full-pad areas (5.26 mm2 vs the 2.3x2.3 mm centre pad, 3.80 mm2 vs pi*1.1^2 for a 2.2 mm corner pad) - only a filled interior produces whole-pad coverage; (3) kicad-cli DRC --severity-all on this same board reports ZERO silk findings, and the drc_routed gate (which fails on warnings too) passes 0/0. The footprint is KiCad's own stock part, cloned byte-for-byte apart from an added Datasheet property. Deforming a correct stock footprint to satisfy a checker that mis-parses fill would be the actual defect.",
+      "approved": "orchestrator (ai-ee run 2026-08-09) under the user's explicit standing delegation in the brief: 'Do not ask clarifying questions. Make assumptions, record them in the README, and proceed.' NOT reviewed by a human engineer - flagged as such in the final report."
+    },
+    {
+      "check": "check_silk",
+      "kind": "silk_over_pad",
+      "net": "GND",
+      "refs": ["J1"],
+      "reason": "FALSE POSITIVE - same check_silk.py unfilled-rect bug as the /RF entry above; these are the four corner ground legs of the same connector, each reported at exactly pi*1.1^2 = 3.80 mm2. See that entry for the full evidence.",
+      "approved": "orchestrator (ai-ee run 2026-08-09) under the user's explicit standing delegation. NOT reviewed by a human engineer - flagged as such in the final report."
+    },
+    {
+      "check": "check_return_path",
+      "kind": "corridor_void",
+      "net": "/RF",
+      "refs": [],
+      "reason": "STRUCTURAL - not fixable in any layout. Both findings are the antipads of the /RF THROUGH-HOLE pads in the B.Cu ground pour: J1's centre pin (2.04 mm2 deficit, 0.30 mm of trace crossing) and C1's insulated RF lead (0.74 mm2, 0.15 mm). A through-hole RF pin cannot exist without a clearance void in the opposite-layer plane; removing the void would short RF to GND. At J1 the void IS the coax launch - its four ground legs straddle it, which is the correct launch geometry for a THT SMA jack. Everywhere else the B.Cu return is unbroken under the entire RF run (plane_repair splits_found 0, B.Cu pour 452.58 mm2 = 95.3 percent single anchored island, 79 stitching vias, nearest 0.30 mm from R1's west strap land). Total crossing is 0.45 mm of an 15.065 mm trace. The physical return-loop inductance this represents is already inside the residual budget: 7.21 nH total = 1.13 ohm at 25 MHz against a 12.07 ohm / 76.9 nH failure threshold, a 10.7x margin.",
+      "approved": "orchestrator (ai-ee run 2026-08-09) under the user's explicit standing delegation. NOT reviewed by a human engineer - flagged as such in the final report."
+    }
+  ]
+}

@@ -49,9 +49,8 @@
  },
 
  "planes": [
-  {"layer": "B.Cu", "net": "GND", "connect": "solid"},
-  {"layer": "F.Cu", "net": "GND", "connect": "solid"}
+  {"layer": "B.Cu", "net": "GND"},
+  {"layer": "F.Cu", "net": "GND"}
  ],
- "_comment_planes_connect": "P7: both pours connect pads SOLID, not through KiCad's default thermal relief. Two reasons, both hard. (1) ELECTRICAL: J1's four ground legs ARE the RF return - the whole 1.732 Arms flows through them - and a thermal relief replaces that connection with four 0.5 mm spokes separated by 0.5 mm gaps, i.e. exactly the slot-in-the-return-path that costs far more inductance than any trace width buys back. Same argument for R1's two strap lands and the three mounting-hole pads (which already carry pad-level zone_connect 2 = FULL, so solid also makes the board self-consistent). (2) MECHANICAL/DRC: with the /RF neck 0.63 mm to its west and the C1 stub 0.63 mm to its north, J1's SE ground leg at (37.135, 27.3625) has room for only ONE 45-degree spoke against the board's min spoke count of 2 - measured live, DRC error 'starved_thermal ... zone min spoke count 2; actual 1'. Necking the RF conductors cannot fix it: even at the 0.9392 mm DRU floor the surviving channel is 0.18 mm, under the 0.25 mm zone min_thickness. There is no thermal argument on the other side: A4 puts all 150 W into the user's heatsink OFF-BOARD and the PCB dissipates < 0.25 W total (blocks.md s0), so no pad on this board is a heat path and the relief exists only to make hand-soldering easier on a 3-part hand-built board.",
  "_comment_planes": "OVERRIDES the 2-layer default (B.Cu only). B.Cu is the microstrip return directly under the launch - it is what makes L' 0.21-0.49 nH/mm instead of ~0.8 nH/mm for a wire, and it is the reason the residual inductance budget closes at 6.9 nH against a 31.9 nH limit. F.Cu is poured too because it provides the R1 flange-bond lands and the C1 return without adding a footprint. Both pours keep 0.80 mm from every RF item through the aiee_hv_* DRU rule that rules_gen emits from 'voltages' - NEVER hand-author that rule. No 'region' key on either entry: full-board pours, and no board-local rect that could go untranslated after board_init."
 }

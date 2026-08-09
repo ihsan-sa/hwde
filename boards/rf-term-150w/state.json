@@ -3,7 +3,7 @@
  "board": "rf-term-150w",
  "workspace": "boards/rf-term-150w",
  "created": "2026-08-08T22:33:40",
- "updated": "2026-08-09T03:36:21",
+ "updated": "2026-08-09T04:12:24",
  "phase": "P6",
  "gates": {
   "sim": {
@@ -96,6 +96,97 @@
      }
     }
    ]
+  },
+  "drc_routed": {
+   "phase": "P7",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-08-09T04:06:09",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0,
+    "inputs": {
+     "pcb": "sexpr_no_uuid:12b25f955413b80c3cc14892ec5a268c57b7bd61be4b3481471995860a7b495e",
+     "sch": "sexpr_no_uuid:e999a43d17d1f21c2854b7a4bad09ea70cb2fe61c39f1590ef8fbc767b8a10dd",
+     "pro": "json_canonical:0437024ea075fd15d68a2eb6872b84a4bb63df1b594799d8c41bbfc7f5098563",
+     "dru": "text_eol:41c3148874a8e35184e26680f397318bf0026efd3e6736e447ef62822d4e88f6"
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-09T04:06:09",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:12b25f955413b80c3cc14892ec5a268c57b7bd61be4b3481471995860a7b495e",
+      "sch": "sexpr_no_uuid:e999a43d17d1f21c2854b7a4bad09ea70cb2fe61c39f1590ef8fbc767b8a10dd",
+      "pro": "json_canonical:0437024ea075fd15d68a2eb6872b84a4bb63df1b594799d8c41bbfc7f5098563",
+      "dru": "text_eol:41c3148874a8e35184e26680f397318bf0026efd3e6736e447ef62822d4e88f6"
+     }
+    }
+   ]
+  },
+  "verify": {
+   "phase": "P8",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-08-09T04:09:22",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 11,
+    "inputs": {
+     "pcb": "sexpr_no_uuid:12b25f955413b80c3cc14892ec5a268c57b7bd61be4b3481471995860a7b495e",
+     "constraints": "json_canonical:299b48d3dc08b8bf901830c6850ac9b741e31afd7de8c5c893df6803aec7456d",
+     "decoupling": null,
+     "waivers": null
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-09T04:09:22",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 11,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:12b25f955413b80c3cc14892ec5a268c57b7bd61be4b3481471995860a7b495e",
+      "constraints": "json_canonical:299b48d3dc08b8bf901830c6850ac9b741e31afd7de8c5c893df6803aec7456d",
+      "decoupling": null,
+      "waivers": null
+     }
+    }
+   ]
+  },
+  "dfm": {
+   "phase": "P9",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-08-09T04:12:24",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 1,
+    "inputs": {
+     "pcb": "sexpr_no_uuid:12b25f955413b80c3cc14892ec5a268c57b7bd61be4b3481471995860a7b495e",
+     "sch": "sexpr_no_uuid:e999a43d17d1f21c2854b7a4bad09ea70cb2fe61c39f1590ef8fbc767b8a10dd",
+     "parts": null
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-09T04:12:24",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 1,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:12b25f955413b80c3cc14892ec5a268c57b7bd61be4b3481471995860a7b495e",
+      "sch": "sexpr_no_uuid:e999a43d17d1f21c2854b7a4bad09ea70cb2fe61c39f1590ef8fbc767b8a10dd",
+      "parts": null
+     }
+    }
+   ]
   }
  },
  "human": {
@@ -115,37 +206,61 @@
    "path": "kicad/sims",
    "kind": "sims",
    "sha256": "dir_text:89b35ed399050e35af73281c645f730f102436805796b3ac0e687cd9249f23c9",
-   "hashed": "2026-08-09T00:33:55"
+   "hashed": "2026-08-09T04:06:09"
   },
   "sch": {
    "path": "kicad/rf-term-150w.kicad_sch",
    "kind": "sch",
-   "sha256": "sexpr_no_uuid:420fe62493c77c30d0907c71e55503312432940c837489b1a046fc30c898d275",
-   "hashed": "2026-08-09T02:12:27"
+   "sha256": "sexpr_no_uuid:e999a43d17d1f21c2854b7a4bad09ea70cb2fe61c39f1590ef8fbc767b8a10dd",
+   "hashed": "2026-08-09T04:12:24"
   },
   "pro": {
    "path": "kicad/rf-term-150w.kicad_pro",
    "kind": "pro",
-   "sha256": "json_canonical:767fd0c802179e295e841c806a5f586b3071e4b47a139e1a5021a562afd55c29",
-   "hashed": "2026-08-09T02:12:27"
+   "sha256": "json_canonical:0437024ea075fd15d68a2eb6872b84a4bb63df1b594799d8c41bbfc7f5098563",
+   "hashed": "2026-08-09T04:06:09"
   },
   "pcb": {
    "path": "kicad/rf-term-150w.kicad_pcb",
    "kind": "pcb",
-   "sha256": "sexpr_no_uuid:e91ca64470d994d69c7404806c67c1924017653694bdc8caa2fe57570fb79555",
-   "hashed": "2026-08-09T03:35:33"
+   "sha256": "sexpr_no_uuid:12b25f955413b80c3cc14892ec5a268c57b7bd61be4b3481471995860a7b495e",
+   "hashed": "2026-08-09T04:12:24"
   },
   "constraints": {
    "path": "kicad/constraints.json",
    "kind": "constraints",
-   "sha256": "json_canonical:30ad1b62651038573a1b7415ccbaf6d6f8b8b5660693a0492f71c0fb643b15aa",
-   "hashed": "2026-08-09T03:35:33"
+   "sha256": "json_canonical:299b48d3dc08b8bf901830c6850ac9b741e31afd7de8c5c893df6803aec7456d",
+   "hashed": "2026-08-09T04:09:22"
   },
   "decoupling": {
    "path": "kicad/decoupling.json",
    "kind": "decoupling",
    "sha256": null,
-   "hashed": "2026-08-09T03:35:33"
+   "hashed": "2026-08-09T04:09:22"
+  },
+  "dru": {
+   "path": "kicad/rf-term-150w.kicad_dru",
+   "kind": "dru",
+   "sha256": "text_eol:41c3148874a8e35184e26680f397318bf0026efd3e6736e447ef62822d4e88f6",
+   "hashed": "2026-08-09T04:06:09"
+  },
+  "netlist": {
+   "kind": "netlist",
+   "path": "kicad/rf-term-150w.net",
+   "sha256": "netlist_canonical:d1ae549291b1bf2f842982e667b4660f47115e6d20ea20ad6c05155a5806eb2e",
+   "hashed": "2026-08-09T04:06:09"
+  },
+  "waivers": {
+   "path": "kicad/reports/verify-waivers.json",
+   "kind": "waivers",
+   "sha256": null,
+   "hashed": "2026-08-09T04:09:22"
+  },
+  "parts": {
+   "path": "kicad/parts.json",
+   "kind": "parts",
+   "sha256": null,
+   "hashed": "2026-08-09T04:12:24"
   }
  },
  "open_issues": [],
@@ -497,6 +612,36 @@
    "why": "R1's own BOLT CL footprint silk (glyph top at y 16.695) vetoes anything lower. Benign under the adopted B3 decision because the SOLDERED STRAPS carry the RF return, not the screws - this geometry would only matter under the superseded screw-return assumption.",
    "phase": "P6",
    "ts": "2026-08-09T03:36:21"
+  },
+  {
+   "what": "check_silk treats an UNFILLED rect as solid ink - 5 false positives waived, tool bug logged",
+   "why": "check_silk.py builds Polygon(pts).buffer(w2) for any *_rect and ignores the fill token. J1's F.SilkS rect is explicitly (fill no), 0.12 mm stroke. Proof: reported areas are exact whole-pad areas (3.80 mm2 = pi*1.1^2 corner pad; 5.26 vs the 2.3x2.3 centre pad), which only a filled interior produces; and kicad-cli DRC --severity-all reports zero silk findings on the same board while drc_routed passes 0/0 ffailing on warnings too. Deforming a correct stock KiCad footprint to satisfy a checker that mis-parses fill would be the real defect.",
+   "phase": "P8",
+   "ts": "2026-08-09T04:09:22"
+  },
+  {
+   "what": "Planes set to connect:solid rather than thermal relief",
+   "why": "Thermal relief left J1's SE ground leg with 1 spoke against a minimum of 2 (starved_thermal, a hard DRC error), and necking the RF could not fix it - even at the 0.9392 mm floor the surviving channel is 0.18 mm, under the 0.25 mm zone min_thickness. Solid is also electrically correct: J1's legs carry the full 1.732 Arms return and 0.5 mm spokes are exactly the return-path slot that costs more than trace width buys. No thermal argument opposes it - all 150 W is off-board and the PCB dissipates under 0.25 W.",
+   "phase": "P7",
+   "ts": "2026-08-09T04:09:22"
+  },
+  {
+   "what": "Router stopped flaring deliberately at 7.21 nH instead of minimising further",
+   "why": "Flaring harder would push the residual BELOW C1's 5.75 nH exact-null floor, converting the trimmer's weak-but-real downward authority into no demonstrable null at all - i.e. optimising the headline inductance would have broken the brief's operator-adjustable requirement. 7.21 nH keeps a genuine two-sided null and is still 10.7x inside the 76.9 nH failure threshold.",
+   "phase": "P7",
+   "ts": "2026-08-09T04:09:22"
+  },
+  {
+   "what": "Delivered BOM.csv authored from the schematic; bom_cpl output would have shipped without the load resistor",
+   "why": "Verified against the script: build_bom() iterates the POS export, and R1 carries exclude_from_pos_files (correctly - it is not machine-placed), so bom_cpl produced 2 rows with R1 absent and C1 blank (DigiKey-only, and no script reads a DigiKey field). Delivered BOM built from kicad-cli sch export bom: 3 lines, distributor PNs hand-carried, qty-5 pricing, plus the user-supplied hardware list. Validated by parsing the CSV back and asserting all three refs present.",
+   "phase": "P9",
+   "ts": "2026-08-09T04:12:24"
+  },
+  {
+   "what": "6 silk strokes at 0.12 mm vs JLC's 0.15 mm minimum: documented, not fixed",
+   "why": "Inherited from the stock KiCad SMA footprint. dfm gate PASSES (warning severity). Fixing needs surgery on a routed, gate-clean board plus a full drc_routed/verify/dfm re-gate, to improve legibility of a connector outline whose orientation is already unambiguous from four symmetric ground legs and a centre pin. Regression risk outweighs a cosmetic gain.",
+   "phase": "P9",
+   "ts": "2026-08-09T04:12:24"
   }
  ],
  "edits": [],
@@ -973,6 +1118,81 @@
    "event": "human",
    "checkpoint": "3",
    "status": "approved"
+  },
+  {
+   "ts": "2026-08-09T03:46:01",
+   "event": "snapshot",
+   "label": "pre-p7-route",
+   "files": 4
+  },
+  {
+   "ts": "2026-08-09T03:55:11",
+   "event": "restore",
+   "label": "pre-p7-route",
+   "files": 4
+  },
+  {
+   "ts": "2026-08-09T04:06:09",
+   "event": "gate",
+   "gate": "drc_routed",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-09T04:06:09",
+   "event": "rehash",
+   "names": [
+    "constraints",
+    "decoupling",
+    "dru",
+    "netlist",
+    "pcb",
+    "pro",
+    "sch",
+    "sims"
+   ]
+  },
+  {
+   "ts": "2026-08-09T04:09:22",
+   "event": "gate",
+   "gate": "verify",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-09T04:09:22",
+   "event": "decision",
+   "what": "check_silk treats an UNFILLED rect as solid ink - 5 false positives waived, tool bug logged"
+  },
+  {
+   "ts": "2026-08-09T04:09:22",
+   "event": "decision",
+   "what": "Planes set to connect:solid rather than thermal relief"
+  },
+  {
+   "ts": "2026-08-09T04:09:22",
+   "event": "decision",
+   "what": "Router stopped flaring deliberately at 7.21 nH instead of minimising further"
+  },
+  {
+   "ts": "2026-08-09T04:12:24",
+   "event": "gate",
+   "gate": "dfm",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-09T04:12:24",
+   "event": "decision",
+   "what": "Delivered BOM.csv authored from the schematic; bom_cpl output would have shipped without the load resistor"
+  },
+  {
+   "ts": "2026-08-09T04:12:24",
+   "event": "decision",
+   "what": "6 silk strokes at 0.12 mm vs JLC's 0.15 mm minimum: documented, not fixed"
   }
  ]
 }

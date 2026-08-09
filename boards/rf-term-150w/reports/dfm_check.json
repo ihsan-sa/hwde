@@ -1,0 +1,62 @@
+{
+ "script": "dfm_check",
+ "status": "pass",
+ "board": "rf-term-150w.kicad_pcb",
+ "counts": {
+  "total": 1,
+  "by_severity": {
+   "warning": 1
+  },
+  "by_source": {
+   "check.dfm": 1
+  }
+ },
+ "violations": [
+  {
+   "check": "dfm",
+   "severity": "warning",
+   "pos": [
+    30.95,
+    25.0625
+   ],
+   "layer": "F.Silkscreen",
+   "net": null,
+   "refs": [],
+   "msg": "6 silk strokes below JLC minimum width 0.15 mm (narrowest 0.1200 mm) on F.Silkscreen",
+   "source": "check.dfm",
+   "items": [
+    {
+     "msg": "6 silk strokes below JLC minimum width 0.15 mm (narrowest 0.1200 mm) on F.Silkscreen",
+     "pos": [
+      30.95,
+      25.0625
+     ]
+    }
+   ],
+   "kind": "dfm_silk_width",
+   "width_mm": 0.12,
+   "min_mm": 0.15,
+   "count": 6
+  }
+ ],
+ "layers_present": [
+  "B.Cu",
+  "F.Cu",
+  "B.Mask",
+  "F.Mask",
+  "B.Silkscreen",
+  "F.Silkscreen"
+ ],
+ "n_holes": 89,
+ "polarity": {
+  "status": "checked",
+  "refs_checked": 6
+ },
+ "capability_key": "2layer_1oz",
+ "layer_count": 2,
+ "copper_oz": 1.0,
+ "copper_oz_source": "stackup",
+ "gerber_dir": "boards\\rf-term-150w\\fab\\gerbers",
+ "min_trace_width_mm": 1.26,
+ "min_hole_mm": 0.3
+}
