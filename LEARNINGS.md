@@ -2644,3 +2644,15 @@ time Git touches it" on every one of these commits). Net effect: append an entry
 and the entry is gone with no error anywhere. Practical rule: `git add LEARNINGS.md && git commit` in
 the SAME turn as the append, never "I'll commit the learnings at the end", and if a line count moves
 the wrong way after an append, check `grep -c` for the entry rather than trusting the number.
+
+## 2026-08-08 [parts][sourcing] LCSC/JLC catalog "Output Type" attributes can contradict the manufacturer's own ordering table - cross-check before committing to a "Fixed" SKU
+buck-5v3a P1 regulator scout, live parts_search. The JLC catalog lists AP63356DV-7 with Output Type
+"Fixed", but the Diodes AP6335x datasheet ordering-information table shows the entire family as
+ADJUSTABLE-only (external FB divider required). Designing to the catalog attribute would have shipped
+a board with FB tied straight to the output and no divider - a silent 0.8 V output, caught only at
+bring-up. The catalog attribute is a scraped/derived field, not vendor data. Rule: any part attribute
+that changes the SCHEMATIC (fixed vs adjustable, internal vs external compensation, pin count
+variants within a family) must be confirmed against the datasheet ordering table by the
+datasheet-extractor at P3, never accepted from search results alone. Note the same trap already bit
+the house buck reference from the other direction (topologies/buck.md s4: do NOT copy the ADJUSTABLE
+variant's divider onto a genuinely FIXED part) - the failure is symmetric, the fix is the same.
