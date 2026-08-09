@@ -3,10 +3,16 @@
  "board": "buck-5v3a",
  "workspace": "boards/buck-5v3a",
  "created": "2026-08-08T22:10:35",
- "updated": "2026-08-08T23:16:50",
- "phase": "P2",
+ "updated": "2026-08-09T00:00:39",
+ "phase": "P3",
  "gates": {},
- "human": {},
+ "human": {
+  "1": {
+   "status": "approved",
+   "ts": "2026-08-08T23:24:26",
+   "note": "Architecture approved as presented: 4L JLC04162H-7628A 2oz outer, 50x40 outline, AP63356Q. Four H1 questions answered: (1) Tj<=105C is a SOFT target - proceed with AP63356Q, no re-sweep; (2) fuse relaxed to 5 A TIME-LAG (supersedes binding A5's 4 A) on SMD derating grounds; (3) 15 mm height cap DROPPED - open board, no enclosure, A8 height clause void (4x M3 holes stand); (4) +/-3% is DC-only AND fit a 100 uF polymer footprint at the output, may be left unpopulated."
+  }
+ },
  "artifacts": {},
  "open_issues": [],
  "next_issue_id": 1,
@@ -81,6 +87,48 @@
    "why": "One function, one rail, 25 parts; also dodges the /<sheet>/<LABEL> net-prefix trap. Deviation from the default hierarchical plan, recorded per full-run.md",
    "phase": "P2",
    "ts": "2026-08-08T23:16:50"
+  },
+  {
+   "what": "H1: Tj <= 105 C is a soft target, not a part filter",
+   "why": "User ruling. Computed Tj 95 C (105 C with neighbour heating) vs the part's 150 C limit is normal prototype derating; avoids a 5 A-class re-sweep the P1 data says has no stocked survivor",
+   "phase": "P2",
+   "ts": "2026-08-08T23:24:27"
+  },
+  {
+   "what": "H1: input fuse changed to 5 A TIME-LAG (was 4 A in binding answer A5)",
+   "why": "User ruling. SMD fuses derate ~30% at the 85-95 C board hotspot: 4 A -> ~2.8 A effective vs 2.31 A operating = 21% margin, thin enough to nuisance-blow",
+   "phase": "P2",
+   "ts": "2026-08-08T23:24:27"
+  },
+  {
+   "what": "H1: 15 mm max component height DROPPED - no height limit",
+   "why": "User ruling. A8's height clause was an analyst default, not a stated requirement; board is open with no enclosure (A9). The 4x M3 mounting holes from A8 stand. Frees inductor and cap profile choice; kills the 0.9 mm terminal margin risk",
+   "phase": "P2",
+   "ts": "2026-08-08T23:24:27"
+  },
+  {
+   "what": "H1: +/-3% is DC-only; fit a 100 uF polymer output cap footprint (C7), populate optional",
+   "why": "User ruling. External load is unspecified; a 0->3 A step dips ~300 mV all-ceramic. ~30 mm2 and ~$0.30 of insurance that can be left unpopulated",
+   "phase": "P2",
+   "ts": "2026-08-08T23:24:27"
+  },
+  {
+   "what": "F1 stays the 32 V-rated 12H1500D (5 A time-lag); the 63 V Bel Fuse alternate at 13x cost is REJECTED",
+   "why": "A fuse voltage rating is an arc-interruption rating, not a standoff rating. The only source this fuse can ever be asked to interrupt is the <=18 V bench/adapter supply (A1), giving nearly 2:1 margin. The ~36 V figure is a microsecond hot-plug ring that D1 (SMBJ20A) clamps and that is not a fault-interruption condition. Orchestrator ruling on the part-sourcer's OPEN 1",
+   "phase": "P3",
+   "ts": "2026-08-09T00:00:38"
+  },
+  {
+   "what": "L1 = SLO1040H6R8MTT (10.8x10 mm, 6.8 uH, DCR 22 mohm typ, Isat 10 A) over the CENKER/XR 8040 6.8 uH SKUs",
+   "why": "The exact-size CENKER parts reach only Isat 4.55 A against the AP63356Q's 4.0 A minimum current limit - the same thin margin that disqualified 4.7 uH. H1-b dropped the height cap, which is what made the larger part admissible",
+   "phase": "P3",
+   "ts": "2026-08-09T00:00:38"
+  },
+  {
+   "what": "Q1 AO4407A Vgs(max) confirmed +/-25 V by hand from the UMW datasheet, not +/-20 V as the architecture assumed",
+   "why": "More gate margin, not less: D3's 15 V zener now has 10 V of headroom. Recorded because the architecture's number was an assumption and downstream review will check against it",
+   "phase": "P3",
+   "ts": "2026-08-09T00:00:39"
   }
  ],
  "edits": [],
@@ -120,6 +168,36 @@
    "role": "architect",
    "model": "opus/high",
    "phase": "P2"
+  },
+  {
+   "ts": "2026-08-08T23:25:01",
+   "role": "part-sourcer",
+   "model": "sonnet/high",
+   "phase": "P3"
+  },
+  {
+   "ts": "2026-08-08T23:58:53",
+   "role": "datasheet-extractor",
+   "model": "sonnet/high",
+   "phase": "P3"
+  },
+  {
+   "ts": "2026-08-08T23:58:53",
+   "role": "datasheet-extractor",
+   "model": "sonnet/high",
+   "phase": "P3"
+  },
+  {
+   "ts": "2026-08-08T23:58:53",
+   "role": "datasheet-extractor",
+   "model": "sonnet/high",
+   "phase": "P3"
+  },
+  {
+   "ts": "2026-08-08T23:58:53",
+   "role": "datasheet-extractor",
+   "model": "sonnet/high",
+   "phase": "P3"
   }
  ],
  "history": [
@@ -234,6 +312,90 @@
    "ts": "2026-08-08T23:16:50",
    "event": "decision",
    "what": "ONE FLAT SCHEMATIC SHEET, no hierarchy"
+  },
+  {
+   "ts": "2026-08-08T23:24:26",
+   "event": "human",
+   "checkpoint": "1",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-08-08T23:24:27",
+   "event": "decision",
+   "what": "H1: Tj <= 105 C is a soft target, not a part filter"
+  },
+  {
+   "ts": "2026-08-08T23:24:27",
+   "event": "decision",
+   "what": "H1: input fuse changed to 5 A TIME-LAG (was 4 A in binding answer A5)"
+  },
+  {
+   "ts": "2026-08-08T23:24:27",
+   "event": "decision",
+   "what": "H1: 15 mm max component height DROPPED - no height limit"
+  },
+  {
+   "ts": "2026-08-08T23:24:27",
+   "event": "decision",
+   "what": "H1: +/-3% is DC-only; fit a 100 uF polymer output cap footprint (C7), populate optional"
+  },
+  {
+   "ts": "2026-08-08T23:25:01",
+   "event": "phase",
+   "phase": "P3",
+   "prev": "P2"
+  },
+  {
+   "ts": "2026-08-08T23:25:01",
+   "event": "spawn",
+   "role": "part-sourcer",
+   "model": "sonnet/high"
+  },
+  {
+   "ts": "2026-08-08T23:25:01",
+   "event": "report_gen_fixed",
+   "defect": "IndexError on bare ## Chosen stackup heading",
+   "fix": "report_gen._chosen_stackup, unit-covered",
+   "commit": "0f0e471"
+  },
+  {
+   "ts": "2026-08-08T23:58:53",
+   "event": "spawn",
+   "role": "datasheet-extractor",
+   "model": "sonnet/high"
+  },
+  {
+   "ts": "2026-08-08T23:58:53",
+   "event": "spawn",
+   "role": "datasheet-extractor",
+   "model": "sonnet/high"
+  },
+  {
+   "ts": "2026-08-08T23:58:53",
+   "event": "spawn",
+   "role": "datasheet-extractor",
+   "model": "sonnet/high"
+  },
+  {
+   "ts": "2026-08-08T23:58:53",
+   "event": "spawn",
+   "role": "datasheet-extractor",
+   "model": "sonnet/high"
+  },
+  {
+   "ts": "2026-08-09T00:00:38",
+   "event": "decision",
+   "what": "F1 stays the 32 V-rated 12H1500D (5 A time-lag); the 63 V Bel Fuse alternate at 13x cost is REJECTED"
+  },
+  {
+   "ts": "2026-08-09T00:00:38",
+   "event": "decision",
+   "what": "L1 = SLO1040H6R8MTT (10.8x10 mm, 6.8 uH, DCR 22 mohm typ, Isat 10 A) over the CENKER/XR 8040 6.8 uH SKUs"
+  },
+  {
+   "ts": "2026-08-09T00:00:39",
+   "event": "decision",
+   "what": "Q1 AO4407A Vgs(max) confirmed +/-25 V by hand from the UMW datasheet, not +/-20 V as the architecture assumed"
   }
  ]
 }

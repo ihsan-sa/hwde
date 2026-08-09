@@ -1,0 +1,237 @@
+{
+ "script": "datasheet_extract",
+ "status": "extracted",
+ "source_pdf": "boards\\buck-5v3a\\parts\\C8465.pdf",
+ "lcsc": "",
+ "n_pages": 1,
+ "text_chars": 1497,
+ "pages_trimmed": 0,
+ "text_by_page": [
+  {
+   "page": 0,
+   "text": "\u6750\u8d28\u53ca\u7535\u9540  MATERIAL\n  \u7248\u672c\nVersion\n   \u63cf\u8ff0\nDescription\n \u8bbe\u8ba1\nDesign\n  \u6279\u51c6\nApproved\n\u65e5\u671f\nDate\nA\u65b0\u53d1\u884c\u718a\u6b66\u654c\u697c\u7279\u9ad82024.03.10\n\u87ba\u4e1d Screws  M2.5\uff0c\u94a2\uff0c\u9540\u950c\nM2.5,Steel,Zn plated\n    \u94dc\u5408\u91d1\uff0c\u9540\u954d\nCopper alloy,Ni plated \u65b9\u5757 Cage\n    \u94dc\u5408\u91d1\uff0c\u9540\u9521\nCopper alloy,Tin plated\n\u5851\u4ef6 HousingPA66,UL94V-0\n\u7535\u6c14\u6027\u80fd ELECTRICAL\n\u53c2\u8003\u6807\u51c6 StanardUL       IEC\n\u989d\u5b9a\u7535\u538b Rated voltage300V      400V\n\u989d\u5b9a\u7535\u6d41 Rated current10A       24A\n\u4f7f\u7528\u7ebf\u5f84 Wire range22-12AWG    2.5mm\u00b2\n\u63a5\u89e6\u7535\u963b\nContact resistance20m\u2126\n\u7edd\u7f18\u7535\u963b\nInsulation resistance500M\u2126/DC500V\n\u8010\u7535\u538b\nWithstanding voltage\nAC1600V/1Min\n\u673a\u68b0\u6027\u80fd MECHANICAL\n\u6e29\u5ea6\u8303\u56f4 Temp.range\n\u77ac\u65f6\u6e29\u5ea6 Max.soldering+250\u2103 for 5 Sec\n\u626d\u77e9 Torque4.08kgf.cm/0.4N.m\n\u5265\u7ebf\u957f\u5ea6 Strip length6 7mm\n-40\u2103 +105\u2103 ~\n~\n\u7b2c\u4e09\u89c6\u89d2(THIRD ANGLE PROJECTION)   \u87ba\u9489\u5f0fPCB\u63a5\u7ebf\u7aef\u5b50\nPCB SCREW TERMINAL BLOCK\n\u56fe\u7eb8\u7c7b\u578b(TYPE)CUSTOMER DRAWING\n\u5355\u4f4d(UNITS)mm\u7248\u672c(VERSION)A\n \u578b\u53f7\n(NAME)WJ500V-5.08-XXP-1Y-00A\n\u5c3a\u5bf8(SIZE)A4\n\u6bd4\u4f8b(SCALE)\n\u56fe\u9875(SHEET)\n1:1\n1/1\n\u5b81\u6ce2\u5eb7\u5948\u514b\u65af\u7535\u6c14\u6709\u9650\u516c\u53f8\nNingbo Kangnex Electric Co.,Ltd JWBN\nR\nR\n\u7f16\u7801\u539f\u5219(Product Number Code):\n WJ500V-5.08-XXP-1Y-00A\n\u6781\u6570(No.of Poles)\n1:\u5355\u500d\u95f4\u8ddd\n (Single Pitch)\n2:\u53cc\u500d\u95f4\u8ddd\n (Double Pitch)\n\u5ba2\u6237\u9700\u6c42\n(Customer Request)\n\u5851\u4f53\u989c\u8272(Housing Color)\n1:\u7070\u8272(Grey)    6:\u7ea2\u8272(Red)\n2:\u84dd\u8272(Blue)    7:\u900f\u660e\n3:\u9ed1\u8272(Black)     (Transparent)\n4:\u7eff\u8272(Green)   8:\u9ec4\u8272(Yellow)\n5:\u6a59\u8272(Orange)  9:\u767d\u8272(White)\nvariable\nrangeto\n6\nover\n6\nto\n10\nover\n10\nto\n30\nover\n30\nto\n60\nover\n60\nto\n100\nover\n100\nto\n160\nover\n160\ntoto\n10\nover\n10\nto\n100\nover\n100\nto\ntolerance\u00b10.20\u00b10.30\u00b10.50\u00b10.70\u00b11.00\u00b11.30\u00b11.600.100.300.60\nlinear dimension(Tolerances Standard GB/T 14486-2008)\n\u4ea7\u54c1\u578b\u53f7(Series No.)\n\u95f4\u8ddd(Pitch)\n12345678\n78 6 5 4 3 12\nHH\nG\nF\nE\nD\nC\nB\nA\nG\nF\nE\nD\nC\nB\nA\n\u710a\u811a Pin header\nPCB LAYOUT"
+  }
+ ],
+ "schema": {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ai-ee datasheet extraction",
+  "type": "object",
+  "required": [
+   "mpn",
+   "pinout"
+  ],
+  "additionalProperties": false,
+  "properties": {
+   "mpn": {
+    "type": "string",
+    "minLength": 1
+   },
+   "lcsc": {
+    "type": "string"
+   },
+   "package": {
+    "type": "string"
+   },
+   "description": {
+    "type": "string"
+   },
+   "pinout": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "required": [
+      "pin",
+      "name",
+      "type"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "pin": {
+       "type": "string",
+       "minLength": 1
+      },
+      "name": {
+       "type": "string",
+       "minLength": 1
+      },
+      "type": {
+       "type": "string",
+       "enum": [
+        "power_in",
+        "power_out",
+        "ground",
+        "input",
+        "output",
+        "bidirectional",
+        "passive",
+        "analog",
+        "clock",
+        "nc",
+        "open_collector",
+        "tristate",
+        "unspecified"
+       ]
+      },
+      "notes": {
+       "type": "string"
+      }
+     }
+    }
+   },
+   "decoupling": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "required": [
+      "pins",
+      "value"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "pins": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       },
+       "minItems": 1
+      },
+      "value": {
+       "type": "string",
+       "minLength": 1
+      },
+      "placement": {
+       "type": "string"
+      },
+      "notes": {
+       "type": "string"
+      }
+     }
+    }
+   },
+   "land_pattern": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "pad_count"
+    ],
+    "properties": {
+     "package": {
+      "type": "string"
+     },
+     "pad_count": {
+      "type": "integer",
+      "minimum": 1
+     },
+     "pitch_mm": {
+      "type": "number",
+      "exclusiveMinimum": 0
+     },
+     "pad_size_mm": {
+      "type": "array",
+      "items": {
+       "type": "number",
+       "minimum": 0
+      },
+      "minItems": 2,
+      "maxItems": 2
+     },
+     "row_spacing_mm": {
+      "type": "number",
+      "minimum": 0
+     },
+     "drill_mm": {
+      "type": "number",
+      "exclusiveMinimum": 0
+     },
+     "annulus_mm": {
+      "type": "number",
+      "exclusiveMinimum": 0
+     },
+     "courtyard_excess_mm": {
+      "type": "number",
+      "minimum": 0
+     },
+     "pin1": {
+      "type": "string",
+      "description": "pad number that is pin 1 (default '1')"
+     },
+     "notes": {
+      "type": "string"
+     }
+    }
+   },
+   "exposed_pad": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "present": {
+      "type": "boolean"
+     },
+     "connect_to": {
+      "type": "string"
+     },
+     "thermal_vias": {
+      "type": "integer",
+      "minimum": 0
+     }
+    },
+    "required": [
+     "present"
+    ]
+   },
+   "layout_notes": {
+    "type": "array",
+    "items": {
+     "type": "string"
+    }
+   },
+   "abs_max": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "required": [
+      "param",
+      "value"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "param": {
+       "type": "string"
+      },
+      "value": {
+       "type": [
+        "number",
+        "string"
+       ]
+      },
+      "unit": {
+       "type": "string"
+      }
+     }
+    }
+   },
+   "source_pdf": {
+    "type": "string"
+   }
+  }
+ },
+ "template": {
+  "mpn": "",
+  "lcsc": "",
+  "package": "",
+  "pinout": [
+   {
+    "pin": "1",
+    "name": "",
+    "type": "unspecified"
+   }
+  ],
+  "decoupling": [],
+  "land_pattern": {
+   "pad_count": 0
+  },
+  "layout_notes": [],
+  "abs_max": []
+ },
+ "note": "Fill the template from text_by_page and the PDF pages, then re-run with --validate. Pages without schema-relevant keywords are stubs {page, first_line, chars} - read those PDF pages directly if needed, or re-run with --full-text. If text_chars is ~0 the PDF is image-only; read the rendered pages directly."
+}

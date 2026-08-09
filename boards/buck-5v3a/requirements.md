@@ -241,6 +241,18 @@ A9. ENVIRONMENT (default accepted): open board, indoors, no enclosure, no
     minimum ambient. 50 C maximum ambient and natural convection stand.
 A10. QUANTITY / COST (default accepted): prototype run of 5. No hard
     per-unit cap; prefer JLC Basic parts and an economy fab tier.
+### H1 amendments (user-ruled 2026-08-08, these SUPERSEDE A3/A5/A8 above)
+H1-a. FUSE: 5 A TIME-LAG, not 4 A (A5 relaxed). SMD fuses derate ~30 % at the
+    85-95 C board hotspot, so a 4 A part is ~2.8 A effective against 2.31 A
+    operating - 21 % margin, thin enough to nuisance-blow.
+H1-b. HEIGHT: NO maximum component height. A8's 15 mm clause was an analyst
+    default, not a stated requirement, and the board is open with no
+    enclosure (A9). The four M3 mounting holes from A8 STAND.
+H1-c. TRANSIENT: A3's +/-3 % is DC-ONLY. Additionally fit a 100 uF polymer
+    output capacitor footprint (C7) at the output; populating it is optional.
+H1-d. Tj <= 105 C is a SOFT design target, not a part-selection filter. The
+    binding limit is the part's own absolute maximum.
+
 A11. ASSEMBLY: JLCPCB PCBA, TOP-SIDE SMT ONLY. The two 5.08 mm screw
     terminals go to JLC through-hole assembly if reasonably priced, and
     are hand-soldered otherwise - either way the schematic and footprint
