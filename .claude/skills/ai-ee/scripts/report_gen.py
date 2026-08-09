@@ -284,6 +284,32 @@ def image_block(rel_posix: str, width: str) -> str:
             "\\end{center}")
 
 
+def _chosen_stackup(stack_md: str) -> str | None:
+    """Pull the chosen stackup out of architecture/stackup.md.
+
+    Two shapes are accepted, because architects legitimately write both:
+    `## Chosen stackup: NAME` (value on the heading) and a bare
+    `## Chosen stackup` heading whose value is the first content line under
+    it. The bare form is what order_submit.derive_copper_oz's scan window
+    encourages, so it must not crash the report (it did: bare heading ->
+    split(":", 1)[1] -> IndexError, buck-5v3a P2).
+    """
+    lines = stack_md.splitlines()
+    for i, ln in enumerate(lines):
+        if not ln.startswith("## Chosen"):
+            continue
+        _, sep, tail = ln.partition(":")
+        if sep and tail.strip():
+            return tail.strip()
+        for nxt in lines[i + 1:]:
+            if nxt.startswith("#"):
+                break          # ran into the next heading: no value
+            if nxt.strip():
+                return nxt.strip()
+        return None
+    return None
+
+
 # ---------------------------------------------------------------- data access
 
 def read_text(ws: Path, rel: str) -> str | None:
@@ -449,8 +475,7 @@ class DocBuilder:
             used.append("fab/order.json")
         stack = read_text(self.ws, "architecture/stackup.md")
         if stack is not None:
-            chosen = next((ln.split(":", 1)[1].strip() for ln in stack.splitlines()
-                           if ln.startswith("## Chosen")), None)
+            chosen = _chosen_stackup(stack)
             if chosen:
                 self.body.append(r"\subsection*{Stackup}")
                 self.body.append("Chosen stackup: " + _inline(chosen))

@@ -313,6 +313,22 @@ def test_escape_ascii_invariant():
 
 # ------------------------------------------------------------------ markdown-lite
 
+def test_chosen_stackup_both_heading_shapes():
+    """Bare `## Chosen stackup` heading must not crash (buck-5v3a P2).
+
+    order_submit.derive_copper_oz's scan window pushes architects to keep the
+    heading bare and put the id on the line below; the old split(":", 1)[1]
+    raised IndexError on exactly that shape.
+    """
+    inline = "# t\n\n## Chosen stackup: JLC04162H-7628A\n\nprose\n"
+    assert report_gen._chosen_stackup(inline) == "JLC04162H-7628A"
+    below = "# t\n\n## Chosen stackup\n\n**`JLC04162H-7628A`** - 4 layer\n"
+    assert report_gen._chosen_stackup(below).startswith("**`JLC04162H")
+    # value-less heading, and no heading at all -> None, still no crash
+    assert report_gen._chosen_stackup("## Chosen stackup\n\n### next\n") is None
+    assert report_gen._chosen_stackup("# t\n\nno stackup here\n") is None
+
+
 def test_md_headings():
     tex = report_gen.md_to_latex("# A\n\n## B\n\n### C\n")
     assert r"\subsection*{A}" in tex
