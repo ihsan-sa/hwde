@@ -1,0 +1,106 @@
+{
+  "block": "buck power stage",
+  "candidates_covered": ["AP64350SP-13", "LMR33630ADDAR", "SY8205FCC"],
+  "decisions": [
+    {
+      "what": "AP64350SP-13 is the only orderable AP64350 SKU; adjustable-output only (0.8V ref + external divider); no 'AP64350S' fixed-output sibling exists. Separate automotive part AP64350Q has its own datasheet, not relevant.",
+      "why": "Assignment item 6: confirm exact variant before P4 uses the pinout/FB scheme.",
+      "source": "AP64350 datasheet DS41976 Rev.5-2 p.23 Ordering Information; p.13 Setting the Output Voltage"
+    },
+    {
+      "what": "AP64350 vendor BOM for 5.0V/500kHz: R1=115.8k, R2=22.1k, L=5.5uH, Cin=10uF, Cout=2x22uF, Cbst=100nF, Rcomp(R5)=14.0k, Ccomp(C5)=3.3nF, C6=47pF(opt).",
+      "why": "Exact vendor-published component set for our operating point (Table 1), not a general rule.",
+      "source": "AP64350 datasheet p.13 Table 1"
+    },
+    {
+      "what": "AP64350 is EXTERNALLY compensated (peak current-mode, COMP pin exposed) with a full Type-II design procedure; NOT internally compensated. Worked 5V/12Vin/3.5A/500kHz example gives R5=14k/C5=3.3nF/C6=47pF(opt)/C4=33pF(opt feedforward), predicted loop ~16.6kHz BW / 81.6deg phase margin.",
+      "why": "House buck.md assumes 'most parts' internally compensated; AP64350 is the exception among our 3 candidates that needs an explicit compensation network.",
+      "source": "AP64350 datasheet p.16-20 External Loop Compensation Design, Eqs 12-20, Fig 28/29"
+    },
+    {
+      "what": "AP64350 EN/UVLO divider formula (R3=VIN-EN, R4=EN-GND) produces impractically small resistors (R3=1.46k, R4=326R, ~7-10mA continuous VIN draw) for the project's literal 6.5V-rising/6.0V-falling UVLO target, because the formula's coefficient causes near-cancellation at an 8% VON/VOFF gap. Widening to e.g. 7.0V/6.0V (1V gap) gives sane values (R3=113.8k, R4=22.6k, <100uA).",
+      "why": "Highest-value quantitative finding of this research; directly answers assignment item 3 and is load-bearing for P2/P4 if AP64350 is selected.",
+      "source": "AP64350 datasheet p.11 Eqs 2-3, Fig 23"
+    },
+    {
+      "what": "LMR33630 EN/UVLO external-divider formula (R_ENT/R_ENB) does NOT have the AP64350 pathology: picking VON=6.5V with R_ENB=100k gives R_ENT=428k (~23uA divider current) and yields VOFF=5.97V automatically -- almost exactly the project's 6.0V falling target with no fine-tuning.",
+      "why": "Strong differentiator between the two lead candidates for this board's specific UVLO requirement; two orders of magnitude lower quiescent draw than AP64350's formula for the same target.",
+      "source": "LMR33630 datasheet ZHCSHQ3F/SNVSAN3 p.22 Eq.10, Fig 9-2"
+    },
+    {
+      "what": "LMR33630 vendor BOM for 5.0V/400kHz: RFBT=100k, RFBB=24.9k, L=8uH, Cout=4x22uF, Cin=10uF+220nF HF, Cboot=100nF, Cvcc=1uF, Cff=open.",
+      "why": "Exact vendor-published component set for our operating point, cross-checked against two separate tables (9-2 and 9-3) in the same document.",
+      "source": "LMR33630 datasheet p.19 Table 9-2, p.29 Table 9-3"
+    },
+    {
+      "what": "LMR33630 current-limit MIN spec (ISC=3.85A) misses the project's 4.0A floor; TI's own worst-case guaranteed-Iout formula (ILIMIT_min+ISC_min)/2 = 3.375A, only 12% above the 3.0A load.",
+      "why": "Re-confirms the component scout's finding directly from the datasheet's own equation; a real margin risk if LMR33630 is chosen.",
+      "source": "LMR33630 datasheet p.6 Electrical Characteristics (ISC, ILIMIT), p.13 Eq.1"
+    },
+    {
+      "what": "FB-bias-current-caused setpoint error is negligible for all 3 parts (<=0.1% of VFB, ~5mV on a 5V output): AP64350 unpublished IFB (borrowed 50nA assumption), LMR33630 IFB=50nA max, SY8205 IFB=+/-50nA.",
+      "why": "Directly answers assignment item 2's second half; establishes that FB bias current is not the risk to the +/-2% DC budget.",
+      "source": "AP64350 p.5 (no IFB row -- gap); LMR33630 p.6 Electrical Characteristics; AN_SY8205 p.5 Electrical Characteristics"
+    },
+    {
+      "what": "Reference-tolerance-alone setpoint window (before resistor tolerance/drift) consumes 60-95% of the +/-2% (4.90-5.10V) budget for all 3 parts: AP64350 -1.2%/+0.84%, LMR33630 -1.18%/+1.82%, SY8205(derived pair) -1.9%/+1.0%. Recommend 0.1% (min 0.5%) FB divider resistors regardless of final part choice.",
+      "why": "The dominant risk to the DC setpoint budget is reference tolerance + resistor tolerance stacking, not FB bias current -- a concrete, load-bearing recommendation for P4 schematic capture.",
+      "source": "Derived from VFB/VREF min/max in each datasheet's Electrical Characteristics table, applied to each part's own divider pair"
+    },
+    {
+      "what": "AP64350 has no exposed VCC pin (internal LDO fully self-contained, nothing to decouple). LMR33630 and SY8205 both expose VCC, requiring a 1uF ceramic bypass cap in each case.",
+      "why": "Assignment item 1 asks for VCC/BIAS decoupling per part -- answer differs materially between AP64350 and the other two.",
+      "source": "AP64350 p.3 pinout/block diagram (no VCC pin); LMR33630 p.2 Pin Functions + p.22 Sec 9.2.2.8; AN_SY8205 p.3 Pinout + p.9 VCC LDO"
+    },
+    {
+      "what": "All 3 parts are fixed-frequency PWM with automatic PFM/diode-emulation at light load; none offers a pin-selectable forced-PWM mode. SY8205's document never uses the term 'PFM' and gives no explicit light-load-mode description at all (documentation gap).",
+      "why": "Directly answers assignment item 1's PWM/PFM question; load goes to 0A so light-load behavior matters, and SY8205 is materially less documented here than the other two.",
+      "source": "AP64350 p.10 PWM/PFM Operation sections; LMR33630 p.14 Auto Mode; AN_SY8205 p.1 Features (silent on PFM specifically)"
+    },
+    {
+      "what": "None of the 3 vendor documents gives an RC snubber value for the SW-to-PGND node. All rely on IC-internal EMI mitigation instead (gate-driver shaping, package parasitics, spread-spectrum). The brief's DNP snubber footprint must be sized from general industry practice (~10-33 Ohm series R, 470pF-2.2nF series C for a ~500kHz node), not a vendor citation.",
+      "why": "Directly answers assignment item 5's snubber-sizing question; a real gap across all 3 candidates, not specific to one part.",
+      "source": "Absence confirmed by full-document read of all 3 sources (AP64350 all 25p, LMR33630 all 36p, AN_SY8205 all 11p)"
+    },
+    {
+      "what": "Both AP64350 (2oz top+bottom explicit recommendation) and LMR33630 (2oz/1oz/1oz/2oz 4-layer stackup explicit recommendation) push toward heavier copper than the project's stated default (1oz outer/0.5oz inner, requirements-answers Q21).",
+      "why": "Two independent vendor reference designs both recommending heavier copper at this exact power level, against a board whose binding constraint IS thermal (2.05W, <=50x40mm, 50C ambient, no airflow) -- flag as a real signal for P5/P6, not a coincidence.",
+      "source": "AP64350 p.22 PCB Layout point 1; LMR33630 p.32 Ground and Thermal Considerations"
+    },
+    {
+      "what": "Input capacitor RMS current rule-of-thumb from AP64350's datasheet ('greater than half of max load current') lands almost exactly on the project's own worst-case computed figure (1.50A RMS at Vin=10V/D=0.5) -- the chosen MLCC(s) RMS rating must be independently verified, not assumed covered.",
+      "why": "A near-coincidence worth flagging explicitly so P3/P4 don't treat the vendor rule of thumb as extra margin when it isn't.",
+      "source": "AP64350 p.15 Input Capacitor section; requirements.md s3 derived operating points"
+    },
+    {
+      "what": "SY8205FCC's AN document is marked 'Preliminary Specification' throughout and gives no vendor-published UVLO divider formula, no dropout/frequency-foldback mechanism description, and no explicit PFM/light-load-mode statement -- materially less documented than AP64350 or LMR33630 on exactly the items this assignment asked about.",
+      "why": "Affects confidence in SY8205 as a value/fallback option beyond price/thermal advantages already noted by the component scout.",
+      "source": "AN_SY8205 Rev 0.4, all headers/footers; full-document read"
+    }
+  ],
+  "layout_notes": [
+    "AP64350: input caps flush across VIN/GND, inductor tight to SW, output caps tight to GND, FB network (R1/R2) tight to FB pin -- vendor Fig.32 gives the exact placement group topology. GND vias 'as many as possible' around GND pin and under GND plane (no numeric count/drill/pitch given). Exposed pad (pin 9) must tie to the same GND net/plane.",
+    "AP64350: 2oz copper top+bottom explicitly recommended by the vendor for this exact 3.5A part -- conflicts with project 1oz/0.5oz default; escalation candidate for P5.",
+    "LMR33630: FB divider (RFBT/RFBB/CFF) physically close to FB pin; explicit instruction that the VOUT-side trace to the divider must not route near the SW node (capacitive coupling risk) -- direct FB/SW keepout citation.",
+    "LMR33630: numeric thermal via spec -- minimum 4x3 array of 10-mil vias, evenly distributed under the thermal pad, tied to the system ground plane. This is the only vendor-published numeric via array among the 3 candidates; usable as a floor even if AP64350 or SY8205 is ultimately chosen.",
+    "LMR33630: explicit 4-layer copper stackup recommendation, 2oz/1oz/1oz/2oz top-to-bottom -- same conflict with project default as AP64350.",
+    "LMR33630: PGND net (carries switching-frequency noise) must be confined to one side of the mid-layer ground plane; the other side reserved for sensitive/quiet routes -- a single-reference ground topology instruction.",
+    "LMR33630: keep SW-to-inductor copper area small, explicit EMI rationale given.",
+    "SY8205: FB trace and R1/R2 must NOT be adjacent to the LX (SW) net -- explicit keepout citation, matches assignment ask directly. CIN loop to IN/GND pins must be minimized. No numeric via/copper-weight guidance given at all (only qualitative 'maximize GND copper').",
+    "None of the 3 vendors defines a true Kelvin-sense or star-ground point beyond 'tie all GND/thermal-pad copper to one plane, keep it close to the IC' -- flag for the interface-spec stage that no part-mandated star point exists; ground topology is a board-level decision, not a vendor constraint, for all 3 candidates."
+  ],
+  "errata": [
+    "AP64350: SW ringing addressed by an internal 'proprietary multi-level gate driver,' not a board-level snubber -- no RC snubber values published.",
+    "AP64350: bootstrap refresh + LDO-mode (Q1 held on ~100% duty, Q2 forced-refreshes BST) triggers automatically as Vin approaches Vout -- not engaged at our 7V/D=0.714 operating point (Vin_min=3.8V gives large margin), but confirms the mechanism exists with no external network needed.",
+    "AP64350: min on-time 100ns typ only (no min/max spec) -- at Vin=18V/D=0.278/500kHz on-time is 556ns, 5.6x margin, but the lack of a guaranteed max-corner number is a minor documentation gap.",
+    "AP64350: FB input bias current is not published anywhere in the datasheet -- a real gap; setpoint-error estimate in decisions above borrows the ~50nA figure both competing parts publish.",
+    "LMR33630: bootstrap refresh via VBOOT-UVLO=2.2V typ, low-side FET turned on to recharge CBOOT -- same class of mechanism as AP64350, less narrative detail.",
+    "LMR33630: min on-time 75typ/108max ns (DDA package) -- at Vin=18V/400kHz/D=0.278 on-time is 695ns, 6.4x the MAX spec, comfortable.",
+    "LMR33630: VDROP is only characterized at 1A load (150mV, 5V out, fsw folds to 140kHz) -- NOT characterized at our 3A load; dropout voltage at 3A will be materially higher and is not given by this datasheet.",
+    "LMR33630: explicit vendor warning against thyristor/snap-back-type TVS on the input, and against ever allowing VIN to fall below VOUT (output caps would discharge through the internal VIN-SW parasitic diode) -- recommend a Schottky between input and output if that fault mode is considered likely; worth a P4 cross-check against the reverse-polarity P-FET's fault behavior.",
+    "SY8205: min on-time 80ns typ / min off-time 120ns typ (single typ values only, same limitation as AP64350). No dropout-mode or frequency-foldback mechanism is described anywhere in the 11-page document (contrast both other parts, which name an explicit mechanism).",
+    "SY8205: current-limit MIN spec conflict with the component scout's characterization -- AN_SY8205 Electrical Characteristics (p.5) actually publishes a MIN=5A spec, but labeled 'Bottom FET Current Limit' (low-side), not a high-side/peak limit like the other two parts' MIN specs. No formula is given to convert this to a guaranteed-max-Iout number the way TI does for LMR33630. Ambiguous whether this counts toward the project's 4.0A floor -- see OPEN.",
+    "SY8205: document gives no vendor UVLO-divider formula or worked example (both other parts do), and the EN threshold table only labels a 'falling' threshold with hysteresis, not a separately-stated rising threshold.",
+    "SY8205: entire document is marked 'Preliminary Specification' -- treat all figures as provisional relative to AP64350 (Rev 5-2) and LMR33630 (Rev F), both of which are numbered, revision-controlled production datasheets."
+  ]
+}

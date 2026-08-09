@@ -1,0 +1,273 @@
+{
+  "board": "sbuck-5v3a",
+  "phase": "P1",
+  "agent": "research-power-architect",
+  "note": "Net names are this fragment's proposal; P2 must reconcile to the final netlist before P5. Design point assumed for all budgets: fsw = 500 kHz, L = 6.8 uH, Vout = 5.0 V, Iout = 3.0 A.",
+
+  "rails": [
+    {
+      "net": "VIN",
+      "vin": "7-18 V DC at J1 (12 V nominal)",
+      "topology": "direct",
+      "current_a": 2.6,
+      "consumers": [
+        {"ref": "F1", "what": "4 A time-lag input fuse", "current_a": 2.42, "basis": "15 W / (7 V * 0.884) at low line"},
+        {"ref": "Q1", "what": "P-channel reverse-polarity FET, drain to input", "current_a": 2.42, "basis": "same series path"}
+      ],
+      "dissipation_w": 0.446,
+      "dissipation_note": "worst case at Vin=7 V: Q1 0.208 W + F1 0.238 W; 0.132 W at 12 V"
+    },
+    {
+      "net": "+VIN",
+      "vin": "VIN through F1 and Q1",
+      "topology": "direct",
+      "current_a": 2.6,
+      "consumers": [
+        {"ref": "U1", "what": "synchronous buck IC input", "current_a": 2.42, "basis": "low-line input current"},
+        {"ref": "CIN", "what": "input capacitor bank", "current_a": 1.5, "basis": "Iout*sqrt(D(1-D)) rms, peaks at D=0.5 i.e. Vin=10 V (inside range)"},
+        {"ref": "RUV", "what": "EN/UVLO divider, 6.5 V rising / 6.0 V falling", "current_a": 0.00015, "basis": ">=100 kOhm total at 18 V"}
+      ],
+      "dissipation_w": 0.0,
+      "dissipation_note": "no dissipating element on this rail itself"
+    },
+    {
+      "net": "SW",
+      "vin": "+VIN",
+      "topology": "buck",
+      "current_a": 3.6,
+      "consumers": [
+        {"ref": "L1", "what": "6.8 uH power inductor", "current_a": 3.53, "basis": "Iout + dI/2 at Vin=18 V, dI = 1.062 A pk-pk"}
+      ],
+      "dissipation_w": 0.521,
+      "dissipation_note": "L1 worst case at Vin=18 V: DCR 0.291 W + core 0.230 W"
+    },
+    {
+      "net": "+5V",
+      "vin": "+VIN",
+      "topology": "buck",
+      "current_a": 3.3,
+      "consumers": [
+        {"ref": "J2", "what": "output screw terminal, external load", "current_a": 3.0, "basis": "STATED spec maximum, delegate Q5 confirms it is the true max"},
+        {"ref": "D1", "what": "green output-live indicator LED", "current_a": 0.001, "basis": "delegate Q11, ~5 mW"},
+        {"ref": "COUT", "what": "output capacitor bank", "current_a": 0.31, "basis": "dI/sqrt(12) rms at Vin=18 V"}
+      ],
+      "dissipation_w": 0.005,
+      "dissipation_note": "3.3 A = 3.0 A spec + 10% design ceiling; rail itself dissipates only the LED"
+    },
+    {
+      "net": "GND",
+      "vin": "-",
+      "topology": "direct",
+      "current_a": 3.3,
+      "consumers": [
+        {"ref": "J2", "what": "output return", "current_a": 3.0, "basis": "mirrors +5V"},
+        {"ref": "J1", "what": "input return", "current_a": 2.42, "basis": "mirrors VIN"}
+      ],
+      "dissipation_w": 0.009,
+      "dissipation_note": "plane return; In1 + In2 + B.Cu all GND"
+    }
+  ],
+
+  "loss_budget_w": {
+    "spec_point": "Vin=12 V, Iout=3 A, Pout=15 W, >88% terminal-to-terminal => Ploss <= 2.045 W",
+    "at_12v": {
+      "q1_revpol": 0.071, "f1_fuse": 0.061,
+      "u1_hs_conduction": 0.338, "u1_ls_conduction": 0.315,
+      "u1_switching": 0.180, "u1_gate": 0.036, "u1_coss": 0.004,
+      "u1_deadtime": 0.036, "u1_iq": 0.012,
+      "l1_dcr": 0.290, "l1_core": 0.150,
+      "cout_esr": 0.001, "cin_esr": 0.020,
+      "pcb_copper": 0.077, "screw_terminals": 0.110, "bias_led_divider": 0.010,
+      "total": 1.710, "efficiency_pct": 89.8, "margin_w": 0.335
+    },
+    "at_7v": {"total": 1.969, "efficiency_pct": 88.4, "u1_only": 0.903, "l1_only": 0.338},
+    "at_18v": {"total": 1.777, "efficiency_pct": 89.4, "u1_only": 1.001, "l1_only": 0.521},
+    "worst_total_dissipation": "Vin=7 V (1.969 W) - every input-side I^2R term scales with Iin^2 (2.42 A vs 0.93 A) and the HS switch conducts for D=0.714",
+    "worst_part_dissipation": "Vin=18 V - U1 1.001 W (switching ~Vin, LS conduction ~(1-D)) and L1 0.521 W (core ~dI^2)",
+    "worst_junction_temperature": "Vin=7 V (Tj 99.7 C) - board-to-ambient 19 C/W is shared by the TOTAL loss and dominates the IC's own 7 C/W local path"
+  },
+
+  "part_parameter_limits": {
+    "comment": "P3 selection limits. Every value is a MAXIMUM (or minimum where marked) that keeps the s2 budget under 2.045 W and Tj under 105 C.",
+    "u1_buck_ic": {
+      "rds_on_hs_mohm_25c": 65, "rds_on_ls_mohm_25c": 42,
+      "tr_plus_tf_times_fsw_max": 0.010, "example": "20 ns at 500 kHz",
+      "qg_total_nc": 6, "coss_pf": 100, "t_deadtime_ns": 15, "iq_ma_pwm": 1,
+      "t_on_min_ns": 150,
+      "fsw_khz_band": [400, 550],
+      "fsw_note": "700 kHz admissible only if (tr+tf) <= 14 ns and Qg <= 4.3 nC",
+      "vin_abs_max_v_min": 28,
+      "current_limit_a_min_spec": 4.0,
+      "theta_jc_bottom_cw_max": 5,
+      "theta_ja_jedec_2s2p_cw_max": 45,
+      "package": "MUST be exposed-pad (QFN / HSOIC / HTSSOP). SOT-23-6, SOIC-8 and TSOT-23-8 without a pad are EXCLUDED - they run 100-200 C/W and cannot dissipate 1 W.",
+      "tj_max_c_min": 125
+    },
+    "l1_inductor": {
+      "l_uh": 6.8, "l_note": "sized for dI = 0.86 A pk-pk (29%) at 12 V, 1.06 A (35%) at 18 V; requirement is dI <= 1.2 A across the range",
+      "dcr_mohm_max_20c": 25, "core_loss_mw_max": 150,
+      "isat_a_min_at_105c": 6.0, "isat_note": "must beat the IC's MAXIMUM current limit, not the 4 A minimum spec",
+      "irms_a_min_40c_rise": 4.0,
+      "rated_temp_c_min": 125,
+      "size_note": "prefer >= 7.3x7.3 mm molded/composite (theta ~30 C/W); 10x10 mm gives 4 C of relief"
+    },
+    "q1_pfet": {
+      "rds_on_mohm_max_25c_vgs_4v5": 22,
+      "vgs_abs_max_v_min": 20, "vgs_clamp": "MANDATORY 15 V Zener gate-to-source + 100 kOhm gate-to-GND; |Vgs| = Vin up to 18 V steady and ~25 V on a hot-plug ring",
+      "vds_v_min": 30,
+      "orientation": "drain to input, source to load (only orientation that blocks a reversed supply)",
+      "gate_rc": "NONE - the body diode is forward-biased in the normal direction, so a gate RC cannot limit inrush",
+      "copper_mm2_min": 50
+    },
+    "f1_fuse": {"rating_a": 4, "type": "time-lag / slow-blow", "r_mohm_max_cold": 30, "i2t_a2s_min": 1.0, "i2t_note": "hot-plug demands 0.058-0.19 A^2s; >= 8x margin at 1.5-4 A^2s typical"},
+    "cin": {
+      "ceramic_esr_mohm_max_eff": 9, "ceramic_rms_a_min": 1.5, "ceramic_v_min": 50,
+      "bulk_uf_min": 47, "bulk_esr_mohm_range": [50, 300],
+      "bulk_esr_note": "ESR is a DAMPING requirement, not a loss: a <20 mOhm polymer removes the cable-LC damping and pushes hot-plug ringing to ~25 V. Use a 105 C aluminum electrolytic.",
+      "bulk_temp_c_min": 105, "bulk_life_h_min": 2000
+    },
+    "cout": {"esr_mohm_max": 15, "dielectric": "X7R", "note": "ripple <50 mV pk-pk and the 200 mV load step drive the value, not the loss"},
+    "all_mlcc": {"dielectric_min": "X7R (125 C)", "reason": "board surface sits at 83-87 C; X5R (85 C) is NOT acceptable anywhere on this board"},
+    "j1_j2_terminals": {"r_mohm_per_pole_max": 5, "rating_a_min": 10}
+  },
+
+  "power_constraints": [
+    {
+      "net": "VIN",
+      "current_a": 2.6,
+      "dt_c": 10,
+      "via_amps": 0.5,
+      "pdn": false,
+      "_comment": "raw input, J1 -> F1 -> Q1 drain, BEFORE the reverse-polarity element: width-only entry, nothing decouples it by design. IPC-2152 needs 1.52 mm on 1 oz outer at dT=10; route 1.8 mm. dT=10 not 20 because the local board temperature is already 83-87 C."
+    },
+    {
+      "net": "+VIN",
+      "current_a": 2.6,
+      "dt_c": 10,
+      "via_amps": 0.5,
+      "_comment": "protected input rail, Q1 source -> Cin bank -> U1 VIN pin. Decoupled (hot loop) so it stays in the check_pdn inventory. Same 1.8 mm width."
+    },
+    {
+      "net": "SW",
+      "current_a": 3.6,
+      "dt_c": 10,
+      "via_amps": 0.5,
+      "pdn": false,
+      "_comment": "3.0 A + dI/2 at Vin=18 V. IPC-2152 needs 2.31 mm on 1 oz outer. Resolve against the EMI containment rule by making SW a SHORT WIDE POUR: >=2.5 mm wide, <=8 mm long, <=40 mm^2, F.Cu only, never inner, never near a board edge or connector."
+    },
+    {
+      "net": "+5V",
+      "current_a": 3.3,
+      "dt_c": 10,
+      "via_amps": 0.5,
+      "_comment": "3.0 A spec + 10% ceiling. IPC-2152 needs 2.06 mm on 1 oz outer; route 2.5 mm. Any layer transition would need 7 vias - design for none, keep it all on F.Cu."
+    },
+    {
+      "net": "GND",
+      "current_a": 3.3,
+      "dt_c": 10,
+      "via_amps": 0.5,
+      "plane_fed": true,
+      "_comment": "DECLARED EXPLICITLY on purpose: at 3.3 A check_current would otherwise only synthesize an advisory return-net entry. Declared, pour necks stay ERROR at the full budget. No neck below 2.1 mm in the output-return path. In1 + In2 + B.Cu are all GND."
+    }
+  ],
+
+  "thermal_constraints": [
+    {
+      "ref": "U1",
+      "power_w": 1.0,
+      "net": "GND",
+      "dt_c": 55,
+      "min_vias": 16,
+      "_comment": "1.001 W is the Vin=18 V worst case. dt_c 55 = Tj_design 105 C (125 C spec floor - 20 C margin) above 50 C ambient. check_thermal's model needs >= 529 mm^2 of GND copper within 14.3 mm of U1 summed over layers to pass; target >= 650 mm^2 (its A_sat). NOTE: the via warning will NOT fire at dt_c/power_w = 55 > 51.1, so the 16-via array is a P6/P7 requirement enforced by review, not by the script."
+    },
+    {
+      "ref": "L1",
+      "power_w": 0.52,
+      "net": "+5V",
+      "dt_c": 45,
+      "_comment": "0.521 W is the Vin=18 V worst case (DCR 0.291 + core 0.230). Heatsink net is the output-side pad pour. Needs >= 194 mm^2 by the model. Hand analysis: surface ~103 C, so the part must be rated >= 125 C."
+    }
+  ],
+
+  "thermal_case": {
+    "ambient_c": 50, "airflow": "none, natural convection, open frame, both faces exposed",
+    "board_mm": [50, 40], "layers": 4, "copper_oz": {"outer": 1.0, "inner": 0.5},
+    "r_board_to_ambient_cw": 19,
+    "r_ba_derivation": "A_eff = 2 faces * 2000 mm^2 * 0.85 shadowing = 3400 mm^2; h_conv = 1.42*(37/0.05)^0.25 = 7.4 W/m2K; h_rad = 0.9*sigma*(Ts^2+Ta^2)(Ts+Ta) = 8.2 W/m2K; R = 1/(15.6 * 3.4e-3). Radiation is 53% of the cooling.",
+    "spreading_length_mm": 33,
+    "spreading_note": "k*t = 0.0336 W/K with In1+In2+B.Cu near-solid; lambda = sqrt(k*t/2h) = 33 mm > board half-dimension, so the board is near-isothermal and the WHOLE outline is the heatsink.",
+    "tj_ladder_worst_case_7v": {"ambient": 50.0, "board_total_loss_x_rba": 37.4, "local_nonuniformity": 6.0, "junction_to_plane": 6.3, "tj_c": 99.7},
+    "tj_by_line_c": {"7v": 99.7, "12v": 94.9, "18v": 96.8},
+    "tj_design_limit_c": 105,
+    "tj_limit_rationale": "125 C junction spec (the floor across candidate families; most spec 150 C) minus 20 C design margin. Margin is 20 not 25 because 50 C ambient is a hard spec maximum and the 99.7 C figure is already worst-of-worst-cases.",
+    "board_surface_c": [82.5, 87.4],
+    "sensitivity": {"dtj_dp_board_cw": 19, "dtj_dp_ic_cw": 26, "plain": "every extra 100 mW anywhere on the board costs 1.9 C of junction temperature - the loss budget IS the thermal budget"},
+    "exposed_pad_alone": "6 mm^2 of F.Cu -> theta_JA 138 C/W -> Tj 188 C. The pad does NOT close it; the planes do. (Confirms the brief's warning quantitatively.)",
+    "two_oz_copper_verdict": "2 oz outer does NOT help thermally - R_ba is set by area and h, and the board is already isothermal at 1 oz (<5% gain). Spend the Q21 escalation only if IPC-2152 widths cannot be routed."
+  },
+
+  "copper_sizing_ipc2152": {
+    "dt_c_chosen": 10,
+    "dt_rationale": "IPC-2152's rise is above the LOCAL board temperature, which s4 puts at 83-87 C. A 20 C rise would put trace copper at 105 C. The 10 C widths route fine here.",
+    "widths_mm": {
+      "VIN":  {"current_a": 2.6, "outer_1oz_dt10": 1.52, "outer_1oz_dt20": 1.05, "inner_0p5oz_dt10": 3.04, "route": 1.8},
+      "SW":   {"current_a": 3.6, "outer_1oz_dt10": 2.31, "outer_1oz_dt20": 1.56, "inner_0p5oz_dt10": 4.62, "route": 2.5},
+      "+5V":  {"current_a": 3.3, "outer_1oz_dt10": 2.06, "outer_1oz_dt20": 1.40, "inner_0p5oz_dt10": 4.11, "route": 2.5},
+      "GND":  {"current_a": 3.3, "outer_1oz_dt10": 2.06, "outer_1oz_dt20": 1.40, "inner_0p5oz_dt10": 4.11, "route": "plane, no neck < 2.1 mm"}
+    },
+    "inner_layer_verdict": "0.5 oz inners need 3.0-4.6 mm per net - unusable as power planes. In1 AND In2 must both be solid GND; no power net on an inner layer. All power stays on F.Cu (single-sided assembly makes this natural).",
+    "trace_resistance_targets_mohm_at_85c": {"VIN": 7, "+5V": 4, "SW": 2, "GND": 1, "sheet_r_1oz_85c_mohm_per_sq": 0.61},
+    "via_counts_if_a_transition_is_unavoidable": {"+5V": 7, "VIN": 6, "SW": 8, "basis": "check_current default 0.5 A/via"}
+  },
+
+  "inrush": {
+    "case": "hot-plug of an 18 V supply into a discharged 120 uF input bulk through a 1 m cable",
+    "e_stored_mj": 19.4, "e_from_source_mj": 38.9,
+    "verdict": "BENIGN for Q1. Do NOT fit a gate RC.",
+    "why": "Q1 is drain-to-input / source-to-load (the only reverse-blocking orientation), so its BODY DIODE is forward-biased in the normal direction. The bulk charges through the diode and the channel plays no part - a gate RC cannot limit inrush, it only delays a channel the diode has already bypassed.",
+    "q1_stress": {"energy_mj": 1.73, "expression": "Vf*C*V = 0.8*120u*18", "i_peak_a": 57, "tau_us": 36, "p_peak_w": 46, "duration_us": 10, "die_rise_c": 6, "soa_verdict": "1-2 orders inside the single-pulse SOA of any SO-8/DFN P-FET"},
+    "required_instead": [
+      "MANDATORY Vgs clamp: 100 kOhm gate-to-GND + 15 V Zener gate-to-source. |Vgs| = Vin, 18 V steady and ~25 V on a ring; a 20 V-Vgs part has no margin on the ring. Bias loss 0.54 mW at 18 V.",
+      "Ringing overshoot at U1 VIN: zeta = (R/2)*sqrt(C/L). R=0.30 Ohm -> 18.0 V (overdamped); 0.10 -> 20.3 V; 0.05 (short cable, all-ceramic Cin) -> 25.4 V. This is why delegate Q6 requires IC abs-max >= 28 V and input MLCCs >= 50 V.",
+      "Bulk-cap ESR is a DAMPING requirement: 50-300 mOhm. A low-ESR polymer bulk would remove the damping and push the ring toward 25 V.",
+      "Fuse survives: I^2t = I_pk^2*tau/2 = 0.058 A^2s (0.30 Ohm) to 0.19 A^2s (0.10 Ohm) vs 1.5-4 A^2s melting I^2t for a 4 A time-lag part - >= 8x margin, no nuisance opening.",
+      "OMIT the gate capacitor: it buys nothing on inrush and would delay turn-off on a polarity reversal while running."
+    ]
+  },
+
+  "thermal_via_array": {
+    "ref": "U1",
+    "drill_mm": 0.3, "land_mm": 0.55, "pitch_mm": 1.0,
+    "count_min": 9, "count_target": 16,
+    "plus": "ring of 8-12 stitching vias at 1.2 mm pitch in the surrounding F.Cu GND island (outside the pad, no paste concern)",
+    "arithmetic": "A_barrel = pi/4*(0.30^2-0.25^2) = 0.0216 mm^2 (25 um plating); R_1via(F.Cu->In1, 0.21 mm prepreg) = 0.21e-3/(385*2.16e-8) = 25.3 K/W; array R = R_1via/(0.85*N)",
+    "claimed_cw": {"9_vias": 3.3, "16_vias": 1.9, "used_in_tj_ladder": 2.0},
+    "cross_check": "Wurth FEA array table (11x11 pad, 1.6 mm, 2-layer, via-to-bottom): 9 -> 7.3 C/W, 16 -> 5.2 C/W, 25 -> 3.8 C/W (ai-library/pcb-verification-standards-2026). That is the full 1.6 mm on 2 layers; this 4-layer stackup reaches In1 at 0.21 mm, so 1.9 K/W is right here and 5.2 C/W is the conservative bound.",
+    "fab": "0.3 mm is JLC standard-class minimum drill. Tent with soldermask on the BOTTOM side to stop solder wicking; do not buy filled-and-capped via-in-pad. Windowpane U1's paste aperture (4-9 sub-apertures, ~60-70% area) so the array does not float the part."
+  },
+
+  "required_copper_area": {
+    "consumer": "P6 placement / P7 planes",
+    "F.Cu": "GND thermal island contiguous with U1's exposed pad, >= 100 mm^2 (e.g. 10 x 10 mm), not fragmented by SW or VIN routing",
+    "In1.Cu": "solid GND, NO split within 12 mm of U1 (>= 400 mm^2 in that radius) - the brief's uninterrupted plane under the switching components, and only 0.21 mm below the pad",
+    "In2.Cu": "GND as well, NOT a power plane (>= 400 mm^2 under U1)",
+    "B.Cu": "GND pour >= 1500 mm^2 of the 2000 mm^2 outline - the second radiating face",
+    "check_thermal_target": "GND copper within a 14.3 mm radius of U1, summed over layers, >= 650 mm^2 (its A_sat); >= 529 mm^2 is the bare pass",
+    "other_parts": {"Q1": ">= 50 mm^2 of drain+source copper", "F1": ">= 20 mm^2 per pad, kept off the U1/L1 zone"}
+  },
+
+  "layout_notes": [
+    "Hot loop (buck.md s3): Cin ceramic -> U1 VIN -> U1 PGND -> Cin, shortest loop on the board, all on F.Cu, with a 100 nF HF bypass AT the VIN pin. In1 solid GND directly beneath as the image plane.",
+    "SW containment (buck.md s5): SW is a short wide pour - >= 2.5 mm wide for IPC-2152, <= 8 mm long and <= 40 mm^2 for EMI. F.Cu only. Away from the board edge and from both connectors (brief).",
+    "Input and output on opposite short edges (delegate Q10), straight-through power flow, so the noisy input loop and the output terminal are maximally separated.",
+    "Place the bulk aluminum electrolytic at the INPUT edge - the coolest corner (~80 C local vs 87 C mean) - because its life is set by board temperature.",
+    "In1 AND In2 both solid GND. No power net on an inner layer (0.5 oz needs 3.0-4.6 mm). This is simultaneously the thermal answer, the EMI answer and the IPC-2152 answer.",
+    "Test points: SW tap is a short stub that must NOT extend SW copper (it counts against the 40 mm^2). VOUT test pad paired with a scope-ground pad ~5 mm away (delegate Q13).",
+    "DNP RC snubber footprint across the low-side switch (SW to PGND) must be routable with low inductance even unstuffed (brief).",
+    "No layer transitions on VIN / +VIN / SW / +5V - a transition would need 6-8 vias at 0.5 A/via. GND is plane-fed through the stitching field.",
+    "Thermal-via array under U1 is NOT enforced by check_thermal at these constraint values (dt_c/power_w = 55 > 51.1) - it is a review-enforced P6/P7 requirement."
+  ],
+
+  "open": []
+}

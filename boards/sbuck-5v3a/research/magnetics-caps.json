@@ -1,0 +1,269 @@
+{
+ "block": "power-stage-passives",
+ "candidates": [
+  {
+   "mpn": "FAUL1050-6R8MT",
+   "lcsc": "C5298292",
+   "package": "SMD 11.5x10mm",
+   "basic": false,
+   "stock": 763,
+   "price": 0.5593,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2212011800_cjiang--Changjiang-Microelectronics-Tech-FAUL1050-6R8MT_C5298292.pdf",
+   "rank": 1,
+   "fit": "inductor - NEW PRIMARY (P1 correction pass): 6.8uH, Alloy Sponge Powder molded core (cjiang, Tmax 155C, AEC-Q200), DCR 18.5mOhm max @20C -> ~24.05mOhm hot (x1.30) - CLEARS the architect's 25mOhm ceiling even hot. Itemp @50C ambient (conservative Max-column 8.0A) = 7.06A, +135% margin over 3.0A. Isat hot (conservative 12.3A * 0.89) = 10.95A, +210% margin over 3.53A Ipk @500kHz. Fits 500-600kHz (AP64350SP-13 rank-1 IC is 500kHz). Supersedes MDE0630-8R2M."
+  },
+  {
+   "mpn": "MDA1365-100M",
+   "lcsc": "C2847583",
+   "package": "SMD 13.5x12.6mm",
+   "basic": false,
+   "stock": 645,
+   "price": 1.0912,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2108142230_KOHERelec-MDA1365-100M_C2847583.pdf",
+   "rank": 2,
+   "fit": "inductor - NEW 400kHz pick (P1 correction pass): 10uH, alloy-integrated-molding core (KOHERelec), DCR 19.2mOhm max @20C - clears the 25mOhm ceiling cold with 23% margin, but derates to ~24.96-25.24mOhm hot (x1.30 to 1.3144) - AT the ceiling, near-zero hot margin (flag). Itemp/Isat margins comfortable (+151%/+194%) even under conservative Typ-to-Max correction. Only part found that clears BOTH DCR<=25mOhm and stock>=500 for the 400kHz/10uH band."
+  },
+  {
+   "mpn": "FAUL1350-6R8MT",
+   "lcsc": "C5298322",
+   "package": "SMD 13.5x12.8mm",
+   "basic": false,
+   "stock": 519,
+   "price": 1.0136,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2212011800_cjiang--Changjiang-Microelectronics-Tech-FAUL1350-6R8MT_C5298322.pdf",
+   "rank": 3,
+   "fit": "inductor - backup/high-margin alt to rank 1 (P1 correction pass): same 6.8uH cjiang FAUL family, bigger case (13.5x12.8mm), DCR 18mOhm max -> ~23.4mOhm hot, Isat 16A/Irms 12A (LCSC Typ-column values - see risk on Max/Typ split), roughly 2x rank 1's current headroom for ~2x the price/area."
+  },
+  {
+   "mpn": "SRP1265A-100M",
+   "lcsc": "C840531",
+   "package": "SMD 13.5x12.5mm",
+   "basic": false,
+   "stock": 418,
+   "price": 1.0394,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2202281730_BOURNS-SRP1265A-100M_C840531.pdf",
+   "rank": 4,
+   "fit": "inductor - 400kHz alt (P1 correction pass): 10uH Bourns, BEST DCR of the whole shortlist (16.5mOhm max -> ~21.45mOhm hot, clears the ceiling even hot with room), but LCSC stock is 418 - 82 pcs short of the >=500 rule. Reorder-watch, not a hard pick today; MDA1365-100M (rank 2) is the part that clears both filters now."
+  },
+  {
+   "mpn": "IHLP4040DZER100M11",
+   "lcsc": "C845066",
+   "package": "SMD 10.8x10.2mm",
+   "basic": false,
+   "stock": 4208,
+   "price": 1.0378,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2205231645_Vishay-Intertech-IHLP4040DZER100M11_C845066.pdf",
+   "rank": 5,
+   "fit": "inductor - 400kHz fallback (P1 correction pass): 10uH Vishay, deep stock (4208) but DCR 27.8mOhm max MISSES the 25mOhm ceiling by 11% (2.8mOhm) -> ~36.14mOhm hot, 0.327W, +13% over the 0.290W L1 DCR budget line. Only use if MDA1365-100M and SRP1265A-100M are both unavailable."
+  },
+  {
+   "mpn": "MDE0630-8R2M",
+   "lcsc": "C2875732",
+   "package": "SMD 7.0x6.6mm",
+   "basic": false,
+   "stock": 1029,
+   "price": 0.2579,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2109092030_KOHERelec-MDE0630-8R2M_C2875732.pdf",
+   "rank": 6,
+   "fit": "inductor - REJECT (P1 correction pass; was rank-1 PRIMARY before the architect's DCR ceiling landed): 8.2uH, DCR 60mOhm max = 2.4x the 25mOhm ceiling, ~78mOhm hot -> 0.707W, which alone blows the entire 0.335W efficiency margin. Temp-margin reasoning (+41% Itemp) is still correct and was not the problem; DCR is the disqualifier."
+  },
+  {
+   "mpn": "SPM6530T-6R8M",
+   "lcsc": "C138515",
+   "package": "SMD 7.1x6.5mm",
+   "basic": false,
+   "stock": 3719,
+   "price": 0.1817,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1811031411_TDK-SPM6530T-6R8M_C138515.pdf",
+   "rank": 7,
+   "fit": "inductor - REJECT (P1 correction pass; was rank-2 alt): 6.8uH, DCR 53.3mOhm max = 2.1x the 25mOhm ceiling, ~69.29mOhm hot -> 0.628W, +0.338W over the L1 DCR budget line."
+  },
+  {
+   "mpn": "MDE0630-100M",
+   "lcsc": "C842898",
+   "package": "SMD 7.0x6.6mm",
+   "basic": false,
+   "stock": 914,
+   "price": 0.1897,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_KOHERelec-MDE0630-100M_C842898.pdf",
+   "rank": 8,
+   "fit": "inductor - REJECT (P1 correction pass; was rank-3 alt): 10uH, DCR 68mOhm max = 2.7x the 25mOhm ceiling, ~88.4mOhm hot -> 0.801W."
+  },
+  {
+   "mpn": "SPM6530T-100M",
+   "lcsc": "C112288",
+   "package": "SMD 7.1x6.5mm",
+   "basic": false,
+   "stock": 2075,
+   "price": 0.2070,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1809200017_TDK-SPM6530T-100M_C112288.pdf",
+   "rank": 9,
+   "fit": "inductor - REJECT (P1 correction pass; was rank-4 alt): 10uH, DCR 72.5mOhm max = 2.9x the 25mOhm ceiling, ~94.25mOhm hot -> 0.854W. Also only had +1.4% Itemp margin, the weakest of the original shortlist on both axes now."
+  },
+  {
+   "mpn": "VLS6045EX-6R8M",
+   "lcsc": "C415364",
+   "package": "SMD 6.0x6.0mm",
+   "basic": false,
+   "stock": 5306,
+   "price": 0.1339,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1912111437_TDK-VLS6045EX-6R8M_C415364.pdf",
+   "rank": 10,
+   "fit": "inductor - REJECT (unchanged from prior pass) despite best DCR on the original shortlist (36mOhm, 15.8% of budget): ferrite-wound Itemp (3.60A @ ~20C test ambient per TDK datasheet) derates to 2.90A at 50C ambient, BELOW the 3.0A continuous load. Documents the 25C-Isat/hot-figure trap the brief called out"
+  },
+  {
+   "mpn": "VLS6045EX-100M",
+   "lcsc": "C360734",
+   "package": "SMD 6.0x6.0mm",
+   "basic": false,
+   "stock": 5809,
+   "price": 0.1525,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_TDK-VLS6045EX-100M_C360734.pdf",
+   "rank": 11,
+   "fit": "inductor - REJECT (unchanged from prior pass), same ferrite Itemp trap, 10uH: derates to 2.73A at 50C ambient (-8.8% under the 3.0A load)"
+  },
+  {
+   "mpn": "1206B475K500NT",
+   "lcsc": "C29823",
+   "package": "1206",
+   "basic": true,
+   "stock": 1027183,
+   "price": 0.2697,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_FH--Guangdong-Fenghua-Advanced-Tech-1206B475K500NT_C29823.pdf",
+   "rank": 1,
+   "fit": "cin - PRIMARY ceramic (unchanged), 4.7uF/50V X7R Basic; use x4 for 18.8uF nameplate / ~14.7uF eff @18V, ~16.5uF eff @12V (DC-bias estimate, no vendor curve found)"
+  },
+  {
+   "mpn": "KNM2100UF35V149EC0055",
+   "lcsc": "C2982822",
+   "package": "SMD D6.3xL7mm",
+   "basic": false,
+   "stock": 11986,
+   "price": 0.1963,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2204261000_KNSCHA-KNM2100UF35V149EC0055_C2982822.pdf",
+   "rank": 2,
+   "fit": "cin - NEW PRIMARY bulk (P1 correction pass): KNSCHA \"Polymer Aluminum\" (likely hybrid polymer/electrolyte given the mid-range ESR), 100uF/35V, ESR 80mOhm@100kHz - INSIDE the architect's 50-300mOhm damping window (prior pick MA35V100M6X8 at 30mOhm was below it). 1.516A ripple@100kHz, 2000h@105C, height 7mm. Supersedes MA35V100M6X8."
+  },
+  {
+   "mpn": "JBLM2101M035C077RTM",
+   "lcsc": "C19270709",
+   "package": "SMD D6.3xL7.7mm",
+   "basic": false,
+   "stock": 4913,
+   "price": 0.2028,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2401161352_DMBJ-JBLM2101M035C077RTM-100UF-35V_C19270709.pdf",
+   "rank": 3,
+   "fit": "cin - NEW bulk alt (P1 correction pass): DMBJ, 100uF/35V, ESR 80mOhm@100kHz - same window fit as rank 2, D6.3xL7.7mm footprint is a drop-in match for the old MA35V100M6X8 pick if layout is already committed to that size. 2000h@105C, 1.87A ripple@100kHz."
+  },
+  {
+   "mpn": "GRM32ER71H106KA12L",
+   "lcsc": "C77102",
+   "package": "1210",
+   "basic": false,
+   "stock": 199910,
+   "price": 0.3735,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Murata-Electronics-GRM32ER71H106KA12L_C77102.pdf",
+   "rank": 4,
+   "fit": "cin - alt ceramic (Murata, unchanged), 10uF/50V X7R; fewer/bigger parts than the 1206 pick if board area allows. Murata's static datasheet is a 292pp general catalog with NO embedded DC-bias curve (points to SimSurfing web tool instead) - bias numbers are conventional estimates"
+  },
+  {
+   "mpn": "CGA0805X7R225M500MT",
+   "lcsc": "C23692980",
+   "package": "0805",
+   "basic": false,
+   "stock": 45796,
+   "price": 0.0466,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2407021626_HRE-CGA0805X7R225M500MT_C23692980.pdf",
+   "rank": 5,
+   "fit": "cin - NEW X7R replacement (P1 correction pass) for CL21A225KBQNNNE: 2.2uF/50V X7R, same 0805 footprint/value/voltage as the X5R part it replaces, cheaper ($0.0466 vs $0.0899), stock 45,796 (>>2000 passives threshold). No Basic-tier 2.2uF/50V X7R part exists at LCSC today - this is Extended, same tier change the old X5R Basic part forces."
+  },
+  {
+   "mpn": "CC0603KRX7R9BB104",
+   "lcsc": "C14663",
+   "package": "0603",
+   "basic": true,
+   "stock": 37743265,
+   "price": 0.019,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2211101700_YAGEO-CC0603KRX7R9BB104_C14663.pdf",
+   "rank": 6,
+   "fit": "cin - 100nF/50V X7R Basic, high-freq bypass at the IC VIN pin alongside the bulk/ceramic bank"
+  },
+  {
+   "mpn": "MA35V100M6X8",
+   "lcsc": "C46550467",
+   "package": "SMD D6.3xL7.7mm",
+   "basic": false,
+   "stock": 294691,
+   "price": 0.2276,
+   "datasheet": "",
+   "rank": 7,
+   "fit": "cin - REJECT (P1 correction pass; was rank-2 PRIMARY): 100uF/35V polymer aluminum, ESR 30mOhm@100kHz - BELOW the architect's 50-300mOhm damping window. Architect: \"no low-ESR polymer\" - removes the cable-LC damping and pushes the hot-plug ring toward the 25.4V worst case instead of the damped 18-20.3V cases. Supersedes to KNM2100UF35V149EC0055."
+  },
+  {
+   "mpn": "CL21A225KBQNNNE",
+   "lcsc": "C377773",
+   "package": "0805",
+   "basic": true,
+   "stock": 1716209,
+   "price": 0.0899,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Samsung-Electro-Mechanics-CL21A225KBQNNNE_C377773.pdf",
+   "rank": 8,
+   "fit": "cin - REJECT (P1 correction pass): 2.2uF/50V X5R. Board surface runs 83-87C (power.json thermal_case.board_surface_c); X5R is 85C-rated and not acceptable anywhere on this board per the architect. Replaced by CGA0805X7R225M500MT (X7R, same footprint/value)."
+  },
+  {
+   "mpn": "RVT100UF35V67RV0034",
+   "lcsc": "C2836442",
+   "package": "SMD D6.3xL7.7mm",
+   "basic": false,
+   "stock": 226614,
+   "price": 0.0372,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2105281608_KNSCHA-RVT100UF35V67RV0034_C2836442.pdf",
+   "rank": 9,
+   "fit": "cin - REJECT (unchanged position, reasoning reinforced): plain Al electrolytic 100uF/35V, only a 120Hz ripple figure (87mA) published, no 100kHz ESR. A same-brand/same-footprint sibling (RVE100UF35V67RV0072) DOES publish 100kHz ESR: 600mOhm - ABOVE the architect's 300mOhm damping ceiling, confirming this whole plain-electrolytic KNSCHA sub-family sits outside the window on the high side."
+  },
+  {
+   "mpn": "TCC1210X7R226K250MT",
+   "lcsc": "C49118556",
+   "package": "1210",
+   "basic": false,
+   "stock": 123041,
+   "price": 0.2181,
+   "datasheet": "",
+   "rank": 1,
+   "fit": "cout - PROMOTED TO PRIMARY (P1 correction pass; was rank-2 alt): 22uF/25V X7R (~12% est. bias loss @5V vs ~25% for the X5R part it replaces). Bank recount against the corrected 6.8uH/500-600kHz primary inductor: 5x for 96.8uF eff (26.5% margin over the 76.5uF load-step target) or 4x minimum (77.4uF eff, 1.2% margin - thin, not recommended). For the 10uH/400kHz case (MDA1365-100M): 6x for 116.2uF eff (3.2% margin over 112.5uF target), matching the prior scout's own 3.3 finding."
+  },
+  {
+   "mpn": "TCC0805X7R106K160FT",
+   "lcsc": "C380347",
+   "package": "0805",
+   "basic": false,
+   "stock": 262101,
+   "price": 0.0844,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_CCTC-TCC0805X7R106K160FT_C380347.pdf",
+   "rank": 2,
+   "fit": "cout - smaller-footprint fill-in value (unchanged), 10uF/16V X7R, for trimming the bank to an exact effective-C target without a full extra 22uF part"
+  },
+  {
+   "mpn": "CC0805KKX7R7BB475",
+   "lcsc": "C277499",
+   "package": "0805",
+   "basic": false,
+   "stock": 193542,
+   "price": 0.1279,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_YAGEO-CC0805KKX7R7BB475_C277499.pdf",
+   "rank": 3,
+   "fit": "cout - small high-freq bypass near the FB/output test point (unchanged), 4.7uF/16V X7R"
+  },
+  {
+   "mpn": "TCC1206X5R226K160HT",
+   "lcsc": "C5448976",
+   "package": "1206",
+   "basic": false,
+   "stock": 408657,
+   "price": 0.1412,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2403281713_CCTC-TCC1206X5R226K160HT_C5448976.pdf",
+   "rank": 4,
+   "fit": "cout - REJECT (P1 correction pass; was rank-1 PRIMARY): 22uF/16V X5R. Board surface runs 83-87C; X5R is 85C-rated and not acceptable anywhere on this board per the architect. Replaced by TCC1210X7R226K250MT (X7R, promoted to rank 1)."
+  }
+ ]
+}

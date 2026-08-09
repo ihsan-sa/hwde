@@ -1,0 +1,137 @@
+{
+ "block": "protection-io",
+ "candidates": [
+  {
+   "mpn": "AO4407A",
+   "lcsc": "C16072",
+   "package": "SOIC-8",
+   "basic": false,
+   "stock": 28272,
+   "price": 0.2705,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1811021926_Alpha---Omega-Semicon-AO4407A_C16072.pdf",
+   "rank": 1,
+   "fit": "revpol_pfet - PRIMARY: Vgs(max)=+/-25V (ds, 7V margin at 18V Vin, beats the family-typical +/-20V), Rds(on) 10/13 mOhm typ/max @Vgs=-10V, 27/38 @-5V (ds), Vgs(th) -1.7..-3V, Id -12A@25C/-9.2A@70C (ds), RthJA 75C/W steady-state (ds); no zener clamp needed."
+  },
+  {
+   "mpn": "AO4407A",
+   "lcsc": "C2841482",
+   "package": "SOP-8",
+   "basic": false,
+   "stock": 193924,
+   "price": 0.1286,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2311091739_UMW-Youtai-Semiconductor-Co---Ltd--AO4407A_C2841482.pdf",
+   "rank": 2,
+   "fit": "revpol_pfet - same AOS part number, UMW-branded 2nd listing; deepest stock (194k) and cheapest of the AO4407A listings, use as the buy-part if #1's exact brand is not required."
+  },
+  {
+   "mpn": "SI4435DY(UMW)",
+   "lcsc": "C7503190",
+   "package": "SOP-8",
+   "basic": false,
+   "stock": 2436,
+   "price": 0.1248,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2311091745_UMW-Youtai-Semiconductor-Co---Ltd--SI4435DY-UMW_C7503190.pdf",
+   "rank": 3,
+   "fit": "revpol_pfet - alt/2nd source, Rds(on) 15 mOhm@10V; Vgs(max) only +/-20V per family attribute data (2V margin at 18V) - add a 15-18V zener gate clamp if this family is used instead of AO4407A."
+  },
+  {
+   "mpn": "DMP6185SE-13",
+   "lcsc": "C177038",
+   "package": "SOT-223",
+   "basic": false,
+   "stock": 21176,
+   "price": 0.4607,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2008031207_Diodes-Incorporated-DMP6185SE-13_C177038.pdf",
+   "rank": 4,
+   "fit": "revpol_pfet - REJECTED reference: Rds(on) 110-130 mOhm confirms SOT-223 die size cannot hit the 30 mOhm budget (I2R@2.44A = 774 mW, 4x over budget)."
+  },
+  {
+   "mpn": "0685T5000-01",
+   "lcsc": "C3163312",
+   "package": "1206",
+   "basic": false,
+   "stock": 5032,
+   "price": 0.5109,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2401291023_Bel-Fuse-0685T5000-01_C3163312.pdf",
+   "rank": 1,
+   "fit": "fuse - PRIMARY: Bel Fuse C1T series, confirmed slow-blow/time-lag (ds) not fast-acting; 63V DC rated (ds, 2x the 32V floor); DCR 20 mOhm (I2R@2.44A=119mW); 5A rating (vs ideal 4A) chosen because the exact 4A sibling fails the stock rule; interrupt 50A, melting I2t 5.3 A2s (ds)."
+  },
+  {
+   "mpn": "0685T4000-01",
+   "lcsc": "C3157092",
+   "package": "1206",
+   "basic": false,
+   "stock": 174,
+   "price": 0.5173,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2401301516_Bel-Fuse-0685T4000-01_C3157092.pdf",
+   "rank": 2,
+   "fit": "fuse - spec-ideal exact-4A slow-blow (ds), DCR 30 mOhm exactly at budget, 63V DC (ds); STOCK 174 pcs FAILS the >=2000pcs binding rule - flag for architect: accept #1's 5A rating or accept a preorder/stock risk on this part."
+  },
+  {
+   "mpn": "0451004.MRL",
+   "lcsc": "C27515",
+   "package": "2410",
+   "basic": false,
+   "stock": 26870,
+   "price": 0.292,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Littelfuse-0451004-MRL_C27515.pdf",
+   "rank": 3,
+   "fit": "fuse - REJECTED: datasheet (ds) confirms this is the Littelfuse NANO2 'Very Fast-Acting Fuse' 451/453 series, not slow-blow - wrong response class despite matching current/voltage/stock on the surface. Would nuisance-blow on input inrush."
+  },
+  {
+   "mpn": "DB128L-5.08-2P-GN-S",
+   "lcsc": "C395868",
+   "package": "Plugin,P=5.08mm",
+   "basic": false,
+   "stock": 27058,
+   "price": 0.1976,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2301061509_DORABO-DB128L-5-08-2P-GN-S_C395868.pdf",
+   "rank": 1,
+   "fit": "terminal - PRIMARY, use x2 (I1+I2): 300V/16A THT screw terminal, 12-22AWG, M2 screw - only candidate found meeting BOTH the >=10A and >=300V floors simultaneously. Height/pin-diameter not confirmed from attribute data, flagged for P3 footprint check."
+  },
+  {
+   "mpn": "DB128L-5.08-2P-BK-S",
+   "lcsc": "C430601",
+   "package": "Plugin,P=5.08mm",
+   "basic": false,
+   "stock": 40543,
+   "price": 0.2029,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2301061509_DORABO-DB128L-5-08-2P-BK-S_C430601.pdf",
+   "rank": 2,
+   "fit": "terminal - identical part to #1 in black, deeper stock (40.5k) - equally valid pick, color is the only difference."
+  },
+  {
+   "mpn": "WJ500V-5.08-2P",
+   "lcsc": "C8465",
+   "package": "Plugin,P=5.08mm",
+   "basic": false,
+   "stock": 298762,
+   "price": 0.1329,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1912251636_Ningbo-Kangnex-Elec-WJ500V-5-08-2P_C8465.pdf",
+   "rank": 3,
+   "fit": "terminal - alt: deepest stock (299k) and widest AWG range (14-30) of any candidate found, but 250V < the 300V floor - use only if architect accepts the voltage relaxation (18V max board potential leaves huge margin regardless)."
+  },
+  {
+   "mpn": "KT-0805G",
+   "lcsc": "C2297",
+   "package": "0805",
+   "basic": true,
+   "stock": 2650613,
+   "price": 0.0162,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1806151820_Hubei-KENTO-Elec-KT-0805G_C2297.pdf",
+   "rank": 1,
+   "fit": "led - PRIMARY: Basic tier, 2.65M in stock, 430mcd @ 5mA is the vendor's rated low-current figure (closest found to our ~1mA drive point; most competing LEDs are only rated at 20mA)."
+  },
+  {
+   "mpn": "KT-0603G",
+   "lcsc": "C12624",
+   "package": "0603",
+   "basic": false,
+   "stock": 379840,
+   "price": 0.0122,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1806151818_Hubei-KENTO-Elec-KT-0603G_C12624.pdf",
+   "rank": 2,
+   "fit": "led - alt: same die/spec as #1 in a smaller 0603 body, but Extended tier - only pick if board area forces 0603 over 0805."
+  }
+ ]
+}

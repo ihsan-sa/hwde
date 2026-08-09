@@ -1,0 +1,71 @@
+{
+ "block": "buck-ic",
+ "candidates": [
+  {
+   "mpn": "AP64350SP-13",
+   "lcsc": "C2071691",
+   "package": "SO-8-EP",
+   "basic": false,
+   "stock": 11849,
+   "price": 1.8832,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2210280930_Diodes-Incorporated-AP64350SP-13_C2071691.pdf",
+   "rank": 1,
+   "fit": "Sync, 3.8-40V (42V abs max), 3.5A, current-limit MIN 4.25A clears the 4.0A floor, RT=200k gives 500kHz, internal 2ms soft-start, EN VIN-tolerant, theta_JA 45 C/W SO-8-EP - top pick"
+  },
+  {
+   "mpn": "LMR33630ADDAR",
+   "lcsc": "C841384",
+   "package": "ESOP-8",
+   "basic": false,
+   "stock": 5558,
+   "price": 0.7404,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2410121900_Texas-Instruments-LMR33630ADDAR_C841384.pdf",
+   "rank": 2,
+   "fit": "Sync, 3.8-36V (38V abs max), fixed 400kHz A-version, explicit hiccup OCP, internal soft-start; but ISC current-limit MIN 3.85A misses the 4.0A floor (worst-case guaranteed Iout,max ~3.375A per TI's own formula)"
+  },
+  {
+   "mpn": "SY8205FCC",
+   "lcsc": "C111875",
+   "package": "SOIC-8-EP",
+   "basic": false,
+   "stock": 10163,
+   "price": 0.4527,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1809050154_Silergy-Corp-SY8205FCC_C111875.pdf",
+   "rank": 3,
+   "fit": "Sync, 4.5-30V (33V abs max), fixed 500kHz, best theta_JA (~30-36 C/W) and cheapest; but datasheet is marked Preliminary Specification with no MIN current-limit spec (5A typ only) and needs an external SS cap"
+  },
+  {
+   "mpn": "TPS54360DDAR",
+   "lcsc": "C44377",
+   "package": "SOIC-8-EP",
+   "basic": false,
+   "stock": 16197,
+   "price": 0.8293,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1810261107_Texas-Instruments-TPS54360DDAR_C44377.pdf",
+   "rank": 4,
+   "fit": "REJECTED - TI's own datasheet: integrated HIGH-SIDE MOSFET only (asynchronous), external comp network required; LCSC attribute confirms Synchronous Rectifier: No. Named family, common misassumption documented here"
+  },
+  {
+   "mpn": "MP1584EN-LF-Z",
+   "lcsc": "C15051",
+   "package": "SOIC-8-EP",
+   "basic": false,
+   "stock": 4706,
+   "price": 2.9097,
+   "datasheet": "",
+   "rank": 5,
+   "fit": "REJECTED - datasheet (same base part, read via MP1584EN-LF-P C7304223) explicitly says non-synchronous, requires external Schottky catch diode. Named family, common misassumption documented here"
+  },
+  {
+   "mpn": "MP2315GJ-Z",
+   "lcsc": "C45889",
+   "package": "TSOT-23-8",
+   "basic": false,
+   "stock": 225,
+   "price": 2.2646,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2403151708_Monolithic-Power-Systems-MP2315GJ-Z_C45889.pdf",
+   "rank": 6,
+   "fit": "REJECTED - stock 225 is under the 500pcs floor for this block; also least Vin headroom of any candidate (4.5-24V) toward the 28V abs-max requirement"
+  }
+ ]
+}

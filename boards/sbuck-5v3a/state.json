@@ -1,0 +1,349 @@
+{
+ "version": 2,
+ "board": "sbuck-5v3a",
+ "workspace": "boards/sbuck-5v3a",
+ "created": "2026-08-08T22:12:30",
+ "updated": "2026-08-08T23:29:56",
+ "phase": "P2",
+ "gates": {},
+ "human": {},
+ "artifacts": {},
+ "open_issues": [],
+ "next_issue_id": 1,
+ "budgets": {
+  "fix_loops": {
+   "erc": 3,
+   "place": 3,
+   "drc_routed": 3,
+   "verify": 3,
+   "dfm": 3
+  },
+  "freerouting_retries": 2,
+  "place_edit_iterations": 8
+ },
+ "decisions": [
+  {
+   "what": "Unattended run: orchestrator answered all 33 requirements open questions as delegate (requirements-answers.md)",
+   "why": "Brief DECISION POLICY forbids clarifying questions; no mains/battery/motor/>30V/RF flags apply, so no safety unknown is being guessed",
+   "phase": "P0",
+   "ts": "2026-08-08T22:19:58"
+  },
+  {
+   "what": "4-layer stackup, 1oz outer / 0.5oz inner",
+   "why": "Brief demands an uncut GND plane directly under the switching components plus 2.05 W natural-convection cooling on <=50x40mm; 2L cannot give both the image plane and the bottom thermal copper",
+   "phase": "P0",
+   "ts": "2026-08-08T22:19:58"
+  },
+  {
+   "what": "Add a 4A slow-blow input fuse (DCR <=30 mOhm) beyond the brief's protection list",
+   "why": "IC OCP+hiccup cannot protect against a shorted high-side switch; upstream supply current limit is unstated, so the fuse is what bounds fault energy on-board",
+   "phase": "P0",
+   "ts": "2026-08-08T22:19:58"
+  },
+  {
+   "what": "Target switching frequency 400-700 kHz",
+   "why": "Below the AM broadcast band, keeps 18V-input min-on-time and switching loss comfortable, and allows 20-40% ripple with a stocked inductor",
+   "phase": "P0",
+   "ts": "2026-08-08T22:19:59"
+  },
+  {
+   "what": "Spawn tier deviation: Fable 5 unavailable (out of credits); judgment roles run on Opus instead",
+   "why": "Playbook forbids silent downgrade - Opus is the nearest available tier for architect/placement/reviewer roles; recorded rather than hidden",
+   "phase": "P0",
+   "ts": "2026-08-08T22:19:59"
+  },
+  {
+   "what": "Input fuse: take the 5A slow-blow (Bel 0685T5000-01, 5032 pcs) over the spec-ideal 4A sibling (174 pcs)",
+   "why": "Requirements Q24 binds stock >=2000 pcs and the brief says an out-of-stock part is a failed design; 5A still opens on a bolted fault and costs only 119 mW at the 2.44 A worst case",
+   "phase": "P1",
+   "ts": "2026-08-08T22:34:37"
+  },
+  {
+   "what": "P3 must pull screw-terminal body height, pin diameter and recommended hole size from the vendor datasheet - LCSC attributes do not carry them",
+   "why": "Footprint cannot be built or DFM-checked on missing mechanical data; flagged by the protection scout as its open item",
+   "phase": "P1",
+   "ts": "2026-08-08T22:34:46"
+  },
+  {
+   "what": "All MLCCs must be X7R (no X5R anywhere); Cout bank moves to 22uF/25V 1210 X7R",
+   "why": "Architect computed 83-87 C board surface; X5R is rated 85 C so it is a latent failure, and the X7R part also derates less on DC bias (~12% vs ~25%)",
+   "phase": "P1",
+   "ts": "2026-08-08T22:45:09"
+  },
+  {
+   "what": "Add a 15V Zener + gate resistor clamp on the reverse-polarity P-FET gate",
+   "why": "AO4407A survives 18V static on its +/-25V Vgs, but the architect's 25.4V hot-plug ring on the screw terminals exceeds it; the clamp is the cheap fix",
+   "phase": "P1",
+   "ts": "2026-08-08T22:45:09"
+  },
+  {
+   "what": "In1 and In2 both solid GND; no power net may use an inner layer",
+   "why": "0.5oz inner copper needs 3.0-4.6mm widths for these currents per IPC-2152, which is unroutable - so power stays on 1oz outer and the inners are pure return/thermal",
+   "phase": "P1",
+   "ts": "2026-08-08T22:45:09"
+  },
+  {
+   "what": "Feedback divider uses 0.1% resistors regardless of IC choice",
+   "why": "Reference tolerance alone spans -1.2%/+1.8% across the candidates and already eats 60-95% of the +/-2% budget; FB bias current error is negligible (<=0.1%) so the divider tolerance is the only lever left",
+   "phase": "P1",
+   "ts": "2026-08-08T22:49:40"
+  },
+  {
+   "what": "RC snubber values come from general practice, not a vendor citation - footprint sized generously and left DNP",
+   "why": "None of the three candidate vendors publishes a snubber value; the brief wants the footprint anyway, so honest sourcing is to mark it uncited rather than invent a citation",
+   "phase": "P1",
+   "ts": "2026-08-08T22:49:40"
+  },
+  {
+   "what": "P2 may revisit the 4.0A current-limit-minimum floor - it was a delegate tightening (Q5), not a user requirement",
+   "why": "It is the single rule disqualifying LMR33630 (3.85A min, ~3.375A guaranteed Iout = 12.5% over the 3.0A load), and the AP64350 that satisfies it carries a 7-10mA UVLO penalty and external compensation",
+   "phase": "P1",
+   "ts": "2026-08-08T22:49:40"
+  },
+  {
+   "what": "OVERRIDE of delegate answer Q14: UVLO retargeted from 6.5V/6.0V to 6.2V/5.3V",
+   "why": "0.5V hysteresis is less than this board's own 0.49V cable drop at 2.44A (motorboating), and VON=6.5V at the max threshold corner lands ~7.0V so the converter could refuse to start at its minimum rated input; also drops the UVLO divider draw from 81-181mW to 1-2mW",
+   "phase": "P2",
+   "ts": "2026-08-08T23:29:56"
+  },
+  {
+   "what": "Buck IC: AP64350SP-13 at 500 kHz (RT=200k)",
+   "why": "Decided on MAX Rds(on) 75/45 mOhm vs LMR33630's TYPICAL 95/66; TI's own max column gives 1.65W conduction -> Tj ~112C, over the 105C limit. SY8205 rejected on preliminary datasheet with typ-only Rds",
+   "phase": "P2",
+   "ts": "2026-08-08T23:29:56"
+  },
+  {
+   "what": "1 oz outer copper; both vendor reference layouts (2 oz) lose",
+   "why": "JLC's only 4L/1.6mm 2oz-outer lamination has a 0.4284mm L1-L2 prepreg vs 1080B's 0.2444mm - nearly doubles thermal-via resistance and pushes the image plane 75% further from the hot loop; net +0.8C, so 2oz is worse here",
+   "phase": "P2",
+   "ts": "2026-08-08T23:29:56"
+  },
+  {
+   "what": "Stackup JLC04161H-1080B; F.Cu + In1 + In2 + B.Cu ALL GND",
+   "why": "JLC inner copper is 0.0152mm - thinner than the nominal 0.5oz the rule assumed - so inner power widths would need 3.5-5.3mm; declared explicitly because the pipeline default would otherwise pour In2 as +5V",
+   "phase": "P2",
+   "ts": "2026-08-08T23:29:56"
+  },
+  {
+   "what": "Single flat root sheet (refdes 1-99, #PWR 100), 33 placed parts",
+   "why": "Small board; hierarchy rejected to eliminate the /<sheet>/<LABEL> net-name mismatch class the recipe warns about",
+   "phase": "P2",
+   "ts": "2026-08-08T23:29:56"
+  }
+ ],
+ "edits": [],
+ "spawns": [
+  {
+   "ts": "2026-08-08T22:13:14",
+   "role": "requirements-analyst",
+   "model": "fable",
+   "phase": "P0"
+  },
+  {
+   "ts": "2026-08-08T22:22:53",
+   "role": "research-component-scout",
+   "model": "sonnet",
+   "phase": "P1"
+  },
+  {
+   "ts": "2026-08-08T22:22:53",
+   "role": "research-component-scout",
+   "model": "sonnet",
+   "phase": "P1"
+  },
+  {
+   "ts": "2026-08-08T22:22:53",
+   "role": "research-component-scout",
+   "model": "sonnet",
+   "phase": "P1"
+  },
+  {
+   "ts": "2026-08-08T22:22:53",
+   "role": "research-power-architect",
+   "model": "opus",
+   "phase": "P1"
+  },
+  {
+   "ts": "2026-08-08T22:35:45",
+   "role": "research-reference-design",
+   "model": "sonnet",
+   "phase": "P1"
+  },
+  {
+   "ts": "2026-08-08T22:45:08",
+   "role": "research-component-scout",
+   "model": "sonnet",
+   "phase": "P1"
+  },
+  {
+   "ts": "2026-08-08T23:09:34",
+   "role": "architect",
+   "model": "opus",
+   "phase": "P2"
+  }
+ ],
+ "history": [
+  {
+   "ts": "2026-08-08T22:12:30",
+   "event": "init",
+   "board": "sbuck-5v3a",
+   "phase": "P0"
+  },
+  {
+   "ts": "2026-08-08T22:13:14",
+   "event": "spawn",
+   "role": "requirements-analyst",
+   "model": "fable"
+  },
+  {
+   "ts": "2026-08-08T22:19:58",
+   "event": "decision",
+   "what": "Unattended run: orchestrator answered all 33 requirements open questions as delegate (requirements-answers.md)"
+  },
+  {
+   "ts": "2026-08-08T22:19:58",
+   "event": "decision",
+   "what": "4-layer stackup, 1oz outer / 0.5oz inner"
+  },
+  {
+   "ts": "2026-08-08T22:19:58",
+   "event": "decision",
+   "what": "Add a 4A slow-blow input fuse (DCR <=30 mOhm) beyond the brief's protection list"
+  },
+  {
+   "ts": "2026-08-08T22:19:59",
+   "event": "decision",
+   "what": "Target switching frequency 400-700 kHz"
+  },
+  {
+   "ts": "2026-08-08T22:19:59",
+   "event": "decision",
+   "what": "Spawn tier deviation: Fable 5 unavailable (out of credits); judgment roles run on Opus instead"
+  },
+  {
+   "ts": "2026-08-08T22:19:59",
+   "event": "phase",
+   "phase": "P1",
+   "prev": "P0"
+  },
+  {
+   "ts": "2026-08-08T22:20:16",
+   "event": "phase",
+   "phase": "P1",
+   "prev": "P1"
+  },
+  {
+   "ts": "2026-08-08T22:22:53",
+   "event": "spawn",
+   "role": "research-component-scout",
+   "model": "sonnet"
+  },
+  {
+   "ts": "2026-08-08T22:22:53",
+   "event": "spawn",
+   "role": "research-component-scout",
+   "model": "sonnet"
+  },
+  {
+   "ts": "2026-08-08T22:22:53",
+   "event": "spawn",
+   "role": "research-component-scout",
+   "model": "sonnet"
+  },
+  {
+   "ts": "2026-08-08T22:22:53",
+   "event": "spawn",
+   "role": "research-power-architect",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-08T22:34:37",
+   "event": "decision",
+   "what": "Input fuse: take the 5A slow-blow (Bel 0685T5000-01, 5032 pcs) over the spec-ideal 4A sibling (174 pcs)"
+  },
+  {
+   "ts": "2026-08-08T22:34:46",
+   "event": "decision",
+   "what": "P3 must pull screw-terminal body height, pin diameter and recommended hole size from the vendor datasheet - LCSC attributes do not carry them"
+  },
+  {
+   "ts": "2026-08-08T22:35:45",
+   "event": "spawn",
+   "role": "research-reference-design",
+   "model": "sonnet"
+  },
+  {
+   "ts": "2026-08-08T22:45:08",
+   "event": "spawn",
+   "role": "research-component-scout",
+   "model": "sonnet"
+  },
+  {
+   "ts": "2026-08-08T22:45:09",
+   "event": "decision",
+   "what": "All MLCCs must be X7R (no X5R anywhere); Cout bank moves to 22uF/25V 1210 X7R"
+  },
+  {
+   "ts": "2026-08-08T22:45:09",
+   "event": "decision",
+   "what": "Add a 15V Zener + gate resistor clamp on the reverse-polarity P-FET gate"
+  },
+  {
+   "ts": "2026-08-08T22:45:09",
+   "event": "decision",
+   "what": "In1 and In2 both solid GND; no power net may use an inner layer"
+  },
+  {
+   "ts": "2026-08-08T22:49:40",
+   "event": "decision",
+   "what": "Feedback divider uses 0.1% resistors regardless of IC choice"
+  },
+  {
+   "ts": "2026-08-08T22:49:40",
+   "event": "decision",
+   "what": "RC snubber values come from general practice, not a vendor citation - footprint sized generously and left DNP"
+  },
+  {
+   "ts": "2026-08-08T22:49:40",
+   "event": "decision",
+   "what": "P2 may revisit the 4.0A current-limit-minimum floor - it was a delegate tightening (Q5), not a user requirement"
+  },
+  {
+   "ts": "2026-08-08T23:09:34",
+   "event": "phase",
+   "phase": "P2",
+   "prev": "P1"
+  },
+  {
+   "ts": "2026-08-08T23:09:34",
+   "event": "spawn",
+   "role": "architect",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-08T23:29:56",
+   "event": "decision",
+   "what": "OVERRIDE of delegate answer Q14: UVLO retargeted from 6.5V/6.0V to 6.2V/5.3V"
+  },
+  {
+   "ts": "2026-08-08T23:29:56",
+   "event": "decision",
+   "what": "Buck IC: AP64350SP-13 at 500 kHz (RT=200k)"
+  },
+  {
+   "ts": "2026-08-08T23:29:56",
+   "event": "decision",
+   "what": "1 oz outer copper; both vendor reference layouts (2 oz) lose"
+  },
+  {
+   "ts": "2026-08-08T23:29:56",
+   "event": "decision",
+   "what": "Stackup JLC04161H-1080B; F.Cu + In1 + In2 + B.Cu ALL GND"
+  },
+  {
+   "ts": "2026-08-08T23:29:56",
+   "event": "decision",
+   "what": "Single flat root sheet (refdes 1-99, #PWR 100), 33 placed parts"
+  }
+ ]
+}
