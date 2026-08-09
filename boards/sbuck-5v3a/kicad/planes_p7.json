@@ -1,0 +1,15 @@
+{
+  "_comment": "P7 planes-only sidecar for planes_gen (constraints.json's planes[] entries carry _note keys, which planes_gen's strict _PLANE_KEYS check rejects). Same four GND layers as constraints.planes plus the U1 solid-connect island and the /SW bounded pour. Priorities: board GND 0 < U1 GND island 3 < /SW 6,7 - same-net different-priority fills MERGE (LEARNINGS 1327), cross-net overlap at distinct priorities is legal (only same-net same-priority trips zones_intersect).",
+  "planes": [
+    {"net": "GND", "layer": "F.Cu", "priority": 0},
+    {"net": "GND", "layer": "In1.Cu", "priority": 0},
+    {"net": "GND", "layer": "In2.Cu", "priority": 0},
+    {"net": "GND", "layer": "B.Cu", "priority": 0},
+    {"net": "GND", "layer": "F.Cu", "region": [38.4, 46.15, 48.6, 51.1],
+     "priority": 3, "connect": "solid"},
+    {"net": "/SW", "layer": "F.Cu", "region": [46.3, 43.2, 49.8, 47.3],
+     "priority": 6, "connect": "solid"},
+    {"net": "/SW", "layer": "F.Cu", "region": [42.0, 42.9, 46.4, 44.45],
+     "priority": 7, "connect": "solid"}
+  ]
+}

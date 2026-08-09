@@ -3,8 +3,8 @@
  "board": "sbuck-5v3a",
  "workspace": "boards/sbuck-5v3a",
  "created": "2026-08-08T22:12:30",
- "updated": "2026-08-09T03:36:10",
- "phase": "P6",
+ "updated": "2026-08-09T04:09:24",
+ "phase": "P7",
  "gates": {
   "erc": {
    "phase": "P4",
@@ -71,6 +71,49 @@
      }
     }
    ]
+  },
+  "drc_routed": {
+   "phase": "P7",
+   "status": "pass",
+   "attempts": 2,
+   "last": {
+    "ts": "2026-08-09T04:09:23",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0,
+    "inputs": {
+     "pcb": "sexpr_no_uuid:32bdbd508107e0b0af85a8f1d1f46855f04a7cce103c326547a821945201bf4e",
+     "sch": "sexpr_no_uuid:1f28e2ac20524eab857ec2aae1708cc47758bce4362f10581083cfeec50adc4b",
+     "pro": "json_canonical:0349448db679566895985a469411d46c528b8268c6b15a52f9e8b4939fcc1d7c",
+     "dru": "text_eol:94389822352076845504214314454e02fd53452845b448fd7c5db80e168d3dc6"
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-09T04:07:57",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:32bdbd508107e0b0af85a8f1d1f46855f04a7cce103c326547a821945201bf4e",
+      "sch": "sexpr_no_uuid:1f28e2ac20524eab857ec2aae1708cc47758bce4362f10581083cfeec50adc4b",
+      "pro": "json_canonical:0349448db679566895985a469411d46c528b8268c6b15a52f9e8b4939fcc1d7c",
+      "dru": "text_eol:94389822352076845504214314454e02fd53452845b448fd7c5db80e168d3dc6"
+     }
+    },
+    {
+     "ts": "2026-08-09T04:09:23",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:32bdbd508107e0b0af85a8f1d1f46855f04a7cce103c326547a821945201bf4e",
+      "sch": "sexpr_no_uuid:1f28e2ac20524eab857ec2aae1708cc47758bce4362f10581083cfeec50adc4b",
+      "pro": "json_canonical:0349448db679566895985a469411d46c528b8268c6b15a52f9e8b4939fcc1d7c",
+      "dru": "text_eol:94389822352076845504214314454e02fd53452845b448fd7c5db80e168d3dc6"
+     }
+    }
+   ]
   }
  },
  "human": {
@@ -89,20 +132,20 @@
   "sch": {
    "path": "kicad/sbuck-5v3a.kicad_sch",
    "kind": "sch",
-   "sha256": "sexpr_no_uuid:9583d2bfe7168ea00a253671332eac0c9591b2bef11156b17758b62585735cdd",
-   "hashed": "2026-08-09T02:14:15"
+   "sha256": "sexpr_no_uuid:1f28e2ac20524eab857ec2aae1708cc47758bce4362f10581083cfeec50adc4b",
+   "hashed": "2026-08-09T04:09:23"
   },
   "pro": {
    "path": "kicad/sbuck-5v3a.kicad_pro",
    "kind": "pro",
-   "sha256": "json_canonical:b5da9c4d80f80a326c20d10a6f85a62e666a88d75eb9583baeaed6646aaa0ec8",
-   "hashed": "2026-08-09T02:14:15"
+   "sha256": "json_canonical:0349448db679566895985a469411d46c528b8268c6b15a52f9e8b4939fcc1d7c",
+   "hashed": "2026-08-09T04:09:23"
   },
   "pcb": {
    "path": "kicad/sbuck-5v3a.kicad_pcb",
    "kind": "pcb",
-   "sha256": "sexpr_no_uuid:13ee691533d7efcdd33091cae62ff43671c66a791b3f69a9a271bd462b3ad654",
-   "hashed": "2026-08-09T03:22:36"
+   "sha256": "sexpr_no_uuid:32bdbd508107e0b0af85a8f1d1f46855f04a7cce103c326547a821945201bf4e",
+   "hashed": "2026-08-09T04:09:23"
   },
   "constraints": {
    "path": "kicad/constraints.json",
@@ -115,6 +158,12 @@
    "kind": "decoupling",
    "sha256": "json_canonical:fb272ae9b37a513b2ae33f0dea88bb3dc41e3edfe5194b524ea2805d06a1c483",
    "hashed": "2026-08-09T03:22:36"
+  },
+  "dru": {
+   "path": "kicad/sbuck-5v3a.kicad_dru",
+   "kind": "dru",
+   "sha256": "text_eol:94389822352076845504214314454e02fd53452845b448fd7c5db80e168d3dc6",
+   "hashed": "2026-08-09T04:09:23"
   }
  },
  "open_issues": [],
@@ -430,6 +479,36 @@
    "why": "16 cannot physically fit (EP 3.502x2.613mm vs 3.55mm needed at 1.0mm pitch, JLC 0.5mm hole-to-hole floor); 16 was our own derivation not a vendor spec, and leaving it would fail check_thermal at P8 on an unachievable target. Copper-area criteria unchanged, Tj cost +0.5 C",
    "phase": "P6",
    "ts": "2026-08-09T03:36:10"
+  },
+  {
+   "what": "C:/Program Files/Git/SW poured as a ZONE, not routed as tracks",
+   "why": "aiee_pwr_width_SW demands 2.31mm on every /SW track including the 0603 bootstrap cap's, which is impossible at that pad; a zone is not a track so the rule does not bind it - the alternative would have been weakening a current-carrying rule",
+   "phase": "P7",
+   "ts": "2026-08-09T04:09:23"
+  },
+  {
+   "what": "Forced --power-layers In1.Cu,In2.Cu,B.Cu instead of the auto heuristic",
+   "why": "auto considers inner layers only, so B.Cu would have been fair game for power routing and would have cut the second radiating face on a board that closes on 7 C of thermal margin",
+   "phase": "P7",
+   "ts": "2026-08-09T04:09:23"
+  },
+  {
+   "what": "Freerouting necking fixed by pour fan-in; no rule weakened",
+   "why": "FR routed at exactly the pad widths (0.8058mm = 0402 pad) despite --pad-window clearing all 61 power pads; remediation ladder step 4 applied, leaving .kicad_dru, .kicad_pro netclasses and constraints.json byte-unchanged",
+   "phase": "P7",
+   "ts": "2026-08-09T04:09:23"
+  },
+  {
+   "what": "ORCHESTRATOR ERROR corrected by the router: B.Cu >=650 mm2 within 14.3mm of U1 is impossible",
+   "why": "That disc clipped to the 50x40 outline is only 608.3 mm2; the constraint's _note says 650 is check_thermal's A_sat SUMMED over layers, which measures 2169.7 mm2. I restated the constraint wrongly in the spawn prompt",
+   "phase": "P7",
+   "ts": "2026-08-09T04:09:23"
+  },
+  {
+   "what": "route_critical and route_cleanup both skipped, deliberately",
+   "why": "route_critical skips plane/pour-carried power nets by design and every power net ended up plane- or pour-carried; route_cleanup's loop-breaker has regressed on pour boards twice and DRC was already 0/0",
+   "phase": "P7",
+   "ts": "2026-08-09T04:09:24"
   }
  ],
  "edits": [],
@@ -517,6 +596,12 @@
    "role": "placement",
    "model": "opus",
    "phase": "P6"
+  },
+  {
+   "ts": "2026-08-09T03:39:17",
+   "role": "router",
+   "model": "opus",
+   "phase": "P7"
   }
  ],
  "history": [
@@ -943,6 +1028,71 @@
    "ts": "2026-08-09T03:36:10",
    "event": "decision",
    "what": "thermal.min_vias lowered 16 -> 12 in constraints.json with the geometry recorded"
+  },
+  {
+   "ts": "2026-08-09T03:39:17",
+   "event": "phase",
+   "phase": "P7",
+   "prev": "P6"
+  },
+  {
+   "ts": "2026-08-09T03:39:17",
+   "event": "spawn",
+   "role": "router",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-09T03:39:18",
+   "event": "snapshot",
+   "label": "pre-p7-route",
+   "files": 1
+  },
+  {
+   "ts": "2026-08-09T03:53:34",
+   "event": "snapshot",
+   "label": "p7-planes-stitched",
+   "files": 5
+  },
+  {
+   "ts": "2026-08-09T04:07:57",
+   "event": "gate",
+   "gate": "drc_routed",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-09T04:09:23",
+   "event": "gate",
+   "gate": "drc_routed",
+   "status": "pass",
+   "attempt": 2,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-09T04:09:23",
+   "event": "decision",
+   "what": "C:/Program Files/Git/SW poured as a ZONE, not routed as tracks"
+  },
+  {
+   "ts": "2026-08-09T04:09:23",
+   "event": "decision",
+   "what": "Forced --power-layers In1.Cu,In2.Cu,B.Cu instead of the auto heuristic"
+  },
+  {
+   "ts": "2026-08-09T04:09:23",
+   "event": "decision",
+   "what": "Freerouting necking fixed by pour fan-in; no rule weakened"
+  },
+  {
+   "ts": "2026-08-09T04:09:23",
+   "event": "decision",
+   "what": "ORCHESTRATOR ERROR corrected by the router: B.Cu >=650 mm2 within 14.3mm of U1 is impossible"
+  },
+  {
+   "ts": "2026-08-09T04:09:24",
+   "event": "decision",
+   "what": "route_critical and route_cleanup both skipped, deliberately"
   }
  ]
 }

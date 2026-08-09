@@ -2950,3 +2950,81 @@ had 3 movable clusters - the two edge-pinned parts and the satellite are all fro
 "escalate, board too small" case: hand placement solved it at HPWL 54.4 mm vs seed 68.5 / anneal 67.6.
 Read `movable_clusters` in the anneal report first - if it is <= half the footprint count, stage 3 is
 the whole job and the SA numbers are noise.
+
+## 2026-08-09 [stitch_vias][drc][fab] stitch_vias' hole-to-hole filter is blind to THT PAD drills - 10 of 89 vias fired the 0.5 mm DRU floor
+rf-term-150w P7. `stitch_vias --pitch 1.6 --clearance 0.85` reported `rejected: {hole_to_hole: 35}`, so
+its own hole filter clearly runs - yet the board it produced failed DRC with **20 `aiee_hole_to_hole_floor`
+errors** (10 unique vias, actual 0.225-0.479 mm against min 0.4995). Every offender was a stitch beside a
+same-net THROUGH-HOLE PAD drill (H1/H2/H3 3.2 mm, J1 1.4 mm, C1 6.3 mm), never via-to-via: the generator
+measures via drills against via drills and treats a pad as copper only. Extends the 2026-07-28 finding
+(KiCad's *built-in* hole_to_hole skips same-net via-vs-THT-pad) with the other half of the picture: the
+`aiee_hole_to_hole_floor` DRU rule has no net condition, so **kicad-cli DOES flag it** and the gate fails.
+Recipe that worked: after any stitch run on a board with THT pads, recompute
+`dist(via, pad_drill_centre) - via_drill/2 - pad_drill/2 >= 0.5` from `geom` (`Pad.drill_poly` bounds),
+then `route_edit` a `remove`-only op list for the offenders - they are peripheral fill, so 79 of 89 vias
+survived and the return path near the strap lands (0.30 / 0.83 mm) was untouched.
+
+## 2026-08-09 [geom][check_return_path][kicad-cli] `--verify-fill` refills in a TEMP DIR, so a custom .kicad_dru makes it fail on a perfectly fresh board
+`geom.BoardGeom.assert_fresh(refill=True)` - reached from `check_return_path --verify-fill` and anything
+else that asks for thorough freshness - calls `_refill_copy()`, which `shutil.copy`s the .kicad_pcb into
+`tempfile.mkdtemp()` and refills it there. That is the 2026-07-28 "DRC on a board copy OUTSIDE the project
+dir silently changes the rules" trap, now inside a library: the sibling `.kicad_pro` / `.kicad_dru` do not
+follow, so the "fresh" fill is computed with KiCad defaults. On rf-term-150w (board-wide 0.80 mm
+`aiee_hv_122p5v_RF` vs the zone's own 0.5 mm local clearance) the fresh copy filled 356.204 mm2 against a
+correct committed 340.448 mm2 - a 15.8 mm2 delta that is exactly 0.3 mm x ~53 mm of /RF perimeter - and
+raised `StaleFillError` on a board that `kicad-cli pcb drc --refill-zones --save-board` had just written.
+So: **on any board with a per-net clearance rule, `--verify-fill` is a false failure**; use the fast
+`assert_fresh()` (what `gate.py --gate drc_routed` already uses) and prove freshness with an in-place
+refill instead. Real fix would be to copy the project sidecars alongside, or refill in the board's own dir.
+
+## 2026-08-09 [drc][kicad][silk][routing] KiCad's silk clearance test does NOT see TRACKS - silk is a placement keepout, never a routing one
+Measured on this host (KiCad 10.0.3) before committing to a wide RF flare on rf-term-150w, whose P6 pass
+had already spent real board area dodging silk. A 1.28 mm F.Cu track was driven straight through the
+centre of J1's `Reference` text (size 1.0, thickness 0.15) and DRC reported **zero** silk findings - only
+the expected `track_dangling`. Pads and vias are tested (that is what the P6 `silk_over_copper` fight was),
+zones and tracks are not. Consequence, and it is worth money: at P7 you may route copper of any width
+under any silkscreen, so the only keepouts for a flared RF conductor are copper clearance, edge clearance
+and hole-to-hole. Do not narrow a trace to dodge a refdes. Caveat on how this was measured - the scratch
+board was named `_silktest.kicad_pcb` in the project dir, so it loaded KiCad DEFAULT board settings
+(edge clearance came back 0.5 mm, not the project's 0.3 mm); silk clearance defaults to 0.0 either way and
+the project sets no silk rule, so the conclusion holds, but re-confirm on the real board (done: final
+`drc_routed` is 0 errors / 0 warnings with 34 flare segments crossing three silk texts).
+
+## 2026-08-09 [planes_gen][constraints] `planes_gen` rejects `_note` - the P2 constraints convention makes `constraints.planes[]` unusable as its own input
+sbuck-5v3a P7 step 0. `planes_gen.py --pcb <board>` (constraints default = the sidecar beside the
+board) died instantly with `CheckError: planes[0]: unknown keys ['_note']`. `_PLANE_KEYS` is a strict
+whitelist (`net/layer/region/priority/min_island_mm2/clearance/min_width/connect`), while the P2
+convention puts a `_note` on every constraints entry - and on this board `planes[]` carried the single
+most load-bearing note in the file (all four layers GND, overriding the 4-layer "In1 GND + In2 dominant
+power" default). Every other constraints consumer tolerates `_note`, so nothing upstream warns. Two
+consequences: (1) the documented step-0 invocation cannot work on any board that annotates `planes[]`;
+(2) the fix is the same planes-only sidecar the remediations already prescribe for pour fan-in
+(`planes_gen --constraints <sidecar>`), which is better anyway because it is where the P7-only regions,
+priorities and `connect: solid` belong - do not strip the notes out of `constraints.json` to make the
+default path work.
+
+## 2026-08-09 [routing][freerouting][check_current] A clean `--pad-window` does NOT predict that Freerouting will honour the netclass width - FR necks to the PAD's own width at every small-part stub
+sbuck-5v3a P7. `route_critical --pad-window` returned `ok: true` for all 61 power pads (R6.1 and R8.1,
+both 0402 +5V taps, reported 6.966 / 8.000 mm of headroom against the 2.055 mm floor). Freerouting then
+routed those same taps at **0.8058 mm - the exact 0402 pad width** - and produced 9 `track_width`
+errors: 0.8058 at the two 0402 taps, 1.6348 (the 1210 pad width) on the +5V trunk, 1.4848 (the 0805 pad
+width) on +VIN. The two probes measure different things: `--pad-window` maximises `2*(dist(P,foreign) -
+CLR)` over centreline points whose ROUND END-CAP can reach the pad from outside, so a wide track that
+merely overlaps a tiny pad counts as connectable; FR instead fans in from inside the pad footprint and
+takes the pad dimension as its width. It also necks at pinch points the window never sees (here 1.6348
+where a 2.055 trunk would have cleared TP4 and C12.2 by exactly 0.2005 mm - legal, but 0.5 um of
+margin). Practical rule: on any net with an `aiee_pwr_width_*` floor, budget a pour fan-in for every
+small-part stub BEFORE running route_auto, and read `--pad-window` only as "is this floor geometrically
+unmeetable" (exit 1), never as "FR will route it at width".
+
+## 2026-08-09 [planes_gen][thermal] `via_grid` is centroid-centred and pitch-stepped, so it can only emit ODD x ODD arrays - 3x4 in-pad thermal vias must be hand-placed
+sbuck-5v3a U1 (SO-8EP, exposed pad 2.613 x 3.502 mm) needs 12 in-pad vias; `planes_gen`'s
+`via_grid` puts points at `centroid + (i*pitch, j*pitch)` and keeps those whose 0.6 mm land fits inside
+`poly.buffer(-(size/2 + margin))`, i.e. an inner rect of 1.813 x 2.702 mm here. Because every offset is
+a whole multiple of the pitch about the centre, the count is odd on each axis: 3 x 3 = 9 at 0.9 mm
+pitch, and no pitch fixes it (0.67 mm would give 5 rows but breaks JLC's 0.5 mm hole-to-hole floor).
+The 3 x 4 = 12 array the pad actually holds needs y offsets of +/-0.45 and +/-1.35 - a half-pitch
+stagger the generator cannot express. Fix used: `planes_gen --no-thermal-vias` plus a 12-op
+`route_edit add_via` list at x = cx+{-0.9,0,+0.9}, y = cy+{-1.35,-0.45,+0.45,+1.35} (0.6/0.3 mm vias,
+0.6 mm hole-to-hole, 0.1 mm land margin inside the pad). Check the parity of the array your thermal
+budget assumes before trusting `facts.thermal_vias`.

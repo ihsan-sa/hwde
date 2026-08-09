@@ -1,0 +1,19 @@
+{
+  "_comment": "P7 pass B - pour fan-in zones. Freerouting necked +5V to the pad width at every small-part stub (R6/R8 0402) and along two runs pinched by TP4/C12.2, and necked +VIN to the 0805 pad width; the aiee_pwr_width_* DRU floors are net-wide, so those stubs are unmeetable as TRACKS (LEARNINGS 2026-07-28 pd-trigger VBUS / 2026-08-09 sbuck /SW). A zone is not a track. Priorities beat the GND pours (board 0, U1 island 3) so the power fills win their regions; /SW keeps 6/7 so it still wins where it meets +5V near L1.",
+  "planes": [
+    {"net": "+VIN", "layer": "F.Cu", "region": [36.4, 40.8, 38.2, 51.85],
+     "priority": 8, "connect": "solid"},
+    {"net": "+VIN", "layer": "F.Cu", "region": [36.4, 47.7, 42.35, 49.35],
+     "priority": 9, "connect": "solid"},
+    {"net": "+5V", "layer": "F.Cu", "region": [49.4, 51.3, 58.6, 54.3],
+     "priority": 5, "connect": "solid"},
+    {"net": "+5V", "layer": "F.Cu", "region": [51.3, 55.0, 56.3, 58.6],
+     "priority": 5, "connect": "solid"},
+    {"net": "+5V", "layer": "F.Cu", "region": [57.9, 67.5, 59.85, 70.6],
+     "priority": 5, "connect": "solid"},
+    {"net": "GND", "layer": "F.Cu", "region": [42.6, 62.8, 44.4, 64.7],
+     "priority": 4, "connect": "solid"},
+    {"net": "GND", "layer": "F.Cu", "region": [44.6, 54.1, 46.4, 56.0],
+     "priority": 4, "connect": "solid"}
+  ]
+}
