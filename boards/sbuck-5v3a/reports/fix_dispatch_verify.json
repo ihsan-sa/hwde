@@ -1,0 +1,50 @@
+{
+ "script": "fix_dispatch",
+ "status": "violations",
+ "board": "sbuck-5v3a.kicad_pcb",
+ "gate": "verify",
+ "counts": {
+  "orders": 2,
+  "violations": 3,
+  "by_domain": {
+   "router": 1,
+   "plane": 1
+  },
+  "with_remediation": 1
+ },
+ "orders": [
+  {
+   "id": 1,
+   "fixer": "router",
+   "severity": "error",
+   "net": "GND",
+   "kinds": [
+    "pour_neckdown"
+   ],
+   "count": 2,
+   "remediations": [
+    "C:/dev/ai-ee3/.claude/skills/ai-ee/reference/remediations/pour_neckdown.md"
+   ],
+   "work_order": "boards/sbuck-5v3a/log/workorders/wo-1.json"
+  },
+  {
+   "id": 2,
+   "fixer": "plane",
+   "severity": "error",
+   "net": "+5V",
+   "kinds": [
+    "thermal_area"
+   ],
+   "count": 1,
+   "remediations": [],
+   "work_order": "boards/sbuck-5v3a/log/workorders/wo-2.json"
+  }
+ ],
+ "parallel_groups": [
+  [
+   1,
+   2
+  ]
+ ],
+ "out_dir": "boards/sbuck-5v3a/log/workorders"
+}

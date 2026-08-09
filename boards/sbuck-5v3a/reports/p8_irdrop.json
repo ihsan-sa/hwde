@@ -1,0 +1,293 @@
+{
+ "script": "check_irdrop",
+ "status": "pass",
+ "board": "sbuck-5v3a.kicad_pcb",
+ "counts": {
+  "total": 0,
+  "by_severity": {},
+  "by_source": {}
+ },
+ "violations": [],
+ "checked": [
+  {
+   "net": "/VIN_RAW",
+   "skipped": "pdn:false (width-only power entry)"
+  },
+  {
+   "net": "/VIN",
+   "skipped": "pdn:false (width-only power entry)"
+  },
+  {
+   "net": "+VIN",
+   "requested_a": 2.6,
+   "injected_a": 2.6,
+   "source_ref": "C4",
+   "source_mode": "largest_pad_area",
+   "sink_pads": 12,
+   "layers": [
+    "F.Cu"
+   ],
+   "min_feature_mm": 1.52,
+   "grid": {
+    "cell_mm": 0.095,
+    "cells": 8950,
+    "cells_across_min_feature": 16.0,
+    "refine": "doubled",
+    "cell_mm_pair": 0.19,
+    "cells_pair": 2230
+   },
+   "resistance_mohm": 5.3618,
+   "resistance_pair_mohm": [
+    5.3618,
+    5.5799
+   ],
+   "richardson_delta": 0.0407,
+   "worst_drop_mv": 13.958,
+   "worst_sink": {
+    "ref": "C5",
+    "drop_mv": 13.9408
+   },
+   "jmax": {
+    "a_per_mm": 2.6505,
+    "pos": [
+     44.5225,
+     61.5575
+    ],
+    "layer": "F.Cu"
+   },
+   "necks": [
+    {
+     "a_per_mm": 2.6505,
+     "pos": [
+      44.5225,
+      61.5575
+     ],
+     "layer": "F.Cu"
+    },
+    {
+     "a_per_mm": 2.3345,
+     "pos": [
+      41.6725,
+      58.1375
+     ],
+     "layer": "F.Cu"
+    },
+    {
+     "a_per_mm": 2.241,
+     "pos": [
+      44.5225,
+      63.9325
+     ],
+     "layer": "F.Cu"
+    },
+    {
+     "a_per_mm": 2.1741,
+     "pos": [
+      40.7225,
+      68.6825
+     ],
+     "layer": "F.Cu"
+    },
+    {
+     "a_per_mm": 1.881,
+     "pos": [
+      42.2425,
+      59.5625
+     ],
+     "layer": "F.Cu"
+    }
+   ],
+   "vias": {
+    "used": 0,
+    "skipped": 0
+   }
+  },
+  {
+   "net": "/SW",
+   "skipped": "pdn:false (width-only power entry)"
+  },
+  {
+   "net": "+5V",
+   "requested_a": 3.3,
+   "injected_a": 3.3,
+   "source_ref": "L1",
+   "source_mode": "largest_pad_area",
+   "sink_pads": 10,
+   "layers": [
+    "F.Cu",
+    "In1.Cu",
+    "In2.Cu",
+    "B.Cu"
+   ],
+   "min_feature_mm": 2.055,
+   "grid": {
+    "cell_mm": 0.12844,
+    "cells": 12878,
+    "cells_across_min_feature": 16.0,
+    "refine": "doubled",
+    "cell_mm_pair": 0.25688,
+    "cells_pair": 3215
+   },
+   "resistance_mohm": 2.7101,
+   "resistance_pair_mohm": [
+    2.7101,
+    2.7949
+   ],
+   "richardson_delta": 0.0313,
+   "worst_drop_mv": 8.9569,
+   "worst_sink": {
+    "ref": "R8",
+    "drop_mv": 8.9433
+   },
+   "jmax": {
+    "a_per_mm": 2.4144,
+    "pos": [
+     60.7667,
+     47.343
+    ],
+    "layer": "F.Cu"
+   },
+   "necks": [
+    {
+     "a_per_mm": 2.4144,
+     "pos": [
+      60.7667,
+      47.343
+     ],
+     "layer": "F.Cu"
+    },
+    {
+     "a_per_mm": 1.9604,
+     "pos": [
+      58.5833,
+      52.0952
+     ],
+     "layer": "F.Cu"
+    },
+    {
+     "a_per_mm": 1.4376,
+     "pos": [
+      58.7117,
+      54.1502
+     ],
+     "layer": "F.Cu"
+    },
+    {
+     "a_per_mm": 1.397,
+     "pos": [
+      56.7852,
+      51.3245
+     ],
+     "layer": "F.Cu"
+    },
+    {
+     "a_per_mm": 1.3563,
+     "pos": [
+      59.7392,
+      48.4989
+     ],
+     "layer": "F.Cu"
+    }
+   ],
+   "vias": {
+    "used": 1,
+    "skipped": 0
+   }
+  },
+  {
+   "net": "GND",
+   "requested_a": 3.3,
+   "injected_a": 3.3,
+   "source_ref": "U1",
+   "source_mode": "largest_pad_area",
+   "sink_pads": 24,
+   "layers": [
+    "F.Cu",
+    "In1.Cu",
+    "In2.Cu",
+    "B.Cu"
+   ],
+   "min_feature_mm": 0.6,
+   "grid": {
+    "cell_mm": 0.16649,
+    "cells": 249473,
+    "cells_across_min_feature": 3.6,
+    "refine": "coarsened",
+    "cell_mm_pair": 0.33298,
+    "cells_pair": 62248
+   },
+   "resistance_mohm": 0.3438,
+   "resistance_pair_mohm": [
+    0.3438,
+    0.3597
+   ],
+   "richardson_delta": 0.0462,
+   "worst_drop_mv": 1.1453,
+   "worst_sink": {
+    "ref": "R3",
+    "drop_mv": 1.1346
+   },
+   "jmax": {
+    "a_per_mm": 0.4577,
+    "pos": [
+     41.6172,
+     44.1349
+    ],
+    "layer": "F.Cu"
+   },
+   "necks": [
+    {
+     "a_per_mm": 0.4577,
+     "pos": [
+      41.6172,
+      44.1349
+     ],
+     "layer": "F.Cu"
+    },
+    {
+     "a_per_mm": 0.4317,
+     "pos": [
+      49.1093,
+      51.9599
+     ],
+     "layer": "F.Cu"
+    },
+    {
+     "a_per_mm": 0.3871,
+     "pos": [
+      40.6182,
+      47.1317
+     ],
+     "layer": "F.Cu"
+    },
+    {
+     "a_per_mm": 0.3574,
+     "pos": [
+      42.2832,
+      47.4647
+     ],
+     "layer": "F.Cu"
+    },
+    {
+     "a_per_mm": 0.3402,
+     "pos": [
+      68.2557,
+      53.6248
+     ],
+     "layer": "F.Cu"
+    }
+   ],
+   "vias": {
+    "used": 30,
+    "skipped": 0
+   }
+  }
+ ],
+ "stackup_assumed": false,
+ "model": {
+  "kind": "2.5D resistor-grid FDM",
+  "rho_cu_ohm_m": 1.72e-08,
+  "via_plating_mm": 0.025,
+  "injection": "worst-case uniform per pad unless source_ref/sinks given"
+ }
+}

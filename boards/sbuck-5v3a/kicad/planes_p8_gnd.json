@@ -1,0 +1,9 @@
+{
+  "_comment": "P8 verify fix, work order 1 (check_current pour_neckdown x2 on GND F.Cu). Neither reported neck was a pinch: check_current erodes EACH ZONE FILL separately, and both failing zones own several physically disjoint fill polygons with vias in more than one of them, so the erosion test reports 0.00 mm at radius 0 (the split is pre-existing, not a neck). Zone 2 (the P7 U1 GND island, region 38.4/46.15-48.6/51.1) filled in two pieces because the priority-9 +VIN fan-in pour crosses it; the board pour (priority 0) filled in five pieces. These two zones re-cut the F.Cu GND so that every zone object owns ONE contiguous structure: Z1 takes the whole U1 column (18 vias, measured erosion-connected at the full 2.055 mm) out of both zone 2 and the board pour; Z2 takes the isolated west pour lobe (one bond via) out of the board pour. Zone 2 and Z2 are then single-via leaf taps, which check_current skips (a pour neck needs >= 2 attachments). Priorities: Z1 = 5 (beats zone 2 at 3 and the board pour at 0, no same-priority overlap with the +5V/GND fan-in zones, yields to the /SW pour at 6 as before); Z2 = 4. Z1 keeps connect solid so U1's PGND pads and exposed pad stay solidly attached. Geometry is chosen to avoid overlapping any existing zone at the SAME priority (KiCad 10 zones_intersect flags that even for one net): Z1 x1 42.4 clears the +VIN fan-in at 42.35, Z2 y1 51.12 clears zone 2's 51.1 and x1 38.25 clears the +VIN trunk at 38.2.",
+  "planes": [
+    {"net": "GND", "layer": "F.Cu", "region": [42.4, 44.55, 48.6, 54.6],
+     "priority": 5, "connect": "solid"},
+    {"net": "GND", "layer": "F.Cu", "region": [38.25, 51.12, 42.35, 57.10],
+     "priority": 4}
+  ]
+}

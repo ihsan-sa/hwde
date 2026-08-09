@@ -3028,3 +3028,17 @@ stagger the generator cannot express. Fix used: `planes_gen --no-thermal-vias` p
 `route_edit add_via` list at x = cx+{-0.9,0,+0.9}, y = cy+{-1.35,-0.45,+0.45,+1.35} (0.6/0.3 mm vias,
 0.6 mm hole-to-hole, 0.1 mm land margin inside the pad). Check the parity of the array your thermal
 budget assumes before trusting `facts.thermal_vias`.
+
+## 2026-08-09 [spice][sim-analyst] P2 feasibility benches hard-code geometry-derived parasitics that go STALE at P7, and nothing in the pipeline re-derives them
+rf-term-150w's four sim benches modelled `cpad=1.3p` of port shunt capacitance, computed at P2 from
+an architecture that assumed a 3.55 mm launch. The as-routed launch is 15.065 mm of mostly-wide trace
+plus a 5.0 x 7.0 mm lap pad = ~4.7 pF, 3.6x larger. The `sim` gate stayed green through P4-P8 because
+every bound was written against the stale model, and the error propagated into the README's headline
+tuning range. Two consequences worth generalising: (1) any bench parameter whose value comes from
+GEOMETRY (launch C, trace L, thermal R) is a P7 dependency, not a P2 constant - re-run the bench after
+routing and diff the numbers, the gate will not tell you; (2) put the load-bearing geometric quantity
+in its own `.meas ... param=` line with a tight window (here `ctneed_p47_pf` in [-2.2,-1.4] pF) so a
+reverted or unre-derived value trips the gate instead of silently shifting every RL by tens of dB.
+Also: when a corrected parasitic makes the ideal tuner setting NEGATIVE (a hypothetical shunt smaller
+than the fixed pad term), model the hypothetical as a single capacitor with the pad term collapsed to
+`1f` - never pass a negative capacitance to ngspice.

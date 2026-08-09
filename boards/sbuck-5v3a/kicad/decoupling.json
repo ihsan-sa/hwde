@@ -35,5 +35,6 @@
    "rail": "+VIN",
    "value": "100nF 50V X7R"
   }
- ]
+ ],
+ "_note": "P4's +VIN associations are the complete and correct set. An earlier P8 attempt added the +5V output bank anchored to U1 pin 8; that was WRONG - pin 8 is /SW - and check_decoupling caught it. Reverted. +5V is handled via constraints power[].pdn=false instead, because it is an OUTPUT rail feeding a connector and has no IC pin to decouple."
 }

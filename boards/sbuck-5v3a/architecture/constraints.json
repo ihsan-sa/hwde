@@ -46,7 +46,7 @@
    "current_a": 3.3,
    "dt_c": 10,
    "via_amps": 0.5,
-   "_note": "3.0 A spec + 10% design ceiling. IPC-2152 needs 2.06 mm on 1 oz outer; route 2.5 mm. A layer transition would need 7 vias at 0.5 A/via - design for NONE, keep the whole rail on F.Cu (single-sided assembly makes this natural). Decoupled by C10-C15, so it stays in the check_pdn inventory."
+   "_note": "3.0 A spec + 10% design ceiling. IPC-2152 needs 2.06 mm on 1 oz outer; route 2.5 mm. A layer transition would need 7 vias at 0.5 A/via - design for NONE, keep the whole rail on F.Cu (single-sided assembly makes this natural). Decoupled by C10-C15, so it stays in the check_pdn inventory. P8: an earlier attempt set pdn=false here to silence check_pdn's 'no decoupling capacitors' finding. REVERTED - pdn=false also excludes the net from check_irdrop, and +5V and GND at 3.3 A are precisely where IR drop matters. The check_pdn finding is a category error (an output rail feeding a connector, and a return net, have no IC pin to decouple) and is handled in reports/verify-waivers.json instead, which does not disable anything else."
   },
   {
    "net": "GND",
@@ -54,7 +54,7 @@
    "dt_c": 10,
    "via_amps": 0.5,
    "plane_fed": true,
-   "_note": "DECLARED ON PURPOSE. At 3.3 A check_current would otherwise only synthesize an advisory return-net entry. plane_fed downgrades stub-track and via-count findings to advisory while POUR NECKS STAY ERROR at the full 3.3 A budget - which is exactly the failure mode that matters here: no neck below 2.06 mm anywhere in the output return path. F.Cu island + In1 + In2 + B.Cu are all GND, so the plane_fed contract is satisfied by four zone fills."
+   "_note": "DECLARED ON PURPOSE. At 3.3 A check_current would otherwise only synthesize an advisory return-net entry. plane_fed downgrades stub-track and via-count findings to advisory while POUR NECKS STAY ERROR at the full 3.3 A budget - which is exactly the failure mode that matters here: no neck below 2.06 mm anywhere in the output return path. F.Cu island + In1 + In2 + B.Cu are all GND, so the plane_fed contract is satisfied by four zone fills. P8: an earlier attempt set pdn=false here to silence check_pdn's 'no decoupling capacitors' finding. REVERTED - pdn=false also excludes the net from check_irdrop, and +5V and GND at 3.3 A are precisely where IR drop matters. The check_pdn finding is a category error (an output rail feeding a connector, and a return net, have no IC pin to decouple) and is handled in reports/verify-waivers.json instead, which does not disable anything else."
   }
  ],
  "diff_pairs": [],

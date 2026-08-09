@@ -1,0 +1,291 @@
+{
+  "script": "gate",
+  "gate": "verify",
+  "phase": "P8",
+  "tool": "verify",
+  "input": "boards\\sbuck-5v3a\\kicad\\sbuck-5v3a.kicad_pcb",
+  "status": "pass",
+  "criteria": {
+    "fail_severities": [
+      "error"
+    ],
+    "max_count": 0
+  },
+  "counts": {
+    "total": 28,
+    "by_severity": {
+      "warning": 19,
+      "error": 9
+    },
+    "by_source": {
+      "check_current": 10,
+      "check_silk": 15,
+      "check_pdn": 2,
+      "verify_all": 1
+    },
+    "by_check": {
+      "check_return_path": 0,
+      "check_current": 10,
+      "check_decoupling": 0,
+      "check_diffpair": 0,
+      "check_creepage": 0,
+      "check_thermal": 0,
+      "check_silk": 15,
+      "check_pdn": 2,
+      "verify_all": 1
+    }
+  },
+  "failing_count": 0,
+  "failing": [],
+  "waived_count": 9,
+  "waived": [
+    {
+      "check": "check_silk",
+      "severity": "error",
+      "pos": [
+        52.22,
+        59.725
+      ],
+      "layer": "F.SilkS",
+      "net": "/FB",
+      "refs": [
+        "TP4"
+      ],
+      "msg": "silk circle on F.SilkS covers pad TP4.1 (1.77 mm2)",
+      "source": "check_silk",
+      "items": [
+        {
+          "msg": "silk circle on F.SilkS covers pad TP4.1 (1.77 mm2)",
+          "pos": [
+            52.22,
+            59.725
+          ]
+        }
+      ],
+      "kind": "silk_over_pad",
+      "ref": "TP4",
+      "pad": "1",
+      "overlap_mm2": 1.7659,
+      "silk_kind": "circle",
+      "silk_text": null
+    },
+    {
+      "check": "check_silk",
+      "severity": "error",
+      "pos": [
+        55.72,
+        62.725
+      ],
+      "layer": "F.SilkS",
+      "net": "GND",
+      "refs": [
+        "TP7"
+      ],
+      "msg": "silk circle on F.SilkS covers pad TP7.1 (1.77 mm2)",
+      "source": "check_silk",
+      "items": [
+        {
+          "msg": "silk circle on F.SilkS covers pad TP7.1 (1.77 mm2)",
+          "pos": [
+            55.72,
+            62.725
+          ]
+        }
+      ],
+      "kind": "silk_over_pad",
+      "ref": "TP7",
+      "pad": "1",
+      "overlap_mm2": 1.7659,
+      "silk_kind": "circle",
+      "silk_text": null
+    },
+    {
+      "check": "check_silk",
+      "severity": "error",
+      "pos": [
+        47.72,
+        59.525
+      ],
+      "layer": "F.SilkS",
+      "net": "/EN",
+      "refs": [
+        "TP5"
+      ],
+      "msg": "silk circle on F.SilkS covers pad TP5.1 (1.77 mm2)",
+      "source": "check_silk",
+      "items": [
+        {
+          "msg": "silk circle on F.SilkS covers pad TP5.1 (1.77 mm2)",
+          "pos": [
+            47.72,
+            59.525
+          ]
+        }
+      ],
+      "kind": "silk_over_pad",
+      "ref": "TP5",
+      "pad": "1",
+      "overlap_mm2": 1.7659,
+      "silk_kind": "circle",
+      "silk_text": null
+    },
+    {
+      "check": "check_silk",
+      "severity": "error",
+      "pos": [
+        38.72,
+        57.725
+      ],
+      "layer": "F.SilkS",
+      "net": "+VIN",
+      "refs": [
+        "TP1"
+      ],
+      "msg": "silk circle on F.SilkS covers pad TP1.1 (1.77 mm2)",
+      "source": "check_silk",
+      "items": [
+        {
+          "msg": "silk circle on F.SilkS covers pad TP1.1 (1.77 mm2)",
+          "pos": [
+            38.72,
+            57.725
+          ]
+        }
+      ],
+      "kind": "silk_over_pad",
+      "ref": "TP1",
+      "pad": "1",
+      "overlap_mm2": 1.7659,
+      "silk_kind": "circle",
+      "silk_text": null
+    },
+    {
+      "check": "check_silk",
+      "severity": "error",
+      "pos": [
+        44.72,
+        43.625
+      ],
+      "layer": "F.SilkS",
+      "net": "/SW",
+      "refs": [
+        "TP2"
+      ],
+      "msg": "silk circle on F.SilkS covers pad TP2.1 (1.77 mm2)",
+      "source": "check_silk",
+      "items": [
+        {
+          "msg": "silk circle on F.SilkS covers pad TP2.1 (1.77 mm2)",
+          "pos": [
+            44.72,
+            43.625
+          ]
+        }
+      ],
+      "kind": "silk_over_pad",
+      "ref": "TP2",
+      "pad": "1",
+      "overlap_mm2": 1.7659,
+      "silk_kind": "circle",
+      "silk_text": null
+    },
+    {
+      "check": "check_silk",
+      "severity": "error",
+      "pos": [
+        60.72,
+        62.725
+      ],
+      "layer": "F.SilkS",
+      "net": "+5V",
+      "refs": [
+        "TP3"
+      ],
+      "msg": "silk circle on F.SilkS covers pad TP3.1 (1.77 mm2)",
+      "source": "check_silk",
+      "items": [
+        {
+          "msg": "silk circle on F.SilkS covers pad TP3.1 (1.77 mm2)",
+          "pos": [
+            60.72,
+            62.725
+          ]
+        }
+      ],
+      "kind": "silk_over_pad",
+      "ref": "TP3",
+      "pad": "1",
+      "overlap_mm2": 1.7659,
+      "silk_kind": "circle",
+      "silk_text": null
+    },
+    {
+      "check": "check_silk",
+      "severity": "error",
+      "pos": [
+        50.72,
+        62.725
+      ],
+      "layer": "F.SilkS",
+      "net": "GND",
+      "refs": [
+        "TP6"
+      ],
+      "msg": "silk circle on F.SilkS covers pad TP6.1 (1.77 mm2)",
+      "source": "check_silk",
+      "items": [
+        {
+          "msg": "silk circle on F.SilkS covers pad TP6.1 (1.77 mm2)",
+          "pos": [
+            50.72,
+            62.725
+          ]
+        }
+      ],
+      "kind": "silk_over_pad",
+      "ref": "TP6",
+      "pad": "1",
+      "overlap_mm2": 1.7659,
+      "silk_kind": "circle",
+      "silk_text": null
+    },
+    {
+      "check": "check_pdn",
+      "severity": "error",
+      "pos": null,
+      "layer": null,
+      "net": "+5V",
+      "refs": [],
+      "msg": "power rail +5V (3.3 A) has no decoupling capacitors",
+      "source": "check_pdn",
+      "items": [
+        {
+          "msg": "power rail +5V (3.3 A) has no decoupling capacitors",
+          "pos": null
+        }
+      ],
+      "kind": "pdn_undecoupled",
+      "rail": "+5V",
+      "cap_count": 0
+    },
+    {
+      "check": "check_pdn",
+      "severity": "error",
+      "pos": null,
+      "layer": null,
+      "net": "GND",
+      "refs": [],
+      "msg": "power rail GND (3.3 A) has no decoupling capacitors",
+      "source": "check_pdn",
+      "items": [
+        {
+          "msg": "power rail GND (3.3 A) has no decoupling capacitors",
+          "pos": null
+        }
+      ],
+      "kind": "pdn_undecoupled",
+      "rail": "GND",
+      "cap_count": 0
+    }
+  ]
+}

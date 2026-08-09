@@ -1,0 +1,7 @@
+{
+  "_comment": "P8 verify fix, work order 2 (check_thermal L1). L1 dissipates 0.45 W into the +5V pad pour; check_thermal measured only 100.7 mm2 of +5V copper within its 14.3 mm spreading radius (48.1 C rise vs 45 C allowed). 128.4 mm2 is the break-even. This adds ONE +5V zone hugging L1's body from above and underneath it, x 53.0-63.0 (0.51 mm clear of L1 pad 1 = /SW, overlapping L1 pad 2 = +5V so the pour is fed solidly), y 40.6-47.15. The region contains no foreign copper at all, so it fills solid; it leaves a 2.9 mm GND lane between the pour and the board's top edge inset (37.725 -> 40.4 after clearance), which is wider than the 2.055 mm the GND return needs. Priority 5 matches the P7B +5V fan-in zones and beats the board GND pour (0); no same-priority zone overlaps it. connect solid so L1's output pad is not thermally relieved from its own heatsink.",
+  "planes": [
+    {"net": "+5V", "layer": "F.Cu", "region": [53.0, 40.6, 63.0, 47.15],
+     "priority": 5, "connect": "solid"}
+  ]
+}

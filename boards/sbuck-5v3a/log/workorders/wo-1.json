@@ -1,0 +1,110 @@
+{
+ "id": 1,
+ "created": "2026-08-09T04:14:44",
+ "gate": "verify",
+ "phase": "P8",
+ "board": "boards/sbuck-5v3a/kicad/sbuck-5v3a.kicad_pcb",
+ "fixer": "router",
+ "role_prompt": "C:/dev/ai-ee3/.claude/skills/ai-ee/agents/fixer.md",
+ "allowed_scripts": [
+  "route_edit.py",
+  "kc.py",
+  "render.py",
+  "stitch_vias.py",
+  "route_cleanup.py"
+ ],
+ "guidance": [
+  "Read the remediation reference(s) listed in `remediations` FIRST: what the measurement means, the known false-positive classes for this finding type, the cheapest-first fix ladder, and the traps this project already hit. They are keyed to your cluster's kinds.",
+  "Edit copper ONLY via route_edit.py ops (add_track/add_via/remove-by-uuid); never raw file edits.",
+  "DRC violations carry the item uuid (items[].uuid) - remove by uuid, then re-add corrected geometry. Check violations carry coordinates; locate the uuid by matching start/end in the board file text (read-only grounding).",
+  "Repair width rule: match the same-net copper abutting the segment's endpoints, never below the check's required minimum.",
+  "If an edit crosses a zone fill, refill before re-gating: kicad-cli pcb drc --refill-zones --save-board (kc.run_drc refill=True)."
+ ],
+ "remediations": [
+  "C:/dev/ai-ee3/.claude/skills/ai-ee/reference/remediations/pour_neckdown.md"
+ ],
+ "cluster": {
+  "net": "GND",
+  "kinds": [
+   "pour_neckdown"
+  ],
+  "checks": [
+   "check_current"
+  ],
+  "severity": "error",
+  "count": 2,
+  "region": {
+   "bbox": [
+    29.2889,
+    48.3433,
+    45.5285,
+    57.225
+   ],
+   "center": [
+    37.4087,
+    52.7841
+   ]
+  },
+  "violations": [
+   {
+    "check": "check_current",
+    "severity": "error",
+    "pos": [
+     45.5285,
+     48.3433
+    ],
+    "layer": "F.Cu",
+    "net": "GND",
+    "refs": [],
+    "msg": "GND pour on F.Cu necks to ~0.00 mm between via attachments; IPC-2152 needs 2.055 mm for 3.30 A at dT=10C",
+    "source": "check_current",
+    "items": [
+     {
+      "msg": "GND pour on F.Cu necks to ~0.00 mm between via attachments; IPC-2152 needs 2.055 mm for 3.30 A at dT=10C",
+      "pos": [
+       45.5285,
+       48.3433
+      ]
+     }
+    ],
+    "kind": "pour_neckdown",
+    "neck_mm": 0.0,
+    "required_mm": 2.055,
+    "current_a": 3.3
+   },
+   {
+    "check": "check_current",
+    "severity": "error",
+    "pos": [
+     29.2889,
+     57.225
+    ],
+    "layer": "F.Cu",
+    "net": "GND",
+    "refs": [],
+    "msg": "GND pour on F.Cu necks to ~0.00 mm between via attachments; IPC-2152 needs 2.055 mm for 3.30 A at dT=10C",
+    "source": "check_current",
+    "items": [
+     {
+      "msg": "GND pour on F.Cu necks to ~0.00 mm between via attachments; IPC-2152 needs 2.055 mm for 3.30 A at dT=10C",
+      "pos": [
+       29.2889,
+       57.225
+      ]
+     }
+    ],
+    "kind": "pour_neckdown",
+    "neck_mm": 0.0,
+    "required_mm": 2.055,
+    "current_a": 3.3
+   }
+  ]
+ },
+ "artifacts": {
+  "board": "boards/sbuck-5v3a/kicad/sbuck-5v3a.kicad_pcb",
+  "schematic": "boards/sbuck-5v3a/kicad/sbuck-5v3a.kicad_sch",
+  "constraints": "boards/sbuck-5v3a/kicad/constraints.json",
+  "decoupling": "boards/sbuck-5v3a/kicad/decoupling.json"
+ },
+ "scope": "fix ONLY these violations; do not touch unrelated nets/regions; re-run the failed gate when done"
+}
