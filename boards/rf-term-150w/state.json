@@ -3,7 +3,7 @@
  "board": "rf-term-150w",
  "workspace": "boards/rf-term-150w",
  "created": "2026-08-08T22:33:40",
- "updated": "2026-08-09T00:33:55",
+ "updated": "2026-08-09T01:28:24",
  "phase": "P2",
  "gates": {
   "sim": {
@@ -294,6 +294,48 @@
    "why": "Corner sweep: a 3x change in inductance (5->15 nH) moves RL by <=0.97 dB at fixed R, while the +5 percent resistance step costs 40.40 dB at fixed L. Worst 16-corner result is 31.90 dB, still 5.9 dB inside spec. This is the quantitative justification for spending the build effort on incoming resistance measurement rather than on layout inductance.",
    "phase": "P4",
    "ts": "2026-08-09T00:32:54"
+  },
+  {
+   "what": "C1 net assignment defined by PHYSICAL terminal: case -> GND, insulated lead -> RF",
+   "why": "No Johanson/Knowles document labels rotor vs stator for the 5602, and the librarian's inference chain had an acknowledged internal tension. Defining the netlist by physical terminal dissolves the question: a panel-mount trimmer's case is built to pass through a grounded panel, AND the case is the surface a hand or tool actually brushes. Grounding it makes 'exposed metal at ground potential' true regardless of which plate moves internally. No datasheet fact needed.",
+   "phase": "P3",
+   "ts": "2026-08-09T00:59:03"
+  },
+  {
+   "what": "Tuning is performed at REDUCED drive or with a VNA, not at 150 W",
+   "why": "The brief requires adjustment without desoldering or unbolting - it does not require adjustment at full power, and tuning for minimum reflection is a small-signal measurement that is more accurate at low drive anyway. This removes the live-at-122.5-Vpeak hazard from the normal procedure entirely, leaving the grounded case as defence in depth. Goes in the README procedure as a requirement, not a suggestion.",
+   "phase": "P3",
+   "ts": "2026-08-09T00:59:03"
+  },
+  {
+   "what": "C1's 6.3 mm plated hole is AT JLC's standard limit (max_hole_diameter_mm 6.3), not beyond it",
+   "why": "jlc_capabilities.yaml line 47. Compliant with the no-upcharge constraint, but with zero margin - flagged as a P9 DFM watch item rather than assumed safe.",
+   "phase": "P3",
+   "ts": "2026-08-09T00:59:03"
+  },
+  {
+   "what": "R1 footprint and symbol reworked to 2 pins (RF tab + GND flange straps)",
+   "why": "The first librarian pass built R1 as a single lap pad BEFORE the architect closed the return-path question. Block B3 needs two soldered flange-to-GND strap lands or there is physically nowhere to terminate the RF return, and a 1-pin symbol against a 2-pad footprint would fail P7 parity.",
+   "phase": "P2",
+   "ts": "2026-08-09T00:59:03"
+  },
+  {
+   "what": "Outline grows from 24.0x16.0 to 26.0x20.0 mm before board_init",
+   "why": "As-built R1 lap pad is 7.0 mm vs blocks.md's 6.60 mm assumption, so the 16.00 mm launch axis was 0.40 mm over with zero margin. The outline binds permanently at board_init and there is no shrink step, so the risk is asymmetric: too small costs a full P5-P7 redo, too large costs essentially nothing (JLC prices flat under 100x100, and the launch inductance penalty is ~0.3 nH/mm against an 11x margin). 26x20 is 58 percent of the 30x30 HARD cap and leaves real room for C1's 7.6 mm pad, three M3 holes and 0.80 mm clearances. Extra area is SLACK - placement must still hold J1-to-R1 at the 4.42 mm clearance floor.",
+   "phase": "P5",
+   "ts": "2026-08-09T01:28:24"
+  },
+  {
+   "what": "Heatsink needs a clearance hole under C1: >=7 mm dia, >=5 mm deep or through",
+   "why": "C1's threaded case protrudes 4.75 mm below the PCB (6.35 mm stub minus 1.6 mm board) against 1.00 mm of shim clearance - a 3.75 mm interference. The README already owes a drilling template for the 2 flange bolts and 3 mounting holes, so one more clearance hole is a modest addition. Documented alternative: let the J1/C1 end of the board overhang the heatsink edge, which needs no machining AND lowers C1's temperature - both go in the README.",
+   "phase": "P9",
+   "ts": "2026-08-09T01:28:24"
+  },
+  {
+   "what": "Canonical layer token is Dwgs.User, never User.Drawings",
+   "why": "R1's first-pass footprint used the GUI display alias on 16 items. It round-trips fine through pcbnew and fp_verify never sees it, but kicad-cli REFUSES to load the board (exit 3, no report) - it would have blocked every downstream gate with no diagnostic. Fixed and logged to LEARNINGS.",
+   "phase": "P3",
+   "ts": "2026-08-09T01:28:24"
   }
  ],
  "edits": [],
@@ -642,6 +684,41 @@
    "status": "pass",
    "attempt": 1,
    "failing_count": 0
+  },
+  {
+   "ts": "2026-08-09T00:59:03",
+   "event": "decision",
+   "what": "C1 net assignment defined by PHYSICAL terminal: case -> GND, insulated lead -> RF"
+  },
+  {
+   "ts": "2026-08-09T00:59:03",
+   "event": "decision",
+   "what": "Tuning is performed at REDUCED drive or with a VNA, not at 150 W"
+  },
+  {
+   "ts": "2026-08-09T00:59:03",
+   "event": "decision",
+   "what": "C1's 6.3 mm plated hole is AT JLC's standard limit (max_hole_diameter_mm 6.3), not beyond it"
+  },
+  {
+   "ts": "2026-08-09T00:59:03",
+   "event": "decision",
+   "what": "R1 footprint and symbol reworked to 2 pins (RF tab + GND flange straps)"
+  },
+  {
+   "ts": "2026-08-09T01:28:24",
+   "event": "decision",
+   "what": "Outline grows from 24.0x16.0 to 26.0x20.0 mm before board_init"
+  },
+  {
+   "ts": "2026-08-09T01:28:24",
+   "event": "decision",
+   "what": "Heatsink needs a clearance hole under C1: >=7 mm dia, >=5 mm deep or through"
+  },
+  {
+   "ts": "2026-08-09T01:28:24",
+   "event": "decision",
+   "what": "Canonical layer token is Dwgs.User, never User.Drawings"
   }
  ]
 }

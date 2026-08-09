@@ -2748,6 +2748,19 @@ land, GND is 10-12 merged into another, SW is 13, signals are 4-9.
 absent. (2) The datasheet's own layout section named the heat exits in words ("vias around the GND pin
 and the VIN pin") - no mention of a pad. Also: a low theta_JA is NOT proof of a belly pad; Note 6 tied
 25 C/W to this exact 9-land pattern.
+
+## 2026-08-09 [footprint][kicad][drc] `(layer "User.Drawings")` on a footprint item parses fine but makes kicad-cli refuse to load the board
+rf-term-150w R1 (`R_LapPad_T50R0-250-12X.kicad_mod`, from a prior librarian pass) had 16 items on
+`(layer "User.Drawings")` - the GUI display alias from the layers-table 4th field
+(`(17 "Dwgs.User" user "User.Drawings")`), not the canonical token. fp_verify.py never catches this
+(pad geometry only). Symptom: the bundled-python scratch-board trick (2026-07-28) silently reassigns
+those items to a sentinel "Rescue" layer on save (no warning), then `kicad-cli pcb drc` exits 3
+"Failed to load board" with no JSON at all - total verification failure, not a wrong result. Ruled out
+fp_scratch.py's `CreateEmptyBoard()` layer set as the cause: explicitly calling
+`board.SetEnabledLayers(pcbnew.LSET.AllLayersMask())` before adding footprints did not help, still 16
+Rescue reassignments - the sole cause is the wrong token in the source file. Fix: use `Dwgs.User` (and
+likewise `Cmts.User`/`Eco1.User`/`Eco2.User`, never their `User.Comments`/`User.Eco1`/`User.Eco2`
+display names) in every item-level `(layer ...)`.
 Consequence to watch for: any thermal analysis run before the land pattern is confirmed may be
 modelling a heat path that does not exist. Here check_thermal had been run with an EP + 3x3 via array
 and produced Tj 95 C, which invalidated the 4-layer justification and had to be recomputed against

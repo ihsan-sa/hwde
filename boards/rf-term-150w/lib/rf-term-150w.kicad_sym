@@ -27,7 +27,7 @@
       (hide yes)
       (effects (font (size 1.27 1.27)))
     )
-    (property "Description" "50 ohm 250W BeO flanged RF termination (Vishay/Barry T50R0-250-12X). Off-board part: resistor body bolts to an external heatsink beside the PCB, only the RF tab laps onto ONE PCB pad. This symbol is deliberately 1-PIN, matching the 1-pad footprint - the flange/cold end (pin 2 on the real part) has NO PCB net; it returns to GND only through the heatsink. See parts/T50R0-250-12X.json and the footprint's own descr for the full citation."
+    (property "Description" "50 ohm 250W BeO flanged RF termination (Vishay/Barry T50R0-250-12X). Off-board part: resistor body bolts to an external heatsink beside the PCB; only the RF tab and the flange's 2x GND ground-bond straps reach the PCB. This symbol is 2-PIN, matching the 3-pad footprint (pad 2 is duplicated x2 on the same pin/net, one strap land each side of the RF pad): pin 1 = RF (the tab lap pad), pin 2 = GND (the flange, reaching PCB GND ONLY through the two soldered copper straps - state.json decision 'Adopt architect B3'). The bolted flange-to-heatsink joint is explicitly NOT an electrical path (thermal/mechanical only) - see parts/T50R0-250-12X.json and the footprint's own descr for the full citation."
       (at 0 0 0)
       (hide yes)
       (effects (font (size 1.27 1.27)))
@@ -64,28 +64,8 @@
         (stroke (width 0.254) (type default))
         (fill (type none))
       )
-      (polyline
-        (pts (xy 0 -2.54) (xy 0 -3.6))
-        (stroke (width 0.254) (type default))
-        (fill (type none))
-      )
-      (polyline
-        (pts (xy -0.5 -3.6) (xy 0.5 -3.6))
-        (stroke (width 0.254) (type default))
-        (fill (type none))
-      )
-      (polyline
-        (pts (xy -0.35 -3.9) (xy 0.35 -3.9))
-        (stroke (width 0.1524) (type default))
-        (fill (type none))
-      )
-      (polyline
-        (pts (xy -0.2 -4.15) (xy 0.2 -4.15))
-        (stroke (width 0.1524) (type default))
-        (fill (type none))
-      )
-      (text "FLANGE -> HEATSINK GND (off-board, not on PCB)"
-        (at 1.6 -3.6 0)
+      (text "GND via 2x flange straps"
+        (at 1.6 -3.2 0)
         (effects (font (size 0.8 0.8)) (justify left))
       )
     )
@@ -95,6 +75,12 @@
         (length 1.27)
         (name "RF" (effects (font (size 1.27 1.27))))
         (number "1" (effects (font (size 1.27 1.27))))
+      )
+      (pin passive line
+        (at 0 -3.81 90)
+        (length 1.27)
+        (name "GND" (effects (font (size 1.27 1.27))))
+        (number "2" (effects (font (size 1.27 1.27))))
       )
     )
   )

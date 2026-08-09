@@ -63,12 +63,143 @@
     )
     (property
       "ki_description"
-      "3-33pF 250VDC PP-film trimmer, vertical, top+bottom adjust (top used). Pin 1=STATOR (single pad, RF/signal recommended). Pin 2=ROTOR (2 physical footprint pads tied together, GND recommended - keeps the tool-exposed plate grounded while tuning). See footprint descr for the full datasheet citation."
+      "RETIRED AS C1 PRIMARY (state.json P3 decision, 2026-08-09): -40 to +70C PP-film category temperature is out of rating at this board's 74-88C flange-adjacent operating range under 150W CW (research/components.md 'Trimmer temperature re-selection'). Kept in the tree, NOT deleted, as a documented reduced-duty alternative (fine for pulsed/low-duty use, saves $272/build-of-5 vs the Johanson 5602 primary) - do NOT wire this symbol to C1 without re-confirming duty cycle with the user. 3-33pF 250VDC PP-film trimmer, vertical, top+bottom adjust (top used). Pin 1=STATOR (single pad, RF/signal recommended). Pin 2=ROTOR (2 physical footprint pads tied together, GND recommended - keeps the tool-exposed plate grounded while tuning). See footprint descr for the full datasheet citation."
       (id 9)
       (at 0 -25.4 0)
       (effects (font (size 1.27 1.27) ) hide)
     )
+    (property
+      "ki_keywords_status"
+      "RETIRED-REDUCED-DUTY-ALTERNATIVE not-current-C1"
+      (id 10)
+      (at 0 -27.94 0)
+      (effects (font (size 1.27 1.27) ) hide)
+    )
     (symbol "BFC280811339_0_1"
+      (polyline
+        (pts
+          (xy 2.29 4.06) (xy 1.78 3.05)
+        )
+        (stroke (width 0) (type default))
+        (fill (type none))
+      )
+      (polyline
+        (pts
+          (xy -2.29 1.02) (xy 2.29 4.06) (xy 1.27 4.06)
+        )
+        (stroke (width 0) (type default))
+        (fill (type none))
+      )
+      (polyline
+        (pts
+          (xy 0.51 2.54) (xy 1.27 2.54)
+        )
+        (stroke (width 0) (type default))
+        (fill (type none))
+      )
+      (polyline
+        (pts
+          (xy -1.27 2.54) (xy -0.51 2.54)
+        )
+        (stroke (width 0) (type default))
+        (fill (type none))
+      )
+      (polyline
+        (pts
+          (xy 0.51 4.57) (xy 0.51 0.51)
+        )
+        (stroke (width 0) (type default))
+        (fill (type none))
+      )
+      (polyline
+        (pts
+          (xy -0.51 4.57) (xy -0.51 0.51)
+        )
+        (stroke (width 0) (type default))
+        (fill (type none))
+      )
+      (pin passive line
+        (at 3.81 2.54 180)
+        (length 2.54)
+        (name "ROTOR" (effects (font (size 1.27 1.27))))
+        (number "2" (effects (font (size 1.27 1.27))))
+      )
+      (pin passive line
+        (at -3.81 2.54 0)
+        (length 2.54)
+        (name "STATOR" (effects (font (size 1.27 1.27))))
+        (number "1" (effects (font (size 1.27 1.27))))
+      )
+    )
+  )
+
+  (symbol "5602"
+    (in_bom yes)
+    (on_board yes)
+    (property
+      "Reference"
+      "C"
+      (id 0)
+      (at 0 7.62 0)
+      (effects (font (size 1.27 1.27) ) )
+    )
+    (property
+      "Value"
+      "5602"
+      (id 1)
+      (at 0 -7.62 0)
+      (effects (font (size 1.27 1.27) ) )
+    )
+    (property
+      "Footprint"
+      "aiee:CAP-ADJ-TH_2P-BD7.5_5602"
+      (id 2)
+      (at 0 -10.16 0)
+      (effects (font (size 1.27 1.27) ) hide)
+    )
+    (property
+      "Datasheet"
+      "https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/6592/KnowlesTrimmersCatalogueweb177409287.pdf"
+      (id 3)
+      (at 0 -12.70 0)
+      (effects (font (size 1.27 1.27) ) hide)
+    )
+    (property
+      "Manufacturer"
+      "Johanson Manufacturing Corp. (Knowles Precision Devices)"
+      (id 4)
+      (at 0 -15.24 0)
+      (effects (font (size 1.27 1.27) ) hide)
+    )
+    (property
+      "MPN"
+      "5602"
+      (id 5)
+      (at 0 -17.78 0)
+      (effects (font (size 1.27 1.27) ) hide)
+    )
+    (property
+      "Distributor PN"
+      "DigiKey 1956-1000-ND (not carried at LCSC - DigiKey-only sourcing)"
+      (id 6)
+      (at 0 -20.32 0)
+      (effects (font (size 1.27 1.27) ) hide)
+    )
+    (property
+      "ki_keywords"
+      "Trimmers, Variable Capacitors, air dielectric, panel mount"
+      (id 8)
+      (at 0 -22.86 0)
+      (effects (font (size 1.27 1.27) ) hide)
+    )
+    (property
+      "ki_description"
+      "NEW C1 PRIMARY (state.json P3 decision, 2026-08-09, supersedes BFC280811339): Johanson 5602 air-dielectric trimmer, 1-30pF 250VDC(500VDC test) -65/+125C, Q>800@100MHz, top screwdriver-slot adjust, panel/PCB-mount threaded case + separate lead. Chosen over BFC280811339 because -65/+125C clears this board's 74-88C flange-adjacent operating range under 150W CW where the retired PP-film part's -40/+70C category temperature does not. NET ASSIGNMENT IS PHYSICAL (state.json P3 decision, 2026-08-09), not a rotor/stator inference: Pin 1=STATOR (case/thread/hex-collar assembly) -> GND. Pin 2=ROTOR (separate insulated lead wire) -> RF. A panel-mount trimmer's case is engineered to pass through a grounded metal panel, so the case is the ground-compatible terminal by construction, and it is also the only terminal a hand or tool actually brushes during tuning - so it must be grounded whatever its internal (rotor/stator) role is. See parts/5602.json and the footprint's own descr for the full reasoning."
+      (id 9)
+      (at 0 -25.4 0)
+      (effects (font (size 1.27 1.27) ) hide)
+    )
+    (symbol "5602_0_1"
       (polyline
         (pts
           (xy 2.29 4.06) (xy 1.78 3.05)
