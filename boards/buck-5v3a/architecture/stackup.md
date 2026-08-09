@@ -27,6 +27,24 @@ copper weight this board is QUOTED at. Keep the window to the chosen name alone.
 
 ## 2. The layer-count decision, and the theta_JA conflict
 
+> **SUPERSEDED IN PART - read `reports/thermal-recheck.md` alongside this.**
+> This section was written assuming U1 had an exposed thermal pad with a via
+> array under it. It does NOT (`reports/u1-land-ruling.md`: 9 lands, no EP -
+> the "13" in V-DFN3020-13 counts terminals). The recheck kept the CONCLUSION
+> of this section (4 layers, JLC04162H-7628A, 2 oz outer, theta_JA 51.1 C/W,
+> Tj ~95 C) but replaced its REASONING on three points:
+> - The 4L-vs-2L thermal gap is ~3 C, not ~20 C. The via-depth argument in
+>   2.3 (0.21 mm to In1 vs 1.6 mm to B.Cu through an EP) describes a heat path
+>   that does not exist, and the repo's 73.8 C/W 2L figure is a 1 oz
+>   calibration applied to a 2 oz board.
+> - **4 layers are kept for the unbroken In1 GND return under the hot loop
+>   (DS41948 rule 6, topologies/buck.md s3) and for the gate - NOT for Tj.**
+> - The +10 C neighbour-heating allowance in 2.4 is retired as double
+>   counting; the model already brackets it. Tj is ~95 C, not ~105 C.
+> The heat exits are the VIN land (~1.16 mm2) and the GND land (~1.16 mm2),
+> so the P6 prescription is vias in the pour AROUND the GND land, not under a
+> pad: see the recheck for the quantified version.
+
 ### 2.1 The conflict
 
 Two sources disagreed by 2x on the number that decides the whole board:

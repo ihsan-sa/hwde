@@ -8,13 +8,33 @@ This board **is** the power stage. The rail tree is one line long; the
 engineering is the energy and thermal budget, which is what this document is.
 No part numbers here - component classes only (part-sourcer owns parts).
 
+> **CORRECTION NOTICE (2026-08-09, P2 revisit).** Section 4 of this document was
+> written on a FALSE PREMISE: that U1 has an exposed thermal pad with a 3x3 via
+> array under it. `reports/u1-land-ruling.md` refuted that with vendor evidence -
+> the AP63356QZV-7 (V-DFN3020-13/SWP) has **9 lands and NO exposed pad**; the heat
+> exits are the **VIN land and the GND land**. Section 4 has been rewritten
+> accordingly and the old text is preserved inline, struck through as SUPERSEDED,
+> so the removed assumption is visible rather than silently gone. The full
+> recomputation is `reports/thermal-recheck.md`. Sections 1-3 and 5-9 are
+> unaffected by the EP question, but note that section 3's loss table was already
+> superseded at P2 by `architecture/power_tree.md` s3 (real 74/40 mohm RDS(on):
+> U1 = 0.881 W, board = 1.483 W at the 7 V corner).
+
 ## 0. Headline
 
-1. **4 layers are required**, and the deciding number is junction temperature at
-   the **7 V low-line corner** (not 12 V, not 18 V - high duty parks the loss in
-   the high-side FET). Recommended part class: T_j ~ 91 C on 4L, ~109 C on 2L.
-   Mainstream 3 A-class part: ~121 C on 4L, ~152 C on 2L (over the 150 C
-   absolute max). Only 4L + low-RDS(on) leaves margin.
+1. **4 layers are kept, but the deciding number is no longer junction
+   temperature.** (CORRECTED 2026-08-09.) At the **7 V low-line corner** the gate
+   model gives T_j = **95 C on 4L** and 115 C on 2L, but a first-principles
+   recomputation puts the real 4L-vs-2L gap at only **~3 C** on a 2 oz-outer
+   board - the 0.5 oz inner planes are just 18 % of the board's copper. Four
+   layers now stand on the **unbroken In1 GND return plane under the hot loop**
+   (DS41948 layout rule 6 + buck.md s3) and on the P8 gate, not on T_j.
+   `reports/thermal-recheck.md` s6.
+   *(Superseded text: "4 layers are required ... Recommended part class: T_j ~ 91 C
+   on 4L, ~109 C on 2L. Mainstream 3 A-class part: ~121 C on 4L, ~152 C on 2L
+   (over the 150 C absolute max). Only 4L + low-RDS(on) leaves margin." - the
+   <= 90 mohm part filter was deleted at P2 for rejecting the whole real
+   shortlist; the real part is 74/40 mohm and passes.)*
 2. **The regulator's RDS(on) is a thermal decision, not a cost decision.**
    `RDS(on)_HS + RDS(on)_LS <= 90 mohm typ @25 C` is the selection filter; it is
    worth ~0.55 W and ~30 C of junction temperature against the 95/66 mohm parts.
@@ -121,7 +141,140 @@ Reading of the table:
 
 ## 4. Thermal: junction temperature at 50 C ambient, no airflow
 
-### 4.1 theta_JA - what number, and where it comes from
+**REWRITTEN 2026-08-09 (P2 revisit).** The version below is the corrected
+analysis for a part with **no exposed pad**. The original s4.1-4.4 is preserved
+verbatim at the end of this section under "SUPERSEDED s4 (EP assumption)".
+Full working: `reports/thermal-recheck.md`.
+
+### 4.1 theta_JA - three figures, and the ruling between them
+
+| Source | Value | Standing |
+|---|---|---|
+| DS41948 p.4, Note 6 (FR-4, four-layer, 2 oz copper, minimum recommended pad layout) | **25 C/W** | Correct for Note 6's board; **unreachable on ours**. Optimistic bound only. |
+| Repo `check_thermal.py`, >= 4 copper layers, pour saturated | **51.1 C/W** | **The design and gate number.** |
+| First-principles recomputation (thermal-recheck.md s3), 12 vias | **~36 C/W** (32-41 over h = 20-40 W/m^2K) | Best physical estimate. Not a gate input. |
+| Repo model, 2 copper layers, pour saturated | 73.8 C/W | A **1 oz** 2-layer calibration (`MODEL_2L` docstring) applied to a 2 oz board - pessimistic by ~2x, see s4.3. |
+
+**Ruling: 51.1 C/W.** Not by preference - by construction. `check_thermal`
+derives theta_JA from the board (heatsink-net copper within a 14.3 mm reach,
+capped at 645 mm^2, plus a boolean layer count), so any 4-layer build with GND
+planes saturates and scores **exactly 51.1 C/W**. `constraints.json` carries
+only `power_w`, `dt_c`, `net` and `min_vias`; it cannot move theta.
+
+The datasheet's 25 C/W is rejected as a design input because Note 6's board is a
+JEDEC-class 2s2p coupon - 5806-8710 mm^2 with **1 oz inner planes** - against our
+2000 mm^2 with 0.5 oz inners. The dominant difference is **board area, not copper
+weight**: the same first-principles model that gives ~36 C/W on our board
+reproduces **24.6-26.3 C/W** on the JEDEC geometry, and swapping only the inner
+copper there moves it ~2 C/W.
+
+51.1 C/W is ~1.4x the best estimate, and that pessimism is load-bearing: running
+the first-principles model with the *other* 0.60 W of board loss also injected
+gives an effective **44-58 C/W** at U1's junction, which brackets 51.1.
+**Therefore the separate "+10 C for neighbour heating" allowance (old s4.2, and
+`architecture/stackup.md` s2.4) is DOUBLE COUNTING and is retired.** T_j at the
+7 V corner is ~95 C, not ~105 C.
+
+### 4.2 Junction temperature at the worst corner
+
+P_IC = **0.881 W** at 7 V in / 3 A out / 50 C ambient (`power_tree.md` s3, real
+RDS(on) 92/48 mohm at ~105 C). Constraint value 0.95 W adds ~8 % for the
+unpublished RDS(on) spread and tr/tf.
+
+| Basis | theta_JA | T_j at 50 C ambient |
+|---|---|---|
+| **Gate (`check_thermal`, 4L), 0.881 W** | 51.1 | **95.0 C** |
+| Gate, 0.95 W (the constraint) | 51.1 | 98.6 C |
+| First-principles, h = 30, 12 vias, incl. the other 0.60 W | 43.9 eff | **88.7 C** |
+| First-principles, h = 20, 12 vias, incl. the other 0.60 W | 58.0 eff | **101.1 C** |
+| Same board on 2 layers, gate | 73.8 | 115.1 C |
+
+Against the part's own limits: **TJ 150 C recommended operating max -> 55 C of
+margin; TJ 170 C absolute max -> 75 C.** The 105 C figure is a SOFT design target
+(H1-d), not a filter, and it is met with 10 C. Nothing here is close.
+
+Sensitivity: DS41948 publishes **no maximum RDS(on)**. At 1.3x typ, P_IC goes to
+~1.10 W -> 56.2 C rise -> **T_j ~106 C**: still 44 C under the recommended max,
+but it would trip the P8 gate at `dt_c` 55. That is the intended behaviour.
+
+### 4.3 Why 4 layers - the honest version
+
+The two mechanisms claimed in the old s4.3 do not survive contact with the real
+part and the real stackup:
+
+1. **"Via path length."** There is no exposed pad, so there is no EP via array.
+   Vias in the GND pour are worth ~**5 C/W in total** (0 -> 12 vias: 46.1 ->
+   40.8 C/W at h = 20), and the first four buy most of it. The old "9 vias =
+   2.4 C/W vs 19.6 C/W, ~11 C free" arithmetic compared a via bundle against
+   nothing, ignoring that the 2 oz top pour couples into In1 through 0.43 mm of
+   prepreg over its whole area in parallel with the vias.
+2. **"Spreader area."** With 2 oz outers the board is already near-isothermal at
+   two layers: the two 0.5 oz inner planes add 0.030 mm of copper against
+   0.140 mm on the outers - **18 % more lateral sheet conductance**, not double.
+
+Recomputed 4L-vs-2L gap: **~3.3 C/W, i.e. ~3 C of junction temperature** (40.8 vs
+44.1 C/W at h = 20). A 2-layer build would sit at T_j ~92-104 C, inside the part's
+150 C recommended max. **The junction temperature does not require four layers.**
+
+**Four layers are kept anyway, for reasons the EP refutation does not touch:**
+the solid, unbroken In1 GND return directly under the Cin -> VIN -> GND loop of a
+450 kHz / 3.6 A-peak converter (buck.md s3; DS41948 layout rule 6 asks for GND on
+the 2nd and 3rd layers by name), and the fact that a 2-layer build fails
+`check_thermal` by construction. The **2 oz outer** choice is now more important
+than P2 thought, not less: outer copper is 82 % of this board's lateral spreading
+and it is the layer the die actually touches.
+
+Stackup unchanged: **4 layers, JLC04162H-7628A, 2 oz outer / 0.5 oz inner**;
+F.Cu components + hot loop + /SW + pours, **In1 = solid GND**, **In2 = GND again**,
+B.Cu = GND pour clear of SMT (A11).
+
+### 4.4 Copper and via prescription for U1 (no exposed pad)
+
+The heat exits are the **GND land** (pad 8, 1.500 x 0.750 mm) and the **VIN land**
+(pad 1, same size) - DS41948 p.25 rules 7-8 and Figure 47. Full rationale and the
+review checklist are in `reports/thermal-recheck.md` s8.
+
+- **>= 12 GND vias, 0.55 mm pad / 0.30 mm drill, through (F.Cu -> B.Cu)** so each
+  picks up In1, In2 and B.Cu. Not the 0.45/0.20 rule-class minimum: a 0.30 barrel
+  is 50.9 C/W to In1 against 79.9 C/W for a 0.20 barrel.
+- **>= 8 of them within 2.0 mm of the GND land edge**, all 12 within **4.0 mm of
+  the U1 centroid**, as a ~1.0 mm-pitch field in the top GND pour immediately
+  outboard of the land (not below 0.85 mm pitch - 0.55 mm pads at 0.1016 mm
+  clearance need 0.65 mm, and the pour must stay connected between them).
+- **NO via-in-pad on the GND land.** Two in-pad vias are worth ~0.2 C/W and would
+  put open 0.30 mm holes in the part's only thermal and mechanical joint. Allowed
+  only if resin-plug-and-cap (JLC POFV) is separately ordered at P10; not
+  recommended. Rules 7/8 say "around" the pins, and at 0.88 W that reading wins.
+- **>= 60 mm^2 of contiguous F.Cu `+VIN` pour joined to the VIN land**, over
+  unbroken In1 GND. This substitutes for rule 8: the board has **no VIN plane**
+  (rule 6 puts GND on In1 and In2, and that outranks rule 8 on a single-rail
+  converter), so the VIN land's only exit is lateral 2 oz copper then 0.4284 mm of
+  prepreg into In1. `+VIN` stays **via-free** (check_current's net-wide via rule).
+- **>= 200 mm^2 of contiguous F.Cu GND pour joined to the GND land.**
+- **In1/In2 solid GND, unbroken under U1 and the whole hot loop**; no signal, no
+  `+5V`, no split within **6 mm** of the U1 centroid. B.Cu GND pour under U1.
+- Keep **L1 8 mm from U1** and **F1 15 mm** (already in `constraints.json`); fuse
+  ratings derate ~30 % hot.
+- **No aluminium electrolytic anywhere.** The board runs 75-87 C (recomputed;
+  the old "~90 C" figure was pessimistic but drew the same conclusions). X5R's
+  85 C ceiling is still disqualifying and the fuse still derates.
+- Bench verification: DS41948 publishes **no psi_JT**, so `T_j = T_top + psi_JT x P`
+  cannot be run as written. Use a case-top thermocouple plus theta_JC = 5 C/W as
+  an upper bound on the die-to-case delta (+4.4 C at 0.881 W).
+- **No gate tests any of the above.** `check_thermal` returns the identical
+  51.1 C/W / 48.6 C result on a board stripped of every thermal via AND the entire
+  top GND pour (machine-verified, thermal-recheck.md s4). P6/P7 review is the only
+  enforcement.
+
+---
+
+### SUPERSEDED s4 (EP assumption) - kept for audit
+
+*Everything between here and section 5 was written assuming an exposed pad with a
+3x3 via array. It is WRONG about the mechanism and about the 4L-vs-2L margin; its
+gate numbers (51.1 / 73.8 C/W) happen to be unchanged. Do not design from it.*
+
+#### 4.1 theta_JA - what number, and where it comes from
 
 | Source | Value | Condition |
 |---|---|---|
@@ -135,7 +288,7 @@ numbers - they are the ones P8 will apply, and they are the pessimistic side of
 the JEDEC anchor, which is correct for a 50 x 40 mm board. Every number in this
 section carries the model's stated +/-30 %.
 
-### 4.2 Junction temperature, both stackups, both part classes
+#### 4.2 Junction temperature, both stackups, both part classes
 
 T_j = 50 C ambient + P_IC x theta_JA + ~10 C for neighbour heating (the other
 0.40-0.57 W of board loss raises the local air/board the regulator sees; theta_JA
@@ -161,7 +314,7 @@ As ambient headroom, the more useful form: the recommended design runs at
 overshoot, or room for an enclosure). The mainstream part runs at **T_amb +
 71 C** and hits 125 C at **54 C** ambient - no margin against the 50 C spec.
 
-### 4.3 Why 4 layers wins - two independent mechanisms
+#### 4.3 Why 4 layers wins - two independent mechanisms
 
 1. **Via path length.** The exposed pad's thermal vias only have to reach In1 at
    ~0.21 mm depth on a JLC 1.6 mm 4-layer stackup. A 0.3 mm drill, 25 um plated
@@ -180,7 +333,7 @@ Recommended stackup: **4 layers, 1 oz outer / 0.5 oz inner (JLC standard
 +5V** (the +5V rail travels ~15 mm and needs no plane; a second GND plane is
 worth more as thermal mass); B.Cu = GND pour, clear of SMT parts per A11.
 
-### 4.4 Copper and via prescription for U1
+#### 4.4 Copper and via prescription for U1
 
 - Exposed-pad land >= EP size, with a **3x3 array of 0.3 mm vias at 1.0 mm
   pitch** (tented on B.Cu; epoxy-filled via-in-pad is not needed at 0.6 W).
@@ -279,11 +432,16 @@ which is correct behaviour, not a fault.
 - **/SW and +5V must have ZERO vias.** check_current's via rule is net-wide: one
   via on a 3.5 A net demands 7 vias in that cluster (LEARNINGS 2026-07-28); a
   via-free pour is also exempt from the pour-neck test. F.Cu only, both nets.
-- `thermal_constraints`: U1 at **0.8 W** (0.63 W modelled + 27 % RDS(on) spread),
-  `dt_c` **55** (105 C junction at 50 C ambient), `min_vias` 12 - an entry that
-  encodes the stackup decision: 40.9 C rise on 4 layers (pass, 14 C margin) vs
-  59.1 C on 2 layers (fail). Re-derive `power_w` if the chosen part's typ RDS(on)
-  sum exceeds ~90 mohm.
+- `thermal_constraints` (CORRECTED 2026-08-09; the live values are in
+  `architecture/constraints.json`, which supersedes this fragment): U1 at
+  **0.95 W** (0.881 W modelled with the real 92/48 mohm hot RDS(on) + ~8 %),
+  `dt_c` **55** (the SOFT 105 C junction target at 50 C ambient - the BINDING
+  limit is the part's own 150 C recommended max, i.e. `dt_c` 100), `min_vias`
+  **12 in and around the GND LAND - there is no exposed pad**. The old claim that
+  this entry "encodes the stackup decision" is withdrawn: 2 layers fail the gate,
+  but the real 4L-vs-2L junction-temperature gap is ~3 C (s4.3).
+  *(Superseded: "U1 at 0.8 W (0.63 W modelled + 27 % RDS(on) spread) ... 40.9 C
+  rise on 4 layers vs 59.1 C on 2 layers".)*
 - P6/P7 must add `overrides` for the D1 LED tap and thin test-point stubs once
   placement exists, or every 0.25 mm branch reads as an undersized 3.5 A track.
 
@@ -298,10 +456,17 @@ which is correct behaviour, not a fault.
    22 % margin, with nuisance-opening risk at the 7 V corner. 5 A time-lag is the
    engineering recommendation; it needs an explicit yes because it relaxes a
    binding answer.
-3. **Is <= 105 C junction a hard part-selection filter?** It is what eliminates
-   mainstream 95/66 mohm 3 A-class parts (~121 C on 4 layers) and forces the
-   45/20 mohm 5 A class (~91 C). If 125 C is acceptable instead, the part field
-   widens and cost drops slightly - at the cost of all thermal margin.
+3. ~~**Is <= 105 C junction a hard part-selection filter?**~~ **CLOSED by H1-d
+   (2026-08-08): 105 C is a SOFT design target; the binding limit is the part's
+   own maximum (TJ 150 C recommended, 170 C absolute).** The <= 90 mohm RDS(on)
+   filter this item was defending was deleted at P2 - it rejected the whole real
+   shortlist. The chosen AP63356QZV-7 (74/40 mohm typ) lands at T_j 95 C, 55 C
+   under the recommended max. See `reports/thermal-recheck.md` s5, s7.
+4. **h (combined convection + radiation) is the widest uncertainty left in the
+   thermal case**, not the copper: 20 vs 40 W/m^2K moves theta_JA from 40.8 to
+   28.3 C/W. Nothing turns on it - every case passes the part's limits - but no
+   claim tighter than "T_j is 79-101 C at the 7 V corner" is supportable
+   pre-bench.
 
 ## Sources
 

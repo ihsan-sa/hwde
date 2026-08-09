@@ -3,7 +3,7 @@
  "board": "buck-5v3a",
  "workspace": "boards/buck-5v3a",
  "created": "2026-08-08T22:10:35",
- "updated": "2026-08-09T00:48:22",
+ "updated": "2026-08-09T01:14:05",
  "phase": "P3",
  "gates": {},
  "human": {
@@ -135,6 +135,24 @@
    "why": "Vendor Suggested Pad Layout datasheet p.27 annotates X1(2x)+X2+X(6x)=9 and the dimension chain closes at Y3=2.825 with no room for a 10th; confirmed against Diodes standalone package-outline sheet V-DFN3020-13-SWP-Type-A1.pdf. theta_JC is plain junction-to-case, NOT theta_JC(bottom) - belly-pad evidence absent. Orchestrator hypothesis that the EasyEDA footprint was missing pads is REFUTED",
    "phase": "P3",
    "ts": "2026-08-09T00:48:12"
+  },
+  {
+   "what": "4 layers RETAINED, but the rationale is now the unbroken In1 GND return under the hot loop - NOT junction temperature",
+   "why": "Recheck without the phantom exposed pad puts the 4L-vs-2L thermal gap at ~3 C, not ~20 C (the repo's 73.8 C/W 2L figure is a 1 oz calibration applied to a 2 oz board). Stackup JLC04162H-7628A unchanged; DS41948 rule 6 + topologies/buck.md s3 carry the decision instead",
+   "phase": "P3",
+   "ts": "2026-08-09T01:14:05"
+  },
+  {
+   "what": "AP63356QZV-7 STANDS: Tj 95 C at 7 V/3 A/50 C on 4L, 55 C under the 150 C recommended max",
+   "why": "Recomputed against the real 9-land no-EP geometry. The +10 C neighbour allowance is retired as double counting - the model already brackets it. Residual risk is not thermal: DS41948 publishes no max RDS(on)/tr/tf; at 1.3x typ RDS(on) Tj is ~106 C, still 44 C clear",
+   "phase": "P3",
+   "ts": "2026-08-09T01:14:05"
+  },
+  {
+   "what": "P6 thermal prescription: 12 GND vias 0.55/0.30 through, in the pour AROUND the GND land (>=8 within 2.0 mm of the land edge, all within 4.0 mm of U1 centroid, ~1.0 mm pitch); NO via-in-pad; +VIN gets ZERO vias but >=60 mm2 contiguous F.Cu pour; >=200 mm2 F.Cu GND pour; In1/In2 unbroken within 6 mm of U1",
+   "why": "The only heat exits are the VIN land (~1.16 mm2) and GND land (~1.16 mm2). Via-in-pad rejected on the numbers: 12 vs 16 vias is 0.4 C/W, so two in-pad vias buy ~0.2 C while putting open 0.30 mm holes in the part's only thermal AND mechanical joint; DS41948 rules 7/8 say 'around' the pins",
+   "phase": "P3",
+   "ts": "2026-08-09T01:14:05"
   }
  ],
  "edits": [],
@@ -434,6 +452,28 @@
    "J1_J2": "drill 1.300 vs vendor 1.500",
    "R2_C2988922": "no EasyEDA CAD data (404), needs SKU swap",
    "fp_verify_U1_padcount": "9 vs 13 is a FALSE POSITIVE - waive"
+  },
+  {
+   "ts": "2026-08-09T01:14:05",
+   "event": "decision",
+   "what": "4 layers RETAINED, but the rationale is now the unbroken In1 GND return under the hot loop - NOT junction temperature"
+  },
+  {
+   "ts": "2026-08-09T01:14:05",
+   "event": "decision",
+   "what": "AP63356QZV-7 STANDS: Tj 95 C at 7 V/3 A/50 C on 4L, 55 C under the 150 C recommended max"
+  },
+  {
+   "ts": "2026-08-09T01:14:05",
+   "event": "decision",
+   "what": "P6 thermal prescription: 12 GND vias 0.55/0.30 through, in the pour AROUND the GND land (>=8 within 2.0 mm of the land edge, all within 4.0 mm of U1 centroid, ~1.0 mm pitch); NO via-in-pad; +VIN gets ZERO vias but >=60 mm2 contiguous F.Cu pour; >=200 mm2 F.Cu GND pour; In1/In2 unbroken within 6 mm of U1"
+  },
+  {
+   "ts": "2026-08-09T01:14:05",
+   "event": "gate_blind_spot",
+   "gate": "verify/check_thermal",
+   "finding": "machine-proved: a probe board with ZERO thermal vias and NO top GND pour returns the identical 51.1 C/W and PASSES. check_thermal is an area+layer-count screen and does not test the heat path",
+   "consequence": "the P6 via/pour prescription must be enforced by REVIEW at P8, not assumed to be covered by the thermal gate"
   }
  ]
 }
