@@ -1,0 +1,101 @@
+(footprint "Fuse_1206_C1T_BelVendorLand"
+	(version 20260206)
+	(generator "librarian_hand_edit")
+	(layer "F.Cu")
+	(descr "Bel Fuse C1T series 1206 slow-blow chip fuse (0685T5000-01, LCSC C3163312). Pad geometry from the vendor's own Recommended Pad Layout, IR REFLOW variant (Type C1T datasheet Rev.C1T May2023 p.4/4, Mechanical Dimensions): pad 1.78mm x 1.52mm, 1.14mm inner gap (pitch 2.92mm). NOT the KiCad stock IPC-nominal Fuse_1206_3216Metric pad (1.25mm x 1.75mm @ 2.8mm pitch) - that pad is 30% narrower in the pitch axis and the vendor's is judged authoritative here (2.44A continuous through this part).")
+	(tags "fuse bel c1t vendor-land")
+	(property "Reference" "REF**"
+		(at 0 -1.83 0)
+		(layer "F.SilkS")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "Fuse_1206_C1T_BelVendorLand"
+		(at 0 1.83 0)
+		(layer "F.Fab")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "LCSC Part" "C3163312"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr smd)
+	(duplicate_pad_numbers_are_jumpers no)
+	(fp_line
+		(start -0.602064 -0.91)
+		(end 0.602064 -0.91)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+	)
+	(fp_line
+		(start -0.602064 0.91)
+		(end 0.602064 0.91)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+	)
+	(fp_rect
+		(start -2.60 -1.01)
+		(end 2.60 1.01)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+	)
+	(fp_rect
+		(start -1.6 -0.8)
+		(end 1.6 0.8)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+	)
+	(fp_text user "${REFERENCE}"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.12)
+			)
+		)
+	)
+	(pad "1" smd roundrect
+		(at -1.46 0)
+		(size 1.78 1.52)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(roundrect_rratio 0.2)
+	)
+	(pad "2" smd roundrect
+		(at 1.46 0)
+		(size 1.78 1.52)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(roundrect_rratio 0.2)
+	)
+	(embedded_fonts no)
+)

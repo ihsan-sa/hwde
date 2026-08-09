@@ -1,0 +1,67 @@
+{
+ "script": "fp_verify",
+ "status": "pass",
+ "board": "SOIC-8_L4.9-W3.9-P1.27-LS6.0-BL.kicad_mod",
+ "counts": {
+  "total": 1,
+  "by_severity": {
+   "warning": 1
+  },
+  "by_source": {
+   "check.fp_verify": 1
+  }
+ },
+ "violations": [
+  {
+   "check": "fp_verify",
+   "severity": "warning",
+   "pos": null,
+   "layer": "F.Cu",
+   "net": null,
+   "refs": [
+    "SOIC-8_L4.9-W3.9-P1.27-LS6.0-BL"
+   ],
+   "msg": "pad size(s) [[0.588, 1.8]] mm != datasheet [0.6, 1.95] mm (tol 0.1; min/max of 1 distinct sizes)",
+   "source": "check.fp_verify",
+   "items": [
+    {
+     "msg": "pad size(s) [[0.588, 1.8]] mm != datasheet [0.6, 1.95] mm (tol 0.1; min/max of 1 distinct sizes)",
+     "pos": null
+    }
+   ],
+   "kind": "pad_size",
+   "expected_mm": [
+    0.6,
+    1.95
+   ],
+   "measured_mm": [
+    [
+     0.588,
+     1.8
+    ]
+   ]
+  }
+ ],
+ "footprint": "SOIC-8_L4.9-W3.9-P1.27-LS6.0-BL",
+ "footprint_file": "boards\\sbuck-5v3a\\lib\\aiee.pretty\\SOIC-8_L4.9-W3.9-P1.27-LS6.0-BL.kicad_mod",
+ "copper_pads": 8,
+ "total_pads": 8,
+ "measured_pitch_mm": 1.26,
+ "measured_pad_size_mm": [
+  0.588,
+  1.8
+ ],
+ "has_courtyard": true,
+ "has_silk": true,
+ "land_pattern": {
+  "package": "SOIC-8 (JEDEC MS-012AA, narrow 150mil body)",
+  "pad_count": 8,
+  "pitch_mm": 1.27,
+  "pad_size_mm": [
+   0.6,
+   1.95
+  ],
+  "pin1": "1"
+ },
+ "svg": "boards\\sbuck-5v3a\\lib\\aiee.pretty\\SOIC-8_L4.9-W3.9-P1.27-LS6.0-BL.overlay.svg"
+}

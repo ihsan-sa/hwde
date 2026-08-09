@@ -1,0 +1,670 @@
+{
+ "parts": [
+  {
+   "ref_prefix_hint": "J",
+   "block": "input",
+   "mpn": "DB128L-5.08-2P-GN-S",
+   "lcsc": "C395868",
+   "value": "2-pin 5.08mm THT screw terminal",
+   "qty_per_board": 2,
+   "package": "Plugin,P=5.08mm",
+   "basic": false,
+   "stock": 27058,
+   "price": 0.1976,
+   "price_breaks": [
+    {"qty": 1, "price": 0.1976},
+    {"qty": 50, "price": 0.1601},
+    {"qty": 150, "price": 0.1441},
+    {"qty": 500, "price": 0.1058},
+    {"qty": 2500, "price": 0.0969},
+    {"qty": 5000, "price": 0.0915}
+   ],
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2301061509_DORABO-DB128L-5-08-2P-GN-S_C395868.pdf",
+   "brand": "DORABO",
+   "attributes": [
+    {"name": "Voltage Rating (Max)", "value": "300V"},
+    {"name": "Current Rating (UL/CUL)", "value": "16A"},
+    {"name": "Current Rating (IEC)", "value": "20A"},
+    {"name": "Pitch", "value": "5.08mm"},
+    {"name": "Wire Gauge - AWG", "value": "12~22"},
+    {"name": "Screw Specification", "value": "M2, torque 0.2-0.6 N.m"},
+    {"name": "Mounting Type", "value": "Through Hole"},
+    {"name": "Body height (vendor drawing)", "value": "10.10mm"},
+    {"name": "Body length, 2-pole (vendor drawing)", "value": "14.10mm"},
+    {"name": "Recommended PCB hole diameter (vendor drawing)", "value": "1.60mm"},
+    {"name": "Pin cross-section (vendor drawing)", "value": "0.80mm x 1.05mm rectangular tab"},
+    {"name": "PCB hole pitch (vendor drawing)", "value": "5.08mm"}
+   ],
+   "alternates": [
+    {"mpn": "DB128L-5.08-2P-BK-S", "lcsc": "C430601", "note": "identical part in black, deeper stock (40543), color-only difference"}
+   ],
+   "role": "J1 (LEFT edge, DC input) and J2 (RIGHT edge, DC output) - same part, x2. DNP for JLC assembly per Q25, hand-soldered on receipt; must still appear in BOM/CPL as DNP. Mechanical drawing pulled directly (Read on the downloaded vendor PDF; WebFetch on the same URL reports 'corrupted binary' per LEARNINGS 2026-08-08) and confirms body height 10.10mm (well under the 15mm component-height cap), a round 1.60mm PCB hole for the 0.80x1.05mm rectangular pin tab, and 5.08mm pin pitch - this closes the P2 verify-later item; the librarian can build the footprint from these numbers. 300V/16A(UL) clears both the >=10A and >=300V requirement floors with wide margin (18V max board potential)."
+  },
+  {
+   "ref_prefix_hint": "F",
+   "block": "input",
+   "mpn": "0685T5000-01",
+   "lcsc": "C3163312",
+   "value": "5A slow-blow, 1206",
+   "qty_per_board": 1,
+   "package": "1206",
+   "basic": false,
+   "stock": 5032,
+   "price": 0.5109,
+   "price_breaks": [
+    {"qty": 1, "price": 0.5109},
+    {"qty": 10, "price": 0.4042},
+    {"qty": 30, "price": 0.3589},
+    {"qty": 100, "price": 0.3007},
+    {"qty": 500, "price": 0.3007},
+    {"qty": 1000, "price": 0.3007}
+   ],
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2401291023_Bel-Fuse-0685T5000-01_C3163312.pdf",
+   "brand": "Bel Fuse",
+   "attributes": [
+    {"name": "Type", "value": "Surface Mount Fuse (slow-blow/time-lag, Bel C1T series)"},
+    {"name": "Current Rating", "value": "5A"},
+    {"name": "Voltage Rating (DC)", "value": "63V"},
+    {"name": "Melting I2t", "value": "5.3 A^2s"},
+    {"name": "Interrupt Rating", "value": "50A"}
+   ],
+   "alternates": [],
+   "role": "F1, input fuse. 5A sibling chosen over the electrically-ideal 4A part (decisions.md D5): the exact-4A SKU (0685T4000-01, C3157092) sits at 174pcs, failing the stock rule outright. No pin-swap risk - single value, single package, high-stock family; empty alternates list is the correct answer here, not a gap. LIBRARY PROVENANCE (P3 librarian): EasyEDA has no CAD data for C3163312 (confirmed 404 'Component not found', not rate-limiting, after 2 retries). Orchestrator decision: do not re-source (C3163312 is the only listing for this datasheet-verified slow-blow MPN) - use KiCad-stock symbol Device:Fuse + a hand-built footprint aiee:Fuse_1206_C1T_BelVendorLand (pad geometry from the Bel Fuse C1T datasheet's own Recommended Pad Layout, IR-reflow variant, NOT the KiCad stock Fuse_1206_3216Metric IPC-nominal pad, which measured 30% narrower in the pitch axis). See boards/sbuck-5v3a/lib/EDITS.md edit 2 for the full before/after."
+  },
+  {
+   "ref_prefix_hint": "Q",
+   "block": "input",
+   "mpn": "AO4407A",
+   "lcsc": "C16072",
+   "value": "P-channel MOSFET, -30V, 13mOhm max @Vgs=-10V",
+   "qty_per_board": 1,
+   "package": "SOIC-8",
+   "basic": false,
+   "stock": 28272,
+   "price": 0.2705,
+   "price_breaks": [
+    {"qty": 1, "price": 0.2705},
+    {"qty": 50, "price": 0.2168},
+    {"qty": 150, "price": 0.1939},
+    {"qty": 500, "price": 0.1652},
+    {"qty": 3000, "price": 0.1336},
+    {"qty": 6000, "price": 0.126}
+   ],
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1811021926_Alpha---Omega-Semicon-AO4407A_C16072.pdf",
+   "brand": "Alpha & Omega Semicon",
+   "attributes": [
+    {"name": "Type", "value": "P-Channel"},
+    {"name": "Drain to Source Voltage", "value": "30V"},
+    {"name": "RDS(on)", "value": "38mOhm@5V (10-13mOhm class @10V per datasheet table)"},
+    {"name": "Current - Continuous Drain(Id)", "value": "12A"}
+   ],
+   "alternates": [
+    {"mpn": "AO4407A", "lcsc": "C2841482", "note": "identical MPN/silicon, UMW-branded 2nd listing (same AOS design, SOP-8 = same pinout/footprint as the SOIC-8 primary), deepest stock of any AO4407A listing (193924) and cheaper (0.1286) - genuine pin/footprint-compatible second source, not just a paper alternate"}
+   ],
+   "role": "Q1 reverse-polarity P-FET, drain to input / source to load. Vgs +/-25V rating (7V margin at 18V steady, holds against the ~25.4V hot-plug ring per constraints.json voltages[]). Mandatory Vgs clamp is R1(100k)+D2(15V zener), sourced separately below."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "input",
+   "mpn": "0603WAF1003T5E",
+   "lcsc": "C25803",
+   "value": "100k 1%",
+   "qty_per_board": 1,
+   "package": "0603",
+   "basic": true,
+   "stock": 22781430,
+   "price": 0.0082,
+   "price_breaks": [
+    {"qty": 1, "price": 0.0082},
+    {"qty": 1000, "price": 0.0073},
+    {"qty": 5000, "price": 0.0068},
+    {"qty": 10000, "price": 0.0064},
+    {"qty": 50000, "price": 0.0061},
+    {"qty": 50200, "price": 0.0061}
+   ],
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2206010045_UNI-ROYAL-Uniroyal-Elec-0603WAF1003T5E_C25803.pdf",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {"name": "Resistance", "value": "100kOhm"},
+    {"name": "Tolerance", "value": "+/-1%"}
+   ],
+   "alternates": [],
+   "role": "R1, Q1 gate-to-GND bleed resistor - also the polarity-reversal turn-off path. Paired with D2 (15V zener) for the mandatory Vgs clamp. Basic tier, huge stock."
+  },
+  {
+   "ref_prefix_hint": "D",
+   "block": "input",
+   "mpn": "BZT52C15",
+   "lcsc": "C173427",
+   "value": "15V Zener, SOD-123",
+   "qty_per_board": 1,
+   "package": "SOD-123",
+   "basic": false,
+   "stock": 276856,
+   "price": 0.0161,
+   "price_breaks": [
+    {"qty": 1, "price": 0.0161}
+   ],
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2407261727_MDD-Microdiode-Semiconductor-BZT52C15_C173427.pdf",
+   "brand": "MDD(Microdiode Semiconductor)",
+   "attributes": [
+    {"name": "Zener Voltage", "value": "15V (BZT52C15 = C-suffix 15V code)"},
+    {"name": "Package", "value": "SOD-123"}
+   ],
+   "alternates": [
+    {"mpn": "MM1Z15", "lcsc": "C86235", "note": "same 15V/SOD-123 class, ST-branded, stock 31771"}
+   ],
+   "role": "D2, Vgs clamp for Q1: anode at gate, cathode at source, with R1 (100k, below). Trivial bias power (<1mW per power_tree.md inrush section) - SOD-123 has ample margin."
+  },
+  {
+   "ref_prefix_hint": "C",
+   "block": "input_cap",
+   "mpn": "KNM2100UF35V149EC0055",
+   "lcsc": "C2982822",
+   "value": "100uF/35V hybrid-polymer alu, ESR 80mOhm@100kHz",
+   "qty_per_board": 1,
+   "package": "SMD,D6.3xL7mm",
+   "basic": false,
+   "stock": 11986,
+   "price": 0.1963,
+   "price_breaks": [
+    {"qty": 1, "price": 0.1963}
+   ],
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2204261000_KNSCHA-KNM2100UF35V149EC0055_C2982822.pdf",
+   "brand": "KNSCHA",
+   "attributes": [
+    {"name": "Capacitance", "value": "100uF"},
+    {"name": "Voltage Rating", "value": "35V"},
+    {"name": "ESR", "value": "80mOhm @ 100kHz"},
+    {"name": "Endurance", "value": "2000h @ 105C"},
+    {"name": "Ripple Current", "value": "1.516A @ 100kHz"}
+   ],
+   "alternates": [
+    {"mpn": "JBLM2101M035C077RTM", "lcsc": "C19270709", "note": "DMBJ 100uF/35V, ESR also 80mOhm@100kHz (same damping window), 2000h@105C, stock 4913 - real second source, do NOT substitute a lower-ESR polymer (<20mOhm removes the hot-plug damping, see architecture/blocks.md B2)"}
+   ],
+   "role": "C4, input bulk/damping cap. ESR 80mOhm sits inside the mandatory 50-300mOhm damping window (blocking requirement, not a loss line) - do not swap for a lower-ESR part even if offered a 'better' spec."
+  },
+  {
+   "ref_prefix_hint": "C",
+   "block": "input_cap",
+   "mpn": "1206B475K500NT",
+   "lcsc": "C29823",
+   "value": "4.7uF/50V X7R",
+   "qty_per_board": 4,
+   "package": "1206",
+   "basic": true,
+   "stock": 1026515,
+   "price": 0.2697,
+   "price_breaks": [
+    {"qty": 1, "price": 0.2697}
+   ],
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_FH--Guangdong-Fenghua-Advanced-Tech-1206B475K500NT_C29823.pdf",
+   "brand": "FH (Guangdong Fenghua Advanced Tech)",
+   "attributes": [
+    {"name": "Capacitance", "value": "4.7uF"},
+    {"name": "Voltage Rating", "value": "50V"},
+    {"name": "Temperature Coefficient", "value": "X7R"}
+   ],
+   "alternates": [],
+   "role": "C5-C8, input ceramic bank (x4), 1.5A rms shared four ways. Basic tier, deep stock - no alternate needed."
+  },
+  {
+   "ref_prefix_hint": "C",
+   "block": "converter",
+   "mpn": "CC0603KRX7R9BB104",
+   "lcsc": "C14663",
+   "value": "100nF/50V X7R",
+   "qty_per_board": 2,
+   "package": "0603",
+   "basic": true,
+   "stock": 37750825,
+   "price": 0.019,
+   "price_breaks": [
+    {"qty": 1, "price": 0.019},
+    {"qty": 500, "price": 0.0154},
+    {"qty": 1500, "price": 0.0139},
+    {"qty": 4000, "price": 0.0124},
+    {"qty": 24000, "price": 0.0119},
+    {"qty": 48000, "price": 0.0116}
+   ],
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2211101700_YAGEO-CC0603KRX7R9BB104_C14663.pdf",
+   "brand": "YAGEO",
+   "attributes": [
+    {"name": "Capacitance", "value": "100nF"},
+    {"name": "Voltage Rating", "value": "50V"},
+    {"name": "Temperature Coefficient", "value": "X7R"}
+   ],
+   "alternates": [],
+   "role": "One part covers BOTH C1 (BST cap, C1-to-SW, 50V clears the >=16V need) and C9 (innermost hot-loop bypass at the U1 VIN pin). Basic tier, huge stock."
+  },
+  {
+   "ref_prefix_hint": "U",
+   "block": "converter",
+   "mpn": "AP64350SP-13",
+   "lcsc": "C2071691",
+   "value": "AP64350SP-13, sync buck, 500kHz",
+   "qty_per_board": 1,
+   "package": "SO-8-EP",
+   "basic": false,
+   "stock": 11849,
+   "price": 1.8832,
+   "price_breaks": [
+    {"qty": 1, "price": 1.8832},
+    {"qty": 10, "price": 1.6052},
+    {"qty": 30, "price": 1.4322},
+    {"qty": 100, "price": 1.2544},
+    {"qty": 500, "price": 1.1752},
+    {"qty": 1000, "price": 1.1397}
+   ],
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2210280930_Diodes-Incorporated-AP64350SP-13_C2071691.pdf",
+   "brand": "Diodes Incorporated",
+   "attributes": [
+    {"name": "Voltage - Supply", "value": "3.8V~40V"},
+    {"name": "Output Current", "value": "3.5A"},
+    {"name": "Frequency - Switching", "value": "100kHz~2.2MHz (RT=200k -> 500kHz)"},
+    {"name": "Synchronous Rectifier", "value": "Yes"},
+    {"name": "Thermal Resistance, Junction to Ambient (theta_JA, SO-8EP)", "value": "45 C/W"},
+    {"name": "Thermal Resistance, Junction to Case (theta_JC, SO-8EP)", "value": "5 C/W"}
+   ],
+   "alternates": [
+    {"mpn": "LMR33630ADDAR", "lcsc": "C841384", "note": "SAME PACKAGE CLASS ONLY (8-pin exposed-pad SO/HSOIC), NOT pin-compatible - pinout confirmed by datasheet comparison: AP64350 pin1=BST/pin4=RT-CLK/pin6=COMP/pin7=GND vs LMR33630 pin1=PGND/pin4=PG/pin6=VCC/pin7=BOOT. LMR33630 is also internally compensated (no COMP pin) vs AP64350's external Type-II network (R5/C2/C3) - a swap needs a new schematic, not a footprint drop-in. Rejected at P2 (decisions.md D1) on guaranteed-vs-typical Rds(on): its typical conduction loss is +260mW vs AP64350's guaranteed max, worth ~4.9C of Tj on a board that closes with ~7C of margin. Stock re-verified live: 5558, clears the 500pc floor."}
+   ],
+   "role": "U1 buck IC. VERIFY-LATER ITEM CLOSED: theta_JC(bottom-equivalent, the SO-8EP's exposed-pad path) datasheet-confirmed at EXACTLY 5 C/W (Thermal Resistance table, p.4) - passes the <=5 C/W requirement but with ZERO margin, so this is a residual risk to flag forward, not a clean pass. AP64350 datasheet's own Typical Application Circuit (Fig.1, p.2) independently corroborates every P2-derived passive value used elsewhere in this file: RT=200k (R4), Rcomp=14k/Ccomp=3.3nF/Cff=47pF (R5/C2/C3), and R1=115k/R2=22.1k for a 5V output (see R6/R7 below) - strong evidence the substitutions below are sound, not just stock-driven guesses."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "converter",
+   "mpn": "0603WAF2003T5E",
+   "lcsc": "C25811",
+   "value": "200k 1%",
+   "qty_per_board": 1,
+   "package": "0603",
+   "basic": true,
+   "stock": 1304194,
+   "price": 0.0086,
+   "price_breaks": [
+    {"qty": 1, "price": 0.0086}
+   ],
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2206010045_UNI-ROYAL-Uniroyal-Elec-0603WAF2003T5E_C25811.pdf",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {"name": "Resistance", "value": "200kOhm"},
+    {"name": "Tolerance", "value": "+/-1%"}
+   ],
+   "alternates": [],
+   "role": "R4, RT resistor: RT[kOhm]=100000/fsw[kHz] -> 200k sets 500kHz. Matches the AP64350 datasheet's own typical-circuit RT value exactly. Basic tier."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "converter",
+   "mpn": "0603WAF1402T5E",
+   "lcsc": "C22803",
+   "value": "14k 1% (Rcomp, vendor starting point)",
+   "qty_per_board": 1,
+   "package": "0603",
+   "basic": false,
+   "stock": 44842,
+   "price": 0.0059,
+   "price_breaks": [
+    {"qty": 1, "price": 0.0059},
+    {"qty": 1000, "price": 0.0053},
+    {"qty": 5000, "price": 0.005},
+    {"qty": 10000, "price": 0.0048},
+    {"qty": 50000, "price": 0.0046},
+    {"qty": 50200, "price": 0.0046}
+   ],
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2206010130_UNI-ROYAL-Uniroyal-Elec-0603WAF1402T5E_C22803.pdf",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {"name": "Resistance", "value": "14kOhm"},
+    {"name": "Tolerance", "value": "+/-1%"}
+   ],
+   "alternates": [],
+   "role": "R5, Rcomp. sheets.md flags this as the vendor's Table-1 starting value (2x22uF) that P4 MUST RE-DERIVE against the real 5x22uF Cout bank (decisions.md D6) - sourced here as the placeholder/starting value only. 14k is not a Basic-tier 0603 value at JLC (only common E24 decades are Basic); Extended is unavoidable regardless of which final value P4 lands on, so this tier choice is not itself at risk from the re-derivation. If P4's re-derived value differs, re-run parts_search on the new value before the librarian pull - same package/tier, low-risk swap."
+  },
+  {
+   "ref_prefix_hint": "C",
+   "block": "converter",
+   "mpn": "CL10B332KB8NNNC",
+   "lcsc": "C1613",
+   "value": "3.3nF/50V X7R (Ccomp, vendor starting point)",
+   "qty_per_board": 1,
+   "package": "0603",
+   "basic": true,
+   "stock": 416540,
+   "price": 0.0065,
+   "price_breaks": [
+    {"qty": 1, "price": 0.0065},
+    {"qty": 200, "price": 0.0054},
+    {"qty": 600, "price": 0.0049},
+    {"qty": 4000, "price": 0.0045},
+    {"qty": 8000, "price": 0.0042},
+    {"qty": 20000, "price": 0.004}
+   ],
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Samsung-Electro-Mechanics-CL10B332KB8NNNC_C1613.pdf",
+   "brand": "Samsung Electro-Mechanics",
+   "attributes": [
+    {"name": "Capacitance", "value": "3.3nF"},
+    {"name": "Voltage Rating", "value": "50V"},
+    {"name": "Temperature Coefficient", "value": "X7R"}
+   ],
+   "alternates": [],
+   "role": "C2, Ccomp. Same 'P4 re-derives' caveat as R5 above - vendor Table-1 starting value, paired 1:1 with R5. X7R clears the board's all-MLCC-X7R rule. Basic tier, cheap swap if P4's re-derived value differs."
+  },
+  {
+   "ref_prefix_hint": "C",
+   "block": "converter",
+   "mpn": "CL10C470JB8NNNC",
+   "lcsc": "C1671",
+   "value": "47pF/50V C0G",
+   "qty_per_board": 1,
+   "package": "0603",
+   "basic": true,
+   "stock": 1302347,
+   "price": 0.0113,
+   "price_breaks": [
+    {"qty": 1, "price": 0.0113}
+   ],
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Samsung-Electro-Mechanics-CL10C470JB8NNNC_C1671.pdf",
+   "brand": "Samsung Electro-Mechanics",
+   "attributes": [
+    {"name": "Capacitance", "value": "47pF"},
+    {"name": "Voltage Rating", "value": "50V"},
+    {"name": "Temperature Coefficient", "value": "C0G"}
+   ],
+   "alternates": [],
+   "role": "C3, optional feedforward across R6 (FB top). C0G per sheets.md spec (not X7R) - matches the AP64350 datasheet's own 'C4 (Optional)' position in Fig.1. Basic tier."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "converter",
+   "mpn": "0603WAF1053T5E",
+   "lcsc": "C16840",
+   "value": "105k 1%",
+   "qty_per_board": 1,
+   "package": "0603",
+   "basic": false,
+   "stock": 219817,
+   "price": 0.003,
+   "price_breaks": [
+    {"qty": 1, "price": 0.003},
+    {"qty": 1000, "price": 0.0027},
+    {"qty": 5000, "price": 0.0025},
+    {"qty": 10000, "price": 0.0024},
+    {"qty": 50000, "price": 0.0023},
+    {"qty": 50200, "price": 0.0023}
+   ],
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2206010216_UNI-ROYAL-Uniroyal-Elec-0603WAF1053T5E_C16840.pdf",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {"name": "Resistance", "value": "105kOhm"},
+    {"name": "Tolerance", "value": "+/-1%"}
+   ],
+   "alternates": [],
+   "role": "R2, UVLO top (+VIN to EN). 105k is not a Basic-tier value (E96-only) but is deep in stock as Extended. Sets VON~6.2V with R3 below (decisions.md D2)."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "converter",
+   "mpn": "0603WAF2402T5E",
+   "lcsc": "C23352",
+   "value": "24.0k 1%",
+   "qty_per_board": 1,
+   "package": "0603",
+   "basic": true,
+   "stock": 718514,
+   "price": 0.0093,
+   "price_breaks": [
+    {"qty": 1, "price": 0.0093}
+   ],
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2206010100_UNI-ROYAL-Uniroyal-Elec-0603WAF2402T5E_C23352.pdf",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {"name": "Resistance", "value": "24.0kOhm (MPN code 2402 = 240x10^2 = 24.0k, confirmed E96 precision value, not the coarser generic 24k)"},
+    {"name": "Tolerance", "value": "+/-1%"}
+   ],
+   "alternates": [],
+   "role": "R3, UVLO bottom (EN to GND). Sets VOFF~5.3V with R2 above. Exact 24.0k E96 value confirmed available in Basic tier."
+  },
+  {
+   "ref_prefix_hint": "L",
+   "block": "output",
+   "mpn": "FAUL1050-6R8MT",
+   "lcsc": "C5298292",
+   "value": "6.8uH, 18.5mOhm max",
+   "qty_per_board": 1,
+   "package": "SMD,11.5x10mm",
+   "basic": false,
+   "stock": 763,
+   "price": 0.5593,
+   "price_breaks": [
+    {"qty": 1, "price": 0.5593},
+    {"qty": 10, "price": 0.4365},
+    {"qty": 30, "price": 0.3848},
+    {"qty": 100, "price": 0.3185},
+    {"qty": 500, "price": 0.2684},
+    {"qty": 1000, "price": 0.2522}
+   ],
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2212011800_cjiang--Changjiang-Microelectronics-Tech-FAUL1050-6R8MT_C5298292.pdf",
+   "brand": "cjiang (Changjiang Microelectronics Tech)",
+   "attributes": [
+    {"name": "Inductance", "value": "6.8uH"},
+    {"name": "DC Resistance(DCR)", "value": "18.5mOhm max @20C (~24.05mOhm hot)"},
+    {"name": "Current - Saturation(Isat)", "value": "14A (conservative Max-column ~12.3A used in design)"},
+    {"name": "Current Rating", "value": "9A"}
+   ],
+   "alternates": [
+    {"mpn": "FAUL1350-6R8MT", "lcsc": "C5298322", "note": "SAME cjiang family/manufacturer, bigger case (13.5x12.8mm), DCR 18mOhm -> ~23.4mOhm hot, ~2x current headroom. NOT a true second source - same brand as the primary, so this does not remove the single-source risk, only the exact-SKU stock risk. No ferrite-wound part is an acceptable substitute at any stock level (fails Itemp derated to 50C ambient, see research/magnetics-caps.md) - do not let a stock crunch push a ferrite part in."}
+   ],
+   "role": "L1, output inductor. STOCK RE-VERIFIED LIVE: 763 pcs, UNCHANGED from P2's research-time figure - still clears the >=500 floor (1.53x margin) but remains the THINNEST line item on the board by a wide margin (every other part clears its floor by 4x-1000x+). Flagging per assignment instruction even though it has NOT dropped below 500: this is the part most likely to force a re-source if the board sits in the queue. No non-cjiang alternate exists that clears DCR<=25mOhm hot AND the correct 6.8uH AND the >=500 stock floor simultaneously (decisions.md D3); the 10uH/400kHz-band alternates (MDA1365-100M, SRP1265A-100M) are a different inductance and would force a frequency/component redesign, not a like-for-like swap."
+  },
+  {
+   "ref_prefix_hint": "C",
+   "block": "output",
+   "mpn": "TCC1210X7R226K250MT",
+   "lcsc": "C49118556",
+   "value": "22uF/25V X7R",
+   "qty_per_board": 5,
+   "package": "1210",
+   "basic": false,
+   "stock": 123041,
+   "price": 0.2181,
+   "price_breaks": [
+    {"qty": 1, "price": 0.2181},
+    {"qty": 50, "price": 0.1819},
+    {"qty": 150, "price": 0.1663},
+    {"qty": 1000, "price": 0.147},
+    {"qty": 2000, "price": 0.1383},
+    {"qty": 5000, "price": 0.1331}
+   ],
+   "datasheet": "",
+   "brand": "CCTC",
+   "attributes": [
+    {"name": "Capacitance", "value": "22uF"},
+    {"name": "Voltage Rating", "value": "25V"},
+    {"name": "Temperature Coefficient", "value": "X7R"}
+   ],
+   "alternates": [],
+   "role": "C10-C14, output filter bank (x5), 110uF nameplate / ~97uF effective at 5V bias - sized to the 3A/7V worst-case load step, not the ripple spec (decisions.md D6). No PDF datasheet is published for this CCTC part at LCSC (empty on both the live search result and the P1/P2 research record) - full parametric attributes (22uF/25V/X7R) are confirmed via the LCSC catalog fields, which is the best available verification for this part. Not a nontrivial IC so this is noted rather than blocking, but flagged in OPEN."
+  },
+  {
+   "ref_prefix_hint": "C",
+   "block": "output",
+   "mpn": "CC0805KKX7R7BB475",
+   "lcsc": "C277499",
+   "value": "4.7uF/16V X7R",
+   "qty_per_board": 1,
+   "package": "0805",
+   "basic": false,
+   "stock": 193537,
+   "price": 0.1279,
+   "price_breaks": [
+    {"qty": 1, "price": 0.1279},
+    {"qty": 50, "price": 0.1119},
+    {"qty": 150, "price": 0.104},
+    {"qty": 500, "price": 0.098},
+    {"qty": 3000, "price": 0.0933},
+    {"qty": 6000, "price": 0.0909}
+   ],
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_YAGEO-CC0805KKX7R7BB475_C277499.pdf",
+   "brand": "YAGEO",
+   "attributes": [
+    {"name": "Capacitance", "value": "4.7uF"},
+    {"name": "Voltage Rating", "value": "16V"},
+    {"name": "Temperature Coefficient", "value": "X7R"}
+   ],
+   "alternates": [],
+   "role": "C15, output HF bypass at the terminal/test point. 16V clears the +5V-side >=16V MLCC voltage floor exactly (constraints.json/blocks.md B2)."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "output",
+   "mpn": "ARG03BTC1153",
+   "lcsc": "C1509621",
+   "value": "115k 0.1%",
+   "qty_per_board": 1,
+   "package": "0603",
+   "basic": false,
+   "stock": 28790,
+   "price": 0.0251,
+   "price_breaks": [
+    {"qty": 1, "price": 0.0251}
+   ],
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2111241930_Viking-Tech-AR03BTCX1402A_C2924128.pdf",
+   "brand": "Viking Tech",
+   "attributes": [
+    {"name": "Resistance", "value": "115kOhm"},
+    {"name": "Tolerance", "value": "+/-0.1%"},
+    {"name": "Temperature Coefficient", "value": "+/-25ppm/C"}
+   ],
+   "alternates": [
+    {"mpn": "RT0603BRE07115KL", "lcsc": "C861635", "note": "YAGEO, same 115k/0.1%, stock 7926"}
+   ],
+   "role": "R6, FB top. SOURCING SUBSTITUTION FROM ARCHITECTURE, FLAGGED: sheets.md/blocks.md name '~116k' (e.g. 116k/22.1k, ratio 6.249) but 116k is NOT a standard E96 value and has ZERO stock in any 0603 SMD tolerance at LCSC live (only obsolete/zero-stock THT precision parts exist under that code). Substituted 115k, the nearest E96 0.1% value with real 0603 SMD stock (28790 pcs). This is independently corroborated, not just a stock-driven guess: the AP64350 datasheet's own Typical Application Circuit (Fig.1, VOUT=5V row) specifies R1=115k / R2=22.1k for exactly this output voltage - i.e. the IC vendor's own reference design uses 115k, not 116k. RE-CHECKED SIM-1 (decisions.md): with R6=115k/R7=22.1k, Vout across Vref 792-808mV and +/-0.1% resistor tolerance ranges 4.905V-5.021V - PASSES the 4.90-5.10V window but with only ~5mV of margin at the LOW corner (vs a wider margin using the vendor's own 116k figure, which nets ~4.999V nominal). A 118k substitute was checked and REJECTED: it fails the HIGH corner at 5.130V, over the 5.10V ceiling. P4/schematic phase should re-run SIM-1 with this exact substituted value before committing - the low-corner margin is thin enough to be worth a second look, not because 115k is wrong, but because the margin is real and small."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "output",
+   "mpn": "RT0603BRD0722K1L",
+   "lcsc": "C723484",
+   "value": "22.1k 0.1%",
+   "qty_per_board": 1,
+   "package": "0603",
+   "basic": false,
+   "stock": 7751,
+   "price": 0.06,
+   "price_breaks": [
+    {"qty": 1, "price": 0.06},
+    {"qty": 100, "price": 0.0508},
+    {"qty": 300, "price": 0.0461},
+    {"qty": 1000, "price": 0.0426},
+    {"qty": 5000, "price": 0.0398},
+    {"qty": 10000, "price": 0.0384}
+   ],
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2008201236_YAGEO-RT0603BRD0722K1L_C723484.pdf",
+   "brand": "YAGEO",
+   "attributes": [
+    {"name": "Resistance", "value": "22.1kOhm"},
+    {"name": "Tolerance", "value": "+/-0.1%"},
+    {"name": "Temperature Coefficient", "value": "+/-25ppm/C"}
+   ],
+   "alternates": [
+    {"mpn": "FRC0603F2212TS", "lcsc": "C2960862", "note": "FOJAN, 22.1k/1% only (NOT 0.1% - do not substitute, HARD RULE 3 requires 0.1% on both FB resistors). Listed only to document that a 1% part is NOT an acceptable stand-in, not as a usable alternate."}
+   ],
+   "role": "R7, FB bottom. Exact value from sheets.md, real stock as a genuine 0.1% part - no substitution needed here (unlike R6 above)."
+  },
+  {
+   "ref_prefix_hint": "D",
+   "block": "output_indicator",
+   "mpn": "KT-0805G",
+   "lcsc": "C2297",
+   "value": "Green LED, 0805",
+   "qty_per_board": 1,
+   "package": "0805",
+   "basic": true,
+   "stock": 2649313,
+   "price": 0.0162,
+   "price_breaks": [
+    {"qty": 1, "price": 0.0162}
+   ],
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1806151820_Hubei-KENTO-Elec-KT-0805G_C2297.pdf",
+   "brand": "Hubei KENTO Elec",
+   "attributes": [
+    {"name": "Illumination Color", "value": "Green"},
+    {"name": "Luminous Intensity", "value": "430mcd @ 5mA (vendor's rated low-current figure)"}
+   ],
+   "alternates": [],
+   "role": "D1, output-live indicator, ~1mA via R8. Basic tier, huge stock."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "output_indicator",
+   "mpn": "0603WAF2201T5E",
+   "lcsc": "C4190",
+   "value": "2.2k 1%",
+   "qty_per_board": 1,
+   "package": "0603",
+   "basic": true,
+   "stock": 2166279,
+   "price": 0.0086,
+   "price_breaks": [
+    {"qty": 1, "price": 0.0086}
+   ],
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2206010230_UNI-ROYAL-Uniroyal-Elec-0603WAF2201T5E_C4190.pdf",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {"name": "Resistance", "value": "2.2kOhm"},
+    {"name": "Tolerance", "value": "+/-1%"}
+   ],
+   "alternates": [],
+   "role": "R8, LED series resistor, sets ~1mA on D1. Basic tier."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "snubber",
+   "mpn": "0603WAF220JT5E",
+   "lcsc": "C23345",
+   "value": "22 ohm 1% (DNP)",
+   "qty_per_board": 1,
+   "package": "0603",
+   "basic": true,
+   "stock": 10602705,
+   "price": 0.0038,
+   "price_breaks": [
+    {"qty": 1, "price": 0.0038}
+   ],
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2206010100_UNI-ROYAL-Uniroyal-Elec-0603WAF220JT5E_C23345.pdf",
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "attributes": [
+    {"name": "Resistance", "value": "22Ohm"},
+    {"name": "Tolerance", "value": "+/-1%"}
+   ],
+   "alternates": [],
+   "role": "R9, DNP RC snubber resistor across SW-PGND. Not vendor-sourced (no candidate datasheet publishes a snubber value); 22 ohm is the geometric-mean starting point of the 10-33 ohm bring-up range noted in blocks.md B9. DNP for assembly - footprint/BOM line only, populate later if bring-up needs it (schematic phase note in sheets.md s5 item 5: must exist in the netlist as DNP)."
+  },
+  {
+   "ref_prefix_hint": "C",
+   "block": "snubber",
+   "mpn": "CL10B102KB8NNNC",
+   "lcsc": "C1588",
+   "value": "1nF/50V X7R (DNP)",
+   "qty_per_board": 1,
+   "package": "0603",
+   "basic": true,
+   "stock": 10425047,
+   "price": 0.0072,
+   "price_breaks": [
+    {"qty": 1, "price": 0.0072}
+   ],
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Samsung-Electro-Mechanics-CL10B102KB8NNNC_C1588.pdf",
+   "brand": "Samsung Electro-Mechanics",
+   "attributes": [
+    {"name": "Capacitance", "value": "1nF"},
+    {"name": "Voltage Rating", "value": "50V"},
+    {"name": "Temperature Coefficient", "value": "X7R"}
+   ],
+   "alternates": [],
+   "role": "C16, DNP RC snubber capacitor across SW-PGND. 1nF is the midpoint of the 470pF-2.2nF bring-up range noted in blocks.md B9; not vendor-sourced, general practice only. X7R clears the all-MLCC-X7R rule even though DNP. DNP for assembly - footprint/BOM line only."
+  }
+ ]
+}

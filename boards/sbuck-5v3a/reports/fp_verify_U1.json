@@ -1,0 +1,72 @@
+{
+ "script": "fp_verify",
+ "status": "pass",
+ "board": "SO-8_L4.9-W3.9-P1.27-LS6.0-BL-EP.kicad_mod",
+ "counts": {
+  "total": 1,
+  "by_severity": {
+   "warning": 1
+  },
+  "by_source": {
+   "check.fp_verify": 1
+  }
+ },
+ "violations": [
+  {
+   "check": "fp_verify",
+   "severity": "warning",
+   "pos": null,
+   "layer": "F.Cu",
+   "net": null,
+   "refs": [
+    "SO-8_L4.9-W3.9-P1.27-LS6.0-BL-EP"
+   ],
+   "msg": "pad size(s) [[0.6, 1.6], [2.5, 3.2]] mm != datasheet [0.802, 1.505] mm (tol 0.1; min/max of 2 distinct sizes)",
+   "source": "check.fp_verify",
+   "items": [
+    {
+     "msg": "pad size(s) [[0.6, 1.6], [2.5, 3.2]] mm != datasheet [0.802, 1.505] mm (tol 0.1; min/max of 2 distinct sizes)",
+     "pos": null
+    }
+   ],
+   "kind": "pad_size",
+   "expected_mm": [
+    0.802,
+    1.505
+   ],
+   "measured_mm": [
+    [
+     0.6,
+     1.6
+    ],
+    [
+     2.5,
+     3.2
+    ]
+   ]
+  }
+ ],
+ "footprint": "SO-8_L4.9-W3.9-P1.27-LS6.0-BL-EP",
+ "footprint_file": "boards\\sbuck-5v3a\\lib\\aiee.pretty\\SO-8_L4.9-W3.9-P1.27-LS6.0-BL-EP.kicad_mod",
+ "copper_pads": 9,
+ "total_pads": 9,
+ "measured_pitch_mm": 1.27,
+ "measured_pad_size_mm": [
+  0.6,
+  1.6
+ ],
+ "has_courtyard": true,
+ "has_silk": true,
+ "land_pattern": {
+  "package": "SO-8EP",
+  "pad_count": 9,
+  "pitch_mm": 1.27,
+  "pad_size_mm": [
+   0.802,
+   1.505
+  ],
+  "pin1": "1",
+  "notes": "Suggested Pad Layout (SO-8EP), p.24 of 25, all values in mm: C (pad pitch within a row) = 1.270; X (individual pad width) = 0.802; Y (individual pad length) = 1.505; X2 (overall footprint width, outer edge to outer edge across the 4-pad row) = 4.612; Y2 (overall footprint height, outer edge to outer edge of the two 4-pad rows) = 6.500; X1 = 3.502 and Y1 = 2.613 label the CENTER RECTANGLE drawn between the two pad rows directly, i.e. these ARE the recommended EXPOSED-PAD LAND dimensions (3.502mm wide x 2.613mm tall), not a body/outline dimension - confirmed by their position on the drawing (the dimension lines terminate exactly at that rectangle's edges, distinct from the X2/Y2 lines which span the full footprint). Package Outline Dimensions (component body, NOT land pattern), same page, Min/Max/Typ mm: A 1.40/1.50/1.45 (overall height); A1 0.00/0.13/- (standoff); b 0.30/0.50/0.40 (lead width); c 0.15/0.25/0.20 (lead thickness); D 4.85/4.95/4.90 (body length); E 3.80/3.90/3.85; E0 3.85/3.95/3.90; E1 5.90/6.10/6.00 (the outline table does not disambiguate E vs E0 vs E1 in the surrounding text - treat the Suggested Pad Layout numbers above as the authoritative land-pattern source instead); e -/-/1.27 (pitch, matches C above); F 2.75/3.35/3.05; H 2.11/2.71/2.41; L 0.62/0.82/0.72; N -/-/0.35; Q 0.60/0.70/0.65. Ordering code AP64350SP-13 = SO-8EP package ('SP'), tape & reel, qty 4000/reel [Ordering Information, p.23]. Mechanical: MSL 1 per J-STD-020; matte tin plated leads, solderable per MIL-STD-202 Method 208; weight ~0.077g [Mechanical Data, p.24]. Pin 1 (BST) is top-left in the TOP VIEW pin-assignment diagram (p.1); pins 1-4 run down the left side (BST, VIN, EN, RT/CLK), pins 5-8 run up the right side (FB, COMP, GND, SW) - standard SOIC counterclockwise numbering."
+ },
+ "svg": "boards\\sbuck-5v3a\\lib\\aiee.pretty\\SO-8_L4.9-W3.9-P1.27-LS6.0-BL-EP.overlay.svg"
+}

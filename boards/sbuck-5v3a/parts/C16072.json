@@ -1,0 +1,209 @@
+{
+  "mpn": "AO4407A",
+  "lcsc": "C16072",
+  "package": "SOIC-8",
+  "description": "Alpha & Omega Semiconductor AO4407A, P-Channel Enhancement Mode Field Effect Transistor. VDS=-30V, ID=-12A (VGS=-10V), 25V gate rating, advanced trench technology for low RDS(ON) and low gate charge. Suitable for load switch or PWM applications. Pb-free (RoHS, Sony 259). Rev3: Jan 2008, 4-page datasheet (electrical/thermal characteristics only, no mechanical/land-pattern page).",
+  "pinout": [
+    {
+      "pin": "1",
+      "name": "S",
+      "type": "passive",
+      "notes": "Source. Pin 1, marked by the dot in the SOIC-8 Top View pin-configuration drawing (p.1), top-left position. Commoned internally with pins 2 and 3 (all Source)."
+    },
+    {
+      "pin": "2",
+      "name": "S",
+      "type": "passive",
+      "notes": "Source. Left column, second from top in the Top View drawing. Commoned internally with pins 1 and 3."
+    },
+    {
+      "pin": "3",
+      "name": "S",
+      "type": "passive",
+      "notes": "Source. Left column, third from top in the Top View drawing. Commoned internally with pins 1 and 2."
+    },
+    {
+      "pin": "4",
+      "name": "G",
+      "type": "input",
+      "notes": "Gate. Left column, bottom position in the Top View drawing (single gate pin, high-impedance control input)."
+    },
+    {
+      "pin": "5",
+      "name": "D",
+      "type": "passive",
+      "notes": "Drain. Right column, bottom position in the Top View drawing (opposite pin 4/G). Commoned internally with pins 6, 7, 8 (all Drain)."
+    },
+    {
+      "pin": "6",
+      "name": "D",
+      "type": "passive",
+      "notes": "Drain. Right column, in the Top View drawing. Commoned internally with pins 5, 7, 8."
+    },
+    {
+      "pin": "7",
+      "name": "D",
+      "type": "passive",
+      "notes": "Drain. Right column, in the Top View drawing. Commoned internally with pins 5, 6, 8."
+    },
+    {
+      "pin": "8",
+      "name": "D",
+      "type": "passive",
+      "notes": "Drain. Right column, top position in the Top View drawing (opposite pin 1/S). Commoned internally with pins 5, 6, 7."
+    }
+  ],
+  "decoupling": [],
+  "land_pattern": {
+    "package": "SOIC-8",
+    "pad_count": 8,
+    "pin1": "1",
+    "notes": "This datasheet (4 pages, Rev3 Jan 2008) contains NO mechanical package-outline or recommended-land-pattern drawing/table - only the schematic Top View pin-configuration diagram (p.1: dot-marked pin 1 top-left, S/S/S/G down the left column, D/D/D/D down the right column) and electrical/thermal tables. pitch_mm, pad_size_mm, row_spacing_mm and courtyard are NOT stated in this PDF; a standard JEDEC MS-012 SOIC-8 (1.27mm pitch) land pattern must be sourced elsewhere (e.g. IPC-7351 generator or a vendor mechanical drawing for this package family), not from this datasheet."
+  },
+  "exposed_pad": {
+    "present": false
+  },
+  "layout_notes": [
+    "No dedicated 'Layout Considerations' section is present in this datasheet.",
+    "Thermal-resistance test condition (Note A, RthJA table, p.1): device mounted on 1 in^2 FR-4 board with 2 oz copper, still-air, TA=25C. The published RthJA (60/75 C/W typ/max steady-state; 32/40 C/W typ/max for t<=10s) and the current/power ratings derived from it are only valid for that copper area - less copper derates them.",
+    "SOA (Fig.9) and single-pulse power rating (Fig.10) curves (Note E, p.3-4) are likewise characterized on a 1 in^2 FR-4 / 2oz-Cu board in still air; same copper-area caveat applies to pulse-current headroom."
+  ],
+  "abs_max": [
+    {
+      "param": "Drain-Source Voltage VDS (max)",
+      "value": -30,
+      "unit": "V"
+    },
+    {
+      "param": "Gate-Source Voltage VGS (max)",
+      "value": "+/-25",
+      "unit": "V"
+    },
+    {
+      "param": "Continuous Drain Current ID, TA=25C (10s / steady state)",
+      "value": "-12 / -9.2",
+      "unit": "A"
+    },
+    {
+      "param": "Continuous Drain Current ID, TA=70C (10s / steady state)",
+      "value": "-10 / -7.4",
+      "unit": "A"
+    },
+    {
+      "param": "Pulsed Drain Current IDM (max)",
+      "value": -60,
+      "unit": "A"
+    },
+    {
+      "param": "Avalanche Current IAR",
+      "value": 26,
+      "unit": "A"
+    },
+    {
+      "param": "Repetitive Avalanche Energy EAR, L=0.3mH",
+      "value": 101,
+      "unit": "mJ"
+    },
+    {
+      "param": "Power Dissipation PD, TA=25C (10s / steady state)",
+      "value": "3.1 / 1.7",
+      "unit": "W"
+    },
+    {
+      "param": "Power Dissipation PD, TA=70C (10s / steady state)",
+      "value": "2.0 / 1.1",
+      "unit": "W"
+    },
+    {
+      "param": "Junction and Storage Temperature Range TJ, TSTG",
+      "value": "-55 to 150",
+      "unit": "C"
+    },
+    {
+      "param": "Thermal Resistance Junction-to-Ambient RthJA, t<=10s (typ / max)",
+      "value": "32 / 40",
+      "unit": "C/W"
+    },
+    {
+      "param": "Thermal Resistance Junction-to-Ambient RthJA, steady state (typ / max)",
+      "value": "60 / 75",
+      "unit": "C/W"
+    },
+    {
+      "param": "Thermal Resistance Junction-to-Lead RthJL, steady state (typ / max) - no RthJC (junction-to-case) is published, RthJL is the closest stated figure",
+      "value": "17 / 24",
+      "unit": "C/W"
+    },
+    {
+      "param": "Drain-Source Breakdown Voltage BVDSS (min), ID=-250uA, VGS=0V",
+      "value": -30,
+      "unit": "V"
+    },
+    {
+      "param": "Gate Threshold Voltage VGS(th), VDS=VGS, ID=-250uA (min / typ / max)",
+      "value": "-1.7 / -2.3 / -3",
+      "unit": "V"
+    },
+    {
+      "param": "Static Drain-Source On-Resistance RDS(ON), VGS=-20V, ID=-12A, TJ=25C (typ / max)",
+      "value": "8.5 / 11",
+      "unit": "mOhm"
+    },
+    {
+      "param": "Static Drain-Source On-Resistance RDS(ON), VGS=-20V, ID=-12A, TJ=125C (typ / max)",
+      "value": "11.5 / 15",
+      "unit": "mOhm"
+    },
+    {
+      "param": "Static Drain-Source On-Resistance RDS(ON), VGS=-10V, ID=-12A, TJ=25C (typ / max)",
+      "value": "10 / 13",
+      "unit": "mOhm"
+    },
+    {
+      "param": "Static Drain-Source On-Resistance RDS(ON), VGS=-5V, ID=-10A, TJ=25C (typ / max) - nearest tabulated point to VGS=-4.5V; no VGS=-4.5V row exists in this datasheet's table",
+      "value": "27 / 38",
+      "unit": "mOhm"
+    },
+    {
+      "param": "Zero Gate Voltage Drain Current IDSS, VDS=-30V, VGS=0V, TJ=25C / TJ=55C (max)",
+      "value": "-10 / -50",
+      "unit": "uA"
+    },
+    {
+      "param": "Gate-Body Leakage Current IGSS, VDS=0V, VGS=+/-25V (max)",
+      "value": "+/-100",
+      "unit": "nA"
+    },
+    {
+      "param": "Body Diode Forward Voltage VSD, IS=-1A, VGS=0V (typ / max)",
+      "value": "-0.7 / -1",
+      "unit": "V"
+    },
+    {
+      "param": "Maximum Body-Diode Continuous Current IS (max)",
+      "value": -3,
+      "unit": "A"
+    },
+    {
+      "param": "Body Diode Reverse Recovery Time trr, IF=-12A, dI/dt=100A/us (typ / max)",
+      "value": "30 / 40",
+      "unit": "ns"
+    },
+    {
+      "param": "Body Diode Reverse Recovery Charge Qrr, IF=-12A, dI/dt=100A/us (typ)",
+      "value": 22,
+      "unit": "nC"
+    },
+    {
+      "param": "Total Gate Charge Qg, VGS=-10V, VDS=-15V, ID=-12A (typ / max)",
+      "value": "30 / 39",
+      "unit": "nC"
+    },
+    {
+      "param": "Gate Resistance Rg, VGS=0V, VDS=0V, f=1MHz (typ / max)",
+      "value": "2.4 / 3.6",
+      "unit": "ohm"
+    }
+  ],
+  "source_pdf": "boards/sbuck-5v3a/parts/C16072.pdf"
+}

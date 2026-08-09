@@ -3,10 +3,16 @@
  "board": "sbuck-5v3a",
  "workspace": "boards/sbuck-5v3a",
  "created": "2026-08-08T22:12:30",
- "updated": "2026-08-08T23:29:56",
- "phase": "P2",
+ "updated": "2026-08-09T00:37:38",
+ "phase": "P3",
  "gates": {},
- "human": {},
+ "human": {
+  "1": {
+   "status": "approved",
+   "ts": "2026-08-08T23:30:37",
+   "note": "DELEGATE approval under the brief's DECISION POLICY (no clarifying questions). Architecture, stackup, IC and constraint set accepted as written. User may still interject - nothing is fabricated yet."
+  }
+ },
  "artifacts": {},
  "open_issues": [],
  "next_issue_id": 1,
@@ -129,6 +135,66 @@
    "why": "Small board; hierarchy rejected to eliminate the /<sheet>/<LABEL> net-name mismatch class the recipe warns about",
    "phase": "P2",
    "ts": "2026-08-08T23:29:56"
+  },
+  {
+   "what": "R6 feedback top resistor 116k -> 115k (0.1%)",
+   "why": "116k is not an E96 value and has zero 0603 stock at any tolerance; 115k/22.1k is what the AP64350 datasheet's own 5V reference design specifies, and 118k was rejected for failing the high corner at 5.130V",
+   "phase": "P3",
+   "ts": "2026-08-08T23:54:17"
+  },
+  {
+   "what": "U1 ships with NO true pin-compatible alternate (explicit empty list)",
+   "why": "Pin-by-pin comparison shows AP64350 and LMR33630 differ on 4 of 8 pins and use different compensation architectures; recording the single-source risk honestly beats listing a fake second source",
+   "phase": "P3",
+   "ts": "2026-08-08T23:54:17"
+  },
+  {
+   "what": "AO4407A Rds(on) budget checked at the real operating gate drive (Vgs = -Vin, clamped -15V), not at the datasheet's -4.5/-5V row",
+   "why": "Gate sits at GND and source at VIN in this topology so Vgs spans -7V to -15V; at the 12V spec point Vgs=-12V gives 13 mOhm max = 26 mW, inside the 22 mOhm budget line. The -5V row (38 mOhm max) is not an operating condition on this board",
+   "phase": "P3",
+   "ts": "2026-08-08T23:58:39"
+  },
+  {
+   "what": "AO4407A datasheet has no land pattern - librarian uses standard JEDEC MS-012 SOIC-8, 1.27mm pitch",
+   "why": "The 4-page Rev3 (2008) PDF carries no mechanical/recommended-land drawing; sourcing the footprint from the JEDEC standard is honest, inventing pad dimensions from the PDF would not be",
+   "phase": "P3",
+   "ts": "2026-08-08T23:58:39"
+  },
+  {
+   "what": "FB bias-current error treated as an ASSUMPTION, not a datasheet fact - P1 reference-design claimed <=0.1% but the datasheet states no value",
+   "why": "Divider current is 0.8V/22.1k = 36 uA, so a typical 10-100 nA FB bias is 0.03-0.3% of it - safe, but it must be labelled an engineering assumption since the vendor never publishes the number",
+   "phase": "P3",
+   "ts": "2026-08-09T00:06:44"
+  },
+  {
+   "what": "Thermal via array 16 x 0.3mm at 1.0mm pitch is OUR derivation - the vendor spec is only qualitative",
+   "why": "AP64350 datasheet says merely 'add as many vias as possible' with an uncounted illustrative array; the numeric array comes from the P1 architect's 1.9 K/W calculation, cross-checked against the Wurth FEA table",
+   "phase": "P3",
+   "ts": "2026-08-09T00:06:44"
+  },
+  {
+   "what": "Vendor thermal numbers are stated on 2oz copper; board is 1oz - deferred to P8 check_thermal on real geometry",
+   "why": "theta_JC is package-internal so it barely moves, and the architect's governing model computed board-to-ambient independently; resolving this on measured copper at P8 beats re-litigating it on datasheet conditions now",
+   "phase": "P3",
+   "ts": "2026-08-09T00:06:44"
+  },
+  {
+   "what": "U1 exposed pad enlarged from the pulled 3.200x2.500mm to the vendor Suggested Pad Layout 3.502x2.613mm (approved hand-edit)",
+   "why": "-12.6% EP area on a design whose theta_JC closes with zero margin and whose entire thermal path runs through that pad; the vendor's own suggested layout outranks the easyeda2kicad pull",
+   "phase": "P3",
+   "ts": "2026-08-09T00:37:38"
+  },
+  {
+   "what": "F1 library assets come from KiCad stock (Device:Fuse + 1206 fuse land), not an EasyEDA pull",
+   "why": "C3163312 is the only LCSC listing for this MPN and its EasyEDA record 404s; re-sourcing would trade a datasheet-verified true slow-blow part for an unverified one, so the library gap is filled instead of the part changed",
+   "phase": "P3",
+   "ts": "2026-08-09T00:37:38"
+  },
+  {
+   "what": "P4 must take C4 polarity from the footprint silk +/- mark, not the symbol",
+   "why": "The pulled aluminium-can symbol has generic pin names 1/2 with no polarity semantics, while the footprint carries an explicit +/- pair with pin1=+",
+   "phase": "P3",
+   "ts": "2026-08-09T00:37:38"
   }
  ],
  "edits": [],
@@ -180,6 +246,30 @@
    "role": "architect",
    "model": "opus",
    "phase": "P2"
+  },
+  {
+   "ts": "2026-08-08T23:54:16",
+   "role": "part-sourcer",
+   "model": "sonnet",
+   "phase": "P3"
+  },
+  {
+   "ts": "2026-08-08T23:54:16",
+   "role": "datasheet-extractor",
+   "model": "sonnet",
+   "phase": "P3"
+  },
+  {
+   "ts": "2026-08-08T23:54:17",
+   "role": "datasheet-extractor",
+   "model": "sonnet",
+   "phase": "P3"
+  },
+  {
+   "ts": "2026-08-09T00:37:38",
+   "role": "librarian",
+   "model": "sonnet",
+   "phase": "P3"
   }
  ],
  "history": [
@@ -344,6 +434,92 @@
    "ts": "2026-08-08T23:29:56",
    "event": "decision",
    "what": "Single flat root sheet (refdes 1-99, #PWR 100), 33 placed parts"
+  },
+  {
+   "ts": "2026-08-08T23:30:37",
+   "event": "human",
+   "checkpoint": "1",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-08-08T23:54:16",
+   "event": "spawn",
+   "role": "part-sourcer",
+   "model": "sonnet"
+  },
+  {
+   "ts": "2026-08-08T23:54:16",
+   "event": "spawn",
+   "role": "datasheet-extractor",
+   "model": "sonnet"
+  },
+  {
+   "ts": "2026-08-08T23:54:17",
+   "event": "spawn",
+   "role": "datasheet-extractor",
+   "model": "sonnet"
+  },
+  {
+   "ts": "2026-08-08T23:54:17",
+   "event": "phase",
+   "phase": "P3",
+   "prev": "P2"
+  },
+  {
+   "ts": "2026-08-08T23:54:17",
+   "event": "decision",
+   "what": "R6 feedback top resistor 116k -> 115k (0.1%)"
+  },
+  {
+   "ts": "2026-08-08T23:54:17",
+   "event": "decision",
+   "what": "U1 ships with NO true pin-compatible alternate (explicit empty list)"
+  },
+  {
+   "ts": "2026-08-08T23:58:39",
+   "event": "decision",
+   "what": "AO4407A Rds(on) budget checked at the real operating gate drive (Vgs = -Vin, clamped -15V), not at the datasheet's -4.5/-5V row"
+  },
+  {
+   "ts": "2026-08-08T23:58:39",
+   "event": "decision",
+   "what": "AO4407A datasheet has no land pattern - librarian uses standard JEDEC MS-012 SOIC-8, 1.27mm pitch"
+  },
+  {
+   "ts": "2026-08-09T00:06:44",
+   "event": "decision",
+   "what": "FB bias-current error treated as an ASSUMPTION, not a datasheet fact - P1 reference-design claimed <=0.1% but the datasheet states no value"
+  },
+  {
+   "ts": "2026-08-09T00:06:44",
+   "event": "decision",
+   "what": "Thermal via array 16 x 0.3mm at 1.0mm pitch is OUR derivation - the vendor spec is only qualitative"
+  },
+  {
+   "ts": "2026-08-09T00:06:44",
+   "event": "decision",
+   "what": "Vendor thermal numbers are stated on 2oz copper; board is 1oz - deferred to P8 check_thermal on real geometry"
+  },
+  {
+   "ts": "2026-08-09T00:37:38",
+   "event": "spawn",
+   "role": "librarian",
+   "model": "sonnet"
+  },
+  {
+   "ts": "2026-08-09T00:37:38",
+   "event": "decision",
+   "what": "U1 exposed pad enlarged from the pulled 3.200x2.500mm to the vendor Suggested Pad Layout 3.502x2.613mm (approved hand-edit)"
+  },
+  {
+   "ts": "2026-08-09T00:37:38",
+   "event": "decision",
+   "what": "F1 library assets come from KiCad stock (Device:Fuse + 1206 fuse land), not an EasyEDA pull"
+  },
+  {
+   "ts": "2026-08-09T00:37:38",
+   "event": "decision",
+   "what": "P4 must take C4 polarity from the footprint silk +/- mark, not the symbol"
   }
  ]
 }
