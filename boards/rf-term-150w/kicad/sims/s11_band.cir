@@ -1,58 +1,76 @@
-* rf-term-150w - BENCH 1: return loss vs frequency, 20-30 MHz, trimmer FIXED
+* rf-term-150w - BENCH 1: return loss vs frequency, AS-ROUTED board, C1 at its
+*                         LOW STOP, swept over the port-parasitic uncertainty band
 *
-* SOURCE TOPOLOGY. P2 feasibility bench - there is no exported kicad/*.net yet
-* (kicad/ holds only constraints.json + lib tables), so the network is taken
-* from architecture/blocks.md s2 + s4 and is the WHOLE dynamic board:
+* SOURCE TOPOLOGY. The whole dynamic board is a one-port:
 *     PORT --+-- L_launch -- R_term -- GND (flange straps)
-*            +-- (C_trim || C_pad) -- GND
-* No rename map applies (no netlist); the eventual schematic nets are /RF (node
-* "p" of each X instance) and GND (node 0) per kicad/constraints.json.
+*            +-- (C_trim || C_port) -- GND
+* Nets: /RF is node "p" of each X instance, GND is node 0
+* (kicad/rf-term-150w.net: R1 pad1-/RF, C1 pad2-/RF, J1 pad1-/RF; every other
+* pad on GND). No rename map is needed - the board has exactly two nets.
+*
+* CORRECTED 2026-08-09 after reports/review-verify.md V1 + V2. Two values in the
+* P2 version of this bench were wrong; both are fixed here:
+*   V1  C_port was 1.30 pF, taken from the P2 architecture's 3.55 mm launch.
+*       The AS-ROUTED launch is 15.065 mm of mostly-wide (~34 ohm) trace plus a
+*       5.0 x 7.0 mm lap pad -> ~4.7 pF, i.e. 3.6x larger.
+*   V2  C_trim max was 35 pF, which is no part. The DELIVERED C1 is a Johanson
+*       5602 (DigiKey 1956-1000-ND), 1-30 pF - parts/5602.json line 45.
 *
 * MODEL PROVENANCE (generic, datasheet-derived; NO vendored vendor models -
 * every element here is an ideal R/L/C, which is the honest model for a passive
 * one-port two orders of magnitude below any self-resonance):
-*   R_term  50 ohm +/-5% catalogue (Vishay/Barry T50R0-250-12X, parts/
-*           T50R0-250-12X.json); select-on-test narrows to 49.0-51.0 at build
-*           (P1 decision, decisions.md). Builds below: 50.0 / 51.0 / 52.5.
-*   L_launch total residual series inductance, architect's term-by-term budget
-*           = 6.9 nH (blocks.md s4.2). Term E (strap/via return loop) is the
-*           lowest-confidence term and could push the total to 8.4 nH
-*           (blocks.md s8 OPEN-5) - build C uses that value.
-*   C_pad   1.3 pF of unavoidable mounting/pad parasitic in parallel with the
-*           trimmer (blocks.md s4.3 stub + pad terms). NOT adjustable.
-*   C_trim  PARAMETERISED, not a part number: the trimmer is being re-selected
-*           for a temperature reason (blocks.md s8 OPEN-1). Only cmin/cmax
-*           below define its range - edit those two lines to re-evaluate any
-*           candidate part. Currently 1-35 pF.
+*   R_term  50 ohm +/-5% catalogue (Barry/Vishay T50R0-250-12X,
+*           parts/T50R0-250-12X.json); select-on-test narrows to 49.0-51.0 at
+*           build (P1 decision). All four builds are simulated: 49 / 50 / 51 /
+*           52.5, the last being the unselected catalogue +5% limit.
+*   L_launch 7.21 nH, the AS-ROUTED residual (state.json decision "Router
+*           stopped flaring deliberately at 7.21 nH"), X = 1.1325 ohm at 25 MHz.
+*   C_port  4.7 pF nominal, fixed, NOT adjustable. There is no field solver on
+*           this pipeline, so this number is a two-source estimate, not an
+*           extraction: (a) parallel-plate 0.87 pF for the 5x7 lap pad + 30-60%
+*           fringing, plus C' = sqrt(eeff)/(c*Z0) = 0.176 pF/mm over 15.065 mm
+*           of launch; (b) the independent term-by-term rebuild in
+*           reports/review-verify.md V1 (2.27 pF track + 1.50 pF lap pad +
+*           0.25 pF J1 pad + 0.60 pF J1 internal/C1 pads). Both land on 4.7 pF.
+*           It is therefore SWEPT here over 3.5 - 6.0 pF and every bound below
+*           holds across that whole band. Treat 4.7 as uncertain to about +/-25%.
+*   C_trim  Johanson 5602 air trimmer, 1-30 pF (parts/5602.json). In this bench
+*           it is at its LOW STOP by computation, not by assumption: ctset()
+*           evaluates the exact susceptance null and clamps it, and the null for
+*           7.21 nH needs LESS total shunt C than C_port alone already supplies
+*           (see ctneed_*_pf below, all negative). The board is BELOW the
+*           trimmer's null window; the trimmer has upward-only authority.
 *
 * METHOD. ngspice .ac cannot post-process complex vectors, so S11 is formed by
 * the network itself: an ideal 2 V AC source behind exactly z0 = 50 ohm makes
 * the incident wave 1 V, so v(dut) = 1 + Gamma. A second source holds a 1 V
 * reference and a UNITY VCVS (linear -> exact in .ac) subtracts it, so the node
-* g* carries Gamma directly and vdb(g*) = -RL in dB. Verified against a closed
-* form (Zin = R+jwL shunted by C, Gamma = (Z-z0)/(Z+z0)): 72.583 vs 72.5845 dB.
+* g* carries Gamma directly and vdb(g*) = -RL in dB. Verified against the closed
+* form (Zin = R+jwL shunted by C, Gamma = (Z-z0)/(Z+z0)) to 4 decimal places.
 *
-* DESIGN INTENT / what this bench proves. The operator tunes ONCE at Fc =
-* 25.0 MHz. C_trim is therefore a CONSTANT in this netlist - only the frequency
-* sweeps - so the band numbers cannot be flattered by re-optimising per point.
-* The setting used is the exact susceptance null B = X/(R^2+X^2) at 25.0 MHz,
-* clamped to the trimmer range; that null is the global |Gamma| minimum for a
-* shunt-C-only tuner (proved by sweep in tuning_authority.cir).
-* Asserts requirements crit. 2 (RL >= 26 dB at 25.0 MHz) and crit. 3
-* (RL >= 20 dB over 22.5-27.5 MHz) at three resistance builds.
+* DESIGN INTENT / what this bench proves. THE SPEC STILL PASSES AS ROUTED.
+* The operator tunes ONCE at Fc = 25.0 MHz, so C_trim is a CONSTANT in this
+* netlist - only frequency sweeps - and the band numbers cannot be flattered by
+* re-optimising per point. Asserts requirements crit. 2 (RL >= 26 dB at
+* 25.0 MHz) and crit. 3 (RL >= 20 dB over 22.5-27.5 MHz) at all 4 resistance
+* builds x all 3 parasitic estimates = 12 builds, no exceptions.
 
 .param z0=50
 .param fc=25e6
 .param w0={2*3.141592653589793*fc}
-.param cpad=1.3e-12
 .param cmin=1e-12
-.param cmax=35e-12
+.param cmax=30e-12
+.param cp35=3.5e-12
+.param cp47=4.7e-12
+.param cp60=6.0e-12
+.param lrt=7.21n
 
 * exact susceptance null at fc, and the trimmer setting that realises it
+* (clamped to the DELIVERED 1-30 pF range of the Johanson 5602)
 .func copt(rr,ll) {ll/(rr*rr+(w0*ll)*(w0*ll))}
-.func ctset(rr,ll) {min(cmax,max(cmin,copt(rr,ll)-cpad))}
+.func ctset(rr,ll,cp) {min(cmax,max(cmin,copt(rr,ll)-cp))}
 
-.subckt oneport p lval=6.9n rval=50 cval=1.5p cpv=1.3p
+.subckt oneport p lval=7.21n rval=50 cval=1p cpv=4.7p
 Ll p m {lval}
 Rt m 0 {rval}
 Ct p 0 {cval}
@@ -62,60 +80,132 @@ Cp p 0 {cpv}
 Vsrc src 0 AC 2
 Vref ref 0 AC 1
 
-* --- build A: nominal, R = 50.0 ohm, L = 6.9 nH -------------------------
-.param ra=50.0
-.param la=6.9n
-.param cta={ctset(ra,la)}
-Rsa src da {z0}
-Xa da oneport lval={la} rval={ra} cval={cta} cpv={cpad}
-Ea ga 0 da ref 1
+.param r1=49.0
+.param r2=50.0
+.param r3=51.0
+.param r4=52.5
 
-* --- build B: select-on-test upper limit, R = 51.0 ohm, L = 6.9 nH ------
-.param rb=51.0
-.param lb=6.9n
-.param ctb={ctset(rb,lb)}
-Rsb src db {z0}
-Xb db oneport lval={lb} rval={rb} cval={ctb} cpv={cpad}
-Eb gb 0 db ref 1
+* --- column a: C_port = 3.5 pF (optimistic end of the estimate band) -----
+Rs1a src d1a {z0}
+X1a d1a oneport lval={lrt} rval={r1} cval={ctset(r1,lrt,cp35)} cpv={cp35}
+E1a g1a 0 d1a ref 1
+Rs2a src d2a {z0}
+X2a d2a oneport lval={lrt} rval={r2} cval={ctset(r2,lrt,cp35)} cpv={cp35}
+E2a g2a 0 d2a ref 1
+Rs3a src d3a {z0}
+X3a d3a oneport lval={lrt} rval={r3} cval={ctset(r3,lrt,cp35)} cpv={cp35}
+E3a g3a 0 d3a ref 1
+Rs4a src d4a {z0}
+X4a d4a oneport lval={lrt} rval={r4} cval={ctset(r4,lrt,cp35)} cpv={cp35}
+E4a g4a 0 d4a ref 1
 
-* --- build C: worst case, catalogue +5% R and the high L estimate -------
-.param rc=52.5
-.param lc=8.4n
-.param ctc={ctset(rc,lc)}
-Rsc src dc {z0}
-Xc dc oneport lval={lc} rval={rc} cval={ctc} cpv={cpad}
-Ec gc 0 dc ref 1
+* --- column b: C_port = 4.7 pF (NOMINAL as-routed estimate) --------------
+Rs1b src d1b {z0}
+X1b d1b oneport lval={lrt} rval={r1} cval={ctset(r1,lrt,cp47)} cpv={cp47}
+E1b g1b 0 d1b ref 1
+Rs2b src d2b {z0}
+X2b d2b oneport lval={lrt} rval={r2} cval={ctset(r2,lrt,cp47)} cpv={cp47}
+E2b g2b 0 d2b ref 1
+Rs3b src d3b {z0}
+X3b d3b oneport lval={lrt} rval={r3} cval={ctset(r3,lrt,cp47)} cpv={cp47}
+E3b g3b 0 d3b ref 1
+Rs4b src d4b {z0}
+X4b d4b oneport lval={lrt} rval={r4} cval={ctset(r4,lrt,cp47)} cpv={cp47}
+E4b g4b 0 d4b ref 1
+
+* --- column c: C_port = 6.0 pF (pessimistic end - THE BINDING COLUMN) ----
+Rs1c src d1c {z0}
+X1c d1c oneport lval={lrt} rval={r1} cval={ctset(r1,lrt,cp60)} cpv={cp60}
+E1c g1c 0 d1c ref 1
+Rs2c src d2c {z0}
+X2c d2c oneport lval={lrt} rval={r2} cval={ctset(r2,lrt,cp60)} cpv={cp60}
+E2c g2c 0 d2c ref 1
+Rs3c src d3c {z0}
+X3c d3c oneport lval={lrt} rval={r3} cval={ctset(r3,lrt,cp60)} cpv={cp60}
+E3c g3c 0 d3c ref 1
+Rs4c src d4c {z0}
+X4c d4c oneport lval={lrt} rval={r4} cval={ctset(r4,lrt,cp60)} cpv={cp60}
+E4c g4c 0 d4c ref 1
 
 .ac lin 1001 20e6 30e6
 
-.meas ac s_a_fc   find vdb(ga) at=25e6
-.meas ac rl_a_fc   param='-s_a_fc'
-.meas ac s_a_band  max vdb(ga) from=22.5e6 to=27.5e6
-.meas ac rl_a_band param='-s_a_band'
-.meas ac s_a_full  max vdb(ga) from=20e6 to=30e6
-.meas ac rl_a_full param='-s_a_full'
-.meas ac ct_a_pf   param='cta*1e12'
+* --- crit. 2: RL at Fc = 25.0 MHz, all 12 builds -------------------------
+.meas ac s_r49_p35_fc find vdb(g1a) at=25e6
+.meas ac rl_r49_p35_fc param='-s_r49_p35_fc'
+.meas ac s_r50_p35_fc find vdb(g2a) at=25e6
+.meas ac rl_r50_p35_fc param='-s_r50_p35_fc'
+.meas ac s_r51_p35_fc find vdb(g3a) at=25e6
+.meas ac rl_r51_p35_fc param='-s_r51_p35_fc'
+.meas ac s_r525_p35_fc find vdb(g4a) at=25e6
+.meas ac rl_r525_p35_fc param='-s_r525_p35_fc'
 
-.meas ac s_b_fc   find vdb(gb) at=25e6
-.meas ac rl_b_fc   param='-s_b_fc'
-.meas ac s_b_band  max vdb(gb) from=22.5e6 to=27.5e6
-.meas ac rl_b_band param='-s_b_band'
-.meas ac s_b_full  max vdb(gb) from=20e6 to=30e6
-.meas ac rl_b_full param='-s_b_full'
-.meas ac ct_b_pf   param='ctb*1e12'
+.meas ac s_r49_p47_fc find vdb(g1b) at=25e6
+.meas ac rl_r49_p47_fc param='-s_r49_p47_fc'
+.meas ac s_r50_p47_fc find vdb(g2b) at=25e6
+.meas ac rl_r50_p47_fc param='-s_r50_p47_fc'
+.meas ac s_r51_p47_fc find vdb(g3b) at=25e6
+.meas ac rl_r51_p47_fc param='-s_r51_p47_fc'
+.meas ac s_r525_p47_fc find vdb(g4b) at=25e6
+.meas ac rl_r525_p47_fc param='-s_r525_p47_fc'
 
-.meas ac s_c_fc   find vdb(gc) at=25e6
-.meas ac rl_c_fc   param='-s_c_fc'
-.meas ac s_c_band  max vdb(gc) from=22.5e6 to=27.5e6
-.meas ac rl_c_band param='-s_c_band'
-.meas ac s_c_full  max vdb(gc) from=20e6 to=30e6
-.meas ac rl_c_full param='-s_c_full'
-.meas ac ct_c_pf   param='ctc*1e12'
+.meas ac s_r49_p60_fc find vdb(g1c) at=25e6
+.meas ac rl_r49_p60_fc param='-s_r49_p60_fc'
+.meas ac s_r50_p60_fc find vdb(g2c) at=25e6
+.meas ac rl_r50_p60_fc param='-s_r50_p60_fc'
+.meas ac s_r51_p60_fc find vdb(g3c) at=25e6
+.meas ac rl_r51_p60_fc param='-s_r51_p60_fc'
+.meas ac s_r525_p60_fc find vdb(g4c) at=25e6
+.meas ac rl_r525_p60_fc param='-s_r525_p60_fc'
 
-* band-edge points, for the report table
-.meas ac s_c_lo find vdb(gc) at=22.5e6
-.meas ac rl_c_lo param='-s_c_lo'
-.meas ac s_c_hi find vdb(gc) at=27.5e6
-.meas ac rl_c_hi param='-s_c_hi'
+* --- crit. 3: worst point in 22.5-27.5 MHz, same fixed setting -----------
+.meas ac s_r49_p35_bd max vdb(g1a) from=22.5e6 to=27.5e6
+.meas ac rl_r49_p35_bd param='-s_r49_p35_bd'
+.meas ac s_r50_p35_bd max vdb(g2a) from=22.5e6 to=27.5e6
+.meas ac rl_r50_p35_bd param='-s_r50_p35_bd'
+.meas ac s_r51_p35_bd max vdb(g3a) from=22.5e6 to=27.5e6
+.meas ac rl_r51_p35_bd param='-s_r51_p35_bd'
+.meas ac s_r525_p35_bd max vdb(g4a) from=22.5e6 to=27.5e6
+.meas ac rl_r525_p35_bd param='-s_r525_p35_bd'
+
+.meas ac s_r49_p47_bd max vdb(g1b) from=22.5e6 to=27.5e6
+.meas ac rl_r49_p47_bd param='-s_r49_p47_bd'
+.meas ac s_r50_p47_bd max vdb(g2b) from=22.5e6 to=27.5e6
+.meas ac rl_r50_p47_bd param='-s_r50_p47_bd'
+.meas ac s_r51_p47_bd max vdb(g3b) from=22.5e6 to=27.5e6
+.meas ac rl_r51_p47_bd param='-s_r51_p47_bd'
+.meas ac s_r525_p47_bd max vdb(g4b) from=22.5e6 to=27.5e6
+.meas ac rl_r525_p47_bd param='-s_r525_p47_bd'
+
+.meas ac s_r49_p60_bd max vdb(g1c) from=22.5e6 to=27.5e6
+.meas ac rl_r49_p60_bd param='-s_r49_p60_bd'
+.meas ac s_r50_p60_bd max vdb(g2c) from=22.5e6 to=27.5e6
+.meas ac rl_r50_p60_bd param='-s_r50_p60_bd'
+.meas ac s_r51_p60_bd max vdb(g3c) from=22.5e6 to=27.5e6
+.meas ac rl_r51_p60_bd param='-s_r51_p60_bd'
+.meas ac s_r525_p60_bd max vdb(g4c) from=22.5e6 to=27.5e6
+.meas ac rl_r525_p60_bd param='-s_r525_p60_bd'
+
+* --- band edges and the full 20-30 MHz sweep, worst build ----------------
+.meas ac s_r525_p60_lo find vdb(g4c) at=22.5e6
+.meas ac rl_r525_p60_lo param='-s_r525_p60_lo'
+.meas ac s_r525_p60_hi find vdb(g4c) at=27.5e6
+.meas ac rl_r525_p60_hi param='-s_r525_p60_hi'
+.meas ac s_r525_p60_full max vdb(g4c) from=20e6 to=30e6
+.meas ac rl_r525_p60_full param='-s_r525_p60_full'
+.meas ac s_r50_p47_full max vdb(g2b) from=20e6 to=30e6
+.meas ac rl_r50_p47_full param='-s_r50_p47_full'
+
+* --- proof that C1 is AT the low stop in every one of the 12 builds ------
+* ct_* is the clamped setting actually used; ctneed_* is what an ideal
+* (unclamped) null would need, which is NEGATIVE - i.e. unbuildable.
+.meas ac ct_r50_p35_pf param='ctset(r2,lrt,cp35)*1e12'
+.meas ac ct_r50_p47_pf param='ctset(r2,lrt,cp47)*1e12'
+.meas ac ct_r50_p60_pf param='ctset(r2,lrt,cp60)*1e12'
+.meas ac ct_r525_p47_pf param='ctset(r4,lrt,cp47)*1e12'
+.meas ac ctneed_p35_pf param='(copt(r2,lrt)-cp35)*1e12'
+.meas ac ctneed_p47_pf param='(copt(r2,lrt)-cp47)*1e12'
+.meas ac ctneed_p60_pf param='(copt(r2,lrt)-cp60)*1e12'
+.meas ac copt_lrt_pf param='copt(r2,lrt)*1e12'
+.meas ac xlrt_ohm param='w0*lrt'
 
 .end

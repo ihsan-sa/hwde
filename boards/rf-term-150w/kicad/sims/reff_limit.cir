@@ -1,7 +1,18 @@
 * rf-term-150w - BENCH 4: the limit a shunt trimmer CANNOT fix (Reff = R + X^2/R)
 *
-* SOURCE TOPOLOGY / MODEL PROVENANCE / METHOD: identical to s11_band.cir -
-* see that file's header. P2 feasibility (no kicad/*.net exists yet).
+* SOURCE TOPOLOGY / MODEL PROVENANCE / METHOD: identical to s11_band.cir - see
+* that file's header, including the CORRECTED 2026-08-09 values (C_port 4.7 pF
+* not 1.3 pF, review-verify V1; C_trim 1-30 pF Johanson 5602 not 1-35 pF,
+* review-verify V2). NOTE that every RETURN-LOSS and THRESHOLD number this bench
+* reports is INDEPENDENT of both corrections - re-running it after them changed
+* nothing to 4 decimal places. The trimmer here is ideal and unclamped, so the
+* port parasitic only shifts how much of the same total shunt C comes from the
+* pad rather than the part, and the residual reflection depends on R and X
+* alone. That invariance is itself a check: if those values HAD moved, the
+* topology model would be wrong. The four ctot_/cttrim_ measures added at the
+* end are the deliberate exception - they exist precisely to say how much of the
+* assumed ideal tuner the DELIVERED 1-30 pF part can supply, so they do move
+* with the port parasitic, and their bounds are what catch a reverted cpad here.
 *
 * DESIGN INTENT / what this bench proves. A shunt trimmer is a pure SUSCEPTANCE.
 * It can null the imaginary part of Yin and nothing else, so after tuning
@@ -14,13 +25,18 @@
 * R = 52.5 ohm.
 *
 * DELIBERATE DIFFERENCE FROM BENCHES 1-3: the trimmer here is IDEAL - the
-* setting is the exact susceptance null with NO clamp to the 1-35 pF range
-* (block A needs 33.7-38.4 pF, and everything above X = 15.65 ohm is already
-* past a real 35 pF top stop - see tuning_authority.cir xnull_hi_ohm). That is
-* the point: removing the authority limit leaves Reff as the ONLY mechanism, so
-* the numbers below are a property of the topology, not of any candidate part. Real-part authority is what
-* is missing; a series trimmer or a matching network would be needed to correct
-* it, and the design instead buys it with select-on-test (+/-2% -> R <= 51.0).
+* setting is the exact susceptance null with NO clamp to the delivered 1-30 pF
+* range. Block A (R = 50, X = 15.0-17.5 ohm) needs 35.0-39.7 pF of TOTAL shunt
+* C, i.e. 30.3-35.0 pF from the trimmer, which is PAST the Johanson 5602's 30 pF
+* top stop - everything above X = 14.825 ohm is already outside the exact-null
+* window (tuning_authority.cir xnull_hi_ohm). Block B (R = 52.5) needs only
+* 19.6-23.6 pF of trimmer and IS reachable with the real part, which is the
+* point: at the +5% resistance corner the limit below is NOT the trimmer's
+* range, it is Reff. Removing the authority limit leaves Reff as the only
+* mechanism, so the numbers here are a property of the topology, not of any
+* candidate part. Real-part authority is what is missing; a series trimmer or a
+* matching network would be needed to correct it, and the design instead buys it
+* with select-on-test (+/-2% -> R <= 51.0).
 *
 * The two zA/zB probes are the same networks driven by a 1 A AC current source
 * instead, so v(z*) IS Zin in ohms: they show Im{Zin} ~ 0 (the tuner really is
@@ -29,7 +45,7 @@
 .param z0=50
 .param fc=25e6
 .param w0={2*3.141592653589793*fc}
-.param cpad=1.3e-12
+.param cpad=4.7e-12
 .param ra=50.0
 .param rb=52.5
 
@@ -44,7 +60,7 @@
 .param lcapa={xcapa/w0}
 .param lcapb={xcapb/w0}
 
-.subckt oneport p lval=6.9n rval=50 cval=1.5p cpv=1.3p
+.subckt oneport p lval=7.21n rval=50 cval=1p cpv=4.7p
 Ll p m {lval}
 Rt m 0 {rval}
 Ct p 0 {cval}
@@ -121,7 +137,7 @@ Xb8 db8 oneport lval={lb8} rval={rb} cval={copt(rb,lb8)-cpad} cpv={cpad}
 Eb8 gb8 0 db8 ref 1
 
 * the X = 0 reference at R = 52.5: no reactance at all, so no shunt C either
-* (an ideal null would need C = -1.3 pF against the pad parasitic). This is
+* (an ideal null would need C = -4.7 pF against the port parasitic). This is
 * the BEST any tuner can ever do at the +5% corner.
 Rsb0 src db0 {z0}
 Xb0 db0 oneport lval=1f rval={rb} cval=1f cpv=1f
@@ -187,5 +203,16 @@ Xzb zb oneport lval={lcapb} rval={rb} cval={copt(rb,lcapb)-cpad} cpv={cpad}
 .meas ac lcap_r525_nh  param='lcapb*1e9'
 .meas ac xcap_r525_err param='xcapb-12.1'
 .meas ac lcap_r525_err param='lcapb*1e9-77'
+
+* --- is the IDEAL trimmer this bench assumes actually orderable? ---------
+* At the +5% corner the answer is yes (21.8 pF of a 1-30 pF part), so the
+* threshold below is a real limit of the topology and not an artefact of an
+* unbuildable tuner. At R = 50 the answer is no (32.7 pF needed), which is
+* exactly why tuning_authority.cir's exact-null window stops at 94.4 nH while
+* this bench's Reff cap is at 103.4 nH.
+.meas ac ctot_a_cap_pf param='copt(ra,lcapa)*1e12'
+.meas ac cttrim_a_cap_pf param='(copt(ra,lcapa)-cpad)*1e12'
+.meas ac ctot_b_cap_pf param='copt(rb,lcapb)*1e12'
+.meas ac cttrim_b_cap_pf param='(copt(rb,lcapb)-cpad)*1e12'
 
 .end

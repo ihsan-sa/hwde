@@ -53,5 +53,14 @@
  {"measure": "rl_a_x170", "max": 26.0, "severity": "error",
   "msg": "R = 50.0, X = 17.0 ohm: 25.25 dB - fails even at the nominal resistance and with an ideal trimmer."},
  {"measure": "rl_a_x175", "max": 26.0, "severity": "error",
-  "msg": "R = 50.0, X = 17.5 ohm: 24.77 dB."}
+  "msg": "R = 50.0, X = 17.5 ohm: 24.77 dB."},
+
+ {"measure": "cttrim_b_cap_pf", "min": 19.5, "max": 24.0, "severity": "error",
+  "msg": "IS THE IDEAL TUNER THIS BENCH ASSUMES ORDERABLE? At the +5% corner, yes: the exact null at the 12.073 ohm threshold needs 26.485 pF TOTAL, i.e. 21.785 pF of trimmer on top of the 4.7 pF port - well inside the delivered Johanson 5602's 1-30 pF (parts/5602.json). So the 12.07 ohm / 76.9 nH failure threshold is a property of the topology, not an artefact of an unbuildable tuner."},
+ {"measure": "cttrim_a_cap_pf", "min": 30.5, "max": 35.0, "severity": "error",
+  "msg": "At R = 50.0 the answer is NO: the null at the 16.242 ohm threshold needs 32.713 pF of trimmer, past the 5602's 30 pF top stop. That is exactly why tuning_authority.cir's exact-null window ends at 94.38 nH (X = 14.825 ohm) while this bench's Reff cap sits at 103.40 nH - at nominal resistance the PART runs out first, at the +5% corner the PHYSICS does."},
+ {"measure": "ctot_b_cap_pf", "min": 26.0, "max": 27.0, "severity": "warning",
+  "msg": "the same figure as total shunt C: 26.485 pF at the R = 52.5 threshold."},
+ {"measure": "ctot_a_cap_pf", "min": 36.9, "max": 37.9, "severity": "warning",
+  "msg": "and 37.413 pF at the R = 50.0 threshold."}
 ]

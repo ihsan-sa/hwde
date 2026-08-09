@@ -3042,3 +3042,27 @@ reverted or unre-derived value trips the gate instead of silently shifting every
 Also: when a corrected parasitic makes the ideal tuner setting NEGATIVE (a hypothetical shunt smaller
 than the fixed pad term), model the hypothetical as a single capacitor with the pad term collapsed to
 `1f` - never pass a negative capacitance to ngspice.
+
+## 2026-08-09 [route][rf][impedance] A pour-flanked narrow trace is a grounded CPW, not a microstrip - blocks.md's L'/C' table over-states L by 21 % and under-states C by 12 % at the RF width floor
+rf-term-150w's `blocks.md` s4 solves the launch with IPC-2141A **surface microstrip** (`eps_eff` from
+`(1+12h/w)^-0.5`, `Z0 = 87/sqrt(er+1.41)*ln(5.98h/(0.8w+t))`). That model ignores the F.Cu GND pour,
+which the `aiee_hv_*` rule holds at only 0.80 mm from the trace - closer than the 1.53 mm core. At
+w = 0.94 mm the two models disagree materially: microstrip gives Z0 87.8 ohm, L' 0.519 nH/mm,
+C' 0.067 pF/mm; grounded-CPW (Hilberg K(k)/K(k'), s = 0.80, h = 1.53, er 4.5) gives Z0 75.3 ohm,
+L' 0.428 nH/mm, C' 0.0755 pF/mm. The error is one-sided and compounding for a tuning-range argument:
+the coplanar ground BOTH lowers the inductance you are trying to add AND raises the capacitance that
+eats the trimmer's low-end authority. Rule: whenever the pour clearance is comparable to or smaller
+than the dielectric height, size RF geometry with CPWG and quote microstrip only as the upper bound.
+The gap between the two IS the design's uncertainty band - report both, do not pick one.
+
+## 2026-08-09 [check_return_path][gates] The corridor is `k x the chain's WIDEST track`, so deleting one fat segment silently re-scales every deficit area on that net
+`corridor_on()` merges a net's tracks into chains and buffers each chain by `k * max(width in chain)`.
+On rf-term-150w the /RF chain contained a 7.34 mm lap-pad flare, so the corridor was buffered by
+3 x 7.34 = 22.0 mm - it covered the whole board and 623 mm2 of off-board area, and `corridor_coverage`
+read 0.23. Deleting that one segment dropped the buffer to 3 x 2.73 = 8.2 mm, coverage rose to 0.74,
+the off-board warnings fell from 623 to ~117 mm2 - and the *unrelated* C1 antipad ERROR grew from 0.74
+to 1.46 mm2 because a different fraction of that fixed annulus now falls inside the corridor. Nothing
+physical moved. Two consequences: (1) never treat a change in `area_mm2` as evidence of a physical
+regression - `crossing_len_mm` is the physical number and it was byte-identical here; (2) waiver
+`reason` text that quotes an area is stale the moment any track width on that net changes, so quote
+the crossing length instead, or re-verify the areas after every re-route.

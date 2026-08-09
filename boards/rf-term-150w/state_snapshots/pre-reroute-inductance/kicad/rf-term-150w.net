@@ -1,0 +1,666 @@
+(export
+	(version "E")
+	(design
+		(source "C:\\dev\\ai-ee3\\boards\\rf-term-150w\\kicad\\rf-term-150w.kicad_sch")
+		(date "2026-08-09T02:59:53")
+		(tool "Eeschema 10.0.3")
+		(sheet
+			(number "1")
+			(name "/")
+			(tstamps "/")
+			(title_block
+				(title "50 ohm / 150 W CW RF termination")
+				(company "ai-ee")
+				(rev "1")
+				(date)
+				(source "rf-term-150w.kicad_sch")
+				(comment
+					(number "1")
+					(value "")
+				)
+				(comment
+					(number "2")
+					(value "")
+				)
+				(comment
+					(number "3")
+					(value "")
+				)
+				(comment
+					(number "4")
+					(value "")
+				)
+				(comment
+					(number "5")
+					(value "")
+				)
+				(comment
+					(number "6")
+					(value "")
+				)
+				(comment
+					(number "7")
+					(value "")
+				)
+				(comment
+					(number "8")
+					(value "")
+				)
+				(comment
+					(number "9")
+					(value "")
+				)
+			)
+		)
+	)
+	(components
+		(comp
+			(ref "C1")
+			(value "1-30pF")
+			(footprint "aiee:CAP-ADJ-TH_2P-BD7.5_5602")
+			(datasheet "https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/6592/KnowlesTrimmersCatalogueweb177409287.pdf")
+			(description "Johanson 5602 air trimmer, 1-30pF 250VDC -65/+125C, top-adjust panel-mount. Pad 1=CASE/THREAD -> GND, Pad 2=LEAD -> RF (physical assignment, state.json P3 decision 2026-08-09).")
+			(fields
+				(field
+					(name "MPN") "5602")
+				(field
+					(name "Manufacturer") "Johanson Manufacturing Corp. (Knowles Precision Devices)")
+				(field
+					(name "DigiKey") "1956-1000-ND")
+				(field
+					(name "Footprint") "aiee:CAP-ADJ-TH_2P-BD7.5_5602")
+				(field
+					(name "Datasheet") "https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/6592/KnowlesTrimmersCatalogueweb177409287.pdf")
+				(field
+					(name "Description") "Johanson 5602 air trimmer, 1-30pF 250VDC -65/+125C, top-adjust panel-mount. Pad 1=CASE/THREAD -> GND, Pad 2=LEAD -> RF (physical assignment, state.json P3 decision 2026-08-09).")
+			)
+			(libsource
+				(lib "aiee")
+				(part "5602")
+				(description "NEW C1 PRIMARY (state.json P3 decision, 2026-08-09, supersedes BFC280811339): Johanson 5602 air-dielectric trimmer, 1-30pF 250VDC(500VDC test) -65/+125C, Q>800@100MHz, top screwdriver-slot adjust, panel/PCB-mount threaded case + separate lead. Chosen over BFC280811339 because -65/+125C clears this board's 74-88C flange-adjacent operating range under 150W CW where the retired PP-film part's -40/+70C category temperature does not. NET ASSIGNMENT IS PHYSICAL (state.json P3 decision, 2026-08-09), not a rotor/stator inference: Pin 1=STATOR (case/thread/hex-collar assembly) -> GND. Pin 2=ROTOR (separate insulated lead wire) -> RF. A panel-mount trimmer's case is engineered to pass through a grounded metal panel, so the case is the ground-compatible terminal by construction, and it is also the only terminal a hand or tool actually brushes during tuning - so it must be grounded whatever its internal (rotor/stator) role is. See parts/5602.json and the footprint's own descr for the full reasoning.")
+			)
+			(property
+				(name "MPN")
+				(value "5602")
+			)
+			(property
+				(name "Manufacturer")
+				(value "Johanson Manufacturing Corp. (Knowles Precision Devices)")
+			)
+			(property
+				(name "DigiKey")
+				(value "1956-1000-ND")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "rf-term-150w.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "Trimmers, Variable Capacitors, air dielectric, panel mount")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "bf61d8c7-3678-4440-8db7-e6bd689fd849")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "H1")
+			(value "M3")
+			(footprint "aiee:MountingHole_3.2mm_M3_Pad_5.0mm")
+			(datasheet "N/A - generic M3 clearance hole (mechanical standard feature, not a sourced/purchased part); no manufacturer datasheet applies.")
+			(description "aiee local M3 clearance mounting hole, pad-diameter-reduced clone of stock MountingHole:MountingHole_3.2mm_M3_Pad (3.2mm drill unchanged, pad 6.4mm->5.0mm, 0.9mm annular ring) so H1-H3 can flank R1 on this board's 26x20mm outline - LEARNINGS 2026-08-09 [placement][geometry][python].")
+			(fields
+				(field
+					(name "Footprint") "aiee:MountingHole_3.2mm_M3_Pad_5.0mm")
+				(field
+					(name "Datasheet") "N/A - generic M3 clearance hole (mechanical standard feature, not a sourced/purchased part); no manufacturer datasheet applies.")
+				(field
+					(name "Description") "aiee local M3 clearance mounting hole, pad-diameter-reduced clone of stock MountingHole:MountingHole_3.2mm_M3_Pad (3.2mm drill unchanged, pad 6.4mm->5.0mm, 0.9mm annular ring) so H1-H3 can flank R1 on this board's 26x20mm outline - LEARNINGS 2026-08-09 [placement][geometry][python].")
+			)
+			(libsource
+				(lib "Mechanical")
+				(part "MountingHole_Pad")
+				(description "Mounting Hole with connection")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "rf-term-150w.kicad_sch")
+			)
+			(property
+				(name "exclude_from_bom")
+			)
+			(property
+				(name "ki_keywords")
+				(value "mounting hole")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "MountingHole*Pad*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "3bfbfe6d-19c7-4a64-964d-e5e30783a334")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "H2")
+			(value "M3")
+			(footprint "aiee:MountingHole_3.2mm_M3_Pad_5.0mm")
+			(datasheet "N/A - generic M3 clearance hole (mechanical standard feature, not a sourced/purchased part); no manufacturer datasheet applies.")
+			(description "aiee local M3 clearance mounting hole, pad-diameter-reduced clone of stock MountingHole:MountingHole_3.2mm_M3_Pad (3.2mm drill unchanged, pad 6.4mm->5.0mm, 0.9mm annular ring) so H1-H3 can flank R1 on this board's 26x20mm outline - LEARNINGS 2026-08-09 [placement][geometry][python].")
+			(fields
+				(field
+					(name "Footprint") "aiee:MountingHole_3.2mm_M3_Pad_5.0mm")
+				(field
+					(name "Datasheet") "N/A - generic M3 clearance hole (mechanical standard feature, not a sourced/purchased part); no manufacturer datasheet applies.")
+				(field
+					(name "Description") "aiee local M3 clearance mounting hole, pad-diameter-reduced clone of stock MountingHole:MountingHole_3.2mm_M3_Pad (3.2mm drill unchanged, pad 6.4mm->5.0mm, 0.9mm annular ring) so H1-H3 can flank R1 on this board's 26x20mm outline - LEARNINGS 2026-08-09 [placement][geometry][python].")
+			)
+			(libsource
+				(lib "Mechanical")
+				(part "MountingHole_Pad")
+				(description "Mounting Hole with connection")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "rf-term-150w.kicad_sch")
+			)
+			(property
+				(name "exclude_from_bom")
+			)
+			(property
+				(name "ki_keywords")
+				(value "mounting hole")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "MountingHole*Pad*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "8ac2b1ad-b141-4abc-8278-c5915d4fd196")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "H3")
+			(value "M3")
+			(footprint "aiee:MountingHole_3.2mm_M3_Pad_5.0mm")
+			(datasheet "N/A - generic M3 clearance hole (mechanical standard feature, not a sourced/purchased part); no manufacturer datasheet applies.")
+			(description "aiee local M3 clearance mounting hole, pad-diameter-reduced clone of stock MountingHole:MountingHole_3.2mm_M3_Pad (3.2mm drill unchanged, pad 6.4mm->5.0mm, 0.9mm annular ring) so H1-H3 can flank R1 on this board's 26x20mm outline - LEARNINGS 2026-08-09 [placement][geometry][python].")
+			(fields
+				(field
+					(name "Footprint") "aiee:MountingHole_3.2mm_M3_Pad_5.0mm")
+				(field
+					(name "Datasheet") "N/A - generic M3 clearance hole (mechanical standard feature, not a sourced/purchased part); no manufacturer datasheet applies.")
+				(field
+					(name "Description") "aiee local M3 clearance mounting hole, pad-diameter-reduced clone of stock MountingHole:MountingHole_3.2mm_M3_Pad (3.2mm drill unchanged, pad 6.4mm->5.0mm, 0.9mm annular ring) so H1-H3 can flank R1 on this board's 26x20mm outline - LEARNINGS 2026-08-09 [placement][geometry][python].")
+			)
+			(libsource
+				(lib "Mechanical")
+				(part "MountingHole_Pad")
+				(description "Mounting Hole with connection")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "rf-term-150w.kicad_sch")
+			)
+			(property
+				(name "exclude_from_bom")
+			)
+			(property
+				(name "ki_keywords")
+				(value "mounting hole")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "MountingHole*Pad*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "2373d6f1-daa7-4bd9-b8a2-2cedca70a17f")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "J1")
+			(value "SMA")
+			(footprint "aiee:SMA_BAT_Wireless_BWSMA-KWE-Z001")
+			(datasheet "boards/rf-term-150w/research/SMA-KWE_LianXin_datasheet.pdf")
+			(fields
+				(field
+					(name "MPN") "SMA-KWE")
+				(field
+					(name "Manufacturer") "Lian Xin Technology")
+				(field
+					(name "LCSC") "C7498154")
+				(field
+					(name "Footprint") "aiee:SMA_BAT_Wireless_BWSMA-KWE-Z001")
+				(field
+					(name "Datasheet") "boards/rf-term-150w/research/SMA-KWE_LianXin_datasheet.pdf")
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Connector")
+				(part "Conn_Coaxial")
+				(description "coaxial connector (BNC, SMA, SMB, SMC, Cinch/RCA, LEMO, ...)")
+			)
+			(property
+				(name "MPN")
+				(value "SMA-KWE")
+			)
+			(property
+				(name "Manufacturer")
+				(value "Lian Xin Technology")
+			)
+			(property
+				(name "LCSC")
+				(value "C7498154")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "rf-term-150w.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "BNC SMA SMB SMC LEMO coaxial connector CINCH RCA MCX MMCX U.FL UMRF")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "*BNC* *SMA* *SMB* *SMC* *Cinch* *LEMO* *UMRF* *MCX* *U.FL*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "b0c6c7a2-905f-45c5-b2df-d0203e213a93")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R1")
+			(value "50R 250W")
+			(footprint "aiee:R_LapPad_T50R0-250-12X")
+			(datasheet "boards/rf-term-150w/research/T50R0-250-12X_Vishay-Barry_datasheet.pdf")
+			(fields
+				(field
+					(name "MPN") "T50R0-250-12X")
+				(field
+					(name "Manufacturer") "Vishay Intertechnology (Barry Industries)")
+				(field
+					(name "DigiKey") "4353-T50R0-250-12X-ND")
+				(field
+					(name "Footprint") "aiee:R_LapPad_T50R0-250-12X")
+				(field
+					(name "Datasheet") "boards/rf-term-150w/research/T50R0-250-12X_Vishay-Barry_datasheet.pdf")
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "rf-term-150w")
+				(part "R_Flange")
+				(description "50 ohm 250W BeO flanged RF termination (Vishay/Barry T50R0-250-12X). Off-board part: resistor body bolts to an external heatsink beside the PCB; only the RF tab and the flange's 2x GND ground-bond straps reach the PCB. This symbol is 2-PIN, matching the 3-pad footprint (pad 2 is duplicated x2 on the same pin/net, one strap land each side of the RF pad): pin 1 = RF (the tab lap pad), pin 2 = GND (the flange, reaching PCB GND ONLY through the two soldered copper straps - state.json decision 'Adopt architect B3'). The bolted flange-to-heatsink joint is explicitly NOT an electrical path (thermal/mechanical only) - see parts/T50R0-250-12X.json and the footprint's own descr for the full citation.")
+			)
+			(property
+				(name "MPN")
+				(value "T50R0-250-12X")
+			)
+			(property
+				(name "Manufacturer")
+				(value "Vishay Intertechnology (Barry Industries)")
+			)
+			(property
+				(name "DigiKey")
+				(value "4353-T50R0-250-12X-ND")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "rf-term-150w.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "RF termination flange BeO 50ohm off-board")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "R_LapPad_T50R0*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "cc431ed0-9ab0-4ed1-bff2-ce6388c2ba1d")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+	)
+	(groups)
+	(variants)
+	(libparts
+		(libpart
+			(lib "Connector")
+			(part "Conn_Coaxial")
+			(description "coaxial connector (BNC, SMA, SMB, SMC, Cinch/RCA, LEMO, ...)")
+			(footprints
+				(fp "*BNC*")
+				(fp "*SMA*")
+				(fp "*SMB*")
+				(fp "*SMC*")
+				(fp "*Cinch*")
+				(fp "*LEMO*")
+				(fp "*UMRF*")
+				(fp "*MCX*")
+				(fp "*U.FL*")
+			)
+			(fields
+				(field
+					(name "Reference") "J")
+				(field
+					(name "Value") "Conn_Coaxial")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "coaxial connector (BNC, SMA, SMB, SMC, Cinch/RCA, LEMO, ...)")
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "In")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "Ext")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "Mechanical")
+			(part "MountingHole_Pad")
+			(description "Mounting Hole with connection")
+			(footprints
+				(fp "MountingHole*Pad*")
+			)
+			(fields
+				(field
+					(name "Reference") "H")
+				(field
+					(name "Value") "MountingHole_Pad")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "Mounting Hole with connection")
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "1")
+					(type "input")
+				)
+			)
+		)
+		(libpart
+			(lib "aiee")
+			(part "5602")
+			(description "NEW C1 PRIMARY (state.json P3 decision, 2026-08-09, supersedes BFC280811339): Johanson 5602 air-dielectric trimmer, 1-30pF 250VDC(500VDC test) -65/+125C, Q>800@100MHz, top screwdriver-slot adjust, panel/PCB-mount threaded case + separate lead. Chosen over BFC280811339 because -65/+125C clears this board's 74-88C flange-adjacent operating range under 150W CW where the retired PP-film part's -40/+70C category temperature does not. NET ASSIGNMENT IS PHYSICAL (state.json P3 decision, 2026-08-09), not a rotor/stator inference: Pin 1=STATOR (case/thread/hex-collar assembly) -> GND. Pin 2=ROTOR (separate insulated lead wire) -> RF. A panel-mount trimmer's case is engineered to pass through a grounded metal panel, so the case is the ground-compatible terminal by construction, and it is also the only terminal a hand or tool actually brushes during tuning - so it must be grounded whatever its internal (rotor/stator) role is. See parts/5602.json and the footprint's own descr for the full reasoning.")
+			(docs "https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/6592/KnowlesTrimmersCatalogueweb177409287.pdf")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "5602")
+				(field
+					(name "Footprint") "aiee:CAP-ADJ-TH_2P-BD7.5_5602")
+				(field
+					(name "Datasheet") "https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/6592/KnowlesTrimmersCatalogueweb177409287.pdf")
+				(field
+					(name "Description") "NEW C1 PRIMARY (state.json P3 decision, 2026-08-09, supersedes BFC280811339): Johanson 5602 air-dielectric trimmer, 1-30pF 250VDC(500VDC test) -65/+125C, Q>800@100MHz, top screwdriver-slot adjust, panel/PCB-mount threaded case + separate lead. Chosen over BFC280811339 because -65/+125C clears this board's 74-88C flange-adjacent operating range under 150W CW where the retired PP-film part's -40/+70C category temperature does not. NET ASSIGNMENT IS PHYSICAL (state.json P3 decision, 2026-08-09), not a rotor/stator inference: Pin 1=STATOR (case/thread/hex-collar assembly) -> GND. Pin 2=ROTOR (separate insulated lead wire) -> RF. A panel-mount trimmer's case is engineered to pass through a grounded metal panel, so the case is the ground-compatible terminal by construction, and it is also the only terminal a hand or tool actually brushes during tuning - so it must be grounded whatever its internal (rotor/stator) role is. See parts/5602.json and the footprint's own descr for the full reasoning.")
+				(field
+					(name "Manufacturer") "Johanson Manufacturing Corp. (Knowles Precision Devices)")
+				(field
+					(name "MPN") "5602")
+				(field
+					(name "Distributor PN") "DigiKey 1956-1000-ND (not carried at LCSC - DigiKey-only sourcing)")
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "STATOR")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "ROTOR")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "rf-term-150w")
+			(part "R_Flange")
+			(description "50 ohm 250W BeO flanged RF termination (Vishay/Barry T50R0-250-12X). Off-board part: resistor body bolts to an external heatsink beside the PCB; only the RF tab and the flange's 2x GND ground-bond straps reach the PCB. This symbol is 2-PIN, matching the 3-pad footprint (pad 2 is duplicated x2 on the same pin/net, one strap land each side of the RF pad): pin 1 = RF (the tab lap pad), pin 2 = GND (the flange, reaching PCB GND ONLY through the two soldered copper straps - state.json decision 'Adopt architect B3'). The bolted flange-to-heatsink joint is explicitly NOT an electrical path (thermal/mechanical only) - see parts/T50R0-250-12X.json and the footprint's own descr for the full citation.")
+			(docs "boards/rf-term-150w/research/T50R0-250-12X_Vishay-Barry_datasheet.pdf")
+			(footprints
+				(fp "R_LapPad_T50R0*")
+			)
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "50R0")
+				(field
+					(name "Footprint") "aiee:R_LapPad_T50R0-250-12X")
+				(field
+					(name "Datasheet") "boards/rf-term-150w/research/T50R0-250-12X_Vishay-Barry_datasheet.pdf")
+				(field
+					(name "Description") "50 ohm 250W BeO flanged RF termination (Vishay/Barry T50R0-250-12X). Off-board part: resistor body bolts to an external heatsink beside the PCB; only the RF tab and the flange's 2x GND ground-bond straps reach the PCB. This symbol is 2-PIN, matching the 3-pad footprint (pad 2 is duplicated x2 on the same pin/net, one strap land each side of the RF pad): pin 1 = RF (the tab lap pad), pin 2 = GND (the flange, reaching PCB GND ONLY through the two soldered copper straps - state.json decision 'Adopt architect B3'). The bolted flange-to-heatsink joint is explicitly NOT an electrical path (thermal/mechanical only) - see parts/T50R0-250-12X.json and the footprint's own descr for the full citation.")
+				(field
+					(name "MPN") "T50R0-250-12X")
+				(field
+					(name "Manufacturer") "Vishay Intertechnology (Barry Industries)")
+				(field
+					(name "Distributor PN") "DigiKey 4353-T50R0-250-12X-ND (not stocked at LCSC)")
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "RF")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "GND")
+					(type "passive")
+				)
+			)
+		)
+	)
+	(libraries
+		(library
+			(logical "Connector")
+			(uri "${KICAD10_SYMBOL_DIR}/Connector.kicad_sym")
+		)
+		(library
+			(logical "Mechanical")
+			(uri "${KICAD10_SYMBOL_DIR}/Mechanical.kicad_sym")
+		)
+		(library
+			(logical "aiee")
+			(uri "${KIPRJMOD}/../lib/aiee.kicad_sym")
+		)
+		(library
+			(logical "rf-term-150w")
+			(uri "${KIPRJMOD}/../lib/rf-term-150w.kicad_sym")
+		)
+	)
+	(nets
+		(net
+			(code "1")
+			(name "/RF")
+			(class "Default")
+			(node
+				(ref "C1")
+				(pin "2")
+				(pinfunction "ROTOR_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "J1")
+				(pin "1")
+				(pinfunction "In_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R1")
+				(pin "1")
+				(pinfunction "RF_1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "2")
+			(name "GND")
+			(class "Default")
+			(node
+				(ref "C1")
+				(pin "1")
+				(pinfunction "STATOR_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "H1")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "input")
+			)
+			(node
+				(ref "H2")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "input")
+			)
+			(node
+				(ref "H3")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "input")
+			)
+			(node
+				(ref "J1")
+				(pin "2")
+				(pinfunction "Ext_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R1")
+				(pin "2")
+				(pinfunction "GND_2")
+				(pintype "passive")
+			)
+		)
+	)
+)
