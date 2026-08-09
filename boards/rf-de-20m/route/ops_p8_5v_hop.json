@@ -1,0 +1,16 @@
+{
+ "version": 1,
+ "_note": "P8 fix a2 - move the one +5V segment that CUT the +40V F.Cu bus strip (y 31..34.2 board-local) onto In2, and widen the +5V_DRV In2 hop to meet IPC-2152 at 0.3 A. Coordinates absolute; board outline origin (6.635, 39.335).",
+ "ops": [
+  {"op": "remove", "uuid": "dd1db0c9-d2d0-4ee8-a86c-13a492eab726"},
+  {"op": "add_track", "start": [23.506, 67.189], "end": [25.885, 69.568],
+   "width": 0.2, "layer": "F.Cu", "net": "+5V"},
+  {"op": "add_via", "at": [25.885, 69.568], "size": 0.45, "drill": 0.2, "net": "+5V"},
+  {"op": "add_via", "at": [30.867, 74.55], "size": 0.45, "drill": 0.2, "net": "+5V"},
+  {"op": "add_track", "start": [25.885, 69.568], "end": [30.867, 74.55],
+   "width": 0.4, "layer": "In2.Cu", "net": "+5V"},
+  {"op": "remove", "uuid": "c384b588-5845-4e66-a282-df8e88091a45"},
+  {"op": "add_track", "start": [29.7, 61.1], "end": [29.9, 62.4],
+   "width": 0.4, "layer": "In2.Cu", "net": "+5V_DRV"}
+ ]
+}

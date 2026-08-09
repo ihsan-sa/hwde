@@ -1064,3 +1064,109 @@ supplied the 10R candidate has no 6R8 at all. **Check availability at the value 
 to choose, not after** - the E24 gap between 4R7 and 10R is thinly stocked in the 250 mW class,
 and a 125 mW 0805 does not qualify either (it derates to ~96 mW at a 90 C local board, against
 0.107 W of actual dissipation).
+
+## 2026-08-08 [P8][check_current][pipeline] `pour_neck` tests ONE zone at a time and only where vias land - so it can miss the bus entirely and flag a dead-end stub instead
+
+The worst finding of the P8 verify pass, and the check pointed the fixer at the wrong copper.
+
+`check_current.pour_neck` erodes **`z.fill_on(layer)` - a single zone's own fill** - and only
+runs at all when that fill contains **>= 2 vias of the net** (`len(pts) < 2 -> return None`).
+Both halves bite on any real power bus:
+
+1. **Per-zone, not per-net.** `planes_gen` decomposes a bus into abutting rectangles. Each is
+   eroded on its own, so a 4.7 mm column abutting a 3.2 mm strip abutting a 24 mm block reports
+   whichever rectangle happens to hold vias, at ITS width - not the width of the conductor.
+2. **Only where vias land.** On rf-de-20m the true bottleneck was the x 46..51 / y 34..56
+   corridor, pinched to **2.295 mm** by R104 and to 2.25 mm by a `/hk/BUCK_SW` horizontal.
+   Those zones hold no vias, so `check_current` said nothing about them. What it DID flag was a
+   3.16 mm neck in the y 31..34.2 strip - which was carrying **zero current**, because a single
+   0.200 mm `+5V` track crossed it diagonally and cut the fill in two. The finding was real
+   arithmetic about copper that did not conduct.
+3. **No parallel-path awareness.** `undersized_track` carries a `bridge` (cut-edge) label;
+   `pour_neckdown` carries nothing equivalent, so a neck in one of two parallel branches reads
+   the same as a neck in a sole path.
+
+**What to do instead when a pour_neckdown fires on a bus that matters:** solve the copper.
+`route/bus_solve.py` + `route/bus_cuts.py` in this workspace rasterise the net's copper on both
+outer layers at 0.25 mm, tie the layers at the net's vias, inject the rail current at its source
+pad and draw it at its sink pad, and report bus resistance, the current in each branch, and the
+section-average A/mm with its IPC-2152-equivalent width. It is ~60 lines of scipy on top of
+`lib/geom` and it runs in 8 s on a 120 x 80 mm board. It found a 10.4 mOhm / 369 mW bus with a
+60-76 C hot spot that the gate had scored as one 3.16 mm neck in a stub, and it proved the fix:
+5.5 mOhm, 196 mW, every section at 1.19-1.32 A/mm against the 1.273 A/mm that IS 5.500 mm at
+7.0 A. **This is skill-level, not board-level** - promote with the numbers.
+
+**Corollary, and it is the cheapest lesson here:** a single 0.2 mm signal track laid across a
+poured power bus severs it, silently. Nothing in the pipeline reports it - the net stays
+"connected" through the long way round, DRC is clean, `plane_repair` passes (each fill is
+electrically whole), and the island count does not change because the bus reconnects elsewhere.
+**After any signal-routing pass, re-check that each power pour's fill is still ONE piece between
+its source and its load** (`zones_of(net)` -> per-zone fill part count is the cheap version).
+
+## 2026-08-08 [P8][kicad][swig] The "via takes the zone's net" trap is NON-DETERMINISTIC when the outer layers already carry the via's own net
+
+Extends the P7 entry above. There the case was clean - a `+40V` via into a board where GND owned
+every plane - and it failed every time. At P8 the new bridge vias landed where **F.Cu and B.Cu
+were both already `+40V` fill** and only In1/In2 were GND, i.e. 3 of 4 layers agreed with the op.
+It still failed, and it failed *differently each time*:
+
+| batch | vias | lost |
+|---|---|---|
+| 8 vias at local x 50.1..43.8, y 31.3 | 8 | 1 (the x 50.1 one, whose centre sat 0.005 mm OUTSIDE the +40V fill) |
+| the same 8 shifted one pitch west (49.2..42.9) | 8 | **4**, three of them at x-positions that had just SUCCEEDED |
+
+So "is the via inside the target fill?" is necessary but not sufficient, and a passing attempt
+does not predict the next one. `route_edit` is atomic and post-verifies every add, so both
+attempts rolled back with the board byte-identical - the trap costs a retry, never a board.
+
+**Only reliable procedure, and it is cheap:** strip every `(filled_polygon ...)` block from the
+`.kicad_pcb` (paren-matched delete; the outlines in `(polygon ...)` stay), apply the ops on the
+bare board, then `kicad-cli pcb drc --refill-zones --save-board`. That is the P7 build order
+(`route/rebuild.sh` step 1) reached from the other direction: **you do not need the whole board
+bare, you need the FILLS gone.**
+
+Second-order, worth knowing before choosing via positions: a via whose CENTRE is 0.005 mm outside
+the pour still reads as "connected" by eye and in DRC (its pad merges with the fill), but KiCad's
+net derivation does not use the pad - it uses the centre. Check `net_copper(net, layer).contains(
+Point(via.at))`, not `.intersects(via_pad)`.
+
+## 2026-08-08 [P8][check_thermal][check_silk] Two P8 checks whose WINDOW, not whose model, produces the finding
+
+Both cost a fixer a wrong conclusion if the source is not read.
+
+- **`check_thermal` counts thermal vias inside `max(2.0, sqrt(pad_hull_area/pi) + 1.5)` of the
+  footprint CENTROID.** For an EPC2019 the pad convex hull is 1.84 mm2, so the window is
+  **2.27 mm** - smaller than the via array it is asking for. It reported "found 3 via(s), want
+  >= 10"; the board actually carries **9 within 4.0 mm of each FET centroid**. Measure the array
+  yourself before believing the count. (Its theta_JA model is separately heatsink-blind by
+  design - `theta_floor + (theta_0-theta_floor).exp(-A/tau)`, copper area is the only input, no
+  heatsink/TIM/airflow term exists in the module. Its own docstring says "a screen, not a
+  sign-off ... +/-30 %".)
+- **`check_silk`'s attribution rule is a two-sided constraint** (> 1.0 mm from its own pads AND
+  < 1.0 mm from another part's) and on a dense cluster it can be **unsatisfiable**. A grid search
+  over every position within 4 mm of each part found **zero** legal positions for R203 here, 3
+  for C202 and 6 for R204 - so "scripted fix: place_edit.py move_text" is not always available,
+  and moving the five that CAN move would leave the sixth flagged while risking new
+  `silk_over_copper` on a board whose DRC residual is signed off. Run the feasibility search
+  before promising the fix.
+
+## 2026-08-08 [P8][check_return_path] `k x trace_width` makes a POUR FAN-IN LAND look like a 71 mm-wide return-path defect
+
+`check_return_path` buffers a net's centreline by `k x width` (k = 3 by default). That is the
+right model for a trace whose length greatly exceeds its width. It is the wrong model for the
+short, full-width land track that `remediations/track_width.md` step 4 MANDATES to fan a pour
+into a pad - the same construct that wedges Freerouting (entry above).
+
+Here /SW's L301 terminal land is **11.894 mm wide and 1.200 mm long**, so its corridor is
+1.2 x 71.4 mm: **27 % of the reported 81.29 mm2 deficit is off the board entirely** (the corridor
+runs 18 mm past the north edge), and the rest is the deliberately plane-free magnetics zone.
+Meanwhile the check never looks at the /SW **pour** at all - `corridor_on` reads `tracks_of()`
+only - which is where the switching loop actually lives and which measured **96.13 % imaged on
+In1**, with C203-C206 and L202.1 at 100 %.
+
+**Practical rule: before treating a `corridor_void` as a defect, check the aspect ratio of the
+track that produced it.** If width >= length, the corridor is a modelling artefact; measure the
+real thing instead - `net_copper(sig, layer).difference(net_copper(ref, ref_layer))` over the
+POUR, and the partial-inductance increment of the unimaged section
+(`mu0.h.l/w` with an image vs `(mu0.l/2pi)[ln(2l/(w+t)) + 0.5 + 0.2235(w+t)/l]` without). Here
+that was 0.031 nH vs 0.268 nH, i.e. **+0.24 nH on a 164 nH inductor - 0.15 %**.

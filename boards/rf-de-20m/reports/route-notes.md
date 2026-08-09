@@ -494,3 +494,74 @@ efficiency for no damping benefit.
 | `route/finish_signals.py` | the hand-routed remainder + FR's rejects |
 | `route/fr2/`, `route/fr3/` | probe and production working dirs + Freerouting logs |
 | `route/drc2.json` | the final DRC (55, all waiver candidates) |
+
+---
+
+## 16. P8 ADDENDUM - the copper the verify fixer changed (2026-08-08)
+
+Five copper edits and one zone-outline edit, applied at P8 to close two
+`check_current` errors and the +40V ampacity problem underneath them. Full
+analysis, measurements and the residual waiver tables: **`reports/verify-waivers.md`**.
+`drc_routed` after the pass is **55, unchanged and identical class-by-class**;
+`route/verify_geom.py` still PASSes (B.Cu GND one 5999 mm2 island x 0.3..119.7,
+In1/In2 zero pour under either spiral); the tank pours' added shunt capacitance
+moved by +0.02 pF on TANK_A and by nothing at all elsewhere, so the s7 populate
+recommendation is untouched.
+
+### 16.1 The bus strip was a DEAD END, and that is what s3 missed
+
+s3 declares the +40V F.Cu path as "left column -> bottom sweep east -> north past
+the buck", with a second rung at board-local `y 31.0..34.2` running x 16.2..51.0
+straight into the B.Cu bridge's south via field. **That rung never conducted.**
+The `+5V` leg that s11 routed "west and north" for `L101.2 -> C109.1` crosses it
+diagonally at x 20.0..23.2 (one 0.200 mm track, uuid `dd1db0c9`), splitting the
+fill in two, so 100 % of the bus current took the long way round through the
+x 46..51 corridor past the buck - where R104 pinches the pour to **2.50 mm** and
+the `/hk/BUCK_SW` horizontal at y 56.2 pinches it to **2.25 mm**, against a
+5.500 mm IPC-2152 requirement at 7.0 A.
+
+Measured with a 2-D resistive-sheet solve of the actual copper
+(`route/bus_solve.py`, `route/bus_cuts.py`):
+
+| | before | after |
+|---|---|---|
+| bus R, J101 -> L201, copper at 100 C | 10.393 mOhm | **5.508 mOhm** |
+| dissipation at 5.96 A | 369 mW | **196 mW** |
+| current in the y 31..34.2 rung | **0 A** | **4.02 A** of 7.0 |
+| R104 pinch (2.50 mm) | 2.800 A/mm, dT ~60 C | 1.192 A/mm, dT ~8.6 C |
+| BUCK_SW crossing (2.25 mm) | 3.111 A/mm, dT ~76 C | 1.324 A/mm, dT ~10.9 C |
+| worst section, equivalent width | 2.25 mm | **5.29 mm** (req. 5.500) |
+
+### 16.2 What was built
+
+| file | what |
+|---|---|
+| `route/ops_p8_5v_hop.json` | `dd1db0c9` deleted; `+5V` now hops the bus strip on **In2** (0.4 mm, vias at local (19.250, 30.233) and (24.232, 35.215), both >= 0.54 mm clear of the +40V pour). Same batch widens the `+5V_DRV` In2 hop under the OUTL wrap 0.200 -> 0.400 mm (0.3 A needs 0.345 mm on 0.5 oz inner). |
+| *(zone outline, edited in place)* | the bus strip zone `(16.2, 31.0, 51.0, 34.2)` becomes a stepped polygon: `y 31.0..34.2` for x 16.2..41.0, `y 29.0..35.6` for x 41.0..41.8, **`y 28.4..35.6` for x 41.8..50.4**. North edge 28.4 keeps 0.8 mm (`aiee_hv_143v_SW`) to the /SW pour, which ends at y 27.5; the 29.0 step clears a GND stitch via at (40.987, 28.138). There is no pipeline op for a zone-outline edit - the board was refilled with `kicad-cli pcb drc --refill-zones --save-board` and re-verified. |
+| `route/ops_p8_bridge_vias.json` | second via row at local y 31.3 (0.9 mm pitch): the bridge's south transition goes **8 -> 16** vias against `ceil(7.0/0.5) = 14`. |
+| `route/ops_p8_via_move.json` | the 16th via moved (50.1, 32.2) -> (42.9, 30.4); at x 50.1 the pour is clipped to a 0.46 mm tongue by TANK_A's 0.8 mm HV clearance. |
+| `route/bus_solve.py`, `route/bus_cuts.py` | the resistive-sheet solve above. `check_current` cannot produce these numbers: `pour_neck` only tests a zone holding >= 2 vias, and it tests each zone separately, so a bus poured as several abutting rectangles with parallel branches is invisible to it. |
+
+**Both via batches had to go onto an UNFILLED board.** On the poured board KiCad
+re-derived some of the new vias' nets from the In1/In2 GND plane even though 3 of
+the 4 layers under them were +40V, and the loss was **non-deterministic** (batch 1
+lost 1 of 8; the same 8 shifted one pitch west lost 4, three of them at
+x-positions that had just succeeded). `route_edit` is atomic and post-verified so
+both attempts rolled back cleanly. Procedure that works: strip every
+`(filled_polygon ...)` block, apply the ops, refill.
+
+**FAB NOTE, CARRY TO P9.** The two new `+5V` vias sit inside the bottom-heatsink
+contact land, joining the four `+5V_DRV` / `/stage/DRIVE` vias of s10. HS-2
+permits vias there but forbids **untented** ones. **Do not enable
+via-tenting-off at plot time.**
+
+### 16.3 What was NOT changed, and why
+
+- **The /SW -> L301 return-path finding is not a defect** and was not "fixed":
+  it is the 11.894 mm x 1.200 mm pour fan-in land at the edge of zone B, where
+  D4 forbids an inner plane. 27 % of the reported 81.29 mm2 deficit is off the
+  board; the /SW **pour** is 96.13 % imaged on In1 and C203-C206 and L202.1 are
+  100 % imaged; the unimaged land adds **0.24 nH**, 0.15 % of the 164 nH it
+  feeds. `verify-waivers.md` s1.2 carries the derivation.
+- **No rule was loosened.** The `.kicad_dru`, the netclasses and every
+  `constraints.json` current / dT / clearance are untouched.

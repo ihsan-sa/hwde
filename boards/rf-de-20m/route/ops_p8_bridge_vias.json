@@ -1,0 +1,14 @@
+{
+ "version": 1,
+ "_note": "P8 fix a2 - second row of +40V bridge vias at the SOUTH (board-local y 31.3) end of the B.Cu DC-bus bridge: 8 -> 16, against check_current's ceil(7.0 A / 0.5 A) = 14. 0.9 mm row pitch (hole-to-hole floor 0.7995 mm). The row is shifted one pitch WEST of the y=32.2 row because a via at board-local x 50.1 lands 0.005 mm OUTSIDE the +40V F.Cu fill and KiCad then re-derives its net from the In1/In2 GND plane (workspace LEARNINGS 2026-08-08 [P7][kicad][swig]). Coordinates absolute.",
+ "ops": [
+  {"op": "add_via", "at": [49.535, 70.635], "size": 0.6, "drill": 0.3, "net": "+40V"},
+  {"op": "add_via", "at": [50.435, 70.635], "size": 0.6, "drill": 0.3, "net": "+40V"},
+  {"op": "add_via", "at": [51.335, 70.635], "size": 0.6, "drill": 0.3, "net": "+40V"},
+  {"op": "add_via", "at": [52.235, 70.635], "size": 0.6, "drill": 0.3, "net": "+40V"},
+  {"op": "add_via", "at": [53.135, 70.635], "size": 0.6, "drill": 0.3, "net": "+40V"},
+  {"op": "add_via", "at": [54.035, 70.635], "size": 0.6, "drill": 0.3, "net": "+40V"},
+  {"op": "add_via", "at": [54.935, 70.635], "size": 0.6, "drill": 0.3, "net": "+40V"},
+  {"op": "add_via", "at": [55.835, 70.635], "size": 0.6, "drill": 0.3, "net": "+40V"}
+ ]
+}
