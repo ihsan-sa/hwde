@@ -3,9 +3,37 @@
  "board": "sbuck-5v3a",
  "workspace": "boards/sbuck-5v3a",
  "created": "2026-08-08T22:12:30",
- "updated": "2026-08-09T01:21:29",
+ "updated": "2026-08-09T02:14:05",
  "phase": "P3",
- "gates": {},
+ "gates": {
+  "erc": {
+   "phase": "P4",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-08-09T01:31:22",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0,
+    "inputs": {
+     "sch": "sexpr_no_uuid:b187a368ee958825025936286dbeb17c9b64b0d24aea625cbe466553897e6519",
+     "pro": "json_canonical:b5da9c4d80f80a326c20d10a6f85a62e666a88d75eb9583baeaed6646aaa0ec8"
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-09T01:31:22",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "sch": "sexpr_no_uuid:b187a368ee958825025936286dbeb17c9b64b0d24aea625cbe466553897e6519",
+      "pro": "json_canonical:b5da9c4d80f80a326c20d10a6f85a62e666a88d75eb9583baeaed6646aaa0ec8"
+     }
+    }
+   ]
+  }
+ },
  "human": {
   "1": {
    "status": "approved",
@@ -13,7 +41,20 @@
    "note": "DELEGATE approval under the brief's DECISION POLICY (no clarifying questions). Architecture, stackup, IC and constraint set accepted as written. User may still interject - nothing is fabricated yet."
   }
  },
- "artifacts": {},
+ "artifacts": {
+  "sch": {
+   "path": "kicad/sbuck-5v3a.kicad_sch",
+   "kind": "sch",
+   "sha256": "sexpr_no_uuid:b187a368ee958825025936286dbeb17c9b64b0d24aea625cbe466553897e6519",
+   "hashed": "2026-08-09T01:31:22"
+  },
+  "pro": {
+   "path": "kicad/sbuck-5v3a.kicad_pro",
+   "kind": "pro",
+   "sha256": "json_canonical:b5da9c4d80f80a326c20d10a6f85a62e666a88d75eb9583baeaed6646aaa0ec8",
+   "hashed": "2026-08-09T01:31:22"
+  }
+ },
  "open_issues": [],
  "next_issue_id": 1,
  "budgets": {
@@ -219,6 +260,60 @@
    "why": "J1, J2, R9, C16 are marked Variant=DNP (the only marking a generator can reach, ksa hard-codes (dnp no)); left unfiltered, P9 would ship four parts as populated including both hand-solder screw terminals",
    "phase": "P4",
    "ts": "2026-08-09T01:21:29"
+  },
+  {
+   "what": "DNP snubber upsized: R9 0603->1206, C16 1nF X7R->470pF C0G 1206",
+   "why": "Reviewer showed C*V^2*f = 162 mW at 18V (338 mW at the 26V ring) into an 0603 rated 0.1 W - a DNP footprint that destroys itself when populated is a trap; 470pF/1206 gives 76 mW into 0.25 W",
+   "phase": "P4",
+   "ts": "2026-08-09T01:56:12"
+  },
+  {
+   "what": "Loop calibration claim WITHDRAWN - the x0.83 realisation factor is not evidenced",
+   "why": "Reviewer read the vendor's Fig.29 and found C4=33pF IS fitted in the published Bode plot, so the author's 'PM 79-84 vs published 81.6' compared the wrong variant; design still passes at ~46-53 deg worst case vs the 45 deg floor, but the margin is smaller than P4 claimed and only a real loop measurement can close it",
+   "phase": "P4",
+   "ts": "2026-08-09T01:56:12"
+  },
+  {
+   "what": "Silkscreen connector labelling carried FORWARD to P6/P8 as a tracked requirement",
+   "why": "It is delegate Q30's ONLY mitigation for the swapped input/output failure mode (both terminals are identical 5.08mm 2-pin), and it is unreachable from a schematic generator - so it must not die in a P4 note",
+   "phase": "P4",
+   "ts": "2026-08-09T01:56:12"
+  },
+  {
+   "what": "Hot-plug inrush: 26V voltage declaration KEPT, current bounded by the damped path, residual risk accepted and documented",
+   "why": "The 0.05-ohm/180A row assumes an ALL-CERAMIC Cin; this board deliberately carries C4 at 80 mOhm ESR as a damping requirement, so that row is not our configuration. Keeping 26V is conservative for part ratings and costs nothing. Residual: AO4407A body-diode single-pulse capability is unpublished, so the peak cannot be closed from sourced data - and screw terminals are a wire-then-power connector, not a hot-plug one",
+   "phase": "P4",
+   "ts": "2026-08-09T01:56:35"
+  },
+  {
+   "what": "The clean ERC is WEAK evidence for U1 and must not be cited as pin-level proof",
+   "why": "Reviewer noted nearly every U1 pin is declared 'passive' in the pulled library, so ERC cannot catch a mis-wired IC pin here; the real pin-level evidence is the datasheet-extract cross-check and the reviewer's independent netlist read",
+   "phase": "P4",
+   "ts": "2026-08-09T01:56:35"
+  },
+  {
+   "what": "Load-step prediction restated as 181 mV (not 148 mV) against the 200 mV limit",
+   "why": "Reviewer applied the author's own 0.83 realisation factor consistently; also the 0->3A step starts in PFM which the CCM model does not cover, so P8 must treat 9.5% margin as the honest figure",
+   "phase": "P4",
+   "ts": "2026-08-09T01:56:35"
+  },
+  {
+   "what": "Load step accepted AT the 200 mV limit on the corrected reading (148 mV modelled); R5=75k stands, no rework",
+   "why": "Measured R5 sweep shows no value clears fc, PM and dV together - 82k and 91k FAIL phase margin, the binding requirement; and dV is mathematically invariant in COUT (fc scales 1/COUT so fc*COUT is constant), so buying more output capacitance would be pure cost for zero transient gain",
+   "phase": "P4",
+   "ts": "2026-08-09T02:14:05"
+  },
+  {
+   "what": "The fc 25-50 kHz target was an ORCHESTRATOR proxy, not a requirement - the 24.4 kHz floor is not a miss",
+   "why": "The real spec is 100 us recovery; at 24.4 kHz settling is 32.6 us, a 3.1x margin. Recorded so no later phase re-litigates a 2.4% shortfall against a number that was never the specification",
+   "phase": "P4",
+   "ts": "2026-08-09T02:14:05"
+  },
+  {
+   "what": "Loop compensation is the board's #1 bring-up bench item; R5/C2/C3 are three adjacent 0603 parts, re-tunable without a respin",
+   "why": "Every loop number rests on extrapolating a one-point vendor calibration onto a different circuit, and the vendor's published GM matches no reader-built model - only a bench Bode plot can close it",
+   "phase": "P4",
+   "ts": "2026-08-09T02:14:05"
   }
  ],
  "edits": [],
@@ -294,6 +389,12 @@
    "role": "librarian",
    "model": "sonnet",
    "phase": "P3"
+  },
+  {
+   "ts": "2026-08-09T01:56:12",
+   "role": "schematic-reviewer",
+   "model": "opus",
+   "phase": "P4"
   }
  ],
  "history": [
@@ -564,6 +665,65 @@
    "ts": "2026-08-09T01:21:29",
    "event": "decision",
    "what": "P9 BOM/CPL must filter DNP by the Variant field manually - no script in the skill reads any DNP mark"
+  },
+  {
+   "ts": "2026-08-09T01:31:22",
+   "event": "gate",
+   "gate": "erc",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-09T01:56:12",
+   "event": "spawn",
+   "role": "schematic-reviewer",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-09T01:56:12",
+   "event": "decision",
+   "what": "DNP snubber upsized: R9 0603->1206, C16 1nF X7R->470pF C0G 1206"
+  },
+  {
+   "ts": "2026-08-09T01:56:12",
+   "event": "decision",
+   "what": "Loop calibration claim WITHDRAWN - the x0.83 realisation factor is not evidenced"
+  },
+  {
+   "ts": "2026-08-09T01:56:12",
+   "event": "decision",
+   "what": "Silkscreen connector labelling carried FORWARD to P6/P8 as a tracked requirement"
+  },
+  {
+   "ts": "2026-08-09T01:56:35",
+   "event": "decision",
+   "what": "Hot-plug inrush: 26V voltage declaration KEPT, current bounded by the damped path, residual risk accepted and documented"
+  },
+  {
+   "ts": "2026-08-09T01:56:35",
+   "event": "decision",
+   "what": "The clean ERC is WEAK evidence for U1 and must not be cited as pin-level proof"
+  },
+  {
+   "ts": "2026-08-09T01:56:35",
+   "event": "decision",
+   "what": "Load-step prediction restated as 181 mV (not 148 mV) against the 200 mV limit"
+  },
+  {
+   "ts": "2026-08-09T02:14:05",
+   "event": "decision",
+   "what": "Load step accepted AT the 200 mV limit on the corrected reading (148 mV modelled); R5=75k stands, no rework"
+  },
+  {
+   "ts": "2026-08-09T02:14:05",
+   "event": "decision",
+   "what": "The fc 25-50 kHz target was an ORCHESTRATOR proxy, not a requirement - the 24.4 kHz floor is not a miss"
+  },
+  {
+   "ts": "2026-08-09T02:14:05",
+   "event": "decision",
+   "what": "Loop compensation is the board's #1 bring-up bench item; R5/C2/C3 are three adjacent 0603 parts, re-tunable without a respin"
   }
  ]
 }

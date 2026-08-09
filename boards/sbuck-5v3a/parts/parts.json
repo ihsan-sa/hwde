@@ -633,49 +633,64 @@
   {
    "ref_prefix_hint": "R",
    "block": "snubber",
-   "mpn": "0603WAF220JT5E",
-   "lcsc": "C23345",
-   "value": "22 ohm 1% (DNP)",
+   "mpn": "1206W4F220JT5E",
+   "lcsc": "C17958",
+   "value": "22 ohm 1%, 1206, 0.25W (DNP)",
    "qty_per_board": 1,
-   "package": "0603",
+   "package": "1206",
    "basic": true,
-   "stock": 10602705,
-   "price": 0.0038,
+   "stock": 776156,
+   "price": 0.0188,
    "price_breaks": [
-    {"qty": 1, "price": 0.0038}
+    {"qty": 1, "price": 0.0188},
+    {"qty": 500, "price": 0.0169},
+    {"qty": 1500, "price": 0.0157},
+    {"qty": 5000, "price": 0.0144},
+    {"qty": 25000, "price": 0.0139},
+    {"qty": 50000, "price": 0.0136}
    ],
-   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2206010100_UNI-ROYAL-Uniroyal-Elec-0603WAF220JT5E_C23345.pdf",
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2206010145_UNI-ROYAL-Uniroyal-Elec-1206W4F220JT5E_C17958.pdf",
    "brand": "UNI-ROYAL(Uniroyal Elec)",
    "attributes": [
     {"name": "Resistance", "value": "22Ohm"},
-    {"name": "Tolerance", "value": "+/-1%"}
+    {"name": "Tolerance", "value": "+/-1%"},
+    {"name": "Power(Watts)", "value": "250mW"},
+    {"name": "Voltage-Supply(Max)", "value": "200V"}
    ],
    "alternates": [],
-   "role": "R9, DNP RC snubber resistor across SW-PGND. Not vendor-sourced (no candidate datasheet publishes a snubber value); 22 ohm is the geometric-mean starting point of the 10-33 ohm bring-up range noted in blocks.md B9. DNP for assembly - footprint/BOM line only, populate later if bring-up needs it (schematic phase note in sheets.md s5 item 5: must exist in the netlist as DNP)."
+   "role": "R9, DNP RC snubber resistor across SW-PGND. PACKAGE UPSIZED FROM 0603 TO 1206 SPECIFICALLY SO THIS FOOTPRINT IS SAFE TO POPULATE AT BRING-UP: a schematic-phase review (independently verified) found the 0603 0.1W predecessor (C23345, retired) would be overstressed if anyone ever stuffed it - P = C*V^2*fsw with the paired 470pF snubber cap gives 76mW at 18V and 159mW at the 26V hot-plug ring, which is 30%/64% of this 1206 part's 250mW rating (vs 76-159% of the old 0603's 100mW rating - the old part would have cooked on the very first bring-up test that populates it). Keep this reasoning attached: a DNP footprint that traps whoever populates it later is a bug, not a placeholder. Still 22 ohm - unchanged, the geometric-mean starting point of the 10-33 ohm bring-up range in blocks.md B9, not disputed by the reviewer. Basic tier, huge stock. LIBRARY PROVENANCE (P3 librarian): straight EasyEDA pull, clean (no vendor-land conflict like F1 - the project had no 1206 resistor footprint at all yet). Symbol 1206W4F220JT5E, footprint aiee:R1206 (new - closes the R0603-but-no-R1206 gap), pads 1.208x1.701mm @ 2.96mm pitch (2.06mm2 each), courtyard present, kicad-cli load-check clean. Old symbol 0603WAF220JT5E (C23345) intentionally NOT pruned - it is still the live R9 lib_id in sbuck-5v3a.kicad_sch pending P4's rewire to this part."
   },
   {
    "ref_prefix_hint": "C",
    "block": "snubber",
-   "mpn": "CL10B102KB8NNNC",
-   "lcsc": "C1588",
-   "value": "1nF/50V X7R (DNP)",
+   "mpn": "CC1206JKNPOCBN471",
+   "lcsc": "C107177",
+   "value": "470pF/1kV C0G/NP0, 1206 (DNP)",
    "qty_per_board": 1,
-   "package": "0603",
-   "basic": true,
-   "stock": 10425047,
-   "price": 0.0072,
+   "package": "1206",
+   "basic": false,
+   "stock": 414159,
+   "price": 0.054,
    "price_breaks": [
-    {"qty": 1, "price": 0.0072}
+    {"qty": 1, "price": 0.054},
+    {"qty": 200, "price": 0.0473},
+    {"qty": 600, "price": 0.0435},
+    {"qty": 3000, "price": 0.0405},
+    {"qty": 9000, "price": 0.0385},
+    {"qty": 21000, "price": 0.0376}
    ],
-   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Samsung-Electro-Mechanics-CL10B102KB8NNNC_C1588.pdf",
-   "brand": "Samsung Electro-Mechanics",
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_YAGEO-CC1206JKNPOCBN471_C107177.pdf",
+   "brand": "YAGEO",
    "attributes": [
-    {"name": "Capacitance", "value": "1nF"},
-    {"name": "Voltage Rating", "value": "50V"},
-    {"name": "Temperature Coefficient", "value": "X7R"}
+    {"name": "Capacitance", "value": "470pF"},
+    {"name": "Voltage Rating", "value": "1kV (clears the >=50V P4/reviewer floor with 20x margin - the deepest-stock conforming SKU happens to be a high-voltage part; NP0/C0G value stability is set by dielectric formulation, not voltage-rating class, so this does not change the snubber corner)"},
+    {"name": "Temperature Coefficient", "value": "NP0 (=C0G)"},
+    {"name": "Tolerance", "value": "+/-5%"}
    ],
-   "alternates": [],
-   "role": "C16, DNP RC snubber capacitor across SW-PGND. 1nF is the midpoint of the 470pF-2.2nF bring-up range noted in blocks.md B9; not vendor-sourced, general practice only. X7R clears the all-MLCC-X7R rule even though DNP. DNP for assembly - footprint/BOM line only."
+   "alternates": [
+    {"mpn": "CC1206JRNPO9BN471", "lcsc": "C113885", "note": "same 470pF/NP0/1206, rated exactly at the 50V floor instead of 1kV if a closer-to-spec voltage rating is preferred; thinner stock (3105) but still clears >=2000"}
+   ],
+   "role": "C16, DNP RC snubber capacitor across SW-PGND. PACKAGE UPSIZED FROM 0603 TO 1206 AND VALUE HALVED FROM 1nF TO 470pF, PAIRED WITH R9's UPSIZE ABOVE FOR THE SAME REASON: the retired 1nF/0603 line (C1588) combined with any real snubber resistor dissipates 162mW at 18V / 338mW at the 26V ring per P=C*V^2*fsw - already over a 0603's typical 100mW rating before R9 is even considered. 470pF is the LOW end of the same 470pF-2.2nF bring-up range in blocks.md B9 (not a new value), and at 470pF the same formula gives 76mW at 18V / 159mW at 26V - safe continuous and safe on the transient against R9's 250mW rating above. C0G/NP0 is required, not X7R: this cap sees the full switch-node swing, and X7R's DC-bias/temperature coefficient would move the snubber's RC corner (same reasoning as C3's C0G choice) - the board-wide X7R rule is scoped to bulk/bypass MLCCs only, not compensation or snubber elements. DNP for assembly - footprint/BOM line only. LIBRARY PROVENANCE (P3 librarian): straight EasyEDA pull. The pull resolved to the SAME shared footprint aiee:C1206 already used by C5-C8 (C29823, 4.7uF/50V X7R) - confirmed NOT overwritten (its LCSC Part property still reads C29823, the original puller) and confirmed appropriate: 1206 EIA package geometry is dielectric/value-agnostic, so a 470pF C0G land is physically identical to a 4.7uF X7R land at the same EIA size. Pads 1.485x1.728mm @ 3.18mm pitch (2.57mm2 each), courtyard present, kicad-cli load-check clean; no separate land was built. Old symbol CL10B102KB8NNNC (C1588) intentionally NOT pruned - it is still the live C16 lib_id in sbuck-5v3a.kicad_sch pending P4's rewire to this part."
   }
  ]
 }

@@ -140,6 +140,12 @@ in 2.5), at R5 = 75k over the whole COUT band:
 (Both rows re-measured on the FINAL 105k/20.0k divider; the verdict is
 unchanged from the 115k/22.1k measurement the orchestrator approved.)
 
+The P4 reviewer put the feedforward variant STRONGER still: with no
+COMP-side pole to roll the compensator off, the loop is CONDITIONALLY
+UNSTABLE, not merely low-margin - |T| is still at or above unity where the
+phase reaches -180 deg.  The high phase margin it shows at crossover is
+exactly the trap: it is measured at the wrong frequency.
+
 So C3 is fitted as the Eq.19 COMP-to-GND pole.  Second reason: Eq.19's own
 answer (8.5 pF) is the same order as the COMP node's unavoidable stray
 (pin + trace, ~3-8 pF), so this pole exists whether or not a part is fitted
@@ -152,38 +158,92 @@ Net/placement impact of the move: NONE.  C3 goes from (+5V, /FB) to
 constraints.json's `fbcomp` group (anchor R6; members R7, C3, R5, C2) is
 unchanged and still correct - C3 still belongs tight to U1's FB/COMP corner.
 
---- 2.5 RESULT (model validated against the vendor's own Bode plot) --
+--- 2.5 RESULT, and an HONEST account of what the model is worth ----
 Model: peak-current-mode plant Zout(s)/RTsense with the Ridley sampling term
 He(s) = 1 - (2f/fs)^2 - j*pi*f/fs, Type-II gm compensator, FB divider with
-its optional feedforward.  Cross-check on the vendor's OWN worked example
-(R5=14k, C5=3.3n, C6=47p, C4=33p, COUT=30u, IOUT=3.5A): the model gives
-PM 79-84 deg against the datasheet's published 81.6 deg (Figs 29-31), and
-fc 19.8-22.3 kHz against their design target 20 kHz / simulated 16.6 kHz.
-So the model tracks the vendor's phase to ~3 deg and OVER-predicts fc by
-~15-20% - the same over-prediction the vendor's own Eq.17 shows against
-their own simulation.  Numbers below are the model's; the "x0.83" column
-applies that realisation factor.
+its optional feedforward.
+
+*** CORRECTION, P4 REVIEW 2026-08-09.  An earlier version of this file
+claimed the model was "validated against the vendor's own Bode plot" to
+~3 deg of phase, and carried an "x0.83 realisation factor" derived from that
+claim.  BOTH ARE WITHDRAWN.  The comparison was not like-for-like: it ran
+the model with the feedforward cap ABSENT, while the reviewer read Fig.29's
+plotted schematic and found C4 = 33 pF IS fitted there.  The x0.83 factor
+therefore had no evidence behind it and must not be reused. ***
+
+The like-for-like comparison, on the vendor's Fig.29-31 circuit with BOTH
+optional caps fitted (R5=14k, C5=3.3n, C6=47p, C4=33p, COUT=30u, IOUT=3.5A):
+
+                    this model      vendor published     model error
+    fc                22.3 kHz          16.6 kHz         +35%
+    phase margin     101.0 deg          81.6 deg         +19.4 deg
+    gain margin       -8.3 dB          -26.8 dB          +18.5 dB
+
+So the model is OPTIMISTIC on all three metrics against the only vendor data
+point available.  The table below is therefore a BEST CASE, and the
+"corrected" row applies those measured offsets (fc x0.743, PM -19.4 deg).
+Treat that row as a plausibility band, NOT as a second measurement: it
+extrapolates a one-point calibration taken at a different operating point
+(COUT 30 uF, IOUT 3.5 A, R5 14k, both optional caps fitted) onto a different
+circuit.  What IS established is the DIRECTION and the rough size of the
+error, which is what the design has to survive.
 
   CHOSEN: R5 = 75 k, C2 = 3.3 nF, C3 = 10 pF (COMP->GND).  IOUT 0.3-3.0 A.
   Measured on the FINAL feedback divider, R6 = 105k / R7 = 20.0k:
 
-    COUT (uF)     75.0        85.2        96.8      <- derating band
-    fc (model)   42.2 kHz    37.3 kHz    32.9 kHz
-    fc (x0.83)   35.1 kHz    30.9 kHz    27.3 kHz
-    phase margin 65.0-66.6   68.0-69.6   70.7-72.2  deg
-    |T| at fsw/2  -15.0 dB    -16.0 dB    -17.0 dB
-    with +5 pF COMP stray: fc 32.4-41.3 kHz, PM 62.0-68.3 deg
+    COUT (uF)          75.0        85.2        96.8   <- derating band
+    fc   (model)      42.2 kHz    37.3 kHz    32.9 kHz
+    fc   (corrected)  31.4 kHz    27.7 kHz    24.4 kHz
+    PM   (model)      65.0-66.6   68.0-69.6   70.7-72.2  deg
+    PM   (corrected)  45.6-47.2   48.6-50.2   51.3-52.8  deg
+    |T| at fsw/2      -15.0 dB    -16.0 dB    -17.0 dB   (model)
+    with +5 pF COMP stray: fc 32.4-41.3 kHz model, PM 62.0-68.3 deg model
 
-  >>> fc 27.3-42.2 kHz over the WHOLE band and both realisation readings,
-  >>> inside the required 25-50 kHz.  Phase margin 62.0-72.2 deg worst
-  >>> case, against the required >= 45 deg.  Gain margin beats the
-  >>> vendor's own < -10 dB target at every corner.
+  >>> PHASE MARGIN PASSES ON BOTH READINGS: 62.0-72.2 deg on the model,
+  >>> 45.6-52.8 deg corrected, against the >= 45 deg floor.  That is the
+  >>> requirement this task was set to meet and it is met either way.
+  >>> fc is 32.9-42.2 kHz on the model (inside 25-50 kHz) and 24.4-31.4 kHz
+  >>> corrected - i.e. the corrected floor lands 2.4% UNDER the 25 kHz
+  >>> target, at the 96.8 uF corner.  Called out rather than rounded away.
+  >>> See 2.5a for why this is not worth a value change.
 
   Load step, 0 -> 3.0 A:  dV = dI/(2*pi*fc*COUT), and 2*pi*fc*COUT =
   R5*gm*VFB/(RTsense*VOUT) is INVARIANT in COUT, so the excursion is set by
-  R5 alone: dV = 3.0 / (75e3*0.15e-3*0.8/(0.089*5)) = 148 mV against the
-  200 mV limit.  (The vendor's 14k would give 795 mV.)  Settling: 5/(2*pi*fc)
-  = 23-29 us at the worst corner, against the 100 us recovery spec.
+  R5 alone: dV = 148 mV on the model, and 148/0.743 = 200 mV applying the
+  correction consistently - i.e. AT the 200 mV limit, not inside it.
+  (The vendor's 14k would give 795 mV / 1070 mV.)  Settling 5/(2*pi*fc) =
+  23-33 us against the 100 us recovery spec, which passes with room on both
+  readings.  TWO CAVEATS ON THIS NUMBER, neither resolvable here: the 0 A
+  starting point is in PFM, which this CCM model does not describe at all;
+  and dV assumes the loop, not the capacitor, limits the excursion.
+
+--- 2.5a WHY R5 = 75 k STANDS ANYWAY -------------------------------
+The obvious reflex - raise R5 to lift fc and cut dV - makes the design
+WORSE, because a higher fc buys more sampling-pole lag.  Swept on the
+corrected reading (fc floor / PM floor / dV):
+
+    R5 = 75 k : 24.4 kHz / 45.6 deg / 200 mV    <- chosen
+    R5 = 82 k : 26.6 kHz / 44.1 deg / 183 mV    PM now FAILS the 45 floor
+    R5 = 91 k : 29.3 kHz / 39.9 deg / 165 mV    PM fails badly
+    R5 = 100 k: 31.9 kHz / 35.7 deg / 150 mV    PM fails badly
+
+No value of R5 clears fc, PM and dV simultaneously on the corrected
+reading; 75 k is the closest and is the only one that keeps phase margin -
+the binding requirement - above its floor.  Raising R5 trades a 2.4% fc
+miss for a phase-margin failure, which is the wrong direction.
+
+Two further reasons the residual is acceptable rather than a defect.
+(a) The dominant uncertainty on this board is NOT the loop model, it is the
+COUT derating estimate itself: section 2.2 is explicit that no vendor
+DC-bias curve exists for any MLCC here, and the [75.0, 96.8] uF band is a
++/-13% spread around its own mean.  A 2.4% fc miss and a 0% dV miss sit well
+inside that.  (b) The corrected fc floor occurs at the 96.8 uF corner, i.e.
+where the bank is LARGEST - the benign direction for a load step - while dV
+is invariant in COUT.  The two marginal readings do not stack at one corner.
+
+Escalation path if bring-up disagrees: R5 is one 0603 resistor and C2/C3 sit
+beside it, so the network is re-tunable on the bench without a respin - which
+is exactly why the DNP snubber and this network were kept as discrete parts.
 
   EFFECT OF THE 115k/22.1k -> 105k/20.0k DIVIDER CHANGE (P3 re-source, to
   put VOUT nominal on exactly 5.0000 V): the loop sees ONLY the DC feedback
@@ -342,13 +402,14 @@ S_C100N = "aiee:CC0603KRX7R9BB104"      # C1, C9
 S_C33N = "aiee:CL10B332KB8NNNC"         # C2 (Ccomp)
 S_C22U = "aiee:TCC1210X7R226K250MT"     # C10-C14
 S_C47U8 = "aiee:CC0805KKX7R7BB475"      # C15
-S_C1N = "aiee:CL10B102KB8NNNC"          # C16 (DNP snubber cap)
 S_R100K = "aiee:0603WAF1003T5E"
 S_R200K = "aiee:0603WAF2003T5E"
 S_R105K = "aiee:0603WAF1053T5E"
 S_R24K = "aiee:0603WAF2402T5E"
 S_R2K2 = "aiee:0603WAF2201T5E"
-S_R22R = "aiee:0603WAF220JT5E"          # DNP snubber R
+# DNP snubber, UPSIZED TO 1206 at P4 review (see the R9/C16 block below).
+S_R22R = "aiee:1206W4F220JT5E"          # 22R 1% 1206, 0.25 W
+S_C470P = "aiee:CC1206JKNPOCBN471"      # 470 pF C0G/NP0 1206, 1 kV
 S_FUSE = "Device:Fuse"                  # EDITS.md edit 2: stock symbol
 # Generic stock symbols for the four parts P4/P3 re-valued after the library
 # pull (R5, C3 re-derived here; R6, R7 re-sourced by P3).  The project lib has
@@ -365,6 +426,7 @@ S_HOLE = "Mechanical:MountingHole"      # ZERO pins, unplated -> GND-isolated
 
 # --------------------------------------------------------------- footprints
 F_R0603 = "aiee:R0603"
+F_R1206 = "aiee:R1206"                  # new at P4 review, for the upsized R9
 F_C0603 = "aiee:C0603"
 F_C0805 = "aiee:C0805"
 F_C1206 = "aiee:C1206"
@@ -393,7 +455,11 @@ LCSC = {
     "C2": "C1613", "R2": "C16840", "R3": "C23352", "L1": "C5298292",
     "C10": "C49118556", "C11": "C49118556", "C12": "C49118556",
     "C13": "C49118556", "C14": "C49118556", "C15": "C277499",
-    "D1": "C2297", "R8": "C4190", "R9": "C23345", "C16": "C1588",
+    "D1": "C2297", "R8": "C4190",
+    # DNP snubber, upsized to 1206 at the P4 review (was C23345 / C1588,
+    # both 0603 - the 0603 R9 would have burned if ever populated):
+    "R9": "C17958",          # 22R 1% 1206 0.25W  (1206W4F220JT5E)
+    "C16": "C107177",        # 470pF C0G/NP0 1206 (CC1206JKNPOCBN471)
     # P4 re-derivations (s2), sourced by P3 after the first P4 pass:
     "R5": "C23242",          # 75k 1% 0603   (was placeholder 14k C22803)
     "C3": "C106245",         # 10pF 50V C0G  (was placeholder 47pF C1671)
@@ -557,13 +623,32 @@ def build() -> schlib.Sheet:
         note="UVLO bottom, datasheet Eq.3 -> VOFF 5.33V, 0.90V hysteresis")
     # ---- B9 DNP snubber: must EXIST in the netlist so its pads, clearance
     # ---- and routing are accounted at P6/P7 (sheets.md s5 item 5).
-    add(S_R22R, "R9", "22R 1%", (_col(7), Y_CONV), F_R0603,
+    #
+    # UPSIZED TO 1206 AT THE P4 REVIEW.  An RC snubber dissipates C*V^2*fsw
+    # in its RESISTOR, all of it, every cycle - the R value does not appear.
+    # As first drawn (1 nF, 0603 rated 0.1 W) that is 1e-9 * 18^2 * 500e3 =
+    # 162 mW at the 18 V line and 1e-9 * 26^2 * 500e3 = 338 mW against the
+    # 26 V hot-plug ring: 1.6x and 3.4x over the part's own rating, i.e. the
+    # DNP part would burn if anyone ever populated it, which is the whole
+    # point of fitting the footprint.  Both parts move to 1206.
+    #
+    #   R9  22 R 1% 1206, 0.25 W   - SAME 22 R (geometric mean of blocks.md
+    #                                B9's documented 10-33 R range)
+    #   C16 470 pF C0G/NP0 1206    - LOW END of blocks.md B9's documented
+    #                                470 pF - 2.2 nF range, not a new value
+    #
+    # Now 470e-12 * 18^2 * 500e3 = 76 mW (30% of the 0.25 W rating) and
+    # 470e-12 * 26^2 * 500e3 = 159 mW on the transient.  C0G/NP0 matters as
+    # much as the value: an X7R here would lose capacitance under exactly
+    # the DC bias the snubber sees.  Both stay DNP.
+    add(S_R22R, "R9", "22R 1% 0.25W", (_col(7), Y_CONV), F_R1206,
         {"1": "SW", "2": "SNUBZ"}, dnp=True,
-        note="DNP snubber R across SW-PGND; 10-33R if ever fitted. No "
-             "vendor publishes a value - general practice only")
-    add(S_C1N, "C16", "1nF 50V X7R", (_col(8), Y_CONV), F_C0603,
+        note="DNP snubber R across SW-PGND, 1206 0.25W. 10-33R if ever "
+             "fitted. No vendor publishes a value - general practice only")
+    add(S_C470P, "C16", "470pF 1kV C0G", (_col(8), Y_CONV), F_C1206,
         {"1": "SNUBZ", "2": "GND"}, dnp=True,
-        note="DNP snubber C across SW-PGND; 470pF-2.2nF if ever fitted")
+        note="DNP snubber C across SW-PGND, 1206 C0G/NP0. 470pF is the low "
+             "end of the 470pF-2.2nF range; sets R9 dissipation to 76mW@18V")
 
     # ============================================================ B5/B6/B7
     # C10-C14: 5x 22uF/25V X7R 1210.  The LOAD STEP sizes this bank, not the

@@ -1,0 +1,81 @@
+{
+ "violations": [
+  {
+   "check": "schematic-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "/COMP",
+   "refs": ["R5", "C2", "C3", "U1"],
+   "msg": "The loop model's claimed calibration against the vendor Bode plot is not reproducible: re-running the same model class on the vendor's OWN worked example WITH its C4=33pF feedforward (Fig.29 p.21 fits it) gives fc 22.3 kHz / PM 101.0 deg / GM -8.3 dB against the datasheet's published 16.6 kHz / 81.6 deg / -26.8 dB, and the quoted 'PM 79-84 deg vs 81.6' is what the model gives with the feedforward OMITTED - so the 65-72 deg phase-margin claim for this board rests on an unvalidated calibration and could be ~19 deg optimistic (real PM ~46-53 deg, still over the 45 deg floor but with a fraction of the claimed margin).",
+   "source": "review.schematic",
+   "kind": "loop-model-calibration"
+  },
+  {
+   "check": "schematic-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "+5V",
+   "refs": ["R5", "C10", "C11", "C12", "C13", "C14"],
+   "msg": "The 148 mV load-step excursion is evaluated at the model's own un-derated crossover; applying the author's own x0.83 realisation factor to fc gives 181 mV against the 200 mV allowance (10% margin, not 26%), and the specified step is 0->3 A (delegate Q3) which starts in PFM with COMP clamped - a CCM small-signal model does not cover the PFM-exit delay, so the real excursion is >= 181 mV.",
+   "source": "review.schematic",
+   "kind": "load-step-margin"
+  },
+  {
+   "check": "schematic-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "/SW",
+   "refs": ["R9", "C16"],
+   "msg": "The DNP snubber values overstress R9 if the documented 'populate at bring-up' instruction is ever followed: P = C*V^2*fsw = 1nF * 18^2 * 500kHz = 162 mW into an 0603 (0603WAF220JT5E is rated 0.1 W) and still 72 mW at 12 V on a board whose local ambient is 80-87 C, where an 0603 is derated ~50% - drop C16 to 470 pF (76 mW at 18 V) or move R9 to an 0805.",
+   "source": "review.schematic",
+   "kind": "snubber-dissipation"
+  },
+  {
+   "check": "schematic-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "/VIN",
+   "refs": ["Q1", "C4"],
+   "msg": "The hot-plug inrush and the hot-plug overvoltage are computed at mutually inconsistent path resistances: research/power.md s6 takes I_pk=57 A from the R_path=0.30 Ohm row while constraints.json's binding 26 V node rating comes from the 0.05 Ohm row of the SAME table; at the 0.10 Ohm 'nominal' row the same formula gives min(18/0.10, 197) = 180 A and at 0.05 Ohm 197 A, i.e. 3x the AO4407A's published -60 A IDM absolute maximum, and the 'one to two orders inside SOA' defence compares against a power limit rather than against IDM, which is the binding rating here.",
+   "source": "review.schematic",
+   "kind": "inrush-vs-idm"
+  },
+  {
+   "check": "schematic-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "/QGATE",
+   "refs": ["Q1", "R1", "D2"],
+   "msg": "Q1's gate dv/dt immunity cannot be bounded from the sourced data: on a reverse-polarity hot-plug the drain steps to -Vin in well under a microsecond while R1*Ciss is ~300 us, so the gate follows the drain capacitively and Vgs momentarily reaches about -Vin*Crss/Ciss, which for a trench P-FET is of the order of the -1.7 V Vgs(th) minimum - and parts/C16072.json publishes Qg and Rg but NO Ciss/Crss/Coss, so this is unquantifiable as sourced. This is NOT a request for the gate RC sheets.md forbids (that decision is correct); the only lever is R1's value.",
+   "source": "review.schematic",
+   "kind": "gate-dvdt-immunity"
+  },
+  {
+   "check": "schematic-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "/EN",
+   "refs": ["R2", "R3", "F1", "Q1"],
+   "msg": "UVLO corner margins are thinner than decisions.md D2 states: the anti-motorboating argument counts only the 0.49 V cable drop, but R2 senses +VIN (post-fuse, post-FET) so the real series drop at 2.44 A is 0.49 + 0.049 (F1, 20 mOhm) + ~0.04 (Q1) = 0.58 V against 0.90 V of hysteresis - 0.32 V of margin, not 0.41 - and the worst-case VON with VEN_H at its 1.25 V maximum and 1% resistors is 6.67 V, only 0.33 V under the 7.0 V minimum rated input. Both sit inside SIM-2's declared window, so SIM-2 must actually be run.",
+   "source": "review.schematic",
+   "kind": "uvlo-corner-margin"
+  },
+  {
+   "check": "schematic-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "/VIN",
+   "refs": ["Q1"],
+   "msg": "A reverse-polarity HOT-PLUG rings against Q1's Coss with no capacitance anywhere on /VIN (C4 and the whole ceramic bank sit downstream of Q1, by design), so an 18 V reverse step into an undamped cable inductance can reach ~2x = 36 V against the AO4407A's -30 V BVdss minimum; the stored energy is ~0.2 uJ so the part avalanches harmlessly (IAR 26 A / EAR 101 mJ), but constraints.json's voltages[] declares only the forward 26 V case and this reverse case should be recorded as an accepted avalanche event rather than left undeclared.",
+   "source": "review.schematic",
+   "kind": "reverse-hotplug-bvdss"
+  }
+ ]
+}
