@@ -3066,3 +3066,19 @@ physical moved. Two consequences: (1) never treat a change in `area_mm2` as evid
 regression - `crossing_len_mm` is the physical number and it was byte-identical here; (2) waiver
 `reason` text that quotes an area is stale the moment any track width on that net changes, so quote
 the crossing length instead, or re-verify the areas after every re-route.
+
+## 2026-08-09 [spice][sim-analyst][rf] "Adding inductance is free or better" is a statement about being BELOW the null window, and it inverts the moment you act on it
+rf-term-150w's correction benches proved that at L = 7.21 nH with a fixed 4.7 pF port the trimmer
+bottomed out and was over-correcting, so more series L IMPROVED the match (+0.72 dB for the first
+7 nH at the binding +5% resistance corner). The board was then re-routed on that finding to 19.5 nH.
+Re-deriving the same benches shows the sign has flipped: the null is now interior, so every further
+nH only buys Reff = R + X^2/R, and 19.5 -> 30 nH now COSTS 0.74 dB at the same corner. The finding
+was never "inductance is free"; it was "you are below the window", and the fix consumed exactly the
+thing that made it true. Two rules: (1) a bench whose conclusion is a *gradient* (more X is better)
+must be re-derived, not re-run, after a change made in its direction - re-running it silently
+re-asserts a premise that the change deleted; (2) gate the gradient itself with a signed bound
+(`d_more30` max 0.0 here), so a revert that puts the board back below the window fails the gate
+instead of quietly restoring the old story. Related: the same re-derivation moved the WORST corner
+from "pessimistic parasitic + as-routed L" to "top of the residual band", so before/after deltas are
+only meaningful when you say which comparison they are (like-for-like +0.48 dB, worst-to-worst
++1.06 dB on the same re-route).

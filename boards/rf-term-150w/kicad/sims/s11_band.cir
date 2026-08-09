@@ -1,76 +1,102 @@
-* rf-term-150w - BENCH 1: return loss vs frequency, AS-ROUTED board, C1 at its
-*                         LOW STOP, swept over the port-parasitic uncertainty band
+* rf-term-150w - BENCH 1: return loss vs frequency, RE-ROUTED board
+*   48 builds = R {49, 50, 51, 52.5} x C_port {4.7, 5.4, 6.1, 6.5} pF
+*   x residual L {18.5, 19.5, 23.3} nH. C1 tuned to its best setting at
+*   Fc = 25.0 MHz and then FROZEN - the operator tunes ONCE, so the band
+*   numbers cannot be flattered by re-optimising per frequency point.
 *
 * SOURCE TOPOLOGY. The whole dynamic board is a one-port:
-*     PORT --+-- L_launch -- R_term -- GND (flange straps)
+*     PORT --+-- L_residual -- R_term -- GND (flange straps)
 *            +-- (C_trim || C_port) -- GND
-* Nets: /RF is node "p" of each X instance, GND is node 0
-* (kicad/rf-term-150w.net: R1 pad1-/RF, C1 pad2-/RF, J1 pad1-/RF; every other
-* pad on GND). No rename map is needed - the board has exactly two nets.
+* Nets: /RF is node p of each X instance, GND is node 0
+* (kicad/rf-term-150w.net: R1 pad1-/RF, C1 pad2-/RF, J1 pad1-/RF; every
+* other pad on GND). No rename map is needed - the board has two nets.
 *
-* CORRECTED 2026-08-09 after reports/review-verify.md V1 + V2. Two values in the
-* P2 version of this bench were wrong; both are fixed here:
-*   V1  C_port was 1.30 pF, taken from the P2 architecture's 3.55 mm launch.
-*       The AS-ROUTED launch is 15.065 mm of mostly-wide (~34 ohm) trace plus a
-*       5.0 x 7.0 mm lap pad -> ~4.7 pF, i.e. 3.6x larger.
-*   V2  C_trim max was 35 pF, which is no part. The DELIVERED C1 is a Johanson
-*       5602 (DigiKey 1956-1000-ND), 1-30 pF - parts/5602.json line 45.
+* AS-ROUTED GEOMETRY (P7 re-route, state.json decision 2026-08-09T05:26:58).
+* The 7.34 mm lap-pad flare was DELETED and a 33.125 mm meander at a constant
+* 0.94 mm width was added; total /RF copper 15.065 -> 42.513 mm
+* (routing/rf-meander.ops.json: six segments, 1.200 + 10.115 + 2.610 + 11.750
+* + 3.900 + 3.550 = 33.125 mm, verified by summing the op coordinates).
 *
-* MODEL PROVENANCE (generic, datasheet-derived; NO vendored vendor models -
-* every element here is an ideal R/L/C, which is the honest model for a passive
-* one-port two orders of magnitude below any self-resonance):
+* THE TRACE IS GROUNDED COPLANAR WAVEGUIDE, NOT MICROSTRIP - the GND pour
+* flanks it at 0.80 mm, closer than the 1.53 mm core. CPWG with w 0.94 /
+* s 0.80 / h 1.53 / er 4.5 gives eps_eff 2.90 and Z0 75.3 ohm, hence
+*   L' = Z0*sqrt(eeff)/c = 75.3*1.70294/2.9979e8 = 0.42774 nH/mm  (router: 0.4281)
+*   C' = sqrt(eeff)/(c*Z0) = 1.70294/(2.9979e8*75.3) = 0.075433 pF/mm (router: 0.0755)
+* Both reproduce the router's figures to 3 significant digits.
+*
+* RESIDUAL SERIES INDUCTANCE 19.5 nH central, band 18.5 - 23.3 nH (router).
+* Audit of that number: the meander's own CPWG contribution is
+* 33.125 mm * 0.4281 nH/mm = 14.181 nH, so the balance to 19.5 nH is 5.319 nH
+* over the 9.388 mm of pre-existing launch/pad copper = 0.567 nH/mm, which is
+* higher than the CPWG L' and is the launch/pad/corner term carried over from
+* the old 7.21 nH estimate. That balance is the ONE term this bench cannot
+* independently derive; it is why the 18.5 - 23.3 nH band is swept and why
+* every bound below holds across the whole band.
+*
+* LAUNCH PARASITIC 5.4 pF (pi-split) / 6.1 pF (lump-it-all-at-the-port).
+* Audit: the meander's own distributed C is 33.125 * 0.0755 = 2.501 pF; the
+* router's 6.1 pF lump figure is the old 4.7 pF estimate plus a NET 1.40 pF,
+* which implies the deleted 7.34 mm lap-pad flare took 1.10 pF away with it
+* (the old term-by-term budget in reports/review-verify.md V1 carried the lap
+* pad at 1.50 pF, so 1.10 pF is consistent). The pi convention puts half of
+* that net 1.40 pF at the port node and half across R1's 50 ohm, where it is a
+* 2.4 percent perturbation: 4.7 + 0.70 = 5.40 pF. The identity
+* cp_lump - cp_pi = cnet/2 is asserted numerically below. SWEPT 4.7 - 6.5 pF.
+*
+* DELIVERED PARTS, unchanged by the re-route:
 *   R_term  50 ohm +/-5% catalogue (Barry/Vishay T50R0-250-12X,
-*           parts/T50R0-250-12X.json); select-on-test narrows to 49.0-51.0 at
-*           build (P1 decision). All four builds are simulated: 49 / 50 / 51 /
-*           52.5, the last being the unselected catalogue +5% limit.
-*   L_launch 7.21 nH, the AS-ROUTED residual (state.json decision "Router
-*           stopped flaring deliberately at 7.21 nH"), X = 1.1325 ohm at 25 MHz.
-*   C_port  4.7 pF nominal, fixed, NOT adjustable. There is no field solver on
-*           this pipeline, so this number is a two-source estimate, not an
-*           extraction: (a) parallel-plate 0.87 pF for the 5x7 lap pad + 30-60%
-*           fringing, plus C' = sqrt(eeff)/(c*Z0) = 0.176 pF/mm over 15.065 mm
-*           of launch; (b) the independent term-by-term rebuild in
-*           reports/review-verify.md V1 (2.27 pF track + 1.50 pF lap pad +
-*           0.25 pF J1 pad + 0.60 pF J1 internal/C1 pads). Both land on 4.7 pF.
-*           It is therefore SWEPT here over 3.5 - 6.0 pF and every bound below
-*           holds across that whole band. Treat 4.7 as uncertain to about +/-25%.
-*   C_trim  Johanson 5602 air trimmer, 1-30 pF (parts/5602.json). In this bench
-*           it is at its LOW STOP by computation, not by assumption: ctset()
-*           evaluates the exact susceptance null and clamps it, and the null for
-*           7.21 nH needs LESS total shunt C than C_port alone already supplies
-*           (see ctneed_*_pf below, all negative). The board is BELOW the
-*           trimmer's null window; the trimmer has upward-only authority.
+*           parts/T50R0-250-12X.json); select-on-test to 49.00-51.00 at build
+*           (P1 decision). 52.5 = the unselected catalogue +5% limit.
+*   C_trim  Johanson 5602 air trimmer, 1 - 30 pF (parts/5602.json line 45,
+*           DigiKey 1956-1000-ND). NOT 1-35 pF - that is no part.
 *
-* METHOD. ngspice .ac cannot post-process complex vectors, so S11 is formed by
-* the network itself: an ideal 2 V AC source behind exactly z0 = 50 ohm makes
-* the incident wave 1 V, so v(dut) = 1 + Gamma. A second source holds a 1 V
-* reference and a UNITY VCVS (linear -> exact in .ac) subtracts it, so the node
-* g* carries Gamma directly and vdb(g*) = -RL in dB. Verified against the closed
-* form (Zin = R+jwL shunted by C, Gamma = (Z-z0)/(Z+z0)) to 4 decimal places.
+* METHOD (unchanged). ngspice .ac cannot post-process complex vectors, so S11
+* is formed by the network: an ideal 2 V AC source behind exactly z0 = 50 ohm
+* makes the incident wave 1 V, so v(dut) = 1 + Gamma; a second source holds a
+* 1 V reference and a UNITY VCVS subtracts it, so node g* carries Gamma and
+* vdb(g*) = -RL in dB. Cross-checked against the closed form
+* Zin = (R + jwL) || 1/(jwC), Gamma = (Zin-z0)/(Zin+z0) to 4 decimals.
 *
-* DESIGN INTENT / what this bench proves. THE SPEC STILL PASSES AS ROUTED.
-* The operator tunes ONCE at Fc = 25.0 MHz, so C_trim is a CONSTANT in this
-* netlist - only frequency sweeps - and the band numbers cannot be flattered by
-* re-optimising per point. Asserts requirements crit. 2 (RL >= 26 dB at
-* 25.0 MHz) and crit. 3 (RL >= 20 dB over 22.5-27.5 MHz) at all 4 resistance
-* builds x all 3 parasitic estimates = 12 builds, no exceptions.
+* MODEL POLICY: every element is an ideal R/L/C. That is the honest model for
+* a passive one-port two orders of magnitude below any self-resonance. No
+* vendored vendor models.
+*
+* WHAT CHANGED vs the 2026-08-09 04:49 version of this bench, and why it
+* was re-derived: that version modelled the PRE-re-route board (L = 7.21
+* nH, C_port 4.7 pF) and its headline finding was that C1 bottomed out at
+* its 1 pF stop in all 12 builds because the board sat BELOW the trimmer's
+* null window. The board was then deliberately re-routed to act on that.
+* At the new operating point C1 no longer bottoms out at the nominal
+* parasitic - see s11_corners.cir - and the worst build anywhere improves
+* from 30.37 dB to 31.43 dB.
+*
+* DESIGN INTENT / what this bench proves: requirements crit. 2
+* (RL >= 26 dB at 25.0 MHz) and crit. 3 (RL >= 20 dB over 22.5-27.5 MHz)
+* at all 48 builds, no exceptions, with the trimmer frozen after one tune.
 
 .param z0=50
 .param fc=25e6
 .param w0={2*3.141592653589793*fc}
 .param cmin=1e-12
 .param cmax=30e-12
-.param cp35=3.5e-12
 .param cp47=4.7e-12
-.param cp60=6.0e-12
-.param lrt=7.21n
+.param cp54=5.4e-12
+.param cp61=6.1e-12
+.param cp65=6.5e-12
+.param l185=18.5n
+.param l195=19.5n
+.param l233=23.3n
+.param r49=49.0
+.param r50=50.0
+.param r51=51.0
+.param r525=52.5
 
-* exact susceptance null at fc, and the trimmer setting that realises it
-* (clamped to the DELIVERED 1-30 pF range of the Johanson 5602)
+* exact susceptance null at fc, and the trimmer setting that realises it,
+* clamped to the DELIVERED 1 - 30 pF range of the Johanson 5602
 .func copt(rr,ll) {ll/(rr*rr+(w0*ll)*(w0*ll))}
 .func ctset(rr,ll,cp) {min(cmax,max(cmin,copt(rr,ll)-cp))}
 
-.subckt oneport p lval=7.21n rval=50 cval=1p cpv=4.7p
+.subckt oneport p lval=19.5n rval=50 cval=1p cpv=5.4p
 Ll p m {lval}
 Rt m 0 {rval}
 Ct p 0 {cval}
@@ -80,132 +106,376 @@ Cp p 0 {cpv}
 Vsrc src 0 AC 2
 Vref ref 0 AC 1
 
-.param r1=49.0
-.param r2=50.0
-.param r3=51.0
-.param r4=52.5
-
-* --- column a: C_port = 3.5 pF (optimistic end of the estimate band) -----
-Rs1a src d1a {z0}
-X1a d1a oneport lval={lrt} rval={r1} cval={ctset(r1,lrt,cp35)} cpv={cp35}
-E1a g1a 0 d1a ref 1
-Rs2a src d2a {z0}
-X2a d2a oneport lval={lrt} rval={r2} cval={ctset(r2,lrt,cp35)} cpv={cp35}
-E2a g2a 0 d2a ref 1
-Rs3a src d3a {z0}
-X3a d3a oneport lval={lrt} rval={r3} cval={ctset(r3,lrt,cp35)} cpv={cp35}
-E3a g3a 0 d3a ref 1
-Rs4a src d4a {z0}
-X4a d4a oneport lval={lrt} rval={r4} cval={ctset(r4,lrt,cp35)} cpv={cp35}
-E4a g4a 0 d4a ref 1
-
-* --- column b: C_port = 4.7 pF (NOMINAL as-routed estimate) --------------
-Rs1b src d1b {z0}
-X1b d1b oneport lval={lrt} rval={r1} cval={ctset(r1,lrt,cp47)} cpv={cp47}
-E1b g1b 0 d1b ref 1
-Rs2b src d2b {z0}
-X2b d2b oneport lval={lrt} rval={r2} cval={ctset(r2,lrt,cp47)} cpv={cp47}
-E2b g2b 0 d2b ref 1
-Rs3b src d3b {z0}
-X3b d3b oneport lval={lrt} rval={r3} cval={ctset(r3,lrt,cp47)} cpv={cp47}
-E3b g3b 0 d3b ref 1
-Rs4b src d4b {z0}
-X4b d4b oneport lval={lrt} rval={r4} cval={ctset(r4,lrt,cp47)} cpv={cp47}
-E4b g4b 0 d4b ref 1
-
-* --- column c: C_port = 6.0 pF (pessimistic end - THE BINDING COLUMN) ----
-Rs1c src d1c {z0}
-X1c d1c oneport lval={lrt} rval={r1} cval={ctset(r1,lrt,cp60)} cpv={cp60}
-E1c g1c 0 d1c ref 1
-Rs2c src d2c {z0}
-X2c d2c oneport lval={lrt} rval={r2} cval={ctset(r2,lrt,cp60)} cpv={cp60}
-E2c g2c 0 d2c ref 1
-Rs3c src d3c {z0}
-X3c d3c oneport lval={lrt} rval={r3} cval={ctset(r3,lrt,cp60)} cpv={cp60}
-E3c g3c 0 d3c ref 1
-Rs4c src d4c {z0}
-X4c d4c oneport lval={lrt} rval={r4} cval={ctset(r4,lrt,cp60)} cpv={cp60}
-E4c g4c 0 d4c ref 1
+* ---- the 48 builds -------------------------------------------------
+Rs1 src d1 {z0}
+X1 d1 oneport lval={l185} rval={r49} cval={ctset(r49,l185,cp47)} cpv={cp47}
+E1 g1 0 d1 ref 1
+Rs2 src d2 {z0}
+X2 d2 oneport lval={l195} rval={r49} cval={ctset(r49,l195,cp47)} cpv={cp47}
+E2 g2 0 d2 ref 1
+Rs3 src d3 {z0}
+X3 d3 oneport lval={l233} rval={r49} cval={ctset(r49,l233,cp47)} cpv={cp47}
+E3 g3 0 d3 ref 1
+Rs4 src d4 {z0}
+X4 d4 oneport lval={l185} rval={r49} cval={ctset(r49,l185,cp54)} cpv={cp54}
+E4 g4 0 d4 ref 1
+Rs5 src d5 {z0}
+X5 d5 oneport lval={l195} rval={r49} cval={ctset(r49,l195,cp54)} cpv={cp54}
+E5 g5 0 d5 ref 1
+Rs6 src d6 {z0}
+X6 d6 oneport lval={l233} rval={r49} cval={ctset(r49,l233,cp54)} cpv={cp54}
+E6 g6 0 d6 ref 1
+Rs7 src d7 {z0}
+X7 d7 oneport lval={l185} rval={r49} cval={ctset(r49,l185,cp61)} cpv={cp61}
+E7 g7 0 d7 ref 1
+Rs8 src d8 {z0}
+X8 d8 oneport lval={l195} rval={r49} cval={ctset(r49,l195,cp61)} cpv={cp61}
+E8 g8 0 d8 ref 1
+Rs9 src d9 {z0}
+X9 d9 oneport lval={l233} rval={r49} cval={ctset(r49,l233,cp61)} cpv={cp61}
+E9 g9 0 d9 ref 1
+Rs10 src d10 {z0}
+X10 d10 oneport lval={l185} rval={r49} cval={ctset(r49,l185,cp65)} cpv={cp65}
+E10 g10 0 d10 ref 1
+Rs11 src d11 {z0}
+X11 d11 oneport lval={l195} rval={r49} cval={ctset(r49,l195,cp65)} cpv={cp65}
+E11 g11 0 d11 ref 1
+Rs12 src d12 {z0}
+X12 d12 oneport lval={l233} rval={r49} cval={ctset(r49,l233,cp65)} cpv={cp65}
+E12 g12 0 d12 ref 1
+Rs13 src d13 {z0}
+X13 d13 oneport lval={l185} rval={r50} cval={ctset(r50,l185,cp47)} cpv={cp47}
+E13 g13 0 d13 ref 1
+Rs14 src d14 {z0}
+X14 d14 oneport lval={l195} rval={r50} cval={ctset(r50,l195,cp47)} cpv={cp47}
+E14 g14 0 d14 ref 1
+Rs15 src d15 {z0}
+X15 d15 oneport lval={l233} rval={r50} cval={ctset(r50,l233,cp47)} cpv={cp47}
+E15 g15 0 d15 ref 1
+Rs16 src d16 {z0}
+X16 d16 oneport lval={l185} rval={r50} cval={ctset(r50,l185,cp54)} cpv={cp54}
+E16 g16 0 d16 ref 1
+Rs17 src d17 {z0}
+X17 d17 oneport lval={l195} rval={r50} cval={ctset(r50,l195,cp54)} cpv={cp54}
+E17 g17 0 d17 ref 1
+Rs18 src d18 {z0}
+X18 d18 oneport lval={l233} rval={r50} cval={ctset(r50,l233,cp54)} cpv={cp54}
+E18 g18 0 d18 ref 1
+Rs19 src d19 {z0}
+X19 d19 oneport lval={l185} rval={r50} cval={ctset(r50,l185,cp61)} cpv={cp61}
+E19 g19 0 d19 ref 1
+Rs20 src d20 {z0}
+X20 d20 oneport lval={l195} rval={r50} cval={ctset(r50,l195,cp61)} cpv={cp61}
+E20 g20 0 d20 ref 1
+Rs21 src d21 {z0}
+X21 d21 oneport lval={l233} rval={r50} cval={ctset(r50,l233,cp61)} cpv={cp61}
+E21 g21 0 d21 ref 1
+Rs22 src d22 {z0}
+X22 d22 oneport lval={l185} rval={r50} cval={ctset(r50,l185,cp65)} cpv={cp65}
+E22 g22 0 d22 ref 1
+Rs23 src d23 {z0}
+X23 d23 oneport lval={l195} rval={r50} cval={ctset(r50,l195,cp65)} cpv={cp65}
+E23 g23 0 d23 ref 1
+Rs24 src d24 {z0}
+X24 d24 oneport lval={l233} rval={r50} cval={ctset(r50,l233,cp65)} cpv={cp65}
+E24 g24 0 d24 ref 1
+Rs25 src d25 {z0}
+X25 d25 oneport lval={l185} rval={r51} cval={ctset(r51,l185,cp47)} cpv={cp47}
+E25 g25 0 d25 ref 1
+Rs26 src d26 {z0}
+X26 d26 oneport lval={l195} rval={r51} cval={ctset(r51,l195,cp47)} cpv={cp47}
+E26 g26 0 d26 ref 1
+Rs27 src d27 {z0}
+X27 d27 oneport lval={l233} rval={r51} cval={ctset(r51,l233,cp47)} cpv={cp47}
+E27 g27 0 d27 ref 1
+Rs28 src d28 {z0}
+X28 d28 oneport lval={l185} rval={r51} cval={ctset(r51,l185,cp54)} cpv={cp54}
+E28 g28 0 d28 ref 1
+Rs29 src d29 {z0}
+X29 d29 oneport lval={l195} rval={r51} cval={ctset(r51,l195,cp54)} cpv={cp54}
+E29 g29 0 d29 ref 1
+Rs30 src d30 {z0}
+X30 d30 oneport lval={l233} rval={r51} cval={ctset(r51,l233,cp54)} cpv={cp54}
+E30 g30 0 d30 ref 1
+Rs31 src d31 {z0}
+X31 d31 oneport lval={l185} rval={r51} cval={ctset(r51,l185,cp61)} cpv={cp61}
+E31 g31 0 d31 ref 1
+Rs32 src d32 {z0}
+X32 d32 oneport lval={l195} rval={r51} cval={ctset(r51,l195,cp61)} cpv={cp61}
+E32 g32 0 d32 ref 1
+Rs33 src d33 {z0}
+X33 d33 oneport lval={l233} rval={r51} cval={ctset(r51,l233,cp61)} cpv={cp61}
+E33 g33 0 d33 ref 1
+Rs34 src d34 {z0}
+X34 d34 oneport lval={l185} rval={r51} cval={ctset(r51,l185,cp65)} cpv={cp65}
+E34 g34 0 d34 ref 1
+Rs35 src d35 {z0}
+X35 d35 oneport lval={l195} rval={r51} cval={ctset(r51,l195,cp65)} cpv={cp65}
+E35 g35 0 d35 ref 1
+Rs36 src d36 {z0}
+X36 d36 oneport lval={l233} rval={r51} cval={ctset(r51,l233,cp65)} cpv={cp65}
+E36 g36 0 d36 ref 1
+Rs37 src d37 {z0}
+X37 d37 oneport lval={l185} rval={r525} cval={ctset(r525,l185,cp47)} cpv={cp47}
+E37 g37 0 d37 ref 1
+Rs38 src d38 {z0}
+X38 d38 oneport lval={l195} rval={r525} cval={ctset(r525,l195,cp47)} cpv={cp47}
+E38 g38 0 d38 ref 1
+Rs39 src d39 {z0}
+X39 d39 oneport lval={l233} rval={r525} cval={ctset(r525,l233,cp47)} cpv={cp47}
+E39 g39 0 d39 ref 1
+Rs40 src d40 {z0}
+X40 d40 oneport lval={l185} rval={r525} cval={ctset(r525,l185,cp54)} cpv={cp54}
+E40 g40 0 d40 ref 1
+Rs41 src d41 {z0}
+X41 d41 oneport lval={l195} rval={r525} cval={ctset(r525,l195,cp54)} cpv={cp54}
+E41 g41 0 d41 ref 1
+Rs42 src d42 {z0}
+X42 d42 oneport lval={l233} rval={r525} cval={ctset(r525,l233,cp54)} cpv={cp54}
+E42 g42 0 d42 ref 1
+Rs43 src d43 {z0}
+X43 d43 oneport lval={l185} rval={r525} cval={ctset(r525,l185,cp61)} cpv={cp61}
+E43 g43 0 d43 ref 1
+Rs44 src d44 {z0}
+X44 d44 oneport lval={l195} rval={r525} cval={ctset(r525,l195,cp61)} cpv={cp61}
+E44 g44 0 d44 ref 1
+Rs45 src d45 {z0}
+X45 d45 oneport lval={l233} rval={r525} cval={ctset(r525,l233,cp61)} cpv={cp61}
+E45 g45 0 d45 ref 1
+Rs46 src d46 {z0}
+X46 d46 oneport lval={l185} rval={r525} cval={ctset(r525,l185,cp65)} cpv={cp65}
+E46 g46 0 d46 ref 1
+Rs47 src d47 {z0}
+X47 d47 oneport lval={l195} rval={r525} cval={ctset(r525,l195,cp65)} cpv={cp65}
+E47 g47 0 d47 ref 1
+Rs48 src d48 {z0}
+X48 d48 oneport lval={l233} rval={r525} cval={ctset(r525,l233,cp65)} cpv={cp65}
+E48 g48 0 d48 ref 1
 
 .ac lin 1001 20e6 30e6
 
-* --- crit. 2: RL at Fc = 25.0 MHz, all 12 builds -------------------------
-.meas ac s_r49_p35_fc find vdb(g1a) at=25e6
-.meas ac rl_r49_p35_fc param='-s_r49_p35_fc'
-.meas ac s_r50_p35_fc find vdb(g2a) at=25e6
-.meas ac rl_r50_p35_fc param='-s_r50_p35_fc'
-.meas ac s_r51_p35_fc find vdb(g3a) at=25e6
-.meas ac rl_r51_p35_fc param='-s_r51_p35_fc'
-.meas ac s_r525_p35_fc find vdb(g4a) at=25e6
-.meas ac rl_r525_p35_fc param='-s_r525_p35_fc'
+* ---- crit. 2: RL at Fc = 25.0 MHz, every build ---------------------
+.meas ac s_r49_p47_l185_fc find vdb(g1) at=25e6
+.meas ac rl_r49_p47_l185_fc param='-s_r49_p47_l185_fc'
+.meas ac s_r49_p47_l195_fc find vdb(g2) at=25e6
+.meas ac rl_r49_p47_l195_fc param='-s_r49_p47_l195_fc'
+.meas ac s_r49_p47_l233_fc find vdb(g3) at=25e6
+.meas ac rl_r49_p47_l233_fc param='-s_r49_p47_l233_fc'
+.meas ac s_r49_p54_l185_fc find vdb(g4) at=25e6
+.meas ac rl_r49_p54_l185_fc param='-s_r49_p54_l185_fc'
+.meas ac s_r49_p54_l195_fc find vdb(g5) at=25e6
+.meas ac rl_r49_p54_l195_fc param='-s_r49_p54_l195_fc'
+.meas ac s_r49_p54_l233_fc find vdb(g6) at=25e6
+.meas ac rl_r49_p54_l233_fc param='-s_r49_p54_l233_fc'
+.meas ac s_r49_p61_l185_fc find vdb(g7) at=25e6
+.meas ac rl_r49_p61_l185_fc param='-s_r49_p61_l185_fc'
+.meas ac s_r49_p61_l195_fc find vdb(g8) at=25e6
+.meas ac rl_r49_p61_l195_fc param='-s_r49_p61_l195_fc'
+.meas ac s_r49_p61_l233_fc find vdb(g9) at=25e6
+.meas ac rl_r49_p61_l233_fc param='-s_r49_p61_l233_fc'
+.meas ac s_r49_p65_l185_fc find vdb(g10) at=25e6
+.meas ac rl_r49_p65_l185_fc param='-s_r49_p65_l185_fc'
+.meas ac s_r49_p65_l195_fc find vdb(g11) at=25e6
+.meas ac rl_r49_p65_l195_fc param='-s_r49_p65_l195_fc'
+.meas ac s_r49_p65_l233_fc find vdb(g12) at=25e6
+.meas ac rl_r49_p65_l233_fc param='-s_r49_p65_l233_fc'
+.meas ac s_r50_p47_l185_fc find vdb(g13) at=25e6
+.meas ac rl_r50_p47_l185_fc param='-s_r50_p47_l185_fc'
+.meas ac s_r50_p47_l195_fc find vdb(g14) at=25e6
+.meas ac rl_r50_p47_l195_fc param='-s_r50_p47_l195_fc'
+.meas ac s_r50_p47_l233_fc find vdb(g15) at=25e6
+.meas ac rl_r50_p47_l233_fc param='-s_r50_p47_l233_fc'
+.meas ac s_r50_p54_l185_fc find vdb(g16) at=25e6
+.meas ac rl_r50_p54_l185_fc param='-s_r50_p54_l185_fc'
+.meas ac s_r50_p54_l195_fc find vdb(g17) at=25e6
+.meas ac rl_r50_p54_l195_fc param='-s_r50_p54_l195_fc'
+.meas ac s_r50_p54_l233_fc find vdb(g18) at=25e6
+.meas ac rl_r50_p54_l233_fc param='-s_r50_p54_l233_fc'
+.meas ac s_r50_p61_l185_fc find vdb(g19) at=25e6
+.meas ac rl_r50_p61_l185_fc param='-s_r50_p61_l185_fc'
+.meas ac s_r50_p61_l195_fc find vdb(g20) at=25e6
+.meas ac rl_r50_p61_l195_fc param='-s_r50_p61_l195_fc'
+.meas ac s_r50_p61_l233_fc find vdb(g21) at=25e6
+.meas ac rl_r50_p61_l233_fc param='-s_r50_p61_l233_fc'
+.meas ac s_r50_p65_l185_fc find vdb(g22) at=25e6
+.meas ac rl_r50_p65_l185_fc param='-s_r50_p65_l185_fc'
+.meas ac s_r50_p65_l195_fc find vdb(g23) at=25e6
+.meas ac rl_r50_p65_l195_fc param='-s_r50_p65_l195_fc'
+.meas ac s_r50_p65_l233_fc find vdb(g24) at=25e6
+.meas ac rl_r50_p65_l233_fc param='-s_r50_p65_l233_fc'
+.meas ac s_r51_p47_l185_fc find vdb(g25) at=25e6
+.meas ac rl_r51_p47_l185_fc param='-s_r51_p47_l185_fc'
+.meas ac s_r51_p47_l195_fc find vdb(g26) at=25e6
+.meas ac rl_r51_p47_l195_fc param='-s_r51_p47_l195_fc'
+.meas ac s_r51_p47_l233_fc find vdb(g27) at=25e6
+.meas ac rl_r51_p47_l233_fc param='-s_r51_p47_l233_fc'
+.meas ac s_r51_p54_l185_fc find vdb(g28) at=25e6
+.meas ac rl_r51_p54_l185_fc param='-s_r51_p54_l185_fc'
+.meas ac s_r51_p54_l195_fc find vdb(g29) at=25e6
+.meas ac rl_r51_p54_l195_fc param='-s_r51_p54_l195_fc'
+.meas ac s_r51_p54_l233_fc find vdb(g30) at=25e6
+.meas ac rl_r51_p54_l233_fc param='-s_r51_p54_l233_fc'
+.meas ac s_r51_p61_l185_fc find vdb(g31) at=25e6
+.meas ac rl_r51_p61_l185_fc param='-s_r51_p61_l185_fc'
+.meas ac s_r51_p61_l195_fc find vdb(g32) at=25e6
+.meas ac rl_r51_p61_l195_fc param='-s_r51_p61_l195_fc'
+.meas ac s_r51_p61_l233_fc find vdb(g33) at=25e6
+.meas ac rl_r51_p61_l233_fc param='-s_r51_p61_l233_fc'
+.meas ac s_r51_p65_l185_fc find vdb(g34) at=25e6
+.meas ac rl_r51_p65_l185_fc param='-s_r51_p65_l185_fc'
+.meas ac s_r51_p65_l195_fc find vdb(g35) at=25e6
+.meas ac rl_r51_p65_l195_fc param='-s_r51_p65_l195_fc'
+.meas ac s_r51_p65_l233_fc find vdb(g36) at=25e6
+.meas ac rl_r51_p65_l233_fc param='-s_r51_p65_l233_fc'
+.meas ac s_r525_p47_l185_fc find vdb(g37) at=25e6
+.meas ac rl_r525_p47_l185_fc param='-s_r525_p47_l185_fc'
+.meas ac s_r525_p47_l195_fc find vdb(g38) at=25e6
+.meas ac rl_r525_p47_l195_fc param='-s_r525_p47_l195_fc'
+.meas ac s_r525_p47_l233_fc find vdb(g39) at=25e6
+.meas ac rl_r525_p47_l233_fc param='-s_r525_p47_l233_fc'
+.meas ac s_r525_p54_l185_fc find vdb(g40) at=25e6
+.meas ac rl_r525_p54_l185_fc param='-s_r525_p54_l185_fc'
+.meas ac s_r525_p54_l195_fc find vdb(g41) at=25e6
+.meas ac rl_r525_p54_l195_fc param='-s_r525_p54_l195_fc'
+.meas ac s_r525_p54_l233_fc find vdb(g42) at=25e6
+.meas ac rl_r525_p54_l233_fc param='-s_r525_p54_l233_fc'
+.meas ac s_r525_p61_l185_fc find vdb(g43) at=25e6
+.meas ac rl_r525_p61_l185_fc param='-s_r525_p61_l185_fc'
+.meas ac s_r525_p61_l195_fc find vdb(g44) at=25e6
+.meas ac rl_r525_p61_l195_fc param='-s_r525_p61_l195_fc'
+.meas ac s_r525_p61_l233_fc find vdb(g45) at=25e6
+.meas ac rl_r525_p61_l233_fc param='-s_r525_p61_l233_fc'
+.meas ac s_r525_p65_l185_fc find vdb(g46) at=25e6
+.meas ac rl_r525_p65_l185_fc param='-s_r525_p65_l185_fc'
+.meas ac s_r525_p65_l195_fc find vdb(g47) at=25e6
+.meas ac rl_r525_p65_l195_fc param='-s_r525_p65_l195_fc'
+.meas ac s_r525_p65_l233_fc find vdb(g48) at=25e6
+.meas ac rl_r525_p65_l233_fc param='-s_r525_p65_l233_fc'
 
-.meas ac s_r49_p47_fc find vdb(g1b) at=25e6
-.meas ac rl_r49_p47_fc param='-s_r49_p47_fc'
-.meas ac s_r50_p47_fc find vdb(g2b) at=25e6
-.meas ac rl_r50_p47_fc param='-s_r50_p47_fc'
-.meas ac s_r51_p47_fc find vdb(g3b) at=25e6
-.meas ac rl_r51_p47_fc param='-s_r51_p47_fc'
-.meas ac s_r525_p47_fc find vdb(g4b) at=25e6
-.meas ac rl_r525_p47_fc param='-s_r525_p47_fc'
+* ---- crit. 3: worst point in 22.5-27.5 MHz, SAME frozen setting ----
+.meas ac s_r49_p47_l185_bd max vdb(g1) from=22.5e6 to=27.5e6
+.meas ac rl_r49_p47_l185_bd param='-s_r49_p47_l185_bd'
+.meas ac s_r49_p47_l195_bd max vdb(g2) from=22.5e6 to=27.5e6
+.meas ac rl_r49_p47_l195_bd param='-s_r49_p47_l195_bd'
+.meas ac s_r49_p47_l233_bd max vdb(g3) from=22.5e6 to=27.5e6
+.meas ac rl_r49_p47_l233_bd param='-s_r49_p47_l233_bd'
+.meas ac s_r49_p54_l185_bd max vdb(g4) from=22.5e6 to=27.5e6
+.meas ac rl_r49_p54_l185_bd param='-s_r49_p54_l185_bd'
+.meas ac s_r49_p54_l195_bd max vdb(g5) from=22.5e6 to=27.5e6
+.meas ac rl_r49_p54_l195_bd param='-s_r49_p54_l195_bd'
+.meas ac s_r49_p54_l233_bd max vdb(g6) from=22.5e6 to=27.5e6
+.meas ac rl_r49_p54_l233_bd param='-s_r49_p54_l233_bd'
+.meas ac s_r49_p61_l185_bd max vdb(g7) from=22.5e6 to=27.5e6
+.meas ac rl_r49_p61_l185_bd param='-s_r49_p61_l185_bd'
+.meas ac s_r49_p61_l195_bd max vdb(g8) from=22.5e6 to=27.5e6
+.meas ac rl_r49_p61_l195_bd param='-s_r49_p61_l195_bd'
+.meas ac s_r49_p61_l233_bd max vdb(g9) from=22.5e6 to=27.5e6
+.meas ac rl_r49_p61_l233_bd param='-s_r49_p61_l233_bd'
+.meas ac s_r49_p65_l185_bd max vdb(g10) from=22.5e6 to=27.5e6
+.meas ac rl_r49_p65_l185_bd param='-s_r49_p65_l185_bd'
+.meas ac s_r49_p65_l195_bd max vdb(g11) from=22.5e6 to=27.5e6
+.meas ac rl_r49_p65_l195_bd param='-s_r49_p65_l195_bd'
+.meas ac s_r49_p65_l233_bd max vdb(g12) from=22.5e6 to=27.5e6
+.meas ac rl_r49_p65_l233_bd param='-s_r49_p65_l233_bd'
+.meas ac s_r50_p47_l185_bd max vdb(g13) from=22.5e6 to=27.5e6
+.meas ac rl_r50_p47_l185_bd param='-s_r50_p47_l185_bd'
+.meas ac s_r50_p47_l195_bd max vdb(g14) from=22.5e6 to=27.5e6
+.meas ac rl_r50_p47_l195_bd param='-s_r50_p47_l195_bd'
+.meas ac s_r50_p47_l233_bd max vdb(g15) from=22.5e6 to=27.5e6
+.meas ac rl_r50_p47_l233_bd param='-s_r50_p47_l233_bd'
+.meas ac s_r50_p54_l185_bd max vdb(g16) from=22.5e6 to=27.5e6
+.meas ac rl_r50_p54_l185_bd param='-s_r50_p54_l185_bd'
+.meas ac s_r50_p54_l195_bd max vdb(g17) from=22.5e6 to=27.5e6
+.meas ac rl_r50_p54_l195_bd param='-s_r50_p54_l195_bd'
+.meas ac s_r50_p54_l233_bd max vdb(g18) from=22.5e6 to=27.5e6
+.meas ac rl_r50_p54_l233_bd param='-s_r50_p54_l233_bd'
+.meas ac s_r50_p61_l185_bd max vdb(g19) from=22.5e6 to=27.5e6
+.meas ac rl_r50_p61_l185_bd param='-s_r50_p61_l185_bd'
+.meas ac s_r50_p61_l195_bd max vdb(g20) from=22.5e6 to=27.5e6
+.meas ac rl_r50_p61_l195_bd param='-s_r50_p61_l195_bd'
+.meas ac s_r50_p61_l233_bd max vdb(g21) from=22.5e6 to=27.5e6
+.meas ac rl_r50_p61_l233_bd param='-s_r50_p61_l233_bd'
+.meas ac s_r50_p65_l185_bd max vdb(g22) from=22.5e6 to=27.5e6
+.meas ac rl_r50_p65_l185_bd param='-s_r50_p65_l185_bd'
+.meas ac s_r50_p65_l195_bd max vdb(g23) from=22.5e6 to=27.5e6
+.meas ac rl_r50_p65_l195_bd param='-s_r50_p65_l195_bd'
+.meas ac s_r50_p65_l233_bd max vdb(g24) from=22.5e6 to=27.5e6
+.meas ac rl_r50_p65_l233_bd param='-s_r50_p65_l233_bd'
+.meas ac s_r51_p47_l185_bd max vdb(g25) from=22.5e6 to=27.5e6
+.meas ac rl_r51_p47_l185_bd param='-s_r51_p47_l185_bd'
+.meas ac s_r51_p47_l195_bd max vdb(g26) from=22.5e6 to=27.5e6
+.meas ac rl_r51_p47_l195_bd param='-s_r51_p47_l195_bd'
+.meas ac s_r51_p47_l233_bd max vdb(g27) from=22.5e6 to=27.5e6
+.meas ac rl_r51_p47_l233_bd param='-s_r51_p47_l233_bd'
+.meas ac s_r51_p54_l185_bd max vdb(g28) from=22.5e6 to=27.5e6
+.meas ac rl_r51_p54_l185_bd param='-s_r51_p54_l185_bd'
+.meas ac s_r51_p54_l195_bd max vdb(g29) from=22.5e6 to=27.5e6
+.meas ac rl_r51_p54_l195_bd param='-s_r51_p54_l195_bd'
+.meas ac s_r51_p54_l233_bd max vdb(g30) from=22.5e6 to=27.5e6
+.meas ac rl_r51_p54_l233_bd param='-s_r51_p54_l233_bd'
+.meas ac s_r51_p61_l185_bd max vdb(g31) from=22.5e6 to=27.5e6
+.meas ac rl_r51_p61_l185_bd param='-s_r51_p61_l185_bd'
+.meas ac s_r51_p61_l195_bd max vdb(g32) from=22.5e6 to=27.5e6
+.meas ac rl_r51_p61_l195_bd param='-s_r51_p61_l195_bd'
+.meas ac s_r51_p61_l233_bd max vdb(g33) from=22.5e6 to=27.5e6
+.meas ac rl_r51_p61_l233_bd param='-s_r51_p61_l233_bd'
+.meas ac s_r51_p65_l185_bd max vdb(g34) from=22.5e6 to=27.5e6
+.meas ac rl_r51_p65_l185_bd param='-s_r51_p65_l185_bd'
+.meas ac s_r51_p65_l195_bd max vdb(g35) from=22.5e6 to=27.5e6
+.meas ac rl_r51_p65_l195_bd param='-s_r51_p65_l195_bd'
+.meas ac s_r51_p65_l233_bd max vdb(g36) from=22.5e6 to=27.5e6
+.meas ac rl_r51_p65_l233_bd param='-s_r51_p65_l233_bd'
+.meas ac s_r525_p47_l185_bd max vdb(g37) from=22.5e6 to=27.5e6
+.meas ac rl_r525_p47_l185_bd param='-s_r525_p47_l185_bd'
+.meas ac s_r525_p47_l195_bd max vdb(g38) from=22.5e6 to=27.5e6
+.meas ac rl_r525_p47_l195_bd param='-s_r525_p47_l195_bd'
+.meas ac s_r525_p47_l233_bd max vdb(g39) from=22.5e6 to=27.5e6
+.meas ac rl_r525_p47_l233_bd param='-s_r525_p47_l233_bd'
+.meas ac s_r525_p54_l185_bd max vdb(g40) from=22.5e6 to=27.5e6
+.meas ac rl_r525_p54_l185_bd param='-s_r525_p54_l185_bd'
+.meas ac s_r525_p54_l195_bd max vdb(g41) from=22.5e6 to=27.5e6
+.meas ac rl_r525_p54_l195_bd param='-s_r525_p54_l195_bd'
+.meas ac s_r525_p54_l233_bd max vdb(g42) from=22.5e6 to=27.5e6
+.meas ac rl_r525_p54_l233_bd param='-s_r525_p54_l233_bd'
+.meas ac s_r525_p61_l185_bd max vdb(g43) from=22.5e6 to=27.5e6
+.meas ac rl_r525_p61_l185_bd param='-s_r525_p61_l185_bd'
+.meas ac s_r525_p61_l195_bd max vdb(g44) from=22.5e6 to=27.5e6
+.meas ac rl_r525_p61_l195_bd param='-s_r525_p61_l195_bd'
+.meas ac s_r525_p61_l233_bd max vdb(g45) from=22.5e6 to=27.5e6
+.meas ac rl_r525_p61_l233_bd param='-s_r525_p61_l233_bd'
+.meas ac s_r525_p65_l185_bd max vdb(g46) from=22.5e6 to=27.5e6
+.meas ac rl_r525_p65_l185_bd param='-s_r525_p65_l185_bd'
+.meas ac s_r525_p65_l195_bd max vdb(g47) from=22.5e6 to=27.5e6
+.meas ac rl_r525_p65_l195_bd param='-s_r525_p65_l195_bd'
+.meas ac s_r525_p65_l233_bd max vdb(g48) from=22.5e6 to=27.5e6
+.meas ac rl_r525_p65_l233_bd param='-s_r525_p65_l233_bd'
 
-.meas ac s_r49_p60_fc find vdb(g1c) at=25e6
-.meas ac rl_r49_p60_fc param='-s_r49_p60_fc'
-.meas ac s_r50_p60_fc find vdb(g2c) at=25e6
-.meas ac rl_r50_p60_fc param='-s_r50_p60_fc'
-.meas ac s_r51_p60_fc find vdb(g3c) at=25e6
-.meas ac rl_r51_p60_fc param='-s_r51_p60_fc'
-.meas ac s_r525_p60_fc find vdb(g4c) at=25e6
-.meas ac rl_r525_p60_fc param='-s_r525_p60_fc'
+* ---- band edges and 20-30 MHz at the worst build --------------------
+.meas ac s_wc_lo find vdb(g39) at=22.5e6
+.meas ac rl_wc_lo param='-s_wc_lo'
+.meas ac s_wc_hi find vdb(g39) at=27.5e6
+.meas ac rl_wc_hi param='-s_wc_hi'
+.meas ac s_wc_full max vdb(g39) from=20e6 to=30e6
+.meas ac rl_wc_full param='-s_wc_full'
+.meas ac s_nom_full max vdb(g17) from=20e6 to=30e6
+.meas ac rl_nom_full param='-s_nom_full'
+.meas ac margin_fc param='rl_r525_p47_l233_fc-26'
+.meas ac margin_bd param='rl_r525_p47_l233_bd-20'
 
-* --- crit. 3: worst point in 22.5-27.5 MHz, same fixed setting -----------
-.meas ac s_r49_p35_bd max vdb(g1a) from=22.5e6 to=27.5e6
-.meas ac rl_r49_p35_bd param='-s_r49_p35_bd'
-.meas ac s_r50_p35_bd max vdb(g2a) from=22.5e6 to=27.5e6
-.meas ac rl_r50_p35_bd param='-s_r50_p35_bd'
-.meas ac s_r51_p35_bd max vdb(g3a) from=22.5e6 to=27.5e6
-.meas ac rl_r51_p35_bd param='-s_r51_p35_bd'
-.meas ac s_r525_p35_bd max vdb(g4a) from=22.5e6 to=27.5e6
-.meas ac rl_r525_p35_bd param='-s_r525_p35_bd'
-
-.meas ac s_r49_p47_bd max vdb(g1b) from=22.5e6 to=27.5e6
-.meas ac rl_r49_p47_bd param='-s_r49_p47_bd'
-.meas ac s_r50_p47_bd max vdb(g2b) from=22.5e6 to=27.5e6
-.meas ac rl_r50_p47_bd param='-s_r50_p47_bd'
-.meas ac s_r51_p47_bd max vdb(g3b) from=22.5e6 to=27.5e6
-.meas ac rl_r51_p47_bd param='-s_r51_p47_bd'
-.meas ac s_r525_p47_bd max vdb(g4b) from=22.5e6 to=27.5e6
-.meas ac rl_r525_p47_bd param='-s_r525_p47_bd'
-
-.meas ac s_r49_p60_bd max vdb(g1c) from=22.5e6 to=27.5e6
-.meas ac rl_r49_p60_bd param='-s_r49_p60_bd'
-.meas ac s_r50_p60_bd max vdb(g2c) from=22.5e6 to=27.5e6
-.meas ac rl_r50_p60_bd param='-s_r50_p60_bd'
-.meas ac s_r51_p60_bd max vdb(g3c) from=22.5e6 to=27.5e6
-.meas ac rl_r51_p60_bd param='-s_r51_p60_bd'
-.meas ac s_r525_p60_bd max vdb(g4c) from=22.5e6 to=27.5e6
-.meas ac rl_r525_p60_bd param='-s_r525_p60_bd'
-
-* --- band edges and the full 20-30 MHz sweep, worst build ----------------
-.meas ac s_r525_p60_lo find vdb(g4c) at=22.5e6
-.meas ac rl_r525_p60_lo param='-s_r525_p60_lo'
-.meas ac s_r525_p60_hi find vdb(g4c) at=27.5e6
-.meas ac rl_r525_p60_hi param='-s_r525_p60_hi'
-.meas ac s_r525_p60_full max vdb(g4c) from=20e6 to=30e6
-.meas ac rl_r525_p60_full param='-s_r525_p60_full'
-.meas ac s_r50_p47_full max vdb(g2b) from=20e6 to=30e6
-.meas ac rl_r50_p47_full param='-s_r50_p47_full'
-
-* --- proof that C1 is AT the low stop in every one of the 12 builds ------
-* ct_* is the clamped setting actually used; ctneed_* is what an ideal
-* (unclamped) null would need, which is NEGATIVE - i.e. unbuildable.
-.meas ac ct_r50_p35_pf param='ctset(r2,lrt,cp35)*1e12'
-.meas ac ct_r50_p47_pf param='ctset(r2,lrt,cp47)*1e12'
-.meas ac ct_r50_p60_pf param='ctset(r2,lrt,cp60)*1e12'
-.meas ac ct_r525_p47_pf param='ctset(r4,lrt,cp47)*1e12'
-.meas ac ctneed_p35_pf param='(copt(r2,lrt)-cp35)*1e12'
-.meas ac ctneed_p47_pf param='(copt(r2,lrt)-cp47)*1e12'
-.meas ac ctneed_p60_pf param='(copt(r2,lrt)-cp60)*1e12'
-.meas ac copt_lrt_pf param='copt(r2,lrt)*1e12'
-.meas ac xlrt_ohm param='w0*lrt'
+* ---- AS-ROUTED anchors: the geometry these 48 builds encode ---------
+.meas ac l_asr_nh param='l195*1e9'
+.meas ac x_asr_ohm param='w0*l195'
+.meas ac x_lo_ohm param='w0*l185'
+.meas ac x_hi_ohm param='w0*l233'
+.meas ac cp_pi_pf param='cp54*1e12'
+.meas ac cp_lump_pf param='cp61*1e12'
+.meas ac cnet_added_pf param='(cp61-cp47)*1e12'
+.meas ac csplit_chk param='((cp61-cp54)-(cp61-cp47)/2)*1e12'
+.meas ac ctot_hi_pf param='(cmax+cp54)*1e12'
+.meas ac ctot_lo_pf param='(cmin+cp54)*1e12'
+.meas ac ct_nom_pf param='ctset(r50,l195,cp54)*1e12'
+.meas ac ct_wc_pf param='ctset(r525,l233,cp47)*1e12'
+.meas ac lmeander_nh param='33.125*0.4281'
+.meas ac cmeander_pf param='33.125*0.0755'
 
 .end

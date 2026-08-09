@@ -13,8 +13,9 @@ Board: 26.0 x 20.0 mm, 2 layers, 1.6 mm FR4, 1 oz HASL, JLCPCB standard
 process (no upcharge options, no controlled impedance).
 
 **Status:** ERC 0/0, DRC 0/0 (routed, parity + all-track-errors + fresh fills),
-placement 0/0, DFM pass, simulation pass (4 benches / 116 bounds). Verification
-passes with 3 documented waivers - see section 7. Nothing has been ordered.
+placement 0/0, DFM pass, simulation pass (4 benches / 295 bounds / 553 measures,
+48 build corners). Verification passes with 3 documented waivers - see section 7.
+Nothing has been ordered.
 
 ---
 
@@ -56,52 +57,50 @@ defence in depth, not the primary protection.
 3. Insert a **Johanson 8764** tuning tool (0.130 in / 3.30 mm shank,
    non-metallic tip preferred) into C1's top slot. A metal blade detunes the
    reading while inserted - back it out before reading, or use the plastic tool.
-4. Turn for **minimum reflection at 25.0 MHz**. The null is sharp and
-   symmetric; +/-10 % of capacitance either side costs ~7.4 dB, so you will
-   know when you are on it.
+4. Turn for **minimum reflection at 25.0 MHz**. It is a genuine interior
+   minimum - simulation confirms equal degradation either side of the setting -
+   so you will feel it bottom out in both directions rather than run to a stop.
 5. Confirm >= 20 dB across 22.5-27.5 MHz **without re-tuning**. Set once at Fc;
    re-optimising per frequency is not what the spec means.
 6. Remove the tool, re-read, then apply full power.
 
-### Tuning range - and an honest limitation
+### Tuning range
 
 C1 is a Johanson 5602, **1-30 pF**. It is *not* the only capacitance at the
-port: the as-routed launch (15.065 mm of mostly-wide trace plus the 5.0 x 7.0 mm
-lap pad) contributes **~4.7 pF** of its own. Total in circuit is therefore
-**5.7-34.7 pF**.
+port: the launch (42.5 mm of 0.94 mm trace plus the 5.0 x 7.0 mm lap pad)
+contributes **~5.4 pF** of its own. Total in circuit is **6.4-35.4 pF**.
 
 Solved from the true null condition `wC = X/(R^2 + X^2)` (not the `C = L/R^2`
-approximation, which is 7 % optimistic at the top of the range):
+approximation, which is 7 % optimistic at the top of the range) and confirmed
+by ngspice:
 
 | C1 setting | Total shunt C | Cancels series X at 25 MHz | Equivalent series L |
 |---|---|---|---|
-| full CCW (1 pF) | 5.7 pF | 2.243 ohm | **14.28 nH** |
-| full CW (30 pF) | 34.7 pF | 14.825 ohm | **94.38 nH** |
+| full CCW (1 pF) | 6.4 pF | 2.520 ohm | **16.04 nH** |
+| full CW (30 pF) | 35.4 pF | 15.183 ohm | **96.66 nH** |
 
-> ### Achievable adjustment range: residual series inductance **14.3 nH to 94.4 nH**.
+> ### Achievable adjustment range: residual series inductance **16.0 nH to 96.7 nH**
+> (envelope **14.3-100.3 nH** across the 4.7-6.5 pF parasitic uncertainty band).
 
-> ### Limitation, stated plainly: this board's own residual is 7.21 nH, which is
-> ### BELOW that window. C1 sits at its low stop with upward-only authority.
+**The board sits inside that window on purpose.** Its residual is **19.5 nH**
+(band 18.5-23.3), so C1 lands at about **2.4 pF** at 50 ohm - roughly
+**0.3-3.3 pF of downward authority and ~26-29 pF upward**. Turning the trimmer
+either way makes the match worse, which is what a real null feels like. All 12
+resistance x inductance corners were simulated and every one has positive
+downward authority at the nominal parasitic; the null was verified as a genuine
+interior minimum (Im{Zin} = 3e-7 ohm at the setting, and +/-0.29 pF either side
+costs an equal 0.0089 dB).
 
-**What that means in practice.** The launch's own shunt capacitance already
-over-compensates the residual inductance, so there is no null for the operator
-to find - turning C1 up only makes the match worse. This is not a failure of
-the load: at the low stop it measures **39.1 dB** nominal and **31.2 dB** at the
-+5 % resistance corner, against a 26 dB spec. The launch nulls itself better
-than the trimmer could.
+**This cost nothing.** The RF trace is deliberately *not* routed for minimum
+inductance - it is a 33 mm meander at the current-limited minimum width. A true
+null beats an over-corrected trimmer stop, so making the launch more inductive
+actually *improved* the worst-case return loss by **+1.06 dB**.
 
-C1 still earns its place - it covers builds whose residual lands *inside*
-14.3-94.4 nH, which is what you get with a long tab lap, thick or long ground
-straps, or a rework. It is insurance against build variation, not a
-nominal-case adjustment.
-
-**If you require a genuine two-sided null at Fc**, say so and I will respin:
-the launch must be made deliberately worse - roughly +7 nH of series
-inductance (a meander at the 0.9392 mm current-limited minimum width) or a
-smaller lap pad to cut the parasitic. The return-loss cost is small (a 20 nH
-residual still gives ~31.6 dB at the +5 % corner), but it is a real
-degradation of the primary spec bought to exercise a secondary feature, so I
-did not do it unasked.
+**The honest edge.** Under the most conservative convention (all the added
+distributed capacitance lumped at the port, 6.1 pF) at 51 ohm or above with the
+residual at the low end of its band, C1 bottoms out again. It costs **at most
+0.07 dB** and every such build still reads **>= 31.66 dB**. Nothing about the
+spec depends on it.
 
 ### What the trimmer cannot do
 
@@ -109,16 +108,26 @@ A shunt susceptance only cancels the *imaginary* part. A series residual X
 transforms the port resistance to **R_eff = R + X^2/R**, which no amount of
 trimming undoes. The 26 dB limit is R_eff <= 55.276 ohm, i.e. X <= 16.24 ohm at
 R = 50, or **X <= 12.07 ohm (76.9 nH)** at the +5 % resistance corner. At the
-as-routed 7.21 nH (X = 1.13 ohm) there is **10.7x margin**:
+as-routed 19.5 nH (X = 3.06 ohm) the board spends only **30 %** of that budget.
 
-| Element resistance | R_eff | Return loss at 25 MHz |
+Simulated across 48 builds (4 resistances x 4 parasitics x 3 inductances),
+C1 tuned once at 25.0 MHz then frozen across the band:
+
+| Element resistance | RL at 25 MHz | Worst in 22.5-27.5 MHz |
 |---|---|---|
-| 50.0 ohm (nominal) | 50.026 | 71.8 dB |
-| 51.0 ohm (select-on-test limit) | 51.025 | **39.9 dB** |
-| 52.5 ohm (+5 % catalogue corner) | 52.524 | **32.2 dB** |
+| 50.0 ohm (nominal) | 54.6 dB | 52.9 dB |
+| 49.0 ohm | 41.6-42.7 dB | 41.2-42.1 dB |
+| 51.0 ohm (select-on-test limit) | **38.1-38.8 dB** | 37.7-38.5 dB |
+| 52.5 ohm (+5 % catalogue corner) | **31.4-31.7 dB** | **31.3-31.6 dB** |
 
-Spec is 26 dB. Even the corner nobody should ship - an unselected +5 % part -
-clears it by 6.2 dB.
+**Worst point anywhere: 31.43 dB at Fc, 31.27 dB in band**, against specs of
+26 dB and 20 dB - margins of **+5.4 dB** and **+11.3 dB**. All 48 builds pass.
+
+Note what holds that margin: at the worst corner the reactance is fully
+nulled and what remains is *pure resistance error*. A de-selected +10 % part
+reads **26.05 dB**, right on the spec line. **Select-on-test, not tuning, is
+what keeps this board in spec.**
+
 
 This is also why an ordinary "non-inductive" bolt-down power resistor cannot
 substitute: at the typical 0.1 uH spec limit, X = 15.71 ohm gives **26.55 dB**
@@ -286,9 +295,11 @@ Counts against the brief's caps: **3 unique BOM lines** (cap 4), **3 placements
 - **CPL contains 2 rows (C1, J1), not 3.** R1's body is off-board on your
   heatsink; a pick-and-place "position" for it would mislead an assembler. It
   is in the BOM. The board is hand-built anyway.
-- **No field solver.** The 7.21 nH residual is a term-by-term geometric budget,
-  not a solved EM result, and the least certain term (strap/return loop) is
-  estimated at 1.0-3.0 nH. Even at 3x that value the return loss moves ~0.04 dB.
+- **No field solver.** The 19.5 nH residual is a term-by-term geometric budget
+  (grounded-CPW model, 0.4281 nH/mm), not a solved EM result. It is swept
+  18.5-23.3 nH and the ~5.4 pF launch parasitic is swept 4.7-6.5 pF; every
+  simulated bound holds across both bands. The parasitic is an estimate to
+  about +/-25 %, not an extraction.
 - **The `verify` gate passes only with 3 waivers** (`reports/verify-waivers.json`),
   covering 7 findings. Five are a checker bug - `check_silk.py` treats an
   unfilled rectangle as solid ink, so it reports J1's `(fill no)` body outline

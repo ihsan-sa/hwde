@@ -1,79 +1,739 @@
 [
- {"measure": "rl_r49_p35_fc", "min": 26.0, "severity": "error",
-  "msg": "requirements crit. 2 (RL >= 26 dB at 25.0 MHz), as-routed L = 7.21 nH, C1 at its 1 pF low stop, C_port = 3.5 pF, R = 49.0 ohm (select-on-test lower limit). Measured 38.84 dB."},
- {"measure": "rl_r50_p35_fc", "min": 26.0, "severity": "error",
-  "msg": "crit. 2 at R = 50.0 / C_port 3.5 pF. Measured 43.93 dB."},
- {"measure": "rl_r51_p35_fc", "min": 26.0, "severity": "error",
-  "msg": "crit. 2 at R = 51.0 / C_port 3.5 pF. Measured 38.24 dB."},
- {"measure": "rl_r525_p35_fc", "min": 26.0, "severity": "error",
-  "msg": "crit. 2 at the unselected catalogue +5% corner R = 52.5 / C_port 3.5 pF. Measured 31.78 dB."},
-
- {"measure": "rl_r49_p47_fc", "min": 26.0, "severity": "error",
-  "msg": "crit. 2 at R = 49.0 / C_port 4.7 pF (the NOMINAL as-routed parasitic). Measured 36.84 dB."},
- {"measure": "rl_r50_p47_fc", "min": 26.0, "severity": "error",
-  "msg": "crit. 2 at the nominal build R = 50.0 / C_port 4.7 pF. Measured 39.12 dB - this is the headline 'at the low stop it still measures 39.1 dB' number in README s3."},
- {"measure": "rl_r51_p47_fc", "min": 26.0, "severity": "error",
-  "msg": "crit. 2 at R = 51.0 / C_port 4.7 pF (select-on-test upper limit). Measured 36.23 dB."},
- {"measure": "rl_r525_p47_fc", "min": 26.0, "severity": "error",
-  "msg": "crit. 2 at R = 52.5 / C_port 4.7 pF. Measured 31.19 dB - the README's '31.2 dB at the +5 % resistance corner'. 5.19 dB of margin."},
-
- {"measure": "rl_r49_p60_fc", "min": 26.0, "severity": "error",
-  "msg": "crit. 2 at R = 49.0 / C_port 6.0 pF (pessimistic end of the parasitic band). Measured 34.71 dB."},
- {"measure": "rl_r50_p60_fc", "min": 26.0, "severity": "error",
-  "msg": "crit. 2 at R = 50.0 / C_port 6.0 pF. Measured 35.82 dB."},
- {"measure": "rl_r51_p60_fc", "min": 26.0, "severity": "error",
-  "msg": "crit. 2 at R = 51.0 / C_port 6.0 pF. Measured 34.15 dB."},
- {"measure": "rl_r525_p60_fc", "min": 26.0, "severity": "error",
-  "msg": "THE BINDING ASSERTION of this bench: crit. 2 at the worst of all 12 builds - catalogue +5% resistance AND the pessimistic 6.0 pF port parasitic. Measured 30.37 dB = 4.37 dB of margin. There is no combination of the delivered part tolerances and the parasitic uncertainty band that fails crit. 2."},
-
- {"measure": "rl_r49_p35_bd", "min": 20.0, "severity": "error",
-  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz) at the SAME fixed trimmer setting - worst point in band, not re-optimised per frequency. R = 49.0 / 3.5 pF: 38.64 dB."},
- {"measure": "rl_r50_p35_bd", "min": 20.0, "severity": "error", "msg": "crit. 3 at R = 50.0 / 3.5 pF: 43.10 dB."},
- {"measure": "rl_r51_p35_bd", "min": 20.0, "severity": "error", "msg": "crit. 3 at R = 51.0 / 3.5 pF: 37.93 dB."},
- {"measure": "rl_r525_p35_bd", "min": 20.0, "severity": "error", "msg": "crit. 3 at R = 52.5 / 3.5 pF: 31.69 dB."},
- {"measure": "rl_r49_p47_bd", "min": 20.0, "severity": "error", "msg": "crit. 3 at R = 49.0 / 4.7 pF: 36.40 dB."},
- {"measure": "rl_r50_p47_bd", "min": 20.0, "severity": "error", "msg": "crit. 3 at the nominal build R = 50.0 / 4.7 pF: 38.29 dB."},
- {"measure": "rl_r51_p47_bd", "min": 20.0, "severity": "error", "msg": "crit. 3 at R = 51.0 / 4.7 pF: 35.73 dB."},
- {"measure": "rl_r525_p47_bd", "min": 20.0, "severity": "error", "msg": "crit. 3 at R = 52.5 / 4.7 pF: 31.00 dB."},
- {"measure": "rl_r49_p60_bd", "min": 20.0, "severity": "error", "msg": "crit. 3 at R = 49.0 / 6.0 pF: 34.11 dB."},
- {"measure": "rl_r50_p60_bd", "min": 20.0, "severity": "error", "msg": "crit. 3 at R = 50.0 / 6.0 pF: 35.00 dB."},
- {"measure": "rl_r51_p60_bd", "min": 20.0, "severity": "error", "msg": "crit. 3 at R = 51.0 / 6.0 pF: 33.52 dB."},
- {"measure": "rl_r525_p60_bd", "min": 20.0, "severity": "error",
-  "msg": "crit. 3 at the worst of the 12 builds, R = 52.5 / 6.0 pF: 30.07 dB - 10.07 dB of margin on a 20 dB in-band spec."},
-
- {"measure": "rl_r525_p60_fc", "min": 29.0, "severity": "error",
-  "msg": "MARGIN ASSERTION, not the spec: the worst build must stay above 29 dB, i.e. keep at least 3 dB over crit. 2. Measured 30.37 dB. A reading between 26 and 29 dB means the parasitic or the residual inductance moved, and the design should be re-examined even though the letter of the spec still passes."},
- {"measure": "rl_r525_p60_bd", "min": 28.0, "severity": "error",
-  "msg": "same margin assertion in band: 30.07 dB."},
- {"measure": "rl_r525_p60_lo", "min": 20.0, "severity": "error",
-  "msg": "band lower edge 22.5 MHz, worst build: 30.68 dB."},
- {"measure": "rl_r525_p60_hi", "min": 20.0, "severity": "error",
-  "msg": "band upper edge 27.5 MHz, worst build: 30.07 dB. The upper edge is the worse of the two - with the trimmer over-correcting, rising frequency increases the shunt susceptance error faster than it increases X."},
-
- {"measure": "rl_r50_p47_fc", "min": 38.0, "max": 40.5, "severity": "error",
-  "msg": "WRONG-VALUE TRIPWIRE 1 - this is the bound that would have caught review-verify V1. The nominal build must read 39.12 dB, NOT the 71.8 dB a correctly-nulled board reads and not the 43.9 dB a 3.5 pF parasitic gives. The old bench modelled C_port = 1.3 pF and L = 6.9 nH and measured 72.58 dB here, which is outside this window by 32 dB. Any future edit to cpad or lrt that is not re-derived from the as-routed geometry trips this."},
- {"measure": "rl_r525_p47_fc", "min": 30.5, "max": 32.0, "severity": "error",
-  "msg": "WRONG-VALUE TRIPWIRE 2, same idea at the corner that actually binds: 31.19 dB. The perfect-null value at this corner is 32.17 dB (see tuning_authority.cir rl_ideal_r525), so the upper limit of 32.0 also catches a bench that has silently stopped clamping the trimmer at its low stop."},
-
- {"measure": "ctneed_p47_pf", "min": -2.2, "max": -1.4, "severity": "error",
-  "msg": "THE V1 FINDING, ASSERTED AS A NUMBER: an exact null of the as-routed 7.21 nH at R = 50 needs 2.883 pF of TOTAL shunt C, but C_port alone already supplies 4.7 pF - so the trimmer would have to contribute MINUS 1.817 pF. It cannot; the board sits below the trimmer's null window and C1 bottoms out. A positive reading here means the parasitic budget has been reverted to the stale 1.3 pF figure (which gives +1.583 pF)."},
- {"measure": "ctneed_p35_pf", "max": 0.0, "severity": "error",
-  "msg": "the same conclusion at the OPTIMISTIC end of the parasitic band: even at 3.5 pF the required trimmer contribution is -0.617 pF, still negative. The 'C1 bottoms out' finding does not depend on the parasitic estimate being exactly 4.7 pF - it holds across the whole 3.5-6.0 pF uncertainty band."},
- {"measure": "ctneed_p60_pf", "min": -3.6, "max": -2.7, "severity": "error",
-  "msg": "and at the pessimistic end: -3.117 pF."},
- {"measure": "copt_lrt_pf", "min": 2.80, "max": 2.97, "severity": "error",
-  "msg": "the total shunt C an exact null of 7.21 nH would need at R = 50: 2.883 pF. Closed form L/(R^2+(wL)^2). Independent of the parasitic split."},
- {"measure": "xlrt_ohm", "min": 1.10, "max": 1.16, "severity": "error",
-  "msg": "the as-routed residual as reactance at 25.0 MHz: 2*pi*25e6*7.21 nH = 1.1325 ohm. Sanity anchor for every other bench."},
-
- {"measure": "ct_r50_p47_pf", "min": 0.999, "max": 1.001, "severity": "error",
-  "msg": "C1 is AT its 1 pF low stop in the nominal build - the bench computes the best setting and clamps it, it does not assume the stop. Measured exactly 1.000 pF."},
- {"measure": "ct_r50_p35_pf", "min": 0.999, "max": 1.001, "severity": "error", "msg": "at the low stop with C_port 3.5 pF too: 1.000 pF."},
- {"measure": "ct_r50_p60_pf", "min": 0.999, "max": 1.001, "severity": "error", "msg": "at the low stop with C_port 6.0 pF too: 1.000 pF."},
- {"measure": "ct_r525_p47_pf", "min": 0.999, "max": 1.001, "severity": "error", "msg": "at the low stop at the +5% resistance corner too: 1.000 pF. All 12 builds bottom out; the delivered 1-30 pF Johanson 5602 has upward-only authority on this board."},
-
- {"measure": "rl_r50_p47_full", "min": 20.0, "severity": "warning",
-  "msg": "informational: 20 dB also holds over the whole swept 20-30 MHz, wider than the 22.5-27.5 MHz spec band. Nominal build 37.53 dB."},
- {"measure": "rl_r525_p60_full", "min": 20.0, "severity": "warning",
-  "msg": "20-30 MHz at the worst build: 29.75 dB. The response is nearly flat because X = wL is only 1.13 ohm - this one-port's frequency dependence is negligible next to its resistance tolerance and its port capacitance."}
+ {
+  "measure": "rl_r525_p47_l233_fc",
+  "min": 31.3,
+  "max": 31.55,
+  "severity": "error",
+  "msg": "THE WORST POINT ANYWHERE IN THE 48-BUILD GRID at 25.0 MHz: R = 52.5 ohm (unselected catalogue +5%) with the residual at the TOP of its band, 23.3 nH. Measured 31.433 dB = 5.43 dB of margin over crit. 2. The port parasitic barely enters: at this corner the trimmer reaches a true null at every parasitic in 4.7-6.5 pF, so what remains is Reff = R + X^2/R = 52.755 ohm, a pure resistance error. The window is a tripwire as well as a spec check - the PRE-re-route board read 31.19 dB here and the old 7.21 nH / 4.7 pF model reads 31.19, outside this window."
+ },
+ {
+  "measure": "rl_r525_p47_l233_bd",
+  "min": 31.15,
+  "max": 31.4,
+  "severity": "error",
+  "msg": "THE WORST POINT ANYWHERE IN BAND, same build, at the 27.5 MHz upper edge: 31.270 dB = 11.27 dB of margin on the 20 dB crit. 3 spec. The band is monotonic in frequency here because X = wL is only 3.06 ohm - the response is dominated by resistance."
+ },
+ {
+  "measure": "margin_fc",
+  "min": 5.0,
+  "severity": "error",
+  "msg": "MARGIN ASSERTION, not the spec: the worst of 48 builds must keep at least 5 dB over crit. 2. Measured 5.433 dB. A reading under 5 dB means the residual inductance or the resistance corner has moved and the design should be re-examined even though the letter of the spec still passes."
+ },
+ {
+  "measure": "margin_bd",
+  "min": 10.0,
+  "severity": "error",
+  "msg": "same in band: 11.270 dB over crit. 3."
+ },
+ {
+  "measure": "rl_r49_p47_l185_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 49.0 ohm, C_port = 4.7 pF, L = 18.5 nH, C1 = 2.9781 pF. Measured 41.571 dB."
+ },
+ {
+  "measure": "rl_r49_p47_l185_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 49.0, C_port = 4.7 pF, L = 18.5 nH. Worst in band 41.231 dB at 22.50 MHz."
+ },
+ {
+  "measure": "rl_r49_p47_l195_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 49.0 ohm, C_port = 4.7 pF, L = 19.5 nH, C1 = 3.3900 pF. Measured 41.776 dB."
+ },
+ {
+  "measure": "rl_r49_p47_l195_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 49.0, C_port = 4.7 pF, L = 19.5 nH. Worst in band 41.390 dB at 22.50 MHz."
+ },
+ {
+  "measure": "rl_r49_p47_l233_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 49.0 ohm, C_port = 4.7 pF, L = 23.3 nH, C1 = 4.9504 pF. Measured 42.710 dB."
+ },
+ {
+  "measure": "rl_r49_p47_l233_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 49.0, C_port = 4.7 pF, L = 23.3 nH. Worst in band 42.106 dB at 22.50 MHz."
+ },
+ {
+  "measure": "rl_r49_p54_l185_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 49.0 ohm, C_port = 5.4 pF, L = 18.5 nH, C1 = 2.2781 pF. Measured 41.571 dB."
+ },
+ {
+  "measure": "rl_r49_p54_l185_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 49.0, C_port = 5.4 pF, L = 18.5 nH. Worst in band 41.231 dB at 22.50 MHz."
+ },
+ {
+  "measure": "rl_r49_p54_l195_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 49.0 ohm, C_port = 5.4 pF, L = 19.5 nH, C1 = 2.6900 pF. Measured 41.776 dB."
+ },
+ {
+  "measure": "rl_r49_p54_l195_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 49.0, C_port = 5.4 pF, L = 19.5 nH. Worst in band 41.390 dB at 22.50 MHz."
+ },
+ {
+  "measure": "rl_r49_p54_l233_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 49.0 ohm, C_port = 5.4 pF, L = 23.3 nH, C1 = 4.2504 pF. Measured 42.710 dB."
+ },
+ {
+  "measure": "rl_r49_p54_l233_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 49.0, C_port = 5.4 pF, L = 23.3 nH. Worst in band 42.106 dB at 22.50 MHz."
+ },
+ {
+  "measure": "rl_r49_p61_l185_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 49.0 ohm, C_port = 6.1 pF, L = 18.5 nH, C1 = 1.5781 pF. Measured 41.571 dB."
+ },
+ {
+  "measure": "rl_r49_p61_l185_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 49.0, C_port = 6.1 pF, L = 18.5 nH. Worst in band 41.231 dB at 22.50 MHz."
+ },
+ {
+  "measure": "rl_r49_p61_l195_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 49.0 ohm, C_port = 6.1 pF, L = 19.5 nH, C1 = 1.9900 pF. Measured 41.776 dB."
+ },
+ {
+  "measure": "rl_r49_p61_l195_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 49.0, C_port = 6.1 pF, L = 19.5 nH. Worst in band 41.390 dB at 22.50 MHz."
+ },
+ {
+  "measure": "rl_r49_p61_l233_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 49.0 ohm, C_port = 6.1 pF, L = 23.3 nH, C1 = 3.5504 pF. Measured 42.710 dB."
+ },
+ {
+  "measure": "rl_r49_p61_l233_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 49.0, C_port = 6.1 pF, L = 23.3 nH. Worst in band 42.106 dB at 22.50 MHz."
+ },
+ {
+  "measure": "rl_r49_p65_l185_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 49.0 ohm, C_port = 6.5 pF, L = 18.5 nH, C1 = 1.1781 pF. Measured 41.571 dB."
+ },
+ {
+  "measure": "rl_r49_p65_l185_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 49.0, C_port = 6.5 pF, L = 18.5 nH. Worst in band 41.231 dB at 22.50 MHz."
+ },
+ {
+  "measure": "rl_r49_p65_l195_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 49.0 ohm, C_port = 6.5 pF, L = 19.5 nH, C1 = 1.5900 pF. Measured 41.776 dB."
+ },
+ {
+  "measure": "rl_r49_p65_l195_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 49.0, C_port = 6.5 pF, L = 19.5 nH. Worst in band 41.390 dB at 22.50 MHz."
+ },
+ {
+  "measure": "rl_r49_p65_l233_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 49.0 ohm, C_port = 6.5 pF, L = 23.3 nH, C1 = 3.1504 pF. Measured 42.710 dB."
+ },
+ {
+  "measure": "rl_r49_p65_l233_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 49.0, C_port = 6.5 pF, L = 23.3 nH. Worst in band 42.106 dB at 22.50 MHz."
+ },
+ {
+  "measure": "rl_r50_p47_l185_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 50.0 ohm, C_port = 4.7 pF, L = 18.5 nH, C1 = 2.6751 pF. Measured 55.462 dB."
+ },
+ {
+  "measure": "rl_r50_p47_l185_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 50.0, C_port = 4.7 pF, L = 18.5 nH. Worst in band 53.809 dB at 27.50 MHz."
+ },
+ {
+  "measure": "rl_r50_p47_l195_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 50.0 ohm, C_port = 4.7 pF, L = 19.5 nH, C1 = 3.0708 pF. Measured 54.550 dB."
+ },
+ {
+  "measure": "rl_r50_p47_l195_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 50.0, C_port = 4.7 pF, L = 19.5 nH. Worst in band 52.897 dB at 27.50 MHz."
+ },
+ {
+  "measure": "rl_r50_p47_l233_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 50.0 ohm, C_port = 4.7 pF, L = 23.3 nH, C1 = 4.5703 pF. Measured 51.464 dB."
+ },
+ {
+  "measure": "rl_r50_p47_l233_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 50.0, C_port = 4.7 pF, L = 23.3 nH. Worst in band 49.812 dB at 27.50 MHz."
+ },
+ {
+  "measure": "rl_r50_p54_l185_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 50.0 ohm, C_port = 5.4 pF, L = 18.5 nH, C1 = 1.9751 pF. Measured 55.462 dB."
+ },
+ {
+  "measure": "rl_r50_p54_l185_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 50.0, C_port = 5.4 pF, L = 18.5 nH. Worst in band 53.809 dB at 27.50 MHz."
+ },
+ {
+  "measure": "rl_r50_p54_l195_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 50.0 ohm, C_port = 5.4 pF, L = 19.5 nH, C1 = 2.3708 pF. Measured 54.550 dB."
+ },
+ {
+  "measure": "rl_r50_p54_l195_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 50.0, C_port = 5.4 pF, L = 19.5 nH. Worst in band 52.897 dB at 27.50 MHz."
+ },
+ {
+  "measure": "rl_r50_p54_l233_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 50.0 ohm, C_port = 5.4 pF, L = 23.3 nH, C1 = 3.8703 pF. Measured 51.464 dB."
+ },
+ {
+  "measure": "rl_r50_p54_l233_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 50.0, C_port = 5.4 pF, L = 23.3 nH. Worst in band 49.812 dB at 27.50 MHz."
+ },
+ {
+  "measure": "rl_r50_p61_l185_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 50.0 ohm, C_port = 6.1 pF, L = 18.5 nH, C1 = 1.2751 pF. Measured 55.462 dB."
+ },
+ {
+  "measure": "rl_r50_p61_l185_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 50.0, C_port = 6.1 pF, L = 18.5 nH. Worst in band 53.809 dB at 27.50 MHz."
+ },
+ {
+  "measure": "rl_r50_p61_l195_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 50.0 ohm, C_port = 6.1 pF, L = 19.5 nH, C1 = 1.6708 pF. Measured 54.550 dB."
+ },
+ {
+  "measure": "rl_r50_p61_l195_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 50.0, C_port = 6.1 pF, L = 19.5 nH. Worst in band 52.897 dB at 27.50 MHz."
+ },
+ {
+  "measure": "rl_r50_p61_l233_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 50.0 ohm, C_port = 6.1 pF, L = 23.3 nH, C1 = 3.1703 pF. Measured 51.464 dB."
+ },
+ {
+  "measure": "rl_r50_p61_l233_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 50.0, C_port = 6.1 pF, L = 23.3 nH. Worst in band 49.812 dB at 27.50 MHz."
+ },
+ {
+  "measure": "rl_r50_p65_l185_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 50.0 ohm, C_port = 6.5 pF, L = 18.5 nH, C1 = 1.0000 pF. C1 AT ITS 1 pF LOW STOP (needed 0.8751 pF) Measured 55.108 dB."
+ },
+ {
+  "measure": "rl_r50_p65_l185_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 50.0, C_port = 6.5 pF, L = 18.5 nH. Worst in band 53.491 dB at 27.50 MHz."
+ },
+ {
+  "measure": "rl_r50_p65_l195_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 50.0 ohm, C_port = 6.5 pF, L = 19.5 nH, C1 = 1.2708 pF. Measured 54.550 dB."
+ },
+ {
+  "measure": "rl_r50_p65_l195_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 50.0, C_port = 6.5 pF, L = 19.5 nH. Worst in band 52.897 dB at 27.50 MHz."
+ },
+ {
+  "measure": "rl_r50_p65_l233_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 50.0 ohm, C_port = 6.5 pF, L = 23.3 nH, C1 = 2.7703 pF. Measured 51.464 dB."
+ },
+ {
+  "measure": "rl_r50_p65_l233_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 50.0, C_port = 6.5 pF, L = 23.3 nH. Worst in band 49.812 dB at 27.50 MHz."
+ },
+ {
+  "measure": "rl_r51_p47_l185_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 51.0 ohm, C_port = 4.7 pF, L = 18.5 nH, C1 = 2.3896 pF. Measured 38.770 dB."
+ },
+ {
+  "measure": "rl_r51_p47_l185_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 51.0, C_port = 4.7 pF, L = 18.5 nH. Worst in band 38.517 dB at 27.50 MHz."
+ },
+ {
+  "measure": "rl_r51_p47_l195_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 51.0 ohm, C_port = 4.7 pF, L = 19.5 nH, C1 = 2.7702 pF. Measured 38.635 dB."
+ },
+ {
+  "measure": "rl_r51_p47_l195_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 51.0, C_port = 4.7 pF, L = 19.5 nH. Worst in band 38.360 dB at 27.50 MHz."
+ },
+ {
+  "measure": "rl_r51_p47_l233_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 51.0 ohm, C_port = 4.7 pF, L = 23.3 nH, C1 = 4.2122 pF. Measured 38.083 dB."
+ },
+ {
+  "measure": "rl_r51_p47_l233_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 51.0, C_port = 4.7 pF, L = 23.3 nH. Worst in band 37.717 dB at 27.50 MHz."
+ },
+ {
+  "measure": "rl_r51_p54_l185_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 51.0 ohm, C_port = 5.4 pF, L = 18.5 nH, C1 = 1.6896 pF. Measured 38.770 dB."
+ },
+ {
+  "measure": "rl_r51_p54_l185_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 51.0, C_port = 5.4 pF, L = 18.5 nH. Worst in band 38.517 dB at 27.50 MHz."
+ },
+ {
+  "measure": "rl_r51_p54_l195_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 51.0 ohm, C_port = 5.4 pF, L = 19.5 nH, C1 = 2.0702 pF. Measured 38.635 dB."
+ },
+ {
+  "measure": "rl_r51_p54_l195_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 51.0, C_port = 5.4 pF, L = 19.5 nH. Worst in band 38.360 dB at 27.50 MHz."
+ },
+ {
+  "measure": "rl_r51_p54_l233_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 51.0 ohm, C_port = 5.4 pF, L = 23.3 nH, C1 = 3.5122 pF. Measured 38.083 dB."
+ },
+ {
+  "measure": "rl_r51_p54_l233_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 51.0, C_port = 5.4 pF, L = 23.3 nH. Worst in band 37.717 dB at 27.50 MHz."
+ },
+ {
+  "measure": "rl_r51_p61_l185_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 51.0 ohm, C_port = 6.1 pF, L = 18.5 nH, C1 = 1.0000 pF. C1 AT ITS 1 pF LOW STOP (needed 0.9896 pF) Measured 38.770 dB."
+ },
+ {
+  "measure": "rl_r51_p61_l185_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 51.0, C_port = 6.1 pF, L = 18.5 nH. Worst in band 38.517 dB at 27.50 MHz."
+ },
+ {
+  "measure": "rl_r51_p61_l195_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 51.0 ohm, C_port = 6.1 pF, L = 19.5 nH, C1 = 1.3702 pF. Measured 38.635 dB."
+ },
+ {
+  "measure": "rl_r51_p61_l195_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 51.0, C_port = 6.1 pF, L = 19.5 nH. Worst in band 38.360 dB at 27.50 MHz."
+ },
+ {
+  "measure": "rl_r51_p61_l233_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 51.0 ohm, C_port = 6.1 pF, L = 23.3 nH, C1 = 2.8122 pF. Measured 38.083 dB."
+ },
+ {
+  "measure": "rl_r51_p61_l233_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 51.0, C_port = 6.1 pF, L = 23.3 nH. Worst in band 37.717 dB at 27.50 MHz."
+ },
+ {
+  "measure": "rl_r51_p65_l185_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 51.0 ohm, C_port = 6.5 pF, L = 18.5 nH, C1 = 1.0000 pF. C1 AT ITS 1 pF LOW STOP (needed 0.5896 pF) Measured 38.684 dB."
+ },
+ {
+  "measure": "rl_r51_p65_l185_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 51.0, C_port = 6.5 pF, L = 18.5 nH. Worst in band 38.417 dB at 27.50 MHz."
+ },
+ {
+  "measure": "rl_r51_p65_l195_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 51.0 ohm, C_port = 6.5 pF, L = 19.5 nH, C1 = 1.0000 pF. C1 AT ITS 1 pF LOW STOP (needed 0.9702 pF) Measured 38.635 dB."
+ },
+ {
+  "measure": "rl_r51_p65_l195_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 51.0, C_port = 6.5 pF, L = 19.5 nH. Worst in band 38.359 dB at 27.50 MHz."
+ },
+ {
+  "measure": "rl_r51_p65_l233_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 51.0 ohm, C_port = 6.5 pF, L = 23.3 nH, C1 = 2.4122 pF. Measured 38.083 dB."
+ },
+ {
+  "measure": "rl_r51_p65_l233_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 51.0, C_port = 6.5 pF, L = 23.3 nH. Worst in band 37.717 dB at 27.50 MHz."
+ },
+ {
+  "measure": "rl_r525_p47_l185_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 52.5 ohm, C_port = 4.7 pF, L = 18.5 nH, C1 = 1.9915 pF. Measured 31.728 dB."
+ },
+ {
+  "measure": "rl_r525_p47_l185_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 52.5, C_port = 4.7 pF, L = 18.5 nH. Worst in band 31.621 dB at 27.50 MHz."
+ },
+ {
+  "measure": "rl_r525_p47_l195_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 52.5 ohm, C_port = 4.7 pF, L = 19.5 nH, C1 = 2.3508 pF. Measured 31.671 dB."
+ },
+ {
+  "measure": "rl_r525_p47_l195_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 52.5, C_port = 4.7 pF, L = 19.5 nH. Worst in band 31.553 dB at 27.50 MHz."
+ },
+ {
+  "measure": "rl_r525_p47_l233_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 52.5 ohm, C_port = 4.7 pF, L = 23.3 nH, C1 = 3.7126 pF. Measured 31.433 dB."
+ },
+ {
+  "measure": "rl_r525_p47_l233_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 52.5, C_port = 4.7 pF, L = 23.3 nH. Worst in band 31.270 dB at 27.50 MHz."
+ },
+ {
+  "measure": "rl_r525_p54_l185_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 52.5 ohm, C_port = 5.4 pF, L = 18.5 nH, C1 = 1.2915 pF. Measured 31.728 dB."
+ },
+ {
+  "measure": "rl_r525_p54_l185_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 52.5, C_port = 5.4 pF, L = 18.5 nH. Worst in band 31.621 dB at 27.50 MHz."
+ },
+ {
+  "measure": "rl_r525_p54_l195_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 52.5 ohm, C_port = 5.4 pF, L = 19.5 nH, C1 = 1.6508 pF. Measured 31.671 dB."
+ },
+ {
+  "measure": "rl_r525_p54_l195_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 52.5, C_port = 5.4 pF, L = 19.5 nH. Worst in band 31.553 dB at 27.50 MHz."
+ },
+ {
+  "measure": "rl_r525_p54_l233_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 52.5 ohm, C_port = 5.4 pF, L = 23.3 nH, C1 = 3.0126 pF. Measured 31.433 dB."
+ },
+ {
+  "measure": "rl_r525_p54_l233_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 52.5, C_port = 5.4 pF, L = 23.3 nH. Worst in band 31.270 dB at 27.50 MHz."
+ },
+ {
+  "measure": "rl_r525_p61_l185_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 52.5 ohm, C_port = 6.1 pF, L = 18.5 nH, C1 = 1.0000 pF. C1 AT ITS 1 pF LOW STOP (needed 0.5915 pF) Measured 31.710 dB."
+ },
+ {
+  "measure": "rl_r525_p61_l185_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 52.5, C_port = 6.1 pF, L = 18.5 nH. Worst in band 31.600 dB at 27.50 MHz."
+ },
+ {
+  "measure": "rl_r525_p61_l195_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 52.5 ohm, C_port = 6.1 pF, L = 19.5 nH, C1 = 1.0000 pF. C1 AT ITS 1 pF LOW STOP (needed 0.9508 pF) Measured 31.671 dB."
+ },
+ {
+  "measure": "rl_r525_p61_l195_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 52.5, C_port = 6.1 pF, L = 19.5 nH. Worst in band 31.553 dB at 27.50 MHz."
+ },
+ {
+  "measure": "rl_r525_p61_l233_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 52.5 ohm, C_port = 6.1 pF, L = 23.3 nH, C1 = 2.3126 pF. Measured 31.433 dB."
+ },
+ {
+  "measure": "rl_r525_p61_l233_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 52.5, C_port = 6.1 pF, L = 23.3 nH. Worst in band 31.270 dB at 27.50 MHz."
+ },
+ {
+  "measure": "rl_r525_p65_l185_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 52.5 ohm, C_port = 6.5 pF, L = 18.5 nH, C1 = 1.0000 pF. C1 AT ITS 1 pF LOW STOP (needed 0.1915 pF) Measured 31.660 dB."
+ },
+ {
+  "measure": "rl_r525_p65_l185_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 52.5, C_port = 6.5 pF, L = 18.5 nH. Worst in band 31.540 dB at 27.50 MHz."
+ },
+ {
+  "measure": "rl_r525_p65_l195_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 52.5 ohm, C_port = 6.5 pF, L = 19.5 nH, C1 = 1.0000 pF. C1 AT ITS 1 pF LOW STOP (needed 0.5508 pF) Measured 31.650 dB."
+ },
+ {
+  "measure": "rl_r525_p65_l195_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 52.5, C_port = 6.5 pF, L = 19.5 nH. Worst in band 31.528 dB at 27.50 MHz."
+ },
+ {
+  "measure": "rl_r525_p65_l233_fc",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "crit. 2 (RL >= 26 dB at 25.0 MHz): R = 52.5 ohm, C_port = 6.5 pF, L = 23.3 nH, C1 = 1.9126 pF. Measured 31.433 dB."
+ },
+ {
+  "measure": "rl_r525_p65_l233_bd",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "crit. 3 (RL >= 20 dB over 22.5-27.5 MHz, trimmer FROZEN at its Fc setting): R = 52.5, C_port = 6.5 pF, L = 23.3 nH. Worst in band 31.270 dB at 27.50 MHz."
+ },
+ {
+  "measure": "rl_r50_p54_l195_fc",
+  "min": 54.0,
+  "max": 55.1,
+  "severity": "error",
+  "msg": "WRONG-VALUE TRIPWIRE 1 - the nominal as-routed build (R = 50, C_port 5.4 pF pi-split, L = 19.5 nH central) must read 54.549 dB. The PRE-re-route board read 39.12 dB at its own nominal, and reverting L to 7.21 nH in this bench gives 39.12 again - 32 dB outside this window. Any future edit to the residual or the parasitic that is not re-derived from the as-routed CPWG geometry trips this."
+ },
+ {
+  "measure": "ct_nom_pf",
+  "min": 2.3,
+  "max": 2.45,
+  "severity": "error",
+  "msg": "WRONG-VALUE TRIPWIRE 2, and the headline of the whole re-route: the nominal build's trimmer setting is 2.3708 pF, computed by ctset() as the exact susceptance null and then clamped - it is NOT at a stop. The pre-re-route board clamped to exactly 1.000 pF here. A reading of 1.000 means the residual inductance has been reverted and the two-sided null is gone."
+ },
+ {
+  "measure": "ct_nom_pf",
+  "min": 1.05,
+  "severity": "error",
+  "msg": "the same fact stated as the design promise: the nominal setting is strictly above the 1 pF low stop, i.e. C1 has real DOWNWARD authority. 2.3708 pF, 1.3708 pF clear of the stop."
+ },
+ {
+  "measure": "ct_wc_pf",
+  "min": 3.65,
+  "max": 3.78,
+  "severity": "error",
+  "msg": "the worst build's setting is also off the stop: 3.7126 pF at R = 52.5 / 23.3 nH / 4.7 pF."
+ },
+ {
+  "measure": "x_asr_ohm",
+  "min": 3.05,
+  "max": 3.08,
+  "severity": "error",
+  "msg": "AS-ROUTED ANCHOR: the central residual as reactance at 25.0 MHz, 2*pi*25e6*19.5 nH = 3.0631 ohm. The pre-re-route board was 1.1325 ohm (7.21 nH); this window excludes it. Sanity anchor for every other bench."
+ },
+ {
+  "measure": "l_asr_nh",
+  "min": 19.45,
+  "max": 19.55,
+  "severity": "error",
+  "msg": "AS-ROUTED ANCHOR: central residual 19.5 nH (state.json P7 decision 'residual 7.21 -> 19.5 nH via a 33.125 mm meander')."
+ },
+ {
+  "measure": "x_lo_ohm",
+  "min": 2.89,
+  "max": 2.92,
+  "severity": "error",
+  "msg": "low end of the residual band, 18.5 nH = 2.9060 ohm."
+ },
+ {
+  "measure": "x_hi_ohm",
+  "min": 3.64,
+  "max": 3.68,
+  "severity": "error",
+  "msg": "high end of the residual band, 23.3 nH = 3.6600 ohm."
+ },
+ {
+  "measure": "lmeander_nh",
+  "min": 14.0,
+  "max": 14.4,
+  "severity": "error",
+  "msg": "GEOMETRY AUDIT: the meander's own CPWG contribution is 33.125 mm * 0.4281 nH/mm = 14.181 nH. The balance to the router's 19.5 nH central figure is 5.319 nH over the remaining 9.388 mm of launch/pad copper (0.567 nH/mm) - the one term this bench cannot independently derive, which is why 18.5-23.3 nH is swept rather than asserted."
+ },
+ {
+  "measure": "cmeander_pf",
+  "min": 2.45,
+  "max": 2.55,
+  "severity": "error",
+  "msg": "GEOMETRY AUDIT: the meander's own distributed C is 33.125 * 0.0755 = 2.501 pF."
+ },
+ {
+  "measure": "cp_pi_pf",
+  "min": 5.39,
+  "max": 5.41,
+  "severity": "error",
+  "msg": "the pi-split port parasitic, 5.40 pF: the old 4.7 pF estimate plus half of the NET 1.40 pF the re-route added (the other half lands across R1's 50 ohm, a 2.4% perturbation)."
+ },
+ {
+  "measure": "cp_lump_pf",
+  "min": 6.09,
+  "max": 6.11,
+  "severity": "error",
+  "msg": "the conservative lump-it-all-at-the-port parasitic, 6.10 pF."
+ },
+ {
+  "measure": "cnet_added_pf",
+  "min": 1.39,
+  "max": 1.41,
+  "severity": "error",
+  "msg": "the NET distributed C the re-route added: 1.40 pF = 2.501 pF of new meander minus the ~1.10 pF that left with the deleted 7.34 mm lap-pad flare."
+ },
+ {
+  "measure": "csplit_chk",
+  "min": -0.001,
+  "max": 0.001,
+  "severity": "error",
+  "msg": "CONVENTION CONSISTENCY, asserted as arithmetic: cp_lump - cp_pi - cnet/2 = 0.000 pF exactly. If either parasitic convention is edited without the other, this trips."
+ },
+ {
+  "measure": "ctot_hi_pf",
+  "min": 35.39,
+  "max": 35.41,
+  "severity": "error",
+  "msg": "DELIVERED PART, high end: 5.4 pF port + the Johanson 5602's 30 pF top stop = 35.40 pF. A 35 pF trimmer (no such part on this BOM) would read 40.40 pF."
+ },
+ {
+  "measure": "ctot_lo_pf",
+  "min": 6.39,
+  "max": 6.41,
+  "severity": "error",
+  "msg": "DELIVERED PART, low end: 5.4 + 1 = 6.40 pF at full CCW."
+ },
+ {
+  "measure": "rl_wc_lo",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "band lower edge 22.5 MHz at the worst build: 31.583 dB."
+ },
+ {
+  "measure": "rl_wc_hi",
+  "min": 20.0,
+  "severity": "error",
+  "msg": "band upper edge 27.5 MHz at the worst build: 31.270 dB - the worse of the two edges, and the worst point in band."
+ },
+ {
+  "measure": "rl_wc_full",
+  "min": 20.0,
+  "severity": "warning",
+  "msg": "informational: 20 dB also holds over the whole swept 20-30 MHz at the worst build - 31.096 dB at 30 MHz."
+ },
+ {
+  "measure": "rl_nom_full",
+  "min": 20.0,
+  "severity": "warning",
+  "msg": "informational: nominal build over 20-30 MHz, 51.387 dB."
+ }
 ]

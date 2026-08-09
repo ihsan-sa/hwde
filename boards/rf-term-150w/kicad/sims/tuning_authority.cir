@@ -1,79 +1,75 @@
-* rf-term-150w - BENCH 3: what the DELIVERED trimmer can and cannot tune out
+* rf-term-150w - BENCH 3: what the DELIVERED trimmer can tune out, RE-ROUTED
 *
-* SOURCE TOPOLOGY / MODEL PROVENANCE / METHOD: identical to s11_band.cir - see
-* that file's header, including the CORRECTED 2026-08-09 values:
-*   C_port  4.7 pF fixed (was 1.3 pF - review-verify V1: the as-routed launch is
-*           15.065 mm of mostly-wide trace + a 5.0 x 7.0 mm lap pad, not the
-*           3.55 mm launch the P2 architecture assumed). Swept 3.5-6.0 pF in
-*           block (B) because there is no field solver on this pipeline.
-*   C_trim  Johanson 5602, 1-30 pF, DigiKey 1956-1000-ND (was 1-35 pF, which is
-*           no part at all - review-verify V2). parts/5602.json line 45.
+* SOURCE TOPOLOGY / MODEL PROVENANCE / METHOD: identical to s11_band.cir.
 *
-* DESIGN INTENT / what this bench proves. Five questions, five blocks, all at
-* 25.0 MHz:
+* DESIGN INTENT / what this bench proves. Five blocks, all at 25.0 MHz:
 *
-*  (A) THE NULL IS THE BEST SETTING. Benches 1 and 2 tune every build to the
-*      closed-form susceptance null B = X/(R^2+X^2). Proved here by brute force
-*      instead of asserted: five copies of one one-port with the TOTAL shunt C
-*      scaled to 0.80 / 0.90 / 1.00 / 1.10 / 1.25 of the null value. dopt_*
-*      (RL at the null minus RL off it) must be positive at every step, both
-*      directions. L = 30 nH is used because that is a residual whose null the
-*      delivered 1-30 pF part can actually reach with room on both sides
-*      (7.194 pF) - a scaling test run at the as-routed 7.21 nH would need
-*      negative trimmer values and would prove nothing.
+*  (A) THE NULL IS THE BEST SETTING - and this test now runs AT THE REAL
+*      OPERATING POINT. The pre-re-route version of this bench had to use
+*      a fictitious L = 30 nH because at the as-routed 7.21 nH the scaling
+*      test needed negative trimmer values. At 19.5 nH the null sits at
+*      2.3708 pF and scaling the TOTAL shunt C by 0.80 - 1.25 stays inside
+*      the delivered 1-30 pF part in both directions, so the optimality of
+*      the null is now demonstrated on the board as built.
 *
-*  (B) THE HONEST TUNING WINDOW - THE README NUMBER. Which residual L the
-*      DELIVERED part can null EXACTLY, i.e. for which L the required TOTAL C
-*      falls inside [C_port + 1 pF, C_port + 30 pF]. Inverting
-*      Ctot = L/(R^2+w^2 L^2) for L gives
-*          L = (1 - sqrt(1 - 4 C^2 w^2 R^2)) / (2 C w^2)      [lower branch]
-*      evaluated as lnlo/lnhi at each of the three parasitic estimates and
-*      CHECKED by simulation: an instance at each endpoint L, with the trimmer
-*      pinned at that stop, must show a REAL null (residual = Reff only), not a
-*      clamped mistune. At the nominal 4.7 pF the answer is 14.28 - 94.38 nH
-*      (X = 2.243 - 14.825 ohm); the parasitic band moves it to 11.26 - 90.52 nH
-*      at 3.5 pF and 17.55 - 98.64 nH at 6.0 pF.
+*  (B) THE NEW ACHIEVABLE ADJUSTMENT RANGE - THE README NUMBER. Which
+*      residual L the delivered part can null EXACTLY, i.e. for which L the
+*      required TOTAL C falls inside [C_port + 1 pF, C_port + 30 pF].
+*      Inverting Ctot = L/(R^2+w^2L^2) for L gives
+*          L = (1 - sqrt(1 - 4 C^2 w^2 R^2)) / (2 C w^2)   [lower branch]
+*      At the nominal 5.4 pF port the answer is 16.041 - 96.661 nH
+*      (X = 2.520 - 15.183 ohm), replacing the 14.28 - 94.38 nH the README
+*      quotes for the pre-re-route 4.7 pF port. Across the 4.7 - 6.5 pF
+*      parasitic band the envelope is 14.279 - 100.312 nH. Each endpoint is
+*      CHECKED by simulation, with the trimmer pinned at that stop, and must
+*      show a real null rather than a clamped mistune.
 *
-*  (C) THE AS-ROUTED BOARD SITS BELOW THAT WINDOW, and what that costs. The
-*      board's own residual is 7.21 nH < 14.28 nH, so C1 bottoms out and has
-*      upward-only authority. Block C runs the as-routed board twice at each
-*      resistance - once at the 1 pF low stop (what the operator will actually
-*      have) and once with a HYPOTHETICAL ideal shunt equal to the exact null
-*      (a physically unbuildable 2.883 pF total, less than C_port alone) - and
-*      subtracts them. cost_r525_* is the number that matters: 0.98 dB at the
-*      nominal parasitic, 1.80 dB at the pessimistic one.
+*  (C) WHERE THE BOARD NOW SITS. Residual 18.5 - 23.3 nH against a window
+*      starting at 16.041 nH: INSIDE, by 2.459 nH at the low end of the
+*      residual band. The pre-re-route board sat 7.069 nH BELOW its window.
+*      The block also reports the one place the board still falls out:
+*      at the 6.5 pF end of the parasitic band the window starts at
+*      18.816 nH and an 18.5 nH build is 0.316 nH short.
 *
-*  (D) SPEC AUTHORITY - how far the residual can go before 26 dB fails, with
-*      the trimmer at its best CLAMPED setting. This is wider than (B) at both
-*      ends: below lnlo the trimmer over-corrects by a couple of pF, and above
-*      lnhi the residual mistune is small next to Reff = R + X^2/R, which is
-*      what actually ends the range (see reff_limit.cir).
+*  (D) SPEC AUTHORITY - how far the residual can go before 26 dB fails,
+*      with the trimmer at its best CLAMPED setting. Wider than (B) at both
+*      ends. At R = 50 it ends at 102.78 nH (the PART runs out); at
+*      R = 52.5 it ends at 76.86 nH and is set by Reff, not by the trimmer
+*      (reff_limit.cir derives the same 76.86 nH with an IDEAL tuner).
 *
-*  (E) THE PRICE OF A REAL TWO-SIDED NULL. If the board must have one, the
-*      launch has to be made deliberately worse. Block E adds series inductance
-*      to the as-routed 7.21 nH and reports the return-loss change at the +5%
-*      resistance corner. The answer is counter-intuitive and worth stating:
-*      the minimum useful addition (+7.07 nH, to reach the window's low edge)
-*      IMPROVES the corner by 0.72 dB, because a true null beats an
-*      over-corrected stop. The price only turns negative past about +23 nH.
+*  (E) WAS THE RE-ROUTE WORTH IT, and is there more to gain? The old board
+*      (7.21 nH, 4.7 pF, C1 bottomed) is instantiated alongside the new one
+*      at the binding +5% resistance corner and subtracted. The answer is
+*      +1.06 dB - the re-route bought real margin. It also shows the free
+*      lunch is now OVER: the pre-re-route finding that 'adding inductance
+*      is free or better' held because the fixed port capacitance was
+*      over-correcting a 7.21 nH residual. At 19.5 nH the null is interior,
+*      so from here every further nH costs Reff and nothing else - going on
+*      to 30 nH would give back 0.74 dB at the binding corner.
 
 .param z0=50
 .param fc=25e6
 .param w0={2*3.141592653589793*fc}
 .param cmin=1e-12
 .param cmax=30e-12
-.param cpad=4.7e-12
-.param cp35=3.5e-12
-.param cp60=6.0e-12
-.param rt=50.0
-.param rhi=52.5
-.param lrt=7.21n
+.param cp47=4.7e-12
+.param cp54=5.4e-12
+.param cp61=6.1e-12
+.param cp65=6.5e-12
+.param l185=18.5n
+.param l195=19.5n
+.param l233=23.3n
+.param r49=49.0
+.param r50=50.0
+.param r51=51.0
+.param r525=52.5
 
+* exact susceptance null at fc, and the trimmer setting that realises it,
+* clamped to the DELIVERED 1 - 30 pF range of the Johanson 5602
 .func copt(rr,ll) {ll/(rr*rr+(w0*ll)*(w0*ll))}
-.func ctset(rr,ll) {min(cmax,max(cmin,copt(rr,ll)-cpad))}
-.func lnull(cc,rr) {(1-sqrt(1-4*cc*cc*w0*w0*rr*rr))/(2*cc*w0*w0)}
+.func ctset(rr,ll,cp) {min(cmax,max(cmin,copt(rr,ll)-cp))}
 
-.subckt oneport p lval=7.21n rval=50 cval=1p cpv=4.7p
+.subckt oneport p lval=19.5n rval=50 cval=1p cpv=5.4p
 Ll p m {lval}
 Rt m 0 {rval}
 Ct p 0 {cval}
@@ -83,146 +79,145 @@ Cp p 0 {cpv}
 Vsrc src 0 AC 2
 Vref ref 0 AC 1
 
+.func lnull(cc,rr) {(1-sqrt(1-4*cc*cc*w0*w0*rr*rr))/(2*cc*w0*w0)}
+
 * ======================= (A) is the null really the optimum ==============
-.param lk=30.0n
-.param ck={copt(rt,lk)}
+.param ck={copt(r50,l195)}
 Rsk80 src dk80 {z0}
-Xk80 dk80 oneport lval={lk} rval={rt} cval={0.80*ck-cpad} cpv={cpad}
+Xk80 dk80 oneport lval={l195} rval={r50} cval={0.80*ck-cp54} cpv={cp54}
 Ek80 gk80 0 dk80 ref 1
 Rsk90 src dk90 {z0}
-Xk90 dk90 oneport lval={lk} rval={rt} cval={0.90*ck-cpad} cpv={cpad}
+Xk90 dk90 oneport lval={l195} rval={r50} cval={0.90*ck-cp54} cpv={cp54}
 Ek90 gk90 0 dk90 ref 1
 Rsk100 src dk100 {z0}
-Xk100 dk100 oneport lval={lk} rval={rt} cval={1.00*ck-cpad} cpv={cpad}
+Xk100 dk100 oneport lval={l195} rval={r50} cval={1.00*ck-cp54} cpv={cp54}
 Ek100 gk100 0 dk100 ref 1
 Rsk110 src dk110 {z0}
-Xk110 dk110 oneport lval={lk} rval={rt} cval={1.10*ck-cpad} cpv={cpad}
+Xk110 dk110 oneport lval={l195} rval={r50} cval={1.10*ck-cp54} cpv={cp54}
 Ek110 gk110 0 dk110 ref 1
 Rsk125 src dk125 {z0}
-Xk125 dk125 oneport lval={lk} rval={rt} cval={1.25*ck-cpad} cpv={cpad}
+Xk125 dk125 oneport lval={l195} rval={r50} cval={1.25*ck-cp54} cpv={cp54}
 Ek125 gk125 0 dk125 ref 1
 
 * ======================= (B) exact-null window, delivered 1-30 pF part ===
-.param ctot_lo={cmin+cpad}
-.param ctot_hi={cmax+cpad}
-.param lnlo={lnull(ctot_lo,rt)}
-.param lnhi={lnull(ctot_hi,rt)}
-.param lnlo35={lnull(cmin+cp35,rt)}
-.param lnhi35={lnull(cmax+cp35,rt)}
-.param lnlo60={lnull(cmin+cp60,rt)}
-.param lnhi60={lnull(cmax+cp60,rt)}
+.param lnlo={lnull(cmin+cp54,r50)}
+.param lnhi={lnull(cmax+cp54,r50)}
+.param lnlo47={lnull(cmin+cp47,r50)}
+.param lnhi47={lnull(cmax+cp47,r50)}
+.param lnlo61={lnull(cmin+cp61,r50)}
+.param lnhi61={lnull(cmax+cp61,r50)}
+.param lnlo65={lnull(cmin+cp65,r50)}
+.param lnhi65={lnull(cmax+cp65,r50)}
+* the same window at the two resistance limits, at the nominal parasitic
+.param lnlo49={lnull(cmin+cp54,r49)}
+.param lnlo525={lnull(cmin+cp54,r525)}
+.param lnhi525={lnull(cmax+cp54,r525)}
 Rsnlo src dnlo {z0}
-Xnlo dnlo oneport lval={lnlo} rval={rt} cval={cmin} cpv={cpad}
+Xnlo dnlo oneport lval={lnlo} rval={r50} cval={cmin} cpv={cp54}
 Enlo gnlo 0 dnlo ref 1
 Rsnhi src dnhi {z0}
-Xnhi dnhi oneport lval={lnhi} rval={rt} cval={cmax} cpv={cpad}
+Xnhi dnhi oneport lval={lnhi} rval={r50} cval={cmax} cpv={cp54}
 Enhi gnhi 0 dnhi ref 1
-Rsnlo35 src dnlo35 {z0}
-Xnlo35 dnlo35 oneport lval={lnlo35} rval={rt} cval={cmin} cpv={cp35}
-Enlo35 gnlo35 0 dnlo35 ref 1
-Rsnhi35 src dnhi35 {z0}
-Xnhi35 dnhi35 oneport lval={lnhi35} rval={rt} cval={cmax} cpv={cp35}
-Enhi35 gnhi35 0 dnhi35 ref 1
-Rsnlo60 src dnlo60 {z0}
-Xnlo60 dnlo60 oneport lval={lnlo60} rval={rt} cval={cmin} cpv={cp60}
-Enlo60 gnlo60 0 dnlo60 ref 1
-Rsnhi60 src dnhi60 {z0}
-Xnhi60 dnhi60 oneport lval={lnhi60} rval={rt} cval={cmax} cpv={cp60}
-Enhi60 gnhi60 0 dnhi60 ref 1
+Rsnlo65 src dnlo65 {z0}
+Xnlo65 dnlo65 oneport lval={lnlo65} rval={r50} cval={cmin} cpv={cp65}
+Enlo65 gnlo65 0 dnlo65 ref 1
+Rsnhi65 src dnhi65 {z0}
+Xnhi65 dnhi65 oneport lval={lnhi65} rval={r50} cval={cmax} cpv={cp65}
+Enhi65 gnhi65 0 dnhi65 ref 1
+Rsnlo47 src dnlo47 {z0}
+Xnlo47 dnlo47 oneport lval={lnlo47} rval={r50} cval={cmin} cpv={cp47}
+Enlo47 gnlo47 0 dnlo47 ref 1
+Rsnhi47 src dnhi47 {z0}
+Xnhi47 dnhi47 oneport lval={lnhi47} rval={r50} cval={cmax} cpv={cp47}
+Enhi47 gnhi47 0 dnhi47 ref 1
 
-* ======================= (C) the as-routed board vs a perfect null ========
-* "lows" = the real board: trimmer clamped at its 1 pF stop.
-* "ideal" = a hypothetical shunt equal to the exact null (2.883 pF TOTAL at
-* R = 50, i.e. LESS than the 4.7 pF port parasitic alone) - unbuildable, and
-* modelled as a single capacitor with the pad term collapsed to 1 fF so that
-* no negative element value is ever asked of the engine.
-Rslo50 src dlo50 {z0}
-Xlo50 dlo50 oneport lval={lrt} rval={rt} cval={cmin} cpv={cpad}
-Elo50 glo50 0 dlo50 ref 1
-Rslo525 src dlo525 {z0}
-Xlo525 dlo525 oneport lval={lrt} rval={rhi} cval={cmin} cpv={cpad}
-Elo525 glo525 0 dlo525 ref 1
-Rslo35 src dlo35 {z0}
-Xlo35 dlo35 oneport lval={lrt} rval={rhi} cval={cmin} cpv={cp35}
-Elo35 glo35 0 dlo35 ref 1
-Rslo60 src dlo60 {z0}
-Xlo60 dlo60 oneport lval={lrt} rval={rhi} cval={cmin} cpv={cp60}
-Elo60 glo60 0 dlo60 ref 1
-Rsid50 src did50 {z0}
-Xid50 did50 oneport lval={lrt} rval={rt} cval={copt(rt,lrt)} cpv=1f
-Eid50 gid50 0 did50 ref 1
-Rsid525 src did525 {z0}
-Xid525 did525 oneport lval={lrt} rval={rhi} cval={copt(rhi,lrt)} cpv=1f
-Eid525 gid525 0 did525 ref 1
+* ======================= (C) where the board sits vs the window ==========
+* the three residual-band builds at the nominal parasitic, best setting
+Rsb185 src db185 {z0}
+Xb185 db185 oneport lval={l185} rval={r50} cval={ctset(r50,l185,cp54)} cpv={cp54}
+Eb185 gb185 0 db185 ref 1
+Rsb195 src db195 {z0}
+Xb195 db195 oneport lval={l195} rval={r50} cval={ctset(r50,l195,cp54)} cpv={cp54}
+Eb195 gb195 0 db195 ref 1
+Rsb233 src db233 {z0}
+Xb233 db233 oneport lval={l233} rval={r50} cval={ctset(r50,l233,cp54)} cpv={cp54}
+Eb233 gb233 0 db233 ref 1
 
-* ======================= (D) spec authority, best clamped setting =========
-Rsl0 src dl0 {z0}
-Xl0 dl0 oneport lval=0.001n rval={rt} cval={ctset(rt,0.001n)} cpv={cpad}
-El0 gl0 0 dl0 ref 1
-Rsl14 src dl14 {z0}
-Xl14 dl14 oneport lval=14.28n rval={rt} cval={ctset(rt,14.28n)} cpv={cpad}
-El14 gl14 0 dl14 ref 1
-Rsl30 src dl30 {z0}
-Xl30 dl30 oneport lval=30n rval={rt} cval={ctset(rt,30n)} cpv={cpad}
-El30 gl30 0 dl30 ref 1
-Rsl60 src dl60 {z0}
-Xl60 dl60 oneport lval=60n rval={rt} cval={ctset(rt,60n)} cpv={cpad}
-El60 gl60 0 dl60 ref 1
-Rsl90 src dl90 {z0}
-Xl90 dl90 oneport lval=90n rval={rt} cval={ctset(rt,90n)} cpv={cpad}
-El90 gl90 0 dl90 ref 1
-Rsl94 src dl94 {z0}
-Xl94 dl94 oneport lval=94.38n rval={rt} cval={ctset(rt,94.38n)} cpv={cpad}
-El94 gl94 0 dl94 ref 1
-Rsl100 src dl100 {z0}
-Xl100 dl100 oneport lval=100n rval={rt} cval={ctset(rt,100n)} cpv={cpad}
-El100 gl100 0 dl100 ref 1
-Rsl102 src dl102 {z0}
-Xl102 dl102 oneport lval=102n rval={rt} cval={ctset(rt,102n)} cpv={cpad}
-El102 gl102 0 dl102 ref 1
-Rsl103 src dl103 {z0}
-Xl103 dl103 oneport lval=103n rval={rt} cval={ctset(rt,103n)} cpv={cpad}
-El103 gl103 0 dl103 ref 1
-Rsl110 src dl110 {z0}
-Xl110 dl110 oneport lval=110n rval={rt} cval={ctset(rt,110n)} cpv={cpad}
-El110 gl110 0 dl110 ref 1
-* the same authority question at the +5% resistance corner, where Reff bites
-* long before the trimmer runs out of range
-Rsh70 src dh70 {z0}
-Xh70 dh70 oneport lval=70n rval={rhi} cval={min(cmax,max(cmin,copt(rhi,70n)-cpad))} cpv={cpad}
-Eh70 gh70 0 dh70 ref 1
-Rsh76 src dh76 {z0}
-Xh76 dh76 oneport lval=76.86n rval={rhi} cval={min(cmax,max(cmin,copt(rhi,76.86n)-cpad))} cpv={cpad}
-Eh76 gh76 0 dh76 ref 1
-Rsh80 src dh80 {z0}
-Xh80 dh80 oneport lval=80n rval={rhi} cval={min(cmax,max(cmin,copt(rhi,80n)-cpad))} cpv={cpad}
-Eh80 gh80 0 dh80 ref 1
+* ======================= (D) spec authority, best clamped setting ========
+Rsdl0 src ddl0 {z0}
+Xdl0 ddl0 oneport lval=0.001n rval={r50} cval={ctset(r50,0.001n,cp54)} cpv={cp54}
+Edl0 gdl0 0 ddl0 ref 1
+Rsdl30 src ddl30 {z0}
+Xdl30 ddl30 oneport lval=30n rval={r50} cval={ctset(r50,30n,cp54)} cpv={cp54}
+Edl30 gdl30 0 ddl30 ref 1
+Rsdl60 src ddl60 {z0}
+Xdl60 ddl60 oneport lval=60n rval={r50} cval={ctset(r50,60n,cp54)} cpv={cp54}
+Edl60 gdl60 0 ddl60 ref 1
+Rsdl90 src ddl90 {z0}
+Xdl90 ddl90 oneport lval=90n rval={r50} cval={ctset(r50,90n,cp54)} cpv={cp54}
+Edl90 gdl90 0 ddl90 ref 1
+Rsdl96 src ddl96 {z0}
+Xdl96 ddl96 oneport lval=96.661n rval={r50} cval={ctset(r50,96.661n,cp54)} cpv={cp54}
+Edl96 gdl96 0 ddl96 ref 1
+Rsdl100 src ddl100 {z0}
+Xdl100 ddl100 oneport lval=100n rval={r50} cval={ctset(r50,100n,cp54)} cpv={cp54}
+Edl100 gdl100 0 ddl100 ref 1
+Rsdl102 src ddl102 {z0}
+Xdl102 ddl102 oneport lval=102n rval={r50} cval={ctset(r50,102n,cp54)} cpv={cp54}
+Edl102 gdl102 0 ddl102 ref 1
+Rsdl103 src ddl103 {z0}
+Xdl103 ddl103 oneport lval=103n rval={r50} cval={ctset(r50,103n,cp54)} cpv={cp54}
+Edl103 gdl103 0 ddl103 ref 1
+Rsdl110 src ddl110 {z0}
+Xdl110 ddl110 oneport lval=110n rval={r50} cval={ctset(r50,110n,cp54)} cpv={cp54}
+Edl110 gdl110 0 ddl110 ref 1
+Rsdh70 src ddh70 {z0}
+Xdh70 ddh70 oneport lval=70n rval={r525} cval={ctset(r525,70n,cp54)} cpv={cp54}
+Edh70 gdh70 0 ddh70 ref 1
+Rsdh76 src ddh76 {z0}
+Xdh76 ddh76 oneport lval=76.859n rval={r525} cval={ctset(r525,76.859n,cp54)} cpv={cp54}
+Edh76 gdh76 0 ddh76 ref 1
+Rsdh80 src ddh80 {z0}
+Xdh80 ddh80 oneport lval=80n rval={r525} cval={ctset(r525,80n,cp54)} cpv={cp54}
+Edh80 gdh80 0 ddh80 ref 1
 
-* ======================= (E) price of buying a two-sided null =============
-* series inductance ADDED to the as-routed 7.21 nH, evaluated at R = 52.5
-Rse14 src de14 {z0}
-Xe14 de14 oneport lval=14.28n rval={rhi} cval={min(cmax,max(cmin,copt(rhi,14.28n)-cpad))} cpv={cpad}
-Ee14 ge14 0 de14 ref 1
-Rse17 src de17 {z0}
-Xe17 de17 oneport lval=17.55n rval={rhi} cval={min(cmax,max(cmin,copt(rhi,17.55n)-cpad))} cpv={cpad}
-Ee17 ge17 0 de17 ref 1
-Rse22 src de22 {z0}
-Xe22 de22 oneport lval=22.21n rval={rhi} cval={min(cmax,max(cmin,copt(rhi,22.21n)-cpad))} cpv={cpad}
-Ee22 ge22 0 de22 ref 1
-Rse30 src de30 {z0}
-Xe30 de30 oneport lval=30n rval={rhi} cval={min(cmax,max(cmin,copt(rhi,30n)-cpad))} cpv={cpad}
-Ee30 ge30 0 de30 ref 1
-Rse40 src de40 {z0}
-Xe40 de40 oneport lval=40n rval={rhi} cval={min(cmax,max(cmin,copt(rhi,40n)-cpad))} cpv={cpad}
-Ee40 ge40 0 de40 ref 1
+* ======================= (E) the re-route, before and after ==============
+* BEFORE: 7.21 nH residual, 4.7 pF port, C1 clamped at its 1 pF low stop.
+* AFTER : 19.5 nH residual, 5.4 pF port, C1 at a real null. Both at the
+* binding R = 52.5 corner, both with ctset() computing the clamp.
+.param lold=7.21n
+.param cp60=6.0e-12
+Rsold src dold {z0}
+Xold dold oneport lval={lold} rval={r525} cval={ctset(r525,lold,cp47)} cpv={cp47}
+Eold gold 0 dold ref 1
+Rsnew src dnew {z0}
+Xnew dnew oneport lval={l195} rval={r525} cval={ctset(r525,l195,cp54)} cpv={cp54}
+Enew gnew 0 dnew ref 1
+* and the same comparison WORST-BUILD to WORST-BUILD. The old board's worst
+* credible build was R 52.5 / 7.21 nH / 6.0 pF (the pessimistic end of the
+* pre-re-route parasitic band); the new one is R 52.5 / 23.3 nH / any
+* parasitic, since the trimmer reaches a true null there at all four.
+Rsowc src dowc {z0}
+Xowc dowc oneport lval={lold} rval={r525} cval={ctset(r525,lold,cp60)} cpv={cp60}
+Eowc gowc 0 dowc ref 1
+Rsnwc src dnwc {z0}
+Xnwc dnwc oneport lval={l233} rval={r525} cval={ctset(r525,l233,cp47)} cpv={cp47}
+Enwc gnwc 0 dnwc ref 1
+* and how much of the remaining margin further inductance would cost
+Rsf30 src df30 {z0}
+Xf30 df30 oneport lval=30n rval={r525} cval={ctset(r525,30n,cp54)} cpv={cp54}
+Ef30 gf30 0 df30 ref 1
+Rsf40 src df40 {z0}
+Xf40 df40 oneport lval=40n rval={r525} cval={ctset(r525,40n,cp54)} cpv={cp54}
+Ef40 gf40 0 df40 ref 1
 
 .ac lin 201 20e6 30e6
 
 * --- (A) optimality of the susceptance null ------------------------------
-.meas ac s_k80  find vdb(gk80)  at=25e6
-.meas ac rl_k80  param='-s_k80'
-.meas ac s_k90  find vdb(gk90)  at=25e6
-.meas ac rl_k90  param='-s_k90'
+.meas ac s_k80 find vdb(gk80) at=25e6
+.meas ac rl_k80 param='-s_k80'
+.meas ac s_k90 find vdb(gk90) at=25e6
+.meas ac rl_k90 param='-s_k90'
 .meas ac s_k100 find vdb(gk100) at=25e6
 .meas ac rl_k100 param='-s_k100'
 .meas ac s_k110 find vdb(gk110) at=25e6
@@ -233,96 +228,96 @@ Ee40 ge40 0 de40 ref 1
 .meas ac dopt_m10 param='rl_k100-rl_k90'
 .meas ac dopt_p10 param='rl_k100-rl_k110'
 .meas ac dopt_p25 param='rl_k100-rl_k125'
-.meas ac ct_k100_pf param='(ck-cpad)*1e12'
+.meas ac ct_k100_pf param='(ck-cp54)*1e12'
+.meas ac ct_k80_pf param='(0.80*ck-cp54)*1e12'
+.meas ac ct_k125_pf param='(1.25*ck-cp54)*1e12'
 
-* --- (B) exact-null window ------------------------------------------------
-.meas ac s_null_lo find vdb(gnlo) at=25e6
-.meas ac rl_null_lo param='-s_null_lo'
-.meas ac s_null_hi find vdb(gnhi) at=25e6
-.meas ac rl_null_hi param='-s_null_hi'
-.meas ac s_null_lo35 find vdb(gnlo35) at=25e6
-.meas ac rl_null_lo35 param='-s_null_lo35'
-.meas ac s_null_hi35 find vdb(gnhi35) at=25e6
-.meas ac rl_null_hi35 param='-s_null_hi35'
-.meas ac s_null_lo60 find vdb(gnlo60) at=25e6
-.meas ac rl_null_lo60 param='-s_null_lo60'
-.meas ac s_null_hi60 find vdb(gnhi60) at=25e6
-.meas ac rl_null_hi60 param='-s_null_hi60'
+* --- (B) the new exact-null window ---------------------------------------
 .meas ac lnull_lo_nh param='lnlo*1e9'
 .meas ac lnull_hi_nh param='lnhi*1e9'
+.meas ac lnull_span_nh param='(lnhi-lnlo)*1e9'
 .meas ac xnull_lo_ohm param='w0*lnlo'
 .meas ac xnull_hi_ohm param='w0*lnhi'
-.meas ac lnull_span_nh param='(lnhi-lnlo)*1e9'
-.meas ac lnull_lo35_nh param='lnlo35*1e9'
-.meas ac lnull_hi35_nh param='lnhi35*1e9'
-.meas ac lnull_lo60_nh param='lnlo60*1e9'
-.meas ac lnull_hi60_nh param='lnhi60*1e9'
-.meas ac ctot_lo_pf param='ctot_lo*1e12'
-.meas ac ctot_hi_pf param='ctot_hi*1e12'
+.meas ac lnull_lo47_nh param='lnlo47*1e9'
+.meas ac lnull_hi47_nh param='lnhi47*1e9'
+.meas ac lnull_lo61_nh param='lnlo61*1e9'
+.meas ac lnull_hi61_nh param='lnhi61*1e9'
+.meas ac lnull_lo65_nh param='lnlo65*1e9'
+.meas ac lnull_hi65_nh param='lnhi65*1e9'
+.meas ac lnull_lo49_nh param='lnlo49*1e9'
+.meas ac lnull_lo525_nh param='lnlo525*1e9'
+.meas ac lnull_hi525_nh param='lnhi525*1e9'
+.meas ac ctot_lo_pf param='(cmin+cp54)*1e12'
+.meas ac ctot_hi_pf param='(cmax+cp54)*1e12'
+.meas ac s_nlo find vdb(gnlo) at=25e6
+.meas ac rl_nlo param='-s_nlo'
+.meas ac s_nhi find vdb(gnhi) at=25e6
+.meas ac rl_nhi param='-s_nhi'
+.meas ac s_nlo65 find vdb(gnlo65) at=25e6
+.meas ac rl_nlo65 param='-s_nlo65'
+.meas ac s_nhi65 find vdb(gnhi65) at=25e6
+.meas ac rl_nhi65 param='-s_nhi65'
+.meas ac s_nlo47 find vdb(gnlo47) at=25e6
+.meas ac rl_nlo47 param='-s_nlo47'
+.meas ac s_nhi47 find vdb(gnhi47) at=25e6
+.meas ac rl_nhi47 param='-s_nhi47'
 
-* --- (C) as-routed board: below the window, and what it costs ------------
-.meas ac s_lows_r50 find vdb(glo50) at=25e6
-.meas ac rl_lows_r50 param='-s_lows_r50'
-.meas ac s_lows_r525 find vdb(glo525) at=25e6
-.meas ac rl_lows_r525 param='-s_lows_r525'
-.meas ac s_lows_r525_p35 find vdb(glo35) at=25e6
-.meas ac rl_lows_r525_p35 param='-s_lows_r525_p35'
-.meas ac s_lows_r525_p60 find vdb(glo60) at=25e6
-.meas ac rl_lows_r525_p60 param='-s_lows_r525_p60'
-.meas ac s_ideal_r50 find vdb(gid50) at=25e6
-.meas ac rl_ideal_r50 param='-s_ideal_r50'
-.meas ac s_ideal_r525 find vdb(gid525) at=25e6
-.meas ac rl_ideal_r525 param='-s_ideal_r525'
-.meas ac cost_r50 param='rl_ideal_r50-rl_lows_r50'
-.meas ac cost_r525 param='rl_ideal_r525-rl_lows_r525'
-.meas ac cost_r525_p35 param='rl_ideal_r525-rl_lows_r525_p35'
-.meas ac cost_r525_p60 param='rl_ideal_r525-rl_lows_r525_p60'
-.meas ac lgap_nh param='(lnlo-lrt)*1e9'
+* --- (C) where the board sits --------------------------------------------
+.meas ac s_b185 find vdb(gb185) at=25e6
+.meas ac rl_b185 param='-s_b185'
+.meas ac s_b195 find vdb(gb195) at=25e6
+.meas ac rl_b195 param='-s_b195'
+.meas ac s_b233 find vdb(gb233) at=25e6
+.meas ac rl_b233 param='-s_b233'
+.meas ac lin_lo_nh param='(l185-lnlo)*1e9'
+.meas ac lin_mid_nh param='(l195-lnlo)*1e9'
+.meas ac lin_hi_nh param='(l233-lnlo)*1e9'
+.meas ac lin_lo65_nh param='(l185-lnlo65)*1e9'
+.meas ac lin_lo525_nh param='(l185-lnlo525)*1e9'
 
 * --- (D) spec authority ---------------------------------------------------
-.meas ac s_l0   find vdb(gl0)   at=25e6
-.meas ac rl_l0   param='-s_l0'
-.meas ac s_l14  find vdb(gl14)  at=25e6
-.meas ac rl_l14  param='-s_l14'
-.meas ac s_l30  find vdb(gl30)  at=25e6
-.meas ac rl_l30  param='-s_l30'
-.meas ac s_l60  find vdb(gl60)  at=25e6
-.meas ac rl_l60  param='-s_l60'
-.meas ac s_l90  find vdb(gl90)  at=25e6
-.meas ac rl_l90  param='-s_l90'
-.meas ac s_l94  find vdb(gl94)  at=25e6
-.meas ac rl_l94  param='-s_l94'
-.meas ac s_l100 find vdb(gl100) at=25e6
-.meas ac rl_l100 param='-s_l100'
-.meas ac s_l102 find vdb(gl102) at=25e6
-.meas ac rl_l102 param='-s_l102'
-.meas ac s_l103 find vdb(gl103) at=25e6
-.meas ac rl_l103 param='-s_l103'
-.meas ac s_l110 find vdb(gl110) at=25e6
-.meas ac rl_l110 param='-s_l110'
-.meas ac s_h70 find vdb(gh70) at=25e6
-.meas ac rl_h70 param='-s_h70'
-.meas ac s_h76 find vdb(gh76) at=25e6
-.meas ac rl_h76 param='-s_h76'
-.meas ac s_h80 find vdb(gh80) at=25e6
-.meas ac rl_h80 param='-s_h80'
+.meas ac s_dl0 find vdb(gdl0) at=25e6
+.meas ac rl_dl0 param='-s_dl0'
+.meas ac s_dl30 find vdb(gdl30) at=25e6
+.meas ac rl_dl30 param='-s_dl30'
+.meas ac s_dl60 find vdb(gdl60) at=25e6
+.meas ac rl_dl60 param='-s_dl60'
+.meas ac s_dl90 find vdb(gdl90) at=25e6
+.meas ac rl_dl90 param='-s_dl90'
+.meas ac s_dl96 find vdb(gdl96) at=25e6
+.meas ac rl_dl96 param='-s_dl96'
+.meas ac s_dl100 find vdb(gdl100) at=25e6
+.meas ac rl_dl100 param='-s_dl100'
+.meas ac s_dl102 find vdb(gdl102) at=25e6
+.meas ac rl_dl102 param='-s_dl102'
+.meas ac s_dl103 find vdb(gdl103) at=25e6
+.meas ac rl_dl103 param='-s_dl103'
+.meas ac s_dl110 find vdb(gdl110) at=25e6
+.meas ac rl_dl110 param='-s_dl110'
+.meas ac s_dh70 find vdb(gdh70) at=25e6
+.meas ac rl_dh70 param='-s_dh70'
+.meas ac s_dh76 find vdb(gdh76) at=25e6
+.meas ac rl_dh76 param='-s_dh76'
+.meas ac s_dh80 find vdb(gdh80) at=25e6
+.meas ac rl_dh80 param='-s_dh80'
 
-* --- (E) price of a two-sided null ---------------------------------------
-.meas ac s_e14 find vdb(ge14) at=25e6
-.meas ac rl_e14 param='-s_e14'
-.meas ac s_e17 find vdb(ge17) at=25e6
-.meas ac rl_e17 param='-s_e17'
-.meas ac s_e22 find vdb(ge22) at=25e6
-.meas ac rl_e22 param='-s_e22'
-.meas ac s_e30 find vdb(ge30) at=25e6
-.meas ac rl_e30 param='-s_e30'
-.meas ac s_e40 find vdb(ge40) at=25e6
-.meas ac rl_e40 param='-s_e40'
-.meas ac dadd_e14 param='rl_e14-rl_lows_r525'
-.meas ac dadd_e17 param='rl_e17-rl_lows_r525'
-.meas ac dadd_e22 param='rl_e22-rl_lows_r525'
-.meas ac dadd_e30 param='rl_e30-rl_lows_r525'
-.meas ac dadd_e40 param='rl_e40-rl_lows_r525'
-.meas ac ladd_min_nh param='(lnlo-lrt)*1e9'
-
+* --- (E) the re-route, before and after -----------------------------------
+.meas ac s_old find vdb(gold) at=25e6
+.meas ac rl_old param='-s_old'
+.meas ac s_new find vdb(gnew) at=25e6
+.meas ac rl_new param='-s_new'
+.meas ac d_reroute param='rl_new-rl_old'
+.meas ac s_owc find vdb(gowc) at=25e6
+.meas ac rl_owc param='-s_owc'
+.meas ac s_nwc find vdb(gnwc) at=25e6
+.meas ac rl_nwc param='-s_nwc'
+.meas ac d_reroute_wc param='rl_nwc-rl_owc'
+.meas ac ct_old_pf param='ctset(r525,lold,cp47)*1e12'
+.meas ac ct_new_pf param='ctset(r525,l195,cp54)*1e12'
+.meas ac s_f30 find vdb(gf30) at=25e6
+.meas ac rl_f30 param='-s_f30'
+.meas ac s_f40 find vdb(gf40) at=25e6
+.meas ac rl_f40 param='-s_f40'
+.meas ac d_more30 param='rl_f30-rl_new'
+.meas ac d_more40 param='rl_f40-rl_new'
 .end

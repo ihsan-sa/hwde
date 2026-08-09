@@ -1,50 +1,59 @@
-* rf-term-150w - BENCH 2: 4x4 tolerance corner box at 25.0 MHz
+* rf-term-150w - BENCH 2: IS THE NULL TWO-SIDED? authority per corner
 *
-* SOURCE TOPOLOGY / MODEL PROVENANCE / METHOD: identical to s11_band.cir - see
-* that file's header, including the CORRECTED 2026-08-09 values (C_port 4.7 pF
-* not 1.3 pF, review-verify V1; C_trim 1-30 pF Johanson 5602 not 1-35 pF,
-* review-verify V2). The whole dynamic board is
-*     PORT -+- L_launch - R_term - GND,  +- (C_trim || C_port) - GND.
+* SOURCE TOPOLOGY / MODEL PROVENANCE / METHOD: identical to s11_band.cir -
+* see that file's header for the as-routed CPWG geometry, the residual and
+* parasitic audits, and the S11 network trick.
 *
-* DESIGN INTENT / what this bench proves. THE WRONG-VALUE CHECK. Every corner
-* gets its OWN best trimmer setting - the exact susceptance null at 25.0 MHz,
-* clamped to the DELIVERED 1-30 pF range - so what is compared is
-* best-achievable RL, never the effect of mistuning. 16 corners:
-*   R_term   = 49.0 / 50.0 / 51.0 / 52.5 ohm      rows 1..4
-*              49-51 = the select-on-test window (P1 decision), 52.5 = the
-*              catalogue +5% limit of T50R0-250-12X
-*   L_launch = 5.0 / 7.21 / 15.0 / 30.0 nH        cols a..d
-*              7.21 = the AS-ROUTED residual; 5.0 = an optimistic re-route;
-*              15.0 and 30.0 = builds with a longer tab lap, thicker or longer
-*              ground straps, or a rework - the cases C1 actually exists for.
+* DESIGN INTENT / what this bench proves. The pre-re-route board sat BELOW
+* the trimmer's null window: C1 bottomed out at its 1 pF stop in all 12
+* builds and had upward-only authority. The re-route was done to fix that.
+* This bench decides, as numbers rather than as a claim, whether it did:
 *
-* Two structural facts the sidecar asserts numerically, and they are NOT the
-* facts the P2 version of this bench asserted (that version modelled a 1.3 pF
-* port and concluded "RL is set by resistance and is blind to inductance"):
-*  1. AT THE +5% RESISTANCE CORNER that conclusion still holds. R = 52.5 caps
-*     RL at 30.7-31.9 dB across a 6x range of L: dl_r52p5 = -0.20 dB. A shunt
-*     susceptance cannot correct Re{Zin} (see reff_limit.cir), so resistance
-*     sets the ceiling there and nothing the launch does matters much.
-*  2. AT THE NOMINAL RESISTANCE it no longer holds, because the fixed 4.7 pF
-*     port capacitance now sets the floor. Every corner below 14.28 nH bottoms
-*     the trimmer out (ct_* = 1.000 pF) and is OVER-corrected, so MORE launch
-*     inductance IMPROVES the match until the null window is reached:
-*     dl_r50p0 = -10.34 dB, i.e. 30 nH beats 5 nH by ten decibels.
-*     That inversion is the signature of the corrected parasitic; a bench that
-*     reports it the old way around has the port capacitance wrong.
-* All 16 corners clear crit. 2 (26 dB) by at least 4.73 dB regardless.
+*  (A) THE AUTHORITY TABLE. For all 48 builds (R x C_port x L) it reports
+*      the trimmer contribution the exact null NEEDS, and how far that
+*      sits from each stop: down = need - 1 pF, up = 30 pF - need. A
+*      POSITIVE down is a real two-sided null; a negative one means C1
+*      bottoms out. These are closed-form params, not simulated fits.
+*
+*  (B) SIMULATED PROOF that the nominal setting is a REAL null and not a
+*      clamped mistune: a 1 A AC current probe makes v(z*) = Zin in ohms,
+*      so Im{Zin} ~ 0 and Re{Zin} = Reff = R + X^2/R can be read directly.
+*
+*  (C) TWO-SIDEDNESS DEMONSTRATED, not asserted: at the tightest corner
+*      that still has downward authority the bench instantiates C1 BELOW
+*      the null, AT the null, and ABOVE it by the same step, and shows the
+*      null is strictly the best of the three with both neighbours
+*      reachable inside the delivered 1-30 pF range.
+*
+*  (D) THE COMPOUND WORST CORNER - the honest edge of the design. Under
+*      the conservative lump-it-all 6.1 pF convention, at R = 52.5 and the
+*      LOW end of the residual band, the null wants LESS trimmer than the
+*      1 pF stop can give and C1 bottoms out again. The bench reports how
+*      much it misses by and what that costs in return loss.
 
 .param z0=50
 .param fc=25e6
 .param w0={2*3.141592653589793*fc}
-.param cpad=4.7e-12
 .param cmin=1e-12
 .param cmax=30e-12
+.param cp47=4.7e-12
+.param cp54=5.4e-12
+.param cp61=6.1e-12
+.param cp65=6.5e-12
+.param l185=18.5n
+.param l195=19.5n
+.param l233=23.3n
+.param r49=49.0
+.param r50=50.0
+.param r51=51.0
+.param r525=52.5
 
+* exact susceptance null at fc, and the trimmer setting that realises it,
+* clamped to the DELIVERED 1 - 30 pF range of the Johanson 5602
 .func copt(rr,ll) {ll/(rr*rr+(w0*ll)*(w0*ll))}
-.func ctset(rr,ll) {min(cmax,max(cmin,copt(rr,ll)-cpad))}
+.func ctset(rr,ll,cp) {min(cmax,max(cmin,copt(rr,ll)-cp))}
 
-.subckt oneport p lval=7.21n rval=50 cval=1p cpv=4.7p
+.subckt oneport p lval=19.5n rval=50 cval=1p cpv=5.4p
 Ll p m {lval}
 Rt m 0 {rval}
 Ct p 0 {cval}
@@ -54,136 +63,270 @@ Cp p 0 {cpv}
 Vsrc src 0 AC 2
 Vref ref 0 AC 1
 
-.param r1=49.0
-.param r2=50.0
-.param r3=51.0
-.param r4=52.5
-.param na=5.0n
-.param nb=7.21n
-.param nc=15.0n
-.param nd=30.0n
+* ---- (A) authority table: closed-form params over all 48 builds -----
+* (an .ac analysis has to exist for .meas to run at all; the instances
+* below serve blocks B-D and this block is pure arithmetic on copt())
 
-* --- row 1: R = 49.0 ohm (select-on-test lower limit) --------------------
-Rs1a src d1a {z0}
-X1a d1a oneport lval={na} rval={r1} cval={ctset(r1,na)} cpv={cpad}
-E1a g1a 0 d1a ref 1
-Rs1b src d1b {z0}
-X1b d1b oneport lval={nb} rval={r1} cval={ctset(r1,nb)} cpv={cpad}
-E1b g1b 0 d1b ref 1
-Rs1c src d1c {z0}
-X1c d1c oneport lval={nc} rval={r1} cval={ctset(r1,nc)} cpv={cpad}
-E1c g1c 0 d1c ref 1
-Rs1d src d1d {z0}
-X1d d1d oneport lval={nd} rval={r1} cval={ctset(r1,nd)} cpv={cpad}
-E1d g1d 0 d1d ref 1
+* ---- (B) Zin probes: 1 A AC -> v(z) IS Zin in ohms -------------------
+Iz1 0 zn AC 1
+Xz1 zn oneport lval={l195} rval={r50} cval={ctset(r50,l195,cp54)} cpv={cp54}
+Iz2 0 zw AC 1
+Xz2 zw oneport lval={l233} rval={r525} cval={ctset(r525,l233,cp47)} cpv={cp47}
+Iz3 0 zc AC 1
+Xz3 zc oneport lval={l185} rval={r525} cval={ctset(r525,l185,cp61)} cpv={cp61}
 
-* --- row 2: R = 50.0 ohm (nominal) ---------------------------------------
-Rs2a src d2a {z0}
-X2a d2a oneport lval={na} rval={r2} cval={ctset(r2,na)} cpv={cpad}
-E2a g2a 0 d2a ref 1
-Rs2b src d2b {z0}
-X2b d2b oneport lval={nb} rval={r2} cval={ctset(r2,nb)} cpv={cpad}
-E2b g2b 0 d2b ref 1
-Rs2c src d2c {z0}
-X2c d2c oneport lval={nc} rval={r2} cval={ctset(r2,nc)} cpv={cpad}
-E2c g2c 0 d2c ref 1
-Rs2d src d2d {z0}
-X2d d2d oneport lval={nd} rval={r2} cval={ctset(r2,nd)} cpv={cpad}
-E2d g2d 0 d2d ref 1
+* ---- (C) two-sidedness at the tightest corner that still has it ------
+* R = 52.5, C_port 5.4 pF, L = 18.5 nH: the null needs 1.2915 pF, i.e.
+* only 0.2915 pF of downward authority - the smallest anywhere at the
+* nominal parasitic. Three settings: null - 0.2915 (= the 1 pF stop),
+* the null itself, and null + 0.2915. Both neighbours are orderable.
+.param cnul={ctset(r525,l185,cp54)}
+.param cstp=1e-12
+.param cup={2*cnul-cstp}
+Rsc1 src dc1 {z0}
+Xc1 dc1 oneport lval={l185} rval={r525} cval={cstp} cpv={cp54}
+Ec1 gc1 0 dc1 ref 1
+Rsc2 src dc2 {z0}
+Xc2 dc2 oneport lval={l185} rval={r525} cval={cnul} cpv={cp54}
+Ec2 gc2 0 dc2 ref 1
+Rsc3 src dc3 {z0}
+Xc3 dc3 oneport lval={l185} rval={r525} cval={cup} cpv={cp54}
+Ec3 gc3 0 dc3 ref 1
+* and the same three-point test at the nominal build, where the null has
+* 1.3708 pF of downward authority
+.param cnun={ctset(r50,l195,cp54)}
+.param cupn={2*cnun-cstp}
+Rsn1 src dn1 {z0}
+Xn1 dn1 oneport lval={l195} rval={r50} cval={cstp} cpv={cp54}
+En1 gn1 0 dn1 ref 1
+Rsn2 src dn2 {z0}
+Xn2 dn2 oneport lval={l195} rval={r50} cval={cnun} cpv={cp54}
+En2 gn2 0 dn2 ref 1
+Rsn3 src dn3 {z0}
+Xn3 dn3 oneport lval={l195} rval={r50} cval={cupn} cpv={cp54}
+En3 gn3 0 dn3 ref 1
 
-* --- row 3: R = 51.0 ohm (select-on-test upper limit) --------------------
-Rs3a src d3a {z0}
-X3a d3a oneport lval={na} rval={r3} cval={ctset(r3,na)} cpv={cpad}
-E3a g3a 0 d3a ref 1
-Rs3b src d3b {z0}
-X3b d3b oneport lval={nb} rval={r3} cval={ctset(r3,nb)} cpv={cpad}
-E3b g3b 0 d3b ref 1
-Rs3c src d3c {z0}
-X3c d3c oneport lval={nc} rval={r3} cval={ctset(r3,nc)} cpv={cpad}
-E3c g3c 0 d3c ref 1
-Rs3d src d3d {z0}
-X3d d3d oneport lval={nd} rval={r3} cval={ctset(r3,nd)} cpv={cpad}
-E3d g3d 0 d3d ref 1
-
-* --- row 4: R = 52.5 ohm (catalogue +5% limit) ---------------------------
-Rs4a src d4a {z0}
-X4a d4a oneport lval={na} rval={r4} cval={ctset(r4,na)} cpv={cpad}
-E4a g4a 0 d4a ref 1
-Rs4b src d4b {z0}
-X4b d4b oneport lval={nb} rval={r4} cval={ctset(r4,nb)} cpv={cpad}
-E4b g4b 0 d4b ref 1
-Rs4c src d4c {z0}
-X4c d4c oneport lval={nc} rval={r4} cval={ctset(r4,nc)} cpv={cpad}
-E4c g4c 0 d4c ref 1
-Rs4d src d4d {z0}
-X4d d4d oneport lval={nd} rval={r4} cval={ctset(r4,nd)} cpv={cpad}
-E4d g4d 0 d4d ref 1
+* ---- (D) the compound worst corner: 6.1 pF lump + R 52.5 + low-L -----
+* clamped (what the operator gets) vs the exact null (unbuildable there),
+* so the penalty of bottoming out is a subtraction, not an estimate.
+Rsd1 src dd1 {z0}
+Xd1 dd1 oneport lval={l185} rval={r525} cval={ctset(r525,l185,cp61)} cpv={cp61}
+Ed1 gd1 0 dd1 ref 1
+Rsd2 src dd2 {z0}
+Xd2 dd2 oneport lval={l185} rval={r525} cval={copt(r525,l185)} cpv=1f
+Ed2 gd2 0 dd2 ref 1
+Rsd3 src dd3 {z0}
+Xd3 dd3 oneport lval={l195} rval={r525} cval={ctset(r525,l195,cp61)} cpv={cp61}
+Ed3 gd3 0 dd3 ref 1
+Rsd4 src dd4 {z0}
+Xd4 dd4 oneport lval={l195} rval={r525} cval={copt(r525,l195)} cpv=1f
+Ed4 gd4 0 dd4 ref 1
+* the deepest clamp anywhere in the sweep: 6.5 pF, R 52.5, 18.5 nH
+Rsd5 src dd5 {z0}
+Xd5 dd5 oneport lval={l185} rval={r525} cval={ctset(r525,l185,cp65)} cpv={cp65}
+Ed5 gd5 0 dd5 ref 1
+* and the largest dB penalty anywhere: 6.5 pF, R 50, 18.5 nH (at 55 dB)
+Rsd6 src dd6 {z0}
+Xd6 dd6 oneport lval={l185} rval={r50} cval={ctset(r50,l185,cp65)} cpv={cp65}
+Ed6 gd6 0 dd6 ref 1
+Rsd7 src dd7 {z0}
+Xd7 dd7 oneport lval={l185} rval={r50} cval={copt(r50,l185)} cpv=1f
+Ed7 gd7 0 dd7 ref 1
 
 .ac lin 201 20e6 30e6
 
-.meas ac s_r49_l5 find vdb(g1a) at=25e6
-.meas ac rl_r49_l5 param='-s_r49_l5'
-.meas ac ct_r49_l5 param='ctset(r1,na)*1e12'
-.meas ac s_r49_l721 find vdb(g1b) at=25e6
-.meas ac rl_r49_l721 param='-s_r49_l721'
-.meas ac ct_r49_l721 param='ctset(r1,nb)*1e12'
-.meas ac s_r49_l15 find vdb(g1c) at=25e6
-.meas ac rl_r49_l15 param='-s_r49_l15'
-.meas ac ct_r49_l15 param='ctset(r1,nc)*1e12'
-.meas ac s_r49_l30 find vdb(g1d) at=25e6
-.meas ac rl_r49_l30 param='-s_r49_l30'
-.meas ac ct_r49_l30 param='ctset(r1,nd)*1e12'
+* ---- (A) the authority table ----------------------------------------
+.meas ac nd_r49_p47_l185 param='(copt(r49,l185)-cp47)*1e12'
+.meas ac dn_r49_p47_l185 param='(copt(r49,l185)-cp47-cmin)*1e12'
+.meas ac up_r49_p47_l185 param='(cmax-(copt(r49,l185)-cp47))*1e12'
+.meas ac nd_r49_p47_l195 param='(copt(r49,l195)-cp47)*1e12'
+.meas ac dn_r49_p47_l195 param='(copt(r49,l195)-cp47-cmin)*1e12'
+.meas ac up_r49_p47_l195 param='(cmax-(copt(r49,l195)-cp47))*1e12'
+.meas ac nd_r49_p47_l233 param='(copt(r49,l233)-cp47)*1e12'
+.meas ac dn_r49_p47_l233 param='(copt(r49,l233)-cp47-cmin)*1e12'
+.meas ac up_r49_p47_l233 param='(cmax-(copt(r49,l233)-cp47))*1e12'
+.meas ac nd_r49_p54_l185 param='(copt(r49,l185)-cp54)*1e12'
+.meas ac dn_r49_p54_l185 param='(copt(r49,l185)-cp54-cmin)*1e12'
+.meas ac up_r49_p54_l185 param='(cmax-(copt(r49,l185)-cp54))*1e12'
+.meas ac nd_r49_p54_l195 param='(copt(r49,l195)-cp54)*1e12'
+.meas ac dn_r49_p54_l195 param='(copt(r49,l195)-cp54-cmin)*1e12'
+.meas ac up_r49_p54_l195 param='(cmax-(copt(r49,l195)-cp54))*1e12'
+.meas ac nd_r49_p54_l233 param='(copt(r49,l233)-cp54)*1e12'
+.meas ac dn_r49_p54_l233 param='(copt(r49,l233)-cp54-cmin)*1e12'
+.meas ac up_r49_p54_l233 param='(cmax-(copt(r49,l233)-cp54))*1e12'
+.meas ac nd_r49_p61_l185 param='(copt(r49,l185)-cp61)*1e12'
+.meas ac dn_r49_p61_l185 param='(copt(r49,l185)-cp61-cmin)*1e12'
+.meas ac up_r49_p61_l185 param='(cmax-(copt(r49,l185)-cp61))*1e12'
+.meas ac nd_r49_p61_l195 param='(copt(r49,l195)-cp61)*1e12'
+.meas ac dn_r49_p61_l195 param='(copt(r49,l195)-cp61-cmin)*1e12'
+.meas ac up_r49_p61_l195 param='(cmax-(copt(r49,l195)-cp61))*1e12'
+.meas ac nd_r49_p61_l233 param='(copt(r49,l233)-cp61)*1e12'
+.meas ac dn_r49_p61_l233 param='(copt(r49,l233)-cp61-cmin)*1e12'
+.meas ac up_r49_p61_l233 param='(cmax-(copt(r49,l233)-cp61))*1e12'
+.meas ac nd_r49_p65_l185 param='(copt(r49,l185)-cp65)*1e12'
+.meas ac dn_r49_p65_l185 param='(copt(r49,l185)-cp65-cmin)*1e12'
+.meas ac up_r49_p65_l185 param='(cmax-(copt(r49,l185)-cp65))*1e12'
+.meas ac nd_r49_p65_l195 param='(copt(r49,l195)-cp65)*1e12'
+.meas ac dn_r49_p65_l195 param='(copt(r49,l195)-cp65-cmin)*1e12'
+.meas ac up_r49_p65_l195 param='(cmax-(copt(r49,l195)-cp65))*1e12'
+.meas ac nd_r49_p65_l233 param='(copt(r49,l233)-cp65)*1e12'
+.meas ac dn_r49_p65_l233 param='(copt(r49,l233)-cp65-cmin)*1e12'
+.meas ac up_r49_p65_l233 param='(cmax-(copt(r49,l233)-cp65))*1e12'
+.meas ac nd_r50_p47_l185 param='(copt(r50,l185)-cp47)*1e12'
+.meas ac dn_r50_p47_l185 param='(copt(r50,l185)-cp47-cmin)*1e12'
+.meas ac up_r50_p47_l185 param='(cmax-(copt(r50,l185)-cp47))*1e12'
+.meas ac nd_r50_p47_l195 param='(copt(r50,l195)-cp47)*1e12'
+.meas ac dn_r50_p47_l195 param='(copt(r50,l195)-cp47-cmin)*1e12'
+.meas ac up_r50_p47_l195 param='(cmax-(copt(r50,l195)-cp47))*1e12'
+.meas ac nd_r50_p47_l233 param='(copt(r50,l233)-cp47)*1e12'
+.meas ac dn_r50_p47_l233 param='(copt(r50,l233)-cp47-cmin)*1e12'
+.meas ac up_r50_p47_l233 param='(cmax-(copt(r50,l233)-cp47))*1e12'
+.meas ac nd_r50_p54_l185 param='(copt(r50,l185)-cp54)*1e12'
+.meas ac dn_r50_p54_l185 param='(copt(r50,l185)-cp54-cmin)*1e12'
+.meas ac up_r50_p54_l185 param='(cmax-(copt(r50,l185)-cp54))*1e12'
+.meas ac nd_r50_p54_l195 param='(copt(r50,l195)-cp54)*1e12'
+.meas ac dn_r50_p54_l195 param='(copt(r50,l195)-cp54-cmin)*1e12'
+.meas ac up_r50_p54_l195 param='(cmax-(copt(r50,l195)-cp54))*1e12'
+.meas ac nd_r50_p54_l233 param='(copt(r50,l233)-cp54)*1e12'
+.meas ac dn_r50_p54_l233 param='(copt(r50,l233)-cp54-cmin)*1e12'
+.meas ac up_r50_p54_l233 param='(cmax-(copt(r50,l233)-cp54))*1e12'
+.meas ac nd_r50_p61_l185 param='(copt(r50,l185)-cp61)*1e12'
+.meas ac dn_r50_p61_l185 param='(copt(r50,l185)-cp61-cmin)*1e12'
+.meas ac up_r50_p61_l185 param='(cmax-(copt(r50,l185)-cp61))*1e12'
+.meas ac nd_r50_p61_l195 param='(copt(r50,l195)-cp61)*1e12'
+.meas ac dn_r50_p61_l195 param='(copt(r50,l195)-cp61-cmin)*1e12'
+.meas ac up_r50_p61_l195 param='(cmax-(copt(r50,l195)-cp61))*1e12'
+.meas ac nd_r50_p61_l233 param='(copt(r50,l233)-cp61)*1e12'
+.meas ac dn_r50_p61_l233 param='(copt(r50,l233)-cp61-cmin)*1e12'
+.meas ac up_r50_p61_l233 param='(cmax-(copt(r50,l233)-cp61))*1e12'
+.meas ac nd_r50_p65_l185 param='(copt(r50,l185)-cp65)*1e12'
+.meas ac dn_r50_p65_l185 param='(copt(r50,l185)-cp65-cmin)*1e12'
+.meas ac up_r50_p65_l185 param='(cmax-(copt(r50,l185)-cp65))*1e12'
+.meas ac nd_r50_p65_l195 param='(copt(r50,l195)-cp65)*1e12'
+.meas ac dn_r50_p65_l195 param='(copt(r50,l195)-cp65-cmin)*1e12'
+.meas ac up_r50_p65_l195 param='(cmax-(copt(r50,l195)-cp65))*1e12'
+.meas ac nd_r50_p65_l233 param='(copt(r50,l233)-cp65)*1e12'
+.meas ac dn_r50_p65_l233 param='(copt(r50,l233)-cp65-cmin)*1e12'
+.meas ac up_r50_p65_l233 param='(cmax-(copt(r50,l233)-cp65))*1e12'
+.meas ac nd_r51_p47_l185 param='(copt(r51,l185)-cp47)*1e12'
+.meas ac dn_r51_p47_l185 param='(copt(r51,l185)-cp47-cmin)*1e12'
+.meas ac up_r51_p47_l185 param='(cmax-(copt(r51,l185)-cp47))*1e12'
+.meas ac nd_r51_p47_l195 param='(copt(r51,l195)-cp47)*1e12'
+.meas ac dn_r51_p47_l195 param='(copt(r51,l195)-cp47-cmin)*1e12'
+.meas ac up_r51_p47_l195 param='(cmax-(copt(r51,l195)-cp47))*1e12'
+.meas ac nd_r51_p47_l233 param='(copt(r51,l233)-cp47)*1e12'
+.meas ac dn_r51_p47_l233 param='(copt(r51,l233)-cp47-cmin)*1e12'
+.meas ac up_r51_p47_l233 param='(cmax-(copt(r51,l233)-cp47))*1e12'
+.meas ac nd_r51_p54_l185 param='(copt(r51,l185)-cp54)*1e12'
+.meas ac dn_r51_p54_l185 param='(copt(r51,l185)-cp54-cmin)*1e12'
+.meas ac up_r51_p54_l185 param='(cmax-(copt(r51,l185)-cp54))*1e12'
+.meas ac nd_r51_p54_l195 param='(copt(r51,l195)-cp54)*1e12'
+.meas ac dn_r51_p54_l195 param='(copt(r51,l195)-cp54-cmin)*1e12'
+.meas ac up_r51_p54_l195 param='(cmax-(copt(r51,l195)-cp54))*1e12'
+.meas ac nd_r51_p54_l233 param='(copt(r51,l233)-cp54)*1e12'
+.meas ac dn_r51_p54_l233 param='(copt(r51,l233)-cp54-cmin)*1e12'
+.meas ac up_r51_p54_l233 param='(cmax-(copt(r51,l233)-cp54))*1e12'
+.meas ac nd_r51_p61_l185 param='(copt(r51,l185)-cp61)*1e12'
+.meas ac dn_r51_p61_l185 param='(copt(r51,l185)-cp61-cmin)*1e12'
+.meas ac up_r51_p61_l185 param='(cmax-(copt(r51,l185)-cp61))*1e12'
+.meas ac nd_r51_p61_l195 param='(copt(r51,l195)-cp61)*1e12'
+.meas ac dn_r51_p61_l195 param='(copt(r51,l195)-cp61-cmin)*1e12'
+.meas ac up_r51_p61_l195 param='(cmax-(copt(r51,l195)-cp61))*1e12'
+.meas ac nd_r51_p61_l233 param='(copt(r51,l233)-cp61)*1e12'
+.meas ac dn_r51_p61_l233 param='(copt(r51,l233)-cp61-cmin)*1e12'
+.meas ac up_r51_p61_l233 param='(cmax-(copt(r51,l233)-cp61))*1e12'
+.meas ac nd_r51_p65_l185 param='(copt(r51,l185)-cp65)*1e12'
+.meas ac dn_r51_p65_l185 param='(copt(r51,l185)-cp65-cmin)*1e12'
+.meas ac up_r51_p65_l185 param='(cmax-(copt(r51,l185)-cp65))*1e12'
+.meas ac nd_r51_p65_l195 param='(copt(r51,l195)-cp65)*1e12'
+.meas ac dn_r51_p65_l195 param='(copt(r51,l195)-cp65-cmin)*1e12'
+.meas ac up_r51_p65_l195 param='(cmax-(copt(r51,l195)-cp65))*1e12'
+.meas ac nd_r51_p65_l233 param='(copt(r51,l233)-cp65)*1e12'
+.meas ac dn_r51_p65_l233 param='(copt(r51,l233)-cp65-cmin)*1e12'
+.meas ac up_r51_p65_l233 param='(cmax-(copt(r51,l233)-cp65))*1e12'
+.meas ac nd_r525_p47_l185 param='(copt(r525,l185)-cp47)*1e12'
+.meas ac dn_r525_p47_l185 param='(copt(r525,l185)-cp47-cmin)*1e12'
+.meas ac up_r525_p47_l185 param='(cmax-(copt(r525,l185)-cp47))*1e12'
+.meas ac nd_r525_p47_l195 param='(copt(r525,l195)-cp47)*1e12'
+.meas ac dn_r525_p47_l195 param='(copt(r525,l195)-cp47-cmin)*1e12'
+.meas ac up_r525_p47_l195 param='(cmax-(copt(r525,l195)-cp47))*1e12'
+.meas ac nd_r525_p47_l233 param='(copt(r525,l233)-cp47)*1e12'
+.meas ac dn_r525_p47_l233 param='(copt(r525,l233)-cp47-cmin)*1e12'
+.meas ac up_r525_p47_l233 param='(cmax-(copt(r525,l233)-cp47))*1e12'
+.meas ac nd_r525_p54_l185 param='(copt(r525,l185)-cp54)*1e12'
+.meas ac dn_r525_p54_l185 param='(copt(r525,l185)-cp54-cmin)*1e12'
+.meas ac up_r525_p54_l185 param='(cmax-(copt(r525,l185)-cp54))*1e12'
+.meas ac nd_r525_p54_l195 param='(copt(r525,l195)-cp54)*1e12'
+.meas ac dn_r525_p54_l195 param='(copt(r525,l195)-cp54-cmin)*1e12'
+.meas ac up_r525_p54_l195 param='(cmax-(copt(r525,l195)-cp54))*1e12'
+.meas ac nd_r525_p54_l233 param='(copt(r525,l233)-cp54)*1e12'
+.meas ac dn_r525_p54_l233 param='(copt(r525,l233)-cp54-cmin)*1e12'
+.meas ac up_r525_p54_l233 param='(cmax-(copt(r525,l233)-cp54))*1e12'
+.meas ac nd_r525_p61_l185 param='(copt(r525,l185)-cp61)*1e12'
+.meas ac dn_r525_p61_l185 param='(copt(r525,l185)-cp61-cmin)*1e12'
+.meas ac up_r525_p61_l185 param='(cmax-(copt(r525,l185)-cp61))*1e12'
+.meas ac nd_r525_p61_l195 param='(copt(r525,l195)-cp61)*1e12'
+.meas ac dn_r525_p61_l195 param='(copt(r525,l195)-cp61-cmin)*1e12'
+.meas ac up_r525_p61_l195 param='(cmax-(copt(r525,l195)-cp61))*1e12'
+.meas ac nd_r525_p61_l233 param='(copt(r525,l233)-cp61)*1e12'
+.meas ac dn_r525_p61_l233 param='(copt(r525,l233)-cp61-cmin)*1e12'
+.meas ac up_r525_p61_l233 param='(cmax-(copt(r525,l233)-cp61))*1e12'
+.meas ac nd_r525_p65_l185 param='(copt(r525,l185)-cp65)*1e12'
+.meas ac dn_r525_p65_l185 param='(copt(r525,l185)-cp65-cmin)*1e12'
+.meas ac up_r525_p65_l185 param='(cmax-(copt(r525,l185)-cp65))*1e12'
+.meas ac nd_r525_p65_l195 param='(copt(r525,l195)-cp65)*1e12'
+.meas ac dn_r525_p65_l195 param='(copt(r525,l195)-cp65-cmin)*1e12'
+.meas ac up_r525_p65_l195 param='(cmax-(copt(r525,l195)-cp65))*1e12'
+.meas ac nd_r525_p65_l233 param='(copt(r525,l233)-cp65)*1e12'
+.meas ac dn_r525_p65_l233 param='(copt(r525,l233)-cp65-cmin)*1e12'
+.meas ac up_r525_p65_l233 param='(cmax-(copt(r525,l233)-cp65))*1e12'
 
-.meas ac s_r50_l5 find vdb(g2a) at=25e6
-.meas ac rl_r50_l5 param='-s_r50_l5'
-.meas ac ct_r50_l5 param='ctset(r2,na)*1e12'
-.meas ac s_r50_l721 find vdb(g2b) at=25e6
-.meas ac rl_r50_l721 param='-s_r50_l721'
-.meas ac ct_r50_l721 param='ctset(r2,nb)*1e12'
-.meas ac s_r50_l15 find vdb(g2c) at=25e6
-.meas ac rl_r50_l15 param='-s_r50_l15'
-.meas ac ct_r50_l15 param='ctset(r2,nc)*1e12'
-.meas ac s_r50_l30 find vdb(g2d) at=25e6
-.meas ac rl_r50_l30 param='-s_r50_l30'
-.meas ac ct_r50_l30 param='ctset(r2,nd)*1e12'
+* ---- (B) Zin probes ---------------------------------------------------
+.meas ac rin_nom find vr(zn) at=25e6
+.meas ac xin_nom find vi(zn) at=25e6
+.meas ac rin_wc find vr(zw) at=25e6
+.meas ac xin_wc find vi(zw) at=25e6
+.meas ac rin_cl find vr(zc) at=25e6
+.meas ac xin_cl find vi(zc) at=25e6
 
-.meas ac s_r51_l5 find vdb(g3a) at=25e6
-.meas ac rl_r51_l5 param='-s_r51_l5'
-.meas ac ct_r51_l5 param='ctset(r3,na)*1e12'
-.meas ac s_r51_l721 find vdb(g3b) at=25e6
-.meas ac rl_r51_l721 param='-s_r51_l721'
-.meas ac ct_r51_l721 param='ctset(r3,nb)*1e12'
-.meas ac s_r51_l15 find vdb(g3c) at=25e6
-.meas ac rl_r51_l15 param='-s_r51_l15'
-.meas ac ct_r51_l15 param='ctset(r3,nc)*1e12'
-.meas ac s_r51_l30 find vdb(g3d) at=25e6
-.meas ac rl_r51_l30 param='-s_r51_l30'
-.meas ac ct_r51_l30 param='ctset(r3,nd)*1e12'
+* ---- (C) three-point two-sidedness -----------------------------------
+.meas ac s_c_stop find vdb(gc1) at=25e6
+.meas ac rl_c_stop param='-s_c_stop'
+.meas ac s_c_null find vdb(gc2) at=25e6
+.meas ac rl_c_null param='-s_c_null'
+.meas ac s_c_up find vdb(gc3) at=25e6
+.meas ac rl_c_up param='-s_c_up'
+.meas ac d_c_down param='rl_c_null-rl_c_stop'
+.meas ac d_c_up param='rl_c_null-rl_c_up'
+.meas ac c_null_pf param='cnul*1e12'
+.meas ac c_up_pf param='cup*1e12'
+.meas ac s_n_stop find vdb(gn1) at=25e6
+.meas ac rl_n_stop param='-s_n_stop'
+.meas ac s_n_null find vdb(gn2) at=25e6
+.meas ac rl_n_null param='-s_n_null'
+.meas ac s_n_up find vdb(gn3) at=25e6
+.meas ac rl_n_up param='-s_n_up'
+.meas ac d_n_down param='rl_n_null-rl_n_stop'
+.meas ac d_n_up param='rl_n_null-rl_n_up'
+.meas ac n_null_pf param='cnun*1e12'
+.meas ac n_up_pf param='cupn*1e12'
 
-.meas ac s_r525_l5 find vdb(g4a) at=25e6
-.meas ac rl_r525_l5 param='-s_r525_l5'
-.meas ac ct_r525_l5 param='ctset(r4,na)*1e12'
-.meas ac s_r525_l721 find vdb(g4b) at=25e6
-.meas ac rl_r525_l721 param='-s_r525_l721'
-.meas ac ct_r525_l721 param='ctset(r4,nb)*1e12'
-.meas ac s_r525_l15 find vdb(g4c) at=25e6
-.meas ac rl_r525_l15 param='-s_r525_l15'
-.meas ac ct_r525_l15 param='ctset(r4,nc)*1e12'
-.meas ac s_r525_l30 find vdb(g4d) at=25e6
-.meas ac rl_r525_l30 param='-s_r525_l30'
-.meas ac ct_r525_l30 param='ctset(r4,nd)*1e12'
-
-* --- the wrong-value contrasts, as numbers the sidecar can gate ----------
-* dl_* : RL(5.0 nH) - RL(30.0 nH) at fixed R. NEGATIVE at 49-51 ohm: with a
-*        fixed 4.7 pF port the low-L corners are over-corrected, so adding
-*        inductance improves the match. Nearly zero at 52.5 ohm, where the
-*        resistance error dominates everything.
-* dr_* : RL(R=50.0) - RL(R=52.5) at fixed L - the resistance penalty.
-.meas ac dl_r49 param='rl_r49_l5-rl_r49_l30'
-.meas ac dl_r50 param='rl_r50_l5-rl_r50_l30'
-.meas ac dl_r51 param='rl_r51_l5-rl_r51_l30'
-.meas ac dl_r525 param='rl_r525_l5-rl_r525_l30'
-.meas ac dr_l721 param='rl_r50_l721-rl_r525_l721'
-.meas ac dr_l15  param='rl_r50_l15-rl_r525_l15'
-
+* ---- (D) compound worst corner ---------------------------------------
+.meas ac s_d1 find vdb(gd1) at=25e6
+.meas ac rl_cw_l185 param='-s_d1'
+.meas ac s_d2 find vdb(gd2) at=25e6
+.meas ac rl_cwid_l185 param='-s_d2'
+.meas ac s_d3 find vdb(gd3) at=25e6
+.meas ac rl_cw_l195 param='-s_d3'
+.meas ac s_d4 find vdb(gd4) at=25e6
+.meas ac rl_cwid_l195 param='-s_d4'
+.meas ac s_d5 find vdb(gd5) at=25e6
+.meas ac rl_cw_p65 param='-s_d5'
+.meas ac s_d6 find vdb(gd6) at=25e6
+.meas ac rl_pen_r50 param='-s_d6'
+.meas ac s_d7 find vdb(gd7) at=25e6
+.meas ac rl_penid_r50 param='-s_d7'
+.meas ac pen_cw_l185 param='rl_cwid_l185-rl_cw_l185'
+.meas ac pen_cw_l195 param='rl_cwid_l195-rl_cw_l195'
+.meas ac pen_worst param='rl_penid_r50-rl_pen_r50'
 .end

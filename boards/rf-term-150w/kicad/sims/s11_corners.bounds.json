@@ -1,49 +1,527 @@
 [
- {"measure": "rl_r49_l5", "min": 26.0, "severity": "error", "msg": "crit. 2 at corner R = 49.0 ohm / L = 5.0 nH, best clamped trimmer setting. Measured 35.27 dB."},
- {"measure": "rl_r49_l721", "min": 26.0, "severity": "error", "msg": "crit. 2 at R = 49.0 / 7.21 nH (AS-ROUTED residual). Measured 36.84 dB."},
- {"measure": "rl_r49_l15", "min": 26.0, "severity": "error", "msg": "crit. 2 at R = 49.0 / 15.0 nH - inside the trimmer's null window, so this one tunes properly. Measured 40.97 dB."},
- {"measure": "rl_r49_l30", "min": 26.0, "severity": "error", "msg": "crit. 2 at R = 49.0 / 30.0 nH. Measured 45.20 dB."},
-
- {"measure": "rl_r50_l5", "min": 26.0, "severity": "error", "msg": "crit. 2 at R = 50.0 / 5.0 nH. Measured 36.75 dB - the trimmer is bottomed out and over-correcting, which is why an ideal-null bench would report 78 dB here and this one reports 37."},
- {"measure": "rl_r50_l721", "min": 26.0, "severity": "error", "msg": "crit. 2 at the AS-BUILT corner R = 50.0 / 7.21 nH. Measured 39.12 dB - agrees with s11_band.cir rl_r50_p47_fc to 4 decimals, which is the cross-check between the two benches."},
- {"measure": "rl_r50_l15", "min": 26.0, "severity": "error", "msg": "crit. 2 at R = 50.0 / 15.0 nH: 59.10 dB. The first nominal-R corner whose exact null the delivered 1-30 pF trimmer can actually reach (needs 1.287 pF)."},
- {"measure": "rl_r50_l30", "min": 26.0, "severity": "error", "msg": "crit. 2 at R = 50.0 / 30.0 nH: 47.09 dB."},
-
- {"measure": "rl_r51_l5", "min": 26.0, "severity": "error", "msg": "crit. 2 at R = 51.0 / 5.0 nH. Measured 34.88 dB."},
- {"measure": "rl_r51_l721", "min": 26.0, "severity": "error", "msg": "crit. 2 at R = 51.0 / 7.21 nH (select-on-test upper limit, as-routed L). Measured 36.23 dB."},
- {"measure": "rl_r51_l15", "min": 26.0, "severity": "error", "msg": "crit. 2 at R = 51.0 / 15.0 nH. Measured 39.20 dB."},
- {"measure": "rl_r51_l30", "min": 26.0, "severity": "error", "msg": "crit. 2 at R = 51.0 / 30.0 nH. Measured 36.98 dB."},
-
- {"measure": "rl_r525_l5", "min": 26.0, "severity": "error", "msg": "WORST OF ALL 16 CORNERS: R = 52.5 / 5.0 nH. Measured 30.73 dB = 4.73 dB of margin over crit. 2."},
- {"measure": "rl_r525_l721", "min": 26.0, "severity": "error", "msg": "crit. 2 at R = 52.5 / 7.21 nH - the as-routed board with an unselected +5% resistor. Measured 31.19 dB."},
- {"measure": "rl_r525_l15", "min": 26.0, "severity": "error", "msg": "crit. 2 at R = 52.5 / 15.0 nH. Measured 31.90 dB."},
- {"measure": "rl_r525_l30", "min": 26.0, "severity": "error", "msg": "crit. 2 at R = 52.5 / 30.0 nH. Measured 30.93 dB."},
-
- {"measure": "rl_r525_l5", "max": 32.3, "severity": "error",
-  "msg": "THE RESISTANCE CEILING, quarter 1: at the catalogue +5% resistance no setting of a shunt trimmer gets past ~32.3 dB, because a susceptance cannot correct Re{Zin} (reff_limit.cir proves the mechanism; the X = 0 ceiling is 32.256 dB). 30.73 dB."},
- {"measure": "rl_r525_l721", "max": 32.3, "severity": "error", "msg": "same ceiling at 7.21 nH: 31.19 dB."},
- {"measure": "rl_r525_l15", "max": 32.3, "severity": "error", "msg": "same ceiling at 15.0 nH: 31.90 dB - the best of the four, because this is the corner nearest a true null."},
- {"measure": "rl_r525_l30", "max": 32.3, "severity": "error", "msg": "same ceiling at 30.0 nH: 30.93 dB. The whole R = 52.5 row lives in a 1.16 dB band while L changes by 6x."},
-
- {"measure": "dl_r525", "min": -1.5, "max": 1.5, "severity": "error",
-  "msg": "WRONG-VALUE CONTRAST, half 1: RL(5.0 nH) - RL(30.0 nH) at R = 52.5 is -0.20 dB. At the binding resistance corner a 6x change in launch inductance is worth a fifth of a decibel - the P2 conclusion 'the resistance tolerance IS the error budget' survives the parasitic correction at this corner."},
- {"measure": "dl_r50", "min": -13.0, "max": -7.0, "severity": "error",
-  "msg": "WRONG-VALUE CONTRAST, half 2 - and this is the bound that encodes review-verify V1. At R = 50.0, RL(5.0 nH) - RL(30.0 nH) = -10.34 dB: with 4.7 pF of FIXED port capacitance the low-inductance corners are over-corrected, so more launch inductance makes the match BETTER, not worse. Re-running this same corner set through the stale 1.3 pF / 1-35 pF model gives +11.43 dB - the opposite sign. A positive reading here means the port parasitic has been reverted."},
- {"measure": "dl_r49", "min": -13.0, "max": -7.0, "severity": "error", "msg": "same inversion at R = 49.0: -9.93 dB."},
- {"measure": "dl_r51", "min": -6.0, "max": 0.0, "severity": "error", "msg": "same sign at R = 51.0 but much smaller (-2.10 dB) - by 51 ohm the resistance error is already competing with the over-correction."},
- {"measure": "dr_l15", "min": 20.0, "severity": "error",
-  "msg": "THE HEADLINE CONTRAST: at 15.0 nH, where the trimmer can reach a true null at both resistances, going from R = 50.0 to R = 52.5 costs 27.20 dB of return loss. Compare dl_r525 (0.20 dB for a 6x inductance change). Resistance is still the dominant error term."},
- {"measure": "dr_l721", "min": 5.0, "severity": "error",
-  "msg": "the same resistance step at the as-routed 7.21 nH costs 7.93 dB. It is smaller than dr_l15 only because the nominal-R build is itself degraded by the bottomed-out trimmer - 39.12 dB instead of the 71.8 dB a true null would give."},
-
- {"measure": "ct_r50_l721", "min": 0.999, "max": 1.001, "severity": "error",
-  "msg": "the as-built corner bottoms the trimmer out: 1.000 pF. Cross-checks s11_band.cir ct_r50_p47_pf."},
- {"measure": "ct_r50_l5", "min": 0.999, "max": 1.001, "severity": "error", "msg": "5.0 nH at R = 50 also bottoms out: 1.000 pF (the ideal null needs 2.0 pF TOTAL, i.e. less than C_port alone)."},
- {"measure": "ct_r525_l15", "min": 0.999, "max": 1.001, "severity": "error", "msg": "15.0 nH at R = 52.5 still bottoms out (ideal null 5.43 pF total vs 4.7 pF of port): 1.000 pF. The null window shifts up with resistance."},
- {"measure": "ct_r50_l15", "min": 1.15, "max": 1.45, "severity": "error",
-  "msg": "the first corner that does NOT bottom out: 15.0 nH at R = 50 needs 1.287 pF of trimmer on top of the 4.7 pF port. It is 0.29 pF clear of the 1 pF stop, which is why 14.28 nH is quoted as the exact low edge of the null window (tuning_authority.cir lnull_lo_nh)."},
- {"measure": "ct_r50_l30", "min": 6.9, "max": 7.5, "severity": "error",
-  "msg": "30.0 nH at R = 50 needs 7.194 pF of trimmer - comfortably inside the delivered 1-30 pF Johanson 5602. Every setting in this 16-corner box is between 1.000 and 7.68 pF, i.e. the whole box lives in the bottom quarter of the part's range."},
- {"measure": "ct_r49_l30", "min": 7.4, "max": 7.95, "severity": "error", "msg": "the largest setting anywhere in the box: 7.680 pF at R = 49.0 / 30.0 nH."},
- {"measure": "ct_r525_l30", "min": 5.85, "max": 6.35, "severity": "error", "msg": "6.097 pF at R = 52.5 / 30.0 nH. Settings fall as resistance rises, because the null susceptance X/(R^2+X^2) does."}
+ {
+  "measure": "dn_r49_p54_l185",
+  "min": 0.1,
+  "severity": "error",
+  "msg": "(A) TWO-SIDED NULL at the nominal 5.4 pF port: R = 49.0 ohm, L = 18.5 nH needs 2.2781 pF of trimmer, i.e. 1.2781 pF of DOWNWARD authority above the 1 pF low stop. Positive at all 12 R x L combinations - this is the finding the re-route was done to produce. The pre-re-route board read negative here at every corner."
+ },
+ {
+  "measure": "up_r49_p54_l185",
+  "min": 25.0,
+  "severity": "error",
+  "msg": "(A) upward authority at the same corner: 27.722 pF to the 30 pF high stop."
+ },
+ {
+  "measure": "nd_r49_p54_l185",
+  "min": 2.1981177636168283,
+  "max": 2.3581177636168285,
+  "severity": "error",
+  "msg": "(A) the setting itself: R = 49.0, L = 18.5 nH, C_port 5.4 pF -> C1 = 2.2781 pF."
+ },
+ {
+  "measure": "dn_r49_p54_l195",
+  "min": 0.1,
+  "severity": "error",
+  "msg": "(A) TWO-SIDED NULL at the nominal 5.4 pF port: R = 49.0 ohm, L = 19.5 nH needs 2.6900 pF of trimmer, i.e. 1.6900 pF of DOWNWARD authority above the 1 pF low stop. Positive at all 12 R x L combinations - this is the finding the re-route was done to produce. The pre-re-route board read negative here at every corner."
+ },
+ {
+  "measure": "up_r49_p54_l195",
+  "min": 25.0,
+  "severity": "error",
+  "msg": "(A) upward authority at the same corner: 27.310 pF to the 30 pF high stop."
+ },
+ {
+  "measure": "nd_r49_p54_l195",
+  "min": 2.6100030087294437,
+  "max": 2.770003008729444,
+  "severity": "error",
+  "msg": "(A) the setting itself: R = 49.0, L = 19.5 nH, C_port 5.4 pF -> C1 = 2.6900 pF."
+ },
+ {
+  "measure": "dn_r49_p54_l233",
+  "min": 0.1,
+  "severity": "error",
+  "msg": "(A) TWO-SIDED NULL at the nominal 5.4 pF port: R = 49.0 ohm, L = 23.3 nH needs 4.2504 pF of trimmer, i.e. 3.2504 pF of DOWNWARD authority above the 1 pF low stop. Positive at all 12 R x L combinations - this is the finding the re-route was done to produce. The pre-re-route board read negative here at every corner."
+ },
+ {
+  "measure": "up_r49_p54_l233",
+  "min": 25.0,
+  "severity": "error",
+  "msg": "(A) upward authority at the same corner: 25.750 pF to the 30 pF high stop."
+ },
+ {
+  "measure": "nd_r49_p54_l233",
+  "min": 4.1704496395104504,
+  "max": 4.330449639510451,
+  "severity": "error",
+  "msg": "(A) the setting itself: R = 49.0, L = 23.3 nH, C_port 5.4 pF -> C1 = 4.2504 pF."
+ },
+ {
+  "measure": "dn_r50_p54_l185",
+  "min": 0.1,
+  "severity": "error",
+  "msg": "(A) TWO-SIDED NULL at the nominal 5.4 pF port: R = 50.0 ohm, L = 18.5 nH needs 1.9751 pF of trimmer, i.e. 0.9751 pF of DOWNWARD authority above the 1 pF low stop. Positive at all 12 R x L combinations - this is the finding the re-route was done to produce. The pre-re-route board read negative here at every corner."
+ },
+ {
+  "measure": "up_r50_p54_l185",
+  "min": 25.0,
+  "severity": "error",
+  "msg": "(A) upward authority at the same corner: 28.025 pF to the 30 pF high stop."
+ },
+ {
+  "measure": "nd_r50_p54_l185",
+  "min": 1.8950878963137323,
+  "max": 2.0550878963137325,
+  "severity": "error",
+  "msg": "(A) the setting itself: R = 50.0, L = 18.5 nH, C_port 5.4 pF -> C1 = 1.9751 pF."
+ },
+ {
+  "measure": "dn_r50_p54_l195",
+  "min": 0.1,
+  "severity": "error",
+  "msg": "(A) TWO-SIDED NULL at the nominal 5.4 pF port: R = 50.0 ohm, L = 19.5 nH needs 2.3708 pF of trimmer, i.e. 1.3708 pF of DOWNWARD authority above the 1 pF low stop. Positive at all 12 R x L combinations - this is the finding the re-route was done to produce. The pre-re-route board read negative here at every corner."
+ },
+ {
+  "measure": "up_r50_p54_l195",
+  "min": 25.0,
+  "severity": "error",
+  "msg": "(A) upward authority at the same corner: 27.629 pF to the 30 pF high stop."
+ },
+ {
+  "measure": "nd_r50_p54_l195",
+  "min": 2.290836694294491,
+  "max": 2.450836694294491,
+  "severity": "error",
+  "msg": "(A) the setting itself: R = 50.0, L = 19.5 nH, C_port 5.4 pF -> C1 = 2.3708 pF."
+ },
+ {
+  "measure": "dn_r50_p54_l233",
+  "min": 0.1,
+  "severity": "error",
+  "msg": "(A) TWO-SIDED NULL at the nominal 5.4 pF port: R = 50.0 ohm, L = 23.3 nH needs 3.8703 pF of trimmer, i.e. 2.8703 pF of DOWNWARD authority above the 1 pF low stop. Positive at all 12 R x L combinations - this is the finding the re-route was done to produce. The pre-re-route board read negative here at every corner."
+ },
+ {
+  "measure": "up_r50_p54_l233",
+  "min": 25.0,
+  "severity": "error",
+  "msg": "(A) upward authority at the same corner: 26.130 pF to the 30 pF high stop."
+ },
+ {
+  "measure": "nd_r50_p54_l233",
+  "min": 3.7903285641435702,
+  "max": 3.9503285641435704,
+  "severity": "error",
+  "msg": "(A) the setting itself: R = 50.0, L = 23.3 nH, C_port 5.4 pF -> C1 = 3.8703 pF."
+ },
+ {
+  "measure": "dn_r51_p54_l185",
+  "min": 0.1,
+  "severity": "error",
+  "msg": "(A) TWO-SIDED NULL at the nominal 5.4 pF port: R = 51.0 ohm, L = 18.5 nH needs 1.6896 pF of trimmer, i.e. 0.6896 pF of DOWNWARD authority above the 1 pF low stop. Positive at all 12 R x L combinations - this is the finding the re-route was done to produce. The pre-re-route board read negative here at every corner."
+ },
+ {
+  "measure": "up_r51_p54_l185",
+  "min": 25.0,
+  "severity": "error",
+  "msg": "(A) upward authority at the same corner: 28.310 pF to the 30 pF high stop."
+ },
+ {
+  "measure": "nd_r51_p54_l185",
+  "min": 1.6096310390900537,
+  "max": 1.7696310390900538,
+  "severity": "error",
+  "msg": "(A) the setting itself: R = 51.0, L = 18.5 nH, C_port 5.4 pF -> C1 = 1.6896 pF."
+ },
+ {
+  "measure": "dn_r51_p54_l195",
+  "min": 0.1,
+  "severity": "error",
+  "msg": "(A) TWO-SIDED NULL at the nominal 5.4 pF port: R = 51.0 ohm, L = 19.5 nH needs 2.0702 pF of trimmer, i.e. 1.0702 pF of DOWNWARD authority above the 1 pF low stop. Positive at all 12 R x L combinations - this is the finding the re-route was done to produce. The pre-re-route board read negative here at every corner."
+ },
+ {
+  "measure": "up_r51_p54_l195",
+  "min": 25.0,
+  "severity": "error",
+  "msg": "(A) upward authority at the same corner: 27.930 pF to the 30 pF high stop."
+ },
+ {
+  "measure": "nd_r51_p54_l195",
+  "min": 1.990170194861253,
+  "max": 2.150170194861253,
+  "severity": "error",
+  "msg": "(A) the setting itself: R = 51.0, L = 19.5 nH, C_port 5.4 pF -> C1 = 2.0702 pF."
+ },
+ {
+  "measure": "dn_r51_p54_l233",
+  "min": 0.1,
+  "severity": "error",
+  "msg": "(A) TWO-SIDED NULL at the nominal 5.4 pF port: R = 51.0 ohm, L = 23.3 nH needs 3.5122 pF of trimmer, i.e. 2.5122 pF of DOWNWARD authority above the 1 pF low stop. Positive at all 12 R x L combinations - this is the finding the re-route was done to produce. The pre-re-route board read negative here at every corner."
+ },
+ {
+  "measure": "up_r51_p54_l233",
+  "min": 25.0,
+  "severity": "error",
+  "msg": "(A) upward authority at the same corner: 26.488 pF to the 30 pF high stop."
+ },
+ {
+  "measure": "nd_r51_p54_l233",
+  "min": 3.432194813539868,
+  "max": 3.592194813539868,
+  "severity": "error",
+  "msg": "(A) the setting itself: R = 51.0, L = 23.3 nH, C_port 5.4 pF -> C1 = 3.5122 pF."
+ },
+ {
+  "measure": "dn_r525_p54_l185",
+  "min": 0.1,
+  "severity": "error",
+  "msg": "(A) TWO-SIDED NULL at the nominal 5.4 pF port: R = 52.5 ohm, L = 18.5 nH needs 1.2915 pF of trimmer, i.e. 0.2915 pF of DOWNWARD authority above the 1 pF low stop. Positive at all 12 R x L combinations - this is the finding the re-route was done to produce. The pre-re-route board read negative here at every corner."
+ },
+ {
+  "measure": "up_r525_p54_l185",
+  "min": 25.0,
+  "severity": "error",
+  "msg": "(A) upward authority at the same corner: 28.708 pF to the 30 pF high stop."
+ },
+ {
+  "measure": "nd_r525_p54_l185",
+  "min": 1.211516474514352,
+  "max": 1.3715164745143522,
+  "severity": "error",
+  "msg": "(A) the setting itself: R = 52.5, L = 18.5 nH, C_port 5.4 pF -> C1 = 1.2915 pF."
+ },
+ {
+  "measure": "dn_r525_p54_l195",
+  "min": 0.1,
+  "severity": "error",
+  "msg": "(A) TWO-SIDED NULL at the nominal 5.4 pF port: R = 52.5 ohm, L = 19.5 nH needs 1.6508 pF of trimmer, i.e. 0.6508 pF of DOWNWARD authority above the 1 pF low stop. Positive at all 12 R x L combinations - this is the finding the re-route was done to produce. The pre-re-route board read negative here at every corner."
+ },
+ {
+  "measure": "up_r525_p54_l195",
+  "min": 25.0,
+  "severity": "error",
+  "msg": "(A) upward authority at the same corner: 28.349 pF to the 30 pF high stop."
+ },
+ {
+  "measure": "nd_r525_p54_l195",
+  "min": 1.5708288652780686,
+  "max": 1.7308288652780688,
+  "severity": "error",
+  "msg": "(A) the setting itself: R = 52.5, L = 19.5 nH, C_port 5.4 pF -> C1 = 1.6508 pF."
+ },
+ {
+  "measure": "dn_r525_p54_l233",
+  "min": 0.1,
+  "severity": "error",
+  "msg": "(A) TWO-SIDED NULL at the nominal 5.4 pF port: R = 52.5 ohm, L = 23.3 nH needs 3.0126 pF of trimmer, i.e. 2.0126 pF of DOWNWARD authority above the 1 pF low stop. Positive at all 12 R x L combinations - this is the finding the re-route was done to produce. The pre-re-route board read negative here at every corner."
+ },
+ {
+  "measure": "up_r525_p54_l233",
+  "min": 25.0,
+  "severity": "error",
+  "msg": "(A) upward authority at the same corner: 26.987 pF to the 30 pF high stop."
+ },
+ {
+  "measure": "nd_r525_p54_l233",
+  "min": 2.9326296678246204,
+  "max": 3.0926296678246206,
+  "severity": "error",
+  "msg": "(A) the setting itself: R = 52.5, L = 23.3 nH, C_port 5.4 pF -> C1 = 3.0126 pF."
+ },
+ {
+  "measure": "nd_r50_p54_l195",
+  "min": 2.3400000000000003,
+  "max": 2.4,
+  "severity": "error",
+  "msg": "(A) CONFIRMS THE ROUTER'S ESTIMATE at R = 50.0: it said C1 ~ 2.37 pF on 5.4 pF; closed form gives 2.3708 pF. Agreement to better than 0.005 pF."
+ },
+ {
+  "measure": "nd_r49_p54_l195",
+  "min": 2.66,
+  "max": 2.7199999999999998,
+  "severity": "error",
+  "msg": "(A) CONFIRMS THE ROUTER'S ESTIMATE at R = 49.0: it said C1 ~ 2.69 pF on 5.4 pF; closed form gives 2.6900 pF. Agreement to better than 0.005 pF."
+ },
+ {
+  "measure": "nd_r525_p54_l195",
+  "min": 1.6199999999999999,
+  "max": 1.68,
+  "severity": "error",
+  "msg": "(A) CONFIRMS THE ROUTER'S ESTIMATE at R = 52.5: it said C1 ~ 1.65 pF on 5.4 pF; closed form gives 1.6508 pF. Agreement to better than 0.005 pF."
+ },
+ {
+  "measure": "dn_r49_p61_l185",
+  "min": 0.0,
+  "severity": "error",
+  "msg": "(A) still two-sided at 6.1 pF: R = 49.0, L = 18.5 nH -> 0.5781 pF of downward authority."
+ },
+ {
+  "measure": "dn_r49_p61_l195",
+  "min": 0.0,
+  "severity": "error",
+  "msg": "(A) still two-sided at 6.1 pF: R = 49.0, L = 19.5 nH -> 0.9900 pF of downward authority."
+ },
+ {
+  "measure": "dn_r49_p61_l233",
+  "min": 0.0,
+  "severity": "error",
+  "msg": "(A) still two-sided at 6.1 pF: R = 49.0, L = 23.3 nH -> 2.5504 pF of downward authority."
+ },
+ {
+  "measure": "dn_r49_p65_l185",
+  "min": 0.0,
+  "severity": "error",
+  "msg": "(A) still two-sided at 6.5 pF: R = 49.0, L = 18.5 nH -> 0.1781 pF of downward authority."
+ },
+ {
+  "measure": "dn_r49_p65_l195",
+  "min": 0.0,
+  "severity": "error",
+  "msg": "(A) still two-sided at 6.5 pF: R = 49.0, L = 19.5 nH -> 0.5900 pF of downward authority."
+ },
+ {
+  "measure": "dn_r49_p65_l233",
+  "min": 0.0,
+  "severity": "error",
+  "msg": "(A) still two-sided at 6.5 pF: R = 49.0, L = 23.3 nH -> 2.1504 pF of downward authority."
+ },
+ {
+  "measure": "dn_r50_p61_l185",
+  "min": 0.0,
+  "severity": "error",
+  "msg": "(A) still two-sided at 6.1 pF: R = 50.0, L = 18.5 nH -> 0.2751 pF of downward authority."
+ },
+ {
+  "measure": "dn_r50_p61_l195",
+  "min": 0.0,
+  "severity": "error",
+  "msg": "(A) still two-sided at 6.1 pF: R = 50.0, L = 19.5 nH -> 0.6708 pF of downward authority."
+ },
+ {
+  "measure": "dn_r50_p61_l233",
+  "min": 0.0,
+  "severity": "error",
+  "msg": "(A) still two-sided at 6.1 pF: R = 50.0, L = 23.3 nH -> 2.1703 pF of downward authority."
+ },
+ {
+  "measure": "dn_r50_p65_l185",
+  "max": 0.0,
+  "severity": "error",
+  "msg": "(A) THE HONEST EDGE, catalogued: under the conservative 6.5 pF lump convention, R = 50.0 / L = 18.5 nH needs only 0.8751 pF and C1 bottoms out - downward authority -0.1249 pF. Asserted as a MAX so the bench cannot quietly stop reporting it."
+ },
+ {
+  "measure": "dn_r50_p65_l195",
+  "min": 0.0,
+  "severity": "error",
+  "msg": "(A) still two-sided at 6.5 pF: R = 50.0, L = 19.5 nH -> 0.2708 pF of downward authority."
+ },
+ {
+  "measure": "dn_r50_p65_l233",
+  "min": 0.0,
+  "severity": "error",
+  "msg": "(A) still two-sided at 6.5 pF: R = 50.0, L = 23.3 nH -> 1.7703 pF of downward authority."
+ },
+ {
+  "measure": "dn_r51_p61_l185",
+  "max": 0.0,
+  "severity": "error",
+  "msg": "(A) THE HONEST EDGE, catalogued: under the conservative 6.1 pF lump convention, R = 51.0 / L = 18.5 nH needs only 0.9896 pF and C1 bottoms out - downward authority -0.0104 pF. Asserted as a MAX so the bench cannot quietly stop reporting it."
+ },
+ {
+  "measure": "dn_r51_p61_l195",
+  "min": 0.0,
+  "severity": "error",
+  "msg": "(A) still two-sided at 6.1 pF: R = 51.0, L = 19.5 nH -> 0.3702 pF of downward authority."
+ },
+ {
+  "measure": "dn_r51_p61_l233",
+  "min": 0.0,
+  "severity": "error",
+  "msg": "(A) still two-sided at 6.1 pF: R = 51.0, L = 23.3 nH -> 1.8122 pF of downward authority."
+ },
+ {
+  "measure": "dn_r51_p65_l185",
+  "max": 0.0,
+  "severity": "error",
+  "msg": "(A) THE HONEST EDGE, catalogued: under the conservative 6.5 pF lump convention, R = 51.0 / L = 18.5 nH needs only 0.5896 pF and C1 bottoms out - downward authority -0.4104 pF. Asserted as a MAX so the bench cannot quietly stop reporting it."
+ },
+ {
+  "measure": "dn_r51_p65_l195",
+  "max": 0.0,
+  "severity": "error",
+  "msg": "(A) THE HONEST EDGE, catalogued: under the conservative 6.5 pF lump convention, R = 51.0 / L = 19.5 nH needs only 0.9702 pF and C1 bottoms out - downward authority -0.0298 pF. Asserted as a MAX so the bench cannot quietly stop reporting it."
+ },
+ {
+  "measure": "dn_r51_p65_l233",
+  "min": 0.0,
+  "severity": "error",
+  "msg": "(A) still two-sided at 6.5 pF: R = 51.0, L = 23.3 nH -> 1.4122 pF of downward authority."
+ },
+ {
+  "measure": "dn_r525_p61_l185",
+  "max": 0.0,
+  "severity": "error",
+  "msg": "(A) THE HONEST EDGE, catalogued: under the conservative 6.1 pF lump convention, R = 52.5 / L = 18.5 nH needs only 0.5915 pF and C1 bottoms out - downward authority -0.4085 pF. Asserted as a MAX so the bench cannot quietly stop reporting it."
+ },
+ {
+  "measure": "dn_r525_p61_l195",
+  "max": 0.0,
+  "severity": "error",
+  "msg": "(A) THE HONEST EDGE, catalogued: under the conservative 6.1 pF lump convention, R = 52.5 / L = 19.5 nH needs only 0.9508 pF and C1 bottoms out - downward authority -0.0492 pF. Asserted as a MAX so the bench cannot quietly stop reporting it."
+ },
+ {
+  "measure": "dn_r525_p61_l233",
+  "min": 0.0,
+  "severity": "error",
+  "msg": "(A) still two-sided at 6.1 pF: R = 52.5, L = 23.3 nH -> 1.3126 pF of downward authority."
+ },
+ {
+  "measure": "dn_r525_p65_l185",
+  "max": 0.0,
+  "severity": "error",
+  "msg": "(A) THE HONEST EDGE, catalogued: under the conservative 6.5 pF lump convention, R = 52.5 / L = 18.5 nH needs only 0.1915 pF and C1 bottoms out - downward authority -0.8085 pF. Asserted as a MAX so the bench cannot quietly stop reporting it."
+ },
+ {
+  "measure": "dn_r525_p65_l195",
+  "max": 0.0,
+  "severity": "error",
+  "msg": "(A) THE HONEST EDGE, catalogued: under the conservative 6.5 pF lump convention, R = 52.5 / L = 19.5 nH needs only 0.5508 pF and C1 bottoms out - downward authority -0.4492 pF. Asserted as a MAX so the bench cannot quietly stop reporting it."
+ },
+ {
+  "measure": "dn_r525_p65_l233",
+  "min": 0.0,
+  "severity": "error",
+  "msg": "(A) still two-sided at 6.5 pF: R = 52.5, L = 23.3 nH -> 0.9126 pF of downward authority."
+ },
+ {
+  "measure": "nd_r525_p61_l185",
+  "min": 0.55,
+  "max": 0.63,
+  "severity": "error",
+  "msg": "(D) CORRECTS THE ROUTER'S COMPOUND-CORNER NUMBER. The router quoted 0.95 pF for '6.1 pF lumped + R = 52.5 + the low-L end of the band'. At the LOW-L end (18.5 nH) the exact null needs 0.5915 pF, not 0.95 - it misses the 1 pF stop by 0.4085 pF, nearly half a picofarad, not a graze. The 0.95 pF figure belongs to the CENTRAL residual, 19.5 nH (see nd_r525_p61_l195). The conclusion is unchanged and the direction is the same; the magnitude was understated."
+ },
+ {
+  "measure": "nd_r525_p61_l195",
+  "min": 0.92,
+  "max": 0.99,
+  "severity": "error",
+  "msg": "(D) where the router's 0.95 pF actually belongs: 6.1 pF lump, R = 52.5, CENTRAL L = 19.5 nH -> 0.9508 pF. That one really is a graze - 0.049 pF below the stop."
+ },
+ {
+  "measure": "pen_cw_l185",
+  "max": 0.05,
+  "severity": "error",
+  "msg": "(D) THE PRICE OF BOTTOMING OUT AT THE COMPOUND WORST CORNER, measured as (perfect null) minus (clamped at the 1 pF stop) at 6.1 pF / R 52.5 / 18.5 nH: 0.0175 dB. Missing the null by 0.41 pF costs under two hundredths of a decibel, because at R = 52.5 the reflection is already dominated by Reff = 52.661 ohm and the residual susceptance error is a second-order term on top of it. RL there is 31.710 dB - still 5.7 dB clear of crit. 2."
+ },
+ {
+  "measure": "pen_cw_l195",
+  "max": 0.01,
+  "severity": "error",
+  "msg": "(D) same at the central 19.5 nH, where the miss is only 0.049 pF: 0.0003 dB. Unmeasurable."
+ },
+ {
+  "measure": "rl_cw_l185",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "(D) crit. 2 still holds at the compound worst corner with C1 bottomed out: 31.710 dB."
+ },
+ {
+  "measure": "rl_cw_l185",
+  "min": 31.6,
+  "max": 31.8,
+  "severity": "error",
+  "msg": "(D) the same number as a tripwire window."
+ },
+ {
+  "measure": "rl_cw_p65",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "(D) the DEEPEST clamp anywhere in the sweep - 6.5 pF (past the conservative convention), R 52.5, 18.5 nH, where the null wants 0.1915 pF and gets 1 pF, a 0.81 pF miss: 31.660 dB. Even there the penalty is 0.068 dB."
+ },
+ {
+  "measure": "pen_worst",
+  "max": 0.5,
+  "severity": "error",
+  "msg": "(D) the LARGEST clamp penalty anywhere in the 48-build grid is not at the binding corner at all - it is 0.354 dB at R = 50 / 6.5 pF / 18.5 nH, where RL is 55.108 dB instead of 55.462 dB. A dB penalty near a deep null is arithmetically large and physically irrelevant: both are 30 dB inside spec."
+ },
+ {
+  "measure": "xin_nom",
+  "min": -0.01,
+  "max": 0.01,
+  "severity": "error",
+  "msg": "(B) SIMULATED PROOF THAT THE NOMINAL SETTING IS A REAL NULL: with a 1 A AC probe, Im{Zin} = 0 ohm at R = 50 / 5.4 pF / 19.5 nH. The pre-re-route board could not produce this - its trimmer was clamped and Im{Zin} was nonzero by construction."
+ },
+ {
+  "measure": "rin_nom",
+  "min": 50.15,
+  "max": 50.23,
+  "severity": "error",
+  "msg": "(B) and what is left after the null: Re{Zin} = Reff = R + X^2/R = 50 + 3.0631^2/50 = 50.1876 ohm. That residual 50.19 ohm IS the 54.55 dB the nominal build reads."
+ },
+ {
+  "measure": "xin_wc",
+  "min": -0.01,
+  "max": 0.01,
+  "severity": "error",
+  "msg": "(B) the worst build is a real null too: Im{Zin} = 0 at R = 52.5 / 4.7 pF / 23.3 nH."
+ },
+ {
+  "measure": "rin_wc",
+  "min": 52.7,
+  "max": 52.81,
+  "severity": "error",
+  "msg": "(B) Re{Zin} = 52.755 ohm there = 52.5 + 3.66^2/52.5. The whole 31.43 dB worst case is a pure resistance error; no setting of a shunt capacitor can improve it (reff_limit.cir proves why)."
+ },
+ {
+  "measure": "xin_cl",
+  "max": -0.1,
+  "severity": "error",
+  "msg": "(B) THE CONTRAST that makes the two probes above mean something. At the compound worst corner (6.1 pF lump, R 52.5, 18.5 nH) C1 IS clamped, so Im{Zin} is NOT nulled - it measures -0.1779 ohm. The sign says which way: the null wants 6.6915 pF of TOTAL shunt C and the stop forces 7.1 pF, so the port is OVER-corrected and the residual susceptance is capacitive, i.e. Im{Zin} < 0. A reading of zero here would mean the bench had stopped clamping and the honest edge had been simulated away."
+ },
+ {
+  "measure": "d_c_down",
+  "min": 0.004,
+  "max": 0.02,
+  "severity": "error",
+  "msg": "(C) TWO-SIDEDNESS DEMONSTRATED at the tightest corner that has it - R = 52.5, 5.4 pF, 18.5 nH, null at 1.2915 pF with only 0.2915 pF of downward room. Moving C1 DOWN by that whole step, to the 1 pF stop, is worse than the null by 0.00890 dB, so the null is genuinely bracketed from below by a reachable setting. The penalty is tiny because at R = 52.5 the reflection is already Reff-dominated - which is the same reason the compound worst corner costs so little when it does bottom out."
+ },
+ {
+  "measure": "d_c_up",
+  "min": 0.004,
+  "max": 0.02,
+  "severity": "error",
+  "msg": "(C) and moving the same 0.2915 pF step UP (to 1.5830 pF) is worse by 0.00890 dB. Symmetric to five decimals, which is what a true interior minimum of |Gamma| looks like. Both neighbours are inside the delivered 1-30 pF range."
+ },
+ {
+  "measure": "c_null_pf",
+  "min": 1.25,
+  "max": 1.34,
+  "severity": "error",
+  "msg": "(C) the null setting at that corner: 1.2915 pF."
+ },
+ {
+  "measure": "d_n_down",
+  "min": 8.0,
+  "severity": "error",
+  "msg": "(C) the same three-point test at the NOMINAL build (R = 50, 5.4 pF, 19.5 nH, null at 2.3708 pF): going down the full 1.3708 pF of downward authority, to the 1 pF stop, costs 9.681 dB. That 9.7 dB IS the value of the re-route at nominal resistance - it is what the pre-re-route board was paying, involuntarily, every build."
+ },
+ {
+  "measure": "d_n_up",
+  "min": 8.0,
+  "severity": "error",
+  "msg": "(C) and the same 1.3708 pF step up (to 3.7416 pF) costs 9.681 dB. Both settings are orderable; the null is interior and symmetric."
+ },
+ {
+  "measure": "n_null_pf",
+  "min": 2.3,
+  "max": 2.45,
+  "severity": "error",
+  "msg": "(C) the nominal null setting, cross-checked against s11_band.cir ct_nom_pf: 2.3708 pF."
+ },
+ {
+  "measure": "rl_n_null",
+  "min": 54.0,
+  "max": 55.1,
+  "severity": "error",
+  "msg": "(C) RL at that null, cross-checking s11_band.cir rl_r50_p54_l195_fc to 4 decimals: 54.549 dB. Three independent instantiations of the same operating point across two benches."
+ }
 ]

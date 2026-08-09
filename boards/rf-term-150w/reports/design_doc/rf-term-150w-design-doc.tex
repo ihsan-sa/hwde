@@ -16,7 +16,7 @@
 \begin{center}
 {\LARGE\bfseries rf-term-150w --- Design Document}\\[6pt]
 {\large ai-ee v1 pipeline}\\[2pt]
-generated 2026-08-09 04:13:59
+generated 2026-08-09 05:50:29
 \end{center}
 \tableofcontents
 
@@ -29,10 +29,10 @@ generated 2026-08-09 04:13:59
 \endhead
 board & rf-term-150w \\
 workspace & \texttt{boards/rf-term-150w} \\
-phase & P6 \\
+phase & P9 \\
 gate status & all 6 recorded gates pass \\
 state created & 2026-08-08T22:33:40 \\
-state updated & 2026-08-09T04:12:24 \\
+state updated & 2026-08-09T05:50:13 \\
 \bottomrule
 \end{longtable}
 }
@@ -390,6 +390,13 @@ P7 & Planes set to connect:solid rather than thermal relief & Thermal relief lef
 P7 & Router stopped flaring deliberately at 7.21 nH instead of minimising further & Flaring harder would push the residual BELOW C1's 5.75 nH exact-null floor, converting the trimmer's weak-but-real downward authority into no demonstrable null at all - i.e. optimising the headline inductance would have broken the brief's operator-adjustable requirement. 7.21 nH keeps a genuine two-sided null and is still 10.7x inside the 76.9 nH failure threshold. \\
 P9 & Delivered BOM.csv authored from the schematic; bom\_cpl output would have shipped without the load resistor & Verified against the script: build\_bom() iterates the POS export, and R1 carries exclude\_from\_pos\_files (correctly - it is not machine-placed), so bom\_cpl produced 2 rows with R1 absent and C1 blank (DigiKey-only, and no script reads a DigiKey field). Delivered BOM built from kicad-cli sch export bom: 3 lines, distributor PNs hand-carried, qty-5 pricing, plus the user-supplied hardware list. Validated by parsing the CSV back and asserting all three refs present. \\
 P9 & 6 silk strokes at 0.12 mm vs JLC's 0.15 mm minimum: documented, not fixed & Inherited from the stock KiCad SMA footprint. dfm gate PASSES (warning severity). Fixing needs surgery on a routed, gate-clean board plus a full drc\_routed/verify/dfm re-gate, to improve legibility of a connector outline whose orientation is already unambiguous from four symmetric ground legs and a centre pin. Regression risk outweighs a cosmetic gain. \\
+P8 & PARTIAL MISS on brief requirement 4 accepted and documented: C1 has upward-only authority, no two-sided null & The as-routed launch (15.065 mm of wide trace + a 5x7 mm lap pad) contributes \textasciitilde{}4.7 pF of shunt C, not the 1.30 pF the P2 architecture assumed from a 3.55 mm launch. Total 5.7-34.7 pF nulls residual L from 14.28 to 94.38 nH, but the board's own residual is 7.21 nH - BELOW the window - so C1 bottoms out. Confirmed three ways (reviewer, my closed form, and the parallel-plate + C'=0.176 pF/mm estimate). NOT respun: at the low stop the board still measures 39.1 dB nominal / 31.2 dB at the +5 pct corner against a 26 dB spec, and restoring a two-sided null needs \textasciitilde{}+7 nH of deliberate meander or a smaller solder lap - degrading the PRIMARY spec and the 1.7 A joint to exercise a secondary feature. Documented in README with the respin offer and its price. \\
+P8 & Reverses decision 58's stated rationale for stopping the flare & Decision 58 said the router stopped flaring to stay above C1's null floor. With the parasitic corrected to 4.7 pF that floor is 14.28 nH, not 5.75 nH, so the board was already below it and flaring further would not have changed the outcome. The stopping point remains fine; the REASON recorded for it was wrong and is corrected here rather than left to mislead a later reader. \\
+P8 & REVERSES the earlier 'do not respin' call: re-routing to add \textasciitilde{}12 nH, target 19-21 nH residual & I refused the respin on the grounds that restoring a two-sided null would degrade the primary spec. The corrected simulation disproves that: at the binding +5 percent corner, +7.07 nH is +0.716 dB BETTER, +10.34 nH +0.589 dB, +15 nH +0.315 dB, and it only turns into a penalty past \textasciitilde{}+23 nH, because a true null beats an over-corrected low stop. The objection was electrical and it was wrong, so the only remaining objection was effort - and requirement 4 (operator-adjustable null) is a functional spec, not an optimisation. Routing-only change; placement, schematic and footprints untouched. \\
+P8 & Sim benches corrected: parasitic 1.3 -\textgreater{} 4.7 pF (swept 3.5-6.0), trimmer 35 -\textgreater{} 30 pF & The benches modelled a 1.30 pF parasitic from P2's 3.55 mm launch and a 35 pF trimmer that is not the delivered part, so lnull\_hi and the README's '\textasciitilde{}103 nH' came from a part not on the BOM. Corrected: 159 bounds, 265 measures, gate pass, and discrimination re-proved by seeding six defects (reverting the parasitic alone trips 32 bounds across three benches). Worst point anywhere in 22.5-27.5 MHz across all 12 R x parasitic builds is 30.07 dB against a 26 dB spec. \\
+P7 & Re-route done: residual 7.21 -\textgreater{} 19.5 nH via a 33.125 mm meander at 0.94 mm; C1 now has a real two-sided null & Deleted the 7.34 mm lap-pad flare, added 33.125 mm at the current-limited minimum width. /RF copper 15.065 -\textgreater{} 42.513 mm. The correct model is grounded CPW, not microstrip - the pour sits 0.80 mm away, closer than the 1.53 mm core - giving L' = 0.4281 nH/mm, C' = 0.0755 pF/mm. Launch parasitic 4.7 -\textgreater{} 5.4 pF (6.1 conservative), so C1 lands at \textasciitilde{}2.4 pF with 0.65-1.7 pF of downward and \textasciitilde{}28 pF of upward authority. drc\_routed, verify and dfm all re-passed with counts identical to before - no new finding. B.Cu return plane byte-identical, still one 452.58 mm2 island. \\
+P8 & Final sim: worst of 48 builds is 31.43 dB at Fc / 31.27 dB in band; two-sided null proven & 295 bounds, 553 measures, 4 benches; C1 tuned once at Fc then frozen across the band. Margins +5.43 dB on the 26 dB spec and +11.27 dB on the 20 dB band spec. Re-route gain +1.06 dB worst-to-worst. Null verified as a genuine interior minimum (Im\{Zin\} = 3e-7 ohm, +/-0.29 pF costs an equal 0.0089 dB). Corrected the router's compound-corner figure: 0.95 pF is the CENTRAL residual, not the low-L end (that is 0.59 pF, missing the stop by 0.41 pF); worst clamp penalty anywhere is 0.07 dB. \\
+P8 & Select-on-test, not tuning, is what holds the spec margin & Seeded-defect probe: a de-selected +10 percent element reads 26.05 dB, right on the spec line, while the reactance is fully nulled at every corner. The incoming-inspection step in the README is therefore load-bearing, not advisory. \\
 \bottomrule
 \end{longtable}
 }
@@ -462,13 +469,13 @@ No driver anywhere - the board has no active part, so P4 should expect ERC to wa
 \end{itemize}
 Full architecture narrative (not inlined; see the artifact index): \texttt{architecture/blocks.md}, \texttt{architecture/decisions.md}, \texttt{architecture/power\_tree.md}, \texttt{architecture/stackup.md}.
 \section{Schematic}
-Gate \texttt{erc} (phase P4): \textbf{pass} after 2 attempt(s); last 2026-08-09T02:12:27, failing 0 of 0.
+Gate \texttt{erc} (phase P9): \textbf{pass} after 3 attempt(s); last 2026-08-09T05:50:13, failing 0 of 0.
 The full schematic PDF follows.
 \includepdf[pages=-]{reports/schematic.pdf}
 \section{Layout}
-Gate \texttt{place} (phase P6): \textbf{pass} after 1 attempt(s); last 2026-08-09T03:35:33, failing 0 of 0.
+Gate \texttt{place} (phase P9): \textbf{pass} after 2 attempt(s); last 2026-08-09T05:50:13, failing 0 of 0.
 
-Gate \texttt{drc\_routed} (phase P7): \textbf{pass} after 1 attempt(s); last 2026-08-09T04:06:09, failing 0 of 0.
+Gate \texttt{drc\_routed} (phase P8): \textbf{pass} after 2 attempt(s); last 2026-08-09T05:25:56, failing 0 of 0.
 \begin{center}
 \includegraphics[width=0.72\textwidth]{reports/renders/rf-term-150w_top.png}\\
 {\small\texttt{reports/renders/rf-term-150w\_top.png}}
@@ -478,9 +485,27 @@ Gate \texttt{drc\_routed} (phase P7): \textbf{pass} after 1 attempt(s); last 202
 {\small\texttt{reports/renders/rf-term-150w\_bottom.png}}
 \end{center}
 \section{Verification}
-\emph{Pending --- produced at P8.}
+Gate \texttt{verify} (phase P8): \textbf{pass} after 2 attempt(s); last 2026-08-09T05:25:56, failing 0 of 11.
+\emph{reports/verify\_all.json not available.}
 \section{DFM and Fabrication}
-\emph{Pending --- produced at P9.}
+Gate \texttt{dfm} (phase P8): \textbf{pass} after 2 attempt(s); last 2026-08-09T05:25:56, failing 0 of 1.
+DFM findings by severity: warning: 1.
+\subsection*{Fabrication outputs}
+Exported layers: F.Cu, B.Cu, F.Silkscreen, B.Silkscreen, F.Mask, B.Mask, F.Paste, B.Paste, Edge.Cuts.
+\subsection*{Bill of materials}
+{\small
+\begin{longtable}{p{4.4cm}p{2.8cm}p{4.6cm}l}
+\toprule
+\textbf{Comment} & \textbf{Designator} & \textbf{Footprint} & \textbf{LCSC} \\
+\midrule
+\endhead
+1-30pF & C1 & CAP-ADJ-TH\_2P-BD7.5\_5602 &  \\
+SMA & J1 & SMA\_BAT\_Wireless\_BWSMA-KWE-Z001 & C7498154 \\
+\bottomrule
+\end{longtable}
+}
+0 CPL rotation correction(s) applied; missing LCSC for: C1.
+\emph{fab/order.json not available.}
 \section{Run Record (Appendix)}
 \subsection*{Phase digests}
 \paragraph*{P0}
@@ -497,6 +522,12 @@ Gate \texttt{drc\_routed} (phase P7): \textbf{pass} after 1 attempt(s); last 202
 \emph{(no digest recorded)}
 \paragraph*{P6}
 \emph{(no digest recorded)}
+\paragraph*{P7}
+\emph{(no digest recorded)}
+\paragraph*{P8}
+\emph{(no digest recorded)}
+\paragraph*{P9}
+\emph{(no digest recorded)}
 \subsection*{Gate attempt history}
 {\small
 \begin{longtable}{llll}
@@ -511,6 +542,13 @@ Gate \texttt{drc\_routed} (phase P7): \textbf{pass} after 1 attempt(s); last 202
 2026-08-09T04:06:09 & drc\_routed & pass & 0/0 \\
 2026-08-09T04:09:22 & verify & pass & 0/11 \\
 2026-08-09T04:12:24 & dfm & pass & 0/1 \\
+2026-08-09T04:54:50 & sim & pass & 0/0 \\
+2026-08-09T05:25:56 & dfm & pass & 0/1 \\
+2026-08-09T05:25:56 & drc\_routed & pass & 0/0 \\
+2026-08-09T05:25:56 & verify & pass & 0/11 \\
+2026-08-09T05:49:49 & sim & pass & 0/0 \\
+2026-08-09T05:50:13 & erc & pass & 0/0 \\
+2026-08-09T05:50:13 & place & pass & 0/0 \\
 \bottomrule
 \end{longtable}
 }
@@ -526,7 +564,7 @@ Gate \texttt{drc\_routed} (phase P7): \textbf{pass} after 1 attempt(s); last 202
 1 & P2 & not reached &  &  \\
 2 & P4 & approved & 2026-08-09T02:13:02 & auto-approved under the user's no-questions directive; reviewer: circuit clean, 1 P9 BOM-delivery error recorded, 3 warnings \\
 3 & P6 & approved & 2026-08-09T03:36:21 & auto-approved under the no-questions directive; top render reviewed and matches intent; place gate 0 violations, DRC 0 warn / 0 parity \\
-4 & P8 & not reached &  &  \\
+4 & P8 & approved & 2026-08-09T04:35:15 & auto-approved under the no-questions directive. Verify reviewer: 0 errors, 11 warnings, both waiver groups confirmed independently. V1 (stale shunt-C budget) accepted as a documented partial miss on requirement 4; V2-V7 fixed. \\
 5 & P10 & not reached &  &  \\
 \bottomrule
 \end{longtable}
@@ -538,11 +576,11 @@ Gate \texttt{drc\_routed} (phase P7): \textbf{pass} after 1 attempt(s); last 202
 \textbf{File} & \textbf{Size} & \textbf{Note} \\
 \midrule
 \endhead
-\texttt{state.json} & 57,603 B &  \\
-\texttt{kicad/rf-term-150w.kicad\_pcb} & 75,127 B &  \\
+\texttt{state.json} & 67,960 B &  \\
+\texttt{kicad/rf-term-150w.kicad\_pcb} & 74,620 B &  \\
 \texttt{kicad/rf-term-150w.kicad\_sch} & 38,840 B &  \\
-\texttt{fab/rf-term-150w\_gerbers.zip} & 15,470 B &  \\
-\texttt{fab/BOM.csv} & 2,610 B &  \\
+\texttt{fab/rf-term-150w\_gerbers.zip} & 15,719 B &  \\
+\texttt{fab/BOM.csv} & 2,728 B &  \\
 \texttt{fab/CPL.csv} & 105 B &  \\
 \texttt{brief/brief.md} & 2,235 B &  \\
 \texttt{requirements.md} & 25,663 B &  \\
@@ -555,7 +593,7 @@ Gate \texttt{drc\_routed} (phase P7): \textbf{pass} after 1 attempt(s); last 202
 \texttt{reports/board\_init.json} & 9,642 B &  \\
 \texttt{reports/bom\_cpl.json} & 1,225 B &  \\
 \texttt{reports/CAP-ADJ-TH\_2P-BD7.5\_5602.overlay.svg} & 1,145 B &  \\
-\texttt{reports/check\_return\_path.json} & 20,574 B &  \\
+\texttt{reports/check\_return\_path.json} & 25,894 B &  \\
 \texttt{reports/constraints\_lint.json} & 591 B &  \\
 \texttt{reports/dfm\_check.json} & 1,201 B &  \\
 \texttt{reports/fab\_export.json} & 2,330 B &  \\
@@ -564,7 +602,7 @@ Gate \texttt{drc\_routed} (phase P7): \textbf{pass} after 1 attempt(s); last 202
 \texttt{reports/gate-erc.json} & 400 B &  \\
 \texttt{reports/gate-place.json} & 337 B &  \\
 \texttt{reports/gate-sim.json} & 364 B &  \\
-\texttt{reports/gate-verify.json} & 14,805 B &  \\
+\texttt{reports/gate-verify.json} & 15,050 B &  \\
 \texttt{reports/netlist\_audit.json} & 962 B &  \\
 \texttt{reports/p6-drc.json} & 8,658 B &  \\
 \texttt{reports/p6-silk.json} & 1,098 B &  \\
@@ -574,17 +612,22 @@ Gate \texttt{drc\_routed} (phase P7): \textbf{pass} after 1 attempt(s); last 202
 \texttt{reports/plane\_repair.json} & 1,015 B &  \\
 \texttt{reports/planes\_gen.json} & 828 B &  \\
 \texttt{reports/R\_LapPad\_T50R0-250-12X.overlay.svg} & 1,493 B &  \\
+\texttt{reports/render.json} & 473 B &  \\
+\texttt{reports/report\_gen.json} & 1,820 B &  \\
 \texttt{reports/review-schematic.json} & 5,868 B &  \\
 \texttt{reports/review-schematic.md} & 15,789 B &  \\
+\texttt{reports/review-verify.json} & 13,508 B &  \\
+\texttt{reports/review-verify.md} & 20,332 B &  \\
+\texttt{reports/route\_edit-meander.json} & 1,970 B &  \\
 \texttt{reports/route\_edit-rf.json} & 3,877 B &  \\
 \texttt{reports/route\_edit-rmvias.json} & 757 B &  \\
 \texttt{reports/rules\_gen.json} & 1,048 B &  \\
 \texttt{reports/sch-bom.csv} & 429 B &  \\
 \texttt{reports/schematic.pdf} & 57,200 B &  \\
 \texttt{reports/silk\_place.json} & 1,596 B &  \\
-\texttt{reports/sim.json} & 5,989 B &  \\
+\texttt{reports/sim.json} & 18,640 B &  \\
 \texttt{reports/stitch\_vias.json} & 12,250 B &  \\
-\texttt{reports/verify-waivers.json} & 3,580 B &  \\
+\texttt{reports/verify-waivers.json} & 4,103 B &  \\
 \bottomrule
 \end{longtable}
 }

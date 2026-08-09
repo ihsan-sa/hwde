@@ -1,94 +1,383 @@
 [
- {"measure": "dopt_m10", "min": 2.0, "severity": "error",
-  "msg": "(A) the susceptance null IS the best setting: RL at the null minus RL at 0.90x the null total C = +3.275 dB. This underwrites the 'trimmer at its best setting' premise of s11_band.cir and s11_corners.cir, which is otherwise an assertion."},
- {"measure": "dopt_p10", "min": 2.0, "severity": "error",
-  "msg": "(A) same test 10% ABOVE the null: +3.275 dB. Symmetric with dopt_m10 to 5 decimal places, which is what a true minimum of |Gamma| looks like."},
- {"measure": "dopt_m20", "min": 5.0, "severity": "error", "msg": "(A) 0.80x the null total C costs 7.406 dB."},
- {"measure": "dopt_p25", "min": 6.0, "severity": "error", "msg": "(A) 1.25x the null total C costs 9.050 dB."},
- {"measure": "ct_k100_pf", "min": 6.9, "max": 7.5, "severity": "error",
-  "msg": "(A) the scaling test is run at L = 30 nH precisely so the trimmer sits mid-range - 7.194 pF of a delivered 1-30 pF part, with room to move +/-25% in both directions without hitting a stop. A test run at the as-routed 7.21 nH would need negative trimmer values and would prove nothing."},
-
- {"measure": "ctot_lo_pf", "min": 5.69, "max": 5.71, "severity": "error",
-  "msg": "(B) THE V2 ASSERTION, low end: total shunt C with the DELIVERED Johanson 5602 (parts/5602.json: 1-30 pF) at full CCW = 4.7 pF port + 1 pF trimmer = 5.70 pF."},
- {"measure": "ctot_hi_pf", "min": 34.69, "max": 34.71, "severity": "error",
-  "msg": "(B) THE V2 ASSERTION, high end: full CW = 4.7 + 30 = 34.70 pF. The retired bench used cmax = 35 pF, which matches NO part on the BOM (it was inherited from the retired BFC280811339, a 3-33 pF part); that would read 39.70 pF here."},
- {"measure": "lnull_lo_nh", "min": 14.0, "max": 14.55, "severity": "error",
-  "msg": "(B) README NUMBER - the smallest residual series L the delivered trimmer can null EXACTLY, at the nominal 4.7 pF port: 14.279 nH. The as-routed board is 7.21 nH, i.e. BELOW this, which is the whole of review-verify V1."},
- {"measure": "lnull_hi_nh", "min": 93.5, "max": 95.2, "severity": "error",
-  "msg": "(B) README NUMBER - the largest residual L the delivered trimmer can null exactly: 94.376 nH. The stale bench said 99.64 nH (1.3 pF port + a 35 pF trimmer) and a 35 pF trimmer against the corrected 4.7 pF port would say 111.41 nH; both are outside this window, so this bound catches either half of V2 being reverted."},
- {"measure": "xnull_lo_ohm", "min": 2.20, "max": 2.29, "severity": "error",
-  "msg": "(B) the same low endpoint as series reactance at 25.0 MHz: 2.243 ohm."},
- {"measure": "xnull_hi_ohm", "min": 14.6, "max": 15.05, "severity": "error",
-  "msg": "(B) the same high endpoint as series reactance: 14.825 ohm. Note it is BELOW the 16.24 ohm point where Reff alone would break 26 dB at R = 50 (reff_limit.cir xcap_r50_ohm), so at nominal resistance the trimmer's top stop, not the resistance transformation, is what ends the exact-null range."},
- {"measure": "lnull_span_nh", "min": 79.0, "max": 81.5, "severity": "error",
-  "msg": "(B) README NUMBER - achievable adjustment range, exact-null definition: 80.10 nH wide (14.28 to 94.38 nH)."},
- {"measure": "lnull_lo35_nh", "min": 11.1, "max": 11.45, "severity": "error",
-  "msg": "(B) the window at the OPTIMISTIC end of the port-parasitic band (3.5 pF): low edge 11.264 nH. There is no field solver on this pipeline, so the 4.7 pF estimate is swept; the window moves with it and the README range should be quoted as 14.3-94.4 nH nominal with an 11.3-98.6 nH envelope."},
- {"measure": "lnull_hi35_nh", "min": 89.8, "max": 91.3, "severity": "error", "msg": "(B) high edge at 3.5 pF: 90.523 nH."},
- {"measure": "lnull_lo60_nh", "min": 17.3, "max": 17.8, "severity": "error",
-  "msg": "(B) low edge at the PESSIMISTIC 6.0 pF: 17.553 nH. This is the number that sets how much series inductance a two-sided-null respin would have to add to be safe against the parasitic uncertainty (see block E)."},
- {"measure": "lnull_hi60_nh", "min": 97.9, "max": 99.4, "severity": "error", "msg": "(B) high edge at 6.0 pF: 98.643 nH. The window WIDTH is nearly parasitic-independent (79.3 / 80.1 / 81.1 nH across the band); it is the position that moves."},
- {"measure": "rl_null_lo", "min": 50.0, "severity": "error",
-  "msg": "(B) simulated proof, not just algebra: at L = lnull_lo with the trimmer pinned at its 1 pF stop the null is REAL, not a clamped mistune - 59.96 dB, whose entire residual is Reff = 50 + X^2/R = 50.10 ohm."},
- {"measure": "rl_null_hi", "min": 26.0, "severity": "error",
-  "msg": "(B) same at the top: L = lnull_hi with the trimmer at its 30 pF stop gives 27.51 dB. The top of the exact-null range still clears crit. 2 by 1.5 dB, so the whole 14.28-94.38 nH window is spec-legal at nominal resistance."},
- {"measure": "rl_null_lo60", "min": 50.0, "severity": "error", "msg": "(B) same check at the 6.0 pF parasitic: 56.37 dB."},
- {"measure": "rl_null_hi60", "min": 26.0, "severity": "error",
-  "msg": "(B) and the tightest corner of the window analysis: top of the window at the pessimistic parasitic, 26.78 dB - still above crit. 2, but by only 0.78 dB. A build whose residual is near 98 nH is spec-legal and has no margin."},
- {"measure": "rl_null_lo35", "min": 50.0, "severity": "warning", "msg": "(B) 64.07 dB at the 3.5 pF low edge."},
- {"measure": "rl_null_hi35", "min": 26.0, "severity": "warning", "msg": "(B) 28.21 dB at the 3.5 pF high edge."},
-
- {"measure": "lgap_nh", "min": 6.8, "max": 7.35, "severity": "error",
-  "msg": "(C) HOW FAR BELOW THE WINDOW THE BOARD SITS: lnull_lo - L_as_routed = 14.279 - 7.21 = 7.069 nH. C1 bottoms out and has upward-only authority. A negative or near-zero reading means the board has entered the window and the README's 'no null to find' language must be retracted."},
- {"measure": "rl_lows_r50", "min": 26.0, "severity": "error",
-  "msg": "(C) crit. 2 at the low stop, R = 50: 39.12 dB. Cross-checks s11_band.cir rl_r50_p47_fc and s11_corners.cir rl_r50_l721 - three independent instantiations, same number."},
- {"measure": "rl_lows_r50", "min": 38.0, "max": 40.5, "severity": "error",
-  "msg": "(C) WRONG-VALUE TRIPWIRE, mirroring s11_band.cir rl_r50_p47_fc: the low-stop nominal build must read 39.12 dB. With the stale 1.3 pF port this block would read 52.76 dB. Cross-bench consistency on this one number is what ties the three benches to the same model."},
- {"measure": "rl_lows_r525", "min": 26.0, "severity": "error", "msg": "(C) crit. 2 at the low stop, R = 52.5 (+5% catalogue corner): 31.19 dB."},
- {"measure": "rl_lows_r525_p60", "min": 26.0, "severity": "error", "msg": "(C) crit. 2 at the low stop, R = 52.5 AND the pessimistic 6.0 pF port: 30.37 dB - the worst credible as-built number anywhere in these four benches."},
- {"measure": "rl_ideal_r525", "min": 32.0, "max": 32.35, "severity": "error",
-  "msg": "(C) the hypothetical perfect null at the +5% corner - a physically unbuildable 2.883 pF total, less than the port parasitic alone - reads 32.173 dB. This is the ceiling the low stop is being measured against."},
- {"measure": "rl_ideal_r50", "min": 65.0, "severity": "error",
-  "msg": "(C) the same hypothetical at R = 50: 71.82 dB. This is the number README s4's R_eff table quotes; it is NOT achievable on this board, and cost_r50 below is the difference."},
- {"measure": "cost_r525", "max": 1.2, "severity": "error",
-  "msg": "(C) THE ANSWER TO 'WHAT DOES BOTTOMING OUT COST': 0.983 dB at the +5% resistance corner, the corner that actually binds the spec. That is the entire price of having no null to tune - under one decibel out of 5.19 dB of margin."},
- {"measure": "cost_r525_p35", "max": 0.6, "severity": "error", "msg": "(C) the same cost at the optimistic 3.5 pF port: 0.394 dB."},
- {"measure": "cost_r525_p60", "max": 2.2, "severity": "error",
-  "msg": "(C) and at the pessimistic 6.0 pF port: 1.799 dB. Across the whole parasitic uncertainty band the cost of the bottomed-out trimmer at the binding corner stays under 2 dB."},
- {"measure": "cost_r50", "min": 28.0, "max": 38.0, "severity": "error",
-  "msg": "(C) at NOMINAL resistance the same cost reads 32.70 dB, which sounds catastrophic and is not: it is the gap between 0.0000066% and 0.0123% of reflected power. Both are three orders of magnitude inside a 26 dB (0.25%) spec. The dB difference is large only because a perfect null on a perfect 50 ohm load is a singularity. Reported as a window rather than a max so that a bench which has quietly stopped clamping the trimmer (which would drive this to ~0) also fails."},
-
- {"measure": "rl_l0", "min": 26.0, "severity": "error",
-  "msg": "(D) L = 1 pH, i.e. NO launch inductance at all, trimmer at its stop: 33.00 dB. Spec is met with the residual completely absent - the 4.7 pF port alone never breaks 26 dB."},
- {"measure": "rl_l14", "min": 26.0, "severity": "error", "msg": "(D) L = 14.28 nH, the window's low edge: 59.95 dB."},
- {"measure": "rl_l30", "min": 26.0, "severity": "error", "msg": "(D) L = 30 nH: 47.09 dB."},
- {"measure": "rl_l60", "min": 26.0, "severity": "error", "msg": "(D) L = 60 nH: 35.16 dB."},
- {"measure": "rl_l90", "min": 26.0, "severity": "error", "msg": "(D) L = 90 nH: 28.31 dB."},
- {"measure": "rl_l94", "min": 26.0, "severity": "error", "msg": "(D) L = 94.38 nH, the window's high edge: 27.51 dB (identical to rl_null_hi, as it must be)."},
- {"measure": "rl_l100", "min": 26.0, "severity": "error",
-  "msg": "(D) L = 100 nH: 26.46 dB. Past the exact-null window - the trimmer is hard against its 30 pF stop - but still above spec, which is why SPEC authority is wider than NULL authority."},
- {"measure": "rl_l102", "min": 26.0, "severity": "warning",
-  "msg": "(D) L = 102 nH: 26.065 dB. Tight bracket, warning severity by design: this pins the upper edge of spec authority to 0.065 dB, finer than any bound should fail a gate on."},
- {"measure": "rl_l103", "max": 26.0, "severity": "warning",
-  "msg": "(D) L = 103 nH: 25.869 dB - below spec. With rl_l102 this brackets the README NUMBER: at R = 50 with the delivered 1-30 pF trimmer, RL >= 26 dB holds out to L = 102-103 nH (closed-form crossing 102.33 nH, X = 16.07 ohm). The stale bench claimed ~103.2 nH from a 35 pF part."},
- {"measure": "rl_l110", "max": 26.0, "severity": "error", "msg": "(D) L = 110 nH: 24.51 dB. Past spec authority, and no trimmer setting recovers it."},
- {"measure": "rl_h70", "min": 26.0, "severity": "error",
-  "msg": "(D) the same authority question at R = 52.5, where the resistance transformation bites long before the trimmer runs out of range: L = 70 nH gives 26.78 dB."},
- {"measure": "rl_h76", "min": 25.9, "max": 26.1, "severity": "warning",
-  "msg": "(D) L = 76.86 nH at R = 52.5: 26.000 dB. The +5% corner's spec authority ends at 76.9 nH - a third of the nominal-resistance figure - and it is set by Reff = R + X^2/R, not by the trimmer (reff_limit.cir lcap_r525_nh derives the same 76.86 nH from closed form with an IDEAL unlimited trimmer, and gets the same answer, which is the proof that the part is not the limit there)."},
- {"measure": "rl_h80", "max": 26.0, "severity": "error", "msg": "(D) L = 80 nH at R = 52.5: 25.65 dB - fails, and no setting of C1 recovers it."},
-
- {"measure": "ladd_min_nh", "min": 6.8, "max": 7.35, "severity": "error",
-  "msg": "(E) THE ANSWER TO 'WHAT WOULD A TWO-SIDED NULL COST': the minimum series inductance that must be ADDED to reach the window is +7.069 nH (7.21 -> 14.28 nH), and that only lands the board exactly ON the low edge with zero downward authority. To be genuinely two-sided across the 3.5-6.0 pF parasitic band and the 49-52.5 ohm resistance range the target is >= 19.36 nH, i.e. about +12.1 nH."},
- {"measure": "dadd_e14", "min": 0.0, "severity": "error",
-  "msg": "(E) THE PRICE, and it is negative: adding 7.07 nH to reach the window's low edge IMPROVES return loss at the +5% corner by 0.716 dB (31.190 -> 31.906 dB). A true null beats an over-corrected low stop by more than the extra X^2/R costs. The intuition that 'more inductance is always worse' is wrong on this board because the fixed 4.7 pF port is already over-compensating."},
- {"measure": "dadd_e17", "min": 0.0, "severity": "error", "msg": "(E) +10.34 nH (to 17.55 nH, the low edge at the pessimistic parasitic): +0.589 dB, still an improvement."},
- {"measure": "dadd_e22", "min": 0.0, "severity": "error", "msg": "(E) +15.00 nH (to 22.21 nH, comfortably inside the window at every parasitic estimate): +0.315 dB, still an improvement."},
- {"measure": "dadd_e30", "min": -0.6, "max": 0.0, "severity": "error",
-  "msg": "(E) +22.79 nH (to 30 nH) is where the price finally turns negative: -0.257 dB at the +5% corner. So the whole useful two-sided-null respin range costs between -0.26 dB and +0.72 dB - i.e. nothing measurable. The real objection to the respin is mechanical (a meander at the 0.9392 mm current-limited minimum width, or a smaller solder lap on a 1.732 Arms joint), not electrical."},
- {"measure": "dadd_e40", "min": -1.6, "max": -0.7, "severity": "error",
-  "msg": "(E) +32.79 nH (to 40 nH): -1.155 dB. Beyond about +23 nH the added reactance costs more through Reff than the recovered null buys back."},
- {"measure": "rl_e14", "min": 26.0, "severity": "error", "msg": "(E) crit. 2 still holds at the +5% corner for the minimum respin: 31.91 dB."},
- {"measure": "rl_e30", "min": 26.0, "severity": "error", "msg": "(E) crit. 2 at the +5% corner for a 30 nH respin: 30.93 dB."},
- {"measure": "rl_e40", "min": 26.0, "severity": "warning", "msg": "(E) 40 nH at the +5% corner: 30.04 dB. Even a wildly over-inductive respin has 4 dB of margin; the respin is not spec-limited anywhere in the useful range."}
+ {
+  "measure": "dopt_m10",
+  "min": 3.0,
+  "severity": "error",
+  "msg": "(A) the susceptance null IS the best setting, demonstrated at the REAL operating point (R = 50, 5.4 pF, 19.5 nH): RL at the null minus RL at 0.90x the null total C = 5.640 dB. The pre-re-route bench had to run this test at a fictitious 30 nH because the as-routed board needed negative trimmer values; it does not any more."
+ },
+ {
+  "measure": "dopt_p10",
+  "min": 3.0,
+  "severity": "error",
+  "msg": "(A) same test 10% ABOVE the null: 5.640 dB. Symmetric with dopt_m10, which is what a true minimum of |Gamma| looks like."
+ },
+ {
+  "measure": "dopt_m20",
+  "min": 8.0,
+  "severity": "error",
+  "msg": "(A) 0.80x the null total C costs 10.666 dB."
+ },
+ {
+  "measure": "dopt_p25",
+  "min": 8.0,
+  "severity": "error",
+  "msg": "(A) 1.25x the null total C costs 12.468 dB."
+ },
+ {
+  "measure": "ct_k100_pf",
+  "min": 2.3,
+  "max": 2.45,
+  "severity": "error",
+  "msg": "(A) the trimmer setting the scaling test is centred on is the board's own: 2.3708 pF of a delivered 1-30 pF part."
+ },
+ {
+  "measure": "ct_k80_pf",
+  "min": 0.8,
+  "severity": "error",
+  "msg": "(A) THE REASON THIS TEST IS NOW LEGITIMATE: the 0.80x point needs 0.8167 pF of trimmer. That is below the 1 pF stop by 0.18 pF, so the -20% arm is a hair outside the orderable range while the -10% arm (1.5938 pF) is comfortably inside; asserted as a min so a bench that silently went back to negative capacitor values fails. The pre-re-route board needed -2.5 pF here."
+ },
+ {
+  "measure": "ct_k125_pf",
+  "min": 4.0,
+  "max": 4.6,
+  "severity": "error",
+  "msg": "(A) the +25% arm needs 4.3135 pF - inside the part."
+ },
+ {
+  "measure": "lnull_lo_nh",
+  "min": 15.9,
+  "max": 16.2,
+  "severity": "error",
+  "msg": "(B) README NUMBER, new low edge: the smallest residual series L the delivered Johanson 5602 can null EXACTLY at the nominal 5.4 pF port is 16.041 nH. The pre-re-route README quoted 14.279 nH against a 4.7 pF port; that value is now outside this window, so a reverted parasitic trips here."
+ },
+ {
+  "measure": "lnull_hi_nh",
+  "min": 96.0,
+  "max": 97.3,
+  "severity": "error",
+  "msg": "(B) README NUMBER, new high edge: 96.661 nH. The pre-re-route figure was 94.376 nH; a 35 pF trimmer (no such part) against the same 5.4 pF port would say 113.6 nH."
+ },
+ {
+  "measure": "lnull_span_nh",
+  "min": 79.5,
+  "max": 81.7,
+  "severity": "error",
+  "msg": "(B) README NUMBER, achievable adjustment range: 80.62 nH wide (16.04 to 96.66 nH). The width is nearly parasitic-independent (80.10 / 80.62 / 81.17 / 81.50 nH across 4.7 / 5.4 / 6.1 / 6.5 pF); it is the POSITION that moves."
+ },
+ {
+  "measure": "xnull_lo_ohm",
+  "min": 2.49,
+  "max": 2.55,
+  "severity": "error",
+  "msg": "(B) the low endpoint as series reactance at 25.0 MHz: 2.520 ohm."
+ },
+ {
+  "measure": "xnull_hi_ohm",
+  "min": 15.05,
+  "max": 15.32,
+  "severity": "error",
+  "msg": "(B) the high endpoint as series reactance: 15.183 ohm. Still BELOW the 16.242 ohm point where Reff alone breaks 26 dB at R = 50 (reff_limit.cir xcap_r50_ohm), so at nominal resistance the trimmer's top stop, not the resistance transformation, is what ends the exact-null range."
+ },
+ {
+  "measure": "lnull_lo47_nh",
+  "min": 14.02867413823439,
+  "max": 14.52867413823439,
+  "severity": "error",
+  "msg": "(B) ENVELOPE across the port-parasitic band, low edge at 4.7 pF: 14.279 nH."
+ },
+ {
+  "measure": "lnull_hi47_nh",
+  "min": 93.47590702329002,
+  "max": 95.27590702329003,
+  "severity": "error",
+  "msg": "(B) ENVELOPE, high edge at 4.7 pF: 94.376 nH."
+ },
+ {
+  "measure": "lnull_lo61_nh",
+  "min": 17.555540325072798,
+  "max": 18.055540325072798,
+  "severity": "error",
+  "msg": "(B) ENVELOPE across the port-parasitic band, low edge at 6.1 pF: 17.806 nH."
+ },
+ {
+  "measure": "lnull_hi61_nh",
+  "min": 98.07579372996578,
+  "max": 99.87579372996579,
+  "severity": "error",
+  "msg": "(B) ENVELOPE, high edge at 6.1 pF: 98.976 nH."
+ },
+ {
+  "measure": "lnull_lo65_nh",
+  "min": 18.56551385944229,
+  "max": 19.06551385944229,
+  "severity": "error",
+  "msg": "(B) ENVELOPE across the port-parasitic band, low edge at 6.5 pF: 18.816 nH."
+ },
+ {
+  "measure": "lnull_hi65_nh",
+  "min": 99.41236519618771,
+  "max": 101.21236519618772,
+  "severity": "error",
+  "msg": "(B) ENVELOPE, high edge at 6.5 pF: 100.312 nH."
+ },
+ {
+  "measure": "lnull_lo49_nh",
+  "min": 15.153869629315736,
+  "max": 15.653869629315736,
+  "severity": "error",
+  "msg": "(B) the window also moves with RESISTANCE: at R = 49 the low edge is 15.404 nH."
+ },
+ {
+  "measure": "lnull_lo525_nh",
+  "min": 17.439413612070517,
+  "max": 17.939413612070517,
+  "severity": "error",
+  "msg": "(B) and at R = 52.5 it is 17.689 nH - the highest low edge over the select-on-test range plus the +5% corner, and therefore the number the board's residual has to clear to be two-sided everywhere. 18.5 nH clears it by 0.81 nH."
+ },
+ {
+  "measure": "lnull_hi525_nh",
+  "min": 106.7034066746514,
+  "max": 108.7034066746514,
+  "severity": "error",
+  "msg": "(B) high edge at R = 52.5: 107.703 nH."
+ },
+ {
+  "measure": "ctot_lo_pf",
+  "min": 6.39,
+  "max": 6.41,
+  "severity": "error",
+  "msg": "(B) DELIVERED PART, low end: 5.4 pF port + 1 pF at full CCW = 6.40 pF total shunt."
+ },
+ {
+  "measure": "ctot_hi_pf",
+  "min": 35.39,
+  "max": 35.41,
+  "severity": "error",
+  "msg": "(B) DELIVERED PART, high end: 5.4 + 30 = 35.40 pF. A 1-35 pF part - which is on no BOM - would read 40.40 pF."
+ },
+ {
+  "measure": "rl_nlo",
+  "min": 50.0,
+  "severity": "error",
+  "msg": "(B) simulated proof, not just algebra: at L = lnull_lo with the trimmer pinned at its 1 pF stop the null is REAL, not a clamped mistune - 57.94 dB, whose entire residual is Reff = 50.127 ohm."
+ },
+ {
+  "measure": "rl_nhi",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "(B) same at the top: L = lnull_hi with the trimmer at its 30 pF stop gives 27.12 dB. The whole 16.04-96.66 nH window is spec-legal at nominal resistance, by 1.1 dB at its worst end."
+ },
+ {
+  "measure": "rl_nlo65",
+  "min": 50.0,
+  "severity": "warning",
+  "msg": "(B) same check at the 6.5 pF end of the parasitic band: 55.17 dB."
+ },
+ {
+  "measure": "rl_nhi65",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "(B) the tightest corner of the window analysis: top of the window at the 6.5 pF parasitic, 26.50 dB - above crit. 2 by only 0.5 dB. A build whose residual is near 100 nH is spec-legal and has no margin. The board is at 19.5."
+ },
+ {
+  "measure": "rl_nlo47",
+  "min": 50.0,
+  "severity": "warning",
+  "msg": "(B) 4.7 pF low edge: 59.96 dB."
+ },
+ {
+  "measure": "rl_nhi47",
+  "min": 26.0,
+  "severity": "warning",
+  "msg": "(B) 4.7 pF high edge: 27.51 dB."
+ },
+ {
+  "measure": "lin_lo_nh",
+  "min": 2.0,
+  "severity": "error",
+  "msg": "(C) THE HEADLINE OF THE RE-ROUTE: the board is now INSIDE the exact-null window. Low end of the residual band (18.5 nH) minus the window's low edge (16.041 nH) = +2.459 nH. The pre-re-route board read -7.069 nH here (7.21 nH against a 14.279 nH edge). A negative reading means the re-route has been undone and the README's two-sided-null language must be retracted."
+ },
+ {
+  "measure": "lin_mid_nh",
+  "min": 3.0,
+  "severity": "error",
+  "msg": "(C) central residual 19.5 nH is +3.459 nH inside the window."
+ },
+ {
+  "measure": "lin_hi_nh",
+  "min": 6.5,
+  "severity": "error",
+  "msg": "(C) top of the residual band 23.3 nH is +7.259 nH inside."
+ },
+ {
+  "measure": "lin_lo65_nh",
+  "max": 0.0,
+  "severity": "error",
+  "msg": "(C) THE ONE PLACE THE BOARD STILL FALLS OUT, and it is asserted as a MAX so it cannot be quietly dropped: at the 6.5 pF end of the parasitic band the window starts at 18.816 nH, so an 18.5 nH build is -0.316 nH short and C1 bottoms out. See s11_corners.cir block D for what that costs: under 0.07 dB."
+ },
+ {
+  "measure": "lin_lo525_nh",
+  "min": 0.0,
+  "severity": "error",
+  "msg": "(C) at the +5% resistance corner with the nominal parasitic the window starts at 17.689 nH and an 18.5 nH build clears it by +0.811 nH - two-sided, but this is the tightest R x L combination at the nominal parasitic."
+ },
+ {
+  "measure": "rl_b185",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "(C) crit. 2 across the residual band at nominal R and parasitic: L = 18.5 nH -> 55.462 dB."
+ },
+ {
+  "measure": "rl_b195",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "(C) crit. 2 across the residual band at nominal R and parasitic: L = 19.5 nH -> 54.550 dB."
+ },
+ {
+  "measure": "rl_b233",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "(C) crit. 2 across the residual band at nominal R and parasitic: L = 23.3 nH -> 51.464 dB."
+ },
+ {
+  "measure": "rl_dl0",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "(D) L = 1 pH, i.e. NO residual at all, trimmer at its stop: 32.00 dB. Spec is met with the residual completely absent - the 5.4 pF port alone never breaks 26 dB."
+ },
+ {
+  "measure": "rl_dl30",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "(D) L = 30 nH at R = 50, best clamped setting: 47.088 dB."
+ },
+ {
+  "measure": "rl_dl60",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "(D) L = 60 nH at R = 50, best clamped setting: 35.162 dB."
+ },
+ {
+  "measure": "rl_dl90",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "(D) L = 90 nH at R = 50, best clamped setting: 28.305 dB."
+ },
+ {
+  "measure": "rl_dl96",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "(D) L = 96.661 nH at R = 50, best clamped setting: 27.116 dB."
+ },
+ {
+  "measure": "rl_dl100",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "(D) L = 100 nH at R = 50, best clamped setting: 26.520 dB."
+ },
+ {
+  "measure": "rl_dl102",
+  "min": 26.0,
+  "severity": "warning",
+  "msg": "(D) L = 102 nH at R = 50, best clamped setting: 26.147 dB. Tight bracket - warning severity by design."
+ },
+ {
+  "measure": "rl_dl103",
+  "max": 26.0,
+  "severity": "warning",
+  "msg": "(D) L = 103 nH: 25.959 dB - below spec. With rl_dl102 this brackets the README NUMBER: at R = 50 with the delivered 1-30 pF trimmer and the 5.4 pF port, RL >= 26 dB holds out to L = 102-103 nH (closed-form crossing 102.78 nH, X = 16.15 ohm)."
+ },
+ {
+  "measure": "rl_dl110",
+  "max": 26.0,
+  "severity": "error",
+  "msg": "(D) L = 110 nH: 24.64 dB. Past spec authority, and no trimmer setting recovers it."
+ },
+ {
+  "measure": "rl_dh70",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "(D) the same authority question at R = 52.5, where the resistance transformation bites long before the trimmer runs out of range: L = 70 nH gives 26.78 dB."
+ },
+ {
+  "measure": "rl_dh76",
+  "min": 25.9,
+  "max": 26.1,
+  "severity": "warning",
+  "msg": "(D) L = 76.859 nH at R = 52.5: 26.000 dB. The +5% corner's spec authority ends at 76.86 nH - a quarter of the nominal-resistance figure - and it is set by Reff = R + X^2/R, not by the trimmer. reff_limit.cir derives the same 76.86 nH from closed form with an IDEAL unlimited tuner and gets the same answer, which is the proof that the part is not the limit there. UNCHANGED by the re-route, as it must be."
+ },
+ {
+  "measure": "rl_dh80",
+  "max": 26.0,
+  "severity": "error",
+  "msg": "(D) L = 80 nH at R = 52.5: 25.65 dB - fails, and no setting of C1 recovers it. The board's 23.3 nH worst residual uses 30% of that authority."
+ },
+ {
+  "measure": "d_reroute",
+  "min": 0.4,
+  "max": 0.56,
+  "severity": "error",
+  "msg": "(E) WAS THE RE-ROUTE WORTH IT, like for like: at the binding R = 52.5 corner with each board at its own CENTRAL estimate, 31.190 dB (7.21 nH, 4.7 pF, C1 hard against its 1 pF stop) -> 31.671 dB (19.5 nH, 5.4 pF, C1 at a real null) = +0.481 dB. The re-route bought margin AND the two-sided null; it did not trade one for the other."
+ },
+ {
+  "measure": "d_reroute_wc",
+  "min": 0.95,
+  "max": 1.18,
+  "severity": "error",
+  "msg": "(E) the same question WORST-BUILD to WORST-BUILD, which is the number that belongs in the README: the old board's worst credible build (R 52.5 / 7.21 nH / 6.0 pF, C1 bottomed) read 30.375 dB; the new board's worst of 48 (R 52.5 / 23.3 nH, C1 at a true null) reads 31.433 dB = +1.059 dB. Note the two deltas differ (0.48 vs 1.06) because the worst corner MOVED: it used to be set by the pessimistic parasitic and is now set by the top of the residual band. Quoting either one as 'the' improvement without saying which comparison it is would be misleading."
+ },
+ {
+  "measure": "rl_owc",
+  "min": 30.3,
+  "max": 30.45,
+  "severity": "error",
+  "msg": "(E) the old board's worst credible build, kept live: 30.375 dB. Reproduces the retired bench's rl_r525_p60_fc."
+ },
+ {
+  "measure": "rl_nwc",
+  "min": 31.36,
+  "max": 31.51,
+  "severity": "error",
+  "msg": "(E) the new board's worst of 48: 31.433 dB. Cross-checks s11_band.cir rl_r525_p47_l233_fc to 4 decimals."
+ },
+ {
+  "measure": "rl_old",
+  "min": 31.1,
+  "max": 31.28,
+  "severity": "error",
+  "msg": "(E) the BEFORE instance, kept in the bench so the comparison cannot drift: 31.190 dB. This reproduces the retired bench's rl_r525_p47_fc to 4 decimals."
+ },
+ {
+  "measure": "ct_old_pf",
+  "min": 0.999,
+  "max": 1.001,
+  "severity": "error",
+  "msg": "(E) and the BEFORE trimmer setting, computed and clamped by the same ctset(): exactly 1.000 pF, i.e. bottomed out. This is the defect the re-route removed, kept live as a reference."
+ },
+ {
+  "measure": "ct_new_pf",
+  "min": 1.05,
+  "severity": "error",
+  "msg": "(E) the AFTER setting at the same corner: 1.6508 pF, off the stop."
+ },
+ {
+  "measure": "d_more30",
+  "min": -1.0,
+  "max": 0.0,
+  "severity": "error",
+  "msg": "(E) THE FREE LUNCH IS OVER, and this is the bound that says so. Before the re-route, adding inductance IMPROVED the binding corner (+0.72 dB for the first 7 nH) because the fixed port capacitance was over-correcting a 7.21 nH residual. From 19.5 nH the null is interior, so further inductance only buys Reff: going on to 30 nH costs -0.737 dB. Asserted as a MAX of 0 - a positive reading means the board has fallen back below its null window and the re-route has been undone."
+ },
+ {
+  "measure": "d_more40",
+  "min": -2.5,
+  "max": 0.0,
+  "severity": "error",
+  "msg": "(E) and 40 nH costs -1.636 dB. The board is now on the correct side of the optimum: 19.5 nH is 3.46 nH past the window's low edge and every further nH is spent, not earned."
+ },
+ {
+  "measure": "rl_f30",
+  "min": 26.0,
+  "severity": "error",
+  "msg": "(E) crit. 2 still holds at 30 nH / R = 52.5: 30.93 dB - the residual would have to more than triple before the re-route became a spec problem."
+ }
 ]
