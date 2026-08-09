@@ -2656,3 +2656,21 @@ variants within a family) must be confirmed against the datasheet ordering table
 datasheet-extractor at P3, never accepted from search results alone. Note the same trap already bit
 the house buck reference from the other direction (topologies/buck.md s4: do NOT copy the ADJUSTABLE
 variant's divider onto a genuinely FIXED part) - the failure is symmetric, the fix is the same.
+
+## 2026-08-08 [parts][parts_search] A bare category word ("polymer") returns zero rows - pair it with a value
+buck-5v3a P1 powerpath scout, live JLCPCB queries. `parts_search.py --query "polymer"` returns an
+empty set; `"100uF polymer"` returns the expected rows. Same family as the documented `10K`-token
+quirk: the upstream search wants a value token to anchor on and treats a lone category word as an
+unmatched keyword rather than a filter. Scouts that conclude "no polymer caps in stock" off a bare
+category query are wrong. Always query category+value, and treat a zero-row result on a common part
+class as a query defect until a second phrasing confirms it.
+
+## 2026-08-08 [research][tools] WebFetch fails on vendor PDFs ("corrupted binary") where the Read tool renders them fine
+Same scout, pulling WJ500V-5.08-2P and CENKER inductor drawings. WebFetch reports the PDF as corrupted
+binary; Read on the same URL-downloaded file renders the pages as images and the mechanical drawing is
+legible. This matters because the parametric fields that scouts rely on are sometimes WRONG in a
+direction that hides a violation: LCSC listed the screw terminal's IEC current rating (24 A) in the
+current field, not the conservative UL rating (10 A) that the requirement floor is actually written
+against, and only the vendor drawing carried the 14.1 mm body height that nearly breaks a 15 mm
+height cap. Rule: when a parametric value is load-bearing for a REQUIREMENT (current rating, body
+height, Isat, DCR), pull the vendor drawing with Read - do not trust the catalog field alone.
