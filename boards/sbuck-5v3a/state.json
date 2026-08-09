@@ -3,7 +3,7 @@
  "board": "sbuck-5v3a",
  "workspace": "boards/sbuck-5v3a",
  "created": "2026-08-08T22:12:30",
- "updated": "2026-08-09T00:37:38",
+ "updated": "2026-08-09T01:21:29",
  "phase": "P3",
  "gates": {},
  "human": {
@@ -195,6 +195,30 @@
    "why": "The pulled aluminium-can symbol has generic pin names 1/2 with no polarity semantics, while the footprint carries an explicit +/- pair with pin1=+",
    "phase": "P3",
    "ts": "2026-08-09T00:37:38"
+  },
+  {
+   "what": "NO series gate resistor on Q1 - my spawn instruction was wrong, the schematic agent correctly followed the architecture",
+   "why": "blocks.md B1 and sheets.md s5.4 both explicitly forbid a gate RC, and the P1 architect already proved a gate RC cannot limit inrush here (the body diode is forward in the normal direction); R1=100k is the gate path and D2 clamps Vgs",
+   "phase": "P4",
+   "ts": "2026-08-09T01:21:28"
+  },
+  {
+   "what": "C3 refitted as the Eq.19 COMP HF pole (COMP->GND) at 10pF, NOT the Eq.20 feedforward across R6; sheets.md s3 to be amended",
+   "why": "Measured both: as feedforward it pushes |T| at fsw/2 to -8..-2 dB and breaks the vendor's own <-10 dB gain-margin target; as the Eq.19 pole it costs 8 deg of PM (we hold 65-72 deg) and buys -16 dB",
+   "phase": "P4",
+   "ts": "2026-08-09T01:21:29"
+  },
+  {
+   "what": "Feedback divider 115k/22.1k -> 105k/20.0k",
+   "why": "105k/20.0k hits the required 5.2500 ratio exactly (Vout 5.0000 V) and moves the worst-case low corner from 4.9034 V to 4.9401 V - 3.4 mV of margin becomes 40 mV, at no cost",
+   "phase": "P4",
+   "ts": "2026-08-09T01:21:29"
+  },
+  {
+   "what": "P9 BOM/CPL must filter DNP by the Variant field manually - no script in the skill reads any DNP mark",
+   "why": "J1, J2, R9, C16 are marked Variant=DNP (the only marking a generator can reach, ksa hard-codes (dnp no)); left unfiltered, P9 would ship four parts as populated including both hand-solder screw terminals",
+   "phase": "P4",
+   "ts": "2026-08-09T01:21:29"
   }
  ],
  "edits": [],
@@ -520,6 +544,26 @@
    "ts": "2026-08-09T00:37:38",
    "event": "decision",
    "what": "P4 must take C4 polarity from the footprint silk +/- mark, not the symbol"
+  },
+  {
+   "ts": "2026-08-09T01:21:28",
+   "event": "decision",
+   "what": "NO series gate resistor on Q1 - my spawn instruction was wrong, the schematic agent correctly followed the architecture"
+  },
+  {
+   "ts": "2026-08-09T01:21:29",
+   "event": "decision",
+   "what": "C3 refitted as the Eq.19 COMP HF pole (COMP->GND) at 10pF, NOT the Eq.20 feedforward across R6; sheets.md s3 to be amended"
+  },
+  {
+   "ts": "2026-08-09T01:21:29",
+   "event": "decision",
+   "what": "Feedback divider 115k/22.1k -> 105k/20.0k"
+  },
+  {
+   "ts": "2026-08-09T01:21:29",
+   "event": "decision",
+   "what": "P9 BOM/CPL must filter DNP by the Variant field manually - no script in the skill reads any DNP mark"
   }
  ]
 }

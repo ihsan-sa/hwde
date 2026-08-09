@@ -1,0 +1,74 @@
+{
+ "script": "netlist_audit",
+ "status": "pass",
+ "board": "sbuck-5v3a.net",
+ "counts": {
+  "total": 0,
+  "by_severity": {},
+  "by_source": {}
+ },
+ "violations": [],
+ "mode": "audit",
+ "nets": 15,
+ "components": 44,
+ "unconnected_pins": 0,
+ "constraint_nets_checked": 6,
+ "constraint_refs_checked": 37,
+ "pins_expected": 86,
+ "pins_connected": 86,
+ "decoupling_associations": 5,
+ "power": [
+  {
+   "net": "/VIN_RAW",
+   "nodes": 2,
+   "power_in": 0,
+   "power_out": 0,
+   "passive_fed_via": [
+    "F1"
+   ]
+  },
+  {
+   "net": "/VIN",
+   "nodes": 5,
+   "power_in": 0,
+   "power_out": 0,
+   "passive_fed_via": [
+    "F1"
+   ]
+  },
+  {
+   "net": "+VIN",
+   "nodes": 13,
+   "power_in": 1,
+   "power_out": 0
+  },
+  {
+   "net": "/SW",
+   "nodes": 5,
+   "power_in": 0,
+   "power_out": 1,
+   "passive_fed_via": [
+    "C1",
+    "L1",
+    "R9"
+   ]
+  },
+  {
+   "net": "+5V",
+   "nodes": 11,
+   "power_in": 0,
+   "power_out": 0,
+   "passive_fed_via": [
+    "L1",
+    "R6",
+    "R8"
+   ]
+  },
+  {
+   "net": "GND",
+   "nodes": 26,
+   "power_in": 2,
+   "power_out": 0
+  }
+ ]
+}

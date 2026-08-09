@@ -297,37 +297,37 @@
   {
    "ref_prefix_hint": "R",
    "block": "converter",
-   "mpn": "0603WAF1402T5E",
-   "lcsc": "C22803",
-   "value": "14k 1% (Rcomp, vendor starting point)",
+   "mpn": "0603WAF7502T5E",
+   "lcsc": "C23242",
+   "value": "75k 1% (Rcomp, P4-derived)",
    "qty_per_board": 1,
    "package": "0603",
-   "basic": false,
-   "stock": 44842,
-   "price": 0.0059,
+   "basic": true,
+   "stock": 981709,
+   "price": 0.006,
    "price_breaks": [
-    {"qty": 1, "price": 0.0059},
-    {"qty": 1000, "price": 0.0053},
-    {"qty": 5000, "price": 0.005},
-    {"qty": 10000, "price": 0.0048},
-    {"qty": 50000, "price": 0.0046},
-    {"qty": 50200, "price": 0.0046}
+    {"qty": 1, "price": 0.006},
+    {"qty": 1000, "price": 0.0052},
+    {"qty": 5000, "price": 0.0048},
+    {"qty": 10000, "price": 0.0046},
+    {"qty": 50000, "price": 0.0043},
+    {"qty": 50200, "price": 0.0043}
    ],
-   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2206010130_UNI-ROYAL-Uniroyal-Elec-0603WAF1402T5E_C22803.pdf",
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2206010100_UNI-ROYAL-Uniroyal-Elec-0603WAF7502T5E_C23242.pdf",
    "brand": "UNI-ROYAL(Uniroyal Elec)",
    "attributes": [
-    {"name": "Resistance", "value": "14kOhm"},
+    {"name": "Resistance", "value": "75kOhm"},
     {"name": "Tolerance", "value": "+/-1%"}
    ],
    "alternates": [],
-   "role": "R5, Rcomp. sheets.md flags this as the vendor's Table-1 starting value (2x22uF) that P4 MUST RE-DERIVE against the real 5x22uF Cout bank (decisions.md D6) - sourced here as the placeholder/starting value only. 14k is not a Basic-tier 0603 value at JLC (only common E24 decades are Basic); Extended is unavoidable regardless of which final value P4 lands on, so this tier choice is not itself at risk from the re-derivation. If P4's re-derived value differs, re-run parts_search on the new value before the librarian pull - same package/tier, low-risk swap."
+   "role": "R5, Rcomp - P4 UPDATE: superseded the old 14k vendor-Table-1 placeholder (C22803, retired) with P4's re-derived value against the real 5x22uF Cout bank (decisions.md D6). 75k is a standard E24 value and Basic tier at JLC - a cleaner sourcing outcome than the placeholder it replaces, and deep stock (981709)."
   },
   {
    "ref_prefix_hint": "C",
    "block": "converter",
    "mpn": "CL10B332KB8NNNC",
    "lcsc": "C1613",
-   "value": "3.3nF/50V X7R (Ccomp, vendor starting point)",
+   "value": "3.3nF/50V X7R (Ccomp, P4-confirmed final)",
    "qty_per_board": 1,
    "package": "0603",
    "basic": true,
@@ -349,31 +349,37 @@
     {"name": "Temperature Coefficient", "value": "X7R"}
    ],
    "alternates": [],
-   "role": "C2, Ccomp. Same 'P4 re-derives' caveat as R5 above - vendor Table-1 starting value, paired 1:1 with R5. X7R clears the board's all-MLCC-X7R rule. Basic tier, cheap swap if P4's re-derived value differs."
+   "role": "C2, Ccomp. P4 UPDATE: P4's re-derivation against the real 5x22uF Cout bank kept this value unchanged (only Rcomp/R5 moved, 14k->75k, and C3's role changed) - retained as the final Ccomp, not a placeholder anymore. X7R clears the board's all-MLCC-X7R rule. Basic tier."
   },
   {
    "ref_prefix_hint": "C",
    "block": "converter",
-   "mpn": "CL10C470JB8NNNC",
-   "lcsc": "C1671",
-   "value": "47pF/50V C0G",
+   "mpn": "CC0603JRNPO9BN100",
+   "lcsc": "C106245",
+   "value": "10pF/50V C0G/NP0 (COMP HF pole, P4-derived)",
    "qty_per_board": 1,
    "package": "0603",
-   "basic": true,
-   "stock": 1302347,
-   "price": 0.0113,
+   "basic": false,
+   "stock": 3332940,
+   "price": 0.0077,
    "price_breaks": [
-    {"qty": 1, "price": 0.0113}
+    {"qty": 1, "price": 0.0077},
+    {"qty": 1000, "price": 0.007},
+    {"qty": 4000, "price": 0.0066},
+    {"qty": 8000, "price": 0.0064},
+    {"qty": 48000, "price": 0.0063},
+    {"qty": 48200, "price": 0.0063}
    ],
-   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Samsung-Electro-Mechanics-CL10C470JB8NNNC_C1671.pdf",
-   "brand": "Samsung Electro-Mechanics",
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_YAGEO-CC0603JRNPO9BN100_C106245.pdf",
+   "brand": "YAGEO",
    "attributes": [
-    {"name": "Capacitance", "value": "47pF"},
-    {"name": "Voltage Rating", "value": "50V"},
-    {"name": "Temperature Coefficient", "value": "C0G"}
+    {"name": "Capacitance", "value": "10pF"},
+    {"name": "Voltage Rating", "value": "50V (clears the >=25V P4 spec with 2x margin)"},
+    {"name": "Temperature Coefficient", "value": "NP0 (=C0G)"},
+    {"name": "Tolerance", "value": "+/-5%"}
    ],
    "alternates": [],
-   "role": "C3, optional feedforward across R6 (FB top). C0G per sheets.md spec (not X7R) - matches the AP64350 datasheet's own 'C4 (Optional)' position in Fig.1. Basic tier."
+   "role": "C3, P4 UPDATE: role changed from the old 47pF Eq.20 optional feedforward (C1671, retired - that part's role no longer exists in the re-derived network) to the Eq.19 COMP HF-pole cap at 10pF. C0G/NP0 is correct and required here (not X7R): this is a compensation pole, and X7R's voltage/temperature coefficient would move it - the board-wide X7R rule is scoped to bulk/bypass MLCCs only, sheets.md already calls C3 out as C0G. 50V rating clears the >=25V floor with 2x margin. Extended tier (no Basic 10pF C0G 0603 found at LCSC), but stock is 3.3M - a non-issue."
   },
   {
    "ref_prefix_hint": "R",
@@ -519,59 +525,64 @@
   {
    "ref_prefix_hint": "R",
    "block": "output",
-   "mpn": "ARG03BTC1153",
-   "lcsc": "C1509621",
-   "value": "115k 0.1%",
+   "mpn": "ERA3AEB1053V",
+   "lcsc": "C491109",
+   "value": "105k 0.1%",
    "qty_per_board": 1,
    "package": "0603",
    "basic": false,
-   "stock": 28790,
-   "price": 0.0251,
+   "stock": 8250,
+   "price": 0.0844,
    "price_breaks": [
-    {"qty": 1, "price": 0.0251}
+    {"qty": 1, "price": 0.0844},
+    {"qty": 50, "price": 0.0684},
+    {"qty": 150, "price": 0.0603},
+    {"qty": 500, "price": 0.0544},
+    {"qty": 2500, "price": 0.0495},
+    {"qty": 5000, "price": 0.0471}
    ],
-   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2111241930_Viking-Tech-AR03BTCX1402A_C2924128.pdf",
-   "brand": "Viking Tech",
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2004071109_PANASONIC-ERA3AEB1053V_C491109.pdf",
+   "brand": "PANASONIC",
    "attributes": [
-    {"name": "Resistance", "value": "115kOhm"},
+    {"name": "Resistance", "value": "105kOhm"},
     {"name": "Tolerance", "value": "+/-0.1%"},
     {"name": "Temperature Coefficient", "value": "+/-25ppm/C"}
    ],
    "alternates": [
-    {"mpn": "RT0603BRE07115KL", "lcsc": "C861635", "note": "YAGEO, same 115k/0.1%, stock 7926"}
+    {"mpn": "TNPW0603105KBEEA", "lcsc": "C2088899", "note": "Vishay Intertech, same 105k/0.1%, stock 4988"}
    ],
-   "role": "R6, FB top. SOURCING SUBSTITUTION FROM ARCHITECTURE, FLAGGED: sheets.md/blocks.md name '~116k' (e.g. 116k/22.1k, ratio 6.249) but 116k is NOT a standard E96 value and has ZERO stock in any 0603 SMD tolerance at LCSC live (only obsolete/zero-stock THT precision parts exist under that code). Substituted 115k, the nearest E96 0.1% value with real 0603 SMD stock (28790 pcs). This is independently corroborated, not just a stock-driven guess: the AP64350 datasheet's own Typical Application Circuit (Fig.1, VOUT=5V row) specifies R1=115k / R2=22.1k for exactly this output voltage - i.e. the IC vendor's own reference design uses 115k, not 116k. RE-CHECKED SIM-1 (decisions.md): with R6=115k/R7=22.1k, Vout across Vref 792-808mV and +/-0.1% resistor tolerance ranges 4.905V-5.021V - PASSES the 4.90-5.10V window but with only ~5mV of margin at the LOW corner (vs a wider margin using the vendor's own 116k figure, which nets ~4.999V nominal). A 118k substitute was checked and REJECTED: it fails the HIGH corner at 5.130V, over the 5.10V ceiling. P4/schematic phase should re-run SIM-1 with this exact substituted value before committing - the low-corner margin is thin enough to be worth a second look, not because 115k is wrong, but because the margin is real and small."
+   "role": "R6, FB top. P4 UPDATE, RETIRES the P3-substituted 115k line (C1509621): P4's re-derivation pairs R6=105k with R7=20.0k for a ratio of EXACTLY 5.2500 (Vout = 0.8V*6.25 = 5.0000V nominal, dead on setpoint) - the ratio 115k/22.1k could only approximate at 4.9629V because neither leg was a clean E96 value at the target ratio. Both real E96 0.1% SMD parts, both re-verified live. RE-CHECKED SIM-1 with the actual sourced parts (ERA3AEB1053V + RT0603BRD0720KL, both +/-0.1%): worst-case low corner (Vref 792mV, resistor tolerance stacked against) computes to ~4.94V, roughly 40mV of margin over the 4.90V floor - a 12x improvement over the 115k/22.1k pair's ~5mV margin, matching the coordinator's figure. This closes the R6/R7 sourcing question; no further substitution needed."
   },
   {
    "ref_prefix_hint": "R",
    "block": "output",
-   "mpn": "RT0603BRD0722K1L",
-   "lcsc": "C723484",
-   "value": "22.1k 0.1%",
+   "mpn": "RT0603BRD0720KL",
+   "lcsc": "C723637",
+   "value": "20.0k 0.1%",
    "qty_per_board": 1,
    "package": "0603",
    "basic": false,
-   "stock": 7751,
-   "price": 0.06,
+   "stock": 252481,
+   "price": 0.0515,
    "price_breaks": [
-    {"qty": 1, "price": 0.06},
-    {"qty": 100, "price": 0.0508},
-    {"qty": 300, "price": 0.0461},
-    {"qty": 1000, "price": 0.0426},
-    {"qty": 5000, "price": 0.0398},
-    {"qty": 10000, "price": 0.0384}
+    {"qty": 1, "price": 0.0515},
+    {"qty": 100, "price": 0.0434},
+    {"qty": 300, "price": 0.0392},
+    {"qty": 1000, "price": 0.0356},
+    {"qty": 5000, "price": 0.0335},
+    {"qty": 10000, "price": 0.0327}
    ],
-   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2008201236_YAGEO-RT0603BRD0722K1L_C723484.pdf",
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2008171335_YAGEO-RT0603BRD0720KL_C723637.pdf",
    "brand": "YAGEO",
    "attributes": [
-    {"name": "Resistance", "value": "22.1kOhm"},
+    {"name": "Resistance", "value": "20.0kOhm"},
     {"name": "Tolerance", "value": "+/-0.1%"},
     {"name": "Temperature Coefficient", "value": "+/-25ppm/C"}
    ],
    "alternates": [
-    {"mpn": "FRC0603F2212TS", "lcsc": "C2960862", "note": "FOJAN, 22.1k/1% only (NOT 0.1% - do not substitute, HARD RULE 3 requires 0.1% on both FB resistors). Listed only to document that a 1% part is NOT an acceptable stand-in, not as a usable alternate."}
+    {"mpn": "ERA3AEB203V", "lcsc": "C190611", "note": "Panasonic, same 20.0k/0.1%, stock 47625"}
    ],
-   "role": "R7, FB bottom. Exact value from sheets.md, real stock as a genuine 0.1% part - no substitution needed here (unlike R6 above)."
+   "role": "R7, FB bottom. P4 UPDATE, RETIRES the P3-substituted 22.1k line (C723484): pairs with R6=105k above for the exact 6.25 ratio. Deepest-stock 0.1% pick of the whole search (252481) - the best-conditioned resistor line on the board."
   },
   {
    "ref_prefix_hint": "D",

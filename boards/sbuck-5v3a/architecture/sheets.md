@@ -89,7 +89,7 @@ These are the CANONICAL names. `constraints.json` matches them literally.
 | **R4** | 200k 1% 0603 | RT -> 500 kHz (`RT[kOhm] = 100000/fsw[kHz]`) |
 | **R5** | Rcomp, 0603 | vendor start 14k. **P4 RE-DERIVES against 5x22 uF** |
 | **C2** | Ccomp, 0603 | vendor start 3.3 nF. **P4 re-derives** |
-| **C3** | 47 pF C0G 0603 | optional feedforward across R6 |
+| **C3** | 10 pF C0G 0603 | **AMENDED at P4.** Eq.19 COMP HF pole, COMP to GND - NOT the Eq.20 feedforward across R6. Measured both: as a feedforward it pushes \|T\| at fsw/2 to -8..-2 dB and breaks the vendor's own <-10 dB gain-margin target; as the Eq.19 pole it costs 8 deg of phase margin (the loop holds 65-72 deg) and buys -16 dB. No net or placement-group impact |
 | **R2** | **105k 1% 0603** | +VIN -> EN. UVLO top |
 | **R3** | **24.0k 1% 0603** | EN -> GND. UVLO bottom. Target VON 6.2 V / VOFF 5.3 V |
 
