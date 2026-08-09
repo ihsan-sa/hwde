@@ -1,0 +1,188 @@
+* rf-de-20m SIM-1 classe_zvs_nominal - does the drain reach zero before turn-on?
+*
+* SOURCE NETLIST : boards/rf-de-20m/kicad/rf-de-20m.net (P8 as-built populate)
+* RENAME MAP     : +40V->VBUS  /SW->SW  /tank/TANK_A->TA  /tank/TANK_B->TB
+*                  /tank/RFOUT->RFOUT  /stage/GATE_Q1->GQ1  /stage/GATE_Q2->GQ2
+*                  /stage/L201_MID->LMID  GND->0
+*                  (sim_run.py --fragment emitted P40V/N_SW/N_TANK_TANK_A/...;
+*                   shortened here one-to-one, no net merged or split)
+* INTENT         : the single question this board lives or dies on - is the
+*                  drain at ~0 V when the channel starts to conduct? Class E has
+*                  no other failure mode that matters.
+* BUS            : 30 V, the owner's bench point (2026-08-08 reprioritisation:
+*                  25-30 V into a 100-150 W load, fans; ZVS and loops only).
+*
+* ---------------------------------------------------------------- MODEL POLICY
+* NO VENDORED VENDOR MODELS. Every device card is agent-authored from
+* parts/C2836675.json (EPC2019 datasheet rev (c)2021) and parts/parts.json.
+*
+* EPC2019 Coss(v) - the model this bench turns on.
+*   Form  Coss(v) = CJ0 / (1 + v/VJ)^MM      (junction/power law, VJ pinned 1 V)
+*   Fitted to the ONLY two output-capacitance facts the datasheet publishes:
+*       Coss(100 V) = 110 pF typ   -> CJ0/(101)^MM = 110p
+*       Qoss(100 V) = 18 nC  typ   -> integral 0..100 V of Coss dv = 18n
+*   Solved at VJ = 1 V:  CJ0 = 789 pF, MM = 0.427  (Coss(0 V) = 789 pF).
+*   MAX corner (Coss 150 pF, Qoss 23 nC) refits to CJ0 = 870p, MM = 0.381.
+*   Machine-checked in coss_charge.cir: integral 0..142.5 V = 22.33 nC ->
+*   Coss(tr) 156.7 pF/FET vs decisions.md D0's independently extrapolated
+*   158 pF (-0.8 %); the same model returns Qoss/V at 100 V = 180 pF, which is
+*   exactly the figure D0 calls ERROR 1. It reproduces both datasheet anchors
+*   AND the amendment's own correction, from two numbers and one exponent.
+*   WHAT IT DOES NOT CAPTURE, stated plainly: Coss HYSTERESIS (the dispersive
+*   loss D1 budgets 4.83 W for) cannot exist in a single-valued C(v) - this
+*   model is lossless in Coss by construction, so nothing here may be read as a
+*   loss or efficiency result. Also absent: gate-charge nonlinearity, dynamic
+*   Rds(on), self-heating, package/die thermal coupling.
+*
+* EPC2019 channel: voltage-controlled switch, RON 65 mohm/FET = 36 mohm typ at
+*   25 C x the 1.8x hot factor behind decisions.md D1's 65/90 mohm figures; two
+*   in parallel -> 32.5 mohm. Conduction onset VT-VH = 1.5 V, between the
+*   datasheet VGSth min 0.8 and typ 1.4 V. GaN has no body diode but conducts
+*   3rd-quadrant at VSD 1.8 V typ (IS 0.5 A, VGS 0) - a generic D fitted to that
+*   one point. Qrr = 0 per datasheet, so no recovery charge is modelled.
+*
+* ------------------------------------------------------- AS-BUILT NETWORK ONLY
+* Values are the P8 populate in kicad/gen/{stage,tank}.py, NOT the architecture
+* target, plus the P7-measured pour parasitics (reports/route-notes.md s7).
+*
+* **UPDATED 2026-08-08 FOR P8 FIX a3.** The first run of this bench found the
+* board missed ZVS as built (Vds 15.60 V at turn-on, 53.4 W) and cshunt_sweep
+* .cir identified the populate that fixes it. THAT POPULATE IS NOW WHAT THE
+* GENERATORS BUILD, so "as built" below is C_s 419 pF and a 27 pF C_shunt bank.
+* The retired 504 pF / 83 pF pair is kept as a gated NEGATIVE CONTROL in
+* cshunt_sweep.cir and tank_match.cir - it must still fail, or this deck has
+* stopped being able to see the failure it was written to find.
+*   C_shunt = 2 x Coss(v) + C204 27p + /SW pour 27.4p (C203/205/206 all DNP)
+*   C_s     = C301..C307 7 x 56p + C320 27p = 419 pF            (C321 27p DNP)
+*   C_m     = C310..C317 8 x 56p + C319 27p = 475 pF + RFOUT pour 46.1 pF
+*             (C318 depopulated at P8 review E2; C322/C323 27p DNP)
+*   L_s     = 164 nH spiral - 1.1 nH SPIRAL-5 mutual, R 53.1 mohm at 120 C
+*   L_m     = 110 nH spiral - 1.1 nH mutual,          R 42.6 mohm at 120 C
+*   L_bridge= 30 nH, the TANK_A->TANK_B run between the spirals. Zone B carries
+*             NO In1/In2/B.Cu pour (decisions.md D4), so this copper has no
+*             return image and its partial self-inductance is free-space-like:
+*             (mu0.l/2pi)(ln(2l/w)+0.5) ~ 23 nH for 40 mm of 8 mm strip. Given
+*             as 25-35 nH; swept in tank_match.cir and cshunt_sweep.cir.
+*   Choke   = L201+L202 2 x 470 nH = 940 nH, 2 x 4.1 mohm (parts.json C7442783)
+*
+* ---------------------------------------------------- KNOWN-ANSWER CALIBRATION
+* Before any as-built conclusion was drawn, this identical deck was run with the
+* pours/bridge removed, the tank at its design values and a LINEAR 403 pF shunt
+* (Sokal's Q_L = 5 point, decisions.md D11). It returned P_out 112.3 W against
+* the closed-form 0.51663.Vdd^2/R = 112.6 W (+0.3 %), I_dc 3.79 A vs 3.75 A,
+* Vds_pk 109.2 V vs 3.56.Vdd = 106.9 V, and Vds at turn-on 2.25 V, i.e. ZVS.
+* The deck reproduces the textbook design point; what it reports below for the
+* as-built board is therefore physics, not a modelling artefact.
+*
+.title rf-de-20m SIM-1 Class E ZVS, as-built (P8 fix a3), 30 V bench
+.options rshunt=1e9 reltol=1e-4 abstol=1e-12 vntol=1e-7 method=gear
+.param VBUS=30
+.param CJ0=789p VJ=1.0 MM=0.427 RONF=0.065
+* CEXT 27p = C204 alone (C203 went DNP at P8 fix a3); CS 419p = 7 x 56 + C320
+* 27p (C308/C309 went DNP). Retired values: CEXT 83p, CS 504p.
+.param CEXT=27p CPOUR_SW=27.4p CPROBE=0.1p
+.param CS=419p CM=475p CPOUR_RFOUT=46.1p CPOUR_TA=13.4p CPOUR_TB=0.8p
+.param LS=162.9n RLS=0.0531 LM=108.9n RLM=0.0426 LBR=30n
+.param LCHK=470n RCHK=0.0041
+.param PER=50n PWID=23n FSW=20e6
+.param TWOPI=6.283185307179586
+
+* ------------------------------------------------------------- EPC2019 subckt
+.subckt EPC2019 d g s params: cj0=789p vj=1.0 mm=0.427 ron=0.065
+Sch d s g s SWCH
+Coss d s c={cj0/pow(1+0.5*(v(d,s)+sqrt(v(d,s)*v(d,s)+0.01))/vj,mm)}
+Drev s d GANREV
+Cgs g s 199p
+Cgd g d 0.7p
+.model SWCH SW(vt=2.5 vh=1.0 ron={ron} roff=1e8)
+.model GANREV D(is=1e-12 n=2.6 rs=0.05 cjo=0)
+.ends
+
+* ----------------------------------------------------------------- bus + choke
+Vdd VBUS 0 DC {VBUS}
+Lch1 VBUS LMIDA {LCHK}
+Rch1 LMIDA LMID {RCHK}
+Lch2 LMID LMIDB {LCHK}
+Rch2 LMIDB SW {RCHK}
+
+* --------------------------------------------------------- switch + shunt bank
+Xq1 SW GQ1 0 EPC2019 cj0={CJ0} vj={VJ} mm={MM} ron={RONF}
+Xq2 SW GQ2 0 EPC2019 cj0={CJ0} vj={VJ} mm={MM} ron={RONF}
+Cshext SW 0 {CEXT+CPOUR_SW-CPROBE}
+* dVds/dt probe: i(Vprb) = CPROBE.dV(SW)/dt. 0.1 pF is 0.024 % of C_shunt and
+* it is SUBTRACTED from Cshext above, so the node capacitance is exact.
+Cprb SW NPRB {CPROBE}
+Vprb NPRB 0 DC 0
+
+* ----------------------------------------------------------------- gate command
+* Ideal 0/5 V, D = 50 %, tr = tf = 2 ns, through the real 4R7+0.4+0.75 = 5.85
+* ohm leg. The driver, the loop inductance and the two-FET split are SIM-3
+* (gate_symmetry.cir); here the command is ideal on purpose so a ZVS failure
+* cannot be confounded with a drive failure.
+Vg GDRV 0 PULSE(0 5 0 2n 2n {PWID} {PER})
+Rg1 GDRV GQ1 5.85
+Rg2 GDRV GQ2 5.85
+
+* --------------------------------------------------- series tank + match + load
+Ls1 SW NLS1 {LS}
+Rls NLS1 TA {RLS}
+Cta TA 0 {CPOUR_TA}
+Lbr TA NBR {LBR}
+Cs NBR TB {CS}
+Rcs TB TBX 0.0011
+Ctb TBX 0 {CPOUR_TB}
+Lm1 TBX NLM1 {LM}
+Rlm NLM1 RFOUT {RLM}
+Cm RFOUT 0 {CM+CPOUR_RFOUT}
+Rload RFOUT 0 50
+
+* ------------------------------- harmonic analysers (sine/cosine correlation) --
+* Amplitude of the n-th harmonic of the LOAD voltage over an exact 5-period
+* window: A_n = (2/Twin).sqrt(Is^2 + Ic^2). Twin = 250 ns = 5 x 50 ns, so every
+* harmonic integrates to a whole number of cycles and there is no leakage.
+Bh1s H1S 0 V={v(RFOUT)*sin(TWOPI*FSW*time)}
+Bh1c H1C 0 V={v(RFOUT)*cos(TWOPI*FSW*time)}
+Bh2s H2S 0 V={v(RFOUT)*sin(2*TWOPI*FSW*time)}
+Bh2c H2C 0 V={v(RFOUT)*cos(2*TWOPI*FSW*time)}
+Bh3s H3S 0 V={v(RFOUT)*sin(3*TWOPI*FSW*time)}
+Bh3c H3C 0 V={v(RFOUT)*cos(3*TWOPI*FSW*time)}
+
+* --------------------------------------------------------------------- analysis
+* 80 cycles to settle (tank tau ~ Q_L/(pi.f) = 80 ns, choke tau ~ L/(Vdd/Idc)
+* = 120 ns; both << 4 us). Data kept over the last 6 cycles only.
+.tran 0.02n 4u 3.70u 0.02n
+
+* ZVS. TURN-ON IS THE CONDUCTION ONSET, NOT THE COMMAND EDGE: the gate command
+* rises at t = 3950 ns and the channel starts conducting when Vgs reaches the
+* switch model's VT-VH = 1.5 V, ~1.6 ns later through the 5.85 ohm / 199 pF
+* gate leg. Sampling at the command edge would over-report Vds by ~1.6 ns of
+* drain fall (5-12 V here), so both are measured and the CONDUCTION one is what
+* the bound gates.
+.meas tran vds_at_turnon_v FIND v(SW) WHEN v(GQ1)=1.5 TD=3949n RISE=1
+.meas tran vds_at_gatecmd_v FIND v(SW) AT=3950n
+.meas tran iprb_at_turnon FIND i(Vprb) WHEN v(GQ1)=1.5 TD=3949n RISE=1
+.meas tran dvds_dt_at_turnon_v_per_ns param='iprb_at_turnon*1e-9/CPROBE'
+.meas tran vds_peak_v MAX v(SW) FROM=3900n TO=4000n
+.meas tran vds_min_v MIN v(SW) FROM=3900n TO=4000n
+
+* Delivered power, bus current, and the (Coss-lossless) efficiency ceiling
+.meas tran vload_rms RMS v(RFOUT) FROM=3750n TO=4000n
+.meas tran pout_w param='vload_rms*vload_rms/50'
+.meas tran idc_raw AVG i(Vdd) FROM=3750n TO=4000n
+.meas tran idc_a param='-idc_raw'
+.meas tran eff_ceiling_pct param='100*vload_rms*vload_rms/50/(-idc_raw*VBUS)'
+
+* Harmonics at the load, 5-period window
+.meas tran a1s INTEG v(H1S) FROM=3750n TO=4000n
+.meas tran a1c INTEG v(H1C) FROM=3750n TO=4000n
+.meas tran a2s INTEG v(H2S) FROM=3750n TO=4000n
+.meas tran a2c INTEG v(H2C) FROM=3750n TO=4000n
+.meas tran a3s INTEG v(H3S) FROM=3750n TO=4000n
+.meas tran a3c INTEG v(H3C) FROM=3750n TO=4000n
+.meas tran h1_amp_v param='2*sqrt(a1s*a1s+a1c*a1c)/250e-9'
+.meas tran h2_amp_v param='2*sqrt(a2s*a2s+a2c*a2c)/250e-9'
+.meas tran h3_amp_v param='2*sqrt(a3s*a3s+a3c*a3c)/250e-9'
+* 8.685889638 = 20/ln(10): ngspice's log() is ambiguous between bases, ln() is not
+.meas tran h2_dbc param='8.685889638*ln(h2_amp_v/h1_amp_v)'
+.meas tran h3_dbc param='8.685889638*ln(h3_amp_v/h1_amp_v)'
+.end

@@ -1170,3 +1170,225 @@ real thing instead - `net_copper(sig, layer).difference(net_copper(ref, ref_laye
 POUR, and the partial-inductance increment of the unimaged section
 (`mu0.h.l/w` with an image vs `(mu0.l/2pi)[ln(2l/(w+t)) + 0.5 + 0.2235(w+t)/l]` without). Here
 that was 0.031 nH vs 0.268 nH, i.e. **+0.24 nH on a 164 nH inductor - 0.15 %**.
+
+## 2026-08-08 [P8][check_creepage][review] `checked[].pairs[].min_gap_mm == null` is how you PROVE a board has no hidden creepage - and the gate JSON throws it away
+
+Auditing "are all 21 creepage errors really intra-die, or is a real board-copper violation hiding
+in the set?" looks like it needs a per-finding geometric investigation. It does not.
+`check_creepage` already computes, for **every (primary net, other net, layer) combination it
+sweeps**, the minimum gap among all items that came within `req_max` of each other, and reports
+it in `checked[].pairs[].min_gap_mm`. **`null` means nothing on that layer for that net pair is
+even within the largest applicable IPC-2221 requirement** - i.e. that pair is clean with margin,
+proven, no inspection needed.
+
+`gate.py` keeps only the `failing` list, so this evidence is **not** in `reports/gate-verify.json`.
+Re-run the check standalone with `--out` to get it:
+
+    .venv/Scripts/python .claude/skills/ai-ee/scripts/check_creepage.py \
+        --pcb <board> --constraints kicad/constraints.json --out creep.json
+
+On rf-de-20m that reduced a 21-finding audit to three non-null rows (`/SW` vs GATE_Q1 / GATE_Q2 /
+GND on F.Cu, all 0.350 mm) and proved every other pair - including `/tank/TANK_A` at 180 V and the
+203 V `/SW`-`TANK_A` `voltage_pairs` entry - clean across all four layers in one read.
+
+Two companion facts worth keeping:
+
+- The violation records carry `item` / `other_item` **with a `type` field** (`pad` / `track` /
+  `via` / `zone`). That is what settles "die geometry vs board copper": all 21 here were
+  pad-or-escape-track, **zero involved a zone fill**. Dump the types before believing a waiver
+  that says "this is the part, not the layout".
+- `_same_fp()` downgrades only **pad-to-pad within one footprint** to `warning`. A vendor land
+  pattern whose pads are 0.35 mm apart therefore emits 3 warnings *and* ~20 errors, because every
+  escape **track** leaving those pads is a board item by the check's reckoning. Do not read the
+  error count as "20 separate layout defects".
+- The pour is a separate question and DRC will not answer it either. Measure it directly:
+  `unary_union(zone fills of net A on L).distance(unary_union(every GND item on L))`. Here that
+  returned **0.8004 mm**, i.e. `aiee_hv_143v_SW` honoured to 0.4 um - which is the fact that
+  actually retires the "is HV pour too close to GND" worry.
+
+## 2026-08-08 [spice][ngspice][sim] Ten machine-verified traps from authoring the P8 Class E bench
+
+All reproduced on this host with the ngspice v46 that KiCad 10.0.3 bundles, driving
+`scripts/sim_run.py`. Every one of them cost a debug cycle.
+
+**`.measure` syntax, three hard limits.** (1) It does **not** accept the two-node form
+`v(a,b)`: `.meas tran vgs max v(gq1,s1)` prints `failed!` and the measure simply vanishes from the
+results. (2) It cannot read a **subcircuit-internal** source current: `.meas ... max i(Xm.Vsen1)`
+also fails. (3) `param=` expressions CAN reference earlier measure results and do support `abs()`,
+`sqrt()`, `pow()` and `ln()`. So the fix for (1) and (2) is the same - materialise the quantity as
+a behavioural node inside the subcircuit and measure that:
+
+    Bvgs1 vgs1 0 V={v(g1)-v(s1)}      -> .meas tran ... MAX v(Xm.vgs1)
+    Bid1  id1  0 V={i(Vsen1)}         -> .meas tran ... MAX v(Xm.id1)
+
+Both silently under-report if you skip them: `v(g1)` alone drops the whole common-source term,
+which is the entire point of a gate bench.
+
+**`vp()` returns RADIANS in `.meas ac`.** Verified against a known 4.13 + j4.760 network: `vm`
+6.30148, `vp` -2.28551 (= -130.9 deg). `vr()`/`vi()`/`vm()`/`vdb()` all work and are the safer
+route - extract R and X directly and never touch the phase.
+
+**A SPICE current source drives current OUT of its + node.** `Iac ZIN 0 AC 1` gives
+`v(ZIN) = -Z`. For impedance extraction write `Iac 0 ZIN AC 1`. The sign cancels in `X/R` so a
+wrong-signed deck can look right on the ratio and be wrong on everything else.
+
+**The behavioural capacitor `Cxxx a b c={expr}` works and conserves charge exactly.** Validated by
+ramping 0 -> 142.5 V and integrating: an EPC2019 Coss fit reproduced Qoss(100 V) to 0.03 % and its
+own analytic Coss(tr) to 0.02 %. ngspice implements it as an internal E-source (you will see
+`e.xq1.ecoss#branch` and `xq1.coss_int1` in the vector list). **But do not write `abs(v(d,s))`
+inside it** - the kink at v = 0 is unintegrable once the drain rings negative
+(`Timestep too small ... 2.5e-23: trouble with node e.xq2.ecoss#branch`). Use the smooth positive
+part instead, which costs nothing above ~0.2 V:
+
+    c={cj0/pow(1+0.5*(v(d,s)+sqrt(v(d,s)*v(d,s)+0.01))/vj,mm)}
+
+**Tight tolerances are a trap on a power deck.** `.options reltol=1e-4 abstol=1e-12 vntol=1e-7`
+runs `classe_zvs_nominal.cir` fine and kills `gate_symmetry.cir` inside the first picosecond. A
+1 pA `abstol` is meaningless against a 10 A power loop and it strands the gate-loop inductor nodes.
+Engine defaults + `rshunt=1e9` ran every bench here.
+
+**An ideal diode in series with an inductor has no state.** `.model D(... cjo=0)` plus a gate-loop
+inductor leaves that inductor's node with zero capacitance while the diode is off, and the solver
+cannot integrate it. Give the diode a real `cjo` (3 pF for a WCSP output ball is both physical and
+sufficient).
+
+**Lumping distributed copper invents GHz resonances.** A 0.157 nH common-source inductance against
+a lumped 789 pF Coss is a 14 GHz mode at Q ~ 220, and it eats the timestep. 50 mohm of ESR in
+series with the cap (0.25 % of its reactance at 20 MHz, and physically defensible) takes Q to ~9
+and the deck runs. Same for the shunt bank at 20 mohm.
+
+**`.step` is unusable through `sim_run.py`.** It runs, but `simlib.parse_measures` reads
+`name = value` lines off stdout and later sets overwrite earlier ones, so a stepped sweep silently
+reports only its LAST point. Sweep by instantiating N independent copies of the stage as a
+`.subckt` with parameters - six full Class E stages in one deck cost 14.5 s, well inside the 60 s
+per-bench gate timeout.
+
+**Subcircuit instances sharing a top-level source silently load it N times.** Three GSTAGE
+instances hung off one `Routh`/`Routl` pair moved off-state VGS from 0.21 V to 1.12 V - from 4x
+margin on `VGSth_min` to 0.7x, i.e. a fabricated "spurious turn-on" finding. Put the driver's
+output impedance INSIDE the subcircuit and share only the logic command.
+
+**Measurement windows have to clear the edge.** "Highest VGS during the off period" measured from
+0.4 ns after the falling edge reads the TAIL OF THE TURN-OFF EDGE, and it reads worse for the
+larger gate resistor purely because that discharges more slowly (0.79 V at 6R8 vs 0.21 V at 4R7).
+Moved to >= 13 ns after the edge - >= 8 gate-loop time constants - both read ~0.13 V. Always state
+the window in time constants, not nanoseconds.
+
+## 2026-08-08 [sim][classE][layout] A zone with no return plane is a 30 nH series element, and Class E notices
+
+`decisions.md` D4 correctly forbids In1/In2/B.Cu pour under the magnetics zone (a plane under a
+spiral is a shorted turn). The uncosted consequence: the `TANK_A -> C_s bank -> TANK_B` run in that
+zone has **no return image**, so its inductance is free-space partial self-inductance
+(`(mu0.l/2pi)(ln(2l/w)+0.5)` ~ 23 nH for 40 mm of 8 mm strip), not microstrip `mu0.h/w`
+(~0.1 nH/mm, which would be 4 nH). That is a **7x** modelling error on the same copper.
+
+At 20 MHz the 30 nH is j3.77 ohm = **0.91 R** dropped into a network whose entire design reactance
+is 1.283 R. Measured effect on the same deck, bridge in vs bridge out, everything else identical:
+X_net/R 1.16 -> **2.00**, ZVS residual at conduction onset 7.2 V -> **15.6 V**, and output power
+**121 W -> 53 W**. The board is DRC-clean, verify-clean and fab-ready with that in it.
+
+Two transferable rules:
+
+- **Any net that leaves a planed zone loses its microstrip inductance model at the zone boundary.**
+  Compute partial self-inductance for the un-imaged segment, and hand the number to P8 as a
+  parasitic the way pour capacitance already is (`route-notes.md` s7 does this for C, not for L).
+- **Extra series L is cancelled by LESS series C, not more.** The intuitive move (add trim
+  capacitors) makes it worse. Here the fix is depopulating two 56 pF sites from the C_s bank and
+  populating one 27 pF trim site: 504 -> 419 pF, X_net/R back to 1.285.
+
+## 2026-08-08 [sim][classE][gan] Nonlinear Coss makes ZVS bus-dependent, which breaks the "derate the bus for free" argument
+
+`decisions.md` D1 rests its thermal mitigation on *"ZVS in Class E is a property of the NETWORK,
+not of Vdd: the design equations are linear in Vdd."* True for a **linear** shunt capacitance.
+Not true when the shunt is mostly device Coss.
+
+The charge-equivalent `Coss(tr) = Qoss(V)/V` is an average over the swing, and Coss falls with
+voltage, so a **smaller swing has a LARGER charge-equivalent capacitance**: 156.7 pF/FET over
+0-142.5 V, ~175 pF over 0-107 V for the EPC2019. On this board >70 % of C_shunt is device Coss, so
+backing the bus DOWN increases the effective shunt and ZVS arrives LATE - the opposite direction
+from what the mitigation assumes.
+
+Measured on the recommended populate: Vds at turn-on **-1.18 V at 40 V, +1.41 V at 30 V, +3.12 V
+at 25 V** - 4.3 V of drift, all against the operator. P scales as Vdd^2.09 rather than Vdd^2.00,
+and Vds,pk/Vdd moves 9 % over the range, which cost a real bound: a populate trimmed at 30 V puts
+**172.5 V** on the drain at 40 V against a 155 V derate line.
+
+Rule: **tune the shunt at the bus you intend to run**, and re-check ZVS after any large bus change.
+The derating ladder is still usable over a ~1.5:1 bus range; it is not free.
+
+## 2026-08-08 [P8][gate][waivers][PIPELINE BUG] `gate.py`'s DEFAULT waiver sidecar path is `<pcb-dir>/reports/`, not the workspace `reports/` - so a correct sidecar is silently ignored
+
+`gate.py` main():
+
+    sidecar = (Path(args.input).parent / "reports" / "verify-waivers.json")
+
+`args.input` for the verify gate is the BOARD, `boards/<b>/kicad/<b>.kicad_pcb`, so `.parent` is
+`kicad/` and the default resolves to **`boards/<b>/kicad/reports/verify-waivers.json`** - a
+directory that does not exist in any workspace in this repo. Every waiver sidecar the pipeline
+has ever written lives at `boards/<b>/reports/verify-waivers.json` (lumina-par's included).
+
+The failure is SILENT and it fails in the unsafe direction *for the reader*: the gate reports
+`FAIL (31 failing)` with `waived` absent entirely, which looks exactly like "the owner never
+signed these off" rather than "the file was not found". `gate.py` has a `workspace_dir()` helper
+that computes `boards/<name>/` correctly - it is simply not used here.
+
+**Always pass `--waivers <workspace>/reports/verify-waivers.json` explicitly.** Verified on
+rf-de-20m: without the flag 31 failing / no `waived` key; with it, PASS 0 failing / 31 waived.
+
+## 2026-08-08 [P8][pipeline][decoupling] `root.py` REWRITES `decoupling.json` from scratch - hand-added rail associations do not survive a schematic regen
+
+Same shape as the `.kicad_pro` netclass wipe already recorded at line 815, and it bit for the
+same reason: `Project.save(..., decoupling=out_dir/"decoupling.json")` regenerates the whole
+sidecar from the sheets' `place_ic_with_decoupling` calls, and that helper only ever emits
+**IC-PIN bypass** entries.
+
+On this board the `+5V` rail's decouplers are C108 (22 uF) and C109 (100 nF) hanging off L101.2,
+the buck's OUTPUT node - `+5V` has no IC load pin at all, because U201 sits behind FB201 on
+`+5V_DRV`. So they can only be added by hand, and the P8 verify pass did add them, with a `_note`
+predicting exactly this. The 22:12 root regen deleted both, and `check_pdn` went straight back to
+`power rail +5V (0.3 A) has no decoupling capacitors` - a 32nd verify ERROR on a board whose
+copper had not changed.
+
+**Check `kicad/decoupling.json` after ANY `gen/root.py` run**, the same way you check the
+`.kicad_pro` for `net_settings`. Both are "the generator owns this file" traps and both are
+invisible until a gate fires.
+
+## 2026-08-08 [P8][drc][parity] A schematic FIELD-ONLY edit costs 15 `footprint_symbol_field_mismatch` findings until `board_update` syncs the board
+
+Editing only `Note` / `Variant` text in a generator - no value, no footprint, no net - produces a
+netlist that is **electrically identical** (verified: 70 components, 20 nets, same values,
+footprints and node sets) and therefore looks like a no-op. It is not, for `drc_routed`: KiCad
+footprints carry their own copy of the schematic properties, and `gate.py --gate drc_routed`
+folds in a `parity` source that compares them. The 15 refs whose `Note` changed became 15
+`footprint_symbol_field_mismatch` findings and the residual went **55 -> 70**.
+
+`board_update.py` classifies them as `swap_same_fp` with `value: null` and applies them as a
+pure field sync: measured before/after on rf-de-20m, tracks 125, vias 230, zones 38, fills 70,
+locks 70 and every footprint position **identical**, and `drc_routed` back to exactly 55.
+
+**So: any generator edit, even a comment-only one, needs `kc.py netlist` + `board_update.py`
+before the DRC baseline means anything.** The cheap tell is the `parity` source in
+`gate-drc_routed.json` - if it is non-zero, the board's field copies are stale.
+
+## 2026-08-08 [P8][classE][sim] The ZVS-optimal SHUNT depends on the TANK - the two banks are one knob, not two
+
+Recorded because the two banks look independent in the schematic and are owned by two different
+generator files. On rf-de-20m the P8 fix had to move BOTH:
+
+| C_s | C_shunt bank | Vds at turn-on | P_out |
+|---|---|---|---|
+| 504 pF | 83 pF | 15.47 V | 53.4 W |
+| 504 pF | 0 pF | 1.34 V | **59.2 W** - ZVS restored, tank still detuned |
+| **419 pF** | **27 pF** | **1.41 V** | **113.8 W** |
+| 419 pF | 56 pF | 3.94 V | ok - the next step up also works |
+| 419 pF | 0 pF | -0.25 V | 117.9 W |
+
+The middle row is the trap and it is why a ZVS bound alone is not enough: emptying the shunt bank
+restores ZVS on almost any tank, INCLUDING a detuned one, by making the drain fall faster - and
+leaves half the power on the table. **Gate P_out beside every ZVS measure**, or the sweep will
+recommend a populate that is correct on the measure it is gated by and wrong on the board.
+
+Second-order and easy to miss: **depopulating C_s sites raises the duty on the survivors.**
+Current divides in proportion to capacitance, so 9 x 56 pF -> 7 x 56 + 1 x 27 took each remaining
+56 pF part from 0.77 to 0.93 A rms (+21 %) and ~105 -> ~150 mW. Fine for a 1 kV C0G 1206, but it
+is a real cost of the fix and it belongs in the bring-up list, not in an assumption.

@@ -1,0 +1,66 @@
+[
+ {
+  "measure": "vds_at_turnon_v",
+  "min": -2.0,
+  "max": 5.0,
+  "severity": "error",
+  "msg": "ZVS. architecture/decisions.md SIM-1 window. Drain voltage at CHANNEL CONDUCTION ONSET at the owner's 30 V bench point. Above 5 V the pair hard-switches its own Coss every cycle. The -2.0 V floor is the EPC2019's 3rd-quadrant clamp (VSD 1.8 V typ), below which the drain physically cannot go."
+ },
+ {
+  "measure": "dvds_dt_at_turnon_v_per_ns",
+  "min": -2.0,
+  "max": 2.0,
+  "severity": "error",
+  "msg": "ZdVS, RE-DERIVED from the architecture's +/-0.2 V/ns. |dV/dt| x C_shunt is the current the channel must absorb in a step: +/-2.0 V/ns x ~404 pF (C204 27 pF + 27.4 pF of /SW pour + the pair's ~350 pF charge-equivalent Coss over the 122 V swing) = 0.81 A against a ~6 A peak switch current, i.e. <= 15 %. The architecture's +/-0.2 V/ns is 0.08 A and is NOT reachable with the board's discrete trim set at fixed D = 50 % (the as-built populate measures -1.21 V/ns; it needs the generator duty knob, which is a bring-up action, not a board property). Deviation recorded in reports/sim-notes.md s7."
+ },
+ {
+  "measure": "dvds_dt_at_turnon_v_per_ns",
+  "min": -0.2,
+  "max": 0.2,
+  "severity": "warning",
+  "msg": "The architecture's own SIM-1 ZdVS window, kept visible. Reaching it needs a duty-cycle trim at bring-up (D ~ 46-48 % measured), not a populate change."
+ },
+ {
+  "measure": "vds_peak_v",
+  "max": 155.0,
+  "severity": "error",
+  "msg": "architecture/decisions.md SIM-1: 155 V holds a 1.29x derate on the EPC2019's 200 V BVDSS (parts/C2836675.json). A device-stress limit, so it does NOT scale with the bench bus."
+ },
+ {
+  "measure": "pout_w",
+  "min": 90.0,
+  "max": 140.0,
+  "severity": "error",
+  "msg": "Class E is linear in Vdd^2, so decisions.md D11's 200 W at 40 V is 112.5 W at the owner's 30 V bench (Sokal Q_L=5: 0.51663.Vdd^2/R = 112.6 W at R_opt 4.13). OPEN-4 brackets the coefficient, hence the wide window. A stage that reaches ZVS by starving its own tank fails HERE, not on the ZVS bound. The pre-fix populate measured 53.4 W and failed exactly here."
+ },
+ {
+  "measure": "h2_dbc",
+  "max": -20.0,
+  "severity": "error",
+  "msg": "architecture/decisions.md SIM-4 harmonic window, from Sokal's own Q_L ~ 5.1 figures. Measured at the 50 ohm load by 5-period sine/cosine correlation. Dummy-load only - this is far short of any transmit mask."
+ },
+ {
+  "measure": "h3_dbc",
+  "max": -33.0,
+  "severity": "error",
+  "msg": "architecture/decisions.md SIM-4 harmonic window."
+ },
+ {
+  "measure": "idc_a",
+  "max": 5.0,
+  "severity": "warning",
+  "msg": "Bus current at 30 V. The design draws P/Vdd = 112.6/30 = 3.75 A; 5.0 A is the copper/choke headroom (L201/L202 are rated 18-20 A sat, so this is a bus-pour and BOM-sanity check, not a device limit)."
+ },
+ {
+  "measure": "eff_ceiling_pct",
+  "min": 80.0,
+  "severity": "warning",
+  "msg": "NOT AN EFFICIENCY RESULT. The Coss model is a single-valued C(v) and is therefore LOSSLESS in Coss by construction, so this number omits the 4.83 W of Coss hysteresis decisions.md D1 budgets. It is a sanity check that the deck is not silently dumping power somewhere unphysical."
+ },
+ {
+  "measure": "vds_at_gatecmd_v",
+  "max": 60.0,
+  "severity": "warning",
+  "msg": "Drain at the GATE COMMAND edge, ~1.6 ns before conduction onset. Reported alongside vds_at_turnon_v so the two definitions cannot be confused; bounded only loosely, as a runaway here means the deck lost the waveform entirely."
+ }
+]

@@ -3,8 +3,8 @@
   "gate": "verify",
   "phase": "P8",
   "tool": "verify",
-  "input": "kicad\\rf-de-20m.kicad_pcb",
-  "status": "fail",
+  "input": "boards\\rf-de-20m\\kicad\\rf-de-20m.kicad_pcb",
+  "status": "pass",
   "criteria": {
     "fail_severities": [
       "error"
@@ -12,35 +12,37 @@
     "max_count": 0
   },
   "counts": {
-    "total": 190,
+    "total": 189,
     "by_severity": {
       "error": 31,
-      "warning": 159
+      "warning": 158
     },
     "by_source": {
       "check_return_path": 1,
-      "check_current": 145,
+      "check_current": 143,
       "check_decoupling": 6,
       "check_creepage": 24,
       "check_thermal": 6,
-      "check_silk": 6,
+      "check_silk": 7,
       "check_pdn": 1,
       "verify_all": 1
     },
     "by_check": {
       "check_return_path": 1,
-      "check_current": 145,
+      "check_current": 143,
       "check_decoupling": 6,
       "check_diffpair": 0,
       "check_creepage": 24,
       "check_thermal": 6,
-      "check_silk": 6,
+      "check_silk": 7,
       "check_pdn": 1,
       "verify_all": 1
     }
   },
-  "failing_count": 31,
-  "failing": [
+  "failing_count": 0,
+  "failing": [],
+  "waived_count": 31,
+  "waived": [
     {
       "check": "check_return_path",
       "severity": "error",
@@ -1063,57 +1065,6 @@
       "check": "check_creepage",
       "severity": "error",
       "pos": [
-        38.435,
-        66.085
-      ],
-      "layer": "F.Cu",
-      "net": "/SW",
-      "refs": [
-        "Q202"
-      ],
-      "msg": "/SW (143 V) to GND on F.Cu: 0.350 mm copper spacing < IPC-2221 0.80 mm (B4/A6) for 143 V",
-      "source": "check_creepage",
-      "items": [
-        {
-          "msg": "/SW (143 V) to GND on F.Cu: 0.350 mm copper spacing < IPC-2221 0.80 mm (B4/A6) for 143 V",
-          "pos": [
-            38.435,
-            66.085
-          ]
-        }
-      ],
-      "kind": "creepage",
-      "other_net": "GND",
-      "delta_v": 143.0,
-      "spacing_mm": 0.35,
-      "required_mm": 0.8,
-      "rows": [
-        "B4",
-        "A6"
-      ],
-      "item": {
-        "type": "track",
-        "ends": [
-          [
-            38.735,
-            62.235
-          ],
-          [
-            38.735,
-            66.435
-          ]
-        ]
-      },
-      "other_item": {
-        "type": "pad",
-        "ref": "Q202",
-        "pad": "4"
-      }
-    },
-    {
-      "check": "check_creepage",
-      "severity": "error",
-      "pos": [
         39.035,
         62.455
       ],
@@ -1222,6 +1173,57 @@
             66.205
           ]
         ]
+      }
+    },
+    {
+      "check": "check_creepage",
+      "severity": "error",
+      "pos": [
+        38.435,
+        66.085
+      ],
+      "layer": "F.Cu",
+      "net": "/SW",
+      "refs": [
+        "Q202"
+      ],
+      "msg": "/SW (143 V) to GND on F.Cu: 0.350 mm copper spacing < IPC-2221 0.80 mm (B4/A6) for 143 V",
+      "source": "check_creepage",
+      "items": [
+        {
+          "msg": "/SW (143 V) to GND on F.Cu: 0.350 mm copper spacing < IPC-2221 0.80 mm (B4/A6) for 143 V",
+          "pos": [
+            38.435,
+            66.085
+          ]
+        }
+      ],
+      "kind": "creepage",
+      "other_net": "GND",
+      "delta_v": 143.0,
+      "spacing_mm": 0.35,
+      "required_mm": 0.8,
+      "rows": [
+        "B4",
+        "A6"
+      ],
+      "item": {
+        "type": "track",
+        "ends": [
+          [
+            38.735,
+            62.235
+          ],
+          [
+            38.735,
+            66.435
+          ]
+        ]
+      },
+      "other_item": {
+        "type": "pad",
+        "ref": "Q202",
+        "pad": "4"
       }
     },
     {
@@ -1731,11 +1733,11 @@
       "refs": [
         "Q201"
       ],
-      "msg": "Q201 dissipates 5.63 W into 645 mm2 of GND copper: ~288 C rise (theta_JA ~51 C/W) > 25 C allowed; add thermal vias to an inner/back plane",
+      "msg": "Q201 dissipates 4.78 W into 645 mm2 of GND copper: ~244 C rise (theta_JA ~51 C/W) > 25 C allowed; add thermal vias to an inner/back plane",
       "source": "check_thermal",
       "items": [
         {
-          "msg": "Q201 dissipates 5.63 W into 645 mm2 of GND copper: ~288 C rise (theta_JA ~51 C/W) > 25 C allowed; add thermal vias to an inner/back plane",
+          "msg": "Q201 dissipates 4.78 W into 645 mm2 of GND copper: ~244 C rise (theta_JA ~51 C/W) > 25 C allowed; add thermal vias to an inner/back plane",
           "pos": [
             38.135,
             62.235
@@ -1743,10 +1745,10 @@
         }
       ],
       "kind": "thermal_area",
-      "power_w": 5.63,
+      "power_w": 4.78,
       "area_mm2": 645.0,
       "theta_ja": 51.1055,
-      "rise_c": 287.7242,
+      "rise_c": 244.2845,
       "dt_allowed_c": 25.0
     },
     {
@@ -1761,11 +1763,11 @@
       "refs": [
         "Q202"
       ],
-      "msg": "Q202 dissipates 5.63 W into 645 mm2 of GND copper: ~288 C rise (theta_JA ~51 C/W) > 25 C allowed; add thermal vias to an inner/back plane",
+      "msg": "Q202 dissipates 4.78 W into 645 mm2 of GND copper: ~244 C rise (theta_JA ~51 C/W) > 25 C allowed; add thermal vias to an inner/back plane",
       "source": "check_thermal",
       "items": [
         {
-          "msg": "Q202 dissipates 5.63 W into 645 mm2 of GND copper: ~288 C rise (theta_JA ~51 C/W) > 25 C allowed; add thermal vias to an inner/back plane",
+          "msg": "Q202 dissipates 4.78 W into 645 mm2 of GND copper: ~244 C rise (theta_JA ~51 C/W) > 25 C allowed; add thermal vias to an inner/back plane",
           "pos": [
             38.135,
             66.435
@@ -1773,10 +1775,10 @@
         }
       ],
       "kind": "thermal_area",
-      "power_w": 5.63,
+      "power_w": 4.78,
       "area_mm2": 645.0,
       "theta_ja": 51.1055,
-      "rise_c": 287.7242,
+      "rise_c": 244.2845,
       "dt_allowed_c": 25.0
     },
     {
@@ -1791,11 +1793,11 @@
       "refs": [
         "L301"
       ],
-      "msg": "L301 dissipates 10.00 W into 256 mm2 of /tank/TANK_A copper: ~769 C rise (theta_JA ~77 C/W) > 70 C allowed; add thermal vias to an inner/back plane",
+      "msg": "L301 dissipates 8.10 W into 256 mm2 of /tank/TANK_A copper: ~623 C rise (theta_JA ~77 C/W) > 70 C allowed; add thermal vias to an inner/back plane",
       "source": "check_thermal",
       "items": [
         {
-          "msg": "L301 dissipates 10.00 W into 256 mm2 of /tank/TANK_A copper: ~769 C rise (theta_JA ~77 C/W) > 70 C allowed; add thermal vias to an inner/back plane",
+          "msg": "L301 dissipates 8.10 W into 256 mm2 of /tank/TANK_A copper: ~623 C rise (theta_JA ~77 C/W) > 70 C allowed; add thermal vias to an inner/back plane",
           "pos": [
             78.733,
             56.935
@@ -1803,10 +1805,10 @@
         }
       ],
       "kind": "thermal_area",
-      "power_w": 10.0,
+      "power_w": 8.1,
       "area_mm2": 256.4137,
       "theta_ja": 76.9047,
-      "rise_c": 769.0474,
+      "rise_c": 622.9284,
       "dt_allowed_c": 70.0
     },
     {
@@ -1821,11 +1823,11 @@
       "refs": [
         "L302"
       ],
-      "msg": "L302 dissipates 6.70 W into 1 mm2 of /tank/TANK_B copper: ~936 C rise (theta_JA ~140 C/W) > 70 C allowed; add thermal vias to an inner/back plane",
+      "msg": "L302 dissipates 5.40 W into 1 mm2 of /tank/TANK_B copper: ~754 C rise (theta_JA ~140 C/W) > 70 C allowed; add thermal vias to an inner/back plane",
       "source": "check_thermal",
       "items": [
         {
-          "msg": "L302 dissipates 6.70 W into 1 mm2 of /tank/TANK_B copper: ~936 C rise (theta_JA ~140 C/W) > 70 C allowed; add thermal vias to an inner/back plane",
+          "msg": "L302 dissipates 5.40 W into 1 mm2 of /tank/TANK_B copper: ~754 C rise (theta_JA ~140 C/W) > 70 C allowed; add thermal vias to an inner/back plane",
           "pos": [
             90.6409,
             101.935
@@ -1833,10 +1835,10 @@
         }
       ],
       "kind": "thermal_area",
-      "power_w": 6.7,
+      "power_w": 5.4,
       "area_mm2": 0.9062,
       "theta_ja": 139.6344,
-      "rise_c": 935.5503,
+      "rise_c": 754.0256,
       "dt_allowed_c": 70.0
     }
   ]

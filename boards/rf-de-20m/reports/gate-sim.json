@@ -1,0 +1,51 @@
+{
+  "script": "gate",
+  "gate": "sim",
+  "phase": "P8",
+  "tool": "sim",
+  "input": "boards\\rf-de-20m\\kicad\\sims",
+  "status": "fail",
+  "criteria": {
+    "fail_severities": [
+      "error"
+    ],
+    "max_count": 0
+  },
+  "counts": {
+    "total": 4,
+    "by_severity": {
+      "error": 1,
+      "warning": 3
+    },
+    "by_source": {
+      "sim.ngspice": 4
+    }
+  },
+  "failing_count": 1,
+  "failing": [
+    {
+      "check": "sim",
+      "severity": "error",
+      "pos": null,
+      "layer": null,
+      "net": null,
+      "refs": [],
+      "msg": "bus_derating.cir: vds_pk_40v_v = 172.547 outside <= 155 - architecture SIM-1's 1.29x derate on the EPC2019's 200 V BVDSS. A populate trimmed at 30 V is UNDER-shunted at 40 V (the nonlinear Coss supplies less charge-equivalent capacitance over a larger swing), which raises the drain peak. If this fails, one populate cannot serve both bus points and 40 V needs its own bank setting.",
+      "source": "sim.ngspice",
+      "items": [
+        {
+          "msg": "bus_derating.cir: vds_pk_40v_v = 172.547 outside <= 155 - architecture SIM-1's 1.29x derate on the EPC2019's 200 V BVDSS. A populate trimmed at 30 V is UNDER-shunted at 40 V (the nonlinear Coss supplies less charge-equivalent capacitance over a larger swing), which raises the drain peak. If this fails, one populate cannot serve both bus points and 40 V needs its own bank setting.",
+          "pos": null
+        }
+      ],
+      "kind": "sim_bound_fail",
+      "measure": "vds_pk_40v_v",
+      "testbench": "bus_derating.cir",
+      "bound": {
+        "min": null,
+        "max": 155.0
+      },
+      "value": 172.547
+    }
+  ]
+}

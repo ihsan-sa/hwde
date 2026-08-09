@@ -1,0 +1,72 @@
+* rf-de-20m SIM-2a coss_charge - is the EPC2019 Coss(tr) extrapolation right?
+*
+* SOURCE         : parts/C2836675.json (EPC2019 datasheet rev (c)2021). No
+*                  netlist topology is involved - this bench gates a MODEL, not
+*                  a circuit, and it is the model every other bench here rests
+*                  on. It runs first for that reason.
+* INTENT         : decisions.md D0 RETRACTS a P1-supplied "Coss(er) = 156 pF"
+*                  (the datasheet publishes no Coss(er), no Coss(tr) and no
+*                  Eoss anywhere) and replaces it with an EXTRAPOLATION:
+*                  Coss(tr) = Qoss/V over the real 0..142.5 V drain swing =
+*                  158 pF typ / 205 pF max per FET, against the 180 pF that
+*                  Qoss(100 V)/100 V would give and the 110 pF small-signal
+*                  value quoted at 100 V. The whole amended operating point
+*                  (C_shunt 403 pF, R_opt 4.13 ohm) hangs off that number and
+*                  NOTHING has ever checked it. This bench checks it.
+*
+* METHOD: drive Coss(v) with a linear voltage ramp and INTEGRATE the current.
+* Q = integral i.dt is exact regardless of how nonlinear C(v) is, so
+* Coss(tr)(V) = Q(V)/V needs no assumption beyond the model card itself.
+* Ramp 0 -> 142.5 V over 100 ns (1.425 V/ns, the same order as the real drain
+* transition), so the answer is not a quasi-static artefact either.
+*
+* ------------------------------------------------------------- MODEL POLICY
+* NO VENDORED MODELS. Coss(v) = CJ0/(1 + v/VJ)^MM, VJ pinned at 1 V, CJ0 and MM
+* SOLVED from the only two output-capacitance facts the datasheet publishes:
+*   TYP: Coss(100 V) = 110 pF and Qoss(100 V) = 18 nC  ->  CJ0 789p, MM 0.427
+*   MAX: Coss(100 V) = 150 pF and Qoss(100 V) = 23 nC  ->  CJ0 870p, MM 0.381
+* Both anchors are re-measured below, so the fit is gated, not asserted: if
+* coss_100v_pf or qoss_100v_nc drifts, the card is wrong and every downstream
+* bench is invalid.
+* The 1.64x ratio Qoss/(V.Coss) = 18n/(100.110p) is the datasheet's own
+* statement that Coss is strongly nonlinear; MM = 0.427 is that ratio, nothing
+* more. What the card cannot represent: Coss hysteresis (a single-valued C(v)
+* is lossless by construction), trapping/dispersion, and temperature.
+*
+.title rf-de-20m SIM-2a EPC2019 Coss(tr) by charge integration
+.options rshunt=1e9 reltol=1e-5
+.param CJ0T=789p VJT=1.0 MMT=0.427
+.param CJ0X=870p VJX=1.0 MMX=0.381
+
+* ramp: 0 V at 1 ns, 142.5 V at 101 ns
+Vr NR 0 PWL(0 0 1n 0 101n 142.5)
+
+* typ-corner FET
+Vst NR NT DC 0
+Ct NT 0 c={CJ0T/pow(1+0.5*(v(NT)+sqrt(v(NT)*v(NT)+0.01))/VJT,MMT)}
+
+* max-corner FET
+Vsx NR NX DC 0
+Cx NX 0 c={CJ0X/pow(1+0.5*(v(NX)+sqrt(v(NX)*v(NX)+0.01))/VJX,MMX)}
+
+.tran 0.002n 105n
+
+* ramp reaches 100 V at t = 1n + 100/1.425 = 71.1053 ns, 142.5 V at 101 ns
+.meas tran q100t INTEG i(Vst) FROM=1n TO=71.1053n
+.meas tran q1425t INTEG i(Vsx) FROM=1n TO=101n
+.meas tran q1425tt INTEG i(Vst) FROM=1n TO=101n
+.meas tran q100x INTEG i(Vsx) FROM=1n TO=71.1053n
+
+* datasheet anchors, re-measured (i(Vst) flows INTO the cap, so Q is positive)
+.meas tran qoss_100v_nc param='q100t*1e9'
+.meas tran qoss_100v_max_nc param='q100x*1e9'
+.meas tran coss_tr_per_fet_pf param='q1425tt/142.5*1e12'
+.meas tran coss_tr_maxcorner_pf param='q1425t/142.5*1e12'
+* small-signal Coss at 100 V, straight off the card (dQ/dV, not Q/V)
+.meas tran coss_100v_pf param='CJ0T/pow(101,MMT)*1e12'
+.meas tran coss_100v_max_pf param='CJ0X/pow(101,MMX)*1e12'
+* the figure decisions.md D0 calls ERROR 1: Qoss/V evaluated at 100 V, not 142.5
+.meas tran coss_q_over_v_at100_pf param='q100t/100*1e12'
+* pair total at the tr point - this is what C_shunt actually gets from the dice
+.meas tran cshunt_from_pair_pf param='2*(q1425tt/142.5*1e12)'
+.end

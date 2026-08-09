@@ -565,3 +565,55 @@ via-tenting-off at plot time.**
   feeds. `verify-waivers.md` s1.2 carries the derivation.
 - **No rule was loosened.** The `.kicad_dru`, the netclasses and every
   `constraints.json` current / dT / clearance are untouched.
+
+## 17. P8 FIX a3 ADDENDUM - the ZVS populate, and the P9 fab notes it creates
+
+**No copper changed in this pass.** The fix is three populate sites, all of
+which already exist on the board, so placement, routing, pours, the `.kicad_dru`
+and the `drc_routed` residual of **55** are byte-for-byte unchanged.
+
+| site | was | now | effect |
+|---|---|---|---|
+| C308, C309 | 56 pF | **DNP** | |
+| C320 | DNP | **27 pF populated** | **C_s 504 -> 419 pF** |
+| C203 | 56 pF | **DNP** | **C_shunt bank 83 -> 27 pF** |
+
+Why: ~30 nH of un-imaged zone-B copper in series with the C_s bank (zone B
+carries no plane on any layer - D4) pushed X_net/R from the design's 1.283 to
+2.00, costing ZVS and half the output power. Extra series L is cancelled by
+**less** series C. Measured after: X_net/R **1.285**, Vds at turn-on **1.36 V**,
+P_out **113.8 W**. Derivation: `reports/sim-notes.md`, and in the generator
+docstrings so it cannot be "fixed" back.
+
+### FAB NOTES, CARRY TO P9 - THREE, AND THE FIRST IS THE DANGEROUS ONE
+
+1. **DNP IS NOT MACHINE-READABLE ON THIS BOARD. P9 MUST FILTER BY HAND.**
+   `kicad-sch-api`'s writer hard-codes `(dnp no)`, so the generators mark
+   do-not-populate with a **visible `Variant=DNP` schematic field**, and
+   **nothing in the pipeline reads `Variant`** - not `bom_cpl`, not
+   `netlist_audit`, not any `check_*`. A BOM or CPL generated without a manual
+   filter will tell the assembler to fit all nine DNP sites, which on this board
+   means **fitting C203, C308 and C309 and thereby undoing the ZVS fix**, plus
+   C205/C206/C318/C321/C322/C323. The authoritative list is `refdes_dnp` on each
+   line of `parts/parts.json`:
+
+       C203  C205  C206     (C_shunt trim bank - 56 pF sites)
+       C308  C309           (C_s bank - the ZVS fix)
+       C318                 (C_m bank - P8 review E2)
+       C321  C322  C323     (27 pF bench-trim sites)
+
+   Nine sites. Arithmetic for the CPL: 70 components in the netlist, of which
+   2 (L301/L302) are etched PCB spirals with no LCSC code and no part to
+   place, and 9 are DNP -> **59 parts to place**, 59 of 68 purchased lines.
+
+2. **Fiducials and the heatsink land are `board_only` footprints.** FID1-FID3
+   (`Fiducial:Fiducial_1mm_Mask2mm`) and HS1 (`aiee:HS2_HEATSINK_LAND`) carry
+   `attr board_only exclude_from_pos_files exclude_from_bom` and have no
+   schematic symbol, so they must not appear in the BOM or CPL. They DO have to
+   appear in the gerbers: HS1 is 1430 mm2 of **B.Mask aperture** over GND
+   copper, and if it is lost the heatsink bolts onto solder mask.
+
+3. **Via tenting, restated because it now protects a mask aperture too.** HS1's
+   land is notched around the six non-GND vias inside it precisely so they stay
+   tented on B.Cu. Do not enable via-tenting-off at plot time (s10, s16.2).
+

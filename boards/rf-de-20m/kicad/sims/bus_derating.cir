@@ -1,0 +1,110 @@
+* rf-de-20m SIM-7 bus_derating - is ZVS really independent of the bus voltage?
+*
+* SOURCE NETLIST : boards/rf-de-20m/kicad/rf-de-20m.net
+* RENAME MAP     : as classe_zvs_nominal.cir; four INDEPENDENT copies of the
+*                  whole stage (own bus, choke, dice, tank, 50 ohm load) on one
+*                  gate command, suffixed SW40/SW36/SW30/SW25.
+* INTENT         : decisions.md D1 calls bus derating "the one genuinely new
+*                  piece of engineering in this amendment" and rests it on:
+*                    "ZVS in Class E is a property of the NETWORK, not of Vdd:
+*                     the design equations are linear in Vdd ... the bus can be
+*                     backed down at bring-up WITHOUT LOSING ZVS."
+*                  and it publishes a 40/38/36/34 V power-vs-Tj ladder on that
+*                  basis. The claim is TRUE for a linear shunt capacitance. It
+*                  is NOT exactly true here, and this bench is where that is
+*                  measured rather than assumed, because more than 70 % of this
+*                  board's C_shunt is EPC2019 Coss(v), which is strongly
+*                  NONLINEAR: the charge-equivalent Coss(tr) = Qoss(V)/V RISES
+*                  as the swing shrinks (156.7 pF/FET over 0..142.5 V, ~175 pF
+*                  over 0..107 V), so a LOWER bus presents a LARGER effective
+*                  shunt and ZVS arrives LATE. The direction matters: D1's
+*                  mitigation moves the bus DOWN.
+*
+* NETWORK        : the AS-BUILT populate after P8 fix a3 (C_s 419 pF, C_shunt
+*                  bank 27 pF, C_m unchanged), tuned at the owner's 30 V bench
+*                  point. It was already written against these values when the
+*                  fix was still a recommendation, so nothing changed here at
+*                  fix a3 - the deck was ahead of the generators, not behind.
+*                  Testing the Vdd claim on the PRE-FIX populate would have
+*                  proved nothing: that board missed ZVS at every bus voltage.
+*
+* MODEL POLICY / PARASITICS: identical cards and identical measured pour values
+* to classe_zvs_nominal.cir - see that header for full provenance. The Coss
+* card is gated separately and first by coss_charge.cir.
+*
+.title rf-de-20m SIM-7 ZVS vs bus voltage, as-built populate (P8 fix a3)
+.options rshunt=1e9
+.param PER=50n PWID=23n
+
+.subckt EPC2019 d g s params: cj0=789p vj=1.0 mm=0.427 ron=0.065
+Sch d s g s SWCH
+Coss d dx c={cj0/pow(1+0.5*(v(d,s)+sqrt(v(d,s)*v(d,s)+0.01))/vj,mm)}
+Rcoss dx s 0.05
+Drev s d GANREV
+Cgs g s 199p
+Cgd g d 0.7p
+.model SWCH SW(vt=2.5 vh=1.0 ron={ron} roff=1e8)
+.model GANREV D(is=1e-12 n=2.6 rs=0.05 cjo=0)
+.ends
+
+.subckt STAGE sw gdrv params: vbus=30 cext=27p cs=419p
+Vdd vb 0 DC {vbus}
+Lch1 vb la 470n
+Rch1 la lm 0.0041
+Lch2 lm lb 470n
+Rch2 lb sw 0.0041
+Xq1 sw g1 0 EPC2019
+Xq2 sw g2 0 EPC2019
+Cshext sw 0 {cext+27.4p}
+Rg1 gdrv g1 5.85
+Rg2 gdrv g2 5.85
+Ls1 sw n1 162.9n
+Rls n1 ta 0.0531
+Cta ta 0 13.4p
+Lbr ta n2 30n
+Cs n2 tb {cs}
+Rcs tb tb2 0.0011
+Ctb tb2 0 0.8p
+Lm1 tb2 n3 108.9n
+Rlm n3 rf 0.0426
+Cm rf 0 521.1p
+Rl rf 0 50
+.ends
+
+Vg GDRV 0 PULSE(0 5 0 2n 2n {PWID} {PER})
+X40 SW40 GDRV STAGE vbus=40
+X36 SW36 GDRV STAGE vbus=36
+X30 SW30 GDRV STAGE vbus=30
+X25 SW25 GDRV STAGE vbus=25
+
+.tran 0.02n 4u 3.70u 0.02n
+
+.meas tran vds_ton_40v_v FIND v(SW40) WHEN v(X40.g1)=1.5 TD=3949n RISE=1
+.meas tran vds_ton_36v_v FIND v(SW36) WHEN v(X36.g1)=1.5 TD=3949n RISE=1
+.meas tran vds_ton_30v_v FIND v(SW30) WHEN v(X30.g1)=1.5 TD=3949n RISE=1
+.meas tran vds_ton_25v_v FIND v(SW25) WHEN v(X25.g1)=1.5 TD=3949n RISE=1
+
+* how far ZVS actually drifts across the whole 25-40 V bench range. If D1's
+* claim were exact this would be 0.
+.meas tran zvs_drift_25_40_v param='vds_ton_25v_v-vds_ton_40v_v'
+
+.meas tran vds_pk_40v_v MAX v(SW40) FROM=3900n TO=4000n
+.meas tran vds_pk_36v_v MAX v(SW36) FROM=3900n TO=4000n
+.meas tran vds_pk_25v_v MAX v(SW25) FROM=3900n TO=4000n
+
+.meas tran vr40 RMS v(X40.rf) FROM=3750n TO=4000n
+.meas tran vr36 RMS v(X36.rf) FROM=3750n TO=4000n
+.meas tran vr30 RMS v(X30.rf) FROM=3750n TO=4000n
+.meas tran vr25 RMS v(X25.rf) FROM=3750n TO=4000n
+.meas tran pout_40v_w param='vr40*vr40/50'
+.meas tran pout_36v_w param='vr36*vr36/50'
+.meas tran pout_30v_w param='vr30*vr30/50'
+.meas tran pout_25v_w param='vr25*vr25/50'
+
+* Class E is linear in Vdd: P must scale as Vdd^2 and Vds,pk as Vdd. These two
+* ratios are the quantitative statement of D1's claim, and they are what a
+* bring-up operator can check with a wattmeter and a scope.
+.meas tran pout_ratio_40_over_30 param='(vr40*vr40)/(vr30*vr30)'
+.meas tran vdspk_per_vdd_40 param='vds_pk_40v_v/40'
+.meas tran vdspk_per_vdd_25 param='vds_pk_25v_v/25'
+.end

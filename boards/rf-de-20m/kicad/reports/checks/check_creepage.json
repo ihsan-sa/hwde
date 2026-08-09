@@ -1,0 +1,3170 @@
+{
+ "script": "check_creepage",
+ "status": "violations",
+ "board": "rf-de-20m.kicad_pcb",
+ "counts": {
+  "total": 24,
+  "by_severity": {
+   "warning": 3,
+   "error": 21
+  },
+  "by_source": {
+   "check_creepage": 24
+  }
+ },
+ "violations": [
+  {
+   "check": "check_creepage",
+   "severity": "warning",
+   "pos": [
+    37.235,
+    62.01
+   ],
+   "layer": "F.Cu",
+   "net": "/SW",
+   "refs": [
+    "Q201"
+   ],
+   "msg": "/SW (143 V) to /stage/GATE_Q1 on F.Cu: 0.350 mm copper spacing < IPC-2221 0.80 mm (A6/A6) for 143 V; land-pattern pitch (same footprint Q201) - part-selection scope, not layout",
+   "source": "check_creepage",
+   "items": [
+    {
+     "msg": "/SW (143 V) to /stage/GATE_Q1 on F.Cu: 0.350 mm copper spacing < IPC-2221 0.80 mm (A6/A6) for 143 V; land-pattern pitch (same footprint Q201) - part-selection scope, not layout",
+     "pos": [
+      37.235,
+      62.01
+     ]
+    }
+   ],
+   "kind": "creepage",
+   "other_net": "/stage/GATE_Q1",
+   "delta_v": 143.0,
+   "spacing_mm": 0.35,
+   "required_mm": 0.8,
+   "rows": [
+    "A6",
+    "A6"
+   ],
+   "item": {
+    "type": "pad",
+    "ref": "Q201",
+    "pad": "3"
+   },
+   "other_item": {
+    "type": "pad",
+    "ref": "Q201",
+    "pad": "1"
+   },
+   "same_footprint": true,
+   "waiver_class": "land_pattern_pitch"
+  },
+  {
+   "check": "check_creepage",
+   "severity": "error",
+   "pos": [
+    37.2225,
+    61.885
+   ],
+   "layer": "F.Cu",
+   "net": "/SW",
+   "refs": [
+    "Q201"
+   ],
+   "msg": "/SW (143 V) to /stage/GATE_Q1 on F.Cu: 0.375 mm copper spacing < IPC-2221 0.80 mm (A6/B4) for 143 V",
+   "source": "check_creepage",
+   "items": [
+    {
+     "msg": "/SW (143 V) to /stage/GATE_Q1 on F.Cu: 0.375 mm copper spacing < IPC-2221 0.80 mm (A6/B4) for 143 V",
+     "pos": [
+      37.2225,
+      61.885
+     ]
+    }
+   ],
+   "kind": "creepage",
+   "other_net": "/stage/GATE_Q1",
+   "delta_v": 143.0,
+   "spacing_mm": 0.375,
+   "required_mm": 0.8,
+   "rows": [
+    "A6",
+    "B4"
+   ],
+   "item": {
+    "type": "pad",
+    "ref": "Q201",
+    "pad": "3"
+   },
+   "other_item": {
+    "type": "track",
+    "ends": [
+     [
+      36.835,
+      61.885
+     ],
+     [
+      35.835,
+      61.885
+     ]
+    ]
+   }
+  },
+  {
+   "check": "check_creepage",
+   "severity": "error",
+   "pos": [
+    37.2363,
+    62.119
+   ],
+   "layer": "F.Cu",
+   "net": "/SW",
+   "refs": [
+    "Q201"
+   ],
+   "msg": "/SW (143 V) to /stage/GATE_Q1 on F.Cu: 0.391 mm copper spacing < IPC-2221 0.80 mm (B4/A6) for 143 V",
+   "source": "check_creepage",
+   "items": [
+    {
+     "msg": "/SW (143 V) to /stage/GATE_Q1 on F.Cu: 0.391 mm copper spacing < IPC-2221 0.80 mm (B4/A6) for 143 V",
+     "pos": [
+      37.2363,
+      62.119
+     ]
+    }
+   ],
+   "kind": "creepage",
+   "other_net": "/stage/GATE_Q1",
+   "delta_v": 143.0,
+   "spacing_mm": 0.3909,
+   "required_mm": 0.8,
+   "rows": [
+    "B4",
+    "A6"
+   ],
+   "item": {
+    "type": "track",
+    "ends": [
+     [
+      37.535,
+      62.235
+     ],
+     [
+      37.535,
+      66.435
+     ]
+    ]
+   },
+   "other_item": {
+    "type": "pad",
+    "ref": "Q201",
+    "pad": "1"
+   }
+  },
+  {
+   "check": "check_creepage",
+   "severity": "error",
+   "pos": [
+    37.235,
+    66.21
+   ],
+   "layer": "F.Cu",
+   "net": "/SW",
+   "refs": [
+    "Q202"
+   ],
+   "msg": "/SW (143 V) to /stage/GATE_Q2 on F.Cu: 0.350 mm copper spacing < IPC-2221 0.80 mm (B4/A6) for 143 V",
+   "source": "check_creepage",
+   "items": [
+    {
+     "msg": "/SW (143 V) to /stage/GATE_Q2 on F.Cu: 0.350 mm copper spacing < IPC-2221 0.80 mm (B4/A6) for 143 V",
+     "pos": [
+      37.235,
+      66.21
+     ]
+    }
+   ],
+   "kind": "creepage",
+   "other_net": "/stage/GATE_Q2",
+   "delta_v": 143.0,
+   "spacing_mm": 0.35,
+   "required_mm": 0.8,
+   "rows": [
+    "B4",
+    "A6"
+   ],
+   "item": {
+    "type": "track",
+    "ends": [
+     [
+      37.535,
+      62.235
+     ],
+     [
+      37.535,
+      66.435
+     ]
+    ]
+   },
+   "other_item": {
+    "type": "pad",
+    "ref": "Q202",
+    "pad": "1"
+   }
+  },
+  {
+   "check": "check_creepage",
+   "severity": "error",
+   "pos": [
+    37.2225,
+    66.095
+   ],
+   "layer": "F.Cu",
+   "net": "/SW",
+   "refs": [],
+   "msg": "/SW (143 V) to /stage/GATE_Q2 on F.Cu: 0.375 mm copper spacing < IPC-2221 0.40 mm (B4/B4) for 143 V",
+   "source": "check_creepage",
+   "items": [
+    {
+     "msg": "/SW (143 V) to /stage/GATE_Q2 on F.Cu: 0.375 mm copper spacing < IPC-2221 0.40 mm (B4/B4) for 143 V",
+     "pos": [
+      37.2225,
+      66.095
+     ]
+    }
+   ],
+   "kind": "creepage",
+   "other_net": "/stage/GATE_Q2",
+   "delta_v": 143.0,
+   "spacing_mm": 0.375,
+   "required_mm": 0.4,
+   "rows": [
+    "B4",
+    "B4"
+   ],
+   "item": {
+    "type": "track",
+    "ends": [
+     [
+      37.535,
+      62.235
+     ],
+     [
+      37.535,
+      66.435
+     ]
+    ]
+   },
+   "other_item": {
+    "type": "track",
+    "ends": [
+     [
+      36.835,
+      66.095
+     ],
+     [
+      35.835,
+      66.095
+     ]
+    ]
+   }
+  },
+  {
+   "check": "check_creepage",
+   "severity": "error",
+   "pos": [
+    37.235,
+    62.455
+   ],
+   "layer": "F.Cu",
+   "net": "/SW",
+   "refs": [],
+   "msg": "/SW (143 V) to GND on F.Cu: 0.350 mm copper spacing < IPC-2221 0.40 mm (B4/B4) for 143 V",
+   "source": "check_creepage",
+   "items": [
+    {
+     "msg": "/SW (143 V) to GND on F.Cu: 0.350 mm copper spacing < IPC-2221 0.40 mm (B4/B4) for 143 V",
+     "pos": [
+      37.235,
+      62.455
+     ]
+    }
+   ],
+   "kind": "creepage",
+   "other_net": "GND",
+   "delta_v": 143.0,
+   "spacing_mm": 0.35,
+   "required_mm": 0.4,
+   "rows": [
+    "B4",
+    "B4"
+   ],
+   "item": {
+    "type": "track",
+    "ends": [
+     [
+      37.535,
+      62.235
+     ],
+     [
+      37.535,
+      66.435
+     ]
+    ]
+   },
+   "other_item": {
+    "type": "track",
+    "ends": [
+     [
+      36.935,
+      62.455
+     ],
+     [
+      36.535,
+      62.455
+     ]
+    ]
+   }
+  },
+  {
+   "check": "check_creepage",
+   "severity": "error",
+   "pos": [
+    37.235,
+    66.655
+   ],
+   "layer": "F.Cu",
+   "net": "/SW",
+   "refs": [
+    "Q202"
+   ],
+   "msg": "/SW (143 V) to GND on F.Cu: 0.350 mm copper spacing < IPC-2221 0.80 mm (A6/B4) for 143 V",
+   "source": "check_creepage",
+   "items": [
+    {
+     "msg": "/SW (143 V) to GND on F.Cu: 0.350 mm copper spacing < IPC-2221 0.80 mm (A6/B4) for 143 V",
+     "pos": [
+      37.235,
+      66.655
+     ]
+    }
+   ],
+   "kind": "creepage",
+   "other_net": "GND",
+   "delta_v": 143.0,
+   "spacing_mm": 0.35,
+   "required_mm": 0.8,
+   "rows": [
+    "A6",
+    "B4"
+   ],
+   "item": {
+    "type": "pad",
+    "ref": "Q202",
+    "pad": "3"
+   },
+   "other_item": {
+    "type": "track",
+    "ends": [
+     [
+      36.935,
+      66.655
+     ],
+     [
+      36.535,
+      66.655
+     ]
+    ]
+   }
+  },
+  {
+   "check": "check_creepage",
+   "severity": "error",
+   "pos": [
+    37.835,
+    62.585
+   ],
+   "layer": "F.Cu",
+   "net": "/SW",
+   "refs": [
+    "Q201"
+   ],
+   "msg": "/SW (143 V) to GND on F.Cu: 0.350 mm copper spacing < IPC-2221 0.80 mm (B4/A6) for 143 V",
+   "source": "check_creepage",
+   "items": [
+    {
+     "msg": "/SW (143 V) to GND on F.Cu: 0.350 mm copper spacing < IPC-2221 0.80 mm (B4/A6) for 143 V",
+     "pos": [
+      37.835,
+      62.585
+     ]
+    }
+   ],
+   "kind": "creepage",
+   "other_net": "GND",
+   "delta_v": 143.0,
+   "spacing_mm": 0.35,
+   "required_mm": 0.8,
+   "rows": [
+    "B4",
+    "A6"
+   ],
+   "item": {
+    "type": "track",
+    "ends": [
+     [
+      37.535,
+      62.235
+     ],
+     [
+      37.535,
+      66.435
+     ]
+    ]
+   },
+   "other_item": {
+    "type": "pad",
+    "ref": "Q201",
+    "pad": "4"
+   }
+  },
+  {
+   "check": "check_creepage",
+   "severity": "error",
+   "pos": [
+    37.835,
+    66.085
+   ],
+   "layer": "F.Cu",
+   "net": "/SW",
+   "refs": [
+    "Q202"
+   ],
+   "msg": "/SW (143 V) to GND on F.Cu: 0.350 mm copper spacing < IPC-2221 0.80 mm (B4/A6) for 143 V",
+   "source": "check_creepage",
+   "items": [
+    {
+     "msg": "/SW (143 V) to GND on F.Cu: 0.350 mm copper spacing < IPC-2221 0.80 mm (B4/A6) for 143 V",
+     "pos": [
+      37.835,
+      66.085
+     ]
+    }
+   ],
+   "kind": "creepage",
+   "other_net": "GND",
+   "delta_v": 143.0,
+   "spacing_mm": 0.35,
+   "required_mm": 0.8,
+   "rows": [
+    "B4",
+    "A6"
+   ],
+   "item": {
+    "type": "track",
+    "ends": [
+     [
+      37.535,
+      62.235
+     ],
+     [
+      37.535,
+      66.435
+     ]
+    ]
+   },
+   "other_item": {
+    "type": "pad",
+    "ref": "Q202",
+    "pad": "4"
+   }
+  },
+  {
+   "check": "check_creepage",
+   "severity": "error",
+   "pos": [
+    38.435,
+    62.585
+   ],
+   "layer": "F.Cu",
+   "net": "/SW",
+   "refs": [
+    "Q201"
+   ],
+   "msg": "/SW (143 V) to GND on F.Cu: 0.350 mm copper spacing < IPC-2221 0.80 mm (B4/A6) for 143 V",
+   "source": "check_creepage",
+   "items": [
+    {
+     "msg": "/SW (143 V) to GND on F.Cu: 0.350 mm copper spacing < IPC-2221 0.80 mm (B4/A6) for 143 V",
+     "pos": [
+      38.435,
+      62.585
+     ]
+    }
+   ],
+   "kind": "creepage",
+   "other_net": "GND",
+   "delta_v": 143.0,
+   "spacing_mm": 0.35,
+   "required_mm": 0.8,
+   "rows": [
+    "B4",
+    "A6"
+   ],
+   "item": {
+    "type": "track",
+    "ends": [
+     [
+      38.735,
+      62.235
+     ],
+     [
+      38.735,
+      66.435
+     ]
+    ]
+   },
+   "other_item": {
+    "type": "pad",
+    "ref": "Q201",
+    "pad": "4"
+   }
+  },
+  {
+   "check": "check_creepage",
+   "severity": "error",
+   "pos": [
+    39.035,
+    62.455
+   ],
+   "layer": "F.Cu",
+   "net": "/SW",
+   "refs": [],
+   "msg": "/SW (143 V) to GND on F.Cu: 0.350 mm copper spacing < IPC-2221 0.40 mm (B4/B4) for 143 V",
+   "source": "check_creepage",
+   "items": [
+    {
+     "msg": "/SW (143 V) to GND on F.Cu: 0.350 mm copper spacing < IPC-2221 0.40 mm (B4/B4) for 143 V",
+     "pos": [
+      39.035,
+      62.455
+     ]
+    }
+   ],
+   "kind": "creepage",
+   "other_net": "GND",
+   "delta_v": 143.0,
+   "spacing_mm": 0.35,
+   "required_mm": 0.4,
+   "rows": [
+    "B4",
+    "B4"
+   ],
+   "item": {
+    "type": "track",
+    "ends": [
+     [
+      38.735,
+      62.235
+     ],
+     [
+      38.735,
+      66.435
+     ]
+    ]
+   },
+   "other_item": {
+    "type": "track",
+    "ends": [
+     [
+      39.335,
+      62.455
+     ],
+     [
+      39.785,
+      62.455
+     ]
+    ]
+   }
+  },
+  {
+   "check": "check_creepage",
+   "severity": "error",
+   "pos": [
+    39.035,
+    66.205
+   ],
+   "layer": "F.Cu",
+   "net": "/SW",
+   "refs": [],
+   "msg": "/SW (143 V) to GND on F.Cu: 0.350 mm copper spacing < IPC-2221 0.40 mm (B4/B4) for 143 V",
+   "source": "check_creepage",
+   "items": [
+    {
+     "msg": "/SW (143 V) to GND on F.Cu: 0.350 mm copper spacing < IPC-2221 0.40 mm (B4/B4) for 143 V",
+     "pos": [
+      39.035,
+      66.205
+     ]
+    }
+   ],
+   "kind": "creepage",
+   "other_net": "GND",
+   "delta_v": 143.0,
+   "spacing_mm": 0.35,
+   "required_mm": 0.4,
+   "rows": [
+    "B4",
+    "B4"
+   ],
+   "item": {
+    "type": "track",
+    "ends": [
+     [
+      38.735,
+      62.235
+     ],
+     [
+      38.735,
+      66.435
+     ]
+    ]
+   },
+   "other_item": {
+    "type": "track",
+    "ends": [
+     [
+      39.335,
+      66.205
+     ],
+     [
+      39.785,
+      66.205
+     ]
+    ]
+   }
+  },
+  {
+   "check": "check_creepage",
+   "severity": "error",
+   "pos": [
+    38.435,
+    66.085
+   ],
+   "layer": "F.Cu",
+   "net": "/SW",
+   "refs": [
+    "Q202"
+   ],
+   "msg": "/SW (143 V) to GND on F.Cu: 0.350 mm copper spacing < IPC-2221 0.80 mm (B4/A6) for 143 V",
+   "source": "check_creepage",
+   "items": [
+    {
+     "msg": "/SW (143 V) to GND on F.Cu: 0.350 mm copper spacing < IPC-2221 0.80 mm (B4/A6) for 143 V",
+     "pos": [
+      38.435,
+      66.085
+     ]
+    }
+   ],
+   "kind": "creepage",
+   "other_net": "GND",
+   "delta_v": 143.0,
+   "spacing_mm": 0.35,
+   "required_mm": 0.8,
+   "rows": [
+    "B4",
+    "A6"
+   ],
+   "item": {
+    "type": "track",
+    "ends": [
+     [
+      38.735,
+      62.235
+     ],
+     [
+      38.735,
+      66.435
+     ]
+    ]
+   },
+   "other_item": {
+    "type": "pad",
+    "ref": "Q202",
+    "pad": "4"
+   }
+  },
+  {
+   "check": "check_creepage",
+   "severity": "error",
+   "pos": [
+    37.835,
+    62.235
+   ],
+   "layer": "F.Cu",
+   "net": "/SW",
+   "refs": [],
+   "msg": "/SW (143 V) to GND on F.Cu: 0.350 mm copper spacing < IPC-2221 0.40 mm (B4/B4) for 143 V",
+   "source": "check_creepage",
+   "items": [
+    {
+     "msg": "/SW (143 V) to GND on F.Cu: 0.350 mm copper spacing < IPC-2221 0.40 mm (B4/B4) for 143 V",
+     "pos": [
+      37.835,
+      62.235
+     ]
+    }
+   ],
+   "kind": "creepage",
+   "other_net": "GND",
+   "delta_v": 143.0,
+   "spacing_mm": 0.35,
+   "required_mm": 0.4,
+   "rows": [
+    "B4",
+    "B4"
+   ],
+   "item": {
+    "type": "track",
+    "ends": [
+     [
+      37.535,
+      62.235
+     ],
+     [
+      37.535,
+      66.435
+     ]
+    ]
+   },
+   "other_item": {
+    "type": "track",
+    "ends": [
+     [
+      38.135,
+      62.235
+     ],
+     [
+      38.135,
+      61.035
+     ]
+    ]
+   }
+  },
+  {
+   "check": "check_creepage",
+   "severity": "error",
+   "pos": [
+    37.835,
+    66.435
+   ],
+   "layer": "F.Cu",
+   "net": "/SW",
+   "refs": [],
+   "msg": "/SW (143 V) to GND on F.Cu: 0.350 mm copper spacing < IPC-2221 0.40 mm (B4/B4) for 143 V",
+   "source": "check_creepage",
+   "items": [
+    {
+     "msg": "/SW (143 V) to GND on F.Cu: 0.350 mm copper spacing < IPC-2221 0.40 mm (B4/B4) for 143 V",
+     "pos": [
+      37.835,
+      66.435
+     ]
+    }
+   ],
+   "kind": "creepage",
+   "other_net": "GND",
+   "delta_v": 143.0,
+   "spacing_mm": 0.35,
+   "required_mm": 0.4,
+   "rows": [
+    "B4",
+    "B4"
+   ],
+   "item": {
+    "type": "track",
+    "ends": [
+     [
+      37.535,
+      62.235
+     ],
+     [
+      37.535,
+      66.435
+     ]
+    ]
+   },
+   "other_item": {
+    "type": "track",
+    "ends": [
+     [
+      38.135,
+      66.435
+     ],
+     [
+      38.135,
+      67.635
+     ]
+    ]
+   }
+  },
+  {
+   "check": "check_creepage",
+   "severity": "error",
+   "pos": [
+    38.435,
+    62.235
+   ],
+   "layer": "F.Cu",
+   "net": "/SW",
+   "refs": [],
+   "msg": "/SW (143 V) to GND on F.Cu: 0.350 mm copper spacing < IPC-2221 0.40 mm (B4/B4) for 143 V",
+   "source": "check_creepage",
+   "items": [
+    {
+     "msg": "/SW (143 V) to GND on F.Cu: 0.350 mm copper spacing < IPC-2221 0.40 mm (B4/B4) for 143 V",
+     "pos": [
+      38.435,
+      62.235
+     ]
+    }
+   ],
+   "kind": "creepage",
+   "other_net": "GND",
+   "delta_v": 143.0,
+   "spacing_mm": 0.35,
+   "required_mm": 0.4,
+   "rows": [
+    "B4",
+    "B4"
+   ],
+   "item": {
+    "type": "track",
+    "ends": [
+     [
+      38.735,
+      62.235
+     ],
+     [
+      38.735,
+      66.435
+     ]
+    ]
+   },
+   "other_item": {
+    "type": "track",
+    "ends": [
+     [
+      38.135,
+      62.235
+     ],
+     [
+      38.135,
+      61.035
+     ]
+    ]
+   }
+  },
+  {
+   "check": "check_creepage",
+   "severity": "error",
+   "pos": [
+    38.435,
+    66.435
+   ],
+   "layer": "F.Cu",
+   "net": "/SW",
+   "refs": [],
+   "msg": "/SW (143 V) to GND on F.Cu: 0.350 mm copper spacing < IPC-2221 0.40 mm (B4/B4) for 143 V",
+   "source": "check_creepage",
+   "items": [
+    {
+     "msg": "/SW (143 V) to GND on F.Cu: 0.350 mm copper spacing < IPC-2221 0.40 mm (B4/B4) for 143 V",
+     "pos": [
+      38.435,
+      66.435
+     ]
+    }
+   ],
+   "kind": "creepage",
+   "other_net": "GND",
+   "delta_v": 143.0,
+   "spacing_mm": 0.35,
+   "required_mm": 0.4,
+   "rows": [
+    "B4",
+    "B4"
+   ],
+   "item": {
+    "type": "track",
+    "ends": [
+     [
+      38.735,
+      62.235
+     ],
+     [
+      38.735,
+      66.435
+     ]
+    ]
+   },
+   "other_item": {
+    "type": "track",
+    "ends": [
+     [
+      38.135,
+      66.435
+     ],
+     [
+      38.135,
+      67.635
+     ]
+    ]
+   }
+  },
+  {
+   "check": "check_creepage",
+   "severity": "warning",
+   "pos": [
+    37.835,
+    66.785
+   ],
+   "layer": "F.Cu",
+   "net": "/SW",
+   "refs": [
+    "Q202"
+   ],
+   "msg": "/SW (143 V) to GND on F.Cu: 0.350 mm copper spacing < IPC-2221 0.80 mm (A6/A6) for 143 V; land-pattern pitch (same footprint Q202) - part-selection scope, not layout",
+   "source": "check_creepage",
+   "items": [
+    {
+     "msg": "/SW (143 V) to GND on F.Cu: 0.350 mm copper spacing < IPC-2221 0.80 mm (A6/A6) for 143 V; land-pattern pitch (same footprint Q202) - part-selection scope, not layout",
+     "pos": [
+      37.835,
+      66.785
+     ]
+    }
+   ],
+   "kind": "creepage",
+   "other_net": "GND",
+   "delta_v": 143.0,
+   "spacing_mm": 0.35,
+   "required_mm": 0.8,
+   "rows": [
+    "A6",
+    "A6"
+   ],
+   "item": {
+    "type": "pad",
+    "ref": "Q202",
+    "pad": "3"
+   },
+   "other_item": {
+    "type": "pad",
+    "ref": "Q202",
+    "pad": "4"
+   },
+   "same_footprint": true,
+   "waiver_class": "land_pattern_pitch"
+  },
+  {
+   "check": "check_creepage",
+   "severity": "warning",
+   "pos": [
+    38.435,
+    66.785
+   ],
+   "layer": "F.Cu",
+   "net": "/SW",
+   "refs": [
+    "Q202"
+   ],
+   "msg": "/SW (143 V) to GND on F.Cu: 0.350 mm copper spacing < IPC-2221 0.80 mm (A6/A6) for 143 V; land-pattern pitch (same footprint Q202) - part-selection scope, not layout",
+   "source": "check_creepage",
+   "items": [
+    {
+     "msg": "/SW (143 V) to GND on F.Cu: 0.350 mm copper spacing < IPC-2221 0.80 mm (A6/A6) for 143 V; land-pattern pitch (same footprint Q202) - part-selection scope, not layout",
+     "pos": [
+      38.435,
+      66.785
+     ]
+    }
+   ],
+   "kind": "creepage",
+   "other_net": "GND",
+   "delta_v": 143.0,
+   "spacing_mm": 0.35,
+   "required_mm": 0.8,
+   "rows": [
+    "A6",
+    "A6"
+   ],
+   "item": {
+    "type": "pad",
+    "ref": "Q202",
+    "pad": "5"
+   },
+   "other_item": {
+    "type": "pad",
+    "ref": "Q202",
+    "pad": "4"
+   },
+   "same_footprint": true,
+   "waiver_class": "land_pattern_pitch"
+  },
+  {
+   "check": "check_creepage",
+   "severity": "error",
+   "pos": [
+    39.035,
+    62.005
+   ],
+   "layer": "F.Cu",
+   "net": "/SW",
+   "refs": [
+    "Q201"
+   ],
+   "msg": "/SW (143 V) to GND on F.Cu: 0.350 mm copper spacing < IPC-2221 0.80 mm (A6/B4) for 143 V",
+   "source": "check_creepage",
+   "items": [
+    {
+     "msg": "/SW (143 V) to GND on F.Cu: 0.350 mm copper spacing < IPC-2221 0.80 mm (A6/B4) for 143 V",
+     "pos": [
+      39.035,
+      62.005
+     ]
+    }
+   ],
+   "kind": "creepage",
+   "other_net": "GND",
+   "delta_v": 143.0,
+   "spacing_mm": 0.35,
+   "required_mm": 0.8,
+   "rows": [
+    "A6",
+    "B4"
+   ],
+   "item": {
+    "type": "pad",
+    "ref": "Q201",
+    "pad": "5"
+   },
+   "other_item": {
+    "type": "track",
+    "ends": [
+     [
+      39.335,
+      62.005
+     ],
+     [
+      39.785,
+      62.005
+     ]
+    ]
+   }
+  },
+  {
+   "check": "check_creepage",
+   "severity": "error",
+   "pos": [
+    39.035,
+    66.655
+   ],
+   "layer": "F.Cu",
+   "net": "/SW",
+   "refs": [
+    "Q202"
+   ],
+   "msg": "/SW (143 V) to GND on F.Cu: 0.350 mm copper spacing < IPC-2221 0.80 mm (A6/B4) for 143 V",
+   "source": "check_creepage",
+   "items": [
+    {
+     "msg": "/SW (143 V) to GND on F.Cu: 0.350 mm copper spacing < IPC-2221 0.80 mm (A6/B4) for 143 V",
+     "pos": [
+      39.035,
+      66.655
+     ]
+    }
+   ],
+   "kind": "creepage",
+   "other_net": "GND",
+   "delta_v": 143.0,
+   "spacing_mm": 0.35,
+   "required_mm": 0.8,
+   "rows": [
+    "A6",
+    "B4"
+   ],
+   "item": {
+    "type": "pad",
+    "ref": "Q202",
+    "pad": "5"
+   },
+   "other_item": {
+    "type": "track",
+    "ends": [
+     [
+      39.335,
+      66.655
+     ],
+     [
+      39.785,
+      66.655
+     ]
+    ]
+   }
+  },
+  {
+   "check": "check_creepage",
+   "severity": "error",
+   "pos": [
+    37.2345,
+    66.5437
+   ],
+   "layer": "F.Cu",
+   "net": "/SW",
+   "refs": [],
+   "msg": "/SW (143 V) to GND on F.Cu: 0.389 mm copper spacing < IPC-2221 0.40 mm (B4/B4) for 143 V",
+   "source": "check_creepage",
+   "items": [
+    {
+     "msg": "/SW (143 V) to GND on F.Cu: 0.389 mm copper spacing < IPC-2221 0.40 mm (B4/B4) for 143 V",
+     "pos": [
+      37.2345,
+      66.5437
+     ]
+    }
+   ],
+   "kind": "creepage",
+   "other_net": "GND",
+   "delta_v": 143.0,
+   "spacing_mm": 0.3892,
+   "required_mm": 0.4,
+   "rows": [
+    "B4",
+    "B4"
+   ],
+   "item": {
+    "type": "track",
+    "ends": [
+     [
+      37.535,
+      62.235
+     ],
+     [
+      37.535,
+      66.435
+     ]
+    ]
+   },
+   "other_item": {
+    "type": "track",
+    "ends": [
+     [
+      36.935,
+      66.655
+     ],
+     [
+      36.535,
+      66.655
+     ]
+    ]
+   }
+  },
+  {
+   "check": "check_creepage",
+   "severity": "error",
+   "pos": [
+    39.0345,
+    66.5463
+   ],
+   "layer": "F.Cu",
+   "net": "/SW",
+   "refs": [],
+   "msg": "/SW (143 V) to GND on F.Cu: 0.389 mm copper spacing < IPC-2221 0.40 mm (B4/B4) for 143 V",
+   "source": "check_creepage",
+   "items": [
+    {
+     "msg": "/SW (143 V) to GND on F.Cu: 0.389 mm copper spacing < IPC-2221 0.40 mm (B4/B4) for 143 V",
+     "pos": [
+      39.0345,
+      66.5463
+     ]
+    }
+   ],
+   "kind": "creepage",
+   "other_net": "GND",
+   "delta_v": 143.0,
+   "spacing_mm": 0.3892,
+   "required_mm": 0.4,
+   "rows": [
+    "B4",
+    "B4"
+   ],
+   "item": {
+    "type": "track",
+    "ends": [
+     [
+      38.735,
+      62.235
+     ],
+     [
+      38.735,
+      66.435
+     ]
+    ]
+   },
+   "other_item": {
+    "type": "track",
+    "ends": [
+     [
+      39.335,
+      66.655
+     ],
+     [
+      39.785,
+      66.655
+     ]
+    ]
+   }
+  },
+  {
+   "check": "check_creepage",
+   "severity": "error",
+   "pos": [
+    39.0363,
+    62.126
+   ],
+   "layer": "F.Cu",
+   "net": "/SW",
+   "refs": [
+    "Q201"
+   ],
+   "msg": "/SW (143 V) to GND on F.Cu: 0.391 mm copper spacing < IPC-2221 0.80 mm (B4/A6) for 143 V",
+   "source": "check_creepage",
+   "items": [
+    {
+     "msg": "/SW (143 V) to GND on F.Cu: 0.391 mm copper spacing < IPC-2221 0.80 mm (B4/A6) for 143 V",
+     "pos": [
+      39.0363,
+      62.126
+     ]
+    }
+   ],
+   "kind": "creepage",
+   "other_net": "GND",
+   "delta_v": 143.0,
+   "spacing_mm": 0.3909,
+   "required_mm": 0.8,
+   "rows": [
+    "B4",
+    "A6"
+   ],
+   "item": {
+    "type": "track",
+    "ends": [
+     [
+      38.735,
+      62.235
+     ],
+     [
+      38.735,
+      66.435
+     ]
+    ]
+   },
+   "other_item": {
+    "type": "pad",
+    "ref": "Q201",
+    "pad": "7"
+   }
+  }
+ ],
+ "checked": [
+  {
+   "net": "+40V",
+   "voltage": 51.0,
+   "pairs_checked": 30,
+   "pairs": [
+    {
+     "other_net": "+5V",
+     "layer": "F.Cu",
+     "delta_v": 51.0,
+     "pairs_checked": 1960,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+5V",
+     "layer": "In1.Cu",
+     "delta_v": 51.0,
+     "pairs_checked": 94,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+5V",
+     "layer": "In2.Cu",
+     "delta_v": 51.0,
+     "pairs_checked": 141,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+5V",
+     "layer": "B.Cu",
+     "delta_v": 51.0,
+     "pairs_checked": 96,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+5V_DRV",
+     "layer": "F.Cu",
+     "delta_v": 51.0,
+     "pairs_checked": 1400,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+5V_DRV",
+     "layer": "In1.Cu",
+     "delta_v": 51.0,
+     "pairs_checked": 94,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+5V_DRV",
+     "layer": "In2.Cu",
+     "delta_v": 51.0,
+     "pairs_checked": 141,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+5V_DRV",
+     "layer": "B.Cu",
+     "delta_v": 51.0,
+     "pairs_checked": 96,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/BST",
+     "layer": "F.Cu",
+     "delta_v": 51.0,
+     "pairs_checked": 560,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/BST",
+     "layer": "In1.Cu",
+     "delta_v": 51.0,
+     "pairs_checked": 94,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/BST",
+     "layer": "In2.Cu",
+     "delta_v": 51.0,
+     "pairs_checked": 141,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/BST",
+     "layer": "B.Cu",
+     "delta_v": 51.0,
+     "pairs_checked": 96,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/BUCK_SW",
+     "layer": "F.Cu",
+     "delta_v": 51.0,
+     "pairs_checked": 1330,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/FB",
+     "layer": "F.Cu",
+     "delta_v": 51.0,
+     "pairs_checked": 1120,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/RINJ",
+     "layer": "F.Cu",
+     "delta_v": 51.0,
+     "pairs_checked": 560,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/RON",
+     "layer": "F.Cu",
+     "delta_v": 51.0,
+     "pairs_checked": 350,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/VCC",
+     "layer": "F.Cu",
+     "delta_v": 51.0,
+     "pairs_checked": 420,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/DRIVE",
+     "layer": "F.Cu",
+     "delta_v": 51.0,
+     "pairs_checked": 1190,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/DRIVE",
+     "layer": "In1.Cu",
+     "delta_v": 51.0,
+     "pairs_checked": 94,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/DRIVE",
+     "layer": "In2.Cu",
+     "delta_v": 51.0,
+     "pairs_checked": 141,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/DRIVE",
+     "layer": "B.Cu",
+     "delta_v": 51.0,
+     "pairs_checked": 96,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/GATE_OFF",
+     "layer": "F.Cu",
+     "delta_v": 51.0,
+     "pairs_checked": 840,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/GATE_ON",
+     "layer": "F.Cu",
+     "delta_v": 51.0,
+     "pairs_checked": 420,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/GATE_Q1",
+     "layer": "F.Cu",
+     "delta_v": 51.0,
+     "pairs_checked": 420,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/GATE_Q2",
+     "layer": "F.Cu",
+     "delta_v": 51.0,
+     "pairs_checked": 420,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/L201_MID",
+     "layer": "F.Cu",
+     "delta_v": 51.0,
+     "pairs_checked": 210,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "GND",
+     "layer": "F.Cu",
+     "delta_v": 51.0,
+     "pairs_checked": 19740,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "GND",
+     "layer": "In1.Cu",
+     "delta_v": 51.0,
+     "pairs_checked": 8601,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "GND",
+     "layer": "In2.Cu",
+     "delta_v": 51.0,
+     "pairs_checked": 8601,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "GND",
+     "layer": "B.Cu",
+     "delta_v": 51.0,
+     "pairs_checked": 9072,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    }
+   ]
+  },
+  {
+   "net": "/SW",
+   "voltage": 143.0,
+   "pairs_checked": 38,
+   "pairs": [
+    {
+     "other_net": "+40V",
+     "layer": "F.Cu",
+     "delta_v": 92.0,
+     "pairs_checked": 2170,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+40V",
+     "layer": "In1.Cu",
+     "delta_v": 92.0,
+     "pairs_checked": 658,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+40V",
+     "layer": "In2.Cu",
+     "delta_v": 92.0,
+     "pairs_checked": 658,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+40V",
+     "layer": "B.Cu",
+     "delta_v": 92.0,
+     "pairs_checked": 720,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+5V",
+     "layer": "F.Cu",
+     "delta_v": 143.0,
+     "pairs_checked": 868,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+5V",
+     "layer": "In1.Cu",
+     "delta_v": 143.0,
+     "pairs_checked": 28,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+5V",
+     "layer": "In2.Cu",
+     "delta_v": 143.0,
+     "pairs_checked": 42,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+5V",
+     "layer": "B.Cu",
+     "delta_v": 143.0,
+     "pairs_checked": 30,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+5V_DRV",
+     "layer": "F.Cu",
+     "delta_v": 143.0,
+     "pairs_checked": 620,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+5V_DRV",
+     "layer": "In1.Cu",
+     "delta_v": 143.0,
+     "pairs_checked": 28,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+5V_DRV",
+     "layer": "In2.Cu",
+     "delta_v": 143.0,
+     "pairs_checked": 42,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+5V_DRV",
+     "layer": "B.Cu",
+     "delta_v": 143.0,
+     "pairs_checked": 30,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/BST",
+     "layer": "F.Cu",
+     "delta_v": 143.0,
+     "pairs_checked": 248,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/BST",
+     "layer": "In1.Cu",
+     "delta_v": 143.0,
+     "pairs_checked": 28,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/BST",
+     "layer": "In2.Cu",
+     "delta_v": 143.0,
+     "pairs_checked": 42,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/BST",
+     "layer": "B.Cu",
+     "delta_v": 143.0,
+     "pairs_checked": 30,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/BUCK_SW",
+     "layer": "F.Cu",
+     "delta_v": 143.0,
+     "pairs_checked": 589,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/FB",
+     "layer": "F.Cu",
+     "delta_v": 143.0,
+     "pairs_checked": 496,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/RINJ",
+     "layer": "F.Cu",
+     "delta_v": 143.0,
+     "pairs_checked": 248,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/RON",
+     "layer": "F.Cu",
+     "delta_v": 143.0,
+     "pairs_checked": 155,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/VCC",
+     "layer": "F.Cu",
+     "delta_v": 143.0,
+     "pairs_checked": 186,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/DRIVE",
+     "layer": "F.Cu",
+     "delta_v": 143.0,
+     "pairs_checked": 527,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/DRIVE",
+     "layer": "In1.Cu",
+     "delta_v": 143.0,
+     "pairs_checked": 28,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/DRIVE",
+     "layer": "In2.Cu",
+     "delta_v": 143.0,
+     "pairs_checked": 42,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/DRIVE",
+     "layer": "B.Cu",
+     "delta_v": 143.0,
+     "pairs_checked": 30,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/GATE_OFF",
+     "layer": "F.Cu",
+     "delta_v": 143.0,
+     "pairs_checked": 372,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/GATE_ON",
+     "layer": "F.Cu",
+     "delta_v": 143.0,
+     "pairs_checked": 186,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/GATE_Q1",
+     "layer": "F.Cu",
+     "delta_v": 143.0,
+     "pairs_checked": 186,
+     "pairs_under_requirement": 3,
+     "same_footprint_under": 1,
+     "min_gap_mm": 0.35,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/GATE_Q2",
+     "layer": "F.Cu",
+     "delta_v": 143.0,
+     "pairs_checked": 186,
+     "pairs_under_requirement": 4,
+     "same_footprint_under": 1,
+     "min_gap_mm": 0.35,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/L201_MID",
+     "layer": "F.Cu",
+     "delta_v": 143.0,
+     "pairs_checked": 93,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/tank/TANK_B",
+     "layer": "F.Cu",
+     "delta_v": 93.0,
+     "pairs_checked": 899,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/tank/TANK_B",
+     "layer": "In1.Cu",
+     "delta_v": 93.0,
+     "pairs_checked": 196,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/tank/TANK_B",
+     "layer": "In2.Cu",
+     "delta_v": 93.0,
+     "pairs_checked": 196,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/tank/TANK_B",
+     "layer": "B.Cu",
+     "delta_v": 93.0,
+     "pairs_checked": 225,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "GND",
+     "layer": "F.Cu",
+     "delta_v": 143.0,
+     "pairs_checked": 8742,
+     "pairs_under_requirement": 40,
+     "same_footprint_under": 10,
+     "min_gap_mm": 0.35,
+     "truncated": false
+    },
+    {
+     "other_net": "GND",
+     "layer": "In1.Cu",
+     "delta_v": 143.0,
+     "pairs_checked": 2562,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "GND",
+     "layer": "In2.Cu",
+     "delta_v": 143.0,
+     "pairs_checked": 2562,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "GND",
+     "layer": "B.Cu",
+     "delta_v": 143.0,
+     "pairs_checked": 2835,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    }
+   ]
+  },
+  {
+   "net": "/tank/RFOUT",
+   "voltage": 145.0,
+   "pairs_checked": 34,
+   "pairs": [
+    {
+     "other_net": "+40V",
+     "layer": "F.Cu",
+     "delta_v": 94.0,
+     "pairs_checked": 3570,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+40V",
+     "layer": "In1.Cu",
+     "delta_v": 94.0,
+     "pairs_checked": 1363,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+40V",
+     "layer": "In2.Cu",
+     "delta_v": 94.0,
+     "pairs_checked": 1363,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+40V",
+     "layer": "B.Cu",
+     "delta_v": 94.0,
+     "pairs_checked": 1440,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+5V",
+     "layer": "F.Cu",
+     "delta_v": 145.0,
+     "pairs_checked": 1428,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+5V",
+     "layer": "In1.Cu",
+     "delta_v": 145.0,
+     "pairs_checked": 58,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+5V",
+     "layer": "In2.Cu",
+     "delta_v": 145.0,
+     "pairs_checked": 87,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+5V",
+     "layer": "B.Cu",
+     "delta_v": 145.0,
+     "pairs_checked": 60,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+5V_DRV",
+     "layer": "F.Cu",
+     "delta_v": 145.0,
+     "pairs_checked": 1020,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+5V_DRV",
+     "layer": "In1.Cu",
+     "delta_v": 145.0,
+     "pairs_checked": 58,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+5V_DRV",
+     "layer": "In2.Cu",
+     "delta_v": 145.0,
+     "pairs_checked": 87,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+5V_DRV",
+     "layer": "B.Cu",
+     "delta_v": 145.0,
+     "pairs_checked": 60,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/BST",
+     "layer": "F.Cu",
+     "delta_v": 145.0,
+     "pairs_checked": 408,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/BST",
+     "layer": "In1.Cu",
+     "delta_v": 145.0,
+     "pairs_checked": 58,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/BST",
+     "layer": "In2.Cu",
+     "delta_v": 145.0,
+     "pairs_checked": 87,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/BST",
+     "layer": "B.Cu",
+     "delta_v": 145.0,
+     "pairs_checked": 60,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/BUCK_SW",
+     "layer": "F.Cu",
+     "delta_v": 145.0,
+     "pairs_checked": 969,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/FB",
+     "layer": "F.Cu",
+     "delta_v": 145.0,
+     "pairs_checked": 816,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/RINJ",
+     "layer": "F.Cu",
+     "delta_v": 145.0,
+     "pairs_checked": 408,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/RON",
+     "layer": "F.Cu",
+     "delta_v": 145.0,
+     "pairs_checked": 255,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/VCC",
+     "layer": "F.Cu",
+     "delta_v": 145.0,
+     "pairs_checked": 306,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/DRIVE",
+     "layer": "F.Cu",
+     "delta_v": 145.0,
+     "pairs_checked": 867,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/DRIVE",
+     "layer": "In1.Cu",
+     "delta_v": 145.0,
+     "pairs_checked": 58,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/DRIVE",
+     "layer": "In2.Cu",
+     "delta_v": 145.0,
+     "pairs_checked": 87,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/DRIVE",
+     "layer": "B.Cu",
+     "delta_v": 145.0,
+     "pairs_checked": 60,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/GATE_OFF",
+     "layer": "F.Cu",
+     "delta_v": 145.0,
+     "pairs_checked": 612,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/GATE_ON",
+     "layer": "F.Cu",
+     "delta_v": 145.0,
+     "pairs_checked": 306,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/GATE_Q1",
+     "layer": "F.Cu",
+     "delta_v": 145.0,
+     "pairs_checked": 306,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/GATE_Q2",
+     "layer": "F.Cu",
+     "delta_v": 145.0,
+     "pairs_checked": 306,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/L201_MID",
+     "layer": "F.Cu",
+     "delta_v": 145.0,
+     "pairs_checked": 153,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "GND",
+     "layer": "F.Cu",
+     "delta_v": 145.0,
+     "pairs_checked": 14382,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "GND",
+     "layer": "In1.Cu",
+     "delta_v": 145.0,
+     "pairs_checked": 5307,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "GND",
+     "layer": "In2.Cu",
+     "delta_v": 145.0,
+     "pairs_checked": 5307,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "GND",
+     "layer": "B.Cu",
+     "delta_v": 145.0,
+     "pairs_checked": 5670,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    }
+   ]
+  },
+  {
+   "net": "/tank/TANK_A",
+   "voltage": 180.0,
+   "pairs_checked": 38,
+   "pairs": [
+    {
+     "other_net": "+40V",
+     "layer": "F.Cu",
+     "delta_v": 129.0,
+     "pairs_checked": 3290,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+40V",
+     "layer": "In1.Cu",
+     "delta_v": 129.0,
+     "pairs_checked": 1363,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+40V",
+     "layer": "In2.Cu",
+     "delta_v": 129.0,
+     "pairs_checked": 1363,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+40V",
+     "layer": "B.Cu",
+     "delta_v": 129.0,
+     "pairs_checked": 1440,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+5V",
+     "layer": "F.Cu",
+     "delta_v": 180.0,
+     "pairs_checked": 1316,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+5V",
+     "layer": "In1.Cu",
+     "delta_v": 180.0,
+     "pairs_checked": 58,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+5V",
+     "layer": "In2.Cu",
+     "delta_v": 180.0,
+     "pairs_checked": 87,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+5V",
+     "layer": "B.Cu",
+     "delta_v": 180.0,
+     "pairs_checked": 60,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+5V_DRV",
+     "layer": "F.Cu",
+     "delta_v": 180.0,
+     "pairs_checked": 940,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+5V_DRV",
+     "layer": "In1.Cu",
+     "delta_v": 180.0,
+     "pairs_checked": 58,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+5V_DRV",
+     "layer": "In2.Cu",
+     "delta_v": 180.0,
+     "pairs_checked": 87,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+5V_DRV",
+     "layer": "B.Cu",
+     "delta_v": 180.0,
+     "pairs_checked": 60,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/BST",
+     "layer": "F.Cu",
+     "delta_v": 180.0,
+     "pairs_checked": 376,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/BST",
+     "layer": "In1.Cu",
+     "delta_v": 180.0,
+     "pairs_checked": 58,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/BST",
+     "layer": "In2.Cu",
+     "delta_v": 180.0,
+     "pairs_checked": 87,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/BST",
+     "layer": "B.Cu",
+     "delta_v": 180.0,
+     "pairs_checked": 60,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/BUCK_SW",
+     "layer": "F.Cu",
+     "delta_v": 180.0,
+     "pairs_checked": 893,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/FB",
+     "layer": "F.Cu",
+     "delta_v": 180.0,
+     "pairs_checked": 752,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/RINJ",
+     "layer": "F.Cu",
+     "delta_v": 180.0,
+     "pairs_checked": 376,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/RON",
+     "layer": "F.Cu",
+     "delta_v": 180.0,
+     "pairs_checked": 235,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/VCC",
+     "layer": "F.Cu",
+     "delta_v": 180.0,
+     "pairs_checked": 282,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/DRIVE",
+     "layer": "F.Cu",
+     "delta_v": 180.0,
+     "pairs_checked": 799,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/DRIVE",
+     "layer": "In1.Cu",
+     "delta_v": 180.0,
+     "pairs_checked": 58,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/DRIVE",
+     "layer": "In2.Cu",
+     "delta_v": 180.0,
+     "pairs_checked": 87,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/DRIVE",
+     "layer": "B.Cu",
+     "delta_v": 180.0,
+     "pairs_checked": 60,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/GATE_OFF",
+     "layer": "F.Cu",
+     "delta_v": 180.0,
+     "pairs_checked": 564,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/GATE_ON",
+     "layer": "F.Cu",
+     "delta_v": 180.0,
+     "pairs_checked": 282,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/GATE_Q1",
+     "layer": "F.Cu",
+     "delta_v": 180.0,
+     "pairs_checked": 282,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/GATE_Q2",
+     "layer": "F.Cu",
+     "delta_v": 180.0,
+     "pairs_checked": 282,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/L201_MID",
+     "layer": "F.Cu",
+     "delta_v": 180.0,
+     "pairs_checked": 141,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/tank/RFOUT",
+     "layer": "F.Cu",
+     "delta_v": 35.0,
+     "pairs_checked": 2397,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/tank/RFOUT",
+     "layer": "In1.Cu",
+     "delta_v": 35.0,
+     "pairs_checked": 841,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/tank/RFOUT",
+     "layer": "In2.Cu",
+     "delta_v": 35.0,
+     "pairs_checked": 841,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/tank/RFOUT",
+     "layer": "B.Cu",
+     "delta_v": 35.0,
+     "pairs_checked": 900,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "GND",
+     "layer": "F.Cu",
+     "delta_v": 180.0,
+     "pairs_checked": 13254,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "GND",
+     "layer": "In1.Cu",
+     "delta_v": 180.0,
+     "pairs_checked": 5307,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "GND",
+     "layer": "In2.Cu",
+     "delta_v": 180.0,
+     "pairs_checked": 5307,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "GND",
+     "layer": "B.Cu",
+     "delta_v": 180.0,
+     "pairs_checked": 5670,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    }
+   ]
+  },
+  {
+   "net": "/tank/TANK_B",
+   "voltage": 50.0,
+   "pairs_checked": 30,
+   "pairs": [
+    {
+     "other_net": "+5V",
+     "layer": "F.Cu",
+     "delta_v": 50.0,
+     "pairs_checked": 812,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+5V",
+     "layer": "In1.Cu",
+     "delta_v": 50.0,
+     "pairs_checked": 28,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+5V",
+     "layer": "In2.Cu",
+     "delta_v": 50.0,
+     "pairs_checked": 42,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+5V",
+     "layer": "B.Cu",
+     "delta_v": 50.0,
+     "pairs_checked": 30,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+5V_DRV",
+     "layer": "F.Cu",
+     "delta_v": 50.0,
+     "pairs_checked": 580,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+5V_DRV",
+     "layer": "In1.Cu",
+     "delta_v": 50.0,
+     "pairs_checked": 28,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+5V_DRV",
+     "layer": "In2.Cu",
+     "delta_v": 50.0,
+     "pairs_checked": 42,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "+5V_DRV",
+     "layer": "B.Cu",
+     "delta_v": 50.0,
+     "pairs_checked": 30,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/BST",
+     "layer": "F.Cu",
+     "delta_v": 50.0,
+     "pairs_checked": 232,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/BST",
+     "layer": "In1.Cu",
+     "delta_v": 50.0,
+     "pairs_checked": 28,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/BST",
+     "layer": "In2.Cu",
+     "delta_v": 50.0,
+     "pairs_checked": 42,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/BST",
+     "layer": "B.Cu",
+     "delta_v": 50.0,
+     "pairs_checked": 30,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/BUCK_SW",
+     "layer": "F.Cu",
+     "delta_v": 50.0,
+     "pairs_checked": 551,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/FB",
+     "layer": "F.Cu",
+     "delta_v": 50.0,
+     "pairs_checked": 464,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/RINJ",
+     "layer": "F.Cu",
+     "delta_v": 50.0,
+     "pairs_checked": 232,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/RON",
+     "layer": "F.Cu",
+     "delta_v": 50.0,
+     "pairs_checked": 145,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/hk/VCC",
+     "layer": "F.Cu",
+     "delta_v": 50.0,
+     "pairs_checked": 174,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/DRIVE",
+     "layer": "F.Cu",
+     "delta_v": 50.0,
+     "pairs_checked": 493,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/DRIVE",
+     "layer": "In1.Cu",
+     "delta_v": 50.0,
+     "pairs_checked": 28,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/DRIVE",
+     "layer": "In2.Cu",
+     "delta_v": 50.0,
+     "pairs_checked": 42,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/DRIVE",
+     "layer": "B.Cu",
+     "delta_v": 50.0,
+     "pairs_checked": 30,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/GATE_OFF",
+     "layer": "F.Cu",
+     "delta_v": 50.0,
+     "pairs_checked": 348,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/GATE_ON",
+     "layer": "F.Cu",
+     "delta_v": 50.0,
+     "pairs_checked": 174,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/GATE_Q1",
+     "layer": "F.Cu",
+     "delta_v": 50.0,
+     "pairs_checked": 174,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/GATE_Q2",
+     "layer": "F.Cu",
+     "delta_v": 50.0,
+     "pairs_checked": 174,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/stage/L201_MID",
+     "layer": "F.Cu",
+     "delta_v": 50.0,
+     "pairs_checked": 87,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "GND",
+     "layer": "F.Cu",
+     "delta_v": 50.0,
+     "pairs_checked": 8178,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "GND",
+     "layer": "In1.Cu",
+     "delta_v": 50.0,
+     "pairs_checked": 2562,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "GND",
+     "layer": "In2.Cu",
+     "delta_v": 50.0,
+     "pairs_checked": 2562,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "GND",
+     "layer": "B.Cu",
+     "delta_v": 50.0,
+     "pairs_checked": 2835,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    }
+   ]
+  },
+  {
+   "net": "/SW",
+   "other_net": "/tank/TANK_A",
+   "voltage": 203.0,
+   "voltage_pair": true,
+   "pairs_checked": 4,
+   "pairs": [
+    {
+     "other_net": "/tank/TANK_A",
+     "layer": "F.Cu",
+     "delta_v": 203.0,
+     "pairs_checked": 1457,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/tank/TANK_A",
+     "layer": "In1.Cu",
+     "delta_v": 203.0,
+     "pairs_checked": 406,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/tank/TANK_A",
+     "layer": "In2.Cu",
+     "delta_v": 203.0,
+     "pairs_checked": 406,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/tank/TANK_A",
+     "layer": "B.Cu",
+     "delta_v": 203.0,
+     "pairs_checked": 450,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    }
+   ]
+  },
+  {
+   "net": "/tank/TANK_A",
+   "other_net": "/tank/TANK_B",
+   "voltage": 151.0,
+   "voltage_pair": true,
+   "pairs_checked": 4,
+   "pairs": [
+    {
+     "other_net": "/tank/TANK_B",
+     "layer": "F.Cu",
+     "delta_v": 151.0,
+     "pairs_checked": 1363,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/tank/TANK_B",
+     "layer": "In1.Cu",
+     "delta_v": 151.0,
+     "pairs_checked": 406,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/tank/TANK_B",
+     "layer": "In2.Cu",
+     "delta_v": 151.0,
+     "pairs_checked": 406,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/tank/TANK_B",
+     "layer": "B.Cu",
+     "delta_v": 151.0,
+     "pairs_checked": 450,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    }
+   ]
+  },
+  {
+   "net": "/tank/TANK_B",
+   "other_net": "/tank/RFOUT",
+   "voltage": 135.0,
+   "voltage_pair": true,
+   "pairs_checked": 4,
+   "pairs": [
+    {
+     "other_net": "/tank/RFOUT",
+     "layer": "F.Cu",
+     "delta_v": 135.0,
+     "pairs_checked": 1479,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/tank/RFOUT",
+     "layer": "In1.Cu",
+     "delta_v": 135.0,
+     "pairs_checked": 406,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/tank/RFOUT",
+     "layer": "In2.Cu",
+     "delta_v": 135.0,
+     "pairs_checked": 406,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    },
+    {
+     "other_net": "/tank/RFOUT",
+     "layer": "B.Cu",
+     "delta_v": 135.0,
+     "pairs_checked": 450,
+     "pairs_under_requirement": 0,
+     "same_footprint_under": 0,
+     "min_gap_mm": null,
+     "truncated": false
+    }
+   ]
+  }
+ ],
+ "skipped_absent_nets": [],
+ "skipped_low_voltage_pairs": [],
+ "coating": "soldermask"
+}

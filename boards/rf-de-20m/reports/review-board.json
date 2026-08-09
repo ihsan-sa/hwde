@@ -1,0 +1,74 @@
+{
+ "script": "review.board",
+ "phase": "P8",
+ "board": "rf-de-20m.kicad_pcb",
+ "date": "2026-08-08",
+ "author": "verify-reviewer (fresh context)",
+ "coords": "absolute board coordinates; board-local = absolute - (6.635, 39.335)",
+ "counts": {"total": 8, "by_severity": {"error": 5, "warning": 3}},
+ "waivers_recommended": {
+  "approve_unconditional": ["check_creepage x21 + drc_routed clearance x48 (intra-EPC2019 die geometry)",
+                            "check_current undersized_track /SW x3",
+                            "check_current undersized_track /tank/RFOUT x1",
+                            "check_current pour_neckdown +40V x1",
+                            "check_return_path /SW x1",
+                            "check_thermal L301/L302 x2",
+                            "padstack x2 + copper_sliver x1",
+                            "all 159 warnings (see review-board.md s4)"],
+  "approve_conditional": ["check_thermal Q201/Q202 x2 - waive the GATE (heatsink-blind, confirmed in source) but NOT the substitute numbers; see error E1",
+                          "check_thermal thermal_vias warning x2 - count triage correct, conclusion wrong; see error E5"]
+ },
+ "violations": [
+  {
+   "check": "board-review", "severity": "error", "pos": [38.135, 64.335],
+   "layer": null, "net": "GND", "refs": ["Q201", "Q202"],
+   "kind": "theta-bs-unvalidated", "domain": "review", "source": "review.board",
+   "msg": "The EPC2019 pair's whole thermal budget rests on theta_BS = 1.5 C/W (F.Cu under the dies -> B.Cu), which is ASSUMED, not simulated. Measured stackup is F.Cu 35um / 0.2444mm / In1 15.2um / 1.065mm / In2 15.2um / 0.2444mm / B.Cu, crossed by only 18 vias (9 per FET). Layered-spreading estimate gives theta_BS 7.3 C/W; the most optimistic plausible model (heat spread over the full 645 mm2 at every layer, k_FR4 0.4, 18 barrel vias in parallel) still gives 4.05 C/W - 2.7x the assumed value. Consequence: theta_JA(pair) becomes 8.45-11.75 C/W instead of 5.95, i.e. Tj ~151-188 C nominal and ~180-228 C at the max-datasheet corner, against the EPC2019's 150 C ABSOLUTE MAXIMUM. verify-waivers.md entry 6's premise (check_thermal is heatsink-blind) is correct and confirmed in check_thermal.theta_ja(); its substitute numbers are not. Levers: order 1oz inner layers (halves inner spreading), build the missing B.Cu mask land (E3), fix the vias (E5), derate the bus to 36V/162W (-14 C, already costed), revert R205/R206 to 4R7 (-4 C, see W1). Close OPEN-10 with a 3-D solve or a first-article measurement BEFORE ordering."
+  },
+  {
+   "check": "board-review", "severity": "error", "pos": [117.9, 94.3],
+   "layer": "F.Cu", "net": "/tank/RFOUT",
+   "refs": ["C310", "C311", "C312", "C313", "C314", "C315", "C316", "C317", "C318", "C319", "L302", "J301"],
+   "kind": "cm-populate-ignores-pour-c", "domain": "parts", "source": "review.board",
+   "msg": "The C_m bank ships 531 pF but the /tank/RFOUT pour adds 46.1 pF to GND, which is in parallel with C_m at 20 MHz - independently re-measured: 371.5 mm2 of F.Cu, 84.5% (313.9 mm2) over In1 at 0.2444 mm, epsilon_r 4.05 -> 46.1 pF (P7 measured 46.06). Effective C_m = 577 pF vs the 530.4 pF ideal (+8.8%). The load presented to the tank moves from 4.12+j0.07 ohm (X/R 1.19, ~200 W) to 3.53+j1.01 ohm (X/R 1.65 vs the Class E optimum 1.1525, ~233 W) - i.e. PAST the 560 pF bank that P4 review W1 explicitly rejected (3.74+j0.67, X/R 1.47, ~221 W) and for which a new BOM line (C541492) was created. +17% I_dc and +37% FET conduction loss on the board of E1. P7 route-notes.md s7 handed this to P8; verify-waivers.md s16 records it 'untouched'. FIX: depopulate one 56 pF site from C_m (8 x 56 + C319 27 pF = 475 pF + 46.1 stray = 521 pF, -1.8%)."
+  },
+  {
+   "check": "board-review", "severity": "error", "pos": [27.135, 79.335],
+   "layer": "B.Mask", "net": "GND", "refs": ["Q201", "Q202"],
+   "kind": "missing-heatsink-mask-land", "domain": "fab", "source": "review.board",
+   "msg": "architecture/stackup.md and constraints.json:thermal[Q201] both require a MASK-OPENED land on B.Cu for the bolt-on heatsink. No B.Cu solder-mask aperture exists anywhere on the board: the only mask-bearing layer sets are 'F.Cu F.Mask F.Paste' (161 component pads) and '*.Cu *.Mask' (6 = J101's 2 THT pins + 4 NPTH mounting holes). Confirmed visually in reports/renders/rf-de-20m_bottom.png - the entire HS-2 rect [5,10,36,70] board-local is masked. The sink therefore bolts onto solder mask, which nobody decided. Either (a) keep the mask and add its term (0.05 C/W over 1860 mm2, ~0.5 C/W if the effective spreading area is ~200 mm2) to the E1 budget explicitly, or (b) open it - in which case the HASL->ENIG override already in stackup.md becomes load-bearing, since HASL on a 31x60 mm bare land leaves 5-25 um of relief and destroys the flatness the thermal case assumes."
+  },
+  {
+   "check": "board-review", "severity": "error", "pos": [27.135, 79.335],
+   "layer": null, "net": null, "refs": ["H1", "H2", "H3", "H4"],
+   "kind": "no-heatsink-fastening", "domain": "placement", "source": "review.board",
+   "msg": "Nothing on this board can clamp the heatsink over the FETs, yet HS-1 requires theta_HS <= 0.7 C/W MEASURED over a ~31x60 mm base and E1 shows the interface is where the margin lives. Mounting holes are the P0 Q4 default 4x M3 at board-local (3,3),(117,3),(117,77),(3,77), chosen before the heatsink existed. H2/H3 at x=117 cannot hold the sink (HS-2 forbids it past x=40 mm), leaving H1 and H4 - both at x=3, COLLINEAR on the west edge, 28-30 mm in x from the dies at (31.5,22.9)/(31.5,27.1). Two bolts on one line cannot control contact pressure at the far corner of the land, and pressure sets the TIM bondline. No holes exist inside the HS-2 rect and no fastening scheme is specified in blocks.md, stackup.md or requirements.md. Adding holes is geometrically legal: with the sink confined to x<=40, SPIRAL-6 has 19.4 mm to spare and the existing corner holes are 18.8/30.8 mm clear of L302/L301. Recommend 2-4 M3 NPTH inside or on the boundary of [5,10,36,70], or an explicit clamp-bar deliverable. Owner decision at H4."
+  },
+  {
+   "check": "board-review", "severity": "error", "pos": [38.135, 64.335],
+   "layer": "F.Cu", "net": "GND", "refs": ["Q201", "Q202"],
+   "kind": "thermal-vias-short-and-unfillable", "domain": "fab", "source": "review.board",
+   "msg": "Measured from each die centroid: 9 GND vias within 4.0 mm (3 within the check's 2.27 mm window), nearest at 1.581 mm (Q201) / 1.598 mm (Q202) - about 1.1 mm from the nearest source land, because aiee_hv_143v_SW at 0.8 mm caps the landing area. blocks.md s4.1 and stackup.md require '>= 10 x 0.3 mm COPPER-FILLED vias per FET, in and immediately around the source lands': neither the count nor the placement is met. Worse, JLC does not sell copper-filled vias - the order-time option in stackup.md is POFV (epoxy filled and capped), so the '~2.5x better than plated-barrel' factor the thermal budget assumes IS NOT PURCHASABLE on this vendor and nobody has said so. Under E1's numbers the 18 barrel vias (~187 C/W each) carry roughly half the total heat flow, so verify-waivers.md s3's '9 vs 10 moves Tj by <0.1 C' understates them. Carry to P10 as a hard constraint. Related: the LMG1020 via-in-pad that POFV was requested for was never built - the nearest GND via to U201 is (30.777, 63.315), 0.3 mm outside the ball array."
+  },
+  {
+   "check": "board-review", "severity": "warning", "pos": [38.135, 64.335],
+   "layer": "F.Cu", "net": "GND",
+   "refs": ["Q201", "Q202", "U201", "R205", "R206"],
+   "kind": "common-source-inductance-open", "domain": "review", "source": "review.board",
+   "msg": "route-notes.md s14 escalated common-source inductance to P8 as a SIM item; verify-waivers.md never mentions it. Closing it: the four source escapes measured 0.400 mm (pad2, the gate-return star point), 0.450 (pad6), 0.450 (pad7) and 1.200 mm (pad4), all 0.25 mm wide over In1 at 0.2444 mm = 0.49/0.55/0.55/1.47 nH, and ALL FOUR land on the same 311.7 mm2 F.Cu GND island that also carries U201's ground and C203/C204 - so there is NO Kelvin source and L_common is the parallel combination, ~0.157 nH, not the 0.768 nH single escape P7 assumed. Turn-off injection: 0.157 nH x 2.4 A/ns = +0.38 V (+0.63 V at P7's 8 A/ns pair figure), plus Miller Crss 0.7-1.0 pF x 24.8 V/ns through ~8 ohm = +0.14-0.20 V; total +0.5..0.8 V against VGSth_min 0.8 V (typ 1.4 V). Survivable but only ~1.3x at the datasheet minimum - make it a named bring-up measurement (VGS at the die on the turn-off edge). CONSEQUENCE: the 4R7->6R8 ruling was partly bought against 'a term of the order of volts'; at 0.157 nH it is 0.4-0.6 V, so reverting to 4R7 recovers ~4 C of the E1 budget for no new risk. Owner's call - the 6R8 decision was ruled twice."
+  },
+  {
+   "check": "board-review", "severity": "warning", "pos": [43.035, 61.335],
+   "layer": "F.Cu", "net": "/SW",
+   "refs": ["C203", "C204", "C205", "C206"],
+   "kind": "cshunt-populate-ignores-pour-c", "domain": "parts", "source": "review.board",
+   "msg": "C_shunt as shipped is 316 pF (pair Coss) + 112 pF (2 x 56 pF populated) + 27.4 pF of measured /SW pour capacitance to In1 = 455.4 pF, above the top of the design's own 403-449 pF band (stage.py's recorded 33->56 pF deviation solved 428 pF as 'the MIDDLE of the requirement' and predates P7's pour measurement) and 13% above the ideal-choke value. Same abandoned P7 s7 handoff as E2, but far less serious because the trim is real and downward: depopulating C204 gives 316+56+27.4 = 399 pF. Ship it as a bring-up instruction ('if ZVS lands late, pull C204 first') or take P7's ~60 pF recommendation now."
+  },
+  {
+   "check": "board-review", "severity": "warning", "pos": null,
+   "layer": "F.Cu", "net": null, "refs": ["U201", "Q201", "Q202"],
+   "kind": "no-fiducials", "domain": "fab", "source": "review.board",
+   "msg": "No fiducials anywhere on the board (grep -i fiducial over the .kicad_pcb returns nothing; confirmed in both renders). This board carries a 0.4 mm-pitch WCSP (U201) and two bare passivated EPC2019 die whose lands are 0.23 mm solder-mask-defined openings with 0.25 mm bumps - the three finest-pitch features on the order. JLC uses panel fiducials, but local fiducials are the standard mitigation below 0.5 mm pitch and cost nothing. Recommend 3 x 1 mm copper / 2 mm mask fiducials on F.Cu near board-local (10,10) / (110,10) / (10,70) - all outside the HS-2 rect [5,10,36,70] and >= 15 mm from either spiral (SPIRAL-6)."
+  }
+ ]
+}

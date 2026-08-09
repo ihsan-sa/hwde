@@ -1,0 +1,293 @@
+{
+ "script": "check_decoupling",
+ "status": "violations",
+ "board": "rf-de-20m.kicad_pcb",
+ "counts": {
+  "total": 6,
+  "by_severity": {
+   "warning": 6
+  },
+  "by_source": {
+   "check_decoupling": 6
+  }
+ },
+ "violations": [
+  {
+   "check": "check_decoupling",
+   "severity": "warning",
+   "pos": [
+    51.6923,
+    79.9084
+   ],
+   "layer": "F.Cu",
+   "net": "/hk/VCC",
+   "refs": [
+    "C106",
+    "U101"
+   ],
+   "msg": "C106 (2.2uF 50V X7R 0805) rail pad is 3.4 mm Manhattan (2.7 mm direct) from U101 pin 6 (bulk class limit 3.0 mm)",
+   "source": "check_decoupling",
+   "items": [
+    {
+     "msg": "C106 (2.2uF 50V X7R 0805) rail pad is 3.4 mm Manhattan (2.7 mm direct) from U101 pin 6 (bulk class limit 3.0 mm)",
+     "pos": [
+      51.6923,
+      79.9084
+     ]
+    }
+   ],
+   "kind": "decoupler_distance",
+   "cap_class": "bulk",
+   "manhattan_mm": 3.3839,
+   "euclid_mm": 2.6968,
+   "loop_nh": 6.5041,
+   "vias_in_loop": 1,
+   "pin": "U101.6",
+   "limit_mm": 3.0
+  },
+  {
+   "check": "check_decoupling",
+   "severity": "warning",
+   "pos": [
+    30.315,
+    61.035
+   ],
+   "layer": "F.Cu",
+   "net": "+5V_DRV",
+   "refs": [
+    "C201",
+    "U201"
+   ],
+   "msg": "C201 (100nF 16V X7R 0402) rail pad is 3.5 mm Manhattan (2.8 mm direct) from U201 pin A1 (mid class limit 0.5 mm)",
+   "source": "check_decoupling",
+   "items": [
+    {
+     "msg": "C201 (100nF 16V X7R 0402) rail pad is 3.5 mm Manhattan (2.8 mm direct) from U201 pin A1 (mid class limit 0.5 mm)",
+     "pos": [
+      30.315,
+      61.035
+     ]
+    }
+   ],
+   "kind": "decoupler_distance",
+   "cap_class": "mid",
+   "manhattan_mm": 3.495,
+   "euclid_mm": 2.7979,
+   "loop_nh": 6.0519,
+   "vias_in_loop": 3,
+   "pin": "U201.A1",
+   "limit_mm": 0.5
+  },
+  {
+   "check": "check_decoupling",
+   "severity": "warning",
+   "pos": [
+    30.315,
+    61.035
+   ],
+   "layer": "F.Cu",
+   "net": "+5V_DRV",
+   "refs": [
+    "C201",
+    "U201"
+   ],
+   "msg": "C201 decoupling loop ~6.1 nH for U201 pin A1 (mid class limit 0.3 nH: 3.5 mm rail + 0.9 mm gnd + 3 via)",
+   "source": "check_decoupling",
+   "items": [
+    {
+     "msg": "C201 decoupling loop ~6.1 nH for U201 pin A1 (mid class limit 0.3 nH: 3.5 mm rail + 0.9 mm gnd + 3 via)",
+     "pos": [
+      30.315,
+      61.035
+     ]
+    }
+   ],
+   "kind": "decoupler_loop",
+   "cap_class": "mid",
+   "manhattan_mm": 3.495,
+   "euclid_mm": 2.7979,
+   "loop_nh": 6.0519,
+   "vias_in_loop": 3,
+   "pin": "U201.A1",
+   "limit_nh": 0.3
+  },
+  {
+   "check": "check_decoupling",
+   "severity": "warning",
+   "pos": [
+    30.465,
+    62.335
+   ],
+   "layer": "F.Cu",
+   "net": "+5V_DRV",
+   "refs": [
+    "C202",
+    "U201"
+   ],
+   "msg": "C202 (10nF 25V X7R 0201) rail pad is 2.0 mm Manhattan (1.5 mm direct) from U201 pin A1 (mid class limit 0.5 mm)",
+   "source": "check_decoupling",
+   "items": [
+    {
+     "msg": "C202 (10nF 25V X7R 0201) rail pad is 2.0 mm Manhattan (1.5 mm direct) from U201 pin A1 (mid class limit 0.5 mm)",
+     "pos": [
+      30.465,
+      62.335
+     ]
+    }
+   ],
+   "kind": "decoupler_distance",
+   "cap_class": "mid",
+   "manhattan_mm": 2.045,
+   "euclid_mm": 1.5296,
+   "loop_nh": 3.1358,
+   "vias_in_loop": 1,
+   "pin": "U201.A1",
+   "limit_mm": 0.5
+  },
+  {
+   "check": "check_decoupling",
+   "severity": "warning",
+   "pos": [
+    30.465,
+    62.335
+   ],
+   "layer": "F.Cu",
+   "net": "+5V_DRV",
+   "refs": [
+    "C202",
+    "U201"
+   ],
+   "msg": "C202 decoupling loop ~3.1 nH for U201 pin A1 (mid class limit 0.3 nH: 2.0 mm rail + 1.0 mm gnd + 1 via)",
+   "source": "check_decoupling",
+   "items": [
+    {
+     "msg": "C202 decoupling loop ~3.1 nH for U201 pin A1 (mid class limit 0.3 nH: 2.0 mm rail + 1.0 mm gnd + 1 via)",
+     "pos": [
+      30.465,
+      62.335
+     ]
+    }
+   ],
+   "kind": "decoupler_loop",
+   "cap_class": "mid",
+   "manhattan_mm": 2.045,
+   "euclid_mm": 1.5296,
+   "loop_nh": 3.1358,
+   "vias_in_loop": 1,
+   "pin": "U201.A1",
+   "limit_nh": 0.3
+  },
+  {
+   "check": "check_decoupling",
+   "severity": "warning",
+   "pos": [
+    30.035,
+    59.435
+   ],
+   "layer": "F.Cu",
+   "net": "+5V_DRV",
+   "refs": [
+    "C213",
+    "U201"
+   ],
+   "msg": "C213 (1uF 16V X7R 0603) rail pad is 5.4 mm Manhattan (4.4 mm direct) from U201 pin A1 (bulk class limit 3.0 mm)",
+   "source": "check_decoupling",
+   "items": [
+    {
+     "msg": "C213 (1uF 16V X7R 0603) rail pad is 5.4 mm Manhattan (4.4 mm direct) from U201 pin A1 (bulk class limit 3.0 mm)",
+     "pos": [
+      30.035,
+      59.435
+     ]
+    }
+   ],
+   "kind": "decoupler_distance",
+   "cap_class": "bulk",
+   "manhattan_mm": 5.375,
+   "euclid_mm": 4.4143,
+   "loop_nh": 7.2977,
+   "vias_in_loop": 3,
+   "pin": "U201.A1",
+   "limit_mm": 3.0
+  }
+ ],
+ "checked": [
+  {
+   "cap": "C105",
+   "pin": "U101.2",
+   "rail": "+40V",
+   "class": "mid",
+   "manhattan_mm": 2.9154,
+   "euclid_mm": 2.3433,
+   "gnd_leg_mm": 2.0068,
+   "vias_in_loop": 1,
+   "loop_nh": 4.4456
+  },
+  {
+   "cap": "C106",
+   "pin": "U101.6",
+   "rail": "/hk/VCC",
+   "class": "bulk",
+   "manhattan_mm": 3.3839,
+   "euclid_mm": 2.6968,
+   "gnd_leg_mm": 4.4791,
+   "vias_in_loop": 1,
+   "loop_nh": 6.5041
+  },
+  {
+   "cap": "C201",
+   "pin": "U201.A1",
+   "rail": "+5V_DRV",
+   "class": "mid",
+   "manhattan_mm": 3.495,
+   "euclid_mm": 2.7979,
+   "gnd_leg_mm": 0.8649,
+   "vias_in_loop": 3,
+   "loop_nh": 6.0519
+  },
+  {
+   "cap": "C202",
+   "pin": "U201.A1",
+   "rail": "+5V_DRV",
+   "class": "mid",
+   "manhattan_mm": 2.045,
+   "euclid_mm": 1.5296,
+   "gnd_leg_mm": 1.0062,
+   "vias_in_loop": 1,
+   "loop_nh": 3.1358
+  },
+  {
+   "cap": "C213",
+   "pin": "U201.A1",
+   "rail": "+5V_DRV",
+   "class": "bulk",
+   "manhattan_mm": 5.375,
+   "euclid_mm": 4.4143,
+   "gnd_leg_mm": 0.7645,
+   "vias_in_loop": 3,
+   "loop_nh": 7.2977
+  },
+  {
+   "cap": "C108",
+   "pin": "L101.2",
+   "rail": "+5V",
+   "class": "bulk",
+   "manhattan_mm": 11.1898,
+   "euclid_mm": 11.1379,
+   "gnd_leg_mm": 0.5566,
+   "vias_in_loop": 1,
+   "loop_nh": 9.2225
+  },
+  {
+   "cap": "C109",
+   "pin": "L101.2",
+   "rail": "+5V",
+   "class": "mid",
+   "manhattan_mm": 5.694,
+   "euclid_mm": 5.229,
+   "gnd_leg_mm": 2.0265,
+   "vias_in_loop": 1,
+   "loop_nh": 6.4044
+  }
+ ]
+}

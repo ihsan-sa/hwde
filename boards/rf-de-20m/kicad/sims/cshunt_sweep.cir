@@ -1,0 +1,137 @@
+* rf-de-20m SIM-2b cshunt_sweep - which populate actually centres ZVS?
+*
+* SOURCE NETLIST : boards/rf-de-20m/kicad/rf-de-20m.net (P8 as-built populate)
+* RENAME MAP     : as classe_zvs_nominal.cir; each variant carries a suffix
+*                  (SWA..SWF) because this deck instantiates SIX INDEPENDENT
+*                  COPIES of the whole stage - own bus, own choke, own dice,
+*                  own tank, own 50 ohm load - driven from one gate command.
+*                  They share no node but ground, so they cannot interact, and
+*                  one .tran returns the whole sweep. (ngspice's .step DOES run
+*                  but sim_run.py's stdout measure parser keeps only the LAST
+*                  set, so a stepped sweep would silently report one point.)
+* INTENT         : this bench sweeps the two knobs that are reachable WITHOUT
+*                  touching copper - the C_shunt trim bank (C203-C206) and the
+*                  C_s bank depopulate - across the EPC2019's own typ/max Coss
+*                  spread, and says which populate to fit.
+*
+* **REBASED 2026-08-08 FOR P8 FIX a3.** Its first run found the board missed
+* ZVS as built (C_s 504 pF / bank 83 pF: 15.47 V at turn-on, 53.4 W) and named
+* C_s 419 pF / bank 27 pF as the fix. THE GENERATORS NOW BUILD THAT POPULATE,
+* so the variants are re-labelled: A/D/E/F are the board AS BUILT and its
+* corners, B is the bring-up move, and C is the RETIRED pre-fix populate, kept
+* as a GATED NEGATIVE CONTROL. C must still miss ZVS by a wide margin - if it
+* ever passes, this deck has lost the ability to see the failure it was written
+* to find and no other number in this directory may be believed.
+*
+* REACHABLE POPULATES, from kicad/gen/stage.py CSHUNT_SITES and tank.py CS_REFS
+* (these are hard constraints - a recommendation outside them is not buildable):
+*   C_shunt bank C203 56p DNP / C204 27p / C205 56p DNP / C206 56p DNP
+*       -> 0, 27(as built), 56, 83, 112, 139, 168, 195 pF
+*   C_s bank     C301..C307 7 x 56p + C320 27p populated; C308/C309/C321 DNP
+*       -> 392, 419(as built), 446, 448, 475, 502, 504, 531, 558 pF ...
+*          (n x 56 + m x 27, n = 0..9, m = 0..2)
+*
+* MODEL POLICY / PARASITICS: identical cards and identical measured pour values
+* to classe_zvs_nominal.cir - see that file's header for the full provenance.
+* The Coss card is gated separately and first by coss_charge.cir.
+*
+* WHY THE MAX-COSS CORNER IS A SEPARATE VARIANT, NOT A MARGIN: the EPC2019
+* datasheet spread is Coss 110 typ / 150 max pF and Qoss 18 typ / 23 max nC,
+* i.e. +28 % of charge. decisions.md D2 calls the trim bank "load-bearing"
+* precisely because that spread has no other absorber once copper is etched.
+* Variants D/E are the max-corner pair; the delta between B and E is the number
+* that says whether the bank has enough range.
+*
+.title rf-de-20m SIM-2b C_shunt / C_s populate sweep at the 30 V bench point
+.options rshunt=1e9
+.param VBUS=30
+.param CJ0=789p MM=0.427
+.param CJ0X=870p MMX=0.381
+.param PER=50n PWID=23n
+
+.subckt EPC2019 d g s params: cj0=789p vj=1.0 mm=0.427 ron=0.065
+Sch d s g s SWCH
+Coss d dx c={cj0/pow(1+0.5*(v(d,s)+sqrt(v(d,s)*v(d,s)+0.01))/vj,mm)}
+Rcoss dx s 0.05
+Drev s d GANREV
+Cgs g s 199p
+Cgd g d 0.7p
+.model SWCH SW(vt=2.5 vh=1.0 ron={ron} roff=1e8)
+.model GANREV D(is=1e-12 n=2.6 rs=0.05 cjo=0)
+.ends
+
+* ---- one complete Class E stage, exposing its drain node -------------------
+.subckt STAGE sw gdrv params: cext=83p cs=504p cm=475p lbr=30n
++ cj0=789p mm=0.427 vbus=30
+Vdd vb 0 DC {vbus}
+Lch1 vb la 470n
+Rch1 la lm 0.0041
+Lch2 lm lb 470n
+Rch2 lb sw 0.0041
+Xq1 sw g1 0 EPC2019 cj0={cj0} vj=1.0 mm={mm} ron=0.065
+Xq2 sw g2 0 EPC2019 cj0={cj0} vj=1.0 mm={mm} ron=0.065
+Cshext sw 0 {cext+27.4p}
+Rg1 gdrv g1 5.85
+Rg2 gdrv g2 5.85
+Ls1 sw n1 162.9n
+Rls n1 ta 0.0531
+Cta ta 0 13.4p
+Lbr ta n2 {lbr}
+Cs n2 tb {cs}
+Rcs tb tb2 0.0011
+Ctb tb2 0 0.8p
+Lm1 tb2 n3 108.9n
+Rlm n3 rf 0.0426
+Cm rf 0 {cm+46.1p}
+Rl rf 0 50
+.ends
+
+Vg GDRV 0 PULSE(0 5 0 2n 2n {PWID} {PER})
+
+* A  AS BUILT (P8 fix a3)           C_s 419, bank 27 pF, typ Coss
+Xa SWA GDRV STAGE cext=27p  cs=419p cj0={CJ0} mm={MM}
+* B  as built tank, bank EMPTIED    C_s 419, bank 0 pF,  typ Coss - the
+*    bring-up move review-board.md W2 ships ("if ZVS lands late, pull C204")
+Xb SWB GDRV STAGE cext=1f   cs=419p cj0={CJ0} mm={MM}
+* C  RETIRED PRE-FIX POPULATE       C_s 504, bank 83 pF, typ Coss - NEGATIVE
+*    CONTROL. It must still miss ZVS and still deliver only ~53 W.
+Xc SWC GDRV STAGE cext=83p  cs=504p cj0={CJ0} mm={MM}
+* D  as built, MAX Coss, bank 27 pF
+Xd SWD GDRV STAGE cext=27p  cs=419p cj0={CJ0X} mm={MMX}
+* E  as built, MAX Coss, bank EMPTIED - the corner's own trim answer
+Xe SWE GDRV STAGE cext=1f   cs=419p cj0={CJ0X} mm={MMX}
+* F  as built tank, bank 56 pF, typ Coss - the next populate step up
+Xf SWF GDRV STAGE cext=56p  cs=419p cj0={CJ0} mm={MM}
+
+.tran 0.02n 4u 3.70u 0.02n
+
+* Turn-on = conduction onset (gate through 5.85 ohm / 199 pF reaches the
+* switch model's VT-VH = 1.5 V), same definition as classe_zvs_nominal.cir.
+.meas tran vds_ton_asbuilt_v FIND v(SWA) WHEN v(Xa.g1)=1.5 TD=3949n RISE=1
+.meas tran vds_ton_bank0_v   FIND v(SWB) WHEN v(Xb.g1)=1.5 TD=3949n RISE=1
+.meas tran vds_ton_prefix_v  FIND v(SWC) WHEN v(Xc.g1)=1.5 TD=3949n RISE=1
+.meas tran vds_ton_maxcoss_v FIND v(SWD) WHEN v(Xd.g1)=1.5 TD=3949n RISE=1
+.meas tran vds_ton_maxcoss_bank0_v FIND v(SWE) WHEN v(Xe.g1)=1.5 TD=3949n RISE=1
+.meas tran vds_ton_bank56_v FIND v(SWF) WHEN v(Xf.g1)=1.5 TD=3949n RISE=1
+
+* The architecture's "vds_at_turnon_worst_v across the device sweep, untuned":
+* worst of the AS-BUILT populate over the typ..max Coss spread.
+.meas tran vds_ton_worst_v param='(vds_ton_asbuilt_v+vds_ton_maxcoss_v+abs(vds_ton_asbuilt_v-vds_ton_maxcoss_v))/2'
+
+* Delivered power - a populate that reaches ZVS by starving the tank is not a
+* fix, so power is gated alongside ZVS on every variant that claims to be one.
+.meas tran vrms_asbuilt RMS v(Xa.rf) FROM=3750n TO=4000n
+.meas tran vrms_bank0   RMS v(Xb.rf) FROM=3750n TO=4000n
+.meas tran vrms_prefix  RMS v(Xc.rf) FROM=3750n TO=4000n
+.meas tran vrms_mx      RMS v(Xd.rf) FROM=3750n TO=4000n
+.meas tran vrms_mx0     RMS v(Xe.rf) FROM=3750n TO=4000n
+.meas tran pout_asbuilt_w param='vrms_asbuilt*vrms_asbuilt/50'
+.meas tran pout_bank0_w   param='vrms_bank0*vrms_bank0/50'
+.meas tran pout_prefix_w  param='vrms_prefix*vrms_prefix/50'
+.meas tran pout_maxcoss_w param='vrms_mx*vrms_mx/50'
+.meas tran pout_maxcoss_bank0_w param='vrms_mx0*vrms_mx0/50'
+
+* Drain stress on every variant that is a candidate build
+.meas tran vds_peak_asbuilt_v MAX v(SWA) FROM=3900n TO=4000n
+.meas tran vds_peak_bank0_v MAX v(SWB) FROM=3900n TO=4000n
+.end

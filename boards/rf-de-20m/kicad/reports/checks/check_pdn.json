@@ -1,0 +1,99 @@
+{
+ "script": "check_pdn",
+ "status": "violations",
+ "board": "rf-de-20m.kicad_pcb",
+ "counts": {
+  "total": 1,
+  "by_severity": {
+   "warning": 1
+  },
+  "by_source": {
+   "check_pdn": 1
+  }
+ },
+ "violations": [
+  {
+   "check": "check_pdn",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "+40V",
+   "refs": [
+    "C105"
+   ],
+   "msg": "power rail +40V has 1 cap(s) but no bulk reservoir (>= 1 uF); only ceramics hold it",
+   "source": "check_pdn",
+   "items": [
+    {
+     "msg": "power rail +40V has 1 cap(s) but no bulk reservoir (>= 1 uF); only ceramics hold it",
+     "pos": null
+    }
+   ],
+   "kind": "pdn_no_bulk",
+   "rail": "+40V",
+   "cap_count": 1,
+   "bulk_count": 0
+  }
+ ],
+ "checked": [
+  {
+   "rail": "+40V",
+   "current_a": 7.0,
+   "on_board": true,
+   "caps": [
+    "C105"
+   ],
+   "cap_count": 1,
+   "bulk_count": 0,
+   "ceramic_count": 1,
+   "total_uf": 0.1
+  },
+  {
+   "rail": "+5V",
+   "current_a": 0.3,
+   "on_board": true,
+   "caps": [
+    "C108",
+    "C109"
+   ],
+   "cap_count": 2,
+   "bulk_count": 1,
+   "ceramic_count": 1,
+   "total_uf": 22.1
+  },
+  {
+   "rail": "+5V_DRV",
+   "current_a": 0.3,
+   "on_board": true,
+   "caps": [
+    "C201",
+    "C202",
+    "C213"
+   ],
+   "cap_count": 3,
+   "bulk_count": 1,
+   "ceramic_count": 2,
+   "total_uf": 1.11
+  },
+  {
+   "rail": "/SW",
+   "current_a": 9.2,
+   "skipped": "pdn:false (width-only power entry)"
+  },
+  {
+   "rail": "/tank/TANK_A",
+   "current_a": 7.0,
+   "skipped": "pdn:false (width-only power entry)"
+  },
+  {
+   "rail": "/tank/TANK_B",
+   "current_a": 7.0,
+   "skipped": "pdn:false (width-only power entry)"
+  },
+  {
+   "rail": "/tank/RFOUT",
+   "current_a": 7.0,
+   "skipped": "pdn:false (width-only power entry)"
+  }
+ ]
+}

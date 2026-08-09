@@ -3,9 +3,124 @@
  "board": "rf-de-20m",
  "workspace": "boards/rf-de-20m",
  "created": "2026-08-07T20:58:16",
- "updated": "2026-08-08T19:40:47",
+ "updated": "2026-08-08T23:52:05",
  "phase": "P7",
- "gates": {},
+ "gates": {
+  "sim": {
+   "phase": "P8",
+   "status": "fail",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-08-08T23:51:20",
+    "status": "fail",
+    "failing_count": 1,
+    "total": 4,
+    "inputs": {
+     "sims": "dir_text:ead2c917626e807017410600cf9de806e1298748c951785cc6d672993668f668"
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-08T23:51:20",
+     "status": "fail",
+     "failing_count": 1,
+     "total": 4,
+     "inputs": {
+      "sims": "dir_text:ead2c917626e807017410600cf9de806e1298748c951785cc6d672993668f668"
+     }
+    }
+   ]
+  },
+  "verify": {
+   "phase": "P8",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-08-08T23:51:20",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 189,
+    "inputs": {
+     "pcb": "sexpr_no_uuid:95c6b6e0943fdb0ea1148babff0a2b80917adbd9ac2666104ec1c9cc8df89e1d",
+     "constraints": "json_canonical:08e54b152197bd8e10f6cecab232eb8e75b6a3ad76f627c25330c92869886fb4",
+     "decoupling": "json_canonical:b95b2a43d8a2216968c83095882415d8028982d3b8c0f7d486cd38e45e39077f",
+     "waivers": null
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-08T23:51:20",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 189,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:95c6b6e0943fdb0ea1148babff0a2b80917adbd9ac2666104ec1c9cc8df89e1d",
+      "constraints": "json_canonical:08e54b152197bd8e10f6cecab232eb8e75b6a3ad76f627c25330c92869886fb4",
+      "decoupling": "json_canonical:b95b2a43d8a2216968c83095882415d8028982d3b8c0f7d486cd38e45e39077f",
+      "waivers": null
+     }
+    }
+   ]
+  },
+  "drc_routed": {
+   "phase": "P7",
+   "status": "fail",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-08-08T23:51:20",
+    "status": "fail",
+    "failing_count": 55,
+    "total": 55,
+    "inputs": {
+     "pcb": "sexpr_no_uuid:95c6b6e0943fdb0ea1148babff0a2b80917adbd9ac2666104ec1c9cc8df89e1d",
+     "sch": "sexpr_no_uuid:2a524430b27b5ea9a0f2b776a8dfc0ade4cf3964795636aca72efdcd02dc7304",
+     "pro": "json_canonical:8ab41fab816eb5a6de6582698a53e3009c0bfb80ba6ead60c9f63e83b78592be",
+     "dru": "text_eol:11cf2bada8992302f1cc690ce1e9ed6d8427ef3237990fa2374c667e8178845a"
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-08T23:51:20",
+     "status": "fail",
+     "failing_count": 55,
+     "total": 55,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:95c6b6e0943fdb0ea1148babff0a2b80917adbd9ac2666104ec1c9cc8df89e1d",
+      "sch": "sexpr_no_uuid:2a524430b27b5ea9a0f2b776a8dfc0ade4cf3964795636aca72efdcd02dc7304",
+      "pro": "json_canonical:8ab41fab816eb5a6de6582698a53e3009c0bfb80ba6ead60c9f63e83b78592be",
+      "dru": "text_eol:11cf2bada8992302f1cc690ce1e9ed6d8427ef3237990fa2374c667e8178845a"
+     }
+    }
+   ]
+  },
+  "erc": {
+   "phase": "P4",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-08-08T23:51:21",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0,
+    "inputs": {
+     "sch": "sexpr_no_uuid:2a524430b27b5ea9a0f2b776a8dfc0ade4cf3964795636aca72efdcd02dc7304",
+     "pro": "json_canonical:8ab41fab816eb5a6de6582698a53e3009c0bfb80ba6ead60c9f63e83b78592be"
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-08T23:51:21",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "sch": "sexpr_no_uuid:2a524430b27b5ea9a0f2b776a8dfc0ade4cf3964795636aca72efdcd02dc7304",
+      "pro": "json_canonical:8ab41fab816eb5a6de6582698a53e3009c0bfb80ba6ead60c9f63e83b78592be"
+     }
+    }
+   ]
+  }
+ },
  "human": {
   "1": {
    "status": "approved",
@@ -21,43 +136,19 @@
    "status": "approved",
    "ts": "2026-08-08T13:23:42",
    "note": "Placement approved. SMA vertical top-mount (not edge-launch) accepted by owner - it is the only true-SMD 50R SMA at LCSC with no bottom-side joints, which the flat heatsink face requires"
+  },
+  "4": {
+   "status": "approved",
+   "ts": "2026-08-08T21:18:05",
+   "note": "Owner approved all 8 waiver classes; owner chose: fix the four board-level thermal defects AND derate to 36V/~162W. Re-confirms schematic approval after the 3 post-H2 human_hold edits"
   }
  },
  "artifacts": {
   "netlist": {
    "path": "kicad/rf-de-20m.net",
    "kind": "netlist",
-   "sha256": "netlist_canonical:42749e543609ef17a7e7afd1e91e4941f142d3226f44f86883d81bbe5f0ebedd",
-   "hashed": "2026-08-08T18:25:09",
-   "stale": [
-    {
-     "ts": "2026-08-08T18:25:09",
-     "edit_class": "swap_part_same_fp",
-     "refs": [
-      "R205",
-      "R206"
-     ],
-     "human_hold": 2
-    },
-    {
-     "ts": "2026-08-08T18:47:56",
-     "edit_class": "swap_part_new_fp",
-     "refs": [
-      "J101",
-      "U101"
-     ],
-     "human_hold": 2
-    },
-    {
-     "ts": "2026-08-08T19:33:02",
-     "edit_class": "swap_part_same_fp",
-     "refs": [
-      "R205",
-      "R206"
-     ],
-     "human_hold": 2
-    }
-   ]
+   "sha256": "netlist_canonical:12c08a0225a0f3b719caec81e2e71a4bcae8c073d33b438c675d5f9539798efd",
+   "hashed": "2026-08-08T23:51:20"
   },
   "bom": {
    "path": "fab/BOM.csv",
@@ -89,6 +180,49 @@
      "refs": [
       "R205",
       "R206"
+     ],
+     "human_hold": 2
+    },
+    {
+     "ts": "2026-08-08T22:14:03",
+     "edit_class": "swap_part_same_fp",
+     "refs": [
+      "C203",
+      "C204",
+      "C310",
+      "C311",
+      "C312",
+      "C313",
+      "C314",
+      "C315",
+      "C316",
+      "C317",
+      "C318",
+      "C319",
+      "R205",
+      "R206"
+     ],
+     "human_hold": 2
+    },
+    {
+     "ts": "2026-08-08T23:45:15",
+     "edit_class": "swap_part_same_fp",
+     "refs": [
+      "C203",
+      "C204",
+      "C205",
+      "C206",
+      "C301",
+      "C302",
+      "C303",
+      "C304",
+      "C305",
+      "C306",
+      "C307",
+      "C308",
+      "C309",
+      "C320",
+      "C321"
      ],
      "human_hold": 2
     }
@@ -126,6 +260,49 @@
       "R206"
      ],
      "human_hold": 2
+    },
+    {
+     "ts": "2026-08-08T22:14:03",
+     "edit_class": "swap_part_same_fp",
+     "refs": [
+      "C203",
+      "C204",
+      "C310",
+      "C311",
+      "C312",
+      "C313",
+      "C314",
+      "C315",
+      "C316",
+      "C317",
+      "C318",
+      "C319",
+      "R205",
+      "R206"
+     ],
+     "human_hold": 2
+    },
+    {
+     "ts": "2026-08-08T23:45:15",
+     "edit_class": "swap_part_same_fp",
+     "refs": [
+      "C203",
+      "C204",
+      "C205",
+      "C206",
+      "C301",
+      "C302",
+      "C303",
+      "C304",
+      "C305",
+      "C306",
+      "C307",
+      "C308",
+      "C309",
+      "C320",
+      "C321"
+     ],
+     "human_hold": 2
     }
    ]
   },
@@ -145,6 +322,54 @@
      "human_hold": 2
     }
    ]
+  },
+  "sims": {
+   "path": "kicad/sims",
+   "kind": "sims",
+   "sha256": "dir_text:ead2c917626e807017410600cf9de806e1298748c951785cc6d672993668f668",
+   "hashed": "2026-08-08T23:51:20"
+  },
+  "pcb": {
+   "path": "kicad/rf-de-20m.kicad_pcb",
+   "kind": "pcb",
+   "sha256": "sexpr_no_uuid:95c6b6e0943fdb0ea1148babff0a2b80917adbd9ac2666104ec1c9cc8df89e1d",
+   "hashed": "2026-08-08T23:51:20"
+  },
+  "constraints": {
+   "path": "kicad/constraints.json",
+   "kind": "constraints",
+   "sha256": "json_canonical:08e54b152197bd8e10f6cecab232eb8e75b6a3ad76f627c25330c92869886fb4",
+   "hashed": "2026-08-08T23:51:20"
+  },
+  "decoupling": {
+   "path": "kicad/decoupling.json",
+   "kind": "decoupling",
+   "sha256": "json_canonical:b95b2a43d8a2216968c83095882415d8028982d3b8c0f7d486cd38e45e39077f",
+   "hashed": "2026-08-08T23:51:20"
+  },
+  "waivers": {
+   "path": "kicad/reports/verify-waivers.json",
+   "kind": "waivers",
+   "sha256": null,
+   "hashed": "2026-08-08T23:51:20"
+  },
+  "sch": {
+   "path": "kicad/rf-de-20m.kicad_sch",
+   "kind": "sch",
+   "sha256": "sexpr_no_uuid:2a524430b27b5ea9a0f2b776a8dfc0ade4cf3964795636aca72efdcd02dc7304",
+   "hashed": "2026-08-08T23:51:21"
+  },
+  "pro": {
+   "path": "kicad/rf-de-20m.kicad_pro",
+   "kind": "pro",
+   "sha256": "json_canonical:8ab41fab816eb5a6de6582698a53e3009c0bfb80ba6ead60c9f63e83b78592be",
+   "hashed": "2026-08-08T23:51:21"
+  },
+  "dru": {
+   "path": "kicad/rf-de-20m.kicad_dru",
+   "kind": "dru",
+   "sha256": "text_eol:11cf2bada8992302f1cc690ce1e9ed6d8427ef3237990fa2374c667e8178845a",
+   "hashed": "2026-08-08T23:51:20"
   }
  },
  "open_issues": [],
@@ -316,6 +541,54 @@
    "why": "Widening 6->10 mm buys only 33 mW and 1.4 nH (0.5% of the 274 nH tank) against an un-analysed magnetics change to the Q 388/325 spirals. Nudge improves SPIRAL-5 margin and mutual coupling simultaneously",
    "phase": "P6",
    "ts": "2026-08-08T13:35:01"
+  },
+  {
+   "what": "DERATE to 36 V bus / ~162 W (from 40 V / 200 W)",
+   "why": "H4 owner ruling. theta_BS was assumed 1.5 C/W but is realistically 4.05-7.3 C/W (1.065 mm core, 18 vias), putting Tj 151-188 C nominal vs a 150 C abs max. Derate buys ~14 C; the four board fixes buy ~20 C more. Bus voltage is a bench knob, raisable once real Tj is measured",
+   "phase": "P8",
+   "ts": "2026-08-08T21:18:05"
+  },
+  {
+   "what": "Revert gate resistors 6R8 -> 4R7",
+   "why": "Common-source inductance measured 0.157 nH, ~5x smaller than the estimate 6R8 was bought against. Recovers ~4 C of Tj at no real ring cost (-0.85 V vs a -4 V floor)",
+   "phase": "P8",
+   "ts": "2026-08-08T21:18:05"
+  },
+  {
+   "what": "All 8 verify/drc waiver classes APPROVED by owner at H4",
+   "why": "Creepage set audited independently: all 21 verified inside the two die pad bboxes, /SW pour min distance to GND 0.8004 mm - nothing hiding. check_thermal confirmed heatsink-blind in source",
+   "phase": "P8",
+   "ts": "2026-08-08T21:18:06"
+  },
+  {
+   "what": "OWNER REPRIORITISATION 2026-08-08: bench target is 25-30 V bus / 100-150 W with big fans. Thermals and max power DEPRIORITISED. Priorities are now (1) ZVS, (2) noisy-loop reduction, (3) does it work at all",
+   "why": "Owner ruling. At 30 V, Vds pk ~107 V on a 200 V part and dissipation falls ~Vdd^2, so the theta_BS blocker stops binding. ZVS is LINEAR in Vdd, so the tank/shunt/match values stay valid unchanged at the lower bus - the derate costs nothing in correctness",
+   "phase": "P8",
+   "ts": "2026-08-08T22:19:23"
+  },
+  {
+   "what": "SUPERSEDES the H4 fix list: drop the heatsink clamping holes, extra thermal vias and full 162 W re-derivation. Keep the B.Cu mask land + fiducials (cheap fab hygiene). Add: RUN the SPICE benches, which have never executed",
+   "why": "Owner deprioritised thermals. SIM-1 (ZVS) and SIM-4 (tank/match) are the arbiters of whether the board functions, and verify_all has no sim_run member so the gate passed with them unexecuted",
+   "phase": "P8",
+   "ts": "2026-08-08T22:19:23"
+  },
+  {
+   "what": "P8 FIX a3 - ZVS POPULATE: C308/C309 DNP, C320 populated 27pF (C_s 504 -> 419 pF), C203 DNP (C_shunt bank 83 -> 27 pF). Applied in kicad/gen/tank.py + stage.py; parts.json quantities follow (56pF line 18 -> 15 populated of 21, 27pF line 2 -> 3 of 6). No new part, no new land, no netlist change.",
+   "why": "The P8 SPICE benches (first execution of this board's declared sims) proved the board missed ZVS as built: ~30 nH of un-imaged zone-B copper in series with the C_s bank pushed X_net/R from 1.283 to 2.00, Vds at turn-on 15.6 V and P_out 53 W of 113 W. Extra series L is cancelled by LESS series C. Measured after: X_net/R 1.285, Vds 1.36-1.41 V, dVds/dt -1.21 V/ns, P_out 113.8 W, Vds,pk 122.3 V; holds across the whole 25-35 nH stray band.",
+   "phase": "P8",
+   "ts": "2026-08-08T23:52:04"
+  },
+  {
+   "what": "verify-waivers.json written at reports/verify-waivers.json, 8 entries, all approved 'Ihsan S. 2026-08-08 (checkpoint H4)'. gate verify PASS 0 failing / 31 waived.",
+   "why": "Owner approved all 8 waiver classes at H4 (state.json human.4). Entries carry the reasons from reports/verify-waivers.md verbatim in substance. NB gate.py's default sidecar path is <pcb-dir>/reports/ (kicad/reports/), so the gate MUST be run with an explicit --waivers or the sidecar is silently ignored.",
+   "phase": "P8",
+   "ts": "2026-08-08T23:52:04"
+  },
+  {
+   "what": "OPEN: vds_pk_40v_v = 172.5 V against the 155 V derate line is the ONE remaining sim error and was NOT waived or weakened. One populate cannot serve both 30 V and 40 V.",
+   "why": "A populate trimmed at 30 V is under-shunted at 40 V because the charge-equivalent Coss falls as the swing grows. At the declared 25-30 V bench the peak is 98.2-122.2 V and at the H4 36 V ruling it is 152.1 V, both inside. Owner ruling needed: declare the bus ceiling at 36 V (bench setting, zero board change) or re-populate C203 at 56 pF and re-run bus_derating before ever running 40 V.",
+   "phase": "P8",
+   "ts": "2026-08-08T23:52:05"
   }
  ],
  "edits": [
@@ -373,6 +646,75 @@
    "refs": [
     "R205",
     "R206"
+   ],
+   "note": null,
+   "human_hold": 2,
+   "gates": [
+    "erc",
+    "verify",
+    "sim",
+    "dfm"
+   ],
+   "gates_marked": [],
+   "stale_artifacts": [
+    "netlist",
+    "bom",
+    "cpl"
+   ]
+  },
+  {
+   "ts": "2026-08-08T22:14:03",
+   "class": "swap_part_same_fp",
+   "refs": [
+    "C203",
+    "C204",
+    "C310",
+    "C311",
+    "C312",
+    "C313",
+    "C314",
+    "C315",
+    "C316",
+    "C317",
+    "C318",
+    "C319",
+    "R205",
+    "R206"
+   ],
+   "note": null,
+   "human_hold": 2,
+   "gates": [
+    "erc",
+    "verify",
+    "sim",
+    "dfm"
+   ],
+   "gates_marked": [],
+   "stale_artifacts": [
+    "netlist",
+    "bom",
+    "cpl"
+   ]
+  },
+  {
+   "ts": "2026-08-08T23:45:15",
+   "class": "swap_part_same_fp",
+   "refs": [
+    "C203",
+    "C204",
+    "C205",
+    "C206",
+    "C301",
+    "C302",
+    "C303",
+    "C304",
+    "C305",
+    "C306",
+    "C307",
+    "C308",
+    "C309",
+    "C320",
+    "C321"
    ],
    "note": null,
    "human_hold": 2,
@@ -666,6 +1008,136 @@
    "event": "snapshot",
    "label": "pre-fix-verify-a1",
    "files": 2
+  },
+  {
+   "ts": "2026-08-08T21:18:05",
+   "event": "human",
+   "checkpoint": "4",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-08-08T21:18:05",
+   "event": "decision",
+   "what": "DERATE to 36 V bus / ~162 W (from 40 V / 200 W)"
+  },
+  {
+   "ts": "2026-08-08T21:18:05",
+   "event": "decision",
+   "what": "Revert gate resistors 6R8 -> 4R7"
+  },
+  {
+   "ts": "2026-08-08T21:18:06",
+   "event": "decision",
+   "what": "All 8 verify/drc waiver classes APPROVED by owner at H4"
+  },
+  {
+   "ts": "2026-08-08T22:14:03",
+   "event": "edit",
+   "edit_class": "swap_part_same_fp",
+   "refs": [
+    "C203",
+    "C204",
+    "C310",
+    "C311",
+    "C312",
+    "C313",
+    "C314",
+    "C315",
+    "C316",
+    "C317",
+    "C318",
+    "C319",
+    "R205",
+    "R206"
+   ],
+   "human_hold": 2
+  },
+  {
+   "ts": "2026-08-08T22:19:23",
+   "event": "decision",
+   "what": "OWNER REPRIORITISATION 2026-08-08: bench target is 25-30 V bus / 100-150 W with big fans. Thermals and max power DEPRIORITISED. Priorities are now (1) ZVS, (2) noisy-loop reduction, (3) does it work at all"
+  },
+  {
+   "ts": "2026-08-08T22:19:23",
+   "event": "decision",
+   "what": "SUPERSEDES the H4 fix list: drop the heatsink clamping holes, extra thermal vias and full 162 W re-derivation. Keep the B.Cu mask land + fiducials (cheap fab hygiene). Add: RUN the SPICE benches, which have never executed"
+  },
+  {
+   "ts": "2026-08-08T23:45:15",
+   "event": "edit",
+   "edit_class": "swap_part_same_fp",
+   "refs": [
+    "C203",
+    "C204",
+    "C205",
+    "C206",
+    "C301",
+    "C302",
+    "C303",
+    "C304",
+    "C305",
+    "C306",
+    "C307",
+    "C308",
+    "C309",
+    "C320",
+    "C321"
+   ],
+   "human_hold": 2
+  },
+  {
+   "ts": "2026-08-08T23:51:20",
+   "event": "rehash",
+   "names": [
+    "netlist"
+   ]
+  },
+  {
+   "ts": "2026-08-08T23:51:20",
+   "event": "gate",
+   "gate": "sim",
+   "status": "fail",
+   "attempt": 1,
+   "failing_count": 1
+  },
+  {
+   "ts": "2026-08-08T23:51:20",
+   "event": "gate",
+   "gate": "verify",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-08T23:51:20",
+   "event": "gate",
+   "gate": "drc_routed",
+   "status": "fail",
+   "attempt": 1,
+   "failing_count": 55
+  },
+  {
+   "ts": "2026-08-08T23:51:21",
+   "event": "gate",
+   "gate": "erc",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-08T23:52:04",
+   "event": "decision",
+   "what": "P8 FIX a3 - ZVS POPULATE: C308/C309 DNP, C320 populated 27pF (C_s 504 -> 419 pF), C203 DNP (C_shunt bank 83 -> 27 pF). Applied in kicad/gen/tank.py + stage.py; parts.json quantities follow (56pF line 18 -> 15 populated of 21, 27pF line 2 -> 3 of 6). No new part, no new land, no netlist change."
+  },
+  {
+   "ts": "2026-08-08T23:52:04",
+   "event": "decision",
+   "what": "verify-waivers.json written at reports/verify-waivers.json, 8 entries, all approved 'Ihsan S. 2026-08-08 (checkpoint H4)'. gate verify PASS 0 failing / 31 waived."
+  },
+  {
+   "ts": "2026-08-08T23:52:05",
+   "event": "decision",
+   "what": "OPEN: vds_pk_40v_v = 172.5 V against the 155 V derate line is the ONE remaining sim error and was NOT waived or weakened. One populate cannot serve both 30 V and 40 V."
   }
  ]
 }

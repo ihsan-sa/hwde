@@ -1,0 +1,18 @@
+[
+ {"measure": "qoss_100v_nc", "min": 17.4, "max": 18.6, "severity": "error",
+  "msg": "Qoss(100 V) typ = 18 nC, parts/C2836675.json abs_max[Qoss_typ]. Anchor 1 of the Coss(v) fit - if this drifts the model card is wrong and every other bench in this directory is invalid."},
+ {"measure": "coss_100v_pf", "min": 106.0, "max": 114.0, "severity": "error",
+  "msg": "Coss(100 V) typ = 110 pF, parts/C2836675.json abs_max[Coss_typ]. Anchor 2 of the fit."},
+ {"measure": "qoss_100v_max_nc", "min": 22.2, "max": 23.8, "severity": "error",
+  "msg": "Qoss(100 V) max = 23 nC, parts/C2836675.json. Anchor 1 of the MAX-corner fit."},
+ {"measure": "coss_100v_max_pf", "min": 145.0, "max": 155.0, "severity": "error",
+  "msg": "Coss(100 V) max = 150 pF, parts/C2836675.json. Anchor 2 of the MAX-corner fit."},
+ {"measure": "coss_tr_per_fet_pf", "min": 140.0, "max": 180.0, "severity": "error",
+  "msg": "THE NUMBER THE WHOLE OPERATING POINT RESTS ON. architecture/decisions.md SIM-2 window; D0 extrapolates 158 pF/FET over the real 0-142.5 V swing by two independent routes. Outside 140-180 the D11 operating point (R_opt 4.13, C_shunt 403 pF) must be re-solved."},
+ {"measure": "coss_tr_maxcorner_pf", "min": 180.0, "max": 230.0, "severity": "error",
+  "msg": "decisions.md D0: 205 pF/FET at the max-datasheet corner. Sets how much range the C203-C206 trim bank has to absorb (D2)."},
+ {"measure": "cshunt_from_pair_pf", "min": 280.0, "max": 350.0, "severity": "error",
+  "msg": "decisions.md D0: the pair supplies 316 pF typ of the 403-449 pF C_shunt requirement. Anything outside this and the external bank populate in stage.py is solving the wrong problem."},
+ {"measure": "coss_q_over_v_at100_pf", "min": 172.0, "max": 188.0, "severity": "warning",
+  "msg": "decisions.md D0 ERROR 1: Qoss/V evaluated at 100 V gives 180 pF, and using it (instead of 157 pF over the real swing) is the error the amendment corrects. Reported so the two figures stay visibly distinct."}
+]

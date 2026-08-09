@@ -1,0 +1,118 @@
+[
+ {
+  "measure": "zin_re_ideal_ohm",
+  "min": 4.05,
+  "max": 4.21,
+  "severity": "error",
+  "msg": "KNOWN-ANSWER CALIBRATION (variant E: design values, no pours, no bridge). Must return R_opt = 4.13 ohm, decisions.md D11. If this drifts the extraction is broken and no other number in this bench may be believed."
+ },
+ {
+  "measure": "x_net_open12_sokal",
+  "min": 1.2,
+  "max": 1.37,
+  "severity": "error",
+  "msg": "KNOWN-ANSWER CALIBRATION and half of OPEN-12. Sokal's finite-Q_L fit C_series.omega.R = 0.26906 -> C_s 518 pF -> X_net/R = 1.283 (decisions.md D11). Measured 1.284."
+ },
+ {
+  "measure": "x_net_open12_refuted",
+  "min": 3.0,
+  "max": 3.9,
+  "severity": "error",
+  "msg": "SETTLES OPEN-12. The P1 fragment's C_series.omega.R = 0.63467 gives C_s 1222 pF; decisions.md D11 refutes it on the grounds that it implies a net series reactance of 3.4 R, which is not a Class E network. This bound MEASURES that 3.4 rather than asserting it. If it ever landed inside the 1.0-1.6 Class E band the refutation would be wrong."
+ },
+ {
+  "measure": "zin_re_20m_ohm",
+  "min": 3.72,
+  "max": 4.54,
+  "severity": "error",
+  "msg": "AS BUILT (P8 fix a3: C_s 419 pF). architecture/decisions.md SIM-4: R_opt 4.13 ohm +/-10 %. This is the REAL part of Z presented to the switch; |Z| is 4.13.sqrt(1+(X/R)^2) = 6.3 ohm at the optimum and is NOT 4.13."
+ },
+ {
+  "measure": "x_net_series_over_r",
+  "min": 1.0,
+  "max": 1.6,
+  "severity": "error",
+  "msg": "AS BUILT (P8 fix a3: C_s 419 pF). architecture/decisions.md SIM-4 window; the Class E optimum is 1.283 (Sokal, Q_L=5) or 1.1525 (the independent X_net relation). THE BOUND THE ZONE-B TANK BRIDGE BROKE at C_s 504 pF (2.00) and the bound the fix restores (1.285). It is gated at 30 nH nominal; x_net_br25 / x_net_br35 gate the ends of the 25-35 nH estimate band."
+ },
+ {
+  "measure": "zin_phase_20m_deg",
+  "min": 45.0,
+  "max": 58.0,
+  "severity": "warning",
+  "msg": "RE-DERIVED. phase = atan(X_net/R), so the architecture's SIM-4 pair of windows (x_net 1.0-1.6 AND phase 25-45 deg) is arithmetically impossible: 1.0 -> 45.0 deg and 1.6 -> 58.0 deg. This window is atan of the architecture's own x_net window. Deviation recorded in reports/sim-notes.md."
+ },
+ {
+  "measure": "zin_phase_20m_deg",
+  "min": 25.0,
+  "max": 45.0,
+  "severity": "warning",
+  "msg": "The architecture's OWN SIM-4 phase window, kept visible the way SIM-1's +/-0.2 V/ns ZdVS window is kept visible in classe_zvs_nominal.bounds.json. IT IS UNREACHABLE BY CONSTRUCTION, not by this board's doing: phase = atan(X_net/R), so the architecture's own x_net window of 1.0-1.6 maps to 45.0-58.0 deg and cannot overlap 25-45 deg except at the single point 45. This entry will therefore warn on every run; that is the intent - the promise stays visible and the contradiction stays on the record. The re-derived window above is the one to read. Deviation recorded in reports/sim-notes.md s7 item 1."
+ },
+ {
+  "measure": "x_net_no_bridge",
+  "min": 0.25,
+  "max": 0.7,
+  "severity": "warning",
+  "msg": "DIAGNOSTIC, RE-DERIVED AT P8 FIX a3, AND THE DIRECTION IS THE POINT. With the as-built C_s of 419 pF the 30 nH zone-B bridge is CANCELLED BY DESIGN, so removing the bridge from the model leaves the network UNDER-reactive (~0.44) rather than optimal. Before the fix, C_s was 504 pF and this same measure read 1.158 inside the Class E band, which is what identified the bridge as the sole cause. Both readings say the same thing: extra series L is cancelled by LESS series C. If this ever returns to ~1.15 with C_s at 419 pF, the bridge model has been silently removed from variant A too."
+ },
+ {
+  "measure": "x_net_prefix",
+  "min": 1.8,
+  "severity": "error",
+  "msg": "NEGATIVE CONTROL, NOT A BOARD BOUND. Variant C is the RETIRED pre-fix populate (C_s 504 pF with the 30 nH bridge) and it must STILL measure X_net/R ~ 2.0, i.e. far outside the 1.0-1.6 Class E band. Gated inverted - min, not max - because a deck that stops reproducing the known failure has stopped being evidence for the known fix. If this ever lands inside the band, STOP: the extraction has drifted and the whole C_s arbitration must be re-derived."
+ },
+ {
+  "measure": "zin_re_prefix_ohm",
+  "min": 3.72,
+  "max": 4.54,
+  "severity": "warning",
+  "msg": "Re(Z) on the retired pre-fix populate. Recorded to show that the fix moved the REACTANCE and not the resistance: 4.19 ohm before, 4.15 after, both inside R_opt 4.13 +/-10 %. The detune was never a matching error."
+ },
+ {
+  "measure": "x_net_br25",
+  "min": 1.0,
+  "max": 1.6,
+  "severity": "error",
+  "msg": "The AS-BUILT populate at the LOW end of the 25-35 nH bridge-stray estimate. The stray is estimated, not measured (OPEN-13), so the populate has to survive its whole range or it is not a fix."
+ },
+ {
+  "measure": "x_net_br35",
+  "min": 1.0,
+  "max": 1.6,
+  "severity": "error",
+  "msg": "The AS-BUILT populate at the HIGH end of the 25-35 nH bridge-stray estimate."
+ },
+ {
+  "measure": "zin_mag_40m_ohm",
+  "min": 30.0,
+  "severity": "warning",
+  "msg": "|Z| the AS-BUILT tank presents at 2f0. Class E relies on the load network being high-impedance and reactive off the fundamental; this is the mechanism behind the h2_dbc result in classe_zvs_nominal.cir."
+ },
+ {
+  "measure": "zin_mag_60m_ohm",
+  "min": 50.0,
+  "severity": "warning",
+  "msg": "|Z| the AS-BUILT tank presents at 3f0."
+ },
+ {
+  "measure": "zin_re_cm475_ohm",
+  "min": 3.72,
+  "max": 4.54,
+  "severity": "error",
+  "msg": "C_m ARBITRATION (review-board.md E2), option 1 of 3 and THE ONE BUILT: C310-C317 8 x 56 pF + C319 27 pF = 475 pF populated, plus the measured 46.1 pF RFOUT pour, on the as-built C_s of 419 pF. Re(Z) must be R_opt 4.13 ohm +/-10 %. Same node as zin_re_20m_ohm by construction."
+ },
+ {
+  "measure": "zin_re_cm502_ohm",
+  "min": 3.72,
+  "max": 4.54,
+  "severity": "warning",
+  "msg": "C_m arbitration option 2: +27 pF by populating C322. Reported so the three reachable populates are ranked by measurement rather than argued."
+ },
+ {
+  "measure": "zin_re_cm448_ohm",
+  "min": 3.72,
+  "max": 4.54,
+  "severity": "warning",
+  "msg": "C_m arbitration option 3: -27 pF by depopulating C319."
+ }
+]

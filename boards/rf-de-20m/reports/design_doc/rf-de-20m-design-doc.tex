@@ -16,7 +16,7 @@
 \begin{center}
 {\LARGE\bfseries rf-de-20m --- Design Document}\\[6pt]
 {\large ai-ee v1 pipeline}\\[2pt]
-generated 2026-08-08 01:05:50
+generated 2026-08-08 21:16:03
 \end{center}
 \tableofcontents
 
@@ -29,10 +29,10 @@ generated 2026-08-08 01:05:50
 \endhead
 board & rf-de-20m \\
 workspace & \texttt{boards/rf-de-20m} \\
-phase & P4 \\
+phase & P7 \\
 gate status & no gates recorded yet \\
 state created & 2026-08-07T20:58:16 \\
-state updated & 2026-08-08T00:22:50 \\
+state updated & 2026-08-08T19:40:47 \\
 \bottomrule
 \end{longtable}
 }
@@ -339,6 +339,12 @@ P2 & External shunt trim cap POPULATED at 3x33 pF (\textasciitilde{}87 pF), not 
 P2 & TWO EPC2019 now MANDATORY (not merely preferred): single FET reaches Tj 160 C with a hypothetical 0 C/W heatsink, above the 150 C abs max & Real Rds(on) 36/50 mohm (65/90 hot). Pair gives 114 C nominal / 133 C max-corner at theta\_HS \textless{}= 0.7 C/W. Dissipation is flat N=1-\textgreater{}2; the win is RthJB halving per die \\
 P3 & SMA re-sourced to C22418168 CONSMA001-SMD-G-T (TE/Linx), verified TRUE SMD from manufacturer drawing; 100\% SMT preserved. Cost 0.39 -\textgreater{} 2.97 each & Previous BWSMA-KE-P001 was a THT vertical panel jack despite an SMD label. LCSC package/type fields are unreliable for mount style; verified via pad-layer inspection + customer drawing \\
 P3 & EPC2019 footprint: end columns are 0.45 mm c-c (corrected 0.46 -\textgreater{} 0.450). The 0.68-0.70 mm figure is the OUTER ENVELOPE and was NOT applied & Fixer extracted datasheet vector geometry and refuted the librarian report. Applying 0.68 would have shifted the GATE pad 0.11 mm off a 0.25 mm pad \\
+P5 & Board 120x80 mm, 4-layer JLC04161H-1080B, 1oz outer, 4x M3 corner holes. rules\_gen: 23 rules, netclasses Pwr\_5p5mm/Pwr\_8p4123mm/Pwr\_11p8942mm, HV clearances per net (TANK\_A 180V) & Owner pre-authorised growth to 120x80; L301 courtyard fit at 100x80 was 0.01 mm, not a real margin. /SW needs 11.89 mm and +40V 5.5 mm track width at 200 W \\
+P5 & Added explicit Description field to L301/L302 in tank.py to match the spiral footprints' descr & Stock Device:L Description is 'Inductor', which mismatched the custom footprint descr and failed board\_init schematic parity (2 -\textgreater{} 0) \\
+P6 & SMA jacks are vertical top-mount; cables exit upward. Owner accepted at H3 & Only genuinely surface-mount 50R SMA at LCSC without B.Cu lands. Edge-launch would need THT + a heatsink notch or an off-catalog part \\
+P6 & 12 intra-EPC2019 clearance errors to be WAIVED at P8 (0.35 mm die bar gap vs the 0.8 mm aiee\_hv\_143v\_SW IPC-2221 rule) & Die geometry on a manufacturer-qualified 200 V part; IPC-2221 creepage governs board conductors, not a qualified component's internal terminals. No alternative part exists. U101's 4 solder\_mask\_bridge errors are NOT waived - those are a pulled-footprint artefact and get fixed \\
+P6 & All constraints.json rects translated to ABSOLUTE coords (outline origin 6.635,39.335). New B.Cu-only GND bridge board-local {[}49,30,94,48{]}; zone A extended 48-\textgreater{}51; zone C In2/B.Cu at x=92, In1 held to x=96 & planes\_gen/placelib consume rects verbatim as absolute. Board-local rects meant zone A poured only y 0-41 (no plane under the buck) and zone C landed on top of L301. B.Cu bridge chosen over In2: 1oz vs 0.5oz, and 1.554mm below F.Cu so a TANK\_A crossing couples \textasciitilde{}4.7pF not \textasciitilde{}29pF \\
+P6 & Spiral keepout radius NOT shrunk (stays r=20.55). Spirals nudged in y only; corridor 5.01 -\textgreater{} 6.02 mm, centre separation 46.84 mm & Widening 6-\textgreater{}10 mm buys only 33 mW and 1.4 nH (0.5\% of the 274 nH tank) against an un-analysed magnetics change to the Q 388/325 spirals. Nudge improves SPIRAL-5 margin and mutual coupling simultaneously \\
 \bottomrule
 \end{longtable}
 }
@@ -510,7 +516,21 @@ Gate \texttt{erc}: \emph{not recorded}.
 The full schematic PDF follows.
 \includepdf[pages=-]{reports/schematic.pdf}
 \section{Layout}
-\emph{Pending --- produced at P6.}
+Gate \texttt{place}: \emph{not recorded}.
+
+Gate \texttt{drc\_routed}: \emph{not recorded}.
+\begin{center}
+\includegraphics[width=0.72\textwidth]{reports/renders/rf-de-20m_top.png}\\
+{\small\texttt{reports/renders/rf-de-20m\_top.png}}
+\end{center}
+\begin{center}
+\includegraphics[width=0.72\textwidth]{reports/renders/rf-de-20m_bottom.png}\\
+{\small\texttt{reports/renders/rf-de-20m\_bottom.png}}
+\end{center}
+\begin{center}
+\includegraphics[width=0.72\textwidth]{reports/renders/rf-de-20m_iso.png}\\
+{\small\texttt{reports/renders/rf-de-20m\_iso.png}}
+\end{center}
 \section{Verification}
 \emph{Pending --- produced at P8.}
 \section{DFM and Fabrication}
@@ -688,6 +708,12 @@ the derating ladder is real.
 \emph{(no digest recorded)}
 \paragraph*{P4}
 \emph{(no digest recorded)}
+\paragraph*{P5}
+\emph{(no digest recorded)}
+\paragraph*{P6}
+\emph{(no digest recorded)}
+\paragraph*{P7}
+\emph{(no digest recorded)}
 \subsection*{Gate attempt history}
 \emph{(no entries)}
 \subsection*{Issues}
@@ -700,8 +726,8 @@ the derating ladder is real.
 \midrule
 \endhead
 1 & P2 & approved & 2026-08-07T22:07:56 & Architecture approved incl. override of frozen single-FET spec to 2x EPC2019 parallel; unipolar 0/+5V drive; controlled-Z relaxed; outline 100x80 with pre-auth growth to 120x80 \\
-2 & P4 & not reached &  &  \\
-3 & P6 & not reached &  &  \\
+2 & P4 & approved & 2026-08-08T10:21:46 & Schematic approved (erc 0/0, netlist\_audit exit 0, 10/10 review findings fixed). Continue P5-P9 to fab-ready; P10 ordering held pending EPC2019 restock \\
+3 & P6 & approved & 2026-08-08T13:23:42 & Placement approved. SMA vertical top-mount (not edge-launch) accepted by owner - it is the only true-SMD 50R SMA at LCSC with no bottom-side joints, which the flat heatsink face requires \\
 4 & P8 & not reached &  &  \\
 5 & P10 & not reached &  &  \\
 \bottomrule
@@ -714,7 +740,8 @@ the derating ladder is real.
 \textbf{File} & \textbf{Size} & \textbf{Note} \\
 \midrule
 \endhead
-\texttt{state.json} & 13,328 B &  \\
+\texttt{state.json} & 22,468 B &  \\
+\texttt{kicad/rf-de-20m.kicad\_pcb} & 872,962 B &  \\
 \texttt{kicad/rf-de-20m.kicad\_sch} & 7,267 B &  \\
 \texttt{brief/brief.md} & 4,153 B &  \\
 \texttt{requirements.md} & 16,663 B &  \\
@@ -724,10 +751,21 @@ the derating ladder is real.
 \texttt{architecture/power\_tree.md} & 17,822 B &  \\
 \texttt{architecture/sheets.md} & 14,529 B &  \\
 \texttt{architecture/stackup.md} & 18,766 B &  \\
+\texttt{reports/erc.json} & 274 B &  \\
+\texttt{reports/gate-drc\_routed.json} & 41,805 B &  \\
+\texttt{reports/gate-erc.json} & 394 B &  \\
+\texttt{reports/gate-place.json} & 398 B &  \\
+\texttt{reports/gate-verify.json} & 38,909 B &  \\
+\texttt{reports/netlist\_audit.json} & 1,593 B &  \\
+\texttt{reports/review-board.json} & 10,477 B &  \\
+\texttt{reports/review-board.md} & 27,499 B &  \\
 \texttt{reports/review-schematic.json} & 7,817 B &  \\
 \texttt{reports/review-schematic.md} & 20,810 B &  \\
+\texttt{reports/route-notes.md} & 34,765 B &  \\
 \texttt{reports/schematic.pdf} & 232,266 B &  \\
+\texttt{reports/spiral-design.md} & 16,842 B &  \\
 \texttt{reports/top.net} & 129,049 B &  \\
+\texttt{reports/verify-waivers.md} & 23,842 B &  \\
 \bottomrule
 \end{longtable}
 }

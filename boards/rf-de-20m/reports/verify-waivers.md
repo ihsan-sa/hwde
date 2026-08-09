@@ -9,12 +9,31 @@ Snapshot before the pass: `state_snapshots/pre-fix-verify-a1/`.
 Geometric acceptance (`route/verify_geom.py`): **PASS**.
 `plane_repair`: **pass, 0 repairs**.
 
-**No `reports/verify-waivers.json` was written.** `gate.py:load_waivers` requires a
-non-empty `approved` (who/when) on every entry and treats waivers as human
-artifacts; the owner signs these off at H4. The tables below are written so they
-map **1:1 onto sidecar entries**: `gate.py:waiver_matches` keys on `check` (or
-`kind`) + `net` + a `refs` SUBSET test, so the eight `(check, net, refs)` tuples
-in s2 cover all 31 errors and nothing else on the current board.
+**UPDATE 2026-08-08, P8 fix a3: `reports/verify-waivers.json` NOW EXISTS.**
+The owner approved all eight classes at checkpoint H4 (`state.json` human.4), so
+the sidecar was written from the tables below with
+`"approved": "Ihsan S. 2026-08-08 (checkpoint H4)"` on every entry. Result:
+
+    gate verify: PASS (0 failing / 189 total), 31 WAIVED
+
+Three things about it that are not obvious:
+
+1. **The gate must be run with an EXPLICIT `--waivers`.** `gate.py` resolves the
+   default sidecar as `<pcb-dir>/reports/verify-waivers.json`, i.e.
+   `kicad/reports/...`, NOT the workspace `reports/` this file lives in. Without
+   the flag the sidecar is silently ignored and the gate reports 31 failing.
+2. **The residual is 31 and the class counts are FIXED** (`check_creepage` 21,
+   `drc_routed` 55). Because 10 of the 21 creepage errors and 12 of the 48
+   `drc_routed` clearance errors carry EMPTY `refs`, the subset matcher cannot
+   exclude a future empty-refs finding on the same net. The compensating control
+   is the fixed count: **if a count ever exceeds its baseline, read the delta.**
+3. One error in the s3 warning table has since been FIXED rather than waived -
+   `check_pdn pdn_undecoupled` on `+5V`, see the note at the end of s3.
+
+The tables below map **1:1 onto sidecar entries**: `gate.py:waiver_matches` keys
+on `check` (or `kind`) + `net` + a `refs` SUBSET test, so the eight
+`(check, net, refs)` tuples in s2 cover all 31 errors and nothing else on the
+current board.
 
 **Nothing was fixed by loosening a rule.** No `.kicad_dru` rule, netclass,
 constraint current, dT or clearance was changed in this pass. The two real
@@ -210,6 +229,7 @@ sidecar entry.
 | 2 | `check_thermal` `thermal_vias` (Q201, Q202: "found 3, want >= 10") | **The real count is 9 per FET, not 3** - `check_thermal` counts vias within `max(2.0, sqrt(pad_hull_area/pi) + 1.5)` = **2.27 mm** of the footprint centroid, and an EPC2019's pad hull is 1.84 mm2, so its window is smaller than the array. Measured: **9 GND vias within 4.0 mm of each FET centroid** (Q201 also has a 10th at 4.6 mm). So the router's "9 achievable, the 0.8 mm HV rule caps the landing area" is confirmed, against `min_vias: 10`. **It does not change the thermal answer:** the dominant board-through path is broad-area conduction from the 645 mm2 F.Cu GND island to In1 across the **0.2444 mm** L1-L2 dielectric (~0.8 K/W), and a 9-via array (barrel-only, ~169 K/W each -> ~18.8 K/W) is a parallel helper worth a few percent; 9 vs 10 moves the combined figure by <0.01 K/W, i.e. **<0.1 C of Tj**. The real thermal uncertainty is **OPEN-10** (`theta_BS = 1.5 C/W` for the pair is assumed, not simulated, and carries 17 C of the 85 C junction budget) - that is what should be closed, not the via count. |
 | 6 | `check_silk` `silk_misattributed` (R203, R204, R205, C202, C213, U201) | Real and NOT fixed, deliberately. The criterion is: refdes > 1.0 mm from its own pads AND < 1.0 mm from another part's pads. A grid search over every position within 4 mm of each part, requiring <= 1.0 mm to its own pads, >= 1.0 mm to every other part's pads and no overlap with any pad, finds: **R203 - 0 legal positions**, C202 - 3, R204 - 6, C213 - 125, R205 - 857, U201 - 246. The gate-drive cluster is simply too dense for per-part labels (U201 is a 0.4 mm-pitch WCSP with four gate resistors, C202 and the C101 bulk can within 0.22-0.61 mm). Moving five of six would leave R203 unfixable anyway and would risk new `silk_over_copper` / `silk_overlap` on a board whose `drc_routed` residual is a signed-off 55. **Compensating control: JLC PCBA places from the CPL, not from silk** - and the P9 silk pass owns this if the owner wants the five moved. |
 | 1 | `check_pdn` `pdn_no_bulk` on `+40V` | `+40V has 1 cap(s) but no bulk reservoir (>= 1 uF)`. False by sidecar scope, true by class: the rail's bulk **is** C101/C102 (2 x 100 uF electrolytic at the input) plus the C207-C212 HF bank; `decoupling.json` only ever carried C105 (the LM5017's own 100 nF VIN bypass) because `schlib.place_ic_with_decoupling` emits IC-pin bypass entries only. Left as-is: adding C101/C102 to the sidecar would need a served IC pin they do not have, and the check is advisory. |
+| 1 | `check_pdn` `pdn_undecoupled` on `+5V` - **FIXED, and it came back once** | Not in the original 159: it appeared as a 32nd ERROR at fix a3. `kicad/decoupling.json` had gained hand-written `+5V` associations for C108 (22 uF bulk) and C109 (100 nF), which is correct - both are wired to `+5V` in the netlist and the served pin is L101.2, the buck's output node, because `+5V` has no IC load pin on it (U201 sits behind FB201 on `+5V_DRV`). **`kicad/gen/root.py` rewrites `decoupling.json` from scratch on every root-schematic regeneration**, and `schlib.place_ic_with_decoupling` only emits IC-PIN bypass entries, so the 22:12 regen deleted both and the error returned. Re-added by hand at fix a3 with a `_note` saying so. **Check this file after any `root.py` run.** |
 | 1 | `verify_all` `constraints_drift` | `architecture/constraints.json` vs `kicad/constraints.json`. **Every difference is deliberate and documented**, so this is a records question, not a board question: (a) `planes[].region` and `placement` rects are **absolute** in `kicad/` and **board-local** in `architecture/` - the P6 coordinate-trap fix (workspace LEARNINGS 2026-08-08 [constraints][COORDINATE TRAP]); reverting would re-arm the bug. (b) `power` gains `+5V_DRV` (P4-FIX review W4: FB201 splits the rail). (c) `thermal` gains `net` on L301/L302 (P8 needs it for check_thermal to run at all). (d) `placement.groups.switch` gains C213/FB201 and drops R207-R210, which do not exist. **Recommendation for the owner: retire `architecture/constraints.json`** - every script reads `kicad/constraints.json`, and a second copy in a different coordinate frame is exactly how the P6 bug happened. |
 
 ---

@@ -1,0 +1,167 @@
+* rf-de-20m SIM-4 tank_match - the impedance the switch sees, and the C_s arbiter
+*
+* SOURCE NETLIST : boards/rf-de-20m/kicad/rf-de-20m.net (P8 as-built populate)
+* RENAME MAP     : /SW->ZIN*  /tank/TANK_A->TA*  /tank/TANK_B->TB*
+*                  /tank/RFOUT->RF*  GND->0   (* = per-variant suffix; the six
+*                  variants below are SIX INDEPENDENT COPIES of the same tank,
+*                  each on its own AC source, so one .ac run returns all six.
+*                  AC is linear: the copies do not interact.)
+* INTENT         : (1) measure Z presented to the switch by the load network -
+*                  its real part must be R_opt 4.13 ohm and its series reactance
+*                  X_net/R must sit at the Class E optimum; (2) SETTLE OPEN-12 -
+*                  decisions.md D11 says the P1 fragment's
+*                  C_series.omega.R = 0.63467 is refuted and Sokal's 0.26906
+*                  (-> C_s 518 pF, X/R 1.283) is right. Variant D builds the
+*                  refuted number and measures what it actually presents.
+*
+* WHAT "X_net" MEANS HERE, because two definitions are floating around the
+* architecture and they disagree:
+*   Z(ZIN) = jwL_s + jwL_bridge + 1/jwC_s + [jwL_m + (50 || 1/jwC_m)]
+*   R = Re(Z)  ->  must be 4.13 ohm (decisions.md D11, R_opt at Q_L = 5)
+*   X = Im(Z)  ->  X/R is the Class E series-reactance ratio: 1.283 by Sokal's
+*                  finite-Q_L fit, 1.1525 by the independent X_net relation.
+*   The architecture's SIM-4 table ALSO asks for zin_phase_20m_deg in 25..45.
+*   THAT WINDOW IS ARITHMETICALLY IMPOSSIBLE alongside x_net 1.0..1.6, because
+*   phase = atan(X/R): 1.0 -> 45.0 deg and 1.6 -> 58.0 deg. The phase bound
+*   below is therefore RE-DERIVED as atan of the architecture's own x_net
+*   window, and the deviation is recorded in reports/sim-notes.md.
+*   Note |Z| is NOT 4.13 either: |Z| = R.sqrt(1+(X/R)^2) = 6.3 ohm at optimum.
+*   The architecture's "zin_mag_20m_ohm target 4.13" means the REAL part.
+*
+* NO VENDORED MODELS: this bench has no active device at all - it is passive R,
+* L and C, every value read off the as-built netlist or measured at P7.
+*
+* **REBASED 2026-08-08 FOR P8 FIX a3.** The first run of this bench measured
+* X_net/R = 2.00 on the then-as-built C_s of 504 pF and identified 419 pF as
+* the value that cancels the zone-B bridge stray. THE GENERATORS NOW BUILD
+* 419 pF, so variant A is the board as it now is and the retired 504 pF build
+* moves to variant C as a gated NEGATIVE CONTROL (it must still measure ~2.0).
+*
+* VARIANTS (all carry the P7-measured pours unless said otherwise)
+*   A  AS BUILT           C_s 419p (7 x 56p + C320 27p), C_m 475p+46.1p,
+*                         L_bridge 30 nH
+*   B  as built, no bridge C_s 419p, L_bridge 0 - isolates the zone-B stray.
+*                         NOTE THE DIRECTION: with C_s already reduced to
+*                         cancel the bridge, removing the bridge leaves the
+*                         network UNDER-reactive (X/R ~ 0.44), which is the
+*                         same physics read the other way round.
+*   C  RETIRED PRE-FIX    C_s 504p, L_bridge 30 nH - NEGATIVE CONTROL, must
+*                         still measure X/R ~ 2.0, i.e. outside the Class E
+*                         band. If it ever lands inside, the extraction has
+*                         drifted and the fix's evidence is gone.
+*   D  OPEN-12 REFUTED     C_s 1222p (the P1 fragment's 0.63467 coefficient)
+*   E  OPEN-12 SOKAL       C_s 518p (0.26906), ideal caps/no pours/no bridge -
+*                          the calibration variant: it must return R = 4.13 and
+*                          X/R = 1.283, which is a KNOWN-ANSWER check on the
+*                          whole extraction (a wrong sign or a wrong node shows
+*                          up here before it can contaminate A..D).
+*   F/G as built at the 25 nH and 35 nH bridge corners
+*   H/I the two reachable C_m neighbours (+27 / -27 pF), for the E2 arbitration
+*
+.title rf-de-20m SIM-4 tank + match, AC, as-built vs the C_s arbiter
+.options rshunt=1e9
+.param CPOUR_TA=13.4p CPOUR_TB=0.8p CPOUR_RF=46.1p
+.param LS=162.9n RLS=0.0531 LM=108.9n RLM=0.0426
+.param CMB=475p
+.param TWOPI=6.283185307179586
+
+* ---------------------------------------------------------------- tank subckt
+* zin = the drain node; everything below it is the Class E LOAD network only
+* (C_shunt and the DC choke are deliberately NOT here - they are not part of
+* the reactance the Class E equations call X_net).
+.subckt TANK zin params: cs=504p cm=475p cta=13.4p ctb=0.8p crf=46.1p
++ lbr=30n ls=162.9n rls=0.0531 lm=108.9n rlm=0.0426
+Lsx zin n1 {ls}
+Rlsx n1 ta {rls}
+Ctax ta 0 {cta}
+Lbrx ta n2 {lbr}
+Csx n2 tb {cs}
+Rcsx tb tb2 0.0011
+Ctbx tb2 0 {ctb}
+Lmx tb2 n3 {lm}
+Rlmx n3 rf {rlm}
+Cmx rf 0 {cm+crf}
+Rl rf 0 50
+.ends
+
+Ia 0 ZA AC 1
+Xa ZA TANK cs=419p
+Ib 0 ZB AC 1
+Xb ZB TANK cs=419p lbr=1p
+Ic 0 ZC AC 1
+Xc ZC TANK cs=504p
+Id 0 ZD AC 1
+Xd ZD TANK cs=1222p lbr=1p cta=1f ctb=1f crf=0 ls=164n lm=110n rls=1m rlm=1m cm=530.4p
+Ie 0 ZE AC 1
+Xe ZE TANK cs=518p lbr=1p cta=1f ctb=1f crf=0 ls=164n lm=110n rls=1m rlm=1m cm=530.4p
+If 0 ZF AC 1
+Xf ZF TANK cs=419p lbr=25n
+Ig 0 ZG AC 1
+Xg ZG TANK cs=419p lbr=35n
+* C_m ARBITRATION (review-board.md E2). C_m is a bank of 8 x 56p + C319 27p =
+* 475 pF POPULATED plus a measured 46.1 pF of /tank/RFOUT pour, and the only
+* reachable neighbours are +27 pF (populate C322) and -27 pF (depopulate C319).
+* All three are built here with the AS-BUILT C_s of 419 pF, and the winner is
+* the one whose Re(Z) lands nearest R_opt 4.13 ohm.
+Ih 0 ZH AC 1
+Xh ZH TANK cs=419p cm=502p
+Ii 0 ZI AC 1
+Xi ZI TANK cs=419p cm=448p
+
+.ac dec 400 1meg 200meg
+
+* ---- A: AS BUILT, P8 fix a3 (C_s 419 pF) ------------------------------------------------------------
+.meas ac zin_re_20m_ohm FIND vr(ZA) AT=20meg
+.meas ac zin_im_20m     FIND vi(ZA) AT=20meg
+.meas ac zin_mag_20m_ohm FIND vm(ZA) AT=20meg
+.meas ac x_net_series_over_r param='zin_im_20m/zin_re_20m_ohm'
+* ngspice vp() returns RADIANS (machine-verified on this host against a known
+* 4.13 + j4.760 network); convert here, once.
+.meas ac zin_ph_rad     FIND vp(ZA) AT=20meg
+.meas ac zin_phase_20m_deg param='57.29577951*zin_ph_rad'
+
+* ---- B: as built with the zone-B bridge stray removed (diagnostic) -----------------------
+.meas ac zb_re FIND vr(ZB) AT=20meg
+.meas ac zb_im FIND vi(ZB) AT=20meg
+.meas ac x_net_no_bridge param='zb_im/zb_re'
+
+* ---- C: RETIRED PRE-FIX POPULATE, C_s 504 pF. NEGATIVE CONTROL -------------
+.meas ac zc_re FIND vr(ZC) AT=20meg
+.meas ac zc_im FIND vi(ZC) AT=20meg
+.meas ac x_net_prefix param='zc_im/zc_re'
+.meas ac zin_re_prefix_ohm param='zc_re'
+
+* ---- D: OPEN-12, the REFUTED C_series coefficient 0.63467 -> C_s 1222 pF ----
+.meas ac zd_re FIND vr(ZD) AT=20meg
+.meas ac zd_im FIND vi(ZD) AT=20meg
+.meas ac x_net_open12_refuted param='zd_im/zd_re'
+
+* ---- E: OPEN-12, Sokal 0.26906 -> C_s 518 pF. KNOWN-ANSWER CALIBRATION ------
+.meas ac ze_re FIND vr(ZE) AT=20meg
+.meas ac ze_im FIND vi(ZE) AT=20meg
+.meas ac x_net_open12_sokal param='ze_im/ze_re'
+.meas ac zin_re_ideal_ohm param='ze_re'
+
+* ---- F/G: the AS-BUILT populate at the bridge-stray corners -----------------
+.meas ac zf_re FIND vr(ZF) AT=20meg
+.meas ac zf_im FIND vi(ZF) AT=20meg
+.meas ac x_net_br25 param='zf_im/zf_re'
+.meas ac zg_re FIND vr(ZG) AT=20meg
+.meas ac zg_im FIND vi(ZG) AT=20meg
+.meas ac x_net_br35 param='zg_im/zg_re'
+
+* ---- C_m arbitration: Re(Z) at the three reachable populates ---------------
+* cm475 is the AS-BUILT C_m on the AS-BUILT C_s, i.e. variant A.
+.meas ac zin_re_cm475_ohm param='zin_re_20m_ohm'
+.meas ac zh_re FIND vr(ZH) AT=20meg
+.meas ac zin_re_cm502_ohm param='zh_re'
+.meas ac zi_re FIND vr(ZI) AT=20meg
+.meas ac zin_re_cm448_ohm param='zi_re'
+
+* ---- harmonic terminations: what the tank presents at 2f0 and 3f0 -----------
+* A Class E stage relies on the load network being reactive and high-|Z| off
+* the fundamental; these are reported so the h2/h3 result in
+* classe_zvs_nominal.cir has a mechanism attached to it.
+.meas ac zin_mag_40m_ohm FIND vm(ZA) AT=40meg
+.meas ac zin_mag_60m_ohm FIND vm(ZA) AT=60meg
+.end

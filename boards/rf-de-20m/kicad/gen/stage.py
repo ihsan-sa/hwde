@@ -46,16 +46,30 @@ THE FOUR WIRING FACTS THAT CANNOT BE GOT FROM MEMORY
 
        OUTH (A2) --+-- R203 4R7 --> GATE_Q1     parallel at the pin:
                    +-- R204 4R7 --> GATE_Q2       4.7 / 2 = 2.35 ohm
-       OUTL (B2) --+-- R205 6R8 --> GATE_Q1       6.8 / 2 = 3.40 ohm
-                   +-- R206 6R8 --> GATE_Q2       both vs TI's 2.00 ohm floor
+       OUTL (B2) --+-- R205 4R7 --> GATE_Q1       4.7 / 2 = 2.35 ohm
+                   +-- R206 4R7 --> GATE_Q2       both vs TI's 2.00 ohm floor
 
    Peak drive current falls to 5.0 / 2.35 = **2.13 A** at OUTH (was 5.1 A)
-   and 5.0 / 3.40 = **1.47 A** at OUTL, against 7 A source / 5 A sink
-   capability. Per-FET branch current is 5.0 / (4.7 + 0.4 + 0.75) = 0.85 A
-   turning on and 5.0 / (6.8 + 0.4 + 0.75) = 0.63 A turning off.
+   and 2.13 A at OUTL, against 7 A source / 5 A sink capability. Per-FET
+   branch current is 5.0 / (4.7 + 0.4 + 0.75) = 0.85 A on both edges.
 
-   **THE OUTL PAIR WENT 4R7 -> 6R8 AT P7 (2026-08-08), AS BUILT-COPPER
-   DAMPING, NOT AS A DESIGN PREFERENCE.** The routed turn-off loop measures
+   **P8 2026-08-08: THE OUTL PAIR IS BACK AT 4R7. The P7 6R8 value was
+   bought against a common-source-inductance estimate the P8 board review
+   then MEASURED at 0.157 nH - about 5x smaller than the estimate.** The
+   four EPC2019 source escapes (0.49 / 0.55 / 0.55 / 1.47 nH) all land on
+   ONE F.Cu GND island, so what is common to the gate loop and the power
+   loop is their PARALLEL combination, not P7's 0.768 nH single escape. The
+   `L_common.di/dt` term is therefore 0.4-0.6 V, not "of the order of
+   volts": +0.38 V at 2.4 A/ns turn-off (+0.63 V at P7's 8 A/ns pair
+   figure) plus 0.14-0.20 V of Miller, against a VGSth_min of 0.8 V. That
+   removes the whole reason 6R8 was taken, and 4R7 gives back ~4 C of Tj on
+   a board whose thermal path is its hardest problem (owner ruling, H4
+   2026-08-08). Bring-up must still MEASURE VGS at the die on the turn-off
+   edge - that is the one thing no second-order model contains.
+
+   The P7 reasoning is kept below because it is still the reason the value
+   is not 10R.  P7's original text:  **THE OUTL PAIR WENT 4R7 -> 6R8 AT P7
+   (2026-08-08), AS BUILT-COPPER DAMPING, NOT AS A DESIGN PREFERENCE.** The routed turn-off loop measures
    7.03 nH because U201's OUTL fan-out has no planar solution and has to wrap
    west (workspace LEARNINGS, P7). At 5.85 ohm total that is Q = sqrt(L/C_GS)
    / R = 5.944 / 5.85 = 1.02, zeta 0.49, ~17 % overshoot -> VGS rings to about
@@ -127,12 +141,12 @@ THE FOUR WIRING FACTS THAT CANNOT BE GOT FROM MEMORY
    would have repeated the E6 defect; so would an 0805 at 125 mW, which
    derates to only ~96 mW at 90 C. BOTH gate values need a 250 mW-class 0805
    or better: R203/R204 are 0.250 W (191 mW at 90 C, 52 % used); R205/R206 are
-   the ROHM ESR10EZPF6R80 (C5639707), an ANTI-SURGE thick film rated 0.400 W
-   (306 mW at 90 C, 35 % used) - the right family for a gate leg, where the
-   0.63 A edge current puts ~2.7 W of instantaneous dissipation in the part
-   for a few ns of every 50 ns cycle. NB it is the ONLY 6R8 0805 at 1 % and
-   >= 250 mW in stock at LCSC; the RNCP thin-film family used for the
-   rejected 10R option has no 6R8 at all.
+   the SAME KOA RK73H2ATTD4R70F (C160081) after the P8 revert, so all four
+   gate legs are one BOM line and one reel again - which is what keeps the
+   Q201 and Q202 branches matched by construction. At 4R7 the external part
+   takes 80 % of the turn-off half as well, i.e. 0.072 W typ / 0.100 W max
+   per part, 52 % of the 0805's 191 mW at a 90 C local board. Stock and
+   price re-verified live 2026-08-08: 14856 pcs, $0.0099.
 
 3. **IN- ties to GND and the drive goes to IN+.** From the truth table
    (parts/C6423790.json layout_notes, datasheet Table 1):
@@ -181,15 +195,37 @@ and the POPULATE COUNT is re-solved:
     required C_shunt      403 pF (449 pF if Sokal's finite-choke term applies)
     supplied by the pair   316 pF typ / 410 pF max  (2 x Coss(tr))
     external needed        87 pF typ, 0-133 pF of range
-    THIS BANK             2 x 56 pF = 112 pF populated  ->  total 428 pF
+    THIS BANK             56 + 27 = 83 pF populated  ->  total 426 pF
                           which is the MIDDLE of the 403-449 pF requirement
-    trim range            0 / 56 / 112 / 168 / 224 pF by populate
+    trim range            0 / 27 / 56 / 83 / 112 / 139 / 168 / 195 pF
 
 C205/C206 carry `Variant=DNP`. A max-Coss pair (410 pF) is absorbed by
 emptying the bank, which is the whole reason D2 calls the bank load-bearing.
-The cost of the coarser step is 56 pF instead of 33 pF of resolution; if
-SIM-2's `trim_pf_needed` lands between the steps, P3 adds a 33 pF 1 kV C0G
-1206 line and the sites take it unchanged.
+
+**P8 FIX a3, 2026-08-08 - C203 IS NOW DNP TOO: THE BANK IS 27 pF, NOT 83 pF.**
+This is one half of the ZVS fix and it is NOT independent of the tank. The
+ZVS-optimal shunt DEPENDS ON THE TANK, and once C_s comes down from 504 to
+419 pF to cancel the zone-B bridge stray (kicad/gen/tank.py - "WHY C_s FALLS
+TO 419 pF"), the optimum external bank drops with it:
+
+    C_s 504 pF, bank 83 pF : Vds at turn-on 15.60 V, dV/dt -5.89 V/ns,  53.4 W
+    C_s 419 pF, bank 83 pF : still detuned - the tank, not the bank, is the fault
+    C_s 419 pF, bank 27 pF : Vds at turn-on  1.41 V, dV/dt -1.21 V/ns, 113.8 W
+    C_s 419 pF, bank 56 pF : 3.94 V - the next reachable step also passes, so
+                             the recommendation is not on a knife edge
+    C_s 419 pF, bank  0 pF : the bring-up move if ZVS lands late (pull C204)
+
+Removing C203 is part of the SAME single fix, not a separate finding. Total
+shunt at the 30 V bench: 27 pF (C204) + 27.4 pF of /SW pour + the pair's own
+charge-equivalent Coss, which at a 122 V swing is ~350 pF/pair rather than the
+313 pF quoted for 142.5 V. Measured in kicad/sims/cshunt_sweep.cir; the whole
+derivation is reports/sim-notes.md s4/s5.
+
+**MAX-Coss REEL CORNER, so it is not discovered at bring-up:** with max-Coss
+dice the recommended populate reads 12.15 V at turn-on and EMPTYING the bank
+only reaches 8.87 V. The bank runs out there - the remaining knob is DUTY
+(measured: D = 46 % gives 4.87 V, D = 42 % gives 4.78 V), which is the
+generator, not a part. Inside SIM-2's own `duty_adjust_needed_pct <= 6`.
 
 THE +5 V RAIL IS SPLIT: +5V (buck) -> FB201 -> +5V_DRV (driver)
 ----------------------------------------------------------------
@@ -294,7 +330,8 @@ S_C100N_0402 = "aiee:CC0402KRX7R7BB104"   # 100nF 16V X7R 0402
 S_C10N_0201 = "aiee:0201B103K250NT"       # 10nF 25V X7R 0201
 S_C1U_0603 = "aiee:CC0603KRX7R7BB105"     # 1uF 16V X7R 0603
 S_R4R7 = "aiee:RK73H2ATTD4R70F"           # 4R7 0805 1% 250mW (E1) - turn-ON
-S_R6R8 = "aiee:ESR10EZPF6R80"             # 6R8 0805 1% 400mW (P7) - turn-OFF
+S_R6R8 = "aiee:ESR10EZPF6R80"             # 6R8 0805 (P7 turn-OFF, retired P8)
+S_C27P = "aiee:CC1206JKNPOCBN270"         # 27pF 1kV C0G 1206 (W1/W2)
 S_FB = "aiee:BLM21PG121SN1D"              # 120R@100MHz 0805 bead, 30mohm (W4)
 S_Q = "aiee:EPC2019"
 S_C56P = "aiee:CC1206JKNPOCBN560"         # 56pF 1kV C0G 1206
@@ -323,7 +360,8 @@ V_C100N = "100nF 16V X7R 0402"
 V_C10N_0201 = "10nF 25V X7R 0201"
 V_C1U = "1uF 16V X7R 0603"
 V_R4R7 = "4R7 0805 1% 250mW"
-V_R6R8 = "6R8 0805 1% 400mW"
+V_R6R8 = "6R8 0805 1% 400mW"              # retired at P8 (see docstring)
+V_C27P = "27pF 1kV C0G 1206"
 V_FB = "120R@100MHz bead 3A 30mohm"
 V_Q = "EPC2019 200V eGaN"
 V_C56P = "56pF 1kV C0G 1206"
@@ -339,14 +377,15 @@ LCSC = {
     "C201": "C60474", "C202": "C285010", "C213": "C106248",
     "Q201": "C2836675", "Q202": "C2836675",
     "L201": "C167212", "L202": "C167212",
-    "C203": "C113875", "C204": "C113875", "C205": "C113875", "C206": "C113875",
+    "C203": "C113875", "C204": "C541492",   # P8 W2: C204 56 -> 27 pF
+    "C205": "C113875", "C206": "C113875",
     "C207": "C107059", "C208": "C107059", "C209": "C107059", "C210": "C107059",
     "C211": "C113793", "C212": "C113793",
 }
 for _r in ("R203", "R204"):          # turn-ON legs stay 4R7
     LCSC[_r] = "C160081"
-for _r in ("R205", "R206"):          # turn-OFF legs 4R7 -> 6R8 at P7
-    LCSC[_r] = "C5639707"
+for _r in ("R205", "R206"):          # 4R7 -> 6R8 at P7, back to 4R7 at P8
+    LCSC[_r] = "C160081"
 
 # LMG1020 pin map (parts/C6423790.json + `--pins aiee:LMG1020YFFR`).
 U201_PINS = {
@@ -391,13 +430,20 @@ FET_EXPECT = {"1": "GATE", "2": "SOURCE", "3": "DRAIN", "4": "SOURCE",
 GATE_LEGS = [
     ("R203", GATE_ON, GATE_Q1, S_R4R7, V_R4R7, "4R7", 4.7),
     ("R204", GATE_ON, GATE_Q2, S_R4R7, V_R4R7, "4R7", 4.7),
-    ("R205", GATE_OFF, GATE_Q1, S_R6R8, V_R6R8, "6R8", 6.8),
-    ("R206", GATE_OFF, GATE_Q2, S_R6R8, V_R6R8, "6R8", 6.8),
+    ("R205", GATE_OFF, GATE_Q1, S_R4R7, V_R4R7, "4R7", 4.7),   # P8: 6R8 -> 4R7
+    ("R206", GATE_OFF, GATE_Q2, S_R4R7, V_R4R7, "4R7", 4.7),   # P8: 6R8 -> 4R7
 ]
 
-# C_shunt trim sites. See the module docstring for the 33 pF -> 56 pF ruling.
-CSHUNT_SITES = [("C203", False), ("C204", False),
-                ("C205", True), ("C206", True)]      # (ref, dnp)
+# C_shunt bank. See the module docstring for the 33 pF -> 56 pF ruling and for
+# the P8 fix a3 arithmetic. (ref, pF, dnp).
+#   P8 review W2  : C204 goes 56 -> 27 pF (the /SW pour's measured +27.4 pF put
+#                   the 2 x 56 build at 455.4 pF, above the 403-449 pF band).
+#   P8 FIX a3     : C203 goes DNP. The bank is 27 pF. This is HALF OF THE ZVS
+#                   FIX and it moves WITH the tank - the ZVS-optimal shunt
+#                   depends on C_s, and C_s fell 504 -> 419 pF (tank.py). Do
+#                   not re-populate C203 without re-running kicad/sims.
+CSHUNT_SITES = [("C203", 56, True), ("C204", 27, False),
+                ("C205", 56, True), ("C206", 56, True)]
 
 RAILS = [                       # symbols only - `hk` owns THESE rails' flags
     (GND, "power:GND", (25.4, 25.4)),
@@ -536,12 +582,23 @@ def build() -> schlib.Sheet:
 
     # C_shunt trim bank, IN the power loop (a trim cap on a stub adds
     # inductance instead of capacitance). See the module docstring.
-    for i, (ref, dnp) in enumerate(CSHUNT_SITES):
-        _add(sh, ref, S_C56P, V_C56P, (88.9 + i * 63.5, 317.5),
+    for i, (ref, pf, dnp) in enumerate(CSHUNT_SITES):
+        if ref == "C203":
+            note = ("C_shunt DEPOPULATED at P8 fix a3 (2026-08-08). The bank "
+                    "is 27pF because C_s fell 504->419pF - the ZVS-optimal "
+                    "shunt moves WITH the tank. Re-populating gives Vds 15.6V "
+                    "at turn-on and 53W. See reports/sim-notes.md s4/s5")
+        elif dnp:
+            note = ("C_shunt trim site - DNP. Populate to RAISE C_shunt; "
+                    "the bank empties for a max-Coss pair (D2)")
+        else:
+            note = (f"C_shunt bank - the ONLY populated site ({pf}pF). "
+                    "27pF + 27.4pF of /SW pour + the pair's own Coss = the "
+                    "ZVS-optimal shunt for C_s 419pF (P8 fix a3)")
+        _add(sh, ref, S_C56P if pf == 56 else S_C27P,
+             V_C56P if pf == 56 else V_C27P, (88.9 + i * 63.5, 317.5),
              footprint=F_C1206, expect={"1": "1", "2": "2"}, dnp=dnp,
-             note=("C_shunt trim site - DNP, populate to raise C_shunt"
-                   if dnp else
-                   "C_shunt trim, POPULATED (2 x 56pF = 112pF external)"))
+             note=note)
         sh.wire_pins(ref, {"1": SW, "2": GND})
 
     # =====================================================================
@@ -641,15 +698,23 @@ def build() -> schlib.Sheet:
         "+/-2.5 V bipolar violates it (OPEN-1).",
     ])
     _note(sh, (469.9, 218.44), [
-        "C203-C206 ARE 56 pF, NOT 33 pF.",
-        "No 33 pF part exists on this BOM; parts.json",
-        "maps these sites onto the same 56 pF 1 kV",
-        "C0G part as the tank banks. Populate count",
-        "re-solved: 2 x 56 = 112 pF external, giving",
-        "316 + 112 = 428 pF against a 403-449 pF",
-        "requirement - mid-band. C205/C206 are DNP",
-        "headroom; the bank EMPTIES for a max-Coss",
-        "pair, which is the point of it existing.",
+        "C203-C206 ARE 56/27 pF, NOT 33 pF. No 33 pF",
+        "part exists on this BOM; parts.json maps these",
+        "sites onto the same 1 kV C0G parts as the tank.",
+        "P8 FIX a3: ONLY C204 (27 pF) IS POPULATED.",
+        "C203, C205 AND C206 ARE ALL DNP.",
+        "The ZVS-optimal shunt DEPENDS ON THE TANK, and",
+        "C_s fell 504 -> 419 pF to cancel the ~30 nH",
+        "un-imaged zone-B bridge (see the tank sheet).",
+        "With that tank the optimum bank is 27 pF:",
+        "  bank 83 pF -> Vds 15.6 V at turn-on,  53 W",
+        "  bank 27 pF -> Vds  1.41 V,          113.8 W",
+        "  bank 56 pF -> Vds  3.94 V (next step, also OK)",
+        "Do NOT re-populate C203 without re-running",
+        "kicad/sims. The bank still EMPTIES for a",
+        "max-Coss pair - at that corner it runs out at",
+        "8.87 V and the remaining knob is DUTY (D 42-46 %",
+        "measures 4.8 V), not a part.",
     ])
     _note(sh, (469.9, 271.78), [
         "GATE LOOPS: aim for <= 0.48 nH per FET,",
@@ -715,9 +780,10 @@ def main(argv=None) -> int:
         "internal_nets": sorted({DRIVE, GATE_ON, GATE_OFF, GATE_Q1, GATE_Q2,
                                  L_MID}),
         "rails_flagged": [V5D],
-        "gate_r_per_branch_ohm": {"OUTH": 4.7, "OUTL": 6.8},
-        "gate_r_per_driver_pin_ohm": {"OUTH": 2.35, "OUTL": 3.4},
-        "dnp": sorted(r for r, d in CSHUNT_SITES if d),
+        "gate_r_per_branch_ohm": {"OUTH": 4.7, "OUTL": 4.7},
+        "gate_r_per_driver_pin_ohm": {"OUTH": 2.35, "OUTL": 2.35},
+        "cshunt_external_pf": sum(pf for _, pf, d in CSHUNT_SITES if not d),
+        "dnp": sorted(r for r, _, d in CSHUNT_SITES if d),
         "decoupling_associations": len(sh.decoupling),
         "field_placement": sh.place_report,
         "aux_fields_hidden": hidden,

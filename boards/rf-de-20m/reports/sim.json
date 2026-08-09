@@ -1,0 +1,312 @@
+{
+ "script": "sim_run",
+ "status": "violations",
+ "board": "sims",
+ "counts": {
+  "total": 4,
+  "by_severity": {
+   "error": 1,
+   "warning": 3
+  },
+  "by_source": {
+   "sim.ngspice": 4
+  }
+ },
+ "violations": [
+  {
+   "check": "sim",
+   "severity": "error",
+   "pos": null,
+   "layer": null,
+   "net": null,
+   "refs": [],
+   "msg": "bus_derating.cir: vds_pk_40v_v = 172.547 outside <= 155 - architecture SIM-1's 1.29x derate on the EPC2019's 200 V BVDSS. A populate trimmed at 30 V is UNDER-shunted at 40 V (the nonlinear Coss supplies less charge-equivalent capacitance over a larger swing), which raises the drain peak. If this fails, one populate cannot serve both bus points and 40 V needs its own bank setting.",
+   "source": "sim.ngspice",
+   "items": [
+    {
+     "msg": "bus_derating.cir: vds_pk_40v_v = 172.547 outside <= 155 - architecture SIM-1's 1.29x derate on the EPC2019's 200 V BVDSS. A populate trimmed at 30 V is UNDER-shunted at 40 V (the nonlinear Coss supplies less charge-equivalent capacitance over a larger swing), which raises the drain peak. If this fails, one populate cannot serve both bus points and 40 V needs its own bank setting.",
+     "pos": null
+    }
+   ],
+   "kind": "sim_bound_fail",
+   "measure": "vds_pk_40v_v",
+   "testbench": "bus_derating.cir",
+   "bound": {
+    "min": null,
+    "max": 155.0
+   },
+   "value": 172.547
+  },
+  {
+   "check": "sim",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": null,
+   "refs": [],
+   "msg": "classe_zvs_nominal.cir: dvds_dt_at_turnon_v_per_ns = -1.2124 outside [-0.2, 0.2] - The architecture's own SIM-1 ZdVS window, kept visible. Reaching it needs a duty-cycle trim at bring-up (D ~ 46-48 % measured), not a populate change.",
+   "source": "sim.ngspice",
+   "items": [
+    {
+     "msg": "classe_zvs_nominal.cir: dvds_dt_at_turnon_v_per_ns = -1.2124 outside [-0.2, 0.2] - The architecture's own SIM-1 ZdVS window, kept visible. Reaching it needs a duty-cycle trim at bring-up (D ~ 46-48 % measured), not a populate change.",
+     "pos": null
+    }
+   ],
+   "kind": "sim_bound_fail",
+   "measure": "dvds_dt_at_turnon_v_per_ns",
+   "testbench": "classe_zvs_nominal.cir",
+   "bound": {
+    "min": -0.2,
+    "max": 0.2
+   },
+   "value": -1.2124
+  },
+  {
+   "check": "sim",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": null,
+   "refs": [],
+   "msg": "tank_match.cir: zin_phase_20m_deg = 52.1019 outside [25, 45] - The architecture's OWN SIM-4 phase window, kept visible the way SIM-1's +/-0.2 V/ns ZdVS window is kept visible in classe_zvs_nominal.bounds.json. IT IS UNREACHABLE BY CONSTRUCTION, not by this board's doing: phase = atan(X_net/R), so the architecture's own x_net window of 1.0-1.6 maps to 45.0-58.0 deg and cannot overlap 25-45 deg except at the single point 45. This entry will therefore warn on every run; that is the intent - the promise stays visible and the contradiction stays on the record. The re-derived window above is the one to read. Deviation recorded in reports/sim-notes.md s7 item 1.",
+   "source": "sim.ngspice",
+   "items": [
+    {
+     "msg": "tank_match.cir: zin_phase_20m_deg = 52.1019 outside [25, 45] - The architecture's OWN SIM-4 phase window, kept visible the way SIM-1's +/-0.2 V/ns ZdVS window is kept visible in classe_zvs_nominal.bounds.json. IT IS UNREACHABLE BY CONSTRUCTION, not by this board's doing: phase = atan(X_net/R), so the architecture's own x_net window of 1.0-1.6 maps to 45.0-58.0 deg and cannot overlap 25-45 deg except at the single point 45. This entry will therefore warn on every run; that is the intent - the promise stays visible and the contradiction stays on the record. The re-derived window above is the one to read. Deviation recorded in reports/sim-notes.md s7 item 1.",
+     "pos": null
+    }
+   ],
+   "kind": "sim_bound_fail",
+   "measure": "zin_phase_20m_deg",
+   "testbench": "tank_match.cir",
+   "bound": {
+    "min": 25.0,
+    "max": 45.0
+   },
+   "value": 52.1019
+  },
+  {
+   "check": "sim",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": null,
+   "refs": [],
+   "msg": "tank_match.cir: zin_re_cm448_ohm = 4.54828 outside [3.72, 4.54] - C_m arbitration option 3: -27 pF by depopulating C319.",
+   "source": "sim.ngspice",
+   "items": [
+    {
+     "msg": "tank_match.cir: zin_re_cm448_ohm = 4.54828 outside [3.72, 4.54] - C_m arbitration option 3: -27 pF by depopulating C319.",
+     "pos": null
+    }
+   ],
+   "kind": "sim_bound_fail",
+   "measure": "zin_re_cm448_ohm",
+   "testbench": "tank_match.cir",
+   "bound": {
+    "min": 3.72,
+    "max": 4.54
+   },
+   "value": 4.54828
+  }
+ ],
+ "input": "boards\\rf-de-20m\\kicad\\sims",
+ "engine": {
+  "dll": "C:\\Program Files\\KiCad\\10.0\\bin\\ngspice.dll",
+  "ngspice_version": 46
+ },
+ "timeout_s": 60.0,
+ "testbenches": [
+  {
+   "name": "bus_derating",
+   "cir": "boards\\rf-de-20m\\kicad\\sims\\bus_derating.cir",
+   "bounds": 13,
+   "elapsed_s": 10.947,
+   "measures": {
+    "vds_ton_40v_v": -1.17869,
+    "vds_ton_36v_v": -0.221811,
+    "vds_ton_30v_v": 1.4104,
+    "vds_ton_25v_v": 3.12121,
+    "zvs_drift_25_40_v": 4.29989,
+    "vds_pk_40v_v": 172.547,
+    "vds_pk_36v_v": 152.095,
+    "vds_pk_25v_v": 98.1506,
+    "vr40": 102.806,
+    "vr36": 91.7972,
+    "vr30": 75.4236,
+    "vr25": 61.9464,
+    "pout_40v_w": 211.38,
+    "pout_36v_w": 168.534,
+    "pout_30v_w": 113.774,
+    "pout_25v_w": 76.747,
+    "pout_ratio_40_over_30": 1.85789,
+    "vdspk_per_vdd_40": 4.31368,
+    "vdspk_per_vdd_25": 3.92602
+   },
+   "status": "violations"
+  },
+  {
+   "name": "classe_zvs_nominal",
+   "cir": "boards\\rf-de-20m\\kicad\\sims\\classe_zvs_nominal.cir",
+   "bounds": 10,
+   "elapsed_s": 3.818,
+   "measures": {
+    "vds_at_turnon_v": 1.35947,
+    "vds_at_gatecmd_v": 4.26412,
+    "iprb_at_turnon": -0.00012124,
+    "dvds_dt_at_turnon_v_per_ns": -1.2124,
+    "vds_peak_v": 122.304,
+    "vds_min_v": -0.00583343,
+    "vload_rms": 75.4439,
+    "pout_w": 113.835,
+    "idc_raw": -3.92876,
+    "idc_a": 3.92876,
+    "eff_ceiling_pct": 96.583,
+    "a1s": 8.11806e-06,
+    "a1c": 1.05687e-05,
+    "a2s": -7.7368e-08,
+    "a2c": 5.03375e-07,
+    "a3s": -7.92519e-08,
+    "a3c": -2.49937e-08,
+    "h1_amp_v": 106.614,
+    "h2_amp_v": 4.07429,
+    "h3_amp_v": 0.664797,
+    "h2_dbc": -28.3552,
+    "h3_dbc": -44.1025
+   },
+   "status": "violations"
+  },
+  {
+   "name": "coss_charge",
+   "cir": "boards\\rf-de-20m\\kicad\\sims\\coss_charge.cir",
+   "bounds": 8,
+   "elapsed_s": 0.948,
+   "measures": {
+    "q100t": 1.79915e-08,
+    "q1425t": 2.89952e-08,
+    "q1425tt": 2.23233e-08,
+    "q100x": 2.30397e-08,
+    "qoss_100v_nc": 17.9915,
+    "qoss_100v_max_nc": 23.0397,
+    "coss_tr_per_fet_pf": 156.654,
+    "coss_tr_maxcorner_pf": 203.475,
+    "coss_100v_pf": 109.959,
+    "coss_100v_max_pf": 149.925,
+    "coss_q_over_v_at100_pf": 179.915,
+    "cshunt_from_pair_pf": 313.309
+   },
+   "status": "pass"
+  },
+  {
+   "name": "cshunt_sweep",
+   "cir": "boards\\rf-de-20m\\kicad\\sims\\cshunt_sweep.cir",
+   "bounds": 13,
+   "elapsed_s": 14.458,
+   "measures": {
+    "vds_ton_asbuilt_v": 1.41042,
+    "vds_ton_bank0_v": -0.248849,
+    "vds_ton_prefix_v": 15.4702,
+    "vds_ton_maxcoss_v": 12.1484,
+    "vds_ton_maxcoss_bank0_v": 8.87006,
+    "vds_ton_bank56_v": 3.93838,
+    "vds_ton_worst_v": 12.1484,
+    "vrms_asbuilt": 75.4236,
+    "vrms_bank0": 76.772,
+    "vrms_prefix": 51.6614,
+    "vrms_mx": 71.6394,
+    "vrms_mx0": 72.5661,
+    "pout_asbuilt_w": 113.774,
+    "pout_bank0_w": 117.879,
+    "pout_prefix_w": 53.378,
+    "pout_maxcoss_w": 102.644,
+    "pout_maxcoss_bank0_w": 105.317,
+    "vds_peak_asbuilt_v": 122.199,
+    "vds_peak_bank0_v": 128.811
+   },
+   "status": "pass"
+  },
+  {
+   "name": "gate_symmetry",
+   "cir": "boards\\rf-de-20m\\kicad\\sims\\gate_symmetry.cir",
+   "bounds": 14,
+   "elapsed_s": 13.542,
+   "measures": {
+    "vgs_q1_max_v": 4.90653,
+    "vgs_q1_min_v": -0.167362,
+    "vgs_q2_max_v": 4.90651,
+    "vgs_q2_min_v": -0.167162,
+    "vgs_max_v": 4.90653,
+    "vgs_min_v": -0.167362,
+    "vouth_pin_max_v": 5.00036,
+    "vgs_off_max_v": 0.0572059,
+    "vgs_q2_off_max_v": 0.0604035,
+    "id_q1_pk_a": 5.58163,
+    "id_q2_pk_a": 5.58166,
+    "id_q1_rms_a": 3.30836,
+    "id_q2_rms_a": 3.31189,
+    "id_imbalance_pct": 0.000394323,
+    "id_rms_imbalance_pct": 0.106513,
+    "vgs_at_ringend_v": -0.0144039,
+    "vgs_ring_residual_pct": 0.288077,
+    "vgs_corner_q1_max_v": 4.90038,
+    "vgs_corner_q2_max_v": 4.90291,
+    "vgs_corner_q1_min_v": -0.160828,
+    "vgs_corner_q2_min_v": -0.17088,
+    "vgs_corner_max_v": 4.90291,
+    "vgs_corner_min_v": -0.17088,
+    "idc_q1_pk_a": 6.19977,
+    "idc_q2_pk_a": 5.57605,
+    "idc_q1_rms_a": 3.50145,
+    "idc_q2_rms_a": 2.89866,
+    "id_corner_imbalance_pct": 10.5932,
+    "id_corner_rms_imbalance_pct": 18.8369,
+    "vgs_6r8_min_v": -0.166857,
+    "vgs_6r8_max_v": 4.90373,
+    "vgs_6r8_off_max_v": 0.079141
+   },
+   "status": "pass"
+  },
+  {
+   "name": "tank_match",
+   "cir": "boards\\rf-de-20m\\kicad\\sims\\tank_match.cir",
+   "bounds": 17,
+   "elapsed_s": 0.646,
+   "measures": {
+    "zin_re_20m_ohm": 4.14599,
+    "zin_im_20m": 5.3287,
+    "zin_mag_20m_ohm": 6.75237,
+    "x_net_series_over_r": 1.28527,
+    "zin_ph_rad": 0.90935,
+    "zin_phase_20m_deg": 52.1019,
+    "zb_re": 4.09582,
+    "zb_im": 1.77089,
+    "x_net_no_bridge": 0.432365,
+    "zc_re": 4.18936,
+    "zc_im": 8.38644,
+    "x_net_prefix": 2.00184,
+    "zin_re_prefix_ohm": 4.18936,
+    "zd_re": 4.13325,
+    "zd_im": 14.1559,
+    "x_net_open12_refuted": 3.42487,
+    "ze_re": 4.13324,
+    "ze_im": 5.30545,
+    "x_net_open12_sokal": 1.28361,
+    "zin_re_ideal_ohm": 4.13324,
+    "zf_re": 4.13756,
+    "zf_im": 4.73266,
+    "x_net_br25": 1.14383,
+    "zg_re": 4.15444,
+    "zg_im": 5.92598,
+    "x_net_br35": 1.42642,
+    "zin_re_cm475_ohm": 4.14599,
+    "zh_re": 3.79451,
+    "zin_re_cm502_ohm": 3.79451,
+    "zi_re": 4.54828,
+    "zin_re_cm448_ohm": 4.54828,
+    "zin_mag_40m_ohm": 60.1491,
+    "zin_mag_60m_ohm": 113.746
+   },
+   "status": "violations"
+  }
+ ]
+}

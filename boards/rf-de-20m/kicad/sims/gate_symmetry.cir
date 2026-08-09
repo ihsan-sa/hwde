@@ -1,0 +1,224 @@
+* rf-de-20m SIM-3 gate_symmetry - two paralleled EPC2019 on the real gate loop
+*
+* SOURCE NETLIST : boards/rf-de-20m/kicad/rf-de-20m.net
+* RENAME MAP     : /stage/GATE_ON->oh  /stage/GATE_OFF->ol
+*                  /stage/GATE_Q1->g1  /stage/GATE_Q2->g2  /SW->sw  GND->0
+*                  The FET SOURCE pins are NOT node 0 here: they are s1/s2,
+*                  tied to 0 through the measured common-source inductance.
+*                  That one distinction is the whole point of this bench.
+* INTENT         : (1) VGS AT THE DIE must stay inside the EPC2019's +6 / -4 V,
+*                  which is TIGHTER than the LMG1020's own 5.75 V pin rating;
+*                  (2) the two dice must share current; (3) close review-board
+*                  W1 / route-notes.md s14, which escalated COMMON-SOURCE
+*                  INDUCTANCE to P8 as "a P8 SIM item ... never modelled by the
+*                  architecture" and on which the 4R7-vs-6R8 gate-resistor
+*                  argument was settled twice by estimate and never by sim.
+*
+* THREE INSTANCES, one deck, all on the AS-BUILT network at the 30 V bench
+* (as built = AFTER P8 fix a3: C_s 419 pF, C_shunt bank 27 pF - see the stage
+* block at the bottom of the subcircuit for why this bench cares):
+*   Xm  MATCHED DICE + the architecture's +/-0.15 nH gate-loop mismatch, 4R7.
+*                    SIM-3 exactly as specified; it gates the D1 layout claim.
+*   Xc  CORNER DICE  + the same gate mismatch, 4R7: Q1 typ (Rds 65 mohm hot,
+*                    Coss typ) against Q2 at the datasheet max corner (Rds
+*                    90 mohm hot, Coss 150 pF / Qoss 23 nC). Two dice out of one
+*                    reel are not this far apart, but the datasheet permits it
+*                    and the whole paralleling decision (D1) rests on sharing.
+*   Xr  MATCHED DICE + 6R8 on the turn-OFF legs only (R205/R206), everything
+*                    else identical to Xm. P7 fitted 6R8, the P8 fix pass
+*                    reverted to 4R7, and neither decision was ever simulated.
+*                    Xm vs Xr IS that comparison, on the -4 V rail.
+*
+* ------------------------------------------------------- MEASURED PARASITICS
+* From reports/route-notes.md s6/s14 and review-board.md W1, all computed off
+* the ACTUAL copper (microstrip mu0.h/w over In1 at 0.2444 mm):
+*   turn-ON loop  2.05 nH/FET (OUTH bar 0.982 + die escape 0.768 + leg 0.304)
+*   turn-OFF loop 7.03 nH/FET (OUTL feed 2.26 + leg 3.56 + escape/leg 1.21) -
+*                 the non-planar OUTL wrap, ~3.4x the turn-on loop
+*   MISMATCH      +/-0.15 nH applied DIFFERENTIALLY (Q1 -0.15, Q2 +0.15), i.e.
+*                 1.5x the +/-0.1 nH design tolerance, per the architecture's
+*                 own SIM-3 spec. The as-routed legs are EXACT copper mirrors
+*                 (1.517 nH each), so this is a seeded worst case.
+*   COMMON-SOURCE 0.157 nH = the PARALLEL combination of the four source escapes
+*                 (0.49 / 0.55 / 0.55 / 1.47 nH), all four of which land on the
+*                 same 311.7 mm2 F.Cu GND island that also carries U201's ground
+*                 (review-board.md W1). P7 had used the 0.768 nH SINGLE escape -
+*                 5x too big - and bought the 4R7 -> 6R8 change with it.
+*
+* ------------------------------------------------------------- MODEL POLICY
+* NO VENDORED MODELS.
+* LMG1020 = TIER-B BOUNDARY MODEL, never IC internals. Split source-only /
+*   sink-only outputs per parts/C6423790.json:
+*     OUTH: PULSE 0/5 V + 0.714 ohm, from IOH 7 A peak at VOUTH = 0 V (5/7)
+*     OUTL: PULSE 0/5 V + 1.000 ohm, from IOL 5 A peak at VOUTL = 5 V (5/5)
+*   Each is made unidirectional by a series diode, which is what the datasheet
+*   Truth Table describes ("goes OPEN whenever not actively driving high").
+*   Edge 0.4 ns = the datasheet's 400 ps typ output rise/fall.
+* EPC2019 = the same agent-authored card as classe_zvs_nominal.cir (Coss(v) fit
+*   to Coss(100 V) 110 pF + Qoss(100 V) 18 nC), plus C_GS = Ciss - Crss =
+*   200 - 0.7 = 199 pF, Crss 0.7 pF, RG_int 0.4 ohm, conduction onset at
+*   VT-VH = 1.5 V (VGSth 0.8 min / 1.4 typ / 2.5 max).
+*   NOT CAPTURED, and it bounds what may be read off this bench: C_GS is
+*   CONSTANT, so there is no Miller plateau and no Qg nonlinearity - the VGS
+*   numbers are a LOOP result (L, R, common-source injection), not a gate-charge
+*   result. Also absent: dynamic Rds(on) and self-heating, so the positive Rds
+*   tempco that D1 relies on to equalise STATIC sharing cannot act here and the
+*   RMS-sharing number is pessimistic by construction.
+*
+.title rf-de-20m SIM-3 gate symmetry, VGS at the die, common-source injection
+* NGSPICE TRAP, machine-verified on this host: reltol/abstol/vntol tightened to
+* 1e-4/1e-12/1e-7 (which classe_zvs_nominal.cir can afford) drives THIS deck to
+* "Timestep too small ... 2.5e-23" inside the first picosecond - a 1 pA abstol
+* is meaningless against a 10 A power loop and it strands the gate-loop
+* inductor nodes. Engine defaults run it cleanly.
+.options rshunt=1e9
+.param CJ0X=870p MMX=0.381
+.param PER=50n PWID=23.2n
+
+.subckt EPC2019 d g s params: cj0=789p vj=1.0 mm=0.427 ron=0.065
+Rgi g gi 0.4
+Sch d s gi s SWCH
+Coss d dx c={cj0/pow(1+0.5*(v(d,s)+sqrt(v(d,s)*v(d,s)+0.01))/vj,mm)}
+Rcoss dx s 0.05
+Drev s d GANREV
+Cgs gi s 199p
+Cgd gi d 0.7p
+.model SWCH SW(vt=2.5 vh=1.0 ron={ron} roff=1e8)
+.model GANREV D(is=1e-12 n=2.6 rs=0.05 cjo=0)
+.ends
+
+* cjo 3 pF on the driver diodes is NOT cosmetic: an ideal (cjo=0) diode in
+* series with a gate-loop inductor leaves that inductor's node with no
+* capacitance at all while the diode is off, and ngspice cannot integrate it.
+* 3 pF is also the right order for a WCSP output ball plus its land.
+.model DIDEAL D(is=1e-12 n=0.2 rs=0.05 cjo=3p vj=0.6 m=0.5)
+
+* --------------------------------------------------------------- ONE STAGE --
+.subckt GSTAGE cmd params: ron2=0.065 cj02=789p mm2=0.427 rgoff=4.7
++ lon1=1.90n lon2=2.20n loff1=6.88n loff2=7.18n rgon=4.7 lcs=0.157n
+* This stage's OWN LMG1020 output pins. They MUST be inside the subcircuit:
+* with the three instances sharing one Routh/Routl the driver is loaded 3x and
+* every VGS number moves (measured: off-state VGS 0.21 -> 1.12 V, i.e. from 4x
+* margin on VGSth_min to 0.7x - a pure artefact).
+Eouth oh 0 cmd 0 1
+Routh oh ohp 0.714
+Eoutl ol 0 cmd 0 1
+Routl ol olp 1.000
+* Q1 gate legs (short-loop corner of the +/-0.15 nH mismatch)
+Dh1 ohp a1 DIDEAL
+Lon1 a1 b1 {lon1}
+Rgon1 b1 g1 {rgon}
+Rgoff1 g1 c1 {rgoff}
+Loff1 c1 d1 {loff1}
+Dl1 d1 olp DIDEAL
+* Q2 gate legs (long-loop corner)
+Dh2 ohp a2 DIDEAL
+Lon2 a2 b2 {lon2}
+Rgon2 b2 g2 {rgon}
+Rgoff2 g2 c2 {rgoff}
+Loff2 c2 d2 {loff2}
+Dl2 d2 olp DIDEAL
+* the two dice, each on its own source escape into the shared GND island
+Vsen1 sw dn1 DC 0
+Xq1 dn1 g1 s1 EPC2019 cj0=789p vj=1.0 mm=0.427 ron=0.065
+Lcs1 s1 s1g {lcs}
+Rcs1 s1g 0 0.002
+Vsen2 sw dn2 DC 0
+Xq2 dn2 g2 s2 EPC2019 cj0={cj02} vj=1.0 mm={mm2} ron={ron2}
+Lcs2 s2 s2g {lcs}
+Rcs2 s2g 0 0.002
+* VGS AT THE DIE, materialised as a node: ngspice's .measure does NOT accept
+* the two-node form v(a,b) (machine-verified: ".meas ... max v(g1,s1)" ->
+* "failed!"), and v(g1) alone would silently drop the common-source term.
+Bvgs1 vgs1 0 V={v(g1)-v(s1)}
+Bvgs2 vgs2 0 V={v(g2)-v(s2)}
+* Drain currents likewise: ".meas ... max i(Xm.Vsen1)" fails on a subcircuit-
+* internal source (machine-verified), so each is materialised as a node.
+Bid1 id1 0 V={i(Vsen1)}
+Bid2 id2 0 V={i(Vsen2)}
+* the rest of the stage - AS-BUILT populate AFTER P8 FIX a3: C_shunt bank
+* 27 pF + 27.4 pF pour = 54.4 pF, C_s 419 pF, C_m 475 + 46.1 pF pour, 30 nH
+* zone-B tank bridge, 30 V bus. (Retired pre-fix values: 110.4 pF and 504 pF.
+* THIS BENCH IS SENSITIVE TO THEM: with the pre-fix tank the corner-dice peak
+* sharing measured 62.4 % and read as a layout failure, when it was the lost
+* ZVS letting the low-Rds die hog the Coss discharge - decisions.md D1's
+* paralleling argument rests on the drain being at ~0 V at turn-on.)
+Vdd vb 0 DC 30
+Lch1 vb la 470n
+Rch1 la lmd 0.0041
+Lch2 lmd lb 470n
+Rch2 lb sw 0.0041
+Cshext sw nsh 54.4p
+Rshesr nsh 0 0.02
+Ls1 sw n1 162.9n
+Rls n1 ta 0.0531
+Cta ta 0 13.4p
+Lbr ta n2 30n
+Cs n2 tb 419p
+Rcs tb tb2 0.0011
+Ctb tb2 0 0.8p
+Lm1 tb2 n3 108.9n
+Rlm n3 rf 0.0426
+Cm rf 0 521.1p
+Rl rf 0 50
+.ends
+
+* --------------------------- one logic command, three self-driven stages ----
+Vcmd CMD 0 PULSE(0 5 0 0.4n 0.4n {PWID} {PER})
+Xm CMD GSTAGE
+Xc CMD GSTAGE ron2=0.090 cj02={CJ0X} mm2={MMX}
+Xr CMD GSTAGE rgoff=6.8
+
+.tran 0.02n 4u 3.70u 0.02n
+
+* ------------------------------ Xm: matched dice, +/-0.15 nH gate mismatch --
+.meas tran vgs_q1_max_v MAX v(Xm.vgs1) FROM=3850n TO=4000n
+.meas tran vgs_q1_min_v MIN v(Xm.vgs1) FROM=3850n TO=4000n
+.meas tran vgs_q2_max_v MAX v(Xm.vgs2) FROM=3850n TO=4000n
+.meas tran vgs_q2_min_v MIN v(Xm.vgs2) FROM=3850n TO=4000n
+* the pair envelope - what the EPC2019's +6 / -4 V rating actually gates
+.meas tran vgs_max_v param='(vgs_q1_max_v+vgs_q2_max_v+abs(vgs_q1_max_v-vgs_q2_max_v))/2'
+.meas tran vgs_min_v param='(vgs_q1_min_v+vgs_q2_min_v-abs(vgs_q1_min_v-vgs_q2_min_v))/2'
+* the LMG1020 OUTPUT PIN, whose own abs max is 5.75 V (parts/C6423790.json)
+.meas tran vouth_pin_max_v MAX v(Xm.ohp) FROM=3850n TO=4000n
+* SPURIOUS RE-TURN-ON: highest VGS in the SETTLED part of the OFF half-cycle,
+* against VGSth_min 0.8 V (typ 1.4). The off period of the cycle starting at
+* 3900 ns runs 3926.6 -> 3950 ns. The window is 3940..3949 ns, i.e. >= 13 ns
+* (>= 8 gate-loop time constants at 4R7, >= 8.5 ns at 6R8) after the falling
+* edge - a window that starts at 3927 ns instead measures the TAIL OF THE
+* TURN-OFF EDGE, which reads 0.79 V at 6R8 purely because 6R8 discharges the
+* gate more slowly. That is not a spurious-turn-on threat and must not be
+* reported as one.
+.meas tran vgs_off_max_v MAX v(Xm.vgs1) FROM=3940n TO=3949n
+.meas tran vgs_q2_off_max_v MAX v(Xm.vgs2) FROM=3940n TO=3949n
+* CURRENT SHARING
+.meas tran id_q1_pk_a MAX v(Xm.id1) FROM=3900n TO=3950n
+.meas tran id_q2_pk_a MAX v(Xm.id2) FROM=3900n TO=3950n
+.meas tran id_q1_rms_a RMS v(Xm.id1) FROM=3750n TO=4000n
+.meas tran id_q2_rms_a RMS v(Xm.id2) FROM=3750n TO=4000n
+.meas tran id_imbalance_pct param='200*abs(id_q1_pk_a-id_q2_pk_a)/(id_q1_pk_a+id_q2_pk_a)'
+.meas tran id_rms_imbalance_pct param='200*abs(id_q1_rms_a-id_q2_rms_a)/(id_q1_rms_a+id_q2_rms_a)'
+* TURN-OFF RING: residual |VGS| 4 ns after the turn-off command, as % of the
+* 5 V drive. Turn-off edge of the last full cycle = 3950 + 0.4 + 23.2 = 3973.6.
+.meas tran vgs_at_ringend_v FIND v(Xm.vgs1) AT=3977.6n
+.meas tran vgs_ring_residual_pct param='20*abs(vgs_at_ringend_v)'
+
+* -------------------------- Xc: datasheet-corner dice (typ vs max Rds+Coss) --
+.meas tran vgs_corner_q1_max_v MAX v(Xc.vgs1) FROM=3850n TO=4000n
+.meas tran vgs_corner_q2_max_v MAX v(Xc.vgs2) FROM=3850n TO=4000n
+.meas tran vgs_corner_q1_min_v MIN v(Xc.vgs1) FROM=3850n TO=4000n
+.meas tran vgs_corner_q2_min_v MIN v(Xc.vgs2) FROM=3850n TO=4000n
+.meas tran vgs_corner_max_v param='(vgs_corner_q1_max_v+vgs_corner_q2_max_v+abs(vgs_corner_q1_max_v-vgs_corner_q2_max_v))/2'
+.meas tran vgs_corner_min_v param='(vgs_corner_q1_min_v+vgs_corner_q2_min_v-abs(vgs_corner_q1_min_v-vgs_corner_q2_min_v))/2'
+.meas tran idc_q1_pk_a MAX v(Xc.id1) FROM=3900n TO=3950n
+.meas tran idc_q2_pk_a MAX v(Xc.id2) FROM=3900n TO=3950n
+.meas tran idc_q1_rms_a RMS v(Xc.id1) FROM=3750n TO=4000n
+.meas tran idc_q2_rms_a RMS v(Xc.id2) FROM=3750n TO=4000n
+.meas tran id_corner_imbalance_pct param='200*abs(idc_q1_pk_a-idc_q2_pk_a)/(idc_q1_pk_a+idc_q2_pk_a)'
+.meas tran id_corner_rms_imbalance_pct param='200*abs(idc_q1_rms_a-idc_q2_rms_a)/(idc_q1_rms_a+idc_q2_rms_a)'
+
+* ---------------------------------- Xr: the 6R8 turn-off variant P7 fitted --
+.meas tran vgs_6r8_min_v MIN v(Xr.vgs1) FROM=3850n TO=4000n
+.meas tran vgs_6r8_max_v MAX v(Xr.vgs1) FROM=3850n TO=4000n
+.meas tran vgs_6r8_off_max_v MAX v(Xr.vgs1) FROM=3940n TO=3949n
+.end
