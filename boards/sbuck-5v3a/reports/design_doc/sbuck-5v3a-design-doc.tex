@@ -16,7 +16,7 @@
 \begin{center}
 {\LARGE\bfseries sbuck-5v3a --- Design Document}\\[6pt]
 {\large ai-ee v1 pipeline}\\[2pt]
-generated 2026-08-08 23:30:10
+generated 2026-08-09 02:15:14
 \end{center}
 \tableofcontents
 
@@ -29,10 +29,10 @@ generated 2026-08-08 23:30:10
 \endhead
 board & sbuck-5v3a \\
 workspace & \texttt{boards/sbuck-5v3a} \\
-phase & P2 \\
-gate status & no gates recorded yet \\
+phase & P3 \\
+gate status & all 1 recorded gates pass \\
 state created & 2026-08-08T22:12:30 \\
-state updated & 2026-08-08T23:29:56 \\
+state updated & 2026-08-09T02:14:45 \\
 \bottomrule
 \end{longtable}
 }
@@ -328,6 +328,29 @@ P2 & Buck IC: AP64350SP-13 at 500 kHz (RT=200k) & Decided on MAX Rds(on) 75/45 m
 P2 & 1 oz outer copper; both vendor reference layouts (2 oz) lose & JLC's only 4L/1.6mm 2oz-outer lamination has a 0.4284mm L1-L2 prepreg vs 1080B's 0.2444mm - nearly doubles thermal-via resistance and pushes the image plane 75\% further from the hot loop; net +0.8C, so 2oz is worse here \\
 P2 & Stackup JLC04161H-1080B; F.Cu + In1 + In2 + B.Cu ALL GND & JLC inner copper is 0.0152mm - thinner than the nominal 0.5oz the rule assumed - so inner power widths would need 3.5-5.3mm; declared explicitly because the pipeline default would otherwise pour In2 as +5V \\
 P2 & Single flat root sheet (refdes 1-99, \#PWR 100), 33 placed parts & Small board; hierarchy rejected to eliminate the /\textless{}sheet\textgreater{}/\textless{}LABEL\textgreater{} net-name mismatch class the recipe warns about \\
+P3 & R6 feedback top resistor 116k -\textgreater{} 115k (0.1\%) & 116k is not an E96 value and has zero 0603 stock at any tolerance; 115k/22.1k is what the AP64350 datasheet's own 5V reference design specifies, and 118k was rejected for failing the high corner at 5.130V \\
+P3 & U1 ships with NO true pin-compatible alternate (explicit empty list) & Pin-by-pin comparison shows AP64350 and LMR33630 differ on 4 of 8 pins and use different compensation architectures; recording the single-source risk honestly beats listing a fake second source \\
+P3 & AO4407A Rds(on) budget checked at the real operating gate drive (Vgs = -Vin, clamped -15V), not at the datasheet's -4.5/-5V row & Gate sits at GND and source at VIN in this topology so Vgs spans -7V to -15V; at the 12V spec point Vgs=-12V gives 13 mOhm max = 26 mW, inside the 22 mOhm budget line. The -5V row (38 mOhm max) is not an operating condition on this board \\
+P3 & AO4407A datasheet has no land pattern - librarian uses standard JEDEC MS-012 SOIC-8, 1.27mm pitch & The 4-page Rev3 (2008) PDF carries no mechanical/recommended-land drawing; sourcing the footprint from the JEDEC standard is honest, inventing pad dimensions from the PDF would not be \\
+P3 & FB bias-current error treated as an ASSUMPTION, not a datasheet fact - P1 reference-design claimed \textless{}=0.1\% but the datasheet states no value & Divider current is 0.8V/22.1k = 36 uA, so a typical 10-100 nA FB bias is 0.03-0.3\% of it - safe, but it must be labelled an engineering assumption since the vendor never publishes the number \\
+P3 & Thermal via array 16 x 0.3mm at 1.0mm pitch is OUR derivation - the vendor spec is only qualitative & AP64350 datasheet says merely 'add as many vias as possible' with an uncounted illustrative array; the numeric array comes from the P1 architect's 1.9 K/W calculation, cross-checked against the Wurth FEA table \\
+P3 & Vendor thermal numbers are stated on 2oz copper; board is 1oz - deferred to P8 check\_thermal on real geometry & theta\_JC is package-internal so it barely moves, and the architect's governing model computed board-to-ambient independently; resolving this on measured copper at P8 beats re-litigating it on datasheet conditions now \\
+P3 & U1 exposed pad enlarged from the pulled 3.200x2.500mm to the vendor Suggested Pad Layout 3.502x2.613mm (approved hand-edit) & -12.6\% EP area on a design whose theta\_JC closes with zero margin and whose entire thermal path runs through that pad; the vendor's own suggested layout outranks the easyeda2kicad pull \\
+P3 & F1 library assets come from KiCad stock (Device:Fuse + 1206 fuse land), not an EasyEDA pull & C3163312 is the only LCSC listing for this MPN and its EasyEDA record 404s; re-sourcing would trade a datasheet-verified true slow-blow part for an unverified one, so the library gap is filled instead of the part changed \\
+P3 & P4 must take C4 polarity from the footprint silk +/- mark, not the symbol & The pulled aluminium-can symbol has generic pin names 1/2 with no polarity semantics, while the footprint carries an explicit +/- pair with pin1=+ \\
+P4 & NO series gate resistor on Q1 - my spawn instruction was wrong, the schematic agent correctly followed the architecture & blocks.md B1 and sheets.md s5.4 both explicitly forbid a gate RC, and the P1 architect already proved a gate RC cannot limit inrush here (the body diode is forward in the normal direction); R1=100k is the gate path and D2 clamps Vgs \\
+P4 & C3 refitted as the Eq.19 COMP HF pole (COMP-\textgreater{}GND) at 10pF, NOT the Eq.20 feedforward across R6; sheets.md s3 to be amended & Measured both: as feedforward it pushes \textbar{}T\textbar{} at fsw/2 to -8..-2 dB and breaks the vendor's own \textless{}-10 dB gain-margin target; as the Eq.19 pole it costs 8 deg of PM (we hold 65-72 deg) and buys -16 dB \\
+P4 & Feedback divider 115k/22.1k -\textgreater{} 105k/20.0k & 105k/20.0k hits the required 5.2500 ratio exactly (Vout 5.0000 V) and moves the worst-case low corner from 4.9034 V to 4.9401 V - 3.4 mV of margin becomes 40 mV, at no cost \\
+P4 & P9 BOM/CPL must filter DNP by the Variant field manually - no script in the skill reads any DNP mark & J1, J2, R9, C16 are marked Variant=DNP (the only marking a generator can reach, ksa hard-codes (dnp no)); left unfiltered, P9 would ship four parts as populated including both hand-solder screw terminals \\
+P4 & DNP snubber upsized: R9 0603-\textgreater{}1206, C16 1nF X7R-\textgreater{}470pF C0G 1206 & Reviewer showed C{*}V\textasciicircum{}2{*}f = 162 mW at 18V (338 mW at the 26V ring) into an 0603 rated 0.1 W - a DNP footprint that destroys itself when populated is a trap; 470pF/1206 gives 76 mW into 0.25 W \\
+P4 & Loop calibration claim WITHDRAWN - the x0.83 realisation factor is not evidenced & Reviewer read the vendor's Fig.29 and found C4=33pF IS fitted in the published Bode plot, so the author's 'PM 79-84 vs published 81.6' compared the wrong variant; design still passes at \textasciitilde{}46-53 deg worst case vs the 45 deg floor, but the margin is smaller than P4 claimed and only a real loop measurement can close it \\
+P4 & Silkscreen connector labelling carried FORWARD to P6/P8 as a tracked requirement & It is delegate Q30's ONLY mitigation for the swapped input/output failure mode (both terminals are identical 5.08mm 2-pin), and it is unreachable from a schematic generator - so it must not die in a P4 note \\
+P4 & Hot-plug inrush: 26V voltage declaration KEPT, current bounded by the damped path, residual risk accepted and documented & The 0.05-ohm/180A row assumes an ALL-CERAMIC Cin; this board deliberately carries C4 at 80 mOhm ESR as a damping requirement, so that row is not our configuration. Keeping 26V is conservative for part ratings and costs nothing. Residual: AO4407A body-diode single-pulse capability is unpublished, so the peak cannot be closed from sourced data - and screw terminals are a wire-then-power connector, not a hot-plug one \\
+P4 & The clean ERC is WEAK evidence for U1 and must not be cited as pin-level proof & Reviewer noted nearly every U1 pin is declared 'passive' in the pulled library, so ERC cannot catch a mis-wired IC pin here; the real pin-level evidence is the datasheet-extract cross-check and the reviewer's independent netlist read \\
+P4 & Load-step prediction restated as 181 mV (not 148 mV) against the 200 mV limit & Reviewer applied the author's own 0.83 realisation factor consistently; also the 0-\textgreater{}3A step starts in PFM which the CCM model does not cover, so P8 must treat 9.5\% margin as the honest figure \\
+P4 & Load step accepted AT the 200 mV limit on the corrected reading (148 mV modelled); R5=75k stands, no rework & Measured R5 sweep shows no value clears fc, PM and dV together - 82k and 91k FAIL phase margin, the binding requirement; and dV is mathematically invariant in COUT (fc scales 1/COUT so fc{*}COUT is constant), so buying more output capacitance would be pure cost for zero transient gain \\
+P4 & The fc 25-50 kHz target was an ORCHESTRATOR proxy, not a requirement - the 24.4 kHz floor is not a miss & The real spec is 100 us recovery; at 24.4 kHz settling is 32.6 us, a 3.1x margin. Recorded so no later phase re-litigates a 2.4\% shortfall against a number that was never the specification \\
+P4 & Loop compensation is the board's \#1 bring-up bench item; R5/C2/C3 are three adjacent 0603 parts, re-tunable without a respin & Every loop number rests on extrapolating a one-point vendor calibration onto a different circuit, and the vendor's published GM matches no reader-built model - only a bench Bode plot can close it \\
 \bottomrule
 \end{longtable}
 }
@@ -399,7 +422,7 @@ These are the CANONICAL names. \texttt{constraints.json} matches them literally.
 \textbar{} {*}{*}R4{*}{*} \textbar{} 200k 1\% 0603 \textbar{} RT -\textgreater{} 500 kHz (`RT{[}kOhm{]} = 100000/fsw{[}kHz{]}`) \textbar{}\\
 \textbar{} {*}{*}R5{*}{*} \textbar{} Rcomp, 0603 \textbar{} vendor start 14k. {*}{*}P4 RE-DERIVES against 5x22 uF{*}{*} \textbar{}\\
 \textbar{} {*}{*}C2{*}{*} \textbar{} Ccomp, 0603 \textbar{} vendor start 3.3 nF. {*}{*}P4 re-derives{*}{*} \textbar{}\\
-\textbar{} {*}{*}C3{*}{*} \textbar{} 47 pF C0G 0603 \textbar{} optional feedforward across R6 \textbar{}\\
+\textbar{} {*}{*}C3{*}{*} \textbar{} 10 pF C0G 0603 \textbar{} {*}{*}AMENDED at P4.{*}{*} Eq.19 COMP HF pole, COMP to GND - NOT the Eq.20 feedforward across R6. Measured both: as a feedforward it pushes \textbackslash{}\textbar{}T\textbackslash{}\textbar{} at fsw/2 to -8..-2 dB and breaks the vendor's own \textless{}-10 dB gain-margin target; as the Eq.19 pole it costs 8 deg of phase margin (the loop holds 65-72 deg) and buys -16 dB. No net or placement-group impact \textbar{}\\
 \textbar{} {*}{*}R2{*}{*} \textbar{} {*}{*}105k 1\% 0603{*}{*} \textbar{} +VIN -\textgreater{} EN. UVLO top \textbar{}\\
 \textbar{} {*}{*}R3{*}{*} \textbar{} {*}{*}24.0k 1\% 0603{*}{*} \textbar{} EN -\textgreater{} GND. UVLO bottom. Target VON 6.2 V / VOFF 5.3 V \textbar{}
 \end{quote}
@@ -509,9 +532,73 @@ Full architecture narrative (not inlined; see the artifact index): \texttt{archi
   fsw coupled to inductor stock, and vendor 2 oz layouts vs "2 oz does not help".
 \end{quote}
 \paragraph*{P2}
-\emph{(no digest recorded)}
+\begin{quote}\small\ttfamily\raggedright
+\# P2 Architecture digest - sbuck-5v3a\\
+~\\
+- IC AP64350SP-13 at 500 kHz (RT=200k). Decided on MAX Rds(on) 75/45 mOhm vs\\
+  LMR33630 TYPICAL 95/66; TI max column gives Tj \textasciitilde{}112 C, over the 105 C limit.\\
+  SY8205 rejected on a Preliminary datasheet with typ-only Rds.\\
+- Stackup JLC04161H-1080B, 4 layer, 1 oz outer / 0.5 oz inner. F.Cu + In1 + In2 +\\
+  B.Cu ALL GND - the single most load-bearing entry in constraints.json.\\
+- 1 oz beats 2 oz here: JLC's only 4L/1.6mm 2oz-outer lamination has a 0.4284 mm\\
+  L1-L2 prepreg vs 1080B 0.2444 mm, nearly doubling thermal-via resistance. Both\\
+  vendor reference layouts (2 oz) lose on the real stackup.\\
+- Budget 1.646 W at 12 V = 90.1\% (spec \textgreater{}88\%). Worst Tj 97.9 C at 7 V vs 105 C,\\
+  7.1 C margin. Every extra 100 mW anywhere costs 1.9 C.\\
+- ONE flat root sheet, 33 placed parts - hierarchy rejected to eliminate the\\
+  /\textless{}sheet\textgreater{}/\textless{}LABEL\textgreater{} net-name mismatch class.\\
+- Overrode delegate answer Q14: UVLO 6.5/6.0 V retargeted to 6.2/5.3 V. A 0.5 V\\
+  hysteresis is LESS than this board own 0.49 V cable drop at 2.44 A\\
+  (motorboating), and VON at the max corner lands \textasciitilde{}7.0 V - at the minimum rated\\
+  input. Side benefit: UVLO divider draw falls from 81-181 mW to 1-2 mW.\\
+- Corrected three P1 numbers rather than inheriting them: thermal-via arithmetic\\
+  had used a retired phantom stackup dielectric; spreading length 33 -\textgreater{} 32 mm;\\
+  U1 power 1.001 -\textgreater{} 1.058 W. Re-run closes 64 mW BETTER than P1.\\
+- BOM \textasciitilde{}6.35 USD/board. Flagged: delivered cost at qty 5 is 13-16 USD/board once\\
+  PCBA setup and Extended feeder fees amortise - NRE, not parts.\\
+- Riskiest decision: the IC. Riskiest TASK: the compensation (vendor Rcomp/Ccomp\\
+  are quoted for 2x22uF, this board has 5x22uF).
+\end{quote}
+\paragraph*{P3}
+\begin{quote}\small\ttfamily\raggedright
+\# P3 Parts + Library digest - sbuck-5v3a\\
+~\\
+- 24 distinct parts -\textgreater{} 33 refdes. 11 Basic / 13 Extended. \$6.34/board at qty 1 breaks.\\
+- fp\_verify 3 passed / 0 failed / 2 pad\_size warnings. 59/59 pins retyped, all\\
+  13 footprints carry courtyards, lib tables registered under \$\{KIPRJMOD\}.\\
+- U1 theta\_JC confirmed EXACTLY 5.0 C/W (p.4 table) - the architect's ceiling was\\
+  \textless{}=5, so the junction ladder holds with zero margin. RT=200k -\textgreater{} 500 kHz confirmed\\
+  from the datasheet's own formula. HS current limit 4.25/5.0/5.75 A.\\
+- TWO library defects found and fixed, both approved as hand-edits (lib/EDITS.md):\\
+  U1 EP was pulled 12.6\% undersized (3.200x2.500 vs vendor 3.502x2.613 mm) on a\\
+  zero-margin thermal design; and KiCad's stock 1206 fuse land differs materially\\
+  from Bel's own (30\% narrower in the pitch axis) on a 2.44 A part.\\
+- F1's EasyEDA record genuinely 404s (probed - a real not-found, not the 403 rate\\
+  limit). Filled from KiCad stock + vendor land rather than re-sourcing, because\\
+  C3163312 is the only listing for a fuse confirmed ACTUALLY slow-blow.\\
+- R6 116k -\textgreater{} 115k: 116k is not E96 and has zero 0603 stock; 115k/22.1k is what the\\
+  AP64350 datasheet's own 5 V reference design specifies.\\
+- Recorded as unknowns rather than guesses: FB bias current (not stated anywhere in\\
+  the datasheet), minimum off-time (not stated), thermal-via count (vendor is only\\
+  qualitative - our 16x0.3mm array is a derivation). Vendor thermal data is on 2 oz\\
+  copper against our 1 oz build -\textgreater{} deferred to P8 check\_thermal on real geometry.\\
+- Single-source risks: L1 (763 pcs, no true second source), U1 (no pin-compatible\\
+  alternate - differs from LMR33630 on 4 of 8 pins).\\
+- Carried to P4: C4 polarity must come from the footprint silk mark, not its\\
+  generic 1/2 symbol pins.
+\end{quote}
 \subsection*{Gate attempt history}
-\emph{(no entries)}
+{\small
+\begin{longtable}{llll}
+\toprule
+\textbf{Timestamp} & \textbf{Gate} & \textbf{Status} & \textbf{Failing/Total} \\
+\midrule
+\endhead
+2026-08-09T01:31:22 & erc & pass & 0/0 \\
+2026-08-09T02:14:15 & erc & pass & 0/0 \\
+\bottomrule
+\end{longtable}
+}
 \subsection*{Issues}
 \emph{(no entries)}
 \subsection*{Human checkpoints}
@@ -521,8 +608,8 @@ Full architecture narrative (not inlined; see the artifact index): \texttt{archi
 \textbf{Id} & \textbf{Phase} & \textbf{Status} & \textbf{When} & \textbf{Note} \\
 \midrule
 \endhead
-1 & P2 & not reached &  &  \\
-2 & P4 & not reached &  &  \\
+1 & P2 & approved & 2026-08-08T23:30:37 & DELEGATE approval under the brief's DECISION POLICY (no clarifying questions). Architecture, stackup, IC and constraint set accepted as written. User may still interject - nothing is fabricated yet. \\
+2 & P4 & approved & 2026-08-09T02:14:45 & DELEGATE approval per the brief's DECISION POLICY. erc 0/0, review 0 errors/7 warnings, 2 fixed + 5 waived. Load step accepted AT the 200mV limit on the corrected reading - disclosed, not smoothed. \\
 3 & P6 & not reached &  &  \\
 4 & P8 & not reached &  &  \\
 5 & P10 & not reached &  &  \\
@@ -536,15 +623,32 @@ Full architecture narrative (not inlined; see the artifact index): \texttt{archi
 \textbf{File} & \textbf{Size} & \textbf{Note} \\
 \midrule
 \endhead
-\texttt{state.json} & 11,967 B &  \\
+\texttt{state.json} & 29,318 B &  \\
+\texttt{kicad/sbuck-5v3a.kicad\_sch} & 162,089 B &  \\
 \texttt{brief/brief.md} & 5,387 B &  \\
 \texttt{requirements.md} & 20,496 B &  \\
 \texttt{architecture/blocks.md} & 12,147 B &  \\
-\texttt{architecture/constraints.json} & 16,342 B &  \\
+\texttt{architecture/constraints.json} & 17,110 B &  \\
 \texttt{architecture/decisions.md} & 15,216 B &  \\
 \texttt{architecture/power\_tree.md} & 12,708 B &  \\
-\texttt{architecture/sheets.md} & 9,927 B &  \\
+\texttt{architecture/sheets.md} & 10,238 B &  \\
 \texttt{architecture/stackup.md} & 7,559 B &  \\
+\texttt{reports/erc-p4.json} & 276 B &  \\
+\texttt{reports/erc-waivers.md} & 7,174 B &  \\
+\texttt{reports/fp\_verify\_J1J2.json} & 756 B &  \\
+\texttt{reports/fp\_verify\_Q1\_jedec.json} & 1,472 B &  \\
+\texttt{reports/fp\_verify\_U1.json} & 3,312 B &  \\
+\texttt{reports/fp\_verify\_U1\_v2.json} & 3,324 B &  \\
+\texttt{reports/gate-erc.json} & 1,663 B &  \\
+\texttt{reports/lib\_pin\_types.json} & 6,314 B &  \\
+\texttt{reports/lib\_pin\_types\_v2.json} & 666 B &  \\
+\texttt{reports/lib\_pull\_F1\_retry1.json} & 864 B &  \\
+\texttt{reports/lib\_pull\_remainder.json} & 9,013 B &  \\
+\texttt{reports/lib\_pull\_snubber\_v2.json} & 3,592 B &  \\
+\texttt{reports/netlist\_audit-p4.json} & 1,135 B &  \\
+\texttt{reports/review-schematic.json} & 5,178 B &  \\
+\texttt{reports/review-schematic.md} & 20,610 B &  \\
+\texttt{reports/sbuck-5v3a-schematic.pdf} & 116,910 B &  \\
 \bottomrule
 \end{longtable}
 }

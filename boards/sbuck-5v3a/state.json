@@ -3,20 +3,20 @@
  "board": "sbuck-5v3a",
  "workspace": "boards/sbuck-5v3a",
  "created": "2026-08-08T22:12:30",
- "updated": "2026-08-09T02:14:05",
+ "updated": "2026-08-09T02:14:45",
  "phase": "P3",
  "gates": {
   "erc": {
    "phase": "P4",
    "status": "pass",
-   "attempts": 1,
+   "attempts": 2,
    "last": {
-    "ts": "2026-08-09T01:31:22",
+    "ts": "2026-08-09T02:14:15",
     "status": "pass",
     "failing_count": 0,
     "total": 0,
     "inputs": {
-     "sch": "sexpr_no_uuid:b187a368ee958825025936286dbeb17c9b64b0d24aea625cbe466553897e6519",
+     "sch": "sexpr_no_uuid:9583d2bfe7168ea00a253671332eac0c9591b2bef11156b17758b62585735cdd",
      "pro": "json_canonical:b5da9c4d80f80a326c20d10a6f85a62e666a88d75eb9583baeaed6646aaa0ec8"
     }
    },
@@ -30,6 +30,16 @@
       "sch": "sexpr_no_uuid:b187a368ee958825025936286dbeb17c9b64b0d24aea625cbe466553897e6519",
       "pro": "json_canonical:b5da9c4d80f80a326c20d10a6f85a62e666a88d75eb9583baeaed6646aaa0ec8"
      }
+    },
+    {
+     "ts": "2026-08-09T02:14:15",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "sch": "sexpr_no_uuid:9583d2bfe7168ea00a253671332eac0c9591b2bef11156b17758b62585735cdd",
+      "pro": "json_canonical:b5da9c4d80f80a326c20d10a6f85a62e666a88d75eb9583baeaed6646aaa0ec8"
+     }
     }
    ]
   }
@@ -39,20 +49,25 @@
    "status": "approved",
    "ts": "2026-08-08T23:30:37",
    "note": "DELEGATE approval under the brief's DECISION POLICY (no clarifying questions). Architecture, stackup, IC and constraint set accepted as written. User may still interject - nothing is fabricated yet."
+  },
+  "2": {
+   "status": "approved",
+   "ts": "2026-08-09T02:14:45",
+   "note": "DELEGATE approval per the brief's DECISION POLICY. erc 0/0, review 0 errors/7 warnings, 2 fixed + 5 waived. Load step accepted AT the 200mV limit on the corrected reading - disclosed, not smoothed."
   }
  },
  "artifacts": {
   "sch": {
    "path": "kicad/sbuck-5v3a.kicad_sch",
    "kind": "sch",
-   "sha256": "sexpr_no_uuid:b187a368ee958825025936286dbeb17c9b64b0d24aea625cbe466553897e6519",
-   "hashed": "2026-08-09T01:31:22"
+   "sha256": "sexpr_no_uuid:9583d2bfe7168ea00a253671332eac0c9591b2bef11156b17758b62585735cdd",
+   "hashed": "2026-08-09T02:14:15"
   },
   "pro": {
    "path": "kicad/sbuck-5v3a.kicad_pro",
    "kind": "pro",
    "sha256": "json_canonical:b5da9c4d80f80a326c20d10a6f85a62e666a88d75eb9583baeaed6646aaa0ec8",
-   "hashed": "2026-08-09T01:31:22"
+   "hashed": "2026-08-09T02:14:15"
   }
  },
  "open_issues": [],
@@ -724,6 +739,20 @@
    "ts": "2026-08-09T02:14:05",
    "event": "decision",
    "what": "Loop compensation is the board's #1 bring-up bench item; R5/C2/C3 are three adjacent 0603 parts, re-tunable without a respin"
+  },
+  {
+   "ts": "2026-08-09T02:14:15",
+   "event": "gate",
+   "gate": "erc",
+   "status": "pass",
+   "attempt": 2,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-09T02:14:45",
+   "event": "human",
+   "checkpoint": "2",
+   "status": "approved"
   }
  ]
 }
