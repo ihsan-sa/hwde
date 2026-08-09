@@ -2692,3 +2692,65 @@ stackup id, no "rejected 1 oz" prose.** Push all of that below a sub-heading; th
 `order_submit.derive_copper_oz(Path(workspace))` and require the source note to read
 `stackups.yaml[<name>].stack[0].copper_oz` - if it reads `stackup.md: ... (_Noz)`, the regex won and
 the answer is a coincidence.
+
+## 2026-08-09 [spice] One-port S11 inside a plain `.ac`: build Gamma as a node voltage, don't post-process
+`.ac` is a linear small-signal solve, so nothing nonlinear (a B-source, abs(), log()) can compute
+`|(Zin-z0)/(Zin+z0)|` at run time, and `.measure` cannot do complex arithmetic. Make the NETWORK
+carry Gamma instead: drive the DUT from an ideal `2 V AC` source through exactly z0 (so the incident
+wave is 1 V and `v(dut) = 1 + Gamma`), hold a second node at `1 V AC`, and subtract with a UNITY VCVS
+(`Eg g 0 dut ref 1`) - a linear element, exact in `.ac`. Then `vdb(g) = -RL` in dB and `vm(g) = |Gamma|`.
+For the impedance itself, `Iz 0 z AC 1` makes `v(z)` numerically equal Zin in ohms, and `vr(z)`/`vi(z)`
+read its real/imaginary parts in `.meas` - which is how you prove a tuner is truly nulled (Im -> 1e-6)
+while the reflection that remains is entirely real. Machine-verified on rf-term-150w against a closed
+form: 72.583 vs 72.5845 dB. Four more engine facts confirmed on ngspice 46 / KiCad 10.0.3 the same run:
+(1) `.meas ac <n> param='-<prior_measure>'` works and is the ONLY clean way to get a POSITIVE return
+loss - bounds sidecars reading `min: 26` instead of `max: -26` are worth the extra line; (2) `.func`
+with nested calls and `min()`/`max()` evaluates fine, including inside an X-line parameter expression
+(`X1 d oneport cval={ctset(50,6.9n)}`) - but route `.func` results through a `.param` before using them
+in a `.meas param=` string, which is the form actually verified; (3) `.meas ac <n> max vdb(g)
+from=.. to=..` gives the worst in-band RL in one line (max of a negative dB = closest to 0);
+(4) ngspice has NO `.step`, so sweep component values by REPLICATING the DUT as N `.subckt` instances
+sharing one source - 47 instances and 182 measures still solve in 0.63 s, and each corner gets its
+own measure name, which is exactly what a bounds sidecar needs (one `.control` loop would collide
+every name).
+
+## 2026-08-09 [librarian][parts][windows] A backgrounded lib_pull that gets silently killed and then re-launched creates a second, RACING lib_pull writing the same shared library
+sbuck-5v3a P3. Ran `lib_pull.py --parts parts.json` with `run_in_background: true`; the harness
+reported it running, but the process was actually killed the moment the turn ended (progress froze
+at 8/24 parts on disk with no error surfaced - looked identical to "still running, just slow").
+Re-launching the SAME batch command in the foreground (per the coordinator's correction) did not
+detect or wait for the first process - `tasklist` showed **two live python.exe processes with the
+byte-identical command line**, both appending to the same `aiee.kicad_sym`/`aiee.pretty`
+concurrently. No corruption resulted this time (checked post-hoc: `symbol_dedup.removed: 0`, zero
+duplicate symbol names/LCSC ids) - lib_pull's per-part symbol-index write happens to be atomic
+enough at this pull rate - but it is a real race the pipeline does nothing to prevent, on top of the
+already-documented "three concurrent runs would collide" risk (2026-07-28 entries). Practical rule:
+after any backgrounded lib_pull is resumed/re-run, `tasklist //FI "IMAGENAME eq python.exe"` (or
+equivalent) before trusting the output - if more than the expected count is running, `wmic process
+... get ProcessId,CommandLine` to identify duplicates and kill the stale one BEFORE the second
+finishes, then re-verify symbol/footprint counts from the filesystem (never from either process's
+own exit code). Separately: do not rely on `run_in_background: true` (or a bash call that
+auto-backgrounds past its timeout) to survive a turn boundary in this harness - budget a single
+foreground call up to the 600 s tool cap, and pull any remainder individually via `--lcsc`.
+
+## 2026-08-09 [parts][footprint][thermal] A DFN package name's number counts TERMINALS, not lands - "V-DFN3020-13" has 9 copper lands and no exposed pad
+buck-5v3a P3, AP63356QZV-7 (C3194571). The datasheet names 9 electrical pins but calls the package
+V-DFN3020-13, and the pulled EasyEDA footprint has 9 pads. That mismatch looks exactly like the
+well-known "EasyEDA dropped the thermal pad" defect, and the theta_JA of 25 C/W on a 2x3 mm body
+looks impossible without a belly pad - so the natural inference (and the orchestrator's) was that
+four pads were missing. WRONG, and expensively so if acted on. The vendor's Suggested Pad Layout
+(datasheet p.27, and Diodes' standalone package-outline sheet V-DFN3020-13-SWP-Type-A1.pdf) annotates
+its own multiplicities `X1(2x) + X2 + X(6x)` = 9 lands, and the dimension chain closes exactly with no
+room for a tenth. The 13 counts package TERMINALS: VIN is terminals 1-3 merged into one continuous
+land, GND is 10-12 merged into another, SW is 13, signals are 4-9.
+**Two decisive tells, both cheap to check before hypothesising:** (1) a part with a belly pad quotes
+`theta_JC(bottom)`; this one quotes plain `theta_JC` - the evidence a thermal pad WOULD produce was
+absent. (2) The datasheet's own layout section named the heat exits in words ("vias around the GND pin
+and the VIN pin") - no mention of a pad. Also: a low theta_JA is NOT proof of a belly pad; Note 6 tied
+25 C/W to this exact 9-land pattern.
+Consequence to watch for: any thermal analysis run before the land pattern is confirmed may be
+modelling a heat path that does not exist. Here check_thermal had been run with an EP + 3x3 via array
+and produced Tj 95 C, which invalidated the 4-layer justification and had to be recomputed against
+two ~1.16 mm2 lands. Confirm the land pattern from the vendor drawing BEFORE the thermal model, not
+after. And `fp_verify`'s pad-count check compares against the extraction, so a package-name-derived
+pad_count silently turns into a false-positive ERROR - fix the extraction, not the footprint.
