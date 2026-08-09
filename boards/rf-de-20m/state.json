@@ -3,7 +3,7 @@
  "board": "rf-de-20m",
  "workspace": "boards/rf-de-20m",
  "created": "2026-08-07T20:58:16",
- "updated": "2026-08-08T13:35:01",
+ "updated": "2026-08-08T19:33:02",
  "phase": "P7",
  "gates": {},
  "human": {
@@ -23,7 +23,130 @@
    "note": "Placement approved. SMA vertical top-mount (not edge-launch) accepted by owner - it is the only true-SMD 50R SMA at LCSC with no bottom-side joints, which the flat heatsink face requires"
   }
  },
- "artifacts": {},
+ "artifacts": {
+  "netlist": {
+   "path": "kicad/rf-de-20m.net",
+   "kind": "netlist",
+   "sha256": "netlist_canonical:42749e543609ef17a7e7afd1e91e4941f142d3226f44f86883d81bbe5f0ebedd",
+   "hashed": "2026-08-08T18:25:09",
+   "stale": [
+    {
+     "ts": "2026-08-08T18:25:09",
+     "edit_class": "swap_part_same_fp",
+     "refs": [
+      "R205",
+      "R206"
+     ],
+     "human_hold": 2
+    },
+    {
+     "ts": "2026-08-08T18:47:56",
+     "edit_class": "swap_part_new_fp",
+     "refs": [
+      "J101",
+      "U101"
+     ],
+     "human_hold": 2
+    },
+    {
+     "ts": "2026-08-08T19:33:02",
+     "edit_class": "swap_part_same_fp",
+     "refs": [
+      "R205",
+      "R206"
+     ],
+     "human_hold": 2
+    }
+   ]
+  },
+  "bom": {
+   "path": "fab/BOM.csv",
+   "kind": "bom",
+   "sha256": null,
+   "hashed": "2026-08-08T18:25:09",
+   "stale": [
+    {
+     "ts": "2026-08-08T18:25:09",
+     "edit_class": "swap_part_same_fp",
+     "refs": [
+      "R205",
+      "R206"
+     ],
+     "human_hold": 2
+    },
+    {
+     "ts": "2026-08-08T18:47:56",
+     "edit_class": "swap_part_new_fp",
+     "refs": [
+      "J101",
+      "U101"
+     ],
+     "human_hold": 2
+    },
+    {
+     "ts": "2026-08-08T19:33:02",
+     "edit_class": "swap_part_same_fp",
+     "refs": [
+      "R205",
+      "R206"
+     ],
+     "human_hold": 2
+    }
+   ]
+  },
+  "cpl": {
+   "path": "fab/CPL.csv",
+   "kind": "cpl",
+   "sha256": null,
+   "hashed": "2026-08-08T18:25:09",
+   "stale": [
+    {
+     "ts": "2026-08-08T18:25:09",
+     "edit_class": "swap_part_same_fp",
+     "refs": [
+      "R205",
+      "R206"
+     ],
+     "human_hold": 2
+    },
+    {
+     "ts": "2026-08-08T18:47:56",
+     "edit_class": "swap_part_new_fp",
+     "refs": [
+      "J101",
+      "U101"
+     ],
+     "human_hold": 2
+    },
+    {
+     "ts": "2026-08-08T19:33:02",
+     "edit_class": "swap_part_same_fp",
+     "refs": [
+      "R205",
+      "R206"
+     ],
+     "human_hold": 2
+    }
+   ]
+  },
+  "gerbers": {
+   "path": "fab/rf-de-20m_gerbers.zip",
+   "kind": "gerbers",
+   "sha256": null,
+   "hashed": "2026-08-08T18:47:56",
+   "stale": [
+    {
+     "ts": "2026-08-08T18:47:56",
+     "edit_class": "swap_part_new_fp",
+     "refs": [
+      "J101",
+      "U101"
+     ],
+     "human_hold": 2
+    }
+   ]
+  }
+ },
  "open_issues": [],
  "next_issue_id": 1,
  "budgets": {
@@ -195,7 +318,78 @@
    "ts": "2026-08-08T13:35:01"
   }
  ],
- "edits": [],
+ "edits": [
+  {
+   "ts": "2026-08-08T18:25:09",
+   "class": "swap_part_same_fp",
+   "refs": [
+    "R205",
+    "R206"
+   ],
+   "note": null,
+   "human_hold": 2,
+   "gates": [
+    "erc",
+    "verify",
+    "sim",
+    "dfm"
+   ],
+   "gates_marked": [],
+   "stale_artifacts": [
+    "netlist",
+    "bom",
+    "cpl"
+   ]
+  },
+  {
+   "ts": "2026-08-08T18:47:56",
+   "class": "swap_part_new_fp",
+   "refs": [
+    "J101",
+    "U101"
+   ],
+   "note": null,
+   "human_hold": 2,
+   "gates": [
+    "erc",
+    "place",
+    "drc",
+    "drc_routed",
+    "verify",
+    "sim",
+    "dfm"
+   ],
+   "gates_marked": [],
+   "stale_artifacts": [
+    "netlist",
+    "gerbers",
+    "bom",
+    "cpl"
+   ]
+  },
+  {
+   "ts": "2026-08-08T19:33:02",
+   "class": "swap_part_same_fp",
+   "refs": [
+    "R205",
+    "R206"
+   ],
+   "note": null,
+   "human_hold": 2,
+   "gates": [
+    "erc",
+    "verify",
+    "sim",
+    "dfm"
+   ],
+   "gates_marked": [],
+   "stale_artifacts": [
+    "netlist",
+    "bom",
+    "cpl"
+   ]
+  }
+ ],
  "spawns": [
   {
    "ts": "2026-08-07T20:58:47",
@@ -424,6 +618,42 @@
    "event": "phase",
    "phase": "P7",
    "prev": "P6"
+  },
+  {
+   "ts": "2026-08-08T13:35:12",
+   "event": "snapshot",
+   "label": "pre-P7-route",
+   "files": 2
+  },
+  {
+   "ts": "2026-08-08T18:25:09",
+   "event": "edit",
+   "edit_class": "swap_part_same_fp",
+   "refs": [
+    "R205",
+    "R206"
+   ],
+   "human_hold": 2
+  },
+  {
+   "ts": "2026-08-08T18:47:56",
+   "event": "edit",
+   "edit_class": "swap_part_new_fp",
+   "refs": [
+    "J101",
+    "U101"
+   ],
+   "human_hold": 2
+  },
+  {
+   "ts": "2026-08-08T19:33:02",
+   "event": "edit",
+   "edit_class": "swap_part_same_fp",
+   "refs": [
+    "R205",
+    "R206"
+   ],
+   "human_hold": 2
   }
  ]
 }

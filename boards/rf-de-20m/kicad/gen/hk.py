@@ -248,14 +248,24 @@ S_R10K = "aiee:0402WGF1002TCE"
 S_R100K = "aiee:0805W8F1003T5E_C149504"  # 100k 0805 1%, 150V working (W2)
 
 # --------------------------------------------------------------- footprints
-F_J101 = "aiee:CONN-TH_P5.08_KF128-5.08-2P"
+# EDGETRIM: J101 sits at board-local x 3.70 rotated -90 (HS-3 keeps its
+# THT pads out of the heatsink land), so the stock silk wire-entry face
+# hangs 1.6 mm off the board -> 6 silk_edge_clearance warnings. The P7
+# variant trims every F.SilkS element past local y = 3.375 mm. Pads,
+# drills and courtyard are identical to the stock part.
+F_J101 = "aiee:CONN-TH_P5.08_KF128-5.08-2P_EDGETRIM"
 F_CBULK = "aiee:CAP-SMD_BD10.0-L10.3-W10.3-LS11.0-FD_1"
 F_C1206 = "aiee:C1206"
 F_C0805 = "aiee:C0805"
 F_C0603 = "aiee:C0603"
 F_R0805 = "aiee:R0805"
 F_R0402 = "aiee:R0402"
-F_U101 = "aiee:SOIC-8_L5.0-W4.0-P1.27-LS6.0-BL-EP2.0"
+# Renamed at P7 from the stale pulled name (its EP is 3.10 x 2.41 mm, not
+# 2.0 x 2.0). The four EP thermal vias are now pad 9, i.e. on the exposed
+# pad's own net: as netless holes inside pad 9's mask aperture they cost
+# 4 solder_mask_bridge + 4 clearance errors, and an EP thermal via that
+# is not on the EP net is simply wrong.
+F_U101 = "aiee:SOIC-8-EP_LM5017_TI-MRA08B"
 F_L101 = "aiee:IND-SMD_L4.0-W4.0_SLW4010S"
 
 # ------------------------------------------------------------------- values

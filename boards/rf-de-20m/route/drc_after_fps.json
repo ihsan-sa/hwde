@@ -1,0 +1,2558 @@
+{
+  "script": "kc",
+  "tool": "drc",
+  "input": "boards\\rf-de-20m\\kicad\\rf-de-20m.kicad_pcb",
+  "units": "mm",
+  "kicad_version": "10.0.3",
+  "options": {
+    "parity": false,
+    "all_track_errors": true,
+    "refill": false,
+    "save_board": false
+  },
+  "counts": {
+    "total": 79,
+    "by_severity": {
+      "error": 76,
+      "warning": 3
+    },
+    "by_source": {
+      "drc": 55,
+      "unconnected": 24
+    }
+  },
+  "status": "violations",
+  "violations": [
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        38.735,
+        62.235
+      ],
+      "layer": "F.Cu",
+      "net": "/SW",
+      "refs": [],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/SW] on F.Cu, length 4.2000 mm",
+          "pos": [
+            38.735,
+            62.235
+          ],
+          "uuid": "8aede5bb-baa9-4461-b6a1-b4384c97b58f"
+        },
+        {
+          "msg": "Track [GND] on F.Cu, length 0.4500 mm",
+          "pos": [
+            39.335,
+            62.455
+          ],
+          "uuid": "cb09034b-ca59-4d3c-acd5-bfca997f665d"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        38.735,
+        62.235
+      ],
+      "layer": "F.Cu",
+      "net": "/SW",
+      "refs": [
+        "Q201"
+      ],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Pad 5 [/SW] of Q201 on F.Cu",
+          "pos": [
+            38.735,
+            62.235
+          ],
+          "uuid": "aed28a79-4f53-4aa0-bee4-7a4a2b3c0f57"
+        },
+        {
+          "msg": "Track [GND] on F.Cu, length 0.4500 mm",
+          "pos": [
+            39.335,
+            62.455
+          ],
+          "uuid": "cb09034b-ca59-4d3c-acd5-bfca997f665d"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        37.535,
+        62.235
+      ],
+      "layer": "F.Cu",
+      "net": "/SW",
+      "refs": [],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/SW] on F.Cu, length 4.2000 mm",
+          "pos": [
+            37.535,
+            62.235
+          ],
+          "uuid": "109fd051-c85d-4a1c-8191-34d819e69d0b"
+        },
+        {
+          "msg": "Track [GND] on F.Cu, length 1.2000 mm",
+          "pos": [
+            38.135,
+            62.235
+          ],
+          "uuid": "3511f9c9-e6bd-4bd9-88f3-976fd9348e4e"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        38.135,
+        62.235
+      ],
+      "layer": "F.Cu",
+      "net": "GND",
+      "refs": [],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [GND] on F.Cu, length 1.2000 mm",
+          "pos": [
+            38.135,
+            62.235
+          ],
+          "uuid": "3511f9c9-e6bd-4bd9-88f3-976fd9348e4e"
+        },
+        {
+          "msg": "Track [/SW] on F.Cu, length 4.2000 mm",
+          "pos": [
+            38.735,
+            62.235
+          ],
+          "uuid": "8aede5bb-baa9-4461-b6a1-b4384c97b58f"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        38.135,
+        62.235
+      ],
+      "layer": "F.Cu",
+      "net": "GND",
+      "refs": [
+        "Q201"
+      ],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [GND] on F.Cu, length 1.2000 mm",
+          "pos": [
+            38.135,
+            62.235
+          ],
+          "uuid": "3511f9c9-e6bd-4bd9-88f3-976fd9348e4e"
+        },
+        {
+          "msg": "Pad 3 [/SW] of Q201 on F.Cu",
+          "pos": [
+            37.535,
+            62.235
+          ],
+          "uuid": "c37f03c3-d9d8-4634-97e9-ad6eb97c0cbd"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        38.135,
+        62.235
+      ],
+      "layer": "F.Cu",
+      "net": "GND",
+      "refs": [
+        "Q201"
+      ],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [GND] on F.Cu, length 1.2000 mm",
+          "pos": [
+            38.135,
+            62.235
+          ],
+          "uuid": "3511f9c9-e6bd-4bd9-88f3-976fd9348e4e"
+        },
+        {
+          "msg": "Pad 5 [/SW] of Q201 on F.Cu",
+          "pos": [
+            38.735,
+            62.235
+          ],
+          "uuid": "aed28a79-4f53-4aa0-bee4-7a4a2b3c0f57"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        37.535,
+        62.235
+      ],
+      "layer": "F.Cu",
+      "net": "/SW",
+      "refs": [
+        "Q202"
+      ],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/SW] on F.Cu, length 4.2000 mm",
+          "pos": [
+            37.535,
+            62.235
+          ],
+          "uuid": "109fd051-c85d-4a1c-8191-34d819e69d0b"
+        },
+        {
+          "msg": "Pad 4 [GND] of Q202 on F.Cu",
+          "pos": [
+            38.135,
+            66.435
+          ],
+          "uuid": "c87fe239-4790-4d5b-bf0f-34adee9d87d7"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        37.535,
+        62.235
+      ],
+      "layer": "F.Cu",
+      "net": "/SW",
+      "refs": [],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3891 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/SW] on F.Cu, length 4.2000 mm",
+          "pos": [
+            37.535,
+            62.235
+          ],
+          "uuid": "109fd051-c85d-4a1c-8191-34d819e69d0b"
+        },
+        {
+          "msg": "Track [GND] on F.Cu, length 0.4000 mm",
+          "pos": [
+            36.935,
+            66.655
+          ],
+          "uuid": "963e634b-881d-4b53-b4cc-ad6b57d6001d"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        36.935,
+        66.21
+      ],
+      "layer": "F.Cu",
+      "net": "/stage/GATE_Q2",
+      "refs": [
+        "Q202"
+      ],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Pad 1 [/stage/GATE_Q2] of Q202 on F.Cu",
+          "pos": [
+            36.935,
+            66.21
+          ],
+          "uuid": "06a1d5c1-cbdf-4c85-9524-34e0a39ec81a"
+        },
+        {
+          "msg": "Track [/SW] on F.Cu, length 4.2000 mm",
+          "pos": [
+            37.535,
+            62.235
+          ],
+          "uuid": "109fd051-c85d-4a1c-8191-34d819e69d0b"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        37.535,
+        62.235
+      ],
+      "layer": "F.Cu",
+      "net": "/SW",
+      "refs": [],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/SW] on F.Cu, length 4.2000 mm",
+          "pos": [
+            37.535,
+            62.235
+          ],
+          "uuid": "109fd051-c85d-4a1c-8191-34d819e69d0b"
+        },
+        {
+          "msg": "Track [GND] on F.Cu, length 0.4000 mm",
+          "pos": [
+            36.935,
+            62.455
+          ],
+          "uuid": "355c5cf5-c4cd-4e9e-ab3d-9acd9a14850c"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        37.535,
+        66.435
+      ],
+      "layer": "F.Cu",
+      "net": "/SW",
+      "refs": [
+        "Q202"
+      ],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3750 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Pad 3 [/SW] of Q202 on F.Cu",
+          "pos": [
+            37.535,
+            66.435
+          ],
+          "uuid": "01c4d8a2-164e-4fbc-a1d4-06eb50817d3d"
+        },
+        {
+          "msg": "Track [/stage/GATE_Q2] on F.Cu, length 1.0000 mm",
+          "pos": [
+            36.835,
+            66.095
+          ],
+          "uuid": "61f9e0c6-4953-49e9-a081-8bcb6bb41d71"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        37.535,
+        62.235
+      ],
+      "layer": "F.Cu",
+      "net": "/SW",
+      "refs": [
+        "Q202"
+      ],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3908 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/SW] on F.Cu, length 4.2000 mm",
+          "pos": [
+            37.535,
+            62.235
+          ],
+          "uuid": "109fd051-c85d-4a1c-8191-34d819e69d0b"
+        },
+        {
+          "msg": "Pad 2 [GND] of Q202 on F.Cu",
+          "pos": [
+            36.935,
+            66.66
+          ],
+          "uuid": "533f6b13-5838-4f4b-b188-f2e2554c1886"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        37.535,
+        62.235
+      ],
+      "layer": "F.Cu",
+      "net": "/SW",
+      "refs": [],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/SW] on F.Cu, length 4.2000 mm",
+          "pos": [
+            37.535,
+            62.235
+          ],
+          "uuid": "109fd051-c85d-4a1c-8191-34d819e69d0b"
+        },
+        {
+          "msg": "Track [GND] on F.Cu, length 1.2000 mm",
+          "pos": [
+            38.135,
+            66.435
+          ],
+          "uuid": "b45c1ec9-1c42-48d0-8b0b-c30886e9861f"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        37.535,
+        62.235
+      ],
+      "layer": "F.Cu",
+      "net": "/SW",
+      "refs": [],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3750 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/SW] on F.Cu, length 4.2000 mm",
+          "pos": [
+            37.535,
+            62.235
+          ],
+          "uuid": "109fd051-c85d-4a1c-8191-34d819e69d0b"
+        },
+        {
+          "msg": "Track [/stage/GATE_Q2] on F.Cu, length 1.0000 mm",
+          "pos": [
+            36.835,
+            66.095
+          ],
+          "uuid": "61f9e0c6-4953-49e9-a081-8bcb6bb41d71"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        37.535,
+        62.235
+      ],
+      "layer": "F.Cu",
+      "net": "/SW",
+      "refs": [
+        "Q201"
+      ],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3908 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/SW] on F.Cu, length 4.2000 mm",
+          "pos": [
+            37.535,
+            62.235
+          ],
+          "uuid": "109fd051-c85d-4a1c-8191-34d819e69d0b"
+        },
+        {
+          "msg": "Pad 1 [/stage/GATE_Q1] of Q201 on F.Cu",
+          "pos": [
+            36.935,
+            62.01
+          ],
+          "uuid": "887b5b65-6d6e-46d0-9cd8-6227f277d8f5"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        36.935,
+        62.455
+      ],
+      "layer": "F.Cu",
+      "net": "GND",
+      "refs": [
+        "Q201"
+      ],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [GND] on F.Cu, length 0.4000 mm",
+          "pos": [
+            36.935,
+            62.455
+          ],
+          "uuid": "355c5cf5-c4cd-4e9e-ab3d-9acd9a14850c"
+        },
+        {
+          "msg": "Pad 3 [/SW] of Q201 on F.Cu",
+          "pos": [
+            37.535,
+            62.235
+          ],
+          "uuid": "c37f03c3-d9d8-4634-97e9-ad6eb97c0cbd"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        37.535,
+        62.235
+      ],
+      "layer": "F.Cu",
+      "net": "/SW",
+      "refs": [],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.4576 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/SW] on F.Cu, length 4.2000 mm",
+          "pos": [
+            37.535,
+            62.235
+          ],
+          "uuid": "109fd051-c85d-4a1c-8191-34d819e69d0b"
+        },
+        {
+          "msg": "Track [/stage/GATE_Q1] on F.Cu, length 1.0000 mm",
+          "pos": [
+            36.835,
+            61.885
+          ],
+          "uuid": "2359cc13-47a2-4bb4-ad5b-217eb5fb143a"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        37.535,
+        62.235
+      ],
+      "layer": "F.Cu",
+      "net": "/SW",
+      "refs": [
+        "Q201"
+      ],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/SW] on F.Cu, length 4.2000 mm",
+          "pos": [
+            37.535,
+            62.235
+          ],
+          "uuid": "109fd051-c85d-4a1c-8191-34d819e69d0b"
+        },
+        {
+          "msg": "Pad 2 [GND] of Q201 on F.Cu",
+          "pos": [
+            36.935,
+            62.46
+          ],
+          "uuid": "ef3c4d8b-cbdf-44d6-b9c6-77acc1807c20"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        37.535,
+        62.235
+      ],
+      "layer": "F.Cu",
+      "net": "/SW",
+      "refs": [
+        "Q201"
+      ],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/SW] on F.Cu, length 4.2000 mm",
+          "pos": [
+            37.535,
+            62.235
+          ],
+          "uuid": "109fd051-c85d-4a1c-8191-34d819e69d0b"
+        },
+        {
+          "msg": "Pad 4 [GND] of Q201 on F.Cu",
+          "pos": [
+            38.135,
+            62.235
+          ],
+          "uuid": "3ce618f8-a642-4c86-a820-34e179142028"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        38.735,
+        66.435
+      ],
+      "layer": "F.Cu",
+      "net": "/SW",
+      "refs": [
+        "Q202"
+      ],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Pad 5 [/SW] of Q202 on F.Cu",
+          "pos": [
+            38.735,
+            66.435
+          ],
+          "uuid": "50b91238-2ef0-4b1e-ad5c-c651f5a9701d"
+        },
+        {
+          "msg": "Track [GND] on F.Cu, length 0.4500 mm",
+          "pos": [
+            39.335,
+            66.655
+          ],
+          "uuid": "67265ff8-44fa-482c-b90b-edad155689e5"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        39.335,
+        66.655
+      ],
+      "layer": "F.Cu",
+      "net": "GND",
+      "refs": [],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3891 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [GND] on F.Cu, length 0.4500 mm",
+          "pos": [
+            39.335,
+            66.655
+          ],
+          "uuid": "67265ff8-44fa-482c-b90b-edad155689e5"
+        },
+        {
+          "msg": "Track [/SW] on F.Cu, length 4.2000 mm",
+          "pos": [
+            38.735,
+            62.235
+          ],
+          "uuid": "8aede5bb-baa9-4461-b6a1-b4384c97b58f"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        38.735,
+        62.235
+      ],
+      "layer": "F.Cu",
+      "net": "/SW",
+      "refs": [],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/SW] on F.Cu, length 4.2000 mm",
+          "pos": [
+            38.735,
+            62.235
+          ],
+          "uuid": "8aede5bb-baa9-4461-b6a1-b4384c97b58f"
+        },
+        {
+          "msg": "Track [GND] on F.Cu, length 0.4500 mm",
+          "pos": [
+            39.335,
+            66.205
+          ],
+          "uuid": "acf8d073-c96f-4062-af43-ae0b98b9bd18"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        38.735,
+        62.235
+      ],
+      "layer": "F.Cu",
+      "net": "/SW",
+      "refs": [
+        "Q202"
+      ],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/SW] on F.Cu, length 4.2000 mm",
+          "pos": [
+            38.735,
+            62.235
+          ],
+          "uuid": "8aede5bb-baa9-4461-b6a1-b4384c97b58f"
+        },
+        {
+          "msg": "Pad 4 [GND] of Q202 on F.Cu",
+          "pos": [
+            38.135,
+            66.435
+          ],
+          "uuid": "c87fe239-4790-4d5b-bf0f-34adee9d87d7"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        38.735,
+        62.235
+      ],
+      "layer": "F.Cu",
+      "net": "/SW",
+      "refs": [
+        "Q202"
+      ],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3908 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/SW] on F.Cu, length 4.2000 mm",
+          "pos": [
+            38.735,
+            62.235
+          ],
+          "uuid": "8aede5bb-baa9-4461-b6a1-b4384c97b58f"
+        },
+        {
+          "msg": "Pad 6 [GND] of Q202 on F.Cu",
+          "pos": [
+            39.335,
+            66.66
+          ],
+          "uuid": "9595de4d-0984-4949-ba53-7a8c2c5b75ea"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        38.735,
+        62.235
+      ],
+      "layer": "F.Cu",
+      "net": "/SW",
+      "refs": [
+        "Q202"
+      ],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/SW] on F.Cu, length 4.2000 mm",
+          "pos": [
+            38.735,
+            62.235
+          ],
+          "uuid": "8aede5bb-baa9-4461-b6a1-b4384c97b58f"
+        },
+        {
+          "msg": "Pad 7 [GND] of Q202 on F.Cu",
+          "pos": [
+            39.335,
+            66.21
+          ],
+          "uuid": "c5e1302a-6558-46d6-933c-efa2c0f6823b"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        38.735,
+        62.235
+      ],
+      "layer": "F.Cu",
+      "net": "/SW",
+      "refs": [],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/SW] on F.Cu, length 4.2000 mm",
+          "pos": [
+            38.735,
+            62.235
+          ],
+          "uuid": "8aede5bb-baa9-4461-b6a1-b4384c97b58f"
+        },
+        {
+          "msg": "Track [GND] on F.Cu, length 1.2000 mm",
+          "pos": [
+            38.135,
+            66.435
+          ],
+          "uuid": "b45c1ec9-1c42-48d0-8b0b-c30886e9861f"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        39.335,
+        62.005
+      ],
+      "layer": "F.Cu",
+      "net": "GND",
+      "refs": [],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3926 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [GND] on F.Cu, length 0.4500 mm",
+          "pos": [
+            39.335,
+            62.005
+          ],
+          "uuid": "8346aee8-6601-436f-b937-15b17cd3cba7"
+        },
+        {
+          "msg": "Track [/SW] on F.Cu, length 4.2000 mm",
+          "pos": [
+            38.735,
+            62.235
+          ],
+          "uuid": "8aede5bb-baa9-4461-b6a1-b4384c97b58f"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        39.335,
+        62.46
+      ],
+      "layer": "F.Cu",
+      "net": "GND",
+      "refs": [
+        "Q201"
+      ],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Pad 6 [GND] of Q201 on F.Cu",
+          "pos": [
+            39.335,
+            62.46
+          ],
+          "uuid": "5b5ee847-3153-4004-8ccc-046f08b84a32"
+        },
+        {
+          "msg": "Track [/SW] on F.Cu, length 4.2000 mm",
+          "pos": [
+            38.735,
+            62.235
+          ],
+          "uuid": "8aede5bb-baa9-4461-b6a1-b4384c97b58f"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        38.735,
+        62.235
+      ],
+      "layer": "F.Cu",
+      "net": "/SW",
+      "refs": [
+        "Q201"
+      ],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3908 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/SW] on F.Cu, length 4.2000 mm",
+          "pos": [
+            38.735,
+            62.235
+          ],
+          "uuid": "8aede5bb-baa9-4461-b6a1-b4384c97b58f"
+        },
+        {
+          "msg": "Pad 7 [GND] of Q201 on F.Cu",
+          "pos": [
+            39.335,
+            62.01
+          ],
+          "uuid": "b65f4f20-d99d-4a52-a897-eb26350ad43d"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        39.335,
+        62.005
+      ],
+      "layer": "F.Cu",
+      "net": "GND",
+      "refs": [
+        "Q201"
+      ],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [GND] on F.Cu, length 0.4500 mm",
+          "pos": [
+            39.335,
+            62.005
+          ],
+          "uuid": "8346aee8-6601-436f-b937-15b17cd3cba7"
+        },
+        {
+          "msg": "Pad 5 [/SW] of Q201 on F.Cu",
+          "pos": [
+            38.735,
+            62.235
+          ],
+          "uuid": "aed28a79-4f53-4aa0-bee4-7a4a2b3c0f57"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        38.135,
+        62.235
+      ],
+      "layer": "F.Cu",
+      "net": "GND",
+      "refs": [
+        "Q201"
+      ],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Pad 4 [GND] of Q201 on F.Cu",
+          "pos": [
+            38.135,
+            62.235
+          ],
+          "uuid": "3ce618f8-a642-4c86-a820-34e179142028"
+        },
+        {
+          "msg": "Track [/SW] on F.Cu, length 4.2000 mm",
+          "pos": [
+            38.735,
+            62.235
+          ],
+          "uuid": "8aede5bb-baa9-4461-b6a1-b4384c97b58f"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        37.535,
+        66.435
+      ],
+      "layer": "F.Cu",
+      "net": "/SW",
+      "refs": [
+        "Q202"
+      ],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Pad 3 [/SW] of Q202 on F.Cu",
+          "pos": [
+            37.535,
+            66.435
+          ],
+          "uuid": "01c4d8a2-164e-4fbc-a1d4-06eb50817d3d"
+        },
+        {
+          "msg": "Track [GND] on F.Cu, length 0.4000 mm",
+          "pos": [
+            36.935,
+            66.655
+          ],
+          "uuid": "963e634b-881d-4b53-b4cc-ad6b57d6001d"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        38.735,
+        66.435
+      ],
+      "layer": "F.Cu",
+      "net": "/SW",
+      "refs": [
+        "Q202"
+      ],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Pad 5 [/SW] of Q202 on F.Cu",
+          "pos": [
+            38.735,
+            66.435
+          ],
+          "uuid": "50b91238-2ef0-4b1e-ad5c-c651f5a9701d"
+        },
+        {
+          "msg": "Track [GND] on F.Cu, length 0.4500 mm",
+          "pos": [
+            39.335,
+            66.205
+          ],
+          "uuid": "acf8d073-c96f-4062-af43-ae0b98b9bd18"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        38.735,
+        66.435
+      ],
+      "layer": "F.Cu",
+      "net": "/SW",
+      "refs": [
+        "Q202"
+      ],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Pad 5 [/SW] of Q202 on F.Cu",
+          "pos": [
+            38.735,
+            66.435
+          ],
+          "uuid": "50b91238-2ef0-4b1e-ad5c-c651f5a9701d"
+        },
+        {
+          "msg": "Track [GND] on F.Cu, length 1.2000 mm",
+          "pos": [
+            38.135,
+            66.435
+          ],
+          "uuid": "b45c1ec9-1c42-48d0-8b0b-c30886e9861f"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        37.535,
+        66.435
+      ],
+      "layer": "F.Cu",
+      "net": "/SW",
+      "refs": [
+        "Q202"
+      ],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Pad 3 [/SW] of Q202 on F.Cu",
+          "pos": [
+            37.535,
+            66.435
+          ],
+          "uuid": "01c4d8a2-164e-4fbc-a1d4-06eb50817d3d"
+        },
+        {
+          "msg": "Track [GND] on F.Cu, length 1.2000 mm",
+          "pos": [
+            38.135,
+            66.435
+          ],
+          "uuid": "b45c1ec9-1c42-48d0-8b0b-c30886e9861f"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        36.835,
+        61.885
+      ],
+      "layer": "F.Cu",
+      "net": "/stage/GATE_Q1",
+      "refs": [
+        "Q201"
+      ],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3750 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/stage/GATE_Q1] on F.Cu, length 1.0000 mm",
+          "pos": [
+            36.835,
+            61.885
+          ],
+          "uuid": "2359cc13-47a2-4bb4-ad5b-217eb5fb143a"
+        },
+        {
+          "msg": "Pad 3 [/SW] of Q201 on F.Cu",
+          "pos": [
+            37.535,
+            62.235
+          ],
+          "uuid": "c37f03c3-d9d8-4634-97e9-ad6eb97c0cbd"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        36.935,
+        62.01
+      ],
+      "layer": "F.Cu",
+      "net": "/stage/GATE_Q1",
+      "refs": [
+        "Q201"
+      ],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Pad 1 [/stage/GATE_Q1] of Q201 on F.Cu",
+          "pos": [
+            36.935,
+            62.01
+          ],
+          "uuid": "887b5b65-6d6e-46d0-9cd8-6227f277d8f5"
+        },
+        {
+          "msg": "Pad 3 [/SW] of Q201 on F.Cu",
+          "pos": [
+            37.535,
+            62.235
+          ],
+          "uuid": "c37f03c3-d9d8-4634-97e9-ad6eb97c0cbd"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        36.935,
+        66.21
+      ],
+      "layer": "F.Cu",
+      "net": "/stage/GATE_Q2",
+      "refs": [
+        "Q202"
+      ],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Pad 1 [/stage/GATE_Q2] of Q202 on F.Cu",
+          "pos": [
+            36.935,
+            66.21
+          ],
+          "uuid": "06a1d5c1-cbdf-4c85-9524-34e0a39ec81a"
+        },
+        {
+          "msg": "Pad 3 [/SW] of Q202 on F.Cu",
+          "pos": [
+            37.535,
+            66.435
+          ],
+          "uuid": "01c4d8a2-164e-4fbc-a1d4-06eb50817d3d"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        36.935,
+        66.66
+      ],
+      "layer": "F.Cu",
+      "net": "GND",
+      "refs": [
+        "Q202"
+      ],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Pad 2 [GND] of Q202 on F.Cu",
+          "pos": [
+            36.935,
+            66.66
+          ],
+          "uuid": "533f6b13-5838-4f4b-b188-f2e2554c1886"
+        },
+        {
+          "msg": "Pad 3 [/SW] of Q202 on F.Cu",
+          "pos": [
+            37.535,
+            66.435
+          ],
+          "uuid": "01c4d8a2-164e-4fbc-a1d4-06eb50817d3d"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        36.935,
+        62.46
+      ],
+      "layer": "F.Cu",
+      "net": "GND",
+      "refs": [
+        "Q201"
+      ],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Pad 2 [GND] of Q201 on F.Cu",
+          "pos": [
+            36.935,
+            62.46
+          ],
+          "uuid": "ef3c4d8b-cbdf-44d6-b9c6-77acc1807c20"
+        },
+        {
+          "msg": "Pad 3 [/SW] of Q201 on F.Cu",
+          "pos": [
+            37.535,
+            62.235
+          ],
+          "uuid": "c37f03c3-d9d8-4634-97e9-ad6eb97c0cbd"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        37.535,
+        66.435
+      ],
+      "layer": "F.Cu",
+      "net": "/SW",
+      "refs": [
+        "Q202"
+      ],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Pad 3 [/SW] of Q202 on F.Cu",
+          "pos": [
+            37.535,
+            66.435
+          ],
+          "uuid": "01c4d8a2-164e-4fbc-a1d4-06eb50817d3d"
+        },
+        {
+          "msg": "Pad 4 [GND] of Q202 on F.Cu",
+          "pos": [
+            38.135,
+            66.435
+          ],
+          "uuid": "c87fe239-4790-4d5b-bf0f-34adee9d87d7"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        37.535,
+        62.235
+      ],
+      "layer": "F.Cu",
+      "net": "/SW",
+      "refs": [
+        "Q201"
+      ],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Pad 3 [/SW] of Q201 on F.Cu",
+          "pos": [
+            37.535,
+            62.235
+          ],
+          "uuid": "c37f03c3-d9d8-4634-97e9-ad6eb97c0cbd"
+        },
+        {
+          "msg": "Pad 4 [GND] of Q201 on F.Cu",
+          "pos": [
+            38.135,
+            62.235
+          ],
+          "uuid": "3ce618f8-a642-4c86-a820-34e179142028"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        38.135,
+        66.435
+      ],
+      "layer": "F.Cu",
+      "net": "GND",
+      "refs": [
+        "Q202"
+      ],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Pad 4 [GND] of Q202 on F.Cu",
+          "pos": [
+            38.135,
+            66.435
+          ],
+          "uuid": "c87fe239-4790-4d5b-bf0f-34adee9d87d7"
+        },
+        {
+          "msg": "Pad 5 [/SW] of Q202 on F.Cu",
+          "pos": [
+            38.735,
+            66.435
+          ],
+          "uuid": "50b91238-2ef0-4b1e-ad5c-c651f5a9701d"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        38.135,
+        62.235
+      ],
+      "layer": "F.Cu",
+      "net": "GND",
+      "refs": [
+        "Q201"
+      ],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Pad 4 [GND] of Q201 on F.Cu",
+          "pos": [
+            38.135,
+            62.235
+          ],
+          "uuid": "3ce618f8-a642-4c86-a820-34e179142028"
+        },
+        {
+          "msg": "Pad 5 [/SW] of Q201 on F.Cu",
+          "pos": [
+            38.735,
+            62.235
+          ],
+          "uuid": "aed28a79-4f53-4aa0-bee4-7a4a2b3c0f57"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        38.735,
+        66.435
+      ],
+      "layer": "F.Cu",
+      "net": "/SW",
+      "refs": [
+        "Q202"
+      ],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Pad 5 [/SW] of Q202 on F.Cu",
+          "pos": [
+            38.735,
+            66.435
+          ],
+          "uuid": "50b91238-2ef0-4b1e-ad5c-c651f5a9701d"
+        },
+        {
+          "msg": "Pad 6 [GND] of Q202 on F.Cu",
+          "pos": [
+            39.335,
+            66.66
+          ],
+          "uuid": "9595de4d-0984-4949-ba53-7a8c2c5b75ea"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        38.735,
+        66.435
+      ],
+      "layer": "F.Cu",
+      "net": "/SW",
+      "refs": [
+        "Q202"
+      ],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Pad 5 [/SW] of Q202 on F.Cu",
+          "pos": [
+            38.735,
+            66.435
+          ],
+          "uuid": "50b91238-2ef0-4b1e-ad5c-c651f5a9701d"
+        },
+        {
+          "msg": "Pad 7 [GND] of Q202 on F.Cu",
+          "pos": [
+            39.335,
+            66.21
+          ],
+          "uuid": "c5e1302a-6558-46d6-933c-efa2c0f6823b"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        38.735,
+        62.235
+      ],
+      "layer": "F.Cu",
+      "net": "/SW",
+      "refs": [
+        "Q201"
+      ],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Pad 5 [/SW] of Q201 on F.Cu",
+          "pos": [
+            38.735,
+            62.235
+          ],
+          "uuid": "aed28a79-4f53-4aa0-bee4-7a4a2b3c0f57"
+        },
+        {
+          "msg": "Pad 6 [GND] of Q201 on F.Cu",
+          "pos": [
+            39.335,
+            62.46
+          ],
+          "uuid": "5b5ee847-3153-4004-8ccc-046f08b84a32"
+        }
+      ]
+    },
+    {
+      "check": "clearance",
+      "severity": "error",
+      "pos": [
+        38.735,
+        62.235
+      ],
+      "layer": "F.Cu",
+      "net": "/SW",
+      "refs": [
+        "Q201"
+      ],
+      "msg": "Clearance violation (rule 'aiee_hv_143v_SW' clearance 0.8000 mm; actual 0.3500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Pad 5 [/SW] of Q201 on F.Cu",
+          "pos": [
+            38.735,
+            62.235
+          ],
+          "uuid": "aed28a79-4f53-4aa0-bee4-7a4a2b3c0f57"
+        },
+        {
+          "msg": "Pad 7 [GND] of Q201 on F.Cu",
+          "pos": [
+            39.335,
+            62.01
+          ],
+          "uuid": "b65f4f20-d99d-4a52-a897-eb26350ad43d"
+        }
+      ]
+    },
+    {
+      "check": "track_width",
+      "severity": "error",
+      "pos": [
+        110.935,
+        101.835
+      ],
+      "layer": "F.Cu",
+      "net": "/tank/RFOUT",
+      "refs": [],
+      "msg": "Track width (rule 'aiee_pwr_width_tank_RFOUT' min width 8.4123 mm; actual 7.6510 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/tank/RFOUT] on F.Cu, length 0.0200 mm",
+          "pos": [
+            110.935,
+            101.835
+          ],
+          "uuid": "1e8f2472-a1ac-48b3-a547-e084f195b3cc"
+        }
+      ]
+    },
+    {
+      "check": "track_width",
+      "severity": "error",
+      "pos": [
+        37.535,
+        62.235
+      ],
+      "layer": "F.Cu",
+      "net": "/SW",
+      "refs": [],
+      "msg": "Track width (rule 'aiee_pwr_width_SW' min width 11.8942 mm; actual 0.2500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/SW] on F.Cu, length 4.2000 mm",
+          "pos": [
+            37.535,
+            62.235
+          ],
+          "uuid": "109fd051-c85d-4a1c-8191-34d819e69d0b"
+        }
+      ]
+    },
+    {
+      "check": "track_width",
+      "severity": "error",
+      "pos": [
+        37.635,
+        64.335
+      ],
+      "layer": "F.Cu",
+      "net": "/SW",
+      "refs": [],
+      "msg": "Track width (rule 'aiee_pwr_width_SW' min width 11.8942 mm; actual 0.4500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/SW] on F.Cu, length 1.1000 mm",
+          "pos": [
+            37.635,
+            64.335
+          ],
+          "uuid": "4ba5f3d0-9ca4-406e-b91a-f2b6eb1583ed"
+        }
+      ]
+    },
+    {
+      "check": "track_width",
+      "severity": "error",
+      "pos": [
+        38.735,
+        62.235
+      ],
+      "layer": "F.Cu",
+      "net": "/SW",
+      "refs": [],
+      "msg": "Track width (rule 'aiee_pwr_width_SW' min width 11.8942 mm; actual 0.2500 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Track [/SW] on F.Cu, length 4.2000 mm",
+          "pos": [
+            38.735,
+            62.235
+          ],
+          "uuid": "8aede5bb-baa9-4461-b6a1-b4384c97b58f"
+        }
+      ]
+    },
+    {
+      "check": "padstack",
+      "severity": "warning",
+      "pos": [
+        96.585,
+        101.935
+      ],
+      "layer": "In1.Cu",
+      "net": "/tank/RFOUT",
+      "refs": [
+        "L302"
+      ],
+      "msg": "Padstack is questionable (SMD pad has no outer layers)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Pad 2 [/tank/RFOUT] of L302 on In1.Cu and others",
+          "pos": [
+            96.585,
+            101.935
+          ],
+          "uuid": "4a7e33d6-0b32-4165-82e2-1024ea26e365"
+        }
+      ]
+    },
+    {
+      "check": "padstack",
+      "severity": "warning",
+      "pos": [
+        85.335,
+        56.935
+      ],
+      "layer": "In1.Cu",
+      "net": "/tank/TANK_A",
+      "refs": [
+        "L301"
+      ],
+      "msg": "Padstack is questionable (SMD pad has no outer layers)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Pad 2 [/tank/TANK_A] of L301 on In1.Cu and others",
+          "pos": [
+            85.335,
+            56.935
+          ],
+          "uuid": "157507a0-b6ac-43be-a3cc-0c511dac1365"
+        }
+      ]
+    },
+    {
+      "check": "copper_sliver",
+      "severity": "warning",
+      "pos": null,
+      "layer": null,
+      "net": null,
+      "refs": [],
+      "msg": "Copper sliver (F.Cu)",
+      "source": "drc",
+      "items": []
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        43.4041,
+        87.4869
+      ],
+      "layer": "F.Cu",
+      "net": "+5V",
+      "refs": [
+        "C109",
+        "L101"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 1 [+5V] of C109 on F.Cu",
+          "pos": [
+            43.4041,
+            87.4869
+          ],
+          "uuid": "e360b2d6-a4c3-41dd-80db-1e57ef57e908"
+        },
+        {
+          "msg": "Pad 2 [+5V] of L101 on F.Cu",
+          "pos": [
+            43.8919,
+            82.2807
+          ],
+          "uuid": "cdf89a9e-ca9b-4513-a29f-7b6d808decc9"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        43.4041,
+        87.4869
+      ],
+      "layer": "F.Cu",
+      "net": "+5V",
+      "refs": [
+        "C108",
+        "C109"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 1 [+5V] of C109 on F.Cu",
+          "pos": [
+            43.4041,
+            87.4869
+          ],
+          "uuid": "e360b2d6-a4c3-41dd-80db-1e57ef57e908"
+        },
+        {
+          "msg": "Pad 1 [+5V] of C108 on F.Cu",
+          "pos": [
+            43.9439,
+            93.4185
+          ],
+          "uuid": "e70f5f5f-9687-459a-9384-7974152ad9db"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        43.8919,
+        82.2807
+      ],
+      "layer": "F.Cu",
+      "net": "+5V",
+      "refs": [
+        "L101",
+        "R101"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 2 [+5V] of L101 on F.Cu",
+          "pos": [
+            43.8919,
+            82.2807
+          ],
+          "uuid": "cdf89a9e-ca9b-4513-a29f-7b6d808decc9"
+        },
+        {
+          "msg": "Pad 1 [+5V] of R101 on F.Cu",
+          "pos": [
+            46.763,
+            79.955
+          ],
+          "uuid": "2e4bac40-6be7-4be9-97f3-19271ab46175"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        44.0,
+        74.55
+      ],
+      "layer": "F.Cu",
+      "net": "+5V",
+      "refs": [
+        "C110",
+        "FB201"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 2 [+5V] of C110 on F.Cu",
+          "pos": [
+            44.0,
+            74.55
+          ],
+          "uuid": "ba7b94ed-dcf4-4166-aaca-5e9eb969ed9c"
+        },
+        {
+          "msg": "Pad 1 [+5V] of FB201 on F.Cu",
+          "pos": [
+            29.765,
+            57.435
+          ],
+          "uuid": "d9df0d86-ba87-49a7-8139-48174a4e82ae"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        46.763,
+        79.955
+      ],
+      "layer": "F.Cu",
+      "net": "+5V",
+      "refs": [
+        "C110",
+        "R101"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 1 [+5V] of R101 on F.Cu",
+          "pos": [
+            46.763,
+            79.955
+          ],
+          "uuid": "2e4bac40-6be7-4be9-97f3-19271ab46175"
+        },
+        {
+          "msg": "Pad 2 [+5V] of C110 on F.Cu",
+          "pos": [
+            44.0,
+            74.55
+          ],
+          "uuid": "ba7b94ed-dcf4-4166-aaca-5e9eb969ed9c"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        30.035,
+        59.435
+      ],
+      "layer": "F.Cu",
+      "net": "+5V_DRV",
+      "refs": [
+        "C201",
+        "C213"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 1 [+5V_DRV] of C213 on F.Cu",
+          "pos": [
+            30.035,
+            59.435
+          ],
+          "uuid": "68df48fe-2e58-4efd-ae6d-37de7d9c3119"
+        },
+        {
+          "msg": "Pad 1 [+5V_DRV] of C201 on F.Cu",
+          "pos": [
+            30.315,
+            61.035
+          ],
+          "uuid": "a69273d1-fddf-44ce-9ed5-52d0ba2d71bf"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        30.315,
+        61.035
+      ],
+      "layer": "F.Cu",
+      "net": "+5V_DRV",
+      "refs": [
+        "C201",
+        "C202"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 1 [+5V_DRV] of C201 on F.Cu",
+          "pos": [
+            30.315,
+            61.035
+          ],
+          "uuid": "a69273d1-fddf-44ce-9ed5-52d0ba2d71bf"
+        },
+        {
+          "msg": "Pad 1 [+5V_DRV] of C202 on F.Cu",
+          "pos": [
+            30.465,
+            62.335
+          ],
+          "uuid": "a72bcd30-8ada-4f7c-b0b1-1e5f36ba4eca"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        30.465,
+        62.335
+      ],
+      "layer": "F.Cu",
+      "net": "+5V_DRV",
+      "refs": [
+        "A1",
+        "C202",
+        "U201"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 1 [+5V_DRV] of C202 on F.Cu",
+          "pos": [
+            30.465,
+            62.335
+          ],
+          "uuid": "a72bcd30-8ada-4f7c-b0b1-1e5f36ba4eca"
+        },
+        {
+          "msg": "Pad A1 [+5V_DRV] of U201 on F.Cu",
+          "pos": [
+            31.135,
+            63.71
+          ],
+          "uuid": "5906b018-fe42-4f66-822a-6c0cdebbd758"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        31.705,
+        57.435
+      ],
+      "layer": "F.Cu",
+      "net": "+5V_DRV",
+      "refs": [
+        "C213",
+        "FB201"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 2 [+5V_DRV] of FB201 on F.Cu",
+          "pos": [
+            31.705,
+            57.435
+          ],
+          "uuid": "f4128389-dbd7-453a-b6ab-9112ca8f4589"
+        },
+        {
+          "msg": "Pad 1 [+5V_DRV] of C213 on F.Cu",
+          "pos": [
+            30.035,
+            59.435
+          ],
+          "uuid": "68df48fe-2e58-4efd-ae6d-37de7d9c3119"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        42.25,
+        78.25
+      ],
+      "layer": "F.Cu",
+      "net": "/hk/BUCK_SW",
+      "refs": [
+        "L101",
+        "R104"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 1 [/hk/BUCK_SW] of R104 on F.Cu",
+          "pos": [
+            42.25,
+            78.25
+          ],
+          "uuid": "eec3f6ae-033e-46e8-a33c-6a685116ab2a"
+        },
+        {
+          "msg": "Pad 1 [/hk/BUCK_SW] of L101 on F.Cu",
+          "pos": [
+            40.2919,
+            82.2807
+          ],
+          "uuid": "4ac021e7-2f7b-48db-b1d3-041801e6a2e1"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        48.35,
+        82.48
+      ],
+      "layer": "F.Cu",
+      "net": "/hk/BUCK_SW",
+      "refs": [
+        "R104",
+        "U101"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 8 [/hk/BUCK_SW] of U101 on F.Cu",
+          "pos": [
+            48.35,
+            82.48
+          ],
+          "uuid": "a7c979b1-1140-480e-84ec-dc78138b5a95"
+        },
+        {
+          "msg": "Pad 1 [/hk/BUCK_SW] of R104 on F.Cu",
+          "pos": [
+            42.25,
+            78.25
+          ],
+          "uuid": "eec3f6ae-033e-46e8-a33c-6a685116ab2a"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        52.0857,
+        91.691
+      ],
+      "layer": "F.Cu",
+      "net": "/hk/BUCK_SW",
+      "refs": [
+        "C107",
+        "U101"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 2 [/hk/BUCK_SW] of C107 on F.Cu",
+          "pos": [
+            52.0857,
+            91.691
+          ],
+          "uuid": "9f86f100-fb76-4448-8ba5-57ebe922206e"
+        },
+        {
+          "msg": "Pad 8 [/hk/BUCK_SW] of U101 on F.Cu",
+          "pos": [
+            48.35,
+            82.48
+          ],
+          "uuid": "a7c979b1-1140-480e-84ec-dc78138b5a95"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        44.0,
+        75.95
+      ],
+      "layer": "F.Cu",
+      "net": "/hk/RINJ",
+      "refs": [
+        "C110",
+        "R104"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 1 [/hk/RINJ] of C110 on F.Cu",
+          "pos": [
+            44.0,
+            75.95
+          ],
+          "uuid": "e88691f9-a033-4770-a246-ebcbcf236c3f"
+        },
+        {
+          "msg": "Pad 2 [/hk/RINJ] of R104 on F.Cu",
+          "pos": [
+            44.25,
+            78.25
+          ],
+          "uuid": "3db820fa-f529-483d-99e3-f5b9f78331c3"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        44.25,
+        78.25
+      ],
+      "layer": "F.Cu",
+      "net": "/hk/RINJ",
+      "refs": [
+        "C111",
+        "R104"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 2 [/hk/RINJ] of R104 on F.Cu",
+          "pos": [
+            44.25,
+            78.25
+          ],
+          "uuid": "3db820fa-f529-483d-99e3-f5b9f78331c3"
+        },
+        {
+          "msg": "Pad 1 [/hk/RINJ] of C111 on F.Cu",
+          "pos": [
+            46.3,
+            77.0
+          ],
+          "uuid": "0c0070bf-ce98-4ab0-a2da-647cd3330e69"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        47.505,
+        47.335
+      ],
+      "layer": "F.Cu",
+      "net": "/stage/L201_MID",
+      "refs": [
+        "L201",
+        "L202"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 2 [/stage/L201_MID] of L201 on F.Cu",
+          "pos": [
+            47.505,
+            47.335
+          ],
+          "uuid": "9480af73-50f6-4d74-9390-9dcf57fbb4ec"
+        },
+        {
+          "msg": "Pad 1 [/stage/L201_MID] of L202 on F.Cu",
+          "pos": [
+            47.505,
+            55.835
+          ],
+          "uuid": "a044a8b5-7465-400f-b098-90f31385ccee"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        25.745,
+        50.535
+      ],
+      "layer": "F.Cu",
+      "net": "/stage/DRIVE",
+      "refs": [
+        "R201",
+        "R202"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 1 [/stage/DRIVE] of R201 on F.Cu",
+          "pos": [
+            25.745,
+            50.535
+          ],
+          "uuid": "7a4d06de-109d-449c-a635-43c326b00922"
+        },
+        {
+          "msg": "Pad 1 [/stage/DRIVE] of R202 on F.Cu",
+          "pos": [
+            25.745,
+            54.335
+          ],
+          "uuid": "1423c9ab-ee70-4556-8605-a6dbc875cc45"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        25.745,
+        54.335
+      ],
+      "layer": "F.Cu",
+      "net": "/stage/DRIVE",
+      "refs": [
+        "C1",
+        "R202",
+        "U201"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 1 [/stage/DRIVE] of R202 on F.Cu",
+          "pos": [
+            25.745,
+            54.335
+          ],
+          "uuid": "1423c9ab-ee70-4556-8605-a6dbc875cc45"
+        },
+        {
+          "msg": "Pad C1 [/stage/DRIVE] of U201 on F.Cu",
+          "pos": [
+            30.335,
+            63.71
+          ],
+          "uuid": "01ea0722-3663-4c5b-85c1-e4810c58a121"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        30.635,
+        44.335
+      ],
+      "layer": "F.Cu",
+      "net": "/stage/DRIVE",
+      "refs": [
+        "J201",
+        "R201"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 5 [/stage/DRIVE] of J201 on F.Cu",
+          "pos": [
+            30.635,
+            44.335
+          ],
+          "uuid": "0e0cbbc7-498a-4145-a97d-30b07c0c27d5"
+        },
+        {
+          "msg": "Pad 1 [/stage/DRIVE] of R201 on F.Cu",
+          "pos": [
+            25.745,
+            50.535
+          ],
+          "uuid": "7a4d06de-109d-449c-a635-43c326b00922"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        47.623,
+        79.955
+      ],
+      "layer": "F.Cu",
+      "net": "/hk/FB",
+      "refs": [
+        "R101",
+        "U101"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 2 [/hk/FB] of R101 on F.Cu",
+          "pos": [
+            47.623,
+            79.955
+          ],
+          "uuid": "770d6758-1fda-43ea-9138-5125323938cb"
+        },
+        {
+          "msg": "Pad 5 [/hk/FB] of U101 on F.Cu",
+          "pos": [
+            52.15,
+            82.48
+          ],
+          "uuid": "fd103b6a-ab84-498e-9a98-e8d5e8ed35f1"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        47.7,
+        77.0
+      ],
+      "layer": "F.Cu",
+      "net": "/hk/FB",
+      "refs": [
+        "C111",
+        "R101"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 2 [/hk/FB] of C111 on F.Cu",
+          "pos": [
+            47.7,
+            77.0
+          ],
+          "uuid": "850c52ce-7404-4cce-b965-76c35196db42"
+        },
+        {
+          "msg": "Pad 2 [/hk/FB] of R101 on F.Cu",
+          "pos": [
+            47.623,
+            79.955
+          ],
+          "uuid": "770d6758-1fda-43ea-9138-5125323938cb"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        51.4374,
+        76.0774
+      ],
+      "layer": "F.Cu",
+      "net": "/hk/FB",
+      "refs": [
+        "C111",
+        "R102"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 1 [/hk/FB] of R102 on F.Cu",
+          "pos": [
+            51.4374,
+            76.0774
+          ],
+          "uuid": "05e9ec0a-52c8-4db5-82c4-344741c0d8a3"
+        },
+        {
+          "msg": "Pad 2 [/hk/FB] of C111 on F.Cu",
+          "pos": [
+            47.7,
+            77.0
+          ],
+          "uuid": "850c52ce-7404-4cce-b965-76c35196db42"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        49.62,
+        82.48
+      ],
+      "layer": "F.Cu",
+      "net": "/hk/BST",
+      "refs": [
+        "C107",
+        "U101"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 7 [/hk/BST] of U101 on F.Cu",
+          "pos": [
+            49.62,
+            82.48
+          ],
+          "uuid": "fd12acf8-ba92-4f69-b860-a46b255be5b6"
+        },
+        {
+          "msg": "Pad 1 [/hk/BST] of C107 on F.Cu",
+          "pos": [
+            50.6857,
+            91.691
+          ],
+          "uuid": "79297e16-c681-4fa8-997d-eb8951549aca"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        52.15,
+        88.02
+      ],
+      "layer": "F.Cu",
+      "net": "/hk/RON",
+      "refs": [
+        "R103",
+        "U101"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 4 [/hk/RON] of U101 on F.Cu",
+          "pos": [
+            52.15,
+            88.02
+          ],
+          "uuid": "03143b03-0330-43dc-acdd-4a6b64ead8f8"
+        },
+        {
+          "msg": "Pad 1 [/hk/RON] of R103 on F.Cu",
+          "pos": [
+            54.6616,
+            80.7092
+          ],
+          "uuid": "80fd1e70-8cf3-4a66-8a82-84c10bf67ace"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        50.88,
+        82.48
+      ],
+      "layer": "F.Cu",
+      "net": "/hk/VCC",
+      "refs": [
+        "C106",
+        "U101"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 6 [/hk/VCC] of U101 on F.Cu",
+          "pos": [
+            50.88,
+            82.48
+          ],
+          "uuid": "f9bed4f3-502e-4b83-897e-15cb28948e9b"
+        },
+        {
+          "msg": "Pad 1 [/hk/VCC] of C106 on F.Cu",
+          "pos": [
+            51.6923,
+            79.9084
+          ],
+          "uuid": "7aff968b-453e-47ae-9ed3-261073506036"
+        }
+      ]
+    }
+  ]
+}

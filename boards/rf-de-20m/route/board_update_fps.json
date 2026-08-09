@@ -1,0 +1,191 @@
+{
+ "script": "board_update",
+ "status": "pass",
+ "board": "C:\\dev\\ai-ee3\\boards\\rf-de-20m\\kicad\\rf-de-20m.kicad_pcb",
+ "netlist": "boards\\rf-de-20m\\kicad\\rf-de-20m.net",
+ "dry_run": false,
+ "plan": {
+  "swap_same_fp": [],
+  "swap_new_fp": [
+   {
+    "ref": "J101",
+    "fp_old": "aiee:CONN-TH_P5.08_KF128-5.08-2P",
+    "fp_new": "aiee:CONN-TH_P5.08_KF128-5.08-2P_EDGETRIM",
+    "value": "KF128-5.08-2P 2pos 5.08mm 24A/250V",
+    "fields": {
+     "LCSC": "C474952",
+     "Note": "THT, left edge x<5mm, clear of the heatsink land (HS-3)"
+    },
+    "pads": {
+     "1": "+40V",
+     "2": "GND"
+    },
+    "pos": [
+     10.335,
+     79.335
+    ],
+    "deg": -90.0,
+    "side": "front",
+    "nets_old": [
+     "+40V",
+     "GND"
+    ]
+   },
+   {
+    "ref": "U101",
+    "fp_old": "aiee:SOIC-8_L5.0-W4.0-P1.27-LS6.0-BL-EP2.0",
+    "fp_new": "aiee:SOIC-8-EP_LM5017_TI-MRA08B",
+    "value": "LM5017 100V sync COT buck",
+    "fields": {
+     "LCSC": "C34355"
+    },
+    "pads": {
+     "2": "+40V",
+     "3": "+40V",
+     "7": "/hk/BST",
+     "8": "/hk/BUCK_SW",
+     "5": "/hk/FB",
+     "4": "/hk/RON",
+     "6": "/hk/VCC",
+     "1": "GND",
+     "9": "GND"
+    },
+    "pos": [
+     50.25,
+     85.25
+    ],
+    "deg": 0.0,
+    "side": "front",
+    "nets_old": [
+     "+40V",
+     "/hk/BST",
+     "/hk/BUCK_SW",
+     "/hk/FB",
+     "/hk/RON",
+     "/hk/VCC",
+     "GND"
+    ]
+   }
+  ],
+  "add": [],
+  "del": [],
+  "unsupported": [],
+  "notes": [
+   "board_only footprints ignored: H1, H2, H3, H4"
+  ]
+ },
+ "warnings": [
+  "J101: declared position (10.335, 79.335) overlaps an existing courtyard or leaves the outline - applied as declared"
+ ],
+ "orphans": {
+  "affected_nets": [
+   "+40V",
+   "/hk/BST",
+   "/hk/BUCK_SW",
+   "/hk/FB",
+   "/hk/RON",
+   "/hk/VCC",
+   "GND"
+  ],
+  "tracks": 0,
+  "vias": 0,
+  "netconn_unanchored_kept": []
+ },
+ "applied": {
+  "worker": {
+   "fields_updated": [],
+   "added": [
+    {
+     "ref": "J101",
+     "x": 10.335,
+     "y": 79.335,
+     "deg": -90.0,
+     "side": "front",
+     "pads_netted": 2
+    },
+    {
+     "ref": "U101",
+     "x": 50.25,
+     "y": 85.25,
+     "deg": 0.0,
+     "side": "front",
+     "pads_netted": 13
+    }
+   ],
+   "removed_refs": [
+    "J101",
+    "U101"
+   ],
+   "removed_items": 0,
+   "removed_texts": [],
+   "absent_uuids": []
+  },
+  "refilled": true,
+  "drc": {
+   "before": {
+    "total": 69,
+    "by_severity": {
+     "error": 60,
+     "warning": 9
+    },
+    "by_source": {
+     "drc": 45,
+     "unconnected": 24
+    }
+   },
+   "after": {
+    "total": 59,
+    "by_severity": {
+     "error": 52,
+     "warning": 7
+    },
+    "by_source": {
+     "drc": 35,
+     "unconnected": 24
+    }
+   },
+   "dangling_before": 0,
+   "dangling_after": 0,
+   "unconnected_before": 24,
+   "unconnected_after": 24,
+   "new_errors": 0
+  }
+ },
+ "placements": {
+  "J101": {
+   "x": 10.335,
+   "y": 79.335,
+   "deg": -90.0,
+   "side": "front"
+  },
+  "U101": {
+   "x": 50.25,
+   "y": 85.25,
+   "deg": 0.0,
+   "side": "front"
+  }
+ },
+ "state": {
+  "file": "boards\\rf-de-20m\\state.json",
+  "classes": [
+   {
+    "class": "swap_part_new_fp",
+    "refs": [
+     "J101",
+     "U101"
+    ],
+    "human_hold": 2
+   }
+  ],
+  "human_hold": 2
+ },
+ "gates_to_rerun": [
+  "dfm",
+  "drc",
+  "drc_routed",
+  "erc",
+  "place",
+  "sim",
+  "verify"
+ ]
+}

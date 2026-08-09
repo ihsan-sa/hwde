@@ -1,11 +1,11 @@
 {
  "_meta": {
   "board": "rf-de-20m",
-  "phase": "P4",
+  "phase": "P7",
   "date": "2026-08-08",
   "build_qty": 5,
   "assembly": "100% JLCPCB PCBA, single-sided (top) SMT + 1 THT connector (J101, pre-approved exception, see its role note)",
-  "note": "REWRITTEN 2026-08-08 BY THE P4 ADVERSARIAL-REVIEW FIX PASS (reports/review-schematic.md, findings E4 and E5, plus every part change made for E1/E3/E6/W1/W2/W3/W4). THE BOM OF RECORD IS NOW REF-EXACT: every parts[].refdes is an explicit list of individual refdes - no range strings like 'C301..C308' (bom_cpl does not expand them, and those two strings also silently missed C318/C319), no annotations inside a refdes ('C206 (DNP by default)'), and no letter suffixes ('L201A'/'L201B' -> L201/L202). RECONCILED AGAINST THE EXPORTED NETLIST: 70 components, 68 of them purchased, and each maps to exactly one BOM line; the only two refs without an LCSC code are L301/L302, the etched PCB spirals, which are deliberate PCB features. DNP sites are carried in refdes_dnp with qty_per_board_populated beside qty_per_board, so a reader never has to infer them. LINES DELETED because the fix pass left them with no refdes at all: C25553 (30.0k 5% 0402 - E3 replaced it with a 1% part), C25741 (100k 0402 - W2 moved R103/R104 to 0805 for working voltage), C519422 (2.2nF 25V - E4: the bootstrap cap is 10nF and always was in the schematic), C23020 (3R9 0603 - E1 replaced the 8-resistor gate bank with four 4R7 0805), C17408 (100R 0805 - E6 replaced the termination with 2010). All stock/price figures below were re-verified LIVE with parts_search.py on 2026-08-08 for every changed and every new line, and re-checked against the 5x-build-need rule at the NEW per-board quantities. STILL OPEN, UNCHANGED: EPC2019 (C2836675) is out of stock at LCSC - owner-accepted, P10 re-verifies."
+  "note": "P7 2026-08-08 REVISION 2 (ROUTER, after the coordinator overruled the first 10R instruction on thermal grounds): R205/R206 are 6R8, not 10R - C5639707 / ROHM ESR10EZPF6R80, 0805 1% 400mW anti-surge, same land. R203/R204 keep C160081 at 4R7. 10R landed Tj on ~151 C at the max-datasheet corner against a 150 C absolute maximum; 6R8 costs ~+4 C and halves the ring. Stock and price verified live 2026-08-08. Nothing else on this BOM changed. REWRITTEN 2026-08-08 BY THE P4 ADVERSARIAL-REVIEW FIX PASS (reports/review-schematic.md, findings E4 and E5, plus every part change made for E1/E3/E6/W1/W2/W3/W4). THE BOM OF RECORD IS NOW REF-EXACT: every parts[].refdes is an explicit list of individual refdes - no range strings like 'C301..C308' (bom_cpl does not expand them, and those two strings also silently missed C318/C319), no annotations inside a refdes ('C206 (DNP by default)'), and no letter suffixes ('L201A'/'L201B' -> L201/L202). RECONCILED AGAINST THE EXPORTED NETLIST: 70 components, 68 of them purchased, and each maps to exactly one BOM line; the only two refs without an LCSC code are L301/L302, the etched PCB spirals, which are deliberate PCB features. DNP sites are carried in refdes_dnp with qty_per_board_populated beside qty_per_board, so a reader never has to infer them. LINES DELETED because the fix pass left them with no refdes at all: C25553 (30.0k 5% 0402 - E3 replaced it with a 1% part), C25741 (100k 0402 - W2 moved R103/R104 to 0805 for working voltage), C519422 (2.2nF 25V - E4: the bootstrap cap is 10nF and always was in the schematic), C23020 (3R9 0603 - E1 replaced the 8-resistor gate bank with four 4R7 0805), C17408 (100R 0805 - E6 replaced the termination with 2010). All stock/price figures below were re-verified LIVE with parts_search.py on 2026-08-08 for every changed and every new line, and re-checked against the 5x-build-need rule at the NEW per-board quantities. STILL OPEN, UNCHANGED: EPC2019 (C2836675) is out of stock at LCSC - owner-accepted, P10 re-verifies."
  },
  "parts": [
   {
@@ -524,11 +524,9 @@
    "block": "stage",
    "refdes": [
     "R203",
-    "R204",
-    "R205",
-    "R206"
+    "R204"
    ],
-   "qty_per_board": 4,
+   "qty_per_board": 2,
    "mpn": "RK73H2ATTD4R70F",
    "lcsc": "C160081",
    "value": "4.7 ohm 1%, 250mW, 150V",
@@ -544,7 +542,42 @@
      "note": "Yageo 4.7 ohm 1206 1% 250mW, stock 227952, $0.0346 - same power rating in a larger body, and the gate-loop budget (now ~1.70 nH) can afford it. Use if the KOA 0805 line runs down. Do NOT substitute an 0603: 100 mW is 65 mW once derated to a 90 C local board, against 0.100 W of actual dissipation at the max-Qg corner."
     }
    ],
-   "role": "GATE RESISTORS R203-R206, one per leg per FET. ADDED 2026-08-08 BY P4 REVIEW E1 - the highest-risk defect on the board - replacing C23020 / 0603WAF390KT5E, of which EIGHT were fitted as 2-in-parallel on each of four legs. TI'S >= 2 OHM MANDATE IS AT EACH OUTH/OUTL PIN, AND BOTH EPC2019 HANG OFF THE SAME PINS: 4 x 3R9 in parallel presented 0.975 ohm at OUTH and the same at OUTL, less than half the floor, with 5.1 A of peak drive current against only ~1.1 V of headroom to the EPC2019's +6 V VGS absolute maximum and 0.85 V to the driver's 5.75 V. An eGaN gate has no avalanche margin: exceeding +6 V destroys both FETs on the first pulse. With N devices on one pin each branch must be >= N x 2 ohm, so at N = 2 the branch floor is 4 ohm; 4.7 ohm is the nearest E24 value with real margin and gives 4.7/2 = 2.35 ohm per pin (2.33 ohm at -1% tolerance) and 2.13 A of peak drive, against 7 A source / 5 A sink capability. Q201 and Q202 branches are IDENTICAL by construction - same part, same value, same 1% tolerance, one per leg - which is what keeps static sharing and differential-mode damping symmetric. PACKAGE IS 0805 BECAUSE OF DISSIPATION, and this is the E6 mistake deliberately not repeated: Qg 1.8 nC typ / 2.5 nC max means P = Qg.VDD.fSW = 0.18/0.25 W per FET, half on each edge, of which the external resistor takes ~80% -> 0.072 W typ / 0.100 W max PER PART. An 0603 is rated 0.100 W, which is 65 mW once derated to a 90 C local board; this 0805 is rated 0.250 W (191 mW at 90 C) = 52% used at the max-Qg corner. TWO CONSEQUENCES RECORDED SO NOBODY RE-TIGHTENS THEM: (a) the gate-loop critical-damping budget RELAXES from 0.478 nH to ~1.70 nH per FET (EPC WP008 Eq.1, L <= R^2.C_GS/4, at R = 4.7+0.4+0.75 = 5.85 ohm and C_GS 199 pF) - that 3.6x is what pays for the larger body and for dropping to one resistor per leg, and constraints.json still declares 0.48 nH on purpose; (b) turn-off is slower, and scaling decisions.md D6's sanctioned R_G = 3 ohm fallback (+0.3 W, +1.6 C) by R^2 puts the cost at roughly +1 W across the pair and ~+5 C of Tj - about 119 C nominal / 138 C at the max-datasheet corner, still inside the 150 C absolute maximum. 20 pieces needed, 5x100 rule cleared 148x."
+   "role": "GATE RESISTORS R203/R204 - the TURN-ON (OUTH) legs, one per FET. SPLIT FROM THE R203-R206 LINE AT P7 (2026-08-08): the turn-OFF legs R205/R206 moved to 10R (C2479122) to damp the as-routed 7.03 nH OUTL loop; the turn-ON legs stay 4R7 because their loop measures 2.05 nH against a 1.70 nH budget and slowing the ZVS edge would cost efficiency for no damping benefit. 10 pieces needed, 5x50 rule cleared 297x. GATE RESISTORS R203-R206, one per leg per FET. ADDED 2026-08-08 BY P4 REVIEW E1 - the highest-risk defect on the board - replacing C23020 / 0603WAF390KT5E, of which EIGHT were fitted as 2-in-parallel on each of four legs. TI'S >= 2 OHM MANDATE IS AT EACH OUTH/OUTL PIN, AND BOTH EPC2019 HANG OFF THE SAME PINS: 4 x 3R9 in parallel presented 0.975 ohm at OUTH and the same at OUTL, less than half the floor, with 5.1 A of peak drive current against only ~1.1 V of headroom to the EPC2019's +6 V VGS absolute maximum and 0.85 V to the driver's 5.75 V. An eGaN gate has no avalanche margin: exceeding +6 V destroys both FETs on the first pulse. With N devices on one pin each branch must be >= N x 2 ohm, so at N = 2 the branch floor is 4 ohm; 4.7 ohm is the nearest E24 value with real margin and gives 4.7/2 = 2.35 ohm per pin (2.33 ohm at -1% tolerance) and 2.13 A of peak drive, against 7 A source / 5 A sink capability. Q201 and Q202 branches are IDENTICAL by construction - same part, same value, same 1% tolerance, one per leg - which is what keeps static sharing and differential-mode damping symmetric. PACKAGE IS 0805 BECAUSE OF DISSIPATION, and this is the E6 mistake deliberately not repeated: Qg 1.8 nC typ / 2.5 nC max means P = Qg.VDD.fSW = 0.18/0.25 W per FET, half on each edge, of which the external resistor takes ~80% -> 0.072 W typ / 0.100 W max PER PART. An 0603 is rated 0.100 W, which is 65 mW once derated to a 90 C local board; this 0805 is rated 0.250 W (191 mW at 90 C) = 52% used at the max-Qg corner. TWO CONSEQUENCES RECORDED SO NOBODY RE-TIGHTENS THEM: (a) the gate-loop critical-damping budget RELAXES from 0.478 nH to ~1.70 nH per FET (EPC WP008 Eq.1, L <= R^2.C_GS/4, at R = 4.7+0.4+0.75 = 5.85 ohm and C_GS 199 pF) - that 3.6x is what pays for the larger body and for dropping to one resistor per leg, and constraints.json still declares 0.48 nH on purpose; (b) turn-off is slower, and scaling decisions.md D6's sanctioned R_G = 3 ohm fallback (+0.3 W, +1.6 C) by R^2 puts the cost at roughly +1 W across the pair and ~+5 C of Tj - about 119 C nominal / 138 C at the max-datasheet corner, still inside the 150 C absolute maximum. 20 pieces needed, 5x100 rule cleared 148x."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "stage",
+   "refdes": [
+    "R205",
+    "R206"
+   ],
+   "qty_per_board": 2,
+   "mpn": "ESR10EZPF6R80",
+   "lcsc": "C5639707",
+   "value": "6.8 ohm 1%, 400mW, anti-surge thick film",
+   "package": "0805",
+   "basic": false,
+   "stock": 360,
+   "price": 0.0645,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2311302354_ROHM-Semicon-ESR10EZPF6R80_C5639707.pdf",
+   "alternates": [
+    {
+     "mpn": "WF08P6R8JTL",
+     "lcsc": "C7466180",
+     "note": "Walsin 6.8 ohm 0805 250mW 150V, stock 426, $0.0047 - the only other 6R8 0805 at >=250mW with real stock, but it is 5% and 200ppm. Acceptable ONLY as a stock fallback: both legs must then come from the SAME reel, because what this pair protects is the MATCH between Q201's and Q202's turn-off branches, not the absolute value."
+    },
+    {
+     "mpn": "ESR10EZPJ6R8",
+     "lcsc": "C2091860",
+     "note": "Same ROHM ESR10 anti-surge family and the same 400 mW body, 5% instead of 1%, stock 145, $0.0177. Drop-in if the 1% line runs down."
+    },
+    {
+     "mpn": "SG73S2ATTD8R20F",
+     "lcsc": "C3982140",
+     "note": "KOA 8.2 ohm 0805 1% 250mW anti-surge, stock 5000 - the VALUE-SHIFTED fallback if no 6R8 is available at all. R_loop 9.35 ohm -> zeta 0.79, 2.1% ring, but +1.55 W across the pair (~+8 C, leaving only ~4 C at the max-datasheet corner). Take it only with a thermal re-check."
+    }
+   ],
+   "role": "GATE RESISTORS R205/R206 - the TURN-OFF (OUTL) legs, one per FET. CHANGED AT P7 (2026-08-08) FROM 4R7, AS BUILT-COPPER DAMPING. The routed turn-off loop measures 7.03 nH because U201's OUTH/OUTL fan-out has no planar solution and OUTL has to wrap west around the driver (workspace LEARNINGS, P7 routing); both FETs are exact copper mirrors so the +/-0.1 nH MATCHING spec still holds - it is only the ABSOLUTE loop that is over the 1.70 nH budget. At the old 4.7 + 0.4 + 0.75 = 5.85 ohm that is zeta = R/(2.sqrt(L/C_GS)) = 5.85/11.89 = 0.49, ~16.9% overshoot, VGS ringing to about -0.85 V. At 6.8 + 0.4 + 0.75 = 7.95 ohm it is zeta 0.67, 5.9% overshoot, VGS ~ -0.30 V: the ring halves. WHY 6R8 AND NOT 10R, WHICH WAS THE FIRST INSTRUCTION AND WAS OVERRULED ON THE NUMBERS: Class E turn-off is capacitively snubbed, E_off = I_off^2.t_f^2/(24.C_shunt) with t_f proportional to the gate-loop R, so the pair's turn-off loss scales as R^2 - ~1.0 W at 4R7, ~1.85 W at 6R8 (+0.85 W, about +4 C), ~3.6 W at 10R (+2.6 W, about +13 C). Tj at the max-datasheet corner: ~138 C at 4R7, ~142 C at 6R8, ~151 C at 10R against a 150 C ABSOLUTE MAXIMUM. 10R therefore spent the entire remaining thermal margin - on the part whose thermal path was already this board's hardest problem - to suppress a ring that was never a destruct risk: -0.85 V against a -4 V floor is 4.7x of margin, and the first positive recovery of that ring is only +0.14 V, far below both the +6 V maximum and the ~1.4 V threshold, so spurious re-turn-on is not in play either. BE CLEAR THAT 4R7 IS NOT UNSAFE on the published abs-max numbers; what 6R8 buys is margin against what the second-order model does NOT contain - the 7.03 nH is a microstrip estimate rather than a measurement, and the common-source inductance shared with the 16 A power loop injects L_common.di/dt into the gate loop, which a larger series R attenuates. If P8's simulation shows both benign, reverting to 4R7 recovers ~4 C and is the cooler part. NOTE THE +6 V RAIL IS UNAFFECTED BY THIS CHOICE EITHER WAY: R205/R206 damp the NEGATIVE edge; the positive rail is set by the OUTH loop (2.05 nH at 4R7 -> zeta 0.91, 0.1% overshoot, VGS peak ~5.005 V). TI's >= 2 ohm per-pin floor is still met with room: two branches on OUTL give 6.8/2 = 3.40 ohm, peak sink current 1.47 A against 5 A capability. PACKAGE AND FAMILY: the external resistor now takes 6.8/7.95 = 85.5% of the turn-off half of Qg.VDD.fSW, i.e. 0.077 W typ / 0.107 W max per part. An 0603 (100 mW, 65 mW derated to a 90 C local board) would repeat the E6 defect, and so would a 125 mW 0805 (~96 mW at 90 C) - a 250 mW-class 0805 or better is mandatory. This ROHM ESR10 is an ANTI-SURGE thick film rated 400 mW (306 mW at 90 C) = 35% used at the max-Qg corner, which is the right family for a gate leg: the 0.63 A edge current puts ~2.7 W of instantaneous dissipation in the part for a few ns of every 50 ns cycle. SOURCING NOTE, VERIFIED LIVE 2026-08-08: this is the ONLY 6R8 0805 at 1% and >= 250 mW with stock at LCSC - every other 1% 6R8 (KOA RK73H2ATTD6R80F, YAGEO AC0805FR-7W6R8L, KOA SG73S2ATTD6R80F, Uniroyal CS05W4F680KT5E) reads stock 0 with a 451-3317 piece MOQ, and the Stackpole RNCP thin-film family used for the rejected 10R option has no 6R8 at all. Stock 360 against 10 pieces needed for the 5-board build: the 5x50 rule clears 7.2x, which passes but is the thinnest line on this BOM - re-verify at P10."
   },
   {
    "ref_prefix_hint": "FB",

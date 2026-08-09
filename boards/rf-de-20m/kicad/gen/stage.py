@@ -42,16 +42,61 @@ THE FOUR WIRING FACTS THAT CANNOT BE GOT FROM MEMORY
    the same - less than half the floor, at 5.1 A of peak source current
    against only ~1.1 V of headroom to the EPC2019's +6 V VGS abs max. With
    N FETs on one pin the per-BRANCH value must be >= N x 2 ohm; at N = 2
-   that is >= 4 ohm, so the bank is now ONE 4.7 ohm 0805 per leg per FET:
+   that is >= 4 ohm, so the bank is now ONE 0805 per leg per FET:
 
        OUTH (A2) --+-- R203 4R7 --> GATE_Q1     parallel at the pin:
                    +-- R204 4R7 --> GATE_Q2       4.7 / 2 = 2.35 ohm
-       OUTL (B2) --+-- R205 4R7 --> GATE_Q1       (2.33 ohm at -1% tol)
-                   +-- R206 4R7 --> GATE_Q2       vs TI's 2.00 ohm floor
+       OUTL (B2) --+-- R205 6R8 --> GATE_Q1       6.8 / 2 = 3.40 ohm
+                   +-- R206 6R8 --> GATE_Q2       both vs TI's 2.00 ohm floor
 
-   Peak drive current falls to 5.0 / 2.35 = **2.13 A** at each pin (was
-   5.1 A), against 7 A source / 5 A sink capability. Per-FET branch current
-   is 5.0 / (4.7 + 0.4 + 0.75) = 0.85 A.
+   Peak drive current falls to 5.0 / 2.35 = **2.13 A** at OUTH (was 5.1 A)
+   and 5.0 / 3.40 = **1.47 A** at OUTL, against 7 A source / 5 A sink
+   capability. Per-FET branch current is 5.0 / (4.7 + 0.4 + 0.75) = 0.85 A
+   turning on and 5.0 / (6.8 + 0.4 + 0.75) = 0.63 A turning off.
+
+   **THE OUTL PAIR WENT 4R7 -> 6R8 AT P7 (2026-08-08), AS BUILT-COPPER
+   DAMPING, NOT AS A DESIGN PREFERENCE.** The routed turn-off loop measures
+   7.03 nH because U201's OUTL fan-out has no planar solution and has to wrap
+   west (workspace LEARNINGS, P7). At 5.85 ohm total that is Q = sqrt(L/C_GS)
+   / R = 5.944 / 5.85 = 1.02, zeta 0.49, ~17 % overshoot -> VGS rings to about
+   -0.85 V. The board is LOCKED at P6, so shrinking the loop is unavailable
+   and D6's sanctioned fallback - damp it - is taken: at 6.8 + 0.4 + 0.75 =
+   7.95 ohm against R_crit = 2.sqrt(L/C_GS) = 11.89 ohm, zeta rises to 0.67,
+   Q falls to 0.75 and the overshoot halves to 5.9 % (VGS ~ -0.30 V).
+
+   **6R8 AND NOT 10R, AND THE REASON IS THERMAL - THIS WAS RULED ON.** 10R
+   would give zeta 0.94 and a 0.02 % edge, but Class E turn-off is
+   capacitively snubbed, so E_off = I_off^2.t_f^2 / (24.C_shunt) and t_f
+   scales with the gate-loop R:
+
+       R_ext   R_loop   zeta   overshoot   VGS min   pair P_off   Tj max corner
+       4R7      5.85    0.49    16.9 %     -0.85 V     ~1.0 W        ~138 C
+       6R8      7.95    0.67     5.9 %     -0.30 V     ~1.85 W       ~142 C
+       10R     11.15    0.94     0.02 %    -0.00 V     ~3.6 W        ~151 C
+
+   150 C is the EPC2019 ABSOLUTE MAXIMUM, so 10R spends the whole remaining
+   thermal margin - on the board whose thermal path was already its hardest
+   problem - to suppress a ring that was never a destruct risk in the first
+   place (-0.85 V against a -4 V floor is 4.7x of margin). 6R8 halves the ring
+   for +0.85 W / ~+4 C and keeps ~8 C at the max-datasheet corner.
+
+   BE CLEAR ABOUT WHAT 6R8 BUYS, because 4R7 is NOT unsafe: on the published
+   abs-max numbers 4R7 already passes both rails (see the +6 V note below).
+   What 6R8 buys is margin against things the second-order model does NOT
+   contain - the 7.03 nH is a microstrip estimate, not a measurement, and the
+   common-source inductance shared with the 16 A power loop injects
+   L_common.di/dt into the gate loop, which a LARGER series R attenuates. If
+   P8's simulation shows both are benign, reverting to 4R7 recovers ~4 C and
+   is the cooler part.
+
+   THE +6 V RAIL IS NOT AFFECTED BY THIS CHOICE AT ALL. R205/R206 damp the
+   NEGATIVE-going edge. The positive rail is set by the OUTH loop (2.05 nH at
+   4R7 -> zeta 0.91, 0.1 % overshoot, i.e. VGS peaks at ~5.005 V against the
+   +6 V maximum), and the first positive recovery of the turn-off ring is only
+   +0.14 V at 4R7 - far below both +6 V and the ~1.4 V threshold, so spurious
+   re-turn-on is not in play either. The turn-ON pair stays at 4R7: that loop
+   is 2.05 nH against the same 1.70 nH budget, so it needs almost nothing, and
+   slowing the ZVS edge would cost efficiency for no damping benefit.
 
    TWO CONSEQUENCES, BOTH RECORDED SO NOBODY RE-TIGHTENS THEM:
    * **The 0.48 nH gate-loop budget RELAXES to ~1.70 nH per FET.** EPC WP008
@@ -65,15 +110,29 @@ THE FOUR WIRING FACTS THAT CANNOT BE GOT FROM MEMORY
      fit (turn-off loss ~ R^2) to 5.85 ohm total gives roughly +1 W across
      the pair and ~+5 C of Tj - Tj ~119 C nominal / ~138 C at the
      max-datasheet corner, still inside the 150 C absolute maximum. This is
-     the direction the TI floor forces and it is taken consciously.
+     the direction the TI floor forces and it is taken consciously. THE P7
+     6R8 OUTL VALUE SPENDS A LITTLE MORE OF IT: 7.95 ohm is another 1.85x on
+     the turn-off term, ~+0.85 W across the pair, ~123 C nominal / ~142 C at
+     the max-datasheet corner, i.e. ~8 C left against the 150 C absolute
+     maximum. 10R was considered and REJECTED - it lands on ~151 C. If P8
+     needs that margin back, the levers are 4R7 (recovers ~4 C) or derating
+     the bus (36 V / 162 W was already costed at -14 C).
 
    Per-resistor dissipation, which is why the package grew 0603 -> 0805:
    Qg 1.8 nC typ / 2.5 nC max, so P per FET = Qg.VDD.fSW = 0.18 / 0.25 W,
-   half on each edge, of which the external resistor takes ~80% ->
-   **0.072 W typ / 0.100 W max per part**. An 0603 is rated 0.100 W (65 mW
-   once derated to a 90 C local board) and would have repeated the E6
-   defect; the 0805 part here is rated 0.250 W (191 mW at 90 C) = 52 % used
-   at the max-Qg corner.
+   half on each edge, of which the external resistor takes R_ext/R_total ->
+   80 % on the OUTH legs and 85.5 % at the P7 6R8 OUTL value, i.e.
+   **R203/R204 0.072 W typ / 0.100 W max; R205/R206 0.077 / 0.107 W**.
+   An 0603 is rated 0.100 W (65 mW once derated to a 90 C local board) and
+   would have repeated the E6 defect; so would an 0805 at 125 mW, which
+   derates to only ~96 mW at 90 C. BOTH gate values need a 250 mW-class 0805
+   or better: R203/R204 are 0.250 W (191 mW at 90 C, 52 % used); R205/R206 are
+   the ROHM ESR10EZPF6R80 (C5639707), an ANTI-SURGE thick film rated 0.400 W
+   (306 mW at 90 C, 35 % used) - the right family for a gate leg, where the
+   0.63 A edge current puts ~2.7 W of instantaneous dissipation in the part
+   for a few ns of every 50 ns cycle. NB it is the ONLY 6R8 0805 at 1 % and
+   >= 250 mW in stock at LCSC; the RNCP thin-film family used for the
+   rejected 10R option has no 6R8 at all.
 
 3. **IN- ties to GND and the drive goes to IN+.** From the truth table
    (parts/C6423790.json layout_notes, datasheet Table 1):
@@ -234,7 +293,8 @@ S_U201 = "aiee:LMG1020YFFR"
 S_C100N_0402 = "aiee:CC0402KRX7R7BB104"   # 100nF 16V X7R 0402
 S_C10N_0201 = "aiee:0201B103K250NT"       # 10nF 25V X7R 0201
 S_C1U_0603 = "aiee:CC0603KRX7R7BB105"     # 1uF 16V X7R 0603
-S_R4R7 = "aiee:RK73H2ATTD4R70F"           # 4R7 0805 1% 250mW (E1)
+S_R4R7 = "aiee:RK73H2ATTD4R70F"           # 4R7 0805 1% 250mW (E1) - turn-ON
+S_R6R8 = "aiee:ESR10EZPF6R80"             # 6R8 0805 1% 400mW (P7) - turn-OFF
 S_FB = "aiee:BLM21PG121SN1D"              # 120R@100MHz 0805 bead, 30mohm (W4)
 S_Q = "aiee:EPC2019"
 S_C56P = "aiee:CC1206JKNPOCBN560"         # 56pF 1kV C0G 1206
@@ -263,6 +323,7 @@ V_C100N = "100nF 16V X7R 0402"
 V_C10N_0201 = "10nF 25V X7R 0201"
 V_C1U = "1uF 16V X7R 0603"
 V_R4R7 = "4R7 0805 1% 250mW"
+V_R6R8 = "6R8 0805 1% 400mW"
 V_FB = "120R@100MHz bead 3A 30mohm"
 V_Q = "EPC2019 200V eGaN"
 V_C56P = "56pF 1kV C0G 1206"
@@ -282,8 +343,10 @@ LCSC = {
     "C207": "C107059", "C208": "C107059", "C209": "C107059", "C210": "C107059",
     "C211": "C113793", "C212": "C113793",
 }
-for _r in ("R203", "R204", "R205", "R206"):
+for _r in ("R203", "R204"):          # turn-ON legs stay 4R7
     LCSC[_r] = "C160081"
+for _r in ("R205", "R206"):          # turn-OFF legs 4R7 -> 6R8 at P7
+    LCSC[_r] = "C5639707"
 
 # LMG1020 pin map (parts/C6423790.json + `--pins aiee:LMG1020YFFR`).
 U201_PINS = {
@@ -312,11 +375,24 @@ FET_EXPECT = {"1": "GATE", "2": "SOURCE", "3": "DRAIN", "4": "SOURCE",
 # Q201's and Q202's branches are IDENTICAL by construction: same part, same
 # value, same tolerance, one per leg, so static sharing and the differential
 # damping stay symmetric.
+#
+# P7 2026-08-08: the TURN-OFF pair (R205/R206) goes 4R7 -> 6R8. As-built the
+# turn-off loop measures 7.03 nH (U201's OUTL fan-out is not planar and has to
+# wrap west - workspace LEARNINGS), against a 1.70 nH critical-damping budget.
+# Q = sqrt(L/C_GS)/R = 5.944/5.85 = 1.02 there, i.e. ~17 % ring, VGS -0.85 V.
+# Damping the loop is decisions.md D6's own sanctioned fallback and the only
+# BOM-only fix (the board is locked, so shrinking the loop is not available):
+# 6.8 + 0.4 + 0.75 = 7.95 ohm against R_crit = 2.sqrt(L/C_GS) = 11.89 ohm ->
+# zeta 0.67, Q 0.75, ring 5.9 % (VGS ~ -0.30 V). 10R would give 0.02 % but
+# costs +2.6 W and lands Tj on ~151 C against a 150 C absolute maximum, so it
+# was rejected: the ring it removes was never a destruct risk. The turn-ON
+# pair is NOT touched: its loop is 2.05 nH, already near budget, and slowing
+# the ZVS edge costs efficiency.
 GATE_LEGS = [
-    ("R203", GATE_ON, GATE_Q1),
-    ("R204", GATE_ON, GATE_Q2),
-    ("R205", GATE_OFF, GATE_Q1),
-    ("R206", GATE_OFF, GATE_Q2),
+    ("R203", GATE_ON, GATE_Q1, S_R4R7, V_R4R7, "4R7", 4.7),
+    ("R204", GATE_ON, GATE_Q2, S_R4R7, V_R4R7, "4R7", 4.7),
+    ("R205", GATE_OFF, GATE_Q1, S_R6R8, V_R6R8, "6R8", 6.8),
+    ("R206", GATE_OFF, GATE_Q2, S_R6R8, V_R6R8, "6R8", 6.8),
 ]
 
 # C_shunt trim sites. See the module docstring for the 33 pF -> 56 pF ruling.
@@ -433,13 +509,16 @@ def build() -> schlib.Sheet:
     # with no LCSC instance property and fall out of P9's BOM (review E5).
     genlib.stamp_lcsc(sh, LCSC, ["U201", "C201", "C202", "C213"])
 
-    # Four legs, ONE 4R7 0805 each -> 2.35 ohm at each driver pin (E1).
-    for i, (ref, src, dst) in enumerate(GATE_LEGS):
+    # Four legs, ONE 0805 each. OUTH 4R7 (2.35R at the pin), OUTL 6R8 (3.4R
+    # at the pin) - both above TI's 2R floor for the TWO FETs sharing a pin.
+    for i, (ref, src, dst, sym, val, tag, ohm) in enumerate(GATE_LEGS):
         x = 88.9 + i * 63.5
-        _add(sh, ref, S_R4R7, V_R4R7, (x, 241.3), footprint=F_R0805,
+        pin_r = ohm / 2.0
+        _add(sh, ref, sym, val, (x, 241.3), footprint=F_R0805,
              expect={"1": "1", "2": "2"},
-             note="gate leg %s -> %s. 4R7 per branch; the TWO branches on "
-                  "each pin give 2.35R >= TI's 2R floor" % (src, dst))
+             note="gate leg %s -> %s. %s per branch; the TWO branches on "
+                  "each pin give %.2fR >= TI's 2R floor"
+                  % (src, dst, tag, pin_r))
         sh.wire_pins(ref, {"1": src, "2": dst})
 
     # =====================================================================
@@ -528,10 +607,16 @@ def build() -> schlib.Sheet:
         "NO steering diode is needed or wanted.",
         "TI'S >=2 OHM MANDATE IS AT THE PIN, AND",
         "TWO FETs SHARE EACH PIN, so each branch",
-        "must be >= 2 x 2 = 4 ohm. ONE 4R7 0805 per",
-        "leg per FET -> 4.7/2 = 2.35R at OUTH and at",
-        "OUTL (2.33R at -1%), peak drive 2.13 A.",
+        "must be >= 2 x 2 = 4 ohm. ONE 0805 per leg",
+        "per FET: OUTH 4R7 -> 2.35R at the pin,",
+        "OUTL 6R8 -> 3.40R. Peak drive 2.13 A / 1.47 A.",
         "Do NOT parallel these back down.",
+        "OUTL IS 6R8, NOT 4R7, ON PURPOSE (P7): the",
+        "as-routed turn-off loop is 7.03 nH and 6R8",
+        "halves the ring to 5.9% (zeta 0.67) for",
+        "+0.85 W. 10R would give 0.02% but puts Tj on",
+        "151 C vs a 150 C max - rejected. See the",
+        "module docstring and route-notes s14.",
     ])
     _note(sh, (469.9, 111.76), [
         "IN- IS TIED TO GND, DRIVE GOES TO IN+.",
@@ -570,11 +655,14 @@ def build() -> schlib.Sheet:
         "GATE LOOPS: aim for <= 0.48 nH per FET,",
         "matched +/-0.1 nH, geometrically MIRRORED",
         "about the U201 axis. The CRITICAL-DAMPING",
-        "budget is now 1.70 nH (EPC WP008 Eq.1 at",
-        "R = 4.7 + 0.4 + 0.75 = 5.85 ohm, C_GS 199",
-        "pF) - 3.6x looser than the 0.48 nH solved",
-        "at the old 3.1 ohm, which is what pays for",
-        "the 0805 bodies. Keep aiming at 0.48 nH.",
+        "budget is 1.70 nH on the TURN-ON side",
+        "(EPC WP008 Eq.1 at R = 4.7 + 0.4 + 0.75 =",
+        "5.85 ohm, C_GS 199 pF) and 6.19 nH on the",
+        "TURN-OFF side at the P7 6R8 value. The",
+        "as-routed turn-off loop is 7.03 nH, i.e.",
+        "still over even the relaxed budget - but at",
+        "zeta 0.67 the overshoot is 5.9%, VGS -0.30 V",
+        "against a -4 V floor. Keep aiming at 0.48 nH.",
         "Do NOT length-match electrically - FR4 is",
         "6.7 ps/mm and skew is benign in a soft-",
         "switched topology; matching damps the",
@@ -627,8 +715,8 @@ def main(argv=None) -> int:
         "internal_nets": sorted({DRIVE, GATE_ON, GATE_OFF, GATE_Q1, GATE_Q2,
                                  L_MID}),
         "rails_flagged": [V5D],
-        "gate_r_per_branch_ohm": 4.7,
-        "gate_r_per_driver_pin_ohm": 2.35,
+        "gate_r_per_branch_ohm": {"OUTH": 4.7, "OUTL": 6.8},
+        "gate_r_per_driver_pin_ohm": {"OUTH": 2.35, "OUTL": 3.4},
         "dnp": sorted(r for r, d in CSHUNT_SITES if d),
         "decoupling_associations": len(sh.decoupling),
         "field_placement": sh.place_report,

@@ -1,0 +1,382 @@
+(kicad_sch
+	(version 20250114)
+	(generator "eeschema")
+	(generator_version "9.0")
+	(uuid "a6131d69-247f-46fe-9e5a-6afb2f4847fc")
+	(paper "A3")
+	(title_block
+		(title "rf-de-20m: root - 20 MHz Class E GaN stage, 200 W into 50 ohm")
+		(date "2026-08-07")
+		(rev "1")
+		(company "ai-ee")
+	)
+	(lib_symbols)
+	(wire
+		(pts
+			(xy 63.5 97.79) (xy 55.88 97.79)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8cce208f-ed2e-4a3f-87a5-98a26dc5ae28")
+	)
+	(wire
+		(pts
+			(xy 63.5 154.94) (xy 55.88 154.94)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4480e104-ccb4-49ad-9118-5c88ad6484c1")
+	)
+	(label "SW"
+		(at 55.88 97.79 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "b2f16728-7e75-4c55-9e52-72557a87df5d")
+	)
+	(label "SW"
+		(at 55.88 154.94 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "04b951dc-30af-41f9-89cb-ae7363c84cf8")
+	)
+	(text "ROOT SHEET - NO PARTS BY DESIGN (sheets.md s1)."
+		(exclude_from_sim no)
+		(at 190.5 38.1 0.0000)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "619a1e1c-b2d3-42f8-a580-800113ae2b03")
+	)
+	(text "---"
+		(exclude_from_sim no)
+		(at 190.5 43.18 0.0000)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "563f9fd4-db1c-475d-a2c1-42af8edca4a2")
+	)
+	(text "The ONLY inter-sheet signal net is /SW (the drain node,"
+		(exclude_from_sim no)
+		(at 190.5 48.26 0.0000)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "1c2f0302-2cf5-4c1f-b20d-1ac2761dde4f")
+	)
+	(text "142.5 V pk, 9.17 A rms). Its bare /SW spelling comes from"
+		(exclude_from_sim no)
+		(at 190.5 53.34 0.0000)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "b7859ec1-708d-47f0-a734-eb07310036b5")
+	)
+	(text "the root-local labels written by add_sheet, and six"
+		(exclude_from_sim no)
+		(at 190.5 58.42 0.0000)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "dd0ad95b-925a-428a-9d28-469a32a6d4fc")
+	)
+	(text "constraints.json entries depend on it. Both `stage` and"
+		(exclude_from_sim no)
+		(at 190.5 63.5 0.0000)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "a34a8071-7977-4ad2-aa29-048f3ff1a00f")
+	)
+	(text "`tank` expose it, which is what keeps the root label"
+		(exclude_from_sim no)
+		(at 190.5 68.58 0.0000)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "3dd75ef3-5ad0-458a-80e0-241865cffdd9")
+	)
+	(text "connected - a root label with only ONE sheet pin raises"
+		(exclude_from_sim no)
+		(at 190.5 73.66 0.0000)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "995d1790-2975-48b2-92d3-713499175031")
+	)
+	(text "label_dangling in KiCad 10."
+		(exclude_from_sim no)
+		(at 190.5 78.74 0.0000)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "57c23673-c666-4d6c-98f2-c6837fc97109")
+	)
+	(text "---"
+		(exclude_from_sim no)
+		(at 190.5 83.82 0.0000)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "b2510ceb-cf06-44cc-b0d0-873461539c8f")
+	)
+	(text "GND / +40V / +5V are global POWER SYMBOLS inside the"
+		(exclude_from_sim no)
+		(at 190.5 88.9 0.0000)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "b2463915-4e05-410a-a2f3-ea61081d48a6")
+	)
+	(text "sheets and are deliberately absent here. All three"
+		(exclude_from_sim no)
+		(at 190.5 93.98 0.0000)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "7f659df2-01cf-439a-b21c-ef82069fbb04")
+	)
+	(text "PWR_FLAGs live on `hk`; a second flag anywhere else"
+		(exclude_from_sim no)
+		(at 190.5 99.06 0.0000)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "da527c95-7121-41e1-a0f7-80288afb7154")
+	)
+	(text "collides power_out <-> power_out."
+		(exclude_from_sim no)
+		(at 190.5 104.14 0.0000)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "daa0ef94-7ea3-433b-89a3-6a1251fb07ce")
+	)
+	(text "---"
+		(exclude_from_sim no)
+		(at 190.5 109.22 0.0000)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "e3bba510-64ce-422e-a902-36c5921579de")
+	)
+	(text "Every other net is sheet-internal on purpose and carries"
+		(exclude_from_sim no)
+		(at 190.5 114.3 0.0000)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "37765bdc-86d8-4dfe-b48d-24e0321e5045")
+	)
+	(text "its /<sheet>/ prefix. Do not 'tidy' them into bare names."
+		(exclude_from_sim no)
+		(at 190.5 119.38 0.0000)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "3732db52-2bfa-4a6b-acc0-5388c4eb0073")
+	)
+	(sheet
+		(at 63.5 38.1)
+		(size 88.9 38.1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "258bbe1e-a2ae-4efc-a153-b36f31cbb2a1")
+		(property "Sheetname" "hk"
+			(at 63.5 37.3884 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+				  (hide yes)
+  )
+		)
+		(property "Sheetfile" "hk.kicad_sch"
+			(at 63.5 76.7846 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+				  (hide yes)
+  )
+		)
+		(instances
+			(project None
+				(path "/a6131d69-247f-46fe-9e5a-6afb2f4847fc"
+					(page "2")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 63.5 95.25)
+		(size 88.9 38.1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "26e883f3-bc66-432b-8888-f8ad5ff8fcf1")
+		(property "Sheetname" "stage"
+			(at 63.5 94.5384 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+				  (hide yes)
+  )
+		)
+		(property "Sheetfile" "stage.kicad_sch"
+			(at 63.5 133.9346 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+				  (hide yes)
+  )
+		)
+		(pin "SW" output
+			(at 63.5 97.79 180)
+			(uuid "3cbd4f1a-8b48-4f29-8c7f-dd9f8c3bd5b4")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(instances
+			(project None
+				(path "/a6131d69-247f-46fe-9e5a-6afb2f4847fc"
+					(page "2")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 63.5 152.4)
+		(size 88.9 38.1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "03e5a5fa-1de8-439d-98fb-ca8b29caa853")
+		(property "Sheetname" "tank"
+			(at 63.5 151.6884 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+				  (hide yes)
+  )
+		)
+		(property "Sheetfile" "tank.kicad_sch"
+			(at 63.5 191.0846 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+				  (hide yes)
+  )
+		)
+		(pin "SW" input
+			(at 63.5 154.94 180)
+			(uuid "5ae0b52b-2df2-4806-baff-87fad29b3fba")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(instances
+			(project None
+				(path "/a6131d69-247f-46fe-9e5a-6afb2f4847fc"
+					(page "2")
+				)
+			)
+		)
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+	(embedded_fonts no)
+)
