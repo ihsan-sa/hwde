@@ -1,0 +1,54 @@
+{
+ "script": "netlist_audit",
+ "status": "pass",
+ "board": "rf-term-150w.net",
+ "counts": {
+  "total": 1,
+  "by_severity": {
+   "warning": 1
+  },
+  "by_source": {
+   "audit.netlist": 1
+  }
+ },
+ "violations": [
+  {
+   "check": "netlist_audit",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "/RF",
+   "refs": [
+    "C1",
+    "J1",
+    "R1"
+   ],
+   "msg": "declared power net '/RF' feeds no power_in pin",
+   "source": "audit.netlist",
+   "items": [
+    {
+     "msg": "declared power net '/RF' feeds no power_in pin",
+     "pos": null
+    }
+   ],
+   "kind": "power_no_consumers"
+  }
+ ],
+ "mode": "audit",
+ "nets": 2,
+ "components": 6,
+ "unconnected_pins": 0,
+ "constraint_nets_checked": 2,
+ "constraint_refs_checked": 3,
+ "pins_expected": 9,
+ "pins_connected": 9,
+ "decoupling_associations": 0,
+ "power": [
+  {
+   "net": "/RF",
+   "nodes": 3,
+   "power_in": 0,
+   "power_out": 0
+  }
+ ]
+}

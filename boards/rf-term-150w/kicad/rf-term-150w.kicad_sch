@@ -1,0 +1,1944 @@
+(kicad_sch
+	(version 20250114)
+	(generator "eeschema")
+	(generator_version "9.0")
+	(uuid "6c097ad7-27fb-47cd-952a-76b2dd19244a")
+	(paper "A4")
+	(title_block
+		(title "50 ohm / 150 W CW RF termination")
+		(rev "1")
+		(company "ai-ee")
+	)
+	(lib_symbols
+		(symbol "Connector:Conn_Coaxial"
+			(pin_names
+				(offset 1.016)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "J"
+				(at 0.254 3.048 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "Conn_Coaxial"
+				(at 2.921 0 90)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "coaxial connector (BNC, SMA, SMB, SMC, Cinch/RCA, LEMO, ...)"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "BNC SMA SMB SMC LEMO coaxial connector CINCH RCA MCX MMCX U.FL UMRF"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "*BNC* *SMA* *SMB* *SMC* *Cinch* *LEMO* *UMRF* *MCX* *U.FL*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "Conn_Coaxial_0_1"
+				(polyline
+					(pts
+						(xy -2.54 0) (xy -0.508 0)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(arc
+					(start 1.778 0)
+					(mid 0.222 -1.8079)
+					(end -1.778 -0.508)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(arc
+					(start -1.778 0.508)
+					(mid 0.2221 1.8084)
+					(end 1.778 0)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(circle
+					(center 0 0)
+					(radius 0.508)
+					(stroke
+						(width 0.2032)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 -2.54) (xy 0 -1.778)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "Conn_Coaxial_1_1"
+				(pin passive line
+					(at -5.08 0 0)
+					(length 2.54)
+					(name "In"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -5.08 90)
+					(length 2.54)
+					(name "Ext"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "power:GND"
+			(power)
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "#PWR"
+				(at 0 -6.35 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Value" "GND"
+				(at 0 -3.81 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "global power"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "GND_0_1"
+				(polyline
+					(pts
+						(xy 0 0) (xy 0 -1.27) (xy 1.27 -1.27) (xy 0 -2.54) (xy -1.27 -1.27) (xy 0 -1.27)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "GND_1_1"
+				(pin power_in line
+					(at 0 0 270)
+					(length 0)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "aiee:5602"
+			(pin_names
+				(offset 1.016)
+				(hide yes)
+			)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "C"
+				(id 0)
+				(at 0 7.62 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "5602"
+				(id 1)
+				(at 0 -7.62 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" "aiee:CAP-ADJ-TH_2P-BD7.5_5602"
+				(id 2)
+				(at 0 -10.16 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					) hide
+					   (hide yes)
+   )
+			)
+			(property "Datasheet" "https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/6592/KnowlesTrimmersCatalogueweb177409287.pdf"
+				(id 3)
+				(at 0 -12.7 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					) hide
+					   (hide yes)
+   )
+			)
+			(property "Manufacturer" "Johanson Manufacturing Corp. (Knowles Precision Devices)"
+				(id 4)
+				(at 0 -15.24 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					) hide
+					   (hide yes)
+   )
+			)
+			(property "MPN" "5602"
+				(id 5)
+				(at 0 -17.78 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					) hide
+					   (hide yes)
+   )
+			)
+			(property "Distributor PN" "DigiKey 1956-1000-ND (not carried at LCSC - DigiKey-only sourcing)"
+				(id 6)
+				(at 0 -20.32 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					) hide
+					   (hide yes)
+   )
+			)
+			(property "ki_keywords" "Trimmers, Variable Capacitors, air dielectric, panel mount"
+				(id 8)
+				(at 0 -22.86 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					) hide
+					   (hide yes)
+   )
+			)
+			(property "ki_description" "NEW C1 PRIMARY (state.json P3 decision, 2026-08-09, supersedes BFC280811339): Johanson 5602 air-dielectric trimmer, 1-30pF 250VDC(500VDC test) -65/+125C, Q>800@100MHz, top screwdriver-slot adjust, panel/PCB-mount threaded case + separate lead. Chosen over BFC280811339 because -65/+125C clears this board's 74-88C flange-adjacent operating range under 150W CW where the retired PP-film part's -40/+70C category temperature does not. NET ASSIGNMENT IS PHYSICAL (state.json P3 decision, 2026-08-09), not a rotor/stator inference: Pin 1=STATOR (case/thread/hex-collar assembly) -> GND. Pin 2=ROTOR (separate insulated lead wire) -> RF. A panel-mount trimmer's case is engineered to pass through a grounded metal panel, so the case is the ground-compatible terminal by construction, and it is also the only terminal a hand or tool actually brushes during tuning - so it must be grounded whatever its internal (rotor/stator) role is. See parts/5602.json and the footprint's own descr for the full reasoning."
+				(id 9)
+				(at 0 -25.4 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					) hide
+					   (hide yes)
+   )
+			)
+			(symbol "5602_0_1"
+				(polyline
+					(pts
+						(xy 2.29 4.06) (xy 1.78 3.05)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -2.29 1.02) (xy 2.29 4.06) (xy 1.27 4.06)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0.51 2.54) (xy 1.27 2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.27 2.54) (xy -0.51 2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0.51 4.57) (xy 0.51 0.51)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -0.51 4.57) (xy -0.51 0.51)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(pin passive line
+					(at 3.81 2.54 180)
+					(length 2.54)
+					(name "ROTOR"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -3.81 2.54 0)
+					(length 2.54)
+					(name "STATOR"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+		)
+		(symbol "rf-term-150w:R_Flange"
+			(pin_names
+				(offset 0)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "R"
+				(at 2.032 1.5 90)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "50R0"
+				(at 2.032 -1.5 90)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" "aiee:R_LapPad_T50R0-250-12X"
+				(at -1.778 0 90)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" "boards/rf-term-150w/research/T50R0-250-12X_Vishay-Barry_datasheet.pdf"
+				(at 0 0 0)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "50 ohm 250W BeO flanged RF termination (Vishay/Barry T50R0-250-12X). Off-board part: resistor body bolts to an external heatsink beside the PCB; only the RF tab and the flange's 2x GND ground-bond straps reach the PCB. This symbol is 2-PIN, matching the 3-pad footprint (pad 2 is duplicated x2 on the same pin/net, one strap land each side of the RF pad): pin 1 = RF (the tab lap pad), pin 2 = GND (the flange, reaching PCB GND ONLY through the two soldered copper straps - state.json decision 'Adopt architect B3'). The bolted flange-to-heatsink joint is explicitly NOT an electrical path (thermal/mechanical only) - see parts/T50R0-250-12X.json and the footprint's own descr for the full citation."
+				(at 0 0 0)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "MPN" "T50R0-250-12X"
+				(at 0 0 0)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Manufacturer" "Vishay Intertechnology (Barry Industries)"
+				(at 0 0 0)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Distributor PN" "DigiKey 4353-T50R0-250-12X-ND (not stocked at LCSC)"
+				(at 0 0 0)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "RF termination flange BeO 50ohm off-board"
+				(at 0 0 0)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "R_LapPad_T50R0*"
+				(at 0 0 0)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "R_Flange_0_1"
+				(rectangle
+					(start -1.016 -2.54)
+					(end 1.016 2.54)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(text "GND via 2x flange straps"
+					(at 1.6 -3.2 0)
+					(effects
+						(font
+							(size 0.8 0.8)
+						)
+						(justify left)
+					)
+				)
+			)
+			(symbol "R_Flange_1_1"
+				(pin passive line
+					(at 0 3.81 270)
+					(length 1.27)
+					(name "RF"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -3.81 90)
+					(length 1.27)
+					(name "GND"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+		)
+		(symbol "Mechanical:MountingHole_Pad"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 1.016)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom no)
+			(on_board yes)
+			(property "Reference" "H"
+				(at 0 6.35 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "MountingHole_Pad"
+				(at 0 4.445 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Mounting Hole with connection"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "mounting hole"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "MountingHole*Pad*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "MountingHole_Pad_0_1"
+				(circle
+					(center 0 1.27)
+					(radius 1.27)
+					(stroke
+						(width 1.27)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "MountingHole_Pad_1_1"
+				(pin input line
+					(at 0 -2.54 90)
+					(length 2.54)
+					(name "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "power:PWR_FLAG"
+			(power)
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "#FLG"
+				(at 0 1.905 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Value" "PWR_FLAG"
+				(at 0 3.81 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Special symbol for telling ERC where power comes from"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "flag power"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "PWR_FLAG_0_0"
+				(pin power_out line
+					(at 0 0 90)
+					(length 0)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(symbol "PWR_FLAG_0_1"
+				(polyline
+					(pts
+						(xy 0 0) (xy 0 1.27) (xy -1.016 1.905) (xy 0 2.54) (xy 1.016 1.905) (xy 0 1.27)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+	)
+	(symbol
+		(lib_id "Connector:Conn_Coaxial")
+		(at 63.5 76.2 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced no)
+		(uuid "66a38fd3-3ed2-4a7a-a1b4-82626760804e")
+		(property "Reference" "J1"
+			(at 62.5106 73.1216 0.0000)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "SMA"
+			(at 59.5134 82.55 0.0000)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Connector_Coaxial:SMA_BAT_Wireless_BWSMA-KWE-Z001"
+			(at 63.5 76.2 0.0000)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "SMA-KWE"
+			(at 66.04 81.2799 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				  (hide yes)
+  )
+		)
+		(property "Manufacturer" "Lian Xin Technology"
+			(at 66.04 81.2799 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				  (hide yes)
+  )
+		)
+		(property "LCSC" "C7498154"
+			(at 66.04 81.2799 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				  (hide yes)
+  )
+		)
+		(property "Datasheet" "boards/rf-term-150w/research/SMA-KWE_LianXin_datasheet.pdf"
+			(at 63.5 76.2 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "29d4e8f7-df78-4f8d-9123-102ac4bb2535")
+		)
+		(pin "2"
+			(uuid "675c4571-10a3-4d66-84a0-39895d365293")
+		)
+		(instances
+			(project "rf-term-150w"
+				(path "/6c097ad7-27fb-47cd-952a-76b2dd19244a"
+					(reference "J1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 63.5 83.82 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced no)
+		(uuid "0620f7a3-dacb-47f9-9618-17890f2f6568")
+		(property "Reference" "#PWR01"
+			(at 63.5 77.47 0.0000)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 62.0534 87.63 0.0000)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "dcb02305-9aff-41cf-b783-2274581196e9")
+		)
+		(instances
+			(project "rf-term-150w"
+				(path "/6c097ad7-27fb-47cd-952a-76b2dd19244a"
+					(reference "#PWR01")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "aiee:5602")
+		(at 101.6 76.2 180)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced no)
+		(uuid "01d885ca-0d42-4911-af66-01e20945d856")
+		(property "Reference" "C1"
+			(at 100.6106 75.44 0.0000)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "1-30pF"
+			(at 98.7818 82.04 0.0000)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "aiee:CAP-ADJ-TH_2P-BD7.5_5602"
+			(at 101.6 66.04 0.0000)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "5602"
+			(at 104.14 81.2799 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				  (hide yes)
+  )
+		)
+		(property "Manufacturer" "Johanson Manufacturing Corp. (Knowles Precision Devices)"
+			(at 104.14 81.2799 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				  (hide yes)
+  )
+		)
+		(property "DigiKey" "1956-1000-ND"
+			(at 104.14 81.2799 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				  (hide yes)
+  )
+		)
+		(property "Datasheet" "https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/6592/KnowlesTrimmersCatalogueweb177409287.pdf"
+			(at 101.6 76.2 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "0e89a3cc-5165-453e-a0d4-7a927b40ecce")
+		)
+		(pin "1"
+			(uuid "5f59e5ed-4210-41ef-96a2-181d6452acdd")
+		)
+		(instances
+			(project "rf-term-150w"
+				(path "/6c097ad7-27fb-47cd-952a-76b2dd19244a"
+					(reference "C1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 107.95 78.74 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced no)
+		(uuid "dec7d0bf-7b87-4f7c-896f-50b285fb61d7")
+		(property "Reference" "#PWR02"
+			(at 107.95 72.39 0.0000)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 106.5034 82.55 0.0000)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "049f6cd9-ffb3-45a2-98d4-bfca310c5280")
+		)
+		(instances
+			(project "rf-term-150w"
+				(path "/6c097ad7-27fb-47cd-952a-76b2dd19244a"
+					(reference "#PWR02")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "rf-term-150w:R_Flange")
+		(at 139.7 76.2 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced no)
+		(uuid "ebf50865-344f-4eac-8197-f233362f7a22")
+		(property "Reference" "R1"
+			(at 156.544 74.93 0.0000)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "50R 250W"
+			(at 156.544 77.47 0.0000)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "aiee:R_LapPad_T50R0-250-12X"
+			(at 137.922 76.2 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "T50R0-250-12X"
+			(at 142.24 81.2799 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				  (hide yes)
+  )
+		)
+		(property "Manufacturer" "Vishay Intertechnology (Barry Industries)"
+			(at 142.24 81.2799 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				  (hide yes)
+  )
+		)
+		(property "DigiKey" "4353-T50R0-250-12X-ND"
+			(at 142.24 81.2799 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				  (hide yes)
+  )
+		)
+		(property "Datasheet" "boards/rf-term-150w/research/T50R0-250-12X_Vishay-Barry_datasheet.pdf"
+			(at 139.7 76.2 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "f0e56f29-634a-4030-bef5-a4d6926e00a5")
+		)
+		(pin "2"
+			(uuid "aa9523f0-68ff-4a61-8454-f79f05994935")
+		)
+		(instances
+			(project "rf-term-150w"
+				(path "/6c097ad7-27fb-47cd-952a-76b2dd19244a"
+					(reference "R1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 139.7 82.55 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced no)
+		(uuid "fac18cfe-314f-4de0-a693-934e1af6cf8c")
+		(property "Reference" "#PWR03"
+			(at 139.7 76.2 0.0000)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 138.2534 86.36 0.0000)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "92914867-2732-45e7-8c34-59deceb4fd78")
+		)
+		(instances
+			(project "rf-term-150w"
+				(path "/6c097ad7-27fb-47cd-952a-76b2dd19244a"
+					(reference "#PWR03")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Mechanical:MountingHole_Pad")
+		(at 177.8 71.12 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced no)
+		(uuid "4abee504-0ac2-4bb5-a599-d39dd458934d")
+		(property "Reference" "H1"
+			(at 176.8106 67.31 0.0000)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "M3"
+			(at 174.2706 74.93 0.0000)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3_Pad"
+			(at 177.8 71.12 0.0000)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "19b356eb-2036-42f8-80b4-0bd923a81c45")
+		)
+		(instances
+			(project "rf-term-150w"
+				(path "/6c097ad7-27fb-47cd-952a-76b2dd19244a"
+					(reference "H1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 177.8 76.2 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced no)
+		(uuid "2295af76-53a5-43b7-a43e-c164f84ed6ee")
+		(property "Reference" "#PWR04"
+			(at 177.8 69.85 0.0000)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 176.3534 80.01 0.0000)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "6c82bcb8-cf70-4240-aa4b-50445bd1fbea")
+		)
+		(instances
+			(project "rf-term-150w"
+				(path "/6c097ad7-27fb-47cd-952a-76b2dd19244a"
+					(reference "#PWR04")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Mechanical:MountingHole_Pad")
+		(at 196.85 71.12 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced no)
+		(uuid "81f12f15-a1e6-4ed1-a973-bbd902ab2a22")
+		(property "Reference" "H2"
+			(at 195.8606 67.31 0.0000)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "M3"
+			(at 193.3206 74.93 0.0000)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3_Pad"
+			(at 196.85 71.12 0.0000)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "8fb592aa-8b70-46e6-a78e-9718abc90b15")
+		)
+		(instances
+			(project "rf-term-150w"
+				(path "/6c097ad7-27fb-47cd-952a-76b2dd19244a"
+					(reference "H2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 196.85 76.2 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced no)
+		(uuid "337ecc29-4ca0-4f4c-9830-a8b332339739")
+		(property "Reference" "#PWR05"
+			(at 196.85 69.85 0.0000)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 195.4034 80.01 0.0000)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "828f4779-a3e1-4919-b851-ab69027d26e0")
+		)
+		(instances
+			(project "rf-term-150w"
+				(path "/6c097ad7-27fb-47cd-952a-76b2dd19244a"
+					(reference "#PWR05")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Mechanical:MountingHole_Pad")
+		(at 215.9 71.12 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced no)
+		(uuid "6f05d949-f906-4959-b4db-bd9d3fd50736")
+		(property "Reference" "H3"
+			(at 214.9106 67.31 0.0000)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "M3"
+			(at 212.3706 74.93 0.0000)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3_Pad"
+			(at 215.9 71.12 0.0000)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "c5c62d95-9721-4dc7-9148-08d674dbd9bd")
+		)
+		(instances
+			(project "rf-term-150w"
+				(path "/6c097ad7-27fb-47cd-952a-76b2dd19244a"
+					(reference "H3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 215.9 76.2 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced no)
+		(uuid "b84fca9d-0193-4cc8-b59a-f69c05cb8fef")
+		(property "Reference" "#PWR06"
+			(at 215.9 69.85 0.0000)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 214.4534 80.01 0.0000)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "4810c4a8-c388-40ef-a11f-0f46a84192d6")
+		)
+		(instances
+			(project "rf-term-150w"
+				(path "/6c097ad7-27fb-47cd-952a-76b2dd19244a"
+					(reference "#PWR06")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 63.5 101.6 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced no)
+		(uuid "3859ed66-8ed1-49cd-b039-9328da5e58ca")
+		(property "Reference" "#PWR07"
+			(at 63.5 95.25 0.0000)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 62.0534 105.41 0.0000)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "82319874-8ef6-4be3-a9c5-2af753e4e450")
+		)
+		(instances
+			(project "rf-term-150w"
+				(path "/6c097ad7-27fb-47cd-952a-76b2dd19244a"
+					(reference "#PWR07")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:PWR_FLAG")
+		(at 68.58 101.6 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced no)
+		(uuid "cc4a7d8c-aaa0-420b-b91a-f1ffc29c6d5a")
+		(property "Reference" "#FLG01"
+			(at 68.58 103.505 0.0000)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Value" "PWR_FLAG"
+			(at 64.8474 97.79 0.0000)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "b0cb3781-71c1-4c2e-ba36-c3a8ee4edbc4")
+		)
+		(instances
+			(project "rf-term-150w"
+				(path "/6c097ad7-27fb-47cd-952a-76b2dd19244a"
+					(reference "#FLG01")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 58.42 76.2) (xy 55.88 76.2)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d28b7527-6db7-4552-8089-fde200484370")
+	)
+	(wire
+		(pts
+			(xy 63.5 81.28) (xy 63.5 83.82)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "6cd7a576-472a-47b1-bf49-e3978dac23a3")
+	)
+	(wire
+		(pts
+			(xy 105.41 78.74) (xy 107.95 78.74)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "430cacc7-b273-4f25-8321-bb843a47fd42")
+	)
+	(wire
+		(pts
+			(xy 97.79 78.74) (xy 95.25 78.74)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9588b378-743b-45f8-9e78-73e0e5b7d746")
+	)
+	(wire
+		(pts
+			(xy 139.7 72.39) (xy 139.7 69.85)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "07f5c56c-85bc-4ea3-919f-6fe3a84aa666")
+	)
+	(wire
+		(pts
+			(xy 139.7 80.01) (xy 139.7 82.55)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "39dec295-010a-4324-b4bf-15406ce1b3be")
+	)
+	(wire
+		(pts
+			(xy 177.8 73.66) (xy 177.8 76.2)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "92e3a915-90b1-4f80-8ac1-d171a2196b81")
+	)
+	(wire
+		(pts
+			(xy 196.85 73.66) (xy 196.85 76.2)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7e1ac6ae-6dc3-4f71-a3b6-f374d51fc40f")
+	)
+	(wire
+		(pts
+			(xy 215.9 73.66) (xy 215.9 76.2)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "38936472-62b4-445a-98b3-7f6911944fe7")
+	)
+	(wire
+		(pts
+			(xy 63.5 101.6) (xy 68.58 101.6)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a5608708-df7b-478c-b6ce-f359c0a9d243")
+	)
+	(label "RF"
+		(at 55.88 76.2 0.0000)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "11d17a1a-7a74-4a29-844e-ee3dd8c0015b")
+	)
+	(label "GND"
+		(at 63.5 83.82 0.0000)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "082be7d8-6c3e-4ef6-be63-d5d7ab1dd15a")
+	)
+	(label "GND"
+		(at 107.95 78.74 0.0000)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "342b536e-ef22-4244-bb7c-8eed0e18602c")
+	)
+	(label "RF"
+		(at 95.25 78.74 0.0000)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "0cf95885-cbda-491d-825d-8f92c4aff1bd")
+	)
+	(label "RF"
+		(at 139.7 69.85 0.0000)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "97820a7c-b733-431f-b73a-f7296629be6a")
+	)
+	(label "GND"
+		(at 139.7 82.55 0.0000)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "4fa87a82-74b5-4eb9-9752-59018566e100")
+	)
+	(label "GND"
+		(at 177.8 76.2 0.0000)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "a701fa70-f255-4328-acbb-e4a7758a6c08")
+	)
+	(label "GND"
+		(at 196.85 76.2 0.0000)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "b82d9d6c-7f5f-4cc3-85e3-379c42e25d3a")
+	)
+	(label "GND"
+		(at 215.9 76.2 0.0000)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "831572ca-fbd1-49ec-8e0e-0eadb7151dde")
+	)
+	(label "GND"
+		(at 66.04 101.6 0.0000)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "26bd8db3-7e2f-42b4-94c8-398a5516da99")
+	)
+	(text "ASSEMBLY AND SAFETY NOTES - BUILD REQUIREMENTS, NOT COMMENTARY"
+		(exclude_from_sim no)
+		(at 25.4 111.76 0.0000)
+		(effects
+			(font
+				(size 1.6 1.6)
+				(bold yes)
+			)
+		(justify left)
+		)
+		(uuid "1bc9a721-a956-434b-acd5-81857af3dbe5")
+	)
+	(text "1. R1's cold end reaches GND ONLY via the two soldered flange straps (footprint pad 2, x2)."
+		(exclude_from_sim no)
+		(at 25.4 119.38 0.0000)
+		(effects
+			(font
+				(size 1.4 1.4)
+			)
+		(justify left)
+		)
+		(uuid "76155d69-ded6-4e74-af38-76debdbdd0f8")
+	)
+	(text "   The bolted heatsink joint is NOT an electrical path: on an anodised finish it is 418 pF"
+		(exclude_from_sim no)
+		(at 25.4 123.825 0.0000)
+		(effects
+			(font
+				(size 1.4 1.4)
+			)
+		(justify left)
+		)
+		(uuid "6e9f03a1-7047-4949-8903-b6567b07a548")
+	)
+	(text "   = 15.2 ohm at 25 MHz. Solder both straps to the loose flange BEFORE bolting R1 down."
+		(exclude_from_sim no)
+		(at 25.4 128.27 0.0000)
+		(effects
+			(font
+				(size 1.4 1.4)
+			)
+		(justify left)
+		)
+		(uuid "9d0f21ee-e149-415a-9249-959f3251040d")
+	)
+	(text "2. The PCB rides on three 1.0 mm shims so that top copper (2.635 mm above the heatsink"
+		(exclude_from_sim no)
+		(at 25.4 135.255 0.0000)
+		(effects
+			(font
+				(size 1.4 1.4)
+			)
+		(justify left)
+		)
+		(uuid "0b25123e-2259-4d90-a5c0-27a3d244ec9c")
+	)
+	(text "   mounting plane) meets R1's tab underside (2.667 mm). Nominal solder gap 0.032 mm."
+		(exclude_from_sim no)
+		(at 25.4 139.7 0.0000)
+		(effects
+			(font
+				(size 1.4 1.4)
+			)
+		(justify left)
+		)
+		(uuid "b380a4fb-e857-448c-9a48-85231d1eb8d4")
+	)
+	(text "3. C1's threaded case is GND BY DESIGN - it is the metal a hand or a tuning tool touches."
+		(exclude_from_sim no)
+		(at 25.4 146.685 0.0000)
+		(effects
+			(font
+				(size 1.4 1.4)
+			)
+		(justify left)
+		)
+		(uuid "adc0bc4a-6e0d-42b2-b6f2-03e276206826")
+	)
+	(text "   Tune at reduced drive or with a VNA. NEVER tune at 150 W. Tool: Johanson 8764."
+		(exclude_from_sim no)
+		(at 25.4 151.13 0.0000)
+		(effects
+			(font
+				(size 1.4 1.4)
+			)
+		(justify left)
+		)
+		(uuid "96363b9d-c35e-4377-9610-996fbdc21a88")
+	)
+	(text "4. R1 is a +/-5% catalogue part. The 50 ohm +/-2% requirement is met by SELECT ON TEST at"
+		(exclude_from_sim no)
+		(at 25.4 158.115 0.0000)
+		(effects
+			(font
+				(size 1.4 1.4)
+			)
+		(justify left)
+		)
+		(uuid "9cae4b79-d39b-44bd-9765-9fca1b1e2076")
+	)
+	(text "   incoming inspection: measure each part, accept 49.00-51.00 ohm, reject outside."
+		(exclude_from_sim no)
+		(at 25.4 162.56 0.0000)
+		(effects
+			(font
+				(size 1.4 1.4)
+			)
+		(justify left)
+		)
+		(uuid "a215cad1-44fb-4ef6-b916-c2500940bf93")
+	)
+	(text "5. R1's substrate is BeO (beryllium oxide). DO NOT machine, drill, grind or break the part."
+		(exclude_from_sim no)
+		(at 25.4 169.545 0.0000)
+		(effects
+			(font
+				(size 1.4 1.4)
+			)
+		(justify left)
+		)
+		(uuid "61dbfb53-e935-4dd7-b29c-cc5a0bc96b04")
+	)
+	(text "   The dust is the hazard, not the intact part. Scrap it whole."
+		(exclude_from_sim no)
+		(at 25.4 173.99 0.0000)
+		(effects
+			(font
+				(size 1.4 1.4)
+			)
+		(justify left)
+		)
+		(uuid "84d8a4e7-5f7e-4184-a949-354c8b601aa0")
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+	(embedded_fonts no)
+)
