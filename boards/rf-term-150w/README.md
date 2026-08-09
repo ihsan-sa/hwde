@@ -12,6 +12,10 @@ the thermal path.
 Board: 26.0 x 20.0 mm, 2 layers, 1.6 mm FR4, 1 oz HASL, JLCPCB standard
 process (no upcharge options, no controlled impedance).
 
+**Status:** ERC 0/0, DRC 0/0 (routed, parity + all-track-errors + fresh fills),
+placement 0/0, DFM pass, simulation pass (4 benches / 116 bounds). Verification
+passes with 3 documented waivers - see section 7. Nothing has been ordered.
+
 ---
 
 ## 1. Assumptions taken
@@ -75,8 +79,14 @@ approximation, which is 7 % optimistic at the top of the range):
 **Adjustment range: residual series inductance 5.75 nH to 83.65 nH** can be
 nulled exactly. Below 5.75 nH the trimmer bottoms out, but its over-correction
 there is worth under 0.4 % reflection, so **>= 26 dB is actually held from
-0 nH to ~103 nH**. This board's own residual is ~8.1 nH, comfortably inside the
-exact-null window with authority in both directions.
+0 nH to ~103 nH**. This board's own as-routed residual is **7.21 nH**, which
+sits just inside the exact-null window with authority in both directions.
+
+That is deliberate, and it is why the RF trace is not flared as wide as it
+would go: widening further would have pushed the residual *below* 5.75 nH, so
+C1 would have bottomed out and there would be no demonstrable two-sided null -
+i.e. optimising the headline inductance would have broken the very
+"operator-adjustable" requirement the trimmer exists to satisfy.
 
 ### What the trimmer cannot do
 
@@ -84,7 +94,16 @@ A shunt susceptance only cancels the *imaginary* part. A series residual X
 transforms the port resistance to **R_eff = R + X^2/R**, which no amount of
 trimming undoes. The 26 dB limit is R_eff <= 55.276 ohm, i.e. X <= 16.24 ohm at
 R = 50, or **X <= 12.07 ohm (76.9 nH)** at the +5 % resistance corner. At the
-as-built ~8.1 nH (X = 1.27 ohm) there is **9.5x margin**.
+as-routed 7.21 nH (X = 1.13 ohm) there is **10.7x margin**:
+
+| Element resistance | R_eff | Return loss at 25 MHz |
+|---|---|---|
+| 50.0 ohm (nominal) | 50.026 | 71.8 dB |
+| 51.0 ohm (select-on-test limit) | 51.025 | **39.9 dB** |
+| 52.5 ohm (+5 % catalogue corner) | 52.524 | **32.2 dB** |
+
+Spec is 26 dB. Even the corner nobody should ship - an unselected +5 % part -
+clears it by 6.2 dB.
 
 This is also why an ordinary "non-inductive" bolt-down power resistor cannot
 substitute: at the typical 0.1 uH spec limit, X = 15.7 ohm gives 26.6 dB at
@@ -240,9 +259,21 @@ Counts against the brief's caps: **3 unique BOM lines** (cap 4), **3 placements
 - **CPL contains 2 rows (C1, J1), not 3.** R1's body is off-board on your
   heatsink; a pick-and-place "position" for it would mislead an assembler. It
   is in the BOM. The board is hand-built anyway.
-- **No field solver.** The 8.1 nH residual is a term-by-term geometric budget,
+- **No field solver.** The 7.21 nH residual is a term-by-term geometric budget,
   not a solved EM result, and the least certain term (strap/return loop) is
   estimated at 1.0-3.0 nH. Even at 3x that value the return loss moves ~0.04 dB.
+- **The `verify` gate passes only with 3 waivers** (`reports/verify-waivers.json`),
+  covering 7 findings. Five are a checker bug - `check_silk.py` treats an
+  unfilled rectangle as solid ink, so it reports J1's `(fill no)` body outline
+  as covering its own pads; KiCad's own DRC reports zero silk findings on the
+  same board. Two are the unavoidable antipads of the /RF through-hole pads in
+  the B.Cu pour (0.45 mm of crossing on a 15.065 mm trace). **These were
+  approved by the automated run under your no-questions instruction, not by a
+  human engineer.**
+- **6 silk strokes are 0.12 mm against JLCPCB's 0.15 mm minimum**, inherited
+  from the stock KiCad SMA footprint. The DFM gate passes (warning severity);
+  JLC may thin or drop those lines. Cosmetic only - the connector's orientation
+  is unambiguous from its four symmetric ground legs.
 - **J1's 3D model is absent from KiCad**, so mating direction was proven from
   footprint geometry against the vendor drawing rather than from a render.
   **Worth an eyeball before you order.**
