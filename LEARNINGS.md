@@ -2754,3 +2754,20 @@ and produced Tj 95 C, which invalidated the 4-layer justification and had to be 
 two ~1.16 mm2 lands. Confirm the land pattern from the vendor drawing BEFORE the thermal model, not
 after. And `fp_verify`'s pad-count check compares against the extraction, so a package-name-derived
 pad_count silently turns into a false-positive ERROR - fix the extraction, not the footprint.
+
+## 2026-08-09 [easyeda2kicad][fab][parts] Courtyard-redraw excess convention, and fp_verify's pad_size check cannot clear a multi-land-class part
+buck-5v3a P3 repair pass, U1 (AP63356QZV-7). Two reusable facts from fixing the land-ruling defects:
+(1) When redrawing an easyeda2kicad courtyard by hand (the pulled one is always the body outline, not
+the pad bbox - 2026-07-28 entry above), this repo's own convention for the excess margin is **0.25 mm
+beyond the pad-field bounding box**, taken from the same 2026-07-28 entry's KiCad-stock comparison
+("stock footprint's courtyard CONTAINS its pads with 0.25 mm to spare") - there is no separate
+constant for it in fpfix.py/fp_verify.py (fpfix does silk/peg/text repairs only, never courtyard); 0.25
+mm is a convention inferred from that one measured data point, not a hard-coded rule anywhere, so cite
+the LEARNINGS entry rather than a source file when asked "where does 0.25 mm come from". (2) A part
+with pads of more than one physical size (U1: 6 signal lands 0.30x0.60, 2 large lands 0.75x1.50, 1
+centre land 0.30x1.73) can NEVER pass `fp_verify`'s `pad_size` check clean: the check (fp_verify.py
+~line 109) only stores ONE expected `[w,h]` pair in `land_pattern.pad_size_mm` and bounds the MIN and
+MAX of the footprint's distinct pad sizes against that single pair - so the large/centre lands will
+always warn even when they exactly match the vendor drawing. This is a schema limitation, not a
+footprint defect; do not try to "fix" it by editing pad geometry, and do not treat the warning as
+newly-introduced when re-verifying a footprint you just repaired for something else.
