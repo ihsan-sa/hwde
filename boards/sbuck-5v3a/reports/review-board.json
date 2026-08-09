@@ -1,0 +1,173 @@
+{
+ "_note": "P8 fresh-context board review for sbuck-5v3a. Every geometric number below was re-measured from kicad/sbuck-5v3a.kicad_pcb by the reviewer (pcbnew + shapely), not read from a prior phase's report. Prose, arithmetic and the waiver audit: reports/review-board.md.",
+ "violations": [
+  {
+   "check": "board-review",
+   "severity": "error",
+   "pos": [41.72, 59.125],
+   "layer": "F.SilkS",
+   "net": null,
+   "refs": ["D2"],
+   "msg": "D2's cathode marker 'K' is printed at the ANODE end. The gr_text 'K' sits at (41.720,59.125), directly over pad 2 (/QGATE, anode, x 41.98); the cathode is pad 1 (+VIN) at x 45.26, 3.54 mm away. It contradicts the same part's own footprint band (local x -0.97, pad-1 side) and pin-1 dot. Symbol pin 1 is 'K' and the netlist puts pad 1 on +VIN, so the circuit is right and only the marker is wrong. A board hand-built or reworked to the silk gets D2 reversed, which turns the 15 V Vgs clamp into a plain forward diode from +VIN to /QGATE, holds Vgs near -0.7 V, and leaves Q1 (AO4407A, Vgs(th) -1 to -3 V) unenhanced - the whole 2.6 A input current then runs in Q1's body diode at ~0.8 V (~2.1 W in an SO-8), destroying Q1 and the reverse-polarity protection. Fix: move the text to ~(45.6,59.1) or delete it and rely on the footprint band.",
+   "source": "review.board",
+   "kind": "polarity-marker-wrong-end",
+   "domain": "silk"
+  },
+  {
+   "check": "board-review",
+   "severity": "error",
+   "pos": [44.995, 53.025],
+   "layer": "F.SilkS",
+   "net": null,
+   "refs": ["C2", "R3", "R5", "C3", "R6", "C9", "C7", "R7", "C12", "Q1", "C4", "TP1", "F1", "TP2", "R9", "TP7", "TP6"],
+   "msg": "Eight refdes labels are attributed to the wrong part (check_silk silk_misattributed x8, left unresolved: not fixed and not waived). Worst: 'R5'/'C2'/'R3' print as a left-to-right row above the parts C2/R5/C3 at y=55.025, so every label in that row names a different part than the one beneath it - 'C2' sits 0.47 mm from C3, 'R3' sits 0.27 mm from R6 and 1.7 mm above C3 while the real R3 is 4.6 mm away at (44.720,57.425). 'C9' (35.695,48.060) prints ON C7 (0.00 mm) - 100 nF 0603 label on a 4.7 uF 1206 body. 'R7' (53.298,55.725) prints ON C12. Also Q1->C4 0.65 mm, TP1->F1 0.29 mm, TP2->R9 0.25 mm, TP7->TP6 0.70 mm. Consequence: mis-stuffing at hand assembly and rework - and this board's own record has J1/J2 DNP for PCBA and hand-soldered on receipt, so humans do read this silk; TP1/TP2/TP7 mislabel probe points on a live 18 V board. The functional test-point legends (+VIN/SW/EN/GND/GND-S/FB/+5V) are correctly placed and are not part of this finding. Scripted fix: place_edit.py move_text / silk_place.py, no copper touched.",
+   "source": "review.board",
+   "kind": "refdes-misattributed",
+   "domain": "silk"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [47.245, 45.09],
+   "layer": "F.Cu",
+   "net": "/SW",
+   "refs": ["U1", "L1", "C1", "TP2", "R9"],
+   "msg": "/SW pour is 10.490 mm long against constraints.json's '<= 8 mm long' ceiling - a 31% overrun that is not disclosed anywhere. Measured: bbox 10.490 x 4.421 mm, area 30.4422 mm2 (ceiling 40, OK), F.Cu only, one island, conduction path U1.8->L1.1 still connected after a 1.5 mm erosion so it is >= 3.0 mm wide throughout (floor 2.5, OK). The excess is entirely the stub reaching C1 (BST), TP2 and R9 5.32 mm to -x of the SW pin; the load-carrying run is 3.73 mm. Physics is benign: C = e0*er*A/d = 8.854e-12*4.4*30.44e-6/0.2444e-3 = 4.85 pF, and at 18 V / 5 ns edges the displacement current is 17.5 mA returning into the In1 plane 0.244 mm below. Recommend recording as an accepted deviation rather than moving the BST cap or the test point.",
+   "source": "review.board",
+   "kind": "sw-pour-length-over-ceiling",
+   "domain": "review"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [44.32, 48.625],
+   "layer": "F.Cu",
+   "net": "GND",
+   "refs": ["U1"],
+   "msg": "check_thermal's '54.17 C rise vs 55 allowed, 0.83 C of headroom' is not a property of this layout and must not be reported as the board's tightest number. a_eff = min(A_SAT 645, GND copper within 14.3 mm summed over layers); measured 2137.56 mm2, so it CLAMPS to 645 and theta = 45+95*exp(-645/235) = 51.1055 C/W is a constant for any 4-layer board with >= 645 mm2 of heatsink copper. The 12 thermal vias, the 3 x 1850 mm2 planes and U1's position move the result by 0.00 C; 1.06 * 51.1055 = 54.17 is the distance between two DECLARED inputs. check_thermal is also non-additive - U1's 54.17 C and L1's 42.51 C are each computed as if that part were the only heat source on the board. Believe the P1/P2 board-level ladder: I re-derived its inputs independently (h_conv 1.42*(37/0.05)^0.25 = 7.4, h_rad 0.9*sigma*(358^2+323^2)(358+323) = 8.08 vs their 8.2, h_tot ~15.5 W/m2K over 3.4e-3 m2 -> R_ba 19 C/W) and reproduce it to ~2%. Two corrections: the ladder still carries the 16-via array at 2.16 K/W, and at the as-built 12 vias R_via is ~2.88 K/W, so worst Tj is ~98.7 C not 97.9 C and the margin is 6.3 C not 7.1 C; and the honest +/-30% band on R_ba is Tj 87.5-108.4 C, whose upper edge crosses the 105 C design limit but stays 17 C under the 125 C conservative spec floor and 51 C under AP64350's actual 150 C.",
+   "source": "review.board",
+   "kind": "thermal-screen-misread",
+   "domain": "review"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [55.92, 45.225],
+   "layer": "F.Cu",
+   "net": "+5V",
+   "refs": ["L1"],
+   "msg": "W3: L1's check_thermal result (42.51 C rise vs 45 allowed) is conservative but measures the wrong path. a_eff counts only the 153.23 mm2 of +5V copper within 14.3 mm (I re-measured it); it excludes the 30.44 mm2 /SW pad and the 1838.91 mm2 of GND under the part, and it excludes the board-level rise entirely. Counting /SW as well gives 39.8 C. The number that governs L1 is the board-level ladder's T_L1 surface 100.7-106.5 C against the FAUL1050's 155 C rating. No action; recorded so the 2.49 C 'margin' is not read as a real constraint.",
+   "source": "review.board",
+   "kind": "l1-thermal-screen-conservative",
+   "domain": "review"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "+5V",
+   "refs": ["C10", "C11", "C12", "C13", "C14", "R5", "C2", "C3"],
+   "msg": "Load-step disclosure is sound but the phase-margin floor is not actually bounded. The COUT-invariance of dV is correct and I do not re-litigate it: 2*pi*fc*COUT = R5*gm*VFB/(RTsense*VOUT), so dV = 200 mV whatever the derating. PM is NOT invariant - root.py's own table gives PM(corrected) 45.6-47.2 deg at COUT 75.0 uF vs 51.3-52.8 deg at 96.8 uF, i.e. 0.6 deg over the 45 deg floor at the low corner. But [75.0, 96.8] uF is a DC-BIAS band: the low end IS the vendor's DC-bias-only ratio (68.2%), so root.py 2.2's remark that hot X7R and aging 'push toward the low end' names those effects without stacking them. Stacking X7R hot-end loss (~-10% at 85-105 C, and this board's own model puts the surface at 83-87 C) and 1000 h aging (~-5%) on 75.0 uF gives ~62.7 uF, ~20% below the swept corner; on the sweep's own slope (75k->82k = +9% fc for -1.5 deg PM) that is roughly -3 deg, i.e. PM ~42-44 deg, under the floor. No respin implied - R5/C2/C3 are three adjacent 0603s and this is already bench item #1 - but the disclosure should say COUT_min is DC-bias-only so the PM floor reads as unbounded, not as 0.6 deg clear.",
+   "source": "review.board",
+   "kind": "cout-floor-not-bounded",
+   "domain": "review"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [44.3, 41.6],
+   "layer": "F.Cu",
+   "net": "/SNUBZ",
+   "refs": ["R9", "C16", "U1"],
+   "msg": "The DNP snubber's series loop is ~12 mm, against a constraint that asked for it to be 'routable with LOW INDUCTANCE even while unpopulated'. Path: /SW pour -> R9.1 (47.420,43.905) -> R9.2 (47.420,40.945) -> C16.1 (44.310,40.425) -> C16.2 GND (41.130,40.425) = 2.96 + 3.11 + 3.18 mm of series copper plus the tap. Microstrip L' = mu0*h/w = 0.256 nH/mm at w 1.2 mm, h 0.2444 mm -> ~3.1 nH, plus ~2 nH of R9+C16 ESL = ~5 nH. With C16 = 470 pF that self-resonates at 1/(2*pi*sqrt(5nH*470pF)) ~ 104 MHz, inside the band a SW snubber exists to damp, so the RC is a weaker damper than its values imply. C16's GND pad is 6.7 mm from the nearest corner of U1's exposed pad. DNP, so the consequence is bring-up effectiveness only - record it, do not respin for it.",
+   "source": "review.board",
+   "kind": "snubber-loop-inductance",
+   "domain": "placement"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [54.723, 54.575],
+   "layer": "F.Cu",
+   "net": "GND",
+   "refs": ["C12"],
+   "msg": "C12's ground leg is a single via into a 4.41 mm2 orphan F.Cu island. Four F.Cu GND pads sit on orphan islands - C12.2 (island 4.41 mm2, via at 54.723,54.575), C2.2 (16.65 mm2), R1.2 (14.20 mm2), R4.2 (3.60 mm2) - each island carries exactly one stitching via, so nothing floats and three of the four are small-signal. C12 is one of the five 22 uF output bulk caps: one 0.3 mm via adds ~0.6-1 nH, comparable to the cap's own impedance at 500 kHz, so C12 contributes materially less HF decoupling than its siblings. The three caps closest to L1 (C10 4.84 mm, C11 6.79 mm, C13 8.10 mm) are on the main island so the bank still works. This is also one of the ten check_current advisory warnings. A second via at ~(54.7,54.6) is a one-op, zero-risk improvement.",
+   "source": "review.board",
+   "kind": "single-via-bulk-cap-return",
+   "domain": "plane"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [61.22, 59.765],
+   "layer": "F.SilkS",
+   "net": null,
+   "refs": ["J1", "J2"],
+   "msg": "J1 and J2 carry '+' on opposite sides of the board. J1 pin 1 (/VIN_RAW) is the upper terminal at y 54.685; J2 pin 1 (+5V) is the lower one at y 59.765. Both wire entries correctly face off-board (verified on reports/renders/sbuck-5v3a_iso.png: J1 -x, J2 +x, screws top-accessible), and that requirement forces the 180 deg mirror, which is what puts + at the top on the input and at the bottom on the output. The silk does mark it - '+'/'-' at (34.12,54.685)/(34.12,59.625) for J1, '-'/'+' at (61.22,54.685)/(61.22,59.765) for J2, plus 'VIN 7-18V' and 'VOUT 5V 3A' - and all of it clears the connector bodies and stays visible after assembly (confirmed on the top render). Residual: this silk is the board's ONLY mitigation for delegate Q30 (identical connectors, no protection against swapping input and output), and getting + onto the same physical edge would need J2's pin/net assignment swapped in the schematic (pin1=GND, pin2=+5V), a P4-level change. Flagged as a decision to confirm at checkpoint 4, not as a defect.",
+   "source": "review.board",
+   "kind": "mirrored-connector-polarity",
+   "domain": "schematic"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": null,
+   "refs": [],
+   "msg": "Every power net is routed at exactly its IPC-2152 minimum width, with zero margin against etch tolerance. check_current: /VIN_RAW, /VIN, +VIN min track = required 1.52 mm; +5V = required 2.055 mm; /SW = required 2.31 mm. At JLC's ~+/-0.05 mm on 1 oz that is -2.4% on +5V, giving dT ~10.5 C instead of the budgeted 10 C. Acceptable, but the dT=10 C thermal budget is a nominal, not a worst case, and it is worth saying so where the 19 C/W board sensitivity is quoted.",
+   "source": "review.board",
+   "kind": "zero-etch-margin-on-power-widths",
+   "domain": "review"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": null,
+   "refs": [],
+   "msg": "Two verification legs are hollow and should not be counted as coverage. (1) check_pdn_z ran and checked ZERO pairs - it skipped +VIN for 'no plane pair detected' and attempted nothing else - so the PDN-impedance leg contributed nothing on this board by construction, which is the direct consequence of the deliberate 4 x GND stackup. (2) kc.py drc has NO silkscreen test for silk fully enclosed inside a pad's mask aperture: I proved it by shrinking TP4's silk ring to r = 0.30 (entirely inside the 0.75 mm pad) on a scratch copy - 0 DRC violations - while an injected silk segment CROSSING TP3/U1/C9 pads produced silk_over_copper and silk_overlap warnings. kc.py drc is therefore not a general substitute for check_silk, only a valid cross-check for boundary-crossing cases like the waived TP rings.",
+   "source": "review.board",
+   "kind": "hollow-verification-legs",
+   "domain": "review"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": null,
+   "refs": [],
+   "msg": "W10: verify_all's constraints_drift warning is justified and benign - I diffed both files leaf by leaf and the ONLY differences are the 16 numbers of the four mounting-hole keepout rects, i.e. the documented board-local -> absolute translation applied at P6. Everything else is identical and the checks ran against the correct kicad/ copy. Recommend annotating or deleting architecture/constraints.json so no later phase can consume the board-local rects.",
+   "source": "review.board",
+   "kind": "constraints-drift-benign",
+   "domain": "review"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "+5V",
+   "refs": [],
+   "msg": "W11: kicad/decoupling.json's _note still says '+5V is handled via constraints power[].pdn=false instead', but kicad/constraints.json records that pdn=false was REVERTED for both +5V and GND (precisely because it would also exclude them from check_irdrop). Two project files now state opposite things about the same decision, and the stale one is the file that feeds check_pdn and check_decoupling. One-line documentation fix.",
+   "source": "review.board",
+   "kind": "stale-decoupling-note",
+   "domain": "review"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [69.22, 40.725],
+   "layer": "F.Cu",
+   "net": null,
+   "refs": ["H1", "H2", "H3", "H4"],
+   "msg": "W12: constraints.json placement note (3) - 'the 6.5 mm mask/copper keepout around each M3 hole - planes_gen has no void support, so hand-add KiCad rule areas after the pours' - was never implemented: there are no rule areas anywhere on the board. Benign in fact, and I checked rather than assumed: all four copper layers are GND at every hole (In1/In2/B.Cu each void a 3.7 mm circle for the 3.2 mm NPTH, so no inner copper is exposed at the barrel), and the nearest NON-GND copper to any hole is 5.38 mm (H2, F.Cu) against an M3 washer radius of 3.25 mm - 2.13 mm clear. Record it as a knowingly-dropped constraint rather than leaving it silently unmet.",
+   "source": "review.board",
+   "kind": "unimplemented-constraint-benign",
+   "domain": "review"
+  }
+ ]
+}

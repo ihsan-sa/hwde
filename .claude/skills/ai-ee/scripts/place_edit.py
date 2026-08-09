@@ -54,6 +54,9 @@ OP_FIELDS = {  # op -> (required, optional)
     "lock": ({"ref", "locked"}, set()),
     # S14 text ops (V17): board-frame silk/fab text + refdes/value moves
     "add_text": ({"text", "x", "y", "layer"}, {"deg", "size", "thickness"}),
+    # remove_text + add_text is the only scripted way to RELOCATE a gr_text
+    # (add_text matches on the TARGET position, so it can never move one).
+    "remove_text": ({"text", "x", "y", "layer"}, set()),
     "move_text": ({"ref", "field", "x", "y"}, {"deg"}),
 }
 TEXT_LAYERS = {"F.SilkS", "B.SilkS", "F.Fab", "B.Fab"}
@@ -96,7 +99,7 @@ def validate_ops(doc: dict) -> list[dict]:
             raise CheckError(f"ops[{i}]: side must be front|back")
         if "locked" in op and not isinstance(op["locked"], bool):
             raise CheckError(f"ops[{i}]: locked must be a boolean")
-        if kind == "add_text":
+        if kind in ("add_text", "remove_text"):
             if op["layer"] not in TEXT_LAYERS:
                 raise CheckError(f"ops[{i}]: layer must be one of "
                                  f"{sorted(TEXT_LAYERS)}")
@@ -115,7 +118,7 @@ def _expected_state(ops: list[dict]) -> dict[str, dict]:
     """Fold the op list into the final expected {ref: {x,y,deg,side,locked}}."""
     want: dict[str, dict] = {}
     for op in ops:
-        if op["op"] in ("add_text", "move_text"):
+        if op["op"] in ("add_text", "remove_text", "move_text"):
             continue  # verified independently by _verify_texts
         w = want.setdefault(op["ref"], {})
         if op["op"] in ("place", "move"):
@@ -222,17 +225,24 @@ def _parse_board_texts(pcb: Path):
 
 
 def _verify_texts(pcb: Path, ops: list[dict]) -> list[str]:
-    text_ops = [op for op in ops if op["op"] in ("add_text", "move_text")]
+    text_ops = [op for op in ops
+                if op["op"] in ("add_text", "remove_text", "move_text")]
     if not text_ops:
         return []
     problems = []
     gr_texts, fields = _parse_board_texts(pcb)
     for op in text_ops:
-        if op["op"] == "add_text":
+        if op["op"] in ("add_text", "remove_text"):
             hits = [t for t in gr_texts
                     if t["text"] == op["text"] and t["layer"] == op["layer"]
                     and abs(t["x"] - op["x"]) <= POS_TOL
                     and abs(t["y"] - op["y"]) <= POS_TOL]
+            if op["op"] == "remove_text":
+                if hits:
+                    problems.append(
+                        f"remove_text '{op['text']}': {len(hits)} still on "
+                        f"{op['layer']} at ({op['x']}, {op['y']})")
+                continue
             if not hits:
                 problems.append(
                     f"add_text '{op['text']}' not found on {op['layer']} at "

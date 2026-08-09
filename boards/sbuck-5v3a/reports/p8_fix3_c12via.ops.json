@@ -1,0 +1,13 @@
+{
+ "version": 1,
+ "_note": "P8 verify fix 3 (review W6): C12's ground leg was a single via into a 4.41 mm2 F.Cu island that is exactly C12.2's own pad. Second via mirrors the existing one about the pad centre (54.723, 55.025): centre-to-centre 0.9 mm -> 0.6 mm hole gap vs the 0.5 mm floor, annulus fully inside the pad (0.50 mm x / 0.60 mm y margin), 0.603 mm to the nearest +5V copper. Far outside the x 38.87-43.02 / y 46.90-49.20 hot loop.",
+ "ops": [
+  {
+   "op": "add_via",
+   "at": [54.723, 55.475],
+   "size": 0.6,
+   "drill": 0.3,
+   "net": "GND"
+  }
+ ]
+}

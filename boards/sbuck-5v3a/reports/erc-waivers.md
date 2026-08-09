@@ -64,6 +64,18 @@ all three axes (fc +35%, PM +19.4 deg, GM +18.5 dB). Applying those offsets:
 
 **Carried to P8 and to bring-up as the board's #1 bench item.**
 
+**W2b. P8 UPDATE - the phase-margin floor is NOT actually bounded, and this
+disclosure must stop reading as "0.6 deg clear".** The P8 fresh-context review
+accepted the dV COUT-invariance argument but found the PM argument incomplete: PM is
+NOT invariant in COUT, and the [75.0, 96.8] uF band is **DC-bias-only**. Hot X7R
+derating and aging are named in root.py as pushing toward the low end but were never
+STACKED. Stacked, the effective bank is ~62.7 uF - about 20% below the swept corner -
+which on the sweep's own slope costs ~3 deg and puts **PM at roughly 42-44 deg, under
+the 45 deg floor**. No respin is implied (R5/C2/C3 are three 0603 parts and this is
+already bring-up bench item #1), but the honest statement is that the loop margin at
+the true COUT floor is UNBOUNDED BY ANALYSIS, not comfortably clear. Closing it needs
+a network analyser, not more modelling.
+
 **W2a. The fc floor of 24.4 kHz is NOT a requirement miss.** The "fc 25-50 kHz"
 target was the ORCHESTRATOR's proxy, written into the P4 spawn prompt as a stand-in
 for the real requirement, which is "recovery within 100 us". At fc = 24.4 kHz

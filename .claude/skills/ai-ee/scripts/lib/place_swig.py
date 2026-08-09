@@ -16,6 +16,11 @@ unscriptable):
    ["deg": d], ["size": mm], ["thickness": mm]}
      - board-frame graphic text. Idempotent: an existing text with the same
        string on the same layer within 0.01 mm is UPDATED, never duplicated.
+  {"op": "remove_text", "text": T, "x": mm, "y": mm, "layer": "F.SilkS"}
+     - deletes the board-frame graphic text matching (string, layer, position
+       within 0.01 mm).  Idempotent: absent -> no-op, {"removed": 0}.  This is
+       the only scripted way to RELOCATE a gr_text (remove + add_text), which
+       a mismarked polarity/cathode legend needs.
   {"op": "move_text", "ref": R, "field": "reference"|"value", "x": mm,
    "y": mm, ["deg": d]}
      - repositions a footprint's Reference/Value field text (board frame;
@@ -57,19 +62,34 @@ def _layer_id(board, name: str) -> int:
     return lid
 
 
+def _match_texts(board, op: dict) -> list:
+    """Board-frame PCB_TEXTs matching (layer, string, position +-0.01 mm)."""
+    lid = _layer_id(board, op["layer"])
+    tol = iu(0.01)
+    return [d for d in board.GetDrawings()
+            if isinstance(d, pcbnew.PCB_TEXT) and d.GetLayer() == lid
+            and d.GetText() == op["text"]
+            and abs(d.GetPosition().x - iu(op["x"])) <= tol
+            and abs(d.GetPosition().y - iu(op["y"])) <= tol]
+
+
 def apply_text_op(board, op: dict) -> dict:
     kind = op["op"]
+    if kind == "remove_text":
+        hits = _match_texts(board, op)
+        for d in hits:            # idempotent: absent -> removed 0, no error
+            # RemoveNative, NOT Remove: Remove() hands ownership to python and
+            # once that proxy is collected `board.Drawings()` comes back as a
+            # bare SwigPyObject, so every later GetDrawings() raises
+            # "'SwigPyObject' object is not iterable" (KiCad 10.0.3, measured).
+            board.RemoveNative(d)
+        return {"text": op["text"], "layer": op["layer"],
+                "x": float(op["x"]), "y": float(op["y"]),
+                "removed": len(hits)}
     if kind == "add_text":
         lid = _layer_id(board, op["layer"])
-        tol = iu(0.01)
-        txt = None
-        for d in board.GetDrawings():
-            if (isinstance(d, pcbnew.PCB_TEXT) and d.GetLayer() == lid
-                    and d.GetText() == op["text"]
-                    and abs(d.GetPosition().x - iu(op["x"])) <= tol
-                    and abs(d.GetPosition().y - iu(op["y"])) <= tol):
-                txt = d          # idempotent re-apply: update, don't duplicate
-                break
+        hits = _match_texts(board, op)
+        txt = hits[0] if hits else None  # idempotent re-apply: update, no dupe
         if txt is None:
             txt = pcbnew.PCB_TEXT(board)
             board.Add(txt)
@@ -106,7 +126,7 @@ def apply_text_op(board, op: dict) -> dict:
 
 def apply_op(board, op: dict) -> dict:
     kind = op["op"]
-    if kind in ("add_text", "move_text"):
+    if kind in ("add_text", "remove_text", "move_text"):
         return apply_text_op(board, op)
     ref = op["ref"]
     fp = board.FindFootprintByReference(ref)

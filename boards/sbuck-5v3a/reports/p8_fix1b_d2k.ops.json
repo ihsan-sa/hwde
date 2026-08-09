@@ -1,0 +1,23 @@
+{
+ "version": 1,
+ "_note": "P8 verify fix 1b: after the refdes sweep put R3's label at (43.97, 59.032), the relocated D2 cathode 'K' at x 45.52 stood 0.13 mm off it and the render read 'R3K'. Shift the K to (45.9, 59.0): gap to R3's label 0.51 mm (vs 0.66 mm between R2 and R3 on the same row), 0.265 mm to all other silk, still 0.64 mm from the CATHODE pad (pad 1, +VIN, x 44.805-45.715) against 2.97 mm from the anode, and directly above the footprint's own pin-1 dot.",
+ "ops": [
+  {
+   "op": "remove_text",
+   "text": "K",
+   "x": 45.52,
+   "y": 59.125,
+   "layer": "F.SilkS"
+  },
+  {
+   "op": "add_text",
+   "text": "K",
+   "x": 45.9,
+   "y": 59.0,
+   "layer": "F.SilkS",
+   "size": 1.0,
+   "thickness": 0.15,
+   "deg": 0
+  }
+ ]
+}

@@ -422,8 +422,10 @@ def test_validate_text_ops_good():
          "layer": "F.SilkS", "deg": 0, "size": 1.0, "thickness": 0.15},
         {"op": "move_text", "ref": "U1", "field": "reference",
          "x": 30.0, "y": 12.0, "deg": 90},
+        {"op": "remove_text", "text": "K", "x": 10.0, "y": 20.0,
+         "layer": "F.SilkS"},
     ]})
-    assert len(ops) == 2
+    assert len(ops) == 3
 
 
 @pytest.mark.parametrize("doc", [
@@ -437,6 +439,10 @@ def test_validate_text_ops_good():
                             "x": 1, "y": 1}]},         # only reference|value
     {"version": 1, "ops": [{"op": "move_text", "field": "value",
                             "x": 1, "y": 1}]},         # missing ref
+    {"version": 1, "ops": [{"op": "remove_text", "text": "K", "x": 1, "y": 1,
+                            "layer": "F.Cu"}]},        # copper layer banned
+    {"version": 1, "ops": [{"op": "remove_text", "text": "K", "x": 1, "y": 1,
+                            "layer": "F.SilkS", "size": 1.0}]},  # no options
 ])
 def test_validate_text_ops_rejects(doc):
     with pytest.raises(CheckError):
@@ -770,6 +776,30 @@ def test_text_ops_apply_verify_idempotent(edit_board):
     gr2, fields2 = place_edit._parse_board_texts(edit_board)
     assert len([t for t in gr2 if t["text"] == "+5V"]) == 1
     assert fields2[("C1", "reference")]["x"] == pytest.approx(151.0, abs=1e-3)
+
+
+@pytest.mark.smoke
+def test_remove_text_relocates_gr_text(edit_board):
+    """remove_text + add_text is the relocation path for a board gr_text
+    (add_text alone matches on the TARGET position and can never move one).
+    Absent -> no-op, so the pair stays idempotent."""
+    place_edit.apply_ops(edit_board, [
+        {"op": "add_text", "text": "K", "x": 150.0, "y": 140.0,
+         "layer": "F.SilkS", "size": 1.0, "thickness": 0.15}])
+    ops = [
+        {"op": "remove_text", "text": "K", "x": 150.0, "y": 140.0,
+         "layer": "F.SilkS"},
+        {"op": "add_text", "text": "K", "x": 153.5, "y": 140.0,
+         "layer": "F.SilkS", "size": 1.0, "thickness": 0.15},
+    ]
+    place_edit.apply_ops(edit_board, ops)
+    gr, _ = place_edit._parse_board_texts(edit_board)
+    hits = [t for t in gr if t["text"] == "K" and t["layer"] == "F.SilkS"]
+    assert len(hits) == 1
+    assert hits[0]["x"] == pytest.approx(153.5, abs=1e-3)
+    place_edit.apply_ops(edit_board, ops)          # idempotent re-apply
+    gr2, _ = place_edit._parse_board_texts(edit_board)
+    assert len([t for t in gr2 if t["text"] == "K"]) == 1
 
 
 @pytest.mark.smoke

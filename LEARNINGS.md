@@ -3082,3 +3082,43 @@ instead of quietly restoring the old story. Related: the same re-derivation move
 from "pessimistic parasitic + as-routed L" to "top of the residual band", so before/after deltas are
 only meaningful when you say which comparison they are (like-for-like +0.48 dB, worst-to-worst
 +1.06 dB on the same re-route).
+
+## 2026-08-09 [place_edit][kicad][silk] A board `gr_text` could not be MOVED by any script - and `board.Remove()` on one poisons `GetDrawings()`
+sbuck-5v3a P8 found D2's cathode marker `K` printed at the ANODE end (a board-level `gr_text` from
+P6, not footprint silk). Nothing in the pipeline could fix it: `place_edit`'s `add_text` matches an
+existing text on **(layer, string, TARGET position +-0.01 mm)**, so it can create or update in place
+but can never relocate one, and there was no delete. Relocating a mismarked polarity/pin-1/cathode
+legend is exactly the case where the silk is a safety artifact (assembled to this silk, D2 becomes a
+forward diode, Vgs sticks at -0.7 V, and 2.6 A runs in Q1's body diode at ~2.1 W in an SO-8), so the
+gap was closed rather than worked around: `remove_text {text,x,y,layer}` in place_edit + place_swig,
+idempotent (absent -> `{"removed": 0}`), verified by the driver's independent sexpdata parse
+asserting ABSENCE. `remove_text` + `add_text` is now the relocation idiom.
+The trap that cost the first attempt, measured on KiCad 10.0.3: **use `board.RemoveNative(item)`, not
+`board.Remove(item)`.** `Remove()` hands ownership to python; once that proxy is collected,
+`board.Drawings()` comes back as a bare SwigPyObject and **every later `GetDrawings()` raises
+`TypeError: 'SwigPyObject' object is not iterable`** - so the NEXT op in the same job dies, not the
+removal. It reproduces only when the proxy is dropped (holding the list alive hides it), which is why
+an interactive probe passed and the worker failed. `RemoveNative` is clean under gc.
+
+## 2026-08-09 [silk][silk_place][check_silk] silk_place's score is attribution-BLIND, so it certifies the exact defect check_silk flags
+On sbuck-5v3a, `check_silk` reported 8 `silk_misattributed` refdes (C9 printed on C7, R7 on C12, a
+row of R5/C2/R3 each sitting over a different part) while `silk_place --apply` proposed only 3 moves
+and declared the rest optimal. Cause: the score is `(min(clearance, 0.30), -distance_to_own)`, so a
+spot 3 mm away with 0.30 mm clearance strictly outranks a snug one with 0.29 - closeness is only a
+tie-break AT the cap. `check_silk`'s rule is the opposite ("attribution beats closeness"): flagged
+iff `own_off > 1.0 mm` AND `nearest_other < min(1.0, own_off)`. Re-scoring the SAME candidate set as
+`(tier, min(clearance,0.30), -own_off)` with `tier = 2 if clean and own_off < nearest_other else 1 if
+clean else 0` took it 8 -> 3 at DRC 0/0. Three further facts, each of which cost a pass:
+- **A target that ends up NOT moving is invisible to every target processed before it.** Targets are
+  excluded from the static obstacle set and only enter `placed_boxes` when their turn comes, so an
+  earlier label can be placed on top of a later one that never moved (C2's label landed on R4's ->
+  `silk_overlap`). Seed the obstacle set with every target's CURRENT box and drop each as decided.
+- **A "keep the current position" rule must re-check that the current position is still legal**, or a
+  label that a previous pass left overlapping is frozen there forever.
+- Move only on a **tier increase**; extra clearance is never a reason to relocate a legible label
+  (that rule cut a 28-op churn to 12 with the same attribution outcome).
+Residual and the durable fix: 3 labels (C9, R7, C2) have NO attribution-clean candidate at any legal
+clearance - at refdes size 1.0 mm the inked label is ~2.6-3.2 mm wide against a 2.5-3.0 mm passive
+pitch. Re-running the search at size 0.8 / thickness 0.12 (still above `check_silk`'s MIN_TEXT_H 0.8
+and JLC's floor) clears R7 and C2 and leaves only C9. `move_text` has no `size` field, so refdes
+resize is the next real gap.
