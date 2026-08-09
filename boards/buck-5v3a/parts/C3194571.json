@@ -1,0 +1,126 @@
+{
+  "mpn": "AP63356QZV-7",
+  "lcsc": "C3194571",
+  "package": "V-DFN3020-13/SWP (Type A1), body 2mm x 3mm, 13-land, wettable flanks",
+  "description": "Diodes Inc. AP63356Q/AP63357Q family: automotive-compliant, 32V, 3.5A, low-IQ synchronous buck converter. This SKU (AP63356QZV-7, per Ordering Information table on doc p.26) selects Product Version 6 = AP63356Q = PWM-only (forced PWM regardless of load, no PFM light-load mode - that is the AP63357Q sibling), Package ZV = V-DFN3020-13/SWP (Type A1), Packing 7 = Tape & Reel (3000/reel). Adjustable output (0.8V to VIN) via external resistive divider - confirmed directly from Section 10 'Setting the Output Voltage': 'has adjustable output voltages starting from 0.8V using an external resistive divider'. There is no fixed-output variant in this datasheet (DS41948 Rev.1-2, Sept 2020); a fixed-output part would carry a different base part number, not covered here.",
+  "pinout": [
+    {
+      "pin": "1",
+      "name": "VIN",
+      "type": "power_in",
+      "notes": "Power input, 3.8V-32V (recommended operating). Bypass VIN to GND with a suitably large low-ESR ceramic capacitor placed as close as possible; see Input Capacitor section. Abs max -0.3 to +35.0V DC continuous, -0.3 to +40.0V for 400ms transient."
+    },
+    {
+      "pin": "2",
+      "name": "EN",
+      "type": "input",
+      "notes": "Digital enable, active high. Precision threshold: rising typ 1.18V (min 1.15V, max 1.21V), falling typ 1.08V (min 1.02V, max 1.14V). Internal 1.5uA pull-up (I1, from internal VCC) so the device auto-starts if EN is left floating or tied to VIN; an additional internal 4uA hysteresis pull-up current (I2) plus an external R3/R4 divider on EN can program custom VIN UVLO on/off thresholds (Eq.1/Eq.2, Figure 37). This board's BOM uses the R3/R4-divider option (R3=86.6k, R4=20k) rather than a bare tie to VIN."
+    },
+    {
+      "pin": "3",
+      "name": "FB",
+      "type": "analog",
+      "notes": "Feedback sense input, connects to the tap of the output resistive divider. Regulates to the internal 0.8V reference (0.792V min / 0.800V typ / 0.808V max, i.e. 0.8V +-1%, CCM). R1 (top leg) is sized from R2 (bottom leg) per Eq.5: R1 = R2*(VOUT/0.8 - 1). An optional 10pF-220pF feed-forward capacitor (C4 in Fig.39/Table1) may be placed across R1 to improve transient response - not mandatory (Table 1's OPEN entries at low Vout confirm it is optional)."
+    },
+    {
+      "pin": "4",
+      "name": "COMP",
+      "type": "analog",
+      "notes": "Loop compensation node. Tie directly to GND to select the internal loop-compensation network (Fig.39/Table1, 'Typical Application Circuit Using Internal Compensation'). Alternatively, leave COMP active and add an external R5/C5/C6 RC network (Fig.40/Table2) for external compensation. This board's parts.json BOM has no R5/C5/C6 line items, confirming the internal-compensation topology - COMP should route directly and as short as possible to GND."
+    },
+    {
+      "pin": "5",
+      "name": "PG",
+      "type": "open_collector",
+      "notes": "Power-Good. Open-drain output with an internal 5Mohm pull-up. Held low during soft-start until VOUT reaches 85% of target; pulls low again (UVP) if VOUT drops below 80% of target (i.e. -20%) until it recovers. Rising-edge (good) transition delayed 1.5ms; falling-edge (fault) delayed 220us, both to prevent false triggering."
+    },
+    {
+      "pin": "6",
+      "name": "BST",
+      "type": "passive",
+      "notes": "High-side N-channel power MOSFET gate-drive bootstrap supply. Requires a 100nF ceramic capacitor from BST to SW (mandatory, per Pin Description and Section 14). If the BST-to-SW voltage falls below 2.3V (e.g. long PFM idle or deep LDO/dropout operation), an internal boot-UVP circuit forces the low-side FET (Q2) on for 220ns to refresh the cap back above 2.85V."
+    },
+    {
+      "pin": "7",
+      "name": "NC",
+      "type": "nc",
+      "notes": "No internal connection. Per Pin Description: 'The pin can be tied to any other pin or left floating.'"
+    },
+    {
+      "pin": "8",
+      "name": "GND",
+      "type": "ground",
+      "notes": "Power ground."
+    },
+    {
+      "pin": "9",
+      "name": "SW",
+      "type": "output",
+      "notes": "Switching node; connect the output LC filter (inductor) from SW to the load. Abs max -0.3 to VIN+0.3V DC continuous, -2.5V to VIN+2.0V for 20ns transient (switching ringing)."
+    }
+  ],
+  "decoupling": [
+    {
+      "pins": ["VIN"],
+      "value": ">=10uF ceramic, low ESR (X7R/X5R)",
+      "placement": "as close across VIN-to-GND as physically possible",
+      "notes": "Section 12 'Input Capacitor': RMS current rating of the input cap must exceed the RMS input current; rule of thumb is an RMS rating greater than half the max load current. 'Using a ceramic capacitor of 10uF or greater is sufficient for most applications.' Table 1 (internal-compensation reference design, VOUT=5.0V row): C1 = 10uF. Electrolytic/ceramic OK; if tantalum is used it must be surge-protected."
+    },
+    {
+      "pins": ["BST", "SW"],
+      "value": "100nF ceramic",
+      "placement": "directly between BST and SW pins, shortest possible loop",
+      "notes": "Mandatory bootstrap cap for the high-side gate driver (Pin Description for BST; Section 14). Value is constant at 100nF across every VOUT row in both Table 1 and Table 2 (labeled C3 in Fig.39/Fig.40)."
+    },
+    {
+      "pins": ["SW"],
+      "value": "2 x 22uF ceramic (output filter cap bank, on the filtered VOUT node after the inductor)",
+      "placement": "as close to GND as possible (Layout rule 4); this is the output-side cap, not a pin-adjacent bypass cap",
+      "notes": "Section 13 'Output Capacitor': 22uF to 68uF ceramic is sufficient for most applications; ESR dominates output ripple (Eq.8); minimum COUT must also satisfy the load-transient inequality (Eq.9). Table 1 (internal-compensation, VOUT=5.0V row): C2 = 2 x 22uF - matches this board's C5/C6 (2x 22uF/25V/1210) exactly."
+    }
+  ],
+  "land_pattern": {
+    "package": "V-DFN3020-13/SWP (Type A1)",
+    "pad_count": 9,
+    "pitch_mm": 0.45,
+    "pad_size_mm": [0.60, 0.30],
+    "pin1": "1",
+    "notes": "CORRECTED per boards/buck-5v3a/reports/u1-land-ruling.md (vendor-evidence ruling, 2026-08-09): the Suggested Pad Layout (doc p.27) has EXACTLY 9 copper lands, annotated on the drawing itself as X1(2x) + X2 + X(6x) = 2 + 1 + 6 = 9, and the dimension chain (Y3=2.825 = Y1 + G + 3*C-pitched 0.30 lands) closes exactly with no room for a 10th. The '13' in the package name V-DFN3020-13 counts PACKAGE TERMINALS, not PCB lands: VIN is terminals 1-3 merged into ONE continuous land, GND is terminals 10-12 merged into another, SW is terminal 13 (its own land), and the six small terminals 4-9 (EN,FB,COMP,PG,BST,NC) get one land each - 3+6+3+1=13 terminals -> 9 lands. There is NO exposed/thermal pad; the term never appears in the datasheet, and the vendor names the GND land and VIN land themselves as the heat exits (doc p.25 Layout rules 7-8). Previous notes' claim of '6 small pads per side + 2 larger end pads per side' (implying up to 13 or more lands) was a text-extraction misreading of the drawing, not a drawing-verified read; corrected reading is 3 signal lands per side (6 total, X(6x)) + 2 large end lands (one per side, X1(2x)) + 1 narrow centre land (X2) = 9. Dimensions, mm: C=0.45 (signal pad row pitch), G=0.175 (large-land-to-signal-land gap), X=0.60 x Y=0.30 (each of the 6 signal lands), X1=0.80 (the 2 large end lands), X2=0.30 x Y2=1.725 (the 1 centre/SW land), X3=2.30 (overall pad-pattern width), Y1=1.450 (large land length), Y3=2.825 (overall pad-pattern height, large-land-outer-edge to signal-land-outer-edge). Package Outline (doc p.27): body D=2.00mm x E=3.00mm BSC, pitch e=0.45mm BSC, e1=0.575mm BSC, e2=0.475mm BSC, lead L=0.35-0.45mm, L1=0.55-0.65mm, L2=1.475-1.575mm, terminal thickness b=0.15-0.25mm, body height A=0.80-0.90mm (A1 standoff 0.00-0.05mm). Weight approx 0.013g. Moisture Sensitivity Level 1 (J-STD-020). Terminal finish: Matte Tin. fp_verify's pad-count check should therefore expect 9, not 13; a 9-pad footprint is CORRECT, not missing an exposed pad."
+  },
+  "exposed_pad": {
+    "present": false
+  },
+  "layout_notes": [
+    "Vendor's own numbered PCB Layout rules (Section 'Layout', doc p.25, Figure 47 'Recommended PCB Layout'): (1) device runs at 3.5A load so heat dissipation is a major layout concern - 2oz copper recommended for both top and bottom layers. (2) Place the input capacitor(s) as close across VIN and GND as possible. (3) Place the inductor as close to SW as possible. (4) Place the output capacitor(s) as close to GND as possible. (5) Place the FB divider components as close to FB as possible. (6) On 4+ layer boards, use at least the 2nd and 3rd layers as GND to maximize thermal performance. (7) Add as many vias as possible around the GND pin and under the GND plane, to all GND layers. (8) Add as many vias as possible around the VIN pin and under the VIN plane, to all VIN layers.",
+    "CONFIRMS the P2 architect's note: vendor's via guidance is qualitative only ('as many vias as possible'), with no via count, size, or pattern given - and it is scoped to the GND pin and VIN pin specifically, not to any distinct exposed/thermal pad (the term 'exposed pad' does not appear anywhere in this datasheet).",
+    "theta_JA = 25 C/W, theta_JC = 5 C/W (V-DFN3020-13/SWP Type A1), per Note 6 tested on a 4-layer FR-4 board, 2oz copper, WITH the minimum recommended pad layout - i.e. the published theta_JA already assumes GND/VIN via stitching similar to the rules above, not a bare/unstitched footprint.",
+    "COMP: tie directly to GND for internal loop compensation (Fig.39/Table1 topology) - this board's BOM (parts.json) has no R5/C5/C6, confirming internal compensation is used; keep the COMP-to-GND trace short.",
+    "Soft-start is fixed internally at 4ms typical; there is no external soft-start pin or capacitor to size.",
+    "EN: this board's BOM uses an external R3(86.6k)/R4(20k) divider from VIN to program a custom UVLO threshold (Eq.1/Eq.2, Figure 37) rather than tying EN straight to VIN; P4 should re-derive the resulting VON/VOFF thresholds against Eq.1/Eq.2 (flagged as still-open in the R3 role note in parts.json).",
+    "Reference design cross-check (Table 1, internal-compensation, VOUT=5.0V row, doc p.16): R1=157k, R2=30k, L=6.8uH, C1(Cin)=10uF, C2(Cout)=2x22uF, C3(BST cap)=100nF, C4(optional FB feed-forward cap)=47pF. This board's actual BOM (R1=158k/R2=30.1k for an exact 5.000V center per decisions.md D12, L1=6.8uH, C1/C2=2x10uF, C5/C6=2x22uF) matches the vendor's reference design on every load-bearing value (L and Cout exactly; R1/R2 refined for tighter Vout centering); the optional 47pF FB feed-forward cap (C4) is not populated on this board - acceptable since it is explicitly optional.",
+    "Package uses 'wettable flanks' (SWP = side-wettable pads) for optical solder-joint inspection; this is a mechanical/inspection feature of the leadframe, not a separate electrical node."
+  ],
+  "abs_max": [
+    { "param": "VIN Supply Pin Voltage (DC, continuous)", "value": "-0.3 to +35.0", "unit": "V" },
+    { "param": "VIN Supply Pin Voltage (400ms transient)", "value": "-0.3 to +40.0", "unit": "V" },
+    { "param": "VEN Enable/UVLO Pin Voltage", "value": "-0.3 to +35.0", "unit": "V" },
+    { "param": "VFB Feedback Pin Voltage", "value": "-0.3 to +6.0", "unit": "V" },
+    { "param": "VCOMP Compensation Pin Voltage", "value": "-0.3 to +6.0", "unit": "V" },
+    { "param": "VPG Power-Good Pin Voltage", "value": "-0.3 to +6.0", "unit": "V" },
+    { "param": "VBST Bootstrap Pin Voltage", "value": "VSW-0.3 to VSW+6.0", "unit": "V" },
+    { "param": "VSW Switch Pin Voltage (DC, continuous)", "value": "-0.3 to VIN+0.3", "unit": "V" },
+    { "param": "VSW Switch Pin Voltage (20ns transient)", "value": "-2.5 to VIN+2.0", "unit": "V" },
+    { "param": "TSTG Storage Temperature", "value": "-65 to +150", "unit": "C" },
+    { "param": "TJ Junction Temperature (absolute max)", "value": 170, "unit": "C" },
+    { "param": "TL Lead/Solder Temperature", "value": 260, "unit": "C" },
+    { "param": "ESD HBM (Human Body Model)", "value": "+-2000", "unit": "V" },
+    { "param": "ESD CDM (Charged Device Model)", "value": "+-1000", "unit": "V" },
+    { "param": "theta_JA Junction-to-Ambient (V-DFN3020-13/SWP)", "value": 25, "unit": "C/W" },
+    { "param": "theta_JC Junction-to-Case (V-DFN3020-13/SWP)", "value": 5, "unit": "C/W" },
+    { "param": "VIN Supply Voltage (Recommended Operating range, not abs max)", "value": "3.8 to 32", "unit": "V" },
+    { "param": "VOUT Output Voltage (Recommended Operating range, not abs max)", "value": "0.8 to VIN", "unit": "V" },
+    { "param": "TA Ambient Temperature (Recommended Operating range, not abs max)", "value": "-40 to +125", "unit": "C" },
+    { "param": "TJ Junction Temperature (Recommended Operating range, not abs max)", "value": "-40 to +150", "unit": "C" }
+  ],
+  "source_pdf": "boards/buck-5v3a/parts/C3194571.pdf"
+}

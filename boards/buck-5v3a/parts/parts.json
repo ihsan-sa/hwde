@@ -817,44 +817,44 @@
     {
       "ref_prefix_hint": "R",
       "block": "regulator",
-      "mpn": "TC0325D3012T5F",
-      "lcsc": "C2988922",
-      "value": "30.1k 0.5% 0603",
+      "mpn": "RC0603FR-0730K1L",
+      "lcsc": "C137745",
+      "value": "30.1k 1% 0603",
       "package": "0603",
       "basic": false,
-      "stock": 3310,
-      "price": 0.0102,
+      "stock": 469630,
+      "price": 0.0073,
       "qty_per_board": 1,
       "price_breaks": [
         {
           "qty": 1,
-          "price": 0.0102
+          "price": 0.0073
         },
         {
-          "qty": 500,
-          "price": 0.0079
-        },
-        {
-          "qty": 1500,
-          "price": 0.0067
+          "qty": 1000,
+          "price": 0.0062
         },
         {
           "qty": 5000,
-          "price": 0.0059
+          "price": 0.0057
         },
         {
-          "qty": 25000,
-          "price": 0.0052
+          "qty": 10000,
+          "price": 0.0054
         },
         {
           "qty": 50000,
-          "price": 0.0049
+          "price": 0.0051
+        },
+        {
+          "qty": 50200,
+          "price": 0.0051
         }
       ],
       "min_qty": 1,
-      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2208170930_UNI-ROYAL-Uniroyal-Elec-TC0325D3012T5F_C2988922.pdf",
-      "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-tc0325d3012t5f_C2988922.html",
-      "brand": "UNI-ROYAL(Uniroyal Elec)",
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_YAGEO-RC0603FR-0730K1L_C137745.pdf",
+      "url": "https://www.lcsc.com/product-detail/chip-resistor-surface-mount_yageo-rc0603fr-0730k1l_C137745.html",
+      "brand": "YAGEO",
       "attributes": [
         {
           "name": "Resistance",
@@ -870,7 +870,7 @@
         },
         {
           "name": "Type",
-          "value": "Thin Film Resistor"
+          "value": "Thick Film Resistor"
         },
         {
           "name": "Voltage-Supply(Max)",
@@ -878,15 +878,21 @@
         },
         {
           "name": "Tolerance",
-          "value": "\u00b10.5%"
+          "value": "\u00b11%"
         },
         {
           "name": "Temperature Coefficient",
-          "value": "\u00b125ppm/\u2103"
+          "value": "\u00b1100ppm/\u2103"
         }
       ],
-      "alternates": [],
-      "role": "R2 FB divider bottom leg, pairs with R1=158k for Vout=4.999V. UNI-ROYAL's own 0603WAD3012T5E at this value exists but its LCSC stock (17 units) fails the 5x-qty floor for a qty-5 build with margin, so TC0325D3012T5F is used instead (stock 3310, same 0.5%/0603/75V spec, real datasheet)."
+      "alternates": [
+        {
+          "mpn": "TC0325D3012T5F",
+          "lcsc": "C2988922",
+          "note": "SUPERSEDED (was the lead pick) - UNI-ROYAL 30.1k/0.5%/0603. Librarian repair pass 2026-08-09: this SKU has NO EasyEDA CAD data (confirmed 404 on a live easyeda2kicad pull, not a listing/stock issue - LCSC still lists it with stock 3310). A same-tolerance CAD-having replacement was tried first (YAGEO RT0603DRD0730K1L, 30.1k/0.5%, C862671) and it ALSO 404s on CAD fetch, so the swap moved to tolerance instead of value."
+        }
+      ],
+      "role": "R2 FB divider bottom leg, pairs with R1=158k for Vout=4.999V (value UNCHANGED at 30.1k, so Vout is still exactly 0.8*(1+158/30.1)=4.999V - no re-centering needed). SKU swapped by the librarian repair pass (2026-08-09) from UNI-ROYAL TC0325D3012T5F (C2988922) because that part has no EasyEDA CAD data (404 on pull, verified live, not merely a stock gap). Tried a same-tolerance 0.5% CAD-having alternate first (C862671) - it also 404s, see alternates - so YAGEO RC0603FR-0730K1L (C137745) is used: real CAD confirmed by a successful `lib_pull` (reuses the existing shared R0603 footprint), stock 469630 (>>5x a qty-5 build), real datasheet, but 1% tolerance (not 0.5%). Re-derived decisions.md D12's worst-case Vout error for the new R1(0.5%)/R2(1%) pairing: resistor-only contribution = [R1/(R1+R2)]*(tol_R1+tol_R2) = (158/188.1)*(0.5%+1%) = 1.26%; total with the FB reference's own +-1% = 2.26% worst case - still inside A3's +-3% window (0.74% margin, vs the original 0.5%/0.5% pairing's 1.16% margin). P4 should carry this reduced-but-still-compliant margin forward rather than re-deriving D12 from scratch."
     },
     {
       "ref_prefix_hint": "R",

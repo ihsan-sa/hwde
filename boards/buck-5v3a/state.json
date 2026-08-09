@@ -3,7 +3,7 @@
  "board": "buck-5v3a",
  "workspace": "boards/buck-5v3a",
  "created": "2026-08-08T22:10:35",
- "updated": "2026-08-09T00:00:39",
+ "updated": "2026-08-09T00:48:22",
  "phase": "P3",
  "gates": {},
  "human": {
@@ -129,6 +129,12 @@
    "why": "More gate margin, not less: D3's 15 V zener now has 10 V of headroom. Recorded because the architecture's number was an assumption and downstream review will check against it",
    "phase": "P3",
    "ts": "2026-08-09T00:00:39"
+  },
+  {
+   "what": "RULED: AP63356QZV-7 has 9 copper lands and NO exposed/thermal pad; '13' in V-DFN3020-13 counts TERMINALS (VIN=1-3 one land, GND=10-12 one land, SW=13, signals 4-9)",
+   "why": "Vendor Suggested Pad Layout datasheet p.27 annotates X1(2x)+X2+X(6x)=9 and the dimension chain closes at Y3=2.825 with no room for a 10th; confirmed against Diodes standalone package-outline sheet V-DFN3020-13-SWP-Type-A1.pdf. theta_JC is plain junction-to-case, NOT theta_JC(bottom) - belly-pad evidence absent. Orchestrator hypothesis that the EasyEDA footprint was missing pads is REFUTED",
+   "phase": "P3",
+   "ts": "2026-08-09T00:48:12"
   }
  ],
  "edits": [],
@@ -197,6 +203,12 @@
    "ts": "2026-08-08T23:58:53",
    "role": "datasheet-extractor",
    "model": "sonnet/high",
+   "phase": "P3"
+  },
+  {
+   "ts": "2026-08-09T00:08:34",
+   "role": "librarian",
+   "model": "sonnet/medium",
    "phase": "P3"
   }
  ],
@@ -396,6 +408,32 @@
    "ts": "2026-08-09T00:00:39",
    "event": "decision",
    "what": "Q1 AO4407A Vgs(max) confirmed +/-25 V by hand from the UMW datasheet, not +/-20 V as the architecture assumed"
+  },
+  {
+   "ts": "2026-08-09T00:08:34",
+   "event": "spawn",
+   "role": "librarian",
+   "model": "sonnet/medium"
+  },
+  {
+   "ts": "2026-08-09T00:48:12",
+   "event": "decision",
+   "what": "RULED: AP63356QZV-7 has 9 copper lands and NO exposed/thermal pad; '13' in V-DFN3020-13 counts TERMINALS (VIN=1-3 one land, GND=10-12 one land, SW=13, signals 4-9)"
+  },
+  {
+   "ts": "2026-08-09T00:48:22",
+   "event": "thermal_model_invalidated",
+   "cause": "U1 has no exposed pad; P2 check_thermal assumed EP + 3x3 via array",
+   "action": "re-run thermal against VIN land 1.16mm2 + GND land 1.16mm2 heat path before P5",
+   "severity": "error"
+  },
+  {
+   "ts": "2026-08-09T00:48:22",
+   "event": "footprint_defects_found",
+   "U1": "pads 2-7 width 0.200 vs vendor 0.300; attr through_hole on SMD part; courtyard clips pads",
+   "J1_J2": "drill 1.300 vs vendor 1.500",
+   "R2_C2988922": "no EasyEDA CAD data (404), needs SKU swap",
+   "fp_verify_U1_padcount": "9 vs 13 is a FALSE POSITIVE - waive"
   }
  ]
 }

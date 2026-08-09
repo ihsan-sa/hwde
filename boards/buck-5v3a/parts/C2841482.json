@@ -1,0 +1,114 @@
+{
+  "mpn": "AO4407A",
+  "lcsc": "C2841482",
+  "package": "SOP-8 (UTD Semiconductor / UMW rebrand designation; body D 4.80-5.00mm x E1 3.80-4.00mm, lead span E 5.80-6.20mm, pitch e 1.24-1.30mm - standard 8-lead SOIC/SOP-8 family; no JEDEC MO/MS code cited in this PDF)",
+  "description": "UMW (UTD Semiconductor Co., Limited) AO4407A, P-Channel MOSFET, rebrand/second-source of the original Alpha & Omega AO4407A (a different LCSC part, C16072, already extracted for board sbuck-5v3a from the AOS Rev3 Jan-2008 datasheet - electrical figures differ between the two: this UMW datasheet, Nov.2024, 10 pages, rates ID=-14A vs AOS's -12A). Advanced trench technology, VDS=-30V, 25V gate rating, ultra-low gate charge; suitable for load-switch or PWM applications. Pb-free (RoHS, Sony 259).",
+  "pinout": [
+    {
+      "pin": "1",
+      "name": "S",
+      "type": "passive",
+      "notes": "Source. Bottom row, leftmost position in the SOP-8 top-view pin-configuration drawing (p.1, pin-1 dot at bottom-left). Commoned internally with pins 2 and 3 (all Source, per Pinning Information table: pins 1,2,3 = S)."
+    },
+    {
+      "pin": "2",
+      "name": "S",
+      "type": "passive",
+      "notes": "Source. Bottom row, second from left. Commoned internally with pins 1 and 3."
+    },
+    {
+      "pin": "3",
+      "name": "S",
+      "type": "passive",
+      "notes": "Source. Bottom row, third from left. Commoned internally with pins 1 and 2."
+    },
+    {
+      "pin": "4",
+      "name": "G",
+      "type": "input",
+      "notes": "Gate. Bottom row, rightmost position (single gate pin, high-impedance control input). Gate-Source Voltage abs max +/-25V; Gate Threshold VGS(th) -1.3/-1.8/-2.3V (min/typ/max) at VDS=VGS, ID=-250uA."
+    },
+    {
+      "pin": "5",
+      "name": "D",
+      "type": "passive",
+      "notes": "Drain. Top row, leftmost position (above pin 4/G). Commoned internally with pins 6, 7, 8 (all Drain, per Pinning Information table: pins 5,6,7,8 = D)."
+    },
+    {
+      "pin": "6",
+      "name": "D",
+      "type": "passive",
+      "notes": "Drain. Top row, second from left. Commoned internally with pins 5, 7, 8."
+    },
+    {
+      "pin": "7",
+      "name": "D",
+      "type": "passive",
+      "notes": "Drain. Top row, third from left. Commoned internally with pins 5, 6, 8."
+    },
+    {
+      "pin": "8",
+      "name": "D",
+      "type": "passive",
+      "notes": "Drain. Top row, rightmost position (above pin 1/S). Commoned internally with pins 5, 6, 7."
+    }
+  ],
+  "decoupling": [],
+  "land_pattern": {
+    "package": "SOP-8",
+    "pad_count": 8,
+    "pitch_mm": 1.27,
+    "pin1": "1",
+    "notes": "This datasheet's section 8 ('SOP-8 Package Outline Dimensions', p.8) is a MECHANICAL PACKAGE OUTLINE (lead/body envelope), not a dedicated recommended-land-pattern/stencil drawing - so pad_size_mm, row_spacing_mm and courtyard_excess_mm cannot be grounded from this PDF; pitch_mm=1.27 is the standard SOIC-8/SOP-8 pitch and falls within the datasheet's stated e = 1.24 (min) to 1.30 (max) mm range (not printed as a single BSC value here). Full outline table (mm, min-max): A -/1.75 (overall height), A1 0.05/0.20 (standoff), A2 1.30/1.50 (body height), A3 0.60/0.70 (foot height at heel), b 0.39/0.47 (lead width), c 0.20/0.24 (lead thickness), D 4.80/5.00 (body length, along pin row), E 5.80/6.20 (lead-tip-to-lead-tip span), E1 3.80/4.00 (body width), e 1.24/1.30 (pitch), h 0.30/0.50 (chamfer), L 0.50/0.80 (foot length), L1 1.00/1.10, theta 0-8deg. Use a standard IPC SOIC-8/1.27mm land-pattern generator for actual solder-pad geometry."
+  },
+  "exposed_pad": {
+    "present": false
+  },
+  "layout_notes": [
+    "No dedicated 'Layout Considerations' section is present in this datasheet - only the footnotes below the Thermal Characteristics / Electrical Characteristics tables (p.4, footnotes A-F) constrain how the rated currents/power apply.",
+    "Footnote A: RthetaJA is measured with the device mounted on a 1 in^2 FR-4 board with 2oz copper, in still air, TA=25C. 'The value in any given application depends on the user's specific board design' - i.e. the -14A/-11A continuous ID and 3.1W/2.0W PD ratings are only valid at or above that copper area; less copper derates both.",
+    "Footnote B: Power dissipation PD is based on TJ(MAX)=150C using the <=10s junction-to-ambient thermal resistance (RthetaJA typ 31 / max 40 C/W), not the steady-state figure.",
+    "Footnote D: RthetaJA (steady-state, typ 59 / max 75 C/W) is stated to equal RthetaJL (junction-to-lead, typ 16 / max 24 C/W) plus lead-to-ambient thermal impedance - i.e. copper at the drain leads (pins 5-8) is the primary heat-removal path; maximize copper area/pour at the drain pads for continuous-current operation.",
+    "Footnote C: Pulsed drain current IDM (-56A) and avalanche current IAS (-33A) are repetitive ratings limited by TJ(MAX)=150C, based on low frequency and duty cycle to keep initial TJ=25C - not continuous-duty figures.",
+    "Footnote F: The SOA and transient-thermal-impedance curves (Figs 9-11) are likewise characterized on the same 1 in^2 FR-4, 2oz-Cu, still-air board - same copper-area caveat applies to pulse-current/SOA headroom."
+  ],
+  "abs_max": [
+    { "param": "Drain-Source Voltage VDS (max)", "value": -30, "unit": "V" },
+    { "param": "Gate-Source Voltage VGS (max) - confirmed independently from the Absolute Maximum Ratings table (p.1, section 4), matches the part-sourcer's hand-read value", "value": "+/-25", "unit": "V" },
+    { "param": "Continuous Drain Current ID, TA=25C", "value": -14, "unit": "A" },
+    { "param": "Continuous Drain Current ID, TA=70C", "value": -11, "unit": "A" },
+    { "param": "Pulsed Drain Current IDM (repetitive rating, footnote C)", "value": -56, "unit": "A" },
+    { "param": "Avalanche Current IAS (repetitive rating, footnote C)", "value": -33, "unit": "A" },
+    { "param": "Avalanche Energy EAS, L=0.1mH (footnote C)", "value": 54, "unit": "mJ" },
+    { "param": "Power Dissipation PD, TA=25C (footnote B, based on <=10s RthetaJA)", "value": 3.1, "unit": "W" },
+    { "param": "Power Dissipation PD, TA=70C (footnote B)", "value": 2.0, "unit": "W" },
+    { "param": "Junction and Storage Temperature Range TJ, TSTG", "value": "-55 to 150", "unit": "C" },
+    { "param": "Thermal Resistance Junction-to-Ambient RthetaJA, t<=10s (typ / max, footnote A)", "value": "31 / 40", "unit": "C/W" },
+    { "param": "Thermal Resistance Junction-to-Ambient RthetaJA, steady-state (typ / max, footnotes A,D)", "value": "59 / 75", "unit": "C/W" },
+    { "param": "Thermal Resistance Junction-to-Lead RthetaJL, steady-state (typ / max) - no RthetaJC (junction-to-case) is published, RthetaJL is the closest stated figure", "value": "16 / 24", "unit": "C/W" },
+    { "param": "Drain-Source Breakdown Voltage BVDSS (min), ID=-250uA, VGS=0V", "value": -30, "unit": "V" },
+    { "param": "Gate Threshold Voltage VGS(th), VDS=VGS, ID=-250uA (min / typ / max)", "value": "-1.3 / -1.8 / -2.3", "unit": "V" },
+    { "param": "Static Drain-Source On-Resistance RDS(ON), VGS=-10V, ID=-14A, TJ=25C (typ / max) - the -10V gate-drive corner", "value": "9.5 / 11.5", "unit": "mOhm" },
+    { "param": "Static Drain-Source On-Resistance RDS(ON), VGS=-4.5V, ID=-10A, TJ=25C (typ / max) - the low-line gate-drive corner", "value": "14.7 / 18.5", "unit": "mOhm" },
+    { "param": "Zero Gate Voltage Drain Current IDSS, VDS=-30V, VGS=0V, TJ=25C / TJ=55C (max)", "value": "-1 / -5", "unit": "uA" },
+    { "param": "Gate-Body Leakage Current IGSS, VDS=0V, VGS=+/-25V (max)", "value": "+/-100", "unit": "nA" },
+    { "param": "Forward Transconductance gFS, VDS=-5V, ID=-14A (min)", "value": 42, "unit": "S" },
+    { "param": "Body Diode Forward Voltage VSD, IS=-1A, VGS=0V (typ / max)", "value": "-0.7 / -1", "unit": "V" },
+    { "param": "Maximum Body-Diode Continuous Current IS (max)", "value": -4, "unit": "A" },
+    { "param": "Input Capacitance Ciss, VGS=0V, VDS=-15V, f=1MHz (typ)", "value": 2050, "unit": "pF" },
+    { "param": "Output Capacitance Coss (typ, same conditions as Ciss)", "value": 330, "unit": "pF" },
+    { "param": "Reverse Transfer Capacitance Crss (typ, same conditions as Ciss)", "value": 300, "unit": "pF" },
+    { "param": "Gate Resistance Rg, f=1MHz (typ / max)", "value": "3.2 / 6.4", "unit": "Ohm" },
+    { "param": "Total Gate Charge Qg(-10V) (typ / max) - conditions cell in the datasheet's table (p.3) is merged/shared across the Qg(-10V), Qg(-4.5V), Qgs and Qgd rows and literally reads VGS=-10V,VDS=-15V,ID=-14A; taken at face value for this row", "value": "40 / 60", "unit": "nC" },
+    { "param": "Total Gate Charge Qg(-4.5V) (typ / max) - see OPEN: the shared conditions cell literally states VGS=-10V despite the -4.5V row label; datasheet does not print a separate VGS=-4.5V condition string for this row", "value": "20 / 30", "unit": "nC" },
+    { "param": "Gate Source Charge Qgs (typ)", "value": 6, "unit": "nC" },
+    { "param": "Gate Drain Charge Qgd (typ)", "value": 10, "unit": "nC" },
+    { "param": "Turn-On Delay Time tD(on), VGS=-10V, VDS=-15V (typ)", "value": 11, "unit": "ns" },
+    { "param": "Turn-On Rise Time tr, VGS=-10V, VDS=-15V (typ)", "value": 10, "unit": "ns" },
+    { "param": "Turn-Off Delay Time tD(off), RL=1.05Ohm, RGEN=3Ohm (typ)", "value": 40, "unit": "ns" },
+    { "param": "Turn-Off Fall Time tf, RL=1.05Ohm, RGEN=3Ohm (typ)", "value": 18, "unit": "ns" },
+    { "param": "Body Diode Reverse Recovery Time trr, IF=-14A, dI/dt=500A/us (typ)", "value": 14, "unit": "ns" },
+    { "param": "Body Diode Reverse Recovery Charge Qrr, IF=-14A, dI/dt=500A/us (typ)", "value": 25, "unit": "nC" }
+  ],
+  "source_pdf": "boards/buck-5v3a/parts/C2841482.pdf"
+}

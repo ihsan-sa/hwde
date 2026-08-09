@@ -1,0 +1,68 @@
+{
+ "script": "fp_verify",
+ "status": "pass",
+ "board": "V-DFN3020-13-A_L3.0-W2.0-P0.45-BL-EP_AP6335X.kicad_mod",
+ "counts": {
+  "total": 1,
+  "by_severity": {
+   "warning": 1
+  },
+  "by_source": {
+   "check.fp_verify": 1
+  }
+ },
+ "violations": [
+  {
+   "check": "fp_verify",
+   "severity": "warning",
+   "pos": null,
+   "layer": "F.Cu",
+   "net": null,
+   "refs": [
+    "V-DFN3020-13-A_L3.0-W2.0-P0.45-BL-EP_AP6335X"
+   ],
+   "msg": "pad size(s) [[0.75, 1.5]] mm != datasheet [0.3, 0.6] mm (tol 0.1; min/max of 3 distinct sizes)",
+   "source": "check.fp_verify",
+   "items": [
+    {
+     "msg": "pad size(s) [[0.75, 1.5]] mm != datasheet [0.3, 0.6] mm (tol 0.1; min/max of 3 distinct sizes)",
+     "pos": null
+    }
+   ],
+   "kind": "pad_size",
+   "expected_mm": [
+    0.3,
+    0.6
+   ],
+   "measured_mm": [
+    [
+     0.75,
+     1.5
+    ]
+   ]
+  }
+ ],
+ "footprint": "V-DFN3020-13-A_L3.0-W2.0-P0.45-BL-EP_AP6335X",
+ "footprint_file": "boards\\buck-5v3a\\lib\\aiee.pretty\\V-DFN3020-13-A_L3.0-W2.0-P0.45-BL-EP_AP6335X.kicad_mod",
+ "copper_pads": 9,
+ "total_pads": 9,
+ "measured_pitch_mm": 0.45,
+ "measured_pad_size_mm": [
+  0.3,
+  0.6
+ ],
+ "has_courtyard": true,
+ "has_silk": true,
+ "land_pattern": {
+  "package": "V-DFN3020-13/SWP (Type A1)",
+  "pad_count": 9,
+  "pitch_mm": 0.45,
+  "pad_size_mm": [
+   0.6,
+   0.3
+  ],
+  "pin1": "1",
+  "notes": "CORRECTED per boards/buck-5v3a/reports/u1-land-ruling.md (vendor-evidence ruling, 2026-08-09): the Suggested Pad Layout (doc p.27) has EXACTLY 9 copper lands, annotated on the drawing itself as X1(2x) + X2 + X(6x) = 2 + 1 + 6 = 9, and the dimension chain (Y3=2.825 = Y1 + G + 3*C-pitched 0.30 lands) closes exactly with no room for a 10th. The '13' in the package name V-DFN3020-13 counts PACKAGE TERMINALS, not PCB lands: VIN is terminals 1-3 merged into ONE continuous land, GND is terminals 10-12 merged into another, SW is terminal 13 (its own land), and the six small terminals 4-9 (EN,FB,COMP,PG,BST,NC) get one land each - 3+6+3+1=13 terminals -> 9 lands. There is NO exposed/thermal pad; the term never appears in the datasheet, and the vendor names the GND land and VIN land themselves as the heat exits (doc p.25 Layout rules 7-8). Previous notes' claim of '6 small pads per side + 2 larger end pads per side' (implying up to 13 or more lands) was a text-extraction misreading of the drawing, not a drawing-verified read; corrected reading is 3 signal lands per side (6 total, X(6x)) + 2 large end lands (one per side, X1(2x)) + 1 narrow centre land (X2) = 9. Dimensions, mm: C=0.45 (signal pad row pitch), G=0.175 (large-land-to-signal-land gap), X=0.60 x Y=0.30 (each of the 6 signal lands), X1=0.80 (the 2 large end lands), X2=0.30 x Y2=1.725 (the 1 centre/SW land), X3=2.30 (overall pad-pattern width), Y1=1.450 (large land length), Y3=2.825 (overall pad-pattern height, large-land-outer-edge to signal-land-outer-edge). Package Outline (doc p.27): body D=2.00mm x E=3.00mm BSC, pitch e=0.45mm BSC, e1=0.575mm BSC, e2=0.475mm BSC, lead L=0.35-0.45mm, L1=0.55-0.65mm, L2=1.475-1.575mm, terminal thickness b=0.15-0.25mm, body height A=0.80-0.90mm (A1 standoff 0.00-0.05mm). Weight approx 0.013g. Moisture Sensitivity Level 1 (J-STD-020). Terminal finish: Matte Tin. fp_verify's pad-count check should therefore expect 9, not 13; a 9-pad footprint is CORRECT, not missing an exposed pad."
+ },
+ "svg": "boards\\buck-5v3a\\reports\\fp_verify\\U1_overlay.svg"
+}

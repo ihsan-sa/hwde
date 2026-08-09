@@ -1,0 +1,56 @@
+{
+  "mpn": "SLO1040H6R8MTT",
+  "lcsc": "C207852",
+  "package": "SLO1040H series molded SMD power inductor, 2-terminal, body 10.8 x 10.0 x 4.0mm(max)",
+  "description": "Sunltech SLO1040H6R8MTT - 6.8uH magnetically-shielded, molded (iron-powder core) SMD power inductor. Datasheet Rev.01, 4 pages, source_pdf=parts/C207852.pdf.",
+  "pinout": [
+    {
+      "pin": "1",
+      "name": "Terminal A",
+      "type": "passive",
+      "notes": "Non-polarized inductor terminal. Datasheet gives no pin numbering, pin-1 mark, or start-of-winding indicator anywhere in the 4 pages - '1'/'2' assigned arbitrarily for schematic reference only. Either terminal may connect to the switch node or the filtered-output side."
+    },
+    {
+      "pin": "2",
+      "name": "Terminal B",
+      "type": "passive",
+      "notes": "Non-polarized inductor terminal; see Terminal A notes. Top-side ink marking (e.g. '2R2', '1R0', '4R7' seen in the page-1 product photos) encodes only the inductance value/decimal-point code, not orientation."
+    }
+  ],
+  "decoupling": [],
+  "land_pattern": {
+    "package": "SLO1040H body/terminal outline (page 1 'Dimensions' drawing + table) - NOT a dedicated recommended-PCB-land-pattern drawing; this datasheet does not contain one.",
+    "pad_count": 2,
+    "pad_size_mm": [3.0, 2.0],
+    "notes": "Page 1 'Dimensions' table for the SLO1040H series gives only the body/terminal outline: A(length)=10.8+-0.2mm, B(width)=10.0+-0.2mm, C(height)=4.0mm max, D+-0.1mm=3.0mm, E+-0.1mm=2.0mm. D and E are dimensioned on a stepped side-view drawing at the terminal end and are the closest available figures to a pad size (interpreted as terminal-region length x width; the datasheet does not caption D/E with a text label, so this is an interpretation of the drawing, not a stated 'pad size'). pad_size_mm=[D,E]=[3.0,2.0] in that order. Pad-to-pad pitch/spacing is NOT stated anywhere in the 4-page datasheet and is not reliably derivable from A/D without an explicit reference dimension (the sourcer's/part.json overall package note '10.8x10mm' matches A x B, i.e. the whole-body footprint, not a pitch). Recommendation for the layout step: treat D x E as a minimum terminal size, add standard toe/heel/side copper margin, and place the two pads within the A=10.8mm x B=10.0mm body envelope near each end - this is a layout judgment call, not a vendor-specified footprint.",
+    "pin1": "1"
+  },
+  "layout_notes": [
+    "Magnetically shielded, molded construction using magnetic iron-powder core (page 1, Features #1-2) - vendor markets this as suited to placement near other components with reduced stray-field coupling vs. open/unshielded types; no quantitative shielding/stray-field figure is given.",
+    "Frequency range up to 3.0MHz (page 1, Feature #5) - informational for switching-frequency selection, not a placement/routing constraint.",
+    "Part temperature (ambient + temperature rise) must not exceed 150C under the worst-case operating condition; vendor states circuit design, component placement, PWB trace size/thickness, airflow, and other cooling provisions all affect part temperature and it 'should be verified in the end application' (page 2, Note 5). Relevant to this board's ~90C hotspot at 50C ambient - see OPEN for the operating-temperature-range discrepancy.",
+    "No PCB land-pattern/footprint drawing is provided by the vendor - only the body/terminal outline (page 1). See land_pattern.notes.",
+    "No terminal polarity, pin-1, or start-of-winding marking is specified anywhere in the datasheet; component is a non-polarized 2-terminal passive.",
+    "Reflow soldering: at least 50% of the terminal electrode should be covered by new solder (page 4, Reliability table 'Reflow soldering' row) - useful as a solder-joint QA/AOI check on this 3A terminal.",
+    "Resistance-to-solder-heat / solder-ability tests require at least 75% terminal-electrode solder coverage (page 4) - stricter than the reflow-only figure above; both are vendor QA acceptance criteria, not design limits.",
+    "Wave soldering profile: preheat >150C over 2min, peak 260C solder within 10sec, gradual cooling (page 3 diagram).",
+    "Hand soldering profile: preheat >150C over 2min, peak 280C within 3sec (soldering step 230C within 10sec), gradual cooling (page 3 diagram)."
+  ],
+  "abs_max": [
+    { "param": "Inductance (Lo), SLO1040H6R8MTT row", "value": 6.8, "unit": "uH" },
+    { "param": "Inductance tolerance (M suffix in part number)", "value": "+/-20%", "unit": "" },
+    { "param": "Inductance test condition", "value": "100kHz / 1V", "unit": "" },
+    { "param": "DCR, typ (SLO1040H6R8MTT row)", "value": 22, "unit": "mOhm" },
+    { "param": "DCR, max (SLO1040H6R8MTT row)", "value": 25, "unit": "mOhm" },
+    { "param": "Heat rating current Idc, typ (criterion: DC current causing ~deltaT=40C rise, ref 25C ambient)", "value": 7.0, "unit": "A" },
+    { "param": "Saturation current Isat, typ (criterion: DC current causing ~20% drop in Lo)", "value": 10.0, "unit": "A" },
+    { "param": "Operating Temperature Range - per Notes, page 2 (Note 4)", "value": "-55 to +150", "unit": "C" },
+    { "param": "Operating Temperature Range - per Reliability Mechanical table, page 4", "value": "-55 to +125", "unit": "C" },
+    { "param": "Storage Temperature Range (page 4, Reliability Mechanical table)", "value": "-45 to +125", "unit": "C" },
+    { "param": "Max part temperature, ambient + temperature rise, worst case (page 2, Note 5)", "value": 150, "unit": "C" },
+    { "param": "Wave soldering peak temperature (within 10 sec)", "value": 260, "unit": "C" },
+    { "param": "Hand soldering peak temperature (within 3 sec)", "value": 280, "unit": "C" },
+    { "param": "Reflow soldering peak temperature (dip time 10 sec max)", "value": "260 +/- 10", "unit": "C" }
+  ],
+  "source_pdf": "parts/C207852.pdf"
+}

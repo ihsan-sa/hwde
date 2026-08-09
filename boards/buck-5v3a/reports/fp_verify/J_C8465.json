@@ -1,0 +1,31 @@
+{
+ "script": "fp_verify",
+ "status": "pass",
+ "board": "CONN-TH_2P-P5.00_WJ500V-5.08-2P.kicad_mod",
+ "counts": {
+  "total": 0,
+  "by_severity": {},
+  "by_source": {}
+ },
+ "violations": [],
+ "footprint": "CONN-TH_2P-P5.00_WJ500V-5.08-2P",
+ "footprint_file": "boards\\buck-5v3a\\lib\\aiee.pretty\\CONN-TH_2P-P5.00_WJ500V-5.08-2P.kicad_mod",
+ "copper_pads": 2,
+ "total_pads": 2,
+ "measured_pitch_mm": 5.08,
+ "measured_pad_size_mm": [
+  2.2,
+  2.2
+ ],
+ "has_courtyard": true,
+ "has_silk": true,
+ "land_pattern": {
+  "package": "5.08mm pitch, 2x round THT holes, single row",
+  "pad_count": 2,
+  "pitch_mm": 5.08,
+  "drill_mm": 1.5,
+  "pin1": "1",
+  "notes": "From the vendor's 'PCB LAYOUT' view (the recommended-footprint drawing, distinct from the package-outline views above it): 2x round through-holes on 5.08mm pitch, single row. End margin from body edge to first hole center is 2.54mm (half pitch), consistent with the overall body length dimension N x 5.08mm = 10.16mm for this 2-pole part. The ONLY hole-size figure the drawing states is a 1.50mm dimension attached to a hole via a diagonal leader line in the PCB-layout view, read here as the DRILL diameter (standard convention for that leader style on this vendor's drawings) - the drawing gives no separate copper-pad/annular-ring diameter, so size the pad per house/fab minimum annular ring over this 1.50mm drill. The pins themselves are rectangular in cross-section, approx. 0.90mm x 0.80mm (0.90 called out in the front/pin view, 0.80 in the side view of the solder tail) rather than round, so the round drill must clear the pin's ~1.20mm diagonal - plausible given the 1.50mm drill. Two further dimensions appear on the drawing (3.14mm, vertical, in the PCB-layout view; 4.20mm, vertical, in the front/pin view) whose exact reference datum could not be pinned down with confidence from the rendered page - re-check the vendor drawing directly before finalizing the KiCad footprint (see OPEN)."
+ },
+ "svg": "boards\\buck-5v3a\\reports\\fp_verify\\J_overlay.svg"
+}

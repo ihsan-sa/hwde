@@ -1,0 +1,71 @@
+{
+ "script": "fp_verify",
+ "status": "pass",
+ "board": "IND-SMD_L10.8-W10.0.kicad_mod",
+ "counts": {
+  "total": 1,
+  "by_severity": {
+   "warning": 1
+  },
+  "by_source": {
+   "check.fp_verify": 1
+  }
+ },
+ "violations": [
+  {
+   "check": "fp_verify",
+   "severity": "warning",
+   "pos": null,
+   "layer": "F.Cu",
+   "net": null,
+   "refs": [
+    "IND-SMD_L10.8-W10.0"
+   ],
+   "msg": "pad size(s) [[3.0, 3.3], [3.0, 3.5]] mm != datasheet [2.0, 3.0] mm (tol 0.1; min/max of 2 distinct sizes)",
+   "source": "check.fp_verify",
+   "items": [
+    {
+     "msg": "pad size(s) [[3.0, 3.3], [3.0, 3.5]] mm != datasheet [2.0, 3.0] mm (tol 0.1; min/max of 2 distinct sizes)",
+     "pos": null
+    }
+   ],
+   "kind": "pad_size",
+   "expected_mm": [
+    2.0,
+    3.0
+   ],
+   "measured_mm": [
+    [
+     3.0,
+     3.3
+    ],
+    [
+     3.0,
+     3.5
+    ]
+   ]
+  }
+ ],
+ "footprint": "IND-SMD_L10.8-W10.0",
+ "footprint_file": "boards\\buck-5v3a\\lib\\aiee.pretty\\IND-SMD_L10.8-W10.0.kicad_mod",
+ "copper_pads": 2,
+ "total_pads": 2,
+ "measured_pitch_mm": 9.6001,
+ "measured_pad_size_mm": [
+  3.0,
+  3.3
+ ],
+ "has_courtyard": true,
+ "has_silk": true,
+ "land_pattern": {
+  "package": "SLO1040H body/terminal outline (page 1 'Dimensions' drawing + table) - NOT a dedicated recommended-PCB-land-pattern drawing; this datasheet does not contain one.",
+  "pad_count": 2,
+  "pad_size_mm": [
+   3.0,
+   2.0
+  ],
+  "notes": "Page 1 'Dimensions' table for the SLO1040H series gives only the body/terminal outline: A(length)=10.8+-0.2mm, B(width)=10.0+-0.2mm, C(height)=4.0mm max, D+-0.1mm=3.0mm, E+-0.1mm=2.0mm. D and E are dimensioned on a stepped side-view drawing at the terminal end and are the closest available figures to a pad size (interpreted as terminal-region length x width; the datasheet does not caption D/E with a text label, so this is an interpretation of the drawing, not a stated 'pad size'). pad_size_mm=[D,E]=[3.0,2.0] in that order. Pad-to-pad pitch/spacing is NOT stated anywhere in the 4-page datasheet and is not reliably derivable from A/D without an explicit reference dimension (the sourcer's/part.json overall package note '10.8x10mm' matches A x B, i.e. the whole-body footprint, not a pitch). Recommendation for the layout step: treat D x E as a minimum terminal size, add standard toe/heel/side copper margin, and place the two pads within the A=10.8mm x B=10.0mm body envelope near each end - this is a layout judgment call, not a vendor-specified footprint.",
+  "pin1": "1"
+ },
+ "svg": "boards\\buck-5v3a\\reports\\fp_verify\\L1_overlay.svg"
+}

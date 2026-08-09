@@ -1,0 +1,60 @@
+{
+  "mpn": "WJ500V-5.08-2P",
+  "lcsc": "C8465",
+  "package": "5.08mm pitch THT screw terminal block, 1 row x 2 positions",
+  "description": "Ningbo Kangnex Electric WJ500V-5.08-XXP-1Y-00A family, drawing shows the 2-position (2P) single-pitch variant used on this board. THT PCB screw terminal block: housing PA66 UL94V-0, screw M2.5 steel Zn-plated, cage contact copper alloy Ni-plated, pin (solder tail) copper alloy Sn-plated. Body per the vendor's own drawing dimensions: length along the pin row = N x 5.08mm = 10.16mm for N=2, depth 10.00mm, height above the PCB seating plane 14.07mm. Non-polarized, mechanically symmetric 2-pin part - used on this board as both J1 (VIN input, left edge) and J2 (5V output, right edge) per parts.json.",
+  "pinout": [
+    {
+      "pin": "1",
+      "name": "Terminal 1",
+      "type": "passive",
+      "notes": "Generic screw-clamp wire terminal position. The datasheet assigns no polarity or function to either position (mechanically symmetric, non-polarized 2P block, no pin-1 marking on the drawing). Net function (VIN+/GND for J1, or +5V/GND for J2) is a schematic-level assignment, not a datasheet fact - see requirements.md/parts.json for the board-specific mapping."
+    },
+    {
+      "pin": "2",
+      "name": "Terminal 2",
+      "type": "passive",
+      "notes": "Generic screw-clamp wire terminal position, same caveats as pin 1."
+    }
+  ],
+  "decoupling": [],
+  "land_pattern": {
+    "package": "5.08mm pitch, 2x round THT holes, single row",
+    "pad_count": 2,
+    "pitch_mm": 5.08,
+    "drill_mm": 1.50,
+    "pin1": "1",
+    "notes": "From the vendor's 'PCB LAYOUT' view (the recommended-footprint drawing, distinct from the package-outline views above it): 2x round through-holes on 5.08mm pitch, single row. End margin from body edge to first hole center is 2.54mm (half pitch), consistent with the overall body length dimension N x 5.08mm = 10.16mm for this 2-pole part. The ONLY hole-size figure the drawing states is a 1.50mm dimension attached to a hole via a diagonal leader line in the PCB-layout view, read here as the DRILL diameter (standard convention for that leader style on this vendor's drawings) - the drawing gives no separate copper-pad/annular-ring diameter, so size the pad per house/fab minimum annular ring over this 1.50mm drill. The pins themselves are rectangular in cross-section, approx. 0.90mm x 0.80mm (0.90 called out in the front/pin view, 0.80 in the side view of the solder tail) rather than round, so the round drill must clear the pin's ~1.20mm diagonal - plausible given the 1.50mm drill. Two further dimensions appear on the drawing (3.14mm, vertical, in the PCB-layout view; 4.20mm, vertical, in the front/pin view) whose exact reference datum could not be pinned down with confidence from the rendered page - re-check the vendor drawing directly before finalizing the KiCad footprint (see OPEN)."
+  },
+  "exposed_pad": {
+    "present": false
+  },
+  "layout_notes": [
+    "PCB layout (vendor drawing): 2x round THT holes, 5.08mm pitch, single row; drill diameter 1.50mm (diagonal-leader callout - the only hole-size figure given; no separate pad/annular diameter stated).",
+    "Pin (solder tail) protrudes 4.50mm below the board seating plane - figure repeats consistently across the front, side, and PCB-layout views. Through-hole, wave/hand solder part.",
+    "Max soldering temperature +250C for 5 sec - a wave/hand-solder limit, not a reflow profile; sequence this part off any reflow pass if the rest of the board reflows.",
+    "Screw torque spec 4.08 kgf.cm / 0.4 N.m and wire strip length 6-7mm - wire-installation specs for assembly/test, not layout constraints.",
+    "Body footprint/clearance for placement: length (N x 5.08mm) 10.16mm for this 2-pole part, depth 10.00mm, height above PCB 14.07mm. The board's own height cap was dropped per H1-b (parts.json role note), so this height is recorded for the design doc only, not enforced as a constraint.",
+    "Non-polarized, mechanically symmetric part - no silkscreen polarity marking is defined by the datasheet; pin 1/2 to net-function assignment is a schematic-level convention only."
+  ],
+  "abs_max": [
+    { "param": "rated_voltage_UL", "value": 300, "unit": "V" },
+    { "param": "rated_voltage_IEC", "value": 400, "unit": "V" },
+    { "param": "rated_current_UL", "value": 10, "unit": "A" },
+    { "param": "rated_current_IEC", "value": 24, "unit": "A" },
+    { "param": "withstanding_voltage_1min", "value": 1600, "unit": "VAC" },
+    { "param": "insulation_resistance_at_DC500V", "value": 500, "unit": "Mohm" },
+    { "param": "contact_resistance", "value": 20, "unit": "mohm" },
+    { "param": "operating_temp_min", "value": -40, "unit": "C" },
+    { "param": "operating_temp_max", "value": 105, "unit": "C" },
+    { "param": "max_soldering_temp_5sec", "value": 250, "unit": "C" },
+    { "param": "screw_torque", "value": 0.4, "unit": "N.m" },
+    { "param": "wire_gauge_range_awg", "value": "22-12", "unit": "AWG" },
+    { "param": "wire_gauge_range_metric", "value": 2.5, "unit": "mm2" },
+    { "param": "wire_strip_length", "value": "6-7", "unit": "mm" },
+    { "param": "body_length_2P", "value": 10.16, "unit": "mm" },
+    { "param": "body_depth", "value": 10.00, "unit": "mm" },
+    { "param": "body_height_above_pcb", "value": 14.07, "unit": "mm" }
+  ],
+  "source_pdf": "boards/buck-5v3a/parts/C8465.pdf"
+}
