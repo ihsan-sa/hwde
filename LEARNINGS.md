@@ -2674,3 +2674,21 @@ current field, not the conservative UL rating (10 A) that the requirement floor 
 against, and only the vendor drawing carried the 14.1 mm body height that nearly breaks a 15 mm
 height cap. Rule: when a parametric value is load-bearing for a REQUIREMENT (current rating, body
 height, Isat, DCR), pull the vendor drawing with Read - do not trust the catalog field alone.
+
+## 2026-08-08 [order_submit][stackup] `derive_copper_oz`'s `_(\d+)oz` regex outranks the stackup-name lookup - a `4layer_2oz` rule-class token in the `Chosen` window decides the quoted copper weight
+Follow-up to the 2026-07-30 entry (which fixed the *heading* match). The resolution order inside the
+window is: **(1) `_OZ_ID_RE = _(\d+(?:\.\d+)?)\s*oz\b` anywhere in the text, (2) a stackup id known to
+stackups.yaml, (3) refuse.** Step 1 does not care whether the underscore-oz token belongs to a stackup
+id. Machine-measured on buck-5v3a's first `architecture/stackup.md`: the window contained the
+DFM rule-class name `4layer_2oz` and the return was
+`(2.0, 'stackup.md: ## Chosen stackup (_2oz)')` - the right answer for the wrong reason. Write
+`4layer_1oz` in that window on a 2 oz board (easy: a "rejected the 1 oz class" sentence) and it
+silently quotes 1 oz copper, which is the exact board-killer `_check_oz_mentions` exists to stop.
+It also outranks a correct stackup id sitting in the same window.
+**Rule for the architect: the `Chosen` window (heading to the next `#` line, max 20 lines) contains
+the chosen stackup id and NOTHING else that matches `_<digits>oz` - no rule-class names, no fallback
+stackup id, no "rejected 1 oz" prose.** Push all of that below a sub-heading; the window break on any
+`#`-prefixed line makes that free. Verify with
+`order_submit.derive_copper_oz(Path(workspace))` and require the source note to read
+`stackups.yaml[<name>].stack[0].copper_oz` - if it reads `stackup.md: ... (_Noz)`, the regex won and
+the answer is a coincidence.
