@@ -1,0 +1,83 @@
+{
+  "script": "rules_gen",
+  "status": "pass",
+  "capability_class": "4layer_1oz",
+  "stackup": "JLC04161H-1080B",
+  "copper_oz": 1.0,
+  "rule_count": 14,
+  "rule_names": [
+    "aiee_track_width_floor",
+    "aiee_clearance_floor",
+    "aiee_via_drill_floor",
+    "aiee_via_diameter_floor",
+    "aiee_annular_floor",
+    "aiee_edge_clearance_floor",
+    "aiee_hole_to_hole_floor",
+    "aiee_silk_width_floor",
+    "aiee_pwr_width_VIN_RAW",
+    "aiee_pwr_width_VIN",
+    "aiee_pwr_width_VIN",
+    "aiee_pwr_width_SW",
+    "aiee_pwr_width_5V",
+    "aiee_pwr_width_GND"
+  ],
+  "power": [
+    {
+      "net": "/VIN_RAW",
+      "current_a": 2.6,
+      "dt_c": 10.0,
+      "min_width_mm": 1.52,
+      "netclass": "Pwr_1p52mm",
+      "class_width_mm": 1.52
+    },
+    {
+      "net": "/VIN",
+      "current_a": 2.6,
+      "dt_c": 10.0,
+      "min_width_mm": 1.52,
+      "netclass": "Pwr_1p52mm",
+      "class_width_mm": 1.52
+    },
+    {
+      "net": "+VIN",
+      "current_a": 2.6,
+      "dt_c": 10.0,
+      "min_width_mm": 1.52,
+      "netclass": "Pwr_1p52mm",
+      "class_width_mm": 1.52
+    },
+    {
+      "net": "/SW",
+      "current_a": 3.6,
+      "dt_c": 10.0,
+      "min_width_mm": 2.31,
+      "netclass": "Pwr_2p31mm",
+      "class_width_mm": 2.31
+    },
+    {
+      "net": "+5V",
+      "current_a": 3.3,
+      "dt_c": 10.0,
+      "min_width_mm": 2.055,
+      "netclass": "Pwr_2p055mm",
+      "class_width_mm": 2.055
+    },
+    {
+      "net": "GND",
+      "current_a": 3.3,
+      "dt_c": 10.0,
+      "min_width_mm": 2.055,
+      "netclass": "Pwr_2p055mm",
+      "class_width_mm": 2.055
+    }
+  ],
+  "diff_pairs": [],
+  "hv_rules": [],
+  "classes": [
+    "Pwr_1p52mm",
+    "Pwr_2p055mm",
+    "Pwr_2p31mm"
+  ],
+  "out_dru": "boards/sbuck-5v3a/kicad/sbuck-5v3a.kicad_dru",
+  "pro": "boards/sbuck-5v3a/kicad/sbuck-5v3a.kicad_pro"
+}

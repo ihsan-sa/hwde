@@ -678,6 +678,31 @@ def build() -> schlib.Sheet:
         note="output-live indicator, anode=pin1")
 
     # ================================================================ B8
+    # NON-PURCHASED GEOMETRY: TP1-TP7 and H1-H4 are library land patterns,
+    # not BOM lines - P3's part-sourcer deliberately gave them no parts.json
+    # entry.  Their stock KiCad FOOTPRINTS both declare
+    # `(attr exclude_from_pos_files exclude_from_bom)`, so the symbol
+    # instances must agree or KiCad DRC raises "Footprint attributes don't
+    # match symbol" once board_init pairs them (P5 parity = 11, one per part).
+    #
+    # Only ONE of those two footprint bits has a schematic counterpart.  A
+    # KiCad 10 symbol instance carries exactly four flags - exclude_from_sim,
+    # in_bom, on_board, dnp - and there is NO exclude_from_pos_files on the
+    # symbol side, so that bit lives only on the footprint, cannot diverge,
+    # and cannot generate a parity item.  `in_bom no` is the whole fix; it is
+    # the flag KiCad's own message names.  Checked against the footprint
+    # files rather than assumed:
+    #     MountingHole:MountingHole_3.2mm_M3 -> (attr exclude_from_pos_files
+    #                                                 exclude_from_bom)
+    #     TestPoint:TestPoint_Pad_D1.5mm     -> (attr exclude_from_pos_files
+    #                                                 exclude_from_bom)
+    # `dnp` stays no on all 11 - these parts ARE fitted, they are simply not
+    # bought.  That is a different mechanism from the Variant=DNP marking on
+    # J1/J2/R9/C16, which must not be touched.
+    def _exclude_from_bom(*refs):
+        for ref in refs:
+            sh.sch.components.get(ref).in_bom = False
+
     # Test pads are REAL nets.  TP7 is a SECOND ground pad placed ~5 mm from
     # TP3 for a scope spring ground - not a duplicate of TP6 (sheets.md s5.6).
     for i, (ref, net, why) in enumerate((
@@ -701,6 +726,8 @@ def build() -> schlib.Sheet:
         sh.add_component(S_HOLE, ref, "M3_3.2mm",
                          at=(round(171.45 + i * 19.05, 4), Y_TP),
                          footprint=F_HOLE)
+    _exclude_from_bom("TP1", "TP2", "TP3", "TP4", "TP5", "TP6", "TP7",
+                      "H1", "H2", "H3", "H4")
 
     # =========================================================== power rails
     # Power SYMBOLS make these nets GLOBAL and BARE.  A local label would

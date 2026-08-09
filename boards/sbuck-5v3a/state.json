@@ -3,8 +3,8 @@
  "board": "sbuck-5v3a",
  "workspace": "boards/sbuck-5v3a",
  "created": "2026-08-08T22:12:30",
- "updated": "2026-08-09T02:14:45",
- "phase": "P3",
+ "updated": "2026-08-09T02:22:32",
+ "phase": "P6",
  "gates": {
   "erc": {
    "phase": "P4",
@@ -329,6 +329,12 @@
    "why": "Every loop number rests on extrapolating a one-point vendor calibration onto a different circuit, and the vendor's published GM matches no reader-built model - only a bench Bode plot can close it",
    "phase": "P4",
    "ts": "2026-08-09T02:14:05"
+  },
+  {
+   "what": "Mounting holes come from the schematic (H1-H4), not board_init - re-run with --mounting-holes 0",
+   "why": "Passing 4 duplicated the schematic's own H1-H4 and produced the last 2 parity items; sourcing them from the schematic keeps them real parts with nets and BOM semantics, and P6 places them at the corners",
+   "phase": "P5",
+   "ts": "2026-08-09T02:22:32"
   }
  ],
  "edits": [],
@@ -753,6 +759,29 @@
    "event": "human",
    "checkpoint": "2",
    "status": "approved"
+  },
+  {
+   "ts": "2026-08-09T02:22:32",
+   "event": "phase",
+   "phase": "P4",
+   "prev": "P3"
+  },
+  {
+   "ts": "2026-08-09T02:22:32",
+   "event": "phase",
+   "phase": "P5",
+   "prev": "P4"
+  },
+  {
+   "ts": "2026-08-09T02:22:32",
+   "event": "decision",
+   "what": "Mounting holes come from the schematic (H1-H4), not board_init - re-run with --mounting-holes 0"
+  },
+  {
+   "ts": "2026-08-09T02:22:32",
+   "event": "phase",
+   "phase": "P6",
+   "prev": "P5"
   }
  ]
 }
