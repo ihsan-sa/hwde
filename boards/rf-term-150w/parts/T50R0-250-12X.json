@@ -1,0 +1,72 @@
+{
+  "mpn": "T50R0-250-12X",
+  "package": "2-hole flanged RF termination, THT lead. Flange 24.77 x 9.525 mm, 3.556 mm max overall height (p.1 dimension drawing).",
+  "description": "Barry Industries 250W BeO Flanged Termination. 50 ohm +/-5%, DC-4GHz, thick film on BeO, silver-plated copper flange and lead. Datasheet 2 pages, ORIG. FEB 12 2008 / REV. OCT 8 2014, rev A.",
+  "pinout": [
+    {
+      "pin": "1",
+      "name": "RF",
+      "type": "passive",
+      "notes": "The single silver-plated-copper lead (p.1). 0.120 in [3.048 mm] wide x 0.005 in [0.127 mm] thick; exits the middle of one 24.77 mm long side of the flange, centred between the two mounting holes; protrudes >=0.125 in [3.18 mm] beyond the flange edge. Pin NUMBERING is assigned by this extraction - the datasheet does not number terminals."
+    },
+    {
+      "pin": "2",
+      "name": "FLANGE_GND",
+      "type": "ground",
+      "notes": "Silver-plated copper flange: RF return AND the thermal path (all derating is specified vs FLANGE temperature). 2x mounting holes Dia 0.130 in [3.302 mm]. CAVEAT: the datasheet does not state in words that the far end of the resistive element is bonded to the flange; that is inferred from the part being titled a 50 ohm 'Termination' with exactly one lead and a stated 50 ohm impedance / 16 dB return loss in a matched 50 ohm system (p.1). PCB FOOTPRINT NOTE (librarian P3, 2026-08-08): this terminal has NO PCB pad and NO symbol pin in lib/rf-term-150w.kicad_sym's custom R1 symbol (which is deliberately 1-pin, matching the 1-pad footprint) - it is documented here and on the footprint's User.Drawings layer only. It bonds to PCB GND exclusively through the external heatsink, never through this board."
+    }
+  ],
+  "land_pattern": {
+    "package": "Barry flanged termination, off-board body, ONE SMD lap pad on F.Cu for the 3.048 x 0.127 mm RF tab",
+    "pad_count": 1,
+    "pin1": "1",
+    "notes": "CORRECTED 2026-08-08 by librarian P3, superseding this field's original P1-era value (was pad_count 2, 'RF lead land + flange land'). P2 (state.json, 2026-08-08) settled the real mechanical design after this extraction was written: the resistor body mounts OFF-BOARD beside the PCB on the user's heatsink (no notch; PCB rides on 1.0 mm shims so the tab laps flat onto the board), so the flange/cold-end NEVER touches PCB copper - it returns to GND only through the heatsink, outside this board entirely. The PCB therefore carries exactly ONE electrical pad (the RF tab lap joint); the '2 mounting holes' are off-board mechanical features on the external heatsink, not PCB land at all (they were never PCB pads even in the original note - only the 'pad_count 2' summary number was stale). No recommended PCB land pattern is published by the datasheet (p.1 is a package-outline-only drawing, p.2 is reliability data) - the 5.0 x 7.0 mm pad size actually used is a design choice per the librarian task brief (wider than the 3.048 mm tab, ~6-7 mm lap overlap for a 1.732 Arms hand-solder joint), not a datasheet fact, and pitch_mm is not applicable (single pad, nothing to space it against)."
+  },
+  "exposed_pad": {
+    "present": false
+  },
+  "layout_notes": [
+    "CORRECTED 2026-08-08 by librarian P3: no exposed/thermal PCB pad exists for this part (exposed_pad.present above is now false, was true). The flange (cold end / RF return) is entirely off-board, bolted to the external heatsink - PCB GND and the resistor's cold end meet ONLY AT THE HEATSINK, never through this PCB. Superseded the original 'present:true, connect_to:FLANGE_GND' value, which pre-dated the P2 off-board mounting decision recorded in state.json (2026-08-08).",
+    "DERATING CURVE (p.1, figure titled 'T50R0-250-12X Power Derating Curve'). Axes exactly as printed: X = 'Flange Temperature degC', ticks 25 / 50 / 75 / 100 / 125 / 150. Y = '% of Rated Power', ticks 0 / 25 / 50 / 75 / 100. The curve is 2-segment piecewise linear with ONE knee.",
+    "DERATING BREAKPOINTS (p.1): (25 degC, 100%) -- flat -- (100 degC, 100%) -- linear -- (150 degC, 0%). The plot's X axis starts at 25 degC; the 100% segment runs flat from the Y axis to the knee. No breakpoints other than the knee at 100 degC.",
+    "DERATING IN WATTS (p.1, rated power 250W): 250 W allowed for flange temperature <= 100 degC; above 100 degC derate linearly at 5.0 W/degC (250 W / 50 degC span) to 0 W at 150 degC. Example: 150 W allowed at 120 degC flange, 100 W at 130 degC. The W/degC slope is arithmetic from the two published quantities (250W rating, 100->150 degC ramp); the datasheet plots percent, not watts.",
+    "DERATING - DIGITISATION EVIDENCE (p.1): read off the PDF page vector geometry, not by eye. 100% segment drawn as a horizontal line at y=512.07 pt from x=439.17 (Y axis) to x=503.52; descending segment drawn from (503.52, 512.07) to (554.08, 426.58) where y=426.58 is the X axis line. A dotted vertical marker is drawn at x=504.44. X tick label centres computed from the embedded font widths: 25 -> 443.61, 50 -> 464.73, 75 -> 483.85, 100 -> 504.71, 125 -> 527.34, 150 -> 549.96 pt. The knee (503.52) and the dotted marker (504.44) both land on the '100' tick (504.71); the descending segment reaches the axis at the '150' tick. Figure is hand-drawn (tick labels are one spaced text run, axis lines overrun the tick range by ~4 pt each side), so it carries ~1 degC of drawing slop - not more.",
+    "DERATING - CORROBORATION (p.1 footnote): '* Rating based on <=100 degC constant flange temperature'. Independently confirms the 100 degC knee. The 150 degC zero-power point coincides with the stated max operating temperature (-55 to +150 degC).",
+    "THERMAL RESISTANCE: ABSENT. No Rth of any kind (element-to-flange, element-to-case, case-to-ambient) is published on either page, in any units. The derating curve is the ONLY thermal characterisation in this datasheet.",
+    "MAX ELEMENT / RESISTIVE-FILM TEMPERATURE: ABSENT. Only 'Operating Temperature: -55 to +150 degC' (p.1) is given, and it is not qualified as flange vs element. STORAGE TEMPERATURE as a rating: ABSENT - p.2 lists 'High Temperature Storage: 125 degC +/-2 degC for 500 Hours' but that is a reliability TEST CONDITION, not a storage rating.",
+    "SUBSTRATE (p.1 Parameters table, verbatim): 'Resistor Construction: Thick Film on BeO'. Beryllium oxide ceramic. Title block also reads '250W BeO Flanged Termination'. HANDLING / TOXICITY WARNING: ABSENT - there is NO beryllia caution, no machining/grinding/dust warning, no disposal note anywhere in the 2-page document. (Nothing to quote; the warning simply is not printed.)",
+    "OTHER MATERIALS (p.1, verbatim): 'Flange Construction: Silver Plated Copper', 'Lead Construction: Silver Plated Copper'. Features list: 'Flange Mount', 'RoHS Compliant', 'Customer Defined Testing Available', 'High Rated Power', 'Covered Resistor Element', '+/-5% Resistor Tolerance'.",
+    "ELECTRICAL (p.1 Parameters table, verbatim): Operating Frequency DC - 4GHz; Rated Power 250W*; Return Loss (Typical)** 16dB or Better; Impedance 50 ohm +/-5%***; Operating Temperature -55 to +150 degC. Footnote ** reads 'In a matched, continious [sic] 50 ohm system with proper workmanship'. Return loss is a single typical figure only - there is NO VSWR number and NO return-loss-vs-frequency plot or table.",
+    "MAX VOLTAGE / MAX CURRENT: ABSENT. Neither a max working voltage nor a max current is stated; only the 250W power rating and the 50 ohm impedance.",
+    "PARASITICS: ABSENT. No series inductance, no shunt capacitance, no equivalent circuit is published for T50R0-250-12X. (Cross-check note, NOT a value for this part: the sister AlN resistor datasheet RAXXXX-150-8X held in research/ does publish 'Capacitance (Typical): 4.8pF at 1MHz' and 'Max. Rated Voltage: 950VDC' - those belong to a different part on a different substrate and must not be carried over.)",
+    "ORDERING INFORMATION (p.1): T | 50R0 | 250 | 12X. 'Prefix for Flanged Termination' = T; 'Value Code' 50R0 = 50 ohm; 'Rated Power' 250 = 250W; the trailing '12X' is labelled only 'Assigned by Factory'. There is NO tolerance suffix and NO tolerance option table in this datasheet. The only tolerance offered is +/-5% (features list and the Impedance line); footnote *** reads 'Other values and tolerances available. Contact factory.' - i.e. any tighter tolerance is a factory special, not an orderable catalogue suffix.",
+    "MECHANICAL - FLANGE (p.1 top view): overall 0.975 in [24.77 mm] long x 0.375 in [9.525 mm] wide; corners lightly rounded, corner radius NOT dimensioned (ABSENT).",
+    "MECHANICAL - MOUNTING HOLES (p.1 top view): 2x Dia 0.130 in [3.302 mm], labelled 'Dia .130 [3.302] (2X)'. Hole centre-to-centre spacing 0.725 in [18.42 mm]. Each hole centre sits 0.125 in [3.175 mm] from its own flange end and 0.187 in [4.75 mm] from the long edge, i.e. on the flange longitudinal centreline. Consistency check from the drawing: 0.125 + 0.725 + 0.125 = 0.975 exactly, and 2 x 0.187 = 0.374 ~ 0.375.",
+    "MECHANICAL - BODY (p.1 top view): the covered resistor element block is centred between the two holes, 0.375 in [9.525 mm] long along the flange axis, spanning the full 9.525 mm flange width - i.e. a 9.525 x 9.525 mm square in plan at the flange midpoint.",
+    "MECHANICAL - HEIGHTS, all measured from the flange BOTTOM (mounting) face (p.1 side/end view): overall height 0.140 in [3.556 mm] MAX; flange plate thickness 0.062 in [1.575 mm]; BOTTOM FACE OF THE RF LEAD sits 0.105 in [2.667 mm] above the mounting plane - this dimension is explicitly annotated on the drawing as '.105 [2.667] From Bottom Face of Lead' and its extension lines run to the flange bottom face and to the lead. THIS IS THE TAB-HEIGHT NUMBER: the RF tab underside is 2.667 mm above the surface the flange bolts to.",
+    "MECHANICAL - RF LEAD (p.1): 0.120 in [3.048 mm] wide x 0.005 in [0.127 mm] thick ('.005 [.127] Thick'). Exits the middle of one 24.77 mm long side, centred on the part (lead centreline coincides with the flange centre to within 1 drawing point). Protrusion beyond the flange edge is dimensioned '.125 [3.18] Min.' - a MINIMUM only. The drawing depicts a much longer lead (~9 mm at the top view's own scale of 169.7 pt/in, which reproduces 24.77 / 9.525 / 18.42 exactly), and NO maximum lead length is given. Treat 3.18 mm as the only guaranteed protrusion.",
+    "MECHANICAL - DERIVED (arithmetic on the two published heights, not a datasheet number): top face of the RF lead = 2.667 + 0.127 = 2.794 mm above the mounting plane.",
+    "MOUNTING TORQUE / SCREW SIZE / MOUNTING SURFACE FLATNESS: ABSENT. No torque figure, no screw callout, no heatsink flatness or thermal-interface requirement appears on either page.",
+    "DRAWING CONVENTIONS (p.1): 'Dimensions in inches [mm]', 'Tolerance is +/- 0.010 [0.254] unless otherwise stated'.",
+    "RELIABILITY (p.2, test conditions -> results): Short Time Overload, apply 1.1x rated power for 5 seconds -> <=5.0% resistance shift. Rated Load Life, apply 1/2 power under 40 degC +/-2 degC, 90 min on / 30 min off, repeat for 100 hours -> <=5.0% shift. Moisture Resistance MIL-PRF-55342 para.4.8.9, 95% RH 25-65 degC -> <=5.0% shift. Resistance to Soldering Heat (Lead) MIL-STD-202 Method 210 Test Condition 'A' -> <=5.0% shift. Resistance to Soldering Heat (Assembly) MIL-STD-202 Method 210 Test Condition 'J' -> <=5.0% shift. Terminal Strength MIL-STD-202 Method 211 Cond 'A' 3lbs, Cond 'B' 5 bends -> no significant abnormality. Solderability (Lead only) MIL-STD-202 Method 208 Test C -> >95% covered. High Temperature Storage 125 degC +/-2 degC for 500 hours -> <=5.0% shift, no abnormality. Thermal Shock -5 degC to +150 degC, 30 min dwell, 5 cycles -> <=5.0% shift, no abnormality. NOTE: p.2 has NO insulation-resistance row (the sister RAXXXX-150-8X sheet does); insulation resistance is ABSENT for this part.",
+    "LCSC PART NUMBER: not applicable - this part is not stocked at LCSC. Sourcing per the P2 research file is DigiKey 4353-T50R0-250-12X-ND. Nothing in the PDF names a distributor."
+  ],
+  "abs_max": [
+    {"param": "Rated power (flange temp <= 100 degC)", "value": 250, "unit": "W"},
+    {"param": "Derating knee - flange temperature at which full rating applies", "value": 100, "unit": "degC"},
+    {"param": "Derating zero point - flange temperature at which allowable power = 0", "value": 150, "unit": "degC"},
+    {"param": "Derating slope above the knee (derived: 250W / 50degC)", "value": 5.0, "unit": "W/degC"},
+    {"param": "Operating temperature range", "value": "-55 to +150", "unit": "degC"},
+    {"param": "Impedance", "value": "50 +/-5%", "unit": "ohm"},
+    {"param": "Operating frequency", "value": "DC - 4", "unit": "GHz"},
+    {"param": "Return loss (typical, matched 50 ohm system)", "value": "16 or better", "unit": "dB"},
+    {"param": "Short time overload (p.2 test, 5 s)", "value": "1.1x rated power", "unit": "-"},
+    {"param": "Thermal resistance element-to-flange", "value": "ABSENT - not published", "unit": "-"},
+    {"param": "Max element temperature", "value": "ABSENT - not published", "unit": "-"},
+    {"param": "Max working voltage", "value": "ABSENT - not published", "unit": "-"},
+    {"param": "Max current", "value": "ABSENT - not published", "unit": "-"},
+    {"param": "Series inductance / shunt capacitance / equivalent circuit", "value": "ABSENT - not published", "unit": "-"},
+    {"param": "Mounting torque and screw size", "value": "ABSENT - not published", "unit": "-"}
+  ],
+  "source_pdf": "boards/rf-term-150w/research/T50R0-250-12X_Vishay-Barry_datasheet.pdf"
+}

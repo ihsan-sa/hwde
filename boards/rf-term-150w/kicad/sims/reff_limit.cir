@@ -1,0 +1,191 @@
+* rf-term-150w - BENCH 4: the limit a shunt trimmer CANNOT fix (Reff = R + X^2/R)
+*
+* SOURCE TOPOLOGY / MODEL PROVENANCE / METHOD: identical to s11_band.cir -
+* see that file's header. P2 feasibility (no kicad/*.net exists yet).
+*
+* DESIGN INTENT / what this bench proves. A shunt trimmer is a pure SUSCEPTANCE.
+* It can null the imaginary part of Yin and nothing else, so after tuning
+*     Yin = R/(R^2+X^2) + j0   ->   Zin = (R^2+X^2)/R = R + X^2/R = Reff, REAL
+* and the reflection that remains, (Reff-z0)/(Reff+z0), is untouchable by any
+* setting of C. Series reactance therefore does not merely go uncorrected - it
+* is TRANSFORMED into a resistance error, and past some X no trimmer can hold
+* 26 dB. decisions.md records that threshold as "X > 12.1 ohm (77 nH)" at the
+* +5% resistance corner; this bench confirms or corrects it, at R = 50.0 and
+* R = 52.5 ohm.
+*
+* DELIBERATE DIFFERENCE FROM BENCHES 1-3: the trimmer here is IDEAL - the
+* setting is the exact susceptance null with NO clamp to the 1-35 pF range
+* (block A needs 33.7-38.4 pF, and everything above X = 15.65 ohm is already
+* past a real 35 pF top stop - see tuning_authority.cir xnull_hi_ohm). That is
+* the point: removing the authority limit leaves Reff as the ONLY mechanism, so
+* the numbers below are a property of the topology, not of any candidate part. Real-part authority is what
+* is missing; a series trimmer or a matching network would be needed to correct
+* it, and the design instead buys it with select-on-test (+/-2% -> R <= 51.0).
+*
+* The two zA/zB probes are the same networks driven by a 1 A AC current source
+* instead, so v(z*) IS Zin in ohms: they show Im{Zin} ~ 0 (the tuner really is
+* nulled) while Re{Zin} = 55.276 ohm (the 26 dB reflection is entirely real).
+
+.param z0=50
+.param fc=25e6
+.param w0={2*3.141592653589793*fc}
+.param cpad=1.3e-12
+.param ra=50.0
+.param rb=52.5
+
+.func copt(rr,ll) {ll/(rr*rr+(w0*ll)*(w0*ll))}
+
+* closed-form 26 dB threshold: |G| = 10^(-26/20), Reff_cap = z0(1+|G|)/(1-|G|),
+* and X_cap = sqrt(R*(Reff_cap - R)) from Reff = R + X^2/R
+.param g26=0.05011872336272722
+.param reff26={z0*(1+g26)/(1-g26)}
+.param xcapa={sqrt(ra*(reff26-ra))}
+.param xcapb={sqrt(rb*(reff26-rb))}
+.param lcapa={xcapa/w0}
+.param lcapb={xcapb/w0}
+
+.subckt oneport p lval=6.9n rval=50 cval=1.5p cpv=1.3p
+Ll p m {lval}
+Rt m 0 {rval}
+Ct p 0 {cval}
+Cp p 0 {cpv}
+.ends
+
+Vsrc src 0 AC 2
+Vref ref 0 AC 1
+
+* ============ block A: R = 50.0 ohm, X swept through the cap =============
+.param la1={15.0/w0}
+.param la2={15.5/w0}
+.param la3={16.0/w0}
+.param la5={16.35/w0}
+.param la6={16.5/w0}
+.param la7={17.0/w0}
+.param la8={17.5/w0}
+Rsa1 src da1 {z0}
+Xa1 da1 oneport lval={la1} rval={ra} cval={copt(ra,la1)-cpad} cpv={cpad}
+Ea1 ga1 0 da1 ref 1
+Rsa2 src da2 {z0}
+Xa2 da2 oneport lval={la2} rval={ra} cval={copt(ra,la2)-cpad} cpv={cpad}
+Ea2 ga2 0 da2 ref 1
+Rsa3 src da3 {z0}
+Xa3 da3 oneport lval={la3} rval={ra} cval={copt(ra,la3)-cpad} cpv={cpad}
+Ea3 ga3 0 da3 ref 1
+Rsa4 src da4 {z0}
+Xa4 da4 oneport lval={lcapa} rval={ra} cval={copt(ra,lcapa)-cpad} cpv={cpad}
+Ea4 ga4 0 da4 ref 1
+Rsa5 src da5 {z0}
+Xa5 da5 oneport lval={la5} rval={ra} cval={copt(ra,la5)-cpad} cpv={cpad}
+Ea5 ga5 0 da5 ref 1
+Rsa6 src da6 {z0}
+Xa6 da6 oneport lval={la6} rval={ra} cval={copt(ra,la6)-cpad} cpv={cpad}
+Ea6 ga6 0 da6 ref 1
+Rsa7 src da7 {z0}
+Xa7 da7 oneport lval={la7} rval={ra} cval={copt(ra,la7)-cpad} cpv={cpad}
+Ea7 ga7 0 da7 ref 1
+Rsa8 src da8 {z0}
+Xa8 da8 oneport lval={la8} rval={ra} cval={copt(ra,la8)-cpad} cpv={cpad}
+Ea8 ga8 0 da8 ref 1
+
+* ============ block B: R = 52.5 ohm (catalogue +5%) ======================
+.param lb1={11.0/w0}
+.param lb2={11.5/w0}
+.param lb3={12.0/w0}
+.param lb5={12.1/w0}
+.param lb6={12.2/w0}
+.param lb7={12.5/w0}
+.param lb8={13.0/w0}
+Rsb1 src db1 {z0}
+Xb1 db1 oneport lval={lb1} rval={rb} cval={copt(rb,lb1)-cpad} cpv={cpad}
+Eb1 gb1 0 db1 ref 1
+Rsb2 src db2 {z0}
+Xb2 db2 oneport lval={lb2} rval={rb} cval={copt(rb,lb2)-cpad} cpv={cpad}
+Eb2 gb2 0 db2 ref 1
+Rsb3 src db3 {z0}
+Xb3 db3 oneport lval={lb3} rval={rb} cval={copt(rb,lb3)-cpad} cpv={cpad}
+Eb3 gb3 0 db3 ref 1
+Rsb4 src db4 {z0}
+Xb4 db4 oneport lval={lcapb} rval={rb} cval={copt(rb,lcapb)-cpad} cpv={cpad}
+Eb4 gb4 0 db4 ref 1
+Rsb5 src db5 {z0}
+Xb5 db5 oneport lval={lb5} rval={rb} cval={copt(rb,lb5)-cpad} cpv={cpad}
+Eb5 gb5 0 db5 ref 1
+Rsb6 src db6 {z0}
+Xb6 db6 oneport lval={lb6} rval={rb} cval={copt(rb,lb6)-cpad} cpv={cpad}
+Eb6 gb6 0 db6 ref 1
+Rsb7 src db7 {z0}
+Xb7 db7 oneport lval={lb7} rval={rb} cval={copt(rb,lb7)-cpad} cpv={cpad}
+Eb7 gb7 0 db7 ref 1
+Rsb8 src db8 {z0}
+Xb8 db8 oneport lval={lb8} rval={rb} cval={copt(rb,lb8)-cpad} cpv={cpad}
+Eb8 gb8 0 db8 ref 1
+
+* the X = 0 reference at R = 52.5: no reactance at all, so no shunt C either
+* (an ideal null would need C = -1.3 pF against the pad parasitic). This is
+* the BEST any tuner can ever do at the +5% corner.
+Rsb0 src db0 {z0}
+Xb0 db0 oneport lval=1f rval={rb} cval=1f cpv=1f
+Eb0 gb0 0 db0 ref 1
+
+* ============ Zin probes at the two thresholds (1 A AC -> v = Zin) =======
+Iza 0 za AC 1
+Xza za oneport lval={lcapa} rval={ra} cval={copt(ra,lcapa)-cpad} cpv={cpad}
+Izb 0 zb AC 1
+Xzb zb oneport lval={lcapb} rval={rb} cval={copt(rb,lcapb)-cpad} cpv={cpad}
+
+.ac lin 201 20e6 30e6
+
+* --- block A: R = 50.0 --------------------------------------------------
+.meas ac s_a_x150  find vdb(ga1) at=25e6
+.meas ac rl_a_x150  param='-s_a_x150'
+.meas ac s_a_x155  find vdb(ga2) at=25e6
+.meas ac rl_a_x155  param='-s_a_x155'
+.meas ac s_a_x160  find vdb(ga3) at=25e6
+.meas ac rl_a_x160  param='-s_a_x160'
+.meas ac s_a_xcap  find vdb(ga4) at=25e6
+.meas ac rl_a_xcap  param='-s_a_xcap'
+.meas ac s_a_x1635 find vdb(ga5) at=25e6
+.meas ac rl_a_x1635 param='-s_a_x1635'
+.meas ac s_a_x165  find vdb(ga6) at=25e6
+.meas ac rl_a_x165  param='-s_a_x165'
+.meas ac s_a_x170  find vdb(ga7) at=25e6
+.meas ac rl_a_x170  param='-s_a_x170'
+.meas ac s_a_x175  find vdb(ga8) at=25e6
+.meas ac rl_a_x175  param='-s_a_x175'
+
+* --- block B: R = 52.5 --------------------------------------------------
+.meas ac s_b_x0   find vdb(gb0) at=25e6
+.meas ac rl_b_x0   param='-s_b_x0'
+.meas ac s_b_x110 find vdb(gb1) at=25e6
+.meas ac rl_b_x110 param='-s_b_x110'
+.meas ac s_b_x115 find vdb(gb2) at=25e6
+.meas ac rl_b_x115 param='-s_b_x115'
+.meas ac s_b_x120 find vdb(gb3) at=25e6
+.meas ac rl_b_x120 param='-s_b_x120'
+.meas ac s_b_xcap find vdb(gb4) at=25e6
+.meas ac rl_b_xcap param='-s_b_xcap'
+.meas ac s_b_x121 find vdb(gb5) at=25e6
+.meas ac rl_b_x121 param='-s_b_x121'
+.meas ac s_b_x122 find vdb(gb6) at=25e6
+.meas ac rl_b_x122 param='-s_b_x122'
+.meas ac s_b_x125 find vdb(gb7) at=25e6
+.meas ac rl_b_x125 param='-s_b_x125'
+.meas ac s_b_x130 find vdb(gb8) at=25e6
+.meas ac rl_b_x130 param='-s_b_x130'
+
+* --- Zin at the thresholds: real 55.276 ohm, imaginary ~ 0 --------------
+.meas ac reff_a find vr(za) at=25e6
+.meas ac xin_a  find vi(za) at=25e6
+.meas ac reff_b find vr(zb) at=25e6
+.meas ac xin_b  find vi(zb) at=25e6
+
+* --- closed-form thresholds, and the error against decisions.md ---------
+.meas ac reff_cap_ohm param='reff26'
+.meas ac xcap_r50_ohm  param='xcapa'
+.meas ac lcap_r50_nh   param='lcapa*1e9'
+.meas ac xcap_r525_ohm param='xcapb'
+.meas ac lcap_r525_nh  param='lcapb*1e9'
+.meas ac xcap_r525_err param='xcapb-12.1'
+.meas ac lcap_r525_err param='lcapb*1e9-77'
+
+.end

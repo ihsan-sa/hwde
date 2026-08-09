@@ -1,0 +1,57 @@
+{
+ "_comment_copy": "P2 ARCHITECTURE RECORD. boards/rf-term-150w/kicad/constraints.json is CANONICAL - every P5-P8 consumer reads that one. This file is the P2 snapshot and nothing keeps the two in step (LEARNINGS 2026-08-07). If they ever diverge, the kicad/ copy wins; amend this one with a dated note rather than silently editing it.",
+ "_comment": "P2 MERGED constraints for rf-term-150w (single-port 50 ohm / 150 W CW RF termination head, DC-25 MHz, passive). CANONICAL NET NAMES per sheets.md s1: exactly TWO nets exist. '/RF' comes from a ROOT-SHEET LOCAL LABEL spelled RF (a root local label is named /LABEL); 'GND' is the bare global power symbol. If P4 spells either differently, every entry in this file silently stops matching and every check below passes on an empty set - there is no error. OUTLINE IS 24.0 x 16.0 mm, 2 layer JLC2313_1.6, and it BINDS PERMANENTLY at P5 board_init (requirements crit. 10 caps it at 30 x 30 HARD). THIS FILE DELIBERATELY CARRIES NO BOARD-LOCAL RECTS - no placement.keepouts and no planes[].region - because board_init does NOT place the outline at (0,0) and an untranslated rect is the classic silent failure (rf-de-20m had to hand-translate six of them). Coordinates that P6 needs live as prose in architecture/blocks.md s3.3. THREE KEYS ARE ABSENT ON PURPOSE: (1) 'thermal' - R1 dissipates 150 W but NONE of it into the PCB (A4: the flange bolts straight to the user's heatsink, off-board), so declaring it would make check_thermal demand via arrays and copper area for heat that never enters FR4; (2) any '+xVx' power entry - this board has no DC rail at all (power_tree.md s1), so decoupling.json is legitimately empty; (3) 'impedance_ohm' on the high_speed entry - rules_gen only solves impedance for DIFFERENTIAL pairs, so a lone single-ended target would look declared and do nothing, AND 50 ohm is the wrong target anyway: at 0.0017 lambda the launch is lumped, so it is deliberately built as a WIDE low-Z line (4.4 mm, Z0 34 ohm, 0.211 nH/mm) because that is what minimises series inductance (stackup.md).",
+ "_comment_clearance": "Board-wide copper clearance 0.80 mm (P1 decision). Machine-checked against check_creepage.py ROW_TABLE: at 122.5 V the band is 101-150 V, where A6 (exposed lands, uncoated) = 0.80 mm, B4 (masked track/via/zone) = 0.40 mm, B2 (unmasked track) = 0.60 mm. 0.80 covers the strictest item type, so no per-item adjudication is needed anywhere on this board. THE ONE PLACE IT IS TIGHT is J1's own vendor land pattern: centre-pad roundrect corner arc (0.95,0.95) r 0.2 to ground pad (2.55,2.55) r 1.1 leaves 0.963 mm - it PASSES with 0.163 mm to spare. Second tightest is the RF trace neck between J1's ground pads: 1.1 mm wide leaves 0.90 mm. Do not widen that neck past 1.3 mm.",
+ "_comment_voltage": "voltage is 122.5 (PEAK, unsigned). Peak, not the 86.6 Vrms, because dielectric breakdown and IPC-2221 spacing respond to peak field. UNSIGNED because a signed value doubles the derived dv and invents failures (LEARNINGS 2026-08-07 [check_creepage][constraints]). GND is not listed and is therefore treated as 0 V, which is what makes the derived /RF-to-GND pair 122.5 V and lands it in the 101-150 V band. No voltage_pairs entry is needed: there is no bridge/AC tap that node voltages cannot express.",
+
+ "high_speed": [
+  {
+   "net": "/RF",
+   "reference": "GND",
+   "k": 3,
+   "return_via_radius_mm": 2.0,
+   "_note": "NOT a digital net - 25 MHz CW sine, no edge, so t_rise_ns is deliberately omitted and the return-via radius is declared directly. This entry earns its place for two reasons: it guarantees planes_gen a GND pour on the reference layer, and it makes check_return_path audit the ONE structure that decides this board. The launch is a microstrip over the B.Cu GND pour; where it reaches the board edge the return has to transfer B.Cu -> stitching vias -> F.Cu lands -> two soldered copper straps -> the R1 flange. 2.0 mm is the radius inside which those stitching vias must sit. DO NOT let the return go via the heatsink instead: on an anodised sink the flange-to-heatsink joint is a 418 pF capacitor (2.359 cm2, 25 um grease, er 5) = 15.2 ohm at 25 MHz, plus a ~60 mm2 detour loop worth 15-25 nH. That is a dead board, and it depends on a finish the user picks. Full derivation: blocks.md s2.3."
+  }
+ ],
+
+ "power": [
+  {
+   "net": "/RF",
+   "current_a": 1.732,
+   "dt_c": 10,
+   "via_amps": 0.5,
+   "pdn": false,
+   "_note": "1.732 Arms = sqrt(150/50), the exact port current at 150 W into 50 ohm. Below the 3 A high-current threshold, so the high-current compliance flag does NOT apply (requirements s8). IPC-2152 asks ~0.75 mm at 1 oz / 10 C rise; the narrowest RF conductor on the board is the 1.1 mm neck between J1's ground pads, everything else is 4.4 mm. 'pdn': false because nothing decouples an RF launch by design - there is no IC on this board and check_pdn would otherwise demand an inventory for a net that cannot have one. NOTE the IPC-2152 width is a DC-ampacity floor and is not the binding number here: at 25 MHz 1 oz copper is 2.7 skin depths, the whole launch is ~3.3 mohm and dissipates 10 mW. What actually sizes this net is INDUCTANCE (wider = lower L') and the 0.80 mm HV clearance."
+  }
+ ],
+
+ "diff_pairs": [],
+
+ "voltages": [
+  {"net": "/RF", "voltage": 122.5}
+ ],
+
+ "coating": "soldermask",
+
+ "placement": {
+  "edges": [
+   {"ref": "J1", "edge": "top", "pos": 0.375, "rot": 0},
+   {"ref": "R1", "edge": "bottom", "pos": 0.375, "rot": 180}
+  ],
+  "groups": [
+   {"name": "port", "anchor": "J1", "members": ["C1"]}
+  ],
+  "separation": [
+   {"a": ["C1"], "b": ["R1"], "min_mm": 10}
+  ],
+  "_note_edges": "J1 rot 0 is REQUIRED, not cosmetic: this footprint draws its barrel and courtyard out to -12 mm in Y, so rot 0 on the top edge is what puts the 8.6 mm barrel off-board where a cable can mate. pos 0.375 = x 9.0 mm on the 24 mm width; R1 shares it so the tab, the trace and the SMA centre pin are collinear. R1 rot 180 points its lap pad at the bottom edge - flange, element and both flange screws are entirely OUTSIDE the outline (the resistor bolts to the user's heatsink, not to the PCB). The J1-pin-to-R1-pad distance is 4.7 mm and its FLOOR is 4.42 mm, set by the 0.80 mm clearance from the RF lap pad to J1's own ground pads - shrinking the board cannot shorten the launch, and rotating J1 45 deg makes it worse (5.5 mm).",
+  "_note_separation": "C1 >= 10 mm from R1 for two independent reasons: (a) I2/A6 require the tuning tool to reach the trimmer with the board bolted down and the cable mated, so it must clear the flange body; (b) C1 is rated -40 to +70 C and R1's flange runs at 120 C, 0.5 mm from the board edge - see blocks.md s8 OPEN-1, which is an open escalation, not a settled item.",
+  "_note_holes": "H1-H3 are M3 board_only NPTH and are NOT listed above - P6 places them. The rule P6 must honour is not in this schema: each M3 screw head is a GROUNDED metal object 5.5 mm across sitting on the top surface, so it carries a 5.5 + 2*0.80 = 7.1 mm diameter keepout against RF copper. That keepout, not any component, is what sets the 24 mm board width (blocks.md s3.3). Indicative centres: (2.5, 3.5), (2.5, 10.5), (21.0, 11.5) board-local."
+ },
+
+ "planes": [
+  {"layer": "B.Cu", "net": "GND"},
+  {"layer": "F.Cu", "net": "GND"}
+ ],
+ "_comment_planes": "OVERRIDES the 2-layer default (B.Cu only). B.Cu is the microstrip return directly under the launch - it is what makes L' 0.21-0.49 nH/mm instead of ~0.8 nH/mm for a wire, and it is the reason the residual inductance budget closes at 6.9 nH against a 31.9 nH limit. F.Cu is poured too because it provides the R1 flange-bond lands and the C1 return without adding a footprint. Both pours keep 0.80 mm from every RF item through the aiee_hv_* DRU rule that rules_gen emits from 'voltages' - NEVER hand-author that rule. No 'region' key on either entry: full-board pours, and no board-local rect that could go untranslated after board_init."
+}

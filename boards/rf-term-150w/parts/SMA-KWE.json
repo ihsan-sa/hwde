@@ -1,0 +1,59 @@
+{
+  "mpn": "SMA-KWE",
+  "lcsc": "C7498154",
+  "package": "SMA female jack, RIGHT-ANGLE (90 deg) through-hole PCB mount. 6.0 x 6.0 mm body block with 4 corner ground legs (0.9 x 0.9 mm) + 1 centre pin (0.9 mm wide flat tab). Overall 14.6 mm long x 13 mm tall.",
+  "description": "Lian Xin Technology SMA-KWE, 50 ohm SMA jack, DC-6GHz, 1/4-36 UNS coupling thread. Drawing title 'STARF', PART NO SMA-KWE, REV A, SHEET 1 OF 1, SIZE A4, UNIT MM, THIRD ANGLE projection. The PDF is a single scanned/raster page (300 dpi JPEG) with zero extractable text - every value below was read visually off the rendered drawing.",
+  "pinout": [
+    {
+      "pin": "1",
+      "name": "CENTER",
+      "type": "passive",
+      "notes": "Centre contact PCB tail at the centre of the 6.0 x 6.0 mm mounting face. It is a FLAT TAB 0.9 mm wide (dimensioned '0.9' in the front view), not a round pin - no diameter is given. Rounded tip; ends at the same level as the 4 ground legs (side view). Numbering assigned by this extraction; the drawing does not number terminals."
+    },
+    {
+      "pin": "2",
+      "name": "GND_SHELL",
+      "type": "ground",
+      "notes": "Outer conductor / shell. FOUR legs, each 0.9 x 0.9 mm, at the four corners of the 6.0 x 6.0 mm body - all one net. Visible as 2 legs in each of the front and side views (near pair hides far pair) and as 4 corner squares in the bottom view."
+    }
+  ],
+  "land_pattern": {
+    "package": "SMA right-angle THT jack, 4 corner ground legs + centre pin",
+    "pad_count": 5,
+    "pitch_mm": 3.606,
+    "row_spacing_mm": 5.1,
+    "pin1": "1",
+    "notes": "NO recommended PCB pattern, hole diameters, annular ring or keepout is published - the drawing is package-outline only. The 5.1 mm x 5.1 mm ground-leg pattern is DERIVED: body 6.0 mm outer, corner legs 0.9 mm square and flush with the body corners, so leg centre-to-centre = 6.0 - 0.9 = 5.1 mm in both directions (kept in row_spacing_mm). pitch_mm CORRECTED 2026-08-08 by librarian P3 re-verification: fp_verify.py's pad_pitch check is nearest-COPPER-NEIGHBOUR distance, not row spacing - for this 5-pad star pattern the true nearest neighbour is centre-pin-to-corner-leg, sqrt(2.55^2+2.55^2)=3.606 mm (both 2.55 mm legs are the drawing's own published derived figure, restated below), NOT the 5.1 mm leg-to-leg square. The original 5.1 mm value here was mis-scoped to row_spacing semantics and made fp_verify fail with a false pad_pitch error (measured 3.606 vs then-expected 5.1) against the CORRECT, unmodified stock footprint. The 4.2 mm dimension in the bottom view is the clear gap between opposing legs and checks the 5.1 mm figure exactly (4.2 + 0.9 + 0.9 = 6.0). Centre pin at the centre of that square, i.e. 2.55 mm from each leg centre in X and Y - this is also the datasheet's own already-derived number, not a new assumption. Hole sizes must come from the leg cross-section (0.9 mm square, 1.27 mm across the diagonal) plus fab clearance - the datasheet gives none."
+  },
+  "layout_notes": [
+    "CONNECTOR TYPE: right-angle (90 degree) THROUGH-HOLE PCB jack. It is NOT a 4-hole flange jack and NOT an edge-launch/end-launch: the side view shows the threaded coupling axis parallel to the board with a forked leg block underneath, and the bottom view shows 4 corner legs + a centre pin. There are no screw/mounting holes anywhere on this part.",
+    "MECHANICAL - LENGTH (side view): overall 14.6 mm from the front face of the coupling to the rear face of the body. Threaded section 4 mm long. 8.6 mm from the coupling front face to the FRONT face of the body block; therefore the body block is 14.6 - 8.6 = 6.0 mm long along the axis, matching the 6 mm in the bottom view. The barrel overhangs 8.6 mm beyond the body on the mating side.",
+    "MECHANICAL - HEIGHT (front view): 13 mm overall, measured from the top of the body block to the bottom of the ground legs. The seating shoulder (the solid part of the leg block that lands on the PCB) is NOT dimensioned; at the front view's own scale the legs and centre pin protrude roughly 3.3 - 3.6 mm below that shoulder, so the body sits roughly 9.5 mm above the board and the coaxial axis roughly 6 mm above the board. THOSE THREE FIGURES ARE SCALED OFF THE DRAWING, NOT PUBLISHED - treat as approximate, ABSENT as specifications.",
+    "MECHANICAL - MOUNTING FACE (bottom view): body cross-section 6.0 mm x 6.0 mm (the '6' dimension spans the outline; the outline measures square to within 0.4%). Four legs 0.9 x 0.9 mm at the corners ('0.9' dimensions the left leg width). '4.2' is the clear inner span between opposing legs. Centre contact on the body axis.",
+    "MECHANICAL - COUPLING: '1/4-36uns' thread callout with a leader to the knurled coupling nut (front view). Nut / hex flat sizes: ABSENT.",
+    "MECHANICAL - ABSENT: centre-pin DIAMETER (it is a 0.9 mm flat tab, not round); centre-pin and ground-leg LENGTH below the seating plane; dielectric protrusion or recess at the mating face; mating-face detail; plating/material callouts; panel-cutout data; mounting torque; mass. None of these appear on the sheet.",
+    "ELECTRICAL (spec block, transcribed verbatim; Chinese labels omitted): 'Temp.range -65~+165 degC (PE Cable -40~+85 degC)'; 'Vibration MIL-STD-202, Method 213'; 'Impedance 50 ohm'; 'Frequency Range DC~0-6GHz'; 'Working Voltage 335V max (rms)'; 'Withstand Voltage 1000V rms (minimum at sea level)'; 'Contact resistance: Center Contact <= 3 mohm, Outer Contact <= 2 mohm'; 'Insulation resistance >= 5000 Mohm'; 'Insertion loss <=0.15 dB/6GHz'.",
+    "ELECTRICAL - ABSENT: VSWR (no VSWR figure and no return-loss/VSWR-vs-frequency curve anywhere - the only RF quality figure is the 0.15 dB/6GHz insertion loss); POWER RATING of any kind, and therefore no power-vs-frequency derating curve; durability/mating cycles; RF leakage; PIM.",
+    "GENERAL TOLERANCE (title block): <=10 -> +/-0.1; >10 to <=20 -> +/-0.2; >20 to <=50 -> +/-0.5; angles +/-3 deg. UNIT MM. So the 6.0 / 4.2 / 0.9 / 4 dimensions carry +/-0.1 and the 13 / 14.6 carry +/-0.2.",
+    "KICAD FOOTPRINT VERDICT - 'Connector_Coaxial:SMA_Amphenol_132134_Vertical' is REJECTED as a drop-in. Its hole pattern is close (4 ground pads at +/-2.54 = 5.08 mm pitch, drill 1.7; centre drill 1.5) and would physically accept this part - 5.08 vs the derived 5.1 mm is a 0.01 mm per-leg offset, inside the drawing's own +/-0.1 tolerance. But it models a VERTICAL jack: silkscreen, courtyard (8.4 x 8.4 mm centred on the pads) and 3D model all assume the barrel points up. SMA-KWE is right-angle with an 8.6 mm barrel lying over/off the board on one side, so that footprint would give a wrong courtyard, wrong silk, wrong 3D and no board-edge keepout.",
+    "KICAD FOOTPRINT VERDICT - 'Connector_Coaxial:SMA_BAT_Wireless_BWSMA-KWE-Z001' is the correct stock candidate and matches this drawing dimension-for-dimension: pad 1 (centre) 2.3 x 2.3 roundrect drill 1.4 at (0,0); four pad 2 (ground) 2.2 circle drill 1.4 at (+/-2.55, +/-2.55) = exactly the derived 5.1 mm square pattern; F.Fab body rect (-3,-3)-(3,3) = the 6.0 x 6.0 mm body; F.Fab barrel drawn out to -11.5 mm and courtyard to -12 mm, which matches 3.0 (half body) + 8.6 (barrel) = 11.6 mm. Tagged 'SMA THT Female Jack Horizontal'. Verified against the SMA-KWE drawing's own numbers, not assumed from the family name; the 1.4 mm drills clear the 0.9 mm square legs (1.27 mm diagonal) by 0.13 mm.",
+    "SOURCE NOTE: the 'lcsc' field (C7498154) comes from the P2 parts-research file boards/rf-term-150w/research/sma-connector.json, NOT from the PDF - the drawing carries no distributor part number. Manufacturer per the title block is Lian Xin Technology."
+  ],
+  "abs_max": [
+    {"param": "Working voltage (rms)", "value": 335, "unit": "V"},
+    {"param": "Withstand voltage (rms, minimum at sea level)", "value": 1000, "unit": "V"},
+    {"param": "Temperature range (connector)", "value": "-65 to +165", "unit": "degC"},
+    {"param": "Temperature range (PE cable)", "value": "-40 to +85", "unit": "degC"},
+    {"param": "Frequency range", "value": "DC - 6", "unit": "GHz"},
+    {"param": "Impedance", "value": 50, "unit": "ohm"},
+    {"param": "Insertion loss at 6 GHz", "value": "<=0.15", "unit": "dB"},
+    {"param": "Insulation resistance", "value": ">=5000", "unit": "Mohm"},
+    {"param": "Contact resistance, centre contact", "value": "<=3", "unit": "mohm"},
+    {"param": "Contact resistance, outer contact", "value": "<=2", "unit": "mohm"},
+    {"param": "Vibration", "value": "MIL-STD-202 Method 213", "unit": "-"},
+    {"param": "Power rating / power vs frequency", "value": "ABSENT - not published", "unit": "-"},
+    {"param": "VSWR", "value": "ABSENT - not published", "unit": "-"},
+    {"param": "Recommended PCB hole sizes", "value": "ABSENT - not published", "unit": "-"}
+  ],
+  "source_pdf": "boards/rf-term-150w/research/SMA-KWE_LianXin_datasheet.pdf"
+}

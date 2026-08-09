@@ -1,0 +1,54 @@
+{
+  "mpn": "BFC280811339",
+  "lcsc": "C3273212",
+  "package": "BFC2 808 ..... series, Dia 7.5 mm (7.6 +/-0.1 mm actual per dwg) film-dielectric trimmer, VERTICAL version, ROUND HEAD, TOP AND BOTTOM adjustment. Catalog number 11339 = row '3 / 33 pF, Vertical, Round, Top+bottom, PP dielectric' in the ordering table (p.3).",
+  "description": "Vishay BCcomponents BFC280811339 (catalog 'BFC2 808 11339'), 3-33 pF PP-film trimmer capacitor, 250 VDC rated / 500 VDC 1-min test, THT radial/vertical, basic grid 2.54/2.50 mm. Datasheet 6 pp (Revision 04-Aug-15, Document 28527) plus a 1-page legal-disclaimer boilerplate (p.6, not part-specific).",
+  "pinout": [
+    {
+      "pin": "1",
+      "name": "STATOR",
+      "type": "passive",
+      "notes": "The single fixed plate. In the hole-pattern drawing (p.2) this is the pad labelled 'S', which sits at the right-angle CORNER of the 3-pad L pattern (both 5.08 mm dimension lines originate from it). RECOMMENDED for the RF/signal net (engineering judgement, not a datasheet statement) - see 'Layout' notes."
+    },
+    {
+      "pin": "2",
+      "name": "ROTOR",
+      "type": "passive",
+      "notes": "The moving/adjustable plate, reached by the top (and, on this catalog number, also bottom) adjustment slot. TWO physical pads (drawing labels 'R', both at the arm-ends of the L pattern, connected to each other only by a dashed reference line in the drawing, i.e. same net) - this footprint gives both the SAME pad number '2', matching the SMA-KWE footprint's own duplicate-pad-number convention already used on this board (J1, pad '2' x4). RECOMMENDED for GND: the rotor is the part a screwdriver/trimming tool touches during adjustment, so grounding it keeps tool/hand capacitance off the RF signal while tuning (standard RF layout practice, not a datasheet requirement)."
+    }
+  ],
+  "land_pattern": {
+    "package": "3-pad THT right-angle L pattern, 5.08 x 5.08 mm legs, round can Dia 7.6 mm",
+    "pad_count": 3,
+    "pitch_mm": 5.08,
+    "pin1": "1",
+    "drill_mm": 1.3,
+    "notes": "No recommended LAND PATTERN (pad size) is published - only a HOLE PATTERN (p.2 'Hole pattern' diagram): 3 holes, right angle at the Stator ('S') vertex, 5.08 mm to each of the two Rotor ('R') holes (R-to-R diagonal = 7.184 mm, not independently dimensioned - only reached via Pythagoras on the two 5.08 mm legs). pitch_mm here is fp_verify's nearest-COPPER-NEIGHBOUR semantics (S-to-R = 5.08 mm, the smallest pairwise pad-centre distance), which is unambiguous for this pattern since S-R = S-R = 5.08 mm on both legs, both smaller than the 7.184 mm R-R diagonal. drill_mm = 1.3 mm is read directly off the same 'Hole pattern' diagram (labelled once, applies to all 3 holes by drafting convention) and is corroborated by the separate MOUNTING section text (p.3): 'a grid of 2.50 mm or 2.54 mm and a minimum hole diameter of 1.25 mm' - 1.3 mm clears that stated minimum. Pad COPPER size (2.2 mm round, this footprint) is a design choice (drill + ~0.9 mm), not a datasheet fact, and is deliberately left out of this land_pattern so fp_verify does not assert a pad_size_mm the datasheet never gave."
+  },
+  "exposed_pad": {"present": false},
+  "layout_notes": [
+    "BODY (p.2 'DIMENSIONS in millimeters', vertical-version front elevation + plan view, both read visually - the PDF's extracted text interleaves the vertical/horizontal/bottom-key columns out of drawing order, so all figures below were read off the rendered page, not the raw text stream): housing diameter 7.6 +/-0.1 mm (plan-view dimension; FEATURES section separately states the family's nominal 'Housing diameter 7.5 mm'). Overall height '10 (1) max.' mm, board seating plane to top of the round head - footnote (1) is not defined anywhere on the sheet.",
+    "ROUND HEAD (p.2, top of the vertical front-elevation view): Ø2.5 mm knob with a screwdriver/trimming-key slot, dimensioned 0.6 mm and 0.7 mm (read as slot width and depth respectively; the two figures sit directly beside the 'ROUND HEAD' label and the Ø2.5 leader). ADJUSTMENT section (p.3, verbatim): 'For top adjustment a screwdriver or trimming key can be used; for bottom adjustment a key is required as shown below.' This catalog number (11339) is TOP AND BOTTOM per the ordering table; only TOP is used in this design (the board has no bottom-access cutout for this part).",
+    "BOTTOM ADJUSTMENT (p.2, 'DETAIL Z turned 90 deg', not used in this design): a Ø1.6 mm rotor slot reached through a user-supplied PCB hole from the back of the board ('the large hole is for bottom adjustment and the diameter is determined by user's requirements', p.2). Not implemented here - no interior cutout in this board's outline, top access only.",
+    "HOLE PATTERN (p.2, vertical version, 'R = Rotor, S = Stator'): right-angle L, S at the corner, 5.08 mm to each of two R holes on the two legs; the R-R pair is linked only by a dashed reference line (no dimension), read as 'same net, not a mechanical/electrical constraint between them'. Hole diameter ~1.3 mm (see land_pattern.notes).",
+    "MOUNTING (p.3, verbatim): 'The trimmer can be mounted on printed-circuit boards with a grid of 2.50 mm or 2.54 mm and a minimum hole diameter of 1.25 mm.' This part uses the 2.54 mm (0.1in) grid.",
+    "ELECTRICAL (p.1 Quick Reference Data + p.3 Electrical Data row for the 3/33 pF PP catalog number): Rated DC voltage 250 VDC; Test DC voltage 500 VDC for 1 min; Maximum contact resistance 10 mOhm; Minimum insulation resistance 10 000 Mohm; Category temperature range (PP) -40 to +70 degC; Capacitance range (Cmin/Cmax) for this SKU: guaranteed max Cmin 3 pF (row shows '10' in the Cmin column header meaning the guarantee bound differs by row - the 3/33 row's own Cmin/Cmax ordering-table entry is '3 / 33'), min Cmax 33 pF; tan delta <=10x10^-4 at 1 MHz (100 MHz column blank for this row); temp coefficient -250 +/-350 (x10^-6/K); minimum self-resonant frequency at Cmax = 300 MHz (>>25 MHz operating frequency - no resonance risk in this design's band); dielectric PP (polypropylene).",
+    "MECHANICAL RATINGS (p.1): Effective angle of rotation 180 deg (rotation in 180 deg only). Operating torque: 1-15 mNm for Cmax < 33 pF, 1-25 mNm for Cmax >= 33 pF - THIS PART's Cmax = 33 pF falls in the >=33 pF bucket, i.e. 1 to 25 mNm. Maximum axial thrust 2 N. Life of trimmer: maximum 10 cycles (rotation in 180 deg only) - electrical/mechanical performance not guaranteed beyond that.",
+    "PACKAGING/SOURCING: SPQ and colour-coded base per the p.3 Electrical Data table: base colour 'Brown', SPQ '1400' units, catalog number column 'BFC2 ... 808 11339' (i.e. full catalog 'BFC280811339')."
+  ],
+  "abs_max": [
+    {"param": "Rated DC voltage", "value": 250, "unit": "VDC"},
+    {"param": "Test DC voltage (1 min)", "value": 500, "unit": "VDC"},
+    {"param": "Maximum contact resistance", "value": 10, "unit": "mOhm"},
+    {"param": "Minimum insulation resistance", "value": 10000, "unit": "Mohm"},
+    {"param": "Category temperature range (PP)", "value": "-40 to +70", "unit": "degC"},
+    {"param": "Minimum storage temperature", "value": -55, "unit": "degC"},
+    {"param": "Maximum axial thrust", "value": 2, "unit": "N"},
+    {"param": "Operating torque (Cmax >= 33 pF)", "value": "1 to 25", "unit": "mNm"},
+    {"param": "Life of trimmer (180 deg rotation)", "value": 10, "unit": "cycles"},
+    {"param": "Effective angle of rotation", "value": 180, "unit": "deg"},
+    {"param": "Minimum self-resonant frequency at Cmax", "value": 300, "unit": "MHz"},
+    {"param": "Capacitance range (Cmin/Cmax)", "value": "3 / 33", "unit": "pF"}
+  ],
+  "source_pdf": "boards/rf-term-150w/research/BFC2808-series_Vishay-BCcomponents_trimmer_datasheet.pdf"
+}

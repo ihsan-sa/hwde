@@ -1,0 +1,212 @@
+* rf-term-150w - BENCH 3: trimmer authority - how much L_launch can be tuned out
+*
+* SOURCE TOPOLOGY / MODEL PROVENANCE / METHOD: identical to s11_band.cir -
+* see that file's header. P2 feasibility (no kicad/*.net exists yet).
+*
+* DESIGN INTENT / what this bench proves. Three separate questions, three
+* blocks, all at R_term = 50.0 ohm and 25.0 MHz:
+*
+*  (A) THE NULL IS THE BEST SETTING. Benches 1 and 2 tune every build to the
+*      closed-form susceptance null B = X/(R^2+X^2). That claim is proved here
+*      by brute force instead of asserted: five copies of the same one-port with
+*      the TOTAL shunt C scaled to 0.80 / 0.90 / 1.00 / 1.10 / 1.25 of the null
+*      value. dopt_* (RL at the null minus RL off it) must be positive at every
+*      step, in both directions.
+*
+*  (B) PERFECT-NULL AUTHORITY. Which L_launch values the trimmer can null
+*      EXACTLY, i.e. for which L the required total C falls inside
+*      [cmin+cpad, cmax+cpad]. Inverting Ctot = L/(R^2+w^2 L^2) for L gives
+*      L = (1 - sqrt(1 - 4 C^2 w^2 R^2)) / (2 C w^2)   [lower branch]
+*      which is evaluated as lnlo/lnhi and CHECKED by simulation: an instance at
+*      each endpoint L with the trimmer pinned at that stop must show a real
+*      null (rl_null_lo / rl_null_hi), not a clamped mistune.
+*
+*  (C) SPEC AUTHORITY, which is the number the README wants. Sweep L from 1 pH
+*      to 110 nH with the trimmer at its best CLAMPED setting and find where
+*      RL crosses 26 dB. This is wider than (B) at both ends: below lnlo the
+*      trimmer over-corrects but only by a fraction of a pF, and above lnhi the
+*      residual mistune is small next to Reff = R + X^2/R, which is what
+*      actually ends the range (see reff_limit.cir).
+*
+* Also emitted: ctneed_*_pf, the trimmer setting the nominal and pessimistic
+* launches need. These are a HARD SPEC ON THE PART RE-SELECTION (blocks.md s8
+* OPEN-1 is re-picking the trimmer for temperature): a candidate whose LOW stop
+* sits above ctneed_nom_pf cannot null the nominal launch at all.
+
+.param z0=50
+.param fc=25e6
+.param w0={2*3.141592653589793*fc}
+.param cpad=1.3e-12
+.param cmin=1e-12
+.param cmax=35e-12
+.param rt=50.0
+.param lnom=6.9n
+.param lpess=8.4n
+
+.func copt(rr,ll) {ll/(rr*rr+(w0*ll)*(w0*ll))}
+.func ctset(rr,ll) {min(cmax,max(cmin,copt(rr,ll)-cpad))}
+.func lnull(cc,rr) {(1-sqrt(1-4*cc*cc*w0*w0*rr*rr))/(2*cc*w0*w0)}
+
+.subckt oneport p lval=6.9n rval=50 cval=1.5p cpv=1.3p
+Ll p m {lval}
+Rt m 0 {rval}
+Ct p 0 {cval}
+Cp p 0 {cpv}
+.ends
+
+Vsrc src 0 AC 2
+Vref ref 0 AC 1
+
+* ======================= (A) is the null really the optimum ==============
+.param lk=15.0n
+.param ck={copt(rt,lk)}
+Rsk80 src dk80 {z0}
+Xk80 dk80 oneport lval={lk} rval={rt} cval={0.80*ck-cpad} cpv={cpad}
+Ek80 gk80 0 dk80 ref 1
+Rsk90 src dk90 {z0}
+Xk90 dk90 oneport lval={lk} rval={rt} cval={0.90*ck-cpad} cpv={cpad}
+Ek90 gk90 0 dk90 ref 1
+Rsk100 src dk100 {z0}
+Xk100 dk100 oneport lval={lk} rval={rt} cval={1.00*ck-cpad} cpv={cpad}
+Ek100 gk100 0 dk100 ref 1
+Rsk110 src dk110 {z0}
+Xk110 dk110 oneport lval={lk} rval={rt} cval={1.10*ck-cpad} cpv={cpad}
+Ek110 gk110 0 dk110 ref 1
+Rsk125 src dk125 {z0}
+Xk125 dk125 oneport lval={lk} rval={rt} cval={1.25*ck-cpad} cpv={cpad}
+Ek125 gk125 0 dk125 ref 1
+
+* ======================= (B) perfect-null endpoints ======================
+.param ctneed_nom={copt(rt,lnom)-cpad}
+.param ctneed_pess={copt(rt,lpess)-cpad}
+.param ctot_lo={cmin+cpad}
+.param ctot_hi={cmax+cpad}
+.param lnlo={lnull(ctot_lo,rt)}
+.param lnhi={lnull(ctot_hi,rt)}
+Rsnlo src dnlo {z0}
+Xnlo dnlo oneport lval={lnlo} rval={rt} cval={cmin} cpv={cpad}
+Enlo gnlo 0 dnlo ref 1
+Rsnhi src dnhi {z0}
+Xnhi dnhi oneport lval={lnhi} rval={rt} cval={cmax} cpv={cpad}
+Enhi gnhi 0 dnhi ref 1
+
+* ======================= (C) L sweep, best clamped setting ===============
+Rsl0 src dl0 {z0}
+Xl0 dl0 oneport lval=0.001n rval={rt} cval={ctset(rt,0.001n)} cpv={cpad}
+El0 gl0 0 dl0 ref 1
+Rsl3 src dl3 {z0}
+Xl3 dl3 oneport lval=3n rval={rt} cval={ctset(rt,3n)} cpv={cpad}
+El3 gl3 0 dl3 ref 1
+Rsl5 src dl5 {z0}
+Xl5 dl5 oneport lval=5n rval={rt} cval={ctset(rt,5n)} cpv={cpad}
+El5 gl5 0 dl5 ref 1
+Rsl69 src dl69 {z0}
+Xl69 dl69 oneport lval=6.9n rval={rt} cval={ctset(rt,6.9n)} cpv={cpad}
+El69 gl69 0 dl69 ref 1
+Rsl84 src dl84 {z0}
+Xl84 dl84 oneport lval=8.4n rval={rt} cval={ctset(rt,8.4n)} cpv={cpad}
+El84 gl84 0 dl84 ref 1
+Rsl15 src dl15 {z0}
+Xl15 dl15 oneport lval=15n rval={rt} cval={ctset(rt,15n)} cpv={cpad}
+El15 gl15 0 dl15 ref 1
+Rsl30 src dl30 {z0}
+Xl30 dl30 oneport lval=30n rval={rt} cval={ctset(rt,30n)} cpv={cpad}
+El30 gl30 0 dl30 ref 1
+Rsl60 src dl60 {z0}
+Xl60 dl60 oneport lval=60n rval={rt} cval={ctset(rt,60n)} cpv={cpad}
+El60 gl60 0 dl60 ref 1
+Rsl90 src dl90 {z0}
+Xl90 dl90 oneport lval=90n rval={rt} cval={ctset(rt,90n)} cpv={cpad}
+El90 gl90 0 dl90 ref 1
+Rsl99 src dl99 {z0}
+Xl99 dl99 oneport lval=99n rval={rt} cval={ctset(rt,99n)} cpv={cpad}
+El99 gl99 0 dl99 ref 1
+Rsl100 src dl100 {z0}
+Xl100 dl100 oneport lval=100n rval={rt} cval={ctset(rt,100n)} cpv={cpad}
+El100 gl100 0 dl100 ref 1
+Rsl102 src dl102 {z0}
+Xl102 dl102 oneport lval=102n rval={rt} cval={ctset(rt,102n)} cpv={cpad}
+El102 gl102 0 dl102 ref 1
+Rsl103 src dl103 {z0}
+Xl103 dl103 oneport lval=103n rval={rt} cval={ctset(rt,103n)} cpv={cpad}
+El103 gl103 0 dl103 ref 1
+Rsl104 src dl104 {z0}
+Xl104 dl104 oneport lval=104n rval={rt} cval={ctset(rt,104n)} cpv={cpad}
+El104 gl104 0 dl104 ref 1
+Rsl105 src dl105 {z0}
+Xl105 dl105 oneport lval=105n rval={rt} cval={ctset(rt,105n)} cpv={cpad}
+El105 gl105 0 dl105 ref 1
+Rsl110 src dl110 {z0}
+Xl110 dl110 oneport lval=110n rval={rt} cval={ctset(rt,110n)} cpv={cpad}
+El110 gl110 0 dl110 ref 1
+
+.ac lin 201 20e6 30e6
+
+* --- (A) optimality of the susceptance null ------------------------------
+.meas ac s_k80  find vdb(gk80)  at=25e6
+.meas ac rl_k80  param='-s_k80'
+.meas ac s_k90  find vdb(gk90)  at=25e6
+.meas ac rl_k90  param='-s_k90'
+.meas ac s_k100 find vdb(gk100) at=25e6
+.meas ac rl_k100 param='-s_k100'
+.meas ac s_k110 find vdb(gk110) at=25e6
+.meas ac rl_k110 param='-s_k110'
+.meas ac s_k125 find vdb(gk125) at=25e6
+.meas ac rl_k125 param='-s_k125'
+.meas ac dopt_m20 param='rl_k100-rl_k80'
+.meas ac dopt_m10 param='rl_k100-rl_k90'
+.meas ac dopt_p10 param='rl_k100-rl_k110'
+.meas ac dopt_p25 param='rl_k100-rl_k125'
+
+* --- (B) perfect-null authority ------------------------------------------
+.meas ac s_null_lo find vdb(gnlo) at=25e6
+.meas ac rl_null_lo param='-s_null_lo'
+.meas ac s_null_hi find vdb(gnhi) at=25e6
+.meas ac rl_null_hi param='-s_null_hi'
+.meas ac lnull_lo_nh param='lnlo*1e9'
+.meas ac lnull_hi_nh param='lnhi*1e9'
+.meas ac xnull_lo_ohm param='w0*lnlo'
+.meas ac xnull_hi_ohm param='w0*lnhi'
+.meas ac lnull_span_nh param='(lnhi-lnlo)*1e9'
+.meas ac xnull_span_ohm param='w0*(lnhi-lnlo)'
+
+* --- (C) L sweep at the best clamped setting -----------------------------
+.meas ac s_l0   find vdb(gl0)   at=25e6
+.meas ac rl_l0   param='-s_l0'
+.meas ac s_l3   find vdb(gl3)   at=25e6
+.meas ac rl_l3   param='-s_l3'
+.meas ac s_l5   find vdb(gl5)   at=25e6
+.meas ac rl_l5   param='-s_l5'
+.meas ac s_l69  find vdb(gl69)  at=25e6
+.meas ac rl_l69  param='-s_l69'
+.meas ac s_l84  find vdb(gl84)  at=25e6
+.meas ac rl_l84  param='-s_l84'
+.meas ac s_l15  find vdb(gl15)  at=25e6
+.meas ac rl_l15  param='-s_l15'
+.meas ac s_l30  find vdb(gl30)  at=25e6
+.meas ac rl_l30  param='-s_l30'
+.meas ac s_l60  find vdb(gl60)  at=25e6
+.meas ac rl_l60  param='-s_l60'
+.meas ac s_l90  find vdb(gl90)  at=25e6
+.meas ac rl_l90  param='-s_l90'
+.meas ac s_l99  find vdb(gl99)  at=25e6
+.meas ac rl_l99  param='-s_l99'
+.meas ac s_l100 find vdb(gl100) at=25e6
+.meas ac rl_l100 param='-s_l100'
+.meas ac s_l102 find vdb(gl102) at=25e6
+.meas ac rl_l102 param='-s_l102'
+.meas ac s_l103 find vdb(gl103) at=25e6
+.meas ac rl_l103 param='-s_l103'
+.meas ac s_l104 find vdb(gl104) at=25e6
+.meas ac rl_l104 param='-s_l104'
+.meas ac s_l105 find vdb(gl105) at=25e6
+.meas ac rl_l105 param='-s_l105'
+.meas ac s_l110 find vdb(gl110) at=25e6
+.meas ac rl_l110 param='-s_l110'
+
+* --- trimmer settings that the part re-selection must be able to reach ---
+.meas ac ctneed_nom_pf  param='ctneed_nom*1e12'
+.meas ac ctneed_pess_pf param='ctneed_pess*1e12'
+.meas ac ctmin_margin_pf param='(ctneed_nom-cmin)*1e12'
+
+.end

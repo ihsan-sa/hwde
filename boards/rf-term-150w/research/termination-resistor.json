@@ -1,0 +1,77 @@
+{
+  "block": "termination-resistor",
+  "candidates": [
+    {
+      "mpn": "T50R0-250-12X",
+      "lcsc": "",
+      "digikey": "4353-T50R0-250-12X-ND",
+      "package": "3L-FLG (2-hole flange, THT), 24.77x9.53x3.56mm",
+      "basic": false,
+      "stock": 139,
+      "price": 24.40,
+      "datasheet": "https://barryind.com/pdf/Terminations/Power_Flange/T50R0-250-12X.pdf",
+      "rank": 1,
+      "fit": "250W BeO flanged termination, 50 ohm +/-5% (fails <=2% intent), DC-4GHz, in stock at DigiKey; only >=250W non-inductive flange part found in stock anywhere - drives the whole BOM 3-4x over the $40 cap"
+    },
+    {
+      "mpn": "T50R0-500-10X",
+      "lcsc": "",
+      "digikey": "4353-T50R0-500-10X-ND",
+      "package": "3L-FLG (2-hole flange, THT)",
+      "basic": false,
+      "stock": 49,
+      "price": 65.74,
+      "datasheet": "",
+      "rank": 2,
+      "fit": "Same family/construction as primary, 500W (2x margin over the floor), confirmed in stock at DigiKey; backup only, not a value pick ($65.74/ea vs $24.40)"
+    },
+    {
+      "mpn": "R50R0-1200-1X",
+      "lcsc": "",
+      "digikey": "4353-R50R0-1200-1X-ND",
+      "package": "BeO flanged resistor (not RF-tuned termination)",
+      "basic": false,
+      "stock": 12,
+      "price": 233.10,
+      "datasheet": "",
+      "rank": 3,
+      "fit": "Same family, 1200W, in stock at DigiKey but $233/ea - last-resort fallback only if the 250W/500W parts both go out of stock"
+    },
+    {
+      "mpn": "TA50R0-300-2X",
+      "lcsc": "",
+      "digikey": "",
+      "package": "2-hole flange, THT, 24.77x9.53x3.56mm (identical footprint to primary)",
+      "basic": false,
+      "stock": 0,
+      "price": 0,
+      "datasheet": "https://barryind.com/pdf/Terminations/Power_Flange/TA50R0-300-2X.pdf",
+      "rank": 4,
+      "fit": "Re-check B (AlN): AlN version of the exact primary family, same footprint/dims, 300W, DC-1.2GHz, RL>=20dB, +/-5%. DISQUALIFIED: 0 results at DigiKey and LCSC, no price obtainable. RFQ target if BeO toxicity becomes a hard blocker"
+    },
+    {
+      "mpn": "SOTC0227F50R0KZ",
+      "lcsc": "C53455401",
+      "digikey": "",
+      "package": "SOT-227, ~38x25-30x11.8mm, 4x M4 screw terminals + 2x M4.2 mounting holes",
+      "basic": false,
+      "stock": 10,
+      "price": 21.116,
+      "datasheet": "https://datasheet.lcsc.com/datasheet/pdf/f498d11bfaf61676f7eba88b5e3c0767.pdf",
+      "rank": 5,
+      "fit": "Re-check A/D: RESI, 300W, 50R +/-1% (beats primary tolerance AND price - $105.58/5 vs $122.00/5), Rth(j-c)=0.32C/W published, in stock at LCSC. DISQUALIFIED: body exceeds the 30x30mm HARD board outline by itself, and uses 4xM4 screw terminals (not solder tabs) - wrong interface for a low-inductance PCB launch. Also flags its own <=0.1uH inductance spec is measured at 1kHz-1MHz only, not validated at 25MHz"
+    },
+    {
+      "mpn": "FR10975N0050 (G=2% or J=5% suffix)",
+      "lcsc": "",
+      "digikey": "",
+      "package": "2-hole flange, THT, ~24.77x18.4x5.72mm",
+      "basic": false,
+      "stock": 0,
+      "price": 0,
+      "datasheet": "https://datasheets.kyocera-avx.com/AVX-FR-Style.pdf",
+      "rank": 6,
+      "fit": "Re-check A/B: Kyocera AVX FR series, 250W, thin-film Ta-N on AlN, 1000V max, real catalog 2% tolerance suffix (G) documented in the family's own ordering code. DISQUALIFIED: 0 results at DigiKey for the 50R value at either tolerance suffix - not listed by any distributor found, no price obtainable"
+    }
+  ]
+}

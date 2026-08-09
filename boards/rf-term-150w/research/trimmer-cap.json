@@ -1,0 +1,107 @@
+{
+  "block": "trimmer-cap",
+  "candidates": [
+    {
+      "mpn": "8052",
+      "lcsc": "",
+      "digikey": "1956-8052-ND",
+      "package": "THT, Ø7.49/6.99mm (0.295/0.275in) can, .234-64 UNS-2A threaded bushing, top screwdriver-slot adjust",
+      "basic": false,
+      "stock": 2263,
+      "price": 62.70,
+      "datasheet": "https://www.digikey.com/en/products/detail/johanson-manufacturing/8052/9094309",
+      "rank": 1,
+      "fit": "NEW PRIMARY (temperature re-selection pass): Johanson Mfg (Knowles) air-dielectric trimmer, 0.8-10pF (brackets the 2.8-4.3pF null point with authority to ~10pF, the small-range fit the brief wants), 250VDC/500VDC-test, CONFIRMED -65 to +125C (clears the 100C floor and the 125C stretch goal), Q>5000@100MHz, top-adjust, 2263 in stock at DigiKey (deepest stock of any candidate found in either pass). $313.50/5. Not on LCSC. Open item: tuning tool P/N not confirmed for the 80xx sub-family (catalog only lists 8764/8777 for other families) - confirm with Johanson or fall back to 5602 below"
+    },
+    {
+      "mpn": "5602",
+      "lcsc": "",
+      "digikey": "1956-1000-ND",
+      "package": "Panel mount, 0.295/0.275in dia threaded body + hex nut, THT, .234-64 UNS-2A",
+      "basic": false,
+      "stock": 373,
+      "price": 63.37,
+      "datasheet": "https://www.digikey.com/en/products/detail/knowles-johanson-manufacturing/5602/9094387",
+      "rank": 2,
+      "fit": "Strong alternate: same Johanson air-dielectric family, 1-30pF (wider than needed - brief prefers a small range like 8052's), 250VDC/500VDC-test, CONFIRMED -65 to +125C (same family rating as 8052), Q>800@100MHz (6x worse than 8052), 373 in stock at DigiKey, tuning tool CONFIRMED (Johanson 8764, .130in/3.3mm shank). $316.85/5. Pick this over 8052 only if a citation-grade tool P/N is required before committing"
+    },
+    {
+      "mpn": "5301 / 5302",
+      "lcsc": "",
+      "digikey": "1956-5302-ND",
+      "package": "THT/panel mount, .312-64 UNS-2A threaded bushing, top screwdriver-slot adjust",
+      "basic": false,
+      "stock": 0,
+      "price": 60.23,
+      "datasheet": "https://www.digikey.com/en/products/detail/knowles-johanson-manufacturing/5302/9094392",
+      "rank": 3,
+      "fit": "DISQUALIFIED on stock only (not electrical): same Johanson air family, 1-10pF, BEST voltage margin found in this whole search (500VDC/1000V-test, 2x the 250V floor), same -65/+125C rating, Q>2000@100MHz. DigiKey shows 0 on hand, 'not kept in stock', 10-week manufacturer lead time - fails the >=20pcs-today requirement. RFQ target if a 10-week lead is ever acceptable in exchange for 2x voltage margin"
+    },
+    {
+      "mpn": "BFC280811339",
+      "lcsc": "C3273212",
+      "package": "Plugin (THT), Ø7.5mm vertical round head, 2.54mm grid",
+      "basic": false,
+      "stock": 9,
+      "price": 8.8842,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2312140933_Vishay-Intertech-BFC280811339_C3273212.pdf",
+      "rank": 4,
+      "fit": "DISPLACED - now disqualified on TEMPERATURE, not just voltage margin: PP dielectric category temp is -40 to +70C (re-confirmed p.1 of datasheet), while the board's heatsink-adjacent flange runs 74-120C under 150W CW operation. Was rank 1 before the temperature re-selection pass. 3-33pF, 250VDC/500VDC-proof, top-adjust, 10-cycle adjustment life, self-res 300MHz; only 9 in stock"
+    },
+    {
+      "mpn": "BFC280800016",
+      "lcsc": "C3273343",
+      "package": "Plugin (THT), Ø7.5mm vertical round head, 2.54mm grid",
+      "basic": false,
+      "stock": 2,
+      "price": 5.5268,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2411220630_Vishay-Intertech-BFC280800016_C3273343.pdf",
+      "rank": 5,
+      "fit": "DISPLACED - now disqualified on TEMPERATURE, not just voltage margin: this pass re-read the datasheet and confirmed PTFE category temp is -40 to +85C - the family's own BEST dielectric still falls 15C short of the 100C floor. No BFC2808 dielectric variant clears +100C, closing out the 'PTFE might work' open question from the prior pass. 2-18pF, same 250V-floor/no-margin flag as primary; only 2 in stock"
+    },
+    {
+      "mpn": "BFC280832659",
+      "lcsc": "C3273327",
+      "package": "Plugin (THT), Ø7.5mm vertical round head",
+      "basic": false,
+      "stock": 802,
+      "price": 7.5393,
+      "datasheet": "",
+      "rank": 6,
+      "fit": "DISQUALIFIED: best stock/range (5.5-65pF) of the whole family but only 150V rated, below the 250V floor - flagged so it isn't picked by accident. Also PP dielectric, would fail the new temperature floor too even if voltage were acceptable"
+    },
+    {
+      "mpn": "A1J4 / AE5 / AT5 / AF5 / AC5 / AB5 (Knowles glass piston)",
+      "lcsc": "",
+      "package": "Plugin (THT), glass/piston",
+      "basic": false,
+      "stock": 0,
+      "price": 0,
+      "datasheet": "",
+      "rank": 7,
+      "fit": "DISQUALIFIED at LCSC: 0 stock every SKU; electrically excellent (250V, Q 3000-5000@100MHz, true piston construction) but capacitance tops out at 5pF. Superseded by the confirmed-in-stock Johanson air-trimmer answer above; not re-checked at DigiKey this pass since 8052/5602 already dominate"
+    },
+    {
+      "mpn": "TZC3P200A110B00 / TZC3P300A110B00 (Murata TZ-series, representative)",
+      "lcsc": "",
+      "package": "SMD ceramic chip trimmer",
+      "basic": false,
+      "stock": 0,
+      "price": 0,
+      "datasheet": "",
+      "rank": 8,
+      "fit": "DISQUALIFIED: confirmed 100VDC across every Murata TZ-series SKU checked this pass (TZC3, TZB4, TZ03 families) - fails the 250V floor by 2.5x. Not queried live at a distributor since the voltage disqualification is definitive from the manufacturer's own family spec"
+    },
+    {
+      "mpn": "LXRW0YV600-054",
+      "lcsc": "C2988749",
+      "package": "SMD 0.6x0.6mm chip trimmer",
+      "basic": false,
+      "stock": 23748,
+      "price": 0.8988,
+      "datasheet": "",
+      "rank": 9,
+      "fit": "DISQUALIFIED: 50V rated, far below the 250V floor - this is the exact Murata-ceramic-trimmer trap the assignment named explicitly. Also wrong form factor (SMD, not top-adjustable with board bolted down)"
+    }
+  ]
+}

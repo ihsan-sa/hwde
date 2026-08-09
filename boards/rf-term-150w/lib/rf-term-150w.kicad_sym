@@ -1,0 +1,101 @@
+(kicad_symbol_lib
+  (version 20231120)
+  (generator "aiee-librarian")
+  (generator_version "10.0")
+  (symbol "R_Flange"
+    (pin_names (offset 0))
+    (exclude_from_sim no)
+    (in_bom yes)
+    (on_board yes)
+    (in_pos_files yes)
+    (duplicate_pin_numbers_are_jumpers no)
+    (property "Reference" "R"
+      (at 2.032 1.5 90)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Value" "50R0"
+      (at 2.032 -1.5 90)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "aiee:R_LapPad_T50R0-250-12X"
+      (at -1.778 0 90)
+      (hide yes)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Datasheet" "boards/rf-term-150w/research/T50R0-250-12X_Vishay-Barry_datasheet.pdf"
+      (at 0 0 0)
+      (hide yes)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Description" "50 ohm 250W BeO flanged RF termination (Vishay/Barry T50R0-250-12X). Off-board part: resistor body bolts to an external heatsink beside the PCB, only the RF tab laps onto ONE PCB pad. This symbol is deliberately 1-PIN, matching the 1-pad footprint - the flange/cold end (pin 2 on the real part) has NO PCB net; it returns to GND only through the heatsink. See parts/T50R0-250-12X.json and the footprint's own descr for the full citation."
+      (at 0 0 0)
+      (hide yes)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "MPN" "T50R0-250-12X"
+      (at 0 0 0)
+      (hide yes)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Manufacturer" "Vishay Intertechnology (Barry Industries)"
+      (at 0 0 0)
+      (hide yes)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Distributor PN" "DigiKey 4353-T50R0-250-12X-ND (not stocked at LCSC)"
+      (at 0 0 0)
+      (hide yes)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "ki_keywords" "RF termination flange BeO 50ohm off-board"
+      (at 0 0 0)
+      (hide yes)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "ki_fp_filters" "R_LapPad_T50R0*"
+      (at 0 0 0)
+      (hide yes)
+      (effects (font (size 1.27 1.27)))
+    )
+    (symbol "R_Flange_0_1"
+      (rectangle
+        (start -1.016 -2.54)
+        (end 1.016 2.54)
+        (stroke (width 0.254) (type default))
+        (fill (type none))
+      )
+      (polyline
+        (pts (xy 0 -2.54) (xy 0 -3.6))
+        (stroke (width 0.254) (type default))
+        (fill (type none))
+      )
+      (polyline
+        (pts (xy -0.5 -3.6) (xy 0.5 -3.6))
+        (stroke (width 0.254) (type default))
+        (fill (type none))
+      )
+      (polyline
+        (pts (xy -0.35 -3.9) (xy 0.35 -3.9))
+        (stroke (width 0.1524) (type default))
+        (fill (type none))
+      )
+      (polyline
+        (pts (xy -0.2 -4.15) (xy 0.2 -4.15))
+        (stroke (width 0.1524) (type default))
+        (fill (type none))
+      )
+      (text "FLANGE -> HEATSINK GND (off-board, not on PCB)"
+        (at 1.6 -3.6 0)
+        (effects (font (size 0.8 0.8)) (justify left))
+      )
+    )
+    (symbol "R_Flange_1_1"
+      (pin passive line
+        (at 0 3.81 270)
+        (length 1.27)
+        (name "RF" (effects (font (size 1.27 1.27))))
+        (number "1" (effects (font (size 1.27 1.27))))
+      )
+    )
+  )
+)

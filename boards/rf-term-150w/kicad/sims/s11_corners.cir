@@ -1,0 +1,191 @@
+* rf-term-150w - BENCH 2: 4x4 tolerance corner sweep at 25.0 MHz
+*
+* SOURCE TOPOLOGY / MODEL PROVENANCE / METHOD: identical to s11_band.cir -
+* see that file's header. P2 feasibility (no kicad/*.net exists yet); the whole
+* dynamic board is PORT -+- L_launch - R_term - GND, +- (C_trim || C_pad) - GND.
+*
+* DESIGN INTENT / what this bench proves. THE WRONG-VALUE CHECK. Every corner
+* gets its OWN best trimmer setting (the exact susceptance null at 25.0 MHz,
+* clamped to the 1-35 pF range), so what is compared is best-achievable RL, not
+* the effect of mistuning. 16 corners:
+*   R_term  = 49.0 / 50.0 / 51.0 / 52.5 ohm   rows 1..4, labels r49p0..r52p5
+*             49-51 = the select-on-test window (P1 decision), 52.5 = the
+*             catalogue +5% limit of T50R0-250-12X
+*   L_launch = 5.0 / 6.9 / 8.4 / 15.0 nH      cols a..d, labels l5p0..l15p0
+*             6.9 = architect's budget (blocks.md s4.2), 8.4 = that budget with
+*             term E at its 3.0 nH pessimum (s8 OPEN-5), 15.0 = 2.2x the budget
+* Expected structure, asserted numerically by the bounds sidecar: RL is set by
+* the RESISTANCE and is nearly blind to the inductance, because a shunt trimmer
+* nulls susceptance only and leaves Reff = R + X^2/R (see reff_limit.cir).
+* At 25 MHz even 15 nH is X = 2.36 ohm, so X^2/R = 0.11 ohm - three times the
+* budget of inductance costs less than a tenth of the +/-1 ohm select-on-test
+* window. That is why dr_l6p9 (the R=50 vs R=52.5 gap at fixed L) is tens of dB
+* while dl_r52p5 (the 5 -> 15 nH gap at fixed R) is a fraction of a dB.
+
+.param z0=50
+.param fc=25e6
+.param w0={2*3.141592653589793*fc}
+.param cpad=1.3e-12
+.param cmin=1e-12
+.param cmax=35e-12
+
+.func copt(rr,ll) {ll/(rr*rr+(w0*ll)*(w0*ll))}
+.func ctset(rr,ll) {min(cmax,max(cmin,copt(rr,ll)-cpad))}
+
+.subckt oneport p lval=6.9n rval=50 cval=1.5p cpv=1.3p
+Ll p m {lval}
+Rt m 0 {rval}
+Ct p 0 {cval}
+Cp p 0 {cpv}
+.ends
+
+Vsrc src 0 AC 2
+Vref ref 0 AC 1
+
+.param r1=49.0
+.param r2=50.0
+.param r3=51.0
+.param r4=52.5
+.param na=5.0n
+.param nb=6.9n
+.param nc=8.4n
+.param nd=15.0n
+
+* --- row 1: R = 49.0 ohm (select-on-test lower limit) --------------------
+.param c1a={ctset(r1,na)}
+.param c1b={ctset(r1,nb)}
+.param c1c={ctset(r1,nc)}
+.param c1d={ctset(r1,nd)}
+Rs1a src d1a {z0}
+X1a d1a oneport lval={na} rval={r1} cval={c1a} cpv={cpad}
+E1a g1a 0 d1a ref 1
+Rs1b src d1b {z0}
+X1b d1b oneport lval={nb} rval={r1} cval={c1b} cpv={cpad}
+E1b g1b 0 d1b ref 1
+Rs1c src d1c {z0}
+X1c d1c oneport lval={nc} rval={r1} cval={c1c} cpv={cpad}
+E1c g1c 0 d1c ref 1
+Rs1d src d1d {z0}
+X1d d1d oneport lval={nd} rval={r1} cval={c1d} cpv={cpad}
+E1d g1d 0 d1d ref 1
+
+* --- row 2: R = 50.0 ohm (nominal) ---------------------------------------
+.param c2a={ctset(r2,na)}
+.param c2b={ctset(r2,nb)}
+.param c2c={ctset(r2,nc)}
+.param c2d={ctset(r2,nd)}
+Rs2a src d2a {z0}
+X2a d2a oneport lval={na} rval={r2} cval={c2a} cpv={cpad}
+E2a g2a 0 d2a ref 1
+Rs2b src d2b {z0}
+X2b d2b oneport lval={nb} rval={r2} cval={c2b} cpv={cpad}
+E2b g2b 0 d2b ref 1
+Rs2c src d2c {z0}
+X2c d2c oneport lval={nc} rval={r2} cval={c2c} cpv={cpad}
+E2c g2c 0 d2c ref 1
+Rs2d src d2d {z0}
+X2d d2d oneport lval={nd} rval={r2} cval={c2d} cpv={cpad}
+E2d g2d 0 d2d ref 1
+
+* --- row 3: R = 51.0 ohm (select-on-test upper limit) --------------------
+.param c3a={ctset(r3,na)}
+.param c3b={ctset(r3,nb)}
+.param c3c={ctset(r3,nc)}
+.param c3d={ctset(r3,nd)}
+Rs3a src d3a {z0}
+X3a d3a oneport lval={na} rval={r3} cval={c3a} cpv={cpad}
+E3a g3a 0 d3a ref 1
+Rs3b src d3b {z0}
+X3b d3b oneport lval={nb} rval={r3} cval={c3b} cpv={cpad}
+E3b g3b 0 d3b ref 1
+Rs3c src d3c {z0}
+X3c d3c oneport lval={nc} rval={r3} cval={c3c} cpv={cpad}
+E3c g3c 0 d3c ref 1
+Rs3d src d3d {z0}
+X3d d3d oneport lval={nd} rval={r3} cval={c3d} cpv={cpad}
+E3d g3d 0 d3d ref 1
+
+* --- row 4: R = 52.5 ohm (catalogue +5% limit) ---------------------------
+.param c4a={ctset(r4,na)}
+.param c4b={ctset(r4,nb)}
+.param c4c={ctset(r4,nc)}
+.param c4d={ctset(r4,nd)}
+Rs4a src d4a {z0}
+X4a d4a oneport lval={na} rval={r4} cval={c4a} cpv={cpad}
+E4a g4a 0 d4a ref 1
+Rs4b src d4b {z0}
+X4b d4b oneport lval={nb} rval={r4} cval={c4b} cpv={cpad}
+E4b g4b 0 d4b ref 1
+Rs4c src d4c {z0}
+X4c d4c oneport lval={nc} rval={r4} cval={c4c} cpv={cpad}
+E4c g4c 0 d4c ref 1
+Rs4d src d4d {z0}
+X4d d4d oneport lval={nd} rval={r4} cval={c4d} cpv={cpad}
+E4d g4d 0 d4d ref 1
+
+.ac lin 201 20e6 30e6
+
+.meas ac s_r49p0_l5p0  find vdb(g1a) at=25e6
+.meas ac rl_r49p0_l5p0  param='-s_r49p0_l5p0'
+.meas ac ct_r49p0_l5p0  param='c1a*1e12'
+.meas ac s_r49p0_l6p9  find vdb(g1b) at=25e6
+.meas ac rl_r49p0_l6p9  param='-s_r49p0_l6p9'
+.meas ac ct_r49p0_l6p9  param='c1b*1e12'
+.meas ac s_r49p0_l8p4  find vdb(g1c) at=25e6
+.meas ac rl_r49p0_l8p4  param='-s_r49p0_l8p4'
+.meas ac ct_r49p0_l8p4  param='c1c*1e12'
+.meas ac s_r49p0_l15p0 find vdb(g1d) at=25e6
+.meas ac rl_r49p0_l15p0 param='-s_r49p0_l15p0'
+.meas ac ct_r49p0_l15p0 param='c1d*1e12'
+
+.meas ac s_r50p0_l5p0  find vdb(g2a) at=25e6
+.meas ac rl_r50p0_l5p0  param='-s_r50p0_l5p0'
+.meas ac ct_r50p0_l5p0  param='c2a*1e12'
+.meas ac s_r50p0_l6p9  find vdb(g2b) at=25e6
+.meas ac rl_r50p0_l6p9  param='-s_r50p0_l6p9'
+.meas ac ct_r50p0_l6p9  param='c2b*1e12'
+.meas ac s_r50p0_l8p4  find vdb(g2c) at=25e6
+.meas ac rl_r50p0_l8p4  param='-s_r50p0_l8p4'
+.meas ac ct_r50p0_l8p4  param='c2c*1e12'
+.meas ac s_r50p0_l15p0 find vdb(g2d) at=25e6
+.meas ac rl_r50p0_l15p0 param='-s_r50p0_l15p0'
+.meas ac ct_r50p0_l15p0 param='c2d*1e12'
+
+.meas ac s_r51p0_l5p0  find vdb(g3a) at=25e6
+.meas ac rl_r51p0_l5p0  param='-s_r51p0_l5p0'
+.meas ac ct_r51p0_l5p0  param='c3a*1e12'
+.meas ac s_r51p0_l6p9  find vdb(g3b) at=25e6
+.meas ac rl_r51p0_l6p9  param='-s_r51p0_l6p9'
+.meas ac ct_r51p0_l6p9  param='c3b*1e12'
+.meas ac s_r51p0_l8p4  find vdb(g3c) at=25e6
+.meas ac rl_r51p0_l8p4  param='-s_r51p0_l8p4'
+.meas ac ct_r51p0_l8p4  param='c3c*1e12'
+.meas ac s_r51p0_l15p0 find vdb(g3d) at=25e6
+.meas ac rl_r51p0_l15p0 param='-s_r51p0_l15p0'
+.meas ac ct_r51p0_l15p0 param='c3d*1e12'
+
+.meas ac s_r52p5_l5p0  find vdb(g4a) at=25e6
+.meas ac rl_r52p5_l5p0  param='-s_r52p5_l5p0'
+.meas ac ct_r52p5_l5p0  param='c4a*1e12'
+.meas ac s_r52p5_l6p9  find vdb(g4b) at=25e6
+.meas ac rl_r52p5_l6p9  param='-s_r52p5_l6p9'
+.meas ac ct_r52p5_l6p9  param='c4b*1e12'
+.meas ac s_r52p5_l8p4  find vdb(g4c) at=25e6
+.meas ac rl_r52p5_l8p4  param='-s_r52p5_l8p4'
+.meas ac ct_r52p5_l8p4  param='c4c*1e12'
+.meas ac s_r52p5_l15p0 find vdb(g4d) at=25e6
+.meas ac rl_r52p5_l15p0 param='-s_r52p5_l15p0'
+.meas ac ct_r52p5_l15p0 param='c4d*1e12'
+
+* --- the wrong-value contrast, as numbers the sidecar can gate -----------
+* dl_* : RL spread across the 5.0 -> 15.0 nH inductance range at fixed R
+*        (negative at R < 50: series X pulls Reff = R + X^2/R UP toward 50,
+*         so more inductance actually IMPROVES the match below 50 ohm)
+* dr_* : RL gap between the nominal and +5% resistance at fixed L
+.meas ac dl_r49p0 param='rl_r49p0_l5p0-rl_r49p0_l15p0'
+.meas ac dl_r51p0 param='rl_r51p0_l5p0-rl_r51p0_l15p0'
+.meas ac dl_r52p5 param='rl_r52p5_l5p0-rl_r52p5_l15p0'
+.meas ac dr_l6p9  param='rl_r50p0_l6p9-rl_r52p5_l6p9'
+.meas ac dr_l15p0 param='rl_r50p0_l15p0-rl_r52p5_l15p0'
+
+.end
