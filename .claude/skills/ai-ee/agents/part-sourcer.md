@@ -42,6 +42,11 @@ attributes). One entry per DISTINCT part, not per refdes.
 ## Rules
 - Re-verify stock at selection time via parts_search even for research-phase
   candidates (stock moves).
+- Check stock AT THE VALUE you are about to choose, not after the electrical
+  decision: E24 values between the common ones are thinly stocked in the
+  higher-power classes (one 6R8 0805 at 1% and >= 250 mW existed at LCSC when
+  rf-de-20m needed it), and a value change after the design is fixed is a
+  re-analysis, not a substitution.
 - The datasheet URL feeds the datasheet-extractor: it must be present for
   every nontrivial IC.
 - Do not invent parts from memory; parts_search or it does not exist.

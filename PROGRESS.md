@@ -58,7 +58,7 @@ U11 later; U12 before order credentials; T11 on board arrival (not during U8).
 | U3 | BOM assembly classes + first-class DNP (H1, C9) | **done** | 2026-08-14 |
 | U4 | Knowledge library + trigger-keyed retrieval | **done** | 2026-08-14 |
 | U5 | Release attestation + durable waivers (C1+H9) | pending | - |
-| U6 | Workspace learnings + promotion pass (H5; rf-de 66-entry queue) | pending | - |
+| U6 | Workspace learnings + promotion pass (H5; rf-de 66-entry queue) | **done** | 2026-08-14 |
 | U7 | Learning mode harness (learn verb + learner agent + graded fixtures) | pending | - |
 | U8 | Buck placement teaching cycle 1 (owner present) | pending | - |
 | U9 | Cross-stage rails (P3 layout implications + budgeted backward spawns) | pending | - |
@@ -3622,3 +3622,133 @@ carried other sessions' live hunks were not stage-decided unilaterally:
 Everything else U3 built is in this commit.
 
 **New verify-later items:** none.
+
+## U6 - Workspace learnings + promotion pass (2026-08-14) - DONE
+
+**Built** (v3 design decision 3 + codex H5; wave 2, parallel with U5 in the same
+working tree):
+- `scripts/lib/learnlib.py` + `scripts/learnings.py` (subcommands `init`,
+  `compile`, `queue`, `validate`, `resolve`, `sweep`, `triage`; `--out` on each
+  subparser, state.py's shape). Workspace format: `## YYYY-MM-DD [P7][tag] one
+  claim` - `## ` headings BEFORE the first dated entry are preamble, after it a
+  heading that does not parse is `malformed` (exit 1). Ids are
+  `<date>-<title slug>`, so a ruling survives every re-compile; `compile` is
+  idempotent (rulings preserved, line/title/tags refreshed, new entries
+  `pending`, a queue id whose entry disappeared is an `orphan`, never deleted).
+- `learnings/queue.yaml` per workspace, QUEUE_SCHEMA-validated: the plan's
+  `{entry, stage, proposed_level, targets, status}` plus provenance
+  (`line, date, title, tags`) and `resolution {kind, artifacts, reason, date}`.
+  `targets` are compiled deterministically - artifacts the entry NAMES and that
+  exist here (repo- or skill-relative), never a guess.
+- Ruling kinds are the ladder: promote to `script_check | cost_term | template |
+  prompt_line | knowledge_record | remediation | bench_item | root_learnings`,
+  or decline with `board_local | duplicate | superseded | not_actionable`.
+  `validate` refuses a promotion with no artifacts, an artifact/target that does
+  not exist, a promotion with no level, a decline with no reason, a `pending`
+  row carrying a resolution, and an orphaned id.
+- `root_learnings` is the only kind the TOOL performs: it appends the entry
+  verbatim (plus a provenance line) to `LEARNINGS.md` and writes the matching
+  `design/ladder-triage.md` row in one step, because the suite checks those two
+  files against each other and hand-copying is how they drift. It refuses a
+  duplicate header, non-ASCII, a bad level/status, and a triage owner that does
+  not exist. `learnings.py triage` recomputes the register header's counts.
+- Run-close step appended to `recipes/full-run.md`, `review.md`,
+  `fix-finding.md` (each says what that verb is likely to have learned);
+  `promote` verb + `recipes/promote.md` (three operator modes over ONE queue:
+  owner at run close / general agent sweeping / stage learner pulling by stage).
+- `tests/test_learnings.py` - 23 tests: golden-workspace compile from injected
+  entries, preamble-vs-malformed, idempotence under source drift (a new entry
+  inserted BEFORE a ruled one), orphan reporting, ruling/validation rejection
+  paths, root promotion writing both files with a row whose line number matches,
+  duplicate/bad-row refusals, batch fault isolation, the rf-de acceptance, the
+  run-close wiring, sweep, and the register-header staleness guard.
+
+**The rf-de-20m acceptance pass** (`boards/rf-de-20m/learnings/rulings-2026-08-14.yaml`,
+committed as the worked example): all **66 entries ruled - 42 promoted, 24
+declined**, none left pending.
+- 36 `root_learnings` (root LEARNINGS 250 -> 286 entries, 36 new triage rows).
+  They are the toolchain/pipeline half of that run: the bisected Freerouting
+  degenerate-wire wedge (with the fact that `remediations/track_width.md` step 4
+  MANDATES the shape that triggers it), `ImportSpecctraSES` replacing wiring,
+  KRT not scaling past ~120x80 mm, the `.kicad_dru`-beats-zone-clearance fill
+  rule, the via-takes-the-zone's-net pair, `lib_pull --project` re-normalising
+  every footprint, the two silent `gate.py` path bugs (waiver sidecar,
+  dfm `parts.json` - both re-verified LIVE at U6, and `invalidation.yaml` still
+  hashes `kicad/parts.json`), `pour_neck`'s per-zone/via-gated sampling,
+  `check_return_path`'s k*width model on a pour fan-in land, the ten ngspice
+  traps, and the drill-export `Hole.plated` oracle.
+- 2 `knowledge_record` (U4 library): `spiral-inductor-plane-and-heatsink-keepout`
+  (class-e keyed) and `cot-ripple-injection-raises-vout` (buck keyed - the
+  generated `topologies/buck.md` view is re-rendered in this commit, as its
+  byte-pin requires).
+- 4 `prompt_line`: paralleling spreads heat but does not reduce loss (x2) into
+  `research-power-architect.md`, wrap-encloses-its-own-pins into `router.md`,
+  check stock at the value you are about to choose into `part-sourcer.md`.
+- 24 declines, each with its reason: 22 `board_local` (Class E/GaN engineering -
+  this board's operating point, part surveys, thermal budget), 1 `duplicate`
+  (the coordinate-trap entry, folded into the promoted PIPELINE BUG one), 1
+  `superseded` (the EPC2019 clearance entry, by its own creepage refinement).
+
+**Deviations from plan (with reasons):**
+1. `proposed_level` means "the level this knowledge BELONGS at", not the level
+   the promotion wrote it to. A root promotion is prose (L0) whose triage row
+   carries the climb it still owes, so recording L0 everywhere would have made
+   the queue useless as a worklist.
+2. Only `root_learnings` is performed by the tool. The other kinds are edits the
+   operator makes (a check, a template, a prompt line, a record); the tool
+   records the ruling and existence-checks the artifact. Automating "write a
+   check" was never on the table, and a fake write would be worse than none.
+3. The run-close step went into the three recipe DOCS, not into their
+   `tasks.yaml` steps - the wave-2 file-ownership rule gives U6 only its own new
+   verb row in that file (U5 owns the `order` verb concurrently).
+4. Declines are first-class and typed (4 kinds + a mandatory reason). The plan
+   said "promoted or explicitly declined with a reason"; without kinds, "not
+   skill-level" and "already covered" read the same in a queue a year later.
+5. Batch rulings (`resolve --batch`) exist because a 66-entry pass through a
+   single-entry CLI is not reviewable. A failing ruling inside a batch reports
+   per entry and the pass continues, so one bad triage block cannot strand
+   rulings that already wrote to LEARNINGS.md.
+
+**Cross-session note (wave 2 shared tree):** U5 (release attestation) is live in
+this tree - `attest.py`, `releaselib.py`, `tests/test_attest.py`, plus hunks in
+`gate.py`, `state.py`, `checklib.py`, `order_submit.py`, `recipes/order.md`,
+`SKILL.md` and the `order` verb of `tasks.yaml`. Adding a verb FORCES an edit to
+two files U5 is also editing (`tasks.yaml`, and `SKILL.md` because
+`test_skill_md_lists_exactly_the_registry_verbs` requires the verb be named
+there). Both were staged surgically - HEAD's content plus only my block, via
+`git hash-object -w` + `git update-index --cacheinfo`, then `git commit` with NO
+pathspec (a pathspec re-stages the working tree and would have swept U5's
+half-finished attestation work into this commit). Verified before staging: my
+tasks.yaml block does not reference `attest.py`, so this commit's registry is
+self-consistent. Everything else in this commit is U6-only content.
+
+**Suite:** full run mid-session - 2 failed: the standing non-hermetic
+`test_parts.py::test_net_search_returns_in_stock_hits[AP63203]`, and U5's
+in-flight `tests/test_attest.py::test_reference_attestations_verify_valid`
+(their working file, not this step's). Everything U6 touches is green, including
+`test_remediations.py` (the triage register), `test_task_router.py` (the verb
+registry + the new routing cases) and `test_knowledge.py` (the two new records
+and the re-rendered buck view).
+
+**Interface notes for later steps:**
+- U7/U8 (learning mode): the learner pre-load is
+  `learnings.py queue --workspace <ws> --status pending`, filtered on `stage`
+  (P0-P10 from the entry's own tags). The promotion kinds ARE the learner's
+  "classed artifact edit" vocabulary - reuse `learnlib.PROMOTE_KINDS` rather
+  than inventing a second taxonomy, and the exit checklist's "index new records"
+  step is `resolve --kind knowledge_record`.
+- U9/U11 inherit most of the 36 new open triage rows: `route_auto.py` x4,
+  `route_edit.py` x6, `check_current.py`, `check_return_path.py` x3,
+  `lib/geom.py` x4, `schlib.py` x6 (the two generator-owns-this-file wipes),
+  `gate.py` x3. The register's "open rows by owning artifact" list is the
+  worklist and is recomputed in this commit.
+- Any new LEARNINGS entry still needs its triage row in the same session; for a
+  workspace entry the tool does both, for a root-authored one the test still
+  prints the row to paste.
+- `learnings.py sweep --boards-dir boards` is the only place that knows which
+  workspaces capture learnings at all: today just rf-de-20m. U10's xhp-driver
+  run should start with `learnings.py init --workspace boards/xhp-driver`.
+
+**New verify-later items:** none. (The queue mechanism is exercised end-to-end
+on a real backlog; what is NOT yet exercised is a run that captures entries as
+it goes - U10 is the first one that will.)

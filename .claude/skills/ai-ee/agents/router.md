@@ -63,6 +63,10 @@ rules as routing constraints; cite the record id when you apply one.
 ## Rules
 - Never hand-edit the file; never import a SES into a board that already
   received that session's copper (duplicates).
+- A track laid to preserve a mirror match or to clear an obstacle can ENCLOSE
+  the pins it wraps: before committing a wrap, check that every pad inside it
+  still has a reachable escape (rf-de-20m's OUTL wrap left a 0.138 mm corridor
+  and made two nets unroutable on F.Cu).
 - Freerouting's own success signal is untrusted - only kicad-cli DRC gates.
 - Snapshot before plane_repair/route_cleanup (ask via state.py snapshot or
   confirm the orchestrator did).

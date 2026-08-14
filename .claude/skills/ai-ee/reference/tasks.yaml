@@ -530,6 +530,70 @@ verbs:
         why: "re-enter the pipeline at the phase state.json reports"
 
   # -------------------------------------------------------------------------
+  promote:
+    summary: Move a workspace's captured learnings to their level on the
+      knowledge ladder - script check, cost term, template, prompt line,
+      knowledge record, remediation, bench item or root LEARNINGS.
+    doc: reference/recipes/promote.md
+    workspace: optional
+    edit_class: null
+    gates: []          # nothing on the board changes; the artifacts are the work
+    human_hold: 1
+    args:
+      entry: {kind: text, required: false, extract: none,
+              question: "Which queue entry id (learnings.py queue lists them)?"}
+    match:
+      any: ['\bpromote\b', '\bpromotion\b', '\blearnings?\b', '\bpromotion queue\b',
+            '\bharvest\b', '\bwhat did (we|this run) learn\b',
+            '\b(roll|write) up\b.*\b(learnings?|lessons?)\b',
+            '\blessons? learned\b', '\bknowledge ladder\b', '\btriage\b']
+      not: ['\btriage\b.*\b(violations?|findings?|drc|erc)\b']
+    variants:
+      workspace:
+        when: has_workspace
+        steps:
+          - do: "scripts/learnings.py compile --workspace {ws}"
+            why: "the run-close step: LEARNINGS.md entries -> learnings/queue.yaml,
+                  idempotent, rulings preserved. Exit 1 = a heading did not parse
+                  or a queue id lost its entry - fix the source, not the queue"
+          - do: "scripts/learnings.py queue --workspace {ws} --status pending"
+            why: "the backlog to rule on, with each entry's stage and the
+                  artifacts it already names"
+          - note: "One ruling per entry, and a promotion WRITES SOMEWHERE first -
+                   the kind table in the recipe maps level to artifact. Declining
+                   is a first-class outcome (board_local / duplicate / superseded
+                   / not_actionable) and needs its own reason."
+          - do: "scripts/learnings.py resolve --workspace {ws} --entry {entry} --status promoted --kind script_check --level L2 --targets <paths> --reason <why>"
+            why: "records the ruling; --kind root_learnings additionally appends
+                  the entry verbatim to LEARNINGS.md and writes its triage row
+                  (the suite checks those two files against each other). A whole
+                  pass at once: --batch <rulings>.yaml"
+          - do: "scripts/knowledge.py --validate"
+            why: "only when the promotion wrote a knowledge record; re-render any
+                  topology view that has one in the same commit"
+            optional: true
+            when: "a record was added or edited"
+          - do: "scripts/learnings.py validate --workspace {ws}"
+            why: "every promoted entry names artifacts that exist, every ruling
+                  carries a kind and a reason, no orphaned ids"
+          - human: 1
+            why: "present promoted/declined with reasons; the owner rules on
+                  anything contested before the commit"
+          - note: "Commit the artifact edits, the queue and the LEARNINGS/triage
+                   rows TOGETHER - an uncommitted LEARNINGS append is reverted by
+                   the next scoped gate commit."
+      sweep:
+        when: always
+        steps:
+          - do: "scripts/learnings.py sweep --boards-dir boards"
+            why: "every workspace that captures learnings, with uncompiled and
+                  pending counts - the general-agent operator mode"
+          - do: "scripts/learnings.py validate --boards-dir boards"
+            why: "lint every existing queue before working any of them"
+          - note: "Pick a board and re-run this verb with --workspace boards/<b>;
+                   the workspace variant is the actual promotion pass."
+
+  # -------------------------------------------------------------------------
   full-run:
     summary: The whole pipeline, brief to order-ready package. A recipe like any
       other - the phases are its steps.

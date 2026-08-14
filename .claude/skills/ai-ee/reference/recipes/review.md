@@ -44,6 +44,16 @@ produced it (`reports/gate-<name>.json`). Library findings go to
 `make-footprint`. An imported workspace is a NORMAL workspace: `board_update`,
 the fix loop and `resume-phase` all work on it unchanged.
 
+## Run close
+
+A review teaches the skill as much as a build does - usually about the checks
+themselves, since a foreign board exercises them on geometry no run of ours
+produced. Append those to `boards/<b>/LEARNINGS.md` and compile:
+
+    learnings.py compile --workspace boards/<b>
+
+They stay `pending` for a later `promote` pass.
+
 ## Do not
 
 - Do not re-run intake on an existing workspace to "refresh" it - `--force`

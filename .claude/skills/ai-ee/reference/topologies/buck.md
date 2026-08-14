@@ -117,3 +117,11 @@ Upstream bulk limit trap: a buck's input capacitance is bounded by the SOURCE, n
 Rule: usb2_attach_limit=10 uF or 44 ohm-limited at attach (s7.2.4.1) usbpd_sink_bulk_uf_max=100
 
 Sources: boards/usb-buck/research/power.md s6-7 (inrush vs source rules); boards/usb-buck/research/interface-usb.md attach capacitance
+
+## cot-ripple-injection-raises-vout [feedback]
+
+A constant-on-time regulator ends its off-time when FB falls back through VREF, so it regulates the VALLEY of FB, not its average. With Type 3 injection the ramp is AC-coupled into FB and its mean is genuinely zero, so FB_dc = VREF + Vramp/2 and VOUT = (1 + R_top/R_bot) x (VREF + Vramp_pkpk/2) - NOT VREF times the divider ratio. On an LM5017 at 78.6 mV of injected ripple that is +3.2 %: 5.06 V where a valley calculation says 4.90 V, which is enough to put a 5 V rail over a downstream driver's recommended VDD max. A P4 reviewer computed the rail min/nom/max without the term and concluded the nominal was 100 mV low. Both readings matter in practice because Vramp carries Rr, Cr and K tolerance, so solve the divider against the UNION - effective reference in [VREF_min, VREF_max + Vramp_max/2] - and check both corners rather than picking one model. Also check the FB overvoltage comparator against FB's PEAK (VREF + full Vramp): the LM5017 trips at 1.62 V and terminates the on-time pulse.
+
+Rule: applies_when=constant-on-time regulator with Type 3 (AC-coupled) ripple injection fb_overvoltage=compare against FB PEAK (VREF + full Vramp), not its average solve_against=union of [VREF_min, VREF_max + Vramp_max/2] - check both corners vout=(1 + R_top/R_bot) * (VREF + Vramp_pkpk/2)
+
+Sources: boards/rf-de-20m/LEARNINGS.md 2026-08-08 Type 3 ripple injection RAISES the DC output; boards/rf-de-20m/parts/C34355.pdf LM5017 (the part this was measured on)

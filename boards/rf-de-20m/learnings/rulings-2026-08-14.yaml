@@ -1,0 +1,1055 @@
+# rf-de-20m promotion pass - U6, 2026-08-14 (operator mode: owner-at-run-end,
+# run over the whole 66-entry backlog at once because this board's run closed
+# before the queue mechanism existed).
+#
+# Applied with:
+#   learnings.py resolve --workspace boards/rf-de-20m --batch <this file>
+#
+# Every entry gets a ruling. `root_learnings` promotions are performed by the
+# tool (verbatim append to LEARNINGS.md + the triage row); the other kinds name
+# the artifact the knowledge was written into, which was edited in the same
+# commit. Declines carry the reason they do not climb.
+version: 1
+rulings:
+
+  # --- P0/P1 Class E / GaN engineering: this board's design record ---------
+  - entry: 2026-08-07-there-is-no-jlc-lcsc-stocked-gate
+    status: declined
+    kind: board_local
+    reason: >-
+      Catalog survey for one narrow part class (20 MHz half-bridge GaN
+      drivers) at one moment in time. parts_search re-derives it; the decision
+      it fed lives in this workspace's architecture record.
+
+  - entry: 2026-08-07-class-de-sizing-at-20-mhz-closes
+    status: declined
+    kind: board_local
+    reason: >-
+      Operating-point arithmetic for this board's rejected topology.
+      Keeps its value as the workspace's costing record, not as skill knowledge.
+
+  - entry: 2026-08-07-class-e-is-the-only-topology-that
+    status: declined
+    kind: board_local
+    reason: >-
+      Topology selection for this board under a full-JLC constraint.
+      Reusable only if a second Class E board appears, and then from here.
+
+  - entry: 2026-08-07-rejected-high-side-workarounds-do-not-re
+    status: declined
+    kind: board_local
+    reason: >-
+      Do-not-re-explore list scoped to this board's 20 MHz half-bridge
+      problem. Its purpose is served inside the workspace.
+
+  - entry: 2026-08-07-no-isolated-gate-driver-ic-runs-at
+    status: declined
+    kind: board_local
+    reason: >-
+      MHz-class isolated-driver survey plus the CM-current physics that
+      kills capacitive level shift. Re-open as a knowledge record if a second
+      MHz half-bridge board is ever briefed - there is no topology key for it
+      today, so a record would never be retrieved.
+
+  - entry: 2026-08-07-the-real-decision-is-class-e-fully
+    status: declined
+    kind: board_local
+    reason: >-
+      The DE-vs-E costing this board's owner ruled on. Decision context,
+      not transferable knowledge.
+
+  - entry: 2026-08-07-owner-chose-class-e-100-jlc-pcba
+    status: declined
+    kind: board_local
+    reason: >-
+      An owner decision record with a frozen operating point. Belongs to
+      the workspace (state.py decision), never to the skill.
+
+  - entry: 2026-08-07-the-output-inductor-is-the-hottest-part
+    status: declined
+    kind: board_local
+    reason: >-
+      Low-Z Class E tank dissipation for this operating point. The
+      general half (size a resonant network by dissipation and Q, not current
+      rating) is one line of the same board's magnetics analysis.
+
+  - entry: 2026-08-07-the-p1-epc2019-correction-was-wrong-the
+    status: promoted
+    kind: root_learnings
+    level: L2
+    targets: [agents/research-power-architect.md, scripts/datasheet_extract.py]
+    reason: >-
+      Method rule, not board data - an agent asserting datasheet-verified
+      is not verification, and a whole P2 architecture was built on an invented
+      capacitance before anyone opened the PDF.
+    triage:
+      now: L0
+      target: L2
+      owner: agents/research-power-architect.md
+      status: open
+      note: >-
+        P3 extraction is page-cited and --validate gated; P1 research roles
+        assert numbers with no grounding payload at all. Give the research
+        agents the same datasheet_extract grounding + page citation
+        requirement, or forbid unsourced numeric specs in P1 summaries.
+
+  - entry: 2026-08-07-charge-equivalent-coss-not-small-signal-coss
+    status: declined
+    kind: board_local
+    reason: >-
+      Class E device-budget arithmetic (Qoss/V vs small-signal Coss) for
+      this FET at this bus. No retrieval key exists for it.
+
+  - entry: 2026-08-07-paralleling-inductors-does-not-reduce-loss-q
+    status: promoted
+    kind: prompt_line
+    level: L0
+    targets: [agents/research-power-architect.md]
+    reason: >-
+      General magnetics fact that two agents got wrong in opposite
+      directions on this board - paralleling is a heat-spreading measure and Q
+      is the only lever on magnetics loss.
+    artifacts: [agents/research-power-architect.md]
+
+  - entry: 2026-08-07-no-lcsc-inductor-closes-l-s-the
+    status: declined
+    kind: board_local
+    reason: >-
+      A 13-search inductor sweep for one value at one current and
+      frequency. The catalog split it reports (molded power parts capped near
+      5 MHz, high-Q RF parts rated at ~100 mA) moves with the catalog.
+
+  - entry: 2026-08-07-the-epc2019-thermal-path-does-not-close
+    status: declined
+    kind: board_local
+    reason: >-
+      Per-part thermal budget for this board's dissipation. Superseded
+      inside the workspace by the two-FET decision it produced.
+
+  - entry: 2026-08-07-a-metal-heatsink-under-a-pcb-spiral
+    status: promoted
+    kind: knowledge_record
+    level: L0
+    targets: [reference/knowledge/records/spiral-inductor-plane-and-heatsink-keepout.yaml]
+    reason: >-
+      Applies to any etched-copper inductor or antenna - a plane OR a
+      metal heatsink parallel to the winding is a shorted turn, which forces a
+      two-zone floorplan and a deliberate return-path bridge.
+    artifacts: [reference/knowledge/records/spiral-inductor-plane-and-heatsink-keepout.yaml]
+
+  - entry: 2026-08-07-the-frozen-operating-point-was-wrong-sokal
+    status: declined
+    kind: board_local
+    reason: >-
+      Sokal finite-Q_L coefficients applied to this board's frozen
+      operating point. Class E design math with no consumer in the skill.
+
+  - entry: 2026-08-07-coss-tr-must-be-evaluated-over-the
+    status: declined
+    kind: board_local
+    reason: >-
+      Coss(tr) extrapolation over this drain swing, plus a correction to
+      an in-run proposal. Workspace analysis record.
+
+  - entry: 2026-08-07-an-external-shunt-trim-cap-is-a
+    status: declined
+    kind: board_local
+    reason: >-
+      A populate decision for this tank. The general shape (do not let
+      part-to-part device spread land directly on the design point with no trim
+      element) is too abstract to key or check.
+
+  - entry: 2026-08-07-paralleling-fets-does-not-reduce-dissipation-it
+    status: promoted
+    kind: prompt_line
+    level: L0
+    targets: [agents/research-power-architect.md]
+    reason: >-
+      Same correction shape as the inductor entry and just as easy to get
+      wrong - total dissipation is flat from N=1 to N=2, the entire win is
+      RthJB per die. Cost paralleling in Tj, not in watts.
+    artifacts: [agents/research-power-architect.md]
+
+  - entry: 2026-08-07-epc2019-the-0-68-0-70-mm
+    status: promoted
+    kind: root_learnings
+    level: L2
+    targets: [scripts/fp_verify.py, agents/librarian.md]
+    reason: >-
+      Library discipline that generalises - a land-pattern dimension read
+      out of a report rather than off the drawing is a rumour, and acting on
+      this one would have shifted a gate pad 0.11 mm off a 0.25 mm pad.
+    triage:
+      now: L0
+      target: L2
+      owner: scripts/fp_verify.py
+      status: open
+      note: >-
+        fp_verify already compares the footprint against the extracted
+        datasheet JSON; the missing leg is refusing a dimension that has no
+        drawing citation. The extraction schema should carry the drawing's own
+        dim label (c, h, i) beside each number so envelope-vs-pitch cannot be
+        confused.
+
+  - entry: 2026-08-07-lcsc-s-package-type-fields-are-useless
+    status: promoted
+    kind: root_learnings
+    level: L2
+    targets: [scripts/parts_search.py, agents/part-sourcer.md]
+    reason: >-
+      Sourcing screen that generalises to every connector - LCSC's
+      package/type text cannot tell SMD from THT, and 4 of 4 suggested
+      candidates here were through-hole.
+    triage:
+      now: L0
+      target: L2
+      owner: scripts/parts_search.py
+      status: open
+      note: >-
+        Mount style is decidable from the pulled footprint (any B.Cu land
+        means it protrudes), so P3 can check it - declared SMD plus B.Cu pads
+        is an error, not a judgment. Cost of getting it right here was 0.39 to
+        2.97 USD per connector, so the check pays for itself in one board.
+
+  - entry: 2026-08-07-layout-constraints-to-honour-when-this-board
+    status: declined
+    kind: board_local
+    reason: >-
+      A carry-forward list for this board's own layout step (skin depth
+      at 20 MHz, unbroken L2 under the power loop, C0G at the FET pair). The
+      generic halves already exist as constraints and as buck records.
+
+  # --- P4 schematic-era findings ------------------------------------------
+  - entry: 2026-08-08-ti-s-2-ohm-at-each-output
+    status: promoted
+    kind: root_learnings
+    level: L2
+    targets: [scripts/netlist_audit.py]
+    reason: >-
+      Per-pin driver floors multiply with paralleled devices - arithmetic
+      over a net that no ERC, netlist_audit or check_ sees, and on an eGaN part
+      the consequence of getting it wrong is destruction on the first pulse.
+    triage:
+      now: L0
+      target: L2
+      owner: scripts/netlist_audit.py
+      status: open
+      note: >-
+        With N devices on one driver pin each branch must be >= N x the
+        datasheet floor; here 4 x 3R9 read as 0.975 ohm against a 2 ohm floor
+        while every individual leg looked compliant. Needs the floor in
+        parts.json (datasheet_extract) plus a per-driver-pin parallel sum in
+        netlist_audit. Second-order and worth carrying with it - the gate-loop
+        inductance budget scales as R^2.
+
+  - entry: 2026-08-08-type-3-ripple-injection-raises-the-dc
+    status: promoted
+    kind: knowledge_record
+    level: L0
+    targets: [reference/knowledge/records/cot-ripple-injection-raises-vout.yaml]
+    reason: >-
+      A constant-on-time regulator regulates the valley of FB, so Type 3
+      injection raises VOUT by half the injected ripple - a design-math trap
+      that cost a P4 reviewer a wrong divider and applies to every COT buck.
+    artifacts: [reference/knowledge/records/cot-ripple-injection-raises-vout.yaml]
+
+  - entry: 2026-08-08-on-the-rvt-jierr-lumimax-v-chip
+    status: promoted
+    kind: root_learnings
+    level: L2
+    targets: [scripts/lib_pull.py, scripts/parts_search.py]
+    reason: >-
+      Two transferable facts behind one unresolvable review finding - the
+      LCSC datasheet redirect (an empty datasheet field means nobody followed
+      it) and that a chamfer is a body-outline feature, not a polarity marking.
+    triage:
+      now: L0
+      target: L2
+      owner: scripts/lib_pull.py
+      status: open
+      note: >-
+        Two mechanical legs. Resolve lcsc.com/datasheet/C<code>.pdf to the
+        real datasheet.lcsc.com PDF so parts.json.datasheet is never blank on a
+        polarized part, and require a silk plus marker OUTSIDE the body for
+        polarized parts (fpfix/check_silk). The part-specific fact (RVT
+        chamfers mark the ANODE) is a row for the proposed
+        reference/part_errata.yaml.
+
+  - entry: 2026-08-08-footprint-copper-graphics-are-not-in-kicad
+    status: promoted
+    kind: root_learnings
+    level: L2
+    targets: [scripts/fp_verify.py]
+    reason: >-
+      KiCad 10 connectivity fact for any etched-copper part - fp_poly on
+      a copper layer carries no net, so it both unconnects and shorts; the
+      entry carries the verified pad-based encoding that works instead.
+    triage:
+      now: L0
+      target: L2
+      owner: scripts/fp_verify.py
+      status: open
+      note: >-
+        Returned to root after the concurrent-run relocation. Two checkable
+        halves - a footprint with copper-layer fp_poly and more than one pad
+        net is an error, and DRC cannot check clearances INSIDE a net tie, so
+        tied-pad spacing must be measured out of band by whatever generated the
+        part (a 0.014 mm inner-land gap passed DRC clean here).
+
+  # --- P6 placement --------------------------------------------------------
+  - entry: 2026-08-08-locking-a-group-anchor-silently-orphans-the
+    status: promoted
+    kind: root_learnings
+    level: L2
+    targets: [scripts/lib/placelib.py, scripts/place_seed.py]
+    reason: >-
+      placelib.build_clusters sends any footprint whose ref is in
+      placement.fixed to the fixed list, so a group with a fixed ANCHOR
+      produces no cluster at all - 50 of 70 parts silently became hand
+      placement and declared separations were never enforced.
+    triage:
+      now: L0
+      target: L2
+      owner: scripts/lib/placelib.py
+      status: open
+      note: >-
+        The only tell today is a short cluster list plus
+        separation_unknown_refs in the anneal report. place_seed should report
+        every declared group whose anchor is fixed, with its orphaned members,
+        as a warning - or build_clusters should keep the cluster and treat the
+        anchor as a fixed seed.
+
+  - entry: 2026-08-08-the-epc2019-land-pattern-cannot-meet-this
+    status: declined
+    kind: superseded
+    reason: >-
+      Superseded by this board's own refinement (a qualified die's
+      terminal pitch is not a board creepage violation), which is promoted with
+      the general rule and the waiver test.
+
+  - entry: 2026-08-08-the-spiral-s-20-55-mm-pour
+    status: declined
+    kind: board_local
+    reason: >-
+      The interaction of one board's spiral keepout radius with its own
+      DRU width floors. The general half (a pour keepout turns a wide net into
+      a track-only region) is inside the promoted plane/keepout record.
+
+  - entry: 2026-08-08-lmg1020-at-270-deg-is-the-only
+    status: declined
+    kind: board_local
+    reason: >-
+      Rotation analysis for one WCSP part and one gate-drive topology.
+      Part-specific geometry with no retrieval key.
+
+  - entry: 2026-08-08-place-edit-add-text-is-idempotent-only
+    status: promoted
+    kind: root_learnings
+    level: L3
+    targets: [scripts/place_edit.py]
+    reason: >-
+      Tool gap - add_text matches on (string, layer, position), so
+      re-emitting at a new position adds a second copy and there is no
+      del_text; a misplaced silk mark cannot be undone through the ops
+      interface at all.
+    triage:
+      now: L0
+      target: L3
+      owner: scripts/place_edit.py
+      status: open
+      note: >-
+        Add a del_text op (match by string plus layer, position optional)
+        so silk_place and silk fixers can correct a mark instead of moving the
+        part. The workaround used here was moving two capacitors 1 mm.
+
+  - entry: 2026-08-08-j101-kf128-at-the-left-edge-cannot
+    status: declined
+    kind: board_local
+    reason: >-
+      One connector against one heatsink rect on one outline. The
+      transferable halves (KF128 wire-entry rotation, using an orthographic
+      side render to settle mount orientation) are already root entries.
+
+  - entry: 2026-08-08-a-qualified-die-s-own-terminal-pitch
+    status: promoted
+    kind: root_learnings
+    level: L2
+    targets: [reference/remediations/creepage.md, scripts/check_creepage.py]
+    reason: >-
+      Refines the existing root rule that a creepage violation tighter
+      than a land pattern means the PART is the defect - inside a qualified
+      die that is a category error, and the entry gives the test that
+      separates the two cases.
+    triage:
+      now: L0
+      target: L2
+      owner: reference/remediations/creepage.md
+      status: open
+      note: >-
+        The exception is decidable from the check's own data - violations
+        carry item/other_item type, and _same_fp downgrades only pad-to-pad, so
+        every escape TRACK off a qualified die reads as a board defect (3
+        warnings plus ~20 errors from one part here). The ref should carry the
+        two-question test; check_creepage could class intra-footprint escapes
+        separately.
+
+  - entry: 2026-08-08-p5-never-translated-the-board-local-rects
+    status: declined
+    kind: duplicate
+    reason: >-
+      Same defect as this board's PIPELINE BUG entry on constraints rect
+      frames, which is promoted with the consumer-level evidence. Keeping both
+      at root would split the fix across two rows.
+
+  - entry: 2026-08-08-zone-b-split-the-gnd-plane-in
+    status: declined
+    kind: board_local
+    reason: >-
+      This board's return-path repair (bridge layer choice, corridor
+      widening, measured mOhm and nH). The two general rules it produced are
+      promoted - the spiral keepout record and the pour-corridor measurement
+      entry.
+
+  - entry: 2026-08-08-constraints-rects-are-consumed-as-absolute-board
+    status: promoted
+    kind: root_learnings
+    level: L2
+    targets: [scripts/planes_gen.py, scripts/constraints_lint.py]
+    reason: >-
+      Pipeline defect - planes_gen._region_rect and placelib._forbidden
+      read constraints rects as absolute while board_init does not place the
+      outline at the origin, so a declared plane can silently land on nothing
+      or on top of the part it must avoid.
+    triage:
+      now: L0
+      target: L2
+      owner: scripts/constraints_lint.py
+      status: open
+      note: >-
+        Root entry 221 covers placement.keepouts (placelib); this adds the
+        planes[].region consumer, where the failure is a board that DRCs clean
+        with no plane where you thought you had one. constraints_lint does not
+        know the outline - give it board_init.json.outline_bbox and lint every
+        rect's frame, or make the frame explicit in the schema. Third rule from
+        the same entry: after the P7 pour, verify each plane net's island count
+        - the fill is the authority, not the planned rectangle.
+
+  - entry: 2026-08-08-a-pour-can-bend-the-corridor-width
+    status: promoted
+    kind: root_learnings
+    level: L3
+    targets: [scripts/lib/geom.py]
+    reason: >-
+      Measurement rule - a routing corridor is the minimum perpendicular
+      gap along the path, not the largest inscribed straight strip. The wrong
+      measure was off by 1.8x and nearly condemned a routable board.
+    triage:
+      now: L0
+      target: L3
+      owner: scripts/lib/geom.py
+      status: open
+      note: >-
+        geom already owns the polygon layer, so a corridor_width(obstacles,
+        path) helper makes the correct measure the default one and retires the
+        largest-inscribed-rectangle reflex. Three other open geom rows want the
+        same module.
+
+  # --- P7 routing ----------------------------------------------------------
+  - entry: 2026-08-08-a-kicad-dru-rule-beats-a-zone
+    status: promoted
+    kind: root_learnings
+    level: L2
+    targets: [scripts/planes_gen.py, scripts/plane_repair.py]
+    reason: >-
+      Measured both directions on the same run - SetLocalClearance only
+      ever LOOSENS a zone against nets no custom rule names, so a per-net DRU
+      clearance can leave a pour unable to reach its own pads at any zone
+      setting.
+    triage:
+      now: L0
+      target: L2
+      owner: scripts/plane_repair.py
+      status: open
+      note: >-
+        Predictable from the rule set rather than discovered from a fill -
+        for each zone net compare its pads' applicable DRU clearance against
+        the geometry and report pads no pour can ever attach (they need a track
+        or a via). Measured 0.8006 mm standoff against a 0.35 mm zone setting.
+
+  - entry: 2026-08-08-a-via-added-into-an-already-filled
+    status: promoted
+    kind: root_learnings
+    level: L2
+    targets: [scripts/route_edit.py, scripts/stitch_vias.py]
+    reason: >-
+      KiCad re-derives a via's net from connectivity, so a via dropped
+      into an already-filled zone takes the ZONE's net - invisible until a
+      power net needs a bridge on a layer the plane owns.
+    triage:
+      now: L0
+      target: L2
+      owner: scripts/route_edit.py
+      status: open
+      note: >-
+        route_edit already post-verifies and rolls back atomically, so the
+        cost is a retry, not a board. The fix is build order (power-net vias on
+        the unfilled board, pour GND, stitch, pour power last) - route_edit
+        could refuse an add_via whose layer carries a filled zone of another
+        net and say why.
+
+  - entry: 2026-08-08-u201-s-outh-outl-fan-out-is
+    status: declined
+    kind: board_local
+    reason: >-
+      Fan-out geometry for one driver package and one mirrored-leg
+      requirement. Its consequence (the wrap that enclosed its own pins) is
+      promoted as a router prompt line.
+
+  - entry: 2026-08-08-never-hand-krt-a-plane-carried-net
+    status: promoted
+    kind: root_learnings
+    level: L3
+    targets: [scripts/route_auto.py, scripts/route_critical.py]
+    reason: >-
+      route_auto derives the KRT net list from DRC unconnected items,
+      which includes plane-carried GND - one open pad burned an 1800 s budget.
+      A plane net that reads unconnected means this pad needs a via, not route
+      this net.
+    triage:
+      now: L0
+      target: L3
+      owner: scripts/route_auto.py
+      status: open
+      note: >-
+        Two mechanical rules. Exclude nets carried by a zone from the
+        mop-up net list (route_critical already skips them by design, the KRT
+        leg does not), and keep HV clearance OUT of the netclasses - pass it in
+        --net-clearances, or KRT tries to route 0.4 mm-pitch signals at 0.8 mm
+        and produces nothing.
+
+  - entry: 2026-08-08-re-generating-the-schematic-wipes-rules-gen
+    status: promoted
+    kind: root_learnings
+    level: L3
+    targets: [scripts/schlib.py, scripts/rules_gen.py]
+    reason: >-
+      schlib.write_project writes a whole minimal .kicad_pro from
+      scratch, so any post-P5 schematic regeneration deletes rules_gen's
+      netclasses - and nothing re-runs rules_gen, so the DSN handed to
+      Freerouting carries no per-net widths or clearances at all.
+    triage:
+      now: L0
+      target: L3
+      owner: scripts/schlib.py
+      status: open
+      note: >-
+        write_project should MERGE net_settings and
+        board.design_settings.rules rather than replace the file - the
+        keep-it-minimal rationale only covers keys KiCad rejects. Cheap
+        interim, and it is in the P7 recipe now - check net_settings at P7
+        start and re-run rules_gen (verified byte-identical .kicad_dru).
+
+  - entry: 2026-08-08-krt-route-py-does-not-scale-to
+    status: promoted
+    kind: root_learnings
+    level: L1
+    targets: [scripts/route_auto.py]
+    reason: >-
+      Measured ceiling - on a 120x80 mm board KRT cannot finish ONE
+      5-connection net at any grid, even with every pour removed, so route_auto
+      has no working fallback once Freerouting wedges.
+    triage:
+      now: L0
+      target: L1
+      owner: scripts/route_auto.py
+      status: open
+      note: >-
+        Board area and grid are known before the pass, so report the
+        search-space estimate and refuse with advice above the measured ceiling
+        instead of spending 1800-3000 s to learn it. The zone-free run is what
+        proves it is search space and not copper.
+
+  - entry: 2026-08-08-freerouting-s-dsn-reader-wedges-on-a
+    status: promoted
+    kind: root_learnings
+    level: L3
+    targets: [scripts/route_auto.py, scripts/lib/routelib.py, reference/remediations/track_width.md]
+    reason: >-
+      Bisected toolchain defect with a JFR profile naming the method -
+      FR 2.2.4 wedges on wires whose width rivals their length, which is
+      exactly the pour fan-in that remediations/track_width.md step 4 mandates.
+      The skill's own advice arms the trap for the next phase.
+    triage:
+      now: L0
+      target: L3
+      owner: scripts/lib/routelib.py
+      status: open
+      note: >-
+        Supersedes the 2026-07-23 guess (FR wedges on KRT guide-wire
+        copper) with a bisected cause. Mechanical fix - thin the DSN of every
+        wire with width/length >= 0.8 before handing it to Freerouting and
+        filter the SES back afterwards (the copper stays on the real board).
+        Detection is cheap too: a healthy run prints Job started ~1.5 s in, so
+        a missing line inside 90 s IS the wedge.
+
+  - entry: 2026-08-08-importspecctrases-replaces-the-board-s-wiring-it
+    status: promoted
+    kind: root_learnings
+    level: L3
+    targets: [scripts/lib/route_swig.py, scripts/route_edit.py]
+    reason: >-
+      Measured 209 tracks to 89 and unconnected 24 to 44 - route_swig's
+      docstring says it adds copper only. It survives inside route_auto solely
+      because the DSN echoes every existing track back; a thinned DSN or a
+      filtered SES makes the import destructive.
+    triage:
+      now: L0
+      target: L3
+      owner: scripts/lib/route_swig.py
+      status: open
+      note: >-
+        Fix the docstring, and convert a session to route_edit ops
+        (additive, atomic, post-verified) whenever the SES is not a full echo.
+        SES geometry for the converter - resolution um 10 means 1 unit is
+        0.1 um and y is Specctra-up, so board_y_mm = -y/10000.
+
+  - entry: 2026-08-08-per-net-dru-clearances-never-reach-freerouting
+    status: promoted
+    kind: root_learnings
+    level: L2
+    targets: [scripts/route_auto.py, scripts/route_critical.py]
+    reason: >-
+      KiCad writes DSN clearances from the netclasses only, so per-net
+      .kicad_dru HV rules are invisible to Freerouting - and raising the
+      netclasses to compensate re-wedges the reader. There is no way to give FR
+      this board's real clearances.
+    triage:
+      now: L0
+      target: L2
+      owner: scripts/route_auto.py
+      status: open
+      note: >-
+        The consequence is a post-route repair pass, not a router setting -
+        route at netclass values, then check every HV-adjacent leg against the
+        .kicad_dru and fix it with route_edit (2 legs of 15 nets here). A
+        post-route per-net clearance audit belongs in the P7 chain, since DRC
+        only reports it after the fact.
+
+  - entry: 2026-08-08-the-outl-wrap-around-u201-is-a
+    status: promoted
+    kind: prompt_line
+    level: L0
+    targets: [agents/router.md]
+    reason: >-
+      Generalises cleanly - a track laid to preserve a mirror match or
+      dodge an obstacle can ENCLOSE the pins it wraps; check reachability of
+      every enclosed pad before committing the wrap, not after two nets turn
+      out to be unroutable.
+    artifacts: [agents/router.md]
+
+  - entry: 2026-08-08-a-track-can-swallow-an-existing-via
+    status: promoted
+    kind: root_learnings
+    level: L2
+    targets: [scripts/route_edit.py]
+    reason: >-
+      Two hand-routing traps found by DRC and invisible to inspection - a
+      track passing inside a via's radius steals its net (the stitched island
+      goes quietly open), and hole-to-hole applies to vias you did not place.
+    triage:
+      now: L0
+      target: L2
+      owner: scripts/route_edit.py
+      status: open
+      note: >-
+        Both are pre-flightable from the board route_edit already loads -
+        scan vias_of() along the proposed lane for centre-inside-track and for
+        hole-to-hole (0.4995 mm plus both radii) before applying. This board
+        carries 185 vias, most auto-stitched, so pads and tracks alone are not
+        enough to pick a lane.
+
+  - entry: 2026-08-08-a-0-2-mm-signal-track-routed
+    status: promoted
+    kind: root_learnings
+    level: L2
+    targets: [scripts/check_current.py, agents/router.md]
+    reason: >-
+      A fine-pitch pad fed by POUR rather than by track needs its feeding
+      band treated as a routing keepout - one 0.2 mm track squeezed a WCSP
+      ball's band below the zone's minimum width and the ball read unconnected
+      with no clearance rule firing.
+    triage:
+      now: L0
+      target: L2
+      owner: agents/router.md
+      status: open
+      note: >-
+        Detectable after the fact (the zone stops filling and the pad reads
+        unconnected against its own zone) but the useful form is preventive -
+        mark pour-fed fine-pitch pads and keep tracks out of the feeding band
+        by the zone's minimum width plus clearance. Neither a via nor a jumper
+        could rescue this one.
+
+  - entry: 2026-08-08-netless-pth-thermal-vias-inside-an-exposed
+    status: promoted
+    kind: root_learnings
+    level: L3
+    targets: [scripts/lib/fpfix.py, scripts/lib_pull.py]
+    reason: >-
+      Renumbering netless PTH holes inside an exposed pad to the EP's pad
+      number clears 4 solder_mask_bridge plus 4 clearance errors at once -
+      tenting cannot help, because the hole sits inside the pad's own mask
+      aperture.
+    triage:
+      now: L0
+      target: L3
+      owner: scripts/lib/fpfix.py
+      status: open
+      note: >-
+        Correct by construction at pull time - a netless thru_hole pad
+        whose centre lies inside another pad's polygon takes that pad's number,
+        which is also what an EP thermal via IS. Carries a second fact worth
+        keeping: propagating a footprint change under a LOCKED part via
+        swap_new_fp preserves neither the lock nor a moved Reference/Value
+        field.
+
+  - entry: 2026-08-08-lib-pull-project-re-normalises-every-footprint
+    status: promoted
+    kind: root_learnings
+    level: L3
+    targets: [scripts/lib_pull.py]
+    reason: >-
+      lib_pull --project silently rewrote both hand-built spiral
+      footprints' reference positions while pulling an unrelated resistor - the
+      placed copies were unaffected, so nothing DRCd differently and a later
+      re-import would have moved silk onto copper.
+    triage:
+      now: L0
+      target: L3
+      owner: scripts/lib_pull.py
+      status: open
+      note: >-
+        Scope the refdes-norm pass to the parts named in this invocation.
+        The --no-refdes-norm escape hatch exists but only helps someone who
+        already knows about the trap; until then, git status lib/ after any
+        pull into a library with hand-built parts.
+
+  - entry: 2026-08-08-damping-a-gate-loop-with-r-g
+    status: promoted
+    kind: prompt_line
+    level: L0
+    targets: [agents/part-sourcer.md]
+    reason: >-
+      The board-specific half is Class E thermal arithmetic, but the
+      sourcing rule generalises - check stock AT the value you are about to
+      choose, because the E24 gaps are thinly stocked in the higher-power
+      classes and a value change after the design is fixed is a re-analysis.
+    artifacts: [agents/part-sourcer.md]
+
+  # --- P8 verification and simulation --------------------------------------
+  - entry: 2026-08-08-pour-neck-tests-one-zone-at-a
+    status: promoted
+    kind: root_learnings
+    level: L2
+    targets: [scripts/check_current.py]
+    reason: >-
+      The entry says it itself - skill-level, promote with the numbers.
+      pour_neck erodes one zone's fill at a time and only where two vias land,
+      so it missed a 2.295 mm bottleneck and flagged a 3.16 mm neck in copper
+      carrying zero current.
+    triage:
+      now: L1
+      target: L2
+      owner: scripts/check_current.py
+      status: open
+      note: >-
+        Three defects - per-zone instead of per-net, via-gated sampling,
+        and no parallel-path label (undersized_track has a bridge label,
+        pour_neckdown has nothing). The workspace bus solver that replaced it
+        is ~60 lines of scipy on lib/geom and ran in 8 s on a 120x80 mm board,
+        finding a 10.4 mOhm/369 mW bus the gate scored as one stub neck.
+        Corollary worth its own check: a single 0.2 mm signal track laid across
+        a poured power bus severs it silently.
+
+  - entry: 2026-08-08-the-via-takes-the-zone-s-net
+    status: promoted
+    kind: root_learnings
+    level: L2
+    targets: [scripts/route_edit.py]
+    reason: >-
+      Extends the P7 via/zone trap - with 3 of 4 layers agreeing with the
+      op it still fails, and fails differently each attempt, so inside the fill
+      is necessary but not sufficient.
+    triage:
+      now: L0
+      target: L2
+      owner: scripts/route_edit.py
+      status: open
+      note: >-
+        The reliable procedure is cheaper than it looks - strip every
+        filled_polygon block (paren-matched, outlines stay), apply the ops on
+        the unfilled board, then refill. You do not need a bare board, you need
+        the FILLS gone. Second-order: KiCad derives the net from the via
+        CENTRE, so test net_copper(net, layer).contains(via.at).
+
+  - entry: 2026-08-08-two-p8-checks-whose-window-not-whose
+    status: promoted
+    kind: root_learnings
+    level: L2
+    targets: [scripts/check_thermal.py, scripts/check_silk.py, scripts/silk_place.py]
+    reason: >-
+      Two P8 checks whose WINDOW, not whose model, produces the finding -
+      check_thermal counts vias inside a radius smaller than the array it
+      demands, and check_silk's attribution rule can be geometrically
+      unsatisfiable, so the scripted fix is not always available.
+    triage:
+      now: L1
+      target: L2
+      owner: scripts/check_thermal.py
+      status: open
+      note: >-
+        check_thermal's window is max(2.0, sqrt(pad_hull/pi) + 1.5) - 2.27
+        mm for an EPC2019, while the board carries 9 vias within 4.0 mm of each
+        centroid. Scale the window to the requested via count or to the pad
+        hull plus array pitch. check_silk half - run the feasibility search
+        before promising a move (zero legal positions for R203 here, 3 for
+        C202).
+
+  - entry: 2026-08-08-k-x-trace-width-makes-a-pour
+    status: promoted
+    kind: root_learnings
+    level: L2
+    targets: [scripts/check_return_path.py]
+    reason: >-
+      check_return_path buffers a centreline by k x width, which is the
+      wrong model for the short full-width land track that track_width.md step
+      4 mandates - 27 percent of the reported deficit ran off the board
+      entirely, and the check never looked at the pour where the loop lives.
+    triage:
+      now: L1
+      target: L2
+      owner: scripts/check_return_path.py
+      status: open
+      note: >-
+        Aspect-ratio guard - when a track's width >= its length the
+        corridor is a modelling artefact, so skip it and measure the POUR
+        instead (corridor_on reads tracks_of only; the /SW pour measured 96.13
+        percent imaged). Same construct as the Freerouting wedge and the pour
+        fan-in remediation, so all three want one track-class label.
+
+  - entry: 2026-08-08-checked-pairs-min-gap-mm-null-is
+    status: promoted
+    kind: root_learnings
+    level: L2
+    targets: [scripts/gate.py, scripts/check_creepage.py]
+    reason: >-
+      check_creepage already proves the negative - a null min_gap_mm
+      means nothing on that layer for that net pair is even within the largest
+      applicable requirement - and gate.py keeps only the failing list, so the
+      evidence never reaches the reviewer.
+    triage:
+      now: L0
+      target: L2
+      owner: scripts/gate.py
+      status: open
+      note: >-
+        Carry the checked[] summary (or a distilled proved-clean list) into
+        the gate JSON - it turned a 21-finding audit into three non-null rows
+        in one read. Companion facts for the reviewer: violation records carry
+        item/other_item type (pad/track/via/zone), and _same_fp downgrades only
+        pad-to-pad, so an error count is not a count of layout defects.
+
+  - entry: 2026-08-08-ten-machine-verified-traps-from-authoring-the
+    status: promoted
+    kind: root_learnings
+    level: L2
+    targets: [scripts/lib/simlib.py, scripts/sim_run.py, agents/sim-analyst.md]
+    reason: >-
+      Ten reproduced ngspice traps from authoring a real bench, each of
+      which cost a debug cycle - .meas has no two-node form, vp() returns
+      radians, .step silently reports only its last point through sim_run, and
+      tight tolerances kill a power deck.
+    triage:
+      now: L0
+      target: L2
+      owner: scripts/lib/simlib.py
+      status: open
+      note: >-
+        At least four are mechanical - reject v(a,b) and
+        subcircuit-internal i() inside .meas at lint time, refuse or fold .step
+        (parse_measures overwrites earlier points), and warn on abstol/reltol
+        overrides on a power deck. The rest (behavioural Coss without abs(),
+        ESR on lumped copper, measurement windows in time constants) are
+        sim-analyst prompt lines.
+
+  - entry: 2026-08-08-a-zone-with-no-return-plane-is
+    status: promoted
+    kind: root_learnings
+    level: L2
+    targets: [scripts/check_return_path.py, scripts/sim_run.py]
+    reason: >-
+      Any net leaving a planed zone loses its microstrip inductance model
+      at the boundary - free-space partial self-inductance was 7x the
+      microstrip estimate here, and the resulting 30 nH took output power from
+      121 W to 53 W on a board that was DRC-clean, verify-clean and fab-ready.
+    triage:
+      now: L0
+      target: L2
+      owner: scripts/check_return_path.py
+      status: open
+      note: >-
+        check_return_path already knows which segments are unimaged - hand
+        P8 the partial-inductance number for those segments the way route-notes
+        already reports pour capacitance. Tuning corollary that is easy to get
+        backwards: extra series L is cancelled by LESS series C, not more.
+
+  - entry: 2026-08-08-nonlinear-coss-makes-zvs-bus-dependent-which
+    status: declined
+    kind: board_local
+    reason: >-
+      Class E ZVS behaviour against this FET's nonlinear Coss. It
+      retires a mitigation inside this board's own decision record and has no
+      consumer in the skill.
+
+  - entry: 2026-08-08-gate-py-s-default-waiver-sidecar-path
+    status: promoted
+    kind: root_learnings
+    level: L3
+    targets: [scripts/gate.py]
+    reason: >-
+      Pipeline bug, verified still live at U6 - gate.py defaults the
+      waiver sidecar to <input dir>/reports/, which for a board input is
+      kicad/reports/, a directory no workspace has. The gate then reports 31
+      failing with no waived key, which reads as never signed off.
+    triage:
+      now: L0
+      target: L3
+      owner: scripts/gate.py
+      status: open
+      note: >-
+        gate.py already has a workspace_dir() helper that computes
+        boards/<name>/ correctly - use it for the default sidecar path, and say
+        in the report when no sidecar was found rather than silently omitting
+        the waived key. Same silent-in-the-unsafe-direction shape as the dfm
+        parts.json path.
+
+  - entry: 2026-08-08-root-py-rewrites-decoupling-json-from-scratch
+    status: promoted
+    kind: root_learnings
+    level: L3
+    targets: [scripts/schlib.py, scripts/check_decoupling.py]
+    reason: >-
+      Second instance of the generator-owns-this-file trap - a schematic
+      regeneration rewrites decoupling.json from the sheets'
+      place_ic_with_decoupling calls, deleting hand-added rail associations and
+      re-opening a check_pdn error on copper that never changed.
+    triage:
+      now: L0
+      target: L3
+      owner: scripts/schlib.py
+      status: open
+      note: >-
+        Same fix shape as the .kicad_pro netclass wipe - merge rather than
+        replace, or emit the generated associations into a file the
+        hand-authored one extends. A rail whose decouplers hang off a
+        regulator OUTPUT node has no IC load pin at all, so the generator can
+        never emit those entries and they will always be hand-added.
+
+  - entry: 2026-08-08-a-schematic-field-only-edit-costs-15
+    status: promoted
+    kind: root_learnings
+    level: L2
+    targets: [scripts/board_update.py, scripts/gate.py]
+    reason: >-
+      A comment-only generator edit produces an electrically identical
+      netlist and still costs 15 footprint_symbol_field_mismatch findings,
+      because KiCad footprints carry their own copy of the schematic fields and
+      drc_routed folds in parity.
+    triage:
+      now: L0
+      target: L2
+      owner: scripts/board_update.py
+      status: open
+      note: >-
+        Rule for every recipe that regenerates a sheet - kc.py netlist plus
+        board_update before the DRC baseline means anything. The cheap tell is
+        a non-zero parity source in gate-drc_routed.json; board_update
+        classifies the fix as swap_same_fp with value null and syncs fields
+        only (positions, tracks, vias, zones and locks all byte-identical here).
+
+  - entry: 2026-08-08-the-zvs-optimal-shunt-depends-on-the
+    status: declined
+    kind: board_local
+    reason: >-
+      Two capacitor banks on one tank, swept on this board's bench. The
+      general lesson (gate the output metric beside the constraint metric, or
+      the sweep optimises the wrong one) is a sim-analyst judgment already
+      covered by the bounds-sidecar contract.
+
+  # --- P9 fabrication ------------------------------------------------------
+  - entry: 2026-08-09-gate-py-gate-dfm-looks-for-parts
+    status: promoted
+    kind: root_learnings
+    level: L3
+    targets: [scripts/gate.py, reference/invalidation.yaml]
+    reason: >-
+      Pipeline bug, verified still live at U6 - run_dfm looks for
+      parts.json beside the board while every workspace keeps its BOM of record
+      at parts/parts.json, so the BOM-completeness leg never ran and the gate
+      reported a clean pass having never looked at the BOM.
+    triage:
+      now: L0
+      target: L3
+      owner: scripts/gate.py
+      status: open
+      note: >-
+        U2's strict mode turns the missing-parts case into a coverage
+        failure rather than a silent pass, but the PATH is still
+        kicad/parts.json in gate.py run_dfm and in invalidation.yaml (so the
+        parts artifact hashes null on every workspace). Resolve it through
+        statelib.kind_path like every other artifact.
+
+  - entry: 2026-08-09-board-level-via-tenting-does-not-protect
+    status: promoted
+    kind: root_learnings
+    level: L2
+    targets: [scripts/dfm_check.py, scripts/lib/gerblib.py]
+    reason: >-
+      KiCad tenting means it does not GENERATE a mask aperture for the
+      via; it does not SUBTRACT the via from another pad's aperture. 30 vias
+      were bare inside pad openings and 17 open at both ends on a board whose
+      board-level tenting was yes and whose per-via overrides were zero.
+    triage:
+      now: L0
+      target: L2
+      owner: scripts/dfm_check.py
+      status: open
+      note: >-
+        Provable from the shipped package rather than from the board -
+        enumerate the mask gerber's openings and account for every one
+        (via-in-pad, and via-in-pad open on BOTH faces). gerblib already parses
+        the apertures. Reading the board's tenting setting proves nothing about
+        the files that get fabricated, which is the statement a fab package
+        needs to make.
+
+  - entry: 2026-08-09-hole-plated-is-always-true-on-kicad
+    status: promoted
+    kind: root_learnings
+    level: L3
+    targets: [scripts/lib/gerblib.py, scripts/dfm_check.py]
+    reason: >-
+      gerbonara does not surface plating on KiCad's merged drill export,
+      so all 326 holes read plated True - including the declared np_thru_hole
+      mounting holes - and dfm_check.check_annular_ring gates on exactly that
+      flag.
+    triage:
+      now: L0
+      target: L3
+      owner: scripts/lib/gerblib.py
+      status: open
+      note: >-
+        The truth is in the drill file's TA.AperFunction comments
+        (Plated,PTH,ViaDrill vs NonPlated,NPTH,ComponentDrill) carried per
+        TOOL - parse them in _holes instead of getattr(obj, plated, True).
+        Latent consequence until then: an NPTH hole placed inside a real SMD
+        pad produces a phantom annular-ring error with no way to see why.

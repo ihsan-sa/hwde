@@ -3291,3 +3291,894 @@ substitute, or reclassify as hand_install". The general trap: a release check wr
 fab's catalogue silently encodes "orderable at THAT fab" as "exists". Keep the two facts in
 separate fields, and let the strictly-JLC judgement live where the fab is actually chosen (the U5
 order attestation), not in a geometry-and-package checker every board runs.
+
+## 2026-08-07 [RETRACTED] The P1 "EPC2019 correction" was WRONG - the ORIGINAL brief numbers were right
+Promoted from boards/rf-de-20m/LEARNINGS.md (promotion pass 2026-08-14).
+**RETRACTED IN FULL.** A P1 agent (research-power-architect) reported Coss(er) 156 pF, Rds(on)
+22/42 mohm, Qg 2.4/2.9 nC as "datasheet-verified" and this file recorded them. They are not in the
+datasheet. The orchestrator later read the actual PDF pages (EPC2019 rev. (c)2021, pages 1-2)
+directly. **Authoritative values:**
+
+| Parameter | Value (datasheet, read directly) |
+|---|---|
+| Rds(on) | **36 typ / 50 max mohm** (cover headline is literally "R_DS(on), 50 mohm") |
+| Coss | **110 typ / 150 max pF** @ VGS=0, VDS=100 V |
+| Qoss | **18 typ / 23 max nC** @ VDS=100 V |
+| Qg | **1.8 typ / 2.5 max nC** |
+| Ciss / Crss | 200/270 pF, 0.7/1 pF |
+| VGS abs max | **+6 / -4 V** |
+| Thermal | RthJC **2.7**, RthJB **7.5**, RthJA **72** C/W (the one thing P1 got right) |
+| ID | 8.5 A cont. (Ta 25 C), 42 A pulsed |
+| Package | passivated **die with solder bars**, 7-bar row (P1's package correction WAS right) |
+
+**There is NO Coss(er) or Coss(tr) figure anywhere in this 6-page datasheet.** Any design that
+needs an effective Coss must derive it, and say so.
+
+**Method lessons (two, both expensive):**
+1. Never let a web-summary spec into a frozen operating point (the original sin).
+2. **An agent asserting "datasheet-verified" is not verification.** Two agents contradicted each
+   other; only reading the PDF settled it. For any number the whole design hangs on, the
+   orchestrator reads the primary source itself. Cost of not doing so here: a whole P2
+   architecture built on an invented capacitance.
+
+## 2026-08-07 [footprint][gan] EPC2019: the 0.68-0.70 mm figure is the OUTER ENVELOPE, not a pad centre spacing
+Promoted from boards/rf-de-20m/LEARNINGS.md (promotion pass 2026-08-14).
+A fixer was instructed (by the orchestrator, on a librarian report) to widen EPC2019 column 1 from
+0.46 to ~0.68-0.70 mm. It refused, extracted the datasheet's vector geometry, and proved
+**both end columns are 0.45 mm centre-to-centre.** The 680/700 numbers are the envelope:
+`450 + 230 (mask dia) = 680`; `450 + 250 (bump dia) = 700` = dim `c` = bar-pad length.
+Cross-check: `(B-h)/2 = (950-450)/2 = 250` = dim `i`, which only closes if h applies to both ends.
+
+**Applying the "fix" would have shifted the GATE pad 0.11 mm off a 0.25 mm pad** - the dead-board
+failure the task existed to prevent. Correct action taken: 0.46 -> 0.450 exact, copper to bump size
+with -0.01 mask margins (a genuine mask-defined land).
+
+**Lesson: a land-pattern dimension read out of a report, not off the drawing, is a rumour.**
+
+## 2026-08-07 [sourcing][jlcpcb] LCSC's package/type fields are USELESS for connector mount style - check pad layers
+Promoted from boards/rf-de-20m/LEARNINGS.md (promotion pass 2026-08-14).
+The part-sourcer marked an SMA "CONFIRMED genuine SMD board-side-launch". The manufacturer drawing
+showed a vertical **through-hole** screw-thread panel jack. Both good and bad parts read
+"Board Side ... SMA SMD" in LCSC's fields; `package: "Plugin"` (Chinese for plug-in/THT) is the
+only tell, and it is not always present. **"Board Side" is a connector TYPE, not a mount style.**
+
+Reliable two-step screen, now proven:
+1. Pull the EasyEDA footprint and **inspect which layers its pads are on.** Any **B.Cu land** means
+   it protrudes/needs bottom copper - fatal for a flat bottom-side heatsink face.
+2. Confirm against the **manufacturer's customer drawing**, not the LCSC listing text.
+
+Result: 4 of 4 orchestrator-suggested candidates were THT; 5 of 7 SMD-labelled alternates carried
+B.Cu lands. Winner **C22418168 / CONSMA001-SMD-G-T** (TE/Linx) - drawing sheet 1 states verbatim
+"Termination: PCB Surface Mount", centre-contact standoff 0.00-0.10 mm (nothing below the board).
+**Cost of correctness: $0.39 -> $2.97 each** (+$25.86 on a 5-board build). 100% SMT preserved.
+
+Also: pulled footprints carried two other latent fab defects worth checking for generally -
+an `attr through_hole` on a surface-land cap (would have put it in the P9 CPL's THT column), and
+courtyards that cut through their own pads. And **tent EP thermal vias on both faces** when a
+bottom heatsink is involved - a mask-opened via there takes solder and breaks flatness.
+
+## 2026-08-08 [driver][gan][gate] TI's ">=2 ohm at each output" is a PER-PIN floor, and paralleled FETs multiply it
+Promoted from boards/rf-de-20m/LEARNINGS.md (promotion pass 2026-08-14).
+The LMG1020 datasheet (s8.2 Typical Application) says "use at least a 2-ohm resistor at each OUTH and
+OUTL". Read as a per-LEG spec that is easy to satisfy and easy to get wrong. This board hangs BOTH
+paralleled EPC2019 off the same OUTH/OUTL pins, so the pin sees the PARALLEL combination of every
+branch on it: 2 x 3R9 per leg x 2 FETs = 4 x 3R9 = **0.975 ohm**, less than half the floor, while
+each individual leg looked like a compliant-ish 1.95 ohm and the schematic note said so. Nothing in
+ERC, netlist_audit or check_* can see it - it is arithmetic over a net, not a rule violation.
+
+The general form: with N devices on one driver pin, **each branch must be >= N x (the datasheet
+floor)**. Here N=2 -> 4 ohm/branch minimum; 4R7 was taken (2.35 ohm/pin, 2.13 A peak instead of
+5.1 A). The floor exists to bound gate-loop di/dt, and on an eGaN part the consequence of ringing is
+not degradation but destruction: VGS abs max is +6 V against a 5 V drive, ~1 V of headroom, no
+avalanche margin, gone on the first pulse.
+
+TWO SECOND-ORDER EFFECTS THAT BOTH POINT THE SAME WAY, and are worth knowing BEFORE choosing R:
+- **The gate-loop inductance budget scales as R^2.** EPC WP008 Eq.1 is L <= R^2.C_GS/4, so going
+  3.1 -> 5.85 ohm total moved "the tightest layout spec on the board" from 0.48 nH to 1.70 nH. Raising
+  R_G to fix a driver-floor violation BUYS layout margin; do not also keep treating the old
+  inductance number as binding when picking package sizes.
+- **Per-resistor dissipation goes UP even though total gate power does not.** Total is Qg.VDD.fSW per
+  FET regardless of R; what changes is the split between the driver's internal impedance and the
+  external resistor, and collapsing 2 parallel parts into 1 doubles the per-part share on top. Here
+  0.029 W/part -> 0.100 W/part at Qg_max, which an 0603 (100 mW, 65 mW derated to a 90 C local board)
+  cannot take. Size the package from Qg_max x VDD x fSW / 2 x R_ext/R_total, derated to the LOCAL
+  board temperature, not the 70 C datasheet point.
+
+## 2026-08-08 [footprint][sourcing][polarity] On the RVT (JIERR/Lumimax) V-chip electrolytic family the CHAMFERED corners mark the ANODE
+Promoted from boards/rf-de-20m/LEARNINGS.md (promotion pass 2026-08-14).
+The usual reading of a chamfered/bevelled base corner on an SMD aluminium electrolytic is "cathode",
+and a P4 review flagged C101/C102 as unadjudicated on exactly that basis: the EasyEDA symbol puts "+"
+at pin 1 while the footprint's only asymmetric feature - two chamfers - sits on the PAD-1 side, so
+symbol and footprint appeared to contradict each other. The manufacturer drawing settles it the other
+way. JIERR "RVT series" (LCSC C51953411, now committed at parts/C51953411.pdf) page 2 labels the two
+terminals "Positive" and "Negative" with leaders, and **"Positive" lands on the chamfered end**;
+Lumimax's SMDGP/RVT drawing agrees from the opposite face, putting the black negative top-stripe on
+the SQUARE-cornered side. So the pull was self-consistent and correct all along.
+
+Two transferable points. (1) LCSC's product page is HTML at `lcsc.com/datasheet/C<code>.pdf`; the
+real PDF link is inside it (`datasheet.lcsc.com/datasheet/pdf/<hash>.pdf`) - an empty `datasheet`
+field in parts.json usually means nobody followed the redirect, not that no datasheet exists. Fill it
+at P3; a blank one on a POLARIZED part is what turned this into an unresolvable review finding.
+(2) A chamfer is a BODY-OUTLINE feature, not a marking: this footprint's silk body square is +/-5.23 mm
+and the part's plastic base is 10.3 mm, so once assembled the cue is invisible for inspection. Even
+when the geometry is right, a polarized part still needs a real silk "+" placed OUTSIDE the body.
+
+## 2026-08-08 [kicad][footprint][connectivity] Footprint copper GRAPHICS are not in KiCad 10 connectivity - an etched-copper part must be made of PADS
+Promoted from boards/rf-de-20m/LEARNINGS.md (promotion pass 2026-08-14).
+(Relocated from root LEARNINGS.md - this workspace keeps its own file while concurrent runs are in
+flight. Discovered building the PCB spiral inductors, `kicad/gen/spirals.py`.)
+
+KiCad's own `NetTie.pretty` draws its shorting bar as an `fp_poly` on F.Cu, so `fp_poly` on a copper
+layer looks like the natural way to author an etched component (spiral inductor, PCB antenna,
+current shunt, coplanar structure). **It is not.** Measured on 10.0.3 with a scratch board
+(`CreateEmptyBoard` + `FootprintLoad` + pad nets + `kc.py drc`):
+
+- an `fp_poly` on F.Cu joining two same-net pads 18 mm apart leaves them **`unconnected_items`** -
+  the graphic carries no net and conducts nothing as far as connectivity is concerned;
+- it additionally raises **`shorting_items`** ("nets <blank> and NA") against every netted pad it
+  touches, because it is netless copper;
+- `(net_tie_pad_groups "1, 2")` suppresses the `shorting_items` half but NOT the unconnected half.
+
+The stock NetTie footprints get away with it only because each of their nets has exactly one pad, so
+nothing is left to be unconnected to. Easy to misdiagnose: a footprint whose winding is a graphic
+DRCs "clean" apart from an unconnected count that reads like a placement problem.
+
+**Correct encoding for copper-is-the-component parts, all verified on 10.0.3:**
+- winding/antenna body = `(pad "N" smd custom ... (primitives (gr_poly ...)))`, one per copper
+  layer; ~440-point primitives load, round-trip and plot fine;
+- `(net_tie_pad_groups "1, 2")` for the deliberate pad1-pad2 short (an inductor IS a DC short);
+  pads of DIFFERENT numbers may overlap inside a tie with no violation;
+- footprint-level rule areas `(zone ... (keepout (tracks not_allowed) (vias not_allowed)
+  (pads allowed) (copperpour not_allowed)))` ARE supported, round-trip through pcbnew
+  (`fp.Zones()` -> `GetIsRuleArea() True`), and are how a "no plane under this part" rule travels
+  with the footprint;
+- an SMD pad on inner layers only (In1+In2 bridge) works but costs one **`padstack` WARNING**
+  ("SMD pad has no outer layers") that must be waived;
+- duplicate pad numbers mixing `smd custom`, `smd rect` and `thru_hole` in one footprint are legal
+  and connect correctly wherever they share a layer - `thru_hole` is the ONLY thing that ties an
+  F.Cu pad to an In1/In2 pad at the same x,y.
+
+**Second-order trap: DRC cannot check clearances INSIDE a net tie.** The tie exempts pad1<->pad2
+entirely, so the inner-land-to-adjacent-turn gap (0.014 mm in the first cut of this part - a shorted
+turn that would have collapsed the inductance) reports nothing at all. Any critical spacing between
+tied pads must be enforced in the generator and measured out-of-band; **a scratch-board DRC pass is
+NOT evidence that a net-tie part is geometrically sound.**
+
+## 2026-08-08 [placement][p6] Locking a group ANCHOR silently orphans the whole group in place_seed/place_anneal
+Promoted from boards/rf-de-20m/LEARNINGS.md (promotion pass 2026-08-14).
+`constraints.json.placement.fixed` on this board holds Q201, U201, R203-R206, L301, L302, J101,
+J301 - i.e. the anchors of `switch`, `tank_ls`, `tank_lm`, `drive_in`, `bus_in`. `placelib.
+build_clusters` sends any footprint that is `not is_movable or ref in placement.fixed` to the
+**fixed** list, so a group whose anchor is fixed produces **no cluster at all**: place_seed's report
+listed only 4 clusters (C110, C111, R104, U101) out of 6 declared groups, and C101-C104, C207-C212,
+L201, L202, R201, R202 were left untouched at their P5 shelf coordinates (they then read as
+`outside_outline` / `courtyard_overlap`). The same mechanism drops `separation` entries -
+place_anneal reported `separation_unknown_refs: ["L301","L302","U201"]`, so the declared
+"U101 >= 30 mm from either spiral" was never enforced and had to be checked by hand.
+
+**Consequence for any board with a hand-built floorplan: everything in a group whose anchor you
+lock is yours to place.** Here that meant hand-placing 50 of 70 parts and leaving only the `hk`
+cluster (the one anchor NOT in `fixed`) to seed+anneal.
+
+## 2026-08-08 [kicad][silk] place_edit `add_text` is idempotent only at the SAME coordinates - and there is no delete op
+Promoted from boards/rf-de-20m/LEARNINGS.md (promotion pass 2026-08-14).
+`add_text` matches an existing text by (string, layer, position within 0.01 mm). Emitting the same
+string at a *new* position therefore ADDS a second copy, and no `del_text` op exists. A misplaced
+silk mark cannot be un-done through the ops interface. On this board the C101/C102 polarity "+"
+landed on pad 1; the fix was to **move the capacitors** 1 mm instead of moving the text.
+
+## 2026-08-08 [drc][creepage][gan] A qualified die's OWN terminal pitch is not a board creepage violation - the "part choice is the defect" rule has an exception
+Promoted from boards/rf-de-20m/LEARNINGS.md (promotion pass 2026-08-14).
+Refines the root-LEARNINGS entry "a voltage-class DRU rule only protects the nets you NAMED, and the
+ICD's own part-size policy can violate its own creepage rule", whose conclusion was: *if a creepage
+rule is tighter than a land pattern's own pad gap, the PART choice is the defect.*
+
+That holds when the part was chosen by policy and a larger one exists (lumina-par's 0805 -> 1206).
+**It does not hold here.** P6 on rf-de-20m produced 12 `clearance` errors that are all intra-EPC2019:
+its 0.6 mm solder-bar pitch leaves ~0.35 mm drain-to-source gaps, against the board's own
+`aiee_hv_143v_SW` rule of 0.8 mm (IPC-2221, derived from /SW's 143 V peak).
+
+Why this one is a waiver and not a part-selection defect:
+- The 0.35 mm gap is **die geometry** on a manufacturer-qualified **200 V** device. EPC rates the
+  part at 200 V *with that pitch*; the spacing is internal to a passivated die, not board copper.
+- **IPC-2221 creepage/clearance governs board-level conductor spacing**, not the terminal geometry
+  of a qualified component. Applying it inside a footprint is a category error.
+- There is **no alternative part**: EPC2019 is the only 200 V GaN that closes this design, and every
+  eGaN FET in this class has comparable bar pitch. "Choose a bigger part" has no referent.
+
+**Practical rule:** when an HV DRU rule fires *inside* a single footprint, first ask whether the
+pads belong to a qualified component or to board copper. Component-internal -> document and waive
+with the vendor's own voltage rating as evidence. Board copper (including two discrete parts placed
+close, or one part's pads on a land YOU specified) -> the original rule applies and it is a real defect.
+
+Same board, same class, DIFFERENT verdict: U101's 4 `solder_mask_bridge` errors come from netless
+PTH holes inside the LM5017's exposed pad. Those ARE ours (a pulled-footprint artefact), so they get
+fixed or re-drawn, not waived.
+
+## 2026-08-08 [PIPELINE BUG][planes][constraints] constraints rects are consumed as ABSOLUTE board coords, but board_init does not place the outline at the origin
+Promoted from boards/rf-de-20m/LEARNINGS.md (promotion pass 2026-08-14).
+**This is a skill-level defect, not a board-level one - it should be promoted to root LEARNINGS.md
+once the concurrent runs settle.** Found at rf-de-20m P6 while chasing a missing GND return.
+
+`planes_gen._region_rect` and `placelib._forbidden` consume `constraints.planes[].region` and
+`placement` `rect` **verbatim as absolute board coordinates**. But `board_init` placed this 120x80
+outline at origin **(6.635, 39.335)**, not (0,0). Architecture authors rects in the natural
+board-local frame, so every rect silently lands displaced by the outline origin:
+
+| Declared (board-local) | What it actually meant | Consequence |
+|---|---|---|
+| zone A `[0,0,48,80]` | poured only board-local x 0-41, **y 0-41** | buck + half the FET thermal island get **NO plane** |
+| zone C `[88,0,100,80]` | landed **on top of L301** | plane over a spiral = shorted turn |
+| heatsink keepout `[5,10,36,70]` | equally displaced | keepout guarding nothing |
+
+**Nothing in the pipeline catches this:** `constraints_lint` does not know the board outline, and
+`place_metrics` never fires the keepout (it is declared `side:"back"` and gated on `is_movable`).
+`stackup.md` s2.1 documents translation as a mandatory P5 step - and it is simply skippable, with no
+gate behind it. The failure is silent and survives to fab: you get a board that DRCs clean with no
+plane where you thought you had one.
+
+**Practical rules:**
+1. After `board_init`, read the outline origin and translate EVERY rect in `constraints.json`
+   (`planes[].region`, `placement` rects/keepouts) into absolute coordinates before `planes_gen`.
+2. Record the translation in the file (`_coord_note` / `_planes_note` with the board-local
+   equivalent) so the next reader cannot mistake the frame.
+3. **After the P7 pour, re-run a geometric island check** - the FILL is the authority, not the
+   planned rectangle. Verify each plane net forms the island count you intended.
+
+## 2026-08-08 [layout][rf] A pour can bend: the "corridor width" between two keepout discs is the perpendicular gap, not the straight-strip intersection
+Promoted from boards/rf-de-20m/LEARNINGS.md (promotion pass 2026-08-14).
+Orchestrator error worth keeping. Given two circular keepouts, I computed the clear corridor as the
+intersection over all x of their y-spans - the widest straight horizontal strip - and got 2.8 mm,
+concluding the ground return was unroutable.
+
+That is the wrong measure, because **copper pours are not required to be straight**. The real
+constraint is the perpendicular gap `d - 2R` between the disc edges, projected onto the corridor:
+`45.88 - 41.10 = 4.78 mm` perpendicular = **5.01 mm** measured as a vertical section. Scanning the
+actual clearance along x: 80 mm at x=48, 45 at x=60, 9.5 at x=70, **5.0 at x=78** (the pinch),
+14 at x=90, 44 at x=95.
+
+The underlying concern was still valid (and the real cause was the coordinate bug above), but the
+number was wrong by 1.8x. **Measure a routing corridor as the minimum perpendicular gap along the
+path, not as the largest inscribed rectangle.**
+
+## 2026-08-08 [P7][kicad][zones] A `.kicad_dru` rule BEATS a zone's local clearance during fill - so a pour can never reach a fine-pitch HV die
+Promoted from boards/rf-de-20m/LEARNINGS.md (promotion pass 2026-08-14).
+Measured on this board, both directions, same run:
+
+- A **GND** zone with `(connect_pads yes (clearance 0.35))` next to the EPC2019 filled to
+  **0.8006 mm** from every `/SW` pad - i.e. KiCad used `aiee_hv_143v_SW` (0.8 mm), not the
+  zone's own 0.35 mm. The consequence is not cosmetic: the fill stops **0.20 mm short of the
+  source bumps and 0.66 mm short of pin4**, so *no pour of any clearance setting can connect
+  the die*.
+- The same is true for a **/SW** zone: three fan-in lobes authored at clearance 0.35 over the
+  drain bars filled **0.0 / 0.85 / 2.08 mm2** - all of it pushed 0.8 mm away.
+
+**Practical rule: `SetLocalClearance` only ever LOOSENS a zone against nets that no custom rule
+names.** If a per-net `.kicad_dru` clearance rule exists, the zone obeys the rule. To attach a
+pad the rule holds a pour away from, you need a TRACK or a VIA - the filler is not negotiable.
+
+Corollary for this board: the EPC2019's 7 bumps are on a 0.6 mm pitch with 0.35 mm drain-to-
+source gaps, so the whole die fan-in (4 source escapes + 2 drain escapes + 1 rung per FET) is
+0.25 mm hand track. GND carries no per-net width rule so those cost no `track_width` findings;
+`/SW` does, so the two drain escapes and their rung are `track_width` findings by construction.
+
+## 2026-08-08 [P7][kicad][swig] A via added into an ALREADY-FILLED zone takes the ZONE's net, not the op's
+Promoted from boards/rf-de-20m/LEARNINGS.md (promotion pass 2026-08-14).
+`route_edit`/`stitch_vias` set the net explicitly (`v.SetNet(...)`) and the worker reports
+`added`, but the saved board carries a different net and the post-apply verify then fails with
+`via at (x, y) (+40V) not in saved board`. Grepping the board shows the via present with
+`(net "GND")`.
+
+Cause: KiCad re-derives a via's net from connectivity, and a board whose zones are already
+filled has **no antipad yet** at the new hole - so the via is electrically inside the GND plane
+at the moment it is added. Verified by placing the identical via on the bare board (net kept)
+and on the poured board (net stolen), same coordinates.
+
+This never bit the pipeline before because it only ever stitches GND (or a power net whose
+plane is that net) - the "stolen" net is the one it wanted. It bites the moment a **power net
+needs a bridge on a layer the plane owns**.
+
+**Build order that works:** place power-net vias on the BARE board -> pour GND -> stitch GND ->
+pour the power nets last. `route_edit` is atomic, so a mixed batch rolls back entirely; the
+retry driver in `route/apply_ops.py` parses the verify message and drops the rejects (note
+`route_edit` truncates that list to 10 per attempt, so it needs several passes).
+
+## 2026-08-08 [P7][routing][krt][freerouting] Never hand KRT a PLANE-CARRIED net - GND alone blew a 1800 s budget
+Promoted from boards/rf-de-20m/LEARNINGS.md (promotion pass 2026-08-14).
+Freerouting 2.2.4 **wedges reading this design** (rung 1 log stops after the
+version banner; no pass lines, no SES, no completion) - the documented failure
+mode on a board that already carries router-generated copper, and this one is
+almost entirely pours + hand tracks. So the whole remainder falls to the KRT
+mop-up, and two things had to be fixed before it would do anything:
+
+1. **`route_auto`'s KRT pass inherits `grading_floors`, which takes the
+   LOOSEST netclass clearance as KRT's base.** The HV power classes had been
+   raised to 0.8 mm in the `.kicad_pro` so Freerouting would honour them in
+   the DSN; KRT then tried to route the buck's 0.4 mm-pitch signals at 0.8 mm
+   and produced nothing, which `route_auto` correctly reported as "not
+   strictly better". **Keep HV clearance OUT of the netclass and pass it in
+   `--net-clearances`** (which `route_critical.build_net_clearances` builds
+   from the `.kicad_pro` AND the `.kicad_dru`) - the LEARNINGS 1522 rule, now
+   confirmed from the other side.
+2. **`route_auto` derives KRT's net list from the DRC's unconnected items,
+   which includes GND** whenever a single GND pad is open. GND here has
+   hundreds of pads on four layers, and KRT spent the full 1800 s on it
+   without emitting a board. Excluding GND (it is plane-carried; the one open
+   pad was a 0.2 mm WCSP ball that a single via closes) is what makes the pass
+   finish.
+
+Generalisation: the mop-up router's net list must be **the nets that are
+actually meant to be tracks**. A plane-carried net that shows up unconnected
+means "this pad needs a via", not "route this net".
+
+## 2026-08-08 [P7][pipeline][rules_gen] Re-generating the schematic WIPES rules_gen's netclasses out of the .kicad_pro
+Promoted from boards/rf-de-20m/LEARNINGS.md (promotion pass 2026-08-14).
+Found at P7 start: `kicad/rf-de-20m.kicad_pro` had **no `net_settings` at all**
+and an empty `board.design_settings.rules`, even though `log/P5-rules_gen.json`
+reports it wrote three power netclasses (`Pwr_5p5mm`, `Pwr_8p4123mm`,
+`Pwr_11p8942mm`) and the fab floors.
+
+Cause: `schlib.write_project()` writes a **whole minimal `.kicad_pro` from
+scratch** (deliberately - "keep it MINIMAL; unexpected keys can make KiCad
+reject the whole file"), and `Sheet.save(..., project=True)` calls it. So any
+schematic regeneration after P5 - here the P4-FIX review pass - silently
+deletes rules_gen's work. `rules_gen` is a P5 step and nothing re-runs it.
+
+Consequences if it is not caught: the DSN handed to Freerouting carries no
+per-net widths or clearances at all, and `route_critical.grading_floors`
+(which reads the pro) falls back to KiCad stock defaults, so the mop-up
+router grades against the wrong floors too.
+
+**Check `net_settings` in the `.kicad_pro` at the start of P7**, and re-run
+`rules_gen.py --constraints ... --out-dru ... --pro ...` if it is missing.
+Re-running is safe: the `.kicad_dru` it regenerates was byte-identical here.
+
+## 2026-08-08 [P7][BLOCKER][krt] KRT `route.py` does not scale to a 120 x 80 mm board - it cannot finish ONE net
+Promoted from boards/rf-de-20m/LEARNINGS.md (promotion pass 2026-08-14).
+Not a wedge, not a bad input: it simply never returns. Measured on rf-de-20m,
+every configuration, each on a fresh stage with the correct floors and an
+explicit `--net-clearances` map:
+
+| grid | scope | budget | result |
+|---|---|---|---|
+| 0.05 | 11 nets incl. GND | 1800 s | no board emitted |
+| 0.05 | 10 signal nets | 3000 s | no board emitted |
+| 0.1 | per net | 300 s | `+5V` alone did not finish |
+| 0.1 | per net, **zone-free board** | 240 s | `+5V` alone did not finish |
+| 0.2 | per net, zone-free board | 240 s | `+5V` alone did not finish |
+
+The zone-free run is the one that settles it: with NO pours on the board at
+all (placement + a handful of hand tracks), a single 5-connection 0.2 mm
+signal net still does not complete. So it is not the pours, not the HV
+clearance map, and not the net count - it is the search space. 120 x 80 mm at
+grid 0.05 is 2400 x 1600 x 4 nodes; every prior board in this pipeline ran KRT
+as a mop-up for a few short nets on a smaller outline.
+
+**Consequence: on a board this size, `route_auto` has no working fallback** -
+Freerouting wedges on pre-existing copper and KRT cannot finish. Plan for
+hand-routing the signal remainder, or route BEFORE any copper exists (FR's
+wedge is triggered by existing router copper, not by the placement).
+
+## 2026-08-08 [P7][freerouting][BLOCKER-RESOLVED][PROMOTE-TO-ROOT] Freerouting's DSN reader wedges on a pre-routed WIRE whose WIDTH rivals its LENGTH - not on big pads, keepouts or vias
+Promoted from boards/rf-de-20m/LEARNINGS.md (promotion pass 2026-08-14).
+Supersedes the earlier "FR wedges on a board that already carries router-generated copper"
+entry, which named the symptom and guessed the cause. Bisected on this board with
+`route/fr_spiral_probe.py` and `route/fr_wire_bisect.py`. A healthy run prints
+`Job '...' started` ~1.5 s in and finishes in ~10 s, so a MISSING `started` line is the wedge
+signature and a 90 s budget is enough to classify a variant.
+
+| DSN variant | result |
+|---|---|
+| as exported | wedges |
+| both spiral winding padstacks (1116/828 pts, exported as 55-pt concave hulls) -> plain rects | **still wedges** |
+| + the four r=20.3/20.55 mm polygon keepouts dropped | **still wedges** |
+| `(wiring)` emptied (34 wires + 160 vias) | **runs**, 4 passes |
+| wires kept, all 160 vias dropped | **wedges** |
+| vias kept, all 34 wires dropped | **runs**, 5 passes |
+| only the 4 land tracks > 2 mm wide dropped | **wedges** |
+| the 9 highest width/length wires dropped (aspect >= 0.81) | **runs** |
+
+A JFR profile of a wedged run (`-XX:StartFlightRecording`, then `jfr print --events
+jdk.ExecutionSample`) puts every hot sample under `app.freerouting.io.specctra.parser.
+Wiring.read_scope` -> `ShapeSearchTree.insert` -> `Simplex.intersects` /
+`Simplex.remove_redundant_lines` (which is O(n^2) in half-planes), with 279 GCs in 70 s. It
+never reaches pass 1. The trigger is the convex decomposition of a wire whose rectangle is
+nearly degenerate - here **7.651 mm wide x 0.020 mm long (aspect 382)**, plus an
+8.412 x 0.700, an 11.894 x 1.200, an 8.412 x 1.200 and five gate bars at aspect 0.81-1.44.
+
+**This is a PIPELINE-LEVEL trap, not a board quirk.** `remediations/track_width.md` step 4
+mandates pour fan-in - a short, full-width land track into a pour - whenever a net's DRU
+width floor exceeds what its pad can take. That remedy PRODUCES wires of exactly this shape.
+So does a wide gate bar landing on two resistors at once. Any board that follows the
+remediation will wedge Freerouting on its next pass, and the failure looks like a hang with
+no diagnostic at all.
+
+**Working recipe** (`route/fr_signals.py`): export the DSN, delete every wire with
+width/length >= 0.8 FROM THE DSN ONLY (the copper stays on the real board), run Freerouting,
+then FILTER the SES to the nets that actually needed routing.
+
+## 2026-08-08 [P7][kicad][swig][PROMOTE-TO-ROOT] ImportSpecctraSES REPLACES the board's wiring - it does not add to it
+Promoted from boards/rf-de-20m/LEARNINGS.md (promotion pass 2026-08-14).
+Measured, and it silently deleted this board: `tracks_before 209, tracks_after 89`, and
+unconnected went **24 -> 44**. `lib/route_swig.py`'s docstring says "adds copper only;
+footprints/zones untouched" - the second half is true, the first is not.
+
+`route_auto` gets away with `import_ses` only because the DSN it feeds Freerouting carries
+every pre-existing track as a guide wire, so the SES echoes them all back and the round trip
+is lossless (hence its `ses_echo_dups_removed` dedup step). The moment you hand Freerouting a
+THINNED DSN, or filter the SES down to a subset of nets, the import becomes destructive.
+
+**Fix: convert the session to `route_edit` ops instead** (`route/ses_to_ops.py`). route_edit
+is additive, atomic and post-verified. SES geometry: `(resolution um 10)` -> 1 unit = 0.1 um,
+and y is Specctra-up, so `board_y_mm = -y/10000`.
+
+## 2026-08-08 [P7][freerouting][clearance] Per-net DRU clearances never reach Freerouting - and pushing them into the netclasses re-wedges it
+Promoted from boards/rf-de-20m/LEARNINGS.md (promotion pass 2026-08-14).
+KiCad writes the DSN's clearance rules from the `.kicad_pro` NETCLASSES only. This board's
+HV rules (`aiee_hv_51v_40V` 0.5 mm, `aiee_hv_143v_SW` 0.8 mm, ...) live in the `.kicad_dru`,
+so Freerouting routed at the netclass 0.2 mm and produced `/hk/BST` 0.26 mm from a +40V pad
+and `+5V_DRV` 0.62 mm from a /SW pad.
+
+The obvious fix - raise the three `Pwr_*` classes to 0.5/0.8/0.8 in the STAGED `.kicad_pro`
+before export - **re-wedges the DSN reader** (no `Job started` line in 600 s), the same
+failure mode as the degenerate wires. So there is no way to give Freerouting this board's
+real clearances. Route with the netclass values and fix the HV-adjacent legs afterwards with
+`route_edit`; that was 2 legs out of 15 nets here.
+
+Related and still true from the other side: KRT must NOT get the HV clearance in its
+netclass either (it then tries to route 0.4 mm-pitch buck signals at 0.8 mm and produces
+nothing). Pass it in `--net-clearances`.
+
+## 2026-08-08 [P7][drc][gotcha] A track can SWALLOW an existing via and steal its net; and check hole-to-hole against vias you did not place
+Promoted from boards/rf-de-20m/LEARNINGS.md (promotion pass 2026-08-14).
+Two traps hit within minutes of each other while hand-routing, both found by DRC and neither
+visible by inspection:
+
+- a `/hk/BUCK_SW` track centred at x = 52.086 ran within 0.182 mm of a GND stitch via at
+  (51.904, 93.17) - inside the via's 0.225 mm radius - so KiCad re-derived the via's net as
+  BUCK_SW and reported `via_dangling`, not a short. The GND island it was stitching went
+  quietly open.
+- a new signal via at (29.85, 63.60) landed 0.584 mm centre-to-centre from a GND via at
+  (30.085, 64.135): `hole_to_hole` needs 0.4995 mm plus both radii = 0.6995 mm.
+
+This board carries 185 vias, most of them auto-placed GND stitching, so **scan
+`bg.vias_of()` over the corridor before choosing a lane** - pads and tracks are not enough.
+
+## 2026-08-08 [P7][zones][gotcha] A 0.2 mm signal track routed past a WCSP ball can starve the ball's only pour access
+Promoted from boards/rf-de-20m/LEARNINGS.md (promotion pass 2026-08-14).
+`U201.B1` is a 0.2 mm GND ball whose ONLY pour access is the band north of U201's ball row
+(south is B2 at 0.4 mm pitch, leaving a 0.098 mm sliver; west is C1 at 0.2 mm). Freerouting's
+`A1 -> C202.1` link dived diagonally through that band and squeezed it to **0.25 mm**, below
+the zone's minimum width, so it stopped filling and B1 read `unconnected_items` against
+`Zone [GND]`. Nothing else changed and no clearance rule fired.
+
+Re-routing the same link along a constant y = 62.75 restored a 0.76 mm band and B1
+reconnected. **Neither a via nor a jumper could rescue it**: a via needs 0.45 mm + 2 x 0.1016
+and the pocket is 0.775 mm wide but already holds a GND via; a diagonal jumper across the
+2x2 ball square clears the neighbouring balls only at <= 0.034 mm width.
+
+Rule: when a fine-pitch BGA/WCSP pad is fed by POUR rather than by track, treat the feeding
+band as a routing keepout of at least the zone's minimum width plus clearance.
+
+## 2026-08-08 [P7][footprint][drc] Netless PTH thermal vias inside an exposed pad: give them the EP's PAD NUMBER, not a mask change
+Promoted from boards/rf-de-20m/LEARNINGS.md (promotion pass 2026-08-14).
+The easyeda2kicad `SOIC-8 ... EP2.0` pull for the LM5017 shipped four `(pad "" thru_hole ...)`
+inside pad 9. Their `*.Paste`/`*.Mask` layers had ALREADY been removed at P3 (tented both
+faces, mandatory here because the bottom copper is the heatsink mounting face) and KiCad
+STILL raised 4 `solder_mask_bridge` ("Front solder mask aperture bridges items with different
+nets") plus 4 `clearance` errors at 0.25 mm against pad 9. Tenting the hole does not help: the
+hole sits inside pad 9's mask aperture and carries no net, so the aperture bridges pad-9
+copper to no-net copper.
+
+**Renumbering them from `""` to `9` clears all eight at once** - same-net items neither bridge
+nor violate clearance - and it is also what an EP thermal via IS. Verified on a scratch copy
+of the board first (93 -> 85 violations) before touching the library.
+
+Propagating a footprint change under a LOCKED part: rename the footprint, point the generator
+at the new name, rebuild the netlist, and let `board_update` classify it as `swap_new_fp`
+(rip and re-place at the recorded pos/deg/side, pads re-netted from the netlist). Two things
+the swap does NOT preserve and that must be redone afterwards: **the lock** (re-assert with
+`place_edit --ops` `lock`) and **any moved Reference/Value field**, which reverts to the
+library default position - here straight on top of C106, producing 3 `silk_overlap` + 1
+`silk_over_copper` until it was moved back with `place_edit` `move_text`.
+
+## 2026-08-08 [P7][pipeline][lib_pull][PROMOTE-TO-ROOT] lib_pull --project re-normalises EVERY footprint in the library, not just the one you asked for
+Promoted from boards/rf-de-20m/LEARNINGS.md (promotion pass 2026-08-14).
+`lib_pull.py --lcsc C2479122 --project ...` pulled the one 10R resistor as asked, and then its
+`--refdes-norm` pass silently rewrote the Reference-text position of BOTH spiral footprints
+(`SPIRAL_L110N`, `SPIRAL_L164N`) from `(at 0 -18.1)` to `(at 0 -4.825)` - i.e. from outside the
+33 mm winding to on top of it. The board's placed copies are unaffected (they carry their own
+geometry), so nothing DRCs differently, but a later re-import would have moved silk onto
+copper.
+
+`git status` on `lib/` after any `lib_pull` and revert what you did not intend. Use
+`--no-refdes-norm` when adding a single part to a library that already contains hand-built
+footprints.
+
+## 2026-08-08 [P8][check_current][pipeline] `pour_neck` tests ONE zone at a time and only where vias land - so it can miss the bus entirely and flag a dead-end stub instead
+Promoted from boards/rf-de-20m/LEARNINGS.md (promotion pass 2026-08-14).
+The worst finding of the P8 verify pass, and the check pointed the fixer at the wrong copper.
+
+`check_current.pour_neck` erodes **`z.fill_on(layer)` - a single zone's own fill** - and only
+runs at all when that fill contains **>= 2 vias of the net** (`len(pts) < 2 -> return None`).
+Both halves bite on any real power bus:
+
+1. **Per-zone, not per-net.** `planes_gen` decomposes a bus into abutting rectangles. Each is
+   eroded on its own, so a 4.7 mm column abutting a 3.2 mm strip abutting a 24 mm block reports
+   whichever rectangle happens to hold vias, at ITS width - not the width of the conductor.
+2. **Only where vias land.** On rf-de-20m the true bottleneck was the x 46..51 / y 34..56
+   corridor, pinched to **2.295 mm** by R104 and to 2.25 mm by a `/hk/BUCK_SW` horizontal.
+   Those zones hold no vias, so `check_current` said nothing about them. What it DID flag was a
+   3.16 mm neck in the y 31..34.2 strip - which was carrying **zero current**, because a single
+   0.200 mm `+5V` track crossed it diagonally and cut the fill in two. The finding was real
+   arithmetic about copper that did not conduct.
+3. **No parallel-path awareness.** `undersized_track` carries a `bridge` (cut-edge) label;
+   `pour_neckdown` carries nothing equivalent, so a neck in one of two parallel branches reads
+   the same as a neck in a sole path.
+
+**What to do instead when a pour_neckdown fires on a bus that matters:** solve the copper.
+`route/bus_solve.py` + `route/bus_cuts.py` in this workspace rasterise the net's copper on both
+outer layers at 0.25 mm, tie the layers at the net's vias, inject the rail current at its source
+pad and draw it at its sink pad, and report bus resistance, the current in each branch, and the
+section-average A/mm with its IPC-2152-equivalent width. It is ~60 lines of scipy on top of
+`lib/geom` and it runs in 8 s on a 120 x 80 mm board. It found a 10.4 mOhm / 369 mW bus with a
+60-76 C hot spot that the gate had scored as one 3.16 mm neck in a stub, and it proved the fix:
+5.5 mOhm, 196 mW, every section at 1.19-1.32 A/mm against the 1.273 A/mm that IS 5.500 mm at
+7.0 A. **This is skill-level, not board-level** - promote with the numbers.
+
+**Corollary, and it is the cheapest lesson here:** a single 0.2 mm signal track laid across a
+poured power bus severs it, silently. Nothing in the pipeline reports it - the net stays
+"connected" through the long way round, DRC is clean, `plane_repair` passes (each fill is
+electrically whole), and the island count does not change because the bus reconnects elsewhere.
+**After any signal-routing pass, re-check that each power pour's fill is still ONE piece between
+its source and its load** (`zones_of(net)` -> per-zone fill part count is the cheap version).
+
+## 2026-08-08 [P8][kicad][swig] The "via takes the zone's net" trap is NON-DETERMINISTIC when the outer layers already carry the via's own net
+Promoted from boards/rf-de-20m/LEARNINGS.md (promotion pass 2026-08-14).
+Extends the P7 entry above. There the case was clean - a `+40V` via into a board where GND owned
+every plane - and it failed every time. At P8 the new bridge vias landed where **F.Cu and B.Cu
+were both already `+40V` fill** and only In1/In2 were GND, i.e. 3 of 4 layers agreed with the op.
+It still failed, and it failed *differently each time*:
+
+| batch | vias | lost |
+|---|---|---|
+| 8 vias at local x 50.1..43.8, y 31.3 | 8 | 1 (the x 50.1 one, whose centre sat 0.005 mm OUTSIDE the +40V fill) |
+| the same 8 shifted one pitch west (49.2..42.9) | 8 | **4**, three of them at x-positions that had just SUCCEEDED |
+
+So "is the via inside the target fill?" is necessary but not sufficient, and a passing attempt
+does not predict the next one. `route_edit` is atomic and post-verifies every add, so both
+attempts rolled back with the board byte-identical - the trap costs a retry, never a board.
+
+**Only reliable procedure, and it is cheap:** strip every `(filled_polygon ...)` block from the
+`.kicad_pcb` (paren-matched delete; the outlines in `(polygon ...)` stay), apply the ops on the
+bare board, then `kicad-cli pcb drc --refill-zones --save-board`. That is the P7 build order
+(`route/rebuild.sh` step 1) reached from the other direction: **you do not need the whole board
+bare, you need the FILLS gone.**
+
+Second-order, worth knowing before choosing via positions: a via whose CENTRE is 0.005 mm outside
+the pour still reads as "connected" by eye and in DRC (its pad merges with the fill), but KiCad's
+net derivation does not use the pad - it uses the centre. Check `net_copper(net, layer).contains(
+Point(via.at))`, not `.intersects(via_pad)`.
+
+## 2026-08-08 [P8][check_thermal][check_silk] Two P8 checks whose WINDOW, not whose model, produces the finding
+Promoted from boards/rf-de-20m/LEARNINGS.md (promotion pass 2026-08-14).
+Both cost a fixer a wrong conclusion if the source is not read.
+
+- **`check_thermal` counts thermal vias inside `max(2.0, sqrt(pad_hull_area/pi) + 1.5)` of the
+  footprint CENTROID.** For an EPC2019 the pad convex hull is 1.84 mm2, so the window is
+  **2.27 mm** - smaller than the via array it is asking for. It reported "found 3 via(s), want
+  >= 10"; the board actually carries **9 within 4.0 mm of each FET centroid**. Measure the array
+  yourself before believing the count. (Its theta_JA model is separately heatsink-blind by
+  design - `theta_floor + (theta_0-theta_floor).exp(-A/tau)`, copper area is the only input, no
+  heatsink/TIM/airflow term exists in the module. Its own docstring says "a screen, not a
+  sign-off ... +/-30 %".)
+- **`check_silk`'s attribution rule is a two-sided constraint** (> 1.0 mm from its own pads AND
+  < 1.0 mm from another part's) and on a dense cluster it can be **unsatisfiable**. A grid search
+  over every position within 4 mm of each part found **zero** legal positions for R203 here, 3
+  for C202 and 6 for R204 - so "scripted fix: place_edit.py move_text" is not always available,
+  and moving the five that CAN move would leave the sixth flagged while risking new
+  `silk_over_copper` on a board whose DRC residual is signed off. Run the feasibility search
+  before promising the fix.
+
+## 2026-08-08 [P8][check_return_path] `k x trace_width` makes a POUR FAN-IN LAND look like a 71 mm-wide return-path defect
+Promoted from boards/rf-de-20m/LEARNINGS.md (promotion pass 2026-08-14).
+`check_return_path` buffers a net's centreline by `k x width` (k = 3 by default). That is the
+right model for a trace whose length greatly exceeds its width. It is the wrong model for the
+short, full-width land track that `remediations/track_width.md` step 4 MANDATES to fan a pour
+into a pad - the same construct that wedges Freerouting (entry above).
+
+Here /SW's L301 terminal land is **11.894 mm wide and 1.200 mm long**, so its corridor is
+1.2 x 71.4 mm: **27 % of the reported 81.29 mm2 deficit is off the board entirely** (the corridor
+runs 18 mm past the north edge), and the rest is the deliberately plane-free magnetics zone.
+Meanwhile the check never looks at the /SW **pour** at all - `corridor_on` reads `tracks_of()`
+only - which is where the switching loop actually lives and which measured **96.13 % imaged on
+In1**, with C203-C206 and L202.1 at 100 %.
+
+**Practical rule: before treating a `corridor_void` as a defect, check the aspect ratio of the
+track that produced it.** If width >= length, the corridor is a modelling artefact; measure the
+real thing instead - `net_copper(sig, layer).difference(net_copper(ref, ref_layer))` over the
+POUR, and the partial-inductance increment of the unimaged section
+(`mu0.h.l/w` with an image vs `(mu0.l/2pi)[ln(2l/(w+t)) + 0.5 + 0.2235(w+t)/l]` without). Here
+that was 0.031 nH vs 0.268 nH, i.e. **+0.24 nH on a 164 nH inductor - 0.15 %**.
+
+## 2026-08-08 [P8][check_creepage][review] `checked[].pairs[].min_gap_mm == null` is how you PROVE a board has no hidden creepage - and the gate JSON throws it away
+Promoted from boards/rf-de-20m/LEARNINGS.md (promotion pass 2026-08-14).
+Auditing "are all 21 creepage errors really intra-die, or is a real board-copper violation hiding
+in the set?" looks like it needs a per-finding geometric investigation. It does not.
+`check_creepage` already computes, for **every (primary net, other net, layer) combination it
+sweeps**, the minimum gap among all items that came within `req_max` of each other, and reports
+it in `checked[].pairs[].min_gap_mm`. **`null` means nothing on that layer for that net pair is
+even within the largest applicable IPC-2221 requirement** - i.e. that pair is clean with margin,
+proven, no inspection needed.
+
+`gate.py` keeps only the `failing` list, so this evidence is **not** in `reports/gate-verify.json`.
+Re-run the check standalone with `--out` to get it:
+
+    .venv/Scripts/python .claude/skills/ai-ee/scripts/check_creepage.py \
+        --pcb <board> --constraints kicad/constraints.json --out creep.json
+
+On rf-de-20m that reduced a 21-finding audit to three non-null rows (`/SW` vs GATE_Q1 / GATE_Q2 /
+GND on F.Cu, all 0.350 mm) and proved every other pair - including `/tank/TANK_A` at 180 V and the
+203 V `/SW`-`TANK_A` `voltage_pairs` entry - clean across all four layers in one read.
+
+Two companion facts worth keeping:
+
+- The violation records carry `item` / `other_item` **with a `type` field** (`pad` / `track` /
+  `via` / `zone`). That is what settles "die geometry vs board copper": all 21 here were
+  pad-or-escape-track, **zero involved a zone fill**. Dump the types before believing a waiver
+  that says "this is the part, not the layout".
+- `_same_fp()` downgrades only **pad-to-pad within one footprint** to `warning`. A vendor land
+  pattern whose pads are 0.35 mm apart therefore emits 3 warnings *and* ~20 errors, because every
+  escape **track** leaving those pads is a board item by the check's reckoning. Do not read the
+  error count as "20 separate layout defects".
+- The pour is a separate question and DRC will not answer it either. Measure it directly:
+  `unary_union(zone fills of net A on L).distance(unary_union(every GND item on L))`. Here that
+  returned **0.8004 mm**, i.e. `aiee_hv_143v_SW` honoured to 0.4 um - which is the fact that
+  actually retires the "is HV pour too close to GND" worry.
+
+## 2026-08-08 [spice][ngspice][sim] Ten machine-verified traps from authoring the P8 Class E bench
+Promoted from boards/rf-de-20m/LEARNINGS.md (promotion pass 2026-08-14).
+All reproduced on this host with the ngspice v46 that KiCad 10.0.3 bundles, driving
+`scripts/sim_run.py`. Every one of them cost a debug cycle.
+
+**`.measure` syntax, three hard limits.** (1) It does **not** accept the two-node form
+`v(a,b)`: `.meas tran vgs max v(gq1,s1)` prints `failed!` and the measure simply vanishes from the
+results. (2) It cannot read a **subcircuit-internal** source current: `.meas ... max i(Xm.Vsen1)`
+also fails. (3) `param=` expressions CAN reference earlier measure results and do support `abs()`,
+`sqrt()`, `pow()` and `ln()`. So the fix for (1) and (2) is the same - materialise the quantity as
+a behavioural node inside the subcircuit and measure that:
+
+    Bvgs1 vgs1 0 V={v(g1)-v(s1)}      -> .meas tran ... MAX v(Xm.vgs1)
+    Bid1  id1  0 V={i(Vsen1)}         -> .meas tran ... MAX v(Xm.id1)
+
+Both silently under-report if you skip them: `v(g1)` alone drops the whole common-source term,
+which is the entire point of a gate bench.
+
+**`vp()` returns RADIANS in `.meas ac`.** Verified against a known 4.13 + j4.760 network: `vm`
+6.30148, `vp` -2.28551 (= -130.9 deg). `vr()`/`vi()`/`vm()`/`vdb()` all work and are the safer
+route - extract R and X directly and never touch the phase.
+
+**A SPICE current source drives current OUT of its + node.** `Iac ZIN 0 AC 1` gives
+`v(ZIN) = -Z`. For impedance extraction write `Iac 0 ZIN AC 1`. The sign cancels in `X/R` so a
+wrong-signed deck can look right on the ratio and be wrong on everything else.
+
+**The behavioural capacitor `Cxxx a b c={expr}` works and conserves charge exactly.** Validated by
+ramping 0 -> 142.5 V and integrating: an EPC2019 Coss fit reproduced Qoss(100 V) to 0.03 % and its
+own analytic Coss(tr) to 0.02 %. ngspice implements it as an internal E-source (you will see
+`e.xq1.ecoss#branch` and `xq1.coss_int1` in the vector list). **But do not write `abs(v(d,s))`
+inside it** - the kink at v = 0 is unintegrable once the drain rings negative
+(`Timestep too small ... 2.5e-23: trouble with node e.xq2.ecoss#branch`). Use the smooth positive
+part instead, which costs nothing above ~0.2 V:
+
+    c={cj0/pow(1+0.5*(v(d,s)+sqrt(v(d,s)*v(d,s)+0.01))/vj,mm)}
+
+**Tight tolerances are a trap on a power deck.** `.options reltol=1e-4 abstol=1e-12 vntol=1e-7`
+runs `classe_zvs_nominal.cir` fine and kills `gate_symmetry.cir` inside the first picosecond. A
+1 pA `abstol` is meaningless against a 10 A power loop and it strands the gate-loop inductor nodes.
+Engine defaults + `rshunt=1e9` ran every bench here.
+
+**An ideal diode in series with an inductor has no state.** `.model D(... cjo=0)` plus a gate-loop
+inductor leaves that inductor's node with zero capacitance while the diode is off, and the solver
+cannot integrate it. Give the diode a real `cjo` (3 pF for a WCSP output ball is both physical and
+sufficient).
+
+**Lumping distributed copper invents GHz resonances.** A 0.157 nH common-source inductance against
+a lumped 789 pF Coss is a 14 GHz mode at Q ~ 220, and it eats the timestep. 50 mohm of ESR in
+series with the cap (0.25 % of its reactance at 20 MHz, and physically defensible) takes Q to ~9
+and the deck runs. Same for the shunt bank at 20 mohm.
+
+**`.step` is unusable through `sim_run.py`.** It runs, but `simlib.parse_measures` reads
+`name = value` lines off stdout and later sets overwrite earlier ones, so a stepped sweep silently
+reports only its LAST point. Sweep by instantiating N independent copies of the stage as a
+`.subckt` with parameters - six full Class E stages in one deck cost 14.5 s, well inside the 60 s
+per-bench gate timeout.
+
+**Subcircuit instances sharing a top-level source silently load it N times.** Three GSTAGE
+instances hung off one `Routh`/`Routl` pair moved off-state VGS from 0.21 V to 1.12 V - from 4x
+margin on `VGSth_min` to 0.7x, i.e. a fabricated "spurious turn-on" finding. Put the driver's
+output impedance INSIDE the subcircuit and share only the logic command.
+
+**Measurement windows have to clear the edge.** "Highest VGS during the off period" measured from
+0.4 ns after the falling edge reads the TAIL OF THE TURN-OFF EDGE, and it reads worse for the
+larger gate resistor purely because that discharges more slowly (0.79 V at 6R8 vs 0.21 V at 4R7).
+Moved to >= 13 ns after the edge - >= 8 gate-loop time constants - both read ~0.13 V. Always state
+the window in time constants, not nanoseconds.
+
+## 2026-08-08 [sim][classE][layout] A zone with no return plane is a 30 nH series element, and Class E notices
+Promoted from boards/rf-de-20m/LEARNINGS.md (promotion pass 2026-08-14).
+`decisions.md` D4 correctly forbids In1/In2/B.Cu pour under the magnetics zone (a plane under a
+spiral is a shorted turn). The uncosted consequence: the `TANK_A -> C_s bank -> TANK_B` run in that
+zone has **no return image**, so its inductance is free-space partial self-inductance
+(`(mu0.l/2pi)(ln(2l/w)+0.5)` ~ 23 nH for 40 mm of 8 mm strip), not microstrip `mu0.h/w`
+(~0.1 nH/mm, which would be 4 nH). That is a **7x** modelling error on the same copper.
+
+At 20 MHz the 30 nH is j3.77 ohm = **0.91 R** dropped into a network whose entire design reactance
+is 1.283 R. Measured effect on the same deck, bridge in vs bridge out, everything else identical:
+X_net/R 1.16 -> **2.00**, ZVS residual at conduction onset 7.2 V -> **15.6 V**, and output power
+**121 W -> 53 W**. The board is DRC-clean, verify-clean and fab-ready with that in it.
+
+Two transferable rules:
+
+- **Any net that leaves a planed zone loses its microstrip inductance model at the zone boundary.**
+  Compute partial self-inductance for the un-imaged segment, and hand the number to P8 as a
+  parasitic the way pour capacitance already is (`route-notes.md` s7 does this for C, not for L).
+- **Extra series L is cancelled by LESS series C, not more.** The intuitive move (add trim
+  capacitors) makes it worse. Here the fix is depopulating two 56 pF sites from the C_s bank and
+  populating one 27 pF trim site: 504 -> 419 pF, X_net/R back to 1.285.
+
+## 2026-08-08 [P8][gate][waivers][PIPELINE BUG] `gate.py`'s DEFAULT waiver sidecar path is `<pcb-dir>/reports/`, not the workspace `reports/` - so a correct sidecar is silently ignored
+Promoted from boards/rf-de-20m/LEARNINGS.md (promotion pass 2026-08-14).
+`gate.py` main():
+
+    sidecar = (Path(args.input).parent / "reports" / "verify-waivers.json")
+
+`args.input` for the verify gate is the BOARD, `boards/<b>/kicad/<b>.kicad_pcb`, so `.parent` is
+`kicad/` and the default resolves to **`boards/<b>/kicad/reports/verify-waivers.json`** - a
+directory that does not exist in any workspace in this repo. Every waiver sidecar the pipeline
+has ever written lives at `boards/<b>/reports/verify-waivers.json` (lumina-par's included).
+
+The failure is SILENT and it fails in the unsafe direction *for the reader*: the gate reports
+`FAIL (31 failing)` with `waived` absent entirely, which looks exactly like "the owner never
+signed these off" rather than "the file was not found". `gate.py` has a `workspace_dir()` helper
+that computes `boards/<name>/` correctly - it is simply not used here.
+
+**Always pass `--waivers <workspace>/reports/verify-waivers.json` explicitly.** Verified on
+rf-de-20m: without the flag 31 failing / no `waived` key; with it, PASS 0 failing / 31 waived.
+
+## 2026-08-08 [P8][pipeline][decoupling] `root.py` REWRITES `decoupling.json` from scratch - hand-added rail associations do not survive a schematic regen
+Promoted from boards/rf-de-20m/LEARNINGS.md (promotion pass 2026-08-14).
+Same shape as the `.kicad_pro` netclass wipe already recorded at line 815, and it bit for the
+same reason: `Project.save(..., decoupling=out_dir/"decoupling.json")` regenerates the whole
+sidecar from the sheets' `place_ic_with_decoupling` calls, and that helper only ever emits
+**IC-PIN bypass** entries.
+
+On this board the `+5V` rail's decouplers are C108 (22 uF) and C109 (100 nF) hanging off L101.2,
+the buck's OUTPUT node - `+5V` has no IC load pin at all, because U201 sits behind FB201 on
+`+5V_DRV`. So they can only be added by hand, and the P8 verify pass did add them, with a `_note`
+predicting exactly this. The 22:12 root regen deleted both, and `check_pdn` went straight back to
+`power rail +5V (0.3 A) has no decoupling capacitors` - a 32nd verify ERROR on a board whose
+copper had not changed.
+
+**Check `kicad/decoupling.json` after ANY `gen/root.py` run**, the same way you check the
+`.kicad_pro` for `net_settings`. Both are "the generator owns this file" traps and both are
+invisible until a gate fires.
+
+## 2026-08-08 [P8][drc][parity] A schematic FIELD-ONLY edit costs 15 `footprint_symbol_field_mismatch` findings until `board_update` syncs the board
+Promoted from boards/rf-de-20m/LEARNINGS.md (promotion pass 2026-08-14).
+Editing only `Note` / `Variant` text in a generator - no value, no footprint, no net - produces a
+netlist that is **electrically identical** (verified: 70 components, 20 nets, same values,
+footprints and node sets) and therefore looks like a no-op. It is not, for `drc_routed`: KiCad
+footprints carry their own copy of the schematic properties, and `gate.py --gate drc_routed`
+folds in a `parity` source that compares them. The 15 refs whose `Note` changed became 15
+`footprint_symbol_field_mismatch` findings and the residual went **55 -> 70**.
+
+`board_update.py` classifies them as `swap_same_fp` with `value: null` and applies them as a
+pure field sync: measured before/after on rf-de-20m, tracks 125, vias 230, zones 38, fills 70,
+locks 70 and every footprint position **identical**, and `drc_routed` back to exactly 55.
+
+**So: any generator edit, even a comment-only one, needs `kc.py netlist` + `board_update.py`
+before the DRC baseline means anything.** The cheap tell is the `parity` source in
+`gate-drc_routed.json` - if it is non-zero, the board's field copies are stale.
+
+## 2026-08-09 [P9][gate][pipeline][PIPELINE BUG] `gate.py --gate dfm` looks for `parts.json` BESIDE THE BOARD, so the BOM-completeness leg silently never runs on this workspace
+Promoted from boards/rf-de-20m/LEARNINGS.md (promotion pass 2026-08-14).
+Exactly the same shape as the `verify-waivers.json` default-path bug already recorded above
+(2026-08-08 `[P8][gate][waivers]`), and it deserves the same treatment because it is silent in the
+same way. `gate.py:run_dfm` is:
+
+    parts = board.parent / "parts.json"
+    if parts.exists(): kwargs["parts"] = parts
+
+i.e. `kicad/parts.json`. This board - like every ai-ee workspace - keeps its BOM of record at
+`parts/parts.json`. So `dfm_check` runs with `parts=None`, `check_release` skips the
+`missing_lcsc` leg entirely, and **the gate reports a clean `dfm` pass having never looked at the
+BOM at all.** `reference/invalidation.yaml` has the same assumption baked in
+(`parts: {path: "kicad/parts.json"}`), which is why the `parts` artifact hashes to null.
+
+Nothing distinguishes "BOM complete" from "BOM never checked" in the gate JSON: `missing_lcsc`
+is simply absent from `facts`. **Always follow the gate with an explicit run:**
+
+    dfm_check.py --pcb ... --fab-dir fab/ --parts parts/parts.json --schematic ... --out ...
+
+which also audits the SHIPPED package rather than a scratch re-export. On rf-de-20m both agree at
+0 findings and the explicit run adds `missing_lcsc: []` over 68 lines.
+
+## 2026-08-09 [P9][fab][tenting][gerber] Board-level via tenting does NOT protect a via that lands inside a PAD's mask opening - and the board file cannot tell you
+Promoted from boards/rf-de-20m/LEARNINGS.md (promotion pass 2026-08-14).
+The instruction carried into P9 three times was "the signal vias in the bottom heatsink land must
+stay tented; do not enable via-tenting-off at plot time". Both halves of that are satisfiable and
+were satisfied - `(tenting (front yes) (back yes))` at board level, **zero of the 230 vias carrying
+a per-via `(tenting ...)` override**, and no tenting flag in `kicad-cli pcb export gerbers` (the
+wrapper passes only `-o` and `--layers`). But that is not the whole question, because:
+
+**KiCad's "tented" means it does not GENERATE a mask aperture for the via. It does not SUBTRACT the
+via from someone else's aperture.** Any via that falls inside a pad's mask opening is bare in the
+exported gerber no matter what the tenting setting says. Measured on rf-de-20m's export:
+
+| | count |
+|---|---|
+| vias with a mask opening because of their own tenting setting | **0** |
+| vias sitting inside an `F.Mask` PAD opening (via-in-pad) | **30** |
+| of those, ALSO inside the `B.Mask` heatsink-land aperture -> open at BOTH ends | **17** |
+
+All 17 are GND at 0.30 mm drill, so there is no electrical hazard here (the sink is at land
+potential), but they are a solder wick path from a top joint to the heatsink mating face - which is
+the exact failure mode HS-2 exists to prevent. Two of the owning pads (`C203.2`, `C205.2`, 4 vias
+each) belong to **DNP** sites, so they carry unconstrained bare paste with nothing to hold it.
+
+**How to actually prove tenting on a fab package: enumerate the mask gerber's openings and account
+for every one.** Reading the board's tenting setting proves nothing about the shipped files.
+rf-de-20m's `B.Mask` has exactly 11 openings - 3 for the HS1 land (1430.150 mm2, 100 % over B.Cu
+copper), 4 M3 holes, 2 J101 THT pads, 2 M2 clamp holes - and not one is a via. That is the
+statement worth making; "the board says tenting yes" is not.
+
+Consequence for the order: **POFV (epoxy filled + capped) stays specified.** Its original rationale
+(an LMG1020 via-in-pad, `stackup.md` s5) was retired by `review-board.md` s2.2 because that via was
+never built - but the 17 measured here re-justify it, on flatness. Do not let a retired rationale
+retire the option.
+
+## 2026-08-09 [P9][gerber][drill][gerblib] `Hole.plated` is ALWAYS True on KiCad's merged drill export - do not use it as an NPTH oracle
+Promoted from boards/rf-de-20m/LEARNINGS.md (promotion pass 2026-08-14).
+`fab_export.py` calls `kc.export_drill(..., fmt="excellon")` with no `--excellon-separate-th`, so
+KiCad 10.0.3 writes ONE `.drl` with `TF.FileFunction,MixedPlating,1,4` and carries plating per TOOL
+as an X2 attribute comment:
+
+    ; #@! TA.AperFunction,Plated,PTH,ViaDrill        T1C0.200 / T2C0.300
+    ; #@! TA.AperFunction,NonPlated,NPTH,ComponentDrill   T5C2.200 / T6C3.200
+
+`gerblib._holes` does `plated = getattr(obj, "plated", True)` and gerbonara does not surface the
+attribute, so **all 326 holes on rf-de-20m read `plated=True`**, including the four M3 mounting
+holes and the two M2 heatsink clamp holes that the board declares `np_thru_hole`.
+
+Latent consequence: `dfm_check.check_annular_ring` gates on `if not h.plated: continue`, so an NPTH
+hole is graded as if it needed an annular ring. It did not fire here only because the ring test
+needs a PAD FLASH containing the hole centre, and a `size == drill` mounting-hole pad leaves no
+copper to flash (pours are regions, not flashes). A mounting hole placed inside a real SMD pad would
+produce a phantom annular-ring error with no way to see why. **The plating truth is in the drill
+file's `TA.AperFunction` lines, not in the parsed hole objects** - and it is the one thing to
+eyeball in JLC's viewer, since a mixed-plating file is where a fab can get NPTH wrong.
+
+## 2026-08-14 [yaml][process][learnings] A multi-line PLAIN YAML scalar breaks on ": " and on a "- " line - hand-authored prose belongs in a block scalar
+Authoring U6's 66-ruling promotion batch (~1000 lines of hand-written YAML) failed to parse with
+`mapping values are not allowed here` at a line deep inside a `note:`. Cause: `note: <prose>`
+continued across several lines is a PLAIN scalar, so a continuation line containing `entry: after
+the P7 pour` re-enters mapping context, and a continuation line beginning `- ` is read as a block
+sequence item. Neither is visible while writing sentences, and the parse error points at the
+continuation, not at the key. The whole-file fix is mechanical: rewrite every `key: <text>` as
+`key: >-` with the text moved to the next line at key indent + 2 (the continuations already sit
+there). Companion to the same-day entry on comma-bearing FLOW values - the quoting rules bite in
+both styles, so the standing rule for any YAML this skill writes by hand is: **prose goes in a
+`>-` block scalar, never in a plain scalar.** Recorded in `reference/recipes/promote.md` for the
+one file format that invites it (ruling batches).
+
+## 2026-08-14 [tests][recipes][lint] The recipe-doc flag lint re-attributes flags to a script named as an ARGUMENT - put path-valued flags last on the line
+`test_task_router.py::test_recipe_doc_commands_use_real_flags` (and its twin in
+test_remediations.py) walks each line of a recipe doc and re-points "the flags that are legal
+here" at the nearest preceding `<script>.py` token. So a documented command line like
+`--reason "<why>" --targets scripts/check_current.py` is fine, but the same line written
+`--targets scripts/check_current.py --reason "<why>"` FAILS: the path is an argument VALUE, and
+the checker reads it as a new command, then checks `--reason` against check_current.py's flags.
+Cost two red parametrised cases on a doc whose commands were correct. Two ways out and the doc
+one is cheaper: put any flag whose value is a script path at the END of its line (or use a
+`<paths>` placeholder). The checker could also skip a `.py` token that sits in argument position
+(immediately after a `--flag`), which is the actual defect - the doc is not wrong.

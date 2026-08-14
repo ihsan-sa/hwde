@@ -80,6 +80,19 @@ Small boards may use ONE schematic agent for all sheets (record the deviation).
   antiresonance peaks only). Fold both into the P8 review; never block on them
   without constraints-declared bounds.
 
+## Run close
+
+Before the run is declared finished: append what this board taught to
+`boards/<b>/LEARNINGS.md` (dated, stage-tagged, one claim per heading), then
+compile it into the promotion queue -
+
+    learnings.py compile --workspace boards/<b>
+
+Compiling is not promoting. The entries stay `pending` until a `promote` pass
+rules on each one; that verb's recipe carries the ladder. Do this at the END of
+the run, not per phase - the value of an entry is often only clear two phases
+later.
+
 ## Resuming, and editing mid-run
 
 A killed run resumes through `resume-phase`. A change of mind mid-run does NOT

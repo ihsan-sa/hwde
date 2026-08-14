@@ -53,6 +53,18 @@ Two special cases:
   scope - which, since T8, is usually `add-part` / `swap-part` instead of a
   full re-place.
 
+## Run close
+
+A fix loop is where the checks get caught being wrong - a finding that was a
+modelling artefact, a remediation that armed the next phase's trap. Append
+those to `boards/<b>/LEARNINGS.md` (tag them with the phase they fired in) and
+compile the queue:
+
+    learnings.py compile --workspace boards/<b>
+
+The `promote` verb rules on them later; a finding you argued with and waived is
+exactly the kind of entry that turns into a check threshold.
+
 ## Do not
 
 - Do not hand two fixers the same board region concurrently. `parallel_groups`

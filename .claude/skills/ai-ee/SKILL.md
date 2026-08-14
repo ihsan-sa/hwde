@@ -29,8 +29,8 @@ scripts/task_router.py --task "<the user's words>" [--workspace boards/<name>]
 
 The verbs: `review` `fix-finding` `move` `swap-part` `add-part` `remove-part`
 `reroute-net` `make-footprint` `dfm-check` `order` `track` `resume-phase`
-`full-run`. The whole pipeline is the `full-run` recipe - a task like any
-other, not a separate code path.
+`promote` `full-run`. The whole pipeline is the `full-run` recipe - a task like
+any other, not a separate code path.
 
 Never invent a step a recipe does not have, and never skip its gates: the gate
 set is the invalidation map's answer to "what did this edit invalidate".

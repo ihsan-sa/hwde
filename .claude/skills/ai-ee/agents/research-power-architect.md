@@ -33,6 +33,10 @@ output ASCII.
 ## Rules
 - Net names: bare power-net convention (`+3V3`, `+5V`, `GND`, `VBUS`).
 - Every current number traceable to a consumer estimate; no bare totals.
+- Paralleling SPREADS heat, it does not reduce loss: N parallel inductors of
+  N*L at the same Q dissipate exactly what one does (Q is the only magnetics
+  lever), and N parallel switches leave total dissipation ~flat - the win is
+  RthJB per die. Cost a paralleling decision in Tj and Rth, never in watts.
 - Flag safety-relevant items (mains, battery charging, >3 A) as blocking
   questions in OPEN, not as assumptions.
 - Workspace writes only (research/, log/); scraped pages/scratch -> temp dir.
