@@ -8,8 +8,10 @@ Building the `/ai-ee` Claude Code skill per `SPEC.md` + `ai-ee-implementation-pl
 When the user says `run step N` (or just `step N`):
 
 1. Read `PROGRESS.md` (status board + interface notes of completed steps) and the step's
-   plan entry: S<N> steps live in `ai-ee-implementation-plan.md` (v1, complete); **T<N>
-   steps live in `ai-ee-v2-plan.md`** (v2 - same protocol, plus its own Conventions).
+   plan entry: S<N> steps live in `ai-ee-implementation-plan.md` (v1, complete); T<N>
+   steps live in `ai-ee-v2-plan.md` (v2 - same protocol, plus its own Conventions);
+   **U<N> steps live in `ai-ee-v3-plan.md`** (v3 - same protocol, waves + owner-present
+   steps marked there).
    Read ONLY the spec sections / files that entry lists (S13 alone reads the whole spec).
    Do not load prior steps' code beyond what the entry needs.
 2. Check prerequisites on the status board against the plan's dependency graph. Unmet -> stop

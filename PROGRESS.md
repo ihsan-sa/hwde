@@ -44,6 +44,28 @@ T7 -> T8 || T9 -> T10. T11 runs as soon as boards arrive (not during T6).
 | T10 | Task router + SKILL v2 (taxonomy, recipes, full run = special case) | **done** | 2026-08-07 |
 | T11 | Hardware bring-up leg (run when boards arrive) | pending | - |
 
+## v3 status board (U-steps - plan: `ai-ee-v3-plan.md`)
+
+Waves (plan has the full map + session setup): U0 alone first ->
+U1||U2||U3||U4 -> U5||U6 -> U7 -> U8 (exclusive, owner) -> U9 -> U10.
+U11 later; U12 before order credentials; T11 on board arrival (not during U8).
+
+| Step | Title | Status | Date |
+|---|---|---|---|
+| U0 | Ops + evidence sweep (commit/push dirty tree, tracking, triage 188-239) | pending | - |
+| U1 | Retro checker fixes (gerblib outline/arcs, reg-input decoupling, carrier constraints) | pending | - |
+| U2 | Gate report validation + strict verify coverage (C4+C7) | pending | - |
+| U3 | BOM assembly classes + first-class DNP (H1, C9) | pending | - |
+| U4 | Knowledge library + trigger-keyed retrieval | pending | - |
+| U5 | Release attestation + durable waivers (C1+H9) | pending | - |
+| U6 | Workspace learnings + promotion pass (H5; rf-de 66-entry queue) | pending | - |
+| U7 | Learning mode harness (learn verb + learner agent + graded fixtures) | pending | - |
+| U8 | Buck placement teaching cycle 1 (owner present) | pending | - |
+| U9 | Cross-stage rails (P3 layout implications + budgeted backward spawns) | pending | - |
+| U10 | xhp-driver brief + full run (first live validation) | pending | - |
+| U11 | P7 routing teaching cycle 2 (owner present) | pending | - |
+| U12 | Pre-credential order/state safety (C3+C5+C6) | pending | - |
+
 Dependency graph (plan): S0 -> S1 -> S2 -> S3 -> {S4, S5}; S0 -> S6 -> S7; S2 -> S8 -> S9 -> S10 -> S11;
 {S5, S7, S8, S11} -> S12 -> S13 -> S14. S4-S7 may run in parallel with S8-S10 (separate sessions/terminals).
 
