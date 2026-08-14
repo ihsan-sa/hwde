@@ -16,7 +16,7 @@
 \begin{center}
 {\LARGE\bfseries pd-trigger --- Design Document}\\[6pt]
 {\large ai-ee v1 pipeline}\\[2pt]
-generated 2026-07-28 13:46:18
+generated 2026-08-13 23:58:26
 \end{center}
 \tableofcontents
 
@@ -32,7 +32,7 @@ workspace & \texttt{boards/pd-trigger} \\
 phase & P10 \\
 gate status & all 5 recorded gates pass \\
 state created & 2026-07-28T05:57:45 \\
-state updated & 2026-07-28T11:56:34 \\
+state updated & 2026-08-07T01:58:03 \\
 \bottomrule
 \end{longtable}
 }
@@ -518,6 +518,8 @@ CH224K & U1 & ESSOP-10\_L4.9-W3.9-P1.0-LS6.0-TL-EP & C970725 \\
 Estimated total \$19.65 for qty 10 (unit \$1.96). This is an estimate from published pricing; the JLCPCB cart quote page is authoritative.
 \subsection*{Human steps before ordering}
 \begin{enumerate}
+\item API order created: orderId a660e81dac5d4fa58fb58f80741327fd, batchNum W2026073002475378. Poll with order\_track.py --workspace \textless{}ws\textgreater{}; verify payment state in the JLCPCB portal (may auto-deduct JLC Balance).
+\item COPPER WAIVER: ordered at 1 oz despite the 2 oz design note (explicit --copper-oz human decision) - current paths sized for 2 oz are derated on this rev
 \item BOARD-SPECIFIC before ordering: (1) 2oz copper MUST be selected at JLC order time (stackup JLC2313\_1.6\_2oz - the quote page copper-weight option, NOT default 1oz; the 5A path depends on it). (2) PD SOURCES ONLY + e-marked cable for 5A contracts - user docs. (3) Bring-up: measure /VDD at the 5V profile (CH224K IDD unpublished, W2); buzz Q1 E/B/C once (clone PDF unverifiable); continuity SW1 pins 1-3 unpressed. (4) U1 thermal pad ships 100\% paste (declined windowing - watch for float on first article). (5) Hand-solder J2/J3 THT after SMT.
 \item Upload boards\textbackslash{}pd-trigger\textbackslash{}fab\textbackslash{}pd-trigger\_gerbers.zip to https://jlcdfm.com/ and review the DFM report (V6: no public API).
 \item Upload the same zip at https://cart.jlcpcb.com/quote and confirm the real price against the estimate above.
@@ -718,11 +720,11 @@ corrections from ground truth.
 \textbf{File} & \textbf{Size} & \textbf{Note} \\
 \midrule
 \endhead
-\texttt{state.json} & 21,375 B &  \\
-\texttt{kicad/pd-trigger.kicad\_pcb} & 245,673 B &  \\
+\texttt{state.json} & 21,689 B &  \\
+\texttt{kicad/pd-trigger.kicad\_pcb} & 234,842 B &  \\
 \texttt{kicad/pd-trigger.kicad\_sch} & 150,179 B &  \\
 \texttt{fab/pd-trigger\_gerbers.zip} & 38,673 B & sha256 ac8e03ac89de8d2b... \\
-\texttt{fab/order.json} & 2,891 B &  \\
+\texttt{fab/order.json} & 3,717 B &  \\
 \texttt{fab/BOM.csv} & 953 B &  \\
 \texttt{fab/CPL.csv} & 1,017 B &  \\
 \texttt{brief/brief.md} & 832 B &  \\

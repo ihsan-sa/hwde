@@ -16,7 +16,7 @@
 \begin{center}
 {\LARGE\bfseries lumina-carrier --- Design Document}\\[6pt]
 {\large ai-ee v1 pipeline}\\[2pt]
-generated 2026-07-30 07:12:05
+generated 2026-08-07 18:59:06
 \end{center}
 \tableofcontents
 
@@ -30,9 +30,9 @@ generated 2026-07-30 07:12:05
 board & lumina-carrier \\
 workspace & \texttt{boards/lumina-carrier} \\
 phase & P10 \\
-gate status & 4/5 gates pass (not passing: verify) \\
+gate status & 3/5 gates pass (not passing: dfm, verify) \\
 state created & 2026-07-28T13:36:22 \\
-state updated & 2026-07-30T07:07:37 \\
+state updated & 2026-08-07T18:58:57 \\
 \bottomrule
 \end{longtable}
 }
@@ -47,7 +47,7 @@ state updated & 2026-07-30T07:07:37 \\
 layers & 4 \\
 width\_mm & 100.0 \\
 height\_mm & 80.0 \\
-qty & 15 \\
+qty & 10 \\
 surface\_finish & HASL \\
 solder\_mask\_color & green \\
 assembly & True \\
@@ -55,7 +55,269 @@ assembly & True \\
 \end{longtable}
 }
 \section{Requirements}
-\emph{requirements.md not found.}
+\subsection*{Requirements - LUMINA Carrier Board (LUM-CAR-A)}
+\textbf{Board ID:} LUM-CAR-A \textbar{} \textbf{Rev:} A (first spin) \textbar{} \textbf{Date:} 2026-07-28 \textbf{Sources:} \texttt{brief/00-lumina-system-context.md} (v2.0), \texttt{brief/01-carrier-board-brief.md}, \texttt{brief/05-lumina-closed-decisions.md} (binding; supersedes \texttt{00} section 6 for D-01/D-02/D-03).
+
+Requirement IDs \texttt{CAR-REQ-nn} / \texttt{SYS-REQ-nn} are the briefs' own IDs and are quoted, not invented. \texttt{ASSUMED:} marks a low-risk assumption taken without asking. Everything else that is unknown is a numbered question in section 9.
+
+---
+
+\subsubsection*{0. Decisions of record (closed - do NOT re-open)}
+\begin{quote}\small\ttfamily\raggedright
+\textbar{} ID \textbar{} Decision \textbar{} Consequence for this board \textbar{}\\
+\textbar{}---\textbar{}---\textbar{}---\textbar{}\\
+\textbar{} D-01 \textbar{} {*}{*}802.3at Type 2 power stage, classification programmed to Type 1 (af) for the first build.{*}{*} \textbar{} PD front end, DC-DC, magnetics and thermals sized for \textasciitilde{}20 W usable. Class-program resistor set for af. Upgrade to PoE+ must be a {*}{*}resistor change only - no respin{*}{*}. No other component may pin the design to Type 1. Power budget table must show {*}{*}both{*}{*} af and at columns (review gate 2). Daughter power budgets are designed against the af figure: {*}{*}\textasciitilde{}8.5 W sustained{*}{*} to the light engine. \textbar{}\\
+\textbar{} D-02 \textbar{} {*}{*}Expansion connector carries 48 V raw + 12 V regulated + 3.3 V logic.{*}{*} \textbar{} 48 V raw = the PD rail, switched/fused per CAR-REQ-14, exists for the strobe energy store (\textasciitilde{}2800 uF instead of \textasciitilde{}33,000 uF). 12 V regulated for daughters needing a modest rail without duplicating a \textgreater{}=60 V converter. 3.3 V for daughter logic/sense only, never LED current. {*}{*}CAR-REQ-17 is now active and binding:{*}{*} connector needs creepage/clearance appropriate to 48 V; every 48 V-tapping daughter carries its own bleed path. Chain is 48 -\textgreater{} 12 -\textgreater{} 3.3. \textbar{}\\
+\textbar{} D-03 \textbar{} {*}{*}UV bar: no board.{*}{*} \textbar{} Allocate {*}{*}no{*}{*} connector budget, PWM channels, enclosure provision or power budget for a UV daughter. \textbar{}\\
+\textbar{} D-04 \textbar{} {*}{*}Strobe colour (white vs RGBW): still open, owned by the strobe board run.{*}{*} \textbar{} {*}{*}Not this board's decision and must not be assumed here.{*}{*} The carrier satisfies either answer by exposing the full 8-PWM hardware ceiling (CAR-REQ-10). \textbar{}\\
+\textbar{} ICD-01 \textbar{} Carrier owns the expansion connector and freezes it as an ICD at {*}{*}H1{*}{*}. \textbar{} Deliverable `architecture/connector-icd.md`: connector part number, pin assignment, per-pin current rating, 48 V creepage scheme. Daughters treat it as a hard input. \textbar{}\\
+\textbar{} MECH-01 \textbar{} Rounded corners + mounting holes on every LUMINA board. \textbar{} 4x M3 (3.2 mm) mounting holes via `board\_init.py --mounting-holes 4` unless the outline forbids it. Corner radius via a `--corner-radius` flag being added centrally - {*}{*}confirm with `board\_init.py --help` at P5, do not assume a default{*}{*}. \textbar{}\\
+\textbar{} MECH-02 \textbar{} Board outline in mm must be closed with the human at H1, before P5. \textbar{} ai-ee has {*}{*}no outline-shrink step{*}{*}; `--outline WxH` at `board\_init` is permanent. The carrier {*}{*}proposes the common enclosure footprint and mounting-hole pattern that daughters inherit{*}{*}. See Q2/Q3 - blocking. \textbar{}\\
+\textbar{} DOC-01 \textbar{} Design document is a required deliverable. \textbar{} `report\_gen.py --workspace boards/lumina-carrier` must exit 0 at end of run. \textbar{}\\
+\textbar{} GIT-01 \textbar{} Scoped commits only. \textbar{} Never `gate.py --commit`, never `git add -A`. Use `git add boards/lumina-carrier \&\& git commit -m "ai-ee lumina-carrier: \textless{}gate\textgreater{} pass"`. \textbar{}
+\end{quote}
+---
+
+\subsubsection*{1. Function}
+LUM-CAR-A is the single universal carrier PCB used unmodified beneath every LUMINA fixture type. It takes power and data off one Ethernet cable and presents a fixture-agnostic expansion interface. On board: an IEEE 802.3 PD front end (detection signature, classification, inrush limiting, hot-swap), DC-DC conversion from the 37-57 V PD rail down to a 12 V daughter rail and a 3.3 V logic rail, an ESP32-S3 running the fixture firmware, a W5500 Ethernet controller on SPI with a 25 MHz reference crystal, an RJ45 with integrated magnetics carrying both data and PoE, and the expansion connector. It receives UDP control packets and generates the light engine's PWM waveforms locally. It contains \textbf{no} LED drivers, no light-engine energy storage and no fixture-specific circuitry - that separation is the point of the architecture and is to be protected, not eroded (\texttt{01} section 1, section 6).
+
+Control contract the firmware must honour (hardware-relevant extract, \texttt{00} section 3): UDP over IPv4 port 5568; 60 fps target / 44 fps floor; packet-to-PWM latency \textless{} 100 us; mDNS discovery or static IP; watchdog fades all outputs to zero over 500 ms after 2 s without a valid packet. Because a 60 fps command stream cannot express modulation above \textasciitilde{}30 Hz, fast effects (1-25 Hz strobe, \textasciitilde{}20 Hz bass-tracking wobble, 50-200 ms accent flashes - SYS-REQ-01/02/03/05/06) are \textbf{parameterised by the host and generated locally from the carrier's own timers}. Hardware consequence: the PWM peripheral and its fade hardware are the mechanism, not the packet rate.
+
+---
+
+\subsubsection*{2. Interfaces}
+\begin{quote}\small\ttfamily\raggedright
+\textbar{} Interface \textbar{} Requirement \textbar{} Source \textbar{}\\
+\textbar{}---\textbar{}---\textbar{}---\textbar{}\\
+\textbar{} {*}{*}Ethernet / PoE{*}{*} \textbar{} RJ45 with {*}{*}integrated magnetics{*}{*}, carrying both 10/100 data and PoE power. Board-edge or panel-mount, consistent with one enclosure design across all fixture types (Q12). \textbar{} CAR-REQ-05, CAR-REQ-20 \textbar{}\\
+\textbar{} {*}{*}Ethernet MAC/PHY{*}{*} \textbar{} W5500 on SPI, 25 MHz reference crystal. SPI clock must be inside the W5500 datasheet maximum (verified at schematic sign-off). \textbar{} CAR-REQ-04, gate 5 \textbar{}\\
+\textbar{} {*}{*}MCU{*}{*} \textbar{} ESP32-S3 with SPI flash, boot/reset provisions, and a programming interface. Chosen ESP32-S3 pins must {*}{*}not{*}{*} be strapping, USB, or SPI-flash pins (verified at schematic sign-off). Module vs bare chip is open - Q7. \textbar{} CAR-REQ-03, gate 5 \textbar{}\\
+\textbar{} {*}{*}Expansion connector{*}{*} \textbar{} Signal set below is fixed; pin {*}assignment{*} is the designer's call. Frozen as an ICD at H1. \textbar{} CAR-REQ-06, section 4, ICD-01 \textbar{}\\
+\textbar{} {*}{*}PWM to daughter{*}{*} \textbar{} {*}{*}8 channels maximum{*}{*} - the ESP32-S3 LEDC hardware ceiling (8 channels, 4 timers, low-speed mode only, max 14-bit duty resolution). More channels on a daughter require an external PWM/LED driver over SPI or I2C. \textbar{} CAR-REQ-10 \textbar{}\\
+\textbar{} {*}{*}PWM frequency domains{*}{*} \textbar{} 4 timers -\textgreater{} at most 4 distinct frequency/resolution domains per fixture; channels sharing a timer share both. Allocate deliberately when a daughter mixes fast strobe switching with slow colour dimming. Explicit per-daughter channel/timer/frequency allocation is a schematic sign-off artifact. \textbar{} CAR-REQ-11, gate 3 \textbar{}\\
+\textbar{} {*}{*}PWM default{*}{*} \textbar{} {*}{*}13-bit at 9.77 kHz{*}{*} (8192 levels, satisfies SYS-REQ-04 with gamma correction; \textasciitilde{}10 kHz avoids rolling-shutter banding that \textasciitilde{}1.2 kHz would show). Duty must clamp to 2\textasciicircum{}n - 1 at a timer's max resolution. Hardware fading (`ledc\_set\_fade\_with\_time`) is available and is the intended mechanism for smooth transitions. {*}The camera-flicker threshold is flagged in the brief as a judgement call - verify on the first prototype with a phone camera.{*} The previously recorded "16-bit at 1.2 kHz" is {*}{*}not achievable on this MCU{*}{*} and must not be carried forward. \textbar{} `01` section 3 \textbar{}\\
+\textbar{} {*}{*}PWM vs driver bandwidth{*}{*} \textbar{} \textasciitilde{}10 kHz must be checked against each daughter's LED driver dimming bandwidth (many constant-current modules accept only \textasciitilde{}1 kHz). If a driver cannot take it, that is a {*}{*}daughter-board driver selection problem{*}{*} - do not silently drop the carrier to 1.2 kHz without re-testing camera flicker. \textbar{} CAR-REQ-12 \textbar{}\\
+\textbar{} {*}{*}SPI (expansion){*}{*} \textbar{} 4 pins, shared bus, separate CS per daughter device. \textbar{} section 4.1 \textbar{}\\
+\textbar{} {*}{*}I2C (expansion){*}{*} \textbar{} 2 pins - ID EEPROM, temperature sensors, current monitors. \textbar{} section 4.1 \textbar{}\\
+\textbar{} {*}{*}ADC (expansion){*}{*} \textbar{} 2 pins - thermistor, current sense, rail sag monitoring. \textbar{} section 4.1 \textbar{}\\
+\textbar{} {*}{*}ENABLE{*}{*} \textbar{} 1 pin. Fail-safe global enable to the daughter: {*}{*}de-asserted by default, actively asserted by firmware only after successful boot{*}{*}. Fail-safe analysis (MCU held in reset, mid firmware update, brownout) is a schematic sign-off artifact. \textbar{} CAR-REQ-08, gate 4 \textbar{}\\
+\textbar{} {*}{*}FAULT{*}{*} \textbar{} 1 pin, daughter -\textgreater{} carrier, open-drain, pulled up on the carrier. \textbar{} section 4.1 \textbar{}\\
+\textbar{} {*}{*}Daughter ID{*}{*} \textbar{} 1-2 pins. Resistor divider to an ADC pin (cheapest, adequate for 4-6 types) or I2C EEPROM (type, revision, channel map, per-unit calibration - preferred if the BOM allows). Open - Q10. \textbar{} CAR-REQ-07, section 4.3 \textbar{}\\
+\textbar{} {*}{*}Status indication{*}{*} \textbar{} Link, power-good, fault - visible {*}{*}without opening the enclosure{*}{*} (flagged as judgement in the brief; justified by commissioning 8-12 fixtures). Mechanism open - Q11. \textbar{} CAR-REQ-09 \textbar{}\\
+\textbar{} {*}{*}Programming / field update{*}{*} \textbar{} Required, strategy open: USB-C on every fixture, pogo-pin jig, or Ethernet OTA only. Affects connector count and enclosure design. \textbar{} `01` section 8 Q5 -\textgreater{} Q9 \textbar{}\\
+\textbar{} {*}{*}Wireless{*}{*} \textbar{} {*}{*}Out of scope as a control path.{*}{*} The ESP32-S3 radio is a debugging fallback only; Ethernet is the control path. Whether it must work in the field is open - Q8. \textbar{} `01` section 6 \textbar{}\\
+\textbar{} {*}{*}Audio{*}{*} \textbar{} {*}{*}None.{*}{*} Fixtures never hear music. No audio input of any kind. \textbar{} `01` section 6 \textbar{}
+\end{quote}
+\paragraph*{2.1 Expansion connector signal set (fixed)}
+\begin{quote}\small\ttfamily\raggedright
+\textbar{} Signal \textbar{} Pin count \textbar{} Notes \textbar{}\\
+\textbar{}---\textbar{}---\textbar{}---\textbar{}\\
+\textbar{} 48 V raw (PD rail) \textbar{} see Q6 \textbar{} Switched/fused per CAR-REQ-14; 48 V creepage per CAR-REQ-17. \textbar{}\\
+\textbar{} 12 V regulated \textbar{} \textgreater{}= 3 pins total across the power rails, current-shared \textbar{} D-02. \textbar{}\\
+\textbar{} GND \textbar{} \textgreater{}= 4 \textbar{} Distributed; return paths adjacent to the PWM lines. \textbar{}\\
+\textbar{} 3.3 V logic \textbar{} 1-2 \textbar{} Daughter logic/sense only, not LED current. \textbar{}\\
+\textbar{} PWM \textbar{} up to 8 \textbar{} CAR-REQ-10. \textbar{}\\
+\textbar{} SPI \textbar{} 4 \textbar{} Shared, separate CS per device. \textbar{}\\
+\textbar{} I2C \textbar{} 2 \textbar{} \textbar{}\\
+\textbar{} ADC \textbar{} 2 \textbar{} \textbar{}\\
+\textbar{} ENABLE \textbar{} 1 \textbar{} Fail-safe, CAR-REQ-08. \textbar{}\\
+\textbar{} FAULT \textbar{} 1 \textbar{} Open-drain, pulled up on carrier. \textbar{}\\
+\textbar{} ID \textbar{} 1-2 \textbar{} Per section 4.3 / Q10. \textbar{}
+\end{quote}
+\textbf{Note:} \texttt{01} section 4.1 lists "\textgreater{}= 3 pins, current-shared" for a single "daughter power rail"; D-02 then split that rail into 48 V raw + 12 V regulated. Pin counts per rail are therefore a carrier design decision constrained by Q6, not a quoted requirement.
+
+\paragraph*{2.2 Connector electrical/mechanical requirements}
+\begin{quote}\small\ttfamily\raggedright
+\textbar{} ID \textbar{} Requirement \textbar{}\\
+\textbar{}---\textbar{}---\textbar{}\\
+\textbar{} CAR-REQ-13 \textbar{} Current rating with {*}{*}\textgreater{}= 50 \% margin{*}{*} over worst-case daughter draw, including strobe cap-bank charging current. Worst case is not yet supplied - Q6. \textbar{}\\
+\textbar{} CAR-REQ-14 \textbar{} Inrush limiting is the {*}{*}daughter's{*}{*} responsibility (the bulk capacitance lives there), but the carrier {*}{*}must survive a shorted or mis-seated daughter without damage to the PD front end{*}{*}. \textbar{}\\
+\textbar{} CAR-REQ-15 \textbar{} Mechanical support - mounting hole or standoff between the boards near the connector, so board flex is not carried by the pins. \textbar{}\\
+\textbar{} CAR-REQ-16 \textbar{} Keyed or otherwise reverse-insertion-proof. \textbar{}\\
+\textbar{} CAR-REQ-17 \textbar{} {*}{*}Active/binding{*}{*} (D-02): creepage and clearance appropriate to 48 V across the connector; every daughter tapping 48 V carries a bleed path for stored energy. \textbar{}
+\end{quote}
+\texttt{ASSUMED:} the PD front end supports both Mode A (data-pair) and Mode B (spare-pair) power and either polarity, via input bridges - this is mandatory for an 802.3-compliant PD, not a choice.
+
+\texttt{ASSUMED:} the 48 V raw output to the daughter is gated by a current-limited high-side switch (or equivalent fuse + FET) so that CAR-REQ-14 survivability is a carrier-side function; exact topology is P2 architecture's call, not a requirement input.
+
+---
+
+\subsubsection*{3. Power}
+\paragraph*{3.1 Input}
+\begin{itemize}
+\item Source: \textbf{PoE only.} Single Ethernet cable, no barrel jack, no other input.
+\item PD input voltage: \textbf{37-57 V nominal at the PD} (\texttt{00} section 5.3).
+\item Class: \textbf{802.3at Type 2 power stage, af classification for build 1} (D-01). Class-program
+resistor is the single upgrade lever.
+\item \textbf{No battery, no charging, no supercapacitor on the carrier.} Light-engine energy storage
+lives on the daughter (\texttt{01} section 6).
+\end{itemize}
+\paragraph*{3.2 Budget (all figures from \texttt{00} section 5.1 and D-01)}
+\begin{quote}\small\ttfamily\raggedright
+\textbar{} Item \textbar{} 802.3af (build 1) \textbar{} 802.3at (upgrade) \textbar{}\\
+\textbar{}---\textbar{}---\textbar{}---\textbar{}\\
+\textbar{} PD input limit \textbar{} 12.95 W \textbar{} 25.5 W \textbar{}\\
+\textbar{} Regulated power available to the application \textbar{} \textasciitilde{}10 W (Skyworks AN956 / Si3402-B figure) \textbar{} \textasciitilde{}20 W \textbar{}\\
+\textbar{} Carrier overhead (ESP32-S3 + W5500 + magnetics + regulator losses) \textbar{} {*}{*}1.5 W allocation{*}{*} \textbar{} 1.5 W allocation \textbar{}\\
+\textbar{} {*}{*}Sustained power to the light engine{*}{*} \textbar{} {*}{*}\textasciitilde{}8.5 W{*}{*} \textbar{} \textasciitilde{}18.5 W \textbar{}
+\end{quote}
+\begin{itemize}
+\item The {*}{*}1.5 W carrier overhead is flagged as judgement in \texttt{00} and must be measured on the first
+prototype.{*}{*} Treat as a budget, not a fact.
+\item \textbf{12.95 W is the PD input limit, not usable output} - budget against the \textasciitilde{}10 W regulated
+figure. This correction is explicit in the brief.
+\item The power budget table (PD input limit -\textgreater{} converter efficiency -\textgreater{} carrier overhead -\textgreater{} power at
+the expansion connector), \textbf{with both af and at columns}, is a schematic sign-off deliverable
+and is the artifact proving D-01 was decided rather than assumed (gate 2, D-01).
+\item Burst vs sustained: a cap bank solves peak power, not average. 1 J dumped in 10 ms is 100 W for
+10 ms, but repeating at 12 Hz still draws 12 W continuously. Any cap-bank daughter needs an
+\textbf{average-energy governor in firmware}. This bounds what the carrier's rails must sustain
+(\texttt{00} section 5.2).
+\end{itemize}
+\paragraph*{3.3 Rails}
+\begin{quote}\small\ttfamily\raggedright
+\textbar{} Rail \textbar{} Purpose \textbar{} Requirement \textbar{}\\
+\textbar{}---\textbar{}---\textbar{}---\textbar{}\\
+\textbar{} 48 V raw \textbar{} Pass-through to connector for the strobe energy store \textbar{} Switched/fused, 48 V creepage (D-02, CAR-REQ-14/17). \textbar{}\\
+\textbar{} 12 V regulated \textbar{} Daughter rail for par and future low-power daughters \textbar{} Converter {*}{*}input rating \textgreater{}= 60 V with margin{*}{*} (CAR-REQ-02). \textbar{}\\
+\textbar{} 3.3 V logic \textbar{} Carrier MCU/PHY + daughter logic/sense \textbar{} Derived via 48 -\textgreater{} 12 -\textgreater{} 3.3 (D-02). \textbar{}
+\end{quote}
+\textbf{Part exclusion, stated as a correction not an open question (`00` section 5.3):} the \textbf{LM2596} (40 V) and \textbf{LMR33630} (3.8-36 V) named in Project Plan v1.0 section 6.2 {*}{*}cannot be used{*}{*} on the PD rail. Any converter on that rail needs \textgreater{}= 60 V rating with margin.
+
+---
+
+\subsubsection*{4. Environment}
+Nothing in the briefs states a temperature range, ingress rating, or vibration spec. What is known:
+
+\begin{itemize}
+\item \textbf{Deployment:} indoor, basement/garage room \textasciitilde{}5 m x 7 m x 2.5 m, 8-12 fixtures (\texttt{00} section 1).
+\item \textbf{Enclosure:} a fixture enclosure \textbf{common to all fixture types}; dimensions {*}{*}not yet
+defined{*}{*}, explicitly flagged by the brief as "an input the design needs and does not have"
+(CAR-REQ-19). See Q1/Q2.
+\item \textbf{Thermal (CAR-REQ-18):} the carrier's DC-DC converter and the daughter's LED drivers are two
+separate heat sources inside one enclosure. The design must {*}{*}either physically separate them
+or specify the enclosure airflow that makes stacking acceptable{*}{*}. A thermal review against
+CAR-REQ-18 is a layout sign-off gate. Ambient/ventilation unknown - Q13.
+\item Ingress, vibration, altitude, humidity: \textbf{not stated}. \texttt{ASSUMED:} dry indoor use, no ingress
+rating, no vibration requirement, 0-40 degC ambient - confirm via Q13.
+\end{itemize}
+---
+
+\subsubsection*{5. Size and mounting}
+\textbf{This section is a blocking input, not a design output.} MECH-02: the P5 outline binds permanently (\texttt{board\_init.py --outline WxH}, no shrink step exists), and the carrier proposes the \textbf{common footprint and mounting-hole pattern that every daughter inherits}. It must be closed with the human at H1, before P5.
+
+\begin{quote}\small\ttfamily\raggedright
+\textbar{} Item \textbar{} Status \textbar{}\\
+\textbar{}---\textbar{}---\textbar{}\\
+\textbar{} Board outline (mm) \textbar{} {*}{*}UNKNOWN - blocking.{*}{*} Q2. \textbar{}\\
+\textbar{} Corner radius \textbar{} Rounded corners required (MECH-01). Value open - Q3. Confirm the `--corner-radius` flag exists at P5 via `board\_init.py --help`. \textbar{}\\
+\textbar{} Mounting holes \textbar{} 4x M3 (3.2 mm) at the outline corners unless the outline forbids it (MECH-01); native to P5, board-only, ignored by schematic parity. Exact pattern/inset open - Q3. \textbar{}\\
+\textbar{} Board-to-board arrangement and stack height \textbar{} {*}{*}UNKNOWN.{*}{*} Q4. Also drives CAR-REQ-15 (standoff near the connector). \textbar{}\\
+\textbar{} Enclosure internal height budget \textbar{} {*}{*}UNKNOWN.{*}{*} Q4. \textbar{}\\
+\textbar{} RJ45 mounting style \textbar{} Board-edge vs panel-mount, must be consistent across fixture types (CAR-REQ-20). Q12. \textbar{}\\
+\textbar{} Where the LEDs physically live \textbar{} {*}{*}UNKNOWN{*}{*} and thermally load-bearing for CAR-REQ-18. Q4a. \textbar{}
+\end{quote}
+---
+
+\subsubsection*{6. Quantity and budget}
+\begin{itemize}
+\item \textbf{Build quantity:} 8-12 carriers for the first deployment (\texttt{00} section 1, \texttt{01} section 1).
+Exact order quantity and spares not fixed - Q15.
+\item \textbf{Budget:} \$500-1000 for the whole first build - fixtures \textbf{plus} the managed PoE switch
+\textbf{plus} enclosures (\texttt{00} section 1). {*}{*}No per-carrier target cost is stated anywhere in the
+briefs.{*}{*} Q15.
+\item Manufacturability constraint that is stated: must be "assemblable in small quantity without
+exotic processes" (\texttt{01} section 1).
+\end{itemize}
+---
+
+\subsubsection*{7. Assembly}
+\textbf{Not stated in any brief.} The only constraint is "no exotic processes at 8-12 units". Open - Q14. \texttt{ASSUMED:} pending the answer, design for JLCPCB PCBA with single-sided (top) assembly and prefer Basic/Standard library parts; this assumption must be confirmed before P2 part selection, because it constrains package choice for the PD controller, the \textgreater{}= 60 V converter and the ESP32-S3 decision (Q7).
+
+---
+
+\subsubsection*{8. Compliance / safety flags}
+\begin{quote}\small\ttfamily\raggedright
+\textbar{} Flag \textbar{} Applies \textbar{} Detail \textbar{}\\
+\textbar{}---\textbar{}---\textbar{}---\textbar{}\\
+\textbar{} {*}{*}\textgreater{} 30 V present{*}{*} \textbar{} {*}{*}YES{*}{*} \textbar{} PD rail is 37-57 V nominal; 57 V is the worst case for component rating. This is the dominant safety/derating driver on the board. Converters need \textgreater{}= 60 V input rating with margin. \textbar{}\\
+\textbar{} {*}{*}\textgreater{} 30 V leaves the board{*}{*} \textbar{} {*}{*}YES{*}{*} \textbar{} 48 V raw is passed to the daughter connector (D-02). CAR-REQ-17 is binding: {*}{*}48 V creepage/clearance across the connector{*}{*}, and every 48 V-tapping daughter needs a bleed path. Connector selection is constrained by spacing, not just current. \textbar{}\\
+\textbar{} {*}{*}Stored energy hazard{*}{*} \textbar{} {*}{*}YES (system-level){*}{*} \textbar{} The strobe daughter holds \textasciitilde{}2800 uF charged to \textasciitilde{}48 V (\textasciitilde{}3 J). It lives off-board, but the carrier supplies it and freezes the connector that carries it. Bleed-path requirement is placed on daughters by D-02; the carrier must not defeat it. \textbar{}\\
+\textbar{} {*}{*}High current (\textgreater{} 3 A){*}{*} \textbar{} {*}{*}UNRESOLVED - must be answered, not guessed{*}{*} \textbar{} 8.5 W sustained on 48 V is only \textasciitilde{}0.2 A average, but CAR-REQ-13 sizes the connector against {*}{*}worst-case draw including cap-bank charging current{*}{*}, which no brief supplies. The strobe's \textasciitilde{}2.6 A drive figure (D-02 / STR-REQ-12) is bank-to-LED, not connector current. {*}{*}Q6.{*}{*} \textbar{}\\
+\textbar{} {*}{*}Fault tolerance{*}{*} \textbar{} {*}{*}YES{*}{*} \textbar{} CAR-REQ-14: the carrier must survive a shorted or mis-seated daughter with no damage to the PD front end. \textbar{}\\
+\textbar{} {*}{*}Isolation / earthing{*}{*} \textbar{} {*}{*}UNRESOLVED - must be answered, not guessed{*}{*} \textbar{} Whether the PD converter is isolated (flyback) or non-isolated (buck) determines whether the whole board floats at PoE potential. Non-isolated is cheaper and normal for a PD, but it requires a non-conductive or fully floating enclosure and no second earthed connection. Enclosure material and any other external connection are unknown. {*}{*}Q5.{*}{*} \textbar{}\\
+\textbar{} {*}{*}RF transmit{*}{*} \textbar{} {*}{*}CONDITIONAL{*}{*} \textbar{} Ethernet is the control path and wireless is out of scope, but an ESP32-S3 module physically contains a 2.4 GHz transmitter. If the radio must be usable, antenna keep-out and enclosure material become constraints; if it is permanently disabled, they are not. {*}{*}Q8.{*}{*} A pre-certified module also removes RF layout from the critical path - {*}{*}Q7.{*}{*} \textbar{}\\
+\textbar{} Mains voltage \textbar{} NO \textbar{} No mains anywhere on this board. \textbar{}\\
+\textbar{} Battery / charging \textbar{} NO \textbar{} No battery, no cells, no charger on the carrier. \textbar{}\\
+\textbar{} Motors / inductive loads \textbar{} NO \textbar{} None. \textbar{}
+\end{quote}
+Per the analyst rules, the pipeline does \textbf{not} proceed on guessed safety requirements: {*}{*}Q5 and Q6 must be answered by the human before P2 architecture commits a converter topology or a connector part.{*}{*}
+
+---
+
+\subsubsection*{9. Open questions}
+Answer these in one batch. Defaults are marked \texttt{{[}default: ...{]}} - replying "defaults" to any question is a valid answer.
+
+\textbf{Blocking for H1 / P5 (MECH-02 - the outline is permanent once set):}
+
+1. {*}{*}Is there a physical enclosure already chosen, or do we choose the board size and have the enclosure follow?{*}{*} (a) Off-the-shelf enclosure already picked - give make/model or internal dimensions; (b) custom 3D-printed / laser-cut, so the board size leads; (c) undecided, treat as (b) for now. \texttt{{[}default: (b) - the board size leads and the enclosure is built around it{]}}
+
+2. \textbf{What common board outline, in mm, should the carrier and every daughter use?} This is permanent - there is no shrink step later, and daughters inherit it. (a) \textbf{100 x 80 mm} - comfortable for the carrier (PD front end + \textgreater{}= 60 V DC-DC + ESP32-S3 + W5500 + RJ45 with the DC-DC separated from the daughter's drivers per CAR-REQ-18), and leaves the strobe daughter enough area for a \textasciitilde{}2800 uF / 63 V bank; (b) \textbf{100 x 100 mm} - maximum headroom, same JLCPCB low-cost size tier, bigger enclosure; (c) \textbf{80 x 60 mm} - compact, but likely too tight once 48 V creepage and the strobe cap bank are accounted for. \texttt{{[}default: (a) 100 x 80 mm{]}}
+
+3. \textbf{Corner radius and mounting-hole pattern for the common footprint?} `{[}default: 3 mm corner radius; 4x M3 (3.2 mm) holes inset 5 mm from each edge, i.e. a 90 x 70 mm hole rectangle on a 100 x 80 mm board - identical on every LUMINA board so any daughter bolts to the same standoffs{]}`
+
+4. {*}{*}How do the carrier and daughter sit relative to each other, and how much internal height is available?{*}{*} (a) Stacked mezzanine, daughter above the carrier, board-to-board standoffs; (b) stacked, daughter below; (c) side by side / coplanar, joined by a cable. Also state the usable internal height of the fixture, since the strobe's electrolytics are likely 20-25 mm tall. `{[}default: (a) stacked mezzanine, daughter above, 15 mm board-to-board standoff, \textgreater{}= 45 mm internal height available{]}`
+
+4a. {*}{*}Are the LEDs mounted on the daughter board itself, or on a separate LED module/star wired to it?{*}{*} This decides whether the enclosure has one hot zone or two and drives the CAR-REQ-18 thermal argument. \texttt{{[}default: separate LED module on its own heatsink, wired to the daughter{]}}
+
+\textbf{Safety-relevant - will not be guessed (section 8):}
+
+5. \textbf{Isolated or non-isolated PD converter, and what is the enclosure made of?} A non-isolated buck is cheaper and smaller, but then the entire board floats at PoE potential and the enclosure must be non-conductive (or metal with no second earthed connection). An isolated flyback costs more and is bigger. Also: {*}{*}does the fixture have any electrical connection to anything other than the Ethernet cable{*}{*} (chassis earth, DMX, a mains-powered fan, a shared LED supply)? `{[}default: non-isolated buck, plastic/3D-printed enclosure, Ethernet is the only external connection{]}`
+
+6. \textbf{What is the worst-case current the daughter board will draw from each connector rail?} CAR-REQ-13 requires \textgreater{}= 50 \% margin above this, and it decides the connector part. Needed as three numbers: 48 V raw peak (cap-bank charging), 12 V continuous, 3.3 V continuous. `{[}default: size the connector for 48 V raw 2 A continuous with 3 A capability, 12 V 2 A, 3.3 V 0.5 A - this covers the strobe's charging current with margin while staying inside the \textasciitilde{}8.5 W average PoE budget, which firmware enforces via the average-energy governor{]}`
+
+\textbf{Design-of-record questions carried over from `01` section 8:}
+
+7. \textbf{ESP32-S3: pre-certified module or bare chip?} A module removes RF layout and SPI-flash routing from the critical path on a first spin; a bare chip is cheaper per unit at volume but adds RF layout, flash routing and certification risk. If a module: how much flash? `{[}default: pre-certified ESP32-S3-WROOM-1 module, 8 MB flash, no PSRAM - lowest risk for a first spin and consistent with 8-12 units{]}` \emph{(This is `01` section 8 question 4, still open.)}
+
+8. \textbf{Must Wi-Fi/BLE actually work on the deployed fixture, or is the radio permanently unused?} If it must work, the module needs an antenna keep-out at a board edge and the enclosure must not be metal near it; if unused, neither constraint applies and the enclosure is freer. `{[}default: radio unused in normal operation but keep it functional - place the module with a proper edge keep-out, and keep the enclosure non-metallic (consistent with Q5 default){]}`
+
+9. \textbf{How do firmware updates happen, in the workshop and in the field?} (a) USB-C connector on every fixture; (b) Ethernet OTA as the normal path, plus a small on-board UART/boot header for recovery; (c) pogo-pin jig against test pads, plus Ethernet OTA; (d) Ethernet OTA only, no recovery path. This affects connector count, panel cutouts and enclosure design. `{[}default: (b) - Ethernet OTA normally, plus a 6-pin 1.27 mm or 2.54 mm UART/BOOT/EN header inside the enclosure for recovery; no USB-C cutout on 8-12 fixtures{]}` \emph{(This is `01` section 8 question 5, still open.)}
+
+10. \textbf{Daughter identification: resistor divider, I2C EEPROM, or both?} The brief prefers EEPROM "if the BOM allows" because it also stores per-unit colour calibration; the divider is cheaper and coarser. Supporting both costs \textasciitilde{}2 connector pins and one pull-up. `{[}default: both - reserve 1 ADC-capable ID pin for a divider AND route I2C to a daughter EEPROM, so a cheap daughter can use the resistor and the par/strobe can use the EEPROM{]}`
+
+11. \textbf{How should link / power-good / fault be visible without opening the enclosure?} (a) Board-edge LEDs plus a light pipe or window in the enclosure; (b) the RJ45 jack's own integrated LEDs only, visible through the Ethernet cutout; (c) LEDs on the board only, accepted as not externally visible. `{[}default: (b) plus one status LED beside the RJ45 cutout - re-uses the connector opening and needs no extra enclosure feature{]}`
+
+12. \textbf{RJ45: board-edge jack sticking through a cutout, or panel-mount jack on a short pigtail?} Must be the same across all fixture types (CAR-REQ-20). \texttt{{[}default: board-edge THT magjack through a cutout - fewer parts, no pigtail{]}}
+
+\textbf{Programme / commercial:}
+
+13. \textbf{What ambient temperature and ventilation should the design assume?} `{[}default: 0-40 degC ambient, sealed (unventilated) enclosure, natural convection only - which forces the CAR-REQ-18 answer to be physical separation of the DC-DC from the daughter's drivers rather than airflow{]}`
+
+14. \textbf{Assembly method: JLCPCB PCBA or hand solder, and single- or double-sided assembly?} `{[}default: JLCPCB PCBA, single-sided (top) assembly, prefer Basic/Standard library parts; this is currently an ASSUMED in section 7 and needs confirming before P2 part selection{]}`
+
+15. \textbf{How many carriers to build, and what is the target cost per assembled carrier?} The \$500-1000 figure covers fixtures + switch + enclosures together, so the carrier's share is not derivable from it. `{[}default: build 14 (12 fixtures + 2 spares); target \textless{}= \$30 per assembled carrier at that quantity, PCB + parts + assembly{]}`
+
+16. \textbf{Which daughter boards must the frozen connector ICD serve?} D-03 removed the UV bar, so the known set is strobe + RGBW par. The future STM32F4 laser/galvo daughter is out of Phase 1 and undefined - do we reserve anything for it now? `{[}default: freeze the ICD for strobe + RGBW par only; no extra reservation - the existing SPI and I2C lines already let a future daughter carry its own MCU or driver{]}`
+
+---
+
+\subsubsection*{10. Notes for downstream phases}
+\begin{itemize}
+\item \textbf{P2 architecture must not commit} a converter topology (Q5) or a connector part (Q6, Q2/Q3)
+until those answers land.
+\item \textbf{H1 deliverables} are the frozen \texttt{architecture/connector-icd.md} (ICD-01) \textbf{and} the agreed
+board outline in mm (MECH-02).
+\item \textbf{Schematic sign-off gates} (\texttt{01} section 7): PD topology matched to the selected controller's
+reference design with detection/classification values justified against D-01; the two-column
+power budget table; explicit PWM channel/timer/frequency allocation per planned daughter;
+ENABLE fail-safe analysis (MCU in reset, mid update, brownout); W5500 SPI clock inside spec and
+ESP32-S3 pins clear of strapping/USB/SPI-flash functions.
+\item \textbf{Layout sign-off gates:} Ethernet differential pair routing and magnetics isolation review,
+DC-DC switching-node loop area review, thermal review against CAR-REQ-18.
+\item \textbf{End of run:} \texttt{report\_gen.py} must exit 0 (DOC-01); commits are scoped to
+\texttt{boards/lumina-carrier} only (GIT-01).
+\end{itemize}
 \section{Architecture}
 \subsection*{Decisions of record (state.json)}
 {\small
@@ -129,6 +391,12 @@ P8 & P8 REVIEWER TRIAGE: 4 errors + 8 warnings from the fresh-context verify-rev
 P8 & OSCILLATOR ISLAND COLLAPSED via a scoped P6/P7 backward edge: routed copper 115.568 -\textgreater{} 33.212 mm (-71 percent), vias 10 -\textgreater{} 4, island-to-board-edge 0.647 -\textgreater{} 3.450 mm, R36-to-driver 31.275 -\textgreater{} 9.533 mm. drc\_routed 0/0 and gate place 0/0. No rebuild. & Owner approved fixing in place at H4. Root cause was a constraints.json defect, not a placement failure: group eth\_xtal was anchor Y10 with members {[}C30, C31{]} only, so R35 (1M feedback) and R36 (0R SERIES DAMPING) were never grouped and the annealer placed them freely at the top board edge, 31 mm and 17 mm from the pins they belong to. Corrected to anchor U10 with members {[}Y10, C30, C31, R35, R36{]} - anchored on the DRIVER, because anchoring on Y10 is what let the whole island float. Also added /eth/XI, /eth/XO and /eth/XO\_XTAL to high\_speed: they were absent, which is why check\_return\_path never once evaluated a 25 MHz net that reached 1.05 mm from a board edge. RESULTS PER NET: /eth/XI 45.697 mm / 6 vias -\textgreater{} 15.336 / 2; /eth/XO 42.800 / 2 -\textgreater{} 13.920 / 2; /eth/XO\_XTAL 27.071 / 2 -\textgreater{} 3.957 / 0. Load caps pulled in: C31 4.001 -\textgreater{} 2.072 mm from Y10, C30 2.489 -\textgreater{} 2.320 mm. Every separation rule still holds and two improved: Y10-to-J1 28.067 -\textgreater{} 41.587 mm against a 25 mm minimum. EMI consequence closed: the 25 MHz loop no longer terminates 1 mm from the board edge of a product whose only external cable is a 100 m Ethernet run, which was the canonical CISPR 32 radiated-emissions exposure with harmonics past 250 MHz. The series damping resistor is now 9.5 mm from its driver instead of 31 mm with \textasciitilde{}45 mm of trace in series, so it can actually damp. And \textasciitilde{}82 mm of copper plus 6 vias came off a 27 pF load network, recovering both start-up negative-resistance margin and part of the 100BASE-TX +/-50 ppm budget. PROCESS NOTE: moving 5 parts on a board with \textasciitilde{}3294 tracks produced 39 silk warnings on the first DRC and ZERO copper errors, because the agent ripped the three nets BEFORE moving the parts rather than after. That ordering is the whole difference between this and the C35 incident earlier in the run. \\
 P8 & ALL FOUR H4 ACTIONS COMPLETE. LED\_Y\_A rerouted 0.2031 -\textgreater{} 1.1500 mm (226 pairs under 0.635 mm -\textgreater{} 0), 188 tracks widened off the fab floor (gate dfm 193 -\textgreater{} 5 errors), ICD re-issued at rev A7, board locks declared and now DRC-enforced. Three new DRU rules, each PROVEN LIVE. drc\_routed 0/0. & The 189 in the work order was 188 (the agent found the order off by one on F.Cu, 135 not 136) and it is now 187 tracks at 0.110 mm plus 1 at 0.1071 mm - the exception is /ETH\_RSTn with 0.0071 mm of room against /eth/EXRES. One /ETH\_RSTn 3-segment chain had EXACTLY 0.0000 mm of room, sitting precisely on the resolved Default clearance from a 0.5 mm +3V3 track, so width-only was impossible; the agent nudged two shared nodes 0.03 mm east and reported it as a geometry change rather than burying it. I accept that, and I accept its widening of the two 0.100 mm /eth/XI and /eth/XO landings it flagged - both are PHY-side, 9-11 mm from the oscillator island, byte-identical geometry, DRC held. LED\_Y\_A left the pocket rather than being nudged because the band between J1's north pin row and POE\_TAP\_A2's staircase is 0.777 mm tall where a 0.2 mm track needs 1.035 mm; the 2.25 mm B.Cu dive exists solely to pass under LED\_G\_A's F.Cu corridor. Nearest new copper to any tap is 1.15 mm, which is why the new 0.60 mm rule has room. RULE SCOPING, and this is where the honest work was: hv\_tap\_general\_clearance at 0.635 mm fired 17 times and hv\_to\_netless\_conductor 9 times, and NONE of the 26 was a defect. All 9 netless firings were U22's own no-connect pads 4/5/17 at 0.220-0.250 mm from its own lead frame - decision (c) geometry. 13 of the 17 tap firings were plane ANTIPADS at a uniform 0.5005 mm against In1/In2, where the governing figure is IPC-2221B B1 internal = 0.10 mm, so 0.5005 mm exceeds it five-fold and 0.635 mm was simply the wrong yardstick for an inner-layer antipad. I scoped both rules per refdes and per layer rather than lowering them blindly, and set the tap rule to 0.600 mm = IPC B2 external, consistent with the two tap rules already at 0.600 and reserving TI's 0.635 mm for U1's own pins via the HV\_48V\_{*} rules. DISCLOSED rather than hidden by that choice: the tightest tap clearance on the board is a +3V3 via to J1 pad 11 at 0.6215 mm, clearing 0.600 by 21.5 um and missing 0.635 by 13.5 um. LIVENESS PROVEN for all three rules by tightening each and confirming it fires with the expected actuals: track floor at 0.15 mm fires 188x reporting 0.1071/0.1100 (which also independently confirms the widening); tap clearance at 0.9 mm fires 156x with 0.6215 tightest; netless at 0.75 mm fires 5x at 0.6643-0.6946 mm - and those five ARE J1's board locks, so the rule demonstrably reaches the pads it exists for. Note DRC measures the board-lock margin as 0.6643 mm where the P7 shape-aware capsule model gave 0.6029 mm; DRC's is the enforced number. \\
 P9 & THREE OPEN ITEMS RECORDED AS EXPLICITLY DEFERRED, not fixed: OI-1 U21 needs an HF input ceramic at VIN (highest-priority rev-B), OI-2 +3V3 and the LED nets are unclamped, OI-3 the skill has no incremental board-from-netlist update. Full detail in reports/open-items.md. & OI-3 IS THE CAUSE OF THE OTHER TWO, and that is the finding worth carrying to the skill rather than to this board. board\_init.py regenerates a board FROM SCRATCH - it does not sync a netlist into an existing .kicad\_pcb - and place\_edit's op set is place/move/rotate/flip/lock/add\_text/move\_text with NO add\_footprint. So any component addition after P5 costs the entire placement AND the entire routing. On this board that means discarding a hand-tuned oscillator island, four hand-solved 57 V creepage geometries, 188 hand-widened tracks and a 111-op silkscreen pass, in order to add two 0402 capacitors. That asymmetry is what forced the owner's no-rebuild ruling and it will force the same ruling on every future board that finds a missing passive at P8. The natural fix is a place\_edit add\_footprint op plus a netlist-diff step. OI-1 is a genuine error and I am not softening it: U21's TPS563201 sync buck has ONE input cap 9.89 mm / 8.378 nH from VIN and no HF ceramic at the pin at all, on the converter feeding the ESP32-S3, the W5500 and J3 pins 12/14 to every daughter. check\_decoupling missed it by classing the 22 uF as bulk and applying the loose limit - its model is a decoupling loop, but a synchronous buck's input ceramic carries the full trapezoidal switch current with no diode softening. OI-2's geometric half WAS fixed (0.2031 -\textgreater{} 1.1500 mm, 226 pairs -\textgreater{} 0, now held by the hv\_tap\_general\_clearance rule) so only the clamp remains, and a clamp is a new footprint. Also recorded in open-items.md, in ONE place as the owner asked: every H4-accepted waiver with its measured number, including that the ICD B4 question is now CLOSED BY GEOMETRY rather than by argument - the pair was physically rerouted, so ICD s5.1's refusal of the B4 column stands unchanged and needs no rev A8. \\
+P10 & P9 dfm gate PASS (5 errors -\textgreater{} 0, 87 warnings) and P10 order package built. REAL API quote obtained: 62.70 USD for 15 bare PCBs, JLC audit clean, gerber sha256 verified end to end. Second sub-fab floor found and closed: min\_hole\_to\_hole was 0.25 mm at severity warning against JLC's 0.5 mm. & Both DFM defects were GENERATOR output and both were invisible to DRC by configuration, not by bad luck: the .kicad\_pro shipped min\_hole\_to\_hole 0.25 mm at severity WARNING, so 0.3136 mm and 0.3505 mm pairs never fired. That is the SECOND sub-fab floor in the generated project file after min\_track\_width 0.1 vs JLC 0.1016. Raised to 0.5 mm at severity error and drc\_routed still reads 0/0 - board-wide minimum is 0.5016 mm across 440 drills - so it cost nothing and would have caught the first defect at P7. Repair choices were made on measured consequences rather than convenience: for the +3V3 via pair, WHICH via to delete mattered because removing one leaves a 2-via cluster that still passes check\_current's 1 A / 2-via rule while removing the other would have split it into two 1-via clusters and ADDED two violations; and the deleted via's orphaned stub was rebuilt at the PWR\_3V3 netclass width so no new undersized\_track appeared. For the U22 stitch via - the documented via-drill-vs-pad-drill blind spot verbatim, a stitch 0.35 mm from a thermal-via drill inside the very pad it was stitching - it was MOVED to the cell centroid rather than deleted, which held the via count constant so no check\_current cluster changed. API LEG: upload succeeded with file\_key sha256 3afe6590... matching our zip byte for byte, audit ok code 200 with red{[}{]} and yellow{[}{]} both EMPTY, and JLC's own audit independently read back setLength 100.0 x setWidth 80.0 - the outline confirmed by the fab, not just by us. One real API finding to carry: qty 14 was REJECTED with pcb\_qty\_error 2103 because JLC PCB quantities are restricted to standard steps, so the order is 15, not the 14 the cost model had assumed throughout. THE COMPARISON THAT MUST NOT BE MADE CARELESSLY: 62.70 USD real is BARE PCB ONLY because JLC's Open API is PCB-ordering only with no assembly API, while the 195.20 USD estimate includes \textasciitilde{}167 USD of assembly service. They are not the same scope and neither includes component purchase cost. Also noted: copper\_weight\_source reported 'no architecture/stackup.md -\textgreater{} default 1 oz' although that file exists, so the 1 oz value was defaulted rather than read - correct by luck here. \\
+P10 & H5 FREIGHT QUOTE COMPUTED, NOTHING CREATED: qty 10 to US 94107, bare PCB 35.47 + Global Standard Direct Line 7.72 = GRAND TOTAL 43.19 USD. qty 10 confirmed accepted by the API. Order creation NOT run and remains latched. & Owner asked for 'standard direct line shipping, as cheap as possible' and that maps to a LITERAL API option name rather than a judgement: HKTHZXR-RMB / showOptions 'Global Standard Direct Line', 7.7179 USD, 8-13 business days. I re-ran calculate with --ship-method so the 43.19 grand total is API-computed and matches the confirm token format, rather than adding two numbers by hand. TWO CHEAPER ROWS EXIST AND BOTH ARE TRAPS: CADHL 'My DHL Account' and CAFedEx 'My FedEx Account' at 2.50 USD are carrier-ACCOUNT options where 2.50 is a handling fee and the real freight is billed to the owner's own DHL/FedEx account - and both return day: null, no transit estimate. Presenting either as 'the cheapest' would be wrong. qty 10 VERIFIED against the API rather than assumed, since 14 was rejected earlier with pcb\_qty\_error 2103; 10 returned verdict ok. Notable: PCB price is NOT monotonic per unit - 10 boards cost 35.47 (3.55 each) against 15 at 62.70 (4.18 each) - so dropping 15 to 10 saved 27.23 USD and lowered the per-board price. RE-UPLOAD: done, new file\_key 3b829e9d, sha 4e192c7e. But the sha change was a FALSE ALARM - the only differing line across the whole 12-file package was the drill file's creation timestamp; all four copper layers were byte-identical, so the design that was audited before is the design audited now. Audit again clean: ok true, code 200, red{[}{]} and yellow{[}{]} empty, JLC read back 100.0 x 80.0 mm. ASSEMBLY QUESTION ANSWERED HONESTLY AS UNANSWERABLE: I grepped the entire calculate request and response - calculate\_request is \{achieveDate, country, fileKey, orderType, pcbParam\} with no bomParam or smtParam, and the only assembly-adjacent keys anywhere are stencilFee/originStencilMoney/stencilLayer, a stencil being a PCB-side product. The API has no concept of an assembly order, so it can neither confirm nor refute that a bare order forecloses later PCBA. I am not inferring it from the absence of a field. \\
+P10 & ORDER A CREATE FAILED AMBIGUOUSLY - pcb/create returned HTTP 200 with code 2 unknown\_error, trace 4e0f08d4e3c04a9b80b19553624c43a8. STOPPED. Order B NOT attempted. No retry. Whether an order exists on the JLC account CANNOT be determined from the API and needs a human portal check. & Pre-flight was clean and verified before spending: no order existed (fab/order.json order\_number None, api.order None, created-latch UNARMED, no batchNum or orderId in any artifact, and --api-create had never been invoked in this workspace); uploadGerber ok; audit ok code 200 with red{[}{]} and yellow{[}{]} both empty and JLC reading back 100.0 x 80.0 mm; calculate returned EXACTLY the authorised 43.19 (35.47 pcb + 7.7179 HKTHZXR-RMB freight) with the gerber sha binding matching byte for byte. The create itself was refused by JLC at the business layer. THE SERIOUS FINDING IS NOT THE FAILURE, IT IS THE UNOBSERVABILITY: the Open API has NO list or search endpoint - pcb/order/detail and pcb/wip/get BOTH require a batchNum you must already hold, and wip/get with an empty payload returns param\_empty code 3 - so after an ambiguous create there is no programmatic way to ask whether an order appeared. An HTTP 200 carrying a business error is not distinguishable from a partially applied create, so a blind retry is precisely how the board gets bought twice. I did not retry and did not proceed to Order B, whose procedure required A to succeed first. Note the created-latch does NOT protect this case: it arms only on SUCCESS, so it guards against a deliberate second order and not at all against an ambiguous first one - the tool would happily let me retry. classify() has no rule for code 2 and REMEDIATION has no entry, so neither the API nor the tooling can say what to do next. Ruled OUT as the cause: copperWeight, which is correctly present as the string '1' for this 1 oz JLC04161H-3313 stackup. Found while ruling it out: derive\_copper\_oz scans for a line starting with '\#\# Chosen' but this board's heading is '\#\# 1. Chosen stackup', so it silently defaults to 1 oz AND reports 'no architecture/stackup.md' although the file exists - correct by luck here, but it would defeat the 2 oz board-killer guard by default on any numbered heading. \\
+P10 & INNER-COPPER FIX IS REAL AND WORKED, BUT IT WAS NOT THE CREATE BLOCKER. Re-quote dropped Order A from 43.19 to 26.12 (PCB 35.47 -\textgreater{} 18.40, insideCuprumThicknessFee 17.07 -\textgreater{} 0.00) and the create STILL returned code 2 unknown\_error, trace f90769b3cb184f2cb0e6c2312844639d. STOPPED per instruction. Order B not attempted. No order created. & The 2f0cb1e fix is independently confirmed correct and valuable regardless of the create: pcbParam now carries copperWeight '1' and insideCuprumThickness '0.5', the insideCuprumThicknessFee went to exactly 0.00, and the board will be built to JLC04161H-3313's real 17.5 um inner layers - the geometry the 100 ohm differential MDI was actually solved against (0.260 mm trace / 0.210 mm gap / 0.470 mm pitch). Had a create ever succeeded before this fix, we would have received boards on a stackup nobody designed, and paid 17.07 USD extra for the privilege. aab8921 also verified: derive\_copper\_oz now finds this board's numbered heading and reports honestly ('Chosen line has no oz marker -\textgreater{} 1 oz') instead of claiming the file is missing; outer stays 1 oz, correct. WHAT THE DIFF AGAINST THE WORKING pd-trigger ORDER RULES OUT: pcbParam is field-for-field identical except where the boards legitimately differ - layer 2 vs 4, 48x30 vs 100x80, and insideCuprumThickness absent vs '0.5' (it is a 4+ layer only field). copperWeight, surfaceFinish, thickness, plateType, viaCovering, flyingProbeTest, impedanceFlag, panel flags, pcbColor, qty and even serviceConfigVos are byte-identical. The create payload shape is the same too: \{orderType, fileKey, pcbParam, shippingMethod\}. And pd-trigger created successfully with the SAME shippingMethod HKTHZXR-RMB and the SAME country US. So it is not the ship method, not the freight, not the token, not the account scope, and not the payload shape. THE TWO CANDIDATES LEFT, both untestable without spending: (1) insideCuprumThickness is accepted by calculate but rejected by create - the field is known to be validated, since JLC returns 2129 for it on 2-layer boards; (2) this is simply the first FOUR-LAYER create on the account and create has a 4-layer requirement calculate does not enforce. pd-trigger was 2-layer. I am not probing further: every attempt is a live create and the instruction was to stop and report if code 2 recurred. Latch remains unarmed, order\_number None, and no batchNum or orderId was returned on either attempt. \\
+P10 & THIRD IDENTICAL FAILURE - candidate 1 disproved. Omitting insideCuprumThickness from the create payload changed nothing: code 2 unknown\_error, trace b1eba7f4642b494db0cb8a1b104f5b14. STOPPED. Candidate 2 NOT attempted. No order created, nothing spent, latch still unarmed. Escalate to JLC support or the manual cart. & The experiment was run cleanly and is conclusive for what it tested: calculate kept insideCuprumThickness '0.5' and priced correctly at 26.12 (18.40 pcb + 7.7179 HKTHZXR-RMB, insideCuprumThicknessFee 0.00), while create sent a payload verified field-by-field BEFORE sending to contain no insideCuprumThickness and everything else intact - orderType 1, fileKey, layer 4, copperWeight '1', qty 10, identical serviceConfigVos, shippingMethod HKTHZXR-RMB. JLC still returned HTTP 200 with code 2. So the failing element is NOT that field. THREE ATTEMPTS, THREE TRACES, THREE DIFFERENT PAYLOADS, ONE IDENTICAL UNCLASSIFIED REJECTION: 4e0f08d4e3c04a9b80b19553624c43a8 (inner copper '1'), f90769b3cb184f2cb0e6c2312844639d (inner copper '0.5'), b1eba7f4642b494db0cb8a1b104f5b14 (field absent). Against a control - pd-trigger, same account, same API, same shippingMethod HKTHZXR-RMB, same country US, same payload shape - which created successfully as batchNum W2026073002475378. The only structural differences left are layer count (2 vs 4) and board size (48x30 vs 100x80). I did NOT try candidate 2 because the instruction was explicit that three identical unclassified rejections means the cause is not in the payload and further live creates are guessing with real money. I ALSO REVERTED my experimental edit to order\_submit.py rather than leaving it: with the hypothesis disproved, permanently dropping insideCuprumThickness from create would make the script silently discard a genuine 1 oz inner-copper selection on some future board and ship 0.5 oz instead - precisely the class of board-killer that commit 2f0cb1e was written to fix. A failed experiment must not leave a hazard behind. Script is back at 2f0cb1e, git-clean. \\
+P10 & STOPPED PER STEP 1: JLC04161H-3313 DOES NOT EXIST in JLC's impedance template list. Only three 4L/1.6mm/1oz/0.5oz templates are offered - JLC04161H-custom (20220811093551), JLC04161H-1080B (202601040426384154), JLC04161H-7628G (202607130748059522) - and NONE has the 0.2104 mm 7628 prepreg this board's 100 ohm MDI was solved against. All three also return enableFlag false. No create attempted. & getImpedanceTemplateSettingList works and is free. Swept plateType 0-3, delamination 0-3 and a minimal payload: plateType 1 is the only value returning anything, and every successful shape returns the SAME three templates. No 3313 under any parameter shape. THE MISMATCH IS IN OUR OWN REFERENCE DATA, not in the order: reference/stackups.yaml line 67 defines JLC04161H-3313 as prepreg 0.2104 mm FR4 7628 er 4.05 with a 1.065 mm core, and architecture/stackup.md s2.1 calls it 'the only stackup in reference/stackups.yaml that publishes a 100 ohm differential profile' - that is what made this board 4-layer and what produced the 0.260 mm / 0.210 mm / 0.470 mm MDI geometry. JLC does not offer it. What JLC actually offers: 1080B has the RIGHT core (1.065 mm, matching exactly) but 1080 glass at 0.084+0.084+0.0764 = 0.2444 mm L1-to-L2, 16.2 percent thicker than assumed; 7628G has the RIGHT prepreg material (7628) but a 0.5 mm core and 0.218+0.218+0.0764 = 0.5124 mm L1-to-L2, 143 percent thicker. Differential Z0 rises with dielectric height, so 1080B lands the pairs somewhere above 100 ohm and 7628G lands them far above - neither is the geometry that was solved. I did NOT choose one: the instruction was explicit that picking an approximate stackup is forbidden because the trace geometry was solved against a specific one, and that is exactly right - swapping the stackup silently invalidates the single reason this board has four layers. THIRD-ORDER CONSEQUENCE worth flagging beyond this order: enableFlag is FALSE on all three, so it is not established that ANY of them is currently selectable via the API. And this applies to lumina-strobe and lumina-par identically, since both are 4-layer and inherit the same stackups.yaml entry. The remaining live-create hypothesis is untested - impedanceFlag is still hardcoded 'no' and no impedanceTemplateCode is sent - but I cannot apply that fix without choosing a template, which is the decision I was told to stop at. \\
 \bottomrule
 \end{longtable}
 }
@@ -354,7 +622,7 @@ WRL bounding box is a known trap.
 
 Full architecture narrative (not inlined; see the artifact index): \texttt{architecture/blocks.md}, \texttt{architecture/decisions.md}, \texttt{architecture/power\_tree.md}, \texttt{architecture/stackup.md}.
 \section{Schematic}
-Gate \texttt{erc} (phase P4): \textbf{pass} after 2 attempt(s); last 2026-07-28T20:56:57, failing 0 of 0.
+Gate \texttt{erc} (phase P4): \textbf{pass} after 3 attempt(s); last 2026-08-07T18:58:57, failing 0 of 0.
 \subsection*{Review waivers}
 \subsection*{P4 waivers and triage - LUMINA carrier (LUM-CAR-A)}
 Source: fresh-context \texttt{schematic-reviewer}, 19 findings against the ERC-passing schematic. ERC gate: \textbf{0 errors / 0 warnings} (first attempt). \texttt{netlist\_audit}: \textbf{exit 0}.
@@ -444,7 +712,7 @@ The constraint is close to unsatisfiable with this part: the OVP hysteresis plus
 \section{Layout}
 Gate \texttt{place} (phase P6): \textbf{pass} after 1 attempt(s); last 2026-07-29T11:02:27, failing 0 of 0.
 
-Gate \texttt{drc\_routed} (phase P7): \textbf{pass} after 3 attempt(s); last 2026-07-30T06:35:39, failing 0 of 0.
+Gate \texttt{drc\_routed} (phase P7): \textbf{pass} after 4 attempt(s); last 2026-08-07T18:58:57, failing 0 of 0.
 \begin{center}
 \includegraphics[width=0.72\textwidth]{reports/renders/lumina-carrier_top.png}\\
 {\small\texttt{reports/renders/lumina-carrier\_top.png}}
@@ -458,7 +726,7 @@ Gate \texttt{drc\_routed} (phase P7): \textbf{pass} after 3 attempt(s); last 202
 {\small\texttt{reports/renders/lumina-carrier\_iso.png}}
 \end{center}
 \section{Verification}
-Gate \texttt{verify} (phase P8): \textbf{fail} after 3 attempt(s); last 2026-07-30T06:36:14, failing 115 of 119.
+Gate \texttt{verify} (phase P8): \textbf{fail} after 4 attempt(s); last 2026-08-07T18:58:57, failing 108 of 132.
 \subsection*{Verification checks}
 {\small
 \begin{longtable}{llcp{6cm}}
@@ -713,17 +981,18 @@ Three, each with the reason:
 \textbf{Not waivable:} E1 (a frozen inter-board dimension is wrong in one of two places), E2, E3 (both are real field-failure mechanisms that no check models), E4 (the adjudication needs an ICD rev or a mitigation, not a \texttt{work/} JSON), W1, W2, W3, W4, W5.
 
 \section{DFM and Fabrication}
-Gate \texttt{dfm} (phase P9): \textbf{pass} after 1 attempt(s); last 2026-07-30T07:06:53, failing 0 of 87.
+Gate \texttt{dfm} (phase P9): \textbf{fail} after 2 attempt(s); last 2026-08-07T18:58:57, failing 1 of 88.
+DFM findings by severity: error: 1, warning: 87.
 \subsection*{Fabrication outputs}
 Exported layers: F.Cu, In1.Cu, In2.Cu, B.Cu, F.Silkscreen, B.Silkscreen, F.Mask, B.Mask, F.Paste, B.Paste, Edge.Cuts.
 \subsection*{Quote}
-Estimated total \$195.2 for qty 15 (unit \$13.01). This is an estimate from published pricing; the JLCPCB cart quote page is authoritative.
+Estimated total \$173.77 for qty 10 (unit \$17.38). This is an estimate from published pricing; the JLCPCB cart quote page is authoritative.
 \subsection*{Human steps before ordering}
 \begin{enumerate}
+\item Ordered manually via the JLC website (API pcb/create refused the 4-layer board, code 2 - see LEARNINGS 2026-07-30). Web order number W2026073100331078 recorded 2026-08-06; probe order\_track.py --batch for portal visibility.
 \item Upload boards\textbackslash{}lumina-carrier\textbackslash{}fab\textbackslash{}lumina-carrier\_gerbers.zip to https://jlcdfm.com/ and review the DFM report (V6: no public API).
 \item Upload the same zip at https://cart.jlcpcb.com/quote and confirm the real price against the estimate above.
 \item If assembling: upload BOM.csv and CPL.csv, then CHECK THE RENDERED PART PREVIEW for every polarized part (LED/diode/electrolytic) - rotation corrections are the classic failure mode.
-\item API quote in boards\textbackslash{}lumina-carrier\textbackslash{}fab\textbackslash{}api\_quote.json: REAL grand total 62.7 (62.7 pcb + None freight via None; our estimate 195.2) - review shipList/achieveDateList/audit findings before any create.
 \item Review, then pay. Payment is always the human's action.
 \end{enumerate}
 \section{Run Record (Appendix)}
@@ -1306,6 +1575,10 @@ and the "hand-fitted magjack" is corrected there - J1 is {*}{*}wave-soldered{*}{
 2026-07-30T06:35:39 & drc\_routed & pass & 0/0 \\
 2026-07-30T06:36:14 & verify & fail & 115/119 \\
 2026-07-30T07:06:53 & dfm & pass & 0/87 \\
+2026-08-07T18:58:57 & dfm & fail & 1/88 \\
+2026-08-07T18:58:57 & drc\_routed & pass & 0/0 \\
+2026-08-07T18:58:57 & erc & pass & 0/0 \\
+2026-08-07T18:58:57 & verify & fail & 108/132 \\
 \bottomrule
 \end{longtable}
 }
@@ -1333,11 +1606,11 @@ and the "hand-fitted magjack" is corrected there - J1 is {*}{*}wave-soldered{*}{
 \textbf{File} & \textbf{Size} & \textbf{Note} \\
 \midrule
 \endhead
-\texttt{state.json} & 110,529 B &  \\
+\texttt{state.json} & 132,342 B &  \\
 \texttt{kicad/lumina-carrier.kicad\_pcb} & 2,055,289 B &  \\
 \texttt{kicad/lumina-carrier.kicad\_sch} & 40,312 B &  \\
-\texttt{fab/lumina-carrier\_gerbers.zip} & 301,339 B & sha256 3afe6590a002e701... \\
-\texttt{fab/order.json} & 2,850 B &  \\
+\texttt{fab/lumina-carrier\_gerbers.zip} & 301,356 B & sha256 4e192c7ec8541c22... \\
+\texttt{fab/order.json} & 2,889 B &  \\
 \texttt{fab/BOM.csv} & 2,886 B &  \\
 \texttt{fab/CPL.csv} & 3,839 B &  \\
 \texttt{architecture/blocks.md} & 32,381 B &  \\
@@ -1369,9 +1642,19 @@ and the "hand-fitted magjack" is corrected there - J1 is {*}{*}wave-soldered{*}{
 \texttt{reports/fp\_verify\_U21\_C116592.json} & 1,482 B &  \\
 \texttt{reports/fp\_verify\_U22\_C1849461.json} & 2,840 B &  \\
 \texttt{reports/fp\_verify\_U30\_C2913198.json} & 3,148 B &  \\
+\texttt{reports/gate-dfm.err} & 39 B &  \\
+\texttt{reports/gate-dfm.json} & 939 B &  \\
+\texttt{reports/gate-drc\_routed.err} & 45 B &  \\
+\texttt{reports/gate-drc\_routed.json} & 411 B &  \\
+\texttt{reports/gate-erc.err} & 38 B &  \\
+\texttt{reports/gate-erc.json} & 404 B &  \\
 \texttt{reports/gate-place.json} & 337 B &  \\
+\texttt{reports/gate-verify.err} & 45 B &  \\
+\texttt{reports/gate-verify.json} & 101,274 B &  \\
 \texttt{reports/lib\_pull.json} & 14,733 B &  \\
 \texttt{reports/lumina-carrier-schematic.pdf} & 483,671 B &  \\
+\texttt{reports/lumina-carrier\_bottom.png} & 126,592 B &  \\
+\texttt{reports/lumina-carrier\_top.png} & 346,294 B &  \\
 \texttt{reports/open-items.md} & 6,574 B &  \\
 \texttt{reports/place\_anneal.json} & 5,013 B &  \\
 \texttt{reports/place\_metrics\_final.json} & 11,906 B &  \\
