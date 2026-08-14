@@ -29,7 +29,11 @@ Checks (all thresholds from reference/jlc_capabilities.yaml, keyed
   release  gerber layer completeness (against the BOARD's declared layer set,
            never the files being audited - a package that dropped a layer must
            read as incomplete, not as a smaller board), drill validity,
-           closed Edge.Cuts outline, BOM completeness
+           closed Edge.Cuts outline, and the ASSEMBLY-CLASS legs: an
+           `smt_placed` part with no LCSC number, a part classed `smt_placed`
+           with no placement, a declared populate quantity the classes
+           contradict, and a shipped BOM/CPL that lists a part the declared
+           variant does not place (codex C9 - rf-de-20m's nine DNP sites)
 
 The capability key (<layers>layer_<oz>oz) is derived from the BOARD: layer
 count from its (layers ...) block, copper weight from its (stackup ...) block
@@ -51,6 +55,7 @@ CLI:
 from __future__ import annotations
 
 import argparse
+import csv
 import math
 import re
 import sys
@@ -584,10 +589,30 @@ def check_outline(fab, vios: list) -> None:
             SOURCE, kind="dfm_open_outline"))
 
 
+def _shipped_designators(fab_dir: Path) -> dict[str, set[str]]:
+    """{'BOM.csv': {refs}, 'CPL.csv': {refs}} for the files actually in the
+    package (as opposed to the ones this run would generate)."""
+    out: dict[str, set[str]] = {}
+    for fname in ("BOM.csv", "CPL.csv"):
+        path = fab_dir / fname
+        if not path.is_file():
+            continue
+        refs: set[str] = set()
+        try:
+            with path.open(newline="", encoding="utf-8") as fh:
+                for row in csv.DictReader(fh):
+                    cell = (row.get("Designator") or "")
+                    refs |= {d.strip() for d in cell.split(",") if d.strip()}
+        except (OSError, csv.Error):
+            continue
+        out[fname] = refs
+    return out
+
+
 def check_release(fab, expected_cu: list[str], vios: list,
-                  parts_report: dict | None) -> dict:
+                  parts_report: dict | None, fab_dir: Path | None = None) -> dict:
     """Fab-release completeness (SPEC P8 table): every layer present, drill
-    valid, BOM complete.
+    valid, BOM complete, and the shipped population equal to the declared one.
 
     `expected_cu` is the BOARD's declared copper layer set (fab_export.
     copper_layers, pure text scan) - never derived from the files being
@@ -630,18 +655,84 @@ def check_release(fab, expected_cu: list[str], vios: list,
     facts["n_holes"] = len(fab.holes)
 
     if parts_report is not None:
+        # Class-aware (U3/codex H1): a machine-placed part nobody can BUY is an
+        # ERROR. A machine-placed part that is sourced but not from LCSC is a
+        # WARNING - JLC cannot fit it, which only bites on a PCBA build (a
+        # hand-built board legitimately buys from DigiKey). An off-board,
+        # hand-installed, customer-supplied or DNP part needs no number at all:
+        # recorded, not reported.
         missing_lcsc = parts_report.get("missing_lcsc") or []
+        unsourced = parts_report.get("unsourced") or missing_lcsc
+        off_lcsc = parts_report.get("off_lcsc") or []
         facts["missing_lcsc"] = missing_lcsc
-        if missing_lcsc:
+        facts["unsourced"] = unsourced
+        facts["off_lcsc"] = off_lcsc
+        facts["missing_lcsc_unplaced"] = \
+            parts_report.get("missing_lcsc_unplaced") or []
+        facts["assembly_class_counts"] = parts_report.get("class_counts") or {}
+        facts["not_placed"] = parts_report.get("not_placed") or []
+        if unsourced:
             vios.append(checklib.violation(
-                CHECK, "warning", None, None, None, sorted(missing_lcsc),
-                f"{len(missing_lcsc)} assembled part(s) have no LCSC number "
-                f"in the BOM", SOURCE, kind="dfm_bom_incomplete",
-                refs_missing=sorted(missing_lcsc)))
+                CHECK, "error", None, None, None, sorted(unsourced),
+                f"{len(unsourced)} machine-placed part(s) have no LCSC number "
+                f"and no distributor line in the BOM", SOURCE,
+                kind="dfm_bom_incomplete", refs_missing=sorted(unsourced)))
+        if off_lcsc:
+            vios.append(checklib.violation(
+                CHECK, "warning", None, None, None, sorted(off_lcsc),
+                f"{len(off_lcsc)} machine-placed part(s) are sourced off LCSC "
+                f"- JLC cannot fit them; supply them, substitute an LCSC part "
+                f"or reclassify as hand_install", SOURCE,
+                kind="dfm_bom_off_lcsc", refs_off_lcsc=sorted(off_lcsc)))
+        for kind in ("unplaced_smt", "qty_mismatch"):
+            for item in parts_report.get(kind) or []:
+                refs = [item] if isinstance(item, str) else item.get("refs", [])
+                vios.append(checklib.violation(
+                    CHECK, "error", None, None, None, sorted(refs),
+                    (f"{item} is classed smt_placed but has no placement"
+                     if kind == "unplaced_smt" else
+                     f"{item.get('lcsc') or item.get('mpn')}: parts.json "
+                     f"declares {item.get('declared_populated')} populated, "
+                     f"the assembly classes give "
+                     f"{item.get('derived_populated')}"),
+                    SOURCE, kind=f"dfm_assembly_{kind}"))
+
+        # C9: the shipped package must not tell the assembler to fit a part the
+        # declared variant leaves out. rf-de-20m's nine DNP sites are the
+        # known-answer - three of them undo the ZVS fix if populated.
+        unplaced = {e["ref"] for e in (parts_report.get("not_placed") or [])}
+        if unplaced and fab_dir is not None:
+            for fname, refs in _shipped_designators(Path(fab_dir)).items():
+                leaked = sorted(refs & unplaced)
+                if leaked:
+                    vios.append(checklib.violation(
+                        CHECK, "error", None, None, None, leaked,
+                        f"shipped {fname} lists {len(leaked)} part(s) the "
+                        f"assembly classes exclude from placement: "
+                        f"{', '.join(leaked)}", SOURCE,
+                        kind="dfm_unplaced_in_package", file=fname))
     return facts
 
 
 # ------------------------------------------------------------------ driver
+
+# Coverage families (U2, codex C7) -> the violation kinds they emit. A family
+# that never ran lands in coverage.skipped_error; --strict turns any such
+# hole into status "error" (the carrier's P9 "dfm pass with edge checks
+# silently skipped" must read as a refusal, not a pass).
+DFM_FAMILIES = {
+    "copper": ("dfm_trace_width", "dfm_clearance"),
+    "copper_to_edge": ("dfm_copper_to_edge",),
+    "drill": ("dfm_hole_size", "dfm_hole_to_hole", "dfm_annular_ring"),
+    "hole_to_edge": ("dfm_hole_to_edge",),
+    "silk": ("dfm_silk_width", "dfm_silk_over_pad", "dfm_mask_dam",
+             "dfm_pad_tented"),
+    "polarity": ("cpl_polarity",),
+    "bom": ("dfm_bom_incomplete", "dfm_assembly_unplaced_smt",
+            "dfm_assembly_qty_mismatch", "dfm_unplaced_in_package"),
+    "release": ("dfm_open_outline", "dfm_missing_layer", "dfm_no_drill"),
+}
+
 
 def _resolve_netlist(pcb: Path, schematic: Path | None,
                      netlist: Path | None, tmp: Path):
@@ -666,7 +757,8 @@ def _resolve_netlist(pcb: Path, schematic: Path | None,
 def run(pcb: Path, fab_dir: Path | None = None, copper_oz: float | None = None,
         capabilities: Path | None = None, schematic: Path | None = None,
         netlist: Path | None = None, polarity: bool = True,
-        parts: Path | None = None, skip: tuple[str, ...] = ()) -> dict:
+        parts: Path | None = None, skip: tuple[str, ...] = (),
+        strict: bool = False) -> dict:
     if not pcb.exists():
         raise CheckError(f"board not found: {pcb}")
     caps = load_capabilities(capabilities or CAPABILITIES)
@@ -720,7 +812,8 @@ def run(pcb: Path, fab_dir: Path | None = None, copper_oz: float | None = None,
         if parts is not None:
             import bom_cpl
             parts_report = bom_cpl.run(pcb, tmp / "bom", parts_json=parts)
-        facts.update(check_release(fab, expected_cu, vios, parts_report))
+        facts.update(check_release(fab, expected_cu, vios, parts_report,
+                                   fab_dir=Path(fab_dir) if fab_dir else None))
 
         if polarity:
             nl, reason = _resolve_netlist(pcb, schematic, netlist, tmp)
@@ -744,11 +837,52 @@ def run(pcb: Path, fab_dir: Path | None = None, copper_oz: float | None = None,
                  for w in lg.trace_widths), default=None),
             "min_hole_mm": min((h.diameter for h in fab.holes), default=None),
         })
+
+        # U2 coverage (codex C7): record which families never ran and why.
+        skipped_cov: dict[str, str] = {}
+        for fam in ("copper", "drill", "silk"):
+            if fam in skip:
+                skipped_cov[fam] = "skipped via --skip"
+        no_outline = fab.edge_file is None or fab.outline.is_empty
+        edge_reason = "Edge.Cuts missing or does not form a closed outline"
+        if no_outline or "copper" in skip:
+            skipped_cov["copper_to_edge"] = (
+                edge_reason if no_outline else "skipped via --skip")
+        if no_outline or "drill" in skip:
+            skipped_cov["hole_to_edge"] = (
+                edge_reason if no_outline else "skipped via --skip")
+        if facts["polarity"]["status"] != "checked":
+            skipped_cov["polarity"] = (facts["polarity"].get("reason")
+                                       or facts["polarity"]["status"])
+        if parts_report is None:
+            skipped_cov["bom"] = "no parts.json"
+
     payload = checklib.report("dfm_check", pcb, vios, **facts)
     # Warnings alone do not fail the gate (netlist_audit / fp_verify precedent):
     # KiCad's stock 0.12 mm silk and tight mask dams are advisory, not defects.
     has_error = any(v["severity"] == "error" for v in vios)
     payload["status"] = "violations" if has_error else "pass"
+    fam_of = {k: f for f, ks in DFM_FAMILIES.items() for k in ks}
+    ran = [f for f in DFM_FAMILIES if f not in skipped_cov]
+    failing = {fam_of.get(v.get("kind")) for v in vios
+               if v.get("severity") == "error"}
+    payload["coverage"] = {
+        "strict": strict,
+        "required": list(DFM_FAMILIES),
+        "ran": ran,
+        "passed": [f for f in ran if f not in failing],
+        "failed": [f for f in ran if f in failing],
+        "waived": [],
+        "not_applicable": {},
+        "skipped_error": skipped_cov,
+    }
+    if strict and skipped_cov:
+        # A release DFM must not read "pass" (or even a graded "fail") when
+        # sub-checks silently never ran - refuse instead (codex C7).
+        payload["status"] = "error"
+        payload["error"] = ("strict coverage failure - families never ran: "
+                            + "; ".join(f"{k} ({v})"
+                                        for k, v in skipped_cov.items()))
     return payload
 
 
@@ -768,6 +902,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--parts", help="parts.json (BOM completeness)")
     ap.add_argument("--skip", default="",
                     help="comma list of groups to skip: copper,drill,silk")
+    ap.add_argument("--strict", action="store_true",
+                    help="release mode (codex C7): any sub-check family that "
+                         "could not run (open outline, no netlist, no "
+                         "parts.json, --skip) is a coverage failure - status "
+                         "error / exit 2, never a pass")
     ap.add_argument("--out", help="write JSON report here instead of stdout")
     args = ap.parse_args(argv)
 
@@ -784,7 +923,8 @@ def main(argv: list[str] | None = None) -> int:
                       netlist=Path(args.netlist) if args.netlist else None,
                       polarity=not args.no_polarity,
                       parts=Path(args.parts) if args.parts else None,
-                      skip=tuple(s for s in args.skip.split(",") if s))
+                      skip=tuple(s for s in args.skip.split(",") if s),
+                      strict=args.strict)
         return rep, args.out
 
     return checklib.cli_wrap("dfm_check", _go)

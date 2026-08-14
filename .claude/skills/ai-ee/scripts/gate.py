@@ -28,6 +28,25 @@ T6 additions:
    non-empty `reason` and `approved` and matches on (check|kind) + net
    (+ refs subset). Waived violations do not count toward failure but are
    echoed in the result as `waived`.
+
+U2 additions (codex C4):
+ - --report is VALIDATED, never trusted: schema version, producing-script
+   identity vs the gate's tool, successful status, a present `violations`
+   list (a missing key is invalid, not empty), recorded input path (must
+   exist, and match the positional input when given), input digest
+   (statelib normalized-hash norms) against the file on disk, and a
+   generation-time staleness bound (--max-report-age-h, default 24).
+   Anything malformed/stale/mismatched -> exit 2, never a pass.
+ - --commit requires an explicit board scope: the input must resolve to a
+   boards/<name>/ workspace. The repo-wide `git add -A` fallback is gone;
+   pre-staged index entries outside the scope refuse the commit. A
+   requested commit that does not occur (other than a clean nothing-to-do
+   skip) is an OPERATIONAL error: the process exits 2 even on gate pass.
+ - gates may set `strict: true` (release contexts, gates.yaml
+   verify_release/dfm_release): the tool runs in strict coverage mode -
+   every applicable check must run, a missing input is a coverage failure
+   (codex C7), and the gate refuses (exit 2) instead of grading a partial
+   report.
 """
 from __future__ import annotations
 
@@ -40,12 +59,89 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import kc  # noqa: E402
+from lib import checklib  # noqa: E402
 from lib import env  # noqa: E402
+from lib import statelib  # noqa: E402
 
 import yaml  # noqa: E402
 
 DEFAULT_GATES = (Path(__file__).resolve().parent.parent
                  / "reference" / "gates.yaml")
+
+# Which producing script a --report must come from, per gate tool (C4:
+# "producing script identity" - a place report must not grade a dfm gate).
+EXPECTED_SCRIPT = {"erc": "kc", "drc": "kc", "verify": "verify_all",
+                   "place": "place_metrics", "dfm": "dfm_check",
+                   "sim": "sim_run"}
+
+MAX_REPORT_AGE_H = 24.0
+
+
+def validate_report(gate_name: str, gate: dict, report,
+                    cli_input: Path | None,
+                    max_age_h: float = MAX_REPORT_AGE_H) -> Path:
+    """U2 (codex C4): refuse any --report that is not a fresh, successful,
+    matching report for THIS gate and input. Returns the validated input
+    path (digest anchor + commit scope). Every refusal raises -> exit 2,
+    never a pass."""
+    def bad(msg: str):
+        raise RuntimeError(f"--report refused: {msg}")
+
+    if not isinstance(report, dict):
+        bad("not a JSON object")
+    if report.get("report_schema") != checklib.REPORT_SCHEMA:
+        bad(f"report_schema {report.get('report_schema')!r} (expected "
+            f"{checklib.REPORT_SCHEMA}) - regenerate with the current tools")
+    tool = gate.get("tool")
+    expected = EXPECTED_SCRIPT.get(tool)
+    if report.get("script") != expected:
+        bad(f"produced by {report.get('script')!r} but the {gate_name!r} "
+            f"gate's tool {tool!r} expects a {expected!r} report")
+    if tool in ("erc", "drc") and report.get("tool") != tool:
+        bad(f"kc report tool {report.get('tool')!r} != gate tool {tool!r}")
+    status = report.get("status")
+    if status not in ("pass", "violations"):
+        bad(f"status {status!r} is not a completed run")
+    if not isinstance(report.get("violations"), list):
+        bad("no 'violations' list - a missing key is invalid, not empty")
+
+    rec = report.get("input")
+    if not rec:
+        bad("no recorded input path")
+    rec_p = Path(rec)
+    if cli_input is not None \
+            and rec_p.resolve() != Path(cli_input).resolve():
+        bad(f"recorded input {rec} does not match the given input "
+            f"{cli_input}")
+    if not rec_p.exists():
+        bad(f"recorded input {rec} does not exist")
+    digest = report.get("input_digest")
+    if not digest:
+        bad("no input_digest")
+    # Recompute under the same suffix-keyed norm stamp() used; an unchanged
+    # file reproduces the digest exactly (incl. the raw fallback branch).
+    cur = statelib.hash_artifact(rec_p, statelib.norm_for_path(rec_p))
+    if cur != digest:
+        bad(f"input_digest mismatch - {rec_p.name} changed since the "
+            "report was generated (stale report)")
+
+    from datetime import datetime, timezone
+    gen = report.get("generated_at")
+    try:
+        gen_dt = datetime.fromisoformat(str(gen))
+    except (TypeError, ValueError):
+        gen_dt = None
+    if gen_dt is None:
+        bad(f"unparsable generated_at {gen!r}")
+    if gen_dt.tzinfo is None:
+        gen_dt = gen_dt.replace(tzinfo=timezone.utc)
+    age_h = (datetime.now(timezone.utc) - gen_dt).total_seconds() / 3600.0
+    if age_h < -5 / 60.0:
+        bad(f"generated_at {gen} is in the future")
+    if age_h > max_age_h:
+        bad(f"report is {age_h:.1f} h old, staleness bound {max_age_h} h - "
+            "re-run the tool")
+    return rec_p
 
 
 def load_gates(path: Path) -> dict:
@@ -61,14 +157,21 @@ def run_report_for_gate(gate: dict, input_file: Path) -> dict:
     kc.py; verify runs the whole P8 suite via verify_all (its merged summary
     carries the same {violations, counts} shape evaluate() needs)."""
     tool = gate.get("tool")
+    strict = bool(gate.get("strict"))
     if tool == "verify":
-        return run_verify(input_file)
+        return run_verify(input_file, strict=strict)
     if tool == "place":
         import place_metrics  # noqa: E402  (sibling script)
-        payload, _ = place_metrics.run(["--pcb", str(input_file)])
+        argv = ["--pcb", str(input_file)]
+        if strict:
+            argv.append("--strict")
+        payload, _ = place_metrics.run(argv)
+        if payload.get("status") == "error":
+            raise RuntimeError("placement legality could not run: "
+                               f"{payload.get('error')}")
         return payload  # sidecars default to the board's own directory
     if tool == "dfm":
-        return run_dfm(input_file)
+        return run_dfm(input_file, strict=strict)
     if tool == "sim":
         return run_sim(input_file)
     if tool == "drc":
@@ -97,20 +200,26 @@ def run_report_for_gate(gate: dict, input_file: Path) -> dict:
         f"got {tool!r}")
 
 
-def run_dfm(board: Path) -> dict:
+def run_dfm(board: Path, strict: bool = False) -> dict:
     """Run dfm_check on the board (P9). Gerbers are exported to a scratch dir,
     so gating never litters the design folder; the schematic beside the board
     (pipeline convention) is the CPL-polarity oracle, and parts.json - when the
-    project has one - drives the BOM-completeness leg."""
+    project has one - drives the BOM-completeness leg. strict (U2/C7): a
+    sub-check that could not run (open outline, no netlist, no parts.json)
+    is a coverage failure -> the payload comes back status error and the
+    gate refuses instead of grading the partial report."""
     import dfm_check  # noqa: E402  (sibling script)
-    kwargs: dict = {}
+    kwargs: dict = {"strict": strict}
     sch = board.with_suffix(".kicad_sch")
     if sch.exists():
         kwargs["schematic"] = sch
     parts = board.parent / "parts.json"
     if parts.exists():
         kwargs["parts"] = parts
-    return dfm_check.run(board, **kwargs)
+    payload = dfm_check.run(board, **kwargs)
+    if payload.get("status") == "error":
+        raise RuntimeError(f"dfm could not run: {payload.get('error')}")
+    return payload
 
 
 def run_sim(sims: Path) -> dict:
@@ -121,16 +230,20 @@ def run_sim(sims: Path) -> dict:
     return sim_run.run(sims)
 
 
-def run_verify(board: Path) -> dict:
+def run_verify(board: Path, strict: bool = False) -> dict:
     """Run verify_all on the board, taking constraints.json / decoupling.json
     from the board's own directory (the pipeline places them there). Reports go
-    to a scratch dir so gating never litters the design folder."""
+    to a scratch dir so gating never litters the design folder. strict (U2/C7):
+    verify_all --strict - a required check that never ran (missing input) is a
+    coverage failure, and the gate refuses instead of grading the rest."""
     import shutil
     import tempfile
     import verify_all  # noqa: E402  (sibling script)
     reports = Path(tempfile.mkdtemp(prefix="gate_verify_"))
     try:
         argv = ["--pcb", str(board), "--reports-dir", str(reports)]
+        if strict:
+            argv.append("--strict")
         for fname, flag in (("constraints.json", "--constraints"),
                             ("decoupling.json", "--decoupling")):
             f = board.parent / fname
@@ -140,10 +253,11 @@ def run_verify(board: Path) -> dict:
     finally:
         shutil.rmtree(reports, ignore_errors=True)
     if summary.get("status") == "error":
-        bad = [n for n, c in summary.get("checks", {}).items()
-               if c.get("status") == "error"]
-        raise RuntimeError(f"verification could not run (checks errored: {bad})")
-    summary["input"] = str(board)
+        bad = {n: c.get("reason") or c.get("error")
+               for n, c in summary.get("checks", {}).items()
+               if c.get("status") in ("error", "skipped_error")}
+        raise RuntimeError(f"verification could not run (coverage/errors: "
+                           f"{bad})")
     return summary
 
 
@@ -212,6 +326,19 @@ def evaluate(gate_name: str, gate: dict, report: dict,
     if waivers is not None:
         result["waived_count"] = len(waived)
         result["waived"] = waived
+    cov = report.get("coverage")
+    if cov is not None:
+        # Deep-copy so the report object is never mutated. A check whose
+        # error-severity findings were ALL waived moves failed -> waived
+        # (verify_all only: its coverage names match violation `source`).
+        cov = json.loads(json.dumps(cov))
+        if waived and report.get("script") == "verify_all":
+            remaining = {v.get("source") for v in failing}
+            moved = [n for n in cov.get("failed", []) if n not in remaining]
+            if moved:
+                cov["failed"] = [n for n in cov["failed"] if n in remaining]
+                cov["waived"] = sorted(set(cov.get("waived") or []) | set(moved))
+        result["coverage"] = cov
     return result
 
 
@@ -228,77 +355,86 @@ def workspace_dir(input_file: Path | None) -> Path | None:
 
 def git_commit_on_pass(msg: str, cwd: Path,
                        input_file: Path | None = None) -> dict:
-    """Stage the gate's workspace and commit (only called on gate pass).
+    """Stage the gate's board workspace and commit (only called on gate pass).
 
-    Staging is SCOPED to the board workspace derived from `input_file`
-    (ladder row 59: repo-root `git add -A` swept parallel-session WIP into
-    gate commits). Dirty paths outside the workspace stay unstaged and are
-    listed in the result as `excluded_dirty`. When the input is not under
-    boards/ (bench/test invocations), -A is only allowed on an otherwise
-    clean tree: any dirty path outside the input file's own top-level tree
-    refuses the commit. Skips cleanly when there is nothing to commit.
-    Never pushes.
+    U2 (codex C4): a gate commit REQUIRES an explicit board scope - the
+    boards/<name>/ workspace the input resolves into. There is no repo-wide
+    fallback any more (T6's -A-on-clean-tree escape hatch is gone; ladder
+    row 59 for why sweeping is poisonous). Pre-staged index entries outside
+    the scope also refuse: `git commit` commits the whole index, so a
+    parallel session's staged work would ride along silently. Dirty
+    worktree paths outside the scope stay unstaged and are listed as
+    `excluded_dirty`.
+
+    The result's `ok` field is the operational verdict: True only for a
+    real commit or a clean nothing-to-commit skip; False means a REQUESTED
+    commit did not occur (main() exits 2 on that even when the gate
+    passed). Never pushes.
     """
     def git(*args):
         return subprocess.run(["git", *args], cwd=str(cwd),
                               capture_output=True, text=True,
                               encoding="utf-8", errors="replace")
+
+    ws = workspace_dir(input_file)
+    if ws is None:
+        return {"committed": False, "ok": False,
+                "reason": "--commit requires an explicit board scope: the "
+                          "gate input must live under boards/<name>/ "
+                          "(the repo-wide fallback is gone)"}
+    try:
+        ws_rel = ws.resolve().relative_to(Path(cwd).resolve()).as_posix()
+    except ValueError:
+        return {"committed": False, "ok": False,
+                "reason": f"workspace {ws} is outside the repo {cwd}"}
+
+    def in_scope(p: str) -> bool:
+        return p == ws_rel or p.startswith(ws_rel + "/")
+
     # -uall: porcelain must list untracked FILES, not collapsed directories,
     # or the workspace-scope test below cannot see inside a new workspace
     status = git("status", "--porcelain", "-uall")
     if status.returncode != 0:
-        return {"committed": False, "reason": f"git status failed: {status.stderr.strip()}"}
+        return {"committed": False, "ok": False,
+                "reason": f"git status failed: {status.stderr.strip()}"}
     if not status.stdout.strip():
-        return {"committed": False, "reason": "nothing to commit"}
+        return {"committed": False, "ok": True, "reason": "nothing to commit"}
     dirty = [ln[3:].strip().strip('"').replace("\\", "/")
              for ln in status.stdout.splitlines() if ln.strip()]
 
-    ws = workspace_dir(input_file)
-    if ws is not None:
-        try:
-            ws_rel = ws.resolve().relative_to(Path(cwd).resolve()).as_posix()
-        except ValueError:
-            ws_rel = None
-    else:
-        ws_rel = None
+    staged = git("diff", "--cached", "--name-only")
+    if staged.returncode != 0:
+        return {"committed": False, "ok": False,
+                "reason": f"git diff --cached failed: {staged.stderr.strip()}"}
+    pre_outside = [p.strip().strip('"').replace("\\", "/")
+                   for p in staged.stdout.splitlines() if p.strip()]
+    pre_outside = [p for p in pre_outside if not in_scope(p)]
+    if pre_outside:
+        return {"committed": False, "ok": False, "scope": ws_rel,
+                "reason": "pre-staged paths outside the workspace (a commit "
+                          "would sweep them): "
+                          + ", ".join(sorted(pre_outside)[:20])}
 
-    extras: dict = {}
-    if ws_rel is not None:
-        inside = [d for d in dirty
-                  if d == ws_rel or d.startswith(ws_rel + "/")]
-        outside = [d for d in dirty if d not in inside]
-        if not inside:
-            return {"committed": False, "scope": ws_rel,
-                    "reason": "nothing to commit inside the workspace",
-                    "excluded_dirty": outside}
-        add = git("add", "--", ws_rel)
-        extras = {"scope": ws_rel}
-        if outside:
-            extras["excluded_dirty"] = outside
-    else:
-        if input_file is not None:
-            # not a boards/ workspace: -A would sweep the whole tree, so it
-            # is only allowed when every dirty path is inside the input's own
-            # top-level tree (tmp-repo tests) - else refuse, do not sweep.
-            try:
-                top = (Path(input_file).resolve()
-                       .relative_to(Path(cwd).resolve()).parts[0])
-            except ValueError:
-                top = None
-            outside = [d for d in dirty
-                       if top is None or d.split("/")[0] != top]
-            if outside:
-                return {"committed": False,
-                        "reason": "dirty paths outside workspace: "
-                                  + ", ".join(sorted(outside)[:20])}
-        add = git("add", "-A")
+    inside = [d for d in dirty if in_scope(d)]
+    outside = [d for d in dirty if d not in inside]
+    extras: dict = {"scope": ws_rel}
+    if outside:
+        extras["excluded_dirty"] = outside
+    if not inside:
+        return {"committed": False, "ok": True,
+                "reason": "nothing to commit inside the workspace", **extras}
+    add = git("add", "--", ws_rel)
     if add.returncode != 0:
-        return {"committed": False, "reason": f"git add failed: {add.stderr.strip()}"}
+        return {"committed": False, "ok": False,
+                "reason": f"git add failed: {add.stderr.strip()}", **extras}
     commit = git("commit", "-m", msg)
     if commit.returncode != 0:
-        return {"committed": False, "reason": f"git commit failed: {commit.stderr.strip()}"}
+        return {"committed": False, "ok": False,
+                "reason": f"git commit failed: {commit.stderr.strip()}",
+                **extras}
     rev = git("rev-parse", "--short", "HEAD")
-    return {"committed": True, "commit": rev.stdout.strip(), **extras}
+    return {"committed": True, "ok": True, "commit": rev.stdout.strip(),
+            **extras}
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -310,8 +446,13 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--gate", help="gate name from gates.yaml")
     ap.add_argument("--gates", default=str(DEFAULT_GATES),
                     help="path to gates.yaml")
-    ap.add_argument("--report", help="evaluate this kc.py report JSON instead "
-                                     "of running the tool")
+    ap.add_argument("--report", help="evaluate this report JSON instead of "
+                                     "running the tool (validated: schema, "
+                                     "producer, status, input path+digest, "
+                                     "age - C4)")
+    ap.add_argument("--max-report-age-h", type=float, default=MAX_REPORT_AGE_H,
+                    help="refuse a --report generated more than this many "
+                         "hours ago (default %(default)s)")
     ap.add_argument("--out", help="write gate result JSON here instead of stdout")
     ap.add_argument("--commit", metavar="MSG",
                     help="git commit the workspace on gate pass with this message")
@@ -337,16 +478,28 @@ def main(argv: list[str] | None = None) -> int:
 
         if args.report:
             report = json.loads(Path(args.report).read_text(encoding="utf-8"))
+            # C4: never trust a supplied report - the validated recorded
+            # input becomes the effective input (waiver default + commit
+            # scope), so a --report evaluation is never scope-less.
+            eff_input = validate_report(
+                args.gate, gate, report,
+                Path(args.input) if args.input else None,
+                max_age_h=args.max_report_age_h)
         else:
             if not args.input:
                 ap.error("an input file is required unless --report is given")
-            report = run_report_for_gate(gate, Path(args.input))
+            eff_input = Path(args.input)
+            report = run_report_for_gate(gate, eff_input)
+            if report.get("status") == "error":
+                raise RuntimeError(
+                    f"{gate.get('tool')} report status is error: "
+                    f"{report.get('error')}")
 
         waivers = None
         if args.waivers:
             waivers = load_waivers(Path(args.waivers))
-        elif gate.get("tool") == "verify" and args.input:
-            sidecar = (Path(args.input).parent / "reports"
+        elif gate.get("tool") == "verify" and eff_input is not None:
+            sidecar = (Path(eff_input).parent / "reports"
                        / "verify-waivers.json")
             if sidecar.is_file():
                 waivers = load_waivers(sidecar)
@@ -354,9 +507,8 @@ def main(argv: list[str] | None = None) -> int:
         result = evaluate(args.gate, gate, report, waivers=waivers)
 
         if result["status"] == "pass" and args.commit:
-            inp = Path(args.input) if args.input else None
             result["commit_result"] = git_commit_on_pass(
-                args.commit, env.repo_root(), input_file=inp)
+                args.commit, env.repo_root(), input_file=eff_input)
     except Exception:
         print(json.dumps({"script": "gate", "status": "error",
                           "error": traceback.format_exc()}))
@@ -374,6 +526,14 @@ def main(argv: list[str] | None = None) -> int:
     print(f"gate {args.gate}: {result['status'].upper()} "
           f"({n} failing / {result['counts'].get('total', 0)} total)",
           file=sys.stderr)
+    cr = result.get("commit_result")
+    if cr is not None and not cr.get("ok"):
+        # C4: a requested commit that did not occur is an OPERATIONAL error,
+        # even on gate pass - a caller keying on exit 0 must not believe the
+        # gate artifacts were preserved when they were not.
+        print(f"gate {args.gate}: requested commit did not occur - "
+              f"{cr.get('reason')}", file=sys.stderr)
+        return 2
     return 0 if result["status"] == "pass" else 1
 
 

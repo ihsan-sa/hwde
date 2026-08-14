@@ -26,6 +26,7 @@ GOLDEN = REPO / "tests" / "golden"
 GATES_YAML = SCRIPTS.parent / "reference" / "gates.yaml"
 sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(SCRIPTS / "lib"))
+import checklib  # noqa: E402
 import env  # noqa: E402
 import kc  # noqa: E402
 import gate  # noqa: E402
@@ -311,11 +312,15 @@ def test_waiver_without_reason_is_refused(tmp_path):
 
 def test_waivers_cli_exit_codes(tmp_path):
     """--report + --waivers end to end: waived residual -> exit 0; a waiver
-    file missing `approved` -> exit 2."""
+    file missing `approved` -> exit 2. The report must be a VALID stamped
+    verify_all report since U2 (gate.py --report validation, codex C4)."""
+    board = tmp_path / "x.kicad_pcb"
+    board.write_text("(kicad_pcb)", encoding="utf-8")
     report = tmp_path / "r.json"
-    report.write_text(json.dumps(
-        {"input": "x.kicad_pcb", "violations": [_creep()],
-         "counts": {"total": 1}}), encoding="utf-8")
+    report.write_text(json.dumps(checklib.stamp(
+        {"script": "verify_all", "board": board.name, "status": "violations",
+         "checks": {}, "violations": [_creep()],
+         "counts": {"total": 1}}, board)), encoding="utf-8")
     wv = tmp_path / "w.json"
     wv.write_text(json.dumps({"waivers": [
         {"kind": "creepage", "net": "V48_RTN", "reason": "TI SOIC-8 land",
@@ -352,13 +357,23 @@ def _tmp_repo(tmp_path):
 
 
 def test_git_commit_on_pass(tmp_path):
+    """U2 (codex C4): a commit needs a boards/<name>/ scope - unscoped and
+    non-boards invocations refuse; a scoped one commits."""
     repo, git = _tmp_repo(tmp_path)
     (repo / "a.txt").write_text("hi", encoding="utf-8")
-    res = gate.git_commit_on_pass("gate erc pass", repo)
-    assert res["committed"] is True and res["commit"]
-    # nothing left to commit -> clean skip, not an error
-    res2 = gate.git_commit_on_pass("noop", repo)
-    assert res2["committed"] is False and "nothing to commit" in res2["reason"]
+    res = gate.git_commit_on_pass("gate erc pass", repo)     # no input at all
+    assert res["committed"] is False and res["ok"] is False
+    assert "boards/<name>" in res["reason"]
+    ws = repo / "boards" / "foo"
+    ws.mkdir(parents=True)
+    board = ws / "foo.kicad_pcb"
+    board.write_text("(kicad_pcb)", encoding="utf-8")
+    res = gate.git_commit_on_pass("gate erc pass", repo, input_file=board)
+    assert res["committed"] is True and res["commit"] and res["ok"] is True
+    # nothing left to commit INSIDE the scope -> clean skip, not an error
+    res2 = gate.git_commit_on_pass("noop", repo, input_file=board)
+    assert res2["committed"] is False and res2["ok"] is True
+    assert "nothing to commit" in res2["reason"]
 
 
 def test_git_commit_scoped_to_workspace(tmp_path):
@@ -385,24 +400,22 @@ def test_git_commit_scoped_to_workspace(tmp_path):
     assert "scratch.txt" in git("status", "--porcelain").stdout
 
 
-def test_git_commit_non_boards_input_refuses_outside_dirty(tmp_path):
-    """A non-boards input (bench/test invocation) never sweeps: -A is only
-    allowed when every dirty path is inside the input's own tree."""
+def test_git_commit_non_boards_input_always_refused(tmp_path):
+    """U2 (codex C4): the -A fallback is GONE. A non-boards input refuses
+    the commit even on an otherwise clean tree - a gate commit always needs
+    an explicit boards/<name>/ scope."""
     repo, git = _tmp_repo(tmp_path)
     ws = repo / "ws"
     ws.mkdir()
     board = ws / "b.kicad_pcb"
     board.write_text("(kicad_pcb)", encoding="utf-8")
-    (repo / "other.txt").write_text("x", encoding="utf-8")
 
     res = gate.git_commit_on_pass("gate pass", repo, input_file=board)
-    assert res["committed"] is False
-    assert "dirty paths outside workspace" in res["reason"]
-    assert "other.txt" in res["reason"]
-    # with only the input's tree dirty, the commit proceeds
-    (repo / "other.txt").unlink()
-    res2 = gate.git_commit_on_pass("gate pass", repo, input_file=board)
-    assert res2["committed"] is True
+    assert res["committed"] is False and res["ok"] is False
+    assert "boards/<name>" in res["reason"]
+    # nothing was staged or committed
+    assert git("log", "--oneline").returncode != 0 \
+        or not git("log", "--oneline").stdout.strip()
 
 
 def test_git_commit_workspace_only_outside_dirty(tmp_path):

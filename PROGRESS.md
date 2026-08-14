@@ -53,9 +53,9 @@ U11 later; U12 before order credentials; T11 on board arrival (not during U8).
 | Step | Title | Status | Date |
 |---|---|---|---|
 | U0 | Ops + evidence sweep (commit/push dirty tree, tracking, triage 188-239) | **done** | 2026-08-13 |
-| U1 | Retro checker fixes (gerblib outline/arcs, reg-input decoupling, carrier constraints) | pending | - |
+| U1 | Retro checker fixes (gerblib outline/arcs, reg-input decoupling, carrier constraints) | **done** | 2026-08-14 |
 | U2 | Gate report validation + strict verify coverage (C4+C7) | **done** | 2026-08-14 |
-| U3 | BOM assembly classes + first-class DNP (H1, C9) | pending | - |
+| U3 | BOM assembly classes + first-class DNP (H1, C9) | **done** | 2026-08-14 |
 | U4 | Knowledge library + trigger-keyed retrieval | **done** | 2026-08-14 |
 | U5 | Release attestation + durable waivers (C1+H9) | pending | - |
 | U6 | Workspace learnings + promotion pass (H5; rf-de 66-entry queue) | pending | - |
@@ -3392,3 +3392,119 @@ tests). Full `check.cmd` green (see below; wave-1 parallel-session caveat).
 
 **New verify-later items:** none. (V15/V16 unchanged; U12 owns the remaining C3/C5/C6 order-side
 hardening.)
+
+## U3 - BOM assembly classes + first-class DNP (2026-08-14) - DONE
+
+**Built** (codex H1 + C9; wave 1, parallel with U1/U2/U4 in the same working tree):
+- `assembly_class` per refdes, canonical in parts data - the membership model that
+  replaces "whatever the position export happened to contain". Seven values:
+  `smt_placed`, `hand_install`, `off_board`, `dnp`, `customer_supplied`,
+  `select_on_test`, `board_feature`. Resolution priority, highest first:
+  parts.json `refdes_class` (legacy `refdes_dnp` is sugar for `dnp`) >
+  parts.json line `assembly_class` > the BOARD's own footprint `(attr ...)`
+  flags > default `smt_placed`. Instruction text: `refdes_notes` > line
+  `assembly_notes` > a per-class default sentence.
+- `bom_cpl.py` rewritten around it. Three outputs instead of two:
+  - `BOM-full.csv` - the **BOM OF RECORD**: every intended part of every class,
+    columns `Comment, Designator, Qty Per Board, Footprint, MPN, LCSC,
+    Assembly Class, Instructions`. Refdes-less parts lines carry hardware
+    (screws, straps, a heatsink) when they declare a non-placed class.
+  - `BOM.csv` - the **ASSEMBLER UPLOAD**, unchanged four JLC columns,
+    `smt_placed` only; its designator set equals CPL.csv's by construction.
+  - `CPL.csv` - `smt_placed` only.
+  Report gains `assembly_classes`, `class_counts`, `not_placed`, `unsourced`,
+  `off_lcsc`, `unplaced_smt`, `qty_mismatch`, `violations`, `bom_full`.
+  **Exit 1 on assembly violations** (SPEC 6: 1 = violations) - the codex H1
+  complaint was `status: pass` beside `bom_complete: false`; that is now
+  impossible.
+- `check_declared_quantities()` - `qty_per_board_populated` on a parts line is
+  the owner's declaration; the derived populated count must equal it. This is
+  the guard the deleted board-local filter carried, now generic and in-repo.
+- `dfm_check.py` consumes the classes (`check_release`, new `fab_dir` arg):
+  - `dfm_bom_incomplete` is now an **error** and scoped to machine-placed parts
+    that are UNSOURCED (no LCSC *and* no distributor line);
+  - `dfm_bom_off_lcsc` (**warning**) - placed, sourced, just not from LCSC;
+  - `dfm_assembly_unplaced_smt`, `dfm_assembly_qty_mismatch` (**errors**);
+  - `dfm_unplaced_in_package` (**error**) - the C9 release guard: the SHIPPED
+    fab/BOM.csv or fab/CPL.csv lists a refdes the declared variant does not
+    place. This is what stops a stale or hand-edited fab directory shipping a
+    DNP site.
+- Data migrations:
+  - `boards/rf-de-20m/parts/parts.json` - `refdes_notes` for all nine DNP sites
+    (C203/C308/C309 carry the ZVS-fix consequence in the text); `_meta.note`
+    corrected (it still ordered a by-hand P9 filter).
+  - `boards/rf-de-20m/fab/filter_dnp.py` **DELETED**; fab/README rewritten
+    (s2.1/2.3/2.4, s3.3 file roles, s10 hashes, s11 reproduce).
+  - `boards/rf-term-150w/parts/parts.json` **CREATED** (the board had none):
+    R1 `off_board` with the select-on-test/BeO/off-board instructions verbatim,
+    C1 + J1 `smt_placed` with their distributor lines, and the five
+    `customer_supplied` hardware items from the hand-authored BOM.
+- Pointers: `agents/dfm.md` step 2 + severity policy, `recipes/dfm-check.md`,
+  `invalidation.yaml` (`bom_full` artifact kind), `tasks.yaml` (3 rehash lines
+  gain `bom_full`). SKILL.md untouched (U4 owns it in wave 1).
+
+**Acceptance (all three plan criteria, `tests/test_assembly.py`, 17 tests, hermetic -
+the real boards are read through their committed pos exports, so no toolchain):**
+- rf-de regenerates with **no board-local filter in the loop**: 68 placements in,
+  59 out, exactly the nine DNP refs absent from BOM.csv and CPL.csv and PRESENT
+  in BOM-full.csv marked `dnp` with their instructions. CPL.csv is **byte-identical**
+  to the shipped package; BOM.csv has the identical 25 rows.
+- rf-term regenerates with R1 preserved: `off_board`, MPN, and every instruction
+  phrase (SELECT-ON-TEST, 49.00-51.00 ohm, BeO substrate, do not machine/drill/
+  break, OFF-BOARD); absent from CPL.csv, which is byte-identical to the shipped
+  file; the five customer-supplied items survive; every part row of the
+  hand-authored BOM reappears in the BOM of record.
+- `bom_cpl.json` can no longer report pass with `bom_complete: false` (CLI exit 1
+  asserted).
+
+**Deviations (with reasons):**
+1. **Three files, not two.** The plan says "BOM lists ALL intended parts with class
+   + instructions column". Putting DNP and off-board rows into the file humans are
+   told to upload would tell JLC to source and fit them - exactly the C9 hazard.
+   So the BOM of record is `BOM-full.csv` and `BOM.csv` stays the upload subset,
+   with the file roles spelled out in fab/README, agents/dfm.md and the recipe.
+2. **A seventh class, `board_feature`.** The six in the plan cannot express
+   rf-de's L301/L302 - etched PCB air-core spirals, real netlist components with
+   no part to buy - nor mounting holes/fiducials/the heatsink land. Without it
+   they read as unbuyable placed parts forever.
+3. **Reading the board's footprint attributes.** Not in the plan text, but
+   `board_only`/`exclude_from_bom`/`exclude_from_pos_files`/`dnp` already state
+   the class, and reading them classed all 12 of rf-de's non-part refs with zero
+   hand-authored data (LEARNINGS 248). Priority is below parts.json, so it can
+   never override canonical data.
+4. **BOM completeness = buyable, not = has-an-LCSC-number.** rf-term's C1 is a
+   DigiKey-only air trimmer on a board whose own decision A5 is "hand-built, not
+   JLC PCBA"; a strict LCSC rule made that correct package a release failure. The
+   JLC-specific judgement is a warning here and belongs to U5's order attestation
+   (LEARNINGS 250).
+5. **rf-de's shipped BOM.csv row order changed** (one line moved). The old file was
+   sorted while it still contained the DNP refs; the generator sorts by the first
+   POPULATED designator. Same 25 rows, same 59 designators. Recorded in fab/README
+   s10 and LEARNINGS 249.
+
+**Interface changes affecting later steps:**
+- `bom_cpl.run()` returns the new keys above and can return `status: "violations"`;
+  the CLI can exit 1. Any caller that treated a non-zero exit as a crash must
+  distinguish 1 from 2. `bom_cpl.board_lcsc_map()` keeps its S12 contract;
+  `board_part_fields()` is the richer replacement.
+- `dfm_check.check_release()` gained a keyword `fab_dir` (default None - callers
+  that omit it lose only the shipped-package leg).
+- U5 (release attestation) should bind `BOM-full.csv` as well as BOM/CPL, and is
+  the right home for the strict "every placed part has an LCSC line" rule at the
+  actual order checkpoint.
+- Canonical parts.json now has an assembly vocabulary any future workspace should
+  use: `assembly_class`, `refdes_class`, `refdes_notes`, `assembly_notes`,
+  `distributor`, `distributor_pn` (alongside the existing `refdes`,
+  `qty_per_board`, `qty_per_board_populated`).
+
+**Wave-1 staging note (the convention LEARNINGS 247 records):** `dfm_check.py` and
+`tests/test_fab.py` carry U1's and U2's uncommitted hunks as well as U3's, so this
+session did NOT stage them - the wave-1 session that closes last ships them. U3's
+hunks in `dfm_check.py`: the `csv` import, the `release` docstring bullet, the
+`_shipped_designators()` helper + the assembly-class block inside `check_release()`
+(and its `fab_dir` parameter), and the `check_release(...)` call site in `run()`.
+U3's hunks in `tests/test_fab.py`: `test_dfm_bom_incomplete_is_an_error`,
+`test_bom_cpl_on_golden`, `test_full_package_flow`. Everything else U3 built is in
+this commit.
+
+**New verify-later items:** none.

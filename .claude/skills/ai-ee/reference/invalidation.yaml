@@ -74,6 +74,7 @@ artifact_kinds:
   waivers:     {path: "kicad/reports/verify-waivers.json", norm: json_canonical}
   gerbers:     {path: "fab/{board}_gerbers.zip", norm: gerber_design}
   bom:         {path: "fab/BOM.csv", norm: text_eol}
+  bom_full:    {path: "fab/BOM-full.csv", norm: text_eol}
   cpl:         {path: "fab/CPL.csv", norm: text_eol}
 
 # What each gate actually reads (verified against gate.py run_report_for_gate,
@@ -91,6 +92,10 @@ gate_inputs:
   verify:     [pcb, constraints, decoupling, waivers]
   sim:        [sims]
   dfm:        [pcb, sch, parts]
+  # U2 release-context strict gates: same tools, same inputs - a stale input
+  # invalidates the strict result exactly like the exploratory one.
+  verify_release: [pcb, constraints, decoupling, waivers]
+  dfm_release:    [pcb, sch, parts]
 
 # Edit-class taxonomy -> what an edit of that class makes stale.
 #   mutates          artifacts the edit itself rewrites (the new truth - NOT
@@ -115,22 +120,22 @@ edit_classes:
     # value/MPN swap on an unchanged footprint: geometry stays, electrical
     # meaning + BOM/CPL + sim behavior change (board_update T8 mode a).
     mutates: [sch, pcb]
-    stale_artifacts: [netlist, bom, cpl]
+    stale_artifacts: [netlist, bom, bom_full, cpl]
     gates: [erc, verify, sim, dfm]
     human_hold: 2
   swap_part_new_fp:
     mutates: [sch, pcb]
-    stale_artifacts: [netlist, gerbers, bom, cpl]
+    stale_artifacts: [netlist, gerbers, bom, bom_full, cpl]
     gates: [erc, place, drc, drc_routed, verify, sim, dfm]
     human_hold: 2
   add_part:
     mutates: [sch, pcb]
-    stale_artifacts: [netlist, gerbers, bom, cpl]
+    stale_artifacts: [netlist, gerbers, bom, bom_full, cpl]
     gates: [erc, place, drc, drc_routed, verify, sim, dfm]
     human_hold: 2
   del_part:
     mutates: [sch, pcb]
-    stale_artifacts: [netlist, gerbers, bom, cpl]
+    stale_artifacts: [netlist, gerbers, bom, bom_full, cpl]
     gates: [erc, place, drc, drc_routed, verify, sim, dfm]
     human_hold: 2
   reroute_net:

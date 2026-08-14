@@ -3251,3 +3251,43 @@ uncommitted hunks - leave it for whichever session closes later (transient HEAD 
 fine, the TREE stays green and each session's check.cmd runs against the tree). (3) New tests go
 in a NEW file, never a test module another wave step owns. This is codex C4's staging lesson
 applied to the build sessions themselves.
+
+## 2026-08-14 [bom][kicad][dfm] KiCad's footprint `(attr ...)` flags ALREADY are the assembly class - reading them classed every non-part refdes on rf-de for free
+U3 had to give 70 rf-de refdes an assembly class without hand-authoring 70 statements. The 9 DNP
+sites are genuinely canonical parts data (`refdes_dnp` in `parts/parts.json`), but the other 61
+needed no statement at all: `board_only` / `exclude_from_bom` -> a board feature, `dnp` -> DNP,
+`exclude_from_pos_files` ALONE -> in the BOM but hand-fitted. Reading those three flags off the
+board file classed all 12 of rf-de's non-part refs - H1-H6, FID1-3, HS1 **and L301/L302, the two
+etched air-core spirals** - with zero extra data, and the spirals are the interesting case: they
+are real netlist components with no LCSC number, so a class model that only knew "in the position
+export or not" would have reported them as unbuyable parts forever. The generalisation: before
+inventing a metadata field, check whether the CAD file already states the same fact - board_init
+has been marking mounting holes `board_only exclude_from_pos_files exclude_from_bom` since S8, so
+the statement existed three plan-waves before anything read it. Priority still matters
+(parts.json > board attribute > default), because a `Variant=DNP` schematic field cannot reach the
+board file at all (2026-08-07 entry) - the board attribute is a fallback, never the authority.
+
+## 2026-08-14 [bom][fixtures][process] A hand-filtered artifact cannot be byte-reproduced by the generator that replaces the filter - and the SORT KEY is where it shows
+Retiring rf-de's `fab/filter_dnp.py` came with an obvious acceptance test: regenerate BOM/CPL from
+the assembly classes and byte-compare against the shipped package. CPL.csv matched exactly. BOM.csv
+did not - same 25 rows, same 59 designators, one row in a different position. Cause: the shipped
+file was sorted while it still contained the DNP refs, so the 56 pF line sorted under **C203** - a
+designator the filter then deleted from that very line. The generator sorts by C301, the first
+designator the line actually keeps. Neither ordering is wrong; the old one is a fingerprint of the
+two-step process. Lesson for any "replace the manual post-step" acceptance: expect byte-identity
+only for artifacts whose ORDER is derived from data that survived the post-step, and when a
+byte-diff appears, diff the SORTED files first - if the row sets match, you are looking at
+provenance, not a defect. Recording which of the two orderings ships (and why) belongs in the same
+commit, or the next reader re-opens the question.
+
+## 2026-08-14 [bom][parts][dfm] "No LCSC number" is not "cannot be bought" - conflating them turns a correct hand-built package into a false release blocker
+Making a missing LCSC an ERROR on machine-placed parts (codex H1) immediately failed rf-term-150w,
+whose C1 is a Johanson 5602 air trimmer bought from DigiKey - a real MPN, a real distributor part
+number, no LCSC line and never will have one. The board's own decision A5 says "hand-built, 5 off,
+not JLC PCBA", so the package is correct and the checker was wrong. Fix: BOM completeness asks
+whether the part can be BOUGHT (LCSC number, or MPN + a named distributor line), and being off-LCSC
+is a separate WARNING class (`dfm_bom_off_lcsc`) that says only "JLC cannot fit this - supply it,
+substitute, or reclassify as hand_install". The general trap: a release check written against one
+fab's catalogue silently encodes "orderable at THAT fab" as "exists". Keep the two facts in
+separate fields, and let the strictly-JLC judgement live where the fab is actually chosen (the U5
+order attestation), not in a geometry-and-package checker every board runs.

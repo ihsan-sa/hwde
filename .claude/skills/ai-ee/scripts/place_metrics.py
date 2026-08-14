@@ -28,6 +28,14 @@ gate.py convention); pass --constraints/--decoupling to override. Exit 0 clean
 / 1 violations / 2 error. This is the P6 `place` gate's tool - the gate fails
 on error-severity violations; the fast-route-completion gate term arrives with
 S10/S11 route feedback.
+
+U2 (codex C7): the payload carries a `coverage` matrix over the legality
+families {courtyard, outline, edges, keepouts, decoupler_distance}. A missing
+sidecar lands its families in coverage.skipped_error in BOTH modes (visible
+coverage hole); --strict additionally makes that a status "error" (exit 2) -
+release contexts must not read "pass" when the edge/keepout/decoupler legs
+never ran. The sidecar FILE is the per-board declaration vehicle: present but
+empty blocks are a declaration ("nothing constrained"), absence is a hole.
 """
 from __future__ import annotations
 
@@ -49,6 +57,39 @@ def _sidecar(pcb: Path, explicit: str | None, name: str) -> Path | None:
         return Path(explicit)
     cand = pcb.parent / name
     return cand if cand.is_file() else None
+
+
+# Legality families -> the violation kinds they emit (coverage bookkeeping).
+PLACE_FAMILIES = {
+    "courtyard": ("courtyard_overlap", "courtyard_missing"),
+    "outline": ("outside_outline",),
+    "edges": ("edge_violation",),
+    "keepouts": ("keepout_violation",),
+    "decoupler_distance": ("decoupler_distance",),
+}
+
+
+def coverage_matrix(violations: list[dict], have_constraints: bool,
+                    have_decoupling: bool, strict: bool) -> dict:
+    skipped: dict[str, str] = {}
+    if not have_constraints:
+        skipped["edges"] = skipped["keepouts"] = "no constraints.json"
+    if not have_decoupling:
+        skipped["decoupler_distance"] = "no decoupling.json"
+    ran = [f for f in PLACE_FAMILIES if f not in skipped]
+    fam_of = {k: f for f, ks in PLACE_FAMILIES.items() for k in ks}
+    failing = {fam_of.get(v.get("kind")) for v in violations
+               if v.get("severity") == "error"}
+    return {
+        "strict": strict,
+        "required": list(PLACE_FAMILIES),
+        "ran": ran,
+        "passed": [f for f in ran if f not in failing],
+        "failed": [f for f in ran if f in failing],
+        "waived": [],
+        "not_applicable": {},
+        "skipped_error": skipped,
+    }
 
 
 def collect(pcb: Path, constraints_path: Path | None,
@@ -103,19 +144,29 @@ def run(argv: list[str] | None = None):
     ap.add_argument("--decoupling", default=None,
                     help="decoupling.json (default: next to the board)")
     ap.add_argument("--cell-mm", type=float, default=2.0)
+    ap.add_argument("--strict", action="store_true",
+                    help="release mode (codex C7): a missing constraints/"
+                         "decoupling sidecar is a coverage failure (status "
+                         "error, exit 2), not a silent skip")
     ap.add_argument("--out", default=None)
     args = ap.parse_args(argv)
 
     pcb = Path(args.pcb)
     if not pcb.is_file():
         raise checklib.CheckError(f"board not found: {pcb}")
-    violations, metrics = collect(
-        pcb,
-        _sidecar(pcb, args.constraints, "constraints.json"),
-        _sidecar(pcb, args.decoupling, "decoupling.json"),
-        args.cell_mm)
+    cpath = _sidecar(pcb, args.constraints, "constraints.json")
+    dpath = _sidecar(pcb, args.decoupling, "decoupling.json")
+    violations, metrics = collect(pcb, cpath, dpath, args.cell_mm)
     payload = checklib.report("place_metrics", str(pcb), violations,
                               metrics=metrics)
+    cov = coverage_matrix(violations, cpath is not None, dpath is not None,
+                          args.strict)
+    payload["coverage"] = cov
+    if args.strict and cov["skipped_error"]:
+        payload["status"] = "error"
+        payload["error"] = ("strict coverage failure - families never ran: "
+                            + "; ".join(f"{k} ({v})" for k, v
+                                        in cov["skipped_error"].items()))
     return payload, args.out
 
 

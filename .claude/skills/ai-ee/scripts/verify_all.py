@@ -5,22 +5,45 @@ its own reports/checks/<name>.json, then merges them into one stable summary
 (reports/checks/summary.json). The orchestrator's `verify` gate (gates.yaml)
 reads this summary; cluster_violations.py groups its violations for fixers.
 
-A check is SKIPPED (not failed) when an input it requires is absent - e.g. no
-constraints.json means the constraint-driven checks do not run. check_silk and
-check_diffpair need only the board.
+Default (exploratory) mode: a check is SKIPPED (not failed) when an input it
+requires is absent - e.g. no constraints.json means the constraint-driven
+checks do not run. check_silk and check_diffpair need only the board.
+
+--strict (U2, codex C7 - release contexts): every APPLICABLE check must run;
+a missing input is a `skipped_error` coverage failure and the summary status
+becomes "error" ("could not verify"), never a pass. Applicability is DECLARED
+per board in constraints.json, never inferred from file presence:
+
+    "verification": {"not_applicable": {
+        "check_thermal": {"reason": "...", "approved": "<who> <when>"}}}
+
+Every entry needs a non-empty reason + approved and must name a known check
+(a typo must not silently disable a check). Declared-N/A checks do not run in
+either mode.
 
 Summary schema (stable - downstream consumers may rely on it):
     {"script": "verify_all", "board": "<name>", "status": pass|violations|error,
      "counts": {"total", "by_severity"{}, "by_source"{}, "by_check"{}},
-     "checks": {"<name>": {"status": pass|violations|error|skipped,
+     "checks": {"<name>": {"status": pass|violations|error|skipped|
+                           skipped_error|not_applicable,
                            "counts"{}, "report": "<path>"|null, "reason"?}},
-     "violations": [ ...merged normalized violations, each keeps its "source"... ]}
+     "coverage": {"strict", "required"[], "ran"[], "passed"[], "failed"[],
+                  "waived"[], "not_applicable"{name: {reason, approved}},
+                  "skipped_error"{name: reason}},
+     "violations": [ ...merged normalized violations, each keeps its "source"...],
+     "report_schema", "generated_at", "input", "input_digest"}
 
-Exit: 0 all pass, 1 any violations, 2 any check errored (could not verify) or a
-bad invocation.
+coverage.failed = ran with error-severity findings; passed = ran without
+(warnings allowed - the verify gate fails on [error]). Skips land in
+coverage.skipped_error in BOTH modes (a coverage hole is a fact either way);
+only strict turns them into an error status. coverage.waived is filled by
+gate.py at evaluation (waivers are gate-side artifacts).
+
+Exit: 0 all pass, 1 any violations, 2 any check errored (could not verify),
+a strict coverage failure, or a bad invocation.
 
 CLI: --pcb board.kicad_pcb [--constraints c.json] [--decoupling d.json]
-     [--reports-dir DIR] [--out summary.json] [--jobs N]
+     [--reports-dir DIR] [--out summary.json] [--jobs N] [--strict]
 """
 from __future__ import annotations
 
@@ -61,12 +84,43 @@ CHECKS = [
 ]
 
 
-def run_one(check: dict, inputs: dict, reports_dir: Path) -> dict:
+def load_not_applicable(constraints_path: str | None) -> dict:
+    """The board's declared-N/A checks (constraints.json verification block),
+    validated: every entry must name a known check and carry non-empty
+    reason + approved - N/A declarations are human artifacts, and a typo
+    must never silently disable a check (codex C7)."""
+    if not constraints_path:
+        return {}
+    doc = checklib.load_json(constraints_path, "constraints")
+    na = (doc.get("verification") or {}).get("not_applicable") or {}
+    known = {c["name"] for c in CHECKS}
+    for name, entry in na.items():
+        if name not in known:
+            raise checklib.CheckError(
+                f"verification.not_applicable names unknown check {name!r} "
+                f"(known: {', '.join(sorted(known))})")
+        if not isinstance(entry, dict) \
+                or not str(entry.get("reason") or "").strip() \
+                or not str(entry.get("approved") or "").strip():
+            raise checklib.CheckError(
+                f"verification.not_applicable[{name!r}] needs non-empty "
+                "'reason' and 'approved'")
+    return na
+
+
+def run_one(check: dict, inputs: dict, reports_dir: Path,
+            na: dict | None = None, strict: bool = False) -> dict:
     """Run one check as a subprocess; return its merged-summary entry."""
     name = check["name"]
+    if na and name in na:
+        return {"name": name, "status": "not_applicable",
+                "counts": {"total": 0}, "report": None,
+                "reason": na[name].get("reason"), "violations": []}
     missing = [k for k in check["needs"] if not inputs.get(k)]
     if missing:
-        return {"name": name, "status": "skipped", "counts": {"total": 0},
+        return {"name": name,
+                "status": "skipped_error" if strict else "skipped",
+                "counts": {"total": 0},
                 "report": None, "reason": f"no {'/'.join(missing)}",
                 "violations": []}
     report_path = reports_dir / f"{name}.json"
@@ -136,7 +190,41 @@ def constraints_drift(constraints_path: str | None) -> dict | None:
     }
 
 
-def merge(board, results: list[dict]) -> dict:
+def coverage_matrix(results: list[dict], na: dict, strict: bool) -> dict:
+    """The C7 coverage matrix: which checks were required, which actually
+    ran, and where the holes are. Skips land in skipped_error in BOTH modes
+    (a coverage hole is a fact either way); only strict makes them fail the
+    run. `waived` is filled by gate.py at evaluation time."""
+    ran, passed, failed = [], [], []
+    skipped_error: dict[str, str] = {}
+    for r in results:
+        st = r["status"]
+        if st in ("pass", "violations"):
+            ran.append(r["name"])
+            if any(v.get("severity") == "error" for v in r["violations"]):
+                failed.append(r["name"])
+            else:
+                passed.append(r["name"])
+        elif st in ("skipped", "skipped_error"):
+            skipped_error[r["name"]] = r.get("reason") or "input missing"
+        elif st == "error":
+            skipped_error[r["name"]] = (r.get("error")
+                                        or "check errored")[:200]
+    return {
+        "strict": strict,
+        "required": [r["name"] for r in results
+                     if r["status"] != "not_applicable"],
+        "ran": ran, "passed": passed, "failed": failed,
+        "waived": [],
+        "not_applicable": {n: {"reason": e.get("reason"),
+                               "approved": e.get("approved")}
+                           for n, e in na.items()},
+        "skipped_error": skipped_error,
+    }
+
+
+def merge(board, results: list[dict], na: dict | None = None,
+          strict: bool = False) -> dict:
     all_v: list[dict] = []
     checks: dict[str, dict] = {}
     by_check: dict[str, int] = {}
@@ -145,8 +233,8 @@ def merge(board, results: list[dict]) -> dict:
         for v in r["violations"]:
             all_v.append(v)
         by_check[r["name"]] = len(r["violations"])
-        if r["status"] == "error":
-            errored = True
+        if r["status"] in ("error", "skipped_error"):
+            errored = True  # skipped_error only exists under strict
         entry = {"status": r["status"], "counts": r["counts"],
                  "report": r["report"]}
         if r.get("reason"):
@@ -158,7 +246,9 @@ def merge(board, results: list[dict]) -> dict:
     counts["by_check"] = by_check
     status = "error" if errored else ("violations" if all_v else "pass")
     return {"script": SCRIPT, "board": Path(board).name, "status": status,
-            "counts": counts, "checks": checks, "violations": all_v}
+            "counts": counts, "checks": checks,
+            "coverage": coverage_matrix(results, na or {}, strict),
+            "violations": all_v}
 
 
 def run(argv=None):
@@ -171,11 +261,16 @@ def run(argv=None):
                     "(default: <pcb dir>/reports/checks)")
     ap.add_argument("--out", help="write the summary here (also to reports dir)")
     ap.add_argument("--jobs", type=int, default=8, help="max parallel checks")
+    ap.add_argument("--strict", action="store_true",
+                    help="release mode (codex C7): every applicable check "
+                         "must run; a missing input is a coverage failure "
+                         "(status error), never a skip")
     args = ap.parse_args(argv)
 
     pcb = Path(args.pcb)
     if not pcb.exists():
         raise checklib.CheckError(f"board not found: {pcb}")
+    na = load_not_applicable(args.constraints)
     reports_dir = Path(args.reports_dir) if args.reports_dir else \
         pcb.parent / "reports" / "checks"
     reports_dir.mkdir(parents=True, exist_ok=True)
@@ -184,9 +279,12 @@ def run(argv=None):
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=max(1, args.jobs)) \
             as ex:
-        results = list(ex.map(lambda c: run_one(c, inputs, reports_dir), CHECKS))
+        results = list(ex.map(
+            lambda c: run_one(c, inputs, reports_dir, na, args.strict),
+            CHECKS))
     # keep CHECKS order (ThreadPoolExecutor.map preserves input order)
-    summary = merge(pcb, results)
+    summary = merge(pcb, results, na, args.strict)
+    checklib.stamp(summary, pcb)
     drift = constraints_drift(args.constraints)
     if drift is not None:
         summary["violations"].append(drift)

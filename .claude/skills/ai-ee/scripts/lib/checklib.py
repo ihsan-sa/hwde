@@ -23,6 +23,42 @@ class CheckError(RuntimeError):
     """The check cannot run (bad inputs, unusable board). CLI exit 2."""
 
 
+# Version of the report payload shape gate.py validates (U2, codex C4). Bump
+# when a field gate.py's --report validation relies on changes meaning.
+REPORT_SCHEMA = 1
+
+
+def _statelib():
+    """Import lib/statelib regardless of whether checklib was imported as
+    `checklib` (lib on sys.path) or `lib.checklib` (scripts dir on sys.path)."""
+    here = str(Path(__file__).resolve().parent)
+    if here not in sys.path:
+        sys.path.insert(0, here)
+    import statelib
+    return statelib
+
+
+def stamp(payload: dict, input_path) -> dict:
+    """Attach the provenance fields gate.py --report validates (U2, codex C4):
+    schema version, generation time (UTC), input path and its NORMALIZED
+    design digest (statelib norms - byte hashes churn on UUID/EOL noise).
+    Digest failures degrade to None (the report stays usable standalone;
+    gate.py refuses a report without a digest)."""
+    from datetime import datetime, timezone
+    payload["report_schema"] = REPORT_SCHEMA
+    payload["generated_at"] = datetime.now(timezone.utc).isoformat(
+        timespec="seconds")
+    if input_path is not None:
+        p = Path(input_path)
+        payload["input"] = str(p)
+        try:
+            sl = _statelib()
+            payload["input_digest"] = sl.hash_artifact(p, sl.norm_for_path(p))
+        except Exception:
+            payload["input_digest"] = None
+    return payload
+
+
 def utf8_stdout() -> None:
     try:
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -75,7 +111,7 @@ def summarize(violations: list[dict]) -> dict:
 
 
 def report(script: str, board, violations: list[dict], **facts) -> dict:
-    return {
+    payload = {
         "script": script,
         "status": "violations" if violations else "pass",
         "board": Path(board).name if board else None,
@@ -83,6 +119,7 @@ def report(script: str, board, violations: list[dict], **facts) -> dict:
         "violations": violations,
         **facts,
     }
+    return stamp(payload, board)
 
 
 def load_json(path, what: str) -> dict:

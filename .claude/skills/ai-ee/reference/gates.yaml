@@ -18,6 +18,13 @@
 #   fail_severities  severities that count toward failure (default [error]).
 #                    "clean" gates include warning.
 #   max_count    max counted violations allowed to still pass (default 0)
+#   strict       (verify/place/dfm tools; U2, codex C7) release-context
+#                coverage mode: every applicable check must RUN - a missing
+#                input/sidecar or a sub-check that could not execute is a
+#                coverage failure and the gate refuses (exit 2), never a
+#                pass. Applicability is declared per board in
+#                constraints.json (verification.not_applicable, each entry
+#                needing reason + approved), not inferred from file presence.
 #   description  one line
 #
 # Evaluation: a gate FAILS when the number of violations whose severity is in
@@ -112,6 +119,38 @@ gates:
       ERC/DRC/verify/DFM are all blind to. Warning bounds surface without
       failing; an engine crash, timeout or missing measure behind an
       error-severity bound fails the gate.
+
+  # Release-context gates (U2, codex C4+C7; consumed by U5's release
+  # attestation). Same tools as verify/dfm but strict: a "pass" here means
+  # "every applicable check ran against the canonical inputs and none
+  # failed", never "no failures among whatever happened to run". The
+  # exploratory verify/dfm gates above stay lenient for mid-pipeline use.
+  verify_release:
+    phase: P10
+    tool: verify
+    strict: true
+    fail_severities: [error]
+    max_count: 0
+    description: >-
+      Strict release verification (verify_all --strict): every applicable
+      check must run; a missing constraints/decoupling input or an errored
+      check is a coverage failure (exit 2). Checks may only be excused via
+      constraints.json verification.not_applicable entries carrying reason +
+      approved, or per-violation waivers (reason + approved) in
+      verify-waivers.json.
+
+  dfm_release:
+    phase: P10
+    tool: dfm
+    strict: true
+    fail_severities: [error]
+    max_count: 0
+    description: >-
+      Strict release DFM (dfm_check --strict): a sub-check family that could
+      not run - open Edge.Cuts outline disabling the edge-distance checks
+      (the lumina-carrier P9 silent skip), no netlist for polarity, no
+      parts.json for BOM completeness - is a visible skipped_error and
+      refuses the gate (exit 2) instead of passing on partial coverage.
 
   dfm:
     phase: P9

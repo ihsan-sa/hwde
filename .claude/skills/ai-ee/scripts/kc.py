@@ -47,6 +47,7 @@ import traceback
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from lib import checklib  # noqa: E402
 from lib import env  # noqa: E402
 
 _TIMEOUT = 300
@@ -208,14 +209,14 @@ def _run_json_report(cli: Path, section_args: list[str],
 def run_erc(cli: Path, sch: Path) -> dict:
     data = _run_json_report(cli, ["sch", "erc"], sch)
     violations = parse_erc_data(data)
-    return {
+    return checklib.stamp({
         "script": "kc", "tool": "erc", "input": str(sch),
         "units": data.get("coordinate_units", "mm"),
         "kicad_version": data.get("kicad_version"),
         "counts": summarize(violations),
         "status": "pass" if not violations else "violations",
         "violations": violations,
-    }
+    }, sch)
 
 
 def run_drc(cli: Path, pcb: Path, *, parity: bool = False,
@@ -232,7 +233,7 @@ def run_drc(cli: Path, pcb: Path, *, parity: bool = False,
             args.append("--save-board")
     data = _run_json_report(cli, args, pcb)
     violations = parse_drc_data(data)
-    return {
+    return checklib.stamp({
         "script": "kc", "tool": "drc", "input": str(pcb),
         "units": data.get("coordinate_units", "mm"),
         "kicad_version": data.get("kicad_version"),
@@ -241,7 +242,7 @@ def run_drc(cli: Path, pcb: Path, *, parity: bool = False,
         "counts": summarize(violations),
         "status": "pass" if not violations else "violations",
         "violations": violations,
-    }
+    }, pcb)
 
 
 # ---------------------------------------------------------------- exports
