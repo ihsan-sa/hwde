@@ -295,6 +295,16 @@ Counts against the brief's caps: **3 unique BOM lines** (cap 4), **3 placements
 - **CPL contains 2 rows (C1, J1), not 3.** R1's body is off-board on your
   heatsink; a pick-and-place "position" for it would mislead an assembler. It
   is in the BOM. The board is hand-built anyway.
+  Since U3 (2026-08-14) that is a *derived* fact, not a hand-authored one:
+  `parts/parts.json` classes R1 `off_board` (with the select-on-test and BeO
+  instructions), C1/J1 `smt_placed`, and the mounting hardware
+  `customer_supplied`, so `bom_cpl.py` reproduces the delivered `fab/CPL.csv`
+  byte-for-byte and emits a `BOM-full.csv` carrying R1 and every instruction.
+  `fab/BOM.csv` here stays the HAND-AUTHORED costed BOM (distributor, unit and
+  extended price, stock-at-check) - no generator produces those columns, so do
+  not overwrite it with a `bom_cpl.py` run into `fab/`; regenerate elsewhere
+  and diff. Note C1 is DigiKey-only: `dfm` reports it `dfm_bom_off_lcsc`
+  (warning), which is correct - JLC could not fit this board (decision A5).
 - **No field solver.** The 19.5 nH residual is a term-by-term geometric budget
   (grounded-CPW model, 0.4281 nH/mm), not a solved EM result. It is swept
   18.5-23.3 nH and the ~5.4 pF launch parasitic is swept 4.7-6.5 pF; every

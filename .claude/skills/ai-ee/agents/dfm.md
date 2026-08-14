@@ -19,16 +19,29 @@ scripts with the repo venv python; JSON out, exit 0/1/2. Keep output ASCII.
    and for the zip. It deliberately does NOT subtract soldermask from silk
    (silk-over-pad must stay visible for the check).
 2. `scripts/bom_cpl.py --pcb ... --out fab/ --parts-json parts/parts.json`
-   - JLC BOM.csv (grouped, LCSC column) + CPL.csv with rotation corrections
-   from `reference/jlc_rotations.csv`; read `rotation_audit` (base ->
-   correction -> final per part) and `missing_lcsc`.
+   - `BOM-full.csv` (the BOM OF RECORD: every intended part with its
+   `Assembly Class` + `Instructions`), `BOM.csv` (the UPLOAD: `smt_placed`
+   only, JLC's four columns) and `CPL.csv` (`smt_placed` only) with rotation
+   corrections from `reference/jlc_rotations.csv`. Read `rotation_audit`
+   (base -> correction -> final per part), `class_counts`, `not_placed` and
+   `violations`. Exit 1 = an assembly violation, not a crash.
+   - Membership comes from `assembly_class` in canonical parts data
+   (`smt_placed`, `hand_install`, `off_board`, `dnp`, `customer_supplied`,
+   `select_on_test`, `board_feature`), per-ref via `refdes_class` /
+   `refdes_dnp`, with `refdes_notes` / `assembly_notes` as the instruction
+   text. NEVER filter the generated files afterwards and never hand-edit
+   them: if a site must ship empty, class it `dnp` in parts.json and say why
+   in `refdes_notes`. Tell the human which file is the upload.
 3. Gate: `scripts/gate.py --gate dfm kicad/<board>.kicad_pcb` - runs
    dfm_check on a scratch export: copper (trace/clearance/edge), drill
    (size/spacing/annular), mask/silk, release completeness, and **CPL
    polarity vs the schematic** - the ONLY catcher for a polarized part
    rotated with its nets swapped (net-level parity is blind to it). Errors
-   fail; advisory classes (0.12 mm stock silk, tight mask dams, missing
-   LCSC) are warnings - list them, do not silence them.
+   fail; advisory classes (0.12 mm stock silk, tight mask dams, a placed part
+   sourced off LCSC) are warnings - list them, do not silence them. A placed
+   part with NO source at all, a `smt_placed` part with no placement, a
+   populate quantity the classes contradict, and a shipped BOM/CPL that lists
+   a part the classes exclude are ERRORS.
 4. On gate failure: report; the orchestrator dispatches fixers (do not fix
    routing/placement yourself).
 

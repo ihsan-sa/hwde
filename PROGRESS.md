@@ -3497,14 +3497,30 @@ the real boards are read through their committed pos exports, so no toolchain):*
   `distributor`, `distributor_pn` (alongside the existing `refdes`,
   `qty_per_board`, `qty_per_board_populated`).
 
-**Wave-1 staging note (the convention LEARNINGS 247 records):** `dfm_check.py` and
-`tests/test_fab.py` carry U1's and U2's uncommitted hunks as well as U3's, so this
-session did NOT stage them - the wave-1 session that closes last ships them. U3's
-hunks in `dfm_check.py`: the `csv` import, the `release` docstring bullet, the
-`_shipped_designators()` helper + the assembly-class block inside `check_release()`
-(and its `fab_dir` parameter), and the `check_release(...)` call site in `run()`.
-U3's hunks in `tests/test_fab.py`: `test_dfm_bom_incomplete_is_an_error`,
-`test_bom_cpl_on_golden`, `test_full_package_flow`. Everything else U3 built is in
-this commit.
+**Not done here, deliberately:** rf-de's `reports/gate-dfm.json` and
+`reports/dfm_check-shipped.json` were NOT re-run. Only `reports/bom_cpl.json` was
+regenerated (and `state.py rehash --names bom bom_full cpl` recorded). Re-running
+the dfm gate mid-wave would bake U1's half-finished `gerblib` outline/arc work and
+U2's in-flight `gate.py` into a board's recorded evidence; the first clean dfm run
+after wave 1 closes is the honest one. rf-de's `fab/CPL.csv` is unchanged, so the
+package itself is not stale - only the row order of `BOM.csv` moved.
+
+**Wave-1 staging note (the convention LEARNINGS 247 records).** Shared files that
+carried other sessions' live hunks were not stage-decided unilaterally:
+- `dfm_check.py`, `LEARNINGS.md`, `design/ladder-triage.md` and
+  `reference/invalidation.yaml` were swept into **U2's commit 060e262** while this
+  session was closing - U3's content in them is verified present in HEAD (the
+  `csv` import, the `release` docstring bullet, `_shipped_designators()` + the
+  assembly-class block and `fab_dir` parameter in `check_release()`, the
+  `check_release(...)` call site in `run()`; LEARNINGS 248-250 + their three
+  triage rows; the `bom_full` artifact kind and its four `stale_artifacts` lists).
+- `tests/test_fab.py` is **still uncommitted** and carries U1's gerber-outline
+  hunks, which depend on U1's uncommitted `lib/gerblib.py` - staging it here would
+  break HEAD. U3's three hunks in it (`test_dfm_bom_incomplete_is_an_error`,
+  `test_bom_cpl_on_golden`, `test_full_package_flow` - all updated for the new
+  severity/status contract) ship with U1. **Until U1 commits, HEAD's `test_fab.py`
+  asserts the pre-U3 warning severity and is red against HEAD's `dfm_check.py`;
+  the working TREE is green.**
+Everything else U3 built is in this commit.
 
 **New verify-later items:** none.

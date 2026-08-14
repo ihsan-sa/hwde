@@ -245,7 +245,7 @@ verbs:
               old spot, its stubs ripped - re-route them"
       - do: "scripts/bom_cpl.py --pcb {pcb} --parts {parts} --out-dir {fab}"
         why: "BOM/CPL are stale by the map the moment a value changes"
-      - do: "scripts/state.py rehash --workspace {ws} --names bom cpl"
+      - do: "scripts/state.py rehash --workspace {ws} --names bom bom_full cpl"
         why: "clear the stale marks you just regenerated - bare rehash keeps them"
       - note: "A new footprint changes the edit class to swap_part_new_fp: more
                gates (place/drc/drc_routed) and re-routing. board_update's report
@@ -292,7 +292,7 @@ verbs:
                the ratsnest. Route them with `reroute-net` / the fix loop."
       - do: "scripts/bom_cpl.py --pcb {pcb} --parts {parts} --out-dir {fab}"
         why: "a new line item in both files"
-      - do: "scripts/state.py rehash --workspace {ws} --names bom cpl"
+      - do: "scripts/state.py rehash --workspace {ws} --names bom bom_full cpl"
         why: "the regenerated pair is current again"
 
   # -------------------------------------------------------------------------
@@ -324,7 +324,7 @@ verbs:
         why: "footprint + orphan stubs + silk inside its bbox go; a DRC dangling
               delta rolls the whole thing back byte-identically"
       - do: "scripts/bom_cpl.py --pcb {pcb} --parts {parts} --out-dir {fab}"
-      - do: "scripts/state.py rehash --workspace {ws} --names bom cpl"
+      - do: "scripts/state.py rehash --workspace {ws} --names bom bom_full cpl"
       - note: "Removing a decoupler or a clamp changes the electrical design -
                check_pdn/check_decoupling in verify is the arbiter, not DRC."
 

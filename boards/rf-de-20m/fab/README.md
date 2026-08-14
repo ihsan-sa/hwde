@@ -24,21 +24,30 @@ thinnest stock line before that change - re-verify every line live at P10.
 
 # 2. !!! THE NINE DNP SITES - READ THIS BEFORE UPLOADING ANYTHING !!!
 
-## 2.1 The hazard
+## 2.1 The hazard (and what changed on 2026-08-14)
 
 `kicad-sch-api`'s writer hard-codes `(dnp no)`, so this board marks
-do-not-populate with a **visible `Variant=DNP` schematic field**, and
-**NOTHING in the ai-ee pipeline reads `Variant`** - not `bom_cpl.py`, not
-`netlist_audit`, not any `check_*`, not KiCad's own pos export.
-
-This was measured, not assumed. A raw `bom_cpl.py` run on this board emits
-**68 CPL rows and all 9 DNP refs inside the BOM designator lists.**
+do-not-populate with a **visible `Variant=DNP` schematic field**, and until U3
+**nothing in the ai-ee pipeline read it** - not `bom_cpl.py`, not
+`netlist_audit`, not any `check_*`, not KiCad's own pos export. A raw
+`bom_cpl.py` run emitted **68 CPL rows and all 9 DNP refs inside the BOM
+designator lists**, and a board-local `fab/filter_dnp.py` post-step had to
+strip them again.
 
 If those unfiltered files ship, the assembler fits **C203, C308 and C309** -
 and that **silently undoes the P8 ZVS fix**. The board comes back
 hard-switching: `Vds` at turn-on ~15.6 V instead of ~1.4 V, `P_out` **~53 W
 instead of ~113.8 W** (`reports/sim-notes.md`, `reports/route-notes.md` s17).
 It will look assembled, it will power up, and it will be wrong.
+
+**Since U3 (2026-08-14) the hazard is closed in the pipeline, not by hand.**
+DNP is a first-class `assembly_class` in canonical parts data
+(`parts/parts.json`: `refdes_dnp`, plus per-site `refdes_notes`), `bom_cpl.py`
+decides BOM/CPL membership from those classes, and `dfm_check.py` FAILS a
+package whose shipped BOM/CPL lists a site the classes exclude. `filter_dnp.py`
+is **deleted** - do not reintroduce it. The regression that replaces it lives
+in the repo (`tests/test_assembly.py::test_rf_de_regenerates_without_a_local_filter`),
+so it runs on every `check.cmd`, not only when someone remembers the post-step.
 
 ## 2.2 The nine
 
@@ -51,8 +60,11 @@ Authoritative source: `refdes_dnp` on each line of `parts/parts.json`.
 
 ## 2.3 What the files in this directory already do
 
-`BOM.csv` and `CPL.csv` **HAVE BEEN FILTERED** and the filtering **has been
-verified by re-reading the written files**:
+`BOM.csv` and `CPL.csv` carry the **populated set only** - they are generated
+that way now, not filtered afterwards. `BOM-full.csv` is the BOM OF RECORD and
+lists every intended part with its `Assembly Class` and an `Instructions`
+column, so the nine DNP sites appear there **marked and explained** rather than
+silently absent. Against the pre-U3 filtered files:
 
 | | before | after |
 |---|---|---|
@@ -73,15 +85,16 @@ lines.**
 
 ## 2.4 If you ever regenerate BOM/CPL
 
-`bom_cpl.py` will re-emit the unfiltered 68. **Always follow it with:**
+Just run `bom_cpl.py` (s11). It emits 59 CPL rows and 59 BOM designators
+straight out, because membership comes from the assembly classes in
+`parts/parts.json`. No post-step, no board-local script.
 
-    .venv/Scripts/python boards/rf-de-20m/fab/filter_dnp.py \
-        --out boards/rf-de-20m/reports/filter_dnp.json
-
-It reads `refdes_dnp` from `parts/parts.json` (it hard-codes nothing), rewrites
-both CSVs, re-reads them, and **exits 2** if any of the nine survives, if the
-CPL is not exactly 59 rows, if BOM and CPL disagree on the placed set, or if a
-line's designator count no longer matches `qty_per_board_populated`.
+`bom_cpl.py` itself refuses to disagree with the declared populate: it derives
+the populated count per line from the classes and **exits 1** if that count
+differs from `qty_per_board_populated` (15 for `C113875`, 3 for `C541492`), if
+a part classed `smt_placed` has no placement, or if a placed part has neither
+an LCSC number nor a distributor line. `dfm_check.py --fab-dir fab/` then reads
+the files in THIS directory and errors if any of the nine appears in them.
 
 ## 2.5 `rf-de-20m-pos.csv` IS NOT THE UPLOAD
 
@@ -160,7 +173,7 @@ nevertheless still required, for two reasons that ARE built:
 | Parts placed | **59** |
 | Unique BOM lines | **25** |
 | THT | **1** - J101 (KF128-5.08-2P screw terminal), a pre-approved exception |
-| Files | `BOM.csv` (Comment / Designator / Footprint / LCSC), `CPL.csv` (Designator / Mid X / Mid Y / Layer / Rotation, mm) |
+| Files | **UPLOAD** `BOM.csv` (Comment / Designator / Footprint / LCSC) + `CPL.csv` (Designator / Mid X / Mid Y / Layer / Rotation, mm). **DO NOT UPLOAD** `BOM-full.csv` - it is the BOM of record and deliberately includes the nine DNP sites and the board features |
 | Rotation corrections applied | **1**: U101 `SOIC-8-EP_LM5017_TI-MRA08B`, matched `^SOIC-`, base 0 -> **+270 -> final 270 deg** (`reference/jlc_rotations.csv`) |
 | Missing LCSC numbers | **none** |
 | Polarity | **70 refs checked pad-by-pad against the schematic, 0 mismatches** - no part is mounted backwards |
@@ -393,10 +406,15 @@ it.
 | file | sha256 | bytes |
 |---|---|---|
 | `rf-de-20m_gerbers.zip` | `7c6adf4e697c1d0b6a5d09b0ea4f3a0b24030817df35aa35fc5f18a16ae677cd` | 165232 |
-| `BOM.csv` (filtered) | `0ba0cc28f95b8acc2cc05a93e6a5f9f84597884bcb845212cf19ed86e0dd5495` | 1438 |
-| `CPL.csv` (filtered) | `4ce10f04dbdab7f954c55252265d121bceb0dab22f5f1696d8318a095cf54d93` | 2074 |
-| `rf-de-20m-pos.csv` (**raw, unfiltered, NOT an upload**) | `9e8a2b6a47d5ad86dcac283b83931bc03dade3c91008bcb411291497b19b729c` | 5201 |
-| `filter_dnp.py` (tool, not a deliverable) | - | - |
+| `BOM.csv` (upload; 59 designators) | `7fbf8861602c5b8354cc342416e35b0204864567c1607836f1c4f75e5de448df` | 1438 |
+| `BOM-full.csv` (BOM of record; **not** an upload) | `6f0ff0867bd46214b3ecd32dae2dc39d53f78ca96281fbf0408af4c2901ef740` | 3536 |
+| `CPL.csv` (59 rows) | `4ce10f04dbdab7f954c55252265d121bceb0dab22f5f1696d8318a095cf54d93` | 2074 |
+| `rf-de-20m-pos.csv` (**raw, all 68 placements, NOT an upload**) | `9e8a2b6a47d5ad86dcac283b83931bc03dade3c91008bcb411291497b19b729c` | 5201 |
+
+`CPL.csv` is byte-for-byte the file the retired filter produced. `BOM.csv` has
+the identical 25 rows; only the ordering of the `C113875` line moved, because
+the generator now sorts by the line's first POPULATED designator (C301) instead
+of by a designator it had just deleted (C203).
 
 Inside `rf-de-20m_gerbers.zip` / `gerbers/` (13 files, per-file sha256 in
 `reports/fab_export.json`):
@@ -429,15 +447,14 @@ B.Cu), not KiCad's raw layer ids.
         --out-dir boards/rf-de-20m/fab \
         --out boards/rf-de-20m/reports/fab_export.json
 
+    # --pos pins the raw export already in this directory so a rerun cannot
+    # perturb the hashed pos file; drop it to re-export from the board.
     .venv/Scripts/python .claude/skills/ai-ee/scripts/bom_cpl.py \
         --pcb boards/rf-de-20m/kicad/rf-de-20m.kicad_pcb \
         --out-dir boards/rf-de-20m/fab \
+        --pos boards/rf-de-20m/fab/rf-de-20m-pos.csv \
         --parts boards/rf-de-20m/parts/parts.json \
         --out boards/rf-de-20m/reports/bom_cpl.json
-
-    # MANDATORY - bom_cpl.py leaves all 9 DNP sites in both files
-    .venv/Scripts/python boards/rf-de-20m/fab/filter_dnp.py \
-        --out boards/rf-de-20m/reports/filter_dnp.json
 
     .venv/Scripts/python .claude/skills/ai-ee/scripts/gate.py --gate dfm \
         boards/rf-de-20m/kicad/rf-de-20m.kicad_pcb \

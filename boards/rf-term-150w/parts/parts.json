@@ -1,0 +1,104 @@
+{
+ "_meta": {
+  "board": "rf-term-150w",
+  "phase": "P9",
+  "date": "2026-08-14",
+  "build_qty": 5,
+  "assembly": "Hand build. Only C1 and J1 are board placements; R1 is a BeO-flanged 250 W termination that bolts to the user's heatsink and only laps its RF tab onto the PCB, and the mounting hardware is customer-supplied.",
+  "note": "CREATED AT U3 (2026-08-14) to make fab/BOM.csv REPRODUCIBLE. Until then this board's BOM of record was hand-authored and bom_cpl.py derived membership from the position export, so a regeneration silently dropped R1 and every assembly instruction with it (codex H1). The distributor, price and stock columns of the hand-authored fab/BOM.csv are preserved here in `assembly_notes`; the machine-checkable half (which parts exist, what class each one is, what the assembler must be told) is now canonical data. Prices are the 2026-08-08/09 DigiKey and LCSC quotes at qty 5 and are NOT re-verified by any check - re-quote at order time."
+ },
+ "parts": [
+  {
+   "ref_prefix_hint": "C",
+   "block": "match",
+   "refdes": ["C1"],
+   "qty_per_board": 1,
+   "assembly_class": "smt_placed",
+   "mpn": "5602",
+   "lcsc": "",
+   "value": "1-30pF",
+   "package": "CAP-ADJ-TH_2P-BD7.5_5602",
+   "brand": "Johanson Manufacturing Corp. (Knowles Precision Devices)",
+   "distributor": "DigiKey",
+   "distributor_pn": "1956-1000-ND",
+   "price_qty5_usd": 63.37,
+   "stock_at_check": "373 (DigiKey)",
+   "stock_verified": "2026-08-09",
+   "assembly_notes": "Air-dielectric trimmer 1-30 pF, 250 VDC, -65/+125 C, top-adjust. Tuning tool Johanson 8764 (0.130 in shank). Threaded case = GND, insulated lead = RF. Chosen over the cheaper Vishay BFC280811339 ONLY because that part is rated -40/+70 C and this board runs 74-88 C at full 150 W CW - see README section 6 for the reduced-duty alternative that saves 272 USD per build of 5. No LCSC line: DigiKey only.",
+   "role": "Series matching trimmer."
+  },
+  {
+   "ref_prefix_hint": "J",
+   "block": "io",
+   "refdes": ["J1"],
+   "qty_per_board": 1,
+   "assembly_class": "smt_placed",
+   "mpn": "SMA-KWE",
+   "lcsc": "C7498154",
+   "value": "SMA",
+   "package": "SMA_BAT_Wireless_BWSMA-KWE-Z001",
+   "brand": "Lian Xin Technology",
+   "distributor": "LCSC",
+   "distributor_pn": "C7498154",
+   "price_qty5_usd": 0.561,
+   "stock_at_check": "11800 (LCSC)",
+   "stock_verified": "2026-08-08",
+   "assembly_notes": "SMA female right-angle THT jack, 50 ohm, 335 Vrms working, DC-6 GHz.",
+   "role": "RF input connector."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "block": "load",
+   "refdes": ["R1"],
+   "qty_per_board": 1,
+   "assembly_class": "off_board",
+   "mpn": "T50R0-250-12X",
+   "lcsc": "",
+   "value": "50R 250W",
+   "package": "Flanged BeO termination, 12X body",
+   "brand": "Vishay Intertechnology (Barry Industries)",
+   "distributor": "DigiKey",
+   "distributor_pn": "4353-T50R0-250-12X-ND",
+   "price_qty5_usd": 24.40,
+   "stock_at_check": "139 (DigiKey)",
+   "stock_verified": "2026-08-08",
+   "assembly_notes": "50 ohm +/-5% 250 W thick film on BeO flanged termination DC-4 GHz. SELECT-ON-TEST: 4-wire measure each part, accept 49.00-51.00 ohm, order spares. BeO substrate - do not machine, drill or break. Mounts OFF-BOARD to the user's heatsink; only its RF tab laps onto the PCB. Not a machine-placed part, so absent from CPL.csv by design.",
+   "role": "The 150 W CW load itself. Its land exists on the PCB; the part does not sit on it."
+  },
+  {
+   "qty_per_board": 3,
+   "assembly_class": "customer_supplied",
+   "value": "M3 screw + 1.0 mm shim washer",
+   "package": "M3",
+   "assembly_notes": "Prefer INSULATING shims (PEEK/nylon/fibre) - they are not needed electrically and they keep C1 cooler. 1.0 mm sets top copper at 2.635 mm against R1's tab underside at 2.667 mm."
+  },
+  {
+   "qty_per_board": 2,
+   "assembly_class": "customer_supplied",
+   "value": "M3 screw for R1 flange",
+   "package": "M3",
+   "assembly_notes": "Into the heatsink, 18.42 mm apart, through R1's own 3.302 mm flange holes."
+  },
+  {
+   "qty_per_board": 2,
+   "assembly_class": "customer_supplied",
+   "value": "Copper strap",
+   "package": "-",
+   "assembly_notes": "Soldered R1 flange -> the two PCB GND lands. THIS IS THE ONLY RF RETURN PATH - do not rely on the bolted heatsink joint (418 pF / 15.2 ohm at 25 MHz on an anodised sink)."
+  },
+  {
+   "qty_per_board": 1,
+   "assembly_class": "customer_supplied",
+   "value": "Thermal grease",
+   "package": "-",
+   "assembly_notes": "Thin even joint. On the 2.359 cm2 flange a 0.5 C.cm2/W joint costs 0.212 C/W - a third of the whole 0.633 C/W budget."
+  },
+  {
+   "qty_per_board": 1,
+   "assembly_class": "customer_supplied",
+   "value": "Heatsink",
+   "package": "-",
+   "assembly_notes": "Must be <=0.421 C/W in free air for 150 W CW. Needs a >=7 mm dia, >=5 mm deep clearance hole under C1 (its case protrudes 4.75 mm below the PCB). See README section 3."
+  }
+ ]
+}

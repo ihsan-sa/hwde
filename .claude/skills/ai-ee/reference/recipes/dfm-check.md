@@ -7,10 +7,21 @@ what this recipe closes.
 ## What runs
 
 `fab_export.py` writes the JLC-shaped package (Protel extensions, X2, the JLC
-layer set, drill files, zipped). `bom_cpl.py` writes BOM + CPL, applying the
+layer set, drill files, zipped). `bom_cpl.py` writes the BOM of record
+(`BOM-full.csv`), the assembler upload (`BOM.csv`) and `CPL.csv`, applying the
 per-package rotation corrections from `reference/jlc_rotations.csv` - the
 catcher for a polarized part mounted backwards, which net-level schematic parity
 is blind to by construction.
+
+Who is in which file is decided by `assembly_class` in canonical parts data,
+never by what the position export happened to contain: `smt_placed` parts go in
+BOM.csv AND CPL.csv, everything else (`hand_install`, `off_board`, `dnp`,
+`customer_supplied`, `select_on_test`, `board_feature`) appears only in
+BOM-full.csv, marked, with an `Instructions` column. Per-site overrides are
+`refdes_class` / `refdes_dnp` + `refdes_notes` on the parts line. **Do not
+post-filter or hand-edit the generated files** - a board-local filter script is
+the failure mode this replaced (rf-de-20m, codex C9: nine DNP sites, three of
+them the ZVS fix).
 
 Then the `dfm` gate. Note what it reads: `gate.py` re-exports gerbers to a
 SCRATCH directory from the BOARD, plus the sibling schematic (CPL polarity
@@ -24,8 +35,15 @@ zip through the invalidation MARK, not through any hash comparison.
   errors. A width failure a micron under a floor is still a failure: fix the
   floor at `board_init` (fab floors come from the selected JLC profile at ERROR
   severity, `lib/fabfloors.py`) and re-route, do not waive it.
-- KiCad's stock 0.12 mm silk, tight mask dams and missing LCSC numbers are
+- KiCad's stock 0.12 mm silk, tight mask dams and a placed part sourced off
+  LCSC (`dfm_bom_off_lcsc` - real MPN + distributor, just not a JLC line) are
   advisory warnings by design.
+- The assembly-class errors are not waivable paperwork: `dfm_bom_incomplete`
+  (a placed part with no source at all), `dfm_assembly_unplaced_smt`,
+  `dfm_assembly_qty_mismatch` (parts.json's `qty_per_board_populated` disagrees
+  with the classes) and `dfm_unplaced_in_package` (the shipped BOM/CPL lists a
+  part the declared variant does not place). The last one is what stops a stale
+  or hand-edited fab directory shipping a DNP site.
 - `cpl_polarity` with a `rotation_delta_deg` is the mounted-backwards class.
   Believe it: the pad geometry supplies that angle.
 
