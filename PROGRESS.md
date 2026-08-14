@@ -3722,10 +3722,13 @@ half-finished attestation work into this commit). Verified before staging: my
 tasks.yaml block does not reference `attest.py`, so this commit's registry is
 self-consistent. Everything else in this commit is U6-only content.
 
-**Suite:** full run mid-session - 2 failed: the standing non-hermetic
+**Suite:** full run at session close - **2 failed of 1664 collected**, both
+attributed and neither U6's: the standing non-hermetic
 `test_parts.py::test_net_search_returns_in_stock_hits[AP63203]`, and U5's
 in-flight `tests/test_attest.py::test_reference_attestations_verify_valid`
-(their working file, not this step's). Everything U6 touches is green, including
+(their working file, not this step's). `check_env.py --quiet` exit 0. The
+`queue --stage` commit landed after that run and was verified against
+`test_learnings.py` + `test_task_router.py` (24 + 121 tests, green). Everything U6 touches is green, including
 `test_remediations.py` (the triage register), `test_task_router.py` (the verb
 registry + the new routing cases) and `test_knowledge.py` (the two new records
 and the re-rendered buck view).
