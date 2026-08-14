@@ -1,13 +1,13 @@
-# Knowledge ladder triage (T4, 2026-08-06)
+# Knowledge ladder triage (T4, 2026-08-06; U0 sweep 2026-08-13)
 
-One row per `LEARNINGS.md` entry (187 of them; the last starts at
-line 2383), placed on the maturity ladder from
+One row per `LEARNINGS.md` entry (241 of them; the last starts at
+line 3162), placed on the maturity ladder from
 `design/routing-knowledge-notes.md` section 6, with the artifact that owns - or
 must own - it.
 
 The failure mode is knowledge sitting at the WRONG LEVEL, not knowledge volume:
 **if a script can check it, it does not belong in the prompt.** This register is
-the outer-loop worklist. `open` rows (37) are the gaps nothing owns yet -
+the outer-loop worklist. `open` rows (82) are the gaps nothing owns yet -
 they are the input to T6 (per-stage deep evaluation) and to any later step
 looking for the next promotion.
 
@@ -23,7 +23,8 @@ looking for the next promotion.
 ## Statuses
 
 - **done** - already at target; the named artifact really encodes it (grep-verified).
-- **planned-T`<N>`** - the v2 plan step that already owns the promotion.
+- **planned-T`<N>` / planned-U`<N>`** - the v2 / v3 plan step that already owns
+  the promotion.
 - **open** - a real gap no plan step owns. Also used when the LEVEL is right but
   the owning artifact is wrong or incomplete (those rows read `Lx -> Lx` with the
   residual in the Note).
@@ -32,37 +33,47 @@ looking for the next promotion.
 
 ## Summary
 
+Recomputed from the table at U0 (2026-08-13), all 241 rows:
+
 | Level | now | target |
 |---|---|---|
-| L0 | 30 | 5 |
-| L1 | 7 | 8 |
-| L2 | 36 | 39 |
-| L3 | 114 | 135 |
+| L0 | 72 | 8 |
+| L1 | 13 | 9 |
+| L2 | 40 | 69 |
+| L3 | 116 | 155 |
 
-35 entries want to climb at least one level. Status: **done 133**,
-**open 37**, **n/a 6**, planned 11
-(T2 10, T8 1 - both steps have since shipped; those rows need re-reading,
-see the T9 observation in PROGRESS).
+82 entries want to climb at least one level. Status: **done 135**,
+**open 82**, **n/a 6**, planned 18
+(T2 10, T8 1 - both shipped, those rows need re-reading; U1/U2/U3/U5/U8 1 each,
+U9 2).
 
-Read that as: 114 entries are already correct-by-construction and 36
-are gated, but 30 still live only as prose or as this file - and 135
-of all 187 belong at L3. The backlog is concentrated in the library/parts
-pull path, the placement legality model, and the KRT/Freerouting driver.
+Read that as: the live-run wave (entries 188-240 - lumina-par, sbuck-5v3a,
+rf-term-150w, the carrier retrospective) is 54 rows of which **42 sit at L0**.
+It more than doubled the prose backlog while the gated and
+correct-by-construction counts barely moved - expected for knowledge harvested
+from real boards, and the whole point of U1-U12: **49 of the 54 name a script or a test**
+and **50 target L2 or L3**, so almost none of it is meant to stay prose.
 
-Open rows by owning artifact (top of the T6 worklist):
+Open rows by owning artifact (the promotion worklist):
 
-- `scripts/lib_pull.py` x5
-- `scripts/route_critical.py` x5
 - `scripts/fp_verify.py` x4
+- `scripts/planes_gen.py` x4
+- `scripts/datasheet_extract.py` x4
 - `scripts/lib/placelib.py` x4
-- `scripts/lib/checklib.py` x3
-- `scripts/schlib.py` x3
-- `scripts/datasheet_extract.py` x3
-- `scripts/place_anneal.py` x2
-- `scripts/gate.py` x2
+- `scripts/schlib.py` x4
+- `scripts/lib/geom.py` x3
+- `scripts/route_edit.py` x3
+- `agents/router.md` x2
+- `NEW reference/part_errata.yaml` x2
+- `scripts/lib_pull.py` x2
+- `scripts/check_thermal.py` x2
+- `scripts/route_critical.py` x2
+- `scripts/order_submit.py` x2
 - `scripts/netlist_audit.py` x2
-- `scripts/stitch_vias.py` x2
-- `scripts/planes_gen.py` x2
+- `scripts/place_seed.py` x2
+- `scripts/rules_gen.py` x2
+- `scripts/place_anneal.py` x2
+- 35 further artifacts with one open row each
 
 ## Health metric
 
@@ -288,5 +299,57 @@ the row's Now level and status in the same commit as the code.
 | 185 | 2358 | A user-RENAMED copper layer changes the gerber FILE NAME, and every na | [gerber][dfm][gerblib] | L3 | L3 | scripts/lib/gerblib.py | done | T9: FabStack._scan falls back to the Protel extension (.gtl/.gbl/.g<n>) when the canonical layer token is absent, so dfm_check works on any board whose copper layers were renamed; both naming styles pinned by tests |
 | 186 | 2371 | `${KICAD<n>_FOOTPRINT_DIR}` is a KiCad-INTERNAL variable, not an OS en | [kicad][intake][parts] | L3 | L3 | scripts/intake.py | done | T9: classify_uri resolves the KICAD<n>_* family against the pinned install's share dir (KIPRJMOD escapes are imported + rewritten); residual - only intake resolves lib-table URIs today, any future consumer must reuse classify_uri rather than os.path.expandvars |
 | 187 | 2383 | A `--flag` that APPEARS in a script is not a flag it accepts - validate | [skill][tests][router] | L3 | L3 | scripts/task_router.py | done | T10: validate_registry checks every recipe command against the script's add_argument declarations AND its add_parser subcommands (loop-registered ones included); test_flag_check_rejects_a_flag_that_only_appears_in_the_source and test_subcommand_check_catches_a_typo pin both halves. Deliberately NOT retro-fitted to reference/remediations (its citation style makes nearest-script attribution false) |
+| 188 | 2405 | DNP is unreachable from a generator, and NOTHING in the skill reads a  | [kicad-sch-api][schematic][bom] | L0 | L3 | scripts/bom_cpl.py | planned-U3 | U3 owns it: DNP becomes an `assembly_class` in canonical parts data and bom_cpl lists every intended part with its class while CPL keeps only `smt_placed`. ksa hard-codes `(dnp no)`, so the mark can never come from the schematic - do not chase a generator fix |
+| 189 | 2418 | JST PH entry direction is the LEADING letter, not the "B" in the circu | [parts][datasheet] | L0 | L2 | scripts/datasheet_extract.py | open | The durable half is the LAND fact, not the naming rule: a side-entry PH land is asymmetric front-to-back, so it has a correct orientation and must not be mirrored. U9's `layout_implications` orientation field is the target; "re-derive the convention from the model table" stays agent guidance (U4 record) |
+| 190 | 2433 | Multi-unit symbols: ksa reports EVERY unit's pins on ANY instance, so  | [kicad-sch-api][schematic][erc] | L2 | L3 | scripts/schlib.py | open | ERC catches it after the fact (`missing_unit` plus one unconnected endpoint per floating pin). L3 = schlib counts units and exposes a PER-UNIT pin table, refusing a partial placement; `--pins` output is a LIBRARY fact, not an instance fact |
+| 191 | 2447 | A child sheet's own ERC is uninformative - stitch it under a throwaway | [erc][schematic][kicad-cli] | L0 | L1 | scripts/schlib.py | open | Every lumina-par sheet agent re-invented the throwaway-root + stimulus harness independently. L1 = a helper that builds the scratch project and reports its ERC, so a sheet agent cannot report raw standalone counts (which are 100 percent artifact of having no parent) |
+| 192 | 2461 | You cannot rename a single-sheet net to `/NAME` by crossing the root:  | [erc][schematic][kicad-cli] | L2 | L2 | scripts/netlist_audit.py | open | Level right, artifact incomplete: netlist_audit raises `missing_net` but cannot say the NAME is unreachable for a single-sheet net. constraints_lint has no net-name pattern check - it could reject a bare `/NAME` for a net only one sheet exposes, before P4 spends a build on it |
+| 193 | 2478 | TI's TPS92515HV Eq 1 and Eq 8 disagree about the freewheel diode, and  | [datasheet][parts] | L0 | L0 | reference/knowledge/ | open | U4 record keyed to the hysteretic-LED-driver topology: the binding constraint is the divider asymptote V_inf vs VOFT across corners, not the Eq 8 off-time target, and the tidier derivation is the unsafe one. Its machine-checkable form needs the DC solve entry 194 also asks for |
+| 194 | 2493 | The P4 machine gates cannot see a wrong VALUE, and two hand-derivation | [erc][schematic][gates] | L0 | L2 | scripts/netlist_audit.py | open | Two separable cores. (a) A pull resistor must be sized against the specified bias/hysteresis current on its net's pins - those numbers are already in `parts/<lcsc>.json`, so this is a real L2 check. (b) There is no DC solve anywhere in the skill, so bias/hysteresis questions stay arguments rather than gates |
+| 195 | 2510 | A 1-NANOMETRE gerber round-off empties the outline, and `dfm` PASSES w | [dfm][gerblib][gates] | L0 | L3 | scripts/lib/gerblib.py | planned-U1 | U1 owns the geometry half (1e-5 snap before polygonize plus arc interpolation; lumina-carrier is the known-answer). U2 owns the rest - an early return on degenerate input must emit a `skipped` finding, never silence, or a green gate is unfalsifiable |
+| 196 | 2529 | A SIGNED voltage in constraints.json doubles the requirement and inven | [check_creepage][constraints] | L0 | L2 | scripts/constraints_lint.py | open | The entry names its own lint rule: any `dv` above the design's own maximum bus voltage is a declaration bug, not a defect. `voltages[]` are node potentials against the board's 0 V reference, never rail polarity labels. U1 fixes the carrier data; the lint rule is unowned |
+| 197 | 2544 | placement.groups is load-bearing and ALL THREE of its failure modes ar | [placement][constraints] | L1 | L2 | scripts/place_seed.py | open | Only (c) is reported today (`facts.separation_unknown_refs`, S14). (a) A group anchored on a LOCKED ref is silently deleted and its satellites never placed at all; (b) parts in no group become free singletons 22-50 mm from their own switch node. A part that was never placed cannot violate a placement rule |
+| 198 | 2559 | A voltage-class DRU rule only protects the nets you NAMED, and the ICD | [drc][kicad][fab] | L0 | L2 | scripts/rules_gen.py | open | Two checks. (a) Derive the HV net set by CONNECTIVITY - every net that can reach a declared rail - instead of trusting `constraints.voltages`. (b) Compare the creepage requirement against each land pattern's intrinsic pad gap: an 0805's own 0.59 mm fails a 0.635 mm board rule and no placement or routing can fix a footprint |
+| 199 | 2574 | An annealer has no model of a switching loop - build the tile by hand  | [placement][kicad] | L0 | L3 | scripts/lib/placetemplates.py | planned-U8 | U8 cycle 1 is exactly this: a buck hot-loop template plus owner-ruled scorer terms, so the loop stops depending on a hand-built tile. Record the reproducibility trap alongside it - re-running place_seed or place_anneal silently overwrites a hand tile unless the channel is pinned |
+| 200 | 2586 | planes_gen will NOT resize an existing zone - it reports the REQUESTED | [planes_gen][constraints] | L0 | L2 | scripts/planes_gen.py | open | It returned `status: pass` with the new region echoed back, a plausible area, `status: existing` and `zones_added: 0` while the board stayed byte-identical. The report must describe the FILE, not the request: a requested region that differs from the zone polygon is a failure |
+| 201 | 2601 | Pre-flight the op list against a geometry checker before writing coppe | [route_edit][routing] | L0 | L2 | scripts/route_edit.py | open | The shapely clearance pre-flight was hand-built for one board and thrown away, having caught 5 collisions hand-geometry missed - one of them invisible layer-by-layer. route_edit is already atomic, so the check belongs inside it as a refuse-on-collision dry run over all layers at once |
+| 202 | 2612 | The verify gate's DEFAULT waiver path resolves next to the BOARD, not  | [gate][waivers] | L0 | L3 | scripts/gate.py | planned-U5 | The default resolves to `<workspace>/kicad/reports/verify-waivers.json`, so a waiver in the obvious `<workspace>/reports/` is silently ignored and the result reads like a failed MATCH rather than a file never loaded. U5 rebuilds waivers as attestation inputs - fix the path resolution there |
+| 203 | 2622 | check_silk treats an UNFILLED fp_circle as a filled disc - three false | [check_silk][drc][geometry] | L0 | L3 | scripts/check_silk.py | open | Honour `(fill no)` and intersect the ANNULUS (check_silk.py:172); the reported area was exactly the whole pad, which is the tell. Pairs with 239 - two independent tool defects on the same innocent ring, so "two checkers agree" is not corroboration there |
+| 204 | 2638 | An uncommitted LEARNINGS append can be silently reverted by the scoped | [git][learnings] | L0 | L2 | scripts/gate.py | planned-U2 | U2 scopes `--commit` explicitly and kills the `git add -A` fallback, which is the mechanism half. Until a repro exists the practical rule stands: commit a LEARNINGS append in the same turn as the append, and confirm with `grep -c` rather than trusting a line count |
+| 205 | 2648 | LCSC/JLC catalog "Output Type" attributes can contradict the manufactu | [parts][sourcing] | L0 | L2 | scripts/datasheet_extract.py | open | The class is attributes that change the SCHEMATIC - fixed vs adjustable, internal vs external compensation, pin-count variants within a family. A P3 check can require an ordering-table citation for those fields; catalog attributes are scraped or derived, not vendor data |
+| 206 | 2660 | A bare category word ("polymer") returns zero rows - pair it with a va | [parts][parts_search] | L0 | L2 | scripts/parts_search.py | open | Same family as the documented `10K`-token quirk. A zero-row result for a query carrying no value token should exit as a SUSPECT QUERY, not as an empty-but-successful search - a scout has already concluded "no polymer caps in stock" from one |
+| 207 | 2668 | WebFetch fails on vendor PDFs ("corrupted binary") where the Read tool | [research][tools] | L0 | L0 | agents/part-sourcer.md | open | The harness half is n/a (tool behaviour, recorded once). The durable half is a sourcing rule: when a parametric value is load-bearing for a REQUIREMENT (current rating, body height, Isat, DCR), pull the vendor drawing - LCSC listed a 24 A IEC rating where the 10 A UL rating was the floor |
+| 208 | 2678 | `derive_copper_oz`'s `_(\d+)oz` regex outranks the stackup-name lookup | [order_submit][stackup] | L1 | L3 | scripts/order_submit.py | open | Resolution must prefer the stackups.yaml id and refuse an ambiguous `_<n>oz` token in the Chosen window instead of letting a DFM rule-class name decide the quoted copper weight. U5 binds copper oz into the attestation, which turns a coincidental regex win into a release defect |
+| 209 | 2696 | One-port S11 inside a plain `.ac`: build Gamma as a node voltage, don' | [spice] | L0 | L3 | scripts/lib/simlib.py | open | A reusable one-port S11 fragment (2 V AC through z0, a 1 V reference node, a unity VCVS) plus four verified engine facts: positive RL via `.meas param=-<prior>`, `.func` routed through a `.param`, `max vdb` for the worst in-band point, and no `.step` so corners are replicated subckts. simlib has no template surface today |
+| 210 | 2717 | A backgrounded lib_pull that gets silently killed and then re-launched | [librarian][parts][windows] | L0 | L2 | scripts/lib_pull.py | open | Two live pulls with byte-identical command lines appended to the same `aiee.kicad_sym`/`aiee.pretty` and nothing detected it. U12's writer-lock class covers the general case; lib_pull needs its own advisory lock plus a post-run count re-verified from the filesystem, never from an exit code |
+| 211 | 2736 | A DFN package name's number counts TERMINALS, not lands - "V-DFN3020-1 | [parts][footprint][thermal] | L0 | L2 | scripts/datasheet_extract.py | open | fp_verify's pad_count compares against the EXTRACTION, so a package-name-derived count becomes a false ERROR - fix the extraction. Both decisive tells are extractable fields: a belly-pad part quotes `theta_JC(bottom)`, and the layout section names the heat exits in words |
+| 212 | 2752 | `(layer "User.Drawings")` on a footprint item parses fine but makes ki | [footprint][kicad][drc] | L0 | L2 | scripts/fp_verify.py | open | Total verification failure rather than a wrong result: bundled python silently reassigns those items to a "Rescue" layer and kicad-cli then exits 3 with no JSON. A canonical layer-token whitelist (`Dwgs.User`, never `User.Drawings`) at library time is cheap; fp_verify checks pad geometry only |
+| 213 | 2771 | Courtyard-redraw excess convention, and fp_verify's pad_size check can | [easyeda2kicad][fab][parts] | L0 | L2 | scripts/fp_verify.py | open | Two items: the 0.25 mm courtyard excess is a convention inferred from one measured data point and hard-coded nowhere (cite the LEARNINGS entry, not a source file); and `land_pattern.pad_size_mm` holds ONE pair, so a multi-land-class part can never pass pad_size clean - a schema limit, not a footprint defect |
+| 214 | 2788 | `check_thermal` is an area/layer-count screen: it scores identically w | [check_thermal][thermal][stackup] | L1 | L2 | scripts/check_thermal.py | open | On any 4L board the area cap saturates and it returns exactly 51.106 C/W with every thermal via AND the top pour deleted; a comfortable `dt_c` disables its only via warning. Either model the heat path or state the screen's limit in the report - and never justify a layer count on its delta |
+| 215 | 2813 | A LITERAL `/` in a local label becomes `{slash}` - the root prefix is  | [kicad][schematic][erc] | L2 | L3 | scripts/schlib.py | open | netlist_audit's `missing_net` is the only symptom: the generator exits 0, ERC is 0/0 and the schematic still renders "/VIN". L3 = schlib rejects or strips a leading `/` in label text, since the root prefix is KiCad's to add and power-symbol values must stay bare |
+| 216 | 2828 | A rot-90 symbol's Reference and Value overprint each other: KiCad rota | [schematic][kicad-sch-api][schem_refdes] | L0 | L3 | scripts/schem_refdes.py | open | KiCad ADDS the symbol rotation to the field angle; schem_refdes models the text as horizontal and separates along Y, so both strings render vertically 2.54 mm apart and overlap almost completely. No gate sees it - ERC is 0/0 and the netlist is identical, so the plot is the only evidence |
+| 217 | 2844 | Sheet text is CENTRED on its `at` point and `add_text` has no justify  | [schematic][kicad-sch-api] | L0 | L3 | scripts/schlib.py | open | ksa 0.5.6 `texts.py` takes no justify, so a post-save `(justify left)` pass is the only route. Two more page limits worth encoding while there: an A4 note block must end above y=185 mm, and a title beyond about 45 characters is clipped by the title block |
+| 218 | 2854 | placelib's effective courtyard is `declared courtyard UNION the single | [placement][geometry][python] | L0 | L3 | scripts/lib/placelib.py | open | `_pad_box_local()` is ONE bbox over ALL pads, so a spread part claims the bare board between its pads and trimming its F.CrtYd cannot help. Cheap L1 companion: the fit arithmetic `B >= W + 2S + 2*edge_inset` predicts an unplaceable board before 33 720 anneal moves prove it |
+| 219 | 2872 | `placement.fixed` silently DISABLES every separation constraint that n | [placement][constraints] | L1 | L2 | scripts/place_anneal.py | open | Fixed refs are excluded from the cluster list, so every separation naming one is dropped with zero cost weight and surfaces only as `separation_unknown_refs`. Separation is also a soft squared-distance cost on cluster centres, never a legality violation, so `gate place` cannot catch it either |
+| 220 | 2884 | Schematic-sourced mounting holes trip their OWN keepout rects - lock t | [placement][kicad] | L0 | L3 | scripts/place_seed.py | open | With `board_init --mounting-holes 0` the holes arrive as movable schematic footprints and each intersects the very rect that exists to protect it. Both the keepout and outside-outline tests are gated on `is_movable`, so seeding them locked is the by-construction fix; `board_only` holes are already exempt |
+| 221 | 2892 | The board-local -> absolute keepout translation is a real, silently-sk | [constraints][placement] | L0 | L2 | scripts/lib/placelib.py | open | Untranslated rects either land off-board (no effect at all) or produce a phantom violation against an unrelated part. Give `placement.keepouts` an explicit frame field, or lint `rect` against `board_init.json.outline_bbox` - the entry's own sanity check is two lines |
+| 222 | 2902 | DB128L-5.08-2P wire entry is at local +Y, same as KF128 (270 = out the | [placement][kicad][render] | L0 | L2 | scripts/datasheet_extract.py | planned-U9 | Second footprint family confirming the KF128 finding, and the constraints file was wrong again - both declared rotations pointed the wire entry INTO the board. U9's orientation field is the home. Settle it with `render.py --views left,right`; the WRL is corroboration only, since the mouth-end face is the SHORTER one |
+| 223 | 2911 | SO-8EP (AP64350) cannot hold a 4x4 in-pad thermal via array - 12 is th | [placement][thermal] | L0 | L2 | scripts/datasheet_extract.py | planned-U9 | U9 names this as a known-answer fixture: thermal-via capacity derived from the land pattern against JLC's 0.5 mm hole-to-hole floor. Never write a `min_vias` the pad cannot physically hold - check_thermal will not catch it (entry 214), and the 12-vs-16 thermal cost here is only +0.5 C of Tj |
+| 224 | 2921 | A per-net `track_width` floor makes every SMALL-PART STUB on that net  | [routing][rules_gen][placement] | L0 | L2 | scripts/rules_gen.py | open | Third instance of this class (pd-trigger VBUS 2026-07-28, sbuck /SW). The floor applies to the whole net and a 2.31 mm track cannot land on a 0.9 mm pad; pouring the net as a ZONE is the fix, plus P6 placing stub parts 0.7-1.2 mm from the pour. U11 scopes the post-route half |
+| 225 | 2931 | Off-board-part footprint SILK (registration marks/labels) is a hard pl | [placement][drc][silk] | L0 | L2 | scripts/lib/placelib.py | open | placelib legality is courtyard and pad-bbox only, but `drc_routed` fails on warnings, so a footprint's own silk becomes a P7 blocker discovered late. Glyph extent is `+/-(size/2 + thickness/2)`, NOT GetBoundingBox - designing to the bbox costs 0.24 mm of board per side |
+| 226 | 2943 | place_anneal cannot rotate a `placement.groups` satellite - a big sate | [placement][anneal] | L1 | L2 | scripts/place_anneal.py | open | A satellite rides its anchor at whatever rotation the seed gave it, so both candidates returned illegal after 33 720 moves while hand placement solved the board (HPWL 54.4 vs 67.6). `movable_clusters` is already in the report - if it is <= half the footprint count the SA numbers are noise and the tool should say so |
+| 227 | 2954 | stitch_vias' hole-to-hole filter is blind to THT PAD drills - 10 of 89 | [stitch_vias][drc][fab] | L0 | L3 | scripts/stitch_vias.py | open | The generator measures via drills against via drills and treats a THT pad as copper only, while `aiee_hole_to_hole_floor` has no net condition - so kicad-cli DOES fail the gate. Include pad drills in the filter via `geom` Pad.drill_poly; the post-hoc remove-op list is a workaround |
+| 228 | 2967 | `--verify-fill` refills in a TEMP DIR, so a custom .kicad_dru makes it  | [geom][check_return_path][kicad-cli] | L0 | L3 | scripts/lib/geom.py | open | `_refill_copy()` leaves the sibling .kicad_pro/.kicad_dru behind, so the "fresh" fill is computed with KiCad defaults - on any board with a per-net clearance rule `--verify-fill` is a FALSE failure (15.8 mm2 on rf-term-150w). Copy the sidecars alongside, or refill in the board's own dir |
+| 229 | 2980 | KiCad's silk clearance test does NOT see TRACKS - silk is a placement  | [drc][kicad][silk][routing] | L0 | L0 | agents/router.md | open | Measured on 10.0.3: a 1.28 mm track driven through the centre of a refdes gives zero silk findings, while pads and vias ARE tested. Worth real board area - do not narrow a trace to dodge a refdes. Prompt-level by nature; a U4 record keyed to the routing stage is the retrieval fix |
+| 230 | 2993 | `planes_gen` rejects `_note` - the P2 constraints convention makes `co | [planes_gen][constraints] | L0 | L3 | scripts/planes_gen.py | open | `_PLANE_KEYS` is a strict whitelist while every other constraints consumer tolerates the P2 `_note` convention, so the documented step-0 invocation cannot run on any annotated board. Ignore `_`-prefixed keys; the planes-only sidecar stays the better P7 practice regardless |
+| 231 | 3006 | A clean `--pad-window` does NOT predict that Freerouting will honour t | [routing][freerouting][check_current] | L0 | L2 | scripts/route_critical.py | open | FR fans in from inside the pad and takes the PAD dimension as its width (0.8058 mm on 0402 taps against a 2.055 mm floor), producing 9 track_width errors that a clean pad-window predicted nothing about. Read `--pad-window` only as "is this floor unmeetable"; U11 owns post-route width repair |
+| 232 | 3020 | `via_grid` is centroid-centred and pitch-stepped, so it can only emit  | [planes_gen][thermal] | L0 | L3 | scripts/planes_gen.py | open | Every offset is a whole multiple of the pitch about the centroid, so the count is odd on each axis and the 3x4 array an SO-8EP actually holds is inexpressible (it needs a half-pitch stagger). Today's answer is `--no-thermal-vias` plus a 12-op route_edit add_via list |
+| 233 | 3032 | P2 feasibility benches hard-code geometry-derived parasitics that go S | [spice][sim-analyst] | L0 | L2 | reference/invalidation.yaml | open | A bench parameter whose value comes from GEOMETRY (launch C, trace L, thermal R) is a P7 dependency, not a P2 constant - the sim gate stayed green through P4-P8 on a 3.6x stale cpad. Make a routed-board change invalidate the bench, and give the geometric quantity its own tight `.meas param=` bound |
+| 234 | 3046 | A pour-flanked narrow trace is a grounded CPW, not a microstrip - bloc | [route][rf][impedance] | L0 | L2 | scripts/lib/impedance.py | open | Only outer-layer microstrip is modelled (V12) and the error is one-sided: at w=0.94 mm the two models give 87.8 vs 75.3 ohm. When the pour clearance is comparable to or smaller than the dielectric height, size with CPWG and quote microstrip as the upper bound - the gap IS the uncertainty band |
+| 235 | 3058 | The corridor is `k x the chain's WIDEST track`, so deleting one fat se | [check_return_path][gates] | L1 | L2 | scripts/check_return_path.py | open | One 7.34 mm flare buffered the corridor to 22 mm and swung every deficit area on the net while `crossing_len_mm` stayed byte-identical. Areas are not evidence of a physical change, and a waiver reason quoting an area is stale on any width change - U5's fingerprint should bind the crossing length |
+| 236 | 3070 | "Adding inductance is free or better" is a statement about being BELOW | [spice][sim-analyst][rf] | L0 | L2 | agents/sim-analyst.md | open | A bench whose conclusion is a GRADIENT must be re-derived, not re-run, after a change made in its direction - re-running silently re-asserts the premise the change deleted. Gate the gradient itself with a signed bound so a revert fails instead of quietly restoring the old story |
 | 237 | 3086 | A board `gr_text` could not be MOVED by any script - and `board.Remove | [place_edit][kicad][silk] | L3 | L3 | scripts/place_edit.py | done | sbuck-5v3a P8: `remove_text {text,x,y,layer}` added to place_edit + lib/place_swig (idempotent, absence-verified by the driver's sexpdata parse); `remove_text` + `add_text` is the relocation idiom for a board legend. Worker uses RemoveNative - `Remove()` poisons `board.Drawings()` once the proxy is collected. Pinned by test_remove_text_relocates_gr_text |
 | 238 | 3103 | silk_place's score is attribution-BLIND, so it certifies the exact def | [silk][silk_place][check_silk] | L0 | L2 | scripts/silk_place.py | open | sbuck-5v3a P8 re-scored the same candidate set as (attribution tier, clearance, -own_off) in a scratch solver and took check_silk 8 -> 3 misattributed at DRC 0/0. Not yet in silk_place: it still optimises clearance first, and its obstacle set omits targets that end up not moving. Second gap: `move_text` has no `size`, so a refdes cannot be shrunk (the last 3 residuals need 0.8 mm text) |
+| 239 | 3126 | gerblib flattens DRAWN arcs to their chord, so every silk circle aroun | [dfm][gerber][gerbonara][silk] | L0 | L3 | scripts/lib/gerblib.py | open | The S12 `approximate_arcs(max_error=1e-3)` fix reached `_flash_polys` only, so drawn Line/Arc items still chord: a full fp_circle collapses onto its own diameter and reads as silk over the pad. Enlarging the ring cannot help. U1 owns it together with the outline snap (entry 195) |
+| 240 | 3145 | A wall-clock-bounded Freerouting assert reads as a routing regression  | [tests][freerouting][skill] | L3 | L3 | tests/test_route_auto.py | done | U0: the rung-1 quality assert is now gated on the rung's own `timed_out` flag, so a starved host cannot read as a routing regression while the flow-level assertions still hold. Generalises entry 173 (wave-1 flakiness) from an observation into a rule: assert the outcome the tool controls, branch on the tool's timeout flag |
+| 241 | 3162 | Committing a generated deliverable flips a litter assertion that encod | [tests][git][report_gen] | L2 | L2 | tests/test_report.py | open | U0: the two report smoke tests now assert SCOPE only (`assert_no_residue_outside_design_doc`), so the litter invariant no longer depends on the artifact being uncommitted. Residual is codex H2: `report_gen` has no output-dir override, so `check.cmd` still re-dirties three workspaces every run and the litter probe still runs against a real workspace rather than a copy |

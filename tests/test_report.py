@@ -677,6 +677,22 @@ def git_status_lines(scope: str) -> set[str]:
     return {ln for ln in r.stdout.splitlines() if ln.strip()}
 
 
+def assert_no_residue_outside_design_doc(scope: str, before: set[str]) -> None:
+    """The run may only touch `<workspace>/reports/design_doc/`.
+
+    It deliberately does NOT require the new lines to be untracked (`?? `).
+    report_gen writes into the workspace with no output-dir override, so once a
+    board's design doc has been COMMITTED - which it must be, it is a P10
+    deliverable - a re-run produces ` M ` lines for those same files. Requiring
+    `?? ` made this assertion pass only while the artifact had never been
+    committed (U0, 2026-08-13). Anything appearing outside design_doc/ still
+    fails, which is the invariant that was worth having. Making the smoke run
+    hermetic needs report_gen to grow an output-dir flag (codex H2).
+    """
+    new = git_status_lines(scope) - before
+    assert all("/reports/design_doc/" in ln for ln in new), sorted(new)
+
+
 def run_cli(workspace_rel: str) -> subprocess.CompletedProcess:
     return subprocess.run(
         [sys.executable, str(SCRIPTS / "report_gen.py"),
@@ -709,10 +725,8 @@ def test_smoke_pd_trigger_with_residue_and_rerun(pdflatex_bin):
     assert "render_final/top.png" in json.dumps(payload["sections"])
     # second run must overwrite cleanly
     assert_real_run(run_cli("boards/pd-trigger"), "pd-trigger")
-    # residue: nothing new outside reports/design_doc/, no tracked file touched
-    new = git_status_lines("boards/pd-trigger") - before
-    assert all(ln.startswith("?? ") and "/reports/design_doc/" in ln
-               for ln in new), sorted(new)
+    # residue: nothing new outside reports/design_doc/
+    assert_no_residue_outside_design_doc("boards/pd-trigger", before)
 
 
 @pytest.mark.smoke
@@ -723,6 +737,4 @@ def test_smoke_stm32_blinky(pdflatex_bin):
     src = json.dumps(payload["sections"])
     assert "renders/stm32-blinky_top.png" in src
     assert "render_labeled/stm32-blinky_top.png" in src
-    new = git_status_lines("boards/stm32-blinky") - before
-    assert all(ln.startswith("?? ") and "/reports/design_doc/" in ln
-               for ln in new), sorted(new)
+    assert_no_residue_outside_design_doc("boards/stm32-blinky", before)

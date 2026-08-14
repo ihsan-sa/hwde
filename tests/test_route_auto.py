@@ -303,7 +303,15 @@ def test_route_auto_full_flow(seeded_poured_blinky, fr_tools, tmp_path):
     assert facts["tracks_after"] > facts["tracks_before"]
     assert facts["completion"] >= 0.9
     assert set(facts["unrouted_nets"]) <= {"GND"}
-    assert facts["rungs"][0]["unrouted"] == 0
+    # Rung 1 alone must suffice on blinky2 - but only when Freerouting actually
+    # got its wall-clock budget. On a contended host (parallel sessions, or the
+    # full suite next to another build) the rung can hit the per-rung timeout
+    # with partial passes, which reads as a routing regression and is not one
+    # (LEARNINGS 2026-08-13 [tests][freerouting]; the ladder recovers on rung 2).
+    rung1 = facts["rungs"][0]
+    if not rung1.get("timed_out"):
+        assert rung1["unrouted"] == 0, \
+            f"rung 1 no longer routes blinky2 clean: {rung1}"
     assert (tmp_path / "work" / "blinky2r.dsn").is_file()
     assert (tmp_path / "work" / "rung1.ses").is_file()
     assert (tmp_path / "work" / "rung1.log").is_file()

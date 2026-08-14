@@ -42,7 +42,7 @@ T7 -> T8 || T9 -> T10. T11 runs as soon as boards arrive (not during T6).
 | T8 | Incremental board update (board_update.py, kills OI-3) | **done** | 2026-08-07 |
 | T9 | External-board intake (intake.py) | **done** | 2026-08-07 |
 | T10 | Task router + SKILL v2 (taxonomy, recipes, full run = special case) | **done** | 2026-08-07 |
-| T11 | Hardware bring-up leg (run when boards arrive) | pending | - |
+| T11 | Hardware bring-up leg (run when boards arrive) | pending - both orders **Shipped**, JLC reports no delivery state; owner confirms arrival (U0 poll 2026-08-14) | - |
 
 ## v3 status board (U-steps - plan: `ai-ee-v3-plan.md`)
 
@@ -52,7 +52,7 @@ U11 later; U12 before order credentials; T11 on board arrival (not during U8).
 
 | Step | Title | Status | Date |
 |---|---|---|---|
-| U0 | Ops + evidence sweep (commit/push dirty tree, tracking, triage 188-239) | pending | - |
+| U0 | Ops + evidence sweep (commit/push dirty tree, tracking, triage 188-239) | **done** | 2026-08-13 |
 | U1 | Retro checker fixes (gerblib outline/arcs, reg-input decoupling, carrier constraints) | pending | - |
 | U2 | Gate report validation + strict verify coverage (C4+C7) | pending | - |
 | U3 | BOM assembly classes + first-class DNP (H1, C9) | pending | - |
@@ -123,7 +123,7 @@ kickoff prompt to allow multi-agent workflows (higher token spend - use where ma
 | V13 | route_cleanup loop-breaker vs plane-mediated connectivity | S11 | **ROOT-CAUSE FIXED T6**: the live regression was the DANGLING pass, not the loop-breaker - `_endpoint_free` tested endpoint-to-CENTERLINE <= 0.01mm, blind to copper overlap (reproduced disconnecting VBUS on the frozen pd-trigger fixture). Fixed with copper-touch tests + netconn bridge veto + regression fixture (batch G, 11ed6e5). V20 covers the first-live-run validation before the dry-run protocol retires. |
 | V14 | Freerouting 2.2.4 DSN-reader recursion on KRT copper | S11 | PolylineTrace.combine infinite recursion before pass 1 on KRT guide-wire copper; mitigated (wedge detection + KRT fallback). Worth an upstream issue with a minimal DSN repro. **T6 assessed**: the design-notes DSN post-process assertion set remains UNBUILT (deferred with spec in the P7 eval - runtime wedge-detect is the only defense). |
 | V15 | JLCPCB web-viewer upload + polarized-part CPL preview | S12, plan S12 accept | **HUMAN STEP, NOT YET DONE.** Two S12 accept legs need a browser and have no API: (a) upload `usbbuck4_gerbers.zip` to JLC's viewer/quote page and confirm it renders clean, (b) spot-check the rendered CPL preview for 3 polarized parts (D1 LED_0805, plus a diode/electrolytic on a future board). The machine-checkable half (package completeness, hashes, rotation maths) IS tested (test_full_package_flow, test_cpl_rotation_corrections). Do this once before the first real order (S14). |
-| V16 | jlc_pricing.yaml staleness + credentialed ordering API | S12 | order_quote's numbers are transcribed headline prices flagged `estimated: true`, never a quote; JLC's real price depends on panelisation/promotions/region. order_submit implements the manifest + human gate but NOT a live api.jlcpcb.com call (that programme needs an approved access application this host does not have) - `--api` exits 2 with the exact missing prerequisite rather than shipping an untested payment path. Re-verify the table (and wire the API behind `_api_submit()`) when credentials exist. |
+| V16 | jlc_pricing.yaml staleness + credentialed ordering API | S12 | **HALF RESOLVED; the pricing half stays OPEN.** order_quote's numbers are still transcribed headline prices flagged `estimated: true`, never a quote - JLC's real price depends on panelisation/promotions/region, so re-verify the table before trusting a figure. The API half is NO LONGER unimplemented: the 2026-07-28 post-v1 amendment shipped `lib/jlcapi.py` (JOP HMAC client) with `--api` = quote-only (uploadGerber/audit/calculate -> fab/api_quote.json) and `--api-create` = the ONLY real-money path, guarded by a 4+ layer refusal, the created-latch, the ambiguous-attempt block, a <24 h quote binding, the normalized design hash, freight/qty attestation and a typo-proof `--confirm` token. pd-trigger was ordered through it (orderId a660e81d...); lumina-carrier went through the web cart because it is 4L. **U0 note (2026-08-13):** this row still read "`--api` exits 2, not wired" - corrected here; U5/U12 must plan against the wired path, not the S12 description. |
 | V18 | stackups.yaml dielectric constants + template churn | T1 | **OPEN, standing.** JLC's `getImpedanceTemplateSettingList` returns materials + thicknesses but NO epsilon_r, so every `epsilon_r` in stackups.yaml is an assumed FR4 value (`epsilon_r_assumed: true` per entry) and 1080-vs-7628 resin differences are NOT modelled - this is the concrete form of V12 for the real stackups. AND the offering itself churns: JLC04161H-7628G was live on 2026-07-30 and gone on 2026-08-06. Before any controlled-impedance board: re-probe the endpoint (recipe in LEARNINGS 2026-08-06 [stackup][jlcapi][ordering]) AND confirm width/gap against JLC's online impedance calculator. **T6 partial**: board_init now warns when an impedance-controlled stackup's verified date is stale (detection half at L2; the re-probe itself still needs credentials + a human). |
 | V17 | No scripted silk/text move op (refdes/value) | S13 | **RESOLVED S14**: hit on run (a) day one (J1 polarity legend = reviewer ERROR). place_swig/place_edit gained `add_text` (idempotent board-frame silk text) + `move_text` (refdes/value fields), independently sexpdata-verified incl. rotated parents; 9 tests. Drove ~50 move_text refdes sweeps + 3 boards' functional silk packages. fixer.md/fix_dispatch/SKILL.md updated. |
 | V19 | schem_refdes symbol transform at 90/270 and mirrored instances | T3 | **RESOLVED T6**: rotmirror fixture (7 Device:R at 0/90/180/270, mirror x/y, rot90+mirror; every pin wired, ERC oracle) FALSIFIED the suspected stub_dir sign defect - the real bug was in ksa pin-position reads; fixed in schlib.pin_pos + save-time field placement (batch D, 3b10380). All branches now fixture-pinned. |
@@ -3084,3 +3084,121 @@ pad-window measurement as its "before you widen" step. LEARNINGS 2026-08-07
 
 **New verify-later items:** none. (V20 unchanged - the router is planning-only
 and touches no board; its first live exercise is the next real run.)
+
+## U0 - Ops + evidence sweep (2026-08-13) - DONE
+
+The v3 opener: get the tree committed and pushed, refresh order tracking,
+triage the 50-entry live-run LEARNINGS backlog, and give the repo an authority
+map. No pipeline code changed; one test assertion was hardened.
+
+**Suite state at open:** `test_every_learnings_entry_has_a_triage_row` RED,
+measured directly before any edit - 50 untriaged entries (the codex review
+flagged this as H5, "knowledge governance has already failed its own regression
+contract"). The first FULL run of the session came after that fix and was
+1 failed / rest passed, the failure being the standing `net`-marked AP63203
+live-stock test (T2/T3/T5/T6/T8/T9/T10 precedent). Dirty tree at open exactly
+as the codex review recorded it (its "Current repository baseline" section),
+plus `boards/xhp-driver/`.
+
+**Done:**
+- **Dirty tree committed in four classified pieces, then pushed** (main was 59
+  commits ahead of origin/main; the push is a zero-cost backup of ~6 weeks of
+  work):
+  1. lumina-carrier release evidence - the 2026-08-07 read-only retrospective,
+     the four re-run gate reports (+ their one-line `.err` verdicts, which the
+     retrospective's table cites), top/bottom renders, and the state.json that
+     records all of it.
+  2. Design-doc regens on three boards (report_gen runs; timestamps, state-updated
+     lines, artifact sizes).
+  3. The two `.kicad_pro` diffs, **inspected structurally before committing**:
+     flattened both files to leaf paths and diffed - rf-term +215 keys / -0 / 0
+     changed, sbuck +468 / -0 / 1 changed (`net_settings.meta.version` 3 -> 5,
+     KiCad 10's netclass schema bump). Every aiee floor, severity override and
+     netclass survived; the additions are KiCad's own defaults spelled out, which
+     the DRC engine used anyway. Benign resave, committed.
+  4. Order-tracking refresh.
+- **Order tracking**: pd-trigger `W2026073002475378` and lumina-carrier
+  `W2026073100331078` both still **status 5 Shipped**, unchanged since 2026-08-06,
+  13.08 / 15.72 USD. JLC's API carries no tracking number and no delivered state
+  (`tracking_number` null, `wip_steps` empty) and 5 is the end of its ladder - so
+  **T11 unblocks on the owner reporting boards in hand, not on another poll.**
+- **Knowledge-ladder triage caught up**: 50 rows appended to
+  `design/ladder-triage.md` for entries 188-236 + 239 (lumina-par P4-P8,
+  sbuck-5v3a P3-P8, rf-term-150w P4-P7, the carrier retrospective), and the
+  header summary recomputed from the table rather than edited. The register now
+  covers all 240 entries. Seven rows are `planned-U<N>` where a v3 step really
+  owns the promotion (188 U3, 195 U1, 199 U8, 202 U5, 204 U2, 222+223 U9); the
+  rest are `open` with the artifact that must own them named.
+- **`test_route_auto_full_flow` flake: pinned, not tolerated.** The mechanism is
+  not FR nondeterminism (`-mt 1 -is sequential` is deterministic) - it is that
+  `assert facts["rungs"][0]["unrouted"] == 0` asserts a claim about a
+  wall-clock-bounded process, so a contended host that starves the 600 s per-rung
+  budget reads as a routing regression. The rung entry already carries
+  `timed_out`, so the ladder-quality assert now branches on it and the flow-level
+  assertions (`completion >= 0.9`, `unrouted_nets <= {GND}`, atomic board
+  replacement) carry the test when a rung is starved. LEARNINGS entry 240 + its
+  triage row. In this session's full-suite run the test PASSED.
+- **`boards/buck-5v3a` marked superseded** by sbuck-5v3a: a `state.py decision`
+  entry (closed at P3, do not resume, with the reason and what its P1-P3 evidence
+  is still good for) plus a row in `boards/README.md`. That table was four boards
+  stale, so sbuck-5v3a, rf-term-150w, rf-de-20m and xhp-driver were added and
+  lumina-par's phase corrected.
+- **Committing the design docs broke two tests - and that was the finding.**
+  `test_report.py`'s two smoke tests asserted that every NEW git-status line a
+  `report_gen` run adds starts with `?? `. That encoded "this artifact has never
+  been committed": while the docs sat dirty, a re-run added no new line at all
+  and the assertion was VACUOUS. Committing them (piece 2 above) made the
+  baseline clean, so the next full run produced ` M .../design_doc/*.tex` and
+  both tests failed - a change in what the assertion measures, not a code
+  defect. Fixed by keeping the scope half and dropping the prefix half
+  (`assert_no_residue_outside_design_doc`); anything outside `design_doc/` still
+  fails. LEARNINGS 241 + triage row records both halves: a vacuous assertion is
+  indistinguishable from a passing one, and **`check.cmd` is not hermetic** -
+  report_gen has no output-dir override, so every full run re-dirties three
+  workspaces. A clean tree is a between-runs property here, not a steady state
+  (codex H2; the durable fix is a `--doc-dir` flag).
+- **V16 corrected in the verify-later register.** Writing the README's safety
+  boundary meant checking what `order_submit` actually does, and V16 still said
+  the credentialed ordering API was unwired and that `--api` "exits 2 with the
+  missing prerequisite". That has been false since the 2026-07-28 post-v1
+  amendment: `--api` is quote-only and `--api-create` is a real-money path with
+  a 4L refusal, the created-latch, the ambiguous-attempt block, quote freshness,
+  design-hash binding and a typed confirm token - and pd-trigger was ordered
+  through it. The row now says so; U5 and U12 must plan against the wired path.
+  The pricing-table half of V16 stays open.
+- **Root `README.md` (NEW)** - the authority map codex H7 asked for: what the
+  skill is, an explicit maturity statement ("supervised engineering assistant,
+  not an unattended release system" - with the four reasons: coverage, phase is
+  not a release certificate, ordering is semi-manual by design, per-stage limits),
+  a one-authority-per-question table (CLAUDE.md environment / SKILL.md operation
+  / tasks.yaml + recipes / gates.yaml / invalidation.yaml / state.json /
+  LEARNINGS + triage / PROGRESS / **SPEC.md marked historical, not normative**),
+  a safety boundary, and the repo layout.
+
+**Deviations from the plan (with reasons):**
+1. The plan said triage "188-236 + 239"; entries 237/238 already had rows from
+   the sbuck P8 session, so the sweep is exactly those 50 plus the new 240.
+2. `STATUSES` in `tests/test_remediations.py` only accepted `planned-T<N>`.
+   Extended to `planned-[TU]\d+` (one line) so v3 ownership can be recorded
+   honestly instead of every U-owned row reading `open`; the triage header's
+   Statuses rubric names both.
+3. The carrier `gate-*.err` files were committed rather than dropped. They are
+   40-byte stderr verdicts and no other board has them, but the retrospective
+   cites those exact lines, so they are evidence of that session.
+4. The plan's accept line asks for "tracking states recorded" and implies a
+   delivered/not-delivered answer. The API cannot give one (see above); recorded
+   as Shipped-with-no-delivery-signal rather than inferring arrival.
+
+**Observation for later sessions (not a LEARNINGS entry - harness, not skill):**
+a foreground Bash call that exceeds its timeout is auto-backgrounded by this
+harness and DOES survive turn boundaries (the 10+ min full-suite run completed
+and notified). That is a different path from the `run_in_background: true` kill
+recorded in LEARNINGS 2026-08-09 [librarian] - do not read this as refuting it.
+
+**Acceptance:** suite green modulo the standing AP63203 `net` test (two further
+failures appeared mid-session and were the report-litter finding above, now
+fixed and re-run green); `git status` clean except `boards/xhp-driver/` (U10
+owns it) - with the standing caveat that a `check.cmd` run re-dirties three
+design docs; push confirmed; tracking states recorded.
+
+**New verify-later items:** none.

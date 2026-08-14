@@ -3141,3 +3141,42 @@ already false-positives on for a different reason (it buffers an unfilled `fp_ci
 disc, check_silk.py:172) - two independent tool defects on one ring, so "two checkers agree" is
 NOT corroboration here; (c) ENLARGING the ring cannot fix it - the chord runs through the centre at
 any radius - so the only board-side fix is deleting the circle.
+
+## 2026-08-13 [tests][freerouting][skill] A wall-clock-bounded Freerouting assert reads as a routing regression on a contended host - gate it on `timed_out`
+`test_route_auto_full_flow` asserted `facts["rungs"][0]["unrouted"] == 0`, i.e. that rung 1 of
+`routelib.DEFAULT_LADDER` (`mp: 20`) fully routes blinky2. Freerouting itself is deterministic here
+(`-mt 1 -is sequential`), so the assert is not racy in the usual sense - what varies is whether the
+rung finishes inside `--timeout-s` (default 600 s per rung). Under parallel-session load the rung is
+killed with partial passes, `unrouted` comes back non-zero or None, and the failure message points at
+the router rather than at the host. Second occurrence of the class already recorded on 2026-08-06
+(wave-1 sessions); this one surfaced at U0. **Decision: pin, do not tolerate** - but pin the
+DISTINCTION, not the number. `route_auto` already reports `timed_out` per rung, so the ladder-quality
+claim is asserted only when the rung actually got its budget; a starved rung leaves the flow-level
+assertions (`completion >= 0.9`, `unrouted_nets <= {GND}`, board replaced atomically) doing the work,
+and those do not depend on which rung won. General rule for any test that wraps a time-boxed external
+solver: assert the OUTCOME the tool controls, and make the tool's own timeout flag the branch - a
+bare quality assert on a wall-clock-bounded process is an environment sensor wearing a regression
+label. In the U0 full-suite run (2026-08-13, single session) the test PASSED and the only failure was
+the standing AP63203 `net` test.
+
+## 2026-08-13 [tests][git][report_gen] Committing a generated deliverable flips a litter assertion that encoded "untracked" - and `check.cmd` re-dirties three workspaces every run
+`test_report.py`'s two smoke tests asserted `all(ln.startswith("?? ") and "/reports/design_doc/" in ln
+for ln in new)` over the git-status lines a `report_gen` run adds. Their comment says the intent -
+"nothing new outside reports/design_doc/, no tracked file touched" - but the `?? ` half silently
+encoded a second premise: that the board's design doc had NEVER BEEN COMMITTED. Both tests passed for
+weeks while the pdf/tex sat dirty in the tree, because a file that is already ` M ` contributes no NEW
+status line at all; the set difference was empty and the assertion was vacuous. U0 committed those
+regens (the v3 plan says to), the baseline went clean, and the very next full-suite run failed both
+tests with ` M boards/<b>/reports/design_doc/<b>-design-doc.tex` - a real change in what the assertion
+measured, with nothing wrong in the code under test. Fixed by dropping the prefix requirement and
+keeping the scope one (`assert_no_residue_outside_design_doc`): anything appearing outside
+`design_doc/` still fails, which is the invariant worth having.
+Two things worth carrying. **(1) A vacuous assertion and a passing assertion look identical.** If a
+litter test's power depends on the baseline being clean, it is measuring nothing on a dirty tree -
+consider asserting the set difference is non-empty first, or run the probe against a clean scope.
+**(2) `check.cmd` is not hermetic** (codex H2): `report_gen` has no output-dir override, so the suite
+regenerates lumina-carrier / pd-trigger / stm32-blinky design docs in place and every full run leaves
+those three workspaces dirty with a new timestamp. "Clean tree" is therefore a between-runs property,
+not a steady state - do not treat a dirty design_doc after `check.cmd` as unfinished work, and do not
+commit it reflexively either. The durable fix is a `--doc-dir` on report_gen so the smoke run can
+write to tmp.

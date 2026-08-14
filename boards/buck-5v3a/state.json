@@ -3,7 +3,7 @@
  "board": "buck-5v3a",
  "workspace": "boards/buck-5v3a",
  "created": "2026-08-08T22:10:35",
- "updated": "2026-08-09T01:14:05",
+ "updated": "2026-08-13T23:59:50",
  "phase": "P3",
  "gates": {},
  "human": {
@@ -153,6 +153,12 @@
    "why": "The only heat exits are the VIN land (~1.16 mm2) and GND land (~1.16 mm2). Via-in-pad rejected on the numbers: 12 vs 16 vias is 0.4 C/W, so two in-pad vias buy ~0.2 C while putting open 0.30 mm holes in the part's only thermal AND mechanical joint; DS41948 rules 7/8 say 'around' the pins",
    "phase": "P3",
    "ts": "2026-08-09T01:14:05"
+  },
+  {
+   "what": "SUPERSEDED by boards/sbuck-5v3a - buck-5v3a is closed at P3 and must not be resumed",
+   "why": "The same 7-18V -> 5V/3A synchronous-buck brief was restarted as sbuck-5v3a on 2026-08-09 with a fuller written spec (load step, ripple, efficiency floor, explicit part-selection policy); sbuck ran to P10 with a shipped fab package. buck-5v3a stopped at P3. Its P1-P3 evidence stays as reference - reports/u1-land-ruling.md (V-DFN3020-13 has 9 lands and no belly pad) and reports/thermal-recheck.md (check_thermal is an area screen) are the source of LEARNINGS 211 and 214.",
+   "phase": "P3",
+   "ts": "2026-08-13T23:59:50"
   }
  ],
  "edits": [],
@@ -474,6 +480,11 @@
    "gate": "verify/check_thermal",
    "finding": "machine-proved: a probe board with ZERO thermal vias and NO top GND pour returns the identical 51.1 C/W and PASSES. check_thermal is an area+layer-count screen and does not test the heat path",
    "consequence": "the P6 via/pour prescription must be enforced by REVIEW at P8, not assumed to be covered by the thermal gate"
+  },
+  {
+   "ts": "2026-08-13T23:59:50",
+   "event": "decision",
+   "what": "SUPERSEDED by boards/sbuck-5v3a - buck-5v3a is closed at P3 and must not be resumed"
   }
  ]
 }

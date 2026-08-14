@@ -316,7 +316,8 @@ def test_triage_rows_are_well_formed():
     for r in rows:
         if r["now"] not in LEVELS or r["target"] not in LEVELS:
             bad.append(f"#{r['n']} level {r['now']}->{r['target']}")
-        if not (r["status"] in STATUSES or r["status"].startswith("planned-T")):
+        if not (r["status"] in STATUSES
+                or re.fullmatch(r"planned-[TU]\d+", r["status"])):
             bad.append(f"#{r['n']} status {r['status']}")
         if not r["owner"]:
             bad.append(f"#{r['n']} no owner")
