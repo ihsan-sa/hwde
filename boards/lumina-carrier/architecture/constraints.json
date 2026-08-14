@@ -95,7 +95,9 @@
   },
   {
    "net": "V48_RTN",
-   "voltage": -57
+   "voltage": 0,
+   "_p2_original_voltage": -57,
+   "_u1_correction": "Was -57 at P2, written to mean 'the negative rail' - true as topology, wrong as a potential. voltages[] entries are NODE POTENTIALS against the board's 0 V reference: U1 is the only part touching both V48_RTN and GND (the TPS2378's return IS system ground in this non-isolated PD), so V48_RTN is 0 V and two nets on one 57 V PoE bus cannot be 114 V apart. The -57 made check_creepage demand the 101-150 V row (0.80 mm) and invent 8 errors at 0.657-0.745 mm that all clear the true 0.60 mm requirement. Corrected at U1 to match kicad/constraints.json (same reason this file's V48_RAW current was corrected at P8: a stale wrong number here is how it gets quoted later). Retro 2026-08-07 s3b."
   },
   {
    "net": "+48V_SW",

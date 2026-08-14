@@ -21,6 +21,7 @@ written by hand). Tests that export gerbers via kicad-cli are `smoke`.
 from __future__ import annotations
 
 import json
+import math
 import shutil
 import sys
 import time
@@ -73,8 +74,10 @@ def _fmt(v: float) -> str:
     return str(int(round(v * 1e6)))
 
 
-def write_gerber(path: Path, traces=(), flashes=()) -> None:
-    """Minimal RS-274X. traces: [(w, x1, y1, x2, y2)]; flashes: [(dia, x, y)].
+def write_gerber(path: Path, traces=(), flashes=(), arcs=()) -> None:
+    """Minimal RS-274X. traces: [(w, x1, y1, x2, y2)]; flashes: [(dia, x, y)];
+    arcs: [(w, x1, y1, x2, y2, i, j, ccw)] with i/j = center offset from the
+    start point (G75 multi-quadrant, signed).
     Gerber Y points up, so callers pass gerber-space coordinates."""
     out = ["%FSLAX46Y46*%", "%MOMM*%"]
     ap = 10
@@ -83,6 +86,13 @@ def write_gerber(path: Path, traces=(), flashes=()) -> None:
         out.append(f"%ADD{ap}C,{w:.4f}*%")
         body += [f"D{ap}*", f"X{_fmt(x1)}Y{_fmt(y1)}D02*",
                  f"X{_fmt(x2)}Y{_fmt(y2)}D01*"]
+        ap += 1
+    for w, x1, y1, x2, y2, i, j, ccw in arcs:
+        out.append(f"%ADD{ap}C,{w:.4f}*%")
+        body += [f"D{ap}*", "G75*", f"X{_fmt(x1)}Y{_fmt(y1)}D02*",
+                 f"{'G03' if ccw else 'G02'}*",
+                 f"X{_fmt(x2)}Y{_fmt(y2)}I{_fmt(i)}J{_fmt(j)}D01*",
+                 "G01*"]
         ap += 1
     for dia, x, y in flashes:
         out.append(f"%ADD{ap}C,{dia:.4f}*%")
@@ -435,13 +445,17 @@ def test_dfm_missing_layer_is_release_error(tmp_path):
     assert "dfm_missing_layer" in [v["kind"] for v in vios]
 
 
-def test_dfm_bom_incomplete_is_warning_only(tmp_path):
+def test_dfm_bom_incomplete_is_an_error(tmp_path):
+    """U3/codex H1: a machine-placed part nobody can buy blocks the release.
+    It was a warning until the assembly classes made 'machine-placed' a fact
+    the checker knows (the severity split is pinned in test_assembly.py)."""
     fab = synth_fab(tmp_path)
     vios: list = []
     dfm_check.check_release(fab, ["F.Cu", "B.Cu"], vios,
                             {"missing_lcsc": ["U1", "C3"]})
     v = [x for x in vios if x["kind"] == "dfm_bom_incomplete"]
-    assert len(v) == 1 and v[0]["severity"] == "warning"
+    assert len(v) == 1 and v[0]["severity"] == "error"
+    assert v[0]["refs"] == ["C3", "U1"]
 
 
 def test_release_missing_inner_layers_board_truth(tmp_path):
@@ -510,6 +524,93 @@ def test_dfm_open_outline_is_error(tmp_path):
     dfm_check.check_outline(fab2, vios2)
     assert [v["kind"] for v in vios2] == ["dfm_open_outline"]
     assert vios2[0]["severity"] == "error"
+
+
+# ================== U1: outline snap + arc interpolation (carrier retro)
+
+CARRIER_GERBERS = REPO / "boards" / "lumina-carrier" / "fab" / "gerbers"
+RULES_4L = yaml.safe_load(
+    (REFERENCE / "jlc_capabilities.yaml").read_text(encoding="utf-8")
+)["design_rules"]["4layer_1oz"]
+
+
+def _edge_kinds(vios):
+    return [v for v in vios
+            if v["kind"] in ("dfm_copper_to_edge", "dfm_hole_to_edge")]
+
+
+def test_carrier_outline_closes_and_edge_checks_run_clean():
+    """Retro 2026-08-07 known answer: the SHIPPED carrier gerbers' corner
+    joints disagree by 1e-6 mm (gerber 4.6-format round-off), which emptied
+    the outline and silently disabled copper-to-edge + hole-to-edge at P9.
+    The snapped, arc-interpolated outline must close at the true arc area
+    (7992.27 mm2, cross-checked in the retro against the .kicad_pcb's own
+    arc-aware 7992.23 mm2) and both edge checks must run and report zero."""
+    fab = gerblib.open_fab(CARRIER_GERBERS)
+    o = fab.outline
+    assert not o.is_empty
+    assert o.area == pytest.approx(7992.27, abs=0.05)
+    assert (o.bounds[2] - o.bounds[0], o.bounds[3] - o.bounds[1]) \
+        == pytest.approx((100.0, 80.0), abs=1e-3)
+    vios: list = []
+    dfm_check.check_outline(fab, vios)
+    dfm_check.check_copper_to_edge(fab, RULES_4L, vios)
+    dfm_check.check_holes(fab, RULES_4L, vios)
+    assert _edge_kinds(vios) == []
+    assert [v for v in vios if v["kind"] == "dfm_open_outline"] == []
+
+
+def test_outline_snaps_nanometre_corner_gaps(tmp_path):
+    """Synthetic twin of the carrier defect: corners that miss by 1e-6 mm
+    (one nanometre, the gerber format's own resolution) must still close."""
+    d = tmp_path / "snap"
+    d.mkdir()
+    e = 1e-6
+    write_gerber(d / "snap-F_Cu.gtl")
+    write_gerber(d / "snap-Edge_Cuts.gm1", traces=[
+        (0.1, 0.0, 0.0, 10.0, 0.0),
+        (0.1, 10.0 + e, 0.0 - e, 10.0, 10.0),
+        (0.1, 10.0 + e, 10.0 + e, 0.0, 10.0),
+        (0.1, 0.0 - e, 10.0 + e, 0.0, 0.0)])
+    fab = gerblib.open_fab(d)
+    assert not fab.outline.is_empty
+    assert fab.outline.area == pytest.approx(100.0, abs=0.01)
+
+
+def test_rounded_corner_outline_measures_the_arc_not_the_chord(tmp_path):
+    """gerblib used to flatten Edge.Cuts arcs to chords, cutting a 3.0 mm
+    rounded corner ~0.879 mm inboard - two false copper_to_edge errors on
+    every rounded-corner board once the snap landed (retro s4). The fixture
+    puts, along the corner diagonal: a flash 0.40 mm off the TRUE arc but
+    only ~0.08 mm off the CHORD (fired falsely before), a flash genuinely
+    0.10 mm off the arc (must still fire), and a hole crossing the chord but
+    0.75 mm off the arc (fired falsely before)."""
+    d = tmp_path / "round"
+    d.mkdir()
+    c, r = 17.0, 3.0            # arc center (both axes); corner at (20,20)
+    sq2 = math.sqrt(2.0)
+    legal = (c + 2.4 / sq2, c + 2.4 / sq2)   # clears the arc by 0.40 mm
+    hot = (c + 2.7 / sq2, c + 2.7 / sq2)     # 0.10 mm off the arc: violation
+    write_gerber(d / "round-F_Cu.gtl",
+                 flashes=[(0.4, *legal), (0.4, *hot)])
+    write_gerber(d / "round-Edge_Cuts.gm1", traces=[
+        (0.1, 0.0, 0.0, 20.0, 0.0), (0.1, 20.0, 0.0, 20.0, c),
+        (0.1, c, 20.0, 0.0, 20.0), (0.1, 0.0, 20.0, 0.0, 0.0)],
+        arcs=[(0.1, 20.0, c, c, 20.0, -r, 0.0, True)])
+    write_drill(d / "round.drl",
+                holes=[(0.5, c + 2.0 / sq2, c + 2.0 / sq2)])
+    fab = gerblib.open_fab(d)
+    # true rounded-rect area: 400 - corner cut (r^2 - pi r^2 / 4)
+    assert fab.outline.area == pytest.approx(
+        400.0 - (r * r - math.pi * r * r / 4.0), abs=0.01)
+    vios: list = []
+    dfm_check.check_copper_to_edge(fab, {"min_copper_to_edge_mm": 0.3}, vios)
+    dfm_check.check_holes(fab, {"min_hole_to_edge_mm": 0.4}, vios)
+    c2e = [v for v in vios if v["kind"] == "dfm_copper_to_edge"]
+    h2e = [v for v in vios if v["kind"] == "dfm_hole_to_edge"]
+    assert len(c2e) == 1                     # the hot flash only
+    assert c2e[0]["pos"] == pytest.approx([hot[0], -hot[1]], abs=0.3)
+    assert h2e == []
 
 
 def test_dfm_open_outline_through_run(tmp_path):
@@ -946,13 +1047,18 @@ def test_fab_export_four_layer_stackup_order(fab_dirs):
 @pytest.mark.smoke
 def test_bom_cpl_on_golden(fab_dirs, tmp_path):
     rep = bom_cpl.run(board_path("blinky2"), tmp_path)
-    assert rep["status"] == "pass" and rep["n_parts"] == 17
+    assert rep["n_parts"] == 17 and rep["n_placed"] == 17
     assert Path(rep["bom"]).exists() and Path(rep["cpl"]).exists()
+    assert Path(rep["bom_full"]).exists()
     d1 = [a for a in rep["rotation_audit"] if a["ref"] == "D1"][0]
     # golden D1 sits at 180 deg; the LED_0805 correction brings it to JLC 0
     assert d1["base_rot"] == pytest.approx(180.0)
     assert d1["final_rot"] == pytest.approx(0.0)
-    assert rep["missing_lcsc"] and not rep["bom_complete"]  # no parts.json
+    # no parts.json and no LCSC fields on the board: nothing here is buyable,
+    # so U3 reports violations instead of the old pass-beside-bom_complete-false
+    assert rep["missing_lcsc"] and not rep["bom_complete"]
+    assert rep["status"] == "violations"
+    assert set(rep["class_counts"]) == {"smt_placed"}
 
 
 @pytest.mark.smoke
@@ -1064,8 +1170,15 @@ def test_full_package_flow(tmp_path, monkeypatch):
     fab = tmp_path / "fab"
     man = fab_export.run(pcb, fab, make_zip=True)
     assert man["status"] == "pass"
-    bc = bom_cpl.run(pcb, fab)
-    assert bc["status"] == "pass"
+    # the golden carries no LCSC fields anywhere, so give it a BOM-of-record
+    # map - "the package uploads clean" means every placed part is buyable (U3)
+    scout = bom_cpl.run(pcb, tmp_path / "scout")
+    parts_json = tmp_path / "parts.json"
+    parts_json.write_text(json.dumps({"parts": [
+        {"refdes": [r["Designator"] for r in scout["cpl_rows"]],
+         "lcsc": "C0000"}]}), encoding="utf-8")
+    bc = bom_cpl.run(pcb, fab, parts_json=parts_json)
+    assert bc["status"] == "pass" and bc["bom_complete"] is True
     q = order_quote.run(pcb, [5, 30], ["HASL"], ["green"], assembly=True)
     assert q["estimated"] is True and q["spec"]["layers"] == 4
     assert q["matrix"] and q["cheapest"]["qty"] == 5

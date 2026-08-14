@@ -115,7 +115,8 @@
   },
   {
    "net": "V48_RTN",
-   "voltage": -57
+   "voltage": 0,
+   "_u1_correction": "Was -57 (P2). voltages[] entries are NODE POTENTIALS against the board's 0 V reference, not rail polarity labels (LEARNINGS 2026-08-07 [check_creepage][constraints]). The netlist settles it: U1 is the only part touching both V48_RTN and GND - the TPS2378's return IS system ground in this non-isolated PD, so V48_RTN is the 0 V reference. The -57 made T2's pair logic compute dv=114 V against V48_RAW, select the 101-150 V IPC-2221 row (0.80 mm) and invent 8 creepage errors at 0.657-0.745 mm; at the true dv=57 V the row is 0.60 mm and all eight gaps clear it (plus the board's own 0.635 mm house rule). Retro 2026-08-07 s3b; corrected at U1 in BOTH copies."
   },
   {
    "net": "+48V_SW",

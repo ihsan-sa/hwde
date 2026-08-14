@@ -3393,6 +3393,104 @@ tests). Full `check.cmd` green (see below; wave-1 parallel-session caveat).
 **New verify-later items:** none. (V15/V16 unchanged; U12 owns the remaining C3/C5/C6 order-side
 hardening.)
 
+## U1 - Retro-earned checker fixes (2026-08-14) - DONE
+
+The three skill/data defects the 2026-08-07 carrier retrospective proved: an outline that
+silently disabled two DFM checks, a decoupling model blind to a missing buck input ceramic
+(the batch's only soldering-iron rework), and the constraints declaration that invented
+8 creepage errors. Ran concurrently with U2/U3/U4 in the shared wave-1 tree.
+
+**Built:**
+- **gerblib outline + drawn arcs** (`lib/gerblib.py`): (a) `OUTLINE_SNAP_MM = 1e-5`
+  `set_precision` on the Edge.Cuts linework before `polygonize` - kicad-cli's 4.6-format
+  round-off leaves corner joints 1e-6 mm apart and polygonize has no tolerance, so the
+  carrier outline read EMPTY and `check_copper_to_edge` + hole-to-edge silently never ran
+  at P9 (LEARNINGS 2510 / triage 195). (b) `read_gerber` now tessellates DRAWN Line/Arc
+  objects at `ARC_MAX_ERROR_MM` on EVERY layer (the S12 fix reached flashes only, triage
+  239): an Edge.Cuts corner arc no longer chords ~0.879 mm inboard (which would have fired
+  two false copper_to_edge on every rounded-corner board the moment the snap landed), and a
+  silk `fp_circle` no longer collapses onto its own diameter (kills the sbuck 7x false
+  `dfm_silk_over_pad` class on its next run). Fixtures in `test_fab.py`: carrier gerbers
+  close at the retro known-answer (area 7992.27 mm2, 100x80 bounds, 0 copper-to-edge /
+  0 hole-to-edge with the 4L rules), a nanometre-gap synthetic pins the snap, and a
+  rounded-corner mutant proves both directions (legal chord-zone flash + hole stay clean;
+  a flash 0.10 mm off the true arc still fires, position-asserted).
+- **`role: "reg_input"` decoupling class** (`check_decoupling.py`): associations may declare
+  a switching-regulator input cap; per (ic, pin, rail) group at least one member must be an
+  HF-capable ceramic (<= `REG_INPUT_HF_MAX_F` = 1 uF, or explicit class "hf") with its rail
+  pad within the hf error distance (7.5 mm) of the pin, else ONE error
+  `kind=reg_input_no_hf` anchored at the PIN pad. Value classes alone cannot see ABSENCE -
+  the carrier's lone 22 uF read as a well-placed bulk cap while U21 had no HF ceramic
+  anywhere (retro R1). Individual associations keep their value-class checks (declaring the
+  bulk cap does not tighten its own limits). Emitter passthrough in `schlib.py`
+  (`place_ic_with_decoupling` + docstring guidance), schema documented in
+  `constraints_schema.md` (+ intake pointer) and `agents/schematic-block.md`,
+  `FIXER_HINTS[reg_input_no_hf] = "schematic"`, remediation ref
+  `reference/remediations/reg_input_no_hf.md` (T4 contracts green). LEARNINGS 3186 +
+  triage row 242. Tests: 4 synthetic (bulk-only fires even at 2.6 mm; hf-in-range passes;
+  hf-too-far fires; explicit-class override qualifies) + the carrier known-answer
+  (U21 fires at 9.89 mm, pos [65.35,112.05]; U20 is the clean twin) + goldens stay clean
+  (no roles declared).
+- **Carrier sidecars** (ordered hardware - sidecars only, no copper): `V48_RTN` voltage
+  -57 -> **0** in BOTH `kicad/constraints.json` and `architecture/constraints.json`
+  (voltages[] are node potentials against the 0 V reference, not polarity labels; U1/TPS2378
+  return IS system ground; `_u1_correction` notes in both, arch copy keeps
+  `_p2_original_voltage` per the P8 precedent). `decoupling.json`: `role: reg_input` on
+  U21/C55 (fires) and U20/C50+C51+C61 (clean twin, C61 100 nF at 5.16 mm).
+- **Gate re-runs, recorded via `state.py record-gate` + `log`:**
+  - lumina-carrier `verify`: fail 108/132 -> **fail 101/118** - exactly the retro
+    prediction: -8 false creepage errors (dv=114 V artifact gone; the 3 REAL V48_RAW->UVLO
+    errors at 0.250/0.350/0.457 mm remain), -7 creepage warnings (V48_RTN-vs-GND dv=0 pairs
+    vanish), +1 reg_input_no_hf (R1 is now machine-visible).
+  - lumina-carrier `dfm`: fail 1/88 -> **PASS 0/87** - the T6 `dfm_open_outline` error is
+    gone because the outline closes; copper-to-edge + hole-to-edge RAN and are clean
+    (coverage.ran proves it under U2's new matrix); the 87 cosmetic silk warnings unchanged.
+  - pd-trigger `dfm`: **PASS 0/20 unchanged**, but now with edge checks demonstrably run.
+  - lumina-par `dfm` (FIRST ever run - board is P8): **FAIL 1/56**: `dfm_clearance`
+    0.0376 mm same-net +3V3 sliver at C401.1 (146.79,117.25) F.Cu. Adjudicated PRE-EXISTING:
+    A/B with chorded arcs fires identically, so not a U1 artifact; KiCad DRC never tests
+    same-net gaps (drc_routed pass says nothing about it) and fab engines are net-blind.
+    Logged in par's state for fix at resume, before any P9/order.
+
+**Deviations (with reasons):**
+1. lumina-strobe dfm NOT run: the board is at P4 - `boards/lumina-strobe/` contains no
+   `.kicad_pcb`, so there is nothing to re-check; the fixed gerblib simply applies when it
+   reaches P9. (The plan listed it from the retro's "every 4-layer board shares this
+   generator" - true, but only par/pd-trigger/carrier have boards.)
+2. Arc interpolation is GLOBAL (all drawn objects, every layer), not Edge.Cuts-only as the
+   plan line reads: triage row 239 assigns the drawn-arc chord defect (silk circles) to U1
+   "together with the outline snap", and one tessellation path is simpler than a flagged
+   one. Corpus verified unchanged (goldens + mutants + full fab suite).
+3. U20's input caps also got `role: reg_input` (beyond the U21 known-answer): measured
+   first - C61 100 nF at 5.16 mm qualifies, so the group is clean; it exercises the
+   pass path on real data and completes the carrier metadata honestly.
+4. The reg_input remediation ref was added although the kind is not (yet) TOP_FIRING -
+   T4's trigger-key contract is the point of the ref; tests green.
+
+**Acceptance:** known-answer tests green (U21 fires, carrier outline closes, rounded-corner
+mutant both directions); golden + mutant corpus unchanged; gate deltas recorded in the three
+boards' state.json (record-gate + history log entries). Full suite on the settled wave-1
+tree (post U2/U3/U4 commits): **1 failed / 1602 passed (14:14)** - the standing AP63203
+`net` live-stock failure is the only red. A mid-wave full run also caught 5 transient
+state_v2/bom_full failures that were U3's not-yet-committed invalidation.yaml - they
+cleared the moment U3 committed (re-verified green).
+
+**Interface notes for later steps:**
+- New violation kind `reg_input_no_hf` (error, group-level, anchored at the IC pin;
+  extras: pin, nearest_mm, limit_mm). Consumers: FIXER_HINTS -> schematic domain,
+  remediation ref exists, verify gate picks it up via check_decoupling as before.
+- decoupling.json schema: optional `"role": "reg_input"` per association - P4
+  schematic-block agents must declare it for every cap on a switching regulator's input
+  pin (schlib passes it through; intake authors should declare it wherever the BOM shows
+  a switching regulator). Other role values are reserved/ignored today.
+- `gerblib.read_gerber` trace_lines LineStrings are now MULTI-POINT for arcs (consumers
+  using `_mid`/interpolate are fine; anything assuming 2-point coords would not be - none
+  do today). `FabStack.outline` is snap-tolerant; `OUTLINE_SNAP_MM = 1e-5`.
+- lumina-par carries a real, pre-existing dfm_clearance sliver (same-net, 37 um) recorded
+  in its state history - whoever resumes par owns it before P9.
+- U5 (attestation): carrier verify is now 101 errors / dfm PASS with the U1-corrected
+  sidecars; the state history `u1-checker-fixes` entry is the delta record to cite.
+
 ## U3 - BOM assembly classes + first-class DNP (2026-08-14) - DONE
 
 **Built** (codex H1 + C9; wave 1, parallel with U1/U2/U4 in the same working tree):

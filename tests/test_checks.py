@@ -436,6 +436,77 @@ def test_decoupling_stale_metadata_is_violation(tmp_path_factory):
     assert vs2[0]["kind"] == "metadata_mismatch"
 
 
+# ---- role=reg_input: switching-regulator input group (U1, retro R1) --------
+
+def _reg_group(bg, assoc):
+    groups: dict = {}
+    vs, facts = check_decoupling.check_association(bg, assoc, groups)
+    return vs, facts, check_decoupling.check_reg_inputs(groups)
+
+
+def test_reg_input_bulk_only_fires_even_when_close(tmp_path_factory):
+    """The R1 blind spot: a lone bulk input cap is legal by its own value
+    class at ANY distance - the group check must fire on the ABSENCE of an
+    HF ceramic, anchored at the regulator pin."""
+    bg = _decap_board(tmp_path_factory, "reginbulk", 8.0)   # 2.6 mm away
+    vs, facts, gvs = _reg_group(
+        bg, {**META, "value": "10uF", "role": "reg_input"})
+    assert vs == []                          # the bulk cap itself is legal
+    assert facts["role"] == "reg_input"
+    assert [v["kind"] for v in gvs] == ["reg_input_no_hf"]
+    v = gvs[0]
+    assert v["severity"] == "error" and v["pin"] == "U9.7"
+    assert v["pos"] == pytest.approx([5.0, 5.0])        # the PIN pad
+    assert "U9" in v["refs"] and "C9" in v["refs"]
+    assert v["nearest_mm"] == pytest.approx(2.6)
+
+
+def test_reg_input_hf_within_limit_passes(tmp_path_factory):
+    bg = _decap_board(tmp_path_factory, "reginhf", 8.0)
+    _, _, gvs = _reg_group(bg, {**META, "role": "reg_input"})   # 100nF
+    assert gvs == []
+
+
+def test_reg_input_hf_too_far_fires(tmp_path_factory):
+    """An HF ceramic beyond the hf error distance does not satisfy the
+    group even though its own mid-class distance check merely warns."""
+    bg = _decap_board(tmp_path_factory, "reginfar", 17.0)   # 11.6 mm
+    vs, _, gvs = _reg_group(bg, {**META, "role": "reg_input"})
+    assert {v["kind"] for v in vs} == {"decoupler_distance"}
+    assert [v["kind"] for v in gvs] == ["reg_input_no_hf"]
+    assert gvs[0]["nearest_mm"] == pytest.approx(11.6)
+
+
+def test_reg_input_explicit_hf_class_qualifies(tmp_path_factory):
+    """A >1 uF cap the design genuinely uses as the HF loop qualifies via
+    an explicit class override (and takes on hf limits for itself)."""
+    bg = _decap_board(tmp_path_factory, "regincls", 8.0)
+    _, _, gvs = _reg_group(
+        bg, {**META, "value": "2.2uF", "class": "hf", "role": "reg_input"})
+    assert gvs == []
+
+
+def test_reg_input_carrier_known_answer():
+    """Retro 2026-08-07 R1: U21 (TPS563201) shipped with only a 22 uF at
+    9.89 mm and no HF ceramic anywhere - the only soldering-iron rework on
+    the batch, invisible to value classing. With role=reg_input declared in
+    the carrier sidecar this MUST fire; U20 (C61 100 nF at 5.16 mm) is the
+    clean twin proving the group can pass."""
+    ws = REPO / "boards" / "lumina-carrier" / "kicad"
+    payload, _ = check_decoupling.run(
+        ["--pcb", str(ws / "lumina-carrier.kicad_pcb"),
+         "--metadata", str(ws / "decoupling.json")])
+    ri = [v for v in payload["violations"] if v["kind"] == "reg_input_no_hf"]
+    assert len(ri) == 1
+    v = ri[0]
+    assert v["pin"] == "U21.3" and v["severity"] == "error"
+    assert v["nearest_mm"] == pytest.approx(9.89, abs=0.05)
+    assert v["pos"] == pytest.approx([65.35, 112.05], abs=0.05)
+    roles = {c["pin"] for c in payload["checked"]
+             if c.get("role") == "reg_input"}
+    assert roles == {"U20.3", "U21.3"}
+
+
 def test_unfilled_zone_refused(tmp_path_factory):
     unfilled = SIG_TRACK + """  (zone (net "GND") (layer "B.Cu")
     (polygon (pts (xy 0 0) (xy 20 0) (xy 20 10) (xy 0 10))))

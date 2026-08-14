@@ -3,7 +3,7 @@
  "board": "pd-trigger",
  "workspace": "boards/pd-trigger",
  "created": "2026-07-28T05:57:45",
- "updated": "2026-08-07T01:58:03",
+ "updated": "2026-08-14T01:21:02",
  "phase": "P10",
  "gates": {
   "erc": {
@@ -115,12 +115,17 @@
   "dfm": {
    "phase": "P9",
    "status": "pass",
-   "attempts": 1,
+   "attempts": 2,
    "last": {
-    "ts": "2026-07-28T11:56:33",
+    "ts": "2026-08-14T01:20:22",
     "status": "pass",
     "failing_count": 0,
-    "total": 20
+    "total": 20,
+    "inputs": {
+     "pcb": "sexpr_no_uuid:c36865882f27146fa514feb074510fea23f045fddde33a0850851277a5fa2650",
+     "sch": "sexpr_no_uuid:70d32f41c101b7a5d3dd0171e44481cdd16b3948a68b24123cf0465f9f5d4a63",
+     "parts": "json_canonical:28c31c7da7209011430c1ec88498d75f2cdf304073f323c80b60c31ec0ca6dbe"
+    }
    },
    "history": [
     {
@@ -128,6 +133,17 @@
      "status": "pass",
      "failing_count": 0,
      "total": 20
+    },
+    {
+     "ts": "2026-08-14T01:20:22",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 20,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:c36865882f27146fa514feb074510fea23f045fddde33a0850851277a5fa2650",
+      "sch": "sexpr_no_uuid:70d32f41c101b7a5d3dd0171e44481cdd16b3948a68b24123cf0465f9f5d4a63",
+      "parts": "json_canonical:28c31c7da7209011430c1ec88498d75f2cdf304073f323c80b60c31ec0ca6dbe"
+     }
     }
    ]
   }
@@ -165,6 +181,24 @@
    "kind": null,
    "sha256": "json_canonical:6a0a9957b107d3abb1e265ad6545f149fa7893c7a88ab0af57c1b9dc0f892dd2",
    "hashed": "2026-08-07T01:58:03"
+  },
+  "pcb": {
+   "path": "kicad/pd-trigger.kicad_pcb",
+   "kind": "pcb",
+   "sha256": "sexpr_no_uuid:c36865882f27146fa514feb074510fea23f045fddde33a0850851277a5fa2650",
+   "hashed": "2026-08-14T01:20:22"
+  },
+  "sch": {
+   "path": "kicad/pd-trigger.kicad_sch",
+   "kind": "sch",
+   "sha256": "sexpr_no_uuid:70d32f41c101b7a5d3dd0171e44481cdd16b3948a68b24123cf0465f9f5d4a63",
+   "hashed": "2026-08-14T01:20:22"
+  },
+  "parts": {
+   "path": "kicad/parts.json",
+   "kind": "parts",
+   "sha256": "json_canonical:28c31c7da7209011430c1ec88498d75f2cdf304073f323c80b60c31ec0ca6dbe",
+   "hashed": "2026-08-14T01:20:22"
   }
  },
  "open_issues": [
@@ -981,6 +1015,19 @@
    "event": "migrated",
    "from_version": 1,
    "to_version": 2
+  },
+  {
+   "ts": "2026-08-14T01:20:22",
+   "event": "gate",
+   "gate": "dfm",
+   "status": "pass",
+   "attempt": 2,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-14T01:21:02",
+   "event": "u1-dfm-rerun",
+   "result": "PASS 0/20 unchanged from P9 baseline; with the U1 outline fix copper_to_edge + hole_to_edge now demonstrably RAN (coverage.ran) - the previous pass predates falsifiable edge coverage"
   }
  ],
  "spawns": [],

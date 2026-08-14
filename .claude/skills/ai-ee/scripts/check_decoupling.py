@@ -9,6 +9,7 @@ tests/golden/<board>/decoupling.json hand-writes it for the corpus):
          "rail": "+3V3",         # power net (exact board name)
          "gnd": "GND",           # return net (default GND)
          "value": "100nF",       # cap value -> threshold class
+         "role": "reg_input",    # optional: switching-regulator input cap
          "max_dist_mm": 10.0,    # optional per-association overrides
          "max_loop_nh": 10.0}]}
 
@@ -29,6 +30,16 @@ Per association:
  - A stale association (missing ref/pin, net mismatch) is itself an error
    violation (kind=metadata_mismatch): the metadata no longer matches the
    board, which the fix loop must reconcile.
+ - role "reg_input" marks a SWITCHING-REGULATOR input cap (buck/boost VIN).
+   Grouped per (ic, pin, rail): at least one reg_input association must be
+   an HF-capable ceramic (<= 1 uF, or explicit class "hf") whose rail pad
+   sits within the hf-class error distance (7.5 mm) of the pin, else ONE
+   error (kind=reg_input_no_hf) anchored at the pin. The input loop carries
+   the full trapezoidal switch current, so a lone bulk cap is not enough -
+   the exact blind spot that let lumina-carrier ship U21 (TPS563201) with
+   only a 22 uF at 9.89 mm (retrospective R1, rework on assembled boards).
+   Individual associations keep their value-class distance/loop checks:
+   declaring the bulk cap reg_input does NOT tighten its own limits.
 
 CLI: --pcb board.kicad_pcb --metadata decoupling.json [--out report.json]
      exit 0/1/2 per SPEC section 6.
@@ -58,6 +69,11 @@ CLASSES = {  # value_min_f, dist warn/error mm, loop warn/error nH
     "mid":  {"min_f": 1e-8, "dist": (10.0, 15.0), "loop": (10.0, 20.0)},
     "hf":   {"min_f": 0.0,  "dist": (5.0, 7.5),   "loop": (6.0, 12.0)},
 }
+
+# role=reg_input: a cap this size or smaller still works as the HF input
+# ceramic (the retro rework spec is "100 nF, a 1 uF alongside is better");
+# anything bigger is a reservoir, not the switch-current loop.
+REG_INPUT_HF_MAX_F = 1e-6
 
 # accept the micro sign and Greek mu (datasheets use both) alongside ASCII 'u'.
 _VAL_RE = re.compile(r"^\s*([0-9.]+)\s*([pnumµμ]?)F?\s*$", re.IGNORECASE)
@@ -117,7 +133,7 @@ def sev_for(value: float, warn: float, error: float) -> str | None:
     return None
 
 
-def check_association(bg: geom.BoardGeom, a: dict):
+def check_association(bg: geom.BoardGeom, a: dict, reg_groups: dict | None = None):
     cap, ic = a.get("cap"), a.get("ic")
     pin = str(a.get("pin", ""))
     rail, gnd = a.get("rail"), a.get("gnd", "GND")
@@ -157,6 +173,13 @@ def check_association(bg: geom.BoardGeom, a: dict):
 
     farads = parse_farads(a.get("value"))
     cls = a.get("class") or value_class(farads)
+    if reg_groups is not None and a.get("role") == "reg_input":
+        reg_groups.setdefault((ic, pin, rail), []).append({
+            "cap": cap, "value": a.get("value", "?"), "dist": dist,
+            "hf_capable": (a.get("class") == "hf"
+                           or (farads is not None
+                               and farads <= REG_INPUT_HF_MAX_F)),
+            "pin_pad": pin_pad})
     dist_warn, dist_err = CLASSES[cls]["dist"]
     dist_warn = float(a.get("max_dist_mm", dist_warn))
     dist_err = max(dist_err, dist_warn * 1.5)
@@ -200,7 +223,33 @@ def check_association(bg: geom.BoardGeom, a: dict):
              "gnd_leg_mm": checklib.rnd(gnd_leg),
              "vias_in_loop": rail_vias + 1,
              "loop_nh": checklib.rnd(loop_nh)}
+    if a.get("role"):
+        facts["role"] = a["role"]
     return violations, facts
+
+
+def check_reg_inputs(reg_groups: dict) -> list[dict]:
+    """Per regulator input pin (associations marked role=reg_input): error
+    unless one member is an HF-capable ceramic within the hf error distance.
+    Metadata-mismatched associations never reach the group (their own error
+    already fired), so an all-stale group is silently absent by design."""
+    limit = CLASSES["hf"]["dist"][1]
+    out = []
+    for (ic, pin, rail), members in sorted(reg_groups.items()):
+        if any(m["hf_capable"] and m["dist"] <= limit for m in members):
+            continue
+        near = min(members, key=lambda m: m["dist"])
+        pin_pad = near["pin_pad"]
+        out.append(violation(
+            SCRIPT, "error", pin_pad.center, pin_pad.layers[0], rail,
+            [ic] + sorted(m["cap"] for m in members),
+            f"{ic} pin {pin} ({rail}) is a switching-regulator input with "
+            f"no HF ceramic (<= {REG_INPUT_HF_MAX_F * 1e6:g} uF) within "
+            f"{limit:g} mm: nearest input cap {near['cap']} "
+            f"({near['value']}) is {near['dist']:.2f} mm away", SCRIPT,
+            kind="reg_input_no_hf", pin=f"{ic}.{pin}",
+            nearest_mm=checklib.rnd(near["dist"]), limit_mm=limit))
+    return out
 
 
 def run(argv=None):
@@ -219,11 +268,13 @@ def run(argv=None):
 
     violations: list[dict] = []
     checked: list[dict] = []
+    reg_groups: dict = {}
     for a in assocs:
-        vs, facts = check_association(bg, a)
+        vs, facts = check_association(bg, a, reg_groups)
         violations.extend(vs)
         if facts:
             checked.append(facts)
+    violations.extend(check_reg_inputs(reg_groups))
 
     payload = checklib.report(SCRIPT, args.pcb, violations, checked=checked)
     return payload, args.out

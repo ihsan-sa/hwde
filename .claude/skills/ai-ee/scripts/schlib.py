@@ -363,7 +363,13 @@ class Sheet:
                                                  #   from the wiring labels
              "lib_id": "Device:C",               # optional
              "footprint": "...",                 # optional
-             "class"/"max_dist_mm"/"max_loop_nh": ...}   # optional passthrough
+             "class"/"max_dist_mm"/"max_loop_nh"/"role": ...}  # passthrough
+        Declare `"role": "reg_input"` on EVERY cap serving a switching
+        regulator's input pin (buck/boost VIN) - check_decoupling then
+        requires at least one HF ceramic (<= 1 uF) within 7.5 mm of that
+        pin, the defect class that shipped lumina-carrier without U21's
+        input ceramic (retro R1). The bulk input cap gets the role too;
+        it does not tighten its own limits.
         Each entry is recorded as a cap<->pin association in EXACTLY the
         shape S4's check_decoupling.py consumes (see emit_decoupling).
         rail/gnd are the LOCAL wiring label names; the recorded metadata
@@ -402,7 +408,7 @@ class Sheet:
             gnd_net = ent.get("gnd_net", gnd)
             if gnd_net != "GND":
                 assoc["gnd"] = gnd_net
-            for opt in ("class", "max_dist_mm", "max_loop_nh"):
+            for opt in ("class", "max_dist_mm", "max_loop_nh", "role"):
                 if opt in ent:
                     assoc[opt] = ent[opt]
             self.decoupling.append(assoc)

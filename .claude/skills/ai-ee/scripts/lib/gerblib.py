@@ -30,6 +30,7 @@ from pathlib import Path
 
 from gerbonara import ExcellonFile, GerberFile
 from gerbonara.graphic_objects import Arc, Flash, Line, Region
+from shapely import set_precision
 from shapely.geometry import LineString, Point, Polygon
 from shapely.ops import polygonize, unary_union
 
@@ -106,6 +107,13 @@ class LayerGeom:
 # to 1 um before converting, well under every JLC capability threshold.
 ARC_MAX_ERROR_MM = 1e-3
 
+# Snap applied to Edge.Cuts linework before polygonize: kicad-cli's 4.6-format
+# round-off leaves corner joints up to 1e-6 mm apart, polygonize has no
+# tolerance of its own, and an "open" outline silently disabled both
+# edge-distance checks (lumina-carrier retro 2026-08-07). 1e-5 mm is 10x the
+# format resolution and 1/10000 of any fab tolerance.
+OUTLINE_SNAP_MM = 1e-5
+
 
 def _flash_polys(obj) -> list:
     """A Flash/Region -> shapely polygons in BOARD space (y negated)."""
@@ -137,10 +145,22 @@ def read_gerber(path: Path, name: str) -> LayerGeom:
                 w = obj.aperture.equivalent_width("mm")
             except Exception:
                 w = 0.0
-            # Arcs are approximated by their chord: the DFM measurements that
-            # matter here (aperture width, clearance to other conductors) are
-            # width-driven, and the corpus routes arcs only as chamfers.
-            ls = LineString([(o.x1, -o.y1), (o.x2, -o.y2)])
+            pts = [(o.x1, -o.y1), (o.x2, -o.y2)]
+            if isinstance(o, Arc):
+                # Never chord a drawn arc: the chord of a 3 mm rounded
+                # Edge.Cuts corner runs ~0.88 mm inboard (false
+                # copper_to_edge), and a KiCad fp_circle exports as two
+                # 180-degree arcs whose chords BOTH collapse onto the
+                # diameter (false silk_over_pad straight through the pad).
+                try:
+                    segs = o.approximate(max_error=ARC_MAX_ERROR_MM,
+                                         unit="mm")
+                except Exception:
+                    segs = []
+                if segs:
+                    pts = ([(s.x1, -s.y1) for s in segs]
+                           + [(segs[-1].x2, -segs[-1].y2)])
+            ls = LineString(pts)
             if ls.length == 0:
                 ls = LineString([(o.x1, -o.y1), (o.x1 + 1e-6, -o.y1)])
             lg.trace_lines.append((ls, w))
@@ -273,7 +293,11 @@ class FabStack:
             if self.edge_file is not None:
                 lg = self._get(self.edge_file, "Edge.Cuts")
                 lines = [ls for ls, _ in lg.trace_lines]
-                polys = list(polygonize(unary_union(lines))) if lines else []
+                polys = []
+                if lines:
+                    snapped = set_precision(unary_union(lines),
+                                            OUTLINE_SNAP_MM)
+                    polys = list(polygonize(snapped))
                 if polys:
                     self._outline = max(polys, key=lambda p: p.area)
                 elif lg.pours:

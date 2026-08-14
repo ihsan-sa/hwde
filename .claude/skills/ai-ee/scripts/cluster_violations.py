@@ -60,6 +60,7 @@ FIXER_HINTS = {
     "silk_over_pad": "silk", "silk_illegible": "silk", "silk_thin": "silk",
     "silk_misattributed": "silk",
     "pdn_undecoupled": "schematic", "pdn_no_bulk": "schematic",
+    "reg_input_no_hf": "schematic",
     # sim gate (sim_run.py) - a failed bound is a schematic-value defect;
     # engine/measure trouble needs triage, not a copper fixer
     "sim_bound_fail": "schematic", "sim_measure_missing": "review",

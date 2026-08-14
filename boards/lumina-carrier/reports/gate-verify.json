@@ -12,33 +12,33 @@
     "max_count": 0
   },
   "counts": {
-    "total": 132,
+    "total": 118,
     "by_severity": {
-      "error": 108,
-      "warning": 24
+      "error": 101,
+      "warning": 17
     },
     "by_source": {
       "check_return_path": 4,
       "check_current": 94,
-      "check_decoupling": 2,
+      "check_decoupling": 3,
       "check_diffpair": 1,
-      "check_creepage": 27,
+      "check_creepage": 12,
       "check_silk": 3,
       "verify_all": 1
     },
     "by_check": {
       "check_return_path": 4,
       "check_current": 94,
-      "check_decoupling": 2,
+      "check_decoupling": 3,
       "check_diffpair": 1,
-      "check_creepage": 27,
+      "check_creepage": 12,
       "check_thermal": 0,
       "check_silk": 3,
       "check_pdn": 0,
       "verify_all": 1
     }
   },
-  "failing_count": 108,
+  "failing_count": 101,
   "failing": [
     {
       "check": "check_return_path",
@@ -4000,6 +4000,35 @@
       "required": 2
     },
     {
+      "check": "check_decoupling",
+      "severity": "error",
+      "pos": [
+        65.35,
+        112.05
+      ],
+      "layer": "F.Cu",
+      "net": "+12V",
+      "refs": [
+        "C55",
+        "U21"
+      ],
+      "msg": "U21 pin 3 (+12V) is a switching-regulator input with no HF ceramic (<= 1 uF) within 7.5 mm: nearest input cap C55 (22uF 25V X5R 1206) is 9.89 mm away",
+      "source": "check_decoupling",
+      "items": [
+        {
+          "msg": "U21 pin 3 (+12V) is a switching-regulator input with no HF ceramic (<= 1 uF) within 7.5 mm: nearest input cap C55 (22uF 25V X5R 1206) is 9.89 mm away",
+          "pos": [
+            65.35,
+            112.05
+          ]
+        }
+      ],
+      "kind": "reg_input_no_hf",
+      "pin": "U21.3",
+      "nearest_mm": 9.89,
+      "limit_mm": 7.5
+    },
+    {
       "check": "check_creepage",
       "severity": "error",
       "pos": [
@@ -4157,408 +4186,44 @@
         "ref": "U22",
         "pad": "7"
       }
-    },
-    {
-      "check": "check_creepage",
-      "severity": "error",
-      "pos": [
-        26.2833,
-        94.79
-      ],
-      "layer": "F.Cu",
-      "net": "V48_RTN",
-      "refs": [
-        "U1"
-      ],
-      "msg": "V48_RTN (-57 V) to V48_RAW on F.Cu: 0.657 mm copper spacing < IPC-2221 0.80 mm (A6/B2) for 114 V",
-      "source": "check_creepage",
-      "items": [
-        {
-          "msg": "V48_RTN (-57 V) to V48_RAW on F.Cu: 0.657 mm copper spacing < IPC-2221 0.80 mm (A6/B2) for 114 V",
-          "pos": [
-            26.2833,
-            94.79
-          ]
-        }
-      ],
-      "kind": "creepage",
-      "other_net": "V48_RAW",
-      "delta_v": 114.0,
-      "spacing_mm": 0.6569,
-      "required_mm": 0.8,
-      "rows": [
-        "A6",
-        "B2"
-      ],
-      "item": {
-        "type": "pad",
-        "ref": "U1",
-        "pad": "4"
-      },
-      "other_item": {
-        "type": "track",
-        "ends": [
-          [
-            25.65,
-            95.15
-          ],
-          [
-            25.65,
-            98.65
-          ]
-        ]
-      }
-    },
-    {
-      "check": "check_creepage",
-      "severity": "error",
-      "pos": [
-        31.8914,
-        86.0538
-      ],
-      "layer": "F.Cu",
-      "net": "V48_RTN",
-      "refs": [
-        "C1"
-      ],
-      "msg": "V48_RTN (-57 V) to V48_RAW on F.Cu: 0.658 mm copper spacing < IPC-2221 0.80 mm (A6/B2) for 114 V",
-      "source": "check_creepage",
-      "items": [
-        {
-          "msg": "V48_RTN (-57 V) to V48_RAW on F.Cu: 0.658 mm copper spacing < IPC-2221 0.80 mm (A6/B2) for 114 V",
-          "pos": [
-            31.8914,
-            86.0538
-          ]
-        }
-      ],
-      "kind": "creepage",
-      "other_net": "V48_RAW",
-      "delta_v": 114.0,
-      "spacing_mm": 0.6582,
-      "required_mm": 0.8,
-      "rows": [
-        "A6",
-        "B2"
-      ],
-      "item": {
-        "type": "pad",
-        "ref": "C1",
-        "pad": "2"
-      },
-      "other_item": {
-        "type": "track",
-        "ends": [
-          [
-            30.75,
-            83.9
-          ],
-          [
-            32.3,
-            85.45
-          ]
-        ]
-      }
-    },
-    {
-      "check": "check_creepage",
-      "severity": "error",
-      "pos": [
-        37.6918,
-        86.1544
-      ],
-      "layer": "F.Cu",
-      "net": "V48_RTN",
-      "refs": [
-        "D3"
-      ],
-      "msg": "V48_RTN (-57 V) to V48_RAW on F.Cu: 0.660 mm copper spacing < IPC-2221 0.80 mm (A6/B2) for 114 V",
-      "source": "check_creepage",
-      "items": [
-        {
-          "msg": "V48_RTN (-57 V) to V48_RAW on F.Cu: 0.660 mm copper spacing < IPC-2221 0.80 mm (A6/B2) for 114 V",
-          "pos": [
-            37.6918,
-            86.1544
-          ]
-        }
-      ],
-      "kind": "creepage",
-      "other_net": "V48_RAW",
-      "delta_v": 114.0,
-      "spacing_mm": 0.6602,
-      "required_mm": 0.8,
-      "rows": [
-        "A6",
-        "B2"
-      ],
-      "item": {
-        "type": "pad",
-        "ref": "D3",
-        "pad": "4"
-      },
-      "other_item": {
-        "type": "track",
-        "ends": [
-          [
-            37.5,
-            85.45
-          ],
-          [
-            37.55,
-            85.4
-          ]
-        ]
-      }
-    },
-    {
-      "check": "check_creepage",
-      "severity": "error",
-      "pos": [
-        37.5458,
-        86.2383
-      ],
-      "layer": "F.Cu",
-      "net": "V48_RTN",
-      "refs": [
-        "D3"
-      ],
-      "msg": "V48_RTN (-57 V) to V48_RAW on F.Cu: 0.662 mm copper spacing < IPC-2221 0.80 mm (A6/B2) for 114 V",
-      "source": "check_creepage",
-      "items": [
-        {
-          "msg": "V48_RTN (-57 V) to V48_RAW on F.Cu: 0.662 mm copper spacing < IPC-2221 0.80 mm (A6/B2) for 114 V",
-          "pos": [
-            37.5458,
-            86.2383
-          ]
-        }
-      ],
-      "kind": "creepage",
-      "other_net": "V48_RAW",
-      "delta_v": 114.0,
-      "spacing_mm": 0.6624,
-      "required_mm": 0.8,
-      "rows": [
-        "A6",
-        "B2"
-      ],
-      "item": {
-        "type": "pad",
-        "ref": "D3",
-        "pad": "4"
-      },
-      "other_item": {
-        "type": "track",
-        "ends": [
-          [
-            35.45,
-            87.3
-          ],
-          [
-            37.2,
-            85.55
-          ]
-        ]
-      }
-    },
-    {
-      "check": "check_creepage",
-      "severity": "error",
-      "pos": [
-        33.6844,
-        88.4863
-      ],
-      "layer": "F.Cu",
-      "net": "V48_RTN",
-      "refs": [
-        "D3"
-      ],
-      "msg": "V48_RTN (-57 V) to V48_RAW on F.Cu: 0.666 mm copper spacing < IPC-2221 0.80 mm (B2/A6) for 114 V",
-      "source": "check_creepage",
-      "items": [
-        {
-          "msg": "V48_RTN (-57 V) to V48_RAW on F.Cu: 0.666 mm copper spacing < IPC-2221 0.80 mm (B2/A6) for 114 V",
-          "pos": [
-            33.6844,
-            88.4863
-          ]
-        }
-      ],
-      "kind": "creepage",
-      "other_net": "V48_RAW",
-      "delta_v": 114.0,
-      "spacing_mm": 0.6657,
-      "required_mm": 0.8,
-      "rows": [
-        "B2",
-        "A6"
-      ],
-      "item": {
-        "type": "track",
-        "ends": [
-          [
-            33.4,
-            88.95
-          ],
-          [
-            33.55,
-            88.95
-          ]
-        ]
-      },
-      "other_item": {
-        "type": "pad",
-        "ref": "D3",
-        "pad": "3"
-      }
-    },
-    {
-      "check": "check_creepage",
-      "severity": "error",
-      "pos": [
-        33.5424,
-        88.4051
-      ],
-      "layer": "F.Cu",
-      "net": "V48_RTN",
-      "refs": [
-        "D3"
-      ],
-      "msg": "V48_RTN (-57 V) to V48_RAW on F.Cu: 0.672 mm copper spacing < IPC-2221 0.80 mm (B2/A6) for 114 V",
-      "source": "check_creepage",
-      "items": [
-        {
-          "msg": "V48_RTN (-57 V) to V48_RAW on F.Cu: 0.672 mm copper spacing < IPC-2221 0.80 mm (B2/A6) for 114 V",
-          "pos": [
-            33.5424,
-            88.4051
-          ]
-        }
-      ],
-      "kind": "creepage",
-      "other_net": "V48_RAW",
-      "delta_v": 114.0,
-      "spacing_mm": 0.672,
-      "required_mm": 0.8,
-      "rows": [
-        "B2",
-        "A6"
-      ],
-      "item": {
-        "type": "track",
-        "ends": [
-          [
-            31.75,
-            87.3
-          ],
-          [
-            33.4,
-            88.95
-          ]
-        ]
-      },
-      "other_item": {
-        "type": "pad",
-        "ref": "D3",
-        "pad": "3"
-      }
-    },
-    {
-      "check": "check_creepage",
-      "severity": "error",
-      "pos": [
-        43.76,
-        87.3
-      ],
-      "layer": "F.Cu",
-      "net": "V48_RTN",
-      "refs": [
-        "D2"
-      ],
-      "msg": "V48_RTN (-57 V) to V48_RAW on F.Cu: 0.680 mm copper spacing < IPC-2221 0.80 mm (B2/A6) for 114 V",
-      "source": "check_creepage",
-      "items": [
-        {
-          "msg": "V48_RTN (-57 V) to V48_RAW on F.Cu: 0.680 mm copper spacing < IPC-2221 0.80 mm (B2/A6) for 114 V",
-          "pos": [
-            43.76,
-            87.3
-          ]
-        }
-      ],
-      "kind": "creepage",
-      "other_net": "V48_RAW",
-      "delta_v": 114.0,
-      "spacing_mm": 0.68,
-      "required_mm": 0.8,
-      "rows": [
-        "B2",
-        "A6"
-      ],
-      "item": {
-        "type": "via",
-        "at": [
-          44.4,
-          87.3
-        ]
-      },
-      "other_item": {
-        "type": "pad",
-        "ref": "D2",
-        "pad": "3"
-      }
-    },
-    {
-      "check": "check_creepage",
-      "severity": "error",
-      "pos": [
-        28.1524,
-        90.596
-      ],
-      "layer": "F.Cu",
-      "net": "V48_RTN",
-      "refs": [
-        "U1"
-      ],
-      "msg": "V48_RTN (-57 V) to V48_RAW on F.Cu: 0.745 mm copper spacing < IPC-2221 0.80 mm (A6/B2) for 114 V",
-      "source": "check_creepage",
-      "items": [
-        {
-          "msg": "V48_RTN (-57 V) to V48_RAW on F.Cu: 0.745 mm copper spacing < IPC-2221 0.80 mm (A6/B2) for 114 V",
-          "pos": [
-            28.1524,
-            90.596
-          ]
-        }
-      ],
-      "kind": "creepage",
-      "other_net": "V48_RAW",
-      "delta_v": 114.0,
-      "spacing_mm": 0.7451,
-      "required_mm": 0.8,
-      "rows": [
-        "A6",
-        "B2"
-      ],
-      "item": {
-        "type": "pad",
-        "ref": "U1",
-        "pad": "9"
-      },
-      "other_item": {
-        "type": "track",
-        "ends": [
-          [
-            27.4375,
-            90.595
-          ],
-          [
-            27.45,
-            90.6
-          ]
-        ]
-      }
     }
-  ]
+  ],
+  "coverage": {
+    "strict": false,
+    "required": [
+      "check_return_path",
+      "check_current",
+      "check_decoupling",
+      "check_diffpair",
+      "check_creepage",
+      "check_thermal",
+      "check_silk",
+      "check_pdn"
+    ],
+    "ran": [
+      "check_return_path",
+      "check_current",
+      "check_decoupling",
+      "check_diffpair",
+      "check_creepage",
+      "check_thermal",
+      "check_silk",
+      "check_pdn"
+    ],
+    "passed": [
+      "check_diffpair",
+      "check_thermal",
+      "check_silk",
+      "check_pdn"
+    ],
+    "failed": [
+      "check_return_path",
+      "check_current",
+      "check_decoupling",
+      "check_creepage"
+    ],
+    "waived": [],
+    "not_applicable": {},
+    "skipped_error": {}
+  }
 }

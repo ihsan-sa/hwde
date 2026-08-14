@@ -3,8 +3,8 @@
   "gate": "dfm",
   "phase": "P9",
   "tool": "dfm",
-  "input": "boards\\lumina-carrier\\kicad\\lumina-carrier.kicad_pcb",
-  "status": "pass",
+  "input": "boards\\lumina-par\\kicad\\lumina-par.kicad_pcb",
+  "status": "fail",
   "criteria": {
     "fail_severities": [
       "error"
@@ -12,16 +12,43 @@
     "max_count": 0
   },
   "counts": {
-    "total": 87,
+    "total": 56,
     "by_severity": {
-      "warning": 87
+      "error": 1,
+      "warning": 55
     },
     "by_source": {
-      "check.dfm": 87
+      "check.dfm": 56
     }
   },
-  "failing_count": 0,
-  "failing": [],
+  "failing_count": 1,
+  "failing": [
+    {
+      "check": "dfm",
+      "severity": "error",
+      "pos": [
+        146.7926,
+        117.2472
+      ],
+      "layer": "F.Cu",
+      "net": null,
+      "refs": [],
+      "msg": "copper clearance 0.0376 mm below JLC minimum 0.1016 mm on F.Cu",
+      "source": "check.dfm",
+      "items": [
+        {
+          "msg": "copper clearance 0.0376 mm below JLC minimum 0.1016 mm on F.Cu",
+          "pos": [
+            146.7926,
+            117.2472
+          ]
+        }
+      ],
+      "kind": "dfm_clearance",
+      "clearance_mm": 0.0376,
+      "min_mm": 0.1016
+    }
+  ],
   "coverage": {
     "strict": false,
     "required": [
@@ -44,7 +71,6 @@
       "release"
     ],
     "passed": [
-      "copper",
       "copper_to_edge",
       "drill",
       "hole_to_edge",
@@ -52,7 +78,9 @@
       "polarity",
       "release"
     ],
-    "failed": [],
+    "failed": [
+      "copper"
+    ],
     "waived": [],
     "not_applicable": {},
     "skipped_error": {

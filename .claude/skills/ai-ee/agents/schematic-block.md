@@ -25,7 +25,10 @@ python; JSON out, exit 0/1/2. Keep output ASCII.
   use it for every IC.
 - Idioms (shared helpers, use them instead of raw wires):
   `place_ic_with_decoupling` (one decoupler per power pin, values from the
-  datasheet JSON; emits the decoupling metadata), `power_flag` /
+  datasheet JSON; emits the decoupling metadata; on a SWITCHING regulator's
+  input pin give every input cap `"role": "reg_input"` AND include an HF
+  ceramic <= 1 uF - a bulk-only input passes value classing but ships the
+  lumina-carrier R1 rework defect), `power_flag` /
   `power_symbol_at_pin` (rails are global power symbols - no sheet pin),
   `hier_pin` (cross-sheet signal nets; pin-stub and free-cluster variants),
   `wire_pin`/`wire_pins` (grid-snapped stubs + local labels).
