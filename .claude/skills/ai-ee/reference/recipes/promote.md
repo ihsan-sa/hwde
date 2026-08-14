@@ -29,8 +29,9 @@ entry - fix the file, do not hand-edit the queue.
   fresh.
 - **general agent sweeping** - `learnings.py sweep` lists every workspace with
   its pending count; work the backlog board by board.
-- **stage learner (U7) pre-session** - pull only the entries whose `stage` is
-  the stage being taught; they are the session's candidate artifact edits.
+- **stage learner (U7) pre-session** - `learnings.py queue --workspace <ws>
+  --status pending --stage P6` pulls only the entries that stage owns; they are
+  the session's candidate artifact edits.
 
 ## Ruling on an entry
 

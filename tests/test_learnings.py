@@ -359,6 +359,18 @@ def test_sweep_reports_every_workspace_that_captures_learnings(capsys):
     assert boards["rf-de-20m"]["uncompiled"] == 0
 
 
+def test_queue_filters_by_stage_for_the_learner_operator_mode(tmp_path, capsys):
+    """U7 pulls one stage's entries; the counts still describe the whole queue
+    so a filtered read never reads as an empty backlog."""
+    ws = _ws(tmp_path, ENTRY_A, ENTRY_B, ENTRY_C)
+    _run(["compile", "--workspace", str(ws)], capsys)
+    code, payload = _run(["queue", "--workspace", str(ws), "--stage", "P8",
+                          "--status", "pending"], capsys)
+    assert code == 0
+    assert payload["shown"] == 1 and payload["counts"]["pending"] == 3
+    assert payload["entries"][0]["stage"] == "P8"
+
+
 def test_queue_without_a_compile_is_an_error_not_an_empty_answer(tmp_path,
                                                                  capsys):
     ws = _ws(tmp_path, ENTRY_A)

@@ -82,6 +82,9 @@ def do_queue(args) -> tuple[dict, int]:
               for s in learnlib.STATUSES}
     if args.status:
         rows = [r for r in rows if r["status"] == args.status]
+    if args.stage:
+        # the stage-learner operator mode: only the entries this stage owns
+        rows = [r for r in rows if r["stage"] == args.stage]
     return {"script": SCRIPT, "status": "pass", "board": queue["board"],
             "counts": counts, "shown": len(rows), "entries": rows}, 0
 
@@ -179,6 +182,7 @@ def main(argv: list[str] | None = None) -> int:
     p = common(sub.add_parser("queue", help="read the queue back"))
     p.add_argument("--workspace", required=True)
     p.add_argument("--status", choices=learnlib.STATUSES)
+    p.add_argument("--stage", help="only entries tagged with this stage (P0-P10)")
 
     p = common(sub.add_parser("validate", help="lint the queue"))
     p.add_argument("--workspace")
