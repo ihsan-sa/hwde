@@ -3175,8 +3175,10 @@ Two things worth carrying. **(1) A vacuous assertion and a passing assertion loo
 litter test's power depends on the baseline being clean, it is measuring nothing on a dirty tree -
 consider asserting the set difference is non-empty first, or run the probe against a clean scope.
 **(2) `check.cmd` is not hermetic** (codex H2): `report_gen` has no output-dir override, so the suite
-regenerates lumina-carrier / pd-trigger / stm32-blinky design docs in place and every full run leaves
-those three workspaces dirty with a new timestamp. "Clean tree" is therefore a between-runs property,
+regenerates the pd-trigger and stm32-blinky design docs in place, so every full run leaves those TWO
+workspaces dirty with a new timestamp (measured on the U0 acceptance run: 1 failed / 1511 passed, both
+docs dirty afterwards). lumina-carrier's doc is NOT touched by the suite - only a hand `report_gen`
+run dirties that one, which is how it arrived dirty at U0. "Clean tree" is therefore a between-runs property,
 not a steady state - do not treat a dirty design_doc after `check.cmd` as unfinished work, and do not
 commit it reflexively either. The durable fix is a `--doc-dir` on report_gen so the smoke run can
 write to tmp.

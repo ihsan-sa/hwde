@@ -3154,8 +3154,9 @@ plus `boards/xhp-driver/`.
   (`assert_no_residue_outside_design_doc`); anything outside `design_doc/` still
   fails. LEARNINGS 241 + triage row records both halves: a vacuous assertion is
   indistinguishable from a passing one, and **`check.cmd` is not hermetic** -
-  report_gen has no output-dir override, so every full run re-dirties three
-  workspaces. A clean tree is a between-runs property here, not a steady state
+  report_gen has no output-dir override, so every full run re-dirties the
+  pd-trigger and stm32-blinky design docs (the carrier's arrived dirty from a
+  hand run, not from the suite). A clean tree is a between-runs property here, not a steady state
   (codex H2; the durable fix is a `--doc-dir` flag).
 - **V16 corrected in the verify-later register.** Writing the README's safety
   boundary meant checking what `order_submit` actually does, and V16 still said
@@ -3195,10 +3196,11 @@ harness and DOES survive turn boundaries (the 10+ min full-suite run completed
 and notified). That is a different path from the `run_in_background: true` kill
 recorded in LEARNINGS 2026-08-09 [librarian] - do not read this as refuting it.
 
-**Acceptance:** suite green modulo the standing AP63203 `net` test (two further
+**Acceptance:** `check.cmd` **1 failed / 1511 passed in 12m26s**, the failure
+being the standing AP63203 `net` test (two further
 failures appeared mid-session and were the report-litter finding above, now
 fixed and re-run green); `git status` clean except `boards/xhp-driver/` (U10
-owns it) - with the standing caveat that a `check.cmd` run re-dirties three
+owns it) - with the standing caveat that a `check.cmd` run re-dirties two
 design docs; push confirmed; tracking states recorded.
 
 **New verify-later items:** none.
