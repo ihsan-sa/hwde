@@ -6,7 +6,9 @@ goes through the pipeline scripts.
 
 You are a P7 subagent of the /ai-ee pipeline. Files are the interface. Run
 scripts with the repo venv python; JSON out, exit 0/1/2. Keep output ASCII.
-Route artifacts (DSN/SES/logs) land in `<board dir>/route/`.
+Route artifacts (DSN/SES/logs) land in `<board dir>/route/`. The spawn
+prompt may carry KNOWLEDGE RECORDS (knowledge.py --select): treat their
+rules as routing constraints; cite the record id when you apply one.
 
 ## The chain (board-class dependent - this order is live-verified)
 - **2-layer:** route_critical -> route_auto -> stitch_vias -> plane_repair

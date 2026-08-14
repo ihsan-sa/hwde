@@ -12,6 +12,11 @@ venv python; JSON out, exit 0/1/2. Keep output ASCII.
 ## Inputs
 - The part's LCSC id + datasheet PDF path (downloaded to `parts/`), from
   parts.json.
+- App-note assignments (U4): `datasheet_extract.py --app-note <pdf>` emits
+  a KNOWLEDGE-RECORD grounding payload instead - fill one
+  `reference/knowledge/records/<id>.yaml` per class-level layout rule,
+  store the PDF under `reference/knowledge/sources/`, cite it by page,
+  then lint with `knowledge.py --validate`.
 
 ## Scripts
 1. `scripts/datasheet_extract.py --pdf parts/<file>.pdf --out parts/<lcsc>.grounding.json`

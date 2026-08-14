@@ -81,6 +81,12 @@ SECTIONS: dict[str, dict[str, dict[str, str]]] = {
         "required": {"layer": "str", "net": "str"},
         "optional": {"region": "rect"},
     },
+    # U4: P2's machine-readable block list - knowledge.py --select keys
+    # record retrieval on each entry's topology token.
+    "blocks": {
+        "required": {"topology": "str"},
+        "optional": {"block": "str", "name": "str"},
+    },
 }
 PLACEMENT: dict[str, dict[str, dict[str, str]]] = {
     "edges": {"required": {"ref": "str", "edge": "edge"},
@@ -111,6 +117,9 @@ KNOWN_ENVELOPE = {
     "candidates", "count", "results", "script", "source", "date",
     "generated", "recommendation", "rails", "decisions", "errata",
     "layout_notes", "open", "summary",
+    # strobe drive-stage.json envelope; would otherwise close-match the U4
+    # "blocks" key and misfire as a misspelling
+    "subblocks",
 }
 SCOUT_MAX_CANDIDATES = 6
 

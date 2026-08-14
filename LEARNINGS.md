@@ -3182,3 +3182,72 @@ run dirties that one, which is how it arrived dirty at U0. "Clean tree" is there
 not a steady state - do not treat a dirty design_doc after `check.cmd` as unfinished work, and do not
 commit it reflexively either. The durable fix is a `--doc-dir` on report_gen so the smoke run can
 write to tmp.
+
+## 2026-08-14 [decoupling][gates][schematic] Value-classing cannot see a MISSING cap - a role must come from metadata, and absence needs a group check
+check_decoupling judges each association by its VALUE class (bulk/mid/hf), so lumina-carrier's
+22 uF-only buck input read as "bulk cap, loose 20/30 mm limits, fine at 9.89 mm" and the absent
+100 nF HF ceramic on U21 (TPS563201) VIN produced ZERO findings - the exact defect the P8 reviewer
+had to catch by hand and the only soldering-iron rework on the shipped batch (retro R1). Two
+structural lessons. (1) The checker's unit was the ASSOCIATION: every check answered "is this cap
+well placed?", and no check could answer "is a cap MISSING?" - absence is only visible to a
+GROUP-level requirement over a declared role, never to per-item thresholds. (2) The role cannot be
+inferred from value or topology at check time: a 22 uF at a buck VIN is legitimate as the
+reservoir, wrong as the only cap - only the emitter knows the pin is a switching-regulator input.
+U1 adds `role: "reg_input"` to the decoupling metadata (schlib passthrough + intake docs) and a
+per-(ic,pin,rail) group check: no HF-capable member (<= 1 uF or explicit class "hf") within the
+hf error distance (7.5 mm) -> error kind=reg_input_no_hf anchored at the PIN. Declaring the bulk
+cap reg_input does NOT tighten its own per-association limits - the group check carries the
+requirement, so the reservoir stays legal where it is. Known-answer: carrier U21 fires at
+9.89 mm; U20 is the clean twin (C61 100 nF at 5.16 mm qualifies its group).
+
+## 2026-08-14 [yaml][knowledge] An unquoted YAML flow-scalar value splits at ANY comma - and only additionalProperties catches the wreckage
+Authoring knowledge records as YAML flow mappings, `{file: x.md, section: s4 (choice, fallback)}`
+silently parses as THREE keys: `section: "s4 (choice"` plus a bare `fallback)` key - the comma
+inside the parenthetical ends the value. Nothing errors at load; the damage surfaces only because
+RECORD_SCHEMA sets `additionalProperties: false` on sources entries, which turned it into a named
+schema violation at `knowledge.py --validate` (two records failed exactly this way at U4 build).
+Rule: quote any flow-mapping value containing a comma; keep additionalProperties:false on every
+schema level of hand-authored YAML - it is the only thing that makes this failure visible.
+
+## 2026-08-14 [yaml][python] yaml.safe_dump ASCII-escapes non-ASCII, so a raw-file ASCII lint passes while the PARSED values smuggle it through
+knowledgelib's ASCII check read the raw file bytes (the test_remediations pattern - correct for
+hand-written md). A record written via `yaml.safe_dump` (default allow_unicode=False) encodes a
+mu sign as an escape sequence: the file on disk IS ASCII, the lint passes, and the non-ASCII
+character reappears at yaml.safe_load - straight into a prompt_block that contracts ASCII-only
+output. Fix in knowledgelib.validate: after parsing, `json.dumps(data, ensure_ascii=False)
+.encode("ascii")` - checks every parsed string in one shot. Any linter of machine-WRITTEN YAML/
+JSON must check parsed values, not file bytes; raw-byte checks only cover hand-authored files.
+
+## 2026-08-14 [constraints][lint] Adding a documented constraints key can retro-flag SHIPPED artifacts - the close-match net catches neighbors, not just typos
+constraints_lint errors on unknown keys with difflib ratio >= 0.8 to a documented key. Adding the
+U4 `blocks` key made lumina-strobe's committed research envelope key `subblocks` (ratio 0.82)
+retroactively read as a MISSPELLING error, failing test_shipped_artifacts_have_no_errors on a
+file U4 never touched. The close-match net is doing its job - but it means every NEW documented
+key must be checked against the shipped-artifact corpus in the same commit, and legitimate
+envelope neighbors added to KNOWN_ENVELOPE (where `subblocks` now lives). The failure is
+invisible until the lint suite runs repo-wide: run test_constraints_lint before committing any
+schema-key addition.
+
+## 2026-08-14 [gerber][dfm][fixtures][tests] Deleting a Gerber D01 draw does NOT open the contour - coordinates are modal, the ring re-routes
+Building the U2 open-outline mutant (the carrier's silently-skipped edge checks, codex C7): removing
+a mid-contour `X...Y...D01*` line from Edge.Cuts left `FabStack.outline` CLOSED and the dfm coverage
+test red. Gerber coordinates are modal: each D01 draws from the CURRENT point to its target, so
+dropping a draw just makes the next D01 draw from the previous vertex directly - the polygon loses a
+corner but stays a ring, and polygonization succeeds. Same trap for "nudge an endpoint": the next
+draw starts at the moved point, so the ring distorts but never opens. To genuinely open a contour,
+break CONTINUITY, not geometry: turn one mid-contour D01 into D02 (draw -> move) - the ring splits
+into two open chains and polygonization fails exactly like the carrier's 1 nm joint mismatch did.
+Pinned by tests/test_gate_strict.py::_tampered_gerbers.
+
+## 2026-08-14 [git][process][waves] Wave-parallel sessions in ONE working tree: anchor-edit shared files, re-verify your hunks, stage by file list
+U2 ran while U1/U3/U4 were live in the same checkout (the v3 wave-1 design - no worktrees).
+dfm_check.py GREW ~60 lines under this session between read and edit (U3's assembly-class legs);
+the exact-anchor Edit model composed cleanly because the anchors sat in regions the other session
+was not touching (run() tail + argparse vs check_release) and the additions were purely additive.
+What made it safe: (1) after any "file changed on disk" notice - and again before the session-end
+commit - re-grep your OWN hunks; the other session may Write the whole file over them. (2) Commit
+an explicit file list; never stage a shared file that still carries the other session's
+uncommitted hunks - leave it for whichever session closes later (transient HEAD incoherence is
+fine, the TREE stays green and each session's check.cmd runs against the tree). (3) New tests go
+in a NEW file, never a test module another wave step owns. This is codex C4's staging lesson
+applied to the build sessions themselves.

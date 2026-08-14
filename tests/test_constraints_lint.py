@@ -276,3 +276,20 @@ def test_cli_pass_warn_error_exit_codes(tmp_path):
 
     r = run_cli("--file", str(tmp_path / "*.json"))  # glob expansion
     assert r.returncode == 1  # bad.json's error found via the glob
+
+
+# ================================================== blocks (U4)
+
+def test_blocks_section_lints(tmp_path):
+    """U4: the P2 block list - {topology} required, labels optional."""
+    vs, _ = lint_doc(tmp_path, {"blocks": [
+        {"topology": "buck", "block": "B3", "name": "U1 AP64350 class"},
+        {"topology": "ldo"}]})
+    assert errors(vs) == []
+
+    vs, _ = lint_doc(tmp_path, {"blocks": [{"block": "B3"}]})
+    errs = errors(vs)
+    assert len(errs) == 1 and "topology" in errs[0]["msg"]
+
+    vs, _ = lint_doc(tmp_path, {"blocks": [{"topolgy": "buck"}]})
+    assert any(v["kind"] == "misspelled_key" for v in errors(vs))

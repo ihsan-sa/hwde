@@ -1,0 +1,22 @@
+id: buck-en-softstart-sequencing
+classes: [sequencing]
+applies:
+  topologies: [buck]
+  packages: []
+  interfaces: []
+rule: null
+prose: >
+  Check the EN pin's OWN behavior before adding parts: many parts auto-start
+  (AP63203: internal 1.5 uA pull-up - tie to VIN or float; adding a divider
+  is wasted parts). When EN is used as a UVLO divider, mind the two traps
+  the sbuck run hit: a narrow hysteresis gap can force a divider into the
+  mA-burn regime via the part's own equations, and hysteresis smaller than
+  the input CABLE DROP at full load motorboats (start -> sag -> stop ->
+  recover). Soft-start time sets the output-cap inrush as seen by the
+  source. Single-rail boards rarely need sequencing; multi-rail: state the
+  order requirement or "none" explicitly in power.md.
+sources:
+  - {file: boards/usb-buck/research/power.md, section: s6 (EN/soft-start)}
+  - {file: boards/sbuck-5v3a/architecture/blocks.md, section: s4 (UVLO divider pathology)}
+status: active
+origin: migration:topologies/buck (T6 2026-08-06, three shipped runs)

@@ -10,6 +10,9 @@ scripts with the repo venv python; JSON out, exit 0/1/2. Keep output ASCII.
 ## Inputs
 - `kicad/<board>.kicad_pcb` (from P5, shelf-packed), sidecars `constraints.json`
   + `decoupling.json`; `parts/<lcsc>.json` layout_notes = vendor placement hints.
+- The spawn prompt may carry KNOWLEDGE RECORDS (knowledge.py --select):
+  treat their rules as placement constraints; cite the record id when you
+  apply or overrule one.
 
 ## Stage 1 - seed (always)
 `scripts/place_seed.py --pcb kicad/<board>.kicad_pcb --apply`

@@ -93,7 +93,13 @@ Consumers per key (script -> phase):
   // 4-layer -> In1 GND + In2 dominant-power; high_speed references are
   // always guaranteed a plane.
   "planes": [{"layer": "In2.Cu", "net": "+3V3",
-              "region": [x1, y1, x2, y2]}]   // region optional (full board)
+              "region": [x1, y1, x2, y2]}],  // region optional (full board)
+
+  // knowledge.py --select (U4): P2's machine-readable block list. Each
+  // topology token keys reference/knowledge/records/ retrieval into the
+  // P3/P6/P7 spawn prompts (deterministic - no declared block, no records).
+  // name/block are labels only; topology is the retrieval key.
+  "blocks": [{"topology": "buck", "block": "B3", "name": "U1 AP64350 class"}]
 }
 ```
 
@@ -102,8 +108,16 @@ a SEPARATE file emitted by the schematic generators (schlib
 `place_ic_with_decoupling` + `Project.save(decoupling=...)`); shape:
 `{"associations": [{"cap": "C1", "ic": "U1", "pin": "48", "rail": "+3V3",
 "value": "100nF", "gnd": "GND", "class": "hf", "max_dist_mm": 5,
-"max_loop_nh": 6}]}` (class/max_* optional; consumed by check_decoupling,
-check_pdn, place_seed satellite clustering, place_metrics).
+"max_loop_nh": 6, "role": "reg_input"}]}` (class/max_*/role optional;
+consumed by check_decoupling, check_pdn, place_seed satellite clustering,
+place_metrics). `"role": "reg_input"` goes on EVERY cap serving a switching
+regulator's input pin (buck/boost VIN): check_decoupling then errors
+(kind=reg_input_no_hf) unless one of them is an HF ceramic (<= 1 uF, or
+explicit class "hf") within 7.5 mm of the pin. Value classes alone cannot
+see a MISSING cap - a lone 22 uF at a buck VIN reads as a well-placed bulk
+cap (lumina-carrier R1, rework on shipped boards). Intake of an external
+board should declare the role while authoring decoupling.json wherever the
+BOM shows a switching regulator.
 
 Sources for the numbers: interface budgets from research (P1 interface-spec),
 currents from the power tree (P1 power-architect), impedances from

@@ -32,8 +32,11 @@ output ASCII.
    EXACTLY the schema shapes: high_speed, power, diff_pairs, voltages,
    voltage_pairs (differentials node voltages cannot express - bridge/AC
    taps), coating, thermal, placement (connector edges here), planes (only
-   when the defaults are wrong). Reconcile net names with the sheet plan -
-   these are now the CANONICAL names the schematic must produce.
+   when the defaults are wrong), blocks (one entry per topology block,
+   e.g. {"topology": "buck"} - this keys knowledge-record retrieval into
+   the P3/P6/P7 spawn prompts; an undeclared block gets NO records).
+   Reconcile net names with the sheet plan - these are now the CANONICAL
+   names the schematic must produce.
 6. Record key decisions for the orchestrator to log: stackup, layer count,
    lead parts, anything rejected with a reason.
 

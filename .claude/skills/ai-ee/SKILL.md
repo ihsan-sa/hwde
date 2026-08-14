@@ -176,6 +176,9 @@ Every Task spawn contains exactly:
 1. The role prompt file content (`agents/<role>.md`).
 2. The workspace-relative paths it needs (inputs + where outputs go).
 3. Its assignment specifics (which block/sheet/interface/work order).
+   For P3/P6/P7 spawns: run `scripts/knowledge.py --select --workspace
+   <ws>` and paste its `prompt_block` here - deterministic knowledge
+   retrieval keyed by the P2 block list + P3 packages (empty = omit).
 4. Termination: "return the output contract; do not start other phases'
    work."
 5. Log it: `state.py spawn --role .. --model .. --phase ..`.

@@ -18,6 +18,13 @@ reads the PDF pages); this script owns the deterministic half:
   --validate FILE   validate a candidate extraction against the schema.
                     exit 0 = valid, 1 = schema violations, 2 = unreadable.
   --schema          print the JSON Schema (single source of truth).
+  --app-note FILE   U4 variant: same PDF handling, but the grounding payload
+                    carries the KNOWLEDGE RECORD schema + template
+                    (lib/knowledgelib.py) and layout-rule keywords - the
+                    extractor fills reference/knowledge/records/*.yaml (one
+                    record per class-level rule, sources citing this PDF by
+                    page), stores the PDF under reference/knowledge/sources/,
+                    then lints with `knowledge.py --validate`.
 
 The extracted JSON is the ground truth the schematic agents wire against
 (SPEC P4: "never wire from model memory of a pinout") and the land pattern
@@ -165,14 +172,22 @@ GROUNDING_KEYWORDS = ("pin", "function", "land pattern", "recommended",
                       "absolute maximum", "layout", "decoupl", "bypass",
                       "thermal pad", "exposed pad", "package outline", "solder")
 
+# --app-note: pages carrying none of these are stubbed - app notes are
+# layout-rule sources, so the payload scales with RULE content, not page count.
+APP_NOTE_KEYWORDS = ("layout", "loop", "ground", "plane", "via", "place",
+                     "rout", "emi", "noise", "thermal", "copper", "trace",
+                     "inductor", "capacitor", "switch", "snubber", "ring",
+                     "feedback", "shield", "current path")
 
-def _trim_pages(pages: list[dict]) -> tuple[list[dict], int]:
+
+def _trim_pages(pages: list[dict],
+                keywords: tuple = GROUNDING_KEYWORDS) -> tuple[list[dict], int]:
     """Full text only for schema-relevant pages; stubs for the rest."""
     out, trimmed = [], 0
     for p in pages:
         text = p.get("text", "")
         low = text.lower()
-        if p.get("error") or any(k in low for k in GROUNDING_KEYWORDS):
+        if p.get("error") or any(k in low for k in keywords):
             out.append(p)
             continue
         first = next((ln.strip() for ln in text.splitlines() if ln.strip()), "")
@@ -182,22 +197,30 @@ def _trim_pages(pages: list[dict]) -> tuple[list[dict], int]:
     return out, trimmed
 
 
-def do_pdf(args) -> tuple[dict, int]:
-    pdf = Path(args.pdf)
+def _checked_pdf(path: str) -> tuple[Path | None, dict | None]:
+    """(path, None) for a real PDF; (None, error payload) otherwise."""
+    pdf = Path(path)
     if not pdf.exists():
-        return {"script": "datasheet_extract", "status": "error",
-                "error": f"PDF not found: {pdf}"}, 2
+        return None, {"script": "datasheet_extract", "status": "error",
+                      "error": f"PDF not found: {pdf}"}
     with pdf.open("rb") as fh:
         head = fh.read(16)
     if not head.startswith(b"%PDF"):
         # An HTML shell would otherwise be text-extracted into a "pinout" -
         # and the extraction is the ONLY pinout source P4 may wire from.
-        return {"script": "datasheet_extract", "status": "error",
-                "error": (f"{pdf} is not a PDF (starts {head!r}); "
-                          "www.lcsc.com/datasheet URLs serve an HTML viewer "
-                          "shell - re-download from the wmsc.lcsc.com mirror "
-                          "(parts_search emits the wmsc form) with a browser "
-                          "User-Agent")}, 2
+        return None, {"script": "datasheet_extract", "status": "error",
+                      "error": (f"{pdf} is not a PDF (starts {head!r}); "
+                                "www.lcsc.com/datasheet URLs serve an HTML "
+                                "viewer shell - re-download from the "
+                                "wmsc.lcsc.com mirror (parts_search emits the "
+                                "wmsc form) with a browser User-Agent")}
+    return pdf, None
+
+
+def do_pdf(args) -> tuple[dict, int]:
+    pdf, err = _checked_pdf(args.pdf)
+    if err:
+        return err, 2
     pages = extract_pdf_text(pdf)
     total_chars = sum(len(p.get("text", "")) for p in pages)
     trimmed = 0
@@ -220,6 +243,42 @@ def do_pdf(args) -> tuple[dict, int]:
                  "PDF pages directly if needed, or re-run with --full-text. "
                  "If text_chars is ~0 the PDF is image-only; read the "
                  "rendered pages directly."),
+    }
+    return payload, 0
+
+
+def do_app_note(args) -> tuple[dict, int]:
+    """--app-note: grounding payload shaped for KNOWLEDGE RECORDS (U4)."""
+    sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
+    import knowledgelib
+    pdf, err = _checked_pdf(args.app_note)
+    if err:
+        return err, 2
+    pages = extract_pdf_text(pdf)
+    total_chars = sum(len(p.get("text", "")) for p in pages)
+    trimmed = 0
+    if not args.full_text:
+        pages, trimmed = _trim_pages(pages, APP_NOTE_KEYWORDS)
+    payload = {
+        "script": "datasheet_extract",
+        "status": "extracted",
+        "mode": "app_note",
+        "source_pdf": str(pdf),
+        "n_pages": len(pages),
+        "text_chars": total_chars,
+        "pages_trimmed": trimmed,
+        "text_by_page": pages,
+        "record_schema": knowledgelib.RECORD_SCHEMA,
+        "record_template": knowledgelib.blank_record(),
+        "classes": sorted(knowledgelib.CLASSES),
+        "note": ("Write ONE reference/knowledge/records/<id>.yaml per "
+                 "class-level layout rule found (record_template shape; "
+                 "classes from the controlled list; page numbers here are "
+                 "0-based - cite sources 1-based). Store the PDF under "
+                 "reference/knowledge/sources/ and cite it by page. Then "
+                 "lint: knowledge.py --validate. Stubbed pages "
+                 "{page, first_line, chars} carried no rule keywords - read "
+                 "those PDF pages directly if needed, or --full-text."),
     }
     return payload, 0
 
@@ -262,6 +321,8 @@ def main(argv: list[str] | None = None) -> int:
     mode.add_argument("--pdf", help="extract text + emit grounding payload")
     mode.add_argument("--validate", help="validate a candidate extraction JSON")
     mode.add_argument("--schema", action="store_true", help="print the JSON schema")
+    mode.add_argument("--app-note", help="extract text + emit a KNOWLEDGE "
+                                         "RECORD grounding payload (U4)")
     ap.add_argument("--lcsc", help="tag the output with this LCSC id (--pdf)")
     ap.add_argument("--full-text", action="store_true",
                     help="--pdf: emit full text for EVERY page (no stubbing)")
@@ -274,6 +335,8 @@ def main(argv: list[str] | None = None) -> int:
                              "schema": DATASHEET_SCHEMA}, 0
         elif args.pdf:
             payload, code = do_pdf(args)
+        elif args.app_note:
+            payload, code = do_app_note(args)
         else:
             payload, code = do_validate(args)
     except Exception as exc:  # noqa: BLE001 - contract: any error -> exit 2

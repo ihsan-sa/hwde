@@ -54,9 +54,9 @@ U11 later; U12 before order credentials; T11 on board arrival (not during U8).
 |---|---|---|---|
 | U0 | Ops + evidence sweep (commit/push dirty tree, tracking, triage 188-239) | **done** | 2026-08-13 |
 | U1 | Retro checker fixes (gerblib outline/arcs, reg-input decoupling, carrier constraints) | pending | - |
-| U2 | Gate report validation + strict verify coverage (C4+C7) | pending | - |
+| U2 | Gate report validation + strict verify coverage (C4+C7) | **done** | 2026-08-14 |
 | U3 | BOM assembly classes + first-class DNP (H1, C9) | pending | - |
-| U4 | Knowledge library + trigger-keyed retrieval | pending | - |
+| U4 | Knowledge library + trigger-keyed retrieval | **done** | 2026-08-14 |
 | U5 | Release attestation + durable waivers (C1+H9) | pending | - |
 | U6 | Workspace learnings + promotion pass (H5; rf-de 66-entry queue) | pending | - |
 | U7 | Learning mode harness (learn verb + learner agent + graded fixtures) | pending | - |
@@ -3204,3 +3204,191 @@ owns it) - with the standing caveat that a `check.cmd` run re-dirties two
 design docs; push confirmed; tracking states recorded.
 
 **New verify-later items:** none.
+
+## U4 - Knowledge library + trigger-keyed retrieval (2026-08-14) - DONE
+
+**Built** (v3 design decision 2 - retrieval TRIGGERED, never judged; wave 1,
+parallel with U1/U2/U3 in the same working tree):
+- `scripts/lib/knowledgelib.py` - the library. RECORD_SCHEMA (Draft 2020-12):
+  `{id, classes[], applies{topologies[], packages[], interfaces[]}, rule|null,
+  prose (<=1500 chars, prompt-injected), sources[{file, page?, section?}],
+  status active|draft|superseded, origin}`; controlled CLASSES vocab (14, grow
+  in-file like FIXER_HINTS); validate() = the validate_registry discipline
+  (schema, id==stem, classes vocab, source files exist repo/skill-relative,
+  named scripts + --flags exist via the T4 scan, ASCII on raw bytes AND parsed
+  values, >=1 applies key else "unreachable record"); select() (active only,
+  normalized keys - packages casefold+alnum so SO-8-EP==SO8EP); workspace_keys()
+  (constraints.json blocks[].topology + diff_pairs[].base, parts.json
+  parts[].package, via statelib.kind_path with pre-P5 fallbacks
+  architecture/constraints.json + parts/parts.json); prompt_block();
+  render_topology().
+- `scripts/knowledge.py` - CLI: `--validate` (exit 1 on problems), `--select
+  [--workspace|--blocks|--packages|--interfaces]` (JSON + prompt_block; empty
+  match = exit 0 + empty block), `--list`, `--render-topology T --out F`.
+- `reference/knowledge/records/` - 14 records, all lint-green: 8 migrated from
+  `topologies/buck.md` (selection ladder, inductor, hot loop, upstream inrush,
+  BST/FB/output-caps, SW containment, EN/soft-start, constraints emission -
+  sources re-anchored to the surviving evidence files incl. the AP63203
+  datasheet boards/usb-buck/parts/C5248536.pdf) + 6 NEW from a real app note.
+- App-note ingestion: `datasheet_extract.py --app-note` (same PDF gate as
+  --pdf; grounding payload carries RECORD_SCHEMA + blank_record template +
+  APP_NOTE_KEYWORDS trimming). Round-tripped LIVE on ROHM 60AN066E Rev.004
+  "PCB Layout Techniques of Buck Converter" (fetched to
+  reference/knowledge/sources/rohm-buck-pcb-layout-an.pdf, 12 pages, 26.8k
+  chars) -> 6 page-cited records (CIN/CO ground separation 1-2cm, free-wheel
+  diode + snubber placement, inductor copper/gnd-void, FB route rules, PGND/
+  AGND isolation, thermal-via 0.3mm/1.2mm + via 2mm-per-amp).
+- Retrieval wiring (deterministic): constraints.json gained the `blocks` key
+  (schema doc jsonc + constraints_lint SECTIONS entry {topology req; block,
+  name opt}); architect.md emits it; SKILL.md spawn template item 3 gained a
+  3-line pointer (run knowledge.py --select, paste prompt_block into P3/P6/P7
+  spawns); placement/router/part-sourcer .md each note the injected block;
+  datasheet-extractor.md documents the --app-note assignment shape.
+  Violation-kind -> remediation stays the T4 mechanism, untouched.
+- `topologies/buck.md` REPLACED by the generated view (knowledge.py
+  --render-topology buck; 119 lines, header says so) - byte-pinned to the
+  records by test, so hand-edits fail the suite.
+- `tests/test_knowledge.py` - 26 tests: committed-records lint green; lint
+  rejection paths (unknown class, missing source, id/stem, unreachable,
+  non-ASCII raw AND smuggled, hallucinated script/flag, bad enforced_by,
+  overlong prose); THE acceptance pin (synthetic ws declaring a buck block ->
+  power-loop+emi records + buck-input-hot-loop in prompt_block); package
+  normalization + pre-P5 parts fallback; interface keying from diff_pairs
+  base; draft/superseded never injected; view byte-pin; app-note payload +
+  non-PDF refusal + committed app-note records cite the PDF by page.
+  +3 blocks tests in test_constraints_lint.py.
+
+**Deviations from plan (with reasons):**
+1. "P2's block list" got a NEW machine-readable home: constraints.json
+   `blocks: [{topology}]` (P2's only machine-readable artifact; blocks.md
+   stays prose). The plan named the list but no shape - this one rides the
+   existing sidecar + lint rather than a new file.
+2. Package matching is normalized (casefold + strip non-alnum), not exact:
+   vendor package strings are unstable (SO-8-EP vs SO8EP vs "so 8 ep") and a
+   silent retrieval miss is this design's failure mode.
+3. Interface keys derive only from diff_pairs[].base (+ explicit
+   --interfaces); high_speed nets carry no interface identity worth guessing.
+4. rule is a free field-bag with optional enforced_by (script[:token],
+   existence-linted) rather than a typed rule language - U7/U8 decide what a
+   scorer consumes; over-specifying now would be speculative.
+5. buck.md is REGENERATED (not kept hand-written beside records): one source
+   of truth, drift caught by the byte-pin test. Its research-agent "HOW TO
+   USE" header survives in the renderer.
+
+**Cross-session note (wave 1 shared tree):** U1/U2/U3 ran concurrently in this
+working tree. Two live merges handled in-session: U1's reg_input addition to
+constraints_schema.md coexists with my blocks section (disjoint regions);
+LEARNINGS entry 242 + triage row landed from U1 mid-session (numbering shifted
+mine to 243-245). Commit is SCOPED to U4 files only - no `git add -A`.
+
+**Interface notes for later steps:**
+- U6 (promotion) + U7/U8 (learning mode): promotion target "knowledge record"
+  = write reference/knowledge/records/<id>.yaml (RECORD_SCHEMA), run
+  `knowledge.py --validate`, and if it applies to a topology with a generated
+  view, re-render (`--render-topology <t> --out reference/topologies/<t>.md`)
+  in the same commit or the byte-pin test fails. New classes: add to
+  knowledgelib.CLASSES in the same commit.
+- U9: layout_implications records can key on packages (SO-8EP already keys
+  buck-thermal-via-and-via-current); part-sourcer prompt injection is wired.
+- Orchestrator contract: `knowledge.py --select --workspace <ws>` before
+  P3/P6/P7 spawns; paste prompt_block verbatim (empty = omit). Explicit
+  --blocks/--packages work pre-workspace (U9 backward spawns).
+- LEARNINGS 243-245 (all L2, done): quote comma-bearing YAML flow values;
+  lint parsed values not just raw bytes; check shipped artifacts when adding
+  a documented constraints key (subblocks now in KNOWN_ENVELOPE).
+
+**New verify-later items:** none. (First live exercise of the injection path
+lands with U8/U10 - the spawn step is prose until then, but the selection
+itself is test-pinned.)
+
+## U2 - Gate report validation + strict verify coverage (2026-08-14) - DONE
+
+**Built (codex C4 - reports and commits):**
+- Report provenance: `checklib.REPORT_SCHEMA` (=1) + `checklib.stamp(payload, input)` - every
+  gate-consumable report now carries `report_schema`, `generated_at` (UTC ISO), `input`,
+  `input_digest` (statelib NORMALIZED hash via `norm_for_path` - UUID/EOL churn does not stale a
+  report). Producers stamped: `kc.run_erc`/`run_drc`, `checklib.report` (covers every check_*,
+  place_metrics, dfm_check, sim_run), the verify_all summary.
+- `gate.py --report` validation (`validate_report`): schema version; producing-script identity per
+  tool (`EXPECTED_SCRIPT`; kc reports also match `tool` erc/drc); status must be pass|violations;
+  the `violations` key must EXIST (missing = INVALID, not empty); the recorded input must exist,
+  match the positional input when one is given, and hash-match on disk; generation age within
+  `--max-report-age-h` (default 24; >5 min in the future refused). Any refusal -> exit 2, never a
+  pass. The validated recorded input becomes the EFFECTIVE input, so a --report evaluation is
+  never scope-less (feeds the waiver default and the commit scope).
+- `--commit` hardening (`git_commit_on_pass`): requires a boards/<name>/ scope derived from the
+  input - the repo-wide `git add -A` fallback is GONE (non-boards inputs refuse). Pre-staged index
+  entries outside the scope refuse (`git diff --cached` inspected; `git commit` would sweep them).
+  Result carries `ok`; a requested commit that did not occur (other than a clean nothing-to-do
+  skip) exits 2 even on gate pass.
+
+**Built (codex C7 - strict coverage):**
+- `verify_all --strict` + a `coverage` matrix in the summary: {strict, required, ran, passed
+  (warnings allowed), failed (error-severity), waived (filled by gate.py at evaluation),
+  not_applicable{reason, approved}, skipped_error{name: reason}}. Non-strict keeps skips lenient
+  but VISIBLE (skipped_error bucket); strict turns any hole into summary status "error" (exit 2;
+  gate.run_verify raises -> the gate refuses, never grades a partial run). Applicability is
+  DECLARED per board: `constraints.json` `verification.not_applicable.<check>` needs non-empty
+  reason + approved and a KNOWN check name (typo/missing approver -> CheckError). Declared-NA
+  checks do not run in either mode.
+- `place_metrics`: same treatment over {courtyard, outline, edges, keepouts, decoupler_distance};
+  a missing constraints/decoupling sidecar lands its families in skipped_error (always visible),
+  `--strict` -> status error.
+- `dfm_check`: coverage over {copper, copper_to_edge, drill, hole_to_edge, silk, polarity, bom,
+  release} via a kind->family map (incl. U3's new assembly kinds); an unpolygonizable or missing
+  Edge.Cuts marks BOTH edge-distance families skipped_error; --skip groups, unresolvable netlist
+  (polarity) and absent parts.json land there too; strict -> status error.
+- `gate.py`: `strict: true` gate option plumbed to verify/place/dfm; error-status reports refuse
+  the gate generically; `evaluate()` copies `coverage` into the gate result and moves a fully
+  waived check failed -> waived (verify granularity, where coverage names match violation source).
+- `gates.yaml`: `verify_release` + `dfm_release` (strict, P10) - the release-context entry points
+  U5's attestation will consume. Exploratory `verify`/`dfm` unchanged.
+
+**Acceptance evidence:** `tests/test_gate_strict.py` (34 tests, hermetic - goldens + the frozen T5
+pd_trigger stage gerbers, no kicad-cli). Tamper suite: error-shaped / empty / missing-violations /
+missing-schema / missing-digest / stale-input / 48h-old / future / wrong-input / wrong-tool /
+wrong-producer / vanished-input reports ALL exit 2; a valid stamped report exits 0 (or 1 with
+findings - graded, not refused); UUID churn does NOT stale a report. Unscoped commit refused (no
+input; non-boards input; even on a clean tree), pre-staged-outside refused with index + worktree
+untouched, pre-staged-inside commits, nothing-to-do is ok=True, CLI exits 2 on a refused requested
+commit. blinky2 verify_all: non-strict = 6 visible skipped_error + lenient status; strict = status
+error naming the 6; strict + declared-NA x6 = PASS with the matrix populated; invalid NA (missing
+approver / unknown check name) = CheckError. The carrier scenario: a D01->D02-split pd-trigger
+Edge.Cuts -> copper_to_edge + hole_to_edge skipped_error + dfm_open_outline violation, strict ->
+status error. Legacy tests updated for the new contracts (stamped waiver-CLI report; commit-scope
+tests). Full `check.cmd` green (see below; wave-1 parallel-session caveat).
+
+**Deviations (with reasons):**
+1. NA declarations carry reason + approved but NOT the codex-suggested per-entry artifact hash -
+   U5's attestation binds the whole constraints.json digest, which subsumes it.
+2. dfm/place coverage is FAMILY-granular (violation-kind map); verify coverage is CHECK-granular.
+   gate.py's waived-move applies only at verify granularity (families do not match violation
+   `source`); dfm/place waivers still gate correctly, coverage just keeps the family in `failed`.
+3. `--report` keeps the positional input OPTIONAL: the report's recorded input is fully validated
+   (exists + digest) and becomes the effective input; a positional, when given, must match. Full
+   identity is enforced either way and `--report r.json` alone stays usable.
+4. Non-strict skips now land in coverage.skipped_error (visibility) - statuses and exit codes are
+   unchanged, so bench/intake/orchestrator flows are unaffected (their tests pass unmodified).
+5. Strict place applicability: the sidecar FILE is the declaration vehicle (a present-but-empty
+   placement block = "nothing constrained" and counts as ran); only file absence is a hole. Finer
+   per-family NA for place/dfm deferred until a real board needs it.
+
+**Interface notes for later steps:**
+- U5: `verify_release`/`dfm_release` are the strict entry points; a strict verify summary carries
+  the full coverage matrix + provenance stamp - attest THAT object. The gate result's
+  `coverage.waived` is the authoritative post-waiver coverage; `commit_result.ok` is the
+  preservation verdict.
+- Report producers MUST go through checklib.report/stamp: a hand-built report without the stamp
+  fields is now REFUSED by --report (schema 1). Bump `checklib.REPORT_SCHEMA` on any meaning
+  change of a validated field.
+- Additive schema changes: summary `checks[name].status` gained skipped_error|not_applicable;
+  verify_all summary + dfm/place payloads gained `coverage`; gate results gained `coverage` and
+  `commit_result.ok`.
+- SKILL.md untouched (U4 owns it in wave 1): agent-facing docs for the strict release gates should
+  land with U5.
+- Wave-1 shared file: `dfm_check.py` carried U3's uncommitted assembly-class hunks during this
+  session; U2's hunks (DFM_FAMILIES, run() coverage tail, --strict) are additive and were
+  re-verified before commit. Staging decision at commit time recorded in the commit message.
+
+**New verify-later items:** none. (V15/V16 unchanged; U12 owns the remaining C3/C5/C6 order-side
+hardening.)

@@ -11,6 +11,9 @@ relative); scripts emit JSON, exit 0/1/2. Keep output ASCII.
 ## Inputs
 - `architecture/` (blocks, power tree, constraints), `research/*.json`
   (candidate shortlists), `requirements.md` (quantity, assembly).
+- The spawn prompt may carry KNOWLEDGE RECORDS (knowledge.py --select,
+  keyed by the P2 block list / chosen packages): treat their rules as
+  selection constraints and cite the record id when one decides a part.
 
 ## Scripts
 - `scripts/parts_search.py --query ... [--basic-only] [--package ...]

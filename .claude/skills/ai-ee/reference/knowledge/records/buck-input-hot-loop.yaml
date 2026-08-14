@@ -1,0 +1,26 @@
+id: buck-input-hot-loop
+classes: [power-loop, emi]
+applies:
+  topologies: [buck]
+  packages: []
+  interfaces: []
+rule:
+  enforced_by: null
+  hf_bypass_nf: 100
+  hf_bypass_at: VIN pin, same layer as the IC
+  loop: C_IN -> VIN -> GND -> C_IN shortest on the board
+prose: >
+  Layout rule #1 for every buck: the input cap carries the DISCONTINUOUS
+  switch current. C_IN plus a 100 nF HF bypass AT the VIN pin, on the SAME
+  layer as the IC; the C_IN -> VIN -> GND -> C_IN loop must be the shortest
+  loop on the board; SW-node copper minimal. At ~1 MHz switching this matters
+  more than copper weight (usb-buck power.md s7-9; every vendor layout
+  section says the same). Solid GND pour + vias under the IC. At P6 this is a
+  placement GROUP (constraints placement.groups) anchored on the IC with the
+  input ceramics + HF bypass as members, placed and locked BEFORE the
+  annealer runs - the cost function does not know the loop exists.
+sources:
+  - {file: boards/usb-buck/research/power.md, section: s7-9 (hot loop)}
+  - {file: boards/usb-buck/parts/C5248536.pdf, section: DS41326 layout section}
+status: active
+origin: migration:topologies/buck (T6 2026-08-06, three shipped runs)
