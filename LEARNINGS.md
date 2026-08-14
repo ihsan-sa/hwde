@@ -4182,3 +4182,19 @@ Cost two red parametrised cases on a doc whose commands were correct. Two ways o
 one is cheaper: put any flag whose value is a script path at the END of its line (or use a
 `<paths>` placeholder). The checker could also skip a `.py` token that sits in argument position
 (immediately after a `--flag`), which is the actual defect - the doc is not wrong.
+
+## 2026-08-14 [git][process][waves] `git commit <pathspec>` RE-STAGES those paths - surgical index staging needs a bare `git commit`
+The wave-parallel rule (entry 247) says commit via pathspec so another session's hunks in a shared
+file are not swept in. That is not enough once BOTH sessions must edit the SAME file: U6 added a
+task verb, which forces edits to `reference/tasks.yaml` and to `SKILL.md` (the registry test
+requires the verb be named in the playbook) while U5 was live in both. Two mechanisms settle it:
+1. Stage the content you want without touching the working tree -
+   `git show HEAD:<path>` -> apply only your own edit to that text -> `git hash-object -w --path
+   <path> <tmp>` -> `git update-index --add --cacheinfo 100644,<blob>,<path>`. `git apply --cached`
+   also works but fuzzes on CRLF working copies; hash-object takes the exact bytes you built.
+2. Then commit with **no pathspec at all**. `git commit -- <paths>` re-reads those paths from the
+   WORKING TREE and overwrites the index entry you just crafted, so the surgery is silently undone
+   and the other session's half-finished work lands in your commit.
+Check before committing that your own hunk does not reference the other session's new files
+(`grep attest.py` here): a shared registry that names a script only they have makes YOUR commit
+internally inconsistent even though the working tree is green.
