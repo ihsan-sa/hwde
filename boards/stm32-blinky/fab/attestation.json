@@ -1,0 +1,246 @@
+{
+ "script": "attest",
+ "kind": "release_attestation",
+ "attest_schema": 1,
+ "board": "stm32-blinky",
+ "rev": 2,
+ "supersedes": "feb335c188a56465142e87df95fef78fabc8404a092cdd7978e77c3b60447244",
+ "created": "2026-08-14T20:48:20+00:00",
+ "git_head": "3a51ff1a6ac44187ffa0543f35534b2bb94def2f",
+ "checker_version": 1,
+ "inputs": {
+  "bom": "text_eol:65fc4fa3230ed7fd9f2e891b7eda5f3f4730984510db609b0516afb0501acfbc",
+  "bom_full": "text_eol:fc6da0495c8e4d7cd348065f9fc95d1d9d5378dcd4ca0d2ba7914a6c2f9ee383",
+  "constraints": "json_canonical:b209740bb11c810799db2a8d00e2431ca959241672f5fe4611c991396a1e72d1",
+  "cpl": "text_eol:9ace4ebd43be4b56568b3b36ada5a061a6dc513bf63ca3161727aa0ece551c0f",
+  "decoupling": "json_canonical:6e6523423536e317ef90b692d5cd848037c3c72144b6b972029e84541859e867",
+  "dru": "text_eol:08b66d96d4162f788b804d750e721d972056b326acce18ebbb0b99cdaab88294",
+  "gerbers": "gerber_design:e1109c809e08d83947ef3985458cf6564d1c705bcd597dab165d8336e4fb6a19",
+  "netlist": "netlist_canonical:74836f3fe5375bae3610867ae47f5c9409183c29542c16ef386fbc8f3e7ccb2c",
+  "parts": "json_canonical:065a567ebe03875f9dd75023ed5a935f1fd955ac28cc4bdcb2e4e6accc377080",
+  "pcb": "sexpr_no_uuid:b36f1183fefd6959507f694b6cacfdf2c77a0a601567e8c135dc3149dc2e1ed0",
+  "pro": "json_canonical:aa6276ea336c1c089027039d4e411910f490ef1a1400acd7924a18c677233261",
+  "sch": "sexpr_no_uuid:aeee9a5c448bd6230d0375e055ab14d84f7f9f7dbdd7c37fb87fba7bcaf89637",
+  "sims": null,
+  "waivers": null,
+  "stackup_md": "text_eol:1b5fe4042b3c476971b227f21c7cf89e9e602afe3b59897fc5017e4e8f5fef57"
+ },
+ "input_paths": {
+  "bom": "fab/BOM.csv",
+  "bom_full": "fab/BOM-full.csv",
+  "constraints": "kicad/constraints.json",
+  "cpl": "fab/CPL.csv",
+  "decoupling": "kicad/decoupling.json",
+  "dru": "kicad/stm32-blinky.kicad_dru",
+  "gerbers": "fab/stm32-blinky_gerbers.zip",
+  "netlist": "kicad/stm32-blinky.net",
+  "parts": "kicad/parts.json",
+  "pcb": "kicad/stm32-blinky.kicad_pcb",
+  "pro": "kicad/stm32-blinky.kicad_pro",
+  "sch": "kicad/stm32-blinky.kicad_sch",
+  "sims": "kicad/sims",
+  "waivers": "kicad/reports/verify-waivers.json"
+ },
+ "gates": {
+  "erc": {
+   "status": "pass",
+   "ts": "2026-08-14T10:05:48",
+   "failing_count": 0,
+   "inputs": {
+    "sch": "sexpr_no_uuid:aeee9a5c448bd6230d0375e055ab14d84f7f9f7dbdd7c37fb87fba7bcaf89637",
+    "pro": "json_canonical:aa6276ea336c1c089027039d4e411910f490ef1a1400acd7924a18c677233261"
+   }
+  },
+  "place": {
+   "status": "pass",
+   "ts": "2026-08-14T10:38:08",
+   "failing_count": 0,
+   "inputs": {
+    "pcb": "sexpr_no_uuid:b36f1183fefd6959507f694b6cacfdf2c77a0a601567e8c135dc3149dc2e1ed0",
+    "constraints": "json_canonical:b209740bb11c810799db2a8d00e2431ca959241672f5fe4611c991396a1e72d1",
+    "decoupling": "json_canonical:6e6523423536e317ef90b692d5cd848037c3c72144b6b972029e84541859e867"
+   }
+  },
+  "drc_routed": {
+   "status": "pass",
+   "ts": "2026-08-14T10:38:31",
+   "failing_count": 0,
+   "inputs": {
+    "pcb": "sexpr_no_uuid:b36f1183fefd6959507f694b6cacfdf2c77a0a601567e8c135dc3149dc2e1ed0",
+    "sch": "sexpr_no_uuid:aeee9a5c448bd6230d0375e055ab14d84f7f9f7dbdd7c37fb87fba7bcaf89637",
+    "pro": "json_canonical:aa6276ea336c1c089027039d4e411910f490ef1a1400acd7924a18c677233261",
+    "dru": "text_eol:08b66d96d4162f788b804d750e721d972056b326acce18ebbb0b99cdaab88294"
+   }
+  },
+  "verify": {
+   "status": "pass",
+   "ts": "2026-08-14T10:38:32",
+   "failing_count": 0,
+   "inputs": {
+    "pcb": "sexpr_no_uuid:b36f1183fefd6959507f694b6cacfdf2c77a0a601567e8c135dc3149dc2e1ed0",
+    "constraints": "json_canonical:b209740bb11c810799db2a8d00e2431ca959241672f5fe4611c991396a1e72d1",
+    "decoupling": "json_canonical:6e6523423536e317ef90b692d5cd848037c3c72144b6b972029e84541859e867",
+    "waivers": null
+   }
+  },
+  "dfm": {
+   "status": "pass",
+   "ts": "2026-08-14T10:38:35",
+   "failing_count": 0,
+   "inputs": {
+    "pcb": "sexpr_no_uuid:b36f1183fefd6959507f694b6cacfdf2c77a0a601567e8c135dc3149dc2e1ed0",
+    "sch": "sexpr_no_uuid:aeee9a5c448bd6230d0375e055ab14d84f7f9f7dbdd7c37fb87fba7bcaf89637",
+    "parts": "json_canonical:065a567ebe03875f9dd75023ed5a935f1fd955ac28cc4bdcb2e4e6accc377080"
+   }
+  }
+ },
+ "reports": {
+  "verify_release": {
+   "path": "reports/verify_release.json",
+   "digest": "json_canonical:bf376322ce748a0540994f0079d320efd0751bb1f0572715eb68bf5d3a378dc5",
+   "coverage": {
+    "strict": true,
+    "required": [
+     "check_return_path",
+     "check_current",
+     "check_decoupling",
+     "check_diffpair",
+     "check_creepage",
+     "check_thermal",
+     "check_silk",
+     "check_pdn"
+    ],
+    "ran": [
+     "check_return_path",
+     "check_current",
+     "check_decoupling",
+     "check_diffpair",
+     "check_creepage",
+     "check_thermal",
+     "check_silk",
+     "check_pdn"
+    ],
+    "passed": [
+     "check_return_path",
+     "check_current",
+     "check_decoupling",
+     "check_diffpair",
+     "check_creepage",
+     "check_thermal",
+     "check_silk",
+     "check_pdn"
+    ],
+    "failed": [],
+    "waived": [],
+    "not_applicable": {},
+    "skipped_error": {}
+   },
+   "waived_fingerprints": []
+  },
+  "dfm_release": {
+   "path": "reports/dfm_release.json",
+   "digest": "json_canonical:8957d76791aa43f4210da69fbd19c9098f06ef91c0f9cffaaf9d4ccd98cc60a1",
+   "coverage": {
+    "strict": true,
+    "required": [
+     "copper",
+     "copper_to_edge",
+     "drill",
+     "hole_to_edge",
+     "silk",
+     "polarity",
+     "bom",
+     "release"
+    ],
+    "ran": [
+     "copper",
+     "copper_to_edge",
+     "drill",
+     "hole_to_edge",
+     "silk",
+     "polarity",
+     "bom",
+     "release"
+    ],
+    "passed": [
+     "copper",
+     "copper_to_edge",
+     "drill",
+     "hole_to_edge",
+     "silk",
+     "polarity",
+     "bom",
+     "release"
+    ],
+    "failed": [],
+    "waived": [],
+    "not_applicable": {},
+    "skipped_error": {}
+   },
+   "waived_fingerprints": []
+  }
+ },
+ "waivers": {
+  "path": null,
+  "hash": null,
+  "count": 0,
+  "waived_fingerprints": []
+ },
+ "fab": {
+  "gerber_zip": {
+   "path": "fab/stm32-blinky_gerbers.zip",
+   "sha256": "9a5604b0ab15180501c94b918e8f9087fe7f25a00daa61f3c22747cf28f0947f",
+   "design_sha256": "e1109c809e08d83947ef3985458cf6564d1c705bcd597dab165d8336e4fb6a19"
+  },
+  "bom": {
+   "path": "fab/BOM.csv",
+   "hash": "text_eol:65fc4fa3230ed7fd9f2e891b7eda5f3f4730984510db609b0516afb0501acfbc"
+  },
+  "cpl": {
+   "path": "fab/CPL.csv",
+   "hash": "text_eol:9ace4ebd43be4b56568b3b36ada5a061a6dc513bf63ca3161727aa0ece551c0f"
+  },
+  "bom_full": {
+   "path": "fab/BOM-full.csv",
+   "hash": "text_eol:fc6da0495c8e4d7cd348065f9fc95d1d9d5378dcd4ca0d2ba7914a6c2f9ee383"
+  }
+ },
+ "manufacturing": {
+  "layers": 2,
+  "copper_weight_oz": 1.0,
+  "copper_weight_source": "stackups.yaml[JLC2313_1.6].stack[0].copper_oz",
+  "inner_copper_weight_oz": null,
+  "thickness_mm": 1.6,
+  "surface_finish": null,
+  "solder_mask_color": null
+ },
+ "human_approvals": {
+  "1": {
+   "status": "approved",
+   "ts": "2026-07-27T17:25:55",
+   "note": "Architecture approved as recommended (SS34 kept)"
+  },
+  "2": {
+   "status": "approved",
+   "ts": "2026-07-27T22:31:41",
+   "note": "AUTO-approved per user directive. Schematic PDF reports/schematic.pdf; review 1 err + 3 warn -> err+2 warn fixed pre-board, 1 warn waived (erc-waivers.md); ERC 0/0; audit pass"
+  },
+  "3": {
+   "status": "skipped",
+   "ts": "2026-07-27T23:51:54",
+   "note": "Folded into H4 per user-approved P0 decision; render at reports/place/render_final/"
+  },
+  "4": {
+   "status": "approved",
+   "ts": "2026-07-28T01:10:01",
+   "note": "AUTO-approved per user directive. verify 8/8 clean; drc_routed 0/0; reviewer 1 err + 4 warn: err (J1 polarity silk) + 4 warn ALL FIXED via new V17 text ops + parts.json role sync + fresh artifact; remaining waiver = minor refdes margin (C1 2.2mm own vs 3.0mm R1). Renders: reports/render_labeled/ + reports/place/render_final/ (H3 fold)"
+  },
+  "5": {
+   "status": "approved",
+   "ts": "2026-07-28T01:26:02",
+   "note": "AUTO-approved package per user directive: order.json ready_for_human, zip sha b013238b, est 8.77/5 assembled. PAYMENT + JLC uploads (jlcdfm, quote, CPL polarity preview = V15) remain the human's 4 listed steps - never automated"
+  }
+ },
+ "known_restrictions": [],
+ "attestation_sha256": "ed34a8c8998d45968ea58f3f4a465d883a6d1a5770f271acc83f6b22e2eca522"
+}

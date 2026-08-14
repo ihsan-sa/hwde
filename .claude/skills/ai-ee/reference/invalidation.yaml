@@ -71,7 +71,12 @@ artifact_kinds:
   decoupling:  {path: "kicad/decoupling.json", norm: json_canonical}
   parts:       {path: "kicad/parts.json", norm: json_canonical}
   sims:        {path: "kicad/sims", norm: dir_text}
-  waivers:     {path: "kicad/reports/verify-waivers.json", norm: json_canonical}
+  # waivers moved to the WORKSPACE reports/ dir (U5): every real board
+  # keeps the file there and gate.py/attest resolve it workspace-first,
+  # so gate freshness now hashes the file the gate actually APPLIES
+  # (the kicad/reports path hashed null on every board - the rf-de
+  # verify pass was never bound to its waiver file; LEARNINGS 2026-08-08).
+  waivers:     {path: "reports/verify-waivers.json", norm: json_canonical}
   gerbers:     {path: "fab/{board}_gerbers.zip", norm: gerber_design}
   bom:         {path: "fab/BOM.csv", norm: text_eol}
   bom_full:    {path: "fab/BOM-full.csv", norm: text_eol}

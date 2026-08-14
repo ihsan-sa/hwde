@@ -81,14 +81,28 @@ api-reference PcbOrderCraftData table, the contract's [SDK/PDF] source):
                 api_quote.json before confirming). Tests must NEVER point
                 this path at a live transport - mock the session.
 
+Release attestation (U5, codex C1): a fab dir inside a GOVERNED workspace
+(state.json beside it) orders through its release attestation or not at
+all. The manifest carries a `release` block (release_governance ->
+releaselib.verify); a governed workspace whose fab/attestation.json is
+missing or invalid gets manifest status `not_order_ready` (exit 1) and the
+API legs refuse BEFORE any network call (exit 2). When the attestation is
+valid, its manufacturing options are LAW: --copper-oz that contradicts the
+attested copper weight refuses instead of waiving (the pd-trigger 1 oz
+case), quote-spec mismatches refuse, and --api-create additionally binds
+the on-disk package to the ATTESTED design hash. Bare fab dirs with no
+state.json stay on the legacy manifest flow (nothing recorded to attest).
+
 CLI:
   order_submit.py --pcb board.kicad_pcb --fab-dir fab/ [--quote quote.json]
                   [--qty 5] [--api] [--api-create --api-quote-file q.json
                    --confirm "<board> <qty>pcs <total>" [--ship-json s.json]]
                   [--order-number N] [--out fab/order.json]
 Exit 0 ready-for-human (incl. API verdicts ok / scope_pending / created)
-/ 1 package incomplete / 2 error (missing creds, bad signature, IP block,
-rate limit, refused confirm/latch/whitelist/binding, transport failure).
+/ 1 package incomplete or not order-ready (governed, attestation
+missing/invalid) / 2 error (missing creds, bad signature, IP block, rate
+limit, refused confirm/latch/whitelist/binding/attestation, transport
+failure).
 """
 from __future__ import annotations
 
@@ -108,6 +122,7 @@ sys.path.insert(0, str(SCRIPTS / "lib"))
 
 import fabhash  # noqa: E402
 import jlcapi  # noqa: E402
+import releaselib  # noqa: E402
 
 # JLCPCB Open API pcb/create refuses 4+ layer boards: three live attempts on
 # a 4L board all returned HTTP 200 {"code": 2, "message": "unknown_error"}
@@ -461,26 +476,70 @@ def _api_quote(session, man: dict, fab_dir: Path, prior_steps=None,
                                    "first; API quote skipped"})
         return "skipped"
 
-    # copper weight: explicit human override > spec > stackup.md; a note
-    # mismatch refuses BEFORE any network traffic (the pd-trigger
-    # board-killer) unless the override waives it
+    # copper weight: on a governed workspace the ATTESTED manufacturing
+    # options are law (U5/C1 - the pd-trigger 1 oz case: a human override
+    # that contradicts the attested value REFUSES instead of waiving);
+    # ungoverned: explicit human override > spec > stackup.md; a note
+    # mismatch refuses BEFORE any network traffic unless the override
+    # waives it
     spec = _merged_spec(man)
-    if copper_oz is not None:
-        oz, oz_source = float(copper_oz), "human override (--copper-oz)"
-        spec["copper_weight_oz"] = oz
-    elif spec.get("copper_weight_oz"):
-        oz, oz_source = float(spec["copper_weight_oz"]), "spec snapshot"
-    else:
-        oz, oz_source = derive_copper_oz(fab_dir.parent)
-        if oz is None:
-            # never guess a board-killer parameter
+    attested = ((man.get("release") or {}).get("manufacturing")
+                if (man.get("release") or {}).get("valid") else None)
+    if attested is not None:
+        att_oz = attested.get("copper_weight_oz")
+        if att_oz is None:
+            raise ApiRefused("attestation carries no copper_weight_oz - "
+                             "re-run attest.py build")
+        if copper_oz is not None and float(copper_oz) != float(att_oz):
             raise ApiRefused(
-                f"copper weight cannot be derived: {oz_source}. Fix the "
-                "`Chosen` section of architecture/stackup.md (name a stackup "
-                "from reference/stackups.yaml, or carry an explicit id marker "
-                "like JLC2313_1.6_2oz) or pass --copper-oz")
+                f"--copper-oz {float(copper_oz):g} contradicts the ATTESTED "
+                f"copper weight {float(att_oz):g} - a manufacturing-option "
+                "override invalidates the release (the pd-trigger 1 oz "
+                "case). Change architecture/stackup.md and re-attest "
+                "instead of overriding at order time")
+        if spec.get("copper_weight_oz") \
+                and float(spec["copper_weight_oz"]) != float(att_oz):
+            raise ApiRefused(
+                f"quote spec copper_weight_oz {spec['copper_weight_oz']!r} "
+                f"contradicts the attested {float(att_oz):g} - regenerate "
+                "the quote or re-attest so they agree")
+        # attested options are FORCED into the priced spec, not merely
+        # cross-checked: a spec that simply OMITS a value must not fall
+        # back to a build_pcb_param default different from the attested
+        # one (U5 review: 'None-attested disables guard' - and its dual,
+        # None-spec dodges the check)
+        for key in ("layers", "thickness_mm", "surface_finish",
+                    "solder_mask_color", "inner_copper_weight_oz"):
+            av, sv = attested.get(key), spec.get(key)
+            if av is None:
+                continue
+            if sv is not None and str(sv) != str(av):
+                raise ApiRefused(
+                    f"quote spec {key} {sv!r} contradicts the attested "
+                    f"{av!r} - manufacturing options come from the "
+                    "attestation only")
+            spec[key] = av
+        oz, oz_source = float(att_oz), "release attestation"
         spec["copper_weight_oz"] = oz
-    _check_oz_mentions(man, prior_steps, oz, waived=copper_oz is not None)
+        _check_oz_mentions(man, prior_steps, oz, waived=False)
+    else:
+        if copper_oz is not None:
+            oz, oz_source = float(copper_oz), "human override (--copper-oz)"
+            spec["copper_weight_oz"] = oz
+        elif spec.get("copper_weight_oz"):
+            oz, oz_source = float(spec["copper_weight_oz"]), "spec snapshot"
+        else:
+            oz, oz_source = derive_copper_oz(fab_dir.parent)
+            if oz is None:
+                # never guess a board-killer parameter
+                raise ApiRefused(
+                    f"copper weight cannot be derived: {oz_source}. Fix the "
+                    "`Chosen` section of architecture/stackup.md (name a "
+                    "stackup from reference/stackups.yaml, or carry an "
+                    "explicit id marker like JLC2313_1.6_2oz) or pass "
+                    "--copper-oz")
+            spec["copper_weight_oz"] = oz
+        _check_oz_mentions(man, prior_steps, oz, waived=copper_oz is not None)
     pcb_param = build_pcb_param(spec)
 
     if (man["api"].get("file_key")
@@ -760,6 +819,66 @@ def _api_create(session, man: dict, quote_file: Path, confirm: str,
             "timestamps, so the copper really differs) - re-run --api to "
             "re-quote the new gerbers")
 
+    # U5 (codex C1): on a governed workspace the create must also match the
+    # ATTESTED package + manufacturing options - the quote binding alone
+    # would let an attestation-invalidating re-quote slip through.
+    release = man.get("release") or {}
+    if release.get("governed"):
+        if not release.get("valid"):
+            raise ApiRefused(
+                "release attestation missing or invalid - run attest.py "
+                "build (problems: "
+                + "; ".join((release.get("problems") or ["unknown"])[:6])
+                + ")")
+        att_design = release.get("fab_design_sha256")
+        if att_design and zip_info["design_sha256"] != att_design:
+            raise ApiRefused(
+                "the package on disk is not the ATTESTED design (design "
+                f"hash {zip_info['design_sha256'][:12]}.. vs attested "
+                f"{att_design[:12]}..) - re-run attest.py build after "
+                "regenerating the fab package")
+        # check the PAYLOAD's pcbParam - the fields JLC actually receives -
+        # not the quote file's advisory top-level copy (U5 review: 'only
+        # copper checked, wrong field'). Every attested option must match
+        # what is about to be fabricated.
+        att_man = release.get("manufacturing") or {}
+        pparam = q["calculate_request"].get("pcbParam") or {}
+        checks = []
+        if att_man.get("copper_weight_oz") is not None:
+            checks.append(("copperWeight",
+                           "%g" % float(att_man["copper_weight_oz"]),
+                           str(pparam.get("copperWeight"))))
+        if att_man.get("inner_copper_weight_oz") is not None \
+                and "insideCuprumThickness" in pparam:
+            checks.append(("insideCuprumThickness",
+                           "%g" % float(att_man["inner_copper_weight_oz"]),
+                           str(pparam.get("insideCuprumThickness"))))
+        if att_man.get("layers") is not None:
+            checks.append(("layer", int(att_man["layers"]),
+                           pparam.get("layer")))
+        if att_man.get("thickness_mm") is not None:
+            checks.append(("thickness", float(att_man["thickness_mm"]),
+                           _to_num(pparam.get("thickness"))))
+        if att_man.get("surface_finish") is not None:
+            checks.append((
+                "surfaceFinish",
+                SURFACE_FINISH_CODE.get(
+                    str(att_man["surface_finish"]).upper(), 1),
+                pparam.get("surfaceFinish")))
+        if att_man.get("solder_mask_color") is not None:
+            checks.append((
+                "pcbColor",
+                PCB_COLOR_CODE.get(
+                    str(att_man["solder_mask_color"]).lower(), 0),
+                pparam.get("pcbColor")))
+        for field, want, got in checks:
+            if got != want:
+                raise ApiRefused(
+                    f"create payload pcbParam.{field} is {got!r} but the "
+                    f"attestation binds {want!r} - a manufacturing-option "
+                    "override invalidates the release; re-quote after "
+                    "re-attesting")
+
     # freight attestation: the shipping method must be one of the QUOTED
     # options, its recorded cost must match that option, and the grand
     # total the token attests must equal real_price + that freight
@@ -871,14 +990,71 @@ def _merged_spec(man: dict) -> dict:
     return {k: v for k, v in man["spec_snapshot"].items() if v is not None}
 
 
+# --------------------------------------------------------------- release (U5)
+
+def release_governance(fab_dir: Path) -> dict:
+    """Codex C1: order-shaped code consumes ONLY the release attestation.
+
+    A fab dir sitting in a stateful workspace (state.json beside it) is
+    GOVERNED: ordering requires <ws>/fab/attestation.json to verify VALID
+    (releaselib), and the attested manufacturing options become law for the
+    API legs. A bare fab dir (no state.json) is ungoverned - the legacy
+    manifest flow still works, flagged in the manifest, because there is no
+    recorded state to attest against."""
+    ws = Path(fab_dir).resolve().parent
+    if not (ws / "state.json").is_file():
+        # deliberate escape hatch for EXTERNAL one-off packages only (there
+        # is no recorded state to attest against). A pipeline board escaped
+        # here would show release.governed=false + the human_steps warning -
+        # the human's tell that provenance was severed.
+        return {"governed": False, "attested": False, "valid": False,
+                "note": "no state.json beside the fab dir - ungoverned "
+                        "package; pipeline workspaces are always governed"}
+    try:
+        v = releaselib.verify(ws)
+    except Exception as exc:  # noqa: BLE001 - conservative: unverifiable
+        return {"governed": True, "attested": False, "valid": False,
+                "problems": [f"attestation unverifiable: "
+                             f"{type(exc).__name__}: {exc}"]}
+    out = {"governed": True, "attested": v.get("attested", False),
+           "valid": bool(v.get("valid")),
+           "problems": v.get("problems") or []}
+    att = releaselib.load_attestation(ws)
+    if att:
+        out["attestation_sha256"] = att.get("attestation_sha256")
+        out["manufacturing"] = att.get("manufacturing")
+        out["fab_design_sha256"] = ((att.get("fab") or {})
+                                    .get("gerber_zip") or {}).get(
+                                        "design_sha256")
+    try:
+        out["disposition"] = releaselib.disposition(ws)["disposition"]
+    except Exception:  # noqa: BLE001 - advisory field
+        pass
+    return out
+
+
 def _load_prior_manifest(out_path: Path) -> dict | None:
+    """Prior canonical manifest, or None when the file does NOT exist.
+
+    A PRESENT-but-unparsable order.json raises: the created-latch and the
+    ambiguous-attempt block live in this file, so treating corruption as
+    'no prior order' would disarm the double-buy protections exactly when
+    the record is least trustworthy (U5 adversarial review). Fail closed -
+    a human repairs or intentionally removes the file first."""
     if not out_path.exists():
         return None
     try:
         prior = json.loads(out_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        return None
-    return prior if isinstance(prior, dict) else None
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ApiRefused(
+            f"canonical {out_path} exists but is unreadable ({exc}) - it "
+            "carries the created-latch, so refusing to proceed; repair or "
+            "deliberately remove the file first") from exc
+    if not isinstance(prior, dict):
+        raise ApiRefused(
+            f"canonical {out_path} is not a JSON object - it carries the "
+            "created-latch, so refusing to proceed; repair the file first")
+    return prior
 
 
 def _merge_prior_api(man: dict, prior: dict | None) -> None:
@@ -936,7 +1112,17 @@ def run(pcb: Path, fab_dir: Path, quote: Path | None = None,
             quote_row = quote_data.get("cheapest")
 
     api_ok, api_note = _api_available()
-    status = "incomplete" if missing else "ready_for_human"
+    release = release_governance(fab_dir)
+    if missing:
+        status = "incomplete"
+    elif release["governed"] and (not release["valid"]
+                                  or release.get("disposition") == "blocked"):
+        # U5 (codex C1): a governed workspace without a VALID attestation -
+        # or with a blocked disposition (hold, ambiguous create, corrupt
+        # record) - is not order-ready, no matter how fresh any gate is
+        status = "not_order_ready"
+    else:
+        status = "ready_for_human"
     quote_spec = (quote_data or {}).get("spec", {})
 
     manifest = {
@@ -966,6 +1152,7 @@ def run(pcb: Path, fab_dir: Path, quote: Path | None = None,
             "solder_mask_color": (quote_row or {}).get("solder_mask_color"),
             "assembly": quote_spec.get("assembly"),
         },
+        "release": release,
         "api": {"attempted": bool(use_api), "available": api_ok,
                 "note": api_note},
         "human_steps": [
@@ -979,6 +1166,11 @@ def run(pcb: Path, fab_dir: Path, quote: Path | None = None,
             "Review, then pay. Payment is always the human's action.",
         ],
     }
+    if not release["governed"]:
+        manifest["human_steps"].insert(0, (
+            "UNGOVERNED package (no state.json beside the fab dir): no "
+            "release attestation applies. External one-off boards only - a "
+            "pipeline board ordered this way has severed its provenance."))
     return manifest
 
 
@@ -1049,12 +1241,34 @@ def main(argv: list[str] | None = None) -> int:
     # of the payload elsewhere - it can never sidestep the latch.
     canonical = Path(args.fab_dir) / "order.json"
     out = Path(args.out) if args.out else canonical
-    prior = _load_prior_manifest(canonical)
+    try:
+        prior = _load_prior_manifest(canonical)
+    except ApiRefused as exc:
+        # fail closed WITHOUT rewriting the corrupt canonical record
+        print(json.dumps({"script": "order_submit", "status": "error",
+                          "error": str(exc)}, indent=1))
+        return 2
     _merge_prior_api(man, prior)
 
     api_verdict = None
     if (args.api or args.api_create) and man["api"]["available"]:
         try:
+            # U5 (codex C1): a governed workspace orders through its
+            # attestation or not at all - refused BEFORE any network call.
+            # A blocked disposition (hold restriction, ambiguous create
+            # attempt, corrupt record) refuses even beside a valid
+            # attestation - blocked outranks everything.
+            rel = man.get("release") or {}
+            if rel.get("governed") and (
+                    not rel.get("valid")
+                    or rel.get("disposition") == "blocked"):
+                raise ApiRefused(
+                    "release attestation missing/invalid or release "
+                    "BLOCKED for this governed workspace (disposition "
+                    f"{rel.get('disposition') or 'unknown'}): "
+                    + "; ".join((rel.get("problems")
+                                 or ["no attestation"])[:6])
+                    + " - run attest.py build / clear the block first")
             session = _make_session()
             if args.api_create:
                 if not (args.api_quote_file and args.confirm):
@@ -1112,7 +1326,7 @@ def main(argv: list[str] | None = None) -> int:
             return 2
         if api_verdict not in ("ok", "scope_pending", "created", "skipped"):
             return 2
-    return 1 if man["status"] == "incomplete" else 0
+    return 1 if man["status"] in ("incomplete", "not_order_ready") else 0
 
 
 if __name__ == "__main__":

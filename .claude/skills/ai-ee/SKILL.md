@@ -77,10 +77,16 @@ Machine gates (defined in `reference/gates.yaml`, run via
 | verify | P8 | .kicad_pcb | 8-check suite, error-severity = 0 |
 | sim | P8 | kicad/sims | every bench inside its bounds sidecar |
 | dfm | P9 | .kicad_pcb | exported-gerber DFM, error-severity = 0 |
+| verify_release / dfm_release | P10 | .kicad_pcb | strict: every applicable check must RUN; durable waivers only |
 
 Sidecars (`constraints.json`, `decoupling.json`, `parts.json`, schematic)
 resolve from the board's own directory - keep them beside the board from P5
 onward.
+
+Phase is workflow position, NEVER a release certificate: ordering consumes
+only the release attestation (`scripts/attest.py build|verify|disposition`,
+recorded at `fab/attestation.json`) and `state.py resume` reports the derived
+`release_disposition` beside the phase. The `order` recipe carries the rules.
 
 ## Run start / resume
 

@@ -205,6 +205,27 @@ class State:
         if status not in ("pass", "fail"):
             raise CheckError(f"gate result status must be pass|fail, "
                              f"got {status!r}")
+        # U5 tooth: when the result carries the report's stamped input
+        # digest (gate.py emits it since U5), it must match the CURRENT
+        # primary input - otherwise the result describes a different or
+        # stale artifact and recording it would mark the gate fresh-pass
+        # falsely (hit live: a failed gate re-run left the OLD result file
+        # behind and record-gate happily blessed it). Legacy results
+        # without the field are recorded as before.
+        digest = result.get("input_digest")
+        if digest:
+            imap = self._imap()
+            kinds = imap["gate_inputs"].get(gate) or []
+            if kinds:
+                rel, cur = statelib.hash_kind(
+                    self.path.parent, self.data.get("board") or "",
+                    kinds[0], imap, self.data["artifacts"])
+                if cur != digest:
+                    raise CheckError(
+                        f"gate result input_digest does not match the "
+                        f"current {kinds[0]} ({rel}) - the result describes "
+                        "a different or stale artifact; re-run the gate "
+                        "against the current file")
         entry = {"ts": now(), "status": status,
                  "failing_count": result.get("failing_count", 0),
                  "total": (result.get("counts") or {}).get("total", 0),
@@ -498,8 +519,25 @@ class State:
                          PHASES.index(ph) and cp not in self.data["human"]]
         last = self.data["history"][-1] if self.data["history"] else None
         fresh = self.freshness()
+        # U5 (codex C1): phase is workflow position, never a release
+        # certificate - resume surfaces the DERIVED disposition beside it so
+        # a P10 phase can no longer read as "order-ready". Advisory here:
+        # any releaselib failure degrades to null, never breaks resume.
+        disposition_error = None
+        try:
+            import releaselib  # noqa: E402  (lib dir on sys.path)
+            disposition = releaselib.disposition(
+                self.path.parent)["disposition"]
+        except Exception as exc:  # noqa: BLE001
+            # surfaced, not swallowed: a null disposition with no reason
+            # would hide the worst rung (U5 review)
+            disposition = None
+            disposition_error = f"{type(exc).__name__}: {exc}"
         return {
             "script": SCRIPT, "board": self.data["board"],
+            "release_disposition": disposition,
+            **({"release_disposition_error": disposition_error}
+               if disposition_error else {}),
             "workspace": self.data["workspace"], "phase": self.data["phase"],
             "gates_passed": passed, "next_gate": next_gate,
             "gates_passed_fresh": [g for g in passed

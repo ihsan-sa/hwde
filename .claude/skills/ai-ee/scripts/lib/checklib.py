@@ -27,6 +27,13 @@ class CheckError(RuntimeError):
 # when a field gate.py's --report validation relies on changes meaning.
 REPORT_SCHEMA = 1
 
+# Version of the CHECKER SEMANTICS behind the reports (U5, codex H9). Bump on
+# any change to what a check finds or how findings are keyed - durable waivers
+# bind this value, so a bump invalidates every recorded waiver until a human
+# re-approves it under the new checkers. Coarse on purpose: one bump point,
+# conservative direction.
+CHECKER_VERSION = 1
+
 
 def _statelib():
     """Import lib/statelib regardless of whether checklib was imported as
@@ -46,6 +53,7 @@ def stamp(payload: dict, input_path) -> dict:
     gate.py refuses a report without a digest)."""
     from datetime import datetime, timezone
     payload["report_schema"] = REPORT_SCHEMA
+    payload["checker_version"] = CHECKER_VERSION
     payload["generated_at"] = datetime.now(timezone.utc).isoformat(
         timespec="seconds")
     if input_path is not None:

@@ -89,6 +89,45 @@ class Footprint:
             y1 = max(y1, p.local[1] + hy)
         return box(x0 - m, y0 - m, x1 + m, y1 + m)
 
+    def pad_shape_local(self) -> Polygon | None:
+        """PRECISE pad field: the UNION of per-pad boxes, each grown 0.25 mm
+        (rotation-aware like _pad_box_local). Unlike the bbox, this leaves
+        pad-FREE regions (an LQFP ring's empty corners/interior) out - the
+        bbox flagged tight-but-legal decouplers (pad-edge gap >= the S14
+        0.62 mm rule, KiCad DRC clean) as courtyard overlaps on real boards
+        (U5: stm32-blinky C1-C3/U1, measured gaps 0.66-1.82 mm). A part ON
+        the pin tips still overlaps the per-pad boxes, so the S14 shorting
+        class stays caught."""
+        if not self.pads:
+            return None
+        m = 0.25
+        boxes = []
+        for p in self.pads:
+            th = math.radians(p.rot)
+            c, s = abs(math.cos(th)), abs(math.sin(th))
+            hx = p.size[0] / 2 * c + p.size[1] / 2 * s
+            hy = p.size[0] / 2 * s + p.size[1] / 2 * c
+            boxes.append(box(p.local[0] - hx - m, p.local[1] - hy - m,
+                             p.local[0] + hx + m, p.local[1] + hy + m))
+        return unary_union(boxes)
+
+    def precise_extents_abs(self):
+        """Declared courtyard UNION precise pad shape, board frame - the
+        pairwise OVERLAP-test shape (U5). extents_abs stays the conservative
+        Polygon hull for containment/edges/keepouts/packing, where covering
+        more is the safe direction; for part-vs-part overlap it is the
+        false-positive direction. May return a MultiPolygon."""
+        pads = self.pad_shape_local()
+        cy = self.courtyard_local
+        if cy is not None:
+            shape = cy if pads is None else cy.union(pads)
+        elif pads is not None:
+            shape = pads
+        else:
+            shape = box(-0.5, -0.5, 0.5, 0.5)
+        p = affinity.rotate(shape, -self.angle, origin=(0, 0))
+        return affinity.translate(p, self.pos[0], self.pos[1])
+
     def extents_local(self) -> Polygon:
         """EFFECTIVE courtyard: the declared courtyard expanded to at least
         cover the pad field (+0.25 mm); pad-bbox fallback when absent.
@@ -456,11 +495,24 @@ def legality_violations(model: PlaceModel, placement: dict | None) -> list[dict]
                 or "through_hole" in b.attrs or any(p.through for p in b.pads))
         return thru
 
+    # Overlap uses the PRECISE shape (courtyard + per-pad boxes, U5): the
+    # bbox hull's pad-free corners false-flagged tight-but-legal decouplers.
+    # The hull contains the precise shape, so hull-disjoint pairs skip the
+    # (more expensive) precise intersection outright.
+    precise: dict = {}
+
+    def prec(f: Footprint):
+        if f.ref not in precise:
+            precise[f.ref] = f.precise_extents_abs()
+        return precise[f.ref]
+
     for i, a in enumerate(fps):
         for b in fps[i + 1:]:
             if not collides(a, b):
                 continue
-            inter = ext[a.ref].intersection(ext[b.ref])
+            if not ext[a.ref].intersects(ext[b.ref]):
+                continue
+            inter = prec(a).intersection(prec(b))
             if inter.area > EPS_AREA:
                 c = inter.centroid
                 v.append(checklib.violation(

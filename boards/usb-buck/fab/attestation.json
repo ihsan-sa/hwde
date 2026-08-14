@@ -1,0 +1,246 @@
+{
+ "script": "attest",
+ "kind": "release_attestation",
+ "attest_schema": 1,
+ "board": "usb-buck",
+ "rev": 2,
+ "supersedes": "7761e3e6c257f7f790e11cce96134fd19ba5961da8f139ae9628fd0011ead164",
+ "created": "2026-08-14T20:48:20+00:00",
+ "git_head": "3a51ff1a6ac44187ffa0543f35534b2bb94def2f",
+ "checker_version": 1,
+ "inputs": {
+  "bom": "text_eol:d17ee6f26f2af21d972506b5e1935cb9a34d4997709f25d12b7bb2303477bc9b",
+  "bom_full": "text_eol:9f980b159dba221258dfc8e7155e32982137a52a42326c54d119fd1c8cb76ee6",
+  "constraints": "json_canonical:7e9b51ff117146deb201ddca139d638daeb1e85c466ca21996c980ae470a7015",
+  "cpl": "text_eol:5c25f2a50b9909613575d7c39f4d1d7c4e5e719c354f58968c2ac601b4e40bda",
+  "decoupling": "json_canonical:bb866f52a630068c3746b553b33a0edc1f65f2b026530ea0922dea9e43da2f85",
+  "dru": "text_eol:a6b0ee6714bfacbf82882f9b382201c605e94c40b770f1a3b50c3916e338c7a6",
+  "gerbers": "gerber_design:de54a44619e64f2c0071bc6bec6b3744acafd0b981884d48f22d2b432421be88",
+  "netlist": "netlist_canonical:a56536dbc9af57f914802085c170c2cbf30f3607aa0e9189f661a5ff18e64691",
+  "parts": "json_canonical:18e1de0124f966b6e63d5ad18a6e6d6ae3480ebdf4a9e94d8cc6c49846199995",
+  "pcb": "sexpr_no_uuid:8bb04ca94b8763d4179f62600a0714d4644ba2ed2164e048d031cfe513e7ba65",
+  "pro": "json_canonical:cd2faf39a0c3d604bbc72955b985bf68a1a02e445997d9f28c7a07b11fafd9a6",
+  "sch": "sexpr_no_uuid:b54b3e55e622a76e9b39e3344dd724641953fb75db68508cc7186799bf5d6dcf",
+  "sims": null,
+  "waivers": null,
+  "stackup_md": "text_eol:23cf5371b352e014c19bb64945122068ca9a5aeda16e9a58f5ffde4c9559065e"
+ },
+ "input_paths": {
+  "bom": "fab/BOM.csv",
+  "bom_full": "fab/BOM-full.csv",
+  "constraints": "kicad/constraints.json",
+  "cpl": "fab/CPL.csv",
+  "decoupling": "kicad/decoupling.json",
+  "dru": "kicad/usb-buck.kicad_dru",
+  "gerbers": "fab/usb-buck_gerbers.zip",
+  "netlist": "kicad/usb-buck.net",
+  "parts": "kicad/parts.json",
+  "pcb": "kicad/usb-buck.kicad_pcb",
+  "pro": "kicad/usb-buck.kicad_pro",
+  "sch": "kicad/usb-buck.kicad_sch",
+  "sims": "kicad/sims",
+  "waivers": "kicad/reports/verify-waivers.json"
+ },
+ "gates": {
+  "erc": {
+   "status": "pass",
+   "ts": "2026-08-14T11:25:02",
+   "failing_count": 0,
+   "inputs": {
+    "sch": "sexpr_no_uuid:b54b3e55e622a76e9b39e3344dd724641953fb75db68508cc7186799bf5d6dcf",
+    "pro": "json_canonical:cd2faf39a0c3d604bbc72955b985bf68a1a02e445997d9f28c7a07b11fafd9a6"
+   }
+  },
+  "place": {
+   "status": "pass",
+   "ts": "2026-08-14T11:25:15",
+   "failing_count": 0,
+   "inputs": {
+    "pcb": "sexpr_no_uuid:8bb04ca94b8763d4179f62600a0714d4644ba2ed2164e048d031cfe513e7ba65",
+    "constraints": "json_canonical:7e9b51ff117146deb201ddca139d638daeb1e85c466ca21996c980ae470a7015",
+    "decoupling": "json_canonical:bb866f52a630068c3746b553b33a0edc1f65f2b026530ea0922dea9e43da2f85"
+   }
+  },
+  "drc_routed": {
+   "status": "pass",
+   "ts": "2026-08-14T11:25:24",
+   "failing_count": 0,
+   "inputs": {
+    "pcb": "sexpr_no_uuid:8bb04ca94b8763d4179f62600a0714d4644ba2ed2164e048d031cfe513e7ba65",
+    "sch": "sexpr_no_uuid:b54b3e55e622a76e9b39e3344dd724641953fb75db68508cc7186799bf5d6dcf",
+    "pro": "json_canonical:cd2faf39a0c3d604bbc72955b985bf68a1a02e445997d9f28c7a07b11fafd9a6",
+    "dru": "text_eol:a6b0ee6714bfacbf82882f9b382201c605e94c40b770f1a3b50c3916e338c7a6"
+   }
+  },
+  "verify": {
+   "status": "pass",
+   "ts": "2026-08-14T11:25:31",
+   "failing_count": 0,
+   "inputs": {
+    "pcb": "sexpr_no_uuid:8bb04ca94b8763d4179f62600a0714d4644ba2ed2164e048d031cfe513e7ba65",
+    "constraints": "json_canonical:7e9b51ff117146deb201ddca139d638daeb1e85c466ca21996c980ae470a7015",
+    "decoupling": "json_canonical:bb866f52a630068c3746b553b33a0edc1f65f2b026530ea0922dea9e43da2f85",
+    "waivers": null
+   }
+  },
+  "dfm": {
+   "status": "pass",
+   "ts": "2026-08-14T11:25:39",
+   "failing_count": 0,
+   "inputs": {
+    "pcb": "sexpr_no_uuid:8bb04ca94b8763d4179f62600a0714d4644ba2ed2164e048d031cfe513e7ba65",
+    "sch": "sexpr_no_uuid:b54b3e55e622a76e9b39e3344dd724641953fb75db68508cc7186799bf5d6dcf",
+    "parts": "json_canonical:18e1de0124f966b6e63d5ad18a6e6d6ae3480ebdf4a9e94d8cc6c49846199995"
+   }
+  }
+ },
+ "reports": {
+  "verify_release": {
+   "path": "reports/verify_release.json",
+   "digest": "json_canonical:19daaaf0f198d53a1a76210eea1e8363a0bbd10691c3ea4bef5a5520e238925c",
+   "coverage": {
+    "strict": true,
+    "required": [
+     "check_return_path",
+     "check_current",
+     "check_decoupling",
+     "check_diffpair",
+     "check_creepage",
+     "check_thermal",
+     "check_silk",
+     "check_pdn"
+    ],
+    "ran": [
+     "check_return_path",
+     "check_current",
+     "check_decoupling",
+     "check_diffpair",
+     "check_creepage",
+     "check_thermal",
+     "check_silk",
+     "check_pdn"
+    ],
+    "passed": [
+     "check_return_path",
+     "check_current",
+     "check_decoupling",
+     "check_diffpair",
+     "check_creepage",
+     "check_thermal",
+     "check_silk",
+     "check_pdn"
+    ],
+    "failed": [],
+    "waived": [],
+    "not_applicable": {},
+    "skipped_error": {}
+   },
+   "waived_fingerprints": []
+  },
+  "dfm_release": {
+   "path": "reports/dfm_release.json",
+   "digest": "json_canonical:d35f73bdbf13a429c7799133a6bec3c81276a9b026f4f794f2867cd184b83062",
+   "coverage": {
+    "strict": true,
+    "required": [
+     "copper",
+     "copper_to_edge",
+     "drill",
+     "hole_to_edge",
+     "silk",
+     "polarity",
+     "bom",
+     "release"
+    ],
+    "ran": [
+     "copper",
+     "copper_to_edge",
+     "drill",
+     "hole_to_edge",
+     "silk",
+     "polarity",
+     "bom",
+     "release"
+    ],
+    "passed": [
+     "copper",
+     "copper_to_edge",
+     "drill",
+     "hole_to_edge",
+     "silk",
+     "polarity",
+     "bom",
+     "release"
+    ],
+    "failed": [],
+    "waived": [],
+    "not_applicable": {},
+    "skipped_error": {}
+   },
+   "waived_fingerprints": []
+  }
+ },
+ "waivers": {
+  "path": null,
+  "hash": null,
+  "count": 0,
+  "waived_fingerprints": []
+ },
+ "fab": {
+  "gerber_zip": {
+   "path": "fab/usb-buck_gerbers.zip",
+   "sha256": "b25f1a9cd034cedc3475c393cf4e7c6c6a5d3605a05b49f842aad5f4dd1ddfbe",
+   "design_sha256": "de54a44619e64f2c0071bc6bec6b3744acafd0b981884d48f22d2b432421be88"
+  },
+  "bom": {
+   "path": "fab/BOM.csv",
+   "hash": "text_eol:d17ee6f26f2af21d972506b5e1935cb9a34d4997709f25d12b7bb2303477bc9b"
+  },
+  "cpl": {
+   "path": "fab/CPL.csv",
+   "hash": "text_eol:5c25f2a50b9909613575d7c39f4d1d7c4e5e719c354f58968c2ac601b4e40bda"
+  },
+  "bom_full": {
+   "path": "fab/BOM-full.csv",
+   "hash": "text_eol:9f980b159dba221258dfc8e7155e32982137a52a42326c54d119fd1c8cb76ee6"
+  }
+ },
+ "manufacturing": {
+  "layers": 4,
+  "copper_weight_oz": 1.0,
+  "copper_weight_source": "stackups.yaml[JLC04161H-3313].stack[0].copper_oz",
+  "inner_copper_weight_oz": 0.5,
+  "thickness_mm": 1.6,
+  "surface_finish": null,
+  "solder_mask_color": null
+ },
+ "human_approvals": {
+  "1": {
+   "status": "approved",
+   "ts": "2026-07-28T02:13:09",
+   "note": "AUTO-approved per directive: 4L 40x30, ~$62-75/10 assembled, risks = sheet-name coupling (deliberate) + TVS VBUS clamp pin (re-opens at P3)"
+  },
+  "2": {
+   "status": "approved",
+   "ts": "2026-07-28T03:32:38",
+   "note": "AUTO per directive: ERC 0/0, audit pass, reviewer 0 err/2 warn both waived (erc-waivers.md: SW1 pairing bring-up check; USBLC6 clone VRWM order-time swap option)"
+  },
+  "3": {
+   "status": "approved",
+   "ts": "2026-07-28T04:18:31",
+   "note": "AUTO per directive; renders reports/place/render_final/; 3 refdes-legibility nits + J2-right-edge cost noted by agent, accepted"
+  },
+  "4": {
+   "status": "approved",
+   "ts": "2026-07-28T05:51:50",
+   "note": "AUTO per directive: verify 8/8 x2, drc_routed 0/0 x3; reviewer 1 err (J2 labels - FIXED via add_text, pin map from BOARD authority) + 4 warn (W3-W6 waived with notes); renders reports/render_labeled + reports/renders"
+  },
+  "5": {
+   "status": "approved",
+   "ts": "2026-07-28T05:56:50",
+   "note": "AUTO per directive: order.json ready_for_human; hand-solder + bring-up + swap-option steps folded into human_steps; payment never automated"
+  }
+ },
+ "known_restrictions": [],
+ "attestation_sha256": "1343e148507329d6f42497425796313675095faf90287635813515141905cf4a"
+}

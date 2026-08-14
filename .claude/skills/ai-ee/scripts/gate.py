@@ -47,6 +47,21 @@ U2 additions (codex C4):
    every applicable check must run, a missing input is a coverage failure
    (codex C7), and the gate refuses (exit 2) instead of grading a partial
    report.
+
+U5 additions (codex H9 - durable waivers):
+ - waiver matching hardened: a refs-scoped waiver never matches a refs-less
+   finding (the empty set was a subset of everything); a waiver may carry
+   `pos` [x, y] and then only matches findings within 0.01 mm of it.
+ - waiver entries may carry durability bindings - `artifact` (the report's
+   input_digest they were approved against), `checker_version` (checklib
+   stamp) and `expires` (ISO date). When present they are validated against
+   the report; a waiver whose binding no longer holds matches NOTHING and
+   is surfaced in the result as `waivers_invalid`.
+ - strict gates REQUIRE full durability on every waiver entry (exit 2
+   otherwise) - release waivers are evidence, not conveniences.
+ - the default verify sidecar resolution now also checks the board
+   WORKSPACE reports/ dir (releaselib.waivers_for_input; LEARNINGS
+   2026-08-08 - a waiver file in the obvious place was silently ignored).
 """
 from __future__ import annotations
 
@@ -61,6 +76,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import kc  # noqa: E402
 from lib import checklib  # noqa: E402
 from lib import env  # noqa: E402
+from lib import releaselib  # noqa: E402
 from lib import statelib  # noqa: E402
 
 import yaml  # noqa: E402
@@ -281,7 +297,12 @@ def load_waivers(path: Path) -> list[dict]:
 
 
 def waiver_matches(w: dict, v: dict) -> bool:
-    """Exact (check|kind) + net; refs subset when the waiver lists refs."""
+    """Exact (check|kind) + net; refs subset when the waiver lists refs -
+    but a refs-scoped waiver NEVER matches a refs-less finding (U5/H9: the
+    empty set is a subset of everything, so any ref-scoped waiver used to
+    swallow every anonymous finding of the same kind - the rf-de-20m
+    footgun). A waiver carrying `pos` additionally requires the finding to
+    sit within releaselib.POS_TOL_MM of it."""
     if w.get("check") and v.get("check") != w["check"] \
             and v.get("source") != w["check"]:
         return False
@@ -290,7 +311,19 @@ def waiver_matches(w: dict, v: dict) -> bool:
     if w.get("net") != v.get("net"):
         return False
     if w.get("refs"):
-        if not set(v.get("refs") or []) <= set(w["refs"]):
+        vrefs = set(v.get("refs") or [])
+        if not vrefs or not vrefs <= set(w["refs"]):
+            return False
+    if w.get("pos") is not None:
+        wp, vp = w["pos"], v.get("pos")
+        if not (isinstance(wp, (list, tuple)) and len(wp) >= 2
+                and isinstance(vp, (list, tuple)) and len(vp) >= 2):
+            return False
+        try:
+            if abs(float(wp[0]) - float(vp[0])) > releaselib.POS_TOL_MM \
+                    or abs(float(wp[1]) - float(vp[1])) > releaselib.POS_TOL_MM:
+                return False
+        except (TypeError, ValueError):
             return False
     return True
 
@@ -302,10 +335,32 @@ def evaluate(gate_name: str, gate: dict, report: dict,
     violations = report.get("violations", [])
     failing = [v for v in violations if v.get("severity") in fail_sev]
     waived = []
+    invalid_waivers = []
     if waivers:
+        if gate.get("strict"):
+            # U5/H9: release contexts accept DURABLE waivers only - every
+            # entry must bind artifact hash + checker version + expiry and
+            # all must validate against this report. Refuse, never grade.
+            dp = releaselib.durable_problems(waivers, report)
+            if dp:
+                raise RuntimeError(
+                    "strict gate refuses non-durable waivers: "
+                    + "; ".join(dp))
+        usable = []
+        for w in waivers:
+            probs = releaselib.waiver_validity(w, report)
+            if probs:
+                # a waiver whose bindings no longer hold does not match
+                # anything - surfaced, never silently applied
+                invalid_waivers.append(
+                    {"waiver": {k: w.get(k)
+                                for k in ("check", "kind", "net", "refs")},
+                     "problems": probs})
+            else:
+                usable.append(w)
         still = []
         for v in failing:
-            if any(waiver_matches(w, v) for w in waivers):
+            if any(waiver_matches(w, v) for w in usable):
                 waived.append(v)
             else:
                 still.append(v)
@@ -317,6 +372,11 @@ def evaluate(gate_name: str, gate: dict, report: dict,
         "phase": gate.get("phase"),
         "tool": gate.get("tool"),
         "input": report.get("input"),
+        # U5: the underlying report's stamped digest travels into the gate
+        # result so state.py record-gate can refuse a result that does not
+        # describe the CURRENT artifact (recording a stale/foreign result
+        # file as a fresh pass is exactly the C1 poison).
+        "input_digest": report.get("input_digest"),
         "status": "pass" if passed else "fail",
         "criteria": {"fail_severities": sorted(fail_sev), "max_count": max_count},
         "counts": report.get("counts", {}),
@@ -326,6 +386,8 @@ def evaluate(gate_name: str, gate: dict, report: dict,
     if waivers is not None:
         result["waived_count"] = len(waived)
         result["waived"] = waived
+        if invalid_waivers:
+            result["waivers_invalid"] = invalid_waivers
     cov = report.get("coverage")
     if cov is not None:
         # Deep-copy so the report object is never mutated. A check whose
@@ -499,9 +561,11 @@ def main(argv: list[str] | None = None) -> int:
         if args.waivers:
             waivers = load_waivers(Path(args.waivers))
         elif gate.get("tool") == "verify" and eff_input is not None:
-            sidecar = (Path(eff_input).parent / "reports"
-                       / "verify-waivers.json")
-            if sidecar.is_file():
+            # U5: shared resolution with attest - the input's own reports/
+            # dir first (T6 default), then the board workspace reports/ dir
+            # (the silently-ignored-waivers footgun, LEARNINGS 2026-08-08)
+            sidecar = releaselib.waivers_for_input(Path(eff_input))
+            if sidecar is not None:
                 waivers = load_waivers(sidecar)
 
         result = evaluate(args.gate, gate, report, waivers=waivers)

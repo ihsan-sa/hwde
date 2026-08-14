@@ -1,0 +1,114 @@
+{
+ "script": "dfm_check",
+ "status": "pass",
+ "board": "usb-buck.kicad_pcb",
+ "counts": {
+  "total": 1,
+  "by_severity": {
+   "warning": 1
+  },
+  "by_source": {
+   "check.dfm": 1
+  }
+ },
+ "violations": [
+  {
+   "check": "dfm",
+   "severity": "warning",
+   "pos": [
+    60.18,
+    32.6998
+   ],
+   "layer": "F.Silkscreen",
+   "net": null,
+   "refs": [],
+   "msg": "16 silk strokes below JLC minimum width 0.15 mm (narrowest 0.0600 mm) on F.Silkscreen",
+   "source": "check.dfm",
+   "items": [
+    {
+     "msg": "16 silk strokes below JLC minimum width 0.15 mm (narrowest 0.0600 mm) on F.Silkscreen",
+     "pos": [
+      60.18,
+      32.6998
+     ]
+    }
+   ],
+   "kind": "dfm_silk_width",
+   "width_mm": 0.06,
+   "min_mm": 0.15,
+   "count": 16
+  }
+ ],
+ "layers_present": [
+  "B.Cu",
+  "F.Cu",
+  "In1.Cu",
+  "In2.Cu",
+  "B.Mask",
+  "F.Mask",
+  "B.Silkscreen",
+  "F.Silkscreen"
+ ],
+ "n_holes": 50,
+ "missing_lcsc": [],
+ "unsourced": [],
+ "off_lcsc": [],
+ "missing_lcsc_unplaced": [],
+ "assembly_class_counts": {
+  "smt_placed": 28
+ },
+ "not_placed": [],
+ "polarity": {
+  "status": "checked",
+  "refs_checked": 28
+ },
+ "capability_key": "4layer_1oz",
+ "layer_count": 4,
+ "copper_oz": 1.0,
+ "copper_oz_source": "stackup",
+ "gerber_dir": "C:\\Users\\ihsan\\AppData\\Local\\Temp\\aiee_dfm_q2dl41ct\\fab\\gerbers",
+ "min_trace_width_mm": 0.2,
+ "min_hole_mm": 0.2,
+ "report_schema": 1,
+ "checker_version": 1,
+ "generated_at": "2026-08-14T18:31:50+00:00",
+ "input": "boards\\usb-buck\\kicad\\usb-buck.kicad_pcb",
+ "input_digest": "sexpr_no_uuid:8bb04ca94b8763d4179f62600a0714d4644ba2ed2164e048d031cfe513e7ba65",
+ "coverage": {
+  "strict": true,
+  "required": [
+   "copper",
+   "copper_to_edge",
+   "drill",
+   "hole_to_edge",
+   "silk",
+   "polarity",
+   "bom",
+   "release"
+  ],
+  "ran": [
+   "copper",
+   "copper_to_edge",
+   "drill",
+   "hole_to_edge",
+   "silk",
+   "polarity",
+   "bom",
+   "release"
+  ],
+  "passed": [
+   "copper",
+   "copper_to_edge",
+   "drill",
+   "hole_to_edge",
+   "silk",
+   "polarity",
+   "bom",
+   "release"
+  ],
+  "failed": [],
+  "waived": [],
+  "not_applicable": {},
+  "skipped_error": {}
+ }
+}

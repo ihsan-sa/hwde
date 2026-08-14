@@ -16,7 +16,7 @@
 \begin{center}
 {\LARGE\bfseries stm32-blinky --- Design Document}\\[6pt]
 {\large ai-ee v1 pipeline}\\[2pt]
-generated 2026-08-14 09:02:24
+generated 2026-08-14 13:59:08
 \end{center}
 \tableofcontents
 
@@ -32,7 +32,7 @@ workspace & \texttt{boards/stm32-blinky} \\
 phase & P10 \\
 gate status & all 5 recorded gates pass \\
 state created & 2026-07-27T16:26:45 \\
-state updated & 2026-08-07T01:58:03 \\
+state updated & 2026-08-14T10:38:35 \\
 \bottomrule
 \end{longtable}
 }
@@ -234,7 +234,7 @@ crystal/LED pins face left-top too, keeping the left half analog-quiet-ish).
 \end{itemize}
 Full architecture narrative (not inlined; see the artifact index): \texttt{architecture/blocks.md}, \texttt{architecture/decisions.md}, \texttt{architecture/power\_tree.md}, \texttt{architecture/stackup.md}.
 \section{Schematic}
-Gate \texttt{erc} (phase P4): \textbf{pass} after 2 attempt(s); last 2026-07-27T22:31:40, failing 0 of 0.
+Gate \texttt{erc} (phase P4): \textbf{pass} after 3 attempt(s); last 2026-08-14T10:05:48, failing 0 of 0.
 \subsection*{Review waivers}
 \subsection*{ERC/schematic review waivers (stm32-blinky)}
 W1 (reviewer warning 4, issue 4): "erc-pintypes-vacuous" - easyeda2kicad symbols carry mostly-passive pin types even after datasheet-driven retyping of supplies, so ERC's driver-conflict/float checks have reduced power on this board. Waived: connectivity was independently hand-verified by the adversarial reviewer against both datasheet extracts (all 9 supply pins, polarity, strapping). Tooling fix (retype at lib\_pull time, GPIOs as bidirectional) queued as S14 hardening item.
@@ -244,9 +244,9 @@ Note: reviewer warnings 2 (VDDA 1uF//10nF) and 3 (VDD\_3 bulk) were FIXED, not w
 The full schematic PDF follows.
 \includepdf[pages=-]{reports/schematic.pdf}
 \section{Layout}
-Gate \texttt{place} (phase P6): \textbf{pass} after 1 attempt(s); last 2026-07-27T23:51:53, failing 0 of 0.
+Gate \texttt{place} (phase P6): \textbf{pass} after 2 attempt(s); last 2026-08-14T10:38:08, failing 0 of 0.
 
-Gate \texttt{drc\_routed} (phase P8): \textbf{pass} after 3 attempt(s); last 2026-07-28T01:09:59, failing 0 of 0.
+Gate \texttt{drc\_routed} (phase P8): \textbf{pass} after 4 attempt(s); last 2026-08-14T10:38:31, failing 0 of 0.
 \begin{center}
 \includegraphics[width=0.72\textwidth]{reports/renders/stm32-blinky_top.png}\\
 {\small\texttt{reports/renders/stm32-blinky\_top.png}}
@@ -268,7 +268,7 @@ Gate \texttt{drc\_routed} (phase P8): \textbf{pass} after 3 attempt(s); last 202
 {\small\texttt{reports/layers/stm32-blinky\_layers.png}}
 \end{center}
 \section{Verification}
-Gate \texttt{verify} (phase P8): \textbf{pass} after 3 attempt(s); last 2026-07-28T01:10:00, failing 0 of 0.
+Gate \texttt{verify} (phase P8): \textbf{pass} after 4 attempt(s); last 2026-08-14T10:38:32, failing 0 of 5.
 \subsection*{Verification checks}
 {\small
 \begin{longtable}{llcp{6cm}}
@@ -402,7 +402,7 @@ footprint being band-on-pad-1, which lib\_pull pulled but no overlay
 confirmed.
 \end{itemize}
 \section{DFM and Fabrication}
-Gate \texttt{dfm} (phase P9): \textbf{pass} after 2 attempt(s); last 2026-07-28T01:25:18, failing 0 of 13.
+Gate \texttt{dfm} (phase P9): \textbf{pass} after 3 attempt(s); last 2026-08-14T10:38:35, failing 0 of 13.
 DFM findings by severity: warning: 13.
 \subsection*{Fabrication outputs}
 Exported layers: F.Cu, B.Cu, F.Silkscreen, B.Silkscreen, F.Mask, B.Mask, F.Paste, B.Paste, Edge.Cuts.
@@ -595,6 +595,11 @@ became a script/prompt/checkpoint fix. M5 bar (\textless{}=5) met.
 2026-07-28T01:10:00 & verify & pass & 0/0 \\
 2026-07-28T01:15:19 & dfm & fail & 14/16 \\
 2026-07-28T01:25:18 & dfm & pass & 0/13 \\
+2026-08-14T10:05:48 & erc & pass & 0/0 \\
+2026-08-14T10:38:08 & place & pass & 0/0 \\
+2026-08-14T10:38:31 & drc\_routed & pass & 0/0 \\
+2026-08-14T10:38:32 & verify & pass & 0/5 \\
+2026-08-14T10:38:35 & dfm & pass & 0/13 \\
 \bottomrule
 \end{longtable}
 }
@@ -639,7 +644,7 @@ became a script/prompt/checkpoint fix. M5 bar (\textless{}=5) met.
 \textbf{File} & \textbf{Size} & \textbf{Note} \\
 \midrule
 \endhead
-\texttt{state.json} & 27,805 B &  \\
+\texttt{state.json} & 33,592 B &  \\
 \texttt{kicad/stm32-blinky.kicad\_pcb} & 154,571 B &  \\
 \texttt{kicad/stm32-blinky.kicad\_sch} & 114,806 B &  \\
 \texttt{fab/stm32-blinky\_gerbers.zip} & 21,472 B & sha256 9a5604b0ab151805... \\
@@ -655,7 +660,8 @@ became a script/prompt/checkpoint fix. M5 bar (\textless{}=5) met.
 \texttt{architecture/sheets.md} & 3,742 B &  \\
 \texttt{architecture/stackup.md} & 1,577 B &  \\
 \texttt{reports/board\_init.json} & 9,575 B &  \\
-\texttt{reports/bom\_cpl.json} & 8,137 B &  \\
+\texttt{reports/bom\_cpl.json} & 12,275 B &  \\
+\texttt{reports/dfm\_release.json} & 10,600 B &  \\
 \texttt{reports/erc-waivers.md} & 725 B &  \\
 \texttt{reports/fab\_export.json} & 2,330 B &  \\
 \texttt{reports/fp\_C32713268\_HDR2P.overlay.svg} & 1,135 B &  \\
@@ -670,12 +676,12 @@ became a script/prompt/checkpoint fix. M5 bar (\textless{}=5) met.
 \texttt{reports/fp\_verify\_C8020.json} & 1,004 B &  \\
 \texttt{reports/fp\_verify\_C84256.json} & 844 B &  \\
 \texttt{reports/fp\_verify\_C8734.json} & 1,749 B &  \\
-\texttt{reports/gate-dfm.json} & 390 B &  \\
+\texttt{reports/gate-dfm.json} & 1,086 B &  \\
 \texttt{reports/gate-drc\_routed-a1.json} & 1,198 B &  \\
 \texttt{reports/gate-drc\_routed.json} & 407 B &  \\
-\texttt{reports/gate-erc.json} & 477 B &  \\
-\texttt{reports/gate-place.json} & 414 B &  \\
-\texttt{reports/gate-verify.json} & 632 B &  \\
+\texttt{reports/gate-erc.json} & 400 B &  \\
+\texttt{reports/gate-place.json} & 898 B &  \\
+\texttt{reports/gate-verify.json} & 1,475 B &  \\
 \texttt{reports/lib\_pull.json} & 5,129 B &  \\
 \texttt{reports/lib\_pull\_delta1.json} & 1,210 B &  \\
 \texttt{reports/review-board.json} & 3,084 B &  \\
@@ -686,6 +692,7 @@ became a script/prompt/checkpoint fix. M5 bar (\textless{}=5) met.
 \texttt{reports/schematic.pdf} & 80,389 B &  \\
 \texttt{reports/top.net} & 47,736 B &  \\
 \texttt{reports/verify\_all.json} & 2,147 B &  \\
+\texttt{reports/verify\_release.json} & 7,364 B &  \\
 \bottomrule
 \end{longtable}
 }

@@ -458,22 +458,34 @@ verbs:
             '\beta\b', '\bshipp(ed|ing)\b', '\bstatus\b']
     steps:
       - do: "scripts/state.py resume --workspace {ws}"
-        why: "STOP if any gate is stale or freshness-unknown: ordering a design
-              whose gates predate the last edit is the fab-truth failure class"
+        why: "STOP if any gate is stale or freshness-unknown, or if
+              release_disposition is not order-ready-shaped: phase P10 is
+              workflow position, never a release certificate (codex C1)"
       - do: "scripts/report_gen.py --workspace {ws}"
         why: "the design doc is what the human approves against"
       - do: "scripts/order_quote.py --pcb {pcb} --parts {parts} --qty {qty} --out {ws}/fab/quote.json"
         why: "estimated:true always - transcribed headline prices, never a quote"
+      - do: "scripts/attest.py build --workspace {ws} --out {reports}/attest.json"
+        why: "the release attestation (U5): refuses with the FULL problem list
+              unless every applicable gate is pass+fresh, strict
+              verify_release/dfm_release reports are current under DURABLE
+              waivers, H4 is approved and the fab package is bound. Ordering
+              consumes ONLY this attestation - fix what it lists, never route
+              around it."
       - do: "scripts/order_submit.py --pcb {pcb} --fab-dir {fab} --qty {qty} --out {ws}/fab/order.json"
-        why: "assembles the manifest + human_steps; with AIEE_JLCPCB_* creds
-              --api adds upload + API DFM audit + real calculate"
+        why: "assembles the manifest + human_steps; refuses a governed
+              workspace whose attestation is missing/invalid; with
+              AIEE_JLCPCB_* creds --api adds upload + API DFM audit + real
+              calculate at the ATTESTED manufacturing options"
       - human: 3
         why: "H5: quote row, API audit findings, order.json, human_steps (upload
               zip, JLCDFM second opinion, CPL polarity eyeball, pay)"
       - note: "Only AFTER approval, and only the orchestrator (never an agent):
                order_submit.py --api-create --confirm \"<board> <N>pcs <grand>\".
-               One latched order per workspace, design-hash bound. 4-layer boards
-               are the WEB path - the API refuses them."
+               One latched order per workspace, bound to the design hash AND the
+               attestation (a --copper-oz contradicting the attested value
+               refuses - the pd-trigger case). 4-layer boards are the WEB path -
+               the API refuses them."
       - recipe: track
         why: "poll status at checkpoints once an order exists"
 

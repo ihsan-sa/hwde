@@ -57,7 +57,7 @@ U11 later; U12 before order credentials; T11 on board arrival (not during U8).
 | U2 | Gate report validation + strict verify coverage (C4+C7) | **done** | 2026-08-14 |
 | U3 | BOM assembly classes + first-class DNP (H1, C9) | **done** | 2026-08-14 |
 | U4 | Knowledge library + trigger-keyed retrieval | **done** | 2026-08-14 |
-| U5 | Release attestation + durable waivers (C1+H9) | pending | - |
+| U5 | Release attestation + durable waivers (C1+H9) | **done** | 2026-08-14 |
 | U6 | Workspace learnings + promotion pass (H5; rf-de 66-entry queue) | **done** | 2026-08-14 |
 | U7 | Learning mode harness (learn verb + learner agent + graded fixtures) | pending | - |
 | U8 | Buck placement teaching cycle 1 (owner present) | pending | - |
@@ -3755,3 +3755,169 @@ and the re-rendered buck view).
 **New verify-later items:** none. (The queue mechanism is exercised end-to-end
 on a real backlog; what is NOT yet exercised is a run that captures entries as
 it goes - U10 is the first one that will.)
+
+## U5 - Release attestation + durable waivers (2026-08-14) - DONE
+
+**Built (codex C1 - attestation + derived disposition):**
+- `lib/releaselib.py` (toolchain-free) + `attest.py` (build | verify | disposition).
+  The attestation (`<ws>/fab/attestation.json`, self-sealed: sha256 over canonical JSON minus
+  the seal field) binds: normalized hashes of every invalidation.yaml artifact kind AT their
+  resolved paths (`input_paths` - a registry redirect invalidates) + architecture/stackup.md
+  (null recorded hashes are BINDING: a file appearing later invalidates); per-gate
+  {status, ts, failing_count, inputs} snapshots; the strict verify_release/dfm_release report
+  files (digest + U2 coverage + waived fingerprints); the waiver file hash; fab package hashes
+  (zip raw sha256 + fabhash design hash, BOM/CPL/BOM-full); manufacturing option VALUES
+  (layers from the pcb's own (layers) block, outer AND inner copper from the Chosen stackup -
+  inner selects a different JLC lamination family, thickness/finish/mask from quote spec);
+  the human-approvals dict; fab/restrictions.json entries.
+- Build refuses (exit 1, writes nothing, lists EVERY miss) unless: all applicable pipeline
+  gates (GATE_ORDER + sim when kicad/sims exists) recorded pass AND hash-fresh; NO recorded
+  gate failing anywhere; no artifact-level stale marks; no live issues; checkpoint 4 approved
+  (skip refuses); both strict reports validated (C4 validator) against the CURRENT pcb and
+  passing under DURABLE waivers with the CANONICAL gates.yaml (no criteria override exists);
+  fab package complete; copper + thickness (+ inner for 4L) derivable. NA declarations:
+  constraints.json release.not_applicable.<gate> {reason, approved}, allowed for `sim` ONLY.
+  Idempotent; --force reissues rev+1 with a supersedes chain.
+- verify (read-only) RE-DERIVES the required-check set instead of trusting the attestation's
+  own sections (see adversarial review below): full input coverage at attested paths, every
+  required gate bound + currently passing (and NO recorded gate failing, bound or not), both
+  strict reports bound AND RE-EVALUATED against the canonical criteria under durable waivers
+  (producer identity, schema, checker currency, input_digest vs current pcb; age only bounds
+  at build), fab package bound, H4 bound approved, checker_version current, restrictions
+  re-read (drift invalidates; a HOLD blocks), artifact stale marks, live issues, bound
+  approvals unchanged PLUS any post-attestation rejected checkpoint = human veto.
+- Derived disposition (never hand-set), worst-first: blocked (corrupt order.json/restrictions
+  = fail closed, ambiguous pcb/create attempt, escalated issue, hold restriction) >
+  rework-required (any recorded gate fail / open issues) > derated (derate restriction,
+  COPPER WAIVER order note, or api_quote copper_weight_source override) > bring-up-passed
+  (history event bringup_passed) > built (boards_received) > ordered > order-ready
+  (attestation verifies valid) > release-candidate (strict reports current+passing,
+  producer/checker checked) > engineering-validated > draft. `state.py resume` surfaces
+  `release_disposition` (+ `release_disposition_error` instead of swallowing failures).
+
+**Built (codex H9 - durable waivers):**
+- `checklib.CHECKER_VERSION` (=1) stamped into every report; a bump invalidates every durable
+  waiver AND every issued attestation until re-run + re-approved.
+- Waiver entries may bind {artifact: the report's input_digest, checker_version, expires,
+  pos [x,y]}; gate.evaluate validates bindings - an entry whose binding fails matches NOTHING
+  and surfaces in `waivers_invalid`. STRICT gates require full durability per entry (exit 2).
+  Matching hardened: a refs-scoped waiver never matches a refs-less finding (the
+  empty-set-subset poison, rf-de's documented footgun); optional pos scoping (0.01 mm).
+- Waiver sidecar resolution unified (releaselib.waivers_for_input, workspace reports/ FIRST)
+  across gate.py + attest, and invalidation.yaml's `waivers` kind now points at
+  `reports/verify-waivers.json` - gate freshness finally hashes the file gates actually APPLY
+  (rf-de's verify pass was never bound to its waiver file; its verify gate correctly reads
+  hash-stale now).
+- record-gate integrity tooth (hit LIVE this session): gate.py results carry the report's
+  stamped input_digest and state.record_gate REFUSES a mismatch vs the current primary input -
+  recording a stale/foreign result file can no longer bless a gate that never ran
+  (LEARNINGS 290; legacy digestless results still record, documented residual).
+
+**Built (order consumes ONLY the attestation):**
+- order_submit release_governance: fab dirs beside a state.json are GOVERNED. Plain run
+  without a valid attestation (or with disposition blocked) -> status not_order_ready, exit 1;
+  --api/--api-create refuse BEFORE any network call (exit 2). Valid attestation -> attested
+  manufacturing options are LAW and are FORCED into the priced spec (a spec that omits a value
+  cannot fall back to a different default): --copper-oz contradicting the attested value
+  REFUSES (the pd-trigger 1 oz case), spec conflicts refuse, and --api-create checks the
+  PAYLOAD's pcbParam fields (copperWeight, insideCuprumThickness, layer, thickness,
+  surfaceFinish, pcbColor) against the attestation plus the on-disk design hash. A corrupt
+  canonical order.json fails closed (it carries the created-latch) without rewriting the file.
+  Ungoverned bare fab dirs keep the legacy flow with an explicit UNGOVERNED human_steps
+  warning.
+- tasks.yaml `order` verb: attest.py build step before order_submit (U5's only tasks.yaml
+  edit per wave-2 ownership); recipes/order.md rewritten around the attestation; SKILL.md:
+  release-gate row + "phase is never a release certificate" pointer.
+
+**Reference migrations (codex board table):** stm32-blinky + usb-buck re-ran all five gates
+live (kicad-cli, recorded with v2 input hashes), strict verify_release (5 / 2 silk warnings,
+zero errors, full coverage) + dfm_release clean, BOM-full generated with BOM/CPL regen
+byte-identical to the shipped files, attestations issued (rev 2 after the review hardening) -
+both verify VALID, disposition order-ready; usb-buck's binds inner copper 0.5 oz
+(JLC04161H-3313 family). En route the place gate false-failed blinky (3 courtyard overlaps):
+placelib's effective-courtyard used the pad-field BBOX, which covers an LQFP's pad-free
+corners; measured pad gaps 0.66-1.82 mm (>= the S14 0.62 rule, KiCad-DRC clean). Fixed:
+pairwise overlap tests the PRECISE shape (declared courtyard UNION per-pad boxes,
+precise_extents_abs); extents_abs stays the conservative hull for containment/edges/keepouts/
+packing, so the annealer + bench baselines are untouched (LEARNINGS 291; place suites green).
+
+**Ultracode adversarial review (plan-mandated, T8 5-lens shape):** 5 lenses (bypass, binding,
+waivers, disposition, freshness) -> 28 deduped findings -> top 14 refuted by 2 independent
+refuters each (33 agents, ~2.9M tokens; probe-verified, several reproduced end-to-end on
+scratch copies of real boards). Verdicts: 11 confirmed (7 critical / 4 major), 2 split,
+1 refuted. ALL confirmed criticals/majors fixed same-session, each with a named test tooth
+in tests/test_attest.py:
+  1. Forged minimal attestation passed verify (seal = recomputable checksum; verify skipped
+     absent sections) -> verify re-derives the required set
+     (test_forged_minimal_attestation_refused).
+  2. attest build criteria override could seal a failing report; verify never re-evaluated ->
+     override REMOVED + verify re-evaluates canonically
+     (test_doctored_criteria_cannot_survive_verify).
+  3. create payload pcbParam unchecked beyond a wrong-field copper compare -> payload-level
+     manufacturing binding (test_create_payload_manufacturing_binding).
+  4. Post-attestation HOLD restriction blocked nothing -> verify re-reads restrictions, drift
+     invalidates, hold blocks, disposition blocked outranks a valid attestation
+     (test_hold_restriction_after_attestation_blocks).
+  5. Corrupt fab/order.json disarmed the created-latch and read order-ready -> fail closed
+     everywhere (test_corrupt_order_json_fails_closed, test_ambiguous_create_attempt_blocks).
+  6. Artifact-level stale marks ignored -> build + verify refuse
+     (test_artifact_stale_mark_blocks_build_and_verify).
+  7. thickness/finish/mask/inner unbound via editable quote.json + None-skipped guards ->
+     values bound + re-derived at verify, attested values forced into the spec, inner copper
+     derived from the stackup (test_quote_option_edit_invalidates).
+  8. H5 rejection after attestation invisible -> any post-attestation rejected checkpoint is
+     a veto (test_rejection_after_attestation_is_veto).
+  9. Registry redirect re-anchored verification -> attested input_paths bind
+     (test_registry_redirect_invalidates).
+  Plus from the backlog: a checker bump now invalidates issued attestations
+  (test_checker_bump_invalidates_attestation), release-candidate checks producer/checker
+  identity, disposition fails closed on malformed restrictions, resume surfaces disposition
+  errors, waiver freshness/application unified (above).
+Accepted with reasons (the T8 disposition rule): report execution authenticity is not
+cryptographically provable (no secret exists to MAC with on a single-operator local pipeline;
+the operator is the trust root - C4's scope is shape/currency validation, done); the
+ungoverned bare-fab-dir flow stays (external one-off packages; explicit human_steps warning
+added); record-gate's digest tooth is opt-out for LEGACY digestless results (closes as
+results regenerate; LEARNINGS 290); durable waivers do not force per-finding pos/refs
+fingerprints (class-scoped waivers are the owner's actual H4 pattern on rf-de - artifact +
+checker + expiry still bind them to an exact artifact state); record-gate binds the primary
+input's digest only and hashes at record time (the gate-then-record && convention covers the
+seam); --order-number web-order recording stays ungated (truth capture of an already-placed
+order); pos fingerprint float-boundary instability (fingerprints are attestation bookkeeping,
+never match keys).
+
+**Acceptance evidence:** tests/test_attest.py - 53 tests, hermetic (synthetic workspaces;
+real boards read-only). Plan criteria all pinned: lumina-carrier + rf-de-20m disposition
+rework-required AND attest build exit 1 naming the failing gates even with fresh dfm, nothing
+written; pd-trigger derated; a one-coordinate pcb nudge, a waiver edit, and a copper-weight
+change each invalidate; both reference attestations verify VALID against the committed tree
+(test_reference_attestations_verify_valid). Full suite after everything: 1 failed / 1675
+passed - the one failure is the standing AP63203 out-of-stock net test (attributed since U0).
+
+**Deviations (with reasons):**
+1. placelib precise-overlap fix + record-gate digest tooth are not in the plan text - both
+   were forced by the migration itself (a checker false-positive blocking the reference
+   attestation; a live state-poisoning slip); LEARNINGS 290/291 + triage rows.
+2. Disposition rungs built/bring-up-passed key off state history events (boards_received /
+   bringup_passed) that T11/U10 will write - no tracking surface exists for delivery (JLC
+   statuses end at Shipped).
+3. NA declarations allowed for sim only - erc/place/drc_routed/verify/dfm are never excusable
+   at release.
+4. surface_finish/solder_mask_color bind only when the workspace DECLARES them (quote spec):
+   the quote matrix deliberately enumerates HASL and ENIG rows, so an undeclared finish is an
+   order-time choice; a board REQUIRING a finish (rf-term ENIG class) must declare it in the
+   quote spec to bind it.
+
+**Interface notes for later steps:**
+- releaselib.disposition is the release truth surface - never read phase for release meaning.
+- invalidation.yaml `waivers` kind path moved to `reports/verify-waivers.json` (workspace);
+  gate.py default waiver resolution is workspace-first. rf-de's recorded verify gate is now
+  correctly hash-stale (its pass predates waiver binding).
+- attest.py has NO criteria override; gates.yaml is canonical for build AND verify.
+- Bump checklib.CHECKER_VERSION on any checker semantics change - it invalidates all durable
+  waivers AND all issued attestations by design.
+- gate results carry input_digest; state.record_gate refuses a mismatch when present.
+- U10/T11: log boards_received / bringup_passed history events to advance disposition; the
+  order verb's P10 now requires attest build green. U12 still owes C3/C5/C6.
+
+**New verify-later items:** none.

@@ -4198,3 +4198,28 @@ requires the verb be named in the playbook) while U5 was live in both. Two mecha
 Check before committing that your own hunk does not reference the other session's new files
 (`grep attest.py` here): a shared registry that names a script only they have makes YOUR commit
 internally inconsistent even though the working tree is green.
+
+## 2026-08-14 [state][gates][process] `state.py record-gate` blessed a result file the gate never produced - chain the run and the record, and bind the digest
+U5's reference-board migration hit this live: `gate.py` failed at IMPORT (a new lib module's
+dual-context import bug), wrote NO result file, and the follow-up `record-gate --result
+reports/gate-erc.json` happily recorded the OLD S14-era report - stamping it with FRESH input
+hashes computed from disk. The state then claimed "erc pass, hash-fresh" for a gate that never
+ran against the current tools. Two mechanisms now guard it: (1) gate.py results carry the
+underlying report's stamped `input_digest`, and record-gate REFUSES a digest that does not match
+the current primary input (legacy digestless results still record - the tooth grows as results
+regenerate); (2) operationally, always `gate.py ... && state.py record-gate ...` - the && is
+load-bearing, a separate record step after a failed run is exactly this trap.
+
+## 2026-08-14 [placement][geometry][gates] Effective-courtyard BBOX flags tight-but-legal decouplers - the LQFP pad-field bbox covers its pad-free corners
+Re-running the place gate on stm32-blinky (U5 migration) failed 3 courtyard_overlap errors
+(C1/C2/C3 vs U1, 0.25-2.03 mm2) on a board that shipped DRC-clean and passed this gate at S14.
+Not a board defect: `placelib._pad_box_local` returns the pad-field BOUNDING BOX (+0.25 mm), and
+an LQFP's bbox covers the pad-free corner/interior regions; T6's per-pad-rotation fix made the
+bbox truthful enough to reach the caps. Measured pad-to-pad gaps: 0.66-1.82 mm - all above the
+S14 rule (>= 0.62 mm) and KiCad-DRC clean. The tension is structural: check_decoupling DEMANDS
+caps within 2 mm of the IC while courtyard legality flagged exactly that placement. Fix shape,
+not thresholds: pairwise overlap now tests the PRECISE shape (declared courtyard UNION of
+per-pad boxes, `precise_extents_abs`) while `extents_abs` stays the conservative hull for
+containment/edges/keepouts/packing - covering more is safe there, it is the false-positive
+direction for part-vs-part overlap. The S14 shorting class (part ON pin tips) still overlaps the
+per-pad boxes. Bench-neutral by construction: the annealer packs against the unchanged hull.

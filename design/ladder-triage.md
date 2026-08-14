@@ -1,7 +1,7 @@
 # Knowledge ladder triage (T4, 2026-08-06; U0 sweep 2026-08-13; U6 2026-08-14)
 
-One row per `LEARNINGS.md` entry (289 of them; the last starts at
-line 4186), placed on the maturity ladder from
+One row per `LEARNINGS.md` entry (291 of them; the last starts at
+line 4213), placed on the maturity ladder from
 `design/routing-knowledge-notes.md` section 6, with the artifact that owns - or
 must own - it.
 
@@ -33,17 +33,17 @@ looking for the next promotion.
 
 ## Summary
 
-Recomputed from the table at U6 (2026-08-14), all 289 rows
+Recomputed from the table at U5+U6 (2026-08-14), all 291 rows
 (`learnings.py triage` prints these numbers - recompute rather than edit them):
 
 | Level | now | target |
 |---|---|---|
 | L0 | 108 | 10 |
 | L1 | 16 | 11 |
-| L2 | 46 | 99 |
+| L2 | 48 | 101 |
 | L3 | 119 | 169 |
 
-119 entries want to climb at least one level. Status: **done 145**,
+119 entries want to climb at least one level. Status: **done 147**,
 **open 120**, **n/a 6**, planned 18
 (T2 10, T8 1 - both shipped, those rows need re-reading; U2 2, U9 2,
 U3/U5/U8 1 each).
@@ -406,3 +406,5 @@ the row's Now level and status in the same commit as the code.
 | 287 | 4161 | A multi-line PLAIN YAML scalar breaks on ": " and on a "- " line - han | [yaml][process][learnings] | L0 | L0 | reference/recipes/promote.md | done | U6: the ruling-batch format is the one hand-authored YAML the skill invites, and the recipe now says prose goes in a `>-` block scalar. Generic YAML authoring beyond that cannot be linted from here - yaml.safe_load already errors loudly, which is how this was found |
 | 288 | 4174 | The recipe-doc flag lint re-attributes flags to a script named as an A | [tests][recipes][lint] | L0 | L2 | tests/test_task_router.py | open | The checker should skip a `.py` token in ARGUMENT position (immediately after a --flag) rather than treating it as a new command; same fix applies to the twin in test_remediations.py. Until then the doc convention is: a flag whose value is a script path goes last on its line |
 | 289 | 4186 | `git commit <pathspec>` RE-STAGES those paths - surgical index staging | [git][process][waves] | L0 | L1 | ai-ee-v3-plan.md | open | Extends 247. A pre-commit probe could compare `git diff --cached --name-only` against a per-session file list and warn on a path the session never edited - that is the L1 version. The plan's Conventions own the rule until then; the two mechanisms (hash-object + update-index, then a BARE git commit) are the part that is easy to get wrong |
+| 290 | 4202 | `state.py record-gate` blessed a result file the gate never produced | [state][gates][process] | L2 | L2 | scripts/state.py | done | U5: gate.py results carry the report's stamped input_digest and record_gate refuses a mismatch vs the current primary input (test_record_gate_refuses_stale_result_digest). Residual: legacy digestless result files still record - the hole closes as results regenerate; the operational && rule covers the gap |
+| 291 | 4213 | Effective-courtyard BBOX flags tight-but-legal decouplers - LQFP pad- | [placement][geometry][gates] | L2 | L2 | scripts/lib/placelib.py | done | U5: pairwise overlap tests the precise shape (courtyard UNION per-pad boxes, precise_extents_abs); extents_abs stays the conservative hull for containment/packing so the annealer and bench are untouched. Verified on stm32-blinky (3 false errors -> 0) with place suites green |

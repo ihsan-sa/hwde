@@ -1,0 +1,204 @@
+{
+ "script": "verify_all",
+ "board": "usb-buck.kicad_pcb",
+ "status": "violations",
+ "counts": {
+  "total": 2,
+  "by_severity": {
+   "warning": 2
+  },
+  "by_source": {
+   "check_silk": 2
+  },
+  "by_check": {
+   "check_return_path": 0,
+   "check_current": 0,
+   "check_decoupling": 0,
+   "check_diffpair": 0,
+   "check_creepage": 0,
+   "check_thermal": 0,
+   "check_silk": 2,
+   "check_pdn": 0
+  }
+ },
+ "checks": {
+  "check_return_path": {
+   "status": "pass",
+   "counts": {
+    "total": 0,
+    "by_severity": {},
+    "by_source": {}
+   },
+   "report": "C:\\Users\\ihsan\\AppData\\Local\\Temp\\claude\\C--dev-ai-ee3\\cf77e411-7daa-42e8-93a4-4e559350e963\\scratchpad\\vr-usbbuck\\check_return_path.json"
+  },
+  "check_current": {
+   "status": "pass",
+   "counts": {
+    "total": 0,
+    "by_severity": {},
+    "by_source": {}
+   },
+   "report": "C:\\Users\\ihsan\\AppData\\Local\\Temp\\claude\\C--dev-ai-ee3\\cf77e411-7daa-42e8-93a4-4e559350e963\\scratchpad\\vr-usbbuck\\check_current.json"
+  },
+  "check_decoupling": {
+   "status": "pass",
+   "counts": {
+    "total": 0,
+    "by_severity": {},
+    "by_source": {}
+   },
+   "report": "C:\\Users\\ihsan\\AppData\\Local\\Temp\\claude\\C--dev-ai-ee3\\cf77e411-7daa-42e8-93a4-4e559350e963\\scratchpad\\vr-usbbuck\\check_decoupling.json"
+  },
+  "check_diffpair": {
+   "status": "pass",
+   "counts": {
+    "total": 0,
+    "by_severity": {},
+    "by_source": {}
+   },
+   "report": "C:\\Users\\ihsan\\AppData\\Local\\Temp\\claude\\C--dev-ai-ee3\\cf77e411-7daa-42e8-93a4-4e559350e963\\scratchpad\\vr-usbbuck\\check_diffpair.json"
+  },
+  "check_creepage": {
+   "status": "pass",
+   "counts": {
+    "total": 0,
+    "by_severity": {},
+    "by_source": {}
+   },
+   "report": "C:\\Users\\ihsan\\AppData\\Local\\Temp\\claude\\C--dev-ai-ee3\\cf77e411-7daa-42e8-93a4-4e559350e963\\scratchpad\\vr-usbbuck\\check_creepage.json"
+  },
+  "check_thermal": {
+   "status": "pass",
+   "counts": {
+    "total": 0,
+    "by_severity": {},
+    "by_source": {}
+   },
+   "report": "C:\\Users\\ihsan\\AppData\\Local\\Temp\\claude\\C--dev-ai-ee3\\cf77e411-7daa-42e8-93a4-4e559350e963\\scratchpad\\vr-usbbuck\\check_thermal.json"
+  },
+  "check_silk": {
+   "status": "violations",
+   "counts": {
+    "total": 2,
+    "by_severity": {
+     "warning": 2
+    },
+    "by_source": {
+     "check_silk": 2
+    }
+   },
+   "report": "C:\\Users\\ihsan\\AppData\\Local\\Temp\\claude\\C--dev-ai-ee3\\cf77e411-7daa-42e8-93a4-4e559350e963\\scratchpad\\vr-usbbuck\\check_silk.json"
+  },
+  "check_pdn": {
+   "status": "pass",
+   "counts": {
+    "total": 0,
+    "by_severity": {},
+    "by_source": {}
+   },
+   "report": "C:\\Users\\ihsan\\AppData\\Local\\Temp\\claude\\C--dev-ai-ee3\\cf77e411-7daa-42e8-93a4-4e559350e963\\scratchpad\\vr-usbbuck\\check_pdn.json"
+  }
+ },
+ "coverage": {
+  "strict": true,
+  "required": [
+   "check_return_path",
+   "check_current",
+   "check_decoupling",
+   "check_diffpair",
+   "check_creepage",
+   "check_thermal",
+   "check_silk",
+   "check_pdn"
+  ],
+  "ran": [
+   "check_return_path",
+   "check_current",
+   "check_decoupling",
+   "check_diffpair",
+   "check_creepage",
+   "check_thermal",
+   "check_silk",
+   "check_pdn"
+  ],
+  "passed": [
+   "check_return_path",
+   "check_current",
+   "check_decoupling",
+   "check_diffpair",
+   "check_creepage",
+   "check_thermal",
+   "check_silk",
+   "check_pdn"
+  ],
+  "failed": [],
+  "waived": [],
+  "not_applicable": {},
+  "skipped_error": {}
+ },
+ "violations": [
+  {
+   "check": "check_silk",
+   "severity": "warning",
+   "pos": [
+    24.725,
+    18.55
+   ],
+   "layer": "F.SilkS",
+   "net": null,
+   "refs": [
+    "L1"
+   ],
+   "msg": "refdes \"L1\" sits 2.65 mm beyond its own pads and 0.80 mm from C4 - reads as C4's label; scripted fix: place_edit.py move_text",
+   "source": "check_silk",
+   "items": [
+    {
+     "msg": "refdes \"L1\" sits 2.65 mm beyond its own pads and 0.80 mm from C4 - reads as C4's label; scripted fix: place_edit.py move_text",
+     "pos": [
+      24.725,
+      18.55
+     ]
+    }
+   ],
+   "kind": "silk_misattributed",
+   "ref": "L1",
+   "offset_mm": 2.65,
+   "nearest_ref": "C4",
+   "nearest_mm": 0.8
+  },
+  {
+   "check": "check_silk",
+   "severity": "warning",
+   "pos": [
+    38.7,
+    42.275
+   ],
+   "layer": "F.SilkS",
+   "net": null,
+   "refs": [
+    "C18"
+   ],
+   "msg": "refdes \"C18\" sits 1.30 mm beyond its own pads and 0.92 mm from Y1 - reads as Y1's label; scripted fix: place_edit.py move_text",
+   "source": "check_silk",
+   "items": [
+    {
+     "msg": "refdes \"C18\" sits 1.30 mm beyond its own pads and 0.92 mm from Y1 - reads as Y1's label; scripted fix: place_edit.py move_text",
+     "pos": [
+      38.7,
+      42.275
+     ]
+    }
+   ],
+   "kind": "silk_misattributed",
+   "ref": "C18",
+   "offset_mm": 1.3,
+   "nearest_ref": "Y1",
+   "nearest_mm": 0.925
+  }
+ ],
+ "report_schema": 1,
+ "checker_version": 1,
+ "generated_at": "2026-08-14T18:31:47+00:00",
+ "input": "boards\\usb-buck\\kicad\\usb-buck.kicad_pcb",
+ "input_digest": "sexpr_no_uuid:8bb04ca94b8763d4179f62600a0714d4644ba2ed2164e048d031cfe513e7ba65"
+}
