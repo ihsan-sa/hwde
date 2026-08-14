@@ -1,0 +1,4564 @@
+{
+  "script": "gate",
+  "gate": "verify",
+  "phase": "P8",
+  "tool": "verify",
+  "input": "boards\\lumina-carrier\\kicad\\lumina-carrier.kicad_pcb",
+  "status": "fail",
+  "criteria": {
+    "fail_severities": [
+      "error"
+    ],
+    "max_count": 0
+  },
+  "counts": {
+    "total": 132,
+    "by_severity": {
+      "error": 108,
+      "warning": 24
+    },
+    "by_source": {
+      "check_return_path": 4,
+      "check_current": 94,
+      "check_decoupling": 2,
+      "check_diffpair": 1,
+      "check_creepage": 27,
+      "check_silk": 3,
+      "verify_all": 1
+    },
+    "by_check": {
+      "check_return_path": 4,
+      "check_current": 94,
+      "check_decoupling": 2,
+      "check_diffpair": 1,
+      "check_creepage": 27,
+      "check_thermal": 0,
+      "check_silk": 3,
+      "check_pdn": 0,
+      "verify_all": 1
+    }
+  },
+  "failing_count": 108,
+  "failing": [
+    {
+      "check": "check_return_path",
+      "severity": "error",
+      "pos": [
+        46.5452,
+        76.3209
+      ],
+      "layer": "In1.Cu",
+      "net": "/ETH_TXN",
+      "refs": [],
+      "msg": "return corridor of /ETH_TXN (F.Cu) leaves continuous GND copper on In1.Cu: 1.33 mm2 deficit, 0.72 mm of trace crossing",
+      "source": "check_return_path",
+      "items": [
+        {
+          "msg": "return corridor of /ETH_TXN (F.Cu) leaves continuous GND copper on In1.Cu: 1.33 mm2 deficit, 0.72 mm of trace crossing",
+          "pos": [
+            46.5452,
+            76.3209
+          ]
+        }
+      ],
+      "kind": "corridor_void",
+      "signal_layer": "F.Cu",
+      "reference_net": "GND",
+      "crossing_len_mm": 0.7169,
+      "area_mm2": 1.3327,
+      "polygon": [
+        [
+          46.252,
+          76.72
+        ],
+        [
+          46.324,
+          76.746
+        ],
+        [
+          46.398,
+          76.764
+        ],
+        [
+          46.474,
+          76.775
+        ],
+        [
+          46.55,
+          76.779
+        ],
+        [
+          47.533,
+          76.779
+        ],
+        [
+          47.531,
+          76.767
+        ],
+        [
+          47.474,
+          76.59
+        ],
+        [
+          47.47,
+          76.578
+        ],
+        [
+          47.47,
+          76.578
+        ],
+        [
+          47.408,
+          76.457
+        ],
+        [
+          47.38,
+          76.401
+        ],
+        [
+          47.263,
+          76.241
+        ],
+        [
+          47.122,
+          76.1
+        ],
+        [
+          46.962,
+          75.983
+        ],
+        [
+          46.915,
+          75.959
+        ],
+        [
+          46.785,
+          75.893
+        ],
+        [
+          46.785,
+          75.893
+        ],
+        [
+          46.596,
+          75.832
+        ],
+        [
+          46.497,
+          75.816
+        ],
+        [
+          46.399,
+          75.8
+        ],
+        [
+          46.201,
+          75.8
+        ],
+        [
+          46.154,
+          75.808
+        ],
+        [
+          46.004,
+          75.832
+        ],
+        [
+          45.815,
+          75.893
+        ],
+        [
+          45.815,
+          75.893
+        ],
+        [
+          45.638,
+          75.983
+        ],
+        [
+          45.518,
+          76.07
+        ],
+        [
+          45.999,
+          76.551
+        ],
+        [
+          46.056,
+          76.602
+        ],
+        [
+          46.117,
+          76.648
+        ],
+        [
+          46.183,
+          76.687
+        ],
+        [
+          46.252,
+          76.72
+        ]
+      ]
+    },
+    {
+      "check": "check_return_path",
+      "severity": "error",
+      "pos": [
+        46.3011,
+        77.4743
+      ],
+      "layer": "In1.Cu",
+      "net": "/ETH_RXP",
+      "refs": [],
+      "msg": "return corridor of /ETH_RXP (F.Cu) leaves continuous GND copper on In1.Cu: 2.09 mm2 deficit, 2.04 mm of trace crossing",
+      "source": "check_return_path",
+      "items": [
+        {
+          "msg": "return corridor of /ETH_RXP (F.Cu) leaves continuous GND copper on In1.Cu: 2.09 mm2 deficit, 2.04 mm of trace crossing",
+          "pos": [
+            46.3011,
+            77.4743
+          ]
+        }
+      ],
+      "kind": "corridor_void",
+      "signal_layer": "F.Cu",
+      "reference_net": "GND",
+      "crossing_len_mm": 2.0426,
+      "area_mm2": 2.0888,
+      "polygon": [
+        [
+          45.101,
+          77.523
+        ],
+        [
+          45.14,
+          77.568
+        ],
+        [
+          45.22,
+          77.725
+        ],
+        [
+          45.337,
+          77.885
+        ],
+        [
+          45.478,
+          78.026
+        ],
+        [
+          45.638,
+          78.143
+        ],
+        [
+          45.72,
+          78.184
+        ],
+        [
+          45.815,
+          78.233
+        ],
+        [
+          45.815,
+          78.233
+        ],
+        [
+          45.91,
+          78.264
+        ],
+        [
+          46.004,
+          78.294
+        ],
+        [
+          46.201,
+          78.326
+        ],
+        [
+          46.201,
+          78.326
+        ],
+        [
+          46.399,
+          78.326
+        ],
+        [
+          46.399,
+          78.326
+        ],
+        [
+          46.596,
+          78.294
+        ],
+        [
+          46.778,
+          78.235
+        ],
+        [
+          46.785,
+          78.233
+        ],
+        [
+          46.785,
+          78.233
+        ],
+        [
+          46.962,
+          78.143
+        ],
+        [
+          47.122,
+          78.026
+        ],
+        [
+          47.227,
+          77.921
+        ],
+        [
+          47.263,
+          77.885
+        ],
+        [
+          47.38,
+          77.725
+        ],
+        [
+          47.47,
+          77.548
+        ],
+        [
+          47.511,
+          77.421
+        ],
+        [
+          46.272,
+          77.421
+        ],
+        [
+          46.226,
+          77.404
+        ],
+        [
+          46.169,
+          77.39
+        ],
+        [
+          46.148,
+          77.38
+        ],
+        [
+          46.123,
+          77.371
+        ],
+        [
+          45.651,
+          76.899
+        ],
+        [
+          45.594,
+          76.848
+        ],
+        [
+          45.533,
+          76.802
+        ],
+        [
+          45.467,
+          76.763
+        ],
+        [
+          45.398,
+          76.73
+        ],
+        [
+          45.326,
+          76.704
+        ],
+        [
+          45.252,
+          76.686
+        ],
+        [
+          45.176,
+          76.675
+        ],
+        [
+          45.115,
+          76.672
+        ],
+        [
+          45.124,
+          76.698
+        ],
+        [
+          45.16,
+          76.879
+        ],
+        [
+          45.172,
+          77.063
+        ],
+        [
+          45.16,
+          77.247
+        ],
+        [
+          45.124,
+          77.428
+        ],
+        [
+          45.093,
+          77.52
+        ],
+        [
+          45.101,
+          77.523
+        ]
+      ]
+    },
+    {
+      "check": "check_return_path",
+      "severity": "error",
+      "pos": [
+        42.65,
+        76.9035
+      ],
+      "layer": "In1.Cu",
+      "net": "/ETH_RXN",
+      "refs": [],
+      "msg": "return corridor of /ETH_RXN (F.Cu) leaves continuous GND copper on In1.Cu: 5.56 mm2 deficit, 3.62 mm of trace crossing",
+      "source": "check_return_path",
+      "items": [
+        {
+          "msg": "return corridor of /ETH_RXN (F.Cu) leaves continuous GND copper on In1.Cu: 5.56 mm2 deficit, 3.62 mm of trace crossing",
+          "pos": [
+            42.65,
+            76.9035
+          ]
+        }
+      ],
+      "kind": "corridor_void",
+      "signal_layer": "F.Cu",
+      "reference_net": "GND",
+      "crossing_len_mm": 3.6167,
+      "area_mm2": 5.5581,
+      "polygon": [
+        [
+          41.033,
+          76.637
+        ],
+        [
+          41.102,
+          76.67
+        ],
+        [
+          41.174,
+          76.696
+        ],
+        [
+          41.248,
+          76.714
+        ],
+        [
+          41.324,
+          76.725
+        ],
+        [
+          41.4,
+          76.729
+        ],
+        [
+          41.871,
+          76.729
+        ],
+        [
+          41.871,
+          77.3
+        ],
+        [
+          41.875,
+          77.376
+        ],
+        [
+          41.886,
+          77.452
+        ],
+        [
+          41.904,
+          77.526
+        ],
+        [
+          41.93,
+          77.598
+        ],
+        [
+          41.94,
+          77.619
+        ],
+        [
+          41.954,
+          77.676
+        ],
+        [
+          41.98,
+          77.748
+        ],
+        [
+          42.013,
+          77.817
+        ],
+        [
+          42.028,
+          77.843
+        ],
+        [
+          42.03,
+          77.848
+        ],
+        [
+          42.063,
+          77.917
+        ],
+        [
+          42.078,
+          77.943
+        ],
+        [
+          42.08,
+          77.948
+        ],
+        [
+          42.093,
+          77.975
+        ],
+        [
+          42.183,
+          77.885
+        ],
+        [
+          42.3,
+          77.725
+        ],
+        [
+          42.38,
+          77.568
+        ],
+        [
+          42.427,
+          77.517
+        ],
+        [
+          42.495,
+          77.501
+        ],
+        [
+          42.561,
+          77.523
+        ],
+        [
+          42.6,
+          77.568
+        ],
+        [
+          42.68,
+          77.725
+        ],
+        [
+          42.797,
+          77.885
+        ],
+        [
+          42.938,
+          78.026
+        ],
+        [
+          43.098,
+          78.143
+        ],
+        [
+          43.18,
+          78.184
+        ],
+        [
+          43.275,
+          78.233
+        ],
+        [
+          43.275,
+          78.233
+        ],
+        [
+          43.37,
+          78.264
+        ],
+        [
+          43.464,
+          78.294
+        ],
+        [
+          43.661,
+          78.326
+        ],
+        [
+          43.661,
+          78.326
+        ],
+        [
+          43.859,
+          78.326
+        ],
+        [
+          43.859,
+          78.326
+        ],
+        [
+          44.056,
+          78.294
+        ],
+        [
+          44.238,
+          78.235
+        ],
+        [
+          44.245,
+          78.233
+        ],
+        [
+          44.245,
+          78.233
+        ],
+        [
+          44.422,
+          78.143
+        ],
+        [
+          44.582,
+          78.026
+        ],
+        [
+          44.723,
+          77.885
+        ],
+        [
+          44.84,
+          77.725
+        ],
+        [
+          44.92,
+          77.568
+        ],
+        [
+          44.967,
+          77.517
+        ],
+        [
+          45.035,
+          77.501
+        ],
+        [
+          45.101,
+          77.523
+        ],
+        [
+          45.14,
+          77.568
+        ],
+        [
+          45.22,
+          77.725
+        ],
+        [
+          45.337,
+          77.885
+        ],
+        [
+          45.478,
+          78.026
+        ],
+        [
+          45.638,
+          78.143
+        ],
+        [
+          45.72,
+          78.184
+        ],
+        [
+          45.815,
+          78.233
+        ],
+        [
+          45.815,
+          78.233
+        ],
+        [
+          45.91,
+          78.264
+        ],
+        [
+          46.004,
+          78.294
+        ],
+        [
+          46.201,
+          78.326
+        ],
+        [
+          46.201,
+          78.326
+        ],
+        [
+          46.399,
+          78.326
+        ],
+        [
+          46.399,
+          78.326
+        ],
+        [
+          46.596,
+          78.294
+        ],
+        [
+          46.778,
+          78.235
+        ],
+        [
+          46.785,
+          78.233
+        ],
+        [
+          46.785,
+          78.233
+        ],
+        [
+          46.962,
+          78.143
+        ],
+        [
+          47.122,
+          78.026
+        ],
+        [
+          47.227,
+          77.921
+        ],
+        [
+          47.228,
+          77.921
+        ],
+        [
+          46.222,
+          77.921
+        ],
+        [
+          46.176,
+          77.904
+        ],
+        [
+          46.119,
+          77.89
+        ],
+        [
+          46.098,
+          77.88
+        ],
+        [
+          46.026,
+          77.854
+        ],
+        [
+          45.969,
+          77.84
+        ],
+        [
+          45.948,
+          77.83
+        ],
+        [
+          45.895,
+          77.811
+        ],
+        [
+          45.883,
+          77.802
+        ],
+        [
+          45.817,
+          77.763
+        ],
+        [
+          45.812,
+          77.761
+        ],
+        [
+          45.701,
+          77.649
+        ],
+        [
+          45.644,
+          77.598
+        ],
+        [
+          45.583,
+          77.552
+        ],
+        [
+          45.517,
+          77.513
+        ],
+        [
+          45.448,
+          77.48
+        ],
+        [
+          45.376,
+          77.454
+        ],
+        [
+          45.302,
+          77.436
+        ],
+        [
+          45.226,
+          77.425
+        ],
+        [
+          45.15,
+          77.421
+        ],
+        [
+          43.922,
+          77.421
+        ],
+        [
+          43.876,
+          77.404
+        ],
+        [
+          43.802,
+          77.386
+        ],
+        [
+          43.726,
+          77.375
+        ],
+        [
+          43.676,
+          77.372
+        ],
+        [
+          43.626,
+          77.354
+        ],
+        [
+          43.6,
+          77.348
+        ],
+        [
+          43.489,
+          77.238
+        ],
+        [
+          43.487,
+          77.233
+        ],
+        [
+          43.472,
+          77.207
+        ],
+        [
+          43.47,
+          77.202
+        ],
+        [
+          43.46,
+          77.181
+        ],
+        [
+          43.446,
+          77.124
+        ],
+        [
+          43.429,
+          77.078
+        ],
+        [
+          43.429,
+          76.0
+        ],
+        [
+          43.425,
+          75.924
+        ],
+        [
+          43.414,
+          75.848
+        ],
+        [
+          43.414,
+          75.848
+        ],
+        [
+          43.275,
+          75.893
+        ],
+        [
+          43.275,
+          75.893
+        ],
+        [
+          43.098,
+          75.983
+        ],
+        [
+          42.938,
+          76.1
+        ],
+        [
+          42.797,
+          76.241
+        ],
+        [
+          42.68,
+          76.401
+        ],
+        [
+          42.6,
+          76.558
+        ],
+        [
+          42.553,
+          76.609
+        ],
+        [
+          42.485,
+          76.625
+        ],
+        [
+          42.419,
+          76.603
+        ],
+        [
+          42.38,
+          76.558
+        ],
+        [
+          42.328,
+          76.457
+        ],
+        [
+          42.3,
+          76.401
+        ],
+        [
+          42.183,
+          76.241
+        ],
+        [
+          42.042,
+          76.1
+        ],
+        [
+          41.882,
+          75.983
+        ],
+        [
+          41.835,
+          75.959
+        ],
+        [
+          41.705,
+          75.893
+        ],
+        [
+          41.705,
+          75.893
+        ],
+        [
+          41.516,
+          75.832
+        ],
+        [
+          41.417,
+          75.816
+        ],
+        [
+          41.319,
+          75.8
+        ],
+        [
+          41.121,
+          75.8
+        ],
+        [
+          41.074,
+          75.808
+        ],
+        [
+          40.924,
+          75.832
+        ],
+        [
+          40.735,
+          75.893
+        ],
+        [
+          40.735,
+          75.893
+        ],
+        [
+          40.558,
+          75.983
+        ],
+        [
+          40.427,
+          76.079
+        ],
+        [
+          40.849,
+          76.501
+        ],
+        [
+          40.906,
+          76.552
+        ],
+        [
+          40.967,
+          76.598
+        ],
+        [
+          41.033,
+          76.637
+        ]
+      ]
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        40.5337,
+        94.375
+      ],
+      "layer": "F.Cu",
+      "net": "V48_RAW",
+      "refs": [],
+      "msg": "V48_RAW track 0.400 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "V48_RAW track 0.400 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            40.5337,
+            94.375
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.4,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          39.93,
+          94.375
+        ],
+        "end": [
+          41.1375,
+          94.375
+        ]
+      },
+      "bridge": true
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        39.93,
+        95.35
+      ],
+      "layer": "F.Cu",
+      "net": "V48_RAW",
+      "refs": [],
+      "msg": "V48_RAW track 0.400 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "V48_RAW track 0.400 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            39.93,
+            95.35
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.4,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          39.93,
+          96.325
+        ],
+        "end": [
+          39.93,
+          94.375
+        ]
+      },
+      "bridge": true
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        40.5337,
+        96.325
+      ],
+      "layer": "F.Cu",
+      "net": "V48_RAW",
+      "refs": [],
+      "msg": "V48_RAW track 0.400 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "V48_RAW track 0.400 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            40.5337,
+            96.325
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.4,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          41.1375,
+          96.325
+        ],
+        "end": [
+          39.93,
+          96.325
+        ]
+      },
+      "bridge": true
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        41.1375,
+        94.05
+      ],
+      "layer": "F.Cu",
+      "net": "V48_RAW",
+      "refs": [],
+      "msg": "V48_RAW track 0.400 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "V48_RAW track 0.400 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            41.1375,
+            94.05
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.4,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          41.1375,
+          93.725
+        ],
+        "end": [
+          41.1375,
+          94.375
+        ]
+      },
+      "bridge": true
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        36.35,
+        96.0
+      ],
+      "layer": null,
+      "net": "V48_RAW",
+      "refs": [],
+      "msg": "V48_RAW layer transition at (36.35, 96.00) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "V48_RAW layer transition at (36.35, 96.00) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+          "pos": [
+            36.35,
+            96.0
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 2
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        41.15,
+        93.4818
+      ],
+      "layer": null,
+      "net": "V48_RAW",
+      "refs": [],
+      "msg": "V48_RAW layer transition at (41.15, 93.48) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "V48_RAW layer transition at (41.15, 93.48) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+          "pos": [
+            41.15,
+            93.4818
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 2
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        27.45,
+        90.6
+      ],
+      "layer": null,
+      "net": "V48_RAW",
+      "refs": [],
+      "msg": "V48_RAW layer transition at (27.45, 90.60) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "V48_RAW layer transition at (27.45, 90.60) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+          "pos": [
+            27.45,
+            90.6
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 2
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        25.65,
+        95.15
+      ],
+      "layer": null,
+      "net": "V48_RAW",
+      "refs": [],
+      "msg": "V48_RAW layer transition at (25.65, 95.15) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "V48_RAW layer transition at (25.65, 95.15) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+          "pos": [
+            25.65,
+            95.15
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 2
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        25.6,
+        92.5
+      ],
+      "layer": null,
+      "net": "V48_RAW",
+      "refs": [],
+      "msg": "V48_RAW layer transition at (25.60, 92.50) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "V48_RAW layer transition at (25.60, 92.50) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+          "pos": [
+            25.6,
+            92.5
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 2
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        38.0,
+        93.5
+      ],
+      "layer": null,
+      "net": "V48_RAW",
+      "refs": [],
+      "msg": "V48_RAW layer transition at (38.00, 93.50) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "V48_RAW layer transition at (38.00, 93.50) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+          "pos": [
+            38.0,
+            93.5
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 2
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        44.4,
+        87.3
+      ],
+      "layer": null,
+      "net": "V48_RTN",
+      "refs": [],
+      "msg": "V48_RTN layer transition at (44.40, 87.30) has 1 via(s); 0.60 A needs 2 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "V48_RTN layer transition at (44.40, 87.30) has 1 via(s); 0.60 A needs 2 (>= 1 via per 0.5 A)",
+          "pos": [
+            44.4,
+            87.3
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 2
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        41.1,
+        87.3
+      ],
+      "layer": null,
+      "net": "V48_RTN",
+      "refs": [],
+      "msg": "V48_RTN layer transition at (41.10, 87.30) has 1 via(s); 0.60 A needs 2 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "V48_RTN layer transition at (41.10, 87.30) has 1 via(s); 0.60 A needs 2 (>= 1 via per 0.5 A)",
+          "pos": [
+            41.1,
+            87.3
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 2
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        48.925,
+        99.075
+      ],
+      "layer": "F.Cu",
+      "net": "+48V_SW",
+      "refs": [],
+      "msg": "+48V_SW track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+48V_SW track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            48.925,
+            99.075
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.2,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          50.45,
+          97.55
+        ],
+        "end": [
+          47.4,
+          100.6
+        ]
+      },
+      "bridge": true
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        37.0,
+        112.35
+      ],
+      "layer": "F.Cu",
+      "net": "+48V_SW",
+      "refs": [],
+      "msg": "+48V_SW track 0.390 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+48V_SW track 0.390 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            37.0,
+            112.35
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.39,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          37.7,
+          111.65
+        ],
+        "end": [
+          36.3,
+          113.05
+        ]
+      },
+      "bridge": true
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        46.8625,
+        94.05
+      ],
+      "layer": "F.Cu",
+      "net": "+48V_SW",
+      "refs": [],
+      "msg": "+48V_SW track 0.400 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+48V_SW track 0.400 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            46.8625,
+            94.05
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.4,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          46.8625,
+          93.725
+        ],
+        "end": [
+          46.8625,
+          94.375
+        ]
+      },
+      "bridge": true
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        36.175,
+        113.125
+      ],
+      "layer": "F.Cu",
+      "net": "+48V_SW",
+      "refs": [],
+      "msg": "+48V_SW track 0.410 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+48V_SW track 0.410 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            36.175,
+            113.125
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.41,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          36.25,
+          113.05
+        ],
+        "end": [
+          36.1,
+          113.2
+        ]
+      },
+      "bridge": false
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        36.275,
+        113.05
+      ],
+      "layer": "F.Cu",
+      "net": "+48V_SW",
+      "refs": [],
+      "msg": "+48V_SW track 0.410 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+48V_SW track 0.410 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            36.275,
+            113.05
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.41,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          36.3,
+          113.05
+        ],
+        "end": [
+          36.25,
+          113.05
+        ]
+      },
+      "bridge": false
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        65.35,
+        111.95
+      ],
+      "layer": "F.Cu",
+      "net": "+12V",
+      "refs": [],
+      "msg": "+12V track 1.000 mm wide on F.Cu; IPC-2152 needs 1.100 mm for 2.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+12V track 1.000 mm wide on F.Cu; IPC-2152 needs 1.100 mm for 2.00 A at dT=10C",
+          "pos": [
+            65.35,
+            111.95
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 1.0,
+      "required_mm": 1.1,
+      "current_a": 2.0,
+      "segment": {
+        "start": [
+          65.3,
+          112.0
+        ],
+        "end": [
+          65.4,
+          111.9
+        ]
+      },
+      "bridge": false
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        63.325,
+        113.0
+      ],
+      "layer": "F.Cu",
+      "net": "+12V",
+      "refs": [],
+      "msg": "+12V track 0.810 mm wide on F.Cu; IPC-2152 needs 1.100 mm for 2.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+12V track 0.810 mm wide on F.Cu; IPC-2152 needs 1.100 mm for 2.00 A at dT=10C",
+          "pos": [
+            63.325,
+            113.0
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.81,
+      "required_mm": 1.1,
+      "current_a": 2.0,
+      "segment": {
+        "start": [
+          62.65,
+          113.0
+        ],
+        "end": [
+          64.0,
+          113.0
+        ]
+      },
+      "bridge": true
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        67.75,
+        113.825
+      ],
+      "layer": "F.Cu",
+      "net": "+12V",
+      "refs": [],
+      "msg": "+12V track 0.250 mm wide on F.Cu; IPC-2152 needs 1.100 mm for 2.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+12V track 0.250 mm wide on F.Cu; IPC-2152 needs 1.100 mm for 2.00 A at dT=10C",
+          "pos": [
+            67.75,
+            113.825
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.25,
+      "required_mm": 1.1,
+      "current_a": 2.0,
+      "segment": {
+        "start": [
+          67.75,
+          113.45
+        ],
+        "end": [
+          67.75,
+          114.2
+        ]
+      },
+      "bridge": true
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        65.3063,
+        112.0062
+      ],
+      "layer": "F.Cu",
+      "net": "+12V",
+      "refs": [],
+      "msg": "+12V track 0.970 mm wide on F.Cu; IPC-2152 needs 1.100 mm for 2.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+12V track 0.970 mm wide on F.Cu; IPC-2152 needs 1.100 mm for 2.00 A at dT=10C",
+          "pos": [
+            65.3063,
+            112.0062
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.97,
+      "required_mm": 1.1,
+      "current_a": 2.0,
+      "segment": {
+        "start": [
+          65.3125,
+          112.0125
+        ],
+        "end": [
+          65.3,
+          112.0
+        ]
+      },
+      "bridge": false
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        67.05,
+        112.75
+      ],
+      "layer": "F.Cu",
+      "net": "+12V",
+      "refs": [],
+      "msg": "+12V track 0.200 mm wide on F.Cu; IPC-2152 needs 1.100 mm for 2.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+12V track 0.200 mm wide on F.Cu; IPC-2152 needs 1.100 mm for 2.00 A at dT=10C",
+          "pos": [
+            67.05,
+            112.75
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.2,
+      "required_mm": 1.1,
+      "current_a": 2.0,
+      "segment": {
+        "start": [
+          66.35,
+          112.05
+        ],
+        "end": [
+          67.75,
+          113.45
+        ]
+      },
+      "bridge": true
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        65.2,
+        111.9
+      ],
+      "layer": "F.Cu",
+      "net": "+12V",
+      "refs": [],
+      "msg": "+12V track 0.900 mm wide on F.Cu; IPC-2152 needs 1.100 mm for 2.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+12V track 0.900 mm wide on F.Cu; IPC-2152 needs 1.100 mm for 2.00 A at dT=10C",
+          "pos": [
+            65.2,
+            111.9
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.9,
+      "required_mm": 1.1,
+      "current_a": 2.0,
+      "segment": {
+        "start": [
+          65.05,
+          111.75
+        ],
+        "end": [
+          65.35,
+          112.05
+        ]
+      },
+      "bridge": false
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        67.7,
+        119.875
+      ],
+      "layer": "F.Cu",
+      "net": "+12V",
+      "refs": [],
+      "msg": "+12V track 0.620 mm wide on F.Cu; IPC-2152 needs 1.100 mm for 2.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+12V track 0.620 mm wide on F.Cu; IPC-2152 needs 1.100 mm for 2.00 A at dT=10C",
+          "pos": [
+            67.7,
+            119.875
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.62,
+      "required_mm": 1.1,
+      "current_a": 2.0,
+      "segment": {
+        "start": [
+          67.7,
+          114.25
+        ],
+        "end": [
+          67.7,
+          125.5
+        ]
+      },
+      "bridge": true
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        67.725,
+        114.225
+      ],
+      "layer": "F.Cu",
+      "net": "+12V",
+      "refs": [],
+      "msg": "+12V track 0.620 mm wide on F.Cu; IPC-2152 needs 1.100 mm for 2.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+12V track 0.620 mm wide on F.Cu; IPC-2152 needs 1.100 mm for 2.00 A at dT=10C",
+          "pos": [
+            67.725,
+            114.225
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.62,
+      "required_mm": 1.1,
+      "current_a": 2.0,
+      "segment": {
+        "start": [
+          67.75,
+          114.2
+        ],
+        "end": [
+          67.7,
+          114.25
+        ]
+      },
+      "bridge": false
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        64.0,
+        111.85
+      ],
+      "layer": "F.Cu",
+      "net": "+12V",
+      "refs": [],
+      "msg": "+12V track 0.810 mm wide on F.Cu; IPC-2152 needs 1.100 mm for 2.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+12V track 0.810 mm wide on F.Cu; IPC-2152 needs 1.100 mm for 2.00 A at dT=10C",
+          "pos": [
+            64.0,
+            111.85
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.81,
+      "required_mm": 1.1,
+      "current_a": 2.0,
+      "segment": {
+        "start": [
+          64.0,
+          113.0
+        ],
+        "end": [
+          64.0,
+          110.7
+        ]
+      },
+      "bridge": true
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        71.2,
+        128.2
+      ],
+      "layer": null,
+      "net": "+12V",
+      "refs": [],
+      "msg": "+12V layer transition at (71.20, 128.20) has 1 via(s); 2.00 A needs 4 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+12V layer transition at (71.20, 128.20) has 1 via(s); 2.00 A needs 4 (>= 1 via per 0.5 A)",
+          "pos": [
+            71.2,
+            128.2
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 4
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        54.25,
+        110.5
+      ],
+      "layer": null,
+      "net": "+12V",
+      "refs": [],
+      "msg": "+12V layer transition at (54.25, 110.50) has 1 via(s); 2.00 A needs 4 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+12V layer transition at (54.25, 110.50) has 1 via(s); 2.00 A needs 4 (>= 1 via per 0.5 A)",
+          "pos": [
+            54.25,
+            110.5
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 4
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        31.75,
+        118.0
+      ],
+      "layer": null,
+      "net": "+12V",
+      "refs": [],
+      "msg": "+12V layer transition at (31.75, 118.00) has 1 via(s); 2.00 A needs 4 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+12V layer transition at (31.75, 118.00) has 1 via(s); 2.00 A needs 4 (>= 1 via per 0.5 A)",
+          "pos": [
+            31.75,
+            118.0
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 4
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        34.65,
+        118.8
+      ],
+      "layer": null,
+      "net": "+12V",
+      "refs": [],
+      "msg": "+12V layer transition at (34.65, 118.80) has 1 via(s); 2.00 A needs 4 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+12V layer transition at (34.65, 118.80) has 1 via(s); 2.00 A needs 4 (>= 1 via per 0.5 A)",
+          "pos": [
+            34.65,
+            118.8
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 4
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        73.75,
+        130.75
+      ],
+      "layer": null,
+      "net": "+12V",
+      "refs": [],
+      "msg": "+12V layer transition at (73.75, 130.75) has 1 via(s); 2.00 A needs 4 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+12V layer transition at (73.75, 130.75) has 1 via(s); 2.00 A needs 4 (>= 1 via per 0.5 A)",
+          "pos": [
+            73.75,
+            130.75
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 4
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        54.25,
+        108.0
+      ],
+      "layer": null,
+      "net": "+12V",
+      "refs": [],
+      "msg": "+12V layer transition at (54.25, 108.00) has 1 via(s); 2.00 A needs 4 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+12V layer transition at (54.25, 108.00) has 1 via(s); 2.00 A needs 4 (>= 1 via per 0.5 A)",
+          "pos": [
+            54.25,
+            108.0
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 4
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        95.175,
+        83.3
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 track 0.110 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 track 0.110 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            95.175,
+            83.3
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.11,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          95.175,
+          82.925
+        ],
+        "end": [
+          95.175,
+          83.675
+        ]
+      },
+      "bridge": false
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        99.65,
+        79.15
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            99.65,
+            79.15
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.2,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          99.65,
+          79.175
+        ],
+        "end": [
+          99.65,
+          79.125
+        ]
+      },
+      "bridge": false
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        99.6,
+        78.4375
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            99.6,
+            78.4375
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.2,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          99.6,
+          79.025
+        ],
+        "end": [
+          99.6,
+          77.85
+        ]
+      },
+      "bridge": true
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        99.6,
+        79.7285
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            99.6,
+            79.7285
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.2,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          99.6,
+          80.4319
+        ],
+        "end": [
+          99.6,
+          79.025
+        ]
+      },
+      "bridge": true
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        99.6375,
+        77.7625
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            99.6375,
+            77.7625
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.2,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          99.625,
+          77.775
+        ],
+        "end": [
+          99.65,
+          77.75
+        ]
+      },
+      "bridge": false
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        99.6375,
+        79.1125
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            99.6375,
+            79.1125
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.2,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          99.65,
+          79.125
+        ],
+        "end": [
+          99.625,
+          79.1
+        ]
+      },
+      "bridge": false
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        100.3,
+        77.425
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 track 0.110 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 track 0.110 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            100.3,
+            77.425
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.11,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          99.925,
+          77.425
+        ],
+        "end": [
+          100.675,
+          77.425
+        ]
+      },
+      "bridge": false
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        99.6125,
+        77.8375
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            99.6125,
+            77.8375
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.2,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          99.6,
+          77.85
+        ],
+        "end": [
+          99.625,
+          77.825
+        ]
+      },
+      "bridge": false
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        97.95,
+        73.2375
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 track 0.110 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 track 0.110 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            97.95,
+            73.2375
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.11,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          97.95,
+          73.075
+        ],
+        "end": [
+          97.95,
+          73.4
+        ]
+      },
+      "bridge": false
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        98.6629,
+        83.516
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 track 0.110 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 track 0.110 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            98.6629,
+            83.516
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.11,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          98.65,
+          84.1
+        ],
+        "end": [
+          98.6758,
+          82.9319
+        ]
+      },
+      "bridge": true
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        97.1758,
+        83.4759
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 track 0.110 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 track 0.110 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            97.1758,
+            83.4759
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.11,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          97.1758,
+          82.9319
+        ],
+        "end": [
+          97.1758,
+          84.02
+        ]
+      },
+      "bridge": true
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        99.6625,
+        77.7125
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            99.6625,
+            77.7125
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.2,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          99.65,
+          77.725
+        ],
+        "end": [
+          99.675,
+          77.7
+        ]
+      },
+      "bridge": false
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        95.075,
+        83.8625
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            95.075,
+            83.8625
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.2,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          95.075,
+          83.775
+        ],
+        "end": [
+          95.075,
+          83.95
+        ]
+      },
+      "bridge": false
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        99.6125,
+        79.0375
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            99.6125,
+            79.0375
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.2,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          99.625,
+          79.05
+        ],
+        "end": [
+          99.6,
+          79.025
+        ]
+      },
+      "bridge": false
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        100.1379,
+        80.4319
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 track 0.110 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 track 0.110 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            100.1379,
+            80.4319
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.11,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          99.6,
+          80.4319
+        ],
+        "end": [
+          100.6758,
+          80.4319
+        ]
+      },
+      "bridge": true
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        100.6625,
+        79.4125
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 track 0.110 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 track 0.110 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            100.6625,
+            79.4125
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.11,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          100.65,
+          79.4
+        ],
+        "end": [
+          100.675,
+          79.425
+        ]
+      },
+      "bridge": false
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        97.7379,
+        84.02
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 track 0.110 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 track 0.110 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            97.7379,
+            84.02
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.11,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          97.1758,
+          84.02
+        ],
+        "end": [
+          98.3,
+          84.02
+        ]
+      },
+      "bridge": true
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        97.675,
+        74.05
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 track 0.110 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 track 0.110 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            97.675,
+            74.05
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.11,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          97.675,
+          73.675
+        ],
+        "end": [
+          97.675,
+          74.425
+        ]
+      },
+      "bridge": false
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        100.2625,
+        79.4
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            100.2625,
+            79.4
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.2,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          100.65,
+          79.4
+        ],
+        "end": [
+          99.875,
+          79.4
+        ]
+      },
+      "bridge": true
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        99.675,
+        77.6875
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            99.675,
+            77.6875
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.2,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          99.675,
+          77.7
+        ],
+        "end": [
+          99.675,
+          77.675
+        ]
+      },
+      "bridge": false
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        99.625,
+        77.8
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            99.625,
+            77.8
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.2,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          99.625,
+          77.825
+        ],
+        "end": [
+          99.625,
+          77.775
+        ]
+      },
+      "bridge": false
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        94.95,
+        84.1125
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            94.95,
+            84.1125
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.2,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          94.95,
+          84.075
+        ],
+        "end": [
+          94.95,
+          84.15
+        ]
+      },
+      "bridge": false
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        98.3,
+        84.16
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 track 0.110 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 track 0.110 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            98.3,
+            84.16
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.11,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          98.3,
+          84.02
+        ],
+        "end": [
+          98.3,
+          84.3
+        ]
+      },
+      "bridge": false
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        95.0125,
+        84.2125
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            95.0125,
+            84.2125
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.2,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          94.95,
+          84.15
+        ],
+        "end": [
+          95.075,
+          84.275
+        ]
+      },
+      "bridge": false
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        97.8125,
+        73.5375
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            97.8125,
+            73.5375
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.2,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          97.95,
+          73.4
+        ],
+        "end": [
+          97.675,
+          73.675
+        ]
+      },
+      "bridge": true
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        99.8,
+        77.55
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            99.8,
+            77.55
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.2,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          99.675,
+          77.675
+        ],
+        "end": [
+          99.925,
+          77.425
+        ]
+      },
+      "bridge": true
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        99.65,
+        77.7375
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            99.65,
+            77.7375
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.2,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          99.65,
+          77.75
+        ],
+        "end": [
+          99.65,
+          77.725
+        ]
+      },
+      "bridge": false
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        99.05,
+        77.225
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            99.05,
+            77.225
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.2,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          99.6,
+          77.85
+        ],
+        "end": [
+          98.5,
+          76.6
+        ]
+      },
+      "bridge": true
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        99.625,
+        79.075
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            99.625,
+            79.075
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.2,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          99.625,
+          79.1
+        ],
+        "end": [
+          99.625,
+          79.05
+        ]
+      },
+      "bridge": false
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        99.7625,
+        79.2875
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            99.7625,
+            79.2875
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.2,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          99.875,
+          79.4
+        ],
+        "end": [
+          99.65,
+          79.175
+        ]
+      },
+      "bridge": true
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        95.0125,
+        84.0125
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            95.0125,
+            84.0125
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.2,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          95.075,
+          83.95
+        ],
+        "end": [
+          94.95,
+          84.075
+        ]
+      },
+      "bridge": false
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        95.125,
+        83.725
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 track 0.200 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            95.125,
+            83.725
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.2,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          95.175,
+          83.675
+        ],
+        "end": [
+          95.075,
+          83.775
+        ]
+      },
+      "bridge": false
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        95.075,
+        84.5125
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 track 0.110 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 track 0.110 mm wide on F.Cu; IPC-2152 needs 0.500 mm for 1.00 A at dT=10C",
+          "pos": [
+            95.075,
+            84.5125
+          ]
+        }
+      ],
+      "kind": "undersized_track",
+      "width_mm": 0.11,
+      "required_mm": 0.5,
+      "current_a": 1.0,
+      "segment": {
+        "start": [
+          95.075,
+          84.275
+        ],
+        "end": [
+          95.075,
+          84.75
+        ]
+      },
+      "bridge": true
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        70.3527,
+        71.8885
+      ],
+      "layer": "In2.Cu",
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 pour on In2.Cu necks to ~0.89 mm between via attachments; IPC-2152 needs 1.000 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 pour on In2.Cu necks to ~0.89 mm between via attachments; IPC-2152 needs 1.000 mm for 1.00 A at dT=10C",
+          "pos": [
+            70.3527,
+            71.8885
+          ]
+        }
+      ],
+      "kind": "pour_neckdown",
+      "neck_mm": 0.8931,
+      "required_mm": 1.0,
+      "current_a": 1.0
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        73.1451,
+        97.1304
+      ],
+      "layer": "In2.Cu",
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 pour on In2.Cu necks to ~0.58 mm between via attachments; IPC-2152 needs 1.000 mm for 1.00 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 pour on In2.Cu necks to ~0.58 mm between via attachments; IPC-2152 needs 1.000 mm for 1.00 A at dT=10C",
+          "pos": [
+            73.1451,
+            97.1304
+          ]
+        }
+      ],
+      "kind": "pour_neckdown",
+      "neck_mm": 0.5798,
+      "required_mm": 1.0,
+      "current_a": 1.0
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        102.25,
+        81.0
+      ],
+      "layer": null,
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 layer transition at (102.25, 81.00) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 layer transition at (102.25, 81.00) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+          "pos": [
+            102.25,
+            81.0
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 2
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        117.0,
+        78.6
+      ],
+      "layer": null,
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 layer transition at (117.00, 78.60) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 layer transition at (117.00, 78.60) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+          "pos": [
+            117.0,
+            78.6
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 2
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        113.26,
+        81.9
+      ],
+      "layer": null,
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 layer transition at (113.26, 81.90) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 layer transition at (113.26, 81.90) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+          "pos": [
+            113.26,
+            81.9
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 2
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        111.35,
+        75.0
+      ],
+      "layer": null,
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 layer transition at (111.35, 75.00) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 layer transition at (111.35, 75.00) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+          "pos": [
+            111.35,
+            75.0
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 2
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        79.0,
+        96.15
+      ],
+      "layer": null,
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 layer transition at (79.00, 96.15) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 layer transition at (79.00, 96.15) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+          "pos": [
+            79.0,
+            96.15
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 2
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        115.38,
+        66.589
+      ],
+      "layer": null,
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 layer transition at (115.38, 66.59) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 layer transition at (115.38, 66.59) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+          "pos": [
+            115.38,
+            66.589
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 2
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        97.75,
+        61.85
+      ],
+      "layer": null,
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 layer transition at (97.75, 61.85) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 layer transition at (97.75, 61.85) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+          "pos": [
+            97.75,
+            61.85
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 2
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        108.6,
+        72.5
+      ],
+      "layer": null,
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 layer transition at (108.60, 72.50) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 layer transition at (108.60, 72.50) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+          "pos": [
+            108.6,
+            72.5
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 2
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        95.95,
+        94.0
+      ],
+      "layer": null,
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 layer transition at (95.95, 94.00) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 layer transition at (95.95, 94.00) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+          "pos": [
+            95.95,
+            94.0
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 2
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        69.26,
+        118.5
+      ],
+      "layer": null,
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 layer transition at (69.26, 118.50) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 layer transition at (69.26, 118.50) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+          "pos": [
+            69.26,
+            118.5
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 2
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        45.8,
+        73.45
+      ],
+      "layer": null,
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 layer transition at (45.80, 73.45) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 layer transition at (45.80, 73.45) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+          "pos": [
+            45.8,
+            73.45
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 2
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        69.26,
+        122.0
+      ],
+      "layer": null,
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 layer transition at (69.26, 122.00) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 layer transition at (69.26, 122.00) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+          "pos": [
+            69.26,
+            122.0
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 2
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        113.15,
+        122.75
+      ],
+      "layer": null,
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 layer transition at (113.15, 122.75) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 layer transition at (113.15, 122.75) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+          "pos": [
+            113.15,
+            122.75
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 2
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        109.65,
+        84.7
+      ],
+      "layer": null,
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 layer transition at (109.65, 84.70) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 layer transition at (109.65, 84.70) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+          "pos": [
+            109.65,
+            84.7
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 2
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        56.6,
+        117.5
+      ],
+      "layer": null,
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 layer transition at (56.60, 117.50) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 layer transition at (56.60, 117.50) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+          "pos": [
+            56.6,
+            117.5
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 2
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        102.25,
+        78.5
+      ],
+      "layer": null,
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 layer transition at (102.25, 78.50) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 layer transition at (102.25, 78.50) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+          "pos": [
+            102.25,
+            78.5
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 2
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        95.5,
+        104.25
+      ],
+      "layer": null,
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 layer transition at (95.50, 104.25) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 layer transition at (95.50, 104.25) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+          "pos": [
+            95.5,
+            104.25
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 2
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        106.65,
+        79.5
+      ],
+      "layer": null,
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 layer transition at (106.65, 79.50) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 layer transition at (106.65, 79.50) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+          "pos": [
+            106.65,
+            79.5
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 2
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        103.65,
+        85.2
+      ],
+      "layer": null,
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 layer transition at (103.65, 85.20) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 layer transition at (103.65, 85.20) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+          "pos": [
+            103.65,
+            85.2
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 2
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        109.65,
+        81.9
+      ],
+      "layer": null,
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 layer transition at (109.65, 81.90) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 layer transition at (109.65, 81.90) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+          "pos": [
+            109.65,
+            81.9
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 2
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        101.4,
+        110.0
+      ],
+      "layer": null,
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 layer transition at (101.40, 110.00) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 layer transition at (101.40, 110.00) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+          "pos": [
+            101.4,
+            110.0
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 2
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        91.75,
+        85.35
+      ],
+      "layer": null,
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 layer transition at (91.75, 85.35) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 layer transition at (91.75, 85.35) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+          "pos": [
+            91.75,
+            85.35
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 2
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        112.9,
+        78.6
+      ],
+      "layer": null,
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 layer transition at (112.90, 78.60) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 layer transition at (112.90, 78.60) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+          "pos": [
+            112.9,
+            78.6
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 2
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        86.0,
+        74.35
+      ],
+      "layer": null,
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 layer transition at (86.00, 74.35) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 layer transition at (86.00, 74.35) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+          "pos": [
+            86.0,
+            74.35
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 2
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        97.956,
+        73.077
+      ],
+      "layer": null,
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 layer transition at (97.96, 73.08) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 layer transition at (97.96, 73.08) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+          "pos": [
+            97.956,
+            73.077
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 2
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        114.15,
+        64.75
+      ],
+      "layer": null,
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 layer transition at (114.15, 64.75) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 layer transition at (114.15, 64.75) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+          "pos": [
+            114.15,
+            64.75
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 2
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        112.95,
+        84.7
+      ],
+      "layer": null,
+      "net": "+3V3",
+      "refs": [],
+      "msg": "+3V3 layer transition at (112.95, 84.70) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "+3V3 layer transition at (112.95, 84.70) has 1 via(s); 1.00 A needs 2 (>= 1 via per 0.5 A)",
+          "pos": [
+            112.95,
+            84.7
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 1,
+      "required": 2
+    },
+    {
+      "check": "check_creepage",
+      "severity": "error",
+      "pos": [
+        40.45,
+        96.65
+      ],
+      "layer": "F.Cu",
+      "net": "V48_RAW",
+      "refs": [
+        "U22"
+      ],
+      "msg": "V48_RAW (57 V) to /pwr/UVLO on F.Cu: 0.250 mm copper spacing < IPC-2221 0.60 mm (B2/A6) for 57 V",
+      "source": "check_creepage",
+      "items": [
+        {
+          "msg": "V48_RAW (57 V) to /pwr/UVLO on F.Cu: 0.250 mm copper spacing < IPC-2221 0.60 mm (B2/A6) for 57 V",
+          "pos": [
+            40.45,
+            96.65
+          ]
+        }
+      ],
+      "kind": "creepage",
+      "other_net": "/pwr/UVLO",
+      "delta_v": 57.0,
+      "spacing_mm": 0.25,
+      "required_mm": 0.6,
+      "rows": [
+        "B2",
+        "A6"
+      ],
+      "item": {
+        "type": "track",
+        "ends": [
+          [
+            41.1375,
+            96.325
+          ],
+          [
+            39.93,
+            96.325
+          ]
+        ]
+      },
+      "other_item": {
+        "type": "pad",
+        "ref": "U22",
+        "pad": "7"
+      }
+    },
+    {
+      "check": "check_creepage",
+      "severity": "error",
+      "pos": [
+        39.93,
+        96.7
+      ],
+      "layer": "F.Cu",
+      "net": "V48_RAW",
+      "refs": [],
+      "msg": "V48_RAW (57 V) to /pwr/UVLO on F.Cu: 0.350 mm copper spacing < IPC-2221 0.60 mm (B2/B2) for 57 V",
+      "source": "check_creepage",
+      "items": [
+        {
+          "msg": "V48_RAW (57 V) to /pwr/UVLO on F.Cu: 0.350 mm copper spacing < IPC-2221 0.60 mm (B2/B2) for 57 V",
+          "pos": [
+            39.93,
+            96.7
+          ]
+        }
+      ],
+      "kind": "creepage",
+      "other_net": "/pwr/UVLO",
+      "delta_v": 57.0,
+      "spacing_mm": 0.35,
+      "required_mm": 0.6,
+      "rows": [
+        "B2",
+        "B2"
+      ],
+      "item": {
+        "type": "track",
+        "ends": [
+          [
+            39.93,
+            96.325
+          ],
+          [
+            39.93,
+            94.375
+          ]
+        ]
+      },
+      "other_item": {
+        "type": "track",
+        "ends": [
+          [
+            41.1375,
+            96.975
+          ],
+          [
+            38.5,
+            96.975
+          ]
+        ]
+      }
+    },
+    {
+      "check": "check_creepage",
+      "severity": "error",
+      "pos": [
+        40.2276,
+        96.6332
+      ],
+      "layer": "F.Cu",
+      "net": "V48_RAW",
+      "refs": [
+        "U22"
+      ],
+      "msg": "V48_RAW (57 V) to /pwr/UVLO on F.Cu: 0.457 mm copper spacing < IPC-2221 0.60 mm (B2/A6) for 57 V",
+      "source": "check_creepage",
+      "items": [
+        {
+          "msg": "V48_RAW (57 V) to /pwr/UVLO on F.Cu: 0.457 mm copper spacing < IPC-2221 0.60 mm (B2/A6) for 57 V",
+          "pos": [
+            40.2276,
+            96.6332
+          ]
+        }
+      ],
+      "kind": "creepage",
+      "other_net": "/pwr/UVLO",
+      "delta_v": 57.0,
+      "spacing_mm": 0.4571,
+      "required_mm": 0.6,
+      "rows": [
+        "B2",
+        "A6"
+      ],
+      "item": {
+        "type": "track",
+        "ends": [
+          [
+            39.93,
+            96.325
+          ],
+          [
+            39.93,
+            94.375
+          ]
+        ]
+      },
+      "other_item": {
+        "type": "pad",
+        "ref": "U22",
+        "pad": "7"
+      }
+    },
+    {
+      "check": "check_creepage",
+      "severity": "error",
+      "pos": [
+        26.2833,
+        94.79
+      ],
+      "layer": "F.Cu",
+      "net": "V48_RTN",
+      "refs": [
+        "U1"
+      ],
+      "msg": "V48_RTN (-57 V) to V48_RAW on F.Cu: 0.657 mm copper spacing < IPC-2221 0.80 mm (A6/B2) for 114 V",
+      "source": "check_creepage",
+      "items": [
+        {
+          "msg": "V48_RTN (-57 V) to V48_RAW on F.Cu: 0.657 mm copper spacing < IPC-2221 0.80 mm (A6/B2) for 114 V",
+          "pos": [
+            26.2833,
+            94.79
+          ]
+        }
+      ],
+      "kind": "creepage",
+      "other_net": "V48_RAW",
+      "delta_v": 114.0,
+      "spacing_mm": 0.6569,
+      "required_mm": 0.8,
+      "rows": [
+        "A6",
+        "B2"
+      ],
+      "item": {
+        "type": "pad",
+        "ref": "U1",
+        "pad": "4"
+      },
+      "other_item": {
+        "type": "track",
+        "ends": [
+          [
+            25.65,
+            95.15
+          ],
+          [
+            25.65,
+            98.65
+          ]
+        ]
+      }
+    },
+    {
+      "check": "check_creepage",
+      "severity": "error",
+      "pos": [
+        31.8914,
+        86.0538
+      ],
+      "layer": "F.Cu",
+      "net": "V48_RTN",
+      "refs": [
+        "C1"
+      ],
+      "msg": "V48_RTN (-57 V) to V48_RAW on F.Cu: 0.658 mm copper spacing < IPC-2221 0.80 mm (A6/B2) for 114 V",
+      "source": "check_creepage",
+      "items": [
+        {
+          "msg": "V48_RTN (-57 V) to V48_RAW on F.Cu: 0.658 mm copper spacing < IPC-2221 0.80 mm (A6/B2) for 114 V",
+          "pos": [
+            31.8914,
+            86.0538
+          ]
+        }
+      ],
+      "kind": "creepage",
+      "other_net": "V48_RAW",
+      "delta_v": 114.0,
+      "spacing_mm": 0.6582,
+      "required_mm": 0.8,
+      "rows": [
+        "A6",
+        "B2"
+      ],
+      "item": {
+        "type": "pad",
+        "ref": "C1",
+        "pad": "2"
+      },
+      "other_item": {
+        "type": "track",
+        "ends": [
+          [
+            30.75,
+            83.9
+          ],
+          [
+            32.3,
+            85.45
+          ]
+        ]
+      }
+    },
+    {
+      "check": "check_creepage",
+      "severity": "error",
+      "pos": [
+        37.6918,
+        86.1544
+      ],
+      "layer": "F.Cu",
+      "net": "V48_RTN",
+      "refs": [
+        "D3"
+      ],
+      "msg": "V48_RTN (-57 V) to V48_RAW on F.Cu: 0.660 mm copper spacing < IPC-2221 0.80 mm (A6/B2) for 114 V",
+      "source": "check_creepage",
+      "items": [
+        {
+          "msg": "V48_RTN (-57 V) to V48_RAW on F.Cu: 0.660 mm copper spacing < IPC-2221 0.80 mm (A6/B2) for 114 V",
+          "pos": [
+            37.6918,
+            86.1544
+          ]
+        }
+      ],
+      "kind": "creepage",
+      "other_net": "V48_RAW",
+      "delta_v": 114.0,
+      "spacing_mm": 0.6602,
+      "required_mm": 0.8,
+      "rows": [
+        "A6",
+        "B2"
+      ],
+      "item": {
+        "type": "pad",
+        "ref": "D3",
+        "pad": "4"
+      },
+      "other_item": {
+        "type": "track",
+        "ends": [
+          [
+            37.5,
+            85.45
+          ],
+          [
+            37.55,
+            85.4
+          ]
+        ]
+      }
+    },
+    {
+      "check": "check_creepage",
+      "severity": "error",
+      "pos": [
+        37.5458,
+        86.2383
+      ],
+      "layer": "F.Cu",
+      "net": "V48_RTN",
+      "refs": [
+        "D3"
+      ],
+      "msg": "V48_RTN (-57 V) to V48_RAW on F.Cu: 0.662 mm copper spacing < IPC-2221 0.80 mm (A6/B2) for 114 V",
+      "source": "check_creepage",
+      "items": [
+        {
+          "msg": "V48_RTN (-57 V) to V48_RAW on F.Cu: 0.662 mm copper spacing < IPC-2221 0.80 mm (A6/B2) for 114 V",
+          "pos": [
+            37.5458,
+            86.2383
+          ]
+        }
+      ],
+      "kind": "creepage",
+      "other_net": "V48_RAW",
+      "delta_v": 114.0,
+      "spacing_mm": 0.6624,
+      "required_mm": 0.8,
+      "rows": [
+        "A6",
+        "B2"
+      ],
+      "item": {
+        "type": "pad",
+        "ref": "D3",
+        "pad": "4"
+      },
+      "other_item": {
+        "type": "track",
+        "ends": [
+          [
+            35.45,
+            87.3
+          ],
+          [
+            37.2,
+            85.55
+          ]
+        ]
+      }
+    },
+    {
+      "check": "check_creepage",
+      "severity": "error",
+      "pos": [
+        33.6844,
+        88.4863
+      ],
+      "layer": "F.Cu",
+      "net": "V48_RTN",
+      "refs": [
+        "D3"
+      ],
+      "msg": "V48_RTN (-57 V) to V48_RAW on F.Cu: 0.666 mm copper spacing < IPC-2221 0.80 mm (B2/A6) for 114 V",
+      "source": "check_creepage",
+      "items": [
+        {
+          "msg": "V48_RTN (-57 V) to V48_RAW on F.Cu: 0.666 mm copper spacing < IPC-2221 0.80 mm (B2/A6) for 114 V",
+          "pos": [
+            33.6844,
+            88.4863
+          ]
+        }
+      ],
+      "kind": "creepage",
+      "other_net": "V48_RAW",
+      "delta_v": 114.0,
+      "spacing_mm": 0.6657,
+      "required_mm": 0.8,
+      "rows": [
+        "B2",
+        "A6"
+      ],
+      "item": {
+        "type": "track",
+        "ends": [
+          [
+            33.4,
+            88.95
+          ],
+          [
+            33.55,
+            88.95
+          ]
+        ]
+      },
+      "other_item": {
+        "type": "pad",
+        "ref": "D3",
+        "pad": "3"
+      }
+    },
+    {
+      "check": "check_creepage",
+      "severity": "error",
+      "pos": [
+        33.5424,
+        88.4051
+      ],
+      "layer": "F.Cu",
+      "net": "V48_RTN",
+      "refs": [
+        "D3"
+      ],
+      "msg": "V48_RTN (-57 V) to V48_RAW on F.Cu: 0.672 mm copper spacing < IPC-2221 0.80 mm (B2/A6) for 114 V",
+      "source": "check_creepage",
+      "items": [
+        {
+          "msg": "V48_RTN (-57 V) to V48_RAW on F.Cu: 0.672 mm copper spacing < IPC-2221 0.80 mm (B2/A6) for 114 V",
+          "pos": [
+            33.5424,
+            88.4051
+          ]
+        }
+      ],
+      "kind": "creepage",
+      "other_net": "V48_RAW",
+      "delta_v": 114.0,
+      "spacing_mm": 0.672,
+      "required_mm": 0.8,
+      "rows": [
+        "B2",
+        "A6"
+      ],
+      "item": {
+        "type": "track",
+        "ends": [
+          [
+            31.75,
+            87.3
+          ],
+          [
+            33.4,
+            88.95
+          ]
+        ]
+      },
+      "other_item": {
+        "type": "pad",
+        "ref": "D3",
+        "pad": "3"
+      }
+    },
+    {
+      "check": "check_creepage",
+      "severity": "error",
+      "pos": [
+        43.76,
+        87.3
+      ],
+      "layer": "F.Cu",
+      "net": "V48_RTN",
+      "refs": [
+        "D2"
+      ],
+      "msg": "V48_RTN (-57 V) to V48_RAW on F.Cu: 0.680 mm copper spacing < IPC-2221 0.80 mm (B2/A6) for 114 V",
+      "source": "check_creepage",
+      "items": [
+        {
+          "msg": "V48_RTN (-57 V) to V48_RAW on F.Cu: 0.680 mm copper spacing < IPC-2221 0.80 mm (B2/A6) for 114 V",
+          "pos": [
+            43.76,
+            87.3
+          ]
+        }
+      ],
+      "kind": "creepage",
+      "other_net": "V48_RAW",
+      "delta_v": 114.0,
+      "spacing_mm": 0.68,
+      "required_mm": 0.8,
+      "rows": [
+        "B2",
+        "A6"
+      ],
+      "item": {
+        "type": "via",
+        "at": [
+          44.4,
+          87.3
+        ]
+      },
+      "other_item": {
+        "type": "pad",
+        "ref": "D2",
+        "pad": "3"
+      }
+    },
+    {
+      "check": "check_creepage",
+      "severity": "error",
+      "pos": [
+        28.1524,
+        90.596
+      ],
+      "layer": "F.Cu",
+      "net": "V48_RTN",
+      "refs": [
+        "U1"
+      ],
+      "msg": "V48_RTN (-57 V) to V48_RAW on F.Cu: 0.745 mm copper spacing < IPC-2221 0.80 mm (A6/B2) for 114 V",
+      "source": "check_creepage",
+      "items": [
+        {
+          "msg": "V48_RTN (-57 V) to V48_RAW on F.Cu: 0.745 mm copper spacing < IPC-2221 0.80 mm (A6/B2) for 114 V",
+          "pos": [
+            28.1524,
+            90.596
+          ]
+        }
+      ],
+      "kind": "creepage",
+      "other_net": "V48_RAW",
+      "delta_v": 114.0,
+      "spacing_mm": 0.7451,
+      "required_mm": 0.8,
+      "rows": [
+        "A6",
+        "B2"
+      ],
+      "item": {
+        "type": "pad",
+        "ref": "U1",
+        "pad": "9"
+      },
+      "other_item": {
+        "type": "track",
+        "ends": [
+          [
+            27.4375,
+            90.595
+          ],
+          [
+            27.45,
+            90.6
+          ]
+        ]
+      }
+    }
+  ]
+}

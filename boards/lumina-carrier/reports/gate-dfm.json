@@ -1,0 +1,44 @@
+{
+  "script": "gate",
+  "gate": "dfm",
+  "phase": "P9",
+  "tool": "dfm",
+  "input": null,
+  "status": "fail",
+  "criteria": {
+    "fail_severities": [
+      "error"
+    ],
+    "max_count": 0
+  },
+  "counts": {
+    "total": 88,
+    "by_severity": {
+      "error": 1,
+      "warning": 87
+    },
+    "by_source": {
+      "check.dfm": 88
+    }
+  },
+  "failing_count": 1,
+  "failing": [
+    {
+      "check": "dfm",
+      "severity": "error",
+      "pos": null,
+      "layer": "Edge.Cuts",
+      "net": null,
+      "refs": [],
+      "msg": "Edge.Cuts present but does not form a closed outline - copper/hole edge-distance checks cannot run",
+      "source": "check.dfm",
+      "items": [
+        {
+          "msg": "Edge.Cuts present but does not form a closed outline - copper/hole edge-distance checks cannot run",
+          "pos": null
+        }
+      ],
+      "kind": "dfm_open_outline"
+    }
+  ]
+}

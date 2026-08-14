@@ -3,18 +3,22 @@
  "board": "lumina-carrier",
  "workspace": "boards/lumina-carrier",
  "created": "2026-07-28T13:36:22",
- "updated": "2026-08-07T01:58:03",
+ "updated": "2026-08-07T19:03:33",
  "phase": "P10",
  "gates": {
   "erc": {
    "phase": "P4",
    "status": "pass",
-   "attempts": 2,
+   "attempts": 3,
    "last": {
-    "ts": "2026-07-28T20:56:57",
+    "ts": "2026-08-07T18:58:57",
     "status": "pass",
     "failing_count": 0,
-    "total": 0
+    "total": 0,
+    "inputs": {
+     "sch": "sexpr_no_uuid:98022e235cd480d4fbcabfe0ea51c60ea5df70087f7b9cce2d7d037addfacc26",
+     "pro": "json_canonical:ead4cfe51f63dbbc81317e585bb35615dae0834e18bb28730b4b0d77c8447316"
+    }
    },
    "history": [
     {
@@ -28,6 +32,16 @@
      "status": "pass",
      "failing_count": 0,
      "total": 0
+    },
+    {
+     "ts": "2026-08-07T18:58:57",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "sch": "sexpr_no_uuid:98022e235cd480d4fbcabfe0ea51c60ea5df70087f7b9cce2d7d037addfacc26",
+      "pro": "json_canonical:ead4cfe51f63dbbc81317e585bb35615dae0834e18bb28730b4b0d77c8447316"
+     }
     }
    ]
   },
@@ -53,12 +67,18 @@
   "drc_routed": {
    "phase": "P7",
    "status": "pass",
-   "attempts": 3,
+   "attempts": 4,
    "last": {
-    "ts": "2026-07-30T06:35:39",
+    "ts": "2026-08-07T18:58:57",
     "status": "pass",
     "failing_count": 0,
-    "total": 0
+    "total": 0,
+    "inputs": {
+     "pcb": "sexpr_no_uuid:51f62e53ebf8d57894d6040606fef082a46eeb050f7f3f58fa0ccbe49126ed60",
+     "sch": "sexpr_no_uuid:98022e235cd480d4fbcabfe0ea51c60ea5df70087f7b9cce2d7d037addfacc26",
+     "pro": "json_canonical:ead4cfe51f63dbbc81317e585bb35615dae0834e18bb28730b4b0d77c8447316",
+     "dru": "text_eol:df4c3aa423d9d494a37e5774165e9317846fe674a4039f5e71e1e653a25f9abb"
+    }
    },
    "history": [
     {
@@ -78,18 +98,36 @@
      "status": "pass",
      "failing_count": 0,
      "total": 0
+    },
+    {
+     "ts": "2026-08-07T18:58:57",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:51f62e53ebf8d57894d6040606fef082a46eeb050f7f3f58fa0ccbe49126ed60",
+      "sch": "sexpr_no_uuid:98022e235cd480d4fbcabfe0ea51c60ea5df70087f7b9cce2d7d037addfacc26",
+      "pro": "json_canonical:ead4cfe51f63dbbc81317e585bb35615dae0834e18bb28730b4b0d77c8447316",
+      "dru": "text_eol:df4c3aa423d9d494a37e5774165e9317846fe674a4039f5e71e1e653a25f9abb"
+     }
     }
    ]
   },
   "verify": {
    "phase": "P8",
    "status": "fail",
-   "attempts": 3,
+   "attempts": 4,
    "last": {
-    "ts": "2026-07-30T06:36:14",
+    "ts": "2026-08-07T18:58:57",
     "status": "fail",
-    "failing_count": 115,
-    "total": 119
+    "failing_count": 108,
+    "total": 132,
+    "inputs": {
+     "pcb": "sexpr_no_uuid:51f62e53ebf8d57894d6040606fef082a46eeb050f7f3f58fa0ccbe49126ed60",
+     "constraints": "json_canonical:dd60b8a65b87a483669ecec291facbf4c7eadd3687e768191f4a2208e6cc38e6",
+     "decoupling": "json_canonical:694e3652a9f87d719ff72f80422424ea9d15148efaeae60d1aaeb44335882d30",
+     "waivers": null
+    }
    },
    "history": [
     {
@@ -109,18 +147,35 @@
      "status": "fail",
      "failing_count": 115,
      "total": 119
+    },
+    {
+     "ts": "2026-08-07T18:58:57",
+     "status": "fail",
+     "failing_count": 108,
+     "total": 132,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:51f62e53ebf8d57894d6040606fef082a46eeb050f7f3f58fa0ccbe49126ed60",
+      "constraints": "json_canonical:dd60b8a65b87a483669ecec291facbf4c7eadd3687e768191f4a2208e6cc38e6",
+      "decoupling": "json_canonical:694e3652a9f87d719ff72f80422424ea9d15148efaeae60d1aaeb44335882d30",
+      "waivers": null
+     }
     }
    ]
   },
   "dfm": {
    "phase": "P9",
-   "status": "pass",
-   "attempts": 1,
+   "status": "fail",
+   "attempts": 2,
    "last": {
-    "ts": "2026-07-30T07:06:53",
-    "status": "pass",
-    "failing_count": 0,
-    "total": 87
+    "ts": "2026-08-07T18:58:57",
+    "status": "fail",
+    "failing_count": 1,
+    "total": 88,
+    "inputs": {
+     "pcb": "sexpr_no_uuid:51f62e53ebf8d57894d6040606fef082a46eeb050f7f3f58fa0ccbe49126ed60",
+     "sch": "sexpr_no_uuid:98022e235cd480d4fbcabfe0ea51c60ea5df70087f7b9cce2d7d037addfacc26",
+     "parts": null
+    }
    },
    "history": [
     {
@@ -128,6 +183,17 @@
      "status": "pass",
      "failing_count": 0,
      "total": 87
+    },
+    {
+     "ts": "2026-08-07T18:58:57",
+     "status": "fail",
+     "failing_count": 1,
+     "total": 88,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:51f62e53ebf8d57894d6040606fef082a46eeb050f7f3f58fa0ccbe49126ed60",
+      "sch": "sexpr_no_uuid:98022e235cd480d4fbcabfe0ea51c60ea5df70087f7b9cce2d7d037addfacc26",
+      "parts": null
+     }
     }
    ]
   }
@@ -149,7 +215,56 @@
    "note": "APPROVED with decisions. NO REBUILD - board keeps P6 placement and P7 routing; anything needing a new footprint becomes an open item. Four in-place actions: re-issue ICD at 94x74 @3.0mm inset with a washer-overhang note; scoped P6/P7 backward edge on the eth_xtal island (fix the constraints group first); widen the 189 sub-0.1016mm tracks and set the rules floor; reroute LED_Y_A out of the tap pocket. Endorsed no-further-work: (a) RX MDI skew ACCEPT with the 100BASE-TX reasoning in the design doc, (c) 48V intra-footprint DRU relaxation KEEP, (d) J1 In1-antipad GND deficit ACCEPT, (e) DECLARE the board locks. Deferred open items: U21 HF input ceramic (highest-priority rev-B), +3V3/LED PESD clamping, and the skill gap that there is no incremental board-from-netlist update. Then P9 -> P10 -> H5."
   }
  },
- "artifacts": {},
+ "artifacts": {
+  "sch": {
+   "path": "kicad/lumina-carrier.kicad_sch",
+   "kind": "sch",
+   "sha256": "sexpr_no_uuid:98022e235cd480d4fbcabfe0ea51c60ea5df70087f7b9cce2d7d037addfacc26",
+   "hashed": "2026-08-07T18:58:57"
+  },
+  "pro": {
+   "path": "kicad/lumina-carrier.kicad_pro",
+   "kind": "pro",
+   "sha256": "json_canonical:ead4cfe51f63dbbc81317e585bb35615dae0834e18bb28730b4b0d77c8447316",
+   "hashed": "2026-08-07T18:58:57"
+  },
+  "pcb": {
+   "path": "kicad/lumina-carrier.kicad_pcb",
+   "kind": "pcb",
+   "sha256": "sexpr_no_uuid:51f62e53ebf8d57894d6040606fef082a46eeb050f7f3f58fa0ccbe49126ed60",
+   "hashed": "2026-08-07T18:58:57"
+  },
+  "dru": {
+   "path": "kicad/lumina-carrier.kicad_dru",
+   "kind": "dru",
+   "sha256": "text_eol:df4c3aa423d9d494a37e5774165e9317846fe674a4039f5e71e1e653a25f9abb",
+   "hashed": "2026-08-07T18:58:57"
+  },
+  "constraints": {
+   "path": "kicad/constraints.json",
+   "kind": "constraints",
+   "sha256": "json_canonical:dd60b8a65b87a483669ecec291facbf4c7eadd3687e768191f4a2208e6cc38e6",
+   "hashed": "2026-08-07T18:58:57"
+  },
+  "decoupling": {
+   "path": "kicad/decoupling.json",
+   "kind": "decoupling",
+   "sha256": "json_canonical:694e3652a9f87d719ff72f80422424ea9d15148efaeae60d1aaeb44335882d30",
+   "hashed": "2026-08-07T18:58:57"
+  },
+  "waivers": {
+   "path": "kicad/reports/verify-waivers.json",
+   "kind": "waivers",
+   "sha256": null,
+   "hashed": "2026-08-07T18:58:57"
+  },
+  "parts": {
+   "path": "kicad/parts.json",
+   "kind": "parts",
+   "sha256": null,
+   "hashed": "2026-08-07T18:58:57"
+  }
+ },
  "open_issues": [],
  "next_issue_id": 1,
  "budgets": {
@@ -589,6 +704,12 @@
    "why": "getImpedanceTemplateSettingList works and is free. Swept plateType 0-3, delamination 0-3 and a minimal payload: plateType 1 is the only value returning anything, and every successful shape returns the SAME three templates. No 3313 under any parameter shape. THE MISMATCH IS IN OUR OWN REFERENCE DATA, not in the order: reference/stackups.yaml line 67 defines JLC04161H-3313 as prepreg 0.2104 mm FR4 7628 er 4.05 with a 1.065 mm core, and architecture/stackup.md s2.1 calls it 'the only stackup in reference/stackups.yaml that publishes a 100 ohm differential profile' - that is what made this board 4-layer and what produced the 0.260 mm / 0.210 mm / 0.470 mm MDI geometry. JLC does not offer it. What JLC actually offers: 1080B has the RIGHT core (1.065 mm, matching exactly) but 1080 glass at 0.084+0.084+0.0764 = 0.2444 mm L1-to-L2, 16.2 percent thicker than assumed; 7628G has the RIGHT prepreg material (7628) but a 0.5 mm core and 0.218+0.218+0.0764 = 0.5124 mm L1-to-L2, 143 percent thicker. Differential Z0 rises with dielectric height, so 1080B lands the pairs somewhere above 100 ohm and 7628G lands them far above - neither is the geometry that was solved. I did NOT choose one: the instruction was explicit that picking an approximate stackup is forbidden because the trace geometry was solved against a specific one, and that is exactly right - swapping the stackup silently invalidates the single reason this board has four layers. THIRD-ORDER CONSEQUENCE worth flagging beyond this order: enableFlag is FALSE on all three, so it is not established that ANY of them is currently selectable via the API. And this applies to lumina-strobe and lumina-par identically, since both are 4-layer and inherit the same stackups.yaml entry. The remaining live-create hypothesis is untested - impedanceFlag is still hardcoded 'no' and no impedanceTemplateCode is sent - but I cannot apply that fix without choosing a template, which is the decision I was told to stop at.",
    "phase": "P10",
    "ts": "2026-07-30T09:14:43"
+  },
+  {
+   "what": "RETROSPECTIVE 2026-08-07: one rework (OI-1 U21 HF input ceramic), one rev-B copper item (V48_RAW 0.250 mm to U22.7), everything else artifact or previously accepted. Board ships and works.",
+   "why": "Board unchanged since 47c41ae and gerber zip sha256 matches order.json byte for byte, so this reviewed the SHIPPED article (batch W2026073100331078, Shipped). Gate deltas are v2 checkers on a v1 board, not regressions. (1) dfm's new open-outline error is a TOOLING artifact - Edge.Cuts has three 1e-6 mm (1 nanometre) corner-joint mismatches and gerblib's polygonize has no snap tolerance; snapping at 1e-5 closes it. Real consequence: check_copper_to_edge and hole-to-edge silently never ran at P9. Re-ran them against the true 3.0 mm arc outline (7992.27 mm2, cross-checked vs the .kicad_pcb's own 7992.23) - ZERO violations both. (2) 8 of 11 creepage errors are a units artifact: constraints.json declares V48_RTN -57 V so T2 computes dv=114 V and demands 0.80 mm, but the netlist shows U1 is the ONLY part bridging V48_RTN and GND - RTN IS the 0 V reference in this non-isolated PD, true bus 57 V, requirement 0.60 mm, and all 8 gaps (0.657-0.745 mm) clear that AND the 0.635 mm house rule. (3) The other 3 creepage errors ARE new and real: V48_RAW routed track 0.250/0.350/0.457 mm to U22 pin 7 UVLO - routed copper, so outside the H4 waiver which was scoped to package lead frames, and 0.125 mm tighter than U22's own 0.375 mm package floor. Clears IPC B4 coated by 1.9x so it runs; rev-B fix. (4) Stackup JLC04161H-3313 is a phantom, but the as-built 0.2597/0.2104 MDI geometry measures 105.60 ohm on the real 1080B lamination (impedance.py) = 31 dB return loss vs Clause 25's 16 dB - works. (5) OI-1 stands as the only true rework: U21 pin 3 VIN has no HF ceramic, nearest cap 9.89 mm/8.378 nH; hand-fit a 100 nF to the GND via 2.335 mm away, NOT pin 1 (SW sits between). T8 board_update.py has since killed OI-3, so rev-B can add it in place without a re-place/re-route. Also: verify has NEVER passed on this board (fail at all 3 attempts, shipped on the H4 adjudication) and H3 was never recorded.",
+   "phase": "P10",
+   "ts": "2026-08-07T19:03:33"
   }
  ],
  "history": [
@@ -1198,6 +1319,57 @@
    "event": "migrated",
    "from_version": 1,
    "to_version": 2
+  },
+  {
+   "ts": "2026-08-07T18:58:57",
+   "event": "gate",
+   "gate": "erc",
+   "status": "pass",
+   "attempt": 3,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-07T18:58:57",
+   "event": "gate",
+   "gate": "drc_routed",
+   "status": "pass",
+   "attempt": 4,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-07T18:58:57",
+   "event": "gate",
+   "gate": "verify",
+   "status": "fail",
+   "attempt": 4,
+   "failing_count": 108
+  },
+  {
+   "ts": "2026-08-07T18:58:57",
+   "event": "gate",
+   "gate": "dfm",
+   "status": "fail",
+   "attempt": 2,
+   "failing_count": 1
+  },
+  {
+   "ts": "2026-08-07T18:59:22",
+   "event": "resumed",
+   "task": "retrospective review - reworks / what will not work",
+   "mode": "read-only by owner instruction",
+   "order": "SHIPPED batch W2026073100331078",
+   "gates_rerun": [
+    "erc",
+    "drc_routed",
+    "verify",
+    "dfm"
+   ],
+   "note": "board unchanged since 47c41ae; checkers advanced T1-T10"
+  },
+  {
+   "ts": "2026-08-07T19:03:33",
+   "event": "decision",
+   "what": "RETROSPECTIVE 2026-08-07: one rework (OI-1 U21 HF input ceramic), one rev-B copper item (V48_RAW 0.250 mm to U22.7), everything else artifact or previously accepted. Board ships and works."
   }
  ],
  "spawns": [],
