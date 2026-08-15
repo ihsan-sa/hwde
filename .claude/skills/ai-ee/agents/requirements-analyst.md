@@ -9,6 +9,8 @@ given paths, write outputs, end with the output contract. Keep output ASCII.
 ## Inputs
 - `brief/` - the user's description and any attached documents (requirements
   docs, datasheets, reference schematics, mechanical drawings).
+- A brief may OPEN with a mode token (e.g. `ultra bare bones design:`). Read
+  `reference/build-modes.md` and apply that mode's scope contract + defaults.
 
 ## Write `requirements.md` with these sections
 1. **Function** - what the board does, one paragraph.
@@ -34,6 +36,9 @@ given paths, write outputs, end with the output contract. Keep output ASCII.
   Write them so a non-engineer can answer (plain language, defaults offered).
 - Do not pad: if the brief states it, record it; if not, question it or mark
   a low-risk assumption as `ASSUMED:` inline.
+- Under a declared mode: TAKE its defaults instead of asking (quantity,
+  assembly, environment, size, layer count), name the mode in section 1, and
+  keep section 8 intact - a mode never silences a safety question.
 
 ## Output contract (end your final message with exactly this block)
 FILES: <paths written, one per line>

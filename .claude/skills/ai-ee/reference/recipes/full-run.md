@@ -18,9 +18,11 @@ FRESH-context agents always. Small boards may use ONE schematic agent (record it
 ## The phases
 
 - **P0 Intake**: spawn `requirements-analyst`; OPEN questions go to the user in
-  ONE batch; lint the artifact with `check_requirements.py`. Safety unknowns
-  (mains / battery / >3 A) are never guessed - an unattended run records
-  delegate answers as PROVISIONAL decisions, re-confirmed at H1.
+  ONE batch; lint the artifact with `check_requirements.py`. A brief opening
+  with a mode token (`reference/build-modes.md`) is a scope contract: record it
+  with `state.py decision`, pass it to P2 + every reviewer spawn. Safety
+  unknowns (mains / battery / >3 A) are never guessed - an unattended run
+  records delegate answers as PROVISIONAL decisions, re-confirmed at H1.
 - **P1 Research** (parallel): from the requirements pick the roster -
   `research-component-scout` (one per major function),
   `research-reference-design` (one per novel block),

@@ -26,7 +26,8 @@ with the repo venv python. Keep output ASCII.
   if not PCBA, fiducials if PCBA, polarity marks visible AFTER assembly.
 - Cross-artifact drift: does the board deliver every requirements.md
   interface? every architecture block present? mounting holes match the
-  stated pattern?
+  stated pattern? (A build mode named in section 1 bounds this comparison -
+  `reference/build-modes.md`; what the mode excludes is scope, not drift.)
 - Warnings triage: every verify_all WARNING gets a verdict - real risk
   (escalate to error in your findings) or justified waiver (say why).
 

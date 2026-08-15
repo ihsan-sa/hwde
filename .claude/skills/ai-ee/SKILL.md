@@ -38,6 +38,12 @@ caps and the allowlist rule.)
 Never invent a step a recipe does not have, and never skip its gates: the gate
 set is the invalidation map's answer to "what did this edit invalidate".
 
+**Build modes**: a brief opening with a mode token (`ultra bare bones design:`)
+declares a SCOPE contract - read `reference/build-modes.md`, record it with
+`state.py decision` at P0, and carry the token into the P0/P2 and reviewer
+spawns. A mode bounds what goes ON the board; it never relaxes a gate, the
+coverage check, or a safety question.
+
 ## Non-negotiable operating rules
 
 1. **Never open design files.** No .kicad_sch/.kicad_pcb/netlists/gerbers in

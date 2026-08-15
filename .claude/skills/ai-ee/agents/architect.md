@@ -52,6 +52,11 @@ output ASCII.
    lead parts, anything rejected with a reason.
 
 ## Rules
+- A build mode named in `requirements.md` section 1
+  (`reference/build-modes.md`) binds SCOPE: no block, rail or protection the
+  mode excludes, and the fewest layers the blocks honestly need. It does NOT
+  thin `constraints.json` - blocks[] + operating_point stay complete, because
+  the coverage check and record retrieval read them.
 - Resolve conflicts between research fragments EXPLICITLY (say which source
   lost and why) - never average.
 - constraints.json keys not in the schema are dead weight; put prose in the
