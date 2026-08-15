@@ -441,3 +441,26 @@ fixtures:
       qty: 5
       # copper weight is handled by the --api leg (never benched) - do not
       # imply copper coverage here: score_p10 reads only qty/qty_matrix
+  research_llc_seed:
+    stage: P1
+    board: synth-llc
+    provenance:
+      source: scratch workspace built by the U15 acceptance flow (the tests/test_research.py
+        round trip - synthetic llc gap, synthetic 5-page PDF); no board workspace behind it
+      method: copy
+      captured: '2026-08-15'
+      grade: mechanism seed - test-authored records on a synthetic 5-page PDF, NOT owner-graded
+      note: 'U15 acceptance round trip frozen as the first P1 fixture: gap block:PWR (llc) -> open ->
+        2 allowlisted fetches (vendor-appnote pdf + forum html) -> 2 records -> second reader verified
+        -> closed. Owner-graded extraction fixtures accumulate from teaching sessions; re-grade by --baseline,
+        never re-freeze'
+    files:
+      task:
+        path: tests/fixtures/stages/research_llc_seed/block-llc-1.json
+        sha256: 079a1735ecd312e5ca9eb3519e4f2cbc1d41901829bb720383d07e7c090ba549
+    dirs:
+      research:
+        path: tests/fixtures/stages/research_llc_seed/research
+        sha256: ee55e31e831a3d2d76664c17c2c606ef9e4bd2afb0e489f30fd5ca8772515d43
+    args:
+      task: block-llc-1

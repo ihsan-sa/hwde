@@ -25,7 +25,10 @@ coverage are TRIGGERED / structural, never self-assessed:
                         empty - no match is a fact, not a failure.
       --workspace WS    derive keys: constraints.json blocks[].topology
                         (P2's block list) + diff_pairs[].base, parts.json
-                        parts[].package + mpn/lcsc (P3's parts).
+                        parts[].package + mpn/lcsc (P3's parts). The
+                        workspace's own research records (<ws>/research/
+                        records, U15) join the pool - only VERIFIED ones
+                        (status active) can inject; drafts never do.
       --blocks a,b      explicit topology keys (union with workspace keys)
       --packages a,b    explicit package keys
       --interfaces a,b  explicit interface keys
@@ -37,8 +40,11 @@ coverage are TRIGGERED / structural, never self-assessed:
                         ONE blocker each; `gaps` = research task specs;
                         `mapping_request` = the coverage-mapper agent's input
                         when unmet classes remain. exit 0 = no gap slots,
-                        1 = gaps present (the research trigger), 2 = cannot
-                        run (bad mapping / no workspace).
+                        1 = gaps present (the research trigger: research.py
+                        open --gaps <this report>), 2 = cannot run (bad
+                        mapping / no workspace). Workspace research records
+                        + checklists (U15) are folded in, so a researched
+                        but unapproved class reads provisional, not gap.
       --maturity-floor  draft|verified|approved|proven (default approved =
                         bootstrap mode: only owner-approved or bench-proven
                         records satisfy coverage)
@@ -114,14 +120,22 @@ def do_select(args) -> tuple[dict, int]:
     keys["parts"] = sorted(set(keys.get("parts") or []) | set(_csv(args.parts)))
 
     records = knowledgelib.load_records(args.records_dir)
+    ws_recs: list[dict] = []
+    if args.workspace:
+        # U15: the workspace's VERIFIED research records inject too (select
+        # keeps its status==active rule, so unverified drafts never do)
+        ws_recs = knowledgelib.workspace_records(Path(args.workspace))
+        records = knowledgelib.merge_workspace(records, ws_recs)
     hits = knowledgelib.select(records, keys["topologies"], keys["packages"],
                                keys["interfaces"], keys["parts"])
     payload = {
         "script": SCRIPT, "status": "pass", "keys": keys, "count": len(hits),
         "records": [{k: r.get(k) for k in
                      ("id", "classes", "applies", "rule", "prose", "sources",
-                      "origin", "level", "maturity", "envelope", "_path")}
+                      "origin", "level", "maturity", "envelope", "_path",
+                      "_workspace")}
                     for r in hits],
+        "workspace_records": sorted(r.get("id") or "" for r in ws_recs),
         "prompt_block": knowledgelib.prompt_block(hits, keys),
     }
     return payload, 0

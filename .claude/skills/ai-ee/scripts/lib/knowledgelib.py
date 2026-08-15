@@ -65,7 +65,13 @@ block/part/interface slot -> covered | provisional | gap, from (1) the
 deterministic key query + envelope containment + maturity floor, (2) an
 optional agent MAPPING (record->slot edges only - it classifies, it may not
 declare sufficiency; validated against MAPPING_SCHEMA), (3) the mechanical
-cutoff per class from the checklist. Gap entries are research task specs.
+cutoff per class from the checklist. Gap entries are research task specs -
+the `research` verb's input (U15, scripts/research.py + lib/researchlib.py):
+its outputs land WORKSPACE-FIRST under <ws>/research/records + checklists
+(status draft until the second reader verifies; maturity draft/verified),
+and coverage + `--select --workspace` fold them in (`_workspace` marker,
+library wins on an id clash) so a researched class reads provisional, not
+gap, until the owner approves the promoted copy.
 
 Sources PDFs live under reference/knowledge/sources/. Retrieval consumers:
 scripts/knowledge.py (CLI), the orchestrator spawn step (SKILL.md), and
@@ -207,6 +213,12 @@ RECORD_SCHEMA: dict = {
         # --- schema v2 (U13) - optional in bootstrap, required by strict ---
         "level": {"type": "string", "enum": list(LEVELS)},
         "envelope": {"type": ["object", "null"]},   # dims linted in code
+        # U15: why THESE dims bound the rule (what it scales with) - the
+        # researcher's justification; research.py validate requires it on
+        # every research record that carries an envelope. The owner's
+        # approval.note supersedes it at approval.
+        "envelope_note": {"type": "string", "minLength": 1,
+                          "maxLength": 600},
         "maturity": {"type": "string", "enum": list(MATURITIES)},
         "generalizes": {"type": "array", "items": {"type": "string"}},
         "approval": _APPROVAL_SHAPE,
@@ -487,11 +499,15 @@ def envelope_contains(env, op) -> dict:
 # ---------------------------------------------------------------------------
 # validation (validate_registry-style: every named artifact must exist)
 # ---------------------------------------------------------------------------
-def _source_exists(file: str) -> bool:
-    """Source files resolve skill-relative or repo-relative."""
+def _source_exists(file: str, roots=()) -> bool:
+    """Source files resolve skill-relative or repo-relative - plus any extra
+    `roots` (U15: a workspace, whose research records cite
+    `research/sources/<file>` relative to the workspace root)."""
     if not file or file != file.strip():
         return False
-    return (SKILL / file).is_file() or (REPO / file).is_file()
+    if (SKILL / file).is_file() or (REPO / file).is_file():
+        return True
+    return any((Path(r) / file).is_file() for r in roots)
 
 
 def _script_flag_problems(where: str, text: str) -> list[str]:
@@ -575,7 +591,8 @@ def _governance_problems(where: str, data: dict) -> list[str]:
 
 def validate(records_dir: Path | str | None = None,
              checklists_dir: Path | str | None = None,
-             strict: bool = False) -> list[str]:
+             strict: bool = False, source_roots=(),
+             extra_records: list[dict] | None = None) -> list[str]:
     """Structural problems across the records dir + checklists dir, as
     human-readable strings. Empty list = the library is internally consistent
     and every named artifact exists. Run by knowledge.py --validate and the
@@ -583,7 +600,13 @@ def validate(records_dir: Path | str | None = None,
 
     strict=False (bootstrap): the v2 fields (level / envelope / maturity) may
     be missing - such records read as level None, maturity draft, and never
-    satisfy coverage. strict=True: they are required (post-U14 backfill)."""
+    satisfy coverage. strict=True: they are required (post-U14 backfill).
+    source_roots: extra roots a `sources[].file` may resolve against (U15
+    workspace research records cite workspace-relative paths).
+    extra_records: already-parsed records (the LIBRARY, when linting a
+    workspace research dir) that count as `generalizes` targets - a research
+    record points at its principle parent in the library, and that parent is
+    not in the dir being linted."""
     import jsonschema
     problems: list[str] = []
     seen_ids: dict[str, str] = {}
@@ -622,7 +645,8 @@ def validate(records_dir: Path | str | None = None,
                 "retrieve this record (the T4 unreachable-trigger failure mode)")
 
         for i, src in enumerate(data.get("sources") or []):
-            if isinstance(src, dict) and not _source_exists(src.get("file", "")):
+            if isinstance(src, dict) and not _source_exists(
+                    src.get("file", ""), source_roots):
                 problems.append(
                     f"{where}: sources[{i}].file {src.get('file')!r} not found "
                     "(skill-relative or repo-relative)")
@@ -659,15 +683,19 @@ def validate(records_dir: Path | str | None = None,
         problems += _governance_problems(where, data)
 
     # generalizes targets: must exist, not self, and be MORE general
+    targets = dict(parsed)
+    for r in extra_records or []:
+        if isinstance(r, dict) and r.get("id") and r["id"] not in targets:
+            targets[r["id"]] = r
     for rid, data in parsed.items():
         where = seen_ids[rid]
         for tgt in data.get("generalizes") or []:
             if tgt == rid:
                 problems.append(f"{where}: generalizes itself")
-            elif tgt not in parsed:
+            elif tgt not in targets:
                 problems.append(f"{where}: generalizes unknown record {tgt!r}")
             else:
-                mine, theirs = record_level(data), record_level(parsed[tgt])
+                mine, theirs = record_level(data), record_level(targets[tgt])
                 if mine and theirs and LEVEL_RANK[theirs] >= LEVEL_RANK[mine]:
                     problems.append(
                         f"{where}: generalizes {tgt!r} but that record is not "
@@ -708,7 +736,8 @@ def validate(records_dir: Path | str | None = None,
                 problems.append(f"{where}: requires[{i}].class "
                                 f"{req.get('class')!r} not in CLASSES")
         for i, src in enumerate(data.get("sources") or []):
-            if isinstance(src, dict) and not _source_exists(src.get("file", "")):
+            if isinstance(src, dict) and not _source_exists(
+                    src.get("file", ""), source_roots):
                 problems.append(f"{where}: sources[{i}].file "
                                 f"{src.get('file')!r} not found")
         problems += _script_flag_problems(where, data.get("prose") or "")
@@ -802,7 +831,10 @@ def workspace_keys(ws: Path | str) -> dict:
 
 
 def _tag(r: dict) -> str:
-    return f"{record_level(r) or 'level?'}/{record_maturity(r)}"
+    tag = f"{record_level(r) or 'level?'}/{record_maturity(r)}"
+    if r.get("_workspace"):
+        tag += ", workspace"     # U15: a research draft, not yet promoted
+    return tag
 
 
 def prompt_block(records: list[dict], keys: dict | None = None) -> str:
@@ -899,6 +931,55 @@ def render_topology(records: list[dict], topology: str) -> str:
             lines += ["", "Sources: " + "; ".join(srcs)]
     lines.append("")
     return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
+# workspace-first research outputs (U15): <ws>/research/records + checklists
+# ---------------------------------------------------------------------------
+WS_RESEARCH = "research"
+WS_RECORDS = "research/records"
+WS_CHECKLISTS = "research/checklists"
+
+
+def workspace_records(ws: Path | str) -> list[dict]:
+    """Research records the workspace holds (research.py writes them there
+    first; the promote pass moves them into the library). Each carries
+    `_workspace: True` and a workspace-relative `_path`. Unparseable or
+    non-mapping files are skipped - research.py validate names them."""
+    d = Path(ws) / WS_RECORDS
+    out = []
+    for p in sorted(d.glob("*.yaml")) if d.is_dir() else []:
+        try:
+            data = yaml.safe_load(p.read_text(encoding="utf-8"))
+        except yaml.YAMLError:
+            continue
+        if isinstance(data, dict):
+            data["_path"] = f"{WS_RECORDS}/{p.name}"
+            data["_workspace"] = True
+            out.append(data)
+    return out
+
+
+def workspace_checklists(ws: Path | str) -> list[dict]:
+    d = Path(ws) / WS_CHECKLISTS
+    out = []
+    for p in sorted(d.glob("*.yaml")) if d.is_dir() else []:
+        try:
+            data = yaml.safe_load(p.read_text(encoding="utf-8"))
+        except yaml.YAMLError:
+            continue
+        if isinstance(data, dict):
+            data["_path"] = f"{WS_CHECKLISTS}/{p.name}"
+            data["_workspace"] = True
+            out.append(data)
+    return out
+
+
+def merge_workspace(items: list[dict], ws_items: list[dict]) -> list[dict]:
+    """Library items + the workspace's, deduped by id - the LIBRARY wins (a
+    promoted record still sitting in the workspace must not shadow it)."""
+    have = {r.get("id") for r in items}
+    return list(items) + [r for r in ws_items if r.get("id") not in have]
 
 
 # ---------------------------------------------------------------------------
@@ -1113,6 +1194,13 @@ def coverage(ws: Path | str, records: list[dict] | None = None,
     records = load_records() if records is None else records
     checklists = load_checklists() if checklists is None else checklists
     ws = Path(ws)
+    # U15: the workspace's own research outputs count too - a researched-but-
+    # unapproved class reads `provisional` (maturity below the floor) instead
+    # of re-firing the research trigger on the next coverage run.
+    ws_recs = workspace_records(ws)
+    ws_cls = workspace_checklists(ws)
+    records = merge_workspace(records, ws_recs)
+    checklists = merge_workspace(checklists, ws_cls)
     ws_info = workspace_slots(ws)
     slots = ws_info["slots"]
     slot_ids = {s["id"] for s in slots}
@@ -1317,6 +1405,8 @@ def coverage(ws: Path | str, records: list[dict] | None = None,
         "keys": ws_info["keys"], "sources": ws_info["sources"],
         "summary": counts, "slots": out_slots, "gaps": gaps,
         "warnings": warnings,
+        "workspace_records": sorted(r.get("id") or "" for r in ws_recs),
+        "workspace_checklists": sorted(c.get("id") or "" for c in ws_cls),
         "mapping_applied": ({"file": mapping_file,
                              "edges": sum(len(v) for v in edges.values())}
                             if mapping is not None else None),

@@ -189,6 +189,10 @@ _TARGET_PATTERNS = (
     (re.compile(r"(?<![\w/])remediations/([a-z_0-9-]+\.md)"),
      "reference/remediations/{}"),
     (re.compile(r"(?<![\w/])tests/(test_[a-z_0-9]+)\.py"), "tests/{}.py"),
+    # U15: workspace-first research outputs named by a research task's close
+    # entry (repo-relative when the workspace is in-repo)
+    (re.compile(r"(?<![\w/])(boards/[A-Za-z0-9_.-]+/research/(?:records|checklists)/[a-z0-9-]+\.yaml)"),
+     "{}"),
 )
 
 

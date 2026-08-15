@@ -1,8 +1,8 @@
 # Knowledge ladder triage (T4, 2026-08-06; U0 sweep 2026-08-13; U6 2026-08-14;
-# U14 2026-08-15)
+# U14 2026-08-15; U15 2026-08-15)
 
-One row per `LEARNINGS.md` entry (297 of them; the last starts at
-line 4297), placed on the maturity ladder from
+One row per `LEARNINGS.md` entry (298 of them; the last starts at
+line 4310), placed on the maturity ladder from
 `design/routing-knowledge-notes.md` section 6, with the artifact that owns - or
 must own - it.
 
@@ -34,18 +34,18 @@ looking for the next promotion.
 
 ## Summary
 
-Recomputed from the table at U14 (2026-08-15), all 297 rows
+Recomputed from the table at U15 (2026-08-15), all 298 rows
 (`learnings.py triage` prints these numbers - recompute rather than edit them):
 
 | Level | now | target |
 |---|---|---|
-| L0 | 111 | 11 |
+| L0 | 112 | 12 |
 | L1 | 16 | 12 |
 | L2 | 51 | 104 |
 | L3 | 119 | 170 |
 
 121 entries want to climb at least one level. Status: **done 151**,
-**open 122**, **n/a 6**, planned 18
+**open 122**, **n/a 7**, planned 18
 (T2 10, T8 1 - both shipped, those rows need re-reading; U2 2, U9 2,
 U3/U5/U8 1 each).
 
@@ -415,3 +415,4 @@ the row's Now level and status in the same commit as the code.
 | 295 | 4267 | Coverage envelopes are tested ONLY against the block's own ope | [knowledge][coverage][architecture] | L0 | L3 | scripts/lib/knowledgelib.py | open | The L3 fix is for `workspace_slots` to LEND board-level dims into every block's operating point (board_layers from the stackup/board setup, pdiss_w from the matching thermal entry) so the architect cannot forget them; until then architect.md + constraints_schema.md name the eight dims a buck block must restate, and the report's `unknown_dims` is the diagnostic |
 | 296 | 4280 | An envelope is what BOUNDS a rule, not what the rule mentions | [knowledge][coverage][process] | L0 | L0 | scripts/lib/knowledgelib.py | done | U14: the authoring rule is stated in knowledgelib's module docstring beside the schema example (where a record author looks) and demonstrated in all 16 approval notes. Not mechanizable - "where does this stop being true" is the judgment the owner is FOR - but the schema already enforces its consequence (envelope required at topology+, forbidden at principle) |
 | 297 | 4297 | The wave-parallel pathspec commit silently drops NEW files - | [git][process][waves] | L0 | L1 | ai-ee-v3-plan.md | open | Third entry in this family (247, 289). The L1 version is a pre-commit probe: compare `git status --porcelain` untracked paths against the session's own edit list and warn when a path the session created is not staged. Until then the plan's Conventions carry it, and the check is `git show --stat HEAD` file count vs expected |
+| 298 | 4310 | The Claude Code Bash tool collapses `\\` to `\` inside a QUOTED heredo | [windows][process][tools] | L0 | L0 | CLAUDE.md | n/a | Host/tooling fact for sessions on this Windows box, not pipeline knowledge: the session Bash tool alters quoted-heredoc bytes, so edit scripts are authored with the Write tool and run with the venv python. Nothing in the repo can enforce it (the layer is outside the scripts); the operating rule lives in LEARNINGS + the session protocol |

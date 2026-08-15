@@ -11,10 +11,9 @@ USB-C dev board gets neither. Role prompts live in `agents/`; each states its
 own scripts and contract.
 
 Lean amendment (S14-proven): purely script-driven phases run INLINE (P5 board
-setup, gate invocations, P9 fab/dfm scripts, P10 quote/submit) rather than
-wrapped in agents - rule 1 still holds (read script JSON, never design files).
-Judgment roles stay agents; reviewers stay FRESH-context agents always. Small
-boards may use ONE schematic agent for all sheets (record the deviation).
+setup, gates, P9 fab/dfm scripts, P10 quote/submit) - rule 1 still holds (read
+script JSON, never design files). Judgment roles stay agents; reviewers stay
+FRESH-context agents always. Small boards may use ONE schematic agent (record it).
 
 ## The phases
 
@@ -34,17 +33,23 @@ boards may use ONE schematic agent for all sheets (record the deviation).
   (blocks[] carry `operating_point`; an undeclared dim keeps a record
   `provisional`). On a `mapping_request` spawn `coverage-mapper` (schema-forced
   record->slot->class edges, no verdicts), re-run with `--mapping <its file>`
-  (sha logged in the report). Exit 1 = gap slots = research task specs
-  (`gaps[]`); U15's research verb auto-launches per gap - until it lands,
-  `state.py decision` "designing under coverage gap: ..." and continue, never
-  silently. **H1** (blocking): blocks, stackup, cost ballpark, key parts,
-  riskiest decision, coverage summary (covered / provisional / gap per slot).
+  (sha logged in the report). Exit 1 = gap slots = research launches
+  AUTOMATICALLY (owner ruling; the `research` recipe carries the mechanics):
+  `research.py open --workspace <ws> --gaps log/coverage-P2.json --all --phase P2`
+  (one task per gap inside `budgets.research`; `status: checkpoint` = cap
+  spent - present the unopened slots at H1), per task `researcher` -> FRESH
+  `research-second-reader` -> `research.py close`, then re-run coverage
+  (verified records fold in as `provisional`). A slot still `gap` is a
+  `state.py decision` "designing under coverage gap: ...", never silence.
+  **H1** (blocking): blocks, stackup, cost ballpark, key parts, riskiest
+  decision, coverage summary (covered / provisional / gap per slot), cap state.
 - **P3 Parts + Library**: spawn `part-sourcer`; `datasheet-extractor` per
   nontrivial IC (parallel) - reuse a prior board's `parts/<lcsc>.json` on LCSC
   match (re-run `--validate`); then `librarian`. Pad-geometry failures block P4.
   Per-part detail: the `make-footprint` recipe. **P3 exit = coverage again**
   (`--phase P3`): part slots join - per IC, extraction `layout_notes`
-  thin/empty = gap; same mapper + gap protocol.
+  thin/empty = gap; same mapper + auto-research protocol (part-level records
+  from the vendor's layout section / app note).
 - **P4 Schematic**: one `schematic-block` per sheet from
   `architecture/sheets.md` (parallel where independent; the root-sheet agent
   stitches, runs ERC and `netlist_audit`). Gate `erc`. Then `schematic-reviewer`
@@ -91,25 +96,18 @@ boards may use ONE schematic agent for all sheets (record the deviation).
 
 Before the run is declared finished: append what this board taught to
 `boards/<b>/LEARNINGS.md` (dated, stage-tagged, one claim per heading), then
-compile it into the promotion queue -
-
-    learnings.py compile --workspace boards/<b>
-
-Compiling is not promoting. The entries stay `pending` until a `promote` pass
-rules on each one; that verb's recipe carries the ladder. Do this at the END of
-the run, not per phase - the value of an entry is often only clear two phases
-later. Bring-up close (T11): `state.py log --event bringup_passed`, then
-`knowledge.py --prove --workspace boards/<b>` (`--dry-run` first) - every record
-that APPLIED (deterministic keys + envelope at the operating points) becomes
-maturity `proven` with its evidence entry; reality outranks review.
+`learnings.py compile --workspace boards/<b>`. Compiling is not promoting: the
+entries stay `pending` until a `promote` pass rules on each one (that recipe
+carries the ladder). Do it at the END of the run - an entry's value is often
+only clear two phases later. Bring-up close (T11): `state.py log --event
+bringup_passed`, then `knowledge.py --prove --workspace boards/<b>` (`--dry-run`
+first) - every record that APPLIED becomes `proven` with its evidence entry.
 
 ## Resuming, and editing mid-run
 
-A killed run resumes through `resume-phase`. A change of mind mid-run does NOT
-mean rewinding the pipeline: after P5, adding, swapping or removing a part is
-`add-part` / `swap-part` / `remove-part`, which preserve placement and routing.
-Get decoupling and protection into the schematic before P5 anyway - it is
-cheaper there than anywhere later.
+A killed run resumes through `resume-phase`. A change of mind mid-run is not a
+rewind: after P5, `add-part` / `swap-part` / `remove-part` preserve placement
+and routing. Get decoupling and protection into the schematic before P5 anyway.
 
 ## Do not
 

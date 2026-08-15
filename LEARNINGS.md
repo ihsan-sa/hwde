@@ -4306,3 +4306,20 @@ commit by pathspec so a parallel session's hunks are not swept in, and the price
 "add" step is skipped too. Rule: when a session CREATES files, `git add` them explicitly first,
 then commit by pathspec - and verify with `git show --stat HEAD | wc -l` against the file count
 you expect, because the failure is silent in the direction that looks fine.
+
+## 2026-08-15 [windows][process][tools] The Claude Code Bash tool collapses `\\` to `\` inside a QUOTED heredoc - write edit scripts with the Write tool, never `cat <<'EOF'`
+U15 authored its file edits as small Python scripts and hit the same wall three times before
+characterizing it: a `cat > x.py <<'EOF' ... EOF` heredoc through the session's Bash tool
+delivers `\\Users` as `\Users` and `\\b` as `\b` (measured with `cat -A`; a real bash leaves a
+single-quoted heredoc body byte-for-byte). Consequences, in the order they surfaced: (1) a
+script whose body contained escaped sequences died before running with bash's `unexpected EOF
+while looking for matching quote` (the collapse un-balances quotes); (2) a script that did run
+carried `C:\Users` inside a normal Python string literal, which is a `SyntaxError: (unicode
+error) truncated \UXXXXXXXX escape` on the FIRST use of a Windows path; (3) a regex written
+as `'\\b'` would have silently become a backspace. Nothing in the tool output says the body was
+altered - the failure appears one layer down, as a Python error about text you did not
+write. Rule for sessions on this host: author any edit/one-off script with the Write tool
+(bytes land verbatim), then run it with `.venv\Scripts\python.exe`; keep heredocs to plain
+ASCII prose with no backslashes. Companion to the 2026-07-06 [windows] entry (MSYS paths in
+`python -c` mixes) - the shell layer between the agent and Python is where Windows sessions
+lose bytes, so keep it out of the path of anything that matters.

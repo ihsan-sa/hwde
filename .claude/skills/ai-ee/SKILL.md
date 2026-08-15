@@ -29,9 +29,11 @@ scripts/task_router.py --task "<the user's words>" [--workspace boards/<name>]
 
 The verbs: `review` `fix-finding` `move` `swap-part` `add-part` `remove-part`
 `reroute-net` `make-footprint` `dfm-check` `order` `track` `resume-phase`
-`promote` `learn` `full-run`. The whole pipeline is the `full-run` recipe - a
-task like any other, not a separate code path. (`learn` is the owner-present
-teaching session; its recipe carries the loop.)
+`promote` `learn` `research` `full-run`. The whole pipeline is the `full-run`
+recipe - a task like any other, not a separate code path. (`learn` is the
+owner-present teaching session; `research` fills a coverage gap and is also
+what full-run launches automatically on every gap - its recipe carries the
+caps and the allowlist rule.)
 
 Never invent a step a recipe does not have, and never skip its gates: the gate
 set is the invalidation map's answer to "what did this edit invalidate".
@@ -185,7 +187,10 @@ Every Task spawn contains exactly:
 3. Its assignment specifics (which block/sheet/interface/work order).
    For P3/P6/P7 spawns: run `scripts/knowledge.py --select --workspace
    <ws>` and paste its `prompt_block` here - deterministic knowledge
-   retrieval keyed by the P2 block list + P3 packages (empty = omit).
+   retrieval keyed by the P2 block list + P3 packages (empty = omit); the
+   workspace's VERIFIED research records ride along, drafts never do.
+   For a researcher spawn: paste the task's brief (`research.py open` /
+   `research.py brief`); design and fixer agents get no web tools, ever.
 4. Termination: "return the output contract; do not start other phases'
    work."
 5. Log it: `state.py spawn --role .. --model .. --phase ..`.
@@ -195,9 +200,9 @@ never reuse a generator/router conversation for its own review.
 Spawn tiers (T6-measured; escalate one tier when a role must overrule its
 inputs, never silently downgrade):
 | fable/max | router (novel board; proven-chain re-run: sonnet/medium), learner (owner-present teaching) |
-| fable/high | architect, placement, schematic-reviewer, verify-reviewer, requirements-analyst |
+| fable/high | architect, placement, schematic-reviewer, verify-reviewer, requirements-analyst, researcher (coverage-gap research; the ONLY role with web tools, allowlisted, acquisitions through research.py fetch) |
 | fable/medium | schematic-block (thin root-stitch: sonnet/high) |
-| opus/high | research-interface-spec, research-power-architect, sim-analyst, fixer (copper/route) |
+| opus/high | research-interface-spec, research-power-architect, sim-analyst, fixer (copper/route), research-second-reader (fresh context; refutes or verifies a task's records) |
 | sonnet/high | research-component-scout, research-reference-design, part-sourcer, datasheet-extractor, coverage-mapper (schema-forced record->slot edges at P2/P3 exit) |
 | sonnet/medium | librarian, fixer (silk/sch/parts/fab), placement (backward-edge re-spawn) |
 | inline-default | board-setup, ordering, dfm (spawn = exception path) |

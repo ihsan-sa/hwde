@@ -67,7 +67,7 @@ U11 later; U12 before order credentials; T11 on board arrival (not during U8).
 | U12 | Pre-credential order/state safety (C3+C5+C6) | pending | - |
 | U13 | Coverage contracts (levels/envelopes/maturity, the research trigger) | **done** | 2026-08-15 |
 | U14 | Record backfill + approval session (owner present, short) | **done** | 2026-08-15 |
-| U15 | Research verb (acquisition, synthesis, second reader, auto-trigger) | pending | - |
+| U15 | Research verb (acquisition, synthesis, second reader, auto-trigger) | **done** | 2026-08-15 |
 
 Dependency graph (plan): S0 -> S1 -> S2 -> S3 -> {S4, S5}; S0 -> S6 -> S7; S2 -> S8 -> S9 -> S10 -> S11;
 {S5, S7, S8, S11} -> S12 -> S13 -> S14. S4-S7 may run in parallel with S8-S10 (separate sessions/terminals).
@@ -130,6 +130,7 @@ kickoff prompt to allow multi-agent workflows (higher token spend - use where ma
 | V18 | stackups.yaml dielectric constants + template churn | T1 | **OPEN, standing.** JLC's `getImpedanceTemplateSettingList` returns materials + thicknesses but NO epsilon_r, so every `epsilon_r` in stackups.yaml is an assumed FR4 value (`epsilon_r_assumed: true` per entry) and 1080-vs-7628 resin differences are NOT modelled - this is the concrete form of V12 for the real stackups. AND the offering itself churns: JLC04161H-7628G was live on 2026-07-30 and gone on 2026-08-06. Before any controlled-impedance board: re-probe the endpoint (recipe in LEARNINGS 2026-08-06 [stackup][jlcapi][ordering]) AND confirm width/gap against JLC's online impedance calculator. **T6 partial**: board_init now warns when an impedance-controlled stackup's verified date is stale (detection half at L2; the re-probe itself still needs credentials + a human). |
 | V17 | No scripted silk/text move op (refdes/value) | S13 | **RESOLVED S14**: hit on run (a) day one (J1 polarity legend = reviewer ERROR). place_swig/place_edit gained `add_text` (idempotent board-frame silk text) + `move_text` (refdes/value fields), independently sexpdata-verified incl. rotated parents; 9 tests. Drove ~50 move_text refdes sweeps + 3 boards' functional silk packages. fixer.md/fix_dispatch/SKILL.md updated. |
 | V19 | schem_refdes symbol transform at 90/270 and mirrored instances | T3 | **RESOLVED T6**: rotmirror fixture (7 Device:R at 0/90/180/270, mirror x/y, rot90+mirror; every pin wired, ERC oracle) FALSIFIED the suspected stub_dir sign defect - the real bug was in ksa pin-position reads; fixed in schlib.pin_pos + save-time field placement (batch D, 3b10380). All branches now fixture-pinned. |
+| V21 | Distributor API request shapes (DigiKey Product Information v4 OAuth2 client-credentials + keyword/productdetails; Mouser Search API v1 partnumber/keyword) + the live auth flow | U15 | **OPEN - owner keys needed.** `lib/distributors.py` transcribes the public docs and tests pin the shapes through a fake transport; nothing has touched the live endpoints. `research.py parts --mpn X` exits 2 naming the exact missing env vars until `AIEE_DIGIKEY_CLIENT_ID`/`AIEE_DIGIKEY_CLIENT_SECRET` (`AIEE_DIGIKEY_SANDBOX=1` for sandbox keys) and/or `AIEE_MOUSER_API_KEY` exist; first live call = re-verify the response field names in normalize_digikey/normalize_mouser and close this row. |
 | V20 | T6 mechanisms awaiting first live-run validation | T6 | The T6-built mechanisms proven by tests/bench but not yet exercised on a live board run: route_cleanup root-cause fix (dry-run + inspect its first live run, then retire the SKILL caveat), silk_place solver at scale, corridor cost term on a PD-class board, KRT iteration-ladder/Coverage facts, HV DRU emission on a real >30V board, spawn-tier downgrades (watch the deterministic backstops), lib_pull paced batch on a 40+ part board. Also: lumina-carrier's shipped .kicad_dru fails the new check_dru (7 of 8 aiee_* floors missing - hand-edit erased them; board defect, fix at carrier resume). |
 
 ## S0 - Repo bootstrap and environment (2026-07-06) - DONE
@@ -4336,3 +4337,194 @@ research task specs, which is the ruled-for behaviour.
   raise them further.
 
 **New verify-later items:** none.
+
+## U15 - Research verb: acquisition, synthesis, second reader (2026-08-15) - DONE
+
+**Built** (v3 design decision 5a, the research leg - unattended, alone in
+the tree after U14):
+- `research` verb (`reference/tasks.yaml`, variants `slot` / `all`; hold 1,
+  no gates) + `reference/recipes/research.md` + two agent contracts:
+  `agents/researcher.md` (fable/high - the ONLY role with web tools:
+  WebSearch to locate, WebFetch on allowlisted HTML only, every document
+  through `research.py fetch`; visual page reads; draft records) and
+  `agents/research-second-reader.md` (opus/high, FRESH context, no web:
+  re-reads every cited page and refutes or verifies). SKILL.md verb list +
+  tier table + spawn-template note (design/fixer agents never get web tools).
+- `scripts/research.py` + `scripts/lib/researchlib.py` - the mechanical
+  spine, one research root per workspace (`research/tasks|sources|records|
+  checklists`): `open` (one task per `gaps[]` entry of a coverage report,
+  `--slot`/`--all`, consumes `budgets.research.per_run` through state.py's
+  ledger, snapshots `depth_per_gap`, emits the researcher BRIEF: gap +
+  operating point + missing classes + what the library holds (principle
+  parents matched by CLASS - said so explicitly) + prior tasks on the slot
+  + tier policy + visual-read rule + record/checklist templates + allowlist
+  + caps + exact commands), `brief`, `fetch` (https + allowlist checked
+  before any transport and on every redirect hop, refusals ledgered;
+  quarantine `research/sources/<file>`, sha/pages/tier in the task ledger;
+  vendor community hosts force tier forum; `--expect pdf` refuses HTML
+  shells with the wmsc hint; `--file` registers a held copy against an
+  allowlisted origin), `verify` (second reader's verdict as TARGETED line
+  edits: verified = maturity verified + status active + `verification`
+  block; refuted = back to draft), `validate` (schema v2 strict + the
+  research contract), `close` (validate clean + every record ruled ->
+  workspace LEARNINGS.md entry + `learnlib.compile_queue` = the U6 pending
+  row; `--abandon --reason` for a dead task, recorded as a decision),
+  `promote` (VERIFIED record or draft checklist + its sources into the
+  library, citation paths rewritten, library re-linted, copy removed on
+  failure), `status`, `parts` (distributor lookup).
+- The research contract, enforced by `validate` not prose: citations only
+  from the task ledger, each with `page` (<= the PDF's page count) and a
+  `note` saying what was READ; forum never the sole source tier;
+  `envelope` => `envelope_note` (NEW optional schema key, "what does this
+  rule scale with"); maturity draft/verified only (approved/proven refused);
+  status draft until verified (so `select()` never injects an unverified
+  draft); `applies` keys the slot; classes hit the gap's missing list; no id
+  clash with the library; a draft `research/checklists/<token>.yaml` when
+  the gap was "no checklist" and NO second checklist when one exists;
+  `generalizes` may target library records (validate gained
+  `extra_records`, `source_roots`).
+- `reference/knowledge/domains.yaml` - the fetch allowlist (66 vendor /
+  distributor / standards / forum domains + 8 vendor community hosts forced
+  to forum), schema-linted with additionalProperties false (the
+  comma-in-a-flow-value trap of LEARNINGS 2026-08-14 bit again while
+  authoring it - 7 notes had split into junk keys; the lint + test now
+  refuse that shape).
+- Auto-trigger wiring: `full-run` steps after the P2 coverage step
+  (`research.py open --all --phase P2`, researcher, second reader,
+  `research.py close`, coverage re-run) and after the P3 step (same, P3);
+  full-run.md P2/P3 paragraphs rewritten (doc trimmed back under the
+  120-line cap). Cap semantics: `state.DEFAULT_BUDGETS["research"] =
+  {per_run: 6, depth_per_gap: 4}` (+ attempts capped at 3x depth);
+  `State.budget` lazily installs a budget family missing from a pre-U15
+  state.json (`budget_defaulted` event); every cap hit is `status:
+  checkpoint` (exit 1) with a `state.py decision` + `research_checkpoint`
+  event and the unopened slots / used depth named - never silent.
+- Coverage/select fold-in: `knowledgelib.workspace_records/checklists` +
+  `merge_workspace` (library wins on an id clash); `--coverage` counts them
+  (a researched-but-unapproved class reads `provisional` = maturity below
+  the approved floor, so the trigger does not re-fire on the same
+  knowledge; `--maturity-floor verified` reads `covered`); `--select
+  --workspace` injects VERIFIED workspace records with a `(.., workspace)`
+  tag; the report lists `workspace_records` / `workspace_checklists`.
+- `scripts/lib/distributors.py` - DigiKey Product Information v4 (OAuth2
+  client-credentials token + keyword search + product details, sandbox
+  switch) and Mouser Search API v1 (part-number / keyword) clients with an
+  injectable transport and ONE normalized hit shape; `research.py parts
+  --mpn` exits 2 naming the exact missing env vars
+  (`AIEE_DIGIKEY_CLIENT_ID` + `AIEE_DIGIKEY_CLIENT_SECRET`,
+  `AIEE_MOUSER_API_KEY`) with the registration pointer; partial credentials
+  run the configured provider and report the other as `no_credentials`.
+- Bench hook: stage `P1` (research quality; primary = a frozen research
+  root, `args.task`) with `score_p1` -> `researchlib.assess` and
+  `benchlib.WEIGHTS["P1"]` (no_records 60, off_ledger 25, forum_sole 15,
+  lint 10, citation 5, unruled 5, refuted 8); `bench.py --freeze --stage
+  P1 --from task=... --from-dir research=... --freeze-args '{"task": ..}'`
+  captures an owner-graded extraction. First committed fixture
+  `research_llc_seed` (+ baseline 100.0) = the acceptance round trip frozen
+  - a MECHANISM SEED (synthetic 5-page PDF, test-authored records; the
+  provenance grade says so), not an owner-graded one.
+- `learnlib._TARGET_PATTERNS` scans `boards/<b>/research/{records,
+  checklists}/<id>.yaml` so a close entry's targets name the draft files.
+- `tests/test_research.py` - 63 tests: allowlist matrix (subdomain,
+  look-alike, http, userinfo, forum forcing) + domains lint; fetch refusals
+  before transport / on a redirect hop / HTML-as-PDF, quarantine + ledger,
+  local registration, depth + attempts checkpoints with state records;
+  open (governed workspace + report required, brief contents, per_run
+  consumption + cap checkpoint naming unopened slots, non-gap slot / second
+  open refused, lazy budget install, checklist-less topology asks for the
+  checklist); the 12-case validate refusal matrix + forum corroboration +
+  generalizes into the library + other tasks' records ignored; THE
+  acceptance (gap -> open -> fetch -> 2 records -> unruled close refused ->
+  verified -> close -> pending queue row + parseable LEARNINGS entry +
+  state event -> coverage provisional / covered at floor verified -> select
+  injects -> second open sees prior_tasks); refuted stays draft and never
+  injects; verify is a targeted edit (prose bytes kept); close/abandon
+  refusals; promote (draft refused, dry-run, copy + path rewrite + library
+  lint, duplicate refused); distributor exit-2 message, DigiKey/Mouser
+  request shapes + normalization, partial credentials; router plans (both
+  variants), full-run auto-trigger at P2 + P3, agent contracts flag-linted,
+  bench P1 freeze/baseline/compare regression, committed P1 fixture.
+  Router tests: verb list + 2 canonical phrasings.
+
+**Deviations from plan (with reasons):**
+1. Workspace research records + checklists are FOLDED INTO coverage and
+   `--select` (not in the plan text). Without it the auto-trigger would
+   re-fire research on knowledge that already exists in the workspace, and
+   the run that paid for the research could not inject it into its own
+   P3/P6/P7 spawns. Coverage semantics unchanged: only approved/proven
+   satisfy at the default floor; researched = `provisional`.
+2. Web-tool restriction is NOT mechanically enforced at the tool layer (this
+   repo has no per-agent tool permissions). What IS mechanical: the only
+   sanctioned acquisition path (`research.py fetch`, allowlist + quarantine
+   + ledger) and the provenance rule (`validate` refuses any citation not
+   in the ledger), so off-list content can never become a citable source;
+   the contracts + SKILL tier table say who gets web tools.
+3. Distributor request shapes are transcribed from the public API docs and
+   pinned by tests through a fake transport; they are UNVERIFIED LIVE until
+   the owner registers keys (V21). The exit-2-with-exact-credential
+   contract is the plan's acceptance and is verified.
+4. The first P1 bench fixture is a synthetic seed (see above): the plan's
+   "fixtures accumulate from teaching sessions" needs an owner; the seed
+   exists so the stage is registered (test_bench requires a fixture per
+   stage) and the freeze/baseline/compare path is exercised for real.
+5. Second-reader independence is model-tier + fresh-context (opus/high vs
+   the researcher's fable/high), the perspective-diverse pattern; a refuted
+   record stays draft and its refutation note rides the next task's brief
+   (`prior_tasks`) - no automatic re-research loop beyond the per-run cap.
+6. One LEARNINGS entry (298, tooling: the session Bash tool alters quoted-
+   heredoc bytes) + its n/a triage row; the comma-in-flow-value re-hit is a
+   re-affirmation of entry 2026-08-14 [yaml][knowledge], not a new one.
+
+**Suite:** full run at session close (`pytest` + `check_env.py --quiet`,
+the check.cmd pair run from bash - the batch file itself does not resolve
+under `cmd //c` from this session's shell): **1834 passed in 12m40s, exit
+0** - no failures at all (the standing AP63203 `net` test was green this
+run; still non-hermetic), `check_env --quiet` exit 0. Targeted suites green
+throughout (test_research 63, test_task_router 133, test_bench 46,
+test_coverage 73, test_knowledge, test_learn, test_learnings,
+test_state_v2, test_orchestrator, test_remediations). Standing caveat
+unchanged: a full run re-dirties the two design docs (timestamp-only
+regens; committed as the usual ride-along). Real-workspace smoke: `open
+--all` on a scratch COPY of lumina-carrier (its real v2 state.json +
+constraints/parts) opened `interface-eth_rx-1` + `interface-eth_tx-1`
+with the 100base-tx checklist in the brief and per_run 6 -> 4; the
+distributor client exits 2 with both credential lines on this host.
+
+**Interface notes for later steps:**
+- U10 (first live run): the P2/P3 auto-trigger is live for the first time
+  there - watch `research.py open` payloads for `status: checkpoint`
+  (per_run 6 default; xhp-driver's `state.json` predates U15 and gets the
+  budget installed on first touch), read the researcher's OPEN block for
+  off-list hosts worth adding to `domains.yaml` (grow it like CLASSES), and
+  expect the H1 coverage summary to show `provisional` for researched slots
+  (owner approval closes them). Second-reader spawns are FRESH context.
+- Promotion pass (promote verb, owner): per verified record `research.py
+  promote --workspace <ws> --record <id>` (copies record + sources, rewrites
+  citations, re-lints), then `learnings.py resolve --kind knowledge_record
+  --targets reference/knowledge/records/<id>.yaml`, then the owner's
+  `maturity: approved` + `approval` block (note = what it scales with) and
+  a topology-view re-render if any. Draft checklists promote the same way.
+- lumina-carrier / usb-buck: the live interface gaps (`interface:eth_rx`,
+  `interface:eth_tx`, `interface:usb`) are the first REAL research targets;
+  smoke-opened on a scratch COPY of the carrier workspace this session (two
+  tasks, briefs name the 100base-tx checklist's 8 classes; the buck
+  principle parents appear "by class" and the brief says so). Running it
+  for real mutates the workspace's state.json (budget + events) - the
+  owner's call, per the read-only board rule.
+- Owner prerequisite: DigiKey (developer.digikey.com, Product Information
+  V4 app; `AIEE_DIGIKEY_SANDBOX=1` for sandbox keys) and Mouser
+  (mouser.com/api-hub) keys as user env vars; then `research.py parts --mpn
+  <mpn>` and close V21.
+- U8/U11 teaching sessions can teach stage P1: `learn --arg stage=P1`;
+  freeze owner-graded extractions with the P1 freeze form; `assess`
+  penalties are the scorer terms (add weights in benchlib.WEIGHTS["P1"] +
+  re-baseline in the same commit, the v2 convention).
+- Coverage report consumers: new keys `workspace_records`,
+  `workspace_checklists`; `--select` payload rows carry `_workspace`.
+- Schema: `envelope_note` is optional in RECORD_SCHEMA (required by research
+  validate); `knowledgelib.validate(source_roots=, extra_records=)`.
+
+**New verify-later items:** V21 (distributor API request shapes + live
+auth flow, needs owner keys). The researcher / second-reader choreography is
+exercised live at U10 (same posture as U4/U13: mechanics test-pinned, agent
+prose until its first run).

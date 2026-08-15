@@ -57,7 +57,7 @@ def test_the_plan_s_verb_list_is_the_registry_s():
     assert VERBS == sorted([
         "review", "fix-finding", "move", "swap-part", "add-part",
         "remove-part", "reroute-net", "make-footprint", "dfm-check", "order",
-        "track", "resume-phase", "promote", "learn", "full-run"])
+        "track", "resume-phase", "promote", "learn", "research", "full-run"])
 
 
 def test_skill_md_lists_exactly_the_registry_verbs():
@@ -186,6 +186,8 @@ def test_dynamically_registered_subcommands_are_known():
     ("work the promotion queue", "promote"),
     ("teach the placement stage", "learn"),
     ("run a learning cycle on P6", "learn"),
+    ("research the ethernet coverage gap", "research"),
+    ("fill the knowledge gap on interface:usb", "research"),
 ])
 def test_canonical_phrasings_route_to_one_verb(text: str, verb: str):
     got = tr.match_verbs(text, TASKS)

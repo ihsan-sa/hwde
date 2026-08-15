@@ -22,7 +22,8 @@ Schema (version 2 - T7 freshness; v1 files upgrade via state_migrate.py):
                        region, work_order, status: open|fixing|fixed|escalated|
                        waived, agent, attempts, opened, closed}],
       "next_issue_id": int,
-      "budgets": {"fix_loops": {gate_name: remaining}, ...},
+      "budgets": {"fix_loops": {gate_name: remaining},
+                  "research": {per_run, depth_per_gap}, ...},  # U15 caps
       "decisions": [{what, why, phase, ts}],
       "edits": [{ts, class, refs, note, human_hold, gates, gates_marked,
                  stale_artifacts}],                   # edit-class ledger
@@ -96,6 +97,13 @@ DEFAULT_BUDGETS = {
     "fix_loops": {g: 3 for _, g in GATE_ORDER},
     "freerouting_retries": 2,
     "place_edit_iterations": 8,
+    # U15 research caps (owner ruling: research launches AUTOMATICALLY on a
+    # coverage gap, so the caps are what bound it): per_run = research tasks
+    # opened per run (research.py open consumes one), depth_per_gap = sources
+    # acquired per task (research.py fetch counts against it). Cap-hit =
+    # a VISIBLE checkpoint (status checkpoint, decision + event recorded),
+    # never silent truncation.
+    "research": {"per_run": 6, "depth_per_gap": 4},
 }
 SNAP_DIR = "state_snapshots"
 # Standard workspace layout (T6 state-scaffold): init owns the scaffold so
@@ -433,6 +441,14 @@ class State:
     def budget(self, dotted: str, consume: bool = False) -> int:
         node = self.data["budgets"]
         keys = dotted.split(".")
+        # A budget family added after this state.json was created (U15's
+        # `research`) is installed from DEFAULT_BUDGETS on first touch and
+        # logged - a run started before the family existed still gets the
+        # cap, and the install is visible in the history.
+        if keys[0] not in node and keys[0] in DEFAULT_BUDGETS:
+            node[keys[0]] = json.loads(json.dumps(DEFAULT_BUDGETS[keys[0]]))
+            self._log("budget_defaulted", family=keys[0],
+                      values=node[keys[0]])
         for k in keys[:-1]:
             node = node.get(k)
             if not isinstance(node, dict):

@@ -609,6 +609,90 @@ verbs:
                    the workspace variant is the actual promotion pass."
 
   # -------------------------------------------------------------------------
+  research:
+    summary: Fill a coverage gap - one research task per gap slot, allowlisted
+      acquisition into quarantine, visual page reads, page-cited draft records
+      with justified envelopes, an independent second reader, a
+      promotion-queue entry. Knowledge is the work; nothing on a board changes.
+    doc: reference/recipes/research.md
+    workspace: required
+    edit_class: null
+    gates: []          # no board changes; records + sources are the artifacts
+    human_hold: 1
+    args:
+      slot: {kind: text, required: false, extract: none,
+             question: "Which gap slot (knowledge.py --coverage gaps[].slot,
+                        e.g. interface:usb / block:B3 / part:C123)? Leave
+                        unset to research every gap in the report."}
+    match:
+      any: ['\bresearch\b', '\bknowledge gap', '\bcoverage gap',
+            '\bfill (the|a|this) gap\b', '\bapp[- ]?notes?\b',
+            '\b(look|read) up\b.*\b(layout|app note|datasheet|vendor)\b',
+            '\bwhat do we know about\b', '\bunder[- ]?researched\b']
+      not: ['\bpromot', '\blearnings\b', '\bresearch-(component|interface|power|reference)\b']
+    variants:
+      slot:
+        when: has_arg:slot
+        steps:
+          - do: "scripts/knowledge.py --coverage --workspace {ws} --out {log}/coverage-research.json"
+            why: "the gap specs (exit 1 = gaps present); a slot that is not a
+                  gap has nothing to research and open refuses it"
+          - do: "scripts/research.py open --workspace {ws} --gaps {log}/coverage-research.json --slot {slot}"
+            why: "one task under research/tasks/ - consumes budgets.research.
+                  per_run, snapshots depth_per_gap, emits the researcher's
+                  BRIEF (gap + what the library already holds + policies +
+                  templates + commands). status checkpoint = the per-run cap
+                  is spent: present it, never silently skip the gap"
+          - agent: researcher
+            tier: fable/high
+            why: "web tools ONLY here, allowlisted (domains.yaml) and only
+                  through research.py fetch (quarantine + ledger); reads
+                  cited pages VISUALLY; writes draft records + envelope_note;
+                  research.py validate green"
+          - agent: research-second-reader
+            tier: opus/high
+            why: "FRESH context: re-reads every cited page and refutes or
+                  verifies (research.py verify) - maturity never rises on the
+                  author's word"
+          - do: "scripts/research.py close --workspace {ws} --task <task>"
+            why: "validate clean + every record ruled -> workspace LEARNINGS
+                  entry + learnings.py compile (the U6 queue row); a cap-hit
+                  task with nothing usable closes with --abandon --reason"
+          - do: "scripts/knowledge.py --coverage --workspace {ws} --out {log}/coverage-research.json"
+            why: "re-run: the workspace's verified records fold in - the slot
+                  reads provisional (researched, unapproved) until the owner
+                  approves the promoted copy"
+          - human: 1
+            why: "record the outcome; promotion (research.py promote per
+                  verified record, then learnings.py resolve --kind
+                  knowledge_record and the owner's approval block) is the
+                  promote verb's pass, not this one's"
+      all:
+        when: always
+        steps:
+          - do: "scripts/knowledge.py --coverage --workspace {ws} --out {log}/coverage-research.json"
+            why: "the gap specs (exit 1 = gaps present)"
+          - do: "scripts/research.py open --workspace {ws} --gaps {log}/coverage-research.json --all"
+            why: "one task per gap slot inside budgets.research.per_run; the
+                  payload lists opened tasks + briefs, and `checkpoint` names
+                  the slots the cap left unopened - present those, never
+                  silently drop them"
+          - agent: researcher
+            tier: fable/high
+            why: "one instance per opened task (parallel is fine - tasks own
+                  disjoint records; the ledger is per task)"
+          - agent: research-second-reader
+            tier: opus/high
+            why: "one FRESH instance per task, after its researcher returns"
+          - do: "scripts/research.py close --workspace {ws} --task <task>"
+            why: "per task; then re-run coverage and present the honest
+                  covered / provisional / gap summary"
+          - do: "scripts/knowledge.py --coverage --workspace {ws} --out {log}/coverage-research.json"
+            why: "the post-research state of every slot"
+          - human: 1
+            why: "record the outcome and the cap state"
+
+  # -------------------------------------------------------------------------
   learn:
     summary: Teaching session (owner present) - a learner agent iterates ONE
       stage's artifact set (agent contract, templates, cost terms, scorer)
@@ -621,7 +705,8 @@ verbs:
     human_hold: 3
     args:
       stage: {kind: text, required: true, extract: none,
-              question: "Which stage is being taught (P2-P10, e.g. P6 placement)?"}
+              question: "Which stage is being taught (P1-P10, e.g. P6 placement,
+                         P1 research)?"}
       fixture: {kind: text, required: false, extract: none,
                 question: "Which frozen fixture is the loop's input (bench.py
                            --list; leave unset to capture a new one with
@@ -712,9 +797,10 @@ verbs:
       - do: "scripts/knowledge.py --coverage --workspace {ws} --phase P2 --out {log}/coverage-P2.json"
         why: "P2 exit (U13 coverage contract): every declared block/interface
               slot -> covered | provisional | gap at its operating_point and the
-              maturity floor; exit 1 = gap slots = the research trigger (U15
-              launches research per gap spec; until then log each gap as a
-              state.py decision and continue - never silently)"
+              maturity floor; exit 1 = gap slots = the research trigger (the
+              research steps below launch AUTOMATICALLY on every gap - owner
+              ruling; a slot still gap after them is a state.py decision,
+              never silence)"
       - agent: coverage-mapper
         tier: sonnet/high
         why: "the fuzzy record->slot remainder: schema-forced record/slot/class
@@ -723,10 +809,55 @@ verbs:
               cutoff folds the edges in and the report logs the mapping sha"
         optional: true
         when: "the P2 report carries a mapping_request"
+      - do: "scripts/research.py open --workspace {ws} --gaps {log}/coverage-P2.json --all --phase P2"
+        why: "U15 auto-trigger: one research task per gap slot inside
+              budgets.research (per_run consumed here; depth_per_gap per task).
+              status checkpoint (exit 1) = the per-run cap is spent - present
+              the unopened slots at H1, never silently truncate"
+        when: "the P2 coverage report exited 1 (gap slots)"
+      - agent: researcher
+        tier: fable/high
+        why: "one per opened task: allowlisted acquisition (research.py fetch
+              -> research/sources quarantine + ledger), VISUAL page reads,
+              page-cited draft records with envelope_note; research.py
+              validate green. The only agent with web tools"
+        when: "research tasks were opened"
+      - agent: research-second-reader
+        tier: opus/high
+        why: "FRESH context per task: re-reads every cited page, refutes or
+              verifies (research.py verify)"
+        when: "research tasks were opened"
+      - do: "scripts/research.py close --workspace {ws} --task <task>"
+        why: "per task: validate clean + every record ruled -> workspace
+              LEARNINGS entry + promotion queue (U6); --abandon --reason for
+              a cap-hit task with nothing usable"
+        when: "research tasks were opened"
+      - do: "scripts/knowledge.py --coverage --workspace {ws} --phase P2 --out {log}/coverage-P2.json"
+        why: "re-run after research: verified workspace records fold in
+              (provisional at the approved floor); the H1 coverage summary is
+              this report's covered / provisional / gap per slot"
+        when: "research ran"
       - do: "scripts/knowledge.py --coverage --workspace {ws} --phase P3 --out {log}/coverage-P3.json"
         why: "P3 exit: part slots join (each IC's datasheet extraction - a thin
               or empty layout_notes section is a detectable gap) with the
               blocks' operating points; same exit/mapping protocol as P2"
+      - do: "scripts/research.py open --workspace {ws} --gaps {log}/coverage-P3.json --all --phase P3"
+        why: "same auto-trigger on P3 gaps (part slots: vendor layout section
+              / app note -> part-level records); same caps, same checkpoint"
+        when: "the P3 coverage report exited 1 (gap slots)"
+      - agent: researcher
+        tier: fable/high
+        why: "per opened P3 task"
+        when: "research tasks were opened at P3"
+      - agent: research-second-reader
+        tier: opus/high
+        why: "per opened P3 task, fresh context"
+        when: "research tasks were opened at P3"
+      - do: "scripts/research.py close --workspace {ws} --task <task>"
+        why: "per P3 task; then re-run coverage --phase P3 and record any slot
+              still gap as a state.py decision (designing under a coverage
+              gap is a decision, not an omission)"
+        when: "research tasks were opened at P3"
       - gate: erc
       - gate: place
       - gate: drc_routed

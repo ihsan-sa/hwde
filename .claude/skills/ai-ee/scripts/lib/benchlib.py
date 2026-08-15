@@ -293,6 +293,13 @@ def match_known_answer(known: dict, violations: list[dict]) -> dict:
 # floored at 0, rounded to 2dp.  Penalty terms are also returned so the
 # tuning loop can see WHAT moved, not just the scalar.
 WEIGHTS = {
+    # U15 research quality (researchlib.assess): a task with no output floors
+    # the score; provenance breaches (a citation outside the task ledger) and
+    # a forum-only record are the contract violations that must sink it;
+    # lint/citation problems and unruled/refuted records are graded defects.
+    "P1": {"no_records": 60.0, "off_ledger": 25.0, "forum_sole": 15.0,
+           "lint_problems": 10.0, "citation_problems": 5.0,
+           "unruled": 5.0, "refuted": 8.0},
     "P2": {"audit_errors": 15.0, "audit_warnings": 3.0,
            "placement_refs_missing": 10.0, "stackup_bad": 25.0},
     # known-answer style weighting (mirrors P8/P9): the pristine-pull fixture

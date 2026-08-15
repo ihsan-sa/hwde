@@ -6,9 +6,12 @@ change iff the composite improves.  Fixtures are frozen under
 tests/fixtures/stages/ (manifest.yaml, every file sha256-pinned); a score
 computed from a drifted fixture is refused (exit 2).
 
-Stages (registry below): P2 architecture, P3 library sanitise (fpfix vs
-real DRC), P4 schematic, P5 board_init + rules_gen, P6 place, P7 route,
-P8 verify, P9 dfm, P10 order-dryrun.
+Stages (registry below): P1 research (U15: a frozen research root - task
+ledger + records + quarantined sources - scored for research quality by
+researchlib.assess; the owner-graded extraction fixtures accumulate from
+teaching sessions), P2 architecture, P3 library sanitise (fpfix vs real
+DRC), P4 schematic, P5 board_init + rules_gen, P6 place, P7 route, P8
+verify, P9 dfm, P10 order-dryrun.
 
 score.json metric classes (the determinism contract, LEARNINGS 2026-08-06
 [tests][freerouting]):
@@ -59,6 +62,10 @@ CLI: bench.py --list
      bench.py --freeze --stage P6 --fixture <new_id> --board <b>
               --from name=PATH [--from-dir name=PATH] [--grade TEXT]
               [--note TEXT] [--freeze-args JSON]
+     bench.py --freeze --stage P1 --fixture <id> --board <b>
+              --from task=<ws>/research/tasks/<t>.json
+              --from-dir research=<ws>/research --freeze-args '{"task": "<t>"}'
+              --grade "<owner verdict on the extraction>"
 Exit 0 scored (no regression), 1 known-answer miss or composite regression,
 2 error/drifted fixture/missing toolchain for a live-only stage.
 """
@@ -85,6 +92,7 @@ SCRIPT = "bench"
 
 # stage -> {title, primary artifact key (--artifact target), live legs}
 STAGES = {
+    "P1": {"title": "research (record extraction vs graded fixture)", "primary": "research", "live": "none"},
     "P2": {"title": "architecture (constraints vs netlist)", "primary": "constraints", "live": "none"},
     "P3": {"title": "library sanitise (fpfix vs real DRC)", "primary": "fp_lib", "live": "required"},
     "P4": {"title": "schematic", "primary": "sch", "live": "optional"},
@@ -165,6 +173,22 @@ def _render_pcb(cli, pcb: Path, work: Path, renders: list):
 # Each returns (metrics, metrics_live, penalties, ka_violations)
 # ka_violations: findings list the fixture's known_answer (if any) is matched
 # against.  metrics_live is None when the leg did not run.
+
+
+def score_p1(ctx):
+    """Research quality (U15): the fixture's `research` dir is a frozen
+    research root (tasks/, records/, sources/, checklists/) and args.task
+    names the task; researchlib.assess supplies metrics + penalty terms.
+    A tuning-loop candidate is a whole research dir (--artifact <ws>/
+    research) produced by a fresh researcher run on the same task."""
+    import researchlib
+    root = ctx["files"]["research"]
+    task_id = (ctx["args"] or {}).get("task")
+    if not task_id:
+        raise CheckError("P1 fixture needs args.task (the research task id "
+                         "under research/tasks/)")
+    res = researchlib.assess(Path(root), task_id)
+    return res["metrics"], None, res["penalties"], []
 
 
 def score_p2(ctx):
@@ -579,7 +603,8 @@ def score_p10(ctx):
     return metrics, None, penalties, []
 
 
-SCORERS = {"P2": score_p2, "P3": score_p3, "P4": score_p4, "P5": score_p5,
+SCORERS = {"P1": score_p1,
+           "P2": score_p2, "P3": score_p3, "P4": score_p4, "P5": score_p5,
            "P6": score_p6, "P7": score_p7, "P8": score_p8, "P9": score_p9,
            "P10": score_p10}
 

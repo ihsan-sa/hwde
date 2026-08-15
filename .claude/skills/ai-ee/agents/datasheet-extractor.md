@@ -21,6 +21,10 @@ venv python; JSON out, exit 0/1/2. Keep output ASCII.
   actually about), `envelope` (the dims the rule scales with, from the
   note's own stated conditions - edge rate, current, voltage, package),
   `maturity: draft` (the owner approves; never self-declare higher).
+  This is the owner-directed library extraction; a COVERAGE-GAP research
+  pass goes through the `research` verb instead (workspace-first records
+  under `research/records/`, allowlisted `research.py fetch` quarantine, a
+  second reader) - do not write library records for a gap from here.
 
 ## Scripts
 1. `scripts/datasheet_extract.py --pdf parts/<file>.pdf --out parts/<lcsc>.grounding.json`
