@@ -65,6 +65,9 @@ U11 later; U12 before order credentials; T11 on board arrival (not during U8).
 | U10 | xhp-driver brief + full run (first live validation) | pending | - |
 | U11 | P7 routing teaching cycle 2 (owner present) | pending | - |
 | U12 | Pre-credential order/state safety (C3+C5+C6) | pending | - |
+| U13 | Coverage contracts (levels/envelopes/maturity, the research trigger) | pending | - |
+| U14 | Record backfill + approval session (owner present, short) | pending | - |
+| U15 | Research verb (acquisition, synthesis, second reader, auto-trigger) | pending | - |
 
 Dependency graph (plan): S0 -> S1 -> S2 -> S3 -> {S4, S5}; S0 -> S6 -> S7; S2 -> S8 -> S9 -> S10 -> S11;
 {S5, S7, S8, S11} -> S12 -> S13 -> S14. S4-S7 may run in parallel with S8-S10 (separate sessions/terminals).

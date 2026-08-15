@@ -42,7 +42,33 @@ v3 board tracks state; session end = suite green (modulo the standing AP63203
    ONE WRITER per artifact always - reads and read-only scouts are free,
    backward writes go through board_update. Stage gates stay as the points
    where artifacts freeze.
-5. **Codex adoption is scoped.** Adopt C1 (release attestation), C4 (gate
+5a. **Coverage-gated design (owner-ruled 2026-08-15).** "I know enough to
+   design this" becomes a checkable claim, the U2 move applied to knowledge:
+   - Records gain `level` (principle/topology/family/part/instance),
+     `envelope` (dimensions chosen per record by what the mechanism actually
+     varies with - hot-loop scales with edge rate/hard-switching, not vin;
+     creepage scales with volts), `maturity`
+     (draft -> verified -> approved -> proven), `generalizes` links (specific
+     records point at their principle parents; a principle-only match on a
+     new domain narrows research to the APPLICATION delta, not the physics).
+   - The trigger is structural, never self-assessed: (1) deterministic query
+     (class keys + envelope containment + maturity floor), (2) a narrow
+     schema-forced agent mapping for fuzzy record->slot remainder (it
+     classifies, it may NOT declare sufficiency), (3) a mechanical cutoff
+     per decision class from coverage-checklist records.
+   - Maturity governance: `approved` requires OWNER sign-off (teaching or
+     promotion review); `proven` upgrades AUTOMATICALLY from T11 bench
+     evidence - reality outranks review. Early on only `approved` satisfies
+     coverage (bootstrap mode); research frequency decays as approvals and
+     bring-up evidence accumulate.
+   - Research launch is ALWAYS AUTO on a gap (owner ruling): no approval
+     checkpoint, but a per-gap depth cap and per-run research cap that
+     CHECKPOINT VISIBLY when hit - never silent truncation.
+   - Research outputs are workspace-first (draft records + quarantined
+     sources + promotion-queue entry), promoted via the U6 pass. Researcher
+     agents alone get web tools, restricted to a vendor-domain allowlist;
+     design/fixer agents stay locked down.
+5b. **Codex adoption is scoped.** Adopt C1 (release attestation), C4 (gate
    report validation, scoped commits), C7 (strict verify coverage), H1 (BOM
    assembly classes), H5 (promotion discipline), H9 (durable waivers - inside
    U5). C3/C5/C6 are queued as U12, REQUIRED before order credentials are
@@ -73,6 +99,10 @@ v3 board tracks state; session end = suite green (modulo the standing AP63203
     wave 4: U8 (EXCLUSIVE - owner present)
     wave 5: U9 (needs U4+U8) -> U10 (needs U8; U9 preferred first)
     later:  U11 (after U10), U12 (before order credentials, anytime)
+    coverage leg (owner-launched, added 2026-08-15): U13 (unattended,
+      needs U4+U7) -> U14 (owner, short) || U15 (unattended; owns
+      tasks.yaml while U14 owns records - parallel-safe). U8 does not
+      require them, but teaches against a stronger library after U14.
     T11 (v2 plan): as soon as boards arrive; any wave except during U8.
 
 ## Session setup
@@ -92,6 +122,9 @@ v3 board tracks state; session end = suite green (modulo the standing AP63203
 | U10 | Fable | max | - | checkpoints (H2-H4) |
 | U11 | Fable | max | - | YES |
 | U12 | Opus 5 | high | yes (concurrency/corruption fault injection) | no |
+| U13 | Fable | high | - | no |
+| U14 | Opus 5 | high | - | YES (short: rule levels/envelopes/approvals) |
+| U15 | Fable | max | - | no |
 
 ---
 
@@ -343,6 +376,80 @@ attempt journal, corrupt manifest = hard refuse; state/board writer locks +
 base-digest compare-and-swap. Fault-injection test suite (concurrent
 creators, truncated latch, crash mid-restore). Codex "essential regressions"
 list is the test menu.
+
+### U13 - Coverage contracts: levels, envelopes, maturity, the trigger
+
+**Read:** design decision 5a; `knowledgelib.py`, `knowledge.py`,
+`reference/knowledge/records/`, `constraints_lint.py` SECTIONS,
+`recipes/full-run.md`; U4 + U7 PROGRESS interface notes.
+**Build:**
+- Schema v2: `level`, `envelope` (unit-suffixed keys, required at
+  topology/family/part; principle records carry none), `maturity`,
+  `generalizes[]` (targets must exist). Lint enforces all of it; existing
+  records tolerate missing new fields as `draft` until U14 backfills.
+- New record kind: coverage checklist per topology/interface - the classes
+  (and minimum levels) that must be populated before designing it. The
+  first research pass on a new topology PRODUCES its checklist; owner
+  approves it like any record.
+- `knowledgelib.coverage(workspace)` + `knowledge.py --coverage`: per
+  block/part/interface slot -> {covered (record ids, envelope + maturity
+  floors met), provisional, gap}. Part-level coverage counts the P3
+  datasheet layout extraction (thin/empty layout section = a detectable
+  gap). Gap entries are research task specs (slot, missing levels, known
+  principle parents).
+- T11 wiring: a `proven` upgrade path fed by bring-up evidence
+  (mechanism built now, exercised at T11).
+- Recipe wiring: full-run runs coverage at P2 exit and P3 exit; the
+  agent-mapping step (fuzzy record->slot) is a recipe step with
+  schema-forced output, logged for audit.
+**Accept:** synthetic workspace with a buck block at an operating point
+inside/outside record envelopes flips covered<->gap deterministically;
+maturity floor enforced (draft never satisfies); checklist gating
+test-pinned; lint green on migrated records; coverage report emitted in a
+full-run dry-run.
+
+### U14 - Record backfill + approval session (OWNER PRESENT, short)
+
+**Read:** all 16+ records + their cited sources; U13 schema.
+**Build/do:** agent proposes level + envelope (with the "what does this
+rule scale with" justification, source-checked) + maturity per record; the
+owner rules each; all land `approved`. Draft + approve coverage checklists
+for buck and the in-fleet interfaces (100BASE-TX, USB-FS). Record the
+rulings as LEARNINGS where non-obvious.
+**Accept:** every record lint-green at schema v2 with owner-approved
+maturity; coverage checklists exist for buck + both interfaces; a
+pd-trigger-fixture coverage run reports covered on buck slots.
+
+### U15 - Research verb: acquisition, synthesis, second reader
+
+**Read:** design decision 5a; U13 coverage/gap spec; `datasheet_extract.py`
+--app-note flow; U6 queue format; `agents/librarian.md` (naming);
+order_submit's exit-2-without-credentials pattern.
+**Build:**
+- `research` verb (tasks.yaml + recipe + `agents/researcher.md`): input =
+  a gap spec. Source-tier policy (part vendor's own layout section >
+  vendor app note > cross-vendor app note > forum, never sole-source).
+  Researcher agents alone get WebFetch/WebSearch, restricted to a
+  vendor/distributor domain allowlist (reference/knowledge/domains.yaml);
+  downloads quarantined to `<ws>/research/sources/`.
+- Synthesis: mandate VISUAL page reads for cited pages (layout figures are
+  the highest-value content; text extraction cannot see them); figure
+  descriptions land in record prose; envelope dimensions justified per
+  record. Second reader independently re-reads cited pages and refutes ->
+  `verified`. Workspace-first storage + promotion-queue entry (U6).
+- Auto-trigger wiring: full-run launches research on every gap (owner
+  ruling); per-gap depth cap + per-run research cap in `budgets`,
+  cap-hit -> visible checkpoint, never silent truncation.
+- Distributor APIs (Digikey/Mouser) for parametric data + authoritative
+  datasheet links: client built now, exits 2 with the exact missing
+  credential until owner registers keys (owner-supplied prerequisite).
+- Research-quality bench hook: `bench --freeze`-style capture of
+  owner-graded extractions (fixtures accumulate from teaching sessions).
+**Accept:** a seeded gap (topology with no records) round-trips gap ->
+research -> draft records with page-cited sources -> second-reader
+verified -> queue entry, inside the caps; domain-allowlist enforcement
+test-pinned (off-list fetch refused); cap-hit checkpoint fires; Digikey
+client exits 2 with a precise missing-credential message.
 
 ## Not in this plan
 
