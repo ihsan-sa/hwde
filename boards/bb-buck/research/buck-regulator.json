@@ -1,0 +1,60 @@
+{
+  "block": "buck-regulator",
+  "candidates": [
+    {
+      "mpn": "LMR33630ADDAR",
+      "lcsc": "C841384",
+      "package": "SOIC-8-EP / ESOP-8 (TI 'DDA' HSOIC w/ PowerPAD)",
+      "basic": false,
+      "stock": 6885,
+      "price": 0.7411,
+      "datasheet": "https://www.ti.com/lit/ds/symlink/lmr33630.pdf",
+      "rank": 1,
+      "fit": "Synchronous, 38V abs-max Vin, 0-3A (incl. 0A) is the datasheet's own recommended operating range, internally compensated (no COMP pin), 400kHz 'A' variant clears min-on-time at the 30V/5V corner with ~3.9x margin. Cheapest of the well-margined picks."
+    },
+    {
+      "mpn": "AOZ1284PI",
+      "lcsc": "C48060",
+      "package": "SOIC-8-EP (EPAD SO-8)",
+      "basic": false,
+      "stock": 14336,
+      "price": 0.8495,
+      "datasheet": "https://www.aosmd.com/res/datasheets/AOZ1284PI.pdf",
+      "rank": 2,
+      "fit": "Asynchronous, 40V abs-max Vin (best headroom of all candidates), 5-6A peak current limit (2.5-3x margin over 2A), 0.8V +/-1.5% FB. Needs external RC compensation; keep Fsw below ~600kHz (RF resistor choice) to hold min-on-time margin at the 30V corner."
+    },
+    {
+      "mpn": "TPS54560BDDAR",
+      "lcsc": "C1850354",
+      "package": "HSOIC-8 w/ PowerPAD (LCSC lists as SO-8)",
+      "basic": false,
+      "stock": 80670,
+      "price": 1.0583,
+      "datasheet": "https://www.ti.com/lit/ds/symlink/tps54560.pdf",
+      "rank": 3,
+      "fit": "Asynchronous, 65V abs-max Vin, 6.3-9.5A current limit (>3x margin), 0.8V +/-1% FB, confirmed pulse-skip Eco-mode down to zero load. Needs external RC compensation. Most proven/documented part; priciest of the good-fit group but by a trivial amount at qty 5."
+    },
+    {
+      "mpn": "TPS54360BDDAR",
+      "lcsc": "C524806",
+      "package": "SOIC-8-EP",
+      "basic": false,
+      "stock": 29926,
+      "price": 0.8139,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2005111633_Texas-Instruments-TPS54360BDDAR_C524806.pdf",
+      "rank": 4,
+      "fit": "Same 60V-class TI family as TPS54560B at lower cost, 3.5A switch (1.75x margin over 2A, thinner than #1-3), asynchronous, external comp required. Abs-max/min-on-time inferred from sibling part family, not independently page-confirmed like TPS54560B was."
+    },
+    {
+      "mpn": "XL1509-5.0E1",
+      "lcsc": "C61063",
+      "package": "SOIC-8 (no thermal pad)",
+      "basic": true,
+      "stock": 280842,
+      "price": 0.2327,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_XLSEMI-XL1509-5-0E1_C61063.pdf",
+      "rank": 5,
+      "fit": "Cheapest, JLC Basic, 45V abs-max Vin (fine on headroom), but datasheet-guaranteed output accuracy is only +/-4% (4.8-5.2V) which alone exceeds the board's +/-3% budget, and its bipolar (VCE-sat) output stage is the least efficient candidate at the 30V high-line corner where thermal is already tightest. Listed for completeness, not recommended."
+    }
+  ]
+}

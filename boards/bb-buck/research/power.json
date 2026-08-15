@@ -1,0 +1,273 @@
+{
+  "board": "bb-buck",
+  "phase": "P1",
+  "agent": "research-power-architect",
+  "design_point": {
+    "vin_v": {"min": 18, "nom": 24, "max": 30, "abs_max_operating": 30},
+    "vout_v": 5.0,
+    "vout_window_v": [4.85, 5.15],
+    "vout_ripple_mvpp_max": 50,
+    "iout_a": {"min": 0.0, "max": 2.0},
+    "fsw_khz": {"recommend": 500, "band": [350, 600]},
+    "l_uh": 10,
+    "fsw_l_pairing": "L is fsw-COUPLED - pick the pair, not the pieces. 500 kHz -> 10 uH (dI 0.833 A, r 42 %, I_L,pk 2.42 A, P_U1 0.924 W). 400 kHz -> 15 uH (dI 0.694 A, r 35 %, I_L,pk 2.35 A, P_U1 0.854 W - 400 kHz is thermally BETTER). 400 kHz with 10 uH gives dI 1.042 A (52 %) and is wrong. I_Cin,rms is 0.90 A either way.",
+    "topology": "synchronous buck, integrated FETs",
+    "ambient_c_max": 50,
+    "basis": "requirements.md s3/s4 + answers A1-A4 (binding); fsw/L derived in power.md s3-s4"
+  },
+
+  "rails": [
+    {
+      "net": "VIN",
+      "vin": "bench DC power supply, 18-30 V, 24 V nominal (requirements.md s3, STATED - not a battery, not mains-derived, not automotive)",
+      "topology": "direct",
+      "current_a": 1.1,
+      "current_a_typ": 0.468,
+      "current_a_peak": 0.621,
+      "consumers": [
+        {
+          "ref": "U1",
+          "part": "synchronous buck regulator (part TBD - component-scout/P3)",
+          "typ_a": 0.468,
+          "peak_a": 0.621,
+          "basis": "DC average input current = (10 W out + P_loss)/Vin. typ at 24 V nominal with the power.md s2 loss of 1.227 W; peak at the 18 V LOW-line corner with 1.174 W (low line draws the most current). At 30 V it falls to 0.376 A. This is a RESULT of the loss budget, not an independent estimate."
+        },
+        {
+          "ref": "U1 hot loop",
+          "part": "Cin -> VIN pin pulsed segment (the copper that must be sized)",
+          "typ_a": 0.918,
+          "peak_a": 1.060,
+          "basis": "The HS switch chops the input, so the Cin->VIN copper carries rms = sqrt(D) x I_L,rms, not the DC average: 18 V -> sqrt(0.278) x 2.011 = 1.060 A; 24 V -> sqrt(0.208) x 2.013 = 0.918 A. Heating goes as rms^2, so sizing this segment on the 0.62 A average would under-size it by 1.7x. This is why power_constraints declares VIN at 1.1 A."
+        },
+        {
+          "ref": "C_IN",
+          "part": "input ceramic bank, >= 9 uF effective at 24 V bias, X7R, >= 50 V",
+          "typ_a": 0.819,
+          "peak_a": 0.903,
+          "basis": "I_Cin,rms = sqrt(D x (Iout^2 + dI^2/12) - (D x Iout)^2) at Iout = 2 A: 0.903 A at 18 V (D 0.278), 0.819 A at 24 V, 0.752 A at 30 V. Peaks at LOW line because sqrt(D(1-D)) rises toward D = 0.5, which this converter never reaches. Requirement: bank rated >= 1.0 A rms at 500 kHz."
+        },
+        {
+          "ref": "U1 quiescent",
+          "part": "switching Iq",
+          "typ_a": 0.0006,
+          "peak_a": 0.001,
+          "basis": "Requirement Iq <= 1 mA switching; 18 mW at 30 V, inside the s2 budget. No shutdown state exists on this board (no EN control)."
+        }
+      ],
+      "dissipation_w": 0.03,
+      "notes": "Pass-through net: screw terminal J1 + input ceramic bank, no series element. Mode excludes fuse, reverse-polarity FET, TVS and pi filter, so nothing else sits here. 0.03 W = 2 terminal poles at <= 5 mOhm plus the VIN copper at 1.06 A rms. No upstream inrush rule binds: buck-upstream-inrush-limit is bounded to source_kind in [usb, usb-pd, poe]; this is dc-input, and answer A2 (no live hot-plug, supply ramps from zero) removes the lead-inductance ringing case. Ceramic-only Cin is therefore safe HERE because of A2 - not in general. 100 nF HF ceramic at the VIN pin is mandatory and must be tagged role=reg_input in decoupling.json (check_decoupling errors reg_input_no_hf otherwise). All input MLCCs >= 50 V and X7R (board surface reaches 85-95 C; X5R's 85 C limit is exceeded)."
+    },
+    {
+      "net": "+5V",
+      "vin": "VIN",
+      "topology": "buck",
+      "regulator": "SYNCHRONOUS, integrated-FET, Vin abs-max >= 36 V (answer A1), fsw 500 kHz, fixed 5 V preferred; asynchronous+Schottky analysed and REJECTED - see power.md s2",
+      "current_a": 2.6,
+      "current_a_typ": 2.0,
+      "current_a_peak": 2.0,
+      "consumers": [
+        {
+          "ref": "J2 / external",
+          "part": "EXTERNAL resistive bench load - the only consumer of this rail",
+          "typ_a": 2.0,
+          "peak_a": 2.0,
+          "basis": "requirements.md s3 STATED: resistive load, up to 2 A at 5 V; 0 A floor recorded there as the conservative reading of 'up to 2 A'. A resistive load draws no surge beyond its steady value, so typ = peak = 2.0 A and no peak allowance is carried. There is NO on-board consumer to itemise (no MCU, no LED, no second rail - all excluded by the ultra-bare-bones mode), so the rail budget IS the stated 2 A. Design ceiling 2.0 x 1.3 = 2.6 A."
+        },
+        {
+          "ref": "C_OUT",
+          "part": "output ceramic bank, >= 20 uF effective at 5 V bias, X7R, >= 25 V",
+          "typ_a": 0.229,
+          "peak_a": 0.241,
+          "basis": "Ripple rms into the output caps = dI/sqrt(12): dI = 0.792 A at 24 V and 0.833 A at 30 V with L = 10 uH / 500 kHz. Trivial thermally (< 1 mW at 3 mOhm ESR); listed because it is the second current this rail's copper carries."
+        },
+        {
+          "ref": "L1 -> C_OUT segment",
+          "part": "inductor-to-output-cap copper",
+          "typ_a": 2.013,
+          "peak_a": 2.014,
+          "basis": "I_L,rms = sqrt(Iout^2 + dI^2/12) = 2.014 A at the 30 V corner; peak instantaneous 2.42 A. Covered by the 2.6 A declaration."
+        }
+      ],
+      "dissipation_w": 1.289,
+      "dissipation_breakdown_w": {
+        "u1_regulator": 0.924,
+        "l1_inductor": 0.291,
+        "copper_and_terminals": 0.071,
+        "cin_cout_esr": 0.003,
+        "at": "Vin = 30 V, Iout = 2 A - the WORST corner (high line), 500 kHz, 10 uH"
+      },
+      "notes": "Single rail, fixed 5 V, no trim, no sequencing (buck-en-softstart-sequencing: single-rail boards rarely need it - stated as 'none' explicitly). Worst-case board loss is at HIGH line, not low: input current is only 0.38-0.62 A so input-side I^2R is negligible, while switching loss scales with Vin and the LS conduction time (1-D) rises from 0.72 to 0.83. Efficiency 89.5/89.1/88.6 % at 18/24/30 V and 2 A. Light-load/no-load: forced CCM costs 0.15-0.25 W at 0 A and keeps ripple at ~13 mV, so A3 holds across the whole 0-2 A range; PFM/burst typically gives 50-100 mVpp at 5 V and would VIOLATE A3 - see part_requirements.light_load. A preload resistor is NOT available as a fix (mode excludes conditioning the datasheet does not require)."
+    },
+    {
+      "net": "GND",
+      "vin": "-",
+      "topology": "direct",
+      "current_a": 2.6,
+      "consumers": [
+        {
+          "ref": "return",
+          "part": "common return for VIN and +5V (non-isolated, common ground in to out per requirements.md s1)",
+          "typ_a": 2.0,
+          "peak_a": 2.0,
+          "basis": "Output return equals the load current, 2.0 A; the input return is smaller (0.62 A max). Declared at the same 2.6 A ceiling as +5V."
+        }
+      ],
+      "dissipation_w": 0.008,
+      "notes": "B.Cu pour, unbroken within 14.3 mm of U1 - it is simultaneously the return path, the reference plane for the switch node, and the board's radiator (see thermal_constraints). Single-sided assembly keeps the bottom clear of SMT, so nothing competes for it."
+    }
+  ],
+
+  "power_constraints": [
+    {"net": "VIN", "current_a": 1.1, "dt_c": 10, "via_amps": 0.4},
+    {"net": "SW", "current_a": 2.6, "dt_c": 10, "via_amps": 0.4, "pdn": false},
+    {"net": "+5V", "current_a": 2.6, "dt_c": 10, "via_amps": 0.4},
+    {"net": "GND", "current_a": 2.6, "dt_c": 10, "plane_fed": true, "pdn": false}
+  ],
+
+  "thermal_constraints": [
+    {"ref": "U1", "power_w": 0.92, "net": "GND", "dt_c": 70, "min_vias": 16}
+  ],
+
+  "blocks": [
+    {
+      "topology": "buck",
+      "block": "B1",
+      "name": "U1 24 V -> 5 V / 2 A synchronous buck",
+      "operating_point": {
+        "vin_v": 30,
+        "vout_v": 5,
+        "iout_a": 2,
+        "fsw_khz": 500,
+        "pdiss_w": 1.3,
+        "board_layers": 2,
+        "switching_kind": "hard",
+        "rectifier_kind": "sync",
+        "integration_kind": "integrated-fet",
+        "source_kind": "dc-input"
+      }
+    }
+  ],
+
+  "part_requirements": {
+    "regulator": {
+      "vin_abs_max_v": 36,
+      "vin_operating_max_v": 30,
+      "rectifier": "synchronous (async rejected, power.md s2)",
+      "rds_ls_mohm_max_25c": 85,
+      "rds_hs_mohm_max_25c": 200,
+      "trtf_x_fsw_max": 0.0075,
+      "qg_total_nc_max": 5,
+      "iq_ma_max_switching": 1,
+      "t_on_min_ns_max": 130,
+      "tj_max_c": 150,
+      "package": "exposed-pad required; non-pad SOT-23-6 / SOIC-8 excluded outright at ~0.92 W",
+      "p_ic_w_max_at_30v_2a": 0.95,
+      "p_ic_ceiling_basis": "P8 check_thermal on 2 layers gives 73.8 C/W at a saturated 645 mm^2 pour, so dt_c = 70 errors above 70/73.8 = 0.948 W. The physical ladder would allow ~1.1 W; the gate is the binding number.",
+      "current_class": "3 A-class part, NOT a marginal 2 A part. Typical 2 A-class parts at 36 V sit near Rds_LS 130 mOhm -> P_U1 1.19 W -> 88 C rise on 2 layers -> check_thermal errors, Tj ~138 C. Typical 3 A-class parts sit at Rds_LS 42-80 mOhm. A 2 A-class part is not disqualified, it FORCES 4 layers (1.19 W x 51.1 C/W = 61 C rise, Tj ~111 C).",
+      "selection_rule": "rank on Rds_LS, NOT on Rds_HS + Rds_LS: at D = 0.167 the LS FET conducts 5x longer than the HS FET, so LS conduction is 3x the HS term (426 mW vs 142 mW at 30 V / 2 A)."
+    },
+    "inductor": {
+      "l_uh": 10,
+      "dcr_mohm_max_20c": 40,
+      "dcr_mohm_preferred_20c": 30,
+      "isat_a_min_hot": "1.3 x the part's MAXIMUM HS current limit at 100 C (typically >= 4.5 A for a 2 A-class part) - NOT 1.3 x the 2.42 A peak; buck-inductor-selection",
+      "irms_a_min_40c_rise": 2.5,
+      "temp_rating_c_min": 125,
+      "construction": "shielded / composite, 7x7 mm class"
+    },
+    "cin": {
+      "c_uf_effective_min_at_24v": 9,
+      "irms_a_min": 1.0,
+      "voltage_rating_v_min": 50,
+      "dielectric": "X7R minimum (X5R's 85 C limit is exceeded by the 85-95 C board)",
+      "hf_cap": "100 nF at the VIN pin, role=reg_input in decoupling.json"
+    },
+    "cout": {
+      "c_uf_effective_min_at_5v": 20,
+      "esr_mohm_max": 6,
+      "voltage_rating_v_min": 25,
+      "dielectric": "X7R minimum",
+      "note": "Must sit inside the chosen part's datasheet C/ESR window - internal compensation assumes it. External-compensation parts mean re-deriving the network, not copying the table row (buck-bst-fb-output-caps)."
+    },
+    "regulation": {
+      "prefer": "FIXED 5 V output variant - removes the divider tolerance term and two parts. Watch the FB trap: fixed family members tie FB straight to the output sense point; do NOT copy the adjustable variant's divider out of the shared datasheet figure.",
+      "if_adjustable": "0.5 % divider resistors, same family, TCR <= 100 ppm/C (divider sits on an 85-95 C board), FB reference <= +/-1.5 % over temperature, sense point AFTER the output caps.",
+      "if_cot_with_type3_injection": "Add the +Vramp_pkpk/2 term: Vout = (1 + Rt/Rb) x (VREF + Vramp_pkpk/2), and solve the divider against the union of [VREF_min, VREF_max + Vramp_max/2] (cot-ripple-injection-raises-vout - worth +3 % on an LM5017, enough to blow 5.15 V on its own).",
+      "budget": "Worst-case SUM with 1 % divider resistors is ~3.7 % and does NOT close against A3's +/-3 %; RSS gives 1.95 % and does."
+    },
+    "light_load": {
+      "requirement": "A3 binds <= 50 mVpp ripple across the FULL 0-2 A load range, including no load.",
+      "accept_any_of": [
+        "forced-CCM part",
+        "part with a MODE/FCCM pin strappable to CCM",
+        "PFM/PSM part whose datasheet shows <= 50 mVpp light-load output ripple at 5 V with a comparable Cout"
+      ],
+      "reject": "A preload resistor is NOT an available fix - the ultra-bare-bones mode excludes conditioning the datasheet does not require.",
+      "escalate": "If no JLC-stocked 36 V-class candidate satisfies any of the three, raise it to the owner (relax A3 at light load, or admit a preload against the mode). Do not silently ship a burst-mode part."
+    },
+    "enable_softstart": {
+      "en": "Check the part's OWN behaviour first - most parts in this class auto-start off an internal pull-up, so EN ties to VIN or floats and NO parts are added. No UVLO divider (mode-excluded, and a bench supply has no cable-droop motorboating case: 0.62 A over 2 m of lead is ~0.1 V).",
+      "soft_start": "Internal. Cout inrush = C x Vout/tss = 65 mA at 26 uF / 2 ms - invisible to the source, and A2 means the supply ramps from zero so there is no inrush event at all."
+    },
+    "bst_cap": "Integrated-FET parts need the BST-SW cap - required, not optional. 100 nF is the family default; confirm value and rating in the chosen datasheet (buck-bst-fb-output-caps).",
+    "scout_crosscheck": {
+      "read": "research/buck-regulator.json, arrived after s2-s7 were derived; changes no conclusion",
+      "rank1_lmr33630addar": "Correct SHAPE per s2: synchronous, 3 A-class, exposed-pad SOIC-8-EP, 38 V abs-max, internally compensated, 400 kHz. P3 must confirm Rds_LS <= 85 mOhm and t_on,min <= 130 ns off the datasheet (the scout's ~3.9x margin at 400 kHz implies ~107 ns, which clears). At 400 kHz use L = 15 uH and P_U1 falls to 0.854 W.",
+      "ranks_2_3_4_are_async": "AOZ1284PI / TPS54560B / TPS54360B are asynchronous and power.md s2 rejects that topology here with numbers. NOT drop-in fallbacks: re-run the loss budget (+0.42 W board), add a thermal entry for D1 (~0.77 W), and expect the layer decision to flip to 4.",
+      "rank5_xl1509": "Independently excluded by the s5 regulation budget: +/-4 % guaranteed accuracy alone exceeds A3's +/-3 %. The scout reached the same conclusion separately."
+    }
+  },
+
+  "layout_notes": [
+    "HOT LOOP (P6 placement group): Cin (HF 100 nF first, then bulk ceramics) - U1 VIN pin - U1 GND/PGND pin, on F.Cu, smallest enclosed area achievable. This is the loop that sets the ~37 mV of the 50 mV ripple budget that capacitance cannot buy back.",
+    "SW containment: short WIDE pour, 1.6-2.0 mm wide, <= 8 mm long, <= 40 mm^2 total, F.Cu only, never on an inner layer, never near a board edge or a screw terminal. IPC-2152 constrains WIDTH (1.52 mm at 2.6 A / dT 10); EMI constrains AREA - both hold with a short wide pour.",
+    "A4 probe pad: the single switch-node pad plus its ground pad must live INSIDE the existing SW pour, not on a spur, so it adds no area to the noisiest node. Its ground pad returns to the B.Cu GND pour directly beneath.",
+    "FB routing: short, away from SW and L1, sense point AFTER the output caps. Keep the divider (if any) at the FB pin.",
+    "Cout ground and Cin ground return to the GND pour at separate points near their own pins - do not share a single narrow neck (buck-cin-co-ground-separation).",
+    "B.Cu: unbroken GND pour, no split within 14.3 mm of U1. This is simultaneously the return path, the SW reference and the radiator; single-sided assembly reserves it.",
+    "Thermal via array under U1's exposed pad: >= 16 vias (target 20-25 counting a ring in the surrounding F.Cu GND island), 0.3 mm drill, 1.0-1.2 mm pitch. 0.3 mm so the barrel can FILL at reflow; larger drills wick solder out of the joint. On 2 layers this array IS the heat path (192 K/W per via through 1.6 mm; 16 -> 14.1 K/W, 25 -> 9.1 K/W) - 8 vias instead of 16 costs ~10 C of junction. Tent on the BOTTOM side; windowpane U1's paste aperture so the array does not float the part.",
+    "F.Cu GND island contiguous with U1's pad, >= 100 mm^2, not fragmented by the SW pour or the VIN routing.",
+    "L1 pads: >= 40 mm^2 of copper each (0.29 W on an 85-95 C board), and a GND void under the inductor body per buck-inductor-copper-and-gnd-void.",
+    "Zero layer transitions on VIN / SW / +5V by design (single-sided assembly, all three on F.Cu); GND is plane-fed through the stitching field.",
+    "check_thermal will NOT verify the via array at dt_c 70 / 0.92 W (it warns only when dt_c/power_w < 73.8 on 2 layers, and 76 > 73.8). The array is a P6/P7 requirement enforced by review - a clean check_thermal is not proof it exists."
+  ],
+
+  "layer_decision": {
+    "recommendation": "2 layers, CONDITIONALLY",
+    "conditions": [
+      "synchronous rectification (async's 1.71 W board / 0.77 W diode does not fit on 2 layers at any size)",
+      "P_U1 <= 0.95 W at 30 V / 2 A, i.e. Rds_LS <= 85 mOhm, i.e. a 3 A-class part - the condition most likely to fail",
+      "outline >= ~1000 mm^2, e.g. 38 x 28 mm, with an unbroken B.Cu GND pour",
+      ">= 16 thermal vias under the exposed pad",
+      "part Tj_max = 150 C"
+    ],
+    "escalate_to_4l_if": [
+      "chosen part is 125 C rated (dt_c drops to 55 and neither the screen nor the ladder passes)",
+      "P_U1 > 0.95 W at 30 V / 2 A - a 2 A-class part at Rds_LS 130 mOhm gives 1.19 W and lands here",
+      "the honest outline falls below ~900 mm^2",
+      "P8 check_thermal errors at dt_c = 70"
+    ],
+    "live_trigger_warning": "The screen passes 0.92 W by only 2 C (0.92 x 73.8 = 67.9 vs dt_c 70). The layer count FOLLOWS THE PART: P3 must re-run this arithmetic with the chosen part's real Rds_LS/Rds_HS before P5 fixes the stackup.",
+    "tj_ladder_c": {"2L_38x28_16vias": 115, "2L_38x28_25vias": 111, "2L_40x30_25vias": 107, "4L_38x28_16vias": 104},
+    "what_4l_actually_buys": "NOT a lower R_ba - board-to-ambient is set by AREA and h, and the board is already near-isothermal at 2 layers (spreading length 26 mm vs a 12-19 mm half-dimension). It lowers the LOCAL junction-to-board path by ~11 K/W (0.30 mm prepreg to In1 vs 1.6 mm to B.Cu), worth ~11 C of Tj. Board AREA buys more: 875 -> 1200 mm^2 is worth ~10 C at the same power. The mode's 'smallest HONEST outline' therefore has a numeric floor here: honest means >= ~1000 mm^2, because the outline IS the radiator."
+  },
+
+  "rejected": [
+    {"option": "asynchronous buck + Schottky", "why": "+0.42 W (+33 %) board dissipation at 30 V / 2 A and a second 0.77 W hot spot whose Tj lands ~126 C on an SMB against a 125 C rating, with reverse-leakage positive feedback. The low duty cycle is the worst case for a diode: it conducts 83 % of every cycle at 30 V."},
+    {"option": "LDO", "why": "(24-5) x 2 = 38 W. Arithmetic, not a choice."},
+    {"option": "controller + external FETs", "why": "~1-2 efficiency points for two FETs, a gate/sense network and area, at 10 W. buck-selection-ladder rung 3 is the escape hatch for corners with no stocked integrated part; 30 V / 2 A is not one."},
+    {"option": "fsw >= 1 MHz", "why": "1.58 W at 1.0 MHz and 1.93 W at 1.4 MHz vs 1.29 W at 500 kHz, and t_on(30 V) falls to 167/119 ns against a typical 100-130 ns min on-time."},
+    {"option": "L = 15-22 uH", "why": "DCR scales ~4 mOhm/uH at constant package size, so 15 uH adds ~93 mW of I^2R and removes only ~25 mW of core loss."},
+    {"option": "preload resistor for light-load ripple", "why": "Conditioning the datasheet does not require - excluded by the ultra-bare-bones mode. The fix has to be part selection."},
+    {"option": "aluminium bulk input capacitor", "why": "Not required: A2 removes the hot-plug ring, so there is no damping requirement and no source-side inrush rule. Ceramic-only Cin. (This is an A2-dependent conclusion, not a general one.)"}
+  ],
+
+  "model_limits": {
+    "part_model": "s2 numbers model a TYPICAL 36 V-class integrated 2 A sync buck, not a part. Every conclusion is expressed as a limit P3 must meet.",
+    "switching_loss": "+/-30 % (linear V/I crossover, symmetric edges, no reverse recovery)",
+    "core_loss": "+/-40 % (anchored at 80 mW / 0.833 App / 500 kHz, not a vendor curve)",
+    "r_ba": "+/-30 % (textbook flat-plate convection + radiation). Cross-checked against the repo check_thermal model: 73.8 C/W on 2L vs the ladder's ~70 C/W effective - the two agree.",
+    "duty_cycle": "D = Vout/Vin ideal used for ripple; real D is 5-8 % higher with drops, which relaxes the min-on-time margin (conservative as written).",
+    "net_names": "VIN / SW / +5V / GND are this fragment's proposal - P2 must reconcile power.json to the final netlist names before P5."
+  }
+}

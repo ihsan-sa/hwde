@@ -3,8 +3,8 @@
  "board": "bb-buck",
  "workspace": "boards/bb-buck",
  "created": "2026-08-15T15:58:13",
- "updated": "2026-08-15T16:08:09",
- "phase": "P1",
+ "updated": "2026-08-15T16:31:43",
+ "phase": "P2",
  "gates": {},
  "human": {},
  "artifacts": {},
@@ -61,6 +61,18 @@
    "why": "Screw terminals are bound by no electrical standard, so there is no interface spec to research. The buck block is not novel - the library already holds 16 buck records - and the useful vendor-layout digest is exactly what the P3 part-level coverage research produces for the CHOSEN IC; a P1 reference-design spawn would duplicate it. Mode says do not pad.",
    "phase": "P1",
    "ts": "2026-08-15T16:08:09"
+  },
+  {
+   "what": "Topology: synchronous integrated-FET buck, Fsw ~500 kHz (band 350-600), L = 10 uH",
+   "why": "research-power-architect numbers: async costs +0.42 W (+33%) and adds a 0.77 W diode hot spot at Tj ~126 C against a 125 C rating, worst-cased by D=0.17 (diode conducts 83% of every cycle at 30 V). Fsw >= 1 MHz costs 1.58-1.93 W and collides t_on(30 V) with typical min-on-time. LDO is 38 W - arithmetic. Controller+FETs is the ladder's escape hatch for corners with no stocked integrated part; 30 V/2 A is not one.",
+   "phase": "P1",
+   "ts": "2026-08-15T16:31:42"
+  },
+  {
+   "what": "PROVISIONAL 2-layer stackup, conditional on the P3 part: sync + Rds_LS <= 85 mOhm + outline >= ~1000 mm2 + >= 16 thermal vias + Tj 150 C",
+   "why": "The 2L screen passes by only 2 C (0.92 W x 73.8 C/W = 67.9 vs check_thermal dt_c 70). The layer count FOLLOWS THE PART - a 2 A-class part at Rds_LS 130 mOhm gives 1.19 W and forces 4L. P3 must re-run this arithmetic with the chosen part's real Rds before P5 fixes the stackup (no outline-shrink step exists; board_init is final).",
+   "phase": "P1",
+   "ts": "2026-08-15T16:31:43"
   }
  ],
  "edits": [],
@@ -96,6 +108,14 @@
    "effort": "high",
    "phase": "P1",
    "note": "block=buck-regulator; ranked JLC-orderable candidates"
+  },
+  {
+   "ts": "2026-08-15T16:31:43",
+   "role": "architect",
+   "model": "opus",
+   "effort": "xhigh",
+   "phase": "P2",
+   "note": "SUBSTITUTION fable/high -> opus/xhigh (Fable out of credits)"
   }
  ],
  "history": [
@@ -164,6 +184,28 @@
    "event": "spawn",
    "role": "research-component-scout",
    "model": "sonnet"
+  },
+  {
+   "ts": "2026-08-15T16:31:42",
+   "event": "decision",
+   "what": "Topology: synchronous integrated-FET buck, Fsw ~500 kHz (band 350-600), L = 10 uH"
+  },
+  {
+   "ts": "2026-08-15T16:31:43",
+   "event": "decision",
+   "what": "PROVISIONAL 2-layer stackup, conditional on the P3 part: sync + Rds_LS <= 85 mOhm + outline >= ~1000 mm2 + >= 16 thermal vias + Tj 150 C"
+  },
+  {
+   "ts": "2026-08-15T16:31:43",
+   "event": "phase",
+   "phase": "P2",
+   "prev": "P1"
+  },
+  {
+   "ts": "2026-08-15T16:31:43",
+   "event": "spawn",
+   "role": "architect",
+   "model": "opus"
   }
  ]
 }
