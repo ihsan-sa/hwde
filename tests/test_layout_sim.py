@@ -162,6 +162,11 @@ def test_grid_doubling_determinism(tmp_path_factory):
     argv = ["--pcb", str(pcb), "--constraints", str(cons)]
     p1, _ = check_irdrop.run(list(argv))
     p2, _ = check_irdrop.run(list(argv))
+    # checklib stamps every payload with wall-clock generated_at; two runs
+    # straddling a second boundary are still deterministic (U7 full-suite
+    # flake, LEARNINGS 2026-08-14) - compare everything BUT the stamp.
+    for p in (p1, p2):
+        p.pop("generated_at", None)
     assert json.dumps(p1, sort_keys=True) == json.dumps(p2, sort_keys=True)
 
 

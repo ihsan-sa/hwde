@@ -116,9 +116,12 @@ def _rulings(args) -> list[dict]:
         return data
     if not (args.entry and args.status and args.kind):
         raise ValueError("resolve needs --batch, or --entry/--status/--kind")
+    # --targets feeds resolution.artifacts (apply_ruling's key); shipping it
+    # under "targets" silently dropped the list and every single-entry
+    # promotion failed validate with "no artifacts" (U7 dry-run find).
     ruling = {"entry": args.entry, "status": args.status, "kind": args.kind,
               "reason": args.reason, "level": args.level,
-              "targets": _csv(args.targets) or None}
+              "artifacts": _csv(args.targets) or None}
     if args.kind == "root_learnings":
         ruling["triage"] = {"now": args.now_level, "target": args.target_level,
                             "owner": args.owner, "status": args.triage_status,

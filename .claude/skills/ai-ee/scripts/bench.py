@@ -39,11 +39,26 @@ Token/cost: for agent-driven stages the DRIVER session knows the spend, the
 script cannot - pass --tokens/--cost-usd and bench records them
 informationally.
 
+Fixture capture (U7 learning mode): --freeze records a NEW graded fixture -
+copies every --from/--from-dir source under the manifest dir, LF-normalizes
+text bytes before hashing (a sha pinned on CRLF working bytes drift-refuses
+on every fresh LF checkout; LEARNINGS 2026-08-06 [bench][git][windows]),
+auto-includes .kicad_pro/.kicad_dru stem-siblings of any .kicad_pcb/
+.kicad_sch source (a KiCad artifact fixture is the file PLUS its project
+files; LEARNINGS 2026-08-06 [bench][kicad-cli]), and APPENDS the manifest
+entry (comments preserved).  The owner's verdict rides provenance
+(--grade/--note).  Scoring and --baseline stay separate invocations.
+known_answer blocks are hand-authored manifest YAML (P8/P9 only), never
+frozen.
+
 CLI: bench.py --list
      bench.py --stage P6 --fixture pd_trigger_place [--artifact PATH]
               [--file name=PATH ...] [--baseline] [--compare [PATH]]
               [--work-dir DIR] [--render] [--tokens N] [--cost-usd X]
               [--out score.json]
+     bench.py --freeze --stage P6 --fixture <new_id> --board <b>
+              --from name=PATH [--from-dir name=PATH] [--grade TEXT]
+              [--note TEXT] [--freeze-args JSON]
 Exit 0 scored (no regression), 1 known-answer miss or composite regression,
 2 error/drifted fixture/missing toolchain for a live-only stage.
 """
@@ -616,6 +631,184 @@ def compare_to_baseline(payload: dict, base: dict) -> dict:
             "regressed": delta < 0, "metric_diffs": diffs}
 
 
+# ----------------------------------------------------------- fixture capture
+
+_ID_RE = r"[a-z][a-z0-9_]*"
+
+
+def _freeze_rel(p: Path) -> str:
+    """Manifest path for a frozen file: repo-relative posix normally; absolute
+    only when the manifest itself lives outside the repo (test manifests -
+    benchlib joins root/path, and pathlib keeps an absolute right side)."""
+    root = benchlib.repo_root().resolve()
+    rp = p.resolve()
+    try:
+        return rp.relative_to(root).as_posix()
+    except ValueError:
+        return rp.as_posix()
+
+
+def _lf_bytes(data: bytes) -> bytes:
+    """LF-normalize text payloads; binaries (NUL byte) pass through. The pin
+    must equal what a fresh clone checks out (.gitattributes: eol=lf)."""
+    return data if b"\x00" in data else data.replace(b"\r\n", b"\n")
+
+
+def _parse_sources(pairs, what: str, must: str) -> dict[str, Path]:
+    import re
+    out: dict[str, Path] = {}
+    for spec in pairs or []:
+        name, _, path = spec.partition("=")
+        if not name or not path:
+            raise CheckError(f"{what} wants NAME=PATH, got '{spec}'")
+        if not re.fullmatch(_ID_RE, name):
+            raise CheckError(f"{what} name must match {_ID_RE}: {name!r}")
+        if name in out:
+            raise CheckError(f"duplicate {what} name {name!r}")
+        p = Path(path)
+        ok = p.is_file() if must == "file" else p.is_dir()
+        if not ok:
+            raise CheckError(f"{what} {name}: no such {must}: {path}")
+        out[name] = p
+    return out
+
+
+def do_freeze(args, manifest_path: Path) -> dict:
+    """Capture a NEW graded fixture: copy sources under the manifest dir,
+    LF-normalize, sha-pin, append the manifest entry, self-verify."""
+    import re
+    import yaml
+
+    if args.baseline or args.compare or args.artifact or args.file \
+            or args.render or args.work_dir:
+        raise CheckError("--freeze only captures; score/--baseline the new "
+                         "fixture in a separate invocation")
+    if not manifest_path.is_file():
+        raise CheckError(f"no manifest at {manifest_path} - freeze appends to "
+                         "an existing fixtures table")
+    if not re.fullmatch(_ID_RE, args.fixture):
+        raise CheckError(f"fixture id must match {_ID_RE}: {args.fixture!r}")
+    manifest = benchlib.load_manifest(manifest_path)
+    if args.fixture in (manifest.get("fixtures") or {}):
+        raise CheckError(f"fixture '{args.fixture}' already exists - freeze "
+                         "records NEW graded fixtures; re-grading an existing "
+                         "one is a --baseline decision")
+    if not args.board:
+        raise CheckError("--freeze needs --board (the manifest entry names it)")
+    for label, val in (("--board", args.board), ("--grade", args.grade),
+                       ("--note", args.note)):
+        if val and not val.isascii():
+            raise CheckError(f"{label} must be ASCII")
+
+    files = _parse_sources(args.from_files, "--from", "file")
+    dirs = _parse_sources(args.from_dirs, "--from-dir", "dir")
+    both = set(files) & set(dirs)
+    if both:
+        raise CheckError(f"names given as both --from and --from-dir: "
+                         f"{sorted(both)}")
+    if not files:
+        raise CheckError("--freeze needs at least one --from NAME=PATH")
+
+    # Stem-sibling auto-include (LEARNINGS 2026-08-06 [bench][kicad-cli]): a
+    # KiCad artifact judged without its .kicad_pro/.kicad_dru scores under
+    # KiCad DEFAULTS - netclasses, custom rules and severities all live there.
+    for name, p in list(files.items()):
+        if p.suffix not in (".kicad_pcb", ".kicad_sch"):
+            continue
+        for ext, auto in ((".kicad_pro", "pro"), (".kicad_dru", "dru")):
+            sib = p.with_suffix(ext)
+            if not sib.is_file():
+                continue
+            if any(q.resolve() == sib.resolve() for q in files.values()):
+                continue
+            if auto in files or auto in dirs:
+                raise CheckError(
+                    f"cannot auto-add sibling {sib.name}: entry name "
+                    f"{auto!r} is taken by a different file - pass the "
+                    "sibling explicitly")
+            files[auto] = sib
+
+    primary = STAGES[args.stage]["primary"]
+    if primary not in files and primary not in dirs:
+        raise CheckError(f"stage {args.stage} scores the {primary!r} entry - "
+                         f"include --from {primary}=PATH (or --from-dir)")
+
+    fixture_args = None
+    if args.freeze_args:
+        fixture_args = json.loads(args.freeze_args)
+        if not isinstance(fixture_args, dict):
+            raise CheckError("--freeze-args must be a JSON object")
+
+    dest = manifest_path.parent / args.fixture
+    if dest.exists() and any(dest.iterdir()):
+        raise CheckError(f"destination {dest} exists and is not empty")
+    dest.mkdir(parents=True, exist_ok=True)
+
+    # Copies keep the SOURCE basename: kicad-cli resolves project files as
+    # siblings BY STEM, so renaming the artifact orphans them.
+    by_base: dict[str, str] = {}
+    for name, p in files.items():
+        if p.name in by_base:
+            raise CheckError(
+                f"--from {name} and {by_base[p.name]} share basename "
+                f"{p.name!r} - freeze keeps original stems; rename a source")
+        by_base[p.name] = name
+
+    entry: dict = {"stage": args.stage, "board": args.board}
+    prov = {"source": "; ".join(str(p) for p in
+                                [*files.values(), *dirs.values()]),
+            "method": "copy", "captured": time.strftime("%Y-%m-%d")}
+    if args.grade:
+        prov["grade"] = args.grade
+    if args.note:
+        prov["note"] = args.note
+    entry["provenance"] = prov
+    entry["files"] = {}
+    for name, p in files.items():
+        dst = dest / p.name
+        dst.write_bytes(_lf_bytes(p.read_bytes()))
+        entry["files"][name] = {"path": _freeze_rel(dst),
+                                "sha256": benchlib.file_sha256(dst)}
+    if dirs:
+        entry["dirs"] = {}
+        for name, p in dirs.items():
+            dst = dest / name
+            shutil.copytree(p, dst)
+            for f in sorted(q for q in dst.rglob("*") if q.is_file()):
+                f.write_bytes(_lf_bytes(f.read_bytes()))
+            entry["dirs"][name] = {"path": _freeze_rel(dst),
+                                   "sha256": benchlib.dir_sha256(dst)}
+    if fixture_args:
+        entry["args"] = fixture_args
+
+    # Append (never re-emit: the manifest's header comments must survive).
+    block = yaml.safe_dump({args.fixture: entry}, sort_keys=False,
+                           default_flow_style=False, width=96,
+                           allow_unicode=False)
+    text = manifest_path.read_text(encoding="utf-8")
+    if not text.endswith("\n"):
+        text += "\n"
+    text += "".join(f"  {line}\n" if line.strip() else "\n"
+                    for line in block.splitlines())
+    manifest_path.write_text(text, encoding="utf-8", newline="\n")
+
+    redo = benchlib.load_manifest(manifest_path)
+    if args.fixture not in redo["fixtures"]:
+        raise CheckError("manifest append did not round-trip - an inline "
+                         "`fixtures: {}` mapping cannot be appended to; use "
+                         "block style")
+    drift = benchlib.verify_fixture(redo["fixtures"][args.fixture])
+    if drift:
+        raise CheckError("freeze self-check failed: " + "; ".join(drift))
+
+    return {"script": SCRIPT, "status": "pass", "froze": args.fixture,
+            "stage": args.stage, "board": args.board,
+            "dir": _freeze_rel(dest), "manifest": str(manifest_path),
+            "files": entry["files"], "dirs": entry.get("dirs") or {},
+            "next": f"bench.py --stage {args.stage} --fixture "
+                    f"{args.fixture} --baseline"}
+
+
 # --------------------------------------------------------------------- main
 
 def run(argv=None):
@@ -646,6 +839,26 @@ def run(argv=None):
                     help="emit render(s) into the work dir (live kicad only)")
     ap.add_argument("--tokens", type=int)
     ap.add_argument("--cost-usd", type=float)
+    ap.add_argument("--freeze", action="store_true",
+                    help="capture a NEW graded fixture: copy --from/--from-dir "
+                    "sources under the manifest dir, LF-normalize text, "
+                    "sha-pin, append the manifest entry (then --baseline it "
+                    "in a separate invocation)")
+    ap.add_argument("--board", help="--freeze: board name for the entry")
+    ap.add_argument("--from", dest="from_files", action="append",
+                    metavar="NAME=PATH",
+                    help="--freeze: a file to pin (repeatable); .kicad_pcb/"
+                    ".kicad_sch bring stem-matched .kicad_pro/.kicad_dru "
+                    "siblings along automatically")
+    ap.add_argument("--from-dir", dest="from_dirs", action="append",
+                    metavar="NAME=PATH",
+                    help="--freeze: a directory to pin (repeatable)")
+    ap.add_argument("--grade", help="--freeze: the owner verdict this fixture "
+                    "records (ASCII; provenance.grade)")
+    ap.add_argument("--note", help="--freeze: provenance note (ASCII)")
+    ap.add_argument("--freeze-args",
+                    help="--freeze: JSON object stored as the entry's args "
+                    "(e.g. '{\"copper_oz\": 2.0}')")
     ap.add_argument("--out")
     args = ap.parse_args(argv)
 
@@ -664,6 +877,15 @@ def run(argv=None):
 
     if not args.stage or not args.fixture:
         raise CheckError("--stage and --fixture are required (or --list)")
+
+    if args.freeze:
+        return do_freeze(args, manifest_path), args.out
+    for flag, val in (("--board", args.board), ("--from", args.from_files),
+                      ("--from-dir", args.from_dirs), ("--grade", args.grade),
+                      ("--note", args.note),
+                      ("--freeze-args", args.freeze_args)):
+        if val:
+            raise CheckError(f"{flag} only makes sense with --freeze")
 
     manifest = benchlib.load_manifest(manifest_path)
     entry = benchlib.fixture_entry(manifest, args.fixture)

@@ -65,6 +65,9 @@ suite checks those two files against each other:
 
 A whole pass at once: `--batch <file>.yaml` with a `rulings:` list of the same
 fields (`triage: {now, target, owner, status, note}` for root promotions).
+In a batch, `artifacts:` is the resolution's written-to list - the CLI's
+`--targets` maps to exactly that - while an optional `targets:` key refreshes
+the ENTRY's candidate list instead; they are different fields.
 Write every `reason:` and `note:` as a `>-` block scalar - a multi-line PLAIN
 scalar breaks the moment the prose contains ": " or a line starting with "- ".
 Keep the batch beside the queue - it is the record of who ruled what.

@@ -4223,3 +4223,29 @@ per-pad boxes, `precise_extents_abs`) while `extents_abs` stays the conservative
 containment/edges/keepouts/packing - covering more is safe there, it is the false-positive
 direction for part-vs-part overlap. The S14 shorting class (part ON pin tips) still overlaps the
 per-pad boxes. Bench-neutral by construction: the annealer packs against the unchanged hull.
+
+## 2026-08-14 [learnings][process][tests] `learnings.py resolve --targets` fed a key apply_ruling never reads - every single-entry promotion recorded no artifacts
+U7's dry-run (stand-in critique -> classed edit) hit it: the single-entry CLI built its ruling
+with `"targets": _csv(args.targets)`, but `learnlib.apply_ruling` reads `ruling["artifacts"]`
+for the resolution - so the documented promote.md invocation silently dropped the artifact list
+and the very next `learnings.py validate` failed the promotion with "no artifacts". The U6
+acceptance never saw it because the rf-de pass went through `--batch`, and that hand-written
+file carried BOTH keys redundantly. They are genuinely different fields: `artifacts` is the
+resolution's written-to list, `targets` in a batch ruling REFRESHES the entry's candidate list
+(apply_ruling line ~378). Fix: the CLI maps `--targets` -> `artifacts` (flag name unchanged,
+it is documented everywhere); promote.md now states the two batch keys are different fields.
+Regression: test_learn.py round-trips resolve -> validate on a fresh queue. Shape to reuse:
+when a CLI flag and a schema field share a NAME but not a meaning, the acceptance test must
+exercise the single-entry path too, not only the batch that a careful author wrote.
+
+## 2026-08-14 [tests][checklib][sim] checklib stamps every payload with wall-clock `generated_at` - whole-payload equality asserts are racy across a second boundary
+U7's full-suite run (13.5 min, parallel load) tripped test_grid_doubling_determinism in
+test_layout_sim.py for the first time in its life: two back-to-back check_irdrop.run() calls
+landed at ..T03:58:26 vs ..:27 and the byte-compare of the FULL payloads failed on nothing but
+checklib's `generated_at` stamp (checklib.py ~57, applied to every check payload). The stamp is
+load-bearing elsewhere (U2's gate-report validation bounds generation-time staleness), so the
+fix belongs in the assert, not the stamp: pop `generated_at` from both payloads before
+comparing. Rule for any determinism test over check payloads: byte-equality only AFTER
+stripping the stamp - the flake window is one second wide, which is exactly wide enough to
+pass hundreds of runs and then fail one you care about. Grep hint for the class:
+`json.dumps(p1` beside `json.dumps(p2` in tests/.

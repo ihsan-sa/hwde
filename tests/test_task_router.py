@@ -57,7 +57,7 @@ def test_the_plan_s_verb_list_is_the_registry_s():
     assert VERBS == sorted([
         "review", "fix-finding", "move", "swap-part", "add-part",
         "remove-part", "reroute-net", "make-footprint", "dfm-check", "order",
-        "track", "resume-phase", "promote", "full-run"])
+        "track", "resume-phase", "promote", "learn", "full-run"])
 
 
 def test_skill_md_lists_exactly_the_registry_verbs():
@@ -184,6 +184,8 @@ def test_dynamically_registered_subcommands_are_known():
     ("build me a blinky board from scratch", "full-run"),
     ("promote the learnings from this run", "promote"),
     ("work the promotion queue", "promote"),
+    ("teach the placement stage", "learn"),
+    ("run a learning cycle on P6", "learn"),
 ])
 def test_canonical_phrasings_route_to_one_verb(text: str, verb: str):
     got = tr.match_verbs(text, TASKS)
@@ -311,6 +313,8 @@ def test_every_verb_plans_on_a_real_workspace(verb: str, workspace: Path):
     extra = {"review": ["--arg", "source=tests/golden/blinky2"],
              "fix-finding": ["--arg", "findings=reports/gate-verify.json",
                              "--arg", "gate=verify"],
+             "learn": ["--arg", "stage=P6", "--arg",
+                       "fixture=pd_trigger_place"],
              "move": ["--arg", "ref=C12"],
              "swap-part": ["--arg", "ref=R5"],
              "remove-part": ["--arg", "ref=C2"],

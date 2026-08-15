@@ -59,7 +59,7 @@ U11 later; U12 before order credentials; T11 on board arrival (not during U8).
 | U4 | Knowledge library + trigger-keyed retrieval | **done** | 2026-08-14 |
 | U5 | Release attestation + durable waivers (C1+H9) | **done** | 2026-08-14 |
 | U6 | Workspace learnings + promotion pass (H5; rf-de 66-entry queue) | **done** | 2026-08-14 |
-| U7 | Learning mode harness (learn verb + learner agent + graded fixtures) | pending | - |
+| U7 | Learning mode harness (learn verb + learner agent + graded fixtures) | **done** | 2026-08-14 |
 | U8 | Buck placement teaching cycle 1 (owner present) | pending | - |
 | U9 | Cross-stage rails (P3 layout implications + budgeted backward spawns) | pending | - |
 | U10 | xhp-driver brief + full run (first live validation) | pending | - |
@@ -3921,3 +3921,140 @@ passed - the one failure is the standing AP63203 out-of-stock net test (attribut
   order verb's P10 now requires attest build green. U12 still owes C3/C5/C6.
 
 **New verify-later items:** none.
+
+## U7 - Learning mode harness (2026-08-14) - DONE
+
+**Built** (v3 design decision 1 - the generic teaching loop; wave 3, alone in
+the tree):
+- `learn` verb in `reference/tasks.yaml` + `reference/recipes/learn.md` +
+  SKILL.md verb-line and tier-table mention (learner = fable/max), one commit.
+  Verb shape: workspace optional, edit_class null, gates [], human_hold 3
+  (the owner IS the scorer - no owner, no session). Args: `stage` (required,
+  text, asked when unbound) + `fixture` (optional - a session may capture its
+  fixture mid-run). Steps carry the WHOLE mechanical spine bound to real
+  paths: bench --list, the two pre-loads (`learnings.py queue --status
+  pending --stage {stage}` per U6, `knowledge.py --select --workspace {ws}`
+  per U4), the learner spawn, the owner hold, the scorer-divergence note, and
+  the exit checklist as executable steps (freeze -> baseline -> compare other
+  fixtures -> knowledge/learnings validate -> commit note).
+- `agents/learner.md` - the learner contract: owns ONE stage's artifact set
+  (per-stage table: contract / templates / cost terms / scorer surface),
+  spawns ISOLATED stage-agent instances on frozen inputs (fresh context per
+  cycle, never reused), presents render + score, the OWNER grades, each
+  critique becomes ONE classed artifact edit whose class vocabulary is
+  `learnlib.PROMOTE_KINDS` VERBATIM (script_check/cost_term/template/
+  prompt_line/knowledge_record/remediation/bench_item/root_learnings - no
+  second taxonomy, per U6's interface note). Scorer-divergence rule is
+  contract text: owner-vs-composite disagreement = missing scorer term;
+  fixing the scorer IS session work (new penalty terms need WEIGHTS entries -
+  unknown keys raise - and baselines re-recorded same commit).
+- `bench.py --freeze` - the graded-fixture capture helper (the one bench
+  addition the flow needed; previously a new fixture meant hand-authoring
+  sha-pinned manifest YAML). `--freeze --stage --fixture <new-id> --board
+  --from name=path [--from-dir name=path] [--grade] [--note]
+  [--freeze-args JSON]`: copies sources under the manifest dir, LF-normalizes
+  text bytes BEFORE hashing (pins equal a fresh LF checkout - LEARNINGS
+  2026-08-06 [bench][git][windows] applied), auto-includes stem-matched
+  .kicad_pro/.kicad_dru siblings of any .kicad_pcb/.kicad_sch source
+  (LEARNINGS 2026-08-06 [bench][kicad-cli] applied), keeps source basenames
+  (kicad-cli resolves project files BY STEM), APPENDS the manifest entry
+  (header comments survive; re-emit would eat them), self-verifies the
+  round-trip + shas, and points at `--baseline` as the next command. Refuses:
+  existing id, missing primary key for the stage, missing --board, non-ASCII
+  grade/note, basename collisions, combining with score/baseline flags, and
+  freeze-only flags on score invocations. known_answer stays hand-authored
+  YAML (P8/P9 only).
+- `tests/test_learn.py` (11 tests) - the four acceptance legs: (1) `learn`
+  plans on boards/rf-de-20m with EVERY step bound (no unbound placeholder,
+  no free_slots; agent learner at fable/max; hold 3; pre-loads + checklist +
+  divergence note in-plan); (2) freeze round-trip - P2 freeze from golden
+  blinky2 -> --baseline -> seeded regression (bogus placement ref)
+  --artifact --compare exits 1 (delta -10) while the frozen original
+  compares 0; P6 freeze auto-includes the .kicad_pro sibling and its pins
+  EQUAL the repo manifest's pins for the same golden files (LF normalization
+  proven against index content); 8 refusal paths; (3) learner contract
+  registry lint - every quoted command flag-checked via the router's
+  scanner, PROMOTE_KINDS all present, validate_registry clean; (4) dry-run
+  with a scripted stand-in critique - captured as a workspace LEARNINGS
+  entry, compiled to the U6 queue, `resolve --kind cost_term --targets
+  scripts/place_anneal.py`, validate green, resolution.kind in
+  PROMOTE_KINDS.
+- Router/test updates: verb list + 2 canonical phrasings ("teach the
+  placement stage", "run a learning cycle on P6") + learn extras in
+  test_task_router.py.
+
+**Found + fixed en route (U6 defect, LEARNINGS 292 + triage row, done L2):**
+single-entry `learnings.py resolve --targets` built its ruling under the key
+`targets`, but `learnlib.apply_ruling` reads `artifacts` - the documented
+promote.md invocation silently dropped the artifact list and the promotion
+then failed `validate` with "no artifacts". The U6 acceptance missed it
+because the rf-de pass used `--batch` whose hand-written file carried BOTH
+keys. They are genuinely different fields (batch `targets:` refreshes the
+ENTRY's candidate list). Fix: CLI maps --targets -> resolution.artifacts
+(flag name unchanged); promote.md documents the split; regression in
+test_learn.py.
+
+**Deviations from plan (with reasons):**
+1. The exit checklist is BOTH tasks.yaml steps and recipe-doc prose. The plan
+   said "mechanical, in the recipe" - putting the commands in the verb's
+   steps means the router BINDS and flag-checks them (a doc-only checklist
+   cannot fail validate_registry when a flag drifts).
+2. promote's match pattern `\blearnings?\b` tightened to plural
+   `\blearnings\b` (a U6 artifact edit): the optional-s made every
+   "learning mode/session/cycle" phrase tie promote-vs-learn into forced
+   ambiguity. "learnings" (plural) is the promotion queue's domain word;
+   singular "learning ..." is the teaching session. promote's canonical
+   phrasings still route (pinned).
+3. `stage` is a plain text arg (extract: none), not a new router extraction
+   kind: "teach P6" routes to the verb and the stage binds via --arg or the
+   question - a `stage` extractor is 6 lines whenever a live session shows
+   the ask-back is friction, and NOT adding router machinery now keeps the
+   step at its declared footprint.
+4. No `learn.py` driver script: the loop is agent work by design (decision
+   1); everything checkable rides existing tools (bench/learnings/knowledge/
+   task_router). The dry-run acceptance exercises exactly those mechanics.
+5. `--grade` rides provenance in the manifest entry (with --note), so the
+   fixture itself records WHOSE judgment froze it - the plan's "graded
+   fixture" made literal.
+
+**Suite:** full run at session close: 2 failed / 1685 passed / 5 skipped
+(13.5 min), both failures attributed and BOTH fixed in-session: (a) triage
+register header staleness - mine, row 292 landed after the last
+test_learnings run; header + level table recomputed; (b)
+`test_grid_doubling_determinism` (test_layout_sim) - NOT U7's: a latent
+one-second-wide race, first firing ever - checklib stamps every payload
+with wall-clock `generated_at` and the test byte-compared FULL payloads
+(LEARNINGS 293 + triage row; the test now strips the stamp, which itself
+stays - U2's staleness validation reads it). The standing AP63203 net test
+PASSED this run (live JLCPCB search returned stock). Post-fix re-runs:
+test_learnings + test_remediations + test_layout_sim + test_learn = 154
+green; no production code changed after the full run. `check_env.py
+--quiet` exit 0. Targeted suites during the session: test_task_router 127,
+test_bench + test_orchestrator + test_knowledge green.
+
+**Interface notes for later steps (U8 especially):**
+- U8 session opening move: `task_router.py --verb learn --workspace
+  boards/<ws> --arg stage=P6 --arg fixture=<f>` (or task text "teach the
+  placement stage ..."); the bound plan IS the session script. Contract:
+  agents/learner.md; mechanics: reference/recipes/learn.md.
+- Capturing the sbuck region / carrier U21 fixtures: `bench.py --freeze
+  --stage P6 --fixture <id> --board <b> --from pcb=<path> --from
+  constraints=<path> --from decoupling=<path> --grade "<owner verdict>"`
+  (pro/dru siblings ride along automatically), then `--baseline`. A P6
+  NEGATIVE fixture (carrier U21) is a graded LOW baseline + the scorer term
+  that makes it low (e.g. input-cap distance) - `known_answer` blocks only
+  score on P8/P9 (weight-table constraint), so do not reach for one at P6.
+- New scorer terms: add the metric to the stage scorer + its weight to
+  benchlib.WEIGHTS (unknown penalty keys raise by design) + re-record every
+  touched baseline in the SAME commit (v2 convention; the P6.md bench table
+  is the precedent format).
+- Freeze refuses an existing fixture id: re-grading an existing fixture is a
+  --baseline decision, not a re-freeze.
+- Single-entry `learnings.py resolve --targets ...` now actually records
+  artifacts - U8's "index new records" checklist step (`resolve --kind
+  knowledge_record`) depends on this fix.
+
+**New verify-later items:** none new. The learn loop's LIVE exercise (real
+learner agent, real owner grading) is U8 by design - same posture as U4's
+injection path: the mechanical pieces are test-pinned, the agent
+choreography is prose until its owner-present session runs it.

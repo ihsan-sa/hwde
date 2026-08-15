@@ -555,7 +555,10 @@ verbs:
       entry: {kind: text, required: false, extract: none,
               question: "Which queue entry id (learnings.py queue lists them)?"}
     match:
-      any: ['\bpromote\b', '\bpromotion\b', '\blearnings?\b', '\bpromotion queue\b',
+      # \blearnings\b is deliberately PLURAL: "learnings" is the promotion
+      # queue's domain word; singular "learning (mode|session|cycle)" is the
+      # `learn` verb's teaching session.
+      any: ['\bpromote\b', '\bpromotion\b', '\blearnings\b', '\bpromotion queue\b',
             '\bharvest\b', '\bwhat did (we|this run) learn\b',
             '\b(roll|write) up\b.*\b(learnings?|lessons?)\b',
             '\blessons? learned\b', '\bknowledge ladder\b', '\btriage\b']
@@ -604,6 +607,85 @@ verbs:
             why: "lint every existing queue before working any of them"
           - note: "Pick a board and re-run this verb with --workspace boards/<b>;
                    the workspace variant is the actual promotion pass."
+
+  # -------------------------------------------------------------------------
+  learn:
+    summary: Teaching session (owner present) - a learner agent iterates ONE
+      stage's artifact set (agent contract, templates, cost terms, scorer)
+      against owner grading on frozen inputs; approved output freezes into the
+      bench as a graded fixture.
+    doc: reference/recipes/learn.md
+    workspace: optional
+    edit_class: null
+    gates: []          # no board changes; artifacts + fixtures are the work
+    human_hold: 3
+    args:
+      stage: {kind: text, required: true, extract: none,
+              question: "Which stage is being taught (P2-P10, e.g. P6 placement)?"}
+      fixture: {kind: text, required: false, extract: none,
+                question: "Which frozen fixture is the loop's input (bench.py
+                           --list; leave unset to capture a new one with
+                           --freeze mid-session)?"}
+    match:
+      any: ['\bteach(ing)?\b', '\blearn\b', '\blearning (mode|session|cycle|harness)\b',
+            '\btrain(ing)?\b.*\b(stage|placement|rout(er|ing)|scorer|agent)\b',
+            '\btuning (loop|session)\b', '\bgraded fixtures?\b',
+            '\bcalibrate\b.*\bscorer\b', '\bscorer terms?\b']
+      not: ['\bpromot', '\blearnings\b', '\bwhat did\b']
+    steps:
+      - do: "scripts/bench.py --list"
+        why: "the stage's frozen fixtures + baselines: the loop's inputs and
+              the regression set the exit checklist re-runs"
+      - do: "scripts/learnings.py queue --workspace {ws} --status pending --stage {stage}"
+        why: "pre-load - the stage's pending promotion-queue entries are the
+              session's candidate artifact edits (their kinds ARE the classed
+              edit vocabulary the learner uses)"
+        optional: true
+        when: "a workspace with a compiled learnings queue is bound"
+      - do: "scripts/knowledge.py --select --workspace {ws}"
+        why: "pre-load - the class records the stage's spawns already receive;
+              a critique that names missing knowledge becomes a new record"
+        optional: true
+        when: "a workspace is bound"
+      - agent: learner
+        tier: fable/max
+        why: "owns ONE stage's artifact set; loop = isolated stage agent on
+              frozen input -> render -> owner grades -> classed artifact edit
+              -> fresh re-run"
+      - human: 3
+        why: "the OWNER is the scorer: grades every cycle's render, rules on
+              scorer terms; no owner present = no learning session"
+      - note: "Scorer divergence is session work: when the owner's verdict and
+               the bench composite disagree the scorer is missing a term - the
+               recorded scorer replays the owner's judgment on production runs
+               where the owner is absent."
+      - do: "scripts/bench.py --freeze --stage {stage} --fixture {fixture} --board {board} --from <name=path> --grade <owner verdict>"
+        why: "exit checklist: freeze the owner-approved output as a graded
+              fixture (sha-pinned copies + manifest entry; KiCad artifacts
+              bring stem-matched project-file siblings along) - skip when the
+              session only re-graded an existing fixture"
+      - do: "scripts/bench.py --stage {stage} --fixture {fixture} --baseline"
+        why: "exit checklist: record the graded baseline the fixture is
+              compared against from now on; a scorer-term change re-records
+              every touched baseline in the SAME commit"
+      - do: "scripts/bench.py --stage {stage} --fixture <other_fixture> --compare"
+        why: "exit checklist: re-run the stage's OTHER frozen fixtures - a
+              taught improvement may not regress what was already graded
+              (exit 1 = regression; fix before closing)"
+      - do: "scripts/knowledge.py --validate"
+        why: "exit checklist: new records lint green; re-render any topology
+              view that has one in the same commit"
+        optional: true
+        when: "the session wrote knowledge records"
+      - do: "scripts/learnings.py validate --workspace {ws}"
+        why: "exit checklist: queue entries the session consumed carry their
+              rulings (resolve --kind knowledge_record is how new records are
+              indexed from a queue entry)"
+        optional: true
+        when: "a workspace queue fed the session"
+      - note: "Close = commit artifact edits + scorer terms + manifest/
+               baselines + root LEARNINGS/triage rows together; the recipe doc
+               carries the full exit checklist."
 
   # -------------------------------------------------------------------------
   full-run:
