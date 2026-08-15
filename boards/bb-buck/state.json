@@ -1,0 +1,169 @@
+{
+ "version": 2,
+ "board": "bb-buck",
+ "workspace": "boards/bb-buck",
+ "created": "2026-08-15T15:58:13",
+ "updated": "2026-08-15T16:08:09",
+ "phase": "P1",
+ "gates": {},
+ "human": {},
+ "artifacts": {},
+ "open_issues": [],
+ "next_issue_id": 1,
+ "budgets": {
+  "fix_loops": {
+   "erc": 3,
+   "place": 3,
+   "drc_routed": 3,
+   "verify": 3,
+   "dfm": 3
+  },
+  "freerouting_retries": 2,
+  "place_edit_iterations": 8,
+  "research": {
+   "per_run": 6,
+   "depth_per_gap": 4
+  }
+ },
+ "decisions": [
+  {
+   "what": "Build mode: ultra-bare-bones (token 'ultra bare bones design:' opens the brief)",
+   "why": "reference/build-modes.md scope contract: ONE functional block (24V->5V/2A buck) plus only datasheet-required support; one input + one output interface (screw terminals); no protection/filtering/indicators/test points beyond the block's own need; defaults = fewest honest layers, JLC PCBA single-sided, qty 5, bench 0-50C, stop at P9. Research mandatory: first coverage call of each phase runs --maturity-floor proven --research-provisional.",
+   "phase": "P0",
+   "ts": "2026-08-15T15:58:35"
+  },
+  {
+   "what": "Input ceiling: 30 V is a HARD maximum operating input; converter chosen with Vin absolute-max >= 36 V class (~20% headroom) as selection headroom only - no added clamp parts",
+   "why": "Owner answered P0 Q1 with the default. Keeps VIN-GND at/below 30 V so check_creepage stays a no-op and IPC-2221 spacing does not bind the layout; the mode excludes an input clamp so the IC rating is the only defense.",
+   "phase": "P0",
+   "ts": "2026-08-15T16:06:54"
+  },
+  {
+   "what": "No live hot-plug of the input: wires land first, supply ramps from zero",
+   "why": "Owner answered P0 Q2 with the default. Removes the ~2x lead-inductance ringing case (~60 V from 30 V) from the requirement set; datasheet-required bulk input capacitance damps the incidental case, no damping component added.",
+   "phase": "P0",
+   "ts": "2026-08-15T16:06:54"
+  },
+  {
+   "what": "Output spec: +/-3% DC (4.85-5.15 V) over 18-30 Vin and 0-2 A load; ripple <= 50 mV peak-to-peak",
+   "why": "Owner answered P0 Q3 with the default. Sets the regulation/ripple targets that bind feedback divider tolerance, output capacitance and the P8 sim bounds.",
+   "phase": "P0",
+   "ts": "2026-08-15T16:06:54"
+  },
+  {
+   "what": "One switch-node probe pad plus an adjacent GND pad; no other test points",
+   "why": "Owner answered P0 Q4 with the default. Mode-boundary ruling: the switch node is the block's own measurement need on a study board whose bring-up evidence proves the seeded records. Kept minimal and inside the existing SW polygon to limit added copper on the noisiest node.",
+   "phase": "P0",
+   "ts": "2026-08-15T16:06:54"
+  },
+  {
+   "what": "P1 research roster: research-power-architect + research-component-scout(buck-regulator) only. NO research-interface-spec, NO research-reference-design.",
+   "why": "Screw terminals are bound by no electrical standard, so there is no interface spec to research. The buck block is not novel - the library already holds 16 buck records - and the useful vendor-layout digest is exactly what the P3 part-level coverage research produces for the CHOSEN IC; a P1 reference-design spawn would duplicate it. Mode says do not pad.",
+   "phase": "P1",
+   "ts": "2026-08-15T16:08:09"
+  }
+ ],
+ "edits": [],
+ "spawns": [
+  {
+   "ts": "2026-08-15T15:58:49",
+   "role": "requirements-analyst",
+   "model": "fable",
+   "effort": "high",
+   "phase": "P0",
+   "note": "P0 intake under ultra-bare-bones mode"
+  },
+  {
+   "ts": "2026-08-15T15:59:30",
+   "role": "requirements-analyst",
+   "model": "opus",
+   "effort": "xhigh",
+   "phase": "P0",
+   "note": "MODEL SUBSTITUTION: tier fable/high unavailable (Fable 5 out of usage credits) -> opus/xhigh per SKILL.md availability rule. Applies to all fable-tier spawns this run."
+  },
+  {
+   "ts": "2026-08-15T16:08:09",
+   "role": "research-power-architect",
+   "model": "opus",
+   "effort": "high",
+   "phase": "P1",
+   "note": "rail tree + topology + dissipation for the single 5V/2A rail"
+  },
+  {
+   "ts": "2026-08-15T16:08:09",
+   "role": "research-component-scout",
+   "model": "sonnet",
+   "effort": "high",
+   "phase": "P1",
+   "note": "block=buck-regulator; ranked JLC-orderable candidates"
+  }
+ ],
+ "history": [
+  {
+   "ts": "2026-08-15T15:58:13",
+   "event": "init",
+   "board": "bb-buck",
+   "phase": "P0"
+  },
+  {
+   "ts": "2026-08-15T15:58:35",
+   "event": "decision",
+   "what": "Build mode: ultra-bare-bones (token 'ultra bare bones design:' opens the brief)"
+  },
+  {
+   "ts": "2026-08-15T15:58:49",
+   "event": "spawn",
+   "role": "requirements-analyst",
+   "model": "fable"
+  },
+  {
+   "ts": "2026-08-15T15:59:30",
+   "event": "spawn",
+   "role": "requirements-analyst",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-15T16:06:54",
+   "event": "decision",
+   "what": "Input ceiling: 30 V is a HARD maximum operating input; converter chosen with Vin absolute-max >= 36 V class (~20% headroom) as selection headroom only - no added clamp parts"
+  },
+  {
+   "ts": "2026-08-15T16:06:54",
+   "event": "decision",
+   "what": "No live hot-plug of the input: wires land first, supply ramps from zero"
+  },
+  {
+   "ts": "2026-08-15T16:06:54",
+   "event": "decision",
+   "what": "Output spec: +/-3% DC (4.85-5.15 V) over 18-30 Vin and 0-2 A load; ripple <= 50 mV peak-to-peak"
+  },
+  {
+   "ts": "2026-08-15T16:06:54",
+   "event": "decision",
+   "what": "One switch-node probe pad plus an adjacent GND pad; no other test points"
+  },
+  {
+   "ts": "2026-08-15T16:08:09",
+   "event": "phase",
+   "phase": "P1",
+   "prev": "P0"
+  },
+  {
+   "ts": "2026-08-15T16:08:09",
+   "event": "decision",
+   "what": "P1 research roster: research-power-architect + research-component-scout(buck-regulator) only. NO research-interface-spec, NO research-reference-design."
+  },
+  {
+   "ts": "2026-08-15T16:08:09",
+   "event": "spawn",
+   "role": "research-power-architect",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-15T16:08:09",
+   "event": "spawn",
+   "role": "research-component-scout",
+   "model": "sonnet"
+  }
+ ]
+}
