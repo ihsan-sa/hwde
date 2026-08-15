@@ -4323,3 +4323,33 @@ write. Rule for sessions on this host: author any edit/one-off script with the W
 ASCII prose with no backslashes. Companion to the 2026-07-06 [windows] entry (MSYS paths in
 `python -c` mixes) - the shell layer between the agent and Python is where Windows sessions
 lose bytes, so keep it out of the path of anything that matters.
+
+## 2026-08-15 [parts][sourcing][tools] Digi-Key SEARCH pages report price tiers that are wrong by 2x - always fetch the product DETAIL page, and key a BOM on MPN not DK part number
+Building the pd-trigger hand-assembly BOM, the Digi-Key results/list page advertised the
+Cal-Chip GMC31X5R106M50NT at "~$0.28 at qty 20" and the TDK CGA5L3X5R1H106M160AB at "~$0.25";
+the product detail pages priced the same parts at $0.556 and $0.521 respectively at the qty-10
+tier. The list page appears to surface a high-volume tier as if it were the small-qty price, so
+a BOM costed from search results understates by ~2x on exactly the lines that dominate the
+total. Rule: cost a line only from the detail page's full price-break table, and remember the
+tier is "buy N or more" - 20 pcs pays the qty-10 rate, not a blended one.
+Companion failure in the same area: two DK part numbers in the previous sheet were invalid
+(`311-47.0KHCT-ND`, `311-1.50KHCT-ND` vs the -HR- forms), and re-querying by MPN showed DK
+itself returns different CT part numbers for the same Yageo MPN depending on series/packaging
+revision. DK bulk-add resolves manufacturer part numbers directly, so make MPN the primary key
+of any distributor BOM and treat the DK PN as a convenience column - it is the field that
+silently rots.
+
+## 2026-08-15 [parts][sourcing] Two structural sourcing facts for CH224-class PD boards: WCH has no US distribution, and 1A-hold @ 30V does not exist in a 1206 PPTC
+Both were re-verified against the distributors rather than inherited from the prior sheet.
+(1) CH224K is carried by LCSC (and Amazon 10-packs) but by neither Digi-Key nor Mouser - WCH
+has no US distributor at all. Every DK/Mouser PD-sink alternative is a different package and
+pinout (STUSB4500 QFN-24, AP33772 QFN-14, HUSB238), so it is a schematic+layout respin, never a
+drop-in. Any CH224-based board therefore forces a non-US order line no matter how the rest of
+the BOM is sourced - design that in, or pick a Western PD sink up front if single-vendor
+sourcing matters.
+(2) A 1206 PPTC that holds 1A at 30V is not a rating Western makers offer: Littelfuse's 30V
+1206L line tops out at 0.35A hold (1206L035/30) and Bel's 1A 1206 part (0ZCJ0100FF2E) is rated
+6V. The Chinese BSMD1206-100-30V class claims both at once. This is package physics (fault
+energy in a 3216 body), not a stocking gap - so it will not resolve by waiting or by checking
+another Western distributor. Substituting the 0.35A part fits the footprint but silently
+derates whatever the silk promises.
