@@ -42,6 +42,18 @@ that is not that block is noise.
   that do not exist.
 - Stop at P9 (fab package + DFM). Ordering is a separate owner decision.
 
+**Research is mandatory here, and this OVERRIDES the recipe's flags.** These
+boards exist to seed the library, so `covered` off the existing records is not
+good enough. Run the FIRST coverage call of each phase with BOTH
+`--maturity-floor proven --research-provisional`: the floor says only a record
+a BUILT board has proven counts, and the escalation puts every unproven class
+into the research task instead of letting it pass as `provisional`. Only
+bring-up evidence retires the requirement (`knowledge.py --prove`).
+Re-run coverage after research WITHOUT those flags - the re-run's job is to
+fold in what was just learned, and re-escalating would only re-fire the
+trigger. The `budgets.research` caps still bound the spend, and a cap hit is
+a visible checkpoint.
+
 **What the mode does NOT relax.** Everything that makes the board true: every
 gate, the P2/P3 coverage checks and the research they trigger, DFM, the
 datasheet's own requirements, and every safety question in the

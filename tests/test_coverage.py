@@ -883,6 +883,40 @@ def test_interface_checklists_claim_the_tokens_boards_declare(base, checklist):
     assert got is not None and got["id"] == checklist
 
 
+def test_research_provisional_escalates_unproven_classes_to_research(tmp_path):
+    """Seeding runs (build-modes ultra-bare-bones): `covered` off approved
+    records is not good enough on a board whose whole purpose is to seed the
+    library. The maturity floor ALONE cannot express that - an under-mature
+    class reads `provisional`, which never reaches gaps[] and so never opens
+    a research task (U15 made that deliberate, so fresh workspace records do
+    not re-fire the trigger). `--research-provisional` is the seeding lever:
+    it escalates at CLASS level, so every unproven class lands in `missing`
+    and the research task names it."""
+    ws = real_ws(tmp_path)
+    approved = knowledgelib.coverage(ws)
+    assert approved["slots"][0]["verdict"] == "covered"
+    assert approved["summary"]["gap"] == 0
+
+    # floor alone: no longer covered, but still nothing to research
+    floored = knowledgelib.coverage(ws, floor="proven")
+    assert floored["slots"][0]["verdict"] == "provisional"
+    assert floored["gaps"] == []
+
+    # floor + escalation: every class becomes a named research target
+    seeded = knowledgelib.coverage(ws, floor="proven",
+                                   escalate_provisional=True)
+    s = seeded["slots"][0]
+    assert s["verdict"] == "gap"
+    gap = next(g for g in seeded["gaps"] if g["slot"] == s["id"])
+    named = {m["class"] for m in gap["missing"]}
+    assert {"power-loop", "emi", "thermal-via", "feedback"} <= named
+    assert named == {c["class"] for c in s["classes"]}
+
+    # guard: escalation at the DEFAULT floor invents no research - a genuinely
+    # covered class stays covered, so production runs are untouched.
+    assert knowledgelib.coverage(ws, escalate_provisional=True) == approved
+
+
 def test_interface_slots_are_honest_gaps_with_research_specs(tmp_path):
     """U14 ruling: approve the interface checklists with zero records behind
     them, so the slot reports gap + a research task spec (U15's input)."""

@@ -172,7 +172,8 @@ def do_coverage(args) -> tuple[dict, int]:
     try:
         rep = knowledgelib.coverage(ws, records, checklists, mapping=mapping,
                                     floor=floor, phase=args.phase,
-                                    mapping_file=mapping_file)
+                                    mapping_file=mapping_file,
+                                    escalate_provisional=args.research_provisional)
     except ValueError as exc:      # invalid mapping content = cannot run
         return {"script": SCRIPT, "status": "error", "error": str(exc)}, 2
     if mapping_file:
@@ -253,6 +254,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--maturity-floor", metavar="M",
                     help="--coverage: lowest maturity that satisfies "
                          f"(default {knowledgelib.DEFAULT_MATURITY_FLOOR})")
+    ap.add_argument("--research-provisional", action="store_true",
+                    help="--coverage: count provisional slots as gaps so they "
+                         "open research tasks (seeding runs - build-modes "
+                         "ultra-bare-bones; use on a phase's FIRST coverage "
+                         "call only, never on the post-research re-run)")
     ap.add_argument("--phase", help="--coverage: label (P2 / P3) recorded in "
                                     "the report")
     ap.add_argument("--mapping", help="--coverage: coverage-mapper output JSON "

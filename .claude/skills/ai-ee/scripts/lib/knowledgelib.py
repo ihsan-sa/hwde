@@ -1179,7 +1179,8 @@ def coverage(ws: Path | str, records: list[dict] | None = None,
              mapping: dict | None = None,
              floor: str = DEFAULT_MATURITY_FLOOR,
              phase: str | None = None,
-             mapping_file: str | None = None) -> dict:
+             mapping_file: str | None = None,
+             escalate_provisional: bool = False) -> dict:
     """The coverage report for a workspace (see module docstring).
 
     Per slot: verdict covered | provisional | gap, per required class the
@@ -1274,6 +1275,14 @@ def coverage(ws: Path | str, records: list[dict] | None = None,
                          for e in evals):
                     v = "provisional"
                 else:
+                    v = "gap"
+                # Seeding runs (build-modes ultra-bare-bones): an under-mature
+                # or unproven class is a research TARGET, not an acceptable
+                # pass, and it must reach `missing` so the task names it. Use
+                # on a phase's FIRST coverage call only - the post-research
+                # re-run keeps normal semantics, so fresh workspace records
+                # (which read provisional) never re-fire the trigger.
+                if escalate_provisional and v == "provisional":
                     v = "gap"
                 class_verdicts.append(v)
                 entry["classes"].append({

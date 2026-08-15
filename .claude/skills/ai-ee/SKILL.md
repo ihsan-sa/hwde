@@ -213,6 +213,11 @@ inputs, never silently downgrade):
 | sonnet/medium | librarian, fixer (silk/sch/parts/fab), placement (backward-edge re-spawn) |
 | inline-default | board-setup, ordering, dfm (spawn = exception path) |
 
+Model availability: if a tier's model is unavailable to the session, substitute
+the nearest available model one effort step UP (fable/max -> opus/max,
+fable/high -> opus/xhigh, fable/medium -> opus/high) and record the
+substitution in the spawn ledger. Never silently drop to a weaker tier.
+
 ## Known limits (be honest about these)
 
 - No field solver: impedance from stackup tables, SI checks geometric.
