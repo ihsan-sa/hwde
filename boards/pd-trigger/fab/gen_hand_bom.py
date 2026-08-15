@@ -88,30 +88,36 @@ ROWS = [
     ("R14", 1, 15, "0 ohm jumper 1/10W", "0603", "Digi-Key",
      "RC0603FR-070RL", "YAGEO", "311-0.0HRCT-ND", 0.011,
      "905k stock. Cheaper than the previous sheet's Panasonic ERJ-3GEY0R00V."),
-    # --- NOT available at Digi-Key or Mouser --------------------------
-    ("U1", 1, 12, "USB PD sink controller", "ESSOP-10", "LCSC (or Amazon)",
-     "CH224K", "WCH (Jiangsu Qin Heng)", "C970725", 0.389,
-     "NOT CARRIED BY DIGI-KEY OR MOUSER - WCH has no US distribution. "
-     "Alternatives are all a schematic+layout respin (STUSB4500 QFN-24, "
-     "AP33772 QFN-14, HUSB238 different pinout). Amazon sells 10-packs "
-     "(~$8-12) if you want to avoid an LCSC order. 12,404 LCSC stock."),
-    ("F1", 1, 12, "PPTC 1.0A hold / 1.8A trip 30V", "1206", "LCSC",
-     "BSMD1206-100-30V", "BHFUSE", "C5358568", 0.0988,
-     "NOT AVAILABLE AT DIGI-KEY OR MOUSER AT THIS RATING. Verified: "
-     "Littelfuse 1206L at 30V tops out at 0.35A hold (1206L035/30, "
-     "18-1206L035/30WRCT-ND, $0.562); Bel 0ZCJ0100FF2E is 1A but only 6V. "
-     "1A@30V in 1206 is not a rating Western makers offer. "
-     "SUBSTITUTE OPTION: 1206L035/30 fits the footprint but derates the AUX "
-     "tap to 0.35A - contradicts the 'AUX 1A MAX' silk. Your call. "
-     "133,924 LCSC stock."),
-    ("SW1", 1, 12, "DIP switch 3-pos SPST SMD 2.54mm", "SMD 6P L7.6 W6.0 LS9.3",
-     "LCSC", "2.54-3P TPGT", "SHOU HAN", "C7421520", 0.4083,
-     "Digi-Key DOES have MOQ-1 options the previous sheet missed (CTS "
-     "219-3MSTR $0.706, CUI DS04-254-2-03BK-SMT $0.587) - the earlier "
-     "'60-piece tube minimum' claim only applied to the non-reel variants. "
-     "BUT the CTS body is 9.09mm vs this footprint's 7.6mm and the land span "
-     "is unconfirmed - FIT NOT VERIFIED. LCSC part is the exact one the board "
-     "was laid out for. 16,907 stock."),
+    ("F1", 1, 12, "PPTC 350mA hold / 750mA trip 30V", "1206", "Digi-Key",
+     "MF-NSHT035KX-2", "Bourns", "MF-NSHT035KX-2CT-ND", 0.391,
+     "*** SPEC CHANGE - READ THIS *** The board was designed around a 1A-hold "
+     "@30V 1206 PPTC (BHFUSE BSMD1206-100-30V, LCSC only). That rating does "
+     "not exist outside LCSC: Littelfuse's 30V 1206L line tops out at 0.35A, "
+     "Bourns' at 0.35A, Bel's 1A part is 6V-rated, and even the Amazon "
+     "generic assortments pair 1.1A with 8V / 0.35A with 30V. It is package "
+     "physics, not a stocking gap. This part fits the 1206 land but LIMITS "
+     "THE AUX HEADER (J3) TO ~0.35A, so the 'AUX 1A MAX' silkscreen "
+     "over-promises. Cheaper than the Littelfuse 1206L035/30 ($0.562). "
+     "ALTERNATIVES: leave F1 unpopulated, or bridge it, if you want the full "
+     "1A on aux and accept no aux protection. 15,625 stock."),
+    # --- Amazon (not carried by Digi-Key or Mouser) --------------------
+    ("U1", 1, 10, "USB PD sink controller", "ESSOP-10", "Amazon",
+     "CH224K", "WCH (Jiangsu Qin Heng)", "B0BQQZSCYC (10-pack)", 1.00,
+     "PRICE IS AN ESTIMATE - Amazon blocks automated price checks, confirm on "
+     "the listing. NOT CARRIED BY DIGI-KEY OR MOUSER (WCH has no US "
+     "distributor); every DK/Mouser PD sink is a different pinout and package "
+     "= a board respin. A 10-pack is exactly 10 boards with no spares - "
+     "consider two packs. VERIFY ON ARRIVAL: marking reads CH224K and the "
+     "package is ESSOP-10 (10 pins, ~3mm body, thermal pad), not SOP-10."),
+    ("SW1", 1, 10, "DIP switch 3-pos SPST SMD 2.54mm", "SMD 6P L7.6 W6.0 LS9.3",
+     "Amazon", "generic 3P SMD DIP (SHOU HAN 2.54-3P class)", "generic",
+     "B0CLJD4MJN (10-pack, pick 3P/6-pin)", 0.80,
+     "PRICE IS AN ESTIMATE - confirm on the listing. This generic Chinese "
+     "SMD DIP is the exact class the board was laid out for, so it is a "
+     "BETTER fit bet than Digi-Key's CTS 219-3MSTR (body 9.09mm vs this "
+     "footprint's 7.6mm). MUST VERIFY BEFORE BUYING: (a) SMD/SMT gull-wing "
+     "pads, NOT through-hole pins - several lookalike listings are THT; "
+     "(b) 3 positions / 6 pins; (c) 2.54mm pitch; (d) body ~7.6mm long."),
 ]
 
 HEADER = ["Ref(s)", "Qty per board", f"Qty for {BOARDS} boards",
@@ -153,8 +159,37 @@ def main() -> int:
                 continue
             w.writerow([buy, mpn, ref])
 
+    # Amazon shopping list (links cannot be auto-verified - Amazon blocks
+    # automated fetches; these URLs come from search results)
+    amz = OUT / "amazon-order-10x.csv"
+    ALT = {
+        "U1": "https://www.amazon.com/CH224K-Protocol-10Pcs-Arrival-Quality"
+              "/dp/B0DRN7D9CY | https://www.amazon.com/-/es/QLWAHK-CH224K-"
+              "ESSOP-10-otorgando-protocolo/dp/B0DNWLS5RS",
+        "SW1": "https://www.amazon.com/10pcs-Position-Switch-2-54mm-Pitch"
+               "/dp/B09NTPMVH6 (VERIFY IT IS SMD - title does not say)",
+    }
+    LINK = {
+        "U1": "https://www.amazon.com/10PCS-CH224K-ESSOP10/dp/B0BQQZSCYC",
+        "SW1": "https://www.amazon.com/JALYKA-10Pcs-Switch-2-54mm-Position"
+               "/dp/B0CLJD4MJN",
+    }
+    with amz.open("w", newline="", encoding="ascii", errors="replace") as fh:
+        w = csv.writer(fh)
+        w.writerow(["Ref", "What to buy", "Packs needed", "Primary link",
+                    "Backup links", "Must verify before buying"])
+        w.writerow(["U1", "CH224K USB PD sink IC, ESSOP-10, 10-pack", 1,
+                    LINK["U1"], ALT["U1"],
+                    "Marking reads CH224K; package is ESSOP-10 (10 pins + "
+                    "thermal pad). 10-pack = zero spares; 2 packs recommended."])
+        w.writerow(["SW1", "3-position SMD DIP switch, 2.54mm, 10-pack", 1,
+                    LINK["SW1"], ALT["SW1"],
+                    "SMD gull-wing pads NOT through-hole; 3 positions / 6 "
+                    "pins; 2.54mm pitch; body ~7.6mm. Select the 3P variant."])
+
     print(f"wrote {master}")
     print(f"wrote {dk}")
+    print(f"wrote {amz}")
     for src, tot in sorted(totals.items()):
         print(f"  {src}: ${tot:.2f}")
     print(f"  GRAND TOTAL: ${grand:.2f}  (${grand / BOARDS:.2f}/board)")

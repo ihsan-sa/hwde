@@ -3,7 +3,7 @@
  "board": "pd-trigger",
  "workspace": "boards/pd-trigger",
  "created": "2026-07-28T05:57:45",
- "updated": "2026-08-15T16:22:49",
+ "updated": "2026-08-15T16:35:03",
  "phase": "P10",
  "gates": {
   "erc": {
@@ -569,6 +569,12 @@
    "why": "Owner did not have JLC assemble; prior two-file split made SW1 look missing and carried two invalid DK part numbers plus an overstated 10uF stock claim",
    "phase": "P10",
    "ts": "2026-08-15T16:22:49"
+  },
+  {
+   "what": "LCSC dropped from the hand-assembly sourcing at owner request: 22 lines Digi-Key + 2 Amazon (U1 CH224K 10-pack, SW1 generic 3P SMD DIP 10-pack). F1 SUBSTITUTED to Bourns MF-NSHT035KX-2 (350mA hold @30V) - the 1A@30V 1206 rating exists only at LCSC and is not physically offered by Littelfuse/Bourns/Bel or the Amazon generics; AUX header J3 is thereby limited to ~0.35A and the 'AUX 1A MAX' silk over-promises",
+   "why": "Owner will not wait on LCSC shipping; F1 substitution surfaced as an explicit spec change rather than applied silently",
+   "phase": "P10",
+   "ts": "2026-08-15T16:35:03"
   }
  ],
  "history": [
@@ -1039,6 +1045,11 @@
    "ts": "2026-08-15T16:22:49",
    "event": "decision",
    "what": "Hand-assembly BOM for 10 boards: ONE sheet (BOM-hand-assembly-10x.csv) covering all 30 designators, MPN-primary. 21 lines Digi-Key, U1 CH224K + F1 PPTC not carried by DK/Mouser (verified), SW1 kept on LCSC (DK MOQ-1 parts exist but body 9.09mm vs footprint 7.6mm, fit unverified)"
+  },
+  {
+   "ts": "2026-08-15T16:35:03",
+   "event": "decision",
+   "what": "LCSC dropped from the hand-assembly sourcing at owner request: 22 lines Digi-Key + 2 Amazon (U1 CH224K 10-pack, SW1 generic 3P SMD DIP 10-pack). F1 SUBSTITUTED to Bourns MF-NSHT035KX-2 (350mA hold @30V) - the 1A@30V 1206 rating exists only at LCSC and is not physically offered by Littelfuse/Bourns/Bel or the Amazon generics; AUX header J3 is thereby limited to ~0.35A and the 'AUX 1A MAX' silk over-promises"
   }
  ],
  "spawns": [],
