@@ -1,13 +1,14 @@
-# Knowledge ladder triage (T4, 2026-08-06; U0 sweep 2026-08-13; U6 2026-08-14)
+# Knowledge ladder triage (T4, 2026-08-06; U0 sweep 2026-08-13; U6 2026-08-14;
+# U14 2026-08-15)
 
-One row per `LEARNINGS.md` entry (293 of them; the last starts at
-line 4241), placed on the maturity ladder from
+One row per `LEARNINGS.md` entry (297 of them; the last starts at
+line 4297), placed on the maturity ladder from
 `design/routing-knowledge-notes.md` section 6, with the artifact that owns - or
 must own - it.
 
 The failure mode is knowledge sitting at the WRONG LEVEL, not knowledge volume:
 **if a script can check it, it does not belong in the prompt.** This register is
-the outer-loop worklist. `open` rows (120) are the gaps nothing owns yet -
+the outer-loop worklist. `open` rows (122) are the gaps nothing owns yet -
 they are the input to T6 (per-stage deep evaluation) and to any later step
 looking for the next promotion.
 
@@ -33,18 +34,18 @@ looking for the next promotion.
 
 ## Summary
 
-Recomputed from the table at U7 (2026-08-14), all 293 rows
+Recomputed from the table at U14 (2026-08-15), all 297 rows
 (`learnings.py triage` prints these numbers - recompute rather than edit them):
 
 | Level | now | target |
 |---|---|---|
-| L0 | 108 | 10 |
-| L1 | 16 | 11 |
-| L2 | 50 | 103 |
-| L3 | 119 | 169 |
+| L0 | 111 | 11 |
+| L1 | 16 | 12 |
+| L2 | 51 | 104 |
+| L3 | 119 | 170 |
 
-119 entries want to climb at least one level. Status: **done 149**,
-**open 120**, **n/a 6**, planned 18
+121 entries want to climb at least one level. Status: **done 151**,
+**open 122**, **n/a 6**, planned 18
 (T2 10, T8 1 - both shipped, those rows need re-reading; U2 2, U9 2,
 U3/U5/U8 1 each).
 
@@ -410,3 +411,7 @@ the row's Now level and status in the same commit as the code.
 | 291 | 4213 | Effective-courtyard BBOX flags tight-but-legal decouplers - LQFP pad- | [placement][geometry][gates] | L2 | L2 | scripts/lib/placelib.py | done | U5: pairwise overlap tests the precise shape (courtyard UNION per-pad boxes, precise_extents_abs); extents_abs stays the conservative hull for containment/packing so the annealer and bench are untouched. Verified on stm32-blinky (3 false errors -> 0) with place suites green |
 | 292 | 4227 | `learnings.py resolve --targets` fed a key apply_ruling never reads - | [learnings][process][tests] | L2 | L2 | scripts/learnings.py | done | U7: CLI maps --targets to resolution.artifacts (apply_ruling's key); batch `targets:` stays the entry-candidate refresh, promote.md documents the split. Regression in test_learn.py (resolve -> validate round-trip on a fresh queue) |
 | 293 | 4241 | checklib stamps every payload with wall-clock generated_at - whole-p | [tests][checklib][sim] | L2 | L2 | tests/test_layout_sim.py | done | U7: the determinism assert strips generated_at before comparing; the stamp itself stays (U2 staleness validation reads it). Other whole-payload equality asserts should follow the same rule |
+| 294 | 4253 | An unquoted `date: 2026-08-15` in hand-authored YAML is a dat | [yaml][knowledge][process] | L2 | L2 | scripts/lib/knowledgelib.py | done | U14: `_load_yaml_checked` catches TypeError from its own json.dumps probe and reports "YAML implicit typing produced a non-JSON value - quote it" as a lint problem (exit 1, names the file), instead of dying at exit 2 with a traceback. Extends 287 - every hand-authored-YAML trap in this repo is YAML implicit typing, and the lint is where they must surface |
+| 295 | 4267 | Coverage envelopes are tested ONLY against the block's own ope | [knowledge][coverage][architecture] | L0 | L3 | scripts/lib/knowledgelib.py | open | The L3 fix is for `workspace_slots` to LEND board-level dims into every block's operating point (board_layers from the stackup/board setup, pdiss_w from the matching thermal entry) so the architect cannot forget them; until then architect.md + constraints_schema.md name the eight dims a buck block must restate, and the report's `unknown_dims` is the diagnostic |
+| 296 | 4280 | An envelope is what BOUNDS a rule, not what the rule mentions | [knowledge][coverage][process] | L0 | L0 | scripts/lib/knowledgelib.py | done | U14: the authoring rule is stated in knowledgelib's module docstring beside the schema example (where a record author looks) and demonstrated in all 16 approval notes. Not mechanizable - "where does this stop being true" is the judgment the owner is FOR - but the schema already enforces its consequence (envelope required at topology+, forbidden at principle) |
+| 297 | 4297 | The wave-parallel pathspec commit silently drops NEW files - | [git][process][waves] | L0 | L1 | ai-ee-v3-plan.md | open | Third entry in this family (247, 289). The L1 version is a pre-commit probe: compare `git status --porcelain` untracked paths against the session's own edit list and warn when a path the session created is not staged. Until then the plan's Conventions carry it, and the check is `git show --stat HEAD` file count vs expected |

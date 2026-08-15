@@ -25,3 +25,17 @@ sources:
   - {file: reference/knowledge/sources/rohm-buck-pcb-layout-an.pdf, page: 6, section: fig 6-a..6-d}
 status: active
 origin: app-note:rohm-buck-pcb-layout-an (ROHM 60AN066E Rev.004, 2024-01)
+
+# --- schema v2 governance (U14 backfill, owner-ruled 2026-08-15) ---
+level: topology
+envelope:
+  switching_kind: {in: [hard]}
+maturity: approved
+approval:
+  by: owner
+  date: "2026-08-15"
+  note: >
+    Scales with edge content: enlarged SW/inductor copper radiates and the
+    eddy-current derating under L is driven by the switching field. The 1
+    mm/A at 1 oz and 0.7 mm/A at 2 oz widths are rule PARAMETERS (the record
+    carries both weights), not applicability bounds.

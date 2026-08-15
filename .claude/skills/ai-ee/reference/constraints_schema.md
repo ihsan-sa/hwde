@@ -103,13 +103,19 @@ Consumers per key (script -> phase):
   // (numbers) and *_kind tokens; knowledge.py --coverage tests it against
   // each record's envelope (undeclared dim = record stays "provisional").
   // Declare what the block's mechanisms scale with: vin/vout/iout, fsw,
-  // edge rate, hard/soft switching, sync/async, control kind. Same optional
+  // edge rate, dissipation, layer count, hard/soft switching, sync/async,
+  // integrated-FET/controller, source class, control kind. Same optional
   // key on diff_pairs entries (interface slots also read impedance_ohm).
+  // U14: the eight dims below are exactly what a buck block must declare to
+  // reach `covered` against checklists/buck.yaml - board-level facts
+  // (board_layers) are repeated per block, there are no board defaults.
   "blocks": [{"topology": "buck", "block": "B3", "name": "U1 AP64350 class",
               "operating_point": {"vin_v": 12, "vout_v": 5, "iout_a": 3,
-                                  "fsw_khz": 500, "edge_ns": 5,
+                                  "pdiss_w": 0.8, "board_layers": 4,
                                   "switching_kind": "hard",
-                                  "rectifier_kind": "sync"}}]
+                                  "rectifier_kind": "sync",
+                                  "integration_kind": "integrated-fet",
+                                  "source_kind": "usb-pd"}}]
 }
 ```
 

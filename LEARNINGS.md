@@ -4249,3 +4249,60 @@ comparing. Rule for any determinism test over check payloads: byte-equality only
 stripping the stamp - the flake window is one second wide, which is exactly wide enough to
 pass hundreds of runs and then fail one you care about. Grep hint for the class:
 `json.dumps(p1` beside `json.dumps(p2` in tests/.
+
+## 2026-08-15 [yaml][knowledge][process] An unquoted `date: 2026-08-15` in hand-authored YAML is a datetime.date, and it killed the lint before the lint could name it
+U14's backfill wrote `approval: {by: owner, date: 2026-08-15}` into all 16 knowledge records.
+YAML 1.1 implicit typing loads that as a `datetime.date`, not a string: the schema's
+`{"type": "string", "pattern": "^\d{4}-\d{2}-\d{2}$"}` would have caught it, but
+`knowledge.py --validate` never got that far - `_load_yaml_checked`'s ASCII probe does
+`json.dumps(data)` and a date object raises TypeError, which surfaced as
+`status: error, exit 2` with no file name and no field. Two rules fall out. (1) Quote every
+date in hand-authored YAML (same family as the 2026-08-14 comma-in-a-flow-scalar entry: YAML's
+implicit typing is the hazard, quoting is the fix). (2) A validator that serializes its own
+payload must treat non-JSON-native scalars as a NAMED problem, not an exception - the fix
+catches TypeError there and reports "YAML implicit typing produced a non-JSON value ... quote
+it", so it exits 1 with the file and the value instead of exit 2 with a traceback. Regression:
+test_yaml_implicit_dates_are_a_lint_problem_not_a_crash.
+
+## 2026-08-15 [knowledge][coverage][architecture] Coverage envelopes are tested ONLY against the block's own operating_point - board-level facts must be repeated per block
+U14 gave buck-power-ground-isolation the envelope `board_layers: {min: 2, max: 4}` (ROHM's join
+recipe is a 4-layer assignment) and buck-thermal-via `pdiss_w: {max: 5}`. Both are facts the
+architect already knows - but `knowledgelib.coverage` reads dims from `blocks[].operating_point`
+and NOWHERE else: the stackup in constraints.json, the layer count in the board setup and the
+thermal entry's `power_w` are all invisible to it. A board that declares a 4-layer stackup and
+omits `board_layers` from the block leaves the record `envelope-unknown` -> the class sits at
+`provisional` and the slot never reaches `covered`, with no error anywhere. The report does name
+the exact missing dim (`unknown_dims`), which is the only reason this is diagnosable. Until
+coverage lends board-level dims automatically, the operating point must restate them: a buck
+block needs all eight of vin_v, iout_a, pdiss_w, board_layers, switching_kind, rectifier_kind,
+integration_kind, source_kind (now stated in agents/architect.md and constraints_schema.md).
+
+## 2026-08-15 [knowledge][coverage][process] An envelope is what BOUNDS a rule, not what the rule mentions - and when nothing bounds it, that IS the principle ruling
+The U14 approval session ruled level + envelope on all 16 records at once, and the same three
+mistakes were available every time. (1) Numbers a record CARRIES are not bounds: ROHM quotes
+1 mm/A at 1 oz and 0.7 mm/A at 2 oz, so copper weight is a parameter the record already spans -
+its actual bound is hard switching (the edge content that makes enlarged SW copper an antenna).
+The test is "where does this stop being TRUE?", never "what numbers appear in it". (2) The level
+ruling and the envelope ruling are ONE decision, because the schema requires an envelope at
+topology/family/part and forbids one at principle: a record with no honest bound (loop area x
+di/dt; check the enable pin's own behaviour; what a block must emit into constraints.json) is a
+principle, and inventing a filler envelope to keep it at topology is the failure mode the schema
+exists to catch. 3 of 16 landed principle. (3) A checklist row must not demand a level its own
+subject matter cannot reach - `sequencing` and `constraints-emission` had to drop to
+`min_level: principle`, or their class could never be covered by the very records that own it.
+Corollary for anyone writing records later (U15's researcher): prefer ONE dim, and only dims P2
+can actually declare - every dim is a declaration the architect must make or the record sits
+`provisional` forever (entry 295).
+
+## 2026-08-15 [git][process][waves] The wave-parallel pathspec commit silently drops NEW files - `git commit -- <dir>` stages modifications only
+U14 committed 25 of its 27 files. The two MISSING ones were the new interface coverage
+checklists (`100base-tx.yaml`, `usb-fs.yaml`): `git commit -- <paths>` re-reads those paths from
+the working tree, but only for files git already TRACKS - untracked ones are not "changes to
+commit" and are skipped without a word, even when the pathspec is the directory that contains
+them. The working tree stayed green, so nothing failed locally; a fresh clone would have failed
+`test_committed_library_lint_green_and_checklists_present` (which asserts all three checklist
+ids) with the tree that produced a passing check.cmd. Extends 247/289: the wave convention says
+commit by pathspec so a parallel session's hunks are not swept in, and the price is that git's
+"add" step is skipped too. Rule: when a session CREATES files, `git add` them explicitly first,
+then commit by pathspec - and verify with `git show --stat HEAD | wc -l` against the file count
+you expect, because the failure is silent in the direction that looks fine.

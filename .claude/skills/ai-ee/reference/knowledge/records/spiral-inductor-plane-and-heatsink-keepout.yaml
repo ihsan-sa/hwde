@@ -32,3 +32,17 @@ sources:
   - {file: boards/rf-de-20m/architecture/decisions.md, section: D4}
 status: active
 origin: promotion:boards/rf-de-20m (U6 2026-08-14)
+
+# --- schema v2 governance (U14 backfill, owner-ruled 2026-08-15) ---
+level: topology
+envelope:
+  f_mhz: {min: 0.5, max: 200}
+maturity: approved
+approval:
+  by: owner
+  date: "2026-08-15"
+  note: >
+    Scales with frequency: a plane or heatsink parallel to a PCB spiral is a
+    shorted turn, and the induced-loss Q collapse grows with frequency -
+    negligible below ~0.5 MHz, and above ~200 MHz a PCB spiral is not the
+    structure anyone reaches for. Measured on rf-de-20m at 14 MHz.

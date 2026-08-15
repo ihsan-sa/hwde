@@ -157,25 +157,50 @@ def slot(payload, sid):
 def test_committed_library_lint_green_and_checklists_present():
     assert knowledgelib.validate() == []
     ids = {c["id"] for c in knowledgelib.load_checklists()}
-    assert "buck" in ids            # the U13 seed the owner approves at U14
-    # bootstrap: the seed is draft (unapproved) by design
-    buck = next(c for c in knowledgelib.load_checklists() if c["id"] == "buck")
-    assert knowledgelib.record_maturity(buck) == "draft"
+    # U14: buck approved, plus the two in-fleet interface checklists
+    assert {"buck", "100base-tx", "usb-fs"} <= ids
+    for c in knowledgelib.load_checklists():
+        assert knowledgelib.record_maturity(c) == "approved", c["id"]
+        assert c.get("approval", {}).get("by") == "owner", c["id"]
 
 
-def test_legacy_records_tolerated_until_strict():
-    """Committed records predate the backfill: v2 fields missing = tolerated
-    (level None, maturity draft) - and --strict names every one of them."""
-    tolerant = knowledgelib.validate()
-    strict = knowledgelib.validate(strict=True)
-    assert tolerant == []
-    legacy = [r["id"] for r in knowledgelib.load_records()
-              if "level" not in r or "maturity" not in r]
-    assert legacy, "backfilled already? then flip this test to strict-green"
-    assert any("strict: missing" in p for p in strict)
-    for r in knowledgelib.load_records():
-        if "maturity" not in r:
-            assert knowledgelib.record_maturity(r) == "draft"
+def test_committed_records_are_strict_green_after_the_u14_backfill():
+    """U14 flipped this from the bootstrap tolerance test: every committed
+    record now carries level + maturity, so --strict must be clean."""
+    assert knowledgelib.validate() == []
+    assert knowledgelib.validate(strict=True) == []
+    records = knowledgelib.load_records()
+    assert records
+    for r in records:
+        rid = r["id"]
+        assert knowledgelib.record_level(r) in knowledgelib.LEVELS, rid
+        # every record landed owner-approved (U14 ruling); proven only ever
+        # arrives via --prove, which writes its own evidence
+        assert knowledgelib.record_maturity(r) in ("approved", "proven"), rid
+        if r["maturity"] == "approved":
+            assert r["approval"]["by"] == "owner", rid
+            assert r["approval"]["date"] == "2026-08-15", rid
+            # the ruling itself: what does this rule scale with?
+            assert len(r["approval"].get("note", "")) > 80, rid
+        if r["level"] == "principle":
+            assert not r.get("envelope"), rid
+        else:
+            assert r.get("envelope"), rid
+
+
+def test_yaml_implicit_dates_are_a_lint_problem_not_a_crash(tmp_path):
+    """An unquoted 2026-08-15 loads as a datetime.date - it must surface as a
+    named problem, not a TypeError out of the JSON writer (U14 build)."""
+    d = tmp_path / "r"
+    write_record(d, "r-dated")
+    p = d / "r-dated.yaml"
+    p.write_text(p.read_text(encoding="utf-8").replace(
+        "date: '2026-08-15'", "date: 2026-08-15"), encoding="utf-8")
+    problems = knowledgelib.validate(d, tmp_path / "nocl")
+    assert any("non-JSON value" in x and "quote it" in x for x in problems)
+    payload, code = run_knowledge(tmp_path, ["--validate", "--records-dir",
+                                             str(d)])
+    assert code == 1 and payload["status"] == "problems"
 
 
 def test_strict_cli_flag(tmp_path):
@@ -751,6 +776,126 @@ def test_constraints_lint_accepts_operating_point(tmp_path):
 def test_prompt_block_and_view_carry_the_maturity_tag():
     recs = knowledgelib.load_records()
     block = knowledgelib.prompt_block(knowledgelib.select(recs, topologies=["buck"]))
-    assert "(level?/draft)" in block or "/draft)" in block
+    # post-U14 every committed record is owner-approved and levelled
+    assert "(topology/approved)" in block
+    assert "(principle/approved)" in block
+    assert "/draft)" not in block
     view = knowledgelib.render_topology(recs, "buck")
     assert "level/maturity" in view
+
+
+# ---------------------------------------------------------------------------
+# 7. U14 - the backfilled library against real designs
+# ---------------------------------------------------------------------------
+# The eight operating-point dims a buck block must declare to reach `covered`
+# against the approved checklist (architect.md documents the same list).
+BUCK_OP = {"vin_v": 12, "vout_v": 5, "iout_a": 3, "pdiss_w": 0.8,
+           "board_layers": 4, "switching_kind": "hard",
+           "rectifier_kind": "sync", "integration_kind": "integrated-fet",
+           "source_kind": "usb-pd"}
+
+
+def real_ws(tmp_path, op=None, diff_pairs=None, name="ws") -> Path:
+    """A workspace checked against the COMMITTED record library."""
+    c = {"blocks": [{"topology": "buck", "block": "B1",
+                     "name": "U1 integrated sync buck",
+                     "operating_point": dict(op if op is not None else BUCK_OP)}]}
+    if diff_pairs is not None:
+        c["diff_pairs"] = diff_pairs
+    return make_ws(tmp_path, constraints=c, name=name)
+
+
+def test_committed_library_covers_a_buck_block_at_a_real_operating_point(tmp_path):
+    """U14 acceptance: the approved records + approved checklist cover every
+    class of a real buck block - the pd-trigger-shaped fixture the plan asks
+    for, at sbuck/usb-buck's operating point (pd-trigger itself has no buck)."""
+    rep = knowledgelib.coverage(real_ws(tmp_path))
+    s = next(x for x in rep["slots"] if x["id"] == "block:B1")
+    assert s["verdict"] == "covered", [c for c in s["classes"]
+                                       if c["verdict"] != "covered"]
+    assert {c["class"] for c in s["classes"]} == {
+        "selection", "power-loop", "emi", "feedback", "decoupling",
+        "return-path", "thermal-via", "inrush", "sequencing",
+        "constraints-emission"}
+    assert rep["summary"]["gap"] == 0
+    # the two principle records satisfy their own rows, and only those rows
+    by_class = {c["class"]: c for c in s["classes"]}
+    for cls, rid in (("sequencing", "buck-en-softstart-sequencing"),
+                     ("constraints-emission", "buck-constraints-emission")):
+        ev = next(e for e in by_class[cls]["records"] if e["id"] == rid)
+        assert ev["satisfies"] and ev["level"] == "principle"
+    # ... while the same principle level is BELOW the min for power-loop
+    hot = next(e for e in by_class["power-loop"]["records"]
+               if e["id"] == "buck-input-hot-loop")
+    assert hot["blocker"] == "level-below-min"
+
+
+@pytest.mark.parametrize("mutate, cls, verdict", [
+    # off the selection ladder's V/I corner, from a source with no attach
+    # rule: all three selection-class records go outside at once
+    ({"vin_v": 400, "iout_a": 40, "source_kind": "dc-input"}, "selection",
+     "gap"),
+    # ... but the V/I corner ALONE is not enough: buck-upstream-inrush-limit
+    # carries the selection class and is bounded only by the source
+    ({"vin_v": 400, "iout_a": 40}, "selection", "covered"),
+    # a sync buck: the free-wheel-diode record does not apply (but power-loop
+    # stays covered through the C_IN/C_O separation record)
+    ({}, "power-loop", "covered"),
+    # 8-layer stack is outside the 4-layer join recipe
+    ({"board_layers": 8}, "return-path", "gap"),
+    # 30 W dissipation is past vias-as-the-heat-path
+    ({"pdiss_w": 30}, "thermal-via", "gap"),
+    # a bench supply is not a source with an attach rule
+    ({"source_kind": "dc-input"}, "inrush", "gap"),
+    # controller + external FETs: the integrated-FET BST/FB record is out
+    ({"integration_kind": "controller"}, "decoupling", "gap"),
+])
+def test_committed_envelopes_bound_each_class(tmp_path, mutate, cls, verdict):
+    op = dict(BUCK_OP, **mutate)
+    rep = knowledgelib.coverage(real_ws(tmp_path, op=op))
+    s = next(x for x in rep["slots"] if x["id"] == "block:B1")
+    got = next(c for c in s["classes"] if c["class"] == cls)
+    assert got["verdict"] == verdict, got
+
+
+def test_an_undeclared_dim_holds_the_class_at_provisional(tmp_path):
+    """The cost of the U14 envelopes: a dim P2 omits keeps its record
+    provisional - visible, never silently covered."""
+    op = {k: v for k, v in BUCK_OP.items() if k != "integration_kind"}
+    rep = knowledgelib.coverage(real_ws(tmp_path, op=op))
+    s = next(x for x in rep["slots"] if x["id"] == "block:B1")
+    dec = next(c for c in s["classes"] if c["class"] == "decoupling")
+    assert dec["verdict"] == "provisional"
+    ev = next(e for e in dec["records"] if e["id"] == "buck-bst-fb-output-caps")
+    assert ev["blocker"] == "envelope-unknown"
+    assert ev["unknown_dims"] == ["integration_kind"]
+    assert s["verdict"] == "provisional"
+
+
+@pytest.mark.parametrize("base, checklist", [
+    ("ETH_RX", "100base-tx"),      # lumina-carrier's diff_pairs bases
+    ("ETH_TX", "100base-tx"),
+    ("USB", "usb-fs"),             # usb-buck's
+])
+def test_interface_checklists_claim_the_tokens_boards_declare(base, checklist):
+    cls = knowledgelib.load_checklists()
+    got = knowledgelib.find_checklist(cls, "interface", base)
+    assert got is not None and got["id"] == checklist
+
+
+def test_interface_slots_are_honest_gaps_with_research_specs(tmp_path):
+    """U14 ruling: approve the interface checklists with zero records behind
+    them, so the slot reports gap + a research task spec (U15's input)."""
+    ws = real_ws(tmp_path, diff_pairs=[{"p": "/USB_P", "n": "/USB_N",
+                                        "base": "USB", "impedance_ohm": 90}])
+    rep = knowledgelib.coverage(ws)
+    s = next(x for x in rep["slots"] if x["id"] == "interface:usb")
+    assert s["verdict"] == "gap"
+    assert s["checklist"]["id"] == "usb-fs" and s["checklist"]["floor_met"]
+    gap = next(g for g in rep["gaps"] if g["slot"] == "interface:usb")
+    assert "diff-pair" in {m["class"] for m in gap["missing"]}
+    # the buck inrush record keys on interface `usb` and so is not a gap -
+    # it is provisional, waiting on a source_kind dim at the pair
+    inrush = next(c for c in s["classes"] if c["class"] == "inrush")
+    assert inrush["verdict"] == "provisional"
+    assert [e["id"] for e in inrush["records"]] == ["buck-upstream-inrush-limit"]

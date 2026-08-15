@@ -21,3 +21,17 @@ sources:
   - {file: boards/usb-buck/research/interface-usb.md, section: attach capacitance}
 status: active
 origin: migration:topologies/buck (T6 2026-08-06, three shipped runs)
+
+# --- schema v2 governance (U14 backfill, owner-ruled 2026-08-15) ---
+level: topology
+envelope:
+  source_kind: {in: [usb, usb-pd, poe]}
+maturity: approved
+approval:
+  by: owner
+  date: "2026-08-15"
+  note: >
+    Bounded by the SOURCE, not the buck: the whole record is that C_IN is
+    capped by the upstream rule (USB 2.0 10 uF / 44 ohm at attach, PD sink
+    100 uF, PoE's own envelope). Behind a bench supply or barrel jack there
+    is no attach test and the record does not apply.

@@ -27,3 +27,18 @@ sources:
   - {file: boards/sbuck-5v3a/architecture/blocks.md, section: s3 (compensation re-derive)}
 status: active
 origin: migration:topologies/buck (T6 2026-08-06, three shipped runs)
+
+# --- schema v2 governance (U14 backfill, owner-ruled 2026-08-15) ---
+level: family
+envelope:
+  integration_kind: {in: [integrated-fet]}
+maturity: approved
+approval:
+  by: owner
+  date: "2026-08-15"
+  note: >
+    Family-level, bounded by integration: the mandatory BST-SW cap, the
+    fixed-vs-adjustable FB trap and the internal-compensation C_OUT window
+    are properties of integrated-FET parts (DS41326 class). A controller +
+    external FETs designs its own bootstrap and compensation, so none of the
+    three carries over.

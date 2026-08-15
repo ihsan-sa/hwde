@@ -24,3 +24,16 @@ sources:
   - {file: boards/usb-buck/parts/C5248536.pdf, section: DS41326 layout section}
 status: active
 origin: migration:topologies/buck (T6 2026-08-06, three shipped runs)
+
+# --- schema v2 governance (U14 backfill, owner-ruled 2026-08-15) ---
+level: principle
+maturity: approved
+approval:
+  by: owner
+  date: "2026-08-15"
+  note: >
+    Principle, no envelope: the mechanism is loop area x di/dt, which bounds
+    no operating point - every switching converter wants the
+    discontinuous-current loop shortest, hard- or soft-switched, 3 V or 100
+    V. The buck wording and applies.topologies keep RETRIEVAL buck-scoped;
+    the level is the generality claim, not the trigger.

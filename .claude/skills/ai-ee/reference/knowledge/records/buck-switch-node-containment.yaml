@@ -25,3 +25,17 @@ sources:
   - {file: boards/sbuck-5v3a/architecture/blocks.md, section: s8 (/SW tap stub rule)}
 status: active
 origin: migration:topologies/buck (T6 2026-08-06, three shipped runs)
+
+# --- schema v2 governance (U14 backfill, owner-ruled 2026-08-15) ---
+level: topology
+envelope:
+  switching_kind: {in: [hard]}
+maturity: approved
+approval:
+  by: owner
+  date: "2026-08-15"
+  note: >
+    Scales with dv/dt: SW is an aggressor because the edge is hard. The
+    victim list (antenna, high-Z analog, diff pair) is a board property, not
+    an envelope dim - it selects whether the record produces a separation
+    entry, not whether the record is true.

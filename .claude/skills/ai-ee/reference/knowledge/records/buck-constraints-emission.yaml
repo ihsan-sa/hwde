@@ -21,3 +21,15 @@ sources:
   - {file: .claude/skills/ai-ee/reference/constraints_schema.md, section: power / thermal / blocks}
 status: active
 origin: migration:topologies/buck (T6 2026-08-06, three shipped runs)
+
+# --- schema v2 governance (U14 backfill, owner-ruled 2026-08-15) ---
+level: principle
+maturity: approved
+approval:
+  by: owner
+  date: "2026-08-15"
+  note: >
+    Principle, no envelope: this is the pipeline's emission contract (what a
+    block must put into constraints.json so P6/P7 and the checkers see it),
+    not physics. It carries no quantity that varies with the operating
+    point, so any envelope would be filler.

@@ -34,14 +34,26 @@ Record shape (schema-validated; the single source of truth is RECORD_SCHEMA):
                                      #   at topology/family/part, forbidden
                                      #   at principle, optional at instance
   maturity: approved                 # draft|verified|approved|proven
-  approval: {by: owner, date: 2026-08-16}     # REQUIRED when approved
+  approval: {by: owner, date: "2026-08-16"}   # REQUIRED when approved
   evidence: [{workspace: boards/x, board: x,  # REQUIRED when proven (bring-up
-              event: bringup_passed, date: 2026-09-01}]   # evidence, --prove)
+              event: bringup_passed, date: "2026-09-01"}] # evidence, --prove)
   generalizes: [hot-loop-principle]  # more-general parents (ids must exist)
+
+Authoring an envelope (U14 rulings): an envelope is what BOUNDS the rule -
+"where does this stop being TRUE?" - never the numbers the rule happens to
+carry (a record quoting both 1 oz and 2 oz widths spans copper weight; its
+bound is hard switching). When nothing bounds it, the record is a
+`principle`, which is why the schema forbids an envelope there and requires
+one above: level and envelope are ONE decision. Prefer one dim, and only
+dims P2 can declare - an undeclared dim leaves the record `provisional`.
+
+QUOTE EVERY DATE: unquoted YAML dates load as datetime.date, not str (the
+lint names it, LEARNINGS 2026-08-15 [yaml][knowledge]).
 
 Legacy records (pre-U14 backfill) tolerate the missing v2 fields: level None,
 maturity `draft`, no envelope. validate(strict=True) is the post-backfill
-mode that requires them.
+mode that requires them - the committed library has been strict-green since
+the U14 backfill (all 16 records owner-approved, 2026-08-15).
 
 Coverage checklists live under reference/knowledge/checklists/<id>.yaml
 (CHECKLIST_SCHEMA): per topology/interface, the classes + minimum levels that
@@ -86,6 +98,9 @@ CLASSES = frozenset({
     "power-loop", "emi", "thermal", "thermal-via", "decoupling", "feedback",
     "selection", "sourcing", "inrush", "sequencing", "return-path",
     "constraints-emission", "esd", "creepage",
+    "diff-pair",    # U14: controlled-impedance pair rules (Zdiff, skew,
+                    # stubs/vias) - what the interface checklists require and
+                    # no record holds yet
 })
 STATUSES = ("active", "draft", "superseded")
 PROSE_MAX = 1500  # prompt-injected; a record is a focused fact, not an essay
@@ -528,6 +543,15 @@ def _load_yaml_checked(p: Path, problems: list[str]) -> dict | None:
         json.dumps(data, ensure_ascii=False).encode("ascii")
     except UnicodeEncodeError:
         problems.append(f"{where}: not ASCII-safe (parsed values)")
+    except TypeError as exc:
+        # YAML 1.1 implicit typing: an unquoted 2026-08-15 loads as a
+        # datetime.date, which is neither the string the schema wants nor
+        # JSON-serializable - report it here instead of dying in --out.
+        problems.append(
+            f"{where}: YAML implicit typing produced a non-JSON value "
+            f"({exc}) - quote it (an unquoted date becomes a date object, "
+            "not a string)")
+        return None
     if not isinstance(data, dict):
         problems.append(f"{where}: not a mapping")
         return None

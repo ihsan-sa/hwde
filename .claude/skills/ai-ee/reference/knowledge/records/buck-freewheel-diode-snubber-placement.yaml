@@ -24,3 +24,18 @@ sources:
   - {file: reference/knowledge/sources/rohm-buck-pcb-layout-an.pdf, page: 5, section: fig 3-g/3-h placement}
 status: active
 origin: app-note:rohm-buck-pcb-layout-an (ROHM 60AN066E Rev.004, 2024-01)
+
+# --- schema v2 governance (U14 backfill, owner-ruled 2026-08-15) ---
+level: topology
+envelope:
+  rectifier_kind: {in: [async]}
+maturity: approved
+approval:
+  by: owner
+  date: "2026-08-15"
+  note: >
+    Bounded by the rectifier, not the operating point: the record IS the
+    free-wheel diode's placement + snubber rules (ROHM fig 3-e..3-h). A
+    synchronous buck has no D1, so the record does not apply there - its
+    surviving core (tight LS return corner) is the principle parent.
+generalizes: [buck-input-hot-loop]

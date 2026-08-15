@@ -27,3 +27,16 @@ sources:
   - {file: reference/knowledge/sources/rohm-buck-pcb-layout-an.pdf, page: 8, section: fig 7-c/7-d}
 status: active
 origin: app-note:rohm-buck-pcb-layout-an (ROHM 60AN066E Rev.004, 2024-01)
+
+# --- schema v2 governance (U14 backfill, owner-ruled 2026-08-15) ---
+level: topology
+envelope:
+  switching_kind: {in: [hard]}
+maturity: approved
+approval:
+  by: owner
+  date: "2026-08-15"
+  note: >
+    Scales with the aggressor the FB route runs from: the high-Z FB node
+    picks up error because SW and L radiate hard edges. Divider values,
+    layer choice and sense point are consequences, not bounds.

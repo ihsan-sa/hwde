@@ -66,7 +66,7 @@ U11 later; U12 before order credentials; T11 on board arrival (not during U8).
 | U11 | P7 routing teaching cycle 2 (owner present) | pending | - |
 | U12 | Pre-credential order/state safety (C3+C5+C6) | pending | - |
 | U13 | Coverage contracts (levels/envelopes/maturity, the research trigger) | **done** | 2026-08-15 |
-| U14 | Record backfill + approval session (owner present, short) | pending | - |
+| U14 | Record backfill + approval session (owner present, short) | **done** | 2026-08-15 |
 | U15 | Research verb (acquisition, synthesis, second reader, auto-trigger) | pending | - |
 
 Dependency graph (plan): S0 -> S1 -> S2 -> S3 -> {S4, S5}; S0 -> S6 -> S7; S2 -> S8 -> S9 -> S10 -> S11;
@@ -4216,3 +4216,123 @@ AP63203 `net` test was green this run - live stock, still non-hermetic);
 **New verify-later items:** none. The coverage-mapper spawn and the P2/P3
 recipe steps are exercised live for the first time at U10 (same posture as
 U4's injection path: mechanics test-pinned, agent choreography prose).
+
+## U14 - Record backfill + approval session (2026-08-15) - DONE
+
+**Owner rulings this session** (all four as recommended; the proposal table -
+level, envelope + "what does this rule scale with", maturity, generalizes -
+was presented per record and ruled in one pass):
+1. **Three principles**: `buck-input-hot-loop` (loop area x di/dt bounds no
+   operating point), `buck-en-softstart-sequencing` (any enable/UVLO input),
+   `buck-constraints-emission` (an emission contract, not physics). The other
+   13 are topology/family with an envelope.
+2. **Envelopes as proposed** - each record's real bound, including four new
+   op-point dims. A buck block must declare EIGHT dims to reach `covered`:
+   `vin_v, iout_a, pdiss_w, board_layers, switching_kind, rectifier_kind,
+   integration_kind, source_kind`.
+3. **All 16 approved** (`approval: {by: owner, date: "2026-08-15", note:
+   <the scales-with justification>}`), including the two rf-de promotions.
+4. **Interface checklists approved with zero records behind them** - the
+   slots report an honest gap that feeds U15, rather than a silent
+   provisional.
+
+**Built:**
+- All 16 records backfilled to schema v2: `level`, `envelope` (none at
+  principle), `maturity: approved`, `approval` block whose `note` IS the
+  ruling ("what does this rule scale with", source-checked against the ROHM
+  60AN066E app note read page by page + DS41326 + the rf-de LEARNINGS).
+  Envelopes: `switching_kind:[hard]` for the edge-driven layout records
+  (cin/co separation, SW containment, inductor copper + gnd void, FB route);
+  `rectifier_kind:[async]` for the free-wheel diode/snubber record;
+  `integration_kind:[integrated-fet]` for BST/FB/output-caps;
+  `control_kind:[cot] + injection_kind:[type3]` for the COT ripple record;
+  `board_layers:{2..4}` for the PGND/AGND join recipe (ROHM fig 9 IS a
+  4-layer assignment); `pdiss_w:{max 5}` for thermal vias; `vin_v:{max 100}
+  + iout_a:{max 10}` for the selection ladder; `iout_a:{0.01..5}` for
+  inductor selection; `source_kind:[usb,usb-pd,poe]` for the upstream inrush
+  limit; `f_mhz:{0.5..200}` for the PCB-spiral keepout record.
+  `generalizes`: cin-co-separation and freewheel-diode -> buck-input-hot-loop.
+- `checklists/buck.yaml` APPROVED: class list unchanged (it came from the
+  records the three shipped buck runs used); `sequencing` and
+  `constraints-emission` min_level dropped topology -> principle to match
+  the level rulings (a checklist row must not demand a level its own subject
+  matter cannot reach).
+- NEW `checklists/100base-tx.yaml` (8 classes; applies.interfaces
+  `[100base-tx, eth, eth_rx, eth_tx]` - the tokens lumina-carrier's
+  diff_pairs actually declare) and `checklists/usb-fs.yaml` (8 classes;
+  `[usb-fs, usb]`), both owner-approved. Scoped to FULL speed deliberately.
+- `knowledgelib.CLASSES` grew `diff-pair` (controlled-impedance pair rules -
+  what both interface checklists require and no record holds).
+- `_load_yaml_checked` now reports a non-JSON-native YAML scalar as a NAMED
+  lint problem instead of dying in the JSON writer (see LEARNINGS 294).
+- Docs: `agents/architect.md` + `reference/constraints_schema.md` carry the
+  extended op-point vocabulary and the eight-dim buck requirement;
+  `reference/topologies/buck.md` re-rendered (level/maturity tags).
+- Tests (+14 in `tests/test_coverage.py`, section 7): the strict flip
+  (`test_committed_records_are_strict_green_after_the_u14_backfill` -
+  replaces the bootstrap-tolerance test, and pins approval/`principle has no
+  envelope`/`topology+ has one` per record); the YAML-date lint regression;
+  the acceptance (committed library covers all 10 classes of a real buck
+  block); six envelope-bound cases; the undeclared-dim -> provisional cost;
+  interface-token -> checklist resolution for ETH_RX/ETH_TX/USB; interface
+  slot = honest gap with a research spec.
+
+**Deviations from plan (with reasons):**
+1. The plan's acceptance says "a pd-trigger-fixture coverage run reports
+   covered on buck slots". pd-trigger has NO buck (CH224K PD sink + a 1 kOhm
+   dropper; the LDO was removed at A1), so there are no buck slots to cover.
+   Substituted a fixture at the sbuck/usb-buck operating point (12 V -> 5 V
+   3 A, integrated sync, 4 layers) checked against the COMMITTED library -
+   the same claim, on a board class that actually has a buck. pd-trigger's
+   real coverage run is recorded below (part slot covered, no gaps).
+2. `cot-ripple-injection-raises-vout` lost its proposed `generalizes:
+   [buck-bst-fb-output-caps]` link: both records ruled `family`, and the
+   lint requires a STRICTLY more general target. Its real parent - what a
+   control loop senses and where in the ripple it trips - is a principle the
+   library does not hold; the record says so in its approval note and it is
+   a U15 research target. (Reported to the owner rather than silently
+   demoting an approved level.)
+3. Four LEARNINGS entries (294-297): the plan expected rulings-as-learnings,
+   but the rulings themselves live in the records' `approval.note` fields,
+   which is where a reader of the record will look. 296 is the one ruling
+   worth generalizing (how to choose an envelope at all); 294, 295 and 297
+   are build gotchas - the last one caught a broken commit (the two NEW
+   checklists were dropped by the wave-parallel pathspec commit and were
+   added in an amend).
+
+**Suite:** `check.cmd` **1765 passed in 13m13s**, exit 0 - no failures at
+all (the standing AP63203 `net` test was green this run; still non-hermetic,
+it reads live stock) - plus `check_env.py --quiet` clean. Targeted suites
+green throughout (test_coverage 73, test_knowledge, test_learn,
+test_remediations, test_learnings, test_constraints_lint). Standing caveat:
+a `check.cmd` run re-dirties two design docs (timestamp-only regens).
+Real-workspace coverage after the backfill: pd-trigger / sbuck-5v3a /
+rf-de-20m `pass` (part slots covered, no gaps); lumina-carrier and usb-buck
+report `gaps` = exactly the new interface slots (eth_rx, eth_tx / usb) with
+research task specs, which is the ruled-for behaviour.
+
+**Interface notes for later steps:**
+- U15 (research verb): the gap specs on lumina-carrier (`interface:eth_rx`,
+  `interface:eth_tx`) and usb-buck (`interface:usb`) are live inputs - run
+  `knowledge.py --coverage --workspace boards/<b>` to get them. New records
+  must carry `level` + `envelope` + `maturity` (draft/verified) or they can
+  never satisfy coverage; the eight-dim buck vocabulary is the model for
+  what an envelope dim should be (declarable at P2, one bound per mechanism).
+  A principle parent for the COT record (deviation 2) is a named target.
+  CAVEAT seen live: a gap's `principle_parents` is built from class alone,
+  ignoring `applies` - the carrier's Ethernet gaps offer buck-input-hot-loop
+  and buck-constraints-emission as parents because they share the emi /
+  constraints-emission classes. Read it as "a principle of this CLASS
+  exists", not "this principle covers your slot".
+- U10 (first live run): the architect must emit `operating_point` with the
+  eight dims or the P2-exit coverage step reports provisional - LEARNINGS 295
+  is the trap. Its L3 fix (coverage lending board-level dims) is unbuilt.
+- U8 (teaching): teaches against an approved library now - the buck records
+  inject with `(topology/approved)` tags and the checklist gates at the
+  `approved` floor, so a NEW record written during teaching is `draft` and
+  will NOT satisfy coverage until the owner approves it in-session.
+- T11: `--prove` upgrades any applied record to `proven` with evidence; all
+  16 now sit at `approved`, so bring-up evidence is the only thing that can
+  raise them further.
+
+**New verify-later items:** none.

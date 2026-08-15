@@ -27,3 +27,18 @@ sources:
   - {file: reference/knowledge/sources/rohm-buck-pcb-layout-an.pdf, page: 10, section: s10-3 (via current)}
 status: active
 origin: app-note:rohm-buck-pcb-layout-an (ROHM 60AN066E Rev.004, 2024-01)
+
+# --- schema v2 governance (U14 backfill, owner-ruled 2026-08-15) ---
+level: topology
+envelope:
+  pdiss_w: {max: 5}
+maturity: approved
+approval:
+  by: owner
+  date: "2026-08-15"
+  note: >
+    Scales with dissipated power: vias-into-the-base-material is the heat
+    path the record describes (0.3 mm fillable drill, 1.2 mm pitch, 2 mm/A
+    equivalent width). Past a few watts the design is set by copper area,
+    sink and airflow, which the record does not cover. Package dependence is
+    carried by applies.packages, not the envelope.

@@ -20,3 +20,16 @@ sources:
   - {file: boards/sbuck-5v3a/architecture/blocks.md, section: s4 (UVLO divider pathology)}
 status: active
 origin: migration:topologies/buck (T6 2026-08-06, three shipped runs)
+
+# --- schema v2 governance (U14 backfill, owner-ruled 2026-08-15) ---
+level: principle
+maturity: approved
+approval:
+  by: owner
+  date: "2026-08-15"
+  note: >
+    Principle, no envelope: read the enable pin's OWN behaviour before
+    adding parts, keep UVLO hysteresis wider than the source droop it must
+    ride out, and remember soft-start sets the inrush the source sees. True
+    of any enable/UVLO input on any part; nothing here varies with the
+    buck's operating point.

@@ -25,3 +25,18 @@ sources:
   - {file: reference/knowledge/sources/rohm-buck-pcb-layout-an.pdf, page: 8, section: "s8, fig 8/9"}
 status: active
 origin: app-note:rohm-buck-pcb-layout-an (ROHM 60AN066E Rev.004, 2024-01)
+
+# --- schema v2 governance (U14 backfill, owner-ruled 2026-08-15) ---
+level: topology
+envelope:
+  board_layers: {min: 2, max: 4}
+maturity: approved
+approval:
+  by: owner
+  date: "2026-08-15"
+  note: >
+    Scales with layer count: the isolate-PGND/AGND rule holds everywhere,
+    but the JOIN recipe the record actually carries is a 4-layer assignment
+    (ROHM fig 9: L2 power ground stitched to top, L3 common, L4 signal,
+    joined only at the output cap). On 6+ layers the assignment must be
+    re-derived, so the record stops being the answer.

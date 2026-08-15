@@ -37,9 +37,15 @@ output ASCII.
    the P3/P6/P7 spawn prompts; an undeclared block gets NO records) WITH
    an `operating_point` per block: unit-suffixed numbers + `*_kind` tokens
    for what the block's mechanisms scale with (vin_v/vout_v/iout_a,
-   fsw_khz, edge_ns, switching_kind hard|soft, rectifier_kind sync|async,
-   control_kind ...) - the P2-exit coverage check tests them against record
-   envelopes; a dim you leave out keeps the record `provisional`.
+   fsw_khz, edge_ns, pdiss_w, board_layers, switching_kind hard|soft,
+   rectifier_kind sync|async, integration_kind integrated-fet|controller,
+   source_kind usb|usb-pd|poe|dc-input, control_kind cot|vmode|cmode,
+   injection_kind ...) - the P2-exit coverage check tests them against
+   record envelopes; a dim you leave out keeps the record `provisional`.
+   A buck block needs all eight of vin_v, iout_a, pdiss_w, board_layers,
+   switching_kind, rectifier_kind, integration_kind, source_kind to reach
+   `covered` (U14 backfill; board-level dims are repeated per block - the
+   coverage check reads no board-level defaults).
    Reconcile net names with the sheet plan - these are now the CANONICAL
    names the schematic must produce.
 6. Record key decisions for the orchestrator to log: stackup, layer count,

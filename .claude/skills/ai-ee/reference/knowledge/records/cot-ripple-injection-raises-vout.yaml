@@ -30,3 +30,22 @@ sources:
   - {file: boards/rf-de-20m/parts/C34355.pdf, section: LM5017 (the part this was measured on)}
 status: active
 origin: promotion:boards/rf-de-20m (U6 2026-08-14)
+
+# --- schema v2 governance (U14 backfill, owner-ruled 2026-08-15) ---
+level: family
+envelope:
+  control_kind: {in: [cot]}
+  injection_kind: {in: [type3]}
+maturity: approved
+approval:
+  by: owner
+  date: "2026-08-15"
+  note: >
+    Bounded by the control architecture: the +Vramp_pkpk/2 term exists only
+    because a constant-on-time loop regulates the VALLEY of FB and Type 3
+    injection AC-couples a zero-mean ramp onto it. A voltage-mode or
+    current-mode part with the same divider lands on VREF exactly. No
+    generalizes link: buck-bst-fb-output-caps is family-level too (the
+    schema requires a strictly MORE general target), and this record's real
+    parent - what a control loop senses and where in the ripple it trips -
+    is a principle the library does not hold yet. Queued for research.
