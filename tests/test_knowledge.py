@@ -260,7 +260,11 @@ def test_app_note_grounding_payload(tmp_path):
     assert payload["mode"] == "app_note"
     assert payload["record_schema"]["title"] == "ai-ee knowledge record"
     assert payload["record_template"]["applies"] == {
-        "topologies": [], "packages": [], "interfaces": []}
+        "topologies": [], "packages": [], "interfaces": [], "parts": []}
+    # U13: the template carries the schema-v2 coverage fields too
+    assert payload["record_template"]["maturity"] == "draft"
+    assert "level" in payload["record_template"]
+    assert "envelope" in payload["record_template"]
     assert payload["n_pages"] >= 10 and payload["text_chars"] > 10000
     assert "emi" in payload["classes"]
 
@@ -294,5 +298,7 @@ def test_app_note_records_committed_and_cite_the_pdf():
 def test_list_mode(tmp_path):
     payload, code = run_knowledge(tmp_path, ["--list"])
     assert code == 0 and payload["count"] == len(knowledgelib.record_files())
-    assert all(set(r) == {"id", "status", "classes", "applies"}
+    assert all(set(r) == {"id", "status", "level", "maturity", "classes",
+                          "applies"}
                for r in payload["records"])
+    assert "checklists" in payload

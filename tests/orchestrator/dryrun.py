@@ -9,7 +9,8 @@ domain), and a kill/resume seam the smoke test exercises by running this
 driver twice (--stop-after drc_routed, then plain).
 
 Sequence (each step is derived from state.json, so any kill point resumes):
-    workspace  copy golden + state init (P4) + artifacts
+    workspace  copy golden + state init (P4) + artifacts + the P3-exit
+               coverage report (knowledge.py --coverage -> log/, U13)
     erc        gate erc on the schematic -> pass -> phase P6
                (P5 setup + P6 placement are pre-satisfied by the golden)
     place      gate place on the board -> pass -> phase P7
@@ -118,6 +119,18 @@ class Dryrun:
             self.st("artifact", "--name", name, "--path", rel)
         self.st("log", "--event", "dryrun_workspace_created",
                 "--data", json.dumps({"golden": "blinky2"}))
+        # U13: the P3-exit coverage report the full-run recipe emits before
+        # P4 (blinky2 declares no blocks -> zero slots + a warning, exit 0;
+        # a gap-bearing design would exit 1 - both are report-emitting runs).
+        (self.ws / "log").mkdir(exist_ok=True)
+        code, _ = run_cli("knowledge.py", "--coverage", "--workspace",
+                          str(self.ws), "--phase", "P3", "--out",
+                          str(self.ws / "log" / "coverage-P3.json"), ok=(0, 1))
+        rep = json.loads((self.ws / "log" / "coverage-P3.json").read_text(
+            encoding="utf-8"))
+        self.st("log", "--event", "coverage_reported", "--data",
+                json.dumps({"phase": "P3", "exit": code,
+                            "summary": rep["summary"]}))
 
     def inject(self, name: str, old: str, new: str) -> None:
         if self.has_event("mutation_injected", name=name):

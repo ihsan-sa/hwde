@@ -5,18 +5,16 @@ gate table in SKILL.md; the fix loop, the checkpoint format and the spawn
 template are shared with every other verb and stay there.
 
 Phase digest: after each phase write 5-10 lines to `log/P<n>-digest.md` and
-`state.py set-phase`.
-
-Agent selection principle: spawn only what the design's domains need - an RF
-board gets an RF-interface researcher and RF review emphasis; a USB-C dev board
-gets neither. Role prompts live in `agents/`; each states its own scripts and
-contract.
+`state.py set-phase`. Agent selection: spawn only what the design's domains
+need - an RF board gets an RF-interface researcher and RF review emphasis; a
+USB-C dev board gets neither. Role prompts live in `agents/`; each states its
+own scripts and contract.
 
 Lean amendment (S14-proven): purely script-driven phases run INLINE (P5 board
 setup, gate invocations, P9 fab/dfm scripts, P10 quote/submit) rather than
 wrapped in agents - rule 1 still holds (read script JSON, never design files).
-Judgment roles stay agents; the two reviewers stay FRESH-context agents always.
-Small boards may use ONE schematic agent for all sheets (record the deviation).
+Judgment roles stay agents; reviewers stay FRESH-context agents always. Small
+boards may use ONE schematic agent for all sheets (record the deviation).
 
 ## The phases
 
@@ -31,12 +29,22 @@ Small boards may use ONE schematic agent for all sheets (record the deviation).
   `research-power-architect` (always, unless trivially powered). Read summaries
   only.
 - **P2 Architecture**: spawn `architect`; record its decisions
-  (`state.py decision`). **H1** (blocking): blocks, stackup, cost ballpark, key
-  parts, riskiest decision.
+  (`state.py decision`). **P2 exit = coverage (U13)**:
+  `knowledge.py --coverage --workspace <ws> --phase P2 --out log/coverage-P2.json`
+  (blocks[] carry `operating_point`; an undeclared dim keeps a record
+  `provisional`). On a `mapping_request` spawn `coverage-mapper` (schema-forced
+  record->slot->class edges, no verdicts), re-run with `--mapping <its file>`
+  (sha logged in the report). Exit 1 = gap slots = research task specs
+  (`gaps[]`); U15's research verb auto-launches per gap - until it lands,
+  `state.py decision` "designing under coverage gap: ..." and continue, never
+  silently. **H1** (blocking): blocks, stackup, cost ballpark, key parts,
+  riskiest decision, coverage summary (covered / provisional / gap per slot).
 - **P3 Parts + Library**: spawn `part-sourcer`; `datasheet-extractor` per
   nontrivial IC (parallel) - reuse a prior board's `parts/<lcsc>.json` on LCSC
   match (re-run `--validate`); then `librarian`. Pad-geometry failures block P4.
-  Per-part detail: the `make-footprint` recipe.
+  Per-part detail: the `make-footprint` recipe. **P3 exit = coverage again**
+  (`--phase P3`): part slots join - per IC, extraction `layout_notes`
+  thin/empty = gap; same mapper + gap protocol.
 - **P4 Schematic**: one `schematic-block` per sheet from
   `architecture/sheets.md` (parallel where independent; the root-sheet agent
   stitches, runs ERC and `netlist_audit`). Gate `erc`. Then `schematic-reviewer`
@@ -60,8 +68,7 @@ Small boards may use ONE schematic agent for all sheets (record the deviation).
   warnings -> `reports/verify-waivers.json` (re-gate with it). After ANY
   copper/placement fix re-run `drc_routed` BEFORE `verify`. **H4** (blocking):
   verification summary + annotated renders + waivers.
-- **P9 DFM**: the `dfm-check` recipe, inline. Spawn `dfm` only when a failure
-  needs narrative.
+- **P9 DFM**: the `dfm-check` recipe, inline (`dfm` agent only for narrative).
 - **P10 Ordering**: the `order` recipe, including H5 and the creation latch.
 
 ## Simulation legs
@@ -80,7 +87,7 @@ Small boards may use ONE schematic agent for all sheets (record the deviation).
   antiresonance peaks only). Fold both into the P8 review; never block on them
   without constraints-declared bounds.
 
-## Run close
+## Run close, and bring-up close
 
 Before the run is declared finished: append what this board taught to
 `boards/<b>/LEARNINGS.md` (dated, stage-tagged, one claim per heading), then
@@ -91,7 +98,10 @@ compile it into the promotion queue -
 Compiling is not promoting. The entries stay `pending` until a `promote` pass
 rules on each one; that verb's recipe carries the ladder. Do this at the END of
 the run, not per phase - the value of an entry is often only clear two phases
-later.
+later. Bring-up close (T11): `state.py log --event bringup_passed`, then
+`knowledge.py --prove --workspace boards/<b>` (`--dry-run` first) - every record
+that APPLIED (deterministic keys + envelope at the operating points) becomes
+maturity `proven` with its evidence entry; reality outranks review.
 
 ## Resuming, and editing mid-run
 

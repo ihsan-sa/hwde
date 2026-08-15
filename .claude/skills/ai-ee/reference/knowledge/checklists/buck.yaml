@@ -1,0 +1,31 @@
+# Coverage checklist (U13, design decision 5a): the classes + minimum record
+# levels that must be populated - at the block's operating point, at or above
+# the maturity floor - before the pipeline may claim "I know enough to design
+# a buck". DRAFT: seeded from the 14 buck records U4 migrated; the owner rules
+# on it (add/drop classes, min levels) at U14 and it lands `approved` with an
+# approval block. A draft checklist still enumerates the classes coverage
+# checks, but caps every buck slot at `provisional` until approved.
+id: buck
+kind: coverage-checklist
+applies:
+  topologies: [buck]
+requires:
+  - {class: selection, min_level: topology, note: "regulator-type ladder + inductor L/Isat/DCR rules"}
+  - {class: power-loop, min_level: topology, note: "input hot loop, C_IN/C_OUT ground separation, free-wheel/LS return corner"}
+  - {class: emi, min_level: topology, note: "SW containment, inductor copper + gnd void, aggressor separation"}
+  - {class: feedback, min_level: topology, note: "FB divider placement/route, BST cap, output-cap window / compensation"}
+  - {class: decoupling, min_level: topology, note: "HF bypass at VIN, output ceramic bank + DC-bias derating"}
+  - {class: return-path, min_level: topology, note: "PGND/AGND isolation and the one low-noise join point"}
+  - {class: thermal-via, min_level: topology, note: "EP thermal-via drill/pitch + via current sizing"}
+  - {class: inrush, min_level: topology, note: "upstream bulk / inrush limit set by the SOURCE (USB/PD/PoE)"}
+  - {class: sequencing, min_level: topology, note: "EN/UVLO/soft-start behaviour before adding parts"}
+  - {class: constraints-emission, min_level: topology, note: "what the block must emit into constraints.json (power/thermal/layout_notes/blocks + operating_point)"}
+maturity: draft
+prose: >
+  Seeded by U13 from the buck record set (8 migrated from topologies/buck.md
+  + 6 ROHM app-note records). Not yet owner-approved: U14 rules on the class
+  list and min levels, then approves. Part-level coverage (each IC's P3
+  datasheet layout extraction) is checked per part slot, not from this list.
+sources:
+  - {file: reference/topologies/buck.md, section: generated view of the record set}
+origin: U13 seed (2026-08-15) - owner approval pending (U14)

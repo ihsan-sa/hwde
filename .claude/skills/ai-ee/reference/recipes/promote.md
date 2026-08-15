@@ -83,6 +83,11 @@ Declining is a first-class outcome and needs its own kind + reason:
 - Knowledge records: `knowledge.py --validate`, and re-render any topology view
   that has one (`knowledge.py --render-topology buck --out
   reference/topologies/buck.md`) - the view is byte-pinned to the records.
+  A promoted record carries the U13 coverage fields: `level` (principle/
+  topology/family/part/instance), `envelope` (what the rule scales with,
+  unit-suffixed dims; none at principle level), `maturity` - `draft` unless
+  the OWNER rules it `approved` in this pass (then add `approval: {by, date}`);
+  `proven` is never hand-set (bring-up evidence via `knowledge.py --prove`).
 - `learnings.py validate --workspace boards/<b>` - every promoted entry names
   artifacts that exist, every ruling carries a kind and a reason.
 - `learnings.py triage` - recompute the register header's counts from its own

@@ -65,7 +65,7 @@ U11 later; U12 before order credentials; T11 on board arrival (not during U8).
 | U10 | xhp-driver brief + full run (first live validation) | pending | - |
 | U11 | P7 routing teaching cycle 2 (owner present) | pending | - |
 | U12 | Pre-credential order/state safety (C3+C5+C6) | pending | - |
-| U13 | Coverage contracts (levels/envelopes/maturity, the research trigger) | pending | - |
+| U13 | Coverage contracts (levels/envelopes/maturity, the research trigger) | **done** | 2026-08-15 |
 | U14 | Record backfill + approval session (owner present, short) | pending | - |
 | U15 | Research verb (acquisition, synthesis, second reader, auto-trigger) | pending | - |
 
@@ -4061,3 +4061,158 @@ test_bench + test_orchestrator + test_knowledge green.
 learner agent, real owner grading) is U8 by design - same posture as U4's
 injection path: the mechanical pieces are test-pinned, the agent
 choreography is prose until its owner-present session runs it.
+
+## U13 - Coverage contracts: levels, envelopes, maturity, the trigger (2026-08-15) - DONE
+
+**Built** (v3 design decision 5a - "I know enough to design this" as a
+checkable claim; coverage leg, unattended, alone in the tree):
+- `knowledgelib.py` schema v2 (SCHEMA_VERSION 2, RECORD_SCHEMA extended,
+  additive): `level` (principle/topology/family/part/instance), `envelope`
+  (unit-suffixed numeric dims `{min,max}` from ENVELOPE_UNITS + `*_kind`
+  categorical dims `{in: [...]}` - REQUIRED at topology/family/part,
+  FORBIDDEN at principle, optional at instance), `maturity`
+  (draft/verified/approved/proven), `generalizes[]` (targets must exist, not
+  self, and be MORE general by level rank), `applies.parts` (mpn/lcsc keys),
+  governance blocks: `approval {by,date}` REQUIRED at approved (owner
+  sign-off on file), `evidence[{workspace,board,event,date}]` REQUIRED at
+  proven, optional `verification` (U15's second reader). Bootstrap
+  tolerance: missing v2 fields = level None / maturity draft (never
+  satisfies coverage); `validate(strict=True)` / `--strict` requires them
+  (U14 flips the test after the backfill -
+  test_legacy_records_tolerated_until_strict says so in its assert message).
+- Coverage checklists: `reference/knowledge/checklists/<id>.yaml`
+  (CHECKLIST_SCHEMA: kind coverage-checklist, applies topologies/interfaces,
+  requires[{class in CLASSES, min_level}], maturity + approval, one
+  checklist per topology/interface token). Linted by the same
+  `--validate`. SEEDED `checklists/buck.yaml` as maturity DRAFT (10 classes
+  x min_level topology from the 14 buck records) - U14 rules + approves it;
+  a draft checklist still enumerates the classes but caps every buck slot at
+  `provisional`.
+- `knowledgelib.coverage(ws)` + `knowledge.py --coverage --workspace WS
+  [--phase P] [--maturity-floor M] [--mapping F]`: slots = `block:<label>`
+  per constraints.json blocks[] (NEW optional `operating_point` map, lint +
+  schema doc + architect.md), `interface:<base>` per diff_pairs base (op =
+  numeric entry fields e.g. impedance_ohm + optional operating_point),
+  `part:<lcsc|mpn>` per parts.json IC (ref_prefix_hint U) or any part with
+  a P3 extraction on disk (op point lent by its block: parts[].block ==
+  blocks[].block/name). Per required class of the slot's checklist each
+  candidate record gets ONE mechanical verdict: satisfies iff level known and
+  >= min_level AND envelope inside/n-a at the op point AND maturity >= floor
+  (default `approved` = bootstrap mode); else `blocker` in {outside,
+  level-unknown, level-below-min, envelope-unknown, maturity-below-floor}.
+  Class verdict covered > provisional (any non-outside blocker) > gap; slot
+  = worst class; no checklist = gap (task: produce one); unapproved
+  checklist caps at provisional. Part slots: extraction layout_notes >=
+  LAYOUT_NOTES_MIN (2) = covered, thin/missing = gap unless a part-level
+  record satisfies. `gaps[]` = research task specs (slot, missing classes +
+  min levels, op point, related records, principle parents, task line).
+  Exit 0 = no gap slots, 1 = gaps (the trigger), 2 = cannot run.
+- The mapping step (fuzzy record->slot remainder): the report carries
+  `mapping_request` {MAPPING_SCHEMA, slots with unmet classes, candidates}
+  only when unmet classes remain; `agents/coverage-mapper.md` (sonnet/high,
+  SKILL tier table) emits record/slot/class edges + why - NO verdicts, no
+  confidence (schema forbids extra keys); `--mapping F` validates content
+  (record exists + active, slot in this run, class the record carries) and
+  refuses the WHOLE file on any problem (exit 2); accepted edges evaluate
+  like key matches with `via: mapping`, and `mapping_applied {file, sha256,
+  edges}` lands in the report for audit.
+- T11 wiring: `knowledge.py --prove --workspace WS [--dry-run]` - reads
+  state.json history for `bringup_passed`, runs coverage at floor `draft`,
+  and every record that APPLIED (via keys, envelope inside/n-a) becomes
+  `maturity: proven` with an evidence entry (targeted line edits of the
+  YAML - prose untouched; post-write re-validate, restore on failure;
+  idempotent; a second board appends evidence). Refuses (exit 1) without
+  the event. Reaches below approved (verified -> proven): reality outranks
+  review.
+- Recipe wiring: tasks.yaml `full-run` steps gained `knowledge.py
+  --coverage --phase P2 --out {log}/coverage-P2.json`, the optional
+  `coverage-mapper` agent step, and the P3-exit re-run, all before the
+  first gate (router binds + flag-checks them); full-run.md P2/P3 bullets +
+  "Bring-up close" paragraph (doc trimmed to the 120-line cap);
+  `tests/orchestrator/dryrun.py` emits `log/coverage-P3.json` + logs
+  `coverage_reported` (smoke test asserts it); promote.md / learner.md /
+  datasheet-extractor.md say what the v2 fields mean for records they write;
+  prompt_block + the buck view carry a `(level/maturity)` tag per record
+  (buck.md re-rendered, byte-pin green; the parts key shows as a count).
+- `tests/test_coverage.py` - 59 tests: v2 lint rejection matrix (16 cases)
+  + checklist lint (6) + generalizes direction + strict flag; envelope
+  semantics; THE acceptance (vin 5 V inside -> covered, 12 V outside ->
+  gap with the spec, back inside -> covered); undeclared dim ->
+  provisional; floor (draft never; verified floor; draft floor = all; bad
+  floor exit 2); legacy record provisional; no checklist / draft checklist
+  / min_level principle-only / principle parents in the gap spec;
+  interface slot + zero-slot warning; op-point dim warnings; mapping request
+  / valid fold-in with sha / 6 refusal shapes / draft record unmappable;
+  part slots present-thin-missing + part-level record; prove refuse /
+  upgrade-only-applied / dry-run / idempotent / second board / verified ->
+  proven / edit helpers; full-run plan wiring; constraints_lint
+  operating_point accept + nested-map reject. Real-workspace smoke: coverage
+  ran clean on pd-trigger / lumina-carrier / sbuck-5v3a / rf-de-20m /
+  usb-buck (part slots covered; carrier + usb-buck report interface gaps =
+  no checklist yet; no shipped board declares blocks[] - they predate U4).
+
+**Deviations from plan (with reasons):**
+1. Checklists live in their OWN dir (`checklists/`) with their own schema,
+   not as a record `kind` in `records/`: select() must never inject one,
+   and the record lint's applies/prose/source rules do not fit them.
+2. Bootstrap semantics beyond the plan text: an UNAPPROVED checklist is
+   still consulted (it enumerates the classes) but caps the slot at
+   provisional - a draft seed is useful to U14 without ever gating.
+3. `--prove` upgrades ANY maturity (draft/verified/approved) of an applied
+   record, not just approved: the owner's "research frequency decays as
+   approvals AND bring-up evidence accumulate" needs proven to be reachable
+   from below approved. Mapping edges do NOT prove (reality evidence
+   attaches to deterministic applicability only) - noted in the CLI doc.
+4. Coverage exit code: 1 on gap slots (provisional slots exit 0): the
+   recipe treats exit 1 as the research trigger; provisional is "declare
+   the missing dims / approve" work, not research.
+5. Part-slot membership = ref_prefix_hint U or an extraction on disk;
+   `LAYOUT_NOTES_MIN = 2` is a documented constant, not a checklist field
+   (the plan's "thin/empty = gap" made literal, tunable in one place).
+6. No LEARNINGS entry this session - no non-obvious gotcha hit (the two
+   friction points, the 120-line recipe-doc cap and state.json needing a
+   version for `state.py log`, are both plainly named by their errors).
+
+**Suite:** targeted suites green throughout (test_coverage 59,
+test_knowledge, test_constraints_lint, test_task_router 127, test_learn,
+test_remediations, the orchestrator dry-run smoke); full run at session
+close: exit 0 - 1751 collected (1692 + 59 new), no failures (the standing
+AP63203 `net` test was green this run - live stock, still non-hermetic);
+`check_env.py --quiet` exit 0. Real-workspace coverage smoke listed above.
+
+**Interface notes for later steps:**
+- U14 (backfill + approval): per record set `level`, `envelope` (justify
+  each dim as "what the rule scales with"; principle records get NONE),
+  `maturity: approved` + `approval: {by: owner, date: YYYY-MM-DD}`;
+  `generalizes` where a specific record has a principle parent. Then flip
+  `test_legacy_records_tolerated_until_strict` to assert
+  `validate(strict=True) == []`. Approve `checklists/buck.yaml` (edit
+  requires[] freely; add `approval`), add `checklists/100base-tx.yaml` +
+  `checklists/usb-fs.yaml` (applies.interfaces tokens must equal the
+  diff_pairs `base` tokens the boards declare - carrier uses eth_rx/eth_tx,
+  usb-buck uses usb; either list both tokens or normalize the bases). A
+  coverage run on a fixture needs constraints.json `blocks[]` WITH
+  `operating_point` (shipped boards predate U4 and declare none: today they
+  report only part slots + interface gaps). New classes: grow CLASSES.
+- U15 (research verb): input = one `gaps[]` entry (slot, kind, topology/
+  interface/part ids, operating_point, missing[{class,min_level}],
+  principle_parents, related_records, task); output records must satisfy
+  schema v2 (level + envelope + maturity draft/verified + `verification`
+  block from the second reader) and land workspace-first; the mapper's
+  contract shows the schema-forced pattern (`mapping_request.schema` +
+  content validation + whole-file refusal). Per-run cap accounting can hang
+  off `summary.gap` and the `coverage_reported` state event.
+- T11: after `state.py log --event bringup_passed`, run `knowledge.py
+  --prove --workspace boards/<b>` (`--dry-run` first); commit the touched
+  records + re-render any topology view they belong to.
+- Orchestrator: P2 exit and P3 exit each run `--coverage` (tasks.yaml
+  binds the commands); on exit 1 record each gap as a `state.py decision`
+  until U15 wires the auto-launch. constraints.json blocks[] carry
+  `operating_point`; a dim the architect omits keeps records
+  `provisional` - the report's `unknown_dims` names exactly which.
+- Maturity floor is a parameter (`--maturity-floor`); the decay policy
+  (when to drop below `approved`) is unbuilt by design - owner ruling.
+
+**New verify-later items:** none. The coverage-mapper spawn and the P2/P3
+recipe steps are exercised live for the first time at U10 (same posture as
+U4's injection path: mechanics test-pinned, agent choreography prose).

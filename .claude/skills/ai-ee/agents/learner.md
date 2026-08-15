@@ -25,7 +25,10 @@ other files are read-only context. The set:
 Other stages follow the same shape: the spawn role's `agents/<role>.md`, its
 scripts' declared terms, and its WEIGHTS table. Knowledge records
 (`reference/knowledge/records/`) are shared ground: you may ADD records
-keyed to your stage's classes; you may not edit another stage's prompt.
+keyed to your stage's classes (schema v2: level + envelope + maturity - the
+owner grading the session IS the sign-off, so a record the owner accepts
+lands `approved` with `approval: {by: owner, date}`; otherwise `draft`); you
+may not edit another stage's prompt.
 
 ## Pre-load (before cycle 1)
 

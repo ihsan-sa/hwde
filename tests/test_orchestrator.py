@@ -447,6 +447,12 @@ def test_dryrun_p4_p8_with_kill_and_resume(tmp_path):
     assert st["phase"] == "P8"
     assert events(st, "mutation_injected")[0]["name"] == "A"
     assert st["budgets"]["fix_loops"]["drc_routed"] == 2  # one loop consumed
+    # U13: the recipe's P3-exit coverage report was emitted + logged
+    cov = json.loads((ws / "log" / "coverage-P3.json").read_text(
+        encoding="utf-8"))
+    assert cov["script"] == "knowledge" and cov["phase"] == "P3"
+    assert {"slots", "covered", "provisional", "gap"} <= set(cov["summary"])
+    assert events(st, "coverage_reported")[0]["summary"] == cov["summary"]
     issues = st["open_issues"]
     assert len(issues) == 1 and issues[0]["status"] == "fixed"
     assert issues[0]["fixer"] == "router"

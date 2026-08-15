@@ -16,7 +16,11 @@ venv python; JSON out, exit 0/1/2. Keep output ASCII.
   a KNOWLEDGE-RECORD grounding payload instead - fill one
   `reference/knowledge/records/<id>.yaml` per class-level layout rule,
   store the PDF under `reference/knowledge/sources/`, cite it by page,
-  then lint with `knowledge.py --validate`.
+  then lint with `knowledge.py --validate`. Fill the template's coverage
+  fields too (U13): `level` (topology/family/part - what the app note is
+  actually about), `envelope` (the dims the rule scales with, from the
+  note's own stated conditions - edge rate, current, voltage, package),
+  `maturity: draft` (the owner approves; never self-declare higher).
 
 ## Scripts
 1. `scripts/datasheet_extract.py --pdf parts/<file>.pdf --out parts/<lcsc>.grounding.json`

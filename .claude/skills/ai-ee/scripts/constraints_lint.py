@@ -63,7 +63,7 @@ SECTIONS: dict[str, dict[str, dict[str, str]]] = {
         "required": {"p": "str", "n": "str"},
         "optional": {"base": "str", "impedance_ohm": "num", "gap_mm": "num",
                      "max_skew_mm": "num", "max_uncoupled_mm": "num",
-                     "term_pair_mm": "num"},
+                     "term_pair_mm": "num", "operating_point": "map"},
     },
     "voltages": {
         "required": {"net": "str", "voltage": "num"},
@@ -82,10 +82,12 @@ SECTIONS: dict[str, dict[str, dict[str, str]]] = {
         "optional": {"region": "rect"},
     },
     # U4: P2's machine-readable block list - knowledge.py --select keys
-    # record retrieval on each entry's topology token.
+    # record retrieval on each entry's topology token. U13: operating_point
+    # = unit-suffixed dims ({vin_v: 12, edge_ns: 5, switching_kind: hard})
+    # that knowledge.py --coverage tests against record envelopes.
     "blocks": {
         "required": {"topology": "str"},
-        "optional": {"block": "str", "name": "str"},
+        "optional": {"block": "str", "name": "str", "operating_point": "map"},
     },
 }
 PLACEMENT: dict[str, dict[str, dict[str, str]]] = {
@@ -156,6 +158,10 @@ def _type_ok(spec: str, v) -> bool:
             for p in v)
     if spec == "overrides":
         return isinstance(v, list)
+    if spec == "map":       # flat scalar map (operating points): str keys,
+        return isinstance(v, dict) and all(     # number/str/bool values
+            isinstance(k, str) and (_is_num(x) or isinstance(x, (str, bool)))
+            for k, x in v.items())
     return False  # unknown spec = programmer error, fail loud
 
 

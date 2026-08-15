@@ -1,0 +1,756 @@
+"""U13 - coverage contracts: levels, envelopes, maturity, the trigger.
+
+Contracts pinned here (design decision 5a):
+  1. Schema v2 lint: level/envelope/maturity/generalizes grammar, maturity
+     governance (approved needs an approval block, proven needs evidence),
+     generalizes targets exist and are more general, principle records carry
+     no envelope, topology/family/part records must; bootstrap tolerance
+     (missing v2 fields = draft) vs --strict; committed library lint-green;
+     coverage checklists lint (one per topology, classes in vocab).
+  2. THE acceptance: a synthetic workspace with a buck block at an operating
+     point inside / outside record envelopes flips covered <-> gap
+     deterministically; maturity floor enforced (draft never satisfies);
+     checklist gating (no checklist = gap; unapproved checklist caps at
+     provisional; min_level per class - a principle-only match is provisional).
+  3. The mapping step: mapping_request emitted only when unmet classes
+     remain; a valid schema-forced mapping folds in (via=mapping, sha
+     logged); an invalid one (unknown record/slot, class the record lacks,
+     schema violation) is refused whole with exit 2.
+  4. Part slots: P3 datasheet extraction thin/empty = gap, present = covered;
+     the block's operating point is lent to its parts.
+  5. --prove: bring-up evidence upgrades every APPLIED record to proven with
+     the evidence entry (idempotent, outside-envelope records untouched);
+     refused without a bringup_passed event; post-write library still lints.
+  6. Recipe wiring: full-run plans the P2/P3 coverage steps + the mapper;
+     constraints_lint accepts operating_point on blocks/diff_pairs.
+"""
+from __future__ import annotations
+
+import json
+import sys
+from pathlib import Path
+
+import pytest
+import yaml
+
+ROOT = Path(__file__).resolve().parents[1]
+SKILL = ROOT / ".claude" / "skills" / "ai-ee"
+SCRIPTS = SKILL / "scripts"
+
+sys.path.insert(0, str(SCRIPTS))
+sys.path.insert(0, str(SCRIPTS / "lib"))
+
+import constraints_lint  # noqa: E402
+import knowledge  # noqa: E402
+import knowledgelib  # noqa: E402
+import task_router  # noqa: E402
+
+
+# ---------------------------------------------------------------------------
+# helpers
+# ---------------------------------------------------------------------------
+def run_knowledge(tmp_path, argv):
+    out = tmp_path / f"out{len(list(tmp_path.iterdir()))}.json"
+    code = knowledge.main(argv + ["--out", str(out)])
+    return json.loads(out.read_text(encoding="utf-8")), code
+
+
+APPROVAL = {"by": "owner", "date": "2026-08-15"}
+
+
+def write_record(d: Path, rid: str, **over) -> Path:
+    rec = {
+        "id": rid, "classes": ["emi"],
+        "applies": {"topologies": ["buck"], "packages": [], "interfaces": [],
+                    "parts": []},
+        "rule": None, "prose": "A fact.",
+        "sources": [{"file": "LEARNINGS.md"}],
+        "status": "active", "origin": "test",
+        "level": "topology", "envelope": {"vin_v": {"min": 3, "max": 8}},
+        "maturity": "approved", "approval": dict(APPROVAL),
+    }
+    rec.update(over)
+    for k in [k for k, v in rec.items() if v is ...]:
+        del rec[k]                       # `...` = omit the key entirely
+    d.mkdir(parents=True, exist_ok=True)
+    p = d / f"{rid}.yaml"
+    p.write_text(yaml.safe_dump(rec), encoding="utf-8")
+    return p
+
+
+def write_checklist(d: Path, cid: str, **over) -> Path:
+    cl = {
+        "id": cid, "kind": "coverage-checklist",
+        "applies": {"topologies": [cid]},
+        "requires": [{"class": "power-loop", "min_level": "topology"},
+                     {"class": "emi", "min_level": "topology"}],
+        "maturity": "approved", "approval": dict(APPROVAL),
+        "origin": "test",
+    }
+    cl.update(over)
+    for k in [k for k, v in cl.items() if v is ...]:
+        del cl[k]
+    d.mkdir(parents=True, exist_ok=True)
+    p = d / f"{cid}.yaml"
+    p.write_text(yaml.safe_dump(cl), encoding="utf-8")
+    return p
+
+
+def make_ws(tmp_path, constraints=None, parts=None, extractions=None,
+            history=None, name="ws") -> Path:
+    """A synthetic workspace: kicad/constraints.json + parts/parts.json (+
+    parts/<lcsc>.json extractions) + a minimal state.json."""
+    ws = tmp_path / name
+    (ws / "kicad").mkdir(parents=True)
+    (ws / "log").mkdir()
+    (ws / "state.json").write_text(json.dumps(
+        {"board": "synth", "history": history or []}), encoding="utf-8")
+    if constraints is not None:
+        (ws / "kicad" / "constraints.json").write_text(
+            json.dumps(constraints), encoding="utf-8")
+    if parts is not None:
+        (ws / "parts").mkdir()
+        (ws / "parts" / "parts.json").write_text(json.dumps(parts),
+                                                 encoding="utf-8")
+        for lcsc, ext in (extractions or {}).items():
+            (ws / "parts" / f"{lcsc}.json").write_text(json.dumps(ext),
+                                                       encoding="utf-8")
+    return ws
+
+
+def buck_ws(tmp_path, vin=5, extra_op=None, name="ws", **kw) -> Path:
+    op = {"vin_v": vin, "iout_a": 3, "edge_ns": 5, "switching_kind": "hard"}
+    op.update(extra_op or {})
+    return make_ws(tmp_path, constraints={
+        "blocks": [{"topology": "buck", "block": "B3", "operating_point": op}]},
+        name=name, **kw)
+
+
+@pytest.fixture
+def lib(tmp_path):
+    """A two-record buck library + approved buck checklist."""
+    recs = tmp_path / "recs"
+    cls = tmp_path / "cls"
+    write_record(recs, "r-hot-loop", classes=["power-loop"],
+                 envelope={"edge_ns": {"max": 20},
+                           "switching_kind": {"in": ["hard"]}})
+    write_record(recs, "r-emi", classes=["emi"],
+                 envelope={"vin_v": {"min": 3, "max": 8}})
+    write_checklist(cls, "buck")
+    return recs, cls
+
+
+def cov(tmp_path, ws, lib, *extra):
+    recs, cls = lib
+    return run_knowledge(tmp_path, ["--coverage", "--workspace", str(ws),
+                                    "--records-dir", str(recs),
+                                    "--checklists-dir", str(cls), *extra])
+
+
+def slot(payload, sid):
+    return next(s for s in payload["slots"] if s["id"] == sid)
+
+
+# ---------------------------------------------------------------------------
+# 1. schema v2 lint
+# ---------------------------------------------------------------------------
+def test_committed_library_lint_green_and_checklists_present():
+    assert knowledgelib.validate() == []
+    ids = {c["id"] for c in knowledgelib.load_checklists()}
+    assert "buck" in ids            # the U13 seed the owner approves at U14
+    # bootstrap: the seed is draft (unapproved) by design
+    buck = next(c for c in knowledgelib.load_checklists() if c["id"] == "buck")
+    assert knowledgelib.record_maturity(buck) == "draft"
+
+
+def test_legacy_records_tolerated_until_strict():
+    """Committed records predate the backfill: v2 fields missing = tolerated
+    (level None, maturity draft) - and --strict names every one of them."""
+    tolerant = knowledgelib.validate()
+    strict = knowledgelib.validate(strict=True)
+    assert tolerant == []
+    legacy = [r["id"] for r in knowledgelib.load_records()
+              if "level" not in r or "maturity" not in r]
+    assert legacy, "backfilled already? then flip this test to strict-green"
+    assert any("strict: missing" in p for p in strict)
+    for r in knowledgelib.load_records():
+        if "maturity" not in r:
+            assert knowledgelib.record_maturity(r) == "draft"
+
+
+def test_strict_cli_flag(tmp_path):
+    d = tmp_path / "r"
+    write_record(d, "r-ok")
+    write_record(d, "r-legacy", level=..., envelope=..., maturity=...,
+                 approval=...)
+    payload, code = run_knowledge(tmp_path, ["--validate", "--records-dir",
+                                             str(d)])
+    assert code == 0, payload["problems"]
+    payload, code = run_knowledge(tmp_path, ["--validate", "--strict",
+                                             "--records-dir", str(d)])
+    assert code == 1
+    assert any("r-legacy" in p and "strict" in p for p in payload["problems"])
+
+
+@pytest.mark.parametrize("over,needle", [
+    ({"level": "flavour"}, "level"),
+    ({"maturity": "gold"}, "maturity"),
+    ({"envelope": {"vin": {"min": 1}}}, "unit-suffixed"),
+    ({"envelope": {"vin_v": {"lo": 1}}}, "min/max"),
+    ({"envelope": {"vin_v": {"min": 9, "max": 1}}}, "min > max"),
+    ({"envelope": {"vin_v": {"min": "one"}}}, "number"),
+    ({"envelope": {"switching_kind": {"in": []}}}, "categorical"),
+    ({"envelope": {"switching_kind": {"min": 1}}}, "categorical"),
+    ({"level": "principle"}, "carries no envelope"),
+    ({"level": "family", "envelope": {}}, "requires a non-empty envelope"),
+    ({"level": "part", "envelope": ...}, "requires a non-empty envelope"),
+    ({"maturity": "approved", "approval": ...}, "approval block"),
+    ({"maturity": "proven"}, "evidence"),
+    ({"generalizes": ["nope"]}, "unknown record"),
+    ({"generalizes": ["r-a"]}, "generalizes itself"),
+    ({"approval": {"by": "owner", "date": "yesterday"}}, "date"),
+])
+def test_lint_rejects_bad_v2_records(tmp_path, over, needle):
+    d = tmp_path / "r"
+    write_record(d, "r-a", **over)
+    problems = knowledgelib.validate(d, tmp_path / "nocl")
+    assert problems and any(needle in p for p in problems), problems
+
+
+def test_lint_generalizes_must_point_at_a_more_general_record(tmp_path):
+    d = tmp_path / "r"
+    write_record(d, "r-principle", level="principle", envelope=...)
+    write_record(d, "r-topo", generalizes=["r-principle"])
+    assert knowledgelib.validate(d, tmp_path / "nocl") == []
+    # a topology record "generalizing" a part record is backwards
+    write_record(d, "r-part", level="part", generalizes=[])
+    write_record(d, "r-topo", generalizes=["r-part"])
+    problems = knowledgelib.validate(d, tmp_path / "nocl")
+    assert any("not more general" in p for p in problems), problems
+
+
+def test_instance_level_envelope_optional_and_proven_needs_evidence(tmp_path):
+    d = tmp_path / "r"
+    write_record(d, "r-inst", level="instance", envelope=..., maturity="proven",
+                 evidence=[{"workspace": "boards/x", "board": "x",
+                            "event": "bringup_passed", "date": "2026-09-01"}])
+    assert knowledgelib.validate(d, tmp_path / "nocl") == []
+
+
+@pytest.mark.parametrize("over,needle", [
+    ({"kind": "checklist"}, "kind"),
+    ({"requires": []}, "requires"),
+    ({"requires": [{"class": "vibes", "min_level": "topology"}]}, "CLASSES"),
+    ({"requires": [{"class": "emi", "min_level": "deep"}]}, "min_level"),
+    ({"applies": {}}, "no slot can ever use"),
+    ({"maturity": "approved", "approval": ...}, "approval block"),
+])
+def test_checklist_lint_rejects(tmp_path, over, needle):
+    cls = tmp_path / "c"
+    write_checklist(cls, "buck", **over)
+    problems = knowledgelib.validate(tmp_path / "norecs", cls)
+    assert problems and any(needle in p for p in problems), problems
+
+
+def test_checklist_one_per_topology(tmp_path):
+    cls = tmp_path / "c"
+    write_checklist(cls, "buck")
+    write_checklist(cls, "buck-two", applies={"topologies": ["buck"]})
+    problems = knowledgelib.validate(tmp_path / "norecs", cls)
+    assert any("already has checklist" in p for p in problems), problems
+
+
+def test_envelope_contains_semantics():
+    ec = knowledgelib.envelope_contains
+    env = {"vin_v": {"min": 3, "max": 8}, "switching_kind": {"in": ["hard"]}}
+    assert ec(env, {"vin_v": 5, "switching_kind": "hard"})["verdict"] == "inside"
+    assert ec(env, {"vin_v": 5, "switching_kind": "HARD"})["verdict"] == "inside"
+    r = ec(env, {"vin_v": 12, "switching_kind": "hard"})
+    assert r["verdict"] == "outside" and r["outside_dims"] == ["vin_v"]
+    r = ec(env, {"vin_v": 5})
+    assert r["verdict"] == "unknown" and r["unknown_dims"] == ["switching_kind"]
+    # outside beats unknown; a non-numeric value for a numeric dim = unknown
+    assert ec(env, {"vin_v": 12})["verdict"] == "outside"
+    assert ec(env, {"vin_v": "twelve", "switching_kind": "hard"})["verdict"] \
+        == "unknown"
+    assert ec(None, {"vin_v": 5})["verdict"] == "n/a"
+    assert ec({}, {})["verdict"] == "n/a"
+    # dims the envelope does not mention are ignored
+    assert ec({"vin_v": {"max": 30}}, {"vin_v": 12, "iout_a": 99})["verdict"] \
+        == "inside"
+
+
+# ---------------------------------------------------------------------------
+# 2. THE acceptance: inside/outside flips covered <-> gap; floors; checklists
+# ---------------------------------------------------------------------------
+def test_operating_point_inside_envelopes_is_covered(tmp_path, lib):
+    ws = buck_ws(tmp_path, vin=5)
+    payload, code = cov(tmp_path, ws, lib, "--phase", "P2")
+    assert code == 0 and payload["status"] == "pass", payload
+    b = slot(payload, "block:B3")
+    assert b["verdict"] == "covered"
+    assert {c["class"]: c["verdict"] for c in b["classes"]} == {
+        "power-loop": "covered", "emi": "covered"}
+    assert payload["gaps"] == [] and payload["mapping_request"] is None
+    assert payload["phase"] == "P2" and payload["maturity_floor"] == "approved"
+
+
+def test_operating_point_outside_an_envelope_flips_to_gap(tmp_path, lib):
+    ws = buck_ws(tmp_path, vin=12)     # r-emi's envelope is 3..8 V
+    payload, code = cov(tmp_path, ws, lib)
+    assert code == 1 and payload["status"] == "gaps"
+    b = slot(payload, "block:B3")
+    assert b["verdict"] == "gap"
+    emi = next(c for c in b["classes"] if c["class"] == "emi")
+    assert emi["verdict"] == "gap"
+    assert emi["records"][0]["blocker"] == "outside"
+    assert emi["records"][0]["outside_dims"] == ["vin_v"]
+    # the gap entry is a research task spec
+    g = payload["gaps"][0]
+    assert g["slot"] == "block:B3" and g["topology"] == "buck"
+    assert g["missing"] == [{"class": "emi", "min_level": "topology"}]
+    assert g["operating_point"]["vin_v"] == 12
+    assert "r-emi" in g["related_records"]
+    assert "populate emi" in g["task"]
+    # the same workspace, dims back inside -> covered again (deterministic)
+    ws2 = buck_ws(tmp_path, vin=6, name="ws2")
+    payload2, code2 = cov(tmp_path, ws2, lib)
+    assert code2 == 0 and slot(payload2, "block:B3")["verdict"] == "covered"
+
+
+def test_undeclared_dim_is_provisional_not_covered(tmp_path, lib):
+    ws = make_ws(tmp_path, constraints={"blocks": [
+        {"topology": "buck", "block": "B3",
+         "operating_point": {"vin_v": 5, "edge_ns": 5}}]})   # no switching_kind
+    payload, code = cov(tmp_path, ws, lib)
+    assert code == 0                       # provisional is not a gap
+    b = slot(payload, "block:B3")
+    assert b["verdict"] == "provisional"
+    pl = next(c for c in b["classes"] if c["class"] == "power-loop")
+    assert pl["records"][0]["blocker"] == "envelope-unknown"
+    assert pl["records"][0]["unknown_dims"] == ["switching_kind"]
+
+
+def test_maturity_floor_draft_never_satisfies(tmp_path):
+    recs, cls = tmp_path / "recs", tmp_path / "cls"
+    write_record(recs, "r-hot-loop", classes=["power-loop"], maturity="draft",
+                 approval=...)
+    write_record(recs, "r-emi", classes=["emi"], maturity="verified",
+                 approval=...)
+    write_checklist(cls, "buck")
+    ws = buck_ws(tmp_path, vin=5)
+    payload, code = cov(tmp_path, ws, (recs, cls))
+    b = slot(payload, "block:B3")
+    assert b["verdict"] == "provisional"
+    assert all(c["records"][0]["blocker"] == "maturity-below-floor"
+               for c in b["classes"])
+    # lowering the floor to verified covers emi but not the draft power-loop
+    payload, _ = cov(tmp_path, ws, (recs, cls), "--maturity-floor", "verified")
+    verdicts = {c["class"]: c["verdict"] for c in slot(payload, "block:B3")["classes"]}
+    assert verdicts == {"power-loop": "provisional", "emi": "covered"}
+    # floor draft = everything counts (what --prove uses)
+    payload, _ = cov(tmp_path, ws, (recs, cls), "--maturity-floor", "draft")
+    assert slot(payload, "block:B3")["verdict"] == "covered"
+    # a bad floor is a usage error
+    _, code = cov(tmp_path, ws, (recs, cls), "--maturity-floor", "gold")
+    assert code == 2
+
+
+def test_legacy_record_without_level_is_provisional(tmp_path):
+    """Pre-backfill records (no level/envelope/maturity) can never satisfy -
+    they read as level None / draft, and the blocker says why."""
+    recs, cls = tmp_path / "recs", tmp_path / "cls"
+    write_record(recs, "r-old", classes=["power-loop", "emi"], level=...,
+                 envelope=..., maturity=..., approval=...)
+    write_checklist(cls, "buck")
+    payload, _ = cov(tmp_path, buck_ws(tmp_path), (recs, cls),
+                     "--maturity-floor", "draft")
+    b = slot(payload, "block:B3")
+    assert b["verdict"] == "provisional"
+    assert b["classes"][0]["records"][0]["blocker"] == "level-unknown"
+
+
+def test_no_checklist_is_a_gap_whose_task_is_to_produce_one(tmp_path, lib):
+    recs, _ = lib
+    ws = buck_ws(tmp_path)
+    payload, code = cov(tmp_path, ws, (recs, tmp_path / "nocl"))
+    assert code == 1
+    b = slot(payload, "block:B3")
+    assert b["verdict"] == "gap" and b["checklist"] is None
+    assert any("no coverage checklist" in r for r in b["gap_reasons"])
+    g = payload["gaps"][0]
+    assert g["missing"] == [{"class": "coverage-checklist", "min_level": None}]
+    assert "produce its coverage checklist" in g["task"]
+    # informational: what we already hold is still listed by class
+    assert {c["class"] for c in b["classes"]} == {"power-loop", "emi"}
+
+
+def test_unapproved_checklist_caps_at_provisional(tmp_path, lib):
+    recs, _ = lib
+    cls = tmp_path / "cls-draft"
+    write_checklist(cls, "buck", maturity="draft", approval=...)
+    payload, code = cov(tmp_path, buck_ws(tmp_path), (recs, cls))
+    b = slot(payload, "block:B3")
+    assert code == 0 and b["verdict"] == "provisional"
+    assert b["checklist"] == {"id": "buck", "maturity": "draft",
+                              "floor_met": False}
+    assert any("< floor" in r for r in b["gap_reasons"])
+
+
+def test_min_level_makes_a_principle_only_match_provisional(tmp_path):
+    """A principle-level record in the right class narrows research to the
+    application delta - it never covers a topology-level requirement."""
+    recs, cls = tmp_path / "recs", tmp_path / "cls"
+    write_record(recs, "loop-principle", classes=["power-loop"],
+                 level="principle", envelope=...,
+                 applies={"topologies": ["buck", "boost"], "packages": [],
+                          "interfaces": [], "parts": []})
+    write_record(recs, "r-emi", classes=["emi"])
+    write_checklist(cls, "buck")
+    payload, code = cov(tmp_path, buck_ws(tmp_path), (recs, cls))
+    b = slot(payload, "block:B3")
+    pl = next(c for c in b["classes"] if c["class"] == "power-loop")
+    assert pl["verdict"] == "provisional"
+    assert pl["records"][0]["blocker"] == "level-below-min"
+    assert b["verdict"] == "provisional" and code == 0
+    # ... but a checklist asking only for principle level is satisfied
+    write_checklist(cls, "buck", requires=[
+        {"class": "power-loop", "min_level": "principle"},
+        {"class": "emi", "min_level": "topology"}])
+    payload, code = cov(tmp_path, buck_ws(tmp_path, name="ws2"), (recs, cls))
+    assert slot(payload, "block:B3")["verdict"] == "covered" and code == 0
+
+
+def test_gap_spec_names_principle_parents(tmp_path):
+    recs, cls = tmp_path / "recs", tmp_path / "cls"
+    write_record(recs, "loop-principle", classes=["power-loop"],
+                 level="principle", envelope=...,
+                 applies={"topologies": ["boost"], "packages": [],
+                          "interfaces": [], "parts": []})
+    write_record(recs, "r-emi", classes=["emi"])
+    write_checklist(cls, "buck")
+    payload, code = cov(tmp_path, buck_ws(tmp_path), (recs, cls))
+    assert code == 1
+    g = payload["gaps"][0]
+    assert g["missing"] == [{"class": "power-loop", "min_level": "topology"}]
+    assert g["principle_parents"] == ["loop-principle"]
+    assert "application delta" in g["task"]
+
+
+def test_interface_slot_from_diff_pairs_and_no_slots_warning(tmp_path, lib):
+    recs, cls = lib
+    write_checklist(cls, "usb", applies={"interfaces": ["usb"]},
+                    requires=[{"class": "esd", "min_level": "topology"}])
+    write_record(recs, "usb-esd", classes=["esd"],
+                 applies={"topologies": [], "packages": [], "interfaces": ["usb"],
+                          "parts": []},
+                 envelope={"impedance_ohm": {"min": 85, "max": 95}})
+    ws = make_ws(tmp_path, constraints={"diff_pairs": [
+        {"p": "/USB_DP", "n": "/USB_DM", "base": "USB", "impedance_ohm": 90}]})
+    payload, code = cov(tmp_path, ws, (recs, cls))
+    s = slot(payload, "interface:usb")
+    assert code == 0 and s["verdict"] == "covered"
+    assert s["operating_point"] == {"impedance_ohm": 90}
+    # a design that declares nothing: zero slots, a warning, exit 0
+    ws0 = make_ws(tmp_path, constraints={"power": []}, name="ws0")
+    payload, code = cov(tmp_path, ws0, (recs, cls))
+    assert code == 0 and payload["summary"]["slots"] == 0
+    assert any("no slots" in w for w in payload["warnings"])
+
+
+def test_bad_operating_point_dims_are_warned(tmp_path, lib):
+    ws = make_ws(tmp_path, constraints={"blocks": [
+        {"topology": "buck", "block": "B3",
+         "operating_point": {"vin": 12, "vin_v": "twelve"}}]})
+    payload, _ = cov(tmp_path, ws, lib)
+    assert any("vin:" in w and "unit-suffixed" in w for w in payload["warnings"])
+    assert any("vin_v" in w and "number" in w for w in payload["warnings"])
+
+
+def test_coverage_cli_contract(tmp_path, lib):
+    recs, cls = lib
+    payload, code = run_knowledge(tmp_path, ["--coverage", "--records-dir",
+                                             str(recs)])
+    assert code == 2 and "requires --workspace" in payload["error"]
+    payload, code = run_knowledge(tmp_path, ["--coverage", "--workspace",
+                                             str(tmp_path / "nope")])
+    assert code == 2
+
+
+# ---------------------------------------------------------------------------
+# 3. the mapping step (schema-forced agent output)
+# ---------------------------------------------------------------------------
+def test_mapping_request_only_when_classes_unmet(tmp_path, lib):
+    recs, cls = lib
+    write_record(recs, "loop-generic", classes=["power-loop"],
+                 applies={"topologies": ["sync-buck"], "packages": [],
+                          "interfaces": [], "parts": []},
+                 envelope={"edge_ns": {"max": 50}})
+    write_checklist(cls, "buck", requires=[
+        {"class": "power-loop", "min_level": "topology"},
+        {"class": "emi", "min_level": "topology"},
+        {"class": "thermal", "min_level": "topology"}])
+    ws = buck_ws(tmp_path)
+    payload, code = cov(tmp_path, ws, (recs, cls))
+    assert code == 1
+    req = payload["mapping_request"]
+    assert req is not None
+    assert req["schema"]["title"] == knowledgelib.MAPPING_SCHEMA["title"]
+    assert req["slots"][0]["id"] == "block:B3"
+    assert req["slots"][0]["unmet_classes"] == ["thermal"]
+    assert {c["id"] for c in req["candidates"]} >= {"loop-generic", "r-emi"}
+    assert "may NOT" in req["instructions"] or "do NOT" in req["instructions"]
+
+
+def test_valid_mapping_folds_in_and_is_logged(tmp_path, lib):
+    recs, cls = lib
+    write_record(recs, "thermal-generic", classes=["thermal"],
+                 applies={"topologies": ["sync-buck"], "packages": [],
+                          "interfaces": [], "parts": []},
+                 envelope={"iout_a": {"max": 10}})
+    write_checklist(cls, "buck", requires=[
+        {"class": "power-loop", "min_level": "topology"},
+        {"class": "emi", "min_level": "topology"},
+        {"class": "thermal", "min_level": "topology"}])
+    ws = buck_ws(tmp_path)
+    payload, code = cov(tmp_path, ws, (recs, cls))
+    assert code == 1 and slot(payload, "block:B3")["verdict"] == "gap"
+    mp = ws / "log" / "coverage-mapping-P2.json"
+    mp.write_text(json.dumps({"mappings": [
+        {"record": "thermal-generic", "slot": "block:B3", "class": "thermal",
+         "why": "sync-buck is a buck; the thermal fact does not depend on it"}],
+        "note": "one edge"}), encoding="utf-8")
+    payload, code = cov(tmp_path, ws, (recs, cls), "--mapping", str(mp),
+                        "--phase", "P2")
+    assert code == 0, payload
+    b = slot(payload, "block:B3")
+    assert b["verdict"] == "covered"
+    th = next(c for c in b["classes"] if c["class"] == "thermal")
+    assert th["records"][0]["via"] == "mapping" and th["records"][0]["satisfies"]
+    assert payload["mapping_applied"]["edges"] == 1
+    assert payload["mapping_applied"]["sha256"] == \
+        knowledgelib.sha256_file(mp)
+    assert payload["mapping_request"] is None
+
+
+@pytest.mark.parametrize("mapping,needle", [
+    ({"mappings": [{"record": "ghost", "slot": "block:B3", "class": "emi",
+                    "why": "x"}]}, "unknown record"),
+    ({"mappings": [{"record": "r-emi", "slot": "block:B9", "class": "emi",
+                    "why": "x"}]}, "unknown slot"),
+    ({"mappings": [{"record": "r-emi", "slot": "block:B3",
+                    "class": "power-loop", "why": "x"}]}, "does not carry"),
+    ({"mappings": [{"record": "r-emi", "slot": "block:B3", "class": "emi",
+                    "why": "x", "confidence": 0.9}]}, "schema"),
+    ({"mappings": [{"record": "r-emi", "slot": "block:B3", "class": "emi",
+                    "why": "x", "covered": True}]}, "schema"),
+    ({"edges": []}, "schema"),
+])
+def test_invalid_mapping_is_refused_whole(tmp_path, lib, mapping, needle):
+    ws = buck_ws(tmp_path, vin=12)
+    mp = tmp_path / "map.json"
+    mp.write_text(json.dumps(mapping), encoding="utf-8")
+    payload, code = cov(tmp_path, ws, lib, "--mapping", str(mp))
+    assert code == 2 and payload["status"] == "error"
+    assert needle in payload["error"], payload["error"]
+
+
+def test_mapping_cannot_map_a_draft_record(tmp_path, lib):
+    recs, cls = lib
+    write_record(recs, "r-shelved", classes=["emi"], status="draft")
+    ws = buck_ws(tmp_path, vin=12)
+    mp = tmp_path / "map.json"
+    mp.write_text(json.dumps({"mappings": [
+        {"record": "r-shelved", "slot": "block:B3", "class": "emi",
+         "why": "x"}]}), encoding="utf-8")
+    payload, code = cov(tmp_path, ws, (recs, cls), "--mapping", str(mp))
+    assert code == 2 and "not active" in payload["error"]
+
+
+# ---------------------------------------------------------------------------
+# 4. part slots (P3 datasheet layout extraction)
+# ---------------------------------------------------------------------------
+def test_part_slot_layout_extraction_present_thin_missing(tmp_path, lib):
+    parts = {"parts": [
+        {"ref_prefix_hint": "U", "lcsc": "C1", "mpn": "REG-A", "block": "B3",
+         "package": "SO-8-EP"},
+        {"ref_prefix_hint": "U", "lcsc": "C2", "mpn": "REG-B", "block": "B3"},
+        {"ref_prefix_hint": "U", "lcsc": "C3", "mpn": "REG-C", "block": "B3"},
+        {"ref_prefix_hint": "C", "lcsc": "C4", "mpn": "CAP"},   # not a slot
+    ]}
+    ext = {"C1": {"layout_notes": ["Keep the hot loop tight.",
+                                   "Thermal vias under the EP."]},
+           "C2": {"layout_notes": ["one note only"]}}
+    ws = buck_ws(tmp_path, parts=parts, extractions=ext)
+    payload, code = cov(tmp_path, ws, lib, "--phase", "P3")
+    assert code == 1
+    ids = {s["id"] for s in payload["slots"]}
+    assert {"part:C1", "part:C2", "part:C3"} <= ids and "part:C4" not in ids
+    assert slot(payload, "part:C1")["verdict"] == "covered"
+    assert slot(payload, "part:C1")["datasheet_layout"] == "present"
+    assert slot(payload, "part:C2")["verdict"] == "gap"
+    assert slot(payload, "part:C2")["datasheet_layout"] == "thin"
+    assert slot(payload, "part:C3")["verdict"] == "gap"
+    assert slot(payload, "part:C3")["datasheet_layout"] == "missing"
+    # parts inherit their block's operating point
+    assert slot(payload, "part:C1")["operating_point"]["vin_v"] == 5
+    gap_ids = {g["slot"] for g in payload["gaps"]}
+    assert gap_ids == {"part:C2", "part:C3"}
+    g = next(g for g in payload["gaps"] if g["slot"] == "part:C2")
+    assert g["mpn"] == "REG-B" and "thin" in g["reasons"][0]
+
+
+def test_part_level_record_covers_a_part_without_extraction(tmp_path, lib):
+    recs, cls = lib
+    write_record(recs, "reg-c-layout", classes=["thermal-via"], level="part",
+                 applies={"topologies": [], "packages": [], "interfaces": [],
+                          "parts": ["REG-C"]},
+                 envelope={"vin_v": {"max": 30}})
+    parts = {"parts": [{"ref_prefix_hint": "U", "lcsc": "C3", "mpn": "REG-C",
+                        "block": "B3"}]}
+    payload, code = cov(tmp_path, buck_ws(tmp_path, parts=parts), (recs, cls))
+    s = slot(payload, "part:C3")
+    assert code == 0 and s["verdict"] == "covered"
+    assert s["classes"][0]["records"][0]["id"] == "reg-c-layout"
+    # select() keys parts too now
+    hits = knowledgelib.select(knowledgelib.load_records(recs), parts=["reg-c"])
+    assert [r["id"] for r in hits] == ["reg-c-layout"]
+
+
+# ---------------------------------------------------------------------------
+# 5. --prove: bring-up evidence -> proven
+# ---------------------------------------------------------------------------
+BRINGUP = [{"ts": "2026-09-01T10:00:00", "event": "bringup_passed",
+            "msg": "rails in bounds"}]
+
+
+def test_prove_refuses_without_bringup_evidence(tmp_path, lib):
+    recs, cls = lib
+    ws = buck_ws(tmp_path)
+    payload, code = run_knowledge(tmp_path, [
+        "--prove", "--workspace", str(ws), "--records-dir", str(recs),
+        "--checklists-dir", str(cls)])
+    assert code == 1 and "bringup_passed" in payload["problems"][0]
+    assert all(knowledgelib.record_maturity(r) == "approved"
+               for r in knowledgelib.load_records(recs))
+
+
+def test_prove_upgrades_applied_records_only_and_is_idempotent(tmp_path, lib):
+    recs, cls = lib
+    # r-emi's envelope is 3..8 V: at 12 V it does NOT apply -> stays approved
+    ws = buck_ws(tmp_path, vin=12, history=BRINGUP)
+    args = ["--prove", "--workspace", str(ws), "--records-dir", str(recs),
+            "--checklists-dir", str(cls)]
+    payload, code = run_knowledge(tmp_path, args + ["--dry-run"])
+    assert code == 0 and payload["dry_run"]
+    assert [u["id"] for u in payload["upgraded"]] == ["r-hot-loop"]
+    assert all(knowledgelib.record_maturity(r) == "approved"
+               for r in knowledgelib.load_records(recs))     # dry = no write
+    payload, code = run_knowledge(tmp_path, args)
+    assert code == 0
+    assert payload["upgraded"] == [{"id": "r-hot-loop", "from": "approved",
+                                    "to": "proven"}]
+    by_id = {r["id"]: r for r in knowledgelib.load_records(recs)}
+    assert by_id["r-hot-loop"]["maturity"] == "proven"
+    ev = by_id["r-hot-loop"]["evidence"]
+    assert len(ev) == 1 and ev[0]["event"] == "bringup_passed"
+    assert ev[0]["date"] == "2026-09-01" and ev[0]["board"] == "synth"
+    assert by_id["r-emi"]["maturity"] == "approved" and "evidence" not in by_id["r-emi"]
+    # the prose survived the targeted edit, and the library still lints
+    text = (recs / "r-hot-loop.yaml").read_text(encoding="utf-8")
+    assert "prose: A fact." in text
+    assert knowledgelib.validate(recs, cls) == []
+    # idempotent
+    payload, code = run_knowledge(tmp_path, args)
+    assert code == 0 and payload["upgraded"] == [] \
+        and payload["unchanged"] == ["r-hot-loop"]
+    # a SECOND board adds evidence, no re-upgrade
+    ws2 = buck_ws(tmp_path, vin=12, history=BRINGUP, name="ws2")
+    payload, code = run_knowledge(tmp_path, [
+        "--prove", "--workspace", str(ws2), "--records-dir", str(recs),
+        "--checklists-dir", str(cls)])
+    assert payload["upgraded"] == [] and payload["evidence_added"] == ["r-hot-loop"]
+    ev = {r["id"]: r for r in knowledgelib.load_records(recs)}["r-hot-loop"]["evidence"]
+    assert len(ev) == 2 and {e["workspace"] for e in ev} == {
+        ws.as_posix(), ws2.as_posix()}
+    # proven satisfies coverage at the default floor
+    payload, code = cov(tmp_path, buck_ws(tmp_path, vin=5, name="ws3"), (recs, cls))
+    assert code == 0 and slot(payload, "block:B3")["verdict"] == "covered"
+
+
+def test_prove_reaches_below_approved(tmp_path):
+    """Reality outranks review: a verified (second-reader) record that
+    applied to a bring-up-passed board goes straight to proven."""
+    recs, cls = tmp_path / "recs", tmp_path / "cls"
+    write_record(recs, "r-v", classes=["emi"], maturity="verified", approval=...)
+    write_checklist(cls, "buck")
+    ws = buck_ws(tmp_path, history=BRINGUP)
+    payload, code = run_knowledge(tmp_path, [
+        "--prove", "--workspace", str(ws), "--records-dir", str(recs),
+        "--checklists-dir", str(cls)])
+    assert code == 0 and payload["upgraded"] == [
+        {"id": "r-v", "from": "verified", "to": "proven"}]
+    assert knowledgelib.validate(recs, cls) == []
+
+
+def test_prove_targeted_edit_helpers():
+    txt = "id: x\nmaturity: approved\nprose: >\n  a: b\n"
+    out = knowledgelib._set_top_key(txt, "maturity", "proven")
+    assert out == "id: x\nmaturity: proven\nprose: >\n  a: b\n"
+    out = knowledgelib._set_top_key("id: x\n", "maturity", "proven")
+    assert out.endswith("maturity: proven\n")
+    ev = {"workspace": "boards/b", "board": "b", "event": "bringup_passed",
+          "date": "2026-09-01"}
+    out = knowledgelib._append_evidence("id: x\n", ev)
+    assert yaml.safe_load(out)["evidence"] == [ev]
+    out2 = knowledgelib._append_evidence(out + "origin: t\n", dict(ev, board="c"))
+    data = yaml.safe_load(out2)
+    assert [e["board"] for e in data["evidence"]] == ["b", "c"]
+    assert data["origin"] == "t"
+
+
+# ---------------------------------------------------------------------------
+# 6. recipe + lint wiring
+# ---------------------------------------------------------------------------
+def test_full_run_plans_the_coverage_steps(tmp_path):
+    tasks = task_router.load_tasks()
+    steps = tasks["verbs"]["full-run"]["steps"]
+    dos = [s["do"] for s in steps if "do" in s]
+    assert any("knowledge.py --coverage" in d and "--phase P2" in d for d in dos)
+    assert any("knowledge.py --coverage" in d and "--phase P3" in d for d in dos)
+    agents = [s for s in steps if "agent" in s]
+    assert any(s["agent"] == "coverage-mapper" and s.get("optional")
+               for s in agents)
+    assert (SKILL / "agents" / "coverage-mapper.md").is_file()
+    assert task_router.validate_registry() == []
+    # the coverage steps precede the first gate
+    kinds = [("do" if "do" in s else "gate" if "gate" in s else "x") for s in steps]
+    first_gate = kinds.index("gate")
+    assert all("coverage" not in (s.get("do") or "")
+               for s in steps[first_gate:])
+
+
+def test_constraints_lint_accepts_operating_point(tmp_path):
+    doc = {"blocks": [{"topology": "buck", "block": "B3",
+                       "operating_point": {"vin_v": 12, "switching_kind": "hard",
+                                           "rectifier_kind": "sync"}}],
+           "diff_pairs": [{"p": "/A_P", "n": "/A_N", "base": "eth",
+                           "operating_point": {"rate_mbps": 100}}]}
+    p = tmp_path / "c.json"
+    p.write_text(json.dumps(doc), encoding="utf-8")
+    vs, _ = constraints_lint.lint_file(p)
+    errs = [v for v in vs if v["severity"] == "error"]
+    assert errs == [], errs
+    # a nested map is not an operating point
+    doc["blocks"][0]["operating_point"] = {"vin_v": {"min": 1}}
+    p.write_text(json.dumps(doc), encoding="utf-8")
+    vs, _ = constraints_lint.lint_file(p)
+    assert any(v["kind"] == "bad_type" and v["severity"] == "error" for v in vs)
+
+
+def test_prompt_block_and_view_carry_the_maturity_tag():
+    recs = knowledgelib.load_records()
+    block = knowledgelib.prompt_block(knowledgelib.select(recs, topologies=["buck"]))
+    assert "(level?/draft)" in block or "/draft)" in block
+    view = knowledgelib.render_topology(recs, "buck")
+    assert "level/maturity" in view

@@ -198,7 +198,7 @@ inputs, never silently downgrade):
 | fable/high | architect, placement, schematic-reviewer, verify-reviewer, requirements-analyst |
 | fable/medium | schematic-block (thin root-stitch: sonnet/high) |
 | opus/high | research-interface-spec, research-power-architect, sim-analyst, fixer (copper/route) |
-| sonnet/high | research-component-scout, research-reference-design, part-sourcer, datasheet-extractor |
+| sonnet/high | research-component-scout, research-reference-design, part-sourcer, datasheet-extractor, coverage-mapper (schema-forced record->slot edges at P2/P3 exit) |
 | sonnet/medium | librarian, fixer (silk/sch/parts/fab), placement (backward-edge re-spawn) |
 | inline-default | board-setup, ordering, dfm (spawn = exception path) |
 

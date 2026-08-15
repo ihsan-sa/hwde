@@ -98,8 +98,18 @@ Consumers per key (script -> phase):
   // knowledge.py --select (U4): P2's machine-readable block list. Each
   // topology token keys reference/knowledge/records/ retrieval into the
   // P3/P6/P7 spawn prompts (deterministic - no declared block, no records).
-  // name/block are labels only; topology is the retrieval key.
-  "blocks": [{"topology": "buck", "block": "B3", "name": "U1 AP64350 class"}]
+  // name/block are labels only; topology is the retrieval key. U13:
+  // operating_point = the block's design point as unit-suffixed dims
+  // (numbers) and *_kind tokens; knowledge.py --coverage tests it against
+  // each record's envelope (undeclared dim = record stays "provisional").
+  // Declare what the block's mechanisms scale with: vin/vout/iout, fsw,
+  // edge rate, hard/soft switching, sync/async, control kind. Same optional
+  // key on diff_pairs entries (interface slots also read impedance_ohm).
+  "blocks": [{"topology": "buck", "block": "B3", "name": "U1 AP64350 class",
+              "operating_point": {"vin_v": 12, "vout_v": 5, "iout_a": 3,
+                                  "fsw_khz": 500, "edge_ns": 5,
+                                  "switching_kind": "hard",
+                                  "rectifier_kind": "sync"}}]
 }
 ```
 

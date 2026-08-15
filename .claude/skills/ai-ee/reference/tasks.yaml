@@ -709,6 +709,24 @@ verbs:
         why: "workspace + subdirs, in-repo so gate commits work; copy the brief in"
       - note: "P0-P10 are the recipe body: reference/recipes/full-run.md carries the
                per-phase agent roster, the checkpoints and the sim legs."
+      - do: "scripts/knowledge.py --coverage --workspace {ws} --phase P2 --out {log}/coverage-P2.json"
+        why: "P2 exit (U13 coverage contract): every declared block/interface
+              slot -> covered | provisional | gap at its operating_point and the
+              maturity floor; exit 1 = gap slots = the research trigger (U15
+              launches research per gap spec; until then log each gap as a
+              state.py decision and continue - never silently)"
+      - agent: coverage-mapper
+        tier: sonnet/high
+        why: "the fuzzy record->slot remainder: schema-forced record/slot/class
+              edges only (it classifies, it may NOT declare sufficiency); then
+              re-run knowledge.py --coverage --mapping <file> so the mechanical
+              cutoff folds the edges in and the report logs the mapping sha"
+        optional: true
+        when: "the P2 report carries a mapping_request"
+      - do: "scripts/knowledge.py --coverage --workspace {ws} --phase P3 --out {log}/coverage-P3.json"
+        why: "P3 exit: part slots join (each IC's datasheet extraction - a thin
+              or empty layout_notes section is a detectable gap) with the
+              blocks' operating points; same exit/mapping protocol as P2"
       - gate: erc
       - gate: place
       - gate: drc_routed
