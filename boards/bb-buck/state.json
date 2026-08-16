@@ -3,7 +3,7 @@
  "board": "bb-buck",
  "workspace": "boards/bb-buck",
  "created": "2026-08-15T15:58:13",
- "updated": "2026-08-15T21:17:58",
+ "updated": "2026-08-15T21:37:02",
  "phase": "P4",
  "gates": {},
  "human": {
@@ -208,9 +208,21 @@
   },
   {
    "what": "No new research opened at the P3 exit despite block:B1 re-firing at the proven floor",
-   "why": "The mode's first-call escalation (--maturity-floor proven --research-provisional) re-reports block:B1 as gap because no buck record is  and only bring-up evidence can retire that - it is the same slot already researched at P2 (task block-buck-1, 9 records, 9 verified). Re-opening it would re-research work just done and burn a second per_run slot for nothing; the mode's own instruction is to re-run WITHOUT the flags after research so the re-run folds in what was learned. The genuinely NEW P3 slot - the part slot (datasheet-layout) - reads COVERED off the C841384 extraction's 16 layout bullets, which is exactly the P3-exit test. Plain re-run: 0 gaps.",
+   "why": "The mode's first-call escalation (--maturity-floor proven --research-provisional) re-reports block:B1 as gap because no buck record is yet PROVEN and only bring-up evidence can retire that - it is the same slot already researched at P2 (task block-buck-1, 9 records, 9 verified). Re-opening it would re-research work just done and burn a second per_run slot for nothing; the mode's own instruction is to re-run WITHOUT the flags after research so the re-run folds in what was learned. The genuinely NEW P3 slot - the part slot (datasheet-layout) - reads COVERED off the C841384 extraction's 16 layout bullets, which is exactly the P3-exit test. Plain re-run: 0 gaps.",
    "phase": "P3",
    "ts": "2026-08-15T21:17:58"
+  },
+  {
+   "what": "ONE schematic agent for the whole board (recipe's small-board amendment), not one per sheet",
+   "why": "P2 decision D9 rejected hierarchy: 14 parts / 6 nets on ONE FLAT ROOT SHEET. There is exactly one sheet, so a per-sheet split would spawn one agent and a stitcher for the same file. Recorded per the full-run recipe: 'Small boards may use ONE schematic agent (record it).'",
+   "phase": "P4",
+   "ts": "2026-08-15T21:18:54"
+  },
+  {
+   "what": "APPROVED after the fact: schematic agent retyped lib/aiee.kicad_sym U1 pin 7 (BOOT) from power_in to passive",
+   "why": "Evidence-first, and the agent showed its work: with the retype disabled the finished sheet produced EXACTLY ONE ERC finding, power_pin_not_driven on U1 pin 7, and nothing else. /BST has no schematic-visible driver because the boot diode is inside the package. The PWR_FLAG alternative would clear ERC but drag /BST into netlist_audit power_undeclared, and sheets.md s4 deliberately leaves /BST undeclared. Precedent: sbuck-5v3a's AP64350 BST pin carries the same passive typing. Deviations are listed in gen/lib_pin_types.py so a later lib_pull cannot silently re-type wholesale.",
+   "phase": "P4",
+   "ts": "2026-08-15T21:37:02"
   }
  ],
  "edits": [],
@@ -310,6 +322,14 @@
    "effort": "medium",
    "phase": "P3",
    "note": "lib pull + fp_verify; DDA0008B pad geometry is the reference"
+  },
+  {
+   "ts": "2026-08-15T21:18:54",
+   "role": "schematic-block",
+   "model": "opus",
+   "effort": "high",
+   "phase": "P4",
+   "note": "root sheet, whole board; SUBSTITUTION fable/medium -> opus/high"
   }
  ],
  "history": [
@@ -595,6 +615,22 @@
    "event": "phase",
    "phase": "P4",
    "prev": "P3"
+  },
+  {
+   "ts": "2026-08-15T21:18:54",
+   "event": "decision",
+   "what": "ONE schematic agent for the whole board (recipe's small-board amendment), not one per sheet"
+  },
+  {
+   "ts": "2026-08-15T21:18:54",
+   "event": "spawn",
+   "role": "schematic-block",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-15T21:37:02",
+   "event": "decision",
+   "what": "APPROVED after the fact: schematic agent retyped lib/aiee.kicad_sym U1 pin 7 (BOOT) from power_in to passive"
   }
  ]
 }
