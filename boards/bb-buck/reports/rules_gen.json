@@ -1,0 +1,64 @@
+{
+  "script": "rules_gen",
+  "status": "pass",
+  "capability_class": "2layer_1oz",
+  "stackup": "JLC2313_1.6",
+  "copper_oz": 1.0,
+  "rule_count": 12,
+  "rule_names": [
+    "aiee_track_width_floor",
+    "aiee_clearance_floor",
+    "aiee_via_drill_floor",
+    "aiee_via_diameter_floor",
+    "aiee_annular_floor",
+    "aiee_edge_clearance_floor",
+    "aiee_hole_to_hole_floor",
+    "aiee_silk_width_floor",
+    "aiee_pwr_width_VIN",
+    "aiee_pwr_width_SW",
+    "aiee_pwr_width_5V",
+    "aiee_pwr_width_GND"
+  ],
+  "power": [
+    {
+      "net": "+VIN",
+      "current_a": 1.1,
+      "dt_c": 10.0,
+      "min_width_mm": 0.56,
+      "netclass": "Pwr_0p56mm",
+      "class_width_mm": 0.56
+    },
+    {
+      "net": "/SW",
+      "current_a": 2.6,
+      "dt_c": 10.0,
+      "min_width_mm": 1.52,
+      "netclass": "Pwr_1p52mm",
+      "class_width_mm": 1.52
+    },
+    {
+      "net": "+5V",
+      "current_a": 2.6,
+      "dt_c": 10.0,
+      "min_width_mm": 1.52,
+      "netclass": "Pwr_1p52mm",
+      "class_width_mm": 1.52
+    },
+    {
+      "net": "GND",
+      "current_a": 2.6,
+      "dt_c": 10.0,
+      "min_width_mm": 1.52,
+      "netclass": "Pwr_1p52mm",
+      "class_width_mm": 1.52
+    }
+  ],
+  "diff_pairs": [],
+  "hv_rules": [],
+  "classes": [
+    "Pwr_0p56mm",
+    "Pwr_1p52mm"
+  ],
+  "out_dru": "boards/bb-buck/kicad/bb-buck.kicad_dru",
+  "pro": "boards/bb-buck/kicad/bb-buck.kicad_pro"
+}
