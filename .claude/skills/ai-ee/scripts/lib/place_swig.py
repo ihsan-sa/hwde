@@ -47,12 +47,24 @@ def side_of(fp) -> str:
     return "back" if fp.GetLayer() == pcbnew.B_Cu else "front"
 
 
+# TOP_BOTTOM, deliberately (U19). The two directions are NOT interchangeable
+# for an absolute-op writer (measured on 10.0.3, usbbuck4 J1 at -90 deg):
+#   LEFT_RIGHT mirrors in the BOARD frame and KEEPS the orientation, so the
+#     resulting LOCAL frame is R(a).M_x.R(-a).L - it depends on the angle the
+#     part happened to have when the op ran, and the same {x,y,deg,side} op
+#     would then produce different geometry on different boards.
+#   TOP_BOTTOM mirrors local y and negates the orientation, independent of the
+#     starting angle; SetOrientationDegrees below then pins the angle, so the
+#     op fully determines the result. placelib.Footprint.mirror models THIS.
+# The name is FLIP_DIRECTION_TOP_BOTTOM (underscored) - an earlier
+# un-underscored guess never resolved and always fell through to the bool
+# fallback, which happens to mean the same thing here but silently.
+_FLIP = getattr(pcbnew, "FLIP_DIRECTION_TOP_BOTTOM", True)
+
+
 def set_side(fp, want: str) -> None:
     if side_of(fp) != want:
-        try:
-            fp.Flip(fp.GetPosition(), pcbnew.FLIP_DIRECTION_LEFTRIGHT)
-        except AttributeError:  # 10.0.3 SWIG has no enum; bool = left/right
-            fp.Flip(fp.GetPosition(), True)
+        fp.Flip(fp.GetPosition(), _FLIP)
 
 
 def _layer_id(board, name: str) -> int:

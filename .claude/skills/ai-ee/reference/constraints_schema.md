@@ -86,7 +86,16 @@ Consumers per key (script -> phase):
     "keepouts": [{"rect": [x1, y1, x2, y2], "side": "front",
                   "reason": "antenna"}],   // or "poly": [[x,y], ...]
     "fixed": ["H1", "H2"],
-    "separation": [{"a": ["U3"], "b": ["U5"], "min_mm": 10}]
+    "separation": [{"a": ["U3"], "b": ["U5"], "min_mm": 10}],
+    "corridors": [{"a": "J1", "b": "U1", "width_mm": 5.5, "net": "VBUS"}],
+    //        keep-clear swath between two parts; place_anneal charges any
+    //        other body per mm2 of intrusion (T6 P6A-5)
+    "sides": [{"ref": "J1", "side": "front", "reason": "mates from the top"}]
+    //        U19: the side a part MUST be assembled on. place_anneal can
+    //        otherwise move a cluster to the back when that measurably wins
+    //        (it prices the second reflow side, so it will not do it
+    //        gratuitously); a pinned ref is never flipped. Declare it for
+    //        anything the enclosure, a mating direction or a heatsink fixes.
   },
 
   // planes_gen (P7). Defaults when absent: 2-layer -> B.Cu GND pour;

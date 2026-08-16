@@ -4535,3 +4535,80 @@ check_return_path and check_pdn reason about the pour that exists, not the one y
 (2) "refilled: true" in an edit report is NOT "the planes cover the board". Shrinking is
 the safe direction: the fill clips back to the new edge automatically, which is why
 board_edit deliberately does not run its copper-to-edge check against zone fills.
+
+## 2026-08-16 [kicad][place_edit][geometry] Every scripted flip has been mirroring TOP_BOTTOM through a silent fallback - and the two directions are NOT interchangeable for an absolute-op writer
+`place_swig.set_side` (copied into `update_swig.set_side`) read
+`pcbnew.FLIP_DIRECTION_LEFTRIGHT` inside a `try`, with an `except AttributeError` fallback
+commented "10.0.3 SWIG has no enum; bool = left/right". Both halves are wrong: KiCad 10.0.3
+DOES export the enum, spelled `FLIP_DIRECTION_LEFT_RIGHT` (underscored, `dir(pcbnew)`
+confirms), so the attribute never resolved and the fallback ALWAYS ran - and there
+`fp.Flip(pos, True)` converts True to the enum's `1` = **TOP_BOTTOM**. Every flip the
+pipeline has ever written mirrored the opposite way from the one the code names. Nothing
+caught it because a top-bottom flip is a perfectly legal flip; it only surfaced (U19) when a
+model-side mirror had to predict the file the worker would write.
+
+Measured on usbbuck4 J1 (a USB micro at -90 deg, THT + duplicate "SH" pads), flipping about
+the footprint's own position:
+- **LEFT_RIGHT**: pads mirror in the BOARD x, orientation **unchanged** (-90 -> -90). The
+  stored LOCAL frame therefore comes out as `R(a).M_x.R(-a).L` - it depends on the angle the
+  part happened to have when the op ran.
+- **TOP_BOTTOM**: local y negated, x intact, orientation **negated** (-90 -> +90), with no
+  dependence on the starting angle.
+
+So for a writer whose contract is "ops are ABSOLUTE and idempotent", only TOP_BOTTOM is
+sound: with LEFT_RIGHT the same `{x, y, deg, side}` op applied to the same part at two
+different starting angles produces two different geometries, because `SetOrientationDegrees`
+runs after the flip and cannot undo an angle-dependent local mirror. Both workers now name
+`FLIP_DIRECTION_TOP_BOTTOM` explicitly, and `placelib.Footprint.mirror` models exactly that
+(mirror local y, leave the angle to the caller). Validated the whole way through: mirror the
+model, emit `place` ops, run the SWIG worker, re-parse - every movable footprint of usbbuck4
+agrees to 1e-3 mm on pad locals, absolute pad centres and courtyard bounds
+(`test_model_mirror_matches_pcbnew_flip`). This also closes the 2026-07-11 entry's
+"implemented but corpus-unvalidated" flag - and corrects its guess a second time: the mirror
+is in **y**, not x.
+
+## 2026-08-16 [placement][anneal][tests] place_anneal's fast test budget never reaches the cold regime - any assertion about WHICH optimum it lands in is noise
+The suite's `FAST` params (25 moves/cluster, 12 epochs) leave `t_end` around **150** on a
+board whose whole cost is ~100, i.e. the metropolis test still accepts nearly everything when
+the run ends; the reported result is then just the best state the random walk happened to see
+plus the short greedy quench. Measured on the 7-part scatter fixture: at FAST the same board
+came out at cost 110 / 120 / 79 for seeds 1/2/3, while the default 140-epoch budget landed at
+19.8 / 20.0 / 19.5 with `t_end` 0.03 - a 5x spread collapsing to 3%. A U19 acceptance test
+("a board that does not need two sides stays single-sided") written against FAST looked like
+a real failure and was not: at a converging budget the same board never flips.
+Rule: FAST-budget tests may assert INVARIANTS (legality, determinism, incremental == full
+sync, a term reacting in the right direction) but never WHICH placement wins. For an
+outcome assertion, use a fixture small enough to converge in ~1.5 s (5 free clusters, 40
+moves x 40 epochs) - or assert on the cost model directly, which is the thing the outcome is
+supposed to follow. `t0`/`t_end` are already in the anneal report; read them before believing
+a placement comparison.
+
+## 2026-08-16 [build-modes][state][pipeline][PIPELINE BUG] A dimension given at a CHECKPOINT is invisible to every P0 lint - the tooth that makes geometry an output has to sit on board_init
+The obvious place to catch "a stated size bound the design" is the requirements artifact, and
+on bb-buck that place was CLEAN: section 5 reads "Outline: **no HARD cap.** Nothing here binds
+permanently at P5 board_init", with 30-40 x 20-28 mm marked "Non-binding expectation for
+planning only (NOT a cap)". P0 did its job. The 35 x 25 arrived TWO CHECKPOINTS LATER, from
+the owner at H1, and entered the pipeline as a `board_init --outline 35x25` CLI argument -
+which no artifact records, no lint reads and no reviewer sees. P2 had already derived 40 x 30
+with a mechanism behind it ("the outline IS the radiator": R_ba 39/34/31 C/W at
+875/1064/1200 mm2), and P6 then closed "OUTLINE IS FINAL AT 35 x 25 - measured, not estimated"
+with 0.05 mm of slack on all four edges. Every stage was individually right.
+So U18 puts the tooth where the number actually enters: `state.py mode` records the run's
+binding as machine state, and `board_init` REFUSES `--outline WxH` when that binding makes
+geometry an output (`--allow-fixed-outline` is the reported consent). The general rule: a
+value that reaches the pipeline as a command-line argument can only be policed by the script
+that takes it - checking the ARTIFACT catches the values that were written down, and the ones
+that hurt are the ones that never were.
+
+## 2026-08-16 [board_edit][placement][build-modes] `--outline fit` on a board that was placed to FIT cannot recover the size the layout wanted - it measures the squeeze, and reports a bigger board
+Running the U18 canonical flow backwards over bb-buck: `board_edit --outline fit --margin 0.5`
+on the finished 35 x 25 board returns **35.9 x 25.901** - it GREW. Not a bug: the courtyards
+sit 0.05 mm from the edge, so content bbox + 2 x 0.5 mm margin is larger than the board, and
+fit is doing exactly what it says. The lesson is what it CANNOT do: fit measures the placement
+in front of it, and a placement that was optimized against a small outline has already spent
+the difference. There is no shrink-to-fit that recovers 40 x 30 from a board squeezed into
+35 x 25 - the information is gone, not compressed.
+Consequence for the canonical binding: the order of operations is load-bearing, not stylistic.
+`board_init --outline auto` (generous room) -> place -> fit is a measurement of what the
+layout wanted; place-into-a-size -> fit is a measurement of the size. Same command, opposite
+meanings. Any later "we can always shrink it afterwards" argument is answered by this number.

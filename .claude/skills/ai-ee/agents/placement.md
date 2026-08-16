@@ -29,6 +29,16 @@ scripts with the repo venv python; JSON out, exit 0/1/2. Keep output ASCII.
   `--margin-mm 0.5` adds soft spacing on boards with silk-debt history.
   constraints `placement.corridors` declares 5A-class keep-clear channels;
   candidates report `corridor_mm2` intrusion - keep it at 0.
+- BOTH SIDES (U19): the annealer may move a free cluster to the BACK when
+  that measurably wins, pricing the second reflow side (40 mm of weighted
+  HPWL to open it + 4 mm per part), so it will not do it gratuitously. Read
+  each candidate's `sides` count and `terms.assembly_mm`: a two-sided winner
+  is a real tradeoff to review, not an accident. Declared-edge connectors and
+  through-hole clusters never flip. Pin anything the enclosure, a mating
+  direction or a heatsink fixes with constraints `placement.sides`
+  `[{"ref": "J1", "side": "front"}]`; `--no-side-flips` bans the move
+  outright. A back-side part reaches its plane through vias - do not let a
+  flipped decoupler read as "closer" without checking the loop at P8.
 
 ## Stage 3 - select + repair (your judgment, <= 8 edit iterations budget)
 1. Review candidates: metrics first, then renders - apply a candidate to a

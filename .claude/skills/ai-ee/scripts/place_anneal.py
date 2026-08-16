@@ -20,6 +20,19 @@ accept time):
               corridor keep-clear (placement.corridors: bodies other than the
               two endpoints pay CORRIDOR_W per mm^2 inside the swath - T6
               P6A-5 cost-only version; seed/legality integration deferred)
+  w_assembly* assembly cost of the BACK side (U19): ASM_SECOND_SIDE_MM once
+              any part sits there + ASM_PER_PART_MM each, in weighted-HPWL mm
+
+Both sides (U19): _propose() can move a cluster to the OTHER side, so the
+annealer can DISCOVER that the back tightens a loop or unjams a packed board
+instead of only respecting a side it was handed. A flip mirrors the cluster in
+its own frame (placelib.Footprint.mirror is the in-memory pcbnew Flip), so
+satellites follow their anchor by construction. Guards: only free clusters
+flip - never a declared-edge connector, never a through-hole cluster (back-side
+THT is a hand/wave operation this cost model cannot price), never a ref pinned
+by constraints placement.sides [{"ref": R, "side": "front"|"back"}]. The
+assembly term is the brake that keeps a board which does not NEED two sides
+single-sided; --no-side-flips turns the move off entirely.
 
 --margin-mm buffers every body/obstacle poly by margin/2 for the SA overlap
 term and repair targets ONLY (true courtyards stay the legality oracle), so
@@ -78,8 +91,23 @@ DEFAULT_WEIGHTS = {
     "cong": 2.0,         # per overflow unit
     "cross": 2.0,        # per weighted crossing
     "rule": 1.0,
+    "assembly": 1.0,     # scales the back-side terms below
     "feedback": 0.5,     # candidate-score blend per (1 - completion)
 }
+WEIGHT_NAMES = ("hpwl", "overlap", "cong", "cross", "rule", "assembly",
+                "feedback")
+
+# U19 assembly cost of the board's SECOND side, in weighted-HPWL mm so the
+# tradeoff reads directly: "this flip must save >= N mm of wirelength".
+# OWNER RULING 2026-08-16: 40 mm to open the back at all + 4 mm per part on
+# it. On a blinky2-class board (242 mm total HPWL) that is ~17% of all
+# wirelength, so a roomy board never flips for wirelength alone; a packed one
+# still flips at once, because the overlap it relieves costs 30-240 per mm^2.
+ASM_SECOND_SIDE_MM = 40.0
+ASM_PER_PART_MM = 4.0
+
+# share of proposals that try a side flip (only when something is flippable)
+FLIP_P = 0.08
 
 # hpwl class weights (S9 spring precedent: planes carry gnd; power matters
 # less than signal for wirelength but more than gnd)
@@ -103,21 +131,83 @@ _class_sets = placelib.class_sets
 # ---------------------------------------------------------------- bodies
 
 @dataclass
-class Body:
-    """A rigid cluster: anchor + slotted satellites, in the cluster frame
-    (origin = anchor courtyard center, angle 0 = anchor local frame)."""
-    cid: int
-    cluster: placelib.Cluster
-    slots: dict
+class Variant:
+    """One cluster's geometry ON ONE SIDE, in the cluster frame (origin =
+    anchor courtyard center, angle 0 = anchor local frame)."""
     rel_poly: object              # shapely Polygon about the cluster origin
     pads: list                    # [(net, qx, qy), ...] cluster-frame coords
-    side: str
+    slots: dict                   # ref -> ((sx, sy) anchor-local, rel_deg)
+
+
+@dataclass
+class Body:
+    """A rigid cluster: anchor + slotted satellites, with a variant per side.
+
+    The back variant is the front one MIRRORED in the cluster frame (y -> -y,
+    rel angles negated) - exactly what flipping every member does, so the
+    satellites ride their anchor across a flip the same way they ride a move.
+    The CURRENT side is engine state (Engine.sides), not a body field; side0
+    is what the input board had."""
+    cid: int
+    cluster: placelib.Cluster
+    variants: dict[str, Variant]
+    side0: str
     thru: bool
     kind: str                     # "free" | "edge" | "edge_fixed"
+    flippable: bool = False
+    pin_side: str | None = None   # constraints placement.sides ruling
 
     @property
     def refs(self):
         return self.cluster.refs
+
+    # input-side views (the geometry every non-flip caller means)
+    @property
+    def slots(self):
+        return self.variants[self.side0].slots
+
+    @property
+    def rel_poly(self):
+        return self.variants[self.side0].rel_poly
+
+    @property
+    def pads(self):
+        return self.variants[self.side0].pads
+
+
+def _other(side: str) -> str:
+    return "back" if side == "front" else "front"
+
+
+def side_pins(placement: dict | None) -> dict[str, str]:
+    """constraints placement.sides -> {ref: "front"|"back"} (U19).
+
+    Declares the side a part MUST be assembled on: a connector that mates from
+    the top, a part under a heatsink, anything the enclosure fixes. First
+    ruling per ref wins; malformed entries are ignored here and reported by
+    constraints_lint."""
+    out: dict[str, str] = {}
+    for e in (placement or {}).get("sides", []):
+        ref, side = (e or {}).get("ref"), (e or {}).get("side")
+        if isinstance(ref, str) and side in ("front", "back"):
+            out.setdefault(ref, side)
+    return out
+
+
+def _mirror_variant(v: Variant) -> Variant:
+    """The same cluster flipped: mirror the cluster frame the same way
+    placelib.Footprint.mirror mirrors a part (in y - see the note there).
+
+    Proof it is the whole story: with the anchor mirrored by a reflection M,
+    the point at local (sx, sy) sits at M.(sx, sy) and a satellite's relative
+    rotation negates (M.R(-rel) == R(rel).M), so anchor.to_abs(slot') lands
+    the satellite at the mirrored cluster-frame offset and its own mirrored
+    local frame lands its pads there too. Nothing needs re-slotting."""
+    return Variant(
+        affinity.scale(v.rel_poly, xfact=1.0, yfact=-1.0, origin=(0, 0)),
+        [(net, qx, -qy) for net, qx, qy in v.pads],
+        {ref: ((slot[0], -slot[1]), (-rel) % 360.0)
+         for ref, (slot, rel) in v.slots.items()})
 
 
 def _build_bodies(model: PlaceModel, clusters, warnings,
@@ -151,8 +241,13 @@ def _build_bodies(model: PlaceModel, clusters, warnings,
         kind = "free"
         if c.edge:
             kind = "edge_fixed" if c.edge.get("pos") is not None else "edge"
-        bodies.append(Body(cid, c, slots, rel_poly, pads, anchor.side, thru,
-                           kind))
+        here = Variant(rel_poly, pads, slots)
+        side0 = anchor.side
+        # structural flippability only - placement.sides pins are applied by
+        # the Engine, which is the one place that has read the constraints
+        bodies.append(Body(
+            cid, c, {side0: here, _other(side0): _mirror_variant(here)},
+            side0, thru, kind, flippable=(kind == "free" and not thru)))
     return bodies
 
 
@@ -163,9 +258,15 @@ def _sat_pad_q(slot, ac, rel, pad_local, sc):
     return (slot[0] - ac[0] + dx, slot[1] - ac[1] + dy)
 
 
-def _apply_state(model: PlaceModel, bodies: list[Body], centers, angles):
+def _apply_state(model: PlaceModel, bodies: list[Body], centers, angles,
+                 sides=None):
     for b in bodies:
-        place_seed.apply_cluster(model, b.cluster, b.slots,
+        side = b.side0 if sides is None else sides[b.cid]
+        for ref in b.refs:
+            fp = model.footprints[ref]
+            if fp.side != side:
+                fp.mirror()
+        place_seed.apply_cluster(model, b.cluster, b.variants[side].slots,
                                  centers[b.cid], angles[b.cid])
 
 
@@ -197,23 +298,46 @@ class Engine:
         self.outline = model.outline
         self._outline_prep = prep(self.outline)
         placement = (constraints or {}).get("placement") or {}
+        # U19 placement.sides: a ruled side is a PIN - the annealer never
+        # flips that cluster. A ref already sitting on the wrong side is
+        # surfaced, never silently "fixed" (the annealer is not the fixer).
+        pins = side_pins(placement)
+        self.side_unknown_refs = sorted(r for r in pins
+                                        if r not in model.footprints)
+        self.side_conflicts = sorted(
+            f"{r} on {model.footprints[r].side}, pinned {s}"
+            for r, s in pins.items()
+            if r in model.footprints and model.footprints[r].side != s)
+        for b in bodies:
+            b.pin_side = next((pins[r] for r in b.refs if r in pins), None)
+            if b.pin_side is not None:
+                b.flippable = False
         gnd, power = _class_sets(constraints, decoupling)
         self._wnet = {}
         self._wmst = {}
         self._gnd, self._power = gnd, power
 
-        # --- pad registry: net -> [(cid | None, qx|x, qy|y), ...]
+        # --- side state (U19): the body's CURRENT side, and its pad table.
+        # A pad entry indexes into self._pads[cid], which a flip re-points at
+        # the other variant - so entries stay valid across a side change.
+        self.sides = [b.side0 for b in bodies]
+        self._pads = [b.variants[b.side0].pads for b in bodies]
+
+        # --- pad registry: net -> [(cid, i) | (-1, k into fixed_pts), ...]
         in_cluster = {r for b in bodies for r in b.refs}
         entries: dict[str, list] = {}
+        self.fixed_pts: list[tuple[float, float]] = []
         for b in bodies:
-            for net, qx, qy in b.pads:
-                entries.setdefault(net, []).append((b.cid, qx, qy))
+            for i, (net, _qx, _qy) in enumerate(b.pads):
+                entries.setdefault(net, []).append((b.cid, i))
         for ref in sorted(model.footprints):
             if ref in in_cluster:
                 continue
             for _n, net, x, y in model.footprints[ref].pad_centers_abs():
                 if net:
-                    entries.setdefault(net, []).append((None, x, y))
+                    entries.setdefault(net, []).append(
+                        (-1, len(self.fixed_pts)))
+                    self.fixed_pts.append((x, y))
         self.entries = {n: v for n, v in sorted(entries.items())
                         if len(v) >= 2}
         self.nets = sorted(self.entries)
@@ -295,10 +419,16 @@ class Engine:
         # --- obstacles / keepouts (fixed for the whole run)
         fixed_extra = set(placement.get("fixed", []))
         self.obstacles = []      # [(poly, side, thru)]
+        # U19: parts that are assembled but never move still put the back side
+        # into use - count them so the second-side step is already paid and a
+        # flip onto an already-open back only costs the per-part term.
+        self.back_base = 0
         for ref in sorted(model.footprints):
             f = model.footprints[ref]
             if ref in in_cluster:
                 continue
+            if f.side == "back" and "board_only" not in f.attrs:
+                self.back_base += 1
             if not f.is_movable or ref in fixed_extra:
                 thru = "through_hole" in f.attrs or any(p.through
                                                         for p in f.pads)
@@ -331,20 +461,26 @@ class Engine:
         self._resync_overlap_totals()
 
     # ------------------------------------------------------------ helpers
-    def poly_at(self, cid: int, center=None, angle=None):
+    def poly_at(self, cid: int, center=None, angle=None, side=None):
         c = center if center is not None else self.centers[cid]
         a = angle if angle is not None else self.angles[cid]
-        key = (cid, round(a % 360.0, 3))
+        s = side if side is not None else self.sides[cid]
+        key = (cid, s, round(a % 360.0, 3))
         base = self._poly_cache.get(key)
         if base is None:
-            base = affinity.rotate(self.bodies[cid].rel_poly, -a,
+            base = affinity.rotate(self.bodies[cid].variants[s].rel_poly, -a,
                                    origin=(0, 0))
             self._poly_cache[key] = base
         return affinity.translate(base, c[0], c[1])
 
     def _pair_collides(self, i: int, j: int) -> bool:
         a, b = self.bodies[i], self.bodies[j]
-        return a.side == b.side or a.thru or b.thru
+        return self.sides[i] == self.sides[j] or a.thru or b.thru
+
+    def assembly_of(self, back_parts: int) -> float:
+        """Back-side assembly cost in weighted-HPWL mm (U19 owner ruling)."""
+        return (ASM_SECOND_SIDE_MM if back_parts else 0.0) \
+            + ASM_PER_PART_MM * back_parts
 
     def _outside_area(self, cid: int, poly) -> float:
         if self._outline_prep.contains_properly(poly):
@@ -354,14 +490,24 @@ class Engine:
 
     def _coords(self, net: str) -> list[tuple[float, float]]:
         pts = []
-        for cid, qx, qy in self.entries[net]:
-            if cid is None:
-                pts.append((qx, qy))
+        for cid, i in self.entries[net]:
+            if cid < 0:
+                pts.append(self.fixed_pts[i])
             else:
+                _n, qx, qy = self._pads[cid][i]
                 cx, cy = self.centers[cid]
                 co, si = self._trig[cid]
                 pts.append((cx + co * qx - si * qy, cy + si * qx + co * qy))
         return pts
+
+    def entry_pt(self, cid: int, i: int) -> tuple[float, float]:
+        """Absolute position of one pad-registry entry (cold path)."""
+        if cid < 0:
+            return self.fixed_pts[i]
+        _n, qx, qy = self._pads[cid][i]
+        cx, cy = self.centers[cid]
+        co, si = self._trig[cid]
+        return (cx + co * qx - si * qy, cy + si * qx + co * qy)
 
     def _set_trig(self, cid: int) -> None:
         r = math.radians(-self.angles[cid])
@@ -444,6 +590,9 @@ class Engine:
         self._resync_overlap_totals()
         self._corridor_sync()
         self.rule_total = self._rule_full()
+        self.back_parts = self.back_base + sum(
+            len(b.refs) for b in self.bodies if self.sides[b.cid] == "back")
+        self.assembly_raw = self.assembly_of(self.back_parts)
 
     def _resync_overlap_totals(self) -> None:
         self.overlap_total = (
@@ -464,11 +613,12 @@ class Engine:
 
     def _obst_overlap(self, cid: int) -> float:
         b = self.bodies[cid]
+        side = self.sides[cid]
         poly = self.polys[cid]
         x0, y0, x1, y1 = poly.bounds
         tot = 0.0
         for opoly, oside, othru in self.obstacles:
-            if not (b.side == oside or b.thru or othru):
+            if not (side == oside or b.thru or othru):
                 continue
             ox0, oy0, ox1, oy1 = opoly.bounds
             if ox0 > x1 or ox1 < x0 or oy0 > y1 or oy1 < y0:
@@ -479,11 +629,10 @@ class Engine:
         return tot
 
     def _keep_overlap(self, cid: int) -> float:
-        b = self.bodies[cid]
         poly = self.polys[cid]
         x0, y0, x1, y1 = poly.bounds
         tot = 0.0
-        for k in self.forbidden[b.side]:
+        for k in self.forbidden[self.sides[cid]]:
             kx0, ky0, kx1, ky1 = k.bounds
             if kx0 > x1 or kx1 < x0 or ky0 > y1 or ky1 < y0:
                 continue
@@ -563,8 +712,18 @@ class Engine:
         return out
 
     # ------------------------------------------------------------ moves
-    def set_state(self, cid: int, center, angle) -> None:
-        """Move one body and update every affected raw total."""
+    def set_state(self, cid: int, center, angle, side=None) -> None:
+        """Move (and optionally FLIP) one body; update every affected total.
+
+        A side change re-points the body at its mirrored variant before any
+        geometry is read, so the pad/poly updates below cover the flip exactly
+        the way they cover a move - no separate flip path."""
+        if side is not None and side != self.sides[cid]:
+            self.sides[cid] = side
+            self._pads[cid] = self.bodies[cid].variants[side].pads
+            n = len(self.bodies[cid].refs)
+            self.back_parts += n if side == "back" else -n
+            self.assembly_raw = self.assembly_of(self.back_parts)
         self.centers[cid] = (center[0], center[1])
         self.angles[cid] = angle % 360.0
         self._set_trig(cid)
@@ -674,7 +833,8 @@ class Engine:
                 + w["overlap"] * self.ov_ramp * self.overlap_total
                 + w["cong"] * self.fb_boost * self.overflow
                 + w["cross"] * self.fb_boost * self.cross_total
-                + w["rule"] * self.rule_total)
+                + w["rule"] * self.rule_total
+                + w["assembly"] * self.assembly_raw)
 
     def terms(self) -> dict:
         return {"hpwl_raw_mm": checklib.rnd(self.hpwl_raw_total),
@@ -683,7 +843,16 @@ class Engine:
                 "cong_overflow": self.overflow,
                 "crossings_weighted": checklib.rnd(self.cross_total),
                 "rule": checklib.rnd(self.rule_total),
-                "corridor_mm2": checklib.rnd(self.corridor_area)}
+                "corridor_mm2": checklib.rnd(self.corridor_area),
+                "assembly_mm": checklib.rnd(self.assembly_raw),
+                "back_parts": self.back_parts}
+
+    def side_counts(self) -> dict:
+        """Movable parts per side (fixed back-side parts are back_base)."""
+        back = sum(len(b.refs) for b in self.bodies
+                   if self.sides[b.cid] == "back")
+        return {"front": sum(len(b.refs) for b in self.bodies) - back,
+                "back": back}
 
 
 def _bbox_hp(pts) -> float:
@@ -723,6 +892,7 @@ class Params:
     feedback_every: int = 10
     weights: dict | None = None
     margin_mm: float = 0.0     # soft body-spacing margin (0.0 = legacy)
+    allow_flip: bool = True    # U19 side-flip moves
 
 
 class Annealer:
@@ -733,6 +903,8 @@ class Annealer:
         self.route_probe = route_probe
         self.free = [b.cid for b in engine.bodies if b.kind == "free"]
         self.edge = [b.cid for b in engine.bodies if b.kind == "edge"]
+        self.flippable = [b.cid for b in engine.bodies if b.flippable] \
+            if params.allow_flip else []
         minx, miny, maxx, maxy = engine.outline.bounds
         self.w0 = 0.35 * math.hypot(maxx - minx, maxy - miny)
         self.window = self.w0
@@ -745,9 +917,14 @@ class Annealer:
         return round(v / g) * g
 
     def _propose(self):
-        """-> list of (cid, new_center, new_angle) or None."""
+        """-> list of (cid, new_center, new_angle, new_side) or None."""
         e, rng = self.e, self.rng
         r = rng.random()
+        # flips take their band off the TOP of the range (the translate slice,
+        # the most redundant move) so an unflippable board's move mix - and
+        # its rng stream - is bit-identical to the pre-U19 annealer
+        if self.flippable and r >= 1.0 - FLIP_P:
+            return self._flip()
         if self.edge and r < 0.10:
             if len(self.edge) >= 2 and rng.random() < 0.35:
                 i, j = rng.sample(self.edge, 2)
@@ -759,8 +936,8 @@ class Annealer:
                 ni = list(ci)
                 nj = list(cj)
                 ni[axis], nj[axis] = cj[axis], ci[axis]
-                return [(i, tuple(ni), e.angles[i]),
-                        (j, tuple(nj), e.angles[j])]
+                return [(i, tuple(ni), e.angles[i], e.sides[i]),
+                        (j, tuple(nj), e.angles[j], e.sides[j])]
             cid = rng.choice(self.edge)
             return self._slide(cid)
         if not self.free:
@@ -768,11 +945,11 @@ class Annealer:
         if r < 0.30:
             cid = rng.choice(self.free)
             ang = (e.angles[cid] + rng.choice((90.0, 180.0, 270.0))) % 360.0
-            return [(cid, e.centers[cid], ang)]
+            return [(cid, e.centers[cid], ang, e.sides[cid])]
         if r < 0.50 and len(self.free) >= 2:
             i, j = rng.sample(self.free, 2)
-            return [(i, e.centers[j], e.angles[i]),
-                    (j, e.centers[i], e.angles[j])]
+            return [(i, e.centers[j], e.angles[i], e.sides[i]),
+                    (j, e.centers[i], e.angles[j], e.sides[j])]
         cid = rng.choice(self.free)
         cx, cy = e.centers[cid]
         w = max(self.p.grid, self.window)
@@ -781,7 +958,42 @@ class Annealer:
         minx, miny, maxx, maxy = e.outline.bounds
         nx = min(maxx, max(minx, nx))
         ny = min(maxy, max(miny, ny))
-        return [(cid, (nx, ny), e.angles[cid])]
+        return [(cid, (nx, ny), e.angles[cid], e.sides[cid])]
+
+    def _flip(self):
+        """Move one cluster to the other side (U19).
+
+        Half the flips also RELOCATE to the cluster's connectivity centroid:
+        a bare toggle is uphill by the assembly term alone, so SA would have to
+        accept a strictly-worse state and then find the payoff before it cooled
+        past it. Landing where the wirelength actually is puts the gain in the
+        same move as the cost, which is what makes the back side discoverable
+        rather than merely reachable."""
+        e, rng = self.e, self.rng
+        cid = rng.choice(self.flippable)
+        centre = e.centers[cid]
+        if rng.random() < 0.5:
+            centre = self._connect_target(cid) or centre
+        return [(cid, centre, e.angles[cid], _other(e.sides[cid]))]
+
+    def _connect_target(self, cid: int):
+        """Mean position of everything this cluster is wired to."""
+        e = self.e
+        sx = sy = 0.0
+        n = 0
+        for net in e.nets_of_body[cid]:
+            for ocid, i in e.entries[net]:
+                if ocid == cid:
+                    continue
+                x, y = e.entry_pt(ocid, i)
+                sx += x
+                sy += y
+                n += 1
+        if not n:
+            return None
+        minx, miny, maxx, maxy = e.outline.bounds
+        return (min(maxx, max(minx, self._snap(sx / n))),
+                min(maxy, max(miny, self._snap(sy / n))))
 
     def _slide(self, cid: int):
         e, rng = self.e, self.rng
@@ -798,21 +1010,22 @@ class Annealer:
         t = min(hi - self.p.edge_margin - half,
                 max(lo + self.p.edge_margin + half, self._snap(t)))
         c[axis] = t
-        return [(cid, tuple(c), e.angles[cid])]
+        return [(cid, tuple(c), e.angles[cid], e.sides[cid])]
 
     # --------------------------------------------------------- mechanics
     def _try(self, moves) -> tuple[bool, float]:
         e = self.e
         before = e.cost()
-        olds = [(cid, e.centers[cid], e.angles[cid]) for cid, _c, _a in moves]
-        for cid, c, a in moves:
-            e.set_state(cid, c, a)
+        olds = [(cid, e.centers[cid], e.angles[cid], e.sides[cid])
+                for cid, _c, _a, _s in moves]
+        for cid, c, a, s in moves:
+            e.set_state(cid, c, a, s)
         delta = e.cost() - before
         if delta <= 0 or (self.t > 0 and delta / self.t < 700
                           and self.rng.random() < math.exp(-delta / self.t)):
             return True, delta
-        for cid, c, a in reversed(olds):
-            e.set_state(cid, c, a)
+        for cid, c, a, s in reversed(olds):
+            e.set_state(cid, c, a, s)
         return False, delta
 
     def _estimate_t0(self) -> float:
@@ -824,21 +1037,22 @@ class Annealer:
             if not moves:
                 continue
             e = self.e
-            olds = [(cid, e.centers[cid], e.angles[cid])
-                    for cid, _c, _a in moves]
+            olds = [(cid, e.centers[cid], e.angles[cid], e.sides[cid])
+                    for cid, _c, _a, _s in moves]
             before = e.cost()
-            for cid, c, a in moves:
-                e.set_state(cid, c, a)
+            for cid, c, a, s in moves:
+                e.set_state(cid, c, a, s)
             d = e.cost() - before
-            for cid, c, a in reversed(olds):
-                e.set_state(cid, c, a)
+            for cid, c, a, s in reversed(olds):
+                e.set_state(cid, c, a, s)
             if d > 0:
                 ups.append(d)
         base = sum(ups) / len(ups) if ups else max(1.0, 0.01 * self.e.cost())
         return 20.0 * base
 
     def snapshot(self):
-        return (tuple(self.e.centers), tuple(self.e.angles))
+        return (tuple(self.e.centers), tuple(self.e.angles),
+                tuple(self.e.sides))
 
     def _distinct(self, s1, s2) -> bool:
         for (c1, c2) in zip(s1[0], s2[0]):
@@ -847,7 +1061,7 @@ class Annealer:
         for (a1, a2) in zip(s1[1], s2[1]):
             if abs((a1 - a2) % 360.0) > 1.0:
                 return True
-        return False
+        return s1[2] != s2[2]
 
     # --------------------------------------------------------- main loop
     def run(self) -> dict:
@@ -921,8 +1135,9 @@ class Annealer:
                                            self.window * (0.56 + alpha)))
         # quench: greedy descent from the best state
         t_end = self.t
-        for cid, c, a in zip(range(len(e.bodies)), best[0], best[1]):
-            e.set_state(cid, c, a)
+        for cid, c, a, s in zip(range(len(e.bodies)), best[0], best[1],
+                                best[2]):
+            e.set_state(cid, c, a, s)
         e.full_sync()
         e.ov_ramp = 8.0
         self.t = 0.0
@@ -953,7 +1168,7 @@ class Annealer:
 
     def _probe(self, best_state) -> None:
         _apply_state(self.e.model, self.e.bodies, best_state[0],
-                     best_state[1])
+                     best_state[1], best_state[2])
         c = float(self.route_probe(self.e.model))
         self.completion = min(1.0, max(0.0, c))
         self.e.fb_boost = 1.0 + FB_GAIN * (1.0 - self.completion)
@@ -1010,13 +1225,15 @@ def _repair(model: PlaceModel, engine: Engine, placement: dict | None,
             moved = True
     if moved:
         engine.full_sync()
-        _apply_state(model, engine.bodies, engine.centers, engine.angles)
+        _apply_state(model, engine.bodies, engine.centers, engine.angles,
+                     engine.sides)
     return moved
 
 
 def _spot_legal(engine: Engine, cid: int, center, angle) -> bool:
     poly = engine.poly_at(cid, center, angle)
     b = engine.bodies[cid]
+    side = engine.sides[cid]
     if b.kind == "free" and engine._outside_area(cid, poly) > 0:
         return False
     x0, y0, x1, y1 = poly.bounds
@@ -1029,11 +1246,11 @@ def _spot_legal(engine: Engine, cid: int, center, angle) -> bool:
         if poly.intersection(engine.polys[j]).area > EPS:
             return False
     for opoly, oside, othru in engine.obstacles:
-        if not (b.side == oside or b.thru or othru):
+        if not (side == oside or b.thru or othru):
             continue
         if poly.intersection(opoly).area > EPS:
             return False
-    for k in engine.forbidden[b.side]:
+    for k in engine.forbidden[side]:
         if poly.intersection(k).area > EPS:
             return False
     return True
@@ -1078,9 +1295,10 @@ def anneal(pcb: Path, constraints: dict, decoupling: dict, params: Params,
         if comp is None:
             comp = ann.completion
         for cid in range(len(bodies)):
-            engine.set_state(cid, state[0][cid], state[1][cid])
+            engine.set_state(cid, state[0][cid], state[1][cid], state[2][cid])
         engine.full_sync()
-        _apply_state(model, bodies, engine.centers, engine.angles)
+        _apply_state(model, bodies, engine.centers, engine.angles,
+                     engine.sides)
         repaired = _repair(model, engine, placement, grid=params.grid)
         viol = placelib.legality_violations(model, placement)
         errors = [v for v in viol if v["severity"] == "error"]
@@ -1107,6 +1325,7 @@ def anneal(pcb: Path, constraints: dict, decoupling: dict, params: Params,
             "legal": not errors,
             "repaired": repaired,
             "completion": comp,
+            "sides": engine.side_counts(),
             "violations": viol,
             "ops": ops,
         }
@@ -1122,8 +1341,17 @@ def anneal(pcb: Path, constraints: dict, decoupling: dict, params: Params,
         "seed": params.seed,
         "separation_unknown_refs": sorted(set(engine.sep_unknown_refs)),
         "corridor_unknown_refs": sorted(set(engine.corridor_unknown_refs)),
+        "side_unknown_refs": engine.side_unknown_refs,
+        "side_conflicts": engine.side_conflicts,
         "clusters": len(bodies),
         "movable_clusters": len(ann.free) + len(ann.edge),
+        "flippable_clusters": len(ann.flippable),
+        "back_parts_fixed": engine.back_base,
+        "sides_input": {"front": sum(len(b.refs) for b in bodies
+                                     if b.side0 == "front"),
+                        "back": sum(len(b.refs) for b in bodies
+                                    if b.side0 == "back")},
+        "sides_best": best["sides"],
         "hpwl_input_mm": hpwl_input,
         "hpwl_start_mm": start_terms["hpwl_raw_mm"],
         "hpwl_best_mm": best["hpwl_mm"],
@@ -1219,7 +1447,13 @@ def run(argv: list[str] | None = None):
                          "by margin/2 in the SA overlap term + repair targets "
                          "(legality keeps true courtyards). Use ~0.5 on "
                          "boards with silk-debt history")
-    for name in ("hpwl", "overlap", "cong", "cross", "rule", "feedback"):
+    ap.add_argument("--no-side-flips", action="store_true",
+                    help="never move a cluster to the back side (U19). The "
+                         "assembly cost term already keeps a board that does "
+                         "not need two sides single-sided; use this when the "
+                         "back must stay empty for a reason the constraints "
+                         "do not carry")
+    for name in WEIGHT_NAMES:
         ap.add_argument(f"--w-{name}", type=float, default=None)
     ap.add_argument("--out-report", default=None)
     args = ap.parse_args(argv)
@@ -1243,7 +1477,7 @@ def run(argv: list[str] | None = None):
     decoupling = sidecar(args.decoupling, "decoupling.json")
 
     weights = {}
-    for name in ("hpwl", "overlap", "cong", "cross", "rule", "feedback"):
+    for name in WEIGHT_NAMES:
         v = getattr(args, f"w_{name}")
         if v is not None:
             weights[name] = v
@@ -1253,7 +1487,8 @@ def run(argv: list[str] | None = None):
                     grid=args.grid_mm, cell_mm=args.cell_mm,
                     cong_cap=args.cong_cap, edge_margin=args.edge_margin_mm,
                     feedback_every=args.feedback_every,
-                    weights=weights or None, margin_mm=args.margin_mm)
+                    weights=weights or None, margin_mm=args.margin_mm,
+                    allow_flip=not args.no_side_flips)
 
     candidates, facts, _model = anneal(pcb, constraints, decoupling, params,
                                        route_probe=route_probe)

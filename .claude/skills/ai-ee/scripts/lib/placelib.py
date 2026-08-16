@@ -180,6 +180,40 @@ class Footprint:
         dx, dy = _rot(cx, cy, -angle)
         self.pos = (center[0] - dx, center[1] - dy)
 
+    def mirror(self) -> None:
+        """Flip the part to the other side IN MEMORY: mirror the LOCAL frame
+        in y, toggle `side`. Position is untouched; the ANGLE is the caller's.
+
+        This is what `pcbnew.FOOTPRINT.Flip(GetPosition(), TOP_BOTTOM)` writes
+        to the file - the direction lib/place_swig.py uses precisely because it
+        is the angle-INDEPENDENT one (LEFT_RIGHT keeps the orientation and so
+        mirrors the local frame about an angle-dependent axis; see the note
+        there). Measured on KiCad 10.0.3, usbbuck4 J1 at -90 deg: pad locals
+        come back with y negated and x intact, angle -90 -> 90. LEARNINGS
+        2026-07-11 [geometry][kicad] recorded the shape of the rewrite and
+        flagged it corpus-unvalidated; U19 validated it on every movable part
+        of that board.
+
+        Because the flip is baked into the LOCALS, the same
+        abs = pos + R(-angle).local transform keeps covering both sides and no
+        other model code needs a side case - which is why place_edit can
+        reproduce a mirrored model state with a plain absolute `place` op
+        carrying `side`.
+
+        KiCad also negates the footprint angle on flip; callers that re-seat
+        the part with place_center(center, angle) set the angle absolutely
+        afterwards, so this method deliberately leaves it alone.
+
+        Involutive: mirror() twice restores the input exactly.
+        """
+        self.side = "back" if self.side == "front" else "front"
+        self.pads = [FpPad(p.number, p.net, (p.local[0], -p.local[1]),
+                           p.size, p.through, rot=(-p.rot) % 360.0)
+                     for p in self.pads]
+        if self.courtyard_local is not None:
+            self.courtyard_local = affinity.scale(
+                self.courtyard_local, xfact=1.0, yfact=-1.0, origin=(0, 0))
+
     @property
     def is_movable(self) -> bool:
         return not (self.locked or "board_only" in self.attrs)

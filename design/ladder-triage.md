@@ -1,14 +1,15 @@
 # Knowledge ladder triage (T4, 2026-08-06; U0 sweep 2026-08-13; U6 2026-08-14;
-# U14 2026-08-15; U15 2026-08-15; U16 2026-08-16; U17 2026-08-16)
+# U14 2026-08-15; U15 2026-08-15; U16 2026-08-16; U17 2026-08-16;
+# U19 2026-08-16; U18 2026-08-16)
 
-One row per `LEARNINGS.md` entry (308 of them; the last starts at
-line 4526), placed on the maturity ladder from
+One row per `LEARNINGS.md` entry (312 of them; the last starts at
+line 4603), placed on the maturity ladder from
 `design/routing-knowledge-notes.md` section 6, with the artifact that owns - or
 must own - it.
 
 The failure mode is knowledge sitting at the WRONG LEVEL, not knowledge volume:
 **if a script can check it, it does not belong in the prompt.** This register is
-the outer-loop worklist. `open` rows (127) are the gaps nothing owns yet -
+the outer-loop worklist. `open` rows (129) are the gaps nothing owns yet -
 they are the input to T6 (per-stage deep evaluation) and to any later step
 looking for the next promotion.
 
@@ -34,18 +35,18 @@ looking for the next promotion.
 
 ## Summary
 
-Recomputed from the table at U17 (2026-08-16), all 308 rows
+Recomputed from the table at U18 (2026-08-16), all 312 rows
 (`learnings.py triage` prints these numbers - recompute rather than edit them):
 
 | Level | now | target |
 |---|---|---|
-| L0 | 117 | 14 |
-| L1 | 16 | 12 |
-| L2 | 53 | 109 |
-| L3 | 122 | 173 |
+| L0 | 119 | 14 |
+| L1 | 16 | 13 |
+| L2 | 54 | 111 |
+| L3 | 123 | 174 |
 
-124 entries want to climb at least one level. Status: **done 156**,
-**open 127**, **n/a 7**, planned 18
+126 entries want to climb at least one level. Status: **done 158**,
+**open 129**, **n/a 7**, planned 18
 (T2 10, T8 1 - both shipped, those rows need re-reading; U2 2, U9 2,
 U3/U5/U8 1 each).
 
@@ -426,3 +427,7 @@ the row's Now level and status in the same commit as the code.
 | 306 | 4493 | A corner radius read back from the outline POLYGON is biased by geom's | [geom][outline][board_edit] | L3 | L3 | scripts/lib/geom.py | done | FIXED in U17, not just recorded: `BoardGeom.outline_arc_radii` exposes each Edge.Cuts arc's EXACT radius from its three declared points, so board_edit reads a corner radius it can preserve without drift (the area formula reads r=3.000 back as 3.009, and `--corner-radius` defaults to the board's own radius, so every re-edit inflated it). The shape comparison is Hausdorff, not area - sampling error scales with r^2 and no fixed area tolerance can separate a rounded board from a chamfered one. General rule (L0 residual, prose here): when one side of a geometric comparison is sampled and the other analytic, compare distances |
 | 307 | 4511 | `.outline` cannot tell you what else is on Edge.Cuts - the parser retu | [geom][outline][board_edit] | L3 | L3 | scripts/lib/geom.py | done | FIXED in U17: `BoardGeom.outline_items` counts Edge.Cuts primitives by kind BEFORE the parser's first-match returns, and board_edit refuses to rewrite the layer unless that inventory is one board_init can produce ({gr_rect: 1} / {gr_line: 4} / {gr_line: 4, gr_arc: 4}); `--replace-shape` is explicit consent to lose the rest, and the worker's removed-item count is cross-checked against the driver's. Consumer half of the 2026-07-28 producer fix |
 | 308 | 4526 | A zone OUTLINE does not follow the board edge - growing the board leav | [planes][zones][board_edit] | L0 | L2 | scripts/board_edit.py | open | U17 emits a WARNING when the outline grows anywhere over a board with zones (re-run planes_gen, then stitch_vias), and the resize-board recipe carries the flow. Still L2-partial: nothing FAILS when a board ships with a plane that stops short of its edge - the honest L2 is a check (check_pdn / a dfm leg) comparing pour extent against the outline, which no gate does today. Measured on the pd-trigger route fixture: outline grown to 9.18..58.50, B.Cu GND pour unchanged at 10.30..57.30 after a full refill |
+| 309 | 4539 | Every scripted flip has been mirroring TOP_BOTTOM through a silent fal | [kicad][place_edit][geometry] | L3 | L3 | scripts/lib/place_swig.py | done | FIXED in U19, not just recorded: both SWIG workers now name `FLIP_DIRECTION_TOP_BOTTOM` explicitly (the un-underscored guess never resolved, so the bool fallback silently chose it anyway), and `placelib.Footprint.mirror` models that exact transform, so the model and the writer are correct BY CONSTRUCTION rather than by agreement. The direction is not cosmetic: LEFT_RIGHT keeps the orientation and yields an angle-DEPENDENT local mirror, which would break the "ops are absolute" contract. Pinned by `test_model_mirror_matches_pcbnew_flip` - the whole movable set of usbbuck4 round-tripped through the worker and compared to 1e-3 mm |
+| 310 | 4570 | place_anneal's fast test budget never reaches the cold regime - any as | [placement][anneal][tests] | L0 | L1 | scripts/place_anneal.py | open | Half-owned: the anneal report already carries `t0`/`t_end`, so the evidence is there, but nothing says the run did not converge - a derived `converged` flag (t_end < t0 * 1e-3) or an explicit warning would move this to L1 properly. The test-side rule (FAST budgets assert invariants, never which placement wins) is L0 prose in the U19 test block; the reusable half is the measurement: FAST leaves t_end ~150 on a cost-100 board |
+| 311 | 4586 | A dimension given at a CHECKPOINT is invisible to every P0 lint - the | [build-modes][state][pipeline] | L2 | L2 | scripts/board_init.py | done | FIXED in U18, not just recorded: `state.py mode` makes the run's binding machine state and `board_init.mode_outline_guard` REFUSES a fixed `--outline WxH` where geometry is an output (`--allow-fixed-outline` is the reported consent). `check_requirements` covers the artifact half (req_mode_unnamed / req_mode_unmarked_size). The general L0 residual, prose here: a value that enters as a CLI argument can only be policed by the script that takes it |
+| 312 | 4603 | `--outline fit` on a board that was placed to FIT cannot recover the size | [board_edit][placement][build-modes] | L0 | L2 | reference/recipes/full-run.md | open | The ORDER is the fix and it is prose today: full-run's P6 step and build-modes.md both say board_init --outline auto -> place -> fit, and board_init refuses a fixed outline at a canonical binding, but nothing FAILS when a canonical run reaches fit having been placed against a tight provisional outline. The honest L2 is a board_edit warning when `fit` GROWS the board under a geometry-output mode - it means the placement was already boxed in. Measured: bb-buck 35x25 -> fit 35.9 x 25.901 |

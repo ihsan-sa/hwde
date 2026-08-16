@@ -73,8 +73,8 @@ U18; hold bb-ldo / bb-adc / bb-amp / bb-mcu until U16 + U18 land.
 | U15 | Research verb (acquisition, synthesis, second reader, auto-trigger) | **done** | 2026-08-15 |
 | U16 | Gate results must reach state.json (bb-buck defect, URGENT) | **done** | 2026-08-16 |
 | U17 | Editable board outline (board_edit.py --outline) | **done** | 2026-08-16 |
-| U18 | Learning mode: target outcome drives scope + binding | pending | - |
-| U19 | Bottom-side placement the annealer can discover | pending | - |
+| U18 | Learning mode: target outcome drives scope + binding | **done** | 2026-08-16 |
+| U19 | Bottom-side placement the annealer can discover | **done** | 2026-08-16 |
 
 Dependency graph (plan): S0 -> S1 -> S2 -> S3 -> {S4, S5}; S0 -> S6 -> S7; S2 -> S8 -> S9 -> S10 -> S11;
 {S5, S7, S8, S11} -> S12 -> S13 -> S14. S4-S7 may run in parallel with S8-S10 (separate sessions/terminals).
@@ -4800,3 +4800,192 @@ and are NOT part of this commit).
 - `--outline fit` uses courtyard extents; a footprint whose SILK reaches past
   its courtyard can end up crossing the new edge. `check_silk` / the dfm silk
   legs catch it at the gate; board_edit does not check silk today.
+
+
+## U19 - Bottom-side placement the annealer can discover (2026-08-16) - DONE
+
+`place_edit` could apply an absolute flip, `place_seed` passed a part's side
+through, and the annealer's cost model was already side-aware (obstacles carry
+a side; courtyard overlap counts only between same-side or through-hole
+bodies). But `place_anneal._propose()` only ever returned
+`(component, centre, angle)`, so the optimizer could respect a side it was
+GIVEN and could never find that moving a part to the back tightens a loop or
+frees the space the front cannot.
+
+**Built:**
+- `placelib.Footprint.mirror()` - the in-memory pcbnew flip: mirror the LOCAL
+  frame in y, toggle `side`, leave the angle to the caller (place_center sets
+  it absolutely anyway). Involutive. Because the flip lives in the LOCALS, the
+  same `abs = pos + R(-angle).local` transform still covers both sides and no
+  other model code needs a side case.
+- `place_anneal.Body` now carries a `Variant` per side (rel_poly, pads, slots).
+  The back variant is the front one MIRRORED in the cluster frame, which is
+  provably the whole story (a reflection M satisfies `M.R(-rel) == R(rel).M`,
+  so the mirrored slot + negated rel angle put every satellite and pad exactly
+  where a real flip of every member would) - satellites ride a flip the way
+  they ride a move, with no re-slotting and no per-move geometry rebuild.
+- The current side is ENGINE state: `Engine.sides`, `set_state(cid, centre,
+  angle, side=None)`. A side change re-points the body at its mirrored pad
+  table before any geometry is read, so the existing incremental updates cover
+  a flip with no separate path. The pad registry now stores `(cid, index)`
+  pairs into that per-body table instead of baked coordinates.
+- Assembly cost term, new weight `assembly` (default 1.0):
+  `ASM_SECOND_SIDE_MM 40` once ANY part sits on the back + `ASM_PER_PART_MM 4`
+  each, expressed in weighted-HPWL mm so the tradeoff reads directly ("this
+  flip must save >= 44 mm of wirelength"). **OWNER RULING 2026-08-16.** Fixed
+  non-`board_only` parts already on the back count into the base, so a flip
+  onto an already-open back pays only the per-part term.
+- The move: `Annealer._flip()`, 8 % of proposals (`FLIP_P`), taken off the TOP
+  of the random range so a board with nothing flippable keeps a bit-identical
+  move mix and rng stream. Half the flips also relocate to the cluster's
+  connectivity centroid - a bare toggle is uphill by the assembly term alone,
+  so SA would have to accept a strictly worse state and then find the payoff
+  before cooling past it; landing where the wirelength is puts the gain and the
+  cost in the same move.
+- Guards: only `free` clusters flip (declared-edge connectors never do), never
+  a through-hole cluster, never a ref pinned by the new constraints
+  `placement.sides` `[{"ref": R, "side": "front"|"back", "reason"?}]`. Pins are
+  applied in the Engine (the one place that has read the constraints), so any
+  caller that builds an Engine gets them. `--no-side-flips` bans the move;
+  `--w-assembly` moves the threshold.
+- Reporting: per-candidate `sides {front, back}` and `terms.assembly_mm` /
+  `terms.back_parts`; facts gain `flippable_clusters`, `sides_input`,
+  `sides_best`, `back_parts_fixed`, `side_unknown_refs`, `side_conflicts`.
+- `constraints_lint` learns `sides` (new `side` enum type) - and `corridors`,
+  which has been consumed by place_anneal since T6 and documented nowhere in
+  the lint table, so every board declaring one drew an `unknown_key` warning
+  for a real key. Schema docs updated in `reference/constraints_schema.md`,
+  `place_seed`'s docstring block and `agents/placement.md`.
+
+**The defect this uncovered** (LEARNINGS 309, triage 309): both SWIG workers
+read `pcbnew.FLIP_DIRECTION_LEFTRIGHT` inside a `try`, with a fallback
+commented "10.0.3 SWIG has no enum". KiCad 10.0.3 DOES export it - spelled
+`FLIP_DIRECTION_LEFT_RIGHT` - so the attribute never resolved and the fallback
+always ran, where `Flip(pos, True)` converts to the enum's `1` = TOP_BOTTOM.
+Every scripted flip the pipeline has ever written mirrored the direction the
+code does not name. It matters beyond tidiness: measured on usbbuck4 J1 at
+-90 deg, LEFT_RIGHT mirrors in the board frame and KEEPS the orientation, so
+the stored local frame comes out angle-DEPENDENT (`R(a).M_x.R(-a).L`) and the
+same absolute `{x, y, deg, side}` op would produce different geometry on parts
+that started at different angles - which breaks place_edit's own contract.
+TOP_BOTTOM is angle-independent, so both workers now name it explicitly and
+`Footprint.mirror` models exactly it.
+
+**Tests** (`tests/test_place_anneal.py`, +13):
+- Discovery: a hub fixture (8 locked anchors ringing the centre, the whole
+  centre a front-side keepout) where the back is worth 77.7 mm of wirelength (245.1 -> 167.4) -
+  the annealer finds it, lands in the middle, and with `--no-side-flips`
+  cannot, at a measurably worse HPWL.
+- Satellites: a flipped anchor takes its satellite to the back at the MIRRORED
+  slot and relative angle; the folded model is legality-clean.
+- No gratuitous flipping: a 5-part chain fixture at a CONVERGING budget stays
+  single-sided, plus the mechanism behind it - from the converged placement,
+  flipping any one cluster strictly raises cost.
+- Guards: pinned ref, satellite-carried pin, edge connector, THT cluster;
+  unknown pin ref surfaced; a ref already on the wrong side reported, not
+  silently "fixed".
+- Cost: the second-side step fires once, the second part costs only the
+  per-part term, and flipping back is exactly reversible; `--w-assembly 0`
+  makes the flip free and `20` bans it.
+- Engine: incremental maintenance across random side changes == full_sync;
+  opposite-side bodies stop colliding, same-side ones still do.
+- Mirror: involutive, and paired with KiCad's angle negation it is an exact
+  board-frame mirror about the footprint origin's y.
+- SMOKE `test_model_mirror_matches_pcbnew_flip`: EVERY movable footprint of
+  golden usbbuck4 mirrored in the model, emitted as `place` ops, run through
+  the real SWIG worker and re-parsed - pad locals, absolute pad centres and
+  courtyard bounds agree to 1e-3 mm (rotated parts, THT pads and J1's
+  duplicate "SH" numbers included). This is the U19 claim's ground truth and
+  it closes the 2026-07-11 entry's "implemented but corpus-unvalidated" flag.
+- SMOKE `test_flip_candidate_round_trips_through_place_edit`: annealer ->
+  place_edit -> re-parse, part and satellite on B.Cu, extents match the model,
+  legality clean, DRC no worse.
+
+Full suite: **1917 collected, exit 0** (16:24, 13 min). A LATER
+re-run shows one failure - `full-run.md is too long to stay read`
+(123 > 120 lines) - which the CONCURRENT U18 session introduced by
+editing `recipes/full-run.md` after that run; U19 does not touch that
+file, and U17 had already flagged the recipe as sitting at its cap.
+Same caveat as U17's entry in reverse: this worktree was shared with a
+live U18 session (`build-modes.md`, `modeslib.py`, `state.py`,
+`board_init.py`, four agent contracts, `full-run.md` appear modified in
+`git status` and are NOT part of this commit). Two files could not be split
+that way: U18 appended LEARNINGS entries 311-312 and their triage rows (and
+recomputed the register header to 312) between this session's write and its
+commit, so those land HERE - the append-only files have to stay internally
+consistent at every commit, and `agents/placement.md` was staged hunk-wise so
+only the U19 block went in.
+
+**Deviations (with reasons):**
+1. The plan says "`place_seed` honors a `side` constraint". It does not - there
+   was no side constraint anywhere in the schema; place_seed emits
+   `"side": fp.side`, i.e. it preserves the side it was given. U19 ADDS
+   `placement.sides` as the pin and consumes it in the annealer only. Nothing
+   ENFORCES a pin at the gate (a part sitting on the wrong side is reported in
+   the anneal facts, not failed) - recorded below as the open half.
+2. Through-hole clusters never flip - not in the plan's guard list. Back-side
+   THT is a hand or wave-solder operation whose cost this model cannot price,
+   and the fleet's THT parts are connectors and terminal blocks whose mating
+   direction is the point. Structural, not a weight.
+3. The mirror is in y (KiCad TOP_BOTTOM), not x. Forced by the absolute-op
+   contract - see the defect note above.
+4. Two SWIG workers changed (`place_swig`, `update_swig`), which the plan did
+   not list. The model cannot agree with a writer that flips the other way, and
+   `update_swig` carried the same copy-pasted bug.
+5. Flips are default-ON with the assembly term as the only brake, which is what
+   the plan's acceptance criterion implies ("with the assembly term at its
+   default a board that does not need two sides stays single-sided").
+   `--no-side-flips` covers the cases the constraints do not carry.
+6. The P6 bench fixtures are untouched and unregressed BY CONSTRUCTION: they
+   score a frozen board through `place_metrics` and never run the annealer.
+   Deliberately no new `place_metrics` metric key either - it would perturb
+   every P6 baseline to report something only the annealer can act on.
+7. Exploration cost, measured rather than hidden: on the roomy scatter fixture
+   at the default budget the flip-enabled search lands ~3.5 % worse in cost
+   (19.76 vs 19.08 mean over 3 seeds) because 8 % of moves go to a move type
+   that never pays there. That is the price of the capability at FLIP_P 0.08;
+   worth revisiting with U8's graded fixtures rather than by taste.
+8. As at U16/U17: the pd-trigger / stm32-blinky design-doc pdf+tex regens were
+   already dirty at session open (deterministic report_gen test output) and are
+   left uncommitted; `boards/xhp-driver/` stays untracked (U10 owns it).
+
+**Interface notes for later steps:**
+- Constraints: `placement.sides: [{"ref", "side": "front"|"back", "reason"?}]`.
+  P2 should emit it for anything the enclosure, a mating direction or a
+  heatsink fixes.
+- New weight name `"assembly"` in `DEFAULT_WEIGHTS`; `WEIGHT_NAMES` is the
+  tuple every CLI/weights loop iterates. A tuner passing a weights dict may set
+  it; unknown keys are still ignored.
+- Signature changes inside place_anneal: `Engine.set_state(cid, centre, angle,
+  side=None)`, `_apply_state(model, bodies, centres, angles, sides=None)`,
+  `_propose()` returns 4-tuples `(cid, centre, angle, side)`, and annealer
+  snapshots are `(centres, angles, sides)`. `Body.slots` / `.rel_poly` /
+  `.pads` remain as INPUT-SIDE views; read `b.variants[side]` for a specific
+  side.
+- `placelib.Footprint.mirror()` is the one place that knows what a flip does to
+  a footprint; anything that needs to predict a flipped board should use it
+  rather than re-deriving the transform.
+- U18 (learning mode): a `canonical` target should decide whether the reference
+  layout pins sides. Nothing in U19 relaxes or overrides a pin, so a target
+  that wants a single-sided teaching board can simply raise `--w-assembly` or
+  pass `--no-side-flips`.
+- U11 (routing teaching): back-side parts change what the router sees. Their
+  pads are B.Cu obstacles and their nets need vias; the annealer prices
+  assembly, not via count or plane damage.
+
+**New verify-later items:**
+- A `placement.sides` pin is NOT enforced by any gate: `place_metrics` /
+  `legality_violations` do not know about it, so a board can ship with a part
+  on the side its constraints forbid. The honest L2 is a legality kind
+  (`side_violation`) plus a `place_metrics` coverage family; deferred because
+  adding a family perturbs every P6 baseline and belongs with whatever step
+  next touches that matrix.
+- Pre-route decoupling distance is side-blind: a back-side cap under its IC
+  reads as very close in `check_decoupling`'s manhattan metric while its loop
+  runs through vias. At the ruled assembly weight a decoupler flip essentially
+  cannot pay (a cap saves a few mm at best), so this is latent, not live - but
+  a lower `--w-assembly` makes it reachable, and only P8's loop-inductance leg
+  would catch it.
+- The 2-layer case is unpriced: on a 2-layer board a back-side part eats B.Cu
+  routing space (often the ground pour), which no term models. Boards where
+  that matters should pin sides or raise the weight until a real term exists.

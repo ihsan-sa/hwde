@@ -103,11 +103,22 @@ PLACEMENT: dict[str, dict[str, dict[str, str]]] = {
     "separation": {"required": {"a": "str_list", "b": "str_list",
                                 "min_mm": "num"},
                    "optional": {"reason": "str"}},
+    # T6 P6A-5: consumed by place_anneal as a keep-clear cost term. It was
+    # never added here, so every board declaring one drew an unknown_key
+    # warning for a documented key (found in U19).
+    "corridors": {"required": {"a": "str", "b": "str"},
+                  "optional": {"width_mm": "num", "net": "str",
+                               "reason": "str"}},
+    # U19: the side a part must be assembled on. A pin, not a request - the
+    # annealer never flips a pinned cluster.
+    "sides": {"required": {"ref": "str", "side": "side"},
+              "optional": {"reason": "str"}},
 }
 OVERRIDE = {"required": {"near": "pair", "radius_mm": "num",
                          "current_a": "num"}, "optional": {}}
 COATINGS = {"none", "soldermask", "conformal"}
 EDGES = {"left", "right", "top", "bottom"}
+SIDES = {"front", "back"}
 SCHEMA_TOP_KEYS = set(SECTIONS) | {"placement", "coating"}
 ENVELOPE_ALIASES = {"power_constraints": "power",
                     "thermal_constraints": "thermal",
@@ -139,6 +150,8 @@ def _type_ok(spec: str, v) -> bool:
         return isinstance(v, bool)
     if spec == "edge":
         return isinstance(v, str) and v in EDGES
+    if spec == "side":
+        return isinstance(v, str) and v in SIDES
     if spec == "str_or_map":
         return isinstance(v, str) or (
             isinstance(v, dict)

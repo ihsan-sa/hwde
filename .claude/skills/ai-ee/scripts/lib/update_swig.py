@@ -46,12 +46,15 @@ def side_of(fp):
     return "back" if fp.GetLayer() == pcbnew.B_Cu else "front"
 
 
+# TOP_BOTTOM, for the reason spelled out in lib/place_swig.py: it is the only
+# direction whose result does not depend on the part's starting angle, which
+# is what makes an absolute {x,y,deg,side} op reproducible (U19).
+_FLIP = getattr(pcbnew, "FLIP_DIRECTION_TOP_BOTTOM", True)
+
+
 def set_side(fp, want):
     if side_of(fp) != want:
-        try:
-            fp.Flip(fp.GetPosition(), pcbnew.FLIP_DIRECTION_LEFTRIGHT)
-        except AttributeError:  # 10.0.3 SWIG has no enum; bool = left/right
-            fp.Flip(fp.GetPosition(), True)
+        fp.Flip(fp.GetPosition(), _FLIP)
 
 
 def load_fp(fpid, fp_paths):

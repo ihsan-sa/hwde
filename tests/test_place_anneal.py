@@ -110,6 +110,19 @@ SCATTER_DEC = {"associations": [
 FAST = dict(moves_per_cluster=25, max_epochs=12, stall=6, candidates=2)
 
 
+def _fold_ops(model, ops) -> None:
+    """Apply an absolute op list to a parsed model without SWIG.
+
+    Honors `side`: a flipped op must mirror the local frame (placelib.mirror)
+    or every cross-side pair reads as a courtyard overlap."""
+    for o in ops:
+        fp = model.footprints[o["ref"]]
+        if o.get("side") and fp.side != o["side"]:
+            fp.mirror()
+        fp.pos = (o["x"], o["y"])
+        fp.angle = o["deg"]
+
+
 def _run_anneal(pcb, constraints=SCATTER_CON, decoupling=SCATTER_DEC,
                 seed=1, probe=None, **kw):
     params = Params(seed=seed, **{**FAST, **kw})
@@ -272,9 +285,10 @@ def test_satellites_ride_their_anchor(tmp_path_factory):
     eng, model = _engine(pcb)
     ops = {o["ref"]: o for o in candidates[0]["ops"]}
     u1, c1 = ops["U1"], ops["C1"]
-    # satellite offset in the anchor frame must match the engine's slot
+    # satellite offset in the anchor frame must match the engine's slot for
+    # the side the candidate put the cluster on
     b = next(b for b in eng.bodies if b.cluster.anchor == "U1")
-    slot, rel = b.slots["C1"]
+    slot, rel = b.variants[u1["side"]].slots["C1"]
     dx, dy = c1["x"] - u1["x"], c1["y"] - u1["y"]
     lx, ly = _rot(dx, dy, u1["deg"])       # back into the anchor frame
     assert (lx, ly) == (pytest.approx(slot[0], abs=0.01),
@@ -287,11 +301,7 @@ def test_edge_cluster_stays_on_edge(tmp_path_factory):
     pcb = _scatter_board(tmp_path_factory, "edgemv")
     candidates, _f, _m = _run_anneal(pcb)
     model = placelib.PlaceModel(pcb)
-    # fold best ops into the parsed model without SWIG: set pos/angle
-    for o in candidates[0]["ops"]:
-        fp = model.footprints[o["ref"]]
-        fp.pos = (o["x"], o["y"])
-        fp.angle = o["deg"]
+    _fold_ops(model, candidates[0]["ops"])
     ext = model.footprints["J1"].extents_abs()
     line = placelib.edge_line(model.outline, "left")
     assert ext.distance(line) <= placelib.EDGE_TOL
@@ -385,16 +395,14 @@ def test_margin_buffers_overlap_term_only(tmp_path_factory):
 
 def test_margin_anneal_keeps_min_gap(tmp_path_factory):
     """Roomy board + --margin-mm 0.6: the best candidate keeps clear air
-    between CLUSTERS (intra-cluster satellite gaps are not margined)."""
+    between SAME-SIDE clusters (intra-cluster satellite gaps are not
+    margined, and opposite-side bodies never contend for the same air)."""
     pcb = _scatter_board(tmp_path_factory, "margingap")
     candidates, _f, _m = _run_anneal(pcb, margin_mm=0.6)
     best = candidates[0]
     assert best["legal"]
     model = placelib.PlaceModel(pcb)
-    for o in best["ops"]:
-        fp = model.footprints[o["ref"]]
-        fp.pos = (o["x"], o["y"])
-        fp.angle = o["deg"]
+    _fold_ops(model, best["ops"])
     clusters, _w = placelib.build_clusters(
         model, SCATTER_DEC, SCATTER_CON.get("placement"))
     owner = {r: c.anchor for c in clusters for r in c.refs}
@@ -402,8 +410,286 @@ def test_margin_anneal_keeps_min_gap(tmp_path_factory):
     refs = sorted(owner)
     gaps = [ext[a].distance(ext[b])
             for i, a in enumerate(refs) for b in refs[i + 1:]
-            if owner[a] != owner[b]]
+            if owner[a] != owner[b]
+            and model.footprints[a].side == model.footprints[b].side]
     assert min(gaps) >= 0.3   # soft target: no packed-tight pair remains
+
+
+# ============================================================ pure: sides (U19)
+
+def _hub_board(tmp_path_factory, name="hub", sat=False):
+    """R1 wired to 8 locked anchors ringing the board centre, with the whole
+    centre a FRONT-SIDE keepout. On the front R1 is exiled to the frame; on
+    the back it sits dead centre. The wirelength gap (~70 mm) clears the
+    assembly cost, so a working flip move must find it."""
+    ring = [("AN", 30, 8), ("AS", 30, 32), ("AW", 14, 20), ("AE", 46, 20),
+            ("ANE", 46, 8), ("ANW", 14, 8), ("ASE", 46, 32), ("ASW", 14, 32)]
+    body = ""
+    pads = ""
+    for i, (ref, x, y) in enumerate(ring):
+        body += _fp(ref, x, y, locked=True, cy=(-1.5, -1.5, 1.5, 1.5),
+                    pads=_pad("1", 0, 0, f"N{i}"))
+        pads += _pad(str(i + 1), -0.7 + 0.2 * i, 0, f"N{i}", size=0.15)
+    body += _fp("R1", 4, 36, cy=(-1.2, -0.6, 1.2, 0.6), pads=pads)
+    if sat:
+        body += _fp("C1", 8, 36, cy=(-0.8, -0.5, 0.8, 0.5),
+                    pads=_pad("1", -0.4, 0, "N0") + _pad("2", 0.4, 0, "N1"))
+    return _pcb(tmp_path_factory, name, body)
+
+
+HUB_CON = {"placement": {"keepouts": [
+    {"rect": [6, 4, 54, 36], "side": "front", "reason": "display window"}]}}
+HUB_SAT_CON = {"placement": {
+    **HUB_CON["placement"],
+    "groups": [{"name": "pair", "anchor": "R1", "members": ["C1"]}]}}
+
+
+def test_anneal_discovers_the_back_side(tmp_path_factory):
+    """U19 acceptance: where a back-side placement is measurably better the
+    annealer FINDS it - and with flips off it cannot, at a real HPWL cost."""
+    pcb = _hub_board(tmp_path_factory, "hubfind")
+    cands, facts, _m = _run_anneal(pcb, HUB_CON, {}, max_epochs=25, stall=10)
+    best = cands[0]
+    assert facts["flippable_clusters"] == 1
+    assert best["legal"], best["violations"]
+    assert best["sides"] == {"front": 0, "back": 1}
+    r1 = next(o for o in best["ops"] if o["ref"] == "R1")
+    assert r1["side"] == "back"
+    # it went where the wirelength is: the centre of the front keepout
+    assert 20.0 <= r1["x"] <= 40.0 and 12.0 <= r1["y"] <= 28.0
+    assert best["terms"]["assembly_mm"] == pytest.approx(
+        place_anneal.ASM_SECOND_SIDE_MM + place_anneal.ASM_PER_PART_MM)
+
+    flat, _f2, _m2 = _run_anneal(pcb, HUB_CON, {}, max_epochs=25, stall=10,
+                                 allow_flip=False)
+    assert flat[0]["sides"] == {"front": 1, "back": 0}
+    assert flat[0]["hpwl_mm"] > best["hpwl_mm"]      # the front cannot match
+
+
+def test_flip_carries_satellites_and_stays_legal(tmp_path_factory):
+    """A flipped anchor takes its satellite with it, at the MIRRORED slot."""
+    pcb = _hub_board(tmp_path_factory, "hubsat", sat=True)
+    cands, _f, _m = _run_anneal(pcb, HUB_SAT_CON, {}, max_epochs=25, stall=10)
+    best = cands[0]
+    ops = {o["ref"]: o for o in best["ops"]}
+    assert ops["R1"]["side"] == "back" and ops["C1"]["side"] == "back"
+    eng, _m2 = _engine(pcb, HUB_SAT_CON, {})
+    slot, rel = eng.bodies[0].variants["back"].slots["C1"]
+    dx, dy = ops["C1"]["x"] - ops["R1"]["x"], ops["C1"]["y"] - ops["R1"]["y"]
+    lx, ly = _rot(dx, dy, ops["R1"]["deg"])
+    assert (lx, ly) == (pytest.approx(slot[0], abs=0.01),
+                        pytest.approx(slot[1], abs=0.01))
+    assert (ops["C1"]["deg"] - ops["R1"]["deg"]) % 360.0 == pytest.approx(
+        rel % 360.0, abs=0.05)
+    # legality holds on the folded model (mirrored locals, back keepout free)
+    model = placelib.PlaceModel(pcb)
+    _fold_ops(model, best["ops"])
+    assert not [v for v in placelib.legality_violations(
+        model, HUB_SAT_CON["placement"]) if v["severity"] == "error"]
+
+
+def _chain_board(tmp_path_factory, name="chain"):
+    """Five tiny parts wired in a chain on a roomy board: the optimum is a
+    compact front-side row, and no part gains anything by going to the back
+    (nothing is boxed in, so the back buys no space it cannot already have)."""
+    body = ""
+    corners = [(4, 4), (56, 4), (4, 36), (56, 36), (30, 4)]
+    for i, (x, y) in enumerate(corners):
+        pads = _pad("1", -0.5, 0, f"N{i - 1}") if i else ""
+        pads += _pad("2", 0.5, 0, f"N{i}") if i < len(corners) - 1 else ""
+        body += _fp(f"R{i + 1}", x, y, pads=pads)
+    return _pcb(tmp_path_factory, name, body)
+
+
+def test_no_gratuitous_flipping_on_a_roomy_board(tmp_path_factory):
+    """U19 acceptance: at the default assembly weight a board that does not
+    need two sides stays single-sided.
+
+    Budget note: FAST params leave t_end ~150 on a cost-100 board - the
+    schedule never reaches the cold regime, so the winner is whatever the
+    random walk happened to see and a side assertion on it would be noise.
+    This runs a schedule that actually converges (~1.5 s)."""
+    pcb = _chain_board(tmp_path_factory, "noflip")
+    params = Params(seed=1, candidates=2, moves_per_cluster=40,
+                    max_epochs=40, stall=10)
+    cands, facts, _m = place_anneal.anneal(pcb, {"placement": {}}, {}, params)
+    assert facts["flippable_clusters"] == 5       # flips WERE available
+    for c in cands:
+        assert c["sides"]["back"] == 0, c["ops"]
+    assert cands[0]["terms"]["assembly_mm"] == 0.0
+
+
+def test_default_weight_makes_every_single_flip_uphill(tmp_path_factory):
+    """The mechanism behind the test above, without the search in the way:
+    from the converged single-sided placement, flipping ANY one cluster costs
+    more than it saves."""
+    pcb = _chain_board(tmp_path_factory, "uphill")
+    params = Params(seed=1, candidates=1, moves_per_cluster=40,
+                    max_epochs=40, stall=10)
+    cands, _f, _m = place_anneal.anneal(pcb, {"placement": {}}, {}, params)
+    model = placelib.PlaceModel(pcb)
+    _fold_ops(model, cands[0]["ops"])             # the converged placement
+    clusters, warns = placelib.build_clusters(model, {}, {})
+    eng = Engine(model, place_anneal._build_bodies(model, clusters, warns),
+                 {"placement": {}}, {})
+    base = eng.cost()
+    for b in eng.bodies:
+        eng.set_state(b.cid, eng.centers[b.cid], eng.angles[b.cid], "back")
+        assert eng.cost() > base, b.refs
+        eng.set_state(b.cid, eng.centers[b.cid], eng.angles[b.cid], "front")
+    assert eng.cost() == pytest.approx(base, abs=1e-9)
+
+
+def test_side_pins_and_guards_block_flips(tmp_path_factory):
+    """Never flip: a pinned ref, a declared-edge connector, a THT cluster."""
+    pcb = _scatter_board(tmp_path_factory, "pins")
+    con = {**SCATTER_CON, "placement": {
+        **SCATTER_CON["placement"],
+        "sides": [{"ref": "R1", "side": "front"},
+                  {"ref": "C1", "side": "front", "reason": "under a shield"},
+                  {"ref": "ZZ9", "side": "back"}]}}
+    eng, _m = _engine(pcb, con)
+    by = {b.cluster.anchor: b for b in eng.bodies}
+    assert by["R1"].flippable is False and by["R1"].pin_side == "front"
+    assert by["U1"].flippable is False        # C1 satellite carries the pin
+    assert by["J1"].flippable is False        # declared-edge connector
+    assert by["R2"].flippable is True
+    assert eng.side_unknown_refs == ["ZZ9"]
+    assert eng.side_conflicts == []
+
+    # a THT cluster is never flipped (back-side THT is a hand operation this
+    # cost model cannot price)
+    body = _fp("R9", 10, 10, pads=_pad("1", 0, 0, "A", kind="thru_hole circle",
+                                       layers='"*.Cu"'))
+    body += _fp("R8", 30, 10, pads=_pad("1", 0, 0, "A"))
+    tht = _pcb(tmp_path_factory, "tht", body)
+    eng2, _m2 = _engine(tht, {"placement": {}}, {})
+    assert {b.cluster.anchor: b.flippable for b in eng2.bodies} == {
+        "R9": False, "R8": True}
+
+
+def test_side_conflict_is_surfaced_not_fixed(tmp_path_factory):
+    """A ref already on the wrong side is reported; the annealer is not the
+    fixer, so it stays put (and stays unflippable)."""
+    body = _fp("R1", 10, 10, layer="B.Cu", pads=_pad("1", 0, 0, "A",
+                                                     layers='"B.Cu"'))
+    body += _fp("R2", 30, 10, pads=_pad("1", 0, 0, "A"))
+    pcb = _pcb(tmp_path_factory, "sideconf", body)
+    con = {"placement": {"sides": [{"ref": "R1", "side": "front"}]}}
+    cands, facts, _m = _run_anneal(pcb, con, {})
+    assert facts["side_conflicts"] == ["R1 on back, pinned front"]
+    assert facts["sides_input"] == {"front": 1, "back": 1}
+    assert next(o for o in cands[0]["ops"] if o["ref"] == "R1")["side"] \
+        == "back"
+
+
+def test_assembly_term_prices_the_second_side(tmp_path_factory):
+    pcb = _scatter_board(tmp_path_factory, "asm")
+    eng, _m = _engine(pcb)
+    assert eng.terms()["assembly_mm"] == 0.0 and eng.back_parts == 0
+    r2 = next(b.cid for b in eng.bodies if b.cluster.anchor == "R2")
+    r3 = next(b.cid for b in eng.bodies if b.cluster.anchor == "R3")
+    base = eng.cost()
+    eng.set_state(r2, eng.centers[r2], eng.angles[r2], "back")
+    assert eng.back_parts == 1
+    assert eng.terms()["assembly_mm"] == pytest.approx(
+        place_anneal.ASM_SECOND_SIDE_MM + place_anneal.ASM_PER_PART_MM)
+    # the SECOND part on an already-open back costs only the per-part term
+    step2 = eng.terms()["assembly_mm"]
+    eng.set_state(r3, eng.centers[r3], eng.angles[r3], "back")
+    assert eng.terms()["assembly_mm"] - step2 == pytest.approx(
+        place_anneal.ASM_PER_PART_MM)
+    # flipping back is exactly reversible
+    eng.set_state(r3, eng.centers[r3], eng.angles[r3], "front")
+    eng.set_state(r2, eng.centers[r2], eng.angles[r2], "front")
+    assert eng.terms()["assembly_mm"] == 0.0
+    assert eng.cost() == pytest.approx(base, abs=1e-9)
+
+
+def test_flip_updates_match_full_sync(tmp_path_factory):
+    """Incremental maintenance across side changes == full re-derivation."""
+    import random
+    pcb = _scatter_board(tmp_path_factory, "flipsync")
+    eng, _m = _engine(pcb)
+    rng = random.Random(3)
+    movable = [b.cid for b in eng.bodies if b.flippable]
+    for _ in range(40):
+        cid = rng.choice(movable)
+        eng.set_state(cid, (rng.uniform(4, 56), rng.uniform(4, 36)),
+                      rng.choice((0.0, 90.0, 180.0, 270.0)),
+                      rng.choice(("front", "back")))
+    kept = (eng.hpwl_raw_total, eng.hpwl_w_total, eng.overlap_total,
+            eng.overflow, eng.cross_total, eng.rule_total, eng.assembly_raw,
+            eng.back_parts)
+    eng.full_sync()
+    fresh = (eng.hpwl_raw_total, eng.hpwl_w_total, eng.overlap_total,
+             eng.overflow, eng.cross_total, eng.rule_total, eng.assembly_raw,
+             eng.back_parts)
+    for k, f in zip(kept, fresh):
+        assert k == pytest.approx(f, abs=1e-6)
+    # opposite-side bodies do not collide; same-side ones still do
+    a, b = movable[0], movable[1]
+    eng.set_state(a, (30.0, 20.0), 0.0, "front")
+    eng.set_state(b, (30.0, 20.0), 0.0, "back")
+    assert eng.overlap_total == pytest.approx(0.0, abs=1e-9)
+    eng.set_state(b, (30.0, 20.0), 0.0, "front")
+    assert eng.overlap_total > 0.0
+
+
+def test_mirror_is_involutive_and_moves_pads(tmp_path_factory):
+    """placelib.Footprint.mirror is the in-memory pcbnew Flip."""
+    body = _fp("U1", 20, 15, angle=90.0, cy=(-3, -1, 1, 3),
+               pads=_pad("1", -2, -1, "A") + _pad("2", 2, 1, "B"))
+    pcb = _pcb(tmp_path_factory, "mirror", body)
+    model = placelib.PlaceModel(pcb)
+    fp = model.footprints["U1"]
+    before = ([p.local for p in fp.pads], fp.side,
+              list(fp.extents_local().exterior.coords))
+    abs_before = {n: (x, y) for n, _net, x, y in fp.pad_centers_abs()}
+    fp.mirror()
+    assert fp.side == "back"
+    assert [p.local for p in fp.pads] == [(-2.0, 1.0), (2.0, -1.0)]
+    # mirror() leaves the ANGLE to the caller; pair it with KiCad's angle
+    # negation and the board-frame result is an exact mirror about the
+    # footprint ORIGIN's y (TOP_BOTTOM - KiCad flips about the part's own
+    # position, and pos is untouched)
+    fp.angle = (-fp.angle) % 360.0
+    for n, _net, x, y in fp.pad_centers_abs():
+        assert (x, y) == (pytest.approx(abs_before[n][0]),
+                          pytest.approx(2 * fp.pos[1] - abs_before[n][1]))
+    fp.angle = (-fp.angle) % 360.0
+    fp.mirror()
+    assert ([p.local for p in fp.pads], fp.side,
+            list(fp.extents_local().exterior.coords)) == before
+
+
+def test_no_side_flips_flag_disables_the_move(tmp_path_factory, tmp_path):
+    pcb = _hub_board(tmp_path_factory, "hubcli")
+    (pcb.parent / "constraints.json").write_text(json.dumps(HUB_CON),
+                                                 encoding="utf-8")
+    rep = tmp_path / "rep.json"
+    rc = place_anneal.main([
+        "--pcb", str(pcb), "--no-side-flips", "--max-epochs", "10",
+        "--stall", "5", "--moves-per-cluster", "20",
+        "--out-dir", str(tmp_path / "c"), "--out-report", str(rep)])
+    assert rc == 0
+    r = json.loads(rep.read_text("utf-8"))
+    assert r["flippable_clusters"] == 0
+    assert r["sides_best"] == {"front": 1, "back": 0}
+    assert r["candidates"][0]["terms"]["assembly_mm"] == 0.0
+
+
+def test_w_assembly_flag_moves_the_threshold(tmp_path_factory):
+    """The owner ruling is a weight, not a hard rule: zero it and the flip is
+    free; raise it and the same board stays single-sided."""
+    pcb = _hub_board(tmp_path_factory, "hubw")
+    free, _f, _m = _run_anneal(pcb, HUB_CON, {}, max_epochs=25, stall=10,
+                               weights={"assembly": 0.0})
+    assert free[0]["sides"]["back"] == 1
+    assert free[0]["terms"]["assembly_mm"] > 0.0     # raw term still reported
+    steep, _f2, _m2 = _run_anneal(pcb, HUB_CON, {}, max_epochs=25, stall=10,
+                                  weights={"assembly": 20.0})
+    assert steep[0]["sides"]["back"] == 0
 
 
 # ============================================================ pure: corridor
@@ -593,6 +879,76 @@ def seeded_board(cli, tmp_path_factory) -> Path:
         "--pcb", str(pcb), "--ops-out", str(d / "seed_ops.json"), "--apply"])
     assert payload["status"] == "pass"
     return pcb
+
+
+@pytest.mark.smoke
+def test_model_mirror_matches_pcbnew_flip(cli, tmp_path):
+    """The claim U19 rests on: placelib.Footprint.mirror reproduces exactly
+    what pcbnew's Flip() writes to the file, so an absolute `place` op with
+    `side` reproduces a flipped model state.
+
+    LEARNINGS 2026-07-11 [geometry][kicad] recorded the format fact and
+    flagged it corpus-unvalidated ("no FLIPPED footprints in the corpus").
+    This validates it on every movable part of a real 4-layer board at once -
+    rotated parts, THT parts and duplicate pad numbers included."""
+    import place_edit
+    pcb = tmp_path / "usbbuck4.kicad_pcb"
+    shutil.copy2(GOLDEN / "usbbuck4" / "usbbuck4.kicad_pcb", pcb)
+    (tmp_path / "usbbuck4.kicad_pro").write_text('{"meta": {"filename": "x"}}',
+                                                 encoding="utf-8")
+    want = placelib.PlaceModel(pcb)
+    refs = sorted(f.ref for f in want.movable())
+    assert refs, "fixture has no movable footprints"
+    ops = []
+    for ref in refs:
+        fp = want.footprints[ref]
+        fp.mirror()
+        fp.angle = (-fp.angle) % 360.0          # KiCad negates it on flip
+        ops.append({"op": "place", "ref": ref, "x": fp.pos[0], "y": fp.pos[1],
+                    "deg": fp.angle, "side": fp.side})
+    place_edit.apply_ops(pcb, ops)
+
+    got = placelib.PlaceModel(pcb)
+    for ref in refs:
+        a, b = want.footprints[ref], got.footprints[ref]
+        assert b.side == a.side == "back", ref
+        assert sorted((p.number, p.net) for p in b.pads) == \
+            sorted((p.number, p.net) for p in a.pads), ref
+        assert sorted(p.local for p in b.pads) == pytest.approx(
+            sorted(p.local for p in a.pads), abs=1e-4), ref
+        assert b.extents_abs().bounds == pytest.approx(
+            a.extents_abs().bounds, abs=1e-3), ref
+        assert sorted((x, y) for _n, _t, x, y in b.pad_centers_abs()) == \
+            pytest.approx(sorted((x, y) for _n, _t, x, y
+                                 in a.pad_centers_abs()), abs=1e-3), ref
+
+
+@pytest.mark.smoke
+def test_flip_candidate_round_trips_through_place_edit(cli, tmp_path_factory,
+                                                       tmp_path):
+    """End to end: the annealer picks the back side, place_edit's SWIG worker
+    applies it, and the saved board matches the model - part on B.Cu with its
+    satellite, legality clean, no DRC regression."""
+    import kc
+    import place_edit
+    pcb = _hub_board(tmp_path_factory, "hubswig", sat=True)
+    drc_before = kc.run_drc(cli, pcb)
+    cands, _f, _m = _run_anneal(pcb, HUB_SAT_CON, {}, max_epochs=25, stall=10)
+    best = cands[0]
+    assert best["legal"] and best["sides"]["back"] == 2
+
+    want = placelib.PlaceModel(pcb)
+    _fold_ops(want, best["ops"])
+    place_edit.apply_ops(pcb, best["ops"])
+    got = placelib.PlaceModel(pcb)
+    for ref in ("R1", "C1"):
+        assert got.footprints[ref].side == "back"
+        assert got.footprints[ref].extents_abs().bounds == pytest.approx(
+            want.footprints[ref].extents_abs().bounds, abs=1e-3), ref
+    assert not [v for v in placelib.legality_violations(
+        got, HUB_SAT_CON["placement"]) if v["severity"] == "error"]
+    drc_after = kc.run_drc(cli, pcb)
+    assert len(drc_after["violations"]) <= len(drc_before["violations"])
 
 
 @pytest.mark.smoke
