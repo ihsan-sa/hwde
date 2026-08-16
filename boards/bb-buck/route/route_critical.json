@@ -1,0 +1,131 @@
+{
+ "script": "route_critical",
+ "status": "pass",
+ "board": "bb-buck.kicad_pcb",
+ "counts": {
+  "total": 0,
+  "by_severity": {},
+  "by_source": {}
+ },
+ "violations": [],
+ "facts": {
+  "routed": [
+   {
+    "kind": "power",
+    "nets": [
+     "GND"
+    ],
+    "plane_carried": true,
+    "current_a": 2.6,
+    "plane_layers": [
+     "B.Cu",
+     "F.Cu"
+    ],
+    "note": "plane is the trunk; SMD pads stitched by stitch_vias, PTH pads via thermal spokes",
+    "width_normalization": {
+     "widened": 5,
+     "crumbs_removed": 0
+    }
+   },
+   {
+    "kind": "power",
+    "nets": [
+     "+VIN"
+    ],
+    "current_a": 1.1,
+    "width_mm": 0.84,
+    "ipc_min_mm": 0.56,
+    "neckdown": false,
+    "layers_used": [
+     "B.Cu",
+     "F.Cu"
+    ],
+    "krt": {
+     "successful": 3,
+     "failed": 0,
+     "multipoint_pads_connected": 18,
+     "multipoint_pads_total": 18,
+     "total_vias": 8,
+     "total_time": 1.23
+    }
+   },
+   {
+    "kind": "power",
+    "nets": [
+     "/SW"
+    ],
+    "current_a": 2.6,
+    "width_mm": 2.28,
+    "ipc_min_mm": 1.52,
+    "neckdown": false,
+    "layers_used": [
+     "B.Cu",
+     "F.Cu"
+    ],
+    "krt": {
+     "successful": 3,
+     "failed": 0,
+     "multipoint_pads_connected": 18,
+     "multipoint_pads_total": 18,
+     "total_vias": 8,
+     "total_time": 1.23
+    }
+   },
+   {
+    "kind": "power",
+    "nets": [
+     "+5V"
+    ],
+    "current_a": 2.6,
+    "width_mm": 2.28,
+    "ipc_min_mm": 1.52,
+    "neckdown": false,
+    "layers_used": [
+     "B.Cu",
+     "F.Cu"
+    ],
+    "krt": {
+     "successful": 3,
+     "failed": 0,
+     "multipoint_pads_connected": 18,
+     "multipoint_pads_total": 18,
+     "total_vias": 8,
+     "total_time": 1.23
+    }
+   }
+  ],
+  "skipped": [],
+  "drc_delta": {
+   "before": {
+    "unconnected_items": 19
+   },
+   "after": {
+    "unconnected_items": 5
+   },
+   "new": {},
+   "new_warnings": {}
+  },
+  "diffpair_check": "pass",
+  "diffpair_facts": [],
+  "floors": {
+   "clearance": 0.2,
+   "track_width": 0.127,
+   "via_diameter": 0.6,
+   "via_drill": 0.3,
+   "edge_clearance": 0.3
+  },
+  "net_clearances": {
+   "+5V": 0.2,
+   "+VIN": 0.2,
+   "/SW": 0.2,
+   "GND": 0.2
+  },
+  "board_updated": true,
+  "work_dir": "C:\\dev\\ai-ee3\\boards\\bb-buck\\route\\rc"
+ },
+ "report_schema": 1,
+ "checker_version": 1,
+ "generated_at": "2026-08-16T08:46:18+00:00",
+ "input": "C:\\dev\\ai-ee3\\boards\\bb-buck\\kicad\\bb-buck.kicad_pcb",
+ "input_digest": "sexpr_no_uuid:a0faa8197b680983f1eb0a8c1986d055c0f2aea46e2031ca66596d134725dc7b"
+}

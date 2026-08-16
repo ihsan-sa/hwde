@@ -1,0 +1,95 @@
+{
+  "script": "kc",
+  "tool": "drc",
+  "input": "C:\\dev\\ai-ee3\\boards\\bb-buck\\kicad\\bb-buck.kicad_pcb",
+  "units": "mm",
+  "kicad_version": "10.0.3",
+  "options": {
+    "parity": false,
+    "all_track_errors": true,
+    "refill": true,
+    "save_board": true
+  },
+  "counts": {
+    "total": 2,
+    "by_severity": {
+      "error": 2
+    },
+    "by_source": {
+      "drc": 2
+    }
+  },
+  "status": "violations",
+  "violations": [
+    {
+      "check": "hole_to_hole",
+      "severity": "error",
+      "pos": [
+        50.125,
+        54.252
+      ],
+      "layer": "F.Cu",
+      "net": "GND",
+      "refs": [
+        "J2"
+      ],
+      "msg": "Drilled hole too close to other hole (rule 'aiee_hole_to_hole_floor' min 0.4995 mm; actual 0.2920 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Via [GND] on F.Cu - B.Cu",
+          "pos": [
+            50.125,
+            54.252
+          ],
+          "uuid": "119b3a69-4737-43a2-8e21-1c53af364d1f"
+        },
+        {
+          "msg": "PTH pad 2 [GND] of J2",
+          "pos": [
+            51.31,
+            53.88
+          ],
+          "uuid": "d0afe846-3f00-48e3-b754-75167205934b"
+        }
+      ]
+    },
+    {
+      "check": "hole_to_hole",
+      "severity": "error",
+      "pos": [
+        50.125,
+        54.252
+      ],
+      "layer": "F.Cu",
+      "net": "GND",
+      "refs": [
+        "J2"
+      ],
+      "msg": "Drilled hole too close to other hole (rule 'aiee_hole_to_hole_floor' min 0.4995 mm; actual 0.2920 mm)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Via [GND] on F.Cu - B.Cu",
+          "pos": [
+            50.125,
+            54.252
+          ],
+          "uuid": "119b3a69-4737-43a2-8e21-1c53af364d1f"
+        },
+        {
+          "msg": "PTH pad 2 [GND] of J2",
+          "pos": [
+            51.31,
+            53.88
+          ],
+          "uuid": "d0afe846-3f00-48e3-b754-75167205934b"
+        }
+      ]
+    }
+  ],
+  "report_schema": 1,
+  "checker_version": 1,
+  "generated_at": "2026-08-16T09:25:06+00:00",
+  "input_digest": "sexpr_no_uuid:c1a0f46c2b3f056d064e664f5bea8270cfd2b0689c7ff14bb59a0b07587291c9"
+}

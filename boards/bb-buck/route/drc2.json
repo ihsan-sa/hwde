@@ -1,0 +1,127 @@
+{
+  "script": "kc",
+  "tool": "drc",
+  "input": "C:\\dev\\ai-ee3\\boards\\bb-buck\\kicad\\bb-buck.kicad_pcb",
+  "units": "mm",
+  "kicad_version": "10.0.3",
+  "options": {
+    "parity": false,
+    "all_track_errors": true,
+    "refill": true,
+    "save_board": true
+  },
+  "counts": {
+    "total": 3,
+    "by_severity": {
+      "error": 3
+    },
+    "by_source": {
+      "drc": 1,
+      "unconnected": 2
+    }
+  },
+  "status": "violations",
+  "violations": [
+    {
+      "check": "starved_thermal",
+      "severity": "error",
+      "pos": [
+        26.57,
+        34.98
+      ],
+      "layer": "F.Cu",
+      "net": "GND",
+      "refs": [
+        "U1"
+      ],
+      "msg": "Thermal relief connection to zone incomplete (layer F.Cu; zone min spoke count 2; actual 1)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Zone [GND] on F.Cu, priority 0",
+          "pos": [
+            26.57,
+            34.98
+          ],
+          "uuid": "b1d8d20b-6d4f-4bf2-93a4-d958ebaf16c9"
+        },
+        {
+          "msg": "Pad 1 [GND] of U1 on F.Cu",
+          "pos": [
+            36.27,
+            39.57
+          ],
+          "uuid": "94b47c70-9907-42aa-b92e-2a266b528008"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        38.12,
+        40.63
+      ],
+      "layer": "F.Cu",
+      "net": "GND",
+      "refs": [
+        "U1"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Via [GND] on F.Cu - B.Cu",
+          "pos": [
+            38.12,
+            40.63
+          ],
+          "uuid": "7f44eefa-c403-458e-9411-bf7371edb722"
+        },
+        {
+          "msg": "Pad 1 [GND] of U1 on F.Cu",
+          "pos": [
+            36.27,
+            39.57
+          ],
+          "uuid": "94b47c70-9907-42aa-b92e-2a266b528008"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        50.5,
+        45.6
+      ],
+      "layer": "F.Cu",
+      "net": "+5V",
+      "refs": [],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Track [+5V] on F.Cu, length 5.1624 mm",
+          "pos": [
+            50.5,
+            45.6
+          ],
+          "uuid": "35821774-1508-4687-93de-493755c9ed96"
+        },
+        {
+          "msg": "Track [+5V] on F.Cu, length 1.5708 mm",
+          "pos": [
+            40.37,
+            47.8
+          ],
+          "uuid": "bb5f8761-4769-43f3-baa2-3ed416d23d59"
+        }
+      ]
+    }
+  ],
+  "report_schema": 1,
+  "checker_version": 1,
+  "generated_at": "2026-08-16T09:17:10+00:00",
+  "input_digest": "sexpr_no_uuid:813437e697a45b1641a85cd49a62ed9ad11810be4c9e3646d51070d7497b50ba"
+}

@@ -3,7 +3,7 @@
  "board": "bb-buck",
  "workspace": "boards/bb-buck",
  "created": "2026-08-15T15:58:13",
- "updated": "2026-08-16T01:35:58",
+ "updated": "2026-08-16T01:36:52",
  "phase": "P7",
  "gates": {},
  "human": {
@@ -474,6 +474,14 @@
    "effort": "xhigh",
    "phase": "P6",
    "note": "35x25 tight board; SUBSTITUTION fable/high -> opus/xhigh; must report measured extent for the resize decision"
+  },
+  {
+   "ts": "2026-08-16T01:36:52",
+   "role": "router",
+   "model": "opus",
+   "effort": "high",
+   "phase": "P7",
+   "note": "2L chain; must raise EP thermal vias 10 -> >=16"
   }
  ],
  "history": [
@@ -904,6 +912,18 @@
    "event": "phase",
    "phase": "P7",
    "prev": "P6"
+  },
+  {
+   "ts": "2026-08-16T01:36:52",
+   "event": "snapshot",
+   "label": "pre-p7-routing",
+   "files": 1
+  },
+  {
+   "ts": "2026-08-16T01:36:52",
+   "event": "spawn",
+   "role": "router",
+   "model": "opus"
   }
  ]
 }

@@ -100,3 +100,28 @@ pulled `RT0603BRD0725K5L` came typed **`unspecified` on both pins** while
 came typed `passive`. Pin typing therefore varies WITHIN one family by pull date, so the
 `gen/lib_pin_types.py` deviation list has to be re-checked after every single pull, not
 just after a wholesale library refresh.
+
+## 2026-08-16 [P7][routing][planes_gen] planes_gen's DEFAULT thermal-relief pad connection strands a pad in a tight corridor - `connect: solid` in a planes-only sidecar is the fix
+On this 2-layer board U1's PGND pin (pad 1, 1.3 x 0.6 mm) sits in a 0.79 mm-tall corridor
+between the +VIN bulk-feed track above and the C1->VIN hot-loop track below. KiCad's default
+zone `connect_pads` is THERMAL RELIEF, whose ~0.5 mm thermal gap is applied from BOTH the pad
+and the neighbouring exposed pad, so the two gaps overlapped and no fill could form between
+U1.1 and the EP. Result: `starved_thermal` (min spoke count 2, actual 1) PLUS a genuine
+`unconnected_items` - U1.1 + C1.2 sat on their own 1.2 mm2 pour island, electrically off the
+GND net, while F.Cu GND reported only "2 islands" and looked healthy. Re-pouring the same
+region with `{"layer":"F.Cu","net":"GND","connect":"solid"}` in a planes-only sidecar
+(constraints.json untouched) cleared both in one step and is independently correct here: the
+EP is AGND and the datasheet wants it soldered SOLID to the plane. Two corollaries: (a) a
+zone-fill island COUNT is not a connectivity check - only kicad-cli DRC is; (b) planes_gen
+will not restyle an existing zone (>=80% existing-fill coverage -> skip), so the pour must be
+regenerated from a clean board, not patched.
+
+## 2026-08-16 [P7][routing][geometry] Read pad extents from `geom.pads_of().poly.bounds`, never from the raw `(size w h)` - the pad carries its OWN rotation
+Three hand-computed track endpoints landed 0.2-1.3 mm outside their target pad because a naive
+read of L1's `(pad ... (size 5.4 2.9))` ignored the pad's own `at` rotation: the real land is
+2.9 wide x 5.4 tall (x 45.72..48.62, y 38.53..43.93), not 5.4 x 2.9. route_edit ACCEPTS such an
+op - it only verifies the segment landed where asked - and the error surfaces two steps later as
+`unconnected_items` + `track_dangling` naming a track by LENGTH, not by endpoint. Cheap guard
+before emitting any route_edit op list: assert every add_track endpoint is `covered` by the
+target pad's `poly`; the footprint rotation, the pad rotation and the board transform are all
+already baked into it.
