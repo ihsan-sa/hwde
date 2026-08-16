@@ -3,9 +3,182 @@
  "board": "bb-buck",
  "workspace": "boards/bb-buck",
  "created": "2026-08-15T15:58:13",
- "updated": "2026-08-16T10:24:36",
+ "updated": "2026-08-16T14:48:48",
  "phase": "P9",
- "gates": {},
+ "gates": {
+  "erc": {
+   "phase": "P4",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-08-16T14:48:34",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0,
+    "inputs": {
+     "sch": "sexpr_no_uuid:86ad7ff05f140bd06f4758c4be6f0f02a30c0bad0e721bc7957828a6df03156c",
+     "pro": "json_canonical:4aed8fd3a906aadfea8f808b3c33563f47e98042460fe5298f35b0d87c32158a"
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-16T14:48:34",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "sch": "sexpr_no_uuid:86ad7ff05f140bd06f4758c4be6f0f02a30c0bad0e721bc7957828a6df03156c",
+      "pro": "json_canonical:4aed8fd3a906aadfea8f808b3c33563f47e98042460fe5298f35b0d87c32158a"
+     }
+    }
+   ]
+  },
+  "drc_routed": {
+   "phase": "P7",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-08-16T14:48:34",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0,
+    "inputs": {
+     "pcb": "sexpr_no_uuid:f952682de1b38bd322bbc604bb5db067f003210d81f72d553f0434fbd1329456",
+     "sch": "sexpr_no_uuid:86ad7ff05f140bd06f4758c4be6f0f02a30c0bad0e721bc7957828a6df03156c",
+     "pro": "json_canonical:4aed8fd3a906aadfea8f808b3c33563f47e98042460fe5298f35b0d87c32158a",
+     "dru": "text_eol:3cc1b487a41ab0010cc2a5db59774129fbaf9fd2b1f17a133dc51a793e88236d"
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-16T14:48:34",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:f952682de1b38bd322bbc604bb5db067f003210d81f72d553f0434fbd1329456",
+      "sch": "sexpr_no_uuid:86ad7ff05f140bd06f4758c4be6f0f02a30c0bad0e721bc7957828a6df03156c",
+      "pro": "json_canonical:4aed8fd3a906aadfea8f808b3c33563f47e98042460fe5298f35b0d87c32158a",
+      "dru": "text_eol:3cc1b487a41ab0010cc2a5db59774129fbaf9fd2b1f17a133dc51a793e88236d"
+     }
+    }
+   ]
+  },
+  "verify": {
+   "phase": "P8",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-08-16T14:48:35",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 27,
+    "inputs": {
+     "pcb": "sexpr_no_uuid:f952682de1b38bd322bbc604bb5db067f003210d81f72d553f0434fbd1329456",
+     "constraints": "json_canonical:e49164c0edd11d6fd02c1cca9e857526652202114e893a72eac90945a82064d3",
+     "decoupling": "json_canonical:4a85905c25cce31d4a0c66df2f741defc0a338e6069c66c915118a7a69c26e89",
+     "waivers": "json_canonical:951eb88d9c6d355f73d80100aedde7e99dd1ec6c8845b7676aba3960113cf10e"
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-16T14:48:35",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 27,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:f952682de1b38bd322bbc604bb5db067f003210d81f72d553f0434fbd1329456",
+      "constraints": "json_canonical:e49164c0edd11d6fd02c1cca9e857526652202114e893a72eac90945a82064d3",
+      "decoupling": "json_canonical:4a85905c25cce31d4a0c66df2f741defc0a338e6069c66c915118a7a69c26e89",
+      "waivers": "json_canonical:951eb88d9c6d355f73d80100aedde7e99dd1ec6c8845b7676aba3960113cf10e"
+     }
+    }
+   ]
+  },
+  "sim": {
+   "phase": "P8",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-08-16T14:48:35",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0,
+    "inputs": {
+     "sims": "dir_text:e8527bf1fc45d47cb142b539e59b8d2c6e8e93afe961904ffe4d8f3e2a05f32d"
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-16T14:48:35",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "sims": "dir_text:e8527bf1fc45d47cb142b539e59b8d2c6e8e93afe961904ffe4d8f3e2a05f32d"
+     }
+    }
+   ]
+  },
+  "dfm": {
+   "phase": "P9",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-08-16T14:48:35",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 1,
+    "inputs": {
+     "pcb": "sexpr_no_uuid:f952682de1b38bd322bbc604bb5db067f003210d81f72d553f0434fbd1329456",
+     "sch": "sexpr_no_uuid:86ad7ff05f140bd06f4758c4be6f0f02a30c0bad0e721bc7957828a6df03156c",
+     "parts": "json_canonical:56a82bc730a78c60bb401456010ecbfd6db8308242ac2488fa27fae5205b8e59"
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-16T14:48:35",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 1,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:f952682de1b38bd322bbc604bb5db067f003210d81f72d553f0434fbd1329456",
+      "sch": "sexpr_no_uuid:86ad7ff05f140bd06f4758c4be6f0f02a30c0bad0e721bc7957828a6df03156c",
+      "parts": "json_canonical:56a82bc730a78c60bb401456010ecbfd6db8308242ac2488fa27fae5205b8e59"
+     }
+    }
+   ]
+  },
+  "place": {
+   "phase": "P6",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-08-16T14:48:43",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0,
+    "inputs": {
+     "pcb": "sexpr_no_uuid:f952682de1b38bd322bbc604bb5db067f003210d81f72d553f0434fbd1329456",
+     "constraints": "json_canonical:e49164c0edd11d6fd02c1cca9e857526652202114e893a72eac90945a82064d3",
+     "decoupling": "json_canonical:4a85905c25cce31d4a0c66df2f741defc0a338e6069c66c915118a7a69c26e89"
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-16T14:48:43",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:f952682de1b38bd322bbc604bb5db067f003210d81f72d553f0434fbd1329456",
+      "constraints": "json_canonical:e49164c0edd11d6fd02c1cca9e857526652202114e893a72eac90945a82064d3",
+      "decoupling": "json_canonical:4a85905c25cce31d4a0c66df2f741defc0a338e6069c66c915118a7a69c26e89"
+     }
+    }
+   ]
+  }
+ },
  "human": {
   "1": {
    "status": "approved",
@@ -32,22 +205,86 @@
   "gerbers": {
    "path": "fab/bb-buck_gerbers.zip",
    "kind": "gerbers",
-   "sha256": null,
-   "hashed": "2026-08-16T00:07:45",
-   "stale": [
-    {
-     "ts": "2026-08-16T00:07:45",
-     "edit_class": "move_fp",
-     "refs": [],
-     "human_hold": 1
-    },
-    {
-     "ts": "2026-08-16T02:30:09",
-     "edit_class": "reroute_net",
-     "refs": [],
-     "human_hold": 1
-    }
-   ]
+   "sha256": "gerber_design:57c2b22fd8d9a63b5ed43bb0394dd3fb297c9d957c47ba643ac3a6b60feff971",
+   "hashed": "2026-08-16T14:48:48"
+  },
+  "sch": {
+   "path": "kicad/bb-buck.kicad_sch",
+   "kind": "sch",
+   "sha256": "sexpr_no_uuid:86ad7ff05f140bd06f4758c4be6f0f02a30c0bad0e721bc7957828a6df03156c",
+   "hashed": "2026-08-16T14:48:48"
+  },
+  "pro": {
+   "path": "kicad/bb-buck.kicad_pro",
+   "kind": "pro",
+   "sha256": "json_canonical:4aed8fd3a906aadfea8f808b3c33563f47e98042460fe5298f35b0d87c32158a",
+   "hashed": "2026-08-16T14:48:48"
+  },
+  "pcb": {
+   "path": "kicad/bb-buck.kicad_pcb",
+   "kind": "pcb",
+   "sha256": "sexpr_no_uuid:f952682de1b38bd322bbc604bb5db067f003210d81f72d553f0434fbd1329456",
+   "hashed": "2026-08-16T14:48:48"
+  },
+  "dru": {
+   "path": "kicad/bb-buck.kicad_dru",
+   "kind": "dru",
+   "sha256": "text_eol:3cc1b487a41ab0010cc2a5db59774129fbaf9fd2b1f17a133dc51a793e88236d",
+   "hashed": "2026-08-16T14:48:48"
+  },
+  "constraints": {
+   "path": "kicad/constraints.json",
+   "kind": "constraints",
+   "sha256": "json_canonical:e49164c0edd11d6fd02c1cca9e857526652202114e893a72eac90945a82064d3",
+   "hashed": "2026-08-16T14:48:48"
+  },
+  "decoupling": {
+   "path": "kicad/decoupling.json",
+   "kind": "decoupling",
+   "sha256": "json_canonical:4a85905c25cce31d4a0c66df2f741defc0a338e6069c66c915118a7a69c26e89",
+   "hashed": "2026-08-16T14:48:48"
+  },
+  "waivers": {
+   "path": "reports/verify-waivers.json",
+   "kind": "waivers",
+   "sha256": "json_canonical:951eb88d9c6d355f73d80100aedde7e99dd1ec6c8845b7676aba3960113cf10e",
+   "hashed": "2026-08-16T14:48:48"
+  },
+  "sims": {
+   "path": "kicad/sims",
+   "kind": "sims",
+   "sha256": "dir_text:e8527bf1fc45d47cb142b539e59b8d2c6e8e93afe961904ffe4d8f3e2a05f32d",
+   "hashed": "2026-08-16T14:48:48"
+  },
+  "parts": {
+   "path": "kicad/parts.json",
+   "kind": "parts",
+   "sha256": "json_canonical:56a82bc730a78c60bb401456010ecbfd6db8308242ac2488fa27fae5205b8e59",
+   "hashed": "2026-08-16T14:48:48"
+  },
+  "bom": {
+   "kind": "bom",
+   "path": "fab/BOM.csv",
+   "sha256": "text_eol:2fa3d971a45eba133ac1836d3e38864424aa4c0a544bb6a0658d4cf864663c52",
+   "hashed": "2026-08-16T14:48:48"
+  },
+  "bom_full": {
+   "kind": "bom_full",
+   "path": "fab/BOM-full.csv",
+   "sha256": "text_eol:6f40fb2f875e235286a08329a6efff029bbad4726aafb3cc723bef019ea9fbf2",
+   "hashed": "2026-08-16T14:48:48"
+  },
+  "cpl": {
+   "kind": "cpl",
+   "path": "fab/CPL.csv",
+   "sha256": "text_eol:2b86d18e92358ea9dbfc6c076ecc43e63ff9aca695f64562b8a79978a4db8092",
+   "hashed": "2026-08-16T14:48:48"
+  },
+  "netlist": {
+   "kind": "netlist",
+   "path": "kicad/bb-buck.net",
+   "sha256": "netlist_canonical:3975f6c7a19191b05d4103cec0fdf521356b87a9a1c19f43166d7d116c149310",
+   "hashed": "2026-08-16T14:48:48"
   }
  },
  "open_issues": [
@@ -1366,6 +1603,74 @@
    "status": "waived",
    "agent": null,
    "attempts": 0
+  },
+  {
+   "ts": "2026-08-16T14:48:34",
+   "event": "gate",
+   "gate": "erc",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-16T14:48:34",
+   "event": "gate",
+   "gate": "drc_routed",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-16T14:48:35",
+   "event": "gate",
+   "gate": "verify",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-16T14:48:35",
+   "event": "gate",
+   "gate": "sim",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-16T14:48:35",
+   "event": "gate",
+   "gate": "dfm",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-16T14:48:43",
+   "event": "gate",
+   "gate": "place",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-16T14:48:48",
+   "event": "rehash",
+   "names": [
+    "bom",
+    "bom_full",
+    "constraints",
+    "cpl",
+    "decoupling",
+    "dru",
+    "gerbers",
+    "netlist",
+    "parts",
+    "pcb",
+    "pro",
+    "sch",
+    "sims",
+    "waivers"
+   ]
   }
  ]
 }

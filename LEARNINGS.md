@@ -4454,3 +4454,38 @@ latent class if an unfilled box ever rings a pad.
 The generalisable trap: a checker that renders geometry to test it must honour the SAME
 fill semantics the fab does. Silkscreen is imaged from the stroke, not from the bounding
 shape - and "buffer the outline" is not the same operation as "fill the outline".
+
+## 2026-08-16 [state][gates][pipeline][PIPELINE BUG] A gate result that never reaches state.json is not evidence - bb-buck passed six gates and recorded none of them
+
+bb-buck reached P9 with a complete fab package and six PASSING gate reports on disk while
+`state.json` held 114 history events, ZERO gate events, `gates: {}`, `gates_passed: []`,
+and a `resume` still naming P4 erc as the next gate. Nothing was wrong with the board - the
+run had genuinely passed erc, place, drc_routed, verify, sim and dfm. What was missing was
+the RECORD, and with it every derived guarantee: no recorded input hashes means no
+freshness, no invalidation, no attestation, and a resumed session would have re-run the
+whole pipeline.
+
+The mechanism is the shape to recognise, not the instance: **the operation was two steps -
+`gate.py ...` then `state.py record-gate ...` - and only the first was enforced.** SKILL
+rule 3 said "record everything in state.json" while rule 4 printed the gate command WITHOUT
+the record, so the orchestrator ran what rule 4 gave it at every phase and rule 3's prose
+was never mechanically owed by anything. Same family as entry 290 (a record step separated
+from its run recorded a file the gate never produced) and the same split codex C1 names for
+phase-vs-certificate. A two-step protocol decays to its first step under any pressure.
+
+Fixed (U16) by making the evidence a BY-PRODUCT of the action instead of a follow-up to it:
+`gate.py` records the result itself into the workspace whose state.json sits above the input
+(`--workspace` names it; auto-detection covers the agent and remediation call sites that
+will never carry a flag), pass AND fail, before `--commit` so the state update rides in the
+gate commit. A requested-but-failed record is exit 2, exactly like a requested-but-failed
+commit. Second tooth: `state.py set-phase` REFUSES to advance past a gate phase whose gate
+has no recorded result - bb-buck's walk would have stopped at P4 -> P5. `--force` exists and
+logs `phase_forced` with the missing list.
+
+What held the line anyway: U5's derived disposition read `draft` (unorderable), because it
+derives from recorded gates rather than from phase. Defence in depth worked - but only at
+the last gate before money, and only by refusing a board that had actually earned its pass.
+
+Rule to carry: when a script's output is the ONLY evidence a later stage can use, producing
+it and recording it must be ONE command. Any recipe sentence of the form "and then also run
+X" is a defect report against the thing that precedes it.

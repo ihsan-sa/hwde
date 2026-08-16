@@ -1,4 +1,4 @@
-"""dryrun.py - scripted P4->P8 orchestrator dry-run on golden board 1 (S13).
+"""dryrun.py - scripted P4->P9 orchestrator dry-run on golden board 1 (S13).
 
 Enacts the SKILL.md phase machine + fix-loop protocol DETERMINISTICALLY (no
 LLM): workspace from the blinky2 golden, machine gates in pipeline order with
@@ -7,6 +7,9 @@ fixer work orders produced by fix_dispatch.py and executed by a scripted
 router fixer (the reference implementation of agents/fixer.md's router
 domain), and a kill/resume seam the smoke test exercises by running this
 driver twice (--stop-after drc_routed, then plain).
+
+Every gate runs as `gate.py --gate <g> <input> --workspace <ws>` and the driver
+asserts the result reached state.json with input hashes before moving on (U16).
 
 Sequence (each step is derived from state.json, so any kill point resumes):
     workspace  copy golden + state init (P4) + artifacts + the P3-exit
@@ -57,7 +60,7 @@ MUT_B_OLD = ("\t(segment\n\t\t(start 118.5 106.95)\n"
              "\t\t(end 118.5 110.5)\n\t\t(width 0.8)\n")
 MUT_B_NEW = MUT_B_OLD.replace("(width 0.8)", "(width 0.16)")
 
-GATE_PHASE = {"erc": "P4", "place": "P6", "drc_routed": "P7", "verify": "P8"}
+# (gate -> phase lives in gates.yaml; gate.py stamps it when it records)
 
 SEG_RE = re.compile(
     r"\(segment\s*\(start ([-\d.]+) ([-\d.]+)\)\s*\(end ([-\d.]+) ([-\d.]+)\)"
@@ -149,10 +152,18 @@ class Dryrun:
         target = self.sch if gate == "erc" else self.board
         attempt = self.state()["gates"].get(gate, {}).get("attempts", 0) + 1
         rep = self.reports / f"gate-{gate}-a{attempt}.json"
+        # U16: the gate records itself into the workspace state.json - the
+        # recipe's one gate form. A separate record step is exactly what
+        # bb-buck's run skipped at every phase.
         code, _ = run_cli("gate.py", "--gate", gate, str(target),
+                          "--workspace", str(self.ws),
                           "--out", str(rep), ok=(0, 1))
-        self.st("record-gate", "--gate", gate, "--result", str(rep),
-                "--phase", GATE_PHASE[gate])
+        recorded = self.state()["gates"].get(gate, {})
+        if recorded.get("attempts") != attempt \
+                or not (recorded.get("last") or {}).get("inputs"):
+            raise DryrunError(
+                f"gate {gate} attempt {attempt} did not reach state.json "
+                f"with input hashes (got {recorded.get('attempts')})")
         print(f"dryrun: gate {gate} attempt {attempt} -> "
               f"{'PASS' if code == 0 else 'FAIL'}")
         return code, rep
@@ -323,7 +334,7 @@ class Dryrun:
             if stop_after == name:
                 print(f"dryrun: stopped after step {name} (simulated kill)")
                 return 0
-        print("dryrun: complete (P4->P8 + regate)")
+        print("dryrun: complete (P4->P9 + regate)")
         return 0
 
 

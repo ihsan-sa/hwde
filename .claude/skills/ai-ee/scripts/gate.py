@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 """gate.py - evaluate a pipeline gate (SPEC.md sections 3-4).
 
-    gate.py --gate <name> <input.kicad_sch|.kicad_pcb> [--out FILE] [--commit MSG]
+    gate.py --gate <name> <input.kicad_sch|.kicad_pcb> [--workspace DIR]
+            [--out FILE] [--commit MSG]
     gate.py --gate <name> --report <kc-report.json>          (evaluate, don't re-run)
     gate.py --list
 
@@ -12,8 +13,9 @@ and commits the repo (SPEC section 4: "Git commit after every gate pass"); it
 never commits on failure and never pushes.
 
 JSON to stdout (or --out): {script, gate, status:pass|fail, counts, criteria,
-failing:[violations that triggered], committed?}. Exit 0 = pass, 1 = fail,
-2 = error (bad gate name, toolchain, unreadable input).
+failing:[violations that triggered], record_result, commit_result?}. Exit
+0 = pass, 1 = fail, 2 = error (bad gate name, toolchain, unreadable input, or
+a requested record/commit that did not happen).
 
 T6 additions:
  - --commit stages the board WORKSPACE only (boards/<name>/, derived from the
@@ -62,6 +64,23 @@ U5 additions (codex H9 - durable waivers):
  - the default verify sidecar resolution now also checks the board
    WORKSPACE reports/ dir (releaselib.waivers_for_input; LEARNINGS
    2026-08-08 - a waiver file in the obvious place was silently ignored).
+
+U16 additions (the bb-buck defect - running a gate and recording it were two
+steps and only the first was enforced, so a board reached P9 with six passing
+gate reports on disk and `gates: {}` in state.json):
+ - the gate RECORDS ITSELF. When the input sits inside a workspace (a
+   directory holding a state.json - found by walking the input's parents, or
+   named outright with --workspace), the result goes through
+   state.record_gate: input hashes, attempt count, stale-mark clearing, and
+   the U5 digest tooth all apply. Pass AND fail are recorded (the fix loop
+   wants every attempt). Recording happens BEFORE --commit, so the state
+   update rides in the gate commit.
+ - a golden/mutant corpus input has no workspace: nothing is recorded, the
+   result says so (`record_result.recorded: false` + reason) and the exit
+   code is unchanged. --no-record opts out explicitly.
+ - a REQUESTED-but-failed record is an operational error (exit 2), exactly
+   like a requested-but-failed commit: a caller keying on exit 0 must not
+   believe the evidence was preserved when it was not.
 """
 from __future__ import annotations
 
@@ -415,6 +434,66 @@ def workspace_dir(input_file: Path | None) -> Path | None:
     return None
 
 
+def find_workspace(input_file: Path | None,
+                   explicit: str | None = None) -> Path | None:
+    """The workspace whose state.json this gate result belongs in.
+
+    An explicit --workspace wins and MUST hold a state.json (a typo that
+    silently records nowhere is the bug this step exists to kill). Otherwise
+    the input's own parents are walked - the pipeline always gates a file
+    inside its workspace, so an orchestrator that forgets the flag still
+    records. A corpus input (tests/golden/..., a mutant, a scratch export)
+    has no state.json above it and is left alone.
+    """
+    if explicit:
+        ws = Path(explicit)
+        if not (ws / "state.json").is_file():
+            raise RuntimeError(f"--workspace {ws}: no state.json there")
+        return ws
+    if input_file is None:
+        return None
+    p = Path(input_file).resolve()
+    for parent in list(p.parents)[:4]:
+        if (parent / "state.json").is_file():
+            return parent
+    return None
+
+
+def record_gate_result(gate_name: str, gate: dict, result: dict,
+                       input_file: Path | None,
+                       explicit_ws: str | None = None) -> dict:
+    """Record the result in the workspace's state.json (U16).
+
+    `ok` is the operational verdict: True for a real record OR for "there is
+    no workspace to record into" (the corpus case); False means a record that
+    should have happened did not, and main() exits 2 on that.
+    """
+    ws = find_workspace(input_file, explicit_ws)
+    if ws is None:
+        return {"ok": True, "recorded": False,
+                "reason": "no state.json above the input - nothing to record "
+                          "(corpus/scratch input)"}
+    if gate_name not in statelib.load_map()["gate_inputs"]:
+        return {"ok": True, "recorded": False,
+                "workspace": str(ws).replace("\\", "/"),
+                "reason": f"gate {gate_name!r} has no gate_inputs entry in "
+                          "invalidation.yaml - a result with no input hashes "
+                          "is not evidence, so it is not recorded"}
+    try:
+        import state as state_mod  # sibling script (scripts/ is on sys.path)
+        st = state_mod.State.load(ws / "state.json")
+        g = st.record_gate(gate_name, result, gate.get("phase"))
+        st.save()
+    except Exception as exc:  # noqa: BLE001 - reported, never swallowed
+        return {"ok": False, "recorded": False,
+                "workspace": str(ws).replace("\\", "/"),
+                "reason": f"{type(exc).__name__}: {exc}"}
+    return {"ok": True, "recorded": True,
+            "workspace": str(ws).replace("\\", "/"), "gate": gate_name,
+            "status": g["status"], "attempts": g["attempts"],
+            "inputs": (g.get("last") or {}).get("inputs")}
+
+
 def git_commit_on_pass(msg: str, cwd: Path,
                        input_file: Path | None = None) -> dict:
     """Stage the gate's board workspace and commit (only called on gate pass).
@@ -520,6 +599,12 @@ def main(argv: list[str] | None = None) -> int:
                     help="git commit the workspace on gate pass with this message")
     ap.add_argument("--waivers", help="waiver sidecar JSON (default: <input "
                     "dir>/reports/verify-waivers.json for the verify gate)")
+    ap.add_argument("--workspace", help="workspace whose state.json records "
+                    "this result (default: the first parent of the input "
+                    "holding a state.json; U16)")
+    ap.add_argument("--no-record", action="store_true", dest="no_record",
+                    help="evaluate only - do not record the result in "
+                         "state.json")
     ap.add_argument("--list", action="store_true", help="list gates and exit")
     args = ap.parse_args(argv)
 
@@ -570,6 +655,12 @@ def main(argv: list[str] | None = None) -> int:
 
         result = evaluate(args.gate, gate, report, waivers=waivers)
 
+        # U16: record BEFORE the commit so state.json rides in it. Pass and
+        # fail both record - the fix loop's evidence is every attempt.
+        if not args.no_record:
+            result["record_result"] = record_gate_result(
+                args.gate, gate, result, eff_input, args.workspace)
+
         if result["status"] == "pass" and args.commit:
             result["commit_result"] = git_commit_on_pass(
                 args.commit, env.repo_root(), input_file=eff_input)
@@ -590,6 +681,13 @@ def main(argv: list[str] | None = None) -> int:
     print(f"gate {args.gate}: {result['status'].upper()} "
           f"({n} failing / {result['counts'].get('total', 0)} total)",
           file=sys.stderr)
+    rr = result.get("record_result")
+    if rr is not None and not rr.get("ok"):
+        # U16: evidence that did not reach state.json is evidence that does
+        # not exist - the bb-buck failure mode, made loud.
+        print(f"gate {args.gate}: result NOT recorded in state.json - "
+              f"{rr.get('reason')}", file=sys.stderr)
+        return 2
     cr = result.get("commit_result")
     if cr is not None and not cr.get("ok"):
         # C4: a requested commit that did not occur is an OPERATIONAL error,

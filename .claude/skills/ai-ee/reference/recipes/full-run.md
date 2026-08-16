@@ -2,14 +2,16 @@
 
 The whole pipeline is one recipe. Its steps are the phases; its gates are the
 gate table in SKILL.md; the fix loop, the checkpoint format and the spawn
-template are shared with every other verb and stay there.
+template are shared with every other verb and stay there. Every gate step is
+ONE form - `gate.py --gate <g> <input> --workspace <ws> --out <report>` - run on
+every attempt, pass and fail: `--workspace` RECORDS the result, and `set-phase`
+refuses to advance past a gate phase with no recorded result.
 
 Phase digest: after each phase write 5-10 lines to `log/P<n>-digest.md` and
 `state.py set-phase`. Agent selection: spawn only what the design's domains
 need - an RF board gets an RF-interface researcher and RF review emphasis; a
 USB-C dev board gets neither. Role prompts live in `agents/`; each states its
 own scripts and contract.
-
 Lean amendment (S14-proven): purely script-driven phases run INLINE (P5 board
 setup, gates, P9 fab/dfm scripts, P10 quote/submit) - rule 1 still holds (read
 script JSON, never design files). Judgment roles stay agents; reviewers stay
@@ -24,13 +26,11 @@ FRESH-context agents always. Small boards may use ONE schematic agent (record it
   unknowns (mains / battery / >3 A) are never guessed - an unattended run
   records delegate answers as PROVISIONAL decisions, re-confirmed at H1.
 - **P1 Research** (parallel): from the requirements pick the roster -
-  `research-component-scout` (one per major function),
-  `research-reference-design` (one per novel block),
-  `research-interface-spec` (one per standards-bound interface),
-  `research-power-architect` (always, unless trivially powered). Read summaries
-  only.
-- **P2 Architecture**: spawn `architect`; record its decisions
-  (`state.py decision`). **P2 exit = coverage (U13)**:
+  `research-component-scout` (per major function), `research-reference-design`
+  (per novel block), `research-interface-spec` (per standards-bound interface),
+  `research-power-architect` (always, unless trivially powered). Summaries only.
+- **P2 Architecture**: spawn `architect`; record its decisions (`state.py
+  decision`). **P2 exit = coverage (U13)**:
   `knowledge.py --coverage --workspace <ws> --phase P2 --out log/coverage-P2.json`
   (blocks[] carry `operating_point`; an undeclared dim keeps a record
   `provisional`). On a `mapping_request` spawn `coverage-mapper` (schema-forced
@@ -42,9 +42,9 @@ FRESH-context agents always. Small boards may use ONE schematic agent (record it
   spent - present the unopened slots at H1), per task `researcher` -> FRESH
   `research-second-reader` -> `research.py close`, then re-run coverage
   (verified records fold in as `provisional`). A slot still `gap` is a
-  `state.py decision` "designing under coverage gap: ...", never silence.
-  **H1** (blocking): blocks, stackup, cost ballpark, key parts, riskiest
-  decision, coverage summary (covered / provisional / gap per slot), cap state.
+  `state.py decision` "designing under coverage gap: ...", never silence. **H1**
+  (blocking): blocks, stackup, cost ballpark, key parts, riskiest decision,
+  coverage summary (covered / provisional / gap per slot), cap state.
 - **P3 Parts + Library**: spawn `part-sourcer`; `datasheet-extractor` per
   nontrivial IC (parallel) - reuse a prior board's `parts/<lcsc>.json` on LCSC
   match (re-run `--validate`); then `librarian`. Pad-geometry failures block P4.
@@ -83,9 +83,9 @@ FRESH-context agents always. Small boards may use ONE schematic agent (record it
 - P2/P4: for boards with nontrivial analog content spawn `sim-analyst` - it
   authors `kicad/sims/*.cir` + `.bounds.json` (generic model cards from
   datasheet parameters + Tier-B pin stimulus; NO vendored vendor models). Gate
-  `sim` at P8 (`gate.py --gate sim kicad/sims`): every bench needs a bounds
-  sidecar (missing OR empty = error by design). Wrong-value defects - the class
-  no other gate sees - fail here.
+  `sim` at P8 (`gate.py --gate sim kicad/sims --workspace <ws>`): every bench
+  needs a bounds sidecar (missing OR empty = error by design). Wrong-value
+  defects - the class no other gate sees - fail here.
 - P8 layout legs, advisory by default: `check_irdrop.py` (2.5D FDM IR drop +
   current density on the real copper; gates only when `irdrop_mv_max` /
   `jmax_a_per_mm` are declared; honor `grid_unconverged` warnings) and

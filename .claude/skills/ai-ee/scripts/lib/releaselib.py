@@ -355,13 +355,14 @@ def required_gates(ws: Path, board: str, imap: dict,
                    registry: dict | None) -> list[str]:
     """The pipeline gates a release must show: state.py's GATE_ORDER plus
     sim when the workspace has a sims directory (declared by existence -
-    a board that ships testbenches must pass them)."""
+    a board that ships testbenches must pass them).
+
+    U16: the owed set has ONE definition - state.applicable_gate_order, which
+    set_phase and resume_summary read too. A release requiring a gate the
+    phase machine does not is exactly how evidence goes missing."""
     state_mod = _import_script("state")
-    gates = [g for _, g in state_mod.GATE_ORDER]
-    sims_rel = statelib.kind_path("sims", board, imap, registry)
-    if (Path(ws) / sims_rel).is_dir():
-        gates.append("sim")
-    return gates
+    return [g for _, g in state_mod.applicable_gate_order(
+        Path(ws), board, registry, imap)]
 
 
 def _git_head(ws: Path) -> str | None:

@@ -628,7 +628,9 @@ def _gate_step(gate: str, slots: dict) -> dict:
     input rather than reporting a skip. So the plan says so up front instead of
     letting the operator find out through a traceback."""
     if "<" in gate:
-        return {"gate": gate, "command": f"scripts/gate.py --gate {gate} <input>"}
+        return {"gate": gate,
+                "command": (f"scripts/gate.py --gate {gate} <input> "
+                            f"--workspace {slots.get('ws', '<ws>')}")}
     try:
         spec = yaml.safe_load(GATES.read_text(encoding="utf-8"))["gates"][gate]
     except (OSError, KeyError):
@@ -636,8 +638,12 @@ def _gate_step(gate: str, slots: dict) -> dict:
     tool = spec.get("tool", "drc")
     inp = {"erc": slots.get("sch"), "sim": slots.get("sims")}.get(
         tool, slots.get("pcb")) or "<board>"
+    # --workspace is what RECORDS the result in state.json (U16): a gate step
+    # that does not record leaves the run with reports on disk and no evidence
+    # in state, which is exactly how bb-buck reached P9 with `gates: {}`.
     step = {"gate": gate, "input": inp,
             "command": (f"scripts/gate.py --gate {gate} {inp} "
+                        f"--workspace {slots.get('ws', '<ws>')} "
                         f"--out {slots.get('reports', '<reports>')}/"
                         f"gate-{gate}.json")}
     if "<" not in inp:

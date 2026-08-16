@@ -63,26 +63,30 @@ def test_state_init_creates_standard_subdirs(tmp_path):
 
 def test_set_phase_digest_discipline(tmp_path):
     """T6 XC-4: leaving a phase without a <=15-line digest yields a warn-only
-    digest_discipline finding; a compliant digest stays silent."""
+    digest_discipline finding; a compliant digest stays silent.
+
+    require_gates=False throughout: this is the digest tooth, not U16's
+    gate-coverage tooth (which has its own tests)."""
     st = make_state(tmp_path)                      # phase P4
     ws = tmp_path / "ws"
-    warns = st.set_phase("P5")                     # no log/P4-digest.md
-    assert [w["kind"] for w in warns] == ["digest_discipline"]
-    assert "P4-digest.md missing" in warns[0]["msg"]
+    warns = st.set_phase("P5", require_gates=False)  # no log/P4-digest.md
+    assert [w["kind"] for w in warns] == ["gate_coverage", "digest_discipline"]
+    assert "P4-digest.md missing" in warns[1]["msg"]
     (ws / "log" / "P5-digest.md").write_text(
         "\n".join(f"line {i}" for i in range(12)), encoding="utf-8")
-    assert st.set_phase("P6") == []                # 12 lines: compliant
+    warns = st.set_phase("P6", require_gates=False)   # 12 lines: compliant
+    assert [w["kind"] for w in warns] == ["gate_coverage"]
     (ws / "log" / "P6-digest.md").write_text(
         "\n".join(f"line {i}" for i in range(20)), encoding="utf-8")
-    warns = st.set_phase("P7")
-    assert [w["kind"] for w in warns] == ["digest_discipline"]
-    assert "20 lines" in warns[0]["msg"]
+    warns = st.set_phase("P7", require_gates=False)
+    assert [w["kind"] for w in warns] == ["gate_coverage", "digest_discipline"]
+    assert "20 lines" in warns[1]["msg"]
     assert st.set_phase("P7") == []                # no-op: nothing was left
 
 
 def test_state_phase_validation(tmp_path):
     st = make_state(tmp_path)
-    st.set_phase("P7")
+    st.set_phase("P7", require_gates=False)
     assert st.data["phase"] == "P7"
     with pytest.raises(CheckError):
         st.set_phase("P99")
@@ -175,7 +179,7 @@ def test_state_resume_summary_progression(tmp_path):
     assert s["gates_passed"] == []
     st.record_gate("erc", {"status": "pass", "failing_count": 0,
                            "counts": {"total": 0}})
-    st.set_phase("P7")
+    st.set_phase("P7", require_gates=False)        # place not run yet (U16)
     s = st.resume_summary()
     assert s["gates_passed"] == ["erc"]
     assert s["next_gate"] == {"phase": "P6", "gate": "place"}
@@ -481,6 +485,25 @@ def test_dryrun_p4_p8_with_kill_and_resume(tmp_path):
     # history is ordered: init < resumed < complete
     ev = [e["event"] for e in st["history"]]
     assert ev.index("init") < ev.index("resumed") < ev.index("dryrun_complete")
+
+    # U16: the run recorded itself. Every gate carries its input hashes (the
+    # freshness key), the whole walk was recorded rather than narrated, and
+    # resume names the TRUE next gate - dfm, the one phase P9 has not run.
+    for name, entry in st["gates"].items():
+        inputs = entry["last"]["inputs"]
+        # every mapped kind is present as a key; a None value is honest (the
+        # golden ships no .kicad_dru) and still binds - it matches only while
+        # the file stays absent
+        assert inputs and any(v for v in inputs.values()), name
+    assert not events(st, "phase_forced")
+    summary = state_mod.State.load(ws / "state.json").resume_summary()
+    assert summary["gates_passed"] == ["erc", "place", "drc_routed", "verify"]
+    # place ran before the injected mutations + their fixes, so its recorded
+    # pcb hash no longer matches - recorded evidence going stale on its own is
+    # the point of recording it
+    assert summary["gates_passed_fresh"] == ["erc", "drc_routed", "verify"]
+    assert summary["gates_stale"] == ["place"]
+    assert summary["next_gate"] == {"phase": "P9", "gate": "dfm"}
 
     # ---- the fixes restored the golden geometry (not just gate-quiet) ----
     import geom

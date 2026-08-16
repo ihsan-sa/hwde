@@ -21,7 +21,7 @@ detail says which). Read `recipe.doc` - this file - before executing the steps.
 | kind | means |
 |---|---|
 | script | run it with the repo venv python; exit 0 pass / 1 violations / 2 error |
-| gate | `gate.py --gate <g> <input>`; on pass `--commit`, on fail the fix loop |
+| gate | `gate.py --gate <g> <input> --workspace <ws>` (--workspace records the result in state.json); on pass `--commit`, on fail the fix loop |
 | agent | spawn that role prompt from `agents/` at the given tier |
 | human | a hold: 0 silent, 1 log a decision, 2 summarize at a checkpoint, 3 approve before fab |
 | recipe | another verb, run inline (this is how `full-run` is assembled) |

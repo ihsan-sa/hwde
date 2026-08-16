@@ -1,8 +1,8 @@
 # Knowledge ladder triage (T4, 2026-08-06; U0 sweep 2026-08-13; U6 2026-08-14;
-# U14 2026-08-15; U15 2026-08-15)
+# U14 2026-08-15; U15 2026-08-15; U16 2026-08-16)
 
-One row per `LEARNINGS.md` entry (304 of them; the last starts at
-line 4429), placed on the maturity ladder from
+One row per `LEARNINGS.md` entry (305 of them; the last starts at
+line 4458), placed on the maturity ladder from
 `design/routing-knowledge-notes.md` section 6, with the artifact that owns - or
 must own - it.
 
@@ -34,7 +34,7 @@ looking for the next promotion.
 
 ## Summary
 
-Recomputed from the table at bb-buck P8 (2026-08-16), all 304 rows
+Recomputed from the table at U16 (2026-08-16), all 305 rows
 (`learnings.py triage` prints these numbers - recompute rather than edit them):
 
 | Level | now | target |
@@ -42,9 +42,9 @@ Recomputed from the table at bb-buck P8 (2026-08-16), all 304 rows
 | L0 | 116 | 14 |
 | L1 | 16 | 12 |
 | L2 | 53 | 108 |
-| L3 | 119 | 170 |
+| L3 | 120 | 171 |
 
-123 entries want to climb at least one level. Status: **done 153**,
+123 entries want to climb at least one level. Status: **done 154**,
 **open 126**, **n/a 7**, planned 18
 (T2 10, T8 1 - both shipped, those rows need re-reading; U2 2, U9 2,
 U3/U5/U8 1 each).
@@ -422,3 +422,4 @@ the row's Now level and status in the same commit as the code.
 | 302 | 4384 | routelib's score regex ate the sentence's full stop, so route_auto cra | [routing][routelib][freerouting] | L2 | L2 | scripts/lib/routelib.py | done | FIXED at bb-buck P6, not just recorded: the score capture is now `\d+(?:\.\d+)?` instead of `[\d.]+`, so a trailing sentence period is not consumed. The bug fired ONLY on the success path (no ` (N unrouted)` suffix to terminate the greedy class), which is why three prior boards never hit it - they all had unrouted nets at probe time. Regression-verified on both line shapes, pass and session, with and without the suffix; the routing test selection passes |
 | 303 | 4407 | Two constraint mechanisms silently do not enforce: keepouts are board- | [placement][constraints][gates] | L0 | L2 | scripts/lib/placelib.py | open | Found by hand at bb-buck P6 while cross-checking a PASSING place gate, which is the point: a green gate is not evidence these were checked. (a) placement.keepouts rects are board-LOCAL by documented convention and nothing translates them by outline_bbox, so the gate's keepouts leg compares against rectangles at absolute origin and passes trivially. (b) placement.separation reads centre-to-centre, not courtyard-to-courtyard, AND is dropped when either ref is locked - on bb-buck that silently disabled all four declared pairs. The L2 fix is to translate keepouts at load and to measure separation courtyard-to-courtyard with locked refs still participating |
 | 304 | 4429 | check_silk drew every circle as a FILLED DISC, ignoring (fill no) - so a s | [check_silk][geometry][gates] | L2 | L2 | scripts/check_silk.py | done | FIXED at bb-buck P8, not just recorded. _shape_geom buffered any *_circle to a disc with no reference to the sibling (fill) node, so the stock TestPoint_Pad_D1.5mm ring (r 0.89-1.01 mm) reported the 0.75 mm pad it encircles as 100% covered. Recognisable because the reported overlap EQUALS the whole pad area (1.77 = pi*0.75^2); a real defect covers a fraction. Fixed with an _is_filled() helper + annulus geometry for unfilled circles; full suite green. rect/poly still buffer solid - conservative, flagged as the same latent class. Blast radius was every stock ring footprint: test points, fiducials, polarity rings |
+| 305 | 4458 | A gate result that never reaches state.json is not evidence - bb-buck | [state][gates][pipeline] | L3 | L3 | scripts/gate.py | done | U16: recording is now a BY-PRODUCT of gating, not a follow-up step - gate.py records into the workspace state.json (--workspace, else the first parent holding one), pass and fail, before --commit; a requested-but-failed record is exit 2. L2 backstop: state.py set-phase refuses to advance past a gate phase with no recorded result (--force logs phase_forced). Same family as 290 - a record step separated from its run is a record step that does not happen. bb-buck back-recorded from its committed reports (place re-run against the routed board) and its stale gerbers marks cleared |

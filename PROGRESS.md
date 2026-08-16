@@ -49,6 +49,9 @@ T7 -> T8 || T9 -> T10. T11 runs as soon as boards arrive (not during T6).
 Waves (plan has the full map + session setup): U0 alone first ->
 U1||U2||U3||U4 -> U5||U6 -> U7 -> U8 (exclusive, owner) -> U9 -> U10.
 U11 later; U12 before order credentials; T11 on board arrival (not during U8).
+Coverage leg (2026-08-15): U13 -> U14 || U15. Bare-bones leg (2026-08-16, from
+the bb-buck run): U16 (urgent, before any further board run) -> U17 || U19 ->
+U18; hold bb-ldo / bb-adc / bb-amp / bb-mcu until U16 + U18 land.
 
 | Step | Title | Status | Date |
 |---|---|---|---|
@@ -68,7 +71,7 @@ U11 later; U12 before order credentials; T11 on board arrival (not during U8).
 | U13 | Coverage contracts (levels/envelopes/maturity, the research trigger) | **done** | 2026-08-15 |
 | U14 | Record backfill + approval session (owner present, short) | **done** | 2026-08-15 |
 | U15 | Research verb (acquisition, synthesis, second reader, auto-trigger) | **done** | 2026-08-15 |
-| U16 | Gate results must reach state.json (bb-buck defect, URGENT) | pending | - |
+| U16 | Gate results must reach state.json (bb-buck defect, URGENT) | **done** | 2026-08-16 |
 | U17 | Editable board outline (board_edit.py --outline) | pending | - |
 | U18 | Learning mode: target outcome drives scope + binding | pending | - |
 | U19 | Bottom-side placement the annealer can discover | pending | - |
@@ -4532,3 +4535,118 @@ distributor client exits 2 with both credential lines on this host.
 auth flow, needs owner keys). The researcher / second-reader choreography is
 exercised live at U10 (same posture as U4/U13: mechanics test-pinned, agent
 prose until its first run).
+
+## U16 - Gate results must reach state.json (2026-08-16) - DONE
+
+The bb-buck defect: the board reached P9 with a complete fab package and six
+PASSING gate reports on disk while `state.json` recorded NONE of them - 114
+history events, zero gate events, `gates: {}`, `gates_passed: []`, `resume`
+still naming P4 erc as the next gate. The run had genuinely passed erc, place,
+drc_routed, verify, sim and dfm; what was missing was the RECORD, and with it
+freshness, invalidation and attestation. Root cause: the operation was TWO
+steps (`gate.py ...` then `state.py record-gate ...`) and only the first was
+enforced - SKILL rule 3 asked for the record in prose while rule 4 printed the
+gate command without it.
+
+**Built (the fix is mechanical, not prose):**
+- `gate.py` RECORDS THE RESULT ITSELF (`record_gate_result` + `find_workspace`).
+  The workspace is `--workspace DIR` (explicit; no state.json there = exit 2) or
+  the first parent of the input holding a state.json - auto-detection covers the
+  agent contracts and the 20 remediation docs, which will never carry a flag.
+  Pass AND fail record (the fix loop's evidence is every attempt); recording
+  happens BEFORE `--commit`, so the state update rides in the gate commit. A
+  requested-but-failed record is an operational error (exit 2 + stderr line),
+  exactly like a requested-but-failed commit. `--no-record` opts out. Only gates
+  with a `gate_inputs` entry record - a result with no input hashes is not
+  evidence. An input with no workspace above it (golden/mutant corpus, scratch
+  exports) records nothing and keeps its exit code: `record_result.recorded:
+  false` with the reason.
+- `state.py set-phase` REFUSES to advance past a gate phase whose gate has no
+  recorded result (`gate_coverage()`; bb-buck's walk would have stopped at
+  P4 -> P5). `--force` advances, warns, and logs `phase_forced` with the missing
+  list. Advancing past a RECORDED FAIL warns rather than refuses (the fix loop
+  re-records a pass); going backwards is never gated. In-process callers get
+  `set_phase(phase, require_gates=False)` - three digest-discipline tests use it.
+- `state.applicable_gate_order(ws, board, registry)` - ONE definition of the
+  gates a board owes: GATE_ORDER plus ("P8", "sim") when the workspace ships a
+  testbench dir. `set_phase`, `resume_summary` (gates_passed / next_gate /
+  gates_passed_fresh) and `releaselib.required_gates` all read it now; before
+  this, release required `sim` while resume did not count it.
+- Wiring so the FORM is the recorded form: `task_router._gate_step` emits
+  `--workspace {ws}` in every planned gate command (all verbs, test-pinned);
+  full-run.md states the one gate form; recipes/README.md's gate row; SKILL
+  rule 3 (set-phase refusal), rule 4 (the command gains `--workspace`, and
+  "a report on disk that state.json never saw is not evidence"), the gate-table
+  lead-in and fix-loop step 6.
+- `tests/orchestrator/dryrun.py`: gates run with `--workspace` and the driver
+  asserts the result reached state.json with input hashes before moving on -
+  the separate `record-gate` call is GONE (it was the reference implementation
+  of the very habit that failed).
+
+**bb-buck repair (honest provenance, not invented):** five gates back-recorded
+from their committed reports - erc / drc_routed / verify / sim / dfm all carry
+an `input_digest` matching the current artifacts, so record-gate's U5 digest
+tooth accepted them unchanged. `place` did NOT: its report was produced at P6
+against the pre-route board (digest 8d0c1109), so it was RE-RUN against the
+current board with `--workspace` (pass, 0 failing) rather than recorded with
+today's hashes under a P6 result. `state.py rehash` then cleared the `gerbers`
+stale marks - the entry carried `sha256: null` plus move_fp + reroute_net marks
+because the zip was exported at P9 and never re-hashed. Result: `resume` reports
+six gates passed and fresh, no stale marks, `human_hold_pending: 0`,
+`next_gate: null`, and the derived disposition moves `draft` ->
+`engineering-validated` (release-candidate still correctly out of reach - no
+strict release reports, no attestation).
+
+**Acceptance evidence:** `tests/test_gate_record.py` (36 tests, hermetic except
+the two bb-buck rows). Plan criteria: the scripted P4 -> P9 dry run leaves every
+gate recorded with input hashes and `resume` naming the true next gate (dfm) -
+and shows `place` correctly hash-STALE after the injected mutations, which is
+what recording buys; a gate run without a workspace still works (corpus/golden
+inputs record nothing, exit codes unchanged, the U2 tamper suite untouched);
+bb-buck's resume reports six gates passed and fresh; every planned gate step in
+every verb carries `--workspace`, and every `gate.py --gate` line in
+full-run.md + SKILL.md does too. Plus: explicit-workspace-without-state.json
+refuses, `--no-record` opts out, a fail records then a pass records over it, an
+unrecordable state (v1) is exit 2, the real `place` gate records a hash-fresh
+pass on a golden board, sim joins the owed set when kicad/sims exists,
+`releaselib.required_gates` matches `applicable_gate_order`. Full `check.cmd`
+green: **1875 passed / 0 failed** (12:33, +36; even the standing net-marked
+AP63203 stock test passed - live stock is back, as at T7).
+
+**Deviations (with reasons):**
+1. The plan offered `gate.py --workspace <ws>` as the candidate; shipped as
+   flag PLUS auto-detection from the input path. A flag alone is a third thing
+   to remember at the same call sites that forgot record-gate, and the agent /
+   remediation docs (20+ gate invocations) would never carry it. Explicit
+   `--workspace` still wins and still refuses a bad path.
+2. set-phase REFUSES (the plan allowed "or at minimum loudly warns") on a
+   missing record, but only WARNS on a recorded fail - blocking there would
+   trap a legitimate fix-loop resume, and a recorded fail is already visible to
+   the disposition (rework-required).
+3. `resume_summary` now counts `sim`; the release side already required it.
+   This is a contract change for any consumer reading gates_passed (none in
+   repo besides tests; task_router computes its own from all recorded gates).
+4. full-run.md was AT the 120-line recipe cap, so the new gate-form rule cost
+   two lossless reflows (the P1 roster, the H1 line) and merged the "Phase
+   digest" / "Lean amendment" paragraphs. No content dropped.
+5. The pd-trigger / stm32-blinky design-doc pdf+tex regens were dirty at
+   session open (deterministic report_gen test output, same as at U0) and are
+   left uncommitted; `boards/xhp-driver/` stays untracked (U10 owns it).
+
+**Interface notes for later steps:**
+- Gate steps carry `--workspace`; a gate result now has `record_result`
+  ({ok, recorded, workspace?, gate?, status?, attempts?, inputs?} or
+  {ok, recorded: false, reason}). `ok: false` means exit 2 even on a gate pass.
+- `state.applicable_gate_order` is the single owed-set definition - anything
+  asking "which gates does this board owe" must call it, never GATE_ORDER
+  directly (U17/U18/U19: a board that gains testbenches gains a gate).
+- `set_phase(phase, require_gates=False)` is the in-process bypass; the CLI
+  spells it `--force` and it logs `phase_forced`.
+- bb-buck is now a fully-recorded reference workspace: six fresh gates,
+  disposition engineering-validated. U17's shrink-to-fit fixture and U18's
+  canonical/constrained comparison can both start from it.
+- Recording is single-writer like every other state mutation (SPEC 4). Two
+  concurrent gate runs on one workspace could still interleave - U12 owns the
+  writer lock; nothing in the pipeline runs gates concurrently on one board.
+
+**New verify-later items:** none.

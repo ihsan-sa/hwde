@@ -55,10 +55,14 @@ coverage check, or a safety question.
 3. **Record everything in state.json** (via `scripts/state.py`) - phases,
    gate results, issues, decisions, human checkpoints, and every declared edit
    (`state.py edit --class <c>`, which is what stamps derived artifacts stale).
-   A killed session must resume from state.json alone.
-4. **Git commit after every gate pass**: `scripts/gate.py --gate <g> <input>
-   --commit "ai-ee <board>: <gate> pass"` (commits only on pass, never
-   pushes). Rollback for in-flight fix loops is `state.py snapshot/restore`.
+   A killed session must resume from state.json alone. `set-phase` REFUSES to
+   advance past a gate phase whose gate has no recorded result.
+4. **Gates carry `--workspace`, and commit on pass**: `scripts/gate.py --gate
+   <g> <input> --workspace <ws> --commit "ai-ee <board>: <gate> pass"`.
+   `--workspace` records the result (input hashes, attempt, freshness) - a
+   report on disk that state.json never saw is not evidence. Commits happen
+   only on pass, never pushes. Rollback for in-flight fix loops is
+   `state.py snapshot/restore`.
 5. **Scripts run with the repo venv python** (`.venv\Scripts\python.exe`
    from the repo root). All scripts: JSON out, exit 0 pass / 1 violations /
    2 error (an exit-2 payload carries remediation - read it). ASCII only.
@@ -75,7 +79,7 @@ P4 Schematic -[G:erc + review][H2]- P5 Board Setup - P6 Placement
 ```
 
 Machine gates (defined in `reference/gates.yaml`, run via
-`scripts/gate.py --gate <name> <input>`):
+`scripts/gate.py --gate <name> <input> --workspace <ws>`):
 
 | Gate | Phase | Input | Criteria |
 |---|---|---|---|
@@ -136,8 +140,8 @@ On gate fail (exit 1, result JSON has `failing` with coordinates):
    Mark issues `fixing` -> `fixed`/`escalated` (`state.py issue`).
 5. Declare what the fix changed: `state.py edit --class <c>` (the domain ->
    class table is in `reference/recipes/fix-finding.md`).
-6. Re-run the gate; `state.py record-gate` EVERY attempt (fail and pass -
-   the history is the audit trail, and the input hashes come from it).
+6. Re-run the gate with `--workspace` - EVERY attempt records itself, fail
+   and pass (the history is the audit trail, the input hashes come from it).
 7. A fixer that regressed (new violations appeared): restore its snapshot,
    mark the issue `escalated`, continue with the rest.
 8. Gate passes -> `--commit`, close the loop, proceed.

@@ -41,7 +41,7 @@ CLI (spec 6 contract: argparse, JSON to stdout, exit 0 ok / 2 error; state.py
 has no violation concept so exit 1 is unused):
     state.py init --workspace DIR --board NAME [--phase P0] [--force]
     state.py show|resume|freshness [--workspace DIR | --state FILE]
-    state.py set-phase --phase P7 ...
+    state.py set-phase --phase P7 [--force] ...
     state.py record-gate --gate NAME --result gate_result.json [--phase PN] ...
     state.py artifact --name pcb --path kicad/b.kicad_pcb ...
     state.py edit --class move_fp [--refs U1 U2] [--note TEXT] ...
@@ -53,6 +53,12 @@ has no violation concept so exit 1 is unused):
     state.py budget --path fix_loops.drc_routed [--consume] ...
     state.py log --event name [--data JSON] ...
     state.py snapshot --label L [--files F ...] / restore --label L ...
+
+`set-phase` REFUSES to advance past a gate phase whose gate has no recorded
+result (U16 - bb-buck reached P9 with six passing gate reports on disk and
+`gates: {}` in state). `gate.py --workspace <ws>` records the result itself, so
+the normal flow never sees the refusal; `--force` is the escape hatch and logs
+`phase_forced` with the missing gates.
 
 CLI `log` event names are machine keys: ^[a-z][a-z0-9_-]{0,31}$ (XC-8: a live
 run stored paragraphs as event names; prose belongs in --data {"msg": ...}).
@@ -88,7 +94,8 @@ EVENT_RE = re.compile(r"[a-z][a-z0-9_-]{0,31}\Z")
 PHASES = ["P0", "P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "P9", "P10",
           "done"]
 # Machine-gate order along the pipeline (SPEC 3). The interim `drc` gate is a
-# tool, not a pipeline edge, so it is not listed.
+# tool, not a pipeline edge, so it is not listed. `sim` is conditional (a board
+# without testbenches does not owe it) - use applicable_gate_order().
 GATE_ORDER = [("P4", "erc"), ("P6", "place"), ("P7", "drc_routed"),
               ("P8", "verify"), ("P9", "dfm")]
 # Human checkpoints (SPEC 7). 3 is optional-but-on-by-default.
@@ -118,6 +125,31 @@ DIGEST_LINE_CAP = 15
 
 def now() -> str:
     return time.strftime("%Y-%m-%dT%H:%M:%S")
+
+
+def applicable_gate_order(ws: Path, board: str,
+                          registry: dict | None = None,
+                          imap: dict | None = None) -> list[tuple[str, str]]:
+    """The gates THIS board owes, in pipeline order: GATE_ORDER plus
+    ("P8", "sim") when the workspace ships a testbench directory (a board
+    with testbenches must pass them; a board without does not owe the gate).
+
+    Single definition of the owed set: releaselib.required_gates derives the
+    release list from here, set_phase gates advancement on it, and
+    resume_summary reports gates_passed / next_gate against it (U16).
+    """
+    try:
+        imap = imap or statelib.load_map()
+        sims_rel = statelib.kind_path("sims", board, imap, registry)
+        has_sims = (Path(ws) / sims_rel).is_dir()
+    except Exception:  # noqa: BLE001 - map unreadable: fall back to the spine
+        has_sims = False
+    order: list[tuple[str, str]] = []
+    for ph, g in GATE_ORDER:
+        order.append((ph, g))
+        if g == "verify" and has_sims:
+            order.append(("P8", "sim"))
+    return order
 
 
 def _atomic_write(path: Path, text: str) -> None:
@@ -182,15 +214,65 @@ class State:
         self.data["history"].append({"ts": now(), "event": event, **detail})
 
     # ---- mutators --------------------------------------------------------
-    def set_phase(self, phase: str) -> list[dict]:
+    def gate_coverage(self, phase: str) -> tuple[list[str], list[str]]:
+        """(gates owed BEFORE `phase` with no recorded result, gates whose
+        last recorded result is a fail). A gate at phase P is owed once the
+        run moves past P - erc (P4) is owed at P5, not at P4 itself."""
+        idx = PHASES.index(phase)
+        owed = [(ph, g) for ph, g
+                in applicable_gate_order(self.path.parent,
+                                         self.data.get("board") or "",
+                                         self.data.get("artifacts"))
+                if PHASES.index(ph) < idx]
+        gates = self.data["gates"]
+        missing = [f"{g} ({ph})" for ph, g in owed
+                   if not (gates.get(g) or {}).get("status")]
+        failed = [g for _, g in owed
+                  if (gates.get(g) or {}).get("status") == "fail"]
+        return missing, failed
+
+    def set_phase(self, phase: str, require_gates: bool = True) -> list[dict]:
         """Record the phase; return warn-only digest-discipline findings for
-        the phase just left (T6 XC-4 - drift becomes recorded fact, exit 0)."""
+        the phase just left (T6 XC-4 - drift becomes recorded fact, exit 0).
+
+        U16: ADVANCING past a gate phase whose gate has no recorded result is
+        REFUSED (CheckError). bb-buck walked P4 -> P9 with six passing gate
+        reports on disk and `gates: {}` in state, because running the gate and
+        recording it were separate steps and only the first was enforced. The
+        phase machine is now the second tooth: you cannot leave a gate phase
+        without evidence in state.json. `require_gates=False` (CLI --force) is
+        the deliberate escape hatch and records itself in history.
+        """
         if phase not in PHASES:
             raise CheckError(f"unknown phase {phase!r}")
         prev = self.data["phase"]
+        warnings: list[dict] = []
+        advancing = (prev in PHASES
+                     and PHASES.index(phase) > PHASES.index(prev))
+        if advancing:
+            missing, failed = self.gate_coverage(phase)
+            if missing and require_gates:
+                raise CheckError(
+                    f"cannot advance {prev} -> {phase}: no recorded gate "
+                    f"result for {', '.join(missing)}. Run the gate with "
+                    "gate.py --workspace <ws> (it records the result itself) "
+                    "or state.py record-gate --gate <g> --result <file>; "
+                    "--force advances anyway and says so in history")
+            if missing:
+                warnings.append({
+                    "kind": "gate_coverage",
+                    "msg": f"advanced to {phase} with no recorded result for "
+                           f"{', '.join(missing)} (--force)"})
+                self._log("phase_forced", phase=phase, prev=prev,
+                          missing=missing)
+            if failed:
+                warnings.append({
+                    "kind": "gate_coverage",
+                    "msg": f"advanced to {phase} with {', '.join(failed)} "
+                           "recorded FAIL - the fix loop re-records a pass "
+                           "before the run moves on"})
         self.data["phase"] = phase
         self._log("phase", phase=phase, prev=prev)
-        warnings: list[dict] = []
         if prev != phase and re.fullmatch(r"P\d+", prev or ""):
             digest = self.path.parent / "log" / f"{prev}-digest.md"
             if not digest.is_file():
@@ -521,10 +603,16 @@ class State:
     # ---- resume ----------------------------------------------------------
     def resume_summary(self) -> dict:
         gates = self.data["gates"]
-        passed = [g for _, g in GATE_ORDER
+        # U16: the owed set, not the bare spine - a board that ships
+        # testbenches owes `sim` too, so resume must count it as passed and
+        # name it as the next gate when it is missing.
+        order = applicable_gate_order(self.path.parent,
+                                      self.data.get("board") or "",
+                                      self.data.get("artifacts"))
+        passed = [g for _, g in order
                   if gates.get(g, {}).get("status") == "pass"]
         next_gate = None
-        for ph, g in GATE_ORDER:
+        for ph, g in order:
             if gates.get(g, {}).get("status") != "pass":
                 next_gate = {"phase": ph, "gate": g}
                 break
@@ -602,6 +690,9 @@ def run(argv=None):
     p = sub.add_parser("set-phase")
     common(p)
     p.add_argument("--phase", required=True)
+    p.add_argument("--force", action="store_true",
+                   help="advance even when an owed gate has no recorded "
+                        "result (logged as phase_forced with the list)")
 
     p = sub.add_parser("record-gate")
     common(p)
@@ -699,7 +790,7 @@ def run(argv=None):
         return {**result, **st.freshness()}, args.out
 
     if args.cmd == "set-phase":
-        warnings = st.set_phase(args.phase)
+        warnings = st.set_phase(args.phase, require_gates=not args.force)
         result["phase"] = args.phase
         if warnings:
             result["warnings"] = warnings
