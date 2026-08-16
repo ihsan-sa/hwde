@@ -234,9 +234,10 @@ substitution in the spawn ledger. Never silently drop to a weaker tier.
 - Residual check blind spots are trigger-indexed in
   reference/remediations/<check_id>.md (viasless pour-channel disclosure
   stays a router duty; drill classes closed at T6 by drill-aware floors).
-- No outline-shrink step exists: the P5 outline is final, so requirement
-  caps must bind at board_init (--outline WxH); architecture "target" sizes
-  smaller than the shelf pack are unreachable.
+- The outline is editable after P5 (`board_edit.py --outline WxH|fit|keep`,
+  verb `resize-board`): place against a provisional outline, then `fit` to
+  the placement. It never clips - anything the new edge would push off the
+  board or bring inside the fab edge clearance refuses, listed.
 - Fab floors (.kicad_pro rules + ERROR severities) come from
   lib/fabfloors.py; netclasses split per required width (T1).
 - board_update refuses pad-net rewires and net renames (dry-run exit 1):

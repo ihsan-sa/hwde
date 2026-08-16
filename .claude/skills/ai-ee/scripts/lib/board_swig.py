@@ -1,14 +1,18 @@
-"""board_swig.py - SWIG worker for board_init.py. BUNDLED python only.
+"""board_swig.py - SWIG worker for board_init.py / board_edit.py. BUNDLED
+python only.
 
 Runs under KiCad's bundled python.exe (the only interpreter with `pcbnew`),
-launched as a subprocess by board_init.py (venv). Consumes a JSON job on argv,
-places every footprint from a netlist netmap onto a fresh board, assigns pad
-nets, spreads parts on a shelf grid (no courtyard overlaps), draws the outline
-and mounting holes, and saves an UNFILLED board. Mirrors the corpus builder
-tests/golden/generators/pcb_build.py; zone fill (if any) is a later kicad-cli
-step - pcbnew.ZONE_FILLER segfaults headless (LEARNINGS [swig]).
+launched as a subprocess by the venv driver. Consumes a JSON job on argv; the
+`verb` key selects the operation (absent = "build", board_init's original job
+shape).
 
-Job JSON (all lengths mm):
+verb "build" (board_init, SPEC P5): places every footprint from a netlist
+netmap onto a fresh board, assigns pad nets, spreads parts on a shelf grid (no
+courtyard overlaps), draws the outline and mounting holes, and saves an
+UNFILLED board. Mirrors the corpus builder tests/golden/generators/pcb_build.py;
+zone fill (if any) is a later kicad-cli step - pcbnew.ZONE_FILLER segfaults
+headless (LEARNINGS [swig]).
+
   out            output .kicad_pcb path
   layers         2 | 4
   components     [{ref, value, fp:"Lib:Name"}, ...]
@@ -19,8 +23,19 @@ Job JSON (all lengths mm):
   corner_radius  mm; 0 or absent = square corners (historical default)
   mounting_holes {count, fp:"Lib:Name", inset} | null
 
-Result JSON to stdout: {status, out, placed, nets, bbox:[x1,y1,x2,y2], notes}.
-Exit 0 ok, 2 error.
+verb "set_outline" (board_edit, U17): REPLACES the Edge.Cuts graphics of an
+EXISTING board with a new rectangle (optionally rounded / notched), touching
+nothing else. Same draw_outline() as "build", so an edited outline and an
+initialized one are the same geometry by construction.
+
+  board          input .kicad_pcb (the driver stages a copy)
+  out            output .kicad_pcb path
+  rect           [x1, y1, x2, y2] absolute mm
+  corner_radius  mm (0 = square)
+  cutouts        [{x, y, w, h}, ...] relative to rect's top-left, edge notches
+
+Result JSON to stdout: {status, out, ...verb fields..., notes}. Exit 0 ok,
+2 error.
 """
 from __future__ import annotations
 
@@ -358,10 +373,53 @@ def build(job: dict) -> dict:
     }
 
 
+def set_outline(job: dict) -> dict:
+    """Replace the board's Edge.Cuts graphics with a new outline (U17).
+
+    Board-level PCB_SHAPEs on Edge.Cuts are removed and redrawn; footprint
+    graphics, copper, zones and text are untouched. RemoveNative, not Remove:
+    Remove() hands ownership to python and a collected proxy turns
+    board.Drawings() into a bare SwigPyObject (LEARNINGS [place_edit][kicad]).
+    """
+    board = pcbnew.LoadBoard(job["board"])
+    removed = 0
+    for d in list(board.GetDrawings()):
+        if isinstance(d, pcbnew.PCB_SHAPE) and d.GetLayer() == pcbnew.Edge_Cuts:
+            board.RemoveNative(d)
+            removed += 1
+    notes: list[str] = []
+    x1, y1, x2, y2 = (float(v) for v in job["rect"])
+    cutouts = job.get("cutouts") or []
+    r = draw_outline(board, x1, y1, x2, y2,
+                     float(job.get("corner_radius") or 0.0), notes,
+                     cutouts=cutouts)
+    out = Path(job["out"])
+    out.parent.mkdir(parents=True, exist_ok=True)
+    if not board.Save(str(out)):
+        raise RuntimeError(f"board.Save failed: {out}")
+    return {
+        "status": "pass", "out": str(out), "removed_edge_items": removed,
+        "bbox": [round(x1, 3), round(y1, 3), round(x2, 3), round(y2, 3)],
+        "corner_radius": round(r, 3),
+        "cutouts": [[round(x1 + float(c["x"]), 3), round(y1 + float(c["y"]), 3),
+                     round(x1 + float(c["x"]) + float(c["w"]), 3),
+                     round(y1 + float(c["y"]) + float(c["h"]), 3)]
+                    for c in cutouts],
+        "notes": notes,
+    }
+
+
+VERBS = {"build": build, "set_outline": set_outline}
+
+
 def main() -> int:
     try:
         job = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
-        print(json.dumps(build(job)))
+        verb = job.get("verb", "build")
+        if verb not in VERBS:
+            raise RuntimeError(f"unknown verb {verb!r} "
+                               f"(have: {', '.join(sorted(VERBS))})")
+        print(json.dumps(VERBS[verb](job)))
         return 0
     except Exception as exc:
         import traceback

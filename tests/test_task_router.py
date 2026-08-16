@@ -57,7 +57,9 @@ def test_the_plan_s_verb_list_is_the_registry_s():
     assert VERBS == sorted([
         "review", "fix-finding", "move", "swap-part", "add-part",
         "remove-part", "reroute-net", "make-footprint", "dfm-check", "order",
-        "track", "resume-phase", "promote", "learn", "research", "full-run"])
+        "track", "resume-phase", "promote", "learn", "research", "full-run",
+        # U17: the outline became editable after P5
+        "resize-board"])
 
 
 def test_skill_md_lists_exactly_the_registry_verbs():
@@ -321,7 +323,8 @@ def test_every_verb_plans_on_a_real_workspace(verb: str, workspace: Path):
              "swap-part": ["--arg", "ref=R5"],
              "remove-part": ["--arg", "ref=C2"],
              "reroute-net": ["--arg", "net=+3V3"],
-             "make-footprint": ["--arg", "lcsc=C14663"]}.get(verb, [])
+             "make-footprint": ["--arg", "lcsc=C14663"],
+             "resize-board": ["--arg", "size=fit"]}.get(verb, [])
     payload = _plan(verb, workspace, extra)
     assert payload["status"] == "planned", (verb, payload.get("question"))
     steps = payload["recipe"]["steps"]

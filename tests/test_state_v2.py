@@ -186,7 +186,9 @@ def test_map_has_the_ten_plan_edit_classes():
     assert set(IMAP["edit_classes"]) == {
         "move_fp", "swap_part_same_fp", "swap_part_new_fp", "add_part",
         "del_part", "reroute_net", "silk_edit", "plane_edit", "rule_change",
-        "stackup_change"}
+        "stackup_change",
+        # U17: the board outline became editable (board_edit.py)
+        "outline_change"}
     for ec in IMAP["edit_classes"].values():
         assert ec["human_hold"] in (0, 1, 2, 3)
     # the plan's calibration anchors: a one-footprint move carries no

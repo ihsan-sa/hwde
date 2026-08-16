@@ -270,7 +270,10 @@ verbs:
     match:
       any: ['\badd\b', '\bfit\b', '\bpopulate\b', '\binsert\b', '\bstuff\b',
             '\bput an?\b', '\bneeds? an?\b.*\b(cap|capacitor|resistor|diode|clamp|pull-?up|pull-?down|ferrite|tvs)\b']
-      not: ['\badd (a )?(text|label|silk|note|comment)\b', '\bfootprint\b']
+      # "\bfit\b" is for "fit a decoupler"; "shrink to fit"/"resize to fit"
+      # is the board outline (resize-board), not a new part.
+      not: ['\badd (a )?(text|label|silk|note|comment)\b', '\bfootprint\b',
+            '\b(shrink|resize|grow|enlarge)\w*\b']
     steps:
       - recipe: make-footprint
         why: "only when the part is not already in the project library"
@@ -368,6 +371,43 @@ verbs:
         why: "hold 1: gates + a decision line, no checkpoint ceremony"
       - note: "A plane-carried power net is NOT trunk-routed on outer layers - the
                plane IS the trunk (route_critical skips them by design)."
+
+  # -------------------------------------------------------------------------
+  resize-board:
+    summary: Change the board outline - resize, shrink to fit the placement,
+      corner radius, edge notches.
+    doc: reference/recipes/resize-board.md
+    workspace: required
+    edit_class: outline_change
+    args:
+      size: {kind: text, required: true, extract: none,
+             question: "What outline: 'WxH' in mm (e.g. 40x30), 'fit' (the
+               content bbox + margin) or 'keep' (same size, new radius/notch)?"}
+    preconditions: [workspace, board_exists]
+    match:
+      any: ['\bresiz\w*\b', '\bshrink[- ]?(to[- ]?fit|the board)\b',
+            '\bboard (size|outline|dimensions)\b', '\bedge\.?cuts\b',
+            '\bcorner radius\b', '\b(edge )?(notch|cutout)\b',
+            '\bmake the board (smaller|bigger|larger|narrower|shorter)\b',
+            '\b(grow|enlarge) the board\b']
+      not: ['\b(footprint|silk|courtyard|pad|zone) outline\b']
+    steps:
+      - do: "scripts/state.py snapshot --workspace {ws} --label pre-outline --files kicad/{board}.kicad_pcb"
+        why: "the edit is atomic, the re-pour and re-route that follow are not"
+      - do: "scripts/board_edit.py --pcb {pcb} --outline {size} --report-only --out-report {reports}/board_edit-preview.json"
+        why: "exit 1 lists what the new outline would push outside the board or
+              bring under the fab edge clearance - move those first (the parts
+              are in blocking_summary.refs); nothing is ever silently clipped"
+      - do: "scripts/board_edit.py --pcb {pcb} --outline {size} --workspace {ws} --out-report {reports}/board_edit.json"
+        why: "stages, rewrites Edge.Cuts via SWIG, re-parses to verify the new
+              outline with every track/via/pad/footprint unmoved, refills the
+              zones, refuses a DRC regression, then swaps atomically. It
+              RECORDS the outline_change class itself - no state.py edit step"
+      - note: "If the board GREW: zone outlines do not follow the edge - re-run
+               planes_gen (then stitch_vias) or the pour stops at the old
+               boundary. The report says so."
+      - note: "Shrink BEFORE routing where you can: after routing, every track
+               inside the fab's edge clearance is a refusal you must re-route."
 
   # -------------------------------------------------------------------------
   make-footprint:

@@ -4489,3 +4489,49 @@ the last gate before money, and only by refusing a board that had actually earne
 Rule to carry: when a script's output is the ONLY evidence a later stage can use, producing
 it and recording it must be ONE command. Any recipe sentence of the form "and then also run
 X" is a defect report against the thing that precedes it.
+
+## 2026-08-16 [geom][outline][board_edit] A corner radius read back from the outline POLYGON is biased by geom's own arc sampling - and an AREA comparison of "is this the shape I asked for" scales with r^2
+Building board_edit (U17), which rewrites Edge.Cuts wholesale and must therefore READ the
+shape it is replacing. Two measured traps in one afternoon:
+(a) Deriving the corner radius from the area a rounded rectangle loses at its corners
+(`bbox - face = r^2 (4 - pi)`) looks exact and is not: `geom._arc_points` samples each arc
+as 16 chords, so the parsed polygon UNDERSTATES the quadrant and r=3.000 reads back as
+3.009. Harmless once - except board_edit defaults `--corner-radius` to "keep what the board
+has", so every re-edit would inflate the board's own corners (3.0 -> 3.009 -> 3.018).
+The arcs' three DECLARED points give the radius exactly (circumcircle), so geom now exposes
+`outline_arc_radii` and 4 equal arcs == a rounded rectangle.
+(b) Verifying the applied outline by comparing AREAS fails at large radii: the sampling
+error per corner is ~r^2 * n * (theta - sin theta), i.e. 0.03 mm2 at r=3 but 0.18 mm2 at
+r=6, so any fixed area tolerance either passes a wrong shape or rejects a legitimately
+rounded board. Use HAUSDORFF distance instead - the worst point-to-shape gap is the chord
+sagitta (< 0.01 mm at any board radius) while a notch or chamfer deviates by its own
+millimetre-scale size. Rule: when one side of a geometric comparison is sampled and the
+other is analytic, compare DISTANCES, never areas.
+
+## 2026-08-16 [geom][outline][board_edit] `.outline` cannot tell you what else is on Edge.Cuts - the parser returns on the first gr_rect, so a second one is invisible
+Follow-on to the 2026-07-28 entry "an inner Edge.Cuts gr_rect silently BECOMES the board
+outline". That entry fixed the PRODUCER (board_init refuses interior cutouts); the consumer
+side is still blind, and it matters the moment anything REWRITES the layer: board_edit
+deletes every Edge.Cuts board shape and redraws it, so a window, a chamfer or a second
+board in the same file would vanish without a word - and `bg.outline` looks perfectly
+normal in every one of those cases, because `_parse_outline` returns on the first gr_rect it
+finds and never looks further. A polygonize-based faces list does not save you either: it
+is only reached when there is no gr_rect at all. Fix: `BoardGeom.outline_items` counts the
+Edge.Cuts primitives BY KIND before any early return, and board_edit refuses to apply
+unless that inventory is one of the three board_init can produce ({gr_rect: 1},
+{gr_line: 4}, {gr_line: 4, gr_arc: 4}) - `--replace-shape` is the explicit consent to lose
+the rest. Cross-check after the edit: the worker's removed-item count must equal the
+driver's count, or something else lived on that layer.
+
+## 2026-08-16 [planes][zones][board_edit] A zone OUTLINE does not follow the board edge - growing the board leaves the pour at the old boundary, and a refill never expands it
+Measured on the frozen pd-trigger route fixture: outline grown from 48x30 to 49.32x30.90
+(9.18..58.50 in x), refilled through `kicad-cli pcb drc --refill-zones --save-board`, and
+the B.Cu GND pour still spans 10.30..57.30 - unchanged to the micron. The zone's own
+polygon was drawn by planes_gen against the OLD edge; refilling only re-clips the fill to
+the zone outline intersected with the board, so it can lose copper but never gain any.
+Consequences: (1) after any board GROWTH the plane must be regenerated (planes_gen, then
+stitch_vias) or the board ships with a ring of bare FR4 no check complains about -
+check_return_path and check_pdn reason about the pour that exists, not the one you meant;
+(2) "refilled: true" in an edit report is NOT "the planes cover the board". Shrinking is
+the safe direction: the fill clips back to the new edge automatically, which is why
+board_edit deliberately does not run its copper-to-edge check against zone fills.

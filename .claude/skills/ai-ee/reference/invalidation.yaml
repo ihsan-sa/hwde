@@ -160,6 +160,17 @@ edit_classes:
     stale_artifacts: [gerbers]
     gates: [drc_routed, verify, dfm]
     human_hold: 2
+  outline_change:
+    # Edge.Cuts rewrite (board_edit.py --outline, U17). The boundary moves, so
+    # every edge-relative judgment has to be re-established: placement legality
+    # (outside_outline, edge parts), DRC edge clearance both pre- and
+    # post-route, the verify suite's edge legs and the whole fab package. Zone
+    # fills clip to the outline - they must be REFILLED before drc_routed
+    # means anything (board_edit refills unless --no-refill).
+    mutates: [pcb]
+    stale_artifacts: [gerbers]
+    gates: [place, drc, drc_routed, verify, dfm]
+    human_hold: 2
   rule_change:
     # .kicad_pro / .kicad_dru edits (clearances, netclasses, floors). The
     # carrier shipped a hand-edited DRU that erased 7 of 8 aiee_* fab floors

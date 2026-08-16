@@ -434,29 +434,10 @@ def workspace_dir(input_file: Path | None) -> Path | None:
     return None
 
 
-def find_workspace(input_file: Path | None,
-                   explicit: str | None = None) -> Path | None:
-    """The workspace whose state.json this gate result belongs in.
-
-    An explicit --workspace wins and MUST hold a state.json (a typo that
-    silently records nowhere is the bug this step exists to kill). Otherwise
-    the input's own parents are walked - the pipeline always gates a file
-    inside its workspace, so an orchestrator that forgets the flag still
-    records. A corpus input (tests/golden/..., a mutant, a scratch export)
-    has no state.json above it and is left alone.
-    """
-    if explicit:
-        ws = Path(explicit)
-        if not (ws / "state.json").is_file():
-            raise RuntimeError(f"--workspace {ws}: no state.json there")
-        return ws
-    if input_file is None:
-        return None
-    p = Path(input_file).resolve()
-    for parent in list(p.parents)[:4]:
-        if (parent / "state.json").is_file():
-            return parent
-    return None
+# The workspace a gate result belongs in (U16). One definition, in statelib,
+# because every self-recording writer asks the same question - board_edit
+# (U17) records its outline edit through it too.
+find_workspace = statelib.find_workspace
 
 
 def record_gate_result(gate_name: str, gate: dict, result: dict,

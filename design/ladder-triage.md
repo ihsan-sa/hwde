@@ -1,14 +1,14 @@
 # Knowledge ladder triage (T4, 2026-08-06; U0 sweep 2026-08-13; U6 2026-08-14;
-# U14 2026-08-15; U15 2026-08-15; U16 2026-08-16)
+# U14 2026-08-15; U15 2026-08-15; U16 2026-08-16; U17 2026-08-16)
 
-One row per `LEARNINGS.md` entry (305 of them; the last starts at
-line 4458), placed on the maturity ladder from
+One row per `LEARNINGS.md` entry (308 of them; the last starts at
+line 4526), placed on the maturity ladder from
 `design/routing-knowledge-notes.md` section 6, with the artifact that owns - or
 must own - it.
 
 The failure mode is knowledge sitting at the WRONG LEVEL, not knowledge volume:
 **if a script can check it, it does not belong in the prompt.** This register is
-the outer-loop worklist. `open` rows (126) are the gaps nothing owns yet -
+the outer-loop worklist. `open` rows (127) are the gaps nothing owns yet -
 they are the input to T6 (per-stage deep evaluation) and to any later step
 looking for the next promotion.
 
@@ -34,18 +34,18 @@ looking for the next promotion.
 
 ## Summary
 
-Recomputed from the table at U16 (2026-08-16), all 305 rows
+Recomputed from the table at U17 (2026-08-16), all 308 rows
 (`learnings.py triage` prints these numbers - recompute rather than edit them):
 
 | Level | now | target |
 |---|---|---|
-| L0 | 116 | 14 |
+| L0 | 117 | 14 |
 | L1 | 16 | 12 |
-| L2 | 53 | 108 |
-| L3 | 120 | 171 |
+| L2 | 53 | 109 |
+| L3 | 122 | 173 |
 
-123 entries want to climb at least one level. Status: **done 154**,
-**open 126**, **n/a 7**, planned 18
+124 entries want to climb at least one level. Status: **done 156**,
+**open 127**, **n/a 7**, planned 18
 (T2 10, T8 1 - both shipped, those rows need re-reading; U2 2, U9 2,
 U3/U5/U8 1 each).
 
@@ -423,3 +423,6 @@ the row's Now level and status in the same commit as the code.
 | 303 | 4407 | Two constraint mechanisms silently do not enforce: keepouts are board- | [placement][constraints][gates] | L0 | L2 | scripts/lib/placelib.py | open | Found by hand at bb-buck P6 while cross-checking a PASSING place gate, which is the point: a green gate is not evidence these were checked. (a) placement.keepouts rects are board-LOCAL by documented convention and nothing translates them by outline_bbox, so the gate's keepouts leg compares against rectangles at absolute origin and passes trivially. (b) placement.separation reads centre-to-centre, not courtyard-to-courtyard, AND is dropped when either ref is locked - on bb-buck that silently disabled all four declared pairs. The L2 fix is to translate keepouts at load and to measure separation courtyard-to-courtyard with locked refs still participating |
 | 304 | 4429 | check_silk drew every circle as a FILLED DISC, ignoring (fill no) - so a s | [check_silk][geometry][gates] | L2 | L2 | scripts/check_silk.py | done | FIXED at bb-buck P8, not just recorded. _shape_geom buffered any *_circle to a disc with no reference to the sibling (fill) node, so the stock TestPoint_Pad_D1.5mm ring (r 0.89-1.01 mm) reported the 0.75 mm pad it encircles as 100% covered. Recognisable because the reported overlap EQUALS the whole pad area (1.77 = pi*0.75^2); a real defect covers a fraction. Fixed with an _is_filled() helper + annulus geometry for unfilled circles; full suite green. rect/poly still buffer solid - conservative, flagged as the same latent class. Blast radius was every stock ring footprint: test points, fiducials, polarity rings |
 | 305 | 4458 | A gate result that never reaches state.json is not evidence - bb-buck | [state][gates][pipeline] | L3 | L3 | scripts/gate.py | done | U16: recording is now a BY-PRODUCT of gating, not a follow-up step - gate.py records into the workspace state.json (--workspace, else the first parent holding one), pass and fail, before --commit; a requested-but-failed record is exit 2. L2 backstop: state.py set-phase refuses to advance past a gate phase with no recorded result (--force logs phase_forced). Same family as 290 - a record step separated from its run is a record step that does not happen. bb-buck back-recorded from its committed reports (place re-run against the routed board) and its stale gerbers marks cleared |
+| 306 | 4493 | A corner radius read back from the outline POLYGON is biased by geom's | [geom][outline][board_edit] | L3 | L3 | scripts/lib/geom.py | done | FIXED in U17, not just recorded: `BoardGeom.outline_arc_radii` exposes each Edge.Cuts arc's EXACT radius from its three declared points, so board_edit reads a corner radius it can preserve without drift (the area formula reads r=3.000 back as 3.009, and `--corner-radius` defaults to the board's own radius, so every re-edit inflated it). The shape comparison is Hausdorff, not area - sampling error scales with r^2 and no fixed area tolerance can separate a rounded board from a chamfered one. General rule (L0 residual, prose here): when one side of a geometric comparison is sampled and the other analytic, compare distances |
+| 307 | 4511 | `.outline` cannot tell you what else is on Edge.Cuts - the parser retu | [geom][outline][board_edit] | L3 | L3 | scripts/lib/geom.py | done | FIXED in U17: `BoardGeom.outline_items` counts Edge.Cuts primitives by kind BEFORE the parser's first-match returns, and board_edit refuses to rewrite the layer unless that inventory is one board_init can produce ({gr_rect: 1} / {gr_line: 4} / {gr_line: 4, gr_arc: 4}); `--replace-shape` is explicit consent to lose the rest, and the worker's removed-item count is cross-checked against the driver's. Consumer half of the 2026-07-28 producer fix |
+| 308 | 4526 | A zone OUTLINE does not follow the board edge - growing the board leav | [planes][zones][board_edit] | L0 | L2 | scripts/board_edit.py | open | U17 emits a WARNING when the outline grows anywhere over a board with zones (re-run planes_gen, then stitch_vias), and the resize-board recipe carries the flow. Still L2-partial: nothing FAILS when a board ships with a plane that stops short of its edge - the honest L2 is a check (check_pdn / a dfm leg) comparing pour extent against the outline, which no gate does today. Measured on the pd-trigger route fixture: outline grown to 9.18..58.50, B.Cu GND pour unchanged at 10.30..57.30 after a full refill |

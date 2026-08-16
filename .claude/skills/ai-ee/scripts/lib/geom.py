@@ -15,7 +15,13 @@ the pcbnew round-trip oracle used only by the S3 tests.
   BoardGeom:
     .copper_layers                  ordered [F.Cu, In1.Cu, ..., B.Cu] top->bottom
     .stackup                        Stackup (layer order, dielectric h, epsilon_r)
-    .outline                        shapely Polygon of Edge.Cuts
+    .outline                        shapely Polygon of Edge.Cuts (largest face)
+    .outline_faces                  every closed Edge.Cuts face, largest first
+                                    (>1 = interior window / second board)
+    .outline_items                  {gr_rect|gr_line|gr_arc|...: count} on
+                                    Edge.Cuts, counted before the first-match
+                                    return - the only view of what else is there
+    .outline_arc_radii              exact radius of each Edge.Cuts arc
     .nets                           set of net names carrying copper
 
     .tracks_of(net=None, layer=None)    -> list[Track]
@@ -348,6 +354,19 @@ def _union(geoms: Iterable) -> MultiPolygon | Polygon:
     if len(geoms) == 1:
         return geoms[0]
     return unary_union(geoms)
+
+
+def _arc_radius(start, mid, end) -> Optional[float]:
+    """Exact radius of the circle through three points (None if colinear)."""
+    (x1, y1), (x2, y2), (x3, y3) = start, mid, end
+    d = 2 * (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2))
+    if abs(d) < 1e-12:
+        return None
+    cx = ((x1**2 + y1**2) * (y2 - y3) + (x2**2 + y2**2) * (y3 - y1)
+          + (x3**2 + y3**2) * (y1 - y2)) / d
+    cy = ((x1**2 + y1**2) * (x3 - x2) + (x2**2 + y2**2) * (x1 - x3)
+          + (x3**2 + y3**2) * (x2 - x1)) / d
+    return math.hypot(x1 - cx, y1 - cy)
 
 
 def _arc_points(start, mid, end, n: int = 16) -> list[tuple[float, float]]:
@@ -728,27 +747,57 @@ class BoardGeom:
             zid += 1
 
     def _parse_outline(self, root) -> Polygon:
+        """The board outline: the LARGEST closed face Edge.Cuts forms.
+
+        `self.outline_faces` keeps every face, largest first - one face is a
+        plain outline, more than one means interior windows or a second board
+        in the file. Anything REWRITING Edge.Cuts (board_edit) must look at the
+        faces, not just the winner, or it silently drops the others.
+
+        `self.outline_arc_radii` holds every Edge.Cuts arc's EXACT radius (from
+        its three declared points). A corner radius read back from the sampled
+        polygon's AREA carries the sampling bias, so a board re-edited through
+        board_edit would inflate its own radius a little each time.
+
+        `self.outline_items` counts the Edge.Cuts primitives BY KIND, before
+        any of the early returns below. That matters: this parser returns on
+        the FIRST gr_rect it finds, so a second one (an interior window) never
+        reaches `.outline` - the counts are the only place it shows up."""
+        self.outline_faces: list[Polygon] = []
+        self.outline_arc_radii: list[float] = []
+        self.outline_items: dict[str, int] = {}
+        for kind in ("gr_rect", "gr_poly", "gr_circle", "gr_line", "gr_arc"):
+            n = sum(1 for g in _kids(root, kind)
+                    if _layer_name(g) == "Edge.Cuts")
+            if n:
+                self.outline_items[kind] = n
         edges = []
         for rect in _kids(root, "gr_rect"):
             if _layer_name(rect) != "Edge.Cuts":
                 continue
             s, e = _nums(_kid(rect, "start")), _nums(_kid(rect, "end"))
             if len(s) >= 2 and len(e) >= 2:
-                return box(min(s[0], e[0]), min(s[1], e[1]),
-                           max(s[0], e[0]), max(s[1], e[1]))
+                got = box(min(s[0], e[0]), min(s[1], e[1]),
+                          max(s[0], e[0]), max(s[1], e[1]))
+                self.outline_faces = [got]
+                return got
         for poly in _kids(root, "gr_poly"):
             if _layer_name(poly) != "Edge.Cuts":
                 continue
             pts = _pts(_kid(poly, "pts")) if _kid(poly, "pts") else _pts(poly)
             if len(pts) >= 3:
-                return Polygon(pts)
+                got = Polygon(pts)
+                self.outline_faces = [got]
+                return got
         for circ in _kids(root, "gr_circle"):
             if _layer_name(circ) != "Edge.Cuts":
                 continue
             c, e = _nums(_kid(circ, "center")), _nums(_kid(circ, "end"))
             if len(c) >= 2 and len(e) >= 2:
                 r = math.hypot(e[0] - c[0], e[1] - c[1])
-                return Point(c[0], c[1]).buffer(r, quad_segs=_QUAD_SEGS * 2)
+                got = Point(c[0], c[1]).buffer(r, quad_segs=_QUAD_SEGS * 2)
+                self.outline_faces = [got]
+                return got
         for gl in _kids(root, "gr_line"):
             if _layer_name(gl) != "Edge.Cuts":
                 continue
@@ -760,12 +809,18 @@ class BoardGeom:
                 continue
             s, m, e = _kid(ga, "start"), _kid(ga, "mid"), _kid(ga, "end")
             if s and m and e:
-                edges.append(LineString(_arc_points(
-                    tuple(_nums(s)[:2]), tuple(_nums(m)[:2]), tuple(_nums(e)[:2]))))
+                sp, mp, ep = (tuple(_nums(s)[:2]), tuple(_nums(m)[:2]),
+                              tuple(_nums(e)[:2]))
+                edges.append(LineString(_arc_points(sp, mp, ep)))
+                r = _arc_radius(sp, mp, ep)
+                if r is not None:
+                    self.outline_arc_radii.append(r)
         if edges:
-            faces = list(polygonize(unary_union(edges)))
+            faces = sorted(polygonize(unary_union(edges)),
+                           key=lambda g: g.area, reverse=True)
             if faces:
-                return max(faces, key=lambda g: g.area)
+                self.outline_faces = faces
+                return faces[0]
         return Polygon()
 
     # -------------------------------------------------- accessors

@@ -213,6 +213,34 @@ def hash_artifact(path: Path | str, norm: str) -> str | None:
 # ---------------------------------------------------------------------------
 # workspace resolution + freshness
 # ---------------------------------------------------------------------------
+def find_workspace(input_file: Path | None,
+                   explicit: str | None = None) -> Path | None:
+    """The workspace whose state.json a result/edit on `input_file` belongs in.
+
+    An explicit --workspace wins and MUST hold a state.json (a typo that
+    silently records nowhere is the bug U16 exists to kill). Otherwise the
+    input's own parents are walked - the pipeline always works on a file
+    inside its workspace, so an orchestrator that forgets the flag still
+    records. A corpus input (tests/golden/..., a mutant, a scratch export)
+    has no state.json above it and is left alone.
+
+    Used by gate.py (gate results, U16) and board_edit.py (outline edits,
+    U17): a writer that records its own consequence never forgets to.
+    """
+    if explicit:
+        ws = Path(explicit)
+        if not (ws / "state.json").is_file():
+            raise RuntimeError(f"--workspace {ws}: no state.json there")
+        return ws
+    if input_file is None:
+        return None
+    p = Path(input_file).resolve()
+    for parent in list(p.parents)[:4]:
+        if (parent / "state.json").is_file():
+            return parent
+    return None
+
+
 def kind_path(kind: str, board: str, imap: dict,
               registry: dict | None = None) -> str:
     """Workspace-relative path for a standard artifact kind. A registry entry

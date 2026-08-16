@@ -72,7 +72,7 @@ U18; hold bb-ldo / bb-adc / bb-amp / bb-mcu until U16 + U18 land.
 | U14 | Record backfill + approval session (owner present, short) | **done** | 2026-08-15 |
 | U15 | Research verb (acquisition, synthesis, second reader, auto-trigger) | **done** | 2026-08-15 |
 | U16 | Gate results must reach state.json (bb-buck defect, URGENT) | **done** | 2026-08-16 |
-| U17 | Editable board outline (board_edit.py --outline) | pending | - |
+| U17 | Editable board outline (board_edit.py --outline) | **done** | 2026-08-16 |
 | U18 | Learning mode: target outcome drives scope + binding | pending | - |
 | U19 | Bottom-side placement the annealer can discover | pending | - |
 
@@ -4650,3 +4650,153 @@ AP63203 stock test passed - live stock is back, as at T7).
   writer lock; nothing in the pipeline runs gates concurrently on one board.
 
 **New verify-later items:** none.
+
+## U17 - Editable board outline: board_edit.py (2026-08-16) - DONE
+
+The pipeline could move a part (`place_edit`), edit copper (`route_edit`) and
+add/swap/remove parts on a routed board (`board_update`) - but nothing could
+touch Edge.Cuts. The outline was written once at P5 by `board_init --outline`
+and was final, so changing the size meant a rebuild that discarded placement
+and routing. That is why bb-buck's 35x25 (given at H1) bound every later stage,
+and it blocked U18's canonical flow outright: place first, THEN shrink the
+board to what the placement needs.
+
+**Built:**
+- `board_edit.py` - `--outline WxH | fit | keep` with `--margin`, `--anchor
+  topleft|center`, `--corner-radius`, `--cutout X,Y,W,H`, `--report-only`,
+  `--replace-shape`, `--no-refill`, `--workspace` / `--no-record`. The spec is
+  ABSOLUTE (re-running the same command is a no-op), and the contract is
+  place_edit's + board_update's: stage the board AND its project sidecars in a
+  scratch dir inside the board's directory, run the SWIG worker, INDEPENDENTLY
+  re-parse (outline is one closed face at the requested bbox/radius/notches;
+  every track, via, pad, footprint and zone outline identical to before),
+  refill the zones and require DRC no worse, then `os.replace`. Any failure
+  leaves the original byte-identical.
+- `lib/board_swig.py` gains a `verb` dispatch (absent = board_init's original
+  job). `set_outline` removes the board-level Edge.Cuts shapes (RemoveNative -
+  Remove() poisons GetDrawings) and redraws through the SAME `draw_outline()`
+  board_init uses, so an edited outline and an initialized one are the same
+  geometry by construction, notches and corner arcs included.
+- The refusal model is a BEFORE/AFTER diff, not an absolute check: the same
+  issue set (`footprint_outside`, `copper_to_edge`, `hole_to_edge`,
+  `keepout_clipped`) is computed against the current outline and the proposed
+  one, and only what the edit CREATES or measurably WORSENS blocks (exit 1,
+  nothing applied, every item with its position). A part that already
+  overhangs - a declared edge connector, `constraints.json` placement.edges -
+  stays in `preexisting`. Edge clearances come from the fab profile the P9 gate
+  will use (`fabfloors.profile` on the board's own layer count + stackup
+  copper), so `board_edit` and `dfm` cannot disagree.
+- `--outline fit` = bounding box of everything that must stay on the board
+  (footprint courtyards incl. board-only mounting holes, all copper, keepout
+  rule areas) CLIPPED to the current outline, plus `--margin` snapped outward
+  to the micron. The clipping is what makes fit safe: the result contains
+  every part of every item that was inside, so fit can never invent a
+  containment violation, and an already-overhanging connector cannot enlarge
+  the board.
+- `geom.BoardGeom` gains three outline views (all set during the existing
+  parse, no second pass): `outline_faces` (every closed face, largest first),
+  `outline_arc_radii` (each arc's EXACT radius from its three declared points)
+  and `outline_items` ({gr_rect|gr_line|gr_arc|...: count} counted BEFORE the
+  parser's first-match returns). The last two are load-bearing - see the two
+  LEARNINGS entries: a radius re-derived from the polygon area drifts upward
+  on every edit, and `.outline` alone cannot see a second Edge.Cuts item.
+- `statelib.find_workspace` (moved from gate.py, which now aliases it):
+  board_edit RECORDS the `outline_change` edit itself into the workspace above
+  the board, U16's lesson applied to the next writer. The recipe therefore has
+  no `state.py edit` step - a second recorder would double-stamp.
+- `reference/invalidation.yaml`: `outline_change` (mutates pcb; stales the
+  gerber zip; gates place/drc/drc_routed/verify/dfm; human_hold 2).
+- `reference/tasks.yaml` verb `resize-board` + `reference/recipes/
+  resize-board.md` (the shrink-to-fit flow, the refusal semantics, and the
+  planes_gen follow-up). SKILL.md's "no outline-shrink step exists" known limit
+  is replaced by the capability. add-part's match gains a `not` for
+  shrink/resize/grow - "shrink the board to fit" was tying on its `fit` pattern.
+
+**Acceptance evidence:** `tests/test_board_edit.py` - 23 tests (18 pure, 5
+smoke), 26 s. Plan criteria, in order: a resize that keeps everything inside
+applies on the frozen routed pd-trigger fixture and re-parses to the exact new
+outline with the copper inventory (tracks/vias/pads/footprints/zones)
+identical and DRC no worse, and re-applying is a no-op; a resize that would
+orphan parts refuses naming them (`blocking_summary.refs`) and leaves the
+board byte-identical; a failing worker rolls back byte-identically and leaves
+no scratch dir; the edit class stales exactly the mapped set (pinned against
+invalidation.yaml, and against the state.json a real apply writes); and
+shrink-to-fit on a copy of the bb-buck workspace yields a legal outline no
+larger than its own content bbox + 2*margin, with `outline_issues` clean
+against the P9 floors and the `outline_change` edit recorded. Plus the shape
+surface: radius read exactly from the arcs, a notched outline correctly judged
+non-restatable, an injected interior gr_rect window caught by the item
+inventory, cutout rules (interior / corner-radius / off-board), and the
+declared-edge exemption on usbbuck4's J1, and a full-depth notch refused as
+"a panel, not an outline".
+
+Full suite: **1903 passed / 0 failed** (12:54). NOTE the arithmetic: U16 closed
+at 1875 and this step adds 23, so 1898 is U17's number - the rest is the U19
+session's in-flight tests, which were live in the same worktree during the run
+(place_anneal / placelib / test_place_anneal appear modified in `git status`
+and are NOT part of this commit).
+
+**Deviations (with reasons):**
+1. The edit class stales `drc` as well as the plan's place/drc_routed/verify/
+   dfm/gerbers. On the canonical flow the board is resized BEFORE routing, so
+   the P6 interim `drc` is the applicable gate; leaving it out would let a
+   stale P6 pass look fresh on the very flow U17 exists to enable.
+2. The plan did not mention zone fills. Refill + a DRC before/after comparison
+   (board_update's contract, including its refuse-on-regression tooth) is ON by
+   default; `--no-refill` opts out and says loudly that the fills still clip to
+   the old outline. A stale fill on the way IN is refused (`assert_fresh`) -
+   otherwise the DRC delta measures the refill, not the outline.
+3. Recording uses `--workspace` + auto-detection (gate.py's U16 pattern) rather
+   than board_update's `--state <path>`. Same reason U16 gave: the flag is a
+   third thing to remember at exactly the call sites that forget. A
+   requested-but-failed record is exit 2 with `applied: true` in the payload.
+4. `--replace-shape` is new (not in the plan). The rewrite is wholesale, so a
+   board whose Edge.Cuts is not a plain (rounded) rectangle cannot be edited
+   without losing something; the flag is the explicit consent, and the refusal
+   names the deviation in mm and the item inventory.
+5. `--anchor` (default topleft) is new: "resize to WxH" does not say which
+   point stays put, and centre-anchoring is what a symmetric board wants.
+6. Zone FILLS are deliberately excluded from the copper-to-edge leg - KiCad
+   re-clips them to the edge at fill time, so a pour crossing the new boundary
+   is self-healing, not a violation. Zone OUTLINES are not clipped and do not
+   follow a growing edge; that is a warning plus a planes_gen instruction
+   (LEARNINGS + triage 308).
+7. `board_edit.copper_inventory` is its own (tracks/vias/pads/footprints/
+   zones, "nothing moved") rather than board_update's `_copper_inventory`
+   (tracks+vias Counter, built for add/remove arithmetic). Different question,
+   deliberate duplication.
+8. `recipes/full-run.md` is untouched: the canonical provisional-outline ->
+   place -> fit -> route sequence is U18's to wire, and full-run is at its
+   120-line cap. The flow is written up in resize-board.md.
+9. As at U16, the pd-trigger / stm32-blinky design-doc pdf+tex regens were
+   dirty at session open (deterministic report_gen test output) and are left
+   uncommitted; `boards/xhp-driver/` stays untracked (U10 owns it).
+
+**Interface notes for later steps:**
+- CLI: `board_edit.py --pcb P --outline WxH|fit|keep [...]`; exit 0 applied (or
+  a clean `--report-only`), 1 refused with `blocking` + `blocking_summary`, 2
+  error. `board_edit.run(argv)` is importable and returns `(payload, out)`;
+  `apply_outline()` / `outline_issues()` / `describe_outline()` are the reusable
+  pieces.
+- U18's canonical flow: `board_init --outline` generous -> place -> gate place
+  -> `board_edit --outline fit --margin M` -> planes_gen (the board usually
+  GREW somewhere; pours do not follow the edge) -> route. Measured on bb-buck:
+  its courtyards sit 0.05 mm from the board edge, so fit at margin 0.5 returns
+  35.9 x 25.9 - BIGGER than the 35x25 the owner gave at H1. That is the U18
+  evidence in one number: the placement was squeezed to fit a size, and the
+  size it actually wanted was never asked for.
+- U19 (side flips) changes footprint sides, not extents math: `extents_abs()`
+  is side-agnostic, so `fit` and the containment leg need no change.
+- geom's `outline_faces` / `outline_arc_radii` / `outline_items` are available
+  to any consumer; `statelib.find_workspace` is the single "which state.json
+  owns this file" answer (gate.py aliases it).
+- The verb is `resize-board` with arg `size` (WxH|fit|keep); its edit class is
+  `outline_change`.
+
+**New verify-later items:**
+- Nothing FAILS when a board ships with a plane that stops short of its edge
+  (triage row 308, open): the honest L2 is a check comparing pour extent to the
+  outline. Until then the board_edit warning + the recipe carry it.
+- `--outline fit` uses courtyard extents; a footprint whose SILK reaches past
+  its courtyard can end up crossing the new edge. `check_silk` / the dfm silk
+  legs catch it at the gate; board_edit does not check silk today.

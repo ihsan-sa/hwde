@@ -24,6 +24,7 @@ here is how a stale gerber ships. The fixer's domain maps to the class:
 | placement (footprint move/rotate) | move_fp | placement + copper both suspect |
 | silk (labels, refdes) | silk_edit | hold 0 - cosmetics |
 | plane (zone outline/priority) | plane_edit | return paths move; hold 2 |
+| outline (board size/edge) | outline_change | hold 2 - and `board_edit.py` records it ITSELF; do not also run `state.py edit` |
 | schematic / parts (value, MPN) | swap_part_same_fp | BOM/CPL + netlist stale |
 | library (new footprint on a part) | swap_part_new_fp | geometry changed |
 | fab (rules, floors) | rule_change | .kicad_pro / .kicad_dru |
