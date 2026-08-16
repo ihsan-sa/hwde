@@ -3,10 +3,16 @@
  "board": "bb-buck",
  "workspace": "boards/bb-buck",
  "created": "2026-08-15T15:58:13",
- "updated": "2026-08-15T18:13:15",
- "phase": "P2",
+ "updated": "2026-08-15T20:55:22",
+ "phase": "P3",
  "gates": {},
- "human": {},
+ "human": {
+  "1": {
+   "status": "approved",
+   "ts": "2026-08-15T18:56:25",
+   "note": "Architecture approved. Outline 40x30 mm CONFIRMED by owner as final (irreversible at P5 board_init). Record promotion deferred to run close with bring-up evidence - verified workspace records still feed P3/P6/P7 spawns meanwhile; inrush stays provisional until then."
+  }
+ },
  "artifacts": {},
  "open_issues": [],
  "next_issue_id": 1,
@@ -121,6 +127,48 @@
    "why": "D9: 14 parts / 6 nets, and a child-sheet label exports as /<sheet>/<LABEL>, silently unhooking every constraints entry spelling it /<LABEL> (the class that cost lumina-par). D6: 1 % resistors give a worst-case SUM of ~3.7 % which fails A3; 0.5 % closes only on RSS; 0.1 %/25 ppm closes on the worst-case SUM (~2.5 %) for cents and no part-count change. D12: buck switching is not simulated by policy; the FB divider sweep catches the wrong-value class ERC/DRC/DFM are blind to, and disappears if P3 lands a fixed-output part.",
    "phase": "P2",
    "ts": "2026-08-15T17:02:10"
+  },
+  {
+   "what": "P3/P6/P7 spawns receive the knowledge prompt_block BY PATH (log/knowledge-P3.json, field prompt_block) instead of pasted inline",
+   "why": "knowledge.py --select returned 24 records / 37067 chars. Pasting that inline into every P3/P6/P7 spawn would consume the orchestrator's context for content the orchestrator must never reason about anyway (rule 1: agents read the design, the orchestrator reads contracts). Files are the interface - the agent reads the same bytes either way, and the selection is sha-stable on disk. Deviation from the SKILL.md 'paste its prompt_block here' wording, recorded.",
+   "phase": "P3",
+   "ts": "2026-08-15T18:56:59"
+  },
+  {
+   "what": "D4 CONDITION MET - 2 LAYERS CONFIRMED. JLC2313_1.6 stands; no escalation to 4L.",
+   "why": "Real datasheet Rds (LMR33630 DDA, p7 Electrical Characteristics): Rds_LS 66 mOhm typ / 110 mOhm MAX guaranteed across -40..+125 C (already worst-case, no extra hot-derating owed); Rds_HS 95/160. Conduction D*I^2*Rds_HS + (1-D)*I^2*Rds_LS at I_L,rms 2.01 A, D 0.167 = 286 mW typ / 478 mW worst-case; plus power_tree's switching+gate+Iq 286 mW = P_U1 0.57 W typ / 0.76 W worst-case against the 0.95 W gate. ~20% margin at worst case, versus the 2-7 C cushion the placeholder model predicted. The stackup is now free to freeze at P5.",
+   "phase": "P3",
+   "ts": "2026-08-15T19:25:17"
+  },
+  {
+   "what": "D3 CONDITION MET - L = 15 uH and a 2 x 22 uF C_OUT bank both sit inside the part's windows. No fallback to 10 uH needed.",
+   "why": "15 uH clears the 3.5 uH slope-comp floor and sits at 23% ripple against the device max (inside the 20-40% band). Correction to the knowledge record's reading: the 52/72 uF C_OUT figure is TI's own LOAD-TRANSIENT sizing choice (datasheet 9.2.2.5 - 'usually limited by load transient requirements, rather than output voltage ripple'), not a stability floor. bb-buck carries no binding transient spec (power_tree s5 already calls the resulting sag normal), so the binding constraint is the ripple equation, already at 10.4 mV.",
+   "phase": "P3",
+   "ts": "2026-08-15T19:25:18"
+  },
+  {
+   "what": "D11 CONDITION MET - inductor Isat 8 A vs the 6.6 A floor, DCR 27 mOhm, body 12.3 x 12.3 x 8.0 mm",
+   "why": "Floor is 1.3 x the part's max peak current limit I_SC 5.05 A = 6.6 A, not 1.3 x the 2.35 A operating peak. 21% margin. DCR 27 mOhm beats the 30 mOhm preferred target. Body sits at the TOP of the 10-12.5 mm class the 40 x 30 mm outline was sized around - it fits, with nothing to spare, which is what the outline decision anticipated.",
+   "phase": "P3",
+   "ts": "2026-08-15T19:25:18"
+  },
+  {
+   "what": "RULED (orchestrator): J1/J2 screw terminal KF128-5.08-2P-AA at 250 V / 24 A ACCEPTED against the requirements' ASSUMED >= 300 V",
+   "why": "The >= 300 V figure was an ASSUMED value the requirements-analyst wrote for a part that should never be the limiting element - not an owner requirement and not derived from the board. Actual board voltage never exceeds 30 V, so 250 V is 8x margin; current 24 A vs the ~2.5 A worst case. No single-piece 5.08 mm 2P THT SCREW terminal at >= 300 V is in stock - the 300 V options change the MECHANISM (two-piece pluggable, or spring-clamp), which is a worse trade than the voltage tier. Requirements section 2 assumption superseded.",
+   "phase": "P3",
+   "ts": "2026-08-15T19:25:18"
+  },
+  {
+   "what": "THREE part corrections vs architecture/blocks.md, all datasheet-cited; parts.json is the BOM of record for P4",
+   "why": "(1) HF bypass C1 is 220 nF/50 V/X7R per datasheet 9.2.2.6, not blocks.md's 100 nF. (2) C4/C5 case is 1210, not 1206 - no 22 uF/25 V/X7R 1206 part exists with usable stock, and 1210 matches TI's own reference design. (3) **C_VCC 1 uF/16 V was MISSING from blocks.md entirely** - datasheet 9.2.2.8 calls it required for proper operation; added as C7. P4 builds from parts.json, so the omission cannot propagate, but blocks.md is stale on these three points and the design doc will show it.",
+   "phase": "P3",
+   "ts": "2026-08-15T19:25:18"
+  },
+  {
+   "what": "A3 AMENDED by owner: ripple <= 50 mV pk-pk holds from ~200 mA to 2 A (CCM region); larger PFM burst ripple accepted below ~200 mA. +/-3% DC accuracy is UNCHANGED and still holds at all loads including 0 A.",
+   "why": "The LMR33630 DDA package has NO MODE/FPWM pin (8-pin table, none is mode select) and datasheet 8.4.1 states auto-mode only - PFM/diode-emulation at light load, explicitly 'yields larger output voltage ripple'. The only ripple evidence is Fig 8-7, a TYPICAL unguaranteed capture at Vin 12 V / Iout 10 mA, which is neither 0 A nor this board's 18-30 V range: none of the three accept criteria (forced-CCM / MODE pin / datasheet figure at this operating point) is satisfied. Owner ruled to relax rather than override the mode with a preload or re-source. PFM at light load is a deliberate efficiency feature of nearly every modern buck, and on a study article the burst behaviour is itself instructive. P8 sim bounds take the 200 mA threshold.",
+   "phase": "P3",
+   "ts": "2026-08-15T20:55:05"
   }
  ],
  "edits": [],
@@ -196,6 +244,22 @@
    "effort": "high",
    "phase": "P2",
    "note": "re-read pass: corrected buck-dc-input-hot-plug-overshoot only"
+  },
+  {
+   "ts": "2026-08-15T18:56:59",
+   "role": "part-sourcer",
+   "model": "sonnet",
+   "effort": "high",
+   "phase": "P3",
+   "note": "parts.json; must re-run the D4 thermal arithmetic against the chosen part's real Rds_LS"
+  },
+  {
+   "ts": "2026-08-15T20:55:22",
+   "role": "datasheet-extractor",
+   "model": "sonnet",
+   "effort": "high",
+   "phase": "P3",
+   "note": "U1 C841384 LMR33630ADDAR; reuses the sha-pinned research-quarantined PDF"
   }
  ],
  "history": [
@@ -375,6 +439,65 @@
    "slot": "block:B1",
    "outcome": "verified",
    "queue_entry": "2026-08-15-research-task-block-buck-1-9-verified"
+  },
+  {
+   "ts": "2026-08-15T18:56:25",
+   "event": "human",
+   "checkpoint": "1",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-08-15T18:56:25",
+   "event": "phase",
+   "phase": "P3",
+   "prev": "P2"
+  },
+  {
+   "ts": "2026-08-15T18:56:59",
+   "event": "decision",
+   "what": "P3/P6/P7 spawns receive the knowledge prompt_block BY PATH (log/knowledge-P3.json, field prompt_block) instead of pasted inline"
+  },
+  {
+   "ts": "2026-08-15T18:56:59",
+   "event": "spawn",
+   "role": "part-sourcer",
+   "model": "sonnet"
+  },
+  {
+   "ts": "2026-08-15T19:25:17",
+   "event": "decision",
+   "what": "D4 CONDITION MET - 2 LAYERS CONFIRMED. JLC2313_1.6 stands; no escalation to 4L."
+  },
+  {
+   "ts": "2026-08-15T19:25:18",
+   "event": "decision",
+   "what": "D3 CONDITION MET - L = 15 uH and a 2 x 22 uF C_OUT bank both sit inside the part's windows. No fallback to 10 uH needed."
+  },
+  {
+   "ts": "2026-08-15T19:25:18",
+   "event": "decision",
+   "what": "D11 CONDITION MET - inductor Isat 8 A vs the 6.6 A floor, DCR 27 mOhm, body 12.3 x 12.3 x 8.0 mm"
+  },
+  {
+   "ts": "2026-08-15T19:25:18",
+   "event": "decision",
+   "what": "RULED (orchestrator): J1/J2 screw terminal KF128-5.08-2P-AA at 250 V / 24 A ACCEPTED against the requirements' ASSUMED >= 300 V"
+  },
+  {
+   "ts": "2026-08-15T19:25:18",
+   "event": "decision",
+   "what": "THREE part corrections vs architecture/blocks.md, all datasheet-cited; parts.json is the BOM of record for P4"
+  },
+  {
+   "ts": "2026-08-15T20:55:05",
+   "event": "decision",
+   "what": "A3 AMENDED by owner: ripple <= 50 mV pk-pk holds from ~200 mA to 2 A (CCM region); larger PFM burst ripple accepted below ~200 mA. +/-3% DC accuracy is UNCHANGED and still holds at all loads including 0 A."
+  },
+  {
+   "ts": "2026-08-15T20:55:22",
+   "event": "spawn",
+   "role": "datasheet-extractor",
+   "model": "sonnet"
   }
  ]
 }
