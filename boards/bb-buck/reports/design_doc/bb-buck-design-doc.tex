@@ -16,7 +16,7 @@
 \begin{center}
 {\LARGE\bfseries bb-buck --- Design Document}\\[6pt]
 {\large ai-ee v1 pipeline}\\[2pt]
-generated 2026-08-15 18:13:58
+generated 2026-08-15 22:22:41
 \end{center}
 \tableofcontents
 
@@ -29,10 +29,10 @@ generated 2026-08-15 18:13:58
 \endhead
 board & bb-buck \\
 workspace & \texttt{boards/bb-buck} \\
-phase & P2 \\
+phase & P4 \\
 gate status & no gates recorded yet \\
 state created & 2026-08-15T15:58:13 \\
-state updated & 2026-08-15T18:13:15 \\
+state updated & 2026-08-15T22:11:49 \\
 \bottomrule
 \end{longtable}
 }
@@ -261,10 +261,49 @@ lead-inductance ringing case (\textasciitilde{}60 V from a 30 V setting) is ther
 of the requirement set. The datasheet-required bulk input capacitance
 stays fitted and damps the incidental case; no damping component is
 added. A 36 V-class part is sufficient under this answer.
-\item \textbf{A3 - Output spec.} +/-3 \% DC, i.e. 4.85-5.15 V, held across the FULL
-18-30 V input range and the FULL 0-2 A load range, with \textless{}= 50 mV
-peak-to-peak output ripple. These are the numbers the feedback divider
-tolerance, the output capacitance and the P8 simulation bounds must meet.
+\item {*}{*}A3 - Output spec. AMENDED TWICE AT P3/P4 - read the amendment below, not
+just this paragraph.{*}{*} As originally answered: +/-3 \% DC, i.e. 4.85-5.15 V,
+held across the FULL 18-30 V input range and the FULL 0-2 A load range,
+with \textless{}= 50 mV peak-to-peak output ripple.
+\textbf{A3 AS AMENDED (this is the binding version).} A3 now has a TWO-REGION
+shape, and both amendments have the same root cause: the chosen part runs
+PFM / diode-emulation at light load and has no MODE pin to defeat it.
+\end{itemize}
+\begin{quote}\small\ttfamily\raggedright
+  \textbar{} Load \textbar{} DC accuracy \textbar{} Ripple \textbar{}\\
+  \textbar{}---\textbar{}---\textbar{}---\textbar{}\\
+  \textbar{} \textasciitilde{}200 mA to 2 A \textbar{} +/-3 \% (4.85-5.15 V) BINDING \textbar{} \textless{}= 50 mV pk-pk BINDING \textbar{}\\
+  \textbar{} 0 to \textasciitilde{}200 mA \textbar{} PFM light-load rise ACCEPTED \textbar{} PFM burst ripple ACCEPTED \textbar{}
+\end{quote}
+\begin{itemize}
+\item \emph{Amendment 1 (P3, owner-ruled).} The DDA package has no MODE/FCCM pin and
+is auto-mode only (datasheet 8.4.1, which states outright that PFM
+"yields larger output voltage ripple"). None of the three accept criteria
+\begin{itemize}
+\item forced-CCM, a strappable MODE pin, or a datasheet figure at this
+operating point - was satisfiable. The mode excludes the usual fix (a
+preload resistor is excluded conditioning), so the owner relaxed ripple
+below \textasciitilde{}200 mA rather than override the mode or re-source the part.
+\item \emph{Amendment 2 (P4, owner-ruled).} The SAME PFM behaviour also raises the
+output VOLTAGE at light load: datasheet Sec 7.7 specs regulation as
+-1.5/+1.5 \% for IOUT \textgreater{}= 1 A but \textbf{-1.5/+2.5 \% for IOUT 0 A to max}, a
++1.0 \% adder confirmed by Fig 9-19. Stacked on the worst 0-50 C divider
+corner that gave 5.161 V against the 5.15 V ceiling - outside. So the
+carve-out extends to DC accuracy below \textasciitilde{}200 mA. An earlier statement that
+DC accuracy was unaffected at all loads was WRONG and is retracted here.
+\item \emph{Paid for, not merely relaxed.} The owner took the recentring remedy as
+well: the feedback divider moved from 100k/24.9k (5.016 V nominal, TI's
+own Table 9-2 pair) to \textbf{102k/25.5k}, an exact 4.000 ratio giving
+\textbf{5.000 V nominal}. That moved the stacked 0 A worst case from 5.161 V
+to 5.144 V - inside the original window even though it no longer has to
+be. Both parts are E96, 0.1 \%/25 ppm, same Yageo RT family (TCR tracking
+preserved).
+The P8 simulation bounds encode this: error bounds stay on the full
+4.85-5.15 V window (the divider ratio is load-independent, so the carve-out
+relaxes the CONVERTER, not the divider), plus a warning-severity bound
+carrying the +1.0 \% light-load stack so it stays visible in the gate. That
+warning bound is the ONLY check that catches a revert to 100k/24.9k.
+\end{itemize}
 \item \textbf{A4 - Probe access.} Exactly ONE switch-node probe pad with an adjacent
 ground pad. Nothing else: VIN, VOUT and GND are already reachable at the
 two screw terminals. Mode-boundary ruling by the owner - the switch node
@@ -299,6 +338,27 @@ P2 & D2 Lead part class: 36 V-class SYNC integrated-FET 3 A-class, exposed-pad S
 P2 & D3 fsw 400 kHz, L = 15 uH (P1 recommended 500 kHz / 10 uH) & The lead part is a FIXED 400 kHz device with no RT pin, and 400 kHz sits inside P1's own 350-600 band. At 400 kHz L must be 15 uH (10 uH gives 52\% ripple); P\_U1 improves 0.924 -\textgreater{} 0.854 W. dI 0.694 A, I\_L,pk 2.35 A, ripple 10.4 mVpp. Reverses if the part's internal-compensation L/C table excludes 15 uH - fallback 10 uH at 400 kHz (15.6 mVpp, I\_L,pk 2.52 A, both in spec). \\
 P2 & D8 canonical net names +VIN /SW +5V GND (/FB and /BST deliberately NOT in constraints power{[}{]}) & P1 proposed VIN/SW; renamed to match the KiCad export mechanism (power symbols export bare, root-sheet local labels export with one leading slash). A power{[}{]} entry on /FB would put a width rule on a high-impedance sense node and pull it into the check\_pdn decoupling inventory. P4 must run netlist\_audit.py - a rename surfaces as missing\_net (error) and nothing else catches it. \\
 P2 & D9 ONE FLAT ROOT SHEET, hierarchy rejected; D6 FB divider 0.1 \%/25 ppm; D12 exactly ONE sim candidate (FB divider DC accuracy vs A3's window) & D9: 14 parts / 6 nets, and a child-sheet label exports as /\textless{}sheet\textgreater{}/\textless{}LABEL\textgreater{}, silently unhooking every constraints entry spelling it /\textless{}LABEL\textgreater{} (the class that cost lumina-par). D6: 1 \% resistors give a worst-case SUM of \textasciitilde{}3.7 \% which fails A3; 0.5 \% closes only on RSS; 0.1 \%/25 ppm closes on the worst-case SUM (\textasciitilde{}2.5 \%) for cents and no part-count change. D12: buck switching is not simulated by policy; the FB divider sweep catches the wrong-value class ERC/DRC/DFM are blind to, and disappears if P3 lands a fixed-output part. \\
+P3 & P3/P6/P7 spawns receive the knowledge prompt\_block BY PATH (log/knowledge-P3.json, field prompt\_block) instead of pasted inline & knowledge.py --select returned 24 records / 37067 chars. Pasting that inline into every P3/P6/P7 spawn would consume the orchestrator's context for content the orchestrator must never reason about anyway (rule 1: agents read the design, the orchestrator reads contracts). Files are the interface - the agent reads the same bytes either way, and the selection is sha-stable on disk. Deviation from the SKILL.md 'paste its prompt\_block here' wording, recorded. \\
+P3 & D4 CONDITION MET - 2 LAYERS CONFIRMED. JLC2313\_1.6 stands; no escalation to 4L. & Real datasheet Rds (LMR33630 DDA, p7 Electrical Characteristics): Rds\_LS 66 mOhm typ / 110 mOhm MAX guaranteed across -40..+125 C (already worst-case, no extra hot-derating owed); Rds\_HS 95/160. Conduction D{*}I\textasciicircum{}2{*}Rds\_HS + (1-D){*}I\textasciicircum{}2{*}Rds\_LS at I\_L,rms 2.01 A, D 0.167 = 286 mW typ / 478 mW worst-case; plus power\_tree's switching+gate+Iq 286 mW = P\_U1 0.57 W typ / 0.76 W worst-case against the 0.95 W gate. \textasciitilde{}20\% margin at worst case, versus the 2-7 C cushion the placeholder model predicted. The stackup is now free to freeze at P5. \\
+P3 & D3 CONDITION MET - L = 15 uH and a 2 x 22 uF C\_OUT bank both sit inside the part's windows. No fallback to 10 uH needed. & 15 uH clears the 3.5 uH slope-comp floor and sits at 23\% ripple against the device max (inside the 20-40\% band). Correction to the knowledge record's reading: the 52/72 uF C\_OUT figure is TI's own LOAD-TRANSIENT sizing choice (datasheet 9.2.2.5 - 'usually limited by load transient requirements, rather than output voltage ripple'), not a stability floor. bb-buck carries no binding transient spec (power\_tree s5 already calls the resulting sag normal), so the binding constraint is the ripple equation, already at 10.4 mV. \\
+P3 & D11 CONDITION MET - inductor Isat 8 A vs the 6.6 A floor, DCR 27 mOhm, body 12.3 x 12.3 x 8.0 mm & Floor is 1.3 x the part's max peak current limit I\_SC 5.05 A = 6.6 A, not 1.3 x the 2.35 A operating peak. 21\% margin. DCR 27 mOhm beats the 30 mOhm preferred target. Body sits at the TOP of the 10-12.5 mm class the 40 x 30 mm outline was sized around - it fits, with nothing to spare, which is what the outline decision anticipated. \\
+P3 & RULED (orchestrator): J1/J2 screw terminal KF128-5.08-2P-AA at 250 V / 24 A ACCEPTED against the requirements' ASSUMED \textgreater{}= 300 V & The \textgreater{}= 300 V figure was an ASSUMED value the requirements-analyst wrote for a part that should never be the limiting element - not an owner requirement and not derived from the board. Actual board voltage never exceeds 30 V, so 250 V is 8x margin; current 24 A vs the \textasciitilde{}2.5 A worst case. No single-piece 5.08 mm 2P THT SCREW terminal at \textgreater{}= 300 V is in stock - the 300 V options change the MECHANISM (two-piece pluggable, or spring-clamp), which is a worse trade than the voltage tier. Requirements section 2 assumption superseded. \\
+P3 & THREE part corrections vs architecture/blocks.md, all datasheet-cited; parts.json is the BOM of record for P4 & (1) HF bypass C1 is 220 nF/50 V/X7R per datasheet 9.2.2.6, not blocks.md's 100 nF. (2) C4/C5 case is 1210, not 1206 - no 22 uF/25 V/X7R 1206 part exists with usable stock, and 1210 matches TI's own reference design. (3) {*}{*}C\_VCC 1 uF/16 V was MISSING from blocks.md entirely{*}{*} - datasheet 9.2.2.8 calls it required for proper operation; added as C7. P4 builds from parts.json, so the omission cannot propagate, but blocks.md is stale on these three points and the design doc will show it. \\
+P3 & A3 AMENDED by owner: ripple \textless{}= 50 mV pk-pk holds from \textasciitilde{}200 mA to 2 A (CCM region); larger PFM burst ripple accepted below \textasciitilde{}200 mA. +/-3\% DC accuracy is UNCHANGED and still holds at all loads including 0 A. & The LMR33630 DDA package has NO MODE/FPWM pin (8-pin table, none is mode select) and datasheet 8.4.1 states auto-mode only - PFM/diode-emulation at light load, explicitly 'yields larger output voltage ripple'. The only ripple evidence is Fig 8-7, a TYPICAL unguaranteed capture at Vin 12 V / Iout 10 mA, which is neither 0 A nor this board's 18-30 V range: none of the three accept criteria (forced-CCM / MODE pin / datasheet figure at this operating point) is satisfied. Owner ruled to relax rather than override the mode with a preload or re-source. PFM at light load is a deliberate efficiency feature of nearly every modern buck, and on a study article the burst behaviour is itself instructive. P8 sim bounds take the 200 mA threshold. \\
+P3 & Min on-time for THIS package is 75-108 ns (DDA), NOT the 68 ns headline - and it is not binding & datasheet\_extract: the Features-bullet 68 ns is the RNX/VQFN value; Table 7.6 gives DDA-specific 75 ns typ / 108 ns max. Required t\_on at the 30 V corner is 5/30/400 kHz = 417 ns, so even the 108 ns max leaves \textasciitilde{}3.9x margin. The P1 selection filter (t\_on\_min \textless{}= 130 ns) is satisfied by the correct number, not only by the optimistic one. \\
+P3 & Thermal vias under U1: \textgreater{}= 16 (P1/D4 thermal condition), which also clears the datasheet's own 4x3 = 12 minimum. Figure 10-2's \textasciitilde{}6 vias is NOT the spec. & datasheet\_extract found a genuine intra-datasheet discrepancy: section 10.1.1 text mandates a minimum 4x3 array of 10-mil thermal vias (12) while the worked example Figure 10-2 draws only \textasciitilde{}6. The extraction records 12 as binding text and flags the mismatch so P6/P7 cannot silently copy the smaller figure count. Our own 2L thermal case was computed at \textgreater{}= 16, which is the stricter number and therefore governs. \\
+P3 & FOOTPRINT RISK for the librarian/fp\_verify: the datasheet carries TWO DDA mechanical revisions with DIFFERENT exposed-pad sizes - DDA0008J (03/2016) and DDA0008B (09/2025). Extraction used the NEWER DDA0008B (pad copper 2.71 x 3.4 mm). & A pulled or stock footprint built to the 2016 drawing will have the wrong exposed-pad size against the extraction. fp\_verify must be checked against DDA0008B's 1.27 mm pitch, 8 x (0.6 x 1.55 mm) pads, 5.4 mm row spacing and 2.71 x 3.4 mm pad copper. Also note the pinout table itself does not number the pad - 'pin 9' comes only from the mechanical drawing's corner callouts, which is exactly the kind of mismatch that breaks a symbol-to-footprint pin map. \\
+P3 & OPEN RISK carried to P4 review: C\_OUT is 2x22uF/25V where TI's own DDA/400 kHz/5 V reference BOM uses 4x22uF/16V. Confirm 2x is inside the part's STABILITY window, not merely its ripple budget. & The part-sourcer justified 2x by finding the 52/72 uF figure in record buck-cmode-internal-comp-cout-window is TI's LOAD-TRANSIENT sizing choice (9.2.2.5), not a stability floor, and bb-buck has no binding transient spec - sound for transient. But the extraction independently reports TI's reference BOM as 4x22uF/16V, and an internally-compensated current-mode loop places its output pole from C\_OUT: 2x22 uF at 25 V derates under 5 V bias to \textasciitilde{}32 uF effective vs \textasciitilde{}66 uF for TI's 4x. Narrow question for the P4 schematic-reviewer to answer FROM THE DATASHEET: is a minimum C\_OUT stated for loop stability (as distinct from transient), and does \textasciitilde{}32 uF effective sit inside it? If not, the fix is cheap now (add C8/C9, same MPN - the 40x30 outline has room) and expensive after P6. \\
+P3 & RULED (orchestrator): ACCEPT the vendor U1 footprint as pulled (signal pads 0.6 x 1.3 mm vs DDA0008B nominal 0.6 x 1.55; EP 2.5 x 3.5 vs 2.71 x 3.4). No redraw. & fp\_verify rates it a WARNING, not an error, and pitch 1.27 mm and row spacing 5.4 mm are both exact - the geometry that determines whether the part lands correctly is right. The deviation is small and in the safe direction: shorter toes and a slightly narrower EP mean MORE clearance, not bridging risk; EP area 8.75 vs 9.21 mm2 is a 5\% thermal delta against a case that already carries \textasciitilde{}20\% margin. Decisive argument: this is the LCSC/EasyEDA footprint that JLC's own assembly process is built around, so redrawing to datasheet nominal trades a paper match for a mismatch with the house that actually builds the board. Cost of being wrong is a slightly smaller toe fillet on a bench article, and T8's swap\_new\_fp makes a later change non-destructive. Owner can override. \\
+P3 & RULED (orchestrator): ACCEPT the courtyard-cuts-through-pads defect on C0603/R0603/C1210/L1. No redraw. & Documented library-wide easyeda2kicad class (courtyard = body outline only, smaller than the pad span). It is NOT silently breaking placement legality: since the T-fix, pairwise overlap tests the PRECISE shape - declared courtyard UNION pad bbox - so placelib already accounts for the pads the courtyard omits. All 6 footprints HAVE an F.CrtYd (none courtyard-less, which is the case that genuinely degrades the place gate). No clean redraw convention exists yet beyond '0.25 mm beyond pad-field bbox'. Revisit as a library-level fix, not per-board. \\
+P3 & No new research opened at the P3 exit despite block:B1 re-firing at the proven floor & The mode's first-call escalation (--maturity-floor proven --research-provisional) re-reports block:B1 as gap because no buck record is yet PROVEN and only bring-up evidence can retire that - it is the same slot already researched at P2 (task block-buck-1, 9 records, 9 verified). Re-opening it would re-research work just done and burn a second per\_run slot for nothing; the mode's own instruction is to re-run WITHOUT the flags after research so the re-run folds in what was learned. The genuinely NEW P3 slot - the part slot (datasheet-layout) - reads COVERED off the C841384 extraction's 16 layout bullets, which is exactly the P3-exit test. Plain re-run: 0 gaps. \\
+P4 & ONE schematic agent for the whole board (recipe's small-board amendment), not one per sheet & P2 decision D9 rejected hierarchy: 14 parts / 6 nets on ONE FLAT ROOT SHEET. There is exactly one sheet, so a per-sheet split would spawn one agent and a stitcher for the same file. Recorded per the full-run recipe: 'Small boards may use ONE schematic agent (record it).' \\
+P4 & APPROVED after the fact: schematic agent retyped lib/aiee.kicad\_sym U1 pin 7 (BOOT) from power\_in to passive & Evidence-first, and the agent showed its work: with the retype disabled the finished sheet produced EXACTLY ONE ERC finding, power\_pin\_not\_driven on U1 pin 7, and nothing else. /BST has no schematic-visible driver because the boot diode is inside the package. The PWR\_FLAG alternative would clear ERC but drag /BST into netlist\_audit power\_undeclared, and sheets.md s4 deliberately leaves /BST undeclared. Precedent: sbuck-5v3a's AP64350 BST pin carries the same passive typing. Deviations are listed in gen/lib\_pin\_types.py so a later lib\_pull cannot silently re-type wholesale. \\
+P4 & E1 CONFIRMED (reviewer, error): C\_OUT 2 x 22 uF is OUTSIDE the datasheet's stability-scoped range. FIX = add C8/C9, same MPN C2918511, to reach 4 x 22 uF. & The earlier phase was right that Eq 6 is a transient bound, but never reached Sec 9.2 p19: 'the internal compensation is optimized for a certain range of external inductance and output capacitance' - quantified ONLY in Table 9-2 p20, whose 400 kHz / 5 V row this board matches on EVERY entry (RFBT 100k, RFBB 24.9k, CBOOT, CVCC, CFF open) except L and C\_OUT, and which specifies 4 x 22 uF RATED. Every 400 kHz row is 4x; 2x appears only at 1400/2100 kHz. TI's own DDA characterization BOM (Table 9-3 p31) used 4 x 22 uF at this exact operating point. Physics: fixed internal Type-II compensation makes fc \textasciitilde{} 1/C\_OUT exactly, so halving C\_OUT roughly doubles crossover toward fSW/2 = 200 kHz, on an all-ceramic bank whose ESR zero sits near 3 MHz and contributes no phase boost. The failure is SILENT at DC and appears only on load/line steps - which is precisely why no gate on this board would have caught it. Derating does not rescue 2x: effective ratio to TI's 16 V bank (\textasciitilde{}0.52) tracks the rated ratio (0.50). Cost \textasciitilde{}\$0.45/board, free now, expensive after P5/P6. \\
+P4 & W1 will be FIXED not waived: input bank 2 x 10 uF / 50 V straddles the datasheet's 10 uF EFFECTIVE minimum. Add a third 10 uF (C10, same MPN C2918502). & Sec 9.2.2.6 requires 10 uF MINIMUM and Sec 9.1 p19 defines that as EFFECTIVE, not nameplate. 2 x 10 uF / 50 V gives 10-12 uF effective at 30 V bias, falling to 8.5-10.5 uF with tolerance and the 85-90 C board temperature constraints.json predicts - i.e. BELOW the minimum in the worst corner. It is only a warning because it straddles rather than clearly fails, but the schematic is being regenerated for E1 anyway, the part is \textasciitilde{}\$0.08, and the 40 x 30 mm outline has room. Fixing is strictly better than waiving when the regeneration is already happening. NOTE the mode does NOT argue against this: ultra-bare-bones explicitly INCLUDES the support components the datasheet requires at the stated operating point, so under-populating was the mode violation, not over-populating. \\
+P4 & W2 is a LAYOUT carry-forward to P6/P7, not a schematic fix: R2's ground return must be pinned to the AGND/EP reference & Reviewer: nothing currently enforces it - constraints.json's feedback group covers only /FB routing, and the \_review\_enforced item 5 covers only Cin/Cout returns. The exposed pad IS AGND (Table 6-1: all electrical parameters are measured with respect to it), so the divider's bottom-leg return is a reference-accuracy path, not just a ground connection. Carry into the placement and routing spawns explicitly. \\
+P4 & CORRECTION to the earlier A3 amendment: DC accuracy at 0 A is NOT unaffected by PFM. Owner ruled BOTH remedies: recentre the divider to 102k/25.5k AND extend the light-load carve-out to cover DC accuracy below \textasciitilde{}200 mA. & sim-analyst finding, from datasheet SNVSAN3F Sec 7.7: VOUT regulation at 5 V is -1.5/+1.5 pct for IOUT \textgreater{}= 1 A but -1.5/{*}{*}+2.5 pct{*}{*} for IOUT 0 A to max - a +1.0 pct light-load adder, stated outright in Sec 8.4.1 (PFM / frequency foldback raises Vout at light load) and visible as a 5.01-5.06 V band in Fig 9-19. A3 explicitly requires 0 A. Stacked on the bench's binding 0-50 C corner: 5.10958 x 1.010 = 5.161 V, MISSING the 5.15 V ceiling by 11 mV. Root cause is NOT the resistors (they own only 0.26 pct of the +2.19 pct budget; VREF and the setpoint offset own the rest) but the +0.32 pct setpoint offset - TI's own Table 9-2 pair sets 5.0161 V, not 5.000. My earlier statement that DC accuracy was unchanged at all loads was wrong; same PFM root cause as the ripple carve-out already accepted. \\
+P4 & R1 100k -\textgreater{} 102k (C861068) and R2 24.9k -\textgreater{} 25.5k (C861257): exact 4.000 ratio, 5.000 V nominal. Both E96, both 0.1 pct / 25 ppm, same Yageo RT family (TCR tracking preserved), both verified in stock (2009 / 18845 vs 25 needed). & Recentring moves the stacked worst case from 5.161 V (outside) to \textasciitilde{}5.144 V (inside by 6 mV) and costs nothing - same package, same family, same price class, no library work (R0603 already pulled). It deliberately departs from TI Table 9-2's 100k/24.9k row, which is acceptable because the divider is a SETPOINT item, not a stability item: the ratio sets Vout, and the absolute values matter only for the 1 M CFF threshold (102k is far below it) and for noise, where 102k is the same impedance class. \\
 \bottomrule
 \end{longtable}
 }
@@ -387,7 +447,9 @@ TP2's ground returns straight down to the B.Cu pour beneath it.
 
 Full architecture narrative (not inlined; see the artifact index): \texttt{architecture/blocks.md}, \texttt{architecture/decisions.md}, \texttt{architecture/power\_tree.md}, \texttt{architecture/stackup.md}.
 \section{Schematic}
-\emph{Pending --- produced at P4.}
+Gate \texttt{erc}: \emph{not recorded}.
+The full schematic PDF follows.
+\includepdf[pages=-]{reports/schematic.pdf}
 \section{Layout}
 \emph{Pending --- produced at P6.}
 \section{Verification}
@@ -447,35 +509,83 @@ Full architecture narrative (not inlined; see the artifact index): \texttt{archi
 \# P2 Architecture - digest (2026-08-15)\\
 ~\\
 - One block (B1 sync buck) + J1/J2 screw terminals + TP1/TP2 SW probe pair + 4x M3.\\
-  14 parts, 6 nets, ONE FLAT ROOT SHEET (a child-sheet label exports as\\
-  /\textless{}sheet\textgreater{}/\textless{}LABEL\textgreater{} and silently unhooks constraints - the class that cost lumina-par).\\
-  Canonical nets now binding: +VIN /SW +5V GND (/FB, /BST undeclared by design).\\
-- Stackup JLC2313\_1.6, 2L, 1 oz - CONDITIONAL, escalation trigger named numerically\\
-  (P\_U1 \textgreater{} 0.95 W = Rds\_LS \textgreater{} \textasciitilde{}110 mOhm at 400 kHz). Outline {*}{*}40 x 30 mm FINAL{*}{*}.\\
-- fsw 400 kHz / L 15 uH (part is fixed-400 kHz, inside P1's band). P1's fixed-output\\
-  preference LOST to stock reality -\textgreater{} adjustable + FB divider at 0.1 \%/25 ppm, which\\
-  closes A3 on worst-case SUM (2.5 \%) not just RSS. constraints\_lint 0/0 (verified).\\
-- Architect corrected 3 premises in its own brief, all verified: rules\_gen already\\
-  buckets power nets per IPC-2152 width (no flattening defect); planes{[}{]} REPLACES\\
-  layer defaults and rejects unknown keys incl. `\_note`; `pdn:false` also skips\\
-  check\_irdrop/check\_pdn\_z so it was dropped from GND. -\textgreater{} LEARNINGS.md entry.\\
-- {*}{*}Coverage (mode floor `proven` + --research-provisional): 1 slot, 10 classes, all\\
-  gap{*}{*} - 8 blocked only on maturity, 3 substantive (inrush outside on source\_kind,\\
-  snubber outside on rectifier\_kind, COT outside on control\_kind). Mapper skipped as\\
-  a provable no-op (every record already keyed; edges cannot move maturity/envelope).\\
-- Research task block-buck-1: 3 sources (LMR33630 SNVSAN3F vendor-layout + 2 TI app\\
-  notes), 12+ pages read visually, {*}{*}9 records, 9 verified / 0 refuted{*}{*}, depth 3/4.\\
-  Second reader REFUTED one on first pass (record read Li as 0.3 uH; the figure prints\\
-  {*}{*}9.3 uH{*}{*} - a 31x error that mis-sized the damping criterion). Corrected, re-read\\
-  fresh-context with gridline-calibrated vector measurement, verified.\\
-- {*}{*}Re-run coverage: 9 covered / 1 provisional (inrush) / 0 gap, exit 0.{*}{*} Research\\
-  narrowed the only genuine library hole; the owner's promotion ruling closes it.\\
-- Design-relevant findings: (a) hot-plug at 30 V would ring to 45-49 V vs the part's\\
-  38 V abs-max - A2 (no live hot-plug) is what makes the clamp-free mode safe;\\
-  (b) the EP is {*}{*}AGND{*}{*}, the reference all electrical parameters are measured to, so\\
-  the thermal via array is a loop-accuracy item; (c) 2L is a DOCUMENTED deviation from\\
-  the datasheet's own layout rule 5, measured \textasciitilde{}5 dBuV/m - binds P6/P7 to keep the\\
-  bottom pour unbroken under hot loop, SW and inductor.
+  14 parts, 6 nets, ONE FLAT ROOT SHEET. Canonical nets: +VIN /SW +5V GND.\\
+  Stackup JLC2313\_1.6 2L 1 oz CONDITIONAL (trigger: P\_U1 \textgreater{} 0.95 W = Rds\_LS \textgreater{} \textasciitilde{}110\\
+  mOhm at 400 kHz). {*}{*}Outline 40 x 30 mm FINAL{*}{*} - owner-confirmed at H1.\\
+- fsw 400 kHz / L 15 uH. P1's fixed-output preference LOST to stock reality -\textgreater{}\\
+  adjustable + 0.1 \%/25 ppm divider, closing A3 on worst-case SUM. lint 0/0.\\
+- Architect corrected 3 briefing premises, all verified (rules\_gen already buckets\\
+  per IPC-2152 width; planes{[}{]} REPLACES defaults and rejects `\_note`; pdn:false also\\
+  skips check\_irdrop) -\textgreater{} LEARNINGS.md entry, incl. a latent sbuck-5v3a defect.\\
+- Coverage at the mode floor: 1 slot / 10 classes all gap (8 maturity-only, 3\\
+  substantive). Mapper skipped as a provable no-op. Research block-buck-1: 3 TI\\
+  sources, 12+ pages read visually, 9 records. Reader REFUTED 1 (record said 0.3 uH,\\
+  figure prints {*}{*}9.3 uH{*}{*} - 31x, mis-sized the damping criterion); corrected,\\
+  re-read fresh -\textgreater{} {*}{*}9 verified / 0 refuted{*}{*}. Re-run: 9 covered / 1 provisional\\
+  (inrush) / 0 gap.\\
+- Design-relevant: hot-plug at 30 V rings to 45-49 V vs 38 V abs-max (A2 is what\\
+  makes the clamp-free mode safe); the EP is {*}{*}AGND{*}{*}, so the via array is a\\
+  loop-accuracy item; 2L is a documented deviation from the datasheet's layout rule 5\\
+  at \textasciitilde{}5 dBuV/m -\textgreater{} P6/P7 must keep the bottom pour unbroken under hot loop, SW and L.\\
+- H1 APPROVED. Promotion of the 9 records deferred to run close with bring-up.
+\end{quote}
+\paragraph*{P3}
+\begin{quote}\small\ttfamily\raggedright
+\# P3 Parts + Library - digest (2026-08-15)\\
+~\\
+- parts.json: 10 distinct parts / 13 refdes, \textasciitilde{}\$1.63/board, 1 Basic + 9 Extended.\\
+  U1 has NO drop-in alternate (async candidates D1-rejected; frequency siblings\\
+  cascade into L/C\_OUT re-derivation).\\
+- {*}{*}D4 MET - 2 LAYERS CONFIRMED{*}{*}: real Rds\_LS 66 typ / 110 max mOhm over full temp\\
+  -\textgreater{} P\_U1 0.57 typ / 0.76 W worst-case vs the 0.95 W gate, \textasciitilde{}20 \% margin (the\\
+  placeholder model predicted 2 C). D3 met (15 uH + 2x22 uF inside both windows).\\
+  D11 met (Isat 8 A vs 6.6 A floor, DCR 27 mOhm, 12.3 mm body).\\
+- {*}{*}A3 AMENDED by owner{*}{*}: \textless{}= 50 mV holds 200 mA - 2 A, PFM burst ripple accepted\\
+  below. DDA has no MODE pin, auto-mode only (8.4.1). DC accuracy unchanged.\\
+- Extraction validated (9 pins, EP = {*}{*}AGND{*}{*}). Traps: the 68 ns min-on-time headline\\
+  is the VQFN part's (DDA 75-108 ns vs our 417 ns need); 10.1.1's 4x3=12 vias\\
+  contradicts Fig 10-2's \textasciitilde{}6 - our \textgreater{}= 16 governs. Two DDA revs with different EP sizes.\\
+- Library 10/10 pulled, 6/6 load-check, 27 pins retyped, no B.Cu lands, no netless PTH\\
+  in the EP (LM5017 precedent did not repeat). RULED: accept the vendor U1 land\\
+  (warning-level; it is what JLC's process is built around) and the library-wide\\
+  courtyard-cuts-pads class (placelib unions pad bbox).\\
+- {*}{*}Coverage P3: 1 covered (part slot) / 1 provisional (inrush) / 0 gaps.{*}{*}\\
+- OPEN RISK to P4 review: C\_OUT 2x22 uF vs TI's 4x22 uF reference - stability or only\\
+  ripple?
+\end{quote}
+\paragraph*{P4}
+\begin{quote}\small\ttfamily\raggedright
+\# P4 Schematic - digest (2026-08-15)\\
+~\\
+- ONE schematic agent (flat root sheet, recorded deviation). Generator\\
+  `kicad/gen/root.py` is the source; the .kicad\_sch is build output.\\
+- {*}{*}Gates: erc 0 errors / 0 warnings; netlist\_audit exit 0; sim PASS\\
+  (0 err / 0 warn, 10 bounds, 18 measures).{*}{*} 22 components, 8 nets.\\
+- Cleared by the reviewer on datasheet evidence: EN-\textgreater{}+VIN direct (Table 6-1\\
+  sanctions it, and EN abs-max is VIN+0.3 so it cannot be violated by\\
+  construction), PG open no-connect, EP=AGND tied to GND (the datasheet\\
+  REQUIRES the tie), CFF correctly open (confirmed three ways), full abs-max\\
+  sweep at 30 V, ton 417 ns vs 108 ns, Isat 8 A vs the strict 5.05 A criterion.\\
+- {*}{*}Fix pass, 3 changes.{*}{*} E1 (error): C\_OUT 2 -\textgreater{} {*}{*}4 x 22 uF{*}{*} - 2x is outside\\
+  the internal compensation's optimised range (Sec 9.2 p19, quantified only in\\
+  Table 9-2 p20 whose 400 kHz/5 V row is 4x; every 400 kHz row is 4x). Failure\\
+  would have been SILENT at DC, visible only on load/line steps. W1: input bulk\\
+  2 -\textgreater{} {*}{*}3 x 10 uF{*}{*} (the 10 uF minimum is EFFECTIVE, and 2x fell to \textasciitilde{}8.5 uF in\\
+  the worst corner). A3: divider {*}{*}100k/24.9k -\textgreater{} 102k/25.5k{*}{*}, exact 4.000\\
+  ratio, 5.000 V nominal. +\$0.52/board.\\
+- {*}{*}A3 amended a second time and requirements.md updated.{*}{*} Sec 7.7 gives\\
+  -1.5/+2.5 \% regulation for IOUT 0 A to max (vs +/-1.5 \% above 1 A) - the same\\
+  PFM root cause as the ripple carve-out. Stacked worst case was 5.161 V vs the\\
+  5.15 V ceiling; recentring moved it to 5.144 V. My earlier "DC accuracy\\
+  unaffected" statement was wrong and is retracted in requirements.md.\\
+- Sim calibration proved the light-load warning bound is load-bearing: a revert\\
+  to 100k/24.9k produces ZERO errors and is caught ONLY by `vout\_ll0a`. All four\\
+  single-E96-step mutations trip at error severity.\\
+- constraints.json placement.groups repaired by the orchestrator (hotloop was\\
+  missing C10, output was missing C8/C9 and still said "1206"); W2 carried into\\
+  the feedback group note - R2's return must pin to the AGND/EP reference.\\
+- Library: C861068 has NO EasyEDA CAD record at all (lib\_pull reports that\\
+  identically to a rate-limit) - symbol cloned from its same-family sibling.
 \end{quote}
 \subsection*{Gate attempt history}
 \emph{(no entries)}
@@ -488,7 +598,7 @@ Full architecture narrative (not inlined; see the artifact index): \texttt{archi
 \textbf{Id} & \textbf{Phase} & \textbf{Status} & \textbf{When} & \textbf{Note} \\
 \midrule
 \endhead
-1 & P2 & not reached &  &  \\
+1 & P2 & approved & 2026-08-15T18:56:25 & Architecture approved. Outline 40x30 mm CONFIRMED by owner as final (irreversible at P5 board\_init). Record promotion deferred to run close with bring-up evidence - verified workspace records still feed P3/P6/P7 spawns meanwhile; inrush stays provisional until then. \\
 2 & P4 & not reached &  &  \\
 3 & P6 & not reached &  &  \\
 4 & P8 & not reached &  &  \\
@@ -503,15 +613,23 @@ Full architecture narrative (not inlined; see the artifact index): \texttt{archi
 \textbf{File} & \textbf{Size} & \textbf{Note} \\
 \midrule
 \endhead
-\texttt{state.json} & 16,933 B &  \\
+\texttt{state.json} & 42,099 B &  \\
+\texttt{kicad/bb-buck.kicad\_sch} & 82,705 B &  \\
 \texttt{brief/brief.md} & 605 B &  \\
-\texttt{requirements.md} & 16,422 B &  \\
+\texttt{requirements.md} & 18,721 B &  \\
 \texttt{architecture/blocks.md} & 10,091 B &  \\
-\texttt{architecture/constraints.json} & 17,690 B &  \\
+\texttt{architecture/constraints.json} & 18,896 B &  \\
 \texttt{architecture/decisions.md} & 9,227 B &  \\
 \texttt{architecture/power\_tree.md} & 10,485 B &  \\
 \texttt{architecture/sheets.md} & 7,162 B &  \\
 \texttt{architecture/stackup.md} & 7,324 B &  \\
+\texttt{reports/gate-erc.json} & 711 B &  \\
+\texttt{reports/gate-sim.json} & 675 B &  \\
+\texttt{reports/review-schematic.json} & 2,943 B &  \\
+\texttt{reports/review-schematic.md} & 24,242 B &  \\
+\texttt{reports/schematic.pdf} & 76,058 B &  \\
+\texttt{reports/sim.json} & 1,214 B &  \\
+\texttt{reports/top.net} & 34,564 B &  \\
 \bottomrule
 \end{longtable}
 }

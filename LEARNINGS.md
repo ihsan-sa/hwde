@@ -4353,3 +4353,30 @@ sourcing matters.
 energy in a 3216 body), not a stocking gap - so it will not resolve by waiting or by checking
 another Western distributor. Substituting the 0.35A part fits the footprint but silently
 derates whatever the silk promises.
+
+## 2026-08-15 [constraints][planes_gen][lint] `planes[]` entries reject unknown keys - including the `_note` convention used everywhere else - and `constraints_lint` does NOT catch it
+
+Found at bb-buck P2 by the architect reading the CONSUMER before writing the producer, then
+machine-verified. Two coupled facts:
+
+(a) `planes_gen.py:242` raises `CheckError(f"planes[{i}]: unknown keys {sorted(unknown)}")`.
+The `_note` key that every other constraints section carries as an inline-comment convention
+is an unknown key HERE, so it hard-fails the plane build.
+
+(b) `constraints_lint.py` passes such a file clean (0 errors, 0 warnings). Verified both ways:
+`constraints_lint --file boards/sbuck-5v3a/architecture/constraints.json` exits 0, while that
+same file's `planes[]` entries each carry a `_note`. So the lint is NOT a proxy for
+planes_gen acceptance, and a P2 that lints green can still hard-fail at P5/P7.
+
+Consequence worth knowing: **boards/sbuck-5v3a's shipped constraints.json would fail a
+planes_gen re-run today.** It is a latent defect, not an active one - the board is built and
+its zones exist - but any re-pour, resume, or copied-forward constraints file inherits it.
+
+The workaround that held on bb-buck: put the plane rationale in a SIBLING top-level key
+(outside `planes[]`), keeping the entries to the keys planes_gen accepts.
+
+Second, independent `planes[]` trap from the same reading: `planes_gen.build_plan` REPLACES
+the layer defaults entirely when `planes[]` is present - it does not merge. Declaring only an
+F.Cu thermal island therefore leaves the board with NO bottom pour at all, taking out the
+return path, the /SW reference and the radiator in one stroke. Declare every layer you want
+poured, not just the one you are overriding.
