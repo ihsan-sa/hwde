@@ -1,0 +1,172 @@
+{
+  "mpn": "LMR33630ADDAR",
+  "lcsc": "C841384",
+  "package": "DDA (8-pin HSOIC, PowerPAD / exposed-pad SOIC) - 'A' variant (400 kHz fixed switching frequency). Datasheet also covers RNX (12-pin VQFN-HR) - NOT used here; every pin/land value below is the DDA/HSOIC column only.",
+  "description": "LMR33630 SIMPLE SWITCHER, 3.8-V to 36-V, 3-A synchronous step-down (buck) voltage converter; peak-current-mode control; adjustable VOUT via external FB divider; integrated compensation.",
+  "pinout": [
+    {
+      "pin": "1",
+      "name": "PGND",
+      "type": "ground",
+      "notes": "Power ground terminal. Connect to system ground and AGND. Connect to bypass capacitor with short wide traces."
+    },
+    {
+      "pin": "2",
+      "name": "VIN",
+      "type": "power_in",
+      "notes": "Input supply to regulator. Connect a high-quality bypass capacitor or capacitors directly to this pin and PGND."
+    },
+    {
+      "pin": "3",
+      "name": "EN",
+      "type": "input",
+      "notes": "Enable input to regulator. High = ON, low = OFF. Can be connected directly to VIN. Do not float. Datasheet's own Table 6-1 TYPE column marks this 'A' (Analog) because the turn-on/turn-off thresholds are analog-compared (Sec 7.5: VEN-H 1.2/1.231/1.26 V, VEN-HYS 100 mV typ), not a simple digital buffer."
+    },
+    {
+      "pin": "4",
+      "name": "PG",
+      "type": "open_collector",
+      "notes": "Open-drain power-good flag output. Connect to a suitable voltage supply through a current-limiting resistor. High = power OK, low = power bad. Flag pulls low when EN = low. Can be left open when not used."
+    },
+    {
+      "pin": "5",
+      "name": "FB",
+      "type": "analog",
+      "notes": "Feedback input to regulator. Connect to tap point of feedback voltage divider. Do not float. Do not ground. Regulates to internal VREF, nominally 1 V (Sec 7.5: 0.985/1.0/1.015 V min/typ/max)."
+    },
+    {
+      "pin": "6",
+      "name": "VCC",
+      "type": "power_out",
+      "notes": "Internal 5-V LDO output. Used as supply to internal control circuits. Do not connect to external loads. Can be used as logic supply for power-good flag (100 kOhm pullup is a good choice). Connect a high-quality 1-uF capacitor from this pin to GND. Do not short to ground or any other external voltage."
+    },
+    {
+      "pin": "7",
+      "name": "BOOT",
+      "type": "power_in",
+      "notes": "Boot-strap supply voltage for internal high-side driver. Connect a high-quality 100-nF capacitor from this pin to the SW pin. (VQFN-only routing note about tying SW to NC does not apply to this DDA/HSOIC part.)"
+    },
+    {
+      "pin": "8",
+      "name": "SW",
+      "type": "power_out",
+      "notes": "Regulator switch node. Connect to power inductor."
+    },
+    {
+      "pin": "9",
+      "name": "AGND",
+      "type": "ground",
+      "notes": "EXPOSED PAD, not a plain thermal-only pad. Table 6-1: 'Analog ground for regulator and system. Ground reference for internal references and logic. All electrical parameters are measured with respect to this pin. Connect to system ground on PCB. For the HSOIC package, the pad on the bottom of the device serves as both the AGND connection and a thermal connection to the heat sink ground plane. This pad must be soldered to a ground plane to achieve good electrical and thermal performance.' Table 6-1's PIN column leaves the HSOIC pad unnumbered; pin index '9' here follows the current DDA0008B mechanical drawing (TI dwg 4214849/B, 09/2025), which explicitly labels the pad as pin 9 in its corner callouts (older DDA0008J dwg, 4221637/B 03/2016, does not number it)."
+    }
+  ],
+  "decoupling": [
+    {
+      "pins": ["VIN", "PGND"],
+      "value": "10 uF ceramic bulk (effective/DC-bias-derated value), X7R or better, rated >= max application VIN, preferably 2x max VIN",
+      "placement": "as close as possible to the VIN and PGND pins",
+      "notes": "Sec 9.2.2.6: 'A minimum of 10 uF of ceramic capacitance is required on the input.' Table 9-2/9-3 reference BOM for DDA package, 400 kHz, VOUT=5V row: CIN = 1 x 10 uF (+ separate 220 nF CHF, listed next). Use high-quality low-ESR ceramics; effective capacitance under DC bias/temperature is well below nameplate value."
+    },
+    {
+      "pins": ["VIN", "PGND"],
+      "value": "220 nF, 50 V, X7R ceramic (CHF)",
+      "placement": "small case size, as close as possible to the regulator, in addition to (not instead of) the bulk CIN",
+      "notes": "Sec 9.2.2.6: 'a small case size, 220-nF ceramic capacitor must be used at the input, as close as possible to the regulator. This provides a high frequency bypass for the control circuits internal to the device... The 220 nF must also be rated at 50 V with an X7R dielectric.'"
+    },
+    {
+      "pins": ["BOOT", "SW"],
+      "value": "100 nF, >= 10 V, high-quality ceramic (CBOOT)",
+      "placement": "close to the device; short, wide traces to BOOT and SW",
+      "notes": "Sec 9.2.2.7 (CBOOT): 'The LMR33630 requires a bootstrap capacitor connected between the BOOT pin and the SW pin... A high-quality ceramic capacitor of 100 nF and at least 10 V is required.' Also stated in Table 6-1 pin function for BOOT."
+    },
+    {
+      "pins": ["VCC", "AGND"],
+      "value": "1 uF, 16 V, high-quality ceramic (CVCC)",
+      "placement": "close to the VCC pin; short, wide traces to VCC and GND",
+      "notes": "Sec 9.2.2.8 (VCC): 'This output requires a 1-uF, 16-V ceramic capacitor connected from VCC to GND for proper operation... avoid loading this output with any external circuitry' (PG pullup of ~100 kOhm is explicitly permitted as the one exception). VCC nominal output 5 V (Sec 7.5: 4.75/5/5.25 V min/typ/max over 6V<=VIN<=36V)."
+    },
+    {
+      "pins": ["VOUT"],
+      "value": "4 x 22 uF, 16 V, X7R ceramic, 1210 case (per the datasheet's own DDA/400 kHz/5V reference design, Sec 9.2.2.5 and Table 9-2/9-3)",
+      "placement": "output capacitor bank, per Fig 10-2 example layout",
+      "notes": "Sec 9.2.2.5 worked example (dVOUT<=250 mV for a 2A load step) computes a minimum effective 52 uF, then 72 uF after 20% tolerance + 10% bias de-rating -> '4 x 22-uF, 16-V ceramic capacitors in the 1210 case size.' General rule: use >=10V-rated caps for VOUT<=3.3V, >=16V-rated caps for VOUT>=5V. A small 1nF-100nF ceramic can optionally be added at the output to reduce HF noise/spikes. Max total output capacitance ~10x the design value or 1000 uF, whichever is smaller."
+    }
+  ],
+  "land_pattern": {
+    "package": "DDA0008B - SOIC-8 w/ PowerPAD, 1.7 mm max height (TI mechanical drawing 4214849/B, 09/2025). This PDF also contains an older DDA0008J drawing (4221637/B, 03/2016) with slightly smaller exposed-pad dimensions (2.6/2.0 x 3.1/2.5 mm vs DDA0008B's 2.71/2.11 x 3.4/2.8 mm); DDA0008B is the more recent revision and is used here. Values below are read from DDA0008B's 'EXAMPLE BOARD LAYOUT' (land pattern) page.",
+    "pad_count": 9,
+    "pitch_mm": 1.27,
+    "pad_size_mm": [0.6, 1.55],
+    "row_spacing_mm": 5.4,
+    "pin1": "1",
+    "notes": "pad_count = 8 signal pads + 1 exposed pad (numbered 9 on the DDA0008B drawing). pad_size_mm = [width, length] = [0.6, 1.55] mm per the '8X (0.6)' / '8X (1.55)' land-pattern callouts (pitch '6X (1.27)' confirms 1.27 mm, 8 leads). row_spacing_mm=5.4 mm is the '(5.4)' outer-span callout on the same drawing. Exposed-pad copper opening (nominal, from the drawing's largest/'SHOWN' dimension, matching stencil page): 2.71 x 3.4 mm - see exposed_pad. Land pattern shows two small vias (0.2 mm callout, 1.3 mm typ pitch) drawn under/near the pad in the mechanical example; the binding via-array spec for design is the Layout section's text (see layout_notes), not this mechanical example drawing."
+  },
+  "exposed_pad": {
+    "present": true,
+    "connect_to": "AGND",
+    "thermal_vias": 12
+  },
+  "layout_notes": [
+    "Exposed pad = AGND, not a generic thermal-only pad: Table 6-1 states 'All electrical parameters are measured with respect to this pin' and 'the pad on the bottom of the device serves as both the AGND connection and a thermal connection to the heat sink ground plane. This pad must be soldered to a ground plane to achieve good electrical and thermal performance.' Treat the via array under it as a reference-accuracy item, not only a heat path.",
+    "Thermal vias (Sec 10.1.1, Ground and Thermal Considerations): 'Use a minimum 4 x 3 array of 10-mil thermal vias to connect the PAD to the system ground plane heat sink. The vias must be evenly distributed under the PAD.' = 12 vias minimum, 10 mil (0.254 mm) diameter, evenly spaced under the pad. This numbered-text spec is authoritative.",
+    "Discrepancy flagged for downstream: the worked example Figure 10-2 ('Example Layout for HSOIC (DDA) Package', p35) visually shows a smaller via cluster (~6 vias, 2x3) under the pad area than the '4x3 minimum' (12) the text mandates. Use the Sec 10.1.1 text spec (item above), not the illustrative figure, as the binding via count.",
+    "AGND and PGND must both be tied to the ground plane(s) using vias placed next to the bypass capacitors (Sec 10.1.1).",
+    "PGND carries switching-frequency noise (tied directly to the low-side FET source plus the input/output capacitor returns): constrain PGND, VIN, and SW traces to one side of the ground plane; reserve the other side for quiet/sensitive routing (Sec 10.1.1).",
+    "Critical loop: the CIN-to-VIN-to-PGND loop must be short, wide, and minimum-area (Fig 10-1, 'Keep Current Loop Small') - it carries large transient currents; excess loop inductance produces large transient voltage spikes.",
+    "Place CIN as close as possible to the VIN/PGND pins (adjacent pins on the DDA package) (Sec 10.1 rule 1).",
+    "Place CVCC (1 uF) close to the VCC pin; short, wide traces to VCC and GND (Sec 10.1 rule 2).",
+    "Place CBOOT (100 nF) close to the device; short, wide traces to BOOT and SW (Sec 10.1 rule 3).",
+    "Place the FB divider (RFBT, RFBB, and CFF if used) close to the FB pin; FB-to-GND connections short; the VOUT sense trace can be longer but must not route near the SW node (capacitive noise coupling into the feedback path) (Sec 10.1 rule 4).",
+    "Use at least one solid ground plane on a middle layer - acts as a noise shield and as a heat-dissipation path (Sec 10.1 rule 5).",
+    "Recommended stackup: 4 layers, 2 oz / 1 oz / 1 oz / 2 oz copper (top to bottom); use as much top/bottom copper area as possible for heat dissipation; on multilayer boards, also stitch thermal vias to inner heat-spreading GND planes (Sec 10.1 rule 8, Sec 10.1.1).",
+    "Provide wide, direct VIN/VOUT/GND paths to minimize voltage drop and maximize efficiency (Sec 10.1 rule 7).",
+    "Keep the SW-node copper (pin 8 to the inductor) short, wide, and minimum-area to reduce radiated EMI (Sec 10.1 rule 9).",
+    "Do not use the RthetaJA table value (Sec 7.4; DDA package RthetaJA = 42.9 C/W) for thermal design - it is a package-comparison figure only, measured on a 4-layer JEDEC test board per JESD 51-7. Use the Sec 9.2.2.11 procedure and the RthetaJA-vs-copper-area curve (Fig 9-3, DDA/4-layer) instead.",
+    "Do not exceed Absolute Maximum or ESD Ratings; do not allow EN to float; do not allow VOUT to exceed VIN or go below ground (Sec 9.3, What to Do and What Not to Do)."
+  ],
+  "abs_max": [
+    {"param": "VIN_to_PGND_min", "value": -0.3, "unit": "V"},
+    {"param": "VIN_to_PGND_max", "value": 38, "unit": "V"},
+    {"param": "EN_to_AGND_min", "value": -0.3, "unit": "V"},
+    {"param": "EN_to_AGND_max", "value": "VIN + 0.3", "unit": "V"},
+    {"param": "FB_to_AGND_min", "value": -0.3, "unit": "V"},
+    {"param": "FB_to_AGND_max", "value": 5.5, "unit": "V"},
+    {"param": "PG_to_AGND_min", "value": 0, "unit": "V"},
+    {"param": "PG_to_AGND_max", "value": 22, "unit": "V"},
+    {"param": "AGND_to_PGND_min", "value": -0.3, "unit": "V"},
+    {"param": "AGND_to_PGND_max", "value": 0.3, "unit": "V"},
+    {"param": "SW_to_PGND_min", "value": -0.3, "unit": "V"},
+    {"param": "SW_to_PGND_max", "value": "VIN + 0.3", "unit": "V"},
+    {"param": "SW_to_PGND_100ns_transient_min", "value": -3.5, "unit": "V"},
+    {"param": "SW_to_PGND_100ns_transient_max", "value": 38, "unit": "V"},
+    {"param": "BOOT_to_SW_min", "value": -0.3, "unit": "V"},
+    {"param": "BOOT_to_SW_max", "value": 5.5, "unit": "V"},
+    {"param": "VCC_to_AGND_min", "value": -0.3, "unit": "V"},
+    {"param": "VCC_to_AGND_max", "value": 5.5, "unit": "V"},
+    {"param": "TJ_min", "value": -40, "unit": "C"},
+    {"param": "TJ_max", "value": 150, "unit": "C"},
+    {"param": "Tstg_min", "value": -55, "unit": "C"},
+    {"param": "Tstg_max", "value": 150, "unit": "C"},
+    {"param": "VIN_recommended_operating_min", "value": 3.8, "unit": "V"},
+    {"param": "VIN_recommended_operating_max", "value": 36, "unit": "V"},
+    {"param": "VOUT_recommended_min", "value": 1, "unit": "V"},
+    {"param": "VOUT_recommended_max", "value": 24, "unit": "V"},
+    {"param": "IOUT_recommended_max", "value": 3, "unit": "A"},
+    {"param": "FB_reference_voltage_min", "value": 0.985, "unit": "V"},
+    {"param": "FB_reference_voltage_typ", "value": 1.0, "unit": "V"},
+    {"param": "FB_reference_voltage_max", "value": 1.015, "unit": "V"},
+    {"param": "switching_frequency_A_variant_min", "value": 340, "unit": "kHz"},
+    {"param": "switching_frequency_A_variant_typ", "value": 400, "unit": "kHz"},
+    {"param": "switching_frequency_A_variant_max", "value": 460, "unit": "kHz"},
+    {"param": "min_on_time_DDA_package_min", "value": 75, "unit": "ns"},
+    {"param": "min_on_time_DDA_package_max", "value": 108, "unit": "ns"},
+    {"param": "high_side_current_limit_ISC_min", "value": 3.85, "unit": "A"},
+    {"param": "high_side_current_limit_ISC_typ", "value": 4.5, "unit": "A"},
+    {"param": "high_side_current_limit_ISC_max", "value": 5.05, "unit": "A"},
+    {"param": "low_side_current_limit_ILIMIT_min", "value": 2.9, "unit": "A"},
+    {"param": "low_side_current_limit_ILIMIT_typ", "value": 3.5, "unit": "A"},
+    {"param": "low_side_current_limit_ILIMIT_max", "value": 4.1, "unit": "A"},
+    {"param": "thermal_shutdown_temp", "value": 165, "unit": "C"},
+    {"param": "thermal_shutdown_recovery_temp", "value": 148, "unit": "C"}
+  ],
+  "source_pdf": "boards\\bb-buck\\parts\\lmr33630.pdf"
+}

@@ -3,8 +3,8 @@
  "board": "bb-buck",
  "workspace": "boards/bb-buck",
  "created": "2026-08-15T15:58:13",
- "updated": "2026-08-15T20:55:22",
- "phase": "P3",
+ "updated": "2026-08-15T21:17:58",
+ "phase": "P4",
  "gates": {},
  "human": {
   "1": {
@@ -169,6 +169,48 @@
    "why": "The LMR33630 DDA package has NO MODE/FPWM pin (8-pin table, none is mode select) and datasheet 8.4.1 states auto-mode only - PFM/diode-emulation at light load, explicitly 'yields larger output voltage ripple'. The only ripple evidence is Fig 8-7, a TYPICAL unguaranteed capture at Vin 12 V / Iout 10 mA, which is neither 0 A nor this board's 18-30 V range: none of the three accept criteria (forced-CCM / MODE pin / datasheet figure at this operating point) is satisfied. Owner ruled to relax rather than override the mode with a preload or re-source. PFM at light load is a deliberate efficiency feature of nearly every modern buck, and on a study article the burst behaviour is itself instructive. P8 sim bounds take the 200 mA threshold.",
    "phase": "P3",
    "ts": "2026-08-15T20:55:05"
+  },
+  {
+   "what": "Min on-time for THIS package is 75-108 ns (DDA), NOT the 68 ns headline - and it is not binding",
+   "why": "datasheet_extract: the Features-bullet 68 ns is the RNX/VQFN value; Table 7.6 gives DDA-specific 75 ns typ / 108 ns max. Required t_on at the 30 V corner is 5/30/400 kHz = 417 ns, so even the 108 ns max leaves ~3.9x margin. The P1 selection filter (t_on_min <= 130 ns) is satisfied by the correct number, not only by the optimistic one.",
+   "phase": "P3",
+   "ts": "2026-08-15T21:06:39"
+  },
+  {
+   "what": "Thermal vias under U1: >= 16 (P1/D4 thermal condition), which also clears the datasheet's own 4x3 = 12 minimum. Figure 10-2's ~6 vias is NOT the spec.",
+   "why": "datasheet_extract found a genuine intra-datasheet discrepancy: section 10.1.1 text mandates a minimum 4x3 array of 10-mil thermal vias (12) while the worked example Figure 10-2 draws only ~6. The extraction records 12 as binding text and flags the mismatch so P6/P7 cannot silently copy the smaller figure count. Our own 2L thermal case was computed at >= 16, which is the stricter number and therefore governs.",
+   "phase": "P3",
+   "ts": "2026-08-15T21:06:39"
+  },
+  {
+   "what": "FOOTPRINT RISK for the librarian/fp_verify: the datasheet carries TWO DDA mechanical revisions with DIFFERENT exposed-pad sizes - DDA0008J (03/2016) and DDA0008B (09/2025). Extraction used the NEWER DDA0008B (pad copper 2.71 x 3.4 mm).",
+   "why": "A pulled or stock footprint built to the 2016 drawing will have the wrong exposed-pad size against the extraction. fp_verify must be checked against DDA0008B's 1.27 mm pitch, 8 x (0.6 x 1.55 mm) pads, 5.4 mm row spacing and 2.71 x 3.4 mm pad copper. Also note the pinout table itself does not number the pad - 'pin 9' comes only from the mechanical drawing's corner callouts, which is exactly the kind of mismatch that breaks a symbol-to-footprint pin map.",
+   "phase": "P3",
+   "ts": "2026-08-15T21:06:39"
+  },
+  {
+   "what": "OPEN RISK carried to P4 review: C_OUT is 2x22uF/25V where TI's own DDA/400 kHz/5 V reference BOM uses 4x22uF/16V. Confirm 2x is inside the part's STABILITY window, not merely its ripple budget.",
+   "why": "The part-sourcer justified 2x by finding the 52/72 uF figure in record buck-cmode-internal-comp-cout-window is TI's LOAD-TRANSIENT sizing choice (9.2.2.5), not a stability floor, and bb-buck has no binding transient spec - sound for transient. But the extraction independently reports TI's reference BOM as 4x22uF/16V, and an internally-compensated current-mode loop places its output pole from C_OUT: 2x22 uF at 25 V derates under 5 V bias to ~32 uF effective vs ~66 uF for TI's 4x. Narrow question for the P4 schematic-reviewer to answer FROM THE DATASHEET: is a minimum C_OUT stated for loop stability (as distinct from transient), and does ~32 uF effective sit inside it? If not, the fix is cheap now (add C8/C9, same MPN - the 40x30 outline has room) and expensive after P6.",
+   "phase": "P3",
+   "ts": "2026-08-15T21:06:50"
+  },
+  {
+   "what": "RULED (orchestrator): ACCEPT the vendor U1 footprint as pulled (signal pads 0.6 x 1.3 mm vs DDA0008B nominal 0.6 x 1.55; EP 2.5 x 3.5 vs 2.71 x 3.4). No redraw.",
+   "why": "fp_verify rates it a WARNING, not an error, and pitch 1.27 mm and row spacing 5.4 mm are both exact - the geometry that determines whether the part lands correctly is right. The deviation is small and in the safe direction: shorter toes and a slightly narrower EP mean MORE clearance, not bridging risk; EP area 8.75 vs 9.21 mm2 is a 5% thermal delta against a case that already carries ~20% margin. Decisive argument: this is the LCSC/EasyEDA footprint that JLC's own assembly process is built around, so redrawing to datasheet nominal trades a paper match for a mismatch with the house that actually builds the board. Cost of being wrong is a slightly smaller toe fillet on a bench article, and T8's swap_new_fp makes a later change non-destructive. Owner can override.",
+   "phase": "P3",
+   "ts": "2026-08-15T21:16:59"
+  },
+  {
+   "what": "RULED (orchestrator): ACCEPT the courtyard-cuts-through-pads defect on C0603/R0603/C1210/L1. No redraw.",
+   "why": "Documented library-wide easyeda2kicad class (courtyard = body outline only, smaller than the pad span). It is NOT silently breaking placement legality: since the T-fix, pairwise overlap tests the PRECISE shape - declared courtyard UNION pad bbox - so placelib already accounts for the pads the courtyard omits. All 6 footprints HAVE an F.CrtYd (none courtyard-less, which is the case that genuinely degrades the place gate). No clean redraw convention exists yet beyond '0.25 mm beyond pad-field bbox'. Revisit as a library-level fix, not per-board.",
+   "phase": "P3",
+   "ts": "2026-08-15T21:16:59"
+  },
+  {
+   "what": "No new research opened at the P3 exit despite block:B1 re-firing at the proven floor",
+   "why": "The mode's first-call escalation (--maturity-floor proven --research-provisional) re-reports block:B1 as gap because no buck record is  and only bring-up evidence can retire that - it is the same slot already researched at P2 (task block-buck-1, 9 records, 9 verified). Re-opening it would re-research work just done and burn a second per_run slot for nothing; the mode's own instruction is to re-run WITHOUT the flags after research so the re-run folds in what was learned. The genuinely NEW P3 slot - the part slot (datasheet-layout) - reads COVERED off the C841384 extraction's 16 layout bullets, which is exactly the P3-exit test. Plain re-run: 0 gaps.",
+   "phase": "P3",
+   "ts": "2026-08-15T21:17:58"
   }
  ],
  "edits": [],
@@ -260,6 +302,14 @@
    "effort": "high",
    "phase": "P3",
    "note": "U1 C841384 LMR33630ADDAR; reuses the sha-pinned research-quarantined PDF"
+  },
+  {
+   "ts": "2026-08-15T21:07:02",
+   "role": "librarian",
+   "model": "sonnet",
+   "effort": "medium",
+   "phase": "P3",
+   "note": "lib pull + fp_verify; DDA0008B pad geometry is the reference"
   }
  ],
  "history": [
@@ -498,6 +548,53 @@
    "event": "spawn",
    "role": "datasheet-extractor",
    "model": "sonnet"
+  },
+  {
+   "ts": "2026-08-15T21:06:39",
+   "event": "decision",
+   "what": "Min on-time for THIS package is 75-108 ns (DDA), NOT the 68 ns headline - and it is not binding"
+  },
+  {
+   "ts": "2026-08-15T21:06:39",
+   "event": "decision",
+   "what": "Thermal vias under U1: >= 16 (P1/D4 thermal condition), which also clears the datasheet's own 4x3 = 12 minimum. Figure 10-2's ~6 vias is NOT the spec."
+  },
+  {
+   "ts": "2026-08-15T21:06:39",
+   "event": "decision",
+   "what": "FOOTPRINT RISK for the librarian/fp_verify: the datasheet carries TWO DDA mechanical revisions with DIFFERENT exposed-pad sizes - DDA0008J (03/2016) and DDA0008B (09/2025). Extraction used the NEWER DDA0008B (pad copper 2.71 x 3.4 mm)."
+  },
+  {
+   "ts": "2026-08-15T21:06:50",
+   "event": "decision",
+   "what": "OPEN RISK carried to P4 review: C_OUT is 2x22uF/25V where TI's own DDA/400 kHz/5 V reference BOM uses 4x22uF/16V. Confirm 2x is inside the part's STABILITY window, not merely its ripple budget."
+  },
+  {
+   "ts": "2026-08-15T21:07:02",
+   "event": "spawn",
+   "role": "librarian",
+   "model": "sonnet"
+  },
+  {
+   "ts": "2026-08-15T21:16:59",
+   "event": "decision",
+   "what": "RULED (orchestrator): ACCEPT the vendor U1 footprint as pulled (signal pads 0.6 x 1.3 mm vs DDA0008B nominal 0.6 x 1.55; EP 2.5 x 3.5 vs 2.71 x 3.4). No redraw."
+  },
+  {
+   "ts": "2026-08-15T21:16:59",
+   "event": "decision",
+   "what": "RULED (orchestrator): ACCEPT the courtyard-cuts-through-pads defect on C0603/R0603/C1210/L1. No redraw."
+  },
+  {
+   "ts": "2026-08-15T21:17:58",
+   "event": "decision",
+   "what": "No new research opened at the P3 exit despite block:B1 re-firing at the proven floor"
+  },
+  {
+   "ts": "2026-08-15T21:17:58",
+   "event": "phase",
+   "phase": "P4",
+   "prev": "P3"
   }
  ]
 }
