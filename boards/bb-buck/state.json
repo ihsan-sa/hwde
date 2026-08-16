@@ -3,8 +3,8 @@
  "board": "bb-buck",
  "workspace": "boards/bb-buck",
  "created": "2026-08-15T15:58:13",
- "updated": "2026-08-16T01:36:52",
- "phase": "P7",
+ "updated": "2026-08-16T02:30:45",
+ "phase": "P8",
  "gates": {},
  "human": {
   "1": {
@@ -33,6 +33,12 @@
     {
      "ts": "2026-08-16T00:07:45",
      "edit_class": "move_fp",
+     "refs": [],
+     "human_hold": 1
+    },
+    {
+     "ts": "2026-08-16T02:30:09",
+     "edit_class": "reroute_net",
      "refs": [],
      "human_hold": 1
     }
@@ -308,6 +314,24 @@
    "why": "Same reasoning that settled the U1 land, and it is the decisive one: lib_pull keys on the LCSC CODE, not on a name. The footprint was pulled for C40000, so it IS the land pattern LCSC/JLC associates with the part being ordered - EasyEDA simply reused a generic 12.5 mm-class inductor land-pattern NAME. Redrawing to some other vendor's drawing would trade a name match for a mismatch with the house that assembles the board. Note the 3D render's '470' marking is likewise a WRL artifact of the donor model, not our 15 uH part - cosmetic only, no electrical or fab meaning. Librarian OPEN item 4 closed.",
    "phase": "P6",
    "ts": "2026-08-16T00:09:17"
+  },
+  {
+   "what": "APPROVED: router REVERTED route_critical --only power and routed the power nets deliberately instead",
+   "why": "KRT put /SW (2 seg + 3 vias), +VIN (1 seg + 2 vias) and +5V (6 seg + 3 vias) on B.Cu, slicing the ground shield through the hot loop and the switch node - a direct hit on the binding constraint that the unbroken bottom pour is the ONLY thing recovering this 2-layer board's ~5 dBuV/m deviation from the datasheet's own 4-layer layout rule. Its +5V path also swung around the right edge past H2. Reverting a tool that is optimising the wrong objective is the correct call, not a workaround. Result: 36 tracks, ALL F.Cu, ZERO B.Cu tracks board-wide, zero vias on +VIN / /SW / +5V.",
+   "phase": "P7",
+   "ts": "2026-08-16T02:30:09"
+  },
+  {
+   "what": "ACCEPTED DEVIATION: route_auto (Freerouting) was NOT run",
+   "why": "After the deliberate route the board already measured DRC 0 / completion 1.00 (33/33 ratsnest, 0 unconnected_items). Exporting a DSN of a fully-coppered board is the documented Freerouting wedge case (LEARNINGS 435), and its KRT finish can ADD B.Cu copper - which is exactly the failure just reverted. The role prompt is explicit that Freerouting's own success signal is untrusted and only kicad-cli DRC gates; completion here is measured from DRC, the authoritative source. Running it could only risk the shield for no measurable gain.",
+   "phase": "P7",
+   "ts": "2026-08-16T02:30:09"
+  },
+  {
+   "what": "ACCEPTED: +5V reaches the left output-cap bank (C5/C8/C9 + R1) through an 18.3 mm2 pour bridge with a 1.00 mm neck, not a 1.52 mm track",
+   "why": "Sanctioned track_width remediation step 4 (pour, do not neck): a 1.52 mm track geometrically cannot reach that bank because placement split it and the R1.2/TP2/C5.2 pinch caps any track at ~0.95 mm. The DC LOAD path is untouched - L1.2 -> J2.1 at 1.8 mm - so only capacitor ripple crosses the bridge, where at 400 kHz the neck's few nH is milliohms against the caps' own impedance and cannot undo the E1 stability fix. FB senses at C5.1 on the far side of the bridge, which carries no DC, so the sense point sees no bridge drop; the unsensed L1-to-J2 drop is ~2.7 mOhm = ~5.5 mV at 2 A against a 150 mV window.",
+   "phase": "P7",
+   "ts": "2026-08-16T02:30:09"
   }
  ],
  "edits": [
@@ -320,6 +344,22 @@
    "gates": [
     "place",
     "drc",
+    "drc_routed",
+    "verify",
+    "dfm"
+   ],
+   "gates_marked": [],
+   "stale_artifacts": [
+    "gerbers"
+   ]
+  },
+  {
+   "ts": "2026-08-16T02:30:09",
+   "class": "reroute_net",
+   "refs": [],
+   "note": null,
+   "human_hold": 1,
+   "gates": [
     "drc_routed",
     "verify",
     "dfm"
@@ -924,6 +964,34 @@
    "event": "spawn",
    "role": "router",
    "model": "opus"
+  },
+  {
+   "ts": "2026-08-16T02:30:09",
+   "event": "decision",
+   "what": "APPROVED: router REVERTED route_critical --only power and routed the power nets deliberately instead"
+  },
+  {
+   "ts": "2026-08-16T02:30:09",
+   "event": "decision",
+   "what": "ACCEPTED DEVIATION: route_auto (Freerouting) was NOT run"
+  },
+  {
+   "ts": "2026-08-16T02:30:09",
+   "event": "decision",
+   "what": "ACCEPTED: +5V reaches the left output-cap bank (C5/C8/C9 + R1) through an 18.3 mm2 pour bridge with a 1.00 mm neck, not a 1.52 mm track"
+  },
+  {
+   "ts": "2026-08-16T02:30:09",
+   "event": "edit",
+   "edit_class": "reroute_net",
+   "refs": [],
+   "human_hold": 1
+  },
+  {
+   "ts": "2026-08-16T02:30:45",
+   "event": "phase",
+   "phase": "P8",
+   "prev": "P7"
   }
  ]
 }
