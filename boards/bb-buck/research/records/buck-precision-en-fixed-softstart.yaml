@@ -1,0 +1,96 @@
+id: buck-precision-en-fixed-softstart
+classes: [sequencing]
+applies:
+  topologies: [buck]
+  packages: []
+  interfaces: []
+  parts: []
+rule:
+  enforced_by: null
+  en_floating: "forbidden on a precision-EN part - read the pin's own row, do not assume an internal pull-up"
+  en_tie: "may be tied directly to VIN when the UVLO feature is not needed"
+  soft_start: "fixed internally (2.9 / 4 / 6 ms here) with no SS pin - output inrush is derived, not chosen"
+  output_inrush: "about C_OUT * Vout / t_SS on top of the load current"
+  uvlo_hysteresis: "a fixed FRACTION of turn-on: Voff = Von * (1 - Ven_hys/Ven_h), about 8% on this part"
+prose: >
+  Three sequencing facts that invert the usual buck assumptions. (1) EN is
+  not always safe to float. This part's pin row reads "Can be connected
+  directly to VIN; Do not float", and the input has precision thresholds -
+  1.231 V typical to start switching, a lower threshold that only wakes
+  the internal LDO - with 0.2 nA of leakage, i.e. nothing internal defines
+  the pin. The library's "many parts auto-start, a divider is wasted
+  parts" is the OTHER case; read the pin's own row before deciding.
+  (2) Soft start is FIXED internally at 4 ms typical (2.9 to 6 ms) with no
+  SS pin, so output-side inrush is a derived number - roughly
+  C_OUT * Vout / t_SS on top of the load - and cannot be traded against
+  the source. The vendor's start-up capture at full load shows the
+  inductor current ramping monotonically to the load level with no
+  charging spike, which is why the output bank stays invisible to the
+  source; it is also part of why total C_OUT is capped, since a much
+  bigger bank has to be charged inside that same fixed ramp. (3) When EN
+  IS used as a UVLO divider, hysteresis is a fixed FRACTION of turn-on:
+  Voff = Von * (1 - Ven_hys/Ven_h), about 8% here. The absolute window
+  therefore scales with the input voltage - generous on a 30 V rail,
+  and it is the low-voltage case where that window can fall below the
+  source's own droop and motorboat.
+sources:
+  - file: research/sources/lmr33630.pdf
+    page: 5
+    section: "Table 6-1 Pin Functions, EN and FB rows"
+    note: >
+      EN row: "Enable input to regulator. High = ON, low = OFF. Can be
+      connected directly to VIN; Do not float." FB row adds "Do not float.
+      Do not ground." PG is an open-drain flag needing a pull-up and may
+      be left open when unused.
+  - file: research/sources/lmr33630.pdf
+    page: 7
+    section: "7.5 Electrical Characteristics, ENABLE block"
+    note: >
+      V_EN-VCC-H at most 1 V turns on the internal LDO, V_EN-VCC-L at
+      least 0.3 V turns it off; V_EN-H is 1.2 / 1.231 / 1.26 V rising to
+      start switching with V_EN-HYS 100 mV of hysteresis below it; enable
+      input leakage is 0.2 nA - a precision comparator input with no
+      internal pull-up.
+  - file: research/sources/lmr33630.pdf
+    page: 8
+    section: "7.5 SOFT START"
+    note: >
+      t_SS internal soft-start time 2.9 / 4 / 6 ms (min/typ/max). There is
+      no SS pin in the parameter list, so the ramp is not adjustable. Same
+      table: the 400 kHz option is specified 340 / 400 / 460 kHz.
+  - file: research/sources/lmr33630.pdf
+    page: 13
+    section: "8.3.2 Enable and Start-up"
+    note: >
+      Start-up and shutdown are controlled by EN, which has precision
+      thresholds allowing an external divider to set an adjustable input
+      UVLO; EN may be tied to VIN when that is not needed and "this input
+      must not be allowed to float". The part uses a reference-based soft
+      start that prevents output voltage overshoots and large inrush
+      currents while starting, with an output rise time of about 4 ms.
+  - file: research/sources/lmr33630.pdf
+    page: 14
+    section: "Figure 8-3 and Figure 8-4"
+    note: >
+      Figure 8-3 (Precision Enable Behavior) shows VCC coming up at the
+      lower EN threshold and Vout only at V_EN-H, with the falling edges
+      offset by the hysteresis. Figure 8-4 is a scope capture at Vin 12 V,
+      Vout 5 V, Iout 3 A at 2 ms/div: after EN rises, Vout ramps
+      monotonically over about 4 ms, the inductor-current trace rises
+      smoothly to the load level with no charging spike, and PG asserts
+      after the ramp completes.
+  - file: research/sources/lmr33630.pdf
+    page: 24
+    section: "9.2.2.10 External UVLO, Figure 9-2, Equation 10"
+    note: >
+      For an input UVLO different from the internal one, a divider from
+      VIN to EN is used: pick R_ENB in the 10 kohm to 100 kohm range, then
+      R_ENT = (Von/V_EN-H - 1) * R_ENB and the turn-off voltage is
+      Voff = Von * (1 - V_EN-HYS/V_EN-H) - i.e. the hysteresis window is a
+      fixed fraction of the turn-on point.
+status: active
+origin: research:block-buck-1
+level: principle
+maturity: verified
+generalizes: []
+verification: {by: "second-reader", date: "2026-08-15", note: "Re-read lmr33630 p5, p7, p8, p13, p14 and p24; every claim lands. Table 6-1 EN row reads Enable input to regulator. High = ON, low = OFF. Can be connected directly to VIN; Do not float, and the FB row adds Do not float. Do not ground. p7 gives V_EN-H 1.2 / 1.231 / 1.26 V rising to start switching, V_EN-HYS 100 mV, enable input leakage 0.2 nA, and the two internal-LDO thresholds. p8 lists t_SS 2.9 / 4 / 6 ms and there is indeed no SS pin anywhere in the parameter list. p13 section 8.3.2 states the precision thresholds, the external divider UVLO, the tie-to-VIN option, that this input must not be allowed to float, and a reference-based soft start with an output rise time of about 4 ms. p14 Figure 8-3 shows VCC coming up at the lower threshold and Vout only at V_EN-H with hysteresis-offset falling edges, and Figure 8-4 (Vin 12 V, Vout 5 V, Iout 3 A, 2 ms/div) shows the monotonic ramp with the inductor current rising smoothly to the load level and no charging spike. p24 Equation 10 gives Voff = Von * (1 - V_EN-HYS/V_EN-H); 100 mV / 1.231 V = 8.1 percent, so about 8 percent checks. On the level question I pressed both ways and principle holds: the gap asks sequencing at min_level principle, and none of the P2 operating-point dimensions bounds do-not-float, inrush-is-derived-when-soft-start-is-fixed, or hysteresis-as-a-fixed-fraction - a controller with external FETs carries the same three facts. Declining an envelope here is the honest call, not a dodge."}

@@ -1,0 +1,253 @@
+{
+ "id": "block-buck-1",
+ "slot": "block:B1",
+ "kind": "block",
+ "token": "buck",
+ "phase": "P2",
+ "status": "closed",
+ "outcome": "verified",
+ "opened": "2026-08-15T16:59:38",
+ "closed": "2026-08-15T18:13:15",
+ "coverage_report": "boards/bb-buck/log/coverage-P2.json",
+ "gap": {
+  "slot": "block:B1",
+  "kind": "block",
+  "topology": "buck",
+  "operating_point": {
+   "vin_v": 30,
+   "vout_v": 5,
+   "iout_a": 2,
+   "fsw_khz": 400,
+   "pdiss_w": 1.2,
+   "board_layers": 2,
+   "switching_kind": "hard",
+   "rectifier_kind": "sync",
+   "integration_kind": "integrated-fet",
+   "source_kind": "dc-input",
+   "control_kind": "cmode",
+   "injection_kind": "none"
+  },
+  "missing": [
+   {
+    "class": "selection",
+    "min_level": "topology"
+   },
+   {
+    "class": "power-loop",
+    "min_level": "topology"
+   },
+   {
+    "class": "emi",
+    "min_level": "topology"
+   },
+   {
+    "class": "feedback",
+    "min_level": "topology"
+   },
+   {
+    "class": "decoupling",
+    "min_level": "topology"
+   },
+   {
+    "class": "return-path",
+    "min_level": "topology"
+   },
+   {
+    "class": "thermal-via",
+    "min_level": "topology"
+   },
+   {
+    "class": "inrush",
+    "min_level": "topology"
+   },
+   {
+    "class": "sequencing",
+    "min_level": "principle"
+   },
+   {
+    "class": "constraints-emission",
+    "min_level": "principle"
+   }
+  ],
+  "reasons": [
+   "no record satisfies the class at this operating point and maturity floor"
+  ],
+  "related_records": [
+   "buck-bst-fb-output-caps",
+   "buck-cin-co-ground-separation",
+   "buck-constraints-emission",
+   "buck-en-softstart-sequencing",
+   "buck-fb-route-rules",
+   "buck-freewheel-diode-snubber-placement",
+   "buck-inductor-copper-and-gnd-void",
+   "buck-inductor-selection",
+   "buck-input-hot-loop",
+   "buck-power-ground-isolation",
+   "buck-selection-ladder",
+   "buck-switch-node-containment",
+   "buck-thermal-via-and-via-current",
+   "buck-upstream-inrush-limit",
+   "cot-ripple-injection-raises-vout"
+  ],
+  "principle_parents": [
+   "buck-constraints-emission",
+   "buck-en-softstart-sequencing",
+   "buck-input-hot-loop"
+  ],
+  "task": "research block 'buck': populate selection, power-loop, emi, feedback, decoupling, return-path, thermal-via, inrush, sequencing, constraints-emission (application delta only - principle parents exist)"
+ },
+ "checklist_needed": false,
+ "caps": {
+  "depth_per_gap": 4,
+  "attempt_factor": 3
+ },
+ "sources": [
+  {
+   "n": 1,
+   "url": "https://www.ti.com/lit/ds/symlink/lmr33630.pdf",
+   "final_url": "https://www.ti.com/lit/ds/symlink/lmr33630.pdf",
+   "host": "www.ti.com",
+   "domain": "ti.com",
+   "domain_kind": "vendor",
+   "tier": "vendor-layout",
+   "declared_tier": "vendor-layout",
+   "about": "LMR33630ADDAR",
+   "file": "research/sources/lmr33630.pdf",
+   "sha256": "3b0920a4e56a0b3f5f214a6317d3c06cff6e541e5054024adc31c30acc50c04a",
+   "bytes": 4156395,
+   "content_type": "application/pdf",
+   "pages": 60,
+   "fetched": "2026-08-15T17:03:53",
+   "via": "http",
+   "note": "subject part datasheet: layout section, C_OUT window, soft-start, EN/UVLO, thermal pad",
+   "deduplicated": false
+  },
+  {
+   "n": 2,
+   "url": "https://www.ti.com/lit/pdf/sluaal8",
+   "final_url": "https://www.ti.com/lit/an/sluaal8/sluaal8.pdf?ts=1786761639325",
+   "host": "www.ti.com",
+   "domain": "ti.com",
+   "domain_kind": "vendor",
+   "tier": "vendor-appnote",
+   "declared_tier": "vendor-appnote",
+   "about": "hot-plug input overshoot, DC-input source",
+   "file": "research/sources/sluaal8.pdf",
+   "sha256": "05ba68c6736a8a34174ea6ea6614814b4a3d3a9ddec3ade2de6f93ea615d56a9",
+   "bytes": 587906,
+   "content_type": "application/pdf",
+   "pages": 8,
+   "fetched": "2026-08-15T17:13:18",
+   "via": "http",
+   "note": "TI app note on hot-plug voltage overshoot: the dc-input inrush/overvoltage bound and its damping fix",
+   "deduplicated": false
+  },
+  {
+   "n": 3,
+   "url": "https://www.ti.com/lit/pdf/snva721",
+   "final_url": "https://www.ti.com/lit/an/snva721a/snva721a.pdf?ts=1786814270190",
+   "host": "www.ti.com",
+   "domain": "ti.com",
+   "domain_kind": "vendor",
+   "tier": "vendor-appnote",
+   "declared_tier": "vendor-appnote",
+   "about": "sync integrated-FET buck hot loop + radiated EMI layout",
+   "file": "research/sources/snva721a.pdf",
+   "sha256": "293daf0da2cb80bce9c74d56e42f99b2a8cfbdd96709b16f77ce8b9cbfa9dff5",
+   "bytes": 524782,
+   "content_type": "application/pdf",
+   "pages": 11,
+   "fetched": "2026-08-15T17:14:16",
+   "via": "http",
+   "note": "measured radiated EMI vs layout on a synchronous integrated-FET buck: hot-loop area, VIN/PGND adjacency, SW containment",
+   "deduplicated": false
+  }
+ ],
+ "attempts": [
+  {
+   "ts": "2026-08-15T17:09:21",
+   "url": "https://www.analog.com/media/en/technical-documentation/application-notes/an88f.pdf",
+   "kind": "transport",
+   "detail": "ReadError: [WinError 10054] An existing connection was forcibly closed by the remote host"
+  },
+  {
+   "ts": "2026-08-15T17:10:38",
+   "url": "https://www.analog.com/media/en/technical-documentation/application-notes/an88f.pdf",
+   "kind": "transport",
+   "detail": "ReadTimeout: The read operation timed out"
+  }
+ ],
+ "verdicts": {
+  "buck-sync-hot-loop-cin-placement": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-15",
+   "note": "Re-read lmr33630 p33/p34/p35 and snva721a p3/p4/p5. The p33 opening paragraph and rule 1 do make the CIN-plus-power-ground loop the most critical PCB feature and confirm VIN/GND pin adjacency (pinout p5: pin 1 PGND, pin 2 VIN); rule 9 keeps SW copper short, wide and small in total area. Figure 10-1 on p34 closes the fast loop CIN-VIN-HS-SW-LS-GND with CIN the only external element, and 10.1.1 ties PGND to the low-side source and to the input and output capacitor grounds. Figure 10-2 on p35 does place CIN with CHF between it and the device at the PGND/VIN corner, COUT as a separate group, and the Vout sense to the divider on the bottom layer. snva721a p4/p5 print 18.1 -> 14.5 V SW peak, 75 -> 47 mV Vout ripple and 44 -> 41 dBuV/m for the same design and operating condition, and p4 states the 12 V input outright - the record carries that condition in both rule and prose, so nothing is transported to the 30 V operating point. Two nits that do not refute: on Figure 3 the red shading covers the FET box with the CIN branch as its left edge, so it is the page text (loop formed by the input capacitor, the high side switch and low side switches) rather than the shading that puts CIN in the loop; and class B met after is read off Figure 7 rather than stated, though the reading is right - the 41 dBuV/m peak sits just past the 230 MHz step where the class B line rises, while the 44 dBuV/m miss is stated in words.",
+   "ts": "2026-08-15T17:46:46"
+  },
+  "buck-two-layer-ground-shield-continuity": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-15",
+   "note": "Re-read snva721a p6 and lmr33630 p33/p34. The load-bearing deviation claim holds on the exact pages cited: p33 rule 5 reads Use at least one ground plane in one of the middle layers, acting as a noise shield and a heat dissipation path; rule 8 asks 2 oz top and bottom and no less than 1 oz; and p34 10.1.1 asks for a four-layer 2 oz / 1 oz / 1 oz / 2 oz stack and for PGND, VIN and SW to be constrained to one side of the ground planes. A 2-layer board is therefore a documented deviation, as claimed. snva721a p6 Figures 12/13/14 are annotated Peak = 34, 28.5 and 33.5 dBuV/m on three boards the text says share identical top and bottom layer layouts, building materials and operating conditions, and the text states the four-layer board achieved 5 dBuV/m in noise reduction compared to the two-layer board and that the broken plane performed comparably to the two-layer design. No overreach to 30 V: section 2.4 states no input voltage at all (the 12 V figure belongs to the separate section 2.2 experiment), and the record claims only one common operating condition. One caveat for a later pass, not refuting: the prose maps a bottom-layer trace on a 2-layer board onto the 33.5 dBuV/m broken MID-plane measurement, which is an extrapolation - but the provenance is stated correctly two sentences earlier and the source conclusion (avoid breaking the copper of the shielding plane, especially right underneath the noisy traces) is generic.",
+   "ts": "2026-08-15T17:46:46"
+  },
+  "buck-dc-input-hot-plug-overshoot": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-15",
+   "note": "Verified from the pages, independent of the earlier pass. sluaal8 p3 annotations re-read at high magnification and all three match the record: Fig 2-2 Ri = 0.21 ohm / Li = 9.3 uH with Ci = 20 and 40 uF; Fig 2-3 Ri = 0.15 ohm / Ci = 40 uF sweeping Li = 5 and 12 uH (blue is the 5 uH trace - it peaks first, 0.42 ms vs 0.68 ms, and its amplitude matches the 5 uH case); Fig 2-4 Li = 9.3 uH / Ci = 40 uF sweeping Ri = 0.15 and 0.5 ohm. I calibrated each curve against its own printed gridlines and measured stroke centrelines instead of eyeballing: 20 uF 29.65 V at 0.42 ms, 40 uF 27.19 V at 0.64 ms, Li 5 uH 27.26 V settled by ~2.5 ms, Li 12 uH 30.28 V still swinging 18.4-19.4 V over 4.5-5 ms, Fig 2-4 0.15 ohm 36.09 V then flat 33.47 V from 2.5 ms, 0.5 ohm 29.81 V with its last swing at 4.34 ms. Every quoted value sits within 0.35 V of the centreline and inside a half stroke-width of the printed curve, so the one-decimal quotes are defensible off this page (33.5 is exact to 0.03 V). Settling tails measure 18.08-18.36 V, so Vi ~18.3 V holds; the 1.5-1.6x band measures 1.49x and 1.62x on Fig 2-2 and is independently corroborated at 1.49x and 1.65x on Fig 2-3, which the record does not even claim. Damping arithmetic is exact: 2*sqrt(9.3 uH / C) = 1.929 / 1.364 / 0.964 ohm at 10 / 20 / 40 uF, and 9.3 uH is printed on p3. p2 Eq 3 is transcribed verbatim, its Rt = 0 reduction to Vi*(1-cos wt) with a 2x peak is algebraically right, and the three p2 text claims are faithful. p4 Eq 4, its reasoning and Fig 3-1 (2 ohm 0.5 W 1210 anti-surge + 2.2 uF 25 V 1210 + 0.1 uF 50 V 0805) all check, including TI own may-need-adjusting caveat. lmr33630 p6 confirms 38 V abs max / 36 V rec max / 3.8 V min / IOUT 0-3 A; p32 confirms every clause including the 20-100 uF aluminium or tantalum remedy, its ESR damping and load-step hold, the snap-back thyristor TVS refusal with the collapse-below-Vout reason, and the input-filter instability warning. The 30 V extrapolation is legitimate rather than an overreach: Eq 3 is linear in Vi, so the overshoot RATIO is Vi-independent by the source own printed model; 1.49-1.62x onto 30 V gives 44.8-48.7 V, the record 45-49 V, well under the source own zero-R ceiling of 2*Vi = 60 V that the record also cites, and destroy-the-part is backed by p6 footnote 1 (permanent damage). Cross-check the author did not run: zeta = (R/2)*sqrt(C/L) at Vi = 18.3 V predicts 29.5/27.4 V for Fig 2-2 and 27.6/30.2 V for Fig 2-3, matching the drawn curves to 0.2 V, so the two figures the rule actually rests on are physically self-consistent and the Fig 2-3 trace assignment is confirmed. Fig 2-4 handling passes: the anomaly is recorded as drawn with an explicit do-not-read-ring-duration caveat and no number in rule comes off that figure. Two cautions for a later pass, not grounds to refute: (1) the p3 note opening claim that every trace starts at 0 V is false for the Fig 2-4 0.15 ohm trace, which is drawn from 17.7 V at t = 0.05 ms and never goes below 17.71 V - the note corrects the settles-to-18.3 half of that sentence but not this half; (2) the Fig 2-4 anomaly is wider than stated - by the model the 0.5 ohm trace should peak at 21.0 V but is drawn at 29.81 V, above Fig 2-2 same-L same-C but LOWER-R 0.21 ohm case at 27.19 V, so cross-figure the drawn data runs opposite to the peak-versus-Ri trend the note takes from that page; the conclusion still stands on the p2 text and Eq 3 / Eq 4, but the warrant is weaker than represented.",
+   "ts": "2026-08-15T18:12:09"
+  },
+  "buck-cmode-internal-comp-cout-window": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-15",
+   "note": "Re-read lmr33630 p21/p22/p23/p24. The unusual half - the ceiling - is printed verbatim on p23: the maximum value of total output capacitance must be limited to about 10 times the design value, or 1000 uF, whichever is smaller, because large values can adversely affect the start-up behavior of the regulator as well as the loop stability, and larger values require a careful study of start-up at full load and loop stability. That is the datasheet stating it, not the author inferring it from the fixed-compensation argument. p22 carries the floor exactly as quoted: Equation 6 gives the lower bound on total output capacitance and the upper bound on ESR, worked at dVout 250 mV for a dIout 2 A step to 52 uF and 0.11 ohm, then a 20 percent tolerance plus 10 percent bias de-rating to 72 uF achieved with 4 x 22 uF 16 V 1210 ceramics, plus the 10 V at or below 3.3 V and 16 V at 5 V and above split and the requirement that load-transient testing and Bode plots always be completed before production. p23 gives the 1 nF to 100 nF small-case adder for inductor and board parasitic spikes; p21 gives the 100 kohm recommended / 1 Mohm maximum divider with a mandatory CFF at 1 Mohm; p24 Equation 9 gives the CFF upper bound and the FB-pin parasitic pole. The cmode envelope narrows rather than widens the source, and the datasheet supplies loop stability as the stated mechanism, so nothing is claimed that the pages do not support.",
+   "ts": "2026-08-15T17:46:47"
+  },
+  "buck-cmode-inductor-window": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-15",
+   "note": "Re-read lmr33630 p20/p21/p22 and p7. Both bounds are printed. p21: ripple normally 20 to 40 percent of maximum output current with 30 percent the best value, and the explicit instruction that when the maximum load is much smaller than the maximum available from the device the maximum device current must be used; Equation 4 as quoted, with K = 0.3 giving 8.1 uH rounded to 8 uH; and Isat ideally at least the high-side switch current limit I_SC so the inductor does not saturate during an output short. p22: the maximum inductance is limited by the minimum current ripple that current mode control needs, rule of thumb no less than about 10 percent of the device maximum rated current under nominal conditions; Isat not less than the low-side I_LIMIT; ferrite hard versus powdered iron soft with more core loss above roughly 1 MHz; and Equation 5 L_MIN >= 0.28 * Vout / fsw, which evaluates to 3.5 uH at 5 V and 400 kHz as the record says. p7 confirms I_SC 3.85 / 4.5 / 5.05 A and I_LIMIT 2.9 / 3.5 / 4.1 A. Table 9-2 on p20 matches the quoted 400 kHz / 5 V row field for field, and Figure 9-1 above it is the 6-36 V in, 5 V / 3 A out example. I also checked the counterfactual the prose asserts: Equation 4 with Iout 2 A and K = 0.3 at 12 V in gives about 12 uH against the table 8 uH, so sizing ripple against the device current really is what makes the row smaller. One gloss, not refuting: the datasheet prints Equation 5 with no stated reason, so below it the loop is not stable is the record inferring a slope-compensation limit - the envelope_note discloses that inference.",
+   "ts": "2026-08-15T17:46:47"
+  },
+  "buck-integrated-fet-bypass-trio": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-15",
+   "note": "Re-read lmr33630 p23, p5 and p33 rules 2-3, plus snva721a p5. p23 carries every number as stated: a minimum of 10 uF of ceramic capacitance is required at the input, rated for at least the maximum input voltage and preferably twice it; a small case size 220 nF ceramic must be used at the input as close as possible to the regulator, providing high frequency bypass for the control circuits internal to the device; Equation 8 gives worst-case input IRMS as Iout/2; CBOOT is a required high-quality 100 nF at least 10 V; VCC requires a 1 uF 16 V ceramic, must not be loaded by external circuitry, and can supply the power-good pull-up at 100 kohm. Table 6-1 on p5 confirms the VIN, PGND, VCC and BOOT pin rows word for word. snva721a p5 section 2.3 and Figure 8 do show the two gate-driver loops closing through CBOOT via BOOT/SW and CVCC via VCC/GND with the capacitors immediately outside their own pins, which is exactly the integrated-fet bound the envelope claims. One thing to tidy on a later pass, not a refutation: rule.chf_dielectric states 50 V X7R flatly, whereas p23 gives that inside a 6-36 V worked example - the citation note does disclose this, but it sits oddly beside the 63 V-class argument the record itself makes for a 30 V input.",
+   "ts": "2026-08-15T17:46:47"
+  },
+  "buck-ep-agnd-thermal-via-array": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-15",
+   "note": "Re-read lmr33630 p5, p7, p25, p33 and p34. The EP-is-AGND claim is not an inference and the datasheet does NOT call the pad a thermal pad tied to PGND: Table 6-1 on p5 names the THERMAL PAD row AGND, Analog ground for regulator and system, Ground reference for internal references and logic, and states that all electrical parameters are measured with respect to this pin, adding that for the HSOIC package the pad on the bottom of the device serves as both the AGND connection and a thermal connection to the heat sink ground plane and must be soldered to a ground plane to achieve good electrical and thermal performance. So the via array is a reference-accuracy item as well as a thermal one, as the record argues. p34 10.1.1 gives the minimum 4 x 3 array of 10-mil thermal vias evenly distributed under the PAD (10 mil = 0.254 mm, so the 0.25 mm gloss is fine) and the four-layer 2/1/1/2 oz stack; p33 rule 6 gives the solder-integrity bearing on total effective RthetaJA and rule 8 the 2 oz / 1 oz copper floor with the SOIC heat-sinking via array landing on the ground plane on the BOTTOM PCB layer, which is the two-layer catch the record draws. p7 carries RthetaJA 42.9 C/W with the explicit note that it is only valid for comparison with other packages and can not be used for design purposes, plus RthetaJC(bot) 4.3 C/W. p25 lists the number of thermal vias under the package among the RthetaJA drivers and captions Figure 9-3 as per-layer copper area on a four-layer board with 2 oz outers and 1 oz inners, the curve running about 43 C/W down to about 28 at 20 cm2 and about 24 by 50-60 cm2.",
+   "ts": "2026-08-15T17:46:47"
+  },
+  "buck-precision-en-fixed-softstart": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-15",
+   "note": "Re-read lmr33630 p5, p7, p8, p13, p14 and p24; every claim lands. Table 6-1 EN row reads Enable input to regulator. High = ON, low = OFF. Can be connected directly to VIN; Do not float, and the FB row adds Do not float. Do not ground. p7 gives V_EN-H 1.2 / 1.231 / 1.26 V rising to start switching, V_EN-HYS 100 mV, enable input leakage 0.2 nA, and the two internal-LDO thresholds. p8 lists t_SS 2.9 / 4 / 6 ms and there is indeed no SS pin anywhere in the parameter list. p13 section 8.3.2 states the precision thresholds, the external divider UVLO, the tie-to-VIN option, that this input must not be allowed to float, and a reference-based soft start with an output rise time of about 4 ms. p14 Figure 8-3 shows VCC coming up at the lower threshold and Vout only at V_EN-H with hysteresis-offset falling edges, and Figure 8-4 (Vin 12 V, Vout 5 V, Iout 3 A, 2 ms/div) shows the monotonic ramp with the inductor current rising smoothly to the load level and no charging spike. p24 Equation 10 gives Voff = Von * (1 - V_EN-HYS/V_EN-H); 100 mV / 1.231 V = 8.1 percent, so about 8 percent checks. On the level question I pressed both ways and principle holds: the gap asks sequencing at min_level principle, and none of the P2 operating-point dimensions bounds do-not-float, inrush-is-derived-when-soft-start-is-fixed, or hysteresis-as-a-fixed-fraction - a controller with external FETs carries the same three facts. Declining an envelope here is the honest call, not a dodge.",
+   "ts": "2026-08-15T17:46:47"
+  },
+  "buck-constraints-emission-layout-groups": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-15",
+   "note": "Re-read lmr33630 p7, p25 and p33, plus snva721a p5 and p6. p7 and p25 support the thermal-entry demand exactly: the 42.9 C/W is captioned only valid for comparison with other packages and can not be used for design purposes; 9.2.2.11 names power dissipation, PCB area, copper heat-sink area, the number of thermal vias under the package and adjacent component placement as the effective RthetaJA drivers; Figure 9-3 is captioned as per-layer copper area on a four-layer board with 2 oz outers and 1 oz inners; and Equation 11 turns RthetaJA and ambient into the maximum output current, which is what a thermal entry really asserts. p33 rules 1, 2, 3, 4, 6 and 9 are precisely the placement groups and route facts claimed, snva721a p5 Figure 8 is the separate gate-drive group, and snva721a p6 Figures 11 and 14 give the 33.5 versus 34 dBuV/m cut-under-SW result behind emitting plane continuity as an explicit route constraint. On the level question: this record governs the SHAPE of what a buck block hands downstream, and none of the P2 dimensions bounds emit a copper-area target with the stack, emit more than one placement group, emit continuity as a route fact, or the pad via array travels with the land pattern. The gap asks constraints-emission at min_level principle and the record meets it without inventing a filler dimension. The CBOOT/CVCC group list is integrated-fet flavoured, but the emitted rule (do not collapse layout guidance into the hot loop alone) is general, so no envelope is owed.",
+   "ts": "2026-08-15T17:46:47"
+  }
+ },
+ "queue_entry": "2026-08-15-research-task-block-buck-1-9-verified",
+ "updated": "2026-08-15T18:13:15",
+ "summary": {
+  "verified": 9,
+  "refuted": 0,
+  "checklists": 0,
+  "sources": 3
+ }
+}

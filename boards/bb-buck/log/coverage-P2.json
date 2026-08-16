@@ -1,11 +1,11 @@
 {
  "script": "knowledge",
- "status": "gaps",
+ "status": "pass",
  "schema_version": 2,
  "workspace": "boards/bb-buck",
  "board": "bb-buck",
  "phase": "P2",
- "maturity_floor": "proven",
+ "maturity_floor": "approved",
  "keys": {
   "topologies": [
    "buck"
@@ -24,8 +24,8 @@
  "summary": {
   "slots": 1,
   "covered": 0,
-  "provisional": 0,
-  "gap": 1
+  "provisional": 1,
+  "gap": 0
  },
  "slots": [
   {
@@ -51,8 +51,19 @@
     {
      "class": "selection",
      "min_level": "topology",
-     "verdict": "gap",
+     "verdict": "covered",
      "records": [
+      {
+       "id": "buck-cmode-inductor-window",
+       "level": "family",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      },
       {
        "id": "buck-inductor-selection",
        "level": "topology",
@@ -61,8 +72,8 @@
        "unknown_dims": [],
        "outside_dims": [],
        "via": "keys",
-       "satisfies": false,
-       "blocker": "maturity-below-floor"
+       "satisfies": true,
+       "blocker": null
       },
       {
        "id": "buck-selection-ladder",
@@ -72,8 +83,8 @@
        "unknown_dims": [],
        "outside_dims": [],
        "via": "keys",
-       "satisfies": false,
-       "blocker": "maturity-below-floor"
+       "satisfies": true,
+       "blocker": null
       },
       {
        "id": "buck-upstream-inrush-limit",
@@ -93,7 +104,7 @@
     {
      "class": "power-loop",
      "min_level": "topology",
-     "verdict": "gap",
+     "verdict": "covered",
      "records": [
       {
        "id": "buck-cin-co-ground-separation",
@@ -103,8 +114,8 @@
        "unknown_dims": [],
        "outside_dims": [],
        "via": "keys",
-       "satisfies": false,
-       "blocker": "maturity-below-floor"
+       "satisfies": true,
+       "blocker": null
       },
       {
        "id": "buck-freewheel-diode-snubber-placement",
@@ -138,6 +149,17 @@
        "unknown_dims": [],
        "outside_dims": [],
        "via": "keys",
+       "satisfies": true,
+       "blocker": null
+      },
+      {
+       "id": "buck-sync-hot-loop-cin-placement",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
        "satisfies": false,
        "blocker": "maturity-below-floor"
       }
@@ -146,7 +168,7 @@
     {
      "class": "emi",
      "min_level": "topology",
-     "verdict": "gap",
+     "verdict": "covered",
      "records": [
       {
        "id": "buck-cin-co-ground-separation",
@@ -156,8 +178,8 @@
        "unknown_dims": [],
        "outside_dims": [],
        "via": "keys",
-       "satisfies": false,
-       "blocker": "maturity-below-floor"
+       "satisfies": true,
+       "blocker": null
       },
       {
        "id": "buck-freewheel-diode-snubber-placement",
@@ -180,8 +202,8 @@
        "unknown_dims": [],
        "outside_dims": [],
        "via": "keys",
-       "satisfies": false,
-       "blocker": "maturity-below-floor"
+       "satisfies": true,
+       "blocker": null
       },
       {
        "id": "buck-input-hot-loop",
@@ -202,6 +224,28 @@
        "unknown_dims": [],
        "outside_dims": [],
        "via": "keys",
+       "satisfies": true,
+       "blocker": null
+      },
+      {
+       "id": "buck-sync-hot-loop-cin-placement",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      },
+      {
+       "id": "buck-two-layer-ground-shield-continuity",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
        "satisfies": false,
        "blocker": "maturity-below-floor"
       }
@@ -210,12 +254,23 @@
     {
      "class": "feedback",
      "min_level": "topology",
-     "verdict": "gap",
+     "verdict": "covered",
      "records": [
       {
        "id": "buck-bst-fb-output-caps",
        "level": "family",
        "maturity": "approved",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": true,
+       "blocker": null
+      },
+      {
+       "id": "buck-cmode-internal-comp-cout-window",
+       "level": "family",
+       "maturity": "verified",
        "envelope": "inside",
        "unknown_dims": [],
        "outside_dims": [],
@@ -231,8 +286,8 @@
        "unknown_dims": [],
        "outside_dims": [],
        "via": "keys",
-       "satisfies": false,
-       "blocker": "maturity-below-floor"
+       "satisfies": true,
+       "blocker": null
       },
       {
        "id": "cot-ripple-injection-raises-vout",
@@ -253,12 +308,23 @@
     {
      "class": "decoupling",
      "min_level": "topology",
-     "verdict": "gap",
+     "verdict": "covered",
      "records": [
       {
        "id": "buck-bst-fb-output-caps",
        "level": "family",
        "maturity": "approved",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": true,
+       "blocker": null
+      },
+      {
+       "id": "buck-integrated-fet-bypass-trio",
+       "level": "topology",
+       "maturity": "verified",
        "envelope": "inside",
        "unknown_dims": [],
        "outside_dims": [],
@@ -271,12 +337,34 @@
     {
      "class": "return-path",
      "min_level": "topology",
-     "verdict": "gap",
+     "verdict": "covered",
      "records": [
+      {
+       "id": "buck-ep-agnd-thermal-via-array",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      },
       {
        "id": "buck-power-ground-isolation",
        "level": "topology",
        "maturity": "approved",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": true,
+       "blocker": null
+      },
+      {
+       "id": "buck-two-layer-ground-shield-continuity",
+       "level": "topology",
+       "maturity": "verified",
        "envelope": "inside",
        "unknown_dims": [],
        "outside_dims": [],
@@ -289,8 +377,19 @@
     {
      "class": "thermal-via",
      "min_level": "topology",
-     "verdict": "gap",
+     "verdict": "covered",
      "records": [
+      {
+       "id": "buck-ep-agnd-thermal-via-array",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      },
       {
        "id": "buck-thermal-via-and-via-current",
        "level": "topology",
@@ -299,16 +398,27 @@
        "unknown_dims": [],
        "outside_dims": [],
        "via": "keys",
-       "satisfies": false,
-       "blocker": "maturity-below-floor"
+       "satisfies": true,
+       "blocker": null
       }
      ]
     },
     {
      "class": "inrush",
      "min_level": "topology",
-     "verdict": "gap",
+     "verdict": "provisional",
      "records": [
+      {
+       "id": "buck-dc-input-hot-plug-overshoot",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      },
       {
        "id": "buck-upstream-inrush-limit",
        "level": "topology",
@@ -327,12 +437,23 @@
     {
      "class": "sequencing",
      "min_level": "principle",
-     "verdict": "gap",
+     "verdict": "covered",
      "records": [
       {
        "id": "buck-en-softstart-sequencing",
        "level": "principle",
        "maturity": "approved",
+       "envelope": "n/a",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": true,
+       "blocker": null
+      },
+      {
+       "id": "buck-precision-en-fixed-softstart",
+       "level": "principle",
+       "maturity": "verified",
        "envelope": "n/a",
        "unknown_dims": [],
        "outside_dims": [],
@@ -345,12 +466,23 @@
     {
      "class": "constraints-emission",
      "min_level": "principle",
-     "verdict": "gap",
+     "verdict": "covered",
      "records": [
       {
        "id": "buck-constraints-emission",
        "level": "principle",
        "maturity": "approved",
+       "envelope": "n/a",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": true,
+       "blocker": null
+      },
+      {
+       "id": "buck-constraints-emission-layout-groups",
+       "level": "principle",
+       "maturity": "verified",
        "envelope": "n/a",
        "unknown_dims": [],
        "outside_dims": [],
@@ -365,102 +497,24 @@
    "checklist": {
     "id": "buck",
     "maturity": "approved",
-    "floor_met": false
+    "floor_met": true
    },
-   "verdict": "gap"
+   "verdict": "provisional"
   }
  ],
- "gaps": [
-  {
-   "slot": "block:B1",
-   "kind": "block",
-   "topology": "buck",
-   "operating_point": {
-    "vin_v": 30,
-    "vout_v": 5,
-    "iout_a": 2,
-    "fsw_khz": 400,
-    "pdiss_w": 1.2,
-    "board_layers": 2,
-    "switching_kind": "hard",
-    "rectifier_kind": "sync",
-    "integration_kind": "integrated-fet",
-    "source_kind": "dc-input",
-    "control_kind": "cmode",
-    "injection_kind": "none"
-   },
-   "missing": [
-    {
-     "class": "selection",
-     "min_level": "topology"
-    },
-    {
-     "class": "power-loop",
-     "min_level": "topology"
-    },
-    {
-     "class": "emi",
-     "min_level": "topology"
-    },
-    {
-     "class": "feedback",
-     "min_level": "topology"
-    },
-    {
-     "class": "decoupling",
-     "min_level": "topology"
-    },
-    {
-     "class": "return-path",
-     "min_level": "topology"
-    },
-    {
-     "class": "thermal-via",
-     "min_level": "topology"
-    },
-    {
-     "class": "inrush",
-     "min_level": "topology"
-    },
-    {
-     "class": "sequencing",
-     "min_level": "principle"
-    },
-    {
-     "class": "constraints-emission",
-     "min_level": "principle"
-    }
-   ],
-   "reasons": [
-    "no record satisfies the class at this operating point and maturity floor"
-   ],
-   "related_records": [
-    "buck-bst-fb-output-caps",
-    "buck-cin-co-ground-separation",
-    "buck-constraints-emission",
-    "buck-en-softstart-sequencing",
-    "buck-fb-route-rules",
-    "buck-freewheel-diode-snubber-placement",
-    "buck-inductor-copper-and-gnd-void",
-    "buck-inductor-selection",
-    "buck-input-hot-loop",
-    "buck-power-ground-isolation",
-    "buck-selection-ladder",
-    "buck-switch-node-containment",
-    "buck-thermal-via-and-via-current",
-    "buck-upstream-inrush-limit",
-    "cot-ripple-injection-raises-vout"
-   ],
-   "principle_parents": [
-    "buck-constraints-emission",
-    "buck-en-softstart-sequencing",
-    "buck-input-hot-loop"
-   ],
-   "task": "research block 'buck': populate selection, power-loop, emi, feedback, decoupling, return-path, thermal-via, inrush, sequencing, constraints-emission (application delta only - principle parents exist)"
-  }
- ],
+ "gaps": [],
  "warnings": [],
- "workspace_records": [],
+ "workspace_records": [
+  "buck-cmode-inductor-window",
+  "buck-cmode-internal-comp-cout-window",
+  "buck-constraints-emission-layout-groups",
+  "buck-dc-input-hot-plug-overshoot",
+  "buck-ep-agnd-thermal-via-array",
+  "buck-integrated-fet-bypass-trio",
+  "buck-precision-en-fixed-softstart",
+  "buck-sync-hot-loop-cin-placement",
+  "buck-two-layer-ground-shield-continuity"
+ ],
  "workspace_checklists": [],
  "mapping_applied": null,
  "mapping_request": {
@@ -544,16 +598,7 @@
      "constraints-emission"
     ],
     "unmet_classes": [
-     "selection",
-     "power-loop",
-     "emi",
-     "feedback",
-     "decoupling",
-     "return-path",
-     "thermal-via",
-     "inrush",
-     "sequencing",
-     "constraints-emission"
+     "inrush"
     ]
    }
   ],
@@ -593,6 +638,40 @@
     "prose_head": "Two ROHM measurements the generic hot-loop rule does not carry: (1) shortening the CBYPASS wiring EVEN BY 1 mm is worth it - the HF bypass supplies the steepest edge of the switch current, and its loop inductance sets the VIN-pin voltage no"
    },
    {
+    "id": "buck-cmode-inductor-window",
+    "level": "family",
+    "maturity": "verified",
+    "classes": [
+     "selection"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "\"Take the next standard value up\" is only half true on a current-mode part: the inductor is bounded on BOTH sides by the modulator. Floor: the datasheet prints L >= 0.28 * Vout / fsw - 3.5 uH at 5 V and 400 kHz - and below it the loop is no"
+   },
+   {
+    "id": "buck-cmode-internal-comp-cout-window",
+    "level": "family",
+    "maturity": "verified",
+    "classes": [
+     "feedback"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "A peak-current-mode part with FIXED internal compensation does not just have a minimum output capacitance - it has a WINDOW, and the ceiling is the half designers forget. Floor: the load-transient equation yields both a minimum C_OUT and a "
+   },
+   {
     "id": "buck-constraints-emission",
     "level": "principle",
     "maturity": "approved",
@@ -609,6 +688,40 @@
     "prose_head": "What a buck block must emit into constraints.json for the pipeline: (1) power entries with current_a from the RAIL BUDGET (consumer sum + ~30% headroom, rounded to a design ceiling) and dt_c from ambient; (2) a thermal entry when regulator "
    },
    {
+    "id": "buck-constraints-emission-layout-groups",
+    "level": "principle",
+    "maturity": "verified",
+    "classes": [
+     "constraints-emission"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "What a buck block must hand downstream beyond the generic power, thermal and blocks entries, because nothing later can infer it. (1) The thermal entry needs a COPPER-AREA target next to the watts: effective RthetaJA is set by copper area, l"
+   },
+   {
+    "id": "buck-dc-input-hot-plug-overshoot",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "inrush"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "A bench supply or DC adapter imposes no bulk-capacitance budget the way USB, PD or PoE do - that is buck-upstream-inrush-limit's case. What bounds a dc-input board is the hot-plug transient: lead resistance and inductance in series with a l"
+   },
+   {
     "id": "buck-en-softstart-sequencing",
     "level": "principle",
     "maturity": "approved",
@@ -623,6 +736,28 @@
      "interfaces": []
     },
     "prose_head": "Check the EN pin's OWN behavior before adding parts: many parts auto-start (AP63203: internal 1.5 uA pull-up - tie to VIN or float; adding a divider is wasted parts). When EN is used as a UVLO divider, mind the two traps the sbuck run hit: "
+   },
+   {
+    "id": "buck-ep-agnd-thermal-via-array",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "thermal-via",
+     "return-path"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [
+      "SO-8-EP",
+      "HSOIC-8",
+      "DDA"
+     ],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "On the 8-pin HSOIC the exposed pad is not just a heatsink. The pin table names it AGND - the ground reference for the internal references and logic - and states that ALL electrical parameters are measured with respect to it, so the via arra"
    },
    {
     "id": "buck-fb-route-rules",
@@ -707,6 +842,23 @@
     "prose_head": "Layout rule #1 for every buck: the input cap carries the DISCONTINUOUS switch current. C_IN plus a 100 nF HF bypass AT the VIN pin, on the SAME layer as the IC; the C_IN -> VIN -> GND -> C_IN loop must be the shortest loop on the board; SW-"
    },
    {
+    "id": "buck-integrated-fet-bypass-trio",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "decoupling"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "An integrated-FET regulator hides the power switches but exposes THREE high-di/dt bypass loops, and all three are short-loop items at their own pins. (1) Input: a minimum of 10 uF of ceramic, rated for at least the maximum input voltage and"
+   },
+   {
     "id": "buck-power-ground-isolation",
     "level": "topology",
     "maturity": "approved",
@@ -722,6 +874,23 @@
      "interfaces": []
     },
     "prose_head": "Ground strategy (ROHM s8): analog small-signal ground and power ground must be ISOLATED, and power ground laid on the TOP layer without splitting is the ideal - dropping an isolated power ground to the bottom layer through vias adds via R a"
+   },
+   {
+    "id": "buck-precision-en-fixed-softstart",
+    "level": "principle",
+    "maturity": "verified",
+    "classes": [
+     "sequencing"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "Three sequencing facts that invert the usual buck assumptions. (1) EN is not always safe to float. This part's pin row reads \"Can be connected directly to VIN; Do not float\", and the input has precision thresholds - 1.231 V typical to start"
    },
    {
     "id": "buck-selection-ladder",
@@ -756,6 +925,24 @@
     "prose_head": "Keep SW copper as small as electrically possible and treat SW + L as an AGGRESSOR: lumina-par's 2.4 GHz antenna 11 mm from a switch node drove a 4-layer stackup + containment plan; usb-buck keeps the USB pair away from SW/L per ST AN4879 3."
    },
    {
+    "id": "buck-sync-hot-loop-cin-placement",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "power-loop",
+     "emi"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "In a synchronous buck the commutating loop is C_IN -> high-side FET -> low-side FET -> back to C_IN, and in an integrated-FET part BOTH switches sit inside the package: SNVA721A fig 3 shades exactly that as the \"loop area with discontinuous"
+   },
+   {
     "id": "buck-thermal-via-and-via-current",
     "level": "topology",
     "maturity": "approved",
@@ -774,6 +961,24 @@
      "interfaces": []
     },
     "prose_head": "Thermal vias under an exposed-pad regulator (ROHM s4, HTSOP-J8 numbers generalize to EP packages): small drill - 0.3 mm inner diameter - so the via can FILL with solder; larger drills suck solder away from the joint at reflow (solder-wickin"
+   },
+   {
+    "id": "buck-two-layer-ground-shield-continuity",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "emi",
+     "return-path"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "Three boards with identical top and bottom layouts, materials and operating conditions were scanned for radiated EMI: a 2-layer board with no ground-plane shielding peaked at 34 dBuV/m; a 4-layer board with two unbroken mid-layer ground pla"
    },
    {
     "id": "buck-upstream-inrush-limit",
