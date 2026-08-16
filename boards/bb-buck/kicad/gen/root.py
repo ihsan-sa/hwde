@@ -397,11 +397,18 @@ def build() -> schlib.Sheet:
 
     # M3 clearance holes, 3.2 mm NPTH with a 6.5 mm keepout (constraints.json
     # placement.keepouts).  ZERO-pin symbol: unplated, no net.
-    for i, ref in enumerate(("H1", "H2", "H3", "H4")):
+    # TWO holes, not four (owner ruling at P5): the outline was cut 40x30 ->
+    # 35x25 for a tight layout, and 4 x M3 with 6.5 mm keepouts would claim
+    # ~170 mm^2 of a 875 mm^2 board - 19% of it, all in the corners the hot
+    # loop and the output bank need.  requirements.md s5 sanctions exactly
+    # this: "If the honest outline turns out too small for four, two on
+    # opposite corners is acceptable."  H1/H2 go DIAGONALLY opposite so the
+    # board cannot pivot on its standoffs.
+    for i, ref in enumerate(("H1", "H2")):
         sh.add_component(S_HOLE, ref, "M3_3.2mm",
                          at=(round(101.60 + i * 19.05, 4), Y_TP),
                          footprint=F_HOLE)
-    for ref in ("TP1", "TP2", "H1", "H2", "H3", "H4"):
+    for ref in ("TP1", "TP2", "H1", "H2"):
         sh.sch.components.get(ref).in_bom = False
 
     # =========================================================== power rails
