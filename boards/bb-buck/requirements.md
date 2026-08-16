@@ -220,10 +220,47 @@ text is kept underneath it for provenance only.
   of the requirement set. The datasheet-required bulk input capacitance
   stays fitted and damps the incidental case; no damping component is
   added. A 36 V-class part is sufficient under this answer.
-- **A3 - Output spec.** +/-3 % DC, i.e. 4.85-5.15 V, held across the FULL
-  18-30 V input range and the FULL 0-2 A load range, with <= 50 mV
-  peak-to-peak output ripple. These are the numbers the feedback divider
-  tolerance, the output capacitance and the P8 simulation bounds must meet.
+- **A3 - Output spec. AMENDED TWICE AT P3/P4 - read the amendment below, not
+  just this paragraph.** As originally answered: +/-3 % DC, i.e. 4.85-5.15 V,
+  held across the FULL 18-30 V input range and the FULL 0-2 A load range,
+  with <= 50 mV peak-to-peak output ripple.
+
+  **A3 AS AMENDED (this is the binding version).** A3 now has a TWO-REGION
+  shape, and both amendments have the same root cause: the chosen part runs
+  PFM / diode-emulation at light load and has no MODE pin to defeat it.
+
+  | Load | DC accuracy | Ripple |
+  |---|---|---|
+  | ~200 mA to 2 A | +/-3 % (4.85-5.15 V) BINDING | <= 50 mV pk-pk BINDING |
+  | 0 to ~200 mA | PFM light-load rise ACCEPTED | PFM burst ripple ACCEPTED |
+
+  - *Amendment 1 (P3, owner-ruled).* The DDA package has no MODE/FCCM pin and
+    is auto-mode only (datasheet 8.4.1, which states outright that PFM
+    "yields larger output voltage ripple"). None of the three accept criteria
+    - forced-CCM, a strappable MODE pin, or a datasheet figure at this
+    operating point - was satisfiable. The mode excludes the usual fix (a
+    preload resistor is excluded conditioning), so the owner relaxed ripple
+    below ~200 mA rather than override the mode or re-source the part.
+  - *Amendment 2 (P4, owner-ruled).* The SAME PFM behaviour also raises the
+    output VOLTAGE at light load: datasheet Sec 7.7 specs regulation as
+    -1.5/+1.5 % for IOUT >= 1 A but **-1.5/+2.5 % for IOUT 0 A to max**, a
+    +1.0 % adder confirmed by Fig 9-19. Stacked on the worst 0-50 C divider
+    corner that gave 5.161 V against the 5.15 V ceiling - outside. So the
+    carve-out extends to DC accuracy below ~200 mA. An earlier statement that
+    DC accuracy was unaffected at all loads was WRONG and is retracted here.
+  - *Paid for, not merely relaxed.* The owner took the recentring remedy as
+    well: the feedback divider moved from 100k/24.9k (5.016 V nominal, TI's
+    own Table 9-2 pair) to **102k/25.5k**, an exact 4.000 ratio giving
+    **5.000 V nominal**. That moved the stacked 0 A worst case from 5.161 V
+    to 5.144 V - inside the original window even though it no longer has to
+    be. Both parts are E96, 0.1 %/25 ppm, same Yageo RT family (TCR tracking
+    preserved).
+
+  The P8 simulation bounds encode this: error bounds stay on the full
+  4.85-5.15 V window (the divider ratio is load-independent, so the carve-out
+  relaxes the CONVERTER, not the divider), plus a warning-severity bound
+  carrying the +1.0 % light-load stack so it stays visible in the gate. That
+  warning bound is the ONLY check that catches a revert to 100k/24.9k.
 - **A4 - Probe access.** Exactly ONE switch-node probe pad with an adjacent
   ground pad. Nothing else: VIN, VOUT and GND are already reachable at the
   two screw terminals. Mode-boundary ruling by the owner - the switch node

@@ -7,18 +7,28 @@
 *   Topology synthesized (NOT retyped) with
 *   `sim_run.py --fragment --net kicad/bb-buck.net --refs R1,R2`, which
 *   emitted exactly these two element lines:
-*       R1 P5V N_FB 100k
-*       R2 N_FB 0 24.9k
+*       R1 P5V N_FB 102k
+*       R2 N_FB 0 25.5k
 *   RENAME MAP (from the same call):  +5V -> P5V   /FB -> N_FB   GND -> 0
 *   Net /FB carries exactly R1.2, R2.1, U1.5 - no CFF feed-forward cap
 *   exists on this board, so the divider's DC ratio is the whole story.
-*   Net +5V carries C4.1, C5.1, J2.1, L1.2, R1.1 - i.e. R1 senses the rail
-*   AFTER the output capacitor bank, as U1's datasheet Sec 10.1 rule 4 asks.
+*   Net +5V carries C4.1, C5.1, C8.1, C9.1, J2.1, L1.2, R1.1 - i.e. R1
+*   senses the rail AFTER the output capacitor bank, as U1's datasheet
+*   Sec 10.1 rule 4 asks. (The bank went 2 -> 4 x 22 uF in the same P4 fix
+*   pass; irrelevant to a DC setpoint, noted only so the membership list
+*   above matches the netlist it was read from.)
 *
 *   STALENESS GUARD: block (A) below is the verbatim fragment text. The
-*   corner instances in (B) restate 100k / 24.9k as .param values. If R1 or
+*   corner instances in (B) restate 102k / 25.5k as .param values. If R1 or
 *   R2 ever change, re-run the --fragment call above and diff it against
 *   block (A) before trusting any number in this bench.
+*
+*   REFRESH 2026-08-15 (this bench's second pass). The guard above did its
+*   job: the P4 fix pass recentred the divider 100k/24.9k -> 102k/25.5k on
+*   this bench's own finding, the --fragment call was re-run, and it came
+*   back 102k / 25.5k against a block (A) that still said 100k / 24.9k.
+*   Every number in this deck and its sidecar was re-derived from the new
+*   values - none were scaled off the old ones.
 *
 * ---------------------------------------------------------------------
 * MODEL PROVENANCE (Tier-B boundary model - U1 is NOT simulated)
@@ -38,14 +48,26 @@
 *       source: same Sec 7.5 "IFB Current into FB pin; ADJ option, FB = 1 V,
 *       typ 0.2 nA / max 50 nA". Applied ONLY in the high corners, where it
 *       hurts: pulling the tap down makes the loop raise VOUT by
-*       IFB * R1 = 5.0 mV. The low corners take IFB = 0 (no min is
-*       specified, so 0 is the conservative low edge).
+*       IFB * R1 = 5.1 mV (was 5.0 mV at R1 = 100k). The low corners take
+*       IFB = 0 (no min is specified, so 0 is the conservative low edge).
 *   R1 / R2 tolerance +/-0.1 %, TCR 25 ppm/C
-*       source: parts/parts.json - R1 = YAGEO RT0603BRD07100KL (C122538)
-*       "100k 0.1% 25ppm/C", R2 = YAGEO RT0603BRD0724K9L (C136967)
-*       "24.9k 0.1% 25ppm/C". Same RT0603BRD family by decision D6, for TCR
+*       source: parts/parts.json - R1 = YAGEO RT0603BRD07102KL (C861068)
+*       "102k 0.1% 25ppm/C", R2 = YAGEO RT0603BRD0725K5L (C861257)
+*       "25.5k 0.1% 25ppm/C". Same RT0603BRD family by decision D6, for TCR
 *       tracking; this bench does NOT credit that tracking - it drifts the
 *       two resistors in OPPOSITE directions, the worst case.
+*       Both values are E96, both 0.1 % / 25 ppm, and 102k/25.5k is an
+*       EXACT 4.000 ratio - so the as-drawn setpoint is 5.000 V, not the
+*       5.0161 V the old 100k/24.9k pair produced. That +0.32 % setpoint
+*       offset, not the resistors, was the root cause this refresh fixes.
+*   LIGHT-LOAD DC ADDER +1.0 % (new in this refresh - see block (C))
+*       source: same datasheet, Sec 7.7 System Characteristics: VOUT
+*       regulation at 5 V is -1.5/+1.5 % for IOUT >= 1 A but -1.5/+2.5 %
+*       for IOUT 0 A to max, i.e. a +1.0 % HIGH-SIDE-ONLY adder at light
+*       load (mechanism named in Sec 8.4.1: PFM / frequency foldback raises
+*       VOUT; visible as a 5.01-5.06 V band in Fig 9-19). There is no
+*       corresponding low-side adder - both load regions share -1.5 % - so
+*       the light-load stack is modelled on the high side only.
 *   TCR temperature spans (the only agent-chosen numbers in the deck):
 *       dT = 25 C  -> requirement-derived. requirements.md Sec 4 sets the
 *                     ambient range at 0..50 C; the resistor tolerance is
@@ -65,11 +87,27 @@
 *   defence against a wrong-value divider - a 47k for a 4.7k, or one E96
 *   step on R2 - which ERC, DRC, verify and DFM are all structurally blind
 *   to. P3 landed an ADJUSTABLE part, so the divider is real.
-*   DOES NOT PROVE: line regulation, load regulation, light-load (DCM)
-*   setpoint rise, ripple, or transient response. Those are U1's own
-*   behaviour, they are covered by datasheet Sec 7.7 System Characteristics
-*   rather than by any model this agent may author, and they stack ON TOP of
-*   what is measured here. See the sim-analyst OPEN note.
+*   DOES NOT PROVE: line regulation, load regulation, ripple, or transient
+*   response. Those are U1's own behaviour, they are covered by datasheet
+*   Sec 7.7 System Characteristics rather than by any model this agent may
+*   author, and they stack ON TOP of what is measured here.
+*   PARTLY REPRESENTED: light-load (PFM) setpoint rise. Still not MODELLED -
+*   no switcher model exists here - but its datasheet magnitude is now
+*   arithmetically stacked onto the binding corner in block (C) and gated at
+*   warning severity, so the 0 A case is visible in the gate output instead
+*   of living only in a decision record. See block (C) for the reasoning.
+*
+* WHICH A3 REGION EACH BOUND ANSWERS TO (A3 is now two-region)
+*   A3 as amended: <= 50 mV ripple AND +/-3 % DC (4.85-5.15 V) from ~200 mA
+*   to 2 A; below ~200 mA a PFM carve-out covers BOTH ripple and DC.
+*   The quantity this bench measures - the divider's DC setpoint - is
+*   LOAD-INDEPENDENT: a resistor ratio does not know the output current. So
+*   every error bound here stays tied to the FULL 4.85-5.15 V window, which
+*   is the un-carved requirement over 200 mA - 2 A and therefore binds the
+*   setpoint regardless. The carve-out relaxes what the CONVERTER may do at
+*   light load; it does not license the DIVIDER to drift. The carve-out's
+*   only effect on this deck is that the +1.0 % light-load stack in block
+*   (C) is a WARNING and not an error.
 *
 * CORNER TABLE (all 11 instances, node = measure suffix)
 *   nom    R nom      VREF typ   IFB 0      as-drawn setpoint
@@ -83,6 +121,9 @@
 *   tlo    R -tol-tc25 VREF min  IFB 0      worst low  over the 0-50 C req
 *   t60hi  R +tol+tc60 VREF max  IFB max    worst high w/ assumed local rise
 *   t60lo  R -tol-tc60 VREF min  IFB 0      worst low  w/ assumed local rise
+*   plus two DERIVED high-side values in block (C), no new instances:
+*   ll0a   = thi   x 1.010   Sec 7.7 light-load adder on the required corner
+*   ll60   = t60hi x 1.010   same adder on the assumed-rise corner (ungated)
 *
 * ENGINE NOTES
 *   .measure needs tran/dc/ac (never .op) -> a 2-point .dc over a dummy
@@ -95,8 +136,8 @@
 
 .options rshunt=1e12
 
-.param r1nom=100e3
-.param r2nom=24.9e3
+.param r1nom=102e3
+.param r2nom=25.5e3
 .param tol=1e-3
 .param tc25=625e-6
 .param tc60=1500e-6
@@ -104,6 +145,8 @@
 .param vrmin=0.985
 .param vrmax=1.015
 .param ifbmax=50e-9
+* +1.0 % light-load DC adder, datasheet Sec 7.7 (high side only)
+.param llmul=1.010
 
 .param r1hi={r1nom*(1+tol)}
 .param r1lo={r1nom*(1-tol)}
@@ -121,13 +164,13 @@
 * ---- (A) THE AS-DRAWN DIVIDER, verbatim from --fragment --------------
 * These two lines are the fragment output, unedited, on the fragment's own
 * node names. Everything below is a corner variation on them.
-R1 P5V N_FB 100k
-R2 N_FB 0 24.9k
+R1 P5V N_FB 102k
+R2 N_FB 0 25.5k
 Vrefn nrefn 0 DC {vrtyp}
 Eu1n P5V 0 nrefn N_FB 1e8
 
 * ---- (B) CORNERS -----------------------------------------------------
-.subckt fbdiv vout fb params: rtop=100e3 rbot=24.9e3 vref=1.0 ifb=0
+.subckt fbdiv vout fb params: rtop=102e3 rbot=25.5e3 vref=1.0 ifb=0
 R1 vout fb {rtop}
 R2 fb 0 {rbot}
 Vref nref 0 DC {vref}
@@ -168,4 +211,31 @@ Vsweep nsw 0 DC 0
 * and the corner spread the nominal setpoint has to live inside
 .meas dc spread_hi param='vout_thi/vout_nom'
 .meas dc spread_lo param='vout_tlo/vout_nom'
+
+* ---- (C) LIGHT-LOAD (PFM) DC STACK ------------------------------------
+* NOT a model - arithmetic. Sec 7.7's +1.0 % light-load adder (see MODEL
+* PROVENANCE) applied on top of the corners this bench does measure. This
+* is the exact calculation that failed on the old divider (5.10958 x 1.010
+* = 5.161 V vs a 5.15 V ceiling) and drove the recentring; it is kept in
+* the deck, not retired into a decision record, because with the carve-out
+* in place NOTHING ELSE HERE DEFENDS THE RECENTRING. The old 100k/24.9k
+* pair reads 5.0161 V nominal, which sits comfortably inside the vout_nom
+* window below - so a revert to it would pass every error bound in this
+* sidecar. vout_ll0a is the one bound that catches it.
+*   ll0a  = the REQUIRED-range corner (thi, dT 25 C) x 1.010. Gated at
+*           WARNING, max 5.15: A3 as amended no longer REQUIRES the 0 A DC
+*           point inside the window, so this cannot honestly be an error -
+*           but the owner accepted the recentring precisely so it would fit
+*           anyway, and that intent deserves a live tripwire.
+*   ll60  = the ASSUMED-rise corner (t60hi, dT 60 C) x 1.010. Measured and
+*           reported but deliberately UNGATED: it triple-stacks an assumed
+*           35 C rise, worst-case NON-tracking TCR (which D6's same-family
+*           buy actually mitigates) and a carved-out requirement. It lands
+*           marginally over 5.15, so a bound here would fire permanently
+*           against a requirement that no longer exists - noise, not a
+*           gate. It rides in reports/sim.json measures so the number stays
+*           on the record.
+.meas dc vout_ll0a param='vout_thi*llmul'
+.meas dc vout_ll60 param='vout_t60hi*llmul'
+.meas dc hdr_ll0a param='5.15-vout_ll0a'
 .end

@@ -4,54 +4,60 @@
     "min": 4.937,
     "max": 5.055,
     "severity": "error",
-    "msg": "THE WRONG-VALUE SENTINEL. As-drawn setpoint from the verbatim --fragment lines R1=100k / R2=24.9k: VREF*(1+R1/R2) = 5.01606 V. The window is NOT a guess - it is the owner's A3 window (4.85-5.15 V, requirements Sec 9 A3) divided by the corner spread this same bench measures: 5.15/spread_hi = 5.15/1.018644 = 5.0557 and 4.85/spread_lo = 4.85/0.982441 = 4.9367, rounded inward. Passing it therefore GUARANTEES the corner bounds below have room. Margin as drawn: 79 mV (1.6 %) low, 39 mV (0.8 %) high - the high side is the tight one and that is the design's real headroom, not a bound artefact. Calibrated to fail the defect class it exists for: R2 one E96 step up (25.5k) reads 4.9216 and trips; one step down (24.3k) reads 5.1152 and trips; a 47k-for-100k R1 reads 2.888; a 2.49k-for-24.9k R2 reads 41.16. NOTE this is the only bound that still fires if block (A) of the .cir is edited without updating the .param corner values."
+    "msg": "THE WRONG-VALUE SENTINEL. As-drawn setpoint from the verbatim --fragment lines R1=102k / R2=25.5k: VREF*(1+R1/R2) = 1.000*(1+4.000) = 5.00000 V exactly - the P4 recentring made the ratio an exact 4.000, retiring the +0.32 % setpoint offset the old 100k/24.9k pair carried. The window is NOT a guess and was RE-DERIVED for this nominal, not shifted: it is the owner's A3 window (4.85-5.15 V, requirements Sec 9 A3) divided by the corner spread this same bench measures: 5.15/spread_hi = 5.15/1.0186650 = 5.05564 and 4.85/spread_lo = 4.85/0.9824432 = 4.93667, rounded inward. (It lands on the same 3-dp figures as the pre-refresh window because the spread is a property of the tolerance x TCR x VREF stack, which did not change - only the nominal inside it moved.) Passing it therefore GUARANTEES the corner bounds below have room. Margin as drawn: 63 mV (1.26 %) low, 55 mV (1.10 %) high - the recentring converted the old lopsided 79/39 mV split into a near-centred one. Calibrated to fail the defect class it exists for: ALL FOUR single-E96-step mutations trip - R1 one step down (100k) reads 4.92157, one step up (105k) reads 5.11765, R2 one step down (24.9k) reads 5.09639, one step up (26.1k) reads 4.90805; a 47k-for-102k R1 reads 2.84314, a 2.55k-for-25.5k R2 reads 41.0. NOTE this is the only bound that still fires if block (A) of the .cir is edited without updating the .param corner values."
   },
   {
     "measure": "vout_whi",
     "max": 5.15,
     "severity": "error",
-    "msg": "A3 UPPER EDGE, datasheet-only worst case at 25 C: R1 +0.1 %, R2 -0.1 % (YAGEO RT0603BRD tolerance, parts.json), VREF 1.015 V max and IFB 50 nA max (both C841384.json / SNVSAN3F Sec 7.5). Measured 5.10447 V, 46 mV inside the window. IFB alone contributes +5.0 mV here."
+    "msg": "A3 UPPER EDGE, datasheet-only worst case at 25 C: R1 +0.1 %, R2 -0.1 % (YAGEO RT0603BRD tolerance, parts.json), VREF 1.015 V max and IFB 50 nA max (both C841384.json / SNVSAN3F Sec 7.5). Measured 5.08823 V, 62 mV inside the window (was 46 mV before the recentring). IFB alone contributes +5.1 mV here, up from +5.0 mV with the larger R1."
   },
   {
     "measure": "vout_wlo",
     "min": 4.85,
     "severity": "error",
-    "msg": "A3 LOWER EDGE, same datasheet-only worst case with the signs reversed: R1 -0.1 %, R2 +0.1 %, VREF 0.985 V min, IFB 0 (no minimum is specified, so zero is the conservative low edge). Measured 4.93292 V, 83 mV inside the window."
+    "msg": "A3 LOWER EDGE, same datasheet-only worst case with the signs reversed: R1 -0.1 %, R2 +0.1 %, VREF 0.985 V min, IFB 0 (no minimum is specified, so zero is the conservative low edge). Measured 4.91713 V, 67 mV inside the window. The recentring spent 16 mV of low-side margin to buy 16 mV on the high side, which is where the board was actually short."
   },
   {
     "measure": "vout_thi",
     "max": 5.15,
     "severity": "error",
-    "msg": "A3 UPPER EDGE over the REQUIRED temperature range - this is the binding error bound on the board. Adds 25 ppm/C x 25 C = 625 ppm of NON-TRACKING TCR drift per resistor (requirements Sec 4 fixes ambient at 0-50 C; the 0.1 % tolerance is referenced to 25 C, so |dT| = 25 C is what the requirement alone forces; D6 buys both resistors from one RT0603BRD family for TCR tracking but this bench refuses to credit that). Measured 5.10958 V - only 40 mV of headroom, and TCR costs more than the tolerance does (625 vs 100 ppm per resistor)."
+    "msg": "A3 UPPER EDGE over the REQUIRED temperature range - this is the binding error bound on the board. Adds 25 ppm/C x 25 C = 625 ppm of NON-TRACKING TCR drift per resistor (requirements Sec 4 fixes ambient at 0-50 C; the 0.1 % tolerance is referenced to 25 C, so |dT| = 25 C is what the requirement alone forces; D6 buys both resistors from one RT0603BRD family for TCR tracking but this bench refuses to credit that). Measured 5.09332 V - 56.7 mV of headroom, up from 40 mV before the recentring. TCR still costs more than the tolerance does (625 vs 100 ppm per resistor)."
   },
   {
     "measure": "vout_tlo",
     "min": 4.85,
     "severity": "error",
-    "msg": "A3 LOWER EDGE over the required 0-50 C ambient, same +/-625 ppm non-tracking TCR term reversed. Measured 4.92799 V, 78 mV inside the window."
+    "msg": "A3 LOWER EDGE over the required 0-50 C ambient, same +/-625 ppm non-tracking TCR term reversed. Measured 4.91222 V, 62.2 mV inside the window."
   },
   {
     "measure": "vout_t60hi",
     "max": 5.15,
     "severity": "warning",
-    "msg": "WARNING not error, because the temperature is assumed rather than specified: 50 C ambient + ~35 C of self/board heating beside a 1.2-1.8 W converter (requirements Sec 3) = dT 60 C, i.e. 1500 ppm of non-tracking drift per resistor. No measurement backs the 35 C, so this cannot be a design promise - but it is the corner a bring-up thermal reading could turn real. Measured 5.11675 V, 33 mV of headroom left."
+    "msg": "WARNING not error, because the temperature is assumed rather than specified: 50 C ambient + ~35 C of self/board heating beside a 1.2-1.8 W converter (requirements Sec 3) = dT 60 C, i.e. 1500 ppm of non-tracking drift per resistor. No measurement backs the 35 C, so this cannot be a design promise - but it is the corner a bring-up thermal reading could turn real. Measured 5.10046 V, 49.5 mV of headroom left (was 33 mV)."
   },
   {
     "measure": "vout_t60lo",
     "min": 4.85,
     "severity": "warning",
-    "msg": "Same assumed dT 60 C corner, low side. Measured 4.92109 V, 71 mV inside the window - the low side is never the problem on this divider."
+    "msg": "Same assumed dT 60 C corner, low side. Measured 4.90535 V, 55.3 mV inside the window - the low side is still never the problem on this divider."
+  },
+  {
+    "measure": "vout_ll0a",
+    "max": 5.15,
+    "severity": "warning",
+    "msg": "LIGHT-LOAD (0 A) DC STACK - new in the 2026-08-15 refresh, and the bound that keeps the finding which drove the recentring alive in the gate output instead of only in a decision record. Arithmetic, not a model: the required-range corner vout_thi x 1.010, where the +1.0 % is datasheet SNVSAN3F Sec 7.7's light-load DC adder (VOUT regulation is -1.5/+1.5 % for IOUT >= 1 A but -1.5/+2.5 % for IOUT 0 A to max; mechanism named in Sec 8.4.1, PFM/frequency foldback raises VOUT). High side only - both load regions share the same -1.5 % low edge, so there is no low-side twin. WARNING and not error because A3 as amended carves DC accuracy out below ~200 mA, so the 0 A point is no longer REQUIRED inside 4.85-5.15 V; the window still binds at error severity from ~200 mA to 2 A, which the load-independent bounds above already cover. It stays as a bound because the owner accepted the recentring specifically so the stacked 0 A case would fit anyway, and with the carve-out in place NOTHING ELSE HERE DEFENDS THAT: the old 100k/24.9k pair reads 5.01606 V nominal, inside the vout_nom window, so a revert would pass every error bound in this sidecar - and trip this one at 5.16068 V. Measured 5.14426 V, 5.74 mV inside the ceiling (the pre-refresh value was 5.16068 V, 11 mV OUTSIDE it - that 16 mV swing is the whole point of the fix). Calibrated: reverting the divider trips it, R1 one E96 step up (105k) reads 5.26541, R2 one step down (24.9k) reads 5.24339. 5.74 mV is genuinely thin, so treat any future change to R1, R2 or VREF as touching a bound that is nearly at its edge. The dT-60 C twin (vout_ll60 = 5.15147 V, 1.5 mV over) is measured and reported in sim.json but deliberately UNGATED - see block (C) of the .cir: it triple-stacks an assumed 35 C rise, worst-case non-tracking TCR and a carved-out requirement, so a bound there would fire permanently and mean nothing."
   },
   {
     "measure": "hdr_hi",
     "min": 0.02,
     "severity": "warning",
-    "msg": "Early-warning tripwire on the SAME quantity vout_thi gates, expressed as volts of headroom to 5.15 V so it fires before the hard bound does. Measured 40.4 mV; this warns below 20 mV (i.e. vout_thi above 5.130) while the error bound is still passing."
+    "msg": "Early-warning tripwire on the SAME quantity vout_thi gates, expressed as volts of headroom to 5.15 V so it fires before the hard bound does. Measured 56.7 mV; this warns below 20 mV (i.e. vout_thi above 5.130) while the error bound is still passing."
   },
   {
     "measure": "hdr_lo",
     "min": 0.02,
     "severity": "warning",
-    "msg": "Same tripwire on the low edge: volts of headroom from vout_tlo down to 4.85 V. Measured 78.0 mV."
+    "msg": "Same tripwire on the low edge: volts of headroom from vout_tlo down to 4.85 V. Measured 62.2 mV."
   }
 ]
