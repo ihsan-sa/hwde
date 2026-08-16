@@ -1,0 +1,200 @@
+{
+  "_comment": "P2 MERGED constraints for bb-buck (18-30 V -> 5.0 V / 2 A synchronous integrated-FET buck, 40 x 30 mm, 2 layers, JLC2313_1.6). Merged from research/power.json (rails, currents, thermal, layout notes, blocks) and research/buck-regulator.json (part class -> fsw 400 kHz, adjustable FB, peak-current-mode). BUILD MODE ultra-bare-bones binds SCOPE, not this file: blocks[] and operating_point are complete because the P2-exit coverage check and knowledge retrieval read them.",
+
+  "_canonical_names": "architecture/sheets.md s2 is authoritative. ONE FLAT ROOT SHEET, so power symbols export BARE (+VIN, +5V, GND) and root-sheet local labels export with ONE leading slash (/SW). P1 proposed 'VIN' and 'SW'; P2 renamed them to +VIN and /SW to match the KiCad export mechanism. /FB and /BST exist on the schematic and are deliberately NOT declared here (a power entry would give the high-impedance feedback node a width rule and pull it into the check_pdn inventory). P4 MUST run netlist_audit.py against this file - a renamed net surfaces as missing_net (error); nothing else catches it, because check_current on a nonexistent net silently reports nothing.",
+
+  "_p5_coordinate_translation": "MANDATORY. Every rect in placement.keepouts is BOARD-LOCAL (origin = board top-left, x right, y down, 40 x 30 mm outline). board_init.py does NOT place the outline at (0,0). After board_init, read reports/board_init.json.outline_bbox and TRANSLATE every rect by (x0, y0) before P6 consumes this file. There is no partial-cover safety net - a forgotten translation is silent.",
+
+  "_review_enforced": "Things this file CANNOT express, to be enforced by review at P6/P7: (1) the >= 16-via 0.3 mm thermal array in U1's exposed pad - check_thermal emits its via warning only when dt_c/power_w < 73.8 on 2 layers and this entry sits at 76.1, so a CLEAN check_thermal IS NOT PROOF THE ARRAY EXISTS; on 2 layers that array is the entire heat path (192 K/W per via) and 8 vias instead of 16 costs ~10 C of junction; if the exposed pad cannot physically hold 16 at 0.3 mm / 1.0 mm pitch (sbuck-5v3a capped at 12 on a 3.50 x 2.61 mm pad), make up the count with a ring in the contiguous F.Cu GND island within ~4.6 mm of the part centre, which is the radius check_thermal counts over. (2) /SW must be a SHORT WIDE POUR: >= 1.6 mm wide (IPC-2152 floor 1.52 mm) but <= 8 mm long and <= 40 mm^2 total, F.Cu only, never inner, never near a board edge or a screw terminal - check_current enforces the width floor and NOTHING enforces the area ceiling. TP1's pad counts against it. (3) the 6.5 mm mask/copper keepout around each M3 hole - planes_gen has no void support, so hand-add KiCad rule areas after the pours. (4) L1 needs >= 40 mm^2 of copper per pad and a GND void under the body; it carries 0.27 W, which is below buck-constraints-emission's 0.5 W threshold, so it gets NO thermal entry - the omission is deliberate and the number is recorded in power_tree.md s7. (5) Cin ground and Cout ground return to the GND pour at SEPARATE points near their own pins, never through a shared neck.",
+
+  "_absent_keys": "DELIBERATE. No voltage_pairs: no bridge or AC tap exists and no net PAIR on this board exceeds 30 V (check_creepage's derived check engages only ABOVE 30 V, so it is a clean no-op - see requirements.md s8; if the owner ever lifts A1's 30 V ceiling, the voltages[] entries below are what makes IPC-2221 start binding). diff_pairs is an EXPLICIT EMPTY LIST because no differential net exists and auto-discovery must be disabled. No impedance_ohm anywhere - nothing on this board is a transmission line, and JLC sells no impedance-controlled 2-layer product. No thermal entry for L1 (0.27 W < 0.5 W). No planes entry for an inner layer - there are none.",
+
+  "high_speed": [
+    {
+      "net": "/SW",
+      "reference": "GND",
+      "k": 3,
+      "t_rise_ns": 5.0,
+      "_note": "The switch node. This entry exists so check_return_path AUDITS the single load-bearing structure of the 2-layer decision: an unbroken B.Cu GND pour under the switch node and the hot loop, with no split within 14.3 mm of U1. planes_gen also guarantees a pour for every referenced net. t_rise 5.0 ns is EMI-conservative and deliberately faster than the loss budget's bound ((tr+tf) x fsw <= 0.0075 = 18.75 ns at 400 kHz) - real integrated-FET edges are far faster than the budget needs. NO impedance_ohm: this is not a transmission line, it is a 2.35 A peak power node. Also declared under power[] for its IPC-2152 width floor. /SW makes zero layer transitions by design, so the return-via clause never fires."
+    }
+  ],
+
+  "power": [
+    {
+      "net": "+VIN",
+      "current_a": 1.1,
+      "dt_c": 10,
+      "via_amps": 0.4,
+      "_note": "1.1 A is the HOT-LOOP RMS at the 18 V low-line corner (sqrt(D) x I_L,rms = 1.06 A), NOT the 0.62 A DC average - the high-side switch chops the input, heating goes as rms^2, and sizing this segment on the average under-sizes it by 1.7x. IPC-2152 floor at dT 10 / 1 oz outer = 0.56 mm, but ROUTE IT >= 1.5 mm: this same copper is the hot loop and it is sized against loop inductance, not temperature rise. dt_c 10 not 20 because the LOCAL board temperature is already 85-90 C. NO pdn:false - the bank (C1 reg_input HF + C2/C3) decouples this rail and it must stay in the check_pdn and check_irdrop inventories. via_amps 0.4 (ROHM measured, 0.3 mm via) though the design target is ZERO layer transitions: single-sided assembly keeps +VIN, /SW and +5V all on F.Cu."
+    },
+    {
+      "net": "/SW",
+      "current_a": 2.6,
+      "dt_c": 10,
+      "via_amps": 0.4,
+      "pdn": false,
+      "_note": "I_L,pk 2.35 A / rms 2.01 A at the 30 V corner, declared at the 2.6 A board ceiling. IPC-2152 needs 1.52 mm on 1 oz outer at dT 10. THE WIDTH IS A FLOOR AND THE AREA IS A CEILING (see _review_enforced (2)). pdn:false is correct here: nothing decouples the switch node by design, and IR drop across an 8 mm pour is not a rail question."
+    },
+    {
+      "net": "+5V",
+      "current_a": 2.6,
+      "dt_c": 10,
+      "via_amps": 0.4,
+      "_note": "2.0 A stated load x 1.3 design ceiling; also covers the 2.01 A rms L1->Cout segment. 1.52 mm floor on 1 oz outer at dT 10; route 1.8 mm. Keep the whole rail on F.Cu - a layer transition would need 7 vias at 0.4 A each. NO pdn:false: it would also exclude the rail from check_irdrop, and 2 A over the output copper is exactly where IR drop matters. check_pdn may report 'no decoupling capacitors' on an output rail that feeds a connector - that is a CATEGORY ERROR and belongs in reports/verify-waivers.json, not in a pdn:false that silently disables IR-drop analysis too (sbuck-5v3a P8 precedent, reverted there for this reason)."
+    },
+    {
+      "net": "GND",
+      "current_a": 2.6,
+      "dt_c": 10,
+      "via_amps": 0.4,
+      "plane_fed": true,
+      "_note": "DECLARED ON PURPOSE - at 2.6 A check_current would otherwise only synthesize an advisory return-net entry. plane_fed downgrades stub-track and via-count findings to advisory while POUR NECKS STAY ERROR at the full 2.6 A budget, which is the failure mode that matters: no neck below 1.52 mm anywhere in the output return path. F.Cu island + B.Cu pour satisfy the plane_fed contract (no zone fill on the net = error plane_missing). P1's power.json carried pdn:false on this entry; P2 DROPPED IT - pdn:false also skips check_irdrop and check_pdn_z, and the 2.6 A return path is precisely where IR drop matters (same sbuck-5v3a P8 reversal). B.Cu is simultaneously the return path, the /SW reference plane and the board's radiator."
+    }
+  ],
+
+  "diff_pairs": [],
+
+  "voltages": [
+    {
+      "net": "+VIN",
+      "voltage": 30,
+      "_note": "A1: 30 V is a HARD maximum OPERATING input, and the ~20% headroom lives in the PART (abs-max >= 36 V class), not in a clamp. Declared at 30, not 36: this key is the node's operating potential, not the part rating. No pair on this board therefore EXCEEDS 30 V, so check_creepage stays a clean no-op and rules_gen emits no aiee_hv_* rules. The entry exists so that any future change to the input ceiling surfaces here instead of silently passing. A2 (no live hot-plug) is what removes the ~60 V lead-inductance ring that would otherwise have to be declared instead."
+    },
+    {
+      "net": "/SW",
+      "voltage": 30,
+      "_note": "The switch node swings to +VIN every cycle, so its peak potential is the same 30 V. Same no-op status, same forward-compatibility reason."
+    }
+  ],
+
+  "coating": "soldermask",
+
+  "thermal": [
+    {
+      "ref": "U1",
+      "power_w": 0.92,
+      "net": "GND",
+      "dt_c": 70,
+      "min_vias": 16,
+      "_note": "0.92 W is P1's 500 kHz/10 uH figure, RETAINED DELIBERATELY as the design envelope although the chosen 400 kHz / 15 uH point models 0.854 W: the switching-loss line carries +/-30 % and the part is not locked until P3. dt_c 70 encodes Tj_max 150 - 50 C ambient - 30 C margin and is A REQUIREMENT ON THE PART, NOT A KNOB - a 125 C part drops it to 55 and fails. check_thermal on 2 layers gives 73.8 C/W at a saturated pour, so this entry passes at 0.92 x 73.85 = 67.9 C against 70 (2.1 C of margin, 6.9 C at the 400 kHz design power of 0.854 W; 0.95 W already gives 70.2 C and errors). P3 MUST re-run this with the chosen part's real Rds_LS BEFORE P5 freezes the stackup: P_U1 > 0.95 W means 4 layers (JLC04161H-1080B), not a bigger board - see architecture/stackup.md. check_thermal needs >= 645 mm^2 of GND copper within 14.3 mm of U1 to reach A_sat; with U1 near the board centre and an unbroken B.Cu pour on a 1200 mm^2 outline that passes with room. The via array itself is review-enforced (see _review_enforced (1))."
+    }
+  ],
+
+  "placement": {
+    "edges": [
+      {
+        "ref": "J1",
+        "edge": "left",
+        "pos": 0.5,
+        "rot": 0,
+        "_note": "DC input on the LEFT edge (board is 40 wide x 30 tall, so left/right are the 30 mm short edges), centred vertically and clear of the corner mounting keepouts. REQUIREMENT IN WORDS, because the number cannot express it: the screw-terminal WIRE OPENING must face OFF-BOARD (-x here). rot 0 assumes the footprint's native entry direction is -x and that assumption is NOT verified until a footprint exists - P6/P8 must confirm on the render and correct with place_edit."
+      },
+      {
+        "ref": "J2",
+        "edge": "bottom",
+        "pos": 0.65,
+        "rot": 90,
+        "_note": "DC output on the BOTTOM edge (max y), toward the right so it sits downstream of L1 and away from U1's hot loop, and clear of the bottom-right mounting keepout at x >= 33. A DIFFERENT EDGE from J1 is a requirements.md s5 constraint (bench wiring must not cross the board); bottom rather than right is what leaves a 30 mm clear interior run for U1 + L1 + Cout on a 40 mm-wide board. Wire opening must face +y (off-board). rot 90 is PROVISIONAL for the same unverified-footprint reason as J1 - verify the opening direction on the P6 render. J1 and J2 are the SAME PART and the board has no reverse-polarity protection by mode, so distinct silk (+/- vs 5V OUT) is the only defence against a swap."
+      }
+    ],
+    "groups": [
+      {
+        "name": "hotloop",
+        "anchor": "U1",
+        "members": ["C1", "C2", "C3", "C6"],
+        "_note": "THE SHORTEST LOOP ON THE BOARD: C1 (100 nF HF, role reg_input, closest to the VIN pin) then C2/C3 (10 uF bulk) -> U1 VIN -> U1 PGND -> back, all on F.Cu with the B.Cu GND pour directly beneath as the image plane. C6 is the BST cap and belongs at the IC. This group must be placed by explicit place_edit and LOCKED before place_anneal runs - the annealer optimises a cost function and cannot discover a hot loop. This loop is what spends ~37 mV of the 50 mV ripple budget that capacitance cannot buy back."
+      },
+      {
+        "name": "output",
+        "anchor": "L1",
+        "members": ["C4", "C5"],
+        "_note": "2 x 22 uF 1206 25 V X7R, >= 20 uF effective at 5 V bias after DC-bias derating. Their ground return must reach the GND pour at a SEPARATE point from the input caps' - never a shared narrow neck (buck-cin-co-ground-separation)."
+      },
+      {
+        "name": "feedback",
+        "anchor": "R1",
+        "members": ["R2"],
+        "_note": "0.1 % / 25 ppm divider at the FB pin, sense point AFTER the output caps, /FB routed short and away from /SW and L1. Vanishes entirely if P3 lands a FIXED 5 V part - which is the preferred outcome."
+      },
+      {
+        "name": "probe",
+        "anchor": "TP1",
+        "members": ["TP2"],
+        "_note": "A4 (owner ruling): exactly ONE switch-node probe pad plus ONE adjacent ground pad, and nothing else. TP1 must sit INSIDE the existing /SW copper, not on a spur, so it adds as little area as possible to the noisiest node, and its pad counts against the 40 mm^2 /SW area ceiling. TP2 returns straight down to the B.Cu GND pour beneath it - the point of the pair is a SHORT ground loop for the scope probe."
+      }
+    ],
+    "keepouts": [
+      {
+        "rect": [0, 0, 7, 7],
+        "side": "front",
+        "reason": "M3 mounting hole H1 - 3.2 mm NPTH centred at (3.5, 3.5) with a 6.5 mm washer keepout. BOARD-LOCAL COORDINATES: translate by reports/board_init.json.outline_bbox before use."
+      },
+      {
+        "rect": [33, 0, 40, 7],
+        "side": "front",
+        "reason": "M3 mounting hole H2 at (36.5, 3.5). Board-local - translate first."
+      },
+      {
+        "rect": [0, 23, 7, 30],
+        "side": "front",
+        "reason": "M3 mounting hole H3 at (3.5, 26.5). Board-local - translate first."
+      },
+      {
+        "rect": [33, 23, 40, 30],
+        "side": "front",
+        "reason": "M3 mounting hole H4 at (36.5, 26.5). Board-local - translate first."
+      }
+    ],
+    "fixed": ["H1", "H2", "H3", "H4", "J1", "J2", "U1", "L1"],
+    "separation": [
+      {
+        "a": ["R1", "R2"],
+        "b": ["L1"],
+        "min_mm": 5,
+        "reason": "FB divider away from the switch node and the inductor's stray field - an explicit rule in every candidate vendor layout section. Achievable because SOIC-8-EP class packages put FB and SW on opposite sides of the body."
+      },
+      {
+        "a": ["J2"],
+        "b": ["U1", "L1"],
+        "min_mm": 8,
+        "reason": "Keep the switch node away from board edges and from the output terminal (buck-switch-node-containment). 8 mm is what a 40 x 30 outline can honestly give with J1 on the left edge and J2 on the bottom; it falls out of the floorplan anyway."
+      },
+      {
+        "a": ["J1"],
+        "b": ["L1"],
+        "min_mm": 8,
+        "reason": "The input terminal is the coolest corner of the board and the inductor is the second-largest heat source; keeping them apart also keeps the 2 A output path from running back across the input loop."
+      }
+    ]
+  },
+
+  "planes": [
+    {"layer": "F.Cu", "net": "GND"},
+    {"layer": "B.Cu", "net": "GND"}
+  ],
+
+  "_planes_note": "planes[] entries themselves carry NO comment keys: planes_gen validates each entry against a fixed key set and raises CheckError on ANY unknown key, INCLUDING the _note convention used everywhere else in this file (sbuck-5v3a's shipped constraints.json would fail a planes_gen re-run today). Rationale, therefore, here: B.Cu GND restates the 2-layer default ON PURPOSE - planes_gen REPLACES the defaults entirely when planes[] is present, so declaring only F.Cu would silently leave the board with no bottom pour at all, which would take out the return path, the /SW reference and the radiator in one stroke. F.Cu GND is the genuine override: its job is the >= 100 mm^2 thermal island contiguous with U1's exposed pad (the first spreading hop out of the package) plus the stitching ring around the pad array. P7 must pour AFTER power routing and verify the island is contiguous and not fragmented by the /SW pour or the +VIN trunk. B.Cu must stay unbroken - no split within 14.3 mm of U1 - and single-sided assembly (mode default) reserves the whole face for it.",
+
+  "blocks": [
+    {
+      "topology": "buck",
+      "block": "B1",
+      "name": "U1 18-30 V -> 5 V / 2 A synchronous integrated-FET buck",
+      "operating_point": {
+        "vin_v": 30,
+        "vout_v": 5,
+        "iout_a": 2,
+        "fsw_khz": 400,
+        "pdiss_w": 1.2,
+        "board_layers": 2,
+        "switching_kind": "hard",
+        "rectifier_kind": "sync",
+        "integration_kind": "integrated-fet",
+        "source_kind": "dc-input",
+        "control_kind": "cmode",
+        "injection_kind": "none"
+      },
+      "_note": "Reconciled from power.json blocks[], not copied: fsw_khz 500 -> 400 (the lead part class is a fixed-400 kHz device; L pairs to 15 uH), pdiss_w 1.3 -> 1.2 (the block's total at the chosen point: U1 0.85 + L1 0.27 + copper/terminals 0.07 + cap ESR 0.003; thermal[] carries U1's own share at a deliberately conservative 0.92 W), board_layers 2 = the stackup actually chosen (JLC2313_1.6). control_kind cmode + injection_kind none are ADDED: the lead part class is peak-current-mode with internal compensation (TI LMR33630 datasheet overview), which puts cot-ripple-injection-raises-vout OUTSIDE its envelope - it does not apply - instead of leaving it undeclared and permanently 'provisional'. IF P3 LOCKS A CONSTANT-ON-TIME PART INSTEAD, control_kind must become cot and the +Vramp_pkpk/2 term re-opens the +/-3 % budget. source_kind dc-input is a bench supply and is the honest token; note it puts buck-upstream-inrush-limit (envelope usb / usb-pd / poe) outside its envelope, which makes the checklist's `inrush` class read `gap` - that is a real library hole for dc-input sources, not a defect in this declaration, and it is what the P2-exit research trigger should pick up."
+    }
+  ]
+}

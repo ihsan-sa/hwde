@@ -3,7 +3,7 @@
  "board": "bb-buck",
  "workspace": "boards/bb-buck",
  "created": "2026-08-15T15:58:13",
- "updated": "2026-08-15T16:31:43",
+ "updated": "2026-08-15T17:02:10",
  "phase": "P2",
  "gates": {},
  "human": {},
@@ -21,7 +21,7 @@
   "freerouting_retries": 2,
   "place_edit_iterations": 8,
   "research": {
-   "per_run": 6,
+   "per_run": 5,
    "depth_per_gap": 4
   }
  },
@@ -73,6 +73,54 @@
    "why": "The 2L screen passes by only 2 C (0.92 W x 73.8 C/W = 67.9 vs check_thermal dt_c 70). The layer count FOLLOWS THE PART - a 2 A-class part at Rds_LS 130 mOhm gives 1.19 W and forces 4L. P3 must re-run this arithmetic with the chosen part's real Rds before P5 fixes the stackup (no outline-shrink step exists; board_init is final).",
    "phase": "P1",
    "ts": "2026-08-15T16:31:43"
+  },
+  {
+   "what": "OPEN CONSTRAINT carried to P3 (not settled at P1): light-load ripple vs A3. A3 binds <= 50 mVpp across the FULL 0-2 A range INCLUDING no load, but PFM/burst light-load ripple is typically 50-100 mVpp at 5 V.",
+   "why": "research-power-architect OPEN item. The mode excludes the usual fix (a preload resistor is excluded conditioning), so P3 part selection must supply ONE of: a forced-CCM part, a strappable MODE/FCCM pin, or a datasheet figure showing <= 50 mVpp at light load. If no JLC-stocked 36 V-class candidate offers any of the three, ESCALATE to the owner to choose between relaxing A3 at light load and admitting a preload against the mode. A burst-mode part must NOT ship silently against A3.",
+   "phase": "P1",
+   "ts": "2026-08-15T16:33:54"
+  },
+  {
+   "what": "SKIPPED the optional coverage-mapper spawn on the P2 mapping_request",
+   "why": "Every one of the 15 buck records is ALREADY matched to block:B1 via keys and evaluated per class; the blockers are maturity-below-floor (8 classes), envelope-outside (inrush on source_kind, snubber on rectifier_kind, COT on control_kind) and level-below-min (1). A mapping edge cannot change any of those three verdicts, so a mapper pass is a provable no-op here. The only unkeyed library record (spiral-inductor-plane-and-heatsink-keepout) is also 'approved' and would still be maturity-blocked. Recipe step marks the mapper optional.",
+   "phase": "P2",
+   "ts": "2026-08-15T16:59:37"
+  },
+  {
+   "what": "D5 OUTLINE 40 x 30 mm (1200 mm2) - FINAL, binds at P5 board_init",
+   "why": "The outline IS the radiator: R_ba is 39/34/31 C/W at 875/1064/1200 mm2, so area buys more Tj than layers (~10 C vs ~11 C) and is free at the fab. 20% above P1's ~1000 mm2 floor. The increment over 38x28 is bought by physical parts - a 10-12.5 mm inductor (D11), two ~10 mm screw terminals, 4x M3 with 6.5 mm keepouts - not padding. No outline-shrink step exists later. J1 LEFT edge, J2 BOTTOM edge.",
+   "phase": "P2",
+   "ts": "2026-08-15T17:02:10"
+  },
+  {
+   "what": "D4 STACKUP JLC2313_1.6, 2 layers, 1 oz - CONDITIONAL",
+   "why": "Conditions: sync + P_U1 <= 0.95 W at 30V/2A + outline >= 1000 mm2 with unbroken B.Cu pour + >= 16 thermal vias + Tj_max 150 C. Named escalation trigger: P_U1 > 0.95 W (at 400 kHz = Rds_LS > ~110 mOhm at 25 C; at 500 kHz, 85 mOhm) OR a 125 C part OR an async part OR check_thermal erroring at dt_c 70 -> 4L JLC04161H-1080B, outline unchanged. P3 MUST re-run this with the chosen part's real datasheet Rds BEFORE P5 freezes the stackup.",
+   "phase": "P2",
+   "ts": "2026-08-15T17:02:10"
+  },
+  {
+   "what": "D2 Lead part class: 36 V-class SYNC integrated-FET 3 A-class, exposed-pad SOIC-8-EP, fixed 400 kHz, internally compensated, peak-current-mode (LMR33630ADDAR). ADJUSTABLE output accepted.",
+   "why": "CONFLICT RESOLVED: P1 preferred a FIXED 5 V part to delete the divider tolerance term; the scout's JLC sweep found no fixed 5 V sync 36 V-class part, and its only fixed candidate (XL1509-5.0E1) is +/-4 % guaranteed, which alone breaks A3. P1's PREFERENCE loses to stock reality - it was a preference, not a filter. Scout ranks 2-4 are asynchronous and are NOT drop-in fallbacks (D1 rejects async with numbers). If P3 finds a stocked fixed 5 V sync >= 36 V part, take it: R1/R2, the tolerance budget and the only sim candidate all disappear.",
+   "phase": "P2",
+   "ts": "2026-08-15T17:02:10"
+  },
+  {
+   "what": "D3 fsw 400 kHz, L = 15 uH (P1 recommended 500 kHz / 10 uH)",
+   "why": "The lead part is a FIXED 400 kHz device with no RT pin, and 400 kHz sits inside P1's own 350-600 band. At 400 kHz L must be 15 uH (10 uH gives 52% ripple); P_U1 improves 0.924 -> 0.854 W. dI 0.694 A, I_L,pk 2.35 A, ripple 10.4 mVpp. Reverses if the part's internal-compensation L/C table excludes 15 uH - fallback 10 uH at 400 kHz (15.6 mVpp, I_L,pk 2.52 A, both in spec).",
+   "phase": "P2",
+   "ts": "2026-08-15T17:02:10"
+  },
+  {
+   "what": "D8 canonical net names +VIN /SW +5V GND (/FB and /BST deliberately NOT in constraints power[])",
+   "why": "P1 proposed VIN/SW; renamed to match the KiCad export mechanism (power symbols export bare, root-sheet local labels export with one leading slash). A power[] entry on /FB would put a width rule on a high-impedance sense node and pull it into the check_pdn decoupling inventory. P4 must run netlist_audit.py - a rename surfaces as missing_net (error) and nothing else catches it.",
+   "phase": "P2",
+   "ts": "2026-08-15T17:02:10"
+  },
+  {
+   "what": "D9 ONE FLAT ROOT SHEET, hierarchy rejected; D6 FB divider 0.1 %/25 ppm; D12 exactly ONE sim candidate (FB divider DC accuracy vs A3's window)",
+   "why": "D9: 14 parts / 6 nets, and a child-sheet label exports as /<sheet>/<LABEL>, silently unhooking every constraints entry spelling it /<LABEL> (the class that cost lumina-par). D6: 1 % resistors give a worst-case SUM of ~3.7 % which fails A3; 0.5 % closes only on RSS; 0.1 %/25 ppm closes on the worst-case SUM (~2.5 %) for cents and no part-count change. D12: buck switching is not simulated by policy; the FB divider sweep catches the wrong-value class ERC/DRC/DFM are blind to, and disappears if P3 lands a fixed-output part.",
+   "phase": "P2",
+   "ts": "2026-08-15T17:02:10"
   }
  ],
  "edits": [],
@@ -116,6 +164,14 @@
    "effort": "xhigh",
    "phase": "P2",
    "note": "SUBSTITUTION fable/high -> opus/xhigh (Fable out of credits)"
+  },
+  {
+   "ts": "2026-08-15T17:00:31",
+   "role": "researcher",
+   "model": "opus",
+   "effort": "xhigh",
+   "phase": "P2",
+   "note": "task block-buck-1; SUBSTITUTION fable/high -> opus/xhigh"
   }
  ],
  "history": [
@@ -206,6 +262,69 @@
    "event": "spawn",
    "role": "architect",
    "model": "opus"
+  },
+  {
+   "ts": "2026-08-15T16:33:54",
+   "event": "decision",
+   "what": "OPEN CONSTRAINT carried to P3 (not settled at P1): light-load ripple vs A3. A3 binds <= 50 mVpp across the FULL 0-2 A range INCLUDING no load, but PFM/burst light-load ripple is typically 50-100 mVpp at 5 V."
+  },
+  {
+   "ts": "2026-08-15T16:33:54",
+   "event": "research_fragment_over_length"
+  },
+  {
+   "ts": "2026-08-15T16:59:37",
+   "event": "decision",
+   "what": "SKIPPED the optional coverage-mapper spawn on the P2 mapping_request"
+  },
+  {
+   "ts": "2026-08-15T16:59:38",
+   "event": "budget",
+   "path": "research.per_run",
+   "remaining": 5
+  },
+  {
+   "ts": "2026-08-15T16:59:38",
+   "event": "research_opened",
+   "task": "block-buck-1",
+   "slot": "block:B1",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-15T17:00:31",
+   "event": "spawn",
+   "role": "researcher",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-15T17:02:10",
+   "event": "decision",
+   "what": "D5 OUTLINE 40 x 30 mm (1200 mm2) - FINAL, binds at P5 board_init"
+  },
+  {
+   "ts": "2026-08-15T17:02:10",
+   "event": "decision",
+   "what": "D4 STACKUP JLC2313_1.6, 2 layers, 1 oz - CONDITIONAL"
+  },
+  {
+   "ts": "2026-08-15T17:02:10",
+   "event": "decision",
+   "what": "D2 Lead part class: 36 V-class SYNC integrated-FET 3 A-class, exposed-pad SOIC-8-EP, fixed 400 kHz, internally compensated, peak-current-mode (LMR33630ADDAR). ADJUSTABLE output accepted."
+  },
+  {
+   "ts": "2026-08-15T17:02:10",
+   "event": "decision",
+   "what": "D3 fsw 400 kHz, L = 15 uH (P1 recommended 500 kHz / 10 uH)"
+  },
+  {
+   "ts": "2026-08-15T17:02:10",
+   "event": "decision",
+   "what": "D8 canonical net names +VIN /SW +5V GND (/FB and /BST deliberately NOT in constraints power[])"
+  },
+  {
+   "ts": "2026-08-15T17:02:10",
+   "event": "decision",
+   "what": "D9 ONE FLAT ROOT SHEET, hierarchy rejected; D6 FB divider 0.1 %/25 ppm; D12 exactly ONE sim candidate (FB divider DC accuracy vs A3's window)"
   }
  ]
 }
