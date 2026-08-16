@@ -68,6 +68,10 @@ U11 later; U12 before order credentials; T11 on board arrival (not during U8).
 | U13 | Coverage contracts (levels/envelopes/maturity, the research trigger) | **done** | 2026-08-15 |
 | U14 | Record backfill + approval session (owner present, short) | **done** | 2026-08-15 |
 | U15 | Research verb (acquisition, synthesis, second reader, auto-trigger) | **done** | 2026-08-15 |
+| U16 | Gate results must reach state.json (bb-buck defect, URGENT) | pending | - |
+| U17 | Editable board outline (board_edit.py --outline) | pending | - |
+| U18 | Learning mode: target outcome drives scope + binding | pending | - |
+| U19 | Bottom-side placement the annealer can discover | pending | - |
 
 Dependency graph (plan): S0 -> S1 -> S2 -> S3 -> {S4, S5}; S0 -> S6 -> S7; S2 -> S8 -> S9 -> S10 -> S11;
 {S5, S7, S8, S11} -> S12 -> S13 -> S14. S4-S7 may run in parallel with S8-S10 (separate sessions/terminals).

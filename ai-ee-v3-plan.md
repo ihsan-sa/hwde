@@ -103,6 +103,11 @@ v3 board tracks state; session end = suite green (modulo the standing AP63203
       needs U4+U7) -> U14 (owner, short) || U15 (unattended; owns
       tasks.yaml while U14 owns records - parallel-safe). U8 does not
       require them, but teaches against a stronger library after U14.
+    bare-bones leg (owner-launched, added 2026-08-16 from the bb-buck run):
+      U16 (URGENT - before any further board run) -> U17 || U19 -> U18
+      (needs U17). Hold bb-ldo / bb-adc / bb-amp / bb-mcu until U16+U18
+      land, or each inherits bb-buck's unrecorded gates and its
+      correct-but-not-canonical geometry.
     T11 (v2 plan): as soon as boards arrive; any wave except during U8.
 
 ## Session setup
@@ -125,6 +130,10 @@ v3 board tracks state; session end = suite green (modulo the standing AP63203
 | U13 | Fable | high | - | no |
 | U14 | Opus 5 | high | - | YES (short: rule levels/envelopes/approvals) |
 | U15 | Fable | max | - | no |
+| U16 | Opus 5 | high | - | no |
+| U17 | Opus 5 | xhigh | - | no |
+| U18 | Opus 5 | max | - | optional (rule the target table) |
+| U19 | Opus 5 | high | - | optional (rule the assembly-cost weight) |
 
 ---
 
@@ -450,6 +459,135 @@ research -> draft records with page-cited sources -> second-reader
 verified -> queue entry, inside the caps; domain-allowlist enforcement
 test-pinned (off-list fetch refused); cap-hit checkpoint fires; Digikey
 client exits 2 with a precise missing-credential message.
+
+### U16 - Gate results must reach state.json (bb-buck defect, urgent)
+
+**Trigger: BEFORE any further board run.** bb-buck reached P9 with a complete
+fab package and six PASSING gate reports on disk while `state.json` recorded
+NONE of them: 114 history events, zero gate events, `gates: {}`,
+`gates_passed: []`, `resume` still naming P4 erc as the next gate. The
+orchestrator ran `gate.py --gate <g> <input> --commit` at every phase but
+never `state.py record-gate`, which SKILL rule 3 requires and nothing
+enforces. U5's derived disposition held the line (`draft`, unorderable), but
+there are no input hashes, so freshness, invalidation and attestation are all
+unavailable on a board that otherwise passed everything. This is codex C1's
+phase-is-not-a-certificate split, reproduced by our own pipeline.
+
+**Read:** `gate.py`, `state.py` record-gate + set-phase, `statelib.py`
+freshness, `recipes/full-run.md` gate steps, `boards/bb-buck/state.json`,
+`boards/bb-buck/reports/gate-*.json`.
+**Build:** close the hole mechanically, not by prose. Candidates (the session
+picks and justifies): `gate.py --workspace <ws>` records the result itself on
+every run (recording stays optional for golden/mutant inputs that have no
+workspace, so the test corpus is unaffected), the full-run recipe's gate steps
+always carry it, and `state.py set-phase` refuses - or at minimum loudly
+warns - when advancing past a gate phase whose gate has no recorded result.
+Back-record bb-buck's six gates from their committed reports so the board
+keeps honest provenance, and re-hash its artifacts (the P6 `move_fp` stale
+mark on `gerbers` was never cleared although the package was re-exported).
+**Accept:** a scripted P4->P9 dry run leaves every gate recorded WITH input
+hashes and `resume` naming the true next gate; a gate run without a workspace
+still works (corpus tests green); bb-buck's `resume` reports six gates passed
+and fresh; a test pins that every gate step in the full-run recipe carries the
+workspace.
+
+### U17 - Editable board outline (`board_edit.py --outline`)
+
+The pipeline can move a part (`place_edit`), edit copper (`route_edit`) and
+add/swap/remove parts on a routed board (`board_update`), but NOTHING can edit
+Edge.Cuts: the outline is written once at P5 by `board_init --outline` from the
+netlist, so changing it means a rebuild that discards placement and routing.
+That forces the final size to be guessed before placement exists - the trap
+bb-buck hit - and it BLOCKS U18's canonical level, whose whole flow is
+place first, then shrink the board to fit.
+
+**Read:** `board_init.py` outline/corner-radius/cutout construction,
+`place_edit.py` + `lib/place_swig.py` (the staged-worker-verify-swap pattern to
+copy), `route_edit.py`, `lib/geom.py` outline parsing, `invalidation.yaml`,
+`dfm_check.py` edge legs, U1's gerblib outline snap/arc work.
+**Build:** `board_edit.py` - outline ops on an EXISTING board (resize to WxH,
+shrink-to-fit the current placement + margin, corner radius, edge cutouts),
+applied with the place_edit contract: validate, stage inside the board dir,
+SWIG worker, independent re-parse verifying the new outline geometry, atomic
+swap, byte-identical rollback on any failure. REFUSE (with the offending list,
+never a silent clip) when a footprint, copper item or keepout would fall
+outside the new boundary or violate edge clearance; a `--report-only` mode
+names what must move first. New `outline_change` edit class in
+`invalidation.yaml` (stale: place, drc_routed, verify, dfm, gerbers; zones
+need a refill; human_hold 2). Recipe step for the shrink-to-fit flow.
+**Accept:** on a frozen routed fixture, a resize that keeps everything inside
+applies and re-parses to the exact new outline with copper untouched and DRC
+no worse; a resize that would orphan a part refuses and names it; rollback is
+byte-identical; the edit class stales exactly the mapped set; shrink-to-fit on
+the bb-buck placement reproduces a legal outline no larger than its bbox +
+margin.
+
+### U18 - Learning mode: a target learning outcome drives scope AND binding
+
+bb-buck was correct but not canonical: the owner's 35x25 outline (given at H1)
+bound every later stage, so placement optimized to FIT rather than to teach the
+basics. Learning mode fixes the general case - and per the owner ruling
+(2026-08-16) the mode is driven by a TARGET LEARNING OUTCOME which derives both
+dials, rather than by two flags the caller sets independently.
+
+**Read:** `reference/build-modes.md` (ultra-bare-bones becomes the block-only
+scope tier - reuse it, never duplicate it), `agents/requirements-analyst.md`,
+`agents/architect.md`, `agents/placement.md`, both reviewer contracts,
+`recipes/full-run.md`, U17's outline flow, U7's `learn` verb + `bench.py
+--freeze`.
+**Build:** in `build-modes.md`, a learning mode declared as
+`learning <target>:` where the target names the outcome. A target entry binds:
+- **scope tier** - `block-only` (= today's ultra-bare-bones contract),
+  `block+interfaces`, or `product` (protection, filtering, connectors, thermal,
+  enclosure fit - what a shippable version of that block needs). "Buck stage
+  placement" gets block-only; "production buck" gets product.
+- **binding level** - `canonical` (geometry is an OUTPUT: board size, aspect
+  and outline follow the reference layout, and any stated dimension that
+  fights it LOSES), `bounded` (canonical + ~30 %), `constrained` (the stated
+  size binds - what bb-buck accidentally ran), `product` (size, cost and
+  thermal all bind).
+- **stage under study** (optional) - what the run is meant to teach, which
+  names the deliverable to freeze as a bench fixture.
+Rules: every relaxed spec is a `state.py decision` and appears in the H1
+checkpoint ("ignoring 35x25: the canonical hot-loop layout wants ~45x30") -
+relaxation is never silent. The mode relaxes GEOMETRY, cost and packaging
+only; never the electrical spec, safety questions, gates, coverage or
+research. `canonical` uses U17's flow: provisional outline -> canonical
+placement -> shrink to fit -> route once. Reviewers do not report a relaxed
+spec as drift. Wire the target through P0 (mark relaxable specs), P2
+(geometry as output), P6 (follow the reference layout), and the reviewers.
+**Accept:** the same brief at `canonical` and at `constrained` produces
+different outlines, with the canonical run recording the relaxation decision
+and ending no larger than its own placement needs; a `product`-scope target
+admits the protection/filtering blocks that block-only excludes (and the
+reviewers flag their ABSENCE at that tier); router `--validate` green; the
+mode table is test-pinned against build-modes.md.
+
+### U19 - Bottom-side placement the annealer can DISCOVER
+
+`place_edit` applies an absolute `{"op":"flip","side":"back"}`, `place_seed`
+honors a `side` constraint, and the annealer's cost model is already
+side-aware (obstacles carry a side; courtyard overlap counts only between
+same-side or through-hole bodies). But `place_anneal._propose()` only ever
+returns `(component, centre, angle)` - no move changes a part's side - so the
+optimizer can respect a side it was GIVEN and can never find that moving a
+part to the back tightens a loop or saves area.
+
+**Read:** `place_anneal.py` (`_propose`, `_slide`, the cost terms, obstacle
+side handling), `place_seed.py` side constraints, `placelib`, `place_metrics`,
+T8's front-side-only region-scan note in `board_update.py`.
+**Build:** a side-flip move in `_propose` (guarded by constraints: parts fixed
+to a side, connectors, anything the placement group pins), with an
+assembly-cost term so back-side parts are not free - a second reflow side is a
+real cost, and the term's weight is an owner ruling to record. Satellites must
+follow their anchor's side. Report per-candidate side counts in the metrics so
+a reviewer sees the tradeoff.
+**Accept:** on a fixture where a back-side placement is measurably better, the
+annealer finds it and the result re-parses with the part on B.Cu, its
+satellites with it, and DRC no worse; side-pinned parts never move; with the
+assembly term at its default a board that does not need two sides stays
+single-sided (no gratuitous flipping); existing P6 bench fixtures do not
+regress.
 
 ## Not in this plan
 
