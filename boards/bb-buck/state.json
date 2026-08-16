@@ -3,7 +3,7 @@
  "board": "bb-buck",
  "workspace": "boards/bb-buck",
  "created": "2026-08-15T15:58:13",
- "updated": "2026-08-16T02:58:44",
+ "updated": "2026-08-16T04:40:43",
  "phase": "P8",
  "gates": {},
  "human": {
@@ -48,11 +48,11 @@
  "open_issues": [
   {
    "id": 1,
-   "status": "open",
+   "status": "fixed",
    "agent": null,
    "attempts": 0,
    "opened": "2026-08-16T02:36:16",
-   "closed": null,
+   "closed": "2026-08-16T04:40:27",
    "gate": "verify",
    "phase": "P8",
    "fixer": "silk",
@@ -135,7 +135,7 @@
    "erc": 2,
    "place": 3,
    "drc_routed": 3,
-   "verify": 2,
+   "verify": 1,
    "dfm": 3
   },
   "freerouting_retries": 2,
@@ -439,6 +439,30 @@
    "why": "+VIN 6.97 mV at 1.1 A; +5V 12.68 mV at 2.6 A (against a 150 mV A3 window); GND 0.61 mV. /SW correctly skipped (pdn:false, width-only entry). check_pdn_z skipped +VIN and /VCC for want of an adjacent-layer fill pair, which is simply what a 2-layer board is - not a coverage gap.",
    "phase": "P8",
    "ts": "2026-08-16T02:58:24"
+  },
+  {
+   "what": "CORRECTION to my own P3 decision: '>= 16 vias within 4.6 mm' does NOT clear the datasheet's 4x3=12 minimum - those count DIFFERENT things, and the board is short in-pad (9 vs 12)",
+   "why": "My P3 decision recorded that our >= 16 requirement 'also clears the datasheet's own 4x3 = 12 minimum'. That conflated two different populations. The datasheet Sec 10.1.1 minimum is 12 vias UNDER THE PAD; our >= 16 counts vias anywhere within 4.6 mm, which includes the surrounding F.Cu island ring - a far longer heat path with much lower barrel conductance. The board has 18 within 4.6 mm but only **9 in-pad** (3x3 at 0.85 mm pitch), i.e. ~88 pct of the datasheet's barrel-conductance floor, worth ~5 K of Tj - most of check_thermal's 2.06 C reported margin on the sole heat path of a 2-layer thermal design. Caught by the fresh-context verify-reviewer, which is exactly what it is for. A 3x4 array fits with 0.3 mm to every pad edge.",
+   "phase": "P8",
+   "ts": "2026-08-16T03:40:17"
+  },
+  {
+   "what": "EP in-pad vias 9 -> 12 (3x4 at 0.85 mm), barrel conductance 87.4 -> 116.5 pct of the datasheet floor, -4.91 K Tj. Gates unchanged PASS.",
+   "why": "The array was RE-SPACED, not appended to: a 4th row on the existing 3x3 would need y = +/-1.7 against a pad half-height of 1.75, i.e. outside the pad. 12 vias at 0.30 mm now beat the datasheet's 12 x 10-mil floor on conductance as well as count. All 12 annuli inside pad copper; hole-to-hole 0.55 (floor 0.5), annulus 0.15 (floor 0.15); zero B.Cu tracks created; AGND spine untouched.",
+   "phase": "P8",
+   "ts": "2026-08-16T03:52:02"
+  },
+  {
+   "what": "GATE BLIND SPOT, measured: check_thermal CANNOT see the thermal-via fix at all - margin 2.0623 C before and 2.0623 C after",
+   "why": "theta_ja() is a function of copper AREA and LAYER COUNT only; vias_near_part is computed and reported but never enters the model (check_thermal.py:55-56, 93, 131). So on a 2-layer board whose entire heat path is the EP via array, the thermal gate is insensitive to the array. This is exactly what let the 9-vs-12 shortfall through P3 unnoticed - and it means the 2.06 C 'margin' the gate reports is not a measurement of this board's real thermal case. Script proposal recorded: derive an in-pad via count from the part JSON's exposed_pad.thermal_vias (present here, value 12) as a first-class check, so the class is caught by a script rather than by a fresh-context reviewer.",
+   "phase": "P8",
+   "ts": "2026-08-16T03:52:02"
+  },
+  {
+   "what": "Terminal silk: 4 of 6 labels placed (J1 '+' and 'VIN'; J2 '-' and '5V OUT'). The requirement is MET despite the shortfall.",
+   "why": "On a TWO-PIN terminal a single polarity glyph fully determines the pinout: J1's '+' on pin 1 makes pin 2 negative by construction, and J2's '-' on pin 2 makes pin 1 positive. The two unplaced marks were redundant, not load-bearing. The fixer ran an exhaustive whole-board grid search (0.02-0.1 mm steps, all rotations, real silk/pad/track/courtyard obstacles, cross-checked against live DRC on a scratch copy) and found ZERO positions for them that were simultaneously legible, non-overlapping and closer to their own pin than to the sibling pin - the C5/C8/C9 bank hems in both connectors on exactly that side. It declined rather than place a misattributing label, which is the correct call ('a label readable against the wrong pin is worse than none'). RESIDUAL, for the owner at H4: J1's '+' sits above the connector body and left of C10, so a reader could conceivably attribute it to C10 - mitigated by 'VIN' sitting directly above it, but not eliminated.",
+   "phase": "P8",
+   "ts": "2026-08-16T04:40:43"
   }
  ],
  "edits": [
@@ -645,6 +669,22 @@
    "effort": "xhigh",
    "phase": "P8",
    "note": "fresh context; SUBSTITUTION fable/high -> opus/xhigh"
+  },
+  {
+   "ts": "2026-08-16T03:40:17",
+   "role": "fixer",
+   "model": "opus",
+   "effort": "high",
+   "phase": "P8",
+   "note": "review E2: EP in-pad thermal vias 9 -> 12"
+  },
+  {
+   "ts": "2026-08-16T03:52:02",
+   "role": "fixer",
+   "model": "sonnet",
+   "effort": "high",
+   "phase": "P8",
+   "note": "review E1: terminal polarity/function silk"
   }
  ],
  "history": [
@@ -1205,6 +1245,58 @@
    "event": "spawn",
    "role": "verify-reviewer",
    "model": "opus"
+  },
+  {
+   "ts": "2026-08-16T03:39:56",
+   "event": "budget",
+   "path": "fix_loops.verify",
+   "remaining": 1
+  },
+  {
+   "ts": "2026-08-16T03:39:56",
+   "event": "snapshot",
+   "label": "pre-fix-verify-a2",
+   "files": 1
+  },
+  {
+   "ts": "2026-08-16T03:40:17",
+   "event": "decision",
+   "what": "CORRECTION to my own P3 decision: '>= 16 vias within 4.6 mm' does NOT clear the datasheet's 4x3=12 minimum - those count DIFFERENT things, and the board is short in-pad (9 vs 12)"
+  },
+  {
+   "ts": "2026-08-16T03:40:17",
+   "event": "spawn",
+   "role": "fixer",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-16T03:52:02",
+   "event": "decision",
+   "what": "EP in-pad vias 9 -> 12 (3x4 at 0.85 mm), barrel conductance 87.4 -> 116.5 pct of the datasheet floor, -4.91 K Tj. Gates unchanged PASS."
+  },
+  {
+   "ts": "2026-08-16T03:52:02",
+   "event": "decision",
+   "what": "GATE BLIND SPOT, measured: check_thermal CANNOT see the thermal-via fix at all - margin 2.0623 C before and 2.0623 C after"
+  },
+  {
+   "ts": "2026-08-16T03:52:02",
+   "event": "spawn",
+   "role": "fixer",
+   "model": "sonnet"
+  },
+  {
+   "ts": "2026-08-16T04:40:27",
+   "event": "issue",
+   "id": 1,
+   "status": "fixed",
+   "agent": null,
+   "attempts": 0
+  },
+  {
+   "ts": "2026-08-16T04:40:43",
+   "event": "decision",
+   "what": "Terminal silk: 4 of 6 labels placed (J1 '+' and 'VIN'; J2 '-' and '5V OUT'). The requirement is MET despite the shortfall."
   }
  ]
 }

@@ -1,0 +1,160 @@
+{
+ "violations": [
+  {
+   "check": "board-review",
+   "severity": "error",
+   "pos": [31.67, 53.38],
+   "layer": "F.SilkS",
+   "net": null,
+   "refs": ["J1", "J2"],
+   "msg": "no polarity or function silk on either screw terminal - all 20 F.SilkS texts are refdes, there is no +/-/VIN/5V/OUT anywhere on F.SilkS or B.SilkS, and zero board-level text objects; the J1/J2 'Note' properties carrying that text are hide=yes and never plot; the only polarity indication is each footprint's 0.3 mm pin-1 dot at (26.370,48.300) and (43.690,59.180), both under the plastic body after assembly. J1 and J2 are the same part (KF128-5.08-2P, C474952), so nothing distinguishes the 24 V input from the 5 V output or + from - on either. requirements.md s2 requires '+/-' on J1 and distinct VIN vs 5V OUT labelling, and s8 states the silk 'is the only defense against a swapped supply' - the mode removed the protection, not the marking. Consequence: reversed leads destroy U1, and the supply can be landed on J2, putting 24-30 V across a 25 V-rated output bank through U1's low-side body diode",
+   "source": "review.board",
+   "kind": "terminal-polarity-silk-missing",
+   "domain": "silk"
+  },
+  {
+   "check": "board-review",
+   "severity": "error",
+   "pos": [38.97, 41.48],
+   "layer": "F.Cu",
+   "net": "GND",
+   "refs": ["U1"],
+   "msg": "only 9 thermal vias under U1's exposed pad (3x3 at 0.85 mm pitch, 0.30 mm drill) against the LMR33630 datasheet Sec 10.1.1 minimum of a 4x3 = 12 via array evenly distributed under the PAD; the pipeline's own '>=16 within 4.6 mm' rule is met (18) but counts vias out in the surrounding F.Cu island, a far longer heat path than in-pad vias. Barrel conductance is ~88% of the datasheet floor (9x0.30 vs 12x0.254); at the design's own 192 K/W per via that is 21.3 vs 16.0 K/W, ~5 K of extra junction rise at 0.92 W, which consumes most of the 2.06 C margin check_thermal reports - and check_thermal does not model the array at all. A 3x4 array at the existing 0.85 mm pitch spans 1.70x2.55 mm inside the 2.50x3.50 mm pad with 0.3 mm to every edge, so the fix is 3 more vias",
+   "source": "review.board",
+   "kind": "ep-thermal-vias-under-datasheet",
+   "domain": "router"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [43.97, 44.38],
+   "layer": "F.Cu",
+   "net": "/SW",
+   "refs": ["TP1", "TP2", "L1", "R1", "C7"],
+   "msg": "TP1 sits on a dedicated 2.54 mm x 1.52 mm switch-node spur running out of L1.1's pad, not inside the existing /SW copper as constraints.json placement.groups[probe] requires; it adds 4.74 mm2 (18% of the 26.36 mm2 node) and, worse, drags /SW into the FB/VCC corner - measured with vs without the spur: /SW-to-/FB 2.930 -> 1.038 mm, /SW-to-/VCC 1.660 -> 0.420 mm, /SW-to-C7 pads 3.848 -> 0.962 mm, /SW-to-R1 pads 4.566 -> 1.948 mm. Both /SW ceilings still hold (26.36 mm2 of 40; 7.60 mm of 8) and the coupling is small in absolute terms, but a measurement convenience quadrupled the switch node's proximity to the gate-drive rail and nearly tripled it to the feedback node for no electrical benefit. Fix: move TP1 into the existing U1.8->L1.1 corridor near (44.97, 42.08) and TP2 ~2.5 mm below it, deleting the stub",
+   "source": "review.board",
+   "kind": "switch-node-probe-spur",
+   "domain": "placement"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [38.97, 41.48],
+   "layer": "F.Paste",
+   "net": "GND",
+   "refs": ["U1"],
+   "msg": "U1's exposed pad is a single 100% stencil aperture (2.5 x 3.5 mm = 8.75 mm2, no solder_paste_margin anywhere on the board) and its 2.5 x 3.5 mm mask opening uncovers all 9 in-pad vias regardless of the board's (tenting front yes back yes) setting. Two uncontrolled quantities that do not reliably cancel: ~1.05 mm3 of wet paste (~0.5 mm3 of metal at a 0.12 mm stencil) against IPC-7093 / TI SLMA002 guidance for a windowed 50-80% aperture on thermal pads this size, and ~1.0 mm3 of open via barrel volume, about twice the available metal. Risk is package float tilting the 0.6 mm gull-wing joints, and a starved/voided EP joint on the board's only heat path. Fix: windowed paste pattern (4-5 apertures, ~70%) positioned between the via locations, in the same pass as the via count fix",
+   "source": "review.board",
+   "kind": "ep-paste-single-aperture",
+   "domain": "library"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [52.67, 35.03],
+   "layer": "F.Cu",
+   "net": null,
+   "refs": ["L1"],
+   "msg": "L1 body sits 0.50 mm from the top board edge (silk outline 0.55 mm, courtyard 0.60 mm) against JLCPCB's >= 1 mm component-to-edge assembly guideline; it is the largest and heaviest part on the board (12.3 x 12.3 x 8.0 mm SMDRI127-150MT). The depanel case matters more than the placement case: solder joints 0.5 mm from a V-scored edge are exposed to snap stress. Nothing else is under 1 mm except the two terminals (0.30 mm, intentional, openings at the edge) and C9 at 1.15 mm; C2/C3 are at 1.05 mm. Fix: move L1 >= 1 mm off the top edge (12.1 mm of clear board below it) or specify routed/tab depanelisation rather than V-score in the P9 fab notes. Note also the footprint is named RLF12545T while the fitted part is SMDRI127-150MT - naming only, the pads match",
+   "source": "review.board",
+   "kind": "part-to-edge-clearance",
+   "domain": "placement"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [51.31, 53.88],
+   "layer": "B.Cu",
+   "net": "GND",
+   "refs": ["J1", "J2"],
+   "msg": "both GND zones use (connect_pads yes (clearance 0.5)), i.e. KiCad's SOLID pad connection - the thermal_gap/thermal_bridge_width values present in both zones are inert while connect_pads is yes. J1.2 (31.670,55.920) and J2.2 (51.310,53.880) are 1.6 mm drills in 2.4 mm pads flooded solid into a 595.5 mm2 F.Cu pour and a 783.3 mm2 B.Cu pour - four solid plane connections to heat. requirements.md s7 allows 'hand-soldered after SMT' as the assembly fallback, and a normal iron will not reliably reflow a plane-connected 1.6 mm barrel; a cold joint on J2.2 is the 2 A return path. Fix: connect_pads thru_hole_only with the existing 0.5 mm gap / 0.5 mm spoke on both GND zones, or per-pad thermal relief on J1.2 and J2.2 only; SMD pads should stay solid",
+   "source": "review.board",
+   "kind": "tht-gnd-no-thermal-relief",
+   "domain": "plane"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [45.698, 46.91],
+   "layer": "F.SilkS",
+   "net": null,
+   "refs": ["TP2", "R1", "C3", "C7", "J2"],
+   "msg": "triage of the four check_silk refdes-ambiguity warnings: all four are geometrically real, three are cosmetic, one escalates. R1's label at (45.698,46.910) lands 0.10 mm from TP2, and TP2's own label at (45.470,49.555) is inside J2's courtyard so it vanishes under the terminal body - the assembled board therefore labels the scope-ground pad of the one measurement feature the owner bought at A4 'R1', with R1's actual body 4.6 mm away. C3's label (47.583,36.780) also lands inside L1's courtyard; C7's (45.695,45.030) and J2's (55.525,52.330) are cosmetic. No waiver: place_edit.py move_text is the cheapest fix on the list and it is the same pass that must add the missing terminal silk. Separately confirmed the owner-accepted 7 hidden labels (TP2/C5/C8/C9 under J1, C3 under L1, L1 under J2, J1 under its own body) and found nothing worse hiding under a body",
+   "source": "review.board",
+   "kind": "probe-pad-mislabelled",
+   "domain": "silk"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [40.97, 48.75],
+   "layer": "F.Cu",
+   "net": "+5V",
+   "refs": ["C4", "C5", "C8", "C9", "L1"],
+   "msg": "the output capacitor bank is split 1 + 3 against constraints.json placement.groups[output], which anchors all four on L1: C4 is 8.2 mm from L1.2, while C5/C8/C9 are 20-26 mm away and reach +5V only through the priority-1 F.Cu zone bridge whose narrowest section measures 1.002 mm at (40.970,48.750). At 400 kHz the ~20 nH of that run is ~50 mOhm against the caps' own ~20 mOhm, so effectively only C4 filters the fundamental ripple. The arithmetic still passes - ripple goes from ~8.3 mV (26 uF effective) to ~14.5 mV (C4 alone after bias derating) against A3's 50 mV budget, loop stability is untouched at a ~40 kHz crossover so all four still count for Table 9-2's C_OUT, and the stated load is resistive so there is no transient case. Reported as a silent 1.7x ripple deviation from the architecture, not a failure; if accepted, amend the +5V check_pdn waiver text, which currently overstates the compensating control",
+   "source": "review.board",
+   "kind": "output-bank-split",
+   "domain": "placement"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [40.97, 48.75],
+   "layer": "F.Cu",
+   "net": "+5V",
+   "refs": [],
+   "msg": "COVERAGE HOLE, not a defect: check_current never measures the +5V pour. Its pour_neck evaluation is reached only for the plane-fed GND entry on this board; +5V reports min_track_mm_by_layer {F.Cu: 1.52} and nothing else, while an 18.26 mm2 current-carrying +5V zone with a 1.002 mm neck goes unexamined. On the merits it passes with ~8x margin: the 2 A DC load path is L1.2 -> 1.8 mm track -> J2.1 and never crosses the bridge, so the neck carries at most ~0.15-0.2 A of ripple share plus the divider's 39 uA against IPC-2152's ~1.6 A for 1.00 mm on 1 oz outer at dT 10. Second instance of the same blind spot, also benign: pour_neck uses vias as its attachment points, so the hot loop's F.Cu ground bridge between C1.2 and U1.1 - correctly via-free by design - is never tested either; measured 0.935-1.230 mm continuous against the 0.56 mm that 1.1 A needs",
+   "source": "review.board",
+   "kind": "pour-neck-check-not-reached",
+   "domain": "review"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [30.3575, 46.9464],
+   "layer": "F.Cu",
+   "net": "GND",
+   "refs": ["C10"],
+   "msg": "audit of the WO-3 override: the 0.6 A figure is honest and conservative, but the region is anchored on a checker artifact rather than on the copper. Every number in the note reproduces independently - B.Cu min neck 5.937 mm vs 1.520 required on one unbroken 783.34 mm2 fill with zero B.Cu tracks; F.Cu min neck 0.322 mm; 3 vias within 1.5 mm at each of C2.2/C3.2/C4.2/C5.2/C8.2/C9.2/C10.2 and 9 in U1's EP; both GND terminals THT. My own estimate of the current in the 0.32 mm sliver is 30-50 mA (the sliver is ~20 mOhm against a ~0.7 mOhm via-B.Cu-via shunt, so it takes ~3%), i.e. 0.6 A is 12-20x conservative. Two corrections: the F.Cu GND fill is a SINGLE connected 595.5 mm2 region (rasterised at 0.02 mm, one connected component), not '5 mutually-isolated leaf-tap groups' - the leaf-tap argument is about current share and in that form is correct; and pour_neck reports parts[0].representative_point(), so the anchor sits in 7.56 mm-wide copper ~9 mm from the true pinches at (40.550,35.141) and (35.150,35.141), slivers along the top board edge between the 0.5 mm pour inset and C2.1/C3.1. Margin to breaking is 0.36 mm (nearest via-cluster centroid, C10.2's at (32.05,46.18), is 1.858 mm away; the default r=2.0 would manufacture a new error). Because any future F.Cu GND neck would be reported at approximately the same point, this one override will silently suppress those too. Keep the override; re-anchor it on the real pinches",
+   "source": "review.board",
+   "kind": "override-anchored-on-checker-artifact",
+   "domain": "review"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [45.545, 40.757],
+   "layer": "F.Cu",
+   "net": "/SW",
+   "refs": [],
+   "msg": "/SW-to-GND minimum clearance is 0.1275 mm at (45.545,40.757), between the /SW track into L1 and the F.Cu GND pour (+VIN-to-GND has the same 0.1275 mm minimum at (34.052,41.746)); both are the board's DRC floor, so this is a global pour-clearance setting rather than a routing slip. The premise in constraints.json _absent_keys - 'no net PAIR on this board exceeds 30 V, so check_creepage stays a clean no-op' - holds for every DC pair but not for /SW, which swings 0 to VIN and overshoots 1.2-1.5x on the turn-on edge, i.e. 36-45 V at the 30 V corner. That places /SW-GND in IPC-2221's 31-100 V band where external conductors under permanent polymer coating (B2) want 0.13 mm. Not claiming this board fails - 0.127 mm of masked FR-4 will not break down at 45 V and this is standard JLC 2-layer practice - but the stated basis for the creepage no-op has a hole in it, and requirements.md s8 explicitly contemplates the owner lifting the A1 ceiling later. Record the switch-node overshoot as a known exception; no copper change",
+   "source": "review.board",
+   "kind": "switch-node-overshoot-vs-creepage-premise",
+   "domain": "review"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [52.67, 41.23],
+   "layer": "B.Cu",
+   "net": "GND",
+   "refs": ["L1"],
+   "msg": "constraints.json _review_enforced (4) requires a GND void under L1's body and it was never cut: F.Cu GND covers 68.2% of L1's 12.3x12.3 mm footprint and 99.5% of the core between the pads, B.Cu covers 100% of both, and the board contains zero keepout/rule-area zones. It should probably stay uncut - the only mitigation this design offers for being 2 layers where the datasheet asks for 4 is the unbroken B.Cu pour under the hot loop, /SW and L1, so a B.Cu void under L1 would directly contradict it, and the fitted part is a shielded/composite drum where copper beneath is normal practice. Recommend waiving on B.Cu permanently and amending the constraint; optionally cut the F.Cu core void only, which costs nothing. Same clause, related: L1's /SW-side copper is 26.36 mm2 against the same rule's '>= 40 mm2 per terminal' (the +5V side is 83.4 mm2 and passes), which cannot be met without breaching the '/SW <= 40 mm2' ceiling in clause (2) of the same file - since L1 dissipates 0.27 W, below the architecture's own 0.5 W threshold, the EMI ceiling should win and clause (4) should be scoped to the +5V terminal",
+   "source": "review.board",
+   "kind": "gnd-void-under-inductor-absent",
+   "domain": "plane"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [29.57, 37.98],
+   "layer": "F.Cu",
+   "net": null,
+   "refs": ["H1", "H2"],
+   "msg": "constraints.json _review_enforced (3) calls for hand-added KiCad rule areas giving a 6.5 mm mask/copper keepout at each M3 hole because planes_gen cannot void; the board has zero keepout zones and both GND pours run to 0.5 mm from the board edge and up to both NPTH barrels. Consequence checked rather than assumed and it is nil: within a 3.25 mm washer radius of H1 (29.570,37.980) and H2 (57.570,55.980) there is no non-GND copper on either layer - no tracks, no pads, and the +5V zone is nowhere near - so a metal M3 screw and washer shorts top GND to bottom GND, which is harmless and arguably desirable on a bench article. Recommend waiving and closing the constraint as satisfied-by-inspection rather than adding rule areas; re-check if any future revision routes non-GND copper into a corner",
+   "source": "review.board",
+   "kind": "declared-keepout-not-implemented",
+   "domain": "plane"
+  }
+ ]
+}
