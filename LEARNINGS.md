@@ -4425,3 +4425,32 @@ courtyard-to-courtyard against a declared 5 mm, while centre-to-centre is 13.14 
 Consequence for any board: a green `place` gate does NOT mean keepouts and separations were
 checked. Verify both by hand until these are fixed, and do not read the gate's silence as
 evidence.
+
+## 2026-08-16 [check_silk][geometry][gates] check_silk drew every circle as a FILLED DISC, ignoring `(fill no)` - so a stock KiCad ring footprint reports its own pad as 100% silk-covered
+
+Found and FIXED at bb-buck P8. `check_silk.py::_shape_geom` returned
+`Point(center).buffer(r + w2)` for any `*_circle` node, with no reference to the sibling
+`(fill ...)` node. An UNFILLED circle is an annulus; buffering it as a disc fills in the
+hole - and the hole is exactly where the pad lives.
+
+Signature to recognise it by: **the reported overlap area equals the whole pad area.**
+Here it was `silk circle on F.SilkS covers pad TP1.1 (1.77 mm2)`, and pi * 0.75^2 = 1.767 -
+the pad, entire. A real silk-over-pad defect overlaps a *fraction* of the pad.
+
+Real geometry of the stock `TestPoint:TestPoint_Pad_D1.5mm`: `fp_circle` r 0.95 with a 0.12
+stroke = a ring spanning r 0.89-1.01 mm, against a 1.5 mm-diameter pad, r 0.75. That is
+**0.14 mm of clearance** - the silk never touches the copper. The footprint is correct and
+the finding was pure false positive.
+
+Blast radius: every stock ring footprint - `TestPoint_Pad_*`, fiducials, polarity/pin-1
+rings, many connector outlines. Any board using them has been eating phantom
+`silk_over_pad` errors at the verify gate.
+
+Fix: an `_is_filled(node)` helper reading `(fill yes|solid)` (absent = unfilled), and for an
+unfilled circle return `buffer(r+w2).difference(buffer(r-w2))`. `rect`/`poly` are still
+buffered solid - conservative, so it over-reports rather than misses, but it is the same
+latent class if an unfilled box ever rings a pad.
+
+The generalisable trap: a checker that renders geometry to test it must honour the SAME
+fill semantics the fab does. Silkscreen is imaged from the stroke, not from the bounding
+shape - and "buffer the outline" is not the same operation as "fill the outline".

@@ -1,0 +1,119 @@
+{
+  "script": "gate",
+  "gate": "verify",
+  "phase": "P8",
+  "tool": "verify",
+  "input": "boards\\bb-buck\\kicad\\bb-buck.kicad_pcb",
+  "input_digest": "sexpr_no_uuid:b678974f7a23cd927abd89899808926dd2ac6b0e868daea5510db9980e3f6534",
+  "status": "pass",
+  "criteria": {
+    "fail_severities": [
+      "error"
+    ],
+    "max_count": 0
+  },
+  "counts": {
+    "total": 27,
+    "by_severity": {
+      "warning": 25,
+      "error": 2
+    },
+    "by_source": {
+      "check_return_path": 1,
+      "check_current": 20,
+      "check_silk": 4,
+      "check_pdn": 2
+    },
+    "by_check": {
+      "check_return_path": 1,
+      "check_current": 20,
+      "check_decoupling": 0,
+      "check_diffpair": 0,
+      "check_creepage": 0,
+      "check_thermal": 0,
+      "check_silk": 4,
+      "check_pdn": 2
+    }
+  },
+  "failing_count": 0,
+  "failing": [],
+  "waived_count": 2,
+  "waived": [
+    {
+      "check": "check_pdn",
+      "severity": "error",
+      "pos": null,
+      "layer": null,
+      "net": "+5V",
+      "refs": [],
+      "msg": "power rail +5V (2.6 A) has no decoupling capacitors",
+      "source": "check_pdn",
+      "items": [
+        {
+          "msg": "power rail +5V (2.6 A) has no decoupling capacitors",
+          "pos": null
+        }
+      ],
+      "kind": "pdn_undecoupled",
+      "rail": "+5V",
+      "cap_count": 0
+    },
+    {
+      "check": "check_pdn",
+      "severity": "error",
+      "pos": null,
+      "layer": null,
+      "net": "GND",
+      "refs": [],
+      "msg": "power rail GND (2.6 A) has no decoupling capacitors",
+      "source": "check_pdn",
+      "items": [
+        {
+          "msg": "power rail GND (2.6 A) has no decoupling capacitors",
+          "pos": null
+        }
+      ],
+      "kind": "pdn_undecoupled",
+      "rail": "GND",
+      "cap_count": 0
+    }
+  ],
+  "coverage": {
+    "strict": false,
+    "required": [
+      "check_return_path",
+      "check_current",
+      "check_decoupling",
+      "check_diffpair",
+      "check_creepage",
+      "check_thermal",
+      "check_silk",
+      "check_pdn"
+    ],
+    "ran": [
+      "check_return_path",
+      "check_current",
+      "check_decoupling",
+      "check_diffpair",
+      "check_creepage",
+      "check_thermal",
+      "check_silk",
+      "check_pdn"
+    ],
+    "passed": [
+      "check_return_path",
+      "check_current",
+      "check_decoupling",
+      "check_diffpair",
+      "check_creepage",
+      "check_thermal",
+      "check_silk"
+    ],
+    "failed": [],
+    "waived": [
+      "check_pdn"
+    ],
+    "not_applicable": {},
+    "skipped_error": {}
+  }
+}

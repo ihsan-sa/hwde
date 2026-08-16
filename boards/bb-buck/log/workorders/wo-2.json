@@ -1,0 +1,82 @@
+{
+ "id": 2,
+ "created": "2026-08-16T02:36:16",
+ "gate": "verify",
+ "phase": "P8",
+ "board": "boards/bb-buck/kicad/bb-buck.kicad_pcb",
+ "fixer": "schematic",
+ "role_prompt": "C:/dev/ai-ee3/.claude/skills/ai-ee/agents/fixer.md",
+ "allowed_scripts": [
+  "schlib.py",
+  "netlist_audit.py",
+  "kc.py"
+ ],
+ "guidance": [
+  "The schematic SOURCE is kicad/gen/<sheet>.py (schlib generator pattern); edit the generator, rebuild, never hand-edit the .kicad_sch.",
+  "A schematic change after P5 invalidates the board (netlist drift): report it as `requires_pipeline_rewind` in your summary instead of silently continuing - the orchestrator decides.",
+  "Re-gate with kc.py erc and netlist_audit.py."
+ ],
+ "remediations": [],
+ "cluster": {
+  "net": null,
+  "kinds": [
+   "pdn_undecoupled"
+  ],
+  "checks": [
+   "check_pdn"
+  ],
+  "severity": "error",
+  "count": 2,
+  "region": {
+   "bbox": null,
+   "center": null
+  },
+  "violations": [
+   {
+    "check": "check_pdn",
+    "severity": "error",
+    "pos": null,
+    "layer": null,
+    "net": "+5V",
+    "refs": [],
+    "msg": "power rail +5V (2.6 A) has no decoupling capacitors",
+    "source": "check_pdn",
+    "items": [
+     {
+      "msg": "power rail +5V (2.6 A) has no decoupling capacitors",
+      "pos": null
+     }
+    ],
+    "kind": "pdn_undecoupled",
+    "rail": "+5V",
+    "cap_count": 0
+   },
+   {
+    "check": "check_pdn",
+    "severity": "error",
+    "pos": null,
+    "layer": null,
+    "net": "GND",
+    "refs": [],
+    "msg": "power rail GND (2.6 A) has no decoupling capacitors",
+    "source": "check_pdn",
+    "items": [
+     {
+      "msg": "power rail GND (2.6 A) has no decoupling capacitors",
+      "pos": null
+     }
+    ],
+    "kind": "pdn_undecoupled",
+    "rail": "GND",
+    "cap_count": 0
+   }
+  ]
+ },
+ "artifacts": {
+  "board": "boards/bb-buck/kicad/bb-buck.kicad_pcb",
+  "schematic": "boards/bb-buck/kicad/bb-buck.kicad_sch",
+  "constraints": "boards/bb-buck/kicad/constraints.json",
+  "decoupling": "boards/bb-buck/kicad/decoupling.json"
+ },
+ "scope": "fix ONLY these violations; do not touch unrelated nets/regions; re-run the failed gate when done"
+}

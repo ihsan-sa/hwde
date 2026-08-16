@@ -146,6 +146,22 @@ def _text_box(cx, cy, angle, text, size_x, size_y, thickness) -> Polygon:
     return affinity.translate(b, cx, cy)
 
 
+def _is_filled(node) -> bool:
+    """True when a graphic's (fill ...) says it is solid.
+
+    KiCad writes `(fill no)` / `(fill yes)` / `(fill solid)`; an absent fill
+    node means unfilled for the shapes this module draws. Only `circle` acts
+    on this today - `rect`/`poly` are still buffered as solid, which is
+    conservative (over-reports) rather than unsafe, but is the same latent
+    false-positive class if an unfilled box ever rings a pad.
+    """
+    f = _kid(node, "fill")
+    if f is None:
+        return False
+    vals = [str(t).lower() for t in (f[1:] if len(f) > 1 else [])]
+    return any(v in ("yes", "true", "solid") for v in vals)
+
+
 def _shape_geom(node, kind, width, fx, fy, fangle):
     """shapely geometry for a gr_/fp_ graphic in board coords."""
     def xf(p):
@@ -169,7 +185,18 @@ def _shape_geom(node, kind, width, fx, fy, fangle):
         if len(c) < 2 or len(e) < 2:
             return None
         r = math.hypot(e[0] - c[0], e[1] - c[1])
-        return Point(xf((c[0], c[1]))).buffer(r + w2)
+        ctr = Point(xf((c[0], c[1])))
+        # An UNFILLED circle is an annulus, not a disc. Building it as a disc
+        # made every stock ring footprint - TestPoint_Pad_*, fiducials,
+        # polarity rings - report its own pad as 100% silk-covered: bb-buck P8
+        # got "silk circle covers pad TP1.1 (1.77 mm2)", and 1.77 = pi*0.75^2 is
+        # exactly the pad, the signature of the disc assumption. Real geometry
+        # there: ring r 0.89-1.01 mm vs a 0.75 mm pad, i.e. 0.14 mm of CLEARANCE.
+        if not _is_filled(node):
+            inner = r - w2
+            if inner > 0:
+                return ctr.buffer(r + w2).difference(ctr.buffer(inner))
+        return ctr.buffer(r + w2)
     if kind.endswith("poly"):
         pn = _kid(node, "pts")
         pts = _pts(pn) if pn is not None else _pts(node)

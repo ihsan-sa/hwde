@@ -1,8 +1,8 @@
 # Knowledge ladder triage (T4, 2026-08-06; U0 sweep 2026-08-13; U6 2026-08-14;
 # U14 2026-08-15; U15 2026-08-15)
 
-One row per `LEARNINGS.md` entry (303 of them; the last starts at
-line 4407), placed on the maturity ladder from
+One row per `LEARNINGS.md` entry (304 of them; the last starts at
+line 4429), placed on the maturity ladder from
 `design/routing-knowledge-notes.md` section 6, with the artifact that owns - or
 must own - it.
 
@@ -34,17 +34,17 @@ looking for the next promotion.
 
 ## Summary
 
-Recomputed from the table at bb-buck P6 (2026-08-16), all 303 rows
+Recomputed from the table at bb-buck P8 (2026-08-16), all 304 rows
 (`learnings.py triage` prints these numbers - recompute rather than edit them):
 
 | Level | now | target |
 |---|---|---|
 | L0 | 116 | 14 |
 | L1 | 16 | 12 |
-| L2 | 52 | 107 |
+| L2 | 53 | 108 |
 | L3 | 119 | 170 |
 
-123 entries want to climb at least one level. Status: **done 152**,
+123 entries want to climb at least one level. Status: **done 153**,
 **open 126**, **n/a 7**, planned 18
 (T2 10, T8 1 - both shipped, those rows need re-reading; U2 2, U9 2,
 U3/U5/U8 1 each).
@@ -421,3 +421,4 @@ the row's Now level and status in the same commit as the code.
 | 301 | 4357 | `planes[]` entries reject unknown keys - including the `_note` convent | [constraints][planes_gen][lint] | L0 | L2 | scripts/constraints_lint.py | open | Found at bb-buck P2 by reading the CONSUMER before writing the producer. Two coupled defects: planes_gen raises CheckError on any unknown key (so the `_note` convention every other section uses hard-fails there), and constraints_lint does NOT catch it - it exits 0 on a file planes_gen will reject, verified against boards/sbuck-5v3a/architecture/constraints.json, which would fail a planes_gen re-run today. The L2 fix is for constraints_lint to validate planes[] against planes_gen's own accepted-key set, so a P2 that lints green cannot hard-fail at P5/P7. Second trap in the same entry (build_plan REPLACES layer defaults rather than merging) is L0 prose in architect.md |
 | 302 | 4384 | routelib's score regex ate the sentence's full stop, so route_auto cra | [routing][routelib][freerouting] | L2 | L2 | scripts/lib/routelib.py | done | FIXED at bb-buck P6, not just recorded: the score capture is now `\d+(?:\.\d+)?` instead of `[\d.]+`, so a trailing sentence period is not consumed. The bug fired ONLY on the success path (no ` (N unrouted)` suffix to terminate the greedy class), which is why three prior boards never hit it - they all had unrouted nets at probe time. Regression-verified on both line shapes, pass and session, with and without the suffix; the routing test selection passes |
 | 303 | 4407 | Two constraint mechanisms silently do not enforce: keepouts are board- | [placement][constraints][gates] | L0 | L2 | scripts/lib/placelib.py | open | Found by hand at bb-buck P6 while cross-checking a PASSING place gate, which is the point: a green gate is not evidence these were checked. (a) placement.keepouts rects are board-LOCAL by documented convention and nothing translates them by outline_bbox, so the gate's keepouts leg compares against rectangles at absolute origin and passes trivially. (b) placement.separation reads centre-to-centre, not courtyard-to-courtyard, AND is dropped when either ref is locked - on bb-buck that silently disabled all four declared pairs. The L2 fix is to translate keepouts at load and to measure separation courtyard-to-courtyard with locked refs still participating |
+| 304 | 4429 | check_silk drew every circle as a FILLED DISC, ignoring (fill no) - so a s | [check_silk][geometry][gates] | L2 | L2 | scripts/check_silk.py | done | FIXED at bb-buck P8, not just recorded. _shape_geom buffered any *_circle to a disc with no reference to the sibling (fill) node, so the stock TestPoint_Pad_D1.5mm ring (r 0.89-1.01 mm) reported the 0.75 mm pad it encircles as 100% covered. Recognisable because the reported overlap EQUALS the whole pad area (1.77 = pi*0.75^2); a real defect covers a fraction. Fixed with an _is_filled() helper + annulus geometry for unfilled circles; full suite green. rect/poly still buffer solid - conservative, flagged as the same latent class. Blast radius was every stock ring footprint: test points, fiducials, polarity rings |

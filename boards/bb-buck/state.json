@@ -3,7 +3,7 @@
  "board": "bb-buck",
  "workspace": "boards/bb-buck",
  "created": "2026-08-15T15:58:13",
- "updated": "2026-08-16T02:30:45",
+ "updated": "2026-08-16T02:58:44",
  "phase": "P8",
  "gates": {},
  "human": {
@@ -45,14 +45,97 @@
    ]
   }
  },
- "open_issues": [],
- "next_issue_id": 1,
+ "open_issues": [
+  {
+   "id": 1,
+   "status": "open",
+   "agent": null,
+   "attempts": 0,
+   "opened": "2026-08-16T02:36:16",
+   "closed": null,
+   "gate": "verify",
+   "phase": "P8",
+   "fixer": "silk",
+   "net": null,
+   "kinds": [
+    "silk_over_pad"
+   ],
+   "severity": "error",
+   "count": 2,
+   "region": {
+    "bbox": [
+     43.97,
+     44.38,
+     43.97,
+     47.13
+    ],
+    "center": [
+     43.97,
+     45.755
+    ]
+   },
+   "work_order": "boards/bb-buck/log/workorders/wo-1.json"
+  },
+  {
+   "id": 2,
+   "status": "open",
+   "agent": null,
+   "attempts": 0,
+   "opened": "2026-08-16T02:36:16",
+   "closed": null,
+   "gate": "verify",
+   "phase": "P8",
+   "fixer": "schematic",
+   "net": null,
+   "kinds": [
+    "pdn_undecoupled"
+   ],
+   "severity": "error",
+   "count": 2,
+   "region": {
+    "bbox": null,
+    "center": null
+   },
+   "work_order": "boards/bb-buck/log/workorders/wo-2.json"
+  },
+  {
+   "id": 3,
+   "status": "fixed",
+   "agent": null,
+   "attempts": 0,
+   "opened": "2026-08-16T02:36:16",
+   "closed": "2026-08-16T02:58:24",
+   "gate": "verify",
+   "phase": "P8",
+   "fixer": "router",
+   "net": "GND",
+   "kinds": [
+    "pour_neckdown"
+   ],
+   "severity": "error",
+   "count": 1,
+   "region": {
+    "bbox": [
+     30.3575,
+     46.9464,
+     30.3575,
+     46.9464
+    ],
+    "center": [
+     30.3575,
+     46.9464
+    ]
+   },
+   "work_order": "boards/bb-buck/log/workorders/wo-3.json"
+  }
+ ],
+ "next_issue_id": 4,
  "budgets": {
   "fix_loops": {
    "erc": 2,
    "place": 3,
    "drc_routed": 3,
-   "verify": 3,
+   "verify": 2,
    "dfm": 3
   },
   "freerouting_retries": 2,
@@ -332,6 +415,30 @@
    "why": "Sanctioned track_width remediation step 4 (pour, do not neck): a 1.52 mm track geometrically cannot reach that bank because placement split it and the R1.2/TP2/C5.2 pinch caps any track at ~0.95 mm. The DC LOAD path is untouched - L1.2 -> J2.1 at 1.8 mm - so only capacitor ripple crosses the bridge, where at 400 kHz the neck's few nH is milliohms against the caps' own impedance and cannot undo the E1 stability fix. FB senses at C5.1 on the far side of the bridge, which carries no DC, so the sense point sees no bridge drop; the unsensed L1-to-J2 drop is ~2.7 mOhm = ~5.5 mV at 2 A against a 150 mV window.",
    "phase": "P7",
    "ts": "2026-08-16T02:30:09"
+  },
+  {
+   "what": "WO-2 OVERRIDDEN: the two check_pdn 'no decoupling capacitors' errors (+5V, GND) go to verify-waivers.json, NOT to a schematic fixer",
+   "why": "fix_dispatch routed them to the schematic domain, which would be wrong work: you CANNOT decouple a return net, and +5V is a regulator OUTPUT whose decoupling IS the C4/C5/C8/C9 bank - those caps sit on no IC power pin, so they are never registered as decoupling associations and the check cannot see them. P2 decision D7 pre-ruled this exact finding a category error destined for waivers, before the board existed. Adding capacitors to satisfy it would be mode-excluded parts solving a measurement artifact. WO-1 (silk) and WO-3 (pour neck) are real and proceed.",
+   "phase": "P8",
+   "ts": "2026-08-16T02:37:14"
+  },
+  {
+   "what": "check_current F.Cu pour neck resolved by a constraints overrides region (rung 4), NOT a waiver - and check_irdrop independently corroborates it",
+   "why": "The fixer proved no copper fix exists: pouring GND at the absolute 0.127 mm DRC floor over every free mm gives a 0.523 mm ceiling and deleting EVERY foreign F.Cu track still only reaches 1.134 mm against 1.520 required; it passes only by deleting capacitor pads, i.e. moving the hot loop. It also proved the neck is not in series with the rail (F.Cu splits into 5 leaf-tap via groups each with its own 3-via drop to B.Cu; both GND terminals are THT so the return enters the bottom plane directly). INDEPENDENT CONFIRMATION from a checker that knows nothing about pour necks: check_irdrop's 2.5D solve gives GND a total resistance of 0.233 mOhm and a 0.61 mV drop at 2.6 A - TWENTY TIMES LOWER than +5V's 4.855 mOhm / 12.68 mV. A 0.32 mm series neck would have made GND the worst net on the board; it is the best by an order of magnitude.",
+   "phase": "P8",
+   "ts": "2026-08-16T02:58:24"
+  },
+  {
+   "what": "FIXED A CHECKER, NOT THE BOARD: check_silk built every circle as a filled disc regardless of (fill no), so stock KiCad ring footprints reported their own pads as 100 pct silk-covered",
+   "why": "check_silk.py line ~172 returned Point(center).buffer(r + w2) unconditionally. The stock TestPoint_Pad_D1.5mm silk ring is r 0.95 with a 0.12 stroke = an annulus spanning r 0.89-1.01 mm, against a pad of r 0.75 - i.e. 0.14 mm of CLEARANCE, no contact at all. The reported overlap of 1.77 mm2 is exactly pi*0.75^2, the whole pad, which is the signature of the disc assumption. Waiving it would have recorded a non-defect as an accepted defect on a board whose probe pads the owner will actually scope. Fixed with an _is_filled() helper returning an annulus for unfilled circles. rect/poly remain solid-buffered - conservative (over-reports) rather than unsafe, and noted as the same latent class.",
+   "phase": "P8",
+   "ts": "2026-08-16T02:58:24"
+  },
+  {
+   "what": "P8 layout legs both PASS: check_irdrop 0 violations (grid converged, richardson_delta 0.0015 on +VIN), check_pdn_z 0 violations",
+   "why": "+VIN 6.97 mV at 1.1 A; +5V 12.68 mV at 2.6 A (against a 150 mV A3 window); GND 0.61 mV. /SW correctly skipped (pdn:false, width-only entry). check_pdn_z skipped +VIN and /VCC for want of an adjacent-layer fill pair, which is simply what a 2-layer board is - not a coverage gap.",
+   "phase": "P8",
+   "ts": "2026-08-16T02:58:24"
   }
  ],
  "edits": [
@@ -522,6 +629,22 @@
    "effort": "high",
    "phase": "P7",
    "note": "2L chain; must raise EP thermal vias 10 -> >=16"
+  },
+  {
+   "ts": "2026-08-16T02:37:14",
+   "role": "fixer",
+   "model": "opus",
+   "effort": "high",
+   "phase": "P8",
+   "note": "WO-3 router: F.Cu GND pour neck 0.32 mm"
+  },
+  {
+   "ts": "2026-08-16T02:58:44",
+   "role": "verify-reviewer",
+   "model": "opus",
+   "effort": "xhigh",
+   "phase": "P8",
+   "note": "fresh context; SUBSTITUTION fable/high -> opus/xhigh"
   }
  ],
  "history": [
@@ -992,6 +1115,96 @@
    "event": "phase",
    "phase": "P8",
    "prev": "P7"
+  },
+  {
+   "ts": "2026-08-16T02:36:16",
+   "event": "budget",
+   "path": "fix_loops.verify",
+   "remaining": 2
+  },
+  {
+   "ts": "2026-08-16T02:36:16",
+   "event": "snapshot",
+   "label": "pre-fix-verify-a1",
+   "files": 1
+  },
+  {
+   "ts": "2026-08-16T02:36:16",
+   "event": "issue_open",
+   "id": 1,
+   "gate": "verify",
+   "fixer": "silk",
+   "kinds": [
+    "silk_over_pad"
+   ]
+  },
+  {
+   "ts": "2026-08-16T02:36:16",
+   "event": "issue_open",
+   "id": 2,
+   "gate": "verify",
+   "fixer": "schematic",
+   "kinds": [
+    "pdn_undecoupled"
+   ]
+  },
+  {
+   "ts": "2026-08-16T02:36:16",
+   "event": "issue_open",
+   "id": 3,
+   "gate": "verify",
+   "fixer": "router",
+   "kinds": [
+    "pour_neckdown"
+   ]
+  },
+  {
+   "ts": "2026-08-16T02:37:14",
+   "event": "decision",
+   "what": "WO-2 OVERRIDDEN: the two check_pdn 'no decoupling capacitors' errors (+5V, GND) go to verify-waivers.json, NOT to a schematic fixer"
+  },
+  {
+   "ts": "2026-08-16T02:37:14",
+   "event": "issue",
+   "id": 3,
+   "status": "fixing",
+   "agent": null,
+   "attempts": 0
+  },
+  {
+   "ts": "2026-08-16T02:37:14",
+   "event": "spawn",
+   "role": "fixer",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-16T02:58:24",
+   "event": "issue",
+   "id": 3,
+   "status": "fixed",
+   "agent": null,
+   "attempts": 0
+  },
+  {
+   "ts": "2026-08-16T02:58:24",
+   "event": "decision",
+   "what": "check_current F.Cu pour neck resolved by a constraints overrides region (rung 4), NOT a waiver - and check_irdrop independently corroborates it"
+  },
+  {
+   "ts": "2026-08-16T02:58:24",
+   "event": "decision",
+   "what": "FIXED A CHECKER, NOT THE BOARD: check_silk built every circle as a filled disc regardless of (fill no), so stock KiCad ring footprints reported their own pads as 100 pct silk-covered"
+  },
+  {
+   "ts": "2026-08-16T02:58:24",
+   "event": "decision",
+   "what": "P8 layout legs both PASS: check_irdrop 0 violations (grid converged, richardson_delta 0.0015 on +VIN), check_pdn_z 0 violations"
+  },
+  {
+   "ts": "2026-08-16T02:58:44",
+   "event": "spawn",
+   "role": "verify-reviewer",
+   "model": "opus"
   }
  ]
 }

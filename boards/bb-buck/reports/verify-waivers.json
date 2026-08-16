@@ -1,0 +1,19 @@
+{
+ "_comment": "P8 verify waivers for bb-buck. TWO entries, covering exactly the 2 residual check_pdn errors and nothing else. Both are the SAME category error, and both were predicted at P2 - before the board existed - as architecture decision D7, which is the authority these entries rest on. gate.py load_waivers refuses any entry lacking reason/approved; waived findings still appear in the gate result under 'waived', so they are recorded, not erased. NOTE ON WHAT IS *NOT* WAIVED HERE: the three other P8 errors were resolved on their merits, not suppressed. The two check_silk 'silk circle covers pad' findings on TP1/TP2 were a proven FALSE POSITIVE in check_silk.py (it built every circle as a filled disc regardless of '(fill no)', so a stock KiCad TestPoint ring reported its own pad as 100% covered; real geometry is a ring at r 0.89-1.01 mm against a 0.75 mm pad, i.e. 0.14 mm of clearance) - the CHECKER was fixed rather than the finding waived. The check_current F.Cu GND pour neck was resolved with a constraints.json 'overrides' region, the sanctioned rung-4 remedy, backed by a proof that no copper fix exists.",
+ "waivers": [
+  {
+   "check": "check_pdn",
+   "kind": "pdn_undecoupled",
+   "net": "GND",
+   "reason": "CATEGORY ERROR, not a defect: GND is a RETURN net and cannot have decoupling capacitors - decoupling is measured from a rail to its return, so asking a return to be decoupled to itself is not a meaningful test. The finding exists only because this board DELIBERATELY declares GND as a power entry (constraints.json carries the reasoning: at 2.6 A an undeclared GND would get only a synthesized advisory return-net entry, and the declaration is what keeps pour necks at ERROR severity - the failure mode that actually matters on a 2-layer board whose bottom pour is the return path, the /SW reference plane and the radiator at once). Predicted at P2 as decision D7 before any copper existed. The compensating control is that the return path IS verified, by checks that can see it: drc_routed passes 0/0, check_current finds no error on GND after the F.Cu island override, and the B.Cu trunk measures a 5.937 mm minimum neck against a 1.520 mm requirement - 3.91x margin on one unbroken 783.3 mm2 fill with zero B.Cu tracks board-wide.",
+   "approved": "owner (H2 architecture approval carried D7 forward; re-affirmed at H4)"
+  },
+  {
+   "check": "check_pdn",
+   "kind": "pdn_undecoupled",
+   "net": "+5V",
+   "reason": "CATEGORY ERROR, not a defect: +5V is this board's regulator OUTPUT, and its decoupling IS the output bank C4/C5/C8/C9 (4 x 22 uF, itself raised from 2x at P4 to satisfy the datasheet's internal-compensation C_OUT range). check_pdn cannot see that bank because decoupling associations are registered per IC POWER PIN via place_ic_with_decoupling, and an output bank sits on no IC power pin - it hangs on the rail between the inductor and the load terminal. So the check is looking for a structure that correctly does not exist here, on a rail that is in fact the most heavily capacitor-loaded net on the board. Predicted at P2 as decision D7. Compensating controls: the 4 x 22 uF bank is verified present in the netlist and on the board, the P4 SPICE bench gates the rail's DC setpoint against the owner's 4.85-5.15 V window with falsifiable bounds, and check_current reports no error on +5V.",
+   "approved": "owner (H2 architecture approval carried D7 forward; re-affirmed at H4)"
+  }
+ ]
+}

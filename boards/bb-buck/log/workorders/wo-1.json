@@ -1,0 +1,111 @@
+{
+ "id": 1,
+ "created": "2026-08-16T02:36:16",
+ "gate": "verify",
+ "phase": "P8",
+ "board": "boards/bb-buck/kicad/bb-buck.kicad_pcb",
+ "fixer": "silk",
+ "role_prompt": "C:/dev/ai-ee3/.claude/skills/ai-ee/agents/fixer.md",
+ "allowed_scripts": [
+  "place_edit.py",
+  "render.py"
+ ],
+ "guidance": [
+  "place_edit.py carries add_text (board-frame silk text, idempotent) and move_text (refdes/value field repositioning) ops - S14 closed the V17 gap. Labels must be PIN-LOCKED (a label readable against the wrong pin is worse than none); footprint-INTERNAL silk defects are librarian edits (approval + lib/EDITS.md), not board text.",
+  "A silk collision may also be fixed by nudging the FOOTPRINT via place_edit within placement legality.",
+  "Verify with check_silk.py, the drc_routed gate (err+warn includes silk), and a render of the region READ back."
+ ],
+ "remediations": [],
+ "cluster": {
+  "net": null,
+  "kinds": [
+   "silk_over_pad"
+  ],
+  "checks": [
+   "check_silk"
+  ],
+  "severity": "error",
+  "count": 2,
+  "region": {
+   "bbox": [
+    43.97,
+    44.38,
+    43.97,
+    47.13
+   ],
+   "center": [
+    43.97,
+    45.755
+   ]
+  },
+  "violations": [
+   {
+    "check": "check_silk",
+    "severity": "error",
+    "pos": [
+     43.97,
+     47.13
+    ],
+    "layer": "F.SilkS",
+    "net": "GND",
+    "refs": [
+     "TP2"
+    ],
+    "msg": "silk circle on F.SilkS covers pad TP2.1 (1.77 mm2)",
+    "source": "check_silk",
+    "items": [
+     {
+      "msg": "silk circle on F.SilkS covers pad TP2.1 (1.77 mm2)",
+      "pos": [
+       43.97,
+       47.13
+      ]
+     }
+    ],
+    "kind": "silk_over_pad",
+    "ref": "TP2",
+    "pad": "1",
+    "overlap_mm2": 1.7659,
+    "silk_kind": "circle",
+    "silk_text": null
+   },
+   {
+    "check": "check_silk",
+    "severity": "error",
+    "pos": [
+     43.97,
+     44.38
+    ],
+    "layer": "F.SilkS",
+    "net": "/SW",
+    "refs": [
+     "TP1"
+    ],
+    "msg": "silk circle on F.SilkS covers pad TP1.1 (1.77 mm2)",
+    "source": "check_silk",
+    "items": [
+     {
+      "msg": "silk circle on F.SilkS covers pad TP1.1 (1.77 mm2)",
+      "pos": [
+       43.97,
+       44.38
+      ]
+     }
+    ],
+    "kind": "silk_over_pad",
+    "ref": "TP1",
+    "pad": "1",
+    "overlap_mm2": 1.7659,
+    "silk_kind": "circle",
+    "silk_text": null
+   }
+  ]
+ },
+ "artifacts": {
+  "board": "boards/bb-buck/kicad/bb-buck.kicad_pcb",
+  "schematic": "boards/bb-buck/kicad/bb-buck.kicad_sch",
+  "constraints": "boards/bb-buck/kicad/constraints.json",
+  "decoupling": "boards/bb-buck/kicad/decoupling.json"
+ },
+ "scope": "fix ONLY these violations; do not touch unrelated nets/regions; re-run the failed gate when done"
+}

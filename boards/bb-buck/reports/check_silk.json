@@ -1,0 +1,145 @@
+{
+ "script": "check_silk",
+ "status": "violations",
+ "board": "bb-buck.kicad_pcb",
+ "counts": {
+  "total": 4,
+  "by_severity": {
+   "warning": 4
+  },
+  "by_source": {
+   "check_silk": 4
+  }
+ },
+ "violations": [
+  {
+   "check": "check_silk",
+   "severity": "warning",
+   "pos": [
+    47.5825,
+    36.78
+   ],
+   "layer": "F.SilkS",
+   "net": null,
+   "refs": [
+    "C3"
+   ],
+   "msg": "refdes \"C3\" sits 2.30 mm beyond its own pads and 0.67 mm from L1 - reads as L1's label; scripted fix: place_edit.py move_text",
+   "source": "check_silk",
+   "items": [
+    {
+     "msg": "refdes \"C3\" sits 2.30 mm beyond its own pads and 0.67 mm from L1 - reads as L1's label; scripted fix: place_edit.py move_text",
+     "pos": [
+      47.5825,
+      36.78
+     ]
+    }
+   ],
+   "kind": "silk_misattributed",
+   "ref": "C3",
+   "offset_mm": 2.3,
+   "nearest_ref": "L1",
+   "nearest_mm": 0.675
+  },
+  {
+   "check": "check_silk",
+   "severity": "warning",
+   "pos": [
+    55.525,
+    52.33
+   ],
+   "layer": "F.SilkS",
+   "net": null,
+   "refs": [
+    "J2"
+   ],
+   "msg": "refdes \"J2\" sits 2.14 mm beyond its own pads and 0.52 mm from C4 - reads as C4's label; scripted fix: place_edit.py move_text",
+   "source": "check_silk",
+   "items": [
+    {
+     "msg": "refdes \"J2\" sits 2.14 mm beyond its own pads and 0.52 mm from C4 - reads as C4's label; scripted fix: place_edit.py move_text",
+     "pos": [
+      55.525,
+      52.33
+     ]
+    }
+   ],
+   "kind": "silk_misattributed",
+   "ref": "J2",
+   "offset_mm": 2.14,
+   "nearest_ref": "C4",
+   "nearest_mm": 0.525
+  },
+  {
+   "check": "check_silk",
+   "severity": "warning",
+   "pos": [
+    45.698,
+    46.91
+   ],
+   "layer": "F.SilkS",
+   "net": null,
+   "refs": [
+    "R1"
+   ],
+   "msg": "refdes \"R1\" sits 2.55 mm beyond its own pads and 0.10 mm from TP2 - reads as TP2's label; scripted fix: place_edit.py move_text",
+   "source": "check_silk",
+   "items": [
+    {
+     "msg": "refdes \"R1\" sits 2.55 mm beyond its own pads and 0.10 mm from TP2 - reads as TP2's label; scripted fix: place_edit.py move_text",
+     "pos": [
+      45.698,
+      46.91
+     ]
+    }
+   ],
+   "kind": "silk_misattributed",
+   "ref": "R1",
+   "offset_mm": 2.55,
+   "nearest_ref": "TP2",
+   "nearest_mm": 0.103
+  },
+  {
+   "check": "check_silk",
+   "severity": "warning",
+   "pos": [
+    45.695,
+    45.03
+   ],
+   "layer": "F.SilkS",
+   "net": null,
+   "refs": [
+    "C7"
+   ],
+   "msg": "refdes \"C7\" sits 2.55 mm beyond its own pads and 0.02 mm from L1 - reads as L1's label; scripted fix: place_edit.py move_text",
+   "source": "check_silk",
+   "items": [
+    {
+     "msg": "refdes \"C7\" sits 2.55 mm beyond its own pads and 0.02 mm from L1 - reads as L1's label; scripted fix: place_edit.py move_text",
+     "pos": [
+      45.695,
+      45.03
+     ]
+    }
+   ],
+   "kind": "silk_misattributed",
+   "ref": "C7",
+   "offset_mm": 2.55,
+   "nearest_ref": "L1",
+   "nearest_mm": 0.025
+  }
+ ],
+ "checked": [
+  {
+   "silk_items": 187,
+   "texts": 20,
+   "graphics": 167,
+   "refdes_checked": 20
+  }
+ ],
+ "report_schema": 1,
+ "checker_version": 1,
+ "generated_at": "2026-08-16T09:56:01+00:00",
+ "input": "boards\\bb-buck\\kicad\\bb-buck.kicad_pcb",
+ "input_digest": "sexpr_no_uuid:b678974f7a23cd927abd89899808926dd2ac6b0e868daea5510db9980e3f6534"
+}
