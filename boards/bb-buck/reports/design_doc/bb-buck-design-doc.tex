@@ -16,7 +16,7 @@
 \begin{center}
 {\LARGE\bfseries bb-buck --- Design Document}\\[6pt]
 {\large ai-ee v1 pipeline}\\[2pt]
-generated 2026-08-16 04:40:44
+generated 2026-08-16 10:23:41
 \end{center}
 \tableofcontents
 
@@ -29,10 +29,10 @@ generated 2026-08-16 04:40:44
 \endhead
 board & bb-buck \\
 workspace & \texttt{boards/bb-buck} \\
-phase & P8 \\
+phase & P9 \\
 gate status & no gates recorded yet \\
 state created & 2026-08-15T15:58:13 \\
-state updated & 2026-08-16T04:40:43 \\
+state updated & 2026-08-16T10:22:56 \\
 \bottomrule
 \end{longtable}
 }
@@ -375,6 +375,10 @@ P8 & CORRECTION to my own P3 decision: '\textgreater{}= 16 vias within 4.6 mm' d
 P8 & EP in-pad vias 9 -\textgreater{} 12 (3x4 at 0.85 mm), barrel conductance 87.4 -\textgreater{} 116.5 pct of the datasheet floor, -4.91 K Tj. Gates unchanged PASS. & The array was RE-SPACED, not appended to: a 4th row on the existing 3x3 would need y = +/-1.7 against a pad half-height of 1.75, i.e. outside the pad. 12 vias at 0.30 mm now beat the datasheet's 12 x 10-mil floor on conductance as well as count. All 12 annuli inside pad copper; hole-to-hole 0.55 (floor 0.5), annulus 0.15 (floor 0.15); zero B.Cu tracks created; AGND spine untouched. \\
 P8 & GATE BLIND SPOT, measured: check\_thermal CANNOT see the thermal-via fix at all - margin 2.0623 C before and 2.0623 C after & theta\_ja() is a function of copper AREA and LAYER COUNT only; vias\_near\_part is computed and reported but never enters the model (check\_thermal.py:55-56, 93, 131). So on a 2-layer board whose entire heat path is the EP via array, the thermal gate is insensitive to the array. This is exactly what let the 9-vs-12 shortfall through P3 unnoticed - and it means the 2.06 C 'margin' the gate reports is not a measurement of this board's real thermal case. Script proposal recorded: derive an in-pad via count from the part JSON's exposed\_pad.thermal\_vias (present here, value 12) as a first-class check, so the class is caught by a script rather than by a fresh-context reviewer. \\
 P8 & Terminal silk: 4 of 6 labels placed (J1 '+' and 'VIN'; J2 '-' and '5V OUT'). The requirement is MET despite the shortfall. & On a TWO-PIN terminal a single polarity glyph fully determines the pinout: J1's '+' on pin 1 makes pin 2 negative by construction, and J2's '-' on pin 2 makes pin 1 positive. The two unplaced marks were redundant, not load-bearing. The fixer ran an exhaustive whole-board grid search (0.02-0.1 mm steps, all rotations, real silk/pad/track/courtyard obstacles, cross-checked against live DRC on a scratch copy) and found ZERO positions for them that were simultaneously legible, non-overlapping and closer to their own pin than to the sibling pin - the C5/C8/C9 bank hems in both connectors on exactly that side. It declined rather than place a misattributing label, which is the correct call ('a label readable against the wrong pin is worse than none'). RESIDUAL, for the owner at H4: J1's '+' sits above the connector body and left of C10, so a reader could conceivably attribute it to C10 - mitigated by 'VIN' sitting directly above it, but not eliminated. \\
+P9 & COVERAGE HOLE CLOSED: the dfm gate's BOM/assembly leg was SKIPPED (no parts.json beside the board) and the gate still reported PASS & The playbook says sidecars resolve from the board's OWN directory from P5 onward; I copied constraints.json and decoupling.json there but not parts.json, so gate.py found no BOM oracle. coverage.skipped\_error carried \{bom: 'no parts.json'\} while status read pass, because the dfm gate is non-strict. That leg is the one the recipe calls 'not waivable paperwork' - dfm\_bom\_incomplete, dfm\_assembly\_unplaced\_smt, dfm\_assembly\_qty\_mismatch, dfm\_unplaced\_in\_package. Copied the sidecar; all 8 legs now RAN and passed. A skipped check is a hole, not a pass. \\
+P9 & FAB PACKAGE DEFECT FIXED: J1/J2 were classified smt\_placed and appeared in CPL.csv - they are THROUGH-HOLE screw terminals & bom\_cpl defaults a placed footprint to smt\_placed unless the footprint carries exclude\_from\_pos\_files or the parts line declares otherwise; the KF128 footprint carries attr through\_hole but not the pos-file exclusion, so both terminals landed on JLC's SMT pick-and-place list, which cannot place them. Set assembly\_class hand\_install on the parts line (+ per-refdes notes). CPL is now the 14 machine-placeable parts only; the terminals appear in BOM-full.csv marked hand\_install. requirements s7 left the THT route open - hand-soldering after reflow is its documented fallback and the sane choice for 5 boards. \\
+P9 & ACCEPTED: 4 silk strokes at 0.12 mm vs JLC's 0.15 mm minimum (the only DFM finding) & Advisory by design per the dfm-check recipe - 0.12 mm is KiCad's stock silk width. Located at {[}43.97, 48.08{]}, i.e. the TestPoint footprints' own rings, NOT the terminal polarity labels, which is what mattered here: the safety-critical +/VIN/-/5V OUT text was added via place\_edit at full width and is unaffected. JLC prints 0.12 mm slightly faint rather than dropping it. \\
+P9 & EP stencil handled by FAB NOTE (owner ruling at H4), not a footprint edit & fab/README-fab-notes.md section 1 requests 60-80 pct windowed sub-apertures avoiding the 12 via barrels, with the sink:source arithmetic (1.36 vs 0.53 mm3) and the reason it matters more than usual on this part (the pad is both the sole heat path of a 2L thermal design AND the AGND reference all electrical parameters are measured to). Zero layout risk: no footprint edit, no U1 rip-and-replace, no re-route. Mitigating fact recorded in the note: barrel bottoms are already tented, so solder wicks and stops rather than dripping through. \\
 \bottomrule
 \end{longtable}
 }
@@ -762,7 +766,31 @@ package rather than behind it.
 Findings 8 and 12 are also reasonable waiver candidates if the owner accepts the arithmetic; both are recorded as warnings so the decision is explicit rather than silent.
 
 \section{DFM and Fabrication}
-\emph{Pending --- produced at P9.}
+Gate \texttt{dfm}: \emph{not recorded}.
+DFM findings by severity: warning: 1.
+\subsection*{Fabrication outputs}
+Exported layers: F.Cu, B.Cu, F.Silkscreen, B.Silkscreen, F.Mask, B.Mask, F.Paste, B.Paste, Edge.Cuts.
+\subsection*{Bill of materials}
+{\small
+\begin{longtable}{p{4.4cm}p{2.8cm}p{4.6cm}l}
+\toprule
+\textbf{Comment} & \textbf{Designator} & \textbf{Footprint} & \textbf{LCSC} \\
+\midrule
+\endhead
+220nF 50V X7R & C1 & C0603 & C107083 \\
+10uF 50V X7R & C2,C3,C10 & C1210 & C2918502 \\
+22uF 25V X7R & C4,C5,C8,C9 & C1210 & C2918511 \\
+100nF 50V X7R & C6 & C0603 & C14663 \\
+1uF 25V X7R & C7 & C0603 & C106858 \\
+15uH & L1 & IND-SMD\_L12.5-W12.5\_RLF12545T & C40000 \\
+102k 0.1\% 25ppm & R1 & R0603 & C861068 \\
+25.5k 0.1\% 25ppm & R2 & R0603 & C861257 \\
+LMR33630ADDAR & U1 & ESOP-8\_L4.9-W3.9-P1.27-LS6.0-TL-EP & C841384 \\
+\bottomrule
+\end{longtable}
+}
+0 CPL rotation correction(s) applied; no missing LCSC numbers.
+\emph{fab/order.json not available.}
 \section{Run Record (Appendix)}
 \subsection*{Phase digests}
 \paragraph*{P0}
@@ -993,7 +1021,68 @@ Findings 8 and 12 are also reasonable waiver candidates if the owner accepts the
   copper and vias are clear); plane\_repair mislabels the +5V bridge a dead\_island.
 \end{quote}
 \paragraph*{P8}
-\emph{(no digest recorded)}
+\begin{quote}\small\ttfamily\raggedright
+\# P8 Verification - digest (2026-08-16)\\
+~\\
+- {*}{*}All gates PASS{*}{*}: verify 0 failing / 27 (2 waived), drc\_routed 0/0, sim 0/0,\\
+  place 0/0. check\_irdrop 0 violations (+VIN 6.97 mV, +5V 12.68 mV, GND 0.61 mV\\
+  at 0.233 mOhm); check\_pdn\_z 0 violations.\\
+- Round 1, five script errors, THREE different resolutions - only one a waiver:\\
+  pour neck -\textgreater{} constraints `overrides` (rung 4) after the fixer PROVED no copper fix\\
+  exists (0.523 mm ceiling at the DRC floor, 1.134 mm deleting every foreign F.Cu\\
+  track); silk-over-pad -\textgreater{} {*}{*}fixed check\_silk{*}{*}, which drew every circle as a filled\\
+  disc ignoring `(fill no)` (stock TestPoint ring clears its pad by 0.140 mm; the\\
+  reported 1.77 mm2 was exactly the whole pad); check\_pdn x2 -\textgreater{} waived per P2's D7.\\
+- Round 2, fresh-context board review: {*}{*}2 errors + 11 warnings{*}{*}, both errors real.\\
+  E1 the terminals carried NO polarity or function silk at all - the P0 requirement\\
+  ("silk is the only defense against a swapped supply") was written and never reached\\
+  copper. E2 only {*}{*}9 in-pad EP vias vs the datasheet's 12{*}{*}, correcting MY OWN P3\\
+  decision, which had wrongly treated "\textgreater{}= 16 within 4.6 mm" as clearing a minimum\\
+  that counts only vias UNDER the pad.\\
+- E2 fixed: array re-spaced 3x3 -\textgreater{} {*}{*}3x4{*}{*}, barrel conductance 87.4 -\textgreater{} 116.5 \% of the\\
+  datasheet floor, {*}{*}-4.91 K Tj{*}{*}. E1 fixed: 4 of 6 labels placed (J1 "+"/"VIN",\\
+  J2 "-"/"5V OUT"); on a 2-pin terminal one glyph determines the pinout, so the\\
+  requirement is met. The fixer declined the 2 it could not place unambiguously.\\
+- {*}{*}GATE BLIND SPOT, measured{*}{*}: check\_thermal margin is 2.0623 C BEFORE and AFTER\\
+  adding three vias - theta\_ja() reads copper area and layer count only, and\\
+  `vias\_near\_part` is reported but never used. On a 2L board whose whole heat path is\\
+  the EP array, the thermal gate cannot see the array. This is what let 9-vs-12 pass.\\
+- {*}{*}NEW RISK to H4{*}{*}: the EP is a single 100 \% paste aperture over 12 open barrels -\\
+  sink:source 2.59x. Bottom ends ARE tented, so it wicks rather than drips through.\\
+  Owner decision at H4: accept / fab note requesting a windowed stencil / footprint\\
+  edit + U1 re-place.
+\end{quote}
+\paragraph*{P9}
+\begin{quote}\small\ttfamily\raggedright
+\# P9 DFM + fab package - digest (2026-08-16)\\
+~\\
+- {*}{*}dfm gate PASS, all 8 legs RAN{*}{*}: copper, copper\_to\_edge, drill, hole\_to\_edge,\\
+  silk, polarity, bom, release. One warning only: 4 silk strokes at 0.12 mm vs\\
+  JLC's 0.15 mm minimum, located at the TestPoint rings (stock KiCad width,\\
+  advisory by design) - NOT the terminal polarity labels.\\
+- {*}{*}Coverage hole found and closed{*}{*}: the first dfm run reported PASS with\\
+  `coverage.skipped\_error = \{bom: "no parts.json"\}`. The sidecar rule wants\\
+  parts.json beside the BOARD from P5; I had copied constraints.json and\\
+  decoupling.json but not parts.json, so the BOM/assembly leg - the one the recipe\\
+  calls "not waivable paperwork" - silently did not run. Copied; all 8 legs now run.\\
+- {*}{*}Fab-package defect fixed{*}{*}: J1/J2 were classified `smt\_placed` and written into\\
+  CPL.csv, but they are THT screw terminals. bom\_cpl's auto-classifier keys on\\
+  `exclude\_from\_pos\_files`, not `attr through\_hole`, and reported pass /\\
+  bom\_complete:true throughout. Set `assembly\_class: hand\_install` + refdes notes.\\
+  Class split now smt\_placed 14 / hand\_install 2 / board\_feature 4; CPL carries only\\
+  the 14 machine placements. These two defects were one phase apart from catching\\
+  each other.\\
+- Package written: gerbers (10 files + job), drill, `bb-buck\_gerbers.zip`, BOM.csv,\\
+  BOM-full.csv, CPL.csv, pos.csv, and {*}{*}README-fab-notes.md{*}{*}.\\
+- The fab note carries the owner's H4 ruling: request a {*}{*}windowed EP paste stencil{*}{*}\\
+  (60-80 \%, sub-apertures avoiding the 12 barrels; sink:source 1.36 vs 0.53 mm3),\\
+  the hand-solder sequence and 60-80 W iron note for the solid-flooded terminal GND\\
+  pins, the polarity legend, and the bench operating limits (30 V hard max, no\\
+  hot-plug, PFM below \textasciitilde{}200 mA is expected not a fault).\\
+- Run close: 9 workspace learnings compiled to the promotion queue (pending, not\\
+  promoted - the owner rules at a `promote` pass, and bring-up evidence is what\\
+  retires the mode's maturity requirement).
+\end{quote}
 \subsection*{Gate attempt history}
 \emph{(no entries)}
 \subsection*{Issues}
@@ -1019,7 +1108,7 @@ Findings 8 and 12 are also reasonable waiver candidates if the owner accepts the
 1 & P2 & approved & 2026-08-15T18:56:25 & Architecture approved. Outline 40x30 mm CONFIRMED by owner as final (irreversible at P5 board\_init). Record promotion deferred to run close with bring-up evidence - verified workspace records still feed P3/P6/P7 spawns meanwhile; inrush stays provisional until then. \\
 2 & P4 & approved & 2026-08-15T22:34:04 & Schematic approved: erc 0/0, netlist\_audit 0, sim pass. Owner ruling on placement pressure: NOTHING gives - if the 7 x 1210 bodies cannot fit while placing the hot loop honestly on the 40x30 outline, STOP and report; do not relax the hot-loop grouping and do not move parts to the bottom side. \\
 3 & P6 & approved & 2026-08-16T01:35:58 & Placement approved. Silk: owner accepted 7 refdes labels under bodies (C2,C3,C5,C8,C9,L1,TP2) - at 72.7\% fill with a 4x4 mm largest empty rectangle there is nowhere to move them; TP1's label was already hand-moved out because it marks the switch-node probe. Outline CONFIRMED final at 35x25 by measurement (34.90x24.90 occupied, 0.05 mm all round) - no resize, route here. \\
-4 & P8 & not reached &  &  \\
+4 & P8 & approved & 2026-08-16T10:18:53 & Verification approved; proceed to P9 (mode stop point). EP stencil: owner chose the FAB NOTE route - request a windowed exposed-pad aperture (60-80 pct coverage, sub-apertures avoiding the 12 via barrels) in the fab package rather than editing the footprint, because it gets the benefit with zero layout risk and the barrel bottoms are already tented. Warnings NOT fixed and accepted: TP1's /SW spur, L1 at 0.50 mm from the edge, output caps behind the pour bridge (ripple 14.5 mV vs a 50 mV budget). \\
 5 & P10 & not reached &  &  \\
 \bottomrule
 \end{longtable}
@@ -1031,9 +1120,12 @@ Findings 8 and 12 are also reasonable waiver candidates if the owner accepts the
 \textbf{File} & \textbf{Size} & \textbf{Note} \\
 \midrule
 \endhead
-\texttt{state.json} & 66,774 B &  \\
+\texttt{state.json} & 71,177 B &  \\
 \texttt{kicad/bb-buck.kicad\_pcb} & 159,595 B &  \\
 \texttt{kicad/bb-buck.kicad\_sch} & 81,019 B &  \\
+\texttt{fab/bb-buck\_gerbers.zip} & 28,486 B &  \\
+\texttt{fab/BOM.csv} & 388 B &  \\
+\texttt{fab/CPL.csv} & 498 B &  \\
 \texttt{brief/brief.md} & 605 B &  \\
 \texttt{requirements.md} & 18,721 B &  \\
 \texttt{architecture/blocks.md} & 10,091 B &  \\
@@ -1043,10 +1135,14 @@ Findings 8 and 12 are also reasonable waiver candidates if the owner accepts the
 \texttt{architecture/sheets.md} & 7,162 B &  \\
 \texttt{architecture/stackup.md} & 7,324 B &  \\
 \texttt{reports/board\_init.json} & 2,765 B &  \\
+\texttt{reports/bom\_cpl.json} & 9,776 B &  \\
 \texttt{reports/check\_current.json} & 17,246 B &  \\
 \texttt{reports/check\_irdrop.json} & 5,013 B &  \\
 \texttt{reports/check\_pdn\_z.json} & 1,033 B &  \\
 \texttt{reports/check\_silk.json} & 3,420 B &  \\
+\texttt{reports/dfm\_check.json} & 2,042 B &  \\
+\texttt{reports/fab\_export.json} & 2,235 B &  \\
+\texttt{reports/gate-dfm.json} & 1,174 B &  \\
 \texttt{reports/gate-drc\_routed.json} & 498 B &  \\
 \texttt{reports/gate-erc.json} & 688 B &  \\
 \texttt{reports/gate-place.json} & 989 B &  \\

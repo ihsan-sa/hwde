@@ -3,8 +3,8 @@
  "board": "bb-buck",
  "workspace": "boards/bb-buck",
  "created": "2026-08-15T15:58:13",
- "updated": "2026-08-16T04:40:43",
- "phase": "P8",
+ "updated": "2026-08-16T10:22:56",
+ "phase": "P9",
  "gates": {},
  "human": {
   "1": {
@@ -21,6 +21,11 @@
    "status": "approved",
    "ts": "2026-08-16T01:35:58",
    "note": "Placement approved. Silk: owner accepted 7 refdes labels under bodies (C2,C3,C5,C8,C9,L1,TP2) - at 72.7% fill with a 4x4 mm largest empty rectangle there is nowhere to move them; TP1's label was already hand-moved out because it marks the switch-node probe. Outline CONFIRMED final at 35x25 by measurement (34.90x24.90 occupied, 0.05 mm all round) - no resize, route here."
+  },
+  "4": {
+   "status": "approved",
+   "ts": "2026-08-16T10:18:53",
+   "note": "Verification approved; proceed to P9 (mode stop point). EP stencil: owner chose the FAB NOTE route - request a windowed exposed-pad aperture (60-80 pct coverage, sub-apertures avoiding the 12 via barrels) in the fab package rather than editing the footprint, because it gets the benefit with zero layout risk and the barrel bottoms are already tented. Warnings NOT fixed and accepted: TP1's /SW spur, L1 at 0.50 mm from the edge, output caps behind the pour bridge (ripple 14.5 mV vs a 50 mV budget)."
   }
  },
  "artifacts": {
@@ -463,6 +468,30 @@
    "why": "On a TWO-PIN terminal a single polarity glyph fully determines the pinout: J1's '+' on pin 1 makes pin 2 negative by construction, and J2's '-' on pin 2 makes pin 1 positive. The two unplaced marks were redundant, not load-bearing. The fixer ran an exhaustive whole-board grid search (0.02-0.1 mm steps, all rotations, real silk/pad/track/courtyard obstacles, cross-checked against live DRC on a scratch copy) and found ZERO positions for them that were simultaneously legible, non-overlapping and closer to their own pin than to the sibling pin - the C5/C8/C9 bank hems in both connectors on exactly that side. It declined rather than place a misattributing label, which is the correct call ('a label readable against the wrong pin is worse than none'). RESIDUAL, for the owner at H4: J1's '+' sits above the connector body and left of C10, so a reader could conceivably attribute it to C10 - mitigated by 'VIN' sitting directly above it, but not eliminated.",
    "phase": "P8",
    "ts": "2026-08-16T04:40:43"
+  },
+  {
+   "what": "COVERAGE HOLE CLOSED: the dfm gate's BOM/assembly leg was SKIPPED (no parts.json beside the board) and the gate still reported PASS",
+   "why": "The playbook says sidecars resolve from the board's OWN directory from P5 onward; I copied constraints.json and decoupling.json there but not parts.json, so gate.py found no BOM oracle. coverage.skipped_error carried {bom: 'no parts.json'} while status read pass, because the dfm gate is non-strict. That leg is the one the recipe calls 'not waivable paperwork' - dfm_bom_incomplete, dfm_assembly_unplaced_smt, dfm_assembly_qty_mismatch, dfm_unplaced_in_package. Copied the sidecar; all 8 legs now RAN and passed. A skipped check is a hole, not a pass.",
+   "phase": "P9",
+   "ts": "2026-08-16T10:22:56"
+  },
+  {
+   "what": "FAB PACKAGE DEFECT FIXED: J1/J2 were classified smt_placed and appeared in CPL.csv - they are THROUGH-HOLE screw terminals",
+   "why": "bom_cpl defaults a placed footprint to smt_placed unless the footprint carries exclude_from_pos_files or the parts line declares otherwise; the KF128 footprint carries attr through_hole but not the pos-file exclusion, so both terminals landed on JLC's SMT pick-and-place list, which cannot place them. Set assembly_class hand_install on the parts line (+ per-refdes notes). CPL is now the 14 machine-placeable parts only; the terminals appear in BOM-full.csv marked hand_install. requirements s7 left the THT route open - hand-soldering after reflow is its documented fallback and the sane choice for 5 boards.",
+   "phase": "P9",
+   "ts": "2026-08-16T10:22:56"
+  },
+  {
+   "what": "ACCEPTED: 4 silk strokes at 0.12 mm vs JLC's 0.15 mm minimum (the only DFM finding)",
+   "why": "Advisory by design per the dfm-check recipe - 0.12 mm is KiCad's stock silk width. Located at [43.97, 48.08], i.e. the TestPoint footprints' own rings, NOT the terminal polarity labels, which is what mattered here: the safety-critical +/VIN/-/5V OUT text was added via place_edit at full width and is unaffected. JLC prints 0.12 mm slightly faint rather than dropping it.",
+   "phase": "P9",
+   "ts": "2026-08-16T10:22:56"
+  },
+  {
+   "what": "EP stencil handled by FAB NOTE (owner ruling at H4), not a footprint edit",
+   "why": "fab/README-fab-notes.md section 1 requests 60-80 pct windowed sub-apertures avoiding the 12 via barrels, with the sink:source arithmetic (1.36 vs 0.53 mm3) and the reason it matters more than usual on this part (the pad is both the sole heat path of a 2L thermal design AND the AGND reference all electrical parameters are measured to). Zero layout risk: no footprint edit, no U1 rip-and-replace, no re-route. Mitigating fact recorded in the note: barrel bottoms are already tented, so solder wicks and stops rather than dripping through.",
+   "phase": "P9",
+   "ts": "2026-08-16T10:22:56"
   }
  ],
  "edits": [
@@ -1297,6 +1326,38 @@
    "ts": "2026-08-16T04:40:43",
    "event": "decision",
    "what": "Terminal silk: 4 of 6 labels placed (J1 '+' and 'VIN'; J2 '-' and '5V OUT'). The requirement is MET despite the shortfall."
+  },
+  {
+   "ts": "2026-08-16T10:18:53",
+   "event": "human",
+   "checkpoint": "4",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-08-16T10:18:53",
+   "event": "phase",
+   "phase": "P9",
+   "prev": "P8"
+  },
+  {
+   "ts": "2026-08-16T10:22:56",
+   "event": "decision",
+   "what": "COVERAGE HOLE CLOSED: the dfm gate's BOM/assembly leg was SKIPPED (no parts.json beside the board) and the gate still reported PASS"
+  },
+  {
+   "ts": "2026-08-16T10:22:56",
+   "event": "decision",
+   "what": "FAB PACKAGE DEFECT FIXED: J1/J2 were classified smt_placed and appeared in CPL.csv - they are THROUGH-HOLE screw terminals"
+  },
+  {
+   "ts": "2026-08-16T10:22:56",
+   "event": "decision",
+   "what": "ACCEPTED: 4 silk strokes at 0.12 mm vs JLC's 0.15 mm minimum (the only DFM finding)"
+  },
+  {
+   "ts": "2026-08-16T10:22:56",
+   "event": "decision",
+   "what": "EP stencil handled by FAB NOTE (owner ruling at H4), not a footprint edit"
   }
  ]
 }

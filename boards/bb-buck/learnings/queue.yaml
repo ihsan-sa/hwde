@@ -1,7 +1,7 @@
 version: 1
 board: bb-buck
 source: LEARNINGS.md
-compiled: '2026-08-15'
+compiled: '2026-08-16'
 entries:
 - entry: 2026-08-15-research-task-block-buck-1-9-verified
   line: 8
@@ -23,4 +23,113 @@ entries:
   - boards/bb-buck/research/records/buck-integrated-fet-bypass-trio.yaml
   - boards/bb-buck/research/records/buck-precision-en-fixed-softstart.yaml
   - boards/bb-buck/research/records/buck-sync-hot-loop-cin-placement.yaml
+  status: pending
+- entry: 2026-08-15-an-already-retyped-pulled-library-can-still
+  line: 29
+  date: '2026-08-15'
+  title: 'An ALREADY-retyped pulled library can still hide exactly one ERC-blocking pin: BOOT on a buck'
+  tags:
+  - P4
+  - erc
+  - kicad-sch-api
+  - schematic
+  stage: P4
+  proposed_level: null
+  targets:
+  - scripts/kc.py
+  status: pending
+- entry: 2026-08-15-the-runner-s-injected-rshunt-1e9-is
+  line: 53
+  date: '2026-08-15'
+  title: The runner's injected `rshunt=1e9` is a ~1 nA current source at every node - on a high-impedance
+    FB divider that is 2 % of the IFB spec you came to measure
+  tags:
+  - P4
+  - spice
+  - sim-analyst
+  stage: P4
+  proposed_level: null
+  targets:
+  - scripts/sim_run.py
+  status: pending
+- entry: 2026-08-15-a-switcher-s-dc-setpoint-is-simmable
+  line: 67
+  date: '2026-08-15'
+  title: A switcher's DC setpoint IS simmable without any converter model - one high-gain VCVS is the
+    whole Tier-B boundary model
+  tags:
+  - P4
+  - spice
+  - sim-analyst
+  stage: P4
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-15-an-in-stock-lcsc-part-can-have
+  line: 82
+  date: '2026-08-15'
+  title: An in-stock LCSC part can have NO EasyEDA CAD record at all - lib_pull fails it while its own
+    family siblings pull clean
+  tags:
+  - P4
+  - easyeda2kicad
+  - parts
+  - erc
+  stage: P4
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-16-planes-gen-s-default-thermal-relief-pad
+  line: 104
+  date: '2026-08-16'
+  title: 'planes_gen''s DEFAULT thermal-relief pad connection strands a pad in a tight corridor - `connect:
+    solid` in a planes-only sidecar is the fix'
+  tags:
+  - P7
+  - routing
+  - planes_gen
+  stage: P7
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-16-read-pad-extents-from-geom-pads-of
+  line: 119
+  date: '2026-08-16'
+  title: Read pad extents from `geom.pads_of().poly.bounds`, never from the raw `(size w h)` - the pad
+    carries its OWN rotation
+  tags:
+  - P7
+  - routing
+  - geometry
+  stage: P7
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-16-a-tht-footprint-with-attr-through-hole
+  line: 129
+  date: '2026-08-16'
+  title: A THT footprint with `attr through_hole` but no `exclude_from_pos_files` defaults to `smt_placed`
+    - the terminals shipped in CPL.csv
+  tags:
+  - P9
+  - bom_cpl
+  - fab
+  stage: P9
+  proposed_level: null
+  targets:
+  - scripts/bom_cpl.py
+  status: pending
+- entry: 2026-08-16-the-dfm-gate-reported-pass-with-its
+  line: 150
+  date: '2026-08-16'
+  title: The dfm gate reported PASS with its BOM/assembly leg SKIPPED - `parts.json` was not beside the
+    board
+  tags:
+  - P9
+  - gates
+  - dfm
+  stage: P9
+  proposed_level: null
+  targets:
+  - scripts/gate.py
   status: pending

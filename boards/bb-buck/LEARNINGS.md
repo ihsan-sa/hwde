@@ -125,3 +125,45 @@ op - it only verifies the segment landed where asked - and the error surfaces tw
 before emitting any route_edit op list: assert every add_track endpoint is `covered` by the
 target pad's `poly`; the footprint rotation, the pad rotation and the board transform are all
 already baked into it.
+
+## 2026-08-16 [P9][bom_cpl][fab] A THT footprint with `attr through_hole` but no `exclude_from_pos_files` defaults to `smt_placed` - the terminals shipped in CPL.csv
+
+bb-buck P9. `bom_cpl.py` decides BOM/CPL membership from `assembly_class`, and its
+auto-classifier keys on `exclude_from_pos_files`, NOT on `attr through_hole`. The
+easyeda2kicad KF128-5.08-2P screw-terminal footprint carries `attr through_hole` and no
+pos-file exclusion, so both terminals were classified `smt_placed` and written into
+`CPL.csv` - onto a pick-and-place list for a machine that physically cannot place them.
+
+`bom_cpl` reported `status: pass`, `violations: []`, `bom_complete: true`. Nothing in the
+pipeline flags it, because from the script's point of view a placed part with an LCSC code
+and a position is exactly what a CPL row is.
+
+Fix: `"assembly_class": "hand_install"` on the parts.json line (applies to every ref in
+`refs`), plus `refdes_notes` for the assembler. Class counts then read
+smt_placed 14 / hand_install 2 / board_feature 4, and CPL.csv drops to the 14 real
+placements.
+
+**Check the class split by eye on any board with THT parts** - `n_placed == n_parts` is not
+the reassurance it looks like. Candidate script fix: treat `attr through_hole` as a
+hand_install signal in the auto-classifier the same way `exclude_from_pos_files` is.
+
+## 2026-08-16 [P9][gates][dfm] The dfm gate reported PASS with its BOM/assembly leg SKIPPED - `parts.json` was not beside the board
+
+Same board, same phase. `gate.py --gate dfm` returned `status: pass` while
+`coverage.skipped_error` carried `{"bom": "no parts.json"}`. The dfm gate is non-strict, so
+a leg that cannot run does not fail it - it just quietly does not run.
+
+The sidecar rule ("constraints.json, decoupling.json, parts.json, schematic resolve from the
+board's OWN directory from P5 onward") is easy to half-apply: constraints.json and
+decoupling.json get copied because earlier phases need them, and parts.json does not get
+copied because nothing before P9 reads it from there.
+
+The skipped leg is the one the dfm-check recipe calls "not waivable paperwork":
+`dfm_bom_incomplete`, `dfm_assembly_unplaced_smt`, `dfm_assembly_qty_mismatch`,
+`dfm_unplaced_in_package`. On this board it was skipped in exactly the same phase that a real
+CPL defect existed (the THT terminals above), so the two failures were one bad day apart from
+catching each other.
+
+**Read `coverage.skipped_error` on every non-strict gate before believing `status: pass`.**
+The release gates (`verify_release`/`dfm_release`) are strict for this reason - but P9 is not
+a release gate, and the mode stops at P9.
