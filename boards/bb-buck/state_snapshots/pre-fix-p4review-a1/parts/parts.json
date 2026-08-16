@@ -1,5 +1,5 @@
 {
-  "_comment": "bb-buck P3 parts list. Build qty 5, JLC PCBA single-sided (all SMT top; J1/J2 THT). Every LCSC code/stock/price verified live via parts_search.py at selection time (2026-08-15), not carried from research-phase memory. One entry per DISTINCT part; 'refs' lists every refdes it covers. See part-sourcer SUMMARY/OPEN for the four P2-condition findings (thermal recompute, light-load ripple, L/C window, inductor Isat) and three deviations from architecture/blocks.md (C1 220nF not 100nF, output-bank case 1210 not 1206, new C7 VCC bypass, J1/J2 250V not >=300V). P4 FIX PASS 2026-08-15 (adversarial review + SPICE bench, all three owner-approved): output bank 2->4 x 22uF (E1, add C8/C9), input bulk 2->3 x 10uF (W1, add C10), FB divider recentred 100k/24.9k -> 102k/25.5k for an exact 4.000 ratio and 5.000V nominal (A3) - stock/price for the two new resistor lines re-verified live at fix time.",
+  "_comment": "bb-buck P3 parts list. Build qty 5, JLC PCBA single-sided (all SMT top; J1/J2 THT). Every LCSC code/stock/price verified live via parts_search.py at selection time (2026-08-15), not carried from research-phase memory. One entry per DISTINCT part; 'refs' lists every refdes it covers. See part-sourcer SUMMARY/OPEN for the four P2-condition findings (thermal recompute, light-load ripple, L/C window, inductor Isat) and three deviations from architecture/blocks.md (C1 220nF not 100nF, C4/C5 case 1210 not 1206, new C7 VCC bypass, J1/J2 250V not >=300V).",
 
   "parts": [
     {
@@ -71,7 +71,7 @@
     },
     {
       "ref_prefix_hint": "C",
-      "refs": ["C2", "C3", "C10"],
+      "refs": ["C2", "C3"],
       "block": "buck",
       "mpn": "CS3225X7R106K500NRL",
       "lcsc": "C2918502",
@@ -84,7 +84,7 @@
       "brand": "Samwha Capacitor",
       "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2308151448_Samwha-Capacitor-CS3225X7R106K500NRL_C2918502.pdf",
       "alternates": [],
-      "role": "Input bulk bank (hot-loop group with C1, C6). 3x10uF nameplate, raised from 2x at the P4 fix pass (W1): 9.2.2.6 asks for a 10uF MINIMUM and 9.1 p19 defines the datasheet's cap values as EFFECTIVE, not nameplate - 2x10uF/50V/1210 is 10-12uF effective at 30V bias and 8.5-10.5uF once tolerance and the 85-90C board temperature stack, i.e. under the minimum in the worst corner. Bias-derating curve for this exact MPN still not independently pulled - see OPEN."
+      "role": "Input bulk bank (hot-loop group with C1, C6). 2x10uF nameplate for >=9uF effective at 24V bias per blocks.md; bias-derating curve for this exact MPN not independently pulled - see OPEN."
     },
     {
       "ref_prefix_hint": "C",
@@ -122,7 +122,7 @@
     },
     {
       "ref_prefix_hint": "C",
-      "refs": ["C4", "C5", "C8", "C9"],
+      "refs": ["C4", "C5"],
       "block": "output",
       "mpn": "CS3225X7R226K250NRL",
       "lcsc": "C2918511",
@@ -135,75 +135,41 @@
       "brand": "Samwha Capacitor",
       "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2111172030_Samwha-Capacitor-CS3225X7R226K250NRL_C2918511.pdf",
       "alternates": [],
-      "role": "Output bank, 4x22uF - raised from 2x at the P4 fix pass (E1). Sec 9.2 p19 says the internal compensation is optimized for a range of external L and C_OUT, and that range is quantified only in Table 9-2 p20: this board matches the 400kHz/5V row on every entry except L and C_OUT, and that row (like every 400kHz row) specifies 4x22uF rated; TI's own DDA characterization BOM (Table 9-3 p31) used 4x22uF. With fixed internal Type-II compensation fc scales as 1/C_OUT, so 2x pushes crossover toward fSW/2=200kHz on an all-ceramic bank with no ESR phase boost. Case is 1210, not blocks.md's 1206 - no 22uF/25V/X7R part is stocked in 1206 at any usable stock level; 1210 matches the datasheet's own reference-design case (9.2.2.5, '4x22uF 16V 1210'). See SUMMARY."
+      "role": "Output bank. Case is 1210, not blocks.md's 1206 - no 22uF/25V/X7R part is stocked in 1206 at any usable stock level; 1210 matches the datasheet's own reference-design case (9.2.2.5, '4x22uF 16V 1210'). See SUMMARY."
     },
     {
       "ref_prefix_hint": "R",
       "refs": ["R1"],
       "block": "feedback",
-      "mpn": "RT0603BRD07102KL",
-      "lcsc": "C861068",
-      "value": "102k 0.1% 25ppm/C",
+      "mpn": "RT0603BRD07100KL",
+      "lcsc": "C122538",
+      "value": "100k 0.1% 25ppm/C",
       "package": "0603",
       "basic": false,
       "type": "Extended",
-      "stock": 2009,
-      "price": 0.035,
-      "price_breaks": [
-        {"qty": 1, "price": 0.035},
-        {"qty": 200, "price": 0.0298},
-        {"qty": 600, "price": 0.0271},
-        {"qty": 5000, "price": 0.0253},
-        {"qty": 10000, "price": 0.0238},
-        {"qty": 20000, "price": 0.023}
-      ],
+      "stock": 1179272,
+      "price": 0.0335,
       "brand": "YAGEO",
-      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2210190030_YAGEO-RT0603BRD07102KL_C861068.pdf",
-      "attributes": [
-        {"name": "Resistance", "value": "102kOhm"},
-        {"name": "Operating Temperature", "value": "-55C~+155C"},
-        {"name": "Power(Watts)", "value": "100mW"},
-        {"name": "Type", "value": "Thin Film Resistor"},
-        {"name": "Voltage-Supply(Max)", "value": "75V"},
-        {"name": "Tolerance", "value": "+/-0.1%"},
-        {"name": "Temperature Coefficient", "value": "+/-25ppm/C"}
-      ],
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1810241722_YAGEO-RT0603BRD07100KL_C122538.pdf",
       "alternates": [],
-      "role": "FB divider top resistor (+5V side). 102k, not 100k, since the P4 fix pass (A3 setpoint): with R2=25.5k the ratio is an exact 4.000, so Vout = 1.000*(1+4.000) = 5.000V nominal instead of 5.016V. Sec 7.7's light-load spec (-1.5/+2.5% for IOUT 0A to max, vs -1.5/+1.5% above 1A) stacks a +1.0% adder on the 0A corner the A3 window must contain; recentring moves the stacked worst case from 5.161V (outside the 5.15V ceiling) to ~5.144V (inside). Still the datasheet's 100k-class top recommendation (9.2.2.3) and two decades under the 1M threshold that would demand a CFF - the CFF position stays open. Same YAGEO RT0603BRD 0.1%/25ppm family as before, so TCR tracking with R2 is preserved."
+      "role": "FB divider top resistor (+5V side), matches datasheet's own 100k-top recommendation (9.2.2.3) and the buck-cmode-inductor-window table row."
     },
     {
       "ref_prefix_hint": "R",
       "refs": ["R2"],
       "block": "feedback",
-      "mpn": "RT0603BRD0725K5L",
-      "lcsc": "C861257",
-      "value": "25.5k 0.1% 25ppm/C",
+      "mpn": "RT0603BRD0724K9L",
+      "lcsc": "C136967",
+      "value": "24.9k 0.1% 25ppm/C",
       "package": "0603",
       "basic": false,
       "type": "Extended",
-      "stock": 18845,
-      "price": 0.028,
-      "price_breaks": [
-        {"qty": 1, "price": 0.028},
-        {"qty": 200, "price": 0.0259},
-        {"qty": 600, "price": 0.0248},
-        {"qty": 5000, "price": 0.024},
-        {"qty": 10000, "price": 0.0233},
-        {"qty": 20000, "price": 0.023}
-      ],
+      "stock": 6621,
+      "price": 0.0348,
       "brand": "YAGEO",
-      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2204130915_YAGEO-RT0603BRD0725K5L_C861257.pdf",
-      "attributes": [
-        {"name": "Resistance", "value": "25.5kOhm"},
-        {"name": "Operating Temperature", "value": "-55C~+155C"},
-        {"name": "Power(Watts)", "value": "100mW"},
-        {"name": "Type", "value": "Thin Film Resistor"},
-        {"name": "Voltage-Supply(Max)", "value": "75V"},
-        {"name": "Tolerance", "value": "+/-0.1%"},
-        {"name": "Temperature Coefficient", "value": "+/-25ppm/C"}
-      ],
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_YAGEO-RT0603BRD0724K9L_C136967.pdf",
       "alternates": [],
-      "role": "FB divider bottom resistor (GND side). 25.5k, not 24.9k, since the P4 fix pass (A3 setpoint) - see R1. Same YAGEO RT0603BRD 0.1%/25ppm family as R1 for TCR tracking (D6). With R1 gives Vout 5.000V nominal, centred in 4.85-5.15V; divider draws 39uA."
+      "role": "FB divider bottom resistor (GND side); same YAGEO RT0603BRD 0.1%/25ppm family as R1 for TCR tracking (D6). With R1 gives Vout ~5.02V nominal, well inside 4.85-5.15V."
     },
     {
       "ref_prefix_hint": "J",

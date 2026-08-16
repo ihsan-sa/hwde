@@ -19,6 +19,13 @@ is what the retype rule prescribes: supplies/grounds power_in, regulator
 output power_out, everything else passive.  A bootstrap node is not the
 part's supply.
 
+The two FB-divider resistors added at the A3 recentring (R1 102k, R2 25.5k)
+are the ordinary case of the same rule: their pulled/derived symbols carry
+`unspecified` on both pins, which the older RT0603BRD siblings did not, and
+an `unspecified` pin is an ERC hazard on a rail (KiCad's pin-conflict matrix
+treats it as a wildcard, not as a passive).  Retyped to `passive`, matching
+RT0603BRD07100KL / RT0603BRD0724K9L, which arrived typed that way.
+
 Re-run after any lib_pull refresh of the library:
 
     .venv/Scripts/python boards/bb-buck/kicad/gen/lib_pin_types.py
@@ -38,6 +45,9 @@ LIB = Path(__file__).resolve().parents[2] / "lib" / "aiee.kicad_sym"
 # Source: parts/C841384.json Table 6-1 pin functions.
 RULES: dict[str, dict[str, str]] = {
     "LMR33630ADDAR": {"7": "passive"},      # BOOT - see the module docstring
+    # FB divider, both terminals: pulled/derived as `unspecified`
+    "RT0603BRD07102KL": {"1": "passive", "2": "passive"},   # R1 102k
+    "RT0603BRD0725K5L": {"1": "passive", "2": "passive"},   # R2 25.5k
 }
 
 PIN_RE = re.compile(r"\(pin\s+([a-z_]+)\s+line")

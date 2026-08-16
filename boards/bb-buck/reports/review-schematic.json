@@ -1,0 +1,37 @@
+{
+  "violations": [
+    {
+      "check": "schematic-review",
+      "severity": "error",
+      "pos": null,
+      "layer": null,
+      "net": "+5V",
+      "refs": ["U1", "C4", "C5"],
+      "msg": "Output bank is 2 x 22 uF rated (about 32 uF effective at 25 C, 27-30 uF at the -10% / 85 C corner) where the datasheet's only quantified statement of the range its INTERNAL COMPENSATION is optimized for - Table 9-2 p20, the 400 kHz / 5 V / RFBT 100k / RFBB 24.9k row this board matches exactly on every other entry - specifies 4 x 22 uF RATED, and every 400 kHz row in that table is 4 x 22 uF while 2 x 22 uF appears only at 1400/2100 kHz; halving C_OUT roughly doubles the loop crossover toward fSW/2 = 200 kHz on an all-ceramic bank whose ESR zero sits near 3 MHz and supplies no phase boost, so the board can come up looking fine and ring or oscillate on any load change, with no on-board way to measure the phase margin that was traded away.",
+      "source": "review.schematic",
+      "kind": "cout-below-compensation-range"
+    },
+    {
+      "check": "schematic-review",
+      "severity": "warning",
+      "pos": null,
+      "layer": null,
+      "net": "+VIN",
+      "refs": ["U1", "C2", "C3"],
+      "msg": "Input bulk is 2 x 10 uF / 50 V 1210 X7R, which class-typical bias curves put at only 10-12 uF effective at the 30 V operating corner and 8.5-10.5 uF once the -10% tolerance and the 85-90 C local board temperature that constraints.json itself predicts are folded in, so it straddles rather than clears Sec 9.2.2.6's 'a minimum of 10 uF of ceramic capacitance is required on the input' (p23) - a requirement Sec 9.1's note (p19) defines datasheet-wide as EFFECTIVE capacitance under DC bias and temperature, not nameplate - and the 50 V rating also misses the same clause's 'preferably twice the maximum input voltage' (60 V at this 30 V ceiling); an under-sized input bank shows up as input-rail sag and hot-loop ringing at high line, exactly where A2 already removed the hot-plug margin.",
+      "source": "review.schematic",
+      "kind": "cin-effective-marginal-high-line"
+    },
+    {
+      "check": "schematic-review",
+      "severity": "warning",
+      "pos": null,
+      "layer": null,
+      "net": "/FB",
+      "refs": ["U1", "R1", "R2"],
+      "msg": "Nothing in the design record pins R2's ground return to the AGND/exposed-pad reference: Table 6-1 (p5) states that AGND is the pin 'all electrical parameters are measured with respect to', but constraints.json's feedback group only requires /FB to be short and away from /SW and L1, and _review_enforced item 5 covers only the Cin/Cout returns, so P6/P7 is free to land R2's ground anywhere in the shared GND pour including the PGND hot-loop return, which sums switching ripple into the 1 V reference and reads at bring-up as output jitter or a rail that regulates off-target.",
+      "source": "review.schematic",
+      "kind": "fb-divider-ground-reference"
+    }
+  ]
+}

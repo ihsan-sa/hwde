@@ -41,28 +41,24 @@ schematic. ***
 set to the net name, which is what schlib.power_flag does.
 
 =====================================================================
-2.  parts.json OVERRIDES architecture/sheets.md s3 IN FOUR PLACES
+2.  parts.json OVERRIDES architecture/sheets.md s3 IN THREE PLACES
 =====================================================================
 sheets.md s3 was written at P2 from the block diagram; P3 corrected it from
-the datasheet and parts.json is the BOM of record.  The four deltas, all
+the datasheet and parts.json is the BOM of record.  The three deltas, all
 implemented below:
 
   (1) C1, the HF input bypass, is 220 nF / 50 V / X7R, NOT 100 nF.
       Datasheet 9.2.2.6 is specific: "a small case size, 220-nF ceramic
       capacitor must be used at the input ... must also be rated at 50 V
       with an X7R dielectric."
-  (2) The output bank is 1210 / 22 uF / 25 V, NOT 1206.  No 22 uF / 25 V /
-      X7R part is stocked in 1206; 1210 is also the case the datasheet's
-      own reference design uses (9.2.2.5).
+  (2) C4/C5, the output bank, are 1210 / 22 uF / 25 V, NOT 1206.  No
+      22 uF / 25 V / X7R part is stocked in 1206; 1210 is also the case the
+      datasheet's own reference design uses (9.2.2.5).
   (3) C7 = C_VCC, 1 uF / 25 V X7R on the VCC pin, was MISSING from
       sheets.md entirely.  Datasheet 9.2.2.8: VCC "requires a 1-uF, 16-V
       ceramic capacitor connected from VCC to GND for proper operation."
       It is not optional and it is not decoration - it is the bypass for
       the internal LDO that supplies the gate drivers.
-  (4) BANK COUNTS (P4 fix pass, adversarial review + SPICE bench): the
-      output bank is FOUR 22 uF (C4/C5/C8/C9), not two, and the input bulk
-      is THREE 10 uF (C2/C3/C10), not two.  Both are stability/minimum
-      requirements, not margin - see the comments at each bank below.
 
 (3) is what forces the fourth local label, `/VCC`: the VCC pin needs a node
 name and no canonical name exists for it.  It is an ADDITION, not a rename
@@ -125,21 +121,19 @@ BOOT (pin 7) -> `/BST` with C6 100 nF to `/SW`, datasheet-required
 =====================================================================
 4.  DECOUPLING METADATA
 =====================================================================
-Every input cap on the VIN pin carries `role: "reg_input"` - C1, C2, C3 and
-C10 - INCLUDING the 220 nF HF ceramic.  Value-classing alone cannot see a
-MISSING cap: a bulk-only buck input reads as "bulk cap, loose limits, fine"
-and ships the lumina-carrier rework defect (LEARNINGS 2026-08-14).  The role
-turns on a group check that demands an HF-capable member (<= 1 uF) within
-7.5 mm of the pin; C1 at 220 nF is that member.  C10 joins the group as a
-bulk member, so it takes the same role - the role does not tighten its own
-limits, it declares which pin the group serves.
+Every input cap on the VIN pin carries `role: "reg_input"`, INCLUDING the
+220 nF HF ceramic.  Value-classing alone cannot see a MISSING cap: a
+bulk-only buck input reads as "bulk cap, loose limits, fine" and ships the
+lumina-carrier rework defect (LEARNINGS 2026-08-14).  The role turns on a
+group check that demands an HF-capable member (<= 1 uF) within 7.5 mm of
+the pin; C1 at 220 nF is that member.
 
 C7 is recorded against pin 6 with `rail_net="/VCC"`: the wiring label is
 the bare "VCC" but the association metadata must carry the FINAL netlist
 name, and netlist_audit --decoupling checks it against the real netlist.
 
-C6 is NOT an association (BOOT->SW is not a rail+gnd pair) and the output
-bank is NOT (it hangs off L1, not off an IC pin - constraints.json
+C6 is NOT an association (BOOT->SW is not a rail+gnd pair) and C4/C5 are
+NOT (the output bank hangs off L1, not off an IC pin - constraints.json
 already rules that `check_pdn`'s "+5V has no decoupling capacitors" is a
 category error destined for reports/verify-waivers.json, not for a
 synthetic association here).
@@ -178,12 +172,12 @@ ksa.get_symbol_cache().add_library_path(str(PROJECT_LIB))
 S_U1 = "aiee:LMR33630ADDAR"
 S_L1 = "aiee:SMDRI127-150MT"
 S_C220N = "aiee:CC0603KRX7R9BB224"      # C1  220nF 50V X7R 0603
-S_C10U = "aiee:CS3225X7R106K500NRL"     # C2, C3, C10  10uF 50V X7R 1210
+S_C10U = "aiee:CS3225X7R106K500NRL"     # C2, C3  10uF 50V X7R 1210
 S_C100N = "aiee:CC0603KRX7R9BB104"      # C6  100nF 50V X7R 0603
 S_C1U = "aiee:CC0603KRX7R8BB105"        # C7  1uF 25V X7R 0603
-S_C22U = "aiee:CS3225X7R226K250NRL"     # C4, C5, C8, C9  22uF 25V X7R 1210
-S_R102K = "aiee:RT0603BRD07102KL"       # R1  102k 0.1% 25ppm
-S_R25K5 = "aiee:RT0603BRD0725K5L"       # R2  25.5k 0.1% 25ppm
+S_C22U = "aiee:CS3225X7R226K250NRL"     # C4, C5  22uF 25V X7R 1210
+S_R100K = "aiee:RT0603BRD07100KL"       # R1  100k 0.1% 25ppm
+S_R24K9 = "aiee:RT0603BRD0724K9L"       # R2  24.9k 0.1% 25ppm
 S_J = "aiee:KF128-5.08-2P"              # J1, J2
 S_TP = "Connector:TestPoint"
 S_HOLE = "Mechanical:MountingHole"      # ZERO pins, unplated M3
@@ -207,13 +201,12 @@ LCSC = {
     "U1": "C841384",
     "L1": "C40000",
     "C1": "C107083",
-    "C2": "C2918502", "C3": "C2918502", "C10": "C2918502",
+    "C2": "C2918502", "C3": "C2918502",
     "C4": "C2918511", "C5": "C2918511",
-    "C8": "C2918511", "C9": "C2918511",
     "C6": "C14663",
     "C7": "C106858",
-    "R1": "C861068",
-    "R2": "C861257",
+    "R1": "C122538",
+    "R2": "C136967",
     "J1": "C474952", "J2": "C474952",
 }
 
@@ -281,27 +274,16 @@ def build() -> schlib.Sheet:
         expect={"1": "PGND", "2": "VIN", "3": "EN", "4": "PG", "5": "FB",
                 "6": "VCC", "7": "BOOT", "8": "SW", "9": "EP"},
         decoupling=[
-            # role reg_input on ALL FOUR input caps: the group check needs
+            # role reg_input on ALL THREE input caps: the group check needs
             # to know the pin is a switching regulator's input, and C1 is
             # the HF member that satisfies it (220 nF <= 1 uF).
             {"cap": "C1", "pin": "2", "rail": "+VIN",
              "value": "220nF 50V X7R", "lib_id": S_C220N,
              "footprint": F_C0603, "role": "reg_input"},
-            # THREE 10 uF, not two (P4 fix pass W1).  9.2.2.6 asks for a
-            # 10 uF minimum and 9.1 (p19) defines the datasheet's cap values
-            # as EFFECTIVE, not nameplate: 2 x 10 uF / 50 V X7R 1210 is only
-            # 10-12 uF effective at 30 V bias, and 8.5-10.5 uF once
-            # tolerance and the 85-90 C board temperature are stacked - i.e.
-            # UNDER the minimum in the worst corner.  The third part buys
-            # the corner, not margin.  C10 is a bulk member of the same
-            # group as C2/C3, so it carries the same role.
             {"cap": "C2", "pin": "2", "rail": "+VIN",
              "value": "10uF 50V X7R", "lib_id": S_C10U,
              "footprint": F_C1210, "role": "reg_input"},
             {"cap": "C3", "pin": "2", "rail": "+VIN",
-             "value": "10uF 50V X7R", "lib_id": S_C10U,
-             "footprint": F_C1210, "role": "reg_input"},
-            {"cap": "C10", "pin": "2", "rail": "+VIN",
              "value": "10uF 50V X7R", "lib_id": S_C10U,
              "footprint": F_C1210, "role": "reg_input"},
             # C_VCC: rail_net carries the FINAL netlist name of the bare
@@ -311,7 +293,7 @@ def build() -> schlib.Sheet:
              "footprint": F_C0603},
         ],
         caps_at=(38.10, Y_CAP), caps_dx=25.40)
-    for ref in ("U1", "C1", "C2", "C3", "C10", "C7"):
+    for ref in ("U1", "C1", "C2", "C3", "C7"):
         sh.sch.components.get(ref).set_property("LCSC", LCSC[ref])
 
     # L1 15 uH shielded: /SW -> +5V.  Isat 8 A clears the 6.6 A floor
@@ -331,43 +313,23 @@ def build() -> schlib.Sheet:
         {"1": "BST", "2": "SW"},
         note="bootstrap BOOT->SW, datasheet 9.2.2.7 (required)")
 
-    # FB divider, RECENTRED at the P4 fix pass (A3 setpoint).  VREF is
-    # 1.000 V typ (7.5), so
-    #   VOUT = 1.0 x (1 + 102k/25.5k) = 1.0 x (1 + 4.000) = 5.000 V
-    # exactly, where the previous 100k/24.9k gave 4.016 -> 5.016 V.  The
-    # 16 mV of built-in offset was not free: 7.7's light-load regulation
-    # spec is -1.5/+2.5 % for IOUT 0 A to max (against -1.5/+1.5 % above
-    # 1 A), i.e. a +1.0 % adder that stacks on the 0 A corner the A3 window
-    # must still contain.  Stacked worst case moves 5.161 V (OUTSIDE the
-    # 5.15 V ceiling) -> ~5.144 V (inside).  102k/25.5k is an EXACT 4.000
-    # ratio; no other 0.1 % E96-class pair in this family is.
+    # FB divider.  VREF is 1.000 V typ (7.5), so
+    #   VOUT = 1.0 x (1 + 100k/24.9k) = 5.016 V, inside the 4.85-5.15 V
+    # window with the whole +/-1.5% VREF spread (4.939-5.092 V) still inside.
     # BOTH resistors stay 0.1% / 25 ppm and from the same YAGEO RT0603BRD
     # family so their tempcos track - do not let a later phase substitute
-    # 1% parts.  102k top keeps the datasheet's 9.2.2.3 100k-class
-    # recommendation and stays two decades under the 1 M threshold that
-    # would demand a CFF, so the CFF position stays OPEN (unpopulated).
-    add(S_R102K, "R1", "102k 0.1% 25ppm", (76.20, Y_AUX), F_R0603,
+    # 1% parts.  100k top is the datasheet's own recommendation (9.2.2.3).
+    add(S_R100K, "R1", "100k 0.1% 25ppm", (76.20, Y_AUX), F_R0603,
         {"1": "+5V", "2": "FB"},
         note="FB top; sense point AFTER the output caps, away from /SW")
-    add(S_R25K5, "R2", "25.5k 0.1% 25ppm", (114.30, Y_AUX), F_R0603,
+    add(S_R24K9, "R2", "24.9k 0.1% 25ppm", (114.30, Y_AUX), F_R0603,
         {"1": "FB", "2": "GND"},
-        note="FB bottom; Vout=1.0*(1+102/25.5)=5.000V, divider 39uA")
+        note="FB bottom; Vout=1.0*(1+100/24.9)=5.016V, divider 40uA")
 
-    # Output bank: FOUR x 22 uF 25 V X7R 1210, raised from two at the P4
-    # fix pass (E1).  Not margin - a compensation requirement.  9.2 (p19):
-    # "the internal compensation is optimized for a certain range of
-    # external inductance and output capacitance", and that range is
-    # quantified ONLY in Table 9-2 (p20).  This board matches the table's
-    # 400 kHz / 5 V row on every entry except L and C_OUT, and that row
-    # specifies 4 x 22 uF RATED; every 400 kHz row is 4x (2x appears only
-    # at 1400/2100 kHz), and TI's own DDA characterization BOM (Table 9-3,
-    # p31) used 4 x 22 uF here.  With FIXED internal Type-II compensation
-    # fc scales as 1/C_OUT, so a 2x bank pushes crossover toward
-    # fSW/2 = 200 kHz on an all-ceramic output with no ESR phase boost.
+    # Output bank: 2 x 22 uF 25 V X7R 1210 (>= 20 uF effective at 5 V bias).
     # 25 V rating, not the datasheet example's 16 V - the sourced part is
     # 25 V and more rating is never a defect here.
-    for ref, x in (("C4", 152.40), ("C5", 190.50),
-                   ("C8", 228.60), ("C9", 266.70)):
+    for ref, x in (("C4", 152.40), ("C5", 190.50)):
         add(S_C22U, ref, "22uF 25V X7R", (x, Y_AUX), F_C1210,
             {"1": "+5V", "2": "GND"})
 

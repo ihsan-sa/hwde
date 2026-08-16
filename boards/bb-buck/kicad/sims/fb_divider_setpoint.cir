@@ -1,0 +1,171 @@
+* bb-buck - FB DIVIDER DC SETPOINT vs the A3 output window (P4)
+*
+* ---------------------------------------------------------------------
+* SOURCE NETLIST
+*   boards/bb-buck/kicad/bb-buck.net, exported 2026-08-15 by
+*   `kc.py netlist boards/bb-buck/kicad/bb-buck.kicad_sch`.
+*   Topology synthesized (NOT retyped) with
+*   `sim_run.py --fragment --net kicad/bb-buck.net --refs R1,R2`, which
+*   emitted exactly these two element lines:
+*       R1 P5V N_FB 100k
+*       R2 N_FB 0 24.9k
+*   RENAME MAP (from the same call):  +5V -> P5V   /FB -> N_FB   GND -> 0
+*   Net /FB carries exactly R1.2, R2.1, U1.5 - no CFF feed-forward cap
+*   exists on this board, so the divider's DC ratio is the whole story.
+*   Net +5V carries C4.1, C5.1, J2.1, L1.2, R1.1 - i.e. R1 senses the rail
+*   AFTER the output capacitor bank, as U1's datasheet Sec 10.1 rule 4 asks.
+*
+*   STALENESS GUARD: block (A) below is the verbatim fragment text. The
+*   corner instances in (B) restate 100k / 24.9k as .param values. If R1 or
+*   R2 ever change, re-run the --fragment call above and diff it against
+*   block (A) before trusting any number in this bench.
+*
+* ---------------------------------------------------------------------
+* MODEL PROVENANCE (Tier-B boundary model - U1 is NOT simulated)
+*   Pipeline policy: the LMR33630 switching converter is not simulated (no
+*   vendor model, and no agent-authored model of a switcher is honest).
+*   What IS modelled is U1's FB terminal behaviour only: the regulator
+*   drives VOUT until v(FB) == VREF. That is one ideal high-gain amplifier:
+*       Vref  nref 0 DC {vref}      <- the reference itself
+*       Eu1   vout 0 nref fb 1e8    <- gain 1e8 -> residual setpoint error
+*                                      |vout|/1e8 = 50 nV, 6 decades below
+*                                      the tightest bound margin here
+*   VREF corners  0.985 / 1.000 / 1.015 V (+/-1.5 %)
+*       source: parts/C841384.json abs_max FB_reference_voltage_min/typ/max,
+*       = datasheet SNVSAN3F Sec 7.5 "VFB Feedback voltage; ADJ option",
+*       limits over TJ = -40..+125 C.
+*   IFB (FB pin input current) 50 nA MAX, sunk out of the tap node
+*       source: same Sec 7.5 "IFB Current into FB pin; ADJ option, FB = 1 V,
+*       typ 0.2 nA / max 50 nA". Applied ONLY in the high corners, where it
+*       hurts: pulling the tap down makes the loop raise VOUT by
+*       IFB * R1 = 5.0 mV. The low corners take IFB = 0 (no min is
+*       specified, so 0 is the conservative low edge).
+*   R1 / R2 tolerance +/-0.1 %, TCR 25 ppm/C
+*       source: parts/parts.json - R1 = YAGEO RT0603BRD07100KL (C122538)
+*       "100k 0.1% 25ppm/C", R2 = YAGEO RT0603BRD0724K9L (C136967)
+*       "24.9k 0.1% 25ppm/C". Same RT0603BRD family by decision D6, for TCR
+*       tracking; this bench does NOT credit that tracking - it drifts the
+*       two resistors in OPPOSITE directions, the worst case.
+*   TCR temperature spans (the only agent-chosen numbers in the deck):
+*       dT = 25 C  -> requirement-derived. requirements.md Sec 4 sets the
+*                     ambient range at 0..50 C; the resistor tolerance is
+*                     referenced to 25 C, so |dT| <= 25 C is what the
+*                     REQUIREMENT alone forces. These corners are gated at
+*                     error severity.
+*       dT = 60 C  -> assumed local rise: 50 C ambient + ~35 C self/board
+*                     heating next to a 1.2-1.8 W converter (requirements
+*                     Sec 3 board dissipation). No measurement backs the
+*                     35 C, so these corners are gated at WARNING severity.
+*
+* ---------------------------------------------------------------------
+* DESIGN INTENT - what this bench proves, and what it deliberately does not
+*   PROVES: the as-drawn divider sets VOUT = VREF * (1 + R1/R2) inside the
+*   owner's A3 window of 4.85 - 5.15 V, and still does so at every corner of
+*   (resistor tolerance x TCR x VREF x IFB). This is the board's only
+*   defence against a wrong-value divider - a 47k for a 4.7k, or one E96
+*   step on R2 - which ERC, DRC, verify and DFM are all structurally blind
+*   to. P3 landed an ADJUSTABLE part, so the divider is real.
+*   DOES NOT PROVE: line regulation, load regulation, light-load (DCM)
+*   setpoint rise, ripple, or transient response. Those are U1's own
+*   behaviour, they are covered by datasheet Sec 7.7 System Characteristics
+*   rather than by any model this agent may author, and they stack ON TOP of
+*   what is measured here. See the sim-analyst OPEN note.
+*
+* CORNER TABLE (all 11 instances, node = measure suffix)
+*   nom    R nom      VREF typ   IFB 0      as-drawn setpoint
+*   rhi    R +tol     VREF typ   IFB 0      resistor term alone, max ratio
+*   rlo    R -tol     VREF typ   IFB 0      resistor term alone, min ratio
+*   vhi    R nom      VREF max   IFB 0      reference term alone, high
+*   vlo    R nom      VREF min   IFB 0      reference term alone, low
+*   whi    R +tol     VREF max   IFB max    datasheet-only worst high (25 C)
+*   wlo    R -tol     VREF min   IFB 0      datasheet-only worst low  (25 C)
+*   thi    R +tol+tc25 VREF max  IFB max    worst high over the 0-50 C req
+*   tlo    R -tol-tc25 VREF min  IFB 0      worst low  over the 0-50 C req
+*   t60hi  R +tol+tc60 VREF max  IFB max    worst high w/ assumed local rise
+*   t60lo  R -tol-tc60 VREF min  IFB 0      worst low  w/ assumed local rise
+*
+* ENGINE NOTES
+*   .measure needs tran/dc/ac (never .op) -> a 2-point .dc over a dummy
+*   source, read at sweep = 0. rshunt is set explicitly to 1e12 instead of
+*   taking the runner's injected 1e9: this deck has NO floating node (every
+*   node reaches ground through R2, Vref or Eu1), and at 1e9 the shunt
+*   leaks ~1 nA out of each tap node, which is 2 % of IFB max and would add
+*   a silent +0.1 mV to every corner. At 1e12 that artefact is 0.1 uV.
+* ---------------------------------------------------------------------
+
+.options rshunt=1e12
+
+.param r1nom=100e3
+.param r2nom=24.9e3
+.param tol=1e-3
+.param tc25=625e-6
+.param tc60=1500e-6
+.param vrtyp=1.0
+.param vrmin=0.985
+.param vrmax=1.015
+.param ifbmax=50e-9
+
+.param r1hi={r1nom*(1+tol)}
+.param r1lo={r1nom*(1-tol)}
+.param r2hi={r2nom*(1+tol)}
+.param r2lo={r2nom*(1-tol)}
+.param r1t25h={r1nom*(1+tol+tc25)}
+.param r1t25l={r1nom*(1-tol-tc25)}
+.param r2t25h={r2nom*(1+tol+tc25)}
+.param r2t25l={r2nom*(1-tol-tc25)}
+.param r1t60h={r1nom*(1+tol+tc60)}
+.param r1t60l={r1nom*(1-tol-tc60)}
+.param r2t60h={r2nom*(1+tol+tc60)}
+.param r2t60l={r2nom*(1-tol-tc60)}
+
+* ---- (A) THE AS-DRAWN DIVIDER, verbatim from --fragment --------------
+* These two lines are the fragment output, unedited, on the fragment's own
+* node names. Everything below is a corner variation on them.
+R1 P5V N_FB 100k
+R2 N_FB 0 24.9k
+Vrefn nrefn 0 DC {vrtyp}
+Eu1n P5V 0 nrefn N_FB 1e8
+
+* ---- (B) CORNERS -----------------------------------------------------
+.subckt fbdiv vout fb params: rtop=100e3 rbot=24.9e3 vref=1.0 ifb=0
+R1 vout fb {rtop}
+R2 fb 0 {rbot}
+Vref nref 0 DC {vref}
+Iib fb 0 DC {ifb}
+Eu1 vout 0 nref fb 1e8
+.ends
+
+Xrhi   rhi   frhi   fbdiv rtop={r1hi}    rbot={r2lo}    vref={vrtyp} ifb=0
+Xrlo   rlo   frlo   fbdiv rtop={r1lo}    rbot={r2hi}    vref={vrtyp} ifb=0
+Xvhi   vhi   fvhi   fbdiv rtop={r1nom}   rbot={r2nom}   vref={vrmax} ifb=0
+Xvlo   vlo   fvlo   fbdiv rtop={r1nom}   rbot={r2nom}   vref={vrmin} ifb=0
+Xwhi   whi   fwhi   fbdiv rtop={r1hi}    rbot={r2lo}    vref={vrmax} ifb={ifbmax}
+Xwlo   wlo   fwlo   fbdiv rtop={r1lo}    rbot={r2hi}    vref={vrmin} ifb=0
+Xthi   thi   fthi   fbdiv rtop={r1t25h}  rbot={r2t25l}  vref={vrmax} ifb={ifbmax}
+Xtlo   tlo   ftlo   fbdiv rtop={r1t25l}  rbot={r2t25h}  vref={vrmin} ifb=0
+Xt60hi t60hi ft60hi fbdiv rtop={r1t60h}  rbot={r2t60l}  vref={vrmax} ifb={ifbmax}
+Xt60lo t60lo ft60lo fbdiv rtop={r1t60l}  rbot={r2t60h}  vref={vrmin} ifb=0
+
+* dummy sweep source: .measure will not run against a bare .op
+Vsweep nsw 0 DC 0
+.dc Vsweep 0 1 1
+
+.meas dc vout_nom   find v(P5V)  at=0
+.meas dc vout_rhi   find v(rhi)   at=0
+.meas dc vout_rlo   find v(rlo)   at=0
+.meas dc vout_vhi   find v(vhi)   at=0
+.meas dc vout_vlo   find v(vlo)   at=0
+.meas dc vout_whi   find v(whi)   at=0
+.meas dc vout_wlo   find v(wlo)   at=0
+.meas dc vout_thi   find v(thi)   at=0
+.meas dc vout_tlo   find v(tlo)   at=0
+.meas dc vout_t60hi find v(t60hi) at=0
+.meas dc vout_t60lo find v(t60lo) at=0
+
+* headroom to the A3 edges at the error-severity worst corners, in volts
+.meas dc hdr_hi param='5.15-vout_thi'
+.meas dc hdr_lo param='vout_tlo-4.85'
+* and the corner spread the nominal setpoint has to live inside
+.meas dc spread_hi param='vout_thi/vout_nom'
+.meas dc spread_lo param='vout_tlo/vout_nom'
+.end

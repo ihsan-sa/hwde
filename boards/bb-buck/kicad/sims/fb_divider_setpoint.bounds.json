@@ -1,0 +1,57 @@
+[
+  {
+    "measure": "vout_nom",
+    "min": 4.937,
+    "max": 5.055,
+    "severity": "error",
+    "msg": "THE WRONG-VALUE SENTINEL. As-drawn setpoint from the verbatim --fragment lines R1=100k / R2=24.9k: VREF*(1+R1/R2) = 5.01606 V. The window is NOT a guess - it is the owner's A3 window (4.85-5.15 V, requirements Sec 9 A3) divided by the corner spread this same bench measures: 5.15/spread_hi = 5.15/1.018644 = 5.0557 and 4.85/spread_lo = 4.85/0.982441 = 4.9367, rounded inward. Passing it therefore GUARANTEES the corner bounds below have room. Margin as drawn: 79 mV (1.6 %) low, 39 mV (0.8 %) high - the high side is the tight one and that is the design's real headroom, not a bound artefact. Calibrated to fail the defect class it exists for: R2 one E96 step up (25.5k) reads 4.9216 and trips; one step down (24.3k) reads 5.1152 and trips; a 47k-for-100k R1 reads 2.888; a 2.49k-for-24.9k R2 reads 41.16. NOTE this is the only bound that still fires if block (A) of the .cir is edited without updating the .param corner values."
+  },
+  {
+    "measure": "vout_whi",
+    "max": 5.15,
+    "severity": "error",
+    "msg": "A3 UPPER EDGE, datasheet-only worst case at 25 C: R1 +0.1 %, R2 -0.1 % (YAGEO RT0603BRD tolerance, parts.json), VREF 1.015 V max and IFB 50 nA max (both C841384.json / SNVSAN3F Sec 7.5). Measured 5.10447 V, 46 mV inside the window. IFB alone contributes +5.0 mV here."
+  },
+  {
+    "measure": "vout_wlo",
+    "min": 4.85,
+    "severity": "error",
+    "msg": "A3 LOWER EDGE, same datasheet-only worst case with the signs reversed: R1 -0.1 %, R2 +0.1 %, VREF 0.985 V min, IFB 0 (no minimum is specified, so zero is the conservative low edge). Measured 4.93292 V, 83 mV inside the window."
+  },
+  {
+    "measure": "vout_thi",
+    "max": 5.15,
+    "severity": "error",
+    "msg": "A3 UPPER EDGE over the REQUIRED temperature range - this is the binding error bound on the board. Adds 25 ppm/C x 25 C = 625 ppm of NON-TRACKING TCR drift per resistor (requirements Sec 4 fixes ambient at 0-50 C; the 0.1 % tolerance is referenced to 25 C, so |dT| = 25 C is what the requirement alone forces; D6 buys both resistors from one RT0603BRD family for TCR tracking but this bench refuses to credit that). Measured 5.10958 V - only 40 mV of headroom, and TCR costs more than the tolerance does (625 vs 100 ppm per resistor)."
+  },
+  {
+    "measure": "vout_tlo",
+    "min": 4.85,
+    "severity": "error",
+    "msg": "A3 LOWER EDGE over the required 0-50 C ambient, same +/-625 ppm non-tracking TCR term reversed. Measured 4.92799 V, 78 mV inside the window."
+  },
+  {
+    "measure": "vout_t60hi",
+    "max": 5.15,
+    "severity": "warning",
+    "msg": "WARNING not error, because the temperature is assumed rather than specified: 50 C ambient + ~35 C of self/board heating beside a 1.2-1.8 W converter (requirements Sec 3) = dT 60 C, i.e. 1500 ppm of non-tracking drift per resistor. No measurement backs the 35 C, so this cannot be a design promise - but it is the corner a bring-up thermal reading could turn real. Measured 5.11675 V, 33 mV of headroom left."
+  },
+  {
+    "measure": "vout_t60lo",
+    "min": 4.85,
+    "severity": "warning",
+    "msg": "Same assumed dT 60 C corner, low side. Measured 4.92109 V, 71 mV inside the window - the low side is never the problem on this divider."
+  },
+  {
+    "measure": "hdr_hi",
+    "min": 0.02,
+    "severity": "warning",
+    "msg": "Early-warning tripwire on the SAME quantity vout_thi gates, expressed as volts of headroom to 5.15 V so it fires before the hard bound does. Measured 40.4 mV; this warns below 20 mV (i.e. vout_thi above 5.130) while the error bound is still passing."
+  },
+  {
+    "measure": "hdr_lo",
+    "min": 0.02,
+    "severity": "warning",
+    "msg": "Same tripwire on the low edge: volts of headroom from vout_tlo down to 4.85 V. Measured 78.0 mV."
+  }
+]

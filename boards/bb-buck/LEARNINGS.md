@@ -49,3 +49,54 @@ typing so a later `lib_pull` refresh cannot be silently re-typed wholesale, and 
 pulled symbol pin-by-pin against the datasheet extract even when the file looks
 already-fixed, and prefer the library fix over a PWR_FLAG whenever the net is one the
 architecture deliberately leaves out of constraints.json.
+
+## 2026-08-15 [P4][spice][sim-analyst] The runner's injected `rshunt=1e9` is a ~1 nA current source at every node - on a high-impedance FB divider that is 2 % of the IFB spec you came to measure
+`sim_run.py`/`prepare_circuit` injects `.options rshunt=1e9` unless the deck sets rshunt
+itself (it exists so one floating node cannot make the solve singular). On a 100k/24.9k
+feedback divider the tap sits at 1.0 V, so the injected shunt quietly pulls 1 nA out of it
+- and the datasheet term the bench exists to bound, LMR33630 IFB, is 50 nA max. The shunt
+is therefore 2 % of the modelled worst-case error term, and it lands with the SAME SIGN
+(it raises the implied VOUT by ~0.1 mV), i.e. it silently flatters nothing but does
+contaminate a corner that is being reported to 5 digits. The deck has no floating node
+(every node reaches ground through R2, the reference source or the amplifier), so the fix
+is one documented line: `.options rshunt=1e12`, which drops the artefact to 0.1 uV and
+made all 15 measures match closed form to 6 significant digits. Generalisation: on any
+bench whose measured quantity is a sub-microamp current or a megohm-class node, treat the
+injected 1e9 shunt as a real circuit element and override it deliberately.
+
+## 2026-08-15 [P4][spice][sim-analyst] A switcher's DC setpoint IS simmable without any converter model - one high-gain VCVS is the whole Tier-B boundary model
+Policy forbids simulating the buck (no vendor model, and an agent-authored switcher model
+would not be honest), which reads as "the output voltage cannot be verified at all". It
+can: the only thing the regulator does to the divider at DC is drive VOUT until
+v(FB) == VREF, and that is one ideal amplifier - `Vref nref 0 DC {vref}` plus
+`Eu1 vout 0 nref fb 1e8`. The network then SOLVES for the divider ratio instead of the
+deck restating it, which is the whole point (a retyped `Vout = vref*(1+r1/r2)` B-source
+would pass even if R1/R2 were wrong). Gain 1e8 leaves 50 nV of residual setpoint error, six
+decades under any useful bound. Corners come from N `.subckt` instances (ngspice has no
+`.step`), and `.meas dc <n> find v(<node>) at=0` against a 2-point `.dc` sweep of a dummy
+source is enough analysis to make `.measure` legal - 11 corners + 4 derived params solved
+in 1.0 s. Keep the as-drawn `--fragment` lines verbatim at the TOP level as the nominal
+instance: it is the one bound that still fires if a later editor changes the schematic
+values without touching the `.param` corner block.
+
+## 2026-08-15 [P4][easyeda2kicad][parts][erc] An in-stock LCSC part can have NO EasyEDA CAD record at all - lib_pull fails it while its own family siblings pull clean
+The A3 setpoint recentring needed YAGEO `RT0603BRD07102KL` (LCSC **C861068**, 2009 in
+stock, full parametrics from `parts_search`). `lib_pull --lcsc C861068 C861257` pulled
+C861257 and returned `status: error` / exit 1 for C861068 with only
+"Failed to fetch data from EasyEDA API". That reads like the known WAF/rate-limit class
+(LEARNINGS 2026-07-28), and it is NOT: probed directly,
+`EasyedaApi().get_cad_data_of_component()` returns `{}` for C861068 and a full dict for
+C861257 and C136967 in the same second. **Distinguish the two before retrying or backing
+off** - a rate limit clears, an absent CAD record never will, and retrying just burns the
+WAF budget. Fix used: derive the symbol from the just-pulled SAME-FAMILY sibling
+(RT0603BRD0725K5L -> RT0603BRD07102KL, identity fields only: symbol name, Value, MPN,
+Datasheet, `LCSC Part`), which keeps the pulled geometry and the shared `aiee:R0603`
+footprint - defensible because a 2-pin chip resistor's symbol carries no part-specific
+pinout to get wrong. Do NOT hand-draw a symbol for a part whose pinout is non-trivial;
+there, change the MPN instead.
+Second fact from the same pull, and the reason the ERC gate did not break: the freshly
+pulled `RT0603BRD0725K5L` came typed **`unspecified` on both pins** while
+`RT0603BRD07100KL` / `RT0603BRD0724K9L` - same YAGEO RT0603BRD family, pulled at P3 -
+came typed `passive`. Pin typing therefore varies WITHIN one family by pull date, so the
+`gen/lib_pin_types.py` deviation list has to be re-checked after every single pull, not
+just after a wholesale library refresh.
