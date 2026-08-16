@@ -47,11 +47,16 @@ DEFAULT_LADDER = [
     {"mp": 100, "us": "global"},
 ]
 
+# Score capture is `\d+(?:\.\d+)?`, NOT `[\d.]+`: when Freerouting finishes with
+# nothing unrouted the line has no " (N unrouted)" suffix and ends in a full stop
+# ("...score of 997.76."), which `[\d.]+` swallows -> float("997.76.") ValueError.
+# The bug fired ONLY on success, because the suffix otherwise terminated the match
+# at the space. Found on bb-buck P6 (route probe, completion 1.00).
 _PASS_RE = re.compile(
-    r"Auto-router pass #(\d+).*?score of ([\d.]+)(?: \((\d+) unrouted\))?")
+    r"Auto-router pass #(\d+).*?score of (\d+(?:\.\d+)?)(?: \((\d+) unrouted\))?")
 _SESSION_RE = re.compile(
     r"Auto-router session completed: started with (\d+) unrouted nets"
-    r".*?final score: ([\d.]+)(?: \((\d+) unrouted\))?")
+    r".*?final score: (\d+(?:\.\d+)?)(?: \((\d+) unrouted\))?")
 
 
 WORK_MARKER = ".aiee_route_work"

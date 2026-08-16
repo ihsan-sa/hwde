@@ -1,0 +1,279 @@
+{
+ "script": "place_metrics",
+ "status": "pass",
+ "board": "bb-buck.kicad_pcb",
+ "counts": {
+  "total": 0,
+  "by_severity": {},
+  "by_source": {}
+ },
+ "violations": [],
+ "metrics": {
+  "counts": {
+   "footprints": 20,
+   "movable": 9,
+   "nets": 7
+  },
+  "hpwl": {
+   "total_mm": 125.03,
+   "by_net": {
+    "+5V": 35.89,
+    "+VIN": 22.94,
+    "/BST": 1.715,
+    "/FB": 6.62,
+    "/SW": 10.375,
+    "/VCC": 3.11,
+    "GND": 44.38
+   }
+  },
+  "crossings": {
+   "count": 7,
+   "pairs": [
+    {
+     "nets": [
+      "+5V",
+      "GND"
+     ],
+     "crossings": 3
+    },
+    {
+     "nets": [
+      "+VIN",
+      "GND"
+     ],
+     "crossings": 3
+    },
+    {
+     "nets": [
+      "/FB",
+      "GND"
+     ],
+     "crossings": 1
+    }
+   ]
+  },
+  "crossings_signal": {
+   "count": 0,
+   "pairs": []
+  },
+  "congestion": {
+   "cell_mm": 2.0,
+   "cols": 18,
+   "rows": 13,
+   "max": 5,
+   "mean_nonzero": 1.7015,
+   "hotspots": [
+    {
+     "cell": [
+      7,
+      5
+     ],
+     "center": [
+      41.07,
+      45.48
+     ],
+     "demand": 5
+    },
+    {
+     "cell": [
+      5,
+      3
+     ],
+     "center": [
+      37.07,
+      41.48
+     ],
+     "demand": 4
+    },
+    {
+     "cell": [
+      7,
+      9
+     ],
+     "center": [
+      41.07,
+      53.48
+     ],
+     "demand": 4
+    },
+    {
+     "cell": [
+      5,
+      2
+     ],
+     "center": [
+      37.07,
+      39.48
+     ],
+     "demand": 3
+    },
+    {
+     "cell": [
+      6,
+      1
+     ],
+     "center": [
+      39.07,
+      37.48
+     ],
+     "demand": 3
+    },
+    {
+     "cell": [
+      6,
+      9
+     ],
+     "center": [
+      39.07,
+      53.48
+     ],
+     "demand": 3
+    },
+    {
+     "cell": [
+      7,
+      4
+     ],
+     "center": [
+      41.07,
+      43.48
+     ],
+     "demand": 3
+    },
+    {
+     "cell": [
+      7,
+      6
+     ],
+     "center": [
+      41.07,
+      47.48
+     ],
+     "demand": 3
+    },
+    {
+     "cell": [
+      10,
+      9
+     ],
+     "center": [
+      47.07,
+      53.48
+     ],
+     "demand": 3
+    },
+    {
+     "cell": [
+      2,
+      5
+     ],
+     "center": [
+      31.07,
+      45.48
+     ],
+     "demand": 2
+    }
+   ]
+  },
+  "congestion_signal_max": 3,
+  "decoupling": [
+   {
+    "cap": "C1",
+    "pin": "U1.2",
+    "rail": "+VIN",
+    "class": "mid",
+    "manhattan_mm": 1.715,
+    "euclid_mm": 1.6513,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 4.2005,
+    "role": "reg_input"
+   },
+   {
+    "cap": "C2",
+    "pin": "U1.2",
+    "rail": "+VIN",
+    "class": "bulk",
+    "manhattan_mm": 5.18,
+    "euclid_mm": 4.2117,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 6.626,
+    "role": "reg_input"
+   },
+   {
+    "cap": "C3",
+    "pin": "U1.2",
+    "rail": "+VIN",
+    "class": "bulk",
+    "manhattan_mm": 8.34,
+    "euclid_mm": 5.8993,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 8.838,
+    "role": "reg_input"
+   },
+   {
+    "cap": "C10",
+    "pin": "U1.2",
+    "rail": "+VIN",
+    "class": "bulk",
+    "manhattan_mm": 6.52,
+    "euclid_mm": 5.4688,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 7.564,
+    "role": "reg_input"
+   },
+   {
+    "cap": "C7",
+    "pin": "U1.6",
+    "rail": "/VCC",
+    "class": "bulk",
+    "manhattan_mm": 3.11,
+    "euclid_mm": 2.9169,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 5.177
+   }
+  ],
+  "utilization": {
+   "component_mm2": 87.7056,
+   "board_mm2": 875.0,
+   "ratio": 0.1
+  }
+ },
+ "report_schema": 1,
+ "checker_version": 1,
+ "generated_at": "2026-08-16T07:01:16+00:00",
+ "input": "boards\\bb-buck\\kicad\\bb-buck.kicad_pcb",
+ "input_digest": "sexpr_no_uuid:8d0c1109e1db931b478b67b960964aaafe71360a359914750140d654b548abb3",
+ "coverage": {
+  "strict": true,
+  "required": [
+   "courtyard",
+   "outline",
+   "edges",
+   "keepouts",
+   "decoupler_distance"
+  ],
+  "ran": [
+   "courtyard",
+   "outline",
+   "edges",
+   "keepouts",
+   "decoupler_distance"
+  ],
+  "passed": [
+   "courtyard",
+   "outline",
+   "edges",
+   "keepouts",
+   "decoupler_distance"
+  ],
+  "failed": [],
+  "waived": [],
+  "not_applicable": {},
+  "skipped_error": {}
+ }
+}

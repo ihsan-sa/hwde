@@ -3,8 +3,8 @@
  "board": "bb-buck",
  "workspace": "boards/bb-buck",
  "created": "2026-08-15T15:58:13",
- "updated": "2026-08-15T22:40:14",
- "phase": "P6",
+ "updated": "2026-08-16T01:35:58",
+ "phase": "P7",
  "gates": {},
  "human": {
   "1": {
@@ -16,9 +16,29 @@
    "status": "approved",
    "ts": "2026-08-15T22:34:04",
    "note": "Schematic approved: erc 0/0, netlist_audit 0, sim pass. Owner ruling on placement pressure: NOTHING gives - if the 7 x 1210 bodies cannot fit while placing the hot loop honestly on the 40x30 outline, STOP and report; do not relax the hot-loop grouping and do not move parts to the bottom side."
+  },
+  "3": {
+   "status": "approved",
+   "ts": "2026-08-16T01:35:58",
+   "note": "Placement approved. Silk: owner accepted 7 refdes labels under bodies (C2,C3,C5,C8,C9,L1,TP2) - at 72.7% fill with a 4x4 mm largest empty rectangle there is nowhere to move them; TP1's label was already hand-moved out because it marks the switch-node probe. Outline CONFIRMED final at 35x25 by measurement (34.90x24.90 occupied, 0.05 mm all round) - no resize, route here."
   }
  },
- "artifacts": {},
+ "artifacts": {
+  "gerbers": {
+   "path": "fab/bb-buck_gerbers.zip",
+   "kind": "gerbers",
+   "sha256": null,
+   "hashed": "2026-08-16T00:07:45",
+   "stale": [
+    {
+     "ts": "2026-08-16T00:07:45",
+     "edit_class": "move_fp",
+     "refs": [],
+     "human_hold": 1
+    }
+   ]
+  }
+ },
  "open_issues": [],
  "next_issue_id": 1,
  "budgets": {
@@ -264,9 +284,52 @@
    "why": "Owner wants a tight board sized by the layout rather than chosen up front. Verified (not just cited): --outline exists ONLY on board_init.py and no other script writes Edge.Cuts, so resizing rebuilds the board from the netlist and discards placement AND routing; hand-editing the .kicad_pcb is barred by rule 1 and by the board-setup contract. Placement is cheap to redo and routing is not, so the correct order is place -> measure -> resize+replace if warranted -> route ONCE at the final size. 4 holes -> 2 diagonal frees ~85 mm2 of corner keepout on an 875 mm2 board; requirements.md s5 explicitly sanctions two on opposite corners when four stop being honest.",
    "phase": "P5",
    "ts": "2026-08-15T22:38:12"
+  },
+  {
+   "what": "SCRAP AVERTED: both provisional connector rotations were WRONG and are corrected - J1 0 -> 270, J2 90 -> 0",
+   "why": "P2 flagged both rot values PROVISIONAL because the footprint's native wire-entry direction could not be verified before a footprint existed. It could not: the WRL carries (rotate 0 0 180), the documented coincidence trap. The placement agent resolved the true native entry (+y at rot 0) on a 3D iso test board and then CONFIRMED the finished board with orthographic left/front renders - J1's mouths face -x off-board, J2's face +y off-board. As declared, BOTH openings would have pointed inward: the terminals would be unusable and the boards scrap. This is exactly why the role prompt forbids taking seed rotation on faith.",
+   "phase": "P6",
+   "ts": "2026-08-16T00:07:44"
+  },
+  {
+   "what": "Annealer candidates ALL REJECTED on structure; the hand placement is the winner (it also won on hpwl 125.0 vs 130.3-130.8)",
+   "why": "Every candidate put the FB divider hard against L1's SW pad and TP1/TP2 outside the switch-node copper - precisely what the cost function cannot see (buck-fb-route-rules). Structure beats score. The hot loop was hand-placed and LOCKED before anneal per the records (the annealer cannot discover a hot loop): C1 220 nF sits 1.72 mm from BOTH VIN(2) and PGND(1) with pads UNCROSSED, ~2.2 mm2 loop. A rotation-sign error that had mirrored C1/C6 (+VIN facing PGND, forcing the loop to cross itself) was caught and fixed mid-run.",
+   "phase": "P6",
+   "ts": "2026-08-16T00:07:44"
+  },
+  {
+   "what": "OUTLINE IS FINAL AT 35 x 25 - measured, not estimated. Do NOT resize; route here.",
+   "why": "Occupied extent is 34.90 x 24.90 mm of courtyards with 0.05 mm slack on ALL FOUR edges. Fill 72.7 % (636.1 / 875 mm2); the 24.6 % free area is one connected web of interstitial channels whose largest inscribed empty rectangle is 4 x 4 mm - ONE more 1210 laid flat does not fit anywhere on the board. The all-round 0.05 mm is set by H1/H2's 6.9 mm courtyards at their constraint-fixed centres, so any shrink drags both washer keepouts onto the hot loop and C4. Ignoring the holes the true recoverable slack is ~1.2 mm width / ~0.6 mm height = at best 34 x 24 (-7 %), and spending it would consume the 0.15-0.40 mm inter-part gaps this layout already runs on. The owner's place-measure-resize plan is therefore ANSWERED: no resize, and routing is not put at risk.",
+   "phase": "P6",
+   "ts": "2026-08-16T00:07:44"
+  },
+  {
+   "what": "RULED (orchestrator): ACCEPT L1's footprint aiee:IND-SMD_L12.5-W12.5_RLF12545T despite the name referencing a different vendor's part (TDK RLF12545T) than the sourced SMDRI127-150MT",
+   "why": "Same reasoning that settled the U1 land, and it is the decisive one: lib_pull keys on the LCSC CODE, not on a name. The footprint was pulled for C40000, so it IS the land pattern LCSC/JLC associates with the part being ordered - EasyEDA simply reused a generic 12.5 mm-class inductor land-pattern NAME. Redrawing to some other vendor's drawing would trade a name match for a mismatch with the house that assembles the board. Note the 3D render's '470' marking is likewise a WRL artifact of the donor model, not our 15 uH part - cosmetic only, no electrical or fab meaning. Librarian OPEN item 4 closed.",
+   "phase": "P6",
+   "ts": "2026-08-16T00:09:17"
   }
  ],
- "edits": [],
+ "edits": [
+  {
+   "ts": "2026-08-16T00:07:45",
+   "class": "move_fp",
+   "refs": [],
+   "note": null,
+   "human_hold": 1,
+   "gates": [
+    "place",
+    "drc",
+    "drc_routed",
+    "verify",
+    "dfm"
+   ],
+   "gates_marked": [],
+   "stale_artifacts": [
+    "gerbers"
+   ]
+  }
+ ],
  "spawns": [
   {
    "ts": "2026-08-15T15:58:49",
@@ -403,6 +466,14 @@
    "effort": "high",
    "phase": "P4",
    "note": "bench refresh for the recentred divider 102k/25.5k"
+  },
+  {
+   "ts": "2026-08-15T22:40:27",
+   "role": "placement",
+   "model": "opus",
+   "effort": "xhigh",
+   "phase": "P6",
+   "note": "35x25 tight board; SUBSTITUTION fable/high -> opus/xhigh; must report measured extent for the resize decision"
   }
  ],
  "history": [
@@ -788,6 +859,51 @@
    "event": "phase",
    "phase": "P6",
    "prev": "P5"
+  },
+  {
+   "ts": "2026-08-15T22:40:27",
+   "event": "spawn",
+   "role": "placement",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-16T00:07:44",
+   "event": "decision",
+   "what": "SCRAP AVERTED: both provisional connector rotations were WRONG and are corrected - J1 0 -> 270, J2 90 -> 0"
+  },
+  {
+   "ts": "2026-08-16T00:07:44",
+   "event": "decision",
+   "what": "Annealer candidates ALL REJECTED on structure; the hand placement is the winner (it also won on hpwl 125.0 vs 130.3-130.8)"
+  },
+  {
+   "ts": "2026-08-16T00:07:44",
+   "event": "decision",
+   "what": "OUTLINE IS FINAL AT 35 x 25 - measured, not estimated. Do NOT resize; route here."
+  },
+  {
+   "ts": "2026-08-16T00:07:45",
+   "event": "edit",
+   "edit_class": "move_fp",
+   "refs": [],
+   "human_hold": 1
+  },
+  {
+   "ts": "2026-08-16T00:09:17",
+   "event": "decision",
+   "what": "RULED (orchestrator): ACCEPT L1's footprint aiee:IND-SMD_L12.5-W12.5_RLF12545T despite the name referencing a different vendor's part (TDK RLF12545T) than the sourced SMDRI127-150MT"
+  },
+  {
+   "ts": "2026-08-16T01:35:58",
+   "event": "human",
+   "checkpoint": "3",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-08-16T01:35:58",
+   "event": "phase",
+   "phase": "P7",
+   "prev": "P6"
   }
  ]
 }

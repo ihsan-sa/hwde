@@ -4380,3 +4380,48 @@ the layer defaults entirely when `planes[]` is present - it does not merge. Decl
 F.Cu thermal island therefore leaves the board with NO bottom pour at all, taking out the
 return path, the /SW reference and the radiator in one stroke. Declare every layer you want
 poured, not just the one you are overriding.
+
+## 2026-08-16 [routing][routelib][freerouting] routelib's score regex ate the sentence's full stop, so route_auto crashed ON SUCCESS - a greedy digit-or-dot class is the wrong score capture
+
+Found live at bb-buck P6 (route probe, completion 1.00), fixed in
+`.claude/skills/ai-ee/scripts/lib/routelib.py`.
+
+`_PASS_RE`/`_SESSION_RE` captured the Freerouting score as `([\d.]+)`. When the router
+finishes with nets still unrouted the line reads `...score of 1234.5 (7 unrouted)` and the
+space terminates the greedy class, so it parses. When it finishes with **zero** unrouted
+there is no parenthetical and the line ends in a full stop - `...score of 997.76.` - which
+`[\d.]+` happily swallows, and `float("997.76.")` raises
+`ValueError: could not convert string to float: '997.76.'`.
+
+**So the parser failed only on the success path**, which is why three prior boards never hit
+it: they all had unrouted nets at probe time. A clean board is the unusual case.
+
+Fix is the score capture, not the suffix: `(\d+(?:\.\d+)?)`. A trailing sentence period is
+not consumed because the second `.` is not followed by digits. Verified both ways (with and
+without the ` (N unrouted)` suffix, pass line and session line).
+
+Generalisable: when a vendor log's optional suffix is what terminates your greedy capture,
+the capture is wrong even though every test you have passes. Prefer a shape-anchored pattern
+over a character class whose terminator you do not control.
+
+## 2026-08-16 [placement][constraints][gates] Two constraint mechanisms silently do not enforce: `keepouts` are board-LOCAL (never translated) and `separation` is centre-to-centre AND skipped when either ref is locked
+
+Both found by hand at bb-buck P6 while cross-checking a passing `place` gate.
+
+(a) `constraints.json` `placement.keepouts` rects are documented board-LOCAL and must be
+translated by `reports/board_init.json.outline_bbox` before use. **Nothing does that
+automatically.** The place gate's `keepouts` leg therefore compares placed parts against
+rectangles sitting at absolute board origin - off in space - and passes trivially. The
+placement agent enforced the translated rects (+26.07, +34.48) through a scratch working copy;
+had it not, the M3 washer keepouts would have been unenforced on a board where they own the
+corners.
+
+(b) `placement.separation` reads as **centre-to-centre**, not courtyard-to-courtyard, and the
+rule is **dropped entirely when either ref is locked**. On bb-buck all four declared pairs have
+a locked member, so all four were unchecked. The FB-divider-to-L1 pair measures 3.84 mm
+courtyard-to-courtyard against a declared 5 mm, while centre-to-centre is 13.14 mm and
+"passes".
+
+Consequence for any board: a green `place` gate does NOT mean keepouts and separations were
+checked. Verify both by hand until these are fixed, and do not read the gate's silence as
+evidence.

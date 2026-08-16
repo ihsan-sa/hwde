@@ -1,14 +1,14 @@
 # Knowledge ladder triage (T4, 2026-08-06; U0 sweep 2026-08-13; U6 2026-08-14;
 # U14 2026-08-15; U15 2026-08-15)
 
-One row per `LEARNINGS.md` entry (298 of them; the last starts at
-line 4310), placed on the maturity ladder from
+One row per `LEARNINGS.md` entry (303 of them; the last starts at
+line 4407), placed on the maturity ladder from
 `design/routing-knowledge-notes.md` section 6, with the artifact that owns - or
 must own - it.
 
 The failure mode is knowledge sitting at the WRONG LEVEL, not knowledge volume:
 **if a script can check it, it does not belong in the prompt.** This register is
-the outer-loop worklist. `open` rows (122) are the gaps nothing owns yet -
+the outer-loop worklist. `open` rows (126) are the gaps nothing owns yet -
 they are the input to T6 (per-stage deep evaluation) and to any later step
 looking for the next promotion.
 
@@ -34,18 +34,18 @@ looking for the next promotion.
 
 ## Summary
 
-Recomputed from the table at U15 (2026-08-15), all 298 rows
+Recomputed from the table at bb-buck P6 (2026-08-16), all 303 rows
 (`learnings.py triage` prints these numbers - recompute rather than edit them):
 
 | Level | now | target |
 |---|---|---|
-| L0 | 112 | 12 |
+| L0 | 116 | 14 |
 | L1 | 16 | 12 |
-| L2 | 51 | 104 |
+| L2 | 52 | 107 |
 | L3 | 119 | 170 |
 
-121 entries want to climb at least one level. Status: **done 151**,
-**open 122**, **n/a 7**, planned 18
+123 entries want to climb at least one level. Status: **done 152**,
+**open 126**, **n/a 7**, planned 18
 (T2 10, T8 1 - both shipped, those rows need re-reading; U2 2, U9 2,
 U3/U5/U8 1 each).
 
@@ -416,3 +416,8 @@ the row's Now level and status in the same commit as the code.
 | 296 | 4280 | An envelope is what BOUNDS a rule, not what the rule mentions | [knowledge][coverage][process] | L0 | L0 | scripts/lib/knowledgelib.py | done | U14: the authoring rule is stated in knowledgelib's module docstring beside the schema example (where a record author looks) and demonstrated in all 16 approval notes. Not mechanizable - "where does this stop being true" is the judgment the owner is FOR - but the schema already enforces its consequence (envelope required at topology+, forbidden at principle) |
 | 297 | 4297 | The wave-parallel pathspec commit silently drops NEW files - | [git][process][waves] | L0 | L1 | ai-ee-v3-plan.md | open | Third entry in this family (247, 289). The L1 version is a pre-commit probe: compare `git status --porcelain` untracked paths against the session's own edit list and warn when a path the session created is not staged. Until then the plan's Conventions carry it, and the check is `git show --stat HEAD` file count vs expected |
 | 298 | 4310 | The Claude Code Bash tool collapses `\\` to `\` inside a QUOTED heredo | [windows][process][tools] | L0 | L0 | CLAUDE.md | n/a | Host/tooling fact for sessions on this Windows box, not pipeline knowledge: the session Bash tool alters quoted-heredoc bytes, so edit scripts are authored with the Write tool and run with the venv python. Nothing in the repo can enforce it (the layer is outside the scripts); the operating rule lives in LEARNINGS + the session protocol |
+| 299 | 4327 | Digi-Key SEARCH pages report price tiers that are wrong by 2x - always | [parts][sourcing][tools] | L0 | L0 | UNTRIAGED | open | triage me: which artifact should own this? |
+| 300 | 4342 | Two structural sourcing facts for CH224-class PD boards: WCH has no US | [parts][sourcing] | L0 | L0 | UNTRIAGED | open | triage me: which artifact should own this? |
+| 301 | 4357 | `planes[]` entries reject unknown keys - including the `_note` convent | [constraints][planes_gen][lint] | L0 | L2 | scripts/constraints_lint.py | open | Found at bb-buck P2 by reading the CONSUMER before writing the producer. Two coupled defects: planes_gen raises CheckError on any unknown key (so the `_note` convention every other section uses hard-fails there), and constraints_lint does NOT catch it - it exits 0 on a file planes_gen will reject, verified against boards/sbuck-5v3a/architecture/constraints.json, which would fail a planes_gen re-run today. The L2 fix is for constraints_lint to validate planes[] against planes_gen's own accepted-key set, so a P2 that lints green cannot hard-fail at P5/P7. Second trap in the same entry (build_plan REPLACES layer defaults rather than merging) is L0 prose in architect.md |
+| 302 | 4384 | routelib's score regex ate the sentence's full stop, so route_auto cra | [routing][routelib][freerouting] | L2 | L2 | scripts/lib/routelib.py | done | FIXED at bb-buck P6, not just recorded: the score capture is now `\d+(?:\.\d+)?` instead of `[\d.]+`, so a trailing sentence period is not consumed. The bug fired ONLY on the success path (no ` (N unrouted)` suffix to terminate the greedy class), which is why three prior boards never hit it - they all had unrouted nets at probe time. Regression-verified on both line shapes, pass and session, with and without the suffix; the routing test selection passes |
+| 303 | 4407 | Two constraint mechanisms silently do not enforce: keepouts are board- | [placement][constraints][gates] | L0 | L2 | scripts/lib/placelib.py | open | Found by hand at bb-buck P6 while cross-checking a PASSING place gate, which is the point: a green gate is not evidence these were checked. (a) placement.keepouts rects are board-LOCAL by documented convention and nothing translates them by outline_bbox, so the gate's keepouts leg compares against rectangles at absolute origin and passes trivially. (b) placement.separation reads centre-to-centre, not courtyard-to-courtyard, AND is dropped when either ref is locked - on bb-buck that silently disabled all four declared pairs. The L2 fix is to translate keepouts at load and to measure separation courtyard-to-courtyard with locked refs still participating |
