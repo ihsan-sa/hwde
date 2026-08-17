@@ -16,7 +16,7 @@
 \begin{center}
 {\LARGE\bfseries bb-mcu --- Design Document}\\[6pt]
 {\large ai-ee v1 pipeline}\\[2pt]
-generated 2026-08-16 20:17:52
+generated 2026-08-16 21:57:31
 \end{center}
 \tableofcontents
 
@@ -29,10 +29,10 @@ generated 2026-08-16 20:17:52
 \endhead
 board & bb-mcu \\
 workspace & \texttt{boards/bb-mcu} \\
-phase & P2 \\
-gate status & no gates recorded yet \\
+phase & P4 \\
+gate status & all 1 recorded gates pass \\
 state created & 2026-08-16T17:25:37 \\
-state updated & 2026-08-16T20:16:07 \\
+state updated & 2026-08-16T21:57:21 \\
 \bottomrule
 \end{longtable}
 }
@@ -285,6 +285,15 @@ P2 & Accepted the corrected mcu-supply-pin-pair-decoupling as ONE record at leve
 P2 & The no-series-resistor ruling stands, but it is now recorded as a CONDITIONAL that this board passes, not as a family fact. Infineon AN220270 p30 recommends 20 ohm on SWCLK unconditionally ('in general, it is recommended'); this board omits it because its own tr-vs-tau check clears by \textasciitilde{}80x & the second reader flagged the tension explicitly: a future design agent reading only the record's remedy\_if\_check\_fails branch could omit a resistor Infineon would fit. The knowledge records now express it correctly - the pulls record declines to rule on series elements and hands off to the edge-rate record's per-board rise-time-against-line-delay check, and both disclose the Infineon recommendation they do not carry. So the library will not tell a future board 'no series resistor needed'; it will tell it to run the check. For bb-mcu specifically the check is decisive: 5 ns fastest specified edge (DS Table 48, and the Min column is empty on every fmax/tr/tf row so 5 ns is a specified fastest, not a guaranteed floor) against \textasciitilde{}1.5 ns settling on a \textless{}=50 mm trace and a 125 ns half-bit at 4 MHz. Flagged for the promote pass as a curation question, not a design change \\
 P2 & DESIGNING UNDER COVERAGE GAP: slot block:B2 (swd-debug-port) stays gap on three classes - esd, decoupling, constraints-emission. No second research round opened, though 4 of the 6-task budget remain & these are the rows the first pass DECLARED as honest gaps rather than filling with weak sources, and a second round would hit the same wall: ESD knowledge for a debug header needs IEC 61000-4-2 or a vendor ESD app note, and the two hosts that would carry the probe-side and standards material (arm.com, segger.com) are not on the fetch allowlist at all. More important, the gap is RISKLESS on this board: esd and decoupling are feature classes the block-only scope tier EXCLUDES, so even perfect knowledge would change nothing about what gets built here - and constraints-emission at principle level has a positive answer already recorded, namely that this interface emits NO layout constraints (high\_speed and diff\_pairs carry no SWD entries, and JLC sells no impedance-controlled 2-layer stackup). The gap is a statement about the LIBRARY, not about this board. It is recorded here rather than left silent, per the build-modes rule, and is the right thing for a future MCU board at a higher scope tier to close \\
 P2 & Both new checklists (mcu, swd-debug-port) and all 13 verified records sit at maturity draft/verified with floor\_met false - they are queued PENDING for the owner's promotion ruling, not promoted by this run & only owner-approved or bench-proven records satisfy coverage at the default floor, and promotion is explicitly the owner's verb (draft -\textgreater{} verified is the reader's, verified -\textgreater{} approved is the owner's, approved -\textgreater{} proven is bring-up's). This run deliberately does not self-promote: it would be the same agent grading its own homework, and the library is shared with every other board. Two queue entries are compiled in boards/bb-mcu/learnings/queue.yaml awaiting a promote pass \\
+P3 & BOM keeps ST's stated capacitance values (4.7 uF bulk, 10 nF + 1 uF on VDDA) even though all three are JLC EXTENDED at 0603, rather than substituting a nearby Basic value & the part-sourcer verified with the raw ranked search window that JLC's curated Basic-passive list carries no 4.7 uF, 10 nF or 1 uF up to 1206 in this catalog snapshot (2026-08-16) - so this is a real catalog gap, not a bad query. Substituting e.g. 10 uF for the 4.7 uF bulk to reach a Basic SKU would be electrically defensible (bulk is a minimum, not a maximum) but it would depart from the value ST's Figure 12 actually states, and this board's entire discipline has been to build exactly what the datasheet requires and to make the required-vs-recommended line visible. The cost argument that would justify substituting does not even apply: the run stops at P9 by mode, so no per-unique-Extended-part assembly fee is ever incurred. 2 Basic (C1 100nF, R1 10k) + 6 Extended; \textasciitilde{}1.35 USD/board, \textasciitilde{}6.76 USD for the 5-board build \\
+P3 & U1 alternate is C32908 (STM32F030F4P6, tube pack, stock 1329) - same die and pinout, differing only in packaging from C89040's tape-and-reel & the P1 scout flagged every candidate as single-source at its exact LCSC row. This is the closest thing to a true drop-in the catalog offers (LCSC serves the identical datasheet document for both). The PY32F030 is deliberately NOT listed as an alternate despite being pin-compatible: it was rejected at P1 on the hard ground that puya.com is not on the research fetch allowlist, so its behaviour can never be sourced by this pipeline, and it is not a verified drop-in. U1 stock re-verified live at 18,977 (19,015 at P1 - normal drift) \\
+P3 & ACCEPTED the pulled U1 SOP-20 land pattern despite two deviations from ST Figure 37: pad 0.35 x 1.494 mm vs 0.40 x 1.35 mm, and row spacing 6.00 mm vs 5.75 mm. No hand edit to the footprint & worked the geometry rather than judging the delta. At the package's 6.4 mm lead span with a \textasciitilde{}0.6 mm foot, the lead foot sits about 2.6-3.2 mm from the centreline. ST's land spans 2.20-3.55 mm from centreline; the pulled land spans 2.253-3.747 mm. BOTH fully capture the foot - the pulled one trades \textasciitilde{}0.05 mm of heel for \textasciitilde{}0.20 mm more toe, which is the direction that helps fillet formation and inspection. The narrower pad also WIDENS the inter-pad gap from 0.25 mm (ST) to 0.30 mm, so solder-bridging risk goes DOWN, not up. It is the EasyEDA/LCSC land for this exact LCSC part number, i.e. the one JLC's own PCBA line places. Verified pin-1 independently: silk dot and chamfered corner both anchor at pad 1 only, confirmed in a kicad-cli render \\
+P3 & DEFECT FOUND AND FIXED: J1's pulled footprint (C8465, WJ500V-5.08-2P) drills 1.30 mm where the vendor's own PCB LAYOUT panel recommends 1.50 mm. Approving a hand edit to drill 1.50 mm with the pad enlarged to 2.30 mm (annulus 0.40 mm) & the datasheet dimensions the pin at 0.90 mm wide. If it is square - which the square screw-clamp opening drawn above it indicates, though the shape is not explicitly labelled - the worst-case diagonal is 0.90{*}sqrt(2) = 1.273 mm, which leaves 0.027 mm of total diametral clearance in a 1.30 mm hole. That is a terminal that does not seat, found at assembly on all 5 boards. The vendor's recommended 1.50 mm is authoritative whichever shape the pin is, so the fix does not depend on resolving the ambiguity. Enlarging the pad from 2.00 to 2.30 mm keeps the annulus at 0.40 mm instead of dropping it to 0.25 mm: a screw terminal takes real mechanical stress from wire pull, so barrel strength is worth the copper, and at 5.08 mm pitch a 2.30 mm pad still leaves 2.78 mm of clearance. This is the exact class of defect the librarian role calls a top-3 board killer, and NOTHING in the pipeline would have caught it - fp\_verify had no land pattern to diff against until this extraction was made, and it does not check drill-vs-pin at all. The J2/J3 header needs no change: 1.10 mm pulled vs 1.02 mm recommended is oversize, the safe direction, with 0.195 mm clearance on its SQ 0.64 mm pin \\
+P3 & P3-exit coverage: all 3 part slots COVERED (C89040, C8465, C32713271); block:B1 provisional; block:B2 still gap on the same esd/decoupling/constraints-emission already recorded at P2. NO new research tasks opened at P3 & the escalated first call (--maturity-floor proven --research-provisional, mandatory at a learning target) reported all five slots as gaps, but that is the escalation re-firing on slots this run ALREADY researched at P2, not a new finding: with the floor at proven, a verified-but-unapproved record can never satisfy anything until a built board proves it via knowledge.py --prove, so a seeding run will always show block gaps on that call. The re-run without the flags gives the true verdict and it is identical to P2's post-research state. Opening tasks would re-research what was researched two hours ago. Side effect worth noting: the two connector datasheet extractions ordered to chase the J1 drill defect also closed the part-slot coverage - C8465 and C32713271 went from having no extraction at all to covered \\
+P4 & ONE schematic-block agent for the whole board, not one per sheet & the P2 sheet plan is a single flat root sheet for 9 parts and 10 nets, and the full-run recipe explicitly sanctions one schematic agent on a small board provided it is recorded. Splitting it would add a stitching seam with nothing on either side of it, and the recorded /sheet/LABEL export hazard that cost lumina-par is avoided entirely by having no hierarchy \\
+P4 & REVERSING the P1 ruling: ADD C5, 100 nF from NRST to GND. The reviewer was right and my original reason was wrong & I ruled it out at P1 on AN4325 filing the part under Table 6 Optional components 'for RESET button', reasoning that this board has no button. The reviewer showed that misreads the evidence: the DATASHEET's own Figure 21 note 1 recommends the capacitor unconditionally as parasitic-reset protection, which is a different and stronger justification than button debounce, and the run's own C89040 extraction and its own swd-debug-port research record both carry the 0.1 uF. Decisive for scope: requirements.md section 2 point 5, written at P0 before any of this, explicitly scoped 'whatever the datasheet requires on NRST / boot-mode pins' as in-scope support - so this is not the recommended-only conditioning the block-only tier excludes, it is the carve-out the requirements anticipated. And the exposure is specific to this board: NRST is deliberately routed to an unshielded flying lead, which is exactly the parasitic-reset case the note addresses. My own P1 decision text had already flagged that risk and accepted it; the reviewer supplied the source that turns the accepted risk into an unnecessary one \\
+P4 & J3 pin order CHANGED from IO1/IO2/GND/IO3/IO4 to IO1/IO2/IO3/IO4/GND - GND moves off the centre to position 5 & the reviewer found that J2 and J3 are the SAME unkeyed 5-position part, so a cable made for one fits the other. With GND at J3 centre and +3V3 at J2 centre, plugging the GPIO cable into the debug header shorts the rail through the cable's own return - a hard short, the worst outcome available on this board. Moving GND to an end makes the worst cross-plug outcome a GPIO pin contacting the rail or ground, both current-limited by the pin's own driver and non-destructive at 3.3 V. The cost is the return-path benefit the P2 architect chose centre-GND for, which is immaterial here: the owner's answer 3 freed these four pins from any electrical requirement, they are plain digital I/O with no stated edge rate, and a scope probe brings its own ground clip. Accepted trade: J3's own 180-degree reversal is now less clean (GND no longer self-maps), but reversal costs an IO-to-GND contact while cross-plugging cost a rail short \\
+P4 & J2 pin order UNCHANGED (GND/SWCLK/3V3/SWDIO/NRST) despite the reviewer's one-position-slip warning. Mitigation stays per-pin silk, carried to P6 & the reviewer correctly notes my order was ruled on the 180-degree reversal case only, and that a one-position slip puts a probe push-pull driver onto the rail. I worked the alternatives and centre-rail still wins: with the rail at an END, a one-position slip lands the probe's GND wire on it, which is a hard short - strictly worse than a driver contact, which is current-limited by the driver and which probes generally detect. There is no 5-position order that is safe against BOTH a reversal and a one-position slip, so the ruling is to take the failure that is current-limited in every case. Recorded rather than dismissed: the residual risk is real and its only mitigation is that the per-pin silk actually gets placed and stays legible, which constraints.json already flags as load-bearing and which P6 must deliver \\
 \bottomrule
 \end{longtable}
 }
@@ -416,7 +425,9 @@ Orientation guidance for P6, not a constraint: put U1's {*}{*}pin-1 end toward J
 
 Full architecture narrative (not inlined; see the artifact index): \texttt{architecture/blocks.md}, \texttt{architecture/power\_tree.md}, \texttt{architecture/stackup.md}.
 \section{Schematic}
-\emph{Pending --- produced at P4.}
+Gate \texttt{erc} (phase P4): \textbf{pass} after 2 attempt(s); last 2026-08-16T21:57:21, failing 0 of 0.
+The full schematic PDF follows.
+\includepdf[pages=-]{reports/schematic.pdf}
 \section{Layout}
 \emph{Pending --- produced at P6.}
 \section{Verification}
@@ -470,33 +481,61 @@ Full architecture narrative (not inlined; see the artifact index): \texttt{archi
 \begin{quote}\small\ttfamily\raggedright
 \# P2 Architecture + coverage research - digest (2026-08-16)\\
 ~\\
-- Architecture package written; `constraints\_lint` exit 0. 2 blocks declared\\
-  (`mcu`, `swd-debug-port`), stackup JLC2313\_1.6 2L, one flat root sheet,\\
-  9 electrical parts. Nothing relaxed by the mode - the brief states no size.\\
-- Coverage fired as designed: first call (floor `proven`, `--research-\\
-  provisional`) -\textgreater{} both blocks gap, no checklist existed for either topology.\\
-- 2 research tasks, 13 records + the library's FIRST `mcu` and\\
-  `swd-debug-port` checklists. 3 sources each, no forum sources, 1 depth unit\\
-  left unspent on each. All 13 records now verified by fresh readers.\\
-- The refute loop earned its keep - 3 real defects caught and fixed:\\
-  a decoupling envelope bounded on the wrong axis (twice: `idd\_ma\textless{}=120`, then\\
-  `vdd\_v 1.8-3.6`; the record is now correctly `level: principle`), a false\\
-  "every Min cell is blank" claim (tEXTIpw has Min 10 ns), and a family-level\\
-  `external\_series\_required: false` that contradicted its own sibling record.\\
+- Architecture written, `constraints\_lint` exit 0: 2 blocks (`mcu`,\\
+  `swd-debug-port`), stackup JLC2313\_1.6 2L, one flat root sheet, 9 parts.\\
+  Nothing relaxed by the mode - the brief stated no size to lose.\\
+- Coverage fired as designed: first call at floor `proven` with\\
+  `--research-provisional` -\textgreater{} both blocks gap, no checklist existed for either.\\
+- 2 research tasks -\textgreater{} 13 records + the library's FIRST `mcu` and\\
+  `swd-debug-port` checklists. 3 sources each, no forum sources, caps not hit.\\
+  All 13 verified by fresh readers.\\
+- The refute loop caught 3 real defects: a decoupling envelope bounded on the\\
+  wrong axis (twice - now correctly `level: principle`), a false "every Min\\
+  cell is blank" claim (tEXTIpw has Min 10 ns), and a family-level\\
+  `external\_series\_required: false` contradicting its own sibling record.\\
 - Re-run coverage: `block:B1` provisional on all 5 rows; `block:B2` gap on\\
-  `esd`, `decoupling`, `constraints-emission` -\textgreater{} recorded as an explicit\\
-  designing-under-coverage-gap decision (riskless: the first two are classes\\
-  the block-only tier excludes; the third has a positive answer already).\\
-- Design findings from the research: VDDA carries the internal RC oscillators\\
-  and the PLL (DS Fig 12), so on this crystal-less board VDDA IS the clock\\
-  supply and a filter into it would be a FAULT, not just out of scope.\\
-- Three claims the pipeline refused to assert, all recorded as decisions and\\
-  flagged for bring-up: the BOOT0 level-to-boot-memory mapping (RM0360\\
-  unreachable), whether a probe's rail pin is a sense input (arm/segger not\\
-  allowlisted), and any mm critical-length for SWD (no PCB delay sourced).
+  esd / decoupling / constraints-emission -\textgreater{} explicit designing-under-gap\\
+  decision (riskless: two are classes block-only excludes).\\
+- Key design finding: VDDA carries the internal RC oscillators and the PLL\\
+  (DS Fig 12), so on this crystal-less board VDDA IS the clock supply and a\\
+  filter into it would be a FAULT, not merely out of scope.
 \end{quote}
+\paragraph*{P3}
+\begin{quote}\small\ttfamily\raggedright
+\# P3 Parts + Library - digest (2026-08-16)\\
+~\\
+- `parts.json`: 9 lines (8 orderable + 1 footprint-only hole). 2 Basic /\\
+  6 Extended, \textasciitilde{}1.35 USD/board. U1 stock re-verified 18,977; alt C32908.\\
+- Kept ST's stated cap values though 4.7uF/10nF/1uF are all Extended at 0603\\
+  (verified: JLC's Basic list carries none of them up to 1206).\\
+- U1 extraction validated: 20 pins, 5 layout notes, land from Figure 37. Its\\
+  pinout agrees independently with the P1 scout and P2 architect.\\
+- {*}{*}DEFECT FOUND AND FIXED{*}{*}: J1's pulled footprint drilled 1.30 mm where the\\
+  vendor recommends 1.50 mm; the 0.90 mm pin's square diagonal is 1.273 mm =\\
+  0.027 mm clearance, a terminal that does not seat. Approved hand edit to\\
+  1.50 mm drill / 2.30 mm pad. fp\_verify now 3/3 pass, 0 failed.\\
+  Nothing in the pipeline would have caught it: fp\_verify had no land pattern\\
+  to diff until I ordered the connector extractions, and it has no\\
+  drill-vs-pin check at all.\\
+- U1 land deviation ACCEPTED on worked geometry (the pulled land still\\
+  captures the lead foot, with more toe and a wider inter-pad gap than ST's).\\
+- Coverage: 3 part slots covered, B1 provisional, B2 gap on the 3 classes\\
+  already recorded at P2. No new research opened.
+\end{quote}
+\paragraph*{P4}
+\emph{(no digest recorded)}
 \subsection*{Gate attempt history}
-\emph{(no entries)}
+{\small
+\begin{longtable}{llll}
+\toprule
+\textbf{Timestamp} & \textbf{Gate} & \textbf{Status} & \textbf{Failing/Total} \\
+\midrule
+\endhead
+2026-08-16T21:23:29 & erc & pass & 0/0 \\
+2026-08-16T21:57:21 & erc & pass & 0/0 \\
+\bottomrule
+\end{longtable}
+}
 \subsection*{Issues}
 \emph{(no entries)}
 \subsection*{Human checkpoints}
@@ -506,7 +545,7 @@ Full architecture narrative (not inlined; see the artifact index): \texttt{archi
 \textbf{Id} & \textbf{Phase} & \textbf{Status} & \textbf{When} & \textbf{Note} \\
 \midrule
 \endhead
-1 & P2 & not reached &  &  \\
+1 & P2 & approved & 2026-08-16T20:18:19 & DELEGATED RULING, not an owner approval: the owner delegated design rulings for this run ('make decisions yourself based on what will give the best learning for the basic system'). Orchestrator ruled H1 pass: 2 blocks, JLC2313\_1.6 2L, 9 parts, \textasciitilde{}1.30 USD/board BOM, nothing relaxed by the mode (no size was ever stated). Coverage: block:B1 provisional on all 5 rows, block:B2 gap on esd/decoupling/constraints-emission - recorded as an explicit designing-under-coverage-gap decision. Research caps NOT hit: 4 of 6 tasks and 1 of 4 depth units per task left unspent. Riskiest decision: omitting the NRST 100 nF cap, diverging from the shipped stm32-blinky. Owner items surfaced but not blocking: the fetch allowlist (st.com and analog.com are unreachable from this host though allowlisted; arm.com and segger.com are absent and would be needed to source the probe side), and the promotion ruling on 13 verified records + 2 new checklists \\
 2 & P4 & not reached &  &  \\
 3 & P6 & not reached &  &  \\
 4 & P8 & not reached &  &  \\
@@ -521,14 +560,20 @@ Full architecture narrative (not inlined; see the artifact index): \texttt{archi
 \textbf{File} & \textbf{Size} & \textbf{Note} \\
 \midrule
 \endhead
-\texttt{state.json} & 31,904 B &  \\
+\texttt{state.json} & 48,357 B &  \\
+\texttt{kicad/bb-mcu.kicad\_sch} & 60,588 B &  \\
 \texttt{brief/brief.md} & 374 B &  \\
 \texttt{requirements.md} & 19,063 B &  \\
 \texttt{architecture/blocks.md} & 19,238 B &  \\
-\texttt{architecture/constraints.json} & 16,033 B &  \\
+\texttt{architecture/constraints.json} & 16,927 B &  \\
 \texttt{architecture/power\_tree.md} & 10,279 B &  \\
 \texttt{architecture/sheets.md} & 12,412 B &  \\
 \texttt{architecture/stackup.md} & 8,344 B &  \\
+\texttt{reports/gate-erc.json} & 14,213 B &  \\
+\texttt{reports/review-schematic.json} & 2,883 B &  \\
+\texttt{reports/review-schematic.md} & 19,852 B &  \\
+\texttt{reports/schematic.pdf} & 60,957 B &  \\
+\texttt{reports/top.net} & 24,807 B &  \\
 \bottomrule
 \end{longtable}
 }

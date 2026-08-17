@@ -3,8 +3,8 @@
  "board": "bb-mcu",
  "workspace": "boards/bb-mcu",
  "created": "2026-08-16T17:25:37",
- "updated": "2026-08-16T21:57:21",
- "phase": "P4",
+ "updated": "2026-08-16T22:57:35",
+ "phase": "P6",
  "gates": {
   "erc": {
    "phase": "P4",
@@ -42,6 +42,46 @@
      }
     }
    ]
+  },
+  "place": {
+   "phase": "P6",
+   "status": "pass",
+   "attempts": 2,
+   "last": {
+    "ts": "2026-08-16T22:57:35",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0,
+    "inputs": {
+     "pcb": "sexpr_no_uuid:1582bebb8be4bd67e089a89c3f142715a74710efbf38f659c3ea68d3a27595a1",
+     "constraints": "json_canonical:6c2e911bf434830f0423202e4eebca4dba29c51cdc8ad34e0873f011b91050ed",
+     "decoupling": "json_canonical:13962e532ef4ee1397b9d192a88d2fdf1313b50d2508319b4c79444ed63364fb"
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-16T22:52:31",
+     "status": "fail",
+     "failing_count": 1,
+     "total": 1,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:a887ac3be1ac1f4537d5c5830bf3ad17eb1f687ef90eda2c43fd9608b80bbb9b",
+      "constraints": "json_canonical:6c2e911bf434830f0423202e4eebca4dba29c51cdc8ad34e0873f011b91050ed",
+      "decoupling": "json_canonical:13962e532ef4ee1397b9d192a88d2fdf1313b50d2508319b4c79444ed63364fb"
+     }
+    },
+    {
+     "ts": "2026-08-16T22:57:35",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:1582bebb8be4bd67e089a89c3f142715a74710efbf38f659c3ea68d3a27595a1",
+      "constraints": "json_canonical:6c2e911bf434830f0423202e4eebca4dba29c51cdc8ad34e0873f011b91050ed",
+      "decoupling": "json_canonical:13962e532ef4ee1397b9d192a88d2fdf1313b50d2508319b4c79444ed63364fb"
+     }
+    }
+   ]
   }
  },
  "human": {
@@ -49,6 +89,11 @@
    "status": "approved",
    "ts": "2026-08-16T20:18:19",
    "note": "DELEGATED RULING, not an owner approval: the owner delegated design rulings for this run ('make decisions yourself based on what will give the best learning for the basic system'). Orchestrator ruled H1 pass: 2 blocks, JLC2313_1.6 2L, 9 parts, ~1.30 USD/board BOM, nothing relaxed by the mode (no size was ever stated). Coverage: block:B1 provisional on all 5 rows, block:B2 gap on esd/decoupling/constraints-emission - recorded as an explicit designing-under-coverage-gap decision. Research caps NOT hit: 4 of 6 tasks and 1 of 4 depth units per task left unspent. Riskiest decision: omitting the NRST 100 nF cap, diverging from the shipped stm32-blinky. Owner items surfaced but not blocking: the fetch allowlist (st.com and analog.com are unreachable from this host though allowlisted; arm.com and segger.com are absent and would be needed to source the probe side), and the promotion ruling on 13 verified records + 2 new checklists"
+  },
+  "2": {
+   "status": "approved",
+   "ts": "2026-08-16T21:58:16",
+   "note": "DELEGATED RULING, not an owner approval. Orchestrator ruled H2 pass. erc gate PASS (0/0, attempt 2, commit 94d7a24), netlist_audit exit 0, 10 parts, 44/44 pins. Reviewer 0 errors / 3 warnings, all three ruled: W1 NRST cap ADDED (reversing my own P1 ruling - the reviewer showed my reason misread AN4325 where the datasheet Fig 21 note 1 recommends it unconditionally for parasitic reset, and this board flies NRST on a lead); W3 J3 reordered to move GND off centre (J2/J3 are the same unkeyed part, so the GPIO cable cross-plugged into the debug header shorted the rail); W2 J2 order held unchanged with reasoning recorded (rail-at-an-end is strictly worse under a one-position slip). Review also CLOSED the run's BOOT0 polarity open item: BOOT0=0 selects Main Flash, the 10k pull-down is correct. No ERC waivers exist - there are no ERC warnings to waive. Carried to P6 as a hard requirement: per-pin silk on J2 and J3, which is the only mitigation for the unkeyed-header residual risk"
   }
  },
  "artifacts": {
@@ -63,6 +108,38 @@
    "kind": "pro",
    "sha256": "json_canonical:4410bd83f3d0f0949c8fc8f1c29dea97e64089b82dd43f3374e925f855d99de4",
    "hashed": "2026-08-16T21:57:21"
+  },
+  "pcb": {
+   "path": "kicad/bb-mcu.kicad_pcb",
+   "kind": "pcb",
+   "sha256": "sexpr_no_uuid:1582bebb8be4bd67e089a89c3f142715a74710efbf38f659c3ea68d3a27595a1",
+   "hashed": "2026-08-16T22:57:35"
+  },
+  "constraints": {
+   "path": "kicad/constraints.json",
+   "kind": "constraints",
+   "sha256": "json_canonical:6c2e911bf434830f0423202e4eebca4dba29c51cdc8ad34e0873f011b91050ed",
+   "hashed": "2026-08-16T22:57:35"
+  },
+  "decoupling": {
+   "path": "kicad/decoupling.json",
+   "kind": "decoupling",
+   "sha256": "json_canonical:13962e532ef4ee1397b9d192a88d2fdf1313b50d2508319b4c79444ed63364fb",
+   "hashed": "2026-08-16T22:57:35"
+  },
+  "gerbers": {
+   "path": "fab/bb-mcu_gerbers.zip",
+   "kind": "gerbers",
+   "sha256": null,
+   "hashed": "2026-08-16T22:57:25",
+   "stale": [
+    {
+     "ts": "2026-08-16T22:57:25",
+     "edit_class": "outline_change",
+     "refs": [],
+     "human_hold": 2
+    }
+   ]
   }
  },
  "open_issues": [],
@@ -282,7 +359,28 @@
    "ts": "2026-08-16T21:51:09"
   }
  ],
- "edits": [],
+ "edits": [
+  {
+   "ts": "2026-08-16T22:57:25",
+   "class": "outline_change",
+   "refs": [],
+   "note": "outline -> 34.77x22.261 mm (fit)",
+   "human_hold": 2,
+   "gates": [
+    "place",
+    "drc",
+    "drc_routed",
+    "verify",
+    "dfm"
+   ],
+   "gates_marked": [
+    "place"
+   ],
+   "stale_artifacts": [
+    "gerbers"
+   ]
+  }
+ ],
  "spawns": [
   {
    "ts": "2026-08-16T17:25:58",
@@ -397,6 +495,12 @@
    "role": "schematic-reviewer",
    "model": "opus/xhigh (fable/high substituted)",
    "phase": "P4"
+  },
+  {
+   "ts": "2026-08-16T22:00:49",
+   "role": "placement",
+   "model": "opus/xhigh (fable/high substituted)",
+   "phase": "P6"
   }
  ],
  "history": [
@@ -776,6 +880,53 @@
    "ts": "2026-08-16T21:57:21",
    "event": "gate",
    "gate": "erc",
+   "status": "pass",
+   "attempt": 2,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-16T21:58:16",
+   "event": "human",
+   "checkpoint": "2",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-08-16T21:58:33",
+   "event": "phase",
+   "phase": "P5",
+   "prev": "P4"
+  },
+  {
+   "ts": "2026-08-16T22:00:48",
+   "event": "phase",
+   "phase": "P6",
+   "prev": "P5"
+  },
+  {
+   "ts": "2026-08-16T22:00:49",
+   "event": "spawn",
+   "role": "placement",
+   "model": "opus/xhigh (fable/high substituted)"
+  },
+  {
+   "ts": "2026-08-16T22:52:31",
+   "event": "gate",
+   "gate": "place",
+   "status": "fail",
+   "attempt": 1,
+   "failing_count": 1
+  },
+  {
+   "ts": "2026-08-16T22:57:25",
+   "event": "edit",
+   "edit_class": "outline_change",
+   "refs": [],
+   "human_hold": 2
+  },
+  {
+   "ts": "2026-08-16T22:57:35",
+   "event": "gate",
+   "gate": "place",
    "status": "pass",
    "attempt": 2,
    "failing_count": 0

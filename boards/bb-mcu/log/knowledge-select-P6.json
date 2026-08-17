@@ -1,0 +1,847 @@
+{
+ "script": "knowledge",
+ "status": "pass",
+ "keys": {
+  "topologies": [
+   "mcu",
+   "swd-debug-port"
+  ],
+  "packages": [
+   "0603",
+   "M3 clearance (3.2mm drill), footprint only",
+   "Plugin,P=2.54mm",
+   "Plugin,P=5.08mm",
+   "TSSOP-20"
+  ],
+  "interfaces": [],
+  "parts": [
+   "0603WAF1002T5E",
+   "C106248",
+   "C14663",
+   "C22399629",
+   "C25804",
+   "C32713271",
+   "C327204",
+   "C8465",
+   "C89040",
+   "CC0603KRX7R7BB105",
+   "CC0603KRX7R8BB103",
+   "CC0603KRX7R9BB104",
+   "CGA0603X7R475K160JT",
+   "HX PZ2.54-1x5P ZZ",
+   "STM32F030F4P6TR",
+   "WJ500V-5.08-2P"
+  ],
+  "sources": {
+   "constraints": "boards/bb-mcu/kicad/constraints.json",
+   "parts": "boards/bb-mcu/parts/parts.json"
+  }
+ },
+ "count": 13,
+ "records": [
+  {
+   "id": "mcu-analog-rail-tracks-digital-rail",
+   "classes": [
+    "sequencing"
+   ],
+   "applies": {
+    "topologies": [
+     "mcu"
+    ],
+    "packages": [],
+    "interfaces": [],
+    "parts": []
+   },
+   "rule": {
+    "enforced_by": null,
+    "vdda_relation": "VDDA must be equal to or higher than VDD",
+    "vdd_minus_vdda_max_v": 0.4,
+    "vdda_always_connected": true,
+    "series_dc_drop_into_vdda": "not allowed - filter with capacitance, not with series drop",
+    "supply_fall_rate_min_us_per_v": 20
+   },
+   "prose": "An MCU's analog supply pin is a constrained rail, not an optional filter node. Three datasheet facts set it on the STM32F030: Table 21 says VDDA \"must have a potential equal to or higher than VDD\"; Table 18 allows VDD to exceed VDDA by at most 0.4 V; and Table 18 note 1 says all main power (VDD, VDDA) and ground (VSS, VSSA) pins must ALWAYS be connected to the external supply, in the permitted range - VDDA is not skippable on a board that uses no ADC. The layout consequence is the one that bites: the reflex \"ferrite bead or series R into VDDA\" can only pull VDDA below VDD, the direction the ordering forbids, and AN2519 states the same limit from the other side - a series ferrite's impedance must be low enough that there is no significant drop in the DC voltage. Filter the analog rail with capacitance, not with series DC drop. Fig 12 also shows WHY VDDA matters on a board with no analog function: it feeds the ADC and the block labelled \"Analog: (RCs, PLL, ...)\" - the internal RC oscillators the CPU clocks from when there is no crystal. Power-DOWN is specified too: Table 22 puts a minimum on the fall time RATE of both VDD and VDDA, 20 us/V, so the rails must not be allowed to collapse faster than that (about 66 us from 3.3 V); rise rate is unconstrained (min 0).\n",
+   "sources": [
+    {
+     "file": "research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf",
+     "page": 44,
+     "note": "Table 21 (continued) VDDA row: analog operating voltage 2.4-3.6 V, Conditions column reads 'Must have a potential equal to or higher than VDD'; Table 22 operating conditions at power-up/power-down - VDD and VDDA rise time rate min 0, FALL time rate min 20 us/V"
+    },
+    {
+     "file": "research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf",
+     "page": 42,
+     "note": "Table 18 voltage characteristics: VDD-VDDA allowed voltage difference for VDD > VDDA, max 0.4 V; note 1 - all main power (VDD, VDDA) and ground (VSS, VSSA) pins must always be connected to the external power supply in the permitted range"
+    },
+    {
+     "file": "research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf",
+     "page": 41,
+     "note": "Fig 12 power supply scheme: VDDA feeds the ADC (with VREF+/VREF- tied to it) AND the block labelled 'Analog: (RCs, PLL, ...)', i.e. the internal RC oscillators - VDD instead feeds the core regulator and the IO level shifters"
+    },
+    {
+     "file": "research/sources/00002519A.pdf",
+     "page": 5,
+     "note": "AN2519 s2.1 closing paragraph: a series ferrite bead reduces switching noise on the power plane, but its series impedance must be low enough to ensure that there is no significant drop in the DC voltage"
+    },
+    {
+     "file": "research/sources/AN13033.pdf",
+     "page": 15,
+     "note": "Table 12 termination of unused pins: VDDA 'Tie to VBAT_DCDC' and VSSA 'Tie to VSS' - the analog rail is connected to the supply even when unused, never left open"
+    }
+   ],
+   "origin": "research:block-mcu-1",
+   "level": "principle",
+   "maturity": "verified",
+   "envelope": null,
+   "_path": "research/records/mcu-analog-rail-tracks-digital-rail.yaml",
+   "_workspace": true
+  },
+  {
+   "id": "mcu-boot-select-strap-stm32f0",
+   "classes": [
+    "selection"
+   ],
+   "applies": {
+    "topologies": [
+     "mcu"
+    ],
+    "packages": [],
+    "interfaces": [],
+    "parts": [
+     "STM32F030F4P6TR",
+     "STM32F030F4P6"
+    ]
+   },
+   "rule": {
+    "enforced_by": null,
+    "boot0_internal_pull": "none - the die provides no level",
+    "boot0_pin_type": "I (input only), I/O structure B (dedicated BOOT0 pin)",
+    "board_must_define_level": true,
+    "vin_boot0_v": "0 to 5.5",
+    "level_to_boot_source_mapping": "NOT in the datasheet - see the reference manual"
+   },
+   "prose": "On the STM32F030x4/x6/x8/xC family the boot-memory select pin is a dedicated, input-only pin - Table 11 gives it pin type I, I/O structure B, TSSOP-20 pin 1, function \"Boot memory selection\" - and its Notes cell is EMPTY. Table 10's blanket rule therefore applies: it is a floating input during and after reset. Nothing on the die defines it. A board that leaves BOOT0 unconnected has an undefined boot source that can move with flux residue, humidity or a probe near the pin, and it must still be defined when no programmer is attached, so the level has to come from the board, at the pin. Note carefully what this record does NOT carry: the datasheet names the pin and gives its input range (VIN on BOOT0, 0 to 5.5 V) but never states which LEVEL selects which memory. That mapping lives in the reference manual (RM0360), which was not reachable on an allowlisted host during this pass - take the polarity from there, not from here. The sibling contrast is the useful part: NXP's boot select is an ordinary port pin whose default state is input-with-pull-up, so it lands in the boot-from-flash state unaided. Dedicated pin with no pull versus shared pin with a pull - that asymmetry is the entire difference in part count between two otherwise interchangeable MCUs.\n",
+   "sources": [
+    {
+     "file": "research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf",
+     "page": 32,
+     "note": "Table 11 BOOT0 row: LQFP64 60 / LQFP48 44 / LQFP32 31 / TSSOP20 pin 1, pin type I, I/O structure B, Notes cell empty, function Boot memory selection - and the note list below it, where no note covers BOOT0"
+    },
+    {
+     "file": "research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf",
+     "page": 27,
+     "note": "Table 10 legend: structure B = dedicated BOOT0 pin; Notes row - unless otherwise specified by a note, all I/Os are floating inputs during and after reset (this is what makes the empty cell load-bearing)"
+    },
+    {
+     "file": "research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf",
+     "page": 44,
+     "note": "Table 21 (continued) VIN row for BOOT0: 0 to 5.5 V input range - the datasheet's only other statement about the pin, and it says nothing about which level picks which boot memory"
+    },
+    {
+     "file": "research/sources/AN13033.pdf",
+     "page": 10,
+     "note": "Table 8 boot mode: ISP0 HIGH = passive boot, look for a valid image in internal flash; LOW = ISP boot over a serial interface - the level sampled at reset picks the path"
+    },
+    {
+     "file": "research/sources/AN13033.pdf",
+     "page": 15,
+     "note": "Table 12: all PIOn_m pins (which includes the ISP0 boot-select pin PIO0_5) default to Input, pull-up - the die holds that vendor's boot pin at the flash-boot level with no external part"
+    }
+   ],
+   "origin": "research:block-mcu-1",
+   "level": "family",
+   "maturity": "verified",
+   "envelope": {
+    "boot_kind": {
+     "in": [
+      "external-strap"
+     ]
+    }
+   },
+   "_path": "research/records/mcu-boot-select-strap-stm32f0.yaml",
+   "_workspace": true
+  },
+  {
+   "id": "mcu-decoupler-is-the-local-source",
+   "classes": [
+    "decoupling",
+    "return-path"
+   ],
+   "applies": {
+    "topologies": [
+     "mcu"
+    ],
+    "packages": [],
+    "interfaces": [],
+    "parts": []
+   },
+   "rule": {
+    "enforced_by": null,
+    "loop": "C -> VDD pin -> die -> VSS pin -> C, shortest on the board",
+    "placement": "at the pin, same layer as the IC or directly beneath it",
+    "return_via": "ground pad of the cap vias straight down to the ground structure"
+   },
+   "prose": "An MCU's supply current is an average; the die draws it as nanosecond spikes on every clock and I/O edge. AN2519 s2.1: if all eight I/O of a port switch together the pulse can be several hundred mA, and unloaded it lasts only a few ns. \"Such a current spike cannot be delivered over long power supply lines; the main source is (or should be) the decoupling capacitor.\" So the LOOP the capacitor discharges through IS the component. AN2519 Fig 2-1 (Incorrect Decoupling) draws the cap far from the MCU with the high-current ellipse enclosing a long path that runs through the power and ground PLANES - the planes then carry the spike and the whole ground plane radiates, not just the loop. Fig 2-2 moves the cap against the pins so the ellipse encloses only the pad-to-pin path, and adds a series ferrite upstream so the spike never reaches the plane (its impedance must stay low enough to drop no significant DC). NXP AN13033 Fig 3 draws the same loop in section: cap on top, one via straight down to the GND plane, one to VDD, the \"local current loop\" closing vertically over a few mm. ST says it as a Caution under its own power-supply scheme: the filtering capacitors go as close as possible to, or directly below, the pins. Consequence: a correctly chosen decoupler placed 10 mm away is a different, worse component.\n",
+   "sources": [
+    {
+     "file": "research/sources/00002519A.pdf",
+     "page": 5,
+     "note": "s2.1 + Fig 2-1 Incorrect Decoupling: ns-scale spikes, several hundred mA when a port switches; the figure's High Current Loop ellipse runs through the power and ground planes and the whole plane then acts as an antenna; the ferrite's series impedance must not drop significant DC"
+    },
+    {
+     "file": "research/sources/00002519A.pdf",
+     "page": 6,
+     "note": "Fig 2-2 Decoupling with Series Inductor: cap moved against the MCU VCC/GND pins shrinks the High Current Loop ellipse to the pad-to-pin path, ferrite upstream keeps the spike off the plane"
+    },
+    {
+     "file": "research/sources/AN13033.pdf",
+     "page": 6,
+     "note": "Fig 3 bulk and decoupling capacitor connection, side view: the local current loop closes cap -> via to GND plane -> plane -> via to VDD plane; s3.2 bullets - ground side of the cap must via directly down to the internal ground plane, route distance to the power plane as short as possible"
+    },
+    {
+     "file": "research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf",
+     "page": 41,
+     "note": "Fig 12 power supply scheme and its Caution: each power supply pair must be decoupled with filtering ceramic capacitors placed as close as possible to, or below, the appropriate pins on the underside of the PCB"
+    }
+   ],
+   "origin": "research:block-mcu-1",
+   "level": "principle",
+   "maturity": "verified",
+   "envelope": null,
+   "_path": "research/records/mcu-decoupler-is-the-local-source.yaml",
+   "_workspace": true
+  },
+  {
+   "id": "mcu-package-power-budget",
+   "classes": [
+    "thermal"
+   ],
+   "applies": {
+    "topologies": [
+     "mcu"
+    ],
+    "packages": [
+     "TSSOP-20"
+    ],
+    "interfaces": [],
+    "parts": [
+     "STM32F030F4P6TR",
+     "STM32F030F4P6"
+    ]
+   },
+   "rule": {
+    "enforced_by": null,
+    "pd_max_w": "(TJmax - TAmax) / theta_JA",
+    "tj_max_c": 105,
+    "theta_ja_tssop20_c_per_w": 76,
+    "datasheet_pd_mw_at_85c": 263,
+    "ivdd_per_pin_max_ma": 100,
+    "ivdd_total_max_ma": 120,
+    "theta_ja_basis": "JESD51-2 natural convection, still air"
+   },
+   "prose": "The single power-dissipation number in an MCU datasheet is quoted at ONE ambient and is not the board's budget. STM32F030 Table 21 lists PD for TSSOP20 as 263 mW - at TA = 85 C, with its own note \"if TA is lower, higher PD values are allowed as long as TJ does not exceed TJmax\". Section 7.5 gives the equation to redo it: TJmax = TAmax + (PDmax x theta_JA), with theta_JA for TSSOP20 (6.5 x 6.4 mm) = 76 C/W and TJ max = 105 C for the suffix-6 grade. At TA = 50 C that is (105 - 50) / 76 = 0.72 W, nearly three times the headline figure. Two cautions travel with it. First, theta_JA is a JESD51-2 natural convection (still air) figure measured on a standard test board (s7.5.1) - it is a package-plus-testboard number, so a small 2-layer board with little copper is not automatically at or better than it, and forced air is not covered at all. Second, PD is not only core power: s7.5 defines PDmax = PINTmax + PI/Omax, where PINT is IDD x VDD and PI/O sums VOL x IOL and (VDD - VOH) x IOH over the driven pins, so I/O drive counts against the same budget. The other ceiling is per PIN, not per die: Table 19 allows 100 mA into each VDD power pin and 120 mA total into all of them - on a package that bonds a single VDD pin the 120 mA is unreachable and 100 mA is the real limit.\n",
+   "sources": [
+    {
+     "file": "research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf",
+     "page": 44,
+     "note": "Table 21 (continued): PD at TA = 85 C for suffix 6 - LQFP64 455, LQFP48 364, LQFP32 357, TSSOP20 263 mW; note 1 - if TA is lower, higher PD is allowed as long as TJ does not exceed TJmax; TA -40 to 85 C at maximum power dissipation, TJ -40 to 105 C for suffix 6"
+    },
+    {
+     "file": "research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf",
+     "page": 87,
+     "note": "s7.5 thermal characteristics: TJmax = TAmax + (PDmax x theta_JA), PDmax = PINTmax + PI/Omax with PINT = IDD x VDD and PI/O = sum(VOL x IOL) + sum((VDD - VOH) x IOH); Table 63 theta_J junction-ambient TSSOP20 6.5 x 6.4 mm = 76 C/W; s7.5.1 cites JESD51-2 natural convection (still air)"
+    },
+    {
+     "file": "research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf",
+     "page": 43,
+     "note": "Table 19 current characteristics: total current into sum of all VDD power lines 120 mA, maximum current into EACH VDD power pin 100 mA (and -100 mA out of each VSS pin); Table 20 TJ absolute max 150 C"
+    }
+   ],
+   "origin": "research:block-mcu-1",
+   "level": "topology",
+   "maturity": "verified",
+   "envelope": {
+    "tamb_max_c": {
+     "min": -40,
+     "max": 85
+    }
+   },
+   "_path": "research/records/mcu-package-power-budget.yaml",
+   "_workspace": true
+  },
+  {
+   "id": "mcu-reset-sampled-pin-audit",
+   "classes": [
+    "selection"
+   ],
+   "applies": {
+    "topologies": [
+     "mcu"
+    ],
+    "packages": [],
+    "interfaces": [],
+    "parts": []
+   },
+   "rule": {
+    "enforced_by": null,
+    "audit": "every pin the silicon samples at or immediately after reset",
+    "question_per_pin": "does the die define its level, or must the board?",
+    "answer_lives_in": "the datasheet pin table's I/O-structure and Notes columns"
+   },
+   "prose": "Before drawing an MCU schematic, audit every pin the silicon SAMPLES at or immediately after reset - boot/mode select, reset, debug - and ask one question per pin: does the die define its level, or must the board? The datasheet's own pin table answers it, in the columns designers skim past. ST's legend table defines I/O structure \"RST\" as \"bidirectional reset pin with embedded weak pull-up resistor\" and \"B\" as \"dedicated BOOT0 pin\", and its blanket Notes row says \"unless otherwise specified by a note, all I/Os are set as floating inputs during and after reset\". So a config pin whose Notes cell is EMPTY is floating at reset and the board owns its level; a pin whose note or structure names an internal pull is already defined, and an external resistor there only builds a divider against the die. Running the same audit at another vendor lands somewhere else entirely: NXP's boot/ISP select is an ordinary port pin (PIO0_5) whose default state is \"Input, pull-up\", which is why that part reaches its boot-from-flash state with no strap, while ST's dedicated BOOT0 has no pull of any kind. The rule is the audit, not the answer - the answer changes between siblings inside one family, and it is where MCU part count is won or lost.\n",
+   "sources": [
+    {
+     "file": "research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf",
+     "page": 27,
+     "note": "Table 10 legend: pin type I = input only; I/O structure B = dedicated BOOT0 pin, RST = bidirectional reset pin with embedded weak pull-up resistor; Notes row - unless otherwise specified by a note, all I/Os are floating inputs during and after reset"
+    },
+    {
+     "file": "research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf",
+     "page": 32,
+     "note": "Table 11: BOOT0 row carries type I, structure B and an EMPTY Notes cell, while note 7 on PA13/PA14 explicitly activates internal pull-up/pull-down - the same table answering the audit both ways"
+    },
+    {
+     "file": "research/sources/AN13033.pdf",
+     "page": 15,
+     "note": "Table 12 termination of unused pins: RESET default state Input, pull-up (can be left unconnected); all PIOn_m default Input, pull-up - the vendor stating the die-provided level pin by pin"
+    },
+    {
+     "file": "research/sources/AN13033.pdf",
+     "page": 10,
+     "note": "Table 8: the state of ISP0 (port pin PIO0_5) at Reset determines the boot source - HIGH looks for a valid image in internal flash, LOW enters ISP boot; cross-vendor confirmation that a level sampled at reset picks the boot path"
+    }
+   ],
+   "origin": "research:block-mcu-1",
+   "level": "principle",
+   "maturity": "verified",
+   "envelope": null,
+   "_path": "research/records/mcu-reset-sampled-pin-audit.yaml",
+   "_workspace": true
+  },
+  {
+   "id": "mcu-supply-pin-pair-decoupling",
+   "classes": [
+    "decoupling"
+   ],
+   "applies": {
+    "topologies": [
+     "mcu"
+    ],
+    "packages": [],
+    "interfaces": [],
+    "parts": []
+   },
+   "rule": {
+    "enforced_by": null,
+    "hf_caps_per_supply_pin_pair": 1,
+    "counted_by": "supply PINS bonded out in the package, not the device",
+    "bulk_scope": "per RAIL - never a substitute for a missing per-pin cap",
+    "values": "per-part - take them from the datasheet in hand, see prose"
+   },
+   "prose": "Count the decoupling bank by SUPPLY PIN and by RAIL, never by device. Three documents show it independently: AN2519 s2.1 - \"for devices with multiple pairs of power and ground pins it is essential that there is a decoupling capacitor for every pair of pins\"; ST Figure 12, whose bank is written per pin group (\"2 x 100 nF\" against \"2 x VDD\") under a Caution that each supply pair must be decoupled; and AN13033 Table 6, which tabulates a decoupling capacitor PER PIN in a separate column from the bulk/bypass per DOMAIN. The count follows the package, not the part number: in TSSOP-20 this part bonds one VDD (16), one VSS (15), one VDDA (5) and no VSSA, so it takes one digital pair's worth plus one analog; the same die in LQFP takes more. Two consequences: bulk is per rail and the HF cap is per pin, so a second bulk never repairs a missing per-pin cap; and pin geometry decides which cap is easy - VDD/VSS are adjacent here, a naturally tiny loop, while VDDA sits ten positions away and returns to that same VSS. The VALUES are per-part, not universal. ST Figure 12 gives THIS family 2 x 100 nF + 1 x 4.7 uF on the digital pair and 10 nF + 1 uF on VDDA/VSSA, calling them \"filtering ceramic\" with no dielectric code. AN13033 Table 6 gives a different part a different set: 0.1 uF X7R ceramic per pin plus 10 uF bulk per domain. AN2519 asks only for a tantalum or ceramic on the main supply. Take values from the part in hand, not from here.\n",
+   "sources": [
+    {
+     "file": "research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf",
+     "page": 41,
+     "note": "Fig 12 power supply scheme: external bank labelled 2 x 100 nF + 1 x 4.7 uF against the 2 x VDD / 2 x VSS pin group and 10 nF + 1 uF on VDDA/VSSA - written per pin group, not per device; the Caution requires each power supply pair to be decoupled with filtering ceramic capacitors placed as close as possible to, or below, the pins, and names no dielectric code and no voltage condition"
+    },
+    {
+     "file": "research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf",
+     "page": 26,
+     "note": "Fig 8 TSSOP20 pinout (top view): BOOT0=1, NRST=4, VDDA=5, VSS=15, VDD=16, PA13=19, PA14=20 - VDD and VSS adjacent, VDDA on the opposite side, no VSSA pin on this package"
+    },
+    {
+     "file": "research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf",
+     "page": 32,
+     "note": "Table 11 rows VSS (TSSOP20 pin 15, Ground) and VDD (TSSOP20 pin 16, Digital power supply) - one digital pair bonded out in this package, against two in the LQFP columns of the same rows"
+    },
+    {
+     "file": "research/sources/00002519A.pdf",
+     "page": 6,
+     "note": "AN2519 s2.1: for devices with multiple pairs of power and ground pins it is essential that there is a decoupling capacitor for every pair of pins; the main power supply should also have a tantalum or ceramic capacitor to stabilize it. s2.2 - the analog supply must be decoupled separately, typical value 100 nF"
+    },
+    {
+     "file": "research/sources/AN13033.pdf",
+     "page": 5,
+     "note": "Table 6: a 'Decoupling capacitor per pin' column (0.1 uF, Characteristics X7R ceramic) held separately from 'Bulk/Bypass capacitor for domain' (10 uF) - per-pin and per-domain are different roles. The table's rows are discriminated by domain ROLE, not voltage: the I/O-supply VDD row and the core VBAT_DCDC/VBAT_PMU row (22 uF + 100 nF + 47 pF) both read 1.8 V - 3.3 V, and the VDD_PMU row's voltage cell is an em dash"
+    }
+   ],
+   "origin": "research:block-mcu-1",
+   "level": "principle",
+   "maturity": "verified",
+   "envelope": null,
+   "_path": "research/records/mcu-supply-pin-pair-decoupling.yaml",
+   "_workspace": true
+  },
+  {
+   "id": "mcu-supply-return-continuity",
+   "classes": [
+    "return-path",
+    "emi"
+   ],
+   "applies": {
+    "topologies": [
+     "mcu"
+    ],
+    "packages": [],
+    "interfaces": [],
+    "parts": []
+   },
+   "rule": {
+    "enforced_by": null,
+    "max_delta_between_vdd_pins_mv": 50,
+    "max_delta_between_ground_pins_mv": 50,
+    "ground": "one continuous structure - do not split into analog/digital/power islands",
+    "copper_fill": "stitched to ground at more than one point, or it is not ground"
+   },
+   "prose": "Every supply pin's return is half the connection, and the MCU datasheet puts a NUMBER on how good it has to be: Table 18 allows at most 50 mV between different VDD power pins and at most 50 mV between all the different ground pins. That is a layout budget - IR drop plus L x di/dt across the designer's own copper, driven by the same nanosecond edges the decouplers serve - not a power-supply tolerance line. Two vendors converge on how to meet it. AN13033 s9.4.2: route above a solid and unbroken ground plane; do NOT split the ground plane into separate analog, digital and power planes, a single continuous ground plane is recommended; and no floating metal of any kind near the MCU pins - its Fig 13 draws a copper shape with no stitching via AND the same shape with only ONE via, both labelled NOT CORRECT, and the shape stitched at both ends as CORRECT. Its s9.3 covers the board that cannot afford a dedicated plane pair: the requirement does not relax, \"the major requirement is to ensure a good structure for the ground and for the power supply\". s9.4.3 lists current return loop areas and lack of power and ground planes among the five main sources of radiation. One recorded disagreement: AN2519 s2.2 wants a separate analog ground joined to digital ground at a single point at the supply. On a package that bonds no VSSA pin the question does not arise.\n",
+   "sources": [
+    {
+     "file": "research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf",
+     "page": 42,
+     "note": "Table 18: |dVDDx| variations between different VDD power pins max 50 mV, and |VSSx - VSS| variations between all the different ground pins max 50 mV - the part's own budget for the board's supply and return copper"
+    },
+    {
+     "file": "research/sources/AN13033.pdf",
+     "page": 16,
+     "note": "s9.4.2 Grounding bullets - route high-speed signals above a solid unbroken ground plane; do not split the ground plane for analog/digital/power, a single continuous plane is recommended; no floating metal near MCU pins, fill unused area and via it to ground. Fig 13: unstitched shape and singly-stitched shape both NOT CORRECT, shape stitched at both ends CORRECT"
+    },
+    {
+     "file": "research/sources/AN13033.pdf",
+     "page": 15,
+     "note": "s9.3 Printed circuit board: a multilayer PCB with a layer dedicated to ground and another to VDD is best; where economics prohibit it, the major requirement is to ensure a good structure for the ground and for the power supply"
+    },
+    {
+     "file": "research/sources/AN13033.pdf",
+     "page": 17,
+     "note": "s9.4.3: the five main sources of radiation - digital signals on traces, CURRENT RETURN LOOP AREAS, inadequate power supply filtering or decoupling, transmission line effects, lack of power and ground planes; bulk and decoupling caps must have low ESL; create ground pours in free routing space and via them to the ground plane"
+    },
+    {
+     "file": "research/sources/00002519A.pdf",
+     "page": 6,
+     "note": "AN2519 s2.2 (the dissenting view recorded here): if a separate analog ground AGND is present, the analog ground should be separated from the digital ground and the two connected at a single point at the power supply GND"
+    }
+   ],
+   "origin": "research:block-mcu-1",
+   "level": "principle",
+   "maturity": "verified",
+   "envelope": null,
+   "_path": "research/records/mcu-supply-return-continuity.yaml",
+   "_workspace": true
+  },
+  {
+   "id": "mcu-swd-port-live-at-reset-stm32f0",
+   "classes": [
+    "selection"
+   ],
+   "applies": {
+    "topologies": [
+     "mcu"
+    ],
+    "packages": [],
+    "interfaces": [],
+    "parts": [
+     "STM32F030F4P6TR",
+     "STM32F030F4P6"
+    ]
+   },
+   "rule": {
+    "enforced_by": null,
+    "swdio_internal_pull": "pull-up, activated after reset",
+    "swclk_internal_pull": "pull-down, activated after reset",
+    "nrst_internal_pull": "permanent pull-up, 25/40/55 kohm min/typ/max",
+    "external_pulls_required": false,
+    "firmware_required_to_attach": false
+   },
+   "prose": "On STM32F030x4/x6/x8/xC the two SWD pins are already the debug port when the part leaves reset. Table 11 note 7, attached to PA13 (SWDIO, TSSOP-20 pin 19) and PA14 (SWCLK, pin 20): \"After reset, these pins are configured as SWDIO and SWCLK alternate functions, and the internal pull-up on SWDIO pin and internal pull-down on SWCLK pin are activated.\" NRST is defined by the die too - I/O structure RST, \"bidirectional reset pin with embedded weak pull-up resistor\", specified in s6.3.15 as a PERMANENT pull-up, RPU 25/40/55 kohm min/typ/max. So a blank, never-programmed part is attachable with two signals plus ground and a supply reference: no external pull resistors, no firmware, no strap. The datasheet's Fig 21 shows the only external NRST parts inside a dashed \"external reset circuit\" bubble - a switch and a 0.1 uF cap - and its note gives their purpose as protection against parasitic resets, not function; its other note is the real constraint, that whatever drives NRST must pull below VIL(NRST) max = 0.3 x VDD + 0.07 V or the reset is ignored. NXP's guidance for a die that does NOT do this is the useful contrast: AN13033 Table 10 recommends the identical polarity - SWDIO pull-up, SWCLK pull-down, RESET pull-up - implemented as external 10 kohm resistors (Fig 7), \"to increase debugger connection robustness\". Same electrical requirement; the only question is whether the silicon already meets it.\n",
+   "sources": [
+    {
+     "file": "research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf",
+     "page": 32,
+     "note": "Table 11 note 7 verbatim - after reset PA13/PA14 are SWDIO/SWCLK alternate functions with internal pull-up on SWDIO and internal pull-down on SWCLK activated"
+    },
+    {
+     "file": "research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf",
+     "page": 31,
+     "note": "Table 11 rows PA13 (SWDIO) TSSOP20 pin 19 and PA14 (SWCLK) TSSOP20 pin 20, both carrying note (7); SWDIO/SWCLK are the listed alternate functions"
+    },
+    {
+     "file": "research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf",
+     "page": 65,
+     "note": "s6.3.15 - the NRST pin is connected to a PERMANENT pull-up resistor RPU; Table 49 gives RPU 25/40/55 kohm, VIL(NRST) max 0.3 VDD + 0.07 V, VIH min 0.445 VDD + 0.398 V, 200 mV hysteresis, filtered pulse 100 ns"
+    },
+    {
+     "file": "research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf",
+     "page": 66,
+     "note": "Fig 21 Recommended NRST pin protection: internal RPU + Schmitt trigger + Filter drawn inside the device; the external side is a dashed bubble containing a switch and a 0.1 uF cap, note 1 - the external capacitor protects against parasitic resets; note 2 - the driver must be able to pull below VIL(NRST) max"
+    },
+    {
+     "file": "research/sources/AN13033.pdf",
+     "page": 11,
+     "note": "Table 10 JTAG/SWD signal description Recommendation column - SWCLK Input Pull-Down, SWDIO Input Pull-Up, RESET Pull-Up; Fig 7 SWD connector connections draws three 10 kohm pull-ups to VDD and one 10 kohm pull-down; the note calls external pulls a robustness measure"
+    }
+   ],
+   "origin": "research:block-mcu-1",
+   "level": "family",
+   "maturity": "verified",
+   "envelope": {
+    "debug_kind": {
+     "in": [
+      "swd"
+     ]
+    },
+    "reset_kind": {
+     "in": [
+      "internal-pullup"
+     ]
+    }
+   },
+   "_path": "research/records/mcu-swd-port-live-at-reset-stm32f0.yaml",
+   "_workspace": true
+  },
+  {
+   "id": "swd-debug-port-edge-rate-sets-layout-demand",
+   "classes": [
+    "emi"
+   ],
+   "applies": {
+    "topologies": [
+     "swd-debug-port"
+    ],
+    "packages": [],
+    "interfaces": [
+     "swd"
+    ],
+    "parts": []
+   },
+   "rule": {
+    "enforced_by": null,
+    "criterion": "rise time >> line one-way delay (tau = length x delta)",
+    "impedance_target": "none",
+    "length_match": "none",
+    "controlled_stackup_required": false,
+    "fastest_specified_edge_ns": 5,
+    "slowest_setting_edge_ns": 125,
+    "remedy_if_check_fails": "series element on the debug CLOCK only"
+   },
+   "prose": "What a debug port asks of layout is set by the EDGE, not the bit rate. TI AN-806 (SNLA026A) gives the test: a line loads its driver as a lumped capacitance, C dv/dt = i, \"only when the rise time is greater than the time delay of the line (tr >> tau)\"; driven by a fast-rise-time step the line is instead \"essentially resistive\" and the driver sees Z0. Equations 43-44 define that delay - delta = sqrt(LC) per unit length, tau = length x delta - so the ratio scales with LENGTH. ST publishes the numerator: Table 48 bounds output tr/tf at 125 ns for the OSPEEDR x0 encoding, 25 ns at 01, and 5 / 8 / 12 ns at 11 for CL of 30 pF / 50 pF / 50 pF at low VDD. Read those as ENCODINGS, not as a reset state: Table 48 marks no row as a default and its footnote 1 defers the OSPEEDR register to RM0360, which is not in this ledger. No fmax, tr or tf row carries a Min - the table's only Min is tEXTIpw, an input pulse width, at 10 ns - so 5 ns is the fastest edge ST SPECIFIES, not a floor. Infineon AN220270 names the failure when the ratio inverts: reflections and ringing on the debug clock, after which \"the debug interface can interpret the wrong data\", fixed with a 20 ohm series element on SWCLK near the connector, with the warning that it divides against the internal pull. So while tr >> tau this block emits no impedance target, no length match and no controlled stackup - only keep-it-short, and a series element on SWCLK alone if a board's own tr against tau check fails.\n",
+   "sources": [
+    {
+     "file": "research/sources/snla026a.pdf",
+     "page": 6,
+     "section": "Figure 10 / Figure 11 discussion",
+     "note": "Read the C(dv/dt) = i passage and Figures 9-10. The criterion is stated twice: the lumped-capacitance estimate holds \"if a signal with a rise time long enough to encompass the time delay of the line is used (tr >> tau)\", and \"Figure 11 shows that C(dv/dt) = i only when the rise time is greater than the time delay of the line\". For a fast-rise-time step the text says the line is \"essentially resistive, so VIN/IIN = R0 = Z0 will give the actual drive current needed\". Figure 10 shows peak input current identical for 150 to 3750 ft of line, set by VIN/R0.\n"
+    },
+    {
+     "file": "research/sources/snla026a.pdf",
+     "page": 9,
+     "section": "Equations 40, 43, 44",
+     "note": "Read the summary equations: Z0 = sqrt(L/C) for the lossless line, delta = 1/v = sqrt(LC) as the time delay per unit length (eq 43), and tau = length x delta as the total propagation delay of a line of that length (eq 44). This is the denominator of the tr/tau ratio and it is what makes trace LENGTH the free variable.\n"
+    },
+    {
+     "file": "research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf",
+     "page": 64,
+     "section": "Table 48 I/O AC characteristics",
+     "note": "Read Table 48 in full. Output rise and fall time maxima by OSPEEDR ENCODING (the leftmost column is the OSPEEDRy[1:0] value, not a reset state): x0 gives 125 ns with fmax 2 MHz (CL 50 pF, VDDIOx >= 2.4 V); 01 gives 25 ns with fmax 10 MHz; 11 gives 5 ns at CL 30 pF and VDDIOx >= 2.7 V, 8 ns at CL 50 pF, 12 ns at CL 50 pF with 2.4 V <= VDDIOx < 2.7 V, with fmax 50 / 30 / 20 MHz for those three rows. No fmax, tr or tf row has a Min value; the ONLY populated Min cell in the table is tEXTIpw = 10 ns (\"pulse width of external signals detected by the EXTI controller\"), which is an input spec, not an output edge. Footnote 1 refers the OSPEEDR register itself to RM0360 - the table names no default row. Footnote 2 marks the whole table guaranteed by design, not tested in production.\n"
+    },
+    {
+     "file": "research/sources/infineon-an220270-hardware-design-guide-for-the-traveo-t2g-family-applicationnotes-en.pdf",
+     "page": 30,
+     "section": "text under Table 5 + Figure 22",
+     "note": "Read the paragraph naming the failure mode: place a series resistor (R16) closer to the connector \"to avoid reflections and ringing of the debug clock signal. Otherwise, with strong oscillations during level settlement, the debug interface can interpret the wrong data\", plus the caution that the internal termination makes a possible voltage divider with it. Figure 22 draws R16 = 20 ohm in the TCK/SWCLK line only, with 10 k pulls on the other lines - the clock is the line they terminate.\n"
+    }
+   ],
+   "origin": "research:block-swd-debug-port-1",
+   "level": "topology",
+   "maturity": "verified",
+   "envelope": {
+    "edge_ns": {
+     "min": 5
+    }
+   },
+   "_path": "research/records/swd-debug-port-edge-rate-sets-layout-demand.yaml",
+   "_workspace": true
+  },
+  {
+   "id": "swd-debug-port-nrst-on-the-header",
+   "classes": [
+    "sequencing"
+   ],
+   "applies": {
+    "topologies": [
+     "swd-debug-port"
+    ],
+    "packages": [],
+    "interfaces": [
+     "swd"
+    ],
+    "parts": [
+     "STM32F030F4P6TR",
+     "STM32F030F4P6",
+     "C89040"
+    ]
+   },
+   "rule": {
+    "enforced_by": null,
+    "nrst_on_header": true,
+    "external_pullup_required": false,
+    "internal_rpu_kohm_typ": 40,
+    "filtered_pulse_max_ns": 100,
+    "guaranteed_pulse_min_ns": 300,
+    "datasheet_recommended_cap_uf": 0.1,
+    "probe_must_pull_below": "0.3 x VDD + 0.07 V"
+   },
+   "prose": "Bring reset out on the debug header, and drive nothing onto it from the board. STM32F030x4/x6/x8/xC s6.3.15: \"The NRST pin input driver uses the CMOS technology. It is connected to a permanent pull-up resistor, RPU\" - Table 49 specifies RPU at 25 / 40 / 55 kOhm, matching Table 10's pin type \"RST - bidirectional reset pin with embedded weak pull-up resistor\". So no external pull-up. Table 49 also sets the PULSE a probe must produce: VF(NRST), an input pulse of up to 100 ns, is filtered OUT; VNF(NRST), the pulse guaranteed not to be filtered, is 300 ns minimum at 2.7-3.6 V and 500 ns minimum at 2.4-3.6 V. Figure 21 note 2 sets the LEVEL: the user must ensure the level on NRST can go below VIL(NRST) max, 0.3 VDD + 0.07, \"otherwise the reset will not be taken into account by the device\". Figure 21 is the datasheet's own recommended NRST circuit and it puts a 0.1 uF capacitor at the pin, which note 1 says \"protects the device against parasitic resets\" - it also loads whatever the probe drives, so it belongs in the reset budget rather than being added blind. Reset earns a header position at all because the SWD pins become ordinary GPIO once firmware claims them (Table 11 note 7 configures them as SWD only AFTER RESET); holding reset is how a probe regains such a target. Infineon puts nRESET on pin 10 of the standard connector for the same reason.\n",
+   "sources": [
+    {
+     "file": "research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf",
+     "page": 65,
+     "section": "s6.3.15 / Table 49 NRST pin characteristics",
+     "note": "Read s6.3.15 and Table 49. Text: the NRST input driver is CMOS and \"is connected to a permanent pull-up resistor, RPU\". Table rows read: VIL(NRST) max 0.3 VDD + 0.07; VIH(NRST) min 0.445 VDD + 0.398; Vhys(NRST) 200 mV typ; RPU 25 / 40 / 55 kOhm; VF(NRST) NRST input FILTERED pulse max 100 ns; VNF(NRST) NRST input NOT filtered pulse min 300 ns for 2.7 < VDD < 3.6 and 500 ns for 2.4 < VDD < 3.6. Figure 20 on the same page defines tr/tf 10-90 percent for the I/O AC table.\n"
+    },
+    {
+     "file": "research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf",
+     "page": 66,
+     "section": "Figure 21 Recommended NRST pin protection",
+     "note": "Read Figure 21: the internal side shows RPU to VDD, a Schmitt trigger and a Filter feeding the internal reset; the external side shows the external reset circuit with a 0.1 uF capacitor from NRST to ground. Note 1: \"The external capacitor protects the device against parasitic resets.\" Note 2: the user must ensure the level on NRST can go below the VIL(NRST) max level of Table 49, otherwise the reset is not taken.\n"
+    },
+    {
+     "file": "research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf",
+     "page": 27,
+     "section": "Table 10 legend / Table 11 first rows",
+     "note": "Read the pinout-table legend: I/O structure \"RST\" is \"bidirectional reset pin with embedded weak pull-up resistor\". Table 11 begins on this page and gives NRST as TSSOP20 pin 4, pin type I/O, structure RST, function \"Device reset input / internal reset output (active low)\" - the pin is an output as well as an input, which is why nothing else on the board should fight it.\n"
+    },
+    {
+     "file": "research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf",
+     "page": 32,
+     "section": "Table 11 note 7",
+     "note": "Read note 7: the SWD alternate function on PA13/PA14 is what the pins do AFTER RESET. It is a reset-state default, not a permanent assignment, which is the reason a probe needs the reset line to recover a target whose firmware has repurposed those pins.\n"
+    },
+    {
+     "file": "research/sources/infineon-an220270-hardware-design-guide-for-the-traveo-t2g-family-applicationnotes-en.pdf",
+     "page": 29,
+     "section": "s9.2 Figure 20",
+     "note": "Read Figure 20's pin assignment: the 10-pin Cortex debug connector spends position 10 on nRESET, i.e. the standard connector carries the target reset alongside clock and data - cross-vendor corroboration that reset belongs on a debug header, not only on this board.\n"
+    }
+   ],
+   "origin": "research:block-swd-debug-port-1",
+   "level": "family",
+   "maturity": "verified",
+   "envelope": {
+    "vio_v": {
+     "min": 2.7,
+     "max": 3.6
+    }
+   },
+   "_path": "research/records/swd-debug-port-nrst-on-the-header.yaml",
+   "_workspace": true
+  },
+  {
+   "id": "swd-debug-port-stm32f0-internal-pulls",
+   "classes": [
+    "selection"
+   ],
+   "applies": {
+    "topologies": [
+     "swd-debug-port"
+    ],
+    "packages": [],
+    "interfaces": [
+     "swd"
+    ],
+    "parts": [
+     "STM32F030F4P6TR",
+     "STM32F030F4P6",
+     "C89040"
+    ]
+   },
+   "rule": {
+    "enforced_by": null,
+    "external_pull_required": false,
+    "swdio_internal": "pull-up",
+    "swclk_internal": "pull-down",
+    "nrst_internal": "permanent pull-up",
+    "pull_kohm_min": 25,
+    "pull_kohm_typ": 40,
+    "pull_kohm_max": 55
+   },
+   "prose": "On an STM32F0 target an SWD header needs no external pull-up and no external pull-down: the silicon holds all three lines itself from reset. STM32F030x4/x6/x8/xC Table 11 note 7: \"After reset, these pins are configured as SWDIO and SWCLK alternate functions, and the internal pull-up on SWDIO pin and internal pull-down on SWCLK pin are activated.\" PA13 is SWDIO and PA14 is SWCLK (Table 11; TSSOP20 pins 19 and 20). Table 46 gives the value for both: RPU and RPD weak pull-up / pull-down equivalent resistor 25 / 40 / 55 kOhm min/typ/max, built as a true resistance in series with a switchable PMOS/NMOS contributing about 10 percent. NRST is not an ordinary GPIO: Table 10 types it \"RST - bidirectional reset pin with embedded weak pull-up resistor\" and Table 49 gives its PERMANENT RPU as the same 25 / 40 / 55 kOhm. The directions match the cross-vendor table exactly (AN220270 Table 5: pull-down on SWCLK, pull-up on SWDIO) and 25-55 kOhm sits inside its 10-100 kOhm band, so an external pull would only parallel what is already there while loading the probe. Fit none; if a measurement ever demands one, match the internal direction. Whether a SERIES element belongs on the clock is a different question that this record does NOT answer - it is decided per board by the rise-time against line-delay check, not by a family constant.\n",
+   "sources": [
+    {
+     "file": "research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf",
+     "page": 32,
+     "section": "Table 11 note 7",
+     "note": "Read the footnotes under the pin definitions table. Note 7 is the load-bearing one: after reset PA13/PA14 are SWDIO/SWCLK alternate functions with the internal pull-up on SWDIO and pull-down on SWCLK ACTIVATED. Same page: TSSOP20 pin 15 = VSS, pin 16 = VDD, pin 1 = BOOT0.\n"
+    },
+    {
+     "file": "research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf",
+     "page": 31,
+     "section": "Table 11 (continued)",
+     "note": "Read the pin definitions rows for PA13 (SWDIO) and PA14 (SWCLK): both carry note 7, both are FT I/O, and the TSSOP20 column gives pin 19 for PA13 and pin 20 for PA14. Alternate functions listed are IR_OUT/SWDIO and USART1_TX, USART2_TX/SWCLK.\n"
+    },
+    {
+     "file": "research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf",
+     "page": 61,
+     "section": "Table 46 I/O static characteristics",
+     "note": "Read the RPU and RPD rows of Table 46: weak pull-up equivalent resistor (VIN = VSS) and weak pull-down equivalent resistor (VIN = VDDIOx), both 25 / 40 / 55 kOhm min/typ/max. Footnote 4 says they are a true resistance in series with a switchable PMOS/NMOS whose contribution is about 10 percent. CIO I/O pin capacitance typ 5 pF on the same table.\n"
+    },
+    {
+     "file": "research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf",
+     "page": 60,
+     "section": "s6.3.14 preamble to Table 46",
+     "note": "Read the paragraph that opens s6.3.14 I/O port characteristics, where Table 46 begins: \"Unless otherwise specified, the parameters given in Table 46 are derived from tests performed under the conditions summarized in Table 21: General operating conditions.\" This is the link that puts a supply range on the RPU/RPD numbers - Table 46's own Conditions column only says VIN = VSS / VIN = VDDIOx.\n"
+    },
+    {
+     "file": "research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf",
+     "page": 43,
+     "section": "Table 21 General operating conditions",
+     "note": "Read Table 21, the conditions s6.3.14 defers to: VDD \"standard operating voltage\" Min 2.4, Max 3.6 V (fHCLK and fPCLK 0 to 48 MHz on the same table). This is the page behind this record's vio_v envelope - outside 2.4 to 3.6 V the 25-55 kOhm pull band is not specified.\n"
+    },
+    {
+     "file": "research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf",
+     "page": 27,
+     "section": "Table 10 legend",
+     "note": "Read the pinout-table legend: I/O structure \"RST\" is defined as \"bidirectional reset pin with embedded weak pull-up resistor\", and the Notes row states that unless a note says otherwise all I/Os are floating inputs during and after reset - which is why note 7 on the SWD pins matters. Table 11 starts here with NRST as TSSOP20 pin 4.\n"
+    },
+    {
+     "file": "research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf",
+     "page": 65,
+     "section": "s6.3.15 / Table 49",
+     "note": "Read s6.3.15 and Table 49: the NRST input driver \"is connected to a permanent pull-up resistor, RPU\", specified 25 / 40 / 55 kOhm - the same band as the GPIO pulls, and permanent rather than software-enabled.\n"
+    },
+    {
+     "file": "research/sources/infineon-an220270-hardware-design-guide-for-the-traveo-t2g-family-applicationnotes-en.pdf",
+     "page": 30,
+     "section": "Table 5",
+     "note": "Read Table 5 as the cross-vendor cross-check: pull-DOWN on TCK/SWCLK and pull-UP on TMS/SWDIO, 10 k to 100 k where the MCU does not implement them. Directions agree with ST's note 7 and ST's 25-55 kOhm falls inside the range, so the two vendors do not disagree on PULLS. (The same page's series-resistor recommendation is deliberately NOT carried by this record - see swd-debug-port-edge-rate-sets-layout-demand.)\n"
+    }
+   ],
+   "origin": "research:block-swd-debug-port-1",
+   "level": "family",
+   "maturity": "verified",
+   "envelope": {
+    "vio_v": {
+     "min": 2.4,
+     "max": 3.6
+    }
+   },
+   "_path": "research/records/swd-debug-port-stm32f0-internal-pulls.yaml",
+   "_workspace": true
+  },
+  {
+   "id": "swd-debug-port-termination-follows-silicon",
+   "classes": [
+    "selection"
+   ],
+   "applies": {
+    "topologies": [
+     "swd-debug-port"
+    ],
+    "packages": [],
+    "interfaces": [
+     "swd"
+    ],
+    "parts": []
+   },
+   "rule": {
+    "enforced_by": null,
+    "default_external_termination": "none",
+    "external_pull_direction": "must match the device's internal termination",
+    "hazard_if_opposed": "divider against the internal pull"
+   },
+   "prose": "A debug port's line terminations are decided by the SILICON, not by the board. An MCU that owns its debug interface implements the pulls internally, so the board's default is NO external part, and any external part that is added must pull the SAME DIRECTION the device does. Infineon AN220270 s9.4 states it plainly: \"External termination resistors should not be required for this MCU, because after POR, by default, the JTAG interface is enabled in the boot ROM. If externals are applied on the board, each external signal termination must be in the same direction as it is done in the device implementation.\" Its Table 5 gives the directions, and the 10 k to 100 k range a board must supply only where the MCU does NOT: pull-DOWN to GND on SWCLK/TCK, pull-UP to VDDIO on SWDIO/TMS, TDI and nTRST, and none on TDO/SWO (push-pull driver). The same page warns that a series element between connector and pin can form \"a possible voltage divider in the debug clock signal\" against that internal termination. ST's STM32F030 pin table shows the identical posture from the other vendor (Table 11 note 7: after reset the pins are SWD alternate functions with an internal pull-up on SWDIO and pull-down on SWCLK). Nothing bounds this: it is what to ASK of any target before drawing the net, at any supply, clock or connector.\n",
+   "sources": [
+    {
+     "file": "research/sources/infineon-an220270-hardware-design-guide-for-the-traveo-t2g-family-applicationnotes-en.pdf",
+     "page": 29,
+     "section": "s9.4 Termination resistors",
+     "note": "Read s9.4 in full: it rules that external termination resistors should not be required because the MCU enables the debug interface at POR, and that any external termination applied on the board must be in the same direction as the device implementation. Same page carries Figure 20, the 10-pin Cortex connector pinout.\n"
+    },
+    {
+     "file": "research/sources/infineon-an220270-hardware-design-guide-for-the-traveo-t2g-family-applicationnotes-en.pdf",
+     "page": 30,
+     "section": "Table 5 + text under it",
+     "note": "Read Table 5 \"Termination resistor for debug interface\": per signal it gives the required termination if not implemented in the MCU (10 k to 100 k, pull-down on TCK/SWCLK, pull-up on TMS/SWDIO, TDI and nTRST, none on TDO/SWO) and an \"MCU implementation\" column showing this MCU already has them. The paragraph under it warns a series resistor may form a voltage divider with the internal termination.\n"
+    },
+    {
+     "file": "research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf",
+     "page": 32,
+     "section": "Table 11 note 7",
+     "note": "Read the footnote block under the pin definitions table. Note 7: after reset PA13/PA14 are configured as SWDIO and SWCLK alternate functions with the internal pull-up on SWDIO and internal pull-down on SWCLK activated - a second vendor's silicon doing exactly what the principle says to look for, in the same directions.\n"
+    }
+   ],
+   "origin": "research:block-swd-debug-port-1",
+   "level": "principle",
+   "maturity": "verified",
+   "envelope": null,
+   "_path": "research/records/swd-debug-port-termination-follows-silicon.yaml",
+   "_workspace": true
+  },
+  {
+   "id": "swd-debug-port-unkeyed-header-pin-order",
+   "classes": [
+    "selection",
+    "return-path"
+   ],
+   "applies": {
+    "topologies": [
+     "swd-debug-port"
+    ],
+    "packages": [],
+    "interfaces": [
+     "swd"
+    ],
+    "parts": []
+   },
+   "rule": {
+    "enforced_by": null,
+    "standard_connector_orientation": "mechanical key (a removed pin position)",
+    "unkeyed_header_remedy": "pin ORDER",
+    "reversal_map": "position i maps to (n+1)-i",
+    "odd_count_centre": "the one self-mapping position - give it the rail"
+   },
+   "prose": "A standard debug connector solves plug orientation MECHANICALLY, and it spends pins on the return. Infineon AN220270 Figure 20 draws the 10-pin Cortex connector - 1 VTref, 2 SWDIO/TMS, 3 GND, 4 SWCLK/TCK, 5 GND, 6 (SWO)/TDO, 7 (KEY) GND, 8 NC/TDI, 9 (GNDDetect) GND, 10 nRESET - and its note 2 reads: \"Position 7 (KEY) has no pin and serves only as a key to properly orient the connector.\" It is a 1.27 mm 10-way shrouded part (for example Samtec FTSH-105-01-L-DV-K) and 4 of its 10 positions are GND, one beside each signal, so every signal has a return next to it. A plain 0.1 inch header has neither the key nor those returns, so on an unkeyed header the pin ORDER is the only defence left. The geometry below is a DERIVATION, not a vendor claim, and no source cited here states it: reversing an n-position unkeyed header maps position i to (n+1)-i, so an odd pin count has exactly one self-mapping position, the centre, and putting the RAIL there is the only arrangement in which reversal still lands the board's rail on the connector's rail position. Whether that makes a reversed plug SAFE depends on the probe's rail pin being a sense input rather than a driver, which no cited source states. Figure 23 shows the rail pin's own role: VTref is fed from the target's I/O power domain out to connector pin 1, with 100 nF at the connector, and is the rail the target's debug pull-ups hang on.\n",
+   "sources": [
+    {
+     "file": "research/sources/infineon-an220270-hardware-design-guide-for-the-traveo-t2g-family-applicationnotes-en.pdf",
+     "page": 29,
+     "section": "s9.2 Figure 20 + notes",
+     "note": "Read Figure 20, the 10-pin Cortex debug connector pinout drawing, and the two notes under it. The drawing gives the pin assignment (1 VTref, 2 SWDIO/TMS, 3 GND, 4 SWCLK/TCK, 5 GND, 6 (SWO)/TDO, 7 (KEY) GND, 8 NC/TDI, 9 (GNDDetect) GND, 10 nRESET) - 4 of 10 positions are ground, interleaved with the signals. Note 1 names the part class: a 10-way 1.27 mm pitch connector, e.g. Samtec FTSH-105-01-L-DV-K. Note 2 is the orientation rule: position 7 has no pin and \"serves only as a key to properly orient the connector\".\n"
+    },
+    {
+     "file": "research/sources/infineon-an220270-hardware-design-guide-for-the-traveo-t2g-family-applicationnotes-en.pdf",
+     "page": 31,
+     "section": "Figure 23 + notes",
+     "note": "Read Figure 23, the SWD connection to the MCU through the 10-pin MIPI SWD connector. VTref is drawn coming OUT of the MCU's I/O power domain and going to connector pin 1, with C7 = 100 nF at the connector; the 10 k pull-up on SWDIO and 10 k pull-down on SWCLK hang on that rail, and R16 = 20 ohm sits in the SWCLK line. Note 2 under it tells the designer to check the target board supply against the supported supply level of the probe vendor's hardware, and that a mismatch needs an adapter - the rail pin is a level contract between the two sides.\n"
+    },
+    {
+     "file": "research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf",
+     "page": 31,
+     "section": "Table 11 (continued)",
+     "note": "Read the PA13 (SWDIO) and PA14 (SWCLK) rows to fix which target pins a header must carry, and their TSSOP20 positions 19 and 20. With NRST (pin 4), VSS and VDD these are the five nets a minimal SWD header exports - the set the ordering rule is applied to.\n"
+    }
+   ],
+   "origin": "research:block-swd-debug-port-1",
+   "level": "principle",
+   "maturity": "verified",
+   "envelope": null,
+   "_path": "research/records/swd-debug-port-unkeyed-header-pin-order.yaml",
+   "_workspace": true
+  }
+ ],
+ "workspace_records": [
+  "mcu-analog-rail-tracks-digital-rail",
+  "mcu-boot-select-strap-stm32f0",
+  "mcu-decoupler-is-the-local-source",
+  "mcu-package-power-budget",
+  "mcu-reset-sampled-pin-audit",
+  "mcu-supply-pin-pair-decoupling",
+  "mcu-supply-return-continuity",
+  "mcu-swd-port-live-at-reset-stm32f0",
+  "swd-debug-port-edge-rate-sets-layout-demand",
+  "swd-debug-port-nrst-on-the-header",
+  "swd-debug-port-stm32f0-internal-pulls",
+  "swd-debug-port-termination-follows-silicon",
+  "swd-debug-port-unkeyed-header-pin-order"
+ ],
+ "prompt_block": "KNOWLEDGE RECORDS (deterministic retrieval; keys: {\"packages\": [\"0603\", \"M3 clearance (3.2mm drill), footprint only\", \"Plugin,P=2.54mm\", \"Plugin,P=5.08mm\", \"TSSOP-20\"], \"parts\": 16, \"topologies\": [\"mcu\", \"swd-debug-port\"]}). Treat rules as constraints; cite the record id when you apply or overrule one; the tag is level/maturity (draft = unreviewed):\n- mcu-analog-rail-tracks-digital-rail [sequencing] (principle/verified, workspace)\n  An MCU's analog supply pin is a constrained rail, not an optional filter node. Three datasheet facts set it on the STM32F030: Table 21 says VDDA \"must have a potential equal to or higher than VDD\"; Table 18 allows VDD to exceed VDDA by at most 0.4 V; and Table 18 note 1 says all main power (VDD, VDDA) and ground (VSS, VSSA) pins must ALWAYS be connected to the external supply, in the permitted range - VDDA is not skippable on a board that uses no ADC. The layout consequence is the one that bites: the reflex \"ferrite bead or series R into VDDA\" can only pull VDDA below VDD, the direction the ordering forbids, and AN2519 states the same limit from the other side - a series ferrite's impedance must be low enough that there is no significant drop in the DC voltage. Filter the analog rail with capacitance, not with series DC drop. Fig 12 also shows WHY VDDA matters on a board with no analog function: it feeds the ADC and the block labelled \"Analog: (RCs, PLL, ...)\" - the internal RC oscillators the CPU clocks from when there is no crystal. Power-DOWN is specified too: Table 22 puts a minimum on the fall time RATE of both VDD and VDDA, 20 us/V, so the rails must not be allowed to collapse faster than that (about 66 us from 3.3 V); rise rate is unconstrained (min 0).\n  rule: series_dc_drop_into_vdda=not allowed - filter with capacitance, not with series drop supply_fall_rate_min_us_per_v=20 vdd_minus_vdda_max_v=0.4 vdda_always_connected=True vdda_relation=VDDA must be equal to or higher than VDD\n  source: research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf p.44; research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf p.42; research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf p.41; research/sources/00002519A.pdf p.5; research/sources/AN13033.pdf p.15\n- mcu-boot-select-strap-stm32f0 [selection] (family/verified, workspace)\n  On the STM32F030x4/x6/x8/xC family the boot-memory select pin is a dedicated, input-only pin - Table 11 gives it pin type I, I/O structure B, TSSOP-20 pin 1, function \"Boot memory selection\" - and its Notes cell is EMPTY. Table 10's blanket rule therefore applies: it is a floating input during and after reset. Nothing on the die defines it. A board that leaves BOOT0 unconnected has an undefined boot source that can move with flux residue, humidity or a probe near the pin, and it must still be defined when no programmer is attached, so the level has to come from the board, at the pin. Note carefully what this record does NOT carry: the datasheet names the pin and gives its input range (VIN on BOOT0, 0 to 5.5 V) but never states which LEVEL selects which memory. That mapping lives in the reference manual (RM0360), which was not reachable on an allowlisted host during this pass - take the polarity from there, not from here. The sibling contrast is the useful part: NXP's boot select is an ordinary port pin whose default state is input-with-pull-up, so it lands in the boot-from-flash state unaided. Dedicated pin with no pull versus shared pin with a pull - that asymmetry is the entire difference in part count between two otherwise interchangeable MCUs.\n  rule: board_must_define_level=True boot0_internal_pull=none - the die provides no level boot0_pin_type=I (input only), I/O structure B (dedicated BOOT0 pin) level_to_boot_source_mapping=NOT in the datasheet - see the reference manual vin_boot0_v=0 to 5.5\n  source: research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf p.32; research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf p.27; research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf p.44; research/sources/AN13033.pdf p.10; research/sources/AN13033.pdf p.15\n- mcu-decoupler-is-the-local-source [decoupling, return-path] (principle/verified, workspace)\n  An MCU's supply current is an average; the die draws it as nanosecond spikes on every clock and I/O edge. AN2519 s2.1: if all eight I/O of a port switch together the pulse can be several hundred mA, and unloaded it lasts only a few ns. \"Such a current spike cannot be delivered over long power supply lines; the main source is (or should be) the decoupling capacitor.\" So the LOOP the capacitor discharges through IS the component. AN2519 Fig 2-1 (Incorrect Decoupling) draws the cap far from the MCU with the high-current ellipse enclosing a long path that runs through the power and ground PLANES - the planes then carry the spike and the whole ground plane radiates, not just the loop. Fig 2-2 moves the cap against the pins so the ellipse encloses only the pad-to-pin path, and adds a series ferrite upstream so the spike never reaches the plane (its impedance must stay low enough to drop no significant DC). NXP AN13033 Fig 3 draws the same loop in section: cap on top, one via straight down to the GND plane, one to VDD, the \"local current loop\" closing vertically over a few mm. ST says it as a Caution under its own power-supply scheme: the filtering capacitors go as close as possible to, or directly below, the pins. Consequence: a correctly chosen decoupler placed 10 mm away is a different, worse component.\n  rule: loop=C -> VDD pin -> die -> VSS pin -> C, shortest on the board placement=at the pin, same layer as the IC or directly beneath it return_via=ground pad of the cap vias straight down to the ground structure\n  source: research/sources/00002519A.pdf p.5; research/sources/00002519A.pdf p.6; research/sources/AN13033.pdf p.6; research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf p.41\n- mcu-package-power-budget [thermal] (topology/verified, workspace)\n  The single power-dissipation number in an MCU datasheet is quoted at ONE ambient and is not the board's budget. STM32F030 Table 21 lists PD for TSSOP20 as 263 mW - at TA = 85 C, with its own note \"if TA is lower, higher PD values are allowed as long as TJ does not exceed TJmax\". Section 7.5 gives the equation to redo it: TJmax = TAmax + (PDmax x theta_JA), with theta_JA for TSSOP20 (6.5 x 6.4 mm) = 76 C/W and TJ max = 105 C for the suffix-6 grade. At TA = 50 C that is (105 - 50) / 76 = 0.72 W, nearly three times the headline figure. Two cautions travel with it. First, theta_JA is a JESD51-2 natural convection (still air) figure measured on a standard test board (s7.5.1) - it is a package-plus-testboard number, so a small 2-layer board with little copper is not automatically at or better than it, and forced air is not covered at all. Second, PD is not only core power: s7.5 defines PDmax = PINTmax + PI/Omax, where PINT is IDD x VDD and PI/O sums VOL x IOL and (VDD - VOH) x IOH over the driven pins, so I/O drive counts against the same budget. The other ceiling is per PIN, not per die: Table 19 allows 100 mA into each VDD power pin and 120 mA total into all of them - on a package that bonds a single VDD pin the 120 mA is unreachable and 100 mA is the real limit.\n  rule: datasheet_pd_mw_at_85c=263 ivdd_per_pin_max_ma=100 ivdd_total_max_ma=120 pd_max_w=(TJmax - TAmax) / theta_JA theta_ja_basis=JESD51-2 natural convection, still air theta_ja_tssop20_c_per_w=76 tj_max_c=105\n  source: research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf p.44; research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf p.87; research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf p.43\n- mcu-reset-sampled-pin-audit [selection] (principle/verified, workspace)\n  Before drawing an MCU schematic, audit every pin the silicon SAMPLES at or immediately after reset - boot/mode select, reset, debug - and ask one question per pin: does the die define its level, or must the board? The datasheet's own pin table answers it, in the columns designers skim past. ST's legend table defines I/O structure \"RST\" as \"bidirectional reset pin with embedded weak pull-up resistor\" and \"B\" as \"dedicated BOOT0 pin\", and its blanket Notes row says \"unless otherwise specified by a note, all I/Os are set as floating inputs during and after reset\". So a config pin whose Notes cell is EMPTY is floating at reset and the board owns its level; a pin whose note or structure names an internal pull is already defined, and an external resistor there only builds a divider against the die. Running the same audit at another vendor lands somewhere else entirely: NXP's boot/ISP select is an ordinary port pin (PIO0_5) whose default state is \"Input, pull-up\", which is why that part reaches its boot-from-flash state with no strap, while ST's dedicated BOOT0 has no pull of any kind. The rule is the audit, not the answer - the answer changes between siblings inside one family, and it is where MCU part count is won or lost.\n  rule: answer_lives_in=the datasheet pin table's I/O-structure and Notes columns audit=every pin the silicon samples at or immediately after reset question_per_pin=does the die define its level, or must the board?\n  source: research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf p.27; research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf p.32; research/sources/AN13033.pdf p.15; research/sources/AN13033.pdf p.10\n- mcu-supply-pin-pair-decoupling [decoupling] (principle/verified, workspace)\n  Count the decoupling bank by SUPPLY PIN and by RAIL, never by device. Three documents show it independently: AN2519 s2.1 - \"for devices with multiple pairs of power and ground pins it is essential that there is a decoupling capacitor for every pair of pins\"; ST Figure 12, whose bank is written per pin group (\"2 x 100 nF\" against \"2 x VDD\") under a Caution that each supply pair must be decoupled; and AN13033 Table 6, which tabulates a decoupling capacitor PER PIN in a separate column from the bulk/bypass per DOMAIN. The count follows the package, not the part number: in TSSOP-20 this part bonds one VDD (16), one VSS (15), one VDDA (5) and no VSSA, so it takes one digital pair's worth plus one analog; the same die in LQFP takes more. Two consequences: bulk is per rail and the HF cap is per pin, so a second bulk never repairs a missing per-pin cap; and pin geometry decides which cap is easy - VDD/VSS are adjacent here, a naturally tiny loop, while VDDA sits ten positions away and returns to that same VSS. The VALUES are per-part, not universal. ST Figure 12 gives THIS family 2 x 100 nF + 1 x 4.7 uF on the digital pair and 10 nF + 1 uF on VDDA/VSSA, calling them \"filtering ceramic\" with no dielectric code. AN13033 Table 6 gives a different part a different set: 0.1 uF X7R ceramic per pin plus 10 uF bulk per domain. AN2519 asks only for a tantalum or ceramic on the main supply. Take values from the part in hand, not from here.\n  rule: bulk_scope=per RAIL - never a substitute for a missing per-pin cap counted_by=supply PINS bonded out in the package, not the device hf_caps_per_supply_pin_pair=1 values=per-part - take them from the datasheet in hand, see prose\n  source: research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf p.41; research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf p.26; research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf p.32; research/sources/00002519A.pdf p.6; research/sources/AN13033.pdf p.5\n- mcu-supply-return-continuity [return-path, emi] (principle/verified, workspace)\n  Every supply pin's return is half the connection, and the MCU datasheet puts a NUMBER on how good it has to be: Table 18 allows at most 50 mV between different VDD power pins and at most 50 mV between all the different ground pins. That is a layout budget - IR drop plus L x di/dt across the designer's own copper, driven by the same nanosecond edges the decouplers serve - not a power-supply tolerance line. Two vendors converge on how to meet it. AN13033 s9.4.2: route above a solid and unbroken ground plane; do NOT split the ground plane into separate analog, digital and power planes, a single continuous ground plane is recommended; and no floating metal of any kind near the MCU pins - its Fig 13 draws a copper shape with no stitching via AND the same shape with only ONE via, both labelled NOT CORRECT, and the shape stitched at both ends as CORRECT. Its s9.3 covers the board that cannot afford a dedicated plane pair: the requirement does not relax, \"the major requirement is to ensure a good structure for the ground and for the power supply\". s9.4.3 lists current return loop areas and lack of power and ground planes among the five main sources of radiation. One recorded disagreement: AN2519 s2.2 wants a separate analog ground joined to digital ground at a single point at the supply. On a package that bonds no VSSA pin the question does not arise.\n  rule: copper_fill=stitched to ground at more than one point, or it is not ground ground=one continuous structure - do not split into analog/digital/power islands max_delta_between_ground_pins_mv=50 max_delta_between_vdd_pins_mv=50\n  source: research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf p.42; research/sources/AN13033.pdf p.16; research/sources/AN13033.pdf p.15; research/sources/AN13033.pdf p.17; research/sources/00002519A.pdf p.6\n- mcu-swd-port-live-at-reset-stm32f0 [selection] (family/verified, workspace)\n  On STM32F030x4/x6/x8/xC the two SWD pins are already the debug port when the part leaves reset. Table 11 note 7, attached to PA13 (SWDIO, TSSOP-20 pin 19) and PA14 (SWCLK, pin 20): \"After reset, these pins are configured as SWDIO and SWCLK alternate functions, and the internal pull-up on SWDIO pin and internal pull-down on SWCLK pin are activated.\" NRST is defined by the die too - I/O structure RST, \"bidirectional reset pin with embedded weak pull-up resistor\", specified in s6.3.15 as a PERMANENT pull-up, RPU 25/40/55 kohm min/typ/max. So a blank, never-programmed part is attachable with two signals plus ground and a supply reference: no external pull resistors, no firmware, no strap. The datasheet's Fig 21 shows the only external NRST parts inside a dashed \"external reset circuit\" bubble - a switch and a 0.1 uF cap - and its note gives their purpose as protection against parasitic resets, not function; its other note is the real constraint, that whatever drives NRST must pull below VIL(NRST) max = 0.3 x VDD + 0.07 V or the reset is ignored. NXP's guidance for a die that does NOT do this is the useful contrast: AN13033 Table 10 recommends the identical polarity - SWDIO pull-up, SWCLK pull-down, RESET pull-up - implemented as external 10 kohm resistors (Fig 7), \"to increase debugger connection robustness\". Same electrical requirement; the only question is whether the silicon already meets it.\n  rule: external_pulls_required=False firmware_required_to_attach=False nrst_internal_pull=permanent pull-up, 25/40/55 kohm min/typ/max swclk_internal_pull=pull-down, activated after reset swdio_internal_pull=pull-up, activated after reset\n  source: research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf p.32; research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf p.31; research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf p.65; research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf p.66; research/sources/AN13033.pdf p.11\n- swd-debug-port-edge-rate-sets-layout-demand [emi] (topology/verified, workspace)\n  What a debug port asks of layout is set by the EDGE, not the bit rate. TI AN-806 (SNLA026A) gives the test: a line loads its driver as a lumped capacitance, C dv/dt = i, \"only when the rise time is greater than the time delay of the line (tr >> tau)\"; driven by a fast-rise-time step the line is instead \"essentially resistive\" and the driver sees Z0. Equations 43-44 define that delay - delta = sqrt(LC) per unit length, tau = length x delta - so the ratio scales with LENGTH. ST publishes the numerator: Table 48 bounds output tr/tf at 125 ns for the OSPEEDR x0 encoding, 25 ns at 01, and 5 / 8 / 12 ns at 11 for CL of 30 pF / 50 pF / 50 pF at low VDD. Read those as ENCODINGS, not as a reset state: Table 48 marks no row as a default and its footnote 1 defers the OSPEEDR register to RM0360, which is not in this ledger. No fmax, tr or tf row carries a Min - the table's only Min is tEXTIpw, an input pulse width, at 10 ns - so 5 ns is the fastest edge ST SPECIFIES, not a floor. Infineon AN220270 names the failure when the ratio inverts: reflections and ringing on the debug clock, after which \"the debug interface can interpret the wrong data\", fixed with a 20 ohm series element on SWCLK near the connector, with the warning that it divides against the internal pull. So while tr >> tau this block emits no impedance target, no length match and no controlled stackup - only keep-it-short, and a series element on SWCLK alone if a board's own tr against tau check fails.\n  rule: controlled_stackup_required=False criterion=rise time >> line one-way delay (tau = length x delta) fastest_specified_edge_ns=5 impedance_target=none length_match=none remedy_if_check_fails=series element on the debug CLOCK only slowest_setting_edge_ns=125\n  source: research/sources/snla026a.pdf p.6 Figure 10 / Figure 11 discussion; research/sources/snla026a.pdf p.9 Equations 40, 43, 44; research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf p.64 Table 48 I/O AC characteristics; research/sources/infineon-an220270-hardware-design-guide-for-the-traveo-t2g-family-applicationnotes-en.pdf p.30 text under Table 5 + Figure 22\n- swd-debug-port-nrst-on-the-header [sequencing] (family/verified, workspace)\n  Bring reset out on the debug header, and drive nothing onto it from the board. STM32F030x4/x6/x8/xC s6.3.15: \"The NRST pin input driver uses the CMOS technology. It is connected to a permanent pull-up resistor, RPU\" - Table 49 specifies RPU at 25 / 40 / 55 kOhm, matching Table 10's pin type \"RST - bidirectional reset pin with embedded weak pull-up resistor\". So no external pull-up. Table 49 also sets the PULSE a probe must produce: VF(NRST), an input pulse of up to 100 ns, is filtered OUT; VNF(NRST), the pulse guaranteed not to be filtered, is 300 ns minimum at 2.7-3.6 V and 500 ns minimum at 2.4-3.6 V. Figure 21 note 2 sets the LEVEL: the user must ensure the level on NRST can go below VIL(NRST) max, 0.3 VDD + 0.07, \"otherwise the reset will not be taken into account by the device\". Figure 21 is the datasheet's own recommended NRST circuit and it puts a 0.1 uF capacitor at the pin, which note 1 says \"protects the device against parasitic resets\" - it also loads whatever the probe drives, so it belongs in the reset budget rather than being added blind. Reset earns a header position at all because the SWD pins become ordinary GPIO once firmware claims them (Table 11 note 7 configures them as SWD only AFTER RESET); holding reset is how a probe regains such a target. Infineon puts nRESET on pin 10 of the standard connector for the same reason.\n  rule: datasheet_recommended_cap_uf=0.1 external_pullup_required=False filtered_pulse_max_ns=100 guaranteed_pulse_min_ns=300 internal_rpu_kohm_typ=40 nrst_on_header=True probe_must_pull_below=0.3 x VDD + 0.07 V\n  source: research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf p.65 s6.3.15 / Table 49 NRST pin characteristics; research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf p.66 Figure 21 Recommended NRST pin protection; research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf p.27 Table 10 legend / Table 11 first rows; research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf p.32 Table 11 note 7; research/sources/infineon-an220270-hardware-design-guide-for-the-traveo-t2g-family-applicationnotes-en.pdf p.29 s9.2 Figure 20\n- swd-debug-port-stm32f0-internal-pulls [selection] (family/verified, workspace)\n  On an STM32F0 target an SWD header needs no external pull-up and no external pull-down: the silicon holds all three lines itself from reset. STM32F030x4/x6/x8/xC Table 11 note 7: \"After reset, these pins are configured as SWDIO and SWCLK alternate functions, and the internal pull-up on SWDIO pin and internal pull-down on SWCLK pin are activated.\" PA13 is SWDIO and PA14 is SWCLK (Table 11; TSSOP20 pins 19 and 20). Table 46 gives the value for both: RPU and RPD weak pull-up / pull-down equivalent resistor 25 / 40 / 55 kOhm min/typ/max, built as a true resistance in series with a switchable PMOS/NMOS contributing about 10 percent. NRST is not an ordinary GPIO: Table 10 types it \"RST - bidirectional reset pin with embedded weak pull-up resistor\" and Table 49 gives its PERMANENT RPU as the same 25 / 40 / 55 kOhm. The directions match the cross-vendor table exactly (AN220270 Table 5: pull-down on SWCLK, pull-up on SWDIO) and 25-55 kOhm sits inside its 10-100 kOhm band, so an external pull would only parallel what is already there while loading the probe. Fit none; if a measurement ever demands one, match the internal direction. Whether a SERIES element belongs on the clock is a different question that this record does NOT answer - it is decided per board by the rise-time against line-delay check, not by a family constant.\n  rule: external_pull_required=False nrst_internal=permanent pull-up pull_kohm_max=55 pull_kohm_min=25 pull_kohm_typ=40 swclk_internal=pull-down swdio_internal=pull-up\n  source: research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf p.32 Table 11 note 7; research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf p.31 Table 11 (continued); research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf p.61 Table 46 I/O static characteristics; research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf p.60 s6.3.14 preamble to Table 46; research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf p.43 Table 21 General operating conditions; research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf p.27 Table 10 legend; research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf p.65 s6.3.15 / Table 49; research/sources/infineon-an220270-hardware-design-guide-for-the-traveo-t2g-family-applicationnotes-en.pdf p.30 Table 5\n- swd-debug-port-termination-follows-silicon [selection] (principle/verified, workspace)\n  A debug port's line terminations are decided by the SILICON, not by the board. An MCU that owns its debug interface implements the pulls internally, so the board's default is NO external part, and any external part that is added must pull the SAME DIRECTION the device does. Infineon AN220270 s9.4 states it plainly: \"External termination resistors should not be required for this MCU, because after POR, by default, the JTAG interface is enabled in the boot ROM. If externals are applied on the board, each external signal termination must be in the same direction as it is done in the device implementation.\" Its Table 5 gives the directions, and the 10 k to 100 k range a board must supply only where the MCU does NOT: pull-DOWN to GND on SWCLK/TCK, pull-UP to VDDIO on SWDIO/TMS, TDI and nTRST, and none on TDO/SWO (push-pull driver). The same page warns that a series element between connector and pin can form \"a possible voltage divider in the debug clock signal\" against that internal termination. ST's STM32F030 pin table shows the identical posture from the other vendor (Table 11 note 7: after reset the pins are SWD alternate functions with an internal pull-up on SWDIO and pull-down on SWCLK). Nothing bounds this: it is what to ASK of any target before drawing the net, at any supply, clock or connector.\n  rule: default_external_termination=none external_pull_direction=must match the device's internal termination hazard_if_opposed=divider against the internal pull\n  source: research/sources/infineon-an220270-hardware-design-guide-for-the-traveo-t2g-family-applicationnotes-en.pdf p.29 s9.4 Termination resistors; research/sources/infineon-an220270-hardware-design-guide-for-the-traveo-t2g-family-applicationnotes-en.pdf p.30 Table 5 + text under it; research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf p.32 Table 11 note 7\n- swd-debug-port-unkeyed-header-pin-order [selection, return-path] (principle/verified, workspace)\n  A standard debug connector solves plug orientation MECHANICALLY, and it spends pins on the return. Infineon AN220270 Figure 20 draws the 10-pin Cortex connector - 1 VTref, 2 SWDIO/TMS, 3 GND, 4 SWCLK/TCK, 5 GND, 6 (SWO)/TDO, 7 (KEY) GND, 8 NC/TDI, 9 (GNDDetect) GND, 10 nRESET - and its note 2 reads: \"Position 7 (KEY) has no pin and serves only as a key to properly orient the connector.\" It is a 1.27 mm 10-way shrouded part (for example Samtec FTSH-105-01-L-DV-K) and 4 of its 10 positions are GND, one beside each signal, so every signal has a return next to it. A plain 0.1 inch header has neither the key nor those returns, so on an unkeyed header the pin ORDER is the only defence left. The geometry below is a DERIVATION, not a vendor claim, and no source cited here states it: reversing an n-position unkeyed header maps position i to (n+1)-i, so an odd pin count has exactly one self-mapping position, the centre, and putting the RAIL there is the only arrangement in which reversal still lands the board's rail on the connector's rail position. Whether that makes a reversed plug SAFE depends on the probe's rail pin being a sense input rather than a driver, which no cited source states. Figure 23 shows the rail pin's own role: VTref is fed from the target's I/O power domain out to connector pin 1, with 100 nF at the connector, and is the rail the target's debug pull-ups hang on.\n  rule: odd_count_centre=the one self-mapping position - give it the rail reversal_map=position i maps to (n+1)-i standard_connector_orientation=mechanical key (a removed pin position) unkeyed_header_remedy=pin ORDER\n  source: research/sources/infineon-an220270-hardware-design-guide-for-the-traveo-t2g-family-applicationnotes-en.pdf p.29 s9.2 Figure 20 + notes; research/sources/infineon-an220270-hardware-design-guide-for-the-traveo-t2g-family-applicationnotes-en.pdf p.31 Figure 23 + notes; research/sources/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf p.31 Table 11 (continued)"
+}
