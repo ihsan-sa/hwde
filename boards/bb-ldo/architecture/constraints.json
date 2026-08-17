@@ -1,0 +1,94 @@
+{
+  "_comment": "bb-ldo P2 merged constraint set (architect). Prose, citations and the conflicts resolved: architecture/blocks.md, architecture/power_tree.md, architecture/stackup.md, architecture/sheets.md. Sources merged: research/power.json (power + thermal), research/linear-regulator.json (part class), research/refdesign-linear-regulator.json (tab identity, ESR window, copper sweep). Canonical net names: +5V, +3V3, GND - all three are global power symbols, there are no local-label nets on this board.",
+
+  "power": [
+    {
+      "net": "+5V",
+      "current_a": 0.515,
+      "dt_c": 10,
+      "_basis": "510 mA pass current + 5 mA ASSUMED quiescent (research/power.md s.2). 0.26 mm min width at 1 oz outer / dT 10 C - no width on this board is tight"
+    },
+    {
+      "net": "+3V3",
+      "current_a": 0.51,
+      "dt_c": 10,
+      "plane_fed": true,
+      "_basis": "500 mA owner-stated continuous load + 10 mA contingent min-load bleed",
+      "_plane_fed_why": "the rail's trunk IS the F.Cu thermal pour; plane_fed also makes check_current error plane_missing if that pour is ever absent - the only gate that can enforce the existence of the thermal design at P7"
+    },
+    {
+      "net": "GND",
+      "current_a": 0.515,
+      "dt_c": 10,
+      "plane_fed": true,
+      "pdn": false,
+      "_basis": "return of the +5V budget; B.Cu pour",
+      "_pdn_false_why": "GND is a return, not a rail - check_pdn inventories every power entry and would error 'no decoupling' on it"
+    }
+  ],
+
+  "thermal": [
+    {
+      "ref": "U1",
+      "net": "+3V3",
+      "power_w": 1.0,
+      "dt_c": 65,
+      "min_vias": 12,
+      "_power_basis": "0.975 W conduction ((5.25 - 3.3) x 0.500) + 0.026 W quiescent (5.25 V x 5 mA ASSUMED) = 1.00 W frozen design point; stacked worst-case corner 1.10 W",
+      "_dt_basis": "Ta 50 C still air, Tj target 115 C = 10 C under the 125 C steady-state limit -> allowed rise 65 C -> theta_JA <= 65 C/W at 1.00 W. Kept HONEST: check_thermal's 2-layer model floors at 73.8 C/W and will report thermal_area at P8 for any layout - to be waived at P8 with the two vendor copper sweeps as evidence, never softened to make a gate green",
+      "_net_is_tab": "SOT-223 tab = VOUT, NOT GND. The heatsink pour is the +3V3 net and cannot be via-stitched to a bottom GND pour",
+      "_min_vias_why": "12 = a 3x4 array at ~1.3 mm pitch in the pour AROUND the tab pad (never via-in-pad), spanning ~2.3 mm from the centroid - inside the ~4 mm radius check_thermal counts. The gate's own default here computes ~34-36, which no SOT-223 tab region can physically hold"
+    }
+  ],
+
+  "planes": [
+    {"layer": "F.Cu", "net": "+3V3", "connect": "solid"},
+    {"layer": "B.Cu", "net": "GND"}
+  ],
+
+  "placement": {
+    "edges": [
+      {"ref": "J1", "edge": "left", "pos": 0.5},
+      {"ref": "J2", "edge": "right", "pos": 0.5}
+    ],
+    "groups": [
+      {"name": "reg", "anchor": "U1", "members": ["C1", "C2"]}
+    ],
+    "sides": [
+      {"ref": "U1", "side": "front", "reason": "the F.Cu +3V3 pour IS the heatsink and the tab must sit on it; JLC economy assembly is single-sided SMT"},
+      {"ref": "C1", "side": "front", "reason": "single-sided SMT assembly; Cin must be at the VIN pin with a short lead"},
+      {"ref": "C2", "side": "front", "reason": "single-sided SMT assembly; compensation cap at VOUT"},
+      {"ref": "J1", "side": "front", "reason": "through-hole screw terminal - wires and screwdriver enter from the component side"},
+      {"ref": "J2", "side": "front", "reason": "through-hole screw terminal - wires and screwdriver enter from the component side"}
+    ]
+  },
+
+  "coating": "soldermask",
+
+  "blocks": [
+    {
+      "topology": "linear-regulator",
+      "block": "B2",
+      "name": "U1 AMS1117-3.3 class fixed 3.3 V linear regulator, SOT-223, tab = VOUT",
+      "operating_point": {
+        "vin_v": 5.0,
+        "vin_min_v": 4.75,
+        "vin_max_v": 5.25,
+        "vout_v": 3.3,
+        "iout_a": 0.51,
+        "pdiss_w": 1.0,
+        "ta_c": 50,
+        "board_layers": 2,
+        "copper_oz": 1,
+        "source_kind": "dc-input",
+        "pass_device_kind": "bipolar-npn",
+        "dropout_kind": "standard",
+        "adjust_kind": "fixed",
+        "cout_stability_kind": "esr-dependent",
+        "tab_net_kind": "vout",
+        "cooling_kind": "natural-convection"
+      },
+      "_dims_why": "vin_v/vin_min_v/vin_max_v: dissipation scales with the high-line corner, dropout headroom with the low-line one. iout_a 0.51 = 500 mA owner load + 10 mA contingent bleed. pdiss_w/ta_c/board_layers/copper_oz: every theta_JA rule in this domain is stated against a copper area on a layer count at a copper weight, at an ambient. pass_device_kind bipolar-npn and cout_stability_kind esr-dependent are the two tokens that bound almost every 1117-class rule (a CMOS/ceramic-stable LDO reuses this library with pass_device_kind cmos / cout_stability_kind ceramic-stable and correctly stops matching them). tab_net_kind vout says the heatsink pour cannot be stitched to GND (tab_net_kind gnd re-enables that whole family of records). dropout_kind standard bounds the headroom rules (low-dropout for a true LDO); adjust_kind fixed bounds the ADJ-divider/CADJ rules; cooling_kind natural-convection bounds every still-air theta_JA number."
+    }
+  ]
+}

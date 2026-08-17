@@ -1,0 +1,105 @@
+{
+  "block": "power",
+  "_comment": "bb-ldo P1 power architecture. One source, one rail, one consumer; the engineering is the thermal entry. Prose + citations: research/power.md.",
+  "rails": [
+    {
+      "net": "+5V",
+      "vin": "J1 screw terminal - current-limited bench supply, 4.75-5.25 V DC, fault limit <= 2 A (requirements answers 1/2/4)",
+      "topology": "direct",
+      "current_a": 0.515,
+      "consumers": [
+        {
+          "ref": "U1",
+          "what": "AMS1117-3.3 pass current (= the +3V3 budget)",
+          "current_a": 0.51,
+          "basis": "owner-stated 500 mA continuous at J2 (requirements answer 6) + 10 mA contingent min-load bleed"
+        },
+        {
+          "ref": "U1",
+          "what": "ground / quiescent current",
+          "current_a": 0.005,
+          "basis": "ASSUMED - implied by requirements.md s.3 (~505 mA in at 500 mA out). AMS1117's own Iq spec is not in the P1 research fragments; P3 to confirm (gap 1)"
+        }
+      ],
+      "dissipation_w": 0.0
+    },
+    {
+      "net": "+3V3",
+      "vin": "+5V",
+      "topology": "ldo",
+      "current_a": 0.51,
+      "consumers": [
+        {
+          "ref": "J2",
+          "what": "external static resistive bench load",
+          "current_a": 0.5,
+          "basis": "owner-stated, continuous 100% duty (requirements answers 6 and 7)"
+        },
+        {
+          "ref": "R1",
+          "what": "min-load bleed resistor (CONTINGENT - P2/P3 call, see power.md s.7)",
+          "current_a": 0.01,
+          "basis": "AMS1117 minimum load 3 mA typ / 10 mA max, all variants (refdesign-linear-regulator.md s.4)"
+        }
+      ],
+      "dissipation_w": 1.0,
+      "_topology_note": "schema token 'ldo' = linear series regulator. AMS1117 is standard-dropout (1.3 V max at 0.8 A), not a true LDO; 1.45 V of worst-case headroom covers it.",
+      "_efficiency": "1.65 W out / 2.58-2.70 W in = 64% nominal, 61% at high line - a property of the owner's chosen topology, not a spec"
+    }
+  ],
+  "power_constraints": [
+    {
+      "net": "+5V",
+      "current_a": 0.515,
+      "dt_c": 10,
+      "_basis": "510 mA pass current + 5 mA assumed quiescent; 0.26 mm min width at 1 oz / dT 10 C, 2 vias per transition"
+    },
+    {
+      "net": "+3V3",
+      "current_a": 0.51,
+      "dt_c": 10,
+      "plane_fed": true,
+      "_basis": "500 mA owner-stated load + 10 mA contingent bleed",
+      "_plane_fed_why": "the rail's trunk IS the top-side thermal pour; plane_fed also makes check_current error plane_missing if that pour is ever absent, which is the only gate that can enforce the thermal design's existence at P7"
+    },
+    {
+      "net": "GND",
+      "current_a": 0.515,
+      "dt_c": 10,
+      "plane_fed": true,
+      "pdn": false,
+      "_basis": "return of the +5V budget; B.Cu pour (default 2-layer planes_gen)",
+      "_pdn_false_why": "GND is a return, not a rail - check_pdn inventories every power entry and would error 'no decoupling' on it"
+    }
+  ],
+  "thermal_constraints": [
+    {
+      "ref": "U1",
+      "net": "+3V3",
+      "power_w": 1.0,
+      "dt_c": 65,
+      "min_vias": 12,
+      "_power_basis": "0.975 W conduction ((5.25-3.3) x 0.500) + 0.026 W quiescent (5.25 V x 5 mA ASSUMED) = 1.00 W. Stacked worst-case corner (bleed fitted + Iq 10 mA + Vout at -3%) = 1.10 W",
+      "_dt_basis": "Ta 50 C still air, Tj target 115 C = 10 C below the 125 C steady-state limit -> allowed rise 65 C -> theta_JA <= 65 C/W at 1.00 W",
+      "_net_is_tab": "AMS1117 SOT-223 tab = VOUT, NOT GND. The heatsink pour is the +3V3 net and CANNOT be via-stitched to a bottom GND pour - different nets",
+      "_copper_top_mm2_min": 1000,
+      "_copper_top_mm2_floor": 645,
+      "_copper_preferred_mm2": 2500,
+      "_copper_basis": "AMS1117 datasheet Table 1 (1/16in FR-4, 1 oz), row '1000 mm2 top / 0 mm2 backside / 1000 mm2 board' = 65 C/W - chosen because it is the only row assuming ZERO backside copper, so it does not depend on what the table's backside plane is tied to. Cross-checked against TI LM1117 SNOS412Q Table 9-2, SOT-223 / 1 oz / top-side only: 645 mm2 -> 66 C/W, 490 -> 69, 342 -> 75. Two vendors agree within ~1 C/W",
+      "_layout": "F.Cu +3V3 pour >= 1000 mm2 contiguous with the tab pad; B.Cu = GND pour EXCEPT a +3V3 island under the tab, stitched with >= 12 vias placed in the pour AROUND the tab pad (not via-in-pad: JLC leaves them unfilled and they wick solder out of the thermal joint)",
+      "_min_vias_why": "the gate's default here computes ~34 (pad-hull area / 1.21 mm2), which no SOT-223 tab region can hold; 12 = a 3x4 array at ~1.3 mm pitch inside the ~5 mm radius check_thermal counts",
+      "_gate_conflict": "check_thermal's 2-layer model (theta = 55 + 119*exp(-A/350), area capped at 645 mm2) floors at 73.8 C/W, so it will report a thermal_area ERROR against dt_c=65 for ANY layout. The vendor sweeps put this package at 65-66 C/W over the same area and keep improving to 55 C/W at 2500 mm2, where the model stops counting. Ruling needed at P8: waive with the two vendor tables as evidence, or relax dt_c to 75 (Tj <= 125, zero margin), which the model can pass only at >= 624 mm2 of credited +3V3 copper",
+      "_2oz": "no source here quantifies 2 oz for SOT-223, and check_thermal's model keys on layer count only - 2 oz changes its answer by nothing. Hold 1 oz + area"
+    }
+  ],
+  "notes": [
+    "sequencing: none - one rail, always on. Inrush = charging C1 (10 uF) + C2 (22 uF), bounded by the bench supply's own 2 A limit (owner answer 2). No soft-start, no power-good, no consumer that cares",
+    "capacitors: Cout = 22 uF SOLID TANTALUM (ESR <= 0.5 ohm per AMS text; LM1117's same-class window is 0.3-22 ohm - a bare low-ESR MLCC sits below it and is the classic 1117 oscillation trap). Cin = 10 uF tantalum at the VIN pin, short lead. No extra 0.1 uF HF ceramic: that is MIC29302A's recommendation, not AMS1117's, and block-only admits only the chosen part's own requirements",
+    "decoupling.json: do NOT tag these caps role=reg_input - that role is for switching regulators' VIN and makes check_decoupling demand an HF ceramic within 7.5 mm; a linear regulator has no switch node",
+    "P2 handoff: declare planes [{F.Cu, +3V3}, {B.Cu, +3V3 island}] once a placement exists - region coordinates cannot be authored at P1 because the outline is an OUTPUT under the canonical binding. Expect the earned outline near 35-45 mm a side (1000 mm2 of pour + two screw terminals + caps); an expectation, not a cap",
+    "headroom: no 30% headroom applied - 500 mA is an owner-stated hard maximum for an external load, not an estimate of unknown consumers, and padding it would inflate the copper requirement on a board whose point is that copper area is earned from a real number",
+    "gap 1: AMS1117 quiescent current not in the P1 fragments (5 mA inferred from requirements s.3). At a 10 mA max, Pd = 1.03 W and the required theta_JA tightens to 63 C/W",
+    "gap 2: whether AMS1117 Table 1's backside copper is via-connected (impossible for a VOUT tab) or dielectric-coupled is not stated - P2 research trigger; rows 1/4/5 unusable until answered",
+    "gap 3: AMS1117 dropout at 500 mA is not tabulated (only 0.8-1.0 A, 1.3 V max). Fits the 1.45 V worst-case headroom with 0.15 V to spare"
+  ]
+}

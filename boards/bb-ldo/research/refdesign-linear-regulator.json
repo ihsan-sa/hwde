@@ -1,0 +1,99 @@
+{
+  "block": "linear-regulator",
+  "note": "No reference/topologies/linear-regulator.md exists yet in this library; this file is the seed of one. Design point: 5V in (4.75-5.25) -> 3.3V/500mA continuous out, 0.975W dissipation at Ta=50C still air, 2-layer JLC board, block-only scope.",
+  "decisions": [
+    {
+      "what": "AMS1117-class and LM1117 are ESR-DEPENDENT: output cap must be tantalum or aluminum electrolytic within a stated ESR window, not bare ceramic.",
+      "why": "LM1117 datasheet states min 10uF tantalum output cap, ESR must range 0.3-22 ohm. AMS1117 clone datasheet states 10uF tantalum or 50uF aluminum electrolytic, ESR must not exceed 0.5 ohm. Neither qualifies a ceramic-only solution; an all-ceramic BOM (ESR typically <0.05 ohm) falls below both windows and risks oscillation.",
+      "source": "TI LM1117 SNOS412Q s.9.2.2.1.3 'Output Capacitor' p.15 (https://www.ti.com/lit/ds/symlink/lm1117.pdf); Slkor AMS1117 datasheet p.5 'Output Capacitor' (https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/8122/AMS11173.3SOT223.pdf)"
+    },
+    {
+      "what": "MIC29302A is ESR-TOLERANT and explicitly warns extremely-low-ESR ceramic MAY CONTRIBUTE TO INSTABILITY; stable with 10uF at full load, aluminum electrolytic adequate, tantalum recommended only for fast transient response.",
+      "why": "Inverse of the 1117-class trap: this part does not need ESR-boosted caps, but pairing it with a bare low-ESR ceramic is called out by the vendor as a risk, not a benefit.",
+      "source": "Microchip MIC29302A datasheet Rev 2.0 p.11 'Capacitor Requirements' (https://ww1.microchip.com/downloads/en/DeviceDoc/MIC29302A.pdf)"
+    },
+    {
+      "what": "AP2114 (CMOS pass device) is genuinely ceramic-stable: datasheet states stable with 4.7uF ceramic, tantalum, or aluminum electrolytic, and the electrical-characteristics table is measured with CIN=COUT=4.7uF ceramic.",
+      "why": "Different internal compensation (CMOS pass FET) from the bipolar/PNP parts above; this is the only surveyed part where an all-ceramic BOM is both claimed AND the vendor's own test condition.",
+      "source": "BCD Semiconductor AP2114 datasheet Rev 1.3 p.1 Features, p.6 Electrical Characteristics test conditions (https://www1.futureelectronics.com/doc/BCD%20SEMICONDUCTOR/AP2114H-2.5TRG1.pdf)"
+    },
+    {
+      "what": "theta_JA is copper-area-dependent and package/copper-weight dependent; LM1117's own sweep for SOT-223 (1oz) runs 136 C/W at bare pad down to 66 C/W at 1 in^2 top-side copper; TO-252 (2oz) runs 103 down to 47 C/W over the same area grid.",
+      "why": "This is the primary driver of what board outline/copper this design needs to earn at P6/P7 - a single headline theta_JA number is not sufficient to size the board.",
+      "source": "TI LM1117 SNOS412Q Table 9-2, Figures 9-11/9-12/9-13/9-14, pp.18-19 (https://www.ti.com/lit/ds/symlink/lm1117.pdf)"
+    },
+    {
+      "what": "Bottom-side (via-fed) copper is roughly 20% LESS effective per unit area than top-side copper for these non-exposed-pad packages (SOT-223, TO-252), because the tab solders to the top layer and vias add thermal resistance to reach the bottom.",
+      "why": "Directly answers 'how much does a 2-layer bottom pour really buy': less than the same area of top copper, by about a fifth, for this package class. At matched 1 in^2: SOT-223 66 (top) vs 79 C/W (bottom); TO-252 47 (top) vs 57 C/W (bottom).",
+      "source": "TI LM1117 SNOS412Q Table 9-2 layouts 6 vs 11, p.18-19"
+    },
+    {
+      "what": "MIC29302A's headline theta_JA (TO-252=35 C/W, TO-263=28 C/W) is explicitly conditioned on 2oz copper AND >=100mm^2 (0.155 in^2) copper area, not JEDEC 1 in^2 - a much smaller area point than TI's sweep uses.",
+      "why": "Vendor headline theta_JA numbers are not comparable across parts without checking what copper condition each one assumed; this number looks better than LM1117's TO-252-at-1in^2 (47 C/W) partly because of package/die differences, not because it needs less copper in an absolute sense.",
+      "source": "Microchip MIC29302A datasheet Rev 2.0 p.3 Package Thermal Resistance table, p.10 'Thermal Design' worked example (https://ww1.microchip.com/downloads/en/DeviceDoc/MIC29302A.pdf)"
+    },
+    {
+      "what": "AMS1117 clone datasheet gives only a single bare-minimum-pad theta_JA (SOT-223=150 C/W, TO-252=125 C/W, SOT89=225 C/W) with no copper-area statement at all - worse than even TI's 'pad only' data point for the same package (136 C/W).",
+      "why": "A single headline theta_JA number, unqualified by copper area, should be treated as a worst case, not a design target; use a copper-area sweep or an explicit stated criterion instead.",
+      "source": "Slkor AMS1117 datasheet p.2 Absolute Maximum Ratings table"
+    },
+    {
+      "what": "AP2114 datasheet gives ONLY theta_JC (junction-to-case: SOT-223=50.9, TO-252-2=35, TO-263-3=22 C/W), never theta_JA - the board's contribution is not characterized by the vendor at all.",
+      "why": "A design using AP2114 cannot size copper from the datasheet alone and must fall back to a generic thermal model or bench measurement; this is a gap to flag at P2/P3, not a usable thermal decision.",
+      "source": "BCD Semiconductor AP2114 datasheet Rev 1.3 p.6 Electrical Characteristics, 'Thermal Resistance (Junction to Case)' row"
+    },
+    {
+      "what": "Tab/thermal-pad electrical identity differs by part and is NOT uniform: LM1117 and AMS1117 (3-pin SOT-223/TO-252) have TAB = VOUT; MIC29302A (5-pin TO-263/TO-252, ADJ output) has TAB = GND (internally tied).",
+      "why": "Determines whether the heatsink copper pour is a 'hot' output island needing isolation from other copper, or can be tied directly into the board's GND fill. Must be confirmed per the exact chosen part before laying out the pour.",
+      "source": "TI LM1117 SNOS412Q Figures 6-1..6-4 p.3 ('Tab is VOUT'); Slkor AMS1117 p.2 pinout (same convention); Microchip MIC29302A p.2 Pin Description ('GND: TAB is also connected internally to the IC's ground on both packages')"
+    }
+  ],
+  "layout_notes": [
+    {
+      "what": "Input capacitor at the VIN pin with short leads is the universal baseline across all four candidate classes; none of the four datasheets calls out a hot-loop or Kelvin-sense requirement beyond this - linear regulators have no switch node.",
+      "source": "TI LM1117 p.14; Slkor AMS1117 p.5; Microchip MIC29302A p.11"
+    },
+    {
+      "what": "MIC29302A's own eval-board layout places input caps (ceramic+tantalum) and output caps (ceramic+tantalum) immediately flanking the IC on the top layer with a dedicated PGND pour; no analog/power ground split shown (single simple rail, no feedback-noise-sensitive stage).",
+      "source": "Microchip MIC29302A datasheet Rev 2.0 pp.14-15 'PCB Layout Recommendations'"
+    },
+    {
+      "what": "If a fixed-output part is chosen (satisfies the +/-3% accuracy spec per requirements.md answer 5), no external feedback divider is needed and the ADJ-pin placement rules below do not apply.",
+      "source": "requirements.md section 9 answer 5"
+    },
+    {
+      "what": "If an adjustable part is chosen instead: keep the CADJ bypass-impedance rule 1/(2*pi*fRIPPLE*CADJ) < R1, and size R1+R2 low enough to pass the part's own minimum-load spec through the divider if the divider is the only load path.",
+      "source": "TI LM1117 s.9.2.2.1.2 p.14-15; Slkor AMS1117 p.5; Microchip MIC29302A p.11 'Adjustable Regulator Design'"
+    }
+  ],
+  "errata": [
+    {
+      "what": "AMS1117 clone dropout is 1.30V typ / 1.40V max AT 1A per this vendor's own table - worse than the ~1.1V figure commonly repeated online for 'AMS1117'. No 500mA point is tabulated explicitly, only 1A guaranteed.",
+      "source": "Slkor AMS1117 datasheet p.3 Electrical Characteristics table"
+    },
+    {
+      "what": "AP2114 dropout figures conflict between sources fetched: front page states 450mV typ @1A for the 3.3V variant, but the electrical table retrieved (AP2114-1.2 variant only, Vin=2.5V test condition) shows 1200/1300mV typ/max at 1A - different Vout variant and test Vin, not directly comparable. UNCONFIRMED against the -3.3 variant's own table; refetch before relying on the 450mV figure if AP2114 is selected.",
+      "source": "BCD Semiconductor AP2114 datasheet Rev 1.3 p.1 Features vs p.6 Electrical Characteristics (AP2114-1.2 table)"
+    },
+    {
+      "what": "Minimum load current is NOT uniform across the candidate class: AMS1117 3mA typ/10mA max (all variants), MIC29302A 10mA min (all variants), but LM1117 FIXED-output variants have no stated min-load spec at all (only the ADJ variant does, 1.7/5mA) - relevant since this board's static resistive load could sit near zero at bench idle.",
+      "source": "TI LM1117 SNOS412Q p.6 Electrical Characteristics table footnote 5; Slkor AMS1117 p.3; Microchip MIC29302A p.11 'Minimum Load Current'"
+    },
+    {
+      "what": "Quiescent/ground current is not flat vs load for every topology: MIC29302A (PNP pass) ground current scales with output current (~2% of Iout per the vendor's own PD formula, 5mA typ at 750mA out rising to 60mA typ at 3A out), while AP2114 (CMOS pass) stays a near-constant 60uA typ regardless of load.",
+      "source": "Microchip MIC29302A datasheet p.3 Ground Current table, p.10 PD formula; BCD AP2114 datasheet p.6 Quiescent Current row"
+    },
+    {
+      "what": "Thermal shutdown thresholds differ across the class: AMS1117 150C (10C hysteresis), MIC29302A 125C, AP2114 160C (25C hysteresis), LM1117 125C recommended max junction. requirements.md's '~75 C/W or better for a 125C part' framing is conservative (extra margin available) for AMS1117/AP2114's higher thresholds - but design to 125C Tj max regardless, since shutdown is a fault response not a steady-state target.",
+      "source": "Slkor AMS1117 p.3; Microchip MIC29302A p.10; BCD AP2114 p.6; TI LM1117 s.9.5.1.1 p.18"
+    },
+    {
+      "what": "Counterfeit/clone variance is real and specific to AMS1117-class jellybean parts: the datasheet retrieved for 'AMS1117' is branded Slkor, a second-source/clone die, not the original Advanced Monolithic Systems part. The part number is used by many fabs with non-identical dies - pin the exact manufacturer/part number in the BOM if this class is chosen; do not assume datasheet numbers transfer across suppliers.",
+      "source": "Slkor AMS1117 datasheet cover page (self-identifies as Slkor, not AMS)"
+    },
+    {
+      "what": "Project-internal fact (not a vendor citation): this repo's check_thermal gate uses a first-principles copper-spreader theta_JA model, validated to within 5% of a vendor JEDEC number elsewhere in the project; board AREA dominates theta_JA more than inner-layer copper weight for small boards. Relevant because board_edit --outline fit (P6/P7) sizes this board's outline against that model, not directly against the vendor tables above.",
+      "source": "LEARNINGS.md 2026-08-09 [check_thermal][thermal][stackup], this repo"
+    }
+  ]
+}

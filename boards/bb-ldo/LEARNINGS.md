@@ -1,0 +1,56 @@
+# LEARNINGS - bb-ldo (workspace learnings)
+
+Workspace-local. Every entry gets a date, tags (stage tag first: P0-P10), and a
+one-line claim as its title. `learnings.py compile --workspace boards/bb-ldo` turns new
+entries into `learnings/queue.yaml`; the `promote` verb rules on them.
+Research tasks (research.py close) append their entries here automatically.
+
+## 2026-08-16 [P2][research][knowledge][block:B2] research task block-linear-regulator-1: 6 verified record(s) for block:B2
+Gap: research block 'linear-regulator': produce its coverage checklist, then populate it
+Operating point: {"adjust_kind": "fixed", "board_layers": 2, "cooling_kind": "natural-convection", "copper_oz": 1, "cout_stability_kind": "esr-dependent", "dropout_kind": "standard", "iout_a": 0.51, "pass_device_kind": "bipolar-npn", "pdiss_w": 1.0, "source_kind": "dc-input", "ta_c": 50, "tab_net_kind": "vout", "vin_max_v": 5.25, "vin_min_v": 4.75, "vin_v": 5.0, "vout_v": 3.3}
+Missing classes: coverage-checklist
+
+Verified records (second reader signed). Promotion = the research verb's promote step (copies record + sources into the library), then the queue ruling with kind knowledge_record targeting reference/knowledge/records/<id>.yaml, then the owner's approval block:
+- linear-regulator-1117-output-cap-esr-window [feedback, decoupling] boards/bb-ldo/research/records/linear-regulator-1117-output-cap-esr-window.yaml
+- linear-regulator-copper-is-the-heatsink [thermal] boards/bb-ldo/research/records/linear-regulator-copper-is-the-heatsink.yaml
+- linear-regulator-esr-zero-compensation [feedback] boards/bb-ldo/research/records/linear-regulator-esr-zero-compensation.yaml
+- linear-regulator-fixed-variant-min-load [selection] boards/bb-ldo/research/records/linear-regulator-fixed-variant-min-load.yaml
+- linear-regulator-live-tab-thermal-vias [thermal-via] boards/bb-ldo/research/records/linear-regulator-live-tab-thermal-vias.yaml
+- linear-regulator-tab-copper-area-theta-ja [thermal] boards/bb-ldo/research/records/linear-regulator-tab-copper-area-theta-ja.yaml
+Draft coverage checklist(s) for the owner to approve:
+- linear-regulator boards/bb-ldo/research/checklists/linear-regulator.yaml (5 classes)
+Sources (quarantined, sha-pinned in the task ledger):
+- research/sources/2304140030_Advanced-Monolithic-Systems-AMS1117-3-3_C6186.pdf tier vendor-layout sha256 189a2651878a <https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Advanced-Monolithic-Systems-AMS1117-3-3_C6186.pdf>
+- research/sources/lm1117.pdf tier cross-vendor sha256 35892f3a8673 <https://www.ti.com/lit/ds/symlink/lm1117.pdf>
+- research/sources/snva036b.pdf tier cross-vendor sha256 4f6aa9be526d <https://www.ti.com/lit/an/snva036b/snva036b.pdf>
+- research/sources/slva115a.pdf tier cross-vendor sha256 ebbd820a8378 <https://www.ti.com/lit/an/slva115a/slva115a.pdf>
+Task file: boards/bb-ldo/research/tasks/block-linear-regulator-1.json
+
+## 2026-08-16 [P4][schematic][easyeda2kicad][kicad-sch-api] A pulled symbol's reversed pin ANGLES make schlib emit INWARD stubs, and rotating the part is not the fix
+`aiee:293D226X9016D2TE3` (C2, the 22 uF compensation tantalum) came out of easyeda2kicad with
+its two pin angles backwards relative to its own graphics: pin 1 at x=-5.08 carried angle 180
+and pin 2 at x=+5.08 carried angle 0, so both leads are DRAWN away from the plates (connecting
+to nothing, 3.5 mm short of the electrode) and `schlib.stub_dir` - which reads outward as the
+opposite of the pin angle - emitted both auto-stubs INWARD. Result: the rail and ground labels
+land 5.08 mm apart ON the body and render as one run-together string ("+3V3GND") with the rail
+label over the plate. ERC is 0/0 and the netlist is correct throughout - a pin's connection
+point is its `(at ...)`, which the angle does not move - so NO machine gate sees it; only the
+H2 schematic PDF does. The obvious workaround (rotate the cap to a vertical shunt) is WORSE and
+already on the ladder: KiCad rotates field TEXT with the symbol while schem_refdes does not, so
+a rot-90/270 2-pin passive overprints its own Reference/Value (2026-08-09 entry) - measured here
+too, the 22-char value string ran vertically through the refdes and the LCSC field. Fix at the
+SOURCE, like the pin-TYPE repair does: `kicad/gen/lib_pin_angles.py` (idempotent, `--check`
+mode, re-run after any lib_pull) rewrites the two angles and trims both lead lengths to 3.81 mm.
+Nothing electrical changes - verified by `netlist_audit --compare` against the pre-repair
+netlist: 0 differences. Sibling symbol `aiee:TAJA106K016RNJ` (C1, same vendor family, same
+pull) has CORRECT angles, so this is per-symbol damage and cannot be assumed away: check any
+pulled 2-pin passive by placing it and reading `Sheet._pin_out_dir`, not by reading the file.
+
+## 2026-08-16 [P4][schematic][erc] Hang a rail's power symbol in its own cluster, not on a pin stub, when the IC's pins are on 2.54 mm pitch
+`power_symbol_at_pin("U1", "2", "power:+3V3")` puts the symbol's PIN on the stub end and the
+symbol BODY (the arrow) extends from there - on the AMS1117's 2.54 mm pin pitch that body lands
+on the neighbouring pin's local label, so the rendered sheet shows the +3V3 arrow drawn through
+U1 pin 1's "GND" text. Electrically fine (ERC 0/0), unreadable on the PDF. `power_flag(net,
+at=..., sym=..., flag=False)` is the clean alternative: it puts the symbol in free area with a
+label terminating the wire and NO PWR_FLAG, which is what a rail driven by a power_out pin
+wants. bb-ldo puts all three rails (+5V flagged, +3V3 unflagged, GND flagged) in one column.

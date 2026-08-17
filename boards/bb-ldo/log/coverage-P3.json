@@ -1,0 +1,794 @@
+{
+ "script": "knowledge",
+ "status": "pass",
+ "schema_version": 2,
+ "workspace": "boards/bb-ldo",
+ "board": "bb-ldo",
+ "phase": "P3",
+ "maturity_floor": "approved",
+ "keys": {
+  "topologies": [
+   "linear-regulator"
+  ],
+  "packages": [
+   "CASE-A-3216-18(mm)",
+   "CASE-D-7343-31(mm)",
+   "Plugin,P=5.08mm",
+   "SOT-223"
+  ],
+  "interfaces": [],
+  "parts": [
+   "293D226X9016D2TE3",
+   "AMS1117-3.3",
+   "C215872",
+   "C6186",
+   "C7171",
+   "C8465",
+   "TAJA106K016RNJ",
+   "WJ500V-5.08-2P"
+  ],
+  "sources": {
+   "constraints": "boards/bb-ldo/architecture/constraints.json",
+   "parts": "boards/bb-ldo/parts/parts.json"
+  }
+ },
+ "sources": {
+  "constraints": "boards/bb-ldo/architecture/constraints.json",
+  "parts": "boards/bb-ldo/parts/parts.json"
+ },
+ "summary": {
+  "slots": 2,
+  "covered": 1,
+  "provisional": 1,
+  "gap": 0
+ },
+ "slots": [
+  {
+   "id": "block:B2",
+   "kind": "block",
+   "topology": "linear-regulator",
+   "label": "B2",
+   "operating_point": {
+    "vin_v": 5.0,
+    "vin_min_v": 4.75,
+    "vin_max_v": 5.25,
+    "vout_v": 3.3,
+    "iout_a": 0.51,
+    "pdiss_w": 1.0,
+    "ta_c": 50,
+    "board_layers": 2,
+    "copper_oz": 1,
+    "source_kind": "dc-input",
+    "pass_device_kind": "bipolar-npn",
+    "dropout_kind": "standard",
+    "adjust_kind": "fixed",
+    "cout_stability_kind": "esr-dependent",
+    "tab_net_kind": "vout",
+    "cooling_kind": "natural-convection"
+   },
+   "classes": [
+    {
+     "class": "selection",
+     "min_level": "topology",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "linear-regulator-fixed-variant-min-load",
+       "level": "family",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    },
+    {
+     "class": "thermal",
+     "min_level": "topology",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "linear-regulator-copper-is-the-heatsink",
+       "level": "principle",
+       "maturity": "verified",
+       "envelope": "n/a",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "level-below-min"
+      },
+      {
+       "id": "linear-regulator-tab-copper-area-theta-ja",
+       "level": "family",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    },
+    {
+     "class": "thermal-via",
+     "min_level": "topology",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "linear-regulator-live-tab-thermal-vias",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    },
+    {
+     "class": "feedback",
+     "min_level": "topology",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "linear-regulator-1117-output-cap-esr-window",
+       "level": "family",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      },
+      {
+       "id": "linear-regulator-esr-zero-compensation",
+       "level": "principle",
+       "maturity": "verified",
+       "envelope": "n/a",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "level-below-min"
+      }
+     ]
+    },
+    {
+     "class": "decoupling",
+     "min_level": "topology",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "linear-regulator-1117-output-cap-esr-window",
+       "level": "family",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    }
+   ],
+   "gap_reasons": [],
+   "checklist": {
+    "id": "linear-regulator",
+    "maturity": "draft",
+    "floor_met": false
+   },
+   "verdict": "provisional"
+  },
+  {
+   "id": "part:C6186",
+   "kind": "part",
+   "lcsc": "C6186",
+   "mpn": "AMS1117-3.3",
+   "package": "SOT-223",
+   "block": "linear-regulator",
+   "ref_prefix_hint": "U",
+   "operating_point": {},
+   "extraction": {
+    "file": "boards/bb-ldo/parts/C6186.json",
+    "layout_notes": 8,
+    "layout_chars": 2086,
+    "error": null
+   },
+   "classes": [
+    {
+     "class": "datasheet-layout",
+     "min_level": "part",
+     "verdict": "covered",
+     "records": [
+      {
+       "id": "linear-regulator-1117-output-cap-esr-window",
+       "level": "family",
+       "maturity": "verified",
+       "envelope": "unknown",
+       "unknown_dims": [
+        "cout_stability_kind"
+       ],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "level-below-min"
+      },
+      {
+       "id": "linear-regulator-copper-is-the-heatsink",
+       "level": "principle",
+       "maturity": "verified",
+       "envelope": "n/a",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "level-below-min"
+      },
+      {
+       "id": "linear-regulator-fixed-variant-min-load",
+       "level": "family",
+       "maturity": "verified",
+       "envelope": "unknown",
+       "unknown_dims": [
+        "iout_a"
+       ],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "level-below-min"
+      },
+      {
+       "id": "linear-regulator-live-tab-thermal-vias",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "unknown",
+       "unknown_dims": [
+        "tab_net_kind"
+       ],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "level-below-min"
+      },
+      {
+       "id": "linear-regulator-tab-copper-area-theta-ja",
+       "level": "family",
+       "maturity": "verified",
+       "envelope": "unknown",
+       "unknown_dims": [
+        "pdiss_w",
+        "cooling_kind"
+       ],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "level-below-min"
+      }
+     ]
+    }
+   ],
+   "gap_reasons": [],
+   "datasheet_layout": "present",
+   "verdict": "covered"
+  }
+ ],
+ "gaps": [],
+ "warnings": [],
+ "workspace_records": [
+  "linear-regulator-1117-output-cap-esr-window",
+  "linear-regulator-copper-is-the-heatsink",
+  "linear-regulator-esr-zero-compensation",
+  "linear-regulator-fixed-variant-min-load",
+  "linear-regulator-live-tab-thermal-vias",
+  "linear-regulator-tab-copper-area-theta-ja"
+ ],
+ "workspace_checklists": [
+  "linear-regulator"
+ ],
+ "mapping_applied": null,
+ "mapping_request": {
+  "schema": {
+   "$schema": "https://json-schema.org/draft/2020-12/schema",
+   "title": "ai-ee coverage mapping (agent output)",
+   "type": "object",
+   "required": [
+    "mappings"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "mappings": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "required": [
+       "record",
+       "slot",
+       "class",
+       "why"
+      ],
+      "additionalProperties": false,
+      "properties": {
+       "record": {
+        "type": "string",
+        "minLength": 1
+       },
+       "slot": {
+        "type": "string",
+        "minLength": 1
+       },
+       "class": {
+        "type": "string",
+        "minLength": 1
+       },
+       "why": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 300
+       }
+      }
+     }
+    },
+    "note": {
+     "type": "string",
+     "maxLength": 600
+    }
+   }
+  },
+  "instructions": "Map records to slots for ONE class each - only edges you can justify from the record's prose. You classify; you do NOT decide sufficiency, coverage or maturity. Output the JSON shape in `schema`; the coverage run validates it and refuses unknown records/slots or classes the record does not carry.",
+  "slots": [
+   {
+    "id": "block:B2",
+    "kind": "block",
+    "topology": "linear-regulator",
+    "operating_point": {
+     "vin_v": 5.0,
+     "vin_min_v": 4.75,
+     "vin_max_v": 5.25,
+     "vout_v": 3.3,
+     "iout_a": 0.51,
+     "pdiss_w": 1.0,
+     "ta_c": 50,
+     "board_layers": 2,
+     "copper_oz": 1,
+     "source_kind": "dc-input",
+     "pass_device_kind": "bipolar-npn",
+     "dropout_kind": "standard",
+     "adjust_kind": "fixed",
+     "cout_stability_kind": "esr-dependent",
+     "tab_net_kind": "vout",
+     "cooling_kind": "natural-convection"
+    },
+    "required_classes": [
+     "selection",
+     "thermal",
+     "thermal-via",
+     "feedback",
+     "decoupling"
+    ],
+    "unmet_classes": [
+     "selection",
+     "thermal",
+     "thermal-via",
+     "feedback",
+     "decoupling"
+    ]
+   }
+  ],
+  "candidates": [
+   {
+    "id": "buck-bst-fb-output-caps",
+    "level": "family",
+    "maturity": "approved",
+    "classes": [
+     "feedback",
+     "decoupling"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "BST: integrated-FET parts need the 100 nF BST-SW cap - it is required, not optional (DS41326 s13); confirm value/rating in the family datasheet. FB TRAP (cost a near-miss once): FIXED-output family members tie FB straight to the output sens"
+   },
+   {
+    "id": "buck-cin-co-ground-separation",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "power-loop",
+     "emi"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "Two ROHM measurements the generic hot-loop rule does not carry: (1) shortening the CBYPASS wiring EVEN BY 1 mm is worth it - the HF bypass supplies the steepest edge of the switch current, and its loop inductance sets the VIN-pin voltage no"
+   },
+   {
+    "id": "buck-constraints-emission",
+    "level": "principle",
+    "maturity": "approved",
+    "classes": [
+     "constraints-emission"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "What a buck block must emit into constraints.json for the pipeline: (1) power entries with current_a from the RAIL BUDGET (consumer sum + ~30% headroom, rounded to a design ceiling) and dt_c from ambient; (2) a thermal entry when regulator "
+   },
+   {
+    "id": "buck-en-softstart-sequencing",
+    "level": "principle",
+    "maturity": "approved",
+    "classes": [
+     "sequencing"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "Check the EN pin's OWN behavior before adding parts: many parts auto-start (AP63203: internal 1.5 uA pull-up - tie to VIN or float; adding a divider is wasted parts). When EN is used as a UVLO divider, mind the two traps the sbuck run hit: "
+   },
+   {
+    "id": "buck-fb-route-rules",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "feedback"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "The feedback route needs the most attention of any signal wire - noise here becomes output-voltage error and instability. ROHM's four rules (fig 7-a): (a) the FB pin is high impedance - connect the divider network with a SHORT wire at the p"
+   },
+   {
+    "id": "buck-freewheel-diode-snubber-placement",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "power-loop",
+     "emi"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "Async buck (free-wheel diode) placement rules: the diode must sit CLOSE and on the SAME surface as the IC terminals, wired short and wide, connected directly to the IC's GND and SW terminals - distance adds wiring inductance whose spike noi"
+   },
+   {
+    "id": "buck-inductor-copper-and-gnd-void",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "emi"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "Inductor region rules (ROHM s5): place L close to the IC but NOT as close as the input cap; do NOT expand the SW/inductor copper beyond what current needs - enlarged copper works as an antenna (EMI), even though instinct says more copper = "
+   },
+   {
+    "id": "buck-inductor-selection",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "selection"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "The three inductor rules every run re-derived from scratch. L VALUE: start from the vendor's recommended-components table row for your Vout; the next STANDARD value up is usually right - light-load efficiency improves with larger L (DS41326"
+   },
+   {
+    "id": "buck-input-hot-loop",
+    "level": "principle",
+    "maturity": "approved",
+    "classes": [
+     "power-loop",
+     "emi"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "Layout rule #1 for every buck: the input cap carries the DISCONTINUOUS switch current. C_IN plus a 100 nF HF bypass AT the VIN pin, on the SAME layer as the IC; the C_IN -> VIN -> GND -> C_IN loop must be the shortest loop on the board; SW-"
+   },
+   {
+    "id": "buck-power-ground-isolation",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "return-path",
+     "power-loop"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "Ground strategy (ROHM s8): analog small-signal ground and power ground must be ISOLATED, and power ground laid on the TOP layer without splitting is the ideal - dropping an isolated power ground to the bottom layer through vias adds via R a"
+   },
+   {
+    "id": "buck-selection-ladder",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "selection"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "Regulator-type ladder, one line of tradeoff each; if the brief names a part the named part stands (record the alternative as an override option). (1) Integrated synchronous buck is the DEFAULT at <= ~60 V input and <= ~3 A: no catch diode, "
+   },
+   {
+    "id": "buck-switch-node-containment",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "emi"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "Keep SW copper as small as electrically possible and treat SW + L as an AGGRESSOR: lumina-par's 2.4 GHz antenna 11 mm from a switch node drove a 4-layer stackup + containment plan; usb-buck keeps the USB pair away from SW/L per ST AN4879 3."
+   },
+   {
+    "id": "buck-thermal-via-and-via-current",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "thermal-via"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [
+      "HTSOP-J8",
+      "SO-8-EP",
+      "SO-8EP"
+     ],
+     "interfaces": []
+    },
+    "prose_head": "Thermal vias under an exposed-pad regulator (ROHM s4, HTSOP-J8 numbers generalize to EP packages): small drill - 0.3 mm inner diameter - so the via can FILL with solder; larger drills suck solder away from the joint at reflow (solder-wickin"
+   },
+   {
+    "id": "buck-upstream-inrush-limit",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "inrush",
+     "selection"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "interfaces": [
+      "usb",
+      "usb-pd",
+      "poe"
+     ],
+     "packages": []
+    },
+    "prose_head": "Upstream bulk limit trap: a buck's input capacitance is bounded by the SOURCE, not by the buck. USB 2.0 allows 10 uF || 44 ohm at attach (spec s7.2.4.1); a USB-PD sink is allowed 100 uF under contract (cSnkBulkPd); PoE has its own inrush en"
+   },
+   {
+    "id": "cot-ripple-injection-raises-vout",
+    "level": "family",
+    "maturity": "approved",
+    "classes": [
+     "feedback"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "A constant-on-time regulator ends its off-time when FB falls back through VREF, so it regulates the VALLEY of FB, not its average. With Type 3 injection the ramp is AC-coupled into FB and its mean is genuinely zero, so FB_dc = VREF + Vramp/"
+   },
+   {
+    "id": "linear-regulator-1117-output-cap-esr-window",
+    "level": "family",
+    "maturity": "verified",
+    "classes": [
+     "feedback",
+     "decoupling"
+    ],
+    "applies": {
+     "topologies": [
+      "linear-regulator"
+     ],
+     "packages": [
+      "SOT-223",
+      "TO-252"
+     ],
+     "interfaces": [],
+     "parts": [
+      "AMS1117",
+      "AMS1117-3.3",
+      "LM1117"
+     ]
+    },
+    "prose_head": "The 1117 output cap is a compensation element. LM1117 p15: minimum 10 uF if a tantalum is used, \"the ESR of the output capacitor should range between 0.3 ohm to 22 ohm\", 22 uF for the adjustable part with CADJ. AMS1117 p4 gives no ESR bound"
+   },
+   {
+    "id": "linear-regulator-copper-is-the-heatsink",
+    "level": "principle",
+    "maturity": "verified",
+    "classes": [
+     "thermal"
+    ],
+    "applies": {
+     "topologies": [
+      "linear-regulator"
+     ],
+     "packages": [
+      "SOT-223",
+      "TO-252"
+     ],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "A linear regulator turns the whole input-output difference into heat: PD = (VIN-VOUT)*IL + VIN*IG, continuous, at full load (LM1117 p18 eq 2-3). No layout choice reduces it - the only freedom is where the heat goes. In a still-air SMD desig"
+   },
+   {
+    "id": "linear-regulator-esr-zero-compensation",
+    "level": "principle",
+    "maturity": "verified",
+    "classes": [
+     "feedback"
+    ],
+    "applies": {
+     "topologies": [
+      "linear-regulator"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "Why an older linear regulator names an ESR RANGE instead of just a capacitance. Its loop has three poles (SLVA115A Fig 1, p2): the dominant pole in the error amplifier, a LOAD pole set by COUT x RLOAD that moves with load current, and the p"
+   },
+   {
+    "id": "linear-regulator-fixed-variant-min-load",
+    "level": "family",
+    "maturity": "verified",
+    "classes": [
+     "selection"
+    ],
+    "applies": {
+     "topologies": [
+      "linear-regulator"
+     ],
+     "packages": [
+      "SOT-223",
+      "TO-252"
+     ],
+     "interfaces": [],
+     "parts": [
+      "AMS1117",
+      "AMS1117-3.3",
+      "LM1117"
+     ]
+    },
+    "prose_head": "The 1117 minimum-load spec belongs to the ADJUSTABLE part. AMS1117 p3: the Minimum Load Current row (5 mA typ, 10 mA max, Note 5) carries Device = \"AMS1117\", the adjustable base, while every fixed suffix (-1.5 ... -5.0) is named on the Curr"
+   },
+   {
+    "id": "linear-regulator-live-tab-thermal-vias",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "thermal-via"
+    ],
+    "applies": {
+     "topologies": [
+      "linear-regulator"
+     ],
+     "packages": [
+      "SOT-223",
+      "TO-252"
+     ],
+     "interfaces": [],
+     "parts": [
+      "AMS1117",
+      "AMS1117-3.3",
+      "LM1117"
+     ]
+    },
+    "prose_head": "On 1117-class parts the tab is the OUTPUT, not ground - AMS1117 p1 pin connections (1 GND/ADJ, 2 VOUT, 3 VIN) with the TO-252 view labelled TAB IS OUTPUT, and LM1117 p3 Fig 6-1 (DCY 4-pin SOT top view) labelled \"Tab is VOUT\" with Table 6-1 "
+   },
+   {
+    "id": "linear-regulator-tab-copper-area-theta-ja",
+    "level": "family",
+    "maturity": "verified",
+    "classes": [
+     "thermal"
+    ],
+    "applies": {
+     "topologies": [
+      "linear-regulator"
+     ],
+     "packages": [
+      "SOT-223",
+      "TO-252"
+     ],
+     "interfaces": [],
+     "parts": [
+      "AMS1117",
+      "AMS1117-3.3",
+      "LM1117"
+     ]
+    },
+    "prose_head": "AMS1117 Table 1 (p5): theta_JA vs copper area, 1/16 in FR-4, 1 oz foil - min pad 90 C/W (p2); 1000 sq mm top + 0 back = 65; 1000 + 1000 back = 60; 1000 + 2500 back = 55; 100 + 2500 = 80 C/W. Footnote: tab attached to TOPSIDE copper. What is"
+   },
+   {
+    "id": "spiral-inductor-plane-and-heatsink-keepout",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "emi",
+     "thermal"
+    ],
+    "applies": {
+     "topologies": [
+      "class-e"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "An etched PCB spiral (air-core inductor, coupled pair, antenna) is destroyed by solid metal parallel to it: a ground plane under the winding is a shorted turn and collapses Q, and so is a bottom-side metal heatsink. Two independently-correc"
+   }
+  ]
+ }
+}

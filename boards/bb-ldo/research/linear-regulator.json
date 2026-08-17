@@ -1,0 +1,60 @@
+{
+  "block": "linear-regulator",
+  "candidates": [
+    {
+      "mpn": "AMS1117-3.3",
+      "lcsc": "C6186",
+      "package": "SOT-223",
+      "basic": true,
+      "stock": 1364865,
+      "price": 0.2012,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2410121508_Advanced-Monolithic-Systems-AMS1117-3-3_C6186.pdf",
+      "rank": 1,
+      "fit": "Basic, cheapest, huge stock, only datasheet with a copper-area-to-theta_JA curve (55-90 C/W); Tj 103-138C depending on copper earned, needs tantalum output cap, accuracy can worst-case exceed +/-3%."
+    },
+    {
+      "mpn": "MCP1825S-3302E/DB",
+      "lcsc": "C148031",
+      "package": "SOT-223",
+      "basic": false,
+      "stock": 566,
+      "price": 1.3802,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Microchip-Tech-MCP1825S-3302E-DB_C148031.pdf",
+      "rank": 2,
+      "fit": "Best overall technical fit: theta_JA 62 C/W gives Tj~110C with real margin, dropout 210mV typ @500mA (measured, not extrapolated), explicitly ceramic-stable, +/-2.5% max accuracy; Extended part, thin stock."
+    },
+    {
+      "mpn": "AP7361C-33E-13",
+      "lcsc": "C500795",
+      "package": "SOT-223",
+      "basic": false,
+      "stock": 1444,
+      "price": 0.466,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Diodes-Incorporated-AP7361C-33E-13_C500795.pdf",
+      "rank": 3,
+      "fit": "Best dropout/accuracy on paper and ceramic-stable, but theta_JA 110 C/W at minimum pad gives Tj=157C - exceeds even its own 150C max with no copper-scaling data to fix it; in-stock TO-252 variant does not exist (0 stock)."
+    },
+    {
+      "mpn": "MIC29300-3.3WU-TR",
+      "lcsc": "C481370",
+      "package": "TO-263-3",
+      "basic": false,
+      "stock": 1467,
+      "price": 2.7766,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2210181000_Microchip-Tech-MIC29300-3-3WU-TR_C481370.pdf",
+      "rank": 4,
+      "fit": "Tightest accuracy (+/-1-2%) and best dropout, D2PAK is the most thermally capable class, but datasheet gives no theta_JA for TO-263 (only theta_JC=2C/W), app circuit specifies tantalum output cap, and it is the most expensive/lowest-stock option here."
+    },
+    {
+      "mpn": "HT7533-1",
+      "lcsc": "C14289",
+      "package": "SOT-89-3",
+      "basic": true,
+      "stock": 185364,
+      "price": 0.112,
+      "datasheet": "",
+      "rank": 5,
+      "fit": "DISQUALIFIED: Output current max 100mA vs 500mA continuous required (5x under); Basic/cheap/huge stock is moot since it cannot supply the load. Included only to show the too-small-package contrast the brief asked for."
+    }
+  ]
+}
