@@ -1,0 +1,21 @@
+[
+ {
+  "measure": "dvo_mv",
+  "max": 0.3,
+  "severity": "error",
+  "msg": "DESIGN TARGET (blocks.md B8): <= 0.3 mV of output movement over a 0.2 V common-mode sweep at zero scale, i.e. >= 100 dB effective RTI. Measured 0.134 mV. Two mechanisms are modelled and both are real: the AD8226's own DATASHEET CMRR floor (Table 3, 106 dB min at G=10 - the conservative row, since no G=39.9 row exists) injected as 5.012e-6 V/V, and the REF source impedance acting through the published four-50k difference-amp network, which reproduces the datasheet's 2*(50k+Rref)/(100k+Rref) uneven amplification exactly. MUTATION-VERIFIED, and this is blocks.md Ruling 1 / AD8226 Figure 59's 'INCORRECT' case: delete U2A and drive REF from the bare 9.24 k divider Thevenin and this reads 17.06 mV, 57x over."
+ },
+ {
+  "measure": "dvref_uv",
+  "max": 5.0,
+  "severity": "error",
+  "msg": "DESIGN TARGET. The buffered /VREF node must not move with common mode - that is the entire job of U2A. Measured 0.0006 uV. MUTATION-VERIFIED: without the buffer it reads 16945 uV."
+ },
+ {
+  "measure": "vo_165",
+  "min": 0.235,
+  "max": 0.27,
+  "severity": "warning",
+  "msg": "DESIGN TARGET. Pedestal cross-check against b1 at the same operating point."
+ }
+]

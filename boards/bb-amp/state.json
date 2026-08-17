@@ -3,20 +3,20 @@
  "board": "bb-amp",
  "workspace": "boards/bb-amp",
  "created": "2026-08-16T17:25:38",
- "updated": "2026-08-16T22:46:35",
+ "updated": "2026-08-16T23:11:38",
  "phase": "P4",
  "gates": {
   "erc": {
    "phase": "P4",
    "status": "pass",
-   "attempts": 1,
+   "attempts": 2,
    "last": {
-    "ts": "2026-08-16T22:46:35",
+    "ts": "2026-08-16T23:11:38",
     "status": "pass",
     "failing_count": 0,
     "total": 0,
     "inputs": {
-     "sch": "sexpr_no_uuid:4324ae898efe10bef3e7803526f5c6aae0e9ef00dcbd236c12c6c0219881abc7",
+     "sch": "sexpr_no_uuid:e23d4c878c50836bd356106cd5a8d69f3f4142b73373e68f7644c04a93624e5f",
      "pro": "json_canonical:ee215ba4153e477d4bd55d45c71cc2162c8c4e10fab52675b1b7437ec580b0ab"
     }
    },
@@ -28,6 +28,16 @@
      "total": 0,
      "inputs": {
       "sch": "sexpr_no_uuid:4324ae898efe10bef3e7803526f5c6aae0e9ef00dcbd236c12c6c0219881abc7",
+      "pro": "json_canonical:ee215ba4153e477d4bd55d45c71cc2162c8c4e10fab52675b1b7437ec580b0ab"
+     }
+    },
+    {
+     "ts": "2026-08-16T23:11:38",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "sch": "sexpr_no_uuid:e23d4c878c50836bd356106cd5a8d69f3f4142b73373e68f7644c04a93624e5f",
       "pro": "json_canonical:ee215ba4153e477d4bd55d45c71cc2162c8c4e10fab52675b1b7437ec580b0ab"
      }
     }
@@ -45,14 +55,14 @@
   "sch": {
    "path": "kicad/bb-amp.kicad_sch",
    "kind": "sch",
-   "sha256": "sexpr_no_uuid:4324ae898efe10bef3e7803526f5c6aae0e9ef00dcbd236c12c6c0219881abc7",
-   "hashed": "2026-08-16T22:46:35"
+   "sha256": "sexpr_no_uuid:e23d4c878c50836bd356106cd5a8d69f3f4142b73373e68f7644c04a93624e5f",
+   "hashed": "2026-08-16T23:11:38"
   },
   "pro": {
    "path": "kicad/bb-amp.kicad_pro",
    "kind": "pro",
    "sha256": "json_canonical:ee215ba4153e477d4bd55d45c71cc2162c8c4e10fab52675b1b7437ec580b0ab",
-   "hashed": "2026-08-16T22:46:35"
+   "hashed": "2026-08-16T23:11:38"
   }
  },
  "open_issues": [],
@@ -354,6 +364,36 @@
    "why": "sheets.md rules one sheet and no hierarchy: 15 parts on a single signal path. The SKILL's lean amendment permits one schematic agent on a small board provided it is recorded - this is that record. It also keeps /VREF visible as one node touching U1 pin 6, U2A's output and the stage-2 gain return, which is the thing a reader of this board should see at a glance",
    "phase": "P4",
    "ts": "2026-08-16T22:23:36"
+  },
+  {
+   "what": "NO mounting holes on this board. Decided now, before P5, because adding any part after board_init discards placement and routing",
+   "why": "block-only scope excludes mechanical, requirements section 5 says none are required for bench use, and constraints.json names none. Section 5 did leave the door open to M3 clearance holes if the earned outline had corner room - I am closing that door deliberately rather than letting it become a late surprise, since the geometry is an OUTPUT here and the outline will be shrunk to the placement at P6",
+   "phase": "P4",
+   "ts": "2026-08-16T22:47:12"
+  },
+  {
+   "what": "R6 sits OUTSIDE U2B's feedback loop: R4's feedback is taken from /AMP2_OUT (U2.7) before R6, and /VOUT is R6.2 to J2.1",
+   "why": "correct for a series isolation resistor - inside the loop it would not isolate the capacitive load at all, and the loop would fight the cable. Outside the loop it costs a divider error against the load, which is 0.1 pct into the specified >100 kohm and calibrates out. The schematic agent drew it this way independently",
+   "phase": "P4",
+   "ts": "2026-08-16T22:47:12"
+  },
+  {
+   "what": "REVERSING my P3 decision: R6 is REMOVED. The premise I added it on was wrong. OPA2333 Figure 15's ~mid-30 pct overshoot at 1 nF is a UNITY-GAIN figure, and U2B runs at noise gain 3.49. The same macromodel that reproduces Figure 15 exactly (32 pct at 1 nF, unity gain) gives 6.6 pct for the as-built stage with NO R6 - about 63 deg phase margin, 50 deg on the pessimistic ro=2k bracket",
+   "why": "at block-only scope, conditioning the datasheet does not require is excluded by the tier, and the bench has now shown it is not required. 100 R would not have done the job in any case: an out-of-loop isolation resistor has authority R6/ro, so against ro=1-2 kohm it buys only 0.3-1.3 points of overshoot (6.60->6.28 pct calibrated, 17.94->16.68 pct pessimistic). The value that would actually isolate is 470 R or more, but that drops the -5 pct-rail full scale from 3.022 V to ~3.011 V, under blocks.md B6's own 3.02 V figure. Removing pre-P5 is the cheapest moment - after board_init it would be a remove-part operation. The sim-analyst recommended keeping it as harmless; I am overruling that because an unjustified part on a bare-bones board is exactly what the scope tier forbids, and because the removal is the more useful lesson",
+   "phase": "P4",
+   "ts": "2026-08-16T23:05:49"
+  },
+  {
+   "what": "U2A REF-drive impedance measured, and the <2 ohm rule is EXCEEDED above 700 Hz - assessed as NOT a defect. Closed-loop Zout: 0.43 mohm DC, 0.17 ohm at 60 Hz, 2.86 ohm at 1 kHz, 116 ohm at 41 kHz (pessimistic ro=2k: crosses at 350 Hz)",
+   "why": "the AD8226's 2 ohm figure sits in its datasheet's DC-to-60 Hz CMRR context; this board's common mode is a STATIC 1.65 V per Q1 with no 1 kHz common-mode content; and the residual CM gain error Rref/100k works out to 90.8 dB (84.9 dB pessimistic), at or above the AD8226's own 90 dB minimum at 5 kHz. Nothing on the board could flatten it anyway - C4 is upstream of the buffer, and a cap on the buffer output is the follower-into-capacitance blocks.md s5.5 forbids. Gated as warnings with that reasoning in the sidecar rather than hidden",
+   "phase": "P4",
+   "ts": "2026-08-16T23:05:49"
+  },
+  {
+   "what": "The design point is CONFIRMED by simulation against the exported netlist, not against the architecture's arithmetic: slope 139.096 V/V, Vout(0)=0.2528 V, Vout(20 mV)=3.0347 V, Vout(-1 mV)=0.1137 V, clip 3.2796 V monotonic. Stage-1 output at -1 mV sits at 0.2123 V against the AD8226's 0.10 V guaranteed floor - the P1 reconciliation (Ruling 1) holds with 112 mV to spare",
+   "why": "the analyst diffed its hand-typed topology against kicad/bb-amp.net when the netlist appeared mid-run (sim_run --fragment): every value and every connection matched, including R5 returning to /VREF. That is real wrong-value verification rather than a restatement of the design intent",
+   "phase": "P4",
+   "ts": "2026-08-16T23:05:50"
   }
  ],
  "edits": [],
@@ -1074,6 +1114,63 @@
    "gate": "erc",
    "status": "pass",
    "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-16T22:47:11",
+   "event": "tooling_defect",
+   "script": "schem_refdes.write_placements",
+   "defect": "it indexes the sheet as {c.reference: c for c in sch.components}, so TWO UNITS SHARING A REFERENCE collapse to one dict entry and both computed placements land on a single instance. Measured here: U2 unit-1 Reference/Value landed at (153.95,64.77)/(140.97,64.77), beside U2B on the chain row and ~50 mm from U2A, leaving U2A unlabelled",
+   "invisible_to": "ERC and the netlist are both blind to it - it is purely graphical",
+   "workaround_used": "keep the temp unit ref until AFTER save(), then merge refs by asserted string substitution; netlist digest byte-identical before and after, so provably cosmetic-only",
+   "also_affected": "lumina-par has the same bug latent in its in-memory _merge_units (pre-save)",
+   "severity": "medium - silently mislabels any multi-unit part, and no gate catches it"
+  },
+  {
+   "ts": "2026-08-16T22:47:12",
+   "event": "decision",
+   "what": "NO mounting holes on this board. Decided now, before P5, because adding any part after board_init discards placement and routing"
+  },
+  {
+   "ts": "2026-08-16T22:47:12",
+   "event": "decision",
+   "what": "R6 sits OUTSIDE U2B's feedback loop: R4's feedback is taken from /AMP2_OUT (U2.7) before R6, and /VOUT is R6.2 to J2.1"
+  },
+  {
+   "ts": "2026-08-16T22:47:12",
+   "event": "p6_carry",
+   "item": "C2 decoupling association",
+   "detail": "C2 is recorded as a bulk association on U1 pin 8 (AD8226 Fig.61 shared 10 uF), whose class limits are 20 mm warn / 30 mm error pad-to-pad Manhattan, but blocks.md s5.4 wants C2 physically at J3",
+   "action": "if P6 places J3 far from U1, expect a check_decoupling warning. That would be a REAL distance fact, not a metadata error - judge it as such rather than silencing it"
+  },
+  {
+   "ts": "2026-08-16T22:47:13",
+   "event": "doc_tool_mismatch",
+   "item": "#PWR numbering",
+   "detail": "sheets.md illustrates pwr_base=100 -> #PWR0101, but schlib format yields #PWR100/#PWR101 and #FLG100/#FLG101",
+   "impact": "none - unique and netlist-excluded; the doc and the tool simply disagree"
+  },
+  {
+   "ts": "2026-08-16T23:05:49",
+   "event": "decision",
+   "what": "REVERSING my P3 decision: R6 is REMOVED. The premise I added it on was wrong. OPA2333 Figure 15's ~mid-30 pct overshoot at 1 nF is a UNITY-GAIN figure, and U2B runs at noise gain 3.49. The same macromodel that reproduces Figure 15 exactly (32 pct at 1 nF, unity gain) gives 6.6 pct for the as-built stage with NO R6 - about 63 deg phase margin, 50 deg on the pessimistic ro=2k bracket"
+  },
+  {
+   "ts": "2026-08-16T23:05:49",
+   "event": "decision",
+   "what": "U2A REF-drive impedance measured, and the <2 ohm rule is EXCEEDED above 700 Hz - assessed as NOT a defect. Closed-loop Zout: 0.43 mohm DC, 0.17 ohm at 60 Hz, 2.86 ohm at 1 kHz, 116 ohm at 41 kHz (pessimistic ro=2k: crosses at 350 Hz)"
+  },
+  {
+   "ts": "2026-08-16T23:05:50",
+   "event": "decision",
+   "what": "The design point is CONFIRMED by simulation against the exported netlist, not against the architecture's arithmetic: slope 139.096 V/V, Vout(0)=0.2528 V, Vout(20 mV)=3.0347 V, Vout(-1 mV)=0.1137 V, clip 3.2796 V monotonic. Stage-1 output at -1 mV sits at 0.2123 V against the AD8226's 0.10 V guaranteed floor - the P1 reconciliation (Ruling 1) holds with 112 mV to spare"
+  },
+  {
+   "ts": "2026-08-16T23:11:38",
+   "event": "gate",
+   "gate": "erc",
+   "status": "pass",
+   "attempt": 2,
    "failing_count": 0
   }
  ],

@@ -37,6 +37,15 @@
 *   integrator windup) and the real limit is a stiff diode clamp on the
 *   output node, which leaves ro free to do its actual job: set the AC output
 *   impedance and the capacitive-load stability.
+* ANTI-WINDUP CLAMPS THE INTEGRATOR NODE, NOT THE BUFFER. Second measured
+*   defect in this model: clamping only the buffer output leaves nint free,
+*   and 1 ms of the b4 overload charged it to ~160 V at the slew limit, after
+*   which nothing recovered inside the bench. Dawh/Dawl now hold nint itself
+*   0.4 V beyond the swing limits, so recovery costs 0.4 V / slew rate.
+*   CONSEQUENCE: the overload-RECOVERY TIME this model reports is a property
+*   of that 0.4 V headroom, not a datasheet number - neither datasheet states
+*   an overload recovery time. What b4 proves structurally is that the output
+*   does not invert or fold back; the recovery time is gated as a warning.
 * CAPTURES: dc gain, gain-bandwidth, slew rate, output swing limits, output
 *   impedance and capacitive-load stability, quiescent + load supply current.
 * DOES NOT CAPTURE: input offset voltage and its drift, 1/f noise, the
@@ -46,7 +55,7 @@
 *   output clamp, so b2 tests the DESIGN against the datasheet inequality,
 *   not the part).
 *
-.model dclamp D(is=1e-12 n=0.02 rs=0.01 cjo=0)
+.model dclamp D(is=1e-12 n=0.01 rs=0.01 cjo=0)
 .subckt gopamp inp inn out vp vn
 + params: gbw=1meg aol=1e6 ro=100 vsathi=0.05 vsatlo=0.05 iq=0 islew=1e6
 Rin  inp inn 1T
@@ -55,7 +64,11 @@ Rp   nint 0 {aol/(6.283185307*gbw*1e-6)}
 Cp   nint 0 1u
 Bhi  nhi 0 V = V(vp)-{vsathi}
 Blo  nlo 0 V = V(vn)+{vsatlo}
-Bo   nbuf 0 V = min(max(V(nint), V(nlo)-0.4), max(V(nhi)+0.4, V(nlo)-0.4+1e-6))
+Bawh nawh 0 V = V(nhi)+0.4
+Bawl nawl 0 V = V(nlo)-0.4
+Dawh nint nawh dclamp
+Dawl nawl nint dclamp
+Eo   nbuf 0 nint 0 1
 Rout nbuf nsen {ro}
 Vsen nsen out 0
 Dhi  out nhi dclamp
@@ -100,14 +113,26 @@ XA3  na3p na3n out vp vn gopamp gbw=1.5meg aol=1e6 ro=100 vsathi=0.10 vsatlo=0.1
 Iq   vp vn 325u
 .ends
 *
-* The bb-amp signal chain exactly as architecture/blocks.md specifies it.
-* pins: IN+ IN- OUT +3V3 GND.  params: r6 / cl / rl = the J2 load, ro2333 =
-* the OPA2333 open-loop output resistance (see the b10 header for why it is
-* swept). OPA2333: GBW 350 kHz typ, AOL 130 dB typ (106 dB min) -> 3.16e6,
+* The bb-amp signal chain exactly as the board is built.
+* pins: IN+ IN- OUT +3V3 GND.  params: cl / rl = the J2 load, ro2333 = the
+* OPA2333 open-loop output resistance (see the b10/b11 headers for why it is
+* bracketed), riso = an OPTIONAL series isolation resistor between U2B's
+* output and J2.
+* THE SHIPPING BOARD FITS NO ISOLATION RESISTOR. R6 = 100 R existed at P3 and
+* was REMOVED at P4 on the evidence of b11: the OPA2333 Figure 15 overshoot
+* curve that motivated it is a UNITY-GAIN measurement, and U2B runs at a
+* noise gain of 3.49, where the same calibrated model gives 6.6 % overshoot
+* into the full 1 nF with no isolation resistor at all. At `block-only`
+* scope, conditioning the datasheet does not require is out of scope, so an
+* unnecessary part must not ship. riso = 0.001 ohm IS the shipping circuit (a
+* 1 milliohm stand-in for the direct wire, so the element still has a name);
+* b10 and b11 sweep riso only to keep the evidence for the removal
+* reproducible, and gate ONLY the riso = 0.001 case. This also restores
+* blocks.md B5, which had rejected any series output resistor. OPA2333: GBW 350 kHz typ, AOL 130 dB typ (106 dB min) -> 3.16e6,
 * output swing 30 mV typ from either rail (RL = 10k, 25 degC; 50 mV max),
 * slew 0.16 V/us, IQ 17 uA/channel typ - all TI SBOS351D p.3.
 .subckt chain nip nin nout p3v3 gnd
-+ params: r6=100 cl=1p rl=100k ro2333=1k
++ params: riso=0.001 cl=1p rl=100k ro2333=1k
 XU1  nip nin n_rga n_rgb n_vref n_amp1 p3v3 gnd ad8226
 R1   n_rga n_rgb 1.27k
 R2   p3v3 n_vrefset 121k
@@ -119,13 +144,36 @@ XU2B n_amp1 n_fb n_u2bout p3v3 gnd gopamp gbw=350k aol=3.16e6 ro={ro2333}
 +    vsathi=0.030 vsatlo=0.030 iq=17u islew=0.16
 R4   n_u2bout n_fb 24.9k
 R5   n_fb n_vref 10k
-R6   n_u2bout nout {r6}
+RISO n_u2bout nout {riso}
 C1   p3v3 gnd 100n
 C2   p3v3 gnd 10u
 C3   p3v3 gnd 100n
 CL   nout gnd {cl}
 RL   nout gnd {rl}
 .ends
+*
+* NETLIST CROSS-CHECK (2026-08-16, P4). These benches were TYPED from
+* architecture/blocks.md s1-s2 and constraints.json, not synthesized, because
+* schematic-block was authoring the sheet concurrently. As soon as
+* kicad/bb-amp.net appeared it was diffed against them with
+*   sim_run.py --fragment --net kicad/bb-amp.net --refs R1,R2,R3,R4,R5
+* and every value and every connection MATCHES what is modelled here:
+*   R1 1.27k across U1 pins 2-3 (/RG_A,/RG_B)  R2 121k  +3V3 -> /VREF_SET
+*   R3 10.0k /VREF_SET -> GND                  C4 100n on /VREF_SET
+*   R4 24.9k /AMP2_OUT -> /FB2                 R5 10.0k /FB2 -> /VREF
+*   C1,C3 100n / C2 10u on +3V3                and NO R6: /AMP2_OUT is /VOUT
+*     (R6 removed at P4 by ruling, on b11's evidence - see the chain subckt)
+*   U1 REF (pin 6) = /VREF - the BUFFERED node, not the divider, not ground
+*   U2A = unity buffer: OUTA = INA- = /VREF, INA+ = /VREF_SET
+*   U2B: INB+ = /AMP1_OUT, INB- = /FB2, OUTB = /AMP2_OUT
+*   and R5 returns to /VREF, NOT to ground - the one wire blocks.md s2 turns
+*   on, and the one a netlist diff is the only way to confirm.
+* Net map, bench -> schematic: n_ip=/IN_P n_in=/IN_N n_rga=/RG_A n_rgb=/RG_B
+* n_amp1=/AMP1_OUT n_vrefset=/VREF_SET n_vref=/VREF n_fb=/FB2
+* n_u2bout=/AMP2_OUT n_out=/VOUT p3v3=+3V3 gnd=GND.
+* THE CROSS-CHECK IS A SNAPSHOT: these benches carry their own copy of every
+* value and will NOT notice a later schematic edit. Re-run the --fragment
+* diff above after any change to R1..R5, R2/R3 or the U2 pin assignment.
 *
 * Sensor source: 350 ohm bridge (requirements Q3) split 175/175, common mode
 * pinned at 1.65 V (Q1). V(nd) IS the differential input in volts.
@@ -146,7 +194,7 @@ Ep   n_sp n_cm n_d 0 0.5
 En   n_sn n_cm n_d 0 -0.5
 Rsp  n_sp n_ip 175
 Rsn  n_sn n_in 175
-X1   n_ip n_in n_out p3v3 0 chain r6=100 cl=1p rl=100k ro2333=1k
+X1   n_ip n_in n_out p3v3 0 chain riso=0.001 cl=1p rl=100k ro2333=1k
 .dc Vcm 1.38 2.30 0.005
 .meas dc vo_145  find v(n_out) at=1.45
 .meas dc vo_165  find v(n_out) at=1.65
@@ -155,6 +203,9 @@ X1   n_ip n_in n_out p3v3 0 chain r6=100 cl=1p rl=100k ro2333=1k
 .meas dc nd1_165 find v(X1.XU1.nd1) at=1.65
 .meas dc nd1_180 find v(X1.XU1.nd1) at=1.80
 .meas dc nd2_165 find v(X1.XU1.nd2) at=1.65
+.meas dc vo_205  find v(n_out) at=2.05
+.meas dc vo_220  find v(n_out) at=2.20
+.meas dc vcm_knee when v(n_out)=3.0100 fall=1
 .meas dc flat_pct param='abs(vo_180-vo_145)/vo_165*100'
 .meas dc hr_165  param='3.135-0.70-nd1_165'
 .meas dc hr_180  param='3.135-0.70-nd1_180'

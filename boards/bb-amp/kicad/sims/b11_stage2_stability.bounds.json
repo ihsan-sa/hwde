@@ -1,0 +1,70 @@
+[
+ {
+  "measure": "os_ub2",
+  "min": 25.0,
+  "max": 40.0,
+  "severity": "warning",
+  "msg": "CALIBRATION, and the one bound in this workspace that fixes a model parameter the datasheet does not state. A PLAIN unity-gain OPA2333 follower into CL = 1 nF must reproduce the roughly mid-30 % small-signal overshoot of SBOS351D Figure 15 (a GRAPH READ - the datasheet tabulates no capacitive-load number and its own table just says 'See Typical Characteristics'). Measured 32.0 %, which is what fixes ro = 1.0 kohm. If this bound moves, every R6 conclusion moves with it."
+ },
+ {
+  "measure": "os_ub1",
+  "max": 5.0,
+  "severity": "warning",
+  "msg": "CALIBRATION. Figure 15 shows overshoot staying around 0-5 % out to 100-200 pF. Measured 0.0 % at CL = 100 pF."
+ },
+ {
+  "measure": "os_ub4",
+  "min": 35.0,
+  "max": 55.0,
+  "severity": "warning",
+  "msg": "CALIBRATION of the BRACKET. With ro = 2 kohm - TI's literal open-loop output impedance, stated only at f = 350 kHz - the same unity buffer overshoots 45.5 %, MORE than Figure 15. That is how the 2 kohm bracket is known to be pessimistic rather than merely different, and it bounds ro from above."
+ },
+ {
+  "measure": "os_sa3",
+  "max": 12.0,
+  "severity": "error",
+  "msg": "DESIGN TARGET. The AS-BUILT output stage - U2B at G2 = 3.49, R6 = 100 R - into the full 1 nF REQUIREMENTS Q8 allows, calibrated ro. Measured 6.28 %, about 63 degrees of phase margin; 12 % is about 55 degrees."
+ },
+ {
+  "measure": "os_sa1",
+  "max": 12.0,
+  "severity": "error",
+  "msg": "DESIGN TARGET, same stage with R6 ABSENT: 6.60 %. The stage is stable into 1 nF without R6, and this is the bound that says so."
+ },
+ {
+  "measure": "os_sb3",
+  "max": 25.0,
+  "severity": "error",
+  "msg": "DESIGN TARGET, as built, on the pessimistic ro = 2 kohm bracket: 16.68 %, about 50 degrees of phase margin. 25 % is about 41 degrees - still unconditionally stable, which is where the acceptance line is drawn."
+ },
+ {
+  "measure": "os_sb1",
+  "max": 25.0,
+  "severity": "error",
+  "msg": "Same bracket with R6 absent: 17.94 %."
+ },
+ {
+  "measure": "os_sc1",
+  "max": 1.0,
+  "severity": "error",
+  "msg": "DESIGN TARGET. Control: no cable, no overshoot. Measured 0.0 %."
+ },
+ {
+  "measure": "os_sc2",
+  "max": 1.0,
+  "severity": "error",
+  "msg": "Same control on the pessimistic bracket. Measured 0.0 %."
+ },
+ {
+  "measure": "d_a",
+  "min": 0.0,
+  "severity": "error",
+  "msg": "GRADIENT GUARD. Overshoot at R6 = 0 minus overshoot at R6 = 1 k, calibrated ro: measured +3.41 points. Must stay >= 0."
+ },
+ {
+  "measure": "d_b",
+  "min": 0.0,
+  "severity": "error",
+  "msg": "Same gradient guard, pessimistic bracket: +9.36 points."
+ }
+]

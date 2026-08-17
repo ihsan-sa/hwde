@@ -1,0 +1,62 @@
+[
+ {
+  "measure": "os_a3",
+  "max": 5.0,
+  "severity": "error",
+  "msg": "DESIGN TARGET (blocks.md B4). AS-BUILT: R6 = 100 R, CL = 1 nF (REQUIREMENTS Q8 worst case), calibrated ro = 1 kohm, whole signal path. Measured 0.63 % overshoot at J2."
+ },
+ {
+  "measure": "os_a1",
+  "max": 5.0,
+  "severity": "error",
+  "msg": "DESIGN TARGET (blocks.md B4), with R6 ABSENT. Measured 0.61 % - 0.02 points worse than with R6 = 100 R. This is the measurement that says R6 = 100 R does nothing on the real signal path."
+ },
+ {
+  "measure": "os_c1",
+  "max": 1.0,
+  "severity": "error",
+  "msg": "DESIGN TARGET. Control: with no cable (CL = 1 pF) there must be no overshoot at all. Measured 0.0 %."
+ },
+ {
+  "measure": "os_c2",
+  "max": 1.0,
+  "severity": "error",
+  "msg": "Same control on the pessimistic ro = 2 kohm bracket. Measured 0.0 %."
+ },
+ {
+  "measure": "sp_a3",
+  "min": 99.5,
+  "severity": "error",
+  "msg": "REQUIREMENTS Q8 (load > 100 kohm) + blocks.md B5, which rejected any series output resistor because it 'would add a divider error into a 100 k load'. Delivered span as a percentage of the unloaded 2.7848 V design span: R6 = 100 R costs 0.13 %. MUTATION-VERIFIED: R6 100 R -> 10 k reads 90.9 %."
+ },
+ {
+  "measure": "d_os_a",
+  "min": 0.0,
+  "severity": "error",
+  "msg": "GRADIENT GUARD. Overshoot at R6 = 0 minus overshoot at R6 = 1 k must stay >= 0: more isolation resistance may not make the response worse. The R6 recommendation is a statement about this gradient, so a change made in its direction must be re-derived, not re-run. Measured +0.15 points."
+ },
+ {
+  "measure": "d_os_b",
+  "min": 0.0,
+  "severity": "error",
+  "msg": "Same gradient guard on the pessimistic ro = 2 kohm bracket. Measured +1.00 points."
+ },
+ {
+  "measure": "os_b3",
+  "max": 10.0,
+  "severity": "warning",
+  "msg": "DESIGN TARGET, pessimistic ro = 2 kohm bracket, as built. Measured 2.81 %."
+ },
+ {
+  "measure": "os_b1",
+  "max": 10.0,
+  "severity": "warning",
+  "msg": "Same bracket with R6 absent. Measured 2.91 %."
+ },
+ {
+  "measure": "sp_a6",
+  "min": 98.5,
+  "severity": "warning",
+  "msg": "Recorded because it is what the R6 recommendation trades against: R6 = 1 kohm would deliver 98.98 % of span, a 1.0 % loss that REQUIREMENTS Q7 calibrates out but that also drops b6's -5 %-rail full scale from 3.022 V to about 2.994 V."
+ }
+]

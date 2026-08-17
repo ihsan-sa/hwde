@@ -1,10 +1,35 @@
-* bb-amp b1 - DC transfer, the headline wrong-value gate
-* Sweeps the differential input -1 mV .. +25 mV at VS = 3.30 V, TA = 25 degC,
-* RL = 100 k, Vcm = 1.65 V and checks the design point of
-* architecture/blocks.md section 2:  Vout = 0.252 + 139.2 * Vdiff.
-* A wrong R1/R4/R5/R2/R3 moves the slope or the pedestal and trips here.
-* Every value modelled below was diffed against the exported schematic
-* netlist - see NETLIST CROSS-CHECK in the model block.
+* bb-amp b11 - SMALL-SIGNAL stability of the output stage into the cable
+* b10 drives the whole chain and finds almost no ringing, because U1's
+* 45.8 kHz pole and the OPA2333's 0.16 V/us slew rate between them turn a
+* full-scale 20 mV input step into a ~17 us edge that cannot excite a ~100
+* kHz loop. That is the OPERATIONAL answer; it is not a stability margin.
+* This bench asks the stability question directly, the way OPA2333 Figure 15
+* asks it: a SMALL step (20 mV at the stage input -> ~70 mV out, needing
+* about 0.014 V/us, well under the slew limit) applied to the output stage
+* on its own.
+*
+* ub1..ub4 are the CALIBRATION, and they are here to be audited: a PLAIN
+* unity-gain OPA2333 follower with CL straight on the pin, at CL = 100 pF and
+* 1 nF, for ro = 1 kohm and 2 kohm. Figure 15 (SBOS351D p.9 - a graph read;
+* the datasheet tabulates no capacitive-load number at all) shows overshoot
+* around 0-5 % out to 100-200 pF and roughly the mid-30 % range by 1 nF.
+* ro = 1.0 kohm is chosen to reproduce that. ro = 2 kohm is TI's own literal
+* open-loop output impedance, which it states ONLY at f = 350 kHz, carried
+* here as the pessimistic bracket. Whichever bracket the reader believes, the
+* R6 answer is read off the same table.
+*
+* s_r* / t_r* are the ACTUAL U2B stage - G2 = 3.49, R4 24.9 k, R5 10 k
+* returned to a fixed 0.2519 V pedestal - into CL = 1 nF (requirements Q8
+* worst case), with riso = 0 / 47 / 100 / 220 / 470 / 1000 ohm. s_nc, t_nc
+* are the CL = 1 pF controls. U2B is NOT a unity-gain follower: its noise
+* gain of 3.49 puts the loop crossover at 350 kHz / 3.49 = 100 kHz instead of
+* 350 kHz, and that is worth roughly 25 degrees of phase margin against the
+* same 1 nF. THAT is the finding that removed R6, and s_r0 / t_r0 - the
+* shipping circuit, no isolation resistor - are what this bench GATES. The
+* riso = 47 .. 1000 ohm instances stay UNGATED as reproducible evidence: they
+* are what an isolation resistor would have bought, and they show that the
+* fitted 100 R bought 0.3 to 1.3 points of it because an out-of-loop series R
+* has authority only in proportion to riso/ro.
 *
 * ====================== MODELS - agent-authored, GENERIC ======================
 * No vendor model file is used anywhere (ai-ee model policy). Every number
@@ -176,31 +201,121 @@ RL   nout gnd {rl}
 * sweep endpoint. Second and later points converge from the previous
 * solution and are correct.
 
+.subckt stage2 nin nout p3v3 gnd
++ params: riso=0.001 cl=1n rl=100k ro2333=1k
+XU2B nin n_fb n_u2bout p3v3 gnd gopamp gbw=350k aol=3.16e6 ro={ro2333}
++    vsathi=0.030 vsatlo=0.030 iq=17u islew=0.16
+R4   n_u2bout n_fb 24.9k
+R5   n_fb n_vref 10k
+Vref n_vref gnd DC 0.2519
+RISO n_u2bout nout {riso}
+CL   nout gnd {cl}
+RL   nout gnd {rl}
+.ends
 .temp 25
 VS   p3v3 0 DC 3.3
-Vcm  n_cm 0 DC 1.65
-Vd   n_d  0 DC 0
-Ep   n_sp n_cm n_d 0 0.5
-En   n_sn n_cm n_d 0 -0.5
-Rsp  n_sp n_ip 175
-Rsn  n_sn n_in 175
-X1   n_ip n_in n_out p3v3 0 chain riso=0.001 cl=1p rl=100k ro2333=1k
-.dc Vd -0.002 0.026 1e-5
-.meas dc vout_m1m  find v(n_out) at=-0.001
-.meas dc vout_0    find v(n_out) at=0
-.meas dc vout_5m   find v(n_out) at=0.005
-.meas dc vout_10m  find v(n_out) at=0.010
-.meas dc vout_15m  find v(n_out) at=0.015
-.meas dc vout_20m  find v(n_out) at=0.020
-.meas dc vout_24m  find v(n_out) at=0.024
-.meas dc vout_25m  find v(n_out) at=0.025
-.meas dc amp1_20m  find v(X1.n_amp1) at=0.020
-.meas dc amp1_m1m  find v(X1.n_amp1) at=-0.001
-.meas dc vref_v    find v(X1.n_vref) at=0
-.meas dc slope     param='(vout_20m-vout_0)/0.020'
-.meas dc inl_5m    param='abs(vout_5m-vout_0-0.25*(vout_20m-vout_0))/(vout_20m-vout_0)*100'
-.meas dc inl_10m   param='abs(vout_10m-vout_0-0.50*(vout_20m-vout_0))/(vout_20m-vout_0)*100'
-.meas dc inl_15m   param='abs(vout_15m-vout_0-0.75*(vout_20m-vout_0))/(vout_20m-vout_0)*100'
-.meas dc inl_max   param='max(inl_5m,max(inl_10m,inl_15m))'
-.meas dc mono_25m  param='vout_25m-vout_24m'
+Vst  nstep 0 PWL(0 0.30 20u 0.30 20.1u 0.32 200u 0.32)
+* --- Figure-15 calibration: PLAIN unity-gain buffers, CL on the pin ---
+Xub1  nstep ub1o ub1o p3v3 0 gopamp gbw=350k aol=3.16e6 ro=1k vsathi=0.030 vsatlo=0.030 iq=17u islew=0.16
+Cub1 ub1o 0 100p
+Rub1 ub1o 0 100k
+Xub2  nstep ub2o ub2o p3v3 0 gopamp gbw=350k aol=3.16e6 ro=1k vsathi=0.030 vsatlo=0.030 iq=17u islew=0.16
+Cub2 ub2o 0 1n
+Rub2 ub2o 0 100k
+Xub3  nstep ub3o ub3o p3v3 0 gopamp gbw=350k aol=3.16e6 ro=2k vsathi=0.030 vsatlo=0.030 iq=17u islew=0.16
+Cub3 ub3o 0 100p
+Rub3 ub3o 0 100k
+Xub4  nstep ub4o ub4o p3v3 0 gopamp gbw=350k aol=3.16e6 ro=2k vsathi=0.030 vsatlo=0.030 iq=17u islew=0.16
+Cub4 ub4o 0 1n
+Rub4 ub4o 0 100k
+* --- the real U2B stage (G2 = 3.49) into 1 nF, R6 swept ---
+Xs_r0  nstep s_r0o p3v3 0 stage2 riso=0.001 cl=1n rl=100k ro2333=1k
+Xs_r47  nstep s_r47o p3v3 0 stage2 riso=47 cl=1n rl=100k ro2333=1k
+Xs_r100  nstep s_r100o p3v3 0 stage2 riso=100 cl=1n rl=100k ro2333=1k
+Xs_r220  nstep s_r220o p3v3 0 stage2 riso=220 cl=1n rl=100k ro2333=1k
+Xs_r470  nstep s_r470o p3v3 0 stage2 riso=470 cl=1n rl=100k ro2333=1k
+Xs_r1k  nstep s_r1ko p3v3 0 stage2 riso=1000 cl=1n rl=100k ro2333=1k
+Xt_r0  nstep t_r0o p3v3 0 stage2 riso=0.001 cl=1n rl=100k ro2333=2k
+Xt_r47  nstep t_r47o p3v3 0 stage2 riso=47 cl=1n rl=100k ro2333=2k
+Xt_r100  nstep t_r100o p3v3 0 stage2 riso=100 cl=1n rl=100k ro2333=2k
+Xt_r220  nstep t_r220o p3v3 0 stage2 riso=220 cl=1n rl=100k ro2333=2k
+Xt_r470  nstep t_r470o p3v3 0 stage2 riso=470 cl=1n rl=100k ro2333=2k
+Xt_r1k  nstep t_r1ko p3v3 0 stage2 riso=1000 cl=1n rl=100k ro2333=2k
+Xs_nc  nstep s_nco p3v3 0 stage2 riso=0.001 cl=1p rl=100k ro2333=1k
+Xt_nc  nstep t_nco p3v3 0 stage2 riso=0.001 cl=1p rl=100k ro2333=2k
+.tran 5n 200u
+.meas tran lo_ub1 find v(ub1o) at=19u
+.meas tran fs_ub1 find v(ub1o) at=190u
+.meas tran pk_ub1 max  v(ub1o) from=20u to=120u
+.meas tran os_ub1 param='(pk_ub1-fs_ub1)/(fs_ub1-lo_ub1)*100'
+.meas tran lo_ub2 find v(ub2o) at=19u
+.meas tran fs_ub2 find v(ub2o) at=190u
+.meas tran pk_ub2 max  v(ub2o) from=20u to=120u
+.meas tran os_ub2 param='(pk_ub2-fs_ub2)/(fs_ub2-lo_ub2)*100'
+.meas tran lo_ub3 find v(ub3o) at=19u
+.meas tran fs_ub3 find v(ub3o) at=190u
+.meas tran pk_ub3 max  v(ub3o) from=20u to=120u
+.meas tran os_ub3 param='(pk_ub3-fs_ub3)/(fs_ub3-lo_ub3)*100'
+.meas tran lo_ub4 find v(ub4o) at=19u
+.meas tran fs_ub4 find v(ub4o) at=190u
+.meas tran pk_ub4 max  v(ub4o) from=20u to=120u
+.meas tran os_ub4 param='(pk_ub4-fs_ub4)/(fs_ub4-lo_ub4)*100'
+.meas tran lo_s_r0 find v(s_r0o) at=19u
+.meas tran fs_s_r0 find v(s_r0o) at=190u
+.meas tran pk_s_r0 max  v(s_r0o) from=20u to=120u
+.meas tran os_s_r0 param='(pk_s_r0-fs_s_r0)/(fs_s_r0-lo_s_r0)*100'
+.meas tran lo_s_r47 find v(s_r47o) at=19u
+.meas tran fs_s_r47 find v(s_r47o) at=190u
+.meas tran pk_s_r47 max  v(s_r47o) from=20u to=120u
+.meas tran os_s_r47 param='(pk_s_r47-fs_s_r47)/(fs_s_r47-lo_s_r47)*100'
+.meas tran lo_s_r100 find v(s_r100o) at=19u
+.meas tran fs_s_r100 find v(s_r100o) at=190u
+.meas tran pk_s_r100 max  v(s_r100o) from=20u to=120u
+.meas tran os_s_r100 param='(pk_s_r100-fs_s_r100)/(fs_s_r100-lo_s_r100)*100'
+.meas tran lo_s_r220 find v(s_r220o) at=19u
+.meas tran fs_s_r220 find v(s_r220o) at=190u
+.meas tran pk_s_r220 max  v(s_r220o) from=20u to=120u
+.meas tran os_s_r220 param='(pk_s_r220-fs_s_r220)/(fs_s_r220-lo_s_r220)*100'
+.meas tran lo_s_r470 find v(s_r470o) at=19u
+.meas tran fs_s_r470 find v(s_r470o) at=190u
+.meas tran pk_s_r470 max  v(s_r470o) from=20u to=120u
+.meas tran os_s_r470 param='(pk_s_r470-fs_s_r470)/(fs_s_r470-lo_s_r470)*100'
+.meas tran lo_s_r1k find v(s_r1ko) at=19u
+.meas tran fs_s_r1k find v(s_r1ko) at=190u
+.meas tran pk_s_r1k max  v(s_r1ko) from=20u to=120u
+.meas tran os_s_r1k param='(pk_s_r1k-fs_s_r1k)/(fs_s_r1k-lo_s_r1k)*100'
+.meas tran lo_t_r0 find v(t_r0o) at=19u
+.meas tran fs_t_r0 find v(t_r0o) at=190u
+.meas tran pk_t_r0 max  v(t_r0o) from=20u to=120u
+.meas tran os_t_r0 param='(pk_t_r0-fs_t_r0)/(fs_t_r0-lo_t_r0)*100'
+.meas tran lo_t_r47 find v(t_r47o) at=19u
+.meas tran fs_t_r47 find v(t_r47o) at=190u
+.meas tran pk_t_r47 max  v(t_r47o) from=20u to=120u
+.meas tran os_t_r47 param='(pk_t_r47-fs_t_r47)/(fs_t_r47-lo_t_r47)*100'
+.meas tran lo_t_r100 find v(t_r100o) at=19u
+.meas tran fs_t_r100 find v(t_r100o) at=190u
+.meas tran pk_t_r100 max  v(t_r100o) from=20u to=120u
+.meas tran os_t_r100 param='(pk_t_r100-fs_t_r100)/(fs_t_r100-lo_t_r100)*100'
+.meas tran lo_t_r220 find v(t_r220o) at=19u
+.meas tran fs_t_r220 find v(t_r220o) at=190u
+.meas tran pk_t_r220 max  v(t_r220o) from=20u to=120u
+.meas tran os_t_r220 param='(pk_t_r220-fs_t_r220)/(fs_t_r220-lo_t_r220)*100'
+.meas tran lo_t_r470 find v(t_r470o) at=19u
+.meas tran fs_t_r470 find v(t_r470o) at=190u
+.meas tran pk_t_r470 max  v(t_r470o) from=20u to=120u
+.meas tran os_t_r470 param='(pk_t_r470-fs_t_r470)/(fs_t_r470-lo_t_r470)*100'
+.meas tran lo_t_r1k find v(t_r1ko) at=19u
+.meas tran fs_t_r1k find v(t_r1ko) at=190u
+.meas tran pk_t_r1k max  v(t_r1ko) from=20u to=120u
+.meas tran os_t_r1k param='(pk_t_r1k-fs_t_r1k)/(fs_t_r1k-lo_t_r1k)*100'
+.meas tran lo_s_nc find v(s_nco) at=19u
+.meas tran fs_s_nc find v(s_nco) at=190u
+.meas tran pk_s_nc max  v(s_nco) from=20u to=120u
+.meas tran os_s_nc param='(pk_s_nc-fs_s_nc)/(fs_s_nc-lo_s_nc)*100'
+.meas tran lo_t_nc find v(t_nco) at=19u
+.meas tran fs_t_nc find v(t_nco) at=190u
+.meas tran pk_t_nc max  v(t_nco) from=20u to=120u
+.meas tran os_t_nc param='(pk_t_nc-fs_t_nc)/(fs_t_nc-lo_t_nc)*100'
+.meas tran d_a param='os_s_r0-os_s_r1k'
+.meas tran d_b param='os_t_r0-os_t_r1k'
 .end

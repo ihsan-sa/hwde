@@ -1,0 +1,30 @@
+[
+ {
+  "measure": "rti_dens_nv",
+  "min": 22.0,
+  "max": 23.5,
+  "severity": "error",
+  "msg": "DATASHEET (AD8226 Table 3). Round-trip check that the injected density arrives correctly referred to the input: 22.67 nV/rtHz = the datasheet's own total-noise formula sqrt(eNI^2 + (eNO/G1)^2) = sqrt(22^2 + (120/39.9)^2) = 22.2, in quadrature with R1's 4.59 nV/rtHz Johnson noise (4kTR, R = 1.27 k, 300 K)."
+ },
+ {
+  "measure": "rti_1k_uv",
+  "min": 0.5,
+  "max": 1.3,
+  "severity": "error",
+  "msg": "DESIGN TARGET (blocks.md B5, design 0.88 uV). Integrated RTI noise 0.1 Hz - 1 kHz, measured 0.717 uVrms. The 1.3 uV ceiling comes from the REQUIREMENTS Q7 error budget - noise must stay a minority term against 5 uV RTI. The 0.5 uV floor is a sanity bound: a dead gain path or a broken injection reads near zero."
+ },
+ {
+  "measure": "rti_41k_uv",
+  "min": 2.0,
+  "max": 6.5,
+  "severity": "error",
+  "msg": "DESIGN TARGET (blocks.md B5, design 4.97 uV). Same integral out to the chain's own 41 kHz corner - what an UNFILTERED reader sees, and why REQUIREMENTS Q7's budget needs a band-limited reader. Measured 4.05 uVrms."
+ },
+ {
+  "measure": "gdc_vv",
+  "min": 135.0,
+  "max": 144.0,
+  "severity": "error",
+  "msg": "DESIGN TARGET. Third independent read of the chain gain (b1 in DC, b3 in AC magnitude, here as the noise gain)."
+ }
+]

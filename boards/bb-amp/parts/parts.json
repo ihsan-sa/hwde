@@ -320,29 +320,6 @@
     "J2": "THT screw terminal - hand-solder (JLC standard SMT service will not place it; single-sided top assembly per requirements.md section 7). Also the block's measurement point - no separate test point exists.",
     "J3": "THT screw terminal - hand-solder, same as J2. GND pin ties into the same B.Cu pour as J1/J2."
    }
-  },
-  {
-   "ref_prefix_hint": "R",
-   "refs": [
-    "R6"
-   ],
-   "block": "output_isolation",
-   "provisional": true,
-   "mpn": "0603WAF1000T5E",
-   "lcsc": "C22775",
-   "value": "100 ohm, 1%, +/-100ppm/degC thick film - PROVISIONAL VALUE, not yet bench-confirmed (see role)",
-   "package": "0603",
-   "basic": true,
-   "type": "Basic",
-   "stock": 6399567,
-   "price": 0.0221,
-   "brand": "UNI-ROYAL(Uniroyal Elec)",
-   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2411221126_UNI-ROYAL-Uniroyal-Elec-0603WAF1000T5E_C22775.pdf",
-   "alternates": [],
-   "role": "NEW - added after this file's first pass, per coordinator instruction: the parallel U2 datasheet-extraction found OPA2333 Figure 15 showing overshoot climbing to roughly the mid-30 percent range by CL=1nF, and requirements.md 9a Q8 allows up to 1nF of output cable - datasheet-required support at the stated operating point, not excluded 'filtering', so in scope at block-only. This overrules blocks.md B5's original 'no series isolation resistor needed' text; the overrule is recorded in state.json, not decided here. Ordinary 1% thick film is deliberately correct, NOT the 0.1%/25ppm precision family used for R1-R5: R6 sits in series with a load >=100kohm (Q8), so its own tolerance is ~0.1 percent of gain error (calibrates out per Q7) and its drift is irrelevant - a precision part here would be spending money on a spec nobody reads. JLC Basic, so it adds no Extended-part fee. PROVISIONAL: 100 ohm is a working value only, not yet justified against Figure 15 - P4 will size it properly and the B4 step-response bench (blocks.md section 6, run with CL=1nF) verifies it. If that bench wants a different value, this is a cheap BOM edit before P5 - do not read 100 ohm as settled.",
-   "refdes_notes": {
-    "R6": "Series, U2B output (AMP1_OUT after stage 2, i.e. /VOUT) to J2 pole 1 (OUT). Value provisional pending B4 bench."
-   }
   }
  ]
 }

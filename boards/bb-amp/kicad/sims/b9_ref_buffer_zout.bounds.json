@@ -1,0 +1,50 @@
+[
+ {
+  "measure": "z1_dc",
+  "max": 2.0,
+  "severity": "error",
+  "msg": "DATASHEET (AD8226, REFERENCE TERMINAL, printed p.20: 'source impedance to the REF terminal should be kept below 2 ohm'). Closed-loop output impedance of the U2A buffer at DC with the calibrated ro = 1 kohm: measured 0.43 milliohm, i.e. the requirement is met by four orders of magnitude. This is the bench that replaces the inference - TI states OPA2333's open-loop output impedance ONLY at f = 350 kHz (2 kohm typ) and gives no DC or closed-loop figure at all."
+ },
+ {
+  "measure": "z1_60max",
+  "max": 2.0,
+  "severity": "error",
+  "msg": "DATASHEET, same rule, taken as a maximum across the whole DC..60 Hz band in which the AD8226's 106 dB CMRR minimum is specified (Table 3, CMRR DC to 60 Hz). Measured 0.17 ohm."
+ },
+ {
+  "measure": "z2_dc",
+  "max": 2.0,
+  "severity": "error",
+  "msg": "DATASHEET, same rule, evaluated on the pessimistic ro = 2 kohm bracket (TI's own literal 350 kHz number). Measured 0.85 milliohm."
+ },
+ {
+  "measure": "z2_60max",
+  "max": 2.0,
+  "severity": "error",
+  "msg": "DATASHEET, same rule and band, pessimistic bracket. Measured 0.34 ohm."
+ },
+ {
+  "measure": "z1_1k",
+  "max": 4.0,
+  "severity": "warning",
+  "msg": "FINDING, not a pass/fail promise: at 1 kHz - the top of the signal band - the 2 ohm rule is NO LONGER met. Closed-loop Zout rises as ro*f/GBW, giving 2.86 ohm here (calibrated ro). Warning rather than error because the datasheet's 2 ohm sits in its DC/60 Hz CMRR context, this board's common mode is a static 1.65 V (REQUIREMENTS Q1) with no 1 kHz common-mode signal to reject, and the resulting CM gain error Rref/100k = 2.9e-5 corresponds to 90.8 dB - at or above the AD8226's own 90 dB minimum at 5 kHz. See OPEN in the report."
+ },
+ {
+  "measure": "z2_1k",
+  "max": 8.0,
+  "severity": "warning",
+  "msg": "Same finding on the pessimistic ro = 2 kohm bracket: 5.71 ohm at 1 kHz, about 84.9 dB of CM gain error."
+ },
+ {
+  "measure": "z1_f2ohm",
+  "min": 500.0,
+  "severity": "warning",
+  "msg": "FINDING. Frequency at which the buffer's Zout crosses the datasheet's 2 ohm: 700 Hz with the calibrated ro. The bound keeps it clear of the 60 Hz band the CMRR minimum is specified over."
+ },
+ {
+  "measure": "z2_f2ohm",
+  "min": 250.0,
+  "severity": "warning",
+  "msg": "Same crossing on the pessimistic bracket: 350 Hz."
+ }
+]

@@ -1,7 +1,7 @@
 """bb-amp root generator - THE WHOLE SCHEMATIC (one flat root sheet).
 
 Bridge front end: J1 -> U1 AD8226 in-amp (G1 = 39.90) -> U2B OPA2333 half
-(G2 = 3.49) -> R6 -> J2, on ONE 3.3 V rail, with a buffered 0.252 V pedestal
+(G2 = 3.49) -> J2, on ONE 3.3 V rail, with a buffered 0.252 V pedestal
 that U1's REF pin AND the stage-2 gain return BOTH sit on.
 
     Rebuild:  .venv\\Scripts\\python.exe boards/bb-amp/kicad/gen/root.py
@@ -31,7 +31,7 @@ coincident local label - LEARNINGS 2026-07-28):
 
 Root-sheet LOCAL labels, which KiCad exports with ONE leading slash:
 
-    /IN_P /IN_N /RG_A /RG_B /VREF_SET /VREF /AMP1_OUT /FB2 /AMP2_OUT /VOUT
+    /IN_P /IN_N /RG_A /RG_B /VREF_SET /VREF /AMP1_OUT /FB2 /VOUT
 
 *** The label TEXT written below is BARE ("IN_P", "VREF", ...).  The leading
 `/` is the ROOT SHEET PATH that KiCad prepends on export.  Typing the slash
@@ -40,23 +40,16 @@ a clean build and a clean ERC - and every constraints.json match then fails
 (measured on sbuck-5v3a, LEARNINGS 2026-08-09).  Verify with the EXPORTED net
 names, never by reading the schematic. ***
 
-Two nets are named here that sheets.md's table does not list, and one changes
-meaning; all three follow from P3 adding R6 after sheets.md was written:
+Two nets are named here that sheets.md's table does not list:
 
   /RG_A, /RG_B  the two ends of the gain resistor R1 across U1 pins 2 and 3.
       Internal to block B2, so sheets.md (which tabulates only the nets that
       LEAVE a block) never named them.  A node still needs a name.
-  /AMP2_OUT  U2B's own output pin (pin 7) = R4 feedback tap = R6 pin 1.  Named
-      to match the existing /AMP1_OUT convention for U1's output.
-  /VOUT  now spans R6 pin 2 -> J2 pin 1 instead of U2B -> J2 pin 1.  sheets.md
-      s2's row `/VOUT | ... | J2 pin 1` is preserved exactly; only its source
-      moves from the op-amp pin to the far side of the new series resistor.
-      Nothing in constraints.json references /VOUT, so no constraint moves.
 
-R4's feedback is taken from /AMP2_OUT, i.e. BEFORE R6 - R6 is OUTSIDE the
-loop.  That is the whole point of an isolation resistor: inside the loop it
-would isolate nothing.  The <= 0.1 % gain error it adds into the >= 100 kohm
-load of Q8 calibrates out with zero and span (Q7).
+/VOUT is exactly sheets.md s2's row - U2B's output pin straight to J2 pin 1,
+one node carrying U2.7, R4.1 (the feedback tap) and J2.1.  P3's R6 briefly
+split it in two; that resistor is GONE (see s5), so the split is gone with it
+and the sheet is back on sheets.md's own net table with no deltas at all.
 
 =====================================================================
 2.  THE CIRCUIT, AND THE ONE WIRE THAT MUST BE RIGHT
@@ -96,7 +89,7 @@ U1 AD8226ARZ (parts/C34250.json):
 U2 OPA2333AIDR (parts/C38732.json) - TWO UNITS, and the units are NOT
 interchangeable here:
     unit A (U2A, the /VREF buffer)      unit B (U2B, the G2 = 3.49 stage)
-      1 OUT A -> /VREF                    7 OUT B -> /AMP2_OUT
+      1 OUT A -> /VREF                    7 OUT B -> /VOUT
       2 -IN A -> /VREF  (follower)        6 -IN B -> /FB2
       3 +IN A -> /VREF_SET                5 +IN B -> /AMP1_OUT
       4 V-    -> GND
@@ -109,8 +102,8 @@ interchangeable here:
   See `_place_unit` for the two ksa multi-unit traps and the workaround.
 
 Passives, by pin: R1 (1,2) across U1 pins 2-3; R2 +3V3 -> /VREF_SET; R3
-/VREF_SET -> GND; C4 /VREF_SET -> GND; R4 /AMP2_OUT -> /FB2; R5 /FB2 ->
-/VREF; R6 /AMP2_OUT -> /VOUT; C1/C2/C3 +3V3 -> GND.
+/VREF_SET -> GND; C4 /VREF_SET -> GND; R4 /VOUT -> /FB2; R5 /FB2 -> /VREF;
+C1/C2/C3 +3V3 -> GND.
 Connectors: J1 (1 /IN_P, 2 /IN_N, 3 GND), J2 (1 /VOUT, 2 GND),
 J3 (1 +3V3, 2 GND) - all per sheets.md s2.
 
@@ -143,14 +136,36 @@ No `role: "reg_input"` anywhere: there is no switching regulator on this
 board, and the role exists to force an HF member into a switch-current loop.
 
 =====================================================================
-5.  WHAT THIS FILE DOES NOT DECIDE
+5.  THERE IS NO OUTPUT ISOLATION RESISTOR, AND THAT IS A RESULT
 =====================================================================
-Values are P2's and P3's and are FIXED here (sheets.md s4).  R6 = 100 ohm is
-carried as parts.json marks it - PROVISIONAL, pending the P8 bench B4 (step
-response into the 1 nF of output cable Q8 allows) - and the sheet says so in
-text next to the part.  No mounting holes: requirements.md s5 excludes
-mechanical at `block-only` and sheets.md s3 makes H1-H4 conditional on an
-outline that does not exist until P6 earns it.
+P3 added a 100 ohm series R6 between U2B and J2 on the reading that OPA2333
+Figure 15 shows ~mid-30 % overshoot into 1 nF, which Q8 allows.  The owner has
+REVERSED that decision on the P8 bench's evidence and R6 is removed here:
+
+  - Figure 15 is a UNITY-GAIN curve.  U2B runs at noise gain 3.49.  The
+    macromodel that reproduces Figure 15 exactly (32 % at 1 nF at unity gain)
+    gives 6.6 % for the as-built stage with NO isolation resistor at all -
+    about 63 deg of phase margin, 50 deg on the pessimistic ro = 2 kohm
+    bracket.  The stage never needed one.
+  - 100 ohm would not have worked anyway: an OUT-OF-LOOP isolation resistor
+    has authority R6/ro, so against ro = 1-2 kohm it buys 0.3-1.3 points
+    (6.60 -> 6.28 % calibrated, 17.94 -> 16.68 % pessimistic).  Real
+    isolation would take 470 ohm or more, and that drops the -5 %-rail full
+    scale below blocks.md B6's own 3.02 V figure.
+  - At `block-only` scope, conditioning the data sheet does not require is
+    EXCLUDED by the tier.  The bench has now shown it is not required.
+
+So U2B drives J2 directly and /VOUT is one node again.  The BOM removal
+landed separately and is already done: parts.json carries 10 lines / 14
+refdes with no C22775 entry, checked against this netlist at build time.
+What still mentions R6 is evidence and history, not design - kicad/sims/'s
+b10/b11 bounds (the measurements above), the workspace LEARNINGS entry, the
+P3 logs, and the now-unused 0603WAF1000T5E symbol in lib/aiee.kicad_sym.
+
+Values are P2's and P3's and are FIXED here (sheets.md s4).  No mounting
+holes: requirements.md s5 excludes mechanical at `block-only` and sheets.md
+s3 makes H1-H4 conditional on an outline that does not exist until P6 earns
+it.
 """
 from __future__ import annotations
 
@@ -181,7 +196,6 @@ S_R1K27 = "aiee:RT0603BRD071K27L"       # R1  1.27k  0.1% 25ppm
 S_R121K = "aiee:RT0603BRD07121KL"       # R2  121k   0.1% 25ppm
 S_R10K = "aiee:RT0603BRD0710KL"         # R3, R5  10.0k 0.1% 25ppm
 S_R24K9 = "aiee:RT0603BRD0724K9L"       # R4  24.9k  0.1% 25ppm
-S_R100 = "aiee:0603WAF1000T5E"          # R6  100R 1% thick film (PROVISIONAL)
 S_C100N = "aiee:CC0603KRX7R9BB104"      # C1, C3, C4  100nF 50V X7R
 S_C10U = "aiee:CL21A106KAYNNNE"         # C2  10uF 25V X5R 0805
 S_J3P = "aiee:KF128-5.08-3P"            # J1
@@ -196,7 +210,8 @@ F_C0805 = "aiee:C0805"
 F_J3P = "aiee:CONN-TH_3P-P5.08_KF128-5.08-3P"
 F_J2P = "aiee:CONN-TH_P5.08_KF128-5.08-2P"
 
-# ref -> LCSC, straight from parts/parts.json (11 distinct codes, 15 refdes).
+# ref -> LCSC, straight from parts/parts.json (10 distinct codes, 14 refdes -
+# an exact match; R6/C22775 is gone from both, see the module docstring s5).
 # parts.json is the S6 per-DISTINCT-part shape (no `ref` keys), which
 # `bom_cpl.load_parts_map` CANNOT map, so P9's only ref->LCSC source is the
 # per-component `LCSC` field stamped here (bom_cpl.board_lcsc_map matches
@@ -209,7 +224,6 @@ LCSC = {
     "R2": "C861095",
     "R3": "C95204", "R5": "C95204",
     "R4": "C136967",
-    "R6": "C22775",
     "C1": "C14663", "C3": "C14663", "C4": "C14663",
     "C2": "C15850",
     "J1": "C474953",
@@ -232,7 +246,7 @@ VISIBLE_FIELDS = {"Reference", "Value"}
 # All anchors are multiples of 1.27 mm (schlib raises otherwise) and rows are
 # spaced so no stub label anchor can land on a foreign wire run (schlib's
 # _assert_label_clear guard; LEARNINGS 2026-07-22 [erc]).
-Y_CHAIN = 76.20     # J1 -> U1 -> U2B -> R6 -> J2
+Y_CHAIN = 76.20     # J1 -> U1 -> U2B -> J2
 Y_REF = 114.30      # reference cluster: R2, R3, C4, U2A   (below U1)
 Y_GAIN = 152.40     # stage-2 gain set: R4, R5             (below U2B)
 Y_PWR = 190.50      # J3, C2 bulk, C1 at U1 pin 8, C3 at U2 pin 8
@@ -296,18 +310,24 @@ ACCURACY, RECORDED NOT SMOOTHED (blocks.md Ruling 3): Q7's 5 uV RTI over
 56.4 uV max offset drift, plus 30-87 uV of gain drift at full scale.  No
 3.3 V-capable part reaches it; zero and span are calibrated downstream.
 
-R6 = 100 ohm IS PROVISIONAL.  OPA2333 Fig.15 shows overshoot climbing to the
-mid-30 % range by CL = 1 nF, and Q8 allows 1 nF of output cable; the P8 bench
-B4 sizes it.  R4's feedback is taken BEFORE R6, so R6 sits OUTSIDE the loop -
-inside it, it would isolate nothing."""
+NO OUTPUT ISOLATION RESISTOR, AND THAT IS A RESULT, NOT AN OMISSION.  The
+OPA2333's ~mid-30 % overshoot into 1 nF (Fig.15) is a UNITY-GAIN figure; this
+stage runs at noise gain 3.49.  Simulated into the 1 nF that Q8 allows, the
+as-built stage overshoots 6.6 % with about 63 deg of phase margin, so nothing
+needs isolating - and at block-only scope, conditioning the data sheet does
+not require is out of scope."""
 
 # One-line annotations, one per row, in the gap below it.  Kept short so a
 # centred KiCad text item stays inside its row's own horizontal span.
 ROW_NOTES = [
     ((152.40, 92.71),
-     "SIGNAL CHAIN   J1 -> U1 (G1 = 39.90) -> U2B (G2 = 3.49) -> R6 -> J2"),
-    ((203.20, 63.50),
-     "R6 = 100R is PROVISIONAL - the P8 bench B4 (CL = 1 nF) sizes it"),
+     "SIGNAL CHAIN   J1 -> U1 (G1 = 39.90) -> U2B (G2 = 3.49) -> J2"),
+    ((215.90, 55.88),
+     "NO OUTPUT ISOLATION RESISTOR: OPA2333 Fig.15's mid-30 % overshoot into "
+     "1 nF is a UNITY-GAIN figure."),
+    ((215.90, 60.96),
+     "This stage runs at noise gain 3.49 - simulated 6.6 % into the 1 nF of "
+     "Q8, ~63 deg phase margin."),
     ((88.90, 135.89),
      "PEDESTAL   R2/R3 off +3V3 = 0.2519 V, C4 on the DIVIDER node, "
      "U2A buffers it to < 2 ohm at U1 REF"),
@@ -336,7 +356,7 @@ def _place_unit(sh: schlib.Sheet, tmp_ref: str, unit: int, at, pins: dict,
       2. ksa reports EVERY pin of EVERY unit on any instance, each at its own
          sub-symbol offset from that instance's anchor.  Both units of this
          symbol are the same triangle, so stacking them on one anchor would
-         put unit 2's OUT B exactly on unit 1's OUT A and short /AMP2_OUT to
+         put unit 2's OUT B exactly on unit 1's OUT A and short /VOUT to
          /VREF - with ERC reporting it as a legitimate connection.  Each unit
          gets its own anchor and only the pads listed in `pins` are wired.
 
@@ -477,21 +497,15 @@ def build() -> schlib.Sheet:
     # below) takes the real "U2" and merge_unit_refs joins them after save().
     _place_unit(
         sh, UNIT2_TMP_REF, 2, (X_U2, Y_CHAIN),
-        pins={"5": "AMP1_OUT", "6": "FB2", "7": "AMP2_OUT"},
+        pins={"5": "AMP1_OUT", "6": "FB2", "7": "VOUT"},
         expect={"5": "INB+", "6": "INB-", "7": "OUTB"},
         lib_id=S_U2, value="OPA2333AIDR", footprint=F_SOP8,
         fields={"LCSC": LCSC["U2"],
                 "Note": "U2B = second gain stage, G2 = 1 + R4/R5 = 3.49"})
 
-    # R6, series isolation at the output.  PROVISIONAL value (parts.json):
-    # OPA2333 Fig.15 shows ~mid-30 % overshoot into the 1 nF of cable Q8
-    # allows.  Ordinary 1 % thick film is deliberately correct here and not
-    # the 0.1 %/25 ppm family of R1-R5: R6 feeds >= 100 kohm, so its own
-    # tolerance is ~0.1 % of gain error and calibrates out per Q7.
-    add(S_R100, "R6", "100R 1%", (203.20, Y_CHAIN), F_R0603,
-        {"1": "AMP2_OUT", "2": "VOUT"},
-        note="PROVISIONAL 100R - output isolation into <=1nF (Q8); the P8 "
-             "bench B4 sizes it. Feedback is taken BEFORE R6.")
+    # NOTE the empty space between U2B and J2: P3's 100 ohm R6 lived here and
+    # was REMOVED on the P8 bench's evidence (module docstring s5).  U2B's
+    # output pin drives J2 directly; /VOUT is one node.
 
     # ====================================================== B5 output (J2)
     # Also the block's measurement point - no separate test point exists
@@ -539,7 +553,7 @@ def build() -> schlib.Sheet:
     # ================================= B4 gain set (R4, R5) - below U2B
     # *** R5 returns to /VREF.  See the module docstring s2. ***
     add(S_R24K9, "R4", "24.9k 0.1% 25ppm", (X_U2, Y_GAIN), F_R0603,
-        {"1": "AMP2_OUT", "2": "FB2"},
+        {"1": "VOUT", "2": "FB2"},
         note="stage-2 feedback; G2 = 1 + 24.9k/10.0k = 3.49")
     add(S_R10K, "R5", "10.0k 0.1% 25ppm", (190.50, Y_GAIN), F_R0603,
         {"1": "FB2", "2": "VREF"},

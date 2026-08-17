@@ -1,22 +1,31 @@
-* bb-amp b10 - what value does R6 have to be? (the P3 provisional 100 R)
-* R6 was added at P3, after blocks.md was written, because OPA2333 Figure 15
-* shows small-signal overshoot climbing to roughly the mid-30 % range by
-* CL = 1 nF and requirements Q8 allows up to 1 nF of output cable. Its value
-* was left PROVISIONAL for this bench to settle.
-* ngspice has no `.step`, so R6 is swept by REPLICATING the whole chain: six
-* R6 values x two OPA2333 open-loop output resistances, all driven by ONE
+* bb-amp b10 - the shipping output, with NO isolation resistor, into 1 nF
+* R6 = 100 R was added at P3 because OPA2333 Figure 15 shows small-signal
+* overshoot climbing to roughly the mid-30 % range by CL = 1 nF and
+* requirements Q8 allows up to 1 nF of output cable. b11 showed that figure
+* is a UNITY-GAIN measurement and does not transfer to U2B's noise gain of
+* 3.49, so R6 was REMOVED at P4 by ruling. What this bench now proves is the
+* claim the shipping board rests on: the full signal path drives the
+* specified 1 nF cable, with no isolation resistor, without ringing.
+* WHAT IS GATED: the riso = 0.001 ohm instances (a_r0, b_r0) - that IS the
+* shipping circuit - and the a_nc/b_nc no-cable controls. The riso = 47 ..
+* 1000 ohm instances are kept UNGATED so the evidence for the removal stays
+* reproducible: they are the comparison table, not the board.
+* ngspice has no `.step`, so riso is swept by REPLICATING the whole chain:
+* six values x two OPA2333 open-loop output resistances, all driven by ONE
 * input step, plus two CL = 1 pF controls.
 *   a1..a6: ro = 1.0 kohm - calibrated so the same macromodel in UNITY gain
 *     reproduces Figure 15's ~35 % overshoot at CL = 1 nF.
 *   b1..b6: ro = 2.0 kohm - TI's literal open-loop figure (stated only at
 *     f = 350 kHz), carried as the pessimistic bracket.
-*   R6 = 0.001 ohm stands in for R6 absent (a 0 ohm resistor is legal in
-*     ngspice but makes the node a short with no element to name).
+*   riso = 0.001 ohm IS the shipping board (a 1 milliohm stand-in for the
+*     direct wire; a 0 ohm resistor is legal in ngspice but leaves the node
+*     with no element to name).
 * os_* is percent overshoot of the 0 -> 20 mV full-scale step measured AT J2,
 * which is what the cable and the reader actually see. sp_* is the delivered
-* span as a percentage of the unloaded 2.78480 V design span - i.e. what the
-* R6/RL divider costs, the objection blocks.md B5 raised against any series
-* resistor (requirements Q8 guarantees RL > 100 k).
+* span as a percentage of the unloaded 2.78480 V design span: with no
+* isolation resistor it is 100 %, which is exactly the objection blocks.md B5
+* raised against any series resistor (requirements Q8 guarantees RL > 100 k)
+* and which the removal now answers.
 *
 * ====================== MODELS - agent-authored, GENERIC ======================
 * No vendor model file is used anywhere (ai-ee model policy). Every number
@@ -39,6 +48,15 @@
 *   integrator windup) and the real limit is a stiff diode clamp on the
 *   output node, which leaves ro free to do its actual job: set the AC output
 *   impedance and the capacitive-load stability.
+* ANTI-WINDUP CLAMPS THE INTEGRATOR NODE, NOT THE BUFFER. Second measured
+*   defect in this model: clamping only the buffer output leaves nint free,
+*   and 1 ms of the b4 overload charged it to ~160 V at the slew limit, after
+*   which nothing recovered inside the bench. Dawh/Dawl now hold nint itself
+*   0.4 V beyond the swing limits, so recovery costs 0.4 V / slew rate.
+*   CONSEQUENCE: the overload-RECOVERY TIME this model reports is a property
+*   of that 0.4 V headroom, not a datasheet number - neither datasheet states
+*   an overload recovery time. What b4 proves structurally is that the output
+*   does not invert or fold back; the recovery time is gated as a warning.
 * CAPTURES: dc gain, gain-bandwidth, slew rate, output swing limits, output
 *   impedance and capacitive-load stability, quiescent + load supply current.
 * DOES NOT CAPTURE: input offset voltage and its drift, 1/f noise, the
@@ -48,7 +66,7 @@
 *   output clamp, so b2 tests the DESIGN against the datasheet inequality,
 *   not the part).
 *
-.model dclamp D(is=1e-12 n=0.02 rs=0.01 cjo=0)
+.model dclamp D(is=1e-12 n=0.01 rs=0.01 cjo=0)
 .subckt gopamp inp inn out vp vn
 + params: gbw=1meg aol=1e6 ro=100 vsathi=0.05 vsatlo=0.05 iq=0 islew=1e6
 Rin  inp inn 1T
@@ -57,7 +75,11 @@ Rp   nint 0 {aol/(6.283185307*gbw*1e-6)}
 Cp   nint 0 1u
 Bhi  nhi 0 V = V(vp)-{vsathi}
 Blo  nlo 0 V = V(vn)+{vsatlo}
-Bo   nbuf 0 V = min(max(V(nint), V(nlo)-0.4), max(V(nhi)+0.4, V(nlo)-0.4+1e-6))
+Bawh nawh 0 V = V(nhi)+0.4
+Bawl nawl 0 V = V(nlo)-0.4
+Dawh nint nawh dclamp
+Dawl nawl nint dclamp
+Eo   nbuf 0 nint 0 1
 Rout nbuf nsen {ro}
 Vsen nsen out 0
 Dhi  out nhi dclamp
@@ -102,14 +124,26 @@ XA3  na3p na3n out vp vn gopamp gbw=1.5meg aol=1e6 ro=100 vsathi=0.10 vsatlo=0.1
 Iq   vp vn 325u
 .ends
 *
-* The bb-amp signal chain exactly as architecture/blocks.md specifies it.
-* pins: IN+ IN- OUT +3V3 GND.  params: r6 / cl / rl = the J2 load, ro2333 =
-* the OPA2333 open-loop output resistance (see the b10 header for why it is
-* swept). OPA2333: GBW 350 kHz typ, AOL 130 dB typ (106 dB min) -> 3.16e6,
+* The bb-amp signal chain exactly as the board is built.
+* pins: IN+ IN- OUT +3V3 GND.  params: cl / rl = the J2 load, ro2333 = the
+* OPA2333 open-loop output resistance (see the b10/b11 headers for why it is
+* bracketed), riso = an OPTIONAL series isolation resistor between U2B's
+* output and J2.
+* THE SHIPPING BOARD FITS NO ISOLATION RESISTOR. R6 = 100 R existed at P3 and
+* was REMOVED at P4 on the evidence of b11: the OPA2333 Figure 15 overshoot
+* curve that motivated it is a UNITY-GAIN measurement, and U2B runs at a
+* noise gain of 3.49, where the same calibrated model gives 6.6 % overshoot
+* into the full 1 nF with no isolation resistor at all. At `block-only`
+* scope, conditioning the datasheet does not require is out of scope, so an
+* unnecessary part must not ship. riso = 0.001 ohm IS the shipping circuit (a
+* 1 milliohm stand-in for the direct wire, so the element still has a name);
+* b10 and b11 sweep riso only to keep the evidence for the removal
+* reproducible, and gate ONLY the riso = 0.001 case. This also restores
+* blocks.md B5, which had rejected any series output resistor. OPA2333: GBW 350 kHz typ, AOL 130 dB typ (106 dB min) -> 3.16e6,
 * output swing 30 mV typ from either rail (RL = 10k, 25 degC; 50 mV max),
 * slew 0.16 V/us, IQ 17 uA/channel typ - all TI SBOS351D p.3.
 .subckt chain nip nin nout p3v3 gnd
-+ params: r6=100 cl=1p rl=100k ro2333=1k
++ params: riso=0.001 cl=1p rl=100k ro2333=1k
 XU1  nip nin n_rga n_rgb n_vref n_amp1 p3v3 gnd ad8226
 R1   n_rga n_rgb 1.27k
 R2   p3v3 n_vrefset 121k
@@ -121,13 +155,36 @@ XU2B n_amp1 n_fb n_u2bout p3v3 gnd gopamp gbw=350k aol=3.16e6 ro={ro2333}
 +    vsathi=0.030 vsatlo=0.030 iq=17u islew=0.16
 R4   n_u2bout n_fb 24.9k
 R5   n_fb n_vref 10k
-R6   n_u2bout nout {r6}
+RISO n_u2bout nout {riso}
 C1   p3v3 gnd 100n
 C2   p3v3 gnd 10u
 C3   p3v3 gnd 100n
 CL   nout gnd {cl}
 RL   nout gnd {rl}
 .ends
+*
+* NETLIST CROSS-CHECK (2026-08-16, P4). These benches were TYPED from
+* architecture/blocks.md s1-s2 and constraints.json, not synthesized, because
+* schematic-block was authoring the sheet concurrently. As soon as
+* kicad/bb-amp.net appeared it was diffed against them with
+*   sim_run.py --fragment --net kicad/bb-amp.net --refs R1,R2,R3,R4,R5
+* and every value and every connection MATCHES what is modelled here:
+*   R1 1.27k across U1 pins 2-3 (/RG_A,/RG_B)  R2 121k  +3V3 -> /VREF_SET
+*   R3 10.0k /VREF_SET -> GND                  C4 100n on /VREF_SET
+*   R4 24.9k /AMP2_OUT -> /FB2                 R5 10.0k /FB2 -> /VREF
+*   C1,C3 100n / C2 10u on +3V3                and NO R6: /AMP2_OUT is /VOUT
+*     (R6 removed at P4 by ruling, on b11's evidence - see the chain subckt)
+*   U1 REF (pin 6) = /VREF - the BUFFERED node, not the divider, not ground
+*   U2A = unity buffer: OUTA = INA- = /VREF, INA+ = /VREF_SET
+*   U2B: INB+ = /AMP1_OUT, INB- = /FB2, OUTB = /AMP2_OUT
+*   and R5 returns to /VREF, NOT to ground - the one wire blocks.md s2 turns
+*   on, and the one a netlist diff is the only way to confirm.
+* Net map, bench -> schematic: n_ip=/IN_P n_in=/IN_N n_rga=/RG_A n_rgb=/RG_B
+* n_amp1=/AMP1_OUT n_vrefset=/VREF_SET n_vref=/VREF n_fb=/FB2
+* n_u2bout=/AMP2_OUT n_out=/VOUT p3v3=+3V3 gnd=GND.
+* THE CROSS-CHECK IS A SNAPSHOT: these benches carry their own copy of every
+* value and will NOT notice a later schematic edit. Re-run the --fragment
+* diff above after any change to R1..R5, R2/R3 or the U2 pin assignment.
 *
 * Sensor source: 350 ohm bridge (requirements Q3) split 175/175, common mode
 * pinned at 1.65 V (Q1). V(nd) IS the differential input in volts.
@@ -148,89 +205,91 @@ Ep   n_sp n_cm n_d 0 0.5
 En   n_sn n_cm n_d 0 -0.5
 Rsp  n_sp n_ip 175
 Rsn  n_sn n_in 175
-Xa1  n_ip n_in oa1 p3v3 0 chain r6=0.001 cl=1n rl=100k ro2333=1k
-Xa2  n_ip n_in oa2 p3v3 0 chain r6=47 cl=1n rl=100k ro2333=1k
-Xa3  n_ip n_in oa3 p3v3 0 chain r6=100 cl=1n rl=100k ro2333=1k
-Xa4  n_ip n_in oa4 p3v3 0 chain r6=220 cl=1n rl=100k ro2333=1k
-Xa5  n_ip n_in oa5 p3v3 0 chain r6=470 cl=1n rl=100k ro2333=1k
-Xa6  n_ip n_in oa6 p3v3 0 chain r6=1000 cl=1n rl=100k ro2333=1k
-Xb1  n_ip n_in ob1 p3v3 0 chain r6=0.001 cl=1n rl=100k ro2333=2k
-Xb2  n_ip n_in ob2 p3v3 0 chain r6=47 cl=1n rl=100k ro2333=2k
-Xb3  n_ip n_in ob3 p3v3 0 chain r6=100 cl=1n rl=100k ro2333=2k
-Xb4  n_ip n_in ob4 p3v3 0 chain r6=220 cl=1n rl=100k ro2333=2k
-Xb5  n_ip n_in ob5 p3v3 0 chain r6=470 cl=1n rl=100k ro2333=2k
-Xb6  n_ip n_in ob6 p3v3 0 chain r6=1000 cl=1n rl=100k ro2333=2k
-Xc1  n_ip n_in oc1 p3v3 0 chain r6=100 cl=1p rl=100k ro2333=1k
-Xc2  n_ip n_in oc2 p3v3 0 chain r6=100 cl=1p rl=100k ro2333=2k
+Xa_r0  n_ip n_in oa_r0 p3v3 0 chain riso=0.001 cl=1n rl=100k ro2333=1k
+Xa_r47  n_ip n_in oa_r47 p3v3 0 chain riso=47 cl=1n rl=100k ro2333=1k
+Xa_r100  n_ip n_in oa_r100 p3v3 0 chain riso=100 cl=1n rl=100k ro2333=1k
+Xa_r220  n_ip n_in oa_r220 p3v3 0 chain riso=220 cl=1n rl=100k ro2333=1k
+Xa_r470  n_ip n_in oa_r470 p3v3 0 chain riso=470 cl=1n rl=100k ro2333=1k
+Xa_r1k  n_ip n_in oa_r1k p3v3 0 chain riso=1000 cl=1n rl=100k ro2333=1k
+Xb_r0  n_ip n_in ob_r0 p3v3 0 chain riso=0.001 cl=1n rl=100k ro2333=2k
+Xb_r47  n_ip n_in ob_r47 p3v3 0 chain riso=47 cl=1n rl=100k ro2333=2k
+Xb_r100  n_ip n_in ob_r100 p3v3 0 chain riso=100 cl=1n rl=100k ro2333=2k
+Xb_r220  n_ip n_in ob_r220 p3v3 0 chain riso=220 cl=1n rl=100k ro2333=2k
+Xb_r470  n_ip n_in ob_r470 p3v3 0 chain riso=470 cl=1n rl=100k ro2333=2k
+Xb_r1k  n_ip n_in ob_r1k p3v3 0 chain riso=1000 cl=1n rl=100k ro2333=2k
+Xa_nc  n_ip n_in oa_nc p3v3 0 chain riso=0.001 cl=1p rl=100k ro2333=1k
+Xb_nc  n_ip n_in ob_nc p3v3 0 chain riso=0.001 cl=1p rl=100k ro2333=2k
 .tran 20n 500u
-.meas tran lo_a1 find v(oa1) at=99u
-.meas tran fs_a1 find v(oa1) at=450u
-.meas tran pk_a1 max  v(oa1) from=100u to=350u
-.meas tran os_a1 param='(pk_a1-fs_a1)/(fs_a1-lo_a1)*100'
-.meas tran lo_a2 find v(oa2) at=99u
-.meas tran fs_a2 find v(oa2) at=450u
-.meas tran pk_a2 max  v(oa2) from=100u to=350u
-.meas tran os_a2 param='(pk_a2-fs_a2)/(fs_a2-lo_a2)*100'
-.meas tran lo_a3 find v(oa3) at=99u
-.meas tran fs_a3 find v(oa3) at=450u
-.meas tran pk_a3 max  v(oa3) from=100u to=350u
-.meas tran os_a3 param='(pk_a3-fs_a3)/(fs_a3-lo_a3)*100'
-.meas tran lo_a4 find v(oa4) at=99u
-.meas tran fs_a4 find v(oa4) at=450u
-.meas tran pk_a4 max  v(oa4) from=100u to=350u
-.meas tran os_a4 param='(pk_a4-fs_a4)/(fs_a4-lo_a4)*100'
-.meas tran lo_a5 find v(oa5) at=99u
-.meas tran fs_a5 find v(oa5) at=450u
-.meas tran pk_a5 max  v(oa5) from=100u to=350u
-.meas tran os_a5 param='(pk_a5-fs_a5)/(fs_a5-lo_a5)*100'
-.meas tran lo_a6 find v(oa6) at=99u
-.meas tran fs_a6 find v(oa6) at=450u
-.meas tran pk_a6 max  v(oa6) from=100u to=350u
-.meas tran os_a6 param='(pk_a6-fs_a6)/(fs_a6-lo_a6)*100'
-.meas tran lo_b1 find v(ob1) at=99u
-.meas tran fs_b1 find v(ob1) at=450u
-.meas tran pk_b1 max  v(ob1) from=100u to=350u
-.meas tran os_b1 param='(pk_b1-fs_b1)/(fs_b1-lo_b1)*100'
-.meas tran lo_b2 find v(ob2) at=99u
-.meas tran fs_b2 find v(ob2) at=450u
-.meas tran pk_b2 max  v(ob2) from=100u to=350u
-.meas tran os_b2 param='(pk_b2-fs_b2)/(fs_b2-lo_b2)*100'
-.meas tran lo_b3 find v(ob3) at=99u
-.meas tran fs_b3 find v(ob3) at=450u
-.meas tran pk_b3 max  v(ob3) from=100u to=350u
-.meas tran os_b3 param='(pk_b3-fs_b3)/(fs_b3-lo_b3)*100'
-.meas tran lo_b4 find v(ob4) at=99u
-.meas tran fs_b4 find v(ob4) at=450u
-.meas tran pk_b4 max  v(ob4) from=100u to=350u
-.meas tran os_b4 param='(pk_b4-fs_b4)/(fs_b4-lo_b4)*100'
-.meas tran lo_b5 find v(ob5) at=99u
-.meas tran fs_b5 find v(ob5) at=450u
-.meas tran pk_b5 max  v(ob5) from=100u to=350u
-.meas tran os_b5 param='(pk_b5-fs_b5)/(fs_b5-lo_b5)*100'
-.meas tran lo_b6 find v(ob6) at=99u
-.meas tran fs_b6 find v(ob6) at=450u
-.meas tran pk_b6 max  v(ob6) from=100u to=350u
-.meas tran os_b6 param='(pk_b6-fs_b6)/(fs_b6-lo_b6)*100'
-.meas tran lo_c1 find v(oc1) at=99u
-.meas tran fs_c1 find v(oc1) at=450u
-.meas tran pk_c1 max  v(oc1) from=100u to=350u
-.meas tran os_c1 param='(pk_c1-fs_c1)/(fs_c1-lo_c1)*100'
-.meas tran lo_c2 find v(oc2) at=99u
-.meas tran fs_c2 find v(oc2) at=450u
-.meas tran pk_c2 max  v(oc2) from=100u to=350u
-.meas tran os_c2 param='(pk_c2-fs_c2)/(fs_c2-lo_c2)*100'
-.meas tran sp_a1 param='(fs_a1-lo_a1)/2.78480*100'
-.meas tran sp_a2 param='(fs_a2-lo_a2)/2.78480*100'
-.meas tran sp_a3 param='(fs_a3-lo_a3)/2.78480*100'
-.meas tran sp_a4 param='(fs_a4-lo_a4)/2.78480*100'
-.meas tran sp_a5 param='(fs_a5-lo_a5)/2.78480*100'
-.meas tran sp_a6 param='(fs_a6-lo_a6)/2.78480*100'
-.meas tran sp_b1 param='(fs_b1-lo_b1)/2.78480*100'
-.meas tran sp_b2 param='(fs_b2-lo_b2)/2.78480*100'
-.meas tran sp_b3 param='(fs_b3-lo_b3)/2.78480*100'
-.meas tran sp_b4 param='(fs_b4-lo_b4)/2.78480*100'
-.meas tran sp_b5 param='(fs_b5-lo_b5)/2.78480*100'
-.meas tran sp_b6 param='(fs_b6-lo_b6)/2.78480*100'
-.meas tran sp_c1 param='(fs_c1-lo_c1)/2.78480*100'
-.meas tran sp_c2 param='(fs_c2-lo_c2)/2.78480*100'
+.meas tran lo_a_r0 find v(oa_r0) at=99u
+.meas tran fs_a_r0 find v(oa_r0) at=450u
+.meas tran pk_a_r0 max  v(oa_r0) from=100u to=350u
+.meas tran os_a_r0 param='(pk_a_r0-fs_a_r0)/(fs_a_r0-lo_a_r0)*100'
+.meas tran lo_a_r47 find v(oa_r47) at=99u
+.meas tran fs_a_r47 find v(oa_r47) at=450u
+.meas tran pk_a_r47 max  v(oa_r47) from=100u to=350u
+.meas tran os_a_r47 param='(pk_a_r47-fs_a_r47)/(fs_a_r47-lo_a_r47)*100'
+.meas tran lo_a_r100 find v(oa_r100) at=99u
+.meas tran fs_a_r100 find v(oa_r100) at=450u
+.meas tran pk_a_r100 max  v(oa_r100) from=100u to=350u
+.meas tran os_a_r100 param='(pk_a_r100-fs_a_r100)/(fs_a_r100-lo_a_r100)*100'
+.meas tran lo_a_r220 find v(oa_r220) at=99u
+.meas tran fs_a_r220 find v(oa_r220) at=450u
+.meas tran pk_a_r220 max  v(oa_r220) from=100u to=350u
+.meas tran os_a_r220 param='(pk_a_r220-fs_a_r220)/(fs_a_r220-lo_a_r220)*100'
+.meas tran lo_a_r470 find v(oa_r470) at=99u
+.meas tran fs_a_r470 find v(oa_r470) at=450u
+.meas tran pk_a_r470 max  v(oa_r470) from=100u to=350u
+.meas tran os_a_r470 param='(pk_a_r470-fs_a_r470)/(fs_a_r470-lo_a_r470)*100'
+.meas tran lo_a_r1k find v(oa_r1k) at=99u
+.meas tran fs_a_r1k find v(oa_r1k) at=450u
+.meas tran pk_a_r1k max  v(oa_r1k) from=100u to=350u
+.meas tran os_a_r1k param='(pk_a_r1k-fs_a_r1k)/(fs_a_r1k-lo_a_r1k)*100'
+.meas tran lo_b_r0 find v(ob_r0) at=99u
+.meas tran fs_b_r0 find v(ob_r0) at=450u
+.meas tran pk_b_r0 max  v(ob_r0) from=100u to=350u
+.meas tran os_b_r0 param='(pk_b_r0-fs_b_r0)/(fs_b_r0-lo_b_r0)*100'
+.meas tran lo_b_r47 find v(ob_r47) at=99u
+.meas tran fs_b_r47 find v(ob_r47) at=450u
+.meas tran pk_b_r47 max  v(ob_r47) from=100u to=350u
+.meas tran os_b_r47 param='(pk_b_r47-fs_b_r47)/(fs_b_r47-lo_b_r47)*100'
+.meas tran lo_b_r100 find v(ob_r100) at=99u
+.meas tran fs_b_r100 find v(ob_r100) at=450u
+.meas tran pk_b_r100 max  v(ob_r100) from=100u to=350u
+.meas tran os_b_r100 param='(pk_b_r100-fs_b_r100)/(fs_b_r100-lo_b_r100)*100'
+.meas tran lo_b_r220 find v(ob_r220) at=99u
+.meas tran fs_b_r220 find v(ob_r220) at=450u
+.meas tran pk_b_r220 max  v(ob_r220) from=100u to=350u
+.meas tran os_b_r220 param='(pk_b_r220-fs_b_r220)/(fs_b_r220-lo_b_r220)*100'
+.meas tran lo_b_r470 find v(ob_r470) at=99u
+.meas tran fs_b_r470 find v(ob_r470) at=450u
+.meas tran pk_b_r470 max  v(ob_r470) from=100u to=350u
+.meas tran os_b_r470 param='(pk_b_r470-fs_b_r470)/(fs_b_r470-lo_b_r470)*100'
+.meas tran lo_b_r1k find v(ob_r1k) at=99u
+.meas tran fs_b_r1k find v(ob_r1k) at=450u
+.meas tran pk_b_r1k max  v(ob_r1k) from=100u to=350u
+.meas tran os_b_r1k param='(pk_b_r1k-fs_b_r1k)/(fs_b_r1k-lo_b_r1k)*100'
+.meas tran lo_a_nc find v(oa_nc) at=99u
+.meas tran fs_a_nc find v(oa_nc) at=450u
+.meas tran pk_a_nc max  v(oa_nc) from=100u to=350u
+.meas tran os_a_nc param='(pk_a_nc-fs_a_nc)/(fs_a_nc-lo_a_nc)*100'
+.meas tran lo_b_nc find v(ob_nc) at=99u
+.meas tran fs_b_nc find v(ob_nc) at=450u
+.meas tran pk_b_nc max  v(ob_nc) from=100u to=350u
+.meas tran os_b_nc param='(pk_b_nc-fs_b_nc)/(fs_b_nc-lo_b_nc)*100'
+.meas tran sp_a_r0 param='(fs_a_r0-lo_a_r0)/2.78480*100'
+.meas tran sp_a_r47 param='(fs_a_r47-lo_a_r47)/2.78480*100'
+.meas tran sp_a_r100 param='(fs_a_r100-lo_a_r100)/2.78480*100'
+.meas tran sp_a_r220 param='(fs_a_r220-lo_a_r220)/2.78480*100'
+.meas tran sp_a_r470 param='(fs_a_r470-lo_a_r470)/2.78480*100'
+.meas tran sp_a_r1k param='(fs_a_r1k-lo_a_r1k)/2.78480*100'
+.meas tran sp_b_r0 param='(fs_b_r0-lo_b_r0)/2.78480*100'
+.meas tran sp_b_r47 param='(fs_b_r47-lo_b_r47)/2.78480*100'
+.meas tran sp_b_r100 param='(fs_b_r100-lo_b_r100)/2.78480*100'
+.meas tran sp_b_r220 param='(fs_b_r220-lo_b_r220)/2.78480*100'
+.meas tran sp_b_r470 param='(fs_b_r470-lo_b_r470)/2.78480*100'
+.meas tran sp_b_r1k param='(fs_b_r1k-lo_b_r1k)/2.78480*100'
+.meas tran sp_a_nc param='(fs_a_nc-lo_a_nc)/2.78480*100'
+.meas tran sp_b_nc param='(fs_b_nc-lo_b_nc)/2.78480*100'
+.meas tran d_os_a param='os_a_r0-os_a_r1k'
+.meas tran d_os_b param='os_b_r0-os_b_r1k'
 .end

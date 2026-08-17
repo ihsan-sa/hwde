@@ -1,0 +1,34 @@
+[
+ {
+  "measure": "dvo_dvs",
+  "max": 0.09,
+  "severity": "error",
+  "msg": "DESIGN TARGET (blocks.md B6). dVout/dVs at zero scale over REQUIREMENTS Q10's 3.135..3.465 V rail; design 0.0763 V/V, which is exactly the R2/R3 divider ratio - the pedestal rides the rail and nothing else does. Measured 0.0766."
+ },
+ {
+  "measure": "v20_lo",
+  "min": 3.0,
+  "severity": "error",
+  "msg": "REQUIREMENTS Q10 + Q6. Full scale must not clip at the -5 % rail; the OPA2333 ceiling there is 3.135 - 0.03 = 3.105 V and the design lands at 3.022 V. blocks.md B6 asks for >= 3.02 V, which the board meets by only 2 mV; the bound is set at 3.00 V because the R6/RL divider already eats 0.1 % of that margin and any larger R6 would eat more (R6 = 470 R would put this at 3.011 V, below blocks.md's own figure). See the R6 finding in the report."
+ },
+ {
+  "measure": "span_lo",
+  "min": 2.7,
+  "severity": "error",
+  "msg": "REQUIREMENTS Q7 (12-bit usable over the output span). Usable span at the -5 % rail, design 2.785 V; 2.70 V still leaves 0.66 mV per 12-bit LSB. Measured 2.782 V."
+ },
+ {
+  "measure": "v0_lo",
+  "min": 0.23,
+  "max": 0.25,
+  "severity": "warning",
+  "msg": "DESIGN TARGET. Pedestal at the -5 % rail: 3.135*10/131 = 0.2393 V."
+ },
+ {
+  "measure": "v0_hi",
+  "min": 0.255,
+  "max": 0.275,
+  "severity": "warning",
+  "msg": "DESIGN TARGET. Pedestal at the +5 % rail: 3.465*10/131 = 0.2645 V."
+ }
+]

@@ -1,0 +1,45 @@
+[
+ {
+  "measure": "vpp_150",
+  "max": 0.00278,
+  "severity": "error",
+  "msg": "DESIGN TARGET (blocks.md B4): settled to 0.1 % of the 2.78 V step within 150 us of the edge. Gated as the peak-to-peak residual in the window that opens 150 us after the edge, so it needs no hard-coded threshold. Measured 0.0 V."
+ },
+ {
+  "measure": "os_pct",
+  "max": 5.0,
+  "severity": "error",
+  "msg": "DESIGN TARGET (blocks.md B4). Full-scale step overshoot at J2 into CL = 1 nF (REQUIREMENTS Q8 worst case), measured 0.63 % - low because U1's 45.8 kHz pole and the OPA2333's 0.16 V/us slew rate turn the edge into a ~17 us ramp. The small-signal stability margin is b11, not this."
+ },
+ {
+  "measure": "v_ovlmin",
+  "min": 3.0,
+  "severity": "error",
+  "msg": "REQUIREMENTS Q5 ('clips gracefully and recovers'). The output must not invert or collapse anywhere in the 1 ms +25 mV overload. Measured 3.035 V, i.e. it never leaves the top."
+ },
+ {
+  "measure": "v_ovl",
+  "min": 3.15,
+  "max": 3.3,
+  "severity": "error",
+  "msg": "DESIGN TARGET (blocks.md B1/B4). Clipped level during overload."
+ },
+ {
+  "measure": "vpp_300",
+  "max": 0.00278,
+  "severity": "error",
+  "msg": "DESIGN TARGET (blocks.md B4): recovered to 0.1 % within 300 us of leaving overload. Measured 0.0 V."
+ },
+ {
+  "measure": "ts_us",
+  "max": 150.0,
+  "severity": "warning",
+  "msg": "DESIGN TARGET (blocks.md B4, design ~30 us). Settling time to +-0.1 % of the step, measured 23.6 us."
+ },
+ {
+  "measure": "tr_us",
+  "max": 300.0,
+  "severity": "warning",
+  "msg": "DESIGN TARGET (blocks.md B4), measured 20.9 us. WARNING not error: this number is set by the macromodel's 0.4 V anti-windup headroom divided by the datasheet slew rate. NEITHER datasheet states an overload recovery time, so the model cannot predict one. What b4 proves about overload is structural - no inversion, no fold-back."
+ }
+]

@@ -81,3 +81,79 @@ Sources (quarantined, sha-pinned in the task ledger):
 - research/sources/how-monitor-sensor-health-instrumentation-amplifiers.pdf tier cross-vendor sha256 46a3c2c44da0 <https://www.renesas.com/en/document/whp/how-monitor-sensor-health-instrumentation-amplifiers>
 - research/sources/691361100003.pdf tier vendor-layout sha256 a45b83daedc9 <https://www.we-online.com/components/products/datasheet/691361100003.pdf>
 Task file: boards/bb-amp/research/tasks/interface-in-2.json
+
+## 2026-08-16 [P4][spice][sim-analyst] `.meas ac rms` is FREQUENCY-WEIGHTED, which is how you get integrated noise out of ngspice without `.noise`
+ngspice has no way to report integrated noise into a measure - `.measure` is documented for
+ac/dc/tran/sp only, and the `.noise` totals never reach the "Measurements for" block the
+runner parses. The way through: inject the RTI noise DENSITY as a plain AC source, then
+`.meas ac x rms vm(out) from=f1 to=f2`; total rms = x * sqrt(f2-f1). Verified on this host
+against a closed-form RC integral (fc = 100 Hz over 1..10 kHz): analytic 0.124137, measured
+0.124537 on `.ac lin` and 0.124539 on `.ac dec` - so the weighting is by frequency, not by
+sweep point, and a decade sweep is fine. `integ` matches the same closed form to 5 digits
+(528.834 vs 528.83). ONE source only: `.ac` superposes sources COHERENTLY, so two noise
+sources add as voltages, not in quadrature - lump the whole RTI density into one and list
+in the header what you left out and why. Second engine fact from the same session: a prior
+measure's result IS available to `.meas <n> param='<prior> ...'` but NOT to
+`.meas <n> when v(x)='<prior>-3'` - `when` values are substituted at parse time and the run
+dies with "Undefined parameter". Hard-code the trigger level and say in the sidecar that a
+wrong gain therefore shows up as a MISSING measure (still an error) rather than a bad one.
+
+## 2026-08-16 [P4][spice][sim-analyst] Pad every .dc/.ac sweep: the FIRST point can converge to junk and `at=` on the LAST point errors out
+On a 5-op-amp chain (three inside the AD8226 macromodel, two OPA2333 halves) ngspice 46
+reported "Dynamic gmin stepping failed / True gmin stepping failed / source stepping failed"
+at the first point of `.dc Vd -0.001 0.025` and returned a bogus operating point there:
+`v(amp1)` read 0.1025 V (pinned to the model's output clamp) where the correct answer is
+0.2123 V, while every later point - which converges from the previous solution - was exact.
+At the other end, `at=0.025` on the last point of the same sweep failed with "out of
+interval". Both vanish if the range is padded (`-0.002 .. 0.026`) so that no MEASURED point
+is a sweep endpoint. Costs nothing, and without it a bench silently reports a wrong number
+rather than failing. Two related traps found the same session: `.meas tran ... fall=last`
+with no `from=/to=` scans the WHOLE run (a settling-time measure on the first step returned
+the recovery edge of an overload 2 ms later - 2020 us instead of 23.6 us), and there is no
+`i(x1.r2)` vector for a resistor inside a subcircuit - derive branch currents from node
+voltages in a `param=` instead.
+
+## 2026-08-16 [P4][spice][sim-analyst] A behavioural op-amp needs its anti-windup on the INTEGRATOR node, and its swing clamp AFTER ro - the datasheet swing number is already loaded
+Two defects measured in one agent-authored generic op-amp macromodel, both of which produced
+plausible-looking wrong answers rather than errors. (1) Clamping only the output buffer
+leaves the R||C integrator node free: 1 ms of a +25 mV overload charged it to ~160 V at the
+slew limit, and the bench then showed the amplifier NEVER recovering - a fake overload-
+recovery failure. Clamp the integrator node itself (stiff diode pair to rail +- a small
+anti-windup headroom) so recovery costs headroom/slew-rate. (2) Clamping ahead of the
+open-loop output resistance and then dropping ro*Iload on top DOUBLE-COUNTS the load: a
+datasheet "output swing 30 mV from the rail at RL = 10 k" is already a loaded figure, and
+stacking a 1 kohm ro on it put the clip level at 3.152 V instead of ~3.27 V - inside the
+gate window by 2 mV, i.e. it would have passed while being wrong. Put the swing clamp on
+the output NODE and leave ro free to do its real job (AC output impedance and capacitive-load
+stability). Corollary for the sidecar: state that the recovery TIME is then a property of
+the anti-windup headroom you chose, not a datasheet number, and gate it as a warning.
+
+## 2026-08-16 [P4][sim-analyst][inamp] A series isolation resistor only isolates when it is comparable to the op-amp's open-loop ro - and Figure-15-class overshoot curves are UNITY-GAIN numbers
+bb-amp's R6 was added at P3 at 100 R because OPA2333 Figure 15 shows small-signal overshoot
+reaching roughly the mid-30 % range by CL = 1 nF and requirements allow 1 nF of output cable.
+Both halves of that reasoning failed on the bench. First, an overshoot-vs-CL curve is taken
+in unity gain; the stage it was applied to runs at a noise gain of 3.49, which moves the loop
+crossover from 350 kHz to 100 kHz and is worth roughly 25 degrees of phase margin - the same
+macromodel that reproduces Figure 15 (32 % at 1 nF in unity gain) gives 6.6 % for the actual
+stage with NO R6 at all. Second, an out-of-loop series R isolates by putting a zero at
+1/(2*pi*R6*CL) against the pole at 1/(2*pi*(ro+R6)*CL), so its authority is set by R6/ro:
+at ro = 1-2 kohm, R6 = 100 R moved overshoot by 0.3 to 1.3 points, while R6 = 1 kohm halved
+it. Rule: size an isolation resistor against the op-amp's OPEN-LOOP output resistance, not
+against the load, and re-read any capacitive-load figure for the gain it was measured at.
+Also: when the datasheet states ro only at one frequency (2 kohm at 350 kHz here, no DC or
+closed-loop figure anywhere), calibrate ro against the vendor's own overshoot curve inside
+the bench, keep the literal number as a pessimistic bracket, and carry BOTH through every
+conclusion.
+
+## 2026-08-16 [P4][sim-analyst][inamp] Build the in-amp from its OWN published 3-op-amp structure and the REF-impedance defect becomes a gate failure instead of a review opinion
+Modelling the AD8226 as its published topology - two preamps with 24.7k feedback around the
+external RG, then a difference amplifier from four 50k resistors with REF at the end of one
+of them - costs about fifteen lines and makes three separate things emergent rather than
+asserted: the gain law G = 1 + 49.4k/RG comes from the resistors, internal Node 1 is a real
+node you can probe (`v(x1.xu1.nd1)` works), and any impedance in series with REF reproduces
+the datasheet's own 2*(50k+Rref)/(100k+Rref) uneven amplification exactly. That last one
+turns "the REF buffer is not optional" from a design-review claim into a measured gate bound:
+deleting the buffer and driving REF from the bare 9.24 k divider Thevenin moved the CMRR
+bench from 0.134 mV to 17.06 mV over a 0.2 V common-mode sweep, 57x over its window, and
+moved the reference node itself by 16.9 mV. Seed exactly that defect to prove the bound
+before shipping it.
