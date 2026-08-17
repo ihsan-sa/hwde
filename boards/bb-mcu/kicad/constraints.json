@@ -1,0 +1,113 @@
+{
+ "_comment": "P2 MERGED constraints for bb-mcu (STM32F030F4P6TR minimum system on one external 3.3 V rail, 2 layers, JLC2313_1.6, geometry is an OUTPUT). Merged from research/mcu.json (part ruling), research/refdesign-mcu.json (the datasheet-required minimum system) and research/interface-swd.json (SWD binds nothing; BOM adds nothing). BUILD MODE 'learning block-basics:' binds SCOPE, not this file: blocks[] and operating_point are complete because the P2-exit coverage check and knowledge retrieval read them, and there are no board-level defaults - every board-level fact is repeated inside each block.",
+
+ "_canonical_names": "architecture/sheets.md s2 is authoritative. ONE FLAT ROOT SHEET, so power symbols export BARE (+3V3, GND) and root-sheet local labels export with ONE leading slash (/SWDIO, /SWCLK, /NRST, /BOOT0, /IO1../IO4). P1 research proposed the bare forms SWDIO/SWCLK/NRST; P2 fixes the exported spelling here. Silk DROPS the slash - the header reads 'GND SWCLK 3V3 SWDIO NRST' and 'IO1 IO2 GND IO3 IO4'. P4 MUST run netlist_audit.py against this file: a renamed net surfaces as missing_net (error) and nothing else catches it, because check_current on a nonexistent net silently reports nothing.",
+
+ "_absent_keys": "ALL DELIBERATE, each argued in architecture/sheets.md s4. diff_pairs is OMITTED, not [] - an explicit empty list DISABLES check_diffpair board-wide while omitting the key leaves auto-discovery ARMED, and on a board with no pair the fail-safe reading is the one to take (P1 ruling; diverges from research/interface-swd.json and from stm32-blinky, both of which used []). No high_speed: SWD binds nothing (5 ns edge settles in ~1.5 ns against a 125 ns half-bit at the 4 MHz bench ceiling - 80x, still 14x at STLINK-V3's 24 MHz), and declaring these nets on 2 layers only manufactures corridor_void findings that are unfixable by construction. No impedance_ohm ANYWHERE: JLC sells no impedance-controlled 2-layer stackup (live-verified, stackups.yaml) and nothing here is a transmission line. No voltages/voltage_pairs: nothing exceeds 3.3 V and check_creepage's derived check engages only above 30 V. No thermal: 0.33 W at the budget CEILING, no exposed pad, no via array. No planes: the 2-layer default (B.Cu GND pour) is correct and a planes[] list REPLACES the defaults entirely. No power entry for GND: at 0.1 A it would size nothing and would manufacture a check_pdn pdn_undecoupled error needing a waiver (bb-buck paid that price at 2.6 A, where the declaration was worth it). No placement.keepouts (board-LOCAL coordinates, and this board has no outline yet by design), no separation (centre-to-centre, and skipped when either ref is locked - it cannot express anything this board needs), no fixed (nothing has an earned position at P2).",
+
+ "power": [
+  {
+   "net": "+3V3",
+   "current_a": 0.1,
+   "dt_c": 10,
+   "_note": "The board's ONLY rail: an external 3.3 V +/-5 % source on J1 (A1: bench supply or another board's rail, NOT a battery, limited ~0.5 A). 0.1 A is the requirements.md s3 budget CEILING and it is a MARKED GUESS, not a measurement - a small Cortex-M0 on its internal RC draws ~5-30 mA and no firmware is delivered by this pipeline, so the ceiling is what copper gets sized against. The probe's VTref sense current on J2 pin 3 (< 170 uA worst SOURCED case) is 0.17 % of this and needs no entry of its own. At 0.1 A the IPC-2152 width is below the fab minimum, so rules_gen buckets this net straight into Default (net_classes takes max(min_width_mm, default_track)) - the entry earns its place by putting the rail into check_pdn's decoupling inventory (C1/C2 at VDD, C3/C4 at VDDA) and check_irdrop, not by sizing a trace. NO pdn:false - the four caps ARE this rail's decoupling and must stay in the inventory. NO plane_fed - there is no +3V3 pour on a 2-layer board whose bottom face is GND."
+  }
+ ],
+
+ "coating": "soldermask",
+
+ "placement": {
+  "edges": [
+   {
+    "ref": "J1",
+    "edge": "right",
+    "pos": 0.5,
+    "_note": "Power input on its OWN edge, apart from both signal headers - requirements.md s5, so bench wiring and the probe never cross the board. pos 0.5 is load-bearing twice: it puts the terminal directly opposite U1's VDD(16)/VSS(15) pins, which sit mid-face on the pin-11..20 side, giving the shortest possible rail run to C1/C2; and it keeps the terminal body and its wires clear of both corners where the M3 holes go. REQUIREMENT IN WORDS, because no schema key expresses it: the screw-terminal WIRE OPENING must face OFF-BOARD. rot is deliberately UNSET - the footprint's native entry direction does not exist yet, and bb-buck recorded the cost of guessing it; P6 sets rot on the render and P8 confirms it."
+   },
+   {
+    "ref": "J2",
+    "edge": "top",
+    "_note": "SWD debug header. BOOT0(1), NRST(4), SWDIO(19) and SWCLK(20) all sit within ~2 mm of the PIN-1 END of the TSSOP-20 (0.65 mm pitch, both faces), so a J2 off that end takes all three debug signals with no crossing - the answer to both research fragments' 'J2 cannot take all its signals off one FACE' note: it does not need one face, they share one END. pos omitted so P6 places it where the escape actually lands. Opening faces off-board; rot unset for the same reason as J1."
+   },
+   {
+    "ref": "J3",
+    "edge": "left",
+    "_note": "GPIO header. /IO1../IO4 = PA0..PA3 = pins 6-9, four consecutive pins on the far half of the pin-1..10 face, diagonally opposite the debug end and as far from SWCLK as the package allows. pos omitted; opening faces off-board; rot unset. THE EDGE LETTERS ARE A CONSISTENT SET, NOT A COMPASS RULING: right/top/left here follows U1 sitting pin-1-end-up. Rotating the whole assignment by a quarter turn (e.g. J1 bottom / J2 right / J3 top) is the SAME arrangement and needs no re-approval - what binds is that all three sit on three DIFFERENT edges with power apart from the two signal headers."
+   }
+  ],
+  "groups": [
+   {
+    "name": "mcu",
+    "anchor": "U1",
+    "members": ["C1", "C2", "C3", "C4", "R1"],
+    "_note": "The whole block. C1 (100 nF) takes the position closest to VDD(16)/VSS(15) and C2 (4.7 uF) sits behind it as the reservoir; C3 (10 nF) takes the position closest to VDDA(5) and C4 (1 uF) behind it. The datasheet's word is 'must': caps 'placed as close as possible to, or below, the appropriate pins' (DS Fig 12 caution), with a supply via and a ground via straddling each cap right at the pin (AN4325 Fig 8). Every cap ground drops straight to the B.Cu pour through its OWN via - never daisy-chained. R1 is a member so the hardware-sampled BOOT0 node stays short: it belongs in the pin-1 window, not wherever an annealer finds room. ONE CONGESTION POINT for P6: C3/C4 at VDDA sit on the same package face the four GPIO escape past - place them toward the pin-1 end of pin 5's escape so the far half of that face stays clear."
+   }
+  ],
+  "sides": [
+   {"ref": "U1", "side": "front", "reason": "JLC PCBA single-sided (requirements.md s7): every SMT part on the top face so the bottom stays clear for the unbroken B.Cu GND pour, which is this board's only return path and only reference plane. U1's cluster is SMT and therefore structurally flippable, so without this pin place_anneal may legitimately move it to the back"},
+   {"ref": "C1", "side": "front", "reason": "single-sided SMT assembly; bottom face reserved for the GND pour"},
+   {"ref": "C2", "side": "front", "reason": "single-sided SMT assembly; bottom face reserved for the GND pour"},
+   {"ref": "C3", "side": "front", "reason": "single-sided SMT assembly; bottom face reserved for the GND pour"},
+   {"ref": "C4", "side": "front", "reason": "single-sided SMT assembly; bottom face reserved for the GND pour"},
+   {"ref": "R1", "side": "front", "reason": "single-sided SMT assembly; bottom face reserved for the GND pour"}
+  ],
+  "_sides_note": "J1/J2/J3 carry no sides entry ON PURPOSE: they are through-hole, and place_anneal marks a through-hole body non-flippable by construction (flippable = free AND not thru), so pinning them would add nothing a check could ever catch. The six entries above cover exactly the parts that CAN move to the back."
+ },
+
+ "blocks": [
+  {
+   "topology": "mcu",
+   "block": "B1",
+   "name": "U1 STM32F030F4P6TR minimum system - TSSOP-20 Cortex-M0, single 3.3 V supply, internal RC, SWD",
+   "operating_point": {
+    "vdd_v": 3.3,
+    "vdd_min_v": 3.0,
+    "vdd_max_v": 3.6,
+    "fcpu_mhz": 48,
+    "idd_ma": 100,
+    "pdiss_w": 0.33,
+    "edge_ns": 5,
+    "board_layers": 2,
+    "tamb_max_c": 50,
+    "source_kind": "dc-input",
+    "supply_kind": "single-rail",
+    "clock_kind": "internal-rc",
+    "package_kind": "tssop",
+    "debug_kind": "swd",
+    "boot_kind": "external-strap",
+    "reset_kind": "internal-pullup"
+   },
+   "_note": "Board-level facts (board_layers, tamb_max_c, source_kind) are REPEATED here on purpose - the coverage check reads no board-level defaults and tests envelopes only against the block's own operating_point. Provenance of each number: vdd_v/vdd_min_v/vdd_max_v from A1 (3.3 V +/-5 %, part must accept 3.0-3.6 V). fcpu_mhz 48 is the part's CEILING reached by PLL from the 8 MHz HSI, declared as the envelope because no firmware is delivered and nothing here fixes a clock. idd_ma 100 and pdiss_w 0.33 are the requirements.md s3 budget CEILING and are MARKED GUESSES (realistic: 5-30 mA, ~0.07 W) - see power_tree.md s3. edge_ns 5 is the fastest edge the part can produce on any GPIO (DS Table 48, OSPEEDR=11, CL=30 pF) and is also PA13's real reset default (GPIOA_OSPEEDR reset 0x0C00 0000). boot_kind external-strap and reset_kind internal-pullup are ADDED beyond the suggested set because they ARE the mechanism this board teaches: BOOT0 (pin 1) has NO internal pull and needs R1, while NRST has a permanent one and needs nothing - exactly the required-vs-recommended line requirements.md s2 point 5 turns on, and the axis that separates this part from the STM32C011/PY32/G031 runners-up whose BOOT0 carries an internal pull-down. clock_kind internal-rc records that no crystal exists and that OSC_IN/OSC_OUT (PF0/PF1) are ordinary free GPIO here."
+  },
+  {
+   "topology": "swd-debug-port",
+   "block": "B2",
+   "name": "J2 5-position 0.1 in flying-lead SWD header - GND / SWCLK / 3V3 / SWDIO / NRST",
+   "operating_point": {
+    "vio_v": 3.3,
+    "fclk_mhz": 4,
+    "edge_ns": 5,
+    "board_layers": 2,
+    "tamb_max_c": 50,
+    "header_pins": 5,
+    "source_kind": "dc-input",
+    "debug_kind": "swd",
+    "probe_kind": "flying-lead",
+    "connector_kind": "header-100mil",
+    "keying_kind": "none"
+   },
+   "_note": "Declared as its own block because coverage interface slots come ONLY from diff_pairs[].base and SWD is single-ended - inventing a fake pair to force a slot would inject an unbuildable impedance requirement into P5/P7 (P2 ruling, state.json). fclk_mhz 4 is the realistic bench ceiling: the hard maximum of both probes people actually own (ST-LINK/V2 'up to 4 MHz', J-Link EDU Mini 4 MHz) and ST's own recommended setting (AN4989 5.2). STLINK-V3 reaches 24 MHz and J-Link BASE/PLUS 15 MHz - the 'SWD binds nothing' verdict holds at 24 MHz too (14x margin instead of 80x), so 4 is the design point, not a ceiling anyone must respect. edge_ns 5 is the target's fastest possible edge (the MCU drives only SWDIO; SWCLK's edge belongs to the probe, and no probe vendor publishes one). positions 5 and keying_kind none are the mechanism behind the RULED pin order: on an unkeyed n-position header a 180 deg reversal maps position i to (n+1)-i, so an ODD count has a self-mapping centre position, and 3V3-at-centre is the unique arrangement in which a reversed probe lands its high-Z VTref INPUT on the board's rail instead of a probe OUTPUT. Repeat of board-level dims is deliberate (no board defaults exist)."
+  }
+ ],
+
+ "notes": [
+  "ADVISORY, NEVER ENFORCED - the SWD layout guidance. Keep SWDIO/SWCLK under 50 mm (an ASSUMED bound: no vendor publishes a trace-length number; it sits inside the strictest critical length with margin and is trivially met at any honest size). Run the debug traces over the B.Cu GND pour where convenient. Keep SWCLK from running long and parallel to the four GPIO - it carries the fastest edge on the board and Lauterbach's sourced consequence is that 'a spike on the SWCLK clock will most likely cause communication to fail'. None of this is declared in high_speed on purpose: see _absent_keys.",
+  "TRAP FOR LATER PHASES: do NOT cite AN5967 s14.4.5's '50 ohm +/- 10 %, data traces <= 25 mm' as an SWD rule - that is the ETM PARALLEL TRACE PORT, not SWD, and applying it would import a controlled-impedance requirement onto a stackup that cannot deliver one. And do NOT cite ARM DUI0499 for anything: the interface research flagged it as never actually fetched (JS shell only); its two former claims were replaced by ARM IHI 0031G and SEGGER UM08001.",
+  "SILK IS LOAD-BEARING, and it is the thing that gets forgotten. J2 and J3 are unkeyed 0.1 in headers, so per-pin silk is the ONLY thing preventing a reversed plug. Label all five pins on each, text OUTSIDE the connector body footprint, plus a pin-1 marker that survives assembly. stm32-blinky promised silk-labelled pins in its architecture and SHIPPED WITHOUT THEM, with its lone square pin-1 pad hidden under the header body. J1 needs + / - silk: there is no reverse-polarity protection by mode, so that marking is the entire defence against a swapped supply.",
+  "EVERY CONNECTOR'S OPENING OR MATING FACE MUST POINT OFF-BOARD. No schema key expresses this, and rot is deliberately unset on all three edge entries because the footprints do not exist yet - P6 sets rot from the render and P8 confirms the direction.",
+  "BOM CONSEQUENCE OF THE SWD RESEARCH, so nobody re-adds it: SWD adds ZERO components. No pull-up and no pull-down (AN4325 4.3.3: the embedded ones 'remove the need to add external resistors'; ARM IHI 0031G requires 100k on SWDIO only and the STM32's ~40k internal is STRONGER, which is the safe direction). No series resistors - a CONSIDERED REJECTION of Raspberry Pi (100R), Lauterbach (47R) and SEGGER (47R), never to be defended with 'no source asks for it', because three do. No NRST capacitor - AN4325 files it under OPTIONAL components, 'for RESET button', and this board has no reset button. The 3V3 sense pin takes NO series element (SEGGER UM08001 13.5: VTref 'must not have a series resistor').",
+  "P6 PLACEMENT FACT, not a constraint: on the TSSOP-20 the debug group shares ONE PACKAGE END - BOOT0(1), NRST(4), SWDIO(19), SWCLK(20) all within ~2 mm of it - while the four GPIO (PA0-PA3, pins 6-9) sit on the far half of the pin-1..10 face and VDD/VSS(16/15) sit mid-face on the other side. Orienting U1 with its pin-1 end toward J2's edge is what makes all three escapes non-crossing. PA13/PA14 must NOT also be routed to J3: they can be released to GPIO in software, but J2 needs them as SWD permanently.",
+  "DECOUPLING.JSON (a SEPARATE file, emitted by the P4 schematic generators) must associate C1 100nF -> U1 pin 16 rail +3V3 class hf, C2 4.7uF -> pin 16 bulk, C3 10nF -> pin 5 class hf, C4 1uF -> pin 5 bulk, all gnd GND. NONE of them may carry role 'reg_input' - that role catches a missing HF ceramic at a SWITCHING REGULATOR's input pin, and there is no regulator anywhere on this board.",
+  "GEOMETRY IS AN OUTPUT and NOTHING was relaxed at P2 - the brief states no dimension, so there is no stated value to lose. P5 opens with board_init --outline auto (it will REFUSE a fixed --outline, and that refusal is the mechanism working), P6 places, board_edit --outline fit earns the outline, then P7 routes. Any dimension introduced at a later checkpoint is a preference that LOSES to the earned layout, with the loss recorded as a state.py decision. What the placement is actually spending is enumerated in blocks.md s6; the mounting holes (four M3 clearance, 3.2 mm, or two on opposite corners per requirements.md s5) are the one item that can push the earned outline past what the electronics need, and that call belongs to P6."
+ ]
+}

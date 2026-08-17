@@ -1,0 +1,744 @@
+{
+ "version": 2,
+ "board": "bb-mcu",
+ "workspace": "boards/bb-mcu",
+ "created": "2026-08-16T17:25:37",
+ "updated": "2026-08-16T21:23:29",
+ "phase": "P4",
+ "gates": {
+  "erc": {
+   "phase": "P4",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-08-16T21:23:29",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0,
+    "inputs": {
+     "sch": "sexpr_no_uuid:7feb1911e8e23f37d61845d5df03b336083a74de9ffa59b9a1f2d5a99fdd3299",
+     "pro": "json_canonical:4410bd83f3d0f0949c8fc8f1c29dea97e64089b82dd43f3374e925f855d99de4"
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-16T21:23:29",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "sch": "sexpr_no_uuid:7feb1911e8e23f37d61845d5df03b336083a74de9ffa59b9a1f2d5a99fdd3299",
+      "pro": "json_canonical:4410bd83f3d0f0949c8fc8f1c29dea97e64089b82dd43f3374e925f855d99de4"
+     }
+    }
+   ]
+  }
+ },
+ "human": {
+  "1": {
+   "status": "approved",
+   "ts": "2026-08-16T20:18:19",
+   "note": "DELEGATED RULING, not an owner approval: the owner delegated design rulings for this run ('make decisions yourself based on what will give the best learning for the basic system'). Orchestrator ruled H1 pass: 2 blocks, JLC2313_1.6 2L, 9 parts, ~1.30 USD/board BOM, nothing relaxed by the mode (no size was ever stated). Coverage: block:B1 provisional on all 5 rows, block:B2 gap on esd/decoupling/constraints-emission - recorded as an explicit designing-under-coverage-gap decision. Research caps NOT hit: 4 of 6 tasks and 1 of 4 depth units per task left unspent. Riskiest decision: omitting the NRST 100 nF cap, diverging from the shipped stm32-blinky. Owner items surfaced but not blocking: the fetch allowlist (st.com and analog.com are unreachable from this host though allowlisted; arm.com and segger.com are absent and would be needed to source the probe side), and the promotion ruling on 13 verified records + 2 new checklists"
+  }
+ },
+ "artifacts": {
+  "sch": {
+   "path": "kicad/bb-mcu.kicad_sch",
+   "kind": "sch",
+   "sha256": "sexpr_no_uuid:7feb1911e8e23f37d61845d5df03b336083a74de9ffa59b9a1f2d5a99fdd3299",
+   "hashed": "2026-08-16T21:23:29"
+  },
+  "pro": {
+   "path": "kicad/bb-mcu.kicad_pro",
+   "kind": "pro",
+   "sha256": "json_canonical:4410bd83f3d0f0949c8fc8f1c29dea97e64089b82dd43f3374e925f855d99de4",
+   "hashed": "2026-08-16T21:23:29"
+  }
+ },
+ "open_issues": [],
+ "next_issue_id": 1,
+ "budgets": {
+  "fix_loops": {
+   "erc": 3,
+   "place": 3,
+   "drc_routed": 3,
+   "verify": 3,
+   "dfm": 3
+  },
+  "freerouting_retries": 2,
+  "place_edit_iterations": 8,
+  "research": {
+   "per_run": 4,
+   "depth_per_gap": 4
+  }
+ },
+ "decisions": [
+  {
+   "what": "Build mode: mode block-basics; scope block-only; binding canonical",
+   "why": "token 'learning block-basics:' in the brief; contract in reference/build-modes.md",
+   "phase": "P0",
+   "ts": "2026-08-16T17:25:37"
+  },
+  {
+   "what": "3.3 V source is a bench supply or another board's 3.3 V rail - NOT a battery; indoors, current-limited ~0.5 A; nothing charges on this board",
+   "why": "owner answer to P0 safety question 1; closes the section-8 battery flag. Rail spec: 3.3 V +/-5 percent, MCU must accept 3.0-3.6 V",
+   "phase": "P0",
+   "ts": "2026-08-16T17:43:12"
+  },
+  {
+   "what": "Debug header is a 5-pin 0.1 inch flying-lead pinout: 3V3 / SWDIO / SWCLK / NRST / GND, the 3V3 pin SENSE-only",
+   "why": "owner answer to P0 question 2; probe reads the rail to set its I/O level, board is always powered from the screw terminal and never from the probe",
+   "phase": "P0",
+   "ts": "2026-08-16T17:43:12"
+  },
+  {
+   "what": "The four GPIO are plain digital I/O: 3.3 V logic, no alternate-function requirement, no 5 V tolerance, nothing inductive driven",
+   "why": "owner answer to P0 question 3; keeps MCU pin selection unconstrained and keeps the motors/inductive-load safety flag closed",
+   "phase": "P0",
+   "ts": "2026-08-16T17:43:12"
+  },
+  {
+   "what": "Owner delegated design rulings to the orchestrator for this run: 'Make decisions yourself based on what will give the best learning for the basic system'",
+   "why": "H1-H4 are presented as digests and ruled by the orchestrator with that criterion; owner is still consulted for safety questions and any money/irreversible step. Gates, coverage, research and DFM are unaffected - a mode and a delegation relax neither",
+   "phase": "P0",
+   "ts": "2026-08-16T17:43:12"
+  },
+  {
+   "what": "P1 roster: research-component-scout (wave A, alone), then research-reference-design + research-interface-spec in parallel (wave B) off the scout's shortlist. research-power-architect SKIPPED",
+   "why": "the MCU family decides what the 'standard debug interface' even is (ARM SWD vs a RISC-V single-wire port), so interface-spec and reference-design must not run blind - wave A gates them. Power-architect is skipped under its own 'unless trivially powered' clause: one external 3.3 V rail, no conversion, no sequencing, no second rail, <100 mA guessed",
+   "phase": "P1",
+   "ts": "2026-08-16T17:44:40"
+  },
+  {
+   "what": "MCU family ruled: STM32F030F4P6TR (LCSC C89040, TSSOP-20, ARM Cortex-M0, SWD on dedicated PA13/PA14). Runners-up rejected: STM32C011F4P6, PY32F030F28P6TU, CH32V003F4P6, STM32G031F4P6",
+   "why": "learning criterion (owner delegation). SWD is the canonical standard debug interface the brief names; CH32V003 single-wire SWIO needs a WCH-Link-class probe and would rewrite the owner-answered J2 pinout. PY32 is disqualified on a MECHANICAL ground for a library-seeding board: puya.com is not on the research fetch allowlist, so its records could never be sourced - st.com is. Against C011: F030 has genuinely dedicated NRST and BOOT0 pins (no alt function on either), so the minimum system teaches boot-mode strapping as its own concept instead of hiding it on SWCLK, and its required 10k BOOT0 pull-down is the exact 'datasheet-required support, not an excluded config strap' boundary this scope tier turns on. Stock 19015 vs 1371 and the deepest documentation base of any 20-pin MCU seal it. Price is not a driver at qty 5",
+   "phase": "P1",
+   "ts": "2026-08-16T18:10:38"
+  },
+  {
+   "what": "J2 pin order RULED: GND / SWCLK / 3V3 / SWDIO / NRST (position 1..5). Overrides both the order listed in requirements.md section 9 answer 2 and the interface-spec agent's recommended 3V3/SWCLK/GND/SWDIO/NRST",
+   "why": "the owner fixed the SET of pins and left the ORDER to the layout engineer, so this uses that latitude, it does not contradict the answer. With a 5-way shell a 180 deg reversal maps probe wire i onto board position 6-i, so the only destructive outcome is a probe OUTPUT landing on board 3V3. Board 3V3 receives the probe's high-Z VTref input if and only if 3V3 sits at position 3 - that makes 3V3-at-centre the unique reversal-safe arrangement. The stated order puts probe GND on 3V3 (hard short); the agent's GND-at-centre order puts the probe's open-drain NRST on 3V3 (shorts whenever reset is asserted, which connect-under-reset does every time). GND and NRST take the ends so probe GND clamps reset (benign, obvious at the bench) instead of a data line, and GND stays adjacent to SWCLK per ARM's return-next-to-clock convention. Cost accepted: this is deliberately NOT a vendor cable order - real flying-lead probes present individually labelled wires, so per-pin silk is what the user reads either way",
+   "phase": "P1",
+   "ts": "2026-08-16T18:56:09"
+  },
+  {
+   "what": "No series resistors on SWDIO/SWCLK. Considered rejection, not an absence of guidance",
+   "why": "Raspberry Pi (100R), Lauterbach (47R) and SEGGER all recommend a series resistor on the target-driven line - this ruling overrules them knowingly and must never be defended with 'no source asks'. Grounds: AN4325 4.3.3 states the embedded pull-up/pull-down remove the need for external resistors; the fastest edge the part can produce is 5 ns (datasheet Table 48) and reflections on a <=50 mm FR-4 trace settle in ~1.5 ns against a 125 ns half-bit at ST-LINK/V2's 4 MHz ceiling; and a damping/limiting resistor the datasheet does not require is exactly the filtering that scope tier block-only excludes. Keeping the BOM at what ST actually requires is what makes the required-vs-recommended line visible on this board",
+   "phase": "P1",
+   "ts": "2026-08-16T18:56:09"
+  },
+  {
+   "what": "No 100 nF capacitor on NRST. Diverges from this repo's stm32-blinky board, which fitted one (C9)",
+   "why": "AN4325 files it under Table 6 Optional components, 'for RESET button', and this board has no reset button (buttons are excluded by mode). NRST's permanent internal ~40k pull-up needs no external part and the die already filters pulses <=100 ns. Accepted risk, stated so bring-up can judge it: NRST is brought out to J2 on a flying lead, so a noise-triggered reset is conceivable - if bring-up sees one, THAT is the finding this board earned, and it is a knowledge record, not a design error to pre-empt",
+   "phase": "P1",
+   "ts": "2026-08-16T18:56:09"
+  },
+  {
+   "what": "constraints.json OMITS the diff_pairs key entirely rather than declaring diff_pairs: []",
+   "why": "per constraints_schema.md an explicit empty list DISABLES check_diffpair board-wide while omitting the key leaves auto-discovery armed. Both are no-ops on a board with no pair, so take the fail-safe one: disabling a check board-wide to say 'we have none' is how a silent blind spot gets built in for the next edit",
+   "phase": "P1",
+   "ts": "2026-08-16T18:56:09"
+  },
+  {
+   "what": "SWD binds NOTHING on layout: no controlled impedance, no pair, no length matching, no termination, no return-path rule. high_speed and diff_pairs stay empty of SWD entries",
+   "why": "5 ns worst-case edge settles in ~1.5 ns on a <=50 mm trace against a 125 ns half-bit at 4 MHz (80x margin, still 14x at STLINK-V3's 24 MHz), and stackups.yaml records live-verified that JLC sells NO impedance-controlled 2-layer stackup - an impedance_ohm key here would be unbuildable as well as unnecessary. The <=50 mm / over-the-pour / keep-SWCLK-clear guidance stays ADVISORY in notes, never an enforced constraint. Recorded because the temptation to invent a 50 ohm target is exactly what would propagate a fake requirement into P5 rules and P7 routing",
+   "phase": "P1",
+   "ts": "2026-08-16T18:56:09"
+  },
+  {
+   "what": "constraints.json declares TWO blocks[] entries - topology 'mcu' and topology 'swd-debug-port' - not one",
+   "why": "coverage interface slots are derived ONLY from diff_pairs[].base (knowledgelib.workspace_slots), so SWD would get no slot at all unless a fake differential pair were invented, which would inject an unbuildable impedance requirement into P5/P7. Declaring the debug port as its own block is the honest way to make the machinery cover it: it IS a functional block of this board, and its knowledge (pull requirements, reversal-safe pinout, header conventions) is reusable across ANY MCU board independent of the MCU family, which is exactly the kind of record this seeding run exists to produce. Cost: one extra research task against a per_run budget of 6, with 3 expected in total",
+   "phase": "P2",
+   "ts": "2026-08-16T18:57:21"
+  },
+  {
+   "what": "J3 pin order: IO1 / IO2 / GND / IO3 / IO4 (positions 1..5). Four GPIO = PA0, PA1, PA2, PA3 (TSSOP-20 pins 6-9)",
+   "why": "owner fixed the SET (4 GPIO + a GND), order was open. GND at centre halves the worst-case signal-to-return distance on the flying lead (4 positions to 2) and reuses J2's reversal geometry; nothing destructive either way here since J3 carries no rail. PA0-PA3 chosen as a pure LAYOUT criterion (the owner's answer 3 freed it from any electrical one): BOOT0(1)/NRST(4)/SWDIO(19)/SWCLK(20) all cluster at ONE package end, so J2 takes all three debug signals off that end without crossing, while PA0-PA3 escape from the diagonally opposite region. Tie-breakers over the equally adjacent PA5-PB1: one port with consecutive bits, and maximum distance from SWCLK. No alternate-function claim is made - this run's research did not verify the AF map",
+   "phase": "P2",
+   "ts": "2026-08-16T19:16:25"
+  },
+  {
+   "what": "Stackup JLC2313_1.6, 2 layers, 1 oz HASL, B.Cu unbroken GND pour by planes_gen default. No 4-layer escalation condition written. One flat root sheet, hierarchy rejected",
+   "why": "verified available:true and the defaults[2] entry in stackups.yaml. JLC sells no impedance-controlled 2-layer stackup and nothing on this board needs one - that is the layer-count justification, not an apology. A 4L trigger would have nothing to trigger: a TSSOP-20 with no exposed pad has no thermal path into an inner plane to buy. Hierarchy rejected for nine parts and ten nets on the recorded /<sheet>/<LABEL> export hazard that cost lumina-par",
+   "phase": "P2",
+   "ts": "2026-08-16T19:16:25"
+  },
+  {
+   "what": "power[] declares +3V3 only, NOT GND. placement.sides pins the six SMT parts (U1, C1-C4, R1) to front; the three THT connectors get no entry",
+   "why": "declaring GND would manufacture a P8 error: at 0.1 A the declaration sizes nothing (rules_gen buckets it into Default) but check_pdn errors pdn_undecoupled on a rail with no caps, and the only fix would be a waiver. Deliberate divergence from bb-buck, which wrote exactly that waiver at 2.6 A where it was worth it. The sides entries are what enforce requirements s7 single-sided PCBA against the U19 annealer, which can otherwise legitimately move a free SMT cluster to the back; I verified the THT exemption directly at place_anneal.py:250, flippable=(kind=='free' and not thru), so a through-hole part is structurally unflippable and needs no entry",
+   "phase": "P2",
+   "ts": "2026-08-16T19:16:25"
+  },
+  {
+   "what": "Connector edges declared as a rotatable SET: J1 right (pos 0.5), J2 top, J3 left. rot deliberately unset on all three. NOTHING was relaxed by the mode at P2",
+   "why": "what binds is three DIFFERENT edges with power apart from the two signal headers, not the compass directions; J1's pos 0.5 is load-bearing (directly opposite VDD/VSS pins 15/16 and clear of the corner mounting holes). rot is left unset because bb-buck recorded the cost of guessing a footprint's native entry direction. No relaxation decision exists because the brief states no dimension - there is no stated value to lose, and geometry stays an OUTPUT earned at P6",
+   "phase": "P2",
+   "ts": "2026-08-16T19:16:25"
+  },
+  {
+   "what": "VDDA is treated as this board's CLOCK supply, tied directly to VDD with no series element of any kind. Any ferrite/filter into VDDA is a design FAULT here, not merely an out-of-scope extra",
+   "why": "P2 research found datasheet Figure 12 (p41) puts the internal RC oscillators and the PLL in the analog domain fed from VDDA - and this board runs on the internal RC with no crystal, so VDDA powers the clock, not an unused ADC. Table 21 additionally states VDDA must sit at a potential equal to or higher than VDD, which a series element can only violate. This REPLACES the earlier and weaker justification (P1: 'AN4325's filter is recommended-only, and the mode excludes non-required filtering') with a positive engineering reason. The conclusion is unchanged - no filter - but the reason now survives a reviewer who does not accept scope arguments",
+   "phase": "P2",
+   "ts": "2026-08-16T19:41:25"
+  },
+  {
+   "what": "R1 is a 10k pull-DOWN from BOOT0 to GND (boot from main flash). BRING-UP VERIFICATION ITEM: the strap polarity is not established by any allowlisted source",
+   "why": "the P2 researcher established from the datasheet that BOOT0 has NO internal pull and so must be strapped, but correctly refused to assert WHICH level selects which memory - that mapping is in RM0360, which is on no allowlisted host, and the researcher kept it out of the record rather than smuggling it into prose. The design nonetheless needs a direction, and it rests on three converging pieces of P1 evidence: the reference-design agent read AN4325 (via a non-allowlisted mirror) showing R2 as a 10k pull-DOWN, this repo's own stm32-blinky carries 'R2 10k BOOT0 pulldown (run from flash)', and BOOT0=0 selecting main flash is uniform across the STM32 families. That is sound enough to build on and NOT sound enough to write a knowledge record about - which is exactly why it is recorded here as a decision and flagged for bring-up to confirm on hardware",
+   "phase": "P2",
+   "ts": "2026-08-16T19:41:25"
+  },
+  {
+   "what": "The J2 pin-order ruling's premise - that a debug probe's rail pin is a high-impedance SENSE input, not a driver - is P1-sourced but NOT allowlist-sourced. Added to the bring-up verification list beside the BOOT0 strap polarity",
+   "why": "the P2 swd-debug-port researcher honestly refused to assert reversal SAFETY, because it could not source the probe side from any allowlisted host (arm.com and segger.com are not on the list at all) - it grounded only the pin-order GEOMETRY and labelled the i -> (n+1)-i derivation as unsourced in the record prose. That is a fair challenge to my own P1 ruling and it is recorded rather than brushed aside. The evidence the ruling actually rests on came from P1 plain-web research: ST UM2448 describes the STLINK-V3SET rail pin as 'Input for STLINK-V3SET', SEGGER states J-Link's is 'not intended to power the target system', and measured VTref draw is 25-170 uA. That is sound enough to choose a pin order and not sound enough to write a knowledge record about - the same line the BOOT0 strap sits on. The board is safe either way: the ruled order is no WORSE than any alternative under any premise, and strictly better if the premise holds",
+   "phase": "P2",
+   "ts": "2026-08-16T19:46:18"
+  },
+  {
+   "what": "Accepted the corrected mcu-supply-pin-pair-decoupling as ONE record at level topology bounded by vdd_v 1.8-3.6. Did NOT take the researcher's own proposed split into a principle plus a topology record - carried to the promote pass instead",
+   "why": "the split (unbounded principle 'the bank is counted per supply pin and per rail, not per device' + topology record holding the capacitance values with the rail bound) is genuinely the better shape and the researcher proposed it against its own interest. But shape is what the owner rules on at promotion, and the record as corrected is already sound: the uncited idd_ma<=120 bound is gone, X5R is gone, and the rail bound is now sourced from pages the researcher personally read (AN13033 Table 6 p5 showing the bank changing DISCONTINUOUSLY below the range - 22uF+100nF+47pF on a DC-DC core rail - plus ST Table 21, with p43 added to the record's own sources). Recorded because the researcher disclosed the incentive rather than hiding it: the checklist's decoupling row is min_level topology, so a principle-level record would have left this board showing a decoupling gap. It tested the counterfactual and said that was not its reason - that disclosure is what makes the ruling reviewable",
+   "phase": "P2",
+   "ts": "2026-08-16T19:56:54"
+  },
+  {
+   "what": "The no-series-resistor ruling stands, but it is now recorded as a CONDITIONAL that this board passes, not as a family fact. Infineon AN220270 p30 recommends 20 ohm on SWCLK unconditionally ('in general, it is recommended'); this board omits it because its own tr-vs-tau check clears by ~80x",
+   "why": "the second reader flagged the tension explicitly: a future design agent reading only the record's remedy_if_check_fails branch could omit a resistor Infineon would fit. The knowledge records now express it correctly - the pulls record declines to rule on series elements and hands off to the edge-rate record's per-board rise-time-against-line-delay check, and both disclose the Infineon recommendation they do not carry. So the library will not tell a future board 'no series resistor needed'; it will tell it to run the check. For bb-mcu specifically the check is decisive: 5 ns fastest specified edge (DS Table 48, and the Min column is empty on every fmax/tr/tf row so 5 ns is a specified fastest, not a guaranteed floor) against ~1.5 ns settling on a <=50 mm trace and a 125 ns half-bit at 4 MHz. Flagged for the promote pass as a curation question, not a design change",
+   "phase": "P2",
+   "ts": "2026-08-16T20:09:47"
+  },
+  {
+   "what": "DESIGNING UNDER COVERAGE GAP: slot block:B2 (swd-debug-port) stays gap on three classes - esd, decoupling, constraints-emission. No second research round opened, though 4 of the 6-task budget remain",
+   "why": "these are the rows the first pass DECLARED as honest gaps rather than filling with weak sources, and a second round would hit the same wall: ESD knowledge for a debug header needs IEC 61000-4-2 or a vendor ESD app note, and the two hosts that would carry the probe-side and standards material (arm.com, segger.com) are not on the fetch allowlist at all. More important, the gap is RISKLESS on this board: esd and decoupling are feature classes the block-only scope tier EXCLUDES, so even perfect knowledge would change nothing about what gets built here - and constraints-emission at principle level has a positive answer already recorded, namely that this interface emits NO layout constraints (high_speed and diff_pairs carry no SWD entries, and JLC sells no impedance-controlled 2-layer stackup). The gap is a statement about the LIBRARY, not about this board. It is recorded here rather than left silent, per the build-modes rule, and is the right thing for a future MCU board at a higher scope tier to close",
+   "phase": "P2",
+   "ts": "2026-08-16T20:16:07"
+  },
+  {
+   "what": "Both new checklists (mcu, swd-debug-port) and all 13 verified records sit at maturity draft/verified with floor_met false - they are queued PENDING for the owner's promotion ruling, not promoted by this run",
+   "why": "only owner-approved or bench-proven records satisfy coverage at the default floor, and promotion is explicitly the owner's verb (draft -> verified is the reader's, verified -> approved is the owner's, approved -> proven is bring-up's). This run deliberately does not self-promote: it would be the same agent grading its own homework, and the library is shared with every other board. Two queue entries are compiled in boards/bb-mcu/learnings/queue.yaml awaiting a promote pass",
+   "phase": "P2",
+   "ts": "2026-08-16T20:16:07"
+  },
+  {
+   "what": "BOM keeps ST's stated capacitance values (4.7 uF bulk, 10 nF + 1 uF on VDDA) even though all three are JLC EXTENDED at 0603, rather than substituting a nearby Basic value",
+   "why": "the part-sourcer verified with the raw ranked search window that JLC's curated Basic-passive list carries no 4.7 uF, 10 nF or 1 uF up to 1206 in this catalog snapshot (2026-08-16) - so this is a real catalog gap, not a bad query. Substituting e.g. 10 uF for the 4.7 uF bulk to reach a Basic SKU would be electrically defensible (bulk is a minimum, not a maximum) but it would depart from the value ST's Figure 12 actually states, and this board's entire discipline has been to build exactly what the datasheet requires and to make the required-vs-recommended line visible. The cost argument that would justify substituting does not even apply: the run stops at P9 by mode, so no per-unique-Extended-part assembly fee is ever incurred. 2 Basic (C1 100nF, R1 10k) + 6 Extended; ~1.35 USD/board, ~6.76 USD for the 5-board build",
+   "phase": "P3",
+   "ts": "2026-08-16T20:33:50"
+  },
+  {
+   "what": "U1 alternate is C32908 (STM32F030F4P6, tube pack, stock 1329) - same die and pinout, differing only in packaging from C89040's tape-and-reel",
+   "why": "the P1 scout flagged every candidate as single-source at its exact LCSC row. This is the closest thing to a true drop-in the catalog offers (LCSC serves the identical datasheet document for both). The PY32F030 is deliberately NOT listed as an alternate despite being pin-compatible: it was rejected at P1 on the hard ground that puya.com is not on the research fetch allowlist, so its behaviour can never be sourced by this pipeline, and it is not a verified drop-in. U1 stock re-verified live at 18,977 (19,015 at P1 - normal drift)",
+   "phase": "P3",
+   "ts": "2026-08-16T20:33:50"
+  },
+  {
+   "what": "ACCEPTED the pulled U1 SOP-20 land pattern despite two deviations from ST Figure 37: pad 0.35 x 1.494 mm vs 0.40 x 1.35 mm, and row spacing 6.00 mm vs 5.75 mm. No hand edit to the footprint",
+   "why": "worked the geometry rather than judging the delta. At the package's 6.4 mm lead span with a ~0.6 mm foot, the lead foot sits about 2.6-3.2 mm from the centreline. ST's land spans 2.20-3.55 mm from centreline; the pulled land spans 2.253-3.747 mm. BOTH fully capture the foot - the pulled one trades ~0.05 mm of heel for ~0.20 mm more toe, which is the direction that helps fillet formation and inspection. The narrower pad also WIDENS the inter-pad gap from 0.25 mm (ST) to 0.30 mm, so solder-bridging risk goes DOWN, not up. It is the EasyEDA/LCSC land for this exact LCSC part number, i.e. the one JLC's own PCBA line places. Verified pin-1 independently: silk dot and chamfered corner both anchor at pad 1 only, confirmed in a kicad-cli render",
+   "phase": "P3",
+   "ts": "2026-08-16T20:49:04"
+  },
+  {
+   "what": "DEFECT FOUND AND FIXED: J1's pulled footprint (C8465, WJ500V-5.08-2P) drills 1.30 mm where the vendor's own PCB LAYOUT panel recommends 1.50 mm. Approving a hand edit to drill 1.50 mm with the pad enlarged to 2.30 mm (annulus 0.40 mm)",
+   "why": "the datasheet dimensions the pin at 0.90 mm wide. If it is square - which the square screw-clamp opening drawn above it indicates, though the shape is not explicitly labelled - the worst-case diagonal is 0.90*sqrt(2) = 1.273 mm, which leaves 0.027 mm of total diametral clearance in a 1.30 mm hole. That is a terminal that does not seat, found at assembly on all 5 boards. The vendor's recommended 1.50 mm is authoritative whichever shape the pin is, so the fix does not depend on resolving the ambiguity. Enlarging the pad from 2.00 to 2.30 mm keeps the annulus at 0.40 mm instead of dropping it to 0.25 mm: a screw terminal takes real mechanical stress from wire pull, so barrel strength is worth the copper, and at 5.08 mm pitch a 2.30 mm pad still leaves 2.78 mm of clearance. This is the exact class of defect the librarian role calls a top-3 board killer, and NOTHING in the pipeline would have caught it - fp_verify had no land pattern to diff against until this extraction was made, and it does not check drill-vs-pin at all. The J2/J3 header needs no change: 1.10 mm pulled vs 1.02 mm recommended is oversize, the safe direction, with 0.195 mm clearance on its SQ 0.64 mm pin",
+   "phase": "P3",
+   "ts": "2026-08-16T21:05:09"
+  },
+  {
+   "what": "P3-exit coverage: all 3 part slots COVERED (C89040, C8465, C32713271); block:B1 provisional; block:B2 still gap on the same esd/decoupling/constraints-emission already recorded at P2. NO new research tasks opened at P3",
+   "why": "the escalated first call (--maturity-floor proven --research-provisional, mandatory at a learning target) reported all five slots as gaps, but that is the escalation re-firing on slots this run ALREADY researched at P2, not a new finding: with the floor at proven, a verified-but-unapproved record can never satisfy anything until a built board proves it via knowledge.py --prove, so a seeding run will always show block gaps on that call. The re-run without the flags gives the true verdict and it is identical to P2's post-research state. Opening tasks would re-research what was researched two hours ago. Side effect worth noting: the two connector datasheet extractions ordered to chase the J1 drill defect also closed the part-slot coverage - C8465 and C32713271 went from having no extraction at all to covered",
+   "phase": "P3",
+   "ts": "2026-08-16T21:09:17"
+  },
+  {
+   "what": "ONE schematic-block agent for the whole board, not one per sheet",
+   "why": "the P2 sheet plan is a single flat root sheet for 9 parts and 10 nets, and the full-run recipe explicitly sanctions one schematic agent on a small board provided it is recorded. Splitting it would add a stitching seam with nothing on either side of it, and the recorded /sheet/LABEL export hazard that cost lumina-par is avoided entirely by having no hierarchy",
+   "phase": "P4",
+   "ts": "2026-08-16T21:10:47"
+  }
+ ],
+ "edits": [],
+ "spawns": [
+  {
+   "ts": "2026-08-16T17:25:58",
+   "role": "requirements-analyst",
+   "model": "fable/high",
+   "phase": "P0"
+  },
+  {
+   "ts": "2026-08-16T17:26:44",
+   "role": "requirements-analyst",
+   "model": "opus/xhigh (SUBSTITUTION: fable unavailable this session - out of usage credits; fable/high -> opus/xhigh per SKILL.md model-availability rule; applies to every fable tier this run)",
+   "phase": "P0"
+  },
+  {
+   "ts": "2026-08-16T17:45:15",
+   "role": "research-component-scout",
+   "model": "sonnet/high",
+   "phase": "P1"
+  },
+  {
+   "ts": "2026-08-16T18:10:38",
+   "role": "research-reference-design",
+   "model": "sonnet/high",
+   "phase": "P1"
+  },
+  {
+   "ts": "2026-08-16T18:10:38",
+   "role": "research-interface-spec",
+   "model": "opus/high",
+   "phase": "P1"
+  },
+  {
+   "ts": "2026-08-16T18:56:38",
+   "role": "architect",
+   "model": "opus/xhigh (fable/high substituted - fable unavailable)",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-16T19:18:13",
+   "role": "researcher",
+   "model": "opus/xhigh (fable/high substituted)",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-16T19:18:13",
+   "role": "researcher",
+   "model": "opus/xhigh (fable/high substituted)",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-16T19:40:30",
+   "role": "research-second-reader",
+   "model": "opus/high",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-16T19:45:16",
+   "role": "research-second-reader",
+   "model": "opus/high",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-16T19:56:55",
+   "role": "research-second-reader",
+   "model": "opus/high",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-16T20:02:27",
+   "role": "research-second-reader",
+   "model": "opus/high",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-16T20:06:10",
+   "role": "research-second-reader",
+   "model": "opus/high",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-16T20:19:51",
+   "role": "part-sourcer",
+   "model": "sonnet/high",
+   "phase": "P3"
+  },
+  {
+   "ts": "2026-08-16T20:19:51",
+   "role": "datasheet-extractor",
+   "model": "sonnet/high",
+   "phase": "P3"
+  },
+  {
+   "ts": "2026-08-16T20:38:10",
+   "role": "librarian",
+   "model": "sonnet/medium",
+   "phase": "P3"
+  },
+  {
+   "ts": "2026-08-16T20:49:04",
+   "role": "datasheet-extractor",
+   "model": "sonnet/high",
+   "phase": "P3"
+  },
+  {
+   "ts": "2026-08-16T21:11:17",
+   "role": "schematic-block",
+   "model": "opus/high (fable/medium substituted - fable unavailable)",
+   "phase": "P4"
+  }
+ ],
+ "history": [
+  {
+   "ts": "2026-08-16T17:25:37",
+   "event": "init",
+   "board": "bb-mcu",
+   "phase": "P0"
+  },
+  {
+   "ts": "2026-08-16T17:25:37",
+   "event": "mode",
+   "target": "block-basics",
+   "scope": "block-only",
+   "binding": "canonical"
+  },
+  {
+   "ts": "2026-08-16T17:25:37",
+   "event": "decision",
+   "what": "Build mode: mode block-basics; scope block-only; binding canonical"
+  },
+  {
+   "ts": "2026-08-16T17:25:58",
+   "event": "spawn",
+   "role": "requirements-analyst",
+   "model": "fable/high"
+  },
+  {
+   "ts": "2026-08-16T17:26:44",
+   "event": "spawn",
+   "role": "requirements-analyst",
+   "model": "opus/xhigh (SUBSTITUTION: fable unavailable this session - out of usage credits; fable/high -> opus/xhigh per SKILL.md model-availability rule; applies to every fable tier this run)"
+  },
+  {
+   "ts": "2026-08-16T17:43:12",
+   "event": "decision",
+   "what": "3.3 V source is a bench supply or another board's 3.3 V rail - NOT a battery; indoors, current-limited ~0.5 A; nothing charges on this board"
+  },
+  {
+   "ts": "2026-08-16T17:43:12",
+   "event": "decision",
+   "what": "Debug header is a 5-pin 0.1 inch flying-lead pinout: 3V3 / SWDIO / SWCLK / NRST / GND, the 3V3 pin SENSE-only"
+  },
+  {
+   "ts": "2026-08-16T17:43:12",
+   "event": "decision",
+   "what": "The four GPIO are plain digital I/O: 3.3 V logic, no alternate-function requirement, no 5 V tolerance, nothing inductive driven"
+  },
+  {
+   "ts": "2026-08-16T17:43:12",
+   "event": "decision",
+   "what": "Owner delegated design rulings to the orchestrator for this run: 'Make decisions yourself based on what will give the best learning for the basic system'"
+  },
+  {
+   "ts": "2026-08-16T17:44:40",
+   "event": "decision",
+   "what": "P1 roster: research-component-scout (wave A, alone), then research-reference-design + research-interface-spec in parallel (wave B) off the scout's shortlist. research-power-architect SKIPPED"
+  },
+  {
+   "ts": "2026-08-16T17:44:40",
+   "event": "phase",
+   "phase": "P1",
+   "prev": "P0"
+  },
+  {
+   "ts": "2026-08-16T17:45:15",
+   "event": "spawn",
+   "role": "research-component-scout",
+   "model": "sonnet/high"
+  },
+  {
+   "ts": "2026-08-16T18:10:38",
+   "event": "decision",
+   "what": "MCU family ruled: STM32F030F4P6TR (LCSC C89040, TSSOP-20, ARM Cortex-M0, SWD on dedicated PA13/PA14). Runners-up rejected: STM32C011F4P6, PY32F030F28P6TU, CH32V003F4P6, STM32G031F4P6"
+  },
+  {
+   "ts": "2026-08-16T18:10:38",
+   "event": "spawn",
+   "role": "research-reference-design",
+   "model": "sonnet/high"
+  },
+  {
+   "ts": "2026-08-16T18:10:38",
+   "event": "spawn",
+   "role": "research-interface-spec",
+   "model": "opus/high"
+  },
+  {
+   "ts": "2026-08-16T18:56:09",
+   "event": "decision",
+   "what": "J2 pin order RULED: GND / SWCLK / 3V3 / SWDIO / NRST (position 1..5). Overrides both the order listed in requirements.md section 9 answer 2 and the interface-spec agent's recommended 3V3/SWCLK/GND/SWDIO/NRST"
+  },
+  {
+   "ts": "2026-08-16T18:56:09",
+   "event": "decision",
+   "what": "No series resistors on SWDIO/SWCLK. Considered rejection, not an absence of guidance"
+  },
+  {
+   "ts": "2026-08-16T18:56:09",
+   "event": "decision",
+   "what": "No 100 nF capacitor on NRST. Diverges from this repo's stm32-blinky board, which fitted one (C9)"
+  },
+  {
+   "ts": "2026-08-16T18:56:09",
+   "event": "decision",
+   "what": "constraints.json OMITS the diff_pairs key entirely rather than declaring diff_pairs: []"
+  },
+  {
+   "ts": "2026-08-16T18:56:09",
+   "event": "decision",
+   "what": "SWD binds NOTHING on layout: no controlled impedance, no pair, no length matching, no termination, no return-path rule. high_speed and diff_pairs stay empty of SWD entries"
+  },
+  {
+   "ts": "2026-08-16T18:56:37",
+   "event": "phase",
+   "phase": "P2",
+   "prev": "P1"
+  },
+  {
+   "ts": "2026-08-16T18:56:38",
+   "event": "spawn",
+   "role": "architect",
+   "model": "opus/xhigh (fable/high substituted - fable unavailable)"
+  },
+  {
+   "ts": "2026-08-16T18:57:21",
+   "event": "decision",
+   "what": "constraints.json declares TWO blocks[] entries - topology 'mcu' and topology 'swd-debug-port' - not one"
+  },
+  {
+   "ts": "2026-08-16T19:16:25",
+   "event": "decision",
+   "what": "J3 pin order: IO1 / IO2 / GND / IO3 / IO4 (positions 1..5). Four GPIO = PA0, PA1, PA2, PA3 (TSSOP-20 pins 6-9)"
+  },
+  {
+   "ts": "2026-08-16T19:16:25",
+   "event": "decision",
+   "what": "Stackup JLC2313_1.6, 2 layers, 1 oz HASL, B.Cu unbroken GND pour by planes_gen default. No 4-layer escalation condition written. One flat root sheet, hierarchy rejected"
+  },
+  {
+   "ts": "2026-08-16T19:16:25",
+   "event": "decision",
+   "what": "power[] declares +3V3 only, NOT GND. placement.sides pins the six SMT parts (U1, C1-C4, R1) to front; the three THT connectors get no entry"
+  },
+  {
+   "ts": "2026-08-16T19:16:25",
+   "event": "decision",
+   "what": "Connector edges declared as a rotatable SET: J1 right (pos 0.5), J2 top, J3 left. rot deliberately unset on all three. NOTHING was relaxed by the mode at P2"
+  },
+  {
+   "ts": "2026-08-16T19:17:15",
+   "event": "budget",
+   "path": "research.per_run",
+   "remaining": 5
+  },
+  {
+   "ts": "2026-08-16T19:17:15",
+   "event": "research_opened",
+   "task": "block-mcu-1",
+   "slot": "block:B1",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-16T19:17:15",
+   "event": "budget",
+   "path": "research.per_run",
+   "remaining": 4
+  },
+  {
+   "ts": "2026-08-16T19:17:15",
+   "event": "research_opened",
+   "task": "block-swd-debug-port-1",
+   "slot": "block:B2",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-16T19:18:13",
+   "event": "spawn",
+   "role": "researcher",
+   "model": "opus/xhigh (fable/high substituted)"
+  },
+  {
+   "ts": "2026-08-16T19:18:13",
+   "event": "spawn",
+   "role": "researcher",
+   "model": "opus/xhigh (fable/high substituted)"
+  },
+  {
+   "ts": "2026-08-16T19:40:30",
+   "event": "spawn",
+   "role": "research-second-reader",
+   "model": "opus/high"
+  },
+  {
+   "ts": "2026-08-16T19:41:25",
+   "event": "decision",
+   "what": "VDDA is treated as this board's CLOCK supply, tied directly to VDD with no series element of any kind. Any ferrite/filter into VDDA is a design FAULT here, not merely an out-of-scope extra"
+  },
+  {
+   "ts": "2026-08-16T19:41:25",
+   "event": "decision",
+   "what": "R1 is a 10k pull-DOWN from BOOT0 to GND (boot from main flash). BRING-UP VERIFICATION ITEM: the strap polarity is not established by any allowlisted source"
+  },
+  {
+   "ts": "2026-08-16T19:45:16",
+   "event": "spawn",
+   "role": "research-second-reader",
+   "model": "opus/high"
+  },
+  {
+   "ts": "2026-08-16T19:46:18",
+   "event": "decision",
+   "what": "The J2 pin-order ruling's premise - that a debug probe's rail pin is a high-impedance SENSE input, not a driver - is P1-sourced but NOT allowlist-sourced. Added to the bring-up verification list beside the BOOT0 strap polarity"
+  },
+  {
+   "ts": "2026-08-16T19:56:54",
+   "event": "decision",
+   "what": "Accepted the corrected mcu-supply-pin-pair-decoupling as ONE record at level topology bounded by vdd_v 1.8-3.6. Did NOT take the researcher's own proposed split into a principle plus a topology record - carried to the promote pass instead"
+  },
+  {
+   "ts": "2026-08-16T19:56:55",
+   "event": "spawn",
+   "role": "research-second-reader",
+   "model": "opus/high"
+  },
+  {
+   "ts": "2026-08-16T20:02:27",
+   "event": "spawn",
+   "role": "research-second-reader",
+   "model": "opus/high"
+  },
+  {
+   "ts": "2026-08-16T20:06:10",
+   "event": "spawn",
+   "role": "research-second-reader",
+   "model": "opus/high"
+  },
+  {
+   "ts": "2026-08-16T20:09:40",
+   "event": "research_closed",
+   "task": "block-swd-debug-port-1",
+   "slot": "block:B2",
+   "outcome": "verified",
+   "queue_entry": "2026-08-16-research-task-block-swd-debug-port-1"
+  },
+  {
+   "ts": "2026-08-16T20:09:47",
+   "event": "decision",
+   "what": "The no-series-resistor ruling stands, but it is now recorded as a CONDITIONAL that this board passes, not as a family fact. Infineon AN220270 p30 recommends 20 ohm on SWCLK unconditionally ('in general, it is recommended'); this board omits it because its own tr-vs-tau check clears by ~80x"
+  },
+  {
+   "ts": "2026-08-16T20:15:02",
+   "event": "research_closed",
+   "task": "block-mcu-1",
+   "slot": "block:B1",
+   "outcome": "verified",
+   "queue_entry": "2026-08-16-research-task-block-mcu-1-8-verified"
+  },
+  {
+   "ts": "2026-08-16T20:16:07",
+   "event": "decision",
+   "what": "DESIGNING UNDER COVERAGE GAP: slot block:B2 (swd-debug-port) stays gap on three classes - esd, decoupling, constraints-emission. No second research round opened, though 4 of the 6-task budget remain"
+  },
+  {
+   "ts": "2026-08-16T20:16:07",
+   "event": "decision",
+   "what": "Both new checklists (mcu, swd-debug-port) and all 13 verified records sit at maturity draft/verified with floor_met false - they are queued PENDING for the owner's promotion ruling, not promoted by this run"
+  },
+  {
+   "ts": "2026-08-16T20:18:19",
+   "event": "human",
+   "checkpoint": "1",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-08-16T20:18:57",
+   "event": "phase",
+   "phase": "P3",
+   "prev": "P2"
+  },
+  {
+   "ts": "2026-08-16T20:19:51",
+   "event": "spawn",
+   "role": "part-sourcer",
+   "model": "sonnet/high"
+  },
+  {
+   "ts": "2026-08-16T20:19:51",
+   "event": "spawn",
+   "role": "datasheet-extractor",
+   "model": "sonnet/high"
+  },
+  {
+   "ts": "2026-08-16T20:33:50",
+   "event": "decision",
+   "what": "BOM keeps ST's stated capacitance values (4.7 uF bulk, 10 nF + 1 uF on VDDA) even though all three are JLC EXTENDED at 0603, rather than substituting a nearby Basic value"
+  },
+  {
+   "ts": "2026-08-16T20:33:50",
+   "event": "decision",
+   "what": "U1 alternate is C32908 (STM32F030F4P6, tube pack, stock 1329) - same die and pinout, differing only in packaging from C89040's tape-and-reel"
+  },
+  {
+   "ts": "2026-08-16T20:38:10",
+   "event": "spawn",
+   "role": "librarian",
+   "model": "sonnet/medium"
+  },
+  {
+   "ts": "2026-08-16T20:49:04",
+   "event": "decision",
+   "what": "ACCEPTED the pulled U1 SOP-20 land pattern despite two deviations from ST Figure 37: pad 0.35 x 1.494 mm vs 0.40 x 1.35 mm, and row spacing 6.00 mm vs 5.75 mm. No hand edit to the footprint"
+  },
+  {
+   "ts": "2026-08-16T20:49:04",
+   "event": "spawn",
+   "role": "datasheet-extractor",
+   "model": "sonnet/high"
+  },
+  {
+   "ts": "2026-08-16T21:05:09",
+   "event": "decision",
+   "what": "DEFECT FOUND AND FIXED: J1's pulled footprint (C8465, WJ500V-5.08-2P) drills 1.30 mm where the vendor's own PCB LAYOUT panel recommends 1.50 mm. Approving a hand edit to drill 1.50 mm with the pad enlarged to 2.30 mm (annulus 0.40 mm)"
+  },
+  {
+   "ts": "2026-08-16T21:09:17",
+   "event": "decision",
+   "what": "P3-exit coverage: all 3 part slots COVERED (C89040, C8465, C32713271); block:B1 provisional; block:B2 still gap on the same esd/decoupling/constraints-emission already recorded at P2. NO new research tasks opened at P3"
+  },
+  {
+   "ts": "2026-08-16T21:10:47",
+   "event": "phase",
+   "phase": "P4",
+   "prev": "P3"
+  },
+  {
+   "ts": "2026-08-16T21:10:47",
+   "event": "decision",
+   "what": "ONE schematic-block agent for the whole board, not one per sheet"
+  },
+  {
+   "ts": "2026-08-16T21:11:17",
+   "event": "spawn",
+   "role": "schematic-block",
+   "model": "opus/high (fable/medium substituted - fable unavailable)"
+  },
+  {
+   "ts": "2026-08-16T21:23:29",
+   "event": "gate",
+   "gate": "erc",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  }
+ ],
+ "mode": {
+  "token": "learning block-basics:",
+  "target": "block-basics",
+  "scope": "block-only",
+  "binding": "canonical",
+  "stage": null,
+  "geometry": "output",
+  "geometry_is_output": true,
+  "excludes": [
+   "protection",
+   "filtering",
+   "indicators",
+   "test-points",
+   "config",
+   "second-rail",
+   "mechanical",
+   "enclosure-fit"
+  ],
+  "requires": [],
+  "stated_size": null,
+  "board_init_outline": "auto",
+  "ts": "2026-08-16T17:25:37"
+ }
+}

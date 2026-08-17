@@ -1,0 +1,1062 @@
+{
+ "script": "knowledge",
+ "status": "gaps",
+ "schema_version": 2,
+ "workspace": "boards/bb-mcu",
+ "board": "bb-mcu",
+ "phase": "P2",
+ "maturity_floor": "approved",
+ "keys": {
+  "topologies": [
+   "mcu",
+   "swd-debug-port"
+  ],
+  "packages": [],
+  "interfaces": [],
+  "parts": [],
+  "sources": {
+   "constraints": "boards/bb-mcu/architecture/constraints.json"
+  }
+ },
+ "sources": {
+  "constraints": "boards/bb-mcu/architecture/constraints.json",
+  "parts": null
+ },
+ "summary": {
+  "slots": 2,
+  "covered": 0,
+  "provisional": 1,
+  "gap": 1
+ },
+ "slots": [
+  {
+   "id": "block:B1",
+   "kind": "block",
+   "topology": "mcu",
+   "label": "B1",
+   "operating_point": {
+    "vdd_v": 3.3,
+    "vdd_min_v": 3.0,
+    "vdd_max_v": 3.6,
+    "fcpu_mhz": 48,
+    "idd_ma": 100,
+    "pdiss_w": 0.33,
+    "edge_ns": 5,
+    "board_layers": 2,
+    "tamb_max_c": 50,
+    "source_kind": "dc-input",
+    "supply_kind": "single-rail",
+    "clock_kind": "internal-rc",
+    "package_kind": "tssop",
+    "debug_kind": "swd",
+    "boot_kind": "external-strap",
+    "reset_kind": "internal-pullup"
+   },
+   "classes": [
+    {
+     "class": "decoupling",
+     "min_level": "topology",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "mcu-decoupler-is-the-local-source",
+       "level": "principle",
+       "maturity": "verified",
+       "envelope": "n/a",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "level-below-min"
+      },
+      {
+       "id": "mcu-supply-pin-pair-decoupling",
+       "level": "principle",
+       "maturity": "verified",
+       "envelope": "n/a",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "level-below-min"
+      }
+     ]
+    },
+    {
+     "class": "selection",
+     "min_level": "topology",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "mcu-boot-select-strap-stm32f0",
+       "level": "family",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      },
+      {
+       "id": "mcu-reset-sampled-pin-audit",
+       "level": "principle",
+       "maturity": "verified",
+       "envelope": "n/a",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "level-below-min"
+      },
+      {
+       "id": "mcu-swd-port-live-at-reset-stm32f0",
+       "level": "family",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    },
+    {
+     "class": "sequencing",
+     "min_level": "principle",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "mcu-analog-rail-tracks-digital-rail",
+       "level": "principle",
+       "maturity": "verified",
+       "envelope": "n/a",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    },
+    {
+     "class": "return-path",
+     "min_level": "principle",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "mcu-decoupler-is-the-local-source",
+       "level": "principle",
+       "maturity": "verified",
+       "envelope": "n/a",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      },
+      {
+       "id": "mcu-supply-return-continuity",
+       "level": "principle",
+       "maturity": "verified",
+       "envelope": "n/a",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    },
+    {
+     "class": "thermal",
+     "min_level": "topology",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "mcu-package-power-budget",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    }
+   ],
+   "gap_reasons": [],
+   "checklist": {
+    "id": "mcu",
+    "maturity": "draft",
+    "floor_met": false
+   },
+   "verdict": "provisional"
+  },
+  {
+   "id": "block:B2",
+   "kind": "block",
+   "topology": "swd-debug-port",
+   "label": "B2",
+   "operating_point": {
+    "vio_v": 3.3,
+    "fclk_mhz": 4,
+    "edge_ns": 5,
+    "board_layers": 2,
+    "tamb_max_c": 50,
+    "header_pins": 5,
+    "source_kind": "dc-input",
+    "debug_kind": "swd",
+    "probe_kind": "flying-lead",
+    "connector_kind": "header-100mil",
+    "keying_kind": "none"
+   },
+   "classes": [
+    {
+     "class": "selection",
+     "min_level": "topology",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "swd-debug-port-stm32f0-internal-pulls",
+       "level": "family",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      },
+      {
+       "id": "swd-debug-port-termination-follows-silicon",
+       "level": "principle",
+       "maturity": "verified",
+       "envelope": "n/a",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "level-below-min"
+      },
+      {
+       "id": "swd-debug-port-unkeyed-header-pin-order",
+       "level": "principle",
+       "maturity": "verified",
+       "envelope": "n/a",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "level-below-min"
+      }
+     ]
+    },
+    {
+     "class": "sequencing",
+     "min_level": "topology",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "swd-debug-port-nrst-on-the-header",
+       "level": "family",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    },
+    {
+     "class": "emi",
+     "min_level": "topology",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "swd-debug-port-edge-rate-sets-layout-demand",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    },
+    {
+     "class": "return-path",
+     "min_level": "topology",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "swd-debug-port-unkeyed-header-pin-order",
+       "level": "principle",
+       "maturity": "verified",
+       "envelope": "n/a",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "level-below-min"
+      }
+     ]
+    },
+    {
+     "class": "esd",
+     "min_level": "topology",
+     "verdict": "gap",
+     "records": []
+    },
+    {
+     "class": "decoupling",
+     "min_level": "topology",
+     "verdict": "gap",
+     "records": []
+    },
+    {
+     "class": "constraints-emission",
+     "min_level": "principle",
+     "verdict": "gap",
+     "records": []
+    }
+   ],
+   "gap_reasons": [],
+   "checklist": {
+    "id": "swd-debug-port",
+    "maturity": "draft",
+    "floor_met": false
+   },
+   "verdict": "gap"
+  }
+ ],
+ "gaps": [
+  {
+   "slot": "block:B2",
+   "kind": "block",
+   "topology": "swd-debug-port",
+   "operating_point": {
+    "vio_v": 3.3,
+    "fclk_mhz": 4,
+    "edge_ns": 5,
+    "board_layers": 2,
+    "tamb_max_c": 50,
+    "header_pins": 5,
+    "source_kind": "dc-input",
+    "debug_kind": "swd",
+    "probe_kind": "flying-lead",
+    "connector_kind": "header-100mil",
+    "keying_kind": "none"
+   },
+   "missing": [
+    {
+     "class": "esd",
+     "min_level": "topology"
+    },
+    {
+     "class": "decoupling",
+     "min_level": "topology"
+    },
+    {
+     "class": "constraints-emission",
+     "min_level": "principle"
+    }
+   ],
+   "reasons": [
+    "no record satisfies the class at this operating point and maturity floor"
+   ],
+   "related_records": [
+    "swd-debug-port-edge-rate-sets-layout-demand",
+    "swd-debug-port-nrst-on-the-header",
+    "swd-debug-port-stm32f0-internal-pulls",
+    "swd-debug-port-termination-follows-silicon",
+    "swd-debug-port-unkeyed-header-pin-order"
+   ],
+   "principle_parents": [
+    "buck-constraints-emission",
+    "mcu-decoupler-is-the-local-source",
+    "mcu-supply-pin-pair-decoupling"
+   ],
+   "task": "research block 'swd-debug-port': populate esd, decoupling, constraints-emission (application delta only - principle parents exist)"
+  }
+ ],
+ "warnings": [],
+ "workspace_records": [
+  "mcu-analog-rail-tracks-digital-rail",
+  "mcu-boot-select-strap-stm32f0",
+  "mcu-decoupler-is-the-local-source",
+  "mcu-package-power-budget",
+  "mcu-reset-sampled-pin-audit",
+  "mcu-supply-pin-pair-decoupling",
+  "mcu-supply-return-continuity",
+  "mcu-swd-port-live-at-reset-stm32f0",
+  "swd-debug-port-edge-rate-sets-layout-demand",
+  "swd-debug-port-nrst-on-the-header",
+  "swd-debug-port-stm32f0-internal-pulls",
+  "swd-debug-port-termination-follows-silicon",
+  "swd-debug-port-unkeyed-header-pin-order"
+ ],
+ "workspace_checklists": [
+  "mcu",
+  "swd-debug-port"
+ ],
+ "mapping_applied": null,
+ "mapping_request": {
+  "schema": {
+   "$schema": "https://json-schema.org/draft/2020-12/schema",
+   "title": "ai-ee coverage mapping (agent output)",
+   "type": "object",
+   "required": [
+    "mappings"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "mappings": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "required": [
+       "record",
+       "slot",
+       "class",
+       "why"
+      ],
+      "additionalProperties": false,
+      "properties": {
+       "record": {
+        "type": "string",
+        "minLength": 1
+       },
+       "slot": {
+        "type": "string",
+        "minLength": 1
+       },
+       "class": {
+        "type": "string",
+        "minLength": 1
+       },
+       "why": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 300
+       }
+      }
+     }
+    },
+    "note": {
+     "type": "string",
+     "maxLength": 600
+    }
+   }
+  },
+  "instructions": "Map records to slots for ONE class each - only edges you can justify from the record's prose. You classify; you do NOT decide sufficiency, coverage or maturity. Output the JSON shape in `schema`; the coverage run validates it and refuses unknown records/slots or classes the record does not carry.",
+  "slots": [
+   {
+    "id": "block:B1",
+    "kind": "block",
+    "topology": "mcu",
+    "operating_point": {
+     "vdd_v": 3.3,
+     "vdd_min_v": 3.0,
+     "vdd_max_v": 3.6,
+     "fcpu_mhz": 48,
+     "idd_ma": 100,
+     "pdiss_w": 0.33,
+     "edge_ns": 5,
+     "board_layers": 2,
+     "tamb_max_c": 50,
+     "source_kind": "dc-input",
+     "supply_kind": "single-rail",
+     "clock_kind": "internal-rc",
+     "package_kind": "tssop",
+     "debug_kind": "swd",
+     "boot_kind": "external-strap",
+     "reset_kind": "internal-pullup"
+    },
+    "required_classes": [
+     "decoupling",
+     "selection",
+     "sequencing",
+     "return-path",
+     "thermal"
+    ],
+    "unmet_classes": [
+     "decoupling",
+     "selection",
+     "sequencing",
+     "return-path",
+     "thermal"
+    ]
+   },
+   {
+    "id": "block:B2",
+    "kind": "block",
+    "topology": "swd-debug-port",
+    "operating_point": {
+     "vio_v": 3.3,
+     "fclk_mhz": 4,
+     "edge_ns": 5,
+     "board_layers": 2,
+     "tamb_max_c": 50,
+     "header_pins": 5,
+     "source_kind": "dc-input",
+     "debug_kind": "swd",
+     "probe_kind": "flying-lead",
+     "connector_kind": "header-100mil",
+     "keying_kind": "none"
+    },
+    "required_classes": [
+     "selection",
+     "sequencing",
+     "emi",
+     "return-path",
+     "esd",
+     "decoupling",
+     "constraints-emission"
+    ],
+    "unmet_classes": [
+     "selection",
+     "sequencing",
+     "emi",
+     "return-path",
+     "esd",
+     "decoupling",
+     "constraints-emission"
+    ]
+   }
+  ],
+  "candidates": [
+   {
+    "id": "buck-bst-fb-output-caps",
+    "level": "family",
+    "maturity": "approved",
+    "classes": [
+     "feedback",
+     "decoupling"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "BST: integrated-FET parts need the 100 nF BST-SW cap - it is required, not optional (DS41326 s13); confirm value/rating in the family datasheet. FB TRAP (cost a near-miss once): FIXED-output family members tie FB straight to the output sens"
+   },
+   {
+    "id": "buck-cin-co-ground-separation",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "power-loop",
+     "emi"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "Two ROHM measurements the generic hot-loop rule does not carry: (1) shortening the CBYPASS wiring EVEN BY 1 mm is worth it - the HF bypass supplies the steepest edge of the switch current, and its loop inductance sets the VIN-pin voltage no"
+   },
+   {
+    "id": "buck-constraints-emission",
+    "level": "principle",
+    "maturity": "approved",
+    "classes": [
+     "constraints-emission"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "What a buck block must emit into constraints.json for the pipeline: (1) power entries with current_a from the RAIL BUDGET (consumer sum + ~30% headroom, rounded to a design ceiling) and dt_c from ambient; (2) a thermal entry when regulator "
+   },
+   {
+    "id": "buck-en-softstart-sequencing",
+    "level": "principle",
+    "maturity": "approved",
+    "classes": [
+     "sequencing"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "Check the EN pin's OWN behavior before adding parts: many parts auto-start (AP63203: internal 1.5 uA pull-up - tie to VIN or float; adding a divider is wasted parts). When EN is used as a UVLO divider, mind the two traps the sbuck run hit: "
+   },
+   {
+    "id": "buck-fb-route-rules",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "feedback"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "The feedback route needs the most attention of any signal wire - noise here becomes output-voltage error and instability. ROHM's four rules (fig 7-a): (a) the FB pin is high impedance - connect the divider network with a SHORT wire at the p"
+   },
+   {
+    "id": "buck-freewheel-diode-snubber-placement",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "power-loop",
+     "emi"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "Async buck (free-wheel diode) placement rules: the diode must sit CLOSE and on the SAME surface as the IC terminals, wired short and wide, connected directly to the IC's GND and SW terminals - distance adds wiring inductance whose spike noi"
+   },
+   {
+    "id": "buck-inductor-copper-and-gnd-void",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "emi"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "Inductor region rules (ROHM s5): place L close to the IC but NOT as close as the input cap; do NOT expand the SW/inductor copper beyond what current needs - enlarged copper works as an antenna (EMI), even though instinct says more copper = "
+   },
+   {
+    "id": "buck-inductor-selection",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "selection"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "The three inductor rules every run re-derived from scratch. L VALUE: start from the vendor's recommended-components table row for your Vout; the next STANDARD value up is usually right - light-load efficiency improves with larger L (DS41326"
+   },
+   {
+    "id": "buck-input-hot-loop",
+    "level": "principle",
+    "maturity": "approved",
+    "classes": [
+     "power-loop",
+     "emi"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "Layout rule #1 for every buck: the input cap carries the DISCONTINUOUS switch current. C_IN plus a 100 nF HF bypass AT the VIN pin, on the SAME layer as the IC; the C_IN -> VIN -> GND -> C_IN loop must be the shortest loop on the board; SW-"
+   },
+   {
+    "id": "buck-power-ground-isolation",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "return-path",
+     "power-loop"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "Ground strategy (ROHM s8): analog small-signal ground and power ground must be ISOLATED, and power ground laid on the TOP layer without splitting is the ideal - dropping an isolated power ground to the bottom layer through vias adds via R a"
+   },
+   {
+    "id": "buck-selection-ladder",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "selection"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "Regulator-type ladder, one line of tradeoff each; if the brief names a part the named part stands (record the alternative as an override option). (1) Integrated synchronous buck is the DEFAULT at <= ~60 V input and <= ~3 A: no catch diode, "
+   },
+   {
+    "id": "buck-switch-node-containment",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "emi"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "Keep SW copper as small as electrically possible and treat SW + L as an AGGRESSOR: lumina-par's 2.4 GHz antenna 11 mm from a switch node drove a 4-layer stackup + containment plan; usb-buck keeps the USB pair away from SW/L per ST AN4879 3."
+   },
+   {
+    "id": "buck-thermal-via-and-via-current",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "thermal-via"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [
+      "HTSOP-J8",
+      "SO-8-EP",
+      "SO-8EP"
+     ],
+     "interfaces": []
+    },
+    "prose_head": "Thermal vias under an exposed-pad regulator (ROHM s4, HTSOP-J8 numbers generalize to EP packages): small drill - 0.3 mm inner diameter - so the via can FILL with solder; larger drills suck solder away from the joint at reflow (solder-wickin"
+   },
+   {
+    "id": "buck-upstream-inrush-limit",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "inrush",
+     "selection"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "interfaces": [
+      "usb",
+      "usb-pd",
+      "poe"
+     ],
+     "packages": []
+    },
+    "prose_head": "Upstream bulk limit trap: a buck's input capacitance is bounded by the SOURCE, not by the buck. USB 2.0 allows 10 uF || 44 ohm at attach (spec s7.2.4.1); a USB-PD sink is allowed 100 uF under contract (cSnkBulkPd); PoE has its own inrush en"
+   },
+   {
+    "id": "cot-ripple-injection-raises-vout",
+    "level": "family",
+    "maturity": "approved",
+    "classes": [
+     "feedback"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "A constant-on-time regulator ends its off-time when FB falls back through VREF, so it regulates the VALLEY of FB, not its average. With Type 3 injection the ramp is AC-coupled into FB and its mean is genuinely zero, so FB_dc = VREF + Vramp/"
+   },
+   {
+    "id": "mcu-analog-rail-tracks-digital-rail",
+    "level": "principle",
+    "maturity": "verified",
+    "classes": [
+     "sequencing"
+    ],
+    "applies": {
+     "topologies": [
+      "mcu"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "An MCU's analog supply pin is a constrained rail, not an optional filter node. Three datasheet facts set it on the STM32F030: Table 21 says VDDA \"must have a potential equal to or higher than VDD\"; Table 18 allows VDD to exceed VDDA by at m"
+   },
+   {
+    "id": "mcu-boot-select-strap-stm32f0",
+    "level": "family",
+    "maturity": "verified",
+    "classes": [
+     "selection"
+    ],
+    "applies": {
+     "topologies": [
+      "mcu"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": [
+      "STM32F030F4P6TR",
+      "STM32F030F4P6"
+     ]
+    },
+    "prose_head": "On the STM32F030x4/x6/x8/xC family the boot-memory select pin is a dedicated, input-only pin - Table 11 gives it pin type I, I/O structure B, TSSOP-20 pin 1, function \"Boot memory selection\" - and its Notes cell is EMPTY. Table 10's blanket"
+   },
+   {
+    "id": "mcu-decoupler-is-the-local-source",
+    "level": "principle",
+    "maturity": "verified",
+    "classes": [
+     "decoupling",
+     "return-path"
+    ],
+    "applies": {
+     "topologies": [
+      "mcu"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "An MCU's supply current is an average; the die draws it as nanosecond spikes on every clock and I/O edge. AN2519 s2.1: if all eight I/O of a port switch together the pulse can be several hundred mA, and unloaded it lasts only a few ns. \"Suc"
+   },
+   {
+    "id": "mcu-package-power-budget",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "thermal"
+    ],
+    "applies": {
+     "topologies": [
+      "mcu"
+     ],
+     "packages": [
+      "TSSOP-20"
+     ],
+     "interfaces": [],
+     "parts": [
+      "STM32F030F4P6TR",
+      "STM32F030F4P6"
+     ]
+    },
+    "prose_head": "The single power-dissipation number in an MCU datasheet is quoted at ONE ambient and is not the board's budget. STM32F030 Table 21 lists PD for TSSOP20 as 263 mW - at TA = 85 C, with its own note \"if TA is lower, higher PD values are allowe"
+   },
+   {
+    "id": "mcu-reset-sampled-pin-audit",
+    "level": "principle",
+    "maturity": "verified",
+    "classes": [
+     "selection"
+    ],
+    "applies": {
+     "topologies": [
+      "mcu"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "Before drawing an MCU schematic, audit every pin the silicon SAMPLES at or immediately after reset - boot/mode select, reset, debug - and ask one question per pin: does the die define its level, or must the board? The datasheet's own pin ta"
+   },
+   {
+    "id": "mcu-supply-pin-pair-decoupling",
+    "level": "principle",
+    "maturity": "verified",
+    "classes": [
+     "decoupling"
+    ],
+    "applies": {
+     "topologies": [
+      "mcu"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "Count the decoupling bank by SUPPLY PIN and by RAIL, never by device. Three documents show it independently: AN2519 s2.1 - \"for devices with multiple pairs of power and ground pins it is essential that there is a decoupling capacitor for ev"
+   },
+   {
+    "id": "mcu-supply-return-continuity",
+    "level": "principle",
+    "maturity": "verified",
+    "classes": [
+     "return-path",
+     "emi"
+    ],
+    "applies": {
+     "topologies": [
+      "mcu"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "Every supply pin's return is half the connection, and the MCU datasheet puts a NUMBER on how good it has to be: Table 18 allows at most 50 mV between different VDD power pins and at most 50 mV between all the different ground pins. That is "
+   },
+   {
+    "id": "mcu-swd-port-live-at-reset-stm32f0",
+    "level": "family",
+    "maturity": "verified",
+    "classes": [
+     "selection"
+    ],
+    "applies": {
+     "topologies": [
+      "mcu"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": [
+      "STM32F030F4P6TR",
+      "STM32F030F4P6"
+     ]
+    },
+    "prose_head": "On STM32F030x4/x6/x8/xC the two SWD pins are already the debug port when the part leaves reset. Table 11 note 7, attached to PA13 (SWDIO, TSSOP-20 pin 19) and PA14 (SWCLK, pin 20): \"After reset, these pins are configured as SWDIO and SWCLK "
+   },
+   {
+    "id": "spiral-inductor-plane-and-heatsink-keepout",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "emi",
+     "thermal"
+    ],
+    "applies": {
+     "topologies": [
+      "class-e"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "An etched PCB spiral (air-core inductor, coupled pair, antenna) is destroyed by solid metal parallel to it: a ground plane under the winding is a shorted turn and collapses Q, and so is a bottom-side metal heatsink. Two independently-correc"
+   },
+   {
+    "id": "swd-debug-port-edge-rate-sets-layout-demand",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "emi"
+    ],
+    "applies": {
+     "topologies": [
+      "swd-debug-port"
+     ],
+     "packages": [],
+     "interfaces": [
+      "swd"
+     ],
+     "parts": []
+    },
+    "prose_head": "What a debug port asks of layout is set by the EDGE, not the bit rate. TI AN-806 (SNLA026A) gives the test: a line loads its driver as a lumped capacitance, C dv/dt = i, \"only when the rise time is greater than the time delay of the line (t"
+   },
+   {
+    "id": "swd-debug-port-nrst-on-the-header",
+    "level": "family",
+    "maturity": "verified",
+    "classes": [
+     "sequencing"
+    ],
+    "applies": {
+     "topologies": [
+      "swd-debug-port"
+     ],
+     "packages": [],
+     "interfaces": [
+      "swd"
+     ],
+     "parts": [
+      "STM32F030F4P6TR",
+      "STM32F030F4P6",
+      "C89040"
+     ]
+    },
+    "prose_head": "Bring reset out on the debug header, and drive nothing onto it from the board. STM32F030x4/x6/x8/xC s6.3.15: \"The NRST pin input driver uses the CMOS technology. It is connected to a permanent pull-up resistor, RPU\" - Table 49 specifies RPU"
+   },
+   {
+    "id": "swd-debug-port-stm32f0-internal-pulls",
+    "level": "family",
+    "maturity": "verified",
+    "classes": [
+     "selection"
+    ],
+    "applies": {
+     "topologies": [
+      "swd-debug-port"
+     ],
+     "packages": [],
+     "interfaces": [
+      "swd"
+     ],
+     "parts": [
+      "STM32F030F4P6TR",
+      "STM32F030F4P6",
+      "C89040"
+     ]
+    },
+    "prose_head": "On an STM32F0 target an SWD header needs no external pull-up and no external pull-down: the silicon holds all three lines itself from reset. STM32F030x4/x6/x8/xC Table 11 note 7: \"After reset, these pins are configured as SWDIO and SWCLK al"
+   },
+   {
+    "id": "swd-debug-port-termination-follows-silicon",
+    "level": "principle",
+    "maturity": "verified",
+    "classes": [
+     "selection"
+    ],
+    "applies": {
+     "topologies": [
+      "swd-debug-port"
+     ],
+     "packages": [],
+     "interfaces": [
+      "swd"
+     ],
+     "parts": []
+    },
+    "prose_head": "A debug port's line terminations are decided by the SILICON, not by the board. An MCU that owns its debug interface implements the pulls internally, so the board's default is NO external part, and any external part that is added must pull t"
+   },
+   {
+    "id": "swd-debug-port-unkeyed-header-pin-order",
+    "level": "principle",
+    "maturity": "verified",
+    "classes": [
+     "selection",
+     "return-path"
+    ],
+    "applies": {
+     "topologies": [
+      "swd-debug-port"
+     ],
+     "packages": [],
+     "interfaces": [
+      "swd"
+     ],
+     "parts": []
+    },
+    "prose_head": "A standard debug connector solves plug orientation MECHANICALLY, and it spends pins on the return. Infineon AN220270 Figure 20 draws the 10-pin Cortex connector - 1 VTref, 2 SWDIO/TMS, 3 GND, 4 SWCLK/TCK, 5 GND, 6 (SWO)/TDO, 7 (KEY) GND, 8 "
+   }
+  ]
+ }
+}

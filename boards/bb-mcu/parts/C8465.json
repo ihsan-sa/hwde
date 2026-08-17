@@ -1,0 +1,40 @@
+{
+ "mpn": "WJ500V-5.08-2P",
+ "lcsc": "C8465",
+ "package": "PCB screw terminal block, 2-pole, 5.08 mm pitch, through-hole, screw-clamp wire entry. Body (housing only, per side-view profile) 14.07 mm tall x 10.00 mm deep; N-pole width formula N x 5.08 mm gives 10.16 mm wide for this 2-pole part.",
+ "description": "WJ500V-5.08-2P - 2-pole PCB screw terminal block, 5.08 mm pitch, through-hole. Source: Ningbo Kangnex Electric Co., Ltd (brand mark 'JWBN') customer drawing 'WJ500V-5.08-XXP-1Y-00A' Rev A (2024.03.10), 1-page, downloaded from wmsc.lcsc.com. The drawing is a FAMILY sheet: title block part number is templated 'WJ500V-5.08-XXP-1Y-00A' where XX = pole count (our part = 2), and a printed code table further breaks out '1Y' as a single/double-pitch selector (1 = single pitch, which this part uses) plus a housing-color digit (1-9 = Grey/Blue/Black/Green/Orange/Red/Transparent/Yellow/White) and a customer-request suffix '00A'; the datasheet does not state which color/customer-suffix combination corresponds to LCSC C8465, so this file uses LCSC's own simplified MPN 'WJ500V-5.08-2P'. Body/pin dimensions below are read off the drawing's generic N-pole illustration (drawn with 3 example poles + break lines) and apply per-pole regardless of N; the PCB LAYOUT hole pattern and pole count are specific to N=2.",
+ "pinout": [
+  {"pin": "1", "name": "1", "type": "passive", "notes": "Screw-clamp wire-entry contact, pole 1 of 2. No polarity/keying marked on the drawing - both poles are mechanically and electrically symmetric (generic terminal, not a power connector with an inherent +/- assignment)."},
+  {"pin": "2", "name": "2", "type": "passive", "notes": "Screw-clamp wire-entry contact, pole 2 of 2. Symmetric with pole 1 (see pin 1 notes)."}
+ ],
+ "decoupling": [],
+ "land_pattern": {
+  "package": "PCB screw terminal block, 2-pole, 5.08 mm pitch",
+  "pad_count": 2,
+  "pitch_mm": 5.08,
+  "drill_mm": 1.50,
+  "pin1": "1",
+  "notes": "From the 'PCB LAYOUT' drawing (page 1, bottom-left panel, zone G-H/1-3) - this IS the vendor's RECOMMENDED hole pattern (explicitly labeled 'PCB LAYOUT'), not merely the package outline. Recommended drill diameter Ø1.50 mm per hole (labeled directly on the drawing). Hole pitch 5.08 mm, confirmed independently in both the PCB LAYOUT view and the front-view lead spacing. For N=2 poles the hole-to-hole span is (N-1) x 5.08 = 5.08 mm (one pitch). No copper LAND/pad diameter is given anywhere on this sheet - only the drill/hole pattern is dimensioned; pad_size_mm and annulus_mm are deliberately omitted rather than invented (see OPEN). The PCB LAYOUT view also carries three auxiliary dimensions (2.54 mm from the drawn box's left edge to hole 1, 3.14 mm from the last drawn hole to the box's right edge, 4.50 mm box height) whose design intent is not labeled (possibly just a generic reference/keepout frame for the illustration) - not used here as they are not clearly a real PCB feature. Pin leg width at the tip is separately dimensioned 0.90 mm in the front view (cross-section shape - round vs square - not explicitly labeled, though the housing's screw-clamp opening above it is drawn square); a 0.90 mm SQUARE pin has worst-case diagonal 1.273 mm, comfortably inside the vendor's own Ø1.50 mm recommended hole (0.227 mm diametral clearance)."
+ },
+ "exposed_pad": {"present": false},
+ "layout_notes": [
+  "Recommended PCB hole (drill): Ø1.50 mm per pole, pitch 5.08 mm [PCB LAYOUT drawing, page 1]. The board's PULLED footprint uses a 1.30 mm drill - 0.20 mm UNDER this recommendation. Against the pin's own dimensioned width (0.90 mm, tip callout, front view): if the pin cross-section is square (consistent with the square screw-clamp opening drawn above it), its worst-case diagonal is 0.90 x sqrt(2) = 1.273 mm, so a 1.30 mm hole is only ~0.03 mm (radial ~0.014 mm) larger than the pin - a line-to-line fit with essentially no real insertion or solder clearance, well short of the 0.227 mm diametral clearance the vendor's own 1.50 mm hole gives. Verdict: the pulled 1.30 mm drill does not meet this datasheet's recommended hole size and leaves negligible/no practical assembly margin even against the bare pin geometry - treat as a defect, not a pass.",
+  "Housing body height 14.07 mm (side-view profile, screw-boss top to housing base) - tall for a 2-layer/simple board; keep other components and any overhanging assembly clear above the terminal for wire entry and screwdriver access [side view, page 1].",
+  "Pin/lead protrudes 4.20 mm below the housing base (front view dimension) - this is the through-hole lead length available for board thickness + solder-side protrusion.",
+  "Screw torque rating 4.08 kgf.cm / 0.4 N.m - do not over-torque the clamp screws during wire termination [spec table, page 1].",
+  "Wire range 22-12 AWG / up to 2.5 mm^2, recommended strip length 6-7 mm [spec table, page 1] - informs enclosure/wire-entry clearance, not board layout directly.",
+  "Max soldering temperature +250 C for 5 sec [spec table, page 1]."
+ ],
+ "abs_max": [
+  {"param": "Rated voltage (UL)", "value": 300, "unit": "V"},
+  {"param": "Rated voltage (IEC)", "value": 400, "unit": "V"},
+  {"param": "Rated current (UL - conservative rating; LCSC's own catalog 'current' field lists the IEC figure instead, per prior finding on this same part)", "value": 10, "unit": "A"},
+  {"param": "Rated current (IEC)", "value": 24, "unit": "A"},
+  {"param": "Operating temperature range", "value": "-40 to 105", "unit": "degC"},
+  {"param": "Max soldering temperature", "value": 250, "unit": "degC for 5 sec"},
+  {"param": "Withstanding (dielectric) voltage", "value": 1600, "unit": "AC V / 1 min"},
+  {"param": "Insulation resistance (min)", "value": 500, "unit": "Mohm at DC500V"},
+  {"param": "Contact resistance (max)", "value": 20, "unit": "mohm"}
+ ],
+ "source_pdf": "boards/bb-mcu/parts/C8465.pdf = Ningbo Kangnex Electric Co.,Ltd customer drawing 'WJ500V-5.08-XXP-1Y-00A' Rev A (2024.03.10), 1 page, downloaded from wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1912251636_Ningbo-Kangnex-Elec-WJ500V-5-08-2P_C8465.pdf (HTTP 200, verified %PDF-1.7 header, sha256 e3c3cbd8e0f7cf4979ffd6a524501dd4dbd0f24556c4761922adcbd973e3ccda)."
+}

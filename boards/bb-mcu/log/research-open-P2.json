@@ -1,0 +1,1835 @@
+{
+ "script": "research",
+ "status": "pass",
+ "workspace": "boards/bb-mcu",
+ "phase": "P2",
+ "opened": [
+  "block-mcu-1",
+  "block-swd-debug-port-1"
+ ],
+ "skipped": [],
+ "tasks": [
+  {
+   "task": {
+    "id": "block-mcu-1",
+    "slot": "block:B1",
+    "kind": "block",
+    "token": "mcu",
+    "phase": "P2",
+    "status": "open",
+    "outcome": null,
+    "opened": "2026-08-16T19:17:15",
+    "closed": null,
+    "coverage_report": "boards/bb-mcu/log/coverage-P2.json",
+    "gap": {
+     "slot": "block:B1",
+     "kind": "block",
+     "topology": "mcu",
+     "operating_point": {
+      "vdd_v": 3.3,
+      "vdd_min_v": 3.0,
+      "vdd_max_v": 3.6,
+      "fcpu_mhz": 48,
+      "idd_ma": 100,
+      "pdiss_w": 0.33,
+      "edge_ns": 5,
+      "board_layers": 2,
+      "tamb_max_c": 50,
+      "source_kind": "dc-input",
+      "supply_kind": "single-rail",
+      "clock_kind": "internal-rc",
+      "package_kind": "tssop",
+      "debug_kind": "swd",
+      "boot_kind": "external-strap",
+      "reset_kind": "internal-pullup"
+     },
+     "missing": [
+      {
+       "class": "coverage-checklist",
+       "min_level": null
+      }
+     ],
+     "reasons": [
+      "no coverage checklist for block 'mcu' - the first research pass on a new topology/interface produces one (reference/knowledge/checklists/)"
+     ],
+     "related_records": [],
+     "principle_parents": [],
+     "task": "research block 'mcu': produce its coverage checklist, then populate it"
+    },
+    "checklist_needed": true,
+    "caps": {
+     "depth_per_gap": 4,
+     "attempt_factor": 3
+    },
+    "sources": [],
+    "attempts": [],
+    "verdicts": {},
+    "queue_entry": null,
+    "updated": "2026-08-16T19:17:15"
+   },
+   "brief": {
+    "task": "block-mcu-1",
+    "slot": "block:B1",
+    "kind": "block",
+    "token": "mcu",
+    "phase": "P2",
+    "assignment": [
+     "research block 'mcu': produce its coverage checklist, then populate it",
+     "Populate the missing classes at this operating point with class-level records the coverage query can retrieve (applies keyed to the slot; level + envelope declarable at P2).",
+     "The slot has NO coverage checklist yet: write research/checklists/<token>.yaml first (what a designer must know before designing this), then the records it demands.",
+     "No principle parent exists: a record that states the principle (level principle, no envelope) plus one at topology/family level is the usual pair."
+    ],
+    "operating_point": {
+     "vdd_v": 3.3,
+     "vdd_min_v": 3.0,
+     "vdd_max_v": 3.6,
+     "fcpu_mhz": 48,
+     "idd_ma": 100,
+     "pdiss_w": 0.33,
+     "edge_ns": 5,
+     "board_layers": 2,
+     "tamb_max_c": 50,
+     "source_kind": "dc-input",
+     "supply_kind": "single-rail",
+     "clock_kind": "internal-rc",
+     "package_kind": "tssop",
+     "debug_kind": "swd",
+     "boot_kind": "external-strap",
+     "reset_kind": "internal-pullup"
+    },
+    "missing": [
+     {
+      "class": "coverage-checklist",
+      "min_level": null
+     }
+    ],
+    "reasons": [
+     "no coverage checklist for block 'mcu' - the first research pass on a new topology/interface produces one (reference/knowledge/checklists/)"
+    ],
+    "existing_knowledge": [],
+    "prior_tasks": [],
+    "checklist": null,
+    "policy": {
+     "tiers": "Source tiers, best first: vendor-layout (the subject part's OWN datasheet layout section / eval board / reference layout) > vendor-appnote (same vendor, the topology) > cross-vendor (another vendor's note on the same topology/interface) > forum (corroboration only - NEVER a record's sole source; the close step refuses it). Declare the tier per fetch (--tier); vendor community subdomains are forced to forum. Prefer the highest tier that actually covers the operating point; two independent tiers beat one when they disagree - record the disagreement in prose.",
+     "visual_reads": "Cited pages must be READ VISUALLY (Read the quarantined PDF page as an image): layout figures are the highest-value content and text extraction cannot see them. Every sources[] entry carries `page` and a `note` saying WHAT WAS READ there (figure/table/section and its claim); figure descriptions land in the record prose. The second reader re-reads exactly those pages to refute you.",
+     "quarantine": "Every source enters the workspace through research.py fetch ONLY (allowlisted https download or a local file registered against an allowlisted origin URL); records may cite only ledger files (research/sources/<file>) - validate refuses anything else.",
+     "maturity": "Write status draft + maturity draft. The second reader flips a record to verified; the owner approves after promotion. Never self-declare higher."
+    },
+    "allowlist": [
+     {
+      "domain": "ti.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "analog.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "st.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "nxp.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "microchip.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "infineon.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "onsemi.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "rohm.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "renesas.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "monolithicpower.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "diodes.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "richtek.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "torexsemi.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "semtech.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "silabs.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "nordicsemi.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "espressif.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "wch-ic.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "wiznet.io",
+      "kind": "vendor"
+     },
+     {
+      "domain": "realtek.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "nexperia.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "toshiba.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "toshiba.semicon-storage.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "vishay.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "littelfuse.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "bourns.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "epc-co.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "gansystems.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "ftdichip.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "cirrus.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "ablic.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "aosmd.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "mpsind.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "murata.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "tdk.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "product.tdk.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "kemet.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "samsungsem.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "yageo.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "we-online.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "we-online.de",
+      "kind": "vendor"
+     },
+     {
+      "domain": "coilcraft.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "sumida.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "pulseelectronics.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "belfuse.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "hirose.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "jst.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "jst-mfg.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "molex.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "te.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "amphenol.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "gct.co",
+      "kind": "vendor"
+     },
+     {
+      "domain": "lcsc.com",
+      "kind": "distributor"
+     },
+     {
+      "domain": "jlcpcb.com",
+      "kind": "distributor"
+     },
+     {
+      "domain": "digikey.com",
+      "kind": "distributor"
+     },
+     {
+      "domain": "mouser.com",
+      "kind": "distributor"
+     },
+     {
+      "domain": "arrow.com",
+      "kind": "distributor"
+     },
+     {
+      "domain": "farnell.com",
+      "kind": "distributor"
+     },
+     {
+      "domain": "newark.com",
+      "kind": "distributor"
+     },
+     {
+      "domain": "rs-online.com",
+      "kind": "distributor"
+     },
+     {
+      "domain": "usb.org",
+      "kind": "standards"
+     },
+     {
+      "domain": "ieee.org",
+      "kind": "standards"
+     },
+     {
+      "domain": "ipc.org",
+      "kind": "standards"
+     },
+     {
+      "domain": "jedec.org",
+      "kind": "standards"
+     },
+     {
+      "domain": "electronics.stackexchange.com",
+      "kind": "forum"
+     },
+     {
+      "domain": "eevblog.com",
+      "kind": "forum"
+     }
+    ],
+    "forum_hosts": [
+     "e2e.ti.com",
+     "ez.analog.com",
+     "community.st.com",
+     "community.nxp.com",
+     "community.infineon.com",
+     "forum.digikey.com",
+     "forum.microchip.com",
+     "devzone.nordicsemi.com"
+    ],
+    "caps": {
+     "depth_per_gap": 4,
+     "sources_acquired": 0,
+     "sources_remaining": 4,
+     "attempts_used": 0,
+     "attempts_cap": 12
+    },
+    "record_schema": {
+     "$schema": "https://json-schema.org/draft/2020-12/schema",
+     "title": "ai-ee knowledge record",
+     "type": "object",
+     "required": [
+      "id",
+      "classes",
+      "applies",
+      "rule",
+      "prose",
+      "sources",
+      "status",
+      "origin"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "id": {
+       "type": "string",
+       "pattern": "^[a-z0-9][a-z0-9-]*$"
+      },
+      "classes": {
+       "type": "array",
+       "minItems": 1,
+       "items": {
+        "type": "string"
+       }
+      },
+      "applies": {
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "topologies": {
+         "type": "array",
+         "items": {
+          "type": "string"
+         }
+        },
+        "packages": {
+         "type": "array",
+         "items": {
+          "type": "string"
+         }
+        },
+        "interfaces": {
+         "type": "array",
+         "items": {
+          "type": "string"
+         }
+        },
+        "parts": {
+         "type": "array",
+         "items": {
+          "type": "string"
+         }
+        }
+       }
+      },
+      "rule": {
+       "oneOf": [
+        {
+         "type": "null"
+        },
+        {
+         "type": "object",
+         "minProperties": 1,
+         "properties": {
+          "enforced_by": {
+           "type": [
+            "string",
+            "null"
+           ]
+          }
+         },
+         "additionalProperties": {
+          "type": [
+           "string",
+           "number",
+           "boolean",
+           "null"
+          ]
+         }
+        }
+       ]
+      },
+      "prose": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 1500
+      },
+      "sources": {
+       "type": "array",
+       "minItems": 1,
+       "items": {
+        "type": "object",
+        "required": [
+         "file"
+        ],
+        "additionalProperties": false,
+        "properties": {
+         "file": {
+          "type": "string",
+          "minLength": 1
+         },
+         "page": {
+          "type": "integer",
+          "minimum": 1
+         },
+         "section": {
+          "type": "string"
+         },
+         "note": {
+          "type": "string"
+         }
+        }
+       }
+      },
+      "status": {
+       "type": "string",
+       "enum": [
+        "active",
+        "draft",
+        "superseded"
+       ]
+      },
+      "origin": {
+       "type": "string",
+       "minLength": 1
+      },
+      "level": {
+       "type": "string",
+       "enum": [
+        "principle",
+        "topology",
+        "family",
+        "part",
+        "instance"
+       ]
+      },
+      "envelope": {
+       "type": [
+        "object",
+        "null"
+       ]
+      },
+      "envelope_note": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 600
+      },
+      "maturity": {
+       "type": "string",
+       "enum": [
+        "draft",
+        "verified",
+        "approved",
+        "proven"
+       ]
+      },
+      "generalizes": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       }
+      },
+      "approval": {
+       "type": "object",
+       "required": [
+        "by",
+        "date"
+       ],
+       "additionalProperties": false,
+       "properties": {
+        "by": {
+         "type": "string",
+         "minLength": 1
+        },
+        "date": {
+         "type": "string",
+         "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "note": {
+         "type": "string"
+        }
+       }
+      },
+      "verification": {
+       "type": "object",
+       "required": [
+        "by",
+        "date"
+       ],
+       "additionalProperties": false,
+       "properties": {
+        "by": {
+         "type": "string",
+         "minLength": 1
+        },
+        "date": {
+         "type": "string",
+         "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "note": {
+         "type": "string"
+        }
+       }
+      },
+      "evidence": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "required": [
+         "workspace",
+         "event",
+         "date"
+        ],
+        "additionalProperties": false,
+        "properties": {
+         "workspace": {
+          "type": "string",
+          "minLength": 1
+         },
+         "board": {
+          "type": "string"
+         },
+         "event": {
+          "type": "string",
+          "minLength": 1
+         },
+         "date": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+         },
+         "note": {
+          "type": "string"
+         }
+        }
+       }
+      }
+     }
+    },
+    "record_template": {
+     "id": "<mcu-<what-the-rule-is>>",
+     "classes": [
+      "<class from the controlled list>"
+     ],
+     "applies": {
+      "topologies": [
+       "mcu"
+      ],
+      "packages": [],
+      "interfaces": [],
+      "parts": []
+     },
+     "rule": null,
+     "prose": "<the rule + why, incl. the figure descriptions you read; <= 1500 chars; ASCII>",
+     "sources": [
+      {
+       "file": "research/sources/<file from research.py fetch>",
+       "page": 1,
+       "note": "<what was READ on that page: fig/table + claim>"
+      }
+     ],
+     "status": "draft",
+     "origin": "research:block-mcu-1",
+     "level": "topology",
+     "envelope": {
+      "<dim>_<unit>": {
+       "min": 0,
+       "max": 0
+      },
+      "<name>_kind": {
+       "in": [
+        "<value>"
+       ]
+      }
+     },
+     "maturity": "draft",
+     "generalizes": [],
+     "envelope_note": "<what the rule scales with, and why these bounds>"
+    },
+    "checklist_schema": {
+     "$schema": "https://json-schema.org/draft/2020-12/schema",
+     "title": "ai-ee coverage checklist",
+     "type": "object",
+     "required": [
+      "id",
+      "kind",
+      "applies",
+      "requires",
+      "maturity",
+      "origin"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "id": {
+       "type": "string",
+       "pattern": "^[a-z0-9][a-z0-9-]*$"
+      },
+      "kind": {
+       "const": "coverage-checklist"
+      },
+      "applies": {
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "topologies": {
+         "type": "array",
+         "items": {
+          "type": "string"
+         }
+        },
+        "interfaces": {
+         "type": "array",
+         "items": {
+          "type": "string"
+         }
+        }
+       }
+      },
+      "requires": {
+       "type": "array",
+       "minItems": 1,
+       "items": {
+        "type": "object",
+        "required": [
+         "class",
+         "min_level"
+        ],
+        "additionalProperties": false,
+        "properties": {
+         "class": {
+          "type": "string"
+         },
+         "min_level": {
+          "type": "string",
+          "enum": [
+           "principle",
+           "topology",
+           "family",
+           "part",
+           "instance"
+          ]
+         },
+         "note": {
+          "type": "string"
+         }
+        }
+       }
+      },
+      "maturity": {
+       "type": "string",
+       "enum": [
+        "draft",
+        "verified",
+        "approved",
+        "proven"
+       ]
+      },
+      "approval": {
+       "type": "object",
+       "required": [
+        "by",
+        "date"
+       ],
+       "additionalProperties": false,
+       "properties": {
+        "by": {
+         "type": "string",
+         "minLength": 1
+        },
+        "date": {
+         "type": "string",
+         "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "note": {
+         "type": "string"
+        }
+       }
+      },
+      "sources": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "required": [
+         "file"
+        ],
+        "additionalProperties": false,
+        "properties": {
+         "file": {
+          "type": "string",
+          "minLength": 1
+         },
+         "page": {
+          "type": "integer",
+          "minimum": 1
+         },
+         "section": {
+          "type": "string"
+         },
+         "note": {
+          "type": "string"
+         }
+        }
+       }
+      },
+      "prose": {
+       "type": "string",
+       "maxLength": 1500
+      },
+      "origin": {
+       "type": "string",
+       "minLength": 1
+      }
+     }
+    },
+    "checklist_template": {
+     "id": "mcu",
+     "kind": "coverage-checklist",
+     "applies": {
+      "topologies": [
+       "mcu"
+      ]
+     },
+     "requires": [
+      {
+       "class": "<class>",
+       "min_level": "topology",
+       "note": "<why this class must be populated first>"
+      }
+     ],
+     "maturity": "draft",
+     "sources": [
+      {
+       "file": "research/sources/<file>",
+       "page": 1,
+       "note": "<what was READ>"
+      }
+     ],
+     "prose": "<what a designer must know before designing this>",
+     "origin": "research:block-mcu-1"
+    },
+    "classes": [
+     "constraints-emission",
+     "creepage",
+     "decoupling",
+     "diff-pair",
+     "emi",
+     "esd",
+     "feedback",
+     "inrush",
+     "power-loop",
+     "return-path",
+     "selection",
+     "sequencing",
+     "sourcing",
+     "thermal",
+     "thermal-via"
+    ],
+    "levels": [
+     "principle",
+     "topology",
+     "family",
+     "part",
+     "instance"
+    ],
+    "envelope_units": [
+     "v",
+     "mv",
+     "kv",
+     "a",
+     "ma",
+     "ua",
+     "w",
+     "mw",
+     "kw",
+     "hz",
+     "khz",
+     "mhz",
+     "ghz",
+     "ns",
+     "us",
+     "ms",
+     "s",
+     "c",
+     "k",
+     "mm",
+     "um",
+     "cm",
+     "m",
+     "pf",
+     "nf",
+     "uf",
+     "mf",
+     "nh",
+     "uh",
+     "mh",
+     "ohm",
+     "mohm",
+     "kohm",
+     "mohms",
+     "pct",
+     "oz",
+     "mbps",
+     "gbps",
+     "bps",
+     "layers",
+     "pins",
+     "v_per_ns",
+     "v_per_us",
+     "a_per_ns",
+     "a_per_us"
+    ],
+    "paths": {
+     "records": "research/records/<id>.yaml",
+     "checklists": "research/checklists/<id>.yaml",
+     "sources": "research/sources/",
+     "task": "research/tasks/block-mcu-1.json"
+    },
+    "commands": {
+     "fetch": "scripts/research.py fetch --workspace boards/bb-mcu --task block-mcu-1 --url <https://vendor/...pdf> --tier <vendor-layout|vendor-appnote|cross-vendor|forum> [--about <mpn>] [--expect pdf|html]",
+     "validate": "scripts/research.py validate --workspace boards/bb-mcu --task block-mcu-1",
+     "status": "scripts/research.py status --workspace boards/bb-mcu --task block-mcu-1"
+    }
+   }
+  },
+  {
+   "task": {
+    "id": "block-swd-debug-port-1",
+    "slot": "block:B2",
+    "kind": "block",
+    "token": "swd-debug-port",
+    "phase": "P2",
+    "status": "open",
+    "outcome": null,
+    "opened": "2026-08-16T19:17:15",
+    "closed": null,
+    "coverage_report": "boards/bb-mcu/log/coverage-P2.json",
+    "gap": {
+     "slot": "block:B2",
+     "kind": "block",
+     "topology": "swd-debug-port",
+     "operating_point": {
+      "vio_v": 3.3,
+      "fclk_mhz": 4,
+      "edge_ns": 5,
+      "board_layers": 2,
+      "tamb_max_c": 50,
+      "header_pins": 5,
+      "source_kind": "dc-input",
+      "debug_kind": "swd",
+      "probe_kind": "flying-lead",
+      "connector_kind": "header-100mil",
+      "keying_kind": "none"
+     },
+     "missing": [
+      {
+       "class": "coverage-checklist",
+       "min_level": null
+      }
+     ],
+     "reasons": [
+      "no coverage checklist for block 'swd-debug-port' - the first research pass on a new topology/interface produces one (reference/knowledge/checklists/)"
+     ],
+     "related_records": [],
+     "principle_parents": [],
+     "task": "research block 'swd-debug-port': produce its coverage checklist, then populate it"
+    },
+    "checklist_needed": true,
+    "caps": {
+     "depth_per_gap": 4,
+     "attempt_factor": 3
+    },
+    "sources": [],
+    "attempts": [],
+    "verdicts": {},
+    "queue_entry": null,
+    "updated": "2026-08-16T19:17:15"
+   },
+   "brief": {
+    "task": "block-swd-debug-port-1",
+    "slot": "block:B2",
+    "kind": "block",
+    "token": "swd-debug-port",
+    "phase": "P2",
+    "assignment": [
+     "research block 'swd-debug-port': produce its coverage checklist, then populate it",
+     "Populate the missing classes at this operating point with class-level records the coverage query can retrieve (applies keyed to the slot; level + envelope declarable at P2).",
+     "The slot has NO coverage checklist yet: write research/checklists/<token>.yaml first (what a designer must know before designing this), then the records it demands.",
+     "No principle parent exists: a record that states the principle (level principle, no envelope) plus one at topology/family level is the usual pair."
+    ],
+    "operating_point": {
+     "vio_v": 3.3,
+     "fclk_mhz": 4,
+     "edge_ns": 5,
+     "board_layers": 2,
+     "tamb_max_c": 50,
+     "header_pins": 5,
+     "source_kind": "dc-input",
+     "debug_kind": "swd",
+     "probe_kind": "flying-lead",
+     "connector_kind": "header-100mil",
+     "keying_kind": "none"
+    },
+    "missing": [
+     {
+      "class": "coverage-checklist",
+      "min_level": null
+     }
+    ],
+    "reasons": [
+     "no coverage checklist for block 'swd-debug-port' - the first research pass on a new topology/interface produces one (reference/knowledge/checklists/)"
+    ],
+    "existing_knowledge": [],
+    "prior_tasks": [],
+    "checklist": null,
+    "policy": {
+     "tiers": "Source tiers, best first: vendor-layout (the subject part's OWN datasheet layout section / eval board / reference layout) > vendor-appnote (same vendor, the topology) > cross-vendor (another vendor's note on the same topology/interface) > forum (corroboration only - NEVER a record's sole source; the close step refuses it). Declare the tier per fetch (--tier); vendor community subdomains are forced to forum. Prefer the highest tier that actually covers the operating point; two independent tiers beat one when they disagree - record the disagreement in prose.",
+     "visual_reads": "Cited pages must be READ VISUALLY (Read the quarantined PDF page as an image): layout figures are the highest-value content and text extraction cannot see them. Every sources[] entry carries `page` and a `note` saying WHAT WAS READ there (figure/table/section and its claim); figure descriptions land in the record prose. The second reader re-reads exactly those pages to refute you.",
+     "quarantine": "Every source enters the workspace through research.py fetch ONLY (allowlisted https download or a local file registered against an allowlisted origin URL); records may cite only ledger files (research/sources/<file>) - validate refuses anything else.",
+     "maturity": "Write status draft + maturity draft. The second reader flips a record to verified; the owner approves after promotion. Never self-declare higher."
+    },
+    "allowlist": [
+     {
+      "domain": "ti.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "analog.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "st.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "nxp.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "microchip.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "infineon.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "onsemi.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "rohm.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "renesas.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "monolithicpower.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "diodes.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "richtek.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "torexsemi.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "semtech.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "silabs.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "nordicsemi.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "espressif.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "wch-ic.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "wiznet.io",
+      "kind": "vendor"
+     },
+     {
+      "domain": "realtek.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "nexperia.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "toshiba.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "toshiba.semicon-storage.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "vishay.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "littelfuse.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "bourns.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "epc-co.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "gansystems.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "ftdichip.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "cirrus.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "ablic.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "aosmd.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "mpsind.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "murata.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "tdk.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "product.tdk.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "kemet.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "samsungsem.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "yageo.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "we-online.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "we-online.de",
+      "kind": "vendor"
+     },
+     {
+      "domain": "coilcraft.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "sumida.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "pulseelectronics.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "belfuse.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "hirose.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "jst.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "jst-mfg.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "molex.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "te.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "amphenol.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "gct.co",
+      "kind": "vendor"
+     },
+     {
+      "domain": "lcsc.com",
+      "kind": "distributor"
+     },
+     {
+      "domain": "jlcpcb.com",
+      "kind": "distributor"
+     },
+     {
+      "domain": "digikey.com",
+      "kind": "distributor"
+     },
+     {
+      "domain": "mouser.com",
+      "kind": "distributor"
+     },
+     {
+      "domain": "arrow.com",
+      "kind": "distributor"
+     },
+     {
+      "domain": "farnell.com",
+      "kind": "distributor"
+     },
+     {
+      "domain": "newark.com",
+      "kind": "distributor"
+     },
+     {
+      "domain": "rs-online.com",
+      "kind": "distributor"
+     },
+     {
+      "domain": "usb.org",
+      "kind": "standards"
+     },
+     {
+      "domain": "ieee.org",
+      "kind": "standards"
+     },
+     {
+      "domain": "ipc.org",
+      "kind": "standards"
+     },
+     {
+      "domain": "jedec.org",
+      "kind": "standards"
+     },
+     {
+      "domain": "electronics.stackexchange.com",
+      "kind": "forum"
+     },
+     {
+      "domain": "eevblog.com",
+      "kind": "forum"
+     }
+    ],
+    "forum_hosts": [
+     "e2e.ti.com",
+     "ez.analog.com",
+     "community.st.com",
+     "community.nxp.com",
+     "community.infineon.com",
+     "forum.digikey.com",
+     "forum.microchip.com",
+     "devzone.nordicsemi.com"
+    ],
+    "caps": {
+     "depth_per_gap": 4,
+     "sources_acquired": 0,
+     "sources_remaining": 4,
+     "attempts_used": 0,
+     "attempts_cap": 12
+    },
+    "record_schema": {
+     "$schema": "https://json-schema.org/draft/2020-12/schema",
+     "title": "ai-ee knowledge record",
+     "type": "object",
+     "required": [
+      "id",
+      "classes",
+      "applies",
+      "rule",
+      "prose",
+      "sources",
+      "status",
+      "origin"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "id": {
+       "type": "string",
+       "pattern": "^[a-z0-9][a-z0-9-]*$"
+      },
+      "classes": {
+       "type": "array",
+       "minItems": 1,
+       "items": {
+        "type": "string"
+       }
+      },
+      "applies": {
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "topologies": {
+         "type": "array",
+         "items": {
+          "type": "string"
+         }
+        },
+        "packages": {
+         "type": "array",
+         "items": {
+          "type": "string"
+         }
+        },
+        "interfaces": {
+         "type": "array",
+         "items": {
+          "type": "string"
+         }
+        },
+        "parts": {
+         "type": "array",
+         "items": {
+          "type": "string"
+         }
+        }
+       }
+      },
+      "rule": {
+       "oneOf": [
+        {
+         "type": "null"
+        },
+        {
+         "type": "object",
+         "minProperties": 1,
+         "properties": {
+          "enforced_by": {
+           "type": [
+            "string",
+            "null"
+           ]
+          }
+         },
+         "additionalProperties": {
+          "type": [
+           "string",
+           "number",
+           "boolean",
+           "null"
+          ]
+         }
+        }
+       ]
+      },
+      "prose": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 1500
+      },
+      "sources": {
+       "type": "array",
+       "minItems": 1,
+       "items": {
+        "type": "object",
+        "required": [
+         "file"
+        ],
+        "additionalProperties": false,
+        "properties": {
+         "file": {
+          "type": "string",
+          "minLength": 1
+         },
+         "page": {
+          "type": "integer",
+          "minimum": 1
+         },
+         "section": {
+          "type": "string"
+         },
+         "note": {
+          "type": "string"
+         }
+        }
+       }
+      },
+      "status": {
+       "type": "string",
+       "enum": [
+        "active",
+        "draft",
+        "superseded"
+       ]
+      },
+      "origin": {
+       "type": "string",
+       "minLength": 1
+      },
+      "level": {
+       "type": "string",
+       "enum": [
+        "principle",
+        "topology",
+        "family",
+        "part",
+        "instance"
+       ]
+      },
+      "envelope": {
+       "type": [
+        "object",
+        "null"
+       ]
+      },
+      "envelope_note": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 600
+      },
+      "maturity": {
+       "type": "string",
+       "enum": [
+        "draft",
+        "verified",
+        "approved",
+        "proven"
+       ]
+      },
+      "generalizes": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       }
+      },
+      "approval": {
+       "type": "object",
+       "required": [
+        "by",
+        "date"
+       ],
+       "additionalProperties": false,
+       "properties": {
+        "by": {
+         "type": "string",
+         "minLength": 1
+        },
+        "date": {
+         "type": "string",
+         "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "note": {
+         "type": "string"
+        }
+       }
+      },
+      "verification": {
+       "type": "object",
+       "required": [
+        "by",
+        "date"
+       ],
+       "additionalProperties": false,
+       "properties": {
+        "by": {
+         "type": "string",
+         "minLength": 1
+        },
+        "date": {
+         "type": "string",
+         "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "note": {
+         "type": "string"
+        }
+       }
+      },
+      "evidence": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "required": [
+         "workspace",
+         "event",
+         "date"
+        ],
+        "additionalProperties": false,
+        "properties": {
+         "workspace": {
+          "type": "string",
+          "minLength": 1
+         },
+         "board": {
+          "type": "string"
+         },
+         "event": {
+          "type": "string",
+          "minLength": 1
+         },
+         "date": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+         },
+         "note": {
+          "type": "string"
+         }
+        }
+       }
+      }
+     }
+    },
+    "record_template": {
+     "id": "<swd-debug-port-<what-the-rule-is>>",
+     "classes": [
+      "<class from the controlled list>"
+     ],
+     "applies": {
+      "topologies": [
+       "swd-debug-port"
+      ],
+      "packages": [],
+      "interfaces": [],
+      "parts": []
+     },
+     "rule": null,
+     "prose": "<the rule + why, incl. the figure descriptions you read; <= 1500 chars; ASCII>",
+     "sources": [
+      {
+       "file": "research/sources/<file from research.py fetch>",
+       "page": 1,
+       "note": "<what was READ on that page: fig/table + claim>"
+      }
+     ],
+     "status": "draft",
+     "origin": "research:block-swd-debug-port-1",
+     "level": "topology",
+     "envelope": {
+      "<dim>_<unit>": {
+       "min": 0,
+       "max": 0
+      },
+      "<name>_kind": {
+       "in": [
+        "<value>"
+       ]
+      }
+     },
+     "maturity": "draft",
+     "generalizes": [],
+     "envelope_note": "<what the rule scales with, and why these bounds>"
+    },
+    "checklist_schema": {
+     "$schema": "https://json-schema.org/draft/2020-12/schema",
+     "title": "ai-ee coverage checklist",
+     "type": "object",
+     "required": [
+      "id",
+      "kind",
+      "applies",
+      "requires",
+      "maturity",
+      "origin"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "id": {
+       "type": "string",
+       "pattern": "^[a-z0-9][a-z0-9-]*$"
+      },
+      "kind": {
+       "const": "coverage-checklist"
+      },
+      "applies": {
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "topologies": {
+         "type": "array",
+         "items": {
+          "type": "string"
+         }
+        },
+        "interfaces": {
+         "type": "array",
+         "items": {
+          "type": "string"
+         }
+        }
+       }
+      },
+      "requires": {
+       "type": "array",
+       "minItems": 1,
+       "items": {
+        "type": "object",
+        "required": [
+         "class",
+         "min_level"
+        ],
+        "additionalProperties": false,
+        "properties": {
+         "class": {
+          "type": "string"
+         },
+         "min_level": {
+          "type": "string",
+          "enum": [
+           "principle",
+           "topology",
+           "family",
+           "part",
+           "instance"
+          ]
+         },
+         "note": {
+          "type": "string"
+         }
+        }
+       }
+      },
+      "maturity": {
+       "type": "string",
+       "enum": [
+        "draft",
+        "verified",
+        "approved",
+        "proven"
+       ]
+      },
+      "approval": {
+       "type": "object",
+       "required": [
+        "by",
+        "date"
+       ],
+       "additionalProperties": false,
+       "properties": {
+        "by": {
+         "type": "string",
+         "minLength": 1
+        },
+        "date": {
+         "type": "string",
+         "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "note": {
+         "type": "string"
+        }
+       }
+      },
+      "sources": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "required": [
+         "file"
+        ],
+        "additionalProperties": false,
+        "properties": {
+         "file": {
+          "type": "string",
+          "minLength": 1
+         },
+         "page": {
+          "type": "integer",
+          "minimum": 1
+         },
+         "section": {
+          "type": "string"
+         },
+         "note": {
+          "type": "string"
+         }
+        }
+       }
+      },
+      "prose": {
+       "type": "string",
+       "maxLength": 1500
+      },
+      "origin": {
+       "type": "string",
+       "minLength": 1
+      }
+     }
+    },
+    "checklist_template": {
+     "id": "swd-debug-port",
+     "kind": "coverage-checklist",
+     "applies": {
+      "topologies": [
+       "swd-debug-port"
+      ]
+     },
+     "requires": [
+      {
+       "class": "<class>",
+       "min_level": "topology",
+       "note": "<why this class must be populated first>"
+      }
+     ],
+     "maturity": "draft",
+     "sources": [
+      {
+       "file": "research/sources/<file>",
+       "page": 1,
+       "note": "<what was READ>"
+      }
+     ],
+     "prose": "<what a designer must know before designing this>",
+     "origin": "research:block-swd-debug-port-1"
+    },
+    "classes": [
+     "constraints-emission",
+     "creepage",
+     "decoupling",
+     "diff-pair",
+     "emi",
+     "esd",
+     "feedback",
+     "inrush",
+     "power-loop",
+     "return-path",
+     "selection",
+     "sequencing",
+     "sourcing",
+     "thermal",
+     "thermal-via"
+    ],
+    "levels": [
+     "principle",
+     "topology",
+     "family",
+     "part",
+     "instance"
+    ],
+    "envelope_units": [
+     "v",
+     "mv",
+     "kv",
+     "a",
+     "ma",
+     "ua",
+     "w",
+     "mw",
+     "kw",
+     "hz",
+     "khz",
+     "mhz",
+     "ghz",
+     "ns",
+     "us",
+     "ms",
+     "s",
+     "c",
+     "k",
+     "mm",
+     "um",
+     "cm",
+     "m",
+     "pf",
+     "nf",
+     "uf",
+     "mf",
+     "nh",
+     "uh",
+     "mh",
+     "ohm",
+     "mohm",
+     "kohm",
+     "mohms",
+     "pct",
+     "oz",
+     "mbps",
+     "gbps",
+     "bps",
+     "layers",
+     "pins",
+     "v_per_ns",
+     "v_per_us",
+     "a_per_ns",
+     "a_per_us"
+    ],
+    "paths": {
+     "records": "research/records/<id>.yaml",
+     "checklists": "research/checklists/<id>.yaml",
+     "sources": "research/sources/",
+     "task": "research/tasks/block-swd-debug-port-1.json"
+    },
+    "commands": {
+     "fetch": "scripts/research.py fetch --workspace boards/bb-mcu --task block-swd-debug-port-1 --url <https://vendor/...pdf> --tier <vendor-layout|vendor-appnote|cross-vendor|forum> [--about <mpn>] [--expect pdf|html]",
+     "validate": "scripts/research.py validate --workspace boards/bb-mcu --task block-swd-debug-port-1",
+     "status": "scripts/research.py status --workspace boards/bb-mcu --task block-swd-debug-port-1"
+    }
+   }
+  }
+ ],
+ "caps": {
+  "per_run": 4,
+  "depth_per_gap": 4
+ }
+}

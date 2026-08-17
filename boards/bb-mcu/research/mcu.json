@@ -1,0 +1,60 @@
+{
+  "block": "mcu",
+  "candidates": [
+    {
+      "mpn": "STM32F030F4P6TR",
+      "lcsc": "C89040",
+      "package": "TSSOP-20",
+      "basic": false,
+      "stock": 19015,
+      "price": 0.9628,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_STMicroelectronics-STM32F030F4P6TR_C89040.pdf",
+      "rank": 1,
+      "fit": "Cortex-M0, SWD on PA13/PA14 with internal pull-up/down at reset, TRUE dedicated NRST and BOOT0 pins (no GPIO alt-function on either) - the most textbook STM32 pinout of the set. Best stock of any SWD candidate (19,015). BOOT0 has no internal pull, so it needs one external pull-down resistor (precedented in this repo's stm32-blinky board); internal 8MHz HSI runs and debugs with no crystal."
+    },
+    {
+      "mpn": "PY32F030F28P6TU",
+      "lcsc": "C3018716",
+      "package": "TSSOP-20",
+      "basic": false,
+      "stock": 2536,
+      "price": 0.4127,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2205171716_PUYA--PY32F030F28P6TU_C3018716.pdf",
+      "rank": 2,
+      "fit": "Pin-compatible STM32 clone, genuine ARM SWD on PA13/PA14 with internal pulls active at reset. BOOT0 (PF4) datasheet-documented internal pull-down - zero extra boot-strap parts. Cheapest ARM candidate, good stock (2,536), internal HSI (4-24MHz selectable) needs no crystal. Thinner official documentation/community maturity than genuine STMicro parts; datasheet's TSSOP20 pin table carries two sub-variants (F1/F2) not fully reconciled here."
+    },
+    {
+      "mpn": "STM32C011F4P6",
+      "lcsc": "C5452432",
+      "package": "TSSOP-20",
+      "basic": false,
+      "stock": 1371,
+      "price": 1.2945,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2305191757_STMicroelectronics-STM32C011F4P6_C5452432.pdf",
+      "rank": 3,
+      "fit": "Current-gen Cortex-M0+, SWD on PA13/PA14 (internal pulls at reset). BOOT0 rides the SWCLK pin (PA14-BOOT0) with its own internal pull-down defaulting to boot-from-flash - zero external boot-strap parts, leanest ST BOM here (VDD/VDDA and VSS/VSSA each merged to one pin). NRST (PF2) is itself GPIO-reassignable, a minor architectural note. Stock 1,371 still >>5, just thinnest of the three healthy SWD picks. Already smoke-tested live on this host."
+    },
+    {
+      "mpn": "CH32V003F4P6",
+      "lcsc": "C5187096",
+      "package": "TSSOP-20-175mil",
+      "basic": false,
+      "stock": 16813,
+      "price": 0.2868,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2403131352_WCH-Jiangsu-Qin-Heng-CH32V003F4P6_C5187096.pdf",
+      "rank": 4,
+      "fit": "Required non-ARM entry (WCH RISC-V). Best stock (16,813) and price of any candidate, leanest BOM of all five (single VDD/VSS pin pair, no BOOT0 pin exists at all). Debug is single-wire SWIO on PD1 (shared with a timer/ADC alt-function) - needs a WCH-Link-class probe, not the ST-Link/J-Link/DAPLink the brief names; community OpenOCD/PicoRVD/minichlink alternatives exist but aren't turnkey. Picking this part also reshapes J2 to one debug signal instead of two."
+    },
+    {
+      "mpn": "STM32G031F4P6",
+      "lcsc": "C529332",
+      "package": "TSSOP-20",
+      "basic": false,
+      "stock": 68,
+      "price": 2.0614,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_STMicroelectronics-STM32G031F4P6_C529332.pdf",
+      "rank": 5,
+      "fit": "Not recommended. More capable Cortex-M0+ (64MHz/8KB RAM) with the same clean SWD + internal-pull-down BOOT0 story as STM32C011, but only 68 units in stock today (near-zero margin over a 5-board build) and this exact TSSOP20 pinout shares physical pads between unrelated signals (e.g. PA15/PA14-BOOT0), reducing simultaneous GPIO below the headline 18. Listed to show the same-vendor upgrade path exists, not a practical pick here."
+    }
+  ]
+}

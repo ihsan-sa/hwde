@@ -1,0 +1,40 @@
+{
+ "mpn": "HX PZ2.54-1x5P ZZ",
+ "lcsc": "C32713271",
+ "package": "1x5 straight pin header, 2.54 mm pitch, through-hole, single row.",
+ "description": "HX PZ2.54-1x5P ZZ - 1x5 straight pin header, 2.54 mm pitch, through-hole. Manufacturer: Shenzhen Hanxia Electronic Co., Ltd (brand mark 'HANXIA'). Source PDF is a 7-page document downloaded from wmsc.lcsc.com: page 1 (0-based page 0) is the mechanical/electrical drawing sheet used for this extraction - drawn as a generic multi-pin family illustration (a row of >=8 pin positions with a break line), dimensioned per-pin/per-pitch so the numbers apply regardless of pin count; page 2 is an approval-signature cover page that names this exact part 'HX PZ2.54-1x5P ZZ' (LCSC C32713271, confirming the drawing sheet applies to our part); pages 3-5 (0-based 2-4) are a formal connector specification (materials, electrical performance, mechanical performance, solderability/endurance test tables); pages 6-7 (0-based 5-6) continue environmental endurance tests and packaging/transport/storage notes. Our part's pin count (5) is read off the drawing's own 'No. of / DIM.A / DIM.B' family table (row No.=5, highlighted on the sheet).",
+ "pinout": [
+  {"pin": "1", "name": "1", "type": "passive", "notes": "Straight through-hole pin contact, position 1 of 5. No polarization/keying feature is depicted anywhere on the drawing sheet - the housing wafer segments repeat identically along the row."},
+  {"pin": "2", "name": "2", "type": "passive", "notes": "Position 2 of 5."},
+  {"pin": "3", "name": "3", "type": "passive", "notes": "Position 3 of 5."},
+  {"pin": "4", "name": "4", "type": "passive", "notes": "Position 4 of 5."},
+  {"pin": "5", "name": "5", "type": "passive", "notes": "Position 5 of 5."}
+ ],
+ "decoupling": [],
+ "land_pattern": {
+  "package": "1x5 straight pin header, 2.54 mm pitch",
+  "pad_count": 5,
+  "pitch_mm": 2.54,
+  "drill_mm": 1.02,
+  "pin1": "1",
+  "notes": "From the 'RECOMMEND P.C.B LAYOUT (TOP VIEW)' drawing on page 1 (PCB TOLERANCE +/-0.05 per the sheet) - this IS the vendor's recommended hole pattern. Recommended drill Ø1.02 mm per hole, pitch 2.54 mm (both dimensioned directly on that view). Overall span for our 5-pin part, read from the sheet's own 'No. of / DIM.A / DIM.B' family table at row No.=5: DIM.A = 10.16 mm (pin-1-to-pin-5 center span, = (5-1) x 2.54) and DIM.B = 12.70 mm (= 5 x 2.54; likely a layout/keepout envelope one half-pitch beyond each end pin, not separately explained on the sheet). Pin pitch 2.54 +/-0.1 mm is independently re-confirmed on a second side-view of the pin row (page 1) together with a pin cross-section callout SQ 0.64 mm (square, 0.64 x 0.64 mm). A SQ 0.64 mm pin's worst-case diagonal is 0.64 x sqrt(2) = 0.905 mm, which fits the vendor's own Ø1.02 mm hole with 0.115 mm diametral clearance. No copper LAND/pad diameter is given anywhere on this sheet - only the drill/hole pattern is dimensioned; pad_size_mm and annulus_mm are deliberately omitted rather than invented (see OPEN). Recommended PCB thickness for this part: 1.2-1.6 mm [spec text, page 3]. Note: the same top-view drawing separately dimensions a housing-wafer segment width of 2.50 mm (distinct from the 2.54 mm electrical/hole pitch) - not explained on the sheet, likely a molded-housing-vs-metal-contact tolerance artifact, not a PCB layout number."
+ },
+ "exposed_pad": {"present": false},
+ "layout_notes": [
+  "Recommended PCB hole (drill): Ø1.02 mm per pin, pitch 2.54 mm [RECOMMEND P.C.B LAYOUT drawing, page 1]. The board's PULLED footprint uses a 1.10 mm drill - +0.08 mm OVER this recommendation (safe direction). Against the pin's own dimensioned cross-section (SQ 0.64 mm, worst-case diagonal 0.905 mm), the pulled 1.10 mm hole gives 0.195 mm diametral clearance (looser than the vendor's own 1.02 mm recommendation's 0.115 mm, but not undersized). Verdict: the pulled 1.10 mm drill comfortably accepts the pin and exceeds the vendor's recommended hole size - not a defect.",
+  "A single-pin side-view detail on page 1 dimensions two exposed pin-length segments either side of a small housing collar: 6.00 +/-0.2 mm and 3.00 +/-0.2 mm. The drawing does not label which segment is the upper mating pin vs the lower PCB solder-tail, so this file records both numbers without assigning them (see OPEN) - relevant to P6 for vertical clearance above/below the board once the orientation is confirmed.",
+  "Applicable PCB thickness per the formal spec (page 3): 1.2-1.6 mm.",
+  "Contact retention force >=10 N per pin (male and female contact); plug-in force <=3 N per pin; plug-out force <=0.5 N per pin [mechanical performance table, page 4].",
+  "Contact material: phosphor bronze, tin plated 3-4 um standard (a gold-flash 'Lips Wafer' variant also listed in the material table, page 3) [page 3]."
+ ],
+ "abs_max": [
+  {"param": "Rated voltage", "value": 250, "unit": "AC/DC V"},
+  {"param": "Rated current", "value": 3, "unit": "A (AC/DC)"},
+  {"param": "Operating temperature range", "value": "-40 to 105", "unit": "degC"},
+  {"param": "Max processing (soldering) temperature", "value": "240 C for 30-60 sec, or 260 C for 5 sec", "unit": "degC"},
+  {"param": "Withstanding (dielectric) voltage", "value": 1000, "unit": "AC V / min"},
+  {"param": "Insulation resistance (min)", "value": 1000, "unit": "Mohm"},
+  {"param": "Contact resistance (max)", "value": 20, "unit": "mohm"}
+ ],
+ "source_pdf": "boards/bb-mcu/parts/C32713271.pdf = Shenzhen Hanxia Electronic Co., Ltd 'SPECIFICATION FOR APPROVAL' for Part No. 'HX PZ2.54-1x5P ZZ', drawing dated 2022/04/24, 7 pages, downloaded from wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2407231541_hanxia-HX-PZ2-54-1x5P-ZZ_C32713271.pdf (HTTP 200, verified %PDF-1.7 header, sha256 b9c7b6d03dad09caf8e459611ca1b2c92c2e91aa29d78b41c0164ee1c1699c08)."
+}
