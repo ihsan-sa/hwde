@@ -1,0 +1,1200 @@
+{
+ "script": "knowledge",
+ "status": "pass",
+ "schema_version": 2,
+ "workspace": "boards/bb-amp",
+ "board": "bb-amp",
+ "phase": "P3",
+ "maturity_floor": "approved",
+ "keys": {
+  "topologies": [
+   "inamp"
+  ],
+  "packages": [
+   "0603",
+   "0805",
+   "Plugin, P=5.08mm",
+   "SOIC-8",
+   "SOP-8"
+  ],
+  "interfaces": [
+   "in"
+  ],
+  "parts": [
+   "0603WAF1000T5E",
+   "AD8226ARZ-R7",
+   "C136967",
+   "C14663",
+   "C15850",
+   "C22775",
+   "C34250",
+   "C38732",
+   "C474952",
+   "C474953",
+   "C861095",
+   "C861195",
+   "C95204",
+   "CC0603KRX7R9BB104",
+   "CL21A106KAYNNNE",
+   "KF128-5.08-2P-AA",
+   "KF128-5.08-3P-AA",
+   "OPA2333AIDR",
+   "RT0603BRD0710KL",
+   "RT0603BRD07121KL",
+   "RT0603BRD071K27L",
+   "RT0603BRD0724K9L"
+  ],
+  "sources": {
+   "constraints": "boards/bb-amp/architecture/constraints.json",
+   "parts": "boards/bb-amp/parts/parts.json"
+  }
+ },
+ "sources": {
+  "constraints": "boards/bb-amp/architecture/constraints.json",
+  "parts": "boards/bb-amp/parts/parts.json"
+ },
+ "summary": {
+  "slots": 4,
+  "covered": 2,
+  "provisional": 2,
+  "gap": 0
+ },
+ "slots": [
+  {
+   "id": "block:B1",
+   "kind": "block",
+   "topology": "inamp",
+   "label": "B1",
+   "operating_point": {
+    "vs_v": 3.3,
+    "vs_tol_pct": 5,
+    "vcm_v": 1.65,
+    "gain_vv": 139.2,
+    "gain_stage1_vv": 39.9,
+    "gain_stage2_vv": 3.49,
+    "vin_diff_mv_fs": 20,
+    "vin_diff_mv_max": 25,
+    "vped_v": 0.252,
+    "vout_min_v": 0.113,
+    "vout_max_v": 3.037,
+    "f_signal_hz": 1000,
+    "f3db_hz": 41000,
+    "err_budget_uv_rti": 5,
+    "noise_nv_rthz_rti": 22.2,
+    "rsource_ohm": 350,
+    "load_kohm_min": 100,
+    "iq_ma": 0.65,
+    "pdiss_w": 0.0023,
+    "tamb_c_min": 0,
+    "tamb_c_max": 50,
+    "board_layers": 2,
+    "supply_kind": "single",
+    "inamp_arch_kind": "three-opamp",
+    "ref_drive_kind": "buffered",
+    "source_kind": "bridge-external-excitation",
+    "gain_split_kind": "two-stage",
+    "output_stage_kind": "rrio-opamp",
+    "calibration_kind": "zero-span-downstream"
+   },
+   "classes": [
+    {
+     "class": "selection",
+     "min_level": "topology",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "inamp-gain-partition-first-stage",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      },
+      {
+       "id": "inamp-headroom-escape-gain-in-difference-amp",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      },
+      {
+       "id": "inamp-internal-node-headroom-inequalities",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      },
+      {
+       "id": "inamp-internal-node-saturation",
+       "level": "principle",
+       "maturity": "verified",
+       "envelope": "n/a",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "level-below-min"
+      }
+     ]
+    },
+    {
+     "class": "feedback",
+     "min_level": "topology",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "inamp-ref-pin-drive-impedance",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    },
+    {
+     "class": "diff-pair",
+     "min_level": "topology",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "inamp-cmrr-over-frequency-and-source-imbalance",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      },
+      {
+       "id": "inamp-input-network-differential-cap-dominance",
+       "level": "principle",
+       "maturity": "verified",
+       "envelope": "n/a",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "level-below-min"
+      }
+     ]
+    },
+    {
+     "class": "decoupling",
+     "min_level": "principle",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "inamp-supply-decoupling-and-local-ground",
+       "level": "principle",
+       "maturity": "verified",
+       "envelope": "n/a",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    },
+    {
+     "class": "return-path",
+     "min_level": "principle",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "inamp-supply-decoupling-and-local-ground",
+       "level": "principle",
+       "maturity": "verified",
+       "envelope": "n/a",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    }
+   ],
+   "gap_reasons": [],
+   "checklist": {
+    "id": "inamp",
+    "maturity": "draft",
+    "floor_met": false
+   },
+   "verdict": "provisional"
+  },
+  {
+   "id": "interface:in",
+   "kind": "interface",
+   "interface": "in",
+   "operating_point": {
+    "gap_mm": 0.25,
+    "max_skew_mm": 2.0,
+    "max_uncoupled_mm": 5.0,
+    "term_pair_mm": 2.5,
+    "rsource_ohm": 350,
+    "vcm_v": 1.65,
+    "vsig_mv": 20,
+    "vout_v": 3.04,
+    "err_rti_mv": 0.005,
+    "ibias_ua": 0.035,
+    "mismatch_pct": 1,
+    "dt_c": 1,
+    "f_signal_hz": 1000,
+    "f3db_hz": 41000
+   },
+   "classes": [
+    {
+     "class": "return-path",
+     "min_level": "topology",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "in-bias-return-failure-signature",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      },
+      {
+       "id": "in-bias-return-path-required",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      },
+      {
+       "id": "in-bias-return-resistor-sizing-ad8226",
+       "level": "part",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    },
+    {
+     "class": "diff-pair",
+     "min_level": "topology",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "in-input-path-equivalence",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    },
+    {
+     "class": "thermal",
+     "min_level": "topology",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "in-terminal-thermal-emf",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    },
+    {
+     "class": "emi",
+     "min_level": "topology",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "in-cable-shield-termination",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    },
+    {
+     "class": "selection",
+     "min_level": "topology",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "in-terminal-selection",
+       "level": "family",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    },
+    {
+     "class": "constraints-emission",
+     "min_level": "principle",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "in-constraints-emission",
+       "level": "principle",
+       "maturity": "verified",
+       "envelope": "n/a",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    }
+   ],
+   "gap_reasons": [],
+   "checklist": {
+    "id": "in",
+    "maturity": "draft",
+    "floor_met": false
+   },
+   "verdict": "provisional"
+  },
+  {
+   "id": "part:C34250",
+   "kind": "part",
+   "lcsc": "C34250",
+   "mpn": "AD8226ARZ-R7",
+   "package": "SOIC-8",
+   "block": "inamp",
+   "ref_prefix_hint": "U",
+   "operating_point": {},
+   "extraction": {
+    "file": "boards/bb-amp/parts/C34250.json",
+    "layout_notes": 10,
+    "layout_chars": 4765,
+    "error": null
+   },
+   "classes": [
+    {
+     "class": "datasheet-layout",
+     "min_level": "part",
+     "verdict": "covered",
+     "records": []
+    }
+   ],
+   "gap_reasons": [],
+   "datasheet_layout": "present",
+   "verdict": "covered"
+  },
+  {
+   "id": "part:C38732",
+   "kind": "part",
+   "lcsc": "C38732",
+   "mpn": "OPA2333AIDR",
+   "package": "SOP-8",
+   "block": "ref_gain2",
+   "ref_prefix_hint": "U",
+   "operating_point": {},
+   "extraction": {
+    "file": "boards/bb-amp/parts/C38732.json",
+    "layout_notes": 10,
+    "layout_chars": 4935,
+    "error": null
+   },
+   "classes": [
+    {
+     "class": "datasheet-layout",
+     "min_level": "part",
+     "verdict": "covered",
+     "records": []
+    }
+   ],
+   "gap_reasons": [],
+   "datasheet_layout": "present",
+   "verdict": "covered"
+  }
+ ],
+ "gaps": [],
+ "warnings": [
+  "blocks[0].operating_point.gain_vv: not a unit-suffixed or *_kind dim - no envelope can ever test it",
+  "blocks[0].operating_point.gain_stage1_vv: not a unit-suffixed or *_kind dim - no envelope can ever test it",
+  "blocks[0].operating_point.gain_stage2_vv: not a unit-suffixed or *_kind dim - no envelope can ever test it",
+  "blocks[0].operating_point.vin_diff_mv_fs: not a unit-suffixed or *_kind dim - no envelope can ever test it",
+  "blocks[0].operating_point.vin_diff_mv_max: not a unit-suffixed or *_kind dim - no envelope can ever test it",
+  "blocks[0].operating_point.err_budget_uv_rti: not a unit-suffixed or *_kind dim - no envelope can ever test it",
+  "blocks[0].operating_point.noise_nv_rthz_rti: not a unit-suffixed or *_kind dim - no envelope can ever test it",
+  "blocks[0].operating_point.load_kohm_min: not a unit-suffixed or *_kind dim - no envelope can ever test it",
+  "blocks[0].operating_point.tamb_c_min: not a unit-suffixed or *_kind dim - no envelope can ever test it",
+  "blocks[0].operating_point.tamb_c_max: not a unit-suffixed or *_kind dim - no envelope can ever test it"
+ ],
+ "workspace_records": [
+  "in-aggressor-separation",
+  "in-bias-current-return-path",
+  "in-bias-return-failure-signature",
+  "in-bias-return-path-required",
+  "in-bias-return-resistor-sizing-ad8226",
+  "in-bias-return-sizing",
+  "in-cable-shield-termination",
+  "in-constraints-emission",
+  "in-input-path-equivalence",
+  "in-leakage-symmetry-and-guarding",
+  "in-path-symmetry-sets-cmrr",
+  "in-terminal-selection",
+  "in-terminal-thermal-emf",
+  "inamp-cmrr-over-frequency-and-source-imbalance",
+  "inamp-gain-partition-first-stage",
+  "inamp-gain-pin-and-input-node-parasitics",
+  "inamp-headroom-escape-gain-in-difference-amp",
+  "inamp-input-network-differential-cap-dominance",
+  "inamp-internal-node-headroom-inequalities",
+  "inamp-internal-node-saturation",
+  "inamp-ref-pin-drive-impedance",
+  "inamp-supply-decoupling-and-local-ground"
+ ],
+ "workspace_checklists": [
+  "in",
+  "inamp"
+ ],
+ "mapping_applied": null,
+ "mapping_request": {
+  "schema": {
+   "$schema": "https://json-schema.org/draft/2020-12/schema",
+   "title": "ai-ee coverage mapping (agent output)",
+   "type": "object",
+   "required": [
+    "mappings"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "mappings": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "required": [
+       "record",
+       "slot",
+       "class",
+       "why"
+      ],
+      "additionalProperties": false,
+      "properties": {
+       "record": {
+        "type": "string",
+        "minLength": 1
+       },
+       "slot": {
+        "type": "string",
+        "minLength": 1
+       },
+       "class": {
+        "type": "string",
+        "minLength": 1
+       },
+       "why": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 300
+       }
+      }
+     }
+    },
+    "note": {
+     "type": "string",
+     "maxLength": 600
+    }
+   }
+  },
+  "instructions": "Map records to slots for ONE class each - only edges you can justify from the record's prose. You classify; you do NOT decide sufficiency, coverage or maturity. Output the JSON shape in `schema`; the coverage run validates it and refuses unknown records/slots or classes the record does not carry.",
+  "slots": [
+   {
+    "id": "block:B1",
+    "kind": "block",
+    "topology": "inamp",
+    "operating_point": {
+     "vs_v": 3.3,
+     "vs_tol_pct": 5,
+     "vcm_v": 1.65,
+     "gain_vv": 139.2,
+     "gain_stage1_vv": 39.9,
+     "gain_stage2_vv": 3.49,
+     "vin_diff_mv_fs": 20,
+     "vin_diff_mv_max": 25,
+     "vped_v": 0.252,
+     "vout_min_v": 0.113,
+     "vout_max_v": 3.037,
+     "f_signal_hz": 1000,
+     "f3db_hz": 41000,
+     "err_budget_uv_rti": 5,
+     "noise_nv_rthz_rti": 22.2,
+     "rsource_ohm": 350,
+     "load_kohm_min": 100,
+     "iq_ma": 0.65,
+     "pdiss_w": 0.0023,
+     "tamb_c_min": 0,
+     "tamb_c_max": 50,
+     "board_layers": 2,
+     "supply_kind": "single",
+     "inamp_arch_kind": "three-opamp",
+     "ref_drive_kind": "buffered",
+     "source_kind": "bridge-external-excitation",
+     "gain_split_kind": "two-stage",
+     "output_stage_kind": "rrio-opamp",
+     "calibration_kind": "zero-span-downstream"
+    },
+    "required_classes": [
+     "selection",
+     "feedback",
+     "diff-pair",
+     "decoupling",
+     "return-path"
+    ],
+    "unmet_classes": [
+     "selection",
+     "feedback",
+     "diff-pair",
+     "decoupling",
+     "return-path"
+    ]
+   },
+   {
+    "id": "interface:in",
+    "kind": "interface",
+    "interface": "in",
+    "operating_point": {
+     "gap_mm": 0.25,
+     "max_skew_mm": 2.0,
+     "max_uncoupled_mm": 5.0,
+     "term_pair_mm": 2.5,
+     "rsource_ohm": 350,
+     "vcm_v": 1.65,
+     "vsig_mv": 20,
+     "vout_v": 3.04,
+     "err_rti_mv": 0.005,
+     "ibias_ua": 0.035,
+     "mismatch_pct": 1,
+     "dt_c": 1,
+     "f_signal_hz": 1000,
+     "f3db_hz": 41000
+    },
+    "required_classes": [
+     "return-path",
+     "diff-pair",
+     "thermal",
+     "emi",
+     "selection",
+     "constraints-emission"
+    ],
+    "unmet_classes": [
+     "return-path",
+     "diff-pair",
+     "thermal",
+     "emi",
+     "selection",
+     "constraints-emission"
+    ]
+   }
+  ],
+  "candidates": [
+   {
+    "id": "buck-bst-fb-output-caps",
+    "level": "family",
+    "maturity": "approved",
+    "classes": [
+     "feedback",
+     "decoupling"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "BST: integrated-FET parts need the 100 nF BST-SW cap - it is required, not optional (DS41326 s13); confirm value/rating in the family datasheet. FB TRAP (cost a near-miss once): FIXED-output family members tie FB straight to the output sens"
+   },
+   {
+    "id": "buck-cin-co-ground-separation",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "power-loop",
+     "emi"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "Two ROHM measurements the generic hot-loop rule does not carry: (1) shortening the CBYPASS wiring EVEN BY 1 mm is worth it - the HF bypass supplies the steepest edge of the switch current, and its loop inductance sets the VIN-pin voltage no"
+   },
+   {
+    "id": "buck-constraints-emission",
+    "level": "principle",
+    "maturity": "approved",
+    "classes": [
+     "constraints-emission"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "What a buck block must emit into constraints.json for the pipeline: (1) power entries with current_a from the RAIL BUDGET (consumer sum + ~30% headroom, rounded to a design ceiling) and dt_c from ambient; (2) a thermal entry when regulator "
+   },
+   {
+    "id": "buck-en-softstart-sequencing",
+    "level": "principle",
+    "maturity": "approved",
+    "classes": [
+     "sequencing"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "Check the EN pin's OWN behavior before adding parts: many parts auto-start (AP63203: internal 1.5 uA pull-up - tie to VIN or float; adding a divider is wasted parts). When EN is used as a UVLO divider, mind the two traps the sbuck run hit: "
+   },
+   {
+    "id": "buck-fb-route-rules",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "feedback"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "The feedback route needs the most attention of any signal wire - noise here becomes output-voltage error and instability. ROHM's four rules (fig 7-a): (a) the FB pin is high impedance - connect the divider network with a SHORT wire at the p"
+   },
+   {
+    "id": "buck-freewheel-diode-snubber-placement",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "power-loop",
+     "emi"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "Async buck (free-wheel diode) placement rules: the diode must sit CLOSE and on the SAME surface as the IC terminals, wired short and wide, connected directly to the IC's GND and SW terminals - distance adds wiring inductance whose spike noi"
+   },
+   {
+    "id": "buck-inductor-copper-and-gnd-void",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "emi"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "Inductor region rules (ROHM s5): place L close to the IC but NOT as close as the input cap; do NOT expand the SW/inductor copper beyond what current needs - enlarged copper works as an antenna (EMI), even though instinct says more copper = "
+   },
+   {
+    "id": "buck-inductor-selection",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "selection"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "The three inductor rules every run re-derived from scratch. L VALUE: start from the vendor's recommended-components table row for your Vout; the next STANDARD value up is usually right - light-load efficiency improves with larger L (DS41326"
+   },
+   {
+    "id": "buck-input-hot-loop",
+    "level": "principle",
+    "maturity": "approved",
+    "classes": [
+     "power-loop",
+     "emi"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "Layout rule #1 for every buck: the input cap carries the DISCONTINUOUS switch current. C_IN plus a 100 nF HF bypass AT the VIN pin, on the SAME layer as the IC; the C_IN -> VIN -> GND -> C_IN loop must be the shortest loop on the board; SW-"
+   },
+   {
+    "id": "buck-power-ground-isolation",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "return-path",
+     "power-loop"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "Ground strategy (ROHM s8): analog small-signal ground and power ground must be ISOLATED, and power ground laid on the TOP layer without splitting is the ideal - dropping an isolated power ground to the bottom layer through vias adds via R a"
+   },
+   {
+    "id": "buck-selection-ladder",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "selection"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "Regulator-type ladder, one line of tradeoff each; if the brief names a part the named part stands (record the alternative as an override option). (1) Integrated synchronous buck is the DEFAULT at <= ~60 V input and <= ~3 A: no catch diode, "
+   },
+   {
+    "id": "buck-switch-node-containment",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "emi"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "Keep SW copper as small as electrically possible and treat SW + L as an AGGRESSOR: lumina-par's 2.4 GHz antenna 11 mm from a switch node drove a 4-layer stackup + containment plan; usb-buck keeps the USB pair away from SW/L per ST AN4879 3."
+   },
+   {
+    "id": "buck-thermal-via-and-via-current",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "thermal-via"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [
+      "HTSOP-J8",
+      "SO-8-EP",
+      "SO-8EP"
+     ],
+     "interfaces": []
+    },
+    "prose_head": "Thermal vias under an exposed-pad regulator (ROHM s4, HTSOP-J8 numbers generalize to EP packages): small drill - 0.3 mm inner diameter - so the via can FILL with solder; larger drills suck solder away from the joint at reflow (solder-wickin"
+   },
+   {
+    "id": "buck-upstream-inrush-limit",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "inrush",
+     "selection"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "interfaces": [
+      "usb",
+      "usb-pd",
+      "poe"
+     ],
+     "packages": []
+    },
+    "prose_head": "Upstream bulk limit trap: a buck's input capacitance is bounded by the SOURCE, not by the buck. USB 2.0 allows 10 uF || 44 ohm at attach (spec s7.2.4.1); a USB-PD sink is allowed 100 uF under contract (cSnkBulkPd); PoE has its own inrush en"
+   },
+   {
+    "id": "cot-ripple-injection-raises-vout",
+    "level": "family",
+    "maturity": "approved",
+    "classes": [
+     "feedback"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "A constant-on-time regulator ends its off-time when FB falls back through VREF, so it regulates the VALLEY of FB, not its average. With Type 3 injection the ramp is AC-coupled into FB and its mean is genuinely zero, so FB_dc = VREF + Vramp/"
+   },
+   {
+    "id": "in-bias-return-failure-signature",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "return-path"
+    ],
+    "applies": {
+     "topologies": [],
+     "packages": [],
+     "interfaces": [
+      "in"
+     ],
+     "parts": [
+      "AD8226"
+     ]
+    },
+    "prose_head": "The correction that matters for bring-up: the two symptoms in the literature contradict each other, so neither is a test. AN1298 p.14 gives the mechanism and one ending - \"Without a DC return path, the input bias current will accumulate on "
+   },
+   {
+    "id": "in-bias-return-path-required",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "return-path"
+    ],
+    "applies": {
+     "topologies": [],
+     "packages": [],
+     "interfaces": [
+      "in"
+     ],
+     "parts": [
+      "AD8226"
+     ]
+    },
+    "prose_head": "The AD8226's own LAYOUT page: \"The input bias current of the AD8226 must have a return path to ground. When the source, such as a thermocouple, cannot provide a return current path, one should be created, as shown in Figure 62.\" Figure 62 i"
+   },
+   {
+    "id": "in-bias-return-resistor-sizing-ad8226",
+    "level": "part",
+    "maturity": "verified",
+    "classes": [
+     "return-path"
+    ],
+    "applies": {
+     "topologies": [],
+     "packages": [],
+     "interfaces": [
+      "in"
+     ],
+     "parts": [
+      "AD8226"
+     ]
+    },
+    "prose_head": "Sizing a created bias-return network for THIS part, from its own Table 3. The vendor prints only two example values (10 Mohm for a thermocouple, an unlabelled R pair behind ac-coupling caps), so the numbers below are arithmetic on the datas"
+   },
+   {
+    "id": "in-cable-shield-termination",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "emi"
+    ],
+    "applies": {
+     "topologies": [],
+     "packages": [],
+     "interfaces": [
+      "in"
+     ],
+     "parts": []
+    },
+    "prose_head": "What the ledger actually witnesses about the screen. A vendor sensor front-end paper, drawn around a 350 ohm foil strain gauge bridge feeding a single-supply in-amp - this slot's operating point - says: \"Shielded cables offer excellent reje"
+   },
+   {
+    "id": "in-constraints-emission",
+    "level": "principle",
+    "maturity": "verified",
+    "classes": [
+     "constraints-emission"
+    ],
+    "applies": {
+     "topologies": [],
+     "packages": [],
+     "interfaces": [
+      "in"
+     ],
+     "parts": []
+    },
+    "prose_head": "What this interface has to hand the rest of the pipeline. Two of the emissions are direct vendor consequences. The AD8226's layout page puts additional input-path series resistance \"close to the in-amp inputs, which minimizes their interact"
+   },
+   {
+    "id": "in-input-path-equivalence",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "diff-pair"
+    ],
+    "applies": {
+     "topologies": [],
+     "packages": [],
+     "interfaces": [
+      "in"
+     ],
+     "parts": [
+      "AD8226"
+     ]
+    },
+    "prose_head": "The vendor's own frame for the connector-to-pin run: what converts common mode into differential BEFORE the amplifier is a difference in FREQUENCY RESPONSE between the two paths, and the fix is equality of source impedance and capacitance p"
+   },
+   {
+    "id": "in-terminal-selection",
+    "level": "family",
+    "maturity": "verified",
+    "classes": [
+     "selection"
+    ],
+    "applies": {
+     "topologies": [],
+     "packages": [],
+     "interfaces": [
+      "in"
+     ],
+     "parts": []
+    },
+    "prose_head": "The terminal is where the two input conductors become PCB metal, so what matters in the datasheet is the material table, not the current rating. Read off the 3.50 mm WR-TBL order code: insulator PA66 (UL94 V-0), Contact Material Phosphor Br"
+   },
+   {
+    "id": "in-terminal-thermal-emf",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "thermal"
+    ],
+    "applies": {
+     "topologies": [],
+     "packages": [],
+     "interfaces": [
+      "in"
+     ],
+     "parts": []
+    },
+    "prose_head": "At a microvolt-class error budget the connector is a thermocouple. Every junction in the input path - wire to screw clamp, clamp to pad, solder to copper, via, resistor end cap - generates a Seebeck voltage, and PCB junctions are \"typically"
+   },
+   {
+    "id": "inamp-cmrr-over-frequency-and-source-imbalance",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "diff-pair"
+    ],
+    "applies": {
+     "topologies": [
+      "inamp"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "CMRR is not the DC number in the specification table; it is a curve, and the copper's job is to not spend it. Two AD8226 curves make the point, both plotted 0.1 Hz to 100 kHz, both at Vs = +/-15 V, 25 C, RL = 10 kohm. Figure 27, balanced so"
+   },
+   {
+    "id": "inamp-gain-partition-first-stage",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "selection"
+    ],
+    "applies": {
+     "topologies": [
+      "inamp"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "How much gain belongs in the first stage, and why. Both vendor error laws are printed as conditions in the AD8226 spec table: total offset Vos = Vosi + (Voso/G) and total noise eN = sqrt(eNi^2 + (eNo/G)^2). Everything the in-amp contributes"
+   },
+   {
+    "id": "inamp-headroom-escape-gain-in-difference-amp",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "selection"
+    ],
+    "applies": {
+     "topologies": [
+      "inamp"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": [
+      "AD8226",
+      "AD8227"
+     ]
+    },
+    "prose_head": "When the internal-node ceiling caps the in-amp's own gain below what the chain needs, the gain has to go somewhere else. Three escapes, all vendor-stated. (1) Move it downstream. ADI: \"apply less gain with the AD8226, and then apply additio"
+   },
+   {
+    "id": "inamp-input-network-differential-cap-dominance",
+    "level": "principle",
+    "maturity": "verified",
+    "classes": [
+     "diff-pair"
+    ],
+    "applies": {
+     "topologies": [
+      "inamp"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "An in-amp input network is deliberately ASYMMETRIC in its capacitors, and that asymmetry is the whole trick. ADI's Figure 63 (RFI Suppression) puts R = 4.02 kohm in each input leg, CC = 1 nF from each leg to ground, and CD = 10 nF bridging "
+   },
+   {
+    "id": "inamp-internal-node-headroom-inequalities",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "selection"
+    ],
+    "applies": {
+     "topologies": [
+      "inamp"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": [
+      "AD8226"
+     ]
+    },
+    "prose_head": "The closed-form test for the internal-node limit. ADI publishes it as three inequalities with tabulated constants (AD8226 Rev. C p.20, Equation 1 to 3 and Table 8; the constants are in `rule`). Cold is the worst case against the positive ra"
+   },
+   {
+    "id": "inamp-internal-node-saturation",
+    "level": "principle",
+    "maturity": "verified",
+    "classes": [
+     "selection"
+    ],
+    "applies": {
+     "topologies": [
+      "inamp"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "A classic in-amp amplifies BEFORE it subtracts: the first stage applies the differential gain, the second stage removes the common mode. So the nodes between the two stages carry a gained differential signal riding on the full, ungained com"
+   },
+   {
+    "id": "inamp-ref-pin-drive-impedance",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "feedback"
+    ],
+    "applies": {
+     "topologies": [
+      "inamp"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": [
+      "AD8226"
+     ]
+    },
+    "prose_head": "An in-amp's REF pin is not a high-impedance reference input. On a classic 3-op-amp part it is one leg of the difference amplifier's own resistor bridge, so any impedance in series with it unbalances that bridge. ADI: \"For the best performan"
+   },
+   {
+    "id": "inamp-supply-decoupling-and-local-ground",
+    "level": "principle",
+    "maturity": "verified",
+    "classes": [
+     "decoupling",
+     "return-path"
+    ],
+    "applies": {
+     "topologies": [
+      "inamp"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "The in-amp's own local power and ground environment, as its vendor specifies it. Three parts, all from the AD8226 LAYOUT section and its Figure 61. (a) Supply quality is a measurement parameter, not a housekeeping detail: \"A stable dc volta"
+   },
+   {
+    "id": "spiral-inductor-plane-and-heatsink-keepout",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "emi",
+     "thermal"
+    ],
+    "applies": {
+     "topologies": [
+      "class-e"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "An etched PCB spiral (air-core inductor, coupled pair, antenna) is destroyed by solid metal parallel to it: a ground plane under the winding is a shorted turn and collapses Q, and so is a bottom-side metal heatsink. Two independently-correc"
+   }
+  ]
+ }
+}

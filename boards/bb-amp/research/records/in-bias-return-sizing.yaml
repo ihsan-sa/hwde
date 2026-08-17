@@ -1,0 +1,65 @@
+id: in-bias-return-sizing
+classes: [return-path]
+applies:
+  topologies: []
+  packages: []
+  interfaces: [in]
+  parts: []
+rule:
+  enforced_by: null
+  source_referenced: "source ground brought to the input terminal as its own pole - no bias resistors, no added noise, no added offset"
+  low_source_resistance: "one resistor from a single input to ground is sufficient"
+  high_source_resistance: "two EQUAL resistors, one per input - balanced, lower bias-induced offset, better high-frequency CMRR"
+  upper_bound: "R_bias x Ib must stay inside the offset budget, and the two must MATCH or their mismatch converts common mode to differential"
+  lower_bound: "R_bias shunts the source: it costs gain and adds Johnson noise in series with a microvolt-level signal"
+prose: >-
+  Which form of bias return to use, and how big it is, follows from the
+  source. The vendor states the fork directly: "If the differential source
+  resistance is low, the bias current return path can be connected to one
+  input (see the thermocouple example in Figure 34). With higher source
+  impedance, using two equal resistors provides a balanced input with
+  possible advantages of lower input offset voltage as a result of bias
+  current and better high-frequency common-mode rejection." Two consequences
+  the sentence carries: the pair must be EQUAL (an unequal pair is exactly
+  the path mismatch that costs CMRR), and the resistors are not free - each
+  one sits in series or in shunt with the source, so R is bounded above by
+  Ib x R against the offset budget and bounded below by the loading and the
+  Johnson noise it adds to a microvolt-level signal. The cheapest case is
+  the one where nothing is added: a sensor whose own supply return shares
+  the amplifier's ground and brings a third conductor to the terminal
+  already provides the path through its own internal resistance - a 350 ohm
+  bridge gives each input roughly 175 ohm of DC path to that pole - so no
+  bleeder pair is fitted, and the mismatch term never arises.
+sources:
+  - file: research/sources/ina333.pdf
+    page: 16
+    section: "8.2.2.5 Input Bias Current Return Path"
+    note: >-
+      Read: the low-source-resistance / high-source-impedance fork quoted in
+      prose, plus Ib typ +-70 pA and the 100 Gohm input impedance that set
+      the sizing arithmetic.
+  - file: research/sources/ina333.pdf
+    page: 17
+    section: "Figure 34, Providing an Input Common-Mode Current Path"
+    note: >-
+      Read the figure: the balanced case uses a MATCHED 47 kohm/47 kohm pair
+      (one per input) while the low-impedance thermocouple case uses a
+      single 10 kohm - the vendor's own sizing examples for the two forms.
+status: draft
+origin: research:interface-in-1
+level: topology
+envelope:
+  rsource_ohm: {min: 0, max: 10000}
+  ibias_ua: {max: 0.1}
+maturity: draft
+generalizes: [in-bias-current-return-path]
+envelope_note: >-
+  Form scales with the source's own DC path; sizing scales with bias current
+  and the offset budget, since the resistor's error is Ib x R and its cost
+  is loading plus Johnson noise. Source resistance is bounded at 10 kohm:
+  below it (bridge, thermocouple, strain-gauge class) a bleeder pair is
+  unnecessary or negligible loading; above it that pair becomes a dominant
+  gain-error and noise term. Bias current is bounded at 100 nA, covering
+  CMOS and precision bipolar in-amp inputs (INA333 is 70 pA typ); a
+  higher-bias input needs proportionally smaller resistors and the two
+  bounds close on each other.

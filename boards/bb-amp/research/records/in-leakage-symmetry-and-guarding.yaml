@@ -1,0 +1,76 @@
+id: in-leakage-symmetry-and-guarding
+classes: [diff-pair]
+applies:
+  topologies: []
+  packages: []
+  interfaces: [in]
+  parts: []
+rule:
+  enforced_by: null
+  parasitic: "PCB surface leakage resistance from a sensitive node to a nearby net: approximately 1000 Gohm clean and dry, approximately 1 Gohm humid and contaminated"
+  error: "leakage current times the impedance of the node it lands on - EQUAL on both inputs it is a common-mode term and is rejected, UNEQUAL it is a differential error"
+  symmetry_regime: "at low source impedance the governing technique is equal neighbourhoods: give both inputs the same neighbours at the same distance, and never run only one of them past a supply or output net"
+  guard_regime: "as the node impedance approaches the parasitic, a guard at the node's own potential, driven from a low impedance, cuts the leakage roughly 1000x"
+  guard_rules: "no solder mask over the guard; guard both surfaces for through-hole parts; guard any jumper trace of a guarded net, or avoid the jumper"
+prose: >-
+  Surface contamination and humidity turn the board into a resistor network:
+  the vendor's typical numbers for close, short traces are a parasitic of
+  about 1000 Gohm clean and dry and about 1 Gohm humid and contaminated, and
+  the model is a resistor from the sensitive node to every nearby net,
+  including the rails. The error that reaches a differential input is not
+  the leakage itself but its ASYMMETRY: a current that arrives equally at
+  both inputs is common mode and is rejected, while a current that arrives
+  at one is a differential error multiplied by the full gain. Two design
+  regimes follow. With a low-impedance sensor the leakage-driven error is
+  the current times a few hundred ohms and stays far below a microvolt, so
+  the technique that pays is symmetry - equal neighbours at equal distance
+  on both inputs, no supply or output net passing one of them alone. As the
+  node impedance climbs toward the parasitic, guarding is what the vendor
+  prescribes: a ring at the same potential as the node, driven from a low
+  impedance, so the drop across the remaining parasitic is only the
+  amplifier's offset voltage and the leakage falls by roughly 1000x. The
+  guard must be mask-free, present on both surfaces for through-hole parts,
+  and must follow any jumper of a guarded net.
+sources:
+  - file: research/sources/01258b.pdf
+    page: 12
+    section: "Leakage Currents - PCB Surface Leakage, Guard Rings, Figures 26/28"
+    note: >-
+      Read: Figure 26 (Thevenin source with parasitic leakage resistors to
+      every nearby node), the typical values RP approximately 1000 Gohm at
+      low humidity and 1 Gohm at high humidity/contamination, the guard-ring
+      rules (no solder mask, biased at the sensitive node's voltage, driven
+      by a low impedance) and Figure 28's SMD guard-ring layout.
+  - file: research/sources/01258b.pdf
+    page: 13
+    section: "Guard Rings - equivalent circuits, both surfaces, jumpers"
+    note: >-
+      Read: with the guard driven from the output the voltage across the
+      remaining parasitic is only the amplifier's offset, "the leakage
+      current is typically reduced by a factor of about 1000"; guards are
+      needed on both PCB surfaces for through-hole packages and around any
+      jumper trace of a guarded node.
+  - file: research/sources/ina333.pdf
+    page: 16
+    section: "8.2.2.5 Input Bias Current Return Path"
+    note: >-
+      Read: the input impedance that makes leakage matter at all -
+      approximately 100 Gohm against a bias current of only +-70 pA typ, so
+      a humid-board surface parasitic two decades lower than the device's
+      own input impedance is what the node actually sees.
+status: draft
+origin: research:interface-in-1
+level: topology
+envelope:
+  rsource_ohm: {max: 1000000}
+maturity: draft
+generalizes: []
+envelope_note: >-
+  The leakage error is the parasitic current times the impedance of the node
+  it lands on, so node impedance is the one dim that decides which technique
+  governs. Bounded at 1 Mohm: below it (bridge, thermocouple, strain-gauge
+  sources at hundreds of ohms) even the humid-board 1 Gohm parasitic gives
+  sub-microvolt errors and SYMMETRY of the two paths buys the accuracy; at
+  and above 1 Mohm the same parasitic is a first-order divider and an
+  actively driven guard, not symmetry, is the prescribed technique. Humidity
+  moves the parasitic three decades, so this is a design-condition bound.

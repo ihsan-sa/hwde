@@ -1,0 +1,704 @@
+{
+ "mpn": "AD8226ARZ-R7",
+ "lcsc": "C34250",
+ "package": "SOIC-8 (R-8, 8-Lead SOIC_N Narrow Body, JEDEC MS-012-AA)",
+ "description": "AD8226ARZ-R7 (Analog Devices AD8226, Rev. C datasheet, 29 PDF pages incl. 2\nfront-matter pages) - Wide Supply Range, Rail-to-Rail Output Instrumentation Amplifier.\nClassic 3-op-amp topology (preamp stage + difference-amplifier stage), single external\ngain resistor RG across pins 2/3, gain 1 to 1000. Package ordered: R-8, 8-Lead SOIC_N\nNarrow Body (JEDEC MS-012-AA). A grade (ARZ/ARMZ column of Tables 2/3) - this is the\ngrade actually ordered (C34250) and the one all numeric fields below are read from\nUNLESS explicitly marked otherwise; every place a B-grade (BRZ/BRMZ) number is quoted\nfor context it is labeled \"BRZ\".\n\nPAGE NUMBERING (verified directly, not assumed): this PDF has 2 unnumbered pages before\nthe datasheet's own pagination starts (p.1 cover/Features, p.2 an ADI-inserted \"Product\nPage Quick Links\" page, self-labeled \"dynamically generated... and inserted into this\ndata sheet\"). From there, PDF physical page (1-indexed, what a page-range reader opens)\n= printed footer page (\"Rev. C | Page N of 28\") + 1, confirmed by direct re-read of\nphysical pages 3, 4-8, 21 and 26 against their footers. All page citations below are\nPRINTED page numbers (the footer number); add 1 for the physical/reader page.\n\nTRANSFER FUNCTION (Theory of Operation, printed p.19): VOUT = G(VIN+ - VIN-) + VREF,\nwhere G = 1 + 49.4 kohm / RG. This board: RG = R1 = 1.27 kohm (0.1%) -> G1 = 39.90,\nREF driven to a buffered 0.252 V pedestal (architecture/blocks.md B2/B3) - NOT grounded.\n\nINPUT VOLTAGE RANGE (printed p.20, Equation 1 to Equation 3 verbatim, plus Table 8):\nthe 3-op-amp architecture applies gain in the first stage before removing common-mode\nvoltage in the difference-amp stage, so internal Node 1 / Node 2 (Figure 58) see a\ncombination of gained signal + common-mode signal + a diode drop that can saturate even\nwhen the individual input/output signals are not limited:\n  (1) VCM - |(VDIFF)(G)/2| > -VS + V_MINUS_LIMIT\n  (2) VCM + |(VDIFF)(G)/2| < +VS - V_PLUS_LIMIT\n  (3) [ (VDIFF)(G)/2 + VCM + VREF ] / 2 < +VS - VREF_LIMIT\nV_MINUS_LIMIT / V_PLUS_LIMIT / VREF_LIMIT vs. temperature (Table 8) are captured in\nabs_max as input_voltage_range_v_minus_limit_<temp>C etc. (4 temperatures: -40/25/85/125).\n\"A typical part functions up to the boundaries... for best performance, designing with\na few hundred millivolts extra margin is recommended. As signals approach the boundary,\ninternal transistors begin to saturate, which can affect frequency and linearity\nperformance.\" Remedy stated by the datasheet itself: \"apply less gain with the AD8226,\nand then apply additional gain later in the signal chain\" (or use the pin-compatible\nAD8227) - this is the datasheet's own text for the two-stage-gain topology this board\nuses (architecture/blocks.md Ruling 2).\n\nNOISE (Table 3, printed p.5): total RTI noise is stated as a formula, not a single\nnumber - \"Total noise: eN = sqrt(eNI^2 + (eNO/G)^2)\" - combining the tabulated\ninput_voltage_noise_1khz (eNI) and output_voltage_noise_1khz (eNO) abs_max entries at\nwhatever gain is used. At this board's G1 = 39.9: eN = sqrt(22^2 + (120/39.9)^2) =\n22.2 nV/rtHz typ (matches architecture/blocks.md B2's cited figure exactly).\n\nGAIN/BANDWIDTH AT NON-TABULATED GAINS: Table 3 tabulates CMRR and bandwidth only at\nG = 1, 10, 100, 1000. This board's G1 = 39.9 falls BETWEEN the G=10 and G=100 rows for\nboth: CMRR (DC-60Hz) is 106 dB min at G=10 vs 120 dB min at G=100; bandwidth is 160 kHz\ntyp at G=10 vs 20 kHz typ at G=100. No datasheet-stated number exists at G=39.9 itself -\nany value at that gain (e.g. architecture/blocks.md's ~45 kHz / ~1.8 MHz GBW estimate)\nis an interpolation, not a directly-cited datasheet figure. Flagged in OPEN.\n\nSCOPE / SOURCING NOTES FOR THE abs_max LIST BELOW:\n- Electrical-characteristics entries (CMRR, noise, offset, input current, reference\n  input, dynamic response, gain, input/output range, power supply) are read from\n  TABLE 3 (printed p.5-6: \"+VS = 2.7 V, -VS = 0 V, VREF = 0 V, TA = 25C, G = 1,\n  RL = 10 kohm\" - the SINGLE-SUPPLY table), not Table 2 (printed p.3-4, dual +-15 V\n  table), because this board is single-supply. Where Table 3 does not characterize\n  something Table 2 does, that gap is noted here rather than silently borrowing the\n  dual-supply number.\n- FLAGGED DISCREPANCY: Input Offset Current, TA = -40C, ARZ max. Table 3 (single\n  supply, our condition): 1 nA. Table 2 (dual supply +-15 V): 2 nA. BRZ shows the same\n  pattern (0.1 nA single-supply vs 0.5 nA dual-supply at -40C). Both are printed,\n  verbatim, in their respective tables - this is not a transcription error, the two\n  bias conditions are simply specified differently at that one temperature corner.\n  abs_max below uses the Table 3 (single-supply) value as primary.\n- GAP: Table 3 (single supply) has NO \"Gain Nonlinearity\" row at all - that spec\n  (G=1-10: 10ppm, G=100: 75ppm, G=1000: 750ppm, RL>=2kohm) exists only in Table 2\n  (dual supply). No single-supply gain-nonlinearity/INL number is stated anywhere in\n  this datasheet. Flagged in OPEN - relevant because blocks.md's P8 bench B1 sets an\n  INL pass window (<=0.05% FS) that is therefore NOT a directly-cited datasheet number\n  for this operating condition.\n- GAP: Table 3's OUTPUT section has exactly ONE Output Swing row (RL = 10 kohm to\n  1.35 V, TA = -40C to +125C: 0.1 V min / +VS - 0.1 V max). Table 2 (dual-supply only)\n  additionally breaks this out at RL = 2 kohm and RL = 100 kohm (same numeric result at\n  100 kohm as at 10 kohm, i.e. lighter loading does not move the guaranteed floor/\n  ceiling in the dual-supply data). No single-supply RL=100k-specific number exists;\n  the RL=10k row is the conservative applicable bound for this board's U1 (whose real\n  load is a downstream op-amp input, i.e. much lighter than even 10k).\n- Table 9 (Minimum Positive Supply Voltage, printed p.23) and the Differential Drive /\n  Driving-an-ADC application circuits (printed p.23-24) are NOT extracted into abs_max:\n  they apply to the differential-output (Figure 64) and ADC-driving (Figure 66)\n  configurations, neither of which this board uses (single-ended output straight into\n  a second gain stage per architecture/blocks.md).\n- REF pin: \"should not exceed either +VS or -VS by more than 0.3 V\" (printed p.20) is\n  a stated ESD-diode headroom note, distinct from (and tighter context than) Table 4's\n  flat abs-max \"REF Voltage: +-VS\" rating - both captured below.",
+ "pinout": [
+  {
+   "pin": "1",
+   "name": "-IN",
+   "type": "analog",
+   "notes": "Negative Input (Table 6, printed p.8). Differential pair with pin 4; input impedance differential 0.8 Gohm||2pF, common mode 0.4 Gohm||2pF (Table 3, printed p.6). Datasheet Layout guidance (printed p.21): keep this path's source impedance/capacitance matched to pin 4's for CMRR over frequency."
+  },
+  {
+   "pin": "2",
+   "name": "RG",
+   "type": "passive",
+   "notes": "Gain-Setting Pin (Table 6): \"Place a gain resistor between these two pins.\" G = 1 + 49.4 kohm/RG (printed p.19). This board: RG = R1 = 1.27 kohm -> G1 = 39.90. Parasitic capacitance at pins 2/3 affects CMRR over frequency (Layout section, printed p.21)."
+  },
+  {
+   "pin": "3",
+   "name": "RG",
+   "type": "passive",
+   "notes": "Gain-Setting Pin, paired with pin 2 (RG across pins 2-3) - see pin 2 notes."
+  },
+  {
+   "pin": "4",
+   "name": "+IN",
+   "type": "analog",
+   "notes": "Positive Input (Table 6). Differential pair with pin 1 - see pin 1 notes."
+  },
+  {
+   "pin": "5",
+   "name": "-VS",
+   "type": "power_in",
+   "notes": "Negative Supply (Table 6). This board is single-supply (Table 3: -VS = 0 V) - pin 5 ties directly to the board's ground plane/return, not to a separate negative rail. Figure 61 (printed p.21) shows a generic 0.1uF+10uF pair at -VS for the dual-supply-capable case."
+  },
+  {
+   "pin": "6",
+   "name": "REF",
+   "type": "analog",
+   "notes": "Reference (Table 6): \"This pin must be driven by low impedance.\" Source impedance to REF must stay below 2 ohm (printed p.20) or CMRR degrades - see layout_notes. RIN ~100 kohm typ, IIN ~7 uA typ into this node (Table 3). Must not exceed +VS or -VS by more than 0.3 V (printed p.20); abs-max REF Voltage rating is +-VS (Table 4). VOUT = G(VIN+ - VIN-) + VREF."
+  },
+  {
+   "pin": "7",
+   "name": "VOUT",
+   "type": "output",
+   "notes": "Output (Table 6)."
+  },
+  {
+   "pin": "8",
+   "name": "+VS",
+   "type": "power_in",
+   "notes": "Positive Supply (Table 6). This board: +3V3. 0.1uF close decoupling + 10uF bulk per Figure 61 (printed p.21)."
+  }
+ ],
+ "decoupling": [
+  {
+   "pins": [
+    "+VS",
+    "-VS"
+   ],
+   "value": "0.1 uF ceramic",
+   "placement": "as close as possible to each supply pin (pins 8 and 5)",
+   "notes": "Layout section, Power Supplies subsection (printed p.21, verbatim): \"A 0.1 uF capacitor should be placed as close as possible to each supply pin.\" Also: \"A stable dc voltage should be used to power the instrumentation amplifier. Note that noise on the supply pins can adversely affect performance\" (PSRR curves: Figure 23/Figure 24, not separately extracted here)."
+  },
+  {
+   "pins": [
+    "+VS",
+    "-VS"
+   ],
+   "value": "10 uF tantalum",
+   "placement": "farther from the part than the 0.1 uF; may be shared with other precision ICs on the board",
+   "notes": "Figure 61 \"Supply Decoupling, REF, and Output Referred to Local Ground\" (printed p.21, verbatim continuation): \"a 10 uF tantalum capacitor can be used farther away from the part. In most cases, it can be shared by other precision integrated circuits.\" Figure 61 draws this at BOTH +VS and -VS. In this board's single-supply operation (-VS = 0 V = board ground per pin 5 notes), only +VS (pin 8) carries an actual populated 0.1uF/bulk pair - pin 5's \"decoupling\" is simply its bond to the ground pour, not a separate cap."
+  }
+ ],
+ "land_pattern": {
+  "package": "R-8, 8-Lead Standard Small Outline Package [SOIC_N] Narrow Body, compliant to JEDEC MS-012-AA (Figure 68, printed p.25). Ordering Guide (same page) confirms AD8226ARZ-R7 = \"8-Lead SOIC_N, 7\" Tape and Reel\", Package Option R-8. (Figure 67 on the same page is the MSOP/RM-8 variant - NOT this part; not used.)",
+  "pad_count": 8,
+  "pitch_mm": 1.27,
+  "row_spacing_mm": 6.0,
+  "pin1": "1",
+  "notes": "NO separate \"recommended land pattern\" (copper pad) drawing exists anywhere in this datasheet - Figure 68 is the JEDEC MECHANICAL PACKAGE OUTLINE only (body + leads), not a solder-pad layout. Flagged in OPEN. Package-outline dimensions transcribed from Figure 68 (mm, min/max as printed; inch-parenthetical values on the drawing omitted here, PDF has them if needed): body length (D) 4.80-5.00; body width (E1) 3.80-4.00; overall lead span (E, tip-to-tip) 5.80-6.20 -> used as row_spacing_mm nominal 6.00 (midpoint; datasheet gives only min/max, no BSC nominal for this dimension); lead pitch (e) 1.27 BSC; height (A) 1.35-1.75 max; standoff (A1) 0.10-0.25; coplanarity 0.10; lead width (b) 0.31-0.51; lead thickness (c) 0.17-0.25; foot length (L) 0.40-1.27; foot angle 0-8 deg; 45 deg lead-tip chamfer 0.25/0.50. R-8/MS-012-AA is a ubiquitous, fully standardized SOIC-8 narrow-body footprint (matches KiCad's stock SOIC-8_3.9x4.9mm_P1.27mm family) - the librarian can derive pads per IPC-7351 from the dimensions above, or use that stock footprint; this extraction does not pick a pad_size_mm itself since none is vendor-stated (see OPEN)."
+ },
+ "exposed_pad": {
+  "present": false
+ },
+ "layout_notes": [
+  "LAYOUT (header, printed p.20): \"To ensure optimum performance of the AD8226 at the PCB level, care must be taken in the design of the board layout. The AD8226 pins are arranged in a logical manner to aid in this task.\" (Figure 60, Pinout Diagram - redraws the same pin assignment as Figure 2/Table 6, for layout reference.)",
+  "INPUT-PATH SYMMETRY / CMRR OVER FREQUENCY (printed p.21, verbatim): \"Poor layout can cause some of the common-mode signals to be converted to differential signals before reaching the in-amp. Such conversions occur when one input path has a frequency response that is different from the other. To keep CMRR across frequency high, the input source impedance and capacitance of each path should be closely matched. Additional source resistance in the input path (for example, for input protection) should be placed close to the in-amp inputs, which minimizes their interaction with parasitic capacitance from the PCB traces.\"",
+  "GAIN-PIN PARASITICS (same section, printed p.21, verbatim): \"Parasitic capacitance at the gain-setting pins can also affect CMRR over frequency. If the board design has a component at the gain-setting pins (for example, a switch or jumper), the part should be chosen so that the parasitic capacitance is as small as possible.\" -> RG (R1) belongs directly across pins 2/3 with matched parasitics on both pins.",
+  "POWER SUPPLIES / decoupling (printed p.21, verbatim): \"A stable dc voltage should be used to power the instrumentation amplifier. Note that noise on the supply pins can adversely affect performance\" (PSRR curves Figure 23/24). \"A 0.1 uF capacitor should be placed as close as possible to each supply pin. As shown in Figure 61, a 10 uF tantalum capacitor can be used farther away from the part. In most cases, it can be shared by other precision integrated circuits.\" See decoupling array above.",
+  "REFERENCE / local ground (printed p.20-21): \"The output voltage of the AD8226 is developed with respect to the potential on the reference terminal ... Care should be taken to tie REF to the appropriate local ground.\" Separately (printed p.20, Reference Terminal section): \"For the best performance, source impedance to the REF terminal should be kept below 2 ohm. As shown in Figure 58, the reference terminal, REF, is at one end of a 50 kohm resistor. Additional impedance at the REF terminal adds to this 50 kohm resistor and results in amplification of the signal connected to the positive input\" - amplification factor 2(50kohm+RREF)/(100kohm+RREF), positive path only, \"this uneven amplification degrades CMRR.\" Figure 59 (\"Driving the Reference Pin\") crosses out a bare resistor divider driving REF directly as INCORRECT and shows a unity-gain op-amp buffer (OP1177 example) driving REF as CORRECT.",
+  "INPUT BIAS CURRENT RETURN PATH (printed p.21, verbatim): \"The input bias current of the AD8226 must have a return path to ground. When the source, such as a thermocouple, cannot provide a return current path, one should be created\" (Figure 62: INCORRECT/CORRECT pairs for transformer coupling, thermocouple with a 10 Mohm bleeder, and capacitively-coupled inputs with an R-C high-pass, f_HIGH_PASS = 1/(2*pi*R*C)).",
+  "INPUT PROTECTION (printed p.22, verbatim): \"The AD8226 has very robust inputs and typically does not need additional input protection. Input voltages can be up to 40 V from the opposite supply rail ... All terminals of the AD8226 are protected against ESD.\" For applications beyond the allowed limits: \"external current-limiting resistors and low-leakage diode clamps such as the BAV199L, the FJH1100s, or the SP720 should be used.\"",
+  "RFI SUPPRESSION, optional input filter (printed p.22) - recorded as vendor guidance on input-path symmetry, NOT applied at this board's block-only scope (no added filtering): low-pass RC network at the inputs, FilterFrequency_DIFF = 1/(2*pi*R*(2*CD+CC)), FilterFrequency_CM = 1/(2*pi*R*CC), with CD >= 10*CC (Figure 63 example values: R=4.02 kohm each leg, CC=1 nF each leg to ground, CD=10 nF differential across +IN/-IN). \"Mismatch between the R x CC at the positive input and the R x CC at the negative input degrades the CMRR\" - the same input-path-matching principle as the CMRR-over-frequency note above, applied to any input RC network.",
+  "PRECISION STRAIN GAGE worked example (printed p.24, Figure 65): the datasheet's own reference circuit ties a 350/350/350/350 ohm bridge directly to +IN/-IN with REF driven to a mid-supply pedestal (2.5 V in that figure's 5 V-excitation example, via 10uF+0.1uF decoupled 5V) - same topology class as this board (350 ohm bridge direct to the inputs, REF driven to a pedestal, not grounded).",
+  "PACKAGE: no exposed pad on the R-8 (SOIC_N narrow body) package - 8 signal/power leads only, no thermal/ground pad (Table 6, Figure 68)."
+ ],
+ "abs_max": [
+  {
+   "param": "supply_voltage_max_each_rail",
+   "value": 18,
+   "unit": "V"
+  },
+  {
+   "param": "output_short_circuit_duration",
+   "value": "indefinite"
+  },
+  {
+   "param": "input_voltage_at_pin_max",
+   "value": "-VS + 40",
+   "unit": "V"
+  },
+  {
+   "param": "input_voltage_at_pin_min",
+   "value": "+VS - 40",
+   "unit": "V"
+  },
+  {
+   "param": "ref_voltage_abs_max_range",
+   "value": "+-VS",
+   "unit": "V"
+  },
+  {
+   "param": "storage_temp_min",
+   "value": -65,
+   "unit": "degC"
+  },
+  {
+   "param": "storage_temp_max",
+   "value": 150,
+   "unit": "degC"
+  },
+  {
+   "param": "specified_temp_min",
+   "value": -40,
+   "unit": "degC"
+  },
+  {
+   "param": "specified_temp_max",
+   "value": 125,
+   "unit": "degC"
+  },
+  {
+   "param": "junction_temp_max",
+   "value": 140,
+   "unit": "degC"
+  },
+  {
+   "param": "esd_hbm",
+   "value": 1.5,
+   "unit": "kV"
+  },
+  {
+   "param": "esd_cdm",
+   "value": 1.5,
+   "unit": "kV"
+  },
+  {
+   "param": "esd_mm",
+   "value": 100,
+   "unit": "V"
+  },
+  {
+   "param": "theta_ja_soic_8lead_4layer_jedec",
+   "value": 121,
+   "unit": "degC/W"
+  },
+  {
+   "param": "theta_ja_msop_8lead_4layer_jedec_not_this_package",
+   "value": 135,
+   "unit": "degC/W"
+  },
+  {
+   "param": "ref_pin_esd_diode_headroom",
+   "value": 0.3,
+   "unit": "V"
+  },
+  {
+   "param": "ref_source_impedance_max",
+   "value": 2,
+   "unit": "ohm"
+  },
+  {
+   "param": "cmrr_dc_to_60hz_min_G1",
+   "value": 86,
+   "unit": "dB"
+  },
+  {
+   "param": "cmrr_dc_to_60hz_min_G10",
+   "value": 106,
+   "unit": "dB"
+  },
+  {
+   "param": "cmrr_dc_to_60hz_min_G100",
+   "value": 120,
+   "unit": "dB"
+  },
+  {
+   "param": "cmrr_dc_to_60hz_min_G1000",
+   "value": 120,
+   "unit": "dB"
+  },
+  {
+   "param": "cmrr_5khz_min_G1",
+   "value": 80,
+   "unit": "dB"
+  },
+  {
+   "param": "cmrr_5khz_min_G10",
+   "value": 90,
+   "unit": "dB"
+  },
+  {
+   "param": "cmrr_5khz_min_G100",
+   "value": 90,
+   "unit": "dB"
+  },
+  {
+   "param": "cmrr_5khz_min_G1000",
+   "value": 100,
+   "unit": "dB"
+  },
+  {
+   "param": "cmrr_dc_to_60hz_min_G1_BRZ_grade",
+   "value": 90,
+   "unit": "dB"
+  },
+  {
+   "param": "input_voltage_noise_1khz_typ",
+   "value": 22,
+   "unit": "nV/rtHz"
+  },
+  {
+   "param": "input_voltage_noise_1khz_max",
+   "value": 24,
+   "unit": "nV/rtHz"
+  },
+  {
+   "param": "output_voltage_noise_1khz_typ",
+   "value": 120,
+   "unit": "nV/rtHz"
+  },
+  {
+   "param": "output_voltage_noise_1khz_max",
+   "value": 125,
+   "unit": "nV/rtHz"
+  },
+  {
+   "param": "rti_noise_0p1_10hz_G1_typ",
+   "value": 2.0,
+   "unit": "uVpp"
+  },
+  {
+   "param": "rti_noise_0p1_10hz_G10_typ",
+   "value": 0.5,
+   "unit": "uVpp"
+  },
+  {
+   "param": "rti_noise_0p1_10hz_G100to1000_typ",
+   "value": 0.4,
+   "unit": "uVpp"
+  },
+  {
+   "param": "current_noise_1khz_typ",
+   "value": 100,
+   "unit": "fA/rtHz"
+  },
+  {
+   "param": "current_noise_0p1_10hz_typ",
+   "value": 3,
+   "unit": "pApp"
+  },
+  {
+   "param": "vosi_max",
+   "value": 100,
+   "unit": "uV"
+  },
+  {
+   "param": "vosi_tc_typ",
+   "value": 0.5,
+   "unit": "uV/degC"
+  },
+  {
+   "param": "vosi_tc_max",
+   "value": 2,
+   "unit": "uV/degC"
+  },
+  {
+   "param": "voso_max",
+   "value": 600,
+   "unit": "uV"
+  },
+  {
+   "param": "voso_tc_typ",
+   "value": 2,
+   "unit": "uV/degC"
+  },
+  {
+   "param": "voso_tc_max",
+   "value": 10,
+   "unit": "uV/degC"
+  },
+  {
+   "param": "psr_min_G1",
+   "value": 100,
+   "unit": "dB"
+  },
+  {
+   "param": "psr_min_G10",
+   "value": 115,
+   "unit": "dB"
+  },
+  {
+   "param": "psr_min_G100",
+   "value": 120,
+   "unit": "dB"
+  },
+  {
+   "param": "psr_min_G1000",
+   "value": 120,
+   "unit": "dB"
+  },
+  {
+   "param": "input_bias_current_25C_min",
+   "value": 5,
+   "unit": "nA"
+  },
+  {
+   "param": "input_bias_current_25C_typ",
+   "value": 20,
+   "unit": "nA"
+  },
+  {
+   "param": "input_bias_current_25C_max",
+   "value": 27,
+   "unit": "nA"
+  },
+  {
+   "param": "input_bias_current_125C_min",
+   "value": 5,
+   "unit": "nA"
+  },
+  {
+   "param": "input_bias_current_125C_typ",
+   "value": 15,
+   "unit": "nA"
+  },
+  {
+   "param": "input_bias_current_125C_max",
+   "value": 25,
+   "unit": "nA"
+  },
+  {
+   "param": "input_bias_current_neg40C_min",
+   "value": 5,
+   "unit": "nA"
+  },
+  {
+   "param": "input_bias_current_neg40C_typ",
+   "value": 30,
+   "unit": "nA"
+  },
+  {
+   "param": "input_bias_current_neg40C_max",
+   "value": 35,
+   "unit": "nA"
+  },
+  {
+   "param": "input_bias_current_tc_typ",
+   "value": 70,
+   "unit": "pA/degC"
+  },
+  {
+   "param": "input_offset_current_25C_max",
+   "value": 1,
+   "unit": "nA"
+  },
+  {
+   "param": "input_offset_current_125C_max",
+   "value": 1.5,
+   "unit": "nA"
+  },
+  {
+   "param": "input_offset_current_neg40C_max_table3_single_supply",
+   "value": 1,
+   "unit": "nA"
+  },
+  {
+   "param": "input_offset_current_neg40C_max_table2_dual_supply",
+   "value": 2,
+   "unit": "nA"
+  },
+  {
+   "param": "input_offset_current_tc_typ",
+   "value": 5,
+   "unit": "pA/degC"
+  },
+  {
+   "param": "ref_input_resistance_typ",
+   "value": 100,
+   "unit": "kohm"
+  },
+  {
+   "param": "ref_input_current_typ",
+   "value": 7,
+   "unit": "uA"
+  },
+  {
+   "param": "ref_voltage_operating_range",
+   "value": "-VS to +VS",
+   "unit": "V"
+  },
+  {
+   "param": "ref_gain_to_output_typ",
+   "value": 1,
+   "unit": "V/V"
+  },
+  {
+   "param": "ref_gain_error_typ",
+   "value": 0.01,
+   "unit": "%"
+  },
+  {
+   "param": "bandwidth_G1_typ",
+   "value": 1500,
+   "unit": "kHz"
+  },
+  {
+   "param": "bandwidth_G10_typ",
+   "value": 160,
+   "unit": "kHz"
+  },
+  {
+   "param": "bandwidth_G100_typ",
+   "value": 20,
+   "unit": "kHz"
+  },
+  {
+   "param": "bandwidth_G1000_typ",
+   "value": 2,
+   "unit": "kHz"
+  },
+  {
+   "param": "settling_time_2Vstep_0p01pct_G1_typ",
+   "value": 6,
+   "unit": "us"
+  },
+  {
+   "param": "settling_time_2Vstep_0p01pct_G10_typ",
+   "value": 6,
+   "unit": "us"
+  },
+  {
+   "param": "settling_time_2Vstep_0p01pct_G100_typ",
+   "value": 35,
+   "unit": "us"
+  },
+  {
+   "param": "settling_time_2Vstep_0p01pct_G1000_typ",
+   "value": 350,
+   "unit": "us"
+  },
+  {
+   "param": "slew_rate_G1_typ",
+   "value": 0.4,
+   "unit": "V/us"
+  },
+  {
+   "param": "slew_rate_G5to100_typ",
+   "value": 0.6,
+   "unit": "V/us"
+  },
+  {
+   "param": "gain_range_min",
+   "value": 1,
+   "unit": "V/V"
+  },
+  {
+   "param": "gain_range_max",
+   "value": 1000,
+   "unit": "V/V"
+  },
+  {
+   "param": "gain_error_G1_max",
+   "value": 0.04,
+   "unit": "%"
+  },
+  {
+   "param": "gain_error_G5to1000_max",
+   "value": 0.3,
+   "unit": "%"
+  },
+  {
+   "param": "gain_vs_temp_G1_neg40to85_max",
+   "value": 5,
+   "unit": "ppm/degC"
+  },
+  {
+   "param": "gain_vs_temp_G1_85to125_max",
+   "value": 5,
+   "unit": "ppm/degC"
+  },
+  {
+   "param": "gain_vs_temp_Ggt1_neg40to125_max",
+   "value": -100,
+   "unit": "ppm/degC"
+  },
+  {
+   "param": "input_impedance_differential_typ",
+   "value": "0.8 Gohm || 2 pF"
+  },
+  {
+   "param": "input_impedance_common_mode_typ",
+   "value": "0.4 Gohm || 2 pF"
+  },
+  {
+   "param": "input_operating_voltage_range_min_25C",
+   "value": -0.1,
+   "unit": "V"
+  },
+  {
+   "param": "input_operating_voltage_range_max_25C",
+   "value": "+VS - 0.7",
+   "unit": "V"
+  },
+  {
+   "param": "input_operating_voltage_range_min_neg40C",
+   "value": -0.15,
+   "unit": "V"
+  },
+  {
+   "param": "input_operating_voltage_range_max_neg40C",
+   "value": "+VS - 0.9",
+   "unit": "V"
+  },
+  {
+   "param": "input_operating_voltage_range_min_125C",
+   "value": -0.05,
+   "unit": "V"
+  },
+  {
+   "param": "input_operating_voltage_range_max_125C",
+   "value": "+VS - 0.6",
+   "unit": "V"
+  },
+  {
+   "param": "input_overvoltage_range_min",
+   "value": "+VS - 40",
+   "unit": "V"
+  },
+  {
+   "param": "input_overvoltage_range_max",
+   "value": "-VS + 40",
+   "unit": "V"
+  },
+  {
+   "param": "output_swing_min_RL10k_neg40to125C",
+   "value": 0.1,
+   "unit": "V"
+  },
+  {
+   "param": "output_swing_max_RL10k_neg40to125C",
+   "value": "+VS - 0.1",
+   "unit": "V"
+  },
+  {
+   "param": "short_circuit_current_typ",
+   "value": 13,
+   "unit": "mA"
+  },
+  {
+   "param": "single_supply_operating_range_min",
+   "value": 2.2,
+   "unit": "V"
+  },
+  {
+   "param": "single_supply_operating_range_max",
+   "value": 36,
+   "unit": "V"
+  },
+  {
+   "param": "dual_supply_operating_range_max_each_rail",
+   "value": 18,
+   "unit": "V"
+  },
+  {
+   "param": "dual_supply_operating_range_min_each_rail",
+   "value": 1.35,
+   "unit": "V"
+  },
+  {
+   "param": "quiescent_current_25C_typ",
+   "value": 325,
+   "unit": "uA"
+  },
+  {
+   "param": "quiescent_current_25C_max",
+   "value": 400,
+   "unit": "uA"
+  },
+  {
+   "param": "quiescent_current_neg40C_typ",
+   "value": 250,
+   "unit": "uA"
+  },
+  {
+   "param": "quiescent_current_neg40C_max",
+   "value": 325,
+   "unit": "uA"
+  },
+  {
+   "param": "quiescent_current_85C_typ",
+   "value": 425,
+   "unit": "uA"
+  },
+  {
+   "param": "quiescent_current_85C_max",
+   "value": 500,
+   "unit": "uA"
+  },
+  {
+   "param": "quiescent_current_125C_typ",
+   "value": 475,
+   "unit": "uA"
+  },
+  {
+   "param": "quiescent_current_125C_max",
+   "value": 550,
+   "unit": "uA"
+  },
+  {
+   "param": "operating_temp_range_min",
+   "value": -40,
+   "unit": "degC"
+  },
+  {
+   "param": "operating_temp_range_max",
+   "value": 125,
+   "unit": "degC"
+  },
+  {
+   "param": "input_voltage_range_v_minus_limit_neg40C",
+   "value": -0.55,
+   "unit": "V"
+  },
+  {
+   "param": "input_voltage_range_v_plus_limit_neg40C",
+   "value": 0.8,
+   "unit": "V"
+  },
+  {
+   "param": "input_voltage_range_vref_limit_neg40C",
+   "value": 1.3,
+   "unit": "V"
+  },
+  {
+   "param": "input_voltage_range_v_minus_limit_25C",
+   "value": -0.35,
+   "unit": "V"
+  },
+  {
+   "param": "input_voltage_range_v_plus_limit_25C",
+   "value": 0.7,
+   "unit": "V"
+  },
+  {
+   "param": "input_voltage_range_vref_limit_25C",
+   "value": 1.15,
+   "unit": "V"
+  },
+  {
+   "param": "input_voltage_range_v_minus_limit_85C",
+   "value": -0.15,
+   "unit": "V"
+  },
+  {
+   "param": "input_voltage_range_v_plus_limit_85C",
+   "value": 0.65,
+   "unit": "V"
+  },
+  {
+   "param": "input_voltage_range_vref_limit_85C",
+   "value": 1.05,
+   "unit": "V"
+  },
+  {
+   "param": "input_voltage_range_v_minus_limit_125C",
+   "value": -0.05,
+   "unit": "V"
+  },
+  {
+   "param": "input_voltage_range_v_plus_limit_125C",
+   "value": 0.6,
+   "unit": "V"
+  },
+  {
+   "param": "input_voltage_range_vref_limit_125C",
+   "value": 0.9,
+   "unit": "V"
+  }
+ ],
+ "source_pdf": "boards/bb-amp/research/sources/2168367.pdf"
+}

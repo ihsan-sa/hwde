@@ -1,0 +1,158 @@
+{
+  "power": [
+    {
+      "net": "+3V3",
+      "current_a": 0.01,
+      "dt_c": 10
+    }
+  ],
+  "diff_pairs": [
+    {
+      "p": "/IN_P",
+      "n": "/IN_N",
+      "base": "IN",
+      "gap_mm": 0.25,
+      "max_skew_mm": 2.0,
+      "max_uncoupled_mm": 5.0,
+      "term_pair_mm": 2.5,
+      "operating_point": {
+        "rsource_ohm": 350,
+        "vcm_v": 1.65,
+        "vsig_mv": 20,
+        "vout_v": 3.04,
+        "err_rti_mv": 0.005,
+        "ibias_ua": 0.035,
+        "mismatch_pct": 1,
+        "dt_c": 1,
+        "f_signal_hz": 1000,
+        "f3db_hz": 41000
+      }
+    }
+  ],
+  "voltage_pairs": [
+    {
+      "a": "/IN_P",
+      "b": "/IN_N",
+      "voltage": 0.025
+    }
+  ],
+  "coating": "soldermask",
+  "placement": {
+    "edges": [
+      {
+        "ref": "J1",
+        "edge": "left",
+        "pos": 0.5
+      },
+      {
+        "ref": "J2",
+        "edge": "right",
+        "pos": 0.5
+      },
+      {
+        "ref": "J3",
+        "edge": "bottom",
+        "pos": 0.75
+      }
+    ],
+    "groups": [
+      {
+        "name": "gain_set",
+        "anchor": "U1",
+        "members": [
+          "R1"
+        ]
+      },
+      {
+        "name": "vref",
+        "anchor": "U2",
+        "members": [
+          "R2",
+          "R3",
+          "C4"
+        ]
+      },
+      {
+        "name": "stage2_fb",
+        "anchor": "U2",
+        "members": [
+          "R4",
+          "R5"
+        ]
+      }
+    ],
+    "corridors": [
+      {
+        "a": "J1",
+        "b": "U1",
+        "width_mm": 7.0,
+        "net": "/IN_P"
+      }
+    ],
+    "sides": [
+      {
+        "ref": "J1",
+        "side": "front",
+        "reason": "screw terminal, wires enter from the top; hand-soldered on the component side"
+      },
+      {
+        "ref": "J2",
+        "side": "front",
+        "reason": "screw terminal, wires enter from the top; hand-soldered on the component side"
+      },
+      {
+        "ref": "J3",
+        "side": "front",
+        "reason": "screw terminal, wires enter from the top; hand-soldered on the component side"
+      },
+      {
+        "ref": "U1",
+        "side": "front",
+        "reason": "single-sided top SMT assembly (requirements s7); B.Cu is one unbroken GND reference for the input pair"
+      },
+      {
+        "ref": "U2",
+        "side": "front",
+        "reason": "single-sided top SMT assembly (requirements s7); B.Cu is one unbroken GND reference for the input pair"
+      }
+    ]
+  },
+  "blocks": [
+    {
+      "topology": "inamp",
+      "block": "B1",
+      "name": "AD8226 + OPA2333 single-supply bridge front end, gain split 39.9 x 3.49",
+      "operating_point": {
+        "vs_v": 3.3,
+        "vs_tol_pct": 5,
+        "vcm_v": 1.65,
+        "gain_vv": 139.2,
+        "gain_stage1_vv": 39.9,
+        "gain_stage2_vv": 3.49,
+        "vin_diff_mv_fs": 20,
+        "vin_diff_mv_max": 25,
+        "vped_v": 0.252,
+        "vout_min_v": 0.113,
+        "vout_max_v": 3.037,
+        "f_signal_hz": 1000,
+        "f3db_hz": 41000,
+        "err_budget_uv_rti": 5,
+        "noise_nv_rthz_rti": 22.2,
+        "rsource_ohm": 350,
+        "load_kohm_min": 100,
+        "iq_ma": 0.65,
+        "pdiss_w": 0.0023,
+        "tamb_c_min": 0,
+        "tamb_c_max": 50,
+        "board_layers": 2,
+        "supply_kind": "single",
+        "inamp_arch_kind": "three-opamp",
+        "ref_drive_kind": "buffered",
+        "source_kind": "bridge-external-excitation",
+        "gain_split_kind": "two-stage",
+        "output_stage_kind": "rrio-opamp",
+        "calibration_kind": "zero-span-downstream"
+      }
+    }
+  ]
+}

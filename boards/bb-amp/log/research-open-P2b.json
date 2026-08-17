@@ -1,0 +1,2016 @@
+{
+ "script": "research",
+ "status": "pass",
+ "workspace": "boards/bb-amp",
+ "phase": "P2",
+ "opened": [
+  "block-inamp-2",
+  "interface-in-2"
+ ],
+ "skipped": [],
+ "tasks": [
+  {
+   "task": {
+    "id": "block-inamp-2",
+    "slot": "block:B1",
+    "kind": "block",
+    "token": "inamp",
+    "phase": "P2",
+    "status": "open",
+    "outcome": null,
+    "opened": "2026-08-16T20:39:49",
+    "closed": null,
+    "coverage_report": "boards/bb-amp/log/coverage-P2.json",
+    "gap": {
+     "slot": "block:B1",
+     "kind": "block",
+     "topology": "inamp",
+     "operating_point": {
+      "vs_v": 3.3,
+      "vs_tol_pct": 5,
+      "vcm_v": 1.65,
+      "gain_vv": 139.2,
+      "gain_stage1_vv": 39.9,
+      "gain_stage2_vv": 3.49,
+      "vin_diff_mv_fs": 20,
+      "vin_diff_mv_max": 25,
+      "vped_v": 0.252,
+      "vout_min_v": 0.113,
+      "vout_max_v": 3.037,
+      "f_signal_hz": 1000,
+      "f3db_hz": 41000,
+      "err_budget_uv_rti": 5,
+      "noise_nv_rthz_rti": 22.2,
+      "rsource_ohm": 350,
+      "load_kohm_min": 100,
+      "iq_ma": 0.65,
+      "pdiss_w": 0.0023,
+      "tamb_c_min": 0,
+      "tamb_c_max": 50,
+      "board_layers": 2,
+      "supply_kind": "single",
+      "inamp_arch_kind": "three-opamp",
+      "ref_drive_kind": "buffered",
+      "source_kind": "bridge-external-excitation",
+      "gain_split_kind": "two-stage",
+      "output_stage_kind": "rrio-opamp",
+      "calibration_kind": "zero-span-downstream"
+     },
+     "missing": [
+      {
+       "class": "diff-pair",
+       "min_level": "topology"
+      }
+     ],
+     "reasons": [
+      "no record satisfies the class at this operating point and maturity floor"
+     ],
+     "related_records": [
+      "inamp-gain-partition-first-stage",
+      "inamp-headroom-escape-gain-in-difference-amp",
+      "inamp-internal-node-headroom-inequalities",
+      "inamp-internal-node-saturation",
+      "inamp-ref-pin-drive-impedance",
+      "inamp-supply-decoupling-and-local-ground"
+     ],
+     "principle_parents": [],
+     "task": "research block 'inamp': populate diff-pair"
+    },
+    "checklist_needed": false,
+    "caps": {
+     "depth_per_gap": 4,
+     "attempt_factor": 3
+    },
+    "sources": [],
+    "attempts": [],
+    "verdicts": {},
+    "queue_entry": null,
+    "updated": "2026-08-16T20:39:49"
+   },
+   "brief": {
+    "task": "block-inamp-2",
+    "slot": "block:B1",
+    "kind": "block",
+    "token": "inamp",
+    "phase": "P2",
+    "assignment": [
+     "research block 'inamp': populate diff-pair",
+     "Populate the missing classes at this operating point with class-level records the coverage query can retrieve (applies keyed to the slot; level + envelope declarable at P2).",
+     "The slot's checklist exists - fill only the classes it lists as missing; do not widen it.",
+     "No principle parent exists: a record that states the principle (level principle, no envelope) plus one at topology/family level is the usual pair."
+    ],
+    "operating_point": {
+     "vs_v": 3.3,
+     "vs_tol_pct": 5,
+     "vcm_v": 1.65,
+     "gain_vv": 139.2,
+     "gain_stage1_vv": 39.9,
+     "gain_stage2_vv": 3.49,
+     "vin_diff_mv_fs": 20,
+     "vin_diff_mv_max": 25,
+     "vped_v": 0.252,
+     "vout_min_v": 0.113,
+     "vout_max_v": 3.037,
+     "f_signal_hz": 1000,
+     "f3db_hz": 41000,
+     "err_budget_uv_rti": 5,
+     "noise_nv_rthz_rti": 22.2,
+     "rsource_ohm": 350,
+     "load_kohm_min": 100,
+     "iq_ma": 0.65,
+     "pdiss_w": 0.0023,
+     "tamb_c_min": 0,
+     "tamb_c_max": 50,
+     "board_layers": 2,
+     "supply_kind": "single",
+     "inamp_arch_kind": "three-opamp",
+     "ref_drive_kind": "buffered",
+     "source_kind": "bridge-external-excitation",
+     "gain_split_kind": "two-stage",
+     "output_stage_kind": "rrio-opamp",
+     "calibration_kind": "zero-span-downstream"
+    },
+    "missing": [
+     {
+      "class": "diff-pair",
+      "min_level": "topology"
+     }
+    ],
+    "reasons": [
+     "no record satisfies the class at this operating point and maturity floor"
+    ],
+    "existing_knowledge": [],
+    "prior_tasks": [
+     {
+      "id": "block-inamp-1",
+      "status": "closed",
+      "outcome": "verified",
+      "sources": [
+       "research/sources/2304140030_Analog-Devices-AD8226ARZ-R7_C34250.pdf",
+       "research/sources/1811012120_Analog-Devices-AD8227ARMZ-R7_C150954.pdf",
+       "research/sources/2168367.pdf",
+       "research/sources/slyt226.pdf"
+      ],
+      "verdicts": {
+       "inamp-internal-node-saturation": {
+        "verdict": "verified",
+        "by": "second-reader",
+        "date": "2026-08-16",
+        "note": "Re-read AD8226 PDF p.21 (printed p.20, INPUT VOLTAGE RANGE opening paragraph) and SLYT226 PDF p.1 (printed p.25). Both quotes verbatim: ADI 'Internal nodes between the first and second stages (Node 1 and Node 2 in Figure 58) experience a combination of a gained signal, a common-mode signal, and a diode drop. This combined signal can be limited by the voltage supplies even when the individual input and output signals are not limited'; TI 'Saturation causes the INA output voltage, although of wrong value, to appear normal to the following processing circuitry. This could lead to disastrous effects with unpredictable consequences.' TI Figure 1 is titled 'Classic three-op-amp INA and its voltage nodes' and does print V1 = VCM - G1(VD/2), V2 = VCM + G1(VD/2), G1 = 1 + 2RF/RG; the Equation 4 text confirms only VD/2 is amplified while VCM passes the input stage at unity gain. Level principle is right and nothing in the prose overreaches either page.",
+        "ts": "2026-08-16T20:33:41"
+       },
+       "inamp-internal-node-headroom-inequalities": {
+        "verdict": "verified",
+        "by": "second-reader",
+        "date": "2026-08-16",
+        "note": "Re-read AD8226 PDF p.21 (printed p.20), p.20 (printed p.19) and p.11 (printed p.10). Equations 1-3 transcribed exactly. All TWELVE Table 8 constants exact: -40C -0.55/0.8/1.3, +25C -0.35/0.7/1.15, +85C -0.15/0.65/1.05, +125C -0.05/0.6/0.9 V. Performance Across Temperature matches both corner claims. THE CENTRAL GENERALIZATION HOLDS: printed p.19 prints VOUT = G(VIN+ - VIN-) + VREF, so Vdiff*G = Vout - Vref is exact and Eq 2 becomes Vcm + |Vout-Vref|/2 < Vs - V+LIMIT with no G left in it. Confirmed against the figures, not just algebra: Fig 9 (Vs=+2.7V, G=1) and Fig 12 (Vs=+2.7V, G=100) sit side by side on printed p.10 and differ by at most 0.1 V at four vertices. All five claimed Fig 12 annotations are really printed: (+0.02,+2.0), (+1.35,+1.9), (+2.67,+1.3), (+2.4,+0.8), (+0.02,-0.3). Arithmetic at 25C, Vs-V+LIMIT = 2.0: at Vout=+0.02, Vref=0 Eq 2 gives Vcm < 1.99 against 2.0 printed; at Vcm=+0.8 it gives Vout = 2.40 exactly. The Vref=0 diagonal running (0.02,2.0) to (2.4,0.8) is the SAME straight line in both figures. Nits only: the transfer function that licenses the substitution is on cited p.20 but is not named in that page's note, and the 2.2-36 V envelope bound is from printed p.6 (PDF p.7), an uncited page of the same PDF.",
+        "ts": "2026-08-16T20:33:54"
+       },
+       "inamp-ref-pin-drive-impedance": {
+        "verdict": "verified",
+        "by": "second-reader",
+        "date": "2026-08-16",
+        "note": "Re-read AD8226 PDF p.21 (printed p.20, REFERENCE TERMINAL + Figure 59), p.20 (Figure 58), p.6 (printed p.5, Table 3) and SLYT226 p.2. Verbatim on printed p.20: 'For the best performance, source impedance to the REF terminal should be kept below 2 ohm', the 50 kohm bridge-leg explanation, 2(50 kohm + RREF)/(100 kohm + RREF), 'Only the positive signal path is amplified; the negative path is unaffected. This uneven amplification degrades CMRR', and the 0.3 V ESD limit. Figure 59 is exactly as the note describes: left panel headed INCORRECT, a bare two-resistor divider straight into REF, struck through with a large X; right panel headed CORRECT, the same divider buffered by an OP1177. Figure 58 does show R3-R6 all 50 kohm with REF at the far end of R6. Table 3 REFERENCE INPUT confirms RIN 100 kohm typ, IIN 7 uA typ, range -Vs to +Vs, gain to output 1 V/V, gain error 0.01 pct - the 7 uA IS on the page. Derivation checked and correct: A-1 = Rref/(100k+Rref), 10 ppm/ohm, 20 ppm at 2 ohm exact; 7 uA x 9.2 kohm = 64.4 mV supports the 65 mV pedestal. ONE CORRECTION for the author: at Rref = 9.2 kohm the exact figure is 9200/109200 = 8.42 pct, not 8.5 pct, and 8.42 pct against 20 ppm is 3.6 orders of magnitude, not four - a rounding slip in a field already flagged derived, not enough to break the record. TI quote verbatim; Figure 2 does carry Rext in both the feedback and the Vref leg, though its A4 buffers A3's feedback divider rather than the REF pin, so it corroborates the principle rather than the REF rule itself.",
+        "ts": "2026-08-16T20:34:09"
+       },
+       "inamp-gain-partition-first-stage": {
+        "verdict": "verified",
+        "by": "second-reader",
+        "date": "2026-08-16",
+        "note": "Re-read AD8226 PDF p.6 (printed p.5, Table 3, header +Vs = 2.7 V, -Vs = 0 V, VREF = 0 V, +25C, G=1, RL=10k) and SLYT226 pp.3-4 (printed 27-28). Both error laws are printed in Table 3's Conditions column exactly as quoted: 'Total noise: eN = sqrt(eNI^2 + (eNO/G)^2)' and 'Total offset voltage: VOS = VOSI + (VOSO/G)'. All four A-grade (ARZ, ARMZ) numbers verified on the page: eNI 22 typ / 24 max and eNO 120 typ / 125 max nV/rtHz at 1 kHz; VOSI average TC 0.5 typ / 2 max and VOSO average TC 2 typ / 10 max uV/degC over -40C to +125C (B grade is 1 and 5, correctly not used). So the crossover is real: 10/2 = 5 on drift, 120/22 = 5.5 on noise. The 11 pct claim at G1 = 40 checks out (0.25 of 2.25). Bandwidth row 1500/160/20/2 kHz at G = 1/10/100/1000 exact. TI printed p.27 carries the three-step recipe verbatim and the worked ceiling G1 = 2((5 V - 1.5 V)/400 mV) = 17.5 with the conservative G1 = 10 and G2 = 5000/10 = 500. TI printed p.28 carries the independence bullet verbatim, Figure 4's G3 = -GTOT/G1 = -R4/R3, and Figure 5 with INA326 (G=5). Nits: Figure 5's G2 = 200 is read off the printed 1 Mohm / 5 kohm pair rather than printed as 200; and the external_rg claim is vendor text on printed p.19, a page this record does not itself cite.",
+        "ts": "2026-08-16T20:34:25"
+       },
+       "inamp-headroom-escape-gain-in-difference-amp": {
+        "verdict": "verified",
+        "by": "second-reader",
+        "date": "2026-08-16",
+        "note": "Re-read AD8226 PDF p.21 (printed p.20, Recommendation for Best Performance), p.20 (printed p.19, GAIN SELECTION + Figure 58) and SLYT226 p.2. Both ADI escapes are verbatim: 'If the application requirements exceed the boundaries, one solution is to apply less gain with the AD8226, and then apply additional gain later in the signal chain. Another option is to use the pin-compatible AD8227.' The AD8227 sentences on printed p.19 are verbatim too, including '(<5 ppm/degC maximum)'. AD8227 AUDIT, the point that matters: the only two AD8227 numbers anywhere in this record - gain 5 and 5 ppm/degC max drift - are both printed on cited p.19; NO AD8227 input-range constant, bandwidth, noise or offset figure is asserted, and both the open field and the prose state the AD8227 data sheet was not acquired. WORDING DEFECT, not enough to refute: ADI prints 'default gain of 5', while the field is named ad8227_min_gain_internal and the prose converts default to MINIMUM inside the derivation. The step is sound - with no external RG the input stage is unity so the default gain IS the difference-amp gain, giving G2 = 5 - and derived_not_quoted flags it, but the vendor's word is 'default' and the field name should say so. Everything else checks: G = 1 + 49.4 kohm/RG with Table 7, Figure 58's four equal 50 kohm resistors, TI Equation 7 in both printed forms, and Figure 2 showing Rext in the feedback AND the Vref leg with a VSENSE pin plus the +/-30 pct internal-resistor warning.",
+        "ts": "2026-08-16T20:34:39"
+       },
+       "inamp-gain-pin-and-input-node-parasitics": {
+        "verdict": "refuted",
+        "by": "second-reader",
+        "date": "2026-08-16",
+        "note": "REFUTED on the envelope, which overreaches the ledger's own PDF. The vendor prose is fine: AD8226 PDF p.22 (printed p.21) prints the input-path matching paragraph and the gain-pin parasitic-capacitance paragraph verbatim as quoted, and PDF p.6 Table 3 confirms CMRR min 86/90 dB at G=1, 106 at G=10, 120 at G=100 and G=1000 for DC to 60 Hz, and 80/90/90/100 dB at 5 kHz. But envelope f_signal_hz max 5000 rests on envelope_note's claim that 5 kHz is 'the highest frequency at which the cited part specifies CMRR at all' and that 'above it there is no vendor number for the copper to preserve'. That is false about this same data sheet: printed p.13 (PDF p.14) carries Figure 27 'CMRR vs. Frequency, RTI' and Figure 28 'CMRR vs. Frequency, RTI, 1 kohm Source Imbalance', both plotted from 0.1 Hz to 100 kHz for G = 1/10/100/1000. Figure 28 is the vendor's own measurement of precisely this record's mechanism - a deliberate source imbalance and the CMRR it costs across frequency - and it was never read. The consequence is load-bearing rather than cosmetic: this board's chain is specified to f3db = 41 kHz, so a 5 kHz envelope reads as 'the matching rule stops applying inside our own bandwidth', which inverts the record's own mechanism, under which the error GROWS with frequency. Fix: cite Figures 27 and 28, widen or drop the frequency cap, and use Figure 28 to quantify the source-imbalance claim instead of asserting it. Minor: gain_pin_layout ('Rg directly across the Rg pins') is not on printed p.21; it is supported by Table 6 pin 2,3 'Place a gain resistor between these two pins' on PDF p.9, which the record does not cite.",
+        "ts": "2026-08-16T20:35:02"
+       },
+       "inamp-supply-decoupling-and-local-ground": {
+        "verdict": "verified",
+        "by": "second-reader",
+        "date": "2026-08-16",
+        "note": "Re-read AD8226 PDF p.22 (printed p.21, LAYOUT / Power Supplies, Figure 61, References). Every quote is verbatim: 'A stable dc voltage should be used to power the instrumentation amplifier. Note that noise on the supply pins can adversely affect performance'; 'A 0.1 uF capacitor should be placed as close as possible to each supply pin. As shown in Figure 61, a 10 uF tantalum capacitor can be used farther away from the part. In most cases, it can be shared by other precision integrated circuits'; and 'The output voltage of the AD8226 is developed with respect to the potential on the reference terminal. Care should be taken to tie REF to the appropriate local ground.' Figure 61 is titled exactly 'Supply Decoupling, REF, and Output Referred to Local Ground' and does draw 0.1 uF and 10 uF on each of the +Vs and -Vs pins, REF tied to the local ground symbol, and the LOAD returned to that same symbol. The two-tier distinction the record leans on (HF cap per pin and local, bulk per rail and shareable) is the vendor's own wording, not an embellishment. Scope guardrail clean: nothing here is called unnecessary, and the shareability of the bulk cap is quoted, not inferred. Nit: 'PSR is specified per gain' and the unity REF-to-output gain behind the IR-drop remark are Table 3 facts on PDF p.6, a page this record does not cite, though the cited page does point to the PSRR curves in Figures 23 and 24.",
+        "ts": "2026-08-16T20:35:15"
+       }
+      }
+     }
+    ],
+    "checklist": null,
+    "policy": {
+     "tiers": "Source tiers, best first: vendor-layout (the subject part's OWN datasheet layout section / eval board / reference layout) > vendor-appnote (same vendor, the topology) > cross-vendor (another vendor's note on the same topology/interface) > forum (corroboration only - NEVER a record's sole source; the close step refuses it). Declare the tier per fetch (--tier); vendor community subdomains are forced to forum. Prefer the highest tier that actually covers the operating point; two independent tiers beat one when they disagree - record the disagreement in prose.",
+     "visual_reads": "Cited pages must be READ VISUALLY (Read the quarantined PDF page as an image): layout figures are the highest-value content and text extraction cannot see them. Every sources[] entry carries `page` and a `note` saying WHAT WAS READ there (figure/table/section and its claim); figure descriptions land in the record prose. The second reader re-reads exactly those pages to refute you.",
+     "quarantine": "Every source enters the workspace through research.py fetch ONLY (allowlisted https download or a local file registered against an allowlisted origin URL); records may cite only ledger files (research/sources/<file>) - validate refuses anything else.",
+     "maturity": "Write status draft + maturity draft. The second reader flips a record to verified; the owner approves after promotion. Never self-declare higher."
+    },
+    "allowlist": [
+     {
+      "domain": "ti.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "analog.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "st.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "nxp.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "microchip.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "infineon.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "onsemi.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "rohm.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "renesas.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "monolithicpower.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "diodes.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "richtek.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "torexsemi.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "semtech.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "silabs.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "nordicsemi.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "espressif.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "wch-ic.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "wiznet.io",
+      "kind": "vendor"
+     },
+     {
+      "domain": "realtek.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "nexperia.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "toshiba.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "toshiba.semicon-storage.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "vishay.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "littelfuse.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "bourns.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "epc-co.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "gansystems.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "ftdichip.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "cirrus.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "ablic.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "aosmd.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "mpsind.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "murata.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "tdk.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "product.tdk.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "kemet.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "samsungsem.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "yageo.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "we-online.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "we-online.de",
+      "kind": "vendor"
+     },
+     {
+      "domain": "coilcraft.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "sumida.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "pulseelectronics.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "belfuse.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "hirose.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "jst.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "jst-mfg.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "molex.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "te.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "amphenol.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "gct.co",
+      "kind": "vendor"
+     },
+     {
+      "domain": "lcsc.com",
+      "kind": "distributor"
+     },
+     {
+      "domain": "jlcpcb.com",
+      "kind": "distributor"
+     },
+     {
+      "domain": "digikey.com",
+      "kind": "distributor"
+     },
+     {
+      "domain": "mouser.com",
+      "kind": "distributor"
+     },
+     {
+      "domain": "arrow.com",
+      "kind": "distributor"
+     },
+     {
+      "domain": "farnell.com",
+      "kind": "distributor"
+     },
+     {
+      "domain": "newark.com",
+      "kind": "distributor"
+     },
+     {
+      "domain": "rs-online.com",
+      "kind": "distributor"
+     },
+     {
+      "domain": "usb.org",
+      "kind": "standards"
+     },
+     {
+      "domain": "ieee.org",
+      "kind": "standards"
+     },
+     {
+      "domain": "ipc.org",
+      "kind": "standards"
+     },
+     {
+      "domain": "jedec.org",
+      "kind": "standards"
+     },
+     {
+      "domain": "electronics.stackexchange.com",
+      "kind": "forum"
+     },
+     {
+      "domain": "eevblog.com",
+      "kind": "forum"
+     }
+    ],
+    "forum_hosts": [
+     "e2e.ti.com",
+     "ez.analog.com",
+     "community.st.com",
+     "community.nxp.com",
+     "community.infineon.com",
+     "forum.digikey.com",
+     "forum.microchip.com",
+     "devzone.nordicsemi.com"
+    ],
+    "caps": {
+     "depth_per_gap": 4,
+     "sources_acquired": 0,
+     "sources_remaining": 4,
+     "attempts_used": 0,
+     "attempts_cap": 12
+    },
+    "record_schema": {
+     "$schema": "https://json-schema.org/draft/2020-12/schema",
+     "title": "ai-ee knowledge record",
+     "type": "object",
+     "required": [
+      "id",
+      "classes",
+      "applies",
+      "rule",
+      "prose",
+      "sources",
+      "status",
+      "origin"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "id": {
+       "type": "string",
+       "pattern": "^[a-z0-9][a-z0-9-]*$"
+      },
+      "classes": {
+       "type": "array",
+       "minItems": 1,
+       "items": {
+        "type": "string"
+       }
+      },
+      "applies": {
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "topologies": {
+         "type": "array",
+         "items": {
+          "type": "string"
+         }
+        },
+        "packages": {
+         "type": "array",
+         "items": {
+          "type": "string"
+         }
+        },
+        "interfaces": {
+         "type": "array",
+         "items": {
+          "type": "string"
+         }
+        },
+        "parts": {
+         "type": "array",
+         "items": {
+          "type": "string"
+         }
+        }
+       }
+      },
+      "rule": {
+       "oneOf": [
+        {
+         "type": "null"
+        },
+        {
+         "type": "object",
+         "minProperties": 1,
+         "properties": {
+          "enforced_by": {
+           "type": [
+            "string",
+            "null"
+           ]
+          }
+         },
+         "additionalProperties": {
+          "type": [
+           "string",
+           "number",
+           "boolean",
+           "null"
+          ]
+         }
+        }
+       ]
+      },
+      "prose": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 1500
+      },
+      "sources": {
+       "type": "array",
+       "minItems": 1,
+       "items": {
+        "type": "object",
+        "required": [
+         "file"
+        ],
+        "additionalProperties": false,
+        "properties": {
+         "file": {
+          "type": "string",
+          "minLength": 1
+         },
+         "page": {
+          "type": "integer",
+          "minimum": 1
+         },
+         "section": {
+          "type": "string"
+         },
+         "note": {
+          "type": "string"
+         }
+        }
+       }
+      },
+      "status": {
+       "type": "string",
+       "enum": [
+        "active",
+        "draft",
+        "superseded"
+       ]
+      },
+      "origin": {
+       "type": "string",
+       "minLength": 1
+      },
+      "level": {
+       "type": "string",
+       "enum": [
+        "principle",
+        "topology",
+        "family",
+        "part",
+        "instance"
+       ]
+      },
+      "envelope": {
+       "type": [
+        "object",
+        "null"
+       ]
+      },
+      "envelope_note": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 600
+      },
+      "maturity": {
+       "type": "string",
+       "enum": [
+        "draft",
+        "verified",
+        "approved",
+        "proven"
+       ]
+      },
+      "generalizes": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       }
+      },
+      "approval": {
+       "type": "object",
+       "required": [
+        "by",
+        "date"
+       ],
+       "additionalProperties": false,
+       "properties": {
+        "by": {
+         "type": "string",
+         "minLength": 1
+        },
+        "date": {
+         "type": "string",
+         "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "note": {
+         "type": "string"
+        }
+       }
+      },
+      "verification": {
+       "type": "object",
+       "required": [
+        "by",
+        "date"
+       ],
+       "additionalProperties": false,
+       "properties": {
+        "by": {
+         "type": "string",
+         "minLength": 1
+        },
+        "date": {
+         "type": "string",
+         "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "note": {
+         "type": "string"
+        }
+       }
+      },
+      "evidence": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "required": [
+         "workspace",
+         "event",
+         "date"
+        ],
+        "additionalProperties": false,
+        "properties": {
+         "workspace": {
+          "type": "string",
+          "minLength": 1
+         },
+         "board": {
+          "type": "string"
+         },
+         "event": {
+          "type": "string",
+          "minLength": 1
+         },
+         "date": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+         },
+         "note": {
+          "type": "string"
+         }
+        }
+       }
+      }
+     }
+    },
+    "record_template": {
+     "id": "<inamp-<what-the-rule-is>>",
+     "classes": [
+      "diff-pair"
+     ],
+     "applies": {
+      "topologies": [
+       "inamp"
+      ],
+      "packages": [],
+      "interfaces": [],
+      "parts": []
+     },
+     "rule": null,
+     "prose": "<the rule + why, incl. the figure descriptions you read; <= 1500 chars; ASCII>",
+     "sources": [
+      {
+       "file": "research/sources/<file from research.py fetch>",
+       "page": 1,
+       "note": "<what was READ on that page: fig/table + claim>"
+      }
+     ],
+     "status": "draft",
+     "origin": "research:block-inamp-2",
+     "level": "topology",
+     "envelope": {
+      "<dim>_<unit>": {
+       "min": 0,
+       "max": 0
+      },
+      "<name>_kind": {
+       "in": [
+        "<value>"
+       ]
+      }
+     },
+     "maturity": "draft",
+     "generalizes": [],
+     "envelope_note": "<what the rule scales with, and why these bounds>"
+    },
+    "checklist_schema": {
+     "$schema": "https://json-schema.org/draft/2020-12/schema",
+     "title": "ai-ee coverage checklist",
+     "type": "object",
+     "required": [
+      "id",
+      "kind",
+      "applies",
+      "requires",
+      "maturity",
+      "origin"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "id": {
+       "type": "string",
+       "pattern": "^[a-z0-9][a-z0-9-]*$"
+      },
+      "kind": {
+       "const": "coverage-checklist"
+      },
+      "applies": {
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "topologies": {
+         "type": "array",
+         "items": {
+          "type": "string"
+         }
+        },
+        "interfaces": {
+         "type": "array",
+         "items": {
+          "type": "string"
+         }
+        }
+       }
+      },
+      "requires": {
+       "type": "array",
+       "minItems": 1,
+       "items": {
+        "type": "object",
+        "required": [
+         "class",
+         "min_level"
+        ],
+        "additionalProperties": false,
+        "properties": {
+         "class": {
+          "type": "string"
+         },
+         "min_level": {
+          "type": "string",
+          "enum": [
+           "principle",
+           "topology",
+           "family",
+           "part",
+           "instance"
+          ]
+         },
+         "note": {
+          "type": "string"
+         }
+        }
+       }
+      },
+      "maturity": {
+       "type": "string",
+       "enum": [
+        "draft",
+        "verified",
+        "approved",
+        "proven"
+       ]
+      },
+      "approval": {
+       "type": "object",
+       "required": [
+        "by",
+        "date"
+       ],
+       "additionalProperties": false,
+       "properties": {
+        "by": {
+         "type": "string",
+         "minLength": 1
+        },
+        "date": {
+         "type": "string",
+         "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "note": {
+         "type": "string"
+        }
+       }
+      },
+      "sources": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "required": [
+         "file"
+        ],
+        "additionalProperties": false,
+        "properties": {
+         "file": {
+          "type": "string",
+          "minLength": 1
+         },
+         "page": {
+          "type": "integer",
+          "minimum": 1
+         },
+         "section": {
+          "type": "string"
+         },
+         "note": {
+          "type": "string"
+         }
+        }
+       }
+      },
+      "prose": {
+       "type": "string",
+       "maxLength": 1500
+      },
+      "origin": {
+       "type": "string",
+       "minLength": 1
+      }
+     }
+    },
+    "checklist_template": null,
+    "classes": [
+     "constraints-emission",
+     "creepage",
+     "decoupling",
+     "diff-pair",
+     "emi",
+     "esd",
+     "feedback",
+     "inrush",
+     "power-loop",
+     "return-path",
+     "selection",
+     "sequencing",
+     "sourcing",
+     "thermal",
+     "thermal-via"
+    ],
+    "levels": [
+     "principle",
+     "topology",
+     "family",
+     "part",
+     "instance"
+    ],
+    "envelope_units": [
+     "v",
+     "mv",
+     "kv",
+     "a",
+     "ma",
+     "ua",
+     "w",
+     "mw",
+     "kw",
+     "hz",
+     "khz",
+     "mhz",
+     "ghz",
+     "ns",
+     "us",
+     "ms",
+     "s",
+     "c",
+     "k",
+     "mm",
+     "um",
+     "cm",
+     "m",
+     "pf",
+     "nf",
+     "uf",
+     "mf",
+     "nh",
+     "uh",
+     "mh",
+     "ohm",
+     "mohm",
+     "kohm",
+     "mohms",
+     "pct",
+     "oz",
+     "mbps",
+     "gbps",
+     "bps",
+     "layers",
+     "pins",
+     "v_per_ns",
+     "v_per_us",
+     "a_per_ns",
+     "a_per_us"
+    ],
+    "paths": {
+     "records": "research/records/<id>.yaml",
+     "checklists": "research/checklists/<id>.yaml",
+     "sources": "research/sources/",
+     "task": "research/tasks/block-inamp-2.json"
+    },
+    "commands": {
+     "fetch": "scripts/research.py fetch --workspace boards/bb-amp --task block-inamp-2 --url <https://vendor/...pdf> --tier <vendor-layout|vendor-appnote|cross-vendor|forum> [--about <mpn>] [--expect pdf|html]",
+     "validate": "scripts/research.py validate --workspace boards/bb-amp --task block-inamp-2",
+     "status": "scripts/research.py status --workspace boards/bb-amp --task block-inamp-2"
+    }
+   }
+  },
+  {
+   "task": {
+    "id": "interface-in-2",
+    "slot": "interface:in",
+    "kind": "interface",
+    "token": "in",
+    "phase": "P2",
+    "status": "open",
+    "outcome": null,
+    "opened": "2026-08-16T20:39:49",
+    "closed": null,
+    "coverage_report": "boards/bb-amp/log/coverage-P2.json",
+    "gap": {
+     "slot": "interface:in",
+     "kind": "interface",
+     "interface": "in",
+     "operating_point": {
+      "gap_mm": 0.25,
+      "max_skew_mm": 2.0,
+      "max_uncoupled_mm": 5.0,
+      "term_pair_mm": 2.5,
+      "rsource_ohm": 350,
+      "vcm_v": 1.65,
+      "vsig_mv": 20,
+      "vout_v": 3.04,
+      "err_rti_mv": 0.005,
+      "ibias_ua": 0.035,
+      "mismatch_pct": 1,
+      "dt_c": 1,
+      "f_signal_hz": 1000,
+      "f3db_hz": 41000
+     },
+     "missing": [
+      {
+       "class": "return-path",
+       "min_level": "topology"
+      },
+      {
+       "class": "diff-pair",
+       "min_level": "topology"
+      },
+      {
+       "class": "emi",
+       "min_level": "topology"
+      },
+      {
+       "class": "selection",
+       "min_level": "topology"
+      },
+      {
+       "class": "constraints-emission",
+       "min_level": "principle"
+      }
+     ],
+     "reasons": [
+      "no record satisfies the class at this operating point and maturity floor"
+     ],
+     "related_records": [
+      "in-terminal-thermal-emf"
+     ],
+     "principle_parents": [
+      "buck-constraints-emission",
+      "buck-input-hot-loop",
+      "inamp-internal-node-saturation",
+      "inamp-supply-decoupling-and-local-ground"
+     ],
+     "task": "research interface 'in': populate return-path, diff-pair, emi, selection, constraints-emission (application delta only - principle parents exist)"
+    },
+    "checklist_needed": false,
+    "caps": {
+     "depth_per_gap": 4,
+     "attempt_factor": 3
+    },
+    "sources": [],
+    "attempts": [],
+    "verdicts": {},
+    "queue_entry": null,
+    "updated": "2026-08-16T20:39:49"
+   },
+   "brief": {
+    "task": "interface-in-2",
+    "slot": "interface:in",
+    "kind": "interface",
+    "token": "in",
+    "phase": "P2",
+    "assignment": [
+     "research interface 'in': populate return-path, diff-pair, emi, selection, constraints-emission (application delta only - principle parents exist)",
+     "Populate the missing classes at this operating point with class-level records the coverage query can retrieve (applies keyed to the slot; level + envelope declarable at P2).",
+     "The slot's checklist exists - fill only the classes it lists as missing; do not widen it.",
+     "Principle-level records exist for some of the missing CLASSES (buck-constraints-emission, buck-input-hot-loop, inamp-internal-node-saturation, inamp-supply-decoupling-and-local-ground) - matched by class, not by this slot (a buck principle can show up for an Ethernet gap). Where one genuinely covers the mechanism, research the APPLICATION delta and link it in `generalizes`; where it does not, state the principle for this slot yourself (level principle, no envelope) plus the topology/family record."
+    ],
+    "operating_point": {
+     "gap_mm": 0.25,
+     "max_skew_mm": 2.0,
+     "max_uncoupled_mm": 5.0,
+     "term_pair_mm": 2.5,
+     "rsource_ohm": 350,
+     "vcm_v": 1.65,
+     "vsig_mv": 20,
+     "vout_v": 3.04,
+     "err_rti_mv": 0.005,
+     "ibias_ua": 0.035,
+     "mismatch_pct": 1,
+     "dt_c": 1,
+     "f_signal_hz": 1000,
+     "f3db_hz": 41000
+    },
+    "missing": [
+     {
+      "class": "return-path",
+      "min_level": "topology"
+     },
+     {
+      "class": "diff-pair",
+      "min_level": "topology"
+     },
+     {
+      "class": "emi",
+      "min_level": "topology"
+     },
+     {
+      "class": "selection",
+      "min_level": "topology"
+     },
+     {
+      "class": "constraints-emission",
+      "min_level": "principle"
+     }
+    ],
+    "reasons": [
+     "no record satisfies the class at this operating point and maturity floor"
+    ],
+    "existing_knowledge": [
+     {
+      "id": "buck-constraints-emission",
+      "level": "principle",
+      "maturity": "approved",
+      "classes": [
+       "constraints-emission"
+      ],
+      "applies": {
+       "topologies": [
+        "buck"
+       ],
+       "packages": [],
+       "interfaces": []
+      },
+      "prose": "What a buck block must emit into constraints.json for the pipeline: (1) power entries with current_a from the RAIL BUDGET (consumer sum + ~30% headroom, rounded to a design ceiling) and dt_c from ambient; (2) a thermal entry when regulator dissipation > ~0.5 W - for async parts add the Schottky's Vf * I * (1-D), the diode often out-heats the IC; (3) layout_notes for P6/P7: hot-loop grouping, SW containment/separation, FB routing - these become placement groups and route_critical facts; (4) a blocks entry ({topology: buck}) so knowledge retrieval keys on it."
+     },
+     {
+      "id": "buck-input-hot-loop",
+      "level": "principle",
+      "maturity": "approved",
+      "classes": [
+       "power-loop",
+       "emi"
+      ],
+      "applies": {
+       "topologies": [
+        "buck"
+       ],
+       "packages": [],
+       "interfaces": []
+      },
+      "prose": "Layout rule #1 for every buck: the input cap carries the DISCONTINUOUS switch current. C_IN plus a 100 nF HF bypass AT the VIN pin, on the SAME layer as the IC; the C_IN -> VIN -> GND -> C_IN loop must be the shortest loop on the board; SW-node copper minimal. At ~1 MHz switching this matters more than copper weight (usb-buck power.md s7-9; every vendor layout section says the same). Solid GND pour + vias under the IC. At P6 this is a placement GROUP (constraints placement.groups) anchored on the IC with the input ceramics + HF bypass as members, placed and locked BEFORE the annealer runs - the cost function does not know the loop exists."
+     }
+    ],
+    "prior_tasks": [
+     {
+      "id": "interface-in-1",
+      "status": "closed",
+      "outcome": "verified",
+      "sources": [
+       "research/sources/ina333.pdf",
+       "research/sources/slyt226.pdf",
+       "research/sources/01258b.pdf",
+       "research/sources/sboa582.pdf"
+      ],
+      "verdicts": {
+       "in-terminal-thermal-emf": {
+        "verdict": "verified",
+        "by": "second-reader",
+        "date": "2026-08-16",
+        "note": "All five cited pages of 01258b re-read; all hold. p2: Seebeck coefficients on PCBs typically, but not always, below +-100 uV/degC; Equation 1; Figure 3 shows four junctions of an SMD resistor at a uniform +125 degC at 14/-5/5/-14 mV summing to zero, with the constant-temperature note quoted verbatim. p3 Figure 4: 1206, +125.0 to +126.2 degC at a 10 degC/in gradient, junction voltages 14.000/-5.001/5.011/-14.048 mV, total -38 uV - exact. p4: the inputs to an op amp should connect to the same materials, verbatim, plus Figure 6 resistors aligned with constant-temperature contour lines. p16: bench tests saw +-1 uV to +-2 uV due to the IC socket, do not use sockets for critical components. p17 callouts 2/3a/4: 0805 parts, arranged so that their thermoelectric voltages cancel, and metal fill connected to the ground plane minimizes thermal gradients at the cold junction connector. Specifically checked the known weak point: the record does NOT reproduce Table 1, whose values p2 itself calls arbitrary illustrative values, and invents no coefficient for the copper/tin/steel screw stack - it carries only the +-100 uV/degC bound and the -38 uV worked gradient case. Envelope +-10 degC is a real vendor statement but lives on p1 (response can be linearized over small temperature ranges, e.g. +-10 degC), which the record does not list as a source.",
+        "ts": "2026-08-16T20:20:40"
+       },
+       "in-bias-current-return-path": {
+        "verdict": "refuted",
+        "by": "second-reader",
+        "date": "2026-08-16",
+        "note": "ina333 p16 and p17 re-read. Everything factual checks out verbatim: 100 Gohm input impedance, Ib typically +-70 pA, a path must be provided for the input bias current of both inputs, and the saturation sentence is word for word. Figure 34 on p17 really does draw all three claimed forms - floating microphone/hydrophone with a matched 47k/47k pair to a common ground node, thermocouple with a single 10k to ground, and a transformer whose grounded centre tap is annotated Center tap provides bias current return. REFUTED on the failure signature: the prose states the output is typically parked near a rail, but s8.2.2.6 sits on the SAME cited page 17 and says the opposite - input overload conditions can produce an output voltage that appears normal, and with both input amplifiers at their swing limits the difference measured by the output amplifier is near zero, so the output of the INA333 is near 0 V even though both inputs are overloaded. slyt226 p1 says the same thing in its opening column: saturation causes the INA output voltage, although of wrong value, to appear normal to the following processing circuitry. A reader trusting this record would hunt for a stuck rail and miss the actual symptom, which is a plausible-looking near-zero output. Second, smaller: the fourth legal form in rule.legal_forms (source already referenced to that ground via a third wire) is not one of the three in Figure 34 and is not stated on p16 - it is an uncited inference presented as vendor fact.",
+        "ts": "2026-08-16T20:20:53"
+       },
+       "in-bias-return-sizing": {
+        "verdict": "refuted",
+        "by": "second-reader",
+        "date": "2026-08-16",
+        "note": "ina333 p16 re-read: the quoted fork is verbatim (if the differential source resistance is low the return path can be connected to one input; with higher source impedance, using two equal resistors provides a balanced input with possible advantages of lower input offset voltage as a result of bias current and better high-frequency common-mode rejection). Figure 34 on p17 does show a 47k/47k pair and a single 10k. REFUTED on the envelope. rsource_ohm is capped at 10 kohm and the envelope_note justifies it by saying that above it the bleeder pair becomes a dominant gain-error and noise term - but p16 recommends the two-equal-resistor form precisely FOR higher source impedance, so the record excludes from its envelope the exact regime its own rule field high_source_resistance describes. The 10 kohm number appears nowhere on p16 or p17. Second, the cross-vendor substitution is not safe for SIZING: the 47k and 10k examples are keyed to the INA333 CMOS input at 70 pA typ, yet the envelope admits ibias up to 100 nA, and at the bipolar AD8226-class bias this board actually uses a 47k pair develops roughly a millivolt of offset against the 5 uV referred-to-input budget fixed in requirements 9a. The envelope_note hedge that a higher-bias input needs proportionally smaller resistors does not repair an envelope that still admits 100 nA while carrying the 70 pA sizing examples. Third: nothing on p16 or p17 mentions Johnson noise or source loading, so both stated bounds are uncited.",
+        "ts": "2026-08-16T20:21:05"
+       },
+       "in-path-symmetry-sets-cmrr": {
+        "verdict": "refuted",
+        "by": "second-reader",
+        "date": "2026-08-16",
+        "note": "sboa582 p4 and p5 re-read. Transcription is clean: Equation 7 is CMRR_R = (G+1)/(4t), Equation 8 is the parallel combination 1/CMRR_D = 1/CMRR_A + 1/CMRR_R, the CM-to-differential sentence is verbatim, and Figure 2-4 does show CMRR_R flat and dominant with CMRR_A rolling off and crossing near 100 kHz. p4 does carry the worked case - a 1 kohm resistor at +-0.5 pct spanning 995 to 1005 ohm, Figure 2-3 with 995/1005/1005/995, the 150 dB OPA387 specification and a worst-case CMRR_D of only 40 dB. REFUTED on transfer to this interface. Every circuit in sboa582 (Figures 2-1, 2-3, 3-1, 3-2) is a FOUR DISCRETE RESISTOR difference amplifier in which G and t belong to the same gain-setting network, and the worked case is at Gain = 1 V/V per the Figure 3-2 caption. The record asserts rather than argues that the same algebra governs STRAY trace asymmetry. It does not: ina333 p16 puts the in-amp input impedance at about 100 Gohm, so mismatched series trace resistance draws essentially no current and converts essentially nothing at DC, and t has no counterpart in a bare trace pair. The headline claim that CMRR at this interface is set by input-path mismatch and not by the amplifier CMRR spec therefore does not follow for an in-amp fed from a 350 ohm bridge with no fitted input network - the in-amp internally trimmed network still dominates, and the genuine stray mechanism is mismatched shunt RC over frequency, which is what slyt226 p1 is actually about. The ina333 p15 corroboration is verbatim but is about the RG gain-set pins and their stability limit of a few pF, not about the input pins.",
+        "ts": "2026-08-16T20:21:19"
+       },
+       "in-leakage-symmetry-and-guarding": {
+        "verdict": "refuted",
+        "by": "second-reader",
+        "date": "2026-08-16",
+        "note": "01258b p12 holds as cited: Figure 26 is the Thevenin source with RP1 to RP4 to all other nearby voltage nodes including ground, the typical values are RP about 1000 Gohm at low humidity and contamination and about 1 Gohm at high humidity and contamination, guard rings have no solder mask, are biased at the same voltage as the sensitive node and need to be driven by a low impedance source, and Figure 28 is the SMD unity-gain buffer guard ring. REFUTED on the p13 citation. Page 13 carries only Figures 29 to 32 - the unity-gain buffer equivalent circuit, the non-inverting gain amplifier and the transimpedance amplifier - plus the VOS across RP2 argument and the sentence the leakage current is typically reduced by a factor of about 1000. The section title claimed for p13 and two of its three claims are wrong for that page: Guard Rings on Both PCB Surfaces, the through-hole packages sentence and both jumper-trace sentences (any jumper traces connected to traces with guard rings also need guard rings; it is better when possible to avoid jumper traces for critical nodes) are all on p14. Substantive second point: every guard ring in this app note, Figures 28 through 33, is driven from the output of a SINGLE-ENDED op amp at the one sensitive node potential. The record transplants that to a differential input pair whose two inputs sit at different potentials by the signal, without saying what a differential guard would be driven from or that a single ring cannot sit at both potentials. Finally the equal-neighbourhood symmetry regime, which is the part that actually governs this board at 175 ohm source impedance, is the record own reasoning - it is on neither p12 nor p13 nor the ina333 page cited.",
+        "ts": "2026-08-16T20:21:32"
+       },
+       "in-aggressor-separation": {
+        "verdict": "refuted",
+        "by": "second-reader",
+        "date": "2026-08-16",
+        "note": "01258b p17 callouts 1/6/7 and ina333 p20 are transcribed accurately - sensor traces are separated from power (top layer) and digital (bottom layer) traces to reduce crosstalk; the Difference Amplifier is as close to the sensor as possible and on the opposite PCB surface from the microcontroller, minimizing electrical and thermal crosstalk; power traces kept short, straight and above ground plane; and p20 gives keep traces short, use a PCB ground plane, surface-mount parts as close to the device pins as possible, 0.1 uF bypass across the supply pins, with Figure 40 showing VIN- and VIN+ entering as an equal-width parallel pair with nothing between them and the gain resistor straddling both RG pads. REFUTED on the reference rule. No cited page states unbroken reference copper or no split, slot or void under the pair - ina333 p20 says only, when possible, use a printed-circuit-board ground plane, and the p17 callouts say nothing about plane continuity. The same app note contradicts the rule one page past the citation: 01258b p18 Figure 41, 3rd Layer Ground Plane, shows a deliberate full-height FR4 gap splitting the reference plane between the amplifier side and the sensor/cold-junction side (callouts 10, 13, 14), with the analog signals crossing it through a narrow ground plane extension and digital traces routed under that extension with series resistors in the gap (callout 19). The vendor trades plane continuity away for thermal gradient, which is the dominant error term here. Second: the headline aggressor, the amplifier own output, appears on no cited page - the vendor design example names power and the microcontroller as the aggressors (callouts 1, 6, 7, 17), and 01258b p12 to p13 in fact prescribes surrounding the sensitive input with copper driven from VOUT. Plausible reasoning at G about 150, but unwitnessed by this ledger and stated flatly in rule.aggressors. Minor: the p4 citation drops the source hedge - low profile parts MAY have the additional advantage of reduced electrical crosstalk.",
+        "ts": "2026-08-16T20:21:47"
+       }
+      }
+     }
+    ],
+    "checklist": null,
+    "policy": {
+     "tiers": "Source tiers, best first: vendor-layout (the subject part's OWN datasheet layout section / eval board / reference layout) > vendor-appnote (same vendor, the topology) > cross-vendor (another vendor's note on the same topology/interface) > forum (corroboration only - NEVER a record's sole source; the close step refuses it). Declare the tier per fetch (--tier); vendor community subdomains are forced to forum. Prefer the highest tier that actually covers the operating point; two independent tiers beat one when they disagree - record the disagreement in prose.",
+     "visual_reads": "Cited pages must be READ VISUALLY (Read the quarantined PDF page as an image): layout figures are the highest-value content and text extraction cannot see them. Every sources[] entry carries `page` and a `note` saying WHAT WAS READ there (figure/table/section and its claim); figure descriptions land in the record prose. The second reader re-reads exactly those pages to refute you.",
+     "quarantine": "Every source enters the workspace through research.py fetch ONLY (allowlisted https download or a local file registered against an allowlisted origin URL); records may cite only ledger files (research/sources/<file>) - validate refuses anything else.",
+     "maturity": "Write status draft + maturity draft. The second reader flips a record to verified; the owner approves after promotion. Never self-declare higher."
+    },
+    "allowlist": [
+     {
+      "domain": "ti.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "analog.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "st.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "nxp.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "microchip.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "infineon.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "onsemi.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "rohm.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "renesas.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "monolithicpower.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "diodes.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "richtek.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "torexsemi.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "semtech.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "silabs.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "nordicsemi.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "espressif.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "wch-ic.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "wiznet.io",
+      "kind": "vendor"
+     },
+     {
+      "domain": "realtek.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "nexperia.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "toshiba.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "toshiba.semicon-storage.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "vishay.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "littelfuse.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "bourns.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "epc-co.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "gansystems.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "ftdichip.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "cirrus.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "ablic.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "aosmd.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "mpsind.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "murata.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "tdk.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "product.tdk.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "kemet.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "samsungsem.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "yageo.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "we-online.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "we-online.de",
+      "kind": "vendor"
+     },
+     {
+      "domain": "coilcraft.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "sumida.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "pulseelectronics.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "belfuse.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "hirose.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "jst.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "jst-mfg.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "molex.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "te.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "amphenol.com",
+      "kind": "vendor"
+     },
+     {
+      "domain": "gct.co",
+      "kind": "vendor"
+     },
+     {
+      "domain": "lcsc.com",
+      "kind": "distributor"
+     },
+     {
+      "domain": "jlcpcb.com",
+      "kind": "distributor"
+     },
+     {
+      "domain": "digikey.com",
+      "kind": "distributor"
+     },
+     {
+      "domain": "mouser.com",
+      "kind": "distributor"
+     },
+     {
+      "domain": "arrow.com",
+      "kind": "distributor"
+     },
+     {
+      "domain": "farnell.com",
+      "kind": "distributor"
+     },
+     {
+      "domain": "newark.com",
+      "kind": "distributor"
+     },
+     {
+      "domain": "rs-online.com",
+      "kind": "distributor"
+     },
+     {
+      "domain": "usb.org",
+      "kind": "standards"
+     },
+     {
+      "domain": "ieee.org",
+      "kind": "standards"
+     },
+     {
+      "domain": "ipc.org",
+      "kind": "standards"
+     },
+     {
+      "domain": "jedec.org",
+      "kind": "standards"
+     },
+     {
+      "domain": "electronics.stackexchange.com",
+      "kind": "forum"
+     },
+     {
+      "domain": "eevblog.com",
+      "kind": "forum"
+     }
+    ],
+    "forum_hosts": [
+     "e2e.ti.com",
+     "ez.analog.com",
+     "community.st.com",
+     "community.nxp.com",
+     "community.infineon.com",
+     "forum.digikey.com",
+     "forum.microchip.com",
+     "devzone.nordicsemi.com"
+    ],
+    "caps": {
+     "depth_per_gap": 4,
+     "sources_acquired": 0,
+     "sources_remaining": 4,
+     "attempts_used": 0,
+     "attempts_cap": 12
+    },
+    "record_schema": {
+     "$schema": "https://json-schema.org/draft/2020-12/schema",
+     "title": "ai-ee knowledge record",
+     "type": "object",
+     "required": [
+      "id",
+      "classes",
+      "applies",
+      "rule",
+      "prose",
+      "sources",
+      "status",
+      "origin"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "id": {
+       "type": "string",
+       "pattern": "^[a-z0-9][a-z0-9-]*$"
+      },
+      "classes": {
+       "type": "array",
+       "minItems": 1,
+       "items": {
+        "type": "string"
+       }
+      },
+      "applies": {
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "topologies": {
+         "type": "array",
+         "items": {
+          "type": "string"
+         }
+        },
+        "packages": {
+         "type": "array",
+         "items": {
+          "type": "string"
+         }
+        },
+        "interfaces": {
+         "type": "array",
+         "items": {
+          "type": "string"
+         }
+        },
+        "parts": {
+         "type": "array",
+         "items": {
+          "type": "string"
+         }
+        }
+       }
+      },
+      "rule": {
+       "oneOf": [
+        {
+         "type": "null"
+        },
+        {
+         "type": "object",
+         "minProperties": 1,
+         "properties": {
+          "enforced_by": {
+           "type": [
+            "string",
+            "null"
+           ]
+          }
+         },
+         "additionalProperties": {
+          "type": [
+           "string",
+           "number",
+           "boolean",
+           "null"
+          ]
+         }
+        }
+       ]
+      },
+      "prose": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 1500
+      },
+      "sources": {
+       "type": "array",
+       "minItems": 1,
+       "items": {
+        "type": "object",
+        "required": [
+         "file"
+        ],
+        "additionalProperties": false,
+        "properties": {
+         "file": {
+          "type": "string",
+          "minLength": 1
+         },
+         "page": {
+          "type": "integer",
+          "minimum": 1
+         },
+         "section": {
+          "type": "string"
+         },
+         "note": {
+          "type": "string"
+         }
+        }
+       }
+      },
+      "status": {
+       "type": "string",
+       "enum": [
+        "active",
+        "draft",
+        "superseded"
+       ]
+      },
+      "origin": {
+       "type": "string",
+       "minLength": 1
+      },
+      "level": {
+       "type": "string",
+       "enum": [
+        "principle",
+        "topology",
+        "family",
+        "part",
+        "instance"
+       ]
+      },
+      "envelope": {
+       "type": [
+        "object",
+        "null"
+       ]
+      },
+      "envelope_note": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 600
+      },
+      "maturity": {
+       "type": "string",
+       "enum": [
+        "draft",
+        "verified",
+        "approved",
+        "proven"
+       ]
+      },
+      "generalizes": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       }
+      },
+      "approval": {
+       "type": "object",
+       "required": [
+        "by",
+        "date"
+       ],
+       "additionalProperties": false,
+       "properties": {
+        "by": {
+         "type": "string",
+         "minLength": 1
+        },
+        "date": {
+         "type": "string",
+         "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "note": {
+         "type": "string"
+        }
+       }
+      },
+      "verification": {
+       "type": "object",
+       "required": [
+        "by",
+        "date"
+       ],
+       "additionalProperties": false,
+       "properties": {
+        "by": {
+         "type": "string",
+         "minLength": 1
+        },
+        "date": {
+         "type": "string",
+         "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "note": {
+         "type": "string"
+        }
+       }
+      },
+      "evidence": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "required": [
+         "workspace",
+         "event",
+         "date"
+        ],
+        "additionalProperties": false,
+        "properties": {
+         "workspace": {
+          "type": "string",
+          "minLength": 1
+         },
+         "board": {
+          "type": "string"
+         },
+         "event": {
+          "type": "string",
+          "minLength": 1
+         },
+         "date": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+         },
+         "note": {
+          "type": "string"
+         }
+        }
+       }
+      }
+     }
+    },
+    "record_template": {
+     "id": "<in-<what-the-rule-is>>",
+     "classes": [
+      "return-path"
+     ],
+     "applies": {
+      "topologies": [],
+      "packages": [],
+      "interfaces": [
+       "in"
+      ],
+      "parts": []
+     },
+     "rule": null,
+     "prose": "<the rule + why, incl. the figure descriptions you read; <= 1500 chars; ASCII>",
+     "sources": [
+      {
+       "file": "research/sources/<file from research.py fetch>",
+       "page": 1,
+       "note": "<what was READ on that page: fig/table + claim>"
+      }
+     ],
+     "status": "draft",
+     "origin": "research:interface-in-2",
+     "level": "topology",
+     "envelope": {
+      "<dim>_<unit>": {
+       "min": 0,
+       "max": 0
+      },
+      "<name>_kind": {
+       "in": [
+        "<value>"
+       ]
+      }
+     },
+     "maturity": "draft",
+     "generalizes": [],
+     "envelope_note": "<what the rule scales with, and why these bounds>"
+    },
+    "checklist_schema": {
+     "$schema": "https://json-schema.org/draft/2020-12/schema",
+     "title": "ai-ee coverage checklist",
+     "type": "object",
+     "required": [
+      "id",
+      "kind",
+      "applies",
+      "requires",
+      "maturity",
+      "origin"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "id": {
+       "type": "string",
+       "pattern": "^[a-z0-9][a-z0-9-]*$"
+      },
+      "kind": {
+       "const": "coverage-checklist"
+      },
+      "applies": {
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "topologies": {
+         "type": "array",
+         "items": {
+          "type": "string"
+         }
+        },
+        "interfaces": {
+         "type": "array",
+         "items": {
+          "type": "string"
+         }
+        }
+       }
+      },
+      "requires": {
+       "type": "array",
+       "minItems": 1,
+       "items": {
+        "type": "object",
+        "required": [
+         "class",
+         "min_level"
+        ],
+        "additionalProperties": false,
+        "properties": {
+         "class": {
+          "type": "string"
+         },
+         "min_level": {
+          "type": "string",
+          "enum": [
+           "principle",
+           "topology",
+           "family",
+           "part",
+           "instance"
+          ]
+         },
+         "note": {
+          "type": "string"
+         }
+        }
+       }
+      },
+      "maturity": {
+       "type": "string",
+       "enum": [
+        "draft",
+        "verified",
+        "approved",
+        "proven"
+       ]
+      },
+      "approval": {
+       "type": "object",
+       "required": [
+        "by",
+        "date"
+       ],
+       "additionalProperties": false,
+       "properties": {
+        "by": {
+         "type": "string",
+         "minLength": 1
+        },
+        "date": {
+         "type": "string",
+         "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "note": {
+         "type": "string"
+        }
+       }
+      },
+      "sources": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "required": [
+         "file"
+        ],
+        "additionalProperties": false,
+        "properties": {
+         "file": {
+          "type": "string",
+          "minLength": 1
+         },
+         "page": {
+          "type": "integer",
+          "minimum": 1
+         },
+         "section": {
+          "type": "string"
+         },
+         "note": {
+          "type": "string"
+         }
+        }
+       }
+      },
+      "prose": {
+       "type": "string",
+       "maxLength": 1500
+      },
+      "origin": {
+       "type": "string",
+       "minLength": 1
+      }
+     }
+    },
+    "checklist_template": null,
+    "classes": [
+     "constraints-emission",
+     "creepage",
+     "decoupling",
+     "diff-pair",
+     "emi",
+     "esd",
+     "feedback",
+     "inrush",
+     "power-loop",
+     "return-path",
+     "selection",
+     "sequencing",
+     "sourcing",
+     "thermal",
+     "thermal-via"
+    ],
+    "levels": [
+     "principle",
+     "topology",
+     "family",
+     "part",
+     "instance"
+    ],
+    "envelope_units": [
+     "v",
+     "mv",
+     "kv",
+     "a",
+     "ma",
+     "ua",
+     "w",
+     "mw",
+     "kw",
+     "hz",
+     "khz",
+     "mhz",
+     "ghz",
+     "ns",
+     "us",
+     "ms",
+     "s",
+     "c",
+     "k",
+     "mm",
+     "um",
+     "cm",
+     "m",
+     "pf",
+     "nf",
+     "uf",
+     "mf",
+     "nh",
+     "uh",
+     "mh",
+     "ohm",
+     "mohm",
+     "kohm",
+     "mohms",
+     "pct",
+     "oz",
+     "mbps",
+     "gbps",
+     "bps",
+     "layers",
+     "pins",
+     "v_per_ns",
+     "v_per_us",
+     "a_per_ns",
+     "a_per_us"
+    ],
+    "paths": {
+     "records": "research/records/<id>.yaml",
+     "checklists": "research/checklists/<id>.yaml",
+     "sources": "research/sources/",
+     "task": "research/tasks/interface-in-2.json"
+    },
+    "commands": {
+     "fetch": "scripts/research.py fetch --workspace boards/bb-amp --task interface-in-2 --url <https://vendor/...pdf> --tier <vendor-layout|vendor-appnote|cross-vendor|forum> [--about <mpn>] [--expect pdf|html]",
+     "validate": "scripts/research.py validate --workspace boards/bb-amp --task interface-in-2",
+     "status": "scripts/research.py status --workspace boards/bb-amp --task interface-in-2"
+    }
+   }
+  }
+ ],
+ "caps": {
+  "per_run": 2,
+  "depth_per_gap": 4
+ }
+}

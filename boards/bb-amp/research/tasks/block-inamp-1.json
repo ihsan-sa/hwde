@@ -1,0 +1,226 @@
+{
+ "id": "block-inamp-1",
+ "slot": "block:B1",
+ "kind": "block",
+ "token": "inamp",
+ "phase": "P2",
+ "status": "closed",
+ "outcome": "verified",
+ "opened": "2026-08-16T19:36:14",
+ "closed": "2026-08-16T20:37:59",
+ "coverage_report": "boards/bb-amp/log/coverage-P2.json",
+ "gap": {
+  "slot": "block:B1",
+  "kind": "block",
+  "topology": "inamp",
+  "operating_point": {
+   "vs_v": 3.3,
+   "vs_tol_pct": 5,
+   "vcm_v": 1.65,
+   "gain_vv": 139.2,
+   "gain_stage1_vv": 39.9,
+   "gain_stage2_vv": 3.49,
+   "vin_diff_mv_fs": 20,
+   "vin_diff_mv_max": 25,
+   "vped_v": 0.252,
+   "vout_min_v": 0.113,
+   "vout_max_v": 3.037,
+   "f_signal_hz": 1000,
+   "f3db_hz": 41000,
+   "err_budget_uv_rti": 5,
+   "noise_nv_rthz_rti": 22.2,
+   "rsource_ohm": 350,
+   "load_kohm_min": 100,
+   "iq_ma": 0.65,
+   "pdiss_w": 0.0023,
+   "tamb_c_min": 0,
+   "tamb_c_max": 50,
+   "board_layers": 2,
+   "supply_kind": "single",
+   "inamp_arch_kind": "three-opamp",
+   "ref_drive_kind": "buffered",
+   "source_kind": "bridge-external-excitation",
+   "gain_split_kind": "two-stage",
+   "output_stage_kind": "rrio-opamp",
+   "calibration_kind": "zero-span-downstream"
+  },
+  "missing": [
+   {
+    "class": "coverage-checklist",
+    "min_level": null
+   }
+  ],
+  "reasons": [
+   "no coverage checklist for block 'inamp' - the first research pass on a new topology/interface produces one (reference/knowledge/checklists/)"
+  ],
+  "related_records": [],
+  "principle_parents": [],
+  "task": "research block 'inamp': produce its coverage checklist, then populate it"
+ },
+ "checklist_needed": true,
+ "caps": {
+  "depth_per_gap": 4,
+  "attempt_factor": 3
+ },
+ "sources": [
+  {
+   "n": 1,
+   "url": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Analog-Devices-AD8226ARZ-R7_C34250.pdf",
+   "final_url": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Analog-Devices-AD8226ARZ-R7_C34250.pdf",
+   "host": "wmsc.lcsc.com",
+   "domain": "lcsc.com",
+   "domain_kind": "distributor",
+   "tier": "vendor-layout",
+   "declared_tier": "vendor-layout",
+   "about": "AD8226ARZ",
+   "file": "research/sources/2304140030_Analog-Devices-AD8226ARZ-R7_C34250.pdf",
+   "sha256": "ea42b3f336e475238a01a69f782f0488e4bb1d5115ced63eb42fa0303e7f363e",
+   "bytes": 7438,
+   "content_type": "application/pdf",
+   "pages": 1,
+   "fetched": "2026-08-16T19:50:47",
+   "via": "http",
+   "note": "ADI AD8226 data sheet, LCSC mirror (www.analog.com edge times out from this host)",
+   "deduplicated": false
+  },
+  {
+   "n": 2,
+   "url": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1811012120_Analog-Devices-AD8227ARMZ-R7_C150954.pdf",
+   "final_url": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1811012120_Analog-Devices-AD8227ARMZ-R7_C150954.pdf",
+   "host": "wmsc.lcsc.com",
+   "domain": "lcsc.com",
+   "domain_kind": "distributor",
+   "tier": "vendor-layout",
+   "declared_tier": "vendor-layout",
+   "about": "AD8227ARMZ-R7",
+   "file": "research/sources/1811012120_Analog-Devices-AD8227ARMZ-R7_C150954.pdf",
+   "sha256": "ea42b3f336e475238a01a69f782f0488e4bb1d5115ced63eb42fa0303e7f363e",
+   "bytes": 7438,
+   "content_type": "application/pdf",
+   "pages": 1,
+   "fetched": "2026-08-16T19:50:48",
+   "via": "http",
+   "note": "ADI AD8227 data sheet, LCSC mirror - orchestrator's directed sub-question",
+   "deduplicated": false
+  },
+  {
+   "n": 3,
+   "url": "https://www.farnell.com/datasheets/2168367.pdf",
+   "final_url": "https://www.farnell.com/datasheets/2168367.pdf",
+   "host": "www.farnell.com",
+   "domain": "farnell.com",
+   "domain_kind": "distributor",
+   "tier": "vendor-layout",
+   "declared_tier": "vendor-layout",
+   "about": "AD8226",
+   "file": "research/sources/2168367.pdf",
+   "sha256": "e99737516d6011609fa0edbbe3278e7274da006ccd20479ca815c7046171cf0a",
+   "bytes": 786973,
+   "content_type": "application/pdf",
+   "pages": 29,
+   "fetched": "2026-08-16T20:00:58",
+   "via": "http",
+   "note": "ADI AD8226 data sheet (subject part), Farnell mirror - www.analog.com + www.mouser.com edges time out from this host and the LCSC mirror is serving a stub",
+   "deduplicated": false
+  },
+  {
+   "n": 4,
+   "url": "https://www.ti.com/lit/an/slyt226/slyt226.pdf",
+   "final_url": "https://www.ti.com/lit/an/slyt226/slyt226.pdf",
+   "host": "www.ti.com",
+   "domain": "ti.com",
+   "domain_kind": "vendor",
+   "tier": "cross-vendor",
+   "declared_tier": "cross-vendor",
+   "about": "in-amp common-mode range / gain partitioning",
+   "file": "research/sources/slyt226.pdf",
+   "sha256": "5445be9fcda2f9674f9d9f907059058c301300bca760453ccaa8a6a914aebe78",
+   "bytes": 182119,
+   "content_type": "application/pdf",
+   "pages": 6,
+   "fetched": "2026-08-16T20:01:02",
+   "via": "http",
+   "note": "TI SLYT226 - classic 3-op-amp in-amp internal-node saturation + gain partitioning, cross-vendor generalization of the AD8226 rule",
+   "deduplicated": true
+  }
+ ],
+ "attempts": [
+  {
+   "ts": "2026-08-16T19:41:21",
+   "url": "https://www.analog.com/media/en/technical-documentation/data-sheets/ad8226.pdf",
+   "kind": "transport",
+   "detail": "ReadTimeout: The read operation timed out"
+  },
+  {
+   "ts": "2026-08-16T19:42:26",
+   "url": "https://www.analog.com/media/en/technical-documentation/data-sheets/ad8226.pdf",
+   "kind": "transport",
+   "detail": "ReadTimeout: The read operation timed out"
+  },
+  {
+   "ts": "2026-08-16T19:49:09",
+   "url": "https://analog.com/media/en/technical-documentation/data-sheets/ad8226.pdf",
+   "kind": "transport",
+   "detail": "ReadTimeout: The read operation timed out"
+  }
+ ],
+ "verdicts": {
+  "inamp-internal-node-saturation": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-16",
+   "note": "Re-read AD8226 PDF p.21 (printed p.20, INPUT VOLTAGE RANGE opening paragraph) and SLYT226 PDF p.1 (printed p.25). Both quotes verbatim: ADI 'Internal nodes between the first and second stages (Node 1 and Node 2 in Figure 58) experience a combination of a gained signal, a common-mode signal, and a diode drop. This combined signal can be limited by the voltage supplies even when the individual input and output signals are not limited'; TI 'Saturation causes the INA output voltage, although of wrong value, to appear normal to the following processing circuitry. This could lead to disastrous effects with unpredictable consequences.' TI Figure 1 is titled 'Classic three-op-amp INA and its voltage nodes' and does print V1 = VCM - G1(VD/2), V2 = VCM + G1(VD/2), G1 = 1 + 2RF/RG; the Equation 4 text confirms only VD/2 is amplified while VCM passes the input stage at unity gain. Level principle is right and nothing in the prose overreaches either page.",
+   "ts": "2026-08-16T20:33:41"
+  },
+  "inamp-internal-node-headroom-inequalities": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-16",
+   "note": "Re-read AD8226 PDF p.21 (printed p.20), p.20 (printed p.19) and p.11 (printed p.10). Equations 1-3 transcribed exactly. All TWELVE Table 8 constants exact: -40C -0.55/0.8/1.3, +25C -0.35/0.7/1.15, +85C -0.15/0.65/1.05, +125C -0.05/0.6/0.9 V. Performance Across Temperature matches both corner claims. THE CENTRAL GENERALIZATION HOLDS: printed p.19 prints VOUT = G(VIN+ - VIN-) + VREF, so Vdiff*G = Vout - Vref is exact and Eq 2 becomes Vcm + |Vout-Vref|/2 < Vs - V+LIMIT with no G left in it. Confirmed against the figures, not just algebra: Fig 9 (Vs=+2.7V, G=1) and Fig 12 (Vs=+2.7V, G=100) sit side by side on printed p.10 and differ by at most 0.1 V at four vertices. All five claimed Fig 12 annotations are really printed: (+0.02,+2.0), (+1.35,+1.9), (+2.67,+1.3), (+2.4,+0.8), (+0.02,-0.3). Arithmetic at 25C, Vs-V+LIMIT = 2.0: at Vout=+0.02, Vref=0 Eq 2 gives Vcm < 1.99 against 2.0 printed; at Vcm=+0.8 it gives Vout = 2.40 exactly. The Vref=0 diagonal running (0.02,2.0) to (2.4,0.8) is the SAME straight line in both figures. Nits only: the transfer function that licenses the substitution is on cited p.20 but is not named in that page's note, and the 2.2-36 V envelope bound is from printed p.6 (PDF p.7), an uncited page of the same PDF.",
+   "ts": "2026-08-16T20:33:54"
+  },
+  "inamp-ref-pin-drive-impedance": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-16",
+   "note": "Re-read AD8226 PDF p.21 (printed p.20, REFERENCE TERMINAL + Figure 59), p.20 (Figure 58), p.6 (printed p.5, Table 3) and SLYT226 p.2. Verbatim on printed p.20: 'For the best performance, source impedance to the REF terminal should be kept below 2 ohm', the 50 kohm bridge-leg explanation, 2(50 kohm + RREF)/(100 kohm + RREF), 'Only the positive signal path is amplified; the negative path is unaffected. This uneven amplification degrades CMRR', and the 0.3 V ESD limit. Figure 59 is exactly as the note describes: left panel headed INCORRECT, a bare two-resistor divider straight into REF, struck through with a large X; right panel headed CORRECT, the same divider buffered by an OP1177. Figure 58 does show R3-R6 all 50 kohm with REF at the far end of R6. Table 3 REFERENCE INPUT confirms RIN 100 kohm typ, IIN 7 uA typ, range -Vs to +Vs, gain to output 1 V/V, gain error 0.01 pct - the 7 uA IS on the page. Derivation checked and correct: A-1 = Rref/(100k+Rref), 10 ppm/ohm, 20 ppm at 2 ohm exact; 7 uA x 9.2 kohm = 64.4 mV supports the 65 mV pedestal. ONE CORRECTION for the author: at Rref = 9.2 kohm the exact figure is 9200/109200 = 8.42 pct, not 8.5 pct, and 8.42 pct against 20 ppm is 3.6 orders of magnitude, not four - a rounding slip in a field already flagged derived, not enough to break the record. TI quote verbatim; Figure 2 does carry Rext in both the feedback and the Vref leg, though its A4 buffers A3's feedback divider rather than the REF pin, so it corroborates the principle rather than the REF rule itself.",
+   "ts": "2026-08-16T20:34:09"
+  },
+  "inamp-gain-partition-first-stage": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-16",
+   "note": "Re-read AD8226 PDF p.6 (printed p.5, Table 3, header +Vs = 2.7 V, -Vs = 0 V, VREF = 0 V, +25C, G=1, RL=10k) and SLYT226 pp.3-4 (printed 27-28). Both error laws are printed in Table 3's Conditions column exactly as quoted: 'Total noise: eN = sqrt(eNI^2 + (eNO/G)^2)' and 'Total offset voltage: VOS = VOSI + (VOSO/G)'. All four A-grade (ARZ, ARMZ) numbers verified on the page: eNI 22 typ / 24 max and eNO 120 typ / 125 max nV/rtHz at 1 kHz; VOSI average TC 0.5 typ / 2 max and VOSO average TC 2 typ / 10 max uV/degC over -40C to +125C (B grade is 1 and 5, correctly not used). So the crossover is real: 10/2 = 5 on drift, 120/22 = 5.5 on noise. The 11 pct claim at G1 = 40 checks out (0.25 of 2.25). Bandwidth row 1500/160/20/2 kHz at G = 1/10/100/1000 exact. TI printed p.27 carries the three-step recipe verbatim and the worked ceiling G1 = 2((5 V - 1.5 V)/400 mV) = 17.5 with the conservative G1 = 10 and G2 = 5000/10 = 500. TI printed p.28 carries the independence bullet verbatim, Figure 4's G3 = -GTOT/G1 = -R4/R3, and Figure 5 with INA326 (G=5). Nits: Figure 5's G2 = 200 is read off the printed 1 Mohm / 5 kohm pair rather than printed as 200; and the external_rg claim is vendor text on printed p.19, a page this record does not itself cite.",
+   "ts": "2026-08-16T20:34:25"
+  },
+  "inamp-headroom-escape-gain-in-difference-amp": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-16",
+   "note": "Re-read AD8226 PDF p.21 (printed p.20, Recommendation for Best Performance), p.20 (printed p.19, GAIN SELECTION + Figure 58) and SLYT226 p.2. Both ADI escapes are verbatim: 'If the application requirements exceed the boundaries, one solution is to apply less gain with the AD8226, and then apply additional gain later in the signal chain. Another option is to use the pin-compatible AD8227.' The AD8227 sentences on printed p.19 are verbatim too, including '(<5 ppm/degC maximum)'. AD8227 AUDIT, the point that matters: the only two AD8227 numbers anywhere in this record - gain 5 and 5 ppm/degC max drift - are both printed on cited p.19; NO AD8227 input-range constant, bandwidth, noise or offset figure is asserted, and both the open field and the prose state the AD8227 data sheet was not acquired. WORDING DEFECT, not enough to refute: ADI prints 'default gain of 5', while the field is named ad8227_min_gain_internal and the prose converts default to MINIMUM inside the derivation. The step is sound - with no external RG the input stage is unity so the default gain IS the difference-amp gain, giving G2 = 5 - and derived_not_quoted flags it, but the vendor's word is 'default' and the field name should say so. Everything else checks: G = 1 + 49.4 kohm/RG with Table 7, Figure 58's four equal 50 kohm resistors, TI Equation 7 in both printed forms, and Figure 2 showing Rext in the feedback AND the Vref leg with a VSENSE pin plus the +/-30 pct internal-resistor warning.",
+   "ts": "2026-08-16T20:34:39"
+  },
+  "inamp-gain-pin-and-input-node-parasitics": {
+   "verdict": "refuted",
+   "by": "second-reader",
+   "date": "2026-08-16",
+   "note": "REFUTED on the envelope, which overreaches the ledger's own PDF. The vendor prose is fine: AD8226 PDF p.22 (printed p.21) prints the input-path matching paragraph and the gain-pin parasitic-capacitance paragraph verbatim as quoted, and PDF p.6 Table 3 confirms CMRR min 86/90 dB at G=1, 106 at G=10, 120 at G=100 and G=1000 for DC to 60 Hz, and 80/90/90/100 dB at 5 kHz. But envelope f_signal_hz max 5000 rests on envelope_note's claim that 5 kHz is 'the highest frequency at which the cited part specifies CMRR at all' and that 'above it there is no vendor number for the copper to preserve'. That is false about this same data sheet: printed p.13 (PDF p.14) carries Figure 27 'CMRR vs. Frequency, RTI' and Figure 28 'CMRR vs. Frequency, RTI, 1 kohm Source Imbalance', both plotted from 0.1 Hz to 100 kHz for G = 1/10/100/1000. Figure 28 is the vendor's own measurement of precisely this record's mechanism - a deliberate source imbalance and the CMRR it costs across frequency - and it was never read. The consequence is load-bearing rather than cosmetic: this board's chain is specified to f3db = 41 kHz, so a 5 kHz envelope reads as 'the matching rule stops applying inside our own bandwidth', which inverts the record's own mechanism, under which the error GROWS with frequency. Fix: cite Figures 27 and 28, widen or drop the frequency cap, and use Figure 28 to quantify the source-imbalance claim instead of asserting it. Minor: gain_pin_layout ('Rg directly across the Rg pins') is not on printed p.21; it is supported by Table 6 pin 2,3 'Place a gain resistor between these two pins' on PDF p.9, which the record does not cite.",
+   "ts": "2026-08-16T20:35:02"
+  },
+  "inamp-supply-decoupling-and-local-ground": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-16",
+   "note": "Re-read AD8226 PDF p.22 (printed p.21, LAYOUT / Power Supplies, Figure 61, References). Every quote is verbatim: 'A stable dc voltage should be used to power the instrumentation amplifier. Note that noise on the supply pins can adversely affect performance'; 'A 0.1 uF capacitor should be placed as close as possible to each supply pin. As shown in Figure 61, a 10 uF tantalum capacitor can be used farther away from the part. In most cases, it can be shared by other precision integrated circuits'; and 'The output voltage of the AD8226 is developed with respect to the potential on the reference terminal. Care should be taken to tie REF to the appropriate local ground.' Figure 61 is titled exactly 'Supply Decoupling, REF, and Output Referred to Local Ground' and does draw 0.1 uF and 10 uF on each of the +Vs and -Vs pins, REF tied to the local ground symbol, and the LOAD returned to that same symbol. The two-tier distinction the record leans on (HF cap per pin and local, bulk per rail and shareable) is the vendor's own wording, not an embellishment. Scope guardrail clean: nothing here is called unnecessary, and the shareability of the bulk cap is quoted, not inferred. Nit: 'PSR is specified per gain' and the unity REF-to-output gain behind the IR-drop remark are Table 3 facts on PDF p.6, a page this record does not cite, though the cited page does point to the PSRR curves in Figures 23 and 24.",
+   "ts": "2026-08-16T20:35:15"
+  }
+ },
+ "queue_entry": "2026-08-16-research-task-block-inamp-1-6-verified",
+ "updated": "2026-08-16T20:37:59",
+ "summary": {
+  "verified": 6,
+  "refuted": 1,
+  "checklists": 1,
+  "sources": 4
+ }
+}

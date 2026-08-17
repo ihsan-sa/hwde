@@ -1,0 +1,82 @@
+id: in-path-symmetry-sets-cmrr
+classes: [diff-pair]
+applies:
+  topologies: []
+  packages: []
+  interfaces: [in]
+  parts: []
+rule:
+  enforced_by: null
+  mechanism: "unequal input paths attenuate the common mode unequally, so part of it arrives as a differential voltage and is amplified by the full differential gain"
+  worst_case_network_cmrr: "(G + 1) / (4t) for a four-resistor difference stage of absolute tolerance t"
+  worked_case: "0.5 pct resistors around a 150 dB amplifier give 40 dB of stage CMRR"
+  combination: "1/CMRR_stage = 1/CMRR_amplifier + 1/CMRR_network - the worse path wins"
+  governs: "series resistance, shunt capacitance to the reference copper, trace length and width, via count, and each input's neighbourhood - stray asymmetry as much as fitted parts"
+prose: >-
+  CMRR at this interface is set by the fractional MISMATCH of the two input
+  paths, not by the amplifier's CMRR spec. The vendor states the mechanism
+  generally: "the difference between the two resistor ratios causes a
+  portion of the common-mode voltage to present as a differential voltage at
+  the op-amp's input terminals which is amplified by the differential gain
+  of the circuit." Worst case network CMRR is (G+1)/(4t) with t the absolute
+  tolerance; the worked figure I read puts 0.5 pct resistors around an
+  amplifier specified at 150 dB and gets 40 dB for the stage, and the plot
+  shows the network term flat and dominant from DC to about 100 kHz while
+  the amplifier term falls at 20 dB per decade. Stage CMRR is the parallel
+  combination, so the worse of the two wins. The same algebra governs STRAY
+  asymmetry, which is why this belongs to the interface and not to the
+  amplifier: unequal trace length, unequal parasitic capacitance to the
+  ground pour, one input passing a supply track or sitting beside a
+  different-potential connector pin are all path mismatch. Two in-amp data
+  sheet corroborations: two EQUAL bias resistors give "better
+  high-frequency common-mode rejection", and "careful matching of any
+  parasitics on both RG pins maintains optimal CMRR over frequency". Where
+  a passive network is fitted at the input it is subject to this same term.
+sources:
+  - file: research/sources/sboa582.pdf
+    page: 5
+    section: "s2, Equation 7 / Equation 8, Figure 2-4"
+    note: >-
+      Read: the quoted CM-to-differential mechanism, worst-case
+      CMRR_R = (G+1)/(4t), the parallel-combination equation, and Figure 2-4
+      showing CMRR_R flat and dominant while CMRR_A rolls off at 20 dB/dec.
+  - file: research/sources/sboa582.pdf
+    page: 4
+    section: "s2, Figure 2-3"
+    note: >-
+      Read: the worked circuit - 995/1005 ohm pairs (0.5 pct on 1 kohm)
+      around an amplifier whose data sheet CMRR is 150 dB typ, giving a
+      worst-case stage CMRR of only 40 dB.
+  - file: research/sources/ina333.pdf
+    page: 15
+    section: "8.2.2.1 Setting the Gain"
+    note: >-
+      Read: "Careful matching of any parasitics on both RG pins maintains
+      optimal CMRR over frequency", and the warning that more than a few pF
+      at those pins is not tolerable.
+  - file: research/sources/slyt226.pdf
+    page: 1
+    section: "abstract / INA principles"
+    note: >-
+      Read: the article's own framing - passive RC at the INA input lowers
+      its common-mode rejection ratio - and Figure 1, which shows the common
+      mode passing the input stage at unity gain while only the differential
+      term is amplified.
+status: draft
+origin: research:interface-in-1
+level: topology
+envelope:
+  mismatch_pct: {max: 1}
+  vcm_v: {max: 5}
+maturity: draft
+generalizes: []
+envelope_note: >-
+  The converted differential error is the common-mode voltage times the
+  fractional mismatch of the two input paths, so the rule scales with both.
+  Mismatch is bounded at 1 pct because that is the regime the cited
+  worst-case expression linearizes (its worked case is 0.5 pct parts);
+  larger asymmetries are no longer a small perturbation and the transfer
+  must be solved directly. Common mode is bounded at 5 V, covering single
+  3.3 V and 5 V rails where this mismatch term is the whole story; on a
+  high-common-mode input the amplifier's own input range binds first and
+  path mismatch stops being the limit.

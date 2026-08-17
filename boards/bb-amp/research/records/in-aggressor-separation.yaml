@@ -1,0 +1,77 @@
+id: in-aggressor-separation
+classes: [emi]
+applies:
+  topologies: []
+  packages: []
+  interfaces: [in]
+  parts: []
+rule:
+  enforced_by: null
+  aggressors: "the supply entry and the amplifier's OWN OUTPUT - at forward gain G the output is a G-times copy of the input, the largest voltage on the board sitting next to the smallest"
+  separation: "sensor traces separated from power and from digital/output nets, by distance and by layer; nothing routed between the two input traces"
+  reference: "route the pair together over UNBROKEN reference copper - no split, slot or void under the pair or under the input pins"
+  placement: "amplifier as close to the sensor connector as the terminal allows; input pair short, equal and parallel; gain-setting parts at the device pins"
+  coupling_budget: "the tolerable input-to-output coupling ratio is the error budget divided by the output swing; the coupled term is in-band, so it has to be prevented by separation rather than removed downstream"
+prose: >-
+  The input pair is the lowest-level, highest-impedance net on the board and
+  the amplifier's output is the largest - and the output is a copy of the
+  input, so any path from output back to input is feedback that appears as
+  gain error or, in phase, as oscillation. The coupling ratio that keeps a
+  budget E inside an output swing Vo is E/Vo: a few microvolts against a
+  three-volt output is order 1 ppm. That coupled term lands inside the
+  signal band, so it has to be prevented by separation - nothing
+  downstream can tell it from the sensor. Vendor
+  practice, read from a precision sensor board: "Sensor traces are
+  separated from power (top layer) and digital (bottom layer) traces to
+  reduce crosstalk"; the amplifier is placed "as close to the sensor as
+  possible" and on the opposite surface from the noisy digital part, which
+  "minimizes electrical and thermal crosstalk"; power traces are "kept
+  short, straight and above ground plane for minimal crosstalk". The in-amp
+  data sheet's own layout section adds the reference: keep traces short, use
+  a ground plane, place parts as close to the device pins as possible - and
+  its layout figure draws the two input traces entering as an equal-width
+  parallel pair with nothing between them and the gain resistor sitting
+  directly across the two gain pins.
+sources:
+  - file: research/sources/01258b.pdf
+    page: 17
+    section: "Design Example - PCB Layout, Figure 38/39 callouts 1/6/7"
+    note: >-
+      Read the top-metal figure and its callouts: sensor traces separated
+      from power (top) and digital (bottom) traces; amplifier placed as
+      close to the sensor as possible and on the opposite surface from the
+      microcontroller to minimize electrical and thermal crosstalk; power
+      traces short, straight and over the ground plane.
+  - file: research/sources/ina333.pdf
+    page: 20
+    section: "10.1 Layout Guidelines, 10.2 Figure 40 Layout Example"
+    note: >-
+      Read: keep traces short, use a PCB ground plane, place surface-mount
+      parts as close to the device pins as possible, 0.1 uF bypass across
+      the supply pins - and Figure 40, where VIN+ and VIN- enter as an
+      equal-width parallel pair with nothing between them and the gain
+      resistor straddles both gain pads.
+  - file: research/sources/01258b.pdf
+    page: 4
+    section: "Slow Temperature Changes / Low profile components"
+    note: >-
+      Read: low-profile parts have "reduced exposure to the external
+      environment" and "the additional advantage of reduced electrical
+      crosstalk" - the same separation argument applied to part choice.
+status: draft
+origin: research:interface-in-1
+level: topology
+envelope:
+  vout_v: {min: 1}
+  vsig_mv: {max: 100}
+maturity: draft
+generalizes: []
+envelope_note: >-
+  Scales with the ratio of aggressor to victim: the isolation needed is the
+  error budget divided by the output swing, and that swing is the input
+  times the forward gain. Bounded below at 1 V of output swing, because
+  under it the output is not the dominant aggressor and the supply entry is.
+  Bounded at 100 mV of full-scale differential input, because above that the
+  required coupling ratio is unremarkable and ordinary routing hygiene
+  covers it; microvolt-to-millivolt inputs are what force the separation,
+  the unbroken reference and the placement.

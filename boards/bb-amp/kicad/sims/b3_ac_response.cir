@@ -1,0 +1,152 @@
+* bb-amp b3 - AC magnitude, 1 Hz .. 1 MHz, VS = 3.30 V, RL = 100 k
+* Requirements Q9: response flat within ~1 % at 1 kHz. blocks.md s4a designs
+* the chain corner at ~41 kHz from U1 45.8 kHz (interpolated) cascaded with
+* U2B 350 kHz / 3.49 = 100 kHz.
+* f3db's trigger level is hard-coded at 39.865 dB = the design DC gain
+* 20*log10(139.10) minus 3 dB, because ngspice evaluates a `.meas ... when
+* val` at parse time and cannot reference an earlier measure there. If the
+* DC gain were wrong the trigger never fires and f3db comes back as a
+* MISSING measure - which the gate reports as an error, the same verdict b1
+* would give for the same defect.
+*
+* ====================== MODELS - agent-authored, GENERIC ======================
+* No vendor model file is used anywhere (ai-ee model policy). Every number
+* below is a datasheet value taken from the P3 extractions:
+*   boards/bb-amp/parts/C34250.json - AD8226ARZ, ADI Rev. C, Table 3 (SINGLE
+*                                     supply), Table 8, printed p.19-21
+*   boards/bb-amp/parts/C38732.json - OPA2333AIDR, TI SBOS351D, p.3 / p.9
+*
+* gopamp = generic single-pole op-amp macromodel:
+*   1 Tohm differential input -> slew-limited transconductance -> R||C
+*   dominant pole (DC gain = aol, unity-gain frequency = gbw) -> anti-windup
+*   limiter -> open-loop output resistance ro -> stiff output swing clamp at
+*   [vn+vsatlo, vp-vsathi]. Biq draws iq from vp plus what the output SOURCES.
+* WHY THE SWING CLAMP SITS AFTER ro AND IS A DIODE PAIR: a datasheet output
+*   swing figure is already a LOADED number (OPA2333: 30 mV from the rail at
+*   RL = 10 k), so clamping ahead of ro and then dropping ro*Iload on top of
+*   it double-counts the loading - measured on the first cut of this model,
+*   it put the +25 mV clip at 3.152 V instead of ~3.27 V. The limiter ahead
+*   of ro is therefore set 0.4 V BEYOND the rails (it exists only to stop
+*   integrator windup) and the real limit is a stiff diode clamp on the
+*   output node, which leaves ro free to do its actual job: set the AC output
+*   impedance and the capacitive-load stability.
+* CAPTURES: dc gain, gain-bandwidth, slew rate, output swing limits, output
+*   impedance and capacitive-load stability, quiescent + load supply current.
+* DOES NOT CAPTURE: input offset voltage and its drift, 1/f noise, the
+*   OPA2333 auto-zero chopper, input bias/offset current, PSRR, any
+*   temperature coefficient, and - see b2 - the AD8226's real internal-node
+*   saturation physics (its Table 8 boundary is HAND-ENTERED as the preamp
+*   output clamp, so b2 tests the DESIGN against the datasheet inequality,
+*   not the part).
+*
+.model dclamp D(is=1e-12 n=0.02 rs=0.01 cjo=0)
+.subckt gopamp inp inn out vp vn
++ params: gbw=1meg aol=1e6 ro=100 vsathi=0.05 vsatlo=0.05 iq=0 islew=1e6
+Rin  inp inn 1T
+Bgm  0 nint I = min(max({6.283185307*gbw*1e-6}*(V(inp)-V(inn)), -{islew}), {islew})
+Rp   nint 0 {aol/(6.283185307*gbw*1e-6)}
+Cp   nint 0 1u
+Bhi  nhi 0 V = V(vp)-{vsathi}
+Blo  nlo 0 V = V(vn)+{vsatlo}
+Bo   nbuf 0 V = min(max(V(nint), V(nlo)-0.4), max(V(nhi)+0.4, V(nlo)-0.4+1e-6))
+Rout nbuf nsen {ro}
+Vsen nsen out 0
+Dhi  out nhi dclamp
+Dlo  nlo out dclamp
+Biq  vp vn I = {iq} + max(i(Vsen), 0)
+.ends
+*
+* AD8226 - classic 3-op-amp in-amp built from its OWN published structure so
+* that RG, the internal 50k difference-amp network and the REF pin behave the
+* way the datasheet describes. pins: +IN -IN RG RG REF OUT +VS -VS
+*   preamp gbw 1.83 MHz: Table 3 tabulates bandwidth only at G = 1/10/100/1000
+*     (1500/160/20/2 kHz). No G=39.9 row exists; log-log interpolation between
+*     the G=10 and G=100 rows gives 45.8 kHz at G1 = 39.9, so preamp
+*     GBW = 45.8 kHz * 39.9 = 1.83 MHz. INTERPOLATED, not a cited figure.
+*   preamp clamp [-0.35, +VS-0.70] V: Table 8 at TA = +25 degC
+*     (V_MINUS_LIMIT -0.35 V, V_PLUS_LIMIT +0.70 V) - the Equation 1/2
+*     internal-node boundary, entered by hand.
+*   preamp slew 0.6 V/us: Table 3 slew rate, G = 5 to 100.
+*   diff-amp gbw 1.5 MHz / slew 0.4 V/us: Table 3 G = 1 rows.
+*   diff-amp clamp [0.1, +VS-0.1] V: Table 3 OUTPUT, Output Swing,
+*     RL = 10 kohm, TA = -40 to +125 degC.
+*   Iq 325 uA: Table 3 quiescent current, 25 degC typ (400 uA max).
+*   Ecm: Table 3 CMRR (DC to 60 Hz) is 106 dB min at G=10 and 120 dB min at
+*     G=100; there is no G=39.9 row, so the CONSERVATIVE G=10 minimum
+*     (106 dB = 5.012e-6 V/V) is injected as a common-mode-to-differential
+*     error in series with +IN. Model offset voltage is ZERO: the datasheet
+*     gives only maxima (VOSI 100 uV, VOSO 600 uV -> 115 uV RTI -> 16 mV at
+*     the board output) and requirements Q7 calibrates initial offset out.
+.subckt ad8226 inp inn rga rgb ref out vp vn
+Rcm1 inp ncm 10meg
+Rcm2 inn ncm 10meg
+Ecm  nipe inp ncm 0 5.012e-6
+XA1  nipe rga nd1 vp vn gopamp gbw=1.83meg aol=1e6 ro=100 vsathi=0.70 vsatlo=-0.35 islew=0.6
+RF1  nd1 rga 24.7k
+XA2  inn  rgb nd2 vp vn gopamp gbw=1.83meg aol=1e6 ro=100 vsathi=0.70 vsatlo=-0.35 islew=0.6
+RF2  nd2 rgb 24.7k
+R11  nd2 na3n 50k
+R12  na3n out 50k
+R21  nd1 na3p 50k
+R22  na3p ref 50k
+XA3  na3p na3n out vp vn gopamp gbw=1.5meg aol=1e6 ro=100 vsathi=0.10 vsatlo=0.10 islew=0.4
+Iq   vp vn 325u
+.ends
+*
+* The bb-amp signal chain exactly as architecture/blocks.md specifies it.
+* pins: IN+ IN- OUT +3V3 GND.  params: r6 / cl / rl = the J2 load, ro2333 =
+* the OPA2333 open-loop output resistance (see the b10 header for why it is
+* swept). OPA2333: GBW 350 kHz typ, AOL 130 dB typ (106 dB min) -> 3.16e6,
+* output swing 30 mV typ from either rail (RL = 10k, 25 degC; 50 mV max),
+* slew 0.16 V/us, IQ 17 uA/channel typ - all TI SBOS351D p.3.
+.subckt chain nip nin nout p3v3 gnd
++ params: r6=100 cl=1p rl=100k ro2333=1k
+XU1  nip nin n_rga n_rgb n_vref n_amp1 p3v3 gnd ad8226
+R1   n_rga n_rgb 1.27k
+R2   p3v3 n_vrefset 121k
+R3   n_vrefset gnd 10k
+C4   n_vrefset gnd 100n
+XU2A n_vrefset n_vref n_vref p3v3 gnd gopamp gbw=350k aol=3.16e6 ro={ro2333}
++    vsathi=0.030 vsatlo=0.030 iq=17u islew=0.16
+XU2B n_amp1 n_fb n_u2bout p3v3 gnd gopamp gbw=350k aol=3.16e6 ro={ro2333}
++    vsathi=0.030 vsatlo=0.030 iq=17u islew=0.16
+R4   n_u2bout n_fb 24.9k
+R5   n_fb n_vref 10k
+R6   n_u2bout nout {r6}
+C1   p3v3 gnd 100n
+C2   p3v3 gnd 10u
+C3   p3v3 gnd 100n
+CL   nout gnd {cl}
+RL   nout gnd {rl}
+.ends
+*
+* Sensor source: 350 ohm bridge (requirements Q3) split 175/175, common mode
+* pinned at 1.65 V (Q1). V(nd) IS the differential input in volts.
+*
+* SWEEP PADDING (engine fact, measured on this host, ngspice 46): the FIRST
+* point of a .dc sweep is solved from scratch and this 5-op-amp chain can
+* land there on a junk operating point (gmin AND source stepping both report
+* failure), while `at=` on the LAST point returns 'out of interval'. Every
+* .dc and .ac range below is therefore padded so that no measured point is a
+* sweep endpoint. Second and later points converge from the previous
+* solution and are correct.
+
+.temp 25
+VS   p3v3 0 DC 3.3
+Vcm  n_cm 0 DC 1.65
+Vd   n_d  0 DC 0.010 AC 1
+Ep   n_sp n_cm n_d 0 0.5
+En   n_sn n_cm n_d 0 -0.5
+Rsp  n_sp n_ip 175
+Rsn  n_sn n_in 175
+X1   n_ip n_in n_out p3v3 0 chain r6=100 cl=1p rl=100k ro2333=1k
+.ac dec 200 0.5 2meg
+.meas ac gdc_db  find vdb(n_out) at=1
+.meas ac g1k_db  find vdb(n_out) at=1000
+.meas ac g10k_db find vdb(n_out) at=10000
+.meas ac gpk_db  max  vdb(n_out) from=1 to=1meg
+.meas ac f3db    when vdb(n_out)=39.865 fall=1
+.meas ac droop_pct param='(1-pow(10,(g1k_db-gdc_db)/20))*100'
+.meas ac peak_db   param='gpk_db-gdc_db'
+.meas ac gdc_vv    param='pow(10,gdc_db/20)'
+.end

@@ -1,0 +1,71 @@
+{
+  "block": "inamp",
+  "candidates": [
+    {
+      "mpn": "AD8226ARZ-R7",
+      "lcsc": "C34250",
+      "package": "SOIC-8",
+      "basic": false,
+      "stock": 2845,
+      "price": 3.6811,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Analog-Devices-AD8226ARZ-R7_C34250.pdf",
+      "rank": 1,
+      "fit": "WINNER (family A/B front end): 2.2-36V single supply fits the 3.3V rail; ~12-13kHz BW at G150-165 clears the 7kHz target (better still, 20kHz, run at G~100 for the Family B split); CMRR 120dB min G>=100; REF needs a low-Z buffer (classic topology, Fig.59) - use the Family B second stage for that instead of a dedicated buffer."
+    },
+    {
+      "mpn": "OPA2333AIDR",
+      "lcsc": "C38732",
+      "package": "SOP-8",
+      "basic": false,
+      "stock": 15520,
+      "price": 0.9838,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1809200040_Texas-Instruments-OPA2333AIDR_C38732.pdf",
+      "rank": 2,
+      "fit": "Family B/C second stage: 1.8-5.5V RRIO zero-drift dual, closes AD8226's gain to ~165 and injects the ~0.1V pedestal at its own summing node (AD8226 REF then just grounds - no buffer IC needed). Its own offset/drift/noise are divided by total system gain (~165) once referred to input - negligible either way."
+    },
+    {
+      "mpn": "AD8237ARMZ-R7",
+      "lcsc": "C12086",
+      "package": "MSOP-8",
+      "basic": false,
+      "stock": 598,
+      "price": 7.1793,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1809191826_Analog-Devices-AD8237ARMZ-R7_C12086.pdf",
+      "rank": 3,
+      "fit": "Family A runner-up: only part found with a HIGH-Z REF pin (ICF architecture - datasheet states resistance at REF has no effect on CMRR), saves the buffer a classic in-amp needs. BUT BW at G150-165 is ~6.1-6.7kHz with the BW pin strapped to +VS - zero to negative margin against the 7kHz/1% target, and a wrong strap is a real assembly risk."
+    },
+    {
+      "mpn": "INA828IDR",
+      "lcsc": "C544342",
+      "package": "SOIC-8",
+      "basic": false,
+      "stock": 2886,
+      "price": 1.5922,
+      "datasheet": "https://www.ti.com/cn/lit/gpn/ina828",
+      "rank": 4,
+      "fit": "DISQUALIFIED for this board: needs 4.5-36V single supply, this rail is 3.13-3.47V. Otherwise excellent - 160-180kHz BW at G150-165 (huge margin), 7nV/rtHz noise, 130dB CMRR - kept in the list because it is the cleanest proof that bandwidth-capable classic in-amps and 3.3V-compatible in-amps are largely disjoint sets."
+    },
+    {
+      "mpn": "AD627ARZ-R7",
+      "lcsc": "C9674",
+      "package": "SOIC-8",
+      "basic": false,
+      "stock": 1330,
+      "price": 6.0661,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Analog-Devices-AD627ARZ-R7_C9674.pdf",
+      "rank": 5,
+      "fit": "DISQUALIFIED for this board: 2.2-36V supply is fine, but BW is only ~1.9-2.1kHz at G150-165 (datasheet tabulates 3kHz@G100, 0.4kHz@G1000) - well under the 7kHz target. Best-in-class output swing (7-25mV from each rail at 100k) if a lower-gain role ever fits."
+    },
+    {
+      "mpn": "AD8420ARMZ-RL",
+      "lcsc": "C652810",
+      "package": "MSOP-8",
+      "basic": false,
+      "stock": 138,
+      "price": 4.5387,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2008201812_Analog-Devices-AD8420ARMZ-RL_C652810.pdf",
+      "rank": 6,
+      "fit": "DISQUALIFIED for this board: 2.7-36V supply is fine, but BW is only 2.5kHz at G=100 already (datasheet-tabulated) - the exact 'micropower trades away bandwidth' case requirements.md 9a warns against. REF impedance is a third, gain-compensable category (neither free divider nor strict low-Z)."
+    }
+  ]
+}

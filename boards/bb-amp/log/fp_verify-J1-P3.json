@@ -1,0 +1,36 @@
+{
+ "script": "fp_verify",
+ "status": "pass",
+ "board": "CONN-TH_3P-P5.08_KF128-5.08-3P.kicad_mod",
+ "counts": {
+  "total": 0,
+  "by_severity": {},
+  "by_source": {}
+ },
+ "violations": [],
+ "footprint": "CONN-TH_3P-P5.08_KF128-5.08-3P",
+ "footprint_file": "boards\\bb-amp\\lib\\aiee.pretty\\CONN-TH_3P-P5.08_KF128-5.08-3P.kicad_mod",
+ "copper_pads": 3,
+ "total_pads": 3,
+ "measured_pitch_mm": 5.08,
+ "measured_pad_size_mm": [
+  2.4,
+  2.4
+ ],
+ "has_courtyard": true,
+ "has_silk": true,
+ "land_pattern": {
+  "package": "3-pole THT vertical screw terminal, 5.08 mm pitch",
+  "pad_count": 3,
+  "pitch_mm": 5.08,
+  "pin1": "1",
+  "drill_mm": 1.4,
+  "notes": "Vendor 'PCB LAYOUT' inset + 'Other Data' table (p.1, the only page): 'PCB\u677f\u5b54\u5f84 PCB Hole Diameter [mm]: 1.4', pitch '\u95f4\u8ddd Pitch [mm]: 5.08', with the layout inset's own diameter callout reading '\u03a61.40 +0.10/-0.00' next to the 3-hole pattern and '5.08\u00b10.03' between adjacent holes - i.e. the recommended PCB drill for EVERY pole in the P=2-24 family is 1.4 mm, read directly off the drawing, not inferred. No separate copper-pad (land) diameter is vendor-stated - as with C34250.json's SOIC-8, the datasheet gives the mechanical hole only and leaves pad/annulus sizing to the board designer; pad_size_mm is deliberately left out of this land_pattern for that reason (see extraction schema note on C34250.json). Pin cross-section read off the elevation-view dimensions (not a labelled table entry, a drawing measurement): approximately 0.80 mm x 0.90 mm rectangular pin, 'Pin Dimensions [mm]: 4.3' (pin protrusion length below the mounting shoulder) in the Other Data table. cross-check: a 0.80x0.90 mm pin has a ~1.20 mm diagonal, so the vendor's own 1.4 mm hole gives ~0.10 mm clearance per side and this board's PULLED (easyeda2kicad) 3-pole footprint uses a 1.400 mm drill on a 2.4 mm pad (0.50 mm annulus) - an EXACT match to the vendor figure, comfortably above the fp_verify/JLC 0.15 mm annulus floor. NOTE for the orchestrator: the sibling 2-pole part C474952 (identical family, identical pin, same datasheet PDF) pulls at 1.6 mm drill instead of 1.4 mm - see this librarian's OPEN section, not corrected here without approval."
+ },
+ "svg": "boards\\bb-amp\\lib\\aiee.pretty\\CONN-TH_3P-P5.08_KF128-5.08-3P.overlay.svg",
+ "report_schema": 1,
+ "checker_version": 1,
+ "generated_at": "2026-08-17T05:16:29+00:00",
+ "input": "boards\\bb-amp\\lib\\aiee.pretty\\CONN-TH_3P-P5.08_KF128-5.08-3P.kicad_mod",
+ "input_digest": "sexpr_no_uuid:2e25a878bc3803ebed15f7bde37f6a14dff54f8329e8bd0bbb7d8f4befe3fb85"
+}

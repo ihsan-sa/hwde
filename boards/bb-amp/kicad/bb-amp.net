@@ -1,0 +1,1805 @@
+(export
+	(version "E")
+	(design
+		(source "C:\\dev\\ai-ee3\\boards\\bb-amp\\kicad\\bb-amp.kicad_sch")
+		(date "2026-08-16T22:44:49")
+		(tool "Eeschema 10.0.3")
+		(sheet
+			(number "1")
+			(name "/")
+			(tstamps "/")
+			(title_block
+				(title "bb-amp  bridge front end  AD8226 x OPA2333, G=139.2, 3.3V")
+				(company "ai-ee")
+				(rev "A")
+				(date "2026-08-16")
+				(source "bb-amp.kicad_sch")
+				(comment
+					(number "1")
+					(value "")
+				)
+				(comment
+					(number "2")
+					(value "")
+				)
+				(comment
+					(number "3")
+					(value "")
+				)
+				(comment
+					(number "4")
+					(value "")
+				)
+				(comment
+					(number "5")
+					(value "")
+				)
+				(comment
+					(number "6")
+					(value "")
+				)
+				(comment
+					(number "7")
+					(value "")
+				)
+				(comment
+					(number "8")
+					(value "")
+				)
+				(comment
+					(number "9")
+					(value "")
+				)
+			)
+		)
+	)
+	(components
+		(comp
+			(ref "C1")
+			(value "100nF 50V X7R")
+			(footprint "aiee:C0603")
+			(fields
+				(field
+					(name "LCSC") "C14663")
+				(field
+					(name "Footprint") "aiee:C0603")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "aiee")
+				(part "CC0603KRX7R9BB104")
+				(description "100nF (104) ±10% 50V")
+			)
+			(property
+				(name "LCSC")
+				(value "C14663")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "bb-amp.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "Multilayer Ceramic Capacitors MLCC - SMD/SMT")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "b897f099-a4b0-4adb-8013-facd09288989")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C2")
+			(value "10uF 25V X5R")
+			(footprint "aiee:C0805")
+			(fields
+				(field
+					(name "LCSC") "C15850")
+				(field
+					(name "Footprint") "aiee:C0805")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "aiee")
+				(part "CL21A106KAYNNNE")
+				(description "10uF (106) ±10% 25V")
+			)
+			(property
+				(name "LCSC")
+				(value "C15850")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "bb-amp.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "Multilayer Ceramic Capacitors MLCC - SMD/SMT")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "d5c52099-cc2c-4470-ab04-5c4ade3bc122")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C3")
+			(value "100nF 50V X7R")
+			(footprint "aiee:C0603")
+			(fields
+				(field
+					(name "LCSC") "C14663")
+				(field
+					(name "Note") "0.1uF ACROSS U2 pins 8 and 4 (OPA2333 p15), short loop")
+				(field
+					(name "Footprint") "aiee:C0603")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "aiee")
+				(part "CC0603KRX7R9BB104")
+				(description "100nF (104) ±10% 50V")
+			)
+			(property
+				(name "LCSC")
+				(value "C14663")
+			)
+			(property
+				(name "Note")
+				(value "0.1uF ACROSS U2 pins 8 and 4 (OPA2333 p15), short loop")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "bb-amp.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "Multilayer Ceramic Capacitors MLCC - SMD/SMT")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "bf1cfcb7-2154-4fee-b4e6-c09052b6c8a1")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C4")
+			(value "100nF 50V X7R")
+			(footprint "aiee:C0603")
+			(fields
+				(field
+					(name "LCSC") "C14663")
+				(field
+					(name "Note") "filters the DIVIDER node (9.24k -> 172 Hz). NOT a supply cap and NOT to be moved onto U2A's output.")
+				(field
+					(name "Footprint") "aiee:C0603")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "aiee")
+				(part "CC0603KRX7R9BB104")
+				(description "100nF (104) ±10% 50V")
+			)
+			(property
+				(name "LCSC")
+				(value "C14663")
+			)
+			(property
+				(name "Note")
+				(value "filters the DIVIDER node (9.24k -> 172 Hz). NOT a supply cap and NOT to be moved onto U2A's output.")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "bb-amp.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "Multilayer Ceramic Capacitors MLCC - SMD/SMT")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "1f8707a7-a5cb-4ff8-ba61-cc1c4c69c110")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "J1")
+			(value "KF128-5.08-3P")
+			(footprint "aiee:CONN-TH_3P-P5.08_KF128-5.08-3P")
+			(fields
+				(field
+					(name "LCSC") "C474953")
+				(field
+					(name "Note") "SENSOR IN: 1=IN+, 2=IN-, 3=GND (bias-current return + shield)")
+				(field
+					(name "Footprint") "aiee:CONN-TH_3P-P5.08_KF128-5.08-3P")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "aiee")
+				(part "KF128-5.08-3P")
+				(description "")
+			)
+			(property
+				(name "LCSC")
+				(value "C474953")
+			)
+			(property
+				(name "Note")
+				(value "SENSOR IN: 1=IN+, 2=IN-, 3=GND (bias-current return + shield)")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "bb-amp.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "Screw terminal")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "bb97b618-829a-4935-8547-8b90e2cf9d09")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "J2")
+			(value "KF128-5.08-2P")
+			(footprint "aiee:CONN-TH_P5.08_KF128-5.08-2P")
+			(fields
+				(field
+					(name "LCSC") "C474952")
+				(field
+					(name "Note") "SIGNAL OUT: 1=OUT (0.113-3.037 V), 2=GND. Load >=100k, <=1nF")
+				(field
+					(name "Footprint") "aiee:CONN-TH_P5.08_KF128-5.08-2P")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "aiee")
+				(part "KF128-5.08-2P")
+				(description "")
+			)
+			(property
+				(name "LCSC")
+				(value "C474952")
+			)
+			(property
+				(name "Note")
+				(value "SIGNAL OUT: 1=OUT (0.113-3.037 V), 2=GND. Load >=100k, <=1nF")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "bb-amp.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "Screw terminal")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "66c3ac86-20c6-49f6-aaa4-e43818624c79")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "J3")
+			(value "KF128-5.08-2P")
+			(footprint "aiee:CONN-TH_P5.08_KF128-5.08-2P")
+			(fields
+				(field
+					(name "LCSC") "C474952")
+				(field
+					(name "Note") "POWER IN: 1=+3V3 (3.135-3.465 V, 0.65 mA), 2=GND")
+				(field
+					(name "Footprint") "aiee:CONN-TH_P5.08_KF128-5.08-2P")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "aiee")
+				(part "KF128-5.08-2P")
+				(description "")
+			)
+			(property
+				(name "LCSC")
+				(value "C474952")
+			)
+			(property
+				(name "Note")
+				(value "POWER IN: 1=+3V3 (3.135-3.465 V, 0.65 mA), 2=GND")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "bb-amp.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "Screw terminal")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "7e610fdf-a197-4f62-b40d-a20da3f494ab")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R1")
+			(value "1.27k 0.1% 25ppm")
+			(footprint "aiee:R0603")
+			(fields
+				(field
+					(name "LCSC") "C861195")
+				(field
+					(name "Note") "RG across U1 pins 2-3: G1 = 1 + 49.4k/1.27k = 39.90")
+				(field
+					(name "Footprint") "aiee:R0603")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "aiee")
+				(part "RT0603BRD071K27L")
+				(description "")
+			)
+			(property
+				(name "LCSC")
+				(value "C861195")
+			)
+			(property
+				(name "Note")
+				(value "RG across U1 pins 2-3: G1 = 1 + 49.4k/1.27k = 39.90")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "bb-amp.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "Pre-ordered RLCs")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "5f89be94-eeb8-407a-9bf0-5c859646d9b0")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R2")
+			(value "121k 0.1% 25ppm")
+			(footprint "aiee:R0603")
+			(fields
+				(field
+					(name "LCSC") "C861095")
+				(field
+					(name "Note") "pedestal divider top leg; 121k/10.0k off +3V3 -> 0.2519 V")
+				(field
+					(name "Footprint") "aiee:R0603")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "aiee")
+				(part "RT0603BRD07121KL")
+				(description "")
+			)
+			(property
+				(name "LCSC")
+				(value "C861095")
+			)
+			(property
+				(name "Note")
+				(value "pedestal divider top leg; 121k/10.0k off +3V3 -> 0.2519 V")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "bb-amp.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "Pre-ordered RLCs")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "36c15463-7ccf-40f7-a24d-7f799415566a")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R3")
+			(value "10.0k 0.1% 25ppm")
+			(footprint "aiee:R0603")
+			(fields
+				(field
+					(name "LCSC") "C95204")
+				(field
+					(name "Note") "pedestal divider bottom leg; ratio TCR mismatch = 1.1 uV RTI")
+				(field
+					(name "Footprint") "aiee:R0603")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "aiee")
+				(part "RT0603BRD0710KL")
+				(description "")
+			)
+			(property
+				(name "LCSC")
+				(value "C95204")
+			)
+			(property
+				(name "Note")
+				(value "pedestal divider bottom leg; ratio TCR mismatch = 1.1 uV RTI")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "bb-amp.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "Resistors")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "d744c7cb-dad2-4622-b8fa-ca3d17a5bf47")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R4")
+			(value "24.9k 0.1% 25ppm")
+			(footprint "aiee:R0603")
+			(fields
+				(field
+					(name "LCSC") "C136967")
+				(field
+					(name "Note") "stage-2 feedback; G2 = 1 + 24.9k/10.0k = 3.49")
+				(field
+					(name "Footprint") "aiee:R0603")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "aiee")
+				(part "RT0603BRD0724K9L")
+				(description "")
+			)
+			(property
+				(name "LCSC")
+				(value "C136967")
+			)
+			(property
+				(name "Note")
+				(value "stage-2 feedback; G2 = 1 + 24.9k/10.0k = 3.49")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "bb-amp.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "Resistors")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "e788b7c3-c36f-407a-a4bb-8182136aa06c")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R5")
+			(value "10.0k 0.1% 25ppm")
+			(footprint "aiee:R0603")
+			(fields
+				(field
+					(name "LCSC") "C95204")
+				(field
+					(name "Note") "stage-2 gain return to /VREF, NOT GND - makes the pedestal exact and cancels reference drift to first order")
+				(field
+					(name "Footprint") "aiee:R0603")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "aiee")
+				(part "RT0603BRD0710KL")
+				(description "")
+			)
+			(property
+				(name "LCSC")
+				(value "C95204")
+			)
+			(property
+				(name "Note")
+				(value "stage-2 gain return to /VREF, NOT GND - makes the pedestal exact and cancels reference drift to first order")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "bb-amp.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "Resistors")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "6afc5fef-bc5c-47f7-a7cb-38d3819aa996")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R6")
+			(value "100R 1%")
+			(footprint "aiee:R0603")
+			(fields
+				(field
+					(name "LCSC") "C22775")
+				(field
+					(name "Note") "PROVISIONAL 100R - output isolation into <=1nF (Q8); the P8 bench B4 sizes it. Feedback is taken BEFORE R6.")
+				(field
+					(name "Footprint") "aiee:R0603")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "aiee")
+				(part "0603WAF1000T5E")
+				(description "100Ω (1000) ±1%")
+			)
+			(property
+				(name "LCSC")
+				(value "C22775")
+			)
+			(property
+				(name "Note")
+				(value "PROVISIONAL 100R - output isolation into <=1nF (Q8); the P8 bench B4 sizes it. Feedback is taken BEFORE R6.")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "bb-amp.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "Resistors")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "a6263894-1f5e-4fb3-9209-14ee025f2286")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "U1")
+			(value "AD8226ARZ-R7")
+			(footprint "aiee:SOIC-8_L5.0-W4.0-P1.27-LS6.0-BL")
+			(fields
+				(field
+					(name "LCSC") "C34250")
+				(field
+					(name "Footprint") "aiee:SOIC-8_L5.0-W4.0-P1.27-LS6.0-BL")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "aiee")
+				(part "AD8226ARZ")
+				(description "")
+			)
+			(property
+				(name "LCSC")
+				(value "C34250")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "bb-amp.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "Instrumentation OpAmps")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "c12ebde5-a609-44ab-bc42-7d4e83c64e69")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "4")
+						)
+						(pin
+							(num "8")
+						)
+						(pin
+							(num "7")
+						)
+						(pin
+							(num "6")
+						)
+						(pin
+							(num "5")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "U2")
+			(value "OPA2333AIDR")
+			(footprint "aiee:SOP-8_L4.9-W3.9-P1.27-LS6.0-BL")
+			(fields
+				(field
+					(name "LCSC") "C38732")
+				(field
+					(name "Note") "U2A = /VREF buffer; UNIT 1 also carries V+ (8) and V- (4) for the whole package")
+				(field
+					(name "Footprint") "aiee:SOP-8_L4.9-W3.9-P1.27-LS6.0-BL")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "aiee")
+				(part "OPA2333AIDR")
+				(description "17 uA, MicroPower, Precision, Zero Drift CMOS Operational Amplifier, 1.8 to 5.5 V, -40 to 125 degC, 8-pin SOIC (D8), Green (RoHS  no SbBr)")
+			)
+			(property
+				(name "LCSC")
+				(value "C38732")
+			)
+			(property
+				(name "Note")
+				(value "U2A = /VREF buffer; UNIT 1 also carries V+ (8) and V- (4) for the whole package")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "bb-amp.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "Low Noise Amplifiers (LNA) - RF")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "b5421b30-ad7e-4ad4-8e35-13e0b49c7d99" "1b40f4bd-548f-440d-b686-b830124a2520")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "8")
+						)
+						(pin
+							(num "4")
+						)
+						(pin
+							(num "1")
+						)
+					)
+				)
+				(unit
+					(name "B")
+					(pins
+						(pin
+							(num "6")
+						)
+						(pin
+							(num "5")
+						)
+						(pin
+							(num "7")
+						)
+					)
+				)
+			)
+		)
+	)
+	(groups)
+	(variants)
+	(libparts
+		(libpart
+			(lib "aiee")
+			(part "0603WAF1000T5E")
+			(description "100Ω (1000) ±1%")
+			(docs "https://lcsc.com/product-detail/Chip-Resistor-Surface-Mount-UniOhm_100R-1000-1_C22775.html")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "0603WAF1000T5E")
+				(field
+					(name "Footprint") "aiee:R0603")
+				(field
+					(name "Datasheet") "https://lcsc.com/product-detail/Chip-Resistor-Surface-Mount-UniOhm_100R-1000-1_C22775.html")
+				(field
+					(name "Description") "100Ω (1000) ±1%")
+				(field
+					(name "Manufacturer") "UNI-ROYAL(厚声)")
+				(field
+					(name "MPN") "0603WAF1000T5E")
+				(field
+					(name "LCSC Part") "C22775")
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "2")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "aiee")
+			(part "AD8226ARZ")
+			(docs "https://lcsc.com/product-detail/Instrumentation-OpAmps_ADI_AD8226ARZ_AD8226ARZ_C34250.html")
+			(fields
+				(field
+					(name "Reference") "U")
+				(field
+					(name "Value") "AD8226ARZ")
+				(field
+					(name "Footprint") "aiee:SOIC-8_L5.0-W4.0-P1.27-LS6.0-BL")
+				(field
+					(name "Datasheet") "https://lcsc.com/product-detail/Instrumentation-OpAmps_ADI_AD8226ARZ_AD8226ARZ_C34250.html")
+				(field
+					(name "Description")
+				)
+				(field
+					(name "Manufacturer") "ADI(亚德诺)")
+				(field
+					(name "MPN") "AD8226ARZ-R7")
+				(field
+					(name "LCSC Part") "C34250")
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "-IN")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "RG/2")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "RG")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "+IN")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "-VS")
+					(type "power_in")
+				)
+				(pin
+					(num "6")
+					(name "REF")
+					(type "passive")
+				)
+				(pin
+					(num "7")
+					(name "VOUT")
+					(type "passive")
+				)
+				(pin
+					(num "8")
+					(name "+VS")
+					(type "power_in")
+				)
+			)
+		)
+		(libpart
+			(lib "aiee")
+			(part "CC0603KRX7R9BB104")
+			(description "100nF (104) ±10% 50V")
+			(docs "https://lcsc.com/product-detail/Multilayer-Ceramic-Capacitors-MLCC-SMD-SMT_100nF-104-10-50V_C14663.html")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "CC0603KRX7R9BB104")
+				(field
+					(name "Footprint") "aiee:C0603")
+				(field
+					(name "Datasheet") "https://lcsc.com/product-detail/Multilayer-Ceramic-Capacitors-MLCC-SMD-SMT_100nF-104-10-50V_C14663.html")
+				(field
+					(name "Description") "100nF (104) ±10% 50V")
+				(field
+					(name "Manufacturer") "YAGEO(国巨)")
+				(field
+					(name "MPN") "CC0603KRX7R9BB104")
+				(field
+					(name "LCSC Part") "C14663")
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "2")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "aiee")
+			(part "CL21A106KAYNNNE")
+			(description "10uF (106) ±10% 25V")
+			(docs "https://lcsc.com/product-detail/Multilayer-Ceramic-Capacitors-MLCC-SMD-SMT_SAMSUNG_CL21A106KAYNNNE_10uF-106-10-25V_C15850.html")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "CL21A106KAYNNNE")
+				(field
+					(name "Footprint") "aiee:C0805")
+				(field
+					(name "Datasheet") "https://lcsc.com/product-detail/Multilayer-Ceramic-Capacitors-MLCC-SMD-SMT_SAMSUNG_CL21A106KAYNNNE_10uF-106-10-25V_C15850.html")
+				(field
+					(name "Description") "10uF (106) ±10% 25V")
+				(field
+					(name "Manufacturer") "SAMSUNG(三星)")
+				(field
+					(name "MPN") "CL21A106KAYNNNE")
+				(field
+					(name "LCSC Part") "C15850")
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "2")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "aiee")
+			(part "KF128-5.08-2P")
+			(docs "https://lcsc.com/product-detail/New-Quadratic-Unclassified-Data_Cixi-Kefa-Elec-KF128-5-08-2P_C474952.html")
+			(fields
+				(field
+					(name "Reference") "U")
+				(field
+					(name "Value") "KF128-5.08-2P")
+				(field
+					(name "Footprint") "aiee:CONN-TH_P5.08_KF128-5.08-2P")
+				(field
+					(name "Datasheet") "https://lcsc.com/product-detail/New-Quadratic-Unclassified-Data_Cixi-Kefa-Elec-KF128-5-08-2P_C474952.html")
+				(field
+					(name "Description")
+				)
+				(field
+					(name "Manufacturer") "KEFA(科发)")
+				(field
+					(name "MPN") "KF128-5.08-2P-AA")
+				(field
+					(name "LCSC Part") "C474952")
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "2")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "aiee")
+			(part "KF128-5.08-3P")
+			(docs "https://lcsc.com/product-detail/New-Quadratic-Unclassified-Data_Cixi-Kefa-Elec-KF128-5-08-3P_C474953.html")
+			(fields
+				(field
+					(name "Reference") "J")
+				(field
+					(name "Value") "KF128-5.08-3P")
+				(field
+					(name "Footprint") "aiee:CONN-TH_3P-P5.08_KF128-5.08-3P")
+				(field
+					(name "Datasheet") "https://lcsc.com/product-detail/New-Quadratic-Unclassified-Data_Cixi-Kefa-Elec-KF128-5-08-3P_C474953.html")
+				(field
+					(name "Description")
+				)
+				(field
+					(name "Manufacturer") "KEFA(科发)")
+				(field
+					(name "MPN") "KF128-5.08-3P-AA")
+				(field
+					(name "LCSC Part") "C474953")
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "2")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "3")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "aiee")
+			(part "OPA2333AIDR")
+			(description "17 uA, MicroPower, Precision, Zero Drift CMOS Operational Amplifier, 1.8 to 5.5 V, -40 to 125 degC, 8-pin SOIC (D8), Green (RoHS  no SbBr)")
+			(docs "https://lcsc.com/product-detail/Low-Noise-OpAmps_TI_OPA2333AIDR_OPA2333AIDR_C38732.html")
+			(fields
+				(field
+					(name "Reference") "U")
+				(field
+					(name "Value") "OPA2333AIDR")
+				(field
+					(name "Footprint") "aiee:SOP-8_L4.9-W3.9-P1.27-LS6.0-BL")
+				(field
+					(name "Datasheet") "https://lcsc.com/product-detail/Low-Noise-OpAmps_TI_OPA2333AIDR_OPA2333AIDR_C38732.html")
+				(field
+					(name "Description") "17 uA, MicroPower, Precision, Zero Drift CMOS Operational Amplifier, 1.8 to 5.5 V, -40 to 125 degC, 8-pin SOIC (D8), Green (RoHS  no SbBr)")
+				(field
+					(name "Manufacturer") "TI(德州仪器)")
+				(field
+					(name "MPN") "OPA2333AIDR")
+				(field
+					(name "LCSC Part") "C38732")
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "OUTA")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "INA-")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "INA+")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "V-")
+					(type "power_in")
+				)
+				(pin
+					(num "5")
+					(name "INB+")
+					(type "passive")
+				)
+				(pin
+					(num "6")
+					(name "INB-")
+					(type "passive")
+				)
+				(pin
+					(num "7")
+					(name "OUTB")
+					(type "passive")
+				)
+				(pin
+					(num "8")
+					(name "V+")
+					(type "power_in")
+				)
+			)
+		)
+		(libpart
+			(lib "aiee")
+			(part "RT0603BRD0710KL")
+			(docs "https://lcsc.com/product-detail/High-Precision-Low-TCR-SMD-Resistors_10KR-0-1-25ppm_C95204.html")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "RT0603BRD0710KL")
+				(field
+					(name "Footprint") "aiee:R0603")
+				(field
+					(name "Datasheet") "https://lcsc.com/product-detail/High-Precision-Low-TCR-SMD-Resistors_10KR-0-1-25ppm_C95204.html")
+				(field
+					(name "Description")
+				)
+				(field
+					(name "Manufacturer") "YAGEO(国巨)")
+				(field
+					(name "MPN") "RT0603BRD0710KL")
+				(field
+					(name "LCSC Part") "C95204")
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "2")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "aiee")
+			(part "RT0603BRD07121KL")
+			(docs "https://www.lcsc.com/datasheet/C861095.pdf")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "RT0603BRD07121KL")
+				(field
+					(name "Footprint") "aiee:R0603")
+				(field
+					(name "Datasheet") "https://www.lcsc.com/datasheet/C861095.pdf")
+				(field
+					(name "Description")
+				)
+				(field
+					(name "Manufacturer") "YAGEO(国巨)")
+				(field
+					(name "MPN") "RT0603BRD07121KL")
+				(field
+					(name "LCSC Part") "C861095")
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "2")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "aiee")
+			(part "RT0603BRD071K27L")
+			(docs "https://www.lcsc.com/datasheet/C861195.pdf")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "RT0603BRD071K27L")
+				(field
+					(name "Footprint") "aiee:R0603")
+				(field
+					(name "Datasheet") "https://www.lcsc.com/datasheet/C861195.pdf")
+				(field
+					(name "Description")
+				)
+				(field
+					(name "Manufacturer") "YAGEO(国巨)")
+				(field
+					(name "MPN") "RT0603BRD071K27L")
+				(field
+					(name "LCSC Part") "C861195")
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "2")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "aiee")
+			(part "RT0603BRD0724K9L")
+			(docs "https://lcsc.com/product-detail/High-Precision-Low-TCR-SMD-Resistors_24-9KR-0-1-25ppm_C136967.html")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "RT0603BRD0724K9L")
+				(field
+					(name "Footprint") "aiee:R0603")
+				(field
+					(name "Datasheet") "https://lcsc.com/product-detail/High-Precision-Low-TCR-SMD-Resistors_24-9KR-0-1-25ppm_C136967.html")
+				(field
+					(name "Description")
+				)
+				(field
+					(name "Manufacturer") "YAGEO(国巨)")
+				(field
+					(name "MPN") "RT0603BRD0724K9L")
+				(field
+					(name "LCSC Part") "C136967")
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "2")
+					(type "passive")
+				)
+			)
+		)
+	)
+	(libraries
+		(library
+			(logical "aiee")
+			(uri "${KIPRJMOD}/../lib/aiee.kicad_sym")
+		)
+	)
+	(nets
+		(net
+			(code "1")
+			(name "+3V3")
+			(class "Default")
+			(node
+				(ref "C1")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C2")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C3")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "J3")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R2")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "8")
+				(pinfunction "+VS_8")
+				(pintype "power_in")
+			)
+			(node
+				(ref "U2")
+				(pin "8")
+				(pinfunction "V+_8")
+				(pintype "power_in")
+			)
+		)
+		(net
+			(code "2")
+			(name "/AMP1_OUT")
+			(class "Default")
+			(node
+				(ref "U1")
+				(pin "7")
+				(pinfunction "VOUT_7")
+				(pintype "passive")
+			)
+			(node
+				(ref "U2")
+				(pin "5")
+				(pinfunction "INB+_5")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "3")
+			(name "/AMP2_OUT")
+			(class "Default")
+			(node
+				(ref "R4")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R6")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U2")
+				(pin "7")
+				(pinfunction "OUTB_7")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "4")
+			(name "/FB2")
+			(class "Default")
+			(node
+				(ref "R4")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R5")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U2")
+				(pin "6")
+				(pinfunction "INB-_6")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "5")
+			(name "/IN_N")
+			(class "Default")
+			(node
+				(ref "J1")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "1")
+				(pinfunction "-IN_1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "6")
+			(name "/IN_P")
+			(class "Default")
+			(node
+				(ref "J1")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "4")
+				(pinfunction "+IN_4")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "7")
+			(name "/RG_A")
+			(class "Default")
+			(node
+				(ref "R1")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "2")
+				(pinfunction "RG/2_2")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "8")
+			(name "/RG_B")
+			(class "Default")
+			(node
+				(ref "R1")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "3")
+				(pinfunction "RG_3")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "9")
+			(name "/VOUT")
+			(class "Default")
+			(node
+				(ref "J2")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R6")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "10")
+			(name "/VREF")
+			(class "Default")
+			(node
+				(ref "R5")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "6")
+				(pinfunction "REF_6")
+				(pintype "passive")
+			)
+			(node
+				(ref "U2")
+				(pin "1")
+				(pinfunction "OUTA_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U2")
+				(pin "2")
+				(pinfunction "INA-_2")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "11")
+			(name "/VREF_SET")
+			(class "Default")
+			(node
+				(ref "C4")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R2")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R3")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U2")
+				(pin "3")
+				(pinfunction "INA+_3")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "12")
+			(name "GND")
+			(class "Default")
+			(node
+				(ref "C1")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C2")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C3")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C4")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "J1")
+				(pin "3")
+				(pinfunction "3_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "J2")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "J3")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R3")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "5")
+				(pinfunction "-VS_5")
+				(pintype "power_in")
+			)
+			(node
+				(ref "U2")
+				(pin "4")
+				(pinfunction "V-_4")
+				(pintype "power_in")
+			)
+		)
+	)
+)

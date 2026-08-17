@@ -1,0 +1,215 @@
+{
+ "id": "interface-in-2",
+ "slot": "interface:in",
+ "kind": "interface",
+ "token": "in",
+ "phase": "P2",
+ "status": "closed",
+ "outcome": "verified",
+ "opened": "2026-08-16T20:39:49",
+ "closed": "2026-08-16T21:27:58",
+ "coverage_report": "boards/bb-amp/log/coverage-P2.json",
+ "gap": {
+  "slot": "interface:in",
+  "kind": "interface",
+  "interface": "in",
+  "operating_point": {
+   "gap_mm": 0.25,
+   "max_skew_mm": 2.0,
+   "max_uncoupled_mm": 5.0,
+   "term_pair_mm": 2.5,
+   "rsource_ohm": 350,
+   "vcm_v": 1.65,
+   "vsig_mv": 20,
+   "vout_v": 3.04,
+   "err_rti_mv": 0.005,
+   "ibias_ua": 0.035,
+   "mismatch_pct": 1,
+   "dt_c": 1,
+   "f_signal_hz": 1000,
+   "f3db_hz": 41000
+  },
+  "missing": [
+   {
+    "class": "return-path",
+    "min_level": "topology"
+   },
+   {
+    "class": "diff-pair",
+    "min_level": "topology"
+   },
+   {
+    "class": "emi",
+    "min_level": "topology"
+   },
+   {
+    "class": "selection",
+    "min_level": "topology"
+   },
+   {
+    "class": "constraints-emission",
+    "min_level": "principle"
+   }
+  ],
+  "reasons": [
+   "no record satisfies the class at this operating point and maturity floor"
+  ],
+  "related_records": [
+   "in-terminal-thermal-emf"
+  ],
+  "principle_parents": [
+   "buck-constraints-emission",
+   "buck-input-hot-loop",
+   "inamp-internal-node-saturation",
+   "inamp-supply-decoupling-and-local-ground"
+  ],
+  "task": "research interface 'in': populate return-path, diff-pair, emi, selection, constraints-emission (application delta only - principle parents exist)"
+ },
+ "checklist_needed": false,
+ "caps": {
+  "depth_per_gap": 4,
+  "attempt_factor": 3
+ },
+ "sources": [
+  {
+   "n": 1,
+   "url": "https://www.farnell.com/datasheets/2168367.pdf",
+   "final_url": "https://www.farnell.com/datasheets/2168367.pdf",
+   "host": "www.farnell.com",
+   "domain": "farnell.com",
+   "domain_kind": "distributor",
+   "tier": "vendor-layout",
+   "declared_tier": "vendor-layout",
+   "about": "AD8226",
+   "file": "research/sources/2168367.pdf",
+   "sha256": "e99737516d6011609fa0edbbe3278e7274da006ccd20479ca815c7046171cf0a",
+   "bytes": 786973,
+   "content_type": "application/pdf",
+   "pages": 29,
+   "fetched": "2026-08-16T20:42:00",
+   "via": "http",
+   "note": null,
+   "deduplicated": true
+  },
+  {
+   "n": 2,
+   "url": "https://www.renesas.com/en/document/apn/an1298-instrumentation-amplifier-application-note",
+   "final_url": "https://www.renesas.com/en/document/apn/an1298-instrumentation-amplifier-application-note",
+   "host": "www.renesas.com",
+   "domain": "renesas.com",
+   "domain_kind": "vendor",
+   "tier": "cross-vendor",
+   "declared_tier": "cross-vendor",
+   "about": "in-amp input bias current return path / guarding",
+   "file": "research/sources/an1298-instrumentation-amplifier-application-note.pdf",
+   "sha256": "88e867197d15c798b6597ea662734430b29c844c346be2c20269153880063c2c",
+   "bytes": 1669726,
+   "content_type": "application/pdf",
+   "pages": 36,
+   "fetched": "2026-08-16T20:48:37",
+   "via": "http",
+   "note": null,
+   "deduplicated": false
+  },
+  {
+   "n": 3,
+   "url": "https://www.renesas.com/en/document/whp/how-monitor-sensor-health-instrumentation-amplifiers",
+   "final_url": "https://www.renesas.com/en/document/whp/how-monitor-sensor-health-instrumentation-amplifiers",
+   "host": "www.renesas.com",
+   "domain": "renesas.com",
+   "domain_kind": "vendor",
+   "tier": "cross-vendor",
+   "declared_tier": "cross-vendor",
+   "about": "in-amp sensor front end: cable shield termination node, single supply",
+   "file": "research/sources/how-monitor-sensor-health-instrumentation-amplifiers.pdf",
+   "sha256": "46a3c2c44da02f38f69f3b0cc24a579a6714c61a22d2bf4c745795523cfc5a60",
+   "bytes": 645675,
+   "content_type": "application/pdf",
+   "pages": 8,
+   "fetched": "2026-08-16T20:51:18",
+   "via": "http",
+   "note": null,
+   "deduplicated": false
+  },
+  {
+   "n": 4,
+   "url": "https://www.we-online.com/components/products/datasheet/691361100003.pdf",
+   "final_url": "https://www.we-online.com/components/products/datasheet/691361100003.pdf",
+   "host": "www.we-online.com",
+   "domain": "we-online.com",
+   "domain_kind": "vendor",
+   "tier": "vendor-layout",
+   "declared_tier": "vendor-layout",
+   "about": "WR-TBL Series 3611 3.50 mm 3-pole PCB terminal block",
+   "file": "research/sources/691361100003.pdf",
+   "sha256": "a45b83daedc92a1f51458c37305a2dfedd1d8e8b09ad8ff3f7e0774724a935cc",
+   "bytes": 366223,
+   "content_type": "application/pdf",
+   "pages": 5,
+   "fetched": "2026-08-16T21:04:39",
+   "via": "http",
+   "note": null,
+   "deduplicated": false
+  }
+ ],
+ "attempts": [],
+ "verdicts": {
+  "in-bias-return-resistor-sizing-ad8226": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-16",
+   "note": "AD8226 pp.5/6/22 (printed 4/5/21) re-read at 4x zoom. Fig 62 CORRECT thermocouple panel: ONE 10Mohm from the lower input line to ground - single-resistor form confirmed, and 10Mohm is the only return-resistor VALUE the datasheet prints (ac-coupled panel prints unvalued R with f_HP=1/2piRC; a full-text sweep of all 29 pages finds no other bias-return value - 4.02k is the Fig 63 RFI filter, 5k-20k the Fig 64 diff-drive feedback, 10k the Fig 66 ADC-protect, 24.7k/50k internal). Table 3 (+2.7V) INPUT CURRENT rows exact as quoted: Ib 5/20/27 nA at +25C, 5/15/25 at +125C, 5/30/35 at -40C, 70 pA/C, both grades; Ios max 1/1.5/1 nA A-grade, 0.5/0.1/0.5 at 25/-40/+125 B-grade, 5 pA/C. Footnote 1 verbatim: pnp input stage, bias current always flows out of the part. ARITHMETIC ALL REPRODUCES: 27nA*350=9.45uV and 35nA*350=12.25uV (record 9.5/12.3); 2*27nA*10M=0.54V and 2*35nA*10M=0.70V; Ios*R+Ib*R*1pct = 1.35nA*R, 5uV/1.35nA=3.70kohm; 2R=7.4k across 350 ohm = 350/7750 = 4.52 pct loss; 47k pair = 47uV+16.5uV=63uV and 1.65mV CM. Envelope 5-35 nA matches Table 3's guaranteed span; err_rti 50uV matches the verified thermal-EMF record. ONE CAVEAT (not refuting, no board number rests on it): do_not_transplant says the 47k/10k app-note figures are sized for approx 70 pA inputs - 70 pA is not printed in this ledger. In-ledger AN1298 p.4/p.5 do support the substance (PMOS inputs, Ib max 30-50 pA on the PMOS parts) but its bipolar parts are 2-3 nA, so that clause should cite AN1298's own numbers.",
+   "ts": "2026-08-16T21:25:48"
+  },
+  "in-bias-return-failure-signature": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-16",
+   "note": "Both quoted sentences are on the cited pages, verbatim. AN1298 Rev 2.00 p.14 (zoomed): 'Without a DC return path, the input bias current will accumulate on any stray capacitance on the inputs until they are clamped to the rails by the protection diodes. The output of the Instrumentation Amplifier will slowly increase or decrease until it saturates into the VS+ or VS- rail.' plus 'A DC return path as shown in the following circuits must be supplied'. Renesas sensor-health white paper p.1, Three Op Amp INA Basics: 'A saturated input stage could appear normal to the processing circuitry, yet have disastrous consequences', in exactly the paragraph the note names (VCM and VD must be taken into account to avoid saturating the INA input stage). AD8226 printed p.21 INPUT BIAS CURRENT RETURN PATH re-read in full: two sentences plus the Figure 62 pointer, NO symptom description anywhere - the absence-citation is accurate. No overclaim found: the record confines itself to 'not diagnostic - probe the input pins', labels the white-paper sentence as being about a saturated input stage generally (its cause there is CM/VD headroom, not a missing return path - the record's bridging clause about a three-op-amp in-amp taking the difference is flagged in prose as its own reasoning), states plainly that nothing in this ledger licenses a rail-park signature for the AD8226, and marks the INA333 'appears normal' account as unwitnessed here. The bring-up test (each input sits a defined I*R above the return node) follows from the verified pnp footnote 1. Envelope 5-35 nA is Table 3's own span and the Ib/C drift-rate scaling is sound.",
+   "ts": "2026-08-16T21:26:04"
+  },
+  "in-input-path-equivalence": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-16",
+   "note": "AD8226 printed p.21 LAYOUT / CMRR Over Frequency re-read: the quoted paragraph is verbatim, both halves (poor layout converts CM to differential when one input path has a frequency response different from the other; keep each path's input source impedance AND capacitance closely matched; additional source resistance in the input path, for example for input protection, should be placed close to the in-amp inputs to minimize interaction with parasitic capacitance from the PCB traces). Printed p.4 INPUT block: Input Impedance Differential 0.8||2 and Common Mode 0.4||2 GOhm||pF - printed, exactly as claimed. Printed p.5 Table 3 CMRR block at VCM = 0 V to 1.7 V: DC to 60 Hz 86/106/120/120 dB min and at 5 kHz 80/90/90/100 dB for G=1/10/100/1000 - exact, and 90 dB (G=100) is the right budget row for this board's ~150-165 gain. BOTH DERIVED FIGURES REPRODUCE: 2*pi*1000*175*1e-12 = 1.100e-6 = 1.1 ppm = -119.2 dB per pF at 1 kHz; x5 at 5 kHz = 5.50e-6 = -105.2 dB; 10 pF at 5 kHz = 5.50e-5 = -85.2 dB, i.e. below the 90 dB spec, so the dominant-term claim holds. The Rsource/2 = 175 ohm half-bridge model is stated in the record, not hidden. ENVELOPE JUSTIFICATION CHECKED IN BOTH TABLES: Table 2 (+-15 V) and Table 3 (+2.7 V) each specify CMRR only at DC-to-60 Hz and at 5 kHz - 5 kHz is genuinely the last CMRR SPEC row in the data sheet. Figures 27/28 do plot CMRR vs frequency to 100 kHz, but those are typical curves with no limit, so 'last point where the rule can be held against a vendor number' stands as written. One wording slip, not refuting: the p.4 citation renders the INPUT condition as Vs = +-1.35 V to +-18 V where the table prints 'VS = +-1.35 V to +36 V' - the same 2.7-to-36 V total span, and the impedance values quoted are exact.",
+   "ts": "2026-08-16T21:26:22"
+  },
+  "in-cable-shield-termination": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-16",
+   "note": "Renesas white paper p.6 Active Shield Guard Drive re-read: every quoted clause is verbatim - shielded cables reject coupling BUT cable impedance mismatch can result in a common mode error into the amplifier; driving the cable shield to a low impedance potential reduces the impedance mismatch; the shield is usually tied to chassis ground as an excellent low impedance point, which 'works great for dual supply applications'; with single supply (5V) tying the shield at 0V is the amplifier's lower power supply rail, 'which is typically a common mode voltage where the same CMR performance degrades'; 'Tying the shield at common mode voltage of mid supply results in the operation of the amplifier with the best CMR performance'. Figure 5 above it is indeed a FOIL STRAIN GAUGE bridge of 350 ohm legs on +5 V into a single-supply INA and a 24-bit ADC - this slot's operating point, so not a transplant. p.7 verbatim: 'Driving the shield to the input common mode voltage reduces cable impedance mismatch and improves CMR performance in single supply sensor applications', with the unused on-chip op amp offered as the buffer. Figure 6 zoomed and read as a drawing: SHIELDED CABLE +SIG/-SIG to INA-/INA+, screen landed AT THE AMPLIFIER END on the COMMON MODE DRIVER - VA+/VA- through 10k and 10k to a VCM SENSE node into A4's IN+ with OUT fed back to IN- (unity gain), then 100 ohm in series to the screen. Exactly as the record draws it. AD8226 Table 3 CMRR condition VCM = 0 V to 1.7 V, 86 dB min at G=1 - confirmed, so the record is right to quote the degrades-at-0V argument as the other vendor's (its parts are RRIO per that paper's own conclusion) rather than adopt it. THE ADMISSION IS REALLY IN THE RECORD: rule.not_witnessed_here states that only the driven case's end is witnessed and that passive-screen near/far and both-ends current injection are NOT witnessed, and the prose repeats 'The near/far end question this record does not answer.' Nothing in the record quietly asserts either. No scope violation - it never says a screen or any protection is unnecessary, only which node it should land on. Envelope 0-5 V matches the witnessed +5 V single supply vs +-2.5 V dual contrast. Minor: the parenthetical purpose given for the 100 ohm (isolation from cable capacitance) is the author's reading, not vendor text.",
+   "ts": "2026-08-16T21:26:41"
+  },
+  "in-terminal-selection": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-16",
+   "note": "Wurth 691361100003 (WR-TBL Series 3611 - 3.50 mm) pp.1-2 re-read; EVERY material claim checks out verbatim on p.2: Pitch 3.5 mm; Insulator PA66, UL94 V-0, green; Contact Material Phosphor Bronze; Contact Plating Tin over Nickel; Cage Material Brass; operating -40 up to +105 C; Rated Current 10 A cULus / 10.5 A VDE; Working Voltage 300 V AC; Withstanding 1600 cULus / 2500 VDE; Contact Resistance 20 mOhm max (both cULus and VDE columns); Wire Strip Length 6 up to 7 mm; SOLID and STRANDED wire both 26 to 16 AWG (0.129 to 1.31 mm2); Tightening Torque 0.25 N*m. p.1 Article Properties: Pins 3, Pin to Pin (Middle) Pl 7 mm, Length L 10.5 mm; drawings give 3.5 +-0.10 pitch with 1.75 +-0.10 to the first pole, 2.5 x 1.6 pin section, 6.8/15.8/11.1 body dims, and the outline views do draw six poles (the record says so). Arithmetic: 20 mOhm/350 ohm = 57 ppm, and the envelope's 20 mOhm/1 ohm = 2 pct - both correct. pitch_note is right and useful: 3.5 mm pitch vs the slot's declared term_pair_mm 2.5. THE THERMAL-JUNCTION ARGUMENT IS ARGUED, NOT ASSUMED: one body gives both poles the same moulding, contact metal and plating lot, which supplies the 'identically built, same metallurgy on both inputs' half of the verified in-terminal-thermal-emf record, and the record explicitly leaves the remaining condition (both poles at the same temperature) to that record rather than claiming to solve it. No scope violation - ratings_are_not_the_driver ranks selection parameters, it does not delete a protection feature. ONE GAP for the parts step, not a refutation: this order code's SIZE/TYPE field is 'Vertical Cable Entry Plug', i.e. the cable half of a pluggable pair, so the witnessed stack is wire-brass cage-phosphor bronze/tin over nickel on the PLUG; the board-side header (a different order code) and its footprint are not in this ledger. The one-body argument survives either half, and the record does print the type field, but nothing here selects a solderable part.",
+   "ts": "2026-08-16T21:27:02"
+  },
+  "in-bias-return-path-required": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-16",
+   "note": "AD8226 printed p.21 re-read: 'The input bias current of the AD8226 must have a return path to ground. When the source, such as a thermocouple, cannot provide a return current path, one should be created, as shown in Figure 62.' - a must, plus the vendor's own conditional, both as quoted. Figure 62 zoomed 4x: two-column INCORRECT/CORRECT grid, three rows, incorrect panels struck with a grey X, REF to a ground symbol in all six panels. Row 1 TRANSFORMER - incorrect floating secondary, correct grounds the secondary centre tap. Row 2 THERMOCOUPLE - correct hangs a single 10 MOhm from the LOWER input line to ground. Row 3 CAPACITIVELY COUPLED - correct adds an unvalued R from each input to ground behind the series C, annotated f_HIGH-PASS = 1/(2 pi RC). The three legal_forms are exactly the three drawn. Printed p.4 footnote 1 verbatim: 'The input stage uses pnp transistors; therefore, input bias current always flows out of the part' - the direction claim and the sits-above-the-return-node consequence are sound. AN1298 p.14 verbatim: bias current 'must find a DC path to their home (i.e., Ground)', the thermocouple/microphone/transformer/ac-coupled list, and 'A DC return path as shown in the following circuits must be supplied'; Figure 29 is a thermocouple with a single 10k to ground, Figure 30 a transformer with the secondary centre tap grounded, Figure 31 an ac-coupled source with 47k from each input to ground - all three as described, and the record is right to fence those values off as belonging to those parts. Envelope 5-35 nA is Table 3's own guaranteed span. ONE CORRECTION for the researcher, not refuting: the note counts AN1298 Figure 28 among 'the four circuits' of the DC-return set. It is not one - Figure 28 sits above the DC-return paragraph and illustrates p.13's input-protection sentence ('A 20k resistor can be used to protect the inputs against 100V transients'), VIN through 20k into each input with no return network. The record declines to state its topology and derives no fourth form, so nothing false propagates.",
+   "ts": "2026-08-16T21:27:19"
+  },
+  "in-constraints-emission": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-16",
+   "note": "Both cited pages re-read. AD8226 printed p.21 carries the two sentences this record turns into emissions, verbatim: 'Additional source resistance in the input path (for example, for input protection) should be placed close to the in-amp inputs, which minimizes their interaction with parasitic capacitance from the PCB traces' (the placement group) and 'the input source impedance and capacitance of each path should be closely matched' after 'Such conversions occur when one input path has a frequency response that is different from the other' (the equality route rule), and the same page's Figure 62 shows created return networks that are real components (the BOM lines). Renesas white paper p.6 does treat the screen as an electrical node whose potential is chosen (chassis/0 V vs mid-supply common mode) and can be actively driven, which supports 'the screen is a net with a declared landing node, not a mechanical note'. do_not_emit is not a scope violation: it declines impedance/gap/skew/uncoupled DIMS for this specific pair on stated physics (a kilohertz signal into 0.4 GOhm||2 pF), and never says any protection or conditioning part is unnecessary - no record in this task does; a grep for not-needed/unnecessary/omit/not-required language across all seven comes back empty. Two soft spots, neither refuting: extending the vendor's 'additional source resistance' placement sentence to cover the terminal and the created bias-return resistors is the author's inference from the same mechanism, not vendor text; and operating_point_dims lists mismatch_pct, which is load-bearing in the sizing record's arithmetic and present in the gap's operating point but is not an envelope dim of any record on this slot - carrying it is conservative, not wrong.",
+   "ts": "2026-08-16T21:27:34"
+  }
+ },
+ "queue_entry": "2026-08-16-research-task-interface-in-2-7-verified",
+ "updated": "2026-08-16T21:27:58",
+ "summary": {
+  "verified": 7,
+  "refuted": 0,
+  "checklists": 0,
+  "sources": 4
+ }
+}

@@ -1,0 +1,984 @@
+{
+ "script": "knowledge",
+ "status": "pass",
+ "keys": {
+  "topologies": [
+   "inamp"
+  ],
+  "packages": [],
+  "interfaces": [
+   "in"
+  ],
+  "parts": [],
+  "sources": {
+   "constraints": "boards/bb-amp/architecture/constraints.json"
+  }
+ },
+ "count": 16,
+ "records": [
+  {
+   "id": "in-bias-return-failure-signature",
+   "classes": [
+    "return-path"
+   ],
+   "applies": {
+    "topologies": [],
+    "packages": [],
+    "interfaces": [
+     "in"
+    ],
+    "parts": [
+     "AD8226"
+    ]
+   },
+   "rule": {
+    "enforced_by": null,
+    "headline": "a missing bias-current return path has NO reliable output symptom - do not diagnose it from the output pin",
+    "mechanism": "with no dc path the bias current accumulates on the stray capacitance at the inputs until the inputs are clamped to the rails by the protection diodes",
+    "symptom_a": "vendor-stated: the output then SLOWLY increases or decreases until it saturates into the VS+ or VS- rail - so the fault can pass a power-up check and appear minutes later",
+    "symptom_b": "vendor-stated, same vendor's sensor front-end paper: a saturated input stage 'could appear normal to the processing circuitry, yet have disastrous consequences'",
+    "ad8226_says": "the AD8226 data sheet states the REQUIREMENT and draws the fixes but prints no symptom at all - nothing in this ledger licenses 'the output parks at a rail' as the AD8226's signature",
+    "bringup_test": "measure the dc potential at each input pin against the amplifier's own ground reference instead: with a pnp input stage each input must sit at a defined level ABOVE the return node and stay there, not drift"
+   },
+   "prose": "The correction that matters for bring-up: the two symptoms in the literature contradict each other, so neither is a test. AN1298 p.14 gives the mechanism and one ending - \"Without a DC return path, the input bias current will accumulate on any stray capacitance on the inputs until they are clamped to the rails by the protection diodes. The output of the Instrumentation Amplifier will slowly increase or decrease until it saturates into the VS+ or VS- rail.\" The same vendor's in-amp sensor paper gives the other ending on its first page - \"A saturated input stage could appear normal to the processing circuitry, yet have disastrous consequences\" - because a three-op-amp in-amp with both input amplifiers pinned takes their DIFFERENCE, which can be small. The AD8226's own INPUT BIAS CURRENT RETURN PATH section states the requirement and draws Figure 62, and says nothing about what a missing path looks like. (The TI INA333 data sheet in this workspace's round-one ledger, not fetched into this one, describes the near-zero/appears-normal ending explicitly; treat that as unwitnessed here.) So: an output that looks sane is not evidence the return path exists, and neither is an output at a rail proof that it is missing. Probe the input pins, and watch them over minutes - the drift is a bias current charging stray capacitance, so it is slow.",
+   "sources": [
+    {
+     "file": "research/sources/an1298-instrumentation-amplifier-application-note.pdf",
+     "page": 14,
+     "section": "Renesas/Intersil AN1298 Rev 2.00, p.14 - DC return path paragraph",
+     "note": "Read verbatim: bias current accumulates on any stray capacitance on the inputs until they are clamped to the rails by the protection diodes, and the output slowly increases or decreases until it saturates into the VS+ or VS- rail; plus \"A DC return path as shown in the following circuits must be supplied\"."
+    },
+    {
+     "file": "research/sources/how-monitor-sensor-health-instrumentation-amplifiers.pdf",
+     "page": 1,
+     "section": "Renesas white paper, p.1 - Three Op Amp INA Basics",
+     "note": "Read verbatim: \"A saturated input stage could appear normal to the processing circuitry, yet have disastrous consequences\", in the paragraph warning that VCM and VD must be accounted for to avoid saturating the INA's input stage."
+    },
+    {
+     "file": "research/sources/2168367.pdf",
+     "page": 22,
+     "section": "AD8226 Rev. C, printed p.21 - INPUT BIAS CURRENT RETURN PATH",
+     "note": "Read the whole section: it states the must-have requirement and points at Figure 62's corrected topologies, and prints NO description of the failure symptom - the absence is the citation here."
+    }
+   ],
+   "origin": "research:interface-in-2",
+   "level": "topology",
+   "maturity": "verified",
+   "envelope": {
+    "ibias_ua": {
+     "min": 0.005,
+     "max": 0.035
+    }
+   },
+   "_path": "research/records/in-bias-return-failure-signature.yaml",
+   "_workspace": true
+  },
+  {
+   "id": "in-bias-return-path-required",
+   "classes": [
+    "return-path"
+   ],
+   "applies": {
+    "topologies": [],
+    "packages": [],
+    "interfaces": [
+     "in"
+    ],
+    "parts": [
+     "AD8226"
+    ]
+   },
+   "rule": {
+    "enforced_by": null,
+    "requirement": "both inputs need a dc path to the amplifier's own ground reference - the AD8226 data sheet states it as a must, not a recommendation",
+    "direction": "the AD8226 input stage is pnp, so input bias current ALWAYS FLOWS OUT OF THE PART; the return network must SINK that current, and the source node it lands on sits ABOVE the return node by I*R, never below",
+    "when_created": "the vendor's own conditional: a path must be CREATED only when the source cannot provide one (thermocouple, transformer secondary, ac-coupled source, floating sensor); a source that already returns to the amplifier's ground supplies it - which the designer must confirm, not assume",
+    "legal_forms": "vendor-drawn only: (a) transformer secondary centre tap to ground; (b) ONE resistor from one input to ground; (c) one resistor per input to ground behind ac-coupling caps, which also sets f_highpass = 1/(2*pi*R*C)",
+    "sizing": "see in-bias-return-resistor-sizing-ad8226 - the resistor values printed in these figures belong to the figures, not to this board"
+   },
+   "prose": "The AD8226's own LAYOUT page: \"The input bias current of the AD8226 must have a return path to ground. When the source, such as a thermocouple, cannot provide a return current path, one should be created, as shown in Figure 62.\" Figure 62 is a two-column INCORRECT/CORRECT grid of three source types, the INCORRECT panels struck through with a grey X. Row 1 TRANSFORMER: incorrect is a floating secondary into +IN/-IN; correct grounds the secondary centre tap. Row 2 THERMOCOUPLE: incorrect is the floating couple; correct hangs a single 10 Mohm resistor from the lower input line to ground. Row 3 CAPACITIVELY COUPLED: incorrect is a series C into each input and nothing else; correct adds a resistor R from each input to ground and annotates f_HIGH-PASS = 1/(2*pi*RC). REF ties to a ground symbol in all six panels. DIRECTION MATTERS AND IS VENDOR-STATED: Table 2's footnote 1 reads \"The input stage uses pnp transistors; therefore, input bias current always flows out of the part.\" The network sinks current to ground; it does not source it, and every input node it creates sits above the return node. A second vendor states the same requirement for its in-amps: bias current \"must find a DC path to their home (i.e., Ground)\", drawn as the same three fixes - a grounded transformer centre tap, a single 10k to ground for a thermocouple, 47k from each input to ground behind ac coupling. Those values belong to those figures and those parts, not to this one.",
+   "sources": [
+    {
+     "file": "research/sources/2168367.pdf",
+     "page": 22,
+     "section": "AD8226 Rev. C, printed p.21 - INPUT BIAS CURRENT RETURN PATH + Figure 62",
+     "note": "Read the section and Figure 62 (Creating an IBIAS Path): the must-have-a-return-path sentence and the vendor's conditional, plus the six panels - INCORRECT floating transformer / thermocouple / ac-coupled sources struck out, CORRECT grounded centre tap, single 10 Mohm to ground, and R-per-input behind the coupling caps with f_HIGH-PASS = 1/(2*pi*RC)."
+    },
+    {
+     "file": "research/sources/2168367.pdf",
+     "page": 5,
+     "section": "AD8226 Rev. C, printed p.4 - Table 2 footnote 1, INPUT block",
+     "note": "Read footnote 1 verbatim: \"The input stage uses pnp transistors; therefore, input bias current always flows out of the part.\" Same page INPUT block: input impedance 0.8 Gohm||2 pF differential, 0.4 Gohm||2 pF common mode."
+    },
+    {
+     "file": "research/sources/an1298-instrumentation-amplifier-application-note.pdf",
+     "page": 14,
+     "section": "Renesas/Intersil AN1298 Rev 2.00, p.14 - DC return path, Figures 28-31",
+     "note": "Read: bias current \"must find a DC path to their home (i.e., Ground)\"; sources that do not provide one are thermocouples, microphones, transformer-coupled and ac-coupled circuits; \"A DC return path as shown in the following circuits must be supplied\". Of the four circuits, three read unambiguously: Figure 29 a thermocouple with a single 10k to ground, Figure 30 a transformer-coupled source with the secondary centre tap grounded, Figure 31 an ac-coupled source with 47k from each input to ground. Figure 28 (a floating source with a 20k on each input branch) I did not resolve well enough to state its topology."
+    }
+   ],
+   "origin": "research:interface-in-2",
+   "level": "topology",
+   "maturity": "verified",
+   "envelope": {
+    "ibias_ua": {
+     "min": 0.005,
+     "max": 0.035
+    }
+   },
+   "_path": "research/records/in-bias-return-path-required.yaml",
+   "_workspace": true
+  },
+  {
+   "id": "in-bias-return-resistor-sizing-ad8226",
+   "classes": [
+    "return-path"
+   ],
+   "applies": {
+    "topologies": [],
+    "packages": [],
+    "interfaces": [
+     "in"
+    ],
+    "parts": [
+     "AD8226"
+    ]
+   },
+   "rule": {
+    "enforced_by": null,
+    "vendor_ib_na": "AD8226 Table 3 (+2.7 V single supply, ARZ/ARMZ and BRZ/BRMZ alike): input bias current 5 min / 20 typ / 27 max at +25 C, 5 / 15 / 25 at +125 C, 5 / 30 / 35 at -40 C; average TC 70 pA/degC",
+    "vendor_ios_na": "input offset current max 1.0 nA at +25 C and at -40 C, 1.5 nA at +125 C (ARZ/ARMZ); 0.5 / 0.1 / 0.5 nA (BRZ/BRMZ); average TC 5 pA/degC",
+    "single_resistor_drop": "ARITHMETIC from those numbers: one resistor carries BOTH inputs' bias currents, so its node sits ~2*Ib*R above the return node - the vendor's own 10 Mohm thermocouple value gives ~0.54 V at +25 C max and ~0.70 V at -40 C max, common-mode, spent out of the input voltage range",
+    "single_resistor_hidden_cost": "ARITHMETIC: with the resistor on one input only, the OTHER input's bias current returns through the source itself, so it develops Ib*Rsource DIFFERENTIALLY - on this slot's 350 ohm source that is 9.5 uV at +25 C max and 12.3 uV at -40 C max, already past a 5 uV RTI budget",
+    "two_resistor_error": "ARITHMETIC: with one resistor per input each bias current returns through its own resistor, so the differential term is Ios*R + Ib*R*mismatch; at Ios 1 nA, Ib 35 nA and 1 pct mismatch that is 1.35 nA * R",
+    "two_resistor_cap": "a 5 uV RTI budget therefore caps a bias-return PAIR at about 3.7 kohm on this part - and 3.7 kohm resistors load a 350 ohm differential source with 2R = 7.4 kohm, about 4.5 pct of signal loss (a gain error, calibratable, unlike the drifting offset term)",
+    "do_not_transplant": "the 47k/10k figures printed in CMOS-input in-amp app notes are sized for ~70 pA inputs; on this 20-35 nA part a 47 kohm pair is ~47 uV from offset current plus ~16 uV from 1 pct mismatch, roughly 60 uV differential against a 5 uV budget, on top of ~1.6 mV of common-mode drop per input"
+   },
+   "prose": "Sizing a created bias-return network for THIS part, from its own Table 3. The vendor prints only two example values (10 Mohm for a thermocouple, an unlabelled R pair behind ac-coupling caps), so the numbers below are arithmetic on the datasheet's currents, not vendor text, and are marked as such in `rule`. Three facts drive it: bias current is 27 nA max at +25 C and 35 nA max at -40 C (not picoamps), offset current is 1 nA max, and the current flows OUT of the part, so every return element sits under a positive drop. A single resistor carries both bias currents (~2*Ib*R, common mode) but forces the far input's bias current back through the source, which on a 350 ohm source is ~10 uV of DIFFERENTIAL error - the balanced pair avoids that because each input returns through its own resistor and only Ios crosses the source. The pair's price is the opposite one: its differential error Ios*R + Ib*R*mismatch caps R near 3.7 kohm for a 5 uV budget, and a pair that small loads a 350 ohm source by ~4.5 pct. Both prices are paid only when the source cannot return the current itself; when it can, the vendor creates no network at all.",
+   "sources": [
+    {
+     "file": "research/sources/2168367.pdf",
+     "page": 6,
+     "section": "AD8226 Rev. C, printed p.5 - Table 3 (+Vs = 2.7 V single supply), INPUT CURRENT block",
+     "note": "Read the INPUT CURRENT rows: Input Bias Current 5/20/27 nA at +25 C, 5/15/25 nA at +125 C, 5/30/35 nA at -40 C with a 70 pA/degC average TC; Input Offset Current max 1 nA (+25 C), 1.5 nA (+125 C), 1 nA (-40 C) for ARZ/ARMZ and 0.5/0.5/0.1 nA for BRZ/BRMZ, 5 pA/degC. Same table heads with CMRR at VCM = 0 V to 1.7 V."
+    },
+    {
+     "file": "research/sources/2168367.pdf",
+     "page": 5,
+     "section": "AD8226 Rev. C, printed p.4 - Table 2 footnote 1",
+     "note": "Read footnote 1: \"The input stage uses pnp transistors; therefore, input bias current always flows out of the part\" - fixes the sign of every drop the return network develops."
+    },
+    {
+     "file": "research/sources/2168367.pdf",
+     "page": 22,
+     "section": "AD8226 Rev. C, printed p.21 - Figure 62, CORRECT column",
+     "note": "Read the only two sizing hints the vendor prints: a single 10 Mohm resistor to ground for the thermocouple source, and an unvalued R from each input to ground behind the coupling capacitors with f_HIGH-PASS = 1/(2*pi*RC)."
+    }
+   ],
+   "origin": "research:interface-in-2",
+   "level": "part",
+   "maturity": "verified",
+   "envelope": {
+    "ibias_ua": {
+     "min": 0.005,
+     "max": 0.035
+    },
+    "err_rti_mv": {
+     "max": 0.05
+    }
+   },
+   "_path": "research/records/in-bias-return-resistor-sizing-ad8226.yaml",
+   "_workspace": true
+  },
+  {
+   "id": "in-cable-shield-termination",
+   "classes": [
+    "emi"
+   ],
+   "applies": {
+    "topologies": [],
+    "packages": [],
+    "interfaces": [
+     "in"
+    ],
+    "parts": []
+   },
+   "rule": {
+    "enforced_by": null,
+    "shield_is_a_circuit_node": "a sensor cable's screen is not a mechanical detail: the vendor states that cable impedance MISMATCH turns into a common-mode error at the amplifier, and that driving the shield to a LOW IMPEDANCE potential is what reduces the mismatch",
+    "which_node_single_supply": "for a single-supply front end do NOT reflexively land the screen on 0 V: at 0 V the shield sits at the amplifier's lower supply rail, 'which is typically a common mode voltage where the same CMR performance degrades'; the vendor's rule is to tie the shield at the common-mode voltage of mid supply",
+    "which_node_dual_supply": "with dual supplies analog ground IS mid-supply, which is why the usual chassis/0 V habit works there - the habit, not the reason, is what fails on a single rail",
+    "active_form": "the stronger form is a driven shield: buffer the input common-mode potential and drive the screen with it - 'Driving the shield to the input common mode voltage reduces cable impedance mismatch and improves CMR performance in single supply sensor applications'",
+    "active_form_as_drawn": "in the vendor's schematic the screen lands at the AMPLIFIER end, on the output of a common-mode driver: the two buffered input-stage nodes are summed by a 10 kohm / 10 kohm divider into a unity-gain op amp, whose output reaches the shield through a 100 ohm series resistor (isolation from the cable's capacitance)",
+    "ad8226_caveat": "the CMR-degrades-at-0 V half is that vendor's claim about its own rail-to-rail parts; the AD8226 specifies CMRR over VCM = 0 V to 1.7 V on a 2.7 V single supply (Table 3), so it does not transfer unexamined - what transfers is: one low-impedance node, at the inputs' common-mode potential, and mismatch shows up as common-mode error",
+    "not_witnessed_here": "only the DRIVEN case's end is witnessed (the amplifier end, in the figure). Whether a passive screen lands near or far, and the current a screen grounded at BOTH ends can inject, are NOT witnessed by any page in this ledger - do not read this record as licensing either answer"
+   },
+   "prose": "What the ledger actually witnesses about the screen. A vendor sensor front-end paper, drawn around a 350 ohm foil strain gauge bridge feeding a single-supply in-amp - this slot's operating point - says: \"Shielded cables offer excellent rejection of noise coupling into signal lines. However, cable impedance mismatch can result in a common mode error into the amplifier. Driving the cable shield to a low impedance potential reduces the impedance mismatch.\" It then breaks the reflex: the screen is usually tied to chassis ground because that is an excellent low-impedance point, which \"works great for dual supply applications\", but on a single supply 0 V is the amplifier's lower rail, and \"tying the shield at common mode voltage of mid supply results in the operation of the amplifier with the best CMR performance\". Its Figure 6 draws the strong form: the screen lands at the amplifier end on a common-mode driver - the two buffered input nodes summed 10 k/10 k into a unity-gain buffer, then 100 ohm in series into the shield. The coupling path is the two conductors' capacitance to that screen - which is why this belongs with the equal-path rule for the pair, and why a screen left floating or landed through a long high-impedance tail is worse than one landed on a defined node. The near/far end question this record does not answer.",
+   "sources": [
+    {
+     "file": "research/sources/how-monitor-sensor-health-instrumentation-amplifiers.pdf",
+     "page": 6,
+     "section": "Renesas white paper p.6 - Active Shield Guard Drive + Figure 5",
+     "note": "Read the Active Shield Guard Drive section verbatim: shielded cables reject coupling but cable impedance mismatch becomes a common-mode error; drive the shield to a low impedance potential; chassis ground is the usual low-impedance point and works for dual supply; on a single supply 0 V is the lower rail where CMR degrades; tie the shield at mid-supply common-mode voltage for best CMR. Figure 5 above it is the application: a FOIL STRAIN GAUGE bridge of 350 ohm legs on a +5 V excitation into a single-supply in-amp and a 24-bit ADC."
+    },
+    {
+     "file": "research/sources/how-monitor-sensor-health-instrumentation-amplifiers.pdf",
+     "page": 7,
+     "section": "Renesas white paper p.7 - shield guard drive, Figure 6",
+     "note": "Read: driving the shield from the buffered input common-mode pins \"reduces cable impedance mismatch and improves CMR performance in single supply sensor applications\", with an unused on-chip op amp buffering the shield driver. Figure 6 read as a drawing: a SHIELDED CABLE brings +SIG and -SIG to INA-/INA+, and its screen is landed at the amplifier end on a COMMON MODE DRIVER - VA+ and VA- summed through 10 kohm / 10 kohm into a unity-gain op amp whose output drives the screen through a 100 ohm series resistor."
+    },
+    {
+     "file": "research/sources/2168367.pdf",
+     "page": 6,
+     "section": "AD8226 Rev. C, printed p.5 - Table 3, CMRR conditions",
+     "note": "Read the CMRR block's condition line: VCM = 0 V to 1.7 V on a +2.7 V single supply, 86 dB min at G = 1 dc to 60 Hz - this part specifies CMRR down to its negative rail, which is why the other vendor's degrades-at-0 V argument is quoted here as theirs, not adopted."
+    }
+   ],
+   "origin": "research:interface-in-2",
+   "level": "topology",
+   "maturity": "verified",
+   "envelope": {
+    "vcm_v": {
+     "min": 0,
+     "max": 5
+    }
+   },
+   "_path": "research/records/in-cable-shield-termination.yaml",
+   "_workspace": true
+  },
+  {
+   "id": "in-constraints-emission",
+   "classes": [
+    "constraints-emission"
+   ],
+   "applies": {
+    "topologies": [],
+    "packages": [],
+    "interfaces": [
+     "in"
+    ],
+    "parts": []
+   },
+   "rule": {
+    "enforced_by": null,
+    "placement_group": "one group anchored on the amplifier's INPUT PINS, not on the connector: the input terminal, both legs' series elements and the created bias-return resistors are members, because the vendor puts any additional input-path series resistance 'close to the in-amp inputs' to keep it out of the traces' parasitic capacitance",
+    "pair_rule_is_equality": "emit the two input nets as an EQUALITY constraint - equal length, width, via count and reference neighbourhood, i.e. equal capacitance per path - since the vendor's rule is that the two paths' source impedance and capacitance match, and the failure is a frequency-response difference between them",
+    "do_not_emit": "no impedance_ohm, gap_mm, max_skew_mm or max_uncoupled_mm for this pair: at a kilohertz signal into a 0.4 Gohm||2 pF input nothing here is set by characteristic impedance or propagation delay, and a designer who satisfies those dims has satisfied nothing that matters",
+    "shield_is_a_net": "if the sensor cable is screened, the screen is a net with a DECLARED landing node (0 V, mid-supply, or a driven common-mode buffer) - it must appear in the netlist and the BOM, not in the mechanical notes",
+    "return_network_is_schematic": "when the source cannot return bias current, the created return network is schematic content: it must exist in parts/BOM before placement and its resistors sit inside the input group",
+    "operating_point_dims": "the dims this slot's records are bounded on and that constraints must therefore carry: rsource_ohm, vcm_v, err_rti_mv, ibias_ua, mismatch_pct, dt_c, f_signal_hz"
+   },
+   "prose": "What this interface has to hand the rest of the pipeline. Two of the emissions are direct vendor consequences. The AD8226's layout page puts additional input-path series resistance \"close to the in-amp inputs, which minimizes their interaction with parasitic capacitance from the PCB traces\" - that is a placement GROUP anchored on the input pins, whose members are the terminal, both legs' series parts and any created bias-return resistors; the annealer will not discover it. The same page says the two paths' \"input source impedance and capacitance ... should be closely matched\", which is a route rule of EQUALITY between two nets - same length, width, via count, neighbourhood - and explicitly not a controlled-impedance rule; emitting gap, skew or uncoupled-length dims here types the slot wrong and lets a designer satisfy the constraint while destroying the measurement. The third emission is the screen: the sensor front-end paper treats it as a driven circuit node with a chosen potential, so it must enter the netlist and BOM with its landing node declared, not be left to assembly. And when the source cannot return the amplifier's bias current, the network that returns it is schematic content with BOM lines, inside the same group.",
+   "sources": [
+    {
+     "file": "research/sources/2168367.pdf",
+     "page": 22,
+     "section": "AD8226 Rev. C, printed p.21 - LAYOUT / CMRR Over Frequency + INPUT BIAS CURRENT RETURN PATH",
+     "note": "Read: series input resistance belongs close to the in-amp inputs to minimize interaction with PCB-trace parasitic capacitance (the placement group), the matched source impedance and capacitance per path sentence (the equality route rule), and Figure 62's created return networks (the BOM lines)."
+    },
+    {
+     "file": "research/sources/how-monitor-sensor-health-instrumentation-amplifiers.pdf",
+     "page": 6,
+     "section": "Renesas white paper p.6 - Active Shield Guard Drive",
+     "note": "Read: the screen is treated as an electrical node whose potential is chosen (chassis/0 V vs mid-supply common mode) and may be actively driven - i.e. it is netlist and BOM content, not a mechanical detail."
+    }
+   ],
+   "origin": "research:interface-in-2",
+   "level": "principle",
+   "maturity": "verified",
+   "envelope": null,
+   "_path": "research/records/in-constraints-emission.yaml",
+   "_workspace": true
+  },
+  {
+   "id": "in-input-path-equivalence",
+   "classes": [
+    "diff-pair"
+   ],
+   "applies": {
+    "topologies": [],
+    "packages": [],
+    "interfaces": [
+     "in"
+    ],
+    "parts": [
+     "AD8226"
+    ]
+   },
+   "rule": {
+    "enforced_by": null,
+    "vendor_rule": "AD8226 LAYOUT: 'Poor layout can cause some of the common-mode signals to be converted to differential signals before reaching the in-amp. Such conversions occur when one input path has a frequency response that is different from the other. To keep CMRR across frequency high, the input source impedance and capacitance of each path should be closely matched.'",
+    "vendor_placement": "AD8226 LAYOUT: 'Additional source resistance in the input path (for example, for input protection) should be placed close to the in-amp inputs, which minimizes their interaction with parasitic capacitance from the PCB traces' - so a series element belongs at the PIN end of the run, on both sides, not at the connector",
+    "what_must_match": "frequency response, i.e. an RC per path: equal trace length, width, via count and reference neighbourhood (equal capacitance to the reference copper), and identical series elements on both legs",
+    "why_not_dc_resistance": "the AD8226 input impedance is 0.8 Gohm||2 pF differential and 0.4 Gohm||2 pF common mode, so a few ohms of series mismatch draws no current worth counting at dc; the pins' own 2 pF is the scale against which trace capacitance mismatch is judged",
+    "conversion_gain": "ARITHMETIC (not vendor text): unequal shunt capacitance dC across a source of resistance Rsource converts common mode to differential with gain ~ 2*pi*f*(Rsource/2)*dC; at this slot's 350 ohm that is 1.1 ppm (-119 dB) per pF at 1 kHz and 5.5 ppm (-105 dB) per pF at 5 kHz, rising 20 dB/decade",
+    "budget": "the part's own CMRR is 86 dB min (G=1) / 120 dB (G=100) from dc to 60 Hz and 80 dB (G=1) / 90 dB (G=100) at 5 kHz, so single-digit pF of path mismatch stays under the part; about 10 pF of mismatch (a stub, an unmatched via, a connector pole with a different neighbour) reaches -85 dB at 5 kHz and becomes the dominant term",
+    "not_this": "this is NOT the four-resistor difference-amplifier law CMRR=(G+1)/(4t) - there is no gain-setting resistor network in a trace pair feeding a 0.4 Gohm input - and NOT a controlled-impedance, gap or skew rule: at 1 kHz nothing here is set by characteristic impedance or propagation delay"
+   },
+   "prose": "The vendor's own frame for the connector-to-pin run: what converts common mode into differential BEFORE the amplifier is a difference in FREQUENCY RESPONSE between the two paths, and the fix is equality of source impedance and capacitance per path. That makes this a matched-RC rule, not a matched-length transmission rule. The dc half costs nothing here because the inputs are 0.8 Gohm||2 pF differential (0.4 Gohm||2 pF common mode) - series resistance mismatch in copper draws no meaningful current. The ac half is real: taking the vendor sentence literally and doing the arithmetic, one picofarad of extra capacitance on one leg against a 350 ohm source is about -119 dB of common-mode-to-differential conversion at 1 kHz and -105 dB at 5 kHz, against a part specified at 90 dB (G=100) at 5 kHz. So a picofarad or two of asymmetry is affordable and ten is not - and the asymmetry to hunt is capacitance to the reference copper: a longer leg, an extra via, a different neighbour, a stub to a test point on one side only. The vendor adds the placement half explicitly: any series element in the input path sits close to the in-amp inputs so it interacts as little as possible with the traces' parasitic capacitance - both legs, same position.",
+   "sources": [
+    {
+     "file": "research/sources/2168367.pdf",
+     "page": 22,
+     "section": "AD8226 Rev. C, printed p.21 - LAYOUT / Common-Mode Rejection Ratio Over Frequency, first paragraph",
+     "note": "Read the opening paragraph verbatim: poor layout converts common-mode to differential before the in-amp when one input path's frequency response differs from the other; keep the input source impedance and capacitance of each path closely matched; put additional series source resistance close to the in-amp inputs to minimize interaction with PCB-trace parasitic capacitance."
+    },
+    {
+     "file": "research/sources/2168367.pdf",
+     "page": 5,
+     "section": "AD8226 Rev. C, printed p.4 - INPUT block of the dual-supply table",
+     "note": "Read the INPUT rows: input impedance 0.8 Gohm||2 pF differential and 0.4 Gohm||2 pF common mode over Vs = +-1.35 V to +-18 V - the impedance the trace pair actually works into."
+    },
+    {
+     "file": "research/sources/2168367.pdf",
+     "page": 6,
+     "section": "AD8226 Rev. C, printed p.5 - Table 3, COMMON-MODE REJECTION RATIO block",
+     "note": "Read the CMRR rows at VCM = 0 V to 1.7 V: dc to 60 Hz 86 / 106 / 120 / 120 dB min for G = 1 / 10 / 100 / 1000, and at 5 kHz 80 / 90 / 90 / 100 dB - the budget any layout-induced conversion is spent against."
+    }
+   ],
+   "origin": "research:interface-in-2",
+   "level": "topology",
+   "maturity": "verified",
+   "envelope": {
+    "f_signal_hz": {
+     "max": 5000
+    }
+   },
+   "_path": "research/records/in-input-path-equivalence.yaml",
+   "_workspace": true
+  },
+  {
+   "id": "in-terminal-selection",
+   "classes": [
+    "selection"
+   ],
+   "applies": {
+    "topologies": [],
+    "packages": [],
+    "interfaces": [
+     "in"
+    ],
+    "parts": []
+   },
+   "rule": {
+    "enforced_by": null,
+    "one_body_for_the_pair": "pick ONE multi-pole terminal for the whole input, not two single-pole parts: both signal poles are then the same moulding, the same contact metal and the same plating lot, which is the condition the thermal-EMF rule on this slot needs (identical junctions on both inputs, so their Seebeck voltages cancel when the two poles sit at the same temperature)",
+    "metallurgy_witnessed": "the junction stack at a WR-TBL 3611 pole, vendor-stated: copper wire clamped by a BRASS cage against a PHOSPHOR BRONZE contact plated TIN OVER NICKEL, insulator PA66 UL94 V-0 - every pole in the body identical",
+    "pole_count": "pole count follows the return-path decision, not the signal count: a source that brings its own dc return, or a screen that must land, needs a conductor of its own - the 3.50 mm order code read here is a 3-pole part (Pl 7 mm, L 10.5 mm), so the 2-signal + 1-return form exists at this pitch",
+    "wire_window": "26 to 16 AWG solid or stranded (0.129 to 1.31 mm2), strip length 6 to 7 mm, tightening torque 0.25 N*m - the sensor cable must fall inside this window or the clamp is not the specified joint",
+    "contact_resistance": "20 mohm max per pole (cULus and VDE): 57 ppm of this slot's 350 ohm source, i.e. not a term in the error budget here - but it is the floor that decides where this class of terminal stops suiting a low-impedance source",
+    "ratings_are_not_the_driver": "10 A / 300 V AC working / 1600 V (cULus) withstanding, -40 to +105 C: for a microvolt sensor input the binding selection parameters are metallurgy, pole count and wire window, not current or voltage headroom",
+    "pitch_note": "3.5 mm pitch, first pole 1.75 mm from the end; this slot's declared term_pair_mm of 2.5 mm is BELOW that pitch, so either the dim or the connector class has to move"
+   },
+   "prose": "The terminal is where the two input conductors become PCB metal, so what matters in the datasheet is the material table, not the current rating. Read off the 3.50 mm WR-TBL order code: insulator PA66 (UL94 V-0), Contact Material Phosphor Bronze, Contact Plating Tin over Nickel, Cage Material Brass, operating -40 to +105 C, contact resistance 20 mohm max, wire 26-16 AWG solid or stranded (0.129-1.31 mm2), strip 6-7 mm, torque 0.25 N*m, and this order code carries 3 pins at 3.5 mm pitch with 7 mm end-pole to end-pole. Two consequences for a microvolt input. First, every pole of one body is the same stack, so choosing a single 3-pole part and using adjacent poles for +IN and -IN makes the two thermal junctions identical by construction - the thermal-EMF record on this slot then only needs them to be at the same temperature. Two separate single-pole terminals, or a screw terminal on one input and a header on the other, forfeits that for nothing. Second, the third pole is not spare: it is where a ground-referenced source's return conductor or a cable screen lands, so pole count is decided by the return-path and shield records, not by the signal count. The 20 mohm contact resistance is 57 ppm of a 350 ohm source - invisible here, and the reason this class of terminal suits a bridge but not a milliohm shunt.",
+   "sources": [
+    {
+     "file": "research/sources/691361100003.pdf",
+     "page": 2,
+     "section": "WR-TBL Series 3611 - 3.50 mm, order code 691361100003, p.2 - Kind/Material/Electrical/Mechanical/Wire Properties",
+     "note": "Read the property tables: Pitch 3.5 mm; Insulator PA66, UL94 V-0, green; Contact Material Phosphor Bronze; Contact Plating Tin over Nickel; Cage Material Brass; operating temperature -40 to +105 C; rated current 10 A (cULus) / 10.5 A (VDE); working voltage 300 V AC; withstanding 1600 / 2500 V AC; contact resistance 20 mohm max; wire strip length 6 to 7 mm; solid and stranded wire 26 to 16 AWG (0.129 to 1.31 mm2); tightening torque 0.25 N*m."
+    },
+    {
+     "file": "research/sources/691361100003.pdf",
+     "page": 1,
+     "section": "same datasheet p.1 - dimension drawings + Article Properties",
+     "note": "Read the drawings and the Article Properties table: pitch 3.5 +-0.10 with the first pole 1.75 mm from the end, pin cross-section 2.5 x 1.6 mm, body 15.8 x 6.8 mm and 11.1 mm tall, screw heads on the top face with the pins below; this order code is Pins 3, Pin to Pin (Middle) Pl 7 mm, Length L 10.5 mm, type field \"Vertical Cable Entry Plug\" (the outline views draw the family, six poles)."
+    }
+   ],
+   "origin": "research:interface-in-2",
+   "level": "family",
+   "maturity": "verified",
+   "envelope": {
+    "rsource_ohm": {
+     "min": 1
+    }
+   },
+   "_path": "research/records/in-terminal-selection.yaml",
+   "_workspace": true
+  },
+  {
+   "id": "in-terminal-thermal-emf",
+   "classes": [
+    "thermal"
+   ],
+   "applies": {
+    "topologies": [],
+    "packages": [],
+    "interfaces": [
+     "in"
+    ],
+    "parts": []
+   },
+   "rule": {
+    "enforced_by": null,
+    "mechanism": "every dissimilar-metal junction in the input path is a thermocouple; Seebeck coefficients of junctions found on a PCB are typically below +-100 uV/degC",
+    "scales_with": "the temperature DIFFERENCE between the two input junctions - shifting every junction equally changes nothing",
+    "worked_case": "a 10 degC/inch axial gradient across a 1206 resistor (1.2 degC end to end) develops -38 uV",
+    "contact_potential": "a forced dissimilar-metal contact (socket) measured +-1 to +-2 uV on the vendor's bench - solder critical nodes, do not socket them",
+    "mitigation": "place the two input junctions adjacent and identically built so their EMFs cancel differentially; same metallurgy on both inputs; small parts spaced close together; align parts along constant-temperature contours; flood copper at the terminal; keep dissipating parts away"
+   },
+   "prose": "At a microvolt-class error budget the connector is a thermocouple. Every junction in the input path - wire to screw clamp, clamp to pad, solder to copper, via, resistor end cap - generates a Seebeck voltage, and PCB junctions are \"typically, but not always, below +-100 uV/degC\". What matters is the GRADIENT, not the temperature: the constant-temperature figure I read shows the four junctions of an SMD resistor at +125 degC summing to exactly zero, with the vendor's own note that \"when temperature is constant along the direction of current flow, the net change in thermoelectric voltage between two conductors of the same material is zero\". The axial-gradient figure gives the price of breaking that: 10 degC/inch, i.e. 1.2 degC across a 1206, produces -38 uV. The cure is symmetry, not exotic metal: \"the inputs to an op amp should connect to the same materials\", critical parts are oriented along constant-temperature contour lines, and in the vendor's own sensor board the input resistor pair is \"arranged so that their thermoelectric voltages cancel\" while copper fill tied to the ground plane \"minimizes thermal gradients at the cold junction connector\". So: the two input poles adjacent and identically built, copper poured around them, nothing that dissipates nearby, and no socket in the input path.",
+   "sources": [
+    {
+     "file": "research/sources/01258b.pdf",
+     "page": 2,
+     "section": "Seebeck Voltage, Equation 1, Figure 2/3, Table 1",
+     "note": "Read: the +-100 uV/degC bound on PCB junction Seebeck coefficients, Equation 1, and Figure 3 - four junctions of an SMD resistor at a uniform +125 degC producing zero net thermoelectric change."
+    },
+    {
+     "file": "research/sources/01258b.pdf",
+     "page": 3,
+     "section": "Temperature Change in the Axial Direction, Figure 4",
+     "note": "Read Figure 4 and its table: 1206 SMD, +125.0 to +126.2 degC across the part at 10 degC/inch, junction voltages 14.000 / -5.001 / 5.011 / -14.048 mV summing to -38 uV across the resistor."
+    },
+    {
+     "file": "research/sources/01258b.pdf",
+     "page": 4,
+     "section": "Curing Thermoelectric Voltage Effects - Metallurgy, Contour Lines",
+     "note": "Read: \"the inputs to an op amp should connect to the same materials\", and Figure 6 - resistors placed parallel to the constant-temperature contour lines drawn around a heat source."
+    },
+    {
+     "file": "research/sources/01258b.pdf",
+     "page": 16,
+     "section": "Other Tips - Contact Potential",
+     "note": "Read: sockets and IC pins are different metals forced into contact (Volta effect); bench measurement on auto-zeroed op amps gave +-1 uV to +-2 uV, so critical components are soldered, never socketed."
+    },
+    {
+     "file": "research/sources/01258b.pdf",
+     "page": 17,
+     "section": "Design Example - PCB Layout, Figure 38/39 callouts 2/3a/4",
+     "note": "Read the layout figures: 0805 parts chosen to shorten the gradient across them, the input resistor pair \"arranged so that their thermoelectric voltages cancel\", and metal fill tied to the ground plane flanking the sensor connector to flatten its local gradient."
+    }
+   ],
+   "origin": "research:interface-in-1",
+   "level": "topology",
+   "maturity": "verified",
+   "envelope": {
+    "dt_c": {
+     "max": 10
+    },
+    "err_rti_mv": {
+     "max": 0.05
+    }
+   },
+   "_path": "research/records/in-terminal-thermal-emf.yaml",
+   "_workspace": true
+  },
+  {
+   "id": "inamp-cmrr-over-frequency-and-source-imbalance",
+   "classes": [
+    "diff-pair"
+   ],
+   "applies": {
+    "topologies": [
+     "inamp"
+    ],
+    "packages": [],
+    "interfaces": [],
+    "parts": []
+   },
+   "rule": {
+    "enforced_by": null,
+    "budget_cmrr_at": "the top of the signal band and the real source imbalance - never the DC-to-60-Hz table row",
+    "spec_table_last_cmrr_hz": 5000,
+    "vendor_curve_last_hz": 100000,
+    "fig27_fig28_conditions": "T = 25 C, Vs = +/-15 V, RL = 10 kohm (TPC header, printed p.9)",
+    "fig27_cmrr_db_lf_g1": 96,
+    "fig27_cmrr_db_lf_g10": 117,
+    "fig27_cmrr_db_lf_g100": 133,
+    "fig27_cmrr_db_lf_g1000": 144,
+    "fig28_cmrr_db_lf_g1": 96,
+    "fig28_cmrr_db_lf_g10": 102,
+    "fig28_cmrr_db_lf_g100": 106,
+    "fig28_cmrr_db_lf_g1000": 108,
+    "fig28_imbalance_ohm": 1000,
+    "imbalance_penalty_db_lf_g10": 15,
+    "imbalance_penalty_db_lf_g100": 27,
+    "imbalance_penalty_db_at_1khz_g10_to_g1000": "16 to 17 (17.1 at G=10, 15.9 at G=100, 16.3 at G=1000)",
+    "cmrr_db_at_1khz_balanced_g10_g100_g1000": "109.4 / 109.2 / 110.6",
+    "cmrr_db_at_1khz_1kohm_imbalance_g10_g100_g1000": "92.3 / 93.3 / 94.3",
+    "gain_buys_cmrr_only_when_matched": "balanced, LF CMRR spans about 48 dB from G=1 to G=1000; with 1 kohm imbalance it spans about 12 dB",
+    "table2_is_the_matching_15v_table": "Table 2 (printed p.3) is taken at +/-15 V like the figures and carries the SAME minimums as Table 3, so the curves may be read against Table 2 directly",
+    "curve_vs_table2_min_at_5khz": "measured 83.9/94.4/95.3/104.5 dB against minimums 80/90/90/100 dB - typ sits 4 to 5 dB over min, as it should",
+    "derived_not_quoted": "every dB value is measured off the Figure 27/28 curves by pixel-mapping them against the printed axis gridlines (not eyeballed), good to about +/-1 dB; where two curves overlap the value is bracketed from the neighbouring columns instead. The data sheet prints no numeric table for these curves",
+    "scope": "device side - the connector, cable and trace-symmetry half belongs to the input-interface slot"
+   },
+   "prose": "CMRR is not the DC number in the specification table; it is a curve, and the copper's job is to not spend it. Two AD8226 curves make the point, both plotted 0.1 Hz to 100 kHz, both at Vs = +/-15 V, 25 C, RL = 10 kohm. Figure 27, balanced sources: CMRR is flat at about 96, 117, 133 and 144 dB for G = 1, 10, 100 and 1000, holds that plateau only out to somewhere between 50 Hz (G = 1000) and 400 Hz (G = 1), then falls about 20 dB per decade to roughly 56, 68, 84 and 105 dB at 100 kHz; a dashed BANDWIDTH LIMITED ellipse marks where the two high-gain curves flatten above about 30 kHz. Figure 28 repeats the same measurement with a 1 kohm SOURCE IMBALANCE and the family collapses: about 96, 102, 106 and 108 dB at low frequency, and above about 1 kHz the G = 1, 10 and 100 curves lie on ONE roll-off, reaching about 55, 55 and 68 dB at 100 kHz. Read the pair together and the rule falls out: GAIN BUYS CMRR ONLY WHILE THE TWO PATHS MATCH. Balanced, low-frequency CMRR spans about 48 dB from G = 1 to G = 1000; with 1 kohm of imbalance it spans about 12 dB. The imbalance costs about 0 dB at G = 1, 15 dB at G = 10, 27 dB at G = 100 at low frequency, and 16 to 17 dB at 1 kHz for G = 10 to 1000. Budget at the top of the band and at the real imbalance. The numeric CMRR rows stop at 5 kHz in BOTH Table 2 and Table 3; the curves do not. Table 2 is the +/-15 V table matching the figures and its minimums equal Table 3's, so the curves read against it directly - at 5 kHz they sit 4-5 dB over.\n",
+   "sources": [
+    {
+     "file": "research/sources/2168367.pdf",
+     "page": 14,
+     "section": "AD8226 Rev. C, printed p.13 - Figure 27 and Figure 28",
+     "note": "Read both plots visually, magnified, then measured by pixel-mapping the curves against the printed axis gridlines. Figure 27 \"CMRR vs. Frequency, RTI\": x = 0.1 Hz to 100 kHz log, y = CMRR 0 to 160 dB, four labelled curves GAIN = 1/10/100/1000 with low-frequency plateaus at 96.4/116.7/133.1/143.4 dB, plateau ending near 400 Hz (G=1) down to near 50 Hz (G=1000), then a roughly 20 dB/decade fall to about 56/68/84/105 dB at 100 kHz, with a dashed ellipse annotated \"BANDWIDTH LIMITED\" over the 30 kHz to 100 kHz region where the G = 1000 and G = 100 curves flatten. At 1 kHz Figure 27 reads 109.4/109.2/110.6 dB for G = 10/100/1000 (the G = 10 point is occluded by the crossing curves, so it is bracketed from 878 Hz = 109.9 dB and 1289 Hz = 107.9 dB). Figure 28 \"CMRR vs. Frequency, RTI, 1 kOhm Source Imbalance\": identical axes but y = 0 to 120 dB, the same four gains, plateaus compressed to 96.5/101.7/106.5/108.5 dB, 92.3/93.3/94.3 dB at 1 kHz for G = 10/100/1000, and above about 1 kHz the G = 1, 10 and 100 curves merge onto a single roll-off ending near 55/55/68 dB at 100 kHz while G = 1000 flattens near 88 dB. So the 1 kHz penalty of the imbalance is 17.1/15.9/16.3 dB. The pair is the vendor's own measurement of what a source imbalance costs versus frequency.\n"
+    },
+    {
+     "file": "research/sources/2168367.pdf",
+     "page": 10,
+     "section": "AD8226 Rev. C, printed p.9 - TYPICAL PERFORMANCE CHARACTERISTICS header",
+     "note": "Read the conditions line that governs Figure 27 and Figure 28: \"T = 25 degC, VS = +/-15 V, RL = 10 kOhm, unless otherwise noted\". The figures are therefore a +/-15 V measurement, so they belong against Table 2 (printed p.3) rather than Table 3 (+Vs = 2.7 V).\n"
+    },
+    {
+     "file": "research/sources/2168367.pdf",
+     "page": 4,
+     "section": "AD8226 Rev. C, printed p.3 - Table 2, COMMON-MODE REJECTION RATIO block",
+     "note": "Read Table 2, whose header is \"+VS = +15 V, -VS = -15 V, VREF = 0 V, TA = 25 degC, G = 1, RL = 10 kOhm\" - the same supply as Figures 27 and 28. Its CMRR block (VCM = -10 V to +10 V) prints minimums DC to 60 Hz of 86/106/120/120 dB and CMRR at 5 kHz of 80/90/90/100 dB for G = 1/10/100/1000 (ARZ, ARMZ) - IDENTICAL to Table 3's minimums. So the supply-condition caveat costs nothing: the curves can be compared against Table 2's minimums directly. Cross-check: the Figure 27 curve values at 5 kHz measure 83.9/94.4/95.3/104.5 dB, sitting 4 to 5 dB above those minimums, which is how typ should sit over min. Table 2's CMRR rows also stop at 5 kHz, confirming the 5 kHz ceiling is a property of the TABLES, not of the characterization.\n"
+    },
+    {
+     "file": "research/sources/2168367.pdf",
+     "page": 6,
+     "section": "AD8226 Rev. C, printed p.5 - Table 3, COMMON-MODE REJECTION RATIO block",
+     "note": "Read the CMRR block of Table 3 (+Vs = 2.7 V, -Vs = 0 V, VREF = 0 V, 25 C, G = 1, RL = 10 kOhm, VCM = 0 V to 1.7 V): CMRR minimum DC to 60 Hz is 86 dB at G = 1 (ARZ/ARMZ), 106 dB at G = 10, 120 dB at G = 100 and G = 1000; the only other CMRR row is \"CMRR at 5 kHz\", 80/90/90/100 dB. The numeric table stops at 5 kHz - that is a limit of the TABLE, not of the part's characterization.\n"
+    },
+    {
+     "file": "research/sources/2168367.pdf",
+     "page": 22,
+     "section": "AD8226 Rev. C, printed p.21 - Common-Mode Rejection Ratio Over Frequency",
+     "note": "Read the mechanism paragraph that the two figures quantify: \"Poor layout can cause some of the common-mode signals to be converted to differential signals before reaching the in-amp. Such conversions occur when one input path has a frequency response that is different from the other. To keep CMRR across frequency high, the input source impedance and capacitance of each path should be closely matched.\"\n"
+    }
+   ],
+   "origin": "research:block-inamp-2",
+   "level": "topology",
+   "maturity": "verified",
+   "envelope": {
+    "f_signal_hz": {
+     "min": 0,
+     "max": 100000
+    }
+   },
+   "_path": "research/records/inamp-cmrr-over-frequency-and-source-imbalance.yaml",
+   "_workspace": true
+  },
+  {
+   "id": "inamp-gain-partition-first-stage",
+   "classes": [
+    "selection"
+   ],
+   "applies": {
+    "topologies": [
+     "inamp"
+    ],
+    "packages": [],
+    "interfaces": [],
+    "parts": []
+   },
+   "rule": {
+    "enforced_by": null,
+    "offset_law": "Vos_total_RTI = Vosi + Voso/G1",
+    "noise_law": "eN_total_RTI = sqrt(eNi^2 + (eNo/G1)^2)",
+    "partition_rule": "raise the FIRST stage's gain to whatever the internal-node ceiling allows, then take the remainder in a later stage",
+    "crossover_gain": "G1 = Voso/Vosi (drift) or eNo/eNi (noise) - about 5 for the AD8226",
+    "ad8226_eni_nv_rthz_typ": 22,
+    "ad8226_eno_nv_rthz_typ": 120,
+    "ad8226_vosi_tc_uv_per_c_max_a_grade": 2,
+    "ad8226_voso_tc_uv_per_c_max_a_grade": 10,
+    "later_stage_cost": "a later stage's own offset, drift and noise divide by G1 when referred to the input",
+    "external_rg": "the gain resistor's tolerance and drift add to the in-amp's own gain accuracy",
+    "ti_first_stage_ceiling": "G1_max = 2*(V_SAT - Vcm)/Vd"
+   },
+   "prose": "How much gain belongs in the first stage, and why. Both vendor error laws are printed as conditions in the AD8226 spec table: total offset Vos = Vosi + (Voso/G) and total noise eN = sqrt(eNi^2 + (eNo/G)^2). Everything the in-amp contributes after its input stage - and everything a later stage contributes - is divided by the FIRST stage's gain when referred to the input. The crossover is the ratio of the part's own output-referred to input-referred term: for the AD8226 that is 10 / 2 uV/degC of drift and 120 / 22 nV/rtHz of noise, i.e. G1 near 5. Below G1 = 5 the output-referred terms dominate the budget; above it they fall as 1/G1 and become a rounding error (at G1 = 40 the output drift term is about 11 percent of the total). The counter-pressure is the internal-node ceiling (inamp-internal-node-headroom-inequalities), which caps G1 from above. TI writes the ceiling as G1_max = 2*(V_SAT - Vcm)/Vd and prescribes the order explicitly: \"Limit the input gain, G1, to avoid saturation of A1 and A2 ... apply high gain in the output stage\". So the partition is not a preference: set G1 at the ceiling minus margin, put the rest later. A later gain stage is cheap in precision terms and its bandwidth is what it costs. Note also that an external gain resistor's tolerance and drift add to the in-amp's own gain accuracy, so a bigger G1 does not buy gain ACCURACY - only offset and noise.\n",
+   "sources": [
+    {
+     "file": "research/sources/2168367.pdf",
+     "page": 6,
+     "section": "AD8226 Rev. C, printed p.5 - Table 3 (single supply +Vs = 2.7 V), NOISE and VOLTAGE OFFSET blocks",
+     "note": "Read in Table 3: the NOISE row condition \"Total noise: eN = sqrt(eNi^2 + (eNo/G)^2)\" with Input Voltage Noise eNi = 22 typ / 24 max nV/rtHz and Output Voltage Noise eNo = 120 typ / 125 max nV/rtHz; the VOLTAGE OFFSET row condition \"Total offset voltage: Vos = Vosi + (Voso/G)\" with Vosi average TC 0.5 typ / 2 max uV/degC and Voso average TC 2 typ / 10 max uV/degC for the ARZ/ARMZ (A) grade over -40 to +125 C. Also read the DYNAMIC RESPONSE block: -3 dB bandwidth 1500 / 160 / 20 / 2 kHz at G = 1 / 10 / 100 / 1000, i.e. bandwidth falls with the first stage's gain too.\n"
+    },
+    {
+     "file": "research/sources/slyt226.pdf",
+     "page": 3,
+     "section": "TI SLYT226, printed p.27 - worked partition of a high-gain front end",
+     "note": "Read on the page: the three-step recipe \"(1) Limit the input gain, G1, to avoid saturation of A1 and A2; (2) implement low-pass filtering in the output stage ...; (3) apply high gain in the output stage\", and the worked ceiling G1 = 2*((V2_SAT - Vcm)/Vd_DC) = 2*((5 V - 1.5 V)/400 mV) = 17.5, from which the article picks a conservative G1 = 10 and puts G2 = Gtot/G1 = 500 downstream.\n"
+    },
+    {
+     "file": "research/sources/slyt226.pdf",
+     "page": 4,
+     "section": "TI SLYT226, printed p.28 - Figure 4 external gain stage, benefits list, Figure 5 single-supply front end",
+     "note": "Read on the page: the bullet \"The adjustment of G1 is independent from G2 and f0, allowing the input gain to be set for maximum input common-mode range\", Figure 4 where the external stage takes G3 = -Gtot/G1 = -R4/R3, and Figure 5, a single-supply front end that runs the in-amp at G1 = 5 and puts G2 = 200 in the following op-amp stage - the same partition at the extreme.\n"
+    }
+   ],
+   "origin": "research:block-inamp-1",
+   "level": "topology",
+   "maturity": "verified",
+   "envelope": {
+    "gain_split_kind": {
+     "in": [
+      "two-stage"
+     ]
+    }
+   },
+   "_path": "research/records/inamp-gain-partition-first-stage.yaml",
+   "_workspace": true
+  },
+  {
+   "id": "inamp-headroom-escape-gain-in-difference-amp",
+   "classes": [
+    "selection"
+   ],
+   "applies": {
+    "topologies": [
+     "inamp"
+    ],
+    "packages": [],
+    "interfaces": [],
+    "parts": [
+     "AD8226",
+     "AD8227"
+    ]
+   },
+   "rule": {
+    "enforced_by": null,
+    "escape_1": "apply less gain in the in-amp and take the rest later in the signal chain",
+    "escape_2": "use an in-amp whose difference amplifier already has gain (ADI names the pin-compatible AD8227)",
+    "escape_3": "raise the difference amplifier's own gain: G2' = Gtot/G1'",
+    "recovered_cm_range": "Vcm' = Vcm + (Vd/2)*G1'*(G2' - 1)",
+    "internal_node_scaling": "at a fixed total gain the gained differential swing at the internal nodes is proportional to Gtot/G2",
+    "ad8227_min_gain_internal": 5,
+    "ad8227_gain_drift_ppm_per_c_max": 5,
+    "derived_not_quoted": "an in-amp's MINIMUM gain is its difference-amp gain, so min gain 5 implies G2 = 5",
+    "escape_3_implementation": "a difference amp with a Vsense pin (Rext matched into the feedback AND the Vref leg) or a buffered divider in A3's feedback",
+    "cost": "bandwidth - the in-amp's -3 dB falls with G1 and the later stage's with its own gain",
+    "open": "AD8227 input-range constants and bandwidth-at-gain NOT read; its data sheet was not acquirable in this pass"
+   },
+   "prose": "When the internal-node ceiling caps the in-amp's own gain below what the chain needs, the gain has to go somewhere else. Three escapes, all vendor-stated. (1) Move it downstream. ADI: \"apply less gain with the AD8226, and then apply additional gain later in the signal chain.\" (2) Use a part whose difference amplifier already has gain. ADI names it in the next sentence - \"Another option is to use the pin-compatible AD8227\" - and its gain section adds that the AD8227 \"has a default gain of 5 that is set with internal resistors ... the gain drift is extremely low (<5 ppm/degC maximum)\". DERIVED, not quoted: an in-amp's MINIMUM gain is its difference-amp gain (AD8226 Figure 58 shows four equal 50 kohm resistors, G2 = 1, and G = 1 + 49.4k/Rg bottoms out at 1), so a minimum gain of 5 means G2 = 5 and, at the same total gain, one fifth of the gained differential swing at the internal nodes. The AD8227's own Table-8 equivalents and bandwidth-at-gain were NOT read here. (3) Raise G2 on the part you have. TI gives the law: preserving Gtot while reducing G1 to G1' \"requires an increase in difference amplifier gain from G2 = 1 to G2' = Gtot/G1'\", and the recovered range is Vcm' = Vcm + (Vd/2)*G1'*(G2' - 1). Implemented with a Vsense-pin difference amp (Rext matched into the feedback AND the Vref leg) or a buffered divider in A3's feedback.\n",
+   "sources": [
+    {
+     "file": "research/sources/2168367.pdf",
+     "page": 21,
+     "section": "AD8226 Rev. C, printed p.20 - Recommendation for Best Performance",
+     "note": "Read on the page, immediately after the margin recommendation: \"If the application requirements exceed the boundaries, one solution is to apply less gain with the AD8226, and then apply additional gain later in the signal chain. Another option is to use the pin- compatible AD8227.\" That is the vendor naming both escapes from its own Equation 1-3 boundary.\n"
+    },
+    {
+     "file": "research/sources/2168367.pdf",
+     "page": 20,
+     "section": "AD8226 Rev. C, printed p.19 - GAIN SELECTION + Figure 58",
+     "note": "Read on the page: \"If a gain of 5 is required and minimal gain drift is important, consider using the AD8227. The AD8227 has a default gain of 5 that is set with internal resistors. Because all resistors are internal, the gain drift is extremely low (<5 ppm/degC maximum).\" Also read the gain law G = 1 + 49.4 kohm/Rg with Table 7, and Figure 58 showing the AD8226's difference amplifier A3 built from four equal 50 kohm resistors (R3 to R6) - i.e. its own G2 = 1, which is what makes its minimum gain 1.\n"
+    },
+    {
+     "file": "research/sources/slyt226.pdf",
+     "page": 2,
+     "section": "TI SLYT226, printed p.26 - Extending the input common-mode voltage range, Equation 7, Figure 2",
+     "note": "Read on the page: \"Standard INAs, using unity-gain difference amplifiers, have R2 = R1 and G2 = 1. The total INA gain is then placed into the input stage, making G1 = Gtot ... reducing G1 from Gtot to G1', while preserving Gtot, requires an increase in difference amplifier gain from G2 = 1 to G2' = Gtot/G1'.\" Equation 7: Vcm' = Vcm + (Vd/2)*Gtot*(1 - 1/G2') = Vcm + (Vd/2)*G1'*(G2' - 1). Figure 2 \"Increasing difference amplifier gain via Rext or buffered voltage divider\" draws both implementations, with Rext appearing in BOTH the feedback leg and the Vref leg; the text warns the internal resistors can deviate by +-30 percent and that large external resistors add noise.\n"
+    }
+   ],
+   "origin": "research:block-inamp-1",
+   "level": "topology",
+   "maturity": "verified",
+   "envelope": {
+    "inamp_arch_kind": {
+     "in": [
+      "three-opamp"
+     ]
+    }
+   },
+   "_path": "research/records/inamp-headroom-escape-gain-in-difference-amp.yaml",
+   "_workspace": true
+  },
+  {
+   "id": "inamp-input-network-differential-cap-dominance",
+   "classes": [
+    "diff-pair"
+   ],
+   "applies": {
+    "topologies": [
+     "inamp"
+    ],
+    "packages": [],
+    "interfaces": [],
+    "parts": []
+   },
+   "rule": {
+    "enforced_by": null,
+    "sizing_rule": "CD >= 10 * CC - the differential capacitor must dominate the two common-mode capacitors",
+    "why": "the two CC cannot be matched, and it is their MISMATCH that converts common mode to differential; a CD an order larger sets the differential response instead",
+    "f_diff_equation": "FilterFrequency_DIFF = 1 / (2*pi*R*(2*CD + CC))",
+    "f_cm_equation": "FilterFrequency_CM = 1 / (2*pi*R*CC)",
+    "fig63_r_ohm": 4020,
+    "fig63_cc_nf": 1,
+    "fig63_cd_nf": 10,
+    "fig63_f_cm_khz_derived": 39.6,
+    "fig63_f_diff_khz_derived": 1.89,
+    "fig63_pole_ratio_derived": 21,
+    "series_r_placement": "any series resistance in an input path belongs close to the in-amp input pins, which minimises its interaction with PCB trace parasitic capacitance",
+    "stray_case": "with no network fitted CD = 0 and CC is whatever each trace, pad and pin field presents to ground; nothing swamps the mismatch, so only geometric symmetry defends CMRR",
+    "derived_not_quoted": "the two pole frequencies and their 21x ratio are computed from the printed equations and the printed Figure 63 component values; ADI prints the equations and the values but not the resulting frequencies",
+    "scope": "device side - the connector, cable and shield half belongs to the input-interface slot"
+   },
+   "prose": "An in-amp input network is deliberately ASYMMETRIC in its capacitors, and that asymmetry is the whole trick. ADI's Figure 63 (RFI Suppression) puts R = 4.02 kohm in each input leg, CC = 1 nF from each leg to ground, and CD = 10 nF bridging the two legs, with the printed relations FilterFrequency_DIFF = 1/(2*pi*R*(2*CD + CC)) and FilterFrequency_CM = 1/(2*pi*R*CC), where CD >= 10 CC. Those values put the common-mode pole at 39.6 kHz and the differential pole at 1.9 kHz, about 21x lower (derived). The reason is stated plainly: \"Mismatch between the R x CC at the positive input and the R x CC at the negative input degrades the CMRR of the AD8226. By using a value of CD that is one magnitude larger than CC, the effect of the mismatch is reduced and performance is improved.\" Two ordinary-tolerance 1 nF parts cannot be matched; one CD ten times larger sets the differential response instead. Placement rides along: series R in an input path \"should be placed close to the in-amp inputs, which minimizes their interaction with parasitic capacitance from the PCB traces\". The STRAY case is the same law with CD = 0: nothing is fitted, CC is whatever each trace, pad and pin field presents to ground, and nothing swamps its mismatch - so only geometry defends CMRR: equal length, mirrored neighbours, equal clearance to ground copper on both layers. SCOPE: this board fits no input R/C network. That is a block-only scope exclusion for this run, NOT a finding that the network is unnecessary.\n",
+   "sources": [
+    {
+     "file": "research/sources/2168367.pdf",
+     "page": 23,
+     "section": "AD8226 Rev. C, printed p.22 - RADIO FREQUENCY INTERFERENCE (RFI) and Figure 63",
+     "note": "Read the RFI section and Figure 63 \"RFI Suppression\" visually. The schematic draws a series R in each input leg labelled 4.02 kOhm, a CC = 1 nF from each leg to ground, and a CD = 10 nF bridging +IN to -IN across the two legs, with RG across the gain pins and 0.1 uF + 10 uF on each supply rail. Printed with it: \"The filter limits the input signal bandwidth according to the following relationship\", FilterFrequency_DIFF = 1/(2*pi*R*(2*CD + CC)), FilterFrequency_CM = 1/(2*pi*R*CC), \"where CD >= 10 CC\"; and the paragraph beside the figure: \"CD affects the difference signal and CC affects the common-mode signal. Values of R and CC should be chosen to minimize RFI. Mismatch between the R x CC at the positive input and the R x CC at the negative input degrades the CMRR of the AD8226. By using a value of CD that is one magnitude larger than CC, the effect of the mismatch is reduced and performance is improved.\" Also read on the same page that RF rectification \"can appear as a small dc offset voltage\" - the reason the network exists at all.\n"
+    },
+    {
+     "file": "research/sources/2168367.pdf",
+     "page": 22,
+     "section": "AD8226 Rev. C, printed p.21 - Common-Mode Rejection Ratio Over Frequency",
+     "note": "Read the two paragraphs that make this a LAYOUT rule and not only a filter-design rule: conversions of common mode to differential \"occur when one input path has a frequency response that is different from the other\", so \"the input source impedance and capacitance of each path should be closely matched\"; \"Additional source resistance in the input path (for example, for input protection) should be placed close to the in-amp inputs, which minimizes their interaction with parasitic capacitance from the PCB traces\"; and the second paragraph making parasitic capacitance at the gain-setting pins a part-selection constraint for any switch or jumper placed there.\n"
+    }
+   ],
+   "origin": "research:block-inamp-2",
+   "level": "principle",
+   "maturity": "verified",
+   "envelope": null,
+   "_path": "research/records/inamp-input-network-differential-cap-dominance.yaml",
+   "_workspace": true
+  },
+  {
+   "id": "inamp-internal-node-headroom-inequalities",
+   "classes": [
+    "selection"
+   ],
+   "applies": {
+    "topologies": [
+     "inamp"
+    ],
+    "packages": [],
+    "interfaces": [],
+    "parts": [
+     "AD8226"
+    ]
+   },
+   "rule": {
+    "enforced_by": null,
+    "eq1_lower_node": "Vcm - |Vdiff*G/2| > -Vs + V_MINUS_LIMIT",
+    "eq2_upper_node": "Vcm + |Vdiff*G/2| < +Vs - V_PLUS_LIMIT",
+    "eq3_ref_node": "(Vdiff*G/2 + Vcm + Vref)/2 < +Vs - V_REF_LIMIT",
+    "output_form_of_eq2": "Vdiff*G = Vout - Vref, so eq2 reads Vcm + |Vout - Vref|/2 < +Vs - V_PLUS_LIMIT",
+    "max_gained_swing": "|Vout - Vref| < 2*(Vs - V_PLUS_LIMIT - Vcm)",
+    "v_minus_limit_v_at_minus40c": -0.55,
+    "v_minus_limit_v_at_25c": -0.35,
+    "v_minus_limit_v_at_85c": -0.15,
+    "v_minus_limit_v_at_125c": -0.05,
+    "v_plus_limit_v_at_minus40c": 0.8,
+    "v_plus_limit_v_at_25c": 0.7,
+    "v_plus_limit_v_at_85c": 0.65,
+    "v_plus_limit_v_at_125c": 0.6,
+    "v_ref_limit_v_at_minus40c": 1.3,
+    "v_ref_limit_v_at_25c": 1.15,
+    "v_ref_limit_v_at_85c": 1.05,
+    "v_ref_limit_v_at_125c": 0.9,
+    "worst_corner_positive_rail": "cold - the part needs the most headroom from +Vs at -40 C",
+    "worst_corner_negative_rail": "hot - inputs near -Vs are worst at +125 C",
+    "design_margin": "a few hundred millivolts beyond the inequality",
+    "constants_are": "per part - these are the AD8226's Table 8; another in-amp has its own"
+   },
+   "prose": "The closed-form test for the internal-node limit. ADI publishes it as three inequalities with tabulated constants (AD8226 Rev. C p.20, Equation 1 to 3 and Table 8; the constants are in `rule`). Cold is the worst case against the positive rail, hot the worst case near the negative rail: \"the common-mode input range shifts upward with temperature.\" Because Vdiff*G = Vout - Vref, Equation 2 can be read as Vcm + |Vout - Vref|/2 < +Vs - V_PLUS_LIMIT: a boundary in (Vout, Vcm) that barely moves with gain. That is why the published diamond plots at G = 1 (Figure 9) and G = 100 (Figure 12), both at Vs = +2.7 V, are nearly the same hexagon. The equations reproduce the figure's own annotations: Figure 12 marks a vertex at Vout = +0.02 V, Vcm = +2.0 V, and Equation 2 gives Vcm < 1.99 V there; it marks Vout = +2.4 V at Vcm = +0.8 V, and Equation 2 gives 2.40 V. The model is validated before it is used. Design consequence: on a low single supply the binding quantity is the GAINED differential swing the in-amp may produce, |Vout - Vref| < 2*(Vs - V_PLUS_LIMIT - Vcm), not the gain by itself. At a fixed full-scale Vdiff this caps the in-amp's own gain; above that cap the gain must move to a later stage. ADI: design with \"a few hundred millivolts extra margin ... internal transistors begin to saturate, which can affect frequency and linearity performance.\"\n",
+   "sources": [
+    {
+     "file": "research/sources/2168367.pdf",
+     "page": 21,
+     "section": "AD8226 Rev. C, printed p.20 - INPUT VOLTAGE RANGE, Equation 1-3, Table 8, Performance Across Temperature",
+     "note": "Read on the page: Equation (1) Vcm - |(Vdiff)(G)/2| > -Vs + V_-LIMIT, (2) Vcm + |(Vdiff)(G)/2| < +Vs - V_+LIMIT, (3) [(Vdiff)(G)/2 + Vcm + Vref]/2 < +Vs - V_REF_LIMIT; Table 8 \"Input Voltage Range Constants for Various Temperatures\" giving V_-LIMIT / V_+LIMIT / V_REF_LIMIT as -0.55/0.8/1.3 V at -40 C, -0.35/0.7/1.15 V at +25 C, -0.15/0.65/1.05 at +85 C and -0.05/0.6/0.9 at +125 C; the Performance Across Temperature paragraph (range shifts upward with temperature, cold needs extra headroom from +Vs); and the Recommendation for Best Performance paragraph asking for a few hundred millivolts of margin.\n"
+    },
+    {
+     "file": "research/sources/2168367.pdf",
+     "page": 11,
+     "section": "AD8226 Rev. C, printed p.10 - Figures 9 to 14, Input Common-Mode Voltage vs. Output Voltage",
+     "note": "Read the figures: each plots COMMON-MODE VOLTAGE (y) against OUTPUT VOLTAGE (x) as a hexagon, one trace for Vref = 0 V and one for Vref = +1.35 V (2.7 V panels). Figure 9 (Vs = +2.7 V, G = 1) and Figure 12 (Vs = +2.7 V, G = 100) are nearly identical, confirming the output-voltage form of Equation 2. Vertex annotations read on Figure 12: (+0.02 V, +2.0 V), (+1.35 V, +1.9 V), (+2.67 V, +1.3 V), (+2.4 V, +0.8 V), (+0.02 V, -0.3 V). Figures 10/13 are the +5 V panels and 11/14 the dual-supply ones.\n"
+    },
+    {
+     "file": "research/sources/2168367.pdf",
+     "page": 20,
+     "section": "AD8226 Rev. C, printed p.19 - THEORY OF OPERATION, Figure 58 Simplified Schematic",
+     "note": "Read Figure 58: gain stage Q1/A1 and Q2/A2 with R1 = R2 = 24.7 kohm and Rg between Node 3 and Node 4; Node 1 and Node 2 are the A1/A2 outputs feeding a difference amplifier A3 built from four 50 kohm resistors. The ARCHITECTURE text confirms A1 holds Node 3 \"a constant diode drop above the positive input voltage\" and that at the A1/A2 outputs \"in addition to a gained differential signal, the original common-mode signal, shifted a diode drop up, is also still present\" - i.e. Node 1/Node 2 are the nodes Equations 1-3 bound.\n"
+    }
+   ],
+   "origin": "research:block-inamp-1",
+   "level": "topology",
+   "maturity": "verified",
+   "envelope": {
+    "inamp_arch_kind": {
+     "in": [
+      "three-opamp"
+     ]
+    },
+    "vs_v": {
+     "min": 2.2,
+     "max": 36
+    }
+   },
+   "_path": "research/records/inamp-internal-node-headroom-inequalities.yaml",
+   "_workspace": true
+  },
+  {
+   "id": "inamp-internal-node-saturation",
+   "classes": [
+    "selection"
+   ],
+   "applies": {
+    "topologies": [
+     "inamp"
+    ],
+    "packages": [],
+    "interfaces": [],
+    "parts": []
+   },
+   "rule": {
+    "enforced_by": null,
+    "where": "the internal nodes between the gain stage and the difference amplifier",
+    "node_carries": "gained differential signal + the original common-mode signal + a diode drop",
+    "failure": "those nodes hit a supply rail while BOTH the inputs and the output are still inside their own specified ranges",
+    "symptom": "the output stays in range and looks plausible to whatever reads it, and is wrong",
+    "consequence": "an in-amp's input range, output swing and gain specs are necessary but NOT sufficient - the internal node is a third, unmeasurable constraint"
+   },
+   "prose": "A classic in-amp amplifies BEFORE it subtracts: the first stage applies the differential gain, the second stage removes the common mode. So the nodes between the two stages carry a gained differential signal riding on the full, ungained common-mode voltage, shifted by a base-emitter drop. ADI states it directly: those nodes \"experience a combination of a gained signal, a common-mode signal, and a diode drop. This combined signal can be limited by the voltage supplies even when the individual input and output signals are not limited\" (AD8226 Rev. C, INPUT VOLTAGE RANGE). TI states the same for the generic three-op-amp INA and names the danger: saturation of the input stage \"causes the INA output voltage, although of wrong value, to appear normal to the following processing circuitry. This could lead to disastrous effects with unpredictable consequences\" (SLYT226). TI's Figure 1 labels the nodes: V1 = Vcm - G1(Vd/2) and V2 = Vcm + G1(Vd/2) - the common mode passes the input stage at unity gain while only the differential half is amplified. These nodes are not brought out to a pin, so no measurement finds the fault; only arithmetic does. Checking input range, output swing and gain is therefore not enough to conclude an in-amp works at an operating point. This is the principle; the closed-form test and its constants are a level down.\n",
+   "sources": [
+    {
+     "file": "research/sources/2168367.pdf",
+     "page": 21,
+     "section": "AD8226 Rev. C, printed p.20 - INPUT VOLTAGE RANGE, opening paragraph",
+     "note": "Read on the page: \"The 3-op-amp architecture of the AD8226 applies gain in the first stage before removing common-mode voltage with the difference amplifier stage. Internal nodes between the first and second stages (Node 1 and Node 2 in Figure 58) experience a combination of a gained signal, a common-mode signal, and a diode drop. This combined signal can be limited by the voltage supplies even when the individual input and output signals are not limited.\"\n"
+    },
+    {
+     "file": "research/sources/slyt226.pdf",
+     "page": 1,
+     "section": "TI SLYT226, printed p.25 - abstract + Figure 1 + Equations 1-5",
+     "note": "Read on the page: Figure 1 \"Classic three-op-amp INA and its voltage nodes\" labels V1 = Vcm - G1(Vd/2) and V2 = Vcm + G1(Vd/2) with G1 = 1 + 2Rf/Rg, and the abstract states that a saturated input stage makes a wrong output \"appear normal to the following processing circuitry\". Equation 4 and its text: \"only the differential component, Vd/2, is amplified by the input gain, G1, while the common-mode voltage, Vcm, passes the input stage with unity gain.\"\n"
+    }
+   ],
+   "origin": "research:block-inamp-1",
+   "level": "principle",
+   "maturity": "verified",
+   "envelope": null,
+   "_path": "research/records/inamp-internal-node-saturation.yaml",
+   "_workspace": true
+  },
+  {
+   "id": "inamp-ref-pin-drive-impedance",
+   "classes": [
+    "feedback"
+   ],
+   "applies": {
+    "topologies": [
+     "inamp"
+    ],
+    "packages": [],
+    "interfaces": [],
+    "parts": [
+     "AD8226"
+    ]
+   },
+   "rule": {
+    "enforced_by": null,
+    "max_source_impedance_ohm": 2,
+    "what_ref_is": "one leg of the difference amplifier's own resistor bridge, not a high-impedance reference input",
+    "positive_path_gain": "2*(50k + Rref)/(100k + Rref)",
+    "cm_gain_at_output_derived": "Rref/(100k + Rref) - about 10 ppm per ohm",
+    "cm_gain_at_2_ohm_ppm": 20,
+    "cm_gain_at_9k2_pct": 8.5,
+    "rti_conversion": "divide the output-referred common-mode gain by the total gain to refer it to the input",
+    "second_error_source": "the REF input draws Iin = 7 uA typ, so an unbuffered divider also shifts by Iin * Rthevenin",
+    "ref_input_resistance_kohm": 100,
+    "ref_gain_to_output_vv": 1,
+    "fix": "buffer the divider with an op amp (Figure 59 CORRECT half); a bare divider on REF is drawn INCORRECT",
+    "abs_max": "REF is ESD-protected and must not exceed either rail by more than 0.3 V"
+   },
+   "prose": "An in-amp's REF pin is not a high-impedance reference input. On a classic 3-op-amp part it is one leg of the difference amplifier's own resistor bridge, so any impedance in series with it unbalances that bridge. ADI: \"For the best performance, source impedance to the REF terminal should be kept below 2 ohm ... the reference terminal, REF, is at one end of a 50 kohm resistor. Additional impedance at the REF terminal adds to this 50 kohm resistor and results in amplification of the signal connected to the positive input ... 2(50 kohm + Rref)/(100 kohm + Rref). Only the positive signal path is amplified ... This uneven amplification degrades CMRR.\" Figure 59 draws a bare resistor divider into REF, crosses it out and labels it INCORRECT; the CORRECT half buffers that divider with an op amp. DERIVED from that expression: the common-mode gain that appears at the output is A - 1 = Rref/(100 kohm + Rref) - about 10 ppm per ohm. At the 2 ohm limit that is 20 ppm; at a 9.2 kohm divider Thevenin it is 8.5 percent, four orders of magnitude worse, and CMRR is the whole reason the part was bought. Refer it to the input by dividing by the total gain. A second, independent reason to buffer: REF draws Iin = 7 uA typ, so an unbuffered divider also shifts its own pedestal by Iin*Rthevenin - 65 mV on that same 9.2 kohm. TI states the principle for the generic part: a voltage follower \"provides low output impedance, which preserves the high CMRR of the difference amplifier\".\n",
+   "sources": [
+    {
+     "file": "research/sources/2168367.pdf",
+     "page": 21,
+     "section": "AD8226 Rev. C, printed p.20 - REFERENCE TERMINAL + Figure 59",
+     "note": "Read on the page: \"For the best performance, source impedance to the REF terminal should be kept below 2 ohm\", the 50 kohm bridge-leg explanation, the expression 2(50 kohm + Rref)/(100 kohm + Rref) for the amplification of the positive input path, \"Only the positive signal path is amplified; the negative path is unaffected. This uneven amplification degrades CMRR\", and the 0.3 V REF abs-max note. Figure 59 \"Driving the Reference Pin\" is a two-panel drawing: the left panel, headed INCORRECT, shows a two-resistor divider wired straight to REF and is struck through with a large X; the right panel, headed CORRECT, shows the same divider buffered by an op amp (OP1177) driving REF.\n"
+    },
+    {
+     "file": "research/sources/2168367.pdf",
+     "page": 20,
+     "section": "AD8226 Rev. C, printed p.19 - Figure 58 Simplified Schematic",
+     "note": "Read Figure 58: the difference amplifier A3 is built from R3 to R6, all 50 kohm, and the REF pin is the far end of R6 - the drawing that makes the 50 kohm / 100 kohm arithmetic in the REFERENCE TERMINAL text concrete, and shows why series impedance at REF is a bridge imbalance rather than a simple offset.\n"
+    },
+    {
+     "file": "research/sources/2168367.pdf",
+     "page": 6,
+     "section": "AD8226 Rev. C, printed p.5 - Table 3, REFERENCE INPUT block",
+     "note": "Read in Table 3: REFERENCE INPUT Rin = 100 kohm typ, Iin = 7 uA typ, Voltage Range -Vs to +Vs, Reference Gain to Output 1 V/V, Reference Gain Error 0.01 percent. The 7 uA is the second reason a bare divider fails: it is a real DC load on whatever sets the pedestal.\n"
+    },
+    {
+     "file": "research/sources/slyt226.pdf",
+     "page": 2,
+     "section": "TI SLYT226, printed p.26 - buffered divider in the difference amplifier feedback, Figure 2",
+     "note": "Read on the page: \"Voltage follower A4 provides low output impedance, which preserves the high CMRR of the difference amplifier\", and Figure 2, in which any resistance added to the difference amplifier's feedback leg (Rext) is matched by the same resistance in the Vref leg - the cross-vendor statement that the reference leg is part of the matched network, not an independent input.\n"
+    }
+   ],
+   "origin": "research:block-inamp-1",
+   "level": "topology",
+   "maturity": "verified",
+   "envelope": {
+    "inamp_arch_kind": {
+     "in": [
+      "three-opamp"
+     ]
+    }
+   },
+   "_path": "research/records/inamp-ref-pin-drive-impedance.yaml",
+   "_workspace": true
+  },
+  {
+   "id": "inamp-supply-decoupling-and-local-ground",
+   "classes": [
+    "decoupling",
+    "return-path"
+   ],
+   "applies": {
+    "topologies": [
+     "inamp"
+    ],
+    "packages": [],
+    "interfaces": [],
+    "parts": []
+   },
+   "rule": {
+    "enforced_by": null,
+    "hf_cap_uf": 0.1,
+    "hf_placement": "as close as possible to EACH supply pin - both pins on a dual-supply part",
+    "bulk_cap_uf": 10,
+    "bulk_placement": "farther from the part; may be shared with other precision ICs on the same rail",
+    "supply_quality": "a stable dc voltage - noise on the supply pins degrades the measurement",
+    "ref_return": "tie REF to the appropriate local ground, because the output is developed with respect to REF",
+    "load_return": "the load returns to that same local ground"
+   },
+   "prose": "The in-amp's own local power and ground environment, as its vendor specifies it. Three parts, all from the AD8226 LAYOUT section and its Figure 61. (a) Supply quality is a measurement parameter, not a housekeeping detail: \"A stable dc voltage should be used to power the instrumentation amplifier. Note that noise on the supply pins can adversely affect performance.\" A precision in-amp converts supply noise into output error through its finite PSR, and PSR is specified per gain. (b) Decoupling is two-tier and the tiers are placed differently: \"A 0.1 uF capacitor should be placed as close as possible to each supply pin. As shown in Figure 61, a 10 uF tantalum capacitor can be used farther away from the part. In most cases, it can be shared by other precision integrated circuits.\" So the HF cap is per pin and local; the bulk cap is per rail and may be shared - a distinction that matters when a layout tries to save parts by sharing the wrong one. (c) The reference and the load must return to the part's own local ground. Figure 61 is titled \"Supply Decoupling, REF, and Output Referred to Local Ground\" and draws exactly that; the text adds \"The output voltage of the AD8226 is developed with respect to the potential on the reference terminal. Care should be taken to tie REF to the appropriate local ground.\" Any IR drop between the REF return and the load return appears at the output multiplied by one - it is not divided by the gain.\n",
+   "sources": [
+    {
+     "file": "research/sources/2168367.pdf",
+     "page": 22,
+     "section": "AD8226 Rev. C, printed p.21 - LAYOUT / Power Supplies, Figure 61, References",
+     "note": "Read on the page: the Power Supplies paragraph (\"A stable dc voltage should be used ... noise on the supply pins can adversely affect performance\" and \"A 0.1 uF capacitor should be placed as close as possible to each supply pin ... a 10 uF tantalum capacitor can be used farther away from the part. In most cases, it can be shared by other precision integrated circuits\"); Figure 61 \"Supply Decoupling, REF, and Output Referred to Local Ground\", which draws 0.1 uF and 10 uF on each of the +Vs and -Vs pins, REF tied to the local ground symbol, and the LOAD returned to that same local ground; and the References paragraph \"Care should be taken to tie REF to the appropriate local ground.\"\n"
+    }
+   ],
+   "origin": "research:block-inamp-1",
+   "level": "principle",
+   "maturity": "verified",
+   "envelope": null,
+   "_path": "research/records/inamp-supply-decoupling-and-local-ground.yaml",
+   "_workspace": true
+  }
+ ],
+ "workspace_records": [
+  "in-aggressor-separation",
+  "in-bias-current-return-path",
+  "in-bias-return-failure-signature",
+  "in-bias-return-path-required",
+  "in-bias-return-resistor-sizing-ad8226",
+  "in-bias-return-sizing",
+  "in-cable-shield-termination",
+  "in-constraints-emission",
+  "in-input-path-equivalence",
+  "in-leakage-symmetry-and-guarding",
+  "in-path-symmetry-sets-cmrr",
+  "in-terminal-selection",
+  "in-terminal-thermal-emf",
+  "inamp-cmrr-over-frequency-and-source-imbalance",
+  "inamp-gain-partition-first-stage",
+  "inamp-gain-pin-and-input-node-parasitics",
+  "inamp-headroom-escape-gain-in-difference-amp",
+  "inamp-input-network-differential-cap-dominance",
+  "inamp-internal-node-headroom-inequalities",
+  "inamp-internal-node-saturation",
+  "inamp-ref-pin-drive-impedance",
+  "inamp-supply-decoupling-and-local-ground"
+ ],
+ "prompt_block": "KNOWLEDGE RECORDS (deterministic retrieval; keys: {\"interfaces\": [\"in\"], \"topologies\": [\"inamp\"]}). Treat rules as constraints; cite the record id when you apply or overrule one; the tag is level/maturity (draft = unreviewed):\n- in-bias-return-failure-signature [return-path] (topology/verified, workspace)\n  The correction that matters for bring-up: the two symptoms in the literature contradict each other, so neither is a test. AN1298 p.14 gives the mechanism and one ending - \"Without a DC return path, the input bias current will accumulate on any stray capacitance on the inputs until they are clamped to the rails by the protection diodes. The output of the Instrumentation Amplifier will slowly increase or decrease until it saturates into the VS+ or VS- rail.\" The same vendor's in-amp sensor paper gives the other ending on its first page - \"A saturated input stage could appear normal to the processing circuitry, yet have disastrous consequences\" - because a three-op-amp in-amp with both input amplifiers pinned takes their DIFFERENCE, which can be small. The AD8226's own INPUT BIAS CURRENT RETURN PATH section states the requirement and draws Figure 62, and says nothing about what a missing path looks like. (The TI INA333 data sheet in this workspace's round-one ledger, not fetched into this one, describes the near-zero/appears-normal ending explicitly; treat that as unwitnessed here.) So: an output that looks sane is not evidence the return path exists, and neither is an output at a rail proof that it is missing. Probe the input pins, and watch them over minutes - the drift is a bias current charging stray capacitance, so it is slow.\n  rule: ad8226_says=the AD8226 data sheet states the REQUIREMENT and draws the fixes but prints no symptom at all - nothing in this ledger licenses 'the output parks at a rail' as the AD8226's signature bringup_test=measure the dc potential at each input pin against the amplifier's own ground reference instead: with a pnp input stage each input must sit at a defined level ABOVE the return node and stay there, not drift headline=a missing bias-current return path has NO reliable output symptom - do not diagnose it from the output pin mechanism=with no dc path the bias current accumulates on the stray capacitance at the inputs until the inputs are clamped to the rails by the protection diodes symptom_a=vendor-stated: the output then SLOWLY increases or decreases until it saturates into the VS+ or VS- rail - so the fault can pass a power-up check and appear minutes later symptom_b=vendor-stated, same vendor's sensor front-end paper: a saturated input stage 'could appear normal to the processing circuitry, yet have disastrous consequences'\n  source: research/sources/an1298-instrumentation-amplifier-application-note.pdf p.14 Renesas/Intersil AN1298 Rev 2.00, p.14 - DC return path paragraph; research/sources/how-monitor-sensor-health-instrumentation-amplifiers.pdf p.1 Renesas white paper, p.1 - Three Op Amp INA Basics; research/sources/2168367.pdf p.22 AD8226 Rev. C, printed p.21 - INPUT BIAS CURRENT RETURN PATH\n- in-bias-return-path-required [return-path] (topology/verified, workspace)\n  The AD8226's own LAYOUT page: \"The input bias current of the AD8226 must have a return path to ground. When the source, such as a thermocouple, cannot provide a return current path, one should be created, as shown in Figure 62.\" Figure 62 is a two-column INCORRECT/CORRECT grid of three source types, the INCORRECT panels struck through with a grey X. Row 1 TRANSFORMER: incorrect is a floating secondary into +IN/-IN; correct grounds the secondary centre tap. Row 2 THERMOCOUPLE: incorrect is the floating couple; correct hangs a single 10 Mohm resistor from the lower input line to ground. Row 3 CAPACITIVELY COUPLED: incorrect is a series C into each input and nothing else; correct adds a resistor R from each input to ground and annotates f_HIGH-PASS = 1/(2*pi*RC). REF ties to a ground symbol in all six panels. DIRECTION MATTERS AND IS VENDOR-STATED: Table 2's footnote 1 reads \"The input stage uses pnp transistors; therefore, input bias current always flows out of the part.\" The network sinks current to ground; it does not source it, and every input node it creates sits above the return node. A second vendor states the same requirement for its in-amps: bias current \"must find a DC path to their home (i.e., Ground)\", drawn as the same three fixes - a grounded transformer centre tap, a single 10k to ground for a thermocouple, 47k from each input to ground behind ac coupling. Those values belong to those figures and those parts, not to this one.\n  rule: direction=the AD8226 input stage is pnp, so input bias current ALWAYS FLOWS OUT OF THE PART; the return network must SINK that current, and the source node it lands on sits ABOVE the return node by I*R, never below legal_forms=vendor-drawn only: (a) transformer secondary centre tap to ground; (b) ONE resistor from one input to ground; (c) one resistor per input to ground behind ac-coupling caps, which also sets f_highpass = 1/(2*pi*R*C) requirement=both inputs need a dc path to the amplifier's own ground reference - the AD8226 data sheet states it as a must, not a recommendation sizing=see in-bias-return-resistor-sizing-ad8226 - the resistor values printed in these figures belong to the figures, not to this board when_created=the vendor's own conditional: a path must be CREATED only when the source cannot provide one (thermocouple, transformer secondary, ac-coupled source, floating sensor); a source that already returns to the amplifier's ground supplies it - which the designer must confirm, not assume\n  source: research/sources/2168367.pdf p.22 AD8226 Rev. C, printed p.21 - INPUT BIAS CURRENT RETURN PATH + Figure 62; research/sources/2168367.pdf p.5 AD8226 Rev. C, printed p.4 - Table 2 footnote 1, INPUT block; research/sources/an1298-instrumentation-amplifier-application-note.pdf p.14 Renesas/Intersil AN1298 Rev 2.00, p.14 - DC return path, Figures 28-31\n- in-bias-return-resistor-sizing-ad8226 [return-path] (part/verified, workspace)\n  Sizing a created bias-return network for THIS part, from its own Table 3. The vendor prints only two example values (10 Mohm for a thermocouple, an unlabelled R pair behind ac-coupling caps), so the numbers below are arithmetic on the datasheet's currents, not vendor text, and are marked as such in `rule`. Three facts drive it: bias current is 27 nA max at +25 C and 35 nA max at -40 C (not picoamps), offset current is 1 nA max, and the current flows OUT of the part, so every return element sits under a positive drop. A single resistor carries both bias currents (~2*Ib*R, common mode) but forces the far input's bias current back through the source, which on a 350 ohm source is ~10 uV of DIFFERENTIAL error - the balanced pair avoids that because each input returns through its own resistor and only Ios crosses the source. The pair's price is the opposite one: its differential error Ios*R + Ib*R*mismatch caps R near 3.7 kohm for a 5 uV budget, and a pair that small loads a 350 ohm source by ~4.5 pct. Both prices are paid only when the source cannot return the current itself; when it can, the vendor creates no network at all.\n  rule: do_not_transplant=the 47k/10k figures printed in CMOS-input in-amp app notes are sized for ~70 pA inputs; on this 20-35 nA part a 47 kohm pair is ~47 uV from offset current plus ~16 uV from 1 pct mismatch, roughly 60 uV differential against a 5 uV budget, on top of ~1.6 mV of common-mode drop per input single_resistor_drop=ARITHMETIC from those numbers: one resistor carries BOTH inputs' bias currents, so its node sits ~2*Ib*R above the return node - the vendor's own 10 Mohm thermocouple value gives ~0.54 V at +25 C max and ~0.70 V at -40 C max, common-mode, spent out of the input voltage range single_resistor_hidden_cost=ARITHMETIC: with the resistor on one input only, the OTHER input's bias current returns through the source itself, so it develops Ib*Rsource DIFFERENTIALLY - on this slot's 350 ohm source that is 9.5 uV at +25 C max and 12.3 uV at -40 C max, already past a 5 uV RTI budget two_resistor_cap=a 5 uV RTI budget therefore caps a bias-return PAIR at about 3.7 kohm on this part - and 3.7 kohm resistors load a 350 ohm differential source with 2R = 7.4 kohm, about 4.5 pct of signal loss (a gain error, calibratable, unlike the drifting offset term) two_resistor_error=ARITHMETIC: with one resistor per input each bias current returns through its own resistor, so the differential term is Ios*R + Ib*R*mismatch; at Ios 1 nA, Ib 35 nA and 1 pct mismatch that is 1.35 nA * R vendor_ib_na=AD8226 Table 3 (+2.7 V single supply, ARZ/ARMZ and BRZ/BRMZ alike): input bias current 5 min / 20 typ / 27 max at +25 C, 5 / 15 / 25 at +125 C, 5 / 30 / 35 at -40 C; average TC 70 pA/degC vendor_ios_na=input offset current max 1.0 nA at +25 C and at -40 C, 1.5 nA at +125 C (ARZ/ARMZ); 0.5 / 0.1 / 0.5 nA (BRZ/BRMZ); average TC 5 pA/degC\n  source: research/sources/2168367.pdf p.6 AD8226 Rev. C, printed p.5 - Table 3 (+Vs = 2.7 V single supply), INPUT CURRENT block; research/sources/2168367.pdf p.5 AD8226 Rev. C, printed p.4 - Table 2 footnote 1; research/sources/2168367.pdf p.22 AD8226 Rev. C, printed p.21 - Figure 62, CORRECT column\n- in-cable-shield-termination [emi] (topology/verified, workspace)\n  What the ledger actually witnesses about the screen. A vendor sensor front-end paper, drawn around a 350 ohm foil strain gauge bridge feeding a single-supply in-amp - this slot's operating point - says: \"Shielded cables offer excellent rejection of noise coupling into signal lines. However, cable impedance mismatch can result in a common mode error into the amplifier. Driving the cable shield to a low impedance potential reduces the impedance mismatch.\" It then breaks the reflex: the screen is usually tied to chassis ground because that is an excellent low-impedance point, which \"works great for dual supply applications\", but on a single supply 0 V is the amplifier's lower rail, and \"tying the shield at common mode voltage of mid supply results in the operation of the amplifier with the best CMR performance\". Its Figure 6 draws the strong form: the screen lands at the amplifier end on a common-mode driver - the two buffered input nodes summed 10 k/10 k into a unity-gain buffer, then 100 ohm in series into the shield. The coupling path is the two conductors' capacitance to that screen - which is why this belongs with the equal-path rule for the pair, and why a screen left floating or landed through a long high-impedance tail is worse than one landed on a defined node. The near/far end question this record does not answer.\n  rule: active_form=the stronger form is a driven shield: buffer the input common-mode potential and drive the screen with it - 'Driving the shield to the input common mode voltage reduces cable impedance mismatch and improves CMR performance in single supply sensor applications' active_form_as_drawn=in the vendor's schematic the screen lands at the AMPLIFIER end, on the output of a common-mode driver: the two buffered input-stage nodes are summed by a 10 kohm / 10 kohm divider into a unity-gain op amp, whose output reaches the shield through a 100 ohm series resistor (isolation from the cable's capacitance) ad8226_caveat=the CMR-degrades-at-0 V half is that vendor's claim about its own rail-to-rail parts; the AD8226 specifies CMRR over VCM = 0 V to 1.7 V on a 2.7 V single supply (Table 3), so it does not transfer unexamined - what transfers is: one low-impedance node, at the inputs' common-mode potential, and mismatch shows up as common-mode error not_witnessed_here=only the DRIVEN case's end is witnessed (the amplifier end, in the figure). Whether a passive screen lands near or far, and the current a screen grounded at BOTH ends can inject, are NOT witnessed by any page in this ledger - do not read this record as licensing either answer shield_is_a_circuit_node=a sensor cable's screen is not a mechanical detail: the vendor states that cable impedance MISMATCH turns into a common-mode error at the amplifier, and that driving the shield to a LOW IMPEDANCE potential is what reduces the mismatch which_node_dual_supply=with dual supplies analog ground IS mid-supply, which is why the usual chassis/0 V habit works there - the habit, not the reason, is what fails on a single rail which_node_single_supply=for a single-supply front end do NOT reflexively land the screen on 0 V: at 0 V the shield sits at the amplifier's lower supply rail, 'which is typically a common mode voltage where the same CMR performance degrades'; the vendor's rule is to tie the shield at the common-mode voltage of mid supply\n  source: research/sources/how-monitor-sensor-health-instrumentation-amplifiers.pdf p.6 Renesas white paper p.6 - Active Shield Guard Drive + Figure 5; research/sources/how-monitor-sensor-health-instrumentation-amplifiers.pdf p.7 Renesas white paper p.7 - shield guard drive, Figure 6; research/sources/2168367.pdf p.6 AD8226 Rev. C, printed p.5 - Table 3, CMRR conditions\n- in-constraints-emission [constraints-emission] (principle/verified, workspace)\n  What this interface has to hand the rest of the pipeline. Two of the emissions are direct vendor consequences. The AD8226's layout page puts additional input-path series resistance \"close to the in-amp inputs, which minimizes their interaction with parasitic capacitance from the PCB traces\" - that is a placement GROUP anchored on the input pins, whose members are the terminal, both legs' series parts and any created bias-return resistors; the annealer will not discover it. The same page says the two paths' \"input source impedance and capacitance ... should be closely matched\", which is a route rule of EQUALITY between two nets - same length, width, via count, neighbourhood - and explicitly not a controlled-impedance rule; emitting gap, skew or uncoupled-length dims here types the slot wrong and lets a designer satisfy the constraint while destroying the measurement. The third emission is the screen: the sensor front-end paper treats it as a driven circuit node with a chosen potential, so it must enter the netlist and BOM with its landing node declared, not be left to assembly. And when the source cannot return the amplifier's bias current, the network that returns it is schematic content with BOM lines, inside the same group.\n  rule: do_not_emit=no impedance_ohm, gap_mm, max_skew_mm or max_uncoupled_mm for this pair: at a kilohertz signal into a 0.4 Gohm||2 pF input nothing here is set by characteristic impedance or propagation delay, and a designer who satisfies those dims has satisfied nothing that matters operating_point_dims=the dims this slot's records are bounded on and that constraints must therefore carry: rsource_ohm, vcm_v, err_rti_mv, ibias_ua, mismatch_pct, dt_c, f_signal_hz pair_rule_is_equality=emit the two input nets as an EQUALITY constraint - equal length, width, via count and reference neighbourhood, i.e. equal capacitance per path - since the vendor's rule is that the two paths' source impedance and capacitance match, and the failure is a frequency-response difference between them placement_group=one group anchored on the amplifier's INPUT PINS, not on the connector: the input terminal, both legs' series elements and the created bias-return resistors are members, because the vendor puts any additional input-path series resistance 'close to the in-amp inputs' to keep it out of the traces' parasitic capacitance return_network_is_schematic=when the source cannot return bias current, the created return network is schematic content: it must exist in parts/BOM before placement and its resistors sit inside the input group shield_is_a_net=if the sensor cable is screened, the screen is a net with a DECLARED landing node (0 V, mid-supply, or a driven common-mode buffer) - it must appear in the netlist and the BOM, not in the mechanical notes\n  source: research/sources/2168367.pdf p.22 AD8226 Rev. C, printed p.21 - LAYOUT / CMRR Over Frequency + INPUT BIAS CURRENT RETURN PATH; research/sources/how-monitor-sensor-health-instrumentation-amplifiers.pdf p.6 Renesas white paper p.6 - Active Shield Guard Drive\n- in-input-path-equivalence [diff-pair] (topology/verified, workspace)\n  The vendor's own frame for the connector-to-pin run: what converts common mode into differential BEFORE the amplifier is a difference in FREQUENCY RESPONSE between the two paths, and the fix is equality of source impedance and capacitance per path. That makes this a matched-RC rule, not a matched-length transmission rule. The dc half costs nothing here because the inputs are 0.8 Gohm||2 pF differential (0.4 Gohm||2 pF common mode) - series resistance mismatch in copper draws no meaningful current. The ac half is real: taking the vendor sentence literally and doing the arithmetic, one picofarad of extra capacitance on one leg against a 350 ohm source is about -119 dB of common-mode-to-differential conversion at 1 kHz and -105 dB at 5 kHz, against a part specified at 90 dB (G=100) at 5 kHz. So a picofarad or two of asymmetry is affordable and ten is not - and the asymmetry to hunt is capacitance to the reference copper: a longer leg, an extra via, a different neighbour, a stub to a test point on one side only. The vendor adds the placement half explicitly: any series element in the input path sits close to the in-amp inputs so it interacts as little as possible with the traces' parasitic capacitance - both legs, same position.\n  rule: budget=the part's own CMRR is 86 dB min (G=1) / 120 dB (G=100) from dc to 60 Hz and 80 dB (G=1) / 90 dB (G=100) at 5 kHz, so single-digit pF of path mismatch stays under the part; about 10 pF of mismatch (a stub, an unmatched via, a connector pole with a different neighbour) reaches -85 dB at 5 kHz and becomes the dominant term conversion_gain=ARITHMETIC (not vendor text): unequal shunt capacitance dC across a source of resistance Rsource converts common mode to differential with gain ~ 2*pi*f*(Rsource/2)*dC; at this slot's 350 ohm that is 1.1 ppm (-119 dB) per pF at 1 kHz and 5.5 ppm (-105 dB) per pF at 5 kHz, rising 20 dB/decade not_this=this is NOT the four-resistor difference-amplifier law CMRR=(G+1)/(4t) - there is no gain-setting resistor network in a trace pair feeding a 0.4 Gohm input - and NOT a controlled-impedance, gap or skew rule: at 1 kHz nothing here is set by characteristic impedance or propagation delay vendor_placement=AD8226 LAYOUT: 'Additional source resistance in the input path (for example, for input protection) should be placed close to the in-amp inputs, which minimizes their interaction with parasitic capacitance from the PCB traces' - so a series element belongs at the PIN end of the run, on both sides, not at the connector vendor_rule=AD8226 LAYOUT: 'Poor layout can cause some of the common-mode signals to be converted to differential signals before reaching the in-amp. Such conversions occur when one input path has a frequency response that is different from the other. To keep CMRR across frequency high, the input source impedance and capacitance of each path should be closely matched.' what_must_match=frequency response, i.e. an RC per path: equal trace length, width, via count and reference neighbourhood (equal capacitance to the reference copper), and identical series elements on both legs why_not_dc_resistance=the AD8226 input impedance is 0.8 Gohm||2 pF differential and 0.4 Gohm||2 pF common mode, so a few ohms of series mismatch draws no current worth counting at dc; the pins' own 2 pF is the scale against which trace capacitance mismatch is judged\n  source: research/sources/2168367.pdf p.22 AD8226 Rev. C, printed p.21 - LAYOUT / Common-Mode Rejection Ratio Over Frequency, first paragraph; research/sources/2168367.pdf p.5 AD8226 Rev. C, printed p.4 - INPUT block of the dual-supply table; research/sources/2168367.pdf p.6 AD8226 Rev. C, printed p.5 - Table 3, COMMON-MODE REJECTION RATIO block\n- in-terminal-selection [selection] (family/verified, workspace)\n  The terminal is where the two input conductors become PCB metal, so what matters in the datasheet is the material table, not the current rating. Read off the 3.50 mm WR-TBL order code: insulator PA66 (UL94 V-0), Contact Material Phosphor Bronze, Contact Plating Tin over Nickel, Cage Material Brass, operating -40 to +105 C, contact resistance 20 mohm max, wire 26-16 AWG solid or stranded (0.129-1.31 mm2), strip 6-7 mm, torque 0.25 N*m, and this order code carries 3 pins at 3.5 mm pitch with 7 mm end-pole to end-pole. Two consequences for a microvolt input. First, every pole of one body is the same stack, so choosing a single 3-pole part and using adjacent poles for +IN and -IN makes the two thermal junctions identical by construction - the thermal-EMF record on this slot then only needs them to be at the same temperature. Two separate single-pole terminals, or a screw terminal on one input and a header on the other, forfeits that for nothing. Second, the third pole is not spare: it is where a ground-referenced source's return conductor or a cable screen lands, so pole count is decided by the return-path and shield records, not by the signal count. The 20 mohm contact resistance is 57 ppm of a 350 ohm source - invisible here, and the reason this class of terminal suits a bridge but not a milliohm shunt.\n  rule: contact_resistance=20 mohm max per pole (cULus and VDE): 57 ppm of this slot's 350 ohm source, i.e. not a term in the error budget here - but it is the floor that decides where this class of terminal stops suiting a low-impedance source metallurgy_witnessed=the junction stack at a WR-TBL 3611 pole, vendor-stated: copper wire clamped by a BRASS cage against a PHOSPHOR BRONZE contact plated TIN OVER NICKEL, insulator PA66 UL94 V-0 - every pole in the body identical one_body_for_the_pair=pick ONE multi-pole terminal for the whole input, not two single-pole parts: both signal poles are then the same moulding, the same contact metal and the same plating lot, which is the condition the thermal-EMF rule on this slot needs (identical junctions on both inputs, so their Seebeck voltages cancel when the two poles sit at the same temperature) pitch_note=3.5 mm pitch, first pole 1.75 mm from the end; this slot's declared term_pair_mm of 2.5 mm is BELOW that pitch, so either the dim or the connector class has to move pole_count=pole count follows the return-path decision, not the signal count: a source that brings its own dc return, or a screen that must land, needs a conductor of its own - the 3.50 mm order code read here is a 3-pole part (Pl 7 mm, L 10.5 mm), so the 2-signal + 1-return form exists at this pitch ratings_are_not_the_driver=10 A / 300 V AC working / 1600 V (cULus) withstanding, -40 to +105 C: for a microvolt sensor input the binding selection parameters are metallurgy, pole count and wire window, not current or voltage headroom wire_window=26 to 16 AWG solid or stranded (0.129 to 1.31 mm2), strip length 6 to 7 mm, tightening torque 0.25 N*m - the sensor cable must fall inside this window or the clamp is not the specified joint\n  source: research/sources/691361100003.pdf p.2 WR-TBL Series 3611 - 3.50 mm, order code 691361100003, p.2 - Kind/Material/Electrical/Mechanical/Wire Properties; research/sources/691361100003.pdf p.1 same datasheet p.1 - dimension drawings + Article Properties\n- in-terminal-thermal-emf [thermal] (topology/verified, workspace)\n  At a microvolt-class error budget the connector is a thermocouple. Every junction in the input path - wire to screw clamp, clamp to pad, solder to copper, via, resistor end cap - generates a Seebeck voltage, and PCB junctions are \"typically, but not always, below +-100 uV/degC\". What matters is the GRADIENT, not the temperature: the constant-temperature figure I read shows the four junctions of an SMD resistor at +125 degC summing to exactly zero, with the vendor's own note that \"when temperature is constant along the direction of current flow, the net change in thermoelectric voltage between two conductors of the same material is zero\". The axial-gradient figure gives the price of breaking that: 10 degC/inch, i.e. 1.2 degC across a 1206, produces -38 uV. The cure is symmetry, not exotic metal: \"the inputs to an op amp should connect to the same materials\", critical parts are oriented along constant-temperature contour lines, and in the vendor's own sensor board the input resistor pair is \"arranged so that their thermoelectric voltages cancel\" while copper fill tied to the ground plane \"minimizes thermal gradients at the cold junction connector\". So: the two input poles adjacent and identically built, copper poured around them, nothing that dissipates nearby, and no socket in the input path.\n  rule: contact_potential=a forced dissimilar-metal contact (socket) measured +-1 to +-2 uV on the vendor's bench - solder critical nodes, do not socket them mechanism=every dissimilar-metal junction in the input path is a thermocouple; Seebeck coefficients of junctions found on a PCB are typically below +-100 uV/degC mitigation=place the two input junctions adjacent and identically built so their EMFs cancel differentially; same metallurgy on both inputs; small parts spaced close together; align parts along constant-temperature contours; flood copper at the terminal; keep dissipating parts away scales_with=the temperature DIFFERENCE between the two input junctions - shifting every junction equally changes nothing worked_case=a 10 degC/inch axial gradient across a 1206 resistor (1.2 degC end to end) develops -38 uV\n  source: research/sources/01258b.pdf p.2 Seebeck Voltage, Equation 1, Figure 2/3, Table 1; research/sources/01258b.pdf p.3 Temperature Change in the Axial Direction, Figure 4; research/sources/01258b.pdf p.4 Curing Thermoelectric Voltage Effects - Metallurgy, Contour Lines; research/sources/01258b.pdf p.16 Other Tips - Contact Potential; research/sources/01258b.pdf p.17 Design Example - PCB Layout, Figure 38/39 callouts 2/3a/4\n- inamp-cmrr-over-frequency-and-source-imbalance [diff-pair] (topology/verified, workspace)\n  CMRR is not the DC number in the specification table; it is a curve, and the copper's job is to not spend it. Two AD8226 curves make the point, both plotted 0.1 Hz to 100 kHz, both at Vs = +/-15 V, 25 C, RL = 10 kohm. Figure 27, balanced sources: CMRR is flat at about 96, 117, 133 and 144 dB for G = 1, 10, 100 and 1000, holds that plateau only out to somewhere between 50 Hz (G = 1000) and 400 Hz (G = 1), then falls about 20 dB per decade to roughly 56, 68, 84 and 105 dB at 100 kHz; a dashed BANDWIDTH LIMITED ellipse marks where the two high-gain curves flatten above about 30 kHz. Figure 28 repeats the same measurement with a 1 kohm SOURCE IMBALANCE and the family collapses: about 96, 102, 106 and 108 dB at low frequency, and above about 1 kHz the G = 1, 10 and 100 curves lie on ONE roll-off, reaching about 55, 55 and 68 dB at 100 kHz. Read the pair together and the rule falls out: GAIN BUYS CMRR ONLY WHILE THE TWO PATHS MATCH. Balanced, low-frequency CMRR spans about 48 dB from G = 1 to G = 1000; with 1 kohm of imbalance it spans about 12 dB. The imbalance costs about 0 dB at G = 1, 15 dB at G = 10, 27 dB at G = 100 at low frequency, and 16 to 17 dB at 1 kHz for G = 10 to 1000. Budget at the top of the band and at the real imbalance. The numeric CMRR rows stop at 5 kHz in BOTH Table 2 and Table 3; the curves do not. Table 2 is the +/-15 V table matching the figures and its minimums equal Table 3's, so the curves read against it directly - at 5 kHz they sit 4-5 dB over.\n  rule: budget_cmrr_at=the top of the signal band and the real source imbalance - never the DC-to-60-Hz table row cmrr_db_at_1khz_1kohm_imbalance_g10_g100_g1000=92.3 / 93.3 / 94.3 cmrr_db_at_1khz_balanced_g10_g100_g1000=109.4 / 109.2 / 110.6 curve_vs_table2_min_at_5khz=measured 83.9/94.4/95.3/104.5 dB against minimums 80/90/90/100 dB - typ sits 4 to 5 dB over min, as it should derived_not_quoted=every dB value is measured off the Figure 27/28 curves by pixel-mapping them against the printed axis gridlines (not eyeballed), good to about +/-1 dB; where two curves overlap the value is bracketed from the neighbouring columns instead. The data sheet prints no numeric table for these curves fig27_cmrr_db_lf_g1=96 fig27_cmrr_db_lf_g10=117 fig27_cmrr_db_lf_g100=133 fig27_cmrr_db_lf_g1000=144 fig27_fig28_conditions=T = 25 C, Vs = +/-15 V, RL = 10 kohm (TPC header, printed p.9) fig28_cmrr_db_lf_g1=96 fig28_cmrr_db_lf_g10=102 fig28_cmrr_db_lf_g100=106 fig28_cmrr_db_lf_g1000=108 fig28_imbalance_ohm=1000 gain_buys_cmrr_only_when_matched=balanced, LF CMRR spans about 48 dB from G=1 to G=1000; with 1 kohm imbalance it spans about 12 dB imbalance_penalty_db_at_1khz_g10_to_g1000=16 to 17 (17.1 at G=10, 15.9 at G=100, 16.3 at G=1000) imbalance_penalty_db_lf_g10=15 imbalance_penalty_db_lf_g100=27 scope=device side - the connector, cable and trace-symmetry half belongs to the input-interface slot spec_table_last_cmrr_hz=5000 table2_is_the_matching_15v_table=Table 2 (printed p.3) is taken at +/-15 V like the figures and carries the SAME minimums as Table 3, so the curves may be read against Table 2 directly vendor_curve_last_hz=100000\n  source: research/sources/2168367.pdf p.14 AD8226 Rev. C, printed p.13 - Figure 27 and Figure 28; research/sources/2168367.pdf p.10 AD8226 Rev. C, printed p.9 - TYPICAL PERFORMANCE CHARACTERISTICS header; research/sources/2168367.pdf p.4 AD8226 Rev. C, printed p.3 - Table 2, COMMON-MODE REJECTION RATIO block; research/sources/2168367.pdf p.6 AD8226 Rev. C, printed p.5 - Table 3, COMMON-MODE REJECTION RATIO block; research/sources/2168367.pdf p.22 AD8226 Rev. C, printed p.21 - Common-Mode Rejection Ratio Over Frequency\n- inamp-gain-partition-first-stage [selection] (topology/verified, workspace)\n  How much gain belongs in the first stage, and why. Both vendor error laws are printed as conditions in the AD8226 spec table: total offset Vos = Vosi + (Voso/G) and total noise eN = sqrt(eNi^2 + (eNo/G)^2). Everything the in-amp contributes after its input stage - and everything a later stage contributes - is divided by the FIRST stage's gain when referred to the input. The crossover is the ratio of the part's own output-referred to input-referred term: for the AD8226 that is 10 / 2 uV/degC of drift and 120 / 22 nV/rtHz of noise, i.e. G1 near 5. Below G1 = 5 the output-referred terms dominate the budget; above it they fall as 1/G1 and become a rounding error (at G1 = 40 the output drift term is about 11 percent of the total). The counter-pressure is the internal-node ceiling (inamp-internal-node-headroom-inequalities), which caps G1 from above. TI writes the ceiling as G1_max = 2*(V_SAT - Vcm)/Vd and prescribes the order explicitly: \"Limit the input gain, G1, to avoid saturation of A1 and A2 ... apply high gain in the output stage\". So the partition is not a preference: set G1 at the ceiling minus margin, put the rest later. A later gain stage is cheap in precision terms and its bandwidth is what it costs. Note also that an external gain resistor's tolerance and drift add to the in-amp's own gain accuracy, so a bigger G1 does not buy gain ACCURACY - only offset and noise.\n  rule: ad8226_eni_nv_rthz_typ=22 ad8226_eno_nv_rthz_typ=120 ad8226_vosi_tc_uv_per_c_max_a_grade=2 ad8226_voso_tc_uv_per_c_max_a_grade=10 crossover_gain=G1 = Voso/Vosi (drift) or eNo/eNi (noise) - about 5 for the AD8226 external_rg=the gain resistor's tolerance and drift add to the in-amp's own gain accuracy later_stage_cost=a later stage's own offset, drift and noise divide by G1 when referred to the input noise_law=eN_total_RTI = sqrt(eNi^2 + (eNo/G1)^2) offset_law=Vos_total_RTI = Vosi + Voso/G1 partition_rule=raise the FIRST stage's gain to whatever the internal-node ceiling allows, then take the remainder in a later stage ti_first_stage_ceiling=G1_max = 2*(V_SAT - Vcm)/Vd\n  source: research/sources/2168367.pdf p.6 AD8226 Rev. C, printed p.5 - Table 3 (single supply +Vs = 2.7 V), NOISE and VOLTAGE OFFSET blocks; research/sources/slyt226.pdf p.3 TI SLYT226, printed p.27 - worked partition of a high-gain front end; research/sources/slyt226.pdf p.4 TI SLYT226, printed p.28 - Figure 4 external gain stage, benefits list, Figure 5 single-supply front end\n- inamp-headroom-escape-gain-in-difference-amp [selection] (topology/verified, workspace)\n  When the internal-node ceiling caps the in-amp's own gain below what the chain needs, the gain has to go somewhere else. Three escapes, all vendor-stated. (1) Move it downstream. ADI: \"apply less gain with the AD8226, and then apply additional gain later in the signal chain.\" (2) Use a part whose difference amplifier already has gain. ADI names it in the next sentence - \"Another option is to use the pin-compatible AD8227\" - and its gain section adds that the AD8227 \"has a default gain of 5 that is set with internal resistors ... the gain drift is extremely low (<5 ppm/degC maximum)\". DERIVED, not quoted: an in-amp's MINIMUM gain is its difference-amp gain (AD8226 Figure 58 shows four equal 50 kohm resistors, G2 = 1, and G = 1 + 49.4k/Rg bottoms out at 1), so a minimum gain of 5 means G2 = 5 and, at the same total gain, one fifth of the gained differential swing at the internal nodes. The AD8227's own Table-8 equivalents and bandwidth-at-gain were NOT read here. (3) Raise G2 on the part you have. TI gives the law: preserving Gtot while reducing G1 to G1' \"requires an increase in difference amplifier gain from G2 = 1 to G2' = Gtot/G1'\", and the recovered range is Vcm' = Vcm + (Vd/2)*G1'*(G2' - 1). Implemented with a Vsense-pin difference amp (Rext matched into the feedback AND the Vref leg) or a buffered divider in A3's feedback.\n  rule: ad8227_gain_drift_ppm_per_c_max=5 ad8227_min_gain_internal=5 cost=bandwidth - the in-amp's -3 dB falls with G1 and the later stage's with its own gain derived_not_quoted=an in-amp's MINIMUM gain is its difference-amp gain, so min gain 5 implies G2 = 5 escape_1=apply less gain in the in-amp and take the rest later in the signal chain escape_2=use an in-amp whose difference amplifier already has gain (ADI names the pin-compatible AD8227) escape_3=raise the difference amplifier's own gain: G2' = Gtot/G1' escape_3_implementation=a difference amp with a Vsense pin (Rext matched into the feedback AND the Vref leg) or a buffered divider in A3's feedback internal_node_scaling=at a fixed total gain the gained differential swing at the internal nodes is proportional to Gtot/G2 open=AD8227 input-range constants and bandwidth-at-gain NOT read; its data sheet was not acquirable in this pass recovered_cm_range=Vcm' = Vcm + (Vd/2)*G1'*(G2' - 1)\n  source: research/sources/2168367.pdf p.21 AD8226 Rev. C, printed p.20 - Recommendation for Best Performance; research/sources/2168367.pdf p.20 AD8226 Rev. C, printed p.19 - GAIN SELECTION + Figure 58; research/sources/slyt226.pdf p.2 TI SLYT226, printed p.26 - Extending the input common-mode voltage range, Equation 7, Figure 2\n- inamp-input-network-differential-cap-dominance [diff-pair] (principle/verified, workspace)\n  An in-amp input network is deliberately ASYMMETRIC in its capacitors, and that asymmetry is the whole trick. ADI's Figure 63 (RFI Suppression) puts R = 4.02 kohm in each input leg, CC = 1 nF from each leg to ground, and CD = 10 nF bridging the two legs, with the printed relations FilterFrequency_DIFF = 1/(2*pi*R*(2*CD + CC)) and FilterFrequency_CM = 1/(2*pi*R*CC), where CD >= 10 CC. Those values put the common-mode pole at 39.6 kHz and the differential pole at 1.9 kHz, about 21x lower (derived). The reason is stated plainly: \"Mismatch between the R x CC at the positive input and the R x CC at the negative input degrades the CMRR of the AD8226. By using a value of CD that is one magnitude larger than CC, the effect of the mismatch is reduced and performance is improved.\" Two ordinary-tolerance 1 nF parts cannot be matched; one CD ten times larger sets the differential response instead. Placement rides along: series R in an input path \"should be placed close to the in-amp inputs, which minimizes their interaction with parasitic capacitance from the PCB traces\". The STRAY case is the same law with CD = 0: nothing is fitted, CC is whatever each trace, pad and pin field presents to ground, and nothing swamps its mismatch - so only geometry defends CMRR: equal length, mirrored neighbours, equal clearance to ground copper on both layers. SCOPE: this board fits no input R/C network. That is a block-only scope exclusion for this run, NOT a finding that the network is unnecessary.\n  rule: derived_not_quoted=the two pole frequencies and their 21x ratio are computed from the printed equations and the printed Figure 63 component values; ADI prints the equations and the values but not the resulting frequencies f_cm_equation=FilterFrequency_CM = 1 / (2*pi*R*CC) f_diff_equation=FilterFrequency_DIFF = 1 / (2*pi*R*(2*CD + CC)) fig63_cc_nf=1 fig63_cd_nf=10 fig63_f_cm_khz_derived=39.6 fig63_f_diff_khz_derived=1.89 fig63_pole_ratio_derived=21 fig63_r_ohm=4020 scope=device side - the connector, cable and shield half belongs to the input-interface slot series_r_placement=any series resistance in an input path belongs close to the in-amp input pins, which minimises its interaction with PCB trace parasitic capacitance sizing_rule=CD >= 10 * CC - the differential capacitor must dominate the two common-mode capacitors stray_case=with no network fitted CD = 0 and CC is whatever each trace, pad and pin field presents to ground; nothing swamps the mismatch, so only geometric symmetry defends CMRR why=the two CC cannot be matched, and it is their MISMATCH that converts common mode to differential; a CD an order larger sets the differential response instead\n  source: research/sources/2168367.pdf p.23 AD8226 Rev. C, printed p.22 - RADIO FREQUENCY INTERFERENCE (RFI) and Figure 63; research/sources/2168367.pdf p.22 AD8226 Rev. C, printed p.21 - Common-Mode Rejection Ratio Over Frequency\n- inamp-internal-node-headroom-inequalities [selection] (topology/verified, workspace)\n  The closed-form test for the internal-node limit. ADI publishes it as three inequalities with tabulated constants (AD8226 Rev. C p.20, Equation 1 to 3 and Table 8; the constants are in `rule`). Cold is the worst case against the positive rail, hot the worst case near the negative rail: \"the common-mode input range shifts upward with temperature.\" Because Vdiff*G = Vout - Vref, Equation 2 can be read as Vcm + |Vout - Vref|/2 < +Vs - V_PLUS_LIMIT: a boundary in (Vout, Vcm) that barely moves with gain. That is why the published diamond plots at G = 1 (Figure 9) and G = 100 (Figure 12), both at Vs = +2.7 V, are nearly the same hexagon. The equations reproduce the figure's own annotations: Figure 12 marks a vertex at Vout = +0.02 V, Vcm = +2.0 V, and Equation 2 gives Vcm < 1.99 V there; it marks Vout = +2.4 V at Vcm = +0.8 V, and Equation 2 gives 2.40 V. The model is validated before it is used. Design consequence: on a low single supply the binding quantity is the GAINED differential swing the in-amp may produce, |Vout - Vref| < 2*(Vs - V_PLUS_LIMIT - Vcm), not the gain by itself. At a fixed full-scale Vdiff this caps the in-amp's own gain; above that cap the gain must move to a later stage. ADI: design with \"a few hundred millivolts extra margin ... internal transistors begin to saturate, which can affect frequency and linearity performance.\"\n  rule: constants_are=per part - these are the AD8226's Table 8; another in-amp has its own design_margin=a few hundred millivolts beyond the inequality eq1_lower_node=Vcm - |Vdiff*G/2| > -Vs + V_MINUS_LIMIT eq2_upper_node=Vcm + |Vdiff*G/2| < +Vs - V_PLUS_LIMIT eq3_ref_node=(Vdiff*G/2 + Vcm + Vref)/2 < +Vs - V_REF_LIMIT max_gained_swing=|Vout - Vref| < 2*(Vs - V_PLUS_LIMIT - Vcm) output_form_of_eq2=Vdiff*G = Vout - Vref, so eq2 reads Vcm + |Vout - Vref|/2 < +Vs - V_PLUS_LIMIT v_minus_limit_v_at_125c=-0.05 v_minus_limit_v_at_25c=-0.35 v_minus_limit_v_at_85c=-0.15 v_minus_limit_v_at_minus40c=-0.55 v_plus_limit_v_at_125c=0.6 v_plus_limit_v_at_25c=0.7 v_plus_limit_v_at_85c=0.65 v_plus_limit_v_at_minus40c=0.8 v_ref_limit_v_at_125c=0.9 v_ref_limit_v_at_25c=1.15 v_ref_limit_v_at_85c=1.05 v_ref_limit_v_at_minus40c=1.3 worst_corner_negative_rail=hot - inputs near -Vs are worst at +125 C worst_corner_positive_rail=cold - the part needs the most headroom from +Vs at -40 C\n  source: research/sources/2168367.pdf p.21 AD8226 Rev. C, printed p.20 - INPUT VOLTAGE RANGE, Equation 1-3, Table 8, Performance Across Temperature; research/sources/2168367.pdf p.11 AD8226 Rev. C, printed p.10 - Figures 9 to 14, Input Common-Mode Voltage vs. Output Voltage; research/sources/2168367.pdf p.20 AD8226 Rev. C, printed p.19 - THEORY OF OPERATION, Figure 58 Simplified Schematic\n- inamp-internal-node-saturation [selection] (principle/verified, workspace)\n  A classic in-amp amplifies BEFORE it subtracts: the first stage applies the differential gain, the second stage removes the common mode. So the nodes between the two stages carry a gained differential signal riding on the full, ungained common-mode voltage, shifted by a base-emitter drop. ADI states it directly: those nodes \"experience a combination of a gained signal, a common-mode signal, and a diode drop. This combined signal can be limited by the voltage supplies even when the individual input and output signals are not limited\" (AD8226 Rev. C, INPUT VOLTAGE RANGE). TI states the same for the generic three-op-amp INA and names the danger: saturation of the input stage \"causes the INA output voltage, although of wrong value, to appear normal to the following processing circuitry. This could lead to disastrous effects with unpredictable consequences\" (SLYT226). TI's Figure 1 labels the nodes: V1 = Vcm - G1(Vd/2) and V2 = Vcm + G1(Vd/2) - the common mode passes the input stage at unity gain while only the differential half is amplified. These nodes are not brought out to a pin, so no measurement finds the fault; only arithmetic does. Checking input range, output swing and gain is therefore not enough to conclude an in-amp works at an operating point. This is the principle; the closed-form test and its constants are a level down.\n  rule: consequence=an in-amp's input range, output swing and gain specs are necessary but NOT sufficient - the internal node is a third, unmeasurable constraint failure=those nodes hit a supply rail while BOTH the inputs and the output are still inside their own specified ranges node_carries=gained differential signal + the original common-mode signal + a diode drop symptom=the output stays in range and looks plausible to whatever reads it, and is wrong where=the internal nodes between the gain stage and the difference amplifier\n  source: research/sources/2168367.pdf p.21 AD8226 Rev. C, printed p.20 - INPUT VOLTAGE RANGE, opening paragraph; research/sources/slyt226.pdf p.1 TI SLYT226, printed p.25 - abstract + Figure 1 + Equations 1-5\n- inamp-ref-pin-drive-impedance [feedback] (topology/verified, workspace)\n  An in-amp's REF pin is not a high-impedance reference input. On a classic 3-op-amp part it is one leg of the difference amplifier's own resistor bridge, so any impedance in series with it unbalances that bridge. ADI: \"For the best performance, source impedance to the REF terminal should be kept below 2 ohm ... the reference terminal, REF, is at one end of a 50 kohm resistor. Additional impedance at the REF terminal adds to this 50 kohm resistor and results in amplification of the signal connected to the positive input ... 2(50 kohm + Rref)/(100 kohm + Rref). Only the positive signal path is amplified ... This uneven amplification degrades CMRR.\" Figure 59 draws a bare resistor divider into REF, crosses it out and labels it INCORRECT; the CORRECT half buffers that divider with an op amp. DERIVED from that expression: the common-mode gain that appears at the output is A - 1 = Rref/(100 kohm + Rref) - about 10 ppm per ohm. At the 2 ohm limit that is 20 ppm; at a 9.2 kohm divider Thevenin it is 8.5 percent, four orders of magnitude worse, and CMRR is the whole reason the part was bought. Refer it to the input by dividing by the total gain. A second, independent reason to buffer: REF draws Iin = 7 uA typ, so an unbuffered divider also shifts its own pedestal by Iin*Rthevenin - 65 mV on that same 9.2 kohm. TI states the principle for the generic part: a voltage follower \"provides low output impedance, which preserves the high CMRR of the difference amplifier\".\n  rule: abs_max=REF is ESD-protected and must not exceed either rail by more than 0.3 V cm_gain_at_2_ohm_ppm=20 cm_gain_at_9k2_pct=8.5 cm_gain_at_output_derived=Rref/(100k + Rref) - about 10 ppm per ohm fix=buffer the divider with an op amp (Figure 59 CORRECT half); a bare divider on REF is drawn INCORRECT max_source_impedance_ohm=2 positive_path_gain=2*(50k + Rref)/(100k + Rref) ref_gain_to_output_vv=1 ref_input_resistance_kohm=100 rti_conversion=divide the output-referred common-mode gain by the total gain to refer it to the input second_error_source=the REF input draws Iin = 7 uA typ, so an unbuffered divider also shifts by Iin * Rthevenin what_ref_is=one leg of the difference amplifier's own resistor bridge, not a high-impedance reference input\n  source: research/sources/2168367.pdf p.21 AD8226 Rev. C, printed p.20 - REFERENCE TERMINAL + Figure 59; research/sources/2168367.pdf p.20 AD8226 Rev. C, printed p.19 - Figure 58 Simplified Schematic; research/sources/2168367.pdf p.6 AD8226 Rev. C, printed p.5 - Table 3, REFERENCE INPUT block; research/sources/slyt226.pdf p.2 TI SLYT226, printed p.26 - buffered divider in the difference amplifier feedback, Figure 2\n- inamp-supply-decoupling-and-local-ground [decoupling, return-path] (principle/verified, workspace)\n  The in-amp's own local power and ground environment, as its vendor specifies it. Three parts, all from the AD8226 LAYOUT section and its Figure 61. (a) Supply quality is a measurement parameter, not a housekeeping detail: \"A stable dc voltage should be used to power the instrumentation amplifier. Note that noise on the supply pins can adversely affect performance.\" A precision in-amp converts supply noise into output error through its finite PSR, and PSR is specified per gain. (b) Decoupling is two-tier and the tiers are placed differently: \"A 0.1 uF capacitor should be placed as close as possible to each supply pin. As shown in Figure 61, a 10 uF tantalum capacitor can be used farther away from the part. In most cases, it can be shared by other precision integrated circuits.\" So the HF cap is per pin and local; the bulk cap is per rail and may be shared - a distinction that matters when a layout tries to save parts by sharing the wrong one. (c) The reference and the load must return to the part's own local ground. Figure 61 is titled \"Supply Decoupling, REF, and Output Referred to Local Ground\" and draws exactly that; the text adds \"The output voltage of the AD8226 is developed with respect to the potential on the reference terminal. Care should be taken to tie REF to the appropriate local ground.\" Any IR drop between the REF return and the load return appears at the output multiplied by one - it is not divided by the gain.\n  rule: bulk_cap_uf=10 bulk_placement=farther from the part; may be shared with other precision ICs on the same rail hf_cap_uf=0.1 hf_placement=as close as possible to EACH supply pin - both pins on a dual-supply part load_return=the load returns to that same local ground ref_return=tie REF to the appropriate local ground, because the output is developed with respect to REF supply_quality=a stable dc voltage - noise on the supply pins degrades the measurement\n  source: research/sources/2168367.pdf p.22 AD8226 Rev. C, printed p.21 - LAYOUT / Power Supplies, Figure 61, References"
+}

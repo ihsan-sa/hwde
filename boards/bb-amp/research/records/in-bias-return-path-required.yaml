@@ -1,0 +1,86 @@
+id: in-bias-return-path-required
+classes: [return-path]
+applies:
+  topologies: []
+  packages: []
+  interfaces: [in]
+  parts: [AD8226]
+rule:
+  enforced_by: null
+  requirement: "both inputs need a dc path to the amplifier's own ground reference - the AD8226 data sheet states it as a must, not a recommendation"
+  direction: "the AD8226 input stage is pnp, so input bias current ALWAYS FLOWS OUT OF THE PART; the return network must SINK that current, and the source node it lands on sits ABOVE the return node by I*R, never below"
+  when_created: "the vendor's own conditional: a path must be CREATED only when the source cannot provide one (thermocouple, transformer secondary, ac-coupled source, floating sensor); a source that already returns to the amplifier's ground supplies it - which the designer must confirm, not assume"
+  legal_forms: "vendor-drawn only: (a) transformer secondary centre tap to ground; (b) ONE resistor from one input to ground; (c) one resistor per input to ground behind ac-coupling caps, which also sets f_highpass = 1/(2*pi*R*C)"
+  sizing: "see in-bias-return-resistor-sizing-ad8226 - the resistor values printed in these figures belong to the figures, not to this board"
+prose: >-
+  The AD8226's own LAYOUT page: "The input bias current of the AD8226 must
+  have a return path to ground. When the source, such as a thermocouple,
+  cannot provide a return current path, one should be created, as shown in
+  Figure 62." Figure 62 is a two-column INCORRECT/CORRECT grid of three
+  source types, the INCORRECT panels struck through with a grey X. Row 1
+  TRANSFORMER: incorrect is a floating secondary into +IN/-IN; correct
+  grounds the secondary centre tap. Row 2 THERMOCOUPLE: incorrect is the
+  floating couple; correct hangs a single 10 Mohm resistor from the lower
+  input line to ground. Row 3 CAPACITIVELY COUPLED: incorrect is a series C
+  into each input and nothing else; correct adds a resistor R from each
+  input to ground and annotates f_HIGH-PASS = 1/(2*pi*RC). REF ties to a
+  ground symbol in all six panels. DIRECTION MATTERS AND IS VENDOR-STATED:
+  Table 2's footnote 1 reads "The input stage uses pnp transistors;
+  therefore, input bias current always flows out of the part." The network
+  sinks current to ground; it does not source it, and every input node it
+  creates sits above the return node. A second vendor states the same
+  requirement for its in-amps: bias current "must find a DC path to their
+  home (i.e., Ground)", drawn as the same three fixes - a grounded
+  transformer centre tap, a single 10k to ground for a thermocouple, 47k
+  from each input to ground behind ac coupling. Those values belong to
+  those figures and those parts, not to this one.
+sources:
+  - file: research/sources/2168367.pdf
+    page: 22
+    section: "AD8226 Rev. C, printed p.21 - INPUT BIAS CURRENT RETURN PATH + Figure 62"
+    note: >-
+      Read the section and Figure 62 (Creating an IBIAS Path): the
+      must-have-a-return-path sentence and the vendor's conditional, plus
+      the six panels - INCORRECT floating transformer / thermocouple /
+      ac-coupled sources struck out, CORRECT grounded centre tap, single
+      10 Mohm to ground, and R-per-input behind the coupling caps with
+      f_HIGH-PASS = 1/(2*pi*RC).
+  - file: research/sources/2168367.pdf
+    page: 5
+    section: "AD8226 Rev. C, printed p.4 - Table 2 footnote 1, INPUT block"
+    note: >-
+      Read footnote 1 verbatim: "The input stage uses pnp transistors;
+      therefore, input bias current always flows out of the part." Same
+      page INPUT block: input impedance 0.8 Gohm||2 pF differential,
+      0.4 Gohm||2 pF common mode.
+  - file: research/sources/an1298-instrumentation-amplifier-application-note.pdf
+    page: 14
+    section: "Renesas/Intersil AN1298 Rev 2.00, p.14 - DC return path, Figures 28-31"
+    note: >-
+      Read: bias current "must find a DC path to their home (i.e., Ground)";
+      sources that do not provide one are thermocouples, microphones,
+      transformer-coupled and ac-coupled circuits; "A DC return path as
+      shown in the following circuits must be supplied". Of the four
+      circuits, three read unambiguously: Figure 29 a thermocouple with a
+      single 10k to ground, Figure 30 a transformer-coupled source with the
+      secondary centre tap grounded, Figure 31 an ac-coupled source with
+      47k from each input to ground. Figure 28 (a floating source with a
+      20k on each input branch) I did not resolve well enough to state its
+      topology.
+status: active
+origin: research:interface-in-2
+level: topology
+envelope:
+  ibias_ua: {min: 0.005, max: 0.035}
+maturity: verified
+generalizes: []
+envelope_note: >-
+  The requirement itself does not scale - both inputs need a dc path at any
+  bias current. Bounded is what this ledger witnesses: the form set and the
+  current DIRECTION come off a pnp-input part specified 5 nA (+125 C) to
+  35 nA (-40 C) in Table 3, where the created network is a real design
+  element, not a formality. On a picoamp-class input the same three forms
+  appear with resistors decades larger - the transplant that broke the
+  first pass - and on a CMOS or npn input stage the direction fact
+  vanishes or flips.
+verification: {by: "second-reader", date: "2026-08-16", note: "AD8226 printed p.21 re-read: 'The input bias current of the AD8226 must have a return path to ground. When the source, such as a thermocouple, cannot provide a return current path, one should be created, as shown in Figure 62.' - a must, plus the vendor's own conditional, both as quoted. Figure 62 zoomed 4x: two-column INCORRECT/CORRECT grid, three rows, incorrect panels struck with a grey X, REF to a ground symbol in all six panels. Row 1 TRANSFORMER - incorrect floating secondary, correct grounds the secondary centre tap. Row 2 THERMOCOUPLE - correct hangs a single 10 MOhm from the LOWER input line to ground. Row 3 CAPACITIVELY COUPLED - correct adds an unvalued R from each input to ground behind the series C, annotated f_HIGH-PASS = 1/(2 pi RC). The three legal_forms are exactly the three drawn. Printed p.4 footnote 1 verbatim: 'The input stage uses pnp transistors; therefore, input bias current always flows out of the part' - the direction claim and the sits-above-the-return-node consequence are sound. AN1298 p.14 verbatim: bias current 'must find a DC path to their home (i.e., Ground)', the thermocouple/microphone/transformer/ac-coupled list, and 'A DC return path as shown in the following circuits must be supplied'; Figure 29 is a thermocouple with a single 10k to ground, Figure 30 a transformer with the secondary centre tap grounded, Figure 31 an ac-coupled source with 47k from each input to ground - all three as described, and the record is right to fence those values off as belonging to those parts. Envelope 5-35 nA is Table 3's own guaranteed span. ONE CORRECTION for the researcher, not refuting: the note counts AN1298 Figure 28 among 'the four circuits' of the DC-return set. It is not one - Figure 28 sits above the DC-return paragraph and illustrates p.13's input-protection sentence ('A 20k resistor can be used to protect the inputs against 100V transients'), VIN through 20k into each input with no return network. The record declines to state its topology and derives no fourth form, so nothing false propagates."}

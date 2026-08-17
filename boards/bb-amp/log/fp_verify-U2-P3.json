@@ -1,0 +1,74 @@
+{
+ "script": "fp_verify",
+ "status": "pass",
+ "board": "SOP-8_L4.9-W3.9-P1.27-LS6.0-BL.kicad_mod",
+ "counts": {
+  "total": 1,
+  "by_severity": {
+   "warning": 1
+  },
+  "by_source": {
+   "check.fp_verify": 1
+  }
+ },
+ "violations": [
+  {
+   "check": "fp_verify",
+   "severity": "warning",
+   "pos": null,
+   "layer": "F.Cu",
+   "net": null,
+   "refs": [
+    "SOP-8_L4.9-W3.9-P1.27-LS6.0-BL"
+   ],
+   "msg": "pad size(s) [[0.63, 1.865]] mm != datasheet [0.6, 1.55] mm (tol 0.1; min/max of 1 distinct sizes)",
+   "source": "check.fp_verify",
+   "items": [
+    {
+     "msg": "pad size(s) [[0.63, 1.865]] mm != datasheet [0.6, 1.55] mm (tol 0.1; min/max of 1 distinct sizes)",
+     "pos": null
+    }
+   ],
+   "kind": "pad_size",
+   "expected_mm": [
+    0.6,
+    1.55
+   ],
+   "measured_mm": [
+    [
+     0.63,
+     1.865
+    ]
+   ]
+  }
+ ],
+ "footprint": "SOP-8_L4.9-W3.9-P1.27-LS6.0-BL",
+ "footprint_file": "boards\\bb-amp\\lib\\aiee.pretty\\SOP-8_L4.9-W3.9-P1.27-LS6.0-BL.kicad_mod",
+ "copper_pads": 8,
+ "total_pads": 8,
+ "measured_pitch_mm": 1.26,
+ "measured_pad_size_mm": [
+  0.63,
+  1.865
+ ],
+ "has_courtyard": true,
+ "has_silk": true,
+ "land_pattern": {
+  "package": "SOIC-8 (TI D package, R-PDSO-G8, JEDEC MS-012 variation AA)",
+  "pad_count": 8,
+  "pitch_mm": 1.27,
+  "pad_size_mm": [
+   0.6,
+   1.55
+  ],
+  "row_spacing_mm": 5.4,
+  "pin1": "1",
+  "notes": "From the 'D (R-PDSO-G8) LAND PATTERN DATA' page (mechanical dwg doc 421283-x): recommended board-layout pad 0.60mm x 1.55mm at 1.27mm pitch, pad-row centroid-to-centroid span 5.40mm, solder mask opening 0.07mm expansion all-around beyond the pad ('Customers should contact their board fabrication site for solder mask tolerances'). A separate stencil-opening drawing is given for a 0.127mm (5 mil) stencil thickness on the same page - not used directly for the copper/mask footprint. Package body, from the preceding 'D (R-PDSO-G8) MECHANICAL DATA' page: body 5.00/4.80mm x 4.00/3.80mm (mold flash excluded), outer lead-tip span 6.20/5.80mm, 1.75mm max body height, 0 to 8 degree lead foot angle, JEDEC MS-012 variation AA (stated explicitly on that page). No courtyard_excess_mm is stated by the datasheet (that is an IPC/EDA-tool convention, not a vendor spec) - left out per extraction rules; the footprint tool's own default applies."
+ },
+ "svg": "boards\\bb-amp\\lib\\aiee.pretty\\SOP-8_L4.9-W3.9-P1.27-LS6.0-BL.overlay.svg",
+ "report_schema": 1,
+ "checker_version": 1,
+ "generated_at": "2026-08-17T05:16:22+00:00",
+ "input": "boards\\bb-amp\\lib\\aiee.pretty\\SOP-8_L4.9-W3.9-P1.27-LS6.0-BL.kicad_mod",
+ "input_digest": "sexpr_no_uuid:3ade5065d05386cb2b15c95e57715151b77bc79d4134c0cb1ea6c97f32b386d5"
+}

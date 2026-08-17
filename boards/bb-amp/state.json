@@ -1,0 +1,1103 @@
+{
+ "version": 2,
+ "board": "bb-amp",
+ "workspace": "boards/bb-amp",
+ "created": "2026-08-16T17:25:38",
+ "updated": "2026-08-16T22:46:35",
+ "phase": "P4",
+ "gates": {
+  "erc": {
+   "phase": "P4",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-08-16T22:46:35",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0,
+    "inputs": {
+     "sch": "sexpr_no_uuid:4324ae898efe10bef3e7803526f5c6aae0e9ef00dcbd236c12c6c0219881abc7",
+     "pro": "json_canonical:ee215ba4153e477d4bd55d45c71cc2162c8c4e10fab52675b1b7437ec580b0ab"
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-16T22:46:35",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "sch": "sexpr_no_uuid:4324ae898efe10bef3e7803526f5c6aae0e9ef00dcbd236c12c6c0219881abc7",
+      "pro": "json_canonical:ee215ba4153e477d4bd55d45c71cc2162c8c4e10fab52675b1b7437ec580b0ab"
+     }
+    }
+   ]
+  }
+ },
+ "human": {
+  "1": {
+   "status": "skipped",
+   "ts": "2026-08-16T21:29:20",
+   "note": "H1 presented as a record rather than a blocking hold, per the owner's standing instruction of 2026-08-16 ('Make decisions yourself based on what will give the best learning for the basic system') while three boards run in parallel. Recorded as SKIPPED and deliberately not as APPROVED: no human has ruled on this content, and the status vocabulary has no 'presented under delegation' value. The run proceeds to P3. Nothing before P10 is irreversible and the block-only default stops the run at P9, so no money-spending step is reached without an explicit owner decision. Design doc: reports/design_doc/bb-amp-design-doc.pdf"
+  }
+ },
+ "artifacts": {
+  "sch": {
+   "path": "kicad/bb-amp.kicad_sch",
+   "kind": "sch",
+   "sha256": "sexpr_no_uuid:4324ae898efe10bef3e7803526f5c6aae0e9ef00dcbd236c12c6c0219881abc7",
+   "hashed": "2026-08-16T22:46:35"
+  },
+  "pro": {
+   "path": "kicad/bb-amp.kicad_pro",
+   "kind": "pro",
+   "sha256": "json_canonical:ee215ba4153e477d4bd55d45c71cc2162c8c4e10fab52675b1b7437ec580b0ab",
+   "hashed": "2026-08-16T22:46:35"
+  }
+ },
+ "open_issues": [],
+ "next_issue_id": 1,
+ "budgets": {
+  "fix_loops": {
+   "erc": 3,
+   "place": 3,
+   "drc_routed": 3,
+   "verify": 3,
+   "dfm": 3
+  },
+  "freerouting_retries": 2,
+  "place_edit_iterations": 8,
+  "research": {
+   "per_run": 2,
+   "depth_per_gap": 4
+  }
+ },
+ "decisions": [
+  {
+   "what": "Build mode: mode block-basics; scope block-only; binding canonical",
+   "why": "token 'learning block-basics:' in the brief; contract in reference/build-modes.md",
+   "phase": "P0",
+   "ts": "2026-08-16T17:25:43"
+  },
+  {
+   "what": "Q1 excitation: 3.3 V, sharing this board's ground -> input common-mode ~1.65 V",
+   "why": "owner answer; keeps the inputs inside what a 3.3 V-powered in-amp accepts, so the canonical single-IC front end stays available (5 V or 10 V excitation would force a difference-amp with input attenuation)",
+   "phase": "P0",
+   "ts": "2026-08-16T17:43:25"
+  },
+  {
+   "what": "Q6 output span: usable ~0.05-3.25 V with a small positive pedestal (~0.1 V) at 0 mV input; the brief's literal 0.000-3.300 V loses",
+   "why": "owner answer; a single 3.3 V rail cannot reach either rail exactly, and the alternative (second rail / charge pump) is excluded at block-only. The pedestal also keeps slightly-negative bridge readings (Q5, -1 mV) visible and calibratable. This is an ELECTRICAL spec resolution, not a mode relaxation",
+   "phase": "P0",
+   "ts": "2026-08-16T17:43:25"
+  },
+  {
+   "what": "Q7 accuracy: 12-bit usable over the output span (~0.8 mV out, ~5 uV referred to input), zero and span calibrated downstream",
+   "why": "owner answer; makes 0-50 C drift and noise the real error budget rather than initial offset, and keeps the part in the mainstream precision in-amp class rather than the 16-bit zero-drift class",
+   "phase": "P0",
+   "ts": "2026-08-16T17:43:25"
+  },
+  {
+   "what": "Q9 bandwidth: response flat within ~1% at 1 kHz (not -3 dB at 1 kHz)",
+   "why": "owner answer; for a single-pole rolloff 1% droop at 1 kHz implies a -3 dB corner near 7 kHz, so at the full-scale gain the amplifier needs roughly 1 MHz gain-bandwidth - this is now the dominant part-selection constraint",
+   "phase": "P0",
+   "ts": "2026-08-16T17:43:26"
+  },
+  {
+   "what": "Q2/Q3/Q4/Q5/Q8/Q10 take their documented defaults: 3-pole input (IN+/IN-/GND, shield to GND), 350 ohm bridge, absolute (not ratiometric) gain, input -1 mV to +25 mV clipping gracefully, output into >100 k / <1 m / <1 nF, rail 3.3 V +-5% with a 10 mA budget",
+   "why": "each default is the low-risk answer and none changes the topology; ratiometric in particular would add an excitation-sense input, i.e. a second input interface, which block-only scope excludes",
+   "phase": "P0",
+   "ts": "2026-08-16T17:43:26"
+  },
+  {
+   "what": "Owner delegated the remaining engineering judgment: decide in-run, optimizing for the best LEARNING value of a basic sensor front end. H1-H4 are presented as records and the run proceeds without blocking; the run stops at P9 (block-only default) so no irreversible or money-spending step is reached",
+   "why": "owner instruction 2026-08-16 ('Make decisions yourself based on what will give the best learning for the basic system') plus three boards running in parallel; nothing before P10 is irreversible, and ordering stays a separate owner decision",
+   "phase": "P0",
+   "ts": "2026-08-16T17:43:26"
+  },
+  {
+   "what": "P1 roster: research-component-scout (block 'inamp') + research-reference-design (block 'bridge-front-end') only",
+   "why": "single functional block. research-power-architect skipped: trivially powered (one external 3.3 V rail, no conversion, no second rail at block-only). research-interface-spec skipped: screw terminals are not standards-bound, so there is no spec to extract",
+   "phase": "P1",
+   "ts": "2026-08-16T17:44:43"
+  },
+  {
+   "what": "Reconciliation handed to P2: the scout's 'AD8226 REF grounded, pedestal injected at the second stage' does NOT survive the part's guaranteed output floor of (V-)+0.1 V - at G1=100 every input below +2 mV is in first-stage saturation, which is the bottom 10 percent of full scale. A positive, low-impedance-driven REF is unavoidable for any classic in-amp here",
+   "why": "the pedestal exists to keep the -1 mV worst-case input visible (requirements 9a Q5/Q6); a stage-2 pedestal cannot recover information stage 1 has already clipped. Once a REF buffer is required anyway, single-stage at G~147 uses the same two ICs with fewer passives than the split",
+   "phase": "P1",
+   "ts": "2026-08-16T18:55:34"
+  },
+  {
+   "what": "Topology: two-stage. U1 AD8226 at G1=39.9 (RG 1.27k, REF on a buffered 0.252 V node) -> U2B OPA2333-class RRIO at G2=3.49 whose gain resistor RETURNS TO /VREF, so Vout = Vref + G1*G2*Vdiff. U2A buffers the R2/R3 pedestal divider. Total G=139.2",
+   "why": "forced by the AD8226 input-voltage-range inequalities (Rev.C p.20 Eq.1-3 + Table 8, validated against published Fig.12/13 before use): at Vcm=1.65 V on a 3.3 V rail the amplified differential swing at the internal gain-stage nodes is capped at 1.90 V (25 C) and 1.33 V in the rail-5pct/excitation+5pct/0 C corner, so max single-stage gain is 66-95, not 147. The datasheet prescribes exactly this remedy. Returning the stage-2 gain resistor to /VREF makes the output pedestal EXACTLY Vref with no matched network and cancels reference drift to first order",
+   "phase": "P2",
+   "ts": "2026-08-16T19:36:03"
+  },
+  {
+   "what": "Electrical specs derived away from the brief (NOT mode relaxations): gain 165 -> 139.2; pedestal ~0.1 V -> 0.252 V; usable output window 0.05/3.25 V -> 0.10/3.20 V; transfer Vout = 0.252 + 139.2*Vdiff (-1 mV -> 0.113 V, 20 mV -> 3.037 V, +25 mV clips gracefully)",
+   "why": "gain must fit under the -5pct rail ceiling of 3.065 V; the -1 mV worst case of Q5 needs 0.139 V of headroom below zero scale plus the stage output floor. A mode relaxes geometry/cost/packaging only, so each of these is recorded as an electrical derivation with its mechanism",
+   "phase": "P2",
+   "ts": "2026-08-16T19:36:04"
+  },
+  {
+   "what": "ACCURACY SPEC MISSED AND ACCEPTED: Q7's 5 uV RTI over 0-50 C is not met. Offset drift 13.9 uV typ / 56.4 uV A-grade max over +-25 C from a 25 C calibration, plus 30-87 uV of gain drift at full scale. Pedestal additionally tracks the rail at 548 uV RTI per volt",
+   "why": "5 uV RTI on a 20 mV full scale over 25 C is 10 ppm/degC of full scale - a laboratory-grade tempco, not a 12-bit one - and no 3.3 V-capable part in the candidate set reaches it. The alternative (INA333 at G~40 plus a zero-drift second stage) spends the entire bandwidth margin (8.75 kHz vs 45 kHz), lands ON the budget typical-only, and leaves the largest term (gain drift) untouched. Accept-and-record chosen per the owner's learning-value instruction; the miss is quantified here and shown at H1, never dropped",
+   "phase": "P2",
+   "ts": "2026-08-16T19:36:04"
+  },
+  {
+   "what": "Stackup JLC2313_1.6, 2 layers, class 2L",
+   "why": "no controlled impedance exists on a DC-1 kHz chain; the input pair needs a CONTINUOUS ground reference (solid B.Cu pour, no slot under the differential run), not a close one. 4L would duplicate that job and distribute 0.65 mA",
+   "phase": "P2",
+   "ts": "2026-08-16T19:36:04"
+  },
+  {
+   "what": "No output RC filter. Chain noise is 0.88 uVrms RTI band-limited to 1 kHz but 4.97 uVrms (33 uV p-p) over the chain's own 41 kHz",
+   "why": "an output filter is filtering the datasheets do not require, which block-only scope excludes. Recorded so the number is visible: the reader must band-limit to get the low figure. This is a scope decision, never a claim that the filter is unnecessary in general",
+   "phase": "P2",
+   "ts": "2026-08-16T19:36:04"
+  },
+  {
+   "what": "AD8227 (pin-compatible, named by the AD8226 datasheet as the other escape from the Eq.2 boundary) deferred to the P2 research task as a directed sub-question rather than settled by assumption",
+   "why": "LCSC has it but thin (AD8227ARMZ-R7 MSOP-8, 201 stock, USD 2.99; the SOIC-8 A-grade has 18). Its boundary constants and its bandwidth at G~140 are unverified, and the architect correctly refused to design against unverified numbers. The researcher has allowlisted analog.com access, so a cited answer costs nothing extra and becomes a knowledge record either way",
+   "phase": "P2",
+   "ts": "2026-08-16T19:36:04"
+  },
+  {
+   "what": "Mode relaxed NOTHING on this board",
+   "why": "no dimension is stated anywhere in the brief, geometry is an output of the placement under the canonical binding, and cost/packaging were untouched",
+   "phase": "P2",
+   "ts": "2026-08-16T19:36:04"
+  },
+  {
+   "what": "analog.com is unreachable from this host - whole-host timeout, not just a PDF path (research.py fetch ReadTimeout twice; bare curl to https://www.analog.com/ returns 0 bytes after 90 s). Treat as a STANDING condition, not a blip: P1's reference-design agent hit the same thing independently",
+   "why": "consequence for this board: no vendor-layout-tier source exists for the actual part (AD8226), so the interface records are all cross-vendor tier witnessed by TI's INA333 instead of ADI's own text. WORKAROUND that works and should be used from here: the AD8226 datasheet is obtainable through the allowlisted LCSC mirror (wmsc.lcsc.com), and the block-inamp-1 task already has 2304140030_Analog-Devices-AD8226ARZ-R7_C34250.pdf in the shared sources dir",
+   "phase": "P2",
+   "ts": "2026-08-16T20:08:34"
+  },
+  {
+   "what": "The interface:in slot will be RETYPED before the post-research coverage re-run: its operating_point currently carries only diff-pair geometry (gap_mm/max_skew_mm/max_uncoupled_mm/term_pair_mm), so none of the five records' envelopes can be tested and they can only ever read provisional",
+   "why": "measured by the researcher, not assumed: it ran envelope containment against the slot and all five topology records returned unknown. A kilohertz-rate 20 mV differential sensor input is not a controlled-impedance pair - what it needs declared is rsource_ohm, vcm_v, vout_v, vsig_mv, dt_c, err_rti_mv, ibias_ua, mismatch_pct. diff_pairs[].operating_point is supported by knowledgelib, so the retype is legal without a schema change. Deferred until the block task closes so the AD8226 input bias current comes from a cited page rather than a guess",
+   "phase": "P2",
+   "ts": "2026-08-16T20:08:34"
+  },
+  {
+   "what": "AD8227 stays UNCLOSED and the design does NOT switch to it. The two-stage AD8226 chain stands",
+   "why": "its datasheet is unacquirable from this host today: analog.com and mouser.com stall research.py fetch, and LCSC's mirror serves a ~7 KB 'Datasheet temporarily unavailable' stub for every ADI part. Neither its input-range constants at Vs=3.3 V / Vcm=1.65 V nor its bandwidth at G~140 were ever read. The derived mechanism points to yes (an in-amp's minimum gain IS its difference-amp gain, so min-gain-5 means one fifth the internal-node swing at equal total gain) but a derivation is not a datasheet, and trading a validated design for an unverifiable part is the wrong trade. Recorded as the highest-value next acquisition, together with ADI AN-1401 'Instrumentation Amplifier Common-Mode Range: The Diamond Plot'",
+   "phase": "P2",
+   "ts": "2026-08-16T20:22:52"
+  },
+  {
+   "what": "P6/P7 CORRECTION: do NOT spend layout effort on input trace/via length matching and plane-continuity fetishism for CMRR. The rule CMRR=(G+1)/(4t) belongs to a four-discrete-resistor difference amplifier where G and t are the SAME network; an in-amp's ~100 Gohm inputs convert essentially nothing from series-path mismatch at DC-1 kHz with a 350 ohm source",
+   "why": "second reader refutation, page-level: every SBOA582 circuit is a four-resistor diff-amp at G=1, and the transfer to stray trace asymmetry was asserted rather than argued. The error term that IS verified at the 5 uV RTI budget is the TEMPERATURE GRADIENT across the two input junctions - so the placement rule that matters is keeping the two input poles at the same temperature and away from anything that dissipates, not matching their lengths",
+   "phase": "P2",
+   "ts": "2026-08-16T20:23:39"
+  },
+  {
+   "what": "BRING-UP NOTE: a missing input bias-current return path does NOT park the output at a rail - it produces a plausible near-zero output that 'appears normal'",
+   "why": "second reader found the researcher's claim contradicted by INA333 s8.2.2.6 on the same cited page and by TI SLYT226 p.1. This matters because the failure mode is silent: a board with a floating input reads like a working board with no signal. Belongs in the bring-up notes",
+   "phase": "P2",
+   "ts": "2026-08-16T20:23:39"
+  },
+  {
+   "what": "interface-in-1 ledger quality: 1 of 6 records verified. The refutations are themselves the finding - the whole ledger is TI/Microchip-witnessed and NO number for this board's actual part (AD8226) is witnessed anywhere in it, so the bias-return REQUIREMENT transfers but the SIZING does not",
+   "why": "analog.com is unreachable (standing condition), so the interface researcher had no vendor witness for the board's own part. The block-inamp-1 task has since proved the AD8226 datasheet IS obtainable from an allowlisted Farnell mirror - that source did not exist when this task ran",
+   "phase": "P2",
+   "ts": "2026-08-16T20:23:39"
+  },
+  {
+   "what": "The architecture's foundation is VERIFIED on the page and the generalization is stronger than the architect claimed: AD8226 printed p.19 gives Vout = G(Vin+ - Vin-) + Vref exactly, so Eq.2 becomes Vcm + |Vout - Vref|/2 < Vs - V+LIMIT with NO GAIN TERM IN IT. Confirmed on the printed figures, not just algebraically: Fig.9 (G=1) and Fig.12 (G=100) at Vs=+2.7 V differ by at most 0.1 V at four vertices, and the Vref=0 diagonal from (+0.02,+2.0) to (+2.4,+0.8) is the SAME straight line in both - that line IS Eq.2. All twelve Table 8 constants exact",
+   "why": "the two-stage topology is downstream of this claim, so it was targeted for refutation by a fresh reader and survived. The practical restatement: the in-amp's constraint is on ITS OWN OUTPUT SWING, not on its gain - which is exactly why moving gain to the second stage relieves it",
+   "phase": "P2",
+   "ts": "2026-08-16T20:38:24"
+  },
+  {
+   "what": "AMENDING the earlier P6/P7 symmetry ruling. Do NOT chase input trace LENGTH matching for DC CMRR (that stands - an in-amp's ~100 Gohm inputs convert nothing from series mismatch at DC). But DO keep the two input paths electrically similar - same width, same neighbourhood, same environment - because AC CMRR does degrade with SOURCE IMBALANCE",
+   "why": "the block second reader refuted the parasitics record precisely here: its envelope claimed no vendor number exists above 5 kHz, but the ledger's own AD8226 PDF p.13 carries Fig.27 'CMRR vs Frequency, RTI' and Fig.28 'CMRR vs Frequency, RTI, 1 kohm Source Imbalance' out to 100 kHz, and Fig.28 measures this exact mechanism. Our chain is open to 41 kHz and common-mode interference rides in there. Our own imbalance is far below Fig.28's 1 kohm case, so this is cheap insurance, not a driver - the dominant term at the 5 uV budget remains the thermal gradient across the two input junctions",
+   "phase": "P2",
+   "ts": "2026-08-16T20:38:24"
+  },
+  {
+   "what": "AD8226 A-grade input bias current, cited from Table 3 printed p.5: 20 nA typ / 27 nA max at +25 C (5 nA min), 30/35 nA at -40 C, 15/25 nA at +125 C, avg TC 70 pA/degC. Input offset current 1 nA max. The input stage is pnp, so bias current always flows OUT of the part - the return path must SINK it",
+   "why": "needed to declare the input interface's operating point without guessing; obtained by asking the second reader while it had Table 3 open rather than by inventing a number. The pnp direction is a bring-up-relevant detail: the return network sinks current, it does not source it",
+   "phase": "P2",
+   "ts": "2026-08-16T20:38:24"
+  },
+  {
+   "what": "P6/P7 LAYOUT RULE, now witnessed by the board's own part (AD8226 Fig.28): SOURCE-PATH IMBALANCE, not gain, sets CMRR here. Balanced (Fig.27) LF CMRR climbs 96/117/133/144 dB across G=1/10/100/1000; with a 1 kohm source imbalance it climbs only 96/102/106/108 dB, and above ~1 kHz the G=1/10/100 curves collapse onto one roll-off reaching 55-68 dB at 100 kHz. At this board's G1=39.9 that imbalance costs about 25 dB at the 1 kHz signal frequency",
+   "why": "supersedes the vaguer earlier ruling with a measured number from the actual part. Consequence for this board: it adds NO series component in either input leg, and a 350 ohm bridge's arm-to-arm imbalance is orders below Fig.28's 1 kohm case, so we are far from the penalty - but the rule to enforce at P6/P7 is that nothing may be inserted in one input leg and not the other, and the two paths must see the same environment. That is a different instruction from length-matching, which still buys nothing at DC",
+   "phase": "P2",
+   "ts": "2026-08-16T20:53:37"
+  },
+  {
+   "what": "Recorded as a research-quality practice worth keeping: the researcher caught that AD8226 Figures 27/28 are taken at Vs=+-15 V (TPC conditions header, printed p.9) while Table 3 is at +Vs=2.7 V single supply, so the absolute dB from those curves cannot be set against Table 3 minimums - only the PENALTY (the ratio of two curves under identical conditions) transfers",
+   "why": "without that check the record would have carried a false claim that source imbalance drops the part below its guaranteed CMRR spec. Both records state the limitation explicitly. This is the failure mode adversarial review exists to catch, caught by the author instead",
+   "phase": "P2",
+   "ts": "2026-08-16T20:53:37"
+  },
+  {
+   "what": "CORRECTION to the P6/P7 CMRR layout rule: the 1 kHz source-imbalance penalty is about 16-17 dB (17.0/15.9/16.3 dB at G=10/100/1000), NOT the ~25 dB I recorded earlier. The qualitative rule is unchanged - source-path imbalance, not gain, sets CMRR here - only the magnitude was overstated",
+   "why": "second-reader refutation with page-level measurements: at 1 kHz Fig.27 reads 109.4/109.4/110.6 dB and Fig.28 reads 92.4/93.5/94.3 dB. The researcher's claimed 27/23/19 dB was 3-10 dB out, outside its own stated +-2 dB curve-read tolerance, and that is exactly the number the rule hands a designer at this board's 1 kHz signal frequency. The reader also verified everything else in the record (plateau ladders within 1 dB, gain-to-curve mapping via the Fig.28 arrow callouts, the +-15 V TPC conditions caveat, envelope bounds) and found a bonus fact: Table 2 (printed p.3) is the matching +-15 V table carrying the SAME minimums as Table 3, so the conditions caveat costs nothing",
+   "phase": "P2",
+   "ts": "2026-08-16T21:04:45"
+  },
+  {
+   "what": "CORRECTION to the earlier bring-up note. A missing bias-current return path has NO diagnostic symptom: the AD8226 page states none; Renesas AN1298 p.14 says the output will slowly drift until it saturates into a rail; the same vendor's sensor-health paper says a saturated input stage can appear normal to the processing circuitry. Both endings are real. The honest bring-up rule is: PROBE THE INPUT PINS, NOT THE OUTPUT",
+   "why": "my earlier note recorded only one of the two endings (plausible near-zero output), inheriting it from round one's TI-witnessed record. The re-witnessing pass found the contradiction is between two real documented behaviours, not an error in either, so the diagnostic value is in the input pins' DC level",
+   "phase": "P2",
+   "ts": "2026-08-16T21:10:27"
+  },
+  {
+   "what": "Bias-return sizing now witnessed by the board's own part, and it confirms this board needs NO bias resistors: the 350 ohm bridge is excited from a 3.3 V supply sharing our ground, so each input already has a DC return through its own bridge arms and the J1 GND pole. The sizing rule matters only if the source were floating - and it is brutal there: AD8226's own printed value is 10 Mohm (single resistor, Fig.62), but with a single resistor the far input's bias current returns through the 350 ohm source for about 10 uV differential, already past the 5 uV budget. A balanced pair caps R near 3.7 kohm (differential term = Ios*R + Ib*R*mismatch), which then loads a 350 ohm source by about 4.5 pct. Round one's transplanted 47k figure would have cost about 60 uV differential on this part",
+   "why": "this is exactly the claim the first reader said would not transfer - the REQUIREMENT transfers, the SIZING does not - and re-witnessing proved it right: the CMOS 47k/10k values were off by more than an order of magnitude for a 27 nA pnp-input part",
+   "phase": "P2",
+   "ts": "2026-08-16T21:10:27"
+  },
+  {
+   "what": "P6/P7 input-path rule sharpened to a number: with 0.8 Gohm||2 pF inputs the DC resistance term is dead, and it is CAPACITANCE match that matters - 1 pF of path mismatch gives -119 dB at 1 kHz, 10 pF gives -85 dB at 5 kHz against the part's own 90 dB spec",
+   "why": "gives placement and routing a checkable target (keep the two input paths' capacitance to the pour matched to about 1 pF) instead of the untestable instruction to match lengths. Consistent with, and more actionable than, the Fig.28 source-imbalance rule",
+   "phase": "P2",
+   "ts": "2026-08-16T21:10:27"
+  },
+  {
+   "what": "P2 exit coverage passes: exit 0, 2 slots, 0 gaps, all 11 classes provisional. No 'designing under coverage gap' decision is needed",
+   "why": "16 verified records and 2 new checklists (inamp, in) now cover both slots. Provisional is the correct ceiling here and not a shortfall: research narrows a gap to provisional by contract, the owner's promotion ruling makes a record approved, and only bring-up evidence makes it proven",
+   "phase": "P2",
+   "ts": "2026-08-16T21:28:31"
+  },
+  {
+   "what": "Research spend: 4 tasks over 2 rounds, all 6 of the per-run budget. Round 1 (13 records) was witnessed by the wrong parts because analog.com was unreachable - 7 refuted. Round 2 (9 records) re-witnessed from the AD8226 itself via an allowlisted Farnell mirror - 9 verified, 9 of 9",
+   "why": "the second round was worth its cost and the evidence says so: it closed all five interface gap classes, replaced a transplanted 47k bias-return figure that would have cost ~60 uV differential on this part, and produced a corrected CMRR-vs-imbalance number that a layout rule now rests on. Deciding to spend it rather than record 'designing under coverage gap' was the right call for a board whose stated purpose is to seed the library",
+   "phase": "P2",
+   "ts": "2026-08-16T21:28:31"
+  },
+  {
+   "what": "Connectors J1/J2/J3 are hand-soldered THT (KF128-5.08 family, one-piece board-side body); everything else is JLC-placeable SMT on single-sided top assembly. J1 is a single 3-pole body",
+   "why": "JLC's standard SMT service does not place screw terminals, which requirements section 7 anticipated. The single 3-pole body is not a convenience: it is what makes the two input poles' thermocouple junctions identically built, which is the one error term the research leg verified as dominant at the 5 uV budget. Pitch 5.08 mm chosen over the research's 3.5 mm read because blocks.md names 5.08 three times and the larger THT pads suit hand-soldering",
+   "phase": "P3",
+   "ts": "2026-08-16T21:43:28"
+  },
+  {
+   "what": "Sourcing risk recorded: the AD8226's only pin- and gain-law-compatible alternate (AD8226BRZ-R7) has 17 pcs in stock - usable once at qty 5, not resupply-safe. AD8227 was rejected as the alternate because its internal gain law differs and would force an RG recalculation. Separately, KF128-5.08's wire window is 22-12 AWG, narrower at the fine end than the 24-16 AWG requirements assumed",
+   "why": "both are honest flags rather than blockers at qty 5. The AWG one is not resolvable from this workspace - it depends on the owner's actual sensor cable - so it is recorded for confirmation before ordering rather than guessed",
+   "phase": "P3",
+   "ts": "2026-08-16T21:43:28"
+  },
+  {
+   "what": "ADDING a series output isolation resistor (R6) between U2B's output and J2, overruling blocks.md B5's 'no series isolation resistor needed'. Value is NOT fixed here: P4 must justify it against OPA2333 Figure 15 and it must be verified by the B4 step bench run with CL=1 nF",
+   "why": "the datasheet extraction found Figure 15 shows overshoot climbing to roughly the mid-30 percent range by a 1 nF load, and requirements 9a Q8 explicitly allows up to 1 nF of output cable. That is a stability problem at the STATED operating point, so the resistor is datasheet-required support, NOT excluded 'filtering' - block-only excludes conditioning the datasheet does not require, and this one it does. Cost is one 0603 and a ~0.1 pct gain error into a >100 kohm load, which calibrates out. Recorded as an overrule of a P2 ruling with the evidence, not a silent edit",
+   "phase": "P3",
+   "ts": "2026-08-16T21:58:20"
+  },
+  {
+   "what": "U2A's REF-drive impedance is a SIM item, not a datasheet item: TI gives open-loop output impedance 2 kohm typ but only at f=350 kHz, and states no DC or closed-loop figure. The AD8226 needs its REF driven below 2 ohm",
+   "why": "with AOL 130 dB typ a unity-gain buffer will deliver well under 2 ohm at DC, but that is an inference, not a vendor number. Added to the P4 sim brief so a bench proves it rather than an argument asserting it",
+   "phase": "P3",
+   "ts": "2026-08-16T21:58:21"
+  },
+  {
+   "what": "OPA2333 output swing CONFIRMS the architecture at the worst corner: guaranteed 70 mV max to each rail over temperature at RL=10 k, valid across the whole 1.8-5.5 V range, so at 3.135 V the floor is <=0.070 V and the ceiling >=3.065 V. The design's 0.113 V and 3.037 V clear by 43 mV and 28 mV, with the real >100 kohm load much lighter than the 10 k test condition",
+   "why": "this was the open question I put to the extractor, because in this topology it is the op-amp and not the in-amp that faces the rails. It holds",
+   "phase": "P3",
+   "ts": "2026-08-16T21:58:21"
+  },
+  {
+   "what": "P3 exit coverage passes: exit 0, 4 slots, 0 gaps - the two PART slots (U1 inamp, U2 ref_gain2) read COVERED off the datasheet extractions, and the two block/interface slots read provisional. No further research tasks opened, with 2 of the per-run budget left unspent",
+   "why": "the seeding-floor call (--maturity-floor proven --research-provisional) re-reported the block and interface slots as gaps, but that is the escalation doing its job, not new ignorance: those two slots were already researched across two rounds to 16 verified records, and research CANNOT raise maturity past verified - draft-to-verified is the second reader's verb, verified-to-approved is the owner's, approved-to-proven is bring-up's. Opening a third round would spend budget to re-derive what is already on disk. build-modes.md prescribes exactly this: run the first call of each phase escalated, then re-run WITHOUT the flags to fold in what was learned, because re-escalating only re-fires the trigger",
+   "phase": "P3",
+   "ts": "2026-08-16T22:01:32"
+  },
+  {
+   "what": "Both datasheet extractions validate: 8 pins each, land patterns present, 10 layout_notes each - well clear of the thin-extraction gap threshold of 2",
+   "why": "the layout notes are what P6/P7 are held to, and a thin section is a detectable coverage gap by design. These are substantive: AD8226's own layout section plus Figure 61, and OPA2333's decoupling/thermal-EMF/auto-zero guidance",
+   "phase": "P3",
+   "ts": "2026-08-16T22:01:33"
+  },
+  {
+   "what": "SIM BRIEF CORRECTION for P4/P8: bench B1's 'INL <= 0.05 pct FS' window is NOT a datasheet-derived bound. The AD8226's single-supply Table 3 has no Gain Nonlinearity row at all - it exists only in the dual-supply Table 2. Either drop the INL bound, or keep it explicitly as a DESIGN TARGET labelled as such in the bounds sidecar",
+   "why": "the sim gate reads the bounds sidecar as truth, so an invented bound dressed as a vendor number is exactly the defect the gate exists to catch. Found by the extractor cross-checking the architecture's sim windows against the tables",
+   "phase": "P3",
+   "ts": "2026-08-16T22:03:26"
+  },
+  {
+   "what": "Recorded as interpolation, not vendor data: this board runs at G1=39.9, which is not a tabulated point - the AD8226 datasheet gives CMRR and bandwidth only at G=1/10/100/1000. blocks.md's ~45 kHz / ~1.8 MHz GBW figure is an interpolation between table points",
+   "why": "the second reader already verified the interpolation is legitimate (the tabulated points are exactly constant-GBW and Fig.26 is a clean single-pole family with no peaking), so this is a provenance label rather than a doubt. It matters because the 41 kHz f-3dB in constraints.json inherits it",
+   "phase": "P3",
+   "ts": "2026-08-16T22:03:26"
+  },
+  {
+   "what": "Two further single-supply table limits noted: AD8226 Table 3 characterizes output swing only at RL=10 kohm (no single-supply 100 k row; the dual-supply table's 100 k row is numerically identical), and input offset current at -40 C reads 1 nA in Table 3 versus 2 nA in Table 2 - a genuine table-to-table difference, not a typo. Table 3 is primary because it is our condition",
+   "why": "both are cases where the honest answer is 'the vendor did not characterize our exact condition'. Neither changes the design - the 10 k swing figure is conservative for our >100 kohm load, and 1 vs 2 nA of Ios is far inside the bias-return headroom - but both are now on the record rather than silently smoothed",
+   "phase": "P3",
+   "ts": "2026-08-16T22:03:27"
+  },
+  {
+   "what": "J2/J3 footprint drill corrected 1.6 mm -> 1.4 mm to match the KF128-5.08 datasheet and J1's already-exact 3-pole pull. The two LCSC catalog entries for one connector family disagreed with each other",
+   "why": "1.6 mm is not unusable (0.40 mm annulus, far above the 0.15 mm floor) but it is off-datasheet, inconsistent with J1 on the same board, and adds a second drill size for nothing. On IPC grounds 1.4 mm is lead+0.20 for the ~1.20 mm pin diagonal - the normal window - while 1.6 mm is lead+0.40, loose. These three connectors are the only parts that take mechanical load (wires torqued into screw clamps), so a loose barrel is the wrong way to err. Fix routed back to the librarian rather than done by the orchestrator: a .kicad_mod is a design file and rule 1 forbids opening one",
+   "phase": "P3",
+   "ts": "2026-08-16T22:20:49"
+  },
+  {
+   "what": "Accepting the U2 SOP-8 pad-size warning (0.63 x 1.865 mm pulled vs TI's recommended 0.6 x 1.55 mm) rather than forcing the vendor land pattern",
+   "why": "the pulled footprint is JLC's own catalog geometry, and JLC is the assembler - their pads are what the stencil and placement machine will actually use. Consistency with the assembler beats vendor-exactness for a part being machine-placed",
+   "phase": "P3",
+   "ts": "2026-08-16T22:20:49"
+  },
+  {
+   "what": "U1 SOIC-8 pad size is UNVERIFIED and recorded as an inherited gap: the AD8226 datasheet contains no recommended land-pattern drawing at all, only the JEDEC MS-012-AA package outline, so fp_verify had no number to compare against",
+   "why": "honest gap rather than a false pass. The 0.568 x 1.95 mm pull is a standard narrow-body SOIC-8 for the standard MS-012-AA body, so there is no basis to call it wrong - but there is also no vendor drawing behind it, and the record should say so",
+   "phase": "P3",
+   "ts": "2026-08-16T22:20:49"
+  },
+  {
+   "what": "ONE schematic agent for the whole board, not one per sheet",
+   "why": "sheets.md rules one sheet and no hierarchy: 15 parts on a single signal path. The SKILL's lean amendment permits one schematic agent on a small board provided it is recorded - this is that record. It also keeps /VREF visible as one node touching U1 pin 6, U2A's output and the stage-2 gain return, which is the thing a reader of this board should see at a glance",
+   "phase": "P4",
+   "ts": "2026-08-16T22:23:36"
+  }
+ ],
+ "edits": [],
+ "spawns": [
+  {
+   "ts": "2026-08-16T17:26:13",
+   "role": "requirements-analyst",
+   "model": "fable/high",
+   "phase": "P0"
+  },
+  {
+   "ts": "2026-08-16T17:27:07",
+   "role": "requirements-analyst",
+   "model": "opus",
+   "effort": "xhigh",
+   "phase": "P0",
+   "note": "tier substitution: fable/high unavailable this session (out of usage credits) -> opus/xhigh per SKILL.md model-availability rule; applies to all fable-tier spawns this run"
+  },
+  {
+   "ts": "2026-08-16T17:44:43",
+   "role": "research-component-scout",
+   "model": "sonnet",
+   "effort": "high",
+   "phase": "P1"
+  },
+  {
+   "ts": "2026-08-16T17:44:43",
+   "role": "research-reference-design",
+   "model": "sonnet",
+   "effort": "high",
+   "phase": "P1"
+  },
+  {
+   "ts": "2026-08-16T18:56:12",
+   "role": "architect",
+   "model": "opus",
+   "effort": "xhigh",
+   "phase": "P2",
+   "note": "fable/high -> opus/xhigh substitution"
+  },
+  {
+   "ts": "2026-08-16T19:37:19",
+   "role": "researcher",
+   "model": "opus",
+   "effort": "xhigh",
+   "phase": "P2",
+   "note": "task block-inamp-1; fable/high -> opus/xhigh substitution; brief passed by file path (19 KB) rather than pasted, to keep the orchestrator out of the design detail"
+  },
+  {
+   "ts": "2026-08-16T19:37:19",
+   "role": "researcher",
+   "model": "opus",
+   "effort": "xhigh",
+   "phase": "P2",
+   "note": "task interface-in-1; fable/high -> opus/xhigh substitution"
+  },
+  {
+   "ts": "2026-08-16T20:08:43",
+   "role": "research-second-reader",
+   "model": "opus",
+   "effort": "high",
+   "phase": "P2",
+   "note": "task interface-in-1; fresh context"
+  },
+  {
+   "ts": "2026-08-16T20:21:59",
+   "role": "research-second-reader",
+   "model": "opus",
+   "effort": "high",
+   "phase": "P2",
+   "note": "task block-inamp-1; fresh context"
+  },
+  {
+   "ts": "2026-08-16T20:40:14",
+   "role": "researcher",
+   "model": "opus",
+   "effort": "xhigh",
+   "phase": "P2",
+   "note": "task block-inamp-2 (repair: diff-pair class)"
+  },
+  {
+   "ts": "2026-08-16T20:40:14",
+   "role": "researcher",
+   "model": "opus",
+   "effort": "xhigh",
+   "phase": "P2",
+   "note": "task interface-in-2 (re-witness from the board's own part)"
+  },
+  {
+   "ts": "2026-08-16T20:53:37",
+   "role": "research-second-reader",
+   "model": "opus",
+   "effort": "high",
+   "phase": "P2",
+   "note": "task block-inamp-2; fresh context"
+  },
+  {
+   "ts": "2026-08-16T21:10:27",
+   "role": "research-second-reader",
+   "model": "opus",
+   "effort": "high",
+   "phase": "P2",
+   "note": "task interface-in-2; fresh context"
+  },
+  {
+   "ts": "2026-08-16T21:30:33",
+   "role": "part-sourcer",
+   "model": "sonnet",
+   "effort": "high",
+   "phase": "P3",
+   "note": "knowledge prompt_block passed by file path (48 KB) per files-are-the-interface"
+  },
+  {
+   "ts": "2026-08-16T21:43:28",
+   "role": "datasheet-extractor",
+   "model": "sonnet",
+   "effort": "high",
+   "phase": "P3",
+   "note": "U1 AD8226ARZ-R7 C34250"
+  },
+  {
+   "ts": "2026-08-16T21:43:28",
+   "role": "datasheet-extractor",
+   "model": "sonnet",
+   "effort": "high",
+   "phase": "P3",
+   "note": "U2 OPA2333AIDR C38732"
+  },
+  {
+   "ts": "2026-08-16T22:01:43",
+   "role": "librarian",
+   "model": "sonnet",
+   "effort": "medium",
+   "phase": "P3"
+  },
+  {
+   "ts": "2026-08-16T22:23:36",
+   "role": "schematic-block",
+   "model": "opus",
+   "effort": "high",
+   "phase": "P4",
+   "note": "single-sheet root; fable/medium -> opus/high substitution"
+  },
+  {
+   "ts": "2026-08-16T22:23:36",
+   "role": "sim-analyst",
+   "model": "opus",
+   "effort": "high",
+   "phase": "P4"
+  }
+ ],
+ "history": [
+  {
+   "ts": "2026-08-16T17:25:38",
+   "event": "init",
+   "board": "bb-amp",
+   "phase": "P0"
+  },
+  {
+   "ts": "2026-08-16T17:25:43",
+   "event": "mode",
+   "target": "block-basics",
+   "scope": "block-only",
+   "binding": "canonical"
+  },
+  {
+   "ts": "2026-08-16T17:25:43",
+   "event": "decision",
+   "what": "Build mode: mode block-basics; scope block-only; binding canonical"
+  },
+  {
+   "ts": "2026-08-16T17:26:13",
+   "event": "spawn",
+   "role": "requirements-analyst",
+   "model": "fable/high"
+  },
+  {
+   "ts": "2026-08-16T17:27:07",
+   "event": "spawn",
+   "role": "requirements-analyst",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-16T17:27:17",
+   "event": "model_substitution",
+   "reason": "fable unavailable this session (out of usage credits)",
+   "map": {
+    "fable/max": "opus/max",
+    "fable/high": "opus/xhigh",
+    "fable/medium": "opus/high"
+   },
+   "rule": "SKILL.md model availability: substitute nearest available model one effort step UP"
+  },
+  {
+   "ts": "2026-08-16T17:43:25",
+   "event": "decision",
+   "what": "Q1 excitation: 3.3 V, sharing this board's ground -> input common-mode ~1.65 V"
+  },
+  {
+   "ts": "2026-08-16T17:43:25",
+   "event": "decision",
+   "what": "Q6 output span: usable ~0.05-3.25 V with a small positive pedestal (~0.1 V) at 0 mV input; the brief's literal 0.000-3.300 V loses"
+  },
+  {
+   "ts": "2026-08-16T17:43:25",
+   "event": "decision",
+   "what": "Q7 accuracy: 12-bit usable over the output span (~0.8 mV out, ~5 uV referred to input), zero and span calibrated downstream"
+  },
+  {
+   "ts": "2026-08-16T17:43:26",
+   "event": "decision",
+   "what": "Q9 bandwidth: response flat within ~1% at 1 kHz (not -3 dB at 1 kHz)"
+  },
+  {
+   "ts": "2026-08-16T17:43:26",
+   "event": "decision",
+   "what": "Q2/Q3/Q4/Q5/Q8/Q10 take their documented defaults: 3-pole input (IN+/IN-/GND, shield to GND), 350 ohm bridge, absolute (not ratiometric) gain, input -1 mV to +25 mV clipping gracefully, output into >100 k / <1 m / <1 nF, rail 3.3 V +-5% with a 10 mA budget"
+  },
+  {
+   "ts": "2026-08-16T17:43:26",
+   "event": "decision",
+   "what": "Owner delegated the remaining engineering judgment: decide in-run, optimizing for the best LEARNING value of a basic sensor front end. H1-H4 are presented as records and the run proceeds without blocking; the run stops at P9 (block-only default) so no irreversible or money-spending step is reached"
+  },
+  {
+   "ts": "2026-08-16T17:44:12",
+   "event": "phase",
+   "phase": "P1",
+   "prev": "P0"
+  },
+  {
+   "ts": "2026-08-16T17:44:43",
+   "event": "decision",
+   "what": "P1 roster: research-component-scout (block 'inamp') + research-reference-design (block 'bridge-front-end') only"
+  },
+  {
+   "ts": "2026-08-16T17:44:43",
+   "event": "spawn",
+   "role": "research-component-scout",
+   "model": "sonnet"
+  },
+  {
+   "ts": "2026-08-16T17:44:43",
+   "event": "spawn",
+   "role": "research-reference-design",
+   "model": "sonnet"
+  },
+  {
+   "ts": "2026-08-16T18:55:34",
+   "event": "decision",
+   "what": "Reconciliation handed to P2: the scout's 'AD8226 REF grounded, pedestal injected at the second stage' does NOT survive the part's guaranteed output floor of (V-)+0.1 V - at G1=100 every input below +2 mV is in first-stage saturation, which is the bottom 10 percent of full scale. A positive, low-impedance-driven REF is unavoidable for any classic in-amp here"
+  },
+  {
+   "ts": "2026-08-16T18:55:34",
+   "event": "phase",
+   "phase": "P2",
+   "prev": "P1"
+  },
+  {
+   "ts": "2026-08-16T18:56:12",
+   "event": "spawn",
+   "role": "architect",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-16T19:36:03",
+   "event": "decision",
+   "what": "Topology: two-stage. U1 AD8226 at G1=39.9 (RG 1.27k, REF on a buffered 0.252 V node) -> U2B OPA2333-class RRIO at G2=3.49 whose gain resistor RETURNS TO /VREF, so Vout = Vref + G1*G2*Vdiff. U2A buffers the R2/R3 pedestal divider. Total G=139.2"
+  },
+  {
+   "ts": "2026-08-16T19:36:04",
+   "event": "decision",
+   "what": "Electrical specs derived away from the brief (NOT mode relaxations): gain 165 -> 139.2; pedestal ~0.1 V -> 0.252 V; usable output window 0.05/3.25 V -> 0.10/3.20 V; transfer Vout = 0.252 + 139.2*Vdiff (-1 mV -> 0.113 V, 20 mV -> 3.037 V, +25 mV clips gracefully)"
+  },
+  {
+   "ts": "2026-08-16T19:36:04",
+   "event": "decision",
+   "what": "ACCURACY SPEC MISSED AND ACCEPTED: Q7's 5 uV RTI over 0-50 C is not met. Offset drift 13.9 uV typ / 56.4 uV A-grade max over +-25 C from a 25 C calibration, plus 30-87 uV of gain drift at full scale. Pedestal additionally tracks the rail at 548 uV RTI per volt"
+  },
+  {
+   "ts": "2026-08-16T19:36:04",
+   "event": "decision",
+   "what": "Stackup JLC2313_1.6, 2 layers, class 2L"
+  },
+  {
+   "ts": "2026-08-16T19:36:04",
+   "event": "decision",
+   "what": "No output RC filter. Chain noise is 0.88 uVrms RTI band-limited to 1 kHz but 4.97 uVrms (33 uV p-p) over the chain's own 41 kHz"
+  },
+  {
+   "ts": "2026-08-16T19:36:04",
+   "event": "decision",
+   "what": "AD8227 (pin-compatible, named by the AD8226 datasheet as the other escape from the Eq.2 boundary) deferred to the P2 research task as a directed sub-question rather than settled by assumption"
+  },
+  {
+   "ts": "2026-08-16T19:36:04",
+   "event": "decision",
+   "what": "Mode relaxed NOTHING on this board"
+  },
+  {
+   "ts": "2026-08-16T19:36:14",
+   "event": "budget",
+   "path": "research.per_run",
+   "remaining": 5
+  },
+  {
+   "ts": "2026-08-16T19:36:14",
+   "event": "research_opened",
+   "task": "block-inamp-1",
+   "slot": "block:B1",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-16T19:36:14",
+   "event": "budget",
+   "path": "research.per_run",
+   "remaining": 4
+  },
+  {
+   "ts": "2026-08-16T19:36:14",
+   "event": "research_opened",
+   "task": "interface-in-1",
+   "slot": "interface:in",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-16T19:37:19",
+   "event": "spawn",
+   "role": "researcher",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-16T19:37:19",
+   "event": "spawn",
+   "role": "researcher",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-16T20:08:34",
+   "event": "decision",
+   "what": "analog.com is unreachable from this host - whole-host timeout, not just a PDF path (research.py fetch ReadTimeout twice; bare curl to https://www.analog.com/ returns 0 bytes after 90 s). Treat as a STANDING condition, not a blip: P1's reference-design agent hit the same thing independently"
+  },
+  {
+   "ts": "2026-08-16T20:08:34",
+   "event": "research_host_unreachable",
+   "host": "analog.com",
+   "mode": "whole-host timeout",
+   "observed_by": [
+    "P1 research-reference-design",
+    "P2 researcher interface-in-1"
+   ],
+   "workaround": "allowlisted LCSC mirror wmsc.lcsc.com carries vendor datasheet PDFs"
+  },
+  {
+   "ts": "2026-08-16T20:08:34",
+   "event": "decision",
+   "what": "The interface:in slot will be RETYPED before the post-research coverage re-run: its operating_point currently carries only diff-pair geometry (gap_mm/max_skew_mm/max_uncoupled_mm/term_pair_mm), so none of the five records' envelopes can be tested and they can only ever read provisional"
+  },
+  {
+   "ts": "2026-08-16T20:08:43",
+   "event": "spawn",
+   "role": "research-second-reader",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-16T20:21:59",
+   "event": "spawn",
+   "role": "research-second-reader",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-16T20:22:52",
+   "event": "decision",
+   "what": "AD8227 stays UNCLOSED and the design does NOT switch to it. The two-stage AD8226 chain stands"
+  },
+  {
+   "ts": "2026-08-16T20:22:52",
+   "event": "tooling_defect",
+   "script": "research.py fetch",
+   "defect": "sends only a User-Agent header; www.analog.com, www.mouser.com and www.arrow.com stall on that but answer in under 1 s to a full browser header set. All three are already allowlisted, so this is a TRANSPORT bug, not an allowlist gap.",
+   "fix": "one line in researchlib.http_transport - send Accept / Accept-Language / Accept-Encoding / Upgrade-Insecure-Requests",
+   "blocked": "ADI AN-1401 (the dedicated diamond-plot app note) and the AD8227 datasheet",
+   "severity": "high - it silently costs vendor-tier sources and forces cross-vendor witnesses"
+  },
+  {
+   "ts": "2026-08-16T20:22:52",
+   "event": "tooling_defect",
+   "script": "research.py fetch",
+   "defect": "LCSC wmsc mirror currently serves a 7438-byte one-page stub PDF containing \"Datasheet temporarily unavailable\" for ADI parts, and it costs a DEPTH unit before the agent can see it is a stub - 2 of 4 units burned on this task",
+   "fix": "treat a sub-20 KB single-page PDF containing that string as a CONTENT refusal (an attempt, not a depth unit)",
+   "severity": "medium - halves effective research depth when it hits"
+  },
+  {
+   "ts": "2026-08-16T20:23:39",
+   "event": "decision",
+   "what": "P6/P7 CORRECTION: do NOT spend layout effort on input trace/via length matching and plane-continuity fetishism for CMRR. The rule CMRR=(G+1)/(4t) belongs to a four-discrete-resistor difference amplifier where G and t are the SAME network; an in-amp's ~100 Gohm inputs convert essentially nothing from series-path mismatch at DC-1 kHz with a 350 ohm source"
+  },
+  {
+   "ts": "2026-08-16T20:23:39",
+   "event": "decision",
+   "what": "BRING-UP NOTE: a missing input bias-current return path does NOT park the output at a rail - it produces a plausible near-zero output that 'appears normal'"
+  },
+  {
+   "ts": "2026-08-16T20:23:39",
+   "event": "decision",
+   "what": "interface-in-1 ledger quality: 1 of 6 records verified. The refutations are themselves the finding - the whole ledger is TI/Microchip-witnessed and NO number for this board's actual part (AD8226) is witnessed anywhere in it, so the bias-return REQUIREMENT transfers but the SIZING does not"
+  },
+  {
+   "ts": "2026-08-16T20:23:47",
+   "event": "research_closed",
+   "task": "interface-in-1",
+   "slot": "interface:in",
+   "outcome": "verified",
+   "queue_entry": "2026-08-16-research-task-interface-in-1-1-verified"
+  },
+  {
+   "ts": "2026-08-16T20:37:59",
+   "event": "research_closed",
+   "task": "block-inamp-1",
+   "slot": "block:B1",
+   "outcome": "verified",
+   "queue_entry": "2026-08-16-research-task-block-inamp-1-6-verified"
+  },
+  {
+   "ts": "2026-08-16T20:38:24",
+   "event": "decision",
+   "what": "The architecture's foundation is VERIFIED on the page and the generalization is stronger than the architect claimed: AD8226 printed p.19 gives Vout = G(Vin+ - Vin-) + Vref exactly, so Eq.2 becomes Vcm + |Vout - Vref|/2 < Vs - V+LIMIT with NO GAIN TERM IN IT. Confirmed on the printed figures, not just algebraically: Fig.9 (G=1) and Fig.12 (G=100) at Vs=+2.7 V differ by at most 0.1 V at four vertices, and the Vref=0 diagonal from (+0.02,+2.0) to (+2.4,+0.8) is the SAME straight line in both - that line IS Eq.2. All twelve Table 8 constants exact"
+  },
+  {
+   "ts": "2026-08-16T20:38:24",
+   "event": "decision",
+   "what": "AMENDING the earlier P6/P7 symmetry ruling. Do NOT chase input trace LENGTH matching for DC CMRR (that stands - an in-amp's ~100 Gohm inputs convert nothing from series mismatch at DC). But DO keep the two input paths electrically similar - same width, same neighbourhood, same environment - because AC CMRR does degrade with SOURCE IMBALANCE"
+  },
+  {
+   "ts": "2026-08-16T20:38:24",
+   "event": "decision",
+   "what": "AD8226 A-grade input bias current, cited from Table 3 printed p.5: 20 nA typ / 27 nA max at +25 C (5 nA min), 30/35 nA at -40 C, 15/25 nA at +125 C, avg TC 70 pA/degC. Input offset current 1 nA max. The input stage is pnp, so bias current always flows OUT of the part - the return path must SINK it"
+  },
+  {
+   "ts": "2026-08-16T20:38:25",
+   "event": "ledger_hygiene",
+   "task": "block-inamp-1",
+   "issue": "sources 1 and 2 are the ~7 KB LCSC stub PDFs with identical sha256, still tagged tier vendor-layout and pages 1. Cited by no record, but they leave a false \"AD8227 datasheet acquired\" impression in the ledger",
+   "action": "flagged for the promote pass; no script verb exists to mark a ledger source dead"
+  },
+  {
+   "ts": "2026-08-16T20:39:49",
+   "event": "budget",
+   "path": "research.per_run",
+   "remaining": 3
+  },
+  {
+   "ts": "2026-08-16T20:39:49",
+   "event": "research_opened",
+   "task": "block-inamp-2",
+   "slot": "block:B1",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-16T20:39:49",
+   "event": "budget",
+   "path": "research.per_run",
+   "remaining": 2
+  },
+  {
+   "ts": "2026-08-16T20:39:49",
+   "event": "research_opened",
+   "task": "interface-in-2",
+   "slot": "interface:in",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-16T20:40:14",
+   "event": "spawn",
+   "role": "researcher",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-16T20:40:14",
+   "event": "spawn",
+   "role": "researcher",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-16T20:53:37",
+   "event": "decision",
+   "what": "P6/P7 LAYOUT RULE, now witnessed by the board's own part (AD8226 Fig.28): SOURCE-PATH IMBALANCE, not gain, sets CMRR here. Balanced (Fig.27) LF CMRR climbs 96/117/133/144 dB across G=1/10/100/1000; with a 1 kohm source imbalance it climbs only 96/102/106/108 dB, and above ~1 kHz the G=1/10/100 curves collapse onto one roll-off reaching 55-68 dB at 100 kHz. At this board's G1=39.9 that imbalance costs about 25 dB at the 1 kHz signal frequency"
+  },
+  {
+   "ts": "2026-08-16T20:53:37",
+   "event": "decision",
+   "what": "Recorded as a research-quality practice worth keeping: the researcher caught that AD8226 Figures 27/28 are taken at Vs=+-15 V (TPC conditions header, printed p.9) while Table 3 is at +Vs=2.7 V single supply, so the absolute dB from those curves cannot be set against Table 3 minimums - only the PENALTY (the ratio of two curves under identical conditions) transfers"
+  },
+  {
+   "ts": "2026-08-16T20:53:37",
+   "event": "spawn",
+   "role": "research-second-reader",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-16T21:04:45",
+   "event": "decision",
+   "what": "CORRECTION to the P6/P7 CMRR layout rule: the 1 kHz source-imbalance penalty is about 16-17 dB (17.0/15.9/16.3 dB at G=10/100/1000), NOT the ~25 dB I recorded earlier. The qualitative rule is unchanged - source-path imbalance, not gain, sets CMRR here - only the magnitude was overstated"
+  },
+  {
+   "ts": "2026-08-16T21:05:28",
+   "event": "technique",
+   "what": "reading a datasheet curve to +-1 dB instead of eyeballing it",
+   "how": "extract the figure as VECTOR PATHS from the PDF, calibrate against the plot frame and gridlines (e.g. Fig27 frame y 85.20=160 dB to 229.14=0 dB; x 81.60=0.1 Hz to 261.54=100 kHz, 29.99 pt/decade), cross-check visually at 6x and 14x, then anchor against a printed spec table (curves read 4-6 dB over Table 2 minimums at 5 kHz, as typ-over-min must)",
+   "why": "this is what caught a 3-10 dB error in a curve read that was inside the authors own stated tolerance claim; gain-to-curve mapping was confirmed off the figure arrow callouts at 14x",
+   "reuse": "any figure-derived number in a knowledge record"
+  },
+  {
+   "ts": "2026-08-16T21:05:28",
+   "event": "promote_note",
+   "record": "inamp-input-network-differential-cap-dominance",
+   "status": "verified",
+   "wording_flag": "its opening line says the input network is deliberately ASYMMETRIC in its capacitors, meaning C_D >> C_C - NOT leg-to-leg asymmetry. The same sentence disambiguates it, but a skimming reader could invert the rule, which would be exactly backwards for CMRR. Fix the wording at the promote pass"
+  },
+  {
+   "ts": "2026-08-16T21:10:27",
+   "event": "decision",
+   "what": "CORRECTION to the earlier bring-up note. A missing bias-current return path has NO diagnostic symptom: the AD8226 page states none; Renesas AN1298 p.14 says the output will slowly drift until it saturates into a rail; the same vendor's sensor-health paper says a saturated input stage can appear normal to the processing circuitry. Both endings are real. The honest bring-up rule is: PROBE THE INPUT PINS, NOT THE OUTPUT"
+  },
+  {
+   "ts": "2026-08-16T21:10:27",
+   "event": "decision",
+   "what": "Bias-return sizing now witnessed by the board's own part, and it confirms this board needs NO bias resistors: the 350 ohm bridge is excited from a 3.3 V supply sharing our ground, so each input already has a DC return through its own bridge arms and the J1 GND pole. The sizing rule matters only if the source were floating - and it is brutal there: AD8226's own printed value is 10 Mohm (single resistor, Fig.62), but with a single resistor the far input's bias current returns through the 350 ohm source for about 10 uV differential, already past the 5 uV budget. A balanced pair caps R near 3.7 kohm (differential term = Ios*R + Ib*R*mismatch), which then loads a 350 ohm source by about 4.5 pct. Round one's transplanted 47k figure would have cost about 60 uV differential on this part"
+  },
+  {
+   "ts": "2026-08-16T21:10:27",
+   "event": "decision",
+   "what": "P6/P7 input-path rule sharpened to a number: with 0.8 Gohm||2 pF inputs the DC resistance term is dead, and it is CAPACITANCE match that matters - 1 pF of path mismatch gives -119 dB at 1 kHz, 10 pF gives -85 dB at 5 kHz against the part's own 90 dB spec"
+  },
+  {
+   "ts": "2026-08-16T21:10:27",
+   "event": "spawn",
+   "role": "research-second-reader",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-16T21:16:30",
+   "event": "research_closed",
+   "task": "block-inamp-2",
+   "slot": "block:B1",
+   "outcome": "verified",
+   "queue_entry": "2026-08-16-research-task-block-inamp-2-2-verified"
+  },
+  {
+   "ts": "2026-08-16T21:16:31",
+   "event": "promote_note",
+   "record": "inamp-cmrr-over-frequency-and-source-imbalance",
+   "status": "verified after repair",
+   "nits_for_promote_pass": [
+    "envelope_note says 15-36 dB at low frequency where the measured maximum is 34.8 dB - 1.2 dB past the records own +-1 dB tolerance",
+    "it attributes the 5 kHz CMRR ceiling to Table 3 alone, but Table 2 stops there too - the ceiling belongs to the tables, not the characterization",
+    "spans about 48 dB measures 46.9, though it does equal the rounded ladder 144-96"
+   ],
+   "audit_nit": "the disclosed bracket endpoints (878 Hz=109.9, 1289 Hz=107.9) measure 110.5 and 107.3; the asserted 109.4 is the true value but the intermediate steps are loose"
+  },
+  {
+   "ts": "2026-08-16T21:27:58",
+   "event": "research_closed",
+   "task": "interface-in-2",
+   "slot": "interface:in",
+   "outcome": "verified",
+   "queue_entry": "2026-08-16-research-task-interface-in-2-7-verified"
+  },
+  {
+   "ts": "2026-08-16T21:28:31",
+   "event": "decision",
+   "what": "P2 exit coverage passes: exit 0, 2 slots, 0 gaps, all 11 classes provisional. No 'designing under coverage gap' decision is needed"
+  },
+  {
+   "ts": "2026-08-16T21:28:31",
+   "event": "decision",
+   "what": "Research spend: 4 tasks over 2 rounds, all 6 of the per-run budget. Round 1 (13 records) was witnessed by the wrong parts because analog.com was unreachable - 7 refuted. Round 2 (9 records) re-witnessed from the AD8226 itself via an allowlisted Farnell mirror - 9 verified, 9 of 9"
+  },
+  {
+   "ts": "2026-08-16T21:29:20",
+   "event": "human",
+   "checkpoint": "1",
+   "status": "skipped"
+  },
+  {
+   "ts": "2026-08-16T21:29:20",
+   "event": "phase",
+   "phase": "P3",
+   "prev": "P2"
+  },
+  {
+   "ts": "2026-08-16T21:30:33",
+   "event": "spawn",
+   "role": "part-sourcer",
+   "model": "sonnet"
+  },
+  {
+   "ts": "2026-08-16T21:43:28",
+   "event": "spawn",
+   "role": "datasheet-extractor",
+   "model": "sonnet"
+  },
+  {
+   "ts": "2026-08-16T21:43:28",
+   "event": "spawn",
+   "role": "datasheet-extractor",
+   "model": "sonnet"
+  },
+  {
+   "ts": "2026-08-16T21:43:28",
+   "event": "decision",
+   "what": "Connectors J1/J2/J3 are hand-soldered THT (KF128-5.08 family, one-piece board-side body); everything else is JLC-placeable SMT on single-sided top assembly. J1 is a single 3-pole body"
+  },
+  {
+   "ts": "2026-08-16T21:43:28",
+   "event": "decision",
+   "what": "Sourcing risk recorded: the AD8226's only pin- and gain-law-compatible alternate (AD8226BRZ-R7) has 17 pcs in stock - usable once at qty 5, not resupply-safe. AD8227 was rejected as the alternate because its internal gain law differs and would force an RG recalculation. Separately, KF128-5.08's wire window is 22-12 AWG, narrower at the fine end than the 24-16 AWG requirements assumed"
+  },
+  {
+   "ts": "2026-08-16T21:44:43",
+   "event": "p5_todo",
+   "item": "sidecar placement",
+   "detail": "part-sourcer wrote boards/bb-amp/parts/parts.json, but SPEC says constraints.json / decoupling.json / parts.json / schematic resolve from the BOARD dir from P5 onward",
+   "action": "copy or point the sidecars into boards/bb-amp/kicad/ at P5 before running board_init/rules_gen, and re-check before the place gate"
+  },
+  {
+   "ts": "2026-08-16T21:58:20",
+   "event": "decision",
+   "what": "ADDING a series output isolation resistor (R6) between U2B's output and J2, overruling blocks.md B5's 'no series isolation resistor needed'. Value is NOT fixed here: P4 must justify it against OPA2333 Figure 15 and it must be verified by the B4 step bench run with CL=1 nF"
+  },
+  {
+   "ts": "2026-08-16T21:58:21",
+   "event": "decision",
+   "what": "U2A's REF-drive impedance is a SIM item, not a datasheet item: TI gives open-loop output impedance 2 kohm typ but only at f=350 kHz, and states no DC or closed-loop figure. The AD8226 needs its REF driven below 2 ohm"
+  },
+  {
+   "ts": "2026-08-16T21:58:21",
+   "event": "decision",
+   "what": "OPA2333 output swing CONFIRMS the architecture at the worst corner: guaranteed 70 mV max to each rail over temperature at RL=10 k, valid across the whole 1.8-5.5 V range, so at 3.135 V the floor is <=0.070 V and the ceiling >=3.065 V. The design's 0.113 V and 3.037 V clear by 43 mV and 28 mV, with the real >100 kohm load much lighter than the 10 k test condition"
+  },
+  {
+   "ts": "2026-08-16T22:01:32",
+   "event": "decision",
+   "what": "P3 exit coverage passes: exit 0, 4 slots, 0 gaps - the two PART slots (U1 inamp, U2 ref_gain2) read COVERED off the datasheet extractions, and the two block/interface slots read provisional. No further research tasks opened, with 2 of the per-run budget left unspent"
+  },
+  {
+   "ts": "2026-08-16T22:01:33",
+   "event": "decision",
+   "what": "Both datasheet extractions validate: 8 pins each, land patterns present, 10 layout_notes each - well clear of the thin-extraction gap threshold of 2"
+  },
+  {
+   "ts": "2026-08-16T22:01:43",
+   "event": "spawn",
+   "role": "librarian",
+   "model": "sonnet"
+  },
+  {
+   "ts": "2026-08-16T22:03:26",
+   "event": "decision",
+   "what": "SIM BRIEF CORRECTION for P4/P8: bench B1's 'INL <= 0.05 pct FS' window is NOT a datasheet-derived bound. The AD8226's single-supply Table 3 has no Gain Nonlinearity row at all - it exists only in the dual-supply Table 2. Either drop the INL bound, or keep it explicitly as a DESIGN TARGET labelled as such in the bounds sidecar"
+  },
+  {
+   "ts": "2026-08-16T22:03:26",
+   "event": "decision",
+   "what": "Recorded as interpolation, not vendor data: this board runs at G1=39.9, which is not a tabulated point - the AD8226 datasheet gives CMRR and bandwidth only at G=1/10/100/1000. blocks.md's ~45 kHz / ~1.8 MHz GBW figure is an interpolation between table points"
+  },
+  {
+   "ts": "2026-08-16T22:03:27",
+   "event": "decision",
+   "what": "Two further single-supply table limits noted: AD8226 Table 3 characterizes output swing only at RL=10 kohm (no single-supply 100 k row; the dual-supply table's 100 k row is numerically identical), and input offset current at -40 C reads 1 nA in Table 3 versus 2 nA in Table 2 - a genuine table-to-table difference, not a typo. Table 3 is primary because it is our condition"
+  },
+  {
+   "ts": "2026-08-16T22:20:49",
+   "event": "decision",
+   "what": "J2/J3 footprint drill corrected 1.6 mm -> 1.4 mm to match the KF128-5.08 datasheet and J1's already-exact 3-pole pull. The two LCSC catalog entries for one connector family disagreed with each other"
+  },
+  {
+   "ts": "2026-08-16T22:20:49",
+   "event": "decision",
+   "what": "Accepting the U2 SOP-8 pad-size warning (0.63 x 1.865 mm pulled vs TI's recommended 0.6 x 1.55 mm) rather than forcing the vendor land pattern"
+  },
+  {
+   "ts": "2026-08-16T22:20:49",
+   "event": "decision",
+   "what": "U1 SOIC-8 pad size is UNVERIFIED and recorded as an inherited gap: the AD8226 datasheet contains no recommended land-pattern drawing at all, only the JEDEC MS-012-AA package outline, so fp_verify had no number to compare against"
+  },
+  {
+   "ts": "2026-08-16T22:20:49",
+   "event": "p4_p6_carry",
+   "to_P4": "OPA2333 symbol carries V+ (pin 8) and V- (pin 4) on UNIT 1 ONLY, not duplicated on unit 2 - P4 must place unit 1 to get power pins on the sheet. This lines up with blocks.md assigning unit 1 = U2A, the REF buffer, which is placed anyway.",
+   "to_P6": "J1 pad symmetry is guaranteed at the FOOTPRINT level - all 3 poles are byte-identical pad definitions, so IN+ and IN- start from identical metallurgy and geometry. The other half of the thermal-EMF requirement (equal copper-pour thermal environment, no one-sided thermal relief, both poles away from dissipation) is a placement/routing property that no footprint file can guarantee. P6 must honor it explicitly."
+  },
+  {
+   "ts": "2026-08-16T22:23:10",
+   "event": "phase",
+   "phase": "P4",
+   "prev": "P3"
+  },
+  {
+   "ts": "2026-08-16T22:23:36",
+   "event": "decision",
+   "what": "ONE schematic agent for the whole board, not one per sheet"
+  },
+  {
+   "ts": "2026-08-16T22:23:36",
+   "event": "spawn",
+   "role": "schematic-block",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-16T22:23:36",
+   "event": "spawn",
+   "role": "sim-analyst",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-16T22:46:35",
+   "event": "gate",
+   "gate": "erc",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  }
+ ],
+ "mode": {
+  "token": "learning block-basics:",
+  "target": "block-basics",
+  "scope": "block-only",
+  "binding": "canonical",
+  "stage": null,
+  "geometry": "output",
+  "geometry_is_output": true,
+  "excludes": [
+   "protection",
+   "filtering",
+   "indicators",
+   "test-points",
+   "config",
+   "second-rail",
+   "mechanical",
+   "enclosure-fit"
+  ],
+  "requires": [],
+  "stated_size": null,
+  "board_init_outline": "auto",
+  "ts": "2026-08-16T17:25:43"
+ }
+}

@@ -1,0 +1,103 @@
+{
+ "mpn": "OPA2333AIDR",
+ "lcsc": "C38732",
+ "package": "SOIC-8 (TI 'D' package / SO-8, JEDEC MS-012 variation AA; LCSC/JLC catalog field says 'SOP-8' - same physical footprint)",
+ "description": "OPA2333AIDR - dual zero-drift, chopper/auto-zero-stabilized, rail-to-rail input/output CMOS op-amp, SOIC-8. Source PDF title block: 'SBOS351D - MARCH 2006 - REVISED NOVEMBER 2013' (TI OPA333/OPA2333 datasheet). NOTE - REVISION MISMATCH: boards/bb-amp/architecture/blocks.md cites 'TI SBOS351E section 6.6'; the PDF fetched from the URL the orchestrator supplied (the working wmsc.lcsc.com mirror) is Rev D, an older-format datasheet with no numbered sections at all (it uses named headings: FEATURES/DESCRIPTION, ABSOLUTE MAXIMUM RATINGS, ELECTRICAL CHARACTERISTICS, PIN CONFIGURATIONS, TYPICAL CHARACTERISTICS, DETAILED DESCRIPTION, LAYOUT GUIDELINES). However every specific number blocks.md quotes (Vos 10uV max, drift 0.05uV/degC max, 1.8-5.5V, 17uA/channel, GBW 350kHz) matches this Rev D document exactly - so this is very likely a D/E citation typo rather than a real numeric discrepancy. Flagged per extraction rules, not silently reconciled. Key specs, all from ELECTRICAL CHARACTERISTICS (p3, table header: 'VS = +1.8V to +5.5V', conditions TA=+25degC, RL=10kohm to VS/2, VCM=VS/2, VOUT=VS/2 unless noted - i.e. these MIN/TYP/MAX numbers are guaranteed across the WHOLE 1.8-5.5V range, so they cover this board's 3.3V rail directly): Vos 2uV typ / 10uV max (VS=5V); dVos/dT 0.02uV/degC typ / 0.05uV/degC max (-40 to 125degC) - the headline 'zero drift' spec; PSRR 1uV/V typ / 5uV/V max; long-term stability ~1uV (300hr life test at 150degC, footnote 1); channel separation dc 0.1uV/V; Ib +/-70pA typ / +/-200pA max (25degC), +/-150pA typ / +/-400pA max (-40 to 125degC); Ios +/-140pA typ / +/-400pA max; input voltage noise 0.3uVpp (0.01Hz-1Hz band) and 1.1uVpp (0.1Hz-10Hz band) - NOTE the front-page Features bullet says '0.01-Hz to 10-Hz Noise: 1.1uVpp', which mislabels the band (mixes the 0.01Hz lower bound from one row with the 1.1uVpp value that the table and Figure 16's own title both tie to the 0.1-10Hz band) - a source inconsistency, transcribed as found, not corrected; input current noise 100fA/rtHz at f=10Hz; broadband voltage noise density read off Figure 17 (p9, graph only, no tabulated nV/rtHz spec exists) is approximately flat around 55-65nV/rtHz from 1Hz to roughly 1kHz with no visible 1/f corner (consistent with the 'no aliasing or flicker noise' claim, p11) - this is a graph read, treat as approximate, not a datasheet-tabulated number; Vcm (V-)-0.1V to (V+)+0.1V (100mV beyond both rails); CMRR 106dB min / 130dB typ (over (V-)-0.1V < Vcm < (V+)+0.1V, -40 to 125degC); input capacitance 2pF differential / 4pF common-mode; AOL (open-loop gain) 106dB min / 130dB typ ((V-)+100mV < Vo < (V+)-100mV, RL=10k, -40 to 125degC); GBW 350kHz typ (CL=100pF); SR 0.16V/us (G=+1); output voltage swing from rail: 30mV typ / 50mV max (RL=10k, 25degC), 70mV max (RL=10k, -40 to 125degC, no typ given for this row); Isc (short-circuit current) +/-5mA typ, no max stated in this table (the ABSOLUTE MAXIMUM table separately allows continuous short-circuit to ground, one amplifier per package); capacitive load drive: table says 'See Typical Characteristics' - see layout_notes for Figure 15; open-loop output impedance 2kohm typ at f=350kHz (near/at the GBW corner - an OPEN-LOOP number, not DC and not closed-loop, see OPEN in the agent's final report); IQ 17uA typ / 25uA max per amplifier (Io=0A, 25degC), 28uA max (-40 to 125degC); turn-on time 100us typ (VS=+5V). Auto-zero mechanism (p11): internal time-continuous 350kHz op amp in the signal path, 'zero-corrected every 8us using a proprietary technique' (1/8us = 125kHz correction rate - DERIVED by this extractor, not a number the datasheet states directly). No exposed pad on the D or DGK packages (only the DRB/DFN-8/SON-8 variant has one, must connect to V-) - confirmed on the p5 pin-configuration diagram. Both halves of this dual are used on this board (parts.json): one wired as a unity-gain buffer for the 0.252V REF/pedestal node (U2A), one as the non-inverting G=3.49 second gain stage (U2B) with its gain-set resistor returned to /VREF rather than GND.",
+ "pinout": [
+  {
+   "pin": "1",
+   "name": "OUT A",
+   "type": "output",
+   "notes": "Output of amplifier A. p5 pin-configuration diagram, 'D AND DGK PACKAGES / SO-8 AND MSOP-8 (VSSOP-8) (TOP VIEW)'."
+  },
+  {
+   "pin": "2",
+   "name": "-IN A",
+   "type": "input",
+   "notes": "Inverting input, amplifier A."
+  },
+  {
+   "pin": "3",
+   "name": "+IN A",
+   "type": "input",
+   "notes": "Noninverting input, amplifier A."
+  },
+  {
+   "pin": "4",
+   "name": "V-",
+   "type": "power_in",
+   "notes": "Negative supply pin. Tied to board GND in this board's single 3.3V-rail application. Decoupling (p15 LAYOUT GUIDELINES): the datasheet's 0.1uF cap should sit directly across this pin and V+ (pin 8) as a short loop, not just be placed near pin 8 alone."
+  },
+  {
+   "pin": "5",
+   "name": "+IN B",
+   "type": "input",
+   "notes": "Noninverting input, amplifier B."
+  },
+  {
+   "pin": "6",
+   "name": "-IN B",
+   "type": "input",
+   "notes": "Inverting input, amplifier B."
+  },
+  {
+   "pin": "7",
+   "name": "OUT B",
+   "type": "output",
+   "notes": "Output of amplifier B."
+  },
+  {
+   "pin": "8",
+   "name": "V+",
+   "type": "power_in",
+   "notes": "Positive supply pin, +3V3 in this application. See the decoupling entry and layout_notes for placement guidance (p15)."
+  }
+ ],
+ "decoupling": [
+  {
+   "pins": ["4", "8"],
+   "value": "0.1 uF (100 nF) ceramic",
+   "placement": "Placed closely ACROSS the supply pins - i.e. a short loop directly between V+ (pin 8) and V- (pin 4) - not merely a cap dropped near pin 8 alone.",
+   "notes": "p15 LAYOUT GUIDELINES, verbatim: 'Place a 0.1-uF capacitor closely across the supply pins.' No separate bulk-capacitor value or count is stated anywhere in this datasheet for the D/DGK packages; general guidance on the same page: 'Keep traces short and when possible, use a printed circuit board (PCB) ground plane with surface-mount components placed as close to the device pins as possible.'"
+  }
+ ],
+ "land_pattern": {
+  "package": "SOIC-8 (TI D package, R-PDSO-G8, JEDEC MS-012 variation AA)",
+  "pad_count": 8,
+  "pitch_mm": 1.27,
+  "pad_size_mm": [0.60, 1.55],
+  "row_spacing_mm": 5.40,
+  "pin1": "1",
+  "notes": "From the 'D (R-PDSO-G8) LAND PATTERN DATA' page (mechanical dwg doc 421283-x): recommended board-layout pad 0.60mm x 1.55mm at 1.27mm pitch, pad-row centroid-to-centroid span 5.40mm, solder mask opening 0.07mm expansion all-around beyond the pad ('Customers should contact their board fabrication site for solder mask tolerances'). A separate stencil-opening drawing is given for a 0.127mm (5 mil) stencil thickness on the same page - not used directly for the copper/mask footprint. Package body, from the preceding 'D (R-PDSO-G8) MECHANICAL DATA' page: body 5.00/4.80mm x 4.00/3.80mm (mold flash excluded), outer lead-tip span 6.20/5.80mm, 1.75mm max body height, 0 to 8 degree lead foot angle, JEDEC MS-012 variation AA (stated explicitly on that page). No courtyard_excess_mm is stated by the datasheet (that is an IPC/EDA-tool convention, not a vendor spec) - left out per extraction rules; the footprint tool's own default applies."
+ },
+ "exposed_pad": {
+  "present": false
+ },
+ "layout_notes": [
+  "[p15] GENERAL LAYOUT: 'Attention to good layout practices is always recommended. Keep traces short and when possible, use a printed circuit board (PCB) ground plane with surface-mount components placed as close to the device pins as possible.'",
+  "[p15] DECOUPLING: 'Place a 0.1-uF capacitor closely across the supply pins.' Read literally this means a short loop directly between V+ (pin 8) and V- (pin 4), not just a cap placed near pin 8 alone.",
+  "[p15] RFI/EMI: the OPA333 series is 'specifically designed to minimize susceptibility to RFI' and 'demonstrates remarkably low sensitivity compared to previous generation devices.' RFI shows up AS a shifting offset voltage / dc level tracking the interfering RF signal - 'Strong RF fields may still cause varying offset levels.'",
+  "[p10] THERMAL EMF (Seebeck), DETAILED DESCRIPTION section, verbatim: 'Avoid temperature gradients that create thermoelectric (Seebeck) effects in the thermocouple junctions formed from connecting dissimilar conductors. Cancel these thermally-generated potentials by assuring they are equal on both input terminals.' Guidance given: use low thermoelectric-coefficient conditions (avoid dissimilar metals); thermally isolate components from power supplies or other heat sources; shield the op amp and input circuitry from air currents such as cooling fans. Unequal junction temperatures 'can cause thermoelectric voltages of 0.1 uV/degC or higher, depending on materials used.' This matters here because the part's OWN drift spec (0.05 uV/degC max) is small enough that an unmanaged board thermal gradient across U2's package can exceed the IC's own drift budget by itself.",
+  "[p5] PACKAGE-SPECIFIC: only the DRB (DFN-8/SON-8, 3x3mm) variant of this part has an exposed thermal die pad (must connect to V-, per that package's own pin-configuration footnote, and needs soldered thermal vias per its separate land-pattern page). The D (SOIC-8) and DGK (MSOP-8) packages shown on the same page have NO exposed pad. This board uses D (SOIC-8), so no exposed-pad or thermal-via footprint feature applies - confirms exposed_pad.present=false above.",
+  "[p5] A and B halves are drawn as electrically identical and interchangeable on the pin-configuration diagram; which physical half is wired as the REF buffer (U2A) vs the G=3.49 second gain stage (U2B) per blocks.md/parts.json is a P4 schematic decision, not something this datasheet fixes.",
+  "[p11] AUTO-ZERO / CHOP, INTERNAL OFFSET CORRECTION section, verbatim: 'The OPA333 and OPA2333 op amps use an auto-calibration technique with a time-continuous, 350-kHz op amp in the signal path. This amplifier is zero-corrected every 8 us using a proprietary technique. Upon power-up, the amplifier requires approximately 100 us to achieve specified VOS accuracy. This design has no aliasing or flicker noise.' The datasheet states NO ripple or intermodulation warning at the chop/correction rate - on the contrary it explicitly claims the opposite ('no aliasing or flicker noise') as a benefit. Nothing on any read page warns about the chop clock coupling into nearby circuitry.",
+  "[p9, Figure 15] CAPACITIVE LOAD: the ELECTRICAL CHARACTERISTICS table's 'Capacitive load drive' row says only 'See Typical Characteristics.' Figure 15 ('SMALL-SIGNAL OVERSHOOT vs LOAD CAPACITANCE', CL from 10pF to 1000pF on a log axis) shows overshoot staying low (roughly 0-5%) up to about 100-200pF, then rising steeply, reaching roughly the mid-30s percent by CL=1000pF (1nF). The exact gain/RL test condition for this specific figure is not labeled on the page itself (only the page-level note 'TA=25degC, VS=+5V, CL=0pF unless otherwise noted' applies, which by definition does not fix the varied CL axis's other conditions). FLAG: this board's J2 output may see up to about 1nF of cable (requirements.md Q8; blocks.md B5 rules out a series isolation resistor on the grounds that it is 'conditioning the data sheet does not require'). Figure 15 suggests meaningful peaking/overshoot risk at a 1nF load - recorded as a datasheet-vs-architecture tension per extraction rules, not silently resolved.",
+  "[p2, p10] INPUT PROTECTION: input terminals are diode-clamped to the supply rails (abs-max footnote 2); input signals swinging more than 0.3V beyond the rails should be current-limited to <=10mA - Figure 18 (p10) shows a 5kohm series resistor as the suggested fix. Not specifically implicated in this board's normal operation (U2's inputs are driven from the R2/R3 divider and the U1/U2B feedback network, all within-rail in normal operation) but relevant to any fault-condition review.",
+  "[p3] OPEN-LOOP OUTPUT IMPEDANCE: 2kohm typ, stated at f=350kHz (i.e. near/at the GBW corner) - an OPEN-LOOP figure, not the closed-loop (fed-back) output impedance. The datasheet does not directly state a DC or low-frequency open-loop output impedance, nor a closed-loop/unity-buffer output impedance - see this agent's OPEN item on the REF-pin source-impedance requirement."
+ ],
+ "abs_max": [
+  {"param": "Supply voltage (absolute max, p2)", "value": 7, "unit": "V"},
+  {"param": "Signal input terminal voltage (absolute max, p2; inputs are diode-clamped to the supply rails, footnote 2)", "value": "-0.3 to (V+)+0.3", "unit": "V"},
+  {"param": "Signal input terminal current (absolute max, p2; applies once an input exceeds the rails by >=0.3V - external current-limit resistor required, see p10 Figure 18)", "value": "+/-10", "unit": "mA"},
+  {"param": "Output short-circuit rating (p2; short-circuit to GND, continuous duration allowed, one amplifier per package, footnote 3 - this is a DURATION allowance, not a current limit; see Isc=+/-5mA typ in ELECTRICAL CHARACTERISTICS, p3)", "value": "Continuous", "unit": "mA"},
+  {"param": "Operating temperature, TA (absolute max, p2; matches the separate 'Operating range' row in the p3 ELECTRICAL CHARACTERISTICS TEMPERATURE section)", "value": "-40 to +150", "unit": "C"},
+  {"param": "Storage temperature, Tstg (absolute max, p2 and p3)", "value": "-65 to +150", "unit": "C"},
+  {"param": "Junction temperature, TJ (absolute max, p2)", "value": 150, "unit": "C"},
+  {"param": "ESD rating - Human Body Model (HBM) (p2)", "value": 4000, "unit": "V"},
+  {"param": "ESD rating - Charged Device Model (CDM) (p2)", "value": 1000, "unit": "V"},
+  {"param": "ESD rating - Machine Model (MM) (p2)", "value": 400, "unit": "V"},
+  {"param": "Specified supply voltage range (p3 ELECTRICAL CHARACTERISTICS table header - NOT a destructive limit; this is the guaranteed operating range the table's MIN/TYP/MAX numbers apply across, and it covers this board's 3.3V rail directly)", "value": "1.8 to 5.5", "unit": "V"},
+  {"param": "Specified temperature range, TA (p3 ELECTRICAL CHARACTERISTICS 'Specified range' row - NOT a destructive limit; guarantees the tabulated MIN/TYP/MAX specs, tighter than the -40/+150 operating/abs-max range above)", "value": "-40 to +125", "unit": "C"}
+ ],
+ "source_pdf": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1809200040_Texas-Instruments-OPA2333AIDR_C38732.pdf (TI SBOS351D, fetched 2026-08-16; local working copy kept under system temp, not the workspace)"
+}

@@ -1,0 +1,55 @@
+id: in-bias-current-return-path
+classes: [return-path]
+applies:
+  topologies: []
+  packages: []
+  interfaces: [in]
+  parts: []
+rule:
+  enforced_by: null
+  requires: "a DC path from BOTH inputs to the amplifier's own ground reference"
+  legal_forms: "source already referenced to that ground (third wire); source centre tap; one resistor to ground for a low differential source resistance; two equal resistors otherwise"
+  failure_mode: "inputs drift past the input common-mode range and the input stage saturates - the output is wrong regardless of the differential signal"
+  scope: "datasheet requirement for correct operation, not conditioning or protection"
+prose: >-
+  An instrumentation amplifier presents an effectively infinite input
+  impedance (INA333: approximately 100 Gohm) and still draws a small input
+  bias current. If the source gives that current no DC path to the
+  amplifier's ground, it has nowhere to go: "Without a bias current path,
+  the inputs float to a potential that exceeds the common-mode range of the
+  INA333 device, and the input amplifiers will saturate." The output then
+  sits wrong - typically parked near a rail - however good the differential
+  signal is, and no downstream calibration recovers it. Figure 34 draws the
+  three legal forms and I read all three: a floating source (microphone /
+  hydrophone) with TWO equal 47 kohm resistors, one from each input down to
+  a common ground node; a thermocouple with a SINGLE 10 kohm resistor from
+  one input to ground; and a transformer-coupled source whose secondary
+  centre tap is grounded, annotated "Center tap provides bias current
+  return". A source that is already referenced to the amplifier's ground -
+  a bridge whose excitation return shares this board's ground and is
+  brought in as a third conductor - IS the return path, and needs no added
+  resistors. This is a requirement for correct operation stated by the
+  device data sheet, not signal conditioning: it survives every scope
+  reduction, and its absence is the classic way this circuit class fails.
+sources:
+  - file: research/sources/ina333.pdf
+    page: 16
+    section: "8.2.2.5 Input Bias Current Return Path"
+    note: >-
+      Read: the requirement and its failure mode in the vendor's words -
+      100 Gohm input impedance, Ib typ +-70 pA, "a path must be provided
+      for the input bias current of both inputs", and the saturation
+      sentence quoted in prose.
+  - file: research/sources/ina333.pdf
+    page: 17
+    section: "Figure 34, Providing an Input Common-Mode Current Path"
+    note: >-
+      Read the figure: three stacked sub-circuits - floating source with a
+      matched 47 kohm/47 kohm pair to ground, thermocouple with one 10 kohm
+      to ground, transformer with a grounded centre tap labelled "Center
+      tap provides bias current return".
+status: draft
+origin: research:interface-in-1
+level: principle
+maturity: draft
+generalizes: []

@@ -1,0 +1,368 @@
+{
+ "script": "datasheet_extract",
+ "status": "extracted",
+ "source_pdf": "boards\\bb-amp\\research\\sources\\2168367.pdf",
+ "lcsc": "C34250",
+ "n_pages": 29,
+ "text_chars": 49735,
+ "pages_trimmed": 19,
+ "text_by_page": [
+  {
+   "page": 0,
+   "text": " \nWide Supply Range, Rail-to-Rail \nOutput Instrumentation Amplifier\nData Sheet AD8226\n \n \nRev. C Document Feedback \nInformation furnished by Analog Devices is believed to be accurate and reliable. However, no \nresponsibility is assumed by Analog Devices for its use, nor for any infringements of patents or other \nrights of third parties that may result from its use. Specifications subject to change without notice. No \nlicense is granted by implication or otherwise under any patent or patent rights of Analog Devices. \nTrademarks and registered trademarks are the property of their respective owners. \n  \n \nOne Technology Way, P.O. Box 9106, Norwood, MA 02062-9106, U.S.A.\nTel: 781.329.4700 \u00a92009\u20132012 Analog Devices, Inc. All rights reserved. \nTechnical Support www.analog.com  \nFEATURES \nGain set with 1 external resistor  \nGain range: 1 to 1000 \nInput voltage goes below ground \nInputs protected beyond supplies \nVery wide power supply range \nSingle supply: 2.2 V to 36 V \nDual supplies: \u00b11.35 V to \u00b118 V \nBandwidth (G = 1): 1.5 MHz \nCMRR (G = 1): 90 dB minimum for BR models \nInput noise: 22 nV/\u221aHz \nTypical supply current: 350 \u03bcA \nSpecified temperature: \u221240\u00b0C to +125\u00b0C \n8-lead SOIC and MSOP packages \nAPPLICATIONS \nIndustrial process controls \nBridge amplifiers \nMedical instrumentation \nPortable data acquisition \nMultichannel systems \nPIN CONFIGURATION \nTOP VIEW\n(Not to Scale)\n07036-001\n\u2013IN 1\nRG 2\nRG 3\n+IN 4\n+VS8\nVOUT7\nREF6\n\u2013VS5\nAD8226\n \nFigure 1.  \n \nTable 1. Instrumentation Amplifiers by Category1 \nGeneral  \nPurpose \nZero  \nDrift \nMilitary  \nGrade \nLow  \nPower \nHigh Speed \nPGA \nAD8220 AD8231 AD620 AD627 AD8250 \nAD8221 AD8290 AD621 AD623 AD8251 \nAD8222 AD8293 AD524 AD8223 AD8253 \nAD8224 AD8553 AD526 AD8226   \nAD8228 AD8556 AD624 AD8227  \nAD8295 AD8557  AD8235/\nAD8236 \n \n \n1 Visit www.analog.com for the latest instrumentation amplifiers. \n \nGENERAL DESCRIPTION \nThe AD8226 is a low cost, wide supply range instrumentation \namplifier that requires only one external resistor to set any gain \nbetween 1 and 1000.  \nThe AD8226 is designed to work with a variety of signal \nvoltages. A wide input range and rail-to-rail output allow the \nsignal to make full use of the supply rails. Because the input \nrange also includes the ability to go below the negative supply, \nsmall signals near ground can be amplified without requiring dual \nsupplies. The AD8226 operates on supplies ranging from \u00b11.35 V \nto \u00b118 V for dual supplies and 2.2 V to 36 V for single supply.  \nThe robust AD8226 inputs are designed to connect to real-\nworld sensors. In addition to its wide operating range, the  \nAD8226 can handle voltages beyond the rails. For example,  \nwith a \u00b15 V supply, the part is guaranteed to withstand \u00b135 V  \nat the input with no damage. Minimum as well as maximum \ninput bias currents are specified to facilitate open wire detection. \nThe AD8226 is perfect for multichannel, space-constrained \nindustrial applications. Unlike other low cost, low power \ninstrumentation amplifiers, the AD8226 is designed with  \na minimum gain of 1 and can easily handle \u00b110 V signals.  \nWith its MSOP package and 125\u00b0C temperature rating, the \nAD8226 thrives in tightly packed, zero airflow designs.  \nThe AD8226 is available in 8-lead MSOP and SOIC packages, \nand is fully specified for \u221240\u00b0C to +125\u00b0C operation. \nFor a device with a similar package and performance as the \nAD8226 but with gain settable from 5 to 1000, consider using \nthe AD8227. \n "
+  },
+  {
+   "page": 1,
+   "first_line": "AD8226* Product Page Quick Links",
+   "chars": 1507
+  },
+  {
+   "page": 2,
+   "text": "AD8226 Data Sheet \n \nRev. C | Page 2 of 28 \nTABLE OF CONTENTS \nFeatures .............................................................................................. 1 \nApplications ....................................................................................... 1 \nPin Configuration ............................................................................. 1 \nGeneral Description ......................................................................... 1 \nRevision History ............................................................................... 2 \nSpecifications ..................................................................................... 3 \nAbsolute Maximum Ratings ............................................................ 7 \nThermal Resistance ...................................................................... 7 \nESD Caution .................................................................................. 7 \nPin Configuration and Function Descriptions ............................. 8 \nTypical Performance Characteristics ............................................. 9 \nTheory of Operation ...................................................................... 19 \nArchitecture ................................................................................. 19 \nGain Selection ............................................................................. 19 \nReference Terminal .................................................................... 20 \nInput Voltage Range ................................................................... 20 \nLayout .......................................................................................... 20 \nInput Bias Current Return Path ............................................... 21 \nInput Protection ......................................................................... 22 \nRadio Frequency Interference (RFI) ........................................ 22 \nApplications Information .............................................................. 23 \nDifferential Drive ....................................................................... 23 \nPrecision Strain Gage ................................................................. 24 \nDriving an ADC ......................................................................... 24 \nOutline Dimensions ....................................................................... 25 \nOrdering Guide .......................................................................... 25 \n \nREVISION HISTORY \n9/12\u2014Rev. B to Rev. C \nChanges to CMRR, Voltage Offset, Input Offset Current, and \nGain Error Parameters, Table 2....................................................... 3 \nChanges to CMRR, Voltage Offset, and Input Offset Current \nParameters, Table 2 ........................................................................... 5 \n3/11\u2014Rev. A to Rev. B \nAdded AD8235/AD8236 to Table 1 ............................................... 1 \nChanges to Endnote 1, Table 2 ........................................................ 4 \nChange Endnote 2 Placement in Total Noise Equation, Table 3 ...... 5 \nAdded G > 1 BRZ, BRMZ Max Parameter .................................... 6 \nChanges to Endnote 1, Table 3 ........................................................ 6 \nChanges to Figure 18 ...................................................................... 11 \nChanges to Figure 37 ...................................................................... 14 \nChanges to Figure 42 ...................................................................... 15 \nUpdated Outline Dimensions ....................................................... 25 \n \n7/09\u2014Rev. 0 to Rev. A \nAdded BRZ and BRM Models .......................................... Universal \nChanges to Features Section ............................................................ 1 \nChanges to Table 1 ............................................................................. 1 \nChanges to General Description Section ....................................... 1 \nChanges to Gain vs. Temperature Parameter, Output Parameter,  \nand Operating Range Parameter, Table 2 ........................................... 4 \nChanges to Common-Mode Rejection Ratio (CMRR) Parameter  \nand to Input Offset, VOSO, Average Temperature Coefficient  \nParameter, Table 3 ......................................................................... 5 \nChanges to Gain vs. Temperature Parameter, Table 3 .................. 6 \nChanges to Gain Selection Section .............................................. 19 \nChanges to Reference Terminal Section and Input Voltage  \nRange Section.............................................................................. 20 \nChanges to Ordering Guide .......................................................... 25 \n1/09\u2014Revision 0: Initial Version \n \n \n "
+  },
+  {
+   "page": 3,
+   "first_line": "Data Sheet AD8226",
+   "chars": 2157
+  },
+  {
+   "page": 4,
+   "first_line": "AD8226 Data Sheet",
+   "chars": 2501
+  },
+  {
+   "page": 5,
+   "first_line": "Data Sheet AD8226",
+   "chars": 2095
+  },
+  {
+   "page": 6,
+   "first_line": "AD8226 Data Sheet",
+   "chars": 2012
+  },
+  {
+   "page": 7,
+   "text": "Data Sheet AD8226 \n \nRev. C | Page 7 of 28 \nABSOLUTE MAXIMUM RATINGS \nTable 4. \nParameter Rating \nSupply Voltage \u00b118 V \nOutput Short-Circuit Current Indefinite \nMaximum Voltage at \u2212IN or +IN \u2212VS + 40 V \nMinimum Voltage at \u2212IN or +IN +VS \u2212 40 V \nREF Voltage \u00b1VS \nStorage Temperature Range \u221265\u00b0C to +150\u00b0C \nSpecified Temperature Range \u221240\u00b0C to +125\u00b0C \nMaximum Junction Temperature 140\u00b0C \nESD  \nHuman Body Model 1.5 kV \nCharge Device Model 1.5 kV \nMachine Model 100 V \n \nStresses above those listed under Absolute Maximum Ratings \nmay cause permanent damage to the device. This is a stress \nrating only; functional operation of the device at these or any \nother conditions above those indicated in the operational \nsection of this specification is not implied. Exposure to absolute \nmaximum rating conditions for extended periods may affect \ndevice reliability. \nTHERMAL RESISTANCE \n\u03b8JA is specified for a device in free air. \nTable 5. Thermal Resistance \nPackage \u03b8JA Unit \n8-Lead MSOP , 4-Layer JEDEC Board 135 \u00b0C/W \n8-Lead SOIC, 4-Layer JEDEC Board 121 \u00b0C/W \n \nESD CAUTION \n \n \n \n \n \n "
+  },
+  {
+   "page": 8,
+   "text": "AD8226 Data Sheet \n \nRev. C | Page 8 of 28 \nPIN CONFIGURATION AND FUNCTION DESCRIPTIONS \n \nTOP VIEW\n(Not to Scale)\n07036-002\n\u2013IN 1\nRG 2\nRG 3\n+IN 4\n+VS8\nVOUT7\nREF6\n\u2013VS5\nAD8226\n \nFigure 2. Pin Configuration \n \nTable 6. Pin Function Descriptions \nPin No. Mnemonic Description \n1 \u2212IN Negative Input. \n2, 3 RG Gain-Setting Pins. Place a gain resistor between these two pins. \n4 +IN Positive Input.  \n5 \u2212VS Negative Supply. \n6 REF Reference. This pin must be driven by low impedance. \n7 VOUT Output.  \n8 +VS Positive Supply. \n \n "
+  },
+  {
+   "page": 9,
+   "text": "Data Sheet AD8226 \n \nRev. C | Page 9 of 28 \nTYPICAL PERFORMANCE CHARACTERISTICS \nT = 25\u00b0C, VS = \u00b115 V , RL = 10 k\u2126, unless otherwise noted. \n160\n140\n120\n100\n80\n60\n40\n20\n0\n\u2013900 \u2013600 \u2013300 0 300 600 900\nVOSO @ \u00b115V (\u00b5V)\nHITS\n07036-031\nN: 2203\nMEAN: 35.7649\nSD: 229.378\n \nFigure 3. Typical Distribution of Output Offset Voltage \n240\n210\n180\n150\n120\n90\n60\n30\n0\n\u20139 \u20136 \u20133 0 3 6 9\nVOSO DRIFT (\u00b5V)\nHITS\n07036-032\nMEAN: \u20130.57\nSD: 1.5762\n \nFigure 4. Typical Distribution of Output Offset Voltage Drift  \n350\n300\n250\n200\n150\n100\n50\n0\n\u2013400 \u2013200 0 200 400\nVOSI @ RG PINS @  \u00b115V (\u00b5V)\nHITS\n07036-033\nMEAN: \u20133.67283\nSD: 51.1\n \nFigure 5. Typical Distribution of Input Offset Voltage  \n250\n200\n150\n100\n50\n0\n\u20131.2 \u20130.9 \u20130.6 \u20130.3 0 0.3 0.6 0.9 1.2\nVOSI DRIFT (\u00b5V)\nHITS\n07036-034\nMEAN: 0.041\nSD: 0.224\n \nFigure 6. Typical Distribution of Input Offset Voltage Drift, G = 100 \n180\n150\n120\n90\n30\n60\n0\n18 20 22 24 26\nPOSITIVE IBIAS CURRENT @ \u00b115V  (nA)\nHITS\n07036-035\nMEAN: 21.5589\nSD: 0.624\n \nFigure 7. Typical Distribution of Input Bias Current  \n300\n250\n200\n150\n100\n50\n0\n\u20130.9 \u20130.6 \u20130.3 0 0.3 0.6 0.9\nVOSI @ \u00b115V (nA)\nHITS\n07036-036\nMEAN: 0.003\nSD: 0.075\n \nFigure 8. Typical Distribution of Input Offset Current "
+  },
+  {
+   "page": 10,
+   "first_line": "AD8226 Data Sheet",
+   "chars": 1998
+  },
+  {
+   "page": 11,
+   "first_line": "Data Sheet AD8226",
+   "chars": 2111
+  },
+  {
+   "page": 12,
+   "first_line": "AD8226 Data Sheet",
+   "chars": 1239
+  },
+  {
+   "page": 13,
+   "first_line": "Data Sheet AD8226",
+   "chars": 1386
+  },
+  {
+   "page": 14,
+   "first_line": "AD8226 Data Sheet",
+   "chars": 1380
+  },
+  {
+   "page": 15,
+   "first_line": "Data Sheet AD8226",
+   "chars": 992
+  },
+  {
+   "page": 16,
+   "first_line": "AD8226 Data Sheet",
+   "chars": 942
+  },
+  {
+   "page": 17,
+   "first_line": "Data Sheet AD8226",
+   "chars": 436
+  },
+  {
+   "page": 18,
+   "first_line": "AD8226 Data Sheet",
+   "chars": 539
+  },
+  {
+   "page": 19,
+   "text": "Data Sheet AD8226\n \nRev. C | Page 19 of 28 \nTHEORY OF OPERATION \nA3\nR2\n24.7k\u2126\nR1\n24.7k\u2126\nA1 A2 Q2Q1 \u2013IN+IN\n+VS\n\u2013VS\nR3\n50k\u2126\nR4\n50k\u2126\nR5\n50k\u2126\nRBRB\n+VS\n\u2013VS\nVOUT\nREF\n07036-003\nNODE 1\nNODE 2\nRG\nVBIAS\n+VS\n\u2013VS\n+VS\n\u2013VS\nNODE 4NODE 3\nR6\n50k\u2126\nDIFFERENCE\nAMPLIFIER STAGEGAIN STAGE\nESD AND\nOVERVOLTAGE\nPROTECTION\nESD AND\nOVERVOLTAGE\nPROTECTION\n\u2013VS\n \nFigure 58. Simplified Schematic \n \nARCHITECTURE \nThe AD8226 is based on the classic 3-op-amp topology. This \ntopology has two stages: a preamplifier to provide differential \namplification, followed by a difference amplifier to remove the \ncommon-mode voltage. Figure 58 shows a simplified schematic \nof the AD8226.  \nThe first stage works as follows: in order to maintain a constant \nvoltage across the bias resistor R\nB, A1 must keep Node 3 a con-\nstant diode drop above the positive input voltage. Similarly, A2 \nkeeps Node 4 at a constant diode drop above the negative input \nvoltage. Therefore, a replica of the differential input voltage is \nplaced across the gain-setting resistor, R\nG. The current that  \nflows across this resistance must also flow through the R1  \nand R2 resistors, creating a gained differential signal between \nthe A2 and A1 outputs. Note that, in addition to a gained \ndifferential signal, the original common-mode signal, shifted  \na diode drop up, is also still present. \nThe second stage is a difference amplifier, composed of A3 and \nfour 50 k\u03a9 resistors. The purpose of this stage is to remove the \ncommon-mode signal from the amplified differential signal. \nThe transfer function of the AD8226 is  \nV\nOUT = G(VIN+ \u2212 VIN\u2212) + VREF \nwhere: \nGRG k\u03a949.41\uf02b \uf03d  \nGAIN SELECTION \nPlacing a resistor across the RG terminals sets the gain of the \nAD8226, which can be calculated by referring to Table 7 or by \nusing the following gain equation: \n1\nk\u03a949.4\n\uf02d\uf03d GRG  \nTable 7. Gains Achieved Using 1% Resistors \n1% Standard Table Value of RG (\u03a9) Calculated Gain \n49.9 k 1.990 \n12.4 k 4.984 \n5.49 k 9.998 \n2.61 k 19.93 \n1.00 k 50.40 \n499 100.0 \n249 199.4 \n100 495.0 \n49.9 991.0 \n \nThe AD8226 defaults to G = 1 when no gain resistor is used. \nThe tolerance and gain drift of the RG resistor should be added \nto the AD8226 specifications to determine the total gain accu-\nracy of the system. When the gain resistor is not used, gain \nerror and gain drift are minimal. \nIf a gain of 5 is required and minimal gain drift is important, \nconsider using the AD8227. The AD8227 has a default gain of 5 \nthat is set with internal resistors. Because all resistors are internal, \nthe gain drift is extremely low (<5 ppm/\u00b0C maximum). "
+  },
+  {
+   "page": 20,
+   "text": "AD8226 Data Sheet \n \nRev. C | Page 20 of 28 \nREFERENCE TERMINAL \nThe output voltage of the AD8226 is developed with respect to \nthe potential on the reference terminal. This is useful when the \noutput signal needs to be offset to a precise midsupply level. For \nexample, a voltage source can be tied to the REF pin to level-\nshift the output so that the AD8226 can drive a single-supply \nADC. The REF pin is protected with ESD diodes and should \nnot exceed either +V\nS or \u2212VS by more than 0.3 V . \nFor the best performance, source impedance to the REF \nterminal should be kept below 2 \u2126. As shown in Figure 58,  \nthe reference terminal, REF , is at one end of a 50 k\u03a9 resistor. \nAdditional impedance at the REF terminal adds to this 50 k\u03a9 \nresistor and results in amplification of the signal connected to \nthe positive input. The amplification from the additional R\nREF \ncan be computed by 2(50 k\u03a9 + RREF)/(100 k\u03a9 + RREF).  \nOnly the positive signal path is amplified; the negative path  \nis unaffected. This uneven amplification degrades CMRR. \nINCORRECT\nV\nCORRECT\nAD8226\nOP1177\n+\n\u2013\nV\n07036-004\nREF\nAD8226\nREF\n \nFigure 59. Driving the Reference Pin \nINPUT VOLTAGE RANGE \nFigure 9 through Figure 15 and Figure 18 show the allowable \ncommon-mode input voltage ranges for various output voltages \nand supply voltages. The 3-op-amp architecture of the AD8226 \napplies gain in the first stage before removing common-mode \nvoltage with the difference amplifier stage. Internal nodes between \nthe first and second stages (Node 1 and Node 2 in Figure 58) \nexperience a combination of a gained signal, a common-mode \nsignal, and a diode drop. This combined signal can be limited \nby the voltage supplies even when the individual input and \noutput signals are not limited.  \nFor most applications, Figure 9 through Figure 15 and Figure 18 \nprovide sufficient information to achieve a good design. For \napplications where a more detailed understanding is needed, \nEquation 1 to Equation 3 can be used to understand how the \ngain (G), common-mode input voltage (V\nCM), differential input \nvoltage (VDIFF), and reference voltage (VREF) interact. The values for \nthe constants, V\u2212LIMIT, V+LIMIT, and VREF_LIMIT, are shown in Table 8. \nThese three formulas, along with the input and output range \nspecifications in Table 2 and Table 3, set the operating boundaries \nof the part.  \n \n \nLIMITS\nDIFF\nCM VVGVV \u2212+\u2212>\u2212 2\n))((  (1) \nLIMITS\nDIFF\nCM VVGVV +\u2212+<+ 2\n))((  (2) \nLIMITREFS\nREFCM\nDIFF\nVV\nVVGV\n_2\n2\n))((\n\u2212+<\n++\n (3) \nTable 8. Input Voltage Range Constants for Various \nTemperatures \nTemperature V\u2212LIMIT V+LIMIT VREF_LIMIT \n\u221240\u00b0C \u22120.55 V 0.8 V 1.3 V \n+25\u00b0C \u22120.35 V 0.7 V 1.15 V \n+85\u00b0C \u22120.15 V 0.65 V 1.05 V \n+125\u00b0C \u22120.05 V 0.6 V 0.9 V \n \nPerformance Across Temperature \nThe common-mode input range shifts upward with temper-\nature. At cold temperatures, the part requires extra headroom \nfrom the positive supply, and operation near the negative supply \nhas more margin. Conversely, hot temperatures require less \nheadroom from the positive supply, but are the worst-case \nconditions for input voltages near the negative supply.  \nRecommendation for Best Performance \nA typical part functions up to the boundaries described in this \nsection. However, for best performance, designing with a few \nhundred millivolts extra margin is recommended. As signals \napproach the boundary, internal transistors begin to saturate, \nwhich can affect frequency and linearity performance.  \nIf the application requirements exceed the boundaries, one \nsolution is to apply less gain with the AD8226, and then apply \nadditional gain later in the signal chain. Another option is to \nuse the pin-compatible AD8227. \nLAYOUT \nTo ensure optimum performance of the AD8226 at the PCB \nlevel, care must be taken in the design of the board layout.  \nThe AD8226 pins are arranged in a logical manner to aid in  \nthis task. \n8\n7\n6\n5\n1\n2\n3\n4\n\u2013IN\nRG\nRG\n+VS\nVOUT\nREF\n\u2013VS+IN\nTOP VIEW\n(Not to Scale)\nAD8226\n07036-005 \nFigure 60. Pinout Diagram  "
+  },
+  {
+   "page": 21,
+   "text": "Data Sheet AD8226\n \nRev. C | Page 21 of 28 \nCommon-Mode Rejection Ratio Over Frequency \nPoor layout can cause some of the common-mode signals to be \nconverted to differential signals before reaching the in-amp. \nSuch conversions occur when one input path has a frequency \nresponse that is different from the other. To keep CMRR across \nfrequency high, the input source impedance and capacitance of \neach path should be closely matched. Additional source resistance \nin the input path (for example, for input protection) should be \nplaced close to the in-amp inputs, which minimizes their \ninteraction with parasitic capacitance from the PCB traces. \nParasitic capacitance at the gain-setting pins can also affect \nCMRR over frequency. If the board design has a component  \nat the gain-setting pins (for example, a switch or jumper), the \npart should be chosen so that the parasitic capacitance is as \nsmall as possible. \nPower Supplies \nA stable dc voltage should be used to power the instrumentation \namplifier. Note that noise on the supply pins can adversely affect \nperformance. For more information, see the PSRR performance \ncurves in Figure 23 and Figure 24. \nA 0.1 \u03bcF capacitor should be placed as close as possible to each \nsupply pin. As shown in Figure 61, a 10 \u03bcF tantalum capacitor \ncan be used farther away from the part. In most cases, it can be \nshared by other precision integrated circuits. \nAD8226\n+VS\n+IN\n\u2013IN\nLOAD\nREF\n0.1\u00b5F 10\u00b5F\n0.1\u00b5F 10\u00b5F\n\u2013VS\nVOUT\n07036-006 \nFigure 61. Supply Decoupling, REF, and Output Referred to Local Ground \nReferences \nThe output voltage of the AD8226 is developed with respect to \nthe potential on the reference terminal. Care should be taken to \ntie REF to the appropriate local ground.  \nINPUT BIAS CURRENT RETURN PATH \nThe input bias current of the AD8226 must have a return path \nto ground. When the source, such as a thermocouple, cannot \nprovide a return current path, one should be created, as shown \nin Figure 62. \nTHERMOCOUPLE\n+VS\nREF\n\u2013VS\nAD8226\nCAPACITIVELY COUPLED\n+VS\nREF\nC\nC\n\u2013VS\nAD8226\nTRANSFORMER\n+VS\nREF\n\u2013VS\nAD8226\nINCORRECT\nCAPACITIVELY COUPLED\n+VS\nREF\nC\nR\nR\nC\n\u2013VS\nAD8226\n1fHIGH-PASS = 2\u03c0RC\nTHERMOCOUPLE\n+VS\nREF\n\u2013VS\n10M\u2126\nAD8226\nTRANSFORMER\n+VS\nREF\n\u2013VS\nAD8226\nCORRECT\n07036-007 \nFigure 62. Creating an IBIAS Path  "
+  },
+  {
+   "page": 22,
+   "first_line": "AD8226 Data Sheet",
+   "chars": 1989
+  },
+  {
+   "page": 23,
+   "text": "Data Sheet AD8226 \n \nRev. C | Page 23 of 28 \nAPPLICATIONS INFORMATION \nDIFFERENTIAL DRIVE \n+IN\n\u2013IN\nREF\nAD8226\nVBIASR\n+\u2013\nOP AMP\n+OUT\n\u2013OUT\n07036-009\nR\nRECOMMENDED OP AMPS: AD8515, AD8641, AD820.\nRECOMMENDED R VALUES: 5k\u2126 to 20k\u2126.  \nFigure 64. Differential Output Using an Op Amp  \nFigure 64 shows how to configure the AD8226 for differ- \nential output. \nThe differential output is set by the following equation: \nVDIFF_OUT = VOUT+ \u2212 VOUT\u2212 = Gain \u00d7 (VIN+ \u2212 VIN\u2212) \nThe common-mode output is set by the following equation: \nVCM_OUT = (VOUT+ \u2212 VOUT\u2212)/2= VBIAS \nThe advantage of this circuit is that the dc differential accuracy \ndepends on the AD8226, not on the op amp or the resistors. In \naddition, this circuit takes advantage of the precise control that the \nAD8226 has of its output voltage relative to the reference voltage. \nAlthough the dc performance and resistor matching of the op amp \naffect the dc common-mode output accuracy, such errors are \nlikely to be rejected by the next device in the signal chain and \ntherefore typically have little effect on overall system accuracy.  \nTips for Best Differential Output Performance \nFor best ac performance, an op amp with at least a 2 MHz gain \nbandwidth and a 1 V/\u00b5s slew rate is recommended. Good choices \nfor op amps are the AD8641, AD8515, and AD820. \nKeep trace lengths from the resistors to the inverting terminal \nof the op amp as short as possible. Excessive capacitance at this \nnode can cause the circuit to be unstable. If capacitance cannot \nbe avoided, use lower value resistors. \nFor best linearity and ac performance, a minimum positive \nsupply voltage (+VS) is required. Table 9 shows the minimum \nsupply voltage required for optimum performance. In this mode, \nVCM_MAX indicates the maximum common-mode voltage expected \nat the input of the AD8226.  \nTable 9. Minimum Positive Supply Voltage \nTemperature Equation \nLess than \u221210\u00b0C +VS > (VCM_MAX + VBIAS)/2 + 1.4 V \n\u221210\u00b0C to 25\u00b0C +VS > (VCM_MAX + VBIAS)/2 + 1.25 V \nMore than 25\u00b0C +VS > (VCM_MAX + VBIAS)/2 + 1.1 V "
+  },
+  {
+   "page": 24,
+   "first_line": "AD8226 Data Sheet",
+   "chars": 2233
+  },
+  {
+   "page": 25,
+   "text": "Data Sheet AD8226\n \nRev. C | Page 25 of 28 \nOUTLINE DIMENSIONS \nCOMPLIANT TO JEDEC STANDARDS MO-187-AA\n6\u00b0\n0\u00b0\n0.80\n0.55\n0.40\n4\n8\n1\n5\n0.65 BSC\n0.40\n0.25\n1.10 MAX\n3.20\n3.00\n2.80\nCOPLANARITY\n0.10\n0.23\n0.09\n3.20\n3.00\n2.80\n5.15\n4.90\n4.65\nPIN 1\nIDENTIFIER\n15\u00b0 MAX0.95\n0.85\n0.75\n0.15\n0.05\n10-07-2009-B \nFigure 67. 8-Lead Mini Small Outline Package [MSOP] \n(RM-8) \nDimensions shown in millimeters \nCONTROLLING DIMENSIONS ARE IN MILLIMETERS; INCH DIMENSIONS\n(IN PARENTHESES) ARE ROUNDED-OFF MILLIMETER EQUIVALENTS FOR\nREFERENCE ONLY AND ARE NOT APPROPRIATE FOR USE IN DESIGN.\nCOMPLIANT TO JEDEC STANDARDS MS-012-AA\n012407-A\n0.25 (0.0098)\n0.17 (0.0067)\n1.27 (0.0500)\n0.40 (0.0157)\n0.50 (0.0196)\n0.25 (0.0099)\n45\u00b0\n8\u00b0\n0\u00b0\n1.75 (0.0688)\n1.35 (0.0532)\nSEATING\nPLANE\n0.25 (0.0098)\n0.10 (0.0040)\n41\n85\n5.00 (0.1968)\n4.80 (0.1890)\n4.00 (0.1574)\n3.80 (0.1497)\n1.27 (0.0500)\nBSC\n6.20 (0.2441)\n5.80 (0.2284)\n0.51 (0.0201)\n0.31 (0.0122)\nCOPLANARITY\n0.10\n \nFigure 68. 8-Lead Standard Small Outline Package [SOIC_N] \nNarrow Body \n(R-8) \nDimensions shown in millimeters and (inches) \nORDERING GUIDE \nModel1 Temperature Range Package Description Package Option Branding \nAD8226ARMZ \u221240\u00b0C to +125\u00b0C 8-Lead MSOP RM-8 Y18 \nAD8226ARMZ-RL \u221240\u00b0C to +125\u00b0C 8-Lead MSOP , 13\" Tape and Reel RM-8 Y18 \nAD8226ARMZ-R7 \u221240\u00b0C to +125\u00b0C 8-Lead MSOP , 7\" Tape and Reel RM-8 Y18 \nAD8226ARZ \u221240\u00b0C to +125\u00b0C 8-Lead SOIC_N R-8  \nAD8226ARZ-RL \u221240\u00b0C to +125\u00b0C 8-Lead SOIC_N, 13\" Tape and Reel R-8  \nAD8226ARZ-R7 \u221240\u00b0C to +125\u00b0C 8-Lead SOIC_N, 7\" Tape and Reel R-8  \nAD8226BRMZ \u221240\u00b0C to +125\u00b0C 8-Lead MSOP RM-8 Y19 \nAD8226BRMZ-RL \u221240\u00b0C to +125\u00b0C 8-Lead MSOP , 13\" Tape and Reel RM-8 Y19 \nAD8226BRMZ-R7 \u221240\u00b0C to +125\u00b0C 8-Lead MSOP , 7\" Tape and Reel RM-8 Y19 \nAD8226BRZ \u221240\u00b0C to +125\u00b0C 8-Lead SOIC_N R-8  \nAD8226BRZ-RL \u221240\u00b0C to +125\u00b0C 8-Lead SOIC_N, 13\" Tape and Reel R-8  \nAD8226BRZ-R7 \u221240\u00b0C to +125\u00b0C 8-Lead SOIC_N, 7\" Tape and Reel R-8  \n \n1 Z = RoHS Compliant Part. \n "
+  },
+  {
+   "page": 26,
+   "first_line": "AD8226 Data Sheet",
+   "chars": 51
+  },
+  {
+   "page": 27,
+   "first_line": "Data Sheet AD8226",
+   "chars": 51
+  },
+  {
+   "page": 28,
+   "first_line": "AD8226 Data Sheet",
+   "chars": 217
+  }
+ ],
+ "schema": {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ai-ee datasheet extraction",
+  "type": "object",
+  "required": [
+   "mpn",
+   "pinout"
+  ],
+  "additionalProperties": false,
+  "properties": {
+   "mpn": {
+    "type": "string",
+    "minLength": 1
+   },
+   "lcsc": {
+    "type": "string"
+   },
+   "package": {
+    "type": "string"
+   },
+   "description": {
+    "type": "string"
+   },
+   "pinout": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "required": [
+      "pin",
+      "name",
+      "type"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "pin": {
+       "type": "string",
+       "minLength": 1
+      },
+      "name": {
+       "type": "string",
+       "minLength": 1
+      },
+      "type": {
+       "type": "string",
+       "enum": [
+        "power_in",
+        "power_out",
+        "ground",
+        "input",
+        "output",
+        "bidirectional",
+        "passive",
+        "analog",
+        "clock",
+        "nc",
+        "open_collector",
+        "tristate",
+        "unspecified"
+       ]
+      },
+      "notes": {
+       "type": "string"
+      }
+     }
+    }
+   },
+   "decoupling": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "required": [
+      "pins",
+      "value"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "pins": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       },
+       "minItems": 1
+      },
+      "value": {
+       "type": "string",
+       "minLength": 1
+      },
+      "placement": {
+       "type": "string"
+      },
+      "notes": {
+       "type": "string"
+      }
+     }
+    }
+   },
+   "land_pattern": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "pad_count"
+    ],
+    "properties": {
+     "package": {
+      "type": "string"
+     },
+     "pad_count": {
+      "type": "integer",
+      "minimum": 1
+     },
+     "pitch_mm": {
+      "type": "number",
+      "exclusiveMinimum": 0
+     },
+     "pad_size_mm": {
+      "type": "array",
+      "items": {
+       "type": "number",
+       "minimum": 0
+      },
+      "minItems": 2,
+      "maxItems": 2
+     },
+     "row_spacing_mm": {
+      "type": "number",
+      "minimum": 0
+     },
+     "drill_mm": {
+      "type": "number",
+      "exclusiveMinimum": 0
+     },
+     "annulus_mm": {
+      "type": "number",
+      "exclusiveMinimum": 0
+     },
+     "courtyard_excess_mm": {
+      "type": "number",
+      "minimum": 0
+     },
+     "pin1": {
+      "type": "string",
+      "description": "pad number that is pin 1 (default '1')"
+     },
+     "notes": {
+      "type": "string"
+     }
+    }
+   },
+   "exposed_pad": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "present": {
+      "type": "boolean"
+     },
+     "connect_to": {
+      "type": "string"
+     },
+     "thermal_vias": {
+      "type": "integer",
+      "minimum": 0
+     }
+    },
+    "required": [
+     "present"
+    ]
+   },
+   "layout_notes": {
+    "type": "array",
+    "items": {
+     "type": "string"
+    }
+   },
+   "abs_max": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "required": [
+      "param",
+      "value"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "param": {
+       "type": "string"
+      },
+      "value": {
+       "type": [
+        "number",
+        "string"
+       ]
+      },
+      "unit": {
+       "type": "string"
+      }
+     }
+    }
+   },
+   "source_pdf": {
+    "type": "string"
+   }
+  }
+ },
+ "template": {
+  "mpn": "",
+  "lcsc": "",
+  "package": "",
+  "pinout": [
+   {
+    "pin": "1",
+    "name": "",
+    "type": "unspecified"
+   }
+  ],
+  "decoupling": [],
+  "land_pattern": {
+   "pad_count": 0
+  },
+  "layout_notes": [],
+  "abs_max": []
+ },
+ "note": "Fill the template from text_by_page and the PDF pages, then re-run with --validate. Pages without schema-relevant keywords are stubs {page, first_line, chars} - read those PDF pages directly if needed, or re-run with --full-text. If text_chars is ~0 the PDF is image-only; read the rendered pages directly."
+}

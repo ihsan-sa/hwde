@@ -1,0 +1,38 @@
+{
+ "mpn": "KF128-5.08-2P-AA",
+ "lcsc": "C474952",
+ "package": "THT vertical wire-entry screw terminal block, 2 poles, 5.08 mm pitch (Cixi Kefa KF128-5.08 family, generic P=2-24 mechanical drawing)",
+ "description": "KF128-5.08-2P-AA - 2-pole THT screw terminal block, same KEFA KF128-5.08 series and same single-page family datasheet PDF as C474953 (identical drawing content; only the ordered pole count differs). Used on this board twice: J2 (OUT/GND) and J3 (+3V3/GND). Produced by the librarian (P3) directly from the vendor mechanical drawing for the same reason as C474953.json - no upstream extraction existed for this LCSC id. Scope kept to land_pattern + mechanical facts.",
+ "pinout": [
+  {
+   "pin": "1",
+   "name": "Pole 1",
+   "type": "passive",
+   "notes": "Left pole. Board usage: J2 pin 1 = OUT (via R6); J3 pin 1 = +3V3 power entry. Generic 'Pole N' name used because one physical part serves two different board functions (parts.json refdes_notes carries the per-refdes assignment)."
+  },
+  {
+   "pin": "2",
+   "name": "Pole 2",
+   "type": "passive",
+   "notes": "Right pole. Board usage: J2 pin 2 = GND; J3 pin 2 = GND."
+  }
+ ],
+ "land_pattern": {
+  "package": "2-pole THT vertical screw terminal, 5.08 mm pitch",
+  "pad_count": 2,
+  "pitch_mm": 5.08,
+  "pin1": "1",
+  "drill_mm": 1.4,
+  "notes": "Same family drawing as C474953.json: 'PCB Hole Diameter [mm]: 1.4', pitch 5.08 mm, pin cross-section ~0.80x0.90 mm (diagonal ~1.20 mm), 'Pin Dimensions [mm]: 4.3'. CORRECTED 2026-08-16 (coordinator ruling, P3 librarian pass): the PULLED (easyeda2kicad) 2-pole footprint originally measured a 1.600 mm drill on the 2.4 mm pad - 0.2 mm OVER this datasheet's 1.4 mm figure - while the mechanically identical pin on the sibling 3-pole catalog entry (C474953, J1) pulled at an exact 1.4 mm match. Neither value was an undersized-drill hazard (annulus 0.40 mm at 1.6 mm vs 0.50 mm at 1.4 mm, both far above the 0.15 mm JLC/fp_verify floor), but the mismatch was accepted as a genuine catalog inconsistency with no upside: one family, two drill sizes, on a board where all three screw terminals are hand-soldered and take real mechanical load from wire-insertion/screw torque, so the tighter datasheet-nominal fit (lead + 0.20 mm, a normal hand/wave-solder window) is the right way to err versus the looser lead + 0.40 mm. `boards/bb-amp/lib/aiee.pretty/CONN-TH_P5.08_KF128-5.08-2P.kicad_mod` was hand-edited to drill 1.399998 mm on both pads (was 1.599996 mm) to match this datasheet exactly and match J1's footprint, dropping the board to one drill size across all three connectors. Re-verified clean after the edit: fp_verify 0 violations, kicad-cli load check ok, scratch-board DRC 0 violations (boards/bb-amp/log/fp_verify-J2J3-P3.json, fpfix-verify-J2J3-P3.json)."
+ },
+ "exposed_pad": {
+  "present": false
+ },
+ "layout_notes": [
+  "Screw torque max M2.5 / 0.4 N*m - mechanical only.",
+  "Wire range 22-12 AWG solid/stranded, strip length 6-7 mm.",
+  "Operating temperature -40 to +105 degC; voltage/current ratings far past this board's use (see parts.json J2/J3 role notes)."
+ ],
+ "abs_max": [],
+ "source_pdf": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2408211511_Cixi-Kefa-Elec-KF128-5-08-2P-AA_C474952.pdf (KEFA KF128-5.08 family drawing, rev A, 21.03.13; fetched 2026-08-16, single page, local working copy kept under system temp, not the workspace)"
+}
