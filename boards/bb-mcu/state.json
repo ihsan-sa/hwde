@@ -3,8 +3,8 @@
  "board": "bb-mcu",
  "workspace": "boards/bb-mcu",
  "created": "2026-08-16T17:25:37",
- "updated": "2026-08-16T22:57:35",
- "phase": "P6",
+ "updated": "2026-08-16T23:16:46",
+ "phase": "P7",
  "gates": {
   "erc": {
    "phase": "P4",
@@ -82,6 +82,49 @@
      }
     }
    ]
+  },
+  "drc_routed": {
+   "phase": "P7",
+   "status": "pass",
+   "attempts": 2,
+   "last": {
+    "ts": "2026-08-16T23:16:46",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0,
+    "inputs": {
+     "pcb": "sexpr_no_uuid:508fee60d5195f2676f28da7ab06728415e9559de95efd9091db40d0d252b635",
+     "sch": "sexpr_no_uuid:aa84db1fddb9efa93a3c0e3b7b72499b9727ed8c5c6ce48bc3df3d3967d0ff40",
+     "pro": "json_canonical:c4b54db0e083b99b27610e7649e8dd3f7ed5060a09cb2b535d2788fa25b16ae3",
+     "dru": "text_eol:8ae871f0d92cfecbc9abdb42607d8273424a205b932e6ea96c37f7b24a2e9752"
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-16T23:15:48",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:508fee60d5195f2676f28da7ab06728415e9559de95efd9091db40d0d252b635",
+      "sch": "sexpr_no_uuid:aa84db1fddb9efa93a3c0e3b7b72499b9727ed8c5c6ce48bc3df3d3967d0ff40",
+      "pro": "json_canonical:c4b54db0e083b99b27610e7649e8dd3f7ed5060a09cb2b535d2788fa25b16ae3",
+      "dru": "text_eol:8ae871f0d92cfecbc9abdb42607d8273424a205b932e6ea96c37f7b24a2e9752"
+     }
+    },
+    {
+     "ts": "2026-08-16T23:16:46",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:508fee60d5195f2676f28da7ab06728415e9559de95efd9091db40d0d252b635",
+      "sch": "sexpr_no_uuid:aa84db1fddb9efa93a3c0e3b7b72499b9727ed8c5c6ce48bc3df3d3967d0ff40",
+      "pro": "json_canonical:c4b54db0e083b99b27610e7649e8dd3f7ed5060a09cb2b535d2788fa25b16ae3",
+      "dru": "text_eol:8ae871f0d92cfecbc9abdb42607d8273424a205b932e6ea96c37f7b24a2e9752"
+     }
+    }
+   ]
   }
  },
  "human": {
@@ -94,6 +137,11 @@
    "status": "approved",
    "ts": "2026-08-16T21:58:16",
    "note": "DELEGATED RULING, not an owner approval. Orchestrator ruled H2 pass. erc gate PASS (0/0, attempt 2, commit 94d7a24), netlist_audit exit 0, 10 parts, 44/44 pins. Reviewer 0 errors / 3 warnings, all three ruled: W1 NRST cap ADDED (reversing my own P1 ruling - the reviewer showed my reason misread AN4325 where the datasheet Fig 21 note 1 recommends it unconditionally for parasitic reset, and this board flies NRST on a lead); W3 J3 reordered to move GND off centre (J2/J3 are the same unkeyed part, so the GPIO cable cross-plugged into the debug header shorted the rail); W2 J2 order held unchanged with reasoning recorded (rail-at-an-end is strictly worse under a one-position slip). Review also CLOSED the run's BOOT0 polarity open item: BOOT0=0 selects Main Flash, the 10k pull-down is correct. No ERC waivers exist - there are no ERC warnings to waive. Carried to P6 as a hard requirement: per-pin silk on J2 and J3, which is the only mitigation for the unkeyed-header residual risk"
+  },
+  "3": {
+   "status": "approved",
+   "ts": "2026-08-16T22:59:47",
+   "note": "DELEGATED RULING, not an owner approval. H3 (optional, default ON) ruled pass on the fitted top render, inspected directly. place gate PASS 0/0 attempt 2, commit 503723c. Board EARNED 34.77 x 22.26 mm from a 51.15 x 43.52 provisional - 65 percent area reduction, and the size is an output of the layout as the binding requires. Route probe 1.00 with 0 unrouted. Silk checked on the render not taken on report: J2 and J3 per-pin labels both in the ruled order with pin-1 markers, J1 polarity legible with each label beside its own pole. Accepted the agent's overrule on moving H1-H4 (leaving them at provisional corners would have defeated the fit) and its rejection of four true corner holes (+25 percent area of pure air on a board with no enclosure requirement). Residual accepted: rightmost ~10 mm of the bottom edge unsupported, J1 braced by H2 above and H3 below-left. Found and recorded a PIPELINE DEFECT in the recipe's gate ordering at geometry-OUTPUT bindings"
   }
  },
  "artifacts": {
@@ -101,19 +149,19 @@
    "path": "kicad/bb-mcu.kicad_sch",
    "kind": "sch",
    "sha256": "sexpr_no_uuid:aa84db1fddb9efa93a3c0e3b7b72499b9727ed8c5c6ce48bc3df3d3967d0ff40",
-   "hashed": "2026-08-16T21:57:21"
+   "hashed": "2026-08-16T23:16:46"
   },
   "pro": {
    "path": "kicad/bb-mcu.kicad_pro",
    "kind": "pro",
-   "sha256": "json_canonical:4410bd83f3d0f0949c8fc8f1c29dea97e64089b82dd43f3374e925f855d99de4",
-   "hashed": "2026-08-16T21:57:21"
+   "sha256": "json_canonical:c4b54db0e083b99b27610e7649e8dd3f7ed5060a09cb2b535d2788fa25b16ae3",
+   "hashed": "2026-08-16T23:16:46"
   },
   "pcb": {
    "path": "kicad/bb-mcu.kicad_pcb",
    "kind": "pcb",
-   "sha256": "sexpr_no_uuid:1582bebb8be4bd67e089a89c3f142715a74710efbf38f659c3ea68d3a27595a1",
-   "hashed": "2026-08-16T22:57:35"
+   "sha256": "sexpr_no_uuid:508fee60d5195f2676f28da7ab06728415e9559de95efd9091db40d0d252b635",
+   "hashed": "2026-08-16T23:16:46"
   },
   "constraints": {
    "path": "kicad/constraints.json",
@@ -140,6 +188,12 @@
      "human_hold": 2
     }
    ]
+  },
+  "dru": {
+   "path": "kicad/bb-mcu.kicad_dru",
+   "kind": "dru",
+   "sha256": "text_eol:8ae871f0d92cfecbc9abdb42607d8273424a205b932e6ea96c37f7b24a2e9752",
+   "hashed": "2026-08-16T23:16:46"
   }
  },
  "open_issues": [],
@@ -357,6 +411,36 @@
    "why": "the reviewer correctly notes my order was ruled on the 180-degree reversal case only, and that a one-position slip puts a probe push-pull driver onto the rail. I worked the alternatives and centre-rail still wins: with the rail at an END, a one-position slip lands the probe's GND wire on it, which is a hard short - strictly worse than a driver contact, which is current-limited by the driver and which probes generally detect. There is no 5-position order that is safe against BOTH a reversal and a one-position slip, so the ruling is to take the failure that is current-limited in every case. Recorded rather than dismissed: the residual risk is real and its only mitigation is that the per-pin silk actually gets placed and stays legible, which constraints.json already flags as load-bearing and which P6 must deliver",
    "phase": "P4",
    "ts": "2026-08-16T21:51:09"
+  },
+  {
+   "what": "PIPELINE DEFECT: at a geometry-OUTPUT binding the place gate must run AFTER board_edit --outline fit, not before. The full-run recipe documents the opposite order and it cannot pass",
+   "why": "placelib.legality_violations measures every declared placement.edges ref against the CURRENT outline with EDGE_TOL 2.5 mm. At a canonical binding the provisional outline is deliberately oversized, so a canonically placed connector sits far from it - here J1 was 16.9 mm from the provisional right edge and the gate failed on it. The only way to satisfy the edge check against a provisional outline is to spread the connectors out to it, after which --outline fit measures the spread and 'earns' the provisional size. That is exactly the bb-buck failure with the sign flipped, and the U18 mechanism defeats itself. The placement agent placed canonically anyway, refused to resize, and machine-proved the fix is the ORDER: fit first at any margin at or under 2.5 mm, then gate, which passes 0/0. Fitting first is also better on the merits - the gate then judges the geometry that will actually be built. Recorded as a defect in the recipe, not in this board",
+   "phase": "P6",
+   "ts": "2026-08-16T22:59:22"
+  },
+  {
+   "what": "Board size EARNED: 34.77 x 22.26 mm (774 mm2), down from the provisional 51.15 x 43.52 (2226 mm2). Hand-built canonical layout accepted over both annealer candidates",
+   "why": "geometry is an OUTPUT at this binding and this is the output. The annealer returned one legal candidate at 200.12 mm HPWL with only 3 movable clusters, so the SA numbers are noise on a board this small; the hand layout reaches 161.36 mm with the same zero legality violations, and route_auto --probe completes 1.00 with 0 unrouted on the fitted geometry. U1 at rot 270 is the whole floorplan: the SWD end faces J2/top, the VDD/VSS face faces J1/right, and the PA0-PA3 face faces J3/left, so all three escapes are non-crossing. The seed had U1 at rot 0, which crossed the GPIO escapes under the package",
+   "phase": "P6",
+   "ts": "2026-08-16T22:59:22"
+  },
+  {
+   "what": "ACCEPTED the placement agent's overrule of 'never move board_only refs': it moved H1-H4, and rejected four TRUE corner holes in favour of a top pair at the corners with the bottom pair inset",
+   "why": "the overrule was correct and correctly flagged. board_edit --outline fit includes mounting-hole courtyards in the content bbox, so leaving H1-H4 at the provisional corners would have frozen the board at 51 x 43.5 mm - the holes would have defeated the fit. constraints.json also assigns the hole count and placement to P6 explicitly, and requirements s5 sanctions fewer than four if the earned outline cannot hold them. On the count: four true corner holes force about 33.8 x 26.5 mm, roughly +25 percent area and ~9 mm of pure air, to satisfy a board with no enclosure and no mechanical requirement beyond mounting the bare board - that is the padding the block-only tier exists to refuse. Residual accepted: the rightmost ~10 mm of the bottom edge is unsupported, but J1 is braced by H2 above and H3 below-left, so the screw terminal is not cantilevered off an unsupported corner",
+   "phase": "P6",
+   "ts": "2026-08-16T22:59:22"
+  },
+  {
+   "what": "J1 rotation 270 PROVEN by orthographic side render, and the finding contradicts this repo's existing connector learning: WJ500V-5.08-2P's wire mouth is at footprint-local -Y, the REVERSE of the KF128/DB128L family",
+   "why": "the role prompt and the constraints note both refuse to guess a footprint's native entry direction because a prior board recorded the cost of guessing it. The agent proved this one instead of assuming, and found the top view reads BACKWARDS on this part. Had it carried the KF128 assumption across, the screw terminal's wire opening would have faced INTO the board and the board would have been unusable at the bench - a defect no gate checks, because entry direction is not in any machine-readable field. Silk verified on the fitted render by me directly: +3V3 above the top pole, -GND below the bottom one, each adjacent to its own pole and 9 mm from the other",
+   "phase": "P6",
+   "ts": "2026-08-16T22:59:22"
+  },
+  {
+   "what": "J2 and J3 per-pin silk VERIFIED on the fitted top render, closing the P4 review's hard requirement",
+   "why": "the P4 review established that per-pin silk is the ONLY mitigation for the two unkeyed-header hazards (180 degree reversal, and cross-plugging the GPIO cable into the debug header). Checked on the render rather than taken on report: J2 carries a pin-1 marker at the right and reads right-to-left GND / SWCLK / 3V3 / SWDIO / NRST, matching the ruled order, using a two-row stagger because 5-character names do not fit a single row at 2.54 mm pitch. J3 carries one label per pin plus a 1 at the top and reads IO1 / IO2 / IO3 / IO4 / GND, also the ruled order. Both legible at render scale",
+   "phase": "P6",
+   "ts": "2026-08-16T22:59:22"
   }
  ],
  "edits": [
@@ -501,6 +585,12 @@
    "role": "placement",
    "model": "opus/xhigh (fable/high substituted)",
    "phase": "P6"
+  },
+  {
+   "ts": "2026-08-16T23:00:24",
+   "role": "router",
+   "model": "sonnet/high",
+   "phase": "P7"
   }
  ],
  "history": [
@@ -927,6 +1017,71 @@
    "ts": "2026-08-16T22:57:35",
    "event": "gate",
    "gate": "place",
+   "status": "pass",
+   "attempt": 2,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-16T22:59:22",
+   "event": "decision",
+   "what": "PIPELINE DEFECT: at a geometry-OUTPUT binding the place gate must run AFTER board_edit --outline fit, not before. The full-run recipe documents the opposite order and it cannot pass"
+  },
+  {
+   "ts": "2026-08-16T22:59:22",
+   "event": "decision",
+   "what": "Board size EARNED: 34.77 x 22.26 mm (774 mm2), down from the provisional 51.15 x 43.52 (2226 mm2). Hand-built canonical layout accepted over both annealer candidates"
+  },
+  {
+   "ts": "2026-08-16T22:59:22",
+   "event": "decision",
+   "what": "ACCEPTED the placement agent's overrule of 'never move board_only refs': it moved H1-H4, and rejected four TRUE corner holes in favour of a top pair at the corners with the bottom pair inset"
+  },
+  {
+   "ts": "2026-08-16T22:59:22",
+   "event": "decision",
+   "what": "J1 rotation 270 PROVEN by orthographic side render, and the finding contradicts this repo's existing connector learning: WJ500V-5.08-2P's wire mouth is at footprint-local -Y, the REVERSE of the KF128/DB128L family"
+  },
+  {
+   "ts": "2026-08-16T22:59:22",
+   "event": "decision",
+   "what": "J2 and J3 per-pin silk VERIFIED on the fitted top render, closing the P4 review's hard requirement"
+  },
+  {
+   "ts": "2026-08-16T22:59:47",
+   "event": "human",
+   "checkpoint": "3",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-08-16T23:00:01",
+   "event": "phase",
+   "phase": "P7",
+   "prev": "P6"
+  },
+  {
+   "ts": "2026-08-16T23:00:24",
+   "event": "snapshot",
+   "label": "pre-route-P7",
+   "files": 1
+  },
+  {
+   "ts": "2026-08-16T23:00:24",
+   "event": "spawn",
+   "role": "router",
+   "model": "sonnet/high"
+  },
+  {
+   "ts": "2026-08-16T23:15:48",
+   "event": "gate",
+   "gate": "drc_routed",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-16T23:16:46",
+   "event": "gate",
+   "gate": "drc_routed",
    "status": "pass",
    "attempt": 2,
    "failing_count": 0
