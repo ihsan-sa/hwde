@@ -1,0 +1,70 @@
+{
+ "violations": [
+  {
+   "check": "schematic-review",
+   "severity": "error",
+   "pos": null,
+   "layer": null,
+   "net": null,
+   "refs": ["J1", "J2"],
+   "msg": "Neither screw terminal carries any + / GND legend: the WJ500V footprint's only pin-1 cue is a 0.2 mm silk dot at the outline corner and its two silk arrows sit over BOTH pins, so a user must guess which screw is +5V on a board that by owner ruling has no reverse-polarity protection - a reversed input takes U1 outside an abs-max table that rates no negative input and reverse-biases the 10 uF tantalum C1 into a short with up to 2 A of source behind it.",
+   "source": "review.schematic",
+   "kind": "connector-polarity-unmarked"
+  },
+  {
+   "check": "schematic-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": null,
+   "refs": ["J1", "J2"],
+   "msg": "J1 and J2 are the same orderable part with the same footprint and identical silk, so only the refdes distinguishes input from output; wiring the 5 V supply into J2 forces VOUT above VIN, a condition the AMS1117 abs-max table does not rate, so the legend added for the polarity finding must also name IN and OUT.",
+   "source": "review.schematic",
+   "kind": "connector-input-output-ambiguous"
+  },
+  {
+   "check": "schematic-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "+3V3",
+   "refs": ["C2"],
+   "msg": "C2's 0.8 ohm is a 100 kHz ESR CEILING taken from an LCSC parametric field (parts.json role note; no 293D datasheet is in research/sources), while the 1117 stability window's 0.3 ohm end is a FLOOR on the capacitor's minimum ESR over frequency - nothing guarantees the low end, so a low-tail part can approach the floor and ring, and bring-up must settle it with the load-transient ring test (<= 4 rings) rather than the datasheet number.",
+   "source": "review.schematic",
+   "kind": "cout-esr-floor-unguaranteed"
+  },
+  {
+   "check": "schematic-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "+3V3",
+   "refs": ["U1"],
+   "msg": "constraints.json thermal.min_vias = 12 puts a dozen +3V3 vias in the tab pour while planes declare B.Cu as GND only, so they can land on nothing (record linear-regulator-live-tab-thermal-vias forbids stitching a VOUT pour to a GND plane) and would void backside GND copper directly under the tab, degrading the dielectric path the 65 C/W sizing leans on; either declare a bottom-side +3V3 island for them or drop the via count and waive check_thermal on the copper-sweep evidence blocks.md already plans to use.",
+   "source": "review.schematic",
+   "kind": "thermal-via-plan-conflict"
+  },
+  {
+   "check": "schematic-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": null,
+   "refs": ["C1"],
+   "msg": "C1's library symbol draws a NON-polarized capacitor (two straight plates) for a solid tantalum whose reversal fails short on the 5 V rail; the only anode cue is a ~1 mm '+' that the render collides with the pin-1 number, so a future edit or a re-pin has no visible polarity to protect it (the netlist is correct today: C1 pin 1 -> +5V).",
+   "source": "review.schematic",
+   "kind": "polarized-part-nonpolar-symbol"
+  },
+  {
+   "check": "schematic-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": null,
+   "refs": ["U1", "C1", "C2", "J1", "J2"],
+   "msg": "The sheet does not read as a circuit: 2.54 mm stubs make every net label overlap its pin number (rendering '+3V23', '+5V3', 'GND1'), the LCSC field text is drawn through the J1/J2 pin stubs and U1's value, and no wire joins any two parts - all connectivity is by LOCAL labels, contrary to constraints.json and sheets.md which record global power symbols and 'no local-label nets on this board', so nothing on the drawing shows a human that C1 sits at VIN and C2 at VOUT.",
+   "source": "review.schematic",
+   "kind": "drawing-illegible"
+  }
+ ]
+}

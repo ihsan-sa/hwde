@@ -3,20 +3,20 @@
  "board": "bb-ldo",
  "workspace": "boards/bb-ldo",
  "created": "2026-08-16T17:24:47",
- "updated": "2026-08-16T22:42:46",
+ "updated": "2026-08-16T23:29:14",
  "phase": "P4",
  "gates": {
   "erc": {
    "phase": "P4",
    "status": "pass",
-   "attempts": 1,
+   "attempts": 2,
    "last": {
-    "ts": "2026-08-16T22:42:46",
+    "ts": "2026-08-16T23:29:14",
     "status": "pass",
     "failing_count": 0,
     "total": 0,
     "inputs": {
-     "sch": "sexpr_no_uuid:be0b774f188532fad1d92877a8271a071c1746488853befd5a160b54be7b3efa",
+     "sch": "sexpr_no_uuid:51d5aaffc0b97d9cd6799b8ade0dd3b957f0323262b3c2dc504ec15b539188f1",
      "pro": "json_canonical:948d937b6f5ebd9d94f94c3509fd56c4e5c8fd794ea45013b968a60ebf24d3a5"
     }
    },
@@ -28,6 +28,16 @@
      "total": 0,
      "inputs": {
       "sch": "sexpr_no_uuid:be0b774f188532fad1d92877a8271a071c1746488853befd5a160b54be7b3efa",
+      "pro": "json_canonical:948d937b6f5ebd9d94f94c3509fd56c4e5c8fd794ea45013b968a60ebf24d3a5"
+     }
+    },
+    {
+     "ts": "2026-08-16T23:29:14",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "sch": "sexpr_no_uuid:51d5aaffc0b97d9cd6799b8ade0dd3b957f0323262b3c2dc504ec15b539188f1",
       "pro": "json_canonical:948d937b6f5ebd9d94f94c3509fd56c4e5c8fd794ea45013b968a60ebf24d3a5"
      }
     }
@@ -45,14 +55,14 @@
   "sch": {
    "path": "kicad/bb-ldo.kicad_sch",
    "kind": "sch",
-   "sha256": "sexpr_no_uuid:be0b774f188532fad1d92877a8271a071c1746488853befd5a160b54be7b3efa",
-   "hashed": "2026-08-16T22:42:46"
+   "sha256": "sexpr_no_uuid:51d5aaffc0b97d9cd6799b8ade0dd3b957f0323262b3c2dc504ec15b539188f1",
+   "hashed": "2026-08-16T23:29:14"
   },
   "pro": {
    "path": "kicad/bb-ldo.kicad_pro",
    "kind": "pro",
    "sha256": "json_canonical:948d937b6f5ebd9d94f94c3509fd56c4e5c8fd794ea45013b968a60ebf24d3a5",
-   "hashed": "2026-08-16T22:42:46"
+   "hashed": "2026-08-16T23:29:14"
   }
  },
  "open_issues": [],
@@ -246,6 +256,24 @@
    "why": "The recorded text read '(2)  MEASURES COURTYARDS' with the script name missing, which obscures the actual mechanism. Correcting rather than leaving an ambiguous audit entry: this is the specific reason the courtyard hand-edit was authorized, and a later reader of state.json needs to see which script does the measuring.",
    "phase": "P3",
    "ts": "2026-08-16T22:20:39"
+  },
+  {
+   "what": "thermal.min_vias 12 -> 0 in constraints.json. NO thermal vias under U1's tab. B.Cu stays a CONTINUOUS GND plane under the pour.",
+   "why": "Schematic-reviewer finding, and it was a real self-contradiction in the constraint set: min_vias 12 demanded stitching vias in a +3V3 tab pour while B.Cu is GND - a via between those two nets is a SHORT, not a heat path (verified record linear-regulator-live-tab-thermal-vias). The alternative, a bottom-side +3V3 island to stitch into, would punch a hole in the ground return directly under the hottest part of the board to buy copper the dielectric already gives us for free. The record's own prescription for 2 layers over a GND bottom is precisely: large top-side VOUT pour, ground plane continuous beneath, NO vias through it - the far-side copper still works, coupled through the FR-4 (AMS1117 p5), worth about 5 C/W at 1000 mm2. The 12-via number was inherited from exposed-pad-to-GND practice where it is correct; here it is not. constraints_lint re-run clean.",
+   "phase": "P4",
+   "ts": "2026-08-16T22:57:17"
+  },
+  {
+   "what": "P6 REQUIREMENT (schematic-reviewer ERROR, deferred to the layer where it lives): silkscreen must legend both screw terminals - polarity (+5V / GND on J1, +3V3 / GND on J2) AND direction (IN / OUT). Scripted silk only (silk_place.py / place_edit add_text), pin-locked.",
+   "why": "The reviewer is right and this is in scope: it is about THIS board's own correctness, not about adding an excluded protection feature. The WJ500V footprint's only cues are a 0.2 mm corner dot and two IDENTICAL arrows over both pins, and J1 and J2 are the SAME part - so nothing on the assembled board distinguishes input from output or plus from ground. On a board that by scope ruling has no reverse-polarity protection, a user wiring 5 V backwards puts -5 V on a VIN with no negative abs-max rating and reverse-biases C1, an MnO2 tantalum, with up to 2 A of bench supply behind it: it fails SHORT and can burn. Feeding 5 V into J2 likewise forces VOUT > VIN, also unrated. A legend costs nothing but silkscreen and is the only thing standing between the user and that outcome. Deferred to P6 because silk is a board artifact, not a schematic one - no schematic change is needed.",
+   "phase": "P4",
+   "ts": "2026-08-16T22:57:17"
+  },
+  {
+   "what": "C2 ESR margin: ACCEPTED as unquantified-at-the-floor, to be settled at bring-up by load-transient ring count (<= 4 rings), not by the datasheet number.",
+   "why": "Reviewer sharpened the earlier residual usefully: LCSC's 0.8 ohm is a 100 kHz CEILING from a parametric field, while the window's 0.3 ohm end is a FLOOR on MINIMUM-over-frequency ESR - so the two numbers are not measured the same way and the margin that actually matters is not quantified by anything we hold. No Vishay 293D datasheet is in research/sources to close it. This does not block: it is not marginal on the face of it (0.8 vs 0.3), and the verified record already prescribes the ring-count test as the settlement for exactly this case. Recorded so bring-up knows it is a real check to run, not a formality.",
+   "phase": "P4",
+   "ts": "2026-08-16T22:57:18"
   }
  ],
  "edits": [],
@@ -332,6 +360,12 @@
    "ts": "2026-08-16T22:23:18",
    "role": "schematic-block",
    "model": "opus/high (SUBSTITUTED for fable/medium: fable unavailable)",
+   "phase": "P4"
+  },
+  {
+   "ts": "2026-08-16T22:44:00",
+   "role": "schematic-reviewer",
+   "model": "opus/xhigh (SUBSTITUTED for fable/high: fable unavailable)",
    "phase": "P4"
   }
  ],
@@ -635,6 +669,35 @@
    "gate": "erc",
    "status": "pass",
    "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-16T22:44:00",
+   "event": "spawn",
+   "role": "schematic-reviewer",
+   "model": "opus/xhigh (SUBSTITUTED for fable/high: fable unavailable)"
+  },
+  {
+   "ts": "2026-08-16T22:57:17",
+   "event": "decision",
+   "what": "thermal.min_vias 12 -> 0 in constraints.json. NO thermal vias under U1's tab. B.Cu stays a CONTINUOUS GND plane under the pour."
+  },
+  {
+   "ts": "2026-08-16T22:57:17",
+   "event": "decision",
+   "what": "P6 REQUIREMENT (schematic-reviewer ERROR, deferred to the layer where it lives): silkscreen must legend both screw terminals - polarity (+5V / GND on J1, +3V3 / GND on J2) AND direction (IN / OUT). Scripted silk only (silk_place.py / place_edit add_text), pin-locked."
+  },
+  {
+   "ts": "2026-08-16T22:57:18",
+   "event": "decision",
+   "what": "C2 ESR margin: ACCEPTED as unquantified-at-the-floor, to be settled at bring-up by load-transient ring count (<= 4 rings), not by the datasheet number."
+  },
+  {
+   "ts": "2026-08-16T23:29:14",
+   "event": "gate",
+   "gate": "erc",
+   "status": "pass",
+   "attempt": 2,
    "failing_count": 0
   }
  ],

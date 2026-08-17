@@ -39,7 +39,7 @@ H2 schematic PDF does. The obvious workaround (rotate the cap to a vertical shun
 already on the ladder: KiCad rotates field TEXT with the symbol while schem_refdes does not, so
 a rot-90/270 2-pin passive overprints its own Reference/Value (2026-08-09 entry) - measured here
 too, the 22-char value string ran vertically through the refdes and the LCSC field. Fix at the
-SOURCE, like the pin-TYPE repair does: `kicad/gen/lib_pin_angles.py` (idempotent, `--check`
+SOURCE, like the pin-TYPE repair does: `kicad/gen/lib_fixups.py` (idempotent, `--check`
 mode, re-run after any lib_pull) rewrites the two angles and trims both lead lengths to 3.81 mm.
 Nothing electrical changes - verified by `netlist_audit --compare` against the pre-repair
 netlist: 0 differences. Sibling symbol `aiee:TAJA106K016RNJ` (C1, same vendor family, same
@@ -50,7 +50,37 @@ pulled 2-pin passive by placing it and reading `Sheet._pin_out_dir`, not by read
 `power_symbol_at_pin("U1", "2", "power:+3V3")` puts the symbol's PIN on the stub end and the
 symbol BODY (the arrow) extends from there - on the AMS1117's 2.54 mm pin pitch that body lands
 on the neighbouring pin's local label, so the rendered sheet shows the +3V3 arrow drawn through
-U1 pin 1's "GND" text. Electrically fine (ERC 0/0), unreadable on the PDF. `power_flag(net,
-at=..., sym=..., flag=False)` is the clean alternative: it puts the symbol in free area with a
-label terminating the wire and NO PWR_FLAG, which is what a rail driven by a power_out pin
-wants. bb-ldo puts all three rails (+5V flagged, +3V3 unflagged, GND flagged) in one column.
+U1 pin 1's "GND" text. Electrically fine (ERC 0/0), unreadable on the PDF. Measured root cause:
+every KiCad power symbol is EXACTLY 2.54 mm tall (GND's triangle hangs 2.54 below its pin, the
+rail arrows rise 2.54 above), which is exactly the pin pitch - so a symbol on any middle pin
+reaches precisely into the neighbouring pin's row, and the geometry is unsolvable by stub length
+alone (whichever of two adjacent pins gets the shorter stub, its symbol lands on the other's
+wire). The arrangement that works on bb-ldo's final sheet: the middle pin (VOUT) takes the short
+stub and its rail symbol, and the neighbour (GND) is routed OFF its own row first - out 1.27,
+up, across, then down into its symbol - which is also the only ordering of the three left-side
+pins with no wire crossing. `power_flag(net, at=..., sym=..., flag=False)` remains the clean
+form for a free-area rail cluster that must not carry a PWR_FLAG.
+
+## 2026-08-16 [P4][schematic][easyeda2kicad] A pulled 2-pin passive names its pins "1"/"2" - KiCad prints those names ON the body, on top of each other
+Every easyeda-pulled 2-pin part on this board (both tantalums, both screw terminals) carries pin
+NAMES that are the same strings as the pin NUMBERS. KiCad renders names INSIDE the symbol body, so
+on a small part both names land at the body centre and overprint each other and the numbers - a
+garbled glyph in the middle of every passive, which is what the schematic reviewer saw. Nothing
+machine-checkable notices: ERC 0/0, netlist unchanged, `schem_refdes` reports `residue: []` because
+pin names are symbol graphics, not fields it places. Fix at the source with `(pin_names hide)` on
+the symbol (kept in `kicad/gen/lib_fixups.py`); the NUMBERS stay visible, which is what tells a
+reader which end of a polarized part is pin 1. Write the bare-token form `(pin_names hide)` into a
+`(version 20211014)` pulled lib - that file's own properties use bare `hide`, not `(hide yes)` -
+and kicad-sch-api carries the token through into the schematic's embedded `lib_symbols`.
+
+## 2026-08-16 [P4][schematic][erc][netlist] Two pins of ONE part are two nets on the sheet: a drawn run off the tab left the rail unnamed and ERC stayed 0/0
+Redrawing bb-ldo with real wires, the +3V3 output path was drawn from U1 pin 4 (the SOT-223 tab)
+through C2 to J2, while U1 pin 2 (VOUT) got the rail's `power:+3V3` symbol. Pins 2 and 4 are the
+same node INSIDE the package, but on the sheet they are two separate nodes: the drawn run never
+touched the symbol, so it exported as `Net-(C2-Pad1)` and `+3V3` held only U1.2. **ERC reported
+0 errors / 0 warnings** - an unnamed net with three pins on it is perfectly legal - and the only
+gate that caught it was `netlist_audit --compare` against the pre-redraw netlist. Two rules. (a) A
+cosmetic redraw is not verified until the netlist is diffed against the version it replaced;
+compare is the gate, ERC is not. (b) When a part exposes one node on two pins, each pin needs its
+own connection to the rail - a second power symbol on the drawn run is the cheapest, and is what
+joins them globally.
