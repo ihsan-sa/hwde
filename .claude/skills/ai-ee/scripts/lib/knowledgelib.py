@@ -1276,7 +1276,7 @@ def coverage(ws: Path | str, records: list[dict] | None = None,
                     v = "provisional"
                 else:
                     v = "gap"
-                # Seeding runs (build-modes ultra-bare-bones): an under-mature
+                # Seeding runs (any build-modes learning target): under-mature
                 # or unproven class is a research TARGET, not an acceptable
                 # pass, and it must reach `missing` so the task names it. Use
                 # on a phase's FIRST coverage call only - the post-research

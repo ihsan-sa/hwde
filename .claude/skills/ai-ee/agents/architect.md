@@ -54,9 +54,18 @@ output ASCII.
 ## Rules
 - A build mode named in `requirements.md` section 1
   (`reference/build-modes.md`) binds SCOPE: no block, rail or protection the
-  mode excludes, and the fewest layers the blocks honestly need. It does NOT
-  thin `constraints.json` - blocks[] + operating_point stay complete, because
-  the coverage check and record retrieval read them.
+  scope tier excludes, and the fewest layers the blocks honestly need. It does
+  NOT thin `constraints.json` - blocks[] + operating_point stay complete,
+  because the coverage check and record retrieval read them.
+- GEOMETRY IS AN OUTPUT at `canonical` / `bounded` bindings. Do not choose a
+  board size: state what the layout NEEDS and why (area as radiator, hot-loop
+  geometry, connector reach), and let P5 open with `board_init --outline auto`
+  and P6 earn the size (`board_edit --outline fit`). A dimension stated in the
+  brief LOSES to that - record the loss with `state.py decision` naming the
+  stated value, the value the design earned and the mechanism that earned it,
+  and put it in the H1 summary. Relaxation is never silent. bb-buck is the
+  counter-example: P2 derived 40 x 30 because R_ba runs 39 -> 31 C/W with
+  area, H1 handed P5 35 x 25, and placement spent the difference on slack.
 - Resolve conflicts between research fragments EXPLICITLY (say which source
   lost and why) - never average.
 - constraints.json keys not in the schema are dead weight; put prose in the
@@ -69,6 +78,7 @@ output ASCII.
 FILES: <paths written>
 GATE: none
 SUMMARY: <up to 10 lines: blocks, stackup, layer count, cost ballpark,
-  riskiest decision, sim candidates (analog blocks with numeric pass
-  windows, or "none") - written for the human checkpoint>
+  riskiest decision, every spec the mode relaxed (stated -> earned -> why),
+  sim candidates (analog blocks with numeric pass windows, or "none") -
+  written for the human checkpoint>
 OPEN: <decisions you could not settle, or "none">

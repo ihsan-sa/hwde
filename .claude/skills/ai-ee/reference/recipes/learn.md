@@ -39,6 +39,13 @@ them scores under KiCad defaults. `known_answer` blocks (P8/P9 negative
 fixtures) are hand-authored manifest YAML, never frozen. Then record the
 grade as a baseline: `bench.py --stage <s> --fixture <id> --baseline`.
 
+A run built under a LEARNING TARGET already names the stage to teach and the
+deliverable to freeze: `state.py resume --workspace <ws>` reports `mode.stage`
+(U18; null when the target studies no single stage). Take the session's
+`--stage` from there rather than re-deciding it - the board was scoped and
+sized to teach exactly that stage, and freezing a different one grades work the
+run never optimized for.
+
 ## Pre-load (before cycle 1)
 
     learnings.py queue --workspace <ws> --status pending --stage <stage>

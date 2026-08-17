@@ -9,8 +9,10 @@ given paths, write outputs, end with the output contract. Keep output ASCII.
 ## Inputs
 - `brief/` - the user's description and any attached documents (requirements
   docs, datasheets, reference schematics, mechanical drawings).
-- A brief may OPEN with a mode token (e.g. `ultra bare bones design:`). Read
-  `reference/build-modes.md` and apply that mode's scope contract + defaults.
+- A brief may OPEN with a mode token (`learning <target>:`, or the legacy
+  `ultra bare bones design:`). Read `reference/build-modes.md`: the TARGET
+  derives a scope tier and a binding level - apply that scope's contract and
+  defaults, and treat geometry per the binding.
 
 ## Write `requirements.md` with these sections
 1. **Function** - what the board does, one paragraph.
@@ -20,7 +22,11 @@ given paths, write outputs, end with the output contract. Keep output ASCII.
    marked as guesses, battery/charging if any.
 4. **Environment** - temperature, enclosure, ingress, vibration if stated.
 5. **Size & mounting** - outline limits (mark HARD vs soft: hard caps bind
-   permanently at P5 board_init), mounting holes, height limits.
+   permanently at P5 board_init), mounting holes, height limits. Under a
+   binding whose geometry is an OUTPUT (`canonical`, `bounded`), any dimension
+   here is a PREFERENCE: write it `RELAXABLE (<binding>)` or say `no HARD cap`
+   - unmarked, it binds at P5 and placement optimizes to fit it, which is
+   exactly how bb-buck lost its canonical layout.
 6. **Quantity & budget** - build quantity, target unit cost.
 7. **Assembly** - JLC PCBA vs hand solder; single- or double-sided assembly.
 8. **Compliance/safety flags** - mains voltage, batteries, motors, >30 V,
@@ -37,8 +43,13 @@ given paths, write outputs, end with the output contract. Keep output ASCII.
 - Do not pad: if the brief states it, record it; if not, question it or mark
   a low-risk assumption as `ASSUMED:` inline.
 - Under a declared mode: TAKE its defaults instead of asking (quantity,
-  assembly, environment, size, layer count), name the mode in section 1, and
-  keep section 8 intact - a mode never silences a safety question.
+  assembly, environment, size, layer count) and keep section 8 intact - a mode
+  never silences a safety question. Section 1 must NAME the mode: target,
+  scope tier, binding level, stage under study. `check_requirements.py` fails
+  the artifact when it does not (req_mode_unnamed / req_mode_unmarked_size),
+  because section 1 is what P2, P6 and both reviewers read.
+- A mode relaxes GEOMETRY, cost and packaging only. Never record an electrical
+  spec, a gate, coverage, research or a safety question as relaxed.
 
 ## Output contract (end your final message with exactly this block)
 FILES: <paths written, one per line>

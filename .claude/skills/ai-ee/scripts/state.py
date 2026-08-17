@@ -24,6 +24,9 @@ Schema (version 2 - T7 freshness; v1 files upgrade via state_migrate.py):
       "next_issue_id": int,
       "budgets": {"fix_loops": {gate_name: remaining},
                   "research": {per_run, depth_per_gap}, ...},  # U15 caps
+      "mode": {token, target, scope, binding, stage, geometry,        # U18
+               geometry_is_output, excludes[], requires[], stated_size,
+               board_init_outline, ts} | absent,   # reference/build-modes.md
       "decisions": [{what, why, phase, ts}],
       "edits": [{ts, class, refs, note, human_hold, gates, gates_marked,
                  stale_artifacts}],                   # edit-class ledger
@@ -47,6 +50,7 @@ has no violation concept so exit 1 is unused):
     state.py edit --class move_fp [--refs U1 U2] [--note TEXT] ...
     state.py rehash [--names gerbers bom] ...
     state.py spawn --role fixer --model opus [--effort high] [--tokens N] ...
+    state.py mode --token "learning stage-placement:" [--stated 35x25] ...
     state.py decision --what W --why Y ...
     state.py human --checkpoint 2 --status approved [--note N] ...
     state.py issue --id 3 --status fixed [--agent fixer-1] [--bump-attempts] ...
@@ -84,6 +88,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
 import checklib  # noqa: E402
+import modeslib  # noqa: E402
 import statelib  # noqa: E402
 from checklib import CheckError  # noqa: E402
 
@@ -473,6 +478,39 @@ class State:
         self._log("spawn", role=rec.get("role"), model=rec.get("model"))
         return rec
 
+    def set_mode(self, token: str, stated: str | None = None) -> dict:
+        """Record the brief's build mode as FIRST-CLASS state (U18).
+
+        The mode is what later stages read to know whether the stated geometry
+        is an input or an output - `board_init` refuses a fixed outline under a
+        geometry-relaxing binding - so it cannot live in decision prose. The
+        decision is recorded too (relaxation is never silent), but the machine
+        answer is here.
+        """
+        mode = modeslib.resolve(token)
+        size = modeslib.parse_size(stated or "") if stated else None
+        if stated and size is None:
+            raise CheckError(f"--stated {stated!r} is not a W x H size "
+                             "(e.g. 35x25)")
+        plan = modeslib.geometry_plan(mode, size)
+        rec = {"token": mode["token"], "target": mode["target"],
+               "scope": mode["scope"], "binding": mode["binding"],
+               "stage": mode["stage"], "geometry": mode["geometry"],
+               "geometry_is_output": mode["geometry_is_output"],
+               "excludes": mode["excludes"], "requires": mode["requires"],
+               "stated_size": list(size) if size else None,
+               "board_init_outline": plan["board_init_outline"], "ts": now()}
+        self.data["mode"] = rec
+        self._log("mode", target=rec["target"], scope=rec["scope"],
+                  binding=rec["binding"])
+        self.add_decision(f"Build mode: {modeslib.summary(mode)}",
+                          f"token {mode['token']!r} in the brief; contract in "
+                          "reference/build-modes.md")
+        if plan["decision"]:
+            self.add_decision(plan["decision"]["what"],
+                              plan["decision"]["why"])
+        return {"mode": rec, "geometry_plan": plan}
+
     def add_decision(self, what: str, why: str, phase: str | None = None) -> None:
         self.data["decisions"].append(
             {"what": what, "why": why, "phase": phase or self.data["phase"],
@@ -639,6 +677,7 @@ class State:
             disposition_error = f"{type(exc).__name__}: {exc}"
         return {
             "script": SCRIPT, "board": self.data["board"],
+            "mode": self.data.get("mode"),
             "release_disposition": disposition,
             **({"release_disposition_error": disposition_error}
                if disposition_error else {}),
@@ -730,6 +769,17 @@ def run(argv=None):
     p.add_argument("--cost-usd", type=float, dest="cost_usd")
     p.add_argument("--note")
 
+    p = sub.add_parser("mode", help="record the brief's build mode "
+                       "(reference/build-modes.md)")
+    common(p)
+    p.add_argument("--token", required=True,
+                   help="the token the brief opens with, e.g. "
+                        "'learning stage-placement:'")
+    p.add_argument("--stated",
+                   help="a size the brief or a checkpoint named, e.g. 35x25 - "
+                        "under a geometry-relaxing binding this is recorded "
+                        "as relaxed, never as a cap")
+
     p = sub.add_parser("decision")
     common(p)
     p.add_argument("--what", required=True)
@@ -814,6 +864,11 @@ def run(argv=None):
             "phase": args.phase, "tokens": args.tokens,
             "cost_usd": args.cost_usd, "note": args.note})
         result.update(spawn=rec)
+    elif args.cmd == "mode":
+        try:
+            result.update(st.set_mode(args.token, args.stated))
+        except modeslib.ModeError as exc:
+            raise CheckError(str(exc)) from exc
     elif args.cmd == "decision":
         st.add_decision(args.what, args.why, args.phase)
         result.update(what=args.what)

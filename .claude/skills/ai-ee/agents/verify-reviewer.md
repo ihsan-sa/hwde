@@ -27,7 +27,11 @@ with the repo venv python. Keep output ASCII.
 - Cross-artifact drift: does the board deliver every requirements.md
   interface? every architecture block present? mounting holes match the
   stated pattern? (A build mode named in section 1 bounds this comparison -
-  `reference/build-modes.md`; what the mode excludes is scope, not drift.)
+  `reference/build-modes.md`. What the SCOPE TIER excludes is scope, not
+  drift; what it REQUIRES is an error when absent - at `product`, missing
+  protection, filtering, connectors, thermal or enclosure fit. A dimension the
+  BINDING relaxed is not drift: compare the board to the size the design
+  EARNED and recorded as a decision, never to the stated number it beat.)
 - Warnings triage: every verify_all WARNING gets a verdict - real risk
   (escalate to error in your findings) or justified waiver (say why).
 

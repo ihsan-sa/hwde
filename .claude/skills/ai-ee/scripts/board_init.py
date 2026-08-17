@@ -20,6 +20,10 @@ plus KiCad's default `min_hole_to_hole: 0.25` at *warning* let 189 unbuildable
 traces and two sub-fab drill pairs pass `drc_routed` 0/0 and only surface at
 the P9 DFM gate (LEARNINGS [board_init][rules_gen][dfm][gates]).
 
+The outline is PROVISIONAL, and under a build mode whose binding makes geometry
+an output (`state.py mode`, reference/build-modes.md) a fixed `--outline WxH` is
+REFUSED here: the size comes from the placement via `board_edit --outline fit`.
+
 Self-check acceptance (SPEC S8): schematic parity == 0 (every part+net imported
 correctly) AND zero setup DRC violations, EXCLUDING unconnected_items (the board
 is unrouted by design), AND the written project's floors >= the fab profile.
@@ -30,6 +34,7 @@ Usage:
                 [--copper-oz 1] [--stackup NAME]
                 [--outline auto|WxH] [--mounting-holes N]
                 [--corner-radius R] [--cutout X,Y,W,H ...]
+                [--workspace DIR] [--allow-fixed-outline]
                 [--schematic s.kicad_sch]   # copy next to board -> enables parity
                 [--fp-lib DIR ...] [--out-report r.json]
 
@@ -55,6 +60,7 @@ sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(SCRIPTS / "lib"))
 from lib import env  # noqa: E402
 from lib import fabfloors  # noqa: E402
+from lib import statelib  # noqa: E402
 import kc  # noqa: E402
 
 REFERENCE = SCRIPTS.parent / "reference"
@@ -294,6 +300,53 @@ def stackup_freshness(stackup: dict, today: _dt.date | None = None,
             "warning": f"verified {verified} ({age.days} days ago); {warning}"}
 
 
+def mode_outline_guard(out_dir: Path, outline: str,
+                       workspace: str | None = None,
+                       allow_fixed: bool = False) -> dict | None:
+    """U18: refuse a FIXED outline when the run's build mode makes geometry an
+    output of the placement.
+
+    bb-buck is the case this exists for. Its P2 derived 40 x 30 mm because the
+    outline is the radiator; P5 was then handed 35 x 25 from the H1 checkpoint,
+    and P6 optimized to FIT it - 0.05 mm of slack on all four edges. Nothing
+    refused, because `--outline WxH` had no idea a mode was in force. Now it
+    reads the recorded mode (`state.py mode`) and the size has to come from the
+    layout: `--outline auto` here, `board_edit --outline fit` after the place
+    gate (reference/recipes/resize-board.md).
+
+    Returns the mode record when one is in force (for the report), None when
+    there is no workspace or no mode. `--allow-fixed-outline` is the explicit,
+    reported consent - the same shape as board_edit's `--replace-shape`.
+    """
+    ws = statelib.find_workspace(out_dir, workspace)
+    if ws is None:
+        return None
+    try:
+        state = json.loads((ws / "state.json").read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    mode = state.get("mode")
+    if not mode:
+        return None
+    rec = {"workspace": str(ws).replace("\\", "/"), **mode}
+    if outline == "auto" or not mode.get("geometry_is_output"):
+        return rec
+    if allow_fixed:
+        rec["fixed_outline_override"] = (
+            f"--outline {outline} accepted under binding "
+            f"{mode.get('binding')} because --allow-fixed-outline was passed; "
+            "the size did NOT come from the placement")
+        return rec
+    raise RuntimeError(
+        f"--outline {outline} refused: build mode {mode.get('target')} binds "
+        f"{mode.get('binding')}, where the board size is an OUTPUT of the "
+        "placement, not an input to it. Use --outline auto (generous "
+        "provisional room), place, gate `place`, then board_edit.py --outline "
+        "fit --margin M (reference/recipes/resize-board.md). To override "
+        "anyway pass --allow-fixed-outline, or change the brief's target "
+        "(reference/build-modes.md).")
+
+
 # --------------------------------------------------------------- main
 
 def main(argv: list[str] | None = None) -> int:
@@ -325,6 +378,14 @@ def main(argv: list[str] | None = None) -> int:
                          "board outline downstream).")
     ap.add_argument("--mounting-holes", type=int, default=0,
                     help="corner mounting holes (0..4)")
+    ap.add_argument("--workspace", help="workspace holding state.json "
+                    "(default: the first parent of --out that has one) - the "
+                    "recorded build mode decides whether a fixed --outline is "
+                    "legal (reference/build-modes.md)")
+    ap.add_argument("--allow-fixed-outline", action="store_true",
+                    help="accept --outline WxH even under a build mode whose "
+                         "binding makes the geometry an OUTPUT; the override "
+                         "is reported in mode.fixed_outline_override")
     ap.add_argument("--schematic", help="copy this .kicad_sch next to the board "
                     "so the self-check can run schematic parity")
     ap.add_argument("--fp-lib", action="append", default=[],
@@ -343,6 +404,17 @@ def main(argv: list[str] | None = None) -> int:
         out_dir = Path(args.out)
         out_dir.mkdir(parents=True, exist_ok=True)
         pcb_path = out_dir / f"{args.name}.kicad_pcb"
+
+        outline = {"mode": "auto"}
+        if args.outline != "auto":
+            m = re.fullmatch(r"([\d.]+)x([\d.]+)", args.outline)
+            if not m:
+                raise RuntimeError(f"bad --outline {args.outline!r} (use auto or WxH)")
+            outline = {"mode": "fixed", "w": float(m.group(1)), "h": float(m.group(2))}
+        # U18: the recorded build mode may forbid a fixed outline outright.
+        # Checked BEFORE the netlist parse so the refusal is instant.
+        build_mode = mode_outline_guard(out_dir, args.outline, args.workspace,
+                                        args.allow_fixed_outline)
 
         components, netmap = parse_netlist(Path(args.netlist))
 
@@ -372,13 +444,6 @@ def main(argv: list[str] | None = None) -> int:
             coppers = [ly for ly in stackup["stack"] if ly["type"] == "copper"]
             outer_oz = float(coppers[0].get("copper_oz", 1.0)) if coppers else 1.0
         cap_class, cap = fabfloors.profile(args.layers, outer_oz)
-
-        outline = {"mode": "auto"}
-        if args.outline != "auto":
-            m = re.fullmatch(r"([\d.]+)x([\d.]+)", args.outline)
-            if not m:
-                raise RuntimeError(f"bad --outline {args.outline!r} (use auto or WxH)")
-            outline = {"mode": "fixed", "w": float(m.group(1)), "h": float(m.group(2))}
 
         cutouts = []
         for spec in args.cutout:
@@ -445,6 +510,10 @@ def main(argv: list[str] | None = None) -> int:
         }
         if fresh:
             result["stackup_freshness"] = fresh
+        if build_mode:
+            result["build_mode"] = build_mode
+            if build_mode.get("fixed_outline_override"):
+                worker_notes.append(build_mode["fixed_outline_override"])
         _emit(result, args.out_report)
         return 0 if check["clean"] else 1
     except Exception:

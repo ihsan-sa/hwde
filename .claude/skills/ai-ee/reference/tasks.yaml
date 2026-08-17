@@ -833,6 +833,13 @@ verbs:
         why: "exit 0 required; on failure present its remediation strings and stop"
       - do: "scripts/state.py init --workspace {ws} --board {board}"
         why: "workspace + subdirs, in-repo so gate commits work; copy the brief in"
+      - do: "scripts/state.py mode --workspace {ws} --token \"<the brief's token>\""
+        why: "P0 (U18): the token names a TARGET that derives the scope tier and
+              the BINDING (reference/build-modes.md). Recording it is what makes
+              the binding machine-readable - board_init refuses a fixed
+              --outline WxH where geometry is an OUTPUT, and a relaxed size is
+              logged as a decision here, not left to prose"
+        when: the brief opens with a mode token
       - note: "P0-P10 are the recipe body: reference/recipes/full-run.md carries the
                per-phase agent roster, the checkpoints and the sim legs."
       - do: "scripts/knowledge.py --coverage --workspace {ws} --phase P2 --out {log}/coverage-P2.json"
@@ -901,6 +908,13 @@ verbs:
         when: "research tasks were opened at P3"
       - gate: erc
       - gate: place
+      - do: "scripts/board_edit.py --pcb {pcb} --outline fit --margin 0.5 --workspace {ws} --out-report {reports}/board_edit-fit.json"
+        why: "P6 close at a geometry-OUTPUT binding (U18 canonical / bounded):
+              the placement earned the size, so shrink the provisional outline
+              to it now, BEFORE copper exists inside the fab's edge clearance.
+              Re-run planes_gen (then stitch_vias) if the board GREW - a zone
+              outline does not follow the edge. resize-board.md has the flow"
+        when: the run's recorded mode makes geometry an output
       - gate: drc_routed
       - gate: verify
       - gate: dfm

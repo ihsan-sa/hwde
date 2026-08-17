@@ -19,9 +19,13 @@ interface. Run scripts with the repo venv python. Keep output ASCII.
 
 ## Hunt list (beyond the checklists)
 - FIRST, if `requirements.md` section 1 names a build mode, read
-  `reference/build-modes.md`: a feature that mode EXCLUDES is not a finding
-  (no absent-ESD/protection/indicator reports on an ultra-bare-bones board).
-  Everything below is unchanged - scope is bounded, rigor is not.
+  `reference/build-modes.md` and take its SCOPE TIER's two lists literally: a
+  feature class the tier EXCLUDES is not a finding (no absent-ESD/protection/
+  indicator reports at `block-only`), and a class it REQUIRES is an ERROR when
+  absent (at `product`: protection, filtering, connectors, thermal,
+  enclosure-fit). A spec the BINDING relaxed - a size, a cost, a package - is
+  not drift either; judge the board against what the design earned and
+  recorded. Everything below is unchanged: scope is bounded, rigor is not.
 - Pin-function abuse: strapping/boot pins tied wrong, inputs floating behind
   "NC", outputs shorted to rails, missing pull on open-drain.
 - Decoupling: per-pin coverage vs the datasheet JSON (not just "some caps").

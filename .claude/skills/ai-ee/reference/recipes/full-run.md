@@ -8,23 +8,24 @@ every attempt, pass and fail: `--workspace` RECORDS the result, and `set-phase`
 refuses to advance past a gate phase with no recorded result.
 
 Phase digest: after each phase write 5-10 lines to `log/P<n>-digest.md` and
-`state.py set-phase`. Agent selection: spawn only what the design's domains
-need - an RF board gets an RF-interface researcher and RF review emphasis; a
-USB-C dev board gets neither. Role prompts live in `agents/`; each states its
-own scripts and contract.
-Lean amendment (S14-proven): purely script-driven phases run INLINE (P5 board
-setup, gates, P9 fab/dfm scripts, P10 quote/submit) - rule 1 still holds (read
-script JSON, never design files). Judgment roles stay agents; reviewers stay
-FRESH-context agents always. Small boards may use ONE schematic agent (record it).
+`state.py set-phase`. Agent selection: spawn only what the design's domains need
+- an RF board gets an RF-interface researcher and RF review emphasis; a USB-C
+dev board gets neither. Role prompts live in `agents/`. Lean amendment: purely
+script-driven phases run INLINE (P5 board setup, gates, P9 fab/dfm scripts, P10
+quote/submit) - rule 1 still holds (read script JSON, never design files).
+Judgment roles stay agents; reviewers stay FRESH-context agents always. Small
+boards may use ONE schematic agent (record it).
 
 ## The phases
 
 - **P0 Intake**: spawn `requirements-analyst`; OPEN questions go to the user in
-  ONE batch; lint the artifact with `check_requirements.py`. A brief opening
-  with a mode token (`reference/build-modes.md`) is a scope contract: record it
-  with `state.py decision`, pass it to P2 + every reviewer spawn. Safety
-  unknowns (mains / battery / >3 A) are never guessed - an unattended run
-  records delegate answers as PROVISIONAL decisions, re-confirmed at H1.
+  ONE batch; lint with `check_requirements.py` (it fails an artifact that does
+  not name its mode, or states a size the binding relaxes without marking it).
+  A brief opening with a mode token names a TARGET deriving a scope tier and a
+  BINDING (`reference/build-modes.md`): `state.py mode --token "<it>"` records
+  both plus any geometry relaxation; carry them into P2, P5, P6 and every
+  reviewer spawn. Safety unknowns (mains / battery / >3 A) are never guessed -
+  an unattended run records delegate answers as PROVISIONAL, re-confirmed at H1.
 - **P1 Research** (parallel): from the requirements pick the roster -
   `research-component-scout` (per major function), `research-reference-design`
   (per novel block), `research-interface-spec` (per standards-bound interface),
@@ -44,7 +45,8 @@ FRESH-context agents always. Small boards may use ONE schematic agent (record it
   (verified records fold in as `provisional`). A slot still `gap` is a
   `state.py decision` "designing under coverage gap: ...", never silence. **H1**
   (blocking): blocks, stackup, cost ballpark, key parts, riskiest decision,
-  coverage summary (covered / provisional / gap per slot), cap state.
+  coverage (covered/provisional/gap per slot), cap state, and every spec the
+  mode relaxed (stated -> earned -> why).
 - **P3 Parts + Library**: spawn `part-sourcer`; `datasheet-extractor` per
   nontrivial IC (parallel) - reuse a prior board's `parts/<lcsc>.json` on LCSC
   match (re-run `--validate`); then `librarian`. Pad-geometry failures block P4.
@@ -59,11 +61,15 @@ FRESH-context agents always. Small boards may use ONE schematic agent (record it
   **H2** (blocking): schematic PDF + reviewer findings + waivers.
 - **P5 Board Setup**: inline (`board_init` then `rules_gen`, per
   `agents/board-setup.md`); spawn `board-setup` only for impedance or
-  library-repair boards. Parity 0, setup 0; sidecars beside the board.
+  library-repair boards. Parity 0, setup 0; sidecars beside the board; generous
+  `--outline auto` at a geometry-OUTPUT binding (a fixed WxH is REFUSED there).
 - **P6 Placement**: spawn `placement` (seed -> anneal -> select/repair, <= 8 edit
-  iterations). Gate `place`. **H3** (optional, default ON): top/bottom render.
-  Silk/refdes collisions are scripted fixes (`silk_place`, `move_text`); agents
-  verify with a full kicad-cli DRC - never trust one checker.
+  iterations). Gate `place`. At a geometry-OUTPUT binding placement targets the
+  canonical layout, not the outline: after the gate, `board_edit --outline fit
+  --margin M` (+ `planes_gen` if it grew) earns the size. **H3** (optional,
+  default ON): top/bottom render. Silk/refdes collisions are scripted fixes
+  (`silk_place`, `move_text`); agents verify with a full kicad-cli DRC - never
+  trust one checker.
 - **P7 Routing**: spawn `router` (chain order is board-class dependent - its
   prompt carries the verified 2L/4L orders). Gate `drc_routed`. A
   `placement_adjust_request` takes the SANCTIONED backward edge: snapshot,
@@ -94,7 +100,7 @@ FRESH-context agents always. Small boards may use ONE schematic agent (record it
   antiresonance peaks only). Fold both into the P8 review; never block on them
   without constraints-declared bounds.
 
-## Run close, and bring-up close
+## Run close, resuming, and what not to do
 
 Before the run is declared finished: append what this board taught to
 `boards/<b>/LEARNINGS.md` (dated, stage-tagged, one claim per heading), then
@@ -105,16 +111,10 @@ only clear two phases later. Bring-up close (T11): `state.py log --event
 bringup_passed`, then `knowledge.py --prove --workspace boards/<b>` (`--dry-run`
 first) - every record that APPLIED becomes `proven` with its evidence entry.
 
-## Resuming, and editing mid-run
-
-A killed run resumes through `resume-phase`. A change of mind mid-run is not a
-rewind: after P5, `add-part` / `swap-part` / `remove-part` preserve placement
-and routing. Get decoupling and protection into the schematic before P5 anyway.
-
-## Do not
-
-- Do not run phases you have gate evidence for. `resume-phase` reads freshness;
-  a passed-and-fresh gate is not re-run.
-- Do not let a report gate the run. `report_gen.py` is non-blocking by contract:
-  on exit 1/2 log `report_gen_degraded`, point at the .tex or the last good PDF,
-  and continue.
+A killed run resumes through `resume-phase`. A change of mind after P5 is not a
+rewind: `add-part` / `swap-part` / `remove-part` preserve placement and routing;
+get decoupling and protection into the schematic before P5 anyway. Do NOT re-run
+a phase you have gate evidence for - `resume-phase` reads freshness, and a fresh
+pass is not re-run. Do NOT let a report gate the run: `report_gen.py` is
+non-blocking, so on exit 1/2 log `report_gen_degraded`, point at the .tex or the
+last good PDF, and continue.

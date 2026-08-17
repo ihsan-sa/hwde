@@ -38,11 +38,17 @@ caps and the allowlist rule.)
 Never invent a step a recipe does not have, and never skip its gates: the gate
 set is the invalidation map's answer to "what did this edit invalidate".
 
-**Build modes**: a brief opening with a mode token (`ultra bare bones design:`)
-declares a SCOPE contract - read `reference/build-modes.md`, record it with
-`state.py decision` at P0, and carry the token into the P0/P2 and reviewer
-spawns. A mode bounds what goes ON the board; it never relaxes a gate, the
-coverage check, or a safety question.
+**Build modes**: a brief opening with a mode token (`learning <target>:`, or the
+legacy `ultra bare bones design:`) names a TARGET LEARNING OUTCOME that derives
+two dials - read `reference/build-modes.md`. The SCOPE TIER bounds what goes on
+the board (and at `product` makes the ABSENCE of protection/filtering a
+finding); the BINDING LEVEL says whether the stated geometry is an input to the
+design or an OUTPUT of it. Record it at P0 with `state.py mode --token "<it>"`
+(not a bare decision - `board_init` reads it and REFUSES a fixed `--outline WxH`
+where the size must be earned), and carry scope + binding into the P0/P2/P6 and
+reviewer spawns. A mode relaxes geometry, cost and packaging only - never a
+gate, the coverage check, research, or a safety question - and every relaxed
+spec is a recorded decision shown at H1.
 
 ## Non-negotiable operating rules
 

@@ -4989,3 +4989,174 @@ only the U19 block went in.
 - The 2-layer case is unpriced: on a 2-layer board a back-side part eats B.Cu
   routing space (often the ground pour), which no term models. Boards where
   that matters should pin sides or raise the weight until a real term exists.
+
+## U18 - Learning mode: a target outcome drives scope AND binding (2026-08-16) - DONE
+
+bb-buck was correct but not canonical. Its P2 derived **40 x 30 mm** with a
+mechanism behind it ("the outline IS the radiator" - R_ba 39/34/31 C/W at
+875/1064/1200 mm2); the owner handed P5 **35 x 25** at H1; P6 closed "OUTLINE IS
+FINAL AT 35 x 25 - measured, not estimated" with 0.05 mm of slack on all four
+edges. Placement had optimized to FIT rather than to teach. Per the owner ruling
+(2026-08-16) the fix is a mode driven by a TARGET LEARNING OUTCOME that derives
+both dials, not two flags a caller sets independently.
+
+**Built:**
+- `reference/build-modes.md` restructured into the registry: a **Tokens** table
+  (`learning <target>:` plus the legacy aliases), a **Targets** table (7 rows,
+  owner-approved), a **Scope tiers** table (`block-only` / `block+interfaces` /
+  `product`, each with a closed-vocabulary `excludes` + `requires` list) and a
+  **Binding levels** table (`canonical` / `bounded` +30% / `constrained` /
+  `product`, with `geometry: input|output`, `cap` and `also binds`). The old
+  ultra-bare-bones Include/Exclude/Defaults prose becomes the `block-only` tier
+  section verbatim - reused, not duplicated - and the research-mandatory rule
+  now reads "at every learning target".
+- `lib/modeslib.py` PARSES that doc; nothing hard-codes a target, tier or
+  binding. `parse_doc` validates the tables against each other (unknown scope /
+  binding / target, excludes-and-requires overlap, bad geometry word, bad cap
+  form, missing section) so a prose edit that breaks the contract fails loudly
+  instead of resolving to something plausible. `detect` reads only the brief's
+  OPENING declaration; `resolve` returns the full record; `geometry_plan(mode,
+  stated, earned)` is the pure arithmetic of a relaxation and returns the
+  `state.py decision` text the relaxation owes - relaxation is never silent, so
+  the decision is part of the answer; `feature_verdict(mode, feature)` is the
+  reviewers' rule (`excluded` / `required` / `normal`).
+- `state.py mode --token "<it>" [--stated WxH]`: the mode becomes FIRST-CLASS
+  state (`state.json.mode`, surfaced by `resume`), logs a `mode` event, and
+  records BOTH the "Build mode: ..." decision and the geometry-relaxation
+  decision. Prose could not carry this - `board_init` has to read it.
+- `board_init.mode_outline_guard`: at a geometry-OUTPUT binding a fixed
+  `--outline WxH` is REFUSED (exit 2) with the whole remediation (auto ->
+  place -> `board_edit --outline fit`); `--allow-fixed-outline` is the explicit
+  consent and says in the report that the size did not come from the placement.
+  The guard runs immediately after the output dir, before the netlist parse, so
+  the refusal is instant, and `--workspace` / auto-detection follows U16+U17.
+- `check_requirements.py` mode leg (the P0 artifact half): `req_mode_unknown`
+  (error), `req_mode_unnamed` (error - section 1 must name the mode AND its
+  binding), `req_mode_unmarked_size` (error - a dimension in section 5 under a
+  relaxing binding with no `RELAXABLE` / `no HARD cap` marker), `req_mode_stray`
+  (warning - section 1 names a mode no brief declared). Facts gain `mode`,
+  `brief_token`, `brief_file`.
+- Wiring: `recipes/full-run.md` P0 (the `state.py mode` step + what the lint
+  now fails), H1 (relaxed specs in the checkpoint), P5 (`--outline auto`, fixed
+  WxH refused), P6 (place to the canonical layout, then `board_edit --outline
+  fit`); `tasks.yaml` full-run gains a `state.py mode` step and a
+  `board_edit --outline fit` step BETWEEN the `place` and `drc_routed` gates,
+  both router-validated; `agents/requirements-analyst.md` (mark relaxable specs
+  in section 5, name the mode in section 1), `agents/architect.md` (GEOMETRY IS
+  AN OUTPUT - state what the layout needs, never a size; the loss is a decision
+  and an H1 line), `agents/placement.md` (the given outline is PROVISIONAL
+  room), both reviewer contracts (a tier's `excludes` is not a finding, its
+  `requires` IS one when absent, and a relaxed spec is not drift - compare to
+  what the design EARNED), `SKILL.md`, and `recipes/learn.md` (take the
+  session's `--stage` from `mode.stage`, not a fresh decision).
+
+**Acceptance evidence:** `tests/test_build_modes.py` - 31 tests (30 pure, 1
+smoke), 15 s. Plan criteria, in order: the same brief at `canonical` and at
+`constrained` produces DIFFERENT outlines on a copy of the bb-buck workspace -
+constrained keeps 35 x 25 and records no relaxation, canonical runs
+`board_edit --outline fit` and lands 35.9 x 25.901 with the relaxation decision
+and the `outline_change` edit in state, no larger than its own content bbox +
+2 x margin; a `product`-scope target flips `protection`/`filtering` from
+`excluded` to `required` (with both reviewer contracts pinned to that rule);
+`task_router --validate` green; and the mode table is test-pinned against
+build-modes.md - every target's derived (scope, binding, stage) triple, both
+tier lists, all four bindings and six doc mutants that must fail to parse. Plus
+the tooth itself (board_init refuses, consents, stays silent without a mode or a
+workspace, and refuses before reading the netlist), the P0 lint's five outcomes,
+`state.py mode` round-trip through `resume`, and the arithmetic of all four
+bindings including bounded's +30% cap in both directions.
+
+**Suite:** full run at session close: **1948 collected, 0 failed, pytest exit
+0** (13 min), `check_env.py --quiet` exit 0. Even the standing net-marked
+AP63203 stock test passed. The arithmetic: U19 closed at 1917 collected and
+this step adds 31. An EARLIER full run showed one red -
+`test_board_init_cli_refuses_before_it_touches_the_netlist` failing with
+`NameError: statelib` - which was self-inflicted and not a real failure: the
+`statelib` import was moved from inside `mode_outline_guard` to module scope
+in two edits WHILE that run was in flight, and a board_init subprocess launched
+in the window between them. Re-run alone it passed; the clean re-run above was
+made with no concurrent edits.
+
+**Deviations (with reasons):**
+1. The legacy `ultra bare bones design:` token now resolves to **canonical**,
+   not to the `constrained` binding bb-buck actually ran (owner-ruled this
+   session). Its written size default always said "the smallest outline that
+   keeps the layout HONEST", which is a canonical binding in prose; bb-buck's
+   binding size was the accident. The held bb-ldo / bb-adc / bb-amp / bb-mcu
+   boards are exactly the reason - mapping the legacy token to `constrained`
+   would have let each of them repeat the trap. `fit-check` is the target to
+   name when a size really is fixed.
+2. build-modes.md IS the registry (modeslib parses its four tables) rather than
+   a YAML twin with a doc that must be kept in sync. One source cannot drift;
+   the cost is that the doc's tables are load-bearing syntax, which `parse_doc`
+   defends with vocabulary checks and the test defends with six mutants.
+3. The plan said "wire the target through P0, P2, P6 and the reviewers". P2 is
+   wired in `agents/architect.md` only, not in full-run.md: the recipe was at
+   its 120-line cap, and what P2 must do differently is the ARCHITECT's job, in
+   the architect's own contract. The recipe carries what the orchestrator runs
+   (the mode step, the P5 rule, the P6 fit step). Six lossless reflows paid for
+   the rest of the additions.
+4. `board_init` refuses at `bounded` as well as `canonical` - both make the
+   geometry an output at P5. Bounded's stated size re-enters AFTER the fit
+   (`geometry_plan` keeps it when it is within +30% of what the placement
+   earned), which is where a cap can actually be measured.
+5. No new verb and no new script: the mode rides `full-run`, and the mechanics
+   ride `state.py` / `board_init` / `check_requirements`. A `modes.py` CLI would
+   have been a fourth place to ask the same question.
+6. bb-buck's own `requirements.md` now FAILS the P0 lint with one
+   `req_mode_unnamed` - honestly: its brief's token is canonical and its section
+   1 never said the geometry was an output, because it was not. Pinned as
+   evidence (`test_the_real_boards_and_bb_buck_under_the_new_leg`) rather than
+   papered over; the five mode-less root boards stay green. bb-buck's files are
+   not edited (finished board, recorded provenance).
+7. As at U16/U17, the pd-trigger / stm32-blinky design-doc pdf+tex regens were
+   dirty at session open and are left uncommitted; `boards/xhp-driver/` stays
+   untracked (U10 owns it).
+8. The U19 session ran concurrently in the SAME worktree and committed first
+   (36bc82e). It staged `agents/placement.md` hunk-wise so only its own block
+   went in, and deliberately carried the append-only registers whole - so
+   LEARNINGS entries 311/312, triage rows 311/312 and the recomputed header
+   (312 rows) are U18's work landing in U19's commit, which is what keeps the
+   register self-consistent at every commit. The U18 status-board row rode
+   along the same way. This commit therefore carries the U18 files, the U18
+   PROGRESS entry, and `agents/placement.md`'s U18 bullet; U19's scripts and
+   tests are already in HEAD and are not re-committed here. The general rule
+   for a shared worktree: `git commit -- <path>` commits the OTHER session's
+   working-tree text too, so anything append-only either goes whole or is
+   staged from `git show HEAD:<path>` - the v3 convention's "rebase before
+   commit on conflict" assumes separate worktrees, and there is no conflict to
+   rebase when both sessions edit one tree.
+
+**Interface notes for later steps:**
+- `state.json` gains an OPTIONAL top-level `mode`
+  ({token, target, scope, binding, stage, geometry, geometry_is_output,
+  excludes, requires, stated_size, board_init_outline, ts}); absent = no mode,
+  version stays 2, no migration. `resume` surfaces it - read it there.
+- Anything asking "does the stated geometry bind" calls
+  `modeslib.resolve(...)["geometry_is_output"]`, never a target or binding name
+  by hand. Anything asking "is this feature in scope" calls
+  `modeslib.feature_verdict(mode, feature)` against the closed vocabulary
+  (protection, filtering, indicators, test-points, config, second-rail,
+  mechanical, enclosure-fit, connectors, thermal). No tier excludes `thermal`.
+- Adding a target = one row in build-modes.md's Targets table plus its entry in
+  `TARGETS` in tests/test_build_modes.py. Adding a scope tier or a binding
+  additionally needs its own table row; the parser rejects anything else.
+- U8 (buck placement teaching): open the workspace under
+  `learning stage-placement:` - block-only scope, canonical binding, stage P6,
+  and `recipes/learn.md` takes `--stage` from `mode.stage`. The board must be
+  built with `board_init --outline auto`, or the teaching fixture inherits
+  bb-buck's defect.
+- U10 (xhp-driver): a product board declares no mode, or `learning
+  production-block:` if it is meant to teach; at `product` scope the reviewers
+  now report MISSING protection/filtering/connectors/thermal/enclosure-fit as
+  errors.
+
+**New verify-later items:**
+- The canonical flow's ORDER is prose + one refusal, not a check: nothing FAILS
+  when a `canonical` run reaches `board_edit --outline fit` having been placed
+  against a tight provisional outline. The honest L2 is a board_edit warning
+  when `fit` GROWS the board under a geometry-output mode (triage row 312,
+  open). Measured: bb-buck 35 x 25 -> fit 35.9 x 25.901.
+- `bounded`'s +30% cap is arithmetic in `geometry_plan` that no stage calls
+  automatically yet - the orchestrator applies it after the fit. A live
+  `block-integration` run is what will show whether that wants to be a step.

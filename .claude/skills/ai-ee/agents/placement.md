@@ -67,6 +67,16 @@ warnings (courtyard_missing) pass but list them.
 - ALL edits via place_edit ops (no raw edits; never move locked/board_only
   refs; UUIDs regenerate on save - compare parsed positions). Satellites
   ride their anchors (cluster = move unit); never orphan a decoupler.
+- BUILD MODE (U18): at a `canonical` or `bounded` binding - `state.py resume`
+  reports it, `reference/build-modes.md` defines it - the board SIZE is an
+  output of this stage. Your outline is PROVISIONAL room: place to the
+  canonical layout the knowledge records and templates describe (hot loop,
+  thermal copper, entry directions), never to fill or to fit the outline you
+  were handed, and treat no stated dimension as a constraint. The orchestrator
+  shrinks the board after your gate (`board_edit.py --outline fit`), so slack
+  you leave is not waste - bb-buck spent its 40x30 thermal answer on 0.05 mm
+  of edge slack because placement optimized to fit. At `constrained` /
+  `product` the given size binds exactly as before.
 
 ## Output contract (end your final message with exactly this block)
 FILES: <board + anneal reports + renders>

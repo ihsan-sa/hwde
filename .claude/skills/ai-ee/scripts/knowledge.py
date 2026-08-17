@@ -256,8 +256,8 @@ def main(argv: list[str] | None = None) -> int:
                          f"(default {knowledgelib.DEFAULT_MATURITY_FLOOR})")
     ap.add_argument("--research-provisional", action="store_true",
                     help="--coverage: count provisional slots as gaps so they "
-                         "open research tasks (seeding runs - build-modes "
-                         "ultra-bare-bones; use on a phase's FIRST coverage "
+                         "open research tasks (seeding runs - any build-modes "
+                         "learning target; use on a phase's FIRST coverage "
                          "call only, never on the post-research re-run)")
     ap.add_argument("--phase", help="--coverage: label (P2 / P3) recorded in "
                                     "the report")
