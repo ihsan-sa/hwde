@@ -1,0 +1,37 @@
+{
+  "violations": [
+    {
+      "check": "schematic-review",
+      "severity": "warning",
+      "pos": null,
+      "layer": null,
+      "net": "/NRST",
+      "refs": ["U1", "J2"],
+      "msg": "NRST runs from U1 pin 4 straight to J2 pin 5 with no capacitor, held only by the die's 25-55 kOhm internal pull-up, on the one net this board deliberately extends onto an unshielded flying lead - datasheet Figure 21 'Recommended NRST pin protection' note 1 states the external capacitor 'protects the device against parasitic resets' unconditionally (not as reset-button debounce, which is the AN4325 reading the P1 decision used to omit it), Table 49 guarantees rejection only below 100 ns while any pulse at or above 300 ns resets the part, and parts/C89040.json's own decoupling[] array plus the run's own research record both carry the 0.1 uF, so a coupled transient on that lead drops the live SWD session and presents as a bring-up failure.",
+      "source": "review.schematic",
+      "kind": "nrst-missing-datasheet-cap"
+    },
+    {
+      "check": "schematic-review",
+      "severity": "warning",
+      "pos": null,
+      "layer": null,
+      "net": "+3V3",
+      "refs": ["J2"],
+      "msg": "J2's recorded pin-order ruling analysed only the 180-degree reversal, but putting +3V3 at centre position 3 flanks the rail with SWCLK (2) and SWDIO (4) - the probe's two push-pull drivers - so a one-position slip on this unkeyed 1x5 header in EITHER direction ties a probe output driver directly to the 3.3 V rail with no series element, sinking the bench supply's ~0.5 A limit plus 5.8 uF of on-board bulk into a driver rated for tens of milliamps every time it drives low; no ordering of an unkeyed 5-way removes this, so the per-pin silk and pin-1 marker that constraints.json already calls load-bearing must actually reach the board (stm32-blinky promised them and shipped without).",
+      "source": "review.schematic",
+      "kind": "j2-offset-lands-probe-driver-on-rail"
+    },
+    {
+      "check": "schematic-review",
+      "severity": "warning",
+      "pos": null,
+      "layer": null,
+      "net": "+3V3",
+      "refs": ["J2", "J3"],
+      "msg": "J2 and J3 are the identical unkeyed part (LCSC C32713271, footprint aiee:HDR-TH_5P-P2.54-V-M, no polarizing feature per its own extraction) on adjacent edges of a small board, and their centre positions carry opposite things - J2 pin 3 is +3V3 while J3 pin 3 is GND - so plugging the GPIO bench cable into the debug header shorts the 3.3 V rail to ground through that cable's return wire, with no fuse or current limit anywhere in the path; the reverse mis-plug is benign (VTref reads 0 V and the probe refuses to talk), so the whole exposure is one-directional and rests on silk plus a distinguishing pin-1 marker surviving to P8.",
+      "source": "review.schematic",
+      "kind": "j2-j3-interchangeable-headers"
+    }
+  ]
+}

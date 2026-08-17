@@ -3,20 +3,20 @@
  "board": "bb-mcu",
  "workspace": "boards/bb-mcu",
  "created": "2026-08-16T17:25:37",
- "updated": "2026-08-16T21:23:29",
+ "updated": "2026-08-16T21:57:21",
  "phase": "P4",
  "gates": {
   "erc": {
    "phase": "P4",
    "status": "pass",
-   "attempts": 1,
+   "attempts": 2,
    "last": {
-    "ts": "2026-08-16T21:23:29",
+    "ts": "2026-08-16T21:57:21",
     "status": "pass",
     "failing_count": 0,
     "total": 0,
     "inputs": {
-     "sch": "sexpr_no_uuid:7feb1911e8e23f37d61845d5df03b336083a74de9ffa59b9a1f2d5a99fdd3299",
+     "sch": "sexpr_no_uuid:aa84db1fddb9efa93a3c0e3b7b72499b9727ed8c5c6ce48bc3df3d3967d0ff40",
      "pro": "json_canonical:4410bd83f3d0f0949c8fc8f1c29dea97e64089b82dd43f3374e925f855d99de4"
     }
    },
@@ -28,6 +28,16 @@
      "total": 0,
      "inputs": {
       "sch": "sexpr_no_uuid:7feb1911e8e23f37d61845d5df03b336083a74de9ffa59b9a1f2d5a99fdd3299",
+      "pro": "json_canonical:4410bd83f3d0f0949c8fc8f1c29dea97e64089b82dd43f3374e925f855d99de4"
+     }
+    },
+    {
+     "ts": "2026-08-16T21:57:21",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "sch": "sexpr_no_uuid:aa84db1fddb9efa93a3c0e3b7b72499b9727ed8c5c6ce48bc3df3d3967d0ff40",
       "pro": "json_canonical:4410bd83f3d0f0949c8fc8f1c29dea97e64089b82dd43f3374e925f855d99de4"
      }
     }
@@ -45,14 +55,14 @@
   "sch": {
    "path": "kicad/bb-mcu.kicad_sch",
    "kind": "sch",
-   "sha256": "sexpr_no_uuid:7feb1911e8e23f37d61845d5df03b336083a74de9ffa59b9a1f2d5a99fdd3299",
-   "hashed": "2026-08-16T21:23:29"
+   "sha256": "sexpr_no_uuid:aa84db1fddb9efa93a3c0e3b7b72499b9727ed8c5c6ce48bc3df3d3967d0ff40",
+   "hashed": "2026-08-16T21:57:21"
   },
   "pro": {
    "path": "kicad/bb-mcu.kicad_pro",
    "kind": "pro",
    "sha256": "json_canonical:4410bd83f3d0f0949c8fc8f1c29dea97e64089b82dd43f3374e925f855d99de4",
-   "hashed": "2026-08-16T21:23:29"
+   "hashed": "2026-08-16T21:57:21"
   }
  },
  "open_issues": [],
@@ -252,6 +262,24 @@
    "why": "the P2 sheet plan is a single flat root sheet for 9 parts and 10 nets, and the full-run recipe explicitly sanctions one schematic agent on a small board provided it is recorded. Splitting it would add a stitching seam with nothing on either side of it, and the recorded /sheet/LABEL export hazard that cost lumina-par is avoided entirely by having no hierarchy",
    "phase": "P4",
    "ts": "2026-08-16T21:10:47"
+  },
+  {
+   "what": "REVERSING the P1 ruling: ADD C5, 100 nF from NRST to GND. The reviewer was right and my original reason was wrong",
+   "why": "I ruled it out at P1 on AN4325 filing the part under Table 6 Optional components 'for RESET button', reasoning that this board has no button. The reviewer showed that misreads the evidence: the DATASHEET's own Figure 21 note 1 recommends the capacitor unconditionally as parasitic-reset protection, which is a different and stronger justification than button debounce, and the run's own C89040 extraction and its own swd-debug-port research record both carry the 0.1 uF. Decisive for scope: requirements.md section 2 point 5, written at P0 before any of this, explicitly scoped 'whatever the datasheet requires on NRST / boot-mode pins' as in-scope support - so this is not the recommended-only conditioning the block-only tier excludes, it is the carve-out the requirements anticipated. And the exposure is specific to this board: NRST is deliberately routed to an unshielded flying lead, which is exactly the parasitic-reset case the note addresses. My own P1 decision text had already flagged that risk and accepted it; the reviewer supplied the source that turns the accepted risk into an unnecessary one",
+   "phase": "P4",
+   "ts": "2026-08-16T21:51:08"
+  },
+  {
+   "what": "J3 pin order CHANGED from IO1/IO2/GND/IO3/IO4 to IO1/IO2/IO3/IO4/GND - GND moves off the centre to position 5",
+   "why": "the reviewer found that J2 and J3 are the SAME unkeyed 5-position part, so a cable made for one fits the other. With GND at J3 centre and +3V3 at J2 centre, plugging the GPIO cable into the debug header shorts the rail through the cable's own return - a hard short, the worst outcome available on this board. Moving GND to an end makes the worst cross-plug outcome a GPIO pin contacting the rail or ground, both current-limited by the pin's own driver and non-destructive at 3.3 V. The cost is the return-path benefit the P2 architect chose centre-GND for, which is immaterial here: the owner's answer 3 freed these four pins from any electrical requirement, they are plain digital I/O with no stated edge rate, and a scope probe brings its own ground clip. Accepted trade: J3's own 180-degree reversal is now less clean (GND no longer self-maps), but reversal costs an IO-to-GND contact while cross-plugging cost a rail short",
+   "phase": "P4",
+   "ts": "2026-08-16T21:51:08"
+  },
+  {
+   "what": "J2 pin order UNCHANGED (GND/SWCLK/3V3/SWDIO/NRST) despite the reviewer's one-position-slip warning. Mitigation stays per-pin silk, carried to P6",
+   "why": "the reviewer correctly notes my order was ruled on the 180-degree reversal case only, and that a one-position slip puts a probe push-pull driver onto the rail. I worked the alternatives and centre-rail still wins: with the rail at an END, a one-position slip lands the probe's GND wire on it, which is a hard short - strictly worse than a driver contact, which is current-limited by the driver and which probes generally detect. There is no 5-position order that is safe against BOTH a reversal and a one-position slip, so the ruling is to take the failure that is current-limited in every case. Recorded rather than dismissed: the residual risk is real and its only mitigation is that the per-pin silk actually gets placed and stays legible, which constraints.json already flags as load-bearing and which P6 must deliver",
+   "phase": "P4",
+   "ts": "2026-08-16T21:51:09"
   }
  ],
  "edits": [],
@@ -362,6 +390,12 @@
    "ts": "2026-08-16T21:11:17",
    "role": "schematic-block",
    "model": "opus/high (fable/medium substituted - fable unavailable)",
+   "phase": "P4"
+  },
+  {
+   "ts": "2026-08-16T21:24:38",
+   "role": "schematic-reviewer",
+   "model": "opus/xhigh (fable/high substituted)",
    "phase": "P4"
   }
  ],
@@ -715,6 +749,35 @@
    "gate": "erc",
    "status": "pass",
    "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-16T21:24:38",
+   "event": "spawn",
+   "role": "schematic-reviewer",
+   "model": "opus/xhigh (fable/high substituted)"
+  },
+  {
+   "ts": "2026-08-16T21:51:08",
+   "event": "decision",
+   "what": "REVERSING the P1 ruling: ADD C5, 100 nF from NRST to GND. The reviewer was right and my original reason was wrong"
+  },
+  {
+   "ts": "2026-08-16T21:51:08",
+   "event": "decision",
+   "what": "J3 pin order CHANGED from IO1/IO2/GND/IO3/IO4 to IO1/IO2/IO3/IO4/GND - GND moves off the centre to position 5"
+  },
+  {
+   "ts": "2026-08-16T21:51:09",
+   "event": "decision",
+   "what": "J2 pin order UNCHANGED (GND/SWCLK/3V3/SWDIO/NRST) despite the reviewer's one-position-slip warning. Mitigation stays per-pin silk, carried to P6"
+  },
+  {
+   "ts": "2026-08-16T21:57:21",
+   "event": "gate",
+   "gate": "erc",
+   "status": "pass",
+   "attempt": 2,
    "failing_count": 0
   }
  ],

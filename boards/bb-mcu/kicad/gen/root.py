@@ -11,8 +11,17 @@ Grounding (SPEC section 5 - nothing here comes from family memory):
     against the pulled symbol at build time.
   - J1 / J2 / J3 pin numbering: parts/C8465.json, parts/C32713271.json.
   - Component set + values: parts/parts.json (P3), which is the P2 BOM.
-  - Net names and the two header pin orders: architecture/sheets.md s2/s3
-    (both RULED - J2 `GND SWCLK 3V3 SWDIO NRST`, J3 `IO1 IO2 GND IO3 IO4`).
+  - Net names: architecture/sheets.md s2.
+  - Header pin orders: J2 `GND SWCLK 3V3 SWDIO NRST` is sheets.md s3, RULED
+    at P1 and unchanged. J3 is `IO1 IO2 IO3 IO4 GND` - a P4-REVIEW AMENDMENT
+    that supersedes sheets.md s3's `IO1 IO2 GND IO3 IO4` (see J3 below).
+
+TWO P4-REVIEW AMENDMENTS are built in here and are NOT yet reflected in
+architecture/sheets.md or architecture/constraints.json - both are owner
+rulings recorded in state.json, and this file is the amended source:
+  1. C5, a 100 nF NRST-to-GND capacitor, is ADDED (sheets.md s3's part
+     table and blocks.md s2's exclusion list both still say no NRST cap).
+  2. J3's ruled order MOVES GND from the centre to position 5.
 
 Canonical nets (sheets.md s2): `+3V3` and `GND` are POWER SYMBOLS, so they
 export BARE; every signal is a root-sheet LOCAL LABEL, which exports with one
@@ -25,10 +34,15 @@ Deliberately absent, each a recorded ruling (blocks.md s2, constraints.json
     internal RC + PLL on VDDA and this board has no crystal, so VDDA IS the
     clock supply; Table 21 also requires VDDA >= VDD, which any series
     element can only violate.
-  - no NRST capacitor (AN4325 files it Optional, "for RESET button"; this
-    board has no button), no series resistors and no external pulls on
-    SWDIO/SWCLK/NRST (the STM32F0's internal 25/40/55 k pulls are live at
-    reset - DS Table 11 footnote 7).
+  - no series resistors and no external pulls on SWDIO/SWCLK/NRST (the
+    STM32F0's internal 25/40/55 k pulls are live at reset - DS Table 11
+    footnote 7).
+  - the NRST capacitor is NO LONGER absent: see C5 below. The earlier "no
+    NRST cap" ruling read AN4325's Optional-components table ("for RESET
+    button") and missed DS Figure 21 note 1, which recommends the cap
+    unconditionally as PARASITIC-RESET protection - a different
+    justification, and one this board's unshielded NRST flying lead is the
+    textbook exposure for.
   - no `"role": "reg_input"` on any cap: that flag exists for a SWITCHING
     regulator's VIN pin and there is no regulator anywhere on this board.
 
@@ -88,7 +102,8 @@ V_JH = "1x5 2.54mm male THT"
 # ---- LCSC codes (parts/parts.json); bom_cpl reads the "LCSC" field -------
 LCSC = {
     "U1": "C89040", "C1": "C14663", "C2": "C22399629", "C3": "C327204",
-    "C4": "C106248", "R1": "C25804", "J1": "C8465",
+    "C4": "C106248", "C5": "C14663",   # C5 is the SAME part as C1
+    "R1": "C25804", "J1": "C8465",
     "J2": "C32713271", "J3": "C32713271",
 }
 
@@ -102,14 +117,15 @@ U1_PINS = {
                     #    RECOMMENDED-only EMC guidance (AN4325 5.6), excluded
                     #    by the scope tier.
     "3": "NC",      # PF1-OSC_OUT: same, no crystal.
-    "4": "NRST",    # -> J2.5. Permanent internal pull-up 25/40/55 k plus the
-                    #    die's glitch filter; nothing added (blocks.md s2).
+    "4": "NRST",    # -> J2.5, plus C5 100nF to GND (DS Figure 21 note 1
+                    #    parasitic-reset protection). Permanent internal
+                    #    pull-up 25/40/55 k, so NO external pull-up.
     "5": "+3V3",    # VDDA, tied DIRECTLY to VDD - no ferrite/bead/resistor.
                     #    C3 10nF + C4 1uF return to VSS (no VSSA on TSSOP20).
     "6": "IO1",     # PA0 -> J3.1
     "7": "IO2",     # PA1 -> J3.2
-    "8": "IO3",     # PA2 -> J3.4
-    "9": "IO4",     # PA3 -> J3.5
+    "8": "IO3",     # PA2 -> J3.3
+    "9": "IO4",     # PA3 -> J3.4
     "10": "NC",     # PA4: spare GPIO, brief asks for four only (blocks.md s4)
     "11": "NC",     # PA5: spare GPIO
     "12": "NC",     # PA6: spare GPIO
@@ -188,6 +204,23 @@ def build() -> schlib.Sheet:
     sh.add_component(S_R1, "R1", V_R1, at=(152.4, 190.5), footprint=F_R)
     sh.wire_pins("R1", {"1": "BOOT0", "2": "GND"})
 
+    # ---- C5: NRST parasitic-reset protection, 100 nF to GND -------------
+    # DS Figure 21 note 1 recommends this cap unconditionally to protect
+    # against PARASITIC resets - not (as AN4325's optional-components table
+    # frames it) to debounce a reset button. This board routes NRST out to
+    # an unshielded flying lead on J2.5, which is exactly that exposure, and
+    # requirements.md s2 point 5 scoped datasheet support on the NRST /
+    # boot-mode pins as in-scope from the start. Same physical part as C1
+    # (C14663), so the BOM gains a quantity, not a line.
+    # Deliberately placed with add_component, NOT through
+    # place_ic_with_decoupling: C5 is a signal-net RC, not a supply
+    # decoupler, and must NOT enter decoupling.json - that file stays at
+    # exactly 4 associations (C1/C2 on U1.16, C3/C4 on U1.5). Feeding it to
+    # the helper would also be rejected outright, since pins["4"] is "NRST"
+    # and no decoupling entry can name a rail the pin is not wired to.
+    sh.add_component(S_C1, "C5", V_C1, at=(190.5, 190.5), footprint=F_C)
+    sh.wire_pins("C5", {"1": "NRST", "2": "GND"})
+
     # ---- J1: power in. 1 = +3V3, 2 = GND (silk +/- is P6/P7's job) -------
     # Both pins leave the body downward only 2.54 mm apart, and a local
     # label prints HORIZONTALLY from its anchor whatever the stub direction,
@@ -203,18 +236,29 @@ def build() -> schlib.Sheet:
     # 3V3 at the CENTRE is the unique arrangement in which reversing an
     # unkeyed 5-way shell (i -> 6-i) lands the probe's high-Z VTref INPUT on
     # the rail instead of a probe OUTPUT (blocks.md s2). Do not re-order.
+    # RE-EXAMINED at P4 review and KEPT: a one-position slip on this header
+    # is real, but every alternative is worse - moving the rail to an END
+    # lets a slip land the probe's GND wire on it, a hard short instead of a
+    # current-limited driver contact. J3 moved; J2 stays.
     # The 3V3 pin is a SENSE input and takes NO series element (UM08001 13.5).
     sh.add_component(S_JH, "J2", V_JH, at=(299.72, 127.0), footprint=F_JH)
     sh.wire_pins("J2", {"1": "GND", "2": "SWCLK", "3": "+3V3",
                         "4": "SWDIO", "5": "NRST"})
 
-    # ---- J3: GPIO header. RULED order IO1 / IO2 / GND / IO3 / IO4 --------
-    # GND in the CENTRE: no signal is more than two positions from its
-    # return, and a reversed plug maps the centre to itself (sheets.md s3).
-    # PA13/PA14 are NOT routed here - J2 needs them as SWD permanently.
+    # ---- J3: GPIO header. AMENDED order IO1 / IO2 / IO3 / IO4 / GND ------
+    # P4-review amendment, SUPERSEDING sheets.md s3's centre-GND ruling.
+    # J2 and J3 are the SAME unkeyed 5-position part, so a cable built for
+    # one physically mates with the other. GND at J3's centre put it
+    # opposite +3V3 at J2's centre, so a cross-plug shorted the rail through
+    # the cable's own return - a hard short, the worst outcome on this
+    # board. With GND at an end the worst cross-plug outcome is a GPIO
+    # contacting rail or ground, current-limited by the pin's own driver.
+    # That beats the return-distance and self-mapping-centre arguments the
+    # original ruling was built on, neither of which is a damage mode.
+    # PA13/PA14 are still NOT routed here - J2 needs them as SWD permanently.
     sh.add_component(S_JH, "J3", V_JH, at=(299.72, 190.5), footprint=F_JH)
-    sh.wire_pins("J3", {"1": "IO1", "2": "IO2", "3": "GND",
-                        "4": "IO3", "5": "IO4"})
+    sh.wire_pins("J3", {"1": "IO1", "2": "IO2", "3": "IO3",
+                        "4": "IO4", "5": "GND"})
 
     # ---- rails -----------------------------------------------------------
     # Power symbols force the BARE global names (+3V3, GND) over the
