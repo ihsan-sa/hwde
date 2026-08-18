@@ -1,0 +1,14 @@
+{
+ "_what": "P6 routability probe (route_auto --probe, real Freerouting) on the DELIVERED 50.000 x 26.420 mm board.",
+ "with_planes_delivered_board": {
+  "completion": 1.0,
+  "unrouted": 0,
+  "started_unrouted": 5,
+  "final_score": 995.87,
+  "session_completed": true,
+  "timed_out": false,
+  "_setup": "copy of the delivered board -> planes_gen --constraints kicad/constraints.json -> route_auto --probe",
+  "_note": "this is the number that grades the placement: 1.00 completion, 0 unrouted, against the >= 0.98 bar"
+ },
+ "_why_planes_first": "constraints marks +3V3 and GND plane_fed - their trunk IS the F.Cu pour / B.Cu plane. Probed WITHOUT zones the same placement reads 0.89 (1 of 9 unrouted) because the router is forced to run both planes as traces on a bare 2-layer board. Probe this board class only after planes_gen, or the number grades the wrong problem."
+}

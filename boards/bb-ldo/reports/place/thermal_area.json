@@ -1,0 +1,160 @@
+{
+  "_what": "P6 placement's answer to the question the whole board is designed around: how much contiguous F.Cu +3V3 copper is available to U1's SOT-223 tab (pin 4). Two independent numbers - one MEASURED by planes_gen on a fitted copy, one from a geometric model that also prices the +5V route the pour has not seen yet.",
+  "target": {
+    "theta_ja_c_per_w": 65,
+    "source": "linear-regulator-tab-copper-area-theta-ja (AMS1117 Table 1, p5): 1000 mm2 top-side copper on the tab = 65 C/W on 1/16in FR-4, 1 oz; 645 mm2 (LM1117 Table 9-2, 1 sq in) = 66 C/W is the floor; the table stops helping past ~2500 mm2",
+    "min_mm2": 1000,
+    "floor_mm2": 645,
+    "placement_rule": "linear-regulator-copper-is-the-heatsink - all copper on the COMPONENT side; linear-regulator-live-tab-thermal-vias - the pour IS the +3V3 net, no vias through it to the B.Cu GND plane"
+  },
+  "measured": {
+    "_method": "planes_gen on a copy of the DELIVERED board (already fitted to 50.000 x 26.420 mm). This is the real KiCad zone fill, not an estimate. No tracks exist yet, so it does not carve the +5V route.",
+    "board_mm": [
+      50.0,
+      26.42
+    ],
+    "board_mm2": 1321.0,
+    "f_cu_3v3_zone_mm2": 1210.78,
+    "f_cu_3v3_islands": 1,
+    "b_cu_gnd_zone_mm2": 1225.1,
+    "b_cu_gnd_islands": 1,
+    "zone_region": [
+      5.62,
+      20.2,
+      54.62,
+      45.62
+    ]
+  },
+  "modelled": {
+    "_method": "pour = fitted outline inset by planes_gen's 0.5 mm, MINUS every non-+3V3 pad buffered by the 0.2 mm power netclass clearance, MINUS a stitching via at each SMD GND pad, MINUS the +5V route corridor J1.1 -> C1.1 -> U1.3 modelled as a 0.5 mm track + 0.2 mm clearance each side. Answer = area of the connected component that touches U1 pad 4.",
+    "tab_component_mm2": 1184.1,
+    "components": 1,
+    "orphaned_mm2": 0.0,
+    "tab_center_mm": [
+      33.97,
+      32.91
+    ],
+    "within_r15_mm2": 628.8,
+    "within_r20_mm2": 895.7,
+    "within_r25_mm2": 1071.1,
+    "_radius_why": "the vendor's 1000 mm2 row is a roughly square pad, so the honest comparison is copper within one thermal decay length of the tab. L = sqrt(k*t/h_eff): 1 oz Cu alone (385 W/mK x 35 um) against h_eff ~30 W/m2K (two-sided natural convection + radiation) gives L ~21 mm; counting the B.Cu GND plane's lateral conduction as well, ~30 mm. So r20-r25 is the effective-copper band and 1080 mm2 sits inside it - the vendor's 1000 mm2 is met by the copper that actually works, with ~900 mm2 more beyond it at partial effectiveness."
+  },
+  "rejected_alternatives": {
+    "_note": "same model, the two placements the scripts produced - both measured under the PROVISIONAL 86.29 mm width they were solved against, which is the defect revision 2 removes",
+    "place_seed": {
+      "fitted_board_mm": [
+        88.29,
+        12.42
+      ],
+      "tab_component_mm2": 916.0,
+      "within_r25_mm2": 509.6
+    },
+    "anneal_cand1_best_hpwl": {
+      "fitted_board_mm": [
+        88.29,
+        12.42
+      ],
+      "tab_component_mm2": 943.3,
+      "within_r25_mm2": 516.5
+    }
+  },
+  "caveats": [
+    "The +5V trace is ASSUMED (P7 routes it). If the router takes a different path the carve moves, but it cannot disconnect the pour: the corridor runs along the bottom of the board and its far end turns UP into C1, so copper below it rejoins the field to the right of x=32.",
+    "min_vias: 0 is deliberate - the tab pour is +3V3 and B.Cu is a continuous GND plane, so a stitching via would be a SHORT. The far-side copper still helps, coupled through the FR-4 (AMS1117 p5).",
+    "check_thermal's 2-layer model floors at 73.8 C/W and will report thermal_area at P8 regardless; the waiver evidence is the two vendor copper sweeps, not this file."
+  ],
+  "cost_of_the_pinned_edges": {
+    "_what": "What the WIDTH costs. constraints.json placement.edges pins J1/J2 to the left/right edges, and place_metrics measures that against the outline ON the board (placelib EDGE_TOL 2.5 mm) - which at a canonical binding is board_init's PROVISIONAL 86.29 mm auto outline. So the delivered width is an INPUT. Measured here: the same five parts in the same relative arrangement, with only J1/J2 pulled in to the width the layout wants.",
+    "_method": "same fit + same geometric model; scratch copies only - these placements fail gate.py --gate place with 2 edge_violations against the provisional outline, which is exactly the point",
+    "delivered_88mm": {
+      "board_mm": [
+        88.29,
+        24.42
+      ],
+      "board_mm2": 2156.0,
+      "tab_component_mm2": 1978.2,
+      "within_r25_mm2": 1080.1
+    },
+    "unpinned_62mm": {
+      "board_mm": [
+        62.0,
+        24.42
+      ],
+      "board_mm2": 1514.0,
+      "tab_component_mm2": 1368.0,
+      "within_r25_mm2": 1071.1
+    },
+    "unpinned_55mm": {
+      "board_mm": [
+        55.0,
+        24.42
+      ],
+      "board_mm2": 1343.1,
+      "tab_component_mm2": 1204.1,
+      "within_r25_mm2": 1065.4
+    },
+    "unpinned_50mm": {
+      "board_mm": [
+        50.0,
+        24.42
+      ],
+      "board_mm2": 1221.0,
+      "tab_component_mm2": 1087.0,
+      "within_r25_mm2": 986.3
+    },
+    "verdict": "55 x 24.42 mm delivers 1065 mm2 of effective copper against the delivered board's 1080 - 1.4% less - on 62% of the area. The extra 813 mm2 of board buys 15 mm2 of copper that matters, because everything past ~25 mm from the tab is thermally dead weight. 50 mm is where the effective copper finally drops below the vendor's 1000 mm2 row, so ~55 mm is the canonical width."
+  },
+  "width_derivation": {
+    "_what": "The width is now an OUTPUT, derived from effective copper rather than inherited from board_init's provisional 86.29 mm auto outline. Criterion: shrink until copper within one thermal decay length (25 mm) of the tab stops clearing the vendor's 1000 mm2 row with margin that survives the model's one assumption (the +5V route, worth ~2-3% inside the disc).",
+    "sweep_height_26p42": {
+      "44mm": 918.6,
+      "46mm": 969.4,
+      "48mm": 1020.2,
+      "50mm": 1071.1,
+      "51mm": 1096.5,
+      "52mm": 1119.5
+    },
+    "shape_sweep_at_equal_area": {
+      "_finding": "squarer captures more of the r25 disc; at ~1350-1375 mm2 the r25 capture is 48x28.4 -> 1100, 50x27.4 -> 1113, 52x26.4 -> 1120, 55x24.4 -> 1065, 58x22.4 -> 977",
+      "_consequence": "this is why 50 x 26.42 is both SMALLER and BETTER than the 55 x 24.42 first estimated - the earlier figure was found by sweeping width alone at a height chosen while the width was pinned"
+    },
+    "chosen": {
+      "board_mm": [
+        50.0,
+        26.42
+      ],
+      "within_r25_mm2": 1071.1,
+      "margin_vs_1000": "+7.1%"
+    },
+    "rejected": {
+      "48mm": "clears by only 2.0%, inside the +5V route assumption's error",
+      "52mm": "+11.9% but 4% more board for copper the decay length already discounts"
+    }
+  },
+  "before_after": {
+    "_what": "Revision 1 inherited its WIDTH from board_init --outline auto's provisional 86.29 mm box, because placement.edges pinned J1/J2 to that outline's edges and place_metrics graded them against it. Revision 2 moved J1/J2 to the width the design earns and fitted the outline to the result.",
+    "rev1_inherited_width": {
+      "board_mm": [
+        88.29,
+        24.42
+      ],
+      "board_mm2": 2156.0,
+      "measured_pour_mm2": 2009.53,
+      "modelled_tab_mm2": 1978.2,
+      "within_r20_mm2": 838.7,
+      "within_r25_mm2": 1080.1
+    },
+    "rev2_earned_width": {
+      "board_mm": [
+        50.0,
+        26.42
+      ],
+      "board_mm2": 1321.0,
+      "measured_pour_mm2": 1210.78,
+      "modelled_tab_mm2": 1184.1,
+      "within_r20_mm2": 895.7,
+      "within_r25_mm2": 1071.1
+    },
+    "delta": "board -38.7% (835 mm2); effective copper within 25 mm -0.8% (9 mm2); within 20 mm +6.8% (+57 mm2, the squarer board sits closer to the tab). The 835 mm2 that went away was copper more than one decay length from the tab - it was never doing thermal work."
+  }
+}

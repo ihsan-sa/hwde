@@ -1,0 +1,12 @@
+{
+ "version": 1,
+ "_why": "P6 stage-3 placement, thermal-first, at the width the design EARNS (revision 2: J1/J2 pulled in off the provisional 86.29 mm outline). U1 rot 180 puts the SOT-223 tab (pin 4, +3V3) on the +x side facing the open field and J2; both caps sit on the PIN side so nothing stands in the pour. J1/J2 keep rot 90/270 (wire entry faces off-board, proven by orthographic side render + WRL aperture geometry). J1 low / J2 high gives the board its height.",
+ "_sizing": "d=7.0 connector offset and J1 hard against C2 (0.5 mm courtyard gap) put the fitted board at 50.0 x 26.42 mm. Chosen by sweeping BOTH axes against effective copper within one thermal decay length (25 mm) of the tab: 44mm->918, 46->969, 48->1020, 50->1071, 52->1120 mm2. 48 clears the vendor's 1000 mm2 row by only 2.0%, inside the error of the assumed +5V route; 50 clears by 7.1%. Squarer beats wider at equal area (52x26.4 captures 1120 vs 55x24.4's 1065), which is why 50x26.4 is smaller AND better than the 55x24.4 first estimated.",
+ "ops": [
+  {"op": "place", "ref": "J1", "x": 11.625,  "y": 39.91, "deg": 90.0,  "side": "front"},
+  {"op": "place", "ref": "J2", "x": 48.625,  "y": 25.91, "deg": 270.0, "side": "front"},
+  {"op": "place", "ref": "U1", "x": 31.0,    "y": 32.91, "deg": 180.0, "side": "front"},
+  {"op": "place", "ref": "C2", "x": 21.3775, "y": 32.91, "deg": 0.0,   "side": "front"},
+  {"op": "place", "ref": "C1", "x": 27.0,    "y": 37.31, "deg": 180.0, "side": "front"}
+ ]
+}

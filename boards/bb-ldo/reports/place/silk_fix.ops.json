@@ -1,0 +1,7 @@
+{
+ "version": 1,
+ "_superseded": "This file's op is NO LONGER APPLICABLE and its ops list is deliberately empty - replaying it must not move anything.",
+ "_what_it_recorded": "On revision 1 (board still at the provisional 86.29 mm width) silk_place reported an empty residual list and still left a defect: it parked J2's refdes 0.925 mm ABOVE J2's courtyard at y=20.775, outside the content bbox, so the edge that `board_edit --outline fit` would later create clipped it. Only visible by fitting a COPY and running real DRC. It was hand-fixed to y=33.045.",
+ "_how_it_was_really_fixed": "Revision 2 changed the ORDER instead of the coordinate: move parts -> board_edit --outline fit -> place the legend -> silk_place --apply. Solved against the real outline, silk_place needed 0 moves, returned an empty residual, and DRC reports 0 silk findings. The rule this board proves: silk_place solves against whatever outline is on the board, so at a canonical binding it must run AFTER the fit, never before.",
+ "ops": []
+}

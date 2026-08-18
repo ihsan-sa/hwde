@@ -1,0 +1,231 @@
+{
+ "script": "place_metrics",
+ "status": "pass",
+ "board": "bb-ldo.kicad_pcb",
+ "counts": {
+  "total": 0,
+  "by_severity": {},
+  "by_source": {}
+ },
+ "violations": [],
+ "metrics": {
+  "counts": {
+   "footprints": 5,
+   "movable": 5,
+   "nets": 3
+  },
+  "hpwl": {
+   "total_mm": 173.272,
+   "by_net": {
+    "+3V3": 43.225,
+    "+5V": 48.0654,
+    "GND": 81.9816
+   }
+  },
+  "crossings": {
+   "count": 3,
+   "pairs": [
+    {
+     "nets": [
+      "+3V3",
+      "GND"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "+5V",
+      "GND"
+     ],
+     "crossings": 1
+    }
+   ]
+  },
+  "crossings_signal": {
+   "count": 0,
+   "pairs": []
+  },
+  "congestion": {
+   "cell_mm": 2.0,
+   "cols": 44,
+   "rows": 33,
+   "max": 3,
+   "mean_nonzero": 1.2632,
+   "hotspots": [
+    {
+     "cell": [
+      23,
+      15
+     ],
+     "center": [
+      47.0,
+      31.0
+     ],
+     "demand": 3
+    },
+    {
+     "cell": [
+      23,
+      16
+     ],
+     "center": [
+      47.0,
+      33.0
+     ],
+     "demand": 3
+    },
+    {
+     "cell": [
+      27,
+      16
+     ],
+     "center": [
+      55.0,
+      33.0
+     ],
+     "demand": 3
+    },
+    {
+     "cell": [
+      9,
+      16
+     ],
+     "center": [
+      19.0,
+      33.0
+     ],
+     "demand": 2
+    },
+    {
+     "cell": [
+      10,
+      16
+     ],
+     "center": [
+      21.0,
+      33.0
+     ],
+     "demand": 2
+    },
+    {
+     "cell": [
+      11,
+      16
+     ],
+     "center": [
+      23.0,
+      33.0
+     ],
+     "demand": 2
+    },
+    {
+     "cell": [
+      12,
+      16
+     ],
+     "center": [
+      25.0,
+      33.0
+     ],
+     "demand": 2
+    },
+    {
+     "cell": [
+      13,
+      16
+     ],
+     "center": [
+      27.0,
+      33.0
+     ],
+     "demand": 2
+    },
+    {
+     "cell": [
+      14,
+      16
+     ],
+     "center": [
+      29.0,
+      33.0
+     ],
+     "demand": 2
+    },
+    {
+     "cell": [
+      15,
+      16
+     ],
+     "center": [
+      31.0,
+      33.0
+     ],
+     "demand": 2
+    }
+   ]
+  },
+  "congestion_signal_max": 2,
+  "decoupling": [
+   {
+    "cap": "C1",
+    "pin": "U1.3",
+    "rail": "+5V",
+    "class": "bulk",
+    "manhattan_mm": 2.6804,
+    "euclid_mm": 2.0286,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 4.8763
+   },
+   {
+    "cap": "C2",
+    "pin": "U1.2",
+    "rail": "+3V3",
+    "class": "bulk",
+    "manhattan_mm": 2.9021,
+    "euclid_mm": 2.9021,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 5.0315
+   }
+  ],
+  "utilization": {
+   "component_mm2": 313.155,
+   "board_mm2": 5679.6077,
+   "ratio": 0.055
+  }
+ },
+ "report_schema": 1,
+ "checker_version": 1,
+ "generated_at": "2026-08-18T03:37:47+00:00",
+ "input": "boards\\bb-ldo\\kicad\\bb-ldo.kicad_pcb",
+ "input_digest": "sexpr_no_uuid:8b18de8bc614d2b674092e3cbd04736648235dc9d0c1bc4b61e91ec471a3be53",
+ "coverage": {
+  "strict": false,
+  "required": [
+   "courtyard",
+   "outline",
+   "edges",
+   "keepouts",
+   "decoupler_distance"
+  ],
+  "ran": [
+   "courtyard",
+   "outline",
+   "edges",
+   "keepouts",
+   "decoupler_distance"
+  ],
+  "passed": [
+   "courtyard",
+   "outline",
+   "edges",
+   "keepouts",
+   "decoupler_distance"
+  ],
+  "failed": [],
+  "waived": [],
+  "not_applicable": {},
+  "skipped_error": {}
+ }
+}

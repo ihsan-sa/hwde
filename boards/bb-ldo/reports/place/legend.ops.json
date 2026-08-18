@@ -1,0 +1,21 @@
+{
+ "version": 1,
+ "_why": "Silkscreen legend for the two identical screw terminals (schematic-review ERROR: nothing on the assembled board says which screw is +5V and which is GND, and this board has no reverse-polarity protection). Each pin label is centred on ITS OWN pad's y so the association is unambiguous, and sits just inboard of the connector body silk. Revision 2: relocated after J1/J2 moved to the earned width - the old J1 labels landed ON J1's pads (3 x silk_over_copper) and the old J2 labels fell off the board entirely. remove_text + add_text is the only scripted way to relocate a gr_text; the removes are no-ops if already gone.",
+ "_clearances": "J1 body silk ends x=16.145, labels start x=17.2 (1.06 mm). J2 body silk starts x=44.105, labels end x=43.4 (0.71 mm). J1 'GND' clears C2's silk by 1.57 mm in y and C1's courtyard by 3.66 mm in x; J2 labels clear U1's courtyard by 3.21 mm. All inside the fitted outline [5.125, 19.7, 55.125, 46.12].",
+ "ops": [
+  {"op": "remove_text", "text": "+5V",  "x": 12.6, "y": 41.45, "layer": "F.SilkS"},
+  {"op": "remove_text", "text": "GND",  "x": 12.6, "y": 36.37, "layer": "F.SilkS"},
+  {"op": "remove_text", "text": "IN",   "x": 12.6, "y": 38.91, "layer": "F.SilkS"},
+  {"op": "remove_text", "text": "+3V3", "x": 72.6, "y": 24.37, "layer": "F.SilkS"},
+  {"op": "remove_text", "text": "GND",  "x": 73.2, "y": 29.45, "layer": "F.SilkS"},
+  {"op": "remove_text", "text": "OUT",  "x": 73.2, "y": 26.91, "layer": "F.SilkS"},
+
+  {"op": "add_text", "text": "+5V",  "x": 19.0, "y": 42.45, "layer": "F.SilkS", "deg": 0, "size": 1.2, "thickness": 0.2},
+  {"op": "add_text", "text": "GND",  "x": 19.0, "y": 37.37, "layer": "F.SilkS", "deg": 0, "size": 1.2, "thickness": 0.2},
+  {"op": "add_text", "text": "IN",   "x": 19.0, "y": 39.91, "layer": "F.SilkS", "deg": 0, "size": 1.6, "thickness": 0.25},
+
+  {"op": "add_text", "text": "+3V3", "x": 41.0, "y": 23.37, "layer": "F.SilkS", "deg": 0, "size": 1.2, "thickness": 0.2},
+  {"op": "add_text", "text": "GND",  "x": 41.0, "y": 28.45, "layer": "F.SilkS", "deg": 0, "size": 1.2, "thickness": 0.2},
+  {"op": "add_text", "text": "OUT",  "x": 41.0, "y": 25.91, "layer": "F.SilkS", "deg": 0, "size": 1.6, "thickness": 0.25}
+ ]
+}
