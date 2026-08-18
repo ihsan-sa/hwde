@@ -3,8 +3,8 @@
  "board": "bb-ldo",
  "workspace": "boards/bb-ldo",
  "created": "2026-08-16T17:24:47",
- "updated": "2026-08-17T21:24:22",
- "phase": "P6",
+ "updated": "2026-08-17T21:41:46",
+ "phase": "P7",
  "gates": {
   "erc": {
    "phase": "P4",
@@ -136,6 +136,49 @@
      }
     }
    ]
+  },
+  "drc_routed": {
+   "phase": "P7",
+   "status": "pass",
+   "attempts": 2,
+   "last": {
+    "ts": "2026-08-17T21:41:46",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0,
+    "inputs": {
+     "pcb": "sexpr_no_uuid:70a5c2724593028afc46937cfaccb56357b500cfac38ebddeb239fdaea54b88e",
+     "sch": "sexpr_no_uuid:51d5aaffc0b97d9cd6799b8ade0dd3b957f0323262b3c2dc504ec15b539188f1",
+     "pro": "json_canonical:596bd68ce1cf9c31f3771df8532e7511d85f8725dc14757381a7f8c226c99d0f",
+     "dru": "text_eol:f66401e376e86eaa09917a3ba4cee9839f5af1c0793e3a818bcde91c5da75c82"
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-17T21:38:00",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:70a5c2724593028afc46937cfaccb56357b500cfac38ebddeb239fdaea54b88e",
+      "sch": "sexpr_no_uuid:51d5aaffc0b97d9cd6799b8ade0dd3b957f0323262b3c2dc504ec15b539188f1",
+      "pro": "json_canonical:596bd68ce1cf9c31f3771df8532e7511d85f8725dc14757381a7f8c226c99d0f",
+      "dru": "text_eol:f66401e376e86eaa09917a3ba4cee9839f5af1c0793e3a818bcde91c5da75c82"
+     }
+    },
+    {
+     "ts": "2026-08-17T21:41:46",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:70a5c2724593028afc46937cfaccb56357b500cfac38ebddeb239fdaea54b88e",
+      "sch": "sexpr_no_uuid:51d5aaffc0b97d9cd6799b8ade0dd3b957f0323262b3c2dc504ec15b539188f1",
+      "pro": "json_canonical:596bd68ce1cf9c31f3771df8532e7511d85f8725dc14757381a7f8c226c99d0f",
+      "dru": "text_eol:f66401e376e86eaa09917a3ba4cee9839f5af1c0793e3a818bcde91c5da75c82"
+     }
+    }
+   ]
   }
  },
  "human": {
@@ -148,6 +191,11 @@
    "status": "approved",
    "ts": "2026-08-16T23:29:36",
    "note": "Presented as a digest under the owner's delegation; ERC 0/0 with the netlist verified identical across the readability redraw. Reviewer's single ERROR (no terminal legend) is deferred to P6 as a silk requirement, not waived."
+  },
+  "3": {
+   "status": "approved",
+   "ts": "2026-08-17T21:24:30",
+   "note": "H3 (optional, outline_change hold): board size earned at 50.000 x 26.420 mm. Reviewed the derivation, not just the result - the agent corrected its own 55 mm estimate after finding that sweep had inherited the pinned-width assumption it was meant to test. Renders at reports/place/renders/."
   }
  },
  "artifacts": {
@@ -155,19 +203,19 @@
    "path": "kicad/bb-ldo.kicad_sch",
    "kind": "sch",
    "sha256": "sexpr_no_uuid:51d5aaffc0b97d9cd6799b8ade0dd3b957f0323262b3c2dc504ec15b539188f1",
-   "hashed": "2026-08-17T21:24:21"
+   "hashed": "2026-08-17T21:41:46"
   },
   "pro": {
    "path": "kicad/bb-ldo.kicad_pro",
    "kind": "pro",
    "sha256": "json_canonical:596bd68ce1cf9c31f3771df8532e7511d85f8725dc14757381a7f8c226c99d0f",
-   "hashed": "2026-08-17T21:24:21"
+   "hashed": "2026-08-17T21:41:46"
   },
   "pcb": {
    "path": "kicad/bb-ldo.kicad_pcb",
    "kind": "pcb",
-   "sha256": "sexpr_no_uuid:5ff3d4ce3219b208f1343ddbc16a6c8e4a98c35392e4b60abde564b16e2cdf6a",
-   "hashed": "2026-08-17T21:24:22"
+   "sha256": "sexpr_no_uuid:70a5c2724593028afc46937cfaccb56357b500cfac38ebddeb239fdaea54b88e",
+   "hashed": "2026-08-17T21:41:46"
   },
   "constraints": {
    "path": "kicad/constraints.json",
@@ -200,6 +248,12 @@
      "human_hold": 2
     }
    ]
+  },
+  "dru": {
+   "path": "kicad/bb-ldo.kicad_dru",
+   "kind": "dru",
+   "sha256": "text_eol:f66401e376e86eaa09917a3ba4cee9839f5af1c0793e3a818bcde91c5da75c82",
+   "hashed": "2026-08-17T21:41:46"
   }
  },
  "open_issues": [],
@@ -569,6 +623,12 @@
    "role": "placement",
    "model": "opus/xhigh (SUBSTITUTED for fable/high: fable unavailable)",
    "phase": "P6"
+  },
+  {
+   "ts": "2026-08-17T21:26:11",
+   "role": "router",
+   "model": "opus/high",
+   "phase": "P7"
   }
  ],
  "history": [
@@ -1003,6 +1063,46 @@
    "gate": "place",
    "status": "pass",
    "attempt": 6,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-17T21:24:30",
+   "event": "human",
+   "checkpoint": "3",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-08-17T21:24:48",
+   "event": "phase",
+   "phase": "P7",
+   "prev": "P6"
+  },
+  {
+   "ts": "2026-08-17T21:25:17",
+   "event": "snapshot",
+   "label": "pre-P7-routing",
+   "files": 1
+  },
+  {
+   "ts": "2026-08-17T21:26:11",
+   "event": "spawn",
+   "role": "router",
+   "model": "opus/high"
+  },
+  {
+   "ts": "2026-08-17T21:38:00",
+   "event": "gate",
+   "gate": "drc_routed",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-17T21:41:46",
+   "event": "gate",
+   "gate": "drc_routed",
+   "status": "pass",
+   "attempt": 2,
    "failing_count": 0
   }
  ],

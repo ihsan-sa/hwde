@@ -1,0 +1,106 @@
+(session "bb-ldo"
+  (base_design "bb-ldo")
+  (placement
+    (resolution um 10)
+    (component "aiee:SOT-223-3_L6.5-W3.4-P2.30-LS7.0-BR"
+      (place U1 310000 -329100 front 180)
+    )
+    (component "aiee:CONN-TH_2P-P5.00_WJ500V-5.08-2P"
+      (place J1 116250 -399100 front 90)
+    )
+    (component "aiee:CAP-SMD_L3.2-W1.6-RD-C7171"
+      (place C1 270000 -373100 front 180)
+    )
+    (component "aiee:CONN-TH_2P-P5.00_WJ500V-5.08-2P::1"
+      (place J2 486250 -259100 front 270)
+    )
+    (component "aiee:CAP-SMD_L7.3-W4.3"
+      (place C2 213775 -329100 front 0)
+    )
+  )
+  (was_is
+  )
+  (routes 
+    (resolution um 10)
+    (parser
+      (host_cad "KiCad's Pcbnew")
+      (host_version "10.0.3")
+    )
+    (library_out 
+      (padstack "Via[0-1]_600:300_um"
+        (shape
+          (circle F.Cu 6000 0 0)
+        )
+        (shape
+          (circle B.Cu 6000 0 0)
+        )
+        (attach off)
+      )
+      (padstack "Via[0-1]_600:300_um"
+        (shape
+          (circle F.Cu 6000 0 0)
+        )
+        (shape
+          (circle B.Cu 6000 0 0)
+        )
+        (attach off)
+      )
+      (padstack "Via[0-1]_600:300_um"
+        (shape
+          (circle F.Cu 6000 0 0)
+        )
+        (shape
+          (circle B.Cu 6000 0 0)
+        )
+        (attach off)
+      )
+      (padstack "Via[0-1]_600:300_um"
+        (shape
+          (circle F.Cu 6000 0 0)
+        )
+        (shape
+          (circle B.Cu 6000 0 0)
+        )
+        (attach off)
+      )
+    )
+    (network_out 
+      (net +5V
+        (wire
+          (path F.Cu 3862
+            280500 -352000
+            280500 -368000
+            285500 -373000
+            234000 -424500
+            116000 -424500
+          )
+          (type protect)
+        )
+        (wire
+          (path F.Cu 3862
+            285500 -373000
+            280500 -368000
+          )
+          (type protect)
+        )
+        (wire
+          (path F.Cu 3862
+            280500 -368000
+            285500 -373000
+            234000 -424500
+            116000 -424500
+          )
+          (type protect)
+        )
+        (wire
+          (path F.Cu 3862
+            234000 -424500
+            285500 -373000
+            280500 -368000
+          )
+          (type protect)
+        )
+      )
+    )
+  )
+)

@@ -1,0 +1,92 @@
+{
+ "script": "route_critical",
+ "status": "pass",
+ "board": "bb-ldo.kicad_pcb",
+ "counts": {
+  "total": 0,
+  "by_severity": {},
+  "by_source": {}
+ },
+ "violations": [],
+ "facts": {
+  "routed": [
+   {
+    "kind": "power",
+    "nets": [
+     "+3V3"
+    ],
+    "plane_carried": true,
+    "current_a": 0.51,
+    "plane_layers": [
+     "F.Cu"
+    ],
+    "note": "plane is the trunk; SMD pads stitched by stitch_vias, PTH pads via thermal spokes",
+    "width_normalization": {
+     "widened": 0,
+     "crumbs_removed": 0
+    }
+   },
+   {
+    "kind": "power",
+    "nets": [
+     "GND"
+    ],
+    "plane_carried": true,
+    "current_a": 0.515,
+    "plane_layers": [
+     "B.Cu"
+    ],
+    "note": "plane is the trunk; SMD pads stitched by stitch_vias, PTH pads via thermal spokes"
+   },
+   {
+    "kind": "power",
+    "nets": [
+     "+5V"
+    ],
+    "current_a": 0.515,
+    "width_mm": 0.3862,
+    "ipc_min_mm": 0.2575,
+    "neckdown": false,
+    "layers_used": [
+     "F.Cu"
+    ],
+    "krt": {
+     "successful": 0,
+     "failed": 0
+    }
+   }
+  ],
+  "skipped": [],
+  "drc_delta": {
+   "before": {
+    "unconnected_items": 3
+   },
+   "after": {
+    "unconnected_items": 3
+   },
+   "new": {},
+   "new_warnings": {}
+  },
+  "diffpair_check": "pass",
+  "diffpair_facts": [],
+  "floors": {
+   "clearance": 0.2,
+   "track_width": 0.127,
+   "via_diameter": 0.6,
+   "via_drill": 0.3,
+   "edge_clearance": 0.3
+  },
+  "net_clearances": {
+   "+3V3": 0.2,
+   "+5V": 0.2,
+   "GND": 0.2
+  },
+  "board_updated": true,
+  "work_dir": "C:\\dev\\ai-ee3\\boards\\bb-ldo\\route\\critical"
+ },
+ "report_schema": 1,
+ "checker_version": 1,
+ "generated_at": "2026-08-18T04:32:52+00:00",
+ "input": "C:\\dev\\ai-ee3\\boards\\bb-ldo\\kicad\\bb-ldo.kicad_pcb",
+ "input_digest": "sexpr_no_uuid:f9b84a7a8137041a3a87acc3a80465f6926d042ee25b64adba5faa913c28d72b"
+}

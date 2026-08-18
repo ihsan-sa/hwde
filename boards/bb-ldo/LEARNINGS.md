@@ -84,3 +84,36 @@ cosmetic redraw is not verified until the netlist is diffed against the version 
 compare is the gate, ERC is not. (b) When a part exposes one node on two pins, each pin needs its
 own connection to the rail - a second power symbol on the drawn run is the cheapest, and is what
 joins them globally.
+
+## 2026-08-17 [P7][planes_gen][thermal-via][knowledge] planes_gen would have via-stitched the live SOT-223 tab: its EP heuristic never reads constraints' `min_vias`
+`planes_gen` places a thermal-via grid under "the largest NETTED SMD pad per footprint whose area
+>= 4.0 mm2 and whose net is a plane net". U1's tab (pin 4, 2.34 x 3.6 = 8.4 mm2) is exactly that,
+and its net `+3V3` IS the F.Cu plane net - so the default run drills a grid from the VOUT heatsink
+pour straight into the B.Cu GND plane. That is the short forbidden by verified record
+`linear-regulator-live-tab-thermal-vias`, and `constraints.thermal[U1].min_vias: 0` does NOT stop
+it: grep the script - nothing in `planes_gen` reads `min_vias`, the two numbers never meet. On any
+board whose plane net is a live tab net (1117-class VOUT, a high-side FET drain), run
+`planes_gen --no-thermal-vias` and let the pour do the cooling by dielectric coupling. Same trap
+waits on C2, whose 8.3 mm2 tantalum pads also clear the 4.0 mm2 floor.
+
+## 2026-08-17 [P7][route_auto][stitch_vias][thermal] route_auto's KRT finish connects plane-net SMD pads with TRACES, not vias - on a thermal-pour board that silently eats the heatsink
+Freerouting itself stopped at 0.60 completion (2 nets unrouted, all three rungs identical); the KRT
+mop-up finished GND and DRC went to 0. But it did it by daisy-chaining the three F.Cu GND SMD pads
+(U1.1, C1.2, C2.2) to J1's thru-hole with ~25.6 mm of 0.2575 mm F.Cu trace - straight across the
+`+3V3` thermal pour, including a slit between U1 and C2 at 7 mm from the tab. Cost: pour 1210.8 ->
+1189.6 mm2 and check_thermal's effective area 592.6 -> 577.1 mm2 (-2.6%), on a board whose whole
+margin IS that number. The chain's own answer is in `route_critical`'s report note ("plane is the
+trunk; SMD pads stitched by stitch_vias"): rip the KRT GND traces with `route_edit` and run
+`stitch_vias`, which puts one via per pad on a ring just past the pad edge, away from the body -
+inside the void the pad already cuts in the pour, so they cost ~0 mm2 and leave B.Cu continuous
+under the tab. Recovered to 1199.2 / 585.0 mm2 with DRC still 0. On a 2-layer pour board the
+stitch therefore has to come AFTER route_auto *and* after ripping what KRT laid, not merely after.
+
+## 2026-08-17 [P7][route_critical][scripts] `--out-report` into a missing directory crashes AFTER the board is already written
+`route_critical --out-report boards/bb-ldo/route/route_critical.json` mutated the board (4 +5V
+segments landed), then died with a raw `FileNotFoundError` traceback from `checklib.emit` because
+`route/` did not exist - no JSON, no facts, exit non-zero on a run that actually succeeded. The
+workspace scaffold (`state.py`) creates `routing/`, while the P7 role prompt and every route script
+default to `route/`, so the first `--out-report` of a session hits this. `mkdir` the report
+directory before the first write; re-running `route_critical` afterwards is safe (it detects
+`already_routed` and adds no duplicate copper).

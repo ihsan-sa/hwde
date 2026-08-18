@@ -1,7 +1,7 @@
 version: 1
 board: bb-ldo
 source: LEARNINGS.md
-compiled: '2026-08-16'
+compiled: '2026-08-17'
 entries:
 - entry: 2026-08-16-research-task-block-linear-regulator-1-6
   line: 8
@@ -22,4 +22,99 @@ entries:
   - boards/bb-ldo/research/records/linear-regulator-fixed-variant-min-load.yaml
   - boards/bb-ldo/research/records/linear-regulator-live-tab-thermal-vias.yaml
   - boards/bb-ldo/research/records/linear-regulator-tab-copper-area-theta-ja.yaml
+  status: pending
+- entry: 2026-08-16-a-pulled-symbol-s-reversed-pin-angles
+  line: 29
+  date: '2026-08-16'
+  title: A pulled symbol's reversed pin ANGLES make schlib emit INWARD stubs, and rotating the part is
+    not the fix
+  tags:
+  - P4
+  - schematic
+  - easyeda2kicad
+  - kicad-sch-api
+  stage: P4
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-16-hang-a-rail-s-power-symbol-in
+  line: 49
+  date: '2026-08-16'
+  title: Hang a rail's power symbol in its own cluster, not on a pin stub, when the IC's pins are on 2.54
+    mm pitch
+  tags:
+  - P4
+  - schematic
+  - erc
+  stage: P4
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-16-a-pulled-2-pin-passive-names-its
+  line: 64
+  date: '2026-08-16'
+  title: A pulled 2-pin passive names its pins "1"/"2" - KiCad prints those names ON the body, on top
+    of each other
+  tags:
+  - P4
+  - schematic
+  - easyeda2kicad
+  stage: P4
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-16-two-pins-of-one-part-are-two
+  line: 76
+  date: '2026-08-16'
+  title: 'Two pins of ONE part are two nets on the sheet: a drawn run off the tab left the rail unnamed
+    and ERC stayed 0/0'
+  tags:
+  - P4
+  - schematic
+  - erc
+  - netlist
+  stage: P4
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-17-planes-gen-would-have-via-stitched-the
+  line: 88
+  date: '2026-08-17'
+  title: 'planes_gen would have via-stitched the live SOT-223 tab: its EP heuristic never reads constraints''
+    `min_vias`'
+  tags:
+  - P7
+  - planes_gen
+  - thermal-via
+  - knowledge
+  stage: P7
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-17-route-auto-s-krt-finish-connects-plane
+  line: 99
+  date: '2026-08-17'
+  title: route_auto's KRT finish connects plane-net SMD pads with TRACES, not vias - on a thermal-pour
+    board that silently eats the heatsink
+  tags:
+  - P7
+  - route_auto
+  - stitch_vias
+  - thermal
+  stage: P7
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-17-out-report-into-a-missing-directory-crashes
+  line: 112
+  date: '2026-08-17'
+  title: '`--out-report` into a missing directory crashes AFTER the board is already written'
+  tags:
+  - P7
+  - route_critical
+  - scripts
+  stage: P7
+  proposed_level: null
+  targets:
+  - scripts/state.py
   status: pending

@@ -1,0 +1,225 @@
+(pcb "C:\dev\ai-ee3\boards\bb-ldo\route\auto\bb-ldo.dsn"
+  (parser
+    (string_quote ")
+    (space_in_quoted_tokens on)
+    (host_cad "KiCad's Pcbnew")
+    (host_version "10.0.3")
+  )
+  (resolution um 10)
+  (unit um)
+  (structure
+    (layer F.Cu
+      (type signal)
+      (property
+        (index 0)
+      )
+    )
+    (layer B.Cu
+      (type signal)
+      (property
+        (index 1)
+      )
+    )
+    (boundary
+      (path pcb 0  55125 -46120  5125 -46120  5125 -19700  55125 -19700
+            55125 -46120)
+    )
+    (plane +3V3 (polygon F.Cu 0  5625 -20200  54625 -20200  54625 -45620  5625 -45620  5625 -20200))
+    (plane GND (polygon B.Cu 0  5625 -20200  54625 -20200  54625 -45620  5625 -45620  5625 -20200))
+    (via "Via[0-1]_600:300_um")
+    (rule
+      (width 200)
+      (clearance 127)
+      (clearance 31.75 (type smd_smd))
+    )
+  )
+  (placement
+    (component "aiee:SOT-223-3_L6.5-W3.4-P2.30-LS7.0-BR"
+      (place U1 31000 -32910 front 180 (PN "AMS1117-3.3"))
+    )
+    (component "aiee:CONN-TH_2P-P5.00_WJ500V-5.08-2P"
+      (place J1 11625 -39910 front 90 (PN "2P 5.08mm THT screw terminal"))
+    )
+    (component "aiee:CAP-SMD_L3.2-W1.6-RD-C7171"
+      (place C1 27000 -37310 front 180 (PN "10uF 16V solid tantalum"))
+    )
+    (component "aiee:CONN-TH_2P-P5.00_WJ500V-5.08-2P::1"
+      (place J2 48625 -25910 front -90 (PN "2P 5.08mm THT screw terminal"))
+    )
+    (component "aiee:CAP-SMD_L7.3-W4.3"
+      (place C2 21377.5 -32910 front 0 (PN "22uF 16V solid tantalum ESR 0.8ohm"))
+    )
+  )
+  (library
+    (image "aiee:SOT-223-3_L6.5-W3.4-P2.30-LS7.0-BR"
+      (outline (polygon signal 0  -4385 3095  4465 3095  4465 -3095  -4385 -3095))
+      (outline (path signal 150  1370 -3330  -1570 -3330))
+      (outline (path signal 150  1370 3330  1370 -3330))
+      (outline (path signal 150  -1570 -3330  -1570 3330))
+      (outline (path signal 150  -1570 3330  1370 3330))
+      (outline (path signal 150  3370 -3250  3377.02 -3230.72  3394.79 -3220.46  3415 -3224.02
+            3428.19 -3239.74  3428.19 -3260.26  3415 -3275.98  3394.79 -3279.54
+            3377.02 -3269.28  3370 -3250))
+      (outline (path signal 500  4300 -2190  4316.88 -2099.69  4365.25 -2021.58  4438.56 -1966.21
+            4526.93 -1941.07  4618.42 -1949.54  4700.66 -1990.5  4762.55 -2058.39
+            4795.74 -2144.06  4795.74 -2235.94  4762.55 -2321.61  4700.66 -2389.5
+            4618.42 -2430.46  4526.93 -2438.93  4438.56 -2413.79  4365.25 -2358.42
+            4316.88 -2280.31  4300 -2190))
+      (pin Rect[T]Pad_2500.000000x1100.000000_um 1 2970 -2300)
+      (pin Rect[T]Pad_2500.000000x1100.000000_um 2 2970 0)
+      (pin Rect[T]Pad_2500.000000x1100.000000_um 3 2970 2300)
+      (pin Rect[T]Pad_2340.000000x3600.000000_um 4 -2970 0)
+    )
+    (image "aiee:CONN-TH_2P-P5.00_WJ500V-5.08-2P"
+      (outline (polygon signal 0  -5205 -4495  -5205 5495  5205 5495  5205 -4495))
+      (outline (path signal 250  5080 5640  -5050 5640))
+      (outline (path signal 250  -5680 4750  -5680 3750))
+      (outline (path signal 250  -5080 4500  -5680 4750))
+      (outline (path signal 250  -5680 3750  -5080 4000))
+      (outline (path signal 250  -5680 -2750  -5680 -3750))
+      (outline (path signal 250  -5080 -3000  -5680 -2750))
+      (outline (path signal 250  -5680 -3750  -5080 -3500))
+      (outline (path signal 250  5080 -4520  5080 5640))
+      (outline (path signal 250  5080 -4520  -5050 -4520))
+      (outline (path signal 250  -5080 -4520  -5080 5640))
+      (outline (path signal 150  -5210 -4530  -5229.28 -4522.98  -5239.54 -4505.21  -5235.98 -4485
+            -5220.26 -4471.81  -5199.74 -4471.81  -5184.02 -4485  -5180.46 -4505.21
+            -5190.72 -4522.98  -5210 -4530))
+      (outline (path signal 550  2540 -280  2444.23 -263.114  2360.02 -214.492  2297.51 -140
+            2264.25 -48.621  2264.25 48.621  2297.51 140  2360.02 214.492
+            2444.23 263.114  2540 280  2635.77 263.114  2719.98 214.492
+            2782.49 140  2815.75 48.621  2815.75 -48.621  2782.49 -140  2719.98 -214.492
+            2635.77 -263.114  2540 -280))
+      (outline (path signal 550  -2540 -280  -2635.77 -263.114  -2719.98 -214.492  -2782.49 -140
+            -2815.75 -48.621  -2815.75 48.621  -2782.49 140  -2719.98 214.492
+            -2635.77 263.114  -2540 280  -2444.23 263.114  -2360.02 214.492
+            -2297.51 140  -2264.25 48.621  -2264.25 -48.621  -2297.51 -140
+            -2360.02 -214.492  -2444.23 -263.114  -2540 -280))
+      (pin Round[A]Pad_2000.000000_um (rotate 180) 1 -2540 0)
+      (pin Round[A]Pad_2000.000000_um (rotate 180) 2 2540 0)
+    )
+    (image "aiee:CAP-SMD_L3.2-W1.6-RD-C7171"
+      (outline (polygon signal 0  -2540 893  2540 893  2540 -893  -2540 -893))
+      (outline (path signal 150  1680 -880  -1680 -880))
+      (outline (path signal 150  1680 880  -1680 880))
+      (outline (path signal 150  -400 -880  -400 880))
+      (outline (path signal 250  -2500 2000  -2500 1000))
+      (outline (path signal 250  -3000 1500  -2000 1500))
+      (pin Rect[T]Pad_1530.000000x1296.000000_um (rotate 180) 1 -1530 0)
+      (pin Rect[T]Pad_1530.000000x1296.000000_um (rotate 180) 2 1530 0)
+    )
+    (image "aiee:CONN-TH_2P-P5.00_WJ500V-5.08-2P::1"
+      (outline (polygon signal 0  5205 5495  5205 -4495  -5205 -4495  -5205 5495))
+      (outline (path signal 250  -5080 -4520  -5080 5640))
+      (outline (path signal 250  5080 -4520  -5050 -4520))
+      (outline (path signal 250  5080 -4520  5080 5640))
+      (outline (path signal 250  -5680 -3750  -5080 -3500))
+      (outline (path signal 250  -5080 -3000  -5680 -2750))
+      (outline (path signal 250  -5680 -2750  -5680 -3750))
+      (outline (path signal 250  -5680 3750  -5080 4000))
+      (outline (path signal 250  -5080 4500  -5680 4750))
+      (outline (path signal 250  -5680 4750  -5680 3750))
+      (outline (path signal 250  5080 5640  -5050 5640))
+      (outline (path signal 150  -5210 -4470  -5190.72 -4477.02  -5180.46 -4494.79  -5184.02 -4515
+            -5199.74 -4528.19  -5220.26 -4528.19  -5235.98 -4515  -5239.54 -4494.79
+            -5229.28 -4477.02  -5210 -4470))
+      (outline (path signal 550  -2540 280  -2444.23 263.114  -2360.02 214.492  -2297.51 140
+            -2264.25 48.621  -2264.25 -48.621  -2297.51 -140  -2360.02 -214.492
+            -2444.23 -263.114  -2540 -280  -2635.77 -263.114  -2719.98 -214.492
+            -2782.49 -140  -2815.75 -48.621  -2815.75 48.621  -2782.49 140
+            -2719.98 214.492  -2635.77 263.114  -2540 280))
+      (outline (path signal 550  2540 280  2635.77 263.114  2719.98 214.492  2782.49 140
+            2815.75 48.621  2815.75 -48.621  2782.49 -140  2719.98 -214.492
+            2635.77 -263.114  2540 -280  2444.23 -263.114  2360.02 -214.492
+            2297.51 -140  2264.25 -48.621  2264.25 48.621  2297.51 140  2360.02 214.492
+            2444.23 263.114  2540 280))
+      (pin Round[A]Pad_2000.000000_um (rotate 180) 1 -2540 0)
+      (pin Round[A]Pad_2000.000000_um (rotate 180) 2 2540 0)
+    )
+    (image "aiee:CAP-SMD_L7.3-W4.3"
+      (outline (polygon signal 0  4747.5 -2135  -4747.5 -2135  -4747.5 2135  4747.5 2135))
+      (outline (path signal 150  -3810 2290  -3810 2160))
+      (outline (path signal 150  -3810 -2030  -3810 -2290))
+      (outline (path signal 150  -3810 -2290  3810 -2290))
+      (outline (path signal 150  2200 2230  2200 -2230))
+      (outline (path signal 150  3810 2290  -3810 2290))
+      (outline (path signal 150  3810 2030  3810 2290))
+      (outline (path signal 150  3810 -2290  3810 -2030))
+      (outline (path signal 150  3680 2150  3672.98 2130.72  3655.21 2120.46  3635 2124.02
+            3621.81 2139.74  3621.81 2160.26  3635 2175.98  3655.21 2179.54
+            3672.98 2169.28  3680 2150))
+      (pin Rect[T]Pad_2185.000000x3780.000000_um (rotate 180) 1 3410 0)
+      (pin Rect[T]Pad_2185.000000x3780.000000_um (rotate 180) 2 -3410 0)
+    )
+    (padstack Round[A]Pad_2000.000000_um
+      (shape (circle F.Cu 2000))
+      (shape (circle B.Cu 2000))
+      (attach off)
+    )
+    (padstack Rect[T]Pad_2185.000000x3780.000000_um
+      (shape (rect F.Cu -1092.5 -1890 1092.5 1890))
+      (attach off)
+    )
+    (padstack Rect[T]Pad_2340.000000x3600.000000_um
+      (shape (rect F.Cu -1170 -1800 1170 1800))
+      (attach off)
+    )
+    (padstack Rect[T]Pad_2500.000000x1100.000000_um
+      (shape (rect F.Cu -1250 -550 1250 550))
+      (attach off)
+    )
+    (padstack Rect[T]Pad_1530.000000x1296.000000_um
+      (shape (rect F.Cu -765 -648 765 648))
+      (attach off)
+    )
+    (padstack "Via[0-1]_600:300_um"
+      (shape (circle F.Cu 600))
+      (shape (circle B.Cu 600))
+      (attach off)
+    )
+  )
+  (network
+    (net GND
+      (pins U1-1 J1-2 C1-2 J2-2 C2-2)
+    )
+    (net +3V3
+      (pins U1-2 U1-4 J2-1 C2-1)
+    )
+    (net +5V
+      (pins U1-3 J1-1 C1-1)
+    )
+    (class kicad_default
+      (circuit
+        (use_via "Via[0-1]_600:300_um")
+      )
+      (rule
+        (width 200)
+        (clearance 127)
+      )
+    )
+    (class Pwr_0p255mm +3V3
+      (circuit
+        (use_via "Via[0-1]_600:300_um")
+      )
+      (rule
+        (width 255)
+        (clearance 200)
+      )
+    )
+    (class Pwr_0p2575mm +5V GND
+      (circuit
+        (use_via "Via[0-1]_600:300_um")
+      )
+      (rule
+        (width 257.5)
+        (clearance 200)
+      )
+    )
+  )
+  (wiring
+    (wire (path F.Cu 386.2  23400 -42450  11600 -42450)(net +5V)(type route))
+    (wire (path F.Cu 386.2  28050 -36800  28050 -35200)(net +5V)(type route))
+    (wire (path F.Cu 386.2  28550 -37300  28050 -36800)(net +5V)(type route))
+    (wire (path F.Cu 386.2  28550 -37300  23400 -42450)(net +5V)(type route))
+  )
+)

@@ -1,0 +1,141 @@
+{
+ "script": "check_current",
+ "status": "violations",
+ "board": "bb-ldo.kicad_pcb",
+ "counts": {
+  "total": 3,
+  "by_severity": {
+   "warning": 3
+  },
+  "by_source": {
+   "check_current": 3
+  }
+ },
+ "violations": [
+  {
+   "check": "check_current",
+   "severity": "warning",
+   "pos": [
+    17.318,
+    32.91
+   ],
+   "layer": null,
+   "net": "GND",
+   "refs": [],
+   "msg": "GND layer transition at (17.32, 32.91) has 1 via(s); 0.52 A needs 2 (>= 1 via per 0.5 A); advisory: plane-fed rail, per-cluster current unattributed (each via is a leaf tap off the plane)",
+   "source": "check_current",
+   "items": [
+    {
+     "msg": "GND layer transition at (17.32, 32.91) has 1 via(s); 0.52 A needs 2 (>= 1 via per 0.5 A); advisory: plane-fed rail, per-cluster current unattributed (each via is a leaf tap off the plane)",
+     "pos": [
+      17.318,
+      32.91
+     ]
+    }
+   ],
+   "kind": "insufficient_transition_vias",
+   "vias": 1,
+   "required": 2,
+   "advisory": true
+  },
+  {
+   "check": "check_current",
+   "severity": "warning",
+   "pos": [
+    24.82,
+    37.31
+   ],
+   "layer": null,
+   "net": "GND",
+   "refs": [],
+   "msg": "GND layer transition at (24.82, 37.31) has 1 via(s); 0.52 A needs 2 (>= 1 via per 0.5 A); advisory: plane-fed rail, per-cluster current unattributed (each via is a leaf tap off the plane)",
+   "source": "check_current",
+   "items": [
+    {
+     "msg": "GND layer transition at (24.82, 37.31) has 1 via(s); 0.52 A needs 2 (>= 1 via per 0.5 A); advisory: plane-fed rail, per-cluster current unattributed (each via is a leaf tap off the plane)",
+     "pos": [
+      24.82,
+      37.31
+     ]
+    }
+   ],
+   "kind": "insufficient_transition_vias",
+   "vias": 1,
+   "required": 2,
+   "advisory": true
+  },
+  {
+   "check": "check_current",
+   "severity": "warning",
+   "pos": [
+    27.677,
+    30.064
+   ],
+   "layer": null,
+   "net": "GND",
+   "refs": [],
+   "msg": "GND layer transition at (27.68, 30.06) has 1 via(s); 0.52 A needs 2 (>= 1 via per 0.5 A); advisory: plane-fed rail, per-cluster current unattributed (each via is a leaf tap off the plane)",
+   "source": "check_current",
+   "items": [
+    {
+     "msg": "GND layer transition at (27.68, 30.06) has 1 via(s); 0.52 A needs 2 (>= 1 via per 0.5 A); advisory: plane-fed rail, per-cluster current unattributed (each via is a leaf tap off the plane)",
+     "pos": [
+      27.677,
+      30.064
+     ]
+    }
+   ],
+   "kind": "insufficient_transition_vias",
+   "vias": 1,
+   "required": 2,
+   "advisory": true
+  }
+ ],
+ "checked": [
+  {
+   "net": "+5V",
+   "current_a": 0.515,
+   "dt_c": 10.0,
+   "required_mm_by_layer": {
+    "F.Cu": 0.2575,
+    "B.Cu": 0.2575
+   },
+   "min_track_mm_by_layer": {
+    "F.Cu": 0.3862
+   },
+   "via_clusters": 0
+  },
+  {
+   "net": "+3V3",
+   "current_a": 0.51,
+   "dt_c": 10.0,
+   "required_mm_by_layer": {
+    "F.Cu": 0.255,
+    "B.Cu": 0.255
+   },
+   "min_track_mm_by_layer": {},
+   "via_clusters": 0,
+   "plane_fed": true,
+   "advisory_violations": 0
+  },
+  {
+   "net": "GND",
+   "current_a": 0.515,
+   "dt_c": 10.0,
+   "required_mm_by_layer": {
+    "F.Cu": 0.2575,
+    "B.Cu": 0.2575
+   },
+   "min_track_mm_by_layer": {},
+   "via_clusters": 3,
+   "plane_fed": true,
+   "advisory_violations": 3
+  }
+ ],
+ "stackup_assumed": false,
+ "report_schema": 1,
+ "checker_version": 1,
+ "generated_at": "2026-08-18T04:38:16+00:00",
+ "input": "boards\\bb-ldo\\kicad\\bb-ldo.kicad_pcb",
+ "input_digest": "sexpr_no_uuid:70a5c2724593028afc46937cfaccb56357b500cfac38ebddeb239fdaea54b88e"
+}
