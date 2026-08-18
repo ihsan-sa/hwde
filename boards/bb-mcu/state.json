@@ -3,7 +3,7 @@
  "board": "bb-mcu",
  "workspace": "boards/bb-mcu",
  "created": "2026-08-16T17:25:37",
- "updated": "2026-08-17T20:49:08",
+ "updated": "2026-08-17T20:49:20",
  "phase": "P9",
  "gates": {
   "erc": {
@@ -577,6 +577,18 @@
    "why": "the reviewer independently re-ran plane_repair --flag-only rather than taking my report, confirmed 0 anchors, and recommended DFM purge it since zero anchors means zero risk in removing it. But its own OPEN is the reason not to act yet: whether a 0.34 mm gap survives JLC's process is a fab-process question that needs the actual DFM pass, not a render. Fixing it now would re-stale drc_routed and verify for a change DFM may render moot or may specify differently. If the DFM leg flags it, it becomes a work order with a known-safe fix; if DFM is clean, the island is electrically inert on a 3.3 V bench board and stays. Deciding it at P9 with evidence beats deciding it at P8 without",
    "phase": "P8",
    "ts": "2026-08-17T20:47:52"
+  },
+  {
+   "what": "P8 review F2 RESOLVED by evidence: the 0.582 mm2 zero-anchor copper island STAYS. The DFM gate did not flag it, with all 8 legs running",
+   "why": "this is the decision I deliberately deferred from P8 rather than making it blind. The dfm gate passed 0/0 with copper, copper_to_edge, drill, hole_to_edge, silk, polarity, bom and release all RAN and passed - no skips, no waivers. The island is 0.34 mm from the main pour and carries zero anchors, so it is electrically inert on a 3.3 V bench board, and the fab-process question the reviewer correctly said needed a real DFM pass has now been answered by one. Removing it would have re-staled drc_routed and verify for no measured benefit",
+   "phase": "P9",
+   "ts": "2026-08-17T20:49:20"
+  },
+  {
+   "what": "parts.json is now placed BESIDE the board at kicad/parts.json, alongside constraints.json and decoupling.json",
+   "why": "acting on a prior run's recorded learning: gate.py --gate dfm resolves parts.json from the BOARD's directory, so the BOM-completeness leg silently never runs when the file lives only at parts/parts.json - a pass that means nothing. Verified the fix worked rather than assuming: the gate's coverage block shows the bom leg in ran and passed, so it genuinely executed. Sidecars belong beside the board from P5 onward and parts.json is one of them",
+   "phase": "P9",
+   "ts": "2026-08-17T20:49:20"
   }
  ],
  "edits": [
@@ -1350,6 +1362,16 @@
    "status": "pass",
    "attempt": 2,
    "failing_count": 0
+  },
+  {
+   "ts": "2026-08-17T20:49:20",
+   "event": "decision",
+   "what": "P8 review F2 RESOLVED by evidence: the 0.582 mm2 zero-anchor copper island STAYS. The DFM gate did not flag it, with all 8 legs running"
+  },
+  {
+   "ts": "2026-08-17T20:49:20",
+   "event": "decision",
+   "what": "parts.json is now placed BESIDE the board at kicad/parts.json, alongside constraints.json and decoupling.json"
   }
  ],
  "mode": {

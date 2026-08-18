@@ -16,7 +16,7 @@
 \begin{center}
 {\LARGE\bfseries bb-mcu --- Design Document}\\[6pt]
 {\large ai-ee v1 pipeline}\\[2pt]
-generated 2026-08-16 21:57:31
+generated 2026-08-17 20:50:41
 \end{center}
 \tableofcontents
 
@@ -29,10 +29,10 @@ generated 2026-08-16 21:57:31
 \endhead
 board & bb-mcu \\
 workspace & \texttt{boards/bb-mcu} \\
-phase & P4 \\
-gate status & all 1 recorded gates pass \\
+phase & P9 \\
+gate status & all 5 recorded gates pass \\
 state created & 2026-08-16T17:25:37 \\
-state updated & 2026-08-16T21:57:21 \\
+state updated & 2026-08-17T20:49:20 \\
 \bottomrule
 \end{longtable}
 }
@@ -294,6 +294,16 @@ P4 & ONE schematic-block agent for the whole board, not one per sheet & the P2 s
 P4 & REVERSING the P1 ruling: ADD C5, 100 nF from NRST to GND. The reviewer was right and my original reason was wrong & I ruled it out at P1 on AN4325 filing the part under Table 6 Optional components 'for RESET button', reasoning that this board has no button. The reviewer showed that misreads the evidence: the DATASHEET's own Figure 21 note 1 recommends the capacitor unconditionally as parasitic-reset protection, which is a different and stronger justification than button debounce, and the run's own C89040 extraction and its own swd-debug-port research record both carry the 0.1 uF. Decisive for scope: requirements.md section 2 point 5, written at P0 before any of this, explicitly scoped 'whatever the datasheet requires on NRST / boot-mode pins' as in-scope support - so this is not the recommended-only conditioning the block-only tier excludes, it is the carve-out the requirements anticipated. And the exposure is specific to this board: NRST is deliberately routed to an unshielded flying lead, which is exactly the parasitic-reset case the note addresses. My own P1 decision text had already flagged that risk and accepted it; the reviewer supplied the source that turns the accepted risk into an unnecessary one \\
 P4 & J3 pin order CHANGED from IO1/IO2/GND/IO3/IO4 to IO1/IO2/IO3/IO4/GND - GND moves off the centre to position 5 & the reviewer found that J2 and J3 are the SAME unkeyed 5-position part, so a cable made for one fits the other. With GND at J3 centre and +3V3 at J2 centre, plugging the GPIO cable into the debug header shorts the rail through the cable's own return - a hard short, the worst outcome available on this board. Moving GND to an end makes the worst cross-plug outcome a GPIO pin contacting the rail or ground, both current-limited by the pin's own driver and non-destructive at 3.3 V. The cost is the return-path benefit the P2 architect chose centre-GND for, which is immaterial here: the owner's answer 3 freed these four pins from any electrical requirement, they are plain digital I/O with no stated edge rate, and a scope probe brings its own ground clip. Accepted trade: J3's own 180-degree reversal is now less clean (GND no longer self-maps), but reversal costs an IO-to-GND contact while cross-plugging cost a rail short \\
 P4 & J2 pin order UNCHANGED (GND/SWCLK/3V3/SWDIO/NRST) despite the reviewer's one-position-slip warning. Mitigation stays per-pin silk, carried to P6 & the reviewer correctly notes my order was ruled on the 180-degree reversal case only, and that a one-position slip puts a probe push-pull driver onto the rail. I worked the alternatives and centre-rail still wins: with the rail at an END, a one-position slip lands the probe's GND wire on it, which is a hard short - strictly worse than a driver contact, which is current-limited by the driver and which probes generally detect. There is no 5-position order that is safe against BOTH a reversal and a one-position slip, so the ruling is to take the failure that is current-limited in every case. Recorded rather than dismissed: the residual risk is real and its only mitigation is that the per-pin silk actually gets placed and stays legible, which constraints.json already flags as load-bearing and which P6 must deliver \\
+P6 & PIPELINE DEFECT: at a geometry-OUTPUT binding the place gate must run AFTER board\_edit --outline fit, not before. The full-run recipe documents the opposite order and it cannot pass & placelib.legality\_violations measures every declared placement.edges ref against the CURRENT outline with EDGE\_TOL 2.5 mm. At a canonical binding the provisional outline is deliberately oversized, so a canonically placed connector sits far from it - here J1 was 16.9 mm from the provisional right edge and the gate failed on it. The only way to satisfy the edge check against a provisional outline is to spread the connectors out to it, after which --outline fit measures the spread and 'earns' the provisional size. That is exactly the bb-buck failure with the sign flipped, and the U18 mechanism defeats itself. The placement agent placed canonically anyway, refused to resize, and machine-proved the fix is the ORDER: fit first at any margin at or under 2.5 mm, then gate, which passes 0/0. Fitting first is also better on the merits - the gate then judges the geometry that will actually be built. Recorded as a defect in the recipe, not in this board \\
+P6 & Board size EARNED: 34.77 x 22.26 mm (774 mm2), down from the provisional 51.15 x 43.52 (2226 mm2). Hand-built canonical layout accepted over both annealer candidates & geometry is an OUTPUT at this binding and this is the output. The annealer returned one legal candidate at 200.12 mm HPWL with only 3 movable clusters, so the SA numbers are noise on a board this small; the hand layout reaches 161.36 mm with the same zero legality violations, and route\_auto --probe completes 1.00 with 0 unrouted on the fitted geometry. U1 at rot 270 is the whole floorplan: the SWD end faces J2/top, the VDD/VSS face faces J1/right, and the PA0-PA3 face faces J3/left, so all three escapes are non-crossing. The seed had U1 at rot 0, which crossed the GPIO escapes under the package \\
+P6 & ACCEPTED the placement agent's overrule of 'never move board\_only refs': it moved H1-H4, and rejected four TRUE corner holes in favour of a top pair at the corners with the bottom pair inset & the overrule was correct and correctly flagged. board\_edit --outline fit includes mounting-hole courtyards in the content bbox, so leaving H1-H4 at the provisional corners would have frozen the board at 51 x 43.5 mm - the holes would have defeated the fit. constraints.json also assigns the hole count and placement to P6 explicitly, and requirements s5 sanctions fewer than four if the earned outline cannot hold them. On the count: four true corner holes force about 33.8 x 26.5 mm, roughly +25 percent area and \textasciitilde{}9 mm of pure air, to satisfy a board with no enclosure and no mechanical requirement beyond mounting the bare board - that is the padding the block-only tier exists to refuse. Residual accepted: the rightmost \textasciitilde{}10 mm of the bottom edge is unsupported, but J1 is braced by H2 above and H3 below-left, so the screw terminal is not cantilevered off an unsupported corner \\
+P6 & J1 rotation 270 PROVEN by orthographic side render, and the finding contradicts this repo's existing connector learning: WJ500V-5.08-2P's wire mouth is at footprint-local -Y, the REVERSE of the KF128/DB128L family & the role prompt and the constraints note both refuse to guess a footprint's native entry direction because a prior board recorded the cost of guessing it. The agent proved this one instead of assuming, and found the top view reads BACKWARDS on this part. Had it carried the KF128 assumption across, the screw terminal's wire opening would have faced INTO the board and the board would have been unusable at the bench - a defect no gate checks, because entry direction is not in any machine-readable field. Silk verified on the fitted render by me directly: +3V3 above the top pole, -GND below the bottom one, each adjacent to its own pole and 9 mm from the other \\
+P6 & J2 and J3 per-pin silk VERIFIED on the fitted top render, closing the P4 review's hard requirement & the P4 review established that per-pin silk is the ONLY mitigation for the two unkeyed-header hazards (180 degree reversal, and cross-plugging the GPIO cable into the debug header). Checked on the render rather than taken on report: J2 carries a pin-1 marker at the right and reads right-to-left GND / SWCLK / 3V3 / SWDIO / NRST, matching the ruled order, using a two-row stagger because 5-character names do not fit a single row at 2.54 mm pitch. J3 carries one label per pin plus a 1 at the top and reads IO1 / IO2 / IO3 / IO4 / GND, also the ruled order. Both legible at render scale \\
+P8 & FORCED TIER DOWNGRADE: the P8 verify-reviewer runs on sonnet, below its fable/high spec and below the opus/xhigh substitution used all run. Recorded, not silent & the account hit its weekly usage limit mid-review (opus exhausted; fable had already been unavailable since P0). The playbook's rule is to substitute one effort step UP and never silently drop to a weaker tier - I cannot substitute up, so I am recording the drop instead of hiding it. Mitigation: the machine state this reviewer backstops is fully green with no skips (erc 0/0, place 0/0, drc\_routed 0/0, verify 0/0 across all 8 checks, irdrop and pdn\_z pass), so the reviewer is hunting only what scripts cannot see on a 10-part 2-layer board - the least demanding review surface this pipeline produces. The first partial pass, before it died, had already independently confirmed the highest-stakes item: J1's wire mouth faces OFF-board, verified in a +X orthographic view where both funnels land exactly on the two pole positions. If the owner wants the review re-run at full tier after the limit resets, the board is committed at da26db0 and re-running is a single spawn \\
+P8 & P8 review F1 (no mounting hole near J1's bottom-right corner) ACCEPTED as a warning, no change. Consistent with the P6 ruling & the reviewer's number is sharper than mine at P6 - H3 is inset 14.3 mm from the bottom-right corner against H1/H2's 4 mm true-corner inset - but the conclusion holds. J1 at (37.8, 21.9) is braced diagonally on two sides: H2 at (39.85, 12.94) is 9.2 mm above-right and H3 at (29.55, 26.1) is 9.2 mm below-left, so the terminal is not cantilevered off an unsupported corner. The board is 1.6 mm FR4 at 34.77 x 22.26 mm, which is stiff at that span. Adding a fifth hole or moving H3 outward costs board area on a tier that excludes mechanical features beyond mounting the bare board, to harden a bench article against a load nobody has specified. The reviewer itself files this as a bench-reliability question rather than a defect, and its own OPEN says the severity depends on handling the run cannot know \\
+P8 & P8 review F2 (0.582 mm2 zero-anchor copper island on B.Cu) carried to P9 DFM undecided, deliberately. Not fixed at P8 & the reviewer independently re-ran plane\_repair --flag-only rather than taking my report, confirmed 0 anchors, and recommended DFM purge it since zero anchors means zero risk in removing it. But its own OPEN is the reason not to act yet: whether a 0.34 mm gap survives JLC's process is a fab-process question that needs the actual DFM pass, not a render. Fixing it now would re-stale drc\_routed and verify for a change DFM may render moot or may specify differently. If the DFM leg flags it, it becomes a work order with a known-safe fix; if DFM is clean, the island is electrically inert on a 3.3 V bench board and stays. Deciding it at P9 with evidence beats deciding it at P8 without \\
+P9 & P8 review F2 RESOLVED by evidence: the 0.582 mm2 zero-anchor copper island STAYS. The DFM gate did not flag it, with all 8 legs running & this is the decision I deliberately deferred from P8 rather than making it blind. The dfm gate passed 0/0 with copper, copper\_to\_edge, drill, hole\_to\_edge, silk, polarity, bom and release all RAN and passed - no skips, no waivers. The island is 0.34 mm from the main pour and carries zero anchors, so it is electrically inert on a 3.3 V bench board, and the fab-process question the reviewer correctly said needed a real DFM pass has now been answered by one. Removing it would have re-staled drc\_routed and verify for no measured benefit \\
+P9 & parts.json is now placed BESIDE the board at kicad/parts.json, alongside constraints.json and decoupling.json & acting on a prior run's recorded learning: gate.py --gate dfm resolves parts.json from the BOARD's directory, so the BOM-completeness leg silently never runs when the file lives only at parts/parts.json - a pass that means nothing. Verified the fix worked rather than assuming: the gate's coverage block shows the bom leg in ran and passed, so it genuinely executed. Sidecars belong beside the board from P5 onward and parts.json is one of them \\
 \bottomrule
 \end{longtable}
 }
@@ -429,11 +439,93 @@ Gate \texttt{erc} (phase P4): \textbf{pass} after 2 attempt(s); last 2026-08-16T
 The full schematic PDF follows.
 \includepdf[pages=-]{reports/schematic.pdf}
 \section{Layout}
-\emph{Pending --- produced at P6.}
+Gate \texttt{place} (phase P6): \textbf{pass} after 2 attempt(s); last 2026-08-16T22:57:35, failing 0 of 0.
+
+Gate \texttt{drc\_routed} (phase P7): \textbf{pass} after 3 attempt(s); last 2026-08-16T23:20:27, failing 0 of 0.
+\emph{No board renders found.}
 \section{Verification}
-\emph{Pending --- produced at P8.}
+Gate \texttt{verify} (phase P8): \textbf{pass} after 2 attempt(s); last 2026-08-16T23:20:27, failing 0 of 0.
+\emph{reports/verify\_all.json not available.}
+\subsection*{Design review of record}
+\subsection*{Board review - bb-mcu (adversarial, P8)}
+Reviewer: verify-reviewer subagent, fresh context. All eight machine checks plus \texttt{drc\_routed}, \texttt{place}, \texttt{erc} and \texttt{verify} are clean (0/0 throughout, no skips) - taken as given, not re-litigated. This pass hunts what those scripts cannot see: renders I made myself (`reports/review-renders/bb-mcu\_\{top,bottom,iso,left, right,front,back\}.png`, 2400 px), direct extraction of pad/net/track/zone geometry from the built \texttt{.kicad\_pcb} via the KiCad 10 Python API, and an independent re-run of \texttt{plane\_repair.py --flag-only} against the built board.
+
+\textbf{Scope tier applied}: \texttt{learning block-basics:} -\textgreater{} \texttt{block-only}, binding \texttt{canonical}. Per \texttt{reference/build-modes.md} this excludes protection, filtering, indicators, test-points, config, second-rail, mechanical and enclosure-fit - none of that is reported below. Geometry is an OUTPUT the board earned (34.77 x 22.26 mm from a 51.15 x 43.52 provisional outline, recorded P6 decision); the board is not compared to that provisional number.
+
+\textbf{Gate: 0 errors / 2 warnings.}
+
+---
+
+\subsubsection*{Findings, worst first}
+\paragraph*{F1 (warning) - the bottom-right corner, where the wire-tug loads land, has no mounting hole nearby}
+\texttt{kind: unsupported-connector-corner} \textbar{} domain: \texttt{placement} \textbar{} refs J1, H2, H3
+
+Measured from the built board (bbox 8.98,8.939 to 43.85,31.3 mm): H1 and H2 (top pair) sit at a true 4.0 mm inset from BOTH nearest edges - genuine corners. H3 and H4 (bottom pair) do not: H4 is 8.2 mm in from the left edge, and \textbf{H3 is 14.3 mm in from the right edge}, because J3 and J1 occupy the bottom-left and right-edge real estate respectively (\texttt{state.json} P6 decision, correctly earning the board this shape). That leaves the entire bottom-right corner region - exactly where the screw terminal J1 sits - with no anchor point closer than 9.2 mm (J1 to H2 measures 9.19 mm, J1 to H3 measures 9.26 mm; both are ordinary distances to the NEAREST hole, but neither hole pins the corner itself, so that corner can flex/lift under a lever load in a way a true corner hole would resist).
+
+J1 is not a passive connector here - it is the interface that gets a wire pushed in, a wire pulled out, and two screws torqued down, repeatedly, at the bench, every time this board is used (\texttt{requirements.md} s1: "let it be programmed and debugged" implies re-plugging cycles; the terminal itself is rated for wire pull per its datasheet, but the PCB mounting is what resists that force being transmitted into the board). Concentrating the least-anchored corner directly under the highest cyclic mechanical load is the kind of thing DRC/ERC/placement gates cannot see, because "four M3 holes present" is satisfied literally (\texttt{gate-place} passed `courtyard/outline/edges/keepouts/ decoupler\_distance`, none of which score corner support quality).
+
+Not a fabrication defect and not a call to change the earned geometry - FR4 is stiff at this scale and 9.2 mm is not a dramatic cantilever, so this is not filed as an error. But it is a real, board-specific bench-reliability question or the human, worth weighing before the 5 boards see repeated bench use: either accept it (screws tightened by hand, not a lever-arm concern in practice), or note it for a respin (nudging H3 a few mm toward the bottom-right corner, or adding wire strain relief guidance in assembly notes). Visible in \texttt{bb-mcu\_top.png} and \texttt{bb-mcu\_iso.png} - compare H1/H2's tight corner hugging against H3's isolated position mid-bottom-edge.
+
+\paragraph*{F2 (warning) - a 0.58 mm2 dead copper sliver sits on the GND layer near J3, unconnected to anything}
+\texttt{kind: zero-anchor-copper-island} \textbar{} domain: \texttt{plane} \textbar{} layer B.Cu \textbar{} net GND \textbar{} refs J3 \textbar{} pos (10.158, 30.122)
+
+The board brief for this review named this item; I did not take it on report - I re-ran `plane\_repair.py --pcb boards/bb-mcu/kicad/bb-mcu.kicad\_pcb --flag-only` myself against the built board and reproduced it independently: one GND-net component at 627.14 mm2 with 8 anchors (the real pour), and a second GND-net component at \textbf{0.5822 mm2 with 0 anchors}, centred 0.34 mm from the main pour's edge, about 0.9 mm diagonally from J3 pin 5 (GND, at 10.8, 29.48) in the board's bottom-left corner.
+
+Electrically this is a non-event: it is DC-floating, far too small and too close to the reference pour to do anything at the frequencies on this board (SWD's own worst edge is 5 ns against 2-layer traces under 15 mm - see \texttt{architecture/blocks.md} s3), and \texttt{check\_pdn}/\texttt{check\_return\_path}/DRC all correctly see nothing wrong, because nothing electrically IS wrong. The question is fab hygiene, not function: an unconnected copper sliver 0.34 mm from its neighbour is closer to a clearance edge case than every other gap on this board, it has zero purpose (0 anchors means it grounds nothing and shields nothing), and it is exactly the sort of unexplained artifact a DFM pass or a human fab reviewer flags for manual sign-off - a turnaround-time cost for a feature that does nothing. \textbf{For the P9 DFM leg}: purge it. It has no anchors, so deleting it (or raising the zone's island-area removal threshold past 0.6 mm2 and re-filling) cannot disconnect anything real - this is a zero-risk cleanup, not a routing change requiring re-verification of anything else. Not visually distinguishable in the 3D renders at this scale (both regions are the same copper-green fill); confirmed by direct zone-fill geometry extraction, not by eye.
+
+---
+
+\subsubsection*{Checked and cleared (worst-first hunting, not a rubber stamp on the gates)}
+{*}{*}J2 and J3 silk - verified correct and unambiguous on the render, pad by pad.{*}{*} This was the hardest item on the hunt list and I did not take \texttt{state.json}'s P6 "silk VERIFIED" decision on report. I extracted the exact absolute pad coordinates and the exact silk-text anchor coordinates from the built \texttt{.kicad\_pcb} (not estimated from pixels) and confirmed every one of the 10 net labels sits with its text-anchor at EXACTLY its pad's X coordinate (KiCad's default center-justify means this is exact centering, not approximate): J2 reads, physical pin 1 (right, square pad, silk "1" clear of the header body) to pin 5 (left): GND / SWCLK / 3V3 / SWDIO / NRST, matching the P1 ruling exactly. J3 reads pin 1 (top, square pad, silk "1" clear of the body) to pin 5 (bottom): IO1 / IO2 / IO3 / IO4 / GND, matching the P4-revised order exactly (see next paragraph). J2's two-row stagger (SWDIO/SWCLK indented below NRST/3V3/GND) is column-exact per pad, not merely close, and reads correctly at 2400 px - \texttt{bb-mcu\_top.png}, crop coordinates roughly x980-1330,y150-300 for J2 and x650-1000,y300-720 for J3 in the full-res render. Pin-1 markers (square pads plus an outside-the-body "1" digit) are present on both and would survive assembly - the exact stm32-blinky failure mode this board's own architecture doc calls out is not repeated here.
+
+{*}{*}J2/J3 cross-plug and reversal hazards - independently re-derived, and the board matches the LATEST decision, not the one in the P4 schematic-review doc.{*}{*} \texttt{reports/review-schematic.md} W3 (as written) describes J3 as GND-at-centre and flags a rail short if a cross-plugged cable's centre wire meets J2's +3V3. That premise is now stale: \texttt{state.json} records a {*}{*}later P4 decision, triggered by that exact W3 finding{*}{*}, that moved J3's GND from centre to the end specifically to kill the rail-short case (accepting a messier reversal case - GND no longer self-maps - as the strictly safer trade, since a GPIO-to-GND/rail contact is driver-current-limited and a direct rail short is not). I re-derived the hazard tree against the AS-BUILT pinout independently (not by reading the decision text) and agree with the ruling: with J3 carrying no 3V3 pin anywhere, no reversal or cross-plug combination between these two identical unkeyed headers can short the rail to ground through the cable itself any more. \texttt{architecture/blocks.md}'s block-diagram mermaid sketch still shows the superseded IO1/IO2/GND/IO3/IO4 order - a stale diagram in an intermediate doc, not a board defect, since state.json is the decision record of authority and the built board matches it.
+
+{*}{*}J2's one-position-slip residual risk (probe driver onto +3V3) - real, known, accepted, and its only mitigation (silk) checks out.{*}{*} \texttt{state.json} P4 already worked the alternatives and ruled there is no 5-position order safe against both a 180-reversal and a one-position slip simultaneously, and accepted the slip case as the lesser risk with per-pin silk as the sole mitigation. Silk verified above. Not re-filed as a new finding - re-litigating an already reasoned, already-accepted, correctly-mitigated risk would be noise, not signal.
+
+{*}{*}J1 orientation and polarity silk - verified from an orthographic side render, not assumed.{*}{*} \texttt{bb-mcu\_right.png} shows the wire-entry ports as two dark rectangular openings facing the camera - i.e. facing off-board on the edge J1 actually sits on (\texttt{placement.edges} says J1 edge=right, confirmed). \texttt{bb-mcu\_left.png}/\texttt{bb-mcu\_back.png} show only the closed screw-access side from those angles, consistent with a single wire-facing side. Top-down (\texttt{bb-mcu\_top.png}, crop \textasciitilde{}x1300-1750,y150-720), "+3V3" sits fully clear above the mounted 3D terminal body and "J1 -GND" fully clear below it - the \textasciitilde{}14 mm body does not encroach on either label once assembled. Screw terminal J1 is a symmetric, unkeyed 2-pole part (confirmed in its own datasheet extraction); a 180-degree assembly rotation error is theoretically possible since nothing mechanical prevents it, but this is inherent to the part class (true of every unkeyed 2-pin THT connector, mitigated industry-wide by CAD-derived placement rotation data, not by keying) and not a defect specific to this design - considered and not filed.
+
+\textbf{Mounting hole basics} - all four are 3.2 mm drill (M3 clearance) as required; none moved off \texttt{F.Cu}/board surface; H3's silk reference text was relocated by an earlier fix pass and reads cleanly with no new collision (\texttt{bb-mcu\_top.png}, near x1050-1150,y500-560).
+
+\textbf{No part silently flipped to the back.} Queried every footprint's side directly (\texttt{fp.IsFlipped()}): all 14 (U1, C1-C5, R1, J1-J3, H1-H4) report \texttt{front}. Bottom render (\texttt{bb-mcu\_bottom.png}) shows only THT pin breakout, mounting-hole clearances and via witness marks on the GND pour - no SMD footprints - confirming single-sided assembly was actually delivered, not just specified.
+
+\textbf{SWCLK does not run long-and-parallel to the four GPIO} (the one EMI note \texttt{constraints.json} flagged as advisory, unenforced by any check). Extracted every track segment on \texttt{/SWCLK}, \texttt{/SWDIO}, \texttt{/IO1..4}: SWCLK is one 4.65 mm segment confined to x=27.5, y=11.0-15.65 (top-right of the package); the four GPIO traces run entirely in x=10.8-21.5, y=18.92-26.94 (left-center). The regions do not overlap in X or Y - the architecture's own placement rationale ("maximum distance from SWCLK") holds up in the actual copper, not just in the placement note.
+
+{*}{*}C5 (NRST cap, added at P4) is present, correctly wired, and close to its pin.{*}{*} Netlist-confirmed: C5 pad 1 on \texttt{/NRST}, pad 2 on \texttt{GND}, 3.13 mm from U1 pin 4. Resolves the schematic review's W1 (which predates C5 being added).
+
+\textbf{Cross-artifact delivery}: all three stated interfaces present with the ruled pin orders (J1: pin1=+3V3/pin2=GND; J2: GND/SWCLK/3V3/SWDIO/NRST; J3: IO1/IO2/IO3/IO4/GND, all confirmed against the netlist, not the schematic picture). Both architecture blocks (B1 MCU minimum system, B2 SWD debug port) are present with every datasheet-required part (C1-C4, R1) on the right nets.
+
+\textbf{One stray B.Cu track, checked and cleared}: exactly one non-zone track exists on the bottom copper layer (1.75 mm, net GND, x=29.55 near C1). It is on the SAME net as the surrounding pour, so it cannot split or interrupt anything and is not a "signal routed on the bottom" violation - almost certainly a via-stitch leftover from routing. Not filed.
+
+---
+
+\subsubsection*{Open / could not fully judge}
+1. \textbf{F1's severity is a bench-use-frequency judgment call}, not something a render settles definitively - how hard this board actually gets handled determines whether 9.2 mm-from-nearest-hole at an open corner matters in practice. Flagged with reasoning; the call is the human's. 2. \textbf{F2's exact fab risk} (whether a 0.34 mm gap survives JLC's process without bridging, or whether their DFM software auto-flags it) needs the actual P9 DFM/fab-rules pass, not a review render - I can confirm the geometry and the recommended action (purge, zero risk) but not JLC's own tolerance behavior. 3. Did not re-render or re-read \texttt{reports/schematic.pdf} directly - relied on the existing P4 schematic review plus my own direct netlist/pad extraction from the built board (which is generated from the same schematic and is at least as authoritative for the electrical facts I needed to check). 4. Screwdriver/standoff ergonomic access at H2 given J1's \textasciitilde{}14 mm height: judged workable from the render (\textasciitilde{}2-2.5 mm clear lateral gap to the terminal body) but not physically tested.
+
 \section{DFM and Fabrication}
-\emph{Pending --- produced at P9.}
+Gate \texttt{dfm} (phase P9): \textbf{pass} after 2 attempt(s); last 2026-08-17T20:49:08, failing 0 of 0.
+DFM findings by severity: none.
+\subsection*{Fabrication outputs}
+Exported layers: F.Cu, B.Cu, F.Silkscreen, B.Silkscreen, F.Mask, B.Mask, F.Paste, B.Paste, Edge.Cuts.
+\subsection*{Bill of materials}
+{\small
+\begin{longtable}{p{4.4cm}p{2.8cm}p{4.6cm}l}
+\toprule
+\textbf{Comment} & \textbf{Designator} & \textbf{Footprint} & \textbf{LCSC} \\
+\midrule
+\endhead
+100nF 50V X7R & C1,C5 & C0603 & C14663 \\
+4.7uF 16V X7R & C2 & C0603 & C22399629 \\
+10nF 25V X7R & C3 & C0603 & C327204 \\
+1uF 16V X7R & C4 & C0603 & C106248 \\
+2P 5.08mm screw terminal THT & J1 & CONN-TH\_2P-P5.00\_WJ500V-5.08-2P & C8465 \\
+1x5 2.54mm male THT & J2,J3 & HDR-TH\_5P-P2.54-V-M & C32713271 \\
+10k & R1 & R0603 & C25804 \\
+STM32F030F4P6TR & U1 & SOP-20\_L6.5-W4.4-P0.65-LS6.4-BL & C89040 \\
+\bottomrule
+\end{longtable}
+}
+1 CPL rotation correction(s) applied; no missing LCSC numbers.
+\emph{fab/order.json not available.}
 \section{Run Record (Appendix)}
 \subsection*{Phase digests}
 \paragraph*{P0}
@@ -523,6 +615,129 @@ The full schematic PDF follows.
   already recorded at P2. No new research opened.
 \end{quote}
 \paragraph*{P4}
+\begin{quote}\small\ttfamily\raggedright
+\# P4 Schematic - digest (2026-08-16)\\
+~\\
+- ONE schematic agent, one flat root sheet (recorded). `kicad/gen/root.py` is\\
+  the source; the .kicad\_sch is build output.\\
+- Gate {*}{*}erc PASS{*}{*} 0/0, attempt 2, commits 42f46c3 then 94d7a24.\\
+  netlist\_audit exit 0: 19 nets, 10 components, 44/44 pins, 4 decouplers.\\
+- The generator caught its own defect by RENDERING: J1's two labels\\
+  overprinted, exporting as +3VGNID - on the connector whose silk polarity is\\
+  the only defence against a swapped supply. Fixed, proven netlist-neutral.\\
+- Adversarial review, fresh context: {*}{*}0 errors / 3 warnings{*}{*}, and it CLOSED\\
+  the run's biggest open item - BOOT0=0 selects Main Flash, R1 is correct.\\
+- W1 actioned, REVERSING my P1 ruling: C5 100 nF added on NRST. My reason had\\
+  misread AN4325; the datasheet's Fig 21 note 1 recommends it unconditionally\\
+  for parasitic reset, and this board flies NRST on a lead.\\
+- W3 actioned: J3 -\textgreater{} IO1/IO2/IO3/IO4/GND. J2 and J3 are the SAME unkeyed part,\\
+  so the GPIO cable fits the debug header; centre-GND vs centre-3V3 shorted\\
+  the rail. W2 held: rail-at-an-end is worse under a one-position slip.\\
+- Then caught a P6 landmine: C5 had no placement.sides entry and is SMT, so\\
+  the annealer could have flipped it to the back. Added (7 now) + into the\\
+  mcu group; both constraints.json copies re-synced, lint 0.
+\end{quote}
+\paragraph*{P5}
+\begin{quote}\small\ttfamily\raggedright
+\# P5 Board Setup - digest (2026-08-16)\\
+~\\
+- Run INLINE (no board-setup agent): no impedance work and no library repair.\\
+- `board\_init --outline auto --layers 2 --stackup JLC2313\_1.6\\
+  --mounting-holes 4`. Self-check: {*}{*}parity 0, setup\_violations 0{*}{*},\\
+  unconnected 25 (expected, unrouted), clean true. It read the recorded build\\
+  mode and honored geometry-as-OUTPUT - a fixed WxH would have been refused.\\
+- Provisional outline {*}{*}51.15 x 43.524 mm{*}{*}. This is deliberately generous\\
+  room, NOT a size: P6 places to the canonical layout and\\
+  `board\_edit --outline fit` then earns the real dimensions.\\
+- `rules\_gen` capability\_class {*}{*}2layer\_1oz{*}{*}, matching the stackup's own\\
+  copper - 9 rules. Floors reported, not assumed: track and clearance\\
+  0.127 mm, annular 0.150 mm, edge clearance 0.300 mm, hole-to-hole\\
+  0.500 mm. J1's 0.40 mm and the header's 0.30 mm annulus both clear.\\
+- Netclasses: Default only (track 0.2 mm, via 0.6/0.3). +3V3 at 0.1 A needs\\
+  0.05 mm, so it buckets into Default - exactly what P2 predicted, and the\\
+  reason GND was deliberately left undeclared in power{[}{]}.\\
+- diff\_pairs {[}{]} and hv\_rules {[}{]} - correct, nothing on this board needs either.\\
+- Sidecars beside the board: constraints.json (re-synced after the P4\\
+  amendments, byte-identical to architecture/) and decoupling.json.
+\end{quote}
+\paragraph*{P6}
+\begin{quote}\small\ttfamily\raggedright
+\# P6 Placement - digest (2026-08-16)\\
+~\\
+- Gate {*}{*}place PASS 0/0{*}{*}, attempt 2, commit 503723c. Attempt 1 is the\\
+  agent's honest FAIL against the provisional outline - see the defect below.\\
+- {*}{*}PIPELINE DEFECT{*}{*}: at a geometry-OUTPUT binding the place gate must run\\
+  AFTER `board\_edit --outline fit`, not before as the recipe documents.\\
+  Legality measures declared edges against the CURRENT outline, so a\\
+  canonically placed J1 sat 16.9 mm from the provisional edge and failed;\\
+  satisfying it would spread the connectors to the provisional size, which\\
+  fit then "earns" - bb-buck with the sign flipped. The fix is the ORDER.\\
+- Size EARNED {*}{*}34.77 x 22.26 mm{*}{*} (774 mm2) from a 51.15 x 43.52 provisional.\\
+  Hand layout beat both annealer candidates (HPWL 161.36 vs 200.12); route\\
+  probe completion 1.00, 0 unrouted.\\
+- U1 rot 270 is the floorplan: SWD end -\textgreater{} J2/top, VDD/VSS -\textgreater{} J1/right,\\
+  PA0-PA3 -\textgreater{} J3/left, all three escapes non-crossing. Decoupler loops\\
+  4.70-7.46 nH, all inside class limits.\\
+- J1 rotation PROVEN by side render: its wire mouth is at footprint-local -Y,\\
+  the REVERSE of the KF128 family in root LEARNINGS. Guessing would have\\
+  faced the wire opening into the board - a defect no gate checks.\\
+- Silk verified by me on the render: J2/J3 per-pin labels in the ruled order\\
+  with pin-1 markers; J1 +3V3/-GND each beside its own pole.
+\end{quote}
+\paragraph*{P7}
+\begin{quote}\small\ttfamily\raggedright
+\# P7 Routing - digest (2026-08-16)\\
+~\\
+- Gate {*}{*}drc\_routed PASS 0/0{*}{*} (errors AND warnings), attempt 2,\\
+  commit e01fdc1. Completion {*}{*}1.0{*}{*}, 0 unrouted nets.\\
+- 2-layer chain as verified: planes\_gen -\textgreater{} route\_critical -\textgreater{} route\_auto -\textgreater{}\\
+  stitch\_vias -\textgreater{} plane\_repair -\textgreater{} gate. route\_cleanup deliberately SKIPPED\\
+  (2L pour board is exactly its regression class; board was already clean).\\
+- planes\_gen: 1 zone, GND on B.Cu, 627 mm2. route\_critical did NOT no-op as\\
+  I expected - it routed +3V3 fully, 8/8 pads at 0.3 mm via KRT.\\
+- route\_auto: Freerouting ladder 3 rungs, best FR completion 0.857; KRT\\
+  finish closed /NRST /SWCLK /SWDIO and GND to reach 1.0. FR's own success\\
+  signal stays untrusted - only kicad-cli DRC gated it.\\
+- stitch\_vias: 5 pad-stitch GND vias, one per pad, matching\\
+  `mcu-decoupler-is-the-local-source`. 0 area-stitch, expected on 2L.\\
+- {*}{*}The hard constraint held{*}{*}: plane\_repair splits\_found 0, the GND pour is\\
+  ONE component at 627.14 mm2 with 8 anchors. Neither the anticipated\\
+  SWDIO x SWCLK crossing nor the +3V3 wrap needed B.Cu at all - both\\
+  resolved on F.Cu - so `mcu-supply-return-continuity` was never at risk.\\
+- Carried to P8/P9: planes\_gen's fill leaves a 0.582 mm2 ZERO-ANCHOR copper\\
+  island 0.34 mm from the main pour near J3's GND pad. plane\_repair correctly\\
+  ruled it not a split; DRC is clean with it present. It is floating copper,\\
+  so watch whether any P8 check or the P9 DFM leg flags an isolated region.
+\end{quote}
+\paragraph*{P8}
+\begin{quote}\small\ttfamily\raggedright
+\# P8 Verification - digest (2026-08-17)\\
+~\\
+- Gate {*}{*}verify PASS 0/0{*}{*}, attempt 2, commit da26db0. All EIGHT checks RAN\\
+  and passed with NO skips - return\_path, current, decoupling, diffpair,\\
+  creepage, thermal, silk, pdn. A skipped check is a hole, not a pass; there\\
+  are none here. drc\_routed re-run clean (attempt 3) after the silk fix.\\
+- First verify pass carried ONE warning: `silk\_misattributed` - H3's refdes\\
+  sat 0.23 mm from U1 and read as U1's label. FIXED, not waived: silk\_place\\
+  skips board\_only refs by design, so it needed a direct place\_edit\\
+  move\_text to (29.55, 28.6), below its own hole. check\_silk now 0.\\
+- Advisory legs both pass: check\_irdrop (jmax 0.63 A/mm), check\_pdn\_z.\\
+- Sim gate NOT run and not applicable - no analog content, P2 recorded sim\\
+  candidates as none.\\
+- Board review: {*}{*}0 errors / 2 warnings / 0 waivers{*}{*}. It verified rather\\
+  than trusted - re-ran plane\_repair --flag-only itself, and checked J2/J3\\
+  labels by pad coordinate rather than by eye.\\
+- F1 mounting-hole spread near J1: ACCEPTED (J1 braced diagonally at 9.2 mm\\
+  by H2 and H3; 1.6 mm FR4 at this span). F2 copper island: carried to P9\\
+  DFM with evidence rather than fixed blind.\\
+- Cleared by the review: J1's wire opening faces off-board AND its polarity\\
+  silk stays clear of the mounted terminal body; J2/J3 silk pixel-exact with\\
+  pin 1 marked; the cross-plug rail short is genuinely gone; no silent flips.\\
+- {*}{*}NO waivers exist on this board{*}{*} - verify-waivers.json was never needed.\\
+- Caveat: this review ran at a FORCED tier downgrade (sonnet) - the weekly\\
+  usage limit exhausted opus mid-pass. Recorded as a decision, not hidden.
+\end{quote}
+\paragraph*{P9}
 \emph{(no digest recorded)}
 \subsection*{Gate attempt history}
 {\small
@@ -533,6 +748,15 @@ The full schematic PDF follows.
 \endhead
 2026-08-16T21:23:29 & erc & pass & 0/0 \\
 2026-08-16T21:57:21 & erc & pass & 0/0 \\
+2026-08-16T22:52:31 & place & fail & 1/1 \\
+2026-08-16T22:57:35 & place & pass & 0/0 \\
+2026-08-16T23:15:48 & drc\_routed & pass & 0/0 \\
+2026-08-16T23:16:46 & drc\_routed & pass & 0/0 \\
+2026-08-16T23:17:08 & verify & pass & 0/1 \\
+2026-08-16T23:20:27 & drc\_routed & pass & 0/0 \\
+2026-08-16T23:20:27 & verify & pass & 0/0 \\
+2026-08-17T20:48:49 & dfm & pass & 0/0 \\
+2026-08-17T20:49:08 & dfm & pass & 0/0 \\
 \bottomrule
 \end{longtable}
 }
@@ -546,9 +770,9 @@ The full schematic PDF follows.
 \midrule
 \endhead
 1 & P2 & approved & 2026-08-16T20:18:19 & DELEGATED RULING, not an owner approval: the owner delegated design rulings for this run ('make decisions yourself based on what will give the best learning for the basic system'). Orchestrator ruled H1 pass: 2 blocks, JLC2313\_1.6 2L, 9 parts, \textasciitilde{}1.30 USD/board BOM, nothing relaxed by the mode (no size was ever stated). Coverage: block:B1 provisional on all 5 rows, block:B2 gap on esd/decoupling/constraints-emission - recorded as an explicit designing-under-coverage-gap decision. Research caps NOT hit: 4 of 6 tasks and 1 of 4 depth units per task left unspent. Riskiest decision: omitting the NRST 100 nF cap, diverging from the shipped stm32-blinky. Owner items surfaced but not blocking: the fetch allowlist (st.com and analog.com are unreachable from this host though allowlisted; arm.com and segger.com are absent and would be needed to source the probe side), and the promotion ruling on 13 verified records + 2 new checklists \\
-2 & P4 & not reached &  &  \\
-3 & P6 & not reached &  &  \\
-4 & P8 & not reached &  &  \\
+2 & P4 & approved & 2026-08-16T21:58:16 & DELEGATED RULING, not an owner approval. Orchestrator ruled H2 pass. erc gate PASS (0/0, attempt 2, commit 94d7a24), netlist\_audit exit 0, 10 parts, 44/44 pins. Reviewer 0 errors / 3 warnings, all three ruled: W1 NRST cap ADDED (reversing my own P1 ruling - the reviewer showed my reason misread AN4325 where the datasheet Fig 21 note 1 recommends it unconditionally for parasitic reset, and this board flies NRST on a lead); W3 J3 reordered to move GND off centre (J2/J3 are the same unkeyed part, so the GPIO cable cross-plugged into the debug header shorted the rail); W2 J2 order held unchanged with reasoning recorded (rail-at-an-end is strictly worse under a one-position slip). Review also CLOSED the run's BOOT0 polarity open item: BOOT0=0 selects Main Flash, the 10k pull-down is correct. No ERC waivers exist - there are no ERC warnings to waive. Carried to P6 as a hard requirement: per-pin silk on J2 and J3, which is the only mitigation for the unkeyed-header residual risk \\
+3 & P6 & approved & 2026-08-16T22:59:47 & DELEGATED RULING, not an owner approval. H3 (optional, default ON) ruled pass on the fitted top render, inspected directly. place gate PASS 0/0 attempt 2, commit 503723c. Board EARNED 34.77 x 22.26 mm from a 51.15 x 43.52 provisional - 65 percent area reduction, and the size is an output of the layout as the binding requires. Route probe 1.00 with 0 unrouted. Silk checked on the render not taken on report: J2 and J3 per-pin labels both in the ruled order with pin-1 markers, J1 polarity legible with each label beside its own pole. Accepted the agent's overrule on moving H1-H4 (leaving them at provisional corners would have defeated the fit) and its rejection of four true corner holes (+25 percent area of pure air on a board with no enclosure requirement). Residual accepted: rightmost \textasciitilde{}10 mm of the bottom edge unsupported, J1 braced by H2 above and H3 below-left. Found and recorded a PIPELINE DEFECT in the recipe's gate ordering at geometry-OUTPUT bindings \\
+4 & P8 & approved & 2026-08-17T20:47:52 & DELEGATED RULING, not an owner approval. H4 ruled pass. Machine state fully green with NO skips: erc 0/0, place 0/0, drc\_routed 0/0, verify 0/0 across all eight checks, check\_irdrop pass (jmax 0.63 A/mm), check\_pdn\_z pass. Board review 0 errors / 2 warnings / 0 waivers recommended - both warnings ruled: F1 mounting-hole spread accepted (J1 braced diagonally at 9.2 mm by H2 and H3), F2 copper island carried to P9 DFM with evidence rather than fixed blind. Reviewer independently cleared the items that decide bench usability: J1's wire opening faces off-board and its polarity silk stays clear of the mounted terminal body; J2/J3 per-pin silk is pixel-exact on its pads with pin 1 marked; the cross-plug rail-short is genuinely resolved by the P4 J3 reorder; no part silently flipped to back; C5 present 3.1 mm from U1 pin 4. NO waivers exist on this board - reports/verify-waivers.json was never needed. Caveat recorded separately: this review ran at a FORCED tier downgrade (sonnet) because the weekly usage limit exhausted opus mid-pass \\
 5 & P10 & not reached &  &  \\
 \bottomrule
 \end{longtable}
@@ -560,8 +784,12 @@ The full schematic PDF follows.
 \textbf{File} & \textbf{Size} & \textbf{Note} \\
 \midrule
 \endhead
-\texttt{state.json} & 48,357 B &  \\
+\texttt{state.json} & 76,436 B &  \\
+\texttt{kicad/bb-mcu.kicad\_pcb} & 134,059 B &  \\
 \texttt{kicad/bb-mcu.kicad\_sch} & 60,588 B &  \\
+\texttt{fab/bb-mcu\_gerbers.zip} & 20,201 B &  \\
+\texttt{fab/BOM.csv} & 376 B &  \\
+\texttt{fab/CPL.csv} & 379 B &  \\
 \texttt{brief/brief.md} & 374 B &  \\
 \texttt{requirements.md} & 19,063 B &  \\
 \texttt{architecture/blocks.md} & 19,238 B &  \\
@@ -569,10 +797,29 @@ The full schematic PDF follows.
 \texttt{architecture/power\_tree.md} & 10,279 B &  \\
 \texttt{architecture/sheets.md} & 12,412 B &  \\
 \texttt{architecture/stackup.md} & 8,344 B &  \\
+\texttt{reports/board\_edit-fit.json} & 2,016 B &  \\
+\texttt{reports/board\_edit-probe.json} & 1,965 B &  \\
+\texttt{reports/bom\_cpl.json} & 7,106 B &  \\
+\texttt{reports/check\_irdrop.json} & 2,085 B &  \\
+\texttt{reports/check\_pdn\_z.json} & 893 B &  \\
+\texttt{reports/check\_silk.json} & 537 B &  \\
+\texttt{reports/fab\_export.json} & 2,216 B &  \\
+\texttt{reports/gate-dfm.json} & 14,935 B &  \\
+\texttt{reports/gate-drc\_routed.json} & 1,072 B &  \\
 \texttt{reports/gate-erc.json} & 14,213 B &  \\
+\texttt{reports/gate-place.json} & 9,605 B &  \\
+\texttt{reports/gate-verify.json} & 11,175 B &  \\
+\texttt{reports/render-fitted.json} & 447 B &  \\
+\texttt{reports/render-verify.json} & 451 B &  \\
+\texttt{reports/review-board.json} & 1,927 B &  \\
+\texttt{reports/review-board.md} & 13,039 B &  \\
 \texttt{reports/review-schematic.json} & 2,883 B &  \\
-\texttt{reports/review-schematic.md} & 19,852 B &  \\
-\texttt{reports/schematic.pdf} & 60,957 B &  \\
+\texttt{reports/review-schematic.md} & 20,832 B &  \\
+\texttt{reports/rules\_gen.json} & 804 B &  \\
+\texttt{reports/schematic.pdf} & 62,739 B &  \\
+\texttt{reports/silk-fix-holes.json} & 946 B &  \\
+\texttt{reports/silk-h3-fix-report.json} & 255 B &  \\
+\texttt{reports/silk-h3-fix.ops.json} & 124 B &  \\
 \texttt{reports/top.net} & 24,807 B &  \\
 \bottomrule
 \end{longtable}

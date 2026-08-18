@@ -1,7 +1,7 @@
 version: 1
 board: bb-mcu
 source: LEARNINGS.md
-compiled: '2026-08-16'
+compiled: '2026-08-17'
 entries:
 - entry: 2026-08-16-research-task-block-swd-debug-port-1
   line: 8
@@ -42,4 +42,103 @@ entries:
   - boards/bb-mcu/research/records/mcu-reset-sampled-pin-audit.yaml
   - boards/bb-mcu/research/records/mcu-supply-pin-pair-decoupling.yaml
   - boards/bb-mcu/research/records/mcu-supply-return-continuity.yaml
+  status: pending
+- entry: 2026-08-16-wj500v-5-08-2p-wire-entry-is
+  line: 49
+  date: '2026-08-16'
+  title: WJ500V-5.08-2P wire entry is at local -Y - the OPPOSITE of the KF128 / DB128L family
+  tags:
+  - P6
+  - placement
+  - kicad
+  - render
+  stage: P6
+  proposed_level: null
+  targets:
+  - scripts/render.py
+  status: pending
+- entry: 2026-08-16-placement-edges-pins-the-connectors-to-the
+  line: 64
+  date: '2026-08-16'
+  title: '`placement.edges` pins the connectors to the PROVISIONAL outline, so under a `canonical` binding
+    the place gate cannot pass BEFORE `--outline fit`'
+  tags:
+  - P6
+  - gates
+  - build-modes
+  - PIPELINE BUG
+  stage: P6
+  proposed_level: null
+  targets:
+  - reference/recipes/resize-board.md
+  status: pending
+- entry: 2026-08-16-a-pulled-tht-footprint-was-under-drilled
+  line: 88
+  date: '2026-08-16'
+  title: A pulled THT footprint was under-drilled 1.30 mm against the vendor's own 1.50 mm, and nothing
+    in the pipeline could have caught it
+  tags:
+  - P3
+  - librarian
+  - footprint
+  - fp_verify
+  - PIPELINE BUG
+  stage: P3
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-16-fp-verify-never-compares-row-spacing-mm
+  line: 119
+  date: '2026-08-16'
+  title: fp_verify never compares row_spacing_mm, although land_pattern carries the field
+  tags:
+  - P3
+  - fp_verify
+  - footprint
+  stage: P3
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-16-being-on-the-fetch-allowlist-says-nothing
+  line: 138
+  date: '2026-08-16'
+  title: Being on the fetch allowlist says NOTHING about being reachable - st.com and analog.com are both
+    dark from this host
+  tags:
+  - P2
+  - research
+  - network
+  - fetch
+  stage: P2
+  proposed_level: null
+  targets:
+  - scripts/research.py
+  status: pending
+- entry: 2026-08-16-silk-place-skips-board-only-refs-by
+  line: 161
+  date: '2026-08-16'
+  title: silk_place SKIPS board_only refs by design, so a mounting hole's refdes is never solved and can
+    end up labelling the IC
+  tags:
+  - P8
+  - silk
+  - silk_place
+  stage: P8
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-16-backticks-in-a-bash-tool-argument-are
+  line: 179
+  date: '2026-08-16'
+  title: Backticks in a Bash-tool argument are COMMAND SUBSTITUTION, and a state.py decision silently
+    lost a word to it
+  tags:
+  - P3
+  - process
+  - windows
+  - state
+  stage: P3
+  proposed_level: null
+  targets:
+  - scripts/state.py
   status: pending

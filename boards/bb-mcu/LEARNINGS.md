@@ -84,3 +84,111 @@ and ignores silk, while silk_place solves refdes positions against the CURRENT o
 so on the provisional board it parked J1/J3/H1/H2's refdes where the earned edge later
 cuts them. Hand-place any refdes outside the future content bbox, or re-run silk_place
 after the fit.
+
+## 2026-08-16 [P3][librarian][footprint][fp_verify][PIPELINE BUG] A pulled THT footprint was under-drilled 1.30 mm against the vendor's own 1.50 mm, and nothing in the pipeline could have caught it
+
+J1 (WJ500V-5.08-2P, LCSC C8465) pulled with a 1.30 mm drill. The vendor's own
+"PCB LAYOUT" panel recommends **1.50 mm**, and the datasheet dimensions the pin
+0.90 mm wide. If that pin is square - which the square screw-clamp opening
+drawn above it indicates, though the shape is never explicitly labelled - its
+worst-case diagonal is 0.90 * sqrt(2) = **1.273 mm**, leaving **0.027 mm** of
+total diametral clearance. That is a terminal that does not seat, discovered at
+assembly, on every board in the batch.
+
+Why no gate saw it, and this is the part worth keeping:
+
+1. `fp_verify` has **no drill-vs-pin check at all**. It checks pad count,
+   pitch, pin-1, pad size and a fab annulus floor. Nothing compares the hole to
+   the thing that goes through it.
+2. `fp_verify`'s land-pattern diff needs a `parts/<lcsc>.json`, and connectors
+   do not get datasheet extractions by default - the P3 roster runs an
+   extractor "per nontrivial IC". So the diff never ran, and the librarian
+   correctly reported the connectors as verified only for courtyard, pin-1 and
+   annulus floor.
+
+It surfaced ONLY because the librarian reported honestly what it could NOT
+verify instead of reporting a clean pass, and that gap was then chased with two
+extra extractions. An agent that had summarised "3/3 footprints pass" would
+have shipped it.
+
+Two fixes worth making: extract datasheets for THROUGH-HOLE CONNECTORS as well
+as ICs at P3 (their drill is a board-killer and their datasheets are short),
+and give `fp_verify` a drill-vs-stated-pin check with the square-pin diagonal
+built in.
+
+## 2026-08-16 [P3][fp_verify][footprint] fp_verify never compares row_spacing_mm, although land_pattern carries the field
+
+The U1 SOP-20 diff returned pad_count 20/20, pitch ok, pin-1 present and ONE
+pad_size warning. Hand measurement found what the tool does not look at:
+
+    pad size     0.35 x 1.494 mm  vs datasheet 0.40 x 1.35 mm  -> warned
+    row spacing  6.00 mm          vs datasheet 5.75 mm         -> NOT CHECKED
+
+`datasheet_extract` populates `land_pattern.row_spacing_mm`, so the data is
+there and only the comparison is missing. On a two-row leaded package the row
+spacing is what decides whether the pads capture the lead FEET at all - it is
+more load-bearing than pad size, because getting it wrong slides both rows off
+the leads while pad-count and pitch still pass.
+
+Here it was benign and was accepted on a worked argument (the pulled land spans
+2.253-3.747 mm from the centreline against a lead foot at ~2.6-3.2 mm, so it
+captures the foot with MORE toe and a WIDER inter-pad gap than ST's own land).
+But it was found by hand, not by the gate.
+
+## 2026-08-16 [P2][research][network][fetch] Being on the fetch allowlist says NOTHING about being reachable - st.com and analog.com are both dark from this host
+
+Measured, not inferred:
+
+    curl --max-time 20 https://www.st.com/     -> HTTP 000, 0 bytes, timeout
+    curl --max-time 20 https://www.analog.com/ -> HTTP 000, 0 bytes, timeout
+    curl --max-time 20 https://wmsc.lcsc.com/  -> HTTP 301 in 0.93 s
+
+Both dead hosts are ON the allowlist, so `research.py fetch` accepts the URL
+and then burns a depth unit on a timeout. The P2 swd-debug-port researcher
+spent two attempts discovering analog.com before giving up on MT-097.
+
+The working route to a manufacturer's own PDF is `wmsc.lcsc.com`, which serves
+the genuine vendor document (verified: ST DocID024849 Rev 3 branding on every
+page read). Tier is unaffected - domains.yaml says the tier is a fact about the
+DOCUMENT vs the SUBJECT part, not about the host, so an ST datasheet fetched
+via LCSC is still `vendor-layout`.
+
+What it does not solve: ST application notes, reference manuals and errata are
+on NO allowlisted host, so RM0360 could not be acquired and the BOOT0
+level-to-boot-memory mapping stayed unsourceable all run. Hosts confirmed
+working: wmsc.lcsc.com, infineon.com, ti.com, microchip.com, nxp.com.
+
+## 2026-08-16 [P8][silk][silk_place] silk_place SKIPS board_only refs by design, so a mounting hole's refdes is never solved and can end up labelling the IC
+
+`check_silk` flagged `silk_misattributed`: H3's refdes sat 1.67 mm from its own
+hole and **0.23 mm from U1**, reading as U1's designator on a board whose only
+IC it is. The obvious remedy fails silently in the right direction:
+
+    silk_place --refs H1,H2,H3,H4 --apply
+    -> moved 0, skipped [{H1 board_only} {H2 board_only} {H3 board_only} {H4 board_only}]
+
+`silk_place` solves "every visible non-board_only silk refdes", and mounting
+holes are board_only. It exits 0 and reports honestly - it just cannot help.
+The fix is the one `check_silk`'s own message names: a direct
+`place_edit move_text`, which needs the hole's real coordinates (they are in
+the P6 place-edit report, not in the silk report).
+
+Worth considering: mounting-hole refdes carry no assembly information at all -
+nothing is placed at H3 - so hiding them may beat placing them.
+
+## 2026-08-16 [P3][process][windows][state] Backticks in a Bash-tool argument are COMMAND SUBSTITUTION, and a state.py decision silently lost a word to it
+
+Recording a decision whose `--why` prose contained a backtick-quoted term:
+
+    ... with the floor at `proven`, a verified-but-unapproved record ...
+
+Bash ran `proven` as a command, substituted its empty output, and state.py
+stored "... with the floor at , a verified-but-unapproved record ...". state.py
+exited 0; the only signal was one `proven: command not found` line on stderr
+from a different process than the one being checked.
+
+Same family as the recorded `\`-in-a-quoted-heredoc collapse: prose destined
+for a file should not travel through the shell. Long `--why` / `--note` text is
+exactly that, and it is the audit trail, so a silent deletion there is worse
+than most places. Read a long decision back out of state.json once after
+recording it - that is how this was caught.
