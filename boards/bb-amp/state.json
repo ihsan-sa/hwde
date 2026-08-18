@@ -3,8 +3,8 @@
  "board": "bb-amp",
  "workspace": "boards/bb-amp",
  "created": "2026-08-16T17:25:38",
- "updated": "2026-08-17T21:32:00",
- "phase": "P6",
+ "updated": "2026-08-17T21:52:01",
+ "phase": "P7",
  "gates": {
   "erc": {
    "phase": "P4",
@@ -114,6 +114,37 @@
      }
     }
    ]
+  },
+  "drc_routed": {
+   "phase": "P7",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-08-17T21:52:01",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0,
+    "inputs": {
+     "pcb": "sexpr_no_uuid:2b314ae795acdb28947d0cd99ef710918e743443b409023ce12068dc7c5671c6",
+     "sch": "sexpr_no_uuid:54a2c346e578e343a5019d8061c9ee8e6b92ff959255e4e6f435da703888a960",
+     "pro": "json_canonical:dd8b1197354536c330cd479d0f8aee25511ec4f526d26729a7d02733ac72cd86",
+     "dru": "text_eol:68cb8c220f7247d407122ca0783db864b2a6697ec7dcdf4ae30f6edbf45f989e"
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-17T21:52:01",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:2b314ae795acdb28947d0cd99ef710918e743443b409023ce12068dc7c5671c6",
+      "sch": "sexpr_no_uuid:54a2c346e578e343a5019d8061c9ee8e6b92ff959255e4e6f435da703888a960",
+      "pro": "json_canonical:dd8b1197354536c330cd479d0f8aee25511ec4f526d26729a7d02733ac72cd86",
+      "dru": "text_eol:68cb8c220f7247d407122ca0783db864b2a6697ec7dcdf4ae30f6edbf45f989e"
+     }
+    }
+   ]
   }
  },
  "human": {
@@ -132,20 +163,20 @@
   "sch": {
    "path": "kicad/bb-amp.kicad_sch",
    "kind": "sch",
-   "sha256": "sexpr_no_uuid:f12934c5dab8276174315e46b624c347bffc5dc89a20572c99583ac1589b9afb",
-   "hashed": "2026-08-16T23:41:23"
+   "sha256": "sexpr_no_uuid:54a2c346e578e343a5019d8061c9ee8e6b92ff959255e4e6f435da703888a960",
+   "hashed": "2026-08-17T21:52:01"
   },
   "pro": {
    "path": "kicad/bb-amp.kicad_pro",
    "kind": "pro",
-   "sha256": "json_canonical:ee215ba4153e477d4bd55d45c71cc2162c8c4e10fab52675b1b7437ec580b0ab",
-   "hashed": "2026-08-16T23:41:23"
+   "sha256": "json_canonical:dd8b1197354536c330cd479d0f8aee25511ec4f526d26729a7d02733ac72cd86",
+   "hashed": "2026-08-17T21:52:01"
   },
   "pcb": {
    "path": "kicad/bb-amp.kicad_pcb",
    "kind": "pcb",
-   "sha256": "sexpr_no_uuid:7ce845852337e054f3f015c5bb8dc08708eb97f20ce48a073a5dbb6885c81308",
-   "hashed": "2026-08-17T21:32:00"
+   "sha256": "sexpr_no_uuid:2b314ae795acdb28947d0cd99ef710918e743443b409023ce12068dc7c5671c6",
+   "hashed": "2026-08-17T21:52:01"
   },
   "constraints": {
    "path": "kicad/constraints.json",
@@ -158,6 +189,12 @@
    "kind": "decoupling",
    "sha256": "json_canonical:51a334ffb74f785f0b522db63d920a361b47b4b2d08409f7fa1dd64067abc1a6",
    "hashed": "2026-08-17T21:32:00"
+  },
+  "dru": {
+   "path": "kicad/bb-amp.kicad_dru",
+   "kind": "dru",
+   "sha256": "text_eol:68cb8c220f7247d407122ca0783db864b2a6697ec7dcdf4ae30f6edbf45f989e",
+   "hashed": "2026-08-17T21:52:01"
   }
  },
  "open_issues": [],
@@ -744,6 +781,14 @@
    "effort": "xhigh",
    "phase": "P6",
    "note": "fable/high -> opus/xhigh substitution; knowledge prompt_block (48 KB, 16 records) passed by file path"
+  },
+  {
+   "ts": "2026-08-17T21:32:19",
+   "role": "router",
+   "model": "opus",
+   "effort": "xhigh",
+   "phase": "P7",
+   "note": "fable/high -> opus/xhigh substitution"
   }
  ],
  "history": [
@@ -1541,6 +1586,26 @@
    "gate": "place",
    "status": "pass",
    "attempt": 4,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-17T21:32:19",
+   "event": "phase",
+   "phase": "P7",
+   "prev": "P6"
+  },
+  {
+   "ts": "2026-08-17T21:32:19",
+   "event": "spawn",
+   "role": "router",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-17T21:52:01",
+   "event": "gate",
+   "gate": "drc_routed",
+   "status": "pass",
+   "attempt": 1,
    "failing_count": 0
   }
  ],
