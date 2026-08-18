@@ -1,0 +1,28 @@
+{
+ "violations": [
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [37.8, 21.9],
+   "layer": null,
+   "net": null,
+   "refs": ["J1", "H2", "H3"],
+   "msg": "Bottom-right board corner (where screw terminal J1 sits) has no mounting hole nearby: H3 is inset 14.3 mm from the right edge (vs the top pair H1/H2's true 4.0 mm corner inset) because J1/J3 own the bottom edges. J1 - the connector that takes repeated wire insertion/removal and screw torque at the bench - sits 9.2 mm from its two nearest holes (H2, H3), neither of which pins the corner itself. Not a fabrication defect (FR4 is stiff at this scale, earned geometry is not being second-guessed), but a real bench-reliability question for a board whose terminal will have wires tugged on it repeatedly across 5 boards' worth of use.",
+   "source": "review.board",
+   "kind": "unsupported-connector-corner",
+   "domain": "placement"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [10.158, 30.122],
+   "layer": "B.Cu",
+   "net": "GND",
+   "refs": ["J3"],
+   "msg": "0.582 mm2 zero-anchor GND copper island on B.Cu, isolated by a 0.34 mm gap from the main pour (627.14 mm2, 8 anchors), ~0.9 mm from J3 pin 5 (GND) near the bottom-left corner. Independently reproduced via plane_repair.py --flag-only against the built board (not taken on report). Electrically inert (DC-floating, 0 anchors, far below any EMI-relevant frequency on this board) and DRC/check_pdn correctly pass since nothing electrical is wrong - this is a fab-hygiene item: an unexplained isolated sliver closer to a clearance edge case than any other gap on the board, serving no function. For P9 DFM: purge it (delete, or raise the zone's island-removal area threshold past 0.6 mm2 and re-fill) - zero anchors means zero risk of disconnecting anything real.",
+   "source": "review.board",
+   "kind": "zero-anchor-copper-island",
+   "domain": "plane"
+  }
+ ]
+}

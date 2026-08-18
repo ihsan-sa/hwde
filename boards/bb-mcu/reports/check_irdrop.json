@@ -1,0 +1,111 @@
+{
+ "script": "check_irdrop",
+ "status": "pass",
+ "board": "bb-mcu.kicad_pcb",
+ "counts": {
+  "total": 0,
+  "by_severity": {},
+  "by_source": {}
+ },
+ "violations": [],
+ "checked": [
+  {
+   "net": "+3V3",
+   "requested_a": 0.1,
+   "injected_a": 0.1,
+   "source_ref": "J1",
+   "source_mode": "largest_pad_area",
+   "sink_pads": 7,
+   "layers": [
+    "F.Cu",
+    "B.Cu"
+   ],
+   "min_feature_mm": 0.2,
+   "grid": {
+    "cell_mm": 0.0125,
+    "cells": 149963,
+    "cells_across_min_feature": 16.0,
+    "refine": "doubled",
+    "cell_mm_pair": 0.025,
+    "cells_pair": 37535
+   },
+   "resistance_mohm": 21.4563,
+   "resistance_pair_mohm": [
+    21.4563,
+    21.6822
+   ],
+   "richardson_delta": 0.0105,
+   "worst_drop_mv": 2.1472,
+   "worst_sink": {
+    "ref": "C4",
+    "drop_mv": 2.1456
+   },
+   "jmax": {
+    "a_per_mm": 0.6308,
+    "pos": [
+     33.3438,
+     19.2037
+    ],
+    "layer": "F.Cu"
+   },
+   "necks": [
+    {
+     "a_per_mm": 0.6308,
+     "pos": [
+      33.3438,
+      19.2037
+     ],
+     "layer": "F.Cu"
+    },
+    {
+     "a_per_mm": 0.506,
+     "pos": [
+      31.4062,
+      18.0413
+     ],
+     "layer": "F.Cu"
+    },
+    {
+     "a_per_mm": 0.4907,
+     "pos": [
+      29.1063,
+      18.0038
+     ],
+     "layer": "F.Cu"
+    },
+    {
+     "a_per_mm": 0.4857,
+     "pos": [
+      25.2563,
+      16.8788
+     ],
+     "layer": "F.Cu"
+    },
+    {
+     "a_per_mm": 0.4311,
+     "pos": [
+      26.6313,
+      18.0038
+     ],
+     "layer": "F.Cu"
+    }
+   ],
+   "vias": {
+    "used": 2,
+    "skipped": 0
+   }
+  }
+ ],
+ "stackup_assumed": false,
+ "model": {
+  "kind": "2.5D resistor-grid FDM",
+  "rho_cu_ohm_m": 1.72e-08,
+  "via_plating_mm": 0.025,
+  "injection": "worst-case uniform per pad unless source_ref/sinks given"
+ },
+ "report_schema": 1,
+ "checker_version": 1,
+ "generated_at": "2026-08-17T06:20:53+00:00",
+ "input": "boards\\bb-mcu\\kicad\\bb-mcu.kicad_pcb",
+ "input_digest": "sexpr_no_uuid:312c91cfbe1980de14d1e5575ee0fce735cb525e76cacbfd6936205e024d523c"
+}

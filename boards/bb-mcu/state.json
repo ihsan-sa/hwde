@@ -3,8 +3,8 @@
  "board": "bb-mcu",
  "workspace": "boards/bb-mcu",
  "created": "2026-08-16T17:25:37",
- "updated": "2026-08-16T23:20:27",
- "phase": "P8",
+ "updated": "2026-08-17T20:49:08",
+ "phase": "P9",
  "gates": {
   "erc": {
    "phase": "P4",
@@ -180,6 +180,46 @@
      }
     }
    ]
+  },
+  "dfm": {
+   "phase": "P9",
+   "status": "pass",
+   "attempts": 2,
+   "last": {
+    "ts": "2026-08-17T20:49:08",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0,
+    "inputs": {
+     "pcb": "sexpr_no_uuid:312c91cfbe1980de14d1e5575ee0fce735cb525e76cacbfd6936205e024d523c",
+     "sch": "sexpr_no_uuid:aa84db1fddb9efa93a3c0e3b7b72499b9727ed8c5c6ce48bc3df3d3967d0ff40",
+     "parts": "json_canonical:24d06602a1a539596c7cbfa4e79deacd5e25b768ea58f6d5b33c59edc11868b7"
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-17T20:48:49",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:312c91cfbe1980de14d1e5575ee0fce735cb525e76cacbfd6936205e024d523c",
+      "sch": "sexpr_no_uuid:aa84db1fddb9efa93a3c0e3b7b72499b9727ed8c5c6ce48bc3df3d3967d0ff40",
+      "parts": "json_canonical:24d06602a1a539596c7cbfa4e79deacd5e25b768ea58f6d5b33c59edc11868b7"
+     }
+    },
+    {
+     "ts": "2026-08-17T20:49:08",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:312c91cfbe1980de14d1e5575ee0fce735cb525e76cacbfd6936205e024d523c",
+      "sch": "sexpr_no_uuid:aa84db1fddb9efa93a3c0e3b7b72499b9727ed8c5c6ce48bc3df3d3967d0ff40",
+      "parts": "json_canonical:24d06602a1a539596c7cbfa4e79deacd5e25b768ea58f6d5b33c59edc11868b7"
+     }
+    }
+   ]
   }
  },
  "human": {
@@ -197,6 +237,11 @@
    "status": "approved",
    "ts": "2026-08-16T22:59:47",
    "note": "DELEGATED RULING, not an owner approval. H3 (optional, default ON) ruled pass on the fitted top render, inspected directly. place gate PASS 0/0 attempt 2, commit 503723c. Board EARNED 34.77 x 22.26 mm from a 51.15 x 43.52 provisional - 65 percent area reduction, and the size is an output of the layout as the binding requires. Route probe 1.00 with 0 unrouted. Silk checked on the render not taken on report: J2 and J3 per-pin labels both in the ruled order with pin-1 markers, J1 polarity legible with each label beside its own pole. Accepted the agent's overrule on moving H1-H4 (leaving them at provisional corners would have defeated the fit) and its rejection of four true corner holes (+25 percent area of pure air on a board with no enclosure requirement). Residual accepted: rightmost ~10 mm of the bottom edge unsupported, J1 braced by H2 above and H3 below-left. Found and recorded a PIPELINE DEFECT in the recipe's gate ordering at geometry-OUTPUT bindings"
+  },
+  "4": {
+   "status": "approved",
+   "ts": "2026-08-17T20:47:52",
+   "note": "DELEGATED RULING, not an owner approval. H4 ruled pass. Machine state fully green with NO skips: erc 0/0, place 0/0, drc_routed 0/0, verify 0/0 across all eight checks, check_irdrop pass (jmax 0.63 A/mm), check_pdn_z pass. Board review 0 errors / 2 warnings / 0 waivers recommended - both warnings ruled: F1 mounting-hole spread accepted (J1 braced diagonally at 9.2 mm by H2 and H3), F2 copper island carried to P9 DFM with evidence rather than fixed blind. Reviewer independently cleared the items that decide bench usability: J1's wire opening faces off-board and its polarity silk stays clear of the mounted terminal body; J2/J3 per-pin silk is pixel-exact on its pads with pin 1 marked; the cross-plug rail-short is genuinely resolved by the P4 J3 reorder; no part silently flipped to back; C5 present 3.1 mm from U1 pin 4. NO waivers exist on this board - reports/verify-waivers.json was never needed. Caveat recorded separately: this review ran at a FORCED tier downgrade (sonnet) because the weekly usage limit exhausted opus mid-pass"
   }
  },
  "artifacts": {
@@ -204,7 +249,7 @@
    "path": "kicad/bb-mcu.kicad_sch",
    "kind": "sch",
    "sha256": "sexpr_no_uuid:aa84db1fddb9efa93a3c0e3b7b72499b9727ed8c5c6ce48bc3df3d3967d0ff40",
-   "hashed": "2026-08-16T23:20:27"
+   "hashed": "2026-08-17T20:49:08"
   },
   "pro": {
    "path": "kicad/bb-mcu.kicad_pro",
@@ -216,7 +261,7 @@
    "path": "kicad/bb-mcu.kicad_pcb",
    "kind": "pcb",
    "sha256": "sexpr_no_uuid:312c91cfbe1980de14d1e5575ee0fce735cb525e76cacbfd6936205e024d523c",
-   "hashed": "2026-08-16T23:20:27"
+   "hashed": "2026-08-17T20:49:08"
   },
   "constraints": {
    "path": "kicad/constraints.json",
@@ -261,6 +306,12 @@
    "kind": "waivers",
    "sha256": null,
    "hashed": "2026-08-16T23:20:27"
+  },
+  "parts": {
+   "path": "kicad/parts.json",
+   "kind": "parts",
+   "sha256": "json_canonical:24d06602a1a539596c7cbfa4e79deacd5e25b768ea58f6d5b33c59edc11868b7",
+   "hashed": "2026-08-17T20:49:08"
   }
  },
  "open_issues": [],
@@ -508,6 +559,24 @@
    "why": "the P4 review established that per-pin silk is the ONLY mitigation for the two unkeyed-header hazards (180 degree reversal, and cross-plugging the GPIO cable into the debug header). Checked on the render rather than taken on report: J2 carries a pin-1 marker at the right and reads right-to-left GND / SWCLK / 3V3 / SWDIO / NRST, matching the ruled order, using a two-row stagger because 5-character names do not fit a single row at 2.54 mm pitch. J3 carries one label per pin plus a 1 at the top and reads IO1 / IO2 / IO3 / IO4 / GND, also the ruled order. Both legible at render scale",
    "phase": "P6",
    "ts": "2026-08-16T22:59:22"
+  },
+  {
+   "what": "FORCED TIER DOWNGRADE: the P8 verify-reviewer runs on sonnet, below its fable/high spec and below the opus/xhigh substitution used all run. Recorded, not silent",
+   "why": "the account hit its weekly usage limit mid-review (opus exhausted; fable had already been unavailable since P0). The playbook's rule is to substitute one effort step UP and never silently drop to a weaker tier - I cannot substitute up, so I am recording the drop instead of hiding it. Mitigation: the machine state this reviewer backstops is fully green with no skips (erc 0/0, place 0/0, drc_routed 0/0, verify 0/0 across all 8 checks, irdrop and pdn_z pass), so the reviewer is hunting only what scripts cannot see on a 10-part 2-layer board - the least demanding review surface this pipeline produces. The first partial pass, before it died, had already independently confirmed the highest-stakes item: J1's wire mouth faces OFF-board, verified in a +X orthographic view where both funnels land exactly on the two pole positions. If the owner wants the review re-run at full tier after the limit resets, the board is committed at da26db0 and re-running is a single spawn",
+   "phase": "P8",
+   "ts": "2026-08-17T20:23:58"
+  },
+  {
+   "what": "P8 review F1 (no mounting hole near J1's bottom-right corner) ACCEPTED as a warning, no change. Consistent with the P6 ruling",
+   "why": "the reviewer's number is sharper than mine at P6 - H3 is inset 14.3 mm from the bottom-right corner against H1/H2's 4 mm true-corner inset - but the conclusion holds. J1 at (37.8, 21.9) is braced diagonally on two sides: H2 at (39.85, 12.94) is 9.2 mm above-right and H3 at (29.55, 26.1) is 9.2 mm below-left, so the terminal is not cantilevered off an unsupported corner. The board is 1.6 mm FR4 at 34.77 x 22.26 mm, which is stiff at that span. Adding a fifth hole or moving H3 outward costs board area on a tier that excludes mechanical features beyond mounting the bare board, to harden a bench article against a load nobody has specified. The reviewer itself files this as a bench-reliability question rather than a defect, and its own OPEN says the severity depends on handling the run cannot know",
+   "phase": "P8",
+   "ts": "2026-08-17T20:47:52"
+  },
+  {
+   "what": "P8 review F2 (0.582 mm2 zero-anchor copper island on B.Cu) carried to P9 DFM undecided, deliberately. Not fixed at P8",
+   "why": "the reviewer independently re-ran plane_repair --flag-only rather than taking my report, confirmed 0 anchors, and recommended DFM purge it since zero anchors means zero risk in removing it. But its own OPEN is the reason not to act yet: whether a 0.34 mm gap survives JLC's process is a fab-process question that needs the actual DFM pass, not a render. Fixing it now would re-stale drc_routed and verify for a change DFM may render moot or may specify differently. If the DFM leg flags it, it becomes a work order with a known-safe fix; if DFM is clean, the island is electrically inert on a 3.3 V bench board and stays. Deciding it at P9 with evidence beats deciding it at P8 without",
+   "phase": "P8",
+   "ts": "2026-08-17T20:47:52"
   }
  ],
  "edits": [
@@ -677,6 +746,18 @@
    "role": "router",
    "model": "sonnet/high",
    "phase": "P7"
+  },
+  {
+   "ts": "2026-08-16T23:21:13",
+   "role": "verify-reviewer",
+   "model": "opus/xhigh (fable/high substituted)",
+   "phase": "P8"
+  },
+  {
+   "ts": "2026-08-17T20:23:59",
+   "role": "verify-reviewer",
+   "model": "sonnet (FORCED DOWNGRADE from fable/high - weekly usage limit, opus exhausted)",
+   "phase": "P8"
   }
  ],
  "history": [
@@ -1211,6 +1292,61 @@
    "ts": "2026-08-16T23:20:27",
    "event": "gate",
    "gate": "verify",
+   "status": "pass",
+   "attempt": 2,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-16T23:21:13",
+   "event": "spawn",
+   "role": "verify-reviewer",
+   "model": "opus/xhigh (fable/high substituted)"
+  },
+  {
+   "ts": "2026-08-17T20:23:58",
+   "event": "decision",
+   "what": "FORCED TIER DOWNGRADE: the P8 verify-reviewer runs on sonnet, below its fable/high spec and below the opus/xhigh substitution used all run. Recorded, not silent"
+  },
+  {
+   "ts": "2026-08-17T20:23:59",
+   "event": "spawn",
+   "role": "verify-reviewer",
+   "model": "sonnet (FORCED DOWNGRADE from fable/high - weekly usage limit, opus exhausted)"
+  },
+  {
+   "ts": "2026-08-17T20:47:52",
+   "event": "decision",
+   "what": "P8 review F1 (no mounting hole near J1's bottom-right corner) ACCEPTED as a warning, no change. Consistent with the P6 ruling"
+  },
+  {
+   "ts": "2026-08-17T20:47:52",
+   "event": "decision",
+   "what": "P8 review F2 (0.582 mm2 zero-anchor copper island on B.Cu) carried to P9 DFM undecided, deliberately. Not fixed at P8"
+  },
+  {
+   "ts": "2026-08-17T20:47:52",
+   "event": "human",
+   "checkpoint": "4",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-08-17T20:48:15",
+   "event": "phase",
+   "phase": "P9",
+   "prev": "P8"
+  },
+  {
+   "ts": "2026-08-17T20:48:49",
+   "event": "gate",
+   "gate": "dfm",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-17T20:49:08",
+   "event": "gate",
+   "gate": "dfm",
    "status": "pass",
    "attempt": 2,
    "failing_count": 0

@@ -329,3 +329,25 @@ what ERC could ever catch on this sheet - noted, not filed.
 5. Not reviewed, out of this role: footprints, land patterns, placement,
    routing, DFM. The J1 drill defect found and fixed at P3 is noted only as
    evidence that the connector work was done carefully.
+
+---
+
+## ORCHESTRATOR NOTE, added 2026-08-17 - W3 IS SUPERSEDED
+
+W3 above describes J3 as `IO1 / IO2 / GND / IO3 / IO4`, with GND at the
+CENTRE colliding with J2's centre +3V3. That was the pinout when this review
+was written, and the finding was correct.
+
+It was ACTIONED, not waived: the P4 decision in state.json moved J3's GND off
+the centre to position 5, so the as-built board is
+`IO1 / IO2 / IO3 / IO4 / GND`. The rail-short cross-plug case W3 identified no
+longer exists. The P8 board reviewer independently re-derived the hazard tree
+against the as-built pinout and confirmed the fix holds.
+
+W1 (the NRST capacitor) was also actioned - C5 was added. W2 (J2's
+one-position slip) was knowingly held, with the reasoning recorded as a P4
+decision: rail-at-an-end is strictly worse, because a slip then lands the
+probe's GND wire on the rail instead of a current-limited driver.
+
+Read this file as a historical record of the review, not as a description of
+the current board.
