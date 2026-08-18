@@ -14,13 +14,26 @@ project symbol library's own pin table, never from memory.  `expect=` on all
 three ICs is pin-name insurance.
 
 =====================================================================
-0.  THE ONE REQUIREMENT NO GATE CATCHES: U1 -IN IS A SENSE RUN
+0.  THE SENSE RUN IS ITS OWN NET, TIED TO GND AT EXACTLY ONE POINT
 =====================================================================
-`U1` pin 3 (-IN) is wired by an EXPLICIT WIRE to `R5`'s bottom pad - the
-attenuator string's bottom node - and reaches `GND` only at that one point.
-It is NOT a `GND` power symbol dropped next to the converter, and it carries
-no `GND` label of its own.  See `sense_run()` below, which draws the wire and
-proves it touches nothing but its two endpoints.
+`U1` pin 3 (-IN), `R5`'s bottom pad and `R8` pin 1 are the ONLY three nodes on
+`/AGND_SENSE`.  `R8` is a 0 ohm link from that net to `GND`, placed at the
+string bottom, and it is the single tie.  `U1` pin 3 carries no `GND` label
+and no `GND` power symbol.  The run is ALSO drawn as an explicit wire from
+`U1` pin 3 to `R5` pin 2 - see `sense_run()`, which proves the wire touches
+nothing but its two endpoints - because the length and isolation of that run
+are what the layout has to preserve.
+
+*** THE NET IS THE LOAD-BEARING PART, AND THE FIRST VERSION OF THIS FILE GOT
+IT WRONG.  It put -IN on `GND` on the argument that -IN and the string bottom
+are electrically one net and that `constraints.json`'s `R5` -> `U1` corridor
+would carry the Kelvin intent into copper.  Both halves fail.  On the netlist
+`U1.3` was simply one of sixteen `GND` nodes, so `planes_gen` would thermal-
+connect pin 3 to the B.Cu pour EXACTLY as it connects pin 4 - referencing the
+measurement to the pour AT THE CONVERTER, which is the error the sense exists
+to cancel.  And a corridor is a KEEP-CLEAR SWATH, not a connectivity rule: it
+reserves area, it cannot stop a pour from tying a node.  Nothing carried the
+intent past P4.  Caught by the P4 adversarial review (E1). ***
 
 Why, in one line of arithmetic: a divider passes a ground offset at UNITY
 while dividing the signal by K = 0.400, so an offset between the string
@@ -30,11 +43,25 @@ half the entire 25 degC error budget.  Sensing at the string bottom cancels
 it exactly: +IN carries V_tap + (GND_A - GND_C), -IN carries (GND_A - GND_C),
 and the difference is V_tap.  (blocks.md s8.1, decisions 23/24/32/33/53.)
 
-Nothing downstream can find this if it is lost.  ERC sees one net either way;
-DRC sees copper either way; `netlist_audit` sees `U1.3` on `GND` either way -
-which is CORRECT, because electrically there IS one net.  What the schematic
-can carry is the WIRE and the intent, and what carries it into copper is
-`constraints.json placement.corridors` (`R5` -> `U1`, 3 mm, net `GND`) at P7.
+What the fix leaves behind, stated so it can be checked: with the string
+bottom at `/AGND_SENSE` and `R8` the only tie, the converter reads
+`K * (V_sig - V_S) + Vos`, where `V_S` is J1's return pin.  The ONLY residual
+is the pour offset between J1's return and the string bottom, and it enters
+INPUT-REFERRED AT UNITY (not at 1/K).  The sole current in that copper is the
+string's own 5 uA (5.000 V / 1.00 Mohm) - every other return on the board
+leaves at J2, on the opposite edge - so on a solid pour it is sub-1 uV.
+
+`R8` costs the budget nothing and does not endanger the common-mode bound:
+5 uA through a 0 ohm link's few tens of milliohms is ~0.25 uV, so `-IN` sits
+microvolts off `U1`'s own GND pin, six orders inside the ADS8326's
+**-0.3 V to +0.5 V** window (Recommended Operating Conditions, p.3; an
+absolute constant with no VDD/VREF dependence - decision 55).  A hard 0 ohm
+DC tie is also what stops that node drifting anywhere over life.
+
+What now carries the requirement into copper is the NET plus
+`constraints.json placement.corridors` (`R5` -> `U1`, 3 mm, net
+`/AGND_SENSE` - reconciled at this step per sheets.md s6): the pour cannot
+cover a net that is not `GND`, which is the whole point.
 
 BOUNDED, not open-ended: the ADS8326 specifies -IN at **-0.3 V to +0.5 V**
 relative to device ground (Recommended Operating Conditions, p.3; an absolute
@@ -59,7 +86,7 @@ the net name, which is what `schlib.power_flag` does.
 Root-sheet LOCAL labels, which KiCad exports with ONE leading slash:
 
     /AIN_RAW  /ATT_A  /ATT_B  /AIN_DIV  /ATT_C  /AIN_BUF  /AIN_ADC
-    /CS  /SCLK  /DOUT
+    /AGND_SENSE  /CS  /SCLK  /DOUT
 
 *** The label TEXT written below is BARE ("AIN_RAW", "CS", ...).  The leading
 `/` is the ROOT SHEET PATH that KiCad prepends on export.  Typing the slash
@@ -71,7 +98,8 @@ the exported net names, never by reading the schematic. ***
 =====================================================================
 2.  PIN-HANDLING JUDGMENTS, each resolved from an extraction
 =====================================================================
-U1 pin 3 (-IN)     -> the sense run above.  No label, no ground symbol.
+U1 pin 3 (-IN)     -> `/AGND_SENSE`, the sense net above.  Never `GND`, and
+    never a ground symbol at the converter.
 U1 pin 5 (CS/SHDN) -> `/CS`, driven by the host at all times the board is
     powered.  NO pull-up: "conditioning the datasheet does not require" is
     excluded by the scope tier and the one hot-plug hazard a pull-up would
@@ -149,6 +177,7 @@ S_U3 = "aiee:OPA320AIDBVR"              # U3  RRIO CMOS follower, SOT-23-5
 S_R200K = "aiee:PTFR0805Q200KN9"        # R1-R5  200k 0.02% 10ppm 0805
 S_R49R9 = "aiee:0603WAF499JT5E"         # R6  49.9 ohm 1% 0603
 S_R10R = "aiee:0603WAF100JT5E"          # R7  10 ohm 1% 0603
+S_R0R = "aiee:0603WAF0000T5E"           # R8  0 ohm link, THE reference tie
 S_C10U = "aiee:CL21A106KAYNNNE"         # C1, C8  10uF 25V X5R 0805
 S_C100N = "aiee:CL05B104KO5NNNC"        # C2, C4, C6  100nF 16V X7R 0402
 S_C47U = "aiee:CS3225X7R476K160NRL"     # C3  47uF 16V X7R 1210
@@ -181,7 +210,7 @@ LCSC = {
     "U1": "C544731", "U2": "C579305", "U3": "C92494",
     "R1": "C23067436", "R2": "C23067436", "R3": "C23067436",
     "R4": "C23067436", "R5": "C23067436",
-    "R6": "C23185", "R7": "C22859",
+    "R6": "C23185", "R7": "C22859", "R8": "C21189",
     "C1": "C15850", "C2": "C1525", "C3": "C5440143", "C4": "C1525",
     "C5": "C513691", "C6": "C1525", "C7": "C106246", "C8": "C15850",
     "J1": "C8465", "J2": "C37208",
@@ -238,12 +267,20 @@ def sense_run(sh: schlib.Sheet, path: list) -> None:
     """Draw the U1 -IN sense wire as an explicit orthogonal run and PROVE it
     touches nothing but its two endpoints.
 
+    The run is drawn IN ADDITION to the `/AGND_SENSE` labels on its two pins.
+    The labels are what make the connection and what survive into the netlist;
+    the wire is what states the topology on the page, because the length and
+    isolation of this particular run are what P7 has to preserve.  Both ends
+    are already on the net, so the wire adds no connectivity - unless it goes
+    somewhere it should not, which is what this check exists to prevent.
+
     schlib's own guard runs the other way - it rejects a LABEL that lands on
     an existing wire - so a hand-drawn wire needs the mirror check: a segment
-    crossing a foreign label anchor or a foreign pin would merge two nets
-    silently, and this is the one net on the board where a silent merge is
-    the whole failure mode.  Every label added AFTER this call is covered by
-    schlib's guard, so the two directions together are complete.
+    crossing a foreign label anchor or a foreign pin would silently pull that
+    node onto `/AGND_SENSE`, and a three-node sense net that has quietly
+    become a four-node one is exactly the defect nothing downstream reports.
+    Every label added AFTER this call is covered by schlib's guard, so the
+    two directions together are complete.
     """
     hazards = (_label_anchors(sh) | _pin_points(sh)) - {path[0], path[-1]}
     for a, b in zip(path, path[1:]):
@@ -258,27 +295,49 @@ def sense_run(sh: schlib.Sheet, path: list) -> None:
 
 
 # ------------------------------------------------------------------ the note
+# One list element = one rendered line.  Keep the count at or under 15: the
+# box is 22.86 mm tall in the only free band on the sheet (between U1's row and
+# U2's) and the rendered line pitch at font 1.0 is about 1.37 mm.  The full
+# derivations live in this module's docstring; the sheet carries the operative
+# statement, not the argument.
 NOTES = [
-    "NOTE 1  U1 -IN IS A DEDICATED SENSE RUN, NOT A GROUND SYMBOL.  It is wired"
-    " by the explicit wire below to R5's bottom pad - the attenuator string's",
-    "        bottom node - and meets GND only there.  A divider passes a ground"
-    " offset at UNITY while dividing the signal by K = 0.400, so 1 mV of",
-    "        offset between the string bottom and the converter is 2.5 mV at the"
-    " terminal: half the 25 degC budget.  Bound: -IN must stay within",
-    "        -0.3 V to +0.5 V of U1's GND pin (ADS8326, absolute).  P7 keeps it"
-    " a dedicated run - constraints.json corridor R5 -> U1, 3 mm.",
+    "NOTE 1  THE SENSE IS ITS OWN NET.  /AGND_SENSE has exactly three nodes -"
+    " U1 pin 3 (-IN), R5's bottom pad, R8 - and R8 (0 ohm) is the ONE tie to"
+    " GND, at the string bottom.  U1 pin 3 must",
+    "        NEVER carry a GND label or a GND symbol, and no second tie may be"
+    " added anywhere.  A PART and not a label because a divider passes a ground"
+    " offset at UNITY while dividing",
+    "        the signal by K = 0.400 (1 mV between string bottom and converter"
+    " = 2.5 mV at the terminal, half the 25 degC budget), and on a shared GND"
+    " net the B.Cu pour would tie pin 3",
+    "        to the pour AT THE CONVERTER just as it ties pin 4.  Split, the"
+    " reading is K*(V_sig - V_S) + Vos - the only residual is the"
+    " J1-return-to-string-bottom pour offset, at UNITY,",
+    "        carrying just the string's 5 uA: sub-1 uV.  -IN sits ~0.25 uV off"
+    " U1 GND through R8, six orders inside the -0.3/+0.5 V window.  P7: keep"
+    " the run dedicated.",
     "NOTE 2  The guard ring around /AIN_DIV and U3 +IN is P7 COPPER on /AIN_BUF"
     " (the buffer OUTPUT), never on /AIN_DIV itself.  No schematic element.",
     "NOTE 3  R7 + C2 + C8 are the ADS8326's own recommended rail entry (figs"
-    " 44/45): R7 upstream of both caps, C2 the smaller and closest to the pin.",
-    "        It isolates U1 ALONE - U2 and U3 stay on +3V3 upstream of R7.  No"
-    " ferrite anywhere.",
+    " 44/45): R7 upstream of both caps, C2 the smaller and closest to the pin."
+    "  It isolates U1 ALONE - U2 and U3 stay upstream on +3V3.  No ferrite.",
     "NOTE 4  NO series resistor between U2 VOUT and C3 / U1 REF (recorded"
-    " ruling): a SAR's reference current varies with input code, so a series R",
-    "        becomes a code-dependent nonlinearity.  C5 >= 1 uF is MANDATORY -"
-    " the ADR4520's 1-100 uF load-capacitance window is two-ended.",
+    " ruling): a SAR's reference current varies with input code, so a series R"
+    " becomes a code-dependent nonlinearity.",
+    "        C5 >= 1 uF is MANDATORY - the ADR4520's 1-100 uF load-capacitance"
+    " window is two-ended.",
     "NOTE 5  R1-R5 are FIVE EQUAL 200 k elements in ONE string tapped 3:2"
     " (K = 0.400, Rtot 1.00 Mohm, tap Thevenin 240 kohm).  Do not collapse.",
+    "NOTE 6  *** J2 MIS-MATE IS DESTRUCTIVE AND UNPROTECTED: pin 1 = +3V3 and"
+    " pin 6 = GND, so a 180 degree reversal shorts the host's rail to its own"
+    " ground through the cable.  No series",
+    "        protection, no reverse diode, no keyed housing - all excluded by"
+    " the scope tier.  P6 must silk a pin-1 marker and a 1..6 legend. ***",
+    "NOTE 7  HOST POWER-UP: wait >= 50 ms after +3V3 before trusting a"
+    " conversion.  The reference settles in 90 us typ, but slew-limited"
+    " charging of the ~49.2 uF on VREF at its 10 mA",
+    "        source limit is ALREADY 7-10 ms - a 10 ms wait has ~1x margin;"
+    " 50 ms restores the 5x it was meant to carry.",
 ]
 
 
@@ -333,19 +392,28 @@ def build() -> schlib.Sheet:
               ("R2", X_C, Y_IN, "ATT_A", "ATT_B"),
               ("R3", X_D, Y_IN, "ATT_B", "AIN_DIV"),   # <- the 3:2 tap
               ("R4", X_B, Y_ATT, "AIN_DIV", "ATT_C"),
-              ("R5", X_C, Y_ATT, "ATT_C", "GND"))      # <- the bottom node
+              ("R5", X_C, Y_ATT, "ATT_C", "AGND_SENSE"))  # <- bottom node
     for ref, x, y, top, bot in string:
         add(S_R200K, ref, "200K 0.02% 10ppm/C", (x, y), F_R0805,
             {"1": top, "2": bot},
             note="attenuator string element 1 of 5, all one part number; "
                  "K = 0.400 comes from 3 above the tap and 2 below")
 
-    # THE REFERENCE TIE.  The string's bottom node is where the signal chain
-    # meets GND, and it is a REFERENCE tie, not a return: it must not share
-    # copper with any return carrying other current, because that copper's IR
-    # drop adds to the signal at FULL weight.  The GND symbol is placed HERE,
-    # on R5's own pad, so the drawing says where ground enters the chain.
-    sh.power_symbol_at_pin("R5", "2", "power:GND")
+    # THE REFERENCE TIE, AND IT IS A PART, NOT A LABEL.  The string's bottom
+    # node is where the signal chain meets GND, and it is a REFERENCE tie, not
+    # a return: it must not share copper with any return carrying other
+    # current, because that copper's IR drop adds to the signal at FULL weight.
+    # R8 (0 ohm) is that tie and it is the ONLY one - which is what keeps
+    # /AGND_SENSE a separate net, and a separate net is the only thing the
+    # B.Cu GND pour will not swallow.  Putting a GND power symbol on R5's pad
+    # instead (the first version of this file) merges the sense into GND's
+    # sixteen nodes and lets planes_gen tie U1 pin 3 to the pour at the
+    # converter - see s0.  The GND symbol therefore hangs off R8's FAR side.
+    add(S_R0R, "R8", "0 ohm 1%", (147.32, Y_ATT), F_R0603,
+        {"1": "AGND_SENSE", "2": "GND"},
+        note="SINGLE-POINT REFERENCE TIE: /AGND_SENSE -> GND at the string "
+             "bottom. The only tie. Do not add a second one anywhere")
+    sh.power_symbol_at_pin("R8", "2", "power:GND")
 
     # ============================================================== buffer
     # U3 OPA320 unity-gain follower.  +IN from the tap, OUT tied to -IN by
@@ -376,10 +444,19 @@ def build() -> schlib.Sheet:
     add(S_R49R9, "R6", "49.9 ohm 1%", (X_B, Y_RC), F_R0603,
         {"1": "AIN_BUF", "2": "AIN_ADC"},
         note="PROVISIONAL 20-100 ohm window; P8 benches set the value")
+    # W5 (P4 review), a BENCH MANDATE and not a value change now: the
+    # "above the 20 x C_SH = 960 pF floor" check was made on the NOMINAL 1 nF.
+    # The fitted part is J-grade (+/-5 %), so its GUARANTEED minimum is 950 pF
+    # - BELOW the floor, by 10 pF.  The value stays as sourced because it is
+    # provisional pending the P8 benches; what changes is the bench's job:
+    # *** P8 must choose C7 on its GUARANTEED MINIMUM capacitance, with R6
+    # present, not on the nameplate value.  A K-grade (+/-10 %) part would be
+    # worse still, and 2.2 nF C0G is the obvious headroom if the bench asks. ***
     add(S_C1N, "C7", "1nF 50V C0G/NP0", (X_D, Y_RC), F_C0603,
         {"1": "AIN_ADC", "2": "GND"},
         note="PROVISIONAL 1-2.2nF window; C0G/NP0 - no DC-bias or "
-             "temperature drift")
+             "temperature drift. P8 must size it on GUARANTEED MIN (J-grade "
+             "1nF = 950pF vs the 960pF 20xC_SH floor), with R6 present")
 
     # ============================================================ converter
     # U1 ADS8326IB.  Pin map from parts/C544731.json:
@@ -387,14 +464,15 @@ def build() -> schlib.Sheet:
     #   2 +IN -> /AIN_ADC    6 DOUT    -> /DOUT
     #   3 -IN -> SENSE RUN   7 DCLOCK  -> /SCLK
     #   4 GND -> GND         8 VDD     -> VDD_ADC (behind R7)
-    # Pin 3 is DELIBERATELY ABSENT from `pins`: wiring it here would give it a
-    # label, and a "GND" label at the converter is exactly the failure this
-    # board is built to avoid.  It is wired by sense_run() below, after R5
-    # and U1 both exist.
+    # Pin 3 goes to `/AGND_SENSE` and NEVER to `GND` - a "GND" label at the
+    # converter is exactly the failure this board is built to avoid, and so is
+    # a GND-named net that a pour can reach.  The label makes the connection;
+    # sense_run() below ALSO draws the physical run to R5's pad, because the
+    # length and isolation of that run are what P7 has to preserve.
     sh.place_ic_with_decoupling(
         "U1", S_U1, "ADS8326IB", at=(X_B, Y_ADC), footprint=F_U1,
-        pins={"1": "VREF", "2": "AIN_ADC", "4": "GND", "5": "CS",
-              "6": "DOUT", "7": "SCLK", "8": "VDD_ADC"},
+        pins={"1": "VREF", "2": "AIN_ADC", "3": "AGND_SENSE", "4": "GND",
+              "5": "CS", "6": "DOUT", "7": "SCLK", "8": "VDD_ADC"},
         expect={"1": "REF", "2": "+IN", "3": "-IN", "4": "GND", "5": "CS",
                 "6": "DOUT", "7": "DCLOCK", "8": "VDD"},
         decoupling=[
@@ -423,9 +501,14 @@ def build() -> schlib.Sheet:
     # with every segment proved clear of every existing label anchor and pin.
     # It is drawn HERE, before the remaining labels are placed, so schlib's
     # own guard covers the other direction for everything that follows.
-    u1_in = sh.pin_pos("U1", "3")
+    # It starts at pin 3's STUB END - the point that already carries the
+    # /AGND_SENSE label - so the label, the stub and the run are one node.
+    u1_pin = sh.pin_pos("U1", "3")
+    u1_dir = sh._pin_out_dir("U1", "3")
+    u1_in = (round(u1_pin[0] + u1_dir[0] * schlib.STUB, 4),
+             round(u1_pin[1] + u1_dir[1] * schlib.STUB, 4))
     r5_bot = sh.pin_pos("R5", "2")
-    x_drop = round(u1_in[0] - 4 * schlib.STUB, 4)     # clear of U1's stubs
+    x_drop = round(u1_in[0] - 3 * schlib.STUB, 4)     # clear of U1's stubs
     sense_run(sh, [u1_in,
                    (x_drop, u1_in[1]),
                    (x_drop, Y_SENSE),
@@ -473,11 +556,23 @@ def build() -> schlib.Sheet:
     # read-only (CS, DCLOCK, DOUT - no MOSI), so the block needs 5, and
     # spending the sixth on a second ground puts a return reference at BOTH
     # ends of the digital group (D3/D4) instead of leaving a pin floating.
+    # *** W4 (P4 review): A 180 DEGREE MIS-MATE IS DESTRUCTIVE AND UNGUARDED.
+    # Pin 1 is +3V3 and pin 6 is GND, so a reversed connector shorts the
+    # host's own rail to its own ground through the mating cable.  Nothing on
+    # this board opposes it: series protection, a reverse diode and a keyed
+    # or shrouded housing are all excluded by the scope tier, and the
+    # checklist asks for the hazard to be STATED rather than fixed.  So it is
+    # stated three times - here, in J2's Note field (which reaches the BOM and
+    # the design doc) and in NOTE 6 on the sheet - and P6 owns the silkscreen
+    # half: a pin-1 marker plus a printed 1..6 polarity legend at the header.
     add(S_J2, "J2", "1x6P 2.54mm male header", (X_A, Y_HOST), F_J2,
         {"1": "+3V3", "2": "GND", "3": "CS", "4": "SCLK", "5": "DOUT",
          "6": "GND"},
         note="HOST SPI: 1=+3V3 2=GND 3=/CS 4=/SCLK 5=/DOUT 6=GND. RIGHT "
-             "edge, opening outward")
+             "edge, opening outward. HAZARD: 180deg mis-mate shorts the host "
+             "rail to its ground - UNPROTECTED, P6 must silk a pin-1 marker "
+             "and a 1..6 legend. Host: wait >=50ms after +3V3 before trusting "
+             "a conversion")
 
     # C1: bulk reservoir at the RAIL ENTRY, not at the converter.  Earned by
     # arithmetic - a 1 mA step in 100 ns across the host lead's ~1 uH is 10 mV
@@ -522,12 +617,16 @@ def build() -> schlib.Sheet:
     # add_text is CENTRE-justified with no justify parameter, so the note
     # block uses add_text_box, which has one.
     sh.sch.add_text_box("\n".join(NOTES), position=(12.70, Y_NOTE),
-                        size=(190.50, 22.86), font_size=1.0,
+                        size=(190.50, 22.86), font_size=0.9,
                         stroke_width=0.254, stroke_type="solid",
                         fill_type="none", justify_horizontal="left",
                         justify_vertical="top")
-    sh.sch.add_text("U1 -IN SENSE RUN to R5 bottom pad - NOT a GND symbol "
-                    "at U1", position=(93.98, 90.17), size=1.27)
+    sh.sch.add_text("/AGND_SENSE - the -IN sense run: U1 pin 3 to R5's bottom "
+                    "pad, tied to GND ONLY through R8",
+                    position=(93.98, 90.17), size=1.27)
+    sh.sch.add_text("J2 PIN 1 = +3V3  -  180 deg mis-mate shorts the host rail "
+                    "to its ground (unprotected)",
+                    position=(93.98, 190.50), size=1.27)
     return sh
 
 

@@ -3,20 +3,20 @@
  "board": "bb-adc",
  "workspace": "boards/bb-adc",
  "created": "2026-08-16T17:25:12",
- "updated": "2026-08-17T21:30:22",
+ "updated": "2026-08-18T08:52:06",
  "phase": "P4",
  "gates": {
   "erc": {
    "phase": "P4",
    "status": "pass",
-   "attempts": 1,
+   "attempts": 2,
    "last": {
-    "ts": "2026-08-17T21:30:22",
+    "ts": "2026-08-18T08:52:06",
     "status": "pass",
     "failing_count": 0,
     "total": 0,
     "inputs": {
-     "sch": "sexpr_no_uuid:65137a1e5d3a3b6aa1db0b25b00a804facede1f23d341a7a184835957a868d41",
+     "sch": "sexpr_no_uuid:8e758f7b13b53122e814ab2dae9dcd13a6a5d6b6b657868bdfdbcd2f78bed6b4",
      "pro": "json_canonical:b4f7cf3a2ad720849ac4f33bb8dff4178f7298fb984e3e747d36eb7b44eff80d"
     }
    },
@@ -28,6 +28,16 @@
      "total": 0,
      "inputs": {
       "sch": "sexpr_no_uuid:65137a1e5d3a3b6aa1db0b25b00a804facede1f23d341a7a184835957a868d41",
+      "pro": "json_canonical:b4f7cf3a2ad720849ac4f33bb8dff4178f7298fb984e3e747d36eb7b44eff80d"
+     }
+    },
+    {
+     "ts": "2026-08-18T08:52:06",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "sch": "sexpr_no_uuid:8e758f7b13b53122e814ab2dae9dcd13a6a5d6b6b657868bdfdbcd2f78bed6b4",
       "pro": "json_canonical:b4f7cf3a2ad720849ac4f33bb8dff4178f7298fb984e3e747d36eb7b44eff80d"
      }
     }
@@ -45,14 +55,14 @@
   "sch": {
    "path": "kicad/bb-adc.kicad_sch",
    "kind": "sch",
-   "sha256": "sexpr_no_uuid:65137a1e5d3a3b6aa1db0b25b00a804facede1f23d341a7a184835957a868d41",
-   "hashed": "2026-08-17T21:30:22"
+   "sha256": "sexpr_no_uuid:8e758f7b13b53122e814ab2dae9dcd13a6a5d6b6b657868bdfdbcd2f78bed6b4",
+   "hashed": "2026-08-18T08:52:06"
   },
   "pro": {
    "path": "kicad/bb-adc.kicad_pro",
    "kind": "pro",
    "sha256": "json_canonical:b4f7cf3a2ad720849ac4f33bb8dff4178f7298fb984e3e747d36eb7b44eff80d",
-   "hashed": "2026-08-17T21:30:22"
+   "hashed": "2026-08-18T08:52:06"
   }
  },
  "open_issues": [],
@@ -516,6 +526,24 @@
    "why": "I had said \"wire it as its own net\", which was wrong and would have produced a worse board. What actually has to hold at P6/P7: R5s bottom pad sits IMMEDIATELY ADJACENT to U1 pin 3, the copper between them is short and direct, and NO digital or supply return current flows through that copper. The error term is the IR drop between those two points, and with a solid pour plus adjacent placement it is microvolts; with careless placement, SPI return current crossing that segment puts millivolts there, and 1 mV becomes 2.5 mV input-referred. constraints.json already carries this correctly as an R5->U1 corridor on net GND with the \"reference tie, not a ground connection\" rider. Note what this means for routing: with a B.Cu GND pour the router will connect both pins to the pour rather than draw a dedicated trace, and that is FINE - the requirement is on the geometry, not on a trace",
    "phase": "P4",
    "ts": "2026-08-17T21:30:20"
+  },
+  {
+   "what": "E1 ACCEPTED and my own P4 clarification is REVERSED: placement alone does NOT preserve the Kelvin sense. On the netlist U1.3 is one of 16 GND nodes, so the B.Cu pour will thermal-connect pin 3 exactly like pin 4 and reference the measurement to the pour AT THE CONVERTER - deleting the 2.5x cancellation with every gate green. A corridor is a keep-clear swath, not a connectivity rule. FIX: give the sense its own net /AGND_SENSE (U1.3 + R5 bottom) tied to GND through a single 0 ohm link R8 placed at the string bottom",
+   "why": "I had reasoned that adjacent placement makes the IR drop microvolts and called the netlist-level fix unnecessary. That is true of the drop but misses the mechanism: the pour does not merely add a parallel path, it TERMINATES pin 3 locally, so the sense node stops being the string bottom at all. The 0 ohm link makes the arrangement netlist-enforced - every gate then checks it, the pour cannot cover /AGND_SENSE, and the router must route U1.3 to R5s pad. Cost is one Basic 0402. Algebra after the fix: the measurement is K*(V_sig - V_S) + Vos, so the ONLY residual is the offset between J1s return pin and the string bottom, which the reviewer measured as sub-1 uV on a solid pour. In scope: this is a topology element the block needs to work, not protection, filtering, an indicator or a second rail",
+   "phase": "P4",
+   "ts": "2026-08-17T21:54:53"
+  },
+  {
+   "what": "W1 (reference headroom vs ripple) ACCEPTED AS ANALYSIS, no design change. The 87 mV DC margin stands and ripple troughs are NOT a dropout risk here: the reference carries ~49 uF on its output against a microamp load, so a trough of tens of mV lasting microseconds cannot move VOUT measurably. No RC filter is added to the references input - the scope tier excludes filtering the datasheet does not require, and this analysis says it is not required",
+   "why": "The reviewer is right that the 87 mV was compared against DC tolerance alone while the verified record says tolerance + IR drop + ripple trough, and that is the correct challenge to raise. But the output capacitance answers it: a series-reference dropout spec is a DC condition, and the loop plus 49 uF holds VOUT through brief input dips. What DOES bind, and is now stated explicitly: this design is validated for a host rail whose DC level stays at or above 3.135 V. If the real rail sits lower, the margin is gone and no capacitor recovers it",
+   "phase": "P4",
+   "ts": "2026-08-17T21:54:53"
+  },
+  {
+   "what": "W2/W3/W4/W5 dispositions: W2 - the published error budget was computed on the OPA333 and must be restated for the OPA320 actually fitted (RSS 3.25/3.42 mV, worst case 8.58/10.74 mV; over-temp worst-case margin 14 pct -> 10.5 pct, and the bias-current row improves ~200x, never credited). W3 - the host power-up wait rises from >=10 ms to >=50 ms: slew-limited charging of 49.2 uF at the 10 mA source limit is ALREADY 7-10 ms, so the old figure had ~1x margin, not 50x. W4 - J2s 180-degree mis-mate shorts the host rail to its own ground; the connector checklist requires this be STATED when destructive, so it goes on the silkscreen and into the design doc. W5 - C7s 20x-C_SH floor was checked on NOMINAL; the fitted J-grade part guarantees only 950 pF against a 960 pF floor, so the P8 bench must choose C7 on its GUARANTEED minimum, with R6 present (the isolation resistor is what lifts the pure-cap-load limit)",
+   "why": "None of these changes the topology; all four are numbers or statements that were wrong or missing. W3 is the one with real consequence - a host that waits 10 ms would read a reference that has not finished starting, and every conversion in that window is simply wrong. Also noted for correction: constraints.json records VREF current as 7 uA where the datasheet row is 14 uA max; nothing moves, flagged so it is not reused somewhere tighter",
+   "phase": "P4",
+   "ts": "2026-08-17T21:54:53"
   }
  ],
  "edits": [],
@@ -639,6 +667,12 @@
    "role": "librarian",
    "model": "sonnet/medium",
    "phase": "P3"
+  },
+  {
+   "ts": "2026-08-17T21:31:24",
+   "role": "schematic-reviewer",
+   "model": "opus/xhigh (SUBSTITUTED for fable/high)",
+   "phase": "P4"
   }
  ],
  "history": [
@@ -1376,6 +1410,35 @@
    "gate": "erc",
    "status": "pass",
    "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-17T21:31:24",
+   "event": "spawn",
+   "role": "schematic-reviewer",
+   "model": "opus/xhigh (SUBSTITUTED for fable/high)"
+  },
+  {
+   "ts": "2026-08-17T21:54:53",
+   "event": "decision",
+   "what": "E1 ACCEPTED and my own P4 clarification is REVERSED: placement alone does NOT preserve the Kelvin sense. On the netlist U1.3 is one of 16 GND nodes, so the B.Cu pour will thermal-connect pin 3 exactly like pin 4 and reference the measurement to the pour AT THE CONVERTER - deleting the 2.5x cancellation with every gate green. A corridor is a keep-clear swath, not a connectivity rule. FIX: give the sense its own net /AGND_SENSE (U1.3 + R5 bottom) tied to GND through a single 0 ohm link R8 placed at the string bottom"
+  },
+  {
+   "ts": "2026-08-17T21:54:53",
+   "event": "decision",
+   "what": "W1 (reference headroom vs ripple) ACCEPTED AS ANALYSIS, no design change. The 87 mV DC margin stands and ripple troughs are NOT a dropout risk here: the reference carries ~49 uF on its output against a microamp load, so a trough of tens of mV lasting microseconds cannot move VOUT measurably. No RC filter is added to the references input - the scope tier excludes filtering the datasheet does not require, and this analysis says it is not required"
+  },
+  {
+   "ts": "2026-08-17T21:54:53",
+   "event": "decision",
+   "what": "W2/W3/W4/W5 dispositions: W2 - the published error budget was computed on the OPA333 and must be restated for the OPA320 actually fitted (RSS 3.25/3.42 mV, worst case 8.58/10.74 mV; over-temp worst-case margin 14 pct -> 10.5 pct, and the bias-current row improves ~200x, never credited). W3 - the host power-up wait rises from >=10 ms to >=50 ms: slew-limited charging of 49.2 uF at the 10 mA source limit is ALREADY 7-10 ms, so the old figure had ~1x margin, not 50x. W4 - J2s 180-degree mis-mate shorts the host rail to its own ground; the connector checklist requires this be STATED when destructive, so it goes on the silkscreen and into the design doc. W5 - C7s 20x-C_SH floor was checked on NOMINAL; the fitted J-grade part guarantees only 950 pF against a 960 pF floor, so the P8 bench must choose C7 on its GUARANTEED minimum, with R6 present (the isolation resistor is what lifts the pure-cap-load limit)"
+  },
+  {
+   "ts": "2026-08-18T08:52:06",
+   "event": "gate",
+   "gate": "erc",
+   "status": "pass",
+   "attempt": 2,
    "failing_count": 0
   }
  ],

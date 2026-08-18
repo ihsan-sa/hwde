@@ -1,0 +1,70 @@
+{
+  "violations": [
+    {
+      "check": "schematic-review",
+      "severity": "error",
+      "pos": null,
+      "layer": null,
+      "net": "GND",
+      "refs": ["U1", "R5"],
+      "msg": "The -IN Kelvin sense is drawn correctly in the schematic (U1 pin 3 has no GND symbol and no GND label; a dedicated 5-segment wire runs it to R5's bottom pad, the sheet's only power:GND instance) but nothing downstream can enforce it: on the netlist U1.3 is one of 16 nodes on GND, so the B.Cu GND pour will thermal-connect pin 3 to local ground copper exactly like pin 4, silently deleting the board's largest error-cancellation mechanism (a divider passes ground offset at unity while dividing signal by K=0.400, so the offset returns to the terminal x2.5, up to 2.5 mV = half the 25 C budget) while ERC, DRC, netlist_audit, check_return_path and check_pdn all stay green - the R5->U1 corridor is a keep-clear swath, not a 'pin 3 connects only to R5 pad 2' rule; it does not stop the board converting, it voids the spec the board exists to make.",
+      "source": "review.schematic",
+      "kind": "kelvin-sense-not-enforceable"
+    },
+    {
+      "check": "schematic-review",
+      "severity": "warning",
+      "pos": null,
+      "layer": null,
+      "net": "+3V3",
+      "refs": ["U2", "J2", "C1", "C4"],
+      "msg": "The reference's 87 mV of input headroom (3.135 V worst-case rail vs the ADR4520's guaranteed 3.048 V floor) was computed against DC tolerance only, but the verified record series-voltage-reference-input-headroom-gate says to compare against 'tolerance + IR drop + ripple trough' and answered Q7 grants the host 'tens of mV' of noise - subtracting it leaves 40-60 mV or nothing, and the design itself records that dropout is the point where VOUT has ALREADY degraded 0.1 pct = 2.05 mV on VREF = 5 mV of gain error at a 5 V reading = the entire 25 C budget, with slow recovery into 49 uF.",
+      "source": "review.schematic",
+      "kind": "ref-headroom-ignores-rail-ripple"
+    },
+    {
+      "check": "schematic-review",
+      "severity": "warning",
+      "pos": null,
+      "layer": null,
+      "net": null,
+      "refs": ["U3"],
+      "msg": "The board's published accuracy claim (RSS 3.23/3.36 mV, worst-case sum 8.35/10.29 mV) is computed on OPA333 error rows, but U3 is OPA320AIDBVR and P3 made that final; recomputing rows 7 and 8 from the OPA320 datasheet (Vos 150 uV max, drift 5 uV/C max, IB 0.9 pA at 25 C and 50 pA over -40..+85 C into 240 kohm Thevenin, x2.5 to the terminal) gives RSS 3.25/3.42 mV and worst-case sum 8.58/10.74 mV - still inside the 5/12 mV targets, but the over-temperature worst-case margin falls from 1.71 mV to 1.26 mV and the numbers on the claim are wrong as published.",
+      "source": "review.schematic",
+      "kind": "budget-stale-opa333"
+    },
+    {
+      "check": "schematic-review",
+      "severity": "warning",
+      "pos": null,
+      "layer": null,
+      "net": "VREF",
+      "refs": ["U2", "C3", "C5"],
+      "msg": "power_tree.md s5 tells the host to 'wait >= 10 ms after +3V3 before trusting a conversion' and justifies it as '>= 50x the worst case in this class' from a ~120-200 us class settling figure, but that ignores the 49.2 uF this board hangs on VREF (C3 47 uF + C5 2.2 uF): slew-limited charging to 2.048 V at the ADR4520's +10 mA output capacity is already 7-10 ms before any settling to 10 ppm, so the stated wait is about 1x the charge time, not 50x, and a host obeying it reads during reference settling.",
+      "source": "review.schematic",
+      "kind": "ref-turnon-wait-too-short"
+    },
+    {
+      "check": "schematic-review",
+      "severity": "warning",
+      "pos": null,
+      "layer": null,
+      "net": "+3V3",
+      "refs": ["J2"],
+      "msg": "J2 is a plain 1x6 0.1 inch header with pin 1 = +3V3 and pin 6 = GND, so a 180-degree mis-mate shorts the host's 3.3 V rail to its own ground through the board (host pin 1 onto board pin 6 and host pin 6 onto board pin 1); the connector checklist requires the reverse-plug consequence to be STATED and flagged when destructive, and nothing in requirements.md, blocks.md, sheets.md or J2's Note field says it - this asks for the statement, not for protection hardware the scope tier excludes.",
+      "source": "review.schematic",
+      "kind": "reverse-plug-not-stated"
+    },
+    {
+      "check": "schematic-review",
+      "severity": "warning",
+      "pos": null,
+      "layer": null,
+      "net": "/AIN_ADC",
+      "refs": ["C7"],
+      "msg": "parts.json claims C7's 1 nF is 'above the 20xC_SH = 960 pF floor', but the fitted part CC0603JRNPO9BN102 is J-grade +/-5 pct, so its guaranteed minimum is 950 pF - below the board's own floor, with no recovery available since C0G contributes no temperature or DC-bias drift; the claim is made on nominal where this board's stated discipline is that every dominant term is a vendor-guaranteed number, and the fix is not free because 1 nF is already the OPA320's stated maximum stable pure capacitive load in unity gain, so both facts belong to the P8 buffer-stability and acquisition-settling benches.",
+      "source": "review.schematic",
+      "kind": "c7-tolerance-below-own-floor"
+    }
+  ]
+}

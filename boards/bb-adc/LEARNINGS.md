@@ -427,3 +427,57 @@ labels are placed, so schlib's own guard covers everything that follows: the two
 directions together are complete. Verified after the build by dumping the exported net
 memberships (14 real nets, `U1.3` and `R5.2` together on `GND` and nothing else joined)
 and by asserting all four wire segments are present in the saved file.
+
+## 2026-08-18 [P4][schematic][analog][layout] SUPERSEDES the 2026-08-17 sense-run entry: a remote sense must be its OWN NET with a single-point tie PART - "electrically one net" is the wrong unit of analysis once a pour exists
+
+The 2026-08-17 entry above reasoned that `U1` -IN and the attenuator's bottom node are
+electrically one net, so the schematic's job was the WIRE and `constraints.json`'s
+`R5` -> `U1` corridor would carry the Kelvin intent into copper. **Both halves are
+wrong, and the adversarial review (E1) found it.**
+
+1. **"One net" stops being true the moment a plane is poured.** On the netlist `U1.3`
+   was one of SIXTEEN `GND` nodes, indistinguishable from `U1.4`. `planes_gen` connects
+   every node of the pour's net, so pin 3 gets a thermal to the B.Cu pour at the
+   converter exactly as pin 4 does - and the measurement is then referenced to the pour
+   AT THE CONVERTER, which is the error the sense exists to cancel. The drawn wire does
+   not survive netlist export; only nets do.
+2. **A corridor is a KEEP-CLEAR SWATH, not a connectivity rule.** It reserves area. It
+   cannot stop a pour from tying a node, and no gate reads it as if it could.
+
+The fix that works is structural: `/AGND_SENSE` as its own net with exactly three nodes
+(`U1.3`, `R5.2`, `R8.1`) and `R8`, a 0 ohm link, as the ONE tie to `GND` at the string
+bottom. The pour cannot swallow a net that is not `GND`, so the isolation is now
+enforced by connectivity rather than by intent. Residual after the split:
+`K*(V_sig - V_S) + Vos`, where the only error term is the J1-return-to-string-bottom
+pour offset, input-referred at UNITY and carrying only the string's own 5 uA - sub-1 uV.
+`R8` adds ~0.25 uV, leaving -IN six orders inside the -0.3/+0.5 V window.
+
+**The transferable rule: any Kelvin / remote-sense / star-point node needs a NET of its
+own and a physical single-point tie (0 ohm link or a deliberate junction), never a
+shared ground net plus a placement hint.** Cost here was one Basic 0402-class part from
+the same reel family as R6/R7. Corollary worth its own line: `netlist_audit`'s
+`_constraint_nets` covers `high_speed`, `power`, `voltages`, `thermal` and `diff_pairs`
+- it does NOT read `placement.corridors[].net`, so a corridor naming a net that does not
+exist passes silently. Sheets.md s6's "an entry naming a net that does not exist fails
+silently" applies to corridors with no gate behind it; check it by hand at P4.
+
+## 2026-08-18 [P4][parts][lib_pull][erc] A freshly pulled symbol comes back with `input` pins into a library whose other symbols were already retyped - and the whole-library fixer would undo a hand-edit
+
+Adding `R8` mid-P4 meant one new `lib_pull.py --lcsc C21189` into a library that P3 had
+already put through `lib_pin_types.py` plus a hand-edit. Two things fell out.
+
+**The pull is untyped.** `0603WAF0000T5E` arrived with BOTH pins typed `input` while its
+siblings `0603WAF499JT5E` / `0603WAF100JT5E` (same family, same reel, pulled at P3) were
+`passive`. Two `input` pins on a passive net is an ERC error waiting to happen, and the
+difference is invisible unless you dump pin types - `schlib.py --pins` reports it.
+
+**The whole-library fixer is not the answer.** `lib_pin_types.py` takes `--lib` and no
+symbol filter, and it has no NC concept: running it would silently revert `U2`'s five
+hand-set `no_connect` pins to `passive` (dry-run-confirmed at P3, decision 69a). So the
+repair was a SCOPED text edit - `(pin input line` -> `(pin passive line` inside that one
+symbol's block only, with an assert on the expected count - and both facts were verified
+afterwards: the new symbol reads `passive`/`passive`, `ADR4520BRZ-R7` still reads
+`no_connect` on 1/3/5/7/8. Rule: after any incremental `lib_pull` into an
+already-corrected library, diff the pin types of the NEW symbol only, and repair it
+scoped. `--overwrite` would have been worse - it re-pulls the parts whose types are the
+hand-corrected ones.

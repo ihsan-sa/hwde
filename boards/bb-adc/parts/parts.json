@@ -135,6 +135,24 @@
       "role": "Converter rail-entry isolation resistor, 10 ohm class per the ADS8326's own recommended application circuit (figs 44/45)."
     },
     {
+      "ref_prefix_hint": "R",
+      "refdes": ["R8"],
+      "block": "attenuator",
+      "mpn": "0603WAF0000T5E",
+      "lcsc": "C21189",
+      "brand": "UNI-ROYAL(Uniroyal Elec)",
+      "value": "0 ohm 1%",
+      "package": "0603",
+      "basic": true,
+      "type": "Basic",
+      "stock": 24612792,
+      "price": 0.0039,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2411221126_UNI-ROYAL-Uniroyal-Elec-0603WAF0000T5E_C21189.pdf",
+      "alternates": [],
+      "role": "THE SINGLE-POINT REFERENCE TIE. 0 ohm link from /AGND_SENSE (the attenuator string's bottom node and U1's -IN sense) to GND, placed at the string bottom. It exists to make the sense a SEPARATE NET so the B.Cu GND pour cannot thermal-connect U1 pin 3 the way it connects pin 4 - which would reference the measurement to the pour AT THE CONVERTER and reinstate the error the sense exists to cancel (P4 adversarial review E1). A placement corridor is a keep-clear swath, not a connectivity rule, so nothing but a distinct net carries this past P4.",
+      "package_note": "Same UNI-ROYAL 0603WAF family, package and tier as R6/R7, so it adds no new supplier, no new footprint and no new reel. Basic, 24.6M stock, live fetchable datasheet. Bulk resistance is the link's own few tens of milliohms; the string current through it is 5 uA (5 V / 1.00 Mohm), i.e. ~0.25 uV of offset - six orders inside the ADS8326's -0.3 V / +0.5 V -IN common-mode window."
+    },
+    {
       "ref_prefix_hint": "C",
       "refdes": ["C1"],
       "block": "entry",
